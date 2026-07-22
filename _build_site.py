@@ -191,9 +191,9 @@ marco narrativo STARGATE—. Los requisitos provienen de los enunciados y la gu�
 <section><div class="wrap">
 <a class="backlink" href="index.html">← Volver a la guía</a>
 <div class="eyebrow">Cómo se evalúa</div><h2>La evaluación continua</h2>
-<div class="official">📋 Oficial · <b>Las actividades suman 15 puntos</b>; haces las que prefieras hasta un máximo de <b>10 puntos</b> (la nota máxima de la evaluación continua).</div>
+<div class="official">📋 Oficial · <b>Las actividades suman 10 puntos</b> en total — la nota máxima de la evaluación continua. <span style="color:var(--amber)">Reparto por actividad en actualización.</span></div>
 <div class="grid cols-3" style="margin-top:14px">
-<div class="card"><h3>Actividades mayores</h3><p><b>Actividad 1</b> — imagen con IA · <span class="pts">4,3 pts</span><br><b>Actividad 2</b> — paisaje de aprendizaje · <span class="pts">consulta el valor en el aula</span></p></div>
+<div class="card"><h3>Actividades mayores</h3><p><b>Actividad 1</b> — imagen con IA<br><b>Actividad 2</b> — paisaje de aprendizaje<br><span class="pts">Reparto de puntos: por confirmar</span></p></div>
 <div class="card"><h3>Tests de tema</h3><p>Un test por tema (T1–T8). <span class="pts">0,1 pts</span> cada uno. Preparan para el examen.</p></div>
 <div class="card"><h3>Asistencia en directo</h3><p>Asistencia a <b>3 clases en directo</b> a lo largo del curso. <span class="pts">0,2 pts</span> cada una.</p></div>
 </div>
@@ -205,7 +205,7 @@ son <b>páginas de la Bitácora</b>. La nota mide tu avance; la Bitácora es lo 
 <section><div class="wrap">
 <div class="eyebrow amber">Misión mayor I · Planeta Fôrge</div><h2>Actividad 1 — Actividad didáctica a partir de una imagen con IA</h2>
 <p class="lead"><i>«La primera chispa.»</i> Diseñas una actividad para tu aula a partir de una imagen creada con IA,
-documentando el proceso con criterio docente. <span class="pill amber">4,3 puntos</span></p>
+documentando el proceso con criterio docente. <span class="pill amber">puntuación por confirmar</span></p>
 <div class="steps">
 <div class="step"><b>Planifica</b> <span class="tag-req">obligatorio</span><br>Define el alumnado, el tema del aula y la tarea que harán con la imagen.</div>
 <div class="step"><b>Crea la imagen con IA</b> <span class="tag-req">iteración</span><br>Prompt estructurado (contexto educativo + tipo de imagen + finalidad, modelo tipo CRAFT/RITA), <b>al menos una iteración</b>, y selección final con <b>tu criterio docente</b>. Cita la herramienta y respeta derechos de autor.</div>
