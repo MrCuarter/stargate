@@ -438,4 +438,17 @@ print("escrito: assets/js/stargate.js")
 for name,html in [("index.html",INDEX),("actividades.html",ACT),("recursos.html",REC)]:
     with open(os.path.join(HERE,name),"w") as fh: fh.write(html)
     print("escrito:",name, f"{len(html)//1024} KB")
+
+# Cache-busting: versiona CSS y JS por hash de su contenido, así el navegador
+# siempre coge la versión nueva cuando cambian (Hostinger cachea los assets 7 días).
+import hashlib
+def _ver(rel):
+    return hashlib.md5(open(os.path.join(HERE,rel),"rb").read()).hexdigest()[:10]
+vc,vj = _ver("assets/css/stargate.css"), _ver("assets/js/stargate.js")
+for name in ("index.html","actividades.html","recursos.html"):
+    p=os.path.join(HERE,name); s=open(p,encoding="utf-8").read()
+    s=s.replace('assets/css/stargate.css"', 'assets/css/stargate.css?v='+vc+'"')
+    s=s.replace('assets/js/stargate.js"',  'assets/js/stargate.js?v='+vj+'"')
+    open(p,"w",encoding="utf-8").write(s)
+print("cache-bust -> css?v="+vc+"  js?v="+vj)
 print("OK sitio generado")
