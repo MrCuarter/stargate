@@ -102,3 +102,26 @@ footer{padding:40px 22px 70px;text-align:center;color:var(--mut);font-size:.9rem
 footer a{color:var(--teal2)}
 .backlink{display:inline-block;margin:0 0 6px;color:var(--mut);text-decoration:none;font-size:.85rem}
 .backlink:hover{color:var(--teal)}
+/* Clicable + modal */
+.badge[data-key],.card-thumb[data-card]{cursor:pointer}
+.badge[data-key]:focus-visible,.card-thumb[data-card]:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+.modal-backdrop{position:fixed;inset:0;background:rgba(4,8,14,.84);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:100;padding:24px;opacity:0;transition:opacity .18s}
+.modal-backdrop.open{display:flex;opacity:1}
+.modal{background:linear-gradient(180deg,#101a28,#0b1119);border:1px solid var(--line);border-radius:20px;max-width:900px;width:100%;max-height:90vh;overflow:auto;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.modal-close{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--ink);width:40px;height:40px;border-radius:11px;font-size:1.15rem;line-height:1;cursor:pointer;z-index:3}
+.modal-close:hover{background:rgba(55,224,236,.14);border-color:var(--teal);color:var(--teal)}
+.modal-badge{display:grid;grid-template-columns:320px 1fr;gap:0}
+@media(max-width:640px){.modal-badge{grid-template-columns:1fr}}
+.modal-badge .fig{display:flex;align-items:center;justify-content:center;padding:34px 24px;background:radial-gradient(circle at 50% 42%,rgba(55,224,236,.12),transparent 70%)}
+.modal-badge .fig img{width:100%;max-width:240px;filter:drop-shadow(0 10px 34px rgba(55,224,236,.32))}
+.modal-badge .body{padding:34px 36px 36px 8px}
+@media(max-width:640px){.modal-badge .body{padding:6px 26px 30px}}
+.modal-badge .type{color:var(--teal);font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;font-family:'DMSans'}
+.modal-badge h3{font-family:'Unbounded';font-size:1.5rem;margin:.25em 0 0;color:#eafcff;line-height:1.15}
+.modal-badge dl{margin:1.3em 0 0}
+.modal-badge dt{color:var(--amber);font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;font-weight:700;font-family:'DMSans';margin-top:1.15em}
+.modal-badge dd{margin:.28em 0 0;color:var(--ink);line-height:1.55}
+.modal-card{position:relative;display:flex;align-items:center;justify-content:center;background:transparent}
+.modal-card img{max-height:88vh;max-width:92vw;width:auto;height:auto;border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.65);display:block}
+.modal-card .modal-close{top:-6px;right:-6px}
+@media(max-width:640px){.modal-card .modal-close{top:6px;right:6px}}

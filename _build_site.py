@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Genera el sitio STARGATE (multipágina, assets externos). Ejecutar desde web-stargate/."""
-import os
+import os, json
 HERE = os.path.dirname(os.path.abspath(__file__))
 FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E"
 
@@ -14,6 +14,7 @@ def head(title, desc, active):
 <meta name="theme-color" content="#080c14">
 <link rel="icon" href="{FAV}">
 <link rel="stylesheet" href="assets/css/stargate.css">
+<script src="assets/js/stargate.js" defer></script>
 </head><body>
 <nav class="nav"><div class="wrap">
 <a class="brand" href="index.html">◈ STARGATE</a>
@@ -57,13 +58,13 @@ CARDS=[k for k,*_ in PERS]+["E1_nebula","E2_capitan","E3_vaeon"]
 
 def badge(key,title,tag,sub,sm=False):
     c=" sm" if sm else ""
-    return (f'<figure class="badge{c}"><img loading="lazy" src="assets/img/insignias/{key}.png" alt="{title}">'
+    return (f'<figure class="badge{c}" data-key="{key}" title="Ver detalle"><img loading="lazy" src="assets/img/insignias/{key}.png" alt="{title}">'
             f'<figcaption><b>{title}</b><span class="tag">{tag}</span><em>{sub}</em></figcaption></figure>')
 def hito(key,title,sub):
-    return (f'<figure class="badge sm"><img loading="lazy" src="assets/img/insignias/{key}.png" alt="{title}">'
+    return (f'<figure class="badge sm" data-key="{key}" title="Ver detalle"><img loading="lazy" src="assets/img/insignias/{key}.png" alt="{title}">'
             f'<figcaption><b>{title}</b><em>{sub}</em></figcaption></figure>')
 def cardt(key):
-    return f'<div class="card-thumb"><img loading="lazy" src="assets/img/tarjetas/{key}_carta.png" alt="{key}"></div>'
+    return f'<div class="card-thumb" data-card="{key}" title="Ampliar tarjeta"><img loading="lazy" src="assets/img/tarjetas/{key}_carta.png" alt="Carta de {key}"></div>'
 
 pers_html="\n".join(badge(*p) for p in PERS)
 esp_html="\n".join(badge(*e) for e in ESP)
@@ -328,6 +329,78 @@ enlazarán/incrustarán aquí desde el canal. <b>En construcción.</b></p>
 </div>
 </div></section>
 ''' + FOOT
+
+# ================= DATOS DE LOS MODALES (insignias) =================
+# tipo · como (cómo se consigue) · cuando · tarea (qué hay que hacer)
+BADGE_INFO = {
+ # Personajes de la Tripulación Cero (Reto A)
+ "P1_bran":{"nombre":"Bran Okafor · El Forjador","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 1: «El boceto sin quemar».","cuando":"Tema 1 · Planeta Fôrge","tarea":"Publica en el foro un borrador en bruto de algo que estés creando y una frase sobre qué te daba reparo enseñarlo sin pulir. No se corrige: el único criterio es compartirlo antes de terminarlo. Al hacerlo se recupera el fragmento de Bran."},
+ "P2_tomas":{"nombre":"Tomás Reyer · El Cronista","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 2: «Un mensaje para quien faltó».","cuando":"Tema 2 · Planeta Ecos","tarea":"Graba un clip corto (máx. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no vino a clase. Debe entenderse solo, sin ti delante."},
+ "P3_sylla":{"nombre":"Sylla Bren · La Rastreadora","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 3: «Dos senderos».","cuando":"Tema 3 · Planeta Sendara","tarea":"Toma un objetivo de aprendizaje y describe dos rutas completamente distintas para alcanzarlo, pensadas para dos alumnos diferentes. Que las dos lleguen a la misma cima."},
+ "P4_amara":{"nombre":"Amara Sol · La Operadora","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 4: «Abre el canal».","cuando":"Tema 4 · Planeta Reliae","tarea":"Comparte con tu clase o el foro un recurso útil en menos de 24 h, aunque no esté pulido. Añade qué habrías «guardado en el cajón para pulir» y por qué esta vez no lo hiciste."},
+ "P5_vera":{"nombre":"Vera Khal · La Médica","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 5: «Mide con método».","cuando":"Tema 5 · Planeta Umbral","tarea":"Define un indicador observable que vayas a seguir de verdad del aprendizaje de tus alumnos, acompañado de la pregunta que lo convierte en cuidado: «¿qué haré mañana mejor que hoy?»."},
+ "P6_joran":{"nombre":"Joran Pike · El Ingeniero-jugador","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 6: «Ensaya jugando».","cuando":"Tema 6 · Planeta Ludo","tarea":"Coge algo que tus alumnos temen o les cuesta y conviértelo en un pequeño ensayo jugable (una mecánica: puntos, rutas, un enigma en cada paso). Que el juego sirva a un objetivo, no juego por juego."},
+ "P7_mara":{"nombre":"Mara Voss · El Mando","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 7: «Un porqué».","cuando":"Tema 7 · Planeta Vínculo","tarea":"Toma una tarea rutinaria y escribe el «porqué» / la narrativa que la convierte en una causa. Diseña una insignia con sentido: memoria de un acto significativo, no premio por obedecer."},
+ "P8_noa":{"nombre":"Noa Lieth · La Arquitecta de capas","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 8: «La capa posible».","cuando":"Tema 8 · Planeta Liminar","tarea":"Describe una «capa» sobre tu aula real: cómo sería si aprendiera a hablar de sí misma. Y elige un compromiso concreto que te llevas de todo el viaje. Con esto la Tripulación Cero queda completa."},
+ # Especiales
+ "E1_nebula":{"nombre":"NEBULA · La Bitácora viva","tipo":"Insignia de personaje (especial)","como":"Se obtiene en el Reclutamiento, al aceptar la misión.","cuando":"Inicio del viaje","tarea":"NEBULA es la IA de la nave y tu narradora constante. Su insignia marca tu alistamiento en STARGATE; te acompañará desde el primer día hasta la puerta de vuelta a casa."},
+ "E2_capitan":{"nombre":"El Capitán · El Mando de la misión","tipo":"Insignia de personaje (especial)","como":"Se obtiene al presentar la Actividad 1.","cuando":"Temas 1–2","tarea":"El Capitán es el mando de la misión (tu profesor o profesora). Su insignia reconoce que has asumido tu primera misión mayor: la actividad didáctica con imagen de IA."},
+ "E3_vaeon":{"nombre":"General Vaeon · Señor de la Estática","tipo":"Insignia de villano","como":"Se desbloquea en la batalla final y con el «Fragmento Prohibido».","cuando":"Cierre del viaje","tarea":"Vaeon es el antagonista: personifica los errores del diseño educativo (contenido que no se entiende, recursos que no llegan, saber no compartido). Coleccionar su carta es el trofeo de haber entendido al enemigo."},
+ # Retos (Reto B)
+ "R1_la-chispa":{"nombre":"La chispa","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 1.","cuando":"Tema 1 · Fôrge","tarea":"Genera con una IA una imagen con finalidad didáctica: prompt estructurado (contexto + tipo de imagen + finalidad), al menos una iteración, selección final con tu criterio docente y evidencia del proceso. Es el núcleo de la Actividad 1."},
+ "R2_el-eco-que-ensena":{"nombre":"El eco que enseña","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 2.","cuando":"Tema 2 · Ecos","tarea":"Crea un videotutorial de calidad (guion + grabación de pantalla + edición) y enriquécelo con 2–3 preguntas insertadas (videoquiz). Piénsalo para aula invertida y súbelo a la Bitácora con una reflexión breve."},
+ "R3_la-matriz":{"nombre":"La matriz","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 3.","cuando":"Tema 3 · Sendara","tarea":"Construye la matriz de programación 8×6 (8 inteligencias múltiples × 6 niveles de Bloom = 48 casillas) y rellena al menos 6 cruces variados, con una actividad en cada uno. Es el núcleo de planificación de la Actividad 2."},
+ "R4_entorno-de-aula":{"nombre":"El entorno de aula","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 4.","cuando":"Tema 4 · Reliae","tarea":"Monta un espacio digital de aula organizado (tipo Classroom, Sites, Moodle…) donde compartas materiales y puedas dar feedback y comunicarte en diferido y en directo. Deja enlace/captura + reflexión en la Bitácora."},
+ "R5_bitacora-medida":{"nombre":"La Bitácora medida","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 5.","cuando":"Tema 5 · Umbral","tarea":"Diseña una rúbrica digital sencilla y estructura formalmente tu ePortfolio (una sección por evidencia, con el patrón evidencia → contexto → reflexión → autoevaluación). Esta semana además se cierra la Actividad 1."},
+ "R6_el-juego":{"nombre":"El juego","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 6.","cuando":"Tema 6 · Ludo","tarea":"Adapta o crea un juego digital educativo para un objetivo concreto de tu aula. En Aprendizaje Basado en el Juego el juego ES la actividad: cada mecánica debe servir a un aprendizaje. Sube el juego + reflexión."},
+ "R7_microgamificacion":{"nombre":"La microgamificación","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 7.","cuando":"Tema 7 · Vínculo","tarea":"Diseña una microgamificación de calidad: un toque de juego sobre una tarea que NO es un juego (una insignia, una barra de progreso, un tablero, un reto con narrativa). Aquí no se juega: se toman elementos del juego para enganchar."},
+ "R8_ultimo-umbral":{"nombre":"El último umbral","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 8.","cuando":"Tema 8 · Liminar","tarea":"Crea una experiencia de Realidad Aumentada o Virtual para tu materia y termina y publica la Bitácora (paisaje como imagen interactiva + las 5 páginas completas + enlace único). Resuelve la Actividad 2."},
+ # Hitos
+ "H1_reclutamiento":{"nombre":"Reclutamiento","tipo":"Insignia de hito","como":"Preséntate ante el mando en la primera sesión.","cuando":"Semana 1","tarea":"Aceptas la misión: te alistas en el equipo de rescate de STARGATE y abres tu Bitácora Estelar."},
+ "H2_primera-forja":{"nombre":"Primera Forja","tipo":"Insignia de hito","como":"Entrega la Actividad 1.","cuando":"Temas 1–2","tarea":"Tu primera obra queda registrada en la Bitácora: la actividad didáctica creada a partir de una imagen con IA."},
+ "H3_cartografo":{"nombre":"Cartógrafo","tipo":"Insignia de hito","como":"Entrega la Actividad 2.","cuando":"Tema 3 (se resuelve en el 8)","tarea":"Dibujas un territorio, no un camino: entregas el paisaje de aprendizaje con su matriz de programación."},
+ "H4_tripulacion-cero":{"nombre":"Tripulación Cero","tipo":"Insignia de hito","como":"Desbloquea a los 8 personajes de la Cero.","cuando":"A lo largo del viaje","tarea":"Recuperas a Bran, Tomás, Sylla, Amara, Vera, Joran, Mara y Noa. NEBULA vuelve a estar completa."},
+ "H5_la-liberacion":{"nombre":"La Liberación","tipo":"Insignia de hito","como":"Completa y publica la Bitácora.","cuando":"Repaso final","tarea":"Una Bitácora abierta, copiada y compartida no se puede apagar: la Estática retrocede y la puerta a la Tierra se abre. Tu ePortfolio es el camino a casa."},
+}
+CARD_TITLES = {k: BADGE_INFO[k]["nombre"] for k in
+               ["P1_bran","P2_tomas","P3_sylla","P4_amara","P5_vera","P6_joran","P7_mara","P8_noa","E1_nebula","E2_capitan","E3_vaeon"]}
+
+JS_TEMPLATE = r"""// STARGATE — modales de insignias y tarjetas (autogenerado)
+(function(){
+  var BADGE=__BADGE__, CARDT=__CARDS__;
+  var back=document.createElement('div');
+  back.className='modal-backdrop'; back.setAttribute('role','dialog'); back.setAttribute('aria-modal','true');
+  document.body.appendChild(back);
+  function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function close(){back.classList.remove('open'); back.innerHTML=''; document.body.style.overflow='';}
+  function afterOpen(){back.classList.add('open'); document.body.style.overflow='hidden';
+    var b=back.querySelector('.modal-close'); if(b){b.addEventListener('click',close); b.focus();}}
+  function openBadge(key){var d=BADGE[key]; if(!d) return;
+    back.innerHTML='<div class="modal modal-badge"><button class="modal-close" aria-label="Cerrar">✕</button>'
+      +'<div class="fig"><img src="assets/img/insignias/'+key+'.png" alt="'+esc(d.nombre)+'"></div>'
+      +'<div class="body"><div class="type">'+esc(d.tipo)+'</div><h3>'+esc(d.nombre)+'</h3>'
+      +'<dl><dt>Cómo se consigue</dt><dd>'+esc(d.como)+'</dd>'
+      +'<dt>Cuándo</dt><dd>'+esc(d.cuando)+'</dd>'
+      +'<dt>Qué hay que hacer</dt><dd>'+esc(d.tarea)+'</dd></dl></div></div>';
+    afterOpen();}
+  function openCard(key){
+    back.innerHTML='<div class="modal-card"><button class="modal-close" aria-label="Cerrar">✕</button>'
+      +'<img src="assets/img/tarjetas/'+key+'_carta.png" alt="Carta de '+esc(CARDT[key]||key)+'"></div>';
+    afterOpen();}
+  back.addEventListener('click',function(e){if(e.target===back) close();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape') close();});
+  function wire(sel,attr,fn){Array.prototype.forEach.call(document.querySelectorAll(sel),function(el){
+    el.tabIndex=0; el.setAttribute('role','button');
+    el.addEventListener('click',function(){fn(el.getAttribute(attr));});
+    el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fn(el.getAttribute(attr));}});});}
+  wire('.badge[data-key]','data-key',openBadge);
+  wire('.card-thumb[data-card]','data-card',openCard);
+})();
+"""
+os.makedirs(os.path.join(HERE,"assets","js"),exist_ok=True)
+js = JS_TEMPLATE.replace("__BADGE__", json.dumps(BADGE_INFO, ensure_ascii=False)).replace("__CARDS__", json.dumps(CARD_TITLES, ensure_ascii=False))
+with open(os.path.join(HERE,"assets","js","stargate.js"),"w") as fh: fh.write(js)
+print("escrito: assets/js/stargate.js")
 
 for name,html in [("index.html",INDEX),("actividades.html",ACT),("recursos.html",REC)]:
     with open(os.path.join(HERE,name),"w") as fh: fh.write(html)
