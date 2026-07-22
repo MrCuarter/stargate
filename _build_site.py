@@ -203,7 +203,7 @@ marco narrativo STARGATE—. Los requisitos provienen de los enunciados y la gu�
 son <b>páginas de la Bitácora</b>. La nota mide tu avance; la Bitácora es lo que te llevas a casa.</blockquote>
 </div></section>
 
-<section><div class="wrap">
+<section id="act1"><div class="wrap">
 <div class="eyebrow amber">Misión mayor I · Planeta Fôrge</div><h2>Actividad 1 — Actividad didáctica a partir de una imagen con IA</h2>
 <p class="lead"><i>«La primera chispa.»</i> Diseñas una actividad para tu aula a partir de una imagen creada con IA,
 documentando el proceso con criterio docente. <span class="pill amber">puntuación por confirmar</span></p>
@@ -217,7 +217,7 @@ documentando el proceso con criterio docente. <span class="pill amber">puntuaci�
 <div class="official" style="margin-top:14px">🔗 Enunciado oficial: <b>«Creación de una actividad didáctica a partir de una imagen generada con IA»</b>.</div>
 </div></section>
 
-<section><div class="wrap">
+<section id="act2"><div class="wrap">
 <div class="eyebrow amber">Misión mayor II · Planeta Sendara</div><h2>Actividad 2 — Planifica y crea un paisaje de aprendizaje</h2>
 <p class="lead"><i>«Cuarenta y ocho senderos.»</i> Ante un aula con ritmos muy dispares, diseñas un paisaje de
 aprendizaje que atiende a la diversidad: no hay una sola ruta.</p>
@@ -231,7 +231,7 @@ aprendizaje que atiende a la diversidad: no hay una sola ruta.</p>
 <div class="official" style="margin-top:14px">🔗 Enunciado oficial: <b>«Planifica y crea un paisaje de aprendizaje»</b>.</div>
 </div></section>
 
-<section><div class="wrap">
+<section id="eportfolio"><div class="wrap">
 <div class="eyebrow teal">La Bitácora</div><h2>El ePortfolio, página a página</h2>
 <p class="lead">El ePortfolio es tu Bitácora: recoge, con el patrón <b>evidencia → contexto → reflexión →
 autoevaluación</b>, las dos actividades y tres retos. Estas son las <b>experiencias del portfolio</b> que propone
@@ -362,6 +362,36 @@ BADGE_INFO = {
  "H4_tripulacion-cero":{"nombre":"Tripulación Cero","tipo":"Insignia de hito","como":"Desbloquea a los 8 personajes de la Cero.","cuando":"A lo largo del viaje","tarea":"Recuperas a Bran, Tomás, Sylla, Amara, Vera, Joran, Mara y Noa. NEBULA vuelve a estar completa."},
  "H5_la-liberacion":{"nombre":"La Liberación","tipo":"Insignia de hito","como":"Completa y publica la Bitácora.","cuando":"Repaso final","tarea":"Una Bitácora abierta, copiada y compartida no se puede apagar: la Estática retrocede y la puerta a la Tierra se abre. Tu ePortfolio es el camino a casa."},
 }
+# Frase del personaje (se muestra en el modal de las insignias de personaje)
+CITAS = {
+ "P1_bran":"Copiadlo. Copiadlo todos.",
+ "P2_tomas":"Si ves esto, es que hoy no llegué a contártelo yo.",
+ "P3_sylla":"Mi hermano no se perdió. Lo perdió el mapa.",
+ "P4_amara":"Llegué tarde por querer llegar perfecta. Nunca más.",
+ "P5_vera":"Medir es mirar con método a alguien que te importa.",
+ "P6_joran":"Esta ya la hemos ganado cien veces. Ruta azul.",
+ "P7_mara":"Una orden mueve cuerpos. Un porqué mueve personas.",
+ "P8_noa":"Que conste que nadie nos obligó. Elegimos.",
+ "E1_nebula":"Lo que se comparte no se apaga.",
+ "E2_capitan":"Una obra que no se documenta, no existe.",
+ "E3_vaeon":"Si recordar duele, olvidar es misericordia.",
+}
+# Enlace a la actividad mayor / ePortfolio del que forma parte el reto
+LINKS = {
+ "R1_la-chispa":{"text":"Actividad 1 — imagen con IA","href":"actividades.html#act1"},
+ "R2_el-eco-que-ensena":{"text":"el ePortfolio (reto videotutorial)","href":"actividades.html#eportfolio"},
+ "R3_la-matriz":{"text":"Actividad 2 — paisaje de aprendizaje","href":"actividades.html#act2"},
+ "R4_entorno-de-aula":{"text":"el ePortfolio (entorno de aula)","href":"actividades.html#eportfolio"},
+ "R5_bitacora-medida":{"text":"el ePortfolio y la Actividad 1","href":"actividades.html#eportfolio"},
+ "R6_el-juego":{"text":"el ePortfolio (reto juego digital)","href":"actividades.html#eportfolio"},
+ "R7_microgamificacion":{"text":"el ePortfolio (reto microgamificación)","href":"actividades.html#eportfolio"},
+ "R8_ultimo-umbral":{"text":"la Actividad 2 y la Bitácora","href":"actividades.html#act2"},
+ "H2_primera-forja":{"text":"Actividad 1","href":"actividades.html#act1"},
+ "H3_cartografo":{"text":"Actividad 2","href":"actividades.html#act2"},
+}
+for _k,_v in CITAS.items(): BADGE_INFO[_k]["cita"]=_v
+for _k,_v in LINKS.items(): BADGE_INFO[_k]["link"]=_v
+
 CARD_TITLES = {k: BADGE_INFO[k]["nombre"] for k in
                ["P1_bran","P2_tomas","P3_sylla","P4_amara","P5_vera","P6_joran","P7_mara","P8_noa","E1_nebula","E2_capitan","E3_vaeon"]}
 
@@ -381,7 +411,10 @@ JS_TEMPLATE = r"""// STARGATE — modales de insignias y tarjetas (autogenerado)
       +'<div class="body"><div class="type">'+esc(d.tipo)+'</div><h3>'+esc(d.nombre)+'</h3>'
       +'<dl><dt>Cómo se consigue</dt><dd>'+esc(d.como)+'</dd>'
       +'<dt>Cuándo</dt><dd>'+esc(d.cuando)+'</dd>'
-      +'<dt>Qué hay que hacer</dt><dd>'+esc(d.tarea)+'</dd></dl></div></div>';
+      +'<dt>Qué hay que hacer</dt><dd>'+esc(d.tarea)+'</dd></dl>'
+      +(d.cita?('<blockquote class="mquote">«'+esc(d.cita)+'»</blockquote>'):'')
+      +(d.link?('<a class="mlink" href="'+esc(d.link.href)+'">Forma parte de: '+esc(d.link.text)+' →</a>'):'')
+      +'</div></div>';
     afterOpen();}
   function openCard(key){
     back.innerHTML='<div class="modal-card"><button class="modal-close" aria-label="Cerrar">✕</button>'

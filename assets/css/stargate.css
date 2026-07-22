@@ -121,6 +121,9 @@ footer a{color:var(--teal2)}
 .modal-badge dl{margin:1.3em 0 0}
 .modal-badge dt{color:var(--amber);font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;font-weight:700;font-family:'DMSans';margin-top:1.15em}
 .modal-badge dd{margin:.28em 0 0;color:var(--ink);line-height:1.55}
+.modal-badge .mquote{margin:1.4em 0 0;padding:12px 18px;border-left:3px solid var(--teal);background:rgba(55,224,236,.07);border-radius:0 12px 12px 0;color:#cfeaf0;font-style:italic;font-size:1rem}
+.modal-badge .mlink{display:inline-flex;align-items:center;gap:8px;margin-top:1.4em;background:rgba(245,176,67,.14);border:1px solid #4a3a1e;color:var(--amber);text-decoration:none;padding:10px 16px;border-radius:11px;font-family:'DMSans';font-weight:700;font-size:.9rem;transition:.15s}
+.modal-badge .mlink:hover{background:rgba(245,176,67,.24);border-color:var(--amber)}
 .modal-card{position:relative;display:flex;align-items:center;justify-content:center;background:transparent}
 .modal-card img{max-height:88vh;max-width:92vw;width:auto;height:auto;border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.65);display:block}
 .modal-card .modal-close{top:-6px;right:-6px}
