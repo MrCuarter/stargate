@@ -48,7 +48,7 @@ y la <b>plantilla</b> para llevar el registro mientras no exista el tablero.</p>
 <div class="eyebrow amber">Cómo funciona por dentro (y cómo se instala)</div><h2>El sistema de autoregistro</h2>
 <div class="grid cols-3">
 <div class="card"><h3>1 · El alumno registra</h3><p>Un <b>formulario de Google</b> por PER: alias público, correo (solo profesorado), qué reto/actividad/hito completa y el <b>enlace a la evidencia</b>. Cada registro vale una vez; los duplicados se ignoran.</p></div>
-<div class="card"><h3>2 · Nadie hace nada</h3><p>La hoja maestra (cuenta <b>mutecdgami</b>) calcula alias, insignias, planeta actual y puntos. Las insignias de hito <b>Tripulación Cero</b> y <b>La Liberación</b> se otorgan solas. Si hay un registro falso, el profesorado escribe algo en la columna <b>Anulado</b> de la hoja y desaparece.</p></div>
+<div class="card"><h3>2 · Nadie hace nada</h3><p>Todo vive en <b>una sola hoja maestra</b> (cuenta <b>mutecdgami</b>): una pestaña de respuestas por PER, más <b>DATOS</b> (todos los registros de todos los PER en formato largo, para análisis e investigación) y <b>RESUMEN</b> (puntos e insignias por recluta y PER), que se rehacen solas con cada respuesta. El script calcula alias, insignias, planeta actual y puntos. Las insignias de hito <b>Tripulación Cero</b> y <b>La Liberación</b> se otorgan solas. Si hay un registro falso, el profesorado escribe algo en la columna <b>Anulado</b> de la hoja y desaparece.</p></div>
 <div class="card"><h3>3 · Un PER nuevo, un clic</h3><p>Menú <b>🛰️ STARGATE → Crear nuevo PER…</b>: pide nombre del PER, profesorado y fechas de apertura y cierre; crea formulario y hoja, programa la apertura/cierre y devuelve el enlace, el QR y el código para Genially.</p></div>
 </div>
 <h3 style="margin-top:1.6em">Puntos</h3>
@@ -56,11 +56,11 @@ y la <b>plantilla</b> para llevar el registro mientras no exista el tablero.</p>
 <details class="faq"><summary>Instalación en la cuenta mutecdgami (se hace una vez, 10 minutos)</summary><div>
 <ol>
 <li>Con la sesión de <b>mutecdgami@gmail.com</b>, crea una hoja de cálculo nueva llamada <b>STARGATE · Mando de PERs</b> dentro de la carpeta del proyecto en Drive.</li>
-<li>Menú <b>Extensiones → Apps Script</b>. Borra el contenido de <code>Código.gs</code> y pega el de <a href="assets/descargas/Code.gs.txt" target="_blank">Code.gs</a>. Crea un archivo HTML (➕ → HTML) llamado exactamente <b>Dialog</b> y pega <a href="assets/descargas/Dialog.html.txt" target="_blank">Dialog.html</a>. Guarda.</li>
+<li>Menú <b>Extensiones → Apps Script</b>. Borra el contenido de <code>Código.gs</code> y pega el de <a href="assets/descargas/Code.gs.txt" target="_blank">Code.gs</a> (si al abrirlo ves tildes raras, recarga la página: debe verse «Bitácora», «¿Qué registras?»). Crea un archivo HTML (➕ → HTML) llamado exactamente <b>Dialog</b> y pega <a href="assets/descargas/Dialog.html.txt" target="_blank">Dialog.html</a>. Guarda.</li>
 <li>Vuelve a la hoja y recárgala: aparece el menú <b>🛰️ STARGATE</b>. La primera vez Google pedirá autorizar el script (cuenta mutecdgami → «Permitir»).</li>
 <li>En Apps Script: <b>Implementar → Nueva implementación → Aplicación web</b>. Ejecutar como: <b>Yo</b>. Acceso: <b>Cualquier usuario</b>. Implementar y copia la URL (termina en <code>/exec</code>).</li>
 <li>Esa URL se pega en la web (<code>_site_data.py → TABLERO_API</code>) y se regenera; a partir de ahí este tablero está vivo. También conviene guardarla en el script: en el editor, ejecutar una vez <code>guardarWebAppUrl("URL")</code> para que el asistente la incluya en sus enlaces.</li>
-<li>Crea el primer PER desde el menú. Listo: el formulario nace con todas las preguntas y la hoja de respuestas enlazada.</li>
+<li>Crea el primer PER desde el menú. Listo: el formulario nace con todas las preguntas, vuelca en la pestaña <code>R · id</code> de la hoja maestra y sus formularios quedan en la carpeta <b>Formularios PER</b>. El menú <b>Consolidar DATOS</b> regenera las pestañas de análisis a mano si hiciera falta.</li>
 </ol>
 <p>Cada vez que cambie el código del script, basta <b>Implementar → Gestionar implementaciones → editar → Nueva versión</b> para que la URL siga siendo la misma.</p>
 </div></details>
