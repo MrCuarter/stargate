@@ -81,7 +81,7 @@ function hoja_(nombre, cab, color) {
 }
 function asegurarHojas_() {
   hoja_(H.PERS, ["id","PER","Tipo","Profesorado","Inicio (semana 1)","Apertura","Cierre","Estado",
-                 "Bitácora (alumnado)","Bitácora (editar)","Ticket (alumnado)","Canje (alumnado)","Pestaña B","Pestaña T","Pestaña C","Creado"], "#37e0ec");
+                 "Bitácora (alumnado)","Bitácora (editar)","Ticket (alumnado)","Canje (alumnado)","Pestaña B","Pestaña T","Pestaña C","Creado","Referente","Ticket (editar)"], "#37e0ec");
   var rec = hoja_(H.REC, ["Recompensa","Coste (xp)","Máx. por alumno","Descripción"], "#f5b043");
   if (rec.getLastRow() < 2) rec.getRange(2,1,RECOMPENSAS_INICIALES.length,4).setValues(RECOMPENSAS_INICIALES);
   hoja_(H.EV, ["fecha","per","email","alias","reto_id","reto","tema","xp","origen"], "#aa66cc");
@@ -94,7 +94,7 @@ function perFila_(perId) {
 }
 function perObj_(v) {
   return { id:v[0], nombre:v[1], tipo:v[2]||"REGULAR", profesorado:v[3], inicio:fechaIso_(v[4]), apertura:fechaIso_(v[5]), cierre:fechaIso_(v[6]),
-           estado:v[7], formBitacora:v[8], formBitacoraEdit:v[9], formTicket:v[10], formCanje:v[11], tabB:v[12], tabT:v[13], tabC:v[14] };
+           estado:v[7], formBitacora:v[8], formBitacoraEdit:v[9], formTicket:v[10], formCanje:v[11], tabB:v[12], tabT:v[13], tabC:v[14], referente:v[16]||"", formTicketEdit:v[17]||"" };
 }
 function fechaIso_(d) { if (!d) return ""; if (d instanceof Date) return Utilities.formatDate(d, "Europe/Madrid", "yyyy-MM-dd"); return String(d); }
 
@@ -162,15 +162,9 @@ function crearPER(datos) {
   fb.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
   var tabB = pestanaDe_(fb, "B · " + id, "#37e0ec");
 
-  // ---- 2 · Ticket de salida (anónimo) ----
-  var ft = formDesdePlantilla_("PLANTILLA · Ticket de salida", "STARGATE · " + nombre + " · Ticket de salida", carpeta);
-  ft.setDescription("Anónimo. Al terminar cada tema: qué te llevas y qué no ha quedado claro. Lo resolvemos en la siguiente clase.");
-  ft.setCollectEmail(false).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true).setConfirmationMessage("Recibido. Gracias, recluta.");
-  var lt = ft.addListItem().setTitle("Tema").setRequired(true);
-  lt.setChoiceValues([1,2,3,4,5,6,7,8].map(function(t){ return "Tema " + t + " · " + TEMAS[t][0] + " — " + TEMAS[t][1]; }));
-  ft.addParagraphTextItem().setTitle("Qué me llevo de este tema").setRequired(false);
-  ft.addParagraphTextItem().setTitle("Qué duda me queda (la resolvemos en clase)").setRequired(false);
-  ft.addScaleItem().setTitle("¿Cómo de claro ha quedado el tema?").setBounds(1,5).setLabels("Nada","Totalmente");
+  // ---- 2 · Ticket de salida «Contacta con NEBULA» (anónimo, ramificado) ----
+  var ft = formDesdePlantilla_("PLANTILLA · Ticket de salida", "STARGATE · " + nombre + " · Contacta con NEBULA (ticket de salida)", carpeta);
+  construirTicket_(ft, datos.referente || "", datos.profesores || "");
   ft.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
   var tabT = pestanaDe_(ft, "T · " + id, "#9fb2c2");
 
@@ -191,8 +185,8 @@ function crearPER(datos) {
   if (cierre) programar_("cerrarPorTrigger", cierre, id);
 
   hoja_(H.PERS).appendRow([id, nombre, tipo, datos.profesores || "", inicio || "", apertura || "", cierre || "", estado,
-    fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date()]);
-  return { id:id, nombre:nombre, tipo:tipo, estado:estado, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
+    fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date(), datos.referente || "", ft.getEditUrl()]);
+  return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
     hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id, foro: WEB + "foro.html?per=" + id,
     embedAlumnos: '<iframe src="' + WEB + 'registro.html?per=' + id + '&embed=1" width="100%" height="760" style="border:0;border-radius:16px"></iframe>',
     embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>' };
@@ -208,6 +202,59 @@ function actualizarRecompensas() {
           f.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle() === "Recompensa") { i.asListItem().setChoiceValues(et); n++; } }); } catch (e) {}
   });
   SpreadsheetApp.getUi().alert("Recompensas actualizadas en " + n + " formularios.");
+}
+
+function listaProfes_(referente, profesores) {
+  var l = []; (referente ? [referente] : []).concat(String(profesores||"").split(",")).forEach(function(x){ x = x.trim(); if (x && l.indexOf(x) < 0) l.push(x); });
+  return l.length ? l : ["Profesorado"];
+}
+function escala_(f, titulo, a, b) { f.addScaleItem().setTitle(titulo).setBounds(1,5).setLabels(a,b); }
+function construirTicket_(ft, referente, profesores) {
+  ft.setDescription("En este cuestionario encontrarás un espacio donde formular todas las dudas que tengas sobre la clase. También puedes indicarnos tu grado de satisfacción sobre las herramientas, metodología y progreso. " +
+    "Responde con sinceridad: es ANÓNIMO y nos sirve para ayudarte a mejorar.");
+  ft.setCollectEmail(false).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true).setConfirmationMessage("Recibido, recluta. NEBULA toma nota y lo resolvemos en la próxima clase.");
+  var prof = ft.addListItem().setTitle("El profesor o profesora que imparte tu clase...").setRequired(true); prof.setChoiceValues(listaProfes_(referente, profesores));
+  var sel = ft.addListItem().setTitle("Selecciona el tema o actividad que hemos trabajado y sobre el que quieres hacer una pregunta").setRequired(true);
+  // páginas
+  var pPres = ft.addPageBreakItem().setTitle("Sobre la presentación de la asignatura").setHelpText("Dudas, inquietudes u opiniones, de manera anónima. Todos los campos son opcionales.");
+  escala_(ft, "¿Qué vibraciones te ha transmitido la presentación?", "¡Horrible!", "Buenísimas, ya tengo ganas de empezar");
+  escala_(ft, "Valora la utilidad que percibes del temario de la asignatura", "Poco útil", "Muy útil");
+  escala_(ft, "¿Cómo valorarías tus conocimientos iniciales sobre herramientas TIC?", "¿TIC? ¿Eso no es cuando parpadeas muy rápido?", "Yo inventé el concepto de TIC");
+  ft.addParagraphTextItem().setTitle("¿Qué esperas de la asignatura? ¿Qué te gustaría aprender?");
+  var pref = ft.addMultipleChoiceItem().setTitle("¿Cómo prefieres que transcurran las clases en directo?");
+  pref.setChoiceValues(["Que el docente resuelva los casos prácticos","Que resolvamos los alumnos los casos prácticos en grupos","Que resolvamos los alumnos los casos prácticos individualmente","Cada clase de una forma"]).showOtherOption(true);
+  pPres.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  var pTema = ft.addPageBreakItem().setTitle("Sobre el tema escogido").setHelpText("Dudas, inquietudes u opiniones sobre el tema visto en clase, de manera anónima. Todos los campos son opcionales.");
+  ft.addParagraphTextItem().setTitle("¿Alguna duda? ¿Te ha quedado alguna duda o quieres hacernos llegar algún comentario?");
+  escala_(ft, "Valora la utilidad de las herramientas o estrategias vistas en clase", "Poco útiles", "Muy útiles");
+  escala_(ft, "Valora la satisfacción general del desarrollo de la clase", "Muy insatisfecho/a", "Muy satisfecho/a");
+  escala_(ft, "Valora la satisfacción con los contenidos teóricos vistos en clase sobre este tema", "Muy insatisfecho/a", "Muy satisfecho/a");
+  escala_(ft, "Valora la satisfacción con las estrategias prácticas vistas en clase sobre este tema", "Muy insatisfecho/a", "Muy satisfecho/a");
+  escala_(ft, "Valora tu grado de participación en clase", "No he participado en absoluto", "He participado en todo lo que he podido");
+  pTema.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  var pAct = ft.addPageBreakItem().setTitle("Sobre la actividad escogida").setHelpText("Dudas, inquietudes o incidencias sobre la actividad evaluable. Todos los campos son opcionales.");
+  ft.addParagraphTextItem().setTitle("¿Te ha quedado alguna duda sobre la actividad o quieres hacernos llegar algún comentario?");
+  escala_(ft, "Valora la utilidad de la actividad propuesta para tu aprendizaje", "Poco útil", "Muy útil");
+  escala_(ft, "Valora la satisfacción sobre la calidad de la actividad que has entregado (si ya lo has hecho)", "Muy insatisfecho/a con la calidad", "Muy satisfecho/a con la calidad");
+  escala_(ft, "Valora la satisfacción sobre la puntuación obtenida (si ya la tienes)", "Muy insatisfecho/a con la puntuación", "Muy satisfecho/a con la puntuación");
+  pAct.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  var pRep = ft.addPageBreakItem().setTitle("Resumen global de la asignatura").setHelpText("Tu balance al terminar. Anónimo.");
+  escala_(ft, "Considero que la forma de seguir esta asignatura...", "no ha ayudado a mejorar mis competencias digitales", "ha ayudado a mejorar mis competencias digitales considerablemente");
+  escala_(ft, "Grado de satisfacción con la asignatura", "Muy insatisfecho/a", "Muy satisfecho/a");
+  escala_(ft, "Comparada con otras asignaturas que cursas ahora mismo, estas clases han sido", "Mucho peor", "Mucho mejor");
+  escala_(ft, "Grado de satisfacción con tu profesor/a", "El peor / La peor hasta la fecha", "El mejor / La mejor hasta la fecha");
+  ft.addParagraphTextItem().setTitle("¿Qué ha sido lo mejor de la asignatura?");
+  ft.addParagraphTextItem().setTitle("¿Y lo peor?");
+  ft.addParagraphTextItem().setTitle("Deja un comentario a tu profesor/a");
+  // ramificación
+  var ch = [sel.createChoice("Presentación de la asignatura", pPres)];
+  for (var t = 1; t <= 8; t++) {
+    ch.push(sel.createChoice("Tema " + t + ": " + TEMAS[t][1] + " (" + TEMAS[t][0] + ")", pTema));
+    if (t === 1) ch.push(sel.createChoice("Actividad 1: actividad didáctica a partir de una imagen con IA", pAct));
+    if (t === 3) ch.push(sel.createChoice("Actividad 2: planifica y crea un paisaje de aprendizaje", pAct));
+  }
+  ch.push(sel.createChoice("Repaso / balance final", pRep));
+  sel.setChoices(ch);
 }
 
 // ================= TRIGGERS =================
@@ -308,7 +355,7 @@ function tablero_(perId, conPrivados) {
     if (conPrivados) { out.email = m; out.nombre = a.nombre; out.bitacora = a.bitacora; out.eventos = a.eventos; out.retos = a.retos; out.canjes = canjes[m] ? canjes[m].lista : []; }
     return out; });
   lista.sort(function(a,b){ return b.xp - a.xp || b.n - a.n || a.alias.localeCompare(b.alias); }); lista.forEach(function(x,i){ x.pos = i+1; });
-  return { per:perId, nombre:o.nombre, tipo:o.tipo, profesorado:o.profesorado, estado:o.estado, inicio:o.inicio,
+  return { per:perId, nombre:o.nombre, tipo:o.tipo, profesorado:o.profesorado, referente:o.referente, estado:o.estado, inicio:o.inicio,
            formBitacora:o.formBitacora, formTicket:o.formTicket, formCanje:o.formCanje, reclutas:lista, actualizado:new Date() };
 }
 function idx_(cab, frag) { frag = frag.toLowerCase(); for (var i = 0; i < cab.length; i++) if (cab[i].toLowerCase().indexOf(frag) >= 0) return i; return -1; }
@@ -344,9 +391,12 @@ function doPost(e) {
     if (a === "pers") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).map(function(v){ return perObj_(v); }) };
     else if (a === "alumnos") out = tablero_(per, true);
     else if (a === "tickets") { var o = perObj_(perFila_(per).v); var sh = SpreadsheetApp.getActive().getSheetByName(o.tabT); var v = sh && sh.getLastRow() > 1 ? sh.getDataRange().getValues() : [[]];
-      out = { tickets: v.slice(1).map(function(r){ return { fecha:r[0], tema:r[1], llevo:r[2], duda:r[3], claridad:r[4] }; }) }; }
+      var cabT = (v[0]||[]).map(String);
+      out = { tickets: v.slice(1).map(function(r){ var o2 = {}; cabT.forEach(function(c,i){ if (i > 0 && r[i] !== "" && r[i] !== null) o2[c] = r[i]; }); return { fecha:r[0], r:o2 }; }) }; }
     else if (a === "ajuste") { hoja_(H.AJ).appendRow([new Date(), per, String(q.email).toLowerCase(), q.reto_id, q.tipo, q.motivo || "", q.profe || ""]); consolidarDatos(); out = { ok:true }; }
-    else if (a === "profesorado") { var p = perFila_(per); hoja_(H.PERS).getRange(p.fila, 4).setValue(q.profesorado); out = { ok:true }; }
+    else if (a === "profesorado") { var p = perFila_(per); var sh4 = hoja_(H.PERS); sh4.getRange(p.fila, 4).setValue(q.profesorado || ""); sh4.getRange(p.fila, 17).setValue(q.referente || "");
+      try { var o4 = perObj_(perFila_(per).v); var ftx = FormApp.openByUrl(o4.formTicketEdit); ftx.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle().indexOf("profesor o profesora") >= 0) i.asListItem().setChoiceValues(listaProfes_(q.referente, q.profesorado)); }); } catch (e2) {}
+      out = { ok:true }; }
     else if (a === "inicio") { var p2 = perFila_(per); hoja_(H.PERS).getRange(p2.fila, 5).setValue(q.inicio ? new Date(q.inicio + "T00:00:00") : ""); out = { ok:true }; }
     else if (a === "abrir" || a === "cerrar") { setAbierto_(per, a === "abrir"); out = { ok:true }; }
     else if (a === "entregado") { var o2 = perObj_(perFila_(per).v); var shc = SpreadsheetApp.getActive().getSheetByName(o2.tabC); var cab = shc.getRange(1,1,1,shc.getLastColumn()).getValues()[0].map(String);

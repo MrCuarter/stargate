@@ -15,7 +15,8 @@
  <label>Nombre del PER</label><input id="nombre" placeholder="p. ej. 14210 4P 2026-27">
  <div class="row"><div><label>Tipo</label><select id="tipo"><option value="REGULAR">REGULAR (15 semanas, examen)</option><option value="PUA">PUA (compacto, un tema por semana, sin examen)</option></select></div>
  <div><label>Semana 1 empieza el</label><input id="inicio" type="date"><small>Para el foro dinámico</small></div></div>
- <label>Profesorado que imparte la asignatura</label><input id="profesores" placeholder="Nombre Apellido, Nombre Apellido">
+ <label>Profesor/a referente (crea los documentos y gestiona el PER)</label><input id="referente" placeholder="Nombre Apellido">
+ <label>Profesorado que imparte (desarrolla las clases)</label><input id="profesores" placeholder="Nombre Apellido, Nombre Apellido"><small>Separados por comas. Aparecen en el desplegable del ticket de salida.</small>
  <div class="row"><div><label>Formularios abiertos desde</label><input id="apertura" type="date"></div><div><label>hasta</label><input id="cierre" type="date"></div></div>
  <small>Si la apertura es hoy o anterior, nacen abiertos. El cierre se aplica a las 23:59. Ambas opcionales (luego se abre/cierra desde el panel).</small>
  <button id="go" onclick="crear()">Crear PER</button>
@@ -25,7 +26,7 @@
 <script>
 function v(id){return document.getElementById(id).value;}
 function crear(){
-  var d={nombre:v('nombre'),tipo:v('tipo'),inicio:v('inicio'),profesores:v('profesores'),apertura:v('apertura'),cierre:v('cierre')};
+  var d={nombre:v('nombre'),tipo:v('tipo'),inicio:v('inicio'),referente:v('referente'),profesores:v('profesores'),apertura:v('apertura'),cierre:v('cierre')};
   if(!d.nombre){document.getElementById('err').textContent='Pon el nombre del PER';return;}
   document.getElementById('go').disabled=true;document.getElementById('err').textContent='Creando los 3 formularios y las pestañas (30-60 s)…';
   google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){document.getElementById('err').textContent=e.message;document.getElementById('go').disabled=false;}).crearPER(d);
