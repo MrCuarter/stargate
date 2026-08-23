@@ -621,7 +621,7 @@ y la <b>plantilla</b> para llevar el registro mientras no exista el tablero.</p>
 <div class="card"><h3>3 · Un PER nuevo, un clic</h3><p>Menú <b>🛰️ STARGATE → Crear nuevo PER…</b>: pide nombre del PER, profesorado y fechas de apertura y cierre; crea formulario y hoja, programa la apertura/cierre y devuelve el enlace, el QR y el código para Genially.</p></div>
 </div>
 <h3 style="margin-top:1.6em">Avatares</h3>
-<div class="grid cols-2"><div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con sus xp</b> (5 personajes × 4 rangos: Recluta → Cadete → Oficial → Comandante; el tablero cambia la imagen solo al superar 1.000 / 2.500 / 4.000 xp, escalado en PUA), una <b>galería clásica de 16 avatares</b> o <b>su propia imagen por URL</b>. Si la URL falla, se muestra el avatar elegido.</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
+<div class="grid cols-2"><div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con sus xp</b> (5 personajes, cada uno en versión ella/él, × 4 rangos: Recluta → Cadete → Oficial → Comandante; el tablero cambia la imagen solo al superar 1.000 / 2.500 / 4.000 xp, escalado en PUA), una <b>galería clásica de 16 avatares</b> o <b>su propia imagen por URL</b>. Si la URL falla, se muestra el avatar elegido.</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
 <div class="official" style="display:block">🖼️ <b>Cómo poner tu propia imagen (para el alumnado):</b> 1) entra en <a href="https://postimages.org" target="_blank" rel="noopener">postimages.org</a>, pulsa <i>Elegir imágenes</i> y sube tu foto (no hace falta registrarse); 2) cuando termine, copia el campo <b>«Enlace directo»</b> (termina en .jpg o .png); 3) pégalo en la pregunta «URL de tu propia imagen». También vale un enlace de <b>Google Drive</b> si el archivo está compartido como «cualquier persona con el enlace». Un enlace a Instagram o a una página web no funciona.</div></div>
 <img src="assets/img/avatares/lamina_avatares.jpg" alt="Galería de avatares" style="border-radius:14px;border:1px solid var(--line)"></div>
 <h3 style="margin-top:1.6em">Puntos</h3>
@@ -765,9 +765,9 @@ window.SG.RANGOS = ['Recluta','Cadete','Oficial','Comandante'];
 window.SG.rango = function(xp, tipoPer){ var k = (tipoPer==='PUA') ? 3500/4500 : 1; var u=[1000*k,2500*k,4000*k]; var r=1; for(var i=0;i<3;i++) if(xp>=u[i]) r=i+2; return r; };
 window.SG.avatarSrc = function(av, alias, xp, tipoPer){
   av = av || {}; var h=0; for(var i=0;i<(alias||'').length;i++) h=(h*31+alias.charCodeAt(i))>>>0;
-  var tipo = av.tipo || 'evo'; var n = av.n || (tipo==='evo' ? (h%5)+1 : (h%16)+1);
+  var tipo = av.tipo || 'evo'; var n = av.n || (tipo==='evo' ? (h%5)+1 : (h%16)+1); var v = av.v || ((h>>3)%2 ? 'm' : 'f');
   var r = window.SG.rango(xp||0, tipoPer);
-  var fallback = tipo==='evo' ? 'assets/img/avatares/evo/c'+n+'_r'+r+'.jpg' : 'assets/img/avatares/a'+(n<10?'0':'')+n+'.jpg';
+  var fallback = tipo==='evo' ? 'assets/img/avatares/evo/p'+n+v+'_r'+r+'.jpg' : 'assets/img/avatares/a'+(n<10?'0':'')+n+'.jpg';
   var u = av.url ? String(av.url).trim() : '';
   if(u){ var m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([A-Za-z0-9_-]{10,})/); if(m) u = 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
          if(!/^https?:\/\//i.test(u)) u=''; }

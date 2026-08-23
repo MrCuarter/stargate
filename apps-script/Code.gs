@@ -163,8 +163,8 @@ function crearPER(datos) {
   // avatar: personaje que evoluciona (5) · galería clásica (16) · URL propia
   try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle("Tu personaje evoluciona con tus xp").setHelpText("Recluta → Cadete → Oficial → Comandante. El tablero lo cambia solo según tus puntos.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
   try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_avatares.jpg").getBlob()).setTitle("O un avatar clásico (no evoluciona)").setAlignment(FormApp.Alignment.CENTER).setWidth(520); } catch (e) {}
-  var av = fb.addListItem().setTitle("Elige tu avatar").setHelpText("Personaje 1-5 (evoluciona con tus xp), clásico 1-16, o tu propia imagen (pega la URL en la siguiente pregunta).").setRequired(true);
-  var opc = []; for (var pj = 1; pj <= 5; pj++) opc.push("Personaje " + pj + " (evoluciona)"); for (var cl = 1; cl <= 16; cl++) opc.push("Clásico " + cl); opc.push("Prefiero mi propia imagen (pongo la URL abajo)");
+  var av = fb.addListItem().setTitle("Elige tu avatar").setHelpText("Personaje 1-5 en versión ella/él (evoluciona con tus xp: Recluta → Cadete → Oficial → Comandante), clásico 1-16, o tu propia imagen (pega la URL en la siguiente pregunta).").setRequired(true);
+  var opc = []; for (var pj = 1; pj <= 5; pj++) { var et = pj < 5 ? ["ella","él"] : ["modelo A","modelo B"]; opc.push("Personaje " + pj + " · " + et[0] + " (evoluciona)"); opc.push("Personaje " + pj + " · " + et[1] + " (evoluciona)"); } for (var cl = 1; cl <= 16; cl++) opc.push("Clásico " + cl); opc.push("Prefiero mi propia imagen (pongo la URL abajo)");
   av.setChoiceValues(opc);
   var avu = fb.addTextItem().setTitle("URL de tu propia imagen (opcional)").setHelpText(
     "Debe ser un ENLACE DIRECTO a una imagen (termina en .jpg, .png o .webp). La forma más fácil: entra en postimages.org, sube tu foto (sin registrarte), y copia el campo «Enlace directo». " +
@@ -398,8 +398,8 @@ function tablero_(perId, conPrivados) {
     var cAv = idx_(cab,"elige tu avatar"), cAvU = idx_(cab,"url de tu propia imagen");
     for (var i = 1; i < vals.length; i++) { var m = String(vals[i][cM]||"").toLowerCase().trim(); if (!m) continue;
       var avs = cAv >= 0 ? String(vals[i][cAv]||"") : ""; var avu = cAvU >= 0 ? String(vals[i][cAvU]||"").trim() : "";
-      var mp = avs.match(/Personaje (\d)/), mc = avs.match(/Cl[aá]sico (\d+)/), mn = avs.match(/^(\d+)$/);
-      var avatar = mp ? { tipo:"evo", n:Number(mp[1]) } : mc ? { tipo:"clasico", n:Number(mc[1]) } : mn ? { tipo:"clasico", n:Number(mn[1]) } : { tipo:null, n:null };
+      var mp = avs.match(/Personaje (\d) · (ella|él|modelo A|modelo B)/), mc = avs.match(/Cl[aá]sico (\d+)/), mn = avs.match(/^(\d+)$/);
+      var avatar = mp ? { tipo:"evo", n:Number(mp[1]), v: (mp[2] === "él" || mp[2] === "modelo B") ? "m" : "f" } : mc ? { tipo:"clasico", n:Number(mc[1]) } : mn ? { tipo:"clasico", n:Number(mn[1]) } : { tipo:null, n:null };
       avatar.url = avu;
       por[m] = { email:m, alias:String(vals[i][cA]||""), nombre:String(vals[i][cN]||""), bitacora:String(vals[i][cB]||""), avatar:avatar, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] }; }
   }
