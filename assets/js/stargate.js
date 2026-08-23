@@ -47,3 +47,16 @@
   // abrir la semana indicada en el hash
   if(location.hash && /^#sem\d+$/.test(location.hash)){var d=document.querySelector(location.hash); if(d&&d.tagName==='DETAILS'){d.open=true;}}
 })();
+
+// ---- avatares (galería propia + URL opcional con respaldo) ----
+window.SG = window.SG || {};
+window.SG.avatarSrc = function(av, alias){
+  var n = av && av.n; if(!n){ var h=0; for(var i=0;i<(alias||'').length;i++) h=(h*31+alias.charCodeAt(i))>>>0; n = (h%16)+1; }
+  var fallback = 'assets/img/avatares/a'+(n<10?'0':'')+n+'.jpg';
+  var u = av && av.url ? String(av.url).trim() : '';
+  if(u){ var m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([A-Za-z0-9_-]{10,})/); if(m) u = 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
+         if(!/^https?:\/\//i.test(u)) u=''; }
+  return { src: u || fallback, fallback: fallback };
+};
+window.SG.avatarImg = function(av, alias, cls){ var r = window.SG.avatarSrc(av, alias);
+  return '<img class="av '+(cls||'')+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="if(this.src!==this.dataset.fb){this.src=this.dataset.fb;}">'; };
