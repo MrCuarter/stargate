@@ -152,6 +152,11 @@ CRONO = [
       consejo="Celebra las Bitácoras publicadas: son el producto real del curso. El Fragmento Prohibido es el regalo final."),
 ]
 
+# ---------- Plantilla Genially del ePortfolio (la Bitácora) ----------
+# Enlace público de la plantilla de Genially que el alumnado puede reutilizar.
+# None = pendiente de enlace (Norberto lo pasa); se muestra el hueco en recursos.html.
+PLANTILLA_EPORTFOLIO = None
+
 # ---------- Geniallys (rellenar cuando haya enlaces) ----------
 GENIALLY_CARPETA = ("https://app.genially.com/teams/6567099bd7d7460014e6ec9c/spaces/"
                     "65e1bbeb0eea250014729589/folder/6a8abdcd38a70c07f841fe70")
@@ -187,6 +192,9 @@ def foro_por_semana():
         # placeholders de vídeo -> enlaces reales
         cuerpo = cuerpo.replace("{vídeo de bienvenida}", yt("sinopsis")["url"])
         cuerpo = cuerpo.replace("{vídeo}", yt("finale")["url"])
+        # {tablero} -> enlace al tablero del PER (el foro dinámico sustituye el id solo;
+        # en la copia estática, el profe pone el id de su PER)
+        cuerpo = cuerpo.replace("{tablero}", "https://stargate.mistercuarter.es/registro.html?per={id-del-PER}")
         # markdown ligero -> texto plano (negritas/cursivas fuera)
         cuerpo = re.sub(r"\*\*(.+?)\*\*", r"\1", cuerpo, flags=re.S)
         cuerpo = re.sub(r"\*(.+?)\*", r"\1", cuerpo, flags=re.S)

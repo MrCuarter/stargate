@@ -57,7 +57,7 @@ table{width:100%;border-collapse:collapse;margin:.4em 0;font-size:.94rem}
 th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
 th{color:var(--teal);font-family:'DMSans';font-weight:700;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
 tr:hover td{background:rgba(55,224,236,.04)}
-.two{display:grid;grid-template-columns:1.2fr .8fr;gap:26px;align-items:center}
+.two{display:grid;grid-template-columns:1.2fr .8fr;gap:26px;align-items:center}.two>*{min-width:0}
 @media(max-width:760px){.two{grid-template-columns:1fr}}
 blockquote{margin:1.2em 0;padding:14px 20px;border-left:3px solid var(--amber);background:rgba(245,176,67,.06);border-radius:0 12px 12px 0;color:#f0e2c8;font-style:italic}
 .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--mut);font-size:.92rem}
@@ -164,10 +164,12 @@ footer a{color:var(--teal2)}
 .tile b{display:block;font-family:'Unbounded';font-size:1.02rem;color:#eafcff}
 .tile em{font-style:normal;color:var(--mut);font-size:.9rem;display:block;margin-top:6px}
 /* trío de personajes */
-.trio{display:flex;justify-content:center;align-items:flex-end;gap:8px}
-.trio img{max-height:330px;width:auto;filter:drop-shadow(0 12px 30px rgba(0,0,0,.6))}
+.trio{display:flex;justify-content:center;align-items:flex-end;gap:8px;min-width:0;overflow:hidden}
+.trio img{max-height:330px;max-width:32%;width:auto;object-fit:contain;object-position:bottom;filter:drop-shadow(0 12px 30px rgba(0,0,0,.6))}
 .trio img:nth-child(2){max-height:360px;z-index:2}
 @media(max-width:760px){.trio img{max-height:220px}.trio img:nth-child(2){max-height:240px}}
+.trio img:only-child{max-width:100%}
+.trio img:first-child:nth-last-child(2),.trio img:first-child:nth-last-child(2)~img{max-width:48%}
 /* FAQ */
 .faq{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:14px;padding:0;margin:10px 0}
 .faq summary{cursor:pointer;padding:16px 20px;font-weight:700;color:#eafcff;list-style:none;position:relative;padding-right:44px}
@@ -185,6 +187,7 @@ footer a{color:var(--teal2)}
 .yt .cap a{color:var(--teal2);font-size:.72rem}
 .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:3}
 .yt.on img,.yt.on .play,.yt.on .cap{display:none}
+.yt-full{margin:20px 0}.yt-full .yt .cap{font-size:.9rem}
 .yt-list{display:grid;gap:14px}.yt-list.three{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
 /* cronología */
 .tablewrap{overflow-x:auto}

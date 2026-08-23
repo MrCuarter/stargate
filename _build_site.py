@@ -3,9 +3,9 @@
 Páginas: index (portada) · guia · cronologia · actividades · geniallys · registro · recursos.
 Ejecutar desde web-stargate/:  python3 _build_site.py
 Datos de cronología/vídeos/geniallys en _site_data.py."""
-import os, json, hashlib, csv
+import os, json, hashlib
 from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
-                        PLAYLIST, HERO_MP4, TABLERO_API)
+                        PLAYLIST, HERO_MP4, TABLERO_API, PLANTILLA_EPORTFOLIO)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E"
@@ -99,12 +99,12 @@ tiles = [
  ("guia.html","🧭","La guía","Narrativa, personajes, retos e insignias y cómo dinamizarlo en clase."),
  ("cronologia.html","🗓️","La cronología","Semana a semana: qué vídeo, qué reto, qué insignia y el mensaje del foro."),
  ("actividades.html","🎯","Misiones y evaluación","Las dos actividades, el ePortfolio y el examen con los requisitos oficiales."),
- ("geniallys.html","🪐","Los Geniallys","Uno por planeta. La carpeta del equipo y los huecos para cada tema."),
+ ("geniallys.html","🪐","Los Geniallys","Uno por planeta. La carpeta compartida con los estándar de tu perfil."),
  ("registro.html","🏅","Registro de insignias","Tablero en vivo por PER, formularios del alumnado y cómo funciona."),
  ("profes.html","🔐","Panel del profesorado","Alumnos, insignias, canjes y ajustes de cada PER (con PIN)."),
  ("tickets.html","🎟️","Tickets de salida","Valoraciones y dudas del alumnado, visual y por clase (con PIN)."),
  ("embed.html","🧩","Enlaces, embeds y QR","Elige tu PER y tu nombre: todo listo para pegar en Genially."),
- ("foro.html","💬","Foro dinámico","El mensaje de la semana en curso, embebible en el Genially del PER."),
+ ("foro.html","💬","Foro dinamizador","El mensaje de la semana en curso (embebible en el Genially del PER) o todos de una vez, para copiar."),
  ("recursos.html","📦","Sala de recursos","Tablero de las 24 insignias, ranking y materiales."),
 ]
 tiles_html="\n".join(f'<a class="tile" href="{h}"><span class="ic">{i}</span><b>{t}</b><em>{d}</em></a>' for h,i,t,d in tiles)
@@ -153,7 +153,7 @@ La batalla final es el examen.</p></div>
 <div>
 <div class="eyebrow amber">Las tres voces</div><h2>NEBULA, el Capitán y Vaeon</h2>
 <p class="lead"><b>NEBULA</b> narra y lanza los retos. <b>El Capitán eres tú</b>: das las órdenes (enunciados), reconoces los
-logros (insignias) y sostienes la moral; firma el foro como <i>Capitán {{tu nombre}}</i>. <b>Vaeon</b> silencia:
+logros (insignias) y sostienes la moral; el foro se firma siempre como <i>Capitán</i>, a secas. <b>Vaeon</b> silencia:
 es la personificación de los errores de diseño educativo, y aparece en el Tema 5.</p>
 <p><a class="btn" href="guia.html#pers">Conoce a la Tripulación Cero →</a></p>
 </div>
@@ -168,9 +168,9 @@ FAQ = [
  ("¿Qué hago exactamente en la primera sesión?", "Pon el vídeo de <b>Sinopsis</b>, después el de <b>La Bitácora</b> (ePortfolio), preséntate como <b>Capitán</b>, publica el mensaje de reclutamiento del foro (está en la cronología, semana 1) y entrega en público la insignia de <b>Reclutamiento</b>. Deja una pregunta en el aire: «¿por qué se apagan los mundos?»."),
  ("¿Cuándo pongo cada vídeo?", "La <a href='cronologia.html'>cronología</a> lo dice semana a semana: la <b>intro</b> del planeta al abrir el tema, el <b>cierre</b> al terminar el bloque y el <b>fragmento</b> del tripulante justo después, como recompensa. Las misiones (Bitácora, Act. 1, Act. 2) al lanzar cada una."),
  ("Los vídeos están en «oculto» en YouTube, ¿funcionan?", "Sí. Un vídeo oculto se ve con el enlace y se puede insertar en Genially o en el aula virtual. Van pasando a públicos solos según el calendario de redes del canal; tú no tienes que tocar nada."),
- ("¿El Reto A puntúa?", "<b>No</b>, y es a propósito: es el motor de motivación. Su recompensa es desbloquear al personaje (fragmento + insignia). Convertirlo en nota le quita la función. El Reto B sí produce una evidencia evaluable de la Bitácora."),
+ ("¿El Reto A puntúa?", "<b>Para nota, no</b> — y es a propósito: es el motor de motivación, y convertirlo en nota le quitaría la función. Sí da <b>100 xp del juego</b> (algo simbólico) y su recompensa real es desbloquear al personaje (fragmento + insignia). El Reto B sí produce una evidencia evaluable de la Bitácora."),
  ("¿Cómo y cuándo entrego las insignias?", "En público y con ceremonia: publica el medallón en el foro/tablero al superar el reto y nombra el logro con la frase del personaje. Qué insignia va cada semana está en la cronología; cómo anotarlas, en <a href='registro.html'>Registro de insignias</a>."),
- ("¿Dónde están los enunciados y rúbricas oficiales?", "En <a href='actividades.html#docs'>Actividades → Documentos oficiales</a> (enunciados de la Act. 1 y 2, pautas del ePortfolio, instrucciones de uso de IA, rúbricas y planificación semanal). ⚠️ Las rúbricas oficiales traen dos erratas conocidas (ver esa sección)."),
+ ("¿Dónde están los enunciados y rúbricas oficiales?", "En <a href='actividades.html#docs'>Actividades → Documentos oficiales</a> (enunciados de la Act. 1 y 2, pautas del ePortfolio, instrucciones de uso de IA, rúbricas y planificación semanal)."),
  ("¿Qué pasa con el temario (PDF de los temas)?", "Los PDF de temas disponibles son de la programación anterior y con nombres cambiados; <b>no se publican aquí</b> hasta recibir el temario actualizado. Los vídeos de la serie ya siguen el orden nuevo (T6 ABJ → T7 Gamificación)."),
  ("Mi grupo es PUA (condensado). ¿Cómo lo adapto?", "Agrupa los mensajes del foro por bloque (dos semanas en un mensaje) y lanza los dos retos del tema juntos. La cronología sirve igual: son 15 semanas de contenido que tú compactas."),
  ("¿Cuál es la diferencia entre Ludo (T6) y Vínculo (T7)?", "En <b>Ludo se juega</b>: el juego ES la actividad (ABJ). En <b>Vínculo no se juega</b>: se toman elementos del juego (puntos, insignias, niveles, narrativa) y se ponen sobre una tarea que no es un juego (gamificación). Es el error conceptual más común: apóyate en Joran y Mara."),
@@ -179,7 +179,7 @@ FAQ = [
  ("¿Cómo registran los alumnos sus retos e insignias?", "Solos, en la <b>Bitácora de mando</b> de su PER (un formulario con inicio de sesión de Google y una única respuesta que editan cuando ganan una insignia). Los xp, las insignias y el <b>avatar con rango</b> se calculan automáticamente y se ven en el <a href='registro.html'>tablero</a>. Tú no tocas ninguna hoja."),
  ("¿Qué son los xp y los rangos del avatar?", "Puntos del juego (no nota): Reto A 100 · Reto B 250 · Actividad 500 · Batalla 500 · hitos 300. El avatar del alumno <b>evoluciona</b> solo: Recluta → Cadete (1.000) → Oficial (2.500) → Comandante (4.000). Los xp se pueden canjear por recompensas (subir nota, recalificar…) con validación automática."),
  ("¿Cómo abro un PER nuevo?", "Lo hace el <b>profesor/a referente</b> desde la hoja maestra (cuenta mutecdgami): menú STARGATE → Crear nuevo PER… (nombre, REGULAR/PUA, fecha de la semana 1, profesorado). En un minuto tienes los 3 formularios, el tablero, el foro dinámico y un documento con enlaces, embeds y QR. Guía en <a href='registro.html#instalacion'>Registro → Instalación</a>."),
- ("¿Qué hago si un alumno no hace el Reto A?", "Nada punitivo: no puntúa. Pero el tripulante sigue «sin recuperar»: usa la narrativa (NEBULA sigue incompleta) como invitación, no como castigo. Lo habitual es que el grupo arrastre."),
+ ("¿Qué hago si un alumno no hace el Reto A?", "Nada punitivo: no cuenta para nota. Pero el tripulante sigue «sin recuperar» y esos 100 xp se quedan sin ganar: usa la narrativa (NEBULA sigue incompleta) como invitación, no como castigo. Lo habitual es que el grupo arrastre."),
 ]
 faq_html="\n".join(f'<details class="faq"><summary>{q}</summary><div>{a}</div></details>' for q,a in FAQ)
 
@@ -256,8 +256,8 @@ en el <b>Tema 5</b> y se va llenando durante todo el viaje. Cada página se escr
 <div class="eyebrow">Retos e insignias</div><h2>Dos retos por tema</h2>
 <div class="grid cols-2">
 <div class="card"><h3>Reto A — «La Llave» 🗝️</h3><p>Micro-tarea reflexiva o de comunidad (10–20 min) que encarna la
-lección del personaje. <b>No puntúa</b>: su recompensa es <b>desbloquear al personaje</b> (fragmento + insignia).
-Es el motor de <b>motivación e identidad</b>.</p></div>
+lección del personaje. <b>No cuenta para nota</b> (da 100 xp simbólicos del juego): su recompensa es
+<b>desbloquear al personaje</b> (fragmento + insignia). Es el motor de <b>motivación e identidad</b>.</p></div>
 <div class="card"><h3>Reto B — «La Forja» 🔨</h3><p>Tarea de creación con criterios claros que produce una <b>evidencia
 real</b> de la Bitácora y es un <b>trozo digerible</b> de la siguiente actividad grande. Su recompensa es la
 <b>insignia de reto</b>. Es el motor de <b>producción</b>.</p></div>
@@ -339,33 +339,31 @@ son <b>páginas de la Bitácora</b>. La nota mide tu avance; la Bitácora es lo 
 
 <section id="act1"><div class="wrap">
 <div class="eyebrow amber">Misión mayor I · Planeta Fôrge · semana 2 (se resuelve en la 9)</div><h2>Actividad 1 — Actividad didáctica a partir de una imagen con IA</h2>
-<div class="grid cols-2">
-<div><p class="lead"><i>«La primera chispa.»</i> Diseñas una actividad para tu aula a partir de una imagen creada con IA,
+<p class="lead"><i>«La primera chispa.»</i> El recluta diseña una actividad para su aula a partir de una imagen creada con IA,
 documentando el proceso con criterio docente. <span class="pill amber">4,3 puntos</span></p>
+<div class="yt-full">{ytbox("act1","El enunciado narrativo: ponlo al lanzar la actividad")}</div>
+<h3>El enunciado, paso a paso (lo que entrega el alumnado)</h3>
 <div class="steps">
 <div class="step"><b>Planifica</b> <span class="tag-req">obligatorio</span><br>Define el alumnado, el tema del aula y la tarea que harán con la imagen.</div>
 <div class="step"><b>Crea la imagen con IA</b> <span class="tag-req">iteración</span><br>Prompt estructurado (contexto educativo + tipo de imagen + finalidad, modelo tipo CRAFT/RITA), <b>al menos una iteración</b>, y selección final con <b>tu criterio docente</b>. Cita la herramienta y respeta derechos de autor.</div>
 <div class="step"><b>Tabla técnica</b><br>Documenta función de la IA, prompt inicial, iteración, criterio docente, evidencia del proceso (enlace o capturas) y citación.</div>
 <div class="step"><b>Tabla reflexiva</b> <span class="tag-req">ePortfolio</span><br>Reflexión crítica: cómo integraste la IA, cómo transformó la actividad, qué pusiste tú y qué aprendiste.</div>
 <div class="step"><b>Entregables</b><br><b>PDF (80%)</b>, máx. 4 páginas, con planificación, actividad, referencia a la IA, capturas de las tablas y el enlace al ePortfolio. <b>ePortfolio (20%)</b> con la imagen, la tarea, las tablas completas y la evidencia del proceso.</div>
-</div></div>
-<div>{ytbox("act1","El enunciado narrativo: ponlo al lanzar la actividad")}</div>
 </div>
 </div></section>
 
 <section id="act2"><div class="wrap">
 <div class="eyebrow amber">Misión mayor II · Planeta Sendara · semana 6 (se resuelve en la 13)</div><h2>Actividad 2 — Planifica y crea un paisaje de aprendizaje</h2>
-<div class="grid cols-2">
-<div><p class="lead"><i>«Cuarenta y ocho senderos.»</i> Ante un aula con ritmos muy dispares, diseñas un paisaje de
+<p class="lead"><i>«Cuarenta y ocho senderos.»</i> Ante un aula con ritmos muy dispares, el recluta diseña un paisaje de
 aprendizaje que atiende a la diversidad: no hay una sola ruta. <span class="pill amber">4,3 puntos</span></p>
+<div class="yt-full">{ytbox("act2","El enunciado narrativo: ponlo al lanzar la actividad")}</div>
+<h3>El enunciado, paso a paso (lo que entrega el alumnado)</h3>
 <div class="steps">
 <div class="step"><b>Contextualiza</b><br>Describe una unidad didáctica real de tu nivel: edad, área, tema y elementos curriculares (objetivos, contenidos, criterios de evaluación).</div>
 <div class="step"><b>Matriz de programación 8×6</b> <span class="tag-req">núcleo</span><br>Tabla de doble entrada: <b>8 inteligencias múltiples × 6 niveles de Bloom</b> = 48 casillas. Rellena <b>al menos 6 cruces</b> variados en complejidad y en talento, con una actividad en cada uno.</div>
 <div class="step"><b>Cada actividad, completa</b><br>Objetivo, tarea del alumno, recursos (con cita/enlace), instrumentos de evaluación, tiempo estimado y tipo: obligatoria, optativa o voluntaria.</div>
 <div class="step"><b>El paisaje interactivo</b><br>Convierte una <b>imagen interactiva</b> (no una presentación) en el paisaje, con las actividades integradas dentro del territorio.</div>
 <div class="step"><b>Entregables</b><br><b>PDF (80%)</b> (máx. 10 páginas para 6 actividades, +1 por actividad extra) con planificación y matriz. <b>ePortfolio (20%)</b>: evidencias de matriz y paisaje (15%) + justificación del diseño y atención a la diversidad (5%).</div>
-</div></div>
-<div>{ytbox("act2","El enunciado narrativo: ponlo al lanzar la actividad")}</div>
 </div>
 </div></section>
 
@@ -387,16 +385,14 @@ autoevaluación</b>, las dos actividades y tres retos (videotutorial, microgamif
 
 <section id="examen"><div class="wrap">
 <div class="eyebrow">El salto final</div><h2>El examen: la batalla ES el examen</h2>
-<div class="grid cols-2">
-<div><p class="lead">La evaluación continua se complementa con un <b>examen final</b> en la semana de exámenes. En STARGATE
+<p class="lead">La evaluación continua se complementa con un <b>examen final</b> en la semana de exámenes. En STARGATE
 es <b>la batalla final contra la Estática</b>: el Capitán la presenta en el vídeo <b>Plan de Ataque</b> (semana 15): un caso único,
 plataforma en directo, tablero de retos, reglas de ortografía, enlaces públicos, capturas y tiempo. NEBULA no puede entrar: el recluta va solo.</p>
+<div class="yt-full">{ytbox("plan","Semana 15 · antes del simulacro")}</div>
 <div class="grid cols-3">
 <div class="card"><h3>Preparación</h3><p>Los <b>tests de cada tema</b> fijan los conceptos y entrenan para el examen.</p></div>
 <div class="card"><h3>Repaso + simulacro</h3><p>Semana 15: <b>repaso</b> y <b>simulacro</b> (hay un <a href="assets/docs/Ejemplo_examen.pdf">ejemplo de examen</a>).</p></div>
 <div class="card"><h3>Examen final</h3><p>Semana 16 (semana de exámenes). Formato y fechas exactas: aula virtual.</p></div>
-</div></div>
-<div>{ytbox("plan","Semana 15 · antes del simulacro")}</div>
 </div>
 </div></section>
 
@@ -404,14 +400,22 @@ plataforma en directo, tablero de retos, reglas de ortografía, enlaces público
 <div class="eyebrow amber">Descargas</div><h2>Documentos oficiales (programación nueva)</h2>
 <p class="lead">Los enunciados, pautas y rúbricas vigentes. Descárgalos desde aquí; son los mismos que en el aula virtual.</p>
 <div class="docs">{docs_html}</div>
-<div class="official warn" style="margin-top:16px">⚠️ <b>Dos erratas conocidas en las rúbricas oficiales</b> (detectadas en la auditoría de julio, pendientes de corrección por coordinación):
-la rúbrica de la <b>Actividad 1</b> conserva en el título «Crea tu videotutorial…» (herencia de una versión anterior; los criterios sí son los correctos), y la de la
-<b>Actividad 2</b> suma 9,5 en vez de 10. Evalúa con los criterios, no con el título.</div>
-<div class="official" style="margin-top:10px">📚 <b>Temario (PDF de los temas):</b> los disponibles son de la programación anterior y con nombres bailados; no se publican hasta recibir el temario actualizado.</div>
+<div class="official" style="margin-top:16px">📚 <b>Temario (PDF de los temas):</b> los disponibles son de la programación anterior y con nombres bailados; no se publican hasta recibir el temario actualizado.</div>
 </div></section>
 ''' + FOOT
 
 # ================= SALA DE RECURSOS (tablero + ranking + materiales) =================
+if PLANTILLA_EPORTFOLIO:
+    plantilla_ep_html = (f'<span class="chip ok">Disponible</span>'
+        f'<p>Plantilla lista para que el alumnado la <b>reutilice</b> como base de su Bitácora: estructura por página '
+        f'(evidencia → contexto → reflexión → autoevaluación) con la estética STARGATE.</p>'
+        f'<div class="responsive-embed"><iframe src="{PLANTILLA_EPORTFOLIO}" allowfullscreen scrolling="no" loading="lazy"></iframe></div>'
+        f'<a class="btn" href="{PLANTILLA_EPORTFOLIO}" target="_blank" rel="noopener">Abrir la plantilla en Genially ↗</a>')
+else:
+    plantilla_ep_html = ('<span class="chip wip">Pendiente de enlace</span>'
+        '<p>Plantilla de Genially para que el alumnado la reutilice como base de su Bitácora. '
+        'El enlace se añadirá aquí en cuanto esté publicado.</p>')
+
 REC = head("STARGATE · Sala de recursos",
   "Tablero de las 24 insignias, ranking de reclutas y materiales del proyecto STARGATE.","rec") + f'''
 <header class="hero"><div class="kicker">Sala de recursos</div>
@@ -431,15 +435,21 @@ REC = head("STARGATE · Sala de recursos",
 </div></section>
 
 <section><div class="wrap">
-<div class="eyebrow amber">Clasificación</div><h2>Ranking de reclutas (puntos)</h2>
-<p class="lead">El marcador de la misión. Se conectará con la fuente de puntos del curso (hoja de cálculo, Additio,
-ClassDojo…). <b>En construcción.</b></p>
-<div class="podium">
-<div class="pod silver"><div class="medal">🥈</div><div>2.º</div><div class="h"></div></div>
-<div class="pod gold"><div class="medal">🥇</div><div>1.º</div><div class="h"></div></div>
-<div class="pod bronze"><div class="medal">🥉</div><div>3.º</div><div class="h"></div></div>
+<div class="eyebrow amber">Clasificación</div><h2>Ranking de reclutas (xp)</h2>
+<p class="lead">El marcador de la misión vive en el <b>tablero en vivo de cada PER</b>: se alimenta solo de la
+Bitácora de mando del alumnado (insignias, xp, rangos y avatares).</p>
+<div class="cta-row"><a class="btn primary" href="registro.html#tablero">Ver el tablero en vivo →</a><a class="btn" href="embed.html">Incrustarlo en tu Genially</a></div>
+</div></section>
+
+<section id="plantilla-eportfolio"><div class="wrap">
+<div class="eyebrow teal">La Bitácora</div><h2>Plantilla del ePortfolio</h2>
+<div class="grid cols-2">
+<div class="card"><h3>🪐 Plantilla Genially de la Bitácora</h3>{plantilla_ep_html}</div>
+<div class="card"><h3>📘 Pautas oficiales</h3><p>Cómo se recoge cada evidencia y su reflexión (5 pasos, estructura por página):
+<a href="assets/docs/Pautas_ePortfolio.docx" download><b>Pautas del ePortfolio (DOCX)</b></a>.
+Como referencia de nivel, el <a href="assets/docs/Ejemplo_ePortfolio_alumnado.pdf">ejemplo real de un grupo (PDF)</a>.
+El resto de documentos oficiales están en <a href="actividades.html#docs">Actividades → Descargas</a>.</p></div>
 </div>
-<div class="official">🔌 Preparado para conectar con la clasificación real (por definir la herramienta).</div>
 </div></section>
 
 <section><div class="wrap">
@@ -483,7 +493,7 @@ def semana_card(s):
 </div>
 <details class="foro"><summary>💬 Mensaje del foro dinamizador (listo para copiar)</summary>
 <div class="foro-box"><button class="copy" type="button" data-copy="foro{sem}">Copiar texto</button><pre id="foro{sem}">{foro}</pre>
-<small>Pon tu nombre donde dice «Capitán {{Nombre del profesor}}» y revisa las herramientas citadas (son ejemplos, cambian cada curso).</small></div>
+<small>La firma es siempre «Capitán», a secas (sin tu nombre). Revisa las herramientas citadas (son ejemplos, cambian cada curso) y, donde aparezca el enlace del tablero, usa el de tu PER.</small></div>
 </details>
 </div></details>'''
 
@@ -529,7 +539,8 @@ insignia se entrega, el hito de evaluación y el mensaje del foro listo para cop
 
 <section id="semanas"><div class="wrap">
 <div class="eyebrow">Semana a semana</div><h2>La orden del día</h2>
-<p class="lead">Despliega cada semana. Los vídeos se reproducen aquí mismo; el enlace de cada uno sirve para insertarlo en Genially o en el aula virtual.</p>
+<p class="lead">Despliega cada semana. Los vídeos se reproducen aquí mismo; el enlace de cada uno sirve para insertarlo en Genially o en el aula virtual.
+¿Solo quieres los mensajes del foro? Están <a href="foro.html?todos=1"><b>todos juntos en una página</b></a>, listos para copiar.</p>
 <div class="semanas">{semanas_html}</div>
 </div></section>
 ''' + FOOT
@@ -550,18 +561,27 @@ gen_html = "\n".join(gen_slot(i, g) for i, g in GENIALLYS.items())
 
 GENPAGE = head("STARGATE · Los Geniallys",
   "Los Geniallys de cada planeta del proyecto STARGATE: carpeta del equipo y enlaces por tema.","gen") + f'''
-<header class="hero"><div class="kicker">Sección en construcción · se completa durante el curso</div>
+<header class="hero"><div class="kicker">Un Genially por planeta</div>
 <h1>Los Geniallys</h1>
-<p>Un Genially por planeta, renovados por el equipo. Aquí irán apareciendo los enlaces públicos de cada tema;
-mientras tanto, la carpeta de trabajo del equipo.</p>
-<div class="cta-row"><a class="btn primary" href="{GENIALLY_CARPETA}" target="_blank" rel="noopener">Abrir la carpeta del equipo en Genially ↗</a></div>
-<p class="small muted">La carpeta requiere acceso al equipo de Genially. Los enlaces públicos de cada tema se añadirán abajo.</p>
+<p>La carpeta de Genially está <b>compartida con todo el profesorado</b>. Entra, busca la carpeta de tu
+<b>perfil</b> y ahí tienes los <b>Geniallys estándar</b> de los ocho temas, listos para usar tal cual.</p>
+<div class="cta-row"><a class="btn primary" href="{GENIALLY_CARPETA}" target="_blank" rel="noopener">Entrar en la carpeta compartida de Genially ↗</a></div>
+<p class="small muted">Si no ves la carpeta, pide acceso al equipo. Los enlaces públicos de cada tema irán apareciendo abajo.</p>
 </header>
+
+<section><div class="wrap">
+<div class="eyebrow amber">Antes de tocar nada</div><h2>Cómo usar la carpeta</h2>
+<div class="grid cols-3">
+<div class="card"><h3>1 · Entra y localiza tu perfil</h3><p>Dentro de la carpeta compartida hay una carpeta por <b>perfil</b>. En la tuya están los <b>Geniallys estándar</b> de los 8 planetas: puedes usarlos directamente en tus clases, sin montar nada.</p></div>
+<div class="card"><h3>2 · ¿Quieres personalizarlo? Haz una copia</h3><p>Si quieres modificar un Genially, <b>duplícalo primero</b> y trabaja sobre tu copia. <b>No edites los estándar.</b></p></div>
+<div class="card"><h3>3 · Ojo con el panel de control</h3><p>Los enlaces y embeds del sistema (panel, foro dinámico, tablero) apuntan a los <b>Geniallys estándar</b>. Si usas una copia modificada, tendrás que enlazarla tú en tus propios materiales.</p></div>
+</div>
+</div></section>
 
 <section id="lista"><div class="wrap">
 <div class="eyebrow teal">Por planeta</div><h2>Los ocho Geniallys</h2>
 <div class="gens">{gen_html}</div>
-<div class="official" style="margin-top:18px">🧩 <b>Cómo se añade un Genially:</b> en Genially, <i>Compartir → Insertar</i> (o el enlace público de vista). Se pega en
+<div class="official" style="margin-top:18px">🧩 <b>Cómo se añade un Genially a esta página:</b> en Genially, <i>Compartir → Insertar</i> (o el enlace público de vista). Se pega en
 <code>_site_data.py → GENIALLYS[n]["view"]</code> y se regenera la web; el hueco del tema pasa a «Publicado» con el Genially incrustado.</div>
 </div></section>
 
@@ -574,31 +594,44 @@ mientras tanto, la carpeta de trabajo del equipo.</p>
 </div></section>
 ''' + FOOT
 
-# ================= REGISTRO DE INSIGNIAS (sección preparada) =================
-ALL_BADGES = [k for k,*_ in PERS]+[k for k,*_ in RETO]+[k for k,*_ in ESP]+[k for k,*_ in HITO]
-os.makedirs(os.path.join(HERE,"assets","descargas"),exist_ok=True)
-with open(os.path.join(HERE,"assets","descargas","registro_insignias_plantilla.csv"),"w",newline="",encoding="utf-8-sig") as fh:
-    w = csv.writer(fh, delimiter=";")
-    w.writerow(["Alumno/a"]+[BADGE_NAME[k] for k in ALL_BADGES])
-    for _ in range(30): w.writerow([""]*(1+len(ALL_BADGES)))
-
+# ================= REGISTRO DE INSIGNIAS =================
 orden_html = "".join(f'<tr><td>S{s["sem"]}</td><td>{s["tema"]}</td><td><div class="minis">{mini_badges(s["insignias"])}</div></td></tr>' for s in CRONO if s["insignias"])
 
-REGPAGE = head("STARGATE · Registro de insignias",
-  "Cómo entregar y registrar las 24 insignias de STARGATE: ceremonia, orden por semanas y plantilla de registro.","reg") + f'''
-<header class="hero"><div class="kicker">Sección en construcción · tablero pendiente</div>
+REGPAGE = head("STARGATE · Registro y tablero en vivo",
+  "El sistema de autoregistro de STARGATE: el alumnado registra sus insignias, el tablero se actualiza solo y el profesorado anima y da la ceremonia.","reg") + f'''
+<header class="hero"><div class="kicker">Registro y tablero en vivo</div>
 <h1>Registro de insignias</h1>
-<p>Una insignia que se otorga en silencio no motiva. Aquí está el <b>orden</b> en que se entregan, la <b>ceremonia</b>
-y la <b>plantilla</b> para llevar el registro mientras no exista el tablero.</p>
-<div class="cta-row"><a class="btn primary" href="assets/descargas/registro_insignias_plantilla.csv" download>Descargar plantilla de registro (CSV)</a><a class="btn" href="recursos.html">Ver las 24 insignias</a></div>
+<p>El registro es <b>automático</b>: cada estudiante anota sus propias insignias en la <b>Bitácora de mando</b> de su PER
+y los xp, los rangos y el <b>tablero</b> se calculan solos. Tu papel como docente no es apuntar nada:
+es <b>animar</b> — entregar cada insignia en público, con ceremonia, y enseñar el tablero para que el avance se vea.</p>
+<div class="cta-row"><a class="btn primary" href="#tablero">Ver el tablero en vivo</a><a class="btn" href="recursos.html">Ver las 24 insignias</a></div>
 </header>
 
 <section id="registro"><div class="wrap">
-<div class="eyebrow teal">La ceremonia</div><h2>Cómo se entrega una insignia</h2>
+<div class="eyebrow teal">Tu papel: la ceremonia</div><h2>Cómo se entrega una insignia</h2>
+<p class="lead">Una insignia que se otorga en silencio no motiva. La constancia queda sola (la registra el estudiante);
+lo que no puede faltar es tu ceremonia:</p>
 <div class="grid cols-3">
-<div class="card"><h3>1 · En público</h3><p>Publica el medallón en el foro o en el tablero en cuanto el recluta supera el reto. El refuerzo funciona cuando se ve.</p></div>
+<div class="card"><h3>1 · En público</h3><p>Anuncia el medallón en clase o en el foro en cuanto el recluta supera el reto. El refuerzo funciona cuando se ve.</p></div>
 <div class="card"><h3>2 · Con su frase</h3><p>Nombra el logro con la frase del personaje («una imagen no tiene que ser perfecta, tiene que llegar a tiempo»). Pulsa cualquier insignia en la sala de recursos: la frase está en su ficha.</p></div>
-<div class="card"><h3>3 · Y quede constancia</h3><p>Anótala en el registro (plantilla de abajo). Cuando exista el tablero, aquí se incrustará. Una obra que no se documenta, no existe.</p></div>
+<div class="card"><h3>3 · Y recuérdales registrarla</h3><p>El estudiante marca su insignia nueva en la Bitácora de mando y el tablero se actualiza al momento. Invítales a mirarlo: una obra que no se documenta, no existe.</p></div>
+</div>
+</div></section>
+
+<section id="alumnado"><div class="wrap">
+<div class="eyebrow amber">Cómo funciona para tu alumnado</div><h2>Así registran los estudiantes</h2>
+<div class="grid cols-3">
+<div class="card"><h3>1 · Su Bitácora de mando</h3><p>Un formulario con inicio de sesión de Google y <b>una sola respuesta editable</b>. La primera vez eligen alias y avatar y ponen el enlace de su ePortfolio; después solo vuelven, marcan la casilla de la insignia nueva y envían.</p></div>
+<div class="card"><h3>2 · Todo se calcula solo</h3><p>Los xp, las insignias, el planeta actual y el <b>avatar con rango</b> aparecen en el <a href="#tablero">tablero del PER</a> al momento. Las insignias de hito (Tripulación Cero, La Liberación) se otorgan solas. Ni tú ni nadie toca ninguna hoja.</p></div>
+<div class="card"><h3>3 · Dónde lo ven</h3><p>El tablero se incrusta en el Genially del PER (o se comparte por enlace/QR desde el <a href="embed.html">generador de embeds</a>). Enséñalo en clase al entregar insignias: es el marcador de la misión.</p></div>
+</div>
+</div></section>
+
+<section id="profe-herramientas"><div class="wrap">
+<div class="eyebrow">También desde tu puesto</div><h2>El ticket de salida y el canje, en versión docente</h2>
+<div class="grid cols-2">
+<div class="card"><h3>🎟️ Ticket de salida «Contacta con NEBULA»</h3><p>El alumnado valora la clase y deja dudas de forma <b>anónima</b> (presentación / tema / actividad / repaso, indicando quién imparte). Tú lo explotas en el <a href="tickets.html">panel visual de tickets</a>: valoraciones 1–5 por sección y dudas que puedes marcar como resueltas cuando las trates en clase.</p></div>
+<div class="card"><h3>🎁 Canje de xp</h3><p>Los xp del juego se canjean por recompensas (subir nota, recalificar…) con <b>validación automática</b>: el sistema comprueba el saldo y responde por correo. A ti solo te llegan los <b>canjes pendientes de aplicar</b>, en el <a href="profes.html">panel del profesorado</a>.</p></div>
 </div>
 </div></section>
 
@@ -650,33 +683,33 @@ y la <b>plantilla</b> para llevar el registro mientras no exista el tablero.</p>
 # tipo · como (cómo se consigue) · cuando · tarea (qué hay que hacer)
 BADGE_INFO = {
  # Personajes de la Tripulación Cero (Reto A)
- "P1_bran":{"nombre":"Bran Okafor · El Forjador","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 1: «El boceto sin quemar».","cuando":"Tema 1 · Planeta Fôrge","tarea":"Publica en el foro un borrador en bruto de algo que estés creando y una frase sobre qué te daba reparo enseñarlo sin pulir. No se corrige: el único criterio es compartirlo antes de terminarlo. Al hacerlo se recupera el fragmento de Bran."},
- "P2_tomas":{"nombre":"Tomás Reyer · El Cronista","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 2: «Un mensaje para quien faltó».","cuando":"Tema 2 · Planeta Ecos","tarea":"Graba un clip corto (máx. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no vino a clase. Debe entenderse solo, sin ti delante."},
- "P3_sylla":{"nombre":"Sylla Bren · La Rastreadora","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 3: «Dos senderos».","cuando":"Tema 3 · Planeta Sendara","tarea":"Toma un objetivo de aprendizaje y describe dos rutas completamente distintas para alcanzarlo, pensadas para dos alumnos diferentes. Que las dos lleguen a la misma cima."},
- "P4_amara":{"nombre":"Amara Sol · La Operadora","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 4: «Abre el canal».","cuando":"Tema 4 · Planeta Reliae","tarea":"Comparte con tu clase o el foro un recurso útil en menos de 24 h, aunque no esté pulido. Añade qué habrías «guardado en el cajón para pulir» y por qué esta vez no lo hiciste."},
- "P5_vera":{"nombre":"Vera Khal · La Médica","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 5: «Mide con método».","cuando":"Tema 5 · Planeta Umbral","tarea":"Define un indicador observable que vayas a seguir de verdad del aprendizaje de tus alumnos, acompañado de la pregunta que lo convierte en cuidado: «¿qué haré mañana mejor que hoy?»."},
- "P6_joran":{"nombre":"Joran Pike · El Ingeniero-jugador","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 6: «Ensaya jugando».","cuando":"Tema 6 · Planeta Ludo","tarea":"Coge algo que tus alumnos temen o les cuesta y conviértelo en un pequeño ensayo jugable (una mecánica: puntos, rutas, un enigma en cada paso). Que el juego sirva a un objetivo, no juego por juego."},
- "P7_mara":{"nombre":"Mara Voss · El Mando","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 7: «Un porqué».","cuando":"Tema 7 · Planeta Vínculo","tarea":"Toma una tarea rutinaria y escribe el «porqué» / la narrativa que la convierte en una causa. Diseña una insignia con sentido: memoria de un acto significativo, no premio por obedecer."},
- "P8_noa":{"nombre":"Noa Lieth · La Arquitecta de capas","tipo":"Insignia de personaje","como":"Completa el Reto A del Tema 8: «La capa posible».","cuando":"Tema 8 · Planeta Liminar","tarea":"Describe una «capa» sobre tu aula real: cómo sería si aprendiera a hablar de sí misma. Y elige un compromiso concreto que te llevas de todo el viaje. Con esto la Tripulación Cero queda completa."},
+ "P1_bran":{"nombre":"Bran Okafor · El Forjador","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 1: «El boceto sin quemar».","cuando":"Tema 1 · Planeta Fôrge","tarea":"Publica en el foro un borrador en bruto de algo que estés creando y una frase sobre qué te daba reparo enseñarlo sin pulir. No se corrige: el único criterio es compartirlo antes de terminarlo. Al hacerlo se recupera el fragmento de Bran."},
+ "P2_tomas":{"nombre":"Tomás Reyer · El Cronista","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 2: «Un mensaje para quien faltó».","cuando":"Tema 2 · Planeta Ecos","tarea":"Graba un clip corto (máx. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no vino a clase. Debe entenderse solo, sin ti delante."},
+ "P3_sylla":{"nombre":"Sylla Bren · La Rastreadora","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 3: «Dos senderos».","cuando":"Tema 3 · Planeta Sendara","tarea":"Toma un objetivo de aprendizaje y describe dos rutas completamente distintas para alcanzarlo, pensadas para dos alumnos diferentes. Que las dos lleguen a la misma cima."},
+ "P4_amara":{"nombre":"Amara Sol · La Operadora","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 4: «Abre el canal».","cuando":"Tema 4 · Planeta Reliae","tarea":"Comparte con tu clase o el foro un recurso útil en menos de 24 h, aunque no esté pulido. Añade qué habrías «guardado en el cajón para pulir» y por qué esta vez no lo hiciste."},
+ "P5_vera":{"nombre":"Vera Khal · La Médica","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 5: «Mide con método».","cuando":"Tema 5 · Planeta Umbral","tarea":"Define un indicador observable que vayas a seguir de verdad del aprendizaje de tus alumnos, acompañado de la pregunta que lo convierte en cuidado: «¿qué haré mañana mejor que hoy?»."},
+ "P6_joran":{"nombre":"Joran Pike · El Ingeniero-jugador","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 6: «Ensaya jugando».","cuando":"Tema 6 · Planeta Ludo","tarea":"Coge algo que tus alumnos temen o les cuesta y conviértelo en un pequeño ensayo jugable (una mecánica: puntos, rutas, un enigma en cada paso). Que el juego sirva a un objetivo, no juego por juego."},
+ "P7_mara":{"nombre":"Mara Voss · El Mando","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 7: «Un porqué».","cuando":"Tema 7 · Planeta Vínculo","tarea":"Toma una tarea rutinaria y escribe el «porqué» / la narrativa que la convierte en una causa. Diseña una insignia con sentido: memoria de un acto significativo, no premio por obedecer."},
+ "P8_noa":{"nombre":"Noa Lieth · La Arquitecta de capas","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 8: «La capa posible».","cuando":"Tema 8 · Planeta Liminar","tarea":"Describe una «capa» sobre tu aula real: cómo sería si aprendiera a hablar de sí misma. Y elige un compromiso concreto que te llevas de todo el viaje. Con esto la Tripulación Cero queda completa."},
  # Especiales
  "E1_nebula":{"nombre":"NEBULA · La Bitácora viva","tipo":"Insignia de personaje (especial)","como":"Se obtiene en el Reclutamiento, al aceptar la misión.","cuando":"Inicio del viaje","tarea":"NEBULA es la IA de la nave y tu narradora constante. Su insignia marca tu alistamiento en STARGATE; te acompañará desde el primer día hasta la puerta de vuelta a casa."},
  "E2_capitan":{"nombre":"El Capitán · El Mando de la misión","tipo":"Insignia de personaje (especial)","como":"Se obtiene al presentar la Actividad 1.","cuando":"Temas 1–2","tarea":"El Capitán es el mando de la misión (tu profesor o profesora). Su insignia reconoce que has asumido tu primera misión mayor: la actividad didáctica con imagen de IA."},
  "E3_vaeon":{"nombre":"General Vaeon · Señor de la Estática","tipo":"Insignia de villano","como":"Se desbloquea en la batalla final y con el «Fragmento Prohibido».","cuando":"Cierre del viaje","tarea":"Vaeon es el antagonista: personifica los errores del diseño educativo (contenido que no se entiende, recursos que no llegan, saber no compartido). Coleccionar su carta es el trofeo de haber entendido al enemigo."},
  # Retos (Reto B)
- "R1_la-chispa":{"nombre":"La chispa","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 1.","cuando":"Tema 1 · Fôrge","tarea":"Genera con una IA una imagen con finalidad didáctica: prompt estructurado (contexto + tipo de imagen + finalidad), al menos una iteración, selección final con tu criterio docente y evidencia del proceso. Es el núcleo de la Actividad 1."},
- "R2_el-eco-que-ensena":{"nombre":"El eco que enseña","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 2.","cuando":"Tema 2 · Ecos","tarea":"Crea un videotutorial de calidad (guion + grabación de pantalla + edición) y enriquécelo con 2–3 preguntas insertadas (videoquiz). Piénsalo para aula invertida y súbelo a la Bitácora con una reflexión breve."},
- "R3_la-matriz":{"nombre":"La matriz","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 3.","cuando":"Tema 3 · Sendara","tarea":"Construye la matriz de programación 8×6 (8 inteligencias múltiples × 6 niveles de Bloom = 48 casillas) y rellena al menos 6 cruces variados, con una actividad en cada uno. Es el núcleo de planificación de la Actividad 2."},
- "R4_entorno-de-aula":{"nombre":"El entorno de aula","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 4.","cuando":"Tema 4 · Reliae","tarea":"Monta un espacio digital de aula organizado (tipo Classroom, Sites, Moodle…) donde compartas materiales y puedas dar feedback y comunicarte en diferido y en directo. Deja enlace/captura + reflexión en la Bitácora."},
- "R5_bitacora-medida":{"nombre":"La Bitácora medida","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 5.","cuando":"Tema 5 · Umbral","tarea":"Diseña una rúbrica digital sencilla y estructura formalmente tu ePortfolio (una sección por evidencia, con el patrón evidencia → contexto → reflexión → autoevaluación). Esta semana además se cierra la Actividad 1."},
- "R6_el-juego":{"nombre":"El juego","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 6.","cuando":"Tema 6 · Ludo","tarea":"Adapta o crea un juego digital educativo para un objetivo concreto de tu aula. En Aprendizaje Basado en el Juego el juego ES la actividad: cada mecánica debe servir a un aprendizaje. Sube el juego + reflexión."},
- "R7_microgamificacion":{"nombre":"La microgamificación","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 7.","cuando":"Tema 7 · Vínculo","tarea":"Diseña una microgamificación de calidad: un toque de juego sobre una tarea que NO es un juego (una insignia, una barra de progreso, un tablero, un reto con narrativa). Aquí no se juega: se toman elementos del juego para enganchar."},
- "R8_ultimo-umbral":{"nombre":"El último umbral","tipo":"Insignia de reto","como":"Completa el Reto B del Tema 8.","cuando":"Tema 8 · Liminar","tarea":"Crea una experiencia de Realidad Aumentada o Virtual para tu materia y termina y publica la Bitácora (paisaje como imagen interactiva + las 5 páginas completas + enlace único). Resuelve la Actividad 2."},
+ "R1_la-chispa":{"nombre":"La chispa","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 1.","cuando":"Tema 1 · Fôrge","tarea":"Genera con una IA una imagen con finalidad didáctica: prompt estructurado (contexto + tipo de imagen + finalidad), al menos una iteración, selección final con tu criterio docente y evidencia del proceso. Es el núcleo de la Actividad 1."},
+ "R2_el-eco-que-ensena":{"nombre":"El eco que enseña","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 2.","cuando":"Tema 2 · Ecos","tarea":"Crea un videotutorial de calidad (guion + grabación de pantalla + edición) y enriquécelo con 2–3 preguntas insertadas (videoquiz). Piénsalo para aula invertida y súbelo a la Bitácora con una reflexión breve."},
+ "R3_la-matriz":{"nombre":"La matriz","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 3.","cuando":"Tema 3 · Sendara","tarea":"Construye la matriz de programación 8×6 (8 inteligencias múltiples × 6 niveles de Bloom = 48 casillas) y rellena al menos 6 cruces variados, con una actividad en cada uno. Es el núcleo de planificación de la Actividad 2."},
+ "R4_entorno-de-aula":{"nombre":"El entorno de aula","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 4.","cuando":"Tema 4 · Reliae","tarea":"Monta un espacio digital de aula organizado (tipo Classroom, Sites, Moodle…) donde compartas materiales y puedas dar feedback y comunicarte en diferido y en directo. Deja enlace/captura + reflexión en la Bitácora."},
+ "R5_bitacora-medida":{"nombre":"La Bitácora medida","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 5.","cuando":"Tema 5 · Umbral","tarea":"Diseña una rúbrica digital sencilla y estructura formalmente tu ePortfolio (una sección por evidencia, con el patrón evidencia → contexto → reflexión → autoevaluación). Esta semana además se cierra la Actividad 1."},
+ "R6_el-juego":{"nombre":"El juego","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 6.","cuando":"Tema 6 · Ludo","tarea":"Adapta o crea un juego digital educativo para un objetivo concreto de tu aula. En Aprendizaje Basado en el Juego el juego ES la actividad: cada mecánica debe servir a un aprendizaje. Sube el juego + reflexión."},
+ "R7_microgamificacion":{"nombre":"La microgamificación","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 7.","cuando":"Tema 7 · Vínculo","tarea":"Diseña una microgamificación de calidad: un toque de juego sobre una tarea que NO es un juego (una insignia, una barra de progreso, un tablero, un reto con narrativa). Aquí no se juega: se toman elementos del juego para enganchar."},
+ "R8_ultimo-umbral":{"nombre":"El último umbral","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 8.","cuando":"Tema 8 · Liminar","tarea":"Crea una experiencia de Realidad Aumentada o Virtual para tu materia y termina y publica la Bitácora (paisaje como imagen interactiva + las 5 páginas completas + enlace único). Resuelve la Actividad 2."},
  # Hitos
- "H1_reclutamiento":{"nombre":"Reclutamiento","tipo":"Insignia de hito","como":"Preséntate ante el mando en la primera sesión.","cuando":"Semana 1","tarea":"Aceptas la misión: te alistas en el equipo de rescate de STARGATE y abres tu Bitácora Estelar."},
- "H2_primera-forja":{"nombre":"Primera Forja","tipo":"Insignia de hito","como":"Entrega la Actividad 1.","cuando":"Temas 1–2","tarea":"Tu primera obra queda registrada en la Bitácora: la actividad didáctica creada a partir de una imagen con IA."},
- "H3_cartografo":{"nombre":"Cartógrafo","tipo":"Insignia de hito","como":"Entrega la Actividad 2.","cuando":"Tema 3 (se resuelve en el 8)","tarea":"Dibujas un territorio, no un camino: entregas el paisaje de aprendizaje con su matriz de programación."},
- "H4_tripulacion-cero":{"nombre":"Tripulación Cero","tipo":"Insignia de hito","como":"Desbloquea a los 8 personajes de la Cero.","cuando":"A lo largo del viaje","tarea":"Recuperas a Bran, Tomás, Sylla, Amara, Vera, Joran, Mara y Noa. NEBULA vuelve a estar completa."},
- "H5_la-liberacion":{"nombre":"La Liberación","tipo":"Insignia de hito","como":"Completa y publica la Bitácora.","cuando":"Repaso final","tarea":"Una Bitácora abierta, copiada y compartida no se puede apagar: la Estática retrocede y la puerta a la Tierra se abre. Tu ePortfolio es el camino a casa."},
+ "H1_reclutamiento":{"nombre":"Reclutamiento","tipo":"Insignia de hito","como":"Se entrega en la primera sesión, cuando el recluta se presenta ante el mando.","cuando":"Semana 1","tarea":"Aceptas la misión: te alistas en el equipo de rescate de STARGATE y abres tu Bitácora Estelar."},
+ "H2_primera-forja":{"nombre":"Primera Forja","tipo":"Insignia de hito","como":"Se entrega con la Actividad 1.","cuando":"Temas 1–2","tarea":"Tu primera obra queda registrada en la Bitácora: la actividad didáctica creada a partir de una imagen con IA."},
+ "H3_cartografo":{"nombre":"Cartógrafo","tipo":"Insignia de hito","como":"Se entrega con la Actividad 2.","cuando":"Tema 3 (se resuelve en el 8)","tarea":"Dibujas un territorio, no un camino: entregas el paisaje de aprendizaje con su matriz de programación."},
+ "H4_tripulacion-cero":{"nombre":"Tripulación Cero","tipo":"Insignia de hito","como":"Se otorga sola al desbloquear a los 8 personajes de la Cero.","cuando":"A lo largo del viaje","tarea":"Recuperas a Bran, Tomás, Sylla, Amara, Vera, Joran, Mara y Noa. NEBULA vuelve a estar completa."},
+ "H5_la-liberacion":{"nombre":"La Liberación","tipo":"Insignia de hito","como":"Se otorga sola al completar y publicar la Bitácora.","cuando":"Repaso final","tarea":"Una Bitácora abierta, copiada y compartida no se puede apagar: la Estática retrocede y la puerta a la Tierra se abre. Tu ePortfolio es el camino a casa."},
 }
 # Frase del personaje (se muestra en el modal de las insignias de personaje)
 CITAS = {
@@ -728,7 +761,7 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
       +'<div class="body"><div class="type">'+esc(d.tipo)+'</div><h3>'+esc(d.nombre)+'</h3>'
       +'<dl><dt>Cómo se consigue</dt><dd>'+esc(d.como)+'</dd>'
       +'<dt>Cuándo</dt><dd>'+esc(d.cuando)+'</dd>'
-      +'<dt>Qué hay que hacer</dt><dd>'+esc(d.tarea)+'</dd></dl>'
+      +'<dt>La tarea (tal como la recibe el alumnado)</dt><dd>'+esc(d.tarea)+'</dd></dl>'
       +(d.cita?('<blockquote class="mquote">«'+esc(d.cita)+'»</blockquote>'):'')
       +(d.link?('<a class="mlink" href="'+esc(d.link.href)+'">Forma parte de: '+esc(d.link.text)+' →</a>'):'')
       +'</div></div>';
@@ -786,12 +819,14 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding)
    {p:'index.html',sel:'#hero-cta',pose:'saluda',t:'Bienvenido al mando',x:'Recluta… perdón: <b>Capitán</b>. Soy tu homólogo en la historia. Esta web es tu puesto de mando: todo lo que necesitas para pilotar STARGATE en tu aula está aquí. Sígueme.'},
    {p:'index.html',sel:'#en60',pose:'tablet',t:'La misión en 60 segundos',x:'La galaxia se apaga por la Estática. Tu alumnado son reclutas: <b>8 planetas = 8 temas</b>, y una <b>Bitácora</b> (el ePortfolio) que lo reenciende todo. La batalla final es el examen.'},
    {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'<b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase.'},
-   {p:'guia.html',sel:'#retos',pose:'tablet',t:'Dos retos por tema',x:'El <b>Reto A</b> desbloquea al personaje y <b>no puntúa</b>; el <b>Reto B</b> produce una evidencia real de la Bitácora. 24 insignias en total: entrégalas en público y con su frase.'},
+   {p:'guia.html',sel:'#retos',pose:'tablet',t:'Dos retos por tema',x:'El <b>Reto A</b> desbloquea al personaje: no cuenta para nota, aunque da 100 xp simbólicos del juego. El <b>Reto B</b> produce una evidencia real de la Bitácora. 24 insignias en total: entrégalas en público y con su frase.'},
    {p:'cronologia.html',sel:'#mapa',pose:'senala',t:'Tu carta de navegación',x:'El mapa de las <b>15 semanas</b>: qué vídeo proyectar, qué reto lanzar, qué insignia entregar y el hito de evaluación. Sin fechas: semanas, como tu aula.'},
-   {p:'cronologia.html',sel:'#sem1',pose:'pensativo',t:'La orden del día',x:'Despliega una semana y tendrás la orden completa, con los vídeos reproducibles aquí mismo y el <b>mensaje del foro listo para copiar</b>. Empieza por la semana 1.'},
-   {p:'actividades.html',sel:'#act1',pose:'pensativo',t:'Misiones y evaluación',x:'Las dos misiones mayores, el ePortfolio y el examen con los <b>requisitos oficiales</b>, más los documentos para descargar. Ojo a las dos erratas de las rúbricas: están señaladas.'},
-   {p:'geniallys.html',sel:'#lista',pose:'senala',t:'Los Geniallys',x:'Aquí vivirán los <b>8 Geniallys</b> renovados, uno por planeta. De momento tienes la carpeta del equipo; los huecos de cada tema ya están preparados.'},
-   {p:'registro.html',sel:'#registro',pose:'tablet',t:'El registro de insignias',x:'Cuando entregues una insignia, que quede constancia: descarga la plantilla o espera al tablero. <b>Una insignia sin ceremonia no motiva.</b>'},
+   {p:'cronologia.html',sel:'#sem1',pose:'pensativo',t:'La orden del día',x:'Despliega una semana y tendrás la orden completa, con los vídeos reproducibles aquí mismo y el <b>mensaje del foro listo para copiar</b> (la firma es siempre «Capitán», a secas). Empieza por la semana 1.'},
+   {p:'actividades.html',sel:'#act1',pose:'pensativo',t:'Misiones y evaluación',x:'Las dos misiones mayores, el ePortfolio y el examen con los <b>requisitos oficiales</b>, más los documentos para descargar.'},
+   {p:'geniallys.html',sel:'#lista',pose:'senala',t:'Los Geniallys',x:'La carpeta de Genially está <b>compartida con todo el profesorado</b>: busca la carpeta de tu perfil y usa los <b>Geniallys estándar</b> tal cual. ¿Quieres personalizar uno? Haz una copia; el sistema enlaza siempre a los estándar.'},
+   {p:'registro.html',sel:'#registro',pose:'tablet',t:'El registro es automático',x:'Tu alumnado registra sus insignias solo, en la <b>Bitácora de mando</b> de su PER, y el <b>tablero en vivo</b> se actualiza al momento: xp, rangos y avatares. Tu papel es la <b>ceremonia</b>: entrega cada insignia en público y con su frase.'},
+   {p:'registro.html',sel:'#profe-herramientas',pose:'brazos',t:'Tus sensores de a bordo',x:'El <b>ticket de salida</b> te devuelve valoraciones y dudas anónimas de cada clase, y el <b>canje de xp</b> se valida solo: a ti solo te llegan los canjes pendientes de aplicar. Cada uno con su panel visual.'},
+   {p:'index.html',sel:'#secciones',pose:'senala',t:'Tus herramientas de mando',x:'Desde aquí llegas al <b>panel del profesorado</b> (con PIN), a los <b>tickets</b>, al <b>foro dinámico</b> para el Genially del PER y al <b>generador de enlaces, embeds y QR</b>. Todo lo que se incrusta sale de ahí.'},
    {p:'index.html',sel:'#hero-cta',pose:'pulgar',t:'Listo para el salto',x:'Eso es todo, Capitán. La nave es tuya. Y recuerda: <b>una obra que no se documenta, no existe</b>. Corto y cierro.'}
   ];
   var KEY='sgTourStep';
@@ -871,9 +906,12 @@ PROFES = head("STARGATE · Panel del profesorado", "Panel del profesorado de STA
 ''' + FOOT
 
 FORO_PAGE = head("STARGATE · Foro dinámico", "El mensaje del foro de la semana en curso, con sus retos, insignias y vídeos. Se actualiza solo a partir de la fecha de la semana 1.", "crono") + f'''
-<header class="hero"><div class="kicker">Foro dinámico</div><h1>La orden de la semana</h1>
-<p>Un único artefacto para el Genially del PER: muestra el mensaje del foro de la semana en curso (con sus retos, insignias y vídeos) y cambia solo cada semana. Basta con que el PER tenga su fecha de semana 1.</p>
-<p class="small muted">Uso: <code>foro.html?per=&lt;id&gt;</code> (toma la fecha del PER) o <code>foro.html?inicio=2026-09-14&amp;tipo=REGULAR|PUA</code>. Añade <code>&amp;embed=1</code> para incrustar y <code>&amp;semana=N</code> para forzar una semana.</p></header>
+<header class="hero"><div class="kicker">Foro dinamizador</div><h1>La orden de la semana</h1>
+<p>Dos formas de usar los mensajes del foro: <b>incrustar este artefacto</b> en el Genially del PER (muestra el mensaje
+de la semana en curso y cambia solo cada semana), o <b>verlos todos de una vez</b> y copiarlos para publicarlos tú
+en el foro de tu aula.</p>
+<div class="cta-row"><a class="btn primary" href="foro.html?todos=1">Ver TODOS los mensajes (para copiar) →</a></div>
+<p class="small muted">Uso del artefacto dinámico: <code>foro.html?per=&lt;id&gt;</code> (toma la fecha del PER) o <code>foro.html?inicio=2026-09-14&amp;tipo=REGULAR|PUA</code>. Añade <code>&amp;embed=1</code> para incrustar y <code>&amp;semana=N</code> para forzar una semana. Todos los mensajes: <code>foro.html?todos=1</code> (con <code>&amp;per=&lt;id&gt;</code> los enlaces del tablero salen ya con tu PER).</p></header>
 <section><div class="wrap">
 <div id="foro-app"></div>
 <script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};</script>
