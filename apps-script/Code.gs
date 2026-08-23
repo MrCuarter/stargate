@@ -392,7 +392,10 @@ function doPost(e) {
     else if (a === "alumnos") out = tablero_(per, true);
     else if (a === "tickets") { var o = perObj_(perFila_(per).v); var sh = SpreadsheetApp.getActive().getSheetByName(o.tabT); var v = sh && sh.getLastRow() > 1 ? sh.getDataRange().getValues() : [[]];
       var cabT = (v[0]||[]).map(String);
-      out = { tickets: v.slice(1).map(function(r){ var o2 = {}; cabT.forEach(function(c,i){ if (i > 0 && r[i] !== "" && r[i] !== null) o2[c] = r[i]; }); return { fecha:r[0], r:o2 }; }) }; }
+      var cRes = cabT.indexOf("Resuelto");
+      out = { tickets: v.slice(1).map(function(r, k){ var o2 = {}; cabT.forEach(function(c,i){ if (i > 0 && c !== "Resuelto" && r[i] !== "" && r[i] !== null) o2[c] = r[i]; }); return { fecha:r[0], fila:k+2, resuelto: cRes >= 0 ? String(r[cRes]||"") : "", r:o2 }; }) }; }
+    else if (a === "ticket_resuelto") { var o5 = perObj_(perFila_(per).v); var sht = SpreadsheetApp.getActive().getSheetByName(o5.tabT); var cabR = sht.getRange(1,1,1,sht.getLastColumn()).getValues()[0].map(String);
+      var colR = cabR.indexOf("Resuelto") + 1; if (!colR) { colR = sht.getLastColumn() + 1; sht.getRange(1, colR).setValue("Resuelto"); } sht.getRange(q.fila, colR).setValue(q.valor ? "Sí · " + (q.profe||"") + " · " + Utilities.formatDate(new Date(),"Europe/Madrid","dd/MM") : ""); out = { ok:true }; }
     else if (a === "ajuste") { hoja_(H.AJ).appendRow([new Date(), per, String(q.email).toLowerCase(), q.reto_id, q.tipo, q.motivo || "", q.profe || ""]); consolidarDatos(); out = { ok:true }; }
     else if (a === "profesorado") { var p = perFila_(per); var sh4 = hoja_(H.PERS); sh4.getRange(p.fila, 4).setValue(q.profesorado || ""); sh4.getRange(p.fila, 17).setValue(q.referente || "");
       try { var o4 = perObj_(perFila_(per).v); var ftx = FormApp.openByUrl(o4.formTicketEdit); ftx.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle().indexOf("profesor o profesora") >= 0) i.asListItem().setChoiceValues(listaProfes_(q.referente, q.profesorado)); }); } catch (e2) {}

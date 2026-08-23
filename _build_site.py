@@ -101,7 +101,8 @@ tiles = [
  ("actividades.html","🎯","Misiones y evaluación","Las dos actividades, el ePortfolio y el examen con los requisitos oficiales."),
  ("geniallys.html","🪐","Los Geniallys","Uno por planeta. La carpeta del equipo y los huecos para cada tema."),
  ("registro.html","🏅","Registro de insignias","Tablero en vivo por PER, formularios del alumnado y cómo funciona."),
- ("profes.html","🔐","Panel del profesorado","Alumnos, tickets, canjes y ajustes de cada PER (con PIN)."),
+ ("profes.html","🔐","Panel del profesorado","Alumnos, insignias, canjes y ajustes de cada PER (con PIN)."),
+ ("tickets.html","🎟️","Tickets de salida","Valoraciones y dudas del alumnado, visual y por clase (con PIN)."),
  ("foro.html","💬","Foro dinámico","El mensaje de la semana en curso, embebible en el Genially del PER."),
  ("recursos.html","📦","Sala de recursos","Tablero de las 24 insignias, ranking y materiales."),
 ]
@@ -857,3 +858,17 @@ FORO_PAGE = head("STARGATE · Foro dinámico", "El mensaje del foro de la semana
 for name, html in [("profes.html", PROFES), ("foro.html", FORO_PAGE)]:
     html=(html.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
     open(os.path.join(HERE,name),"w",encoding="utf-8").write(html); print("escrito:",name,f"{len(html)//1024} KB")
+
+# ================= v2.2 · PANEL VISUAL DE TICKETS =================
+TICKETS = head("STARGATE · Tickets de salida", "Panel visual de los tickets de salida «Contacta con NEBULA»: valoraciones por sección y dudas por resolver, por PER y por profesor/a.", "reg") + f'''
+<header class="hero"><div class="kicker">Solo profesorado · PIN</div><h1>Contacta con NEBULA</h1>
+<p>Elige tu PER y tu clase: verás de un vistazo las valoraciones (1-5) de cada sección y las dudas del alumnado, y podrás marcarlas como resueltas cuando las trates en clase.</p>
+<p class="small muted">Embed para el Genially del profesorado: <code>tickets.html?embed=1</code> (o <code>?per=&lt;id&gt;&amp;embed=1</code>). <a href="tickets.html?demo=1">Ver una demostración con datos ficticios</a>.</p></header>
+<section id="panel"><div class="wrap">
+<div id="tickets-app"></div>
+<script>window.SG_TABLERO_API="{TABLERO_API}";</script>
+<script src="assets/js/tickets.js" defer></script>
+</div></section>
+''' + FOOT
+html=(TICKETS.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
+open(os.path.join(HERE,"tickets.html"),"w",encoding="utf-8").write(html); print("escrito: tickets.html")

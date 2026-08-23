@@ -195,4 +195,4 @@ def foro_por_semana():
 
 # ---------- tablero de reclutas (web app de Apps Script en mutecdgami) ----------
 # URL del despliegue «Aplicación web» (termina en /exec). Vacío = tablero pendiente de conectar.
-TABLERO_API = ""
+TABLERO_API = "https://script.google.com/macros/s/AKfycbxlrRGIBJPD9h8-6D46Y4IJ8Gb2fu9v4-6wYZjgPAom2W1QfLh14ltBZmXV2Sx3_nXvPg/exec"
