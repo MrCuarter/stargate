@@ -4,10 +4,17 @@ Sitio estático de la gamificación **STARGATE** de la asignatura *Creación de 
 M-learning y Gamificación en el Aula* (CCD). Pensado para el profesorado y para desplegar en
 **Hostinger**.
 
-## Páginas
-- `index.html` — **Guía para el profesorado** (narrativa, personajes, retos e insignias, dinamización).
-- `actividades.html` — **Actividades y evaluación** (Actividad 1, Actividad 2, ePortfolio, evaluación y examen).
-- `recursos.html` — **Sala de recursos** (presentaciones de Genially, clasificación de puntos, tablero de insignias). *Parcialmente en construcción.*
+## Páginas (v2 · 23-ago-2026 · «puesto de mando del profesorado»)
+- `index.html` — **Portada** (vídeo en bucle, la misión en 60 s, navegación, visita guiada con el Capitán).
+- `guia.html` — **Guía** (narrativa, personajes, Bitácora, retos e insignias, dinamización, FAQ).
+- `cronologia.html` — **Cronología**: mapa de 15 semanas + tarjeta por semana (vídeos, retos, insignias, hito, foro para copiar).
+- `actividades.html` — **Misiones y evaluación** + documentos oficiales descargables (`assets/docs/`).
+- `geniallys.html` — **Geniallys** (sección preparada: carpeta del equipo + 8 huecos; rellenar `GENIALLYS` en `_site_data.py`).
+- `registro.html` — **Registro de insignias** (ceremonia, orden por semanas, plantilla CSV, hueco del tablero).
+- `recursos.html` — **Sala de recursos** (tablero de 24 insignias, cartas, ranking).
+
+Datos editables en `_site_data.py` (cronología, vídeos, Geniallys); los textos del foro se leen de
+`../FORO_DINAMIZADOR_STARGARTE.md` al construir. Visita guiada en `assets/js/tour.js` (pasos = array `STEPS`).
 
 ## Estructura
 ```
