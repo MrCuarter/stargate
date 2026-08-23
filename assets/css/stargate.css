@@ -313,4 +313,4 @@ body.embed #panel,body.embed .foro-card{padding-top:0}
 td.who{white-space:nowrap}
 .av.r2{border-color:#5ad0eb}.av.r3{border-color:var(--amber);box-shadow:0 4px 16px rgba(245,176,67,.35)}.av.r4{border-color:#ffd56a;box-shadow:0 0 0 3px rgba(255,213,106,.25),0 6px 22px rgba(255,213,106,.45)}
 .rango{color:var(--amber);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
-td.who{display:flex;align-items:center;gap:4px}
+td.who{display:flex;align-items:center;gap:6px}td.who>span{display:inline-block;line-height:1.25}
