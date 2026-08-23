@@ -889,3 +889,13 @@ EMBED = head("STARGATE · Enlaces y embeds", "Genera los enlaces, códigos de in
 ''' + FOOT
 html=(EMBED.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
 open(os.path.join(HERE,"embed.html"),"w",encoding="utf-8").write(html); print("escrito: embed.html")
+
+# ================= cache-busting de TODOS los js (tablero/profes/tickets/foro/embed) =================
+import glob as _glob, re as _re
+_vers = {os.path.basename(f): _ver("assets/js/"+os.path.basename(f)) for f in _glob.glob(os.path.join(HERE,"assets","js","*.js"))}
+for _html in _glob.glob(os.path.join(HERE,"*.html")):
+    _s = open(_html, encoding="utf-8").read()
+    for _name, _v in _vers.items():
+        _s = _re.sub(r'assets/js/'+_re.escape(_name)+r'(\?v=[0-9a-f]+)?"', 'assets/js/'+_name+'?v='+_v+'"', _s)
+    open(_html, "w", encoding="utf-8").write(_s)
+print("cache-bust js:", ", ".join(k+"="+v[:6] for k,v in sorted(_vers.items())))
