@@ -5,7 +5,7 @@ Ejecutar desde web-stargate/:  python3 _build_site.py
 Datos de cronología/vídeos/geniallys en _site_data.py."""
 import os, json, hashlib, csv
 from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
-                        PLAYLIST, HERO_MP4)
+                        PLAYLIST, HERO_MP4, TABLERO_API)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E"
@@ -602,9 +602,33 @@ y la <b>plantilla</b> para llevar el registro mientras no exista el tablero.</p>
 </div></section>
 
 <section id="tablero"><div class="wrap">
-<div class="eyebrow">Tablero</div><h2>Tablero de progreso (pendiente)</h2>
-<div class="wip"><span class="ic">🚧</span><div><b>Hueco preparado.</b> Cuando el equipo publique el tablero de insignias (Genially, Additio, ClassDojo o una hoja compartida), se incrusta aquí. Mientras tanto: la plantilla CSV (una fila por alumno, una columna por insignia; ábrela en Excel, Numbers o Google Sheets).</div></div>
-<div class="embed-slot big"><div class="n">🏅</div><div class="s">Tablero de insignias del curso</div><div class="wipchip">Próximamente</div></div>
+<div class="eyebrow">Tablero en vivo</div><h2>Ranking e insignias de cada PER</h2>
+<p class="lead">Se alimenta solo del formulario de autoregistro del PER. Elige el grupo (o abre el enlace <code>registro.html?per=…</code> que da el asistente). Para incrustarlo en un Genially, usa el código que entrega el asistente (<code>&embed=1</code>).</p>
+<div id="tablero-app"></div>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};</script>
+<script src="assets/js/tablero.js" defer></script>
+</div></section>
+
+<section id="instalacion"><div class="wrap">
+<div class="eyebrow amber">Cómo funciona por dentro (y cómo se instala)</div><h2>El sistema de autoregistro</h2>
+<div class="grid cols-3">
+<div class="card"><h3>1 · El alumno registra</h3><p>Un <b>formulario de Google</b> por PER: alias público, correo (solo profesorado), qué reto/actividad/hito completa y el <b>enlace a la evidencia</b>. Cada registro vale una vez; los duplicados se ignoran.</p></div>
+<div class="card"><h3>2 · Nadie hace nada</h3><p>La hoja maestra (cuenta <b>mutecdgami</b>) calcula alias, insignias, planeta actual y puntos. Las insignias de hito <b>Tripulación Cero</b> y <b>La Liberación</b> se otorgan solas. Si hay un registro falso, el profesorado escribe algo en la columna <b>Anulado</b> de la hoja y desaparece.</p></div>
+<div class="card"><h3>3 · Un PER nuevo, un clic</h3><p>Menú <b>🛰️ STARGATE → Crear nuevo PER…</b>: pide nombre del PER, profesorado y fechas de apertura y cierre; crea formulario y hoja, programa la apertura/cierre y devuelve el enlace, el QR y el código para Genially.</p></div>
+</div>
+<h3 style="margin-top:1.6em">Puntos</h3>
+<p class="lead">Reclutamiento 10 · Reto A 10 · Reto B 25 · Actividad entregada 50 · Batalla final 50 · hitos derivados (Cero completa, Liberación) 30. Los puntos son del juego: <b>no son nota</b>.</p>
+<details class="faq"><summary>Instalación en la cuenta mutecdgami (se hace una vez, 10 minutos)</summary><div>
+<ol>
+<li>Con la sesión de <b>mutecdgami@gmail.com</b>, crea una hoja de cálculo nueva llamada <b>STARGATE · Mando de PERs</b> dentro de la carpeta del proyecto en Drive.</li>
+<li>Menú <b>Extensiones → Apps Script</b>. Borra el contenido de <code>Código.gs</code> y pega el de <a href="assets/descargas/Code.gs.txt" target="_blank">Code.gs</a>. Crea un archivo HTML (➕ → HTML) llamado exactamente <b>Dialog</b> y pega <a href="assets/descargas/Dialog.html.txt" target="_blank">Dialog.html</a>. Guarda.</li>
+<li>Vuelve a la hoja y recárgala: aparece el menú <b>🛰️ STARGATE</b>. La primera vez Google pedirá autorizar el script (cuenta mutecdgami → «Permitir»).</li>
+<li>En Apps Script: <b>Implementar → Nueva implementación → Aplicación web</b>. Ejecutar como: <b>Yo</b>. Acceso: <b>Cualquier usuario</b>. Implementar y copia la URL (termina en <code>/exec</code>).</li>
+<li>Esa URL se pega en la web (<code>_site_data.py → TABLERO_API</code>) y se regenera; a partir de ahí este tablero está vivo. También conviene guardarla en el script: en el editor, ejecutar una vez <code>guardarWebAppUrl("URL")</code> para que el asistente la incluya en sus enlaces.</li>
+<li>Crea el primer PER desde el menú. Listo: el formulario nace con todas las preguntas y la hoja de respuestas enlazada.</li>
+</ol>
+<p>Cada vez que cambie el código del script, basta <b>Implementar → Gestionar implementaciones → editar → Nueva versión</b> para que la URL siga siendo la misma.</p>
+</div></details>
 </div></section>
 ''' + FOOT
 

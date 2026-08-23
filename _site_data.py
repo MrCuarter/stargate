@@ -192,3 +192,7 @@ def foro_por_semana():
         cuerpo = re.sub(r"\*(.+?)\*", r"\1", cuerpo)
         out[sem] = cuerpo.strip()
     return out
+
+# ---------- tablero de reclutas (web app de Apps Script en mutecdgami) ----------
+# URL del despliegue «Aplicación web» (termina en /exec). Vacío = tablero pendiente de conectar.
+TABLERO_API = ""
