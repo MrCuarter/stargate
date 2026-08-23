@@ -48,15 +48,19 @@
   if(location.hash && /^#sem\d+$/.test(location.hash)){var d=document.querySelector(location.hash); if(d&&d.tagName==='DETAILS'){d.open=true;}}
 })();
 
-// ---- avatares (galería propia + URL opcional con respaldo) ----
+// ---- avatares: personaje que evoluciona por xp · clásico · URL propia (con respaldo) ----
 window.SG = window.SG || {};
-window.SG.avatarSrc = function(av, alias){
-  var n = av && av.n; if(!n){ var h=0; for(var i=0;i<(alias||'').length;i++) h=(h*31+alias.charCodeAt(i))>>>0; n = (h%16)+1; }
-  var fallback = 'assets/img/avatares/a'+(n<10?'0':'')+n+'.jpg';
-  var u = av && av.url ? String(av.url).trim() : '';
+window.SG.RANGOS = ['Recluta','Cadete','Oficial','Comandante'];
+window.SG.rango = function(xp, tipoPer){ var k = (tipoPer==='PUA') ? 3500/4500 : 1; var u=[1000*k,2500*k,4000*k]; var r=1; for(var i=0;i<3;i++) if(xp>=u[i]) r=i+2; return r; };
+window.SG.avatarSrc = function(av, alias, xp, tipoPer){
+  av = av || {}; var h=0; for(var i=0;i<(alias||'').length;i++) h=(h*31+alias.charCodeAt(i))>>>0;
+  var tipo = av.tipo || 'evo'; var n = av.n || (tipo==='evo' ? (h%5)+1 : (h%16)+1);
+  var r = window.SG.rango(xp||0, tipoPer);
+  var fallback = tipo==='evo' ? 'assets/img/avatares/evo/c'+n+'_r'+r+'.jpg' : 'assets/img/avatares/a'+(n<10?'0':'')+n+'.jpg';
+  var u = av.url ? String(av.url).trim() : '';
   if(u){ var m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([A-Za-z0-9_-]{10,})/); if(m) u = 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
          if(!/^https?:\/\//i.test(u)) u=''; }
-  return { src: u || fallback, fallback: fallback };
+  return { src: u || fallback, fallback: fallback, rango: window.SG.RANGOS[r-1], r: r, evo: tipo==='evo' && !u };
 };
-window.SG.avatarImg = function(av, alias, cls){ var r = window.SG.avatarSrc(av, alias);
-  return '<img class="av '+(cls||'')+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="if(this.src!==this.dataset.fb){this.src=this.dataset.fb;}">'; };
+window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
+  return '<img class="av '+(cls||'')+' r'+r.r+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" title="'+r.rango+'" loading="lazy" referrerpolicy="no-referrer" onerror="if(this.src!==this.dataset.fb){this.src=this.dataset.fb;}">'; };

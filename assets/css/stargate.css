@@ -311,3 +311,6 @@ body.embed #panel,body.embed .foro-card{padding-top:0}
 .av{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--teal);box-shadow:0 4px 14px rgba(55,224,236,.25);vertical-align:middle;margin-right:10px;background:#0b1119}
 .av.big{width:84px;height:84px;margin:6px auto 8px;display:block;border-width:3px}
 td.who{white-space:nowrap}
+.av.r2{border-color:#5ad0eb}.av.r3{border-color:var(--amber);box-shadow:0 4px 16px rgba(245,176,67,.35)}.av.r4{border-color:#ffd56a;box-shadow:0 0 0 3px rgba(255,213,106,.25),0 6px 22px rgba(255,213,106,.45)}
+.rango{color:var(--amber);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+td.who{display:flex;align-items:center;gap:4px}
