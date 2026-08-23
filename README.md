@@ -10,7 +10,9 @@ M-learning y Gamificación en el Aula* (CCD). Pensado para el profesorado y para
 - `cronologia.html` — **Cronología**: mapa de 15 semanas + tarjeta por semana (vídeos, retos, insignias, hito, foro para copiar).
 - `actividades.html` — **Misiones y evaluación** + documentos oficiales descargables (`assets/docs/`).
 - `geniallys.html` — **Geniallys** (sección preparada: carpeta del equipo + 8 huecos; rellenar `GENIALLYS` en `_site_data.py`).
-- `registro.html` — **Registro de insignias** (ceremonia, orden por semanas, plantilla CSV, hueco del tablero).
+- `registro.html` — **Registro y tablero en vivo** por PER (API de Apps Script), avatares evolutivos, guía de instalación.
+- `profes.html` · `tickets.html` · `foro.html` · `embed.html` — panel del profesorado (PIN), tickets visual, foro dinámico semanal y generador de enlaces/embeds/QR.
+- `apps-script/` — código de la hoja maestra (Code.gs + Dialog.html); copia servida en `assets/descargas/`.
 - `recursos.html` — **Sala de recursos** (tablero de 24 insignias, cartas, ranking).
 
 Datos editables en `_site_data.py` (cronología, vídeos, Geniallys); los textos del foro se leen de
