@@ -103,6 +103,7 @@ tiles = [
  ("registro.html","🏅","Registro de insignias","Tablero en vivo por PER, formularios del alumnado y cómo funciona."),
  ("profes.html","🔐","Panel del profesorado","Alumnos, insignias, canjes y ajustes de cada PER (con PIN)."),
  ("tickets.html","🎟️","Tickets de salida","Valoraciones y dudas del alumnado, visual y por clase (con PIN)."),
+ ("embed.html","🧩","Enlaces, embeds y QR","Elige tu PER y tu nombre: todo listo para pegar en Genially."),
  ("foro.html","💬","Foro dinámico","El mensaje de la semana en curso, embebible en el Genially del PER."),
  ("recursos.html","📦","Sala de recursos","Tablero de las 24 insignias, ranking y materiales."),
 ]
@@ -606,7 +607,7 @@ y la <b>plantilla</b> para llevar el registro mientras no exista el tablero.</p>
 
 <section id="tablero"><div class="wrap">
 <div class="eyebrow">Tablero en vivo</div><h2>Ranking e insignias de cada PER</h2>
-<p class="lead">Se alimenta solo del formulario de autoregistro del PER. Elige el grupo (o abre el enlace <code>registro.html?per=…</code> que da el asistente). Para incrustarlo en un Genially, usa el código que entrega el asistente (<code>&embed=1</code>).</p>
+<p class="lead">Se alimenta solo de la Bitácora de mando de cada PER. Para incrustar el tablero, el foro o los formularios en tu Genially: <a href="embed.html"><b>generador de enlaces, embeds y QR</b></a>.</p>
 <div id="tablero-app"></div>
 <script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};</script>
 <script src="assets/js/tablero.js" defer></script>
@@ -840,7 +841,7 @@ PROFES = head("STARGATE · Panel del profesorado", "Panel del profesorado de STA
 <div id="profes-app"></div>
 <script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};</script>
 <script src="assets/js/profes.js" defer></script>
-<p class="small muted" style="margin-top:18px">Para incrustarlo en el Genially maestro del profesorado: <code>&lt;iframe src="https://stargate.mistercuarter.es/profes.html?embed=1" width="100%" height="800"&gt;</code>. El PIN se cambia desde la hoja maestra (menú STARGATE → Cambiar PIN).</p>
+<div class="official" style="margin-top:18px;display:block">🧩 <b>¿Quieres incrustar esto (o el tablero, el foro, los tickets) en Genially?</b> Usa el <a href="embed.html"><b>generador de enlaces, embeds y QR</b></a>: eliges PER y tu nombre y copias el código. El PIN se cambia desde la hoja maestra (menú STARGATE → Cambiar PIN).</div>
 </div></section>
 ''' + FOOT
 
@@ -872,3 +873,14 @@ TICKETS = head("STARGATE · Tickets de salida", "Panel visual de los tickets de 
 ''' + FOOT
 html=(TICKETS.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
 open(os.path.join(HERE,"tickets.html"),"w",encoding="utf-8").write(html); print("escrito: tickets.html")
+
+# ================= v2.3 · GENERADOR DE EMBEDS =================
+EMBED = head("STARGATE · Enlaces y embeds", "Genera los enlaces, códigos de incrustación y QR de un PER para los Geniallys del alumnado y del profesorado.", "gen") + f'''
+<header class="hero"><div class="kicker">Para montar tu Genially</div><h1>Enlaces, embeds y QR</h1>
+<p>Elige el PER y tu nombre: aquí están todos los enlaces, los códigos para incrustar y los QR, listos para copiar.</p></header>
+<section id="panel"><div class="wrap"><div id="embed-app"></div>
+<script>window.SG_TABLERO_API="{TABLERO_API}";</script><script src="assets/js/embed.js" defer></script>
+</div></section>
+''' + FOOT
+html=(EMBED.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
+open(os.path.join(HERE,"embed.html"),"w",encoding="utf-8").write(html); print("escrito: embed.html")

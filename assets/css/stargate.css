@@ -302,3 +302,8 @@ body.embed #panel,body.embed .foro-card{padding-top:0}
 .duda{background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:12px;padding:10px 14px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
 .duda .dq{grid-column:1/-1}.duda .dv{font-size:.98rem;color:#eafcff}
 .duda.ok{border-left-color:var(--teal);opacity:.7}
+/* generador de embeds */
+.emb h3{margin-top:0}
+.embrow{display:flex;gap:8px;align-items:stretch;margin:8px 0}
+.embrow input,.embrow textarea{flex:1;min-width:0;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#cfe3ea;font:inherit;font-size:.8rem;font-family:ui-monospace,Menlo,monospace;resize:vertical}
+.qrbox{display:flex;gap:14px;align-items:center;margin-top:8px}.qrbox img{width:120px;border-radius:10px;background:#fff;padding:4px}

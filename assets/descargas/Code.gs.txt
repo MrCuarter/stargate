@@ -66,6 +66,7 @@ function retosDe_(tipo){ return tipo === "PUA" ? RETOS_PUA : RETOS_REGULAR; }
 function onOpen() {
   SpreadsheetApp.getUi().createMenu("STARGATE")
     .addItem("Crear nuevo PER...", "abrirDialogoNuevoPER")
+    .addItem("Documento de enlaces y embeds del PER seleccionado", "documentoPERSeleccionado")
     .addItem("Actualizar recompensas en los formularios", "actualizarRecompensas")
     .addItem("Consolidar DATOS / RESUMEN", "consolidarDatos")
     .addSeparator()
@@ -186,7 +187,8 @@ function crearPER(datos) {
 
   hoja_(H.PERS).appendRow([id, nombre, tipo, datos.profesores || "", inicio || "", apertura || "", cierre || "", estado,
     fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date(), datos.referente || "", ft.getEditUrl()]);
-  return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
+  var docUrl = ""; try { docUrl = crearDocumentoPER_(id); } catch (e) { docUrl = ""; }
+  return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", doc:docUrl, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
     hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id, foro: WEB + "foro.html?per=" + id,
     embedAlumnos: '<iframe src="' + WEB + 'registro.html?per=' + id + '&embed=1" width="100%" height="760" style="border:0;border-radius:16px"></iframe>',
     embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>' };
@@ -255,6 +257,46 @@ function construirTicket_(ft, referente, profesores) {
   }
   ch.push(sel.createChoice("Repaso / balance final", pRep));
   sel.setChoices(ch);
+}
+
+// ================= DOCUMENTO DE ENLACES (Google Docs) =================
+function documentoPERSeleccionado() {
+  var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
+  if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) { SpreadsheetApp.getUi().alert("Selecciona una fila de la pestaña PERs."); return; }
+  var url = crearDocumentoPER_(sh.getRange(fila, 1).getValue());
+  SpreadsheetApp.getUi().alert("Documento creado:\n" + url);
+}
+function crearDocumentoPER_(perId) {
+  var p = perFila_(perId); if (!p) throw new Error("PER no encontrado"); var o = perObj_(p.v);
+  var ss = SpreadsheetApp.getActive(); var master = DriveApp.getFileById(ss.getId()); var padres = master.getParents();
+  var raiz = padres.hasNext() ? padres.next() : DriveApp.getRootFolder();
+  var subs = raiz.getFoldersByName("Formularios PER"); var carpeta = subs.hasNext() ? subs.next() : raiz;
+  var doc = DocumentApp.create("STARGATE · " + o.nombre + " · Enlaces y embeds"); DriveApp.getFileById(doc.getId()).moveTo(carpeta);
+  var b = doc.getBody(); b.setMarginTop(40);
+  function h(t, n) { b.appendParagraph(t).setHeading(n === 1 ? DocumentApp.ParagraphHeading.HEADING1 : DocumentApp.ParagraphHeading.HEADING2); }
+  function par(t) { b.appendParagraph(t); }
+  function link(label, url) { var pr = b.appendParagraph(label + ": "); pr.appendText(url).setLinkUrl(url); }
+  function code(c) { var pr = b.appendParagraph(c); pr.editAsText().setFontFamily("Courier New").setFontSize(8).setBackgroundColor("#eef7f8"); }
+  function qr(url, t) { try { b.appendParagraph(t).setItalic(true); b.appendImage(UrlFetchApp.fetch("https://quickchart.io/qr?size=220&margin=2&dark=0e5f6c&text=" + encodeURIComponent(url)).getBlob()); } catch (e) {} }
+  function ifr(u, hgt) { return '<iframe src="' + u + '" width="100%" height="' + hgt + '" style="border:0;border-radius:16px" allowfullscreen loading="lazy"></iframe>'; }
+  h("STARGATE · " + o.nombre, 1);
+  par("Tipo: " + o.tipo + " · Referente: " + (o.referente || "—") + " · Profesorado: " + (o.profesorado || "—") + " · Semana 1: " + (o.inicio || "sin fecha") + " · Generado: " + Utilities.formatDate(new Date(), "Europe/Madrid", "dd/MM/yyyy HH:mm"));
+  par("Cómo se incrusta en Genially: Insertar → Código embed, pegar el código y ajustar al lienzo. Para los formularios, mejor un botón con el enlace (o el QR para proyectar).");
+  h("Para el Genially del alumnado", 2);
+  link("Bitácora de mando (registro de insignias; botón)", o.formBitacora); qr(o.formBitacora, "QR de la Bitácora de mando");
+  link("Tablero de reclutas", WEB + "registro.html?per=" + o.id); par("Embed del tablero:"); code(ifr(WEB + "registro.html?per=" + o.id + "&embed=1", 760));
+  link("Foro dinámico (la orden de la semana)", WEB + "foro.html?per=" + o.id); par("Embed del foro:"); code(ifr(WEB + "foro.html?per=" + o.id + "&embed=1", 640));
+  link("Ticket de salida «Contacta con NEBULA» (anónimo; botón)", o.formTicket); qr(o.formTicket, "QR del ticket de salida");
+  link("Canje de xp (botón)", o.formCanje); qr(o.formCanje, "QR del canje");
+  h("Para el Genially del profesorado (con PIN)", 2);
+  link("Panel del PER", WEB + "profes.html?per=" + o.id); code(ifr(WEB + "profes.html?per=" + o.id + "&embed=1", 900));
+  link("Tickets de salida (visual)", WEB + "tickets.html?per=" + o.id); code(ifr(WEB + "tickets.html?per=" + o.id + "&embed=1", 900));
+  par("Para filtrar los tickets por profesor/a añade &profe=NOMBRE a la URL del panel de tickets, o usa el generador de la web: " + WEB + "embed.html?per=" + o.id);
+  h("Solo profesorado referente", 2);
+  link("Hoja maestra", ss.getUrl()); link("Editar la Bitácora de mando", o.formBitacoraEdit); link("Editar el ticket", o.formTicketEdit || "");
+  doc.saveAndClose();
+  var url = doc.getUrl(); hoja_(H.PERS).getRange(p.fila, 19).setValue(url); hoja_(H.PERS).getRange(1, 19).setValue("Documento de enlaces");
+  return url;
 }
 
 // ================= TRIGGERS =================

@@ -36,7 +36,7 @@ function ok(r){
   function b(t,u){return '<div class="ok"><b>'+t+'</b><br><a href="'+u+'" target="_blank">'+u+'</a></div>';}
   x.innerHTML='<h3>PER «'+r.nombre+'» ('+r.tipo+') creado · '+r.estado+'</h3>'
   +b('Bitácora de mando (alumnado)',r.formBitacora)+b('Ticket de salida (anónimo)',r.formTicket)+b('Canje de recompensas',r.formCanje)
-  +b('Tablero del PER en la web',r.web)+b('Foro dinámico del PER',r.foro)
+  +(r.doc?b('📄 Documento de Google con todos los enlaces, embeds y QR',r.doc):'')+b('Generador de embeds en la web (elige tu nombre)','https://stargate.mistercuarter.es/embed.html?per='+r.id)+b('Tablero del PER en la web',r.web)+b('Foro dinámico del PER',r.foro)
   +'<div class="ok"><b>Embed del tablero para el Genially del PER</b><br><textarea class="emb" readonly>'+r.embedAlumnos.replace(/</g,'&lt;')+'</textarea></div>'
   +'<div class="ok"><b>Embed del foro dinámico</b><br><textarea class="emb" readonly>'+r.embedForo.replace(/</g,'&lt;')+'</textarea></div>'
   +'<div class="ok"><b>QR de la Bitácora</b><br><img src="https://quickchart.io/qr?size=160&text='+encodeURIComponent(r.formBitacora)+'"></div>'

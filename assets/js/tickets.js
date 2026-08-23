@@ -2,7 +2,7 @@
 (function(){
   var API=(window.SG_TABLERO_API||"").trim(), root=document.getElementById('tickets-app'); if(!root) return;
   var q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
-  var st={pin:sessionStorage.getItem('sgPin')||'',per:q.get('per')||'',pers:[],tickets:[],prof:'',demo:q.get('demo')==='1'};
+  var st={pin:sessionStorage.getItem('sgPin')||'',per:q.get('per')||'',pers:[],tickets:[],prof:q.get('profe')||'',demo:q.get('demo')==='1'};
   var KSEL='Selecciona el tema',KPROF='profesor o profesora';
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function f(d){try{return new Date(d).toLocaleDateString('es-ES');}catch(e){return d;}}
@@ -18,7 +18,7 @@
     var profes={};t.forEach(function(x){var p=String(campo(x.r,KPROF)||'');if(p)profes[p]=(profes[p]||0)+1;});
     var tf=st.prof?t.filter(function(x){return campo(x.r,KPROF)===st.prof;}):t;
     var sel='<select id="selPer">'+st.pers.map(function(p){return '<option value="'+esc(p.id)+'"'+(p.id===st.per?' selected':'')+'>'+esc(p.nombre)+'</option>';}).join('')+'</select>'
-      +'<select id="selProf"><option value="">Todo el profesorado</option>'+Object.keys(profes).sort().map(function(p){return '<option value="'+esc(p)+'"'+(p===st.prof?' selected':'')+'>'+esc(p)+' ('+profes[p]+')</option>';}).join('')+'</select>';
+      +'<select id="selProf"><option value="">Todo el profesorado</option>'+Object.keys(profes).concat(st.prof&&!profes[st.prof]?[st.prof]:[]).sort().map(function(p){return '<option value="'+esc(p)+'"'+(p===st.prof?' selected':'')+'>'+esc(p)+' ('+(profes[p]||0)+')</option>';}).join('')+'</select>';
     var pend=tf.filter(function(x){return !x.resuelto&&Object.keys(x.r).some(function(c){return c.indexOf(KSEL)<0&&c.indexOf(KPROF)<0&&!/^[1-5]$/.test(String(x.r[c]))&&String(x.r[c]).trim();});}).length;
     var sats=[];tf.forEach(function(x){Object.keys(x.r).forEach(function(c){if(/satisfacci/i.test(c)&&/^[1-5]$/.test(String(x.r[c])))sats.push(Number(x.r[c]));});});
     var satm=sats.length?sats.reduce(function(a,b){return a+b;},0)/sats.length:0;
