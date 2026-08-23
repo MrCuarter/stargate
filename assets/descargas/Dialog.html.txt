@@ -2,40 +2,43 @@
 <style>
  body{font-family:system-ui,sans-serif;font-size:14px;color:#182430;margin:0;padding:18px}
  label{display:block;font-weight:600;margin:12px 0 4px}
- input,textarea{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #c9d3d8;border-radius:8px;font:inherit}
+ input,select{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #c9d3d8;border-radius:8px;font:inherit}
  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
  button{margin-top:18px;background:#0e7f8c;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer}
  button:disabled{opacity:.5}
- .ok{background:#eef7f8;border-left:4px solid #0e7f8c;padding:10px 12px;border-radius:0 8px 8px 0;margin-top:14px;word-break:break-all}
+ .ok{background:#eef7f8;border-left:4px solid #0e7f8c;padding:8px 12px;border-radius:0 8px 8px 0;margin-top:10px;word-break:break-all;font-size:13px}
  .ok a{color:#0b6db0}.err{color:#b00020;margin-top:10px}
- textarea.emb{font-family:monospace;font-size:11px;height:64px}
+ textarea.emb{width:100%;font-family:monospace;font-size:11px;height:52px;box-sizing:border-box}
+ small{color:#6d7b85}
 </style></head><body>
 <div id="form">
- <label>Nombre del PER</label><input id="nombre" placeholder="p. ej. 14210 4P · 2026-27 · T1">
+ <label>Nombre del PER</label><input id="nombre" placeholder="p. ej. 14210 4P 2026-27">
+ <div class="row"><div><label>Tipo</label><select id="tipo"><option value="REGULAR">REGULAR (15 semanas, examen)</option><option value="PUA">PUA (compacto, un tema por semana, sin examen)</option></select></div>
+ <div><label>Semana 1 empieza el</label><input id="inicio" type="date"><small>Para el foro dinámico</small></div></div>
  <label>Profesorado que imparte la asignatura</label><input id="profesores" placeholder="Nombre Apellido, Nombre Apellido">
- <div class="row"><div><label>Formulario abierto desde</label><input id="apertura" type="date"></div>
- <div><label>hasta</label><input id="cierre" type="date"></div></div>
- <p style="color:#6d7b85;font-size:12px">Si la apertura es hoy o anterior, el formulario nace abierto. El cierre se aplica a las 23:59 de ese día. Ambas fechas son opcionales (luego puedes abrir/cerrar desde el menú).</p>
+ <div class="row"><div><label>Formularios abiertos desde</label><input id="apertura" type="date"></div><div><label>hasta</label><input id="cierre" type="date"></div></div>
+ <small>Si la apertura es hoy o anterior, nacen abiertos. El cierre se aplica a las 23:59. Ambas opcionales (luego se abre/cierra desde el panel).</small>
  <button id="go" onclick="crear()">Crear PER</button>
  <div id="err" class="err"></div>
 </div>
 <div id="res" style="display:none"></div>
 <script>
+function v(id){return document.getElementById(id).value;}
 function crear(){
-  var d={nombre:v('nombre'),profesores:v('profesores'),apertura:v('apertura'),cierre:v('cierre')};
+  var d={nombre:v('nombre'),tipo:v('tipo'),inicio:v('inicio'),profesores:v('profesores'),apertura:v('apertura'),cierre:v('cierre')};
   if(!d.nombre){document.getElementById('err').textContent='Pon el nombre del PER';return;}
-  document.getElementById('go').disabled=true;document.getElementById('err').textContent='Creando formulario y hoja…';
+  document.getElementById('go').disabled=true;document.getElementById('err').textContent='Creando los 3 formularios y las pestañas (30-60 s)…';
   google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){document.getElementById('err').textContent=e.message;document.getElementById('go').disabled=false;}).crearPER(d);
 }
-function v(id){return document.getElementById(id).value;}
 function ok(r){
   document.getElementById('form').style.display='none';var x=document.getElementById('res');x.style.display='block';
-  x.innerHTML='<h3>PER «'+r.nombre+'» creado ('+r.estado+')</h3>'
-  +'<div class="ok"><b>Formulario para el alumnado</b> (pégalo en el foro / Genially):<br><a href="'+r.formAlumnado+'" target="_blank">'+r.formAlumnado+'</a></div>'
-  +'<div class="ok"><b>Tablero en la web</b>:<br><a href="'+r.web+'" target="_blank">'+r.web+'</a></div>'
-  +'<div class="ok"><b>Código para incrustar en Genially</b> (Insertar → código):<br><textarea class="emb" readonly>'+r.embed.replace(/</g,'&lt;')+'</textarea></div>'
-  +'<div class="ok"><b>QR del formulario</b>:<br><img src="https://quickchart.io/qr?size=180&text='+encodeURIComponent(r.formAlumnado)+'"></div>'
-  +'<div class="ok"><b>Solo profesorado</b>: <a href="'+r.hoja+'" target="_blank">hoja de respuestas</a> · <a href="'+r.formEditar+'" target="_blank">editar formulario</a></div>'
-  +'<p style="color:#6d7b85;font-size:12px">Todo queda apuntado en la pestaña PERs de esta hoja.</p>';
+  function b(t,u){return '<div class="ok"><b>'+t+'</b><br><a href="'+u+'" target="_blank">'+u+'</a></div>';}
+  x.innerHTML='<h3>PER «'+r.nombre+'» ('+r.tipo+') creado · '+r.estado+'</h3>'
+  +b('Bitácora de mando (alumnado)',r.formBitacora)+b('Ticket de salida (anónimo)',r.formTicket)+b('Canje de recompensas',r.formCanje)
+  +b('Tablero del PER en la web',r.web)+b('Foro dinámico del PER',r.foro)
+  +'<div class="ok"><b>Embed del tablero para el Genially del PER</b><br><textarea class="emb" readonly>'+r.embedAlumnos.replace(/</g,'&lt;')+'</textarea></div>'
+  +'<div class="ok"><b>Embed del foro dinámico</b><br><textarea class="emb" readonly>'+r.embedForo.replace(/</g,'&lt;')+'</textarea></div>'
+  +'<div class="ok"><b>QR de la Bitácora</b><br><img src="https://quickchart.io/qr?size=160&text='+encodeURIComponent(r.formBitacora)+'"></div>'
+  +'<small>Todo queda apuntado en la pestaña PERs. El panel del profesorado: '+'<a href="https://stargate.mistercuarter.es/profes.html" target="_blank">profes.html</a></small>';
 }
 </script></body></html>

@@ -100,7 +100,9 @@ tiles = [
  ("cronologia.html","🗓️","La cronología","Semana a semana: qué vídeo, qué reto, qué insignia y el mensaje del foro."),
  ("actividades.html","🎯","Misiones y evaluación","Las dos actividades, el ePortfolio y el examen con los requisitos oficiales."),
  ("geniallys.html","🪐","Los Geniallys","Uno por planeta. La carpeta del equipo y los huecos para cada tema."),
- ("registro.html","🏅","Registro de insignias","Cómo entregarlas con ceremonia y dónde anotarlas."),
+ ("registro.html","🏅","Registro de insignias","Tablero en vivo por PER, formularios del alumnado y cómo funciona."),
+ ("profes.html","🔐","Panel del profesorado","Alumnos, tickets, canjes y ajustes de cada PER (con PIN)."),
+ ("foro.html","💬","Foro dinámico","El mensaje de la semana en curso, embebible en el Genially del PER."),
  ("recursos.html","📦","Sala de recursos","Tablero de las 24 insignias, ranking y materiales."),
 ]
 tiles_html="\n".join(f'<a class="tile" href="{h}"><span class="ic">{i}</span><b>{t}</b><em>{d}</em></a>' for h,i,t,d in tiles)
@@ -612,22 +614,23 @@ y la <b>plantilla</b> para llevar el registro mientras no exista el tablero.</p>
 <section id="instalacion"><div class="wrap">
 <div class="eyebrow amber">Cómo funciona por dentro (y cómo se instala)</div><h2>El sistema de autoregistro</h2>
 <div class="grid cols-3">
-<div class="card"><h3>1 · El alumno registra</h3><p>Un <b>formulario de Google</b> por PER: alias público, correo (solo profesorado), qué reto/actividad/hito completa y el <b>enlace a la evidencia</b>. Cada registro vale una vez; los duplicados se ignoran.</p></div>
+<div class="card"><h3>1 · El alumno registra</h3><p>Cada PER tiene su <b>Bitácora de mando</b>: un formulario con inicio de sesión de Google y <b>una sola respuesta editable</b>. La primera vez pone alias, nombre y el enlace a su ePortfolio; después solo vuelve, marca la casilla de la insignia nueva y envía. Además: un <b>ticket de salida</b> anónimo por tema y un formulario de <b>canje de xp</b> con validación automática.</p></div>
 <div class="card"><h3>2 · Nadie hace nada</h3><p>Todo vive en <b>una sola hoja maestra</b> (cuenta <b>mutecdgami</b>): una pestaña de respuestas por PER, más <b>DATOS</b> (todos los registros de todos los PER en formato largo, para análisis e investigación) y <b>RESUMEN</b> (puntos e insignias por recluta y PER), que se rehacen solas con cada respuesta. El script calcula alias, insignias, planeta actual y puntos. Las insignias de hito <b>Tripulación Cero</b> y <b>La Liberación</b> se otorgan solas. Si hay un registro falso, el profesorado escribe algo en la columna <b>Anulado</b> de la hoja y desaparece.</p></div>
 <div class="card"><h3>3 · Un PER nuevo, un clic</h3><p>Menú <b>🛰️ STARGATE → Crear nuevo PER…</b>: pide nombre del PER, profesorado y fechas de apertura y cierre; crea formulario y hoja, programa la apertura/cierre y devuelve el enlace, el QR y el código para Genially.</p></div>
 </div>
 <h3 style="margin-top:1.6em">Puntos</h3>
-<p class="lead">Reclutamiento 10 · Reto A 10 · Reto B 25 · Actividad entregada 50 · Batalla final 50 · hitos derivados (Cero completa, Liberación) 30. Los puntos son del juego: <b>no son nota</b>.</p>
-<details class="faq"><summary>Instalación en la cuenta mutecdgami (se hace una vez, 10 minutos)</summary><div>
+<p class="lead">Reclutamiento 100 xp · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 · hitos derivados (Cero completa, Liberación) 300. Un viaje completo ≈ 4.500 xp. En PUA: 300 por tema (personaje) + 500 por actividad. Recompensas: subir 0,5 (900) · subir 1 (1.400) · recalificar fuera de plazo (2.000) · recalificar suspenso (2.800). Los xp son del juego: <b>no son nota</b>.</p>
+<details class="faq"><summary>Instalación en la cuenta mutecdgami (una vez, 20 minutos)</summary><div>
 <ol>
-<li>Con la sesión de <b>mutecdgami@gmail.com</b>, crea una hoja de cálculo nueva llamada <b>STARGATE · Mando de PERs</b> dentro de la carpeta del proyecto en Drive.</li>
-<li>Menú <b>Extensiones → Apps Script</b>. Borra el contenido de <code>Código.gs</code> y pega el de <a href="assets/descargas/Code.gs.txt" target="_blank">Code.gs</a> (si al abrirlo ves tildes raras, recarga la página: debe verse «Bitácora», «¿Qué registras?»). Crea un archivo HTML (➕ → HTML) llamado exactamente <b>Dialog</b> y pega <a href="assets/descargas/Dialog.html.txt" target="_blank">Dialog.html</a>. Guarda.</li>
-<li>Vuelve a la hoja y recárgala: aparece el menú <b>🛰️ STARGATE</b>. La primera vez Google pedirá autorizar el script (cuenta mutecdgami → «Permitir»).</li>
-<li>En Apps Script: <b>Implementar → Nueva implementación → Aplicación web</b>. Ejecutar como: <b>Yo</b>. Acceso: <b>Cualquier usuario</b>. Implementar y copia la URL (termina en <code>/exec</code>).</li>
-<li>Esa URL se pega en la web (<code>_site_data.py → TABLERO_API</code>) y se regenera; a partir de ahí este tablero está vivo. También conviene guardarla en el script: en el editor, ejecutar una vez <code>guardarWebAppUrl("URL")</code> para que el asistente la incluya en sus enlaces.</li>
-<li>Crea el primer PER desde el menú. Listo: el formulario nace con todas las preguntas, vuelca en la pestaña <code>R · id</code> de la hoja maestra y sus formularios quedan en la carpeta <b>Formularios PER</b>. El menú <b>Consolidar DATOS</b> regenera las pestañas de análisis a mano si hiciera falta.</li>
+<li>Con sesión en <b>mutecdgami@gmail.com</b>, crea en la carpeta del proyecto una hoja de cálculo <b>STARGATE · Mando de PERs</b>.</li>
+<li><b>Extensiones → Apps Script</b>: sustituye <code>Código.gs</code> por <a href="assets/descargas/Code.gs.txt" target="_blank">Code.gs</a> (debe verse «Bitácora» con tilde) y crea un archivo HTML llamado <b>Dialog</b> con <a href="assets/descargas/Dialog.html.txt" target="_blank">Dialog.html</a>. Guarda y recarga la hoja: aparece el menú <b>STARGATE</b>; autoriza la primera vez.</li>
+<li><b>Plantillas con la estética</b> (en la misma carpeta, con el nombre exacto): crea tres formularios vacíos llamados <b>PLANTILLA · Bitácora de mando</b>, <b>PLANTILLA · Ticket de salida</b> y <b>PLANTILLA · Canje de recompensas</b>; en cada uno, <i>Personalizar tema</i> → imagen de cabecera (<a href="assets/img/forms/cabecera_bitacora.jpg" download>Bitácora</a> · <a href="assets/img/forms/cabecera_ticket.jpg" download>Ticket</a> · <a href="assets/img/forms/cabecera_canje.jpg" download>Canje</a>), color <code>#0e5f6c</code>, fondo oscuro, fuente a tu gusto. Sin preguntas: el asistente las pone.</li>
+<li>Menú STARGATE → <b>Cambiar PIN del profesorado</b>: el PIN que usarán los profes en el panel.</li>
+<li><b>Implementar → Nueva implementación → Aplicación web</b> · Ejecutar como <b>Yo</b> · Acceso <b>Cualquier usuario</b> → copia la URL <code>/exec</code>, pégala en menú STARGATE → <b>Guardar URL del web app</b> y pásasela a quien mantenga la web (va en <code>_site_data.py → TABLERO_API</code>).</li>
+<li>Revisa la pestaña <b>RECOMPENSAS</b> (nombre · coste · máximo · descripción). Para cambiarlas en el futuro: editar la pestaña y menú → <b>Actualizar recompensas</b>.</li>
+<li><b>Crear nuevo PER…</b> y listo: 3 formularios, pestañas <code>B · id</code> / <code>T · id</code> / <code>C · id</code>, embeds para el Genially. Las pestañas <b>EVENTOS</b>, <b>DATOS</b> y <b>RESUMEN</b> se mantienen solas.</li>
 </ol>
-<p>Cada vez que cambie el código del script, basta <b>Implementar → Gestionar implementaciones → editar → Nueva versión</b> para que la URL siga siendo la misma.</p>
+<p>Si cambia el código: <b>Implementar → Gestionar implementaciones → ✎ → Nueva versión</b> (la URL no cambia).</p>
 </div></details>
 </div></section>
 ''' + FOOT
@@ -818,3 +821,38 @@ for name,html in PAGES:
     open(os.path.join(HERE,name),"w",encoding="utf-8").write(html)
     print("escrito:",name,f"{len(html)//1024} KB")
 print("OK sitio v2 generado · css?v="+vc)
+
+# ================= v2.1 · PANEL DE PROFESORADO + FORO DINÁMICO =================
+RETOS_REGULAR=[("A1","Reto A «El boceto sin quemar» (Bran)"),("B1","Reto B «La chispa»"),("X1","Actividad 1 entregada"),("A2","Reto A «Un mensaje para quien faltó» (Tomás)"),("B2","Reto B «El eco que enseña»"),("A3","Reto A «Dos senderos» (Sylla)"),("B3","Reto B «La matriz»"),("X2","Actividad 2 entregada"),("A4","Reto A «Abre el canal» (Amara)"),("B4","Reto B «El entorno de aula»"),("A5","Reto A «Mide con método» (Vera)"),("B5","Reto B «La Bitácora medida»"),("A6","Reto A «Ensaya jugando» (Joran)"),("B6","Reto B «El juego»"),("A7","Reto A «Un porqué» (Mara)"),("B7","Reto B «La microgamificación»"),("A8","Reto A «La capa posible» (Noa)"),("B8","Reto B «El último umbral»"),("XF","Batalla final")]
+RETOS_PUA=[("B1","La chispa (Bran)"),("X1","Actividad 1 entregada"),("B2","El eco que enseña (Tomás)"),("B3","La matriz (Sylla)"),("X2","Actividad 2 entregada"),("B4","El entorno de aula (Amara)"),("B5","La Bitácora medida (Vera)"),("B6","El juego (Joran)"),("B7","La microgamificación (Mara)"),("B8","El último umbral (Noa)")]
+SEMANAS_JSON = json.dumps([{
+  "sem": s["sem"], "tema": s["tema"], "sub": s["sub"], "capitulo": s.get("capitulo"),
+  "tema_n": int(__import__("re").search(r"Tema (\d)", s["tema"]).group(1)) if "Tema " in s["tema"] else 0,
+  "videos": [[{"id": yt(c)["id"], "titulo": yt(c)["titulo"]}, cuando] for c, cuando in s["videos"]],
+  "lanza": s["lanza"], "insignias": s["insignias"], "foro": FORO.get(s["sem"], ""), "hito": s["hito"]} for s in CRONO], ensure_ascii=False)
+
+PROFES = head("STARGATE · Panel del profesorado", "Panel del profesorado de STARGATE: alumnos, insignias, tickets de salida, canjes y ajustes de cada PER.", "reg") + f'''
+<header class="hero"><div class="kicker">Solo profesorado · PIN</div><h1>Panel del profesorado</h1>
+<p>Elige el PER y gestiona sin tocar la hoja: alumnos con nombre y correo, insignias (anular / otorgar), tickets de salida por tema, canjes pendientes de entregar, profesorado, fecha de inicio y apertura/cierre de formularios.</p></header>
+<section id="panel"><div class="wrap">
+<div id="profes-app"></div>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};</script>
+<script src="assets/js/profes.js" defer></script>
+<p class="small muted" style="margin-top:18px">Para incrustarlo en el Genially maestro del profesorado: <code>&lt;iframe src="https://stargate.mistercuarter.es/profes.html?embed=1" width="100%" height="800"&gt;</code>. El PIN se cambia desde la hoja maestra (menú STARGATE → Cambiar PIN).</p>
+</div></section>
+''' + FOOT
+
+FORO_PAGE = head("STARGATE · Foro dinámico", "El mensaje del foro de la semana en curso, con sus retos, insignias y vídeos. Se actualiza solo a partir de la fecha de la semana 1.", "crono") + f'''
+<header class="hero"><div class="kicker">Foro dinámico</div><h1>La orden de la semana</h1>
+<p>Un único artefacto para el Genially del PER: muestra el mensaje del foro de la semana en curso (con sus retos, insignias y vídeos) y cambia solo cada semana. Basta con que el PER tenga su fecha de semana 1.</p>
+<p class="small muted">Uso: <code>foro.html?per=&lt;id&gt;</code> (toma la fecha del PER) o <code>foro.html?inicio=2026-09-14&amp;tipo=REGULAR|PUA</code>. Añade <code>&amp;embed=1</code> para incrustar y <code>&amp;semana=N</code> para forzar una semana.</p></header>
+<section><div class="wrap">
+<div id="foro-app"></div>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};</script>
+<script src="assets/js/foro.js" defer></script>
+</div></section>
+''' + FOOT
+
+for name, html in [("profes.html", PROFES), ("foro.html", FORO_PAGE)]:
+    html=(html.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
+    open(os.path.join(HERE,name),"w",encoding="utf-8").write(html); print("escrito:",name,f"{len(html)//1024} KB")

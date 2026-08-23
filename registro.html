@@ -5,7 +5,7 @@
 <meta property="og:title" content="STARGATE · Registro de insignias"><meta property="og:description" content="Cómo entregar y registrar las 24 insignias de STARGATE: ceremonia, orden por semanas y plantilla de registro.">
 <meta name="theme-color" content="#080c14">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="assets/css/stargate.css?v=a9b6e012db">
+<link rel="stylesheet" href="assets/css/stargate.css?v=e231792d57">
 <script src="assets/js/stargate.js?v=dd14103c8b" defer></script>
 <script src="assets/js/tour.js?v=787538067e" defer></script>
 </head><body>
@@ -47,22 +47,23 @@ y la <b>plantilla</b> para llevar el registro mientras no exista el tablero.</p>
 <section id="instalacion"><div class="wrap">
 <div class="eyebrow amber">Cómo funciona por dentro (y cómo se instala)</div><h2>El sistema de autoregistro</h2>
 <div class="grid cols-3">
-<div class="card"><h3>1 · El alumno registra</h3><p>Un <b>formulario de Google</b> por PER: alias público, correo (solo profesorado), qué reto/actividad/hito completa y el <b>enlace a la evidencia</b>. Cada registro vale una vez; los duplicados se ignoran.</p></div>
+<div class="card"><h3>1 · El alumno registra</h3><p>Cada PER tiene su <b>Bitácora de mando</b>: un formulario con inicio de sesión de Google y <b>una sola respuesta editable</b>. La primera vez pone alias, nombre y el enlace a su ePortfolio; después solo vuelve, marca la casilla de la insignia nueva y envía. Además: un <b>ticket de salida</b> anónimo por tema y un formulario de <b>canje de xp</b> con validación automática.</p></div>
 <div class="card"><h3>2 · Nadie hace nada</h3><p>Todo vive en <b>una sola hoja maestra</b> (cuenta <b>mutecdgami</b>): una pestaña de respuestas por PER, más <b>DATOS</b> (todos los registros de todos los PER en formato largo, para análisis e investigación) y <b>RESUMEN</b> (puntos e insignias por recluta y PER), que se rehacen solas con cada respuesta. El script calcula alias, insignias, planeta actual y puntos. Las insignias de hito <b>Tripulación Cero</b> y <b>La Liberación</b> se otorgan solas. Si hay un registro falso, el profesorado escribe algo en la columna <b>Anulado</b> de la hoja y desaparece.</p></div>
 <div class="card"><h3>3 · Un PER nuevo, un clic</h3><p>Menú <b>🛰️ STARGATE → Crear nuevo PER…</b>: pide nombre del PER, profesorado y fechas de apertura y cierre; crea formulario y hoja, programa la apertura/cierre y devuelve el enlace, el QR y el código para Genially.</p></div>
 </div>
 <h3 style="margin-top:1.6em">Puntos</h3>
-<p class="lead">Reclutamiento 10 · Reto A 10 · Reto B 25 · Actividad entregada 50 · Batalla final 50 · hitos derivados (Cero completa, Liberación) 30. Los puntos son del juego: <b>no son nota</b>.</p>
-<details class="faq"><summary>Instalación en la cuenta mutecdgami (se hace una vez, 10 minutos)</summary><div>
+<p class="lead">Reclutamiento 100 xp · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 · hitos derivados (Cero completa, Liberación) 300. Un viaje completo ≈ 4.500 xp. En PUA: 300 por tema (personaje) + 500 por actividad. Recompensas: subir 0,5 (900) · subir 1 (1.400) · recalificar fuera de plazo (2.000) · recalificar suspenso (2.800). Los xp son del juego: <b>no son nota</b>.</p>
+<details class="faq"><summary>Instalación en la cuenta mutecdgami (una vez, 20 minutos)</summary><div>
 <ol>
-<li>Con la sesión de <b>mutecdgami@gmail.com</b>, crea una hoja de cálculo nueva llamada <b>STARGATE · Mando de PERs</b> dentro de la carpeta del proyecto en Drive.</li>
-<li>Menú <b>Extensiones → Apps Script</b>. Borra el contenido de <code>Código.gs</code> y pega el de <a href="assets/descargas/Code.gs.txt" target="_blank">Code.gs</a> (si al abrirlo ves tildes raras, recarga la página: debe verse «Bitácora», «¿Qué registras?»). Crea un archivo HTML (➕ → HTML) llamado exactamente <b>Dialog</b> y pega <a href="assets/descargas/Dialog.html.txt" target="_blank">Dialog.html</a>. Guarda.</li>
-<li>Vuelve a la hoja y recárgala: aparece el menú <b>🛰️ STARGATE</b>. La primera vez Google pedirá autorizar el script (cuenta mutecdgami → «Permitir»).</li>
-<li>En Apps Script: <b>Implementar → Nueva implementación → Aplicación web</b>. Ejecutar como: <b>Yo</b>. Acceso: <b>Cualquier usuario</b>. Implementar y copia la URL (termina en <code>/exec</code>).</li>
-<li>Esa URL se pega en la web (<code>_site_data.py → TABLERO_API</code>) y se regenera; a partir de ahí este tablero está vivo. También conviene guardarla en el script: en el editor, ejecutar una vez <code>guardarWebAppUrl("URL")</code> para que el asistente la incluya en sus enlaces.</li>
-<li>Crea el primer PER desde el menú. Listo: el formulario nace con todas las preguntas, vuelca en la pestaña <code>R · id</code> de la hoja maestra y sus formularios quedan en la carpeta <b>Formularios PER</b>. El menú <b>Consolidar DATOS</b> regenera las pestañas de análisis a mano si hiciera falta.</li>
+<li>Con sesión en <b>mutecdgami@gmail.com</b>, crea en la carpeta del proyecto una hoja de cálculo <b>STARGATE · Mando de PERs</b>.</li>
+<li><b>Extensiones → Apps Script</b>: sustituye <code>Código.gs</code> por <a href="assets/descargas/Code.gs.txt" target="_blank">Code.gs</a> (debe verse «Bitácora» con tilde) y crea un archivo HTML llamado <b>Dialog</b> con <a href="assets/descargas/Dialog.html.txt" target="_blank">Dialog.html</a>. Guarda y recarga la hoja: aparece el menú <b>STARGATE</b>; autoriza la primera vez.</li>
+<li><b>Plantillas con la estética</b> (en la misma carpeta, con el nombre exacto): crea tres formularios vacíos llamados <b>PLANTILLA · Bitácora de mando</b>, <b>PLANTILLA · Ticket de salida</b> y <b>PLANTILLA · Canje de recompensas</b>; en cada uno, <i>Personalizar tema</i> → imagen de cabecera (<a href="assets/img/forms/cabecera_bitacora.jpg" download>Bitácora</a> · <a href="assets/img/forms/cabecera_ticket.jpg" download>Ticket</a> · <a href="assets/img/forms/cabecera_canje.jpg" download>Canje</a>), color <code>#0e5f6c</code>, fondo oscuro, fuente a tu gusto. Sin preguntas: el asistente las pone.</li>
+<li>Menú STARGATE → <b>Cambiar PIN del profesorado</b>: el PIN que usarán los profes en el panel.</li>
+<li><b>Implementar → Nueva implementación → Aplicación web</b> · Ejecutar como <b>Yo</b> · Acceso <b>Cualquier usuario</b> → copia la URL <code>/exec</code>, pégala en menú STARGATE → <b>Guardar URL del web app</b> y pásasela a quien mantenga la web (va en <code>_site_data.py → TABLERO_API</code>).</li>
+<li>Revisa la pestaña <b>RECOMPENSAS</b> (nombre · coste · máximo · descripción). Para cambiarlas en el futuro: editar la pestaña y menú → <b>Actualizar recompensas</b>.</li>
+<li><b>Crear nuevo PER…</b> y listo: 3 formularios, pestañas <code>B · id</code> / <code>T · id</code> / <code>C · id</code>, embeds para el Genially. Las pestañas <b>EVENTOS</b>, <b>DATOS</b> y <b>RESUMEN</b> se mantienen solas.</li>
 </ol>
-<p>Cada vez que cambie el código del script, basta <b>Implementar → Gestionar implementaciones → editar → Nueva versión</b> para que la URL siga siendo la misma.</p>
+<p>Si cambia el código: <b>Implementar → Gestionar implementaciones → ✎ → Nueva versión</b> (la URL no cambia).</p>
 </div></details>
 </div></section>
 <footer><div class="wrap">

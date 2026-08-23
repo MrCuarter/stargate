@@ -267,3 +267,19 @@ table.rank tr:not(.insrow) td{border-bottom:0}
 .pers{display:flex;flex-wrap:wrap;gap:10px}
 body.embed .nav,body.embed .hero,body.embed footer,body.embed #registro,body.embed #orden,body.embed #instalacion{display:none}
 body.embed #tablero{padding:14px 0;border:0}
+/* panel profes + foro dinámico */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 16px}
+.tabs button{font-family:'DMSans';font-weight:700;font-size:.82rem;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--mut);cursor:pointer}
+.tabs button.on{color:var(--teal);border-color:var(--teal);background:rgba(55,224,236,.1)}
+.tabs .salir{margin-left:auto}
+.buscar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.buscar input{flex:1;min-width:220px;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:#fff;font:inherit}
+.btn.small{padding:6px 10px;font-size:.78rem;border-radius:9px}
+.foro-nav{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 16px}
+.foro-nav a{display:inline-block;min-width:34px;text-align:center;padding:6px 8px;border-radius:9px;border:1px solid var(--line);color:var(--mut);text-decoration:none;font-weight:700;font-size:.8rem}
+.foro-nav a.past{color:#5f7484;border-style:dashed}.foro-nav a.on{color:#05222a;background:var(--teal);border-color:var(--teal)}
+.foro-card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:18px;padding:22px}
+.foro-card h2{margin:.3em 0 0;font-size:1.6rem}
+.foro-msg{white-space:pre-wrap;font-family:'DMSans';font-size:1rem;line-height:1.6;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0;color:var(--ink)}
+.foro-card h4{margin:16px 0 8px;font-family:'DMSans';font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+body.embed #panel,body.embed .foro-card{padding-top:0}

@@ -188,8 +188,8 @@ def foro_por_semana():
         cuerpo = cuerpo.replace("{vídeo de bienvenida}", yt("sinopsis")["url"])
         cuerpo = cuerpo.replace("{vídeo}", yt("finale")["url"])
         # markdown ligero -> texto plano (negritas/cursivas fuera)
-        cuerpo = re.sub(r"\*\*(.+?)\*\*", r"\1", cuerpo)
-        cuerpo = re.sub(r"\*(.+?)\*", r"\1", cuerpo)
+        cuerpo = re.sub(r"\*\*(.+?)\*\*", r"\1", cuerpo, flags=re.S)
+        cuerpo = re.sub(r"\*(.+?)\*", r"\1", cuerpo, flags=re.S)
         out[sem] = cuerpo.strip()
     return out
 
