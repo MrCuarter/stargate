@@ -307,3 +307,7 @@ body.embed #panel,body.embed .foro-card{padding-top:0}
 .embrow{display:flex;gap:8px;align-items:stretch;margin:8px 0}
 .embrow input,.embrow textarea{flex:1;min-width:0;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#cfe3ea;font:inherit;font-size:.8rem;font-family:ui-monospace,Menlo,monospace;resize:vertical}
 .qrbox{display:flex;gap:14px;align-items:center;margin-top:8px}.qrbox img{width:120px;border-radius:10px;background:#fff;padding:4px}
+/* avatares */
+.av{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--teal);box-shadow:0 4px 14px rgba(55,224,236,.25);vertical-align:middle;margin-right:10px;background:#0b1119}
+.av.big{width:84px;height:84px;margin:6px auto 8px;display:block;border-width:3px}
+td.who{white-space:nowrap}

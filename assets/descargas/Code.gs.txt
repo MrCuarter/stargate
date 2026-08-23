@@ -160,6 +160,14 @@ function crearPER(datos) {
   fb.addSectionHeaderItem().setTitle("Quién soy").setHelpText("Solo la primera vez.");
   fb.addTextItem().setTitle("Alias de recluta (público)").setHelpText("Lo que se verá en el tablero.").setRequired(true);
   fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado.").setRequired(true);
+  // avatar: galería propia + URL opcional
+  try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_avatares.jpg").getBlob()).setTitle("Tu avatar de recluta").setAlignment(FormApp.Alignment.CENTER).setWidth(620); } catch (e) {}
+  var av = fb.addListItem().setTitle("Elige tu avatar").setHelpText("El número de la lámina. Si prefieres tu propia imagen, elige la última opción y pega la URL en la siguiente pregunta.").setRequired(true);
+  av.setChoiceValues(["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","Prefiero mi propia imagen (pongo la URL abajo)"]);
+  var avu = fb.addTextItem().setTitle("URL de tu propia imagen (opcional)").setHelpText(
+    "Debe ser un ENLACE DIRECTO a una imagen (termina en .jpg, .png o .webp). La forma más fácil: entra en postimages.org, sube tu foto (sin registrarte), y copia el campo «Enlace directo». " +
+    "Si la tienes en Google Drive: botón Compartir → «Cualquier persona con el enlace» → pega el enlace normal de Drive (lo convertimos nosotros). Un enlace a una página web o a Instagram NO funciona. Si la imagen no carga, verás tu avatar de la lámina.");
+  avu.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
   var bit = fb.addTextItem().setTitle("Enlace a mi Bitácora (ePortfolio)").setHelpText("Un único enlace donde está toda tu evidencia. Puedes añadirlo más adelante.");
   bit.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
   var porTema = {}; retos.forEach(function(r){ (porTema[r[4]] = porTema[r[4]] || []).push(r); });
@@ -385,12 +393,14 @@ function tablero_(perId, conPrivados) {
   if (shB && shB.getLastRow() > 1) {
     var vals = shB.getDataRange().getValues(); var cab = vals[0].map(String);
     var cM = idx_(cab,"correo") >= 0 ? idx_(cab,"correo") : idx_(cab,"email"); var cA = idx_(cab,"alias"), cN = idx_(cab,"apellidos"), cB = idx_(cab,"bitácora");
+    var cAv = idx_(cab,"elige tu avatar"), cAvU = idx_(cab,"url de tu propia imagen");
     for (var i = 1; i < vals.length; i++) { var m = String(vals[i][cM]||"").toLowerCase().trim(); if (!m) continue;
-      por[m] = { email:m, alias:String(vals[i][cA]||""), nombre:String(vals[i][cN]||""), bitacora:String(vals[i][cB]||""), retos:{}, insignias:{}, xp:0, tema:0, eventos:[] }; }
+      var avn = cAv >= 0 ? parseInt(String(vals[i][cAv]), 10) : NaN; var avu = cAvU >= 0 ? String(vals[i][cAvU]||"").trim() : "";
+      por[m] = { email:m, alias:String(vals[i][cA]||""), nombre:String(vals[i][cN]||""), bitacora:String(vals[i][cB]||""), avatar:{ n: isNaN(avn) ? null : avn, url: avu }, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] }; }
   }
   // 2) eventos (con fecha) + ajustes del profesorado
   hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase();
-    var a = por[m] || (por[m] = { email:m, alias:String(v[3]||""), nombre:"", bitacora:"", retos:{}, insignias:{}, xp:0, tema:0, eventos:[] });
+    var a = por[m] || (por[m] = { email:m, alias:String(v[3]||""), nombre:"", bitacora:"", avatar:{n:null,url:""}, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] });
     a.retos[v[4]] = { fecha:v[0], origen:v[8] }; a.eventos.push({ fecha:v[0], reto_id:v[4], reto:v[5], xp:v[7], origen:v[8] }); });
   hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase(); var a = por[m]; if (!a) return;
     if (v[4] === "anular") delete a.retos[v[3]]; else if (v[4] === "otorgar") { a.retos[v[3]] = { fecha:v[0], origen:"profesorado" }; } });
@@ -406,7 +416,7 @@ function tablero_(perId, conPrivados) {
     if (Object.keys(a.retos).length) { ins["H1_reclutamiento"] = true; ins["E1_nebula"] = true; }
     DERIVADAS.forEach(function(d){ if (d[2].every(function(k){ return ins[k]; })) { ins[d[0]] = true; xp += d[1]; } });
     var gast = canjes[m] ? canjes[m].gastado : 0;
-    var out = { alias:a.alias, xp:xp, xp_disponibles: xp - gast, planeta: tema ? TEMAS[tema][0] : "—", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length };
+    var out = { alias:a.alias, avatar:a.avatar || {n:null,url:""}, xp:xp, xp_disponibles: xp - gast, planeta: tema ? TEMAS[tema][0] : "—", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length };
     if (conPrivados) { out.email = m; out.nombre = a.nombre; out.bitacora = a.bitacora; out.eventos = a.eventos; out.retos = a.retos; out.canjes = canjes[m] ? canjes[m].lista : []; }
     return out; });
   lista.sort(function(a,b){ return b.xp - a.xp || b.n - a.n || a.alias.localeCompare(b.alias); }); lista.forEach(function(x,i){ x.pos = i+1; });
