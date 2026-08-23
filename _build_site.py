@@ -631,6 +631,7 @@ y la <b>plantilla</b> para llevar el registro mientras no exista el tablero.</p>
 <li><b>Implementar → Nueva implementación → Aplicación web</b> · Ejecutar como <b>Yo</b> · Acceso <b>Cualquier usuario</b> → copia la URL <code>/exec</code>, pégala en menú STARGATE → <b>Guardar URL del web app</b> y pásasela a quien mantenga la web (va en <code>_site_data.py → TABLERO_API</code>).</li>
 <li>Revisa la pestaña <b>RECOMPENSAS</b> (nombre · coste · máximo · descripción). Para cambiarlas en el futuro: editar la pestaña y menú → <b>Actualizar recompensas</b>.</li>
 <li><b>Roles:</b> el asistente pide el <b>profesor/a referente</b> (crea los documentos y gestiona el PER: hoja maestra, PIN, altas) y el <b>profesorado que imparte</b> (desarrolla las clases y usa el panel); ambos aparecen en el desplegable del ticket.</li>
+<li>Los formularios se <b>publican solos</b> (Google Forms los crea sin publicar). Si alguno diera «este documento no se ha publicado», menú STARGATE → <b>Publicar y abrir formularios del PER seleccionado</b>.</li>
 <li><b>Crear nuevo PER…</b> y listo: 3 formularios, pestañas <code>B · id</code> / <code>T · id</code> / <code>C · id</code>, embeds para el Genially. Las pestañas <b>EVENTOS</b>, <b>DATOS</b> y <b>RESUMEN</b> se mantienen solas.</li>
 </ol>
 <p>Si cambia el código: <b>Implementar → Gestionar implementaciones → ✎ → Nueva versión</b> (la URL no cambia).</p>

@@ -66,6 +66,7 @@ function retosDe_(tipo){ return tipo === "PUA" ? RETOS_PUA : RETOS_REGULAR; }
 function onOpen() {
   SpreadsheetApp.getUi().createMenu("STARGATE")
     .addItem("Crear nuevo PER...", "abrirDialogoNuevoPER")
+    .addItem("Publicar y abrir formularios del PER seleccionado", "publicarFormulariosPER")
     .addItem("Documento de enlaces y embeds del PER seleccionado", "documentoPERSeleccionado")
     .addItem("Actualizar recompensas en los formularios", "actualizarRecompensas")
     .addItem("Consolidar DATOS / RESUMEN", "consolidarDatos")
@@ -121,6 +122,15 @@ function imagen_(form, tema, texto) {
   try { var blob = UrlFetchApp.fetch(WEB + "assets/img/planetas/" + TEMAS[tema][2] + ".png").getBlob();
         form.addImageItem().setImage(blob).setTitle(texto).setAlignment(FormApp.Alignment.CENTER).setWidth(160); } catch (e) {}
 }
+function publicar_(form) { try { if (form.setPublished) form.setPublished(true); } catch (e) { Logger.log("setPublished: " + e); } }
+function publicarFormulariosPER() {
+  var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
+  if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) { SpreadsheetApp.getUi().alert("Selecciona una fila de la pestaña PERs."); return; }
+  var o = perObj_(sh.getRange(fila, 1, 1, 19).getValues()[0]); var n = 0;
+  [o.formBitacoraEdit, o.formTicketEdit, o.formCanje].forEach(function(u){ try { var f = FormApp.openByUrl(String(u).replace("/viewform","/edit")); publicar_(f); f.setAcceptingResponses(true); n++; } catch (e) {} });
+  sh.getRange(fila, 8).setValue("Abierto");
+  SpreadsheetApp.getUi().alert("Publicados y abiertos " + n + " formularios de " + o.nombre + ".");
+}
 function pestanaDe_(form, nombreNuevo, color) {
   SpreadsheetApp.flush(); var tab = null;
   SpreadsheetApp.getActive().getSheets().forEach(function(h){ try { var u = h.getFormUrl(); if (u && u.indexOf(form.getId()) >= 0) tab = h; } catch (e) {} });
@@ -160,12 +170,14 @@ function crearPER(datos) {
     var cb = fb.addCheckboxItem().setTitle(t >= 1 && t <= 8 ? "Tema " + t + " · Lo que he completado" : "Batalla final");
     cb.setChoiceValues(porTema[t].map(function(r){ return r[1]; }));
   });
+  publicar_(fb);
   fb.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
   var tabB = pestanaDe_(fb, "B · " + id, "#37e0ec");
 
   // ---- 2 · Ticket de salida «Contacta con NEBULA» (anónimo, ramificado) ----
   var ft = formDesdePlantilla_("PLANTILLA · Ticket de salida", "STARGATE · " + nombre + " · Contacta con NEBULA (ticket de salida)", carpeta);
   construirTicket_(ft, datos.referente || "", datos.profesores || "");
+  publicar_(ft);
   ft.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
   var tabT = pestanaDe_(ft, "T · " + id, "#9fb2c2");
 
@@ -177,6 +189,7 @@ function crearPER(datos) {
   var la = fc.addListItem().setTitle("Actividad a la que se aplica").setRequired(true);
   la.setChoiceValues(["Actividad 1 · imagen con IA","Actividad 2 · paisaje de aprendizaje","Otra (la indico en el comentario)"]);
   fc.addParagraphTextItem().setTitle("Comentario (opcional)");
+  publicar_(fc);
   fc.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
   var tabC = pestanaDe_(fc, "C · " + id, "#f5b043");
 
@@ -317,7 +330,7 @@ function porTrigger_(e, abrir) {
 }
 function setAbierto_(perId, abrir) {
   var p = perFila_(perId); if (!p) return; var o = perObj_(p.v);
-  [o.formBitacoraEdit, o.formTicket, o.formCanje].forEach(function(u){ try { FormApp.openByUrl(u.replace("/viewform","/edit")).setAcceptingResponses(abrir); } catch (e) {} });
+  [o.formBitacoraEdit, o.formTicketEdit || o.formTicket, o.formCanje].forEach(function(u){ try { var fx = FormApp.openByUrl(String(u).replace("/viewform","/edit")); if (abrir) publicar_(fx); fx.setAcceptingResponses(abrir); } catch (e) {} });
   hoja_(H.PERS).getRange(p.fila, 8).setValue(abrir ? "Abierto" : "Cerrado");
 }
 
