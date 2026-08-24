@@ -7,5 +7,14 @@ window.SGCAL = (function(){
   function vista(tipo,SEM){return tipo==='PUA'?semanasPua(SEM):SEM;}
   function semanaActual(inicio){if(!inicio)return null;var hoy=new Date();hoy.setHours(0,0,0,0);var ini=new Date(inicio+'T00:00:00');return Math.floor((hoy-ini)/(7*864e5))+1;}
   function desdeEfectiva(desde,tipo,total){desde=Number(desde)||0;if(!desde)return 0;return tipo==='PUA'?Math.max(1,Math.round(desde*total/15)):desde;}
-  return {semanasPua:semanasPua,vista:vista,semanaActual:semanaActual,desdeEfectiva:desdeEfectiva};
+  // datos del PER con caché local (la lentitud es el arranque en frío de Apps Script):
+  // pinta al instante con lo cacheado y corrige después con lo fresco. cb(data, esCache) puede llegar 2 veces.
+  function perData(API,per,cb){var K='sgPerCache_'+per,hit=false;
+    try{var c=JSON.parse(localStorage.getItem(K)||'null');
+        if(c&&c.d&&(Date.now()-c.t)<43200e3){hit=true;cb(c.d,true);}}catch(e){}
+    fetch(API+'?per='+encodeURIComponent(per),{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){
+      if(d&&!d.error){try{localStorage.setItem(K,JSON.stringify({t:Date.now(),d:d}));}catch(e){}}
+      cb(d,false);
+    }).catch(function(){if(!hit)cb(null,false);});}
+  return {semanasPua:semanasPua,vista:vista,semanaActual:semanaActual,desdeEfectiva:desdeEfectiva,perData:perData};
 })();

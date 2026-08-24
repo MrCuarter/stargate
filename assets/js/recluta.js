@@ -72,7 +72,7 @@
         +'</div>';
     }
     var r=st.yo, d=st.d, SG=window.SG||{};
-    var av=SG.avatarImg?SG.avatarImg(r.avatar,r.alias,'grande',r.xp,d.tipo):'';
+    var av=SG.avatarImg?SG.avatarImg(r.avatar,r.alias,'grande'+(r.marco==='oro'?' marco-oro':''),r.xp,d.tipo):'';
     var u=SG.UMBRALES?SG.UMBRALES(d.tipo):[1000,2500,4000,4500]; var rg=SG.rango?SG.rango(r.xp,d.tipo):1;
     var sig=rg<=u.length?u[rg-1]:null; var base=rg>1?u[rg-2]:0;
     var pct=sig?Math.min(100,Math.round((r.xp-base)/(sig-base)*100)):100;
@@ -80,12 +80,26 @@
                  :'<p class="small muted">Rango máximo alcanzado. 🫡</p>';
     var col=BADGES.map(function(kk){var tiene=(r.insignias||[]).indexOf(kk)>=0;
       return '<div class="b'+(tiene?'':' no')+'" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+'"><img loading="lazy" src="assets/img/insignias/'+kk+'.png" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';}).join('');
-    return '<div class="grid cols-2 nave-estado"><div class="card"><div class="nave-perfil">'+av
-      +'<div><h3>'+esc(r.alias)+'</h3><p class="small">'+(SG.RANGOS?'<b>'+SG.RANGOS[rg-1]+'</b> · ':'')+'puesto '+r.pos+' · planeta '+esc(r.planeta)+'</p>'
+    // fondo de ficha: su planeta elegido
+    var PLK={}; PLAN.forEach(function(p){PLK[p[1]]=p[0];});
+    var estiloFicha=r.fondo&&PLK[r.fondo]?' style="background-image:linear-gradient(rgba(10,16,26,.82),rgba(10,16,26,.9)),url(assets/img/planetas/'+PLK[r.fondo]+'.png);background-size:cover;background-position:center"':'';
+    // álbum de cromos
+    var CR=[['P1_bran','común'],['P2_tomas','común'],['P3_sylla','común'],['P4_amara','común'],['P5_vera','común'],['P6_joran','común'],['P7_mara','común'],['P8_noa','común'],['E1_nebula','rara'],['E2_capitan','rara'],['E3_vaeon','LEGENDARIA']];
+    var tengo=r.cromos||{}; var nCromos=CR.filter(function(c){return tengo[c[0]];}).length;
+    var album='<div class="card album-cromos"><h3>🃏 Tu álbum de cromos · '+nCromos+' / '+CR.length+'</h3>'
+      +'<p class="small muted">Cada «Sobre de cromos» (100 xp) trae uno al azar. Los tripulantes son comunes; NEBULA y el Capitán, raros; <b>Vaeon es legendario</b>.</p>'
+      +'<div class="album">'+CR.map(function(c){var nn=tengo[c[0]]||0;
+        return '<div class="c'+(nn?'':' no')+(c[1]==='LEGENDARIA'?' leg':'')+'" title="'+esc(NOMBRES[c[0]]||c[0])+' · '+c[1]+(nn?' · x'+nn:' · aún no ha salido')+'">'
+          +'<img loading="lazy" src="assets/img/tarjetas/'+c[0]+'_carta.png" alt="">'
+          +(nn>1?'<span class="nx">x'+nn+'</span>':'')+'</div>';}).join('')+'</div></div>';
+    return '<div class="grid cols-2 nave-estado"><div class="card"'+estiloFicha+'><div class="nave-perfil">'+av
+      +'<div><h3>'+(r.corona?'👑 ':'')+esc(r.alias)+'</h3>'
+      +(r.titulo?'<div class="titulo-recluta">«'+esc(r.titulo)+'»</div>':'')
+      +'<p class="small">'+(SG.RANGOS?'<b>'+SG.RANGOS[rg-1]+'</b> · ':'')+'puesto '+r.pos+' · planeta '+esc(r.planeta)+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
       +'<p><b>'+r.xp+'</b> xp ganados · <b>'+r.xp_disponibles+'</b> xp disponibles</p></div></div>'+barra
       +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'<p class="small muted">Sin biografía todavía: añádela editando tu <a href="'+esc(d.formBitacora||'#')+'" target="_blank" rel="noopener">Bitácora de mando</a>.</p>')
       +'<p class="small" style="margin-top:10px"><button class="btn small" id="btn-olvidar" type="button">No soy yo / salir</button></p></div>'
-      +'<div class="card"><h3>Tu colección · '+(r.insignias||[]).length+' / '+BADGES.length+'</h3><div class="badge-col">'+col+'</div></div></div>';
+      +'<div class="card"><h3>Tu colección · '+(r.insignias||[]).length+' / '+BADGES.length+'</h3><div class="badge-col">'+col+'</div></div></div>'+album;
   }
   function accesos(){
     var d=st.d;

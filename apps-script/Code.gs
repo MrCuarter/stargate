@@ -7,6 +7,10 @@
  * automáticos («Cambio de avatar» y «Avatar personal») · el avatar inicial se congela al alistarse y solo
  * v3.4: 7 personajes evolutivos × 5 rangos (nuevo rango LEYENDA a 4.500 xp) — la web calcula el rango;
  * aquí solo cambian las opciones del formulario (opcAvatares_).
+ * v3.5: ECONOMÍA DE RECOMPENSAS AUTOMÁTICAS — personajes 5-7 EXCLUSIVOS (solo por canje), galería
+ * clásica retirada de los formularios nuevos (compatibilidad intacta), SOBRE DE CROMOS aleatorio con
+ * rarezas (Vaeon legendario), título bajo el alias, marco dorado del avatar, fondo de ficha con tu
+ * planeta, y CORONA SEMANAL automática al que más xp ganó en 7 días. Todo sin intervención docente.
  * cambia mediante canje concedido · identificación del recluta por correo (doPost accion=quien, sin PIN,
  * devuelve solo SU ficha pública + bio) · BIO del personaje en la Bitácora de mando · panel de control
  * Genially por PER (estándar compartido en propiedades + override por PER desde el panel de profes).
@@ -77,7 +81,12 @@ var WEB = "https://stargate.mistercuarter.es/";
 // tipo: "avatar" (automática: nuevo avatar de la galería) · "avatar_url" (automática: imagen propia por URL)
 //       "nota" (la aplica el profesorado; efectiva al terminar las clases en directo)
 var RECOMPENSAS_INICIALES = [
-  ["Cambio de avatar",300,3,"Elige un avatar nuevo de la galería (indícalo en el propio formulario de canje). Se aplica solo.",5,"avatar"],
+  ["Sobre de cromos",100,99,"Un cromo al azar de la colección (11 cartas). Los tripulantes son comunes; NEBULA y el Capitán, raros; Vaeon, LEGENDARIO. Se abre solo y tu álbum está en la Nave.",2,"cromo"],
+  ["Título de recluta",200,3,"Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario). Se aplica solo.",3,"titulo"],
+  ["Fondo de ficha: tu planeta",150,1,"Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.",4,"fondo"],
+  ["Cambio de avatar",300,3,"Elige otro personaje inicial (1-4) o vuelve a uno (indícalo en el propio formulario de canje). Se aplica solo.",5,"avatar"],
+  ["Marco dorado del avatar",300,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.",6,"marco"],
+  ["Personaje exclusivo",500,3,"Desbloquea y ponte uno de los personajes exclusivos 5-7 (indícalo en el formulario). Se aplica solo.",7,"avatar_exclusivo"],
   ["Avatar personal (tu propia imagen)",800,1,"Pon tu propia imagen como avatar (pega la URL en el formulario de canje). Se aplica solo.",10,"avatar_url"],
   ["Subir 0,5 en un entregable",900,1,"Se aplica a la actividad que elijas",14,"nota"],
   ["Subir 1 punto en un entregable",1400,1,"Se aplica a la actividad que elijas",14,"nota"],
@@ -85,14 +94,27 @@ var RECOMPENSAS_INICIALES = [
   ["Recalificar un suspenso",2800,1,"Indica la actividad",14,"nota"]
 ];
 var H = { PERS:"PERs", REC:"RECOMPENSAS", EV:"EVENTOS", AJ:"AJUSTES", DATOS:"DATOS", RES:"RESUMEN" };
+// Personajes evolutivos: los 1-4 se eligen al alistarse; los 5-7 son EXCLUSIVOS (solo por canje)
+var AVATARES_INICIALES = 4;
+// Sobre de cromos: [clave de carta, nombre, peso, rareza]. Los pesos suman 100.
+var CROMOS = [
+  ["P1_bran","Bran Okafor",11,"común"],["P2_tomas","Tomás Reyer",11,"común"],["P3_sylla","Sylla Bren",11,"común"],
+  ["P4_amara","Amara Sol",11,"común"],["P5_vera","Vera Khal",11,"común"],["P6_joran","Joran Pike",11,"común"],
+  ["P7_mara","Mara Voss",11,"común"],["P8_noa","Noa Lieth",11,"común"],
+  ["E1_nebula","NEBULA",6,"rara"],["E2_capitan","El Capitán",4,"rara"],["E3_vaeon","General Vaeon",2,"LEGENDARIA"]
+];
+var TITULOS = ["Cartógrafo/a estelar","Guardián/a de la Bitácora","Voz de NEBULA","Rompe-Estática",
+  "Piloto de la Cero","Archivista estelar","Forjador/a de mundos","Centinela de Liminar",
+  "Corazón de la tripulación","Cazador/a de constelaciones"];
 
 function retosDe_(tipo){ return tipo === "PUA" ? RETOS_PUA : RETOS_REGULAR; }
-function opcAvatares_() {
-  var opc = []; for (var pj = 1; pj <= 7; pj++) { var et = pj !== 5 ? ["ella","él"] : ["modelo A","modelo B"];
+function opcAvatares_(desde, hasta) {
+  var opc = []; for (var pj = desde; pj <= hasta; pj++) { var et = pj !== 5 ? ["ella","él"] : ["modelo A","modelo B"];
     opc.push("Personaje " + pj + " · " + et[0] + " (evoluciona)"); opc.push("Personaje " + pj + " · " + et[1] + " (evoluciona)"); }
-  for (var cl = 1; cl <= 16; cl++) opc.push("Clásico " + cl);
   return opc;
 }
+function opcIniciales_() { return opcAvatares_(1, AVATARES_INICIALES); }
+function opcExclusivos_() { return opcAvatares_(AVATARES_INICIALES + 1, 7); }
 
 // ================= MENÚ Y HOJAS =================
 function onOpen() {
@@ -296,10 +318,9 @@ function crearPER(datos) {
   fb.addTextItem().setTitle("Alias de recluta (público)").setHelpText("Lo que se verá en el tablero.").setRequired(true);
   fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado.").setRequired(true);
   // avatar: personaje que evoluciona (5) · galería clásica (16) · URL propia
-  try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle("Tu personaje evoluciona con tus xp").setHelpText("Recluta → Cadete → Oficial → Comandante. El tablero lo cambia solo según tus puntos.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
-  try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_avatares.jpg").getBlob()).setTitle("O un avatar clásico (no evoluciona)").setAlignment(FormApp.Alignment.CENTER).setWidth(520); } catch (e) {}
-  var av = fb.addListItem().setTitle("Elige tu avatar").setHelpText("Personaje 1-7 en versión ella/él (evoluciona con tus xp: Recluta → Cadete → Oficial → Comandante → Leyenda), clásico 1-16, o tu propia imagen (pega la URL en la siguiente pregunta). Elige bien: cambiarlo después cuesta xp (recompensa «Cambio de avatar»).").setRequired(true);
-  av.setChoiceValues(opcAvatares_().concat(["Prefiero mi propia imagen (pongo la URL abajo)"]));
+  try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle("Tu personaje evoluciona con tus xp").setHelpText("Recluta → Cadete → Oficial → Comandante → Leyenda. El tablero lo cambia solo según tus puntos. Los personajes 5-7 son EXCLUSIVOS: se desbloquean con xp durante el curso.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
+  var av = fb.addListItem().setTitle("Elige tu avatar").setHelpText("Personajes 1-" + AVATARES_INICIALES + " en versión ella/él (evolucionan con tus xp: Recluta → Cadete → Oficial → Comandante → Leyenda), o tu propia imagen (pega la URL en la siguiente pregunta). Los personajes 5-7 son EXCLUSIVOS: se desbloquean canjeando xp. Elige bien: cambiar cuesta xp.").setRequired(true);
+  av.setChoiceValues(opcIniciales_().concat(["Prefiero mi propia imagen (pongo la URL abajo)"]));
   var avu = fb.addTextItem().setTitle("URL de tu propia imagen (opcional)").setHelpText(
     "Debe ser un ENLACE DIRECTO a una imagen (termina en .jpg, .png o .webp). La forma más fácil: entra en postimages.org, sube tu foto (sin registrarte), y copia el campo «Enlace directo». " +
     "Si la tienes en Google Drive: botón Compartir → «Cualquier persona con el enlace» → pega el enlace normal de Drive (lo convertimos nosotros). Un enlace a una página web o a Instagram NO funciona. Si la imagen no carga, verás tu avatar elegido.");
@@ -349,9 +370,10 @@ function crearPER(datos) {
     "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim(), "", fc.getEditUrl()]);
   var docUrl = ""; try { docUrl = crearDocumentoPER_(id); } catch (e) { docUrl = ""; }
   return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", doc:docUrl, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
-    hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id, foro: WEB + "foro.html?per=" + id, nave: WEB + "recluta.html?per=" + id,
+    hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id,
+    foro: WEB + "foro.html?per=" + id + (inicio ? "&inicio=" + fechaIso_(inicio) + "&tipo=" + tipo : ""), nave: WEB + "recluta.html?per=" + id,
     embedAlumnos: '<iframe src="' + WEB + 'registro.html?per=' + id + '&embed=1" width="100%" height="760" style="border:0;border-radius:16px"></iframe>',
-    embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>',
+    embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + (inicio ? '&inicio=' + fechaIso_(inicio) + '&tipo=' + tipo : '') + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>',
     embedNave: '<iframe src="' + WEB + 'recluta.html?per=' + id + '&embed=1" width="100%" height="900" style="border:0;border-radius:16px"></iframe>',
     panelVer: String(datos.panelVer || "").trim() || panelStd_().ver, panelEdit: String(datos.panelEdit || "").trim() || panelStd_().editar,
     restos: restos };
@@ -363,12 +385,22 @@ function etiquetasRecompensas_() {
 // Preguntas del canje de avatar (se usan al crear el PER y al actualizar PERs anteriores)
 var TIT_NUEVO_AVATAR = "Nuevo avatar (solo para «Cambio de avatar»)";
 var TIT_URL_AVATAR = "URL de tu nueva imagen (solo para «Avatar personal»)";
+var TIT_EXCLUSIVO = "Personaje exclusivo (solo para «Personaje exclusivo»)";
+var TIT_TITULO = "Tu título (solo para «Título de recluta»)";
+var TIT_FONDO = "Tu planeta de fondo (solo para «Fondo de ficha»)";
 function anadirCamposAvatar_(fc) {
-  var avl = fc.addListItem().setTitle(TIT_NUEVO_AVATAR).setHelpText("Si canjeas «Cambio de avatar», elige aquí el nuevo. Se aplica solo en el tablero al concederse el canje.");
-  avl.setChoiceValues(opcAvatares_());
+  var avl = fc.addListItem().setTitle(TIT_NUEVO_AVATAR).setHelpText("Si canjeas «Cambio de avatar», elige aquí el nuevo (personajes iniciales). Se aplica solo al concederse.");
+  avl.setChoiceValues(opcIniciales_());
+  var exl = fc.addListItem().setTitle(TIT_EXCLUSIVO).setHelpText("Si canjeas «Personaje exclusivo», elige cuál. Se aplica solo al concederse.");
+  exl.setChoiceValues(opcExclusivos_());
+  var ttl = fc.addListItem().setTitle(TIT_TITULO).setHelpText("Si canjeas «Título de recluta», elige el que lucirás bajo tu alias.");
+  ttl.setChoiceValues(TITULOS);
+  var fnd = fc.addListItem().setTitle(TIT_FONDO).setHelpText("Si canjeas «Fondo de ficha», elige tu planeta.");
+  fnd.setChoiceValues([TEMAS[1][0],TEMAS[2][0],TEMAS[3][0],TEMAS[4][0],TEMAS[5][0],TEMAS[6][0],TEMAS[7][0],TEMAS[8][0]]);
   var url = fc.addTextItem().setTitle(TIT_URL_AVATAR).setHelpText("Si canjeas «Avatar personal», pega el ENLACE DIRECTO a tu imagen (.jpg/.png; postimages.org → «Enlace directo») o un enlace de Drive compartido con «cualquier persona con el enlace».");
   url.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
 }
+function extra_(o, email, accion, valor) { hoja_(H.AJ).appendRow([new Date(), o.id, email, "EXTRA", accion, valor, "canje"]); }
 function actualizarRecompensas() {
   var et = etiquetasRecompensas_(); var n = 0;
   hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
@@ -383,7 +415,7 @@ function actualizarRecompensas() {
             var items = fbx.getItems(); var pos = tit2.indexOf("Enlace a mi Bitácora (ePortfolio)");
             if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); } } catch (e) {}
   });
-  SpreadsheetApp.getUi().alert("Formularios actualizados en " + n + "PER: recompensas al día, campos de avatar en el canje y biografía en la Bitácora (donde faltaban).");
+  SpreadsheetApp.getUi().alert("Formularios actualizados en " + n + " PER: recompensas y preguntas del canje al día (avatar, exclusivo, título, fondo), lámina de personajes nueva, lista de avatares solo con iniciales, galería clásica retirada y biografía donde faltaba.");
 }
 
 function listaProfes_(referente, profesores) {
@@ -765,11 +797,40 @@ function resolverCanje_(o, sh, fila) {
     estado = "Denegado (" + disp + " xp disponibles, cuesta " + coste + ")";
     cuerpo = "No hay xp suficientes para «" + rec + "»: tienes " + disp + " xp disponibles.";
   }
-  // 3) canjes de avatar: se aplican solos
+  // 3) canjes automáticos: se aplican solos
   else if (ficha && ficha.tipo === "avatar") {
     var nuevo = String(r[TIT_NUEVO_AVATAR] || "").trim();
     if (!nuevo) { estado = "Denegado (falta elegir el nuevo avatar en el formulario)"; cuerpo = "Para «Cambio de avatar» tienes que elegir el nuevo avatar en el propio formulario. Vuelve a enviarlo con tu elección; no se han gastado xp."; }
+    else if (opcIniciales_().indexOf(nuevo) < 0) { estado = "Denegado (ese personaje es exclusivo)"; cuerpo = "«" + nuevo + "» es un personaje EXCLUSIVO: se consigue con la recompensa «Personaje exclusivo», no con «Cambio de avatar». No se han gastado xp."; }
     else { aplicarAvatar_(o, email, nuevo); estado = "Concedido"; cuerpo = "Concedido: " + rec + ". Tu nuevo avatar («" + nuevo + "») ya luce en el tablero. Te quedan " + (disp - coste) + " xp."; }
+  }
+  else if (ficha && ficha.tipo === "avatar_exclusivo") {
+    var excl = String(r[TIT_EXCLUSIVO] || "").trim();
+    if (!excl) { estado = "Denegado (falta elegir el personaje exclusivo en el formulario)"; cuerpo = "Para «Personaje exclusivo» tienes que elegir cuál en el propio formulario. Vuelve a enviarlo; no se han gastado xp."; }
+    else { aplicarAvatar_(o, email, excl); estado = "Concedido"; cuerpo = "Concedido: " + rec + ". Has desbloqueado «" + excl + "» y ya luce en el tablero. Te quedan " + (disp - coste) + " xp."; }
+  }
+  else if (ficha && ficha.tipo === "cromo") {
+    var bolsa = [], i2;
+    for (i2 = 0; i2 < CROMOS.length; i2++) for (var w2 = 0; w2 < CROMOS[i2][2]; w2++) bolsa.push(i2);
+    var c2 = CROMOS[bolsa[Math.floor(Math.random() * bolsa.length)]];
+    extra_(o, email, "cromo", c2[0]);
+    estado = "Concedido";
+    cuerpo = "Abres el sobre... ¡" + c2[1] + "! (" + c2[3] + "). Ya está en tu álbum de la Nave. Te quedan " + (disp - coste) + " xp." +
+      (c2[3] === "LEGENDARIA" ? " ✦ ¡El cromo más difícil de toda la galaxia!" : "");
+  }
+  else if (ficha && ficha.tipo === "titulo") {
+    var tt = String(r[TIT_TITULO] || "").trim();
+    if (!tt) { estado = "Denegado (falta elegir el título en el formulario)"; cuerpo = "Para «Título de recluta» tienes que elegir el título en el propio formulario. Vuelve a enviarlo; no se han gastado xp."; }
+    else { extra_(o, email, "titulo", tt); estado = "Concedido"; cuerpo = "Concedido: desde ahora eres «" + tt + "». Se lee bajo tu alias en el tablero y la Nave. Te quedan " + (disp - coste) + " xp."; }
+  }
+  else if (ficha && ficha.tipo === "marco") {
+    extra_(o, email, "marco", "oro"); estado = "Concedido";
+    cuerpo = "Concedido: tu avatar luce ya su marco dorado en el ranking y la Nave. Te quedan " + (disp - coste) + " xp.";
+  }
+  else if (ficha && ficha.tipo === "fondo") {
+    var fd = String(r[TIT_FONDO] || "").trim();
+    if (!fd) { estado = "Denegado (falta elegir el planeta en el formulario)"; cuerpo = "Para «Fondo de ficha» tienes que elegir tu planeta en el propio formulario. Vuelve a enviarlo; no se han gastado xp."; }
+    else { extra_(o, email, "fondo", fd); estado = "Concedido"; cuerpo = "Concedido: tu ficha de la Nave viaja ahora sobre " + fd + ". Te quedan " + (disp - coste) + " xp."; }
   }
   else if (ficha && ficha.tipo === "avatar_url") {
     var u = String(r[TIT_URL_AVATAR] || "").trim();
@@ -812,7 +873,11 @@ function tablero_(perId, conPrivados) {
   hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase(); var a = por[m]; if (!a) return;
     if (v[4] === "anular") delete a.retos[v[3]]; else if (v[4] === "otorgar") { a.retos[v[3]] = { fecha:v[0], origen:"profesorado" }; }
     else if (v[4] === "avatar") { a._avCanje = String(v[5] || ""); }               // canje concedido: el último gana
-    else if (v[4] === "avatar_base" && !a._avBase) { a._avBase = String(v[5] || ""); } });  // primera elección congelada
+    else if (v[4] === "avatar_base" && !a._avBase) { a._avBase = String(v[5] || ""); }      // primera elección congelada
+    else if (v[4] === "titulo") { a._titulo = String(v[5] || ""); }
+    else if (v[4] === "marco") { a._marco = String(v[5] || ""); }
+    else if (v[4] === "fondo") { a._fondo = String(v[5] || ""); }
+    else if (v[4] === "cromo") { a._cromos = a._cromos || {}; var ck = String(v[5] || ""); a._cromos[ck] = (a._cromos[ck] || 0) + 1; } });
   // 3) cálculo
   var canjes = {}; var shC = SpreadsheetApp.getActive().getSheetByName(o.tabC);
   if (shC && shC.getLastRow() > 1) { var vc = shC.getDataRange().getValues(); var cc = vc[0].map(String); var cE = cc.indexOf("Estado"), cMm = idx_(cc,"correo") >= 0 ? idx_(cc,"correo") : idx_(cc,"email"), cR = cc.indexOf("Recompensa"), cEnt = cc.indexOf("Entregado");
@@ -827,10 +892,17 @@ function tablero_(perId, conPrivados) {
     var gast = canjes[m] ? canjes[m].gastado : 0;
     // avatar: canje concedido > elección congelada al alistarse > valor actual del formulario (respuestas antiguas)
     var avatar = a._avCanje ? parseAvatar_(a._avCanje) : a._avBase ? parseAvatar_(a._avBase) : (a.avatar || {tipo:null,n:null,url:""});
-    var out = { alias:a.alias, avatar:avatar, xp:xp, xp_disponibles: xp - gast, planeta: tema ? TEMAS[tema][0] : "—", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length };
+    // xp de los últimos 7 días (para la corona semanal)
+    var hace7 = new Date().getTime() - 7 * 864e5, xp7 = 0;
+    a.eventos.forEach(function(ev){ try { if (new Date(ev.fecha).getTime() >= hace7) xp7 += Number(ev.xp) || 0; } catch (e) {} });
+    var out = { alias:a.alias, avatar:avatar, xp:xp, xp_disponibles: xp - gast, planeta: tema ? TEMAS[tema][0] : "—", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length,
+                titulo:a._titulo || "", marco:a._marco || "", fondo:a._fondo || "", cromos:a._cromos || {}, xp7:xp7 };
     if (conPrivados) { out.email = m; out.nombre = a.nombre; out.bitacora = a.bitacora; out.bio = a.bio || ""; out.eventos = a.eventos; out.retos = a.retos; out.canjes = canjes[m] ? canjes[m].lista : []; }
     return out; });
   lista.sort(function(a,b){ return b.xp - a.xp || b.n - a.n || a.alias.localeCompare(b.alias); }); lista.forEach(function(x,i){ x.pos = i+1; });
+  // corona semanal: el/los que más xp ganaron en los últimos 7 días
+  var maxSem = 0; lista.forEach(function(x){ if (x.xp7 > maxSem) maxSem = x.xp7; });
+  lista.forEach(function(x){ x.corona = maxSem > 0 && x.xp7 === maxSem; });
   var std = panelStd_();
   var res = { per:perId, nombre:o.nombre, tipo:o.tipo, profesorado:o.profesorado, referente:o.referente, estado:o.estado, inicio:o.inicio,
            formBitacora:o.formBitacora, formTicket:o.formTicket, formCanje:o.formCanje, reclutas:lista,
@@ -883,7 +955,8 @@ function doPost(e) {
       var yo = (tq.reclutas || []).filter(function(x){ return x.email === eq; })[0] || null;
       return ContentService.createTextOutput(JSON.stringify({ yo: yo ? { alias:yo.alias, avatar:yo.avatar, xp:yo.xp,
         xp_disponibles:yo.xp_disponibles, planeta:yo.planeta, tema:yo.tema, insignias:yo.insignias, n:yo.n, pos:yo.pos,
-        bio:yo.bio || "", bitacora:yo.bitacora || "" } : null })).setMimeType(ContentService.MimeType.JSON);
+        bio:yo.bio || "", bitacora:yo.bitacora || "",
+        titulo:yo.titulo || "", marco:yo.marco || "", fondo:yo.fondo || "", cromos:yo.cromos || {}, corona:!!yo.corona } : null })).setMimeType(ContentService.MimeType.JSON);
     }
     var pin = PropertiesService.getScriptProperties().getProperty("PIN_PROFES") || "";
     if (!pin || q.pin !== pin) throw new Error("PIN incorrecto");

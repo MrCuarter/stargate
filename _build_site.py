@@ -672,20 +672,26 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="card"><h3>3 · Un PER nuevo, un clic</h3><p>Menú <b>🛰️ STARGATE → Crear nuevo PER…</b>: pide nombre del PER, profesorado y fechas de apertura y cierre; crea formulario y hoja, programa la apertura/cierre y devuelve el enlace, el QR y el código para Genially.</p></div>
 </div>
 <h3 style="margin-top:1.6em">Avatares</h3>
-<div class="grid cols-2"><div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con sus xp</b> (7 personajes, cada uno en versión ella/él, × <b>5 rangos</b>: Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b>; el tablero cambia la imagen solo al superar 1.000 / 2.500 / 4.000 / 4.500 xp, escalado en PUA — la Leyenda es el viaje completo), una <b>galería clásica de 16 avatares</b> (no evolucionan) o <b>su propia imagen por URL</b>. Si la URL falla, se muestra el avatar elegido.</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
+<div class="grid cols-2"><div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con sus xp</b> (× <b>5 rangos</b>: Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b>; el tablero cambia la imagen solo al superar 1.000 / 2.500 / 4.000 / 4.500 xp, escalado en PUA — la Leyenda es el viaje completo) o <b>su propia imagen por URL</b>. Al alistarse se eligen los personajes <b>1-4</b>; los <b>5-7 son EXCLUSIVOS</b> y se desbloquean canjeando xp — otro motor de motivación. (La antigua galería clásica de 16 queda como legado: los que la tienen la conservan, pero ya no se ofrece.)</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
 <div class="official" style="display:block">🖼️ <b>Cómo poner tu propia imagen (para el alumnado):</b> 1) entra en <a href="https://postimages.org" target="_blank" rel="noopener">postimages.org</a>, pulsa <i>Elegir imágenes</i> y sube tu foto (no hace falta registrarse); 2) cuando termine, copia el campo <b>«Enlace directo»</b> (termina en .jpg o .png); 3) pégalo en la pregunta «URL de tu propia imagen». También vale un enlace de <b>Google Drive</b> si el archivo está compartido como «cualquier persona con el enlace». Un enlace a Instagram o a una página web no funciona.</div></div>
 <img src="assets/img/avatares/lamina_avatares.jpg" alt="Galería de avatares" style="border-radius:14px;border:1px solid var(--line)"></div>
 <h3 style="margin-top:1.6em">Puntos</h3>
 <p class="lead">Reclutamiento 100 xp · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 · hitos derivados (Cero completa, Liberación) 300. Un viaje completo ≈ 4.500 xp. En PUA: 300 por tema (personaje) + 500 por actividad. Los xp son del juego: <b>no son nota</b>.</p>
 <h4 style="margin-top:1em">Las recompensas y cuándo se desbloquean</h4>
 <div class="tablewrap"><table><thead><tr><th>Recompensa</th><th>Coste</th><th>Desde</th><th>Cómo se aplica</th></tr></thead><tbody>
-<tr><td>Cambio de avatar (elige otro de la galería)</td><td class="pts">300</td><td>Semana 5</td><td><b>Automática</b> · máx. 3 veces</td></tr>
+<tr><td>🃏 Sobre de cromos (uno al azar de las 11 cartas; Vaeon es legendario)</td><td class="pts">100</td><td>Semana 2</td><td><b>Automática</b> · repetible</td></tr>
+<tr><td>Título de recluta (bajo su alias en tablero y Nave)</td><td class="pts">200</td><td>Semana 3</td><td><b>Automática</b> · máx. 3</td></tr>
+<tr><td>Fondo de ficha: su planeta (en la Nave)</td><td class="pts">150</td><td>Semana 4</td><td><b>Automática</b></td></tr>
+<tr><td>Cambio de avatar (otro personaje inicial)</td><td class="pts">300</td><td>Semana 5</td><td><b>Automática</b> · máx. 3</td></tr>
+<tr><td>Marco dorado del avatar (en el ranking)</td><td class="pts">300</td><td>Semana 6</td><td><b>Automática</b></td></tr>
+<tr><td>⭐ Personaje exclusivo (desbloquea los personajes 5-7)</td><td class="pts">500</td><td>Semana 7</td><td><b>Automática</b> · máx. 3</td></tr>
 <tr><td>Avatar personal (su propia imagen por URL)</td><td class="pts">800</td><td>Semana 10</td><td><b>Automática</b></td></tr>
 <tr><td>Subir 0,5 en un entregable</td><td class="pts">900</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
 <tr><td>Subir 1 punto en un entregable</td><td class="pts">1.400</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
 <tr><td>Recalificar fuera de plazo</td><td class="pts">2.000</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
 <tr><td>Recalificar un suspenso</td><td class="pts">2.800</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
 </tbody></table></div>
+<p class="small muted" style="margin-top:8px">Además, sin canje: la <b>corona semanal</b> 👑 aparece sola en el tablero junto al recluta que más xp ganó en los últimos 7 días.</p>
 <p class="small muted">Las de avatar se conceden y se aplican solas (el avatar cambia en el tablero al instante). Las de nota se conceden solas pero <b>se hacen efectivas al terminar las clases en directo</b>: el correo de confirmación ya lo avisa. Todo es editable en la pestaña <b>RECOMPENSAS</b> de la hoja (coste, máximo, semana de desbloqueo); en PUA las semanas se escalan solas. En la <a href="recluta.html">Nave del Recluta</a> las que aún no tocan aparecen como «recompensa clasificada».</p>
 <details class="faq"><summary>Instalación en la cuenta mutecdgami (una vez, 20 minutos)</summary><div>
 <ol>

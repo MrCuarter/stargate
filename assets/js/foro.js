@@ -14,11 +14,17 @@
   // PUA: un tema por semana -> fusiona las semanas regulares de cada tema (motor compartido en calendario.js)
   function semanasPua(){return window.SGCAL.semanasPua(SEM);}
   function pintar(inicio,tipo,nombre){var sem=tipo==='PUA'?semanasPua():SEM;var n=sem.length;var hoy=new Date();hoy.setHours(0,0,0,0);
-    var ini=inicio?new Date(inicio+'T00:00:00'):null;var actual=ini?Math.floor((hoy-ini)/(7*864e5))+1:1;var forzada=parseInt(q.get('semana')||'0',10);if(forzada)actual=forzada;
+    var ini=inicio?new Date(inicio+'T00:00:00'):null;var real=ini?Math.floor((hoy-ini)/(7*864e5))+1:1;
+    var actual=real;var forzada=parseInt(q.get('semana')||'0',10);
+    // desbloqueo semanal: con fecha de inicio, las semanas futuras están selladas (ni forzándolas por URL)
+    if(forzada){ if(!ini||forzada<=Math.max(real,1)) actual=forzada; }
     var estado=actual<1?'antes':actual>n?'fin':'curso';var idx=Math.min(Math.max(actual,1),n)-1;var s=sem[idx];
+    var tope=ini?(real>n?n:Math.max(real,1)):n;   // última semana visible
     var cab='<div class="tab-head"><div><div class="eyebrow amber">Foro dinámico'+(nombre?' · '+esc(nombre):'')+(tipo==='PUA'?' · PUA':'')+'</div><h3>'+(estado==='antes'?'La misión aún no ha empezado':estado==='fin'?'Misión completada':'Semana '+s.sem+' de '+n)+'</h3></div>'
       +'<div class="small muted">'+(ini?'semana 1: '+esc(inicio):'sin fecha de inicio')+'</div></div>';
-    var nav='<div class="foro-nav">'+sem.map(function(x){return '<a href="?'+(q.get('per')?'per='+encodeURIComponent(q.get('per')):'inicio='+esc(inicio||'')+'&tipo='+tipo)+'&semana='+x.sem+(document.body.classList.contains('embed')?'&embed=1':'')+'" class="'+(x.sem===s.sem?'on':x.sem<actual?'past':'')+'">'+x.sem+'</a>';}).join('')+'</div>';
+    var nav='<div class="foro-nav">'+sem.map(function(x){
+      if(ini&&x.sem>tope) return '<span class="lock" title="Se abre en la semana '+x.sem+'">'+x.sem+'</span>';
+      return '<a href="?'+(q.get('per')?'per='+encodeURIComponent(q.get('per')):'inicio='+esc(inicio||'')+'&tipo='+tipo)+'&semana='+x.sem+(document.body.classList.contains('embed')?'&embed=1':'')+'" class="'+(x.sem===s.sem?'on':x.sem<actual?'past':'')+'">'+x.sem+'</a>';}).join('')+'</div>';
     var cuerpo='<div class="foro-card">'+(s.capitulo?'<span class="pill amber">Nuevo capítulo: '+esc(s.capitulo)+'</span>':'')+'<h2>'+esc(s.tema)+'</h2><div class="muted">'+esc(s.sub)+'</div>'
       +'<pre class="foro-msg">'+msgHtml(s.foro,q.get('per'))+'</pre>'
       +(s.lanza.length?'<h4>🗝️ Retos de la semana</h4><ul>'+s.lanza.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')
@@ -42,7 +48,19 @@
         var txt=t.innerText; function ok(){b.textContent='¡Copiado!';setTimeout(function(){b.textContent='Copiar texto';},1800);}
         if(navigator.clipboard){navigator.clipboard.writeText(txt).then(ok);}else{var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();ok();}});});}
   var per=q.get('per'), todos=q.get('todos')==='1';
-  if(per&&API){fetch(API+'?per=all',{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){var p=(d.pers||[]).filter(function(x){return x.id===per;})[0];if(!p){root.innerHTML='<p class="lead">PER no encontrado.</p>';return;}todos?pintarTodos(p.tipo,per,p.nombre):pintar(p.inicio,p.tipo,p.nombre);}).catch(function(){todos?pintarTodos((q.get('tipo')||'REGULAR').toUpperCase(),per,''):pintar(q.get('inicio'),q.get('tipo')||'REGULAR','');});}
+  if(per&&API){
+    // carga rápida: si la URL trae inicio/tipo, pinta YA; la respuesta del servidor corrige si difiere.
+    if(!todos&&q.get('inicio')) pintar(q.get('inicio'),(q.get('tipo')||'REGULAR').toUpperCase(),'');
+    else root.innerHTML='<div class="cargando"><div class="txt">Cargando el foro…</div><div class="barra"><i></i></div></div>';
+    var pintado='';
+    window.SGCAL.perData(API,per,function(d){
+      if(!d){if(!q.get('inicio'))root.innerHTML='<p class="lead">No se pudo cargar el foro. Prueba a recargar.</p>';return;}
+      var p=d.pers?(d.pers||[]).filter(function(x){return x.id===per;})[0]:d;
+      if(!p||d.error){root.innerHTML='<p class="lead">PER no encontrado.</p>';return;}
+      var firma=String(p.inicio)+'|'+p.tipo; if(firma===pintado)return; pintado=firma;
+      todos?pintarTodos(p.tipo,per,p.nombre):pintar(p.inicio,p.tipo,p.nombre);
+    });
+  }
   else if(todos) pintarTodos((q.get('tipo')||'REGULAR').toUpperCase(),null,'');
   else pintar(q.get('inicio'),(q.get('tipo')||'REGULAR').toUpperCase(),'');
 })();

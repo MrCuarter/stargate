@@ -376,3 +376,15 @@ body.embed .nave-accesos{margin-top:0}
 .nebula-v.nebula-mini{width:88px;height:120px;filter:drop-shadow(0 0 18px rgba(55,224,236,.35))}
 .nebula-v.tour-cap{width:auto;height:230px;border-radius:16px;filter:drop-shadow(0 0 26px rgba(55,224,236,.4))}
 @media(max-width:760px){.nebula-v.tour-cap{height:150px}}
+
+/* ---- extras de personalización (v3.5) ---- */
+.titulo-recluta{display:block;font-style:italic;font-size:.72rem;color:var(--amber);margin-top:1px}
+img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rgba(245,176,67,.55)}
+.foro-nav .lock{display:inline-block;min-width:26px;text-align:center;padding:4px 6px;border-radius:8px;color:#4a5a6c;border:1px dashed #2a3a4e;cursor:not-allowed;user-select:none}
+.album{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px;margin-top:10px}
+.album .c{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.album .c img{width:100%;display:block}
+.album .c.no img{filter:grayscale(1) brightness(.3)}
+.album .c.leg{border-color:var(--amber)}
+.album .c.leg:not(.no){box-shadow:0 0 12px rgba(245,176,67,.5)}
+.album .nx{position:absolute;right:4px;bottom:4px;background:var(--amber);color:#161006;font-size:.62rem;font-weight:800;border-radius:7px;padding:0 5px}
