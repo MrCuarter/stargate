@@ -50,11 +50,12 @@
 
 // ---- avatares: personaje que evoluciona por xp · clásico · URL propia (con respaldo) ----
 window.SG = window.SG || {};
-window.SG.RANGOS = ['Recluta','Cadete','Oficial','Comandante'];
-window.SG.rango = function(xp, tipoPer){ var k = (tipoPer==='PUA') ? 3500/4500 : 1; var u=[1000*k,2500*k,4000*k]; var r=1; for(var i=0;i<3;i++) if(xp>=u[i]) r=i+2; return r; };
+window.SG.RANGOS = ['Recluta','Cadete','Oficial','Comandante','Leyenda'];
+window.SG.UMBRALES = function(tipoPer){ var k = (tipoPer==='PUA') ? 3500/4500 : 1; return [1000*k,2500*k,4000*k,4500*k]; };
+window.SG.rango = function(xp, tipoPer){ var u=window.SG.UMBRALES(tipoPer); var r=1; for(var i=0;i<u.length;i++) if(xp>=u[i]) r=i+2; return r; };
 window.SG.avatarSrc = function(av, alias, xp, tipoPer){
   av = av || {}; var h=0; for(var i=0;i<(alias||'').length;i++) h=(h*31+alias.charCodeAt(i))>>>0;
-  var tipo = av.tipo || 'evo'; var n = av.n || (tipo==='evo' ? (h%5)+1 : (h%16)+1); var v = av.v || ((h>>3)%2 ? 'm' : 'f');
+  var tipo = av.tipo || 'evo'; var n = av.n || (tipo==='evo' ? (h%7)+1 : (h%16)+1); var v = av.v || ((h>>3)%2 ? 'm' : 'f');
   var r = window.SG.rango(xp||0, tipoPer);
   var fallback = tipo==='evo' ? 'assets/img/avatares/evo/p'+n+v+'_r'+r+'.jpg' : 'assets/img/avatares/a'+(n<10?'0':'')+n+'.jpg';
   var u = av.url ? String(av.url).trim() : '';
