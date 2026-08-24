@@ -7,6 +7,9 @@
  button{margin-top:18px;background:#0e7f8c;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer}
  button:disabled{opacity:.5}
  .ok{background:#eef7f8;border-left:4px solid #0e7f8c;padding:8px 12px;border-radius:0 8px 8px 0;margin-top:10px;word-break:break-all;font-size:13px}
+ .destacado{background:#0e7f8c;color:#fff;border-radius:10px;padding:14px 16px;margin:14px 0;text-align:center}
+ .destacado a{display:inline-block;background:#fff;color:#0b5b66;font-weight:800;text-decoration:none;padding:10px 18px;border-radius:8px;margin-top:8px;font-size:14px}
+ .destacado b{font-size:15px}.destacado small{color:#d7eef1;display:block;margin-top:6px}
  .ok a{color:#0b6db0}.err{color:#b00020;margin-top:10px}
  textarea.emb{width:100%;font-family:monospace;font-size:11px;height:52px;box-sizing:border-box}
  small{color:#6d7b85}
@@ -40,10 +43,11 @@ function ok(r){
   x.innerHTML='<h3>PER «'+r.nombre+'» ('+r.tipo+') creado · '+r.estado+'</h3>'
   +(r.restos?'<div class="ok"><b>Aviso:</b> había '+r.restos+' pestaña(s) de un PER anterior con el mismo nombre. No se han borrado: se han renombrado a «restos · …». Si no las necesitas, límpialas con el menú STARGATE → Mantenimiento → Limpiar restos de PER borrados.</div>':'')
   +b('Bitácora de mando (alumnado)',r.formBitacora)+b('Ticket de salida (anónimo)',r.formTicket)+b('Canje de recompensas',r.formCanje)
+  +(r.doc?'<div class="destacado"><b>Todo el PER en un documento</b><small>Enlaces, códigos para incrustar y QR, listo para compartir con tu profesorado</small><a href="'+r.doc+'" target="_blank">ABRIR EL DOCUMENTO DE ENLACES</a></div>':'')
   +(r.nave?b('La Nave del Recluta (la web del alumnado: onboarding, semanas, estado y recompensas)',r.nave):'')
   +(r.panelVer?b('Panel de control (visualización, para el alumnado)',r.panelVer):'<div class="ok"><b>Panel de control:</b> sin definir. Ponlo en la hoja (menú STARGATE → Guardar panel de control estándar) o en Ajustes del PER.</div>')
   +(r.panelEdit?b('✏️ Panel de control (edición, para el profesorado)',r.panelEdit):'')
-  +(r.doc?b('Documento de Google con todos los enlaces, embeds y QR',r.doc):'')+b('Generador de embeds en la web (elige tu nombre)','https://stargate.mistercuarter.es/embed.html?per='+r.id)+b('Tablero del PER en la web',r.web)+b('Foro dinámico del PER',r.foro)
++b('Generador de embeds en la web (elige tu nombre)','https://stargate.mistercuarter.es/embed.html?per='+r.id)+b('Tablero del PER en la web',r.web)+b('Foro dinámico del PER',r.foro)
   +(r.embedNave?'<div class="ok"><b>Embed de la Nave del Recluta para el Genially del PER</b><br><textarea class="emb" readonly>'+r.embedNave.replace(/</g,'&lt;')+'</textarea></div>':'')
   +'<div class="ok"><b>Embed del tablero para el Genially del PER</b><br><textarea class="emb" readonly>'+r.embedAlumnos.replace(/</g,'&lt;')+'</textarea></div>'
   +'<div class="ok"><b>Embed del foro dinámico</b><br><textarea class="emb" readonly>'+r.embedForo.replace(/</g,'&lt;')+'</textarea></div>'

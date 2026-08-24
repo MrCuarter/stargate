@@ -19,6 +19,9 @@
  * B · id»): las pestañas huérfanas se apartan solas y el limpiador de mantenimiento las borra.
  * v3.2.3: CAUSA RAÍZ de las pestañas zombis — Sheets no deja borrar una hoja vinculada a un formulario.
  * borrarHoja_() desvincula primero (removeDestination) y luego borra; los errores ya no se tragan.
+ * v3.3: cada PER tiene su PROPIA CARPETA dentro de «Formularios PER» (sus 3 formularios y su documento
+ * de enlaces viven ahí); menú para reorganizar los PER antiguos; el documento de enlaces se expone en la
+ * web (panel del profesorado y generador de embeds) y va destacado al crear el PER.
  */
 
 // ================= CATÁLOGO =================
@@ -104,6 +107,7 @@ function onOpen() {
       .addItem("Borrar PER (con sus formularios y datos)", "borrarPERSeleccionado"))
     .addSubMenu(SpreadsheetApp.getUi().createMenu("Mantenimiento")
       .addItem("Restaurar catálogo oficial de recompensas", "restaurarRecompensas")
+      .addItem("Organizar los formularios en carpetas por PER", "organizarCarpetasPER")
       .addItem("Limpiar restos de PER borrados (formularios y pestañas)", "limpiarRestos")
       .addItem("Actualizar imágenes de los planetas en los formularios", "actualizarImagenesPlanetas")
       .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
@@ -168,6 +172,12 @@ function carpetaPER_() {
   var raiz = padres.hasNext() ? padres.next() : DriveApp.getRootFolder();
   var subs = raiz.getFoldersByName("Formularios PER");
   return subs.hasNext() ? subs.next() : raiz;
+}
+// Carpeta propia de cada PER dentro de «Formularios PER»: ahí viven sus 3 formularios y su documento.
+function carpetaDelPER_(nombre, crear) {
+  var raiz = carpetaPER_(); var it = raiz.getFoldersByName(nombre);
+  if (it.hasNext()) return it.next();
+  return crear ? raiz.createFolder(nombre) : raiz;
 }
 // Devuelve el Form EDITABLE de un PER ("B"Bitácora · "T"Ticket · "C"Canje).
 // Prioridad: URL de edición guardada -> pestaña vinculada (getFormUrl siempre da la de edición).
@@ -270,7 +280,8 @@ function crearPER(datos) {
   var ss = SpreadsheetApp.getActive();
   var master = DriveApp.getFileById(ss.getId()); var padres = master.getParents();
   var raiz = padres.hasNext() ? padres.next() : DriveApp.getRootFolder();
-  var subs = raiz.getFoldersByName("Formularios PER"); var carpeta = subs.hasNext() ? subs.next() : raiz.createFolder("Formularios PER");
+  var subs = raiz.getFoldersByName("Formularios PER"); var padre = subs.hasNext() ? subs.next() : raiz.createFolder("Formularios PER");
+  var carpeta = padre.createFolder(nombre);   // v3.3: cada PER en su propia carpeta
   var retos = retosDe_(tipo);
 
   // ---- 1 · Bitácora de mando (Google login, 1 respuesta editable) ----
@@ -435,9 +446,8 @@ function documentoPERSeleccionado() {
 }
 function crearDocumentoPER_(perId) {
   var p = perFila_(perId); if (!p) throw new Error("PER no encontrado"); var o = perObj_(p.v);
-  var ss = SpreadsheetApp.getActive(); var master = DriveApp.getFileById(ss.getId()); var padres = master.getParents();
-  var raiz = padres.hasNext() ? padres.next() : DriveApp.getRootFolder();
-  var subs = raiz.getFoldersByName("Formularios PER"); var carpeta = subs.hasNext() ? subs.next() : raiz;
+  var ss = SpreadsheetApp.getActive();
+  var carpeta = carpetaDelPER_(o.nombre, true);
   var doc = DocumentApp.create("STARGATE · " + o.nombre + " · Enlaces y embeds"); DriveApp.getFileById(doc.getId()).moveTo(carpeta);
   var b = doc.getBody(); b.setMarginTop(40);
   function h(t, n) { b.appendParagraph(t).setHeading(n === 1 ? DocumentApp.ParagraphHeading.HEADING1 : DocumentApp.ParagraphHeading.HEADING2); }
@@ -521,6 +531,9 @@ function borrarPER_(o, fila) {
   // 2) después los formularios a la papelera
   forms.forEach(function(f){ try { DriveApp.getFileById(f.getId()).setTrashed(true); } catch (e) {} });
   if (o.doc) { try { DriveApp.getFileById(o.doc.match(/[-\w]{25,}/)[0]).setTrashed(true); } catch (e) {} }
+  // la carpeta propia del PER (con lo que quede dentro) a la papelera
+  try { var raizP = carpetaPER_(); var itP = raizP.getFoldersByName(o.nombre);
+        if (itP.hasNext()) itP.next().setTrashed(true); } catch (e) {}
   borrarFilasDe_(hoja_(H.EV), o.id); borrarFilasDe_(hoja_(H.AJ), o.id);
   var props = PropertiesService.getScriptProperties();
   ScriptApp.getProjectTriggers().forEach(function(t){ if (props.getProperty("trg_" + t.getUniqueId()) === o.id) {
@@ -573,17 +586,45 @@ function actualizarImagenesPlanetas() {
   ui.alert("Imágenes actualizadas",
     cambiadas + " imágenes sustituidas en " + pers + " PER." + (fallos.length ? "\n\nNo se pudo con:\n" + fallos.join("\n") : ""), ui.ButtonSet.OK);
 }
+// Los PER creados antes de la v3.3 tienen sus formularios sueltos en «Formularios PER»: esto los mete
+// en una carpeta con el nombre de su PER.
+function organizarCarpetasPER() {
+  var ui = SpreadsheetApp.getUi();
+  if (ui.alert("Organizar en carpetas por PER",
+      "Cada PER pasará a tener su propia carpeta dentro de «Formularios PER», con sus 3 formularios y su documento de enlaces dentro.\n\n¿Continuar?",
+      ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var movidos = 0, pers = 0, fallos = [];
+  hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
+    if (!v[0]) return; var o = perObj_(v); pers++;
+    var destino;
+    try { destino = carpetaDelPER_(o.nombre, true); } catch (e) { fallos.push(o.nombre + ": " + e.message); return; }
+    formsDelPER_(o).forEach(function(f){
+      try { var file = DriveApp.getFileById(f.getId());
+            if (file.getParents().next().getId() !== destino.getId()) { file.moveTo(destino); movidos++; } }
+      catch (e) { fallos.push(o.nombre + " (formulario): " + e.message); } });
+    if (o.doc) { try { var d = DriveApp.getFileById(o.doc.match(/[-\w]{25,}/)[0]);
+                       if (d.getParents().next().getId() !== destino.getId()) { d.moveTo(destino); movidos++; } }
+                 catch (e) { fallos.push(o.nombre + " (documento): " + e.message); } }
+  });
+  ui.alert("Carpetas organizadas",
+    pers + " PER revisados, " + movidos + " archivos movidos a su carpeta." + (fallos.length ? "\n\nNo se pudo con:\n" + fallos.join("\n") : ""), ui.ButtonSet.OK);
+}
 function limpiarRestos() {
   var ui = SpreadsheetApp.getUi(); var ss = SpreadsheetApp.getActive();
   var filas = hoja_(H.PERS).getDataRange().getValues().slice(1);
   var vivosNombre = {}, vivosId = {};
   filas.forEach(function(v){ if (v[1]) vivosNombre[String(v[1]).trim()] = true; if (v[0]) vivosId[String(v[0]).trim()] = true; });
   // 1) formularios de PER que ya no existen -> guardamos ID y nombre (no el objeto: caduca durante el diálogo)
-  var it = carpetaPER_().getFilesByType(MimeType.GOOGLE_FORMS); var forms = [];
-  while (it.hasNext()) { var f = it.next(); var nf = f.getName();
-    if (nf.indexOf("STARGATE · ") !== 0 || nf.indexOf("PLANTILLA") >= 0) continue;
-    var partes = nf.split(" · "); if (partes.length < 3) continue;
-    if (!vivosNombre[partes[1].trim()]) forms.push({ id: f.getId(), nombre: nf }); }
+  var forms = [];
+  function revisar_(carpeta) {
+    var it = carpeta.getFilesByType(MimeType.GOOGLE_FORMS);
+    while (it.hasNext()) { var f = it.next(); var nf = f.getName();
+      if (nf.indexOf("STARGATE · ") !== 0 || nf.indexOf("PLANTILLA") >= 0) continue;
+      var partes = nf.split(" · "); if (partes.length < 3) continue;
+      if (!vivosNombre[partes[1].trim()]) forms.push({ id: f.getId(), nombre: nf }); }
+  }
+  var raizL = carpetaPER_(); revisar_(raizL);
+  var subL = raizL.getFolders(); while (subL.hasNext()) { var cs = subL.next(); revisar_(cs); }
   // 2) pestañas de respuestas sin PER (incluidas las apartadas como «restos · …»)
   var tabs = [];
   ss.getSheets().forEach(function(sh){ var n = sh.getName();
@@ -793,7 +834,8 @@ function tablero_(perId, conPrivados) {
            formBitacora:o.formBitacora, formTicket:o.formTicket, formCanje:o.formCanje, reclutas:lista,
            recompensas:recompensasCat_(), semana:semanaDe_(o), panel:o.panelVer || std.ver,
            actualizado:new Date() };
-  if (conPrivados) { res.panelEdit = o.panelEdit || std.editar; res.panelPropio = !!(o.panelVer || o.panelEdit); res.archivado = o.archivado; }
+  if (conPrivados) { res.panelEdit = o.panelEdit || std.editar; res.panelPropio = !!(o.panelVer || o.panelEdit); res.archivado = o.archivado;
+    res.doc = o.doc; res.hoja = SpreadsheetApp.getActive().getUrl(); res.formBitacoraEdit = o.formBitacoraEdit; }
   return res;
 }
 // «Personaje 3 · ella (evoluciona)» / «Clásico 7» / URL directa / «elección | url» -> objeto avatar del tablero
@@ -857,6 +899,7 @@ function doPost(e) {
       try { var o4 = perObj_(perFila_(per).v); var ftx = FormApp.openByUrl(o4.formTicketEdit); ftx.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle().indexOf("profesor o profesora") >= 0) i.asListItem().setChoiceValues(listaProfes_(q.referente, q.profesorado)); }); } catch (e2) {}
       out = { ok:true }; }
     else if (a === "archivar") { setArchivado_(per, !!q.valor); out = { ok:true }; }
+    else if (a === "documento") { out = { url: crearDocumentoPER_(per) }; }
     else if (a === "panel") { var pp = perFila_(per); hoja_(H.PERS).getRange(pp.fila, 20).setValue(String(q.ver||"").trim()); hoja_(H.PERS).getRange(pp.fila, 21).setValue(String(q.editar||"").trim()); out = { ok:true }; }
     else if (a === "inicio") { var p2 = perFila_(per); hoja_(H.PERS).getRange(p2.fila, 5).setValue(q.inicio ? new Date(q.inicio + "T00:00:00") : ""); out = { ok:true }; }
     else if (a === "abrir" || a === "cerrar") { setAbierto_(per, a === "abrir"); out = { ok:true }; }

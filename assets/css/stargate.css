@@ -352,3 +352,5 @@ body.embed .nave-accesos{margin-top:0}
 .nave-login .nebula-mini{width:74px;height:74px;object-fit:contain;filter:drop-shadow(0 0 16px rgba(55,224,236,.4))}
 .nave-login input[type=email]{flex:1;min-width:220px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff;font:inherit}
 .nave-bio{margin:12px 0 0;padding:10px 14px;border-left:3px solid var(--teal);background:rgba(55,224,236,.06);border-radius:0 10px 10px 0;font-style:italic;font-size:.92rem;color:var(--ink)}
+.btn.grande{font-size:1.02rem;padding:14px 22px;font-weight:800}
+.doc-card{border-color:var(--teal)}
