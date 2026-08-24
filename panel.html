@@ -1,0 +1,49 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STARGATE · Panel de control</title>
+<meta name="description" content="Mapa de los ocho planetas de STARGATE: cada uno lleva a la presentación de su tema.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/stargate.css?v=a25ac60ff3">
+<style>
+html,body{margin:0;height:100%;background:#05080f;overflow:hidden}
+.panel{position:relative;width:100vw;height:100vh;overflow:hidden}
+.panel>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.panel .velo{position:absolute;inset:0;background:radial-gradient(60% 60% at 50% 50%,rgba(5,8,15,.55),rgba(5,8,15,.82));z-index:1}
+.panel .tit{position:absolute;top:2.4vh;left:0;right:0;text-align:center;z-index:3;pointer-events:none}
+.panel .tit .k{font-size:.72rem;letter-spacing:.34em;color:var(--teal);text-transform:uppercase}
+.panel .tit h1{font-family:'Unbounded',sans-serif;font-size:clamp(1.6rem,4.4vw,3rem);margin:.15em 0 0;color:#eaf6fb;text-shadow:0 0 34px rgba(55,224,236,.45)}
+.panel .tit p{margin:.3em 0 0;color:var(--mut);font-size:clamp(.72rem,1.5vw,.95rem)}
+.mapa{position:absolute;inset:0;z-index:2}
+.pl{position:absolute;transform:translate(-50%,-50%);text-align:center;text-decoration:none;width:clamp(88px,11vw,150px);transition:transform .28s ease}
+.pl img{width:100%;display:block;filter:drop-shadow(0 10px 26px rgba(0,0,0,.65));transition:filter .28s ease}
+.pl b{display:block;margin-top:.35em;font-size:clamp(.72rem,1.35vw,.95rem);color:#fff;text-shadow:0 2px 12px #000}
+.pl em{display:block;font-style:normal;font-size:clamp(.6rem,1.05vw,.75rem);color:var(--teal2);text-shadow:0 2px 10px #000;opacity:0;transition:opacity .28s ease}
+.pl:hover{transform:translate(-50%,-50%) scale(1.14)}
+.pl:hover img{filter:drop-shadow(0 0 26px rgba(55,224,236,.75)) drop-shadow(0 10px 26px rgba(0,0,0,.65))}
+.pl:hover em{opacity:1}
+.pl .orbita{position:absolute;inset:-14%;border:1px solid rgba(55,224,236,.28);border-radius:50%;opacity:0;transition:opacity .28s ease;animation:giro 14s linear infinite}
+.pl:hover .orbita{opacity:1}
+@keyframes giro{to{transform:rotate(360deg)}}
+.pl[data-pendiente] b::after{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);margin-left:6px;vertical-align:middle;opacity:.85}
+.pl[data-pendiente] img{opacity:.82}
+.pie{position:absolute;bottom:1.2vh;left:0;right:0;text-align:center;z-index:3;color:var(--mut);font-size:.72rem}
+.pie a{color:var(--teal2)}
+@media(max-width:720px){.pl{width:74px} .pl em{display:none}}
+</style></head><body>
+<div class="panel">
+<video autoplay muted loop playsinline poster="assets/img/nave/fondo_universo_poster.jpg?v=9ce19a0c39"><source src="media/video/fondo_universo.mp4?v=e8723e0931" type="video/mp4"></video>
+<div class="velo"></div>
+<div class="tit"><div class="k">Panel de control</div><h1>La galaxia de STARGATE</h1>
+<p>Ocho mundos, ocho temas. Pulsa un planeta para entrar en su misión.</p></div>
+<div class="mapa"><a class="pl" style="left:13%;top:37%" href="cronologia.html#sem1" target="_blank" rel="noopener" data-pendiente="1"><span class="orbita"></span><img src="assets/img/planetas/p1_forge.png?v=f02301764c" alt="Fôrge"><b>Fôrge</b><em>T1 · Contenido multimedia</em></a>
+<a class="pl" style="left:37%;top:32%" href="cronologia.html#sem3" target="_blank" rel="noopener" data-pendiente="1"><span class="orbita"></span><img src="assets/img/planetas/p2_ecos.png?v=cc1c91db99" alt="Ecos"><b>Ecos</b><em>T2 · El vídeo</em></a>
+<a class="pl" style="left:61%;top:37%" href="cronologia.html#sem5" target="_blank" rel="noopener" data-pendiente="1"><span class="orbita"></span><img src="assets/img/planetas/p3_sendara.png?v=4064cc37c8" alt="Sendara"><b>Sendara</b><em>T3 · Interactivos</em></a>
+<a class="pl" style="left:85%;top:32%" href="cronologia.html#sem7" target="_blank" rel="noopener" data-pendiente="1"><span class="orbita"></span><img src="assets/img/planetas/p4_reliae.png?v=b28b087da4" alt="Reliae"><b>Reliae</b><em>T4 · M-learning</em></a>
+<a class="pl" style="left:13%;top:71%" href="cronologia.html#sem9" target="_blank" rel="noopener" data-pendiente="1"><span class="orbita"></span><img src="assets/img/planetas/p5_umbral.png?v=bb0cb2260a" alt="Umbral"><b>Umbral</b><em>T5 · Evaluación</em></a>
+<a class="pl" style="left:37%;top:76%" href="cronologia.html#sem10" target="_blank" rel="noopener" data-pendiente="1"><span class="orbita"></span><img src="assets/img/planetas/p6_ludo.png?v=34e6d90476" alt="Ludo"><b>Ludo</b><em>T6 · ABJ</em></a>
+<a class="pl" style="left:61%;top:71%" href="cronologia.html#sem11" target="_blank" rel="noopener" data-pendiente="1"><span class="orbita"></span><img src="assets/img/planetas/p7_vinculo.png?v=84405fdd9b" alt="Vínculo"><b>Vínculo</b><em>T7 · Gamificación</em></a>
+<a class="pl" style="left:85%;top:76%" href="cronologia.html#sem13" target="_blank" rel="noopener" data-pendiente="1"><span class="orbita"></span><img src="assets/img/planetas/p8_liminar.png?v=a72352df70" alt="Liminar"><b>Liminar</b><em>T8 · RA/RV</em></a></div>
+<div class="pie">Proyecto Gamificado del <b>Máster en Tecnología Educativa</b> de la UNIR</div>
+</div>
+</body></html>

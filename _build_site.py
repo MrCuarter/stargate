@@ -1020,6 +1020,65 @@ tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 html=(RECLUTA.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"'))
 open(os.path.join(HERE,"recluta.html"),"w",encoding="utf-8").write(html); print("escrito: recluta.html")
 
+# ================= v3.3 · PANEL DE CONTROL (mapa de planetas sobre el universo) =================
+# Pensado para incrustar en Genially (o usarlo suelto): fondo en bucle + los 8 planetas clicables.
+# Cada planeta lleva al Genially de su tema (GENIALLYS en _site_data.py) o, si no lo hay, a la cronología.
+POS = [(13,37),(37,32),(61,37),(85,32),(13,71),(37,76),(61,71),(85,76)]   # % (x,y): dos arcos, sin pisar título ni pie
+def planeta_panel(i, key, nombre, tema):
+    g = GENIALLYS.get(i, {})
+    destino = g.get("view") or f"cronologia.html#sem{ {1:1,2:3,3:5,4:7,5:9,6:10,7:11,8:13}[i] }"
+    pend = "" if g.get("view") else ' data-pendiente="1"'
+    x, y = POS[i-1]
+    return (f'<a class="pl" style="left:{x}%;top:{y}%" href="{destino}" target="_blank" rel="noopener"{pend}>'
+            f'<span class="orbita"></span><img src="assets/img/planetas/{key}.png" alt="{nombre}">'
+            f'<b>{nombre}</b><em>{tema}</em></a>')
+planetas_panel = "\n".join(planeta_panel(i, k, n, t) for i, (k, n, t) in enumerate(PLANETAS, 1))
+
+PANEL = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STARGATE · Panel de control</title>
+<meta name="description" content="Mapa de los ocho planetas de STARGATE: cada uno lleva a la presentación de su tema.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="{FAV}">
+<link rel="stylesheet" href="assets/css/stargate.css">
+<style>
+html,body{{margin:0;height:100%;background:#05080f;overflow:hidden}}
+.panel{{position:relative;width:100vw;height:100vh;overflow:hidden}}
+.panel>video{{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}}
+.panel .velo{{position:absolute;inset:0;background:radial-gradient(60% 60% at 50% 50%,rgba(5,8,15,.55),rgba(5,8,15,.82));z-index:1}}
+.panel .tit{{position:absolute;top:2.4vh;left:0;right:0;text-align:center;z-index:3;pointer-events:none}}
+.panel .tit .k{{font-size:.72rem;letter-spacing:.34em;color:var(--teal);text-transform:uppercase}}
+.panel .tit h1{{font-family:'Unbounded',sans-serif;font-size:clamp(1.6rem,4.4vw,3rem);margin:.15em 0 0;color:#eaf6fb;text-shadow:0 0 34px rgba(55,224,236,.45)}}
+.panel .tit p{{margin:.3em 0 0;color:var(--mut);font-size:clamp(.72rem,1.5vw,.95rem)}}
+.mapa{{position:absolute;inset:0;z-index:2}}
+.pl{{position:absolute;transform:translate(-50%,-50%);text-align:center;text-decoration:none;width:clamp(88px,11vw,150px);transition:transform .28s ease}}
+.pl img{{width:100%;display:block;filter:drop-shadow(0 10px 26px rgba(0,0,0,.65));transition:filter .28s ease}}
+.pl b{{display:block;margin-top:.35em;font-size:clamp(.72rem,1.35vw,.95rem);color:#fff;text-shadow:0 2px 12px #000}}
+.pl em{{display:block;font-style:normal;font-size:clamp(.6rem,1.05vw,.75rem);color:var(--teal2);text-shadow:0 2px 10px #000;opacity:0;transition:opacity .28s ease}}
+.pl:hover{{transform:translate(-50%,-50%) scale(1.14)}}
+.pl:hover img{{filter:drop-shadow(0 0 26px rgba(55,224,236,.75)) drop-shadow(0 10px 26px rgba(0,0,0,.65))}}
+.pl:hover em{{opacity:1}}
+.pl .orbita{{position:absolute;inset:-14%;border:1px solid rgba(55,224,236,.28);border-radius:50%;opacity:0;transition:opacity .28s ease;animation:giro 14s linear infinite}}
+.pl:hover .orbita{{opacity:1}}
+@keyframes giro{{to{{transform:rotate(360deg)}}}}
+.pl[data-pendiente] b::after{{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);margin-left:6px;vertical-align:middle;opacity:.85}}
+.pl[data-pendiente] img{{opacity:.82}}
+.pie{{position:absolute;bottom:1.2vh;left:0;right:0;text-align:center;z-index:3;color:var(--mut);font-size:.72rem}}
+.pie a{{color:var(--teal2)}}
+@media(max-width:720px){{.pl{{width:74px}} .pl em{{display:none}}}}
+</style></head><body>
+<div class="panel">
+<video autoplay muted loop playsinline poster="assets/img/nave/fondo_universo_poster.jpg"><source src="media/video/fondo_universo.mp4" type="video/mp4"></video>
+<div class="velo"></div>
+<div class="tit"><div class="k">Panel de control</div><h1>La galaxia de STARGATE</h1>
+<p>Ocho mundos, ocho temas. Pulsa un planeta para entrar en su misión.</p></div>
+<div class="mapa">{{planetas}}</div>
+<div class="pie">Proyecto Gamificado del <b>Máster en Tecnología Educativa</b> de la UNIR</div>
+</div>
+</body></html>'''.replace("{planetas}", planetas_panel)
+html=(PANEL.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"'))
+open(os.path.join(HERE,"panel.html"),"w",encoding="utf-8").write(html); print("escrito: panel.html")
+
 # ================= cache-busting de TODOS los js (tablero/profes/tickets/foro/embed) =================
 import glob as _glob, re as _re
 _vers = {os.path.basename(f): _ver("assets/js/"+os.path.basename(f)) for f in _glob.glob(os.path.join(HERE,"assets","js","*.js"))}
