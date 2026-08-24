@@ -385,6 +385,18 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .album .c{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
 .album .c img{width:100%;display:block}
 .album .c.no img{filter:grayscale(1) brightness(.3)}
+.album .c.rar{border-color:rgba(96,208,236,.55)}
+.album .c.epi{border-color:#a98cf0}
+.album .c.epi:not(.no){box-shadow:0 0 12px rgba(169,140,240,.45)}
 .album .c.leg{border-color:var(--amber)}
 .album .c.leg:not(.no){box-shadow:0 0 12px rgba(245,176,67,.5)}
+.album-cromos .serie{margin-top:16px}
+.album-cromos .serie h4{margin:0;font-family:'Unbounded';font-size:.95rem;display:flex;align-items:center;gap:8px}
+.album-cromos .serie h4 .cnt{font-family:'DMSans';font-size:.72rem;font-weight:700;letter-spacing:.04em;
+  border:1px solid var(--line);border-radius:999px;padding:1px 8px;color:var(--muted)}
+.album-cromos .serie h4 .cnt.full{border-color:var(--amber);color:var(--amber)}
+.album-cromos .serie p{margin:.2em 0 0}
+.serie-tit{margin:1.4em 0 .6em;font-family:'Unbounded';font-size:1rem;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.serie-tit em{font-family:'DMSans';font-style:normal;font-weight:400;color:var(--muted);font-size:.85rem}
+.serie-tit .tag{font-family:'DMSans';font-size:.7rem;letter-spacing:.08em;color:var(--teal);text-transform:uppercase}
 .album .nx{position:absolute;right:4px;bottom:4px;background:var(--amber);color:#161006;font-size:.62rem;font-weight:800;border-radius:7px;padding:0 5px}

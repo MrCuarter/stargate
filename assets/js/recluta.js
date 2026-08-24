@@ -4,7 +4,8 @@
 // servidor SOLO su ficha (doPost accion=quien, sin PIN). El correo nunca va en la URL ni se lista en el API.
 (function(){
   var API=(window.SG_TABLERO_API||"").trim(), SEM=window.SG_SEMANAS||[], NOMBRES=window.SG_BADGE_NAMES||{},
-      BADGES=window.SG_BADGES||[], PLAN=window.SG_PLANETAS||[], root=document.getElementById('nave-app');
+      BADGES=window.SG_BADGES||[], PLAN=window.SG_PLANETAS||[], root=document.getElementById('nave-app'),
+      CROMOS=window.SG_CROMOS||[], SERIES=window.SG_CROMO_SERIES||[], CARDV=window.SG_CARDV||'';
   if(!root) return;
   var q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -83,15 +84,26 @@
     // fondo de ficha: su planeta elegido
     var PLK={}; PLAN.forEach(function(p){PLK[p[1]]=p[0];});
     var estiloFicha=r.fondo&&PLK[r.fondo]?' style="background-image:linear-gradient(rgba(10,16,26,.82),rgba(10,16,26,.9)),url(assets/img/planetas/'+PLK[r.fondo]+'.png);background-size:cover;background-position:center"':'';
-    // álbum de cromos
-    var CR=[['P1_bran','común'],['P2_tomas','común'],['P3_sylla','común'],['P4_amara','común'],['P5_vera','común'],['P6_joran','común'],['P7_mara','común'],['P8_noa','común'],['E1_nebula','rara'],['E2_capitan','rara'],['E3_vaeon','LEGENDARIA']];
-    var tengo=r.cromos||{}; var nCromos=CR.filter(function(c){return tengo[c[0]];}).length;
-    var album='<div class="card album-cromos"><h3>🃏 Tu álbum de cromos · '+nCromos+' / '+CR.length+'</h3>'
-      +'<p class="small muted">Cada «Sobre de cromos» (100 xp) trae uno al azar. Los tripulantes son comunes; NEBULA y el Capitán, raros; <b>Vaeon es legendario</b>.</p>'
-      +'<div class="album">'+CR.map(function(c){var nn=tengo[c[0]]||0;
-        return '<div class="c'+(nn?'':' no')+(c[1]==='LEGENDARIA'?' leg':'')+'" title="'+esc(NOMBRES[c[0]]||c[0])+' · '+c[1]+(nn?' · x'+nn:' · aún no ha salido')+'">'
-          +'<img loading="lazy" src="assets/img/tarjetas/'+c[0]+'_carta.png" alt="">'
-          +(nn>1?'<span class="nx">x'+nn+'</span>':'')+'</div>';}).join('')+'</div></div>';
+    // álbum de cromos (catálogo inyectado por _build_site.py desde _site_data.CROMOS)
+    var tengo=r.cromos||{}; var nCromos=CROMOS.filter(function(c){return tengo[c[0]];}).length;
+    var repes=0; CROMOS.forEach(function(c){var n=tengo[c[0]]||0; if(n>1) repes+=n-1;});
+    function rarCls(rz){return rz==='LEGENDARIA'?' leg':rz==='épica'?' epi':rz==='rara'?' rar':'';}
+    function celda(c){var nn=tengo[c[0]]||0;
+      return '<div class="c'+(nn?'':' no')+rarCls(c[3])+'" title="'+esc(c[1])+' · '+c[3]+(nn?' · x'+nn:' · aún no ha salido')+'">'
+        +'<img loading="lazy" src="assets/img/tarjetas/'+c[0]+'_carta.png'+CARDV+'" alt="">'
+        +(nn>1?'<span class="nx">x'+nn+'</span>':'')+'</div>';}
+    var series=SERIES.map(function(sr){
+      var cs=CROMOS.filter(function(c){return c[2]===sr[0];});
+      var ten=cs.filter(function(c){return tengo[c[0]];}).length;
+      return '<div class="serie"><h4>'+esc(sr[1])+' <span class="cnt'+(ten===cs.length?' full':'')+'">'+ten+'/'+cs.length+'</span></h4>'
+        +'<p class="small muted">'+esc(sr[2])+'</p>'
+        +'<div class="album">'+cs.map(celda).join('')+'</div></div>';}).join('');
+    var album=CROMOS.length?('<div class="card album-cromos"><h3>🃏 Tu álbum de cromos · '+nCromos+' / '+CROMOS.length+'</h3>'
+      +'<p class="small muted">Cada «Sobre de cromos» (100 xp) trae una carta al azar. Los ocho tripulantes son <b>comunes</b>; '
+      +'los Ecos, NEBULA y el Capitán, <b>raros</b>; el Recluta, el Archivista y la Estática, <b>épicos</b>; '
+      +'<b>Vaeon es LEGENDARIO</b> (sale 2 veces de cada 100 sobres).'
+      +(repes?' Llevas <b>'+repes+'</b> repetido'+(repes===1?'':'s')+' — como en los cromos de verdad, se acumulan.':'')+'</p>'
+      +series+'</div>'):'';
     return '<div class="grid cols-2 nave-estado"><div class="card"'+estiloFicha+'><div class="nave-perfil">'+av
       +'<div><h3>'+(r.corona?'👑 ':'')+esc(r.alias)+'</h3>'
       +(r.titulo?'<div class="titulo-recluta">«'+esc(r.titulo)+'»</div>':'')

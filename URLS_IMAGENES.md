@@ -37,18 +37,45 @@
 | Reto T7 · Microgamificación | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/insignias/R7_microgamificacion.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/insignias/R7_microgamificacion.png` |
 | Reto T8 · Último umbral | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/insignias/R8_ultimo-umbral.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/insignias/R8_ultimo-umbral.png` |
 
-## Cartas de personaje (11)
+## Cartas de personaje (20 · el álbum de cromos)
+
+
+**Serie I · La Tripulación Cero**
 
 | Imagen | Vista | URL (jsDelivr) |
 |---|---|---|
-| NEBULA | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/E1_nebula_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/E1_nebula_carta.png` |
-| El Capitán | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/E2_capitan_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/E2_capitan_carta.png` |
-| General Vaeon (villano) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/E3_vaeon_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/E3_vaeon_carta.png` |
-| Bran Okafor (personaje) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P1_bran_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P1_bran_carta.png` |
-| Tomás Reyer | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P2_tomas_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P2_tomas_carta.png` |
-| Sylla Bren | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P3_sylla_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P3_sylla_carta.png` |
-| Amara Sol | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P4_amara_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P4_amara_carta.png` |
-| Vera Khal | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P5_vera_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P5_vera_carta.png` |
-| Joran Pike | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P6_joran_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P6_joran_carta.png` |
-| Mara Voss | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P7_mara_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P7_mara_carta.png` |
-| Noa Lieth | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P8_noa_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P8_noa_carta.png` |
+| Bran Okafor (común) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P1_bran_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P1_bran_carta.png` |
+| Tomás Reyer (común) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P2_tomas_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P2_tomas_carta.png` |
+| Sylla Bren (común) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P3_sylla_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P3_sylla_carta.png` |
+| Amara Sol (común) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P4_amara_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P4_amara_carta.png` |
+| Vera Khal (común) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P5_vera_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P5_vera_carta.png` |
+| Joran Pike (común) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P6_joran_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P6_joran_carta.png` |
+| Mara Voss (común) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P7_mara_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P7_mara_carta.png` |
+| Noa Lieth (común) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P8_noa_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/P8_noa_carta.png` |
+
+**Serie II · Los Ecos**
+
+| Imagen | Vista | URL (jsDelivr) |
+|---|---|---|
+| Lena Reyer (rara) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/L1_lena_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/L1_lena_carta.png` |
+| Kel Bren (rara) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/L2_kel_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/L2_kel_carta.png` |
+| Los Copistas de Fôrge (rara) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/L3_copistas_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/L3_copistas_carta.png` |
+| Ilan Kesh (rara) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/L4_ilan_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/L4_ilan_carta.png` |
+| Los Niños de la Ruta Azul (rara) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/L5_ruta_azul_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/L5_ruta_azul_carta.png` |
+| Oren Vash (rara) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/L6_oren_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/L6_oren_carta.png` |
+
+**Serie III · La Nave**
+
+| Imagen | Vista | URL (jsDelivr) |
+|---|---|---|
+| NEBULA (rara) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/E1_nebula_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/E1_nebula_carta.png` |
+| El Capitán (rara) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/E2_capitan_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/E2_capitan_carta.png` |
+| El Recluta (épica) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/N1_recluta_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/N1_recluta_carta.png` |
+
+**Serie IV · La Sombra**
+
+| Imagen | Vista | URL (jsDelivr) |
+|---|---|---|
+| El Archivista de Ashan (épica) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/S1_archivista_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/S1_archivista_carta.png` |
+| La Estática (épica) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/S2_estatica_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/S2_estatica_carta.png` |
+| General Vaeon (LEGENDARIA) | ![](https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/E3_vaeon_carta.png) | `https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/assets/img/tarjetas/E3_vaeon_carta.png` |

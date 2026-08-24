@@ -14,10 +14,22 @@ M-learning y Gamificación en el Aula* (CCD). Pensado para el profesorado y para
 - `profes.html` · `tickets.html` · `foro.html` · `embed.html` — panel del profesorado (PIN), tickets visual, foro dinámico semanal (`?todos=1` = todos los mensajes para copiar) y generador de enlaces/embeds/QR.
 - `recluta.html` — **La Nave del Recluta** (v3.1, 24-ago): la web del alumnado por PER (`?per=<id>`, `&embed=1`): el recluta se identifica con su CORREO una vez por dispositivo (POST `accion=quien`, sin PIN; el correo nunca va en la URL ni se lista) y lo primero que ve es SU personaje (avatar+rango+xp+colección+bio); onboarding con NEBULA, planetas desbloqueados por calendario, foro unidireccional, recompensas con desbloqueo semanal y botón al panel de control Genially del PER. Motor compartido en `assets/js/calendario.js`.
 - `apps-script/` — código de la hoja maestra (Code.gs + Dialog.html); copia servida en `assets/descargas/`.
-- `recursos.html` — **Sala de recursos** (tablero de 24 insignias, cartas, ranking).
+- `recursos.html` — **Sala de recursos** (tablero de 24 insignias, las 20 cartas del álbum, ranking).
 
-Datos editables en `_site_data.py` (cronología, vídeos, Geniallys); los textos del foro se leen de
-`../FORO_DINAMIZADOR_STARGARTE.md` al construir. Visita guiada en `assets/js/tour.js` (pasos = array `STEPS`).
+Datos editables en `_site_data.py` (cronología, vídeos, Geniallys, **catálogo de cromos**); los textos
+del foro se leen de `../FORO_DINAMIZADOR_STARGARTE.md` al construir. Visita guiada en
+`assets/js/tour.js` (pasos = array `STEPS`).
+
+### El álbum de cromos — fuente única
+`_site_data.py → CROMOS` (20 cartas en 4 series: la Tripulación Cero, los Ecos, la Nave y la Sombra)
+es **el único sitio donde se define el álbum**. Al ejecutar `_build_site.py`:
+1. se inyecta en `recluta.html` como `window.SG_CROMOS` / `SG_CROMO_SERIES` (lo pinta `assets/js/recluta.js`);
+2. se **reescribe** el bloque `var CROMOS` de `apps-script/Code.gs` entre `CROMOS-INICIO` y `CROMOS-FIN`;
+3. se copian `Code.gs` y `Dialog.html` a `assets/descargas/*.txt` (lo que se pega en Apps Script).
+
+Los pesos deben sumar 100 (hay un `assert`). Las imágenes de las cartas las genera
+`../Retos e Insignias/_work/cartas.py` y las publica aquí `publicar_tarjetas.py` (720×1210).
+**No editar `var CROMOS` ni el `.txt` a mano: se pisan en el siguiente build.**
 
 ## Estructura
 ```

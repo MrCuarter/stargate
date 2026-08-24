@@ -7,6 +7,9 @@
  * automáticos («Cambio de avatar» y «Avatar personal») · el avatar inicial se congela al alistarse y solo
  * v3.4: 7 personajes evolutivos × 5 rangos (nuevo rango LEYENDA a 4.500 xp) — la web calcula el rango;
  * aquí solo cambian las opciones del formulario (opcAvatares_).
+ * v3.6: ÁLBUM DE 20 CROMOS en 4 series (Tripulación Cero · Los Ecos · La Nave · La Sombra), con
+ * rarezas común/rara/épica/LEGENDARIA. El bloque CROMOS lo GENERA web-stargate/_build_site.py
+ * desde _site_data.py: no editarlo a mano aquí.
  * v3.5: ECONOMÍA DE RECOMPENSAS AUTOMÁTICAS — personajes 5-7 EXCLUSIVOS (solo por canje), galería
  * clásica retirada de los formularios nuevos (compatibilidad intacta), SOBRE DE CROMOS aleatorio con
  * rarezas (Vaeon legendario), título bajo el alias, marco dorado del avatar, fondo de ficha con tu
@@ -81,7 +84,7 @@ var WEB = "https://stargate.mistercuarter.es/";
 // tipo: "avatar" (automática: nuevo avatar de la galería) · "avatar_url" (automática: imagen propia por URL)
 //       "nota" (la aplica el profesorado; efectiva al terminar las clases en directo)
 var RECOMPENSAS_INICIALES = [
-  ["Sobre de cromos",100,99,"Un cromo al azar de la colección (11 cartas). Los tripulantes son comunes; NEBULA y el Capitán, raros; Vaeon, LEGENDARIO. Se abre solo y tu álbum está en la Nave.",2,"cromo"],
+  ["Sobre de cromos",100,99,"Un cromo al azar de la colección: 20 cartas en 4 series (la Tripulación Cero, los Ecos, la Nave y la Sombra). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta, el Archivista y la Estática, épicos; Vaeon, LEGENDARIO. Se abre solo y tu álbum está en la Nave.",2,"cromo"],
   ["Título de recluta",200,3,"Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario). Se aplica solo.",3,"titulo"],
   ["Fondo de ficha: tu planeta",150,1,"Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.",4,"fondo"],
   ["Cambio de avatar",300,3,"Elige otro personaje inicial (1-4) o vuelve a uno (indícalo en el propio formulario de canje). Se aplica solo.",5,"avatar"],
@@ -96,13 +99,31 @@ var RECOMPENSAS_INICIALES = [
 var H = { PERS:"PERs", REC:"RECOMPENSAS", EV:"EVENTOS", AJ:"AJUSTES", DATOS:"DATOS", RES:"RESUMEN" };
 // Personajes evolutivos: los 1-4 se eligen al alistarse; los 5-7 son EXCLUSIVOS (solo por canje)
 var AVATARES_INICIALES = 4;
-// Sobre de cromos: [clave de carta, nombre, peso, rareza]. Los pesos suman 100.
+// CROMOS-INICIO · [clave de carta, nombre, peso, rareza, serie]. Los pesos suman 100.
+// Lo genera web-stargate/_build_site.py desde _site_data.py (CROMOS): NO editar a mano.
 var CROMOS = [
-  ["P1_bran","Bran Okafor",11,"común"],["P2_tomas","Tomás Reyer",11,"común"],["P3_sylla","Sylla Bren",11,"común"],
-  ["P4_amara","Amara Sol",11,"común"],["P5_vera","Vera Khal",11,"común"],["P6_joran","Joran Pike",11,"común"],
-  ["P7_mara","Mara Voss",11,"común"],["P8_noa","Noa Lieth",11,"común"],
-  ["E1_nebula","NEBULA",6,"rara"],["E2_capitan","El Capitán",4,"rara"],["E3_vaeon","General Vaeon",2,"LEGENDARIA"]
+  ["P1_bran","Bran Okafor",7,"común","Serie I · La Tripulación Cero"],
+  ["P2_tomas","Tomás Reyer",7,"común","Serie I · La Tripulación Cero"],
+  ["P3_sylla","Sylla Bren",7,"común","Serie I · La Tripulación Cero"],
+  ["P4_amara","Amara Sol",7,"común","Serie I · La Tripulación Cero"],
+  ["P5_vera","Vera Khal",7,"común","Serie I · La Tripulación Cero"],
+  ["P6_joran","Joran Pike",7,"común","Serie I · La Tripulación Cero"],
+  ["P7_mara","Mara Voss",7,"común","Serie I · La Tripulación Cero"],
+  ["P8_noa","Noa Lieth",7,"común","Serie I · La Tripulación Cero"],
+  ["L1_lena","Lena Reyer",4,"rara","Serie II · Los Ecos"],
+  ["L2_kel","Kel Bren",4,"rara","Serie II · Los Ecos"],
+  ["L3_copistas","Los Copistas de Fôrge",4,"rara","Serie II · Los Ecos"],
+  ["L4_ilan","Ilan Kesh",4,"rara","Serie II · Los Ecos"],
+  ["L5_ruta_azul","Los Niños de la Ruta Azul",4,"rara","Serie II · Los Ecos"],
+  ["L6_oren","Oren Vash",4,"rara","Serie II · Los Ecos"],
+  ["E1_nebula","NEBULA",5,"rara","Serie III · La Nave"],
+  ["E2_capitan","El Capitán",4,"rara","Serie III · La Nave"],
+  ["N1_recluta","El Recluta",3,"épica","Serie III · La Nave"],
+  ["S1_archivista","El Archivista de Ashan",3,"épica","Serie IV · La Sombra"],
+  ["S2_estatica","La Estática",3,"épica","Serie IV · La Sombra"],
+  ["E3_vaeon","General Vaeon",2,"LEGENDARIA","Serie IV · La Sombra"]
 ];
+// CROMOS-FIN
 var TITULOS = ["Cartógrafo/a estelar","Guardián/a de la Bitácora","Voz de NEBULA","Rompe-Estática",
   "Piloto de la Cero","Archivista estelar","Forjador/a de mundos","Centinela de Liminar",
   "Corazón de la tripulación","Cazador/a de constelaciones"];
@@ -815,7 +836,7 @@ function resolverCanje_(o, sh, fila) {
     var c2 = CROMOS[bolsa[Math.floor(Math.random() * bolsa.length)]];
     extra_(o, email, "cromo", c2[0]);
     estado = "Concedido";
-    cuerpo = "Abres el sobre... ¡" + c2[1] + "! (" + c2[3] + "). Ya está en tu álbum de la Nave. Te quedan " + (disp - coste) + " xp." +
+    cuerpo = "Abres el sobre... ¡" + c2[1] + "! (" + c2[3] + " · " + c2[4] + "). Ya está en tu álbum de la Nave. Te quedan " + (disp - coste) + " xp." +
       (c2[3] === "LEGENDARIA" ? " ✦ ¡El cromo más difícil de toda la galaxia!" : "");
   }
   else if (ficha && ficha.tipo === "titulo") {

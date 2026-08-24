@@ -206,3 +206,39 @@ def foro_por_semana():
 # ---------- tablero de reclutas (web app de Apps Script en mutecdgami) ----------
 # URL del despliegue «Aplicación web» (termina en /exec). Vacío = tablero pendiente de conectar.
 TABLERO_API = "https://script.google.com/macros/s/AKfycbxlrRGIBJPD9h8-6D46Y4IJ8Gb2fu9v4-6wYZjgPAom2W1QfLh14ltBZmXV2Sx3_nXvPg/exec"
+
+# ---------- cromos: el álbum del «Sobre de cromos» ----------
+# FUENTE ÚNICA del álbum. De aquí salen (a) el catálogo que pinta la Nave del Recluta
+# (window.SG_CROMOS) y (b) el bloque «var CROMOS» del Apps Script, que _build_site.py
+# reescribe solo entre los marcadores CROMOS-INICIO / CROMOS-FIN. Nunca copiar a mano.
+# serie: (clave, título, subtítulo del álbum)
+CROMO_SERIES = [
+ ("I",   "Serie I · La Tripulación Cero", "Los ocho que se quedaron"),
+ ("II",  "Serie II · Los Ecos",           "Las personas a las que la Cero les cambió la vida"),
+ ("III", "Serie III · La Nave",           "Quienes te acompañan… y tú"),
+ ("IV",  "Serie IV · La Sombra",          "El silencio, y quien acabó sirviéndolo"),
+]
+# [clave, nombre en el álbum, serie, rareza, peso] · los pesos suman 100
+CROMOS = [
+ ("P1_bran",      "Bran Okafor",                "I",   "común",      7),
+ ("P2_tomas",     "Tomás Reyer",                "I",   "común",      7),
+ ("P3_sylla",     "Sylla Bren",                 "I",   "común",      7),
+ ("P4_amara",     "Amara Sol",                  "I",   "común",      7),
+ ("P5_vera",      "Vera Khal",                  "I",   "común",      7),
+ ("P6_joran",     "Joran Pike",                 "I",   "común",      7),
+ ("P7_mara",      "Mara Voss",                  "I",   "común",      7),
+ ("P8_noa",       "Noa Lieth",                  "I",   "común",      7),
+ ("L1_lena",      "Lena Reyer",                 "II",  "rara",       4),
+ ("L2_kel",       "Kel Bren",                   "II",  "rara",       4),
+ ("L3_copistas",  "Los Copistas de Fôrge",      "II",  "rara",       4),
+ ("L4_ilan",      "Ilan Kesh",                  "II",  "rara",       4),
+ ("L5_ruta_azul", "Los Niños de la Ruta Azul",  "II",  "rara",       4),
+ ("L6_oren",      "Oren Vash",                  "II",  "rara",       4),
+ ("E1_nebula",    "NEBULA",                     "III", "rara",       5),
+ ("E2_capitan",   "El Capitán",                 "III", "rara",       4),
+ ("N1_recluta",   "El Recluta",                 "III", "épica",      3),
+ ("S1_archivista","El Archivista de Ashan",     "IV",  "épica",      3),
+ ("S2_estatica",  "La Estática",                "IV",  "épica",      3),
+ ("E3_vaeon",     "General Vaeon",              "IV",  "LEGENDARIA", 2),
+]
+assert sum(c[4] for c in CROMOS) == 100, "los pesos de CROMOS deben sumar 100"

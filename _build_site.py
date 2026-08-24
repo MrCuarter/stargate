@@ -5,7 +5,8 @@ Ejecutar desde web-stargate/:  python3 _build_site.py
 Datos de cronología/vídeos/geniallys en _site_data.py."""
 import os, json, hashlib
 from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
-                        PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO)
+                        PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
+                        CROMOS, CROMO_SERIES)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E"
@@ -63,7 +64,22 @@ HITO=[("H1_reclutamiento","Reclutamiento","Aceptas la misión (Sem. 1)"),
 ("H3_cartografo","Cartógrafo","Entregas la Actividad 2"),
 ("H4_tripulacion-cero","Tripulación Cero","Recuperas a los 8 personajes"),
 ("H5_la-liberacion","La Liberación","Completas y publicas la Bitácora")]
-CARDS=[k for k,*_ in PERS]+["E1_nebula","E2_capitan","E3_vaeon"]
+CARDS=[c[0] for c in CROMOS]                       # el álbum manda: 20 cartas en 4 series
+SERIE_DE={c[0]:c[2] for c in CROMOS}
+NOMBRE_CROMO={c[0]:c[1] for c in CROMOS}
+RAREZA={c[0]:c[3] for c in CROMOS}
+# título largo de las cartas nuevas (las 11 antiguas lo sacan de BADGE_INFO)
+CROMO_TITULO={
+ "L1_lena":"Lena Reyer · La Alumna Infinita",
+ "L2_kel":"Kel Bren · El Cartógrafo Tardío",
+ "L3_copistas":"Los Copistas de Fôrge · Cuarenta manos",
+ "L4_ilan":"Ilan Kesh · El Primer Nombre",
+ "L5_ruta_azul":"Los Niños de la Ruta Azul · La partida que ya estaba ganada",
+ "L6_oren":"Oren Vash · La Primera Voz de Ashan",
+ "N1_recluta":"El Recluta · La última página",
+ "S1_archivista":"El Archivista de Ashan · Antes del silencio",
+ "S2_estatica":"La Estática · El silencio que avanza",
+}
 PLANETAS=[("p1_forge","Fôrge","T1 · Contenido multimedia"),("p2_ecos","Ecos","T2 · El vídeo"),
 ("p3_sendara","Sendara","T3 · Interactivos"),("p4_reliae","Reliae","T4 · M-learning"),
 ("p5_umbral","Umbral","T5 · Evaluación"),("p6_ludo","Ludo","T6 · ABJ"),
@@ -92,6 +108,14 @@ esp_html="\n".join(badge(*e) for e in ESP)
 reto_html="\n".join(badge(*r) for r in RETO)
 hito_html="\n".join(hito(*h) for h in HITO)
 cards_html="\n".join(cardt(k) for k in CARDS)
+def cards_por_series():
+    out=[]
+    for sk,titulo,sub in CROMO_SERIES:
+        ks=[c[0] for c in CROMOS if c[2]==sk]
+        out.append(f'<h4 class="serie-tit">{titulo} <em>· {sub}</em> <span class="tag">{len(ks)} cartas</span></h4>'
+                   f'<div class="cards-row" style="margin-bottom:18px">' + "\n".join(cardt(k) for k in ks) + "</div>")
+    return "\n".join(out)
+cards_series_html=cards_por_series()
 planetas_html="\n".join(planeta(*p) for p in PLANETAS)
 
 # ================= PORTADA (index.html) =================
@@ -193,7 +217,7 @@ GUIA = head("STARGATE · Guía para el profesorado",
 <h1>La guía</h1>
 <p>La capa narrativa que convierte la asignatura en una misión: cruzar ocho planetas y construir una
 <b>Bitácora</b> —el ePortfolio— tan viva que reencienda lo que la Estática apaga.</p>
-<p style="margin-top:18px"><span class="pill">8 planetas = 8 temas</span><span class="pill">24 insignias</span><span class="pill">11 personajes</span><span class="pill">2 actividades + ePortfolio</span></p>
+<p style="margin-top:18px"><span class="pill">8 planetas = 8 temas</span><span class="pill">24 insignias</span><span class="pill">20 cromos coleccionables</span><span class="pill">2 actividades + ePortfolio</span></p>
 </header>
 
 <section id="que"><div class="wrap">
@@ -235,10 +259,54 @@ acaparado—. Su debilidad, y la lección del curso: <b>una Bitácora abierta, d
 silenciar</b>. Es un villano con motivo: fue archivista y perdió su mundo; hoy cree que olvidar es misericordia.
 Aparece en el <b>Tema 5</b> y tiene su propio epílogo (el Fragmento Prohibido).</p></div>
 <div class="trio"><img src="assets/img/personajes/vaeon.png" alt="General Vaeon"></div></div></div>
-<h3 style="margin-top:1.8em">Cartas de personaje (tipo juego de rol)</h3>
-<p class="lead">Cada personaje tiene una <b>carta coleccionable</b> que se "desbloquea" con su insignia:
-retrato, breve historia, clase, atributos y cita. Pulsa para ampliar.</p>
-<div class="cards-row">{cards_html}</div>
+<h3 id="ecos" style="margin-top:1.8em">Los Ecos — seis vidas que la Cero cambió</h3>
+<p class="lead">La Tripulación Cero no salvó mundos en abstracto: cambió a <b>personas concretas</b>. Los
+<b>Ecos</b> son esas personas, y cada uno remata la lección de un tripulante desde el otro lado —el de quien
+recibe—. No se ganan con retos: <b>solo salen en los sobres de cromos</b>, y son la razón narrativa para
+seguir abriendo sobres cuando ya tienes a los ocho de la Cero.</p>
+<div class="grid cols-2" style="gap:14px">
+<div class="card"><h3>Lena Reyer · La Alumna Infinita</h3><p class="small">La hija de <b>Tomás</b>. Creció con
+los videomensajes que él grababa a cientos de años luz. Hoy es maestra y los pone en su clase: cada curso,
+treinta alumnos más aprenden de un hombre que no conocieron. <em>Un buen vídeo no tiene última reproducción</em>
+— el argumento del aula invertida, contado por quien la vivió.</p></div>
+<div class="card"><h3>Kel Bren · El Cartógrafo Tardío</h3><p class="small">El hermano gemelo de <b>Sylla</b>,
+el que «no servía para estudiar». Tardó nueve años en descubrir que el problema no era él, sino que solo le
+habían ofrecido un camino. Hoy dibuja los mapas de Sendara. Es la <b>atención a la diversidad</b> con cara y
+nombre.</p></div>
+<div class="card"><h3>Los Copistas de Fôrge · Cuarenta manos</h3><p class="small">Los cuarenta anónimos que
+copiaron a mano el boceto sin terminar de <b>Bran</b> y lo pasaron de tienda en tienda. El original se perdió
+esa noche; las copias, no. La carta que explica por qué compartir en bruto y con licencia abierta gana a
+guardar la obra perfecta.</p></div>
+<div class="card"><h3>Ilan Kesh · El Primer Nombre</h3><p class="small">El primer niño que <b>Vera</b> anotó
+en su historia clínica de mundos. No escribió «sujeto 1»: escribió su nombre y qué le gustaba. Esa manía
+convirtió una tabla de datos en la primera Bitácora. La <b>evaluación como cuidado</b>, resumida en una
+carta.</p></div>
+<div class="card"><h3>Los Niños de la Ruta Azul</h3><p class="small">Los diecinueve críos del refugio de
+<b>Ludo</b> que jugaron cien veces al juego de Joran sin saber que ensayaban su evacuación. La noche real
+salieron riéndose por una línea azul del suelo. El <b>ABJ</b> visto desde quien aprendió jugando.</p></div>
+<div class="card"><h3>Oren Vash · La Primera Voz de Ashan</h3><p class="small">El anciano que volvió a
+escribir cuando Ashan llevaba once años en silencio: un cuaderno de tapas rotas con cómo se hace el pan y por
+qué su madre lloraba con cierta canción. <b>Ese cuaderno es la página uno de NEBULA</b> — el eslabón que faltaba
+entre la Cero y la IA que narra el viaje.</p></div>
+</div>
+<h3 style="margin-top:1.8em">…y tres cartas que cierran el mapa</h3>
+<div class="grid cols-3" style="gap:14px">
+<div class="card"><h3>El Recluta</h3><p class="small">Eres <b>tú</b>. Sin poderes, sin destino escrito: solo
+la costumbre de dejar constancia. Es la única carta del álbum que todavía se está escribiendo.</p></div>
+<div class="card"><h3>El Archivista de Ashan</h3><p class="small"><b>Vaeon antes de Vaeon</b>: el hombre que
+custodiaba la memoria de un mundo y decidió que olvidar era misericordia. La carta que convierte al villano en
+una advertencia y no en un monstruo.</p></div>
+<div class="card"><h3>La Estática</h3><p class="small">El enemigo <b>de verdad</b>, y es más aburrido que un
+general: una costumbre que se contagia. Donde entra, nadie crea, registra ni comparte, y en dos generaciones un
+mundo olvida lo que sabía hacer.</p></div>
+</div>
+<h3 style="margin-top:1.8em">El álbum completo — 20 cartas en 4 series</h3>
+<p class="lead">Cada carta trae retrato, historia breve, clase, atributos y cita. Las de la
+<b>Tripulación Cero</b> se desbloquean además con su insignia de Reto A; las demás <b>solo salen en los sobres
+de cromos</b> (100 xp, desde la semana 2), con rarezas: comunes los ocho tripulantes, raros los Ecos, NEBULA y
+el Capitán, épicos el Recluta, el Archivista y la Estática, y <b>LEGENDARIO el General Vaeon</b> (2 % del
+sobre). Pulsa cualquiera para ampliar.</p>
+{cards_series_html}
 </div></section>
 
 <section id="bit"><div class="wrap">
@@ -679,7 +747,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <p class="lead">Reclutamiento 100 xp · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 · hitos derivados (Cero completa, Liberación) 300. Un viaje completo ≈ 4.500 xp. En PUA: 300 por tema (personaje) + 500 por actividad. Los xp son del juego: <b>no son nota</b>.</p>
 <h4 style="margin-top:1em">Las recompensas y cuándo se desbloquean</h4>
 <div class="tablewrap"><table><thead><tr><th>Recompensa</th><th>Coste</th><th>Desde</th><th>Cómo se aplica</th></tr></thead><tbody>
-<tr><td>🃏 Sobre de cromos (uno al azar de las 11 cartas; Vaeon es legendario)</td><td class="pts">100</td><td>Semana 2</td><td><b>Automática</b> · repetible</td></tr>
+<tr><td>🃏 Sobre de cromos (uno al azar de las <b>20 cartas</b> en 4 series: comunes los tripulantes, raros los <a href="guia.html#ecos">Ecos</a>, épicos el Recluta / el Archivista / la Estática, <b>legendario</b> Vaeon)</td><td class="pts">100</td><td>Semana 2</td><td><b>Automática</b> · repetible</td></tr>
 <tr><td>Título de recluta (bajo su alias en tablero y Nave)</td><td class="pts">200</td><td>Semana 3</td><td><b>Automática</b> · máx. 3</td></tr>
 <tr><td>Fondo de ficha: su planeta (en la Nave)</td><td class="pts">150</td><td>Semana 4</td><td><b>Automática</b></td></tr>
 <tr><td>Cambio de avatar (otro personaje inicial)</td><td class="pts">300</td><td>Semana 5</td><td><b>Automática</b> · máx. 3</td></tr>
@@ -782,8 +850,7 @@ LINKS = {
 for _k,_v in CITAS.items(): BADGE_INFO[_k]["cita"]=_v
 for _k,_v in LINKS.items(): BADGE_INFO[_k]["link"]=_v
 
-CARD_TITLES = {k: BADGE_INFO[k]["nombre"] for k in
-               ["P1_bran","P2_tomas","P3_sylla","P4_amara","P5_vera","P6_joran","P7_mara","P8_noa","E1_nebula","E2_capitan","E3_vaeon"]}
+CARD_TITLES = {k: (BADGE_INFO[k]["nombre"] if k in BADGE_INFO else CROMO_TITULO[k]) for k in CARDS}
 
 
 JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado por _build_site.py)
@@ -809,7 +876,7 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
     afterOpen();}
   function openCard(key){
     back.innerHTML='<div class="modal-card"><button class="modal-close" aria-label="Cerrar">✕</button>'
-      +'<img src="assets/img/tarjetas/'+key+'_carta.png" alt="Carta de '+esc(CARDT[key]||key)+'"></div>';
+      +'<img src="assets/img/tarjetas/'+key+'_carta.png?v=__CARDV__" alt="Carta de '+esc(CARDT[key]||key)+'"></div>';
     afterOpen();}
   back.addEventListener('click',function(e){if(e.target===back) close();});
   document.addEventListener('keydown',function(e){if(e.key==='Escape') close();});
@@ -926,7 +993,10 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding del prof
 """
 
 os.makedirs(os.path.join(HERE,"assets","js"),exist_ok=True)
-js = JS_TEMPLATE.replace("__BADGE__", json.dumps(BADGE_INFO, ensure_ascii=False)).replace("__CARDS__", json.dumps(CARD_TITLES, ensure_ascii=False))
+_cardv = hashlib.md5(b"".join(open(os.path.join(HERE,"assets","img","tarjetas",k+"_carta.png"),"rb").read() for k in CARDS)).hexdigest()[:10]
+js = (JS_TEMPLATE.replace("__BADGE__", json.dumps(BADGE_INFO, ensure_ascii=False))
+                 .replace("__CARDS__", json.dumps(CARD_TITLES, ensure_ascii=False))
+                 .replace("__CARDV__", _cardv))
 open(os.path.join(HERE,"assets","js","stargate.js"),"w",encoding="utf-8").write(js)
 open(os.path.join(HERE,"assets","js","tour.js"),"w",encoding="utf-8").write(TOUR_JS)
 
@@ -1023,7 +1093,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
 </div></section>
@@ -1109,7 +1179,7 @@ _vers = {os.path.basename(f): _ver("assets/js/"+os.path.basename(f)) for f in _g
 
 # cache-busting de las imágenes que pueden cambiar (planetas, avatares, nave): si no, el navegador
 # sigue mostrando la vieja porque la URL no cambia
-_IMG_DIRS = ["assets/img/planetas", "assets/img/nave", "assets/img/avatares", "media/video"]
+_IMG_DIRS = ["assets/img/planetas", "assets/img/nave", "assets/img/avatares", "assets/img/tarjetas", "media/video"]
 _imgv = {}
 for _d in _IMG_DIRS:
     for _f in _glob.glob(os.path.join(HERE, _d, "*")):
@@ -1128,3 +1198,26 @@ for _html in _glob.glob(os.path.join(HERE,"*.html")):
     open(_html, "w", encoding="utf-8").write(_s)
 print("cache-bust js:", ", ".join(k+"="+v[:6] for k,v in sorted(_vers.items())))
 print("cache-bust img:", len(_imgv), "imagenes versionadas · sendara =", _imgv.get("assets/img/planetas/p3_sendara.png","?")[:6])
+
+
+# ================= APPS SCRIPT: catálogo de cromos y copia descargable =================
+# El bloque «var CROMOS» del Code.gs se GENERA desde _site_data.CROMOS (un dato, un sitio),
+# y assets/descargas/Code.gs.txt es siempre una copia exacta del .gs.
+_SERIE_TIT = {k: t for k, t, _ in CROMO_SERIES}
+def _js_cromos():
+    filas = []
+    for clave, nombre, serie, rareza, peso in CROMOS:
+        filas.append('  ["%s","%s",%d,"%s","%s"],' % (clave, nombre, peso, rareza, _SERIE_TIT[serie]))
+    filas[-1] = filas[-1][:-1]
+    return "\n".join(filas)
+
+_gs_path = os.path.join(HERE, "apps-script", "Code.gs")
+_gs = open(_gs_path, encoding="utf-8").read()
+_ini, _fin = "var CROMOS = [\n", "\n];\n// CROMOS-FIN"
+_a = _gs.index(_ini) + len(_ini); _b = _gs.index(_fin)
+_gs = _gs[:_a] + _js_cromos() + _gs[_b:]
+open(_gs_path, "w", encoding="utf-8").write(_gs)
+open(os.path.join(HERE, "assets", "descargas", "Code.gs.txt"), "w", encoding="utf-8").write(_gs)
+open(os.path.join(HERE, "assets", "descargas", "Dialog.html.txt"), "w", encoding="utf-8").write(
+    open(os.path.join(HERE, "apps-script", "Dialog.html"), encoding="utf-8").read())
+print("apps-script: CROMOS regenerado (%d cartas) + Code.gs.txt/Dialog.html.txt sincronizados" % len(CROMOS))
