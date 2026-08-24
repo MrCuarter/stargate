@@ -11,9 +11,8 @@
     return t.replace(/https?:\/\/[^\s<»)]+/g,function(u){return '<a href="'+u+'" target="_blank" rel="noopener">'+u+'</a>';});}
   function yt(v,c){return '<div class="yt" data-id="'+v.id+'" role="button" tabindex="0"><img src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><span class="play">▶</span><div class="cap"><b>'+esc(v.titulo)+'</b><em>'+esc(c)+'</em></div></div>';}
   function wire(){Array.prototype.forEach.call(root.querySelectorAll('.yt'),function(el){el.onclick=function(){if(el.classList.contains('on'))return;var f=document.createElement('iframe');f.src='https://www.youtube-nocookie.com/embed/'+el.getAttribute('data-id')+'?autoplay=1&rel=0';f.allow='autoplay; encrypted-media; picture-in-picture';f.allowFullscreen=true;el.insertBefore(f,el.firstChild);el.classList.add('on');};});}
-  // PUA: un tema por semana -> fusiona las semanas regulares de cada tema
-  function semanasPua(){var porTema={};SEM.forEach(function(s){var t=s.tema_n;if(!t)return;(porTema[t]=porTema[t]||[]).push(s);});
-    return Object.keys(porTema).sort(function(a,b){return a-b;}).map(function(t,i){var l=porTema[t];return {sem:i+1,tema:l[0].tema.replace(' (cont.)',''),sub:l.map(function(s){return s.sub;}).join(' · '),capitulo:l[0].capitulo,videos:[].concat.apply([],l.map(function(s){return s.videos;})),lanza:[].concat.apply([],l.map(function(s){return s.lanza;})),insignias:[].concat.apply([],l.map(function(s){return s.insignias;})),foro:l.map(function(s){return s.foro;}).join('\n\n— · —\n\n'),hito:l.map(function(s){return s.hito;}).join(' · ')};});}
+  // PUA: un tema por semana -> fusiona las semanas regulares de cada tema (motor compartido en calendario.js)
+  function semanasPua(){return window.SGCAL.semanasPua(SEM);}
   function pintar(inicio,tipo,nombre){var sem=tipo==='PUA'?semanasPua():SEM;var n=sem.length;var hoy=new Date();hoy.setHours(0,0,0,0);
     var ini=inicio?new Date(inicio+'T00:00:00'):null;var actual=ini?Math.floor((hoy-ini)/(7*864e5))+1:1;var forzada=parseInt(q.get('semana')||'0',10);if(forzada)actual=forzada;
     var estado=actual<1?'antes':actual>n?'fin':'curso';var idx=Math.min(Math.max(actual,1),n)-1;var s=sem[idx];

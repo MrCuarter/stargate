@@ -105,6 +105,7 @@ tiles = [
  ("tickets.html","🎟️","Tickets de salida","Valoraciones y dudas del alumnado, visual y por clase (con PIN)."),
  ("embed.html","🧩","Enlaces, embeds y QR","Elige tu PER y tu nombre: todo listo para pegar en Genially."),
  ("foro.html","💬","Foro dinamizador","El mensaje de la semana en curso (embebible en el Genially del PER) o todos de una vez, para copiar."),
+ ("recluta.html","🚀","La Nave del Recluta","La web del alumnado: onboarding con NEBULA, planetas por semanas, su ficha y las recompensas."),
  ("recursos.html","📦","Sala de recursos","Tablero de las 24 insignias, ranking y materiales."),
 ]
 tiles_html="\n".join(f'<a class="tile" href="{h}"><span class="ic">{i}</span><b>{t}</b><em>{d}</em></a>' for h,i,t,d in tiles)
@@ -623,7 +624,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="grid cols-3">
 <div class="card"><h3>1 · Su Bitácora de mando</h3><p>Un formulario con inicio de sesión de Google y <b>una sola respuesta editable</b>. La primera vez eligen alias y avatar y ponen el enlace de su ePortfolio; después solo vuelven, marcan la casilla de la insignia nueva y envían.</p></div>
 <div class="card"><h3>2 · Todo se calcula solo</h3><p>Los xp, las insignias, el planeta actual y el <b>avatar con rango</b> aparecen en el <a href="#tablero">tablero del PER</a> al momento. Las insignias de hito (Tripulación Cero, La Liberación) se otorgan solas. Ni tú ni nadie toca ninguna hoja.</p></div>
-<div class="card"><h3>3 · Dónde lo ven</h3><p>El tablero se incrusta en el Genially del PER (o se comparte por enlace/QR desde el <a href="embed.html">generador de embeds</a>). Enséñalo en clase al entregar insignias: es el marcador de la misión.</p></div>
+<div class="card"><h3>3 · Dónde lo ven</h3><p>En la <a href="recluta.html"><b>Nave del Recluta</b></a> (el hub del alumnado, con su ficha, la orden semanal y las recompensas) y en el tablero, que se incrusta en el Genially del PER (o se comparte por enlace/QR desde el <a href="embed.html">generador de embeds</a>). Enséñalos en clase al entregar insignias.</p></div>
 </div>
 </div></section>
 
@@ -915,6 +916,7 @@ en el foro de tu aula.</p>
 <section><div class="wrap">
 <div id="foro-app"></div>
 <script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};</script>
+<script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/foro.js" defer></script>
 </div></section>
 ''' + FOOT
@@ -947,6 +949,31 @@ EMBED = head("STARGATE · Enlaces y embeds", "Genera los enlaces, códigos de in
 ''' + FOOT
 html=(EMBED.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
 open(os.path.join(HERE,"embed.html"),"w",encoding="utf-8").write(html); print("escrito: embed.html")
+
+# ================= v3 · LA NAVE DEL RECLUTA (web del alumnado por PER) =================
+NAVE_BADGES = [k for k,*_ in PERS]+[k for k,*_ in ESP]+[k for k,*_ in RETO]+[k for k,*_ in HITO]
+RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STARGATE · La Nave del Recluta</title>
+<meta name="description" content="La nave del alumnado de STARGATE: la orden de cada semana, los planetas que se desbloquean con el calendario, tu estado y tus recompensas.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#080c14">
+<link rel="icon" href="{FAV}">
+<link rel="stylesheet" href="assets/css/stargate.css">
+<script src="assets/js/stargate.js" defer></script>
+</head><body>
+<nav class="nav"><div class="wrap"><a class="brand" href="recluta.html">◈ STARGATE · La Nave del Recluta</a></div></nav>
+<header class="hero"><div class="kicker">Canal del alumnado</div><h1>La Nave del Recluta</h1>
+<p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
+tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
+<section><div class="wrap"><div id="nave-app"></div>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};</script>
+<script src="assets/js/calendario.js" defer></script>
+<script src="assets/js/recluta.js" defer></script>
+</div></section>
+<footer><div class="wrap">STARGATE · La Bitácora Estelar — Proyecto Gamificado del <b>Máster en Tecnología Educativa</b> de la UNIR.</div></footer></body></html>'''
+html=(RECLUTA.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"'))
+open(os.path.join(HERE,"recluta.html"),"w",encoding="utf-8").write(html); print("escrito: recluta.html")
 
 # ================= cache-busting de TODOS los js (tablero/profes/tickets/foro/embed) =================
 import glob as _glob, re as _re

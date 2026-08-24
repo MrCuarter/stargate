@@ -317,3 +317,35 @@ td.who{white-space:nowrap}
 .av.r2{border-color:#5ad0eb}.av.r3{border-color:var(--amber);box-shadow:0 4px 16px rgba(245,176,67,.35)}.av.r4{border-color:#ffd56a;box-shadow:0 0 0 3px rgba(255,213,106,.25),0 6px 22px rgba(255,213,106,.45)}
 .rango{color:var(--amber);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
 td.who{display:flex;align-items:center;gap:6px}td.who>span{display:inline-block;line-height:1.25}
+
+/* ---- La Nave del Recluta ---- */
+.nave-accesos{margin:6px 0 22px}
+.nave-mapa{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:12px;margin-top:14px}
+.nave-pl{position:relative;text-align:center;padding:14px 8px 12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02)}
+.nave-pl img{width:78px;height:78px;object-fit:contain;filter:drop-shadow(0 8px 20px rgba(0,0,0,.55))}
+.nave-pl b{display:block;font-size:.85rem;margin-top:6px}
+.nave-pl em{display:block;font-style:normal;font-size:.66rem;color:var(--mut);line-height:1.35;margin-top:2px}
+.nave-pl.on{cursor:pointer;transition:.2s}
+.nave-pl.on:hover{border-color:var(--teal);transform:translateY(-3px)}
+.nave-pl.lock{opacity:.55}
+.nave-pl.lock img{filter:grayscale(1) brightness(.45) contrast(1.15)}
+.nave-pl.actual{border-color:var(--amber);box-shadow:0 0 22px rgba(245,176,67,.22)}
+.nave-pl.actual::before{content:'ESTÁS AQUÍ';position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--amber);color:#161006;font-size:.56rem;font-weight:800;letter-spacing:.08em;padding:1px 8px;border-radius:8px;white-space:nowrap}
+#nave-detalle{margin-top:16px}
+#nave-detalle .foro-card{margin-bottom:16px}
+.nave-perfil{display:flex;gap:16px;align-items:center;margin-bottom:12px}
+.nave-perfil img.av{width:92px;height:92px;border-radius:14px;object-fit:cover;border:1px solid var(--line)}
+.progress{height:10px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;border:1px solid var(--line)}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--amber))}
+.badge-col{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:10px;margin-top:8px}
+.badge-col .b{text-align:center;font-size:.58rem;color:var(--mut);line-height:1.25}
+.badge-col img{width:60px;height:60px;object-fit:contain}
+.badge-col .b span{display:block;margin-top:2px}
+.badge-col .no{opacity:.75}
+.badge-col .no img{filter:grayscale(1) brightness(.35)}
+.nave-rec .rec-card .pts{font-size:1.3rem;font-weight:800;color:var(--amber);margin:.2em 0}
+.nave-rec .rec-card.lock{opacity:.6;border-style:dashed}
+.tour-cap.nebula{filter:drop-shadow(0 0 24px rgba(55,224,236,.35))}
+body.embed .nave-accesos{margin-top:0}
+#nave-app section{margin-top:34px}
+#nave-app .selrow select{min-width:260px}

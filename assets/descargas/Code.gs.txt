@@ -1,8 +1,11 @@
 /**
- * STARGATE · Mando de PERs — Apps Script de la hoja maestra (cuenta mutecdgami@gmail.com)  v2 · 23-ago-2026
+ * STARGATE · Mando de PERs — Apps Script de la hoja maestra (cuenta mutecdgami@gmail.com)  v3 · 24-ago-2026
  * Menú STARGATE: crear PER (REGULAR o PUA) con 3 formularios por plantilla (Bitácora de mando, Ticket de
  * salida anónimo, Canje de recompensas), apertura/cierre programados, EVENTOS/DATOS/RESUMEN para investigación,
  * API de lectura (doGet) para la web del alumnado y API con PIN (doPost) para el panel del profesorado.
+ * v3: La Nave del Recluta (recluta.html?per=id) · recompensas con semana de desbloqueo · canjes de avatar
+ * automáticos («Cambio de avatar» y «Avatar personal») · el avatar inicial se congela al alistarse y solo
+ * cambia mediante canje concedido.
  */
 
 // ================= CATÁLOGO =================
@@ -52,15 +55,26 @@ var TEMAS = [null,
   ["Umbral","Evaluación y ePortfolio","p5_umbral"],["Ludo","Aprendizaje Basado en el Juego","p6_ludo"],
   ["Vínculo","Gamificación","p7_vinculo"],["Liminar","Realidad Aumentada y Virtual","p8_liminar"]];
 var WEB = "https://stargate.mistercuarter.es/";
+// [nombre, coste xp, máx por alumno, descripción, disponible desde (semana REGULAR; en PUA se escala), tipo]
+// tipo: "avatar" (automática: nuevo avatar de la galería) · "avatar_url" (automática: imagen propia por URL)
+//       "nota" (la aplica el profesorado; efectiva al terminar las clases en directo)
 var RECOMPENSAS_INICIALES = [
-  ["Subir 0,5 en un entregable",900,1,"Se aplica a la actividad que elijas"],
-  ["Subir 1 punto en un entregable",1400,1,"Se aplica a la actividad que elijas"],
-  ["Recalificar un trabajo entregado fuera de plazo",2000,1,"Indica la actividad"],
-  ["Recalificar un suspenso",2800,1,"Indica la actividad"]
+  ["Cambio de avatar",300,3,"Elige un avatar nuevo de la galería (indícalo en el propio formulario de canje). Se aplica solo.",5,"avatar"],
+  ["Avatar personal (tu propia imagen)",800,1,"Pon tu propia imagen como avatar (pega la URL en el formulario de canje). Se aplica solo.",10,"avatar_url"],
+  ["Subir 0,5 en un entregable",900,1,"Se aplica a la actividad que elijas",14,"nota"],
+  ["Subir 1 punto en un entregable",1400,1,"Se aplica a la actividad que elijas",14,"nota"],
+  ["Recalificar un trabajo entregado fuera de plazo",2000,1,"Indica la actividad",14,"nota"],
+  ["Recalificar un suspenso",2800,1,"Indica la actividad",14,"nota"]
 ];
 var H = { PERS:"PERs", REC:"RECOMPENSAS", EV:"EVENTOS", AJ:"AJUSTES", DATOS:"DATOS", RES:"RESUMEN" };
 
 function retosDe_(tipo){ return tipo === "PUA" ? RETOS_PUA : RETOS_REGULAR; }
+function opcAvatares_() {
+  var opc = []; for (var pj = 1; pj <= 5; pj++) { var et = pj < 5 ? ["ella","él"] : ["modelo A","modelo B"];
+    opc.push("Personaje " + pj + " · " + et[0] + " (evoluciona)"); opc.push("Personaje " + pj + " · " + et[1] + " (evoluciona)"); }
+  for (var cl = 1; cl <= 16; cl++) opc.push("Clásico " + cl);
+  return opc;
+}
 
 // ================= MENÚ Y HOJAS =================
 function onOpen() {
@@ -84,11 +98,31 @@ function hoja_(nombre, cab, color) {
 function asegurarHojas_() {
   hoja_(H.PERS, ["id","PER","Tipo","Profesorado","Inicio (semana 1)","Apertura","Cierre","Estado",
                  "Bitácora (alumnado)","Bitácora (editar)","Ticket (alumnado)","Canje (alumnado)","Pestaña B","Pestaña T","Pestaña C","Creado","Referente","Ticket (editar)"], "#37e0ec");
-  var rec = hoja_(H.REC, ["Recompensa","Coste (xp)","Máx. por alumno","Descripción"], "#f5b043");
-  if (rec.getLastRow() < 2) rec.getRange(2,1,RECOMPENSAS_INICIALES.length,4).setValues(RECOMPENSAS_INICIALES);
+  var rec = hoja_(H.REC, ["Recompensa","Coste (xp)","Máx. por alumno","Descripción","Disponible desde (semana)","Tipo"], "#f5b043");
+  if (rec.getLastRow() < 2) rec.getRange(2,1,RECOMPENSAS_INICIALES.length,6).setValues(RECOMPENSAS_INICIALES);
+  else migrarRecompensas_(rec);
   hoja_(H.EV, ["fecha","per","email","alias","reto_id","reto","tema","xp","origen"], "#aa66cc");
   hoja_(H.AJ, ["fecha","per","email","reto_id","accion","motivo","profe"], "#aa66cc");
 }
+// v3: añade las columnas «Disponible desde» y «Tipo» a una hoja RECOMPENSAS anterior y las recompensas de avatar
+function migrarRecompensas_(rec) {
+  if (String(rec.getRange(1,5).getValue()||"") !== "Disponible desde (semana)")
+    rec.getRange(1,5,1,2).setValues([["Disponible desde (semana)","Tipo"]]);
+  var d = rec.getDataRange().getValues();
+  for (var i = 1; i < d.length; i++) { if (!d[i][0]) continue;
+    if (!d[i][4]) rec.getRange(i+1,5).setValue(14);
+    if (!d[i][5]) rec.getRange(i+1,6).setValue("nota"); }
+  var nombres = d.slice(1).map(function(r){ return String(r[0]); });
+  RECOMPENSAS_INICIALES.forEach(function(r){ if (String(r[5]).indexOf("avatar") === 0 && nombres.indexOf(r[0]) < 0) rec.appendRow(r); });
+}
+function recompensasCat_() {
+  return hoja_(H.REC).getDataRange().getValues().slice(1).filter(function(r){ return r[0]; })
+    .map(function(r){ return { nombre:String(r[0]), coste:Number(r[1])||0, max:Number(r[2])||1, desc:String(r[3]||""), desde:Number(r[4])||14, tipo:String(r[5]||"nota") }; });
+}
+function semanaDe_(o) { if (!o.inicio) return null; var ini = new Date(o.inicio + "T00:00:00"); var hoy = new Date(); hoy.setHours(0,0,0,0);
+  return Math.floor((hoy - ini) / (7 * 864e5)) + 1; }
+function desdeEfectiva_(desde, tipo) { desde = Number(desde) || 0; if (!desde) return 0;
+  return tipo === "PUA" ? Math.max(1, Math.round(desde * 8 / 15)) : desde; }
 function perFila_(perId) {
   var d = hoja_(H.PERS).getDataRange().getValues();
   for (var i = 1; i < d.length; i++) if (d[i][0] === perId) return { fila: i + 1, v: d[i] };
@@ -163,9 +197,8 @@ function crearPER(datos) {
   // avatar: personaje que evoluciona (5) · galería clásica (16) · URL propia
   try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle("Tu personaje evoluciona con tus xp").setHelpText("Recluta → Cadete → Oficial → Comandante. El tablero lo cambia solo según tus puntos.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
   try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_avatares.jpg").getBlob()).setTitle("O un avatar clásico (no evoluciona)").setAlignment(FormApp.Alignment.CENTER).setWidth(520); } catch (e) {}
-  var av = fb.addListItem().setTitle("Elige tu avatar").setHelpText("Personaje 1-5 en versión ella/él (evoluciona con tus xp: Recluta → Cadete → Oficial → Comandante), clásico 1-16, o tu propia imagen (pega la URL en la siguiente pregunta).").setRequired(true);
-  var opc = []; for (var pj = 1; pj <= 5; pj++) { var et = pj < 5 ? ["ella","él"] : ["modelo A","modelo B"]; opc.push("Personaje " + pj + " · " + et[0] + " (evoluciona)"); opc.push("Personaje " + pj + " · " + et[1] + " (evoluciona)"); } for (var cl = 1; cl <= 16; cl++) opc.push("Clásico " + cl); opc.push("Prefiero mi propia imagen (pongo la URL abajo)");
-  av.setChoiceValues(opc);
+  var av = fb.addListItem().setTitle("Elige tu avatar").setHelpText("Personaje 1-5 en versión ella/él (evoluciona con tus xp: Recluta → Cadete → Oficial → Comandante), clásico 1-16, o tu propia imagen (pega la URL en la siguiente pregunta). Elige bien: cambiarlo después cuesta xp (recompensa «Cambio de avatar»).").setRequired(true);
+  av.setChoiceValues(opcAvatares_().concat(["Prefiero mi propia imagen (pongo la URL abajo)"]));
   var avu = fb.addTextItem().setTitle("URL de tu propia imagen (opcional)").setHelpText(
     "Debe ser un ENLACE DIRECTO a una imagen (termina en .jpg, .png o .webp). La forma más fácil: entra en postimages.org, sube tu foto (sin registrarte), y copia el campo «Enlace directo». " +
     "Si la tienes en Google Drive: botón Compartir → «Cualquier persona con el enlace» → pega el enlace normal de Drive (lo convertimos nosotros). Un enlace a una página web o a Instagram NO funciona. Si la imagen no carga, verás tu avatar elegido.");
@@ -197,7 +230,8 @@ function crearPER(datos) {
   fc.setCollectEmail(true).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true).setConfirmationMessage("Solicitud recibida. Recibirás un correo con el resultado.");
   var lr = fc.addListItem().setTitle("Recompensa").setRequired(true); lr.setChoiceValues(etiquetasRecompensas_());
   var la = fc.addListItem().setTitle("Actividad a la que se aplica").setRequired(true);
-  la.setChoiceValues(["Actividad 1 · imagen con IA","Actividad 2 · paisaje de aprendizaje","Otra (la indico en el comentario)"]);
+  la.setChoiceValues(["Actividad 1 · imagen con IA","Actividad 2 · paisaje de aprendizaje","No aplica (canje de avatar)","Otra (la indico en el comentario)"]);
+  anadirCamposAvatar_(fc);
   fc.addParagraphTextItem().setTitle("Comentario (opcional)");
   publicar_(fc);
   fc.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
@@ -212,21 +246,33 @@ function crearPER(datos) {
     fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date(), datos.referente || "", ft.getEditUrl()]);
   var docUrl = ""; try { docUrl = crearDocumentoPER_(id); } catch (e) { docUrl = ""; }
   return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", doc:docUrl, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
-    hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id, foro: WEB + "foro.html?per=" + id,
+    hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id, foro: WEB + "foro.html?per=" + id, nave: WEB + "recluta.html?per=" + id,
     embedAlumnos: '<iframe src="' + WEB + 'registro.html?per=' + id + '&embed=1" width="100%" height="760" style="border:0;border-radius:16px"></iframe>',
-    embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>' };
+    embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>',
+    embedNave: '<iframe src="' + WEB + 'recluta.html?per=' + id + '&embed=1" width="100%" height="900" style="border:0;border-radius:16px"></iframe>' };
 }
 function etiquetasRecompensas_() {
   var d = hoja_(H.REC).getDataRange().getValues().slice(1).filter(function(r){ return r[0]; });
   return d.map(function(r){ return r[0] + " — " + r[1] + " xp"; });
 }
+// Preguntas del canje de avatar (se usan al crear el PER y al actualizar PERs anteriores)
+var TIT_NUEVO_AVATAR = "Nuevo avatar (solo para «Cambio de avatar»)";
+var TIT_URL_AVATAR = "URL de tu nueva imagen (solo para «Avatar personal»)";
+function anadirCamposAvatar_(fc) {
+  var avl = fc.addListItem().setTitle(TIT_NUEVO_AVATAR).setHelpText("Si canjeas «Cambio de avatar», elige aquí el nuevo. Se aplica solo en el tablero al concederse el canje.");
+  avl.setChoiceValues(opcAvatares_());
+  var url = fc.addTextItem().setTitle(TIT_URL_AVATAR).setHelpText("Si canjeas «Avatar personal», pega el ENLACE DIRECTO a tu imagen (.jpg/.png; postimages.org → «Enlace directo») o un enlace de Drive compartido con «cualquier persona con el enlace».");
+  url.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
+}
 function actualizarRecompensas() {
   var et = etiquetasRecompensas_(); var n = 0;
   hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
     try { var f = FormApp.openByUrl(perObj_(v).formCanje.replace("/viewform","/edit"));
-          f.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle() === "Recompensa") { i.asListItem().setChoiceValues(et); n++; } }); } catch (e) {}
+          var titulos = f.getItems().map(function(i){ return i.getTitle(); });
+          f.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle() === "Recompensa") { i.asListItem().setChoiceValues(et); n++; } });
+          if (titulos.indexOf(TIT_NUEVO_AVATAR) < 0) anadirCamposAvatar_(f); } catch (e) {}
   });
-  SpreadsheetApp.getUi().alert("Recompensas actualizadas en " + n + " formularios.");
+  SpreadsheetApp.getUi().alert("Recompensas actualizadas en " + n + " formularios (y campos de avatar añadidos donde faltaban).");
 }
 
 function listaProfes_(referente, profesores) {
@@ -306,6 +352,9 @@ function crearDocumentoPER_(perId) {
   par("Tipo: " + o.tipo + " · Referente: " + (o.referente || "—") + " · Profesorado: " + (o.profesorado || "—") + " · Semana 1: " + (o.inicio || "sin fecha") + " · Generado: " + Utilities.formatDate(new Date(), "Europe/Madrid", "dd/MM/yyyy HH:mm"));
   par("Cómo se incrusta en Genially: Insertar → Código embed, pegar el código y ajustar al lienzo. Para los formularios, mejor un botón con el enlace (o el QR para proyectar).");
   h("Para el Genially del alumnado", 2);
+  link("🚀 La Nave del Recluta (el hub del alumnado: onboarding, semanas, su estado y recompensas)", WEB + "recluta.html?per=" + o.id);
+  qr(WEB + "recluta.html?per=" + o.id, "QR de la Nave del Recluta");
+  par("Embed de la Nave:"); code(ifr(WEB + "recluta.html?per=" + o.id + "&embed=1", 900));
   link("Bitácora de mando (registro de insignias; botón)", o.formBitacora); qr(o.formBitacora, "QR de la Bitácora de mando");
   link("Tablero de reclutas", WEB + "registro.html?per=" + o.id); par("Embed del tablero:"); code(ifr(WEB + "registro.html?per=" + o.id + "&embed=1", 760));
   link("Foro dinámico (la orden de la semana)", WEB + "foro.html?per=" + o.id); par("Embed del foro:"); code(ifr(WEB + "foro.html?per=" + o.id + "&embed=1", 640));
@@ -363,6 +412,7 @@ function marcados_(o) { // casillas marcadas en una fila de Bitácora -> [etique
 }
 function registrarEventos_(o, sh, fila) {
   var r = leerFila_(sh, fila); var email = String(r["Dirección de correo electrónico"] || r["Email Address"] || "").toLowerCase().trim(); if (!email) return;
+  congelarAvatarBase_(o, email, r);
   var alias = r["Alias de recluta (público)"] || ""; var retos = retosDe_(o.tipo); var porEt = {}; retos.forEach(function(x){ porEt[x[1]] = x; });
   var ev = hoja_(H.EV); var previos = {};
   ev.getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] === o.id && String(v[2]).toLowerCase() === email) previos[v[4]] = true; });
@@ -371,18 +421,60 @@ function registrarEventos_(o, sh, fila) {
   marcados_(r).forEach(function(et){ var x = porEt[et]; if (x && !previos[x[0]]) nuevos.push([new Date(), o.id, email, alias, x[0], x[1], x[4], x[3], "formulario"]); });
   if (nuevos.length) ev.getRange(ev.getLastRow()+1, 1, nuevos.length, 9).setValues(nuevos);
 }
+// v3: congela el avatar elegido en el PRIMER envío de la Bitácora. Después, editar el formulario
+// no cambia el avatar del tablero: solo lo cambia un canje concedido («Cambio de avatar» / «Avatar personal»).
+function congelarAvatarBase_(o, email, r) {
+  try {
+    var aj = hoja_(H.AJ);
+    var hay = aj.getDataRange().getValues().slice(1).some(function(v){
+      return v[1] === o.id && String(v[2]).toLowerCase() === email && v[3] === "AVATAR"; });
+    if (hay) return;
+    var txt = String(r["Elige tu avatar"] || ""); var url = String(r["URL de tu propia imagen (opcional)"] || "").trim();
+    var valor = txt + (url ? " | " + url : "");
+    if (valor.trim()) aj.appendRow([new Date(), o.id, email, "AVATAR", "avatar_base", valor, "sistema"]);
+  } catch (e) { Logger.log("congelarAvatarBase_: " + e); }
+}
+function aplicarAvatar_(o, email, valor) { hoja_(H.AJ).appendRow([new Date(), o.id, email, "AVATAR", "avatar", valor, "canje"]); }
 function resolverCanje_(o, sh, fila) {
   var r = leerFila_(sh, fila); var email = String(r["Dirección de correo electrónico"] || r["Email Address"] || "").toLowerCase().trim();
   var rec = String(r["Recompensa"] || ""); var coste = parseInt((rec.match(/(\d+) xp$/) || [0,0])[1], 10);
+  var ficha = recompensasCat_().filter(function(x){ return rec.indexOf(x.nombre) === 0; })[0] || null;
   var t = tablero_(o.id, true); var al = (t.reclutas || []).filter(function(x){ return x.email === email; })[0];
   var disp = al ? al.xp_disponibles : 0;
   var cab = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(String); var col = cab.indexOf("Estado") + 1;
   if (!col) { col = sh.getLastColumn() + 1; sh.getRange(1, col).setValue("Estado"); sh.getRange(1, col+1).setValue("Entregado"); }
-  var ok = al && disp >= coste && coste > 0;
-  sh.getRange(fila, col).setValue(ok ? "Concedido" : "Denegado (" + disp + " xp disponibles, cuesta " + coste + ")");
+  var estado = "", cuerpo = "";
+  // 1) puerta temporal: la recompensa se desbloquea con el calendario del PER
+  var sem = semanaDe_(o); var desde = ficha ? desdeEfectiva_(ficha.desde, o.tipo) : 0;
+  if (desde && (sem === null || sem < desde)) {
+    estado = "Denegado (bloqueada hasta la semana " + desde + (sem ? "; vais por la " + sem : "") + ")";
+    cuerpo = "Esa recompensa aún está clasificada, recluta: se desbloquea en la semana " + desde + " de la misión. No se han gastado xp.";
+  }
+  // 2) saldo
+  else if (!al || disp < coste || coste <= 0) {
+    estado = "Denegado (" + disp + " xp disponibles, cuesta " + coste + ")";
+    cuerpo = "No hay xp suficientes para «" + rec + "»: tienes " + disp + " xp disponibles.";
+  }
+  // 3) canjes de avatar: se aplican solos
+  else if (ficha && ficha.tipo === "avatar") {
+    var nuevo = String(r[TIT_NUEVO_AVATAR] || "").trim();
+    if (!nuevo) { estado = "Denegado (falta elegir el nuevo avatar en el formulario)"; cuerpo = "Para «Cambio de avatar» tienes que elegir el nuevo avatar en el propio formulario. Vuelve a enviarlo con tu elección; no se han gastado xp."; }
+    else { aplicarAvatar_(o, email, nuevo); estado = "Concedido"; cuerpo = "Concedido: " + rec + ". Tu nuevo avatar («" + nuevo + "») ya luce en el tablero. Te quedan " + (disp - coste) + " xp."; }
+  }
+  else if (ficha && ficha.tipo === "avatar_url") {
+    var u = String(r[TIT_URL_AVATAR] || "").trim();
+    if (!/^https?:\/\//i.test(u)) { estado = "Denegado (falta la URL de la imagen en el formulario)"; cuerpo = "Para «Avatar personal» tienes que pegar la URL directa de tu imagen en el propio formulario. Vuelve a enviarlo con el enlace; no se han gastado xp."; }
+    else { aplicarAvatar_(o, email, u); estado = "Concedido"; cuerpo = "Concedido: " + rec + ". Tu imagen ya es tu avatar en el tablero (si no carga, revisa que el enlace sea directo). Te quedan " + (disp - coste) + " xp."; }
+  }
+  // 4) recompensas de nota: las aplica el profesorado al terminar las clases en directo
+  else {
+    estado = "Concedido";
+    cuerpo = "Concedido: " + rec + ". Te quedan " + (disp - coste) + " xp. Importante: esta recompensa se hará efectiva al terminar las clases en directo; el profesorado la aplicará entonces.";
+  }
+  var ok = estado === "Concedido";
+  sh.getRange(fila, col).setValue(estado);
   try { MailApp.sendEmail(email, "STARGATE · Canje " + (ok ? "concedido" : "denegado"),
-    (ok ? "Concedido: " + rec + ". Te quedan " + (disp - coste) + " xp. El profesorado lo aplicará."
-        : "No hay xp suficientes para «" + rec + "»: tienes " + disp + " xp disponibles.") + "\n\nTablero: " + WEB + "registro.html?per=" + o.id); } catch (e) {}
+    cuerpo + "\n\nTablero: " + WEB + "registro.html?per=" + o.id + "\nTu nave: " + WEB + "recluta.html?per=" + o.id); } catch (e) {}
 }
 
 // ================= TABLERO =================
@@ -408,7 +500,9 @@ function tablero_(perId, conPrivados) {
     var a = por[m] || (por[m] = { email:m, alias:String(v[3]||""), nombre:"", bitacora:"", avatar:{tipo:null,n:null,url:""}, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] });
     a.retos[v[4]] = { fecha:v[0], origen:v[8] }; a.eventos.push({ fecha:v[0], reto_id:v[4], reto:v[5], xp:v[7], origen:v[8] }); });
   hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase(); var a = por[m]; if (!a) return;
-    if (v[4] === "anular") delete a.retos[v[3]]; else if (v[4] === "otorgar") { a.retos[v[3]] = { fecha:v[0], origen:"profesorado" }; } });
+    if (v[4] === "anular") delete a.retos[v[3]]; else if (v[4] === "otorgar") { a.retos[v[3]] = { fecha:v[0], origen:"profesorado" }; }
+    else if (v[4] === "avatar") { a._avCanje = String(v[5] || ""); }               // canje concedido: el último gana
+    else if (v[4] === "avatar_base" && !a._avBase) { a._avBase = String(v[5] || ""); } });  // primera elección congelada
   // 3) cálculo
   var canjes = {}; var shC = SpreadsheetApp.getActive().getSheetByName(o.tabC);
   if (shC && shC.getLastRow() > 1) { var vc = shC.getDataRange().getValues(); var cc = vc[0].map(String); var cE = cc.indexOf("Estado"), cMm = idx_(cc,"correo") >= 0 ? idx_(cc,"correo") : idx_(cc,"email"), cR = cc.indexOf("Recompensa"), cEnt = cc.indexOf("Entregado");
@@ -421,12 +515,23 @@ function tablero_(perId, conPrivados) {
     if (Object.keys(a.retos).length) { ins["H1_reclutamiento"] = true; ins["E1_nebula"] = true; }
     DERIVADAS.forEach(function(d){ if (d[2].every(function(k){ return ins[k]; })) { ins[d[0]] = true; xp += d[1]; } });
     var gast = canjes[m] ? canjes[m].gastado : 0;
-    var out = { alias:a.alias, avatar:a.avatar || {tipo:null,n:null,url:""}, xp:xp, xp_disponibles: xp - gast, planeta: tema ? TEMAS[tema][0] : "—", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length };
+    // avatar: canje concedido > elección congelada al alistarse > valor actual del formulario (respuestas antiguas)
+    var avatar = a._avCanje ? parseAvatar_(a._avCanje) : a._avBase ? parseAvatar_(a._avBase) : (a.avatar || {tipo:null,n:null,url:""});
+    var out = { alias:a.alias, avatar:avatar, xp:xp, xp_disponibles: xp - gast, planeta: tema ? TEMAS[tema][0] : "—", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length };
     if (conPrivados) { out.email = m; out.nombre = a.nombre; out.bitacora = a.bitacora; out.eventos = a.eventos; out.retos = a.retos; out.canjes = canjes[m] ? canjes[m].lista : []; }
     return out; });
   lista.sort(function(a,b){ return b.xp - a.xp || b.n - a.n || a.alias.localeCompare(b.alias); }); lista.forEach(function(x,i){ x.pos = i+1; });
   return { per:perId, nombre:o.nombre, tipo:o.tipo, profesorado:o.profesorado, referente:o.referente, estado:o.estado, inicio:o.inicio,
-           formBitacora:o.formBitacora, formTicket:o.formTicket, formCanje:o.formCanje, reclutas:lista, actualizado:new Date() };
+           formBitacora:o.formBitacora, formTicket:o.formTicket, formCanje:o.formCanje, reclutas:lista,
+           recompensas:recompensasCat_(), semana:semanaDe_(o), actualizado:new Date() };
+}
+// «Personaje 3 · ella (evoluciona)» / «Clásico 7» / URL directa / «elección | url» -> objeto avatar del tablero
+function parseAvatar_(s) {
+  s = String(s || ""); var partes = s.split(" | "); var txt = partes[0] || ""; var url = (partes[1] || "").trim();
+  if (/^https?:\/\//i.test(txt)) { url = txt.trim(); txt = ""; }
+  var mp = txt.match(/Personaje (\d) · (ella|él|modelo A|modelo B)/), mc = txt.match(/Cl[aá]sico (\d+)/);
+  var av = mp ? { tipo:"evo", n:Number(mp[1]), v:(mp[2] === "él" || mp[2] === "modelo B") ? "m" : "f" } : mc ? { tipo:"clasico", n:Number(mc[1]) } : { tipo:null, n:null };
+  av.url = url; return av;
 }
 function idx_(cab, frag) { frag = frag.toLowerCase(); for (var i = 0; i < cab.length; i++) if (cab[i].toLowerCase().indexOf(frag) >= 0) return i; return -1; }
 
