@@ -11,6 +11,10 @@
  * v3.2: ciclo de vida del PER — archivar (oculta pestañas y lo saca de los listados del alumnado, conserva
  * los datos), borrar (formularios a la papelera + pestañas + registros) y resetear la hoja entera;
  * restaurar el catálogo oficial de recompensas.
+ * v3.2.1: los formularios se resuelven SIEMPRE por su pestaña vinculada (getFormUrl da la URL de edición).
+ * Antes el de canje se abría con su URL pública y openByUrl fallaba en silencio: no se cerraba, no se le
+ * actualizaban las recompensas y al borrar el PER se quedaba huérfano en Drive. Se guarda además su URL de
+ * edición (col 23) y hay un limpiador de formularios huérfanos.
  */
 
 // ================= CATÁLOGO =================
@@ -96,6 +100,7 @@ function onOpen() {
       .addItem("Borrar PER (con sus formularios y datos)", "borrarPERSeleccionado"))
     .addSubMenu(SpreadsheetApp.getUi().createMenu("Mantenimiento")
       .addItem("Restaurar catálogo oficial de recompensas", "restaurarRecompensas")
+      .addItem("Limpiar formularios huérfanos (de PER borrados)", "limpiarFormulariosHuerfanos")
       .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
     .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
@@ -120,6 +125,7 @@ function asegurarHojas_() {
   if (String(pers.getRange(1,20).getValue()||"") !== "Panel Genially (ver)")
     pers.getRange(1,19,1,4).setValues([["Documento de enlaces","Panel Genially (ver)","Panel Genially (editar)","Archivado"]]);
   if (String(pers.getRange(1,22).getValue()||"") !== "Archivado") pers.getRange(1,22).setValue("Archivado");
+  if (String(pers.getRange(1,23).getValue()||"") !== "Canje (editar)") pers.getRange(1,23).setValue("Canje (editar)");
 }
 // panel de control Genially estándar (compartido por todos los PER salvo override en su fila)
 function panelStd_() { var pr = PropertiesService.getScriptProperties();
@@ -151,6 +157,27 @@ function semanaDe_(o) { if (!o.inicio) return null; var ini = new Date(o.inicio 
   return Math.floor((hoy - ini) / (7 * 864e5)) + 1; }
 function desdeEfectiva_(desde, tipo) { desde = Number(desde) || 0; if (!desde) return 0;
   return tipo === "PUA" ? Math.max(1, Math.round(desde * 8 / 15)) : desde; }
+// Carpeta donde viven los formularios de los PER
+function carpetaPER_() {
+  var ss = SpreadsheetApp.getActive(); var padres = DriveApp.getFileById(ss.getId()).getParents();
+  var raiz = padres.hasNext() ? padres.next() : DriveApp.getRootFolder();
+  var subs = raiz.getFoldersByName("Formularios PER");
+  return subs.hasNext() ? subs.next() : raiz;
+}
+// Devuelve el Form EDITABLE de un PER ("B" Bitácora · "T" Ticket · "C" Canje).
+// Prioridad: URL de edición guardada -> pestaña vinculada (getFormUrl siempre da la de edición).
+// Nunca uses la URL publicada con openByUrl: lanza excepción.
+function formDelPER_(o, cual) {
+  var url = cual === "B" ? o.formBitacoraEdit : cual === "T" ? o.formTicketEdit : o.formCanjeEdit;
+  if (url) { try { return FormApp.openByUrl(String(url)); } catch (e) {} }
+  var tab = cual === "B" ? o.tabB : cual === "T" ? o.tabT : o.tabC;
+  try { var sh = SpreadsheetApp.getActive().getSheetByName(tab);
+        if (sh) { var fu = sh.getFormUrl(); if (fu) return FormApp.openByUrl(fu); } } catch (e) {}
+  return null;
+}
+function formsDelPER_(o) {
+  return ["B","T","C"].map(function(c){ return formDelPER_(o, c); }).filter(function(f){ return !!f; });
+}
 function perFila_(perId) {
   var d = hoja_(H.PERS).getDataRange().getValues();
   for (var i = 1; i < d.length; i++) if (d[i][0] === perId) return { fila: i + 1, v: d[i] };
@@ -159,7 +186,8 @@ function perFila_(perId) {
 function perObj_(v) {
   return { id:v[0], nombre:v[1], tipo:v[2]||"REGULAR", profesorado:v[3], inicio:fechaIso_(v[4]), apertura:fechaIso_(v[5]), cierre:fechaIso_(v[6]),
            estado:v[7], formBitacora:v[8], formBitacoraEdit:v[9], formTicket:v[10], formCanje:v[11], tabB:v[12], tabT:v[13], tabC:v[14], referente:v[16]||"", formTicketEdit:v[17]||"",
-           doc:String(v[18]||""), panelVer:String(v[19]||""), panelEdit:String(v[20]||""), archivado: v[21] ? fechaIso_(v[21]) : "" };
+           doc:String(v[18]||""), panelVer:String(v[19]||""), panelEdit:String(v[20]||""), archivado: v[21] ? fechaIso_(v[21]) : "",
+           formCanjeEdit:String(v[22]||"") };
 }
 function fechaIso_(d) { if (!d) return ""; if (d instanceof Date) return Utilities.formatDate(d, "Europe/Madrid", "yyyy-MM-dd"); return String(d); }
 
@@ -189,8 +217,8 @@ function publicar_(form) { try { if (form.setPublished) form.setPublished(true);
 function publicarFormulariosPER() {
   var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
   if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) { SpreadsheetApp.getUi().alert("Selecciona una fila de la pestaña PERs."); return; }
-  var o = perObj_(sh.getRange(fila, 1, 1, 19).getValues()[0]); var n = 0;
-  [o.formBitacoraEdit, o.formTicketEdit, o.formCanje].forEach(function(u){ try { var f = FormApp.openByUrl(String(u).replace("/viewform","/edit")); publicar_(f); f.setAcceptingResponses(true); n++; } catch (e) {} });
+  var o = perObj_(sh.getRange(fila, 1, 1, 23).getValues()[0]); var n = 0;
+  formsDelPER_(o).forEach(function(f){ try { publicar_(f); f.setAcceptingResponses(true); n++; } catch (e) {} });
   sh.getRange(fila, 8).setValue("Abierto");
   SpreadsheetApp.getUi().alert("Publicados y abiertos " + n + " formularios de " + o.nombre + ".");
 }
@@ -274,7 +302,7 @@ function crearPER(datos) {
 
   hoja_(H.PERS).appendRow([id, nombre, tipo, datos.profesores || "", inicio || "", apertura || "", cierre || "", estado,
     fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date(), datos.referente || "", ft.getEditUrl(),
-    "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim(), ""]);
+    "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim(), "", fc.getEditUrl()]);
   var docUrl = ""; try { docUrl = crearDocumentoPER_(id); } catch (e) { docUrl = ""; }
   return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", doc:docUrl, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
     hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id, foro: WEB + "foro.html?per=" + id, nave: WEB + "recluta.html?per=" + id,
@@ -299,11 +327,11 @@ function anadirCamposAvatar_(fc) {
 function actualizarRecompensas() {
   var et = etiquetasRecompensas_(); var n = 0;
   hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
-    try { var f = FormApp.openByUrl(perObj_(v).formCanje.replace("/viewform","/edit"));
+    try { var f = formDelPER_(perObj_(v), "C"); if (!f) throw new Error("sin canje");
           var titulos = f.getItems().map(function(i){ return i.getTitle(); });
           f.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle() === "Recompensa") { i.asListItem().setChoiceValues(et); n++; } });
           if (titulos.indexOf(TIT_NUEVO_AVATAR) < 0) anadirCamposAvatar_(f); } catch (e) {}
-    try { var fbx = FormApp.openByUrl(perObj_(v).formBitacoraEdit);
+    try { var fbx = formDelPER_(perObj_(v), "B"); if (!fbx) throw new Error("sin bitacora");
           var tit2 = fbx.getItems().map(function(i){ return i.getTitle(); });
           if (tit2.indexOf("Breve biografía de tu personaje") < 0) {
             var bioIt = fbx.addParagraphTextItem().setTitle("Breve biografía de tu personaje").setHelpText("2-3 frases sobre tu recluta: quién es, de dónde viene, qué se le da bien. Aparecerá al pie de tu personaje en la Nave del Recluta.");
@@ -419,7 +447,7 @@ function filaPERSeleccionada_() {
   var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
   if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) {
     SpreadsheetApp.getUi().alert("Selecciona primero una fila de la pestaña PERs."); return null; }
-  var v = sh.getRange(fila, 1, 1, 22).getValues()[0];
+  var v = sh.getRange(fila, 1, 1, 23).getValues()[0];
   if (!v[0]) { SpreadsheetApp.getUi().alert("Esa fila no tiene ningún PER."); return null; }
   return { fila: fila, o: perObj_(v) };
 }
@@ -454,8 +482,7 @@ function borrarPERSeleccionado() {
   ui.alert("PER «" + sel.o.nombre + "» borrado. Los formularios están en la papelera de Drive por si acaso.");
 }
 function borrarPER_(o, fila) {
-  [o.formBitacoraEdit, o.formTicketEdit || o.formTicket, o.formCanje].forEach(function(u){
-    try { var f = FormApp.openByUrl(String(u).replace("/viewform", "/edit")); DriveApp.getFileById(f.getId()).setTrashed(true); } catch (e) {} });
+  formsDelPER_(o).forEach(function(f){ try { DriveApp.getFileById(f.getId()).setTrashed(true); } catch (e) {} });
   if (o.doc) { try { DriveApp.getFileById(o.doc.match(/[-\w]{25,}/)[0]).setTrashed(true); } catch (e) {} }
   var ss = SpreadsheetApp.getActive();
   [o.tabB, o.tabT, o.tabC].forEach(function(n){ try { var sh = ss.getSheetByName(n); if (sh) ss.deleteSheet(sh); } catch (e) {} });
@@ -485,6 +512,24 @@ function restaurarRecompensas_() {
   rec.getRange(2,1,RECOMPENSAS_INICIALES.length,6).setValues(RECOMPENSAS_INICIALES);
   rec.setFrozenRows(1);
 }
+// Formularios de PER que ya no existen en la hoja (p. ej. borrados con la versión anterior, que dejaba
+// huérfano el de canje). Los manda a la papelera tras confirmar.
+function limpiarFormulariosHuerfanos() {
+  var ui = SpreadsheetApp.getUi();
+  var vivos = {}; hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1]) vivos[String(v[1]).trim()] = true; });
+  var it = carpetaPER_().getFilesByType(MimeType.GOOGLE_FORMS); var huerfanos = [];
+  while (it.hasNext()) { var f = it.next(); var n = f.getName();
+    if (n.indexOf("STARGATE · ") !== 0 || n.indexOf("PLANTILLA") >= 0) continue;
+    var partes = n.split(" · "); if (partes.length < 3) continue;
+    if (!vivos[partes[1].trim()]) huerfanos.push(f); }
+  if (!huerfanos.length) { ui.alert("No hay formularios huérfanos: todos pertenecen a un PER de la hoja."); return; }
+  var lista = huerfanos.map(function(f){ return "· " + f.getName(); }).join("\n");
+  if (ui.alert("Limpiar formularios huérfanos",
+      "Estos " + huerfanos.length + " formularios no pertenecen a ningún PER de la hoja y se mandarán a la papelera:\n\n" + lista +
+      "\n\n¿Continuar?", ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var n = 0; huerfanos.forEach(function(f){ try { f.setTrashed(true); n++; } catch (e) {} });
+  ui.alert(n + " formularios enviados a la papelera de Drive.");
+}
 function resetearHoja() {
   var ui = SpreadsheetApp.getUi();
   var sh = hoja_(H.PERS); var d = sh.getDataRange().getValues();
@@ -499,8 +544,12 @@ function resetearHoja() {
   for (var i = d.length - 1; i >= 1; i--) { if (!d[i][0]) continue; try { borrarPER_(perObj_(d[i]), i + 1); n++; } catch (e) { Logger.log(e); } }
   [H.EV, H.AJ].forEach(function(nom){ var x = hoja_(nom); if (x.getLastRow() > 1) x.getRange(2,1,x.getLastRow()-1,x.getLastColumn()).clearContent(); });
   restaurarRecompensas_();
+  var sueltos = 0;
+  try { var it2 = carpetaPER_().getFilesByType(MimeType.GOOGLE_FORMS);
+    while (it2.hasNext()) { var f2 = it2.next(); var n2 = f2.getName();
+      if (n2.indexOf("STARGATE · ") === 0 && n2.indexOf("PLANTILLA") < 0) { f2.setTrashed(true); sueltos++; } } } catch (e) {}
   try { consolidarDatos(); } catch (e) {}
-  ui.alert("Hoja reseteada: " + n + " PER borrados y catálogo de recompensas restaurado.");
+  ui.alert("Hoja reseteada: " + n + " PER borrados" + (sueltos ? " y " + sueltos + " formularios sueltos a la papelera" : "") + ". Catálogo de recompensas restaurado.");
 }
 
 // ================= TRIGGERS =================
@@ -521,7 +570,7 @@ function porTrigger_(e, abrir) {
 }
 function setAbierto_(perId, abrir) {
   var p = perFila_(perId); if (!p) return; var o = perObj_(p.v);
-  [o.formBitacoraEdit, o.formTicketEdit || o.formTicket, o.formCanje].forEach(function(u){ try { var fx = FormApp.openByUrl(String(u).replace("/viewform","/edit")); if (abrir) publicar_(fx); fx.setAcceptingResponses(abrir); } catch (e) {} });
+  formsDelPER_(o).forEach(function(fx){ try { if (abrir) publicar_(fx); fx.setAcceptingResponses(abrir); } catch (e) {} });
   hoja_(H.PERS).getRange(p.fila, 8).setValue(abrir ? "Abierto" : "Cerrado");
 }
 
