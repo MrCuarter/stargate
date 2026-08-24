@@ -97,8 +97,9 @@
       var t=i+1; var sems=st.semanas.filter(function(s){return s.tema_n===t;});
       var abre=sems.length?sems[0].sem:99; var abierto=st.actual>=abre&&st.estado!=='antes';
       var actual=sems.some(function(s){return s.sem===st.actual;});
-      if(!abierto) return '<div class="nave-pl lock"><img src="assets/img/planetas/'+p[0]+'.png" alt=""><b>???</b><em>🔇 Señal bloqueada · semana '+abre+'</em></div>';
-      return '<div class="nave-pl on'+(actual?' actual':'')+'" data-tema="'+t+'" role="button" tabindex="0"><img src="assets/img/planetas/'+p[0]+'.png" alt="'+esc(p[1])+'"><b>'+esc(p[1])+'</b><em>'+esc(p[2])+'</em></div>';
+      var V=window.SG_IMGV||'';
+      if(!abierto) return '<div class="nave-pl lock"><img src="assets/img/planetas/'+p[0]+'.png'+V+'" alt=""><b>???</b><em>🔇 Señal bloqueada · semana '+abre+'</em></div>';
+      return '<div class="nave-pl on'+(actual?' actual':'')+'" data-tema="'+t+'" role="button" tabindex="0"><img src="assets/img/planetas/'+p[0]+'.png'+V+'" alt="'+esc(p[1])+'"><b>'+esc(p[1])+'</b><em>'+esc(p[2])+'</em></div>';
     }).join('');
     return '<section><div class="eyebrow">El viaje</div><h2>Los ocho planetas</h2>'
       +'<p class="lead">Cada semana la nave avanza sola: los planetas se van desbloqueando con el calendario. Pulsa uno visitado para volver a ver sus órdenes, vídeos y retos.'+(st.d.panel?' Las presentaciones de cada planeta están en el <a href="'+esc(st.d.panel)+'" target="_blank" rel="noopener"><b>panel de control</b></a>.':'')+'</p>'

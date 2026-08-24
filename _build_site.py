@@ -1012,7 +1012,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
 </div></section>
@@ -1023,9 +1023,25 @@ open(os.path.join(HERE,"recluta.html"),"w",encoding="utf-8").write(html); print(
 # ================= cache-busting de TODOS los js (tablero/profes/tickets/foro/embed) =================
 import glob as _glob, re as _re
 _vers = {os.path.basename(f): _ver("assets/js/"+os.path.basename(f)) for f in _glob.glob(os.path.join(HERE,"assets","js","*.js"))}
+
+# cache-busting de las imágenes que pueden cambiar (planetas, avatares, nave): si no, el navegador
+# sigue mostrando la vieja porque la URL no cambia
+_IMG_DIRS = ["assets/img/planetas", "assets/img/nave", "assets/img/avatares"]
+_imgv = {}
+for _d in _IMG_DIRS:
+    for _f in _glob.glob(os.path.join(HERE, _d, "*")):
+        if os.path.isfile(_f) and _f.rsplit(".",1)[-1].lower() in ("png","jpg","jpeg","webp"):
+            _rel = _d + "/" + os.path.basename(_f)
+            _imgv[_rel] = _ver(_rel)
+def _bust_img(_s):
+    for _rel, _v in _imgv.items():
+        _s = _re.sub(_re.escape(_rel) + r'(\?v=[0-9a-f]+)?', _rel + "?v=" + _v, _s)
+    return _s
 for _html in _glob.glob(os.path.join(HERE,"*.html")):
     _s = open(_html, encoding="utf-8").read()
     for _name, _v in _vers.items():
         _s = _re.sub(r'assets/js/'+_re.escape(_name)+r'(\?v=[0-9a-f]+)?"', 'assets/js/'+_name+'?v='+_v+'"', _s)
+    _s = _bust_img(_s)
     open(_html, "w", encoding="utf-8").write(_s)
 print("cache-bust js:", ", ".join(k+"="+v[:6] for k,v in sorted(_vers.items())))
+print("cache-bust img:", len(_imgv), "imagenes versionadas · sendara =", _imgv.get("assets/img/planetas/p3_sendara.png","?")[:6])
