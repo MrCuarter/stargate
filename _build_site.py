@@ -636,6 +636,16 @@ lo que no puede faltar es tu ceremonia:</p>
 </div>
 </div></section>
 
+<section id="roles"><div class="wrap">
+<div class="eyebrow teal">Dos papeles, un sistema</div><h2>¿Quién hace qué?</h2>
+<div class="grid cols-2">
+<div class="card"><h3>🛰️ Profesorado referente <span class="pill">gestiona el PER</span></h3>
+<p>Trabaja en la <b>hoja maestra</b> (cuenta mutecdgami): <b>crea el PER</b> (menú STARGATE → Crear nuevo PER…, con la fecha de la semana 1 que marca el ritmo de todo el sistema), define el <b>PIN docente</b> y lo reparte, guarda el <b>panel de control estándar</b> de Genially, comparte el <b>Doc de enlaces, embeds y QR</b> con su equipo y abre/cierra los formularios. La chuleta completa está abajo, en <a href="#instalacion">el sistema por dentro</a>.</p></div>
+<div class="card"><h3>🎓 Profesorado que imparte <span class="pill">dinamiza el aula</span></h3>
+<p>No toca ninguna hoja: sigue la <a href="cronologia.html">cronología</a>, publica el mensaje del foro, entrega las insignias <b>con ceremonia</b> y usa con el PIN el <a href="profes.html">panel del PER</a> y los <a href="tickets.html">tickets</a>. Si quiere un <b>panel de control Genially propio</b> en vez del estándar: duplica el Genially y pega sus enlaces en Panel de profes → Ajustes del PER.</p></div>
+</div>
+</div></section>
+
 <section id="orden"><div class="wrap">
 <div class="eyebrow amber">Calendario de entrega</div><h2>Qué insignia toca cada semana</h2>
 <div class="tablewrap"><table><thead><tr><th>Sem</th><th>Tema</th><th>Se entregan</th></tr></thead><tbody>{orden_html}</tbody></table></div>
@@ -651,7 +661,7 @@ lo que no puede faltar es tu ceremonia:</p>
 </div></section>
 
 <section id="instalacion"><div class="wrap">
-<div class="eyebrow amber">Cómo funciona por dentro (y cómo se instala)</div><h2>El sistema de autoregistro</h2>
+<div class="eyebrow amber">Cómo funciona por dentro · para el profesorado referente</div><h2>El sistema de autoregistro</h2>
 <div class="grid cols-3">
 <div class="card"><h3>1 · El alumno registra</h3><p>Cada PER tiene su <b>Bitácora de mando</b>: un formulario con inicio de sesión de Google y <b>una sola respuesta editable</b>. La primera vez pone alias, nombre y el enlace a su ePortfolio; después solo vuelve, marca la casilla de la insignia nueva y envía. Además: el <b>ticket de salida «Contacta con NEBULA»</b> (anónimo, ramificado: presentación / tema / actividad / repaso, con el profe que imparte) y un formulario de <b>canje de xp</b> con validación automática.</p></div>
 <div class="card"><h3>2 · Nadie hace nada</h3><p>Todo vive en <b>una sola hoja maestra</b> (cuenta <b>mutecdgami</b>): una pestaña de respuestas por PER, más <b>DATOS</b> (todos los registros de todos los PER en formato largo, para análisis e investigación) y <b>RESUMEN</b> (puntos e insignias por recluta y PER), que se rehacen solas con cada respuesta. El script calcula alias, insignias, planeta actual y puntos. Las insignias de hito <b>Tripulación Cero</b> y <b>La Liberación</b> se otorgan solas. Si hay un registro falso, el profesorado escribe algo en la columna <b>Anulado</b> de la hoja y desaparece.</p></div>
@@ -814,10 +824,13 @@ window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.a
   return '<img class="av '+(cls||'')+' r'+r.r+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" title="'+r.rango+'" loading="lazy" referrerpolicy="no-referrer" onerror="if(this.src!==this.dataset.fb){this.src=this.dataset.fb;}">'; };
 """
 
-TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding)
+TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding del profesorado)
+// Pregunta el rol al empezar: profe referente -> pasos extra (hoja maestra, PIN, panel de control).
 (function(){
-  var STEPS=[
+  var KEYR='sgTourRol';
+  var BASE=[
    {p:'index.html',sel:'#hero-cta',pose:'saluda',t:'Bienvenido al mando',x:'Recluta… perdón: <b>Capitán</b>. Soy tu homólogo en la historia. Esta web es tu puesto de mando: todo lo que necesitas para pilotar STARGATE en tu aula está aquí. Sígueme.'},
+   {p:'index.html',sel:'#hero-cta',pose:'pensativo',ask:true,t:'Una pregunta de mando',x:'¿Eres el <b>profesor o profesora referente</b> de tu PER (quien lo crea y lo gestiona), o <b>impartes las clases</b>? Si eres referente te enseñaré también la sala de máquinas.'},
    {p:'index.html',sel:'#en60',pose:'tablet',t:'La misión en 60 segundos',x:'La galaxia se apaga por la Estática. Tu alumnado son reclutas: <b>8 planetas = 8 temas</b>, y una <b>Bitácora</b> (el ePortfolio) que lo reenciende todo. La batalla final es el examen.'},
    {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'<b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase.'},
    {p:'guia.html',sel:'#retos',pose:'tablet',t:'Dos retos por tema',x:'El <b>Reto A</b> desbloquea al personaje: no cuenta para nota, aunque da 100 xp simbólicos del juego. El <b>Reto B</b> produce una evidencia real de la Bitácora. 24 insignias en total: entrégalas en público y con su frase.'},
@@ -827,29 +840,41 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding)
    {p:'geniallys.html',sel:'#lista',pose:'senala',t:'Los Geniallys',x:'La carpeta de Genially está <b>compartida con todo el profesorado</b>: busca la carpeta de tu perfil y usa los <b>Geniallys estándar</b> tal cual. ¿Quieres personalizar uno? Haz una copia; el sistema enlaza siempre a los estándar.'},
    {p:'registro.html',sel:'#registro',pose:'tablet',t:'El registro es automático',x:'Tu alumnado registra sus insignias solo, en la <b>Bitácora de mando</b> de su PER, y el <b>tablero en vivo</b> se actualiza al momento: xp, rangos y avatares. Tu papel es la <b>ceremonia</b>: entrega cada insignia en público y con su frase.'},
    {p:'registro.html',sel:'#profe-herramientas',pose:'brazos',t:'Tus sensores de a bordo',x:'El <b>ticket de salida</b> te devuelve valoraciones y dudas anónimas de cada clase, y el <b>canje de xp</b> se valida solo: a ti solo te llegan los canjes pendientes de aplicar. Cada uno con su panel visual.'},
-   {p:'index.html',sel:'#secciones',pose:'senala',t:'Tus herramientas de mando',x:'Desde aquí llegas al <b>panel del profesorado</b> (con PIN), a los <b>tickets</b>, al <b>foro dinámico</b> para el Genially del PER y al <b>generador de enlaces, embeds y QR</b>. Todo lo que se incrusta sale de ahí.'},
-   {p:'index.html',sel:'#hero-cta',pose:'pulgar',t:'Listo para el salto',x:'Eso es todo, Capitán. La nave es tuya. Y recuerda: <b>una obra que no se documenta, no existe</b>. Corto y cierro.'}
+   {p:'index.html',sel:'#secciones',pose:'senala',t:'Tus herramientas de mando',x:'Desde aquí llegas al <b>panel del profesorado</b> (con el PIN que te dará tu referente), a los <b>tickets</b>, a la <b>Nave del Recluta</b> y al <b>foro dinámico</b> para el Genially del PER, y al <b>generador de enlaces, embeds y QR</b>.'}
   ];
+  var REF=[
+   {p:'registro.html',sel:'#instalacion',pose:'tablet',t:'Referente: la hoja maestra',x:'Los PER se crean desde la <b>hoja maestra</b> (cuenta mutecdgami): menú <b>STARGATE → Crear nuevo PER…</b> — nombre, tipo REGULAR/PUA, fecha de la semana 1 y profesorado. En un minuto: los 3 formularios, el tablero, el foro dinámico, la <b>Nave del Recluta</b> y un <b>Doc con todos los enlaces, embeds y QR</b> para repartir.'},
+   {p:'registro.html',sel:'#instalacion',pose:'senala',t:'Referente: el PIN y las fechas',x:'Define el <b>PIN compartido</b> (menú STARGATE → Cambiar PIN) y repárteselo a tu profesorado: abre el panel del PER y los tickets. La <b>fecha de la semana 1</b> que pones al crear el PER marca el ritmo de todo: foro dinámico, desbloqueos de la Nave y recompensas.'},
+   {p:'geniallys.html',sel:'#lista',pose:'brazos',t:'Referente: el panel de control Genially',x:'El <b>panel de control</b> es el Genially con los planetas que enlaza a las presentaciones. Todos los PER heredan el <b>estándar</b> (menú STARGATE → Guardar panel de control estándar). ¿Un profe quiere el suyo? Que duplique el Genially y pegue sus enlaces en <b>Panel de profes → Ajustes del PER</b>.'}
+  ];
+  var FINAL={p:'index.html',sel:'#hero-cta',pose:'pulgar',t:'Listo para el salto',x:'Eso es todo, Capitán. La nave es tuya. Y recuerda: <b>una obra que no se documenta, no existe</b>. Corto y cierro.'};
+  function steps(){ return (localStorage.getItem(KEYR)==='ref' ? BASE.concat(REF) : BASE).concat([FINAL]); }
   var KEY='sgTourStep';
   function page(){var p=location.pathname.split('/').pop(); return p||'index.html';}
   function qs(){var m=location.search.match(/[?&]tour=(\d+)/); return m?parseInt(m[1],10):null;}
   var ov=null;
   function clearTarget(){Array.prototype.forEach.call(document.querySelectorAll('.tour-target'),function(e){e.classList.remove('tour-target');});}
   function render(i){
-    var s=STEPS[i]; if(!s) return end();
+    var S=steps(); var s=S[i]; if(!s) return end();
     if(s.p!==page()){localStorage.setItem(KEY,String(i)); location.href=s.p+'?tour='+i; return;}
     localStorage.setItem(KEY,String(i));
     clearTarget();
     var tg=document.querySelector(s.sel);
     if(tg){tg.classList.add('tour-target'); if(tg.tagName==='DETAILS') tg.open=true; tg.scrollIntoView({behavior:'smooth',block:'center'});}
     if(!ov){ov=document.createElement('div'); ov.className='tour'; document.body.appendChild(ov);}
+    var btns = s.ask
+      ? '<button type="button" class="tour-rol primary" data-rol="ref">🛰️ Sí, soy referente</button>'
+        +'<button type="button" class="tour-rol" data-rol="doc">🎓 Imparto clases</button>'
+        +'<button type="button" class="tour-exit">Salir</button>'
+      : '<button type="button" class="tour-prev"'+(i===0?' disabled':'')+'>← Anterior</button>'
+        +'<button type="button" class="tour-next primary">'+(i===S.length-1?'Terminar ✓':'Siguiente →')+'</button>'
+        +'<button type="button" class="tour-exit">Salir</button>';
     ov.innerHTML='<div class="tour-box"><img class="tour-cap" src="assets/img/capitan/'+s.pose+'.png" alt="El Capitán">'
-      +'<div class="tour-panel"><div class="tour-step">Visita guiada · '+(i+1)+' / '+STEPS.length+'</div><h3>'+s.t+'</h3><p>'+s.x+'</p>'
-      +'<div class="tour-btns"><button type="button" class="tour-prev"'+(i===0?' disabled':'')+'>← Anterior</button>'
-      +'<button type="button" class="tour-next primary">'+(i===STEPS.length-1?'Terminar ✓':'Siguiente →')+'</button>'
-      +'<button type="button" class="tour-exit">Salir</button></div></div></div>';
-    ov.querySelector('.tour-prev').onclick=function(){render(i-1);};
-    ov.querySelector('.tour-next').onclick=function(){ if(i===STEPS.length-1) end(); else render(i+1);};
+      +'<div class="tour-panel"><div class="tour-step">Visita guiada · '+(i+1)+' / '+S.length+'</div><h3>'+s.t+'</h3><p>'+s.x+'</p>'
+      +'<div class="tour-btns">'+btns+'</div></div></div>';
+    if(s.ask){ Array.prototype.forEach.call(ov.querySelectorAll('.tour-rol'),function(b){ b.onclick=function(){ localStorage.setItem(KEYR,b.getAttribute('data-rol')); render(i+1); }; }); }
+    else { ov.querySelector('.tour-prev').onclick=function(){render(i-1);};
+           ov.querySelector('.tour-next').onclick=function(){ if(i===S.length-1) end(); else render(i+1);}; }
     ov.querySelector('.tour-exit').onclick=end;
     ov.classList.add('open');
   }
