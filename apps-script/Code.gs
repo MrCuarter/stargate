@@ -166,7 +166,7 @@ function carpetaPER_() {
   var subs = raiz.getFoldersByName("Formularios PER");
   return subs.hasNext() ? subs.next() : raiz;
 }
-// Devuelve el Form EDITABLE de un PER ("B" Bitácora · "T" Ticket · "C" Canje).
+// Devuelve el Form EDITABLE de un PER ("B"Bitácora · "T"Ticket · "C"Canje).
 // Prioridad: URL de edición guardada -> pestaña vinculada (getFormUrl siempre da la de edición).
 // Nunca uses la URL publicada con openByUrl: lanza excepción.
 function formDelPER_(o, cual) {
@@ -355,7 +355,7 @@ function actualizarRecompensas() {
             var items = fbx.getItems(); var pos = tit2.indexOf("Enlace a mi Bitácora (ePortfolio)");
             if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); } } catch (e) {}
   });
-  SpreadsheetApp.getUi().alert("Formularios actualizados en " + n + " PER: recompensas al día, campos de avatar en el canje y biografía en la Bitácora (donde faltaban).");
+  SpreadsheetApp.getUi().alert("Formularios actualizados en " + n + "PER: recompensas al día, campos de avatar en el canje y biografía en la Bitácora (donde faltaban).");
 }
 
 function listaProfes_(referente, profesores) {
@@ -565,7 +565,7 @@ function resetearHoja() {
   var total = d.slice(1).filter(function(v){ return v[0]; }).length;
   if (!total) { restaurarRecompensas_(); ui.alert("No había ningún PER. Catálogo de recompensas restaurado."); return; }
   var r = ui.prompt("Resetear la hoja",
-    "Deja la hoja como recién instalada: borra los " + total + " PER (formularios y documentos a la papelera, pestañas de respuestas, EVENTOS, AJUSTES, DATOS y RESUMEN) y restaura el catálogo de recompensas.\n\n" +
+    "Deja la hoja como recién instalada: borra los " + total + "PER (formularios y documentos a la papelera, pestañas de respuestas, EVENTOS, AJUSTES, DATOS y RESUMEN) y restaura el catálogo de recompensas.\n\n" +
     "SE CONSERVAN: el PIN del profesorado, la URL del web app, el panel de control estándar y las plantillas de formulario.\n\n" +
     "Escribe RESETEAR para confirmar:", ui.ButtonSet.OK_CANCEL);
   if (r.getSelectedButton() !== ui.Button.OK || r.getResponseText().trim().toUpperCase() !== "RESETEAR") { ui.alert("Cancelado: nada se ha borrado."); return; }
@@ -580,7 +580,7 @@ function resetearHoja() {
   var ssR = SpreadsheetApp.getActive();
   ssR.getSheets().forEach(function(sh){ if (/^(?:restos · )?[BTC] · /.test(sh.getName())) { try { ssR.deleteSheet(sh); tabs++; } catch (e) {} } });
   try { consolidarDatos(); } catch (e) {}
-  ui.alert("Hoja reseteada: " + n + " PER borrados" + (sueltos ? ", " + sueltos + " formularios a la papelera" : "") + (tabs ? ", " + tabs + " pestañas sueltas borradas" : "") + ". Catálogo de recompensas restaurado.");
+  ui.alert("Hoja reseteada: " + n + "PER borrados" + (sueltos ? ", " + sueltos + " formularios a la papelera" : "") + (tabs ? ", " + tabs + " pestañas sueltas borradas" : "") + ". Catálogo de recompensas restaurado.");
 }
 
 // ================= TRIGGERS =================
