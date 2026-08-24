@@ -74,11 +74,15 @@
     }
     var r=st.yo, d=st.d, SG=window.SG||{};
     var av=SG.avatarImg?SG.avatarImg(r.avatar,r.alias,'grande'+(r.marco==='oro'?' marco-oro':''),r.xp,d.tipo):'';
-    var u=SG.UMBRALES?SG.UMBRALES(d.tipo):[1000,2500,4000,4500]; var rg=SG.rango?SG.rango(r.xp,d.tipo):1;
-    var sig=rg<=u.length?u[rg-1]:null; var base=rg>1?u[rg-2]:0;
-    var pct=sig?Math.min(100,Math.round((r.xp-base)/(sig-base)*100)):100;
-    var barra=sig?'<div class="progress" title="'+r.xp+' / '+Math.round(sig)+' xp"><i style="width:'+pct+'%"></i></div><p class="small muted">'+(Math.round(sig)-r.xp)+' xp para el rango '+(SG.RANGOS?SG.RANGOS[rg]:'siguiente')+'</p>'
-                 :'<p class="small muted">Rango máximo alcanzado. 🫡</p>';
+    // NIVEL (xp, solo suben) y CRÉDITOS (lo único que se gasta)
+    var ni=SG.nivelInfo?SG.nivelInfo(r.xp,d.tipo):{nivel:1,rango:1,rangoNombre:'Recluta',titulo:'',pct:0,faltan:0,siguiente:null,evo:null};
+    var rg=ni.rango;
+    var cred=(r.creditos!=null?r.creditos:(r.xp_disponibles!=null?r.xp_disponibles:0));
+    var barra=ni.siguiente
+      ?'<div class="progress" title="'+r.xp+' / '+ni.siguiente+' xp"><i style="width:'+ni.pct+'%"></i></div>'
+        +'<p class="small muted">Te faltan <b>'+ni.faltan+'</b> xp para el <b>nivel '+(ni.nivel+1)+'</b>'
+        +(ni.evo?' · tu personaje evoluciona a <b>'+esc(ni.evo.rango)+'</b> al llegar al nivel '+ni.evo.nivel:'')+'</p>'
+      :'<p class="small muted">Nivel máximo: <b>'+esc(ni.titulo)+'</b>. Has hecho el viaje entero. 🫡</p>';
     var col=BADGES.map(function(kk){var tiene=(r.insignias||[]).indexOf(kk)>=0;
       return '<div class="b'+(tiene?'':' no')+'" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+'"><img loading="lazy" src="assets/img/insignias/'+kk+'.png" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';}).join('');
     // fondo de ficha: su planeta elegido
@@ -99,7 +103,7 @@
         +'<p class="small muted">'+esc(sr[2])+'</p>'
         +'<div class="album">'+cs.map(celda).join('')+'</div></div>';}).join('');
     var album=CROMOS.length?('<div class="card album-cromos"><h3>🃏 Tu álbum de cromos · '+nCromos+' / '+CROMOS.length+'</h3>'
-      +'<p class="small muted">Cada «Sobre de cromos» (100 xp) trae una carta al azar. Los ocho tripulantes son <b>comunes</b>; '
+      +'<p class="small muted">Cada «Sobre de cromos» (15 ◈) trae una carta al azar. Los ocho tripulantes son <b>comunes</b>; '
       +'los Ecos, NEBULA y el Capitán, <b>raros</b>; el Recluta y la Estática, <b>épicos</b>; y hay dos '
       +'<b>LEGENDARIOS</b>: el General Vaeon (2 de cada 100 sobres) y <b>Ander Vaeon</b>, la carta que revela '
       +'quién era antes de ser Vaeon — <b>1 de cada 100</b>, la más difícil de toda la galaxia.'
@@ -108,8 +112,10 @@
     return '<div class="grid cols-2 nave-estado"><div class="card"'+estiloFicha+'><div class="nave-perfil">'+av
       +'<div><h3>'+(r.corona?'👑 ':'')+esc(r.alias)+'</h3>'
       +(r.titulo?'<div class="titulo-recluta">«'+esc(r.titulo)+'»</div>':'')
-      +'<p class="small">'+(SG.RANGOS?'<b>'+SG.RANGOS[rg-1]+'</b> · ':'')+'puesto '+r.pos+' · planeta '+esc(r.planeta)+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
-      +'<p><b>'+r.xp+'</b> xp ganados · <b>'+r.xp_disponibles+'</b> xp disponibles</p></div></div>'+barra
+      +'<p class="small"><b>Nivel '+ni.nivel+' · '+esc(ni.rangoNombre)+'</b>'+(ni.titulo&&ni.titulo!==ni.rangoNombre?' <span class="muted">('+esc(ni.titulo)+')</span>':'')+' · puesto '+r.pos+' · planeta '+esc(r.planeta)+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
+      +'<p class="monedas"><span class="m xp" title="Los xp no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje."><b>'+r.xp+'</b> xp</span>'
+      +'<span class="m cred" title="Los créditos son la moneda de misión: es lo único que se descuenta al canjear recompensas."><b>'+cred+'</b> ◈ créditos</span></p>'
+      +'<p class="small muted">Los <b>xp</b> solo suben: son tu nivel. Los <b>créditos ◈</b> son lo que gastas.</p></div></div>'+barra
       +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'<p class="small muted">Sin biografía todavía: añádela editando tu <a href="'+esc(d.formBitacora||'#')+'" target="_blank" rel="noopener">Bitácora de mando</a>.</p>')
       +'<p class="small" style="margin-top:10px"><button class="btn small" id="btn-olvidar" type="button">No soy yo / salir</button></p></div>'
       +'<div class="card"><h3>Tu colección · '+(r.insignias||[]).length+' / '+BADGES.length+'</h3><div class="badge-col">'+col+'</div></div></div>'+album;
@@ -159,12 +165,13 @@
       var desde=window.SGCAL.desdeEfectiva(x.desde||14,d.tipo,n); var abierta=st.estado!=='antes'&&st.actual>=desde;
       if(!abierta) return '<div class="card rec-card lock"><h3>🔒 Recompensa clasificada</h3><p class="small muted">Se desbloquea en la semana '+desde+'.</p></div>';
       abiertas++;
-      var afford=r?(r.xp_disponibles>=x.coste?'<span class="chip ok">Te lo puedes permitir</span>':'<span class="chip wip">Te faltan '+(x.coste-r.xp_disponibles)+' xp</span>'):'';
+      var mis=r?(r.creditos!=null?r.creditos:(r.xp_disponibles||0)):0;
+      var afford=r?(mis>=x.coste?'<span class="chip ok">Te lo puedes permitir</span>':'<span class="chip wip">Te faltan '+(x.coste-mis)+' ◈</span>'):'';
       var aviso=x.tipo==='nota'?'<p class="small muted">⏳ Se hace efectiva al terminar las clases en directo.</p>':x.tipo==='avatar'||x.tipo==='avatar_url'?'<p class="small muted">⚡ Automática: si se concede, tu avatar cambia solo.</p>':'';
-      return '<div class="card rec-card"><h3>'+esc(x.nombre)+'</h3><p class="pts">'+x.coste+' xp</p><p class="small">'+esc(x.desc||'')+'</p>'+aviso+afford+'</div>';
+      return '<div class="card rec-card"><h3>'+esc(x.nombre)+'</h3><p class="pts">'+x.coste+' ◈</p><p class="small">'+esc(x.desc||'')+'</p>'+aviso+afford+'</div>';
     }).join('');
     return '<section><div class="eyebrow violet">Recompensas</div><h2>El canje de xp</h2>'
-      +'<p class="lead">Tus xp son del juego (no son nota)… pero se pueden gastar. Las recompensas se desbloquean con el viaje.</p>'
+      +'<p class="lead">Tus <b>xp</b> no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje. Lo que se canjea son los <b>créditos ◈</b>, que ganas con el mismo trabajo. Las recompensas se van desbloqueando con el viaje.</p>'
       +'<div class="grid cols-3 nave-rec">'+cards+'</div>'
       +(abiertas&&d.formCanje?'<p style="margin-top:14px"><a class="btn primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎁 Canjear una recompensa</a></p>':'<p class="small muted" style="margin-top:14px">Aún no hay recompensas canjeables: sigue sumando xp.</p>')
       +'</section>';
@@ -177,7 +184,7 @@
     {t:'Alístate',x:'Tu primer acto: la <b>Bitácora de mando</b>. Elige tu <b>alias</b>, tu <b>avatar</b> (¡evoluciona con tus xp!) y escribe la <b>biografía</b> de tu personaje. Ganarás la insignia de <b>Reclutamiento</b>. Cada vez que superes un reto, vuelve, marca la casilla y envía.'},
     {t:'Tu personaje, al mando',x:'Escribe tu <b>correo</b> una sola vez en este dispositivo y la nave te reconocerá: verás tu personaje con su <b>rango</b>, tu biografía, tus xp y tu colección de insignias nada más entrar.'},
     {t:'La nave avanza sola',x:'Cada semana se desbloquea una nueva orden: el planeta, sus vídeos, sus <b>dos retos</b> y sus insignias. Los planetas futuros están en silencio… de momento. Vuelve cada semana.'},
-    {t:'Los xp se gastan',x:'Tus xp no son nota, pero valen: la sección de <b>recompensas</b> se irá desbloqueando durante el viaje. Y si te pierdes, usa el ticket <b>«Contacta con NEBULA»</b>: te leo, aunque sea anónimo. Corto y cierro.'}
+    {t:'Dos marcadores, no uno',x:'Ojo a esto: los <b>xp</b> miden tu viaje y <b>nunca bajan</b> — suben tu <b>nivel</b> (del 1 al 10) y hacen <b>evolucionar a tu personaje</b>. Los <b>créditos ◈</b> los ganas con el mismo trabajo y son lo <b>único que se gasta</b> en la sección de <b>recompensas</b>. Comprar cromos no te baja de nivel. Y si te pierdes, usa el ticket <b>«Contacta con NEBULA»</b>: te leo, aunque sea anónimo. Corto y cierro.'}
   ];
   function onboarding(i){
     var ov=document.getElementById('nave-onboard');

@@ -5,10 +5,10 @@
 <meta property="og:title" content="STARGATE · Registro y tablero en vivo"><meta property="og:description" content="El sistema de autoregistro de STARGATE: el alumnado registra sus insignias, el tablero se actualiza solo y el profesorado anima y da la ceremonia.">
 <meta name="theme-color" content="#080c14">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="assets/css/stargate.css?v=e3e51ff7ef">
+<link rel="stylesheet" href="assets/css/stargate.css?v=2baa65b7dc">
 <script>window.SG_TABLERO_API="https://script.google.com/macros/s/AKfycbxlrRGIBJPD9h8-6D46Y4IJ8Gb2fu9v4-6wYZjgPAom2W1QfLh14ltBZmXV2Sx3_nXvPg/exec";</script>
-<script src="assets/js/stargate.js?v=aa1298810c" defer></script>
-<script src="assets/js/tour.js?v=5e0d23da4f" defer></script>
+<script src="assets/js/stargate.js?v=7127493a30" defer></script>
+<script src="assets/js/tour.js?v=db5d090d56" defer></script>
 </head><body>
 <nav class="nav"><div class="wrap">
 <a class="brand" href="index.html">◈ STARGATE <span class="modo docente">Capitán<i> · docentes</i></span></a>
@@ -73,7 +73,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <p class="lead">Se alimenta solo de la Bitácora de mando de cada PER. Para incrustar el tablero, el foro o los formularios en tu Genially: <a href="embed.html"><b>generador de enlaces, embeds y QR</b></a>.</p>
 <div id="tablero-app"></div>
 <script>window.SG_TABLERO_API="https://script.google.com/macros/s/AKfycbxlrRGIBJPD9h8-6D46Y4IJ8Gb2fu9v4-6wYZjgPAom2W1QfLh14ltBZmXV2Sx3_nXvPg/exec";window.SG_BADGE_NAMES={"P1_bran": "Bran Okafor", "P2_tomas": "Tomás Reyer", "P3_sylla": "Sylla Bren", "P4_amara": "Amara Sol", "P5_vera": "Vera Khal", "P6_joran": "Joran Pike", "P7_mara": "Mara Voss", "P8_noa": "Noa Lieth", "E1_nebula": "NEBULA", "E2_capitan": "El Capitán", "E3_vaeon": "General Vaeon", "R1_la-chispa": "La chispa", "R2_el-eco-que-ensena": "El eco que enseña", "R3_la-matriz": "La matriz", "R4_entorno-de-aula": "El entorno de aula", "R5_bitacora-medida": "La Bitácora medida", "R6_el-juego": "El juego", "R7_microgamificacion": "La microgamificación", "R8_ultimo-umbral": "El último umbral", "H1_reclutamiento": "Reclutamiento", "H2_primera-forja": "Primera Forja", "H3_cartografo": "Cartógrafo", "H4_tripulacion-cero": "Tripulación Cero", "H5_la-liberacion": "La Liberación"};</script>
-<script src="assets/js/tablero.js?v=be83334234" defer></script>
+<script src="assets/js/tablero.js?v=cdc99be931" defer></script>
 </div></section>
 
 <section id="instalacion"><div class="wrap">
@@ -84,24 +84,59 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="card"><h3>3 · Un PER nuevo, un clic</h3><p>Menú <b>🛰️ STARGATE → Crear nuevo PER…</b>: pide nombre del PER, profesorado y fechas de apertura y cierre; crea formulario y hoja, programa la apertura/cierre y devuelve el enlace, el QR y el código para Genially.</p></div>
 </div>
 <h3 style="margin-top:1.6em">Avatares</h3>
-<div class="grid cols-2"><div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con sus xp</b> (× <b>5 rangos</b>: Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b>; el tablero cambia la imagen solo al superar 1.000 / 2.500 / 4.000 / 4.500 xp, escalado en PUA — la Leyenda es el viaje completo) o <b>su propia imagen por URL</b>. Al alistarse se eligen los personajes <b>1-4</b>; los <b>5-7 son EXCLUSIVOS</b> y se desbloquean canjeando xp — otro motor de motivación. (La antigua galería clásica de 16 queda como legado: los que la tienen la conservan, pero ya no se ofrece.)</p><img src="assets/img/avatares/lamina_personajes.jpg?v=e2e7929f72" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
+<div class="grid cols-2"><div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con su NIVEL</b> (10 niveles y <b>5 versiones de arte</b>: Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b>; cambia al entrar en los niveles <b>3, 5, 8 y 10</b>, escalado solo en PUA — ver <a href="#economia">la tabla de niveles</a>) o <b>su propia imagen por URL</b>. Al alistarse se eligen los personajes <b>1-4</b>; los <b>5-7 son EXCLUSIVOS</b> y se desbloquean con <b>créditos ◈</b> — otro motor de motivación. (La antigua galería clásica de 16 queda como legado: los que la tienen la conservan, pero ya no se ofrece.)</p><img src="assets/img/avatares/lamina_personajes.jpg?v=e2e7929f72" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
 <div class="official" style="display:block">🖼️ <b>Cómo poner tu propia imagen (para el alumnado):</b> 1) entra en <a href="https://postimages.org" target="_blank" rel="noopener">postimages.org</a>, pulsa <i>Elegir imágenes</i> y sube tu foto (no hace falta registrarse); 2) cuando termine, copia el campo <b>«Enlace directo»</b> (termina en .jpg o .png); 3) pégalo en la pregunta «URL de tu propia imagen». También vale un enlace de <b>Google Drive</b> si el archivo está compartido como «cualquier persona con el enlace». Un enlace a Instagram o a una página web no funciona.</div></div>
 <img src="assets/img/avatares/lamina_avatares.jpg?v=8eccd150b8" alt="Galería de avatares" style="border-radius:14px;border:1px solid var(--line)"></div>
-<h3 style="margin-top:1.6em">Puntos</h3>
-<p class="lead">Reclutamiento 100 xp · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 · hitos derivados (Cero completa, Liberación) 300. Un viaje completo ≈ 4.500 xp. En PUA: 300 por tema (personaje) + 500 por actividad. Los xp son del juego: <b>no son nota</b>.</p>
-<h4 style="margin-top:1em">Las recompensas y cuándo se desbloquean</h4>
+<h3 id="economia" style="margin-top:1.6em">Dos marcadores: xp y créditos ◈</h3>
+<p class="lead">Es la decisión de diseño más importante del sistema, y de paso el ejemplo vivo de una
+distinción que el alumnado va a estudiar en el <b>Tema 7</b>: <b>puntos de progreso</b> y <b>moneda
+canjeable</b> no son lo mismo y no deben compartir marcador.</p>
+<div class="grid cols-2">
+<div class="card"><h3>⭐ Los xp — el viaje</h3><p class="small"><b>Solo suben. No se gastan nunca.</b>
+Miden lo que el recluta ha recorrido: marcan su <b>nivel</b> (del 1 al 10), su puesto en el ranking y hacen
+<b>evolucionar a su personaje</b>. Comprar cromos no le baja de nivel: lo que ha aprendido no se devuelve.</p>
+<p class="small">Reclutamiento 100 · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 ·
+hitos derivados 300. Viaje completo = <b>5.000 xp</b> (PUA: 300 por tema + 500 por actividad,
+4.100 xp). Los xp <b>no son nota</b>.</p></div>
+<div class="card"><h3>◈ Los créditos — el bolsillo</h3><p class="small"><b>Es lo único que se descuenta.</b>
+Se ganan con el mismo trabajo que da xp, pero en otra escala, y se gastan en el canje. Cuando un recluta
+compra un sobre de cromos pierde créditos, no progreso.</p>
+<p class="small">Reclutamiento 10 ◈ · Reto A 10 · Reto B 30 ·
+Actividad 60 · Batalla final 60 · hitos derivados 40.
+Un viaje completo da <b>590 ◈</b> (PUA: 490 ◈). Todo lo cosmético del catálogo
+cuesta 280 ◈: <b>hay que elegir</b>, y esa elección es la mitad de la gracia.</p></div>
+</div>
+<h4 style="margin-top:1.4em">Los 10 niveles (y cuándo evoluciona el personaje)</h4>
+<p class="lead">El personaje tiene <b>cinco versiones de arte</b> y cambia al entrar en los niveles 3, 5, 8 y 10.
+En PUA los umbrales se escalan solos, para que el camino se sienta igual de largo.</p>
+<div class="tablewrap"><table><thead><tr><th>Nivel</th><th>xp (REGULAR)</th><th>xp (PUA)</th><th>Título</th><th>Personaje</th></tr></thead><tbody>
+<tr><td><b>1</b></td><td class="pts">0</td><td class="small muted">0</td><td>Recluta raso</td><td>Recluta</td></tr>
+<tr><td><b>2</b></td><td class="pts">300</td><td class="small muted">250</td><td>Recluta de guardia</td><td>Recluta</td></tr>
+<tr><td><b>3</b></td><td class="pts">700</td><td class="small muted">575</td><td>Cadete</td><td>Cadete <span class="tag">evoluciona</span></td></tr>
+<tr><td><b>4</b></td><td class="pts">1.150</td><td class="small muted">950</td><td>Cadete de vuelo</td><td>Cadete</td></tr>
+<tr><td><b>5</b></td><td class="pts">1.650</td><td class="small muted">1.350</td><td>Oficial</td><td>Oficial <span class="tag">evoluciona</span></td></tr>
+<tr><td><b>6</b></td><td class="pts">2.200</td><td class="small muted">1.800</td><td>Oficial de puente</td><td>Oficial</td></tr>
+<tr><td><b>7</b></td><td class="pts">2.800</td><td class="small muted">2.300</td><td>Oficial mayor</td><td>Oficial</td></tr>
+<tr><td><b>8</b></td><td class="pts">3.450</td><td class="small muted">2.825</td><td>Comandante</td><td>Comandante <span class="tag">evoluciona</span></td></tr>
+<tr><td><b>9</b></td><td class="pts">4.150</td><td class="small muted">3.400</td><td>Comandante de flota</td><td>Comandante</td></tr>
+<tr><td><b>10</b></td><td class="pts">5.000</td><td class="small muted">4.100</td><td>Leyenda de la Cero</td><td>Leyenda <span class="tag">evoluciona</span></td></tr>
+</tbody></table></div>
+<h4 style="margin-top:1.4em">Las recompensas y cuándo se desbloquean</h4>
+<p class="lead">Todas se pagan en <b>créditos ◈</b>. La semana indicada es la de un PER REGULAR de 15 semanas;
+en PUA se escala sola. Las automáticas las aplica el sistema al recibir el formulario; las de nota las aplica
+el profesorado al terminar las clases en directo.</p>
 <div class="tablewrap"><table><thead><tr><th>Recompensa</th><th>Coste</th><th>Desde</th><th>Cómo se aplica</th></tr></thead><tbody>
-<tr><td>🃏 Sobre de cromos (uno al azar de las <b>20 cartas</b> en 4 series: comunes los tripulantes, raros los <a href="guia.html#ecos">Ecos</a>, épicos el Recluta y la Estática, <b>legendarios</b> el General Vaeon (2 %) y <b>Ander Vaeon</b>, la identidad del villano, solo <b>1 de cada 100</b>)</td><td class="pts">100</td><td>Semana 2</td><td><b>Automática</b> · repetible</td></tr>
-<tr><td>Título de recluta (bajo su alias en tablero y Nave)</td><td class="pts">200</td><td>Semana 3</td><td><b>Automática</b> · máx. 3</td></tr>
-<tr><td>Fondo de ficha: su planeta (en la Nave)</td><td class="pts">150</td><td>Semana 4</td><td><b>Automática</b></td></tr>
-<tr><td>Cambio de avatar (otro personaje inicial)</td><td class="pts">300</td><td>Semana 5</td><td><b>Automática</b> · máx. 3</td></tr>
-<tr><td>Marco dorado del avatar (en el ranking)</td><td class="pts">300</td><td>Semana 6</td><td><b>Automática</b></td></tr>
-<tr><td>⭐ Personaje exclusivo (desbloquea los personajes 5-7)</td><td class="pts">500</td><td>Semana 7</td><td><b>Automática</b> · máx. 3</td></tr>
-<tr><td>Avatar personal (su propia imagen por URL)</td><td class="pts">800</td><td>Semana 10</td><td><b>Automática</b></td></tr>
-<tr><td>Subir 0,5 en un entregable</td><td class="pts">900</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
-<tr><td>Subir 1 punto en un entregable</td><td class="pts">1.400</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
-<tr><td>Recalificar fuera de plazo</td><td class="pts">2.000</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
-<tr><td>Recalificar un suspenso</td><td class="pts">2.800</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
+<tr><td><b>Sobre de cromos</b><br><span class="small muted">Una carta al azar de las 20 del álbum (4 series).</span></td><td class="pts">15 ◈</td><td>Semana 2</td><td><b>Automática</b> · repetible</td></tr>
+<tr><td><b>Título de recluta</b><br><span class="small muted">Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario).</span></td><td class="pts">25 ◈</td><td>Semana 3</td><td><b>Automática</b> · máx. 3</td></tr>
+<tr><td><b>Fondo de ficha: tu planeta</b><br><span class="small muted">Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario).</span></td><td class="pts">20 ◈</td><td>Semana 4</td><td><b>Automática</b></td></tr>
+<tr><td><b>Cambio de avatar</b><br><span class="small muted">Elige otro personaje inicial (1-4) o vuelve a uno (indícalo en el propio formulario de canje).</span></td><td class="pts">35 ◈</td><td>Semana 5</td><td><b>Automática</b> · máx. 3</td></tr>
+<tr><td><b>Marco dorado del avatar</b><br><span class="small muted">Tu avatar con marco y brillo dorados en el ranking y la Nave.</span></td><td class="pts">35 ◈</td><td>Semana 6</td><td><b>Automática</b></td></tr>
+<tr><td><b>Personaje exclusivo</b><br><span class="small muted">Desbloquea y ponte uno de los personajes exclusivos 5-7 (indícalo en el formulario).</span></td><td class="pts">60 ◈</td><td>Semana 7</td><td><b>Automática</b> · máx. 3</td></tr>
+<tr><td><b>Avatar personal (tu propia imagen)</b><br><span class="small muted">Pon tu propia imagen como avatar (pega la URL en el formulario de canje).</span></td><td class="pts">90 ◈</td><td>Semana 10</td><td><b>Automática</b></td></tr>
+<tr><td><b>Subir 0,5 en un entregable</b><br><span class="small muted">Se aplica a la actividad que elijas.</span></td><td class="pts">110 ◈</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
+<tr><td><b>Subir 1 punto en un entregable</b><br><span class="small muted">Se aplica a la actividad que elijas.</span></td><td class="pts">170 ◈</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
+<tr><td><b>Recalificar un trabajo entregado fuera de plazo</b><br><span class="small muted">Indica la actividad.</span></td><td class="pts">240 ◈</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
+<tr><td><b>Recalificar un suspenso</b><br><span class="small muted">Indica la actividad.</span></td><td class="pts">330 ◈</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
 </tbody></table></div>
 <p class="small muted" style="margin-top:8px">Además, sin canje: la <b>corona semanal</b> 👑 aparece sola en el tablero junto al recluta que más xp ganó en los últimos 7 días.</p>
 <p class="small muted">Las de avatar se conceden y se aplican solas (el avatar cambia en el tablero al instante). Las de nota se conceden solas pero <b>se hacen efectivas al terminar las clases en directo</b>: el correo de confirmación ya lo avisa. Todo es editable en la pestaña <b>RECOMPENSAS</b> de la hoja (coste, máximo, semana de desbloqueo); en PUA las semanas se escalan solas. En la <a href="recluta.html">Nave del Recluta</a> las que aún no tocan aparecen como «recompensa clasificada».</p>

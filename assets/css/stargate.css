@@ -422,6 +422,13 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .album .c.epi:not(.no){box-shadow:0 0 12px rgba(169,140,240,.45)}
 .album .c.leg{border-color:var(--amber)}
 .album .c.leg:not(.no){box-shadow:0 0 12px rgba(245,176,67,.5)}
+/* los dos marcadores de la ficha: xp (nivel) y créditos (bolsillo) */
+.monedas{display:flex;flex-wrap:wrap;gap:10px;margin:.5em 0 .2em}
+.monedas .m{display:inline-flex;align-items:baseline;gap:5px;padding:4px 12px;border-radius:999px;
+  border:1px solid var(--line);font-size:.82rem;cursor:help}
+.monedas .m b{font-size:1.05rem}
+.monedas .m.xp{border-color:rgba(55,224,236,.45);color:var(--teal)}
+.monedas .m.cred{border-color:rgba(245,176,67,.5);color:var(--amber)}
 .album-cromos .serie{margin-top:16px}
 .album-cromos .serie h4{margin:0;font-family:'Unbounded';font-size:.95rem;display:flex;align-items:center;gap:8px}
 .album-cromos .serie h4 .cnt{font-family:'DMSans';font-size:.72rem;font-weight:700;letter-spacing:.04em;

@@ -50,9 +50,25 @@
 
 // ---- avatares: personaje que evoluciona por xp · clásico · URL propia (con respaldo) ----
 window.SG = window.SG || {};
-window.SG.RANGOS = ['Recluta','Cadete','Oficial','Comandante','Leyenda'];
-window.SG.UMBRALES = function(tipoPer){ var k = (tipoPer==='PUA') ? 3500/4500 : 1; return [1000*k,2500*k,4000*k,4500*k]; };
-window.SG.rango = function(xp, tipoPer){ var u=window.SG.UMBRALES(tipoPer); var r=1; for(var i=0;i<u.length;i++) if(xp>=u[i]) r=i+2; return r; };
+// Niveles y rangos (v3.7). Los XP SOLO SUBEN: dan nivel, y el avatar evoluciona al entrar en
+// los niveles marcados. Lo gastable son los CRÉDITOS, que viajan aparte en la ficha del recluta.
+window.SG.MONEDA = "◈";
+window.SG.RANGOS = ["Recluta", "Cadete", "Oficial", "Comandante", "Leyenda"];
+window.SG.NIVELES = [[1, 0, 1, "Recluta raso"], [2, 300, 1, "Recluta de guardia"], [3, 700, 2, "Cadete"], [4, 1150, 2, "Cadete de vuelo"], [5, 1650, 3, "Oficial"], [6, 2200, 3, "Oficial de puente"], [7, 2800, 3, "Oficial mayor"], [8, 3450, 4, "Comandante"], [9, 4150, 4, "Comandante de flota"], [10, 5000, 5, "Leyenda de la Cero"]];            // [nivel, xp REGULAR, rango 1-5, título]
+window.SG.XP_VIAJE = {"REGULAR": 5000, "PUA": 4100};
+window.SG.escalaXp = function(tipoPer){ var r=window.SG.XP_VIAJE.REGULAR||1; return (window.SG.XP_VIAJE[tipoPer]||r)/r; };
+window.SG.nivel = function(xp, tipoPer){ var k=window.SG.escalaXp(tipoPer), n=1, L=window.SG.NIVELES;
+  for(var i=0;i<L.length;i++) if((xp||0) >= L[i][1]*k) n=L[i][0];
+  return n; };
+window.SG.nivelInfo = function(xp, tipoPer){ var L=window.SG.NIVELES, k=window.SG.escalaXp(tipoPer);
+  var n=window.SG.nivel(xp,tipoPer), f=L[n-1];
+  var desde=Math.round(f[1]*k), sig=n<L.length?Math.round(L[n][1]*k):null;
+  var pct=sig?Math.min(100,Math.max(0,Math.round(((xp||0)-desde)/(sig-desde)*100))):100;
+  // ¿en qué nivel toca la próxima evolución del avatar?
+  var evo=null; for(var j=n;j<L.length;j++) if(L[j][2]>f[2]){ evo={nivel:L[j][0], xp:Math.round(L[j][1]*k), rango:window.SG.RANGOS[L[j][2]-1]}; break; }
+  return { nivel:n, rango:f[2], rangoNombre:window.SG.RANGOS[f[2]-1], titulo:f[3],
+           desde:desde, siguiente:sig, faltan: sig===null?0:Math.max(0,sig-(xp||0)), pct:pct, evo:evo }; };
+window.SG.rango = function(xp, tipoPer){ return window.SG.NIVELES[window.SG.nivel(xp,tipoPer)-1][2]; };
 window.SG.avatarSrc = function(av, alias, xp, tipoPer){
   av = av || {}; var h=0; for(var i=0;i<(alias||'').length;i++) h=(h*31+alias.charCodeAt(i))>>>0;
   var tipo = av.tipo || 'evo'; var n = av.n || (tipo==='evo' ? (h%7)+1 : (h%16)+1); var v = av.v || ((h>>3)%2 ? 'm' : 'f');

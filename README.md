@@ -35,6 +35,14 @@ Los pesos deben sumar 100 (hay un `assert`). Las imágenes de las cartas las gen
 `../Retos e Insignias/_work/cartas.py` y las publica aquí `publicar_tarjetas.py` (720×1210).
 **No editar `var CROMOS` ni el `.txt` a mano: se pisan en el siguiente build.**
 
+### Niveles y créditos (v3.7)
+`_site_data.py` define también `NIVELES` (10 niveles, con el tramo de arte del avatar), `XP_VIAJE`,
+`CREDITOS` (◈ por tipo de logro) y `RECOMPENSAS` (catálogo con precios en ◈). El build inyecta el motor en
+`stargate.js` (`SG.nivel`, `SG.nivelInfo`, `SG.rango`) y **reescribe los bloques `NIVELES-INICIO/FIN` y
+`RECOMPENSAS-INICIO/FIN`** del Apps Script. Regla del sistema: **los xp solo suben** (nivel + evolución del
+personaje) y **los créditos son lo único que se gasta**. Tras cambiar precios hay que pegar el script y
+ejecutar *Restaurar catálogo oficial de recompensas* + *Actualizar formularios*.
+
 ### La lista de grupos (PER)
 `doGet ?per=all` **no pide PIN** y devuelve `id/nombre/tipo/estado/inicio` de los PER no archivados.
 `window.SG.pers(cb)` (en `stargate.js`) la sirve con **caché de 12 h en localStorage** y revalidación en

@@ -242,3 +242,55 @@ CROMOS = [
  ("S1_ander",     "Ander Vaeon",                "IV",  "LEGENDARIA", 1),
 ]
 assert sum(c[4] for c in CROMOS) == 100, "los pesos de CROMOS deben sumar 100"
+
+# ---------- niveles, rangos y economía (v3.7) ----------
+# DOS MONEDAS, a propósito (y es la lección de gamificación de la asignatura):
+#   · XP  = progreso del viaje. SOLO SUBEN. Determinan el NIVEL y la evolución del avatar.
+#   · ◈ CRÉDITOS = moneda de misión. Se ganan con el mismo trabajo y son lo ÚNICO que se gasta.
+# Fuente única: de aquí salen el JS de la web (window.SG_NIVELES) y los bloques NIVELES /
+# CREDITOS / RECOMPENSAS del Apps Script, que _build_site.py reescribe entre marcadores.
+MONEDA = "◈"
+# 10 niveles. El umbral es xp acumulados en REGULAR; en PUA se escala por el total del viaje.
+# rango = tramo de arte del avatar (1-5): el personaje EVOLUCIONA al entrar en los niveles 3, 5, 8 y 10.
+RANGOS = ["Recluta", "Cadete", "Oficial", "Comandante", "Leyenda"]
+# [nivel, xp REGULAR, rango (1-5), título del nivel]
+NIVELES = [
+ ( 1,    0, 1, "Recluta raso"),
+ ( 2,  300, 1, "Recluta de guardia"),
+ ( 3,  700, 2, "Cadete"),
+ ( 4, 1150, 2, "Cadete de vuelo"),
+ ( 5, 1650, 3, "Oficial"),
+ ( 6, 2200, 3, "Oficial de puente"),
+ ( 7, 2800, 3, "Oficial mayor"),
+ ( 8, 3450, 4, "Comandante"),
+ ( 9, 4150, 4, "Comandante de flota"),
+ (10, 5000, 5, "Leyenda de la Cero"),
+]
+XP_VIAJE = {"REGULAR": 5000, "PUA": 4100}   # xp máximos del viaje completo (para escalar PUA)
+# ◈ que da cada tipo de logro (el xp lo sigue fijando la tabla de retos del Apps Script)
+CREDITOS = {"reclutamiento": 10, "retoA": 10, "retoB": 30, "retoB_pua": 35,
+            "actividad": 60, "final": 60, "derivada": 40}
+# Catálogo oficial de recompensas — [nombre, coste ◈, máx por alumno, descripción, desde semana, tipo]
+# tipo: cromo · titulo · fondo · avatar · marco · avatar_exclusivo · avatar_url · nota
+RECOMPENSAS = [
+ ("Sobre de cromos", 15, 99,
+  "Una carta al azar de las 20 del álbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. Se abre solo y tu álbum está en la Nave.", 2, "cromo"),
+ ("Título de recluta", 25, 3,
+  "Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario). Se aplica solo.", 3, "titulo"),
+ ("Fondo de ficha: tu planeta", 20, 1,
+  "Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.", 4, "fondo"),
+ ("Cambio de avatar", 35, 3,
+  "Elige otro personaje inicial (1-4) o vuelve a uno (indícalo en el propio formulario de canje). Se aplica solo.", 5, "avatar"),
+ ("Marco dorado del avatar", 35, 1,
+  "Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.", 6, "marco"),
+ ("Personaje exclusivo", 60, 3,
+  "Desbloquea y ponte uno de los personajes exclusivos 5-7 (indícalo en el formulario). Se aplica solo.", 7, "avatar_exclusivo"),
+ ("Avatar personal (tu propia imagen)", 90, 1,
+  "Pon tu propia imagen como avatar (pega la URL en el formulario de canje). Se aplica solo.", 10, "avatar_url"),
+ ("Subir 0,5 en un entregable", 110, 1, "Se aplica a la actividad que elijas", 14, "nota"),
+ ("Subir 1 punto en un entregable", 170, 1, "Se aplica a la actividad que elijas", 14, "nota"),
+ ("Recalificar un trabajo entregado fuera de plazo", 240, 1, "Indica la actividad", 14, "nota"),
+ ("Recalificar un suspenso", 330, 1, "Indica la actividad", 14, "nota"),
+]
+assert [n[0] for n in NIVELES] == list(range(1, 11)), "los niveles van del 1 al 10"
+assert all(NIVELES[i][1] < NIVELES[i+1][1] for i in range(9)), "los umbrales de nivel deben crecer"

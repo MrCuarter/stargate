@@ -6,7 +6,8 @@ Datos de cronología/vídeos/geniallys en _site_data.py."""
 import os, json, hashlib
 from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
-                        CROMOS, CROMO_SERIES)
+                        CROMOS, CROMO_SERIES, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
+                        RECOMPENSAS)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E"
@@ -127,6 +128,31 @@ def cards_por_series():
                    f'<div class="cards-row" style="margin-bottom:18px">' + "\n".join(cardt(k) for k in ks) + "</div>")
     return "\n".join(out)
 cards_series_html=cards_por_series()
+
+def _mil(n): return f"{n:,}".replace(",", ".")
+def tabla_niveles():
+    filas, prev = [], None
+    for n, xp, r, tit in NIVELES:
+        evo = ' <span class="tag">evoluciona</span>' if prev is not None and r != prev else ''
+        prev = r
+        pua = round(xp * XP_VIAJE["PUA"] / XP_VIAJE["REGULAR"] / 25) * 25
+        filas.append(f'<tr><td><b>{n}</b></td><td class="pts">{_mil(xp)}</td><td class="small muted">{_mil(pua)}</td>'
+                     f'<td>{tit}</td><td>{RANGOS[r-1]}{evo}</td></tr>')
+    return "\n".join(filas)
+def tabla_recompensas():
+    filas = []
+    for nombre, coste, mx, desc, desde, tipo in RECOMPENSAS:
+        corta = desc.split(". ")[0].rstrip(".") + "."
+        como = ("La aplica el profesorado" if tipo == "nota"
+                else "<b>Automática</b>" + (" · repetible" if mx >= 99 else (f" · máx. {mx}" if mx > 1 else "")))
+        filas.append(f'<tr><td><b>{nombre}</b><br><span class="small muted">{corta}</span></td>'
+                     f'<td class="pts">{coste} {MONEDA}</td><td>Semana {desde}</td><td>{como}</td></tr>')
+    return "\n".join(filas)
+niveles_html = tabla_niveles()
+recompensas_html = tabla_recompensas()
+CRED_VIAJE = {t: (CREDITOS["reclutamiento"] + 2*CREDITOS["actividad"] + 2*CREDITOS["derivada"]
+                  + (8*CREDITOS["retoA"] + 8*CREDITOS["retoB"] + CREDITOS["final"] if t == "REGULAR"
+                     else 8*CREDITOS["retoB_pua"])) for t in ("REGULAR", "PUA")}
 planetas_html="\n".join(planeta(*p) for p in PLANETAS)
 
 # ================= PORTADA (index.html) =================
@@ -205,7 +231,7 @@ FAQ = [
  ("¿Qué hago exactamente en la primera sesión?", "Pon el vídeo de <b>Sinopsis</b>, después el de <b>La Bitácora</b> (ePortfolio), preséntate como <b>Capitán</b>, publica el mensaje de reclutamiento del foro (está en la cronología, semana 1) y entrega en público la insignia de <b>Reclutamiento</b>. Deja una pregunta en el aire: «¿por qué se apagan los mundos?»."),
  ("¿Cuándo pongo cada vídeo?", "La <a href='cronologia.html'>cronología</a> lo dice semana a semana: la <b>intro</b> del planeta al abrir el tema, el <b>cierre</b> al terminar el bloque y el <b>fragmento</b> del tripulante justo después, como recompensa. Las misiones (Bitácora, Act. 1, Act. 2) al lanzar cada una."),
  ("Los vídeos están en «oculto» en YouTube, ¿funcionan?", "Sí. Un vídeo oculto se ve con el enlace y se puede insertar en Genially o en el aula virtual. Van pasando a públicos solos según el calendario de redes del canal; tú no tienes que tocar nada."),
- ("¿El Reto A puntúa?", "<b>Para nota, no</b> — y es a propósito: es el motor de motivación, y convertirlo en nota le quitaría la función. Sí da <b>100 xp del juego</b> (algo simbólico) y su recompensa real es desbloquear al personaje (fragmento + insignia). El Reto B sí produce una evidencia evaluable de la Bitácora."),
+ ("¿El Reto A puntúa?", "<b>Para nota, no</b> — y es a propósito: es el motor de motivación, y convertirlo en nota le quitaría la función. Sí da <b>100 xp</b> (que suben nivel) y <b>10 créditos ◈</b>, y su recompensa real es desbloquear al personaje (fragmento + insignia). El Reto B sí produce una evidencia evaluable de la Bitácora."),
  ("¿Cómo y cuándo entrego las insignias?", "En público y con ceremonia: publica el medallón en el foro/tablero al superar el reto y nombra el logro con la frase del personaje. Qué insignia va cada semana está en la cronología; cómo anotarlas, en <a href='registro.html'>Registro de insignias</a>."),
  ("¿Dónde están los enunciados y rúbricas oficiales?", "En <a href='actividades.html#docs'>Actividades → Documentos oficiales</a> (enunciados de la Act. 1 y 2, pautas del ePortfolio, instrucciones de uso de IA, rúbricas y planificación semanal)."),
  ("¿Qué pasa con el temario (PDF de los temas)?", "Los PDF de temas disponibles son de la programación anterior y con nombres cambiados; <b>no se publican aquí</b> hasta recibir el temario actualizado. Los vídeos de la serie ya siguen el orden nuevo (T6 ABJ → T7 Gamificación)."),
@@ -213,12 +239,12 @@ FAQ = [
  ("¿Cuál es la diferencia entre Ludo (T6) y Vínculo (T7)?", "En <b>Ludo se juega</b>: el juego ES la actividad (ABJ). En <b>Vínculo no se juega</b>: se toman elementos del juego (puntos, insignias, niveles, narrativa) y se ponen sobre una tarea que no es un juego (gamificación). Es el error conceptual más común: apóyate en Joran y Mara."),
  ("¿Cómo funciona el examen dentro de la historia?", "La batalla final ES el examen. En la semana 15 el vídeo <b>Plan de Ataque</b> lo presenta (caso, plataforma en directo, tablero de retos, reglas). Los tests de cada tema son el entrenamiento; la última semana hay repaso y simulacro."),
  ("¿Puedo mencionar Genially o la asignatura en público?", "En comunicación pública (redes, web abierta) el proyecto se nombra siempre «Proyecto Gamificado del Máster en Tecnología Educativa de la UNIR», sin la asignatura y sin citar herramientas. Dentro del aula y en este puesto de mando, sin problema."),
- ("¿Cómo registran los alumnos sus retos e insignias?", "Solos, en la <b>Bitácora de mando</b> de su PER (un formulario con inicio de sesión de Google y una única respuesta que editan cuando ganan una insignia). Los xp, las insignias y el <b>avatar con rango</b> se calculan automáticamente y se ven en el <a href='registro.html'>tablero</a> y en su <a href='recluta.html'>Nave del Recluta</a>. Tú no tocas ninguna hoja."),
+ ("¿Cómo registran los alumnos sus retos e insignias?", "Solos, en la <b>Bitácora de mando</b> de su PER (un formulario con inicio de sesión de Google y una única respuesta que editan cuando ganan una insignia). Los xp, el nivel, los créditos, las insignias y el <b>avatar que evoluciona</b> se calculan automáticamente y se ven en el <a href='registro.html'>tablero</a> y en su <a href='recluta.html'>Nave del Recluta</a>. Tú no tocas ninguna hoja."),
  ("¿Qué es la Nave del Recluta?", "La <a href='recluta.html'>web del alumnado</a> de su PER: se identifican con su correo (una vez por dispositivo) y ven su <b>personaje con rango y biografía</b>, su colección de insignias, la orden de la semana, los planetas que se van desbloqueando y las recompensas. Tiene onboarding con NEBULA. Entrégales el enlace o el QR (están en el Doc de enlaces del PER)."),
  ("¿Qué es el panel de control de los planetas?", "El <a href='panel.html'>mapa de la galaxia</a>: los ocho planetas sobre el universo, cada uno enlazando a la presentación de su tema. Con <code>?per=</code> los planetas se <b>desbloquean solos</b> según el calendario del PER. Sirve como página o incrustado en Genially; el <b>referente</b> decide si el PER usa el panel estándar o una copia propia (Panel de profes → Ajustes)."),
- ("¿Qué son los xp y los rangos del avatar?", "Puntos del juego (no nota): Reto A 100 · Reto B 250 · Actividad 500 · Batalla 500 · hitos 300. El avatar del alumno <b>evoluciona</b> solo: Recluta → Cadete (1.000) → Oficial (2.500) → Comandante (4.000) → <b>Leyenda</b> (4.500: solo quien completa el viaje). Los xp se pueden canjear por recompensas (subir nota, recalificar…) con validación automática."),
+ ("¿Qué son los xp, los niveles y los créditos?", "Son <b>dos marcadores distintos</b>. Los <b>xp</b> (Reto A 100 · Reto B 250 · Actividad 500 · Batalla 500 · hitos 300) miden el viaje, <b>nunca bajan</b> y dan el <b>nivel del 1 al 10</b>: el personaje <b>evoluciona</b> al entrar en los niveles 3 (Cadete), 5 (Oficial), 8 (Comandante) y 10 (<b>Leyenda</b>, el viaje completo). Los <b>créditos ◈</b> (Reto A 10 · Reto B 30 · Actividad 60 · hitos 40) son la moneda: es lo único que se descuenta al canjear recompensas. Comprar cromos no baja de nivel a nadie. Todo automático; tabla completa en <a href='registro.html#economia'>Registro</a>."),
  ("¿Cómo abro un PER nuevo?", "Lo hace el <b>profesor/a referente</b> desde la hoja maestra (cuenta mutecdgami): menú STARGATE → Crear nuevo PER… (nombre, REGULAR/PUA, fecha de la semana 1, profesorado). En un minuto tienes los 3 formularios, el tablero, el foro dinámico, la Nave del Recluta y un <b>documento con todos los enlaces, embeds y QR</b> para repartir al profesorado. El referente también decide el <b>panel de control Genially</b> del PER (estándar o propio). Guía en <a href='registro.html#instalacion'>Registro → Instalación</a>."),
- ("¿Qué hago si un alumno no hace el Reto A?", "Nada punitivo: no cuenta para nota. Pero el tripulante sigue «sin recuperar» y esos 100 xp se quedan sin ganar: usa la narrativa (NEBULA sigue incompleta) como invitación, no como castigo. Lo habitual es que el grupo arrastre."),
+ ("¿Qué hago si un alumno no hace el Reto A?", "Nada punitivo: no cuenta para nota. Pero el tripulante sigue «sin recuperar» y esos 100 xp y 10 ◈ se quedan sin ganar: usa la narrativa (NEBULA sigue incompleta) como invitación, no como castigo. Lo habitual es que el grupo arrastre."),
 ]
 faq_html="\n".join(f'<details class="faq"><summary>{q}</summary><div>{a}</div></details>' for q,a in FAQ)
 
@@ -316,7 +342,7 @@ mundo olvida lo que sabía hacer.</p></div>
 <h3 style="margin-top:1.8em">El álbum completo — 20 cartas en 4 series</h3>
 <p class="lead">Cada carta trae retrato, historia breve, clase, atributos y cita. Regla de oro, y conviene
 decirla en clase: <b>la insignia se gana, el cromo se compra</b>. El Reto A da la <b>insignia</b> del
-tripulante; las <b>20 cartas del álbum salen únicamente de los sobres</b> (100 xp, desde la semana 2), al azar
+tripulante; las <b>20 cartas del álbum salen únicamente de los sobres</b> (15 ◈, desde la semana 2), al azar
 y con rarezas: comunes los ocho tripulantes, raros los Ecos, NEBULA y
 el Capitán, épicos el Recluta y la Estática, y <b>LEGENDARIOS el General Vaeon</b> (2 % del sobre) y sobre todo
 <b>Ander Vaeon</b>, la carta de la identidad del villano: <b>1 de cada 100</b>, la más difícil del juego.
@@ -349,6 +375,22 @@ lección del personaje. <b>No cuenta para nota</b> (da 100 xp simbólicos del ju
 real</b> de la Bitácora y es un <b>trozo digerible</b> de la siguiente actividad grande. Su recompensa es la
 <b>insignia de reto</b>. Es el motor de <b>producción</b>.</p></div>
 </div>
+<div class="card" style="margin-top:22px"><div class="eyebrow amber">La decisión de diseño que más se nota</div>
+<h3>Dos marcadores: xp para el nivel, créditos ◈ para el bolsillo</h3>
+<p>Un error clásico al gamificar es usar <b>un solo contador</b> para medir el progreso y para pagar las
+recompensas: en cuanto el alumno compra algo, «retrocede» — y castigar la compra mata la tienda. Aquí van
+separados, y conviene explicarlo en clase porque <b>es el contenido del Tema 7 en vivo</b>:</p>
+<div class="grid cols-2" style="gap:14px">
+<div class="card"><h3>⭐ xp — el viaje</h3><p class="small">Solo suben, <b>nunca se gastan</b>. Dan el
+<b>nivel</b> (1 a 10), el puesto en el ranking y hacen <b>evolucionar al personaje</b> (5 versiones de arte,
+en los niveles 3, 5, 8 y 10). Reto A 100 · Reto B 250 · Actividad 500 · Batalla 500 · hitos 300.</p></div>
+<div class="card"><h3>◈ créditos — el bolsillo</h3><p class="small">Se ganan con el mismo trabajo
+(Reto A 10 · Reto B 30 · Actividad 60 · hitos 40) y son <b>lo único que se descuenta</b> en el canje.
+El viaje completo da <b>590 ◈</b> y todo lo cosmético cuesta 280: <b>hay que elegir</b>.</p></div>
+</div>
+<p class="small muted" style="margin-top:10px">Tabla completa de niveles y precios en
+<a href="registro.html#economia">Registro → Dos marcadores</a>.</p></div>
+
 <h3 style="margin-top:1.8em">Las 8 insignias de reto</h3>
 <p class="lead">Solo imagen, sin texto. Su icono refleja la tarea. Pulsa para ver qué hay que hacer.</p>
 <div class="badges">{reto_html}</div>
@@ -755,24 +797,40 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="card"><h3>3 · Un PER nuevo, un clic</h3><p>Menú <b>🛰️ STARGATE → Crear nuevo PER…</b>: pide nombre del PER, profesorado y fechas de apertura y cierre; crea formulario y hoja, programa la apertura/cierre y devuelve el enlace, el QR y el código para Genially.</p></div>
 </div>
 <h3 style="margin-top:1.6em">Avatares</h3>
-<div class="grid cols-2"><div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con sus xp</b> (× <b>5 rangos</b>: Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b>; el tablero cambia la imagen solo al superar 1.000 / 2.500 / 4.000 / 4.500 xp, escalado en PUA — la Leyenda es el viaje completo) o <b>su propia imagen por URL</b>. Al alistarse se eligen los personajes <b>1-4</b>; los <b>5-7 son EXCLUSIVOS</b> y se desbloquean canjeando xp — otro motor de motivación. (La antigua galería clásica de 16 queda como legado: los que la tienen la conservan, pero ya no se ofrece.)</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
+<div class="grid cols-2"><div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con su NIVEL</b> (10 niveles y <b>5 versiones de arte</b>: Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b>; cambia al entrar en los niveles <b>3, 5, 8 y 10</b>, escalado solo en PUA — ver <a href="#economia">la tabla de niveles</a>) o <b>su propia imagen por URL</b>. Al alistarse se eligen los personajes <b>1-4</b>; los <b>5-7 son EXCLUSIVOS</b> y se desbloquean con <b>créditos ◈</b> — otro motor de motivación. (La antigua galería clásica de 16 queda como legado: los que la tienen la conservan, pero ya no se ofrece.)</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
 <div class="official" style="display:block">🖼️ <b>Cómo poner tu propia imagen (para el alumnado):</b> 1) entra en <a href="https://postimages.org" target="_blank" rel="noopener">postimages.org</a>, pulsa <i>Elegir imágenes</i> y sube tu foto (no hace falta registrarse); 2) cuando termine, copia el campo <b>«Enlace directo»</b> (termina en .jpg o .png); 3) pégalo en la pregunta «URL de tu propia imagen». También vale un enlace de <b>Google Drive</b> si el archivo está compartido como «cualquier persona con el enlace». Un enlace a Instagram o a una página web no funciona.</div></div>
 <img src="assets/img/avatares/lamina_avatares.jpg" alt="Galería de avatares" style="border-radius:14px;border:1px solid var(--line)"></div>
-<h3 style="margin-top:1.6em">Puntos</h3>
-<p class="lead">Reclutamiento 100 xp · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 · hitos derivados (Cero completa, Liberación) 300. Un viaje completo ≈ 4.500 xp. En PUA: 300 por tema (personaje) + 500 por actividad. Los xp son del juego: <b>no son nota</b>.</p>
-<h4 style="margin-top:1em">Las recompensas y cuándo se desbloquean</h4>
+<h3 id="economia" style="margin-top:1.6em">Dos marcadores: xp y créditos ◈</h3>
+<p class="lead">Es la decisión de diseño más importante del sistema, y de paso el ejemplo vivo de una
+distinción que el alumnado va a estudiar en el <b>Tema 7</b>: <b>puntos de progreso</b> y <b>moneda
+canjeable</b> no son lo mismo y no deben compartir marcador.</p>
+<div class="grid cols-2">
+<div class="card"><h3>⭐ Los xp — el viaje</h3><p class="small"><b>Solo suben. No se gastan nunca.</b>
+Miden lo que el recluta ha recorrido: marcan su <b>nivel</b> (del 1 al 10), su puesto en el ranking y hacen
+<b>evolucionar a su personaje</b>. Comprar cromos no le baja de nivel: lo que ha aprendido no se devuelve.</p>
+<p class="small">Reclutamiento 100 · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 ·
+hitos derivados 300. Viaje completo = <b>{_mil(XP_VIAJE["REGULAR"])} xp</b> (PUA: 300 por tema + 500 por actividad,
+{_mil(XP_VIAJE["PUA"])} xp). Los xp <b>no son nota</b>.</p></div>
+<div class="card"><h3>◈ Los créditos — el bolsillo</h3><p class="small"><b>Es lo único que se descuenta.</b>
+Se ganan con el mismo trabajo que da xp, pero en otra escala, y se gastan en el canje. Cuando un recluta
+compra un sobre de cromos pierde créditos, no progreso.</p>
+<p class="small">Reclutamiento {CREDITOS["reclutamiento"]} ◈ · Reto A {CREDITOS["retoA"]} · Reto B {CREDITOS["retoB"]} ·
+Actividad {CREDITOS["actividad"]} · Batalla final {CREDITOS["final"]} · hitos derivados {CREDITOS["derivada"]}.
+Un viaje completo da <b>{CRED_VIAJE["REGULAR"]} ◈</b> (PUA: {CRED_VIAJE["PUA"]} ◈). Todo lo cosmético del catálogo
+cuesta 280 ◈: <b>hay que elegir</b>, y esa elección es la mitad de la gracia.</p></div>
+</div>
+<h4 style="margin-top:1.4em">Los 10 niveles (y cuándo evoluciona el personaje)</h4>
+<p class="lead">El personaje tiene <b>cinco versiones de arte</b> y cambia al entrar en los niveles 3, 5, 8 y 10.
+En PUA los umbrales se escalan solos, para que el camino se sienta igual de largo.</p>
+<div class="tablewrap"><table><thead><tr><th>Nivel</th><th>xp (REGULAR)</th><th>xp (PUA)</th><th>Título</th><th>Personaje</th></tr></thead><tbody>
+{niveles_html}
+</tbody></table></div>
+<h4 style="margin-top:1.4em">Las recompensas y cuándo se desbloquean</h4>
+<p class="lead">Todas se pagan en <b>créditos ◈</b>. La semana indicada es la de un PER REGULAR de 15 semanas;
+en PUA se escala sola. Las automáticas las aplica el sistema al recibir el formulario; las de nota las aplica
+el profesorado al terminar las clases en directo.</p>
 <div class="tablewrap"><table><thead><tr><th>Recompensa</th><th>Coste</th><th>Desde</th><th>Cómo se aplica</th></tr></thead><tbody>
-<tr><td>🃏 Sobre de cromos (uno al azar de las <b>20 cartas</b> en 4 series: comunes los tripulantes, raros los <a href="guia.html#ecos">Ecos</a>, épicos el Recluta y la Estática, <b>legendarios</b> el General Vaeon (2 %) y <b>Ander Vaeon</b>, la identidad del villano, solo <b>1 de cada 100</b>)</td><td class="pts">100</td><td>Semana 2</td><td><b>Automática</b> · repetible</td></tr>
-<tr><td>Título de recluta (bajo su alias en tablero y Nave)</td><td class="pts">200</td><td>Semana 3</td><td><b>Automática</b> · máx. 3</td></tr>
-<tr><td>Fondo de ficha: su planeta (en la Nave)</td><td class="pts">150</td><td>Semana 4</td><td><b>Automática</b></td></tr>
-<tr><td>Cambio de avatar (otro personaje inicial)</td><td class="pts">300</td><td>Semana 5</td><td><b>Automática</b> · máx. 3</td></tr>
-<tr><td>Marco dorado del avatar (en el ranking)</td><td class="pts">300</td><td>Semana 6</td><td><b>Automática</b></td></tr>
-<tr><td>⭐ Personaje exclusivo (desbloquea los personajes 5-7)</td><td class="pts">500</td><td>Semana 7</td><td><b>Automática</b> · máx. 3</td></tr>
-<tr><td>Avatar personal (su propia imagen por URL)</td><td class="pts">800</td><td>Semana 10</td><td><b>Automática</b></td></tr>
-<tr><td>Subir 0,5 en un entregable</td><td class="pts">900</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
-<tr><td>Subir 1 punto en un entregable</td><td class="pts">1.400</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
-<tr><td>Recalificar fuera de plazo</td><td class="pts">2.000</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
-<tr><td>Recalificar un suspenso</td><td class="pts">2.800</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
+{recompensas_html}
 </tbody></table></div>
 <p class="small muted" style="margin-top:8px">Además, sin canje: la <b>corona semanal</b> 👑 aparece sola en el tablero junto al recluta que más xp ganó en los últimos 7 días.</p>
 <p class="small muted">Las de avatar se conceden y se aplican solas (el avatar cambia en el tablero al instante). Las de nota se conceden solas pero <b>se hacen efectivas al terminar las clases en directo</b>: el correo de confirmación ya lo avisa. Todo es editable en la pestaña <b>RECOMPENSAS</b> de la hoja (coste, máximo, semana de desbloqueo); en PUA las semanas se escalan solas. En la <a href="recluta.html">Nave del Recluta</a> las que aún no tocan aparecen como «recompensa clasificada».</p>
@@ -920,9 +978,25 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
 
 // ---- avatares: personaje que evoluciona por xp · clásico · URL propia (con respaldo) ----
 window.SG = window.SG || {};
-window.SG.RANGOS = ['Recluta','Cadete','Oficial','Comandante','Leyenda'];
-window.SG.UMBRALES = function(tipoPer){ var k = (tipoPer==='PUA') ? 3500/4500 : 1; return [1000*k,2500*k,4000*k,4500*k]; };
-window.SG.rango = function(xp, tipoPer){ var u=window.SG.UMBRALES(tipoPer); var r=1; for(var i=0;i<u.length;i++) if(xp>=u[i]) r=i+2; return r; };
+// Niveles y rangos (v3.7). Los XP SOLO SUBEN: dan nivel, y el avatar evoluciona al entrar en
+// los niveles marcados. Lo gastable son los CRÉDITOS, que viajan aparte en la ficha del recluta.
+window.SG.MONEDA = __MONEDA__;
+window.SG.RANGOS = __RANGOS__;
+window.SG.NIVELES = __NIVELES__;            // [nivel, xp REGULAR, rango 1-5, título]
+window.SG.XP_VIAJE = __XPVIAJE__;
+window.SG.escalaXp = function(tipoPer){ var r=window.SG.XP_VIAJE.REGULAR||1; return (window.SG.XP_VIAJE[tipoPer]||r)/r; };
+window.SG.nivel = function(xp, tipoPer){ var k=window.SG.escalaXp(tipoPer), n=1, L=window.SG.NIVELES;
+  for(var i=0;i<L.length;i++) if((xp||0) >= L[i][1]*k) n=L[i][0];
+  return n; };
+window.SG.nivelInfo = function(xp, tipoPer){ var L=window.SG.NIVELES, k=window.SG.escalaXp(tipoPer);
+  var n=window.SG.nivel(xp,tipoPer), f=L[n-1];
+  var desde=Math.round(f[1]*k), sig=n<L.length?Math.round(L[n][1]*k):null;
+  var pct=sig?Math.min(100,Math.max(0,Math.round(((xp||0)-desde)/(sig-desde)*100))):100;
+  // ¿en qué nivel toca la próxima evolución del avatar?
+  var evo=null; for(var j=n;j<L.length;j++) if(L[j][2]>f[2]){ evo={nivel:L[j][0], xp:Math.round(L[j][1]*k), rango:window.SG.RANGOS[L[j][2]-1]}; break; }
+  return { nivel:n, rango:f[2], rangoNombre:window.SG.RANGOS[f[2]-1], titulo:f[3],
+           desde:desde, siguiente:sig, faltan: sig===null?0:Math.max(0,sig-(xp||0)), pct:pct, evo:evo }; };
+window.SG.rango = function(xp, tipoPer){ return window.SG.NIVELES[window.SG.nivel(xp,tipoPer)-1][2]; };
 window.SG.avatarSrc = function(av, alias, xp, tipoPer){
   av = av || {}; var h=0; for(var i=0;i<(alias||'').length;i++) h=(h*31+alias.charCodeAt(i))>>>0;
   var tipo = av.tipo || 'evo'; var n = av.n || (tipo==='evo' ? (h%7)+1 : (h%16)+1); var v = av.v || ((h>>3)%2 ? 'm' : 'f');
@@ -984,7 +1058,7 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding del prof
    {p:'index.html',sel:'#hero-cta',pose:'pensativo',ask:true,t:'Una pregunta de mando',x:'¿Eres el <b>profesor o profesora referente</b> de tu PER (quien lo crea y lo gestiona), o <b>impartes las clases</b>? Si eres referente te enseñaré también la sala de máquinas.'},
    {p:'index.html',sel:'#en60',pose:'tablet',t:'La misión en 60 segundos',x:'La galaxia se apaga por la Estática. Tu alumnado son reclutas: <b>8 planetas = 8 temas</b>, y una <b>Bitácora</b> (el ePortfolio) que lo reenciende todo. La batalla final es el examen.'},
    {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'<b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase.'},
-   {p:'guia.html',sel:'#retos',pose:'tablet',t:'Dos retos por tema',x:'El <b>Reto A</b> desbloquea al personaje: no cuenta para nota, aunque da 100 xp simbólicos del juego. El <b>Reto B</b> produce una evidencia real de la Bitácora. 24 insignias en total: entrégalas en público y con su frase.'},
+   {p:'guia.html',sel:'#retos',pose:'tablet',t:'Dos retos por tema',x:'El <b>Reto A</b> da la <b>insignia</b> del personaje: no cuenta para nota, aunque da 100 xp y 10 ◈. El <b>Reto B</b> produce una evidencia real de la Bitácora (250 xp y 30 ◈). Recuerda la regla: los <b>xp</b> suben de nivel y nunca se gastan; los <b>créditos ◈</b> son lo que se canjea.'},
    {p:'cronologia.html',sel:'#mapa',pose:'senala',t:'Tu carta de navegación',x:'El mapa de las <b>15 semanas</b>: qué vídeo proyectar, qué reto lanzar, qué insignia entregar y el hito de evaluación. Sin fechas: semanas, como tu aula.'},
    {p:'cronologia.html',sel:'#sem1',pose:'pensativo',t:'La orden del día',x:'Despliega una semana y tendrás la orden completa, con los vídeos reproducibles aquí mismo y el <b>mensaje del foro listo para copiar</b> (la firma es siempre «Capitán», a secas). Empieza por la semana 1.'},
    {p:'actividades.html',sel:'#act1',pose:'pensativo',t:'Misiones y evaluación',x:'Las dos misiones mayores, el ePortfolio y el examen con los <b>requisitos oficiales</b>, más los documentos para descargar.'},
@@ -1049,7 +1123,11 @@ os.makedirs(os.path.join(HERE,"assets","js"),exist_ok=True)
 _cardv = hashlib.md5(b"".join(open(os.path.join(HERE,"assets","img","tarjetas",k+"_carta.png"),"rb").read() for k in CARDS)).hexdigest()[:10]
 js = (JS_TEMPLATE.replace("__BADGE__", json.dumps(BADGE_INFO, ensure_ascii=False))
                  .replace("__CARDS__", json.dumps(CARD_TITLES, ensure_ascii=False))
-                 .replace("__CARDV__", _cardv))
+                 .replace("__CARDV__", _cardv)
+                 .replace("__MONEDA__", json.dumps(MONEDA, ensure_ascii=False))
+                 .replace("__RANGOS__", json.dumps(RANGOS, ensure_ascii=False))
+                 .replace("__NIVELES__", json.dumps([list(n) for n in NIVELES], ensure_ascii=False))
+                 .replace("__XPVIAJE__", json.dumps(XP_VIAJE, ensure_ascii=False)))
 open(os.path.join(HERE,"assets","js","stargate.js"),"w",encoding="utf-8").write(js)
 open(os.path.join(HERE,"assets","js","tour.js"),"w",encoding="utf-8").write(TOUR_JS)
 
@@ -1282,13 +1360,42 @@ def _js_cromos():
     filas[-1] = filas[-1][:-1]
     return "\n".join(filas)
 
+def _js_niveles():
+    L = []
+    L.append('var MONEDA = %s;' % json.dumps(MONEDA, ensure_ascii=False))
+    L.append('var RANGOS = %s;' % json.dumps(RANGOS, ensure_ascii=False))
+    L.append('var NIVELES = [   // [nivel, xp REGULAR, rango de arte 1-5, titulo]')
+    for n, xp, r, t in NIVELES:
+        L.append('  [%d,%d,%d,%s],' % (n, xp, r, json.dumps(t, ensure_ascii=False)))
+    L[-1] = L[-1][:-1]
+    L.append('];')
+    L.append('var XP_VIAJE = %s;' % json.dumps(XP_VIAJE, ensure_ascii=False))
+    L.append('var CREDITOS = %s;' % json.dumps(CREDITOS, ensure_ascii=False))
+    return "\n".join(L)
+
+def _js_recompensas():
+    filas = []
+    for nombre, coste, mx, desc, desde, tipo in RECOMPENSAS:
+        filas.append('  [%s,%d,%d,%s,%d,%s],' % (json.dumps(nombre, ensure_ascii=False), coste, mx,
+                                                 json.dumps(desc, ensure_ascii=False), desde,
+                                                 json.dumps(tipo, ensure_ascii=False)))
+    filas[-1] = filas[-1][:-1]
+    return "\n".join(filas)
+
+def _sustituir(txt, ini, fin, cuerpo):
+    a = txt.index(ini) + len(ini); b = txt.index(fin)
+    return txt[:a] + cuerpo + txt[b:]
+
 _gs_path = os.path.join(HERE, "apps-script", "Code.gs")
 _gs = open(_gs_path, encoding="utf-8").read()
-_ini, _fin = "var CROMOS = [\n", "\n];\n// CROMOS-FIN"
-_a = _gs.index(_ini) + len(_ini); _b = _gs.index(_fin)
-_gs = _gs[:_a] + _js_cromos() + _gs[_b:]
+_gs = _sustituir(_gs, "var CROMOS = [\n", "\n];\n// CROMOS-FIN", _js_cromos())
+_gs = _sustituir(_gs, "// NIVELES-INICIO", "\n// NIVELES-FIN",
+                 _gs[_gs.index("// NIVELES-INICIO")+len("// NIVELES-INICIO"):_gs.index("var MONEDA")].rstrip("\n")
+                 + "\n" + _js_niveles())
+_gs = _sustituir(_gs, "var RECOMPENSAS_INICIALES = [\n", "\n];\n// RECOMPENSAS-FIN", _js_recompensas())
 open(_gs_path, "w", encoding="utf-8").write(_gs)
 open(os.path.join(HERE, "assets", "descargas", "Code.gs.txt"), "w", encoding="utf-8").write(_gs)
 open(os.path.join(HERE, "assets", "descargas", "Dialog.html.txt"), "w", encoding="utf-8").write(
     open(os.path.join(HERE, "apps-script", "Dialog.html"), encoding="utf-8").read())
-print("apps-script: CROMOS regenerado (%d cartas) + Code.gs.txt/Dialog.html.txt sincronizados" % len(CROMOS))
+print("apps-script: CROMOS (%d cartas) + NIVELES (%d) + RECOMPENSAS (%d) regenerados y sincronizados"
+      % (len(CROMOS), len(NIVELES), len(RECOMPENSAS)))
