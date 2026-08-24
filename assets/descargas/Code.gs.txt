@@ -5,6 +5,8 @@
  * API de lectura (doGet) para la web del alumnado y API con PIN (doPost) para el panel del profesorado.
  * v3: La Nave del Recluta (recluta.html?per=id) · recompensas con semana de desbloqueo · canjes de avatar
  * automáticos («Cambio de avatar» y «Avatar personal») · el avatar inicial se congela al alistarse y solo
+ * v3.4: 7 personajes evolutivos × 5 rangos (nuevo rango LEYENDA a 4.500 xp) — la web calcula el rango;
+ * aquí solo cambian las opciones del formulario (opcAvatares_).
  * cambia mediante canje concedido · identificación del recluta por correo (doPost accion=quien, sin PIN,
  * devuelve solo SU ficha pública + bio) · BIO del personaje en la Bitácora de mando · panel de control
  * Genially por PER (estándar compartido en propiedades + override por PER desde el panel de profes).
@@ -86,7 +88,7 @@ var H = { PERS:"PERs", REC:"RECOMPENSAS", EV:"EVENTOS", AJ:"AJUSTES", DATOS:"DAT
 
 function retosDe_(tipo){ return tipo === "PUA" ? RETOS_PUA : RETOS_REGULAR; }
 function opcAvatares_() {
-  var opc = []; for (var pj = 1; pj <= 5; pj++) { var et = pj < 5 ? ["ella","él"] : ["modelo A","modelo B"];
+  var opc = []; for (var pj = 1; pj <= 7; pj++) { var et = pj !== 5 ? ["ella","él"] : ["modelo A","modelo B"];
     opc.push("Personaje " + pj + " · " + et[0] + " (evoluciona)"); opc.push("Personaje " + pj + " · " + et[1] + " (evoluciona)"); }
   for (var cl = 1; cl <= 16; cl++) opc.push("Clásico " + cl);
   return opc;
@@ -296,7 +298,7 @@ function crearPER(datos) {
   // avatar: personaje que evoluciona (5) · galería clásica (16) · URL propia
   try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle("Tu personaje evoluciona con tus xp").setHelpText("Recluta → Cadete → Oficial → Comandante. El tablero lo cambia solo según tus puntos.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
   try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_avatares.jpg").getBlob()).setTitle("O un avatar clásico (no evoluciona)").setAlignment(FormApp.Alignment.CENTER).setWidth(520); } catch (e) {}
-  var av = fb.addListItem().setTitle("Elige tu avatar").setHelpText("Personaje 1-5 en versión ella/él (evoluciona con tus xp: Recluta → Cadete → Oficial → Comandante), clásico 1-16, o tu propia imagen (pega la URL en la siguiente pregunta). Elige bien: cambiarlo después cuesta xp (recompensa «Cambio de avatar»).").setRequired(true);
+  var av = fb.addListItem().setTitle("Elige tu avatar").setHelpText("Personaje 1-7 en versión ella/él (evoluciona con tus xp: Recluta → Cadete → Oficial → Comandante → Leyenda), clásico 1-16, o tu propia imagen (pega la URL en la siguiente pregunta). Elige bien: cambiarlo después cuesta xp (recompensa «Cambio de avatar»).").setRequired(true);
   av.setChoiceValues(opcAvatares_().concat(["Prefiero mi propia imagen (pongo la URL abajo)"]));
   var avu = fb.addTextItem().setTitle("URL de tu propia imagen (opcional)").setHelpText(
     "Debe ser un ENLACE DIRECTO a una imagen (termina en .jpg, .png o .webp). La forma más fácil: entra en postimages.org, sube tu foto (sin registrarte), y copia el campo «Enlace directo». " +

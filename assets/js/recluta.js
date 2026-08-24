@@ -73,8 +73,8 @@
     }
     var r=st.yo, d=st.d, SG=window.SG||{};
     var av=SG.avatarImg?SG.avatarImg(r.avatar,r.alias,'grande',r.xp,d.tipo):'';
-    var k=d.tipo==='PUA'?3500/4500:1; var u=[1000*k,2500*k,4000*k]; var rg=SG.rango?SG.rango(r.xp,d.tipo):1;
-    var sig=rg<4?u[rg-1]:null; var base=rg>1?u[rg-2]:0;
+    var u=SG.UMBRALES?SG.UMBRALES(d.tipo):[1000,2500,4000,4500]; var rg=SG.rango?SG.rango(r.xp,d.tipo):1;
+    var sig=rg<=u.length?u[rg-1]:null; var base=rg>1?u[rg-2]:0;
     var pct=sig?Math.min(100,Math.round((r.xp-base)/(sig-base)*100)):100;
     var barra=sig?'<div class="progress" title="'+r.xp+' / '+Math.round(sig)+' xp"><i style="width:'+pct+'%"></i></div><p class="small muted">'+(Math.round(sig)-r.xp)+' xp para el rango '+(SG.RANGOS?SG.RANGOS[rg]:'siguiente')+'</p>'
                  :'<p class="small muted">Rango máximo alcanzado. 🫡</p>';
