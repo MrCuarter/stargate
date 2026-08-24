@@ -14,6 +14,10 @@ M-learning y Gamificación en el Aula* (CCD). Pensado para el profesorado y para
 - `profes.html` · `tickets.html` · `foro.html` · `embed.html` — panel del profesorado (PIN), tickets visual, foro dinámico semanal (`?todos=1` = todos los mensajes para copiar) y generador de enlaces/embeds/QR.
 - `recluta.html` — **La Nave del Recluta** (v3.1, 24-ago): la web del alumnado por PER (`?per=<id>`, `&embed=1`): el recluta se identifica con su CORREO una vez por dispositivo (POST `accion=quien`, sin PIN; el correo nunca va en la URL ni se lista) y lo primero que ve es SU personaje (avatar+rango+xp+colección+bio); onboarding con NEBULA, planetas desbloqueados por calendario, foro unidireccional, recompensas con desbloqueo semanal y botón al panel de control Genially del PER. Motor compartido en `assets/js/calendario.js`.
 - `apps-script/` — código de la hoja maestra (Code.gs + Dialog.html); copia servida en `assets/descargas/`.
+- `grupos.html` — **Grupos** (v3.6): un panel por PER con todos los accesos del docente (tablero, Nave,
+  panel del profesorado, tickets, foro, enlaces/embeds) más sus formularios y el panel de control, y un botón
+  para copiar el enlace del alumnado. `?per=<id>` resalta uno. La entrada **Grupos** del menú superior
+  despliega los PER activos desde cualquier página.
 - `recursos.html` — **Sala de recursos** (tablero de 24 insignias, las 20 cartas del álbum, ranking).
 
 Datos editables en `_site_data.py` (cronología, vídeos, Geniallys, **catálogo de cromos**); los textos
@@ -30,6 +34,12 @@ es **el único sitio donde se define el álbum**. Al ejecutar `_build_site.py`:
 Los pesos deben sumar 100 (hay un `assert`). Las imágenes de las cartas las genera
 `../Retos e Insignias/_work/cartas.py` y las publica aquí `publicar_tarjetas.py` (720×1210).
 **No editar `var CROMOS` ni el `.txt` a mano: se pisan en el siguiente build.**
+
+### La lista de grupos (PER)
+`doGet ?per=all` **no pide PIN** y devuelve `id/nombre/tipo/estado/inicio` de los PER no archivados.
+`window.SG.pers(cb)` (en `stargate.js`) la sirve con **caché de 12 h en localStorage** y revalidación en
+segundo plano: la usan el desplegable «Grupos» del menú y `grupos.html`. Como `head()` inyecta
+`window.SG_TABLERO_API` en todas las páginas del profesorado, el desplegable funciona en cualquiera.
 
 ## Estructura
 ```

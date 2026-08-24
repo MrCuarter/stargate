@@ -13,10 +13,20 @@ FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0
 
 NAV = [("index.html","Inicio","inicio"),("guia.html","Guía","guia"),("cronologia.html","Cronología","crono"),
        ("actividades.html","Actividades","act"),("geniallys.html","Geniallys","gen"),
-       ("registro.html","Registro","reg"),("recursos.html","Recursos","rec")]
+       ("registro.html","Registro","reg"),("grupos.html","Grupos","grp"),("recursos.html","Recursos","rec")]
 
 def head(title, desc, active):
-    links = "".join(f'<a class="lnk{" active" if k==active else ""}" href="{h}">{t}</a>' for h,t,k in NAV)
+    def _lnk(h, t, k):
+        act = " active" if k == active else ""
+        if k != "grp":
+            return f'<a class="lnk{act}" href="{h}">{t}</a>'
+        # «Grupos» despliega los PER activos (los pide stargate.js a la API; sin PIN)
+        return (f'<div class="lnk drop{act}" id="nav-grupos"><button type="button" class="drop-btn" '
+                f'aria-haspopup="true" aria-expanded="false">{t} <i>▾</i></button>'
+                f'<div class="drop-menu" role="menu" hidden>'
+                f'<a class="drop-all" href="{h}" role="menuitem">Ver todos los grupos →</a>'
+                f'<div class="drop-list"><span class="drop-msg">Cargando grupos…</span></div></div></div>')
+    links = "".join(_lnk(h, t, k) for h, t, k in NAV)
     return f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
@@ -25,6 +35,7 @@ def head(title, desc, active):
 <meta name="theme-color" content="#080c14">
 <link rel="icon" href="{FAV}">
 <link rel="stylesheet" href="assets/css/stargate.css">
+<script>window.SG_TABLERO_API="{TABLERO_API}";</script>
 <script src="assets/js/stargate.js" defer></script>
 <script src="assets/js/tour.js" defer></script>
 </head><body>
@@ -77,7 +88,7 @@ CROMO_TITULO={
  "L5_ruta_azul":"Los Niños de la Ruta Azul · La partida que ya estaba ganada",
  "L6_oren":"Oren Vash · La Primera Voz de Ashan",
  "N1_recluta":"El Recluta · La última página",
- "S1_archivista":"El Archivista de Ashan · Antes del silencio",
+ "S1_ander":"Ander Vaeon · El nombre que borró",
  "S2_estatica":"La Estática · El silencio que avanza",
 }
 PLANETAS=[("p1_forge","Fôrge","T1 · Contenido multimedia"),("p2_ecos","Ecos","T2 · El vídeo"),
@@ -293,9 +304,11 @@ entre la Cero y la IA que narra el viaje.</p></div>
 <div class="grid cols-3" style="gap:14px">
 <div class="card"><h3>El Recluta</h3><p class="small">Eres <b>tú</b>. Sin poderes, sin destino escrito: solo
 la costumbre de dejar constancia. Es la única carta del álbum que todavía se está escribiendo.</p></div>
-<div class="card"><h3>El Archivista de Ashan</h3><p class="small"><b>Vaeon antes de Vaeon</b>: el hombre que
-custodiaba la memoria de un mundo y decidió que olvidar era misericordia. La carta que convierte al villano en
-una advertencia y no en un monstruo.</p></div>
+<div class="card"><h3>Ander Vaeon · <span class="tag">1 %</span></h3><p class="small"><b>La carta más difícil
+del álbum</b> y la única que revela la <b>identidad</b> del villano: antes del general hubo un Archivista Mayor
+con un libro en los brazos y un nombre de pila. Cuando la Estática se llevó a los suyos, <b>el primer archivo
+que selló bajo llave fue el suyo</b>; hoy solo le queda el apellido y un rango. Sale <b>1 de cada 100</b> sobres
+— la mitad de veces que el propio Vaeon: <em>el hombre es más raro que el monstruo</em>.</p></div>
 <div class="card"><h3>La Estática</h3><p class="small">El enemigo <b>de verdad</b>, y es más aburrido que un
 general: una costumbre que se contagia. Donde entra, nadie crea, registra ni comparte, y en dos generaciones un
 mundo olvida lo que sabía hacer.</p></div>
@@ -304,8 +317,9 @@ mundo olvida lo que sabía hacer.</p></div>
 <p class="lead">Cada carta trae retrato, historia breve, clase, atributos y cita. Las de la
 <b>Tripulación Cero</b> se desbloquean además con su insignia de Reto A; las demás <b>solo salen en los sobres
 de cromos</b> (100 xp, desde la semana 2), con rarezas: comunes los ocho tripulantes, raros los Ecos, NEBULA y
-el Capitán, épicos el Recluta, el Archivista y la Estática, y <b>LEGENDARIO el General Vaeon</b> (2 % del
-sobre). Pulsa cualquiera para ampliar.</p>
+el Capitán, épicos el Recluta y la Estática, y <b>LEGENDARIOS el General Vaeon</b> (2 % del sobre) y sobre todo
+<b>Ander Vaeon</b>, la carta de la identidad del villano: <b>1 de cada 100</b>, la más difícil del juego.
+Pulsa cualquiera para ampliar.</p>
 {cards_series_html}
 </div></section>
 
@@ -747,7 +761,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <p class="lead">Reclutamiento 100 xp · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 · hitos derivados (Cero completa, Liberación) 300. Un viaje completo ≈ 4.500 xp. En PUA: 300 por tema (personaje) + 500 por actividad. Los xp son del juego: <b>no son nota</b>.</p>
 <h4 style="margin-top:1em">Las recompensas y cuándo se desbloquean</h4>
 <div class="tablewrap"><table><thead><tr><th>Recompensa</th><th>Coste</th><th>Desde</th><th>Cómo se aplica</th></tr></thead><tbody>
-<tr><td>🃏 Sobre de cromos (uno al azar de las <b>20 cartas</b> en 4 series: comunes los tripulantes, raros los <a href="guia.html#ecos">Ecos</a>, épicos el Recluta / el Archivista / la Estática, <b>legendario</b> Vaeon)</td><td class="pts">100</td><td>Semana 2</td><td><b>Automática</b> · repetible</td></tr>
+<tr><td>🃏 Sobre de cromos (uno al azar de las <b>20 cartas</b> en 4 series: comunes los tripulantes, raros los <a href="guia.html#ecos">Ecos</a>, épicos el Recluta y la Estática, <b>legendarios</b> el General Vaeon (2 %) y <b>Ander Vaeon</b>, la identidad del villano, solo <b>1 de cada 100</b>)</td><td class="pts">100</td><td>Semana 2</td><td><b>Automática</b> · repetible</td></tr>
 <tr><td>Título de recluta (bajo su alias en tablero y Nave)</td><td class="pts">200</td><td>Semana 3</td><td><b>Automática</b> · máx. 3</td></tr>
 <tr><td>Fondo de ficha: su planeta (en la Nave)</td><td class="pts">150</td><td>Semana 4</td><td><b>Automática</b></td></tr>
 <tr><td>Cambio de avatar (otro personaje inicial)</td><td class="pts">300</td><td>Semana 5</td><td><b>Automática</b> · máx. 3</td></tr>
@@ -920,6 +934,44 @@ window.SG.avatarSrc = function(av, alias, xp, tipoPer){
 };
 window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
   return '<img class="av '+(cls||'')+' r'+r.r+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" title="'+r.rango+'" loading="lazy" referrerpolicy="no-referrer" onerror="if(this.src!==this.dataset.fb){this.src=this.dataset.fb;}">'; };
+
+// ---------- lista de PERs (grupos): caché de 12 h + revalidación en segundo plano ----------
+// La usa el desplegable «Grupos» del menú y grupos.html. doGet ?per=all NO pide PIN y solo
+// devuelve id/nombre/tipo/estado/inicio de los PER no archivados.
+window.SG.pers = function(cb){
+  var API=(window.SG_TABLERO_API||'').trim(), K='sgPers_v1';
+  if(!API){ cb([], 'sin-api'); return; }
+  var cache=null; try{ cache=JSON.parse(localStorage.getItem(K)||'null'); }catch(e){}
+  var fresco = cache && (Date.now()-cache.ts) < 12*3600*1000;
+  if(cache) cb(cache.pers, fresco?'cache':'viejo');
+  if(fresco) return;
+  fetch(API+'?per=all',{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){
+    var pers=(d&&d.pers)||[];
+    try{ localStorage.setItem(K, JSON.stringify({ts:Date.now(), pers:pers})); }catch(e){}
+    cb(pers, 'red');
+  }).catch(function(){ if(!cache) cb([], 'error'); });
+};
+
+// ---------- desplegable «Grupos» del menú ----------
+(function(){
+  var box=document.getElementById('nav-grupos'); if(!box) return;
+  var btn=box.querySelector('.drop-btn'), menu=box.querySelector('.drop-menu'), lista=box.querySelector('.drop-list');
+  function esc2(t){return (t==null?'':String(t)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function abrir(v){ menu.hidden=!v; box.classList.toggle('open',v); btn.setAttribute('aria-expanded',v?'true':'false'); }
+  btn.addEventListener('click',function(e){ e.stopPropagation(); abrir(menu.hidden); });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)) abrir(false); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') abrir(false); });
+  var pintado=false;
+  window.SG.pers(function(pers,origen){
+    if(pintado && origen!=='red') return;
+    pintado=true;
+    if(!pers.length){ lista.innerHTML='<span class="drop-msg">'+(origen==='sin-api'
+      ? 'El tablero aún no está conectado.' : 'Todavía no hay grupos activos.')+'</span>'; return; }
+    lista.innerHTML=pers.map(function(p){
+      return '<a href="grupos.html?per='+encodeURIComponent(p.id)+'" role="menuitem"><b>'+esc2(p.nombre)+'</b>'
+        +'<em>'+esc2(p.tipo||'')+(p.estado?' · '+esc2(p.estado):'')+'</em></a>';}).join('');
+  });
+})();
 """
 
 TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding del profesorado)
@@ -1064,6 +1116,24 @@ TICKETS = head("STARGATE · Tickets de salida", "Panel visual de los tickets de 
 ''' + FOOT
 html=(TICKETS.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
 open(os.path.join(HERE,"tickets.html"),"w",encoding="utf-8").write(html); print("escrito: tickets.html")
+
+# ================= v3.6 · GRUPOS (un panel de accesos por PER) =================
+# La lista sale de doGet ?per=all (sin PIN); los formularios de cada grupo, de doGet ?per=<id>.
+GRUPOS = head("STARGATE · Grupos", "Tus grupos (PER) de STARGATE: tablero, nave del alumnado, panel del profesorado, tickets, foro y enlaces de cada uno.", "grp") + f'''
+<header class="hero"><div class="kicker">Un grupo, un panel</div><h1>Tus grupos</h1>
+<p>Cada clase que se da de alta en la hoja maestra es un <b>PER</b>: su tablero, su nave, su foro y sus
+formularios. Aquí los tienes todos, y desde el menú <b>Grupos</b> puedes saltar a cualquiera desde
+cualquier página.</p>
+<p class="small muted">Se listan los PER <b>no archivados</b>. Para crear uno: hoja maestra → menú
+<b>STARGATE → Crear nuevo PER</b>. Para archivarlo o borrarlo, panel del profesorado → Ajustes.</p></header>
+<section><div class="wrap"><div id="grupos-app"></div>
+<script>window.SG_SEMANAS={SEMANAS_JSON};</script>
+<script src="assets/js/calendario.js" defer></script>
+<script src="assets/js/grupos.js" defer></script>
+</div></section>
+''' + FOOT
+html=(GRUPOS.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
+open(os.path.join(HERE,"grupos.html"),"w",encoding="utf-8").write(html); print("escrito: grupos.html")
 
 # ================= v2.3 · GENERADOR DE EMBEDS =================
 EMBED = head("STARGATE · Enlaces y embeds", "Genera los enlaces, códigos de incrustación y QR de un PER para los Geniallys del alumnado y del profesorado.", "gen") + f'''

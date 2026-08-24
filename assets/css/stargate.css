@@ -17,6 +17,38 @@ img{max-width:100%;height:auto}
 .nav a.lnk{color:var(--mut);text-decoration:none;font-size:.85rem;padding:6px 11px;border-radius:8px}
 .nav a.lnk:hover{color:var(--teal);background:rgba(55,224,236,.08)}
 .nav a.lnk.active{color:var(--teal);background:rgba(55,224,236,.12)}
+/* menú «Grupos»: despliega los PER activos */
+.nav .lnk.drop{position:relative;padding:0}
+.nav .drop-btn{font:inherit;font-size:.85rem;color:var(--mut);background:none;border:0;cursor:pointer;
+  padding:6px 11px;border-radius:8px;font-family:inherit}
+.nav .drop-btn i{font-style:normal;font-size:.7em;opacity:.8}
+.nav .drop-btn:hover,.nav .lnk.drop.open .drop-btn{color:var(--teal);background:rgba(55,224,236,.08)}
+.nav .lnk.drop.active .drop-btn{color:var(--teal);background:rgba(55,224,236,.12)}
+.nav .drop-menu{position:absolute;top:calc(100% + 8px);right:0;min-width:250px;max-width:min(320px,86vw);
+  max-height:min(60vh,420px);overflow:auto;background:rgba(10,15,24,.98);border:1px solid var(--line);
+  border-radius:12px;padding:6px;box-shadow:0 18px 44px rgba(0,0,0,.55);z-index:30}
+.nav .drop-menu a{display:block;padding:8px 10px;border-radius:8px;text-decoration:none;color:var(--txt);font-size:.85rem}
+.nav .drop-menu a:hover{background:rgba(55,224,236,.1)}
+.nav .drop-menu a em{display:block;font-style:normal;font-size:.7rem;color:var(--mut);margin-top:1px}
+.nav .drop-menu .drop-all{color:var(--teal);font-size:.78rem;border-bottom:1px solid var(--line);
+  border-radius:8px 8px 0 0;margin-bottom:4px}
+.nav .drop-menu .drop-msg{display:block;padding:8px 10px;font-size:.78rem;color:var(--mut)}
+/* grupos.html */
+.grupo{margin-bottom:16px}
+.grupo.foco{border-color:var(--teal);box-shadow:0 0 26px rgba(55,224,236,.18)}
+.grupo-head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.grupo-head h3{margin:0}
+.accesos{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px;margin:14px 0 12px}
+.accesos .acceso{display:block;padding:11px 12px;border:1px solid var(--line);border-radius:12px;
+  text-decoration:none;background:rgba(255,255,255,.02);transition:.18s}
+.accesos .acceso:hover{border-color:var(--teal);transform:translateY(-2px)}
+.accesos .acceso .ic{font-size:1.1rem}
+.accesos .acceso b{display:block;color:var(--txt);font-size:.88rem;margin-top:2px}
+.accesos .acceso em{display:block;font-style:normal;font-size:.72rem;color:var(--mut);line-height:1.4;margin-top:3px}
+.grupo .forms{display:flex;flex-wrap:wrap;gap:8px}
+.chip-link{display:inline-block;padding:5px 11px;border:1px solid var(--line);border-radius:999px;
+  font-size:.76rem;text-decoration:none;color:var(--mut)}
+.chip-link:hover{border-color:var(--amber);color:var(--amber)}
 /* HERO */
 .hero{position:relative;padding:82px 22px 60px;text-align:center;border-bottom:1px solid var(--line);overflow:hidden}
 .hero:before{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 50% 0,rgba(55,224,236,.16),transparent 70%);pointer-events:none}

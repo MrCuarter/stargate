@@ -84,7 +84,7 @@ var WEB = "https://stargate.mistercuarter.es/";
 // tipo: "avatar" (automática: nuevo avatar de la galería) · "avatar_url" (automática: imagen propia por URL)
 //       "nota" (la aplica el profesorado; efectiva al terminar las clases en directo)
 var RECOMPENSAS_INICIALES = [
-  ["Sobre de cromos",100,99,"Un cromo al azar de la colección: 20 cartas en 4 series (la Tripulación Cero, los Ecos, la Nave y la Sombra). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta, el Archivista y la Estática, épicos; Vaeon, LEGENDARIO. Se abre solo y tu álbum está en la Nave.",2,"cromo"],
+  ["Sobre de cromos",100,99,"Un cromo al azar de la colección: 20 cartas en 4 series (la Tripulación Cero, los Ecos, la Nave y la Sombra). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. Se abre solo y tu álbum está en la Nave.",2,"cromo"],
   ["Título de recluta",200,3,"Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario). Se aplica solo.",3,"titulo"],
   ["Fondo de ficha: tu planeta",150,1,"Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.",4,"fondo"],
   ["Cambio de avatar",300,3,"Elige otro personaje inicial (1-4) o vuelve a uno (indícalo en el propio formulario de canje). Se aplica solo.",5,"avatar"],
@@ -117,11 +117,11 @@ var CROMOS = [
   ["L5_ruta_azul","Los Niños de la Ruta Azul",4,"rara","Serie II · Los Ecos"],
   ["L6_oren","Oren Vash",4,"rara","Serie II · Los Ecos"],
   ["E1_nebula","NEBULA",5,"rara","Serie III · La Nave"],
-  ["E2_capitan","El Capitán",4,"rara","Serie III · La Nave"],
+  ["E2_capitan","El Capitán",5,"rara","Serie III · La Nave"],
   ["N1_recluta","El Recluta",3,"épica","Serie III · La Nave"],
-  ["S1_archivista","El Archivista de Ashan",3,"épica","Serie IV · La Sombra"],
-  ["S2_estatica","La Estática",3,"épica","Serie IV · La Sombra"],
-  ["E3_vaeon","General Vaeon",2,"LEGENDARIA","Serie IV · La Sombra"]
+  ["S2_estatica","La Estática",4,"épica","Serie IV · La Sombra"],
+  ["E3_vaeon","General Vaeon",2,"LEGENDARIA","Serie IV · La Sombra"],
+  ["S1_ander","Ander Vaeon",1,"LEGENDARIA","Serie IV · La Sombra"]
 ];
 // CROMOS-FIN
 var TITULOS = ["Cartógrafo/a estelar","Guardián/a de la Bitácora","Voz de NEBULA","Rompe-Estática",

@@ -100,8 +100,9 @@
         +'<div class="album">'+cs.map(celda).join('')+'</div></div>';}).join('');
     var album=CROMOS.length?('<div class="card album-cromos"><h3>🃏 Tu álbum de cromos · '+nCromos+' / '+CROMOS.length+'</h3>'
       +'<p class="small muted">Cada «Sobre de cromos» (100 xp) trae una carta al azar. Los ocho tripulantes son <b>comunes</b>; '
-      +'los Ecos, NEBULA y el Capitán, <b>raros</b>; el Recluta, el Archivista y la Estática, <b>épicos</b>; '
-      +'<b>Vaeon es LEGENDARIO</b> (sale 2 veces de cada 100 sobres).'
+      +'los Ecos, NEBULA y el Capitán, <b>raros</b>; el Recluta y la Estática, <b>épicos</b>; y hay dos '
+      +'<b>LEGENDARIOS</b>: el General Vaeon (2 de cada 100 sobres) y <b>Ander Vaeon</b>, la carta que revela '
+      +'quién era antes de ser Vaeon — <b>1 de cada 100</b>, la más difícil de toda la galaxia.'
       +(repes?' Llevas <b>'+repes+'</b> repetido'+(repes===1?'':'s')+' — como en los cromos de verdad, se acumulan.':'')+'</p>'
       +series+'</div>'):'';
     return '<div class="grid cols-2 nave-estado"><div class="card"'+estiloFicha+'><div class="nave-perfil">'+av

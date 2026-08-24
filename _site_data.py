@@ -235,10 +235,10 @@ CROMOS = [
  ("L5_ruta_azul", "Los Niños de la Ruta Azul",  "II",  "rara",       4),
  ("L6_oren",      "Oren Vash",                  "II",  "rara",       4),
  ("E1_nebula",    "NEBULA",                     "III", "rara",       5),
- ("E2_capitan",   "El Capitán",                 "III", "rara",       4),
+ ("E2_capitan",   "El Capitán",                 "III", "rara",       5),
  ("N1_recluta",   "El Recluta",                 "III", "épica",      3),
- ("S1_archivista","El Archivista de Ashan",     "IV",  "épica",      3),
- ("S2_estatica",  "La Estática",                "IV",  "épica",      3),
+ ("S2_estatica",  "La Estática",                "IV",  "épica",      4),
  ("E3_vaeon",     "General Vaeon",              "IV",  "LEGENDARIA", 2),
+ ("S1_ander",     "Ander Vaeon",                "IV",  "LEGENDARIA", 1),
 ]
 assert sum(c[4] for c in CROMOS) == 100, "los pesos de CROMOS deben sumar 100"
