@@ -1026,11 +1026,11 @@ _vers = {os.path.basename(f): _ver("assets/js/"+os.path.basename(f)) for f in _g
 
 # cache-busting de las imágenes que pueden cambiar (planetas, avatares, nave): si no, el navegador
 # sigue mostrando la vieja porque la URL no cambia
-_IMG_DIRS = ["assets/img/planetas", "assets/img/nave", "assets/img/avatares"]
+_IMG_DIRS = ["assets/img/planetas", "assets/img/nave", "assets/img/avatares", "media/video"]
 _imgv = {}
 for _d in _IMG_DIRS:
     for _f in _glob.glob(os.path.join(HERE, _d, "*")):
-        if os.path.isfile(_f) and _f.rsplit(".",1)[-1].lower() in ("png","jpg","jpeg","webp"):
+        if os.path.isfile(_f) and _f.rsplit(".",1)[-1].lower() in ("png","jpg","jpeg","webp","mp4"):
             _rel = _d + "/" + os.path.basename(_f)
             _imgv[_rel] = _ver(_rel)
 def _bust_img(_s):
