@@ -17,6 +17,8 @@
  * edición (col 23) y hay un limpiador de formularios huérfanos.
  * v3.2.2: crear un PER ya no falla si quedaron restos de otro con el mismo nombre («Ya existe una hoja
  * B · id»): las pestañas huérfanas se apartan solas y el limpiador de mantenimiento las borra.
+ * v3.2.3: CAUSA RAÍZ de las pestañas zombis — Sheets no deja borrar una hoja vinculada a un formulario.
+ * borrarHoja_() desvincula primero (removeDestination) y luego borra; los errores ya no se tragan.
  */
 
 // ================= CATÁLOGO =================
@@ -223,6 +225,18 @@ function publicarFormulariosPER() {
   formsDelPER_(o).forEach(function(f){ try { publicar_(f); f.setAcceptingResponses(true); n++; } catch (e) {} });
   sh.getRange(fila, 8).setValue("Abierto");
   SpreadsheetApp.getUi().alert("Publicados y abiertos " + n + " formularios de " + o.nombre + ".");
+}
+// Borra una pestaña de respuestas. Sheets NO permite eliminar una hoja vinculada a un formulario:
+// hay que desvincularla antes (removeDestination). Devuelve "" si va bien o el motivo del fallo.
+function borrarHoja_(ss, sh) {
+  if (!sh) return "ya no existe";
+  try {
+    var url = ""; try { url = sh.getFormUrl() || ""; } catch (e) {}
+    if (url) { try { FormApp.openByUrl(url).removeDestination(); SpreadsheetApp.flush(); }
+               catch (e) { /* si el form ya no existe, la hoja suele quedar libre igual */ } }
+    if (ss.getSheets().length < 2) return "es la única hoja del libro";
+    ss.deleteSheet(sh); return "";
+  } catch (e) { return e.message; }
 }
 function nombreLibre_(base) {
   var ss = SpreadsheetApp.getActive(); if (!ss.getSheetByName(base)) return base;
@@ -499,10 +513,13 @@ function borrarPERSeleccionado() {
   ui.alert("PER «" + sel.o.nombre + "» borrado. Los formularios están en la papelera de Drive por si acaso.");
 }
 function borrarPER_(o, fila) {
-  formsDelPER_(o).forEach(function(f){ try { DriveApp.getFileById(f.getId()).setTrashed(true); } catch (e) {} });
+  var ssB = SpreadsheetApp.getActive();
+  var forms = formsDelPER_(o);
+  // 1) primero las pestañas (desvinculando su formulario), porque una hoja vinculada no se puede borrar
+  [o.tabB, o.tabT, o.tabC].forEach(function(n){ borrarHoja_(ssB, ssB.getSheetByName(n)); });
+  // 2) después los formularios a la papelera
+  forms.forEach(function(f){ try { DriveApp.getFileById(f.getId()).setTrashed(true); } catch (e) {} });
   if (o.doc) { try { DriveApp.getFileById(o.doc.match(/[-\w]{25,}/)[0]).setTrashed(true); } catch (e) {} }
-  var ss = SpreadsheetApp.getActive();
-  [o.tabB, o.tabT, o.tabC].forEach(function(n){ try { var sh = ss.getSheetByName(n); if (sh) ss.deleteSheet(sh); } catch (e) {} });
   borrarFilasDe_(hoja_(H.EV), o.id); borrarFilasDe_(hoja_(H.AJ), o.id);
   var props = PropertiesService.getScriptProperties();
   ScriptApp.getProjectTriggers().forEach(function(t){ if (props.getProperty("trg_" + t.getUniqueId()) === o.id) {
@@ -536,28 +553,36 @@ function limpiarRestos() {
   var filas = hoja_(H.PERS).getDataRange().getValues().slice(1);
   var vivosNombre = {}, vivosId = {};
   filas.forEach(function(v){ if (v[1]) vivosNombre[String(v[1]).trim()] = true; if (v[0]) vivosId[String(v[0]).trim()] = true; });
-  // 1) formularios de PER que ya no existen
+  // 1) formularios de PER que ya no existen -> guardamos ID y nombre (no el objeto: caduca durante el diálogo)
   var it = carpetaPER_().getFilesByType(MimeType.GOOGLE_FORMS); var forms = [];
   while (it.hasNext()) { var f = it.next(); var nf = f.getName();
     if (nf.indexOf("STARGATE · ") !== 0 || nf.indexOf("PLANTILLA") >= 0) continue;
     var partes = nf.split(" · "); if (partes.length < 3) continue;
-    if (!vivosNombre[partes[1].trim()]) forms.push(f); }
+    if (!vivosNombre[partes[1].trim()]) forms.push({ id: f.getId(), nombre: nf }); }
   // 2) pestañas de respuestas sin PER (incluidas las apartadas como «restos · …»)
   var tabs = [];
   ss.getSheets().forEach(function(sh){ var n = sh.getName();
     var m = n.match(/^(?:restos · )?([BTC]) · (.+?)(?: \(\d+\))?$/);
-    if (m && !vivosId[m[2].trim()]) tabs.push(sh); });
+    if (m && !vivosId[m[2].trim()]) tabs.push({ nombre: n, filas: Math.max(0, sh.getLastRow() - 1) }); });
   if (!forms.length && !tabs.length) { ui.alert("No hay restos: todos los formularios y pestañas pertenecen a un PER de la hoja."); return; }
-  var lista = forms.map(function(f){ return "· [formulario] " + f.getName(); })
-        .concat(tabs.map(function(sh){ return "· [pestaña] " + sh.getName() + " (" + Math.max(0, sh.getLastRow() - 1) + " respuestas)"; })).join("\n");
+  var lista = forms.map(function(x){ return "· [formulario] " + x.nombre; })
+        .concat(tabs.map(function(x){ return "· [pestaña] " + x.nombre + " (" + x.filas + " respuestas)"; })).join("\n");
   if (ui.alert("Limpiar restos de PER borrados",
       "Esto no pertenece a ningún PER de la hoja:\n\n" + lista +
       "\n\nLos formularios irán a la papelera de Drive y las pestañas se BORRARÁN (con sus respuestas). ¿Continuar?",
       ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
-  var nf2 = 0, nt = 0;
-  forms.forEach(function(f){ try { f.setTrashed(true); nf2++; } catch (e) {} });
-  tabs.forEach(function(sh){ try { ss.deleteSheet(sh); nt++; } catch (e) {} });
-  ui.alert("Limpieza hecha: " + nf2 + " formularios a la papelera y " + nt + " pestañas borradas.");
+  // Se resuelve TODO de nuevo por id/nombre y los errores se muestran (nada de fallar en silencio)
+  var okF = 0, okT = 0, errores = [];
+  forms.forEach(function(x){
+    try { DriveApp.getFileById(x.id).setTrashed(true); okF++; }
+    catch (e) { errores.push("Formulario «" + x.nombre + "»: " + e.message); } });
+  tabs.forEach(function(x){
+    var err = borrarHoja_(ss, ss.getSheetByName(x.nombre));
+    if (err) errores.push("Pestaña «" + x.nombre + "»: " + err); else okT++; });
+  SpreadsheetApp.flush();
+  ui.alert("Limpieza de restos",
+    "Formularios a la papelera: " + okF + " de " + forms.length + "\nPestañas borradas: " + okT + " de " + tabs.length +
+    (errores.length ? "\n\nNo se pudo con:\n" + errores.join("\n") : ""), ui.ButtonSet.OK);
 }
 function resetearHoja() {
   var ui = SpreadsheetApp.getUi();
@@ -573,12 +598,17 @@ function resetearHoja() {
   for (var i = d.length - 1; i >= 1; i--) { if (!d[i][0]) continue; try { borrarPER_(perObj_(d[i]), i + 1); n++; } catch (e) { Logger.log(e); } }
   [H.EV, H.AJ].forEach(function(nom){ var x = hoja_(nom); if (x.getLastRow() > 1) x.getRange(2,1,x.getLastRow()-1,x.getLastColumn()).clearContent(); });
   restaurarRecompensas_();
-  var sueltos = 0, tabs = 0;
+  var sueltos = 0, tabs = 0, fallos = [];
+  var ids = [];
   try { var it2 = carpetaPER_().getFilesByType(MimeType.GOOGLE_FORMS);
     while (it2.hasNext()) { var f2 = it2.next(); var n2 = f2.getName();
-      if (n2.indexOf("STARGATE · ") === 0 && n2.indexOf("PLANTILLA") < 0) { f2.setTrashed(true); sueltos++; } } } catch (e) {}
+      if (n2.indexOf("STARGATE · ") === 0 && n2.indexOf("PLANTILLA") < 0) ids.push({ id: f2.getId(), nombre: n2 }); } }
+  catch (e) { fallos.push("Listando formularios: " + e.message); }
+  ids.forEach(function(x){ try { DriveApp.getFileById(x.id).setTrashed(true); sueltos++; } catch (e) { fallos.push(x.nombre + ": " + e.message); } });
   var ssR = SpreadsheetApp.getActive();
-  ssR.getSheets().forEach(function(sh){ if (/^(?:restos · )?[BTC] · /.test(sh.getName())) { try { ssR.deleteSheet(sh); tabs++; } catch (e) {} } });
+  var nombresTab = ssR.getSheets().map(function(sh){ return sh.getName(); }).filter(function(n){ return /^(?:restos · )?[BTC] · /.test(n); });
+  nombresTab.forEach(function(n){ var err = borrarHoja_(ssR, ssR.getSheetByName(n)); if (err) fallos.push(n + ": " + err); else tabs++; });
+  SpreadsheetApp.flush();
   try { consolidarDatos(); } catch (e) {}
   ui.alert("Hoja reseteada: " + n + "PER borrados" + (sueltos ? ", " + sueltos + " formularios a la papelera" : "") + (tabs ? ", " + tabs + " pestañas sueltas borradas" : "") + ". Catálogo de recompensas restaurado.");
 }
