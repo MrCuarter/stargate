@@ -8,6 +8,9 @@
  * cambia mediante canje concedido · identificación del recluta por correo (doPost accion=quien, sin PIN,
  * devuelve solo SU ficha pública + bio) · BIO del personaje en la Bitácora de mando · panel de control
  * Genially por PER (estándar compartido en propiedades + override por PER desde el panel de profes).
+ * v3.2: ciclo de vida del PER — archivar (oculta pestañas y lo saca de los listados del alumnado, conserva
+ * los datos), borrar (formularios a la papelera + pestañas + registros) y resetear la hoja entera;
+ * restaurar el catálogo oficial de recompensas.
  */
 
 // ================= CATÁLOGO =================
@@ -88,6 +91,13 @@ function onOpen() {
     .addItem("Guardar panel de control estándar (Genially)", "guardarPanelEstandar")
     .addItem("Consolidar DATOS / RESUMEN", "consolidarDatos")
     .addSeparator()
+    .addSubMenu(SpreadsheetApp.getUi().createMenu("Ciclo de vida del PER (fila seleccionada)")
+      .addItem("📦 Archivar / desarchivar PER", "archivarPERSeleccionado")
+      .addItem("🗑️ Borrar PER (con sus formularios y datos)", "borrarPERSeleccionado"))
+    .addSubMenu(SpreadsheetApp.getUi().createMenu("Mantenimiento")
+      .addItem("♻️ Restaurar catálogo oficial de recompensas", "restaurarRecompensas")
+      .addItem("💣 Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
+    .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
     .addItem("Guardar URL del web app", "pedirWebAppUrl")
     .addToUi();
@@ -108,7 +118,8 @@ function asegurarHojas_() {
   hoja_(H.AJ, ["fecha","per","email","reto_id","accion","motivo","profe"], "#aa66cc");
   var pers = hoja_(H.PERS);
   if (String(pers.getRange(1,20).getValue()||"") !== "Panel Genially (ver)")
-    pers.getRange(1,19,1,3).setValues([["Documento de enlaces","Panel Genially (ver)","Panel Genially (editar)"]]);
+    pers.getRange(1,19,1,4).setValues([["Documento de enlaces","Panel Genially (ver)","Panel Genially (editar)","Archivado"]]);
+  if (String(pers.getRange(1,22).getValue()||"") !== "Archivado") pers.getRange(1,22).setValue("Archivado");
 }
 // panel de control Genially estándar (compartido por todos los PER salvo override en su fila)
 function panelStd_() { var pr = PropertiesService.getScriptProperties();
@@ -148,7 +159,7 @@ function perFila_(perId) {
 function perObj_(v) {
   return { id:v[0], nombre:v[1], tipo:v[2]||"REGULAR", profesorado:v[3], inicio:fechaIso_(v[4]), apertura:fechaIso_(v[5]), cierre:fechaIso_(v[6]),
            estado:v[7], formBitacora:v[8], formBitacoraEdit:v[9], formTicket:v[10], formCanje:v[11], tabB:v[12], tabT:v[13], tabC:v[14], referente:v[16]||"", formTicketEdit:v[17]||"",
-           panelVer:String(v[19]||""), panelEdit:String(v[20]||"") };
+           doc:String(v[18]||""), panelVer:String(v[19]||""), panelEdit:String(v[20]||""), archivado: v[21] ? fechaIso_(v[21]) : "" };
 }
 function fechaIso_(d) { if (!d) return ""; if (d instanceof Date) return Utilities.formatDate(d, "Europe/Madrid", "yyyy-MM-dd"); return String(d); }
 
@@ -263,7 +274,7 @@ function crearPER(datos) {
 
   hoja_(H.PERS).appendRow([id, nombre, tipo, datos.profesores || "", inicio || "", apertura || "", cierre || "", estado,
     fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date(), datos.referente || "", ft.getEditUrl(),
-    "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim()]);
+    "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim(), ""]);
   var docUrl = ""; try { docUrl = crearDocumentoPER_(id); } catch (e) { docUrl = ""; }
   return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", doc:docUrl, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
     hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id, foro: WEB + "foro.html?per=" + id, nave: WEB + "recluta.html?per=" + id,
@@ -401,6 +412,95 @@ function crearDocumentoPER_(perId) {
   doc.saveAndClose();
   var url = doc.getUrl(); hoja_(H.PERS).getRange(p.fila, 19).setValue(url); hoja_(H.PERS).getRange(1, 19).setValue("Documento de enlaces");
   return url;
+}
+
+// ================= CICLO DE VIDA DEL PER (archivar · borrar · resetear) =================
+function filaPERSeleccionada_() {
+  var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
+  if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) {
+    SpreadsheetApp.getUi().alert("Selecciona primero una fila de la pestaña PERs."); return null; }
+  var v = sh.getRange(fila, 1, 1, 22).getValues()[0];
+  if (!v[0]) { SpreadsheetApp.getUi().alert("Esa fila no tiene ningún PER."); return null; }
+  return { fila: fila, o: perObj_(v) };
+}
+// ARCHIVAR: conserva todo (datos, formularios y respuestas) pero cierra el PER, oculta sus pestañas
+// y lo saca de los listados del alumnado. El enlace directo ?per=id sigue funcionando (histórico).
+function archivarPERSeleccionado() {
+  var sel = filaPERSeleccionada_(); if (!sel) return; var ui = SpreadsheetApp.getUi();
+  var arch = !sel.o.archivado;
+  var r = ui.alert(arch ? "Archivar PER" : "Desarchivar PER",
+    arch ? "«" + sel.o.nombre + "» se cerrará, sus pestañas se ocultarán y dejará de aparecer en los listados del alumnado (Nave, foro, embeds).\n\nNO se borra nada: los datos y el tablero siguen accesibles por enlace directo. ¿Archivar?"
+         : "«" + sel.o.nombre + "» volverá a aparecer en los listados y sus pestañas se mostrarán. Los formularios seguirán cerrados hasta que los abras. ¿Desarchivar?",
+    ui.ButtonSet.YES_NO);
+  if (r !== ui.Button.YES) return;
+  setArchivado_(sel.o.id, arch);
+  ui.alert(arch ? "PER archivado." : "PER desarchivado.");
+}
+function setArchivado_(perId, arch) {
+  var p = perFila_(perId); if (!p) return; var o = perObj_(p.v); var ss = SpreadsheetApp.getActive();
+  hoja_(H.PERS).getRange(p.fila, 22).setValue(arch ? new Date() : "");
+  if (arch) { try { setAbierto_(perId, false); } catch (e) {} }
+  [o.tabB, o.tabT, o.tabC].forEach(function(n){ try { var sh = ss.getSheetByName(n); if (sh) { if (arch) sh.hideSheet(); else sh.showSheet(); } } catch (e) {} });
+}
+function borrarPERSeleccionado() {
+  var sel = filaPERSeleccionada_(); if (!sel) return; var ui = SpreadsheetApp.getUi();
+  var r = ui.prompt("🗑️ Borrar el PER «" + sel.o.nombre + "»",
+    "IRREVERSIBLE. Manda a la papelera sus 3 formularios y su documento de enlaces, borra sus pestañas de respuestas y todos sus registros de EVENTOS y AJUSTES.\n\n" +
+    "Si solo quieres quitarlo de en medio conservando los datos, cancela y usa «Archivar».\n\n" +
+    "Escribe el id del PER para confirmar:  " + sel.o.id, ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK || r.getResponseText().trim() !== sel.o.id) { ui.alert("Cancelado: nada se ha borrado."); return; }
+  borrarPER_(sel.o, sel.fila);
+  try { consolidarDatos(); } catch (e) {}
+  ui.alert("PER «" + sel.o.nombre + "» borrado. Los formularios están en la papelera de Drive por si acaso.");
+}
+function borrarPER_(o, fila) {
+  [o.formBitacoraEdit, o.formTicketEdit || o.formTicket, o.formCanje].forEach(function(u){
+    try { var f = FormApp.openByUrl(String(u).replace("/viewform", "/edit")); DriveApp.getFileById(f.getId()).setTrashed(true); } catch (e) {} });
+  if (o.doc) { try { DriveApp.getFileById(o.doc.match(/[-\w]{25,}/)[0]).setTrashed(true); } catch (e) {} }
+  var ss = SpreadsheetApp.getActive();
+  [o.tabB, o.tabT, o.tabC].forEach(function(n){ try { var sh = ss.getSheetByName(n); if (sh) ss.deleteSheet(sh); } catch (e) {} });
+  borrarFilasDe_(hoja_(H.EV), o.id); borrarFilasDe_(hoja_(H.AJ), o.id);
+  var props = PropertiesService.getScriptProperties();
+  ScriptApp.getProjectTriggers().forEach(function(t){ if (props.getProperty("trg_" + t.getUniqueId()) === o.id) {
+    props.deleteProperty("trg_" + t.getUniqueId()); ScriptApp.deleteTrigger(t); } });
+  hoja_(H.PERS).deleteRow(fila);
+}
+function borrarFilasDe_(sh, perId) { // la columna 2 es el per en EVENTOS y AJUSTES
+  var v = sh.getDataRange().getValues();
+  for (var i = v.length - 1; i >= 1; i--) if (v[i][1] === perId) sh.deleteRow(i + 1);
+}
+function restaurarRecompensas() {
+  var ui = SpreadsheetApp.getUi();
+  if (ui.alert("♻️ Restaurar el catálogo oficial de recompensas",
+    "Sustituye la pestaña RECOMPENSAS por el catálogo oficial:\n" +
+    "· Cambio de avatar — 300 xp (desde la semana 5, máx. 3)\n· Avatar personal — 800 xp (desde la semana 10)\n" +
+    "· Subir 0,5 — 900 · Subir 1 — 1.400 · Recalificar fuera de plazo — 2.000 · Recalificar suspenso — 2.800 (desde la semana 14)\n\n" +
+    "Se pierden los cambios manuales que hayas hecho en esa pestaña. ¿Continuar?", ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  restaurarRecompensas_();
+  ui.alert("Catálogo restaurado. Ahora ejecuta «Actualizar formularios» para que los formularios de canje muestren los nuevos precios.");
+}
+function restaurarRecompensas_() {
+  var rec = hoja_(H.REC); rec.clearContents();
+  rec.getRange(1,1,1,6).setValues([["Recompensa","Coste (xp)","Máx. por alumno","Descripción","Disponible desde (semana)","Tipo"]]);
+  rec.getRange(2,1,RECOMPENSAS_INICIALES.length,6).setValues(RECOMPENSAS_INICIALES);
+  rec.setFrozenRows(1);
+}
+function resetearHoja() {
+  var ui = SpreadsheetApp.getUi();
+  var sh = hoja_(H.PERS); var d = sh.getDataRange().getValues();
+  var total = d.slice(1).filter(function(v){ return v[0]; }).length;
+  if (!total) { restaurarRecompensas_(); ui.alert("No había ningún PER. Catálogo de recompensas restaurado."); return; }
+  var r = ui.prompt("💣 Resetear la hoja",
+    "Deja la hoja como recién instalada: borra los " + total + " PER (formularios y documentos a la papelera, pestañas de respuestas, EVENTOS, AJUSTES, DATOS y RESUMEN) y restaura el catálogo de recompensas.\n\n" +
+    "SE CONSERVAN: el PIN del profesorado, la URL del web app, el panel de control estándar y las plantillas de formulario.\n\n" +
+    "Escribe RESETEAR para confirmar:", ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK || r.getResponseText().trim().toUpperCase() !== "RESETEAR") { ui.alert("Cancelado: nada se ha borrado."); return; }
+  var n = 0;
+  for (var i = d.length - 1; i >= 1; i--) { if (!d[i][0]) continue; try { borrarPER_(perObj_(d[i]), i + 1); n++; } catch (e) { Logger.log(e); } }
+  [H.EV, H.AJ].forEach(function(nom){ var x = hoja_(nom); if (x.getLastRow() > 1) x.getRange(2,1,x.getLastRow()-1,x.getLastColumn()).clearContent(); });
+  restaurarRecompensas_();
+  try { consolidarDatos(); } catch (e) {}
+  ui.alert("Hoja reseteada: " + n + " PER borrados y catálogo de recompensas restaurado.");
 }
 
 // ================= TRIGGERS =================
@@ -558,7 +658,7 @@ function tablero_(perId, conPrivados) {
            formBitacora:o.formBitacora, formTicket:o.formTicket, formCanje:o.formCanje, reclutas:lista,
            recompensas:recompensasCat_(), semana:semanaDe_(o), panel:o.panelVer || std.ver,
            actualizado:new Date() };
-  if (conPrivados) { res.panelEdit = o.panelEdit || std.editar; res.panelPropio = !!(o.panelVer || o.panelEdit); }
+  if (conPrivados) { res.panelEdit = o.panelEdit || std.editar; res.panelPropio = !!(o.panelVer || o.panelEdit); res.archivado = o.archivado; }
   return res;
 }
 // «Personaje 3 · ella (evoluciona)» / «Clásico 7» / URL directa / «elección | url» -> objeto avatar del tablero
@@ -588,7 +688,8 @@ function consolidarDatos() {
 // ================= API =================
 function doGet(e) {
   var per = (e && e.parameter && e.parameter.per) || "all"; var out;
-  if (per === "all") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).map(function(v){ var o = perObj_(v); return { id:o.id, nombre:o.nombre, tipo:o.tipo, estado:o.estado, inicio:o.inicio }; }) };
+  if (per === "all") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0] && !v[21]; })
+      .map(function(v){ var o = perObj_(v); return { id:o.id, nombre:o.nombre, tipo:o.tipo, estado:o.estado, inicio:o.inicio }; }) };
   else out = tablero_(per, false);
   return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -620,6 +721,7 @@ function doPost(e) {
     else if (a === "profesorado") { var p = perFila_(per); var sh4 = hoja_(H.PERS); sh4.getRange(p.fila, 4).setValue(q.profesorado || ""); sh4.getRange(p.fila, 17).setValue(q.referente || "");
       try { var o4 = perObj_(perFila_(per).v); var ftx = FormApp.openByUrl(o4.formTicketEdit); ftx.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle().indexOf("profesor o profesora") >= 0) i.asListItem().setChoiceValues(listaProfes_(q.referente, q.profesorado)); }); } catch (e2) {}
       out = { ok:true }; }
+    else if (a === "archivar") { setArchivado_(per, !!q.valor); out = { ok:true }; }
     else if (a === "panel") { var pp = perFila_(per); hoja_(H.PERS).getRange(pp.fila, 20).setValue(String(q.ver||"").trim()); hoja_(H.PERS).getRange(pp.fila, 21).setValue(String(q.editar||"").trim()); out = { ok:true }; }
     else if (a === "inicio") { var p2 = perFila_(per); hoja_(H.PERS).getRange(p2.fila, 5).setValue(q.inicio ? new Date(q.inicio + "T00:00:00") : ""); out = { ok:true }; }
     else if (a === "abrir" || a === "cerrar") { setAbierto_(per, a === "abrir"); out = { ok:true }; }

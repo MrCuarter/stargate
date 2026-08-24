@@ -672,7 +672,17 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="official" style="display:block">🖼️ <b>Cómo poner tu propia imagen (para el alumnado):</b> 1) entra en <a href="https://postimages.org" target="_blank" rel="noopener">postimages.org</a>, pulsa <i>Elegir imágenes</i> y sube tu foto (no hace falta registrarse); 2) cuando termine, copia el campo <b>«Enlace directo»</b> (termina en .jpg o .png); 3) pégalo en la pregunta «URL de tu propia imagen». También vale un enlace de <b>Google Drive</b> si el archivo está compartido como «cualquier persona con el enlace». Un enlace a Instagram o a una página web no funciona.</div></div>
 <img src="assets/img/avatares/lamina_avatares.jpg" alt="Galería de avatares" style="border-radius:14px;border:1px solid var(--line)"></div>
 <h3 style="margin-top:1.6em">Puntos</h3>
-<p class="lead">Reclutamiento 100 xp · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 · hitos derivados (Cero completa, Liberación) 300. Un viaje completo ≈ 4.500 xp. En PUA: 300 por tema (personaje) + 500 por actividad. Recompensas: subir 0,5 (900) · subir 1 (1.400) · recalificar fuera de plazo (2.000) · recalificar suspenso (2.800). Los xp son del juego: <b>no son nota</b>.</p>
+<p class="lead">Reclutamiento 100 xp · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 · hitos derivados (Cero completa, Liberación) 300. Un viaje completo ≈ 4.500 xp. En PUA: 300 por tema (personaje) + 500 por actividad. Los xp son del juego: <b>no son nota</b>.</p>
+<h4 style="margin-top:1em">Las recompensas y cuándo se desbloquean</h4>
+<div class="tablewrap"><table><thead><tr><th>Recompensa</th><th>Coste</th><th>Desde</th><th>Cómo se aplica</th></tr></thead><tbody>
+<tr><td>Cambio de avatar (elige otro de la galería)</td><td class="pts">300</td><td>Semana 5</td><td><b>Automática</b> · máx. 3 veces</td></tr>
+<tr><td>Avatar personal (su propia imagen por URL)</td><td class="pts">800</td><td>Semana 10</td><td><b>Automática</b></td></tr>
+<tr><td>Subir 0,5 en un entregable</td><td class="pts">900</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
+<tr><td>Subir 1 punto en un entregable</td><td class="pts">1.400</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
+<tr><td>Recalificar fuera de plazo</td><td class="pts">2.000</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
+<tr><td>Recalificar un suspenso</td><td class="pts">2.800</td><td>Semana 14</td><td>La aplica el profesorado</td></tr>
+</tbody></table></div>
+<p class="small muted">Las de avatar se conceden y se aplican solas (el avatar cambia en el tablero al instante). Las de nota se conceden solas pero <b>se hacen efectivas al terminar las clases en directo</b>: el correo de confirmación ya lo avisa. Todo es editable en la pestaña <b>RECOMPENSAS</b> de la hoja (coste, máximo, semana de desbloqueo); en PUA las semanas se escalan solas. En la <a href="recluta.html">Nave del Recluta</a> las que aún no tocan aparecen como «recompensa clasificada».</p>
 <details class="faq"><summary>Instalación en la cuenta mutecdgami (una vez, 20 minutos)</summary><div>
 <ol>
 <li>Con sesión en <b>mutecdgami@gmail.com</b>, crea en la carpeta del proyecto una hoja de cálculo <b>STARGATE · Mando de PERs</b>.</li>
@@ -686,6 +696,15 @@ lo que no puede faltar es tu ceremonia:</p>
 <li><b>Crear nuevo PER…</b> y listo: 3 formularios, pestañas <code>B · id</code> / <code>T · id</code> / <code>C · id</code>, embeds para el Genially. Las pestañas <b>EVENTOS</b>, <b>DATOS</b> y <b>RESUMEN</b> se mantienen solas.</li>
 </ol>
 <p>Si cambia el código: <b>Implementar → Gestionar implementaciones → ✎ → Nueva versión</b> (la URL no cambia).</p>
+</div></details>
+<details class="faq"><summary>Mantenimiento: archivar un PER terminado, borrar los de prueba, empezar de cero</summary><div>
+<p>Todo desde el menú <b>🛰️ STARGATE</b> de la hoja maestra. <b>Nunca dupliques la hoja</b> para empezar de nuevo: se romperían los vínculos con los formularios y cambiaría la URL del web app.</p>
+<ul>
+<li><b>📦 Archivar un PER terminado</b> (menú → Ciclo de vida del PER, o desde el <a href="profes.html">panel de profes → Ajustes</a>): cierra sus formularios, <b>oculta sus pestañas</b> en la hoja y lo saca de los listados del alumnado. <b>No borra nada</b>: sus datos siguen en DATOS/RESUMEN y su tablero es accesible por enlace directo. Es lo que quieres al cerrar una convocatoria: con ocho PERs, solo ves los vivos.</li>
+<li><b>🗑️ Borrar un PER de prueba</b> (menú → Ciclo de vida del PER): selecciona su fila en la pestaña <b>PERs</b> y confirma escribiendo su id. Manda sus 3 formularios y su documento de enlaces a la papelera de Drive, borra sus pestañas de respuestas y sus registros de EVENTOS y AJUSTES.</li>
+<li><b>♻️ Restaurar el catálogo de recompensas</b> (menú → Mantenimiento): reescribe la pestaña RECOMPENSAS con los precios y semanas oficiales. Úsalo si vienes de una versión anterior y siguen apareciendo las recompensas viejas; después, <b>Actualizar formularios</b>.</li>
+<li><b>💣 Resetear la hoja</b> (menú → Mantenimiento): borra todos los PER y limpia EVENTOS, AJUSTES, DATOS y RESUMEN, dejando la hoja como recién instalada. Conserva el PIN, la URL del web app, el panel estándar y las plantillas de formulario. Pide escribir <code>RESETEAR</code>.</li>
+</ul>
 </div></details>
 </div></section>
 ''' + FOOT
