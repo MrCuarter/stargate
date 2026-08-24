@@ -38,6 +38,7 @@ function ok(r){
   document.getElementById('form').style.display='none';var x=document.getElementById('res');x.style.display='block';
   function b(t,u){return '<div class="ok"><b>'+t+'</b><br><a href="'+u+'" target="_blank">'+u+'</a></div>';}
   x.innerHTML='<h3>PER «'+r.nombre+'» ('+r.tipo+') creado · '+r.estado+'</h3>'
+  +(r.restos?'<div class="ok"><b>Aviso:</b> había '+r.restos+' pestaña(s) de un PER anterior con el mismo nombre. No se han borrado: se han renombrado a «restos · …». Si no las necesitas, límpialas con el menú STARGATE → Mantenimiento → Limpiar restos de PER borrados.</div>':'')
   +b('Bitácora de mando (alumnado)',r.formBitacora)+b('Ticket de salida (anónimo)',r.formTicket)+b('Canje de recompensas',r.formCanje)
   +(r.nave?b('La Nave del Recluta (la web del alumnado: onboarding, semanas, estado y recompensas)',r.nave):'')
   +(r.panelVer?b(' Panel de control (visualización, para el alumnado)',r.panelVer):'<div class="ok"> <b>Panel de control:</b> sin definir. Ponlo en la hoja (menú STARGATE → Guardar panel de control estándar) o en Ajustes del PER.</div>')

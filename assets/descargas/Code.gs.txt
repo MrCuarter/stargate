@@ -15,6 +15,8 @@
  * Antes el de canje se abría con su URL pública y openByUrl fallaba en silencio: no se cerraba, no se le
  * actualizaban las recompensas y al borrar el PER se quedaba huérfano en Drive. Se guarda además su URL de
  * edición (col 23) y hay un limpiador de formularios huérfanos.
+ * v3.2.2: crear un PER ya no falla si quedaron restos de otro con el mismo nombre («Ya existe una hoja
+ * B · id»): las pestañas huérfanas se apartan solas y el limpiador de mantenimiento las borra.
  */
 
 // ================= CATÁLOGO =================
@@ -100,7 +102,7 @@ function onOpen() {
       .addItem("Borrar PER (con sus formularios y datos)", "borrarPERSeleccionado"))
     .addSubMenu(SpreadsheetApp.getUi().createMenu("Mantenimiento")
       .addItem("Restaurar catálogo oficial de recompensas", "restaurarRecompensas")
-      .addItem("Limpiar formularios huérfanos (de PER borrados)", "limpiarFormulariosHuerfanos")
+      .addItem("Limpiar restos de PER borrados (formularios y pestañas)", "limpiarRestos")
       .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
     .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
@@ -222,17 +224,31 @@ function publicarFormulariosPER() {
   sh.getRange(fila, 8).setValue("Abierto");
   SpreadsheetApp.getUi().alert("Publicados y abiertos " + n + " formularios de " + o.nombre + ".");
 }
+function nombreLibre_(base) {
+  var ss = SpreadsheetApp.getActive(); if (!ss.getSheetByName(base)) return base;
+  for (var i = 2; i < 100; i++) if (!ss.getSheetByName(base + " (" + i + ")")) return base + " (" + i + ")";
+  return base + " (" + new Date().getTime() + ")";
+}
 function pestanaDe_(form, nombreNuevo, color) {
   SpreadsheetApp.flush(); var tab = null;
   SpreadsheetApp.getActive().getSheets().forEach(function(h){ try { var u = h.getFormUrl(); if (u && u.indexOf(form.getId()) >= 0) tab = h; } catch (e) {} });
-  if (tab) { tab.setName(nombreNuevo); tab.setTabColor(color); }
+  if (tab) { try { tab.setName(nombreNuevo); } catch (e) { tab.setName(nombreLibre_(nombreNuevo)); } tab.setTabColor(color); }
   return tab ? tab.getName() : "";
+}
+// Aparta las pestañas que quedaron de un PER anterior con el mismo id (borrado a mano o con una versión
+// antigua). No se borran: se renombran para no perder respuestas; el menú Mantenimiento las limpia.
+function apartarRestosDe_(id) {
+  var ss = SpreadsheetApp.getActive(); var n = 0;
+  ["B", "T", "C"].forEach(function(p){ var sh = ss.getSheetByName(p + " · " + id);
+    if (sh) { try { sh.setName(nombreLibre_("restos · " + p + " · " + id)); sh.setTabColor("#9fb2c2"); sh.showSheet(); n++; } catch (e) {} } });
+  return n;
 }
 
 function crearPER(datos) {
   var nombre = (datos.nombre || "").trim(); if (!nombre) throw new Error("Falta el nombre del PER");
   var tipo = datos.tipo === "PUA" ? "PUA" : "REGULAR";
-  var id = slug_(nombre); if (perFila_(id)) throw new Error("Ya existe un PER con id «" + id + "»");
+  var id = slug_(nombre); if (perFila_(id)) throw new Error("Ya existe un PER con id «" + id + "». Si es uno viejo, archívalo o bórralo antes (menú STARGATE), o usa otro nombre.");
+  var restos = apartarRestosDe_(id);
   var apertura = datos.apertura ? new Date(datos.apertura + "T00:00:00") : null;
   var cierre = datos.cierre ? new Date(datos.cierre + "T23:59:00") : null;
   var inicio = datos.inicio ? new Date(datos.inicio + "T00:00:00") : null;
@@ -309,7 +325,8 @@ function crearPER(datos) {
     embedAlumnos: '<iframe src="' + WEB + 'registro.html?per=' + id + '&embed=1" width="100%" height="760" style="border:0;border-radius:16px"></iframe>',
     embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>',
     embedNave: '<iframe src="' + WEB + 'recluta.html?per=' + id + '&embed=1" width="100%" height="900" style="border:0;border-radius:16px"></iframe>',
-    panelVer: String(datos.panelVer || "").trim() || panelStd_().ver, panelEdit: String(datos.panelEdit || "").trim() || panelStd_().editar };
+    panelVer: String(datos.panelVer || "").trim() || panelStd_().ver, panelEdit: String(datos.panelEdit || "").trim() || panelStd_().editar,
+    restos: restos };
 }
 function etiquetasRecompensas_() {
   var d = hoja_(H.REC).getDataRange().getValues().slice(1).filter(function(r){ return r[0]; });
@@ -514,21 +531,33 @@ function restaurarRecompensas_() {
 }
 // Formularios de PER que ya no existen en la hoja (p. ej. borrados con la versión anterior, que dejaba
 // huérfano el de canje). Los manda a la papelera tras confirmar.
-function limpiarFormulariosHuerfanos() {
-  var ui = SpreadsheetApp.getUi();
-  var vivos = {}; hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1]) vivos[String(v[1]).trim()] = true; });
-  var it = carpetaPER_().getFilesByType(MimeType.GOOGLE_FORMS); var huerfanos = [];
-  while (it.hasNext()) { var f = it.next(); var n = f.getName();
-    if (n.indexOf("STARGATE · ") !== 0 || n.indexOf("PLANTILLA") >= 0) continue;
-    var partes = n.split(" · "); if (partes.length < 3) continue;
-    if (!vivos[partes[1].trim()]) huerfanos.push(f); }
-  if (!huerfanos.length) { ui.alert("No hay formularios huérfanos: todos pertenecen a un PER de la hoja."); return; }
-  var lista = huerfanos.map(function(f){ return "· " + f.getName(); }).join("\n");
-  if (ui.alert("Limpiar formularios huérfanos",
-      "Estos " + huerfanos.length + " formularios no pertenecen a ningún PER de la hoja y se mandarán a la papelera:\n\n" + lista +
-      "\n\n¿Continuar?", ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
-  var n = 0; huerfanos.forEach(function(f){ try { f.setTrashed(true); n++; } catch (e) {} });
-  ui.alert(n + " formularios enviados a la papelera de Drive.");
+function limpiarRestos() {
+  var ui = SpreadsheetApp.getUi(); var ss = SpreadsheetApp.getActive();
+  var filas = hoja_(H.PERS).getDataRange().getValues().slice(1);
+  var vivosNombre = {}, vivosId = {};
+  filas.forEach(function(v){ if (v[1]) vivosNombre[String(v[1]).trim()] = true; if (v[0]) vivosId[String(v[0]).trim()] = true; });
+  // 1) formularios de PER que ya no existen
+  var it = carpetaPER_().getFilesByType(MimeType.GOOGLE_FORMS); var forms = [];
+  while (it.hasNext()) { var f = it.next(); var nf = f.getName();
+    if (nf.indexOf("STARGATE · ") !== 0 || nf.indexOf("PLANTILLA") >= 0) continue;
+    var partes = nf.split(" · "); if (partes.length < 3) continue;
+    if (!vivosNombre[partes[1].trim()]) forms.push(f); }
+  // 2) pestañas de respuestas sin PER (incluidas las apartadas como «restos · …»)
+  var tabs = [];
+  ss.getSheets().forEach(function(sh){ var n = sh.getName();
+    var m = n.match(/^(?:restos · )?([BTC]) · (.+?)(?: \(\d+\))?$/);
+    if (m && !vivosId[m[2].trim()]) tabs.push(sh); });
+  if (!forms.length && !tabs.length) { ui.alert("No hay restos: todos los formularios y pestañas pertenecen a un PER de la hoja."); return; }
+  var lista = forms.map(function(f){ return "· [formulario] " + f.getName(); })
+        .concat(tabs.map(function(sh){ return "· [pestaña] " + sh.getName() + " (" + Math.max(0, sh.getLastRow() - 1) + " respuestas)"; })).join("\n");
+  if (ui.alert("Limpiar restos de PER borrados",
+      "Esto no pertenece a ningún PER de la hoja:\n\n" + lista +
+      "\n\nLos formularios irán a la papelera de Drive y las pestañas se BORRARÁN (con sus respuestas). ¿Continuar?",
+      ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var nf2 = 0, nt = 0;
+  forms.forEach(function(f){ try { f.setTrashed(true); nf2++; } catch (e) {} });
+  tabs.forEach(function(sh){ try { ss.deleteSheet(sh); nt++; } catch (e) {} });
+  ui.alert("Limpieza hecha: " + nf2 + " formularios a la papelera y " + nt + " pestañas borradas.");
 }
 function resetearHoja() {
   var ui = SpreadsheetApp.getUi();
@@ -544,12 +573,14 @@ function resetearHoja() {
   for (var i = d.length - 1; i >= 1; i--) { if (!d[i][0]) continue; try { borrarPER_(perObj_(d[i]), i + 1); n++; } catch (e) { Logger.log(e); } }
   [H.EV, H.AJ].forEach(function(nom){ var x = hoja_(nom); if (x.getLastRow() > 1) x.getRange(2,1,x.getLastRow()-1,x.getLastColumn()).clearContent(); });
   restaurarRecompensas_();
-  var sueltos = 0;
+  var sueltos = 0, tabs = 0;
   try { var it2 = carpetaPER_().getFilesByType(MimeType.GOOGLE_FORMS);
     while (it2.hasNext()) { var f2 = it2.next(); var n2 = f2.getName();
       if (n2.indexOf("STARGATE · ") === 0 && n2.indexOf("PLANTILLA") < 0) { f2.setTrashed(true); sueltos++; } } } catch (e) {}
+  var ssR = SpreadsheetApp.getActive();
+  ssR.getSheets().forEach(function(sh){ if (/^(?:restos · )?[BTC] · /.test(sh.getName())) { try { ssR.deleteSheet(sh); tabs++; } catch (e) {} } });
   try { consolidarDatos(); } catch (e) {}
-  ui.alert("Hoja reseteada: " + n + " PER borrados" + (sueltos ? " y " + sueltos + " formularios sueltos a la papelera" : "") + ". Catálogo de recompensas restaurado.");
+  ui.alert("Hoja reseteada: " + n + " PER borrados" + (sueltos ? ", " + sueltos + " formularios a la papelera" : "") + (tabs ? ", " + tabs + " pestañas sueltas borradas" : "") + ". Catálogo de recompensas restaurado.");
 }
 
 // ================= TRIGGERS =================
