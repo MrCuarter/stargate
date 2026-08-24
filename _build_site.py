@@ -700,10 +700,10 @@ lo que no puede faltar es tu ceremonia:</p>
 <details class="faq"><summary>Mantenimiento: archivar un PER terminado, borrar los de prueba, empezar de cero</summary><div>
 <p>Todo desde el menú <b>🛰️ STARGATE</b> de la hoja maestra. <b>Nunca dupliques la hoja</b> para empezar de nuevo: se romperían los vínculos con los formularios y cambiaría la URL del web app.</p>
 <ul>
-<li><b>📦 Archivar un PER terminado</b> (menú → Ciclo de vida del PER, o desde el <a href="profes.html">panel de profes → Ajustes</a>): cierra sus formularios, <b>oculta sus pestañas</b> en la hoja y lo saca de los listados del alumnado. <b>No borra nada</b>: sus datos siguen en DATOS/RESUMEN y su tablero es accesible por enlace directo. Es lo que quieres al cerrar una convocatoria: con ocho PERs, solo ves los vivos.</li>
-<li><b>🗑️ Borrar un PER de prueba</b> (menú → Ciclo de vida del PER): selecciona su fila en la pestaña <b>PERs</b> y confirma escribiendo su id. Manda sus 3 formularios y su documento de enlaces a la papelera de Drive, borra sus pestañas de respuestas y sus registros de EVENTOS y AJUSTES.</li>
-<li><b>♻️ Restaurar el catálogo de recompensas</b> (menú → Mantenimiento): reescribe la pestaña RECOMPENSAS con los precios y semanas oficiales. Úsalo si vienes de una versión anterior y siguen apareciendo las recompensas viejas; después, <b>Actualizar formularios</b>.</li>
-<li><b>💣 Resetear la hoja</b> (menú → Mantenimiento): borra todos los PER y limpia EVENTOS, AJUSTES, DATOS y RESUMEN, dejando la hoja como recién instalada. Conserva el PIN, la URL del web app, el panel estándar y las plantillas de formulario. Pide escribir <code>RESETEAR</code>.</li>
+<li><b>Archivar un PER terminado</b> (menú → Ciclo de vida del PER, o desde el <a href="profes.html">panel de profes → Ajustes</a>): cierra sus formularios, <b>oculta sus pestañas</b> en la hoja y lo saca de los listados del alumnado. <b>No borra nada</b>: sus datos siguen en DATOS/RESUMEN y su tablero es accesible por enlace directo. Es lo que quieres al cerrar una convocatoria: con ocho PERs, solo ves los vivos.</li>
+<li><b>Borrar un PER de prueba</b> (menú → Ciclo de vida del PER): selecciona su fila en la pestaña <b>PERs</b> y confirma escribiendo su id. Manda sus 3 formularios y su documento de enlaces a la papelera de Drive, borra sus pestañas de respuestas y sus registros de EVENTOS y AJUSTES.</li>
+<li><b>Restaurar el catálogo de recompensas</b> (menú → Mantenimiento): reescribe la pestaña RECOMPENSAS con los precios y semanas oficiales. Úsalo si vienes de una versión anterior y siguen apareciendo las recompensas viejas; después, <b>Actualizar formularios</b>.</li>
+<li><b>Resetear la hoja</b> (menú → Mantenimiento): borra todos los PER y limpia EVENTOS, AJUSTES, DATOS y RESUMEN, dejando la hoja como recién instalada. Conserva el PIN, la URL del web app, el panel estándar y las plantillas de formulario. Pide escribir <code>RESETEAR</code>.</li>
 </ul>
 </div></details>
 </div></section>

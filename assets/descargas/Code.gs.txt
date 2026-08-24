@@ -92,11 +92,11 @@ function onOpen() {
     .addItem("Consolidar DATOS / RESUMEN", "consolidarDatos")
     .addSeparator()
     .addSubMenu(SpreadsheetApp.getUi().createMenu("Ciclo de vida del PER (fila seleccionada)")
-      .addItem("📦 Archivar / desarchivar PER", "archivarPERSeleccionado")
-      .addItem("🗑️ Borrar PER (con sus formularios y datos)", "borrarPERSeleccionado"))
+      .addItem("Archivar / desarchivar PER", "archivarPERSeleccionado")
+      .addItem("Borrar PER (con sus formularios y datos)", "borrarPERSeleccionado"))
     .addSubMenu(SpreadsheetApp.getUi().createMenu("Mantenimiento")
-      .addItem("♻️ Restaurar catálogo oficial de recompensas", "restaurarRecompensas")
-      .addItem("💣 Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
+      .addItem("Restaurar catálogo oficial de recompensas", "restaurarRecompensas")
+      .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
     .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
     .addItem("Guardar URL del web app", "pedirWebAppUrl")
@@ -395,7 +395,7 @@ function crearDocumentoPER_(perId) {
   link("Edición (para el profesorado)", o.panelEdit || stdD.editar || "(sin definir)");
   par(o.panelVer || o.panelEdit ? "Este PER usa un panel PROPIO." : "Este PER usa el panel ESTÁNDAR compartido. Si el profesorado quiere el suyo, se cambia desde el panel de profes (Ajustes del PER).");
   h("Para el Genially del alumnado", 2);
-  link("🚀 La Nave del Recluta (el hub del alumnado: onboarding, semanas, su estado y recompensas)", WEB + "recluta.html?per=" + o.id);
+  link("La Nave del Recluta (el hub del alumnado: onboarding, semanas, su estado y recompensas)", WEB + "recluta.html?per=" + o.id);
   qr(WEB + "recluta.html?per=" + o.id, "QR de la Nave del Recluta");
   par("Embed de la Nave:"); code(ifr(WEB + "recluta.html?per=" + o.id + "&embed=1", 900));
   link("Bitácora de mando (registro de insignias; botón)", o.formBitacora); qr(o.formBitacora, "QR de la Bitácora de mando");
@@ -444,7 +444,7 @@ function setArchivado_(perId, arch) {
 }
 function borrarPERSeleccionado() {
   var sel = filaPERSeleccionada_(); if (!sel) return; var ui = SpreadsheetApp.getUi();
-  var r = ui.prompt("🗑️ Borrar el PER «" + sel.o.nombre + "»",
+  var r = ui.prompt("Borrar el PER «" + sel.o.nombre + "»",
     "IRREVERSIBLE. Manda a la papelera sus 3 formularios y su documento de enlaces, borra sus pestañas de respuestas y todos sus registros de EVENTOS y AJUSTES.\n\n" +
     "Si solo quieres quitarlo de en medio conservando los datos, cancela y usa «Archivar».\n\n" +
     "Escribe el id del PER para confirmar:  " + sel.o.id, ui.ButtonSet.OK_CANCEL);
@@ -471,7 +471,7 @@ function borrarFilasDe_(sh, perId) { // la columna 2 es el per en EVENTOS y AJUS
 }
 function restaurarRecompensas() {
   var ui = SpreadsheetApp.getUi();
-  if (ui.alert("♻️ Restaurar el catálogo oficial de recompensas",
+  if (ui.alert("Restaurar el catálogo oficial de recompensas",
     "Sustituye la pestaña RECOMPENSAS por el catálogo oficial:\n" +
     "· Cambio de avatar — 300 xp (desde la semana 5, máx. 3)\n· Avatar personal — 800 xp (desde la semana 10)\n" +
     "· Subir 0,5 — 900 · Subir 1 — 1.400 · Recalificar fuera de plazo — 2.000 · Recalificar suspenso — 2.800 (desde la semana 14)\n\n" +
@@ -490,7 +490,7 @@ function resetearHoja() {
   var sh = hoja_(H.PERS); var d = sh.getDataRange().getValues();
   var total = d.slice(1).filter(function(v){ return v[0]; }).length;
   if (!total) { restaurarRecompensas_(); ui.alert("No había ningún PER. Catálogo de recompensas restaurado."); return; }
-  var r = ui.prompt("💣 Resetear la hoja",
+  var r = ui.prompt("Resetear la hoja",
     "Deja la hoja como recién instalada: borra los " + total + " PER (formularios y documentos a la papelera, pestañas de respuestas, EVENTOS, AJUSTES, DATOS y RESUMEN) y restaura el catálogo de recompensas.\n\n" +
     "SE CONSERVAN: el PIN del profesorado, la URL del web app, el panel de control estándar y las plantillas de formulario.\n\n" +
     "Escribe RESETEAR para confirmar:", ui.ButtonSet.OK_CANCEL);

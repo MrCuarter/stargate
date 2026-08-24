@@ -39,10 +39,10 @@ function ok(r){
   function b(t,u){return '<div class="ok"><b>'+t+'</b><br><a href="'+u+'" target="_blank">'+u+'</a></div>';}
   x.innerHTML='<h3>PER «'+r.nombre+'» ('+r.tipo+') creado · '+r.estado+'</h3>'
   +b('Bitácora de mando (alumnado)',r.formBitacora)+b('Ticket de salida (anónimo)',r.formTicket)+b('Canje de recompensas',r.formCanje)
-  +(r.nave?b('🚀 La Nave del Recluta (la web del alumnado: onboarding, semanas, estado y recompensas)',r.nave):'')
-  +(r.panelVer?b('🪐 Panel de control (visualización, para el alumnado)',r.panelVer):'<div class="ok">🪐 <b>Panel de control:</b> sin definir. Ponlo en la hoja (menú STARGATE → Guardar panel de control estándar) o en Ajustes del PER.</div>')
+  +(r.nave?b('La Nave del Recluta (la web del alumnado: onboarding, semanas, estado y recompensas)',r.nave):'')
+  +(r.panelVer?b(' Panel de control (visualización, para el alumnado)',r.panelVer):'<div class="ok"> <b>Panel de control:</b> sin definir. Ponlo en la hoja (menú STARGATE → Guardar panel de control estándar) o en Ajustes del PER.</div>')
   +(r.panelEdit?b('✏️ Panel de control (edición, para el profesorado)',r.panelEdit):'')
-  +(r.doc?b('📄 Documento de Google con todos los enlaces, embeds y QR',r.doc):'')+b('Generador de embeds en la web (elige tu nombre)','https://stargate.mistercuarter.es/embed.html?per='+r.id)+b('Tablero del PER en la web',r.web)+b('Foro dinámico del PER',r.foro)
+  +(r.doc?b(' Documento de Google con todos los enlaces, embeds y QR',r.doc):'')+b('Generador de embeds en la web (elige tu nombre)','https://stargate.mistercuarter.es/embed.html?per='+r.id)+b('Tablero del PER en la web',r.web)+b('Foro dinámico del PER',r.foro)
   +(r.embedNave?'<div class="ok"><b>Embed de la Nave del Recluta para el Genially del PER</b><br><textarea class="emb" readonly>'+r.embedNave.replace(/</g,'&lt;')+'</textarea></div>':'')
   +'<div class="ok"><b>Embed del tablero para el Genially del PER</b><br><textarea class="emb" readonly>'+r.embedAlumnos.replace(/</g,'&lt;')+'</textarea></div>'
   +'<div class="ok"><b>Embed del foro dinámico</b><br><textarea class="emb" readonly>'+r.embedForo.replace(/</g,'&lt;')+'</textarea></div>'
