@@ -314,9 +314,10 @@ general: una costumbre que se contagia. Donde entra, nadie crea, registra ni com
 mundo olvida lo que sabía hacer.</p></div>
 </div>
 <h3 style="margin-top:1.8em">El álbum completo — 20 cartas en 4 series</h3>
-<p class="lead">Cada carta trae retrato, historia breve, clase, atributos y cita. Las de la
-<b>Tripulación Cero</b> se desbloquean además con su insignia de Reto A; las demás <b>solo salen en los sobres
-de cromos</b> (100 xp, desde la semana 2), con rarezas: comunes los ocho tripulantes, raros los Ecos, NEBULA y
+<p class="lead">Cada carta trae retrato, historia breve, clase, atributos y cita. Regla de oro, y conviene
+decirla en clase: <b>la insignia se gana, el cromo se compra</b>. El Reto A da la <b>insignia</b> del
+tripulante; las <b>20 cartas del álbum salen únicamente de los sobres</b> (100 xp, desde la semana 2), al azar
+y con rarezas: comunes los ocho tripulantes, raros los Ecos, NEBULA y
 el Capitán, épicos el Recluta y la Estática, y <b>LEGENDARIOS el General Vaeon</b> (2 % del sobre) y sobre todo
 <b>Ander Vaeon</b>, la carta de la identidad del villano: <b>1 de cada 100</b>, la más difícil del juego.
 Pulsa cualquiera para ampliar.</p>
