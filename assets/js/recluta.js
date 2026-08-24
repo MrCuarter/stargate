@@ -1,5 +1,7 @@
 // STARGATE — La Nave del Recluta (web del alumnado por PER)
 // recluta.html?per=<id>[&embed=1][&semana=N]  ·  sin ?per: selector de PER
+// Identificación: el recluta escribe su correo UNA vez por dispositivo (localStorage); la nave pide al
+// servidor SOLO su ficha (doPost accion=quien, sin PIN). El correo nunca va en la URL ni se lista en el API.
 (function(){
   var API=(window.SG_TABLERO_API||"").trim(), SEM=window.SG_SEMANAS||[], NOMBRES=window.SG_BADGE_NAMES||{},
       BADGES=window.SG_BADGES||[], PLAN=window.SG_PLANETAS||[], root=document.getElementById('nave-app');
@@ -27,9 +29,28 @@
   }
 
   // ---------- estado ----------
-  var st={d:null,semanas:[],actual:1,estado:'curso',alias:localStorage.getItem('sgNaveAlias_'+per)||''};
+  var KEY_MAIL='sgNaveEmail_'+per;
+  var st={d:null,semanas:[],actual:1,estado:'curso',email:localStorage.getItem(KEY_MAIL)||'',yo:null,cargandoYo:false,msgYo:''};
 
-  function recluta(){if(!st.alias||!st.d)return null;return (st.d.reclutas||[]).filter(function(x){return x.alias===st.alias;})[0]||null;}
+  function quien(email,cb){
+    fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({accion:'quien',per:per,email:email})})
+      .then(function(r){return r.json();}).then(cb)
+      .catch(function(){cb({error:'red'});});
+  }
+  function identificar(email){
+    email=String(email||'').toLowerCase().trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){st.msgYo='Eso no parece un correo. Prueba otra vez.';render();return;}
+    st.cargandoYo=true;st.msgYo='';render();
+    quien(email,function(d){
+      st.cargandoYo=false;
+      if(d&&d.yo){st.yo=d.yo;st.email=email;localStorage.setItem(KEY_MAIL,email);st.msgYo='';}
+      else if(d&&d.yo===null){st.yo=null;st.msgYo='No encuentro ningún recluta con ese correo en este PER. Usa el MISMO correo de Google con el que rellenaste la <b>Bitácora de mando</b> (y si aún no te alistaste, ese es el primer paso).';}
+      else{st.yo=null;st.msgYo='La identificación aún no está activa (el mando tiene que actualizar el sistema). El resto de la nave funciona; vuelve a intentarlo más adelante.';}
+      render();
+    });
+  }
+  function olvidar(){st.yo=null;st.email='';st.msgYo='';localStorage.removeItem(KEY_MAIL);render();}
 
   // ---------- secciones ----------
   function cabecera(){
@@ -38,15 +59,40 @@
     return '<div class="tab-head"><div><div class="eyebrow teal">La Nave del Recluta · '+esc(d.nombre)+(d.tipo==='PUA'?' · PUA':'')+'</div><h3>'+pos+'</h3></div>'
       +'<div class="small muted"><button class="btn small" id="btn-onboard" type="button">▶ Repetir bienvenida</button></div></div>';
   }
+  function personaje(){
+    if(st.cargandoYo) return '<div class="card"><p class="lead">Buscándote en el registro de la tripulación…</p></div>';
+    if(!st.yo){
+      return '<div class="card nave-login"><div class="nave-perfil"><img src="assets/img/personajes/nebula.png" alt="NEBULA" class="nebula-mini">'
+        +'<div><h3>Identifícate, recluta</h3><p class="small muted">Escribe el correo con el que te alistaste en la Bitácora de mando. Solo lo pediré una vez en este dispositivo, y solo te enseño <b>tu</b> ficha.</p></div></div>'
+        +'<div class="selrow"><input id="in-mail" type="email" placeholder="tu.correo@ejemplo.com" autocomplete="email"><button class="btn primary" id="btn-mail" type="button">Entrar en la nave</button></div>'
+        +(st.msgYo?'<p class="small" style="margin-top:8px;color:var(--amber)">'+st.msgYo+'</p>':'')
+        +'</div>';
+    }
+    var r=st.yo, d=st.d, SG=window.SG||{};
+    var av=SG.avatarImg?SG.avatarImg(r.avatar,r.alias,'grande',r.xp,d.tipo):'';
+    var k=d.tipo==='PUA'?3500/4500:1; var u=[1000*k,2500*k,4000*k]; var rg=SG.rango?SG.rango(r.xp,d.tipo):1;
+    var sig=rg<4?u[rg-1]:null; var base=rg>1?u[rg-2]:0;
+    var pct=sig?Math.min(100,Math.round((r.xp-base)/(sig-base)*100)):100;
+    var barra=sig?'<div class="progress" title="'+r.xp+' / '+Math.round(sig)+' xp"><i style="width:'+pct+'%"></i></div><p class="small muted">'+(Math.round(sig)-r.xp)+' xp para el rango '+(SG.RANGOS?SG.RANGOS[rg]:'siguiente')+'</p>'
+                 :'<p class="small muted">Rango máximo alcanzado. 🫡</p>';
+    var col=BADGES.map(function(kk){var tiene=(r.insignias||[]).indexOf(kk)>=0;
+      return '<div class="b'+(tiene?'':' no')+'" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+'"><img loading="lazy" src="assets/img/insignias/'+kk+'.png" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';}).join('');
+    return '<div class="grid cols-2 nave-estado"><div class="card"><div class="nave-perfil">'+av
+      +'<div><h3>'+esc(r.alias)+'</h3><p class="small">'+(SG.RANGOS?'<b>'+SG.RANGOS[rg-1]+'</b> · ':'')+'puesto '+r.pos+' · planeta '+esc(r.planeta)+'</p>'
+      +'<p><b>'+r.xp+'</b> xp ganados · <b>'+r.xp_disponibles+'</b> xp disponibles</p></div></div>'+barra
+      +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'<p class="small muted">Sin biografía todavía: añádela editando tu <a href="'+esc(d.formBitacora||'#')+'" target="_blank" rel="noopener">Bitácora de mando</a>.</p>')
+      +'<p class="small" style="margin-top:10px"><button class="btn small" id="btn-olvidar" type="button">No soy yo / salir</button></p></div>'
+      +'<div class="card"><h3>Tu colección · '+(r.insignias||[]).length+' / '+BADGES.length+'</h3><div class="badge-col">'+col+'</div></div></div>';
+  }
   function accesos(){
     var d=st.d;
     return '<div class="cta-row nave-accesos">'
-      +(d.formBitacora?'<a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">📓 Registrar una insignia</a>':'')
+      +(d.panel?'<a class="btn primary" href="'+esc(d.panel)+'" target="_blank" rel="noopener">🪐 Panel de control</a>':'')
+      +(d.formBitacora?'<a class="btn'+(d.panel?'':' primary')+'" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">📓 Registrar una insignia</a>':'')
       +(d.formTicket?'<a class="btn" href="'+esc(d.formTicket)+'" target="_blank" rel="noopener">🎟️ Contacta con NEBULA</a>':'')
       +'<a class="btn" href="registro.html?per='+encodeURIComponent(per)+'" target="_blank" rel="noopener">🏆 Tablero completo</a></div>';
   }
   function mapa(){
-    var idxSel=parseInt(q.get('semana')||'0',10);
     var tiles=PLAN.map(function(p,i){
       var t=i+1; var sems=st.semanas.filter(function(s){return s.tema_n===t;});
       var abre=sems.length?sems[0].sem:99; var abierto=st.actual>=abre&&st.estado!=='antes';
@@ -55,7 +101,7 @@
       return '<div class="nave-pl on'+(actual?' actual':'')+'" data-tema="'+t+'" role="button" tabindex="0"><img src="assets/img/planetas/'+p[0]+'.png" alt="'+esc(p[1])+'"><b>'+esc(p[1])+'</b><em>'+esc(p[2])+'</em></div>';
     }).join('');
     return '<section><div class="eyebrow">El viaje</div><h2>Los ocho planetas</h2>'
-      +'<p class="lead">Cada semana la nave avanza sola: los planetas se van desbloqueando con el calendario. Pulsa uno visitado para volver a ver sus órdenes, vídeos y retos.</p>'
+      +'<p class="lead">Cada semana la nave avanza sola: los planetas se van desbloqueando con el calendario. Pulsa uno visitado para volver a ver sus órdenes, vídeos y retos.'+(st.d.panel?' Las presentaciones de cada planeta están en el <a href="'+esc(st.d.panel)+'" target="_blank" rel="noopener"><b>panel de control</b></a>.':'')+'</p>'
       +'<div class="nave-mapa">'+tiles+'</div><div id="nave-detalle"></div></section>';
   }
   function fichaSemana(s,titulo){
@@ -73,31 +119,8 @@
     var tit=st.estado==='fin'?'Última orden — Semana '+s.sem+' · '+s.tema:'Semana '+s.sem+' · '+s.tema;
     return '<section><div class="eyebrow amber">La orden de la semana</div><h2>Esta semana en la nave</h2>'+fichaSemana(s,tit)+'</section>';
   }
-  function miEstado(){
-    var lista=(st.d.reclutas||[]).slice().sort(function(a,b){return a.alias.localeCompare(b.alias);});
-    var sel='<div class="selrow"><select id="sel-alias"><option value="">Soy… (elige tu alias)</option>'
-      +lista.map(function(x){return '<option value="'+esc(x.alias)+'"'+(x.alias===st.alias?' selected':'')+'>'+esc(x.alias)+'</option>';}).join('')+'</select></div>';
-    var r=recluta(); var panel='';
-    if(st.alias&&!r) panel='<p class="small muted">No encuentro el alias «'+esc(st.alias)+'». ¿Ya te registraste en la Bitácora de mando?</p>';
-    if(r){
-      var SG=window.SG||{}; var av=SG.avatarImg?SG.avatarImg(r.avatar,r.alias,'grande',r.xp,st.d.tipo):'';
-      var k=st.d.tipo==='PUA'?3500/4500:1; var u=[1000*k,2500*k,4000*k]; var rg=SG.rango?SG.rango(r.xp,st.d.tipo):1;
-      var sig=rg<4?u[rg-1]:null; var base=rg>1?u[rg-2]:0;
-      var pct=sig?Math.min(100,Math.round((r.xp-base)/(sig-base)*100)):100;
-      var barra=sig?'<div class="progress" title="'+r.xp+' / '+Math.round(sig)+' xp"><i style="width:'+pct+'%"></i></div><p class="small muted">'+(Math.round(sig)-r.xp)+' xp para el rango '+(SG.RANGOS?SG.RANGOS[rg]:'siguiente')+'</p>'
-                   :'<p class="small muted">Rango máximo alcanzado. 🫡</p>';
-      var col=BADGES.map(function(kk){var tiene=(r.insignias||[]).indexOf(kk)>=0;
-        return '<div class="b'+(tiene?'':' no')+'" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+'"><img loading="lazy" src="assets/img/insignias/'+kk+'.png" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';}).join('');
-      panel='<div class="grid cols-2 nave-estado"><div class="card"><div class="nave-perfil">'+av
-        +'<div><h3>'+esc(r.alias)+'</h3><p class="small">'+(SG.RANGOS?'<b>'+SG.RANGOS[rg-1]+'</b> · ':'')+'puesto '+r.pos+' de '+lista.length+' · planeta '+esc(r.planeta)+'</p>'
-        +'<p><b>'+r.xp+'</b> xp ganados · <b>'+r.xp_disponibles+'</b> xp disponibles</p></div></div>'+barra+'</div>'
-        +'<div class="card"><h3>Tu colección · '+ (r.insignias||[]).length+' / '+BADGES.length+'</h3><div class="badge-col">'+col+'</div></div></div>';
-    }
-    return '<section><div class="eyebrow teal">Mi estado</div><h2>Tu ficha de recluta</h2>'
-      +'<p class="lead">Elige tu alias (el que pusiste en la Bitácora de mando); la nave lo recordará en este dispositivo.</p>'+sel+'<div id="estado-panel">'+panel+'</div></section>';
-  }
   function recompensas(){
-    var d=st.d; var cat=d.recompensas||[]; var n=st.semanas.length; var r=recluta();
+    var d=st.d; var cat=d.recompensas||[]; var n=st.semanas.length; var r=st.yo;
     if(!cat.length) return '<section><div class="eyebrow violet">Recompensas</div><h2>El canje de xp</h2><p class="lead">Tus xp se pueden canjear por recompensas. El catálogo se abrirá pronto en la nave; mientras tanto, tu Capitán tiene la lista.</p>'
       +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎁 Ir al formulario de canje</a>':'')+'</section>';
     var abiertas=0;
@@ -106,7 +129,7 @@
       if(!abierta) return '<div class="card rec-card lock"><h3>🔒 Recompensa clasificada</h3><p class="small muted">Se desbloquea en la semana '+desde+'.</p></div>';
       abiertas++;
       var afford=r?(r.xp_disponibles>=x.coste?'<span class="chip ok">Te lo puedes permitir</span>':'<span class="chip wip">Te faltan '+(x.coste-r.xp_disponibles)+' xp</span>'):'';
-      var aviso=x.tipo==='nota'?'<p class="small muted">⏳ Se hace efectiva al terminar las clases en directo.</p>':x.tipo==='avatar'||x.tipo==='avatar_url'?'<p class="small muted">⚡ Automática: si se concede, tu avatar cambia solo en el tablero.</p>':'';
+      var aviso=x.tipo==='nota'?'<p class="small muted">⏳ Se hace efectiva al terminar las clases en directo.</p>':x.tipo==='avatar'||x.tipo==='avatar_url'?'<p class="small muted">⚡ Automática: si se concede, tu avatar cambia solo.</p>':'';
       return '<div class="card rec-card"><h3>'+esc(x.nombre)+'</h3><p class="pts">'+x.coste+' xp</p><p class="small">'+esc(x.desc||'')+'</p>'+aviso+afford+'</div>';
     }).join('');
     return '<section><div class="eyebrow violet">Recompensas</div><h2>El canje de xp</h2>'
@@ -120,9 +143,9 @@
   var PASOS=[
     {t:'Canal abierto, recluta',x:'Soy <b>NEBULA</b>, la inteligencia de esta nave. La galaxia se apaga por <b>la Estática</b> — un silencio que hace que nadie cree, registre ni comparta. Cruzarás <b>ocho planetas</b> (los ocho temas del curso) para reencenderla. Esta es tu nave.'},
     {t:'Tu arma: la Bitácora',x:'Contra la Estática no sirven las armas: sirve <b>dejar constancia</b>. Tu <b>Bitácora Estelar</b> es tu ePortfolio: cada evidencia que registres la hace más fuerte. Cuando esté completa, la puerta a la Tierra se abrirá.'},
-    {t:'Alístate',x:'Tu primer acto: la <b>Bitácora de mando</b>. Elige tu <b>alias</b> y tu <b>avatar</b> (¡evoluciona con tus xp!) y gana la insignia de <b>Reclutamiento</b>. Cada vez que superes un reto, vuelve, marca la casilla y envía.'},
+    {t:'Alístate',x:'Tu primer acto: la <b>Bitácora de mando</b>. Elige tu <b>alias</b>, tu <b>avatar</b> (¡evoluciona con tus xp!) y escribe la <b>biografía</b> de tu personaje. Ganarás la insignia de <b>Reclutamiento</b>. Cada vez que superes un reto, vuelve, marca la casilla y envía.'},
+    {t:'Tu personaje, al mando',x:'Escribe tu <b>correo</b> una sola vez en este dispositivo y la nave te reconocerá: verás tu personaje con su <b>rango</b>, tu biografía, tus xp y tu colección de insignias nada más entrar.'},
     {t:'La nave avanza sola',x:'Cada semana se desbloquea una nueva orden: el planeta, sus vídeos, sus <b>dos retos</b> y sus insignias. Los planetas futuros están en silencio… de momento. Vuelve cada semana.'},
-    {t:'Tu ficha de recluta',x:'Abajo, en <b>Mi estado</b>, elige tu alias: verás tu avatar con su <b>rango</b>, tus xp, tu puesto y tu colección de insignias — las que tienes a color, las que faltan en sombra.'},
     {t:'Los xp se gastan',x:'Tus xp no son nota, pero valen: la sección de <b>recompensas</b> se irá desbloqueando durante el viaje. Y si te pierdes, usa el ticket <b>«Contacta con NEBULA»</b>: te leo, aunque sea anónimo. Corto y cierro.'}
   ];
   function onboarding(i){
@@ -142,7 +165,7 @@
 
   // ---------- render ----------
   function render(){
-    root.innerHTML=cabecera()+accesos()+estaSemana()+mapa()+miEstado()+recompensas();
+    root.innerHTML=cabecera()+personaje()+accesos()+estaSemana()+mapa()+recompensas();
     wireYt(root);
     var det=root.querySelector('#nave-detalle');
     Array.prototype.forEach.call(root.querySelectorAll('.nave-pl.on'),function(el){
@@ -152,8 +175,10 @@
       el.addEventListener('click',abrir);
       el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();abrir();}});
     });
-    var sa=root.querySelector('#sel-alias');
-    if(sa)sa.onchange=function(){st.alias=this.value;if(st.alias)localStorage.setItem('sgNaveAlias_'+per,st.alias);else localStorage.removeItem('sgNaveAlias_'+per);render();};
+    var bm=root.querySelector('#btn-mail'), im=root.querySelector('#in-mail');
+    if(bm)bm.onclick=function(){identificar(im.value);};
+    if(im)im.addEventListener('keydown',function(e){if(e.key==='Enter')identificar(im.value);});
+    var bo=root.querySelector('#btn-olvidar'); if(bo)bo.onclick=olvidar;
     var ob=root.querySelector('#btn-onboard'); if(ob)ob.onclick=function(){onboarding(0);};
   }
 
@@ -169,6 +194,7 @@
     if(st.estado==='fin')st.actual=st.semanas.length;
     if(st.estado==='antes')st.actual=0;
     render();
+    if(st.email)identificar(st.email);
     if(!localStorage.getItem('sgNaveOnboard_'+per))onboarding(0);
   }).catch(function(){root.innerHTML='<p class="lead">No se pudo contactar con NEBULA. Prueba a recargar.</p>';});
 })();

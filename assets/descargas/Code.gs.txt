@@ -5,7 +5,9 @@
  * API de lectura (doGet) para la web del alumnado y API con PIN (doPost) para el panel del profesorado.
  * v3: La Nave del Recluta (recluta.html?per=id) · recompensas con semana de desbloqueo · canjes de avatar
  * automáticos («Cambio de avatar» y «Avatar personal») · el avatar inicial se congela al alistarse y solo
- * cambia mediante canje concedido.
+ * cambia mediante canje concedido · identificación del recluta por correo (doPost accion=quien, sin PIN,
+ * devuelve solo SU ficha pública + bio) · BIO del personaje en la Bitácora de mando · panel de control
+ * Genially por PER (estándar compartido en propiedades + override por PER desde el panel de profes).
  */
 
 // ================= CATÁLOGO =================
@@ -82,7 +84,8 @@ function onOpen() {
     .addItem("Crear nuevo PER...", "abrirDialogoNuevoPER")
     .addItem("Publicar y abrir formularios del PER seleccionado", "publicarFormulariosPER")
     .addItem("Documento de enlaces y embeds del PER seleccionado", "documentoPERSeleccionado")
-    .addItem("Actualizar recompensas en los formularios", "actualizarRecompensas")
+    .addItem("Actualizar formularios (recompensas, avatar, bio)", "actualizarRecompensas")
+    .addItem("Guardar panel de control estándar (Genially)", "guardarPanelEstandar")
     .addItem("Consolidar DATOS / RESUMEN", "consolidarDatos")
     .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
@@ -103,6 +106,20 @@ function asegurarHojas_() {
   else migrarRecompensas_(rec);
   hoja_(H.EV, ["fecha","per","email","alias","reto_id","reto","tema","xp","origen"], "#aa66cc");
   hoja_(H.AJ, ["fecha","per","email","reto_id","accion","motivo","profe"], "#aa66cc");
+  var pers = hoja_(H.PERS);
+  if (String(pers.getRange(1,20).getValue()||"") !== "Panel Genially (ver)")
+    pers.getRange(1,19,1,3).setValues([["Documento de enlaces","Panel Genially (ver)","Panel Genially (editar)"]]);
+}
+// panel de control Genially estándar (compartido por todos los PER salvo override en su fila)
+function panelStd_() { var pr = PropertiesService.getScriptProperties();
+  return { ver: pr.getProperty("PANEL_STD_VER") || "", editar: pr.getProperty("PANEL_STD_EDIT") || "" }; }
+function guardarPanelEstandar() {
+  var ui = SpreadsheetApp.getUi(); var pr = PropertiesService.getScriptProperties();
+  var r1 = ui.prompt("Panel de control estándar", "Enlace de VISUALIZACIÓN del Genially (view.genially.com/…):", ui.ButtonSet.OK_CANCEL);
+  if (r1.getSelectedButton() !== ui.Button.OK) return; pr.setProperty("PANEL_STD_VER", r1.getResponseText().trim());
+  var r2 = ui.prompt("Panel de control estándar", "Enlace de EDICIÓN del Genially (app.genially.com/editor/…):", ui.ButtonSet.OK_CANCEL);
+  if (r2.getSelectedButton() === ui.Button.OK) pr.setProperty("PANEL_STD_EDIT", r2.getResponseText().trim());
+  ui.alert("Guardado. Los PER sin enlaces propios usarán estos.");
 }
 // v3: añade las columnas «Disponible desde» y «Tipo» a una hoja RECOMPENSAS anterior y las recompensas de avatar
 function migrarRecompensas_(rec) {
@@ -130,7 +147,8 @@ function perFila_(perId) {
 }
 function perObj_(v) {
   return { id:v[0], nombre:v[1], tipo:v[2]||"REGULAR", profesorado:v[3], inicio:fechaIso_(v[4]), apertura:fechaIso_(v[5]), cierre:fechaIso_(v[6]),
-           estado:v[7], formBitacora:v[8], formBitacoraEdit:v[9], formTicket:v[10], formCanje:v[11], tabB:v[12], tabT:v[13], tabC:v[14], referente:v[16]||"", formTicketEdit:v[17]||"" };
+           estado:v[7], formBitacora:v[8], formBitacoraEdit:v[9], formTicket:v[10], formCanje:v[11], tabB:v[12], tabT:v[13], tabC:v[14], referente:v[16]||"", formTicketEdit:v[17]||"",
+           panelVer:String(v[19]||""), panelEdit:String(v[20]||"") };
 }
 function fechaIso_(d) { if (!d) return ""; if (d instanceof Date) return Utilities.formatDate(d, "Europe/Madrid", "yyyy-MM-dd"); return String(d); }
 
@@ -205,6 +223,7 @@ function crearPER(datos) {
   avu.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
   var bit = fb.addTextItem().setTitle("Enlace a mi Bitácora (ePortfolio)").setHelpText("Un único enlace donde está toda tu evidencia. Puedes añadirlo más adelante.");
   bit.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
+  fb.addParagraphTextItem().setTitle("Breve biografía de tu personaje").setHelpText("2-3 frases sobre tu recluta: quién es, de dónde viene, qué se le da bien. Aparecerá al pie de tu personaje en la Nave del Recluta.").setRequired(true);
   var porTema = {}; retos.forEach(function(r){ (porTema[r[4]] = porTema[r[4]] || []).push(r); });
   Object.keys(porTema).sort().forEach(function(t){
     t = Number(t);
@@ -243,13 +262,15 @@ function crearPER(datos) {
   if (cierre) programar_("cerrarPorTrigger", cierre, id);
 
   hoja_(H.PERS).appendRow([id, nombre, tipo, datos.profesores || "", inicio || "", apertura || "", cierre || "", estado,
-    fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date(), datos.referente || "", ft.getEditUrl()]);
+    fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date(), datos.referente || "", ft.getEditUrl(),
+    "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim()]);
   var docUrl = ""; try { docUrl = crearDocumentoPER_(id); } catch (e) { docUrl = ""; }
   return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", doc:docUrl, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
     hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id, foro: WEB + "foro.html?per=" + id, nave: WEB + "recluta.html?per=" + id,
     embedAlumnos: '<iframe src="' + WEB + 'registro.html?per=' + id + '&embed=1" width="100%" height="760" style="border:0;border-radius:16px"></iframe>',
     embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>',
-    embedNave: '<iframe src="' + WEB + 'recluta.html?per=' + id + '&embed=1" width="100%" height="900" style="border:0;border-radius:16px"></iframe>' };
+    embedNave: '<iframe src="' + WEB + 'recluta.html?per=' + id + '&embed=1" width="100%" height="900" style="border:0;border-radius:16px"></iframe>',
+    panelVer: String(datos.panelVer || "").trim() || panelStd_().ver, panelEdit: String(datos.panelEdit || "").trim() || panelStd_().editar };
 }
 function etiquetasRecompensas_() {
   var d = hoja_(H.REC).getDataRange().getValues().slice(1).filter(function(r){ return r[0]; });
@@ -271,8 +292,14 @@ function actualizarRecompensas() {
           var titulos = f.getItems().map(function(i){ return i.getTitle(); });
           f.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle() === "Recompensa") { i.asListItem().setChoiceValues(et); n++; } });
           if (titulos.indexOf(TIT_NUEVO_AVATAR) < 0) anadirCamposAvatar_(f); } catch (e) {}
+    try { var fbx = FormApp.openByUrl(perObj_(v).formBitacoraEdit);
+          var tit2 = fbx.getItems().map(function(i){ return i.getTitle(); });
+          if (tit2.indexOf("Breve biografía de tu personaje") < 0) {
+            var bioIt = fbx.addParagraphTextItem().setTitle("Breve biografía de tu personaje").setHelpText("2-3 frases sobre tu recluta: quién es, de dónde viene, qué se le da bien. Aparecerá al pie de tu personaje en la Nave del Recluta.");
+            var items = fbx.getItems(); var pos = tit2.indexOf("Enlace a mi Bitácora (ePortfolio)");
+            if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); } } catch (e) {}
   });
-  SpreadsheetApp.getUi().alert("Recompensas actualizadas en " + n + " formularios (y campos de avatar añadidos donde faltaban).");
+  SpreadsheetApp.getUi().alert("Formularios actualizados en " + n + " PER: recompensas al día, campos de avatar en el canje y biografía en la Bitácora (donde faltaban).");
 }
 
 function listaProfes_(referente, profesores) {
@@ -351,6 +378,11 @@ function crearDocumentoPER_(perId) {
   h("STARGATE · " + o.nombre, 1);
   par("Tipo: " + o.tipo + " · Referente: " + (o.referente || "—") + " · Profesorado: " + (o.profesorado || "—") + " · Semana 1: " + (o.inicio || "sin fecha") + " · Generado: " + Utilities.formatDate(new Date(), "Europe/Madrid", "dd/MM/yyyy HH:mm"));
   par("Cómo se incrusta en Genially: Insertar → Código embed, pegar el código y ajustar al lienzo. Para los formularios, mejor un botón con el enlace (o el QR para proyectar).");
+  h("Panel de control (Genially de los planetas)", 2);
+  var stdD = panelStd_();
+  link("Visualización (para el alumnado)", o.panelVer || stdD.ver || "(sin definir: menú STARGATE → Guardar panel de control estándar)");
+  link("Edición (para el profesorado)", o.panelEdit || stdD.editar || "(sin definir)");
+  par(o.panelVer || o.panelEdit ? "Este PER usa un panel PROPIO." : "Este PER usa el panel ESTÁNDAR compartido. Si el profesorado quiere el suyo, se cambia desde el panel de profes (Ajustes del PER).");
   h("Para el Genially del alumnado", 2);
   link("🚀 La Nave del Recluta (el hub del alumnado: onboarding, semanas, su estado y recompensas)", WEB + "recluta.html?per=" + o.id);
   qr(WEB + "recluta.html?per=" + o.id, "QR de la Nave del Recluta");
@@ -486,14 +518,14 @@ function tablero_(perId, conPrivados) {
   var shB = SpreadsheetApp.getActive().getSheetByName(o.tabB);
   if (shB && shB.getLastRow() > 1) {
     var vals = shB.getDataRange().getValues(); var cab = vals[0].map(String);
-    var cM = idx_(cab,"correo") >= 0 ? idx_(cab,"correo") : idx_(cab,"email"); var cA = idx_(cab,"alias"), cN = idx_(cab,"apellidos"), cB = idx_(cab,"bitácora");
+    var cM = idx_(cab,"correo") >= 0 ? idx_(cab,"correo") : idx_(cab,"email"); var cA = idx_(cab,"alias"), cN = idx_(cab,"apellidos"), cB = idx_(cab,"bitácora"), cBio = idx_(cab,"biograf");
     var cAv = idx_(cab,"elige tu avatar"), cAvU = idx_(cab,"url de tu propia imagen");
     for (var i = 1; i < vals.length; i++) { var m = String(vals[i][cM]||"").toLowerCase().trim(); if (!m) continue;
       var avs = cAv >= 0 ? String(vals[i][cAv]||"") : ""; var avu = cAvU >= 0 ? String(vals[i][cAvU]||"").trim() : "";
       var mp = avs.match(/Personaje (\d) · (ella|él|modelo A|modelo B)/), mc = avs.match(/Cl[aá]sico (\d+)/), mn = avs.match(/^(\d+)$/);
       var avatar = mp ? { tipo:"evo", n:Number(mp[1]), v: (mp[2] === "él" || mp[2] === "modelo B") ? "m" : "f" } : mc ? { tipo:"clasico", n:Number(mc[1]) } : mn ? { tipo:"clasico", n:Number(mn[1]) } : { tipo:null, n:null };
       avatar.url = avu;
-      por[m] = { email:m, alias:String(vals[i][cA]||""), nombre:String(vals[i][cN]||""), bitacora:String(vals[i][cB]||""), avatar:avatar, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] }; }
+      por[m] = { email:m, alias:String(vals[i][cA]||""), nombre:String(vals[i][cN]||""), bitacora:String(vals[i][cB]||""), bio:cBio >= 0 ? String(vals[i][cBio]||"") : "", avatar:avatar, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] }; }
   }
   // 2) eventos (con fecha) + ajustes del profesorado
   hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase();
@@ -518,12 +550,16 @@ function tablero_(perId, conPrivados) {
     // avatar: canje concedido > elección congelada al alistarse > valor actual del formulario (respuestas antiguas)
     var avatar = a._avCanje ? parseAvatar_(a._avCanje) : a._avBase ? parseAvatar_(a._avBase) : (a.avatar || {tipo:null,n:null,url:""});
     var out = { alias:a.alias, avatar:avatar, xp:xp, xp_disponibles: xp - gast, planeta: tema ? TEMAS[tema][0] : "—", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length };
-    if (conPrivados) { out.email = m; out.nombre = a.nombre; out.bitacora = a.bitacora; out.eventos = a.eventos; out.retos = a.retos; out.canjes = canjes[m] ? canjes[m].lista : []; }
+    if (conPrivados) { out.email = m; out.nombre = a.nombre; out.bitacora = a.bitacora; out.bio = a.bio || ""; out.eventos = a.eventos; out.retos = a.retos; out.canjes = canjes[m] ? canjes[m].lista : []; }
     return out; });
   lista.sort(function(a,b){ return b.xp - a.xp || b.n - a.n || a.alias.localeCompare(b.alias); }); lista.forEach(function(x,i){ x.pos = i+1; });
-  return { per:perId, nombre:o.nombre, tipo:o.tipo, profesorado:o.profesorado, referente:o.referente, estado:o.estado, inicio:o.inicio,
+  var std = panelStd_();
+  var res = { per:perId, nombre:o.nombre, tipo:o.tipo, profesorado:o.profesorado, referente:o.referente, estado:o.estado, inicio:o.inicio,
            formBitacora:o.formBitacora, formTicket:o.formTicket, formCanje:o.formCanje, reclutas:lista,
-           recompensas:recompensasCat_(), semana:semanaDe_(o), actualizado:new Date() };
+           recompensas:recompensasCat_(), semana:semanaDe_(o), panel:o.panelVer || std.ver,
+           actualizado:new Date() };
+  if (conPrivados) { res.panelEdit = o.panelEdit || std.editar; res.panelPropio = !!(o.panelVer || o.panelEdit); }
+  return res;
 }
 // «Personaje 3 · ella (evoluciona)» / «Clásico 7» / URL directa / «elección | url» -> objeto avatar del tablero
 function parseAvatar_(s) {
@@ -560,6 +596,15 @@ function doPost(e) {
   var out;
   try {
     var q = JSON.parse(e.postData.contents || "{}");
+    // identificación del recluta (sin PIN): devuelve SOLO la ficha del correo indicado; nunca lista correos
+    if (q.accion === "quien") {
+      var tq = tablero_(q.per, true); if (tq.error) throw new Error(tq.error);
+      var eq = String(q.email || "").toLowerCase().trim();
+      var yo = (tq.reclutas || []).filter(function(x){ return x.email === eq; })[0] || null;
+      return ContentService.createTextOutput(JSON.stringify({ yo: yo ? { alias:yo.alias, avatar:yo.avatar, xp:yo.xp,
+        xp_disponibles:yo.xp_disponibles, planeta:yo.planeta, tema:yo.tema, insignias:yo.insignias, n:yo.n, pos:yo.pos,
+        bio:yo.bio || "", bitacora:yo.bitacora || "" } : null })).setMimeType(ContentService.MimeType.JSON);
+    }
     var pin = PropertiesService.getScriptProperties().getProperty("PIN_PROFES") || "";
     if (!pin || q.pin !== pin) throw new Error("PIN incorrecto");
     var a = q.accion, per = q.per;
@@ -575,6 +620,7 @@ function doPost(e) {
     else if (a === "profesorado") { var p = perFila_(per); var sh4 = hoja_(H.PERS); sh4.getRange(p.fila, 4).setValue(q.profesorado || ""); sh4.getRange(p.fila, 17).setValue(q.referente || "");
       try { var o4 = perObj_(perFila_(per).v); var ftx = FormApp.openByUrl(o4.formTicketEdit); ftx.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle().indexOf("profesor o profesora") >= 0) i.asListItem().setChoiceValues(listaProfes_(q.referente, q.profesorado)); }); } catch (e2) {}
       out = { ok:true }; }
+    else if (a === "panel") { var pp = perFila_(per); hoja_(H.PERS).getRange(pp.fila, 20).setValue(String(q.ver||"").trim()); hoja_(H.PERS).getRange(pp.fila, 21).setValue(String(q.editar||"").trim()); out = { ok:true }; }
     else if (a === "inicio") { var p2 = perFila_(per); hoja_(H.PERS).getRange(p2.fila, 5).setValue(q.inicio ? new Date(q.inicio + "T00:00:00") : ""); out = { ok:true }; }
     else if (a === "abrir" || a === "cerrar") { setAbierto_(per, a === "abrir"); out = { ok:true }; }
     else if (a === "entregado") { var o2 = perObj_(perFila_(per).v); var shc = SpreadsheetApp.getActive().getSheetByName(o2.tabC); var cab = shc.getRange(1,1,1,shc.getLastColumn()).getValues()[0].map(String);

@@ -12,7 +12,7 @@ M-learning y Gamificación en el Aula* (CCD). Pensado para el profesorado y para
 - `geniallys.html` — **Geniallys** (carpeta compartida con el profesorado: estándar por perfil, copia para modificar; enlaces públicos en `GENIALLYS` de `_site_data.py`).
 - `registro.html` — **Registro y tablero en vivo** por PER (API de Apps Script), avatares evolutivos, ticket/canje en versión docente, guía de instalación.
 - `profes.html` · `tickets.html` · `foro.html` · `embed.html` — panel del profesorado (PIN), tickets visual, foro dinámico semanal (`?todos=1` = todos los mensajes para copiar) y generador de enlaces/embeds/QR.
-- `recluta.html` — **La Nave del Recluta** (v3, 24-ago): la web del alumnado por PER (`?per=<id>`, `&embed=1`): onboarding con NEBULA, planetas que se desbloquean con el calendario, la orden de la semana (foro unidireccional), ficha con alias+avatar+xp+colección, y recompensas con desbloqueo semanal (catálogo servido por el Apps Script). Motor de calendario compartido en `assets/js/calendario.js`.
+- `recluta.html` — **La Nave del Recluta** (v3.1, 24-ago): la web del alumnado por PER (`?per=<id>`, `&embed=1`): el recluta se identifica con su CORREO una vez por dispositivo (POST `accion=quien`, sin PIN; el correo nunca va en la URL ni se lista) y lo primero que ve es SU personaje (avatar+rango+xp+colección+bio); onboarding con NEBULA, planetas desbloqueados por calendario, foro unidireccional, recompensas con desbloqueo semanal y botón al panel de control Genially del PER. Motor compartido en `assets/js/calendario.js`.
 - `apps-script/` — código de la hoja maestra (Code.gs + Dialog.html); copia servida en `assets/descargas/`.
 - `recursos.html` — **Sala de recursos** (tablero de 24 insignias, cartas, ranking).
 
