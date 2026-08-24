@@ -28,7 +28,7 @@ def head(title, desc, active):
 <script src="assets/js/tour.js" defer></script>
 </head><body>
 <nav class="nav"><div class="wrap">
-<a class="brand" href="index.html">◈ STARGATE <span class="modo docente">Capitán · docentes</span></a>
+<a class="brand" href="index.html">◈ STARGATE <span class="modo docente">Capitán<i> · docentes</i></span></a>
 {links}
 <button class="tour-start" type="button" title="Visita guiada con el Capitán">▶ Visita guiada</button>
 </div></nav>'''
@@ -106,6 +106,7 @@ tiles = [
  ("embed.html","🧩","Enlaces, embeds y QR","Elige tu PER y tu nombre: todo listo para pegar en Genially."),
  ("foro.html","💬","Foro dinamizador","El mensaje de la semana en curso (embebible en el Genially del PER) o todos de una vez, para copiar."),
  ("recluta.html","🚀","La Nave del Recluta","La web del alumnado: onboarding con NEBULA, planetas por semanas, su ficha y las recompensas."),
+ ("panel.html","🪐","Panel de control","El mapa de los ocho planetas sobre el universo: cada uno lleva a la presentación de su tema."),
  ("recursos.html","📦","Sala de recursos","Tablero de las 24 insignias, ranking y materiales."),
 ]
 tiles_html="\n".join(f'<a class="tile" href="{h}"><span class="ic">{i}</span><b>{t}</b><em>{d}</em></a>' for h,i,t,d in tiles)
@@ -1007,7 +1008,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <link rel="stylesheet" href="assets/css/stargate.css">
 <script src="assets/js/stargate.js" defer></script>
 </head><body>
-<nav class="nav"><div class="wrap"><a class="brand" href="recluta.html">◈ STARGATE <span class="modo recluta">Recluta · alumnado</span></a></div></nav>
+<nav class="nav"><div class="wrap"><a class="brand" href="recluta.html">◈ STARGATE <span class="modo recluta">Recluta<i> · alumnado</i></span></a></div></nav>
 <header class="hero"><div class="kicker">Canal del alumnado</div><h1>La Nave del Recluta</h1>
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
@@ -1079,7 +1080,7 @@ html,body{{margin:0;height:100%;background:#05080f;overflow:hidden}}
 <div class="panel">
 <video autoplay muted loop playsinline poster="assets/img/nave/fondo_universo_poster.jpg"><source src="media/video/fondo_universo.mp4" type="video/mp4"></video>
 <div class="velo"></div>
-<div class="tit"><div class="k">Panel de control <span class="modo recluta">Recluta · alumnado</span></div><h1>La galaxia de STARGATE</h1>
+<div class="tit"><div class="k">Panel de control <span class="modo recluta">Recluta<i> · alumnado</i></span></div><h1>La galaxia de STARGATE</h1>
 <p>Ocho mundos, ocho temas. Pulsa un planeta para entrar en su misión.</p></div>
 <div class="mapa">{{planetas}}</div>
 <div class="pie">Proyecto Gamificado del <b>Máster en Tecnología Educativa</b> de la UNIR</div>

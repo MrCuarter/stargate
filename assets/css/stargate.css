@@ -360,7 +360,8 @@ body.embed .nave-accesos{margin-top:0}
   font-family:'DMSans',system-ui,sans-serif;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
 .modo.docente{background:rgba(245,176,67,.16);color:var(--amber);border:1px solid rgba(245,176,67,.45)}
 .modo.recluta{background:rgba(55,224,236,.14);color:var(--teal);border:1px solid rgba(55,224,236,.45)}
-@media(max-width:760px){.modo{display:none}}
+.modo i{font-style:normal}
+@media(max-width:760px){.modo{margin-left:6px;padding:2px 7px;font-size:.56rem}.modo i{display:none}}
 .panel .tit .modo{display:inline-block}
 
 /* ---- barra de carga (contactando con NEBULA / cargando panel) ---- */
