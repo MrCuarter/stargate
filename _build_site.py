@@ -5,7 +5,7 @@ Ejecutar desde web-stargate/:  python3 _build_site.py
 Datos de cronología/vídeos/geniallys en _site_data.py."""
 import os, json, hashlib
 from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
-                        PLAYLIST, HERO_MP4, TABLERO_API, PLANTILLA_EPORTFOLIO)
+                        PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E"
@@ -113,7 +113,7 @@ tiles_html="\n".join(f'<a class="tile" href="{h}"><span class="ic">{i}</span><b>
 PORTADA = head("STARGATE · Puesto de mando del profesorado",
   "Todo lo que un docente necesita para pilotar STARGATE: narrativa, cronología semana a semana, retos, insignias, vídeos y Geniallys.","inicio") + f'''
 <header class="hero hero-video">
-<video autoplay muted loop playsinline poster="https://i.ytimg.com/vi/{V["opening"][0]}/maxresdefault.jpg"><source src="{HERO_MP4}" type="video/mp4"></video>
+<video autoplay muted loop playsinline preload="auto" poster="{HERO_POSTER}"><source src="{HERO_MP4}" type="video/mp4"></video>
 <div class="veil"></div>
 <div class="hero-inner">
 <div class="kicker">Puesto de mando del profesorado</div>

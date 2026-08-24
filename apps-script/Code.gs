@@ -105,6 +105,7 @@ function onOpen() {
     .addSubMenu(SpreadsheetApp.getUi().createMenu("Mantenimiento")
       .addItem("Restaurar catálogo oficial de recompensas", "restaurarRecompensas")
       .addItem("Limpiar restos de PER borrados (formularios y pestañas)", "limpiarRestos")
+      .addItem("Actualizar imágenes de los planetas en los formularios", "actualizarImagenesPlanetas")
       .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
     .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
@@ -548,6 +549,30 @@ function restaurarRecompensas_() {
 }
 // Formularios de PER que ya no existen en la hoja (p. ej. borrados con la versión anterior, que dejaba
 // huérfano el de canje). Los manda a la papelera tras confirmar.
+// Las imágenes de planeta se copian dentro del formulario al crear el PER, así que si cambia el arte
+// (p. ej. el orbe de Sendara) hay que refrescarlas en los PER que ya existen.
+function actualizarImagenesPlanetas() {
+  var ui = SpreadsheetApp.getUi();
+  if (ui.alert("Actualizar imágenes de los planetas",
+      "Vuelve a descargar de la web el orbe de cada planeta y lo sustituye en la Bitácora de mando de todos los PER. Úsalo cuando cambie el arte de un planeta.\n\n¿Continuar?",
+      ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var blobs = {}, cambiadas = 0, pers = 0, fallos = [];
+  for (var t = 1; t <= 8; t++) {
+    try { blobs[TEMAS[t][0]] = UrlFetchApp.fetch(WEB + "assets/img/planetas/" + TEMAS[t][2] + ".png?v=" + new Date().getTime()).getBlob(); }
+    catch (e) { fallos.push("Descargando " + TEMAS[t][0] + ": " + e.message); }
+  }
+  hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
+    if (!v[0]) return;
+    var f = formDelPER_(perObj_(v), "B"); if (!f) { fallos.push(String(v[1]) + ": sin Bitácora accesible"); return; }
+    pers++;
+    f.getItems(FormApp.ItemType.IMAGE).forEach(function(it){
+      var b = blobs[it.getTitle()];
+      if (b) { try { it.asImageItem().setImage(b); cambiadas++; } catch (e) { fallos.push(String(v[1]) + " / " + it.getTitle() + ": " + e.message); } }
+    });
+  });
+  ui.alert("Imágenes actualizadas",
+    cambiadas + " imágenes sustituidas en " + pers + " PER." + (fallos.length ? "\n\nNo se pudo con:\n" + fallos.join("\n") : ""), ui.ButtonSet.OK);
+}
 function limpiarRestos() {
   var ui = SpreadsheetApp.getUi(); var ss = SpreadsheetApp.getActive();
   var filas = hoja_(H.PERS).getDataRange().getValues().slice(1);

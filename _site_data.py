@@ -5,7 +5,10 @@ import os, re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLAYLIST = "https://www.youtube.com/playlist?list=PLKZsWVJaEna0"
-HERO_MP4 = "https://stargate.mistercuarter.es/media/video/00b_opening_popurri_720.mp4"
+# Bucle del hero: la nave surcando el espacio (ida+vuelta = bucle infinito sin corte).
+# Vive en el repo (media/video/) para que se despliegue con la web.
+HERO_MP4 = "media/video/hero_nave_loop.mp4"
+HERO_POSTER = "assets/img/nave/hero_poster.jpg"
 
 # ---------- catálogo de vídeos (id de YouTube -> título/rol) ----------
 V = {
