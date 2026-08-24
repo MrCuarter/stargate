@@ -5,6 +5,10 @@
  * API de lectura (doGet) para la web del alumnado y API con PIN (doPost) para el panel del profesorado.
  * v3: La Nave del Recluta (recluta.html?per=id) · recompensas con semana de desbloqueo · canjes de avatar
  * automáticos («Cambio de avatar» y «Avatar personal») · el avatar inicial se congela al alistarse y solo
+ * v3.8: avatares SOLO evolutivos (fuera la galería clásica), la URL de imagen propia deja de ser
+ * gratis (es la recompensa «Avatar personal») y la BITÁCORA DE MANDO va por SECCIONES: la página 1
+ * es la identidad y termina con un selector que salta directo al tema; cada sección envía. Seguro
+ * porque registrarEventos_ es append-only y las insignias viven en EVENTOS, no en la respuesta.
  * v3.7: DOS MONEDAS — los XP solo suben (nivel 1-10 y evolución del avatar) y los CRÉDITOS son lo único
  * que se gasta al canjear. NIVELES/CREDITOS/RECOMPENSAS los genera _build_site.py desde _site_data.py.
  * v3.4: 7 personajes evolutivos × 5 rangos (nuevo rango LEYENDA) — la web calcula el rango;
@@ -110,7 +114,7 @@ var RECOMPENSAS_INICIALES = [
   ["Cambio de avatar",35,3,"Elige otro personaje inicial (1-4) o vuelve a uno (indícalo en el propio formulario de canje). Se aplica solo.",5,"avatar"],
   ["Marco dorado del avatar",35,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.",6,"marco"],
   ["Personaje exclusivo",60,3,"Desbloquea y ponte uno de los personajes exclusivos 5-7 (indícalo en el formulario). Se aplica solo.",7,"avatar_exclusivo"],
-  ["Avatar personal (tu propia imagen)",90,1,"Pon tu propia imagen como avatar (pega la URL en el formulario de canje). Se aplica solo.",10,"avatar_url"],
+  ["Avatar personal (tu propia imagen)",90,1,"Pon tu propia imagen como avatar. Al alistarte esto NO se ofrece: es una recompensa. Sube la foto a postimages.org (sin registrarte), copia el «Enlace directo» (acaba en .jpg o .png) y pégalo en este formulario. También vale un enlace de Google Drive compartido con «cualquier persona con el enlace». Se aplica solo.",10,"avatar_url"],
   ["Subir 0,5 en un entregable",110,1,"Se aplica a la actividad que elijas",14,"nota"],
   ["Subir 1 punto en un entregable",170,1,"Se aplica a la actividad que elijas",14,"nota"],
   ["Recalificar un trabajo entregado fuera de plazo",240,1,"Indica la actividad",14,"nota"],
@@ -380,25 +384,31 @@ function crearPER(datos) {
   fb.addSectionHeaderItem().setTitle("Quién soy").setHelpText("Solo la primera vez.");
   fb.addTextItem().setTitle("Alias de recluta (público)").setHelpText("Lo que se verá en el tablero.").setRequired(true);
   fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado.").setRequired(true);
-  // avatar: personaje que evoluciona (5) · galería clásica (16) · URL propia
-  try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle("Tu personaje evoluciona con tus xp").setHelpText("Recluta → Cadete → Oficial → Comandante → Leyenda. El tablero lo cambia solo según tus puntos. Los personajes 5-7 son EXCLUSIVOS: se desbloquean con xp durante el curso.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
-  var av = fb.addListItem().setTitle("Elige tu avatar").setHelpText("Personajes 1-" + AVATARES_INICIALES + " en versión ella/él (evolucionan con tus xp: Recluta → Cadete → Oficial → Comandante → Leyenda), o tu propia imagen (pega la URL en la siguiente pregunta). Los personajes 5-7 son EXCLUSIVOS: se desbloquean canjeando xp. Elige bien: cambiar cuesta xp.").setRequired(true);
-  av.setChoiceValues(opcIniciales_().concat(["Prefiero mi propia imagen (pongo la URL abajo)"]));
-  var avu = fb.addTextItem().setTitle("URL de tu propia imagen (opcional)").setHelpText(
-    "Debe ser un ENLACE DIRECTO a una imagen (termina en .jpg, .png o .webp). La forma más fácil: entra en postimages.org, sube tu foto (sin registrarte), y copia el campo «Enlace directo». " +
-    "Si la tienes en Google Drive: botón Compartir → «Cualquier persona con el enlace» → pega el enlace normal de Drive (lo convertimos nosotros). Un enlace a una página web o a Instagram NO funciona. Si la imagen no carga, verás tu avatar elegido.");
-  avu.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
+  // avatar: SOLO personajes que evolucionan (la galería clásica ya no existe, y poner tu propia
+  // imagen es una RECOMPENSA de pago: se pide en el formulario de canje, no aquí)
+  try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle("Tu personaje evoluciona con tu nivel").setHelpText("Recluta → Cadete → Oficial → Comandante → Leyenda: el tablero cambia la imagen solo al subir de nivel. Los personajes 5-7 son EXCLUSIVOS: se desbloquean con créditos durante el curso.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
+  fb.addListItem().setTitle("Elige tu avatar").setHelpText(AYUDA_AVATAR).setRequired(true)
+    .setChoiceValues(opcIniciales_());
   var bit = fb.addTextItem().setTitle("Enlace a mi Bitácora (ePortfolio)").setHelpText("Un único enlace donde está toda tu evidencia. Puedes añadirlo más adelante.");
   bit.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
   fb.addParagraphTextItem().setTitle("Breve biografía de tu personaje").setHelpText("2-3 frases sobre tu recluta: quién es, de dónde viene, qué se le da bien. Aparecerá al pie de tu personaje en la Nave del Recluta.").setRequired(true);
+  // v3.8 · atajo: la primera página es SIEMPRE la identidad (así nunca se pierde) y termina con un
+  // selector que salta DIRECTO al tema que se viene a registrar. Cada tema envía al terminar.
+  var nav = fb.addListItem().setTitle(TIT_NAV).setHelpText(AYUDA_NAV).setRequired(true);
+  var destinos = [];
   var porTema = {}; retos.forEach(function(r){ (porTema[r[4]] = porTema[r[4]] || []).push(r); });
-  Object.keys(porTema).sort().forEach(function(t){
+  Object.keys(porTema).sort(function(a,b){ return a-b; }).forEach(function(t){
     t = Number(t);
-    if (t >= 1 && t <= 8) { fb.addPageBreakItem().setTitle("Tema " + t + " · " + TEMAS[t][0]).setHelpText(TEMAS[t][1]); imagen_(fb, t, TEMAS[t][0]); }
-    else { fb.addPageBreakItem().setTitle("La batalla final").setHelpText("Solo cuando hayas hecho el examen."); }
+    var pb;
+    if (t >= 1 && t <= 8) { pb = fb.addPageBreakItem().setTitle("Tema " + t + " · " + TEMAS[t][0]).setHelpText(TEMAS[t][1]); imagen_(fb, t, TEMAS[t][0]); }
+    else { pb = fb.addPageBreakItem().setTitle("La batalla final").setHelpText("Solo cuando hayas hecho el examen."); }
+    pb.setGoToPage(FormApp.PageNavigationType.SUBMIT);      // al terminar una sección, se envía
+    destinos.push([t, pb]);
     var cb = fb.addCheckboxItem().setTitle(t >= 1 && t <= 8 ? "Tema " + t + " · Lo que he completado" : "Batalla final");
     cb.setChoiceValues(porTema[t].map(function(r){ return r[1]; }));
   });
+  nav.setChoices([nav.createChoice(OPC_NADA, FormApp.PageNavigationType.SUBMIT)].concat(
+    destinos.map(function(d){ return nav.createChoice(etiquetaNav_(d[0]), d[1]); })));
   publicar_(fb);
   fb.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
   var tabB = pestanaDe_(fb, "B · " + id, "#37e0ec");
@@ -446,6 +456,14 @@ function etiquetasRecompensas_() {
   return d.map(function(r){ return r[0] + " — " + r[1] + " créditos"; });
 }
 // Preguntas del canje de avatar (se usan al crear el PER y al actualizar PERs anteriores)
+var TIT_NAV = "¿Qué vienes a registrar hoy?";
+var OPC_NADA = "Nada más: solo me alisto / actualizo mis datos";
+var AYUDA_NAV = "Elige y te llevo DIRECTO a esa sección; al marcar tus casillas, envías y listo. " +
+  "Lo que registraste otras veces se conserva aunque no pases por su página: el sistema solo añade, nunca borra.";
+var AYUDA_AVATAR = "Personajes 1-" + AVATARES_INICIALES + " en versión ella/él. Evolucionan con tu NIVEL " +
+  "(Recluta → Cadete → Oficial → Comandante → Leyenda). Los personajes 5-7 son EXCLUSIVOS y poner tu propia " +
+  "imagen también: son recompensas que se canjean con créditos. Elige bien: cambiar de avatar cuesta créditos.";
+function etiquetaNav_(t) { return t >= 1 && t <= 8 ? "Tema " + t + " · " + TEMAS[t][0] : "La batalla final"; }
 var TIT_NUEVO_AVATAR = "Nuevo avatar (solo para «Cambio de avatar»)";
 var TIT_URL_AVATAR = "URL de tu nueva imagen (solo para «Avatar personal»)";
 var TIT_EXCLUSIVO = "Personaje exclusivo (solo para «Personaje exclusivo»)";
@@ -476,9 +494,41 @@ function actualizarRecompensas() {
           if (tit2.indexOf("Breve biografía de tu personaje") < 0) {
             var bioIt = fbx.addParagraphTextItem().setTitle("Breve biografía de tu personaje").setHelpText("2-3 frases sobre tu recluta: quién es, de dónde viene, qué se le da bien. Aparecerá al pie de tu personaje en la Nave del Recluta.");
             var items = fbx.getItems(); var pos = tit2.indexOf("Enlace a mi Bitácora (ePortfolio)");
-            if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); } } catch (e) {}
+            if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); }
+          reestructurarBitacora_(fbx, perObj_(v).tipo); } catch (e) {}
   });
-  SpreadsheetApp.getUi().alert("Formularios actualizados en " + n + " PER: recompensas y preguntas del canje al día (avatar, exclusivo, título, fondo), lámina de personajes nueva, lista de avatares solo con iniciales, galería clásica retirada y biografía donde faltaba.");
+  SpreadsheetApp.getUi().alert("Formularios actualizados en " + n + " PER.\n\n· Canje: recompensas con precios en CRÉDITOS y preguntas al día.\n· Bitácora: avatares solo evolutivos (galería clásica y URL propia RETIRADAS: poner tu imagen es ahora una recompensa de pago) y SECCIONES RÁPIDAS — la primera página pregunta a qué tema vas y salta directo; cada sección envía al terminar.");
+}
+
+// v3.8 · pone al día una Bitácora ya creada: quita la galería clásica y la URL gratis, y le añade
+// el selector que salta directo a la sección del tema (cada sección envía al terminar).
+// Es idempotente: si ya está reestructurada, no toca nada.
+function reestructurarBitacora_(fb, tipo) {
+  var items = fb.getItems();
+  // 1) avatar: solo personajes que evolucionan
+  items.forEach(function(it){
+    if (it.getType() === FormApp.ItemType.LIST && it.getTitle() === "Elige tu avatar") {
+      it.asListItem().setChoiceValues(opcIniciales_()).setHelpText(AYUDA_AVATAR);
+    }
+  });
+  // 2) fuera la pregunta de la URL propia (ahora es una recompensa que se canjea)
+  items.forEach(function(it){
+    if (it.getTitle().indexOf("URL de tu propia imagen") === 0) { try { fb.deleteItem(it); } catch (e) {} }
+  });
+  // 3) secciones rápidas
+  var pbs = fb.getItems(FormApp.ItemType.PAGE_BREAK).map(function(i){ return i.asPageBreakItem(); });
+  if (!pbs.length) return;
+  pbs.forEach(function(pb){ try { pb.setGoToPage(FormApp.PageNavigationType.SUBMIT); } catch (e) {} });
+  var yaHay = fb.getItems().filter(function(i){ return i.getTitle() === TIT_NAV; })[0];
+  var nav = yaHay ? yaHay.asListItem()
+                  : fb.addListItem().setTitle(TIT_NAV).setHelpText(AYUDA_NAV).setRequired(true);
+  var opciones = [nav.createChoice(OPC_NADA, FormApp.PageNavigationType.SUBMIT)];
+  pbs.forEach(function(pb){
+    var m = pb.getTitle().match(/^Tema (\d)/);
+    opciones.push(nav.createChoice(m ? etiquetaNav_(Number(m[1])) : "La batalla final", pb));
+  });
+  nav.setChoices(opciones).setHelpText(AYUDA_NAV).setRequired(true);
+  if (!yaHay) { try { fb.moveItem(nav.getIndex(), pbs[0].getIndex()); } catch (e) {} }
 }
 
 function listaProfes_(referente, profesores) {
@@ -924,8 +974,8 @@ function tablero_(perId, conPrivados) {
     var cAv = idx_(cab,"elige tu avatar"), cAvU = idx_(cab,"url de tu propia imagen");
     for (var i = 1; i < vals.length; i++) { var m = String(vals[i][cM]||"").toLowerCase().trim(); if (!m) continue;
       var avs = cAv >= 0 ? String(vals[i][cAv]||"") : ""; var avu = cAvU >= 0 ? String(vals[i][cAvU]||"").trim() : "";
-      var mp = avs.match(/Personaje (\d) · (ella|él|modelo A|modelo B)/), mc = avs.match(/Cl[aá]sico (\d+)/), mn = avs.match(/^(\d+)$/);
-      var avatar = mp ? { tipo:"evo", n:Number(mp[1]), v: (mp[2] === "él" || mp[2] === "modelo B") ? "m" : "f" } : mc ? { tipo:"clasico", n:Number(mc[1]) } : mn ? { tipo:"clasico", n:Number(mn[1]) } : { tipo:null, n:null };
+      var mp = avs.match(/Personaje (\d) · (ella|él|modelo A|modelo B)/);   // v3.8: la galería clásica ya no existe
+      var avatar = mp ? { tipo:"evo", n:Number(mp[1]), v: (mp[2] === "él" || mp[2] === "modelo B") ? "m" : "f" } : { tipo:null, n:null };
       avatar.url = avu;
       por[m] = { email:m, alias:String(vals[i][cA]||""), nombre:String(vals[i][cN]||""), bitacora:String(vals[i][cB]||""), bio:cBio >= 0 ? String(vals[i][cBio]||"") : "", avatar:avatar, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] }; }
   }
@@ -979,12 +1029,12 @@ function tablero_(perId, conPrivados) {
     res.doc = o.doc; res.hoja = SpreadsheetApp.getActive().getUrl(); res.formBitacoraEdit = o.formBitacoraEdit; }
   return res;
 }
-// «Personaje 3 · ella (evoluciona)» / «Clásico 7» / URL directa / «elección | url» -> objeto avatar del tablero
+// «Personaje 3 · ella (evoluciona)» / URL directa / «elección | url» -> objeto avatar del tablero
 function parseAvatar_(s) {
   s = String(s || ""); var partes = s.split(" | "); var txt = partes[0] || ""; var url = (partes[1] || "").trim();
   if (/^https?:\/\//i.test(txt)) { url = txt.trim(); txt = ""; }
-  var mp = txt.match(/Personaje (\d) · (ella|él|modelo A|modelo B)/), mc = txt.match(/Cl[aá]sico (\d+)/);
-  var av = mp ? { tipo:"evo", n:Number(mp[1]), v:(mp[2] === "él" || mp[2] === "modelo B") ? "m" : "f" } : mc ? { tipo:"clasico", n:Number(mc[1]) } : { tipo:null, n:null };
+  var mp = txt.match(/Personaje (\d) · (ella|él|modelo A|modelo B)/);   // v3.8: solo personajes que evolucionan
+  var av = mp ? { tipo:"evo", n:Number(mp[1]), v:(mp[2] === "él" || mp[2] === "modelo B") ? "m" : "f" } : { tipo:null, n:null };
   av.url = url; return av;
 }
 function idx_(cab, frag) { frag = frag.toLowerCase(); for (var i = 0; i < cab.length; i++) if (cab[i].toLowerCase().indexOf(frag) >= 0) return i; return -1; }

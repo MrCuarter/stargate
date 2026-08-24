@@ -48,7 +48,7 @@
   if(location.hash && /^#sem\d+$/.test(location.hash)){var d=document.querySelector(location.hash); if(d&&d.tagName==='DETAILS'){d.open=true;}}
 })();
 
-// ---- avatares: personaje que evoluciona por xp · clásico · URL propia (con respaldo) ----
+// ---- avatares: SOLO personajes que evolucionan (v3.8: fuera la galería clásica) + URL propia por canje ----
 window.SG = window.SG || {};
 // Niveles y rangos (v3.7). Los XP SOLO SUBEN: dan nivel, y el avatar evoluciona al entrar en
 // los niveles marcados. Lo gastable son los CRÉDITOS, que viajan aparte en la ficha del recluta.
@@ -71,13 +71,14 @@ window.SG.nivelInfo = function(xp, tipoPer){ var L=window.SG.NIVELES, k=window.S
 window.SG.rango = function(xp, tipoPer){ return window.SG.NIVELES[window.SG.nivel(xp,tipoPer)-1][2]; };
 window.SG.avatarSrc = function(av, alias, xp, tipoPer){
   av = av || {}; var h=0; for(var i=0;i<(alias||'').length;i++) h=(h*31+alias.charCodeAt(i))>>>0;
-  var tipo = av.tipo || 'evo'; var n = av.n || (tipo==='evo' ? (h%7)+1 : (h%16)+1); var v = av.v || ((h>>3)%2 ? 'm' : 'f');
+  var n = av.n; if(!(n>=1&&n<=7)) n=(h%7)+1;      // sin personaje válido, uno estable por alias
+  var v = av.v || ((h>>3)%2 ? 'm' : 'f');
   var r = window.SG.rango(xp||0, tipoPer);
-  var fallback = tipo==='evo' ? 'assets/img/avatares/evo/p'+n+v+'_r'+r+'.jpg' : 'assets/img/avatares/a'+(n<10?'0':'')+n+'.jpg';
+  var fallback = 'assets/img/avatares/evo/p'+n+v+'_r'+r+'.jpg';
   var u = av.url ? String(av.url).trim() : '';
   if(u){ var m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([A-Za-z0-9_-]{10,})/); if(m) u = 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
          if(!/^https?:\/\//i.test(u)) u=''; }
-  return { src: u || fallback, fallback: fallback, rango: window.SG.RANGOS[r-1], r: r, evo: tipo==='evo' && !u };
+  return { src: u || fallback, fallback: fallback, rango: window.SG.RANGOS[r-1], r: r, evo: !u };
 };
 window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
   return '<img class="av '+(cls||'')+' r'+r.r+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" title="'+r.rango+'" loading="lazy" referrerpolicy="no-referrer" onerror="if(this.src!==this.dataset.fb){this.src=this.dataset.fb;}">'; };

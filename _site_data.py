@@ -286,7 +286,7 @@ RECOMPENSAS = [
  ("Personaje exclusivo", 60, 3,
   "Desbloquea y ponte uno de los personajes exclusivos 5-7 (indícalo en el formulario). Se aplica solo.", 7, "avatar_exclusivo"),
  ("Avatar personal (tu propia imagen)", 90, 1,
-  "Pon tu propia imagen como avatar (pega la URL en el formulario de canje). Se aplica solo.", 10, "avatar_url"),
+  "Pon tu propia imagen como avatar. Al alistarte esto NO se ofrece: es una recompensa. Sube la foto a postimages.org (sin registrarte), copia el «Enlace directo» (acaba en .jpg o .png) y pégalo en este formulario. También vale un enlace de Google Drive compartido con «cualquier persona con el enlace». Se aplica solo.", 10, "avatar_url"),
  ("Subir 0,5 en un entregable", 110, 1, "Se aplica a la actividad que elijas", 14, "nota"),
  ("Subir 1 punto en un entregable", 170, 1, "Se aplica a la actividad que elijas", 14, "nota"),
  ("Recalificar un trabajo entregado fuera de plazo", 240, 1, "Indica la actividad", 14, "nota"),

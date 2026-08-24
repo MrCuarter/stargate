@@ -796,10 +796,24 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="card"><h3>2 · Nadie hace nada</h3><p>Todo vive en <b>una sola hoja maestra</b> (cuenta <b>mutecdgami</b>): una pestaña de respuestas por PER, más <b>DATOS</b> (todos los registros de todos los PER en formato largo, para análisis e investigación) y <b>RESUMEN</b> (puntos e insignias por recluta y PER), que se rehacen solas con cada respuesta. El script calcula alias, insignias, planeta actual y puntos. Las insignias de hito <b>Tripulación Cero</b> y <b>La Liberación</b> se otorgan solas. Si hay un registro falso, el profesorado escribe algo en la columna <b>Anulado</b> de la hoja y desaparece.</p></div>
 <div class="card"><h3>3 · Un PER nuevo, un clic</h3><p>Menú <b>🛰️ STARGATE → Crear nuevo PER…</b>: pide nombre del PER, profesorado y fechas de apertura y cierre; crea formulario y hoja, programa la apertura/cierre y devuelve el enlace, el QR y el código para Genially.</p></div>
 </div>
+<h3 style="margin-top:1.6em">La Bitácora de mando, por secciones (rápida de rellenar)</h3>
+<p class="lead">Es el formulario que el alumnado <b>rellena una vez y edita</b> cada vez que gana una insignia,
+así que tiene que costar segundos. Está organizado así:</p>
+<div class="flow" style="margin:0 0 1em"><span class="node">1 · Quién soy</span><span class="ar">→</span>
+<span class="node">«¿Qué vienes a registrar hoy?»</span><span class="ar">→</span>
+<span class="node">salta al tema elegido</span><span class="ar">→</span><span class="node">Enviar</span></div>
+<p class="lead">La primera página es siempre la identidad (alias, personaje, enlace a la Bitácora y biografía)
+y termina con un desplegable que <b>salta directo</b> a la sección del tema que se viene a registrar; al marcar
+las casillas de esa sección, <b>se envía y ya está</b>. Antes había que pasar por las diez páginas.</p>
+<div class="official" style="display:block">🔒 <b>Por qué es seguro saltarse secciones:</b> las insignias no viven en el formulario,
+viven en la hoja <b>EVENTOS</b>, y el sistema <b>solo añade</b> lo que aún no estaba registrado — nunca borra.
+Aunque un recluta no pase por la página del Tema 3, su insignia del Tema 3 sigue ahí. Lo único que se lee de la
+respuesta son sus datos de identidad, y esa página se ve siempre.</div>
+
 <h3 style="margin-top:1.6em">Avatares</h3>
-<div class="grid cols-2"><div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con su NIVEL</b> (10 niveles y <b>5 versiones de arte</b>: Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b>; cambia al entrar en los niveles <b>3, 5, 8 y 10</b>, escalado solo en PUA — ver <a href="#economia">la tabla de niveles</a>) o <b>su propia imagen por URL</b>. Al alistarse se eligen los personajes <b>1-4</b>; los <b>5-7 son EXCLUSIVOS</b> y se desbloquean con <b>créditos ◈</b> — otro motor de motivación. (La antigua galería clásica de 16 queda como legado: los que la tienen la conservan, pero ya no se ofrece.)</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
-<div class="official" style="display:block">🖼️ <b>Cómo poner tu propia imagen (para el alumnado):</b> 1) entra en <a href="https://postimages.org" target="_blank" rel="noopener">postimages.org</a>, pulsa <i>Elegir imágenes</i> y sube tu foto (no hace falta registrarse); 2) cuando termine, copia el campo <b>«Enlace directo»</b> (termina en .jpg o .png); 3) pégalo en la pregunta «URL de tu propia imagen». También vale un enlace de <b>Google Drive</b> si el archivo está compartido como «cualquier persona con el enlace». Un enlace a Instagram o a una página web no funciona.</div></div>
-<img src="assets/img/avatares/lamina_avatares.jpg" alt="Galería de avatares" style="border-radius:14px;border:1px solid var(--line)"></div>
+<div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con su NIVEL</b> (10 niveles y <b>5 versiones de arte</b>: Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b>; cambia al entrar en los niveles <b>3, 5, 8 y 10</b>, escalado solo en PUA — ver <a href="#economia">la tabla de niveles</a>). Al alistarse se eligen los personajes <b>1-4</b>; los <b>5-7 son EXCLUSIVOS</b> y se desbloquean con <b>créditos ◈</b> — otro motor de motivación. <b>Poner su propia imagen ya no es gratis</b>: es la recompensa «Avatar personal» (90 ◈, desde la semana 10), y se pide en el formulario de canje — no al alistarse. La antigua galería clásica de 16 avatares fijos <b>se ha retirado</b>: todos los reclutas llevan un personaje que evoluciona.</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
+<div class="official" style="display:block">🖼️ <b>Cómo poner su propia imagen (cuando el alumno canjea «Avatar personal», 90 ◈):</b> 1) entra en <a href="https://postimages.org" target="_blank" rel="noopener">postimages.org</a>, pulsa <i>Elegir imágenes</i> y sube la foto (no hace falta registrarse); 2) copia el campo <b>«Enlace directo»</b> (termina en .jpg o .png); 3) pégalo en el <b>formulario de canje</b>, en la pregunta de la URL. También vale un enlace de <b>Google Drive</b> compartido como «cualquier persona con el enlace». Un enlace a Instagram o a una página web no funciona.</div></div>
+</div>
 <h3 id="economia" style="margin-top:1.6em">Dos marcadores: xp y créditos ◈</h3>
 <p class="lead">Es la decisión de diseño más importante del sistema, y de paso el ejemplo vivo de una
 distinción que el alumnado va a estudiar en el <b>Tema 7</b>: <b>puntos de progreso</b> y <b>moneda
@@ -976,7 +990,7 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
   if(location.hash && /^#sem\d+$/.test(location.hash)){var d=document.querySelector(location.hash); if(d&&d.tagName==='DETAILS'){d.open=true;}}
 })();
 
-// ---- avatares: personaje que evoluciona por xp · clásico · URL propia (con respaldo) ----
+// ---- avatares: SOLO personajes que evolucionan (v3.8: fuera la galería clásica) + URL propia por canje ----
 window.SG = window.SG || {};
 // Niveles y rangos (v3.7). Los XP SOLO SUBEN: dan nivel, y el avatar evoluciona al entrar en
 // los niveles marcados. Lo gastable son los CRÉDITOS, que viajan aparte en la ficha del recluta.
@@ -999,13 +1013,14 @@ window.SG.nivelInfo = function(xp, tipoPer){ var L=window.SG.NIVELES, k=window.S
 window.SG.rango = function(xp, tipoPer){ return window.SG.NIVELES[window.SG.nivel(xp,tipoPer)-1][2]; };
 window.SG.avatarSrc = function(av, alias, xp, tipoPer){
   av = av || {}; var h=0; for(var i=0;i<(alias||'').length;i++) h=(h*31+alias.charCodeAt(i))>>>0;
-  var tipo = av.tipo || 'evo'; var n = av.n || (tipo==='evo' ? (h%7)+1 : (h%16)+1); var v = av.v || ((h>>3)%2 ? 'm' : 'f');
+  var n = av.n; if(!(n>=1&&n<=7)) n=(h%7)+1;      // sin personaje válido, uno estable por alias
+  var v = av.v || ((h>>3)%2 ? 'm' : 'f');
   var r = window.SG.rango(xp||0, tipoPer);
-  var fallback = tipo==='evo' ? 'assets/img/avatares/evo/p'+n+v+'_r'+r+'.jpg' : 'assets/img/avatares/a'+(n<10?'0':'')+n+'.jpg';
+  var fallback = 'assets/img/avatares/evo/p'+n+v+'_r'+r+'.jpg';
   var u = av.url ? String(av.url).trim() : '';
   if(u){ var m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([A-Za-z0-9_-]{10,})/); if(m) u = 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
          if(!/^https?:\/\//i.test(u)) u=''; }
-  return { src: u || fallback, fallback: fallback, rango: window.SG.RANGOS[r-1], r: r, evo: tipo==='evo' && !u };
+  return { src: u || fallback, fallback: fallback, rango: window.SG.RANGOS[r-1], r: r, evo: !u };
 };
 window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
   return '<img class="av '+(cls||'')+' r'+r.r+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" title="'+r.rango+'" loading="lazy" referrerpolicy="no-referrer" onerror="if(this.src!==this.dataset.fb){this.src=this.dataset.fb;}">'; };
