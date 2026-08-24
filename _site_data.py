@@ -154,8 +154,7 @@ CRONO = [
 
 # ---------- Plantilla Genially del ePortfolio (la Bitácora) ----------
 # Enlace público de la plantilla de Genially que el alumnado puede reutilizar.
-# None = pendiente de enlace (Norberto lo pasa); se muestra el hueco en recursos.html.
-PLANTILLA_EPORTFOLIO = None
+PLANTILLA_EPORTFOLIO = "https://view.genially.com/695f825d05cc22f3f7fac45b"
 
 # ---------- Geniallys (rellenar cuando haya enlaces) ----------
 GENIALLY_CARPETA = ("https://app.genially.com/teams/6567099bd7d7460014e6ec9c/spaces/"
