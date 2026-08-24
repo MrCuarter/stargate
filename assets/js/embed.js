@@ -31,7 +31,7 @@
     document.getElementById('selPer').onchange=function(){st.per=this.value;st.prof='';cargar();};document.getElementById('selProf').onchange=function(){st.prof=this.value;render();};
     Array.prototype.forEach.call(root.querySelectorAll('button[data-c]'),function(b){b.onclick=function(){var t=b.getAttribute('data-c');function ok(){var o=b.textContent;b.textContent='¡Copiado!';setTimeout(function(){b.textContent=o;},1500);}
       if(navigator.clipboard)navigator.clipboard.writeText(t).then(ok);else{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();ok();}};});}
-  function cargar(){root.innerHTML='<p class="muted">Cargando…</p>';fetch(API+'?per='+encodeURIComponent(st.per),{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){st.d=d;render();});}
+  function cargar(){root.innerHTML='<div class="cargando"><div class="txt">Cargando el PER…</div><div class="barra"><i></i></div></div>';fetch(API+'?per='+encodeURIComponent(st.per),{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){st.d=d;render();});}
   if(!API){root.innerHTML='<div class="wip"><span class="ic">🛰️</span><div>Pendiente de conectar.</div></div>';return;}
   fetch(API+'?per=all',{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){st.pers=d.pers||[];if(!st.pers.length){root.innerHTML='<p class="lead">Aún no hay PER.</p>';return;}if(!st.per)st.per=st.pers[st.pers.length-1].id;cargar();});
 })();

@@ -28,7 +28,7 @@ def head(title, desc, active):
 <script src="assets/js/tour.js" defer></script>
 </head><body>
 <nav class="nav"><div class="wrap">
-<a class="brand" href="index.html">◈ STARGATE</a>
+<a class="brand" href="index.html">◈ STARGATE <span class="modo docente">Capitán · docentes</span></a>
 {links}
 <button class="tour-start" type="button" title="Visita guiada con el Capitán">▶ Visita guiada</button>
 </div></nav>'''
@@ -1007,7 +1007,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <link rel="stylesheet" href="assets/css/stargate.css">
 <script src="assets/js/stargate.js" defer></script>
 </head><body>
-<nav class="nav"><div class="wrap"><a class="brand" href="recluta.html">◈ STARGATE · La Nave del Recluta</a></div></nav>
+<nav class="nav"><div class="wrap"><a class="brand" href="recluta.html">◈ STARGATE <span class="modo recluta">Recluta · alumnado</span></a></div></nav>
 <header class="hero"><div class="kicker">Canal del alumnado</div><h1>La Nave del Recluta</h1>
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
@@ -1029,9 +1029,10 @@ def planeta_panel(i, key, nombre, tema):
     destino = g.get("view") or f"cronologia.html#sem{ {1:1,2:3,3:5,4:7,5:9,6:10,7:11,8:13}[i] }"
     pend = "" if g.get("view") else ' data-pendiente="1"'
     x, y = POS[i-1]
-    return (f'<a class="pl" style="left:{x}%;top:{y}%" href="{destino}" target="_blank" rel="noopener"{pend}>'
+    abre = {1:1,2:3,3:5,4:7,5:9,6:10,7:11,8:13}[i]
+    return (f'<a class="pl" style="left:{x}%;top:{y}%" href="{destino}" target="_blank" rel="noopener"{pend} data-tema="{i}" data-abre="{abre}">'
             f'<span class="orbita"></span><img src="assets/img/planetas/{key}.png" alt="{nombre}">'
-            f'<b>{nombre}</b><em>{tema}</em></a>')
+            f'<b>{nombre}</b><em>{tema}</em><span class="candado">Se abre la semana {abre}</span></a>')
 planetas_panel = "\n".join(planeta_panel(i, k, n, t) for i, (k, n, t) in enumerate(PLANETAS, 1))
 
 PANEL = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
@@ -1066,15 +1067,27 @@ html,body{{margin:0;height:100%;background:#05080f;overflow:hidden}}
 .pie{{position:absolute;bottom:1.2vh;left:0;right:0;text-align:center;z-index:3;color:var(--mut);font-size:.72rem}}
 .pie a{{color:var(--teal2)}}
 @media(max-width:720px){{.pl{{width:74px}} .pl em{{display:none}}}}
+.pl .candado{{display:none;font-size:clamp(.55rem,1vw,.7rem);color:var(--mut);text-shadow:0 2px 10px #000}}
+.pl.bloq{{pointer-events:none}}
+.pl.bloq img{{filter:grayscale(1) brightness(.4) contrast(1.1)}}
+.pl.bloq b{{color:var(--mut)}}
+.pl.bloq b::after{{display:none}}
+.pl.bloq em{{display:none}}
+.pl.bloq .candado{{display:block}}
+.aviso{{position:absolute;top:calc(2.4vh + 92px);left:0;right:0;text-align:center;z-index:3;color:var(--teal2);font-size:.76rem}}
 </style></head><body>
 <div class="panel">
 <video autoplay muted loop playsinline poster="assets/img/nave/fondo_universo_poster.jpg"><source src="media/video/fondo_universo.mp4" type="video/mp4"></video>
 <div class="velo"></div>
-<div class="tit"><div class="k">Panel de control</div><h1>La galaxia de STARGATE</h1>
+<div class="tit"><div class="k">Panel de control <span class="modo recluta">Recluta · alumnado</span></div><h1>La galaxia de STARGATE</h1>
 <p>Ocho mundos, ocho temas. Pulsa un planeta para entrar en su misión.</p></div>
 <div class="mapa">{{planetas}}</div>
 <div class="pie">Proyecto Gamificado del <b>Máster en Tecnología Educativa</b> de la UNIR</div>
+<div class="aviso" id="aviso"></div>
 </div>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};</script>
+<script src="assets/js/calendario.js" defer></script>
+<script src="assets/js/panel.js" defer></script>
 </body></html>'''.replace("{planetas}", planetas_panel)
 html=(PANEL.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"'))
 open(os.path.join(HERE,"panel.html"),"w",encoding="utf-8").write(html); print("escrito: panel.html")

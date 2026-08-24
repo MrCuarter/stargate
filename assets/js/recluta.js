@@ -8,6 +8,9 @@
   if(!root) return;
   var q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  // NEBULA en vídeo (holograma vivo); si el navegador no puede, se queda su imagen
+  function nebulaVideo(cls){return '<video class="nebula-v '+(cls||'')+'" autoplay muted loop playsinline preload="auto" poster="assets/img/personajes/nebula_poster.jpg"><source src="media/video/nebula_loop.mp4" type="video/mp4"></video>';}
+  function cargando(txt,pista){return '<div class="cargando"><div class="txt">'+txt+'</div><div class="barra"><i></i></div>'+(pista?'<div class="pista">'+pista+'</div>':'')+'</div>';}
   function msgHtml(txt,perId){txt=String(txt==null?'':txt);
     txt=perId?txt.split('{id-del-PER}').join(perId):txt.split('?per={id-del-PER}').join('');
     return esc(txt).replace(/https?:\/\/[^\s<»)]+/g,function(u){return '<a href="'+u+'" target="_blank" rel="noopener">'+u+'</a>';});}
@@ -19,7 +22,7 @@
   var per=q.get('per');
   if(!per){
     if(!API){root.innerHTML='<p class="lead">La nave aún no está conectada.</p>';return;}
-    root.innerHTML='<p class="lead">Cargando la lista de PERs…</p>';
+    root.innerHTML=cargando('Contactando con NEBULA…','Localizando los PER activos');
     fetch(API+'?per=all',{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){
       var pers=d.pers||[];
       root.innerHTML='<div class="card"><h3>¿De qué PER eres recluta?</h3><p class="small muted">Elige tu grupo para entrar en tu nave. Si no lo sabes, pregunta a tu Capitán.</p>'
@@ -60,9 +63,9 @@
       +'<div class="small muted"><button class="btn small" id="btn-onboard" type="button">▶ Repetir bienvenida</button></div></div>';
   }
   function personaje(){
-    if(st.cargandoYo) return '<div class="card"><p class="lead">Buscándote en el registro de la tripulación…</p></div>';
+    if(st.cargandoYo) return '<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>';
     if(!st.yo){
-      return '<div class="card nave-login"><div class="nave-perfil"><img src="assets/img/personajes/nebula.png" alt="NEBULA" class="nebula-mini">'
+      return '<div class="card nave-login"><div class="nave-perfil">'+nebulaVideo('nebula-mini')+''
         +'<div><h3>Identifícate, recluta</h3><p class="small muted">Escribe el correo con el que te alistaste en la Bitácora de mando. Solo lo pediré una vez en este dispositivo, y solo te enseño <b>tu</b> ficha.</p></div></div>'
         +'<div class="selrow"><input id="in-mail" type="email" placeholder="tu.correo@ejemplo.com" autocomplete="email"><button class="btn primary" id="btn-mail" type="button">Entrar en la nave</button></div>'
         +(st.msgYo?'<p class="small" style="margin-top:8px;color:var(--amber)">'+st.msgYo+'</p>':'')
@@ -154,7 +157,7 @@
     if(!ov){ov=document.createElement('div');ov.id='nave-onboard';ov.className='tour open';document.body.appendChild(ov);}
     if(i>=PASOS.length){ov.classList.remove('open');ov.innerHTML='';localStorage.setItem('sgNaveOnboard_'+per,'1');return;}
     var s=PASOS[i];
-    ov.innerHTML='<div class="tour-box"><img class="tour-cap nebula" src="assets/img/personajes/nebula.png" alt="NEBULA">'
+    ov.innerHTML='<div class="tour-box">'+nebulaVideo('tour-cap nebula')
       +'<div class="tour-panel"><div class="tour-step">NEBULA · '+(i+1)+' / '+PASOS.length+'</div><h3>'+s.t+'</h3><p>'+s.x+'</p>'
       +'<div class="tour-btns"><button type="button" class="tour-prev"'+(i===0?' disabled':'')+'>← Anterior</button>'
       +'<button type="button" class="tour-next primary">'+(i===PASOS.length-1?'A la nave ✓':'Siguiente →')+'</button>'
@@ -185,7 +188,7 @@
 
   // ---------- carga ----------
   if(!API){root.innerHTML='<p class="lead">La nave aún no está conectada.</p>';return;}
-  root.innerHTML='<p class="lead">Estableciendo conexión con NEBULA…</p>';
+  root.innerHTML=cargando('Estableciendo conexión con NEBULA…','Sincronizando la Bitácora de tu PER');
   fetch(API+'?per='+encodeURIComponent(per),{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){
     if(d.error){root.innerHTML='<p class="lead">PER no encontrado. Pregunta a tu Capitán por el enlace bueno.</p>';return;}
     st.d=d; st.semanas=window.SGCAL.vista(d.tipo,SEM);
