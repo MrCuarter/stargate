@@ -5,6 +5,9 @@
  * API de lectura (doGet) para la web del alumnado y API con PIN (doPost) para el panel del profesorado.
  * v3: La Nave del Recluta (recluta.html?per=id) · recompensas con semana de desbloqueo · canjes de avatar
  * automáticos («Cambio de avatar» y «Avatar personal») · el avatar inicial se congela al alistarse y solo
+ * v3.10: CONSOLA — segunda hoja de cálculo «STARGATE · Consola del profesorado» (id en la propiedad
+ * CONSOLA_ID) con portada de todos los PER y una pestaña por PER. Es una foto: menú o fotoNocturna
+ * (4:00). Y consolidarDatos() sale del camino caliente: recorría TODOS los PER en cada envío.
  * v3.9: CERROJO en el trigger (LockService) para que dos envíos simultáneos no se pisen al cobrar,
  * y se respeta el «Máx. por alumno» del catálogo: si ya llegó al tope se DENIEGA sin cobrar y la
  * Nave lo marca como «Ya la tienes» para que ni lo intente.
@@ -194,7 +197,8 @@ function onOpen() {
     .addItem("Documento de enlaces y embeds del PER seleccionado", "documentoPERSeleccionado")
     .addItem("Actualizar formularios (recompensas, avatar, bio)", "actualizarRecompensas")
     .addItem("Guardar panel de control estándar (Genially)", "guardarPanelEstandar")
-    .addItem("Consolidar DATOS / RESUMEN", "consolidarDatos")
+    .addItem("Abrir la Consola del profesorado (y ponerla al día)", "abrirConsola")
+    .addItem("Consolidar DATOS / RESUMEN (investigación)", "consolidarDatos")
     .addSeparator()
     .addSubMenu(SpreadsheetApp.getUi().createMenu("Ciclo de vida del PER (fila seleccionada)")
       .addItem("Archivar / desarchivar PER", "archivarPERSeleccionado")
@@ -671,6 +675,7 @@ function borrarPERSeleccionado() {
   if (r.getSelectedButton() !== ui.Button.OK || r.getResponseText().trim() !== sel.o.id) { ui.alert("Cancelado: nada se ha borrado."); return; }
   borrarPER_(sel.o, sel.fila);
   try { consolidarDatos(); } catch (e) {}
+  try { actualizarConsola(); } catch (e) {}   // que la consola no enseñe un PER que ya no existe
   ui.alert("PER «" + sel.o.nombre + "» borrado. Los formularios están en la papelera de Drive por si acaso.");
 }
 function borrarPER_(o, fila) {
@@ -826,13 +831,23 @@ function resetearHoja() {
   nombresTab.forEach(function(n){ var err = borrarHoja_(ssR, ssR.getSheetByName(n)); if (err) fallos.push(n + ": " + err); else tabs++; });
   SpreadsheetApp.flush();
   try { consolidarDatos(); } catch (e) {}
+  try { actualizarConsola(); } catch (e) {}   // que la consola no enseñe un PER que ya no existe
   ui.alert("Hoja reseteada: " + n + "PER borrados" + (sueltos ? ", " + sueltos + " formularios a la papelera" : "") + (tabs ? ", " + tabs + " pestañas sueltas borradas" : "") + ". Catálogo de recompensas restaurado.");
 }
 
 // ================= TRIGGERS =================
 function asegurarTriggers_() {
-  var hay = ScriptApp.getProjectTriggers().some(function(t){ return t.getHandlerFunction() === "alRecibirRespuesta"; });
-  if (!hay) ScriptApp.newTrigger("alRecibirRespuesta").forSpreadsheet(SpreadsheetApp.getActive()).onFormSubmit().create();
+  var fns = ScriptApp.getProjectTriggers().map(function(t){ return t.getHandlerFunction(); });
+  if (fns.indexOf("alRecibirRespuesta") < 0)
+    ScriptApp.newTrigger("alRecibirRespuesta").forSpreadsheet(SpreadsheetApp.getActive()).onFormSubmit().create();
+  // La foto (DATOS/RESUMEN y la Consola) se rehace de madrugada, no en cada envío: recorrer todos los
+  // PER es caro y nada del juego depende de ella. También se puede forzar desde el menú.
+  if (fns.indexOf("fotoNocturna") < 0)
+    ScriptApp.newTrigger("fotoNocturna").timeBased().atHour(4).everyDays(1).create();
+}
+function fotoNocturna() {
+  try { consolidarDatos(); } catch (e) { Logger.log("consolidarDatos: " + e); }
+  try { actualizarConsola(); } catch (e) { Logger.log("actualizarConsola: " + e); }
 }
 function programar_(fn, fecha, perId) {
   var t = ScriptApp.newTrigger(fn).timeBased().at(fecha).create();
@@ -863,7 +878,9 @@ function alRecibirRespuesta(e) {
     var p = perFila_(perId); if (!p) return; var o = perObj_(p.v);
     if (nombre.indexOf("B · ") === 0) registrarEventos_(o, sh, e.range.getRow());
     else if (nombre.indexOf("C · ") === 0) resolverCanje_(o, sh, e.range.getRow());
-    consolidarDatos();
+    // OJO: aquí NO se llama a consolidarDatos(). Recorre todos los PER y recalcula sus tableros;
+    // con varios grupos eso multiplicaba el trabajo en cada clic de cada alumno. DATOS/RESUMEN y la
+    // Consola son una foto para el profesorado: se rehacen de madrugada (fotoNocturna) o desde el menú.
   } catch (err) { Logger.log(err); }
   finally { if (conLock) { try { lock.releaseLock(); } catch (e2) {} } }
 }
@@ -1090,6 +1107,153 @@ function consolidarDatos() {
   var rs = ss.getSheetByName(H.RES) || ss.insertSheet(H.RES); rs.clearContents(); rs.getRange(1,1,res.length,res[0].length).setValues(res); rs.setFrozenRows(1);
 }
 
+// ================= CONSOLA (segunda hoja de cálculo, limpia) =================
+// La hoja maestra es la materia prima: sus 3 pestañas de respuestas por PER la vuelven ilegible en
+// cuanto hay varios grupos. Esta función mantiene un SEGUNDO archivo de Google Sheets, «STARGATE ·
+// Consola del profesorado», con una portada de todos los PER y una pestaña por PER con lo que de
+// verdad se consulta. Es una FOTO: se rehace desde el menú y sola una vez al día. No se escribe nada
+// en ella a mano (se borra al refrescar) y no interviene en el juego: si se borra, no pasa nada.
+var PROP_CONSOLA = "CONSOLA_ID";
+
+function consolaSS_() {
+  var pr = PropertiesService.getScriptProperties(), id = pr.getProperty(PROP_CONSOLA), ss = null;
+  if (id) { try { ss = SpreadsheetApp.openById(id); DriveApp.getFileById(id); } catch (e) { ss = null; } }
+  if (!ss) {
+    ss = SpreadsheetApp.create("STARGATE · Consola del profesorado");
+    pr.setProperty(PROP_CONSOLA, ss.getId());
+    try {   // al lado de la hoja maestra
+      var padres = DriveApp.getFileById(SpreadsheetApp.getActive().getId()).getParents();
+      if (padres.hasNext()) DriveApp.getFileById(ss.getId()).moveTo(padres.next());
+    } catch (e) {}
+  }
+  return ss;
+}
+function hojaLimpia_(ss, nombre, color) {
+  var sh = ss.getSheetByName(nombre) || ss.insertSheet(nombre);
+  sh.clear(); try { sh.setTabColor(color || "#37e0ec"); } catch (e) {}
+  return sh;
+}
+function bloque_(sh, fila, titulo, cabeceras, filas, anchoMin) {
+  sh.getRange(fila, 1).setValue(titulo).setFontWeight("bold").setFontSize(12);
+  sh.getRange(fila + 1, 1, 1, cabeceras.length).setValues([cabeceras])
+    .setFontWeight("bold").setBackground("#eef3f7");
+  if (filas.length) sh.getRange(fila + 2, 1, filas.length, cabeceras.length).setValues(filas);
+  else sh.getRange(fila + 2, 1).setValue("— nada todavía —").setFontColor("#8899aa");
+  return fila + 2 + Math.max(filas.length, 1) + 2;   // siguiente fila libre
+}
+function canjesDe_(o) {   // lee la pestaña de respuestas del canje de un PER
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabC);
+  if (!sh || sh.getLastRow() < 2) return [];
+  var v = sh.getDataRange().getValues(), cab = v[0].map(String);
+  var cM = idx_(cab, "correo") >= 0 ? idx_(cab, "correo") : idx_(cab, "email");
+  var cR = cab.indexOf("Recompensa"), cE = cab.indexOf("Estado"), cEnt = cab.indexOf("Entregado");
+  var cAct = idx_(cab, "actividad");
+  return v.slice(1).map(function(r){
+    var rec = String(r[cR] || "");
+    return { fecha:r[0], email:cM >= 0 ? String(r[cM] || "") : "", recompensa:rec,
+             coste:Number((rec.match(/(\d+)\s*(?:cr[ée]ditos|xp)\s*$/) || [0,0])[1]) || 0,
+             estado:cE >= 0 ? String(r[cE] || "") : "", entregado:cEnt >= 0 ? String(r[cEnt] || "") : "",
+             actividad:cAct >= 0 ? String(r[cAct] || "") : "" };
+  }).filter(function(x){ return x.email; });
+}
+function ticketsDe_(o) {
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabT);
+  if (!sh || sh.getLastRow() < 2) return { total:0, sinResolver:0 };
+  var v = sh.getDataRange().getValues(), cR = v[0].map(String).indexOf("Resuelto");
+  var sin = 0;
+  v.slice(1).forEach(function(r){ if (cR < 0 || !String(r[cR] || "").trim()) sin++; });
+  return { total:v.length - 1, sinResolver:sin };
+}
+
+function actualizarConsola() {
+  var ss = consolaSS_(), maestra = SpreadsheetApp.getActive();
+  var pers = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
+  var sello = Utilities.formatDate(new Date(), "Europe/Madrid", "dd/MM/yyyy HH:mm");
+  var vivos = {}, portada = [];
+
+  pers.forEach(function(v){
+    var o = perObj_(v); vivos["PER · " + o.id] = true;
+    var t = tablero_(o.id, true); var rec = (t.reclutas || []);
+    var canjes = canjesDe_(o), tk = ticketsDe_(o), sem = semanaDe_(o);
+    var concedidos = canjes.filter(function(c){ return c.estado.indexOf("Concedido") === 0; });
+    var pendientes = concedidos.filter(function(c){ return !c.entregado; });
+    var xpMedia = rec.length ? Math.round(rec.reduce(function(a,x){ return a + x.xp; }, 0) / rec.length) : 0;
+    var credCirc = rec.reduce(function(a,x){ return a + (x.creditos || 0); }, 0);
+
+    portada.push([o.id, o.nombre, o.tipo, o.archivado ? "Archivado" : o.estado,
+      o.inicio || "", sem === null ? "" : (sem < 1 ? "no ha empezado" : "semana " + sem),
+      rec.length, xpMedia, rec.length ? Math.round(rec.reduce(function(a,x){ return a + x.nivel; }, 0) / rec.length) : 0,
+      credCirc, concedidos.length, pendientes.length, tk.total, tk.sinResolver,
+      WEB + "registro.html?per=" + o.id, WEB + "recluta.html?per=" + o.id, WEB + "grupos.html?per=" + o.id,
+      o.formBitacora || "", o.formCanje || "", o.formTicket || "", o.doc || ""]);
+
+    // ---- pestaña del PER ----
+    var sh = hojaLimpia_(ss, "PER · " + o.id, o.archivado ? "#9fb2c2" : "#37e0ec");
+    sh.getRange(1,1).setValue("STARGATE · " + o.nombre).setFontWeight("bold").setFontSize(16);
+    sh.getRange(2,1).setValue(o.tipo + " · " + (o.archivado ? "ARCHIVADO" : o.estado)
+      + (o.inicio ? " · empezó el " + o.inicio : "")
+      + (sem === null ? "" : (sem < 1 ? " · aún no ha empezado" : " · van por la semana " + sem))
+      + " · " + rec.length + " reclutas").setFontColor("#55606a");
+    sh.getRange(3,1).setValue("Foto tomada el " + sello + " · se rehace desde el menú STARGATE de la hoja maestra")
+      .setFontColor("#8899aa").setFontStyle("italic");
+
+    var f = 5;
+    f = bloque_(sh, f, "Reclutas (por xp)",
+      ["Alias","Nombre","Correo","Nivel","Rango","xp","◈ créditos","Insignias","Planeta","Corona","Bitácora (ePortfolio)"],
+      rec.map(function(x){ return [x.alias, x.nombre, x.email, x.nivel, x.rango_nombre, x.xp, x.creditos,
+        x.n + "/24", x.planeta, x.corona ? "♛" : "", x.bitacora || ""]; }));
+
+    f = bloque_(sh, f, "Canjes",
+      ["Fecha","Correo","Recompensa","Coste ◈","Estado","Aplicado por el profe","Actividad"],
+      canjes.sort(function(a,b){ return new Date(b.fecha) - new Date(a.fecha); })
+            .map(function(c){ return [c.fecha, c.email, c.recompensa, c.coste, c.estado, c.entregado, c.actividad]; }));
+
+    f = bloque_(sh, f, "Últimos registros de la Bitácora",
+      ["Fecha","Alias","Correo","Logro","xp"],
+      (function(){
+        var ev = [];
+        hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(r){ if (r[1] === o.id) ev.push(r); });
+        ev.sort(function(a,b){ return new Date(b[0]) - new Date(a[0]); });
+        return ev.slice(0, 60).map(function(r){ return [r[0], r[3], r[2], r[5], r[7]]; });
+      })());
+
+    sh.getRange(f, 1).setValue("Tickets de salida: " + tk.total + " recibidos, " + tk.sinResolver
+      + " sin resolver → " + WEB + "tickets.html?per=" + o.id).setFontColor("#55606a");
+    sh.setFrozenRows(3);
+    for (var c = 1; c <= 11; c++) try { sh.autoResizeColumn(c); } catch (e) {}
+  });
+
+  // ---- portada ----
+  var pt = hojaLimpia_(ss, "PORTADA", "#f5b043");
+  pt.getRange(1,1).setValue("STARGATE · Consola del profesorado").setFontWeight("bold").setFontSize(18);
+  pt.getRange(2,1).setValue("Una fila por grupo. Cada pestaña de abajo es un PER. Foto del " + sello
+    + " — para rehacerla: hoja maestra → menú STARGATE → «Actualizar la consola».").setFontColor("#8899aa");
+  pt.getRange(3,1).setValue("Hoja maestra (materia prima): " + maestra.getUrl()).setFontColor("#55606a");
+  var cab = ["id","Grupo","Tipo","Estado","Inicio","Semana","Reclutas","xp medio","Nivel medio",
+             "◈ en circulación","Canjes concedidos","Pendientes de aplicar","Tickets","Sin resolver",
+             "Tablero","Nave","Panel del grupo","Form · Bitácora","Form · Canje","Form · Ticket","Documento"];
+  pt.getRange(5,1,1,cab.length).setValues([cab]).setFontWeight("bold").setBackground("#eef3f7");
+  if (portada.length) pt.getRange(6,1,portada.length,cab.length).setValues(portada);
+  pt.setFrozenRows(5); pt.setFrozenColumns(2);
+  for (var c2 = 1; c2 <= 14; c2++) try { pt.autoResizeColumn(c2); } catch (e) {}
+
+  // ---- limpieza: pestañas de PER que ya no existen ----
+  ss.getSheets().forEach(function(sh){
+    var n = sh.getName();
+    if (n.indexOf("PER · ") === 0 && !vivos[n]) { try { ss.deleteSheet(sh); } catch (e) {} }
+    if (n === "Hoja 1" || n === "Sheet1") { try { ss.deleteSheet(sh); } catch (e) {} }
+  });
+  try { ss.setActiveSheet(pt); ss.moveActiveSheet(1); } catch (e) {}
+  return ss.getUrl();
+}
+function abrirConsola() {
+  try { asegurarTriggers_(); } catch (e) {}   // de paso deja instalada la foto nocturna
+  var url = actualizarConsola();
+  var html = HtmlService.createHtmlOutput('<p style="font:14px/1.5 system-ui">Consola al día.<br><br>'
+    + '<a href="' + url + '" target="_blank"><b>Abrir la Consola del profesorado ↗</b></a></p>').setHeight(120);
+  SpreadsheetApp.getUi().showModalDialog(html, "STARGATE · Consola");
+}
+
 // ================= API =================
 function doGet(e) {
   var per = (e && e.parameter && e.parameter.per) || "all"; var out;
@@ -1127,7 +1291,7 @@ function doPost(e) {
       out = { tickets: v.slice(1).map(function(r, k){ var o2 = {}; cabT.forEach(function(c,i){ if (i > 0 && c !== "Resuelto" && r[i] !== "" && r[i] !== null) o2[c] = r[i]; }); return { fecha:r[0], fila:k+2, resuelto: cRes >= 0 ? String(r[cRes]||"") : "", r:o2 }; }) }; }
     else if (a === "ticket_resuelto") { var o5 = perObj_(perFila_(per).v); var sht = SpreadsheetApp.getActive().getSheetByName(o5.tabT); var cabR = sht.getRange(1,1,1,sht.getLastColumn()).getValues()[0].map(String);
       var colR = cabR.indexOf("Resuelto") + 1; if (!colR) { colR = sht.getLastColumn() + 1; sht.getRange(1, colR).setValue("Resuelto"); } sht.getRange(q.fila, colR).setValue(q.valor ? "Sí · " + (q.profe||"") + " · " + Utilities.formatDate(new Date(),"Europe/Madrid","dd/MM") : ""); out = { ok:true }; }
-    else if (a === "ajuste") { hoja_(H.AJ).appendRow([new Date(), per, String(q.email).toLowerCase(), q.reto_id, q.tipo, q.motivo || "", q.profe || ""]); consolidarDatos(); out = { ok:true }; }
+    else if (a === "ajuste") { hoja_(H.AJ).appendRow([new Date(), per, String(q.email).toLowerCase(), q.reto_id, q.tipo, q.motivo || "", q.profe || ""]); out = { ok:true }; }
     else if (a === "profesorado") { var p = perFila_(per); var sh4 = hoja_(H.PERS); sh4.getRange(p.fila, 4).setValue(q.profesorado || ""); sh4.getRange(p.fila, 17).setValue(q.referente || "");
       try { var o4 = perObj_(perFila_(per).v); var ftx = FormApp.openByUrl(o4.formTicketEdit); ftx.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle().indexOf("profesor o profesora") >= 0) i.asListItem().setChoiceValues(listaProfes_(q.referente, q.profesorado)); }); } catch (e2) {}
       out = { ok:true }; }

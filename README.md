@@ -35,6 +35,13 @@ Los pesos deben sumar 100 (hay un `assert`). Las imágenes de las cartas las gen
 `../Retos e Insignias/_work/cartas.py` y las publica aquí `publicar_tarjetas.py` (720×1210).
 **No editar `var CROMOS` ni el `.txt` a mano: se pisan en el siguiente build.**
 
+### Los dos archivos de Google Sheets (v3.10)
+La **hoja maestra** guarda la materia prima (3 pestañas de respuestas por PER + PERs/RECOMPENSAS/
+EVENTOS/AJUSTES/DATOS/RESUMEN). La **Consola del profesorado** es un archivo aparte que crea el script
+(`actualizarConsola()`, id en `CONSOLA_ID`): portada con una fila por grupo y una pestaña por PER. Es una
+foto — menú STARGATE → *Abrir la Consola*, y sola a las 4:00 (`fotoNocturna`). `consolidarDatos()` ya **no**
+se ejecuta en cada envío de formulario: recorría todos los PER y no lo necesita nada del juego.
+
 ### Niveles y créditos (v3.7)
 `_site_data.py` define también `NIVELES` (10 niveles, con el tramo de arte del avatar), `XP_VIAJE`,
 `CREDITOS` (◈ por tipo de logro) y `RECOMPENSAS` (catálogo con precios en ◈). El build inyecta el motor en
