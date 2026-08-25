@@ -7,7 +7,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PLAYLIST = "https://www.youtube.com/playlist?list=PLKZsWVJaEna0"
 # Bucle del hero: la nave surcando el espacio (ida+vuelta = bucle infinito sin corte).
 # Vive en el repo (media/video/) para que se despliegue con la web.
-HERO_MP4 = "media/video/hero_nave_loop.mp4"
+# Vídeos por jsDelivr (CDN de GitHub): resisten caídas del hosting (25-ago-2026)
+CDN_VIDEO = "https://cdn.jsdelivr.net/gh/MrCuarter/stargate@main/media/video"
+HERO_MP4 = CDN_VIDEO + "/hero_nave_loop.mp4"
 HERO_POSTER = "assets/img/nave/hero_poster.jpg"
 
 # ---------- catálogo de vídeos (id de YouTube -> título/rol) ----------
@@ -218,6 +220,15 @@ CROMO_SERIES = [
  ("III", "Serie III · La Nave",           "Quienes te acompañan… y tú"),
  ("IV",  "Serie IV · La Sombra",          "El silencio, y quien acabó sirviéndolo"),
 ]
+# Insignia por completar una SERIE entera (§12.5). El álbum completo (20 cartas, una del 1 %) no es
+# meta realista; una serie sí. Van en un campo aparte del tablero (insignias_album), NUNCA entre las
+# 24 de la misión: ese contador se pinta como «n/24» en cuatro sitios y dejaría de ser cierto.
+SERIES_ALBUM = [
+ ("A1_tripulacion", "I",   "La Tripulación Cero al completo"),
+ ("A2_ecos",        "II",  "Los Ecos al completo"),
+ ("A3_nave",        "III", "La Nave al completo"),
+ ("A4_sombra",      "IV",  "La Sombra al completo"),
+]
 # [clave, nombre en el álbum, serie, rareza, peso] · los pesos suman 100
 CROMOS = [
  ("P1_bran",      "Bran Okafor",                "I",   "común",      7),
@@ -284,6 +295,8 @@ DIAS_APERTURA_ANTES = 7                    # cuánto se adelanta la apertura res
 RECOMPENSAS = [
  ("Sobre de cromos", 15, 99,
   "Una carta al azar de las 20 del álbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. Se abre solo y tu álbum está en la Nave.", 2, "cromo"),
+ ("Cambiar 3 repetidos por un sobre", 0, 99,
+  "¿Cartas repetidas? Cámbialas. Por cada 3 repetidas te llevas un sobre nuevo, gratis. No cuesta créditos y se comprueba solo: si no llegas a 3, se te avisa y no pierdes nada.", 2, "cromo_repes"),
  ("Título de recluta", 25, 3,
   "Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario). Se aplica solo.", 3, "titulo"),
  ("Fondo de ficha: tu planeta", 20, 1,

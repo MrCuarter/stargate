@@ -1417,6 +1417,13 @@ def _js_niveles():
     L.append('var SEMANAS_PER = %s;' % json.dumps(SEMANAS_PER, ensure_ascii=False))
     L.append('var SEMANAS_CANJE_EXTRA = %d;' % SEMANAS_CANJE_EXTRA)
     L.append('var DIAS_APERTURA_ANTES = %d;' % DIAS_APERTURA_ANTES)
+    L.append('// Insignia por serie completa. [clave, titulo de la serie tal y como aparece en CROMOS, nombre]')
+    L.append('var SERIES_ALBUM = [')
+    for clave, serie, nombre in SERIES_ALBUM:
+        L.append('  [%s,%s,%s],' % (json.dumps(clave), json.dumps(_SERIE_TIT[serie], ensure_ascii=False),
+                                    json.dumps(nombre, ensure_ascii=False)))
+    L[-1] = L[-1][:-1]
+    L.append('];')
     return "\n".join(L)
 
 def _js_recompensas():
