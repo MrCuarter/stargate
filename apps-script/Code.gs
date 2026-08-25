@@ -1535,6 +1535,7 @@ function fotoNocturna() {
 // v3.15 · SE ACABA EL CANJE (§12.8). La última semana ya no se gana nada: solo se gasta lo ganado, y
 // quien llega con 200 ◈ sin tocar los pierde. La fecha se ve en la Nave, pero nadie te da un toque.
 // Cuelga de fotoNocturna a propósito: ni un trigger nuevo que instalar, mantener o duplicar.
+// Ventana de aviso, en días antes del cierre. Es «como muy tarde», no «ese día exacto».
 var AVISO_CIERRE_DIAS = [7, 1];
 function avisoCierreCanje() {
   var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
@@ -1546,23 +1547,40 @@ function avisoCierreCanje() {
     var cierre = o.cierreCanje || o.cierre; if (!cierre) return;
     var fin = new Date(String(cierre) + "T00:00:00"); if (isNaN(fin.getTime())) return;
     var faltan = Math.round((fin.getTime() - hoy.getTime()) / 864e5);
-    if (AVISO_CIERRE_DIAS.indexOf(faltan) < 0) return;   // solo en los umbrales, ni antes ni después
-    var clave = "AVISO_CANJE_" + o.id + "_" + faltan;
-    if (pr.getProperty(clave)) return;                   // una vez por umbral y grupo, pase lo que pase
-    pr.setProperty(clave, fechaIso_(hoy));
-    grupos++;
+    if (faltan < 0) return;                              // ya cerró: avisar ahora sería una broma
+    // 🔴 REVISIÓN 26-ago · VENTANA, no día exacto. Con un umbral exacto (faltan === 7), el día que
+    // Google se salta la ejecución nocturna —o que no queda cuota— el aviso se pierde PARA SIEMPRE.
+    // Con «faltan <= umbral» se recupera al día siguiente, y la marca en propiedades impide repetir.
+    // Se coge el umbral MÁS PEQUEÑO que aplique: si alguien llega directo al último día, recibe un
+    // solo correo con el plazo de verdad, no uno por cada umbral que se saltó.
+    var umbral = null;
+    AVISO_CIERRE_DIAS.slice().sort(function(a, b){ return a - b; }).forEach(function(u){
+      if (umbral === null && faltan <= u && !pr.getProperty("AVISO_CANJE_" + o.id + "_" + u)) umbral = u;
+    });
+    if (umbral === null) return;
     var t = tablero_(o.id, true); if (!t || !t.reclutas) return;
+    var mandados = 0, conSaldo = 0;
     t.reclutas.forEach(function(al){
       if (!al.email || !(al.creditos > 0)) return;       // a quien ya lo gastó todo no se le molesta
-      var dias = faltan === 1 ? "1 día" : faltan + " días";
+      conSaldo++;
+      var dias = faltan === 1 ? "1 día" : faltan === 0 ? "hoy mismo" : faltan + " días";
       var cuerpo = "Te quedan " + al.creditos + " ◈ y " + dias + " para canjearlos. Después ya no se pueden gastar.\n\n" +
         "Grupo: " + o.nombre + "\n" +
         "El canje cierra el " + cierre + ". Los xp y tu nivel no se tocan: lo que caduca es el bolsillo.\n\n" +
         "Mira lo que puedes llevarte y cuánto cuesta, en tu Nave:\n" + WEB + "recluta.html?per=" + o.id + "\n" +
         (o.formCanje ? "Y canjea aquí:\n" + o.formCanje + "\n" : "");
       if (enviarCorreo_(al.email, "STARGATE · te quedan " + al.creditos + " ◈ y " + dias +
-          " para gastarlos", cuerpo, o.id, al.email)) enviados++;
+          " para gastarlos", cuerpo, o.id, al.email)) { enviados++; mandados++; }
     });
+    // 🔴 Se marca DESPUÉS, y solo si de verdad salió algo (o si no había a quién avisar). Marcarlo
+    // antes hacía que un día sin cuota se comiera el aviso para siempre.
+    if (mandados || !conSaldo) {
+      grupos++;
+      // ya no tiene sentido avisar de «quedan 7 días» cuando quedaba 1: se cierran también los mayores
+      AVISO_CIERRE_DIAS.forEach(function(u){
+        if (u >= umbral) pr.setProperty("AVISO_CANJE_" + o.id + "_" + u, fechaIso_(hoy));
+      });
+    }
   });
   if (enviados) Logger.log("avisoCierreCanje: " + enviados + " avisos en " + grupos + " grupos");
   return { enviados: enviados, grupos: grupos };
@@ -2176,7 +2194,7 @@ function abrirConsola() {
 // 🔴 No repara NADA: solo informa y dice qué opción del menú lo arregla. Reparar por sorpresa lo
 // que no se ha entendido todavía es justo como se rompen las cosas en producción.
 function salud_() {
-  var puntos = [];
+  var puntos = [], t = reloj_(), incompleto = false;
   function punto(clave, nivel, titulo, detalle, arreglo, n) {
     puntos.push({ clave: clave, nivel: nivel, titulo: titulo, detalle: detalle || "",
                   arreglo: nivel === "ok" ? "" : (arreglo || ""), n: n || 0 });
@@ -2186,8 +2204,11 @@ function salud_() {
     catch (e) { punto(clave, "mal", titulo, "no se ha podido comprobar: " + (e && e.message ? e.message : e),
                       "Vuelve a abrir la hoja y prueba otra vez; si sigue, mira el registro de ejecuciones."); }
   }
-  var pers = [];
-  try { pers = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0] && !v[21]; }); } catch (e) {}
+  var pers = [], todos = [];
+  try {
+    todos = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
+    pers = todos.filter(function(v){ return !v[21]; });   // activos: lo que se mira grupo a grupo
+  } catch (e) {}
 
   // 1) TRIGGERS · sin alRecibirRespuesta no se procesa ni un formulario; duplicados = todo dos veces
   seguro("triggers", "Triggers", function(){
@@ -2218,17 +2239,20 @@ function salud_() {
   });
 
   // 3) CANJES SIN RESOLVER · el fallo que se escondió: el alumno no cobra, no recibe y nadie se entera
+  // 🔴 REVISIÓN 26-ago · aquí se miran TODOS los grupos, archivados incluidos: un canje sin resolver
+  // es dinero cobrado sin entregar nada, y archivar el grupo no lo arregla — lo esconde para siempre.
+  // (Es además lo que ya hacía reprocesarCanjes_: tenían dos criterios distintos.)
   seguro("canjes", "Canjes sin resolver", function(){
     var n = 0, donde = [];
-    pers.forEach(function(v){
-      var o = perObj_(v);
+    todos.forEach(function(v){
+      var o = perObj_(v), arch = v[21] ? " · archivado" : "";
       var sh = SpreadsheetApp.getActive().getSheetByName(o.tabC);
       if (!sh || sh.getLastRow() < 2) return;
       var vals = sh.getDataRange().getValues(), col = vals[0].map(String).indexOf("Estado");
-      if (col < 0) { n += vals.length - 1; donde.push(o.nombre + ": " + (vals.length - 1) + " (sin columna Estado)"); return; }
+      if (col < 0) { n += vals.length - 1; donde.push(o.nombre + ": " + (vals.length - 1) + " (sin columna Estado)" + arch); return; }
       var k = 0;
       for (var i = 1; i < vals.length; i++) if (!String(vals[i][col] || "").trim()) k++;
-      if (k) { n += k; donde.push(o.nombre + ": " + k); }
+      if (k) { n += k; donde.push(o.nombre + ": " + k + arch); }
     });
     if (!n) return punto("canjes", "ok", "Canjes sin resolver", "ninguno");
     punto("canjes", "mal", "Canjes sin resolver", n + " sin resolver · " + donde.join(" · "),
@@ -2266,13 +2290,20 @@ function salud_() {
 
   // 7) RECLUTAS SIN DOCENTE · no salen en la sala de nadie
   seguro("reclutas", "Reclutas sin docente", function(){
-    var n = 0, donde = [];
+    var n = 0, donde = [], sinMirar = 0;
     pers.forEach(function(v){
-      var t = tablero_(v[0], true);
-      if (t && t.sin_docente) { n += t.sin_docente; donde.push(v[1] + ": " + t.sin_docente); }
+      // calcular un tablero por grupo es lo único caro de este parte: con muchos PER se puede ir de
+      // los 6 minutos. Antes de quedarse sin tiempo, se para y lo dice.
+      if (!t.sobra(20000)) { sinMirar++; return; }
+      var tb = tablero_(v[0], true);
+      if (tb && tb.sin_docente) { n += tb.sin_docente; donde.push(v[1] + ": " + tb.sin_docente); }
     });
-    if (!n) return punto("reclutas", "ok", "Reclutas sin docente", "todos tienen docente");
-    punto("reclutas", "aviso", "Reclutas sin docente", n + " sin docente · " + donde.join(" · "),
+    if (sinMirar) incompleto = true;
+    var cola = sinMirar ? " (no dio tiempo a mirar " + sinMirar + " grupo(s))" : "";
+    if (!n) return punto("reclutas", sinMirar ? "aviso" : "ok", "Reclutas sin docente",
+      (sinMirar ? "sin terminar" : "todos tienen docente") + cola,
+      sinMirar ? "Vuelve a abrir el parte: sigue por donde no llegó." : "", sinMirar);
+    punto("reclutas", "aviso", "Reclutas sin docente", n + " sin docente · " + donde.join(" · ") + cola,
       "Se arregla uno a uno en clase.html → «Corregir la ficha», o en profes.html.", n);
   });
 
@@ -2316,7 +2347,8 @@ function salud_() {
 
   var malos = puntos.filter(function(p){ return p.nivel === "mal"; }).length;
   var avisos = puntos.filter(function(p){ return p.nivel === "aviso"; }).length;
-  return { ok: malos === 0, malos: malos, avisos: avisos, puntos: puntos, pers: pers.length, fecha: new Date() };
+  return { ok: malos === 0, malos: malos, avisos: avisos, puntos: puntos, pers: pers.length,
+           incompleto: incompleto, fecha: new Date() };
 }
 function parteDeSalud() {
   var s = salud_();
@@ -2335,7 +2367,9 @@ function parteDeSalud() {
          (p.arreglo ? '<br><span style="color:#4a5568;font-size:13px">↳ ' + escapar_(p.arreglo) + '</span>' : '') +
          '</div>';
   });
-  h += '<p style="margin:14px 0 0;color:#667;font-size:12px">Este parte no cambia nada: solo mira y cuenta.</p></div>';
+  h += '<p style="margin:14px 0 0;color:#667;font-size:12px">Este parte no cambia nada: solo mira y cuenta.' +
+       (s.incompleto ? ' <b style="color:#b8860b">No le dio tiempo a mirarlo todo: vuelve a abrirlo.</b>' : '') +
+       '</p></div>';
   SpreadsheetApp.getUi().showModalDialog(
     HtmlService.createHtmlOutput(h).setWidth(560).setHeight(560), "STARGATE · Parte de salud");
 }

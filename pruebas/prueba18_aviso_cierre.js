@@ -60,15 +60,20 @@ contiene(correosA("conplata@alumno.es")[0].cuerpo, "1 día", "y ya habla de un s
 M.Correo.limpiar();
 igual(G.avisoCierreCanje().enviados, 0, "y ese también es de una sola vez");
 
-// ---------------------------------------------------------------- d) fuera de los umbrales, silencio
+// ---------------------------------------------------------------- d) fuera de la ventana, silencio
+// Lejos del cierre no se molesta a nadie; y una vez cerrado, avisar sería una broma de mal gusto.
 G = E.nuevoMundo();
 E.crearPERDemo(G);
 E.reclutaRico(G, "prueba-banco", "lejos@alumno.es", { profe: "Mr Cuarter" });
-[30, 12, 4, -1, -20].forEach(function(d){
+[30, 12, 8, -1, -20].forEach(function(d){
   cierreEnDias(G, "prueba-banco", d);
   M.Correo.limpiar();
   igual(G.avisoCierreCanje().enviados, 0, "a " + d + " días del cierre no se avisa");
 });
+// pero DENTRO de la ventana sí, aunque no caiga en el día exacto (ver el bloque h)
+cierreEnDias(G, "prueba-banco", 6);
+M.Correo.limpiar();
+igual(G.avisoCierreCanje().enviados, 1, "a 6 días, en cambio, sí: la ventana es «como muy tarde»");
 
 // ---------------------------------------------------------------- e) cuelga de la foto nocturna
 G = E.nuevoMundo();
@@ -101,5 +106,47 @@ cierreEnDias(G, "prueba-banco", 7);
 G.setArchivado_("prueba-banco", true);
 M.Correo.limpiar();
 igual(G.avisoCierreCanje().enviados, 0, "🔴 un grupo archivado no manda avisos");
+
+// ---------------------------------------------------------------- h) un día perdido no pierde el aviso
+// 🔴 REVISIÓN 26-ago: con umbrales EXACTOS (faltan === 7), si ese día la foto nocturna no corre
+// —Google se salta ejecuciones, o la cuota está a cero— el aviso se pierde para siempre. Y como el
+// canje solo dura una semana más, ese aviso es justo el que importa.
+G = E.nuevoMundo();
+E.crearPERDemo(G);
+E.reclutaRico(G, "prueba-banco", "tarde@alumno.es", { profe: "Mr Cuarter" });
+cierreEnDias(G, "prueba-banco", 5);              // el día 7 nadie ejecutó nada
+M.Correo.limpiar();
+igual(G.avisoCierreCanje().enviados, 1,
+  "🔴 a 5 días, sin haber avisado del umbral de 7, RECUPERA el aviso perdido");
+M.Correo.limpiar();
+igual(G.avisoCierreCanje().enviados, 0, "y no lo repite al día siguiente");
+
+// quien llega directo al último día no recibe dos correos de golpe
+G = E.nuevoMundo();
+E.crearPERDemo(G);
+E.reclutaRico(G, "prueba-banco", "ultimo@alumno.es", { profe: "Mr Cuarter" });
+cierreEnDias(G, "prueba-banco", 1);              // nunca se avisó del 7
+M.Correo.limpiar();
+igual(G.avisoCierreCanje().enviados, 1,
+  "🔴 llegando directo al último día sale UN aviso, no uno por cada umbral saltado");
+contiene(correosA("ultimo@alumno.es")[0].cuerpo, "1 día", "y habla del plazo de verdad, no del de hace una semana");
+M.Correo.limpiar();
+igual(G.avisoCierreCanje().enviados, 0, "y ahí se acaba");
+
+// ---------------------------------------------------------------- i) sin cuota NO se da por avisado
+// El otro medio fallo: se marcaba el umbral ANTES de enviar, así que un día sin cuota se comía el
+// aviso para siempre.
+G = E.nuevoMundo();
+E.crearPERDemo(G);
+E.reclutaRico(G, "prueba-banco", "recupera@alumno.es", { profe: "Mr Cuarter" });
+cierreEnDias(G, "prueba-banco", 7);
+M.Correo.limpiar();
+M.Correo.cuota = 0;
+igual(G.avisoCierreCanje().enviados, 0, "sin cuota no sale");
+M.Correo.cuota = 1500;
+G._cuota = null;          // en Apps Script cada trigger es una ejecución nueva: relee la cuota
+M.Correo.limpiar();
+igual(G.avisoCierreCanje().enviados, 1,
+  "🔴 y en cuanto vuelve la cuota, el aviso se manda: no se dio por hecho lo que no se hizo");
 
 E.resumen("El aviso de cierre del canje");

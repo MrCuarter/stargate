@@ -136,4 +136,37 @@ IDS.forEach(id => {
   igual(a.canjeados["Sobre de cromos"], 1, "el canje de «" + id + "» se resuelve una sola vez");
 });
 
+// ---------------------------------------------------------------- f) archivar no esconde un canje sin resolver
+// 🔴 REVISIÓN 26-ago: el parte miraba solo los grupos activos, pero el reproceso los recorría todos.
+// Dos respuestas distintas a la misma pregunta. Manda el reproceso: un canje sin resolver es dinero
+// cobrado sin entregar nada, y archivar el grupo no lo arregla — lo esconde para siempre.
+G = E.nuevoMundo();
+E.crearPERDemo(G);
+E.reclutaRico(G, "prueba-banco", "archivado@alumno.es", { profe: "Mr Cuarter" });
+E.canjeSinResolver(G, "prueba-banco", { email: "archivado@alumno.es", recompensa: E.etiqueta(G, "Sobre de cromos") });
+G.setArchivado_("prueba-banco", true);
+
+const pA = G.salud_().puntos.filter(x => x.clave === "canjes")[0];
+igual(pA.nivel, "mal", "🔴 el parte ve el canje aunque el grupo esté archivado");
+igual(pA.n, 1, "y lo cuenta");
+contiene(pA.detalle, "archivado", "diciendo que viene de un grupo archivado, para que se entienda");
+
+const rA = G.reprocesarCanjes_();
+igual(rA.resueltos, 1, "y el reproceso lo resuelve");
+igual(G.salud_().puntos.filter(x => x.clave === "canjes")[0].nivel, "ok", "después ya no queda nada");
+
+// ---------------------------------------------------------------- g) el parte no se come los 6 minutos
+// Con muchos grupos, salud_() calcula un tablero por PER. Si se le acaba el tiempo tiene que DECIRLO,
+// no callarse y dar por sano lo que no ha mirado.
+G = E.nuevoMundo();
+["UNO", "DOS", "TRES"].forEach(n => E.crearPERDemo(G, { nombre: n }));
+E.canjeSinResolver(G, "tres", { email: "x@alumno.es", recompensa: E.etiqueta(G, "Sobre de cromos") });
+const margenS = G.MARGEN_MS;
+G.MARGEN_MS = 0;
+const pT = G.salud_();
+G.MARGEN_MS = margenS;
+igual(pT.incompleto, true, "🔴 si no le da tiempo a mirarlo todo, lo dice");
+c(pT.puntos.some(x => x.nivel !== "ok" || x.detalle.indexOf("no dio tiempo") >= 0) || pT.incompleto,
+  "y no se inventa un verde que no ha comprobado");
+
 E.resumen("Parte de salud y reproceso de canjes");
