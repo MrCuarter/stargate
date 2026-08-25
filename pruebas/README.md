@@ -3,7 +3,9 @@
 Ejecuta **el `Code.gs` de verdad** fuera de Google: hojas de cálculo en memoria, Drive, Google Docs,
 Forms, correo, propiedades del script, cerrojo y triggers, todo simulado. No sustituye a la prueba en
 vivo, pero coge los fallos de lógica en **dos segundos y sin gastar cuota** — y ya ha encontrado
-siete: los tres de la v3.12 y los cuatro de la v3.13.
+nueve: los tres de la v3.12, los cuatro de la v3.13 y los dos peores de la prueba en vivo del 25-ago.
+
+**Hoy: 18 baterías · 516 comprobaciones · 0 fallos**, y las mismas cifras contra la copia ASCII.
 
 ## Cómo se usa
 
@@ -47,6 +49,14 @@ mismas baterías contra esa copia**: si las dos dan el mismo resultado, lo que s
 | 8 | v3.13 · **lotes con continuación**: resetear la hoja y actualizar formularios sin agotar los 360 s |
 | 9 | v3.13 · el aviso de un canje de nota **no se pierde** aunque nadie tenga correo; reclutas sin docente |
 | 10 | v3.13 · **dossier del profesorado**: un documento con todos los grupos, mismo enlace siempre, envío por correo |
+| 11 | v3.14 · vincular formularios **con reintento**, y limpieza si `crearPER` se cae a medias |
+| 12 | v3.14 · el alta de un PER **cabe en el tiempo**: el acabado se difiere y lo termina `continuarAltaPER` |
+| 13 | v3.14 · **calendario del PER**: apertura, cierre de misiones y cierre del canje (una semana más) |
+| 14 | v3.14 · robustez de la prueba en vivo: el canje no depende del correo, triggers únicos, orbes cacheados, una fila se resuelve una vez |
+| 15 | v3.15 · **parte de salud** (mundo sano vs. mundo roto a propósito) y **reproceso de canjes** sin resolver, por lotes |
+| 16 | v3.15 · **cuota de correo**: sin cuota el canje se concede igual y queda traza; el aviso de cuota baja, uno al día |
+| 17 | v3.15 · **3 repetidos = 1 sobre**, insignias por **serie completa** (sin tocar el «/24») y **racha** de semanas |
+| 18 | v3.15 · **aviso antes de que cierre el canje**: umbrales 7 y 1 días, solo a quien le quedan créditos, una vez |
 
 ## Añadir una batería
 
