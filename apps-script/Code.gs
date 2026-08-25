@@ -5,6 +5,9 @@
  * API de lectura (doGet) para la web del alumnado y API con PIN (doPost) para el panel del profesorado.
  * v3: La Nave del Recluta (recluta.html?per=id) · recompensas con semana de desbloqueo · canjes de avatar
  * automáticos («Cambio de avatar» y «Avatar personal») · el avatar inicial se congela al alistarse y solo
+ * v3.9: CERROJO en el trigger (LockService) para que dos envíos simultáneos no se pisen al cobrar,
+ * y se respeta el «Máx. por alumno» del catálogo: si ya llegó al tope se DENIEGA sin cobrar y la
+ * Nave lo marca como «Ya la tienes» para que ni lo intente.
  * v3.8: avatares SOLO evolutivos (fuera la galería clásica), la URL de imagen propia deja de ser
  * gratis (es la recompensa «Avatar personal») y la BITÁCORA DE MANDO va por SECCIONES: la página 1
  * es la identidad y termina con un selector que salta directo al tema; cada sección envía. Seguro
@@ -849,6 +852,12 @@ function setAbierto_(perId, abrir) {
 }
 
 function alRecibirRespuesta(e) {
+  // v3.9 · CERROJO: el saldo se calcula leyendo la hoja y se cobra escribiendo en ella, así que dos
+  // envíos procesados a la vez podrían pasar los dos la puerta del saldo (doble gasto) o duplicar
+  // eventos. El lock del documento los pone en fila. Si tras 30 s no se consigue (situación
+  // extraordinaria), se procesa igual: perder un canje en silencio sería peor que el riesgo teórico.
+  var lock = LockService.getDocumentLock(), conLock = false;
+  try { lock.waitLock(30000); conLock = true; } catch (err) { Logger.log("alRecibirRespuesta sin lock: " + err); }
   try {
     var sh = e.range.getSheet(); var nombre = sh.getName(); var perId = nombre.substring(4);
     var p = perFila_(perId); if (!p) return; var o = perObj_(p.v);
@@ -856,6 +865,24 @@ function alRecibirRespuesta(e) {
     else if (nombre.indexOf("C · ") === 0) resolverCanje_(o, sh, e.range.getRow());
     consolidarDatos();
   } catch (err) { Logger.log(err); }
+  finally { if (conLock) { try { lock.releaseLock(); } catch (e2) {} } }
+}
+// Cuántas veces se le ha CONCEDIDO ya a este correo esta misma recompensa (sin contar la fila que
+// se está resolviendo ahora). Sirve para respetar el «Máx. por alumno» del catálogo.
+function concedidasDe_(sh, fila, email, nombreRec) {
+  var v = sh.getDataRange().getValues(); if (v.length < 2) return 0;
+  var cab = v[0].map(String);
+  var cE = cab.indexOf("Estado"), cR = cab.indexOf("Recompensa");
+  var cM = idx_(cab, "correo") >= 0 ? idx_(cab, "correo") : idx_(cab, "email");
+  if (cE < 0 || cR < 0 || cM < 0) return 0;
+  var n = 0;
+  for (var i = 1; i < v.length; i++) {
+    if (i + 1 === fila) continue;
+    if (String(v[i][cM] || "").toLowerCase().trim() !== email) continue;
+    if (String(v[i][cR] || "").indexOf(nombreRec) !== 0) continue;
+    if (String(v[i][cE] || "").indexOf("Concedido") === 0) n++;
+  }
+  return n;
 }
 function leerFila_(sh, fila) {
   var cab = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(String); var v = sh.getRange(fila,1,1,sh.getLastColumn()).getValues()[0];
@@ -905,12 +932,19 @@ function resolverCanje_(o, sh, fila) {
     estado = "Denegado (bloqueada hasta la semana " + desde + (sem ? "; vais por la " + sem : "") + ")";
     cuerpo = "Esa recompensa aún está clasificada, recluta: se desbloquea en la semana " + desde + " de la misión. No se han gastado créditos.";
   }
-  // 2) saldo
+  // 2) tope por alumno: el catálogo dice cuántas veces puede concederse a la misma persona
+  else if (ficha && ficha.max && concedidasDe_(sh, fila, email, ficha.nombre) >= ficha.max) {
+    estado = "Denegado (ya alcanzó el máximo de " + ficha.max + ")";
+    cuerpo = ficha.max === 1
+      ? "«" + ficha.nombre + "» ya la tienes: es de una sola vez. No se han gastado créditos."
+      : "Ya has canjeado «" + ficha.nombre + "» el máximo de " + ficha.max + " veces. No se han gastado créditos.";
+  }
+  // 3) saldo
   else if (!al || disp < coste || coste <= 0) {
     estado = "Denegado (" + disp + " créditos, cuesta " + coste + ")";
     cuerpo = "No tienes créditos suficientes para «" + rec + "»: te quedan " + disp + " créditos. (Tus xp no se gastan: son tu nivel.)";
   }
-  // 3) canjes automáticos: se aplican solos
+  // 4) canjes automáticos: se aplican solos
   else if (ficha && ficha.tipo === "avatar") {
     var nuevo = String(r[TIT_NUEVO_AVATAR] || "").trim();
     if (!nuevo) { estado = "Denegado (falta elegir el nuevo avatar en el formulario)"; cuerpo = "Para «Cambio de avatar» tienes que elegir el nuevo avatar en el propio formulario. Vuelve a enviarlo con tu elección; no se han gastado créditos."; }
@@ -950,7 +984,7 @@ function resolverCanje_(o, sh, fila) {
     if (!/^https?:\/\//i.test(u)) { estado = "Denegado (falta la URL de la imagen en el formulario)"; cuerpo = "Para «Avatar personal» tienes que pegar la URL directa de tu imagen en el propio formulario. Vuelve a enviarlo con el enlace; no se han gastado créditos."; }
     else { aplicarAvatar_(o, email, u); estado = "Concedido"; cuerpo = "Concedido: " + rec + ". Tu imagen ya es tu avatar en el tablero (si no carga, revisa que el enlace sea directo). Te quedan " + (disp - coste) + " créditos."; }
   }
-  // 4) recompensas de nota: las aplica el profesorado al terminar las clases en directo
+  // 5) recompensas de nota: las aplica el profesorado al terminar las clases en directo
   else {
     estado = "Concedido";
     cuerpo = "Concedido: " + rec + ". Te quedan " + (disp - coste) + " créditos. Importante: esta recompensa se hará efectiva al terminar las clases en directo; el profesorado la aplicará entonces.";
@@ -995,7 +1029,9 @@ function tablero_(perId, conPrivados) {
   var canjes = {}; var shC = SpreadsheetApp.getActive().getSheetByName(o.tabC);
   if (shC && shC.getLastRow() > 1) { var vc = shC.getDataRange().getValues(); var cc = vc[0].map(String); var cE = cc.indexOf("Estado"), cMm = idx_(cc,"correo") >= 0 ? idx_(cc,"correo") : idx_(cc,"email"), cR = cc.indexOf("Recompensa"), cEnt = cc.indexOf("Entregado");
     for (var j = 1; j < vc.length; j++) { var m2 = String(vc[j][cMm]||"").toLowerCase(); if (cE >= 0 && String(vc[j][cE]).indexOf("Concedido") === 0) {
-      var coste = parseInt((String(vc[j][cR]).match(/(\d+)\s*(?:cr[ée]ditos|xp)$/)||[0,0])[1],10); (canjes[m2] = canjes[m2] || { gastado:0, lista:[] }); canjes[m2].gastado += coste;
+      var coste = parseInt((String(vc[j][cR]).match(/(\d+)\s*(?:cr[ée]ditos|xp)$/)||[0,0])[1],10); (canjes[m2] = canjes[m2] || { gastado:0, lista:[], veces:{} }); canjes[m2].gastado += coste;
+      var nom = String(vc[j][cR]).replace(/\s*—\s*\d+\s*(?:cr[ée]ditos|xp)\s*$/, "").trim();
+      if (nom) canjes[m2].veces[nom] = (canjes[m2].veces[nom] || 0) + 1;
       canjes[m2].lista.push({ fecha:vc[j][0], recompensa:vc[j][cR], actividad:vc[j][cc.indexOf("Actividad a la que se aplica")], entregado: cEnt >= 0 ? vc[j][cEnt] : "", fila:j+1 }); } } }
   var lista = Object.keys(por).map(function(m){ var a = por[m]; var xp = 0, cred = 0, tema = 0, ins = {};
     Object.keys(a.retos).forEach(function(id){ if (id === "H1") { xp += XP_RECLUTAMIENTO; cred += creditosDe_("H1", o.tipo); ins["H1_reclutamiento"] = true; ins["E1_nebula"] = true; return; }
@@ -1012,6 +1048,7 @@ function tablero_(perId, conPrivados) {
     var out = { alias:a.alias, avatar:avatar, xp:xp, nivel:niv.nivel, rango:niv.rango, rango_nombre:niv.rangoNombre,
                 nivel_titulo:niv.titulo, xp_siguiente:niv.siguiente, xp_faltan:niv.faltan,
                 creditos: cred - gast, creditos_ganados: cred, creditos_gastados: gast,
+                canjeados: canjes[m] ? canjes[m].veces : {},
                 planeta: tema ? TEMAS[tema][0] : "—", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length,
                 titulo:a._titulo || "", marco:a._marco || "", fondo:a._fondo || "", cromos:a._cromos || {}, xp7:xp7 };
     if (conPrivados) { out.email = m; out.nombre = a.nombre; out.bitacora = a.bitacora; out.bio = a.bio || ""; out.eventos = a.eventos; out.retos = a.retos; out.canjes = canjes[m] ? canjes[m].lista : []; }
@@ -1074,6 +1111,7 @@ function doPost(e) {
         nivel:yo.nivel, rango:yo.rango, rango_nombre:yo.rango_nombre, nivel_titulo:yo.nivel_titulo,
         xp_siguiente:yo.xp_siguiente, xp_faltan:yo.xp_faltan,
         creditos:yo.creditos, creditos_ganados:yo.creditos_ganados, creditos_gastados:yo.creditos_gastados,
+        canjeados:yo.canjeados || {},
         planeta:yo.planeta, tema:yo.tema, insignias:yo.insignias, n:yo.n, pos:yo.pos,
         bio:yo.bio || "", bitacora:yo.bitacora || "",
         titulo:yo.titulo || "", marco:yo.marco || "", fondo:yo.fondo || "", cromos:yo.cromos || {}, corona:!!yo.corona } : null })).setMimeType(ContentService.MimeType.JSON);

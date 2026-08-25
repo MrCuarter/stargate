@@ -166,9 +166,15 @@
       if(!abierta) return '<div class="card rec-card lock"><h3>🔒 Recompensa clasificada</h3><p class="small muted">Se desbloquea en la semana '+desde+'.</p></div>';
       abiertas++;
       var mis=r?(r.creditos!=null?r.creditos:(r.xp_disponibles||0)):0;
-      var afford=r?(mis>=x.coste?'<span class="chip ok">Te lo puedes permitir</span>':'<span class="chip wip">Te faltan '+(x.coste-mis)+' ◈</span>'):'';
+      // el catálogo limita cuántas veces puede concederse cada recompensa: si ya llegó al tope,
+      // se avisa aquí para que ni lo intente (el script también lo deniega sin cobrar).
+      var veces=(r&&r.canjeados?r.canjeados[x.nombre]:0)||0;
+      var repetible=!x.max||x.max>=99, tope=!repetible&&veces>=x.max;
+      var afford=!r?'':tope?'<span class="chip done">Ya la tienes'+(x.max>1?' ('+veces+'/'+x.max+')':'')+'</span>'
+        :(mis>=x.coste?'<span class="chip ok">Te lo puedes permitir</span>':'<span class="chip wip">Te faltan '+(x.coste-mis)+' ◈</span>')
+        +(veces?' <span class="chip">canjeada '+veces+(repetible?' vece'+(veces===1?'z':'s'):' de '+x.max)+'</span>':'');
       var aviso=x.tipo==='nota'?'<p class="small muted">⏳ Se hace efectiva al terminar las clases en directo.</p>':x.tipo==='avatar'||x.tipo==='avatar_url'?'<p class="small muted">⚡ Automática: si se concede, tu avatar cambia solo.</p>':'';
-      return '<div class="card rec-card"><h3>'+esc(x.nombre)+'</h3><p class="pts">'+x.coste+' ◈</p><p class="small">'+esc(x.desc||'')+'</p>'+aviso+afford+'</div>';
+      return '<div class="card rec-card'+(tope?' agotada':'')+'"><h3>'+esc(x.nombre)+'</h3><p class="pts">'+x.coste+' ◈</p><p class="small">'+esc(x.desc||'')+'</p>'+aviso+afford+'</div>';
     }).join('');
     return '<section><div class="eyebrow violet">Recompensas</div><h2>El canje de xp</h2>'
       +'<p class="lead">Tus <b>xp</b> no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje. Lo que se canjea son los <b>créditos ◈</b>, que ganas con el mismo trabajo. Las recompensas se van desbloqueando con el viaje.</p>'
