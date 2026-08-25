@@ -25,8 +25,21 @@
   function vista(){Array.prototype.forEach.call(root.querySelectorAll('.tabs button[data-v]'),function(b){b.classList.toggle('on',b.getAttribute('data-v')===st.vista);});var v=document.getElementById('vista');
     if(st.vista==='alumnos')vAlumnos(v);else if(st.vista==='tickets')vTickets(v);else if(st.vista==='canjes')vCanjes(v);else vPer(v);}
   function vAlumnos(v){var r=st.datos.reclutas||[];var retos=RET[st.datos.tipo]||[];
-    v.innerHTML='<div class="buscar"><input id="bq" type="search" placeholder="Buscar por alias, nombre o correo…"></div><div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Alias</th><th>Nombre · correo</th><th>Planeta</th><th>Insignias</th><th>Nivel · xp · ◈</th><th></th></tr></thead><tbody>'
-      +r.map(function(p,i){return '<tr class="al" data-k="'+esc((p.alias+' '+p.nombre+' '+p.email).toLowerCase())+'"><td>'+p.pos+'</td><td><b>'+esc(p.alias)+'</b></td><td>'+esc(p.nombre)+'<br><span class="small muted">'+esc(p.email)+'</span></td><td>'+esc(p.planeta)+'</td><td>'+p.n+'/24</td><td class="pts">N'+(SG.nivel?SG.nivel(p.xp,st.datos.tipo):1)+' · '+p.xp+' xp · '+(p.creditos!=null?p.creditos:(p.xp_disponibles||0))+' ◈</td><td><button class="btn small" data-i="'+i+'">Detalle</button></td></tr>';}).join('')+'</tbody></table></div><div id="detalle"></div>';
+    // v3.13 · dos cosas que dejan avisos sin destinatario: reclutas sin docente y docentes sin correo
+    var sinDoc=r.filter(function(x){return !String(x.profe||'').trim();});
+    var sinMail=st.datos.docentes_sin_correo||[];
+    var alerta=(sinDoc.length||sinMail.length)
+      ? '<div class="card" style="border-color:#f5b043;margin-bottom:14px"><h3>⚠ Avisos que se quedarían sin destinatario</h3>'
+        +(sinDoc.length?'<p class="small"><b>'+sinDoc.length+' recluta(s) sin docente asignado</b> ('
+          +sinDoc.slice(0,10).map(function(x){return esc(x.alias||x.email||'');}).join(' · ')+(sinDoc.length>10?' …':'')
+          +'). No han contestado «¿Quién imparte tu clase?»: sus canjes de nota solo te llegarán a ti. '
+          +'Se corrige en la <a href="clase.html?per='+encodeURIComponent(st.per)+'" target="_blank" rel="noopener">sala del docente</a> → Mi grupo → Corregir.</p>':'')
+        +(sinMail.length?'<p class="small"><b>Docente(s) sin correo:</b> '+sinMail.map(esc).join(', ')
+          +'. Sin correo no reciben ningún aviso. Ponlo en <b>⚙️ Ajustes del PER</b>.</p>':'')
+        +'</div>'
+      : '';
+    v.innerHTML=alerta+'<div class="buscar"><input id="bq" type="search" placeholder="Buscar por alias, nombre o correo…"></div><div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Alias</th><th>Nombre · correo</th><th>Docente</th><th>Planeta</th><th>Insignias</th><th>Nivel · xp · ◈</th><th></th></tr></thead><tbody>'
+      +r.map(function(p,i){return '<tr class="al" data-k="'+esc((p.alias+' '+p.nombre+' '+p.email).toLowerCase())+'"><td>'+p.pos+'</td><td><b>'+esc(p.alias)+'</b></td><td>'+esc(p.nombre)+'<br><span class="small muted">'+esc(p.email)+'</span></td><td class="small">'+(String(p.profe||'').trim()?esc(p.profe):'<span class="chip" style="background:#f5b04333;color:#8a5b00">⚠ sin docente</span>')+'</td><td>'+esc(p.planeta)+'</td><td>'+p.n+'/24</td><td class="pts">N'+(SG.nivel?SG.nivel(p.xp,st.datos.tipo):1)+' · '+p.xp+' xp · '+(p.creditos!=null?p.creditos:(p.xp_disponibles||0))+' ◈</td><td><button class="btn small" data-i="'+i+'">Detalle</button></td></tr>';}).join('')+'</tbody></table></div><div id="detalle"></div>';
     document.getElementById('bq').addEventListener('input',function(){var t=this.value.trim().toLowerCase();Array.prototype.forEach.call(v.querySelectorAll('tr.al'),function(tr){tr.style.display=(!t||tr.getAttribute('data-k').indexOf(t)>=0)?'':'none';});});
     Array.prototype.forEach.call(v.querySelectorAll('button[data-i]'),function(b){b.onclick=function(){detalle(r[parseInt(b.getAttribute('data-i'),10)],retos);};});}
   function detalle(p,retos){var box=document.getElementById('detalle');var tiene={};Object.keys(p.retos||{}).forEach(function(k){tiene[k]=p.retos[k];});

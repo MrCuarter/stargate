@@ -112,7 +112,20 @@
       return '<tr><td>'+esc(f(x.c.fecha))+'</td><td><b>'+esc(x.p.alias)+'</b><br><span class="small muted">'+esc(x.p.nombre||x.p.email)+'</span></td>'
         +'<td>'+esc(x.c.recompensa)+'</td><td>'+esc(x.c.actividad||'—')+'</td>'
         +'<td><button class="btn small primary" data-apl="'+x.c.fila+'">Ya lo he aplicado</button></td></tr>';}).join('');
+    // v3.13 · los reclutas que no han dicho quién les da clase: sin eso el aviso de sus canjes no
+    // le llega a ninguna persona concreta. Es lo primero que hay que arreglar, así que va arriba.
+    var sinDoc=((st.d&&st.d.reclutas)||[]).filter(function(x){return !String(x.profe||'').trim();});
+    var avisoSinDoc = sinDoc.length
+      ? '<div class="card" style="border-color:#f5b043"><h3>⚠ '+sinDoc.length+' recluta(s) sin docente asignado</h3>'
+        +'<p class="small">No han contestado «¿Quién imparte tu clase?». Cuando canjeen algo que haya que aplicar '
+        +'a mano, el aviso <b>no le llegará a ninguna persona concreta</b>: solo al profe referente. '
+        +'Asígnaselos tú desde <b>Mi grupo</b> → «Corregir».</p>'
+        +'<p class="small muted">'+sinDoc.slice(0,8).map(function(x){return esc(x.alias||x.email||'');}).join(' · ')
+        +(sinDoc.length>8?' …':'')+'</p>'
+        +'<p><button class="btn small" id="verSinDoc">Ver a todo el grupo y corregirlo →</button></p></div>'
+      : '';
     return '<section><div class="eyebrow amber">Lo primero</div><h2>Requiere tu intervención</h2>'
+      +avisoSinDoc
       +(pd.length
         ? '<p class="lead">Estos canjes ya están cobrados y el alumno lo sabe: falta que tú los apliques.</p>'
           +'<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Recluta</th><th>Recompensa</th><th>Actividad</th><th></th></tr></thead><tbody>'+filas+'</tbody></table></div>'
@@ -150,7 +163,8 @@
     var filas=r.map(function(p,i){
       var ult=(p.eventos||[]).length?f((p.eventos||[]).map(function(e){return e.fecha;}).sort().pop()):'—';
       return '<tr><td>'+p.pos+'</td><td><b>'+esc(p.alias)+'</b><br><span class="small muted">'+esc(p.nombre||'')+'</span></td>'
-        +'<td class="small">'+esc(p.email||'')+'</td><td>'+esc(p.profe||'—')+'</td>'
+        +'<td class="small">'+esc(p.email||'')+'</td>'
+        +'<td>'+(String(p.profe||'').trim()?esc(p.profe):'<span class="chip" style="background:#f5b04333;color:#8a5b00">⚠ sin docente</span>')+'</td>'
         +'<td>N'+p.nivel+' <span class="small muted">'+esc(p.rango_nombre||'')+'</span></td>'
         +'<td class="pts">'+p.xp+'</td><td>'+p.creditos+' ◈</td><td>'+p.n+'/24</td><td class="small muted">'+ult+'</td>'
         +'<td><button class="btn small" data-al="'+i+'">Corregir</button></td></tr>';}).join('');
@@ -238,6 +252,10 @@
     var stm=document.getElementById('selTema'); if(stm)stm.onchange=function(){st.tema=stm.value;render();};
     var sd=document.getElementById('selDias'); if(sd)sd.onchange=function(){st.dias=sd.value;render();};
     var ch=document.getElementById('chkMios'); if(ch)ch.onchange=function(){st.soloMios=ch.checked;render();};
+    // v3.13 · «Ver solo a estos»: quita el filtro de «solo mis alumnos» y baja a la tabla del grupo
+    var bSin=document.getElementById('verSinDoc');
+    if(bSin)bSin.onclick=function(){st.soloMios=false;render();
+      var t=document.querySelector('#clase-app table.rank'); if(t)t.scrollIntoView({behavior:'smooth',block:'center'});};
     var r=mios();
     Array.prototype.forEach.call(root.querySelectorAll('button[data-al]'),function(b){
       b.onclick=function(){fichaAlumno(r[parseInt(b.getAttribute('data-al'),10)]);};});

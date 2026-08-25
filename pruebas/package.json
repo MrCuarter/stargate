@@ -1,0 +1,6 @@
+{
+  "name": "stargate-pruebas",
+  "private": true,
+  "type": "commonjs",
+  "description": "Banco de pruebas del Apps Script de STARGATE (Node, sin dependencias)"
+}

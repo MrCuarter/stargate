@@ -1,10 +1,18 @@
 /**
- * STARGATE · Mando de PERs — Apps Script de la hoja maestra (cuenta mutecdgami@gmail.com)  v3 · 24-ago-2026
+ * STARGATE · Mando de PERs — Apps Script de la hoja maestra (cuenta mutecdgami@gmail.com)  v3.13 · 25-ago-2026
  * Menú STARGATE: crear PER (REGULAR o PUA) con 3 formularios por plantilla (Bitácora de mando, Ticket de
  * salida anónimo, Canje de recompensas), apertura/cierre programados, EVENTOS/DATOS/RESUMEN para investigación,
  * API de lectura (doGet) para la web del alumnado y API con PIN (doPost) para el panel del profesorado.
  * v3: La Nave del Recluta (recluta.html?per=id) · recompensas con semana de desbloqueo · canjes de avatar
  * automáticos («Cambio de avatar» y «Avatar personal») · el avatar inicial se congela al alistarse y solo
+ * v3.13: (1) las tareas que recorren TODOS los PER —resetear la hoja y actualizar los
+ * formularios— agotaban los 360 s de Apps Script y dejaban el trabajo A MEDIAS: ahora van POR
+ * LOTES con continuación automática (guardan por dónde iban y siguen solas dentro de un minuto);
+ * (2) un canje de nota concedido en un grupo cuyo equipo docente no tiene correos ya no se pierde:
+ * va al CORREO DE RESERVA y deja traza en AJUSTES; (3) los reclutas SIN DOCENTE se cuentan en el
+ * tablero privado y se destacan en la Consola (columna y bloque propio); (4) DOSSIER DEL
+ * PROFESORADO: un único documento con todos los grupos, equipos docentes y enlaces, que se
+ * reescribe solo (mismo enlace para siempre) y se manda por correo desde el menú.
  * v3.12: arreglos salidos del banco de pruebas — (1) una recompensa que ya no está en el catálogo
  * se DENIEGA en vez de cobrarse y avisar al docente como si fuera de nota; (2) la ficha de la
  * recompensa se busca por etiqueta EXACTA (antes «X premium» se resolvía como «X»: otro tope y
@@ -206,6 +214,8 @@ function onOpen() {
     .addItem("Crear nuevo PER...", "abrirDialogoNuevoPER")
     .addItem("Publicar y abrir formularios del PER seleccionado", "publicarFormulariosPER")
     .addItem("Documento de enlaces y embeds del PER seleccionado", "documentoPERSeleccionado")
+    .addItem("Dossier del profesorado (TODOS los grupos)", "crearDossierProfesorado")
+    .addItem("Enviar el dossier por correo al profesorado", "enviarDossierPorCorreo")
     .addItem("Actualizar formularios (recompensas, avatar, bio)", "actualizarRecompensas")
     .addItem("Guardar panel de control estándar (Genially)", "guardarPanelEstandar")
     .addItem("Abrir la Consola del profesorado (y ponerla al día)", "abrirConsola")
@@ -223,6 +233,7 @@ function onOpen() {
     .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
     .addItem("Guardar URL del web app", "pedirWebAppUrl")
+    .addItem("Correo de avisos de reserva", "guardarCorreoAvisos")
     .addToUi();
   asegurarHojas_();
 }
@@ -469,7 +480,9 @@ function crearPER(datos) {
     fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date(), datos.referente || "", ft.getEditUrl(),
     "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim(), "", fc.getEditUrl()]);
   var docUrl = ""; try { docUrl = crearDocumentoPER_(id); } catch (e) { docUrl = ""; }
-  return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", doc:docUrl, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
+  // v3.13 · y el dossier global del profesorado, con TODOS los grupos, al día (encargo del usuario)
+  var dossierUrl = ""; try { dossierUrl = dossier_(); } catch (e) { Logger.log("dossier_: " + e); }
+  return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", doc:docUrl, dossier:dossierUrl, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
     hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id,
     foro: WEB + "foro.html?per=" + id + (inicio ? "&inicio=" + fechaIso_(inicio) + "&tipo=" + tipo : ""), nave: WEB + "recluta.html?per=" + id,
     embedAlumnos: '<iframe src="' + WEB + 'registro.html?per=' + id + '&embed=1" width="100%" height="760" style="border:0;border-radius:16px"></iframe>',
@@ -513,21 +526,58 @@ function anadirCamposAvatar_(fc) {
 }
 function extra_(o, email, accion, valor) { hoja_(H.AJ).appendRow([new Date(), o.id, email, "EXTRA", accion, valor, "canje"]); }
 function actualizarRecompensas() {
-  var et = etiquetasRecompensas_(); var n = 0;
-  hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
-    try { var f = formDelPER_(perObj_(v), "C"); if (!f) throw new Error("sin canje");
+  var ui = SpreadsheetApp.getUi();
+  var pendiente = progreso_("formularios");
+  if (pendiente && ui.alert("Actualizar formularios",
+      "Hay una actualización a medias (" + pendiente.n + " de " + (pendiente.total || "?") + " grupos hechos).\n\n" +
+      "SÍ = seguir donde se quedó · NO = empezar de cero.", ui.ButtonSet.YES_NO) !== ui.Button.YES) {
+    guardarProgreso_("formularios", null);
+  }
+  var r = actualizarFormularios_();
+  ui.alert(r.terminado ? "Formularios actualizados" : "Actualización en marcha (va por lotes)",
+    (r.terminado
+      ? "Listo: " + r.hechos + " grupos de " + r.total + "."
+      : "Hechos " + r.hechos + " de " + r.total + " grupos. Como Apps Script corta a los 6 minutos, el resto " +
+        "sigue SOLO dentro de un minuto (y las veces que hagan falta). También puedes volver a pulsar esta opción.") +
+    "\n\n· Canje: recompensas con precios en CRÉDITOS y preguntas al día.\n" +
+    "· Bitácora: avatares solo evolutivos (galería clásica y URL propia RETIRADAS: poner tu imagen es ahora una " +
+    "recompensa de pago) y SECCIONES RÁPIDAS — la primera página pregunta a qué tema vas y salta directo; cada " +
+    "sección envía al terminar." +
+    (r.fallos.length ? "\n\nNo se pudo con:\n" + r.fallos.slice(0, 12).join("\n") : ""), ui.ButtonSet.OK);
+}
+// El trabajo de verdad, sin interfaz: lo llama el menú y también el trigger de continuación.
+function actualizarFormularios_() {
+  var t = reloj_();
+  var et = etiquetasRecompensas_();
+  var pers = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
+  var pr = progreso_("formularios") || { i: 0, n: 0, canjes: 0, fallos: [] };
+  pr.total = pers.length;
+  while (pr.i < pers.length && t.puedo()) {
+    var v = pers[pr.i];
+    try { var f = formDelPER_(perObj_(v), "C"); if (!f) throw new Error("sin formulario de canje");
           var titulos = f.getItems().map(function(i){ return i.getTitle(); });
-          f.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle() === "Recompensa") { i.asListItem().setChoiceValues(et); n++; } });
-          if (titulos.indexOf(TIT_NUEVO_AVATAR) < 0) anadirCamposAvatar_(f); } catch (e) {}
-    try { var fbx = formDelPER_(perObj_(v), "B"); if (!fbx) throw new Error("sin bitacora");
+          f.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle() === "Recompensa") { i.asListItem().setChoiceValues(et); pr.canjes++; } });
+          if (titulos.indexOf(TIT_NUEVO_AVATAR) < 0) anadirCamposAvatar_(f); }
+    catch (e) { pr.fallos.push(String(v[1]) + " (canje): " + e.message); }
+    try { var fbx = formDelPER_(perObj_(v), "B"); if (!fbx) throw new Error("sin Bitácora");
           var tit2 = fbx.getItems().map(function(i){ return i.getTitle(); });
           if (tit2.indexOf("Breve biografía de tu personaje") < 0) {
             var bioIt = fbx.addParagraphTextItem().setTitle("Breve biografía de tu personaje").setHelpText("2-3 frases sobre tu recluta: quién es, de dónde viene, qué se le da bien. Aparecerá al pie de tu personaje en la Nave del Recluta.");
-            var items = fbx.getItems(); var pos = tit2.indexOf("Enlace a mi Bitácora (ePortfolio)");
+            var pos = tit2.indexOf("Enlace a mi Bitácora (ePortfolio)");
             if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); }
-          reestructurarBitacora_(fbx, perObj_(v)); } catch (e) {}
-  });
-  SpreadsheetApp.getUi().alert("Formularios actualizados en " + n + " PER.\n\n· Canje: recompensas con precios en CRÉDITOS y preguntas al día.\n· Bitácora: avatares solo evolutivos (galería clásica y URL propia RETIRADAS: poner tu imagen es ahora una recompensa de pago) y SECCIONES RÁPIDAS — la primera página pregunta a qué tema vas y salta directo; cada sección envía al terminar.");
+          reestructurarBitacora_(fbx, perObj_(v)); }
+    catch (e) { pr.fallos.push(String(v[1]) + " (bitácora): " + e.message); }
+    pr.i++; pr.n++; t.marcar();
+  }
+  var terminado = pr.i >= pers.length;
+  if (terminado) { guardarProgreso_("formularios", null); cancelarContinuacion_("continuarActualizarFormularios"); }
+  else { guardarProgreso_("formularios", pr); programarContinuacion_("continuarActualizarFormularios"); }
+  return { terminado: terminado, hechos: pr.n, total: pers.length, canjes: pr.canjes, fallos: pr.fallos };
+}
+// Lo dispara el trigger de un minuto: sin interfaz, porque un trigger no tiene ventanas.
+function continuarActualizarFormularios() {
+  var r = actualizarFormularios_();
+  Logger.log("continuarActualizarFormularios: " + r.hechos + "/" + r.total + (r.terminado ? " · TERMINADO" : " · sigue"));
 }
 
 // v3.8 · pone al día una Bitácora ya creada: quita la galería clásica y la URL gratis, y le añade
@@ -716,6 +766,172 @@ function crearDocumentoPER_(perId) {
   return url;
 }
 
+// ================= DOSSIER DEL PROFESORADO (un documento con TODOS los grupos) =================
+// v3.13 · Encargo del usuario: «cuando se cree un PER, un documento para el profesor referente con
+// toda la información de todos los grupos de profesores, con enlaces, para enviarlo por mail y
+// guardarlo». crearDocumentoPER_ es el documento DE UN GRUPO; esto es el mapa completo.
+// Es SIEMPRE el mismo archivo (su id vive en las propiedades): así el enlace que ya tienen los
+// profes no se rompe nunca. Se rehace al crear un PER, desde el menú y en la foto nocturna.
+var PROP_DOSSIER = "DOSSIER_ID";
+
+function dossierDoc_() {
+  var pr = PropertiesService.getScriptProperties(), id = pr.getProperty(PROP_DOSSIER), doc = null;
+  if (id) { try { doc = DocumentApp.openById(id); DriveApp.getFileById(id); } catch (e) { doc = null; } }
+  if (!doc) {
+    doc = DocumentApp.create("STARGATE · Dossier del profesorado");
+    pr.setProperty(PROP_DOSSIER, doc.getId());
+    try { var padres = DriveApp.getFileById(SpreadsheetApp.getActive().getId()).getParents();
+          if (padres.hasNext()) DriveApp.getFileById(doc.getId()).moveTo(padres.next()); } catch (e) {}
+  }
+  return doc;
+}
+function dossier_() {
+  var doc = dossierDoc_(), b = doc.getBody(), ss = SpreadsheetApp.getActive();
+  b.clear();
+  function h(t, n) { b.appendParagraph(t).setHeading(n === 1 ? DocumentApp.ParagraphHeading.HEADING1 : DocumentApp.ParagraphHeading.HEADING2); }
+  function par(t) { b.appendParagraph(t); }
+  function link(label, url) { var pr = b.appendParagraph(label + ": "); if (url) pr.appendText(url).setLinkUrl(url); else pr.appendText("(sin definir)"); }
+  function qr(url, t) { if (!url) return; try { b.appendParagraph(t).setItalic(true);
+      b.appendImage(UrlFetchApp.fetch("https://quickchart.io/qr?size=200&margin=2&dark=0e5f6c&text=" + encodeURIComponent(url)).getBlob()); } catch (e) {} }
+
+  var pers = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
+  var sello = Utilities.formatDate(new Date(), "Europe/Madrid", "dd/MM/yyyy HH:mm");
+
+  b.appendParagraph("STARGATE · Dossier del profesorado").setHeading(DocumentApp.ParagraphHeading.HEADING1);
+  par("Todos los grupos, sus equipos docentes y todos los enlaces, en una página. Generado el " + sello +
+      " · " + pers.length + " grupo(s). Este documento se REESCRIBE solo (al crear un grupo y cada madrugada): " +
+      "su enlace no cambia nunca, así que se puede guardar en marcadores y compartir sin miedo.");
+  par("Si eres profesor/a y solo quieres una cosa: abre TU SALA DE CLASE (más abajo, en tu grupo). " +
+      "Ahí tienes lo que requiere tu intervención, las dudas del ticket y tu grupo, sin abrir hojas ni Drive.");
+
+  h("Lo común a todos los grupos", 2);
+  link("Web de la misión", WEB);
+  link("Guía del profesorado", WEB + "guia.html");
+  link("Grupos (índice para el profesorado)", WEB + "grupos.html");
+  link("Hoja maestra (materia prima; solo referente)", ss.getUrl());
+  var idc = PropertiesService.getScriptProperties().getProperty(PROP_CONSOLA);
+  link("Consola del profesorado (foto legible de todo)", idc ? "https://docs.google.com/spreadsheets/d/" + idc + "/edit" : "");
+  par("El PIN del profesorado no se escribe aquí a propósito: lo reparte el referente. Se cambia en la hoja " +
+      "maestra → menú STARGATE → Cambiar PIN del profesorado.");
+
+  pers.forEach(function(v){
+    var o = perObj_(v), sem = semanaDe_(o);
+    var t = null; try { t = tablero_(o.id, true); } catch (e) { t = null; }
+    var rec = t && t.reclutas ? t.reclutas : [];
+    var sinDoc = rec.filter(function(x){ return !String(x.profe || "").trim(); }).length;
+
+    h(o.nombre, 1);
+    par("Tipo: " + o.tipo + " · Estado: " + (o.archivado ? "ARCHIVADO" : o.estado) +
+        " · Semana 1: " + (o.inicio || "sin fecha") +
+        (sem === null ? "" : (sem < 1 ? " · aún no ha empezado" : " · van por la semana " + sem)) +
+        " · Reclutas: " + rec.length);
+    if (sinDoc) par("⚠ " + sinDoc + " recluta(s) sin docente asignado: no le llegarán los avisos de sus canjes a nadie " +
+                    "concreto. Se corrige en su ficha, desde la sala de clase (o pidiéndoles que editen su Bitácora).");
+
+    h("Equipo docente", 2);
+    var ds = docentesDe_(o.id);
+    if (!ds.length) par("— sin equipo docente dado de alta —");
+    ds.forEach(function(d){
+      var rol = (esReferente_(d) && imparte_(d)) ? "referente · imparte" : (esReferente_(d) ? "referente (no imparte)" : "imparte");
+      var alumnos = rec.filter(function(x){ return String(x.profe || "").trim() === d.nombre; }).length;
+      par("· " + d.nombre + " — " + rol + " — " + (d.correo || "⚠ SIN CORREO (no recibirá ningún aviso)") +
+          " — " + alumnos + " recluta(s)");
+    });
+    par("El equipo se edita en la pestaña DOCENTES de la hoja maestra o en el panel del profesorado → Ajustes del PER. " +
+        "El rol es combinable: quien es referente y además da clase se marca con las dos casillas (nunca dos filas).");
+
+    h("Enlaces del grupo", 2);
+    link("Sala de clase (para cada docente; con PIN)", WEB + "clase.html?per=" + o.id);
+    link("Panel del profesorado (con PIN)", WEB + "profes.html?per=" + o.id);
+    link("Tablero de reclutas (alumnado)", WEB + "registro.html?per=" + o.id);
+    link("La Nave del Recluta (alumnado)", WEB + "recluta.html?per=" + o.id);
+    link("Foro dinámico (la orden de la semana)", WEB + "foro.html?per=" + o.id + (o.inicio ? "&inicio=" + o.inicio + "&tipo=" + o.tipo : ""));
+    link("Tickets de salida (visual, con PIN)", WEB + "tickets.html?per=" + o.id);
+    link("Generador de embeds", WEB + "embed.html?per=" + o.id);
+    link("Documento de enlaces y embeds del grupo", o.doc || "");
+
+    h("Formularios del grupo", 2);
+    link("Bitácora de mando (alumnado)", o.formBitacora);
+    link("Canje de recompensas (alumnado)", o.formCanje);
+    link("Contacta con NEBULA · ticket de salida (anónimo)", o.formTicket);
+    qr(o.formBitacora, "QR de la Bitácora de mando (para proyectar en clase)");
+
+    h("Panel de control de Genially", 2);
+    var std = panelStd_();
+    link("Visualización (alumnado)", o.panelVer || std.ver);
+    link("Edición (profesorado)", o.panelEdit || std.editar);
+    par(o.panelVer || o.panelEdit ? "Este grupo usa un panel PROPIO." : "Este grupo usa el panel ESTÁNDAR compartido.");
+  });
+
+  h("Cómo se usa esto, en tres líneas", 2);
+  par("1 · Cada docente entra en SU sala de clase con el PIN, elige su nombre una vez y ya no necesita nada más: " +
+      "ahí ve lo que requiere su intervención, las dudas del ticket y su grupo, y corrige la ficha de un alumno.");
+  par("2 · El referente usa la Consola del profesorado para la foto de todos los grupos, y la hoja maestra solo " +
+      "cuando quiere la materia prima (o para el estudio).");
+  par("3 · El sistema solo escribe correo cuando hace falta una PERSONA (canjes de nota). De insignias, cromos y " +
+      "tickets no molesta a nadie: se miran cuando se quiere.");
+
+  doc.saveAndClose();
+  return dossierDoc_().getUrl();
+}
+function crearDossierProfesorado() {
+  var ui = SpreadsheetApp.getUi();
+  var url = dossier_();
+  var html = HtmlService.createHtmlOutput('<p style="font:14px/1.5 system-ui">Dossier del profesorado al día.<br><br>'
+    + '<a href="' + url + '" target="_blank"><b>Abrir el dossier ↗</b></a><br><br>'
+    + '<span style="color:#667">El enlace es siempre el mismo: gu&aacute;rdalo y comp&aacute;rtelo sin miedo.</span></p>').setHeight(160);
+  ui.showModalDialog(html, "STARGATE · Dossier del profesorado");
+}
+// Manda el enlace del dossier a todo el profesorado con correo, en UN solo mensaje.
+function enviarDossier_() {
+  var url = dossier_(), vistos = {}, enviados = [], sinCorreo = [], grupos = [];
+  hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
+    if (!v[0]) return;
+    grupos.push(String(v[1]));
+    docentesDe_(v[0]).forEach(function(d){
+      if (d.correo) { if (!vistos[d.correo]) { vistos[d.correo] = true; enviados.push(d.correo); } }
+      else if (sinCorreo.indexOf(d.nombre) < 0) sinCorreo.push(d.nombre);
+    });
+  });
+  if (enviados.length) {
+    try {
+      MailApp.sendEmail(enviados.join(","), "STARGATE · Dossier del profesorado (todos los grupos)",
+        "Aquí tienes el mapa completo de STARGATE: todos los grupos, sus equipos docentes y todos los enlaces.\n\n" +
+        url + "\n\n" +
+        "Grupos incluidos: " + grupos.join(" · ") + "\n\n" +
+        "El enlace es SIEMPRE el mismo: el documento se reescribe solo cuando se crea un grupo y cada madrugada, " +
+        "así que puedes guardarlo en marcadores.\n\n" +
+        "Si solo quieres una cosa: abre TU sala de clase (está en tu grupo, dentro del dossier). Con el PIN, eliges " +
+        "tu nombre una vez y ahí tienes lo que requiere tu intervención, las dudas del ticket y tu grupo.\n" +
+        (sinCorreo.length ? "\n⚠ Sin correo en la pestaña DOCENTES (no reciben avisos): " + sinCorreo.join(", ") + "\n" : ""));
+    } catch (e) { Logger.log("enviarDossier_: " + e); }
+  }
+  return { url: url, enviados: enviados, sinCorreo: sinCorreo };
+}
+function enviarDossierPorCorreo() {
+  var ui = SpreadsheetApp.getUi();
+  var previa = { enviados: [], sinCorreo: [] };
+  hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
+    if (!v[0]) return;
+    docentesDe_(v[0]).forEach(function(d){
+      if (d.correo) { if (previa.enviados.indexOf(d.correo) < 0) previa.enviados.push(d.correo); }
+      else if (previa.sinCorreo.indexOf(d.nombre) < 0) previa.sinCorreo.push(d.nombre);
+    });
+  });
+  if (!previa.enviados.length) {
+    ui.alert("Nadie a quien mandarlo", "Ningún docente tiene correo en la pestaña DOCENTES. Ponlos ahí (o en " +
+      "profes.html → Ajustes del PER) y vuelve a intentarlo.", ui.ButtonSet.OK); return;
+  }
+  if (ui.alert("Enviar el dossier por correo",
+      "Se pondrá el dossier al día y se mandará el enlace a:\n\n" + previa.enviados.join("\n") +
+      (previa.sinCorreo.length ? "\n\nSe quedan fuera (sin correo): " + previa.sinCorreo.join(", ") : "") +
+      "\n\n¿Enviar?", ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var r = enviarDossier_();
+  ui.alert("Dossier enviado", "Enviado a " + r.enviados.length + " docente(s)." +
+    (r.sinCorreo.length ? "\n\nSin correo (no lo han recibido): " + r.sinCorreo.join(", ") : "") +
+    "\n\n" + r.url, ui.ButtonSet.OK);
+}
+
 // ================= CICLO DE VIDA DEL PER (archivar · borrar · resetear) =================
 function filaPERSeleccionada_() {
   var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
@@ -884,32 +1100,149 @@ function limpiarRestos() {
 }
 function resetearHoja() {
   var ui = SpreadsheetApp.getUi();
-  var sh = hoja_(H.PERS); var d = sh.getDataRange().getValues();
-  var total = d.slice(1).filter(function(v){ return v[0]; }).length;
-  if (!total) { restaurarRecompensas_(); ui.alert("No había ningún PER. Catálogo de recompensas restaurado."); return; }
-  var r = ui.prompt("Resetear la hoja",
-    "Deja la hoja como recién instalada: borra los " + total + "PER (formularios y documentos a la papelera, pestañas de respuestas, EVENTOS, AJUSTES, DATOS y RESUMEN) y restaura el catálogo de recompensas.\n\n" +
-    "SE CONSERVAN: el PIN del profesorado, la URL del web app, el panel de control estándar y las plantillas de formulario.\n\n" +
-    "Escribe RESETEAR para confirmar:", ui.ButtonSet.OK_CANCEL);
-  if (r.getSelectedButton() !== ui.Button.OK || r.getResponseText().trim().toUpperCase() !== "RESETEAR") { ui.alert("Cancelado: nada se ha borrado."); return; }
-  var n = 0;
-  for (var i = d.length - 1; i >= 1; i--) { if (!d[i][0]) continue; try { borrarPER_(perObj_(d[i]), i + 1); n++; } catch (e) { Logger.log(e); } }
-  [H.EV, H.AJ].forEach(function(nom){ var x = hoja_(nom); if (x.getLastRow() > 1) x.getRange(2,1,x.getLastRow()-1,x.getLastColumn()).clearContent(); });
-  restaurarRecompensas_();
-  var sueltos = 0, tabs = 0, fallos = [];
-  var ids = [];
-  try { var it2 = carpetaPER_().getFilesByType(MimeType.GOOGLE_FORMS);
-    while (it2.hasNext()) { var f2 = it2.next(); var n2 = f2.getName();
-      if (n2.indexOf("STARGATE · ") === 0 && n2.indexOf("PLANTILLA") < 0) ids.push({ id: f2.getId(), nombre: n2 }); } }
-  catch (e) { fallos.push("Listando formularios: " + e.message); }
-  ids.forEach(function(x){ try { DriveApp.getFileById(x.id).setTrashed(true); sueltos++; } catch (e) { fallos.push(x.nombre + ": " + e.message); } });
-  var ssR = SpreadsheetApp.getActive();
-  var nombresTab = ssR.getSheets().map(function(sh){ return sh.getName(); }).filter(function(n){ return /^(?:restos · )?[BTC] · /.test(n); });
-  nombresTab.forEach(function(n){ var err = borrarHoja_(ssR, ssR.getSheetByName(n)); if (err) fallos.push(n + ": " + err); else tabs++; });
-  SpreadsheetApp.flush();
-  try { consolidarDatos(); } catch (e) {}
-  try { actualizarConsola(); } catch (e) {}   // que la consola no enseñe un PER que ya no existe
-  ui.alert("Hoja reseteada: " + n + "PER borrados" + (sueltos ? ", " + sueltos + " formularios a la papelera" : "") + (tabs ? ", " + tabs + " pestañas sueltas borradas" : "") + ". Catálogo de recompensas restaurado.");
+  var pendiente = progreso_("reset");
+  if (pendiente) {
+    if (ui.alert("Reseteo a medias",
+        "Hay un reseteo empezado (fase «" + pendiente.fase + "», " + pendiente.n + " PER borrados).\n\n" +
+        "SÍ = terminarlo ahora · NO = olvidarlo y dejar la hoja como está.", ui.ButtonSet.YES_NO) !== ui.Button.YES) {
+      guardarProgreso_("reset", null); cancelarContinuacion_("continuarReset");
+      ui.alert("Reseteo abandonado. Lo que ya se borró no vuelve; el resto se queda."); return;
+    }
+  } else {
+    var total = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; }).length;
+    if (!total) { restaurarRecompensas_(); ui.alert("No había ningún PER. Catálogo de recompensas restaurado."); return; }
+    var r = ui.prompt("Resetear la hoja",
+      "Deja la hoja como recién instalada: borra los " + total + " PER (formularios y documentos a la papelera, " +
+      "pestañas de respuestas, EVENTOS, AJUSTES, DATOS y RESUMEN) y restaura el catálogo de recompensas.\n\n" +
+      "SE CONSERVAN: el PIN del profesorado, la URL del web app, el panel de control estándar y las plantillas de formulario.\n\n" +
+      "Si hay muchos grupos tardará más de lo que Apps Script permite de una vez: no pasa nada, sigue solo por lotes.\n\n" +
+      "Escribe RESETEAR para confirmar:", ui.ButtonSet.OK_CANCEL);
+    if (r.getSelectedButton() !== ui.Button.OK || r.getResponseText().trim().toUpperCase() !== "RESETEAR") { ui.alert("Cancelado: nada se ha borrado."); return; }
+  }
+  var x = resetear_();
+  ui.alert(x.terminado ? "Hoja reseteada" : "Reseteo en marcha (va por lotes)",
+    (x.terminado ? "Listo. " : "Va por la fase «" + x.fase + "» y sigue SOLO dentro de un minuto. ") +
+    x.n + " PER borrados" + (x.sueltos ? ", " + x.sueltos + " formularios a la papelera" : "") +
+    (x.tabs ? ", " + x.tabs + " pestañas sueltas borradas" : "") +
+    (x.terminado ? ". Catálogo de recompensas restaurado." : ".") +
+    (x.fallos.length ? "\n\nNo se pudo con:\n" + x.fallos.slice(0, 12).join("\n") : ""), ui.ButtonSet.OK);
+}
+// v3.13 · El reseteo, por fases y sin interfaz. Cada pasada hace AL MENOS una unidad de trabajo
+// (si no, con muchos PER nunca avanzaría) y deja escrito por dónde iba.
+function resetear_() {
+  var t = reloj_();
+  var pr = progreso_("reset") || { fase: "per", n: 0, sueltos: 0, tabs: 0, fallos: [] };
+  var sh = hoja_(H.PERS), ss = SpreadsheetApp.getActive();
+
+  // fase 1 · los PER, de uno en uno (borrarPER_ borra su fila: siempre vamos a por el primero)
+  while (pr.fase === "per") {
+    var d = sh.getDataRange().getValues(), fila = 0;
+    for (var i = 1; i < d.length; i++) if (d[i][0]) { fila = i + 1; break; }
+    if (!fila) { pr.fase = "colas"; break; }
+    try { borrarPER_(perObj_(sh.getRange(fila, 1, 1, 23).getValues()[0]), fila); pr.n++; }
+    catch (e) { pr.fallos.push("PER fila " + fila + ": " + e.message); Logger.log(e);
+                try { sh.deleteRow(fila); } catch (e2) {} }   // pase lo que pase, la fila SE VA: si no, bucle infinito
+    t.marcar();
+    if (!t.puedo()) break;
+  }
+  // fase 2 · registros y catálogo
+  if (pr.fase === "colas" && t.puedo()) {
+    [H.EV, H.AJ].forEach(function(nom){ var x = hoja_(nom); if (x.getLastRow() > 1) x.getRange(2,1,x.getLastRow()-1,x.getLastColumn()).clearContent(); });
+    restaurarRecompensas_();
+    pr.fase = "sueltos"; t.marcar();
+  }
+  // fase 3 · formularios sueltos en Drive
+  if (pr.fase === "sueltos" && t.puedo()) {
+    if (!pr.ids) {
+      pr.ids = [];
+      try { var it = carpetaPER_().getFilesByType(MimeType.GOOGLE_FORMS);
+            while (it.hasNext()) { var f = it.next(); var nf = f.getName();
+              if (nf.indexOf("STARGATE · ") === 0 && nf.indexOf("PLANTILLA") < 0) pr.ids.push({ id: f.getId(), nombre: nf }); } }
+      catch (e) { pr.fallos.push("Listando formularios: " + e.message); }
+    }
+    while (pr.ids.length) {
+      var y = pr.ids.shift();
+      try { DriveApp.getFileById(y.id).setTrashed(true); pr.sueltos++; } catch (e) { pr.fallos.push(y.nombre + ": " + e.message); }
+      t.marcar(); if (!t.puedo()) break;
+    }
+    if (!pr.ids.length) { pr.fase = "tabs"; delete pr.ids; }
+  }
+  // fase 4 · pestañas de respuestas huérfanas (el resto del fallo del 25-ago)
+  if (pr.fase === "tabs" && t.puedo()) {
+    var nombres = ss.getSheets().map(function(h){ return h.getName(); })
+                    .filter(function(n){ return /^(?:restos · )?[BTC] · /.test(n) || /^Respuestas de formulario/.test(n); });
+    while (nombres.length) {
+      var n2 = nombres.shift();
+      var err = borrarHoja_(ss, ss.getSheetByName(n2));
+      if (err) pr.fallos.push(n2 + ": " + err); else pr.tabs++;
+      t.marcar(); if (!t.puedo()) break;
+    }
+    if (!nombres.length) pr.fase = "foto";
+  }
+  // fase 5 · dejar la foto del profesorado coherente con lo que queda (nada)
+  if (pr.fase === "foto" && t.puedo()) {
+    SpreadsheetApp.flush();
+    try { consolidarDatos(); } catch (e) { pr.fallos.push("DATOS: " + e.message); }
+    try { actualizarConsola(); } catch (e) { pr.fallos.push("Consola: " + e.message); }
+    try { dossier_(); } catch (e) { pr.fallos.push("Dossier: " + e.message); }
+    pr.fase = "fin"; t.marcar();
+  }
+  var terminado = pr.fase === "fin";
+  if (terminado) { guardarProgreso_("reset", null); cancelarContinuacion_("continuarReset"); }
+  else { guardarProgreso_("reset", pr); programarContinuacion_("continuarReset"); }
+  return { terminado: terminado, fase: pr.fase, n: pr.n, sueltos: pr.sueltos, tabs: pr.tabs, fallos: pr.fallos };
+}
+function continuarReset() {
+  var r = resetear_();
+  Logger.log("continuarReset: fase " + r.fase + " · " + r.n + " PER" + (r.terminado ? " · TERMINADO" : " · sigue"));
+}
+
+// ================= TAREAS LARGAS: LOTES CON CONTINUACIÓN =================
+// v3.13 · Apps Script corta a los 6 minutos. Las tareas que recorren TODOS los PER (resetear la
+// hoja y actualizar los formularios) lo agotaban y dejaban el trabajo A MEDIAS —de ahí la pestaña
+// huérfana «Respuestas de formulario 4» y los 0 PER del 25-ago—. Ahora se trocean: cada pasada hace
+// lo que le cabe, guarda por dónde iba en las propiedades del script y programa su continuación.
+// Regla de oro: SIEMPRE se hace al menos una unidad de trabajo por pasada, para que nunca se atasque.
+var MARGEN_MS = 270000;          // 4,5 min de trabajo efectivo; el resto es margen para cerrar
+var PROP_TAREA = "TAREA_";
+
+function reloj_() { var t0 = new Date().getTime(), algo = false;
+  return { marcar: function(){ algo = true; },
+           puedo: function(){ return !algo || (new Date().getTime() - t0 < MARGEN_MS); } }; }
+function progreso_(clave) {
+  var s = PropertiesService.getScriptProperties().getProperty(PROP_TAREA + clave);
+  if (!s) return null; try { return JSON.parse(s); } catch (e) { return null; }
+}
+function guardarProgreso_(clave, o) {
+  var pr = PropertiesService.getScriptProperties();
+  if (o) pr.setProperty(PROP_TAREA + clave, JSON.stringify(o)); else pr.deleteProperty(PROP_TAREA + clave);
+}
+function cancelarContinuacion_(fn) {
+  ScriptApp.getProjectTriggers().forEach(function(t){ if (t.getHandlerFunction() === fn) { try { ScriptApp.deleteTrigger(t); } catch (e) {} } });
+}
+function programarContinuacion_(fn) {
+  cancelarContinuacion_(fn);   // nunca más de uno: los triggers son un recurso limitado
+  try { ScriptApp.newTrigger(fn).timeBased().after(60000).create(); }
+  catch (e) { Logger.log("programarContinuacion_ " + fn + ": " + e); }
+}
+// Correo al que avisar cuando no hay nadie más a quien avisar (ver avisarDocente_)
+function correoDeReserva_() {
+  var pr = PropertiesService.getScriptProperties().getProperty("CORREO_AVISOS");
+  if (pr) return String(pr).trim();
+  try { var e = Session.getEffectiveUser().getEmail(); if (e) return e; } catch (e2) {}
+  try { var o = SpreadsheetApp.getActive().getOwner(); if (o) return o.getEmail(); } catch (e3) {}
+  return "";
+}
+function guardarCorreoAvisos() {
+  var ui = SpreadsheetApp.getUi();
+  var r = ui.prompt("Correo de avisos de reserva",
+    "A este correo llegan los avisos que no tienen destinatario (p. ej. un canje de nota concedido en un grupo cuyo equipo docente no tiene correos).\n\nDéjalo vacío para usar el de la cuenta que ejecuta el script.",
+    ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var v = r.getResponseText().trim();
+  if (v) PropertiesService.getScriptProperties().setProperty("CORREO_AVISOS", v);
+  else PropertiesService.getScriptProperties().deleteProperty("CORREO_AVISOS");
+  ui.alert("Guardado. Los avisos sin destinatario irán a: " + (v || correoDeReserva_() || "(nadie: revisa los permisos)"));
 }
 
 // ================= TRIGGERS =================
@@ -925,6 +1258,7 @@ function asegurarTriggers_() {
 function fotoNocturna() {
   try { consolidarDatos(); } catch (e) { Logger.log("consolidarDatos: " + e); }
   try { actualizarConsola(); } catch (e) { Logger.log("actualizarConsola: " + e); }
+  try { dossier_(); } catch (e) { Logger.log("dossier_: " + e); }
 }
 function programar_(fn, fecha, perId) {
   var t = ScriptApp.newTrigger(fn).timeBased().at(fecha).create();
@@ -1017,23 +1351,42 @@ function aplicarAvatar_(o, email, valor) { hoja_(H.AJ).appendRow([new Date(), o.
 // Va al docente que el alumno declaró en su Bitácora y, siempre, al referente del PER. Es el único
 // correo que recibe el profesorado: del resto (insignias, cromos, tickets) no se le molesta.
 function avisarDocente_(o, al, rec, actividad) {
+  var para = correosAviso_(o.id, al ? al.profe : ""), reserva = "";
+  // v3.13 · HALLAZGO 3: si el equipo docente no tiene correos, el canje se concedía y NADIE se
+  // enteraba (solo quedaba en la web). Ahora el aviso va al correo de reserva —el de quien puede
+  // arreglarlo— y SIEMPRE queda traza en AJUSTES, que es lo que lee la Consola.
+  if (!para.length) { reserva = correoDeReserva_(); if (reserva) para = [reserva]; }
+  var quien = al ? (al.alias + (al.nombre ? " (" + al.nombre + ")" : "") + " · " + al.email) : "un recluta";
+  var cuerpo = "Un recluta de tu grupo ha canjeado una recompensa que TIENE QUE APLICAR EL PROFESORADO.\n\n" +
+    "Grupo: " + o.nombre + " (" + o.tipo + ")\n" +
+    "Recluta: " + quien + "\n" +
+    (al && al.profe ? "Docente que indicó: " + al.profe + "\n" : "Docente que indicó: — ninguno —\n") +
+    "Recompensa: " + rec + "\n" +
+    (actividad ? "Se aplica a: " + actividad + "\n" : "") +
+    (reserva ? "\n⚠ Este aviso te llega A TI porque no había a quién mandarlo.\n" +
+               "Motivo: el equipo docente de este grupo está sin correo. Se arregla en la pestaña " +
+               "DOCENTES de la hoja maestra (o en profes.html → Ajustes del PER), poniendo el correo " +
+               "de cada docente. Sin correo no hay avisos.\n" : "") +
+    "\nYa se le han descontado los créditos y él/ella lo sabe: solo falta que lo apliques cuando " +
+    "terminen las clases en directo.\n\n" +
+    "Márcalo como aplicado aquí (pestaña Canjes):\n" + WEB + "profes.html?per=" + o.id + "\n" +
+    "La sala de clase, con todo lo que hace falta antes de entrar:\n" + WEB + "clase.html?per=" + o.id +
+    (al && al.profe ? "&profe=" + encodeURIComponent(al.profe) : "") + "\n";
+  var enviado = false;
+  if (para.length) {
+    try {
+      MailApp.sendEmail(para.join(","),
+        "STARGATE · " + o.nombre + (reserva ? " · aviso sin destinatario: " : " · te toca a ti: ") + rec, cuerpo);
+      enviado = true;
+    } catch (e) { Logger.log("avisarDocente_: " + e); }
+  }
+  // La traza vive en AJUSTES, no en el correo: así la Consola y el panel pueden enseñarlo aunque
+  // el correo se pierda. (v[4] = "nota" no colisiona con otorgar/anular/avatar/titulo/marco/fondo/cromo.)
   try {
-    var para = correosAviso_(o.id, al ? al.profe : "");
-    if (!para.length) return;
-    var quien = al ? (al.alias + (al.nombre ? " (" + al.nombre + ")" : "") + " · " + al.email) : "un recluta";
-    MailApp.sendEmail(para.join(","), "STARGATE · " + o.nombre + " · te toca a ti: " + rec,
-      "Un recluta de tu grupo ha canjeado una recompensa que TIENE QUE APLICAR EL PROFESORADO.\n\n" +
-      "Grupo: " + o.nombre + " (" + o.tipo + ")\n" +
-      "Recluta: " + quien + "\n" +
-      (al && al.profe ? "Docente que indicó: " + al.profe + "\n" : "") +
-      "Recompensa: " + rec + "\n" +
-      (actividad ? "Se aplica a: " + actividad + "\n" : "") +
-      "\nYa se le han descontado los créditos y él/ella lo sabe: solo falta que lo apliques cuando " +
-      "terminen las clases en directo.\n\n" +
-      "Márcalo como aplicado aquí (pestaña Canjes):\n" + WEB + "profes.html?per=" + o.id + "\n" +
-      "Tu sala de clase, con todo lo que necesitas antes de entrar:\n" + WEB + "clase.html?per=" + o.id +
-      (al && al.profe ? "&profe=" + encodeURIComponent(al.profe) : "") + "\n");
-  } catch (e) { Logger.log("avisarDocente_: " + e); }
+    hoja_(H.AJ).appendRow([new Date(), o.id, al ? al.email : "", "AVISO", "nota", rec,
+      enviado ? (reserva ? "SIN CORREO → " + reserva : para.join(",")) : "SIN CORREO · NO ENVIADO"]);
+  } catch (e) { Logger.log("traza del aviso: " + e); }
+  return { enviado: enviado, para: para, reserva: !!reserva };
 }
 function resolverCanje_(o, sh, fila) {
   var r = leerFila_(sh, fila); var email = String(r["Dirección de correo electrónico"] || r["Email Address"] || "").toLowerCase().trim();
@@ -1200,6 +1553,10 @@ function tablero_(perId, conPrivados) {
            docentes:docentesDe_(perId).map(function(d){ return { nombre:d.nombre, rol:d.rol, imparte:imparte_(d), referente:esReferente_(d) }; }),
            actualizado:new Date() };
   if (conPrivados) { res.docentes_full = docentesDe_(perId);   // con correo: solo tras el PIN
+    // v3.13 · HALLAZGO 4: los reclutas sin docente asignado no salían por ningún lado. Ahora el
+    // profesorado los ve contados en su panel, en la sala de clase y en la Consola.
+    res.sin_docente = lista.filter(function(x){ return !String(x.profe || "").trim(); }).length;
+    res.docentes_sin_correo = docentesDe_(perId).filter(function(d){ return !d.correo; }).map(function(d){ return d.nombre; });
     res.panelEdit = o.panelEdit || std.editar; res.panelPropio = !!(o.panelVer || o.panelEdit); res.archivado = o.archivado;
     res.doc = o.doc; res.hoja = SpreadsheetApp.getActive().getUrl(); res.formBitacoraEdit = o.formBitacoraEdit; }
   return res;
@@ -1286,6 +1643,10 @@ function ticketsDe_(o) {
   return { total:v.length - 1, sinResolver:sin };
 }
 
+// v3.13 · etiqueta única para el grupo de alumnos que no ha declarado docente: se usa igual al
+// agrupar y al contar los pendientes, así que tiene que estar en un solo sitio.
+var SIN_DOCENTE = "⚠ SIN DOCENTE ASIGNADO";
+
 function actualizarConsola() {
   var ss = consolaSS_(), maestra = SpreadsheetApp.getActive();
   var pers = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
@@ -1301,11 +1662,12 @@ function actualizarConsola() {
     var xpMedia = rec.length ? Math.round(rec.reduce(function(a,x){ return a + x.xp; }, 0) / rec.length) : 0;
     var credCirc = rec.reduce(function(a,x){ return a + (x.creditos || 0); }, 0);
 
+    var sinDoc = rec.filter(function(x){ return !String(x.profe || "").trim(); }).length;
     portada.push([o.id, o.nombre, o.tipo, o.archivado ? "Archivado" : o.estado,
       o.inicio || "", sem === null ? "" : (sem < 1 ? "no ha empezado" : "semana " + sem),
-      rec.length, xpMedia, rec.length ? Math.round(rec.reduce(function(a,x){ return a + x.nivel; }, 0) / rec.length) : 0,
+      rec.length, sinDoc, xpMedia, rec.length ? Math.round(rec.reduce(function(a,x){ return a + x.nivel; }, 0) / rec.length) : 0,
       credCirc, concedidos.length, pendientes.length, tk.total, tk.sinResolver,
-      docentesDe_(o.id).map(function(d){ return d.nombre + (d.correo ? " <" + d.correo + ">" : "")
+      docentesDe_(o.id).map(function(d){ return d.nombre + (d.correo ? " <" + d.correo + ">" : " ⚠ SIN CORREO")
         + (esReferente_(d) ? " ★" : "") + (imparte_(d) ? "" : " (no imparte)"); }).join("\n"),
       WEB + "registro.html?per=" + o.id, WEB + "clase.html?per=" + o.id, WEB + "recluta.html?per=" + o.id,
       o.formBitacora || "", o.formCanje || "", o.formTicket || "", o.doc || ""]);
@@ -1324,18 +1686,22 @@ function actualizarConsola() {
     // por docente: cuántos alumnos, cómo van y qué tiene pendiente de aplicar cada uno
     var docs = docentesDe_(o.id);
     var porProf = {};
-    rec.forEach(function(x){ var k = x.profe || "— sin indicar —"; (porProf[k] = porProf[k] || []).push(x); });
+    rec.forEach(function(x){ var k = String(x.profe || "").trim() || SIN_DOCENTE; (porProf[k] = porProf[k] || []).push(x); });
     docs.forEach(function(d){ if (!porProf[d.nombre]) porProf[d.nombre] = []; });
-    f = bloque_(sh, f, "Por docente",
+    // el grupo sin docente va PRIMERO: es lo que hay que arreglar, no una fila más del montón
+    var claves = Object.keys(porProf).sort();
+    claves = claves.filter(function(k){ return k === SIN_DOCENTE; }).concat(claves.filter(function(k){ return k !== SIN_DOCENTE; }));
+    f = bloque_(sh, f, "Por docente" + (porProf[SIN_DOCENTE] ? "  ·  ⚠ hay " + porProf[SIN_DOCENTE].length + " recluta(s) SIN DOCENTE: corrígelo en su ficha, desde la sala de clase" : ""),
       ["Docente","Correo","Rol","Alumnos","xp medio","◈ medios","Insignias medias","Pendientes de aplicar"],
-      Object.keys(porProf).sort().map(function(k){
+      claves.map(function(k){
         var g = porProf[k], d = docs.filter(function(x){ return x.nombre === k; })[0];
         var pend = concedidos.filter(function(c){
           var al = rec.filter(function(x){ return x.email === String(c.email).toLowerCase(); })[0];
-          return !c.entregado && al && (al.profe || "— sin indicar —") === k; }).length;
+          return !c.entregado && al && (String(al.profe || "").trim() || SIN_DOCENTE) === k; }).length;
         var med = function(f2){ return g.length ? Math.round(g.reduce(function(a2,x){ return a2 + f2(x); }, 0) / g.length) : 0; };
         var rolTxt = !d ? "" : (esReferente_(d) && imparte_(d)) ? "referente · imparte" : (esReferente_(d) ? "referente" : "imparte");
-        return [k, d ? d.correo : "", rolTxt, g.length, med(function(x){ return x.xp; }),
+        var correo = k === SIN_DOCENTE ? "—" : (d ? (d.correo || "⚠ SIN CORREO: no recibirá avisos") : "");
+        return [k, correo, rolTxt, g.length, med(function(x){ return x.xp; }),
                 med(function(x){ return x.creditos; }), med(function(x){ return x.n; }), pend];
       }));
 
@@ -1370,7 +1736,7 @@ function actualizarConsola() {
   pt.getRange(2,1).setValue("Una fila por grupo. Cada pestaña de abajo es un PER. Foto del " + sello
     + " — para rehacerla: hoja maestra → menú STARGATE → «Actualizar la consola».").setFontColor("#8899aa");
   pt.getRange(3,1).setValue("Hoja maestra (materia prima): " + maestra.getUrl()).setFontColor("#55606a");
-  var cab = ["id","Grupo","Tipo","Estado","Inicio","Semana","Reclutas","xp medio","Nivel medio",
+  var cab = ["id","Grupo","Tipo","Estado","Inicio","Semana","Reclutas","Sin docente","xp medio","Nivel medio",
              "◈ en circulación","Canjes concedidos","Pendientes de aplicar","Tickets","Sin resolver",
              "Equipo docente","Tablero","Sala de clase","Nave","Form · Bitácora","Form · Canje","Form · Ticket","Documento"];
   pt.getRange(5,1,1,cab.length).setValues([cab]).setFontWeight("bold").setBackground("#eef3f7");
