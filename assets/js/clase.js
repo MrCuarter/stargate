@@ -95,6 +95,8 @@
       return true;
     }).sort(function(a,b){return new Date(b.fecha)-new Date(a.fecha);});}
 
+  // v3.14 · 2026-12-27 -> 27/12/2026
+  function fecha(iso){ if(!iso) return '—'; var p=String(iso).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:esc(String(iso)); }
   function cabecera(){
     var mp=misPers(), act=st.pers.filter(function(p){return p.id===st.per;})[0]||{};
     var opc=mp.map(function(p){return '<option value="'+esc(p.id)+'"'+(p.id===st.per?' selected':'')+'>'+esc(p.nombre)+' · '+estadoPer(p)+'</option>';}).join('');
@@ -102,7 +104,16 @@
       +'<h3>'+esc(act.nombre||'—')+'</h3>'
       +'<p class="small muted">'+esc(act.tipo||'')+' · '+estadoPer(act)
       +(act.semana!=null&&act.semana>0?' · semana '+act.semana:'')+' · '+((st.d&&st.d.reclutas)||[]).length+' reclutas en el PER'
-      +' · <b>'+mios().length+'</b> tuyos</p></div>'
+      +' · <b>'+mios().length+'</b> tuyos</p>'
+      // v3.14 · hasta cuándo se registra y hasta cuándo se canjea: el docente lo necesita para
+      // avisar en clase, y son fechas distintas a propósito
+      +((st.d&&st.d.cierre_misiones)
+        ? '<p class="small muted">🗓️ Misiones hasta el <b>'+fecha(st.d.cierre_misiones)+'</b>'
+          +(st.d.cierre_canje&&st.d.cierre_canje!==st.d.cierre_misiones
+            ? ' · canje hasta el <b>'+fecha(st.d.cierre_canje)+'</b> <span class="muted">(una semana más: la de reclamar lo ganado)</span>'
+            : '')+'</p>'
+        : '')
+      +'</div>'
       +'<div class="selrow">'+(mp.length>1?'<select id="selPer">'+opc+'</select>':'')
       +'<button class="btn small" id="cambiarD">No soy '+esc(st.profe)+'</button></div></div>';}
 

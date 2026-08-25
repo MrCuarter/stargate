@@ -16,7 +16,7 @@
   function cargarPer(){root.innerHTML=cargando('Cargando el PER…','Reclutas, insignias, tickets y canjes');post({accion:'alumnos',per:st.per},function(d){st.datos=d;render();});}
   function sel(){return '<select id="selPer">'+st.pers.map(function(p){return '<option value="'+esc(p.id)+'"'+(p.id===st.per?' selected':'')+'>'+(p.archivado?'\u{1F4E6} ':'')+esc(p.nombre)+' · '+esc(p.tipo)+' · '+(p.archivado?'archivado':esc(p.estado))+'</option>';}).join('')+'</select>';}
   function render(){var d=st.datos,p=st.pers.filter(function(x){return x.id===st.per;})[0]||{};
-    root.innerHTML='<div class="tab-head"><div><div class="eyebrow amber">Panel del profesorado</div><h3>'+esc(d.nombre)+'</h3><div class="small muted">'+esc(d.tipo)+' · '+esc(d.estado)+' · referente: '+esc(d.referente||'—')+' · profesorado: '+esc(d.profesorado||'—')+' · semana 1: '+esc(d.inicio||'sin fecha')+(d.archivado?' · <b>\u{1F4E6} ARCHIVADO</b> ('+esc(d.archivado)+')':'')+'</div></div><div>'+sel()+'</div></div>'
+    root.innerHTML='<div class="tab-head"><div><div class="eyebrow amber">Panel del profesorado</div><h3>'+esc(d.nombre)+'</h3><div class="small muted">'+esc(d.tipo)+' · '+esc(d.estado)+' · referente: '+esc(d.referente||'—')+' · profesorado: '+esc(d.profesorado||'—')+' · semana 1: '+esc(d.inicio||'sin fecha')+(d.cierre_canje?' · misiones hasta '+fecha(d.cierre_misiones)+' · canje hasta '+fecha(d.cierre_canje):'')+(d.archivado?' · <b>\u{1F4E6} ARCHIVADO</b> ('+esc(d.archivado)+')':'')+'</div></div><div>'+sel()+'</div></div>'
       +'<div class="tabs"><button data-v="alumnos">👥 Alumnos ('+(d.reclutas||[]).length+')</button><button data-v="tickets">🎟️ Tickets de salida</button><button data-v="canjes">🎁 Canjes</button><button data-v="per">⚙️ Ajustes del PER</button><button class="salir">Salir</button></div><div id="vista"></div>';
     document.getElementById('selPer').onchange=function(){st.per=this.value;history.replaceState(null,'','?per='+st.per+(document.body.classList.contains('embed')?'&embed=1':''));cargarPer();};
     Array.prototype.forEach.call(root.querySelectorAll('.tabs button[data-v]'),function(b){b.onclick=function(){st.vista=b.getAttribute('data-v');vista();};if(b.getAttribute('data-v')===st.vista)b.classList.add('on');});
@@ -64,14 +64,24 @@
       +'<td style="text-align:center"><input class="dr" type="radio" name="refD"'+(/referente/.test(x.rol||'')?' checked':'')+'></td>'
       +'<td style="text-align:center"><input class="di" type="checkbox"'+(/imparte/.test(x.rol||'')?' checked':'')+'></td>'
       +'<td><button class="btn small" data-quitar="'+i+'">✕</button></td></tr>';}
+  // v3.14 · 2026-12-27 -> 27/12/2026
+  function fecha(iso){ if(!iso) return '—'; var p=String(iso).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:esc(String(iso)); }
   function vPer(v){var d=st.datos;var docs=(d.docentes_full||[]).slice();if(!docs.length)docs=[{nombre:d.referente||'',correo:'',rol:'referente+imparte'}];
     v.innerHTML='<div class="grid cols-2"><div class="card"><h3>Equipo docente</h3>'
       +'<p class="small muted">El <b>referente</b> gestiona el PER (solo uno). <b>Imparte</b> marca a quien da clase: son los nombres que ve el alumnado en su Bitácora y en el ticket. El referente puede ser las dos cosas. El <b>correo</b> es a quien se avisa cuando un canje necesita que alguien suba una nota.</p>'
       +'<div class="tablewrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Ref.</th><th>Imparte</th><th></th></tr></thead><tbody id="tbDoc">'+docs.map(filaDoc).join('')+'</tbody></table></div>'
       +'<button class="btn small" id="masDoc" style="margin-top:8px">+ Añadir docente</button> <button class="btn small primary" id="gprof" style="margin-top:8px">Guardar equipo</button>'
       +'<div class="small muted" style="margin-top:6px">Actualiza también el desplegable del ticket de salida y el de la Bitácora.</div></div>'
-      +'<div class="card"><h3>Semana 1 (foro dinámico)</h3><input id="ini" type="date" value="'+esc(d.inicio||'')+'" style="padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff"><button class="btn small" id="gini" style="margin-top:8px">Guardar</button></div>'
-      +'<div class="card"><h3>Formularios</h3><p class="small">Estado: <b>'+esc(d.estado)+'</b></p><button class="btn small" id="abrir">Abrir ahora</button> <button class="btn small" id="cerrar">Cerrar ahora</button>'
+      +'<div class="card"><h3>Semana 1 y calendario</h3>'
+      +'<input id="ini" type="date" value="'+esc(d.inicio||'')+'" style="padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff"><button class="btn small" id="gini" style="margin-top:8px">Guardar</button>'
+      // v3.14 · el calendario se calcula solo desde esta fecha; que se vea, y que se vea que el canje va detrás
+      +'<table class="small" style="margin-top:12px;width:100%"><tbody>'
+      +'<tr><td>Formularios abiertos desde</td><td style="text-align:right"><b>'+fecha(d.apertura)+'</b> <span class="muted">(una semana antes)</span></td></tr>'
+      +'<tr><td>Registro de misiones hasta</td><td style="text-align:right"><b>'+fecha(d.cierre_misiones)+'</b> <span class="muted">(fin de la semana '+(d.semanas||15)+')</span></td></tr>'
+      +'<tr><td><b>Canje de recompensas hasta</b></td><td style="text-align:right"><b>'+fecha(d.cierre_canje)+'</b> <span class="muted">(una semana más)</span></td></tr>'
+      +'</tbody></table>'
+      +'<p class="small muted" style="margin-top:8px">Se recalcula solo al cambiar la semana 1. La última semana el alumnado ya no gana nada: solo gasta lo ganado.</p></div>'
+      +'<div class="card"><h3>Formularios</h3><p class="small">Estado: <b>'+esc(d.estado)+'</b>'+(d.estado==='Solo canje'?' <span class="muted">— las misiones ya han cerrado; el canje sigue abierto</span>':'')+'</p><button class="btn small" id="abrir">Abrir ahora</button> <button class="btn small" id="cerrar">Cerrar ahora</button>'
       +'<h3 style="margin-top:16px">\u{1F4E6} Archivar el PER</h3><p class="small muted">'+(d.archivado?'Este PER está <b>archivado</b>: no aparece en los listados del alumnado y sus pestañas están ocultas en la hoja. Los datos siguen intactos.':'Al terminar el curso, archívalo: se cierran los formularios, se ocultan sus pestañas en la hoja y desaparece de los listados del alumnado (Nave, foro, embeds). <b>No se borra nada</b> y su tablero sigue disponible por enlace directo.')+'</p>'
       +'<button class="btn small'+(d.archivado?' primary':'')+'" id="arch">'+(d.archivado?'Desarchivar':'Archivar este PER')+'</button>'
       +'<p class="small muted" style="margin-top:10px">¿Es un PER de prueba y quieres <b>borrarlo</b> del todo? Desde la hoja maestra: selecciona su fila en la pestaña <b>PERs</b> y menú <b>STARGATE \u2192 Ciclo de vida del PER \u2192 Borrar PER</b>.</p></div>'

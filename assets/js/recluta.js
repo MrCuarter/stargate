@@ -57,10 +57,21 @@
   function olvidar(){st.yo=null;st.email='';st.msgYo='';localStorage.removeItem(KEY_MAIL);render();}
 
   // ---------- secciones ----------
+  // v3.14 · fecha bonita a partir de un ISO (2026-12-27 -> 27/12/2026)
+  function fecha(iso){ if(!iso) return ''; var p=String(iso).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:String(iso); }
+  // v3.14 · Hasta cuándo. El registro de misiones cierra al acabar la última semana y el canje
+  // aguanta una semana más: el alumnado tiene que verlo sin preguntar.
+  function plazos(){
+    var d=st.d; if(!d||(!d.cierre_misiones&&!d.cierre_canje)) return '';
+    return '<p class="small muted" style="margin-top:6px">🗓️ Registras misiones hasta el <b>'+fecha(d.cierre_misiones)+'</b>'
+      +(d.cierre_canje&&d.cierre_canje!==d.cierre_misiones
+        ? ' y te queda <b>una semana más</b> (hasta el <b>'+fecha(d.cierre_canje)+'</b>) para <b>canjear</b> lo que hayas ganado.'
+        : '.')+'</p>';
+  }
   function cabecera(){
     var d=st.d,n=st.semanas.length;
     var pos=st.estado==='antes'?'La misión aún no ha empezado':st.estado==='fin'?'Misión completada — la puerta está abierta':'Semana '+st.actual+' de '+n;
-    return '<div class="tab-head"><div><div class="eyebrow teal">La Nave del Recluta · '+esc(d.nombre)+(d.tipo==='PUA'?' · PUA':'')+'</div><h3>'+pos+'</h3></div>'
+    return '<div class="tab-head"><div><div class="eyebrow teal">La Nave del Recluta · '+esc(d.nombre)+(d.tipo==='PUA'?' · PUA':'')+'</div><h3>'+pos+'</h3>'+plazos()+'</div>'
       +'<div class="small muted"><button class="btn small" id="btn-onboard" type="button">▶ Repetir bienvenida</button></div></div>';
   }
   function personaje(){
@@ -178,6 +189,9 @@
     }).join('');
     return '<section><div class="eyebrow violet">Recompensas</div><h2>El canje de xp</h2>'
       +'<p class="lead">Tus <b>xp</b> no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje. Lo que se canjea son los <b>créditos ◈</b>, que ganas con el mismo trabajo. Las recompensas se van desbloqueando con el viaje.</p>'
+      +(d.cierre_canje&&d.cierre_canje!==d.cierre_misiones
+        ? '<p class="small" style="color:var(--amber)"><b>Ojo al calendario:</b> las misiones se registran hasta el <b>'+fecha(d.cierre_misiones)+'</b>, pero el canje sigue abierto <b>una semana más</b>, hasta el <b>'+fecha(d.cierre_canje)+'</b>. Esa última semana ya no se gana nada: solo se gasta lo ganado.</p>'
+        : (d.cierre_canje?'<p class="small muted">El canje cierra el <b>'+fecha(d.cierre_canje)+'</b>.</p>':''))
       +'<div class="grid cols-3 nave-rec">'+cards+'</div>'
       +(abiertas&&d.formCanje?'<p style="margin-top:14px"><a class="btn primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎁 Canjear una recompensa</a></p>':'<p class="small muted" style="margin-top:14px">Aún no hay recompensas canjeables: sigue sumando xp.</p>')
       +'</section>';

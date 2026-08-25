@@ -129,6 +129,11 @@ var NIVELES = [   // [nivel, xp REGULAR, rango de arte 1-5, titulo]
 ];
 var XP_VIAJE = {"REGULAR": 5000, "PUA": 4100};
 var CREDITOS = {"reclutamiento": 10, "retoA": 10, "retoB": 30, "retoB_pua": 35, "actividad": 60, "final": 60, "derivada": 40};
+// Calendario del PER: apertura una semana antes de la 1, cierre al acabar la ultima,
+// y el canje una semana mas. Generado desde _site_data.py: no editar a mano.
+var SEMANAS_PER = {"REGULAR": 15, "PUA": 8};
+var SEMANAS_CANJE_EXTRA = 1;
+var DIAS_APERTURA_ANTES = 7;
 // NIVELES-FIN
 // RECOMPENSAS-INICIO · [nombre, coste en créditos, máx por alumno, descripción, desde (semana
 // REGULAR; en PUA se escala), tipo]. Generado desde _site_data.py: no editar a mano.
@@ -136,10 +141,10 @@ var RECOMPENSAS_INICIALES = [
   ["Sobre de cromos",15,99,"Una carta al azar de las 20 del álbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. Se abre solo y tu álbum está en la Nave.",2,"cromo"],
   ["Título de recluta",25,3,"Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario). Se aplica solo.",3,"titulo"],
   ["Fondo de ficha: tu planeta",20,1,"Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.",4,"fondo"],
-  ["Cambio de avatar",35,3,"Elige otro personaje inicial (1-4) o vuelve a uno (indícalo en el propio formulario de canje). Se aplica solo.",5,"avatar"],
+  ["Cambio de avatar",35,3,"Elige otro personaje inicial (1-4) o vuelve a uno (indícalo en el propio formulario de canje). Se aplica solo.",2,"avatar"],
   ["Marco dorado del avatar",35,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.",6,"marco"],
   ["Personaje exclusivo",60,3,"Desbloquea y ponte uno de los personajes exclusivos 5-7 (indícalo en el formulario). Se aplica solo.",7,"avatar_exclusivo"],
-  ["Avatar personal (tu propia imagen)",90,1,"Pon tu propia imagen como avatar. Al alistarte esto NO se ofrece: es una recompensa. Sube la foto a postimages.org (sin registrarte), copia el «Enlace directo» (acaba en .jpg o .png) y pégalo en este formulario. También vale un enlace de Google Drive compartido con «cualquier persona con el enlace». Se aplica solo.",10,"avatar_url"],
+  ["Avatar personal (tu propia imagen)",90,1,"Pon tu propia imagen como avatar. Al alistarte esto NO se ofrece: es una recompensa. Sube la foto a postimages.org (sin registrarte), copia el «Enlace directo» (acaba en .jpg o .png) y pégalo en este formulario. También vale un enlace de Google Drive compartido con «cualquier persona con el enlace». Se aplica solo.",5,"avatar_url"],
   ["Subir 0,5 en un entregable",110,1,"Se aplica a la actividad que elijas",14,"nota"],
   ["Subir 1 punto en un entregable",170,1,"Se aplica a la actividad que elijas",14,"nota"],
   ["Recalificar un trabajo entregado fuera de plazo",240,1,"Indica la actividad",14,"nota"],
@@ -261,6 +266,8 @@ function asegurarHojas_() {
     pers.getRange(1,19,1,4).setValues([["Documento de enlaces","Panel Genially (ver)","Panel Genially (editar)","Archivado"]]);
   if (String(pers.getRange(1,22).getValue()||"") !== "Archivado") pers.getRange(1,22).setValue("Archivado");
   if (String(pers.getRange(1,23).getValue()||"") !== "Canje (editar)") pers.getRange(1,23).setValue("Canje (editar)");
+  // v3.14 · el canje cierra una semana después que el registro de misiones: necesita su propia fecha
+  if (String(pers.getRange(1,24).getValue()||"") !== "Cierre del canje") pers.getRange(1,24).setValue("Cierre del canje");
 }
 // panel de control Genially estándar (compartido por todos los PER salvo override en su fila)
 function panelStd_() { var pr = PropertiesService.getScriptProperties();
@@ -290,8 +297,30 @@ function recompensasCat_() {
 }
 function semanaDe_(o) { if (!o.inicio) return null; var ini = new Date(o.inicio + "T00:00:00"); var hoy = new Date(); hoy.setHours(0,0,0,0);
   return Math.floor((hoy - ini) / (7 * 864e5)) + 1; }
+function semanasDe_(tipo) { return SEMANAS_PER[tipo === "PUA" ? "PUA" : "REGULAR"] || 15; }
 function desdeEfectiva_(desde, tipo) { desde = Number(desde) || 0; if (!desde) return 0;
-  return tipo === "PUA" ? Math.max(1, Math.round(desde * 8 / 15)) : desde; }
+  return tipo === "PUA" ? Math.max(1, Math.round(desde * semanasDe_("PUA") / semanasDe_("REGULAR"))) : desde; }
+// v3.14 · El calendario por defecto de un PER, calculado desde la fecha de la semana 1.
+// Los formularios abren UNA SEMANA ANTES (para alistarse con margen), el registro de misiones y el
+// ticket cierran al ACABAR la última semana, y el CANJE aguanta UNA SEMANA MÁS: se reclama lo
+// ganado cuando ya no se puede ganar nada. Se puede sobrescribir a mano al crear el PER.
+function fechasPER_(inicio, tipo) {
+  if (!inicio) return null;
+  var ini = new Date(String(inicio) + "T00:00:00");
+  if (isNaN(ini.getTime())) return null;
+  var n = semanasDe_(tipo);
+  function mas(dias) { var d = new Date(ini.getTime()); d.setDate(d.getDate() + dias); return fechaIso_(d); }
+  return { semanas: n,
+           apertura: mas(-DIAS_APERTURA_ANTES),
+           cierreMisiones: mas(n * 7 - 1),                              // último día de la semana n
+           cierreCanje: mas((n + SEMANAS_CANJE_EXTRA) * 7 - 1) };       // una semana más para canjear
+}
+// Suma días a una fecha ISO (para cuando el cierre se pone a mano y el canje sigue yendo detrás)
+function masDias_(iso, dias) {
+  if (!iso) return "";
+  var d = new Date(String(iso) + "T00:00:00"); if (isNaN(d.getTime())) return "";
+  d.setDate(d.getDate() + dias); return fechaIso_(d);
+}
 // Carpeta donde viven los formularios de los PER
 function carpetaPER_() {
   var ss = SpreadsheetApp.getActive(); var padres = DriveApp.getFileById(ss.getId()).getParents();
@@ -328,7 +357,7 @@ function perObj_(v) {
   return { id:v[0], nombre:v[1], tipo:v[2]||"REGULAR", profesorado:v[3], inicio:fechaIso_(v[4]), apertura:fechaIso_(v[5]), cierre:fechaIso_(v[6]),
            estado:v[7], formBitacora:v[8], formBitacoraEdit:v[9], formTicket:v[10], formCanje:v[11], tabB:v[12], tabT:v[13], tabC:v[14], referente:v[16]||"", formTicketEdit:v[17]||"",
            doc:String(v[18]||""), panelVer:String(v[19]||""), panelEdit:String(v[20]||""), archivado: v[21] ? fechaIso_(v[21]) : "",
-           formCanjeEdit:String(v[22]||"") };
+           formCanjeEdit:String(v[22]||""), cierreCanje: v[23] ? fechaIso_(v[23]) : "" };
 }
 function fechaIso_(d) { if (!d) return ""; if (d instanceof Date) return Utilities.formatDate(d, "Europe/Madrid", "yyyy-MM-dd"); return String(d); }
 
@@ -378,7 +407,7 @@ function publicar_(form) { try { if (form.setPublished) form.setPublished(true);
 function publicarFormulariosPER() {
   var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
   if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) { SpreadsheetApp.getUi().alert("Selecciona una fila de la pestaña PERs."); return; }
-  var o = perObj_(sh.getRange(fila, 1, 1, 23).getValues()[0]); var n = 0;
+  var o = perObj_(sh.getRange(fila, 1, 1, 24).getValues()[0]); var n = 0;
   formsDelPER_(o).forEach(function(f){ try { publicar_(f); f.setAcceptingResponses(true); n++; } catch (e) {} });
   sh.getRange(fila, 8).setValue("Abierto");
   SpreadsheetApp.getUi().alert("Publicados y abiertos " + n + " formularios de " + o.nombre + ".");
@@ -444,8 +473,16 @@ function crearPER(datos) {
   var tipo = datos.tipo === "PUA" ? "PUA" : "REGULAR";
   var id = slug_(nombre); if (perFila_(id)) throw new Error("Ya existe un PER con id «" + id + "». Si es uno viejo, archívalo o bórralo antes (menú STARGATE), o usa otro nombre.");
   var restos = apartarRestosDe_(id);
-  var apertura = datos.apertura ? new Date(datos.apertura + "T00:00:00") : null;
-  var cierre = datos.cierre ? new Date(datos.cierre + "T23:59:00") : null;
+  // v3.14 · calendario por defecto: si no se indican fechas se calculan solas desde la semana 1.
+  var fx = fechasPER_(datos.inicio, tipo);
+  var aperturaIso = String(datos.apertura || "").trim() || (fx ? fx.apertura : "");
+  var cierreIso   = String(datos.cierre   || "").trim() || (fx ? fx.cierreMisiones : "");
+  // el canje siempre va una semana por detrás del cierre de misiones, se ponga a mano o no
+  var cierreCanjeIso = String(datos.cierreCanje || "").trim() ||
+        (datos.cierre ? masDias_(datos.cierre, 7 * SEMANAS_CANJE_EXTRA) : (fx ? fx.cierreCanje : ""));
+  var apertura = aperturaIso ? new Date(aperturaIso + "T00:00:00") : null;
+  var cierre = cierreIso ? new Date(cierreIso + "T23:59:00") : null;
+  var cierreCanje = cierreCanjeIso ? new Date(cierreCanjeIso + "T23:59:00") : null;
   var inicio = datos.inicio ? new Date(datos.inicio + "T00:00:00") : null;
   var ss = SpreadsheetApp.getActive();
   var master = DriveApp.getFileById(ss.getId()); var padres = master.getParents();
@@ -541,11 +578,13 @@ function crearPER(datos) {
   asegurarTriggers_();
   var ahora = new Date(), estado = "Abierto";
   if (apertura && apertura > ahora) { [fb, ft, fc].forEach(function(f){ f.setAcceptingResponses(false); }); estado = "Programado"; programar_("abrirPorTrigger", apertura, id); }
-  if (cierre) programar_("cerrarPorTrigger", cierre, id);
+  // dos cierres: primero se acaban las misiones, y una semana después se cierra también el canje
+  if (cierre && cierre > ahora) programar_("cerrarMisionesPorTrigger", cierre, id);
+  if (cierreCanje && cierreCanje > ahora) programar_("cerrarPorTrigger", cierreCanje, id);
 
   hoja_(H.PERS).appendRow([id, nombre, tipo, datos.profesores || "", inicio || "", apertura || "", cierre || "", estado,
     fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date(), datos.referente || "", ft.getEditUrl(),
-    "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim(), "", fc.getEditUrl()]);
+    "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim(), "", fc.getEditUrl(), cierreCanje || ""]);
   _t.hito("fila del PER escrita");
   // v3.13 · A PARTIR DE AQUÍ EL PER YA EXISTE Y FUNCIONA. Lo que queda es acabado: los orbes de los
   // planetas, el documento de enlaces y el dossier del profesorado. Son ~15 descargas de imagen y
@@ -572,6 +611,8 @@ function crearPER(datos) {
     embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + (inicio ? '&inicio=' + fechaIso_(inicio) + '&tipo=' + tipo : '') + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>',
     embedNave: '<iframe src="' + WEB + 'recluta.html?per=' + id + '&embed=1" width="100%" height="900" style="border:0;border-radius:16px"></iframe>',
     panelVer: String(datos.panelVer || "").trim() || panelStd_().ver, panelEdit: String(datos.panelEdit || "").trim() || panelStd_().editar,
+    inicio: fechaIso_(inicio), apertura: aperturaIso, cierre: cierreIso, cierreCanje: cierreCanjeIso,
+    semanas: fx ? fx.semanas : semanasDe_(tipo),
     restos: restos, pendiente: (pend.imagenes || pend.doc || pend.dossier) ? pend : null, ms: _t.ms() };
 }
 function etiquetasRecompensas_() {
@@ -1020,7 +1061,7 @@ function filaPERSeleccionada_() {
   var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
   if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) {
     SpreadsheetApp.getUi().alert("Selecciona primero una fila de la pestaña PERs."); return null; }
-  var v = sh.getRange(fila, 1, 1, 23).getValues()[0];
+  var v = sh.getRange(fila, 1, 1, 24).getValues()[0];
   if (!v[0]) { SpreadsheetApp.getUi().alert("Esa fila no tiene ningún PER."); return null; }
   return { fila: fila, o: perObj_(v) };
 }
@@ -1229,7 +1270,7 @@ function resetear_() {
     var d = sh.getDataRange().getValues(), fila = 0;
     for (var i = 1; i < d.length; i++) if (d[i][0]) { fila = i + 1; break; }
     if (!fila) { pr.fase = "colas"; break; }
-    try { borrarPER_(perObj_(sh.getRange(fila, 1, 1, 23).getValues()[0]), fila); pr.n++; }
+    try { borrarPER_(perObj_(sh.getRange(fila, 1, 1, 24).getValues()[0]), fila); pr.n++; }
     catch (e) { pr.fallos.push("PER fila " + fila + ": " + e.message); Logger.log(e);
                 try { sh.deleteRow(fila); } catch (e2) {} }   // pase lo que pase, la fila SE VA: si no, bucle infinito
     t.marcar();
@@ -1388,16 +1429,52 @@ function programar_(fn, fecha, perId) {
   PropertiesService.getScriptProperties().setProperty("trg_" + t.getUniqueId(), perId);
 }
 function abrirPorTrigger(e) { porTrigger_(e, true); }
-function cerrarPorTrigger(e) { porTrigger_(e, false); }
-function porTrigger_(e, abrir) {
+function cerrarPorTrigger(e) { porTrigger_(e, false); }                       // cierra TODO (fin del canje)
+function cerrarMisionesPorTrigger(e) { porTrigger_(e, false, ["B", "T"]); }   // v3.14 · el canje sigue abierto
+function porTrigger_(e, abrir, cuales) {
   var props = PropertiesService.getScriptProperties(); var perId = props.getProperty("trg_" + e.triggerUid); if (!perId) return;
-  setAbierto_(perId, abrir); props.deleteProperty("trg_" + e.triggerUid);
+  setAbierto_(perId, abrir, cuales); props.deleteProperty("trg_" + e.triggerUid);
   ScriptApp.getProjectTriggers().forEach(function(t){ if (t.getUniqueId() === e.triggerUid) ScriptApp.deleteTrigger(t); });
 }
-function setAbierto_(perId, abrir) {
+// v3.14 · `cuales` = qué formularios se tocan ("B" Bitácora · "T" ticket · "C" canje). Sin él, los tres.
+// El estado de la fila refleja lo que hay de verdad, no lo que se pidió: con las misiones cerradas y
+// el canje abierto pone «Solo canje», que es exactamente la última semana del viaje.
+function setAbierto_(perId, abrir, cuales) {
   var p = perFila_(perId); if (!p) return; var o = perObj_(p.v);
-  formsDelPER_(o).forEach(function(fx){ try { if (abrir) publicar_(fx); fx.setAcceptingResponses(abrir); } catch (e) {} });
-  hoja_(H.PERS).getRange(p.fila, 8).setValue(abrir ? "Abierto" : "Cerrado");
+  cuales = cuales && cuales.length ? cuales : ["B", "T", "C"];
+  var estado = {};
+  ["B", "T", "C"].forEach(function(c){
+    var f = null; try { f = formDelPER_(o, c); } catch (e) {}
+    if (!f) { estado[c] = null; return; }
+    if (cuales.indexOf(c) >= 0) { try { if (abrir) publicar_(f); f.setAcceptingResponses(abrir); } catch (e) {} }
+    try { estado[c] = f.isAcceptingResponses(); } catch (e) { estado[c] = null; }
+  });
+  var abiertos = ["B", "T", "C"].filter(function(c){ return estado[c] === true; });
+  hoja_(H.PERS).getRange(p.fila, 8).setValue(
+    abiertos.length === 3 ? "Abierto" :
+    abiertos.length === 0 ? "Cerrado" :
+    (abiertos.length === 1 && abiertos[0] === "C") ? "Solo canje" : "Parcial");
+}
+// v3.14 · Rehace los avisos programados de un PER (al cambiar la fecha de la semana 1, por ejemplo).
+function reprogramarPER_(perId) {
+  var p = perFila_(perId); if (!p) return null; var o = perObj_(p.v);
+  var props = PropertiesService.getScriptProperties();
+  ScriptApp.getProjectTriggers().forEach(function(t){
+    var fn = t.getHandlerFunction();
+    if (["abrirPorTrigger", "cerrarPorTrigger", "cerrarMisionesPorTrigger"].indexOf(fn) < 0) return;
+    if (props.getProperty("trg_" + t.getUniqueId()) !== perId) return;
+    props.deleteProperty("trg_" + t.getUniqueId());
+    try { ScriptApp.deleteTrigger(t); } catch (e) {}
+  });
+  var fx = fechasPER_(o.inicio, o.tipo); if (!fx) return null;
+  var sh = hoja_(H.PERS), ahora = new Date();
+  sh.getRange(p.fila, 6).setValue(new Date(fx.apertura + "T00:00:00"));
+  sh.getRange(p.fila, 7).setValue(new Date(fx.cierreMisiones + "T23:59:00"));
+  sh.getRange(p.fila, 24).setValue(new Date(fx.cierreCanje + "T23:59:00"));
+  if (new Date(fx.apertura + "T00:00:00") > ahora) programar_("abrirPorTrigger", new Date(fx.apertura + "T00:00:00"), perId);
+  if (new Date(fx.cierreMisiones + "T23:59:00") > ahora) programar_("cerrarMisionesPorTrigger", new Date(fx.cierreMisiones + "T23:59:00"), perId);
+  if (new Date(fx.cierreCanje + "T23:59:00") > ahora) programar_("cerrarPorTrigger", new Date(fx.cierreCanje + "T23:59:00"), perId);
+  return fx;
 }
 
 function alRecibirRespuesta(e) {
@@ -1672,7 +1749,9 @@ function tablero_(perId, conPrivados) {
   var std = panelStd_();
   var res = { per:perId, nombre:o.nombre, tipo:o.tipo, profesorado:o.profesorado, referente:o.referente, estado:o.estado, inicio:o.inicio,
            formBitacora:o.formBitacora, formTicket:o.formTicket, formCanje:o.formCanje, reclutas:lista,
-           recompensas:recompensasCat_(), semana:semanaDe_(o), panel:o.panelVer || std.ver,
+           recompensas:recompensasCat_(), semana:semanaDe_(o), semanas:semanasDe_(o.tipo), panel:o.panelVer || std.ver,
+           // v3.14 · para que el alumnado y el profesorado sepan HASTA CUÁNDO, sin preguntar
+           apertura:o.apertura, cierre_misiones:o.cierre, cierre_canje:o.cierreCanje || o.cierre,
            docentes:docentesDe_(perId).map(function(d){ return { nombre:d.nombre, rol:d.rol, imparte:imparte_(d), referente:esReferente_(d) }; }),
            actualizado:new Date() };
   if (conPrivados) { res.docentes_full = docentesDe_(perId);   // con correo: solo tras el PIN
@@ -1948,7 +2027,10 @@ function doPost(e) {
     else if (a === "archivar") { setArchivado_(per, !!q.valor); out = { ok:true }; }
     else if (a === "documento") { out = { url: crearDocumentoPER_(per) }; }
     else if (a === "panel") { var pp = perFila_(per); hoja_(H.PERS).getRange(pp.fila, 20).setValue(String(q.ver||"").trim()); hoja_(H.PERS).getRange(pp.fila, 21).setValue(String(q.editar||"").trim()); out = { ok:true }; }
-    else if (a === "inicio") { var p2 = perFila_(per); hoja_(H.PERS).getRange(p2.fila, 5).setValue(q.inicio ? new Date(q.inicio + "T00:00:00") : ""); out = { ok:true }; }
+    else if (a === "inicio") { var p2 = perFila_(per); hoja_(H.PERS).getRange(p2.fila, 5).setValue(q.inicio ? new Date(q.inicio + "T00:00:00") : "");
+      // v3.14 · mover la semana 1 mueve TODO el calendario: apertura, cierre de misiones y cierre del canje
+      var fx2 = q.inicio ? reprogramarPER_(per) : null;
+      out = { ok:true, calendario: fx2 }; }
     else if (a === "abrir" || a === "cerrar") { setAbierto_(per, a === "abrir"); out = { ok:true }; }
     else if (a === "entregado") { var o2 = perObj_(perFila_(per).v); var shc = SpreadsheetApp.getActive().getSheetByName(o2.tabC); var cab = shc.getRange(1,1,1,shc.getLastColumn()).getValues()[0].map(String);
       var col = cab.indexOf("Entregado") + 1; if (!col) { col = shc.getLastColumn() + 1; shc.getRange(1, col).setValue("Entregado"); } shc.getRange(q.fila, col).setValue(q.valor ? "Sí · " + (q.profe||"") : ""); out = { ok:true }; }

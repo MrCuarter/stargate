@@ -7,7 +7,13 @@ import os, json, hashlib
 from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
-                        RECOMPENSAS)
+                        RECOMPENSAS, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES)
+
+# Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
+# no se escriben a mano (si no, cambiarlas en _site_data.py dejaría la web mintiendo).
+_DESDE = {r[0]: r[4] for r in RECOMPENSAS}
+_SEM_AVATAR_URL = _DESDE["Avatar personal (tu propia imagen)"]
+_SEM_AVATAR = _DESDE["Cambio de avatar"]
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E"
@@ -811,7 +817,7 @@ Aunque un recluta no pase por la página del Tema 3, su insignia del Tema 3 sigu
 respuesta son sus datos de identidad, y esa página se ve siempre.</div>
 
 <h3 style="margin-top:1.6em">Avatares</h3>
-<div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con su NIVEL</b> (10 niveles y <b>5 versiones de arte</b>: Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b>; cambia al entrar en los niveles <b>3, 5, 8 y 10</b>, escalado solo en PUA — ver <a href="#economia">la tabla de niveles</a>). Al alistarse se eligen los personajes <b>1-4</b>; los <b>5-7 son EXCLUSIVOS</b> y se desbloquean con <b>créditos ◈</b> — otro motor de motivación. <b>Poner su propia imagen ya no es gratis</b>: es la recompensa «Avatar personal» (90 ◈, desde la semana 10), y se pide en el formulario de canje — no al alistarse. La antigua galería clásica de 16 avatares fijos <b>se ha retirado</b>: todos los reclutas llevan un personaje que evoluciona.</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
+<div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con su NIVEL</b> (10 niveles y <b>5 versiones de arte</b>: Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b>; cambia al entrar en los niveles <b>3, 5, 8 y 10</b>, escalado solo en PUA — ver <a href="#economia">la tabla de niveles</a>). Al alistarse se eligen los personajes <b>1-4</b>; los <b>5-7 son EXCLUSIVOS</b> y se desbloquean con <b>créditos ◈</b> — otro motor de motivación. <b>Poner su propia imagen ya no es gratis</b>: es la recompensa «Avatar personal» (90 ◈, desde la semana {_SEM_AVATAR_URL}), y se pide en el formulario de canje — no al alistarse. La antigua galería clásica de 16 avatares fijos <b>se ha retirado</b>: todos los reclutas llevan un personaje que evoluciona.</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
 <div class="official" style="display:block">🖼️ <b>Cómo poner su propia imagen (cuando el alumno canjea «Avatar personal», 90 ◈):</b> 1) entra en <a href="https://postimages.org" target="_blank" rel="noopener">postimages.org</a>, pulsa <i>Elegir imágenes</i> y sube la foto (no hace falta registrarse); 2) copia el campo <b>«Enlace directo»</b> (termina en .jpg o .png); 3) pégalo en el <b>formulario de canje</b>, en la pregunta de la URL. También vale un enlace de <b>Google Drive</b> compartido como «cualquier persona con el enlace». Un enlace a Instagram o a una página web no funciona.</div></div>
 </div>
 <h3 id="economia" style="margin-top:1.6em">Dos marcadores: xp y créditos ◈</h3>
@@ -1406,6 +1412,11 @@ def _js_niveles():
     L.append('];')
     L.append('var XP_VIAJE = %s;' % json.dumps(XP_VIAJE, ensure_ascii=False))
     L.append('var CREDITOS = %s;' % json.dumps(CREDITOS, ensure_ascii=False))
+    L.append('// Calendario del PER: apertura una semana antes de la 1, cierre al acabar la ultima,')
+    L.append('// y el canje una semana mas. Generado desde _site_data.py: no editar a mano.')
+    L.append('var SEMANAS_PER = %s;' % json.dumps(SEMANAS_PER, ensure_ascii=False))
+    L.append('var SEMANAS_CANJE_EXTRA = %d;' % SEMANAS_CANJE_EXTRA)
+    L.append('var DIAS_APERTURA_ANTES = %d;' % DIAS_APERTURA_ANTES)
     return "\n".join(L)
 
 def _js_recompensas():
