@@ -5,6 +5,9 @@
  * API de lectura (doGet) para la web del alumnado y API con PIN (doPost) para el panel del profesorado.
  * v3: La Nave del Recluta (recluta.html?per=id) · recompensas con semana de desbloqueo · canjes de avatar
  * automáticos («Cambio de avatar» y «Avatar personal») · el avatar inicial se congela al alistarse y solo
+ * v3.11.1: el rol del docente es COMBINABLE — «referente», «imparte» o «referente+imparte»: el
+ * referente que además da clase se marca con las dos casillas, sin repetir su nombre. El desplegable
+ * que ve el alumnado solo ofrece a quien IMPARTE. Equipo editable desde profes.html → Ajustes.
  * v3.11: EQUIPO DOCENTE con correo (pestaña DOCENTES), cada alumno declara su docente en la Bitácora,
  * aviso por correo SOLO cuando un canje requiere intervención humana (notas), y clase.html: la sala
  * del docente, bidireccional (acción «ficha» para corregir alias/nombre/docente/ePortfolio).
@@ -233,6 +236,7 @@ function asegurarHojas_() {
   hoja_(H.AJ, ["fecha","per","email","reto_id","accion","motivo","profe"], "#aa66cc");
   // v3.11 · equipo docente CON CORREO: es a quien se avisa cuando un canje pide su intervención,
   // y lo que permite filtrar cada grupo por docente. Se puede editar a mano en esta pestaña.
+  // rol: "referente", "imparte" o "referente+imparte" (el referente puede dar clase también)
   hoja_(H.DOC, ["per","nombre","correo","rol"], "#0e7f8c");
   var pers = hoja_(H.PERS);
   if (String(pers.getRange(1,20).getValue()||"") !== "Panel Genially (ver)")
@@ -562,6 +566,8 @@ function reestructurarBitacora_(fb, o) {
 
 // Equipo docente de un PER. Si la pestaña DOCENTES tiene filas, manda; si no, se reconstruye desde
 // los nombres sueltos de la fila del PER (PERs antiguos, sin correo).
+function esReferente_(d) { return String(d.rol || "").indexOf("referente") >= 0; }
+function imparte_(d) { return String(d.rol || "").indexOf("imparte") >= 0; }
 function docentesDe_(perId) {
   var out = [];
   try {
@@ -590,7 +596,7 @@ function correosAviso_(perId, nombreDocente) {
   var ds = docentesDe_(perId), out = [];
   ds.forEach(function(d){
     if (!d.correo) return;
-    if (d.rol === "referente" || (nombreDocente && d.nombre === nombreDocente)) {
+    if (esReferente_(d) || (nombreDocente && d.nombre === nombreDocente)) {
       if (out.indexOf(d.correo) < 0) out.push(d.correo);
     }
   });
@@ -598,7 +604,12 @@ function correosAviso_(perId, nombreDocente) {
 }
 function listaProfes_(referente, profesores, perId) {
   var l = [];
-  if (perId) docentesDe_(perId).forEach(function(d){ if (l.indexOf(d.nombre) < 0) l.push(d.nombre); });
+  if (perId) {
+    var ds = docentesDe_(perId);
+    var dan = ds.filter(imparte_);
+    (dan.length ? dan : ds).forEach(function(d){ if (l.indexOf(d.nombre) < 0) l.push(d.nombre); });
+    if (l.length) return l;      // el equipo docente manda sobre los nombres sueltos del PER
+  }
   (referente ? [referente] : []).concat(String(profesores||"").split(",")).forEach(function(x){ x = x.trim(); if (x && l.indexOf(x) < 0) l.push(x); });
   return l.length ? l : ["Profesorado"];
 }
@@ -1162,9 +1173,10 @@ function tablero_(perId, conPrivados) {
   var res = { per:perId, nombre:o.nombre, tipo:o.tipo, profesorado:o.profesorado, referente:o.referente, estado:o.estado, inicio:o.inicio,
            formBitacora:o.formBitacora, formTicket:o.formTicket, formCanje:o.formCanje, reclutas:lista,
            recompensas:recompensasCat_(), semana:semanaDe_(o), panel:o.panelVer || std.ver,
-           docentes:docentesDe_(perId).map(function(d){ return { nombre:d.nombre, rol:d.rol }; }),
+           docentes:docentesDe_(perId).map(function(d){ return { nombre:d.nombre, rol:d.rol, imparte:imparte_(d), referente:esReferente_(d) }; }),
            actualizado:new Date() };
-  if (conPrivados) { res.panelEdit = o.panelEdit || std.editar; res.panelPropio = !!(o.panelVer || o.panelEdit); res.archivado = o.archivado;
+  if (conPrivados) { res.docentes_full = docentesDe_(perId);   // con correo: solo tras el PIN
+    res.panelEdit = o.panelEdit || std.editar; res.panelPropio = !!(o.panelVer || o.panelEdit); res.archivado = o.archivado;
     res.doc = o.doc; res.hoja = SpreadsheetApp.getActive().getUrl(); res.formBitacoraEdit = o.formBitacoraEdit; }
   return res;
 }
@@ -1269,7 +1281,8 @@ function actualizarConsola() {
       o.inicio || "", sem === null ? "" : (sem < 1 ? "no ha empezado" : "semana " + sem),
       rec.length, xpMedia, rec.length ? Math.round(rec.reduce(function(a,x){ return a + x.nivel; }, 0) / rec.length) : 0,
       credCirc, concedidos.length, pendientes.length, tk.total, tk.sinResolver,
-      docentesDe_(o.id).map(function(d){ return d.nombre + (d.correo ? " <" + d.correo + ">" : "") + (d.rol === "referente" ? " ★" : ""); }).join("\n"),
+      docentesDe_(o.id).map(function(d){ return d.nombre + (d.correo ? " <" + d.correo + ">" : "")
+        + (esReferente_(d) ? " ★" : "") + (imparte_(d) ? "" : " (no imparte)"); }).join("\n"),
       WEB + "registro.html?per=" + o.id, WEB + "clase.html?per=" + o.id, WEB + "recluta.html?per=" + o.id,
       o.formBitacora || "", o.formCanje || "", o.formTicket || "", o.doc || ""]);
 
@@ -1297,7 +1310,8 @@ function actualizarConsola() {
           var al = rec.filter(function(x){ return x.email === String(c.email).toLowerCase(); })[0];
           return !c.entregado && al && (al.profe || "— sin indicar —") === k; }).length;
         var med = function(f2){ return g.length ? Math.round(g.reduce(function(a2,x){ return a2 + f2(x); }, 0) / g.length) : 0; };
-        return [k, d ? d.correo : "", d ? d.rol : "", g.length, med(function(x){ return x.xp; }),
+        var rolTxt = !d ? "" : (esReferente_(d) && imparte_(d)) ? "referente · imparte" : (esReferente_(d) ? "referente" : "imparte");
+        return [k, d ? d.correo : "", rolTxt, g.length, med(function(x){ return x.xp; }),
                 med(function(x){ return x.creditos; }), med(function(x){ return x.n; }), pend];
       }));
 

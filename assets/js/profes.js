@@ -45,7 +45,18 @@
     if(!rows.length){v.innerHTML='<p class="lead">Sin canjes concedidos todavía.</p>';return;}
     v.innerHTML='<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Alias</th><th>Nombre</th><th>Recompensa</th><th>Actividad</th><th>Entregado</th></tr></thead><tbody>'+rows.map(function(x){return '<tr><td>'+esc(f(x.c.fecha))+'</td><td><b>'+esc(x.p.alias)+'</b></td><td>'+esc(x.p.nombre)+'</td><td>'+esc(x.c.recompensa)+'</td><td>'+esc(x.c.actividad)+'</td><td>'+(x.c.entregado?'<span class="chip ok">'+esc(x.c.entregado)+'</span> <button class="btn small" data-f="'+x.c.fila+'" data-v="0">deshacer</button>':'<button class="btn small primary" data-f="'+x.c.fila+'" data-v="1">Marcar entregado</button>')+'</td></tr>';}).join('')+'</tbody></table></div>';
     Array.prototype.forEach.call(v.querySelectorAll('button[data-f]'),function(b){b.onclick=function(){var profe=localStorage.getItem('sgProfe')||prompt('Tu nombre:')||'';localStorage.setItem('sgProfe',profe);post({accion:'entregado',per:st.per,fila:parseInt(b.getAttribute('data-f'),10),valor:b.getAttribute('data-v')==='1',profe:profe},function(){cargarPer();});};});}
-  function vPer(v){var d=st.datos;v.innerHTML='<div class="grid cols-2"><div class="card"><h3>Equipo docente</h3><label class="small muted">Profesor/a referente (gestiona el PER)</label><input id="ref" value="'+esc(d.referente||'')+'" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff"><label class="small muted" style="margin-top:8px;display:block">Profesorado que imparte (separado por comas)</label><input id="prof" value="'+esc(d.profesorado||'')+'" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff"><button class="btn small" id="gprof" style="margin-top:8px">Guardar</button><div class="small muted" style="margin-top:6px">Actualiza también el desplegable del ticket de salida.</div></div>'
+  function filaDoc(x,i){var e=function(t){return esc(t||'');};
+    return '<tr data-d="'+i+'"><td><input class="dn" value="'+e(x.nombre)+'" placeholder="Nombre Apellido" style="width:100%;padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:#fff"></td>'
+      +'<td><input class="dc" type="email" value="'+e(x.correo)+'" placeholder="correo@unir.net" style="width:100%;padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:#fff"></td>'
+      +'<td style="text-align:center"><input class="dr" type="radio" name="refD"'+(/referente/.test(x.rol||'')?' checked':'')+'></td>'
+      +'<td style="text-align:center"><input class="di" type="checkbox"'+(/imparte/.test(x.rol||'')?' checked':'')+'></td>'
+      +'<td><button class="btn small" data-quitar="'+i+'">✕</button></td></tr>';}
+  function vPer(v){var d=st.datos;var docs=(d.docentes_full||[]).slice();if(!docs.length)docs=[{nombre:d.referente||'',correo:'',rol:'referente+imparte'}];
+    v.innerHTML='<div class="grid cols-2"><div class="card"><h3>Equipo docente</h3>'
+      +'<p class="small muted">El <b>referente</b> gestiona el PER (solo uno). <b>Imparte</b> marca a quien da clase: son los nombres que ve el alumnado en su Bitácora y en el ticket. El referente puede ser las dos cosas. El <b>correo</b> es a quien se avisa cuando un canje necesita que alguien suba una nota.</p>'
+      +'<div class="tablewrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Ref.</th><th>Imparte</th><th></th></tr></thead><tbody id="tbDoc">'+docs.map(filaDoc).join('')+'</tbody></table></div>'
+      +'<button class="btn small" id="masDoc" style="margin-top:8px">+ Añadir docente</button> <button class="btn small primary" id="gprof" style="margin-top:8px">Guardar equipo</button>'
+      +'<div class="small muted" style="margin-top:6px">Actualiza también el desplegable del ticket de salida y el de la Bitácora.</div></div>'
       +'<div class="card"><h3>Semana 1 (foro dinámico)</h3><input id="ini" type="date" value="'+esc(d.inicio||'')+'" style="padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff"><button class="btn small" id="gini" style="margin-top:8px">Guardar</button></div>'
       +'<div class="card"><h3>Formularios</h3><p class="small">Estado: <b>'+esc(d.estado)+'</b></p><button class="btn small" id="abrir">Abrir ahora</button> <button class="btn small" id="cerrar">Cerrar ahora</button>'
       +'<h3 style="margin-top:16px">\u{1F4E6} Archivar el PER</h3><p class="small muted">'+(d.archivado?'Este PER está <b>archivado</b>: no aparece en los listados del alumnado y sus pestañas están ocultas en la hoja. Los datos siguen intactos.':'Al terminar el curso, archívalo: se cierran los formularios, se ocultan sus pestañas en la hoja y desaparece de los listados del alumnado (Nave, foro, embeds). <b>No se borra nada</b> y su tablero sigue disponible por enlace directo.')+'</p>'
@@ -64,7 +75,22 @@
     var gd=document.getElementById('gendoc'); if(gd)gd.onclick=function(){gd.textContent='Generando…';gd.disabled=true;post({accion:'documento',per:st.per},function(r){cargarPer();});};
     document.getElementById('arch').onclick=function(){var a=!d.archivado;if(a&&!confirm('¿Archivar «'+d.nombre+'»? Se cerrarán sus formularios y dejará de aparecer en los listados del alumnado. No se borra nada.'))return;post({accion:'archivar',per:st.per,valor:a},function(){cargarPers();});};
     document.getElementById('gpanel').onclick=function(){post({accion:'panel',per:st.per,ver:document.getElementById('pver').value.trim(),editar:document.getElementById('pedit').value.trim()},function(){cargarPer();});};
-    document.getElementById('gprof').onclick=function(){post({accion:'profesorado',per:st.per,referente:document.getElementById('ref').value,profesorado:document.getElementById('prof').value},function(){cargarPer();});};
+    document.getElementById('masDoc').onclick=function(){var tb=document.getElementById('tbDoc');var i=tb.children.length;tb.insertAdjacentHTML('beforeend',filaDoc({nombre:'',correo:'',rol:'imparte'},i));wireDoc();};
+    function wireDoc(){Array.prototype.forEach.call(document.querySelectorAll('button[data-quitar]'),function(b){b.onclick=function(){b.closest('tr').remove();};});}
+    wireDoc();
+    document.getElementById('gprof').onclick=function(){
+      var docentes=[],ref='';
+      Array.prototype.forEach.call(document.querySelectorAll('#tbDoc tr'),function(tr){
+        var n=tr.querySelector('.dn').value.trim(),c=tr.querySelector('.dc').value.trim();if(!n)return;
+        var esRef=tr.querySelector('.dr').checked,da=tr.querySelector('.di').checked;
+        if(esRef&&!ref)ref=n; if(!esRef&&!da)da=true;
+        docentes.push({nombre:n,correo:c,rol:(esRef?'referente':'')+(esRef&&da?'+':'')+(da?'imparte':'')});});
+      if(!docentes.length){alert('Añade al menos un docente');return;}
+      var malos=docentes.filter(function(x){return x.correo&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x.correo);});
+      if(malos.length){alert('Revisa el correo de '+malos[0].nombre);return;}
+      post({accion:'profesorado',per:st.per,referente:ref,
+            profesorado:docentes.filter(function(x){return /imparte/.test(x.rol)&&x.nombre!==ref;}).map(function(x){return x.nombre;}).join(', '),
+            docentes:docentes},function(){cargarPer();});};
     document.getElementById('gini').onclick=function(){post({accion:'inicio',per:st.per,inicio:document.getElementById('ini').value},function(){cargarPer();});};
     document.getElementById('abrir').onclick=function(){post({accion:'abrir',per:st.per},function(){cargarPer();});};
     document.getElementById('cerrar').onclick=function(){if(confirm('¿Cerrar los formularios de este PER?'))post({accion:'cerrar',per:st.per},function(){cargarPer();});};}
