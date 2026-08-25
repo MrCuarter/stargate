@@ -5,6 +5,11 @@
  * API de lectura (doGet) para la web del alumnado y API con PIN (doPost) para el panel del profesorado.
  * v3: La Nave del Recluta (recluta.html?per=id) · recompensas con semana de desbloqueo · canjes de avatar
  * automáticos («Cambio de avatar» y «Avatar personal») · el avatar inicial se congela al alistarse y solo
+ * v3.12: arreglos salidos del banco de pruebas — (1) una recompensa que ya no está en el catálogo
+ * se DENIEGA en vez de cobrarse y avisar al docente como si fuera de nota; (2) la ficha de la
+ * recompensa se busca por etiqueta EXACTA (antes «X premium» se resolvía como «X»: otro tope y
+ * otro efecto); (3) hoja_() sin cabecera ya no revienta; (4) el diálogo de restaurar el catálogo
+ * muestra los precios reales en créditos, generados de RECOMPENSAS_INICIALES.
  * v3.11.1: el rol del docente es COMBINABLE — «referente», «imparte» o «referente+imparte»: el
  * referente que además da clase se marca con las dos casillas, sin repetir su nombre. El desplegable
  * que ve el alumnado solo ofrece a quien IMPARTE. Equipo editable desde profes.html → Ajustes.
@@ -223,7 +228,9 @@ function onOpen() {
 }
 function hoja_(nombre, cab, color) {
   var ss = SpreadsheetApp.getActive(); var sh = ss.getSheetByName(nombre);
-  if (!sh) { sh = ss.insertSheet(nombre); sh.appendRow(cab); sh.setFrozenRows(1); if (color) sh.setTabColor(color); }
+  // v3.12 · si alguien pide una hoja sin darle cabecera y aún no existe, se crea vacía en vez de
+  // reventar con appendRow(undefined) — pasaba si una llamada de la API llegaba antes de asegurarHojas_().
+  if (!sh) { sh = ss.insertSheet(nombre); if (cab && cab.length) { sh.appendRow(cab); sh.setFrozenRows(1); } if (color) sh.setTabColor(color); }
   return sh;
 }
 function asegurarHojas_() {
@@ -773,9 +780,8 @@ function borrarFilasDe_(sh, perId) { // la columna 2 es el per en EVENTOS y AJUS
 function restaurarRecompensas() {
   var ui = SpreadsheetApp.getUi();
   if (ui.alert("Restaurar el catálogo oficial de recompensas",
-    "Sustituye la pestaña RECOMPENSAS por el catálogo oficial:\n" +
-    "· Cambio de avatar — 35 créditos (desde la semana 5, máx. 3)\n· Avatar personal — 90 créditos (desde la semana 10)\n" +
-    "· Subir 0,5 — 900 · Subir 1 — 1.400 · Recalificar fuera de plazo — 2.000 · Recalificar suspenso — 2.800 (desde la semana 14)\n\n" +
+    "Sustituye la pestaña RECOMPENSAS por el catálogo oficial (precios en CRÉDITOS, no en xp):\n\n" +
+    RECOMPENSAS_INICIALES.map(function(r){ return "· " + r[0] + " — " + r[1] + " ◈ (desde la semana " + r[4] + ")"; }).join("\n") + "\n\n" +
     "Se pierden los cambios manuales que hayas hecho en esa pestaña. ¿Continuar?", ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
   restaurarRecompensas_();
   ui.alert("Catálogo restaurado. Ahora ejecuta «Actualizar formularios» para que los formularios de canje muestren los nuevos precios.");
@@ -957,6 +963,8 @@ function alRecibirRespuesta(e) {
 }
 // Cuántas veces se le ha CONCEDIDO ya a este correo esta misma recompensa (sin contar la fila que
 // se está resolviendo ahora). Sirve para respetar el «Máx. por alumno» del catálogo.
+// «Sobre de cromos — 15 créditos» -> «Sobre de cromos»
+function nombreDe_(etiqueta) { return String(etiqueta || "").replace(/\s*—\s*\d+\s*(?:cr[ée]ditos|xp)\s*$/, "").trim(); }
 function concedidasDe_(sh, fila, email, nombreRec) {
   var v = sh.getDataRange().getValues(); if (v.length < 2) return 0;
   var cab = v[0].map(String);
@@ -967,7 +975,7 @@ function concedidasDe_(sh, fila, email, nombreRec) {
   for (var i = 1; i < v.length; i++) {
     if (i + 1 === fila) continue;
     if (String(v[i][cM] || "").toLowerCase().trim() !== email) continue;
-    if (String(v[i][cR] || "").indexOf(nombreRec) !== 0) continue;
+    if (nombreDe_(v[i][cR]) !== nombreRec) continue;   // exacto: «X premium» no cuenta como «X»
     if (String(v[i][cE] || "").indexOf("Concedido") === 0) n++;
   }
   return n;
@@ -1030,15 +1038,31 @@ function avisarDocente_(o, al, rec, actividad) {
 function resolverCanje_(o, sh, fila) {
   var r = leerFila_(sh, fila); var email = String(r["Dirección de correo electrónico"] || r["Email Address"] || "").toLowerCase().trim();
   var rec = String(r["Recompensa"] || ""); var coste = parseInt((rec.match(/(\d+)\s*(?:cr[ée]ditos|xp)$/) || [0,0])[1], 10);
-  var ficha = recompensasCat_().filter(function(x){ return rec.indexOf(x.nombre) === 0; })[0] || null;
+  // v3.12 · la ficha se busca por etiqueta EXACTA. Antes bastaba el prefijo y el primero del catálogo
+  // ganaba: «Sobre de cromos premium» se resolvía como «Sobre de cromos» (otro tope y otro efecto).
+  var cat = recompensasCat_();
+  var ficha = cat.filter(function(x){ return rec === x.nombre + " — " + x.coste + " créditos"; })[0] || null;
+  if (!ficha) {   // etiquetas viejas (en xp) o precio cambiado: gana el nombre MÁS LARGO que encaje
+    ficha = cat.filter(function(x){ return rec.indexOf(x.nombre) === 0; })
+               .sort(function(a, b){ return b.nombre.length - a.nombre.length; })[0] || null;
+  }
   var t = tablero_(o.id, true); var al = (t.reclutas || []).filter(function(x){ return x.email === email; })[0];
   var disp = al ? al.creditos : 0;   // se paga con créditos; los xp del recluta no se tocan nunca
   var cab = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(String); var col = cab.indexOf("Estado") + 1;
   if (!col) { col = sh.getLastColumn() + 1; sh.getRange(1, col).setValue("Estado"); sh.getRange(1, col+1).setValue("Entregado"); }
   var estado = "", cuerpo = "";
-  // 1) puerta temporal: la recompensa se desbloquea con el calendario del PER
+  // 0) puerta nueva (v3.12): la etiqueta elegida tiene que existir HOY en el catálogo. Si no —porque
+  // la renombraron, la retiraron o la respuesta es de antes de actualizar el formulario— se DENIEGA:
+  // antes caía en la rama final y se trataba como recompensa de nota (cobraba y avisaba al docente).
   var sem = semanaDe_(o); var desde = ficha ? desdeEfectiva_(ficha.desde, o.tipo) : 0;
-  if (desde && (sem === null || sem < desde)) {
+  if (!ficha) {
+    estado = "Denegado (esa recompensa ya no está en el catálogo)";
+    cuerpo = "«" + rec + "» ya no está en el catálogo de recompensas de tu grupo: puede que la hayan " +
+      "renombrado o retirado. No se han gastado créditos. Vuelve a abrir el formulario de canje (que ya " +
+      "tendrá la lista al día) o díselo a tu profesor/a.";
+  }
+  // 1) puerta temporal: la recompensa se desbloquea con el calendario del PER
+  else if (desde && (sem === null || sem < desde)) {
     estado = "Denegado (bloqueada hasta la semana " + desde + (sem ? "; vais por la " + sem : "") + ")";
     cuerpo = "Esa recompensa aún está clasificada, recluta: se desbloquea en la semana " + desde + " de la misión. No se han gastado créditos.";
   }
@@ -1142,7 +1166,7 @@ function tablero_(perId, conPrivados) {
   if (shC && shC.getLastRow() > 1) { var vc = shC.getDataRange().getValues(); var cc = vc[0].map(String); var cE = cc.indexOf("Estado"), cMm = idx_(cc,"correo") >= 0 ? idx_(cc,"correo") : idx_(cc,"email"), cR = cc.indexOf("Recompensa"), cEnt = cc.indexOf("Entregado");
     for (var j = 1; j < vc.length; j++) { var m2 = String(vc[j][cMm]||"").toLowerCase(); if (cE >= 0 && String(vc[j][cE]).indexOf("Concedido") === 0) {
       var coste = parseInt((String(vc[j][cR]).match(/(\d+)\s*(?:cr[ée]ditos|xp)$/)||[0,0])[1],10); (canjes[m2] = canjes[m2] || { gastado:0, lista:[], veces:{} }); canjes[m2].gastado += coste;
-      var nom = String(vc[j][cR]).replace(/\s*—\s*\d+\s*(?:cr[ée]ditos|xp)\s*$/, "").trim();
+      var nom = nombreDe_(vc[j][cR]);
       if (nom) canjes[m2].veces[nom] = (canjes[m2].veces[nom] || 0) + 1;
       canjes[m2].lista.push({ fecha:vc[j][0], recompensa:vc[j][cR], actividad:vc[j][cc.indexOf("Actividad a la que se aplica")], entregado: cEnt >= 0 ? vc[j][cEnt] : "", fila:j+1 }); } } }
   var lista = Object.keys(por).map(function(m){ var a = por[m]; var xp = 0, cred = 0, tema = 0, ins = {};
