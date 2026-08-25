@@ -1452,7 +1452,17 @@ open(os.path.join(HERE, "assets", "descargas", "Code.gs.txt"), "w", encoding="ut
 open(os.path.join(HERE, "assets", "descargas", "Dialog.html.txt"), "w", encoding="utf-8").write(
     open(os.path.join(HERE, "apps-script", "Dialog.html"), encoding="utf-8").read())
 # Copias 100% ASCII para pegar sin riesgo de que se rompan los acentos (ver _ascii_gs.py)
-import subprocess as _sp
+import subprocess as _sp, sys as _sys
 _sp.run(["python3", os.path.join(HERE, "_ascii_gs.py")], check=False, capture_output=True)
 print("apps-script: CROMOS (%d cartas) + NIVELES (%d) + RECOMPENSAS (%d) regenerados y sincronizados"
       % (len(CROMOS), len(NIVELES), len(RECOMPENSAS)))
+
+# ================= COMPROBACIÓN DE LA WEB PUBLICADA (§12.9) =================
+# A propósito NO se hace por defecto: el build tiene que funcionar sin internet. Pero el 504 de
+# Hostinger del 25-ago nos costó una ejecución entera de Apps Script y se descubrió de casualidad,
+# así que al menos queda el recordatorio a la vista.
+if "--check" in _sys.argv:
+    print("\n--- comprobando la web publicada ---", flush=True)
+    _sys.exit(_sp.run([_sys.executable, os.path.join(HERE, "comprobar_web.py")]).returncode)
+print("\nrecuerda: python3 comprobar_web.py  ANTES de crear un PER o actualizar las imágenes de los\n"
+      "formularios (de esa web bajan los orbes; si está caída, el alta se arrastra o queda a medias).")

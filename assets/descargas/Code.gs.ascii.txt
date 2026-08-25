@@ -1530,6 +1530,42 @@ function fotoNocturna() {
   try { consolidarDatos(); } catch (e) { Logger.log("consolidarDatos: " + e); }
   try { actualizarConsola(); } catch (e) { Logger.log("actualizarConsola: " + e); }
   try { dossier_(); } catch (e) { Logger.log("dossier_: " + e); }
+  try { avisoCierreCanje(); } catch (e) { Logger.log("avisoCierreCanje: " + e); }
+}
+// v3.15 - SE ACABA EL CANJE (?12.8). La ultima semana ya no se gana nada: solo se gasta lo ganado, y
+// quien llega con 200 (cred) sin tocar los pierde. La fecha se ve en la Nave, pero nadie te da un toque.
+// Cuelga de fotoNocturna a proposito: ni un trigger nuevo que instalar, mantener o duplicar.
+var AVISO_CIERRE_DIAS = [7, 1];
+function avisoCierreCanje() {
+  var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  var pr = PropertiesService.getScriptProperties();
+  var enviados = 0, grupos = 0;
+  hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
+    if (!v[0] || v[21]) return;                       // ni filas vacias ni grupos archivados
+    var o = perObj_(v);
+    var cierre = o.cierreCanje || o.cierre; if (!cierre) return;
+    var fin = new Date(String(cierre) + "T00:00:00"); if (isNaN(fin.getTime())) return;
+    var faltan = Math.round((fin.getTime() - hoy.getTime()) / 864e5);
+    if (AVISO_CIERRE_DIAS.indexOf(faltan) < 0) return;   // solo en los umbrales, ni antes ni despues
+    var clave = "AVISO_CANJE_" + o.id + "_" + faltan;
+    if (pr.getProperty(clave)) return;                   // una vez por umbral y grupo, pase lo que pase
+    pr.setProperty(clave, fechaIso_(hoy));
+    grupos++;
+    var t = tablero_(o.id, true); if (!t || !t.reclutas) return;
+    t.reclutas.forEach(function(al){
+      if (!al.email || !(al.creditos > 0)) return;       // a quien ya lo gasto todo no se le molesta
+      var dias = faltan === 1 ? "1 d\u00eda" : faltan + " d\u00edas";
+      var cuerpo = "Te quedan " + al.creditos + " \u25c8 y " + dias + " para canjearlos. Despu\u00e9s ya no se pueden gastar.\n\n" +
+        "Grupo: " + o.nombre + "\n" +
+        "El canje cierra el " + cierre + ". Los xp y tu nivel no se tocan: lo que caduca es el bolsillo.\n\n" +
+        "Mira lo que puedes llevarte y cu\u00e1nto cuesta, en tu Nave:\n" + WEB + "recluta.html?per=" + o.id + "\n" +
+        (o.formCanje ? "Y canjea aqu\u00ed:\n" + o.formCanje + "\n" : "");
+      if (enviarCorreo_(al.email, "STARGATE \u00b7 te quedan " + al.creditos + " \u25c8 y " + dias +
+          " para gastarlos", cuerpo, o.id, al.email)) enviados++;
+    });
+  });
+  if (enviados) Logger.log("avisoCierreCanje: " + enviados + " avisos en " + grupos + " grupos");
+  return { enviados: enviados, grupos: grupos };
 }
 function programar_(fn, fecha, perId) {
   var t = ScriptApp.newTrigger(fn).timeBased().at(fecha).create();
