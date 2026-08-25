@@ -28,7 +28,7 @@ for (let t = 1; t <= 8; t++) {
   const img = items.filter(i => i.getType() === "IMAGE" && i.getTitle() === G.TEMAS[t][0])[0];
   if (t === 1) c(!!pb && !!img && items.indexOf(img) === items.indexOf(pb) + 1, "el orbe va justo debajo de su salto de página");
 }
-igual(G.imagenesBitacora_(fb), 0, "volver a llamarlo no duplica ninguna imagen (idempotente)");
+igual(G.imagenesBitacora_(fb), { puestos: 0, faltan: 0 }, "volver a llamarlo no duplica ninguna imagen (idempotente)");
 
 // ---------------------------------------------------------------- sin tiempo: se aplaza
 G = E.nuevoMundo();

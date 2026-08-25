@@ -156,6 +156,7 @@ class Archivo {
   setName(n) { this.nombre = n; return this; }
   getMimeType() { return this.mime; }
   getUrl() { return "https://drive.google.com/file/d/" + this.id; }
+  getBlob() { return this._blob || { getName: () => this.nombre, getContentType: () => this.mime, setName(n) { return this; } }; }
   getParents() { return iterador(this.carpeta ? [this.carpeta] : []); }
   moveTo(c) { if (this.carpeta) this.carpeta._quitar(this); this.carpeta = c; c._meter(this); return this; }
   setTrashed(b) { this.papelera = !!b; if (b && this.carpeta) this.carpeta._quitar(this); return this; }
@@ -176,6 +177,7 @@ class Carpeta {
   getFiles() { return iterador(this.archivos.filter(a => !a.papelera)); }
   getFilesByName(n) { return iterador(this.archivos.filter(a => !a.papelera && a.nombre === n)); }
   getFilesByType(m) { return iterador(this.archivos.filter(a => !a.papelera && a.mime === m)); }
+  createFile(blob) { const a = new Archivo("f_" + (++Drive._n), blob.getName ? blob.getName() : "archivo", blob.getContentType ? blob.getContentType() : "image/png", this); this.archivos.push(a); a._blob = blob; return a; }
   setTrashed(b) { this.papelera = !!b; if (b && this.padre) this.padre.hijos = this.padre.hijos.filter(c => c !== this); return this; }
   _meter(a) { if (this.archivos.indexOf(a) < 0) this.archivos.push(a); }
   _quitar(a) { this.archivos = this.archivos.filter(x => x !== a); }
@@ -322,11 +324,14 @@ const Html = {
   createHtmlOutputFromFile(n) { return Html.createHtmlOutput("<!-- " + n + " -->"); }
 };
 const Fetch = {
-  llamadas: [],
-  fetch(url) {
+  llamadas: [], codigo: 200,   // el banco puede simular una web caída (504) como la del 25-ago
+  fetch(url, opciones) {
     Fetch.llamadas.push(url);
-    return { getBlob: () => ({ getName: () => "blob", getContentType: () => "image/png", setName() { return this; } }),
-             getContentText: () => "", getResponseCode: () => 200 };
+    const cod = Fetch.codigo;
+    if (cod !== 200 && !(opciones && opciones.muteHttpExceptions))
+      throw new Error("Request failed for " + url + " returned code " + cod);
+    const blob = { _n: "blob", getName() { return this._n; }, getContentType: () => "image/png", setName(n) { this._n = n; return this; } };
+    return { getBlob: () => blob, getContentText: () => "", getResponseCode: () => cod };
   }
 };
 const Mimes = {

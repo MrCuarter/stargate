@@ -386,22 +386,47 @@ function imagen_(form, tema, texto) {
 // v3.13 - Pone el orbe de cada planeta justo debajo de su salto de pagina. Se llama DESPUES de
 // crear el PER (o desde la continuacion), nunca dentro del camino critico. Idempotente: si la
 // imagen ya esta, no la repite.
+// v3.14 - El orbe de cada planeta, guardado en Drive la primera vez. VISTO EN VIVO: la web devolvio
+// 504 y cada descarga tardaba 12 s en fallar; ocho de esas se comen la ejecucion entera. Con la copia
+// en Drive, a partir del segundo PER no se toca internet. Si el arte cambia, actualizarImagenesPlanetas
+// borra la copia y la vuelve a bajar.
+function orbeBlob_(tema) {
+  var nombre = "orbe_" + TEMAS[tema][2] + ".png";
+  var carpeta = null;
+  try { carpeta = carpetaPER_(); } catch (e) {}
+  if (carpeta) { var it = carpeta.getFilesByName(nombre); if (it.hasNext()) { try { return it.next().getBlob(); } catch (e2) {} } }
+  var r = UrlFetchApp.fetch(WEB + "assets/img/planetas/" + TEMAS[tema][2] + ".png", { muteHttpExceptions: true });
+  if (r.getResponseCode() !== 200) throw new Error("la web respondi\u00f3 " + r.getResponseCode());
+  var blob = r.getBlob().setName(nombre);
+  if (carpeta) { try { carpeta.createFile(blob); } catch (e3) {} }
+  return blob;
+}
+function borrarOrbesCache_() {
+  var n = 0;
+  try { var carpeta = carpetaPER_();
+    for (var t = 1; t <= 8; t++) { var it = carpeta.getFilesByName("orbe_" + TEMAS[t][2] + ".png");
+      while (it.hasNext()) { try { it.next().setTrashed(true); n++; } catch (e) {} } } } catch (e2) {}
+  return n;
+}
+// Coloca el orbe justo debajo de su salto de pagina. Idempotente. Devuelve cuantos faltan por poner:
+// si la web no responde se para a las 2 seguidas (no tiene sentido esperar 8 veces 12 segundos) y deja
+// el resto pendiente para la continuacion.
 function imagenesBitacora_(fb) {
   var puestas = {};
   fb.getItems(FormApp.ItemType.IMAGE).forEach(function(i){ puestas[i.getTitle()] = true; });
-  var n = 0;
+  var n = 0, faltan = 0, seguidos = 0;
   for (var t = 1; t <= 8; t++) {
     if (puestas[TEMAS[t][0]]) continue;
     var pb = fb.getItems(FormApp.ItemType.PAGE_BREAK).filter(function(p){ return p.getTitle().indexOf("Tema " + t + " ") === 0; })[0];
     if (!pb) continue;
+    if (seguidos >= 2) { faltan++; continue; }        // la web esta caida: no insistas ocho veces
     try {
-      var blob = UrlFetchApp.fetch(WEB + "assets/img/planetas/" + TEMAS[t][2] + ".png").getBlob();
-      var it = fb.addImageItem().setImage(blob).setTitle(TEMAS[t][0]).setAlignment(FormApp.Alignment.CENTER).setWidth(160);
-      fb.moveItem(it.getIndex(), pb.getIndex() + 1);
-      n++;
-    } catch (e) { Logger.log("imagenesBitacora_ tema " + t + ": " + e); }
+      var it2 = fb.addImageItem().setImage(orbeBlob_(t)).setTitle(TEMAS[t][0]).setAlignment(FormApp.Alignment.CENTER).setWidth(160);
+      fb.moveItem(it2.getIndex(), pb.getIndex() + 1);
+      n++; seguidos = 0;
+    } catch (e) { Logger.log("imagenesBitacora_ tema " + t + ": " + e); faltan++; seguidos++; }
   }
-  return n;
+  return { puestos: n, faltan: faltan };
 }
 function publicar_(form) { try { if (form.setPublished) form.setPublished(true); } catch (e) { Logger.log("setPublished: " + e); } }
 function publicarFormulariosPER() {
@@ -592,7 +617,7 @@ function crearPER(datos) {
   // dejando el PER a medias. Si no da tiempo, se aparta y lo termina la continuacion dentro de un
   // minuto - sin que el profesorado tenga que hacer nada.
   var pend = { per: id, imagenes: true, doc: true, dossier: true };
-  if (_t.sobra(60000)) { try { imagenesBitacora_(fb); pend.imagenes = false; _t.hito("orbes de los planetas"); }
+  if (_t.sobra(60000)) { try { var _im = imagenesBitacora_(fb); pend.imagenes = _im.faltan > 0; _t.hito("orbes de los planetas (" + _im.puestos + " puestos, " + _im.faltan + " pendientes)"); }
                          catch (e) { Logger.log("imagenesBitacora_: " + e); } }
   var docUrl = "";
   if (_t.sobra(45000)) { try { docUrl = crearDocumentoPER_(id); pend.doc = false; _t.hito("documento de enlaces"); }
@@ -1142,8 +1167,9 @@ function actualizarImagenesPlanetas() {
       "Vuelve a descargar de la web el orbe de cada planeta y lo sustituye en la Bit\u00e1cora de mando de todos los PER. \u00dasalo cuando cambie el arte de un planeta.\n\n\u00bfContinuar?",
       ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
   var blobs = {}, cambiadas = 0, pers = 0, fallos = [];
+  borrarOrbesCache_();   // v3.14 - si el arte ha cambiado, la copia de Drive ya no vale
   for (var t = 1; t <= 8; t++) {
-    try { blobs[TEMAS[t][0]] = UrlFetchApp.fetch(WEB + "assets/img/planetas/" + TEMAS[t][2] + ".png?v=" + new Date().getTime()).getBlob(); }
+    try { blobs[TEMAS[t][0]] = orbeBlob_(t); }
     catch (e) { fallos.push("Descargando " + TEMAS[t][0] + ": " + e.message); }
   }
   hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
@@ -1332,7 +1358,7 @@ function continuarAltaPER() {
   if (!p) { guardarProgreso_("alta", null); cancelarContinuacion_("continuarAltaPER"); return; }  // lo borraron
   var o = perObj_(p.v), t = reloj_();
   if (pr.imagenes) {
-    try { var fb = formDelPER_(o, "B"); if (fb) { imagenesBitacora_(fb); pr.imagenes = false; } }
+    try { var fb = formDelPER_(o, "B"); if (fb) { var im = imagenesBitacora_(fb); pr.imagenes = im.faltan > 0; } }
     catch (e) { Logger.log("continuarAltaPER imagenes: " + e); }
     t.marcar();
   }
@@ -1411,7 +1437,17 @@ function guardarCorreoAvisos() {
 
 // ================= TRIGGERS =================
 function asegurarTriggers_() {
-  var fns = ScriptApp.getProjectTriggers().map(function(t){ return t.getHandlerFunction(); });
+  // v3.14 - VISTO EN VIVO: habia DOS triggers alRecibirRespuesta y cada envio se procesaba dos veces
+  // (dos ejecuciones, dos correos posibles, el doble de trabajo). Comprobar "existe al menos uno" no
+  // basta: hay que dejar EXACTAMENTE uno de cada.
+  var vistos = {};
+  ScriptApp.getProjectTriggers().forEach(function(t){
+    var fn = t.getHandlerFunction();
+    if (fn !== "alRecibirRespuesta" && fn !== "fotoNocturna") return;
+    if (vistos[fn]) { try { ScriptApp.deleteTrigger(t); Logger.log("trigger duplicado eliminado: " + fn); } catch (e) {} }
+    else vistos[fn] = true;
+  });
+  var fns = Object.keys(vistos);
   if (fns.indexOf("alRecibirRespuesta") < 0)
     ScriptApp.newTrigger("alRecibirRespuesta").forSpreadsheet(SpreadsheetApp.getActive()).onFormSubmit().create();
   // La foto (DATOS/RESUMEN y la Consola) se rehace de madrugada, no en cada envio: recorrer todos los
@@ -1492,7 +1528,19 @@ function alRecibirRespuesta(e) {
     // OJO: aqui NO se llama a consolidarDatos(). Recorre todos los PER y recalcula sus tableros;
     // con varios grupos eso multiplicaba el trabajo en cada clic de cada alumno. DATOS/RESUMEN y la
     // Consola son una foto para el profesorado: se rehacen de madrugada (fotoNocturna) o desde el menu.
-  } catch (err) { Logger.log(err); }
+  } catch (err) {
+    Logger.log(err);
+    // v3.14 - el registro de Cloud no siempre esta disponible (proyecto GCP "Predeterminado"), y un
+    // fallo aqui es INVISIBLE: la ejecucion sale "Completada" y el alumno se queda sin respuesta.
+    // La traza va tambien a AJUSTES, que si se puede mirar desde la hoja y desde la Consola.
+    try {
+      var shE = e && e.range ? e.range.getSheet().getName() : "(sin rango)";
+      var fiE = e && e.range ? e.range.getRow() : 0;
+      hoja_(H.AJ).appendRow([new Date(), shE.length > 4 ? shE.substring(4) : "", "", "ERROR",
+        shE.indexOf("C \u00b7 ") === 0 ? "canje" : "bitacora",
+        "fila " + fiE + ": " + (err && err.message ? err.message : String(err)), "sistema"]);
+    } catch (e3) {}
+  }
   finally { if (conLock) { try { lock.releaseLock(); } catch (e2) {} } }
 }
 // Cuantas veces se le ha CONCEDIDO ya a este correo esta misma recompensa (sin contar la fila que
@@ -1676,12 +1724,22 @@ function resolverCanje_(o, sh, fila) {
   else {
     estado = "Concedido";
     cuerpo = "Concedido: " + rec + ". Te quedan " + (disp - coste) + " cr\u00e9ditos. Importante: esta recompensa se har\u00e1 efectiva al terminar las clases en directo; el profesorado la aplicar\u00e1 entonces.";
-    avisarDocente_(o, al, rec, String(r["Actividad a la que se aplica"] || ""));
   }
   var ok = estado === "Concedido";
+  //  v3.14 - EL ESTADO SE ESCRIBE LO PRIMERO. Es lo que cobra los creditos y lo que lee el tablero:
+  // si se escribiera despues de los correos, cualquier fallo mandando un aviso dejaria el canje SIN
+  // resolver -ni concedido ni denegado- y el alumno sin respuesta. Paso en la prueba en vivo del
+  // 25-ago: el trigger termino "completada" y la columna Estado se quedo sin escribir.
   sh.getRange(fila, col).setValue(estado);
+  SpreadsheetApp.flush();
+  // Y solo entonces los efectos secundarios, cada uno con su red.
+  if (ok && ficha && ficha.tipo === "nota") {
+    try { avisarDocente_(o, al, rec, String(r["Actividad a la que se aplica"] || "")); }
+    catch (e) { Logger.log("avisarDocente_: " + e); }
+  }
   try { MailApp.sendEmail(email, "STARGATE \u00b7 Canje " + (ok ? "concedido" : "denegado"),
-    cuerpo + "\n\nTablero: " + WEB + "registro.html?per=" + o.id + "\nTu nave: " + WEB + "recluta.html?per=" + o.id); } catch (e) {}
+    cuerpo + "\n\nTablero: " + WEB + "registro.html?per=" + o.id + "\nTu nave: " + WEB + "recluta.html?per=" + o.id); }
+  catch (e) { Logger.log("correo al recluta: " + e); }
 }
 
 // ================= TABLERO =================
