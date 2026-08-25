@@ -1,0 +1,1476 @@
+/**
+ * STARGATE - Mando de PERs - Apps Script de la hoja maestra (cuenta mutecdgami@gmail.com)  v3 - 24-ago-2026
+ * Menu STARGATE: crear PER (REGULAR o PUA) con 3 formularios por plantilla (Bitacora de mando, Ticket de
+ * salida anonimo, Canje de recompensas), apertura/cierre programados, EVENTOS/DATOS/RESUMEN para investigacion,
+ * API de lectura (doGet) para la web del alumnado y API con PIN (doPost) para el panel del profesorado.
+ * v3: La Nave del Recluta (recluta.html?per=id) - recompensas con semana de desbloqueo - canjes de avatar
+ * automaticos ("Cambio de avatar" y "Avatar personal") - el avatar inicial se congela al alistarse y solo
+ * v3.12: arreglos salidos del banco de pruebas - (1) una recompensa que ya no esta en el catalogo
+ * se DENIEGA en vez de cobrarse y avisar al docente como si fuera de nota; (2) la ficha de la
+ * recompensa se busca por etiqueta EXACTA (antes "X premium" se resolvia como "X": otro tope y
+ * otro efecto); (3) hoja_() sin cabecera ya no revienta; (4) el dialogo de restaurar el catalogo
+ * muestra los precios reales en creditos, generados de RECOMPENSAS_INICIALES.
+ * v3.11.1: el rol del docente es COMBINABLE - "referente", "imparte" o "referente+imparte": el
+ * referente que ademas da clase se marca con las dos casillas, sin repetir su nombre. El desplegable
+ * que ve el alumnado solo ofrece a quien IMPARTE. Equipo editable desde profes.html -> Ajustes.
+ * v3.11: EQUIPO DOCENTE con correo (pestana DOCENTES), cada alumno declara su docente en la Bitacora,
+ * aviso por correo SOLO cuando un canje requiere intervencion humana (notas), y clase.html: la sala
+ * del docente, bidireccional (accion "ficha" para corregir alias/nombre/docente/ePortfolio).
+ * v3.10: CONSOLA - segunda hoja de calculo "STARGATE - Consola del profesorado" (id en la propiedad
+ * CONSOLA_ID) con portada de todos los PER y una pestana por PER. Es una foto: menu o fotoNocturna
+ * (4:00). Y consolidarDatos() sale del camino caliente: recorria TODOS los PER en cada envio.
+ * v3.9: CERROJO en el trigger (LockService) para que dos envios simultaneos no se pisen al cobrar,
+ * y se respeta el "Max. por alumno" del catalogo: si ya llego al tope se DENIEGA sin cobrar y la
+ * Nave lo marca como "Ya la tienes" para que ni lo intente.
+ * v3.8: avatares SOLO evolutivos (fuera la galeria clasica), la URL de imagen propia deja de ser
+ * gratis (es la recompensa "Avatar personal") y la BITACORA DE MANDO va por SECCIONES: la pagina 1
+ * es la identidad y termina con un selector que salta directo al tema; cada seccion envia. Seguro
+ * porque registrarEventos_ es append-only y las insignias viven en EVENTOS, no en la respuesta.
+ * v3.7: DOS MONEDAS - los XP solo suben (nivel 1-10 y evolucion del avatar) y los CREDITOS son lo unico
+ * que se gasta al canjear. NIVELES/CREDITOS/RECOMPENSAS los genera _build_site.py desde _site_data.py.
+ * v3.4: 7 personajes evolutivos x 5 rangos (nuevo rango LEYENDA) - la web calcula el rango;
+ * aqui solo cambian las opciones del formulario (opcAvatares_).
+ * v3.6: ALBUM DE 20 CROMOS en 4 series (Tripulacion Cero - Los Ecos - La Nave - La Sombra), con
+ * rarezas comun/rara/epica/LEGENDARIA. El bloque CROMOS lo GENERA web-stargate/_build_site.py
+ * desde _site_data.py: no editarlo a mano aqui.
+ * v3.5: ECONOMIA DE RECOMPENSAS AUTOMATICAS - personajes 5-7 EXCLUSIVOS (solo por canje), galeria
+ * clasica retirada de los formularios nuevos (compatibilidad intacta), SOBRE DE CROMOS aleatorio con
+ * rarezas (Vaeon legendario), titulo bajo el alias, marco dorado del avatar, fondo de ficha con tu
+ * planeta, y CORONA SEMANAL automatica al que mas xp gano en 7 dias. Todo sin intervencion docente.
+ * cambia mediante canje concedido - identificacion del recluta por correo (doPost accion=quien, sin PIN,
+ * devuelve solo SU ficha publica + bio) - BIO del personaje en la Bitacora de mando - panel de control
+ * Genially por PER (estandar compartido en propiedades + override por PER desde el panel de profes).
+ * v3.2: ciclo de vida del PER - archivar (oculta pestanas y lo saca de los listados del alumnado, conserva
+ * los datos), borrar (formularios a la papelera + pestanas + registros) y resetear la hoja entera;
+ * restaurar el catalogo oficial de recompensas.
+ * v3.2.1: los formularios se resuelven SIEMPRE por su pestana vinculada (getFormUrl da la URL de edicion).
+ * Antes el de canje se abria con su URL publica y openByUrl fallaba en silencio: no se cerraba, no se le
+ * actualizaban las recompensas y al borrar el PER se quedaba huerfano en Drive. Se guarda ademas su URL de
+ * edicion (col 23) y hay un limpiador de formularios huerfanos.
+ * v3.2.2: crear un PER ya no falla si quedaron restos de otro con el mismo nombre ("Ya existe una hoja
+ * B - id"): las pestanas huerfanas se apartan solas y el limpiador de mantenimiento las borra.
+ * v3.2.3: CAUSA RAIZ de las pestanas zombis - Sheets no deja borrar una hoja vinculada a un formulario.
+ * borrarHoja_() desvincula primero (removeDestination) y luego borra; los errores ya no se tragan.
+ * v3.3: cada PER tiene su PROPIA CARPETA dentro de "Formularios PER" (sus 3 formularios y su documento
+ * de enlaces viven ahi); menu para reorganizar los PER antiguos; el documento de enlaces se expone en la
+ * web (panel del profesorado y generador de embeds) y va destacado al crear el PER.
+ */
+
+// ================= CATALOGO =================
+// [id, etiqueta de la casilla, insignias, xp, tema]
+var RETOS_REGULAR = [
+  ["A1","Reto A \u00abEl boceto sin quemar\u00bb (recupera a Bran)",["P1_bran"],100,1],
+  ["B1","Reto B \u00abLa chispa\u00bb (imagen con IA)",["R1_la-chispa"],250,1],
+  ["X1","Actividad 1 entregada (imagen con IA)",["H2_primera-forja","E2_capitan"],500,1],
+  ["A2","Reto A \u00abUn mensaje para quien falt\u00f3\u00bb (recupera a Tom\u00e1s)",["P2_tomas"],100,2],
+  ["B2","Reto B \u00abEl eco que ense\u00f1a\u00bb (videotutorial + videoquiz)",["R2_el-eco-que-ensena"],250,2],
+  ["A3","Reto A \u00abDos senderos\u00bb (recupera a Sylla)",["P3_sylla"],100,3],
+  ["B3","Reto B \u00abLa matriz\u00bb (matriz 8\u00d76)",["R3_la-matriz"],250,3],
+  ["X2","Actividad 2 entregada (paisaje de aprendizaje)",["H3_cartografo"],500,3],
+  ["A4","Reto A \u00abAbre el canal\u00bb (recupera a Amara)",["P4_amara"],100,4],
+  ["B4","Reto B \u00abEl entorno de aula\u00bb",["R4_entorno-de-aula"],250,4],
+  ["A5","Reto A \u00abMide con m\u00e9todo\u00bb (recupera a Vera)",["P5_vera"],100,5],
+  ["B5","Reto B \u00abLa Bit\u00e1cora medida\u00bb (r\u00fabrica + ePortfolio)",["R5_bitacora-medida"],250,5],
+  ["A6","Reto A \u00abEnsaya jugando\u00bb (recupera a Joran)",["P6_joran"],100,6],
+  ["B6","Reto B \u00abEl juego\u00bb (juego digital)",["R6_el-juego"],250,6],
+  ["A7","Reto A \u00abUn porqu\u00e9\u00bb (recupera a Mara)",["P7_mara"],100,7],
+  ["B7","Reto B \u00abLa microgamificaci\u00f3n\u00bb",["R7_microgamificacion"],250,7],
+  ["A8","Reto A \u00abLa capa posible\u00bb (recupera a Noa)",["P8_noa"],100,8],
+  ["B8","Reto B \u00abEl \u00faltimo umbral\u00bb (RA/RV + Bit\u00e1cora publicada)",["R8_ultimo-umbral"],250,8],
+  ["XF","Batalla final: examen realizado",["E3_vaeon"],500,9]
+];
+// PUA: una insignia por tema (el personaje), ganada con la pieza productiva del tema
+var RETOS_PUA = [
+  ["B1","La chispa: imagen con IA (recupera a Bran)",["P1_bran","R1_la-chispa"],300,1],
+  ["X1","Actividad 1 entregada",["H2_primera-forja","E2_capitan"],500,1],
+  ["B2","El eco que ense\u00f1a: videotutorial (recupera a Tom\u00e1s)",["P2_tomas","R2_el-eco-que-ensena"],300,2],
+  ["B3","La matriz 8\u00d76 (recupera a Sylla)",["P3_sylla","R3_la-matriz"],300,3],
+  ["X2","Actividad 2 entregada",["H3_cartografo"],500,3],
+  ["B4","El entorno de aula (recupera a Amara)",["P4_amara","R4_entorno-de-aula"],300,4],
+  ["B5","La Bit\u00e1cora medida (recupera a Vera)",["P5_vera","R5_bitacora-medida"],300,5],
+  ["B6","El juego digital (recupera a Joran)",["P6_joran","R6_el-juego"],300,6],
+  ["B7","La microgamificaci\u00f3n (recupera a Mara)",["P7_mara","R7_microgamificacion"],300,7],
+  ["B8","El \u00faltimo umbral: RA/RV + Bit\u00e1cora publicada (recupera a Noa)",["P8_noa","R8_ultimo-umbral"],300,8]
+];
+var XP_RECLUTAMIENTO = 100;
+var DERIVADAS = [   // [insignia, xp, requisitos] - los creditos salen de CREDITOS.derivada
+  ["H4_tripulacion-cero",300,["P1_bran","P2_tomas","P3_sylla","P4_amara","P5_vera","P6_joran","P7_mara","P8_noa"]],
+  ["H5_la-liberacion",300,["R8_ultimo-umbral","H2_primera-forja","H3_cartografo"]]
+];
+var TEMAS = [null,
+  ["F\u00f4rge","Creaci\u00f3n de contenido multimedia","p1_forge"],["Ecos","El v\u00eddeo como recurso","p2_ecos"],
+  ["Sendara","Contenidos interactivos","p3_sendara"],["Reliae","M-learning","p4_reliae"],
+  ["Umbral","Evaluaci\u00f3n y ePortfolio","p5_umbral"],["Ludo","Aprendizaje Basado en el Juego","p6_ludo"],
+  ["V\u00ednculo","Gamificaci\u00f3n","p7_vinculo"],["Liminar","Realidad Aumentada y Virtual","p8_liminar"]];
+var WEB = "https://stargate.mistercuarter.es/";
+// NIVELES-INICIO - dos monedas: los XP SOLO SUBEN (dan nivel y evolucion del avatar) y los
+// CREDITOS son lo unico que se gasta. Lo genera web-stargate/_build_site.py desde _site_data.py.
+var MONEDA = "\u25c8";
+var RANGOS = ["Recluta", "Cadete", "Oficial", "Comandante", "Leyenda"];
+var NIVELES = [   // [nivel, xp REGULAR, rango de arte 1-5, titulo]
+  [1,0,1,"Recluta raso"],
+  [2,300,1,"Recluta de guardia"],
+  [3,700,2,"Cadete"],
+  [4,1150,2,"Cadete de vuelo"],
+  [5,1650,3,"Oficial"],
+  [6,2200,3,"Oficial de puente"],
+  [7,2800,3,"Oficial mayor"],
+  [8,3450,4,"Comandante"],
+  [9,4150,4,"Comandante de flota"],
+  [10,5000,5,"Leyenda de la Cero"]
+];
+var XP_VIAJE = {"REGULAR": 5000, "PUA": 4100};
+var CREDITOS = {"reclutamiento": 10, "retoA": 10, "retoB": 30, "retoB_pua": 35, "actividad": 60, "final": 60, "derivada": 40};
+// NIVELES-FIN
+// RECOMPENSAS-INICIO - [nombre, coste en creditos, max por alumno, descripcion, desde (semana
+// REGULAR; en PUA se escala), tipo]. Generado desde _site_data.py: no editar a mano.
+var RECOMPENSAS_INICIALES = [
+  ["Sobre de cromos",15,99,"Una carta al azar de las 20 del \u00e1lbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capit\u00e1n, raros; el Recluta y la Est\u00e1tica, \u00e9picos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. Se abre solo y tu \u00e1lbum est\u00e1 en la Nave.",2,"cromo"],
+  ["T\u00edtulo de recluta",25,3,"Un t\u00edtulo narrativo bajo tu alias en el tablero y la Nave (el\u00edgelo en el formulario). Se aplica solo.",3,"titulo"],
+  ["Fondo de ficha: tu planeta",20,1,"Tu ficha de la Nave con el planeta que elijas de fondo (ind\u00edcalo en el formulario). Se aplica solo.",4,"fondo"],
+  ["Cambio de avatar",35,3,"Elige otro personaje inicial (1-4) o vuelve a uno (ind\u00edcalo en el propio formulario de canje). Se aplica solo.",5,"avatar"],
+  ["Marco dorado del avatar",35,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.",6,"marco"],
+  ["Personaje exclusivo",60,3,"Desbloquea y ponte uno de los personajes exclusivos 5-7 (ind\u00edcalo en el formulario). Se aplica solo.",7,"avatar_exclusivo"],
+  ["Avatar personal (tu propia imagen)",90,1,"Pon tu propia imagen como avatar. Al alistarte esto NO se ofrece: es una recompensa. Sube la foto a postimages.org (sin registrarte), copia el \u00abEnlace directo\u00bb (acaba en .jpg o .png) y p\u00e9galo en este formulario. Tambi\u00e9n vale un enlace de Google Drive compartido con \u00abcualquier persona con el enlace\u00bb. Se aplica solo.",10,"avatar_url"],
+  ["Subir 0,5 en un entregable",110,1,"Se aplica a la actividad que elijas",14,"nota"],
+  ["Subir 1 punto en un entregable",170,1,"Se aplica a la actividad que elijas",14,"nota"],
+  ["Recalificar un trabajo entregado fuera de plazo",240,1,"Indica la actividad",14,"nota"],
+  ["Recalificar un suspenso",330,1,"Indica la actividad",14,"nota"]
+];
+// RECOMPENSAS-FIN
+
+// Nivel (1-10) y rango de arte (1-5) a partir de los xp. En PUA los umbrales se escalan por el
+// total del viaje, para que el camino se sienta igual de largo.
+function escalaXP_(tipo) { var r = XP_VIAJE.REGULAR || 1; return (XP_VIAJE[tipo] || r) / r; }
+function nivelDe_(xp, tipo) { var k = escalaXP_(tipo), n = 1;
+  for (var i = 0; i < NIVELES.length; i++) if (xp >= NIVELES[i][1] * k) n = NIVELES[i][0];
+  return n; }
+function nivelInfo_(xp, tipo) { var n = nivelDe_(xp, tipo), f = NIVELES[n-1], k = escalaXP_(tipo);
+  var sig = n < NIVELES.length ? Math.round(NIVELES[n][1] * k) : null;
+  return { nivel:n, rango:f[2], rangoNombre:RANGOS[f[2]-1], titulo:f[3], siguiente:sig,
+           faltan: sig === null ? 0 : Math.max(0, sig - xp) }; }
+// Creditos que da cada logro (el xp lo sigue fijando la tabla de retos de arriba)
+function creditosDe_(id, tipo) {
+  if (id === "H1") return CREDITOS.reclutamiento || 0;
+  var c = String(id).charAt(0);
+  if (id === "XF") return CREDITOS.final || 0;
+  if (c === "X") return CREDITOS.actividad || 0;
+  if (c === "A") return CREDITOS.retoA || 0;
+  if (c === "B") return (tipo === "PUA" ? CREDITOS.retoB_pua : CREDITOS.retoB) || 0;
+  return 0;
+}
+var H = { PERS:"PERs", REC:"RECOMPENSAS", EV:"EVENTOS", AJ:"AJUSTES", DATOS:"DATOS", RES:"RESUMEN", DOC:"DOCENTES" };
+// Personajes evolutivos: los 1-4 se eligen al alistarse; los 5-7 son EXCLUSIVOS (solo por canje)
+var AVATARES_INICIALES = 4;
+// CROMOS-INICIO - [clave de carta, nombre, peso, rareza, serie]. Los pesos suman 100.
+// Lo genera web-stargate/_build_site.py desde _site_data.py (CROMOS): NO editar a mano.
+var CROMOS = [
+  ["P1_bran","Bran Okafor",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
+  ["P2_tomas","Tom\u00e1s Reyer",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
+  ["P3_sylla","Sylla Bren",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
+  ["P4_amara","Amara Sol",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
+  ["P5_vera","Vera Khal",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
+  ["P6_joran","Joran Pike",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
+  ["P7_mara","Mara Voss",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
+  ["P8_noa","Noa Lieth",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
+  ["L1_lena","Lena Reyer",4,"rara","Serie II \u00b7 Los Ecos"],
+  ["L2_kel","Kel Bren",4,"rara","Serie II \u00b7 Los Ecos"],
+  ["L3_copistas","Los Copistas de F\u00f4rge",4,"rara","Serie II \u00b7 Los Ecos"],
+  ["L4_ilan","Ilan Kesh",4,"rara","Serie II \u00b7 Los Ecos"],
+  ["L5_ruta_azul","Los Ni\u00f1os de la Ruta Azul",4,"rara","Serie II \u00b7 Los Ecos"],
+  ["L6_oren","Oren Vash",4,"rara","Serie II \u00b7 Los Ecos"],
+  ["E1_nebula","NEBULA",5,"rara","Serie III \u00b7 La Nave"],
+  ["E2_capitan","El Capit\u00e1n",5,"rara","Serie III \u00b7 La Nave"],
+  ["N1_recluta","El Recluta",3,"\u00e9pica","Serie III \u00b7 La Nave"],
+  ["S2_estatica","La Est\u00e1tica",4,"\u00e9pica","Serie IV \u00b7 La Sombra"],
+  ["E3_vaeon","General Vaeon",2,"LEGENDARIA","Serie IV \u00b7 La Sombra"],
+  ["S1_ander","Ander Vaeon",1,"LEGENDARIA","Serie IV \u00b7 La Sombra"]
+];
+// CROMOS-FIN
+var TITULOS = ["Cart\u00f3grafo/a estelar","Guardi\u00e1n/a de la Bit\u00e1cora","Voz de NEBULA","Rompe-Est\u00e1tica",
+  "Piloto de la Cero","Archivista estelar","Forjador/a de mundos","Centinela de Liminar",
+  "Coraz\u00f3n de la tripulaci\u00f3n","Cazador/a de constelaciones"];
+
+function retosDe_(tipo){ return tipo === "PUA" ? RETOS_PUA : RETOS_REGULAR; }
+function opcAvatares_(desde, hasta) {
+  var opc = []; for (var pj = desde; pj <= hasta; pj++) { var et = pj !== 5 ? ["ella","\u00e9l"] : ["modelo A","modelo B"];
+    opc.push("Personaje " + pj + " \u00b7 " + et[0] + " (evoluciona)"); opc.push("Personaje " + pj + " \u00b7 " + et[1] + " (evoluciona)"); }
+  return opc;
+}
+function opcIniciales_() { return opcAvatares_(1, AVATARES_INICIALES); }
+function opcExclusivos_() { return opcAvatares_(AVATARES_INICIALES + 1, 7); }
+
+// ================= MENU Y HOJAS =================
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu("STARGATE")
+    .addItem("Crear nuevo PER...", "abrirDialogoNuevoPER")
+    .addItem("Publicar y abrir formularios del PER seleccionado", "publicarFormulariosPER")
+    .addItem("Documento de enlaces y embeds del PER seleccionado", "documentoPERSeleccionado")
+    .addItem("Actualizar formularios (recompensas, avatar, bio)", "actualizarRecompensas")
+    .addItem("Guardar panel de control est\u00e1ndar (Genially)", "guardarPanelEstandar")
+    .addItem("Abrir la Consola del profesorado (y ponerla al d\u00eda)", "abrirConsola")
+    .addItem("Consolidar DATOS / RESUMEN (investigaci\u00f3n)", "consolidarDatos")
+    .addSeparator()
+    .addSubMenu(SpreadsheetApp.getUi().createMenu("Ciclo de vida del PER (fila seleccionada)")
+      .addItem("Archivar / desarchivar PER", "archivarPERSeleccionado")
+      .addItem("Borrar PER (con sus formularios y datos)", "borrarPERSeleccionado"))
+    .addSubMenu(SpreadsheetApp.getUi().createMenu("Mantenimiento")
+      .addItem("Restaurar cat\u00e1logo oficial de recompensas", "restaurarRecompensas")
+      .addItem("Organizar los formularios en carpetas por PER", "organizarCarpetasPER")
+      .addItem("Limpiar restos de PER borrados (formularios y pesta\u00f1as)", "limpiarRestos")
+      .addItem("Actualizar im\u00e1genes de los planetas en los formularios", "actualizarImagenesPlanetas")
+      .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
+    .addSeparator()
+    .addItem("Cambiar PIN del profesorado", "cambiarPin")
+    .addItem("Guardar URL del web app", "pedirWebAppUrl")
+    .addToUi();
+  asegurarHojas_();
+}
+function hoja_(nombre, cab, color) {
+  var ss = SpreadsheetApp.getActive(); var sh = ss.getSheetByName(nombre);
+  // v3.12 - si alguien pide una hoja sin darle cabecera y aun no existe, se crea vacia en vez de
+  // reventar con appendRow(undefined) - pasaba si una llamada de la API llegaba antes de asegurarHojas_().
+  if (!sh) { sh = ss.insertSheet(nombre); if (cab && cab.length) { sh.appendRow(cab); sh.setFrozenRows(1); } if (color) sh.setTabColor(color); }
+  return sh;
+}
+function asegurarHojas_() {
+  hoja_(H.PERS, ["id","PER","Tipo","Profesorado","Inicio (semana 1)","Apertura","Cierre","Estado",
+                 "Bit\u00e1cora (alumnado)","Bit\u00e1cora (editar)","Ticket (alumnado)","Canje (alumnado)","Pesta\u00f1a B","Pesta\u00f1a T","Pesta\u00f1a C","Creado","Referente","Ticket (editar)"], "#37e0ec");
+  var rec = hoja_(H.REC, ["Recompensa","Coste (cr\u00e9ditos)","M\u00e1x. por alumno","Descripci\u00f3n","Disponible desde (semana)","Tipo"], "#f5b043");
+  if (rec.getLastRow() < 2) rec.getRange(2,1,RECOMPENSAS_INICIALES.length,6).setValues(RECOMPENSAS_INICIALES);
+  else migrarRecompensas_(rec);
+  hoja_(H.EV, ["fecha","per","email","alias","reto_id","reto","tema","xp","origen"], "#aa66cc");
+  hoja_(H.AJ, ["fecha","per","email","reto_id","accion","motivo","profe"], "#aa66cc");
+  // v3.11 - equipo docente CON CORREO: es a quien se avisa cuando un canje pide su intervencion,
+  // y lo que permite filtrar cada grupo por docente. Se puede editar a mano en esta pestana.
+  // rol: "referente", "imparte" o "referente+imparte" (el referente puede dar clase tambien)
+  hoja_(H.DOC, ["per","nombre","correo","rol"], "#0e7f8c");
+  var pers = hoja_(H.PERS);
+  if (String(pers.getRange(1,20).getValue()||"") !== "Panel Genially (ver)")
+    pers.getRange(1,19,1,4).setValues([["Documento de enlaces","Panel Genially (ver)","Panel Genially (editar)","Archivado"]]);
+  if (String(pers.getRange(1,22).getValue()||"") !== "Archivado") pers.getRange(1,22).setValue("Archivado");
+  if (String(pers.getRange(1,23).getValue()||"") !== "Canje (editar)") pers.getRange(1,23).setValue("Canje (editar)");
+}
+// panel de control Genially estandar (compartido por todos los PER salvo override en su fila)
+function panelStd_() { var pr = PropertiesService.getScriptProperties();
+  return { ver: pr.getProperty("PANEL_STD_VER") || "", editar: pr.getProperty("PANEL_STD_EDIT") || "" }; }
+function guardarPanelEstandar() {
+  var ui = SpreadsheetApp.getUi(); var pr = PropertiesService.getScriptProperties();
+  var r1 = ui.prompt("Panel de control est\u00e1ndar", "Enlace de VISUALIZACI\u00d3N del Genially (view.genially.com/\u2026):", ui.ButtonSet.OK_CANCEL);
+  if (r1.getSelectedButton() !== ui.Button.OK) return; pr.setProperty("PANEL_STD_VER", r1.getResponseText().trim());
+  var r2 = ui.prompt("Panel de control est\u00e1ndar", "Enlace de EDICI\u00d3N del Genially (app.genially.com/editor/\u2026):", ui.ButtonSet.OK_CANCEL);
+  if (r2.getSelectedButton() === ui.Button.OK) pr.setProperty("PANEL_STD_EDIT", r2.getResponseText().trim());
+  ui.alert("Guardado. Los PER sin enlaces propios usar\u00e1n estos.");
+}
+// v3: anade las columnas "Disponible desde" y "Tipo" a una hoja RECOMPENSAS anterior y las recompensas de avatar
+function migrarRecompensas_(rec) {
+  if (String(rec.getRange(1,5).getValue()||"") !== "Disponible desde (semana)")
+    rec.getRange(1,5,1,2).setValues([["Disponible desde (semana)","Tipo"]]);
+  var d = rec.getDataRange().getValues();
+  for (var i = 1; i < d.length; i++) { if (!d[i][0]) continue;
+    if (!d[i][4]) rec.getRange(i+1,5).setValue(14);
+    if (!d[i][5]) rec.getRange(i+1,6).setValue("nota"); }
+  var nombres = d.slice(1).map(function(r){ return String(r[0]); });
+  RECOMPENSAS_INICIALES.forEach(function(r){ if (String(r[5]).indexOf("avatar") === 0 && nombres.indexOf(r[0]) < 0) rec.appendRow(r); });
+}
+function recompensasCat_() {
+  return hoja_(H.REC).getDataRange().getValues().slice(1).filter(function(r){ return r[0]; })
+    .map(function(r){ return { nombre:String(r[0]), coste:Number(r[1])||0, max:Number(r[2])||1, desc:String(r[3]||""), desde:Number(r[4])||14, tipo:String(r[5]||"nota") }; });
+}
+function semanaDe_(o) { if (!o.inicio) return null; var ini = new Date(o.inicio + "T00:00:00"); var hoy = new Date(); hoy.setHours(0,0,0,0);
+  return Math.floor((hoy - ini) / (7 * 864e5)) + 1; }
+function desdeEfectiva_(desde, tipo) { desde = Number(desde) || 0; if (!desde) return 0;
+  return tipo === "PUA" ? Math.max(1, Math.round(desde * 8 / 15)) : desde; }
+// Carpeta donde viven los formularios de los PER
+function carpetaPER_() {
+  var ss = SpreadsheetApp.getActive(); var padres = DriveApp.getFileById(ss.getId()).getParents();
+  var raiz = padres.hasNext() ? padres.next() : DriveApp.getRootFolder();
+  var subs = raiz.getFoldersByName("Formularios PER");
+  return subs.hasNext() ? subs.next() : raiz;
+}
+// Carpeta propia de cada PER dentro de "Formularios PER": ahi viven sus 3 formularios y su documento.
+function carpetaDelPER_(nombre, crear) {
+  var raiz = carpetaPER_(); var it = raiz.getFoldersByName(nombre);
+  if (it.hasNext()) return it.next();
+  return crear ? raiz.createFolder(nombre) : raiz;
+}
+// Devuelve el Form EDITABLE de un PER ("B"Bitacora - "T"Ticket - "C"Canje).
+// Prioridad: URL de edicion guardada -> pestana vinculada (getFormUrl siempre da la de edicion).
+// Nunca uses la URL publicada con openByUrl: lanza excepcion.
+function formDelPER_(o, cual) {
+  var url = cual === "B" ? o.formBitacoraEdit : cual === "T" ? o.formTicketEdit : o.formCanjeEdit;
+  if (url) { try { return FormApp.openByUrl(String(url)); } catch (e) {} }
+  var tab = cual === "B" ? o.tabB : cual === "T" ? o.tabT : o.tabC;
+  try { var sh = SpreadsheetApp.getActive().getSheetByName(tab);
+        if (sh) { var fu = sh.getFormUrl(); if (fu) return FormApp.openByUrl(fu); } } catch (e) {}
+  return null;
+}
+function formsDelPER_(o) {
+  return ["B","T","C"].map(function(c){ return formDelPER_(o, c); }).filter(function(f){ return !!f; });
+}
+function perFila_(perId) {
+  var d = hoja_(H.PERS).getDataRange().getValues();
+  for (var i = 1; i < d.length; i++) if (d[i][0] === perId) return { fila: i + 1, v: d[i] };
+  return null;
+}
+function perObj_(v) {
+  return { id:v[0], nombre:v[1], tipo:v[2]||"REGULAR", profesorado:v[3], inicio:fechaIso_(v[4]), apertura:fechaIso_(v[5]), cierre:fechaIso_(v[6]),
+           estado:v[7], formBitacora:v[8], formBitacoraEdit:v[9], formTicket:v[10], formCanje:v[11], tabB:v[12], tabT:v[13], tabC:v[14], referente:v[16]||"", formTicketEdit:v[17]||"",
+           doc:String(v[18]||""), panelVer:String(v[19]||""), panelEdit:String(v[20]||""), archivado: v[21] ? fechaIso_(v[21]) : "",
+           formCanjeEdit:String(v[22]||"") };
+}
+function fechaIso_(d) { if (!d) return ""; if (d instanceof Date) return Utilities.formatDate(d, "Europe/Madrid", "yyyy-MM-dd"); return String(d); }
+
+// ================= CREAR PER =================
+function abrirDialogoNuevoPER() {
+  var html = HtmlService.createHtmlOutputFromFile("Dialog").setWidth(540).setHeight(680);
+  SpreadsheetApp.getUi().showModalDialog(html, "Crear nuevo PER");
+}
+function plantilla_(nombre) {
+  var it = DriveApp.getFilesByName(nombre);
+  while (it.hasNext()) { var f = it.next(); if (f.getMimeType() === MimeType.GOOGLE_FORMS) return f; }
+  return null;
+}
+function formDesdePlantilla_(plantillaNombre, titulo, carpeta) {
+  var pl = plantilla_(plantillaNombre); var form;
+  if (pl) { var copia = pl.makeCopy(titulo, carpeta); form = FormApp.openById(copia.getId());
+            form.getItems().forEach(function(i){ form.deleteItem(i); }); }
+  else { form = FormApp.create(titulo); DriveApp.getFileById(form.getId()).moveTo(carpeta); }
+  form.setTitle(titulo);
+  return form;
+}
+function imagen_(form, tema, texto) {
+  try { var blob = UrlFetchApp.fetch(WEB + "assets/img/planetas/" + TEMAS[tema][2] + ".png").getBlob();
+        form.addImageItem().setImage(blob).setTitle(texto).setAlignment(FormApp.Alignment.CENTER).setWidth(160); } catch (e) {}
+}
+function publicar_(form) { try { if (form.setPublished) form.setPublished(true); } catch (e) { Logger.log("setPublished: " + e); } }
+function publicarFormulariosPER() {
+  var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
+  if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) { SpreadsheetApp.getUi().alert("Selecciona una fila de la pesta\u00f1a PERs."); return; }
+  var o = perObj_(sh.getRange(fila, 1, 1, 23).getValues()[0]); var n = 0;
+  formsDelPER_(o).forEach(function(f){ try { publicar_(f); f.setAcceptingResponses(true); n++; } catch (e) {} });
+  sh.getRange(fila, 8).setValue("Abierto");
+  SpreadsheetApp.getUi().alert("Publicados y abiertos " + n + " formularios de " + o.nombre + ".");
+}
+// Borra una pestana de respuestas. Sheets NO permite eliminar una hoja vinculada a un formulario:
+// hay que desvincularla antes (removeDestination). Devuelve "" si va bien o el motivo del fallo.
+function borrarHoja_(ss, sh) {
+  if (!sh) return "ya no existe";
+  try {
+    var url = ""; try { url = sh.getFormUrl() || ""; } catch (e) {}
+    if (url) { try { FormApp.openByUrl(url).removeDestination(); SpreadsheetApp.flush(); }
+               catch (e) { /* si el form ya no existe, la hoja suele quedar libre igual */ } }
+    if (ss.getSheets().length < 2) return "es la \u00fanica hoja del libro";
+    ss.deleteSheet(sh); return "";
+  } catch (e) { return e.message; }
+}
+function nombreLibre_(base) {
+  var ss = SpreadsheetApp.getActive(); if (!ss.getSheetByName(base)) return base;
+  for (var i = 2; i < 100; i++) if (!ss.getSheetByName(base + " (" + i + ")")) return base + " (" + i + ")";
+  return base + " (" + new Date().getTime() + ")";
+}
+function pestanaDe_(form, nombreNuevo, color) {
+  SpreadsheetApp.flush(); var tab = null;
+  SpreadsheetApp.getActive().getSheets().forEach(function(h){ try { var u = h.getFormUrl(); if (u && u.indexOf(form.getId()) >= 0) tab = h; } catch (e) {} });
+  if (tab) { try { tab.setName(nombreNuevo); } catch (e) { tab.setName(nombreLibre_(nombreNuevo)); } tab.setTabColor(color); }
+  return tab ? tab.getName() : "";
+}
+// Aparta las pestanas que quedaron de un PER anterior con el mismo id (borrado a mano o con una version
+// antigua). No se borran: se renombran para no perder respuestas; el menu Mantenimiento las limpia.
+function apartarRestosDe_(id) {
+  var ss = SpreadsheetApp.getActive(); var n = 0;
+  ["B", "T", "C"].forEach(function(p){ var sh = ss.getSheetByName(p + " \u00b7 " + id);
+    if (sh) { try { sh.setName(nombreLibre_("restos \u00b7 " + p + " \u00b7 " + id)); sh.setTabColor("#9fb2c2"); sh.showSheet(); n++; } catch (e) {} } });
+  return n;
+}
+
+function crearPER(datos) {
+  var nombre = (datos.nombre || "").trim(); if (!nombre) throw new Error("Falta el nombre del PER");
+  var tipo = datos.tipo === "PUA" ? "PUA" : "REGULAR";
+  var id = slug_(nombre); if (perFila_(id)) throw new Error("Ya existe un PER con id \u00ab" + id + "\u00bb. Si es uno viejo, arch\u00edvalo o b\u00f3rralo antes (men\u00fa STARGATE), o usa otro nombre.");
+  var restos = apartarRestosDe_(id);
+  var apertura = datos.apertura ? new Date(datos.apertura + "T00:00:00") : null;
+  var cierre = datos.cierre ? new Date(datos.cierre + "T23:59:00") : null;
+  var inicio = datos.inicio ? new Date(datos.inicio + "T00:00:00") : null;
+  var ss = SpreadsheetApp.getActive();
+  var master = DriveApp.getFileById(ss.getId()); var padres = master.getParents();
+  var raiz = padres.hasNext() ? padres.next() : DriveApp.getRootFolder();
+  var subs = raiz.getFoldersByName("Formularios PER"); var padre = subs.hasNext() ? subs.next() : raiz.createFolder("Formularios PER");
+  var carpeta = padre.createFolder(nombre);   // v3.3: cada PER en su propia carpeta
+  var retos = retosDe_(tipo);
+  guardarDocentes_(id, datos.docentes);   // v3.11 - el equipo docente, con correo
+
+  // ---- 1 - Bitacora de mando (Google login, 1 respuesta editable) ----
+  var fb = formDesdePlantilla_("PLANTILLA \u00b7 Bit\u00e1cora de mando", "STARGATE \u00b7 " + nombre + " \u00b7 Bit\u00e1cora de mando", carpeta);
+  fb.setDescription("Tu registro de la misi\u00f3n. Rell\u00e9nalo una vez y vuelve a editarlo cada vez que ganes una insignia (marca la casilla nueva y env\u00eda). " +
+    "Tu correo y tu nombre solo los ve el profesorado; en el tablero aparece tu alias. Profesorado: " + (datos.profesores || ""));
+  fb.setCollectEmail(true).setLimitOneResponsePerUser(true).setAllowResponseEdits(true).setShowLinkToRespondAgain(false)
+    .setConfirmationMessage("Registrado. Tu Bit\u00e1cora crece. Mira el tablero en " + WEB + "registro.html?per=" + id);
+  fb.addSectionHeaderItem().setTitle("Qui\u00e9n soy").setHelpText("Solo la primera vez.");
+  fb.addTextItem().setTitle("Alias de recluta (p\u00fablico)").setHelpText("Lo que se ver\u00e1 en el tablero.").setRequired(true);
+  fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado.").setRequired(true);
+  // avatar: SOLO personajes que evolucionan (la galeria clasica ya no existe, y poner tu propia
+  // imagen es una RECOMPENSA de pago: se pide en el formulario de canje, no aqui)
+  try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle("Tu personaje evoluciona con tu nivel").setHelpText("Recluta \u2192 Cadete \u2192 Oficial \u2192 Comandante \u2192 Leyenda: el tablero cambia la imagen solo al subir de nivel. Los personajes 5-7 son EXCLUSIVOS: se desbloquean con cr\u00e9ditos durante el curso.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
+  fb.addListItem().setTitle("Elige tu avatar").setHelpText(AYUDA_AVATAR).setRequired(true)
+    .setChoiceValues(opcIniciales_());
+  fb.addListItem().setTitle(TIT_DOCENTE).setHelpText(AYUDA_DOCENTE).setRequired(true)
+    .setChoiceValues(listaProfes_(datos.referente || "", datos.profesores || "", id));
+  var bit = fb.addTextItem().setTitle("Enlace a mi Bit\u00e1cora (ePortfolio)").setHelpText("Un \u00fanico enlace donde est\u00e1 toda tu evidencia. Puedes a\u00f1adirlo m\u00e1s adelante.");
+  bit.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
+  fb.addParagraphTextItem().setTitle("Breve biograf\u00eda de tu personaje").setHelpText("2-3 frases sobre tu recluta: qui\u00e9n es, de d\u00f3nde viene, qu\u00e9 se le da bien. Aparecer\u00e1 al pie de tu personaje en la Nave del Recluta.").setRequired(true);
+  // v3.8 - atajo: la primera pagina es SIEMPRE la identidad (asi nunca se pierde) y termina con un
+  // selector que salta DIRECTO al tema que se viene a registrar. Cada tema envia al terminar.
+  var nav = fb.addListItem().setTitle(TIT_NAV).setHelpText(AYUDA_NAV).setRequired(true);
+  var destinos = [];
+  var porTema = {}; retos.forEach(function(r){ (porTema[r[4]] = porTema[r[4]] || []).push(r); });
+  Object.keys(porTema).sort(function(a,b){ return a-b; }).forEach(function(t){
+    t = Number(t);
+    var pb;
+    if (t >= 1 && t <= 8) { pb = fb.addPageBreakItem().setTitle("Tema " + t + " \u00b7 " + TEMAS[t][0]).setHelpText(TEMAS[t][1]); imagen_(fb, t, TEMAS[t][0]); }
+    else { pb = fb.addPageBreakItem().setTitle("La batalla final").setHelpText("Solo cuando hayas hecho el examen."); }
+    pb.setGoToPage(FormApp.PageNavigationType.SUBMIT);      // al terminar una seccion, se envia
+    destinos.push([t, pb]);
+    var cb = fb.addCheckboxItem().setTitle(t >= 1 && t <= 8 ? "Tema " + t + " \u00b7 Lo que he completado" : "Batalla final");
+    cb.setChoiceValues(porTema[t].map(function(r){ return r[1]; }));
+  });
+  nav.setChoices([nav.createChoice(OPC_NADA, FormApp.PageNavigationType.SUBMIT)].concat(
+    destinos.map(function(d){ return nav.createChoice(etiquetaNav_(d[0]), d[1]); })));
+  publicar_(fb);
+  fb.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+  var tabB = pestanaDe_(fb, "B \u00b7 " + id, "#37e0ec");
+
+  // ---- 2 - Ticket de salida "Contacta con NEBULA" (anonimo, ramificado) ----
+  var ft = formDesdePlantilla_("PLANTILLA \u00b7 Ticket de salida", "STARGATE \u00b7 " + nombre + " \u00b7 Contacta con NEBULA (ticket de salida)", carpeta);
+  construirTicket_(ft, datos.referente || "", datos.profesores || "", id);
+  publicar_(ft);
+  ft.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+  var tabT = pestanaDe_(ft, "T \u00b7 " + id, "#9fb2c2");
+
+  // ---- 3 - Canje de recompensas (Google login) ----
+  var fc = formDesdePlantilla_("PLANTILLA \u00b7 Canje de recompensas", "STARGATE \u00b7 " + nombre + " \u00b7 Canje de recompensas", carpeta);
+  fc.setDescription("Cambia tus xp por ventajas. El sistema comprueba tus puntos al instante y te responde por correo.");
+  fc.setCollectEmail(true).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true).setConfirmationMessage("Solicitud recibida. Recibir\u00e1s un correo con el resultado.");
+  var lr = fc.addListItem().setTitle("Recompensa").setRequired(true); lr.setChoiceValues(etiquetasRecompensas_());
+  var la = fc.addListItem().setTitle("Actividad a la que se aplica").setRequired(true);
+  la.setChoiceValues(["Actividad 1 \u00b7 imagen con IA","Actividad 2 \u00b7 paisaje de aprendizaje","No aplica (canje de avatar)","Otra (la indico en el comentario)"]);
+  anadirCamposAvatar_(fc);
+  fc.addParagraphTextItem().setTitle("Comentario (opcional)");
+  publicar_(fc);
+  fc.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+  var tabC = pestanaDe_(fc, "C \u00b7 " + id, "#f5b043");
+
+  asegurarTriggers_();
+  var ahora = new Date(), estado = "Abierto";
+  if (apertura && apertura > ahora) { [fb, ft, fc].forEach(function(f){ f.setAcceptingResponses(false); }); estado = "Programado"; programar_("abrirPorTrigger", apertura, id); }
+  if (cierre) programar_("cerrarPorTrigger", cierre, id);
+
+  hoja_(H.PERS).appendRow([id, nombre, tipo, datos.profesores || "", inicio || "", apertura || "", cierre || "", estado,
+    fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date(), datos.referente || "", ft.getEditUrl(),
+    "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim(), "", fc.getEditUrl()]);
+  var docUrl = ""; try { docUrl = crearDocumentoPER_(id); } catch (e) { docUrl = ""; }
+  return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", doc:docUrl, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
+    hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id,
+    foro: WEB + "foro.html?per=" + id + (inicio ? "&inicio=" + fechaIso_(inicio) + "&tipo=" + tipo : ""), nave: WEB + "recluta.html?per=" + id,
+    embedAlumnos: '<iframe src="' + WEB + 'registro.html?per=' + id + '&embed=1" width="100%" height="760" style="border:0;border-radius:16px"></iframe>',
+    embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + (inicio ? '&inicio=' + fechaIso_(inicio) + '&tipo=' + tipo : '') + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>',
+    embedNave: '<iframe src="' + WEB + 'recluta.html?per=' + id + '&embed=1" width="100%" height="900" style="border:0;border-radius:16px"></iframe>',
+    panelVer: String(datos.panelVer || "").trim() || panelStd_().ver, panelEdit: String(datos.panelEdit || "").trim() || panelStd_().editar,
+    restos: restos };
+}
+function etiquetasRecompensas_() {
+  var d = hoja_(H.REC).getDataRange().getValues().slice(1).filter(function(r){ return r[0]; });
+  return d.map(function(r){ return r[0] + " \u2014 " + r[1] + " cr\u00e9ditos"; });
+}
+// Preguntas del canje de avatar (se usan al crear el PER y al actualizar PERs anteriores)
+var TIT_DOCENTE = "\u00bfQui\u00e9n imparte tu clase?";
+var AYUDA_DOCENTE = "Para que tu profe pueda seguir a su grupo y le avise el sistema cuando canjees algo " +
+  "que tenga que aplicar \u00e9l o ella (subir nota, recalificar). Si cambias de clase, edita esta respuesta.";
+var TIT_NAV = "\u00bfQu\u00e9 vienes a registrar hoy?";
+var OPC_NADA = "Nada m\u00e1s: solo me alisto / actualizo mis datos";
+var AYUDA_NAV = "Elige y te llevo DIRECTO a esa secci\u00f3n; al marcar tus casillas, env\u00edas y listo. " +
+  "Lo que registraste otras veces se conserva aunque no pases por su p\u00e1gina: el sistema solo a\u00f1ade, nunca borra.";
+var AYUDA_AVATAR = "Personajes 1-" + AVATARES_INICIALES + " en versi\u00f3n ella/\u00e9l. Evolucionan con tu NIVEL " +
+  "(Recluta \u2192 Cadete \u2192 Oficial \u2192 Comandante \u2192 Leyenda). Los personajes 5-7 son EXCLUSIVOS y poner tu propia " +
+  "imagen tambi\u00e9n: son recompensas que se canjean con cr\u00e9ditos. Elige bien: cambiar de avatar cuesta cr\u00e9ditos.";
+function etiquetaNav_(t) { return t >= 1 && t <= 8 ? "Tema " + t + " \u00b7 " + TEMAS[t][0] : "La batalla final"; }
+var TIT_NUEVO_AVATAR = "Nuevo avatar (solo para \u00abCambio de avatar\u00bb)";
+var TIT_URL_AVATAR = "URL de tu nueva imagen (solo para \u00abAvatar personal\u00bb)";
+var TIT_EXCLUSIVO = "Personaje exclusivo (solo para \u00abPersonaje exclusivo\u00bb)";
+var TIT_TITULO = "Tu t\u00edtulo (solo para \u00abT\u00edtulo de recluta\u00bb)";
+var TIT_FONDO = "Tu planeta de fondo (solo para \u00abFondo de ficha\u00bb)";
+function anadirCamposAvatar_(fc) {
+  var avl = fc.addListItem().setTitle(TIT_NUEVO_AVATAR).setHelpText("Si canjeas \u00abCambio de avatar\u00bb, elige aqu\u00ed el nuevo (personajes iniciales). Se aplica solo al concederse.");
+  avl.setChoiceValues(opcIniciales_());
+  var exl = fc.addListItem().setTitle(TIT_EXCLUSIVO).setHelpText("Si canjeas \u00abPersonaje exclusivo\u00bb, elige cu\u00e1l. Se aplica solo al concederse.");
+  exl.setChoiceValues(opcExclusivos_());
+  var ttl = fc.addListItem().setTitle(TIT_TITULO).setHelpText("Si canjeas \u00abT\u00edtulo de recluta\u00bb, elige el que lucir\u00e1s bajo tu alias.");
+  ttl.setChoiceValues(TITULOS);
+  var fnd = fc.addListItem().setTitle(TIT_FONDO).setHelpText("Si canjeas \u00abFondo de ficha\u00bb, elige tu planeta.");
+  fnd.setChoiceValues([TEMAS[1][0],TEMAS[2][0],TEMAS[3][0],TEMAS[4][0],TEMAS[5][0],TEMAS[6][0],TEMAS[7][0],TEMAS[8][0]]);
+  var url = fc.addTextItem().setTitle(TIT_URL_AVATAR).setHelpText("Si canjeas \u00abAvatar personal\u00bb, pega el ENLACE DIRECTO a tu imagen (.jpg/.png; postimages.org \u2192 \u00abEnlace directo\u00bb) o un enlace de Drive compartido con \u00abcualquier persona con el enlace\u00bb.");
+  url.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
+}
+function extra_(o, email, accion, valor) { hoja_(H.AJ).appendRow([new Date(), o.id, email, "EXTRA", accion, valor, "canje"]); }
+function actualizarRecompensas() {
+  var et = etiquetasRecompensas_(); var n = 0;
+  hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
+    try { var f = formDelPER_(perObj_(v), "C"); if (!f) throw new Error("sin canje");
+          var titulos = f.getItems().map(function(i){ return i.getTitle(); });
+          f.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle() === "Recompensa") { i.asListItem().setChoiceValues(et); n++; } });
+          if (titulos.indexOf(TIT_NUEVO_AVATAR) < 0) anadirCamposAvatar_(f); } catch (e) {}
+    try { var fbx = formDelPER_(perObj_(v), "B"); if (!fbx) throw new Error("sin bitacora");
+          var tit2 = fbx.getItems().map(function(i){ return i.getTitle(); });
+          if (tit2.indexOf("Breve biograf\u00eda de tu personaje") < 0) {
+            var bioIt = fbx.addParagraphTextItem().setTitle("Breve biograf\u00eda de tu personaje").setHelpText("2-3 frases sobre tu recluta: qui\u00e9n es, de d\u00f3nde viene, qu\u00e9 se le da bien. Aparecer\u00e1 al pie de tu personaje en la Nave del Recluta.");
+            var items = fbx.getItems(); var pos = tit2.indexOf("Enlace a mi Bit\u00e1cora (ePortfolio)");
+            if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); }
+          reestructurarBitacora_(fbx, perObj_(v)); } catch (e) {}
+  });
+  SpreadsheetApp.getUi().alert("Formularios actualizados en " + n + " PER.\n\n\u00b7 Canje: recompensas con precios en CR\u00c9DITOS y preguntas al d\u00eda.\n\u00b7 Bit\u00e1cora: avatares solo evolutivos (galer\u00eda cl\u00e1sica y URL propia RETIRADAS: poner tu imagen es ahora una recompensa de pago) y SECCIONES R\u00c1PIDAS \u2014 la primera p\u00e1gina pregunta a qu\u00e9 tema vas y salta directo; cada secci\u00f3n env\u00eda al terminar.");
+}
+
+// v3.8 - pone al dia una Bitacora ya creada: quita la galeria clasica y la URL gratis, y le anade
+// el selector que salta directo a la seccion del tema (cada seccion envia al terminar).
+// Es idempotente: si ya esta reestructurada, no toca nada.
+function reestructurarBitacora_(fb, o) {
+  var items = fb.getItems();
+  // 0) v3.11 - "?Quien imparte tu clase?": es lo que ata cada alumno a su docente
+  var itProf = items.filter(function(i){ return i.getTitle() === TIT_DOCENTE; })[0];
+  var opciones = listaProfes_(o.referente || "", o.profesorado || "", o.id);
+  if (itProf) { try { itProf.asListItem().setChoiceValues(opciones).setHelpText(AYUDA_DOCENTE); } catch (e) {} }
+  else {
+    var nuevo = fb.addListItem().setTitle(TIT_DOCENTE).setHelpText(AYUDA_DOCENTE).setRequired(true).setChoiceValues(opciones);
+    var pos = items.map(function(i){ return i.getTitle(); }).indexOf("Enlace a mi Bit\u00e1cora (ePortfolio)");
+    if (pos >= 0) { try { fb.moveItem(nuevo.getIndex(), pos); } catch (e) {} }
+    items = fb.getItems();
+  }
+  // 1) avatar: solo personajes que evolucionan
+  items.forEach(function(it){
+    if (it.getType() === FormApp.ItemType.LIST && it.getTitle() === "Elige tu avatar") {
+      it.asListItem().setChoiceValues(opcIniciales_()).setHelpText(AYUDA_AVATAR);
+    }
+  });
+  // 2) fuera la pregunta de la URL propia (ahora es una recompensa que se canjea)
+  items.forEach(function(it){
+    if (it.getTitle().indexOf("URL de tu propia imagen") === 0) { try { fb.deleteItem(it); } catch (e) {} }
+  });
+  // 3) secciones rapidas
+  var pbs = fb.getItems(FormApp.ItemType.PAGE_BREAK).map(function(i){ return i.asPageBreakItem(); });
+  if (!pbs.length) return;
+  pbs.forEach(function(pb){ try { pb.setGoToPage(FormApp.PageNavigationType.SUBMIT); } catch (e) {} });
+  var yaHay = fb.getItems().filter(function(i){ return i.getTitle() === TIT_NAV; })[0];
+  var nav = yaHay ? yaHay.asListItem()
+                  : fb.addListItem().setTitle(TIT_NAV).setHelpText(AYUDA_NAV).setRequired(true);
+  var opciones = [nav.createChoice(OPC_NADA, FormApp.PageNavigationType.SUBMIT)];
+  pbs.forEach(function(pb){
+    var m = pb.getTitle().match(/^Tema (\d)/);
+    opciones.push(nav.createChoice(m ? etiquetaNav_(Number(m[1])) : "La batalla final", pb));
+  });
+  nav.setChoices(opciones).setHelpText(AYUDA_NAV).setRequired(true);
+  if (!yaHay) { try { fb.moveItem(nav.getIndex(), pbs[0].getIndex()); } catch (e) {} }
+}
+
+// Equipo docente de un PER. Si la pestana DOCENTES tiene filas, manda; si no, se reconstruye desde
+// los nombres sueltos de la fila del PER (PERs antiguos, sin correo).
+function esReferente_(d) { return String(d.rol || "").indexOf("referente") >= 0; }
+function imparte_(d) { return String(d.rol || "").indexOf("imparte") >= 0; }
+function docentesDe_(perId) {
+  var out = [];
+  try {
+    hoja_(H.DOC).getDataRange().getValues().slice(1).forEach(function(v){
+      if (String(v[0]) !== perId || !String(v[1] || "").trim()) return;
+      out.push({ nombre:String(v[1]).trim(), correo:String(v[2] || "").trim().toLowerCase(), rol:String(v[3] || "imparte") });
+    });
+  } catch (e) {}
+  if (out.length) return out;
+  var p = perFila_(perId); if (!p) return out;
+  var o = perObj_(p.v);
+  if (o.referente) out.push({ nombre:o.referente, correo:"", rol:"referente" });
+  String(o.profesorado || "").split(",").forEach(function(x){ x = x.trim();
+    if (x && !out.some(function(d){ return d.nombre === x; })) out.push({ nombre:x, correo:"", rol:"imparte" }); });
+  return out;
+}
+function guardarDocentes_(perId, docentes) {
+  var sh = hoja_(H.DOC), v = sh.getDataRange().getValues();
+  for (var i = v.length; i >= 2; i--) if (String(v[i-1][0]) === perId) sh.deleteRow(i);
+  var filas = (docentes || []).filter(function(d){ return d && String(d.nombre || "").trim(); })
+    .map(function(d){ return [perId, String(d.nombre).trim(), String(d.correo || "").trim().toLowerCase(), d.rol || "imparte"]; });
+  if (filas.length) sh.getRange(sh.getLastRow() + 1, 1, filas.length, 4).setValues(filas);
+}
+// Correos a los que avisar de algo de este PER: el docente indicado + siempre el referente.
+function correosAviso_(perId, nombreDocente) {
+  var ds = docentesDe_(perId), out = [];
+  ds.forEach(function(d){
+    if (!d.correo) return;
+    if (esReferente_(d) || (nombreDocente && d.nombre === nombreDocente)) {
+      if (out.indexOf(d.correo) < 0) out.push(d.correo);
+    }
+  });
+  return out;
+}
+function listaProfes_(referente, profesores, perId) {
+  var l = [];
+  if (perId) {
+    var ds = docentesDe_(perId);
+    var dan = ds.filter(imparte_);
+    (dan.length ? dan : ds).forEach(function(d){ if (l.indexOf(d.nombre) < 0) l.push(d.nombre); });
+    if (l.length) return l;      // el equipo docente manda sobre los nombres sueltos del PER
+  }
+  (referente ? [referente] : []).concat(String(profesores||"").split(",")).forEach(function(x){ x = x.trim(); if (x && l.indexOf(x) < 0) l.push(x); });
+  return l.length ? l : ["Profesorado"];
+}
+function escala_(f, titulo, a, b) { f.addScaleItem().setTitle(titulo).setBounds(1,5).setLabels(a,b); }
+function construirTicket_(ft, referente, profesores, perId) {
+  ft.setDescription("En este cuestionario encontrar\u00e1s un espacio donde formular todas las dudas que tengas sobre la clase. Tambi\u00e9n puedes indicarnos tu grado de satisfacci\u00f3n sobre las herramientas, metodolog\u00eda y progreso. " +
+    "Responde con sinceridad: es AN\u00d3NIMO y nos sirve para ayudarte a mejorar.");
+  ft.setCollectEmail(false).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true).setConfirmationMessage("Recibido, recluta. NEBULA toma nota y lo resolvemos en la pr\u00f3xima clase.");
+  var prof = ft.addListItem().setTitle("El profesor o profesora que imparte tu clase...").setRequired(true); prof.setChoiceValues(listaProfes_(referente, profesores, perId));
+  var sel = ft.addListItem().setTitle("Selecciona el tema o actividad que hemos trabajado y sobre el que quieres hacer una pregunta").setRequired(true);
+  // paginas
+  var pPres = ft.addPageBreakItem().setTitle("Sobre la presentaci\u00f3n de la asignatura").setHelpText("Dudas, inquietudes u opiniones, de manera an\u00f3nima. Todos los campos son opcionales.");
+  escala_(ft, "\u00bfQu\u00e9 vibraciones te ha transmitido la presentaci\u00f3n?", "\u00a1Horrible!", "Buen\u00edsimas, ya tengo ganas de empezar");
+  escala_(ft, "Valora la utilidad que percibes del temario de la asignatura", "Poco \u00fatil", "Muy \u00fatil");
+  escala_(ft, "\u00bfC\u00f3mo valorar\u00edas tus conocimientos iniciales sobre herramientas TIC?", "\u00bfTIC? \u00bfEso no es cuando parpadeas muy r\u00e1pido?", "Yo invent\u00e9 el concepto de TIC");
+  ft.addParagraphTextItem().setTitle("\u00bfQu\u00e9 esperas de la asignatura? \u00bfQu\u00e9 te gustar\u00eda aprender?");
+  var pref = ft.addMultipleChoiceItem().setTitle("\u00bfC\u00f3mo prefieres que transcurran las clases en directo?");
+  pref.setChoiceValues(["Que el docente resuelva los casos pr\u00e1cticos","Que resolvamos los alumnos los casos pr\u00e1cticos en grupos","Que resolvamos los alumnos los casos pr\u00e1cticos individualmente","Cada clase de una forma"]).showOtherOption(true);
+  pPres.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  var pTema = ft.addPageBreakItem().setTitle("Sobre el tema escogido").setHelpText("Dudas, inquietudes u opiniones sobre el tema visto en clase, de manera an\u00f3nima. Todos los campos son opcionales.");
+  ft.addParagraphTextItem().setTitle("\u00bfAlguna duda? \u00bfTe ha quedado alguna duda o quieres hacernos llegar alg\u00fan comentario?");
+  escala_(ft, "Valora la utilidad de las herramientas o estrategias vistas en clase", "Poco \u00fatiles", "Muy \u00fatiles");
+  escala_(ft, "Valora la satisfacci\u00f3n general del desarrollo de la clase", "Muy insatisfecho/a", "Muy satisfecho/a");
+  escala_(ft, "Valora la satisfacci\u00f3n con los contenidos te\u00f3ricos vistos en clase sobre este tema", "Muy insatisfecho/a", "Muy satisfecho/a");
+  escala_(ft, "Valora la satisfacci\u00f3n con las estrategias pr\u00e1cticas vistas en clase sobre este tema", "Muy insatisfecho/a", "Muy satisfecho/a");
+  escala_(ft, "Valora tu grado de participaci\u00f3n en clase", "No he participado en absoluto", "He participado en todo lo que he podido");
+  pTema.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  var pAct = ft.addPageBreakItem().setTitle("Sobre la actividad escogida").setHelpText("Dudas, inquietudes o incidencias sobre la actividad evaluable. Todos los campos son opcionales.");
+  ft.addParagraphTextItem().setTitle("\u00bfTe ha quedado alguna duda sobre la actividad o quieres hacernos llegar alg\u00fan comentario?");
+  escala_(ft, "Valora la utilidad de la actividad propuesta para tu aprendizaje", "Poco \u00fatil", "Muy \u00fatil");
+  escala_(ft, "Valora la satisfacci\u00f3n sobre la calidad de la actividad que has entregado (si ya lo has hecho)", "Muy insatisfecho/a con la calidad", "Muy satisfecho/a con la calidad");
+  escala_(ft, "Valora la satisfacci\u00f3n sobre la puntuaci\u00f3n obtenida (si ya la tienes)", "Muy insatisfecho/a con la puntuaci\u00f3n", "Muy satisfecho/a con la puntuaci\u00f3n");
+  pAct.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  var pRep = ft.addPageBreakItem().setTitle("Resumen global de la asignatura").setHelpText("Tu balance al terminar. An\u00f3nimo.");
+  escala_(ft, "Considero que la forma de seguir esta asignatura...", "no ha ayudado a mejorar mis competencias digitales", "ha ayudado a mejorar mis competencias digitales considerablemente");
+  escala_(ft, "Grado de satisfacci\u00f3n con la asignatura", "Muy insatisfecho/a", "Muy satisfecho/a");
+  escala_(ft, "Comparada con otras asignaturas que cursas ahora mismo, estas clases han sido", "Mucho peor", "Mucho mejor");
+  escala_(ft, "Grado de satisfacci\u00f3n con tu profesor/a", "El peor / La peor hasta la fecha", "El mejor / La mejor hasta la fecha");
+  ft.addParagraphTextItem().setTitle("\u00bfQu\u00e9 ha sido lo mejor de la asignatura?");
+  ft.addParagraphTextItem().setTitle("\u00bfY lo peor?");
+  ft.addParagraphTextItem().setTitle("Deja un comentario a tu profesor/a");
+  // ramificacion
+  var ch = [sel.createChoice("Presentaci\u00f3n de la asignatura", pPres)];
+  for (var t = 1; t <= 8; t++) {
+    ch.push(sel.createChoice("Tema " + t + ": " + TEMAS[t][1] + " (" + TEMAS[t][0] + ")", pTema));
+    if (t === 1) ch.push(sel.createChoice("Actividad 1: actividad did\u00e1ctica a partir de una imagen con IA", pAct));
+    if (t === 3) ch.push(sel.createChoice("Actividad 2: planifica y crea un paisaje de aprendizaje", pAct));
+  }
+  ch.push(sel.createChoice("Repaso / balance final", pRep));
+  sel.setChoices(ch);
+}
+
+// ================= DOCUMENTO DE ENLACES (Google Docs) =================
+function documentoPERSeleccionado() {
+  var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
+  if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) { SpreadsheetApp.getUi().alert("Selecciona una fila de la pesta\u00f1a PERs."); return; }
+  var url = crearDocumentoPER_(sh.getRange(fila, 1).getValue());
+  SpreadsheetApp.getUi().alert("Documento creado:\n" + url);
+}
+function crearDocumentoPER_(perId) {
+  var p = perFila_(perId); if (!p) throw new Error("PER no encontrado"); var o = perObj_(p.v);
+  var ss = SpreadsheetApp.getActive();
+  var carpeta = carpetaDelPER_(o.nombre, true);
+  var doc = DocumentApp.create("STARGATE \u00b7 " + o.nombre + " \u00b7 Enlaces y embeds"); DriveApp.getFileById(doc.getId()).moveTo(carpeta);
+  var b = doc.getBody(); b.setMarginTop(40);
+  function h(t, n) { b.appendParagraph(t).setHeading(n === 1 ? DocumentApp.ParagraphHeading.HEADING1 : DocumentApp.ParagraphHeading.HEADING2); }
+  function par(t) { b.appendParagraph(t); }
+  function link(label, url) { var pr = b.appendParagraph(label + ": "); pr.appendText(url).setLinkUrl(url); }
+  function code(c) { var pr = b.appendParagraph(c); pr.editAsText().setFontFamily("Courier New").setFontSize(8).setBackgroundColor("#eef7f8"); }
+  function qr(url, t) { try { b.appendParagraph(t).setItalic(true); b.appendImage(UrlFetchApp.fetch("https://quickchart.io/qr?size=220&margin=2&dark=0e5f6c&text=" + encodeURIComponent(url)).getBlob()); } catch (e) {} }
+  function ifr(u, hgt) { return '<iframe src="' + u + '" width="100%" height="' + hgt + '" style="border:0;border-radius:16px" allowfullscreen loading="lazy"></iframe>'; }
+  h("STARGATE \u00b7 " + o.nombre, 1);
+  par("Tipo: " + o.tipo + " \u00b7 Referente: " + (o.referente || "\u2014") + " \u00b7 Profesorado: " + (o.profesorado || "\u2014") + " \u00b7 Semana 1: " + (o.inicio || "sin fecha") + " \u00b7 Generado: " + Utilities.formatDate(new Date(), "Europe/Madrid", "dd/MM/yyyy HH:mm"));
+  par("C\u00f3mo se incrusta en Genially: Insertar \u2192 C\u00f3digo embed, pegar el c\u00f3digo y ajustar al lienzo. Para los formularios, mejor un bot\u00f3n con el enlace (o el QR para proyectar).");
+  h("Panel de control (Genially de los planetas)", 2);
+  var stdD = panelStd_();
+  link("Visualizaci\u00f3n (para el alumnado)", o.panelVer || stdD.ver || "(sin definir: men\u00fa STARGATE \u2192 Guardar panel de control est\u00e1ndar)");
+  link("Edici\u00f3n (para el profesorado)", o.panelEdit || stdD.editar || "(sin definir)");
+  par(o.panelVer || o.panelEdit ? "Este PER usa un panel PROPIO." : "Este PER usa el panel EST\u00c1NDAR compartido. Si el profesorado quiere el suyo, se cambia desde el panel de profes (Ajustes del PER).");
+  h("Para el Genially del alumnado", 2);
+  link("La Nave del Recluta (el hub del alumnado: onboarding, semanas, su estado y recompensas)", WEB + "recluta.html?per=" + o.id);
+  qr(WEB + "recluta.html?per=" + o.id, "QR de la Nave del Recluta");
+  par("Embed de la Nave:"); code(ifr(WEB + "recluta.html?per=" + o.id + "&embed=1", 900));
+  link("Bit\u00e1cora de mando (registro de insignias; bot\u00f3n)", o.formBitacora); qr(o.formBitacora, "QR de la Bit\u00e1cora de mando");
+  link("Tablero de reclutas", WEB + "registro.html?per=" + o.id); par("Embed del tablero:"); code(ifr(WEB + "registro.html?per=" + o.id + "&embed=1", 760));
+  link("Foro din\u00e1mico (la orden de la semana)", WEB + "foro.html?per=" + o.id); par("Embed del foro:"); code(ifr(WEB + "foro.html?per=" + o.id + "&embed=1", 640));
+  link("Ticket de salida \u00abContacta con NEBULA\u00bb (an\u00f3nimo; bot\u00f3n)", o.formTicket); qr(o.formTicket, "QR del ticket de salida");
+  link("Canje de xp (bot\u00f3n)", o.formCanje); qr(o.formCanje, "QR del canje");
+  h("Para el Genially del profesorado (con PIN)", 2);
+  link("Panel del PER", WEB + "profes.html?per=" + o.id); code(ifr(WEB + "profes.html?per=" + o.id + "&embed=1", 900));
+  link("Tickets de salida (visual)", WEB + "tickets.html?per=" + o.id); code(ifr(WEB + "tickets.html?per=" + o.id + "&embed=1", 900));
+  par("Para filtrar los tickets por profesor/a a\u00f1ade &profe=NOMBRE a la URL del panel de tickets, o usa el generador de la web: " + WEB + "embed.html?per=" + o.id);
+  h("Solo profesorado referente", 2);
+  link("Hoja maestra", ss.getUrl()); link("Editar la Bit\u00e1cora de mando", o.formBitacoraEdit); link("Editar el ticket", o.formTicketEdit || "");
+  doc.saveAndClose();
+  var url = doc.getUrl(); hoja_(H.PERS).getRange(p.fila, 19).setValue(url); hoja_(H.PERS).getRange(1, 19).setValue("Documento de enlaces");
+  return url;
+}
+
+// ================= CICLO DE VIDA DEL PER (archivar - borrar - resetear) =================
+function filaPERSeleccionada_() {
+  var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
+  if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) {
+    SpreadsheetApp.getUi().alert("Selecciona primero una fila de la pesta\u00f1a PERs."); return null; }
+  var v = sh.getRange(fila, 1, 1, 23).getValues()[0];
+  if (!v[0]) { SpreadsheetApp.getUi().alert("Esa fila no tiene ning\u00fan PER."); return null; }
+  return { fila: fila, o: perObj_(v) };
+}
+// ARCHIVAR: conserva todo (datos, formularios y respuestas) pero cierra el PER, oculta sus pestanas
+// y lo saca de los listados del alumnado. El enlace directo ?per=id sigue funcionando (historico).
+function archivarPERSeleccionado() {
+  var sel = filaPERSeleccionada_(); if (!sel) return; var ui = SpreadsheetApp.getUi();
+  var arch = !sel.o.archivado;
+  var r = ui.alert(arch ? "Archivar PER" : "Desarchivar PER",
+    arch ? "\u00ab" + sel.o.nombre + "\u00bb se cerrar\u00e1, sus pesta\u00f1as se ocultar\u00e1n y dejar\u00e1 de aparecer en los listados del alumnado (Nave, foro, embeds).\n\nNO se borra nada: los datos y el tablero siguen accesibles por enlace directo. \u00bfArchivar?"
+         : "\u00ab" + sel.o.nombre + "\u00bb volver\u00e1 a aparecer en los listados y sus pesta\u00f1as se mostrar\u00e1n. Los formularios seguir\u00e1n cerrados hasta que los abras. \u00bfDesarchivar?",
+    ui.ButtonSet.YES_NO);
+  if (r !== ui.Button.YES) return;
+  setArchivado_(sel.o.id, arch);
+  ui.alert(arch ? "PER archivado." : "PER desarchivado.");
+}
+function setArchivado_(perId, arch) {
+  var p = perFila_(perId); if (!p) return; var o = perObj_(p.v); var ss = SpreadsheetApp.getActive();
+  hoja_(H.PERS).getRange(p.fila, 22).setValue(arch ? new Date() : "");
+  if (arch) { try { setAbierto_(perId, false); } catch (e) {} }
+  [o.tabB, o.tabT, o.tabC].forEach(function(n){ try { var sh = ss.getSheetByName(n); if (sh) { if (arch) sh.hideSheet(); else sh.showSheet(); } } catch (e) {} });
+}
+function borrarPERSeleccionado() {
+  var sel = filaPERSeleccionada_(); if (!sel) return; var ui = SpreadsheetApp.getUi();
+  var r = ui.prompt("Borrar el PER \u00ab" + sel.o.nombre + "\u00bb",
+    "IRREVERSIBLE. Manda a la papelera sus 3 formularios y su documento de enlaces, borra sus pesta\u00f1as de respuestas y todos sus registros de EVENTOS y AJUSTES.\n\n" +
+    "Si solo quieres quitarlo de en medio conservando los datos, cancela y usa \u00abArchivar\u00bb.\n\n" +
+    "Escribe el id del PER para confirmar:  " + sel.o.id, ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK || r.getResponseText().trim() !== sel.o.id) { ui.alert("Cancelado: nada se ha borrado."); return; }
+  borrarPER_(sel.o, sel.fila);
+  try { consolidarDatos(); } catch (e) {}
+  try { actualizarConsola(); } catch (e) {}   // que la consola no ensene un PER que ya no existe
+  ui.alert("PER \u00ab" + sel.o.nombre + "\u00bb borrado. Los formularios est\u00e1n en la papelera de Drive por si acaso.");
+}
+function borrarPER_(o, fila) {
+  var ssB = SpreadsheetApp.getActive();
+  var forms = formsDelPER_(o);
+  // 1) primero las pestanas (desvinculando su formulario), porque una hoja vinculada no se puede borrar
+  [o.tabB, o.tabT, o.tabC].forEach(function(n){ borrarHoja_(ssB, ssB.getSheetByName(n)); });
+  // 2) despues los formularios a la papelera
+  forms.forEach(function(f){ try { DriveApp.getFileById(f.getId()).setTrashed(true); } catch (e) {} });
+  if (o.doc) { try { DriveApp.getFileById(o.doc.match(/[-\w]{25,}/)[0]).setTrashed(true); } catch (e) {} }
+  // la carpeta propia del PER (con lo que quede dentro) a la papelera
+  try { var raizP = carpetaPER_(); var itP = raizP.getFoldersByName(o.nombre);
+        if (itP.hasNext()) itP.next().setTrashed(true); } catch (e) {}
+  borrarFilasDe_(hoja_(H.EV), o.id); borrarFilasDe_(hoja_(H.AJ), o.id);
+  var props = PropertiesService.getScriptProperties();
+  ScriptApp.getProjectTriggers().forEach(function(t){ if (props.getProperty("trg_" + t.getUniqueId()) === o.id) {
+    props.deleteProperty("trg_" + t.getUniqueId()); ScriptApp.deleteTrigger(t); } });
+  hoja_(H.PERS).deleteRow(fila);
+}
+function borrarFilasDe_(sh, perId) { // la columna 2 es el per en EVENTOS y AJUSTES
+  var v = sh.getDataRange().getValues();
+  for (var i = v.length - 1; i >= 1; i--) if (v[i][1] === perId) sh.deleteRow(i + 1);
+}
+function restaurarRecompensas() {
+  var ui = SpreadsheetApp.getUi();
+  if (ui.alert("Restaurar el cat\u00e1logo oficial de recompensas",
+    "Sustituye la pesta\u00f1a RECOMPENSAS por el cat\u00e1logo oficial (precios en CR\u00c9DITOS, no en xp):\n\n" +
+    RECOMPENSAS_INICIALES.map(function(r){ return "\u00b7 " + r[0] + " \u2014 " + r[1] + " \u25c8 (desde la semana " + r[4] + ")"; }).join("\n") + "\n\n" +
+    "Se pierden los cambios manuales que hayas hecho en esa pesta\u00f1a. \u00bfContinuar?", ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  restaurarRecompensas_();
+  ui.alert("Cat\u00e1logo restaurado. Ahora ejecuta \u00abActualizar formularios\u00bb para que los formularios de canje muestren los nuevos precios.");
+}
+function restaurarRecompensas_() {
+  var rec = hoja_(H.REC); rec.clearContents();
+  rec.getRange(1,1,1,6).setValues([["Recompensa","Coste (cr\u00e9ditos)","M\u00e1x. por alumno","Descripci\u00f3n","Disponible desde (semana)","Tipo"]]);
+  rec.getRange(2,1,RECOMPENSAS_INICIALES.length,6).setValues(RECOMPENSAS_INICIALES);
+  rec.setFrozenRows(1);
+}
+// Formularios de PER que ya no existen en la hoja (p. ej. borrados con la version anterior, que dejaba
+// huerfano el de canje). Los manda a la papelera tras confirmar.
+// Las imagenes de planeta se copian dentro del formulario al crear el PER, asi que si cambia el arte
+// (p. ej. el orbe de Sendara) hay que refrescarlas en los PER que ya existen.
+function actualizarImagenesPlanetas() {
+  var ui = SpreadsheetApp.getUi();
+  if (ui.alert("Actualizar im\u00e1genes de los planetas",
+      "Vuelve a descargar de la web el orbe de cada planeta y lo sustituye en la Bit\u00e1cora de mando de todos los PER. \u00dasalo cuando cambie el arte de un planeta.\n\n\u00bfContinuar?",
+      ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var blobs = {}, cambiadas = 0, pers = 0, fallos = [];
+  for (var t = 1; t <= 8; t++) {
+    try { blobs[TEMAS[t][0]] = UrlFetchApp.fetch(WEB + "assets/img/planetas/" + TEMAS[t][2] + ".png?v=" + new Date().getTime()).getBlob(); }
+    catch (e) { fallos.push("Descargando " + TEMAS[t][0] + ": " + e.message); }
+  }
+  hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
+    if (!v[0]) return;
+    var f = formDelPER_(perObj_(v), "B"); if (!f) { fallos.push(String(v[1]) + ": sin Bit\u00e1cora accesible"); return; }
+    pers++;
+    f.getItems(FormApp.ItemType.IMAGE).forEach(function(it){
+      var b = blobs[it.getTitle()];
+      if (b) { try { it.asImageItem().setImage(b); cambiadas++; } catch (e) { fallos.push(String(v[1]) + " / " + it.getTitle() + ": " + e.message); } }
+    });
+  });
+  ui.alert("Im\u00e1genes actualizadas",
+    cambiadas + " im\u00e1genes sustituidas en " + pers + " PER." + (fallos.length ? "\n\nNo se pudo con:\n" + fallos.join("\n") : ""), ui.ButtonSet.OK);
+}
+// Los PER creados antes de la v3.3 tienen sus formularios sueltos en "Formularios PER": esto los mete
+// en una carpeta con el nombre de su PER.
+function organizarCarpetasPER() {
+  var ui = SpreadsheetApp.getUi();
+  if (ui.alert("Organizar en carpetas por PER",
+      "Cada PER pasar\u00e1 a tener su propia carpeta dentro de \u00abFormularios PER\u00bb, con sus 3 formularios y su documento de enlaces dentro.\n\n\u00bfContinuar?",
+      ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var movidos = 0, pers = 0, fallos = [];
+  hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
+    if (!v[0]) return; var o = perObj_(v); pers++;
+    var destino;
+    try { destino = carpetaDelPER_(o.nombre, true); } catch (e) { fallos.push(o.nombre + ": " + e.message); return; }
+    formsDelPER_(o).forEach(function(f){
+      try { var file = DriveApp.getFileById(f.getId());
+            if (file.getParents().next().getId() !== destino.getId()) { file.moveTo(destino); movidos++; } }
+      catch (e) { fallos.push(o.nombre + " (formulario): " + e.message); } });
+    if (o.doc) { try { var d = DriveApp.getFileById(o.doc.match(/[-\w]{25,}/)[0]);
+                       if (d.getParents().next().getId() !== destino.getId()) { d.moveTo(destino); movidos++; } }
+                 catch (e) { fallos.push(o.nombre + " (documento): " + e.message); } }
+  });
+  ui.alert("Carpetas organizadas",
+    pers + " PER revisados, " + movidos + " archivos movidos a su carpeta." + (fallos.length ? "\n\nNo se pudo con:\n" + fallos.join("\n") : ""), ui.ButtonSet.OK);
+}
+function limpiarRestos() {
+  var ui = SpreadsheetApp.getUi(); var ss = SpreadsheetApp.getActive();
+  var filas = hoja_(H.PERS).getDataRange().getValues().slice(1);
+  var vivosNombre = {}, vivosId = {};
+  filas.forEach(function(v){ if (v[1]) vivosNombre[String(v[1]).trim()] = true; if (v[0]) vivosId[String(v[0]).trim()] = true; });
+  // 1) formularios de PER que ya no existen -> guardamos ID y nombre (no el objeto: caduca durante el dialogo)
+  var forms = [];
+  function revisar_(carpeta) {
+    var it = carpeta.getFilesByType(MimeType.GOOGLE_FORMS);
+    while (it.hasNext()) { var f = it.next(); var nf = f.getName();
+      if (nf.indexOf("STARGATE \u00b7 ") !== 0 || nf.indexOf("PLANTILLA") >= 0) continue;
+      var partes = nf.split(" \u00b7 "); if (partes.length < 3) continue;
+      if (!vivosNombre[partes[1].trim()]) forms.push({ id: f.getId(), nombre: nf }); }
+  }
+  var raizL = carpetaPER_(); revisar_(raizL);
+  var subL = raizL.getFolders(); while (subL.hasNext()) { var cs = subL.next(); revisar_(cs); }
+  // 2) pestanas de respuestas sin PER (incluidas las apartadas como "restos - ...")
+  var tabs = [];
+  ss.getSheets().forEach(function(sh){ var n = sh.getName();
+    var m = n.match(/^(?:restos \u00b7 )?([BTC]) \u00b7 (.+?)(?: \(\d+\))?$/);
+    if (m && !vivosId[m[2].trim()]) tabs.push({ nombre: n, filas: Math.max(0, sh.getLastRow() - 1) }); });
+  if (!forms.length && !tabs.length) { ui.alert("No hay restos: todos los formularios y pesta\u00f1as pertenecen a un PER de la hoja."); return; }
+  var lista = forms.map(function(x){ return "\u00b7 [formulario] " + x.nombre; })
+        .concat(tabs.map(function(x){ return "\u00b7 [pesta\u00f1a] " + x.nombre + " (" + x.filas + " respuestas)"; })).join("\n");
+  if (ui.alert("Limpiar restos de PER borrados",
+      "Esto no pertenece a ning\u00fan PER de la hoja:\n\n" + lista +
+      "\n\nLos formularios ir\u00e1n a la papelera de Drive y las pesta\u00f1as se BORRAR\u00c1N (con sus respuestas). \u00bfContinuar?",
+      ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  // Se resuelve TODO de nuevo por id/nombre y los errores se muestran (nada de fallar en silencio)
+  var okF = 0, okT = 0, errores = [];
+  forms.forEach(function(x){
+    try { DriveApp.getFileById(x.id).setTrashed(true); okF++; }
+    catch (e) { errores.push("Formulario \u00ab" + x.nombre + "\u00bb: " + e.message); } });
+  tabs.forEach(function(x){
+    var err = borrarHoja_(ss, ss.getSheetByName(x.nombre));
+    if (err) errores.push("Pesta\u00f1a \u00ab" + x.nombre + "\u00bb: " + err); else okT++; });
+  SpreadsheetApp.flush();
+  ui.alert("Limpieza de restos",
+    "Formularios a la papelera: " + okF + " de " + forms.length + "\nPesta\u00f1as borradas: " + okT + " de " + tabs.length +
+    (errores.length ? "\n\nNo se pudo con:\n" + errores.join("\n") : ""), ui.ButtonSet.OK);
+}
+function resetearHoja() {
+  var ui = SpreadsheetApp.getUi();
+  var sh = hoja_(H.PERS); var d = sh.getDataRange().getValues();
+  var total = d.slice(1).filter(function(v){ return v[0]; }).length;
+  if (!total) { restaurarRecompensas_(); ui.alert("No hab\u00eda ning\u00fan PER. Cat\u00e1logo de recompensas restaurado."); return; }
+  var r = ui.prompt("Resetear la hoja",
+    "Deja la hoja como reci\u00e9n instalada: borra los " + total + "PER (formularios y documentos a la papelera, pesta\u00f1as de respuestas, EVENTOS, AJUSTES, DATOS y RESUMEN) y restaura el cat\u00e1logo de recompensas.\n\n" +
+    "SE CONSERVAN: el PIN del profesorado, la URL del web app, el panel de control est\u00e1ndar y las plantillas de formulario.\n\n" +
+    "Escribe RESETEAR para confirmar:", ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK || r.getResponseText().trim().toUpperCase() !== "RESETEAR") { ui.alert("Cancelado: nada se ha borrado."); return; }
+  var n = 0;
+  for (var i = d.length - 1; i >= 1; i--) { if (!d[i][0]) continue; try { borrarPER_(perObj_(d[i]), i + 1); n++; } catch (e) { Logger.log(e); } }
+  [H.EV, H.AJ].forEach(function(nom){ var x = hoja_(nom); if (x.getLastRow() > 1) x.getRange(2,1,x.getLastRow()-1,x.getLastColumn()).clearContent(); });
+  restaurarRecompensas_();
+  var sueltos = 0, tabs = 0, fallos = [];
+  var ids = [];
+  try { var it2 = carpetaPER_().getFilesByType(MimeType.GOOGLE_FORMS);
+    while (it2.hasNext()) { var f2 = it2.next(); var n2 = f2.getName();
+      if (n2.indexOf("STARGATE \u00b7 ") === 0 && n2.indexOf("PLANTILLA") < 0) ids.push({ id: f2.getId(), nombre: n2 }); } }
+  catch (e) { fallos.push("Listando formularios: " + e.message); }
+  ids.forEach(function(x){ try { DriveApp.getFileById(x.id).setTrashed(true); sueltos++; } catch (e) { fallos.push(x.nombre + ": " + e.message); } });
+  var ssR = SpreadsheetApp.getActive();
+  var nombresTab = ssR.getSheets().map(function(sh){ return sh.getName(); }).filter(function(n){ return /^(?:restos \u00b7 )?[BTC] \u00b7 /.test(n); });
+  nombresTab.forEach(function(n){ var err = borrarHoja_(ssR, ssR.getSheetByName(n)); if (err) fallos.push(n + ": " + err); else tabs++; });
+  SpreadsheetApp.flush();
+  try { consolidarDatos(); } catch (e) {}
+  try { actualizarConsola(); } catch (e) {}   // que la consola no ensene un PER que ya no existe
+  ui.alert("Hoja reseteada: " + n + "PER borrados" + (sueltos ? ", " + sueltos + " formularios a la papelera" : "") + (tabs ? ", " + tabs + " pesta\u00f1as sueltas borradas" : "") + ". Cat\u00e1logo de recompensas restaurado.");
+}
+
+// ================= TRIGGERS =================
+function asegurarTriggers_() {
+  var fns = ScriptApp.getProjectTriggers().map(function(t){ return t.getHandlerFunction(); });
+  if (fns.indexOf("alRecibirRespuesta") < 0)
+    ScriptApp.newTrigger("alRecibirRespuesta").forSpreadsheet(SpreadsheetApp.getActive()).onFormSubmit().create();
+  // La foto (DATOS/RESUMEN y la Consola) se rehace de madrugada, no en cada envio: recorrer todos los
+  // PER es caro y nada del juego depende de ella. Tambien se puede forzar desde el menu.
+  if (fns.indexOf("fotoNocturna") < 0)
+    ScriptApp.newTrigger("fotoNocturna").timeBased().atHour(4).everyDays(1).create();
+}
+function fotoNocturna() {
+  try { consolidarDatos(); } catch (e) { Logger.log("consolidarDatos: " + e); }
+  try { actualizarConsola(); } catch (e) { Logger.log("actualizarConsola: " + e); }
+}
+function programar_(fn, fecha, perId) {
+  var t = ScriptApp.newTrigger(fn).timeBased().at(fecha).create();
+  PropertiesService.getScriptProperties().setProperty("trg_" + t.getUniqueId(), perId);
+}
+function abrirPorTrigger(e) { porTrigger_(e, true); }
+function cerrarPorTrigger(e) { porTrigger_(e, false); }
+function porTrigger_(e, abrir) {
+  var props = PropertiesService.getScriptProperties(); var perId = props.getProperty("trg_" + e.triggerUid); if (!perId) return;
+  setAbierto_(perId, abrir); props.deleteProperty("trg_" + e.triggerUid);
+  ScriptApp.getProjectTriggers().forEach(function(t){ if (t.getUniqueId() === e.triggerUid) ScriptApp.deleteTrigger(t); });
+}
+function setAbierto_(perId, abrir) {
+  var p = perFila_(perId); if (!p) return; var o = perObj_(p.v);
+  formsDelPER_(o).forEach(function(fx){ try { if (abrir) publicar_(fx); fx.setAcceptingResponses(abrir); } catch (e) {} });
+  hoja_(H.PERS).getRange(p.fila, 8).setValue(abrir ? "Abierto" : "Cerrado");
+}
+
+function alRecibirRespuesta(e) {
+  // v3.9 - CERROJO: el saldo se calcula leyendo la hoja y se cobra escribiendo en ella, asi que dos
+  // envios procesados a la vez podrian pasar los dos la puerta del saldo (doble gasto) o duplicar
+  // eventos. El lock del documento los pone en fila. Si tras 30 s no se consigue (situacion
+  // extraordinaria), se procesa igual: perder un canje en silencio seria peor que el riesgo teorico.
+  var lock = LockService.getDocumentLock(), conLock = false;
+  try { lock.waitLock(30000); conLock = true; } catch (err) { Logger.log("alRecibirRespuesta sin lock: " + err); }
+  try {
+    var sh = e.range.getSheet(); var nombre = sh.getName(); var perId = nombre.substring(4);
+    var p = perFila_(perId); if (!p) return; var o = perObj_(p.v);
+    if (nombre.indexOf("B \u00b7 ") === 0) registrarEventos_(o, sh, e.range.getRow());
+    else if (nombre.indexOf("C \u00b7 ") === 0) resolverCanje_(o, sh, e.range.getRow());
+    // OJO: aqui NO se llama a consolidarDatos(). Recorre todos los PER y recalcula sus tableros;
+    // con varios grupos eso multiplicaba el trabajo en cada clic de cada alumno. DATOS/RESUMEN y la
+    // Consola son una foto para el profesorado: se rehacen de madrugada (fotoNocturna) o desde el menu.
+  } catch (err) { Logger.log(err); }
+  finally { if (conLock) { try { lock.releaseLock(); } catch (e2) {} } }
+}
+// Cuantas veces se le ha CONCEDIDO ya a este correo esta misma recompensa (sin contar la fila que
+// se esta resolviendo ahora). Sirve para respetar el "Max. por alumno" del catalogo.
+// "Sobre de cromos - 15 creditos" -> "Sobre de cromos"
+function nombreDe_(etiqueta) { return String(etiqueta || "").replace(/\s*\u2014\s*\d+\s*(?:cr[\u00e9e]ditos|xp)\s*$/, "").trim(); }
+function concedidasDe_(sh, fila, email, nombreRec) {
+  var v = sh.getDataRange().getValues(); if (v.length < 2) return 0;
+  var cab = v[0].map(String);
+  var cE = cab.indexOf("Estado"), cR = cab.indexOf("Recompensa");
+  var cM = idx_(cab, "correo") >= 0 ? idx_(cab, "correo") : idx_(cab, "email");
+  if (cE < 0 || cR < 0 || cM < 0) return 0;
+  var n = 0;
+  for (var i = 1; i < v.length; i++) {
+    if (i + 1 === fila) continue;
+    if (String(v[i][cM] || "").toLowerCase().trim() !== email) continue;
+    if (nombreDe_(v[i][cR]) !== nombreRec) continue;   // exacto: "X premium" no cuenta como "X"
+    if (String(v[i][cE] || "").indexOf("Concedido") === 0) n++;
+  }
+  return n;
+}
+function leerFila_(sh, fila) {
+  var cab = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(String); var v = sh.getRange(fila,1,1,sh.getLastColumn()).getValues()[0];
+  var o = {}; cab.forEach(function(c,i){ o[c] = v[i]; }); return o;
+}
+function marcados_(o) { // casillas marcadas en una fila de Bitacora -> [etiquetas]
+  var out = []; Object.keys(o).forEach(function(c){ if (c.indexOf("Lo que he completado") >= 0 || c === "Batalla final") String(o[c]||"").split(", ").forEach(function(x){ if (x.trim()) out.push(x.trim()); }); });
+  return out;
+}
+function registrarEventos_(o, sh, fila) {
+  var r = leerFila_(sh, fila); var email = String(r["Direcci\u00f3n de correo electr\u00f3nico"] || r["Email Address"] || "").toLowerCase().trim(); if (!email) return;
+  congelarAvatarBase_(o, email, r);
+  var alias = r["Alias de recluta (p\u00fablico)"] || ""; var retos = retosDe_(o.tipo); var porEt = {}; retos.forEach(function(x){ porEt[x[1]] = x; });
+  var ev = hoja_(H.EV); var previos = {};
+  ev.getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] === o.id && String(v[2]).toLowerCase() === email) previos[v[4]] = true; });
+  var nuevos = [];
+  if (!previos["H1"]) nuevos.push([new Date(), o.id, email, alias, "H1", "Reclutamiento", 0, XP_RECLUTAMIENTO, "formulario"]);
+  marcados_(r).forEach(function(et){ var x = porEt[et]; if (x && !previos[x[0]]) nuevos.push([new Date(), o.id, email, alias, x[0], x[1], x[4], x[3], "formulario"]); });
+  if (nuevos.length) ev.getRange(ev.getLastRow()+1, 1, nuevos.length, 9).setValues(nuevos);
+}
+// v3: congela el avatar elegido en el PRIMER envio de la Bitacora. Despues, editar el formulario
+// no cambia el avatar del tablero: solo lo cambia un canje concedido ("Cambio de avatar" / "Avatar personal").
+function congelarAvatarBase_(o, email, r) {
+  try {
+    var aj = hoja_(H.AJ);
+    var hay = aj.getDataRange().getValues().slice(1).some(function(v){
+      return v[1] === o.id && String(v[2]).toLowerCase() === email && v[3] === "AVATAR"; });
+    if (hay) return;
+    var txt = String(r["Elige tu avatar"] || ""); var url = String(r["URL de tu propia imagen (opcional)"] || "").trim();
+    var valor = txt + (url ? " | " + url : "");
+    if (valor.trim()) aj.appendRow([new Date(), o.id, email, "AVATAR", "avatar_base", valor, "sistema"]);
+  } catch (e) { Logger.log("congelarAvatarBase_: " + e); }
+}
+function aplicarAvatar_(o, email, valor) { hoja_(H.AJ).appendRow([new Date(), o.id, email, "AVATAR", "avatar", valor, "canje"]); }
+// v3.11 - aviso al docente cuando un canje requiere SU intervencion (subir nota, recalificar...).
+// Va al docente que el alumno declaro en su Bitacora y, siempre, al referente del PER. Es el unico
+// correo que recibe el profesorado: del resto (insignias, cromos, tickets) no se le molesta.
+function avisarDocente_(o, al, rec, actividad) {
+  try {
+    var para = correosAviso_(o.id, al ? al.profe : "");
+    if (!para.length) return;
+    var quien = al ? (al.alias + (al.nombre ? " (" + al.nombre + ")" : "") + " \u00b7 " + al.email) : "un recluta";
+    MailApp.sendEmail(para.join(","), "STARGATE \u00b7 " + o.nombre + " \u00b7 te toca a ti: " + rec,
+      "Un recluta de tu grupo ha canjeado una recompensa que TIENE QUE APLICAR EL PROFESORADO.\n\n" +
+      "Grupo: " + o.nombre + " (" + o.tipo + ")\n" +
+      "Recluta: " + quien + "\n" +
+      (al && al.profe ? "Docente que indic\u00f3: " + al.profe + "\n" : "") +
+      "Recompensa: " + rec + "\n" +
+      (actividad ? "Se aplica a: " + actividad + "\n" : "") +
+      "\nYa se le han descontado los cr\u00e9ditos y \u00e9l/ella lo sabe: solo falta que lo apliques cuando " +
+      "terminen las clases en directo.\n\n" +
+      "M\u00e1rcalo como aplicado aqu\u00ed (pesta\u00f1a Canjes):\n" + WEB + "profes.html?per=" + o.id + "\n" +
+      "Tu sala de clase, con todo lo que necesitas antes de entrar:\n" + WEB + "clase.html?per=" + o.id +
+      (al && al.profe ? "&profe=" + encodeURIComponent(al.profe) : "") + "\n");
+  } catch (e) { Logger.log("avisarDocente_: " + e); }
+}
+function resolverCanje_(o, sh, fila) {
+  var r = leerFila_(sh, fila); var email = String(r["Direcci\u00f3n de correo electr\u00f3nico"] || r["Email Address"] || "").toLowerCase().trim();
+  var rec = String(r["Recompensa"] || ""); var coste = parseInt((rec.match(/(\d+)\s*(?:cr[\u00e9e]ditos|xp)$/) || [0,0])[1], 10);
+  // v3.12 - la ficha se busca por etiqueta EXACTA. Antes bastaba el prefijo y el primero del catalogo
+  // ganaba: "Sobre de cromos premium" se resolvia como "Sobre de cromos" (otro tope y otro efecto).
+  var cat = recompensasCat_();
+  var ficha = cat.filter(function(x){ return rec === x.nombre + " \u2014 " + x.coste + " cr\u00e9ditos"; })[0] || null;
+  if (!ficha) {   // etiquetas viejas (en xp) o precio cambiado: gana el nombre MAS LARGO que encaje
+    ficha = cat.filter(function(x){ return rec.indexOf(x.nombre) === 0; })
+               .sort(function(a, b){ return b.nombre.length - a.nombre.length; })[0] || null;
+  }
+  var t = tablero_(o.id, true); var al = (t.reclutas || []).filter(function(x){ return x.email === email; })[0];
+  var disp = al ? al.creditos : 0;   // se paga con creditos; los xp del recluta no se tocan nunca
+  var cab = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(String); var col = cab.indexOf("Estado") + 1;
+  if (!col) { col = sh.getLastColumn() + 1; sh.getRange(1, col).setValue("Estado"); sh.getRange(1, col+1).setValue("Entregado"); }
+  var estado = "", cuerpo = "";
+  // 0) puerta nueva (v3.12): la etiqueta elegida tiene que existir HOY en el catalogo. Si no -porque
+  // la renombraron, la retiraron o la respuesta es de antes de actualizar el formulario- se DENIEGA:
+  // antes caia en la rama final y se trataba como recompensa de nota (cobraba y avisaba al docente).
+  var sem = semanaDe_(o); var desde = ficha ? desdeEfectiva_(ficha.desde, o.tipo) : 0;
+  if (!ficha) {
+    estado = "Denegado (esa recompensa ya no est\u00e1 en el cat\u00e1logo)";
+    cuerpo = "\u00ab" + rec + "\u00bb ya no est\u00e1 en el cat\u00e1logo de recompensas de tu grupo: puede que la hayan " +
+      "renombrado o retirado. No se han gastado cr\u00e9ditos. Vuelve a abrir el formulario de canje (que ya " +
+      "tendr\u00e1 la lista al d\u00eda) o d\u00edselo a tu profesor/a.";
+  }
+  // 1) puerta temporal: la recompensa se desbloquea con el calendario del PER
+  else if (desde && (sem === null || sem < desde)) {
+    estado = "Denegado (bloqueada hasta la semana " + desde + (sem ? "; vais por la " + sem : "") + ")";
+    cuerpo = "Esa recompensa a\u00fan est\u00e1 clasificada, recluta: se desbloquea en la semana " + desde + " de la misi\u00f3n. No se han gastado cr\u00e9ditos.";
+  }
+  // 2) tope por alumno: el catalogo dice cuantas veces puede concederse a la misma persona
+  else if (ficha && ficha.max && concedidasDe_(sh, fila, email, ficha.nombre) >= ficha.max) {
+    estado = "Denegado (ya alcanz\u00f3 el m\u00e1ximo de " + ficha.max + ")";
+    cuerpo = ficha.max === 1
+      ? "\u00ab" + ficha.nombre + "\u00bb ya la tienes: es de una sola vez. No se han gastado cr\u00e9ditos."
+      : "Ya has canjeado \u00ab" + ficha.nombre + "\u00bb el m\u00e1ximo de " + ficha.max + " veces. No se han gastado cr\u00e9ditos.";
+  }
+  // 3) saldo
+  else if (!al || disp < coste || coste <= 0) {
+    estado = "Denegado (" + disp + " cr\u00e9ditos, cuesta " + coste + ")";
+    cuerpo = "No tienes cr\u00e9ditos suficientes para \u00ab" + rec + "\u00bb: te quedan " + disp + " cr\u00e9ditos. (Tus xp no se gastan: son tu nivel.)";
+  }
+  // 4) canjes automaticos: se aplican solos
+  else if (ficha && ficha.tipo === "avatar") {
+    var nuevo = String(r[TIT_NUEVO_AVATAR] || "").trim();
+    if (!nuevo) { estado = "Denegado (falta elegir el nuevo avatar en el formulario)"; cuerpo = "Para \u00abCambio de avatar\u00bb tienes que elegir el nuevo avatar en el propio formulario. Vuelve a enviarlo con tu elecci\u00f3n; no se han gastado cr\u00e9ditos."; }
+    else if (opcIniciales_().indexOf(nuevo) < 0) { estado = "Denegado (ese personaje es exclusivo)"; cuerpo = "\u00ab" + nuevo + "\u00bb es un personaje EXCLUSIVO: se consigue con la recompensa \u00abPersonaje exclusivo\u00bb, no con \u00abCambio de avatar\u00bb. No se han gastado cr\u00e9ditos."; }
+    else { aplicarAvatar_(o, email, nuevo); estado = "Concedido"; cuerpo = "Concedido: " + rec + ". Tu nuevo avatar (\u00ab" + nuevo + "\u00bb) ya luce en el tablero. Te quedan " + (disp - coste) + " cr\u00e9ditos."; }
+  }
+  else if (ficha && ficha.tipo === "avatar_exclusivo") {
+    var excl = String(r[TIT_EXCLUSIVO] || "").trim();
+    if (!excl) { estado = "Denegado (falta elegir el personaje exclusivo en el formulario)"; cuerpo = "Para \u00abPersonaje exclusivo\u00bb tienes que elegir cu\u00e1l en el propio formulario. Vuelve a enviarlo; no se han gastado cr\u00e9ditos."; }
+    else { aplicarAvatar_(o, email, excl); estado = "Concedido"; cuerpo = "Concedido: " + rec + ". Has desbloqueado \u00ab" + excl + "\u00bb y ya luce en el tablero. Te quedan " + (disp - coste) + " cr\u00e9ditos."; }
+  }
+  else if (ficha && ficha.tipo === "cromo") {
+    var bolsa = [], i2;
+    for (i2 = 0; i2 < CROMOS.length; i2++) for (var w2 = 0; w2 < CROMOS[i2][2]; w2++) bolsa.push(i2);
+    var c2 = CROMOS[bolsa[Math.floor(Math.random() * bolsa.length)]];
+    extra_(o, email, "cromo", c2[0]);
+    estado = "Concedido";
+    cuerpo = "Abres el sobre... \u00a1" + c2[1] + "! (" + c2[3] + " \u00b7 " + c2[4] + "). Ya est\u00e1 en tu \u00e1lbum de la Nave. Te quedan " + (disp - coste) + " cr\u00e9ditos." +
+      (c2[3] === "LEGENDARIA" ? " \u2726 \u00a1El cromo m\u00e1s dif\u00edcil de toda la galaxia!" : "");
+  }
+  else if (ficha && ficha.tipo === "titulo") {
+    var tt = String(r[TIT_TITULO] || "").trim();
+    if (!tt) { estado = "Denegado (falta elegir el t\u00edtulo en el formulario)"; cuerpo = "Para \u00abT\u00edtulo de recluta\u00bb tienes que elegir el t\u00edtulo en el propio formulario. Vuelve a enviarlo; no se han gastado cr\u00e9ditos."; }
+    else { extra_(o, email, "titulo", tt); estado = "Concedido"; cuerpo = "Concedido: desde ahora eres \u00ab" + tt + "\u00bb. Se lee bajo tu alias en el tablero y la Nave. Te quedan " + (disp - coste) + " cr\u00e9ditos."; }
+  }
+  else if (ficha && ficha.tipo === "marco") {
+    extra_(o, email, "marco", "oro"); estado = "Concedido";
+    cuerpo = "Concedido: tu avatar luce ya su marco dorado en el ranking y la Nave. Te quedan " + (disp - coste) + " cr\u00e9ditos.";
+  }
+  else if (ficha && ficha.tipo === "fondo") {
+    var fd = String(r[TIT_FONDO] || "").trim();
+    if (!fd) { estado = "Denegado (falta elegir el planeta en el formulario)"; cuerpo = "Para \u00abFondo de ficha\u00bb tienes que elegir tu planeta en el propio formulario. Vuelve a enviarlo; no se han gastado cr\u00e9ditos."; }
+    else { extra_(o, email, "fondo", fd); estado = "Concedido"; cuerpo = "Concedido: tu ficha de la Nave viaja ahora sobre " + fd + ". Te quedan " + (disp - coste) + " cr\u00e9ditos."; }
+  }
+  else if (ficha && ficha.tipo === "avatar_url") {
+    var u = String(r[TIT_URL_AVATAR] || "").trim();
+    if (!/^https?:\/\//i.test(u)) { estado = "Denegado (falta la URL de la imagen en el formulario)"; cuerpo = "Para \u00abAvatar personal\u00bb tienes que pegar la URL directa de tu imagen en el propio formulario. Vuelve a enviarlo con el enlace; no se han gastado cr\u00e9ditos."; }
+    else { aplicarAvatar_(o, email, u); estado = "Concedido"; cuerpo = "Concedido: " + rec + ". Tu imagen ya es tu avatar en el tablero (si no carga, revisa que el enlace sea directo). Te quedan " + (disp - coste) + " cr\u00e9ditos."; }
+  }
+  // 5) recompensas de nota: las aplica el profesorado al terminar las clases en directo.
+  // Aqui SI hace falta una persona, asi que se le avisa por correo (v3.11).
+  else {
+    estado = "Concedido";
+    cuerpo = "Concedido: " + rec + ". Te quedan " + (disp - coste) + " cr\u00e9ditos. Importante: esta recompensa se har\u00e1 efectiva al terminar las clases en directo; el profesorado la aplicar\u00e1 entonces.";
+    avisarDocente_(o, al, rec, String(r["Actividad a la que se aplica"] || ""));
+  }
+  var ok = estado === "Concedido";
+  sh.getRange(fila, col).setValue(estado);
+  try { MailApp.sendEmail(email, "STARGATE \u00b7 Canje " + (ok ? "concedido" : "denegado"),
+    cuerpo + "\n\nTablero: " + WEB + "registro.html?per=" + o.id + "\nTu nave: " + WEB + "recluta.html?per=" + o.id); } catch (e) {}
+}
+
+// ================= TABLERO =================
+function tablero_(perId, conPrivados) {
+  var p = perFila_(perId); if (!p) return { error: "PER no encontrado: " + perId }; var o = perObj_(p.v);
+  var retos = retosDe_(o.tipo); var porId = {}; retos.forEach(function(x){ porId[x[0]] = x; });
+  var por = {};
+  // 1) identidad desde la pestana B (ultima fila por email)
+  var shB = SpreadsheetApp.getActive().getSheetByName(o.tabB);
+  if (shB && shB.getLastRow() > 1) {
+    var vals = shB.getDataRange().getValues(); var cab = vals[0].map(String);
+    var cM = idx_(cab,"correo") >= 0 ? idx_(cab,"correo") : idx_(cab,"email"); var cA = idx_(cab,"alias"), cN = idx_(cab,"apellidos"), cB = idx_(cab,"bit\u00e1cora"), cBio = idx_(cab,"biograf");
+    var cAv = idx_(cab,"elige tu avatar"), cAvU = idx_(cab,"url de tu propia imagen"), cProf = idx_(cab,"qui\u00e9n imparte");
+    for (var i = 1; i < vals.length; i++) { var m = String(vals[i][cM]||"").toLowerCase().trim(); if (!m) continue;
+      var avs = cAv >= 0 ? String(vals[i][cAv]||"") : ""; var avu = cAvU >= 0 ? String(vals[i][cAvU]||"").trim() : "";
+      var mp = avs.match(/Personaje (\d) \u00b7 (ella|\u00e9l|modelo A|modelo B)/);   // v3.8: la galeria clasica ya no existe
+      var avatar = mp ? { tipo:"evo", n:Number(mp[1]), v: (mp[2] === "\u00e9l" || mp[2] === "modelo B") ? "m" : "f" } : { tipo:null, n:null };
+      avatar.url = avu;
+      por[m] = { email:m, alias:String(vals[i][cA]||""), nombre:String(vals[i][cN]||""), bitacora:String(vals[i][cB]||""), bio:cBio >= 0 ? String(vals[i][cBio]||"") : "", profe:cProf >= 0 ? String(vals[i][cProf]||"").trim() : "", avatar:avatar, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] }; }
+  }
+  // 2) eventos (con fecha) + ajustes del profesorado
+  hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase();
+    var a = por[m] || (por[m] = { email:m, alias:String(v[3]||""), nombre:"", bitacora:"", profe:"", avatar:{tipo:null,n:null,url:""}, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] });
+    a.retos[v[4]] = { fecha:v[0], origen:v[8] }; a.eventos.push({ fecha:v[0], reto_id:v[4], reto:v[5], xp:v[7], origen:v[8] }); });
+  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase(); var a = por[m]; if (!a) return;
+    if (v[4] === "anular") delete a.retos[v[3]]; else if (v[4] === "otorgar") { a.retos[v[3]] = { fecha:v[0], origen:"profesorado" }; }
+    else if (v[4] === "avatar") { a._avCanje = String(v[5] || ""); }               // canje concedido: el ultimo gana
+    else if (v[4] === "avatar_base" && !a._avBase) { a._avBase = String(v[5] || ""); }      // primera eleccion congelada
+    else if (v[4] === "titulo") { a._titulo = String(v[5] || ""); }
+    else if (v[4] === "marco") { a._marco = String(v[5] || ""); }
+    else if (v[4] === "fondo") { a._fondo = String(v[5] || ""); }
+    else if (v[4] === "cromo") { a._cromos = a._cromos || {}; var ck = String(v[5] || ""); a._cromos[ck] = (a._cromos[ck] || 0) + 1; } });
+  // 3) calculo
+  var canjes = {}; var shC = SpreadsheetApp.getActive().getSheetByName(o.tabC);
+  if (shC && shC.getLastRow() > 1) { var vc = shC.getDataRange().getValues(); var cc = vc[0].map(String); var cE = cc.indexOf("Estado"), cMm = idx_(cc,"correo") >= 0 ? idx_(cc,"correo") : idx_(cc,"email"), cR = cc.indexOf("Recompensa"), cEnt = cc.indexOf("Entregado");
+    for (var j = 1; j < vc.length; j++) { var m2 = String(vc[j][cMm]||"").toLowerCase(); if (cE >= 0 && String(vc[j][cE]).indexOf("Concedido") === 0) {
+      var coste = parseInt((String(vc[j][cR]).match(/(\d+)\s*(?:cr[\u00e9e]ditos|xp)$/)||[0,0])[1],10); (canjes[m2] = canjes[m2] || { gastado:0, lista:[], veces:{} }); canjes[m2].gastado += coste;
+      var nom = nombreDe_(vc[j][cR]);
+      if (nom) canjes[m2].veces[nom] = (canjes[m2].veces[nom] || 0) + 1;
+      canjes[m2].lista.push({ fecha:vc[j][0], recompensa:vc[j][cR], actividad:vc[j][cc.indexOf("Actividad a la que se aplica")], entregado: cEnt >= 0 ? vc[j][cEnt] : "", fila:j+1 }); } } }
+  var lista = Object.keys(por).map(function(m){ var a = por[m]; var xp = 0, cred = 0, tema = 0, ins = {};
+    Object.keys(a.retos).forEach(function(id){ if (id === "H1") { xp += XP_RECLUTAMIENTO; cred += creditosDe_("H1", o.tipo); ins["H1_reclutamiento"] = true; ins["E1_nebula"] = true; return; }
+      var x = porId[id]; if (!x) return; xp += x[3]; cred += creditosDe_(id, o.tipo); if (x[4] > tema && x[4] <= 8) tema = x[4]; x[2].forEach(function(k){ ins[k] = true; }); });
+    if (Object.keys(a.retos).length) { ins["H1_reclutamiento"] = true; ins["E1_nebula"] = true; }
+    DERIVADAS.forEach(function(d){ if (d[2].every(function(k){ return ins[k]; })) { ins[d[0]] = true; xp += d[1]; cred += CREDITOS.derivada || 0; } });
+    var gast = canjes[m] ? canjes[m].gastado : 0;   // gastado SIEMPRE en creditos: los xp no se tocan
+    // avatar: canje concedido > eleccion congelada al alistarse > valor actual del formulario (respuestas antiguas)
+    var avatar = a._avCanje ? parseAvatar_(a._avCanje) : a._avBase ? parseAvatar_(a._avBase) : (a.avatar || {tipo:null,n:null,url:""});
+    // xp de los ultimos 7 dias (para la corona semanal)
+    var hace7 = new Date().getTime() - 7 * 864e5, xp7 = 0;
+    a.eventos.forEach(function(ev){ try { if (new Date(ev.fecha).getTime() >= hace7) xp7 += Number(ev.xp) || 0; } catch (e) {} });
+    var niv = nivelInfo_(xp, o.tipo);
+    var out = { alias:a.alias, avatar:avatar, xp:xp, nivel:niv.nivel, rango:niv.rango, rango_nombre:niv.rangoNombre,
+                nivel_titulo:niv.titulo, xp_siguiente:niv.siguiente, xp_faltan:niv.faltan,
+                creditos: cred - gast, creditos_ganados: cred, creditos_gastados: gast,
+                canjeados: canjes[m] ? canjes[m].veces : {},
+                profe:a.profe || "", planeta: tema ? TEMAS[tema][0] : "\u2014", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length,
+                titulo:a._titulo || "", marco:a._marco || "", fondo:a._fondo || "", cromos:a._cromos || {}, xp7:xp7 };
+    if (conPrivados) { out.email = m; out.nombre = a.nombre; out.bitacora = a.bitacora; out.bio = a.bio || ""; out.eventos = a.eventos; out.retos = a.retos; out.canjes = canjes[m] ? canjes[m].lista : []; }
+    return out; });
+  lista.sort(function(a,b){ return b.xp - a.xp || b.n - a.n || a.alias.localeCompare(b.alias); }); lista.forEach(function(x,i){ x.pos = i+1; });
+  // corona semanal: el/los que mas xp ganaron en los ultimos 7 dias
+  var maxSem = 0; lista.forEach(function(x){ if (x.xp7 > maxSem) maxSem = x.xp7; });
+  lista.forEach(function(x){ x.corona = maxSem > 0 && x.xp7 === maxSem; });
+  var std = panelStd_();
+  var res = { per:perId, nombre:o.nombre, tipo:o.tipo, profesorado:o.profesorado, referente:o.referente, estado:o.estado, inicio:o.inicio,
+           formBitacora:o.formBitacora, formTicket:o.formTicket, formCanje:o.formCanje, reclutas:lista,
+           recompensas:recompensasCat_(), semana:semanaDe_(o), panel:o.panelVer || std.ver,
+           docentes:docentesDe_(perId).map(function(d){ return { nombre:d.nombre, rol:d.rol, imparte:imparte_(d), referente:esReferente_(d) }; }),
+           actualizado:new Date() };
+  if (conPrivados) { res.docentes_full = docentesDe_(perId);   // con correo: solo tras el PIN
+    res.panelEdit = o.panelEdit || std.editar; res.panelPropio = !!(o.panelVer || o.panelEdit); res.archivado = o.archivado;
+    res.doc = o.doc; res.hoja = SpreadsheetApp.getActive().getUrl(); res.formBitacoraEdit = o.formBitacoraEdit; }
+  return res;
+}
+// "Personaje 3 - ella (evoluciona)" / URL directa / "eleccion | url" -> objeto avatar del tablero
+function parseAvatar_(s) {
+  s = String(s || ""); var partes = s.split(" | "); var txt = partes[0] || ""; var url = (partes[1] || "").trim();
+  if (/^https?:\/\//i.test(txt)) { url = txt.trim(); txt = ""; }
+  var mp = txt.match(/Personaje (\d) \u00b7 (ella|\u00e9l|modelo A|modelo B)/);   // v3.8: solo personajes que evolucionan
+  var av = mp ? { tipo:"evo", n:Number(mp[1]), v:(mp[2] === "\u00e9l" || mp[2] === "modelo B") ? "m" : "f" } : { tipo:null, n:null };
+  av.url = url; return av;
+}
+function idx_(cab, frag) { frag = frag.toLowerCase(); for (var i = 0; i < cab.length; i++) if (cab[i].toLowerCase().indexOf(frag) >= 0) return i; return -1; }
+
+// ================= DATOS / RESUMEN (investigacion) =================
+function consolidarDatos() {
+  var ss = SpreadsheetApp.getActive(); var pers = hoja_(H.PERS).getDataRange().getValues().slice(1);
+  var filas = [["per","tipo","fecha","email","alias","reto_id","reto","tema","xp","origen"]];
+  hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(v){ var p = pers.filter(function(x){ return x[0] === v[1]; })[0];
+    filas.push([v[1], p ? p[2] : "", v[0], v[2], v[3], v[4], v[5], v[6], v[7], v[8]]); });
+  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){ var p = pers.filter(function(x){ return x[0] === v[1]; })[0];
+    filas.push([v[1], p ? p[2] : "", v[0], v[2], "", v[3], v[4] + (v[5] ? " \u00b7 " + v[5] : ""), "", "", "ajuste:" + v[6]]); });
+  var out = ss.getSheetByName(H.DATOS) || ss.insertSheet(H.DATOS); out.clearContents(); out.getRange(1,1,filas.length,filas[0].length).setValues(filas); out.setFrozenRows(1); out.setTabColor("#f5b043");
+  var res = [["per","tipo","alias","email","nombre","xp","nivel","creditos","creditos_ganados","n_insignias","tema_max","insignias","bitacora"]];
+  pers.forEach(function(p){ var t = tablero_(p[0], true); (t.reclutas||[]).forEach(function(x){ res.push([p[0], p[2], x.alias, x.email, x.nombre, x.xp, x.nivel, x.creditos, x.creditos_ganados, x.n, x.tema, x.insignias.join(" "), x.bitacora]); }); });
+  var rs = ss.getSheetByName(H.RES) || ss.insertSheet(H.RES); rs.clearContents(); rs.getRange(1,1,res.length,res[0].length).setValues(res); rs.setFrozenRows(1);
+}
+
+// ================= CONSOLA (segunda hoja de calculo, limpia) =================
+// La hoja maestra es la materia prima: sus 3 pestanas de respuestas por PER la vuelven ilegible en
+// cuanto hay varios grupos. Esta funcion mantiene un SEGUNDO archivo de Google Sheets, "STARGATE -
+// Consola del profesorado", con una portada de todos los PER y una pestana por PER con lo que de
+// verdad se consulta. Es una FOTO: se rehace desde el menu y sola una vez al dia. No se escribe nada
+// en ella a mano (se borra al refrescar) y no interviene en el juego: si se borra, no pasa nada.
+var PROP_CONSOLA = "CONSOLA_ID";
+
+function consolaSS_() {
+  var pr = PropertiesService.getScriptProperties(), id = pr.getProperty(PROP_CONSOLA), ss = null;
+  if (id) { try { ss = SpreadsheetApp.openById(id); DriveApp.getFileById(id); } catch (e) { ss = null; } }
+  if (!ss) {
+    ss = SpreadsheetApp.create("STARGATE \u00b7 Consola del profesorado");
+    pr.setProperty(PROP_CONSOLA, ss.getId());
+    try {   // al lado de la hoja maestra
+      var padres = DriveApp.getFileById(SpreadsheetApp.getActive().getId()).getParents();
+      if (padres.hasNext()) DriveApp.getFileById(ss.getId()).moveTo(padres.next());
+    } catch (e) {}
+  }
+  return ss;
+}
+function hojaLimpia_(ss, nombre, color) {
+  var sh = ss.getSheetByName(nombre) || ss.insertSheet(nombre);
+  sh.clear(); try { sh.setTabColor(color || "#37e0ec"); } catch (e) {}
+  return sh;
+}
+function bloque_(sh, fila, titulo, cabeceras, filas, anchoMin) {
+  sh.getRange(fila, 1).setValue(titulo).setFontWeight("bold").setFontSize(12);
+  sh.getRange(fila + 1, 1, 1, cabeceras.length).setValues([cabeceras])
+    .setFontWeight("bold").setBackground("#eef3f7");
+  if (filas.length) sh.getRange(fila + 2, 1, filas.length, cabeceras.length).setValues(filas);
+  else sh.getRange(fila + 2, 1).setValue("\u2014 nada todav\u00eda \u2014").setFontColor("#8899aa");
+  return fila + 2 + Math.max(filas.length, 1) + 2;   // siguiente fila libre
+}
+function canjesDe_(o) {   // lee la pestana de respuestas del canje de un PER
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabC);
+  if (!sh || sh.getLastRow() < 2) return [];
+  var v = sh.getDataRange().getValues(), cab = v[0].map(String);
+  var cM = idx_(cab, "correo") >= 0 ? idx_(cab, "correo") : idx_(cab, "email");
+  var cR = cab.indexOf("Recompensa"), cE = cab.indexOf("Estado"), cEnt = cab.indexOf("Entregado");
+  var cAct = idx_(cab, "actividad");
+  return v.slice(1).map(function(r){
+    var rec = String(r[cR] || "");
+    return { fecha:r[0], email:cM >= 0 ? String(r[cM] || "") : "", recompensa:rec,
+             coste:Number((rec.match(/(\d+)\s*(?:cr[\u00e9e]ditos|xp)\s*$/) || [0,0])[1]) || 0,
+             estado:cE >= 0 ? String(r[cE] || "") : "", entregado:cEnt >= 0 ? String(r[cEnt] || "") : "",
+             actividad:cAct >= 0 ? String(r[cAct] || "") : "" };
+  }).filter(function(x){ return x.email; });
+}
+function ticketsDe_(o) {
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabT);
+  if (!sh || sh.getLastRow() < 2) return { total:0, sinResolver:0 };
+  var v = sh.getDataRange().getValues(), cR = v[0].map(String).indexOf("Resuelto");
+  var sin = 0;
+  v.slice(1).forEach(function(r){ if (cR < 0 || !String(r[cR] || "").trim()) sin++; });
+  return { total:v.length - 1, sinResolver:sin };
+}
+
+function actualizarConsola() {
+  var ss = consolaSS_(), maestra = SpreadsheetApp.getActive();
+  var pers = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
+  var sello = Utilities.formatDate(new Date(), "Europe/Madrid", "dd/MM/yyyy HH:mm");
+  var vivos = {}, portada = [];
+
+  pers.forEach(function(v){
+    var o = perObj_(v); vivos["PER \u00b7 " + o.id] = true;
+    var t = tablero_(o.id, true); var rec = (t.reclutas || []);
+    var canjes = canjesDe_(o), tk = ticketsDe_(o), sem = semanaDe_(o);
+    var concedidos = canjes.filter(function(c){ return c.estado.indexOf("Concedido") === 0; });
+    var pendientes = concedidos.filter(function(c){ return !c.entregado; });
+    var xpMedia = rec.length ? Math.round(rec.reduce(function(a,x){ return a + x.xp; }, 0) / rec.length) : 0;
+    var credCirc = rec.reduce(function(a,x){ return a + (x.creditos || 0); }, 0);
+
+    portada.push([o.id, o.nombre, o.tipo, o.archivado ? "Archivado" : o.estado,
+      o.inicio || "", sem === null ? "" : (sem < 1 ? "no ha empezado" : "semana " + sem),
+      rec.length, xpMedia, rec.length ? Math.round(rec.reduce(function(a,x){ return a + x.nivel; }, 0) / rec.length) : 0,
+      credCirc, concedidos.length, pendientes.length, tk.total, tk.sinResolver,
+      docentesDe_(o.id).map(function(d){ return d.nombre + (d.correo ? " <" + d.correo + ">" : "")
+        + (esReferente_(d) ? " \u2605" : "") + (imparte_(d) ? "" : " (no imparte)"); }).join("\n"),
+      WEB + "registro.html?per=" + o.id, WEB + "clase.html?per=" + o.id, WEB + "recluta.html?per=" + o.id,
+      o.formBitacora || "", o.formCanje || "", o.formTicket || "", o.doc || ""]);
+
+    // ---- pestana del PER ----
+    var sh = hojaLimpia_(ss, "PER \u00b7 " + o.id, o.archivado ? "#9fb2c2" : "#37e0ec");
+    sh.getRange(1,1).setValue("STARGATE \u00b7 " + o.nombre).setFontWeight("bold").setFontSize(16);
+    sh.getRange(2,1).setValue(o.tipo + " \u00b7 " + (o.archivado ? "ARCHIVADO" : o.estado)
+      + (o.inicio ? " \u00b7 empez\u00f3 el " + o.inicio : "")
+      + (sem === null ? "" : (sem < 1 ? " \u00b7 a\u00fan no ha empezado" : " \u00b7 van por la semana " + sem))
+      + " \u00b7 " + rec.length + " reclutas").setFontColor("#55606a");
+    sh.getRange(3,1).setValue("Foto tomada el " + sello + " \u00b7 se rehace desde el men\u00fa STARGATE de la hoja maestra")
+      .setFontColor("#8899aa").setFontStyle("italic");
+
+    var f = 5;
+    // por docente: cuantos alumnos, como van y que tiene pendiente de aplicar cada uno
+    var docs = docentesDe_(o.id);
+    var porProf = {};
+    rec.forEach(function(x){ var k = x.profe || "\u2014 sin indicar \u2014"; (porProf[k] = porProf[k] || []).push(x); });
+    docs.forEach(function(d){ if (!porProf[d.nombre]) porProf[d.nombre] = []; });
+    f = bloque_(sh, f, "Por docente",
+      ["Docente","Correo","Rol","Alumnos","xp medio","\u25c8 medios","Insignias medias","Pendientes de aplicar"],
+      Object.keys(porProf).sort().map(function(k){
+        var g = porProf[k], d = docs.filter(function(x){ return x.nombre === k; })[0];
+        var pend = concedidos.filter(function(c){
+          var al = rec.filter(function(x){ return x.email === String(c.email).toLowerCase(); })[0];
+          return !c.entregado && al && (al.profe || "\u2014 sin indicar \u2014") === k; }).length;
+        var med = function(f2){ return g.length ? Math.round(g.reduce(function(a2,x){ return a2 + f2(x); }, 0) / g.length) : 0; };
+        var rolTxt = !d ? "" : (esReferente_(d) && imparte_(d)) ? "referente \u00b7 imparte" : (esReferente_(d) ? "referente" : "imparte");
+        return [k, d ? d.correo : "", rolTxt, g.length, med(function(x){ return x.xp; }),
+                med(function(x){ return x.creditos; }), med(function(x){ return x.n; }), pend];
+      }));
+
+    f = bloque_(sh, f, "Reclutas (por xp)",
+      ["Alias","Nombre","Correo","Docente","Nivel","Rango","xp","\u25c8 cr\u00e9ditos","Insignias","Planeta","Corona","Bit\u00e1cora (ePortfolio)"],
+      rec.map(function(x){ return [x.alias, x.nombre, x.email, x.profe || "", x.nivel, x.rango_nombre, x.xp, x.creditos,
+        x.n + "/24", x.planeta, x.corona ? "\u265b" : "", x.bitacora || ""]; }));
+
+    f = bloque_(sh, f, "Canjes",
+      ["Fecha","Correo","Recompensa","Coste \u25c8","Estado","Aplicado por el profe","Actividad"],
+      canjes.sort(function(a,b){ return new Date(b.fecha) - new Date(a.fecha); })
+            .map(function(c){ return [c.fecha, c.email, c.recompensa, c.coste, c.estado, c.entregado, c.actividad]; }));
+
+    f = bloque_(sh, f, "\u00daltimos registros de la Bit\u00e1cora",
+      ["Fecha","Alias","Correo","Logro","xp"],
+      (function(){
+        var ev = [];
+        hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(r){ if (r[1] === o.id) ev.push(r); });
+        ev.sort(function(a,b){ return new Date(b[0]) - new Date(a[0]); });
+        return ev.slice(0, 60).map(function(r){ return [r[0], r[3], r[2], r[5], r[7]]; });
+      })());
+
+    sh.getRange(f, 1).setValue("Tickets de salida: " + tk.total + " recibidos, " + tk.sinResolver
+      + " sin resolver \u2192 " + WEB + "tickets.html?per=" + o.id).setFontColor("#55606a");
+    sh.setFrozenRows(3);
+    for (var c = 1; c <= 11; c++) try { sh.autoResizeColumn(c); } catch (e) {}
+  });
+
+  // ---- portada ----
+  var pt = hojaLimpia_(ss, "PORTADA", "#f5b043");
+  pt.getRange(1,1).setValue("STARGATE \u00b7 Consola del profesorado").setFontWeight("bold").setFontSize(18);
+  pt.getRange(2,1).setValue("Una fila por grupo. Cada pesta\u00f1a de abajo es un PER. Foto del " + sello
+    + " \u2014 para rehacerla: hoja maestra \u2192 men\u00fa STARGATE \u2192 \u00abActualizar la consola\u00bb.").setFontColor("#8899aa");
+  pt.getRange(3,1).setValue("Hoja maestra (materia prima): " + maestra.getUrl()).setFontColor("#55606a");
+  var cab = ["id","Grupo","Tipo","Estado","Inicio","Semana","Reclutas","xp medio","Nivel medio",
+             "\u25c8 en circulaci\u00f3n","Canjes concedidos","Pendientes de aplicar","Tickets","Sin resolver",
+             "Equipo docente","Tablero","Sala de clase","Nave","Form \u00b7 Bit\u00e1cora","Form \u00b7 Canje","Form \u00b7 Ticket","Documento"];
+  pt.getRange(5,1,1,cab.length).setValues([cab]).setFontWeight("bold").setBackground("#eef3f7");
+  if (portada.length) pt.getRange(6,1,portada.length,cab.length).setValues(portada);
+  pt.setFrozenRows(5); pt.setFrozenColumns(2);
+  for (var c2 = 1; c2 <= 14; c2++) try { pt.autoResizeColumn(c2); } catch (e) {}
+
+  // ---- limpieza: pestanas de PER que ya no existen ----
+  ss.getSheets().forEach(function(sh){
+    var n = sh.getName();
+    if (n.indexOf("PER \u00b7 ") === 0 && !vivos[n]) { try { ss.deleteSheet(sh); } catch (e) {} }
+    if (n === "Hoja 1" || n === "Sheet1") { try { ss.deleteSheet(sh); } catch (e) {} }
+  });
+  try { ss.setActiveSheet(pt); ss.moveActiveSheet(1); } catch (e) {}
+  return ss.getUrl();
+}
+function abrirConsola() {
+  try { asegurarTriggers_(); } catch (e) {}   // de paso deja instalada la foto nocturna
+  var url = actualizarConsola();
+  var html = HtmlService.createHtmlOutput('<p style="font:14px/1.5 system-ui">Consola al d\u00eda.<br><br>'
+    + '<a href="' + url + '" target="_blank"><b>Abrir la Consola del profesorado \u2197</b></a></p>').setHeight(120);
+  SpreadsheetApp.getUi().showModalDialog(html, "STARGATE \u00b7 Consola");
+}
+
+// ================= API =================
+function doGet(e) {
+  var per = (e && e.parameter && e.parameter.per) || "all"; var out;
+  if (per === "all") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0] && !v[21]; })
+      .map(function(v){ var o = perObj_(v); return { id:o.id, nombre:o.nombre, tipo:o.tipo, estado:o.estado, inicio:o.inicio }; }) };
+  else out = tablero_(per, false);
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+function doPost(e) {
+  var out;
+  try {
+    var q = JSON.parse(e.postData.contents || "{}");
+    // identificacion del recluta (sin PIN): devuelve SOLO la ficha del correo indicado; nunca lista correos
+    if (q.accion === "quien") {
+      var tq = tablero_(q.per, true); if (tq.error) throw new Error(tq.error);
+      var eq = String(q.email || "").toLowerCase().trim();
+      var yo = (tq.reclutas || []).filter(function(x){ return x.email === eq; })[0] || null;
+      return ContentService.createTextOutput(JSON.stringify({ yo: yo ? { alias:yo.alias, avatar:yo.avatar, xp:yo.xp,
+        nivel:yo.nivel, rango:yo.rango, rango_nombre:yo.rango_nombre, nivel_titulo:yo.nivel_titulo,
+        xp_siguiente:yo.xp_siguiente, xp_faltan:yo.xp_faltan,
+        creditos:yo.creditos, creditos_ganados:yo.creditos_ganados, creditos_gastados:yo.creditos_gastados,
+        canjeados:yo.canjeados || {},
+        profe:yo.profe || "", planeta:yo.planeta, tema:yo.tema, insignias:yo.insignias, n:yo.n, pos:yo.pos,
+        bio:yo.bio || "", bitacora:yo.bitacora || "",
+        titulo:yo.titulo || "", marco:yo.marco || "", fondo:yo.fondo || "", cromos:yo.cromos || {}, corona:!!yo.corona } : null })).setMimeType(ContentService.MimeType.JSON);
+    }
+    var pin = PropertiesService.getScriptProperties().getProperty("PIN_PROFES") || "";
+    if (!pin || q.pin !== pin) throw new Error("PIN incorrecto");
+    var a = q.accion, per = q.per;
+    if (a === "pers") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; })
+      .map(function(v){ var ob = perObj_(v); ob.docentes = docentesDe_(ob.id); ob.semana = semanaDe_(ob); return ob; }) };
+    else if (a === "alumnos") out = tablero_(per, true);
+    else if (a === "tickets") { var o = perObj_(perFila_(per).v); var sh = SpreadsheetApp.getActive().getSheetByName(o.tabT); var v = sh && sh.getLastRow() > 1 ? sh.getDataRange().getValues() : [[]];
+      var cabT = (v[0]||[]).map(String);
+      var cRes = cabT.indexOf("Resuelto");
+      out = { tickets: v.slice(1).map(function(r, k){ var o2 = {}; cabT.forEach(function(c,i){ if (i > 0 && c !== "Resuelto" && r[i] !== "" && r[i] !== null) o2[c] = r[i]; }); return { fecha:r[0], fila:k+2, resuelto: cRes >= 0 ? String(r[cRes]||"") : "", r:o2 }; }) }; }
+    else if (a === "ticket_resuelto") { var o5 = perObj_(perFila_(per).v); var sht = SpreadsheetApp.getActive().getSheetByName(o5.tabT); var cabR = sht.getRange(1,1,1,sht.getLastColumn()).getValues()[0].map(String);
+      var colR = cabR.indexOf("Resuelto") + 1; if (!colR) { colR = sht.getLastColumn() + 1; sht.getRange(1, colR).setValue("Resuelto"); } sht.getRange(q.fila, colR).setValue(q.valor ? "S\u00ed \u00b7 " + (q.profe||"") + " \u00b7 " + Utilities.formatDate(new Date(),"Europe/Madrid","dd/MM") : ""); out = { ok:true }; }
+    else if (a === "ajuste") { hoja_(H.AJ).appendRow([new Date(), per, String(q.email).toLowerCase(), q.reto_id, q.tipo, q.motivo || "", q.profe || ""]); out = { ok:true }; }
+    else if (a === "profesorado") { var p = perFila_(per); var sh4 = hoja_(H.PERS); sh4.getRange(p.fila, 4).setValue(q.profesorado || ""); sh4.getRange(p.fila, 17).setValue(q.referente || "");
+      if (q.docentes) guardarDocentes_(per, q.docentes);
+      try { var o4 = perObj_(perFila_(per).v); var ftx = FormApp.openByUrl(o4.formTicketEdit); ftx.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle().indexOf("profesor o profesora") >= 0) i.asListItem().setChoiceValues(listaProfes_(q.referente, q.profesorado, per)); }); } catch (e2) {}
+      out = { ok:true }; }
+    else if (a === "ficha") {
+      var of = perObj_(perFila_(per).v); var shf = SpreadsheetApp.getActive().getSheetByName(of.tabB);
+      if (!shf || shf.getLastRow() < 2) throw new Error("Ese grupo a\u00fan no tiene respuestas de la Bit\u00e1cora");
+      var vf = shf.getDataRange().getValues(), cf = vf[0].map(String);
+      var cMf = idx_(cf,"correo") >= 0 ? idx_(cf,"correo") : idx_(cf,"email");
+      var mail = String(q.email || "").toLowerCase().trim(); var filaF = 0;
+      for (var i3 = 1; i3 < vf.length; i3++) if (String(vf[i3][cMf] || "").toLowerCase().trim() === mail) filaF = i3 + 1;
+      if (!filaF) throw new Error("No encuentro a ese recluta en la Bit\u00e1cora del grupo");
+      var campos = [["alias", idx_(cf,"alias")], ["nombre", idx_(cf,"apellidos")],
+                    ["profe", idx_(cf,"qui\u00e9n imparte")], ["bitacora", idx_(cf,"bit\u00e1cora")]];
+      var tocados = [];
+      campos.forEach(function(c){
+        if (q[c[0]] === undefined || c[1] < 0) return;
+        shf.getRange(filaF, c[1] + 1).setValue(q[c[0]]); tocados.push(c[0]);
+      });
+      hoja_(H.AJ).appendRow([new Date(), per, mail, "FICHA", "editar", tocados.join(","), q.profe_edita || ""]);
+      out = { ok:true, tocados:tocados };
+    }
+    else if (a === "archivar") { setArchivado_(per, !!q.valor); out = { ok:true }; }
+    else if (a === "documento") { out = { url: crearDocumentoPER_(per) }; }
+    else if (a === "panel") { var pp = perFila_(per); hoja_(H.PERS).getRange(pp.fila, 20).setValue(String(q.ver||"").trim()); hoja_(H.PERS).getRange(pp.fila, 21).setValue(String(q.editar||"").trim()); out = { ok:true }; }
+    else if (a === "inicio") { var p2 = perFila_(per); hoja_(H.PERS).getRange(p2.fila, 5).setValue(q.inicio ? new Date(q.inicio + "T00:00:00") : ""); out = { ok:true }; }
+    else if (a === "abrir" || a === "cerrar") { setAbierto_(per, a === "abrir"); out = { ok:true }; }
+    else if (a === "entregado") { var o2 = perObj_(perFila_(per).v); var shc = SpreadsheetApp.getActive().getSheetByName(o2.tabC); var cab = shc.getRange(1,1,1,shc.getLastColumn()).getValues()[0].map(String);
+      var col = cab.indexOf("Entregado") + 1; if (!col) { col = shc.getLastColumn() + 1; shc.getRange(1, col).setValue("Entregado"); } shc.getRange(q.fila, col).setValue(q.valor ? "S\u00ed \u00b7 " + (q.profe||"") : ""); out = { ok:true }; }
+    else throw new Error("Acci\u00f3n desconocida");
+  } catch (err) { out = { error: err.message }; }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ================= UTILIDADES =================
+function slug_(s) { return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+function cambiarPin() { var ui = SpreadsheetApp.getUi(); var r = ui.prompt("PIN del profesorado", "Nuevo PIN (4-12 caracteres). Lo usar\u00e1n los profes en el panel web.", ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() === ui.Button.OK && r.getResponseText().trim().length >= 4) { PropertiesService.getScriptProperties().setProperty("PIN_PROFES", r.getResponseText().trim()); ui.alert("PIN guardado."); } }
+function pedirWebAppUrl() { var ui = SpreadsheetApp.getUi(); var r = ui.prompt("URL del web app", "Pega la URL que termina en /exec", ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() === ui.Button.OK) { PropertiesService.getScriptProperties().setProperty("WEBAPP_URL", r.getResponseText().trim()); ui.alert("Guardada."); } }

@@ -1,0 +1,97 @@
+<!doctype html><html><head><base target="_top"><meta charset="utf-8">
+<style>
+ body{font-family:system-ui,sans-serif;font-size:14px;color:#182430;margin:0;padding:18px}
+ label{display:block;font-weight:600;margin:12px 0 4px}
+ input,select{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #c9d3d8;border-radius:8px;font:inherit}
+ .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+ button{margin-top:18px;background:#0e7f8c;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer}
+ button:disabled{opacity:.5}
+ .ok{background:#eef7f8;border-left:4px solid #0e7f8c;padding:8px 12px;border-radius:0 8px 8px 0;margin-top:10px;word-break:break-all;font-size:13px}
+ .destacado{background:#0e7f8c;color:#fff;border-radius:10px;padding:14px 16px;margin:14px 0;text-align:center}
+ .destacado a{display:inline-block;background:#fff;color:#0b5b66;font-weight:800;text-decoration:none;padding:10px 18px;border-radius:8px;margin-top:8px;font-size:14px}
+ .destacado b{font-size:15px}.destacado small{color:#d7eef1;display:block;margin-top:6px}
+ .ok a{color:#0b6db0}.err{color:#b00020;margin-top:10px}
+ textarea.emb{width:100%;font-family:monospace;font-size:11px;height:52px;box-sizing:border-box}
+ small{color:#6d7b85}
+</style></head><body>
+<div id="form">
+ <label>Nombre del PER</label><input id="nombre" placeholder="p. ej. 14210 4P 2026-27">
+ <div class="row"><div><label>Tipo</label><select id="tipo"><option value="REGULAR">REGULAR (15 semanas, examen)</option><option value="PUA">PUA (compacto, un tema por semana, sin examen)</option></select></div>
+ <div><label>Semana 1 empieza el</label><input id="inicio" type="date"><small>Para el foro din&#xE1;mico</small></div></div>
+ <label>Equipo docente</label>
+ <small>El <b>referente</b> gestiona el PER (solo uno). <b>Imparte</b> marca a quien da clase: son los
+ nombres que ver&#xE1; el alumnado en su Bit&#xE1;cora y en el ticket de salida. El referente puede ser las dos
+ cosas: deja marcadas las dos casillas. El <b>correo</b> importa: es a quien se avisa cuando un alumno
+ canjea algo que requiere su intervenci&#xF3;n (subir nota, recalificar). Hasta 10.</small>
+ <table id="docentes" style="width:100%;border-collapse:collapse;margin-top:8px">
+  <tr><th style="text-align:left;font-size:12px;color:#6d7b85">Nombre y apellidos</th>
+      <th style="text-align:left;font-size:12px;color:#6d7b85">Correo</th>
+      <th style="width:70px;text-align:center;font-size:12px;color:#6d7b85">Referente</th>
+      <th style="width:70px;text-align:center;font-size:12px;color:#6d7b85">Imparte</th></tr>
+ </table>
+ <button type="button" id="mas" style="margin-top:8px;background:#eef3f7;color:#0b5b66;padding:6px 12px;font-size:13px">+ A&#xF1;adir docente</button>
+ <div class="row"><div><label>Formularios abiertos desde</label><input id="apertura" type="date"></div><div><label>hasta</label><input id="cierre" type="date"></div></div>
+ <label>Panel de control (Genially) &#xB7; enlace de VISUALIZACI&#xD3;N</label><input id="panelVer" placeholder="view.genially.com/&#x2026; (en blanco = panel est&#xE1;ndar)">
+ <label>Panel de control (Genially) &#xB7; enlace de EDICI&#xD3;N</label><input id="panelEdit" placeholder="app.genially.com/editor/&#x2026; (en blanco = panel est&#xE1;ndar)">
+ <small>El panel de control es el Genially con los planetas que enlaza a las presentaciones. D&#xE9;jalos en blanco para usar el est&#xE1;ndar compartido; ponlos solo si este PER usar&#xE1; una copia propia. Se pueden cambiar despu&#xE9;s desde el panel de profes (Ajustes del PER).</small>
+ <small>Si la apertura es hoy o anterior, nacen abiertos. El cierre se aplica a las 23:59. Ambas opcionales (luego se abre/cierra desde el panel).</small>
+ <button id="go" onclick="crear()">Crear PER</button>
+ <div id="err" class="err"></div>
+</div>
+<div id="res" style="display:none"></div>
+<script>
+function v(id){return document.getElementById(id).value;}
+var nFilas=0;
+function filaDocente(){
+  if(nFilas>=10){document.getElementById('mas').disabled=true;return;}
+  nFilas++;
+  var tr=document.createElement('tr'); tr.setAttribute('data-fila',nFilas);
+  tr.innerHTML='<td style="padding:2px 4px 2px 0"><input class="dn" placeholder="Nombre Apellido"></td>'
+    +'<td style="padding:2px 0"><input class="dc" type="email" placeholder="correo@unir.net"></td>'
+    +'<td style="text-align:center"><input class="dr" type="radio" name="ref" style="width:auto"'+(nFilas===1?' checked':'')+'></td>'
+    +'<td style="text-align:center"><input class="di" type="checkbox" style="width:auto" checked></td>';
+  document.getElementById('docentes').appendChild(tr);
+  if(nFilas>=10) document.getElementById('mas').disabled=true;
+}
+document.addEventListener('DOMContentLoaded',function(){
+  for(var i=0;i<3;i++) filaDocente();
+  document.getElementById('mas').onclick=filaDocente;
+});
+function crear(){
+  var docentes=[],ref='';
+  Array.prototype.forEach.call(document.querySelectorAll('#docentes tr[data-fila]'),function(tr){
+    var n=tr.querySelector('.dn').value.trim(), c=tr.querySelector('.dc').value.trim();
+    if(!n) return;
+    var esRef=tr.querySelector('.dr').checked, da=tr.querySelector('.di').checked;
+    if(esRef&&!ref) ref=n;
+    if(!esRef&&!da) da=true;                       // si no es nada, al menos imparte
+    docentes.push({nombre:n,correo:c,rol:(esRef?'referente':'')+(esRef&&da?'+':'')+(da?'imparte':'')});
+  });
+  var malos=docentes.filter(function(x){return x.correo&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x.correo);});
+  if(malos.length){document.getElementById('err').textContent='Revisa el correo de '+malos[0].nombre;return;}
+  var d={nombre:v('nombre'),tipo:v('tipo'),inicio:v('inicio'),referente:ref,
+         profesores:docentes.filter(function(x){return x.rol.indexOf('imparte')>=0&&x.nombre!==ref;}).map(function(x){return x.nombre;}).join(', '),
+         docentes:docentes,apertura:v('apertura'),cierre:v('cierre'),panelVer:v('panelVer'),panelEdit:v('panelEdit')};
+  if(!d.nombre){document.getElementById('err').textContent='Pon el nombre del PER';return;}
+  if(!docentes.length){document.getElementById('err').textContent='A\u00f1ade al menos un docente';return;}
+  document.getElementById('go').disabled=true;document.getElementById('err').textContent='Creando los 3 formularios y las pesta\u00f1as (30-60 s)\u2026';
+  google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){document.getElementById('err').textContent=e.message;document.getElementById('go').disabled=false;}).crearPER(d);
+}
+function ok(r){
+  document.getElementById('form').style.display='none';var x=document.getElementById('res');x.style.display='block';
+  function b(t,u){return '<div class="ok"><b>'+t+'</b><br><a href="'+u+'" target="_blank">'+u+'</a></div>';}
+  x.innerHTML='<h3>PER \u00ab'+r.nombre+'\u00bb ('+r.tipo+') creado \u00b7 '+r.estado+'</h3>'
+  +(r.restos?'<div class="ok"><b>Aviso:</b> hab\u00eda '+r.restos+' pesta\u00f1a(s) de un PER anterior con el mismo nombre. No se han borrado: se han renombrado a \u00abrestos \u00b7 \u2026\u00bb. Si no las necesitas, l\u00edmpialas con el men\u00fa STARGATE \u2192 Mantenimiento \u2192 Limpiar restos de PER borrados.</div>':'')
+  +b('Bit\u00e1cora de mando (alumnado)',r.formBitacora)+b('Ticket de salida (an\u00f3nimo)',r.formTicket)+b('Canje de recompensas',r.formCanje)
+  +(r.doc?'<div class="destacado"><b>Todo el PER en un documento</b><small>Enlaces, c\u00f3digos para incrustar y QR, listo para compartir con tu profesorado</small><a href="'+r.doc+'" target="_blank">ABRIR EL DOCUMENTO DE ENLACES</a></div>':'')
+  +(r.nave?b('La Nave del Recluta (la web del alumnado: onboarding, semanas, estado y recompensas)',r.nave):'')
+  +(r.panelVer?b('Panel de control (visualizaci\u00f3n, para el alumnado)',r.panelVer):'<div class="ok"><b>Panel de control:</b> sin definir. Ponlo en la hoja (men\u00fa STARGATE \u2192 Guardar panel de control est\u00e1ndar) o en Ajustes del PER.</div>')
+  +(r.panelEdit?b('\u270f\ufe0f Panel de control (edici\u00f3n, para el profesorado)',r.panelEdit):'')
++b('Generador de embeds en la web (elige tu nombre)','https://stargate.mistercuarter.es/embed.html?per='+r.id)+b('Tablero del PER en la web',r.web)+b('Foro din\u00e1mico del PER',r.foro)
+  +(r.embedNave?'<div class="ok"><b>Embed de la Nave del Recluta para el Genially del PER</b><br><textarea class="emb" readonly>'+r.embedNave.replace(/</g,'&lt;')+'</textarea></div>':'')
+  +'<div class="ok"><b>Embed del tablero para el Genially del PER</b><br><textarea class="emb" readonly>'+r.embedAlumnos.replace(/</g,'&lt;')+'</textarea></div>'
+  +'<div class="ok"><b>Embed del foro din\u00e1mico</b><br><textarea class="emb" readonly>'+r.embedForo.replace(/</g,'&lt;')+'</textarea></div>'
+  +'<div class="ok"><b>QR de la Bit\u00e1cora</b><br><img src="https://quickchart.io/qr?size=160&text='+encodeURIComponent(r.formBitacora)+'"></div>'
+  +'<small>Todo queda apuntado en la pesta\u00f1a PERs. El panel del profesorado: '+'<a href="https://stargate.mistercuarter.es/profes.html" target="_blank">profes.html</a></small>';
+}
+</script></body></html>

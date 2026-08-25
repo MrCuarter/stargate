@@ -1432,5 +1432,8 @@ open(_gs_path, "w", encoding="utf-8").write(_gs)
 open(os.path.join(HERE, "assets", "descargas", "Code.gs.txt"), "w", encoding="utf-8").write(_gs)
 open(os.path.join(HERE, "assets", "descargas", "Dialog.html.txt"), "w", encoding="utf-8").write(
     open(os.path.join(HERE, "apps-script", "Dialog.html"), encoding="utf-8").read())
+# Copias 100% ASCII para pegar sin riesgo de que se rompan los acentos (ver _ascii_gs.py)
+import subprocess as _sp
+_sp.run(["python3", os.path.join(HERE, "_ascii_gs.py")], check=False, capture_output=True)
 print("apps-script: CROMOS (%d cartas) + NIVELES (%d) + RECOMPENSAS (%d) regenerados y sincronizados"
       % (len(CROMOS), len(NIVELES), len(RECOMPENSAS)))
