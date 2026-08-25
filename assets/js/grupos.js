@@ -21,6 +21,7 @@
   function fecha(v){ if(!v) return ''; var d=new Date(v); return isNaN(d)?String(v):d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}); }
 
   var ACCESOS=[
+    ['clase.html','🧑‍🏫','Mi clase (sala del docente)','Lo que requiere tu intervención, las dudas del ticket y tu gente — con los errores corregibles desde ahí.'],
     ['registro.html','🏆','Tablero del grupo','El ranking en vivo, las insignias y los xp de esta clase. Es el enlace que se comparte con el alumnado.'],
     ['recluta.html','🚀','La Nave del recluta','La web del alumnado: orden de la semana, planetas, ficha personal, álbum de cromos y recompensas.'],
     ['profes.html','🧑‍🏫','Panel del profesorado','Alumnos, ajustes, canjes y ciclo de vida del PER. Pide el <b>PIN</b>.'],

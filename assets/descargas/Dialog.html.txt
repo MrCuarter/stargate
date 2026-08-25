@@ -18,8 +18,16 @@
  <label>Nombre del PER</label><input id="nombre" placeholder="p. ej. 14210 4P 2026-27">
  <div class="row"><div><label>Tipo</label><select id="tipo"><option value="REGULAR">REGULAR (15 semanas, examen)</option><option value="PUA">PUA (compacto, un tema por semana, sin examen)</option></select></div>
  <div><label>Semana 1 empieza el</label><input id="inicio" type="date"><small>Para el foro dinámico</small></div></div>
- <label>Profesor/a referente (crea los documentos y gestiona el PER)</label><input id="referente" placeholder="Nombre Apellido">
- <label>Profesorado que imparte (desarrolla las clases)</label><input id="profesores" placeholder="Nombre Apellido, Nombre Apellido"><small>Separados por comas. Aparecen en el desplegable del ticket de salida.</small>
+ <label>Equipo docente</label>
+ <small>El <b>referente</b> gestiona el PER. El resto imparte clase. El <b>correo</b> es importante: es
+ a quien se avisa cuando un alumno canjea algo que requiere su intervención (subir nota, recalificar),
+ y permite filtrar el grupo por docente. Hasta 10.</small>
+ <table id="docentes" style="width:100%;border-collapse:collapse;margin-top:8px">
+  <tr><th style="text-align:left;font-size:12px;color:#6d7b85">Nombre y apellidos</th>
+      <th style="text-align:left;font-size:12px;color:#6d7b85">Correo</th>
+      <th style="width:78px;text-align:center;font-size:12px;color:#6d7b85">Referente</th></tr>
+ </table>
+ <button type="button" id="mas" style="margin-top:8px;background:#eef3f7;color:#0b5b66;padding:6px 12px;font-size:13px">+ Añadir docente</button>
  <div class="row"><div><label>Formularios abiertos desde</label><input id="apertura" type="date"></div><div><label>hasta</label><input id="cierre" type="date"></div></div>
  <label>Panel de control (Genially) · enlace de VISUALIZACIÓN</label><input id="panelVer" placeholder="view.genially.com/… (en blanco = panel estándar)">
  <label>Panel de control (Genially) · enlace de EDICIÓN</label><input id="panelEdit" placeholder="app.genially.com/editor/… (en blanco = panel estándar)">
@@ -31,9 +39,37 @@
 <div id="res" style="display:none"></div>
 <script>
 function v(id){return document.getElementById(id).value;}
+var nFilas=0;
+function filaDocente(){
+  if(nFilas>=10){document.getElementById('mas').disabled=true;return;}
+  nFilas++;
+  var tr=document.createElement('tr'); tr.setAttribute('data-fila',nFilas);
+  tr.innerHTML='<td style="padding:2px 4px 2px 0"><input class="dn" placeholder="Nombre Apellido"></td>'
+    +'<td style="padding:2px 0"><input class="dc" type="email" placeholder="correo@unir.net"></td>'
+    +'<td style="text-align:center"><input class="dr" type="radio" name="ref" style="width:auto"'+(nFilas===1?' checked':'')+'></td>';
+  document.getElementById('docentes').appendChild(tr);
+  if(nFilas>=10) document.getElementById('mas').disabled=true;
+}
+document.addEventListener('DOMContentLoaded',function(){
+  for(var i=0;i<3;i++) filaDocente();
+  document.getElementById('mas').onclick=filaDocente;
+});
 function crear(){
-  var d={nombre:v('nombre'),tipo:v('tipo'),inicio:v('inicio'),referente:v('referente'),profesores:v('profesores'),apertura:v('apertura'),cierre:v('cierre'),panelVer:v('panelVer'),panelEdit:v('panelEdit')};
+  var docentes=[],ref='';
+  Array.prototype.forEach.call(document.querySelectorAll('#docentes tr[data-fila]'),function(tr){
+    var n=tr.querySelector('.dn').value.trim(), c=tr.querySelector('.dc').value.trim();
+    if(!n) return;
+    var esRef=tr.querySelector('.dr').checked;
+    if(esRef&&!ref) ref=n;
+    docentes.push({nombre:n,correo:c,rol:esRef?'referente':'imparte'});
+  });
+  var malos=docentes.filter(function(x){return x.correo&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x.correo);});
+  if(malos.length){document.getElementById('err').textContent='Revisa el correo de '+malos[0].nombre;return;}
+  var d={nombre:v('nombre'),tipo:v('tipo'),inicio:v('inicio'),referente:ref,
+         profesores:docentes.filter(function(x){return x.rol!=='referente';}).map(function(x){return x.nombre;}).join(', '),
+         docentes:docentes,apertura:v('apertura'),cierre:v('cierre'),panelVer:v('panelVer'),panelEdit:v('panelEdit')};
   if(!d.nombre){document.getElementById('err').textContent='Pon el nombre del PER';return;}
+  if(!docentes.length){document.getElementById('err').textContent='Añade al menos un docente';return;}
   document.getElementById('go').disabled=true;document.getElementById('err').textContent='Creando los 3 formularios y las pestañas (30-60 s)…';
   google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){document.getElementById('err').textContent=e.message;document.getElementById('go').disabled=false;}).crearPER(d);
 }

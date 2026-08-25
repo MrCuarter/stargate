@@ -18,6 +18,11 @@ M-learning y Gamificación en el Aula* (CCD). Pensado para el profesorado y para
   panel del profesorado, tickets, foro, enlaces/embeds) más sus formularios y el panel de control, y un botón
   para copiar el enlace del alumnado. `?per=<id>` resalta uno. La entrada **Grupos** del menú superior
   despliega los PER activos desde cualquier página.
+- `clase.html` — **Mi clase (v3.11)**: la sala del docente. Con PIN y por nombre (`?per=&profe=`, o se
+  elige una vez y se recuerda). Sus grupos en marcha y pasados, «Requiere tu intervención» (canjes de nota
+  sin aplicar), la orden de la semana, las dudas del ticket **filtrables por tema y fecha**, su gente y los
+  enlaces del PER. **Escribe**: corrige la ficha del alumno (`ficha`), otorga/quita retos (`ajuste`), marca
+  canjes aplicados (`entregado`) y tickets resueltos (`ticket_resuelto`).
 - `recursos.html` — **Sala de recursos** (tablero de 24 insignias, las 20 cartas del álbum, ranking).
 
 Datos editables en `_site_data.py` (cronología, vídeos, Geniallys, **catálogo de cromos**); los textos
@@ -34,6 +39,12 @@ es **el único sitio donde se define el álbum**. Al ejecutar `_build_site.py`:
 Los pesos deben sumar 100 (hay un `assert`). Las imágenes de las cartas las genera
 `../Retos e Insignias/_work/cartas.py` y las publica aquí `publicar_tarjetas.py` (720×1210).
 **No editar `var CROMOS` ni el `.txt` a mano: se pisan en el siguiente build.**
+
+### Equipo docente (v3.11)
+Pestaña **`DOCENTES`** (per · nombre · correo · rol). La rellena el diálogo de crear PER (filas Docente +
+correo + referente, hasta 10) o se edita a mano. Cada alumno declara su docente en la Bitácora
+(«¿Quién imparte tu clase?»), y con eso se filtra la sala, la Consola y el aviso: al conceder un canje de
+tipo `nota`, `avisarDocente_()` escribe **al docente del alumno y al referente**. Del resto no se avisa.
 
 ### Los dos archivos de Google Sheets (v3.10)
 La **hoja maestra** guarda la materia prima (3 pestañas de respuestas por PER + PERs/RECOMPENSAS/

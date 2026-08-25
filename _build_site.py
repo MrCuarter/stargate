@@ -14,7 +14,7 @@ FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0
 
 NAV = [("index.html","Inicio","inicio"),("guia.html","Guía","guia"),("cronologia.html","Cronología","crono"),
        ("actividades.html","Actividades","act"),("geniallys.html","Geniallys","gen"),
-       ("registro.html","Registro","reg"),("grupos.html","Grupos","grp"),("recursos.html","Recursos","rec")]
+       ("registro.html","Registro","reg"),("grupos.html","Grupos","grp"),("clase.html","Mi clase","cla"),("recursos.html","Recursos","rec")]
 
 def head(title, desc, active):
     def _lnk(h, t, k):
@@ -854,6 +854,7 @@ el profesorado al terminar las clases en directo.</p>
 <li><b>Extensiones → Apps Script</b>: sustituye <code>Código.gs</code> por <a href="assets/descargas/Code.gs.txt" target="_blank">Code.gs</a> (debe verse «Bitácora» con tilde) y crea un archivo HTML llamado <b>Dialog</b> con <a href="assets/descargas/Dialog.html.txt" target="_blank">Dialog.html</a>. Guarda y recarga la hoja: aparece el menú <b>STARGATE</b>; autoriza la primera vez.</li>
 <li><b>Plantillas con la estética</b> (en la misma carpeta, con el nombre exacto): crea tres formularios vacíos llamados <b>PLANTILLA · Bitácora de mando</b>, <b>PLANTILLA · Ticket de salida</b> y <b>PLANTILLA · Canje de recompensas</b>; en cada uno, <i>Personalizar tema</i> → imagen de cabecera (<a href="assets/img/forms/cabecera_bitacora.jpg" download>Bitácora</a> · <a href="assets/img/forms/cabecera_ticket.jpg" download>Ticket</a> · <a href="assets/img/forms/cabecera_canje.jpg" download>Canje</a>), color <code>#0e5f6c</code>, fondo oscuro, fuente a tu gusto. Sin preguntas: el asistente las pone.</li>
 <li><b>Menú STARGATE → «Abrir la Consola del profesorado»</b>: crea (una sola vez) un <b>segundo archivo de Google Sheets</b> con una <b>portada de todos tus grupos</b> y una pestaña por PER —reclutas con su nivel, xp y créditos, canjes con lo que te queda por aplicar, y los últimos registros—. La hoja maestra se queda como materia prima (3 pestañas de respuestas por PER: con varios grupos es ilegible, y no pasa nada porque no hay que leerla). La Consola es una <b>foto</b>: se rehace desde ese menú y sola cada madrugada.</li>
+<li><b>Reparte la sala del docente</b>: pásale a cada profe que imparte el enlace de <a href="clase.html">clase.html</a>. Entra con el PIN, elige su nombre una vez y ya tiene <b>todo en una página</b>: sus grupos (los de ahora y los pasados), lo que <b>requiere su intervención</b>, la orden de la semana, las dudas del ticket filtrables por tema y fecha, y su gente — <b>con los errores corregibles desde ahí</b> (alias, nombre, docente, enlace del ePortfolio y las insignias). No necesita entrar nunca en la hoja de cálculo ni en Drive: eso es cosa del profe referente.</li>
 <li>Menú STARGATE → <b>Cambiar PIN del profesorado</b>: el PIN que usarán los profes en el panel.</li>
 <li><b>Implementar → Nueva implementación → Aplicación web</b> · Ejecutar como <b>Yo</b> · Acceso <b>Cualquier usuario</b> → copia la URL <code>/exec</code>, pégala en menú STARGATE → <b>Guardar URL del web app</b> y pásasela a quien mantenga la web (va en <code>_site_data.py → TABLERO_API</code>).</li>
 <li>Revisa la pestaña <b>RECOMPENSAS</b> (nombre · coste · máximo · descripción). Para cambiarlas en el futuro: editar la pestaña y menú → <b>Actualizar recompensas</b>.</li>
@@ -1211,6 +1212,24 @@ TICKETS = head("STARGATE · Tickets de salida", "Panel visual de los tickets de 
 ''' + FOOT
 html=(TICKETS.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
 open(os.path.join(HERE,"tickets.html"),"w",encoding="utf-8").write(html); print("escrito: tickets.html")
+
+# ================= v3.11 · LA SALA DEL DOCENTE =================
+# Un solo sitio para quien imparte: sus grupos, lo que requiere SU intervención, las dudas del ticket
+# filtradas, su gente (con corrección de errores) y los enlaces. Con PIN, y de escritura.
+CLASE = head("STARGATE · Mi clase", "La sala del docente: tus grupos, lo que requiere tu intervención, las dudas del ticket de salida y tu gente — todo en una página, sin abrir hojas de cálculo.", "cla") + f'''
+<header class="hero"><div class="kicker">Solo profesorado · PIN</div><h1>Mi clase</h1>
+<p>Todo lo que necesitas antes de entrar al aula, en una página: <b>lo que requiere tu intervención</b>,
+la orden de la semana, las <b>dudas del ticket de salida</b> filtrables por tema y fecha, y <b>tu gente</b>
+—con sus errores corregibles desde aquí—. Las hojas de cálculo y el Drive son cosa del profe referente.</p>
+<p class="small muted">Se abre por tu nombre: <code>clase.html?per=&lt;id&gt;&amp;profe=Nombre</code>, o eliges
+una vez y se recuerda en este navegador. Para incrustar: <code>&amp;embed=1</code>.</p></header>
+<section><div class="wrap"><div id="clase-app"></div>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_SEMANAS={SEMANAS_JSON};</script>
+<script src="assets/js/clase.js" defer></script>
+</div></section>
+''' + FOOT
+html=(CLASE.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
+open(os.path.join(HERE,"clase.html"),"w",encoding="utf-8").write(html); print("escrito: clase.html")
 
 # ================= v3.6 · GRUPOS (un panel de accesos por PER) =================
 # La lista sale de doGet ?per=all (sin PIN); los formularios de cada grupo, de doGet ?per=<id>.

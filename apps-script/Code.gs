@@ -5,6 +5,9 @@
  * API de lectura (doGet) para la web del alumnado y API con PIN (doPost) para el panel del profesorado.
  * v3: La Nave del Recluta (recluta.html?per=id) · recompensas con semana de desbloqueo · canjes de avatar
  * automáticos («Cambio de avatar» y «Avatar personal») · el avatar inicial se congela al alistarse y solo
+ * v3.11: EQUIPO DOCENTE con correo (pestaña DOCENTES), cada alumno declara su docente en la Bitácora,
+ * aviso por correo SOLO cuando un canje requiere intervención humana (notas), y clase.html: la sala
+ * del docente, bidireccional (acción «ficha» para corregir alias/nombre/docente/ePortfolio).
  * v3.10: CONSOLA — segunda hoja de cálculo «STARGATE · Consola del profesorado» (id en la propiedad
  * CONSOLA_ID) con portada de todos los PER y una pestaña por PER. Es una foto: menú o fotoNocturna
  * (4:00). Y consolidarDatos() sale del camino caliente: recorría TODOS los PER en cada envío.
@@ -148,7 +151,7 @@ function creditosDe_(id, tipo) {
   if (c === "B") return (tipo === "PUA" ? CREDITOS.retoB_pua : CREDITOS.retoB) || 0;
   return 0;
 }
-var H = { PERS:"PERs", REC:"RECOMPENSAS", EV:"EVENTOS", AJ:"AJUSTES", DATOS:"DATOS", RES:"RESUMEN" };
+var H = { PERS:"PERs", REC:"RECOMPENSAS", EV:"EVENTOS", AJ:"AJUSTES", DATOS:"DATOS", RES:"RESUMEN", DOC:"DOCENTES" };
 // Personajes evolutivos: los 1-4 se eligen al alistarse; los 5-7 son EXCLUSIVOS (solo por canje)
 var AVATARES_INICIALES = 4;
 // CROMOS-INICIO · [clave de carta, nombre, peso, rareza, serie]. Los pesos suman 100.
@@ -228,6 +231,9 @@ function asegurarHojas_() {
   else migrarRecompensas_(rec);
   hoja_(H.EV, ["fecha","per","email","alias","reto_id","reto","tema","xp","origen"], "#aa66cc");
   hoja_(H.AJ, ["fecha","per","email","reto_id","accion","motivo","profe"], "#aa66cc");
+  // v3.11 · equipo docente CON CORREO: es a quien se avisa cuando un canje pide su intervención,
+  // y lo que permite filtrar cada grupo por docente. Se puede editar a mano en esta pestaña.
+  hoja_(H.DOC, ["per","nombre","correo","rol"], "#0e7f8c");
   var pers = hoja_(H.PERS);
   if (String(pers.getRange(1,20).getValue()||"") !== "Panel Genially (ver)")
     pers.getRange(1,19,1,4).setValues([["Documento de enlaces","Panel Genially (ver)","Panel Genially (editar)","Archivado"]]);
@@ -381,6 +387,7 @@ function crearPER(datos) {
   var subs = raiz.getFoldersByName("Formularios PER"); var padre = subs.hasNext() ? subs.next() : raiz.createFolder("Formularios PER");
   var carpeta = padre.createFolder(nombre);   // v3.3: cada PER en su propia carpeta
   var retos = retosDe_(tipo);
+  guardarDocentes_(id, datos.docentes);   // v3.11 · el equipo docente, con correo
 
   // ---- 1 · Bitácora de mando (Google login, 1 respuesta editable) ----
   var fb = formDesdePlantilla_("PLANTILLA · Bitácora de mando", "STARGATE · " + nombre + " · Bitácora de mando", carpeta);
@@ -396,6 +403,8 @@ function crearPER(datos) {
   try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle("Tu personaje evoluciona con tu nivel").setHelpText("Recluta → Cadete → Oficial → Comandante → Leyenda: el tablero cambia la imagen solo al subir de nivel. Los personajes 5-7 son EXCLUSIVOS: se desbloquean con créditos durante el curso.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
   fb.addListItem().setTitle("Elige tu avatar").setHelpText(AYUDA_AVATAR).setRequired(true)
     .setChoiceValues(opcIniciales_());
+  fb.addListItem().setTitle(TIT_DOCENTE).setHelpText(AYUDA_DOCENTE).setRequired(true)
+    .setChoiceValues(listaProfes_(datos.referente || "", datos.profesores || "", id));
   var bit = fb.addTextItem().setTitle("Enlace a mi Bitácora (ePortfolio)").setHelpText("Un único enlace donde está toda tu evidencia. Puedes añadirlo más adelante.");
   bit.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
   fb.addParagraphTextItem().setTitle("Breve biografía de tu personaje").setHelpText("2-3 frases sobre tu recluta: quién es, de dónde viene, qué se le da bien. Aparecerá al pie de tu personaje en la Nave del Recluta.").setRequired(true);
@@ -422,7 +431,7 @@ function crearPER(datos) {
 
   // ---- 2 · Ticket de salida «Contacta con NEBULA» (anónimo, ramificado) ----
   var ft = formDesdePlantilla_("PLANTILLA · Ticket de salida", "STARGATE · " + nombre + " · Contacta con NEBULA (ticket de salida)", carpeta);
-  construirTicket_(ft, datos.referente || "", datos.profesores || "");
+  construirTicket_(ft, datos.referente || "", datos.profesores || "", id);
   publicar_(ft);
   ft.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
   var tabT = pestanaDe_(ft, "T · " + id, "#9fb2c2");
@@ -463,6 +472,9 @@ function etiquetasRecompensas_() {
   return d.map(function(r){ return r[0] + " — " + r[1] + " créditos"; });
 }
 // Preguntas del canje de avatar (se usan al crear el PER y al actualizar PERs anteriores)
+var TIT_DOCENTE = "¿Quién imparte tu clase?";
+var AYUDA_DOCENTE = "Para que tu profe pueda seguir a su grupo y le avise el sistema cuando canjees algo " +
+  "que tenga que aplicar él o ella (subir nota, recalificar). Si cambias de clase, edita esta respuesta.";
 var TIT_NAV = "¿Qué vienes a registrar hoy?";
 var OPC_NADA = "Nada más: solo me alisto / actualizo mis datos";
 var AYUDA_NAV = "Elige y te llevo DIRECTO a esa sección; al marcar tus casillas, envías y listo. " +
@@ -502,7 +514,7 @@ function actualizarRecompensas() {
             var bioIt = fbx.addParagraphTextItem().setTitle("Breve biografía de tu personaje").setHelpText("2-3 frases sobre tu recluta: quién es, de dónde viene, qué se le da bien. Aparecerá al pie de tu personaje en la Nave del Recluta.");
             var items = fbx.getItems(); var pos = tit2.indexOf("Enlace a mi Bitácora (ePortfolio)");
             if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); }
-          reestructurarBitacora_(fbx, perObj_(v).tipo); } catch (e) {}
+          reestructurarBitacora_(fbx, perObj_(v)); } catch (e) {}
   });
   SpreadsheetApp.getUi().alert("Formularios actualizados en " + n + " PER.\n\n· Canje: recompensas con precios en CRÉDITOS y preguntas al día.\n· Bitácora: avatares solo evolutivos (galería clásica y URL propia RETIRADAS: poner tu imagen es ahora una recompensa de pago) y SECCIONES RÁPIDAS — la primera página pregunta a qué tema vas y salta directo; cada sección envía al terminar.");
 }
@@ -510,8 +522,18 @@ function actualizarRecompensas() {
 // v3.8 · pone al día una Bitácora ya creada: quita la galería clásica y la URL gratis, y le añade
 // el selector que salta directo a la sección del tema (cada sección envía al terminar).
 // Es idempotente: si ya está reestructurada, no toca nada.
-function reestructurarBitacora_(fb, tipo) {
+function reestructurarBitacora_(fb, o) {
   var items = fb.getItems();
+  // 0) v3.11 · «¿Quién imparte tu clase?»: es lo que ata cada alumno a su docente
+  var itProf = items.filter(function(i){ return i.getTitle() === TIT_DOCENTE; })[0];
+  var opciones = listaProfes_(o.referente || "", o.profesorado || "", o.id);
+  if (itProf) { try { itProf.asListItem().setChoiceValues(opciones).setHelpText(AYUDA_DOCENTE); } catch (e) {} }
+  else {
+    var nuevo = fb.addListItem().setTitle(TIT_DOCENTE).setHelpText(AYUDA_DOCENTE).setRequired(true).setChoiceValues(opciones);
+    var pos = items.map(function(i){ return i.getTitle(); }).indexOf("Enlace a mi Bitácora (ePortfolio)");
+    if (pos >= 0) { try { fb.moveItem(nuevo.getIndex(), pos); } catch (e) {} }
+    items = fb.getItems();
+  }
   // 1) avatar: solo personajes que evolucionan
   items.forEach(function(it){
     if (it.getType() === FormApp.ItemType.LIST && it.getTitle() === "Elige tu avatar") {
@@ -538,16 +560,54 @@ function reestructurarBitacora_(fb, tipo) {
   if (!yaHay) { try { fb.moveItem(nav.getIndex(), pbs[0].getIndex()); } catch (e) {} }
 }
 
-function listaProfes_(referente, profesores) {
-  var l = []; (referente ? [referente] : []).concat(String(profesores||"").split(",")).forEach(function(x){ x = x.trim(); if (x && l.indexOf(x) < 0) l.push(x); });
+// Equipo docente de un PER. Si la pestaña DOCENTES tiene filas, manda; si no, se reconstruye desde
+// los nombres sueltos de la fila del PER (PERs antiguos, sin correo).
+function docentesDe_(perId) {
+  var out = [];
+  try {
+    hoja_(H.DOC).getDataRange().getValues().slice(1).forEach(function(v){
+      if (String(v[0]) !== perId || !String(v[1] || "").trim()) return;
+      out.push({ nombre:String(v[1]).trim(), correo:String(v[2] || "").trim().toLowerCase(), rol:String(v[3] || "imparte") });
+    });
+  } catch (e) {}
+  if (out.length) return out;
+  var p = perFila_(perId); if (!p) return out;
+  var o = perObj_(p.v);
+  if (o.referente) out.push({ nombre:o.referente, correo:"", rol:"referente" });
+  String(o.profesorado || "").split(",").forEach(function(x){ x = x.trim();
+    if (x && !out.some(function(d){ return d.nombre === x; })) out.push({ nombre:x, correo:"", rol:"imparte" }); });
+  return out;
+}
+function guardarDocentes_(perId, docentes) {
+  var sh = hoja_(H.DOC), v = sh.getDataRange().getValues();
+  for (var i = v.length; i >= 2; i--) if (String(v[i-1][0]) === perId) sh.deleteRow(i);
+  var filas = (docentes || []).filter(function(d){ return d && String(d.nombre || "").trim(); })
+    .map(function(d){ return [perId, String(d.nombre).trim(), String(d.correo || "").trim().toLowerCase(), d.rol || "imparte"]; });
+  if (filas.length) sh.getRange(sh.getLastRow() + 1, 1, filas.length, 4).setValues(filas);
+}
+// Correos a los que avisar de algo de este PER: el docente indicado + siempre el referente.
+function correosAviso_(perId, nombreDocente) {
+  var ds = docentesDe_(perId), out = [];
+  ds.forEach(function(d){
+    if (!d.correo) return;
+    if (d.rol === "referente" || (nombreDocente && d.nombre === nombreDocente)) {
+      if (out.indexOf(d.correo) < 0) out.push(d.correo);
+    }
+  });
+  return out;
+}
+function listaProfes_(referente, profesores, perId) {
+  var l = [];
+  if (perId) docentesDe_(perId).forEach(function(d){ if (l.indexOf(d.nombre) < 0) l.push(d.nombre); });
+  (referente ? [referente] : []).concat(String(profesores||"").split(",")).forEach(function(x){ x = x.trim(); if (x && l.indexOf(x) < 0) l.push(x); });
   return l.length ? l : ["Profesorado"];
 }
 function escala_(f, titulo, a, b) { f.addScaleItem().setTitle(titulo).setBounds(1,5).setLabels(a,b); }
-function construirTicket_(ft, referente, profesores) {
+function construirTicket_(ft, referente, profesores, perId) {
   ft.setDescription("En este cuestionario encontrarás un espacio donde formular todas las dudas que tengas sobre la clase. También puedes indicarnos tu grado de satisfacción sobre las herramientas, metodología y progreso. " +
     "Responde con sinceridad: es ANÓNIMO y nos sirve para ayudarte a mejorar.");
   ft.setCollectEmail(false).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true).setConfirmationMessage("Recibido, recluta. NEBULA toma nota y lo resolvemos en la próxima clase.");
-  var prof = ft.addListItem().setTitle("El profesor o profesora que imparte tu clase...").setRequired(true); prof.setChoiceValues(listaProfes_(referente, profesores));
+  var prof = ft.addListItem().setTitle("El profesor o profesora que imparte tu clase...").setRequired(true); prof.setChoiceValues(listaProfes_(referente, profesores, perId));
   var sel = ft.addListItem().setTitle("Selecciona el tema o actividad que hemos trabajado y sobre el que quieres hacer una pregunta").setRequired(true);
   // páginas
   var pPres = ft.addPageBreakItem().setTitle("Sobre la presentación de la asignatura").setHelpText("Dudas, inquietudes u opiniones, de manera anónima. Todos los campos son opcionales.");
@@ -934,6 +994,28 @@ function congelarAvatarBase_(o, email, r) {
   } catch (e) { Logger.log("congelarAvatarBase_: " + e); }
 }
 function aplicarAvatar_(o, email, valor) { hoja_(H.AJ).appendRow([new Date(), o.id, email, "AVATAR", "avatar", valor, "canje"]); }
+// v3.11 · aviso al docente cuando un canje requiere SU intervención (subir nota, recalificar...).
+// Va al docente que el alumno declaró en su Bitácora y, siempre, al referente del PER. Es el único
+// correo que recibe el profesorado: del resto (insignias, cromos, tickets) no se le molesta.
+function avisarDocente_(o, al, rec, actividad) {
+  try {
+    var para = correosAviso_(o.id, al ? al.profe : "");
+    if (!para.length) return;
+    var quien = al ? (al.alias + (al.nombre ? " (" + al.nombre + ")" : "") + " · " + al.email) : "un recluta";
+    MailApp.sendEmail(para.join(","), "STARGATE · " + o.nombre + " · te toca a ti: " + rec,
+      "Un recluta de tu grupo ha canjeado una recompensa que TIENE QUE APLICAR EL PROFESORADO.\n\n" +
+      "Grupo: " + o.nombre + " (" + o.tipo + ")\n" +
+      "Recluta: " + quien + "\n" +
+      (al && al.profe ? "Docente que indicó: " + al.profe + "\n" : "") +
+      "Recompensa: " + rec + "\n" +
+      (actividad ? "Se aplica a: " + actividad + "\n" : "") +
+      "\nYa se le han descontado los créditos y él/ella lo sabe: solo falta que lo apliques cuando " +
+      "terminen las clases en directo.\n\n" +
+      "Márcalo como aplicado aquí (pestaña Canjes):\n" + WEB + "profes.html?per=" + o.id + "\n" +
+      "Tu sala de clase, con todo lo que necesitas antes de entrar:\n" + WEB + "clase.html?per=" + o.id +
+      (al && al.profe ? "&profe=" + encodeURIComponent(al.profe) : "") + "\n");
+  } catch (e) { Logger.log("avisarDocente_: " + e); }
+}
 function resolverCanje_(o, sh, fila) {
   var r = leerFila_(sh, fila); var email = String(r["Dirección de correo electrónico"] || r["Email Address"] || "").toLowerCase().trim();
   var rec = String(r["Recompensa"] || ""); var coste = parseInt((rec.match(/(\d+)\s*(?:cr[ée]ditos|xp)$/) || [0,0])[1], 10);
@@ -1001,10 +1083,12 @@ function resolverCanje_(o, sh, fila) {
     if (!/^https?:\/\//i.test(u)) { estado = "Denegado (falta la URL de la imagen en el formulario)"; cuerpo = "Para «Avatar personal» tienes que pegar la URL directa de tu imagen en el propio formulario. Vuelve a enviarlo con el enlace; no se han gastado créditos."; }
     else { aplicarAvatar_(o, email, u); estado = "Concedido"; cuerpo = "Concedido: " + rec + ". Tu imagen ya es tu avatar en el tablero (si no carga, revisa que el enlace sea directo). Te quedan " + (disp - coste) + " créditos."; }
   }
-  // 5) recompensas de nota: las aplica el profesorado al terminar las clases en directo
+  // 5) recompensas de nota: las aplica el profesorado al terminar las clases en directo.
+  // Aquí SÍ hace falta una persona, así que se le avisa por correo (v3.11).
   else {
     estado = "Concedido";
     cuerpo = "Concedido: " + rec + ". Te quedan " + (disp - coste) + " créditos. Importante: esta recompensa se hará efectiva al terminar las clases en directo; el profesorado la aplicará entonces.";
+    avisarDocente_(o, al, rec, String(r["Actividad a la que se aplica"] || ""));
   }
   var ok = estado === "Concedido";
   sh.getRange(fila, col).setValue(estado);
@@ -1022,17 +1106,17 @@ function tablero_(perId, conPrivados) {
   if (shB && shB.getLastRow() > 1) {
     var vals = shB.getDataRange().getValues(); var cab = vals[0].map(String);
     var cM = idx_(cab,"correo") >= 0 ? idx_(cab,"correo") : idx_(cab,"email"); var cA = idx_(cab,"alias"), cN = idx_(cab,"apellidos"), cB = idx_(cab,"bitácora"), cBio = idx_(cab,"biograf");
-    var cAv = idx_(cab,"elige tu avatar"), cAvU = idx_(cab,"url de tu propia imagen");
+    var cAv = idx_(cab,"elige tu avatar"), cAvU = idx_(cab,"url de tu propia imagen"), cProf = idx_(cab,"quién imparte");
     for (var i = 1; i < vals.length; i++) { var m = String(vals[i][cM]||"").toLowerCase().trim(); if (!m) continue;
       var avs = cAv >= 0 ? String(vals[i][cAv]||"") : ""; var avu = cAvU >= 0 ? String(vals[i][cAvU]||"").trim() : "";
       var mp = avs.match(/Personaje (\d) · (ella|él|modelo A|modelo B)/);   // v3.8: la galería clásica ya no existe
       var avatar = mp ? { tipo:"evo", n:Number(mp[1]), v: (mp[2] === "él" || mp[2] === "modelo B") ? "m" : "f" } : { tipo:null, n:null };
       avatar.url = avu;
-      por[m] = { email:m, alias:String(vals[i][cA]||""), nombre:String(vals[i][cN]||""), bitacora:String(vals[i][cB]||""), bio:cBio >= 0 ? String(vals[i][cBio]||"") : "", avatar:avatar, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] }; }
+      por[m] = { email:m, alias:String(vals[i][cA]||""), nombre:String(vals[i][cN]||""), bitacora:String(vals[i][cB]||""), bio:cBio >= 0 ? String(vals[i][cBio]||"") : "", profe:cProf >= 0 ? String(vals[i][cProf]||"").trim() : "", avatar:avatar, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] }; }
   }
   // 2) eventos (con fecha) + ajustes del profesorado
   hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase();
-    var a = por[m] || (por[m] = { email:m, alias:String(v[3]||""), nombre:"", bitacora:"", avatar:{tipo:null,n:null,url:""}, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] });
+    var a = por[m] || (por[m] = { email:m, alias:String(v[3]||""), nombre:"", bitacora:"", profe:"", avatar:{tipo:null,n:null,url:""}, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] });
     a.retos[v[4]] = { fecha:v[0], origen:v[8] }; a.eventos.push({ fecha:v[0], reto_id:v[4], reto:v[5], xp:v[7], origen:v[8] }); });
   hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase(); var a = por[m]; if (!a) return;
     if (v[4] === "anular") delete a.retos[v[3]]; else if (v[4] === "otorgar") { a.retos[v[3]] = { fecha:v[0], origen:"profesorado" }; }
@@ -1066,7 +1150,7 @@ function tablero_(perId, conPrivados) {
                 nivel_titulo:niv.titulo, xp_siguiente:niv.siguiente, xp_faltan:niv.faltan,
                 creditos: cred - gast, creditos_ganados: cred, creditos_gastados: gast,
                 canjeados: canjes[m] ? canjes[m].veces : {},
-                planeta: tema ? TEMAS[tema][0] : "—", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length,
+                profe:a.profe || "", planeta: tema ? TEMAS[tema][0] : "—", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length,
                 titulo:a._titulo || "", marco:a._marco || "", fondo:a._fondo || "", cromos:a._cromos || {}, xp7:xp7 };
     if (conPrivados) { out.email = m; out.nombre = a.nombre; out.bitacora = a.bitacora; out.bio = a.bio || ""; out.eventos = a.eventos; out.retos = a.retos; out.canjes = canjes[m] ? canjes[m].lista : []; }
     return out; });
@@ -1078,6 +1162,7 @@ function tablero_(perId, conPrivados) {
   var res = { per:perId, nombre:o.nombre, tipo:o.tipo, profesorado:o.profesorado, referente:o.referente, estado:o.estado, inicio:o.inicio,
            formBitacora:o.formBitacora, formTicket:o.formTicket, formCanje:o.formCanje, reclutas:lista,
            recompensas:recompensasCat_(), semana:semanaDe_(o), panel:o.panelVer || std.ver,
+           docentes:docentesDe_(perId).map(function(d){ return { nombre:d.nombre, rol:d.rol }; }),
            actualizado:new Date() };
   if (conPrivados) { res.panelEdit = o.panelEdit || std.editar; res.panelPropio = !!(o.panelVer || o.panelEdit); res.archivado = o.archivado;
     res.doc = o.doc; res.hoja = SpreadsheetApp.getActive().getUrl(); res.formBitacoraEdit = o.formBitacoraEdit; }
@@ -1184,7 +1269,8 @@ function actualizarConsola() {
       o.inicio || "", sem === null ? "" : (sem < 1 ? "no ha empezado" : "semana " + sem),
       rec.length, xpMedia, rec.length ? Math.round(rec.reduce(function(a,x){ return a + x.nivel; }, 0) / rec.length) : 0,
       credCirc, concedidos.length, pendientes.length, tk.total, tk.sinResolver,
-      WEB + "registro.html?per=" + o.id, WEB + "recluta.html?per=" + o.id, WEB + "grupos.html?per=" + o.id,
+      docentesDe_(o.id).map(function(d){ return d.nombre + (d.correo ? " <" + d.correo + ">" : "") + (d.rol === "referente" ? " ★" : ""); }).join("\n"),
+      WEB + "registro.html?per=" + o.id, WEB + "clase.html?per=" + o.id, WEB + "recluta.html?per=" + o.id,
       o.formBitacora || "", o.formCanje || "", o.formTicket || "", o.doc || ""]);
 
     // ---- pestaña del PER ----
@@ -1198,9 +1284,26 @@ function actualizarConsola() {
       .setFontColor("#8899aa").setFontStyle("italic");
 
     var f = 5;
+    // por docente: cuántos alumnos, cómo van y qué tiene pendiente de aplicar cada uno
+    var docs = docentesDe_(o.id);
+    var porProf = {};
+    rec.forEach(function(x){ var k = x.profe || "— sin indicar —"; (porProf[k] = porProf[k] || []).push(x); });
+    docs.forEach(function(d){ if (!porProf[d.nombre]) porProf[d.nombre] = []; });
+    f = bloque_(sh, f, "Por docente",
+      ["Docente","Correo","Rol","Alumnos","xp medio","◈ medios","Insignias medias","Pendientes de aplicar"],
+      Object.keys(porProf).sort().map(function(k){
+        var g = porProf[k], d = docs.filter(function(x){ return x.nombre === k; })[0];
+        var pend = concedidos.filter(function(c){
+          var al = rec.filter(function(x){ return x.email === String(c.email).toLowerCase(); })[0];
+          return !c.entregado && al && (al.profe || "— sin indicar —") === k; }).length;
+        var med = function(f2){ return g.length ? Math.round(g.reduce(function(a2,x){ return a2 + f2(x); }, 0) / g.length) : 0; };
+        return [k, d ? d.correo : "", d ? d.rol : "", g.length, med(function(x){ return x.xp; }),
+                med(function(x){ return x.creditos; }), med(function(x){ return x.n; }), pend];
+      }));
+
     f = bloque_(sh, f, "Reclutas (por xp)",
-      ["Alias","Nombre","Correo","Nivel","Rango","xp","◈ créditos","Insignias","Planeta","Corona","Bitácora (ePortfolio)"],
-      rec.map(function(x){ return [x.alias, x.nombre, x.email, x.nivel, x.rango_nombre, x.xp, x.creditos,
+      ["Alias","Nombre","Correo","Docente","Nivel","Rango","xp","◈ créditos","Insignias","Planeta","Corona","Bitácora (ePortfolio)"],
+      rec.map(function(x){ return [x.alias, x.nombre, x.email, x.profe || "", x.nivel, x.rango_nombre, x.xp, x.creditos,
         x.n + "/24", x.planeta, x.corona ? "♛" : "", x.bitacora || ""]; }));
 
     f = bloque_(sh, f, "Canjes",
@@ -1231,7 +1334,7 @@ function actualizarConsola() {
   pt.getRange(3,1).setValue("Hoja maestra (materia prima): " + maestra.getUrl()).setFontColor("#55606a");
   var cab = ["id","Grupo","Tipo","Estado","Inicio","Semana","Reclutas","xp medio","Nivel medio",
              "◈ en circulación","Canjes concedidos","Pendientes de aplicar","Tickets","Sin resolver",
-             "Tablero","Nave","Panel del grupo","Form · Bitácora","Form · Canje","Form · Ticket","Documento"];
+             "Equipo docente","Tablero","Sala de clase","Nave","Form · Bitácora","Form · Canje","Form · Ticket","Documento"];
   pt.getRange(5,1,1,cab.length).setValues([cab]).setFontWeight("bold").setBackground("#eef3f7");
   if (portada.length) pt.getRange(6,1,portada.length,cab.length).setValues(portada);
   pt.setFrozenRows(5); pt.setFrozenColumns(2);
@@ -1276,14 +1379,15 @@ function doPost(e) {
         xp_siguiente:yo.xp_siguiente, xp_faltan:yo.xp_faltan,
         creditos:yo.creditos, creditos_ganados:yo.creditos_ganados, creditos_gastados:yo.creditos_gastados,
         canjeados:yo.canjeados || {},
-        planeta:yo.planeta, tema:yo.tema, insignias:yo.insignias, n:yo.n, pos:yo.pos,
+        profe:yo.profe || "", planeta:yo.planeta, tema:yo.tema, insignias:yo.insignias, n:yo.n, pos:yo.pos,
         bio:yo.bio || "", bitacora:yo.bitacora || "",
         titulo:yo.titulo || "", marco:yo.marco || "", fondo:yo.fondo || "", cromos:yo.cromos || {}, corona:!!yo.corona } : null })).setMimeType(ContentService.MimeType.JSON);
     }
     var pin = PropertiesService.getScriptProperties().getProperty("PIN_PROFES") || "";
     if (!pin || q.pin !== pin) throw new Error("PIN incorrecto");
     var a = q.accion, per = q.per;
-    if (a === "pers") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).map(function(v){ return perObj_(v); }) };
+    if (a === "pers") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; })
+      .map(function(v){ var ob = perObj_(v); ob.docentes = docentesDe_(ob.id); ob.semana = semanaDe_(ob); return ob; }) };
     else if (a === "alumnos") out = tablero_(per, true);
     else if (a === "tickets") { var o = perObj_(perFila_(per).v); var sh = SpreadsheetApp.getActive().getSheetByName(o.tabT); var v = sh && sh.getLastRow() > 1 ? sh.getDataRange().getValues() : [[]];
       var cabT = (v[0]||[]).map(String);
@@ -1293,8 +1397,27 @@ function doPost(e) {
       var colR = cabR.indexOf("Resuelto") + 1; if (!colR) { colR = sht.getLastColumn() + 1; sht.getRange(1, colR).setValue("Resuelto"); } sht.getRange(q.fila, colR).setValue(q.valor ? "Sí · " + (q.profe||"") + " · " + Utilities.formatDate(new Date(),"Europe/Madrid","dd/MM") : ""); out = { ok:true }; }
     else if (a === "ajuste") { hoja_(H.AJ).appendRow([new Date(), per, String(q.email).toLowerCase(), q.reto_id, q.tipo, q.motivo || "", q.profe || ""]); out = { ok:true }; }
     else if (a === "profesorado") { var p = perFila_(per); var sh4 = hoja_(H.PERS); sh4.getRange(p.fila, 4).setValue(q.profesorado || ""); sh4.getRange(p.fila, 17).setValue(q.referente || "");
-      try { var o4 = perObj_(perFila_(per).v); var ftx = FormApp.openByUrl(o4.formTicketEdit); ftx.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle().indexOf("profesor o profesora") >= 0) i.asListItem().setChoiceValues(listaProfes_(q.referente, q.profesorado)); }); } catch (e2) {}
+      if (q.docentes) guardarDocentes_(per, q.docentes);
+      try { var o4 = perObj_(perFila_(per).v); var ftx = FormApp.openByUrl(o4.formTicketEdit); ftx.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle().indexOf("profesor o profesora") >= 0) i.asListItem().setChoiceValues(listaProfes_(q.referente, q.profesorado, per)); }); } catch (e2) {}
       out = { ok:true }; }
+    else if (a === "ficha") {
+      var of = perObj_(perFila_(per).v); var shf = SpreadsheetApp.getActive().getSheetByName(of.tabB);
+      if (!shf || shf.getLastRow() < 2) throw new Error("Ese grupo aún no tiene respuestas de la Bitácora");
+      var vf = shf.getDataRange().getValues(), cf = vf[0].map(String);
+      var cMf = idx_(cf,"correo") >= 0 ? idx_(cf,"correo") : idx_(cf,"email");
+      var mail = String(q.email || "").toLowerCase().trim(); var filaF = 0;
+      for (var i3 = 1; i3 < vf.length; i3++) if (String(vf[i3][cMf] || "").toLowerCase().trim() === mail) filaF = i3 + 1;
+      if (!filaF) throw new Error("No encuentro a ese recluta en la Bitácora del grupo");
+      var campos = [["alias", idx_(cf,"alias")], ["nombre", idx_(cf,"apellidos")],
+                    ["profe", idx_(cf,"quién imparte")], ["bitacora", idx_(cf,"bitácora")]];
+      var tocados = [];
+      campos.forEach(function(c){
+        if (q[c[0]] === undefined || c[1] < 0) return;
+        shf.getRange(filaF, c[1] + 1).setValue(q[c[0]]); tocados.push(c[0]);
+      });
+      hoja_(H.AJ).appendRow([new Date(), per, mail, "FICHA", "editar", tocados.join(","), q.profe_edita || ""]);
+      out = { ok:true, tocados:tocados };
+    }
     else if (a === "archivar") { setArchivado_(per, !!q.valor); out = { ok:true }; }
     else if (a === "documento") { out = { url: crearDocumentoPER_(per) }; }
     else if (a === "panel") { var pp = perFila_(per); hoja_(H.PERS).getRange(pp.fila, 20).setValue(String(q.ver||"").trim()); hoja_(H.PERS).getRange(pp.fila, 21).setValue(String(q.editar||"").trim()); out = { ok:true }; }
