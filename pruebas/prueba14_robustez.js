@@ -79,4 +79,26 @@ const o3 = G.perObj_(G.perFila_("web-caida").v);
 igual(G.formDelPER_(o3, "B").getItems("IMAGE").map(i => i.getTitle()).filter(x => PLAN.indexOf(x) >= 0).length, 8,
   "los 8 orbes acaban puestos");
 
+// ---------------------------------------------------------------- d) una fila se resuelve UNA vez
+// VISTO EN VIVO: con dos triggers, un solo sobre de cromos dio DOS cartas.
+G = E.nuevoMundo();
+E.crearPERDemo(G);
+E.reclutaRico(G, "prueba-banco", "col@alumno.es");
+const r2 = E.enviarCanje(G, "prueba-banco", { email: "col@alumno.es", recompensa: E.etiqueta(G, "Sobre de cromos") });
+igual(r2.estado, "Concedido", "el sobre se concede");
+const antes = G.tablero_("prueba-banco", true).reclutas[0];
+const nCromos = Object.keys(antes.cromos).reduce((a, k) => a + antes.cromos[k], 0);
+igual(nCromos, 1, "y da UNA carta");
+
+// el mismo envío se procesa otra vez (trigger duplicado / reintento de Google)
+const shC = G._maestra.getSheetByName("C · prueba-banco");
+const o4 = G.perObj_(G.perFila_("prueba-banco").v);
+G.resolverCanje_(o4, shC, r2.fila);
+G.resolverCanje_(o4, shC, r2.fila);
+const luego = G.tablero_("prueba-banco", true).reclutas[0];
+igual(Object.keys(luego.cromos).reduce((a, k) => a + luego.cromos[k], 0), 1,
+  "🔴 reprocesar la MISMA fila no reparte más cartas");
+igual(luego.creditos_gastados, antes.creditos_gastados, "ni vuelve a cobrar");
+igual(luego.canjeados["Sobre de cromos"], 1, "ni cuenta doble para el tope");
+
 E.resumen("Robustez de la prueba en vivo");

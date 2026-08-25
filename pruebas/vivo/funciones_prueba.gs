@@ -57,3 +57,21 @@ function pruebaBorrarPER() {
   Logger.log("PER de prueba borrado");
   return "borrado";
 }
+// Reprocesa a mano la última fila del canje: si algo revienta, el error sale EN PANTALLA con su
+// traza (el registro de Cloud no está disponible en este proyecto).
+function pruebaResolverCanje() {
+  var o = perObj_(perFila_("prueba-claude-4p").v);
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabC);
+  Logger.log("tabC guardado: «" + o.tabC + "» · hoja encontrada: " + (sh ? sh.getName() : "NO"));
+  if (!sh) { Logger.log("PESTAÑA DEL CANJE NO ENCONTRADA: esa es la causa"); return; }
+  var ult = sh.getLastRow();
+  Logger.log("última fila: " + ult + " · cabeceras: " + JSON.stringify(sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0]));
+  resolverCanje_(o, sh, ult);
+  Logger.log("resuelto. Estado ahora: " + JSON.stringify(sh.getRange(ult,1,1,sh.getLastColumn()).getValues()[0]));
+}
+function pruebaTriggers() {
+  var t = ScriptApp.getProjectTriggers().map(function(x){ return x.getHandlerFunction() + " [" + x.getEventType() + "]"; });
+  Logger.log("ANTES: " + JSON.stringify(t));
+  asegurarTriggers_();
+  Logger.log("DESPUÉS: " + JSON.stringify(ScriptApp.getProjectTriggers().map(function(x){ return x.getHandlerFunction(); })));
+}

@@ -1651,6 +1651,14 @@ function resolverCanje_(o, sh, fila) {
   var disp = al ? al.creditos : 0;   // se paga con créditos; los xp del recluta no se tocan nunca
   var cab = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(String); var col = cab.indexOf("Estado") + 1;
   if (!col) { col = sh.getLastColumn() + 1; sh.getRange(1, col).setValue("Estado"); sh.getRange(1, col+1).setValue("Entregado"); }
+  // 🔴 v3.14 · UNA FILA SE RESUELVE UNA SOLA VEZ. Si ya tiene estado, no se toca.
+  // VISTO EN VIVO (25-ago): con dos triggers instalados, un solo «Sobre de cromos» se procesó DOS
+  // veces y el recluta se llevó dos cartas por el precio de una (el cobro sí era único, porque el
+  // estado se sobrescribe, pero extra_() añade una fila cada vez). El cerrojo pone los envíos en
+  // fila; no impide que el mismo se procese dos veces. Esta guarda sí, y cubre además los
+  // reintentos de Google y cualquier reproceso a mano.
+  var yaResuelto = String(sh.getRange(fila, col).getValue() || "").trim();
+  if (yaResuelto) { Logger.log("resolverCanje_: la fila " + fila + " ya estaba resuelta («" + yaResuelto + "»): no se toca"); return; }
   var estado = "", cuerpo = "";
   // 0) puerta nueva (v3.12): la etiqueta elegida tiene que existir HOY en el catálogo. Si no —porque
   // la renombraron, la retiraron o la respuesta es de antes de actualizar el formulario— se DENIEGA:
