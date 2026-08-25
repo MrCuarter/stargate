@@ -101,7 +101,15 @@ class Formulario {
     const i = this.items.indexOf(it); if (i < 0) return it;
     this.items.splice(i, 1); this.items.splice(hasta, 0, it); return it;
   }
+  getDestinationId() { return this.destino ? this.destino.getId() : null; }
+  getDestinationType() { return this.destino ? "SPREADSHEET" : null; }
   setDestination(tipo, ssId) {
+    // El banco puede simular el fallo transitorio de Google al vincular dos formularios seguidos
+    // a la MISMA hoja: «Failed to set response destination». Pasa de verdad (visto en producción).
+    if (FormAppMock._fallosVinculacion > 0) {
+      FormAppMock._fallosVinculacion--;
+      throw new Error("Failed to set response destination. Verify the destination ID and try again.");
+    }
     const libro = Libro.registro[ssId];
     if (!libro) throw new Error("No existe la hoja de destino " + ssId);
     this.destino = libro;
@@ -134,6 +142,7 @@ class Formulario {
 Formulario.registro = {};
 
 const FormAppMock = {
+  _fallosVinculacion: 0,   // cuántas veces debe fallar el próximo setDestination
   ItemType: TIPOS,
   Alignment: { LEFT: "LEFT", CENTER: "CENTER", RIGHT: "RIGHT" },
   PageNavigationType: { CONTINUE: "CONTINUE", GO_TO_PAGE: "GO_TO_PAGE", RESTART: "RESTART", SUBMIT: "SUBMIT" },

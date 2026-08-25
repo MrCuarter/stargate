@@ -395,6 +395,29 @@ function apartarRestosDe_(id) {
   return n;
 }
 
+// v3.13 - VISTO EN PRODUCCION (25-ago): al crear un PER, Google fallo al vincular el SEGUNDO
+// formulario a la hoja con "Failed to set response destination". No es un error de datos: la hoja
+// esta ocupada creando la pestana del formulario anterior. Reintentando con una pausa entra.
+// Es idempotente: si el formulario ya quedo vinculado, no vuelve a intentarlo (eso duplicaria pestanas).
+function vincular_(form, ssId) {
+  var ultimo = "";
+  for (var i = 0; i < 5; i++) {
+    try { if (form.getDestinationId() === ssId) return true; } catch (e0) {}
+    try {
+      form.setDestination(FormApp.DestinationType.SPREADSHEET, ssId);
+      SpreadsheetApp.flush();
+      return true;
+    } catch (e) {
+      ultimo = e.message || String(e);
+      Logger.log("vincular_ intento " + (i + 1) + " de \u00ab" + form.getTitle() + "\u00bb: " + ultimo);
+      Utilities.sleep(1500 * (i + 1));
+    }
+  }
+  try { if (form.getDestinationId() === ssId) return true; } catch (e2) {}
+  throw new Error("No se ha podido vincular \u00ab" + form.getTitle() + "\u00bb con la hoja tras 5 intentos. " +
+    "\u00daltimo error de Google: " + ultimo + ". Suele ser pasajero: vuelve a crear el PER en un minuto.");
+}
+
 function crearPER(datos) {
   var nombre = (datos.nombre || "").trim(); if (!nombre) throw new Error("Falta el nombre del PER");
   var tipo = datos.tipo === "PUA" ? "PUA" : "REGULAR";
@@ -410,6 +433,20 @@ function crearPER(datos) {
   var carpeta = padre.createFolder(nombre);   // v3.3: cada PER en su propia carpeta
   var retos = retosDe_(tipo);
   guardarDocentes_(id, datos.docentes);   // v3.11 - el equipo docente, con correo
+  // v3.13 - si algo se cae a mitad (p. ej. Google no deja vincular un formulario), lo creado hasta
+  // ese momento se deshace: formularios y carpeta a la papelera y pestanas de respuestas borradas.
+  // Antes quedaba basura invisible -formularios sueltos y una "Respuestas de formulario N"- que
+  // ni siquiera limpiarRestos veia, porque la pestana aun no se habia renombrado a "B - id".
+  var _creados = [], _tabsAntes = {};
+  SpreadsheetApp.getActive().getSheets().forEach(function(h){ _tabsAntes[h.getName()] = true; });
+  function _deshacer(e) {
+    _creados.forEach(function(f){ try { DriveApp.getFileById(f.getId()).setTrashed(true); } catch (e2) {} });
+    var ssX = SpreadsheetApp.getActive();
+    ssX.getSheets().forEach(function(h){ if (!_tabsAntes[h.getName()]) { try { borrarHoja_(ssX, h); } catch (e3) {} } });
+    try { carpeta.setTrashed(true); } catch (e4) {}
+    try { guardarDocentes_(id, []); } catch (e5) {}
+    throw e;
+  }
 
   // ---- 1 - Bitacora de mando (Google login, 1 respuesta editable) ----
   var fb = formDesdePlantilla_("PLANTILLA \u00b7 Bit\u00e1cora de mando", "STARGATE \u00b7 " + nombre + " \u00b7 Bit\u00e1cora de mando", carpeta);
@@ -448,14 +485,16 @@ function crearPER(datos) {
   nav.setChoices([nav.createChoice(OPC_NADA, FormApp.PageNavigationType.SUBMIT)].concat(
     destinos.map(function(d){ return nav.createChoice(etiquetaNav_(d[0]), d[1]); })));
   publicar_(fb);
-  fb.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+  _creados.push(fb);
+  try { vincular_(fb, ss.getId()); } catch (e) { _deshacer(e); }
   var tabB = pestanaDe_(fb, "B \u00b7 " + id, "#37e0ec");
 
   // ---- 2 - Ticket de salida "Contacta con NEBULA" (anonimo, ramificado) ----
   var ft = formDesdePlantilla_("PLANTILLA \u00b7 Ticket de salida", "STARGATE \u00b7 " + nombre + " \u00b7 Contacta con NEBULA (ticket de salida)", carpeta);
   construirTicket_(ft, datos.referente || "", datos.profesores || "", id);
   publicar_(ft);
-  ft.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+  _creados.push(ft);
+  try { vincular_(ft, ss.getId()); } catch (e) { _deshacer(e); }
   var tabT = pestanaDe_(ft, "T \u00b7 " + id, "#9fb2c2");
 
   // ---- 3 - Canje de recompensas (Google login) ----
@@ -468,7 +507,8 @@ function crearPER(datos) {
   anadirCamposAvatar_(fc);
   fc.addParagraphTextItem().setTitle("Comentario (opcional)");
   publicar_(fc);
-  fc.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+  _creados.push(fc);
+  try { vincular_(fc, ss.getId()); } catch (e) { _deshacer(e); }
   var tabC = pestanaDe_(fc, "C \u00b7 " + id, "#f5b043");
 
   asegurarTriggers_();
@@ -1073,11 +1113,18 @@ function limpiarRestos() {
   }
   var raizL = carpetaPER_(); revisar_(raizL);
   var subL = raizL.getFolders(); while (subL.hasNext()) { var cs = subL.next(); revisar_(cs); }
-  // 2) pestanas de respuestas sin PER (incluidas las apartadas como "restos - ...")
+  // 2) pestanas de respuestas sin PER (incluidas las apartadas como "restos - ...") y, v3.13, las
+  // "Respuestas de formulario N" que dejo un crearPER caido a medias: nunca llegaron a renombrarse
+  // a "B - id", asi que la regla de arriba no las veia y se quedaban ahi para siempre.
   var tabs = [];
   ss.getSheets().forEach(function(sh){ var n = sh.getName();
     var m = n.match(/^(?:restos \u00b7 )?([BTC]) \u00b7 (.+?)(?: \(\d+\))?$/);
-    if (m && !vivosId[m[2].trim()]) tabs.push({ nombre: n, filas: Math.max(0, sh.getLastRow() - 1) }); });
+    if (m && !vivosId[m[2].trim()]) { tabs.push({ nombre: n, filas: Math.max(0, sh.getLastRow() - 1) }); return; }
+    if (/^Respuestas de formulario\b/.test(n)) {
+      var viva = false;
+      try { var u = sh.getFormUrl(); if (u) { FormApp.openByUrl(u); viva = true; } } catch (e) {}
+      if (!viva) tabs.push({ nombre: n, filas: Math.max(0, sh.getLastRow() - 1) });
+    } });
   if (!forms.length && !tabs.length) { ui.alert("No hay restos: todos los formularios y pesta\u00f1as pertenecen a un PER de la hoja."); return; }
   var lista = forms.map(function(x){ return "\u00b7 [formulario] " + x.nombre; })
         .concat(tabs.map(function(x){ return "\u00b7 [pesta\u00f1a] " + x.nombre + " (" + x.filas + " respuestas)"; })).join("\n");
@@ -1225,12 +1272,20 @@ function programarContinuacion_(fn) {
   try { ScriptApp.newTrigger(fn).timeBased().after(60000).create(); }
   catch (e) { Logger.log("programarContinuacion_ " + fn + ": " + e); }
 }
-// Correo al que avisar cuando no hay nadie mas a quien avisar (ver avisarDocente_)
+// Correo al que avisar cuando no hay nadie mas a quien avisar (ver avisarDocente_).
+//  A PROPOSITO no se usa el servicio Session para saber quien ejecuta: pide un permiso OAuth
+// NUEVO (userinfo.email) y eso obliga a TODO el mundo a volver a autorizar el script al abrir la
+// hoja. El dueno de la hoja se saca con el permiso de Drive, que ya esta concedido.
 function correoDeReserva_() {
   var pr = PropertiesService.getScriptProperties().getProperty("CORREO_AVISOS");
   if (pr) return String(pr).trim();
-  try { var e = Session.getEffectiveUser().getEmail(); if (e) return e; } catch (e2) {}
-  try { var o = SpreadsheetApp.getActive().getOwner(); if (o) return o.getEmail(); } catch (e3) {}
+  try { var o = SpreadsheetApp.getActive().getOwner(); if (o && o.getEmail()) return o.getEmail(); } catch (e) {}
+  // ultimo recurso: el correo de un profesorado referente cualquiera que si lo tenga
+  try {
+    var todos = hoja_(H.DOC).getDataRange().getValues().slice(1)
+      .filter(function(v){ return String(v[2] || "").trim() && String(v[3] || "").indexOf("referente") >= 0; });
+    if (todos.length) return String(todos[0][2]).trim();
+  } catch (e2) {}
   return "";
 }
 function guardarCorreoAvisos() {

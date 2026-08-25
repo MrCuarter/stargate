@@ -96,6 +96,7 @@ class Libro {
   getId() { return this.id; }
   getName() { return this.nombre; }
   getUrl() { return "https://docs.google.com/spreadsheets/d/" + this.id + "/edit"; }
+  getOwner() { return { getEmail: () => Libro.propietario }; }
   getSheets() { return this.hojas.slice(); }
   getSheetByName(n) { return this.hojas.filter(h => h.nombre === n)[0] || null; }
   insertSheet(n) {
@@ -114,7 +115,7 @@ class Libro {
   moveActiveSheet(pos) { const h = this.getActiveSheet(); const i = this.hojas.indexOf(h); if (i >= 0) { this.hojas.splice(i, 1); this.hojas.splice(pos - 1, 0, h); } }
   getActiveRange() { return this._rango || this.getActiveSheet().getRange(1, 1); }
 }
-Libro.n = 0; Libro.registro = {};
+Libro.n = 0; Libro.registro = {}; Libro.propietario = "mutecdgami@gmail.com";
 
 // ---------------------------------------------------------------- interfaz de usuario (scriptable)
 const UI = {
