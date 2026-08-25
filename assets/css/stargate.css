@@ -442,3 +442,17 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .serie-tit em{font-family:'DMSans';font-style:normal;font-weight:400;color:var(--muted);font-size:.85rem}
 .serie-tit .tag{font-family:'DMSans';font-size:.7rem;letter-spacing:.08em;color:var(--teal);text-transform:uppercase}
 .album .nx{position:absolute;right:4px;bottom:4px;background:var(--amber);color:#161006;font-size:.62rem;font-weight:800;border-radius:7px;padding:0 5px}
+
+/* v3.15 · álbum: sello de serie completa, contador de repetidos y racha de semanas */
+.sello-serie{font-family:'DMSans';font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--amber);border:1px solid rgba(245,176,67,.5);border-radius:999px;padding:1px 8px;white-space:nowrap}
+.sello-serie.mini{font-size:.62rem;padding:0 5px;letter-spacing:.02em}
+.album-cromos .serie.completa h4{color:var(--amber)}
+.album-cromos .repes{margin:.6em 0 0;font-size:.9rem;color:var(--muted)}
+.album-cromos .repes.listo{color:var(--text);background:rgba(96,208,236,.08);border:1px solid rgba(96,208,236,.35);
+  border-radius:10px;padding:8px 12px}
+.album-cromos .repes .btn.small{font-size:.78rem;padding:3px 10px;margin-left:6px;vertical-align:middle}
+.chip-racha{display:inline-block;font-family:'DMSans';font-size:.72rem;font-weight:800;vertical-align:middle;
+  color:#ffb347;background:rgba(255,140,50,.13);border:1px solid rgba(255,140,50,.4);border-radius:999px;
+  padding:1px 8px;margin-left:6px;white-space:nowrap}
+.rank .full{color:var(--amber)}

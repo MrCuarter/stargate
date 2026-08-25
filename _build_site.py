@@ -6,7 +6,7 @@ Datos de cronología/vídeos/geniallys en _site_data.py."""
 import os, json, hashlib
 from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
-                        CROMOS, CROMO_SERIES, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
+                        CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
@@ -15,6 +15,7 @@ _DESDE = {r[0]: r[4] for r in RECOMPENSAS}
 _SEM_AVATAR_URL = _DESDE["Avatar personal (tu propia imagen)"]
 _SEM_AVATAR = _DESDE["Cambio de avatar"]
 
+_SERIE_TIT_WEB = {k: t for k, t, _ in CROMO_SERIES}
 HERE = os.path.dirname(os.path.abspath(__file__))
 FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E"
 
@@ -791,7 +792,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="eyebrow">Tablero en vivo</div><h2>Ranking e insignias de cada PER</h2>
 <p class="lead">Se alimenta solo de la Bitácora de mando de cada PER. Para incrustar el tablero, el foro o los formularios en tu Genially: <a href="embed.html"><b>generador de enlaces, embeds y QR</b></a>.</p>
 <div id="tablero-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};</script>
 <script src="assets/js/tablero.js" defer></script>
 </div></section>
 
@@ -1283,7 +1284,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
 </div></section>
@@ -1393,7 +1394,7 @@ print("cache-bust img:", len(_imgv), "imagenes versionadas · sendara =", _imgv.
 # ================= APPS SCRIPT: catálogo de cromos y copia descargable =================
 # El bloque «var CROMOS» del Code.gs se GENERA desde _site_data.CROMOS (un dato, un sitio),
 # y assets/descargas/Code.gs.txt es siempre una copia exacta del .gs.
-_SERIE_TIT = {k: t for k, t, _ in CROMO_SERIES}
+_SERIE_TIT = _SERIE_TIT_WEB
 def _js_cromos():
     filas = []
     for clave, nombre, serie, rareza, peso in CROMOS:

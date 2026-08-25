@@ -134,6 +134,13 @@ var CREDITOS = {"reclutamiento": 10, "retoA": 10, "retoB": 30, "retoB_pua": 35, 
 var SEMANAS_PER = {"REGULAR": 15, "PUA": 8};
 var SEMANAS_CANJE_EXTRA = 1;
 var DIAS_APERTURA_ANTES = 7;
+// Insignia por serie completa. [clave, titulo de la serie tal y como aparece en CROMOS, nombre]
+var SERIES_ALBUM = [
+  ["A1_tripulacion","Serie I · La Tripulación Cero","La Tripulación Cero al completo"],
+  ["A2_ecos","Serie II · Los Ecos","Los Ecos al completo"],
+  ["A3_nave","Serie III · La Nave","La Nave al completo"],
+  ["A4_sombra","Serie IV · La Sombra","La Sombra al completo"]
+];
 // NIVELES-FIN
 // RECOMPENSAS-INICIO · [nombre, coste en créditos, máx por alumno, descripción, desde (semana
 // REGULAR; en PUA se escala), tipo]. Generado desde _site_data.py: no editar a mano.
@@ -300,6 +307,26 @@ function recompensasCat_() {
 }
 function semanaDe_(o) { if (!o.inicio) return null; var ini = new Date(o.inicio + "T00:00:00"); var hoy = new Date(); hoy.setHours(0,0,0,0);
   return Math.floor((hoy - ini) / (7 * 864e5)) + 1; }
+// v3.15 · RACHA. Semanas CONSECUTIVAS del PER con al menos un evento, contando hacia atras desde
+// la semana en curso. Se usa la semana del PER, no la ISO del calendario: la racha habla el idioma
+// del curso. Y si esta semana todavia no ha registrado nada, se cuenta desde la anterior — a nadie
+// se le rompe la racha un lunes por la manana.
+function semanaDeFecha_(o, fecha) {
+  if (!o.inicio) return null;
+  var ini = new Date(o.inicio + "T00:00:00"); var d;
+  try { d = new Date(fecha); } catch (e) { return null; }
+  if (!d || isNaN(d.getTime())) return null;
+  d.setHours(0, 0, 0, 0);
+  return Math.floor((d.getTime() - ini.getTime()) / 6048e5) + 1;
+}
+function racha_(o, eventos) {
+  var sem = semanaDe_(o); if (sem === null || !eventos || !eventos.length) return 0;
+  var con = {};
+  eventos.forEach(function(ev){ var w = semanaDeFecha_(o, ev.fecha); if (w !== null && w >= 1) con[w] = true; });
+  var w2 = con[sem] ? sem : sem - 1, n = 0;
+  while (w2 >= 1 && con[w2]) { n++; w2--; }
+  return n;
+}
 function semanasDe_(tipo) { return SEMANAS_PER[tipo === "PUA" ? "PUA" : "REGULAR"] || 15; }
 function desdeEfectiva_(desde, tipo) { desde = Number(desde) || 0; if (!desde) return 0;
   return tipo === "PUA" ? Math.max(1, Math.round(desde * semanasDe_("PUA") / semanasDe_("REGULAR"))) : desde; }
@@ -1678,6 +1705,13 @@ function avisarDocente_(o, al, rec, actividad) {
   } catch (e) { Logger.log("traza del aviso: " + e); }
   return { enviado: enviado, para: para, reserva: !!reserva };
 }
+// Una carta al azar respetando los pesos del catalogo (suman 100). En un solo sitio: lo usan el
+// sobre de pago y el cambio de repetidos, y dos sorteos distintos serian dos loterias distintas.
+function sortearCromo_() {
+  var bolsa = [];
+  for (var i = 0; i < CROMOS.length; i++) for (var w = 0; w < CROMOS[i][2]; w++) bolsa.push(i);
+  return CROMOS[bolsa[Math.floor(Math.random() * bolsa.length)]];
+}
 function resolverCanje_(o, sh, fila) {
   var r = leerFila_(sh, fila); var email = String(r["Dirección de correo electrónico"] || r["Email Address"] || "").toLowerCase().trim();
   var rec = String(r["Recompensa"] || ""); var coste = parseInt((rec.match(/(\d+)\s*(?:cr[ée]ditos|xp)$/) || [0,0])[1], 10);
@@ -1724,8 +1758,9 @@ function resolverCanje_(o, sh, fila) {
       ? "«" + ficha.nombre + "» ya la tienes: es de una sola vez. No se han gastado créditos."
       : "Ya has canjeado «" + ficha.nombre + "» el máximo de " + ficha.max + " veces. No se han gastado créditos.";
   }
-  // 3) saldo
-  else if (!al || disp < coste || coste <= 0) {
+  // 3) saldo. 🔴 v3.15 · el canje de repetidos cuesta 0 ◈ a proposito: se paga con cartas, no con
+  // creditos, asi que tiene que saltarse esta puerta (que deniega todo lo que cueste 0).
+  else if (!al || ((!ficha || ficha.tipo !== "cromo_repes") && (disp < coste || coste <= 0))) {
     estado = "Denegado (" + disp + " créditos, cuesta " + coste + ")";
     cuerpo = "No tienes créditos suficientes para «" + rec + "»: te quedan " + disp + " créditos. (Tus xp no se gastan: son tu nivel.)";
   }
@@ -1741,10 +1776,26 @@ function resolverCanje_(o, sh, fila) {
     if (!excl) { estado = "Denegado (falta elegir el personaje exclusivo en el formulario)"; cuerpo = "Para «Personaje exclusivo» tienes que elegir cuál en el propio formulario. Vuelve a enviarlo; no se han gastado créditos."; }
     else { aplicarAvatar_(o, email, excl); estado = "Concedido"; cuerpo = "Concedido: " + rec + ". Has desbloqueado «" + excl + "» y ya luce en el tablero. Te quedan " + (disp - coste) + " créditos."; }
   }
+  // 4-bis) v3.15 · 3 repetidos = 1 sobre gratis. Es la mecanica que todo el mundo espera de un
+  // album, y hasta ahora los repetidos no servian para nada.
+  else if (ficha && ficha.tipo === "cromo_repes") {
+    var libres = al ? (al.repes_disponibles || 0) : 0;
+    if (libres < 3) {
+      estado = "Denegado (necesitas 3 cartas repetidas y tienes " + libres + ")";
+      cuerpo = "Para cambiar repetidas necesitas 3 y tienes " + libres + ". No se ha gastado nada: " +
+        "sigue abriendo sobres y vuelve cuando te sobren tres cartas.";
+    } else {
+      extra_(o, email, "repes", "3");
+      var cr = sortearCromo_();
+      extra_(o, email, "cromo", cr[0]);
+      estado = "Concedido";
+      cuerpo = "Cambias 3 repetidas y abres un sobre nuevo... ¡" + cr[1] + "! (" + cr[3] + " · " + cr[4] +
+        "). Ya esta en tu album de la Nave, y no te ha costado ni un credito." +
+        (cr[3] === "LEGENDARIA" ? " ✦ ¡El cromo mas dificil de toda la galaxia!" : "");
+    }
+  }
   else if (ficha && ficha.tipo === "cromo") {
-    var bolsa = [], i2;
-    for (i2 = 0; i2 < CROMOS.length; i2++) for (var w2 = 0; w2 < CROMOS[i2][2]; w2++) bolsa.push(i2);
-    var c2 = CROMOS[bolsa[Math.floor(Math.random() * bolsa.length)]];
+    var c2 = sortearCromo_();
     extra_(o, email, "cromo", c2[0]);
     estado = "Concedido";
     cuerpo = "Abres el sobre... ¡" + c2[1] + "! (" + c2[3] + " · " + c2[4] + "). Ya está en tu álbum de la Nave. Te quedan " + (disp - coste) + " créditos." +

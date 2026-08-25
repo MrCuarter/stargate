@@ -5,7 +5,8 @@
 (function(){
   var API=(window.SG_TABLERO_API||"").trim(), SEM=window.SG_SEMANAS||[], NOMBRES=window.SG_BADGE_NAMES||{},
       BADGES=window.SG_BADGES||[], PLAN=window.SG_PLANETAS||[], root=document.getElementById('nave-app'),
-      CROMOS=window.SG_CROMOS||[], SERIES=window.SG_CROMO_SERIES||[], CARDV=window.SG_CARDV||'';
+      CROMOS=window.SG_CROMOS||[], SERIES=window.SG_CROMO_SERIES||[], CARDV=window.SG_CARDV||'',
+      SELLOS=window.SG_SERIES_ALBUM||[];
   if(!root) return;
   var q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -102,15 +103,20 @@
     // álbum de cromos (catálogo inyectado por _build_site.py desde _site_data.CROMOS)
     var tengo=r.cromos||{}; var nCromos=CROMOS.filter(function(c){return tengo[c[0]];}).length;
     var repes=0; CROMOS.forEach(function(c){var n=tengo[c[0]]||0; if(n>1) repes+=n-1;});
+    // los que quedan SIN cambiar los cuenta el servidor (descuenta los ya gastados): es el dato bueno
+    var libres=r.repes_disponibles!=null?r.repes_disponibles:repes;
     function rarCls(rz){return rz==='LEGENDARIA'?' leg':rz==='épica'?' epi':rz==='rara'?' rar':'';}
     function celda(c){var nn=tengo[c[0]]||0;
       return '<div class="c'+(nn?'':' no')+rarCls(c[3])+'" title="'+esc(c[1])+' · '+c[3]+(nn?' · x'+nn:' · aún no ha salido')+'">'
         +'<img loading="lazy" src="assets/img/tarjetas/'+c[0]+'_carta.png'+CARDV+'" alt="">'
         +(nn>1?'<span class="nx">x'+nn+'</span>':'')+'</div>';}
+    var NOMSELLO={}; SELLOS.forEach(function(x){NOMSELLO[x[1]]=x[2];});
     var series=SERIES.map(function(sr){
       var cs=CROMOS.filter(function(c){return c[2]===sr[0];});
       var ten=cs.filter(function(c){return tengo[c[0]];}).length;
-      return '<div class="serie"><h4>'+esc(sr[1])+' <span class="cnt'+(ten===cs.length?' full':'')+'">'+ten+'/'+cs.length+'</span></h4>'
+      var llena=ten===cs.length&&cs.length>0;
+      return '<div class="serie'+(llena?' completa':'')+'"><h4>'+esc(sr[1])+' <span class="cnt'+(llena?' full':'')+'">'+ten+'/'+cs.length+'</span>'
+        +(llena?'<span class="sello-serie" title="'+esc(NOMSELLO[sr[1]]||'Serie completa')+'">✦ serie completa</span>':'')+'</h4>'
         +'<p class="small muted">'+esc(sr[2])+'</p>'
         +'<div class="album">'+cs.map(celda).join('')+'</div></div>';}).join('');
     var album=CROMOS.length?('<div class="card album-cromos"><h3>🃏 Tu álbum de cromos · '+nCromos+' / '+CROMOS.length+'</h3>'
@@ -118,10 +124,14 @@
       +'los Ecos, NEBULA y el Capitán, <b>raros</b>; el Recluta y la Estática, <b>épicos</b>; y hay dos '
       +'<b>LEGENDARIOS</b>: el General Vaeon (2 de cada 100 sobres) y <b>Ander Vaeon</b>, la carta que revela '
       +'quién era antes de ser Vaeon — <b>1 de cada 100</b>, la más difícil de toda la galaxia.'
-      +(repes?' Llevas <b>'+repes+'</b> repetido'+(repes===1?'':'s')+' — como en los cromos de verdad, se acumulan.':'')+'</p>'
+      +'</p>'
+      +(repes?'<p class="repes'+(libres>=3?' listo':'')+'">🔁 Llevas <b>'+repes+'</b> repetido'+(repes===1?'':'s')
+        +(libres>=3?' — y con 3 te llevas un sobre <b>gratis</b>. Puedes cambiar '+Math.floor(libres/3)+' vez'+(Math.floor(libres/3)===1?'':'es')+'.'
+                   :(libres?' ('+libres+' sin cambiar): con 3 te llevas un sobre gratis.':' — ya los has cambiado todos por sobres.'))
+        +(libres>=3&&d.formCanje?' <a class="btn small" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Cambiar 3 repetidos →</a>':'')+'</p>':'')
       +series+'</div>'):'';
     return '<div class="grid cols-2 nave-estado"><div class="card"'+estiloFicha+'><div class="nave-perfil">'+av
-      +'<div><h3>'+(r.corona?'👑 ':'')+esc(r.alias)+'</h3>'
+      +'<div><h3>'+(r.corona?'👑 ':'')+esc(r.alias)+(r.racha>=3?' <span class="chip-racha" title="Semanas seguidas registrando algo">🔥 '+r.racha+'</span>':'')+'</h3>'
       +(r.titulo?'<div class="titulo-recluta">«'+esc(r.titulo)+'»</div>':'')
       +'<p class="small"><b>Nivel '+ni.nivel+' · '+esc(ni.rangoNombre)+'</b>'+(ni.titulo&&ni.titulo!==ni.rangoNombre?' <span class="muted">('+esc(ni.titulo)+')</span>':'')+' · puesto '+r.pos+' · planeta '+esc(r.planeta)+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
       +'<p class="monedas"><span class="m xp" title="Los xp no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje."><b>'+r.xp+'</b> xp</span>'
