@@ -354,6 +354,26 @@ function imagen_(form, tema, texto) {
   try { var blob = UrlFetchApp.fetch(WEB + "assets/img/planetas/" + TEMAS[tema][2] + ".png").getBlob();
         form.addImageItem().setImage(blob).setTitle(texto).setAlignment(FormApp.Alignment.CENTER).setWidth(160); } catch (e) {}
 }
+// v3.13 · Pone el orbe de cada planeta justo debajo de su salto de página. Se llama DESPUÉS de
+// crear el PER (o desde la continuación), nunca dentro del camino crítico. Idempotente: si la
+// imagen ya está, no la repite.
+function imagenesBitacora_(fb) {
+  var puestas = {};
+  fb.getItems(FormApp.ItemType.IMAGE).forEach(function(i){ puestas[i.getTitle()] = true; });
+  var n = 0;
+  for (var t = 1; t <= 8; t++) {
+    if (puestas[TEMAS[t][0]]) continue;
+    var pb = fb.getItems(FormApp.ItemType.PAGE_BREAK).filter(function(p){ return p.getTitle().indexOf("Tema " + t + " ") === 0; })[0];
+    if (!pb) continue;
+    try {
+      var blob = UrlFetchApp.fetch(WEB + "assets/img/planetas/" + TEMAS[t][2] + ".png").getBlob();
+      var it = fb.addImageItem().setImage(blob).setTitle(TEMAS[t][0]).setAlignment(FormApp.Alignment.CENTER).setWidth(160);
+      fb.moveItem(it.getIndex(), pb.getIndex() + 1);
+      n++;
+    } catch (e) { Logger.log("imagenesBitacora_ tema " + t + ": " + e); }
+  }
+  return n;
+}
 function publicar_(form) { try { if (form.setPublished) form.setPublished(true); } catch (e) { Logger.log("setPublished: " + e); } }
 function publicarFormulariosPER() {
   var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
@@ -401,7 +421,7 @@ function apartarRestosDe_(id) {
 // Es idempotente: si el formulario ya quedó vinculado, no vuelve a intentarlo (eso duplicaría pestañas).
 function vincular_(form, ssId) {
   var ultimo = "";
-  for (var i = 0; i < 5; i++) {
+  for (var i = 0; i < 4; i++) {
     try { if (form.getDestinationId() === ssId) return true; } catch (e0) {}
     try {
       form.setDestination(FormApp.DestinationType.SPREADSHEET, ssId);
@@ -410,15 +430,16 @@ function vincular_(form, ssId) {
     } catch (e) {
       ultimo = e.message || String(e);
       Logger.log("vincular_ intento " + (i + 1) + " de «" + form.getTitle() + "»: " + ultimo);
-      Utilities.sleep(1500 * (i + 1));
+      Utilities.sleep(1000 * Math.pow(2, i));   // 1 s, 2 s, 4 s
     }
   }
   try { if (form.getDestinationId() === ssId) return true; } catch (e2) {}
-  throw new Error("No se ha podido vincular «" + form.getTitle() + "» con la hoja tras 5 intentos. " +
+  throw new Error("No se ha podido vincular «" + form.getTitle() + "» con la hoja tras 4 intentos. " +
     "Último error de Google: " + ultimo + ". Suele ser pasajero: vuelve a crear el PER en un minuto.");
 }
 
 function crearPER(datos) {
+  var _t = reloj_();
   var nombre = (datos.nombre || "").trim(); if (!nombre) throw new Error("Falta el nombre del PER");
   var tipo = datos.tipo === "PUA" ? "PUA" : "REGULAR";
   var id = slug_(nombre); if (perFila_(id)) throw new Error("Ya existe un PER con id «" + id + "». Si es uno viejo, archívalo o bórralo antes (menú STARGATE), o usa otro nombre.");
@@ -475,7 +496,10 @@ function crearPER(datos) {
   Object.keys(porTema).sort(function(a,b){ return a-b; }).forEach(function(t){
     t = Number(t);
     var pb;
-    if (t >= 1 && t <= 8) { pb = fb.addPageBreakItem().setTitle("Tema " + t + " · " + TEMAS[t][0]).setHelpText(TEMAS[t][1]); imagen_(fb, t, TEMAS[t][0]); }
+    // v3.13 · el orbe del planeta NO se pone aquí: son 8 descargas + 8 subidas y es lo que empujaba
+    // crearPER contra los 6 minutos de Apps Script. Lo hace imagenesBitacora_() después, cuando ya
+    // existe el PER (o en la continuación si no diera tiempo). Es decoración: puede esperar un minuto.
+    if (t >= 1 && t <= 8) { pb = fb.addPageBreakItem().setTitle("Tema " + t + " · " + TEMAS[t][0]).setHelpText(TEMAS[t][1]); }
     else { pb = fb.addPageBreakItem().setTitle("La batalla final").setHelpText("Solo cuando hayas hecho el examen."); }
     pb.setGoToPage(FormApp.PageNavigationType.SUBMIT);      // al terminar una sección, se envía
     destinos.push([t, pb]);
@@ -488,6 +512,7 @@ function crearPER(datos) {
   _creados.push(fb);
   try { vincular_(fb, ss.getId()); } catch (e) { _deshacer(e); }
   var tabB = pestanaDe_(fb, "B · " + id, "#37e0ec");
+  _t.hito("formulario de Bitacora");
 
   // ---- 2 · Ticket de salida «Contacta con NEBULA» (anónimo, ramificado) ----
   var ft = formDesdePlantilla_("PLANTILLA · Ticket de salida", "STARGATE · " + nombre + " · Contacta con NEBULA (ticket de salida)", carpeta);
@@ -496,6 +521,7 @@ function crearPER(datos) {
   _creados.push(ft);
   try { vincular_(ft, ss.getId()); } catch (e) { _deshacer(e); }
   var tabT = pestanaDe_(ft, "T · " + id, "#9fb2c2");
+  _t.hito("formulario de Ticket");
 
   // ---- 3 · Canje de recompensas (Google login) ----
   var fc = formDesdePlantilla_("PLANTILLA · Canje de recompensas", "STARGATE · " + nombre + " · Canje de recompensas", carpeta);
@@ -510,6 +536,7 @@ function crearPER(datos) {
   _creados.push(fc);
   try { vincular_(fc, ss.getId()); } catch (e) { _deshacer(e); }
   var tabC = pestanaDe_(fc, "C · " + id, "#f5b043");
+  _t.hito("formulario de Canje");
 
   asegurarTriggers_();
   var ahora = new Date(), estado = "Abierto";
@@ -519,9 +546,25 @@ function crearPER(datos) {
   hoja_(H.PERS).appendRow([id, nombre, tipo, datos.profesores || "", inicio || "", apertura || "", cierre || "", estado,
     fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date(), datos.referente || "", ft.getEditUrl(),
     "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim(), "", fc.getEditUrl()]);
-  var docUrl = ""; try { docUrl = crearDocumentoPER_(id); } catch (e) { docUrl = ""; }
-  // v3.13 · y el dossier global del profesorado, con TODOS los grupos, al día (encargo del usuario)
-  var dossierUrl = ""; try { dossierUrl = dossier_(); } catch (e) { Logger.log("dossier_: " + e); }
+  _t.hito("fila del PER escrita");
+  // v3.13 · A PARTIR DE AQUÍ EL PER YA EXISTE Y FUNCIONA. Lo que queda es acabado: los orbes de los
+  // planetas, el documento de enlaces y el dossier del profesorado. Son ~15 descargas de imagen y
+  // dos documentos: justo lo que hacía que crearPER se comiera los 6 minutos de Apps Script y muriera
+  // dejando el PER a medias. Si no da tiempo, se aparta y lo termina la continuación dentro de un
+  // minuto — sin que el profesorado tenga que hacer nada.
+  var pend = { per: id, imagenes: true, doc: true, dossier: true };
+  if (_t.sobra(60000)) { try { imagenesBitacora_(fb); pend.imagenes = false; _t.hito("orbes de los planetas"); }
+                         catch (e) { Logger.log("imagenesBitacora_: " + e); } }
+  var docUrl = "";
+  if (_t.sobra(45000)) { try { docUrl = crearDocumentoPER_(id); pend.doc = false; _t.hito("documento de enlaces"); }
+                         catch (e) { Logger.log("crearDocumentoPER_: " + e); } }
+  var dossierUrl = "";
+  if (_t.sobra(30000)) { try { dossierUrl = dossier_(); pend.dossier = false; _t.hito("dossier del profesorado"); }
+                         catch (e) { Logger.log("dossier_: " + e); } }
+  if (pend.imagenes || pend.doc || pend.dossier) {
+    guardarProgreso_("alta", pend); programarContinuacion_("continuarAltaPER");
+    Logger.log("crearPER: acabado aplazado a continuarAltaPER -> " + JSON.stringify(pend));
+  } else { guardarProgreso_("alta", null); }
   return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", doc:docUrl, dossier:dossierUrl, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
     hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id,
     foro: WEB + "foro.html?per=" + id + (inicio ? "&inicio=" + fechaIso_(inicio) + "&tipo=" + tipo : ""), nave: WEB + "recluta.html?per=" + id,
@@ -529,7 +572,7 @@ function crearPER(datos) {
     embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + (inicio ? '&inicio=' + fechaIso_(inicio) + '&tipo=' + tipo : '') + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>',
     embedNave: '<iframe src="' + WEB + 'recluta.html?per=' + id + '&embed=1" width="100%" height="900" style="border:0;border-radius:16px"></iframe>',
     panelVer: String(datos.panelVer || "").trim() || panelStd_().ver, panelEdit: String(datos.panelEdit || "").trim() || panelStd_().editar,
-    restos: restos };
+    restos: restos, pendiente: (pend.imagenes || pend.doc || pend.dossier) ? pend : null, ms: _t.ms() };
 }
 function etiquetasRecompensas_() {
   var d = hoja_(H.REC).getDataRange().getValues().slice(1).filter(function(r){ return r[0]; });
@@ -1239,6 +1282,24 @@ function resetear_() {
   else { guardarProgreso_("reset", pr); programarContinuacion_("continuarReset"); }
   return { terminado: terminado, fase: pr.fase, n: pr.n, sueltos: pr.sueltos, tabs: pr.tabs, fallos: pr.fallos };
 }
+// v3.13 · Termina el acabado de un PER recién creado cuando crearPER se quedó sin tiempo.
+// Sin interfaz: lo dispara un trigger, y un trigger no tiene ventanas.
+function continuarAltaPER() {
+  var pr = progreso_("alta");
+  if (!pr) { cancelarContinuacion_("continuarAltaPER"); return; }
+  var p = perFila_(pr.per);
+  if (!p) { guardarProgreso_("alta", null); cancelarContinuacion_("continuarAltaPER"); return; }  // lo borraron
+  var o = perObj_(p.v), t = reloj_();
+  if (pr.imagenes) {
+    try { var fb = formDelPER_(o, "B"); if (fb) { imagenesBitacora_(fb); pr.imagenes = false; } }
+    catch (e) { Logger.log("continuarAltaPER imagenes: " + e); }
+    t.marcar();
+  }
+  if (pr.doc && t.puedo()) { try { crearDocumentoPER_(pr.per); pr.doc = false; } catch (e) { Logger.log("continuarAltaPER doc: " + e); } t.marcar(); }
+  if (pr.dossier && t.puedo()) { try { dossier_(); pr.dossier = false; } catch (e) { Logger.log("continuarAltaPER dossier: " + e); } t.marcar(); }
+  if (pr.imagenes || pr.doc || pr.dossier) { guardarProgreso_("alta", pr); programarContinuacion_("continuarAltaPER"); }
+  else { guardarProgreso_("alta", null); cancelarContinuacion_("continuarAltaPER"); Logger.log("continuarAltaPER: acabado del PER " + pr.per + " completo"); }
+}
 function continuarReset() {
   var r = resetear_();
   Logger.log("continuarReset: fase " + r.fase + " · " + r.n + " PER" + (r.terminado ? " · TERMINADO" : " · sigue"));
@@ -1253,9 +1314,16 @@ function continuarReset() {
 var MARGEN_MS = 270000;          // 4,5 min de trabajo efectivo; el resto es margen para cerrar
 var PROP_TAREA = "TAREA_";
 
-function reloj_() { var t0 = new Date().getTime(), algo = false;
+function reloj_() { var t0 = new Date().getTime(), algo = false, ultimo = t0;
   return { marcar: function(){ algo = true; },
-           puedo: function(){ return !algo || (new Date().getTime() - t0 < MARGEN_MS); } }; }
+           puedo: function(){ return !algo || (new Date().getTime() - t0 < MARGEN_MS); },
+           // ¿queda al menos `ms` de margen para meterse en una tarea que dura eso?
+           sobra: function(ms){ return (new Date().getTime() - t0) < (MARGEN_MS - (ms || 0)); },
+           ms: function(){ return new Date().getTime() - t0; },
+           // deja en el registro cuánto costó cada tramo: es la única forma de saber por qué
+           // una ejecución se acerca a los 6 minutos sin ponerse a adivinar
+           hito: function(txt){ var n = new Date().getTime();
+             Logger.log("· " + txt + ": " + (n - ultimo) + " ms (total " + (n - t0) + " ms)"); ultimo = n; } }; }
 function progreso_(clave) {
   var s = PropertiesService.getScriptProperties().getProperty(PROP_TAREA + clave);
   if (!s) return null; try { return JSON.parse(s); } catch (e) { return null; }
