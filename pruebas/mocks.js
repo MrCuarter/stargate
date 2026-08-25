@@ -259,8 +259,11 @@ const Correo = {
     if (typeof a === "object") Correo.enviados.push({ para: a.to, asunto: a.subject, cuerpo: a.body || a.htmlBody || "" });
     else Correo.enviados.push({ para: a, asunto: b, cuerpo: c });
   },
-  getRemainingDailyQuota() { return 1500; },
-  limpiar() { Correo.enviados = []; },
+  // La cuota diaria es un recurso real (100 correos/dia en cuentas gratuitas) y el Code.gs la
+  // consulta antes de enviar: aqui se puede bajar a mano para probar que se comporta.
+  cuota: 1500,
+  getRemainingDailyQuota() { return Correo.cuota; },
+  limpiar() { Correo.enviados = []; Correo.cuota = 1500; },
   paraQuien(fragmento) { return Correo.enviados.filter(e => String(e.para).indexOf(fragmento) >= 0); }
 };
 

@@ -224,12 +224,14 @@ function onOpen() {
     .addItem("Actualizar formularios (recompensas, avatar, bio)", "actualizarRecompensas")
     .addItem("Guardar panel de control estándar (Genially)", "guardarPanelEstandar")
     .addItem("Abrir la Consola del profesorado (y ponerla al día)", "abrirConsola")
+    .addItem("Parte de salud del sistema", "parteDeSalud")
     .addItem("Consolidar DATOS / RESUMEN (investigación)", "consolidarDatos")
     .addSeparator()
     .addSubMenu(SpreadsheetApp.getUi().createMenu("Ciclo de vida del PER (fila seleccionada)")
       .addItem("Archivar / desarchivar PER", "archivarPERSeleccionado")
       .addItem("Borrar PER (con sus formularios y datos)", "borrarPERSeleccionado"))
     .addSubMenu(SpreadsheetApp.getUi().createMenu("Mantenimiento")
+      .addItem("Reprocesar canjes sin resolver", "reprocesarCanjesSinResolver")
       .addItem("Restaurar catálogo oficial de recompensas", "restaurarRecompensas")
       .addItem("Organizar los formularios en carpetas por PER", "organizarCarpetasPER")
       .addItem("Limpiar restos de PER borrados (formularios y pestañas)", "limpiarRestos")
@@ -1423,6 +1425,47 @@ function correoDeReserva_() {
   } catch (e2) {}
   return "";
 }
+// v3.15 · CUOTA DE CORREO. Una cuenta gratuita manda 100 correos al dia: con varios grupos y la
+// ultima semana de canjes eso se toca, y hasta ahora el correo simplemente NO SALIA sin avisar a
+// nadie. Se consulta UNA vez por ejecucion (getRemainingDailyQuota tambien cuesta tiempo) y se va
+// descontando lo que se manda.
+var _cuota = null;
+function cuotaCorreo_() {
+  if (_cuota === null) { try { _cuota = Number(MailApp.getRemainingDailyQuota()); } catch (e) { _cuota = 1; } }
+  return _cuota;
+}
+function gastarCuota_(n) { if (_cuota !== null) _cuota = Math.max(0, _cuota - (n || 1)); }
+// Manda un correo respetando la cuota. Devuelve true si salio. Si no hay cuota deja traza en
+// AJUSTES: el parte de salud la ve, y asi el fallo deja de ser invisible.
+function enviarCorreo_(para, asunto, cuerpo, perId, email) {
+  if (!para) return false;
+  if (cuotaCorreo_() <= 0) {
+    try { hoja_(H.AJ).appendRow([new Date(), perId || "", email || "", "ERROR", "cuota",
+      "sin cuota de correo: no se envio «" + asunto + "» a " + para, "sistema"]); } catch (e) {}
+    return false;
+  }
+  try { MailApp.sendEmail(para, asunto, cuerpo); gastarCuota_(1); avisarCuotaBaja_(); return true; }
+  catch (e) { Logger.log("enviarCorreo_ (" + asunto + "): " + e); return false; }
+}
+// Cuando queda poco, un aviso AL DIA al correo de reserva. Sin la guarda, una tanda de canjes
+// mandaria el aviso una vez por canje y se comeria justo la cuota que queda.
+function avisarCuotaBaja_() {
+  var q = cuotaCorreo_();
+  if (q >= 20 || q <= 0) return;
+  var pr = PropertiesService.getScriptProperties();
+  var clave = "CUOTA_AVISADA_" + Utilities.formatDate(new Date(), "Europe/Madrid", "yyyy-MM-dd");
+  if (pr.getProperty(clave)) return;
+  pr.setProperty(clave, "1");
+  var r = correoDeReserva_(); if (!r) return;
+  try {
+    MailApp.sendEmail(r, "STARGATE · se acaba la cuota de correo (" + q + ")",
+      "Al script le quedan " + q + " correos hoy. Cuando llegue a cero:\n\n" +
+      "· los canjes se siguen resolviendo y cobrando con normalidad (el correo es un extra),\n" +
+      "· pero ni el alumnado ni el profesorado reciben aviso, y quedara traza en la pestana AJUSTES.\n\n" +
+      "La cuota se repone sola manana. Puedes ver el estado en: menu STARGATE -> Parte de salud del sistema.");
+    gastarCuota_(1);
+  } catch (e) { Logger.log("avisarCuotaBaja_: " + e); }
+}
 function guardarCorreoAvisos() {
   var ui = SpreadsheetApp.getUi();
   var r = ui.prompt("Correo de avisos de reserva",
@@ -1620,19 +1663,17 @@ function avisarDocente_(o, al, rec, actividad) {
     "Márcalo como aplicado aquí (pestaña Canjes):\n" + WEB + "profes.html?per=" + o.id + "\n" +
     "La sala de clase, con todo lo que hace falta antes de entrar:\n" + WEB + "clase.html?per=" + o.id +
     (al && al.profe ? "&profe=" + encodeURIComponent(al.profe) : "") + "\n";
-  var enviado = false;
-  if (para.length) {
-    try {
-      MailApp.sendEmail(para.join(","),
-        "STARGATE · " + o.nombre + (reserva ? " · aviso sin destinatario: " : " · te toca a ti: ") + rec, cuerpo);
-      enviado = true;
-    } catch (e) { Logger.log("avisarDocente_: " + e); }
-  }
+  // v3.15 · pasa por enviarCorreo_: si no queda cuota no se intenta, y queda una fila ERROR en
+  // AJUSTES para que el parte de salud lo cante (antes el correo no salia y no se enteraba nadie).
+  var enviado = para.length ? enviarCorreo_(para.join(","),
+    "STARGATE · " + o.nombre + (reserva ? " · aviso sin destinatario: " : " · te toca a ti: ") + rec,
+    cuerpo, o.id, al ? al.email : "") : false;
   // La traza vive en AJUSTES, no en el correo: así la Consola y el panel pueden enseñarlo aunque
   // el correo se pierda. (v[4] = "nota" no colisiona con otorgar/anular/avatar/titulo/marco/fondo/cromo.)
   try {
     hoja_(H.AJ).appendRow([new Date(), o.id, al ? al.email : "", "AVISO", "nota", rec,
-      enviado ? (reserva ? "SIN CORREO → " + reserva : para.join(",")) : "SIN CORREO · NO ENVIADO"]);
+      enviado ? (reserva ? "SIN CORREO → " + reserva : para.join(","))
+              : (para.length && cuotaCorreo_() <= 0 ? "SIN CORREO · SIN CUOTA" : "SIN CORREO · NO ENVIADO")]);
   } catch (e) { Logger.log("traza del aviso: " + e); }
   return { enviado: enviado, para: para, reserva: !!reserva };
 }
@@ -1745,9 +1786,9 @@ function resolverCanje_(o, sh, fila) {
     try { avisarDocente_(o, al, rec, String(r["Actividad a la que se aplica"] || "")); }
     catch (e) { Logger.log("avisarDocente_: " + e); }
   }
-  try { MailApp.sendEmail(email, "STARGATE · Canje " + (ok ? "concedido" : "denegado"),
-    cuerpo + "\n\nTablero: " + WEB + "registro.html?per=" + o.id + "\nTu nave: " + WEB + "recluta.html?per=" + o.id); }
-  catch (e) { Logger.log("correo al recluta: " + e); }
+  enviarCorreo_(email, "STARGATE · Canje " + (ok ? "concedido" : "denegado"),
+    cuerpo + "\n\nTablero: " + WEB + "registro.html?per=" + o.id + "\nTu nave: " + WEB + "recluta.html?per=" + o.id,
+    o.id, email);
 }
 
 // ================= TABLERO =================
@@ -2027,6 +2068,231 @@ function abrirConsola() {
   var html = HtmlService.createHtmlOutput('<p style="font:14px/1.5 system-ui">Consola al día.<br><br>'
     + '<a href="' + url + '" target="_blank"><b>Abrir la Consola del profesorado ↗</b></a></p>').setHeight(120);
   SpreadsheetApp.getUi().showModalDialog(html, "STARGATE · Consola");
+}
+
+// ================= PARTE DE SALUD (v3.15) =================
+// Los dos peores fallos de la prueba en vivo (la hoja sin triggers, un canje sin resolver) eran
+// INVISIBLES: había que ir a mirarlos a seis sitios distintos. Esto los junta en una pantalla.
+// 🔴 No repara NADA: solo informa y dice qué opción del menú lo arregla. Reparar por sorpresa lo
+// que no se ha entendido todavía es justo como se rompen las cosas en producción.
+function salud_() {
+  var puntos = [];
+  function punto(clave, nivel, titulo, detalle, arreglo, n) {
+    puntos.push({ clave: clave, nivel: nivel, titulo: titulo, detalle: detalle || "",
+                  arreglo: nivel === "ok" ? "" : (arreglo || ""), n: n || 0 });
+  }
+  function seguro(clave, titulo, fn) {
+    try { fn(); }
+    catch (e) { punto(clave, "mal", titulo, "no se ha podido comprobar: " + (e && e.message ? e.message : e),
+                      "Vuelve a abrir la hoja y prueba otra vez; si sigue, mira el registro de ejecuciones."); }
+  }
+  var pers = [];
+  try { pers = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0] && !v[21]; }); } catch (e) {}
+
+  // 1) TRIGGERS · sin alRecibirRespuesta no se procesa ni un formulario; duplicados = todo dos veces
+  seguro("triggers", "Triggers", function(){
+    var cuenta = {};
+    ScriptApp.getProjectTriggers().forEach(function(t){ var f = t.getHandlerFunction(); cuenta[f] = (cuenta[f] || 0) + 1; });
+    var faltan = [], dobles = [];
+    ["alRecibirRespuesta", "fotoNocturna"].forEach(function(f){
+      if (!cuenta[f]) faltan.push(f); else if (cuenta[f] > 1) dobles.push(f + " ×" + cuenta[f]);
+    });
+    if (!faltan.length && !dobles.length) return punto("triggers", "ok", "Triggers", "los dos instalados, uno de cada");
+    punto("triggers", "mal", "Triggers",
+      (faltan.length ? "FALTA: " + faltan.join(", ") + ". " : "") +
+      (dobles.length ? "DUPLICADO: " + dobles.join(", ") + " (cada envío se procesa dos veces)." : ""),
+      "Menú → «Abrir la Consola del profesorado»: repone los que falten y borra los duplicados.",
+      faltan.length + dobles.length);
+  });
+
+  // 2) TAREAS A MEDIAS · normal durante unos minutos; preocupante si se quedó ahí
+  seguro("tareas", "Tareas a medias", function(){
+    var medias = [];
+    ["reset", "formularios", "alta", "canjes"].forEach(function(k){
+      var p = progreso_(k); if (p) medias.push(k + " (" + (p.n || p.i || 0) + " de " + (p.total || "?") + ")");
+    });
+    if (!medias.length) return punto("tareas", "ok", "Tareas a medias", "ninguna pendiente");
+    punto("tareas", "aviso", "Tareas a medias", medias.join(" · "),
+      "Se reanudan solas dentro de un minuto. Si llevan ahí mucho rato, vuelve a lanzar esa misma opción del menú.",
+      medias.length);
+  });
+
+  // 3) CANJES SIN RESOLVER · el fallo que se escondió: el alumno no cobra, no recibe y nadie se entera
+  seguro("canjes", "Canjes sin resolver", function(){
+    var n = 0, donde = [];
+    pers.forEach(function(v){
+      var o = perObj_(v);
+      var sh = SpreadsheetApp.getActive().getSheetByName(o.tabC);
+      if (!sh || sh.getLastRow() < 2) return;
+      var vals = sh.getDataRange().getValues(), col = vals[0].map(String).indexOf("Estado");
+      if (col < 0) { n += vals.length - 1; donde.push(o.nombre + ": " + (vals.length - 1) + " (sin columna Estado)"); return; }
+      var k = 0;
+      for (var i = 1; i < vals.length; i++) if (!String(vals[i][col] || "").trim()) k++;
+      if (k) { n += k; donde.push(o.nombre + ": " + k); }
+    });
+    if (!n) return punto("canjes", "ok", "Canjes sin resolver", "ninguno");
+    punto("canjes", "mal", "Canjes sin resolver", n + " sin resolver · " + donde.join(" · "),
+      "Menú → Mantenimiento → «Reprocesar canjes sin resolver».", n);
+  });
+
+  // 4) y 5) AJUSTES · errores del trigger y avisos que no llegaron a nadie (últimos 7 días)
+  var errores = 0, avisosPerdidos = 0, ultimoError = "";
+  seguro("errores", "Errores del trigger", function(){
+    var desde = new Date().getTime() - 7 * 864e5;
+    hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
+      var t = 0; try { t = new Date(v[0]).getTime(); } catch (e) { t = desde; }
+      if (t < desde) return;
+      if (v[3] === "ERROR") { errores++; ultimoError = String(v[5] || ""); }
+      else if (v[3] === "AVISO" && String(v[6] || "").indexOf("SIN CORREO") >= 0) avisosPerdidos++;
+    });
+    if (!errores) punto("errores", "ok", "Errores del trigger", "ninguno en 7 días");
+    else punto("errores", "mal", "Errores del trigger", errores + " en los últimos 7 días · último: " + ultimoError,
+      "Míralos en la pestaña AJUSTES (filas ERROR). Si son de canjes, «Reprocesar canjes sin resolver» los recupera.", errores);
+    if (!avisosPerdidos) punto("avisos", "ok", "Avisos entregados", "todos llegaron a alguien");
+    else punto("avisos", "mal", "Avisos sin destinatario", avisosPerdidos + " avisos no llegaron a nadie en 7 días",
+      "Pon el correo de cada docente en la pestaña DOCENTES, y un correo de reserva en menú → «Correo de avisos de reserva».", avisosPerdidos);
+  });
+
+  // 6) DOCENTES SIN CORREO · sin correo no hay avisos de canje
+  seguro("docentes", "Docentes sin correo", function(){
+    var sin = [];
+    pers.forEach(function(v){
+      docentesDe_(v[0]).forEach(function(d){ if (!String(d.correo || "").trim()) sin.push(d.nombre + " (" + v[1] + ")"); });
+    });
+    if (!sin.length) return punto("docentes", "ok", "Docentes sin correo", "todo el profesorado tiene correo");
+    punto("docentes", "aviso", "Docentes sin correo", sin.slice(0, 8).join(" · ") + (sin.length > 8 ? " …" : ""),
+      "Pestaña DOCENTES de la hoja, o profes.html → «Ajustes del PER».", sin.length);
+  });
+
+  // 7) RECLUTAS SIN DOCENTE · no salen en la sala de nadie
+  seguro("reclutas", "Reclutas sin docente", function(){
+    var n = 0, donde = [];
+    pers.forEach(function(v){
+      var t = tablero_(v[0], true);
+      if (t && t.sin_docente) { n += t.sin_docente; donde.push(v[1] + ": " + t.sin_docente); }
+    });
+    if (!n) return punto("reclutas", "ok", "Reclutas sin docente", "todos tienen docente");
+    punto("reclutas", "aviso", "Reclutas sin docente", n + " sin docente · " + donde.join(" · "),
+      "Se arregla uno a uno en clase.html → «Corregir la ficha», o en profes.html.", n);
+  });
+
+  // 8) PER SIN DOCUMENTO · el documento de enlaces es lo que se reparte al profesorado
+  seguro("documentos", "PER sin documento", function(){
+    var sin = pers.filter(function(v){ return !perObj_(v).doc; }).map(function(v){ return v[1]; });
+    if (!sin.length) return punto("documentos", "ok", "Documento de enlaces", pers.length + " PER, todos con documento");
+    punto("documentos", "aviso", "PER sin documento", sin.join(" · "),
+      "Selecciona su fila y usa menú → «Documento de enlaces y embeds del PER seleccionado».", sin.length);
+  });
+
+  // 9) CUOTA DE CORREO · 100 al día en cuentas gratuitas, y cuando se acaba el correo no sale
+  seguro("cuota", "Cuota de correo", function(){
+    var q = cuotaCorreo_();
+    if (q >= 20) return punto("cuota", "ok", "Cuota de correo", q + " correos disponibles hoy");
+    punto("cuota", q > 0 ? "aviso" : "mal", "Cuota de correo",
+      q > 0 ? "quedan solo " + q + " correos hoy" : "AGOTADA: hoy ya no sale ningún correo",
+      "Se repone sola mañana. Los canjes se resuelven igual (el correo es un extra), pero nadie recibe aviso.", q);
+  });
+
+  // 10) PIN · la única puerta que protege nombres y correos del alumnado
+  seguro("pin", "PIN del profesorado", function(){
+    var pin = PropertiesService.getScriptProperties().getProperty("PIN_PROFES") || "";
+    if (pin.length >= 6) return punto("pin", "ok", "PIN del profesorado", "puesto, de " + pin.length + " caracteres");
+    punto("pin", "mal", "PIN del profesorado",
+      pin ? "demasiado corto (" + pin.length + " caracteres): es lo único que protege nombres y correos del alumnado"
+          : "NO HAY PIN: cualquiera con el enlace ve nombres y correos",
+      "Menú → «Cambiar PIN del profesorado». Seis caracteres o más.", 1);
+  });
+
+  // 11) CONSOLA Y DOSSIER
+  seguro("consola", "Consola y dossier", function(){
+    var pr = PropertiesService.getScriptProperties();
+    var falta = [];
+    if (!pr.getProperty(PROP_CONSOLA)) falta.push("Consola");
+    if (!pr.getProperty(PROP_DOSSIER)) falta.push("dossier");
+    if (!falta.length) return punto("consola", "ok", "Consola y dossier", "las dos creadas");
+    punto("consola", "aviso", "Consola y dossier", "falta: " + falta.join(" y "),
+      "Menú → «Abrir la Consola del profesorado» y «Dossier del profesorado». También se rehacen de madrugada.", falta.length);
+  });
+
+  var malos = puntos.filter(function(p){ return p.nivel === "mal"; }).length;
+  var avisos = puntos.filter(function(p){ return p.nivel === "aviso"; }).length;
+  return { ok: malos === 0, malos: malos, avisos: avisos, puntos: puntos, pers: pers.length, fecha: new Date() };
+}
+function parteDeSalud() {
+  var s = salud_();
+  var icono = { ok: "🟢", aviso: "🟡", mal: "🔴" };
+  var h = '<div style="font:14px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;padding:4px 2px">';
+  h += '<p style="margin:0 0 12px"><b style="font-size:16px">' +
+       (s.malos ? "🔴 Hay " + s.malos + " cosa" + (s.malos > 1 ? "s" : "") + " que arreglar"
+                : s.avisos ? "🟡 Todo funciona, con " + s.avisos + " aviso" + (s.avisos > 1 ? "s" : "")
+                           : "🟢 El sistema está sano") +
+       '</b><br><span style="color:#667">' + s.pers + ' PER activos · ' +
+       Utilities.formatDate(s.fecha, "Europe/Madrid", "d/MM/yyyy HH:mm") + '</span></p>';
+  var orden = { mal: 0, aviso: 1, ok: 2 };
+  s.puntos.slice().sort(function(a, b){ return orden[a.nivel] - orden[b.nivel]; }).forEach(function(p){
+    h += '<div style="padding:7px 0;border-top:1px solid #e6e8ee">' +
+         icono[p.nivel] + ' <b>' + p.titulo + '</b> — ' + escapar_(p.detalle) +
+         (p.arreglo ? '<br><span style="color:#4a5568;font-size:13px">↳ ' + escapar_(p.arreglo) + '</span>' : '') +
+         '</div>';
+  });
+  h += '<p style="margin:14px 0 0;color:#667;font-size:12px">Este parte no cambia nada: solo mira y cuenta.</p></div>';
+  SpreadsheetApp.getUi().showModalDialog(
+    HtmlService.createHtmlOutput(h).setWidth(560).setHeight(560), "STARGATE · Parte de salud");
+}
+function escapar_(s) { return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+// ================= REPROCESAR CANJES SIN RESOLVER (v3.15) =================
+// Ya pasó una vez: el trigger murió a media faena y un canje se quedó sin estado, sin cobrar y sin
+// respuesta. resolverCanje_ es idempotente (sale si la fila ya tiene estado), así que reprocesar es
+// seguro. Va por lotes como todo lo que recorre PERs: recorrerlos todos no cabe en 6 minutos.
+function reprocesarCanjes_() {
+  var t = reloj_();
+  var pers = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
+  var pr = progreso_("canjes") || { i: 0, n: 0, resueltos: 0, fallos: [] };
+  pr.total = pers.length;
+  while (pr.i < pers.length && t.puedo()) {
+    var v = pers[pr.i];
+    try {
+      var o = perObj_(v);
+      var sh = SpreadsheetApp.getActive().getSheetByName(o.tabC);
+      if (sh && sh.getLastRow() > 1) {
+        var vals = sh.getDataRange().getValues(), col = vals[0].map(String).indexOf("Estado");
+        for (var i = 1; i < vals.length; i++) {
+          if (col >= 0 && String(vals[i][col] || "").trim()) continue;
+          if (!String(vals[i][0] || "") && !vals[i].some(function(x){ return String(x || "").trim(); })) continue;  // fila vacía
+          try { resolverCanje_(o, sh, i + 1); pr.resueltos++; }
+          catch (e2) { pr.fallos.push(String(v[1]) + " fila " + (i + 1) + ": " + e2.message); }
+        }
+      }
+    } catch (e) { pr.fallos.push(String(v[1]) + ": " + e.message); }
+    pr.i++; pr.n++; t.marcar();
+  }
+  var terminado = pr.i >= pers.length;
+  if (terminado) { guardarProgreso_("canjes", null); cancelarContinuacion_("continuarReprocesarCanjes"); }
+  else { guardarProgreso_("canjes", pr); programarContinuacion_("continuarReprocesarCanjes"); }
+  return { terminado: terminado, hechos: pr.n, total: pers.length, resueltos: pr.resueltos, fallos: pr.fallos };
+}
+function reprocesarCanjesSinResolver() {
+  var ui = SpreadsheetApp.getUi();
+  var pendiente = progreso_("canjes");
+  if (pendiente && ui.alert("Reprocesar canjes",
+      "Hay un reproceso a medias (" + pendiente.n + " de " + (pendiente.total || "?") + " grupos).\n\n" +
+      "SÍ = seguir donde se quedó · NO = empezar de cero.", ui.ButtonSet.YES_NO) !== ui.Button.YES) {
+    guardarProgreso_("canjes", null);
+  }
+  var r = reprocesarCanjes_();
+  ui.alert(r.terminado ? "Canjes reprocesados" : "Reproceso en marcha (va por lotes)",
+    (r.terminado
+      ? "Listo: " + r.resueltos + " canje(s) resueltos en " + r.hechos + " grupos."
+      : "Hechos " + r.hechos + " de " + r.total + " grupos (" + r.resueltos + " canjes resueltos). El resto sigue " +
+        "SOLO dentro de un minuto.") +
+    "\n\nSe resuelven únicamente las filas SIN estado: las ya concedidas o denegadas no se tocan, así que " +
+    "nadie paga ni recibe dos veces." +
+    (r.fallos.length ? "\n\nNo se pudo con:\n" + r.fallos.slice(0, 12).join("\n") : ""), ui.ButtonSet.OK);
+}
+function continuarReprocesarCanjes() {
+  var r = reprocesarCanjes_();
+  Logger.log("continuarReprocesarCanjes: " + r.hechos + "/" + r.total + " · " + r.resueltos + " resueltos" + (r.terminado ? " · TERMINADO" : " · sigue"));
 }
 
 // ================= API =================

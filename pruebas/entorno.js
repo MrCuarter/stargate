@@ -136,9 +136,8 @@ function enviarBitacora(G, perId, datos, editarFila) {
   return _enviar(G, hoja, v, editarFila);
 }
 
-function enviarCanje(G, perId, datos) {
-  const hoja = G._maestra.getSheetByName("C · " + perId);
-  const v = {
+function _valoresCanje(datos) {
+  return {
     "Dirección de correo electrónico": datos.email,
     "Recompensa": datos.recompensa,
     "Actividad a la que se aplica": datos.actividad || "No aplica (canje de avatar)",
@@ -149,10 +148,25 @@ function enviarCanje(G, perId, datos) {
     "URL de tu nueva imagen (solo para «Avatar personal»)": datos.url || "",
     "Comentario (opcional)": datos.comentario || ""
   };
-  const fila = _enviar(G, hoja, v);
+}
+function enviarCanje(G, perId, datos) {
+  const hoja = G._maestra.getSheetByName("C · " + perId);
+  const fila = _enviar(G, hoja, _valoresCanje(datos));
   const cab = hoja.getRange(1, 1, 1, hoja.getLastColumn()).getValues()[0].map(String);
   const cE = cab.indexOf("Estado");
   return { fila, estado: cE >= 0 ? String(hoja.getRange(fila, cE + 1).getValue()) : "" };
+}
+// Un canje que llega a la hoja pero NO se procesa: es lo que pasa cuando el trigger muere a medias
+// (visto en vivo el 25-ago). La fila queda con su Estado vacío y sin ningún efecto aplicado.
+function canjeSinResolver(G, perId, datos) {
+  const hoja = G._maestra.getSheetByName("C · " + perId);
+  const cab = hoja.getRange(1, 1, 1, hoja.getLastColumn()).getValues()[0].map(String);
+  const v = _valoresCanje(datos);
+  const fila = Math.max(hoja.getLastRow(), 1) + 1;
+  const salida = cab.map(col => col === "Marca temporal" ? new Date()
+    : (Object.prototype.hasOwnProperty.call(v, col) ? v[col] : ""));
+  hoja.getRange(fila, 1, 1, salida.length).setValues([salida]);
+  return fila;
 }
 
 // Etiqueta exacta de una recompensa del catálogo («Sobre de cromos — 15 créditos»)
@@ -202,5 +216,5 @@ function crearPERDemo(G, extra) {
 }
 
 module.exports = { nuevoMundo, comprobar, igual, contiene, resumen, iso, haceSemanas,
-                   enviarBitacora, enviarCanje, etiqueta, crearPERDemo, todoMarcado, reclutaRico,
+                   enviarBitacora, enviarCanje, canjeSinResolver, etiqueta, crearPERDemo, todoMarcado, reclutaRico,
                    DOCENTES_DEMO, M, FormApp };
