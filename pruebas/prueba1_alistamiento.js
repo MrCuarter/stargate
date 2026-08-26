@@ -40,17 +40,21 @@ E.enviarBitacora(G, PER, { email: "ana@alumno.es", marcados: { "Tema 1 · Lo que
 
 t = G.tablero_(PER, true);
 const ana2 = t.reclutas.filter(x => x.email === "ana@alumno.es")[0];
-igual(ana2.xp, 100 + 100 + 250 + 500, "xp = reclutamiento + A1 + B1 + X1");
-igual(ana2.creditos_ganados, 20 + 20 + 50 + 100, "créditos = 20 + retoA 20 + retoB 50 + actividad 100");
+// A1+B1+X1 son TODOS los retos del tema 1, así que además cae el bonus de planeta completo
+igual(ana2.planetas_completos, [1], "con A1+B1+X1 el planeta 1 queda completo");
+igual(ana2.xp, 100 + 100 + 250 + 500 + G.BONUS_PLANETA.xp, "xp = reclutamiento + A1 + B1 + X1 + planeta completo");
+igual(ana2.creditos_ganados, 20 + 20 + 50 + 100 + G.BONUS_PLANETA.creditos,
+  "créditos = 20 + retoA 20 + retoB 50 + actividad 100 + el bonus del planeta");
+c(ana2.bonus.indexOf("planeta:1") >= 0, "🔴 y queda ESCRITO: los bonus no se recalculan, se conceden una vez");
 igual(ana2.creditos_gastados, 0, "aún no ha gastado nada");
-igual(ana2.nivel, 3, "950 xp = nivel 3");
+igual(ana2.nivel, 3, ana2.xp + " xp = nivel 3");
 igual(ana2.rango, 2, "nivel 3 estrena el rango de arte 2 (Cadete)");
 igual(ana2.planeta, "Fôrge", "el planeta es el del último tema alcanzado");
 c(ana2.insignias.indexOf("P1_bran") >= 0 && ana2.insignias.indexOf("E2_capitan") >= 0, "las insignias del reto se conceden");
 
 // los xp NO se gastan nunca: son el viaje
 igual(ana2.xp_siguiente, 1150, "el siguiente umbral es 1150");
-igual(ana2.xp_faltan, 1150 - 950, "faltan 200 xp para el nivel 4");
+igual(ana2.xp_faltan, 1150 - ana2.xp, "lo que falta para el nivel 4 cuadra con el umbral");
 
 // --- derivadas ------------------------------------------------------------------------------
 const todosA = RET.filter(r => r[0].charAt(0) === "A");
@@ -70,8 +74,8 @@ const RP = G2.retosDe_("PUA");
 E.enviarBitacora(G2, "pua-banco", { email: "pua@alumno.es",
   marcados: { "Tema 1 · Lo que he completado": [RP[0][1], RP[1][1]].join(", ") } }, 2);
 const tp = G2.tablero_("pua-banco", true).reclutas[0];
-igual(tp.xp, 100 + 300 + 500, "PUA: reclutamiento + B1 + X1");
-igual(tp.creditos_ganados, 20 + 55 + 100, "PUA: el reto B vale 55 créditos");
+igual(tp.xp, 100 + 300 + 500 + G2.BONUS_PLANETA.xp, "PUA: reclutamiento + B1 + X1 + planeta completo");
+igual(tp.creditos_ganados, 20 + 55 + 100 + G2.BONUS_PLANETA.creditos, "PUA: el reto B vale 55 créditos, más el bonus");
 igual(G2.nivelDe_(900, "PUA"), G.nivelDe_(900 * 5000 / 4100, "REGULAR"), "los umbrales de PUA están escalados por el total del viaje");
 igual(G2.desdeEfectiva_(15, "PUA"), 8, "una recompensa de la semana 15 en REGULAR abre en la 8 en PUA");
 

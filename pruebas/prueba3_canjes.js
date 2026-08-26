@@ -19,8 +19,15 @@ RET.forEach(r => { const k = col(r[4] > 8 ? 9 : r[4]); const kk = r[4] > 8 ? "Ba
 E.enviarBitacora(G, PER, { email: "rico@alumno.es", alias: "Rico", nombre: "Rico R", profe: "Mr Cuarter" });
 E.enviarBitacora(G, PER, { email: "rico@alumno.es", marcados: todo }, 2);
 let rico = G.tablero_(PER, true).reclutas[0];
-igual(rico.creditos_ganados, 1000, "el viaje completo da 1.000 créditos");
-igual(rico.xp, 5000, "y 5000 xp: nivel 10");
+// Los totales del viaje SALEN de los catálogos, no escritos a mano: así, el día que cambien los
+// bonus o los créditos por reto, esta batería sigue diciendo la verdad en vez de romperse.
+// Ojo: quien lo registra TODO de golpe tiene racha 1, así que le caen los 8 planetas pero ningún
+// bonus de racha. Eso es correcto: la constancia exige semanas de verdad, no una sentada.
+const bonoXP = G.BONUS_PLANETA.xp * 8;
+const bonoCR = G.BONUS_PLANETA.creditos * 8;
+igual(rico.creditos_ganados, 1000 + bonoCR, "el viaje completo da los 1.000 ◈ de base más los bonus");
+igual(rico.xp, G.XP_VIAJE.REGULAR + bonoXP, "y los xp del viaje más el bonus de los 8 planetas");
+igual(rico.nivel, 10, "🔴 y sigue siendo nivel 10: los bonus no se saltan el techo");
 igual(rico.nivel, 10, "nivel 10");
 igual(rico.rango_nombre, "Leyenda", "rango de arte 5 = Leyenda");
 

@@ -22,7 +22,10 @@ igual(d.xp, 100 + 100 + 250, "tras el tema 1: 450 xp");
 E.enviarBitacora(G, PER, { email: "dani@alumno.es", nav: "Tema 6 · Ludo",
   marcados: { [col(1)]: "", [col(6)]: [et("A6"), et("B6")].join(", ") } }, 2);
 d = G.tablero_(PER, true).reclutas[0];
-igual(d.xp, 100 + 100 + 250 + 100 + 250, "las insignias del tema 1 NO se pierden al saltar al 6");
+// A6+B6 son TODOS los retos del tema 6 (no tiene Actividad), así que además cae el planeta completo
+igual(d.xp, 100 + 100 + 250 + 100 + 250 + G.BONUS_PLANETA.xp,
+  "las insignias del tema 1 NO se pierden al saltar al 6, y el 6 queda completo");
+igual(d.planetas_completos, [6], "el planeta 6 sí está completo; el 1 no, porque le falta la Actividad");
 c(d.insignias.indexOf("P1_bran") >= 0, "P1_bran sigue ahí aunque su casilla se vaciara");
 c(d.insignias.indexOf("P6_joran") >= 0, "y se suma la del tema 6");
 
@@ -30,7 +33,7 @@ c(d.insignias.indexOf("P6_joran") >= 0, "y se suma la del tema 6");
 const evAntes = G.hoja_("EVENTOS").getLastRow();
 E.enviarBitacora(G, PER, { email: "dani@alumno.es", marcados: { [col(6)]: [et("A6"), et("B6")].join(", ") } }, 2);
 igual(G.hoja_("EVENTOS").getLastRow(), evAntes, "reenviar lo ya registrado no duplica eventos");
-igual(G.tablero_(PER, true).reclutas[0].xp, 800, "ni suma xp de más");
+igual(G.tablero_(PER, true).reclutas[0].xp, 800 + G.BONUS_PLANETA.xp, "ni suma xp de más (800 + el planeta 1 completo)");
 
 // El avatar se CONGELA en el primer envío: editar el formulario no lo cambia
 E.enviarBitacora(G, PER, { email: "dani@alumno.es", avatar: "Personaje 4 · ella (evoluciona)" }, 2);
@@ -43,9 +46,19 @@ igual(G.tablero_(PER, true).reclutas[0].avatar.n, 3, "un canje concedido sí cam
 
 // Ajustes del profesorado: otorgar y anular
 G.hoja_("AJUSTES").appendRow([new Date(), PER, "dani@alumno.es", "A2", "otorgar", "recuperada en clase", "Mr Cuarter"]);
-igual(G.tablero_(PER, true).reclutas[0].xp, 900, "el profe puede otorgar un reto a mano (+100)");
+igual(G.tablero_(PER, true).reclutas[0].xp, 900 + G.BONUS_PLANETA.xp, "el profe puede otorgar un reto a mano (+100)");
 G.hoja_("AJUSTES").appendRow([new Date(), PER, "dani@alumno.es", "A1", "anular", "error", "Mr Cuarter"]);
-igual(G.tablero_(PER, true).reclutas[0].xp, 800, "y anularlo (-100)");
+igual(G.tablero_(PER, true).reclutas[0].xp, 800 + G.BONUS_PLANETA.xp, "y anularlo (-100)");
+
+// 🔴 LO GANADO, GANADO. Si el profe anula un reto del tema 6, el planeta deja de estar completo,
+// pero el bonus ya CONCEDIDO no se quita: está escrito. Quitarlo devolvería créditos que quizá ya
+// se gastaron y dejaría el saldo en negativo.
+c(G.tablero_(PER, true).reclutas[0].bonus.indexOf("planeta:6") >= 0, "el bonus del planeta 6 está concedido");
+G.hoja_("AJUSTES").appendRow([new Date(), PER, "dani@alumno.es", "A6", "anular", "error", "Mr Cuarter"]);
+const trasAnular = G.tablero_(PER, true).reclutas[0];
+igual(trasAnular.planetas_completos, [], "al anular A6 el planeta 6 deja de estar completo");
+c(trasAnular.bonus.indexOf("planeta:6") >= 0, "🔴 pero el bonus sigue concedido: lo ganado, ganado");
+igual(trasAnular.xp, 800 + G.BONUS_PLANETA.xp - 100, "se le quitan los xp del reto anulado, no los del bonus");
 
 // La respuesta sin correo no rompe nada
 const shB = G._maestra.getSheetByName("B · " + PER);

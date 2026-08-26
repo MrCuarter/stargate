@@ -319,6 +319,19 @@ XP_VIAJE = {"REGULAR": 5000, "PUA": 4100}   # xp máximos del viaje completo (pa
 # el título en todo el proyecto, así que no me invento lo que piden. Sustituye las líneas marcadas
 # con «(falta)» por una frase tuya que diga QUÉ se entrega. Lo demás sale de la propia etiqueta del
 # reto, que ya nombra el entregable.
+# ================= BONUS =================
+# 🔴 Se conceden UNA VEZ y quedan escritos en AJUSTES, no se recalculan. La racha BAJA cuando se
+# falla una semana: si el bonus se recalculara, alguien que llegó a 6 semanas y luego falló perdería
+# créditos que ya se ha gastado, y el saldo se iría a negativo. Lo ganado, ganado.
+BONUS_PLANETA = {"xp": 150, "creditos": 40}   # todos los retos de un tema registrados
+# [semanas seguidas, créditos]. Sin xp a propósito: la constancia no debe mover el nivel ni los
+# rankings, solo dar de gastar.
+BONUS_RACHA = [[3, 40], [6, 80], [10, 150]]
+# El Capitán paga el tutorial. 30 ◈ = DOS sobres de cromos exactos: acabas de aprender cómo funciona
+# el álbum y puedes ir a abrirlo, en vez de quedarte con un número abstracto. Sin xp: no has
+# producido nada, solo has escuchado.
+BONUS_TUTORIAL = {"creditos": 30}
+
 AYUDA_RETOS = {
   # --- los que se deducen de su etiqueta ---
   "B1": "Una imagen creada con IA. Súbela a tu Bitácora y marca la casilla cuando esté publicada.",

@@ -100,6 +100,41 @@ var RETOS_PUA = [
   ["B7","La microgamificaci\u00f3n (recupera a Mara)",["P7_mara","R7_microgamificacion"],300,7],
   ["B8","El \u00faltimo umbral: RA/RV + Bit\u00e1cora publicada (recupera a Noa)",["P8_noa","R8_ultimo-umbral"],300,8]
 ];
+// BONUS-INICIO - Los genera _build_site.py desde _site_data.py: NO editar a mano.
+var BONUS_PLANETA = {"xp": 150, "creditos": 40};
+var BONUS_RACHA = [[3, 40], [6, 80], [10, 150]];
+var BONUS_TUTORIAL = {"creditos": 30};
+// BONUS-FIN
+//  Los bonus se conceden UNA VEZ y quedan escritos en AJUSTES. No se recalculan: la racha BAJA al
+// fallar una semana, y si el bonus se recalculara, quien llego a 6 y luego fallo perderia creditos
+// que ya se ha gastado. Lo ganado, ganado.
+function planetasCompletos_(retos, tipo) {
+  var out = [];
+  for (var t = 1; t <= 8; t++) {
+    var suyos = retosDe_(tipo).filter(function(r){ return r[4] === t; });
+    if (suyos.length && suyos.every(function(r){ return retos[r[0]]; })) out.push(t);
+  }
+  return out;
+}
+// Que bonus le tocan y todavia no tiene. Devuelve las claves ("planeta:3", "racha:6").
+function bonusPendientes_(retos, tipo, racha, yaTiene) {
+  var out = [];
+  planetasCompletos_(retos, tipo).forEach(function(t){
+    var k = "planeta:" + t; if (!yaTiene[k]) out.push(k);
+  });
+  BONUS_RACHA.forEach(function(b){
+    var k = "racha:" + b[0]; if (racha >= b[0] && !yaTiene[k]) out.push(k);
+  });
+  return out;
+}
+function valorBonus_(clave) {
+  if (clave.indexOf("planeta:") === 0) return { xp: BONUS_PLANETA.xp || 0, creditos: BONUS_PLANETA.creditos || 0 };
+  if (clave === "tutorial") return { xp: 0, creditos: BONUS_TUTORIAL.creditos || 0 };
+  var m = clave.match(/^racha:(\d+)$/);
+  if (m) { var b = BONUS_RACHA.filter(function(x){ return x[0] === Number(m[1]); })[0];
+           if (b) return { xp: 0, creditos: b[1] }; }
+  return { xp: 0, creditos: 0 };
+}
 // AYUDA-INICIO - QUE HAY QUE HACER EN CADA RETO. Va dentro del formulario, bajo la casilla de su
 // tema, porque un alumno que no sabe que se le pide ESCRIBE UN CORREO. Lo genera _build_site.py
 // desde _site_data.py (AYUDA_RETOS): NO editar a mano.
@@ -1974,14 +2009,29 @@ function registrarEventos_(o, sh, fila) {
   var r = leerFila_(sh, fila); var email = String(r["Direcci\u00f3n de correo electr\u00f3nico"] || r["Email Address"] || "").toLowerCase().trim(); if (!email) return;
   congelarAvatarBase_(o, email, r);
   var alias = r["Alias de recluta (p\u00fablico)"] || ""; var retos = retosDe_(o.tipo); var porEt = {}; retos.forEach(function(x){ porEt[x[1]] = x; });
-  var ev = hoja_(H.EV); var previos = {};
-  ev.getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] === o.id && String(v[2]).toLowerCase() === email) previos[v[4]] = true; });
+  var ev = hoja_(H.EV); var previos = {}, mios = [];
+  ev.getDataRange().getValues().slice(1).forEach(function(v){
+    if (v[1] === o.id && String(v[2]).toLowerCase() === email) { previos[v[4]] = true; mios.push({ fecha:v[0], reto_id:v[4] }); } });
   var nuevos = [], prueba = evidenciaDe_(r);
   if (!previos["H1"]) nuevos.push([new Date(), o.id, email, alias, "H1", "Reclutamiento", 0, XP_RECLUTAMIENTO, "formulario", ""]);
   // la evidencia de ESTE envio se guarda con CADA reto que se marca en el: asi el profesorado la ve
   // al lado del reto, no en una columna suelta que hay que ir a buscar
   marcados_(r).forEach(function(et){ var x = porEt[et]; if (x && !previos[x[0]]) nuevos.push([new Date(), o.id, email, alias, x[0], x[1], x[4], x[3], "formulario", prueba]); });
   if (nuevos.length) ev.getRange(ev.getLastRow()+1, 1, nuevos.length, 10).setValues(nuevos);
+  if (nuevos.length) otorgarBonus_(o, email, previos, mios.concat(nuevos.map(function(v){ return { fecha:v[0], reto_id:v[4] }; })));
+}
+// v3.19 - BONUS. Se conceden aqui, al registrar, y quedan ESCRITOS en AJUSTES. No se recalculan
+// nunca: la racha baja al fallar una semana y devolver creditos ya gastados dejaria el saldo en
+// negativo. Solo se mira si le toca algo que todavia no tenga.
+function otorgarBonus_(o, email, previos, eventos) {
+  var retos = {}; Object.keys(previos).forEach(function(k){ retos[k] = true; });
+  eventos.forEach(function(e){ retos[e.reto_id] = true; });
+  var yaTiene = {};
+  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
+    if (v[1] === o.id && String(v[2]).toLowerCase() === email && v[4] === "bonus") yaTiene[String(v[5] || "")] = true; });
+  var pend = bonusPendientes_(retos, o.tipo, racha_(o, eventos), yaTiene);
+  pend.forEach(function(k){ hoja_(H.AJ).appendRow([new Date(), o.id, email, "EXTRA", "bonus", k, "sistema"]); });
+  return pend;
 }
 // v3: congela el avatar elegido en el PRIMER envio de la Bitacora. Despues, editar el formulario
 // no cambia el avatar del tablero: solo lo cambia un canje concedido ("Cambio de avatar" / "Avatar personal").
@@ -2239,7 +2289,8 @@ function tablero_(perId, conPrivados) {
     // Nave, y el recluta se quedaba con un vestuario que no cuadraba con lo que veia.
     else if (v[4] === "heroe") { a._heroes = a._heroes || []; var hk = String(v[5] || "");
       if (hk && esHeroe_(hk) && a._heroes.indexOf(hk) < 0) a._heroes.push(hk); }
-    else if (v[4] === "viste") { a._viste = String(v[5] || ""); } });
+    else if (v[4] === "viste") { a._viste = String(v[5] || ""); }
+    else if (v[4] === "bonus") { a._bonus = a._bonus || {}; a._bonus[String(v[5] || "")] = v[0]; } });
   // 3) calculo
   var canjes = {}; var shC = SpreadsheetApp.getActive().getSheetByName(o.tabC);
   if (shC && shC.getLastRow() > 1) { var vc = shC.getDataRange().getValues(); var cc = vc[0].map(String); var cE = cc.indexOf("Estado"), cMm = idx_(cc,"correo") >= 0 ? idx_(cc,"correo") : idx_(cc,"email"), cR = cc.indexOf("Recompensa"), cEnt = cc.indexOf("Entregado");
@@ -2260,6 +2311,12 @@ function tablero_(perId, conPrivados) {
       var x = porId[id]; if (!x) return; xp += x[3]; if (nuevo) xp7 += x[3];
       cred += creditosDe_(id, o.tipo); if (x[4] > tema && x[4] <= 8) tema = x[4];
       x[2].forEach(function(k){ ins[k] = true; if (t7 > (cuando[k] || 0)) cuando[k] = t7; }); });
+    // los bonus ya concedidos: se SUMAN de lo escrito, no se vuelven a calcular
+    var bonus = a._bonus || {};
+    Object.keys(bonus).forEach(function(k){
+      var val = valorBonus_(k); xp += val.xp; cred += val.creditos;
+      if (ts_(bonus[k]) >= hace7) xp7 += val.xp;
+    });
     if (Object.keys(a.retos).length) { ins["H1_reclutamiento"] = true; ins["E1_nebula"] = true; }
     // una insignia derivada se gana cuando cae la ULTIMA de las suyas: esa es su fecha
     DERIVADAS.forEach(function(d){ if (d[2].every(function(k){ return ins[k]; })) { ins[d[0]] = true; xp += d[1]; cred += CREDITOS.derivada || 0;
@@ -2303,7 +2360,7 @@ function tablero_(perId, conPrivados) {
     // entero y el ranking los ordenaria al azar. Redondea quien lo pinta; ordena quien lo cuenta.
     coleccion.pct = coleccion.total ? (coleccion.tengo * 100 / coleccion.total) : 0;
     var out = { alias:a.alias, avatar:avatar, xp:xp, nivel:niv.nivel, rango:niv.rango, rango_nombre:niv.rangoNombre,
-                coleccion: coleccion,
+                coleccion: coleccion, bonus: Object.keys(bonus), planetas_completos: planetasCompletos_(a.retos, o.tipo),
                 heroes: heroes, n_heroes: heroes.length, skins: skins, viste: puesto,
                 repes: repes, repes_gastados: gastados, repes_disponibles: Math.max(0, repes - gastados),
                 insignias_album: album, n_album: album.length, racha: racha_(o, a.eventos),
@@ -2882,6 +2939,20 @@ function doPost(e) {
     // v3.16 - VESTIRSE, sin PIN a proposito. El alumnado no va a recordar otra clave y pedirsela
     // seria peor que el problema: lo unico que se puede hacer aqui es ponerse algo QUE YA SE TIENE
     // desbloqueado. Es cosmetico, se deshace en un clic y no toca ni xp ni creditos.
+    // v3.19 - EL CAPITAN PAGA EL TUTORIAL. Sin PIN, como vestirse: el alumnado no tiene clave. Se
+    // concede UNA VEZ y queda escrito, asi que repetir el tutorial no vuelve a pagar.
+    if (q.accion === "tutorial") {
+      var tt2 = tablero_(q.per, true); if (tt2.error) throw new Error(tt2.error);
+      var et2 = String(q.email || "").toLowerCase().trim();
+      var yo2 = (tt2.reclutas || []).filter(function(x){ return x.email === et2; })[0];
+      if (!yo2) throw new Error("No te encuentro en este grupo");
+      if (yo2.bonus.indexOf("tutorial") >= 0)
+        return ContentService.createTextOutput(JSON.stringify({ ok: true, yaEstaba: true, creditos: 0 }))
+          .setMimeType(ContentService.MimeType.JSON);
+      hoja_(H.AJ).appendRow([new Date(), q.per, et2, "EXTRA", "bonus", "tutorial", "sistema"]);
+      return ContentService.createTextOutput(JSON.stringify({ ok: true, creditos: BONUS_TUTORIAL.creditos || 0 }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
     if (q.accion === "vestir") {
       var tv = tablero_(q.per, true); if (tv.error) throw new Error(tv.error);
       var ev = String(q.email || "").toLowerCase().trim();
