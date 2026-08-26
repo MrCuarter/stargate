@@ -77,4 +77,35 @@ contiene(ultimo().cuerpo, "la hoja no responde", "con el error dentro");
 c(String(G.fotoNocturna).indexOf("vigiaDiario") >= 0,
   "🔴 va colgado de fotoNocturna: ni un trigger nuevo que instalar, mantener o duplicar");
 
+// ---------------------------------------------------------------- h) siempre deja rastro en la hoja
+// El registro de Cloud de este proyecto NO siempre está disponible — lo dice el propio código. Sin
+// rastro en la hoja, un vigía averiado es indistinguible de un sistema sano: exactamente lo
+// contrario de para lo que sirve. Pasó en vivo: el primer envío no salió y no había forma de saberlo.
+const rastro = () => G.hoja_(G.H.AJ).getDataRange().getValues().filter(r => String(r[3]) === "VIGIA");
+const antesR = rastro().length;
+props.setProperty("VIGIA_ESTADO", "");
+props.setProperty("PIN_PROFES", "0000");
+G.vigiaDiario();
+c(rastro().length > antesR, "🔴 al avisar, deja constancia en AJUSTES");
+contiene(String(rastro()[rastro().length-1][5]), "aviso enviado", "diciendo que salió y a quién");
+
+// y cuando calla, también: «no he dicho nada» tiene que poder distinguirse de «estoy muerto»
+const antesR2 = rastro().length;
+G.vigiaDiario();
+c(rastro().length > antesR2, "🔴 y cuando calla, TAMBIÉN: callar no puede parecer estar muerto");
+contiene(String(rastro()[rastro().length-1][4]), "nada que contar", "dejando dicho que miró y no había nada");
+
+// si el correo REVIENTA al salir, el rastro lo dice. Es el caso que pasó en vivo: la excepción se
+// la traga enviarCorreo_, el registro de Cloud no estaba disponible y no quedaba rastro en ninguna
+// parte — el vigía parecía haber funcionado.
+props.setProperty("VIGIA_ESTADO", "");
+const enviar = G.MailApp.sendEmail;
+G.MailApp.sendEmail = function(){ throw new Error("no tienes permiso para enviar correo"); };
+const r2 = G.vigiaDiario();
+G.MailApp.sendEmail = enviar;
+igual(r2.enviado, false, "si el envío revienta, el vigía lo sabe");
+contiene(String(rastro()[rastro().length-1][5]), "NO salio", "🔴 y queda escrito en la hoja que NO salió");
+contiene(String(rastro()[rastro().length-1][5]), "permiso", "con el motivo exacto, no un «algo falló»");
+contiene(r2.fallo, "permiso", "y lo devuelve, para quien lo llame desde el menú");
+
 E.resumen("El vigía diario");

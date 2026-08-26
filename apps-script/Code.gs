@@ -1664,15 +1664,20 @@ function cuotaCorreo_() {
 function gastarCuota_(n) { if (_cuota !== null) _cuota = Math.max(0, _cuota - (n || 1)); }
 // Manda un correo respetando la cuota. Devuelve true si salio. Si no hay cuota deja traza en
 // AJUSTES: el parte de salud la ve, y asi el fallo deja de ser invisible.
+// v3.18 · el ULTIMO motivo por el que un correo no salio. Lo mira el vigia: sin esto, un envio que
+// revienta se traga la excepcion y no queda rastro en ningun sitio.
+var _falloCorreo = "";
 function enviarCorreo_(para, asunto, cuerpo, perId, email) {
-  if (!para) return false;
+  if (!para) { _falloCorreo = "no hay a quien escribir (falta el correo de avisos de reserva)"; return false; }
   if (cuotaCorreo_() <= 0) {
     try { hoja_(H.AJ).appendRow([new Date(), perId || "", email || "", "ERROR", "cuota",
       "sin cuota de correo: no se envio «" + asunto + "» a " + para, "sistema"]); } catch (e) {}
+    _falloCorreo = "sin cuota de correo";
     return false;
   }
-  try { MailApp.sendEmail(para, asunto, cuerpo); gastarCuota_(1); avisarCuotaBaja_(); return true; }
-  catch (e) { Logger.log("enviarCorreo_ (" + asunto + "): " + e); return false; }
+  try { MailApp.sendEmail(para, asunto, cuerpo); gastarCuota_(1); avisarCuotaBaja_(); _falloCorreo = ""; return true; }
+  catch (e) { _falloCorreo = String(e && e.message ? e.message : e);
+              Logger.log("enviarCorreo_ (" + asunto + "): " + e); return false; }
 }
 // Cuando queda poco, un aviso AL DIA al correo de reserva. Sin la guarda, una tanda de canjes
 // mandaria el aviso una vez por canje y se comeria justo la cuota que queda.
@@ -2633,6 +2638,14 @@ function salud_() {
 //   · se ha arreglado todo     -> lo dice UNA vez, y calla
 //   · todo bien desde hace 30 dias -> una senal de vida, porque si no el silencio de un script muerto
 //     es identico al silencio de un sistema sano, y eso es justo lo que no queremos durante una baja
+// El vigia deja constancia en AJUSTES de lo que decidio y de si el correo salio. El registro de
+// Cloud no siempre esta disponible en este proyecto (lo dice el propio codigo mas arriba), asi que
+// sin este rastro un vigia averiado es indistinguible de un sistema sano. Que es exactamente lo
+// contrario de para lo que sirve.
+function rastroVigia_(motivo, ok, detalle) {
+  try { hoja_(H.AJ).appendRow([new Date(), "", "", "VIGIA", motivo || "callado",
+    (ok ? "aviso enviado" : "NO salio el aviso") + (detalle ? " · " + detalle : ""), "sistema"]); } catch (e) {}
+}
 var VIGIA_INSISTE_DIAS = 7;
 var VIGIA_LATIDO_DIAS = 30;
 function vigiaDiario() {
@@ -2641,10 +2654,11 @@ function vigiaDiario() {
   try { s = salud_(); }
   catch (e) {
     // que el parte reviente ES la peor noticia posible, asi que se cuenta igual
-    enviarCorreo_(correoDeReserva_(), "STARGATE · el parte de salud no se puede ni ejecutar",
+    var ok0 = enviarCorreo_(correoDeReserva_(), "STARGATE · el parte de salud no se puede ni ejecutar",
       "Al mirar el sistema ha saltado un error:\n\n" + (e && e.message ? e.message : e) +
       "\n\nHoja: " + SpreadsheetApp.getActive().getUrl());
-    return { enviado: true, motivo: "el parte revento" };
+    rastroVigia_("el parte revento", ok0, ok0 ? "" : _falloCorreo);
+    return { enviado: ok0, motivo: "el parte revento" };
   }
   var pegas = s.puntos.filter(function(p){ return p.nivel !== "ok"; });
   var huella = pegas.map(function(p){ return p.nivel + ":" + p.clave; }).sort().join("|");
@@ -2658,7 +2672,8 @@ function vigiaDiario() {
   } else if (ant.huella) motivo = "ya esta arreglado";
   else if (dias >= VIGIA_LATIDO_DIAS) motivo = "senal de vida";
 
-  if (!motivo) return { enviado: false, huella: huella };
+  if (!motivo) { rastroVigia_("nada que contar", true, huella ? "sigue: " + huella : "todo en orden");
+                 return { enviado: false, huella: huella }; }
 
   // ojo con el nombre: «icono» es el semaforo de parteDeSalud (los emojis del §19). Este es otro.
   var marca = { mal: "[!]", aviso: "[-]" };
@@ -2679,9 +2694,11 @@ function vigiaDiario() {
             "\nHoja: " + SpreadsheetApp.getActive().getUrl() +
             "\n\nEste aviso sale solo cuando hay algo que contar. Si no recibes nada, es que va bien.";
 
-  var ok = enviarCorreo_(correoDeReserva_(), titulo, cuerpo);
+  var destino = correoDeReserva_();
+  var ok = enviarCorreo_(destino, titulo, cuerpo);
+  rastroVigia_(motivo, ok, ok ? "a " + destino : _falloCorreo + " (a «" + destino + "»)");
   pr.setProperty("VIGIA_ESTADO", JSON.stringify({ huella: huella, fecha: new Date().toISOString() }));
-  return { enviado: ok, motivo: motivo, huella: huella, titulo: titulo };
+  return { enviado: ok, motivo: motivo, huella: huella, titulo: titulo, fallo: ok ? "" : _falloCorreo };
 }
 function parteDeSalud() {
   var s = salud_();
