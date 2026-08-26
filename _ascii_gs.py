@@ -92,6 +92,7 @@ def convertir_html(src):
 if __name__ == "__main__":
     base = os.path.dirname(os.path.abspath(__file__))
     for orig, dest in [("apps-script/Code.gs", "assets/descargas/Code.gs.ascii.txt"),
+                       ("apps-script/Datos.gs", "assets/descargas/Datos.gs.ascii.txt"),
                        ("apps-script/Dialog.html", "assets/descargas/Dialog.html.ascii.txt")]:
         s = io.open(os.path.join(base, orig), encoding="utf-8").read()
         r = convertir_html(s) if orig.endswith(".html") else convertir(s)

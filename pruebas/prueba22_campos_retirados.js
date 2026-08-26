@@ -69,10 +69,10 @@ const act = canje.getItems().filter(i => i.getTitle() === G.TIT_ACTIVIDAD)[0].ge
 c(!act.some(x => x.indexOf("canje de avatar") >= 0), "🔴 ni ofrece «no aplica (canje de avatar)»: el avatar ya no se canjea");
 
 // el texto del avatar en la Bitácora tampoco puede prometer lo retirado
-c(G.AYUDA_AVATAR.indexOf("EXCLUSIVOS") < 0, "🔴 la ayuda del avatar no dice que haya personajes exclusivos");
-c(G.AYUDA_AVATAR.indexOf("tu propia") < 0, "ni que puedas poner tu propia imagen");
-c(G.AYUDA_AVATAR.indexOf("cambiar de avatar cuesta") < 0, "ni que cambiar de avatar cueste créditos");
-contiene(G.AYUDA_AVATAR, "no se cambia", "dice la verdad: el personaje te acompaña todo el viaje");
+c(G.ayudaAvatar_().indexOf("EXCLUSIVOS") < 0, "🔴 la ayuda del avatar no dice que haya personajes exclusivos");
+c(G.ayudaAvatar_().indexOf("tu propia") < 0, "ni que puedas poner tu propia imagen");
+c(G.ayudaAvatar_().indexOf("cambiar de avatar cuesta") < 0, "ni que cambiar de avatar cueste créditos");
+contiene(G.ayudaAvatar_(), "no se cambia", "dice la verdad: el personaje te acompaña todo el viaje");
 
 // ---------------------------------------------------------------- f) y un PER ya creado los recibe
 canje.setDescription("Cambia tus xp por ventajas.");            // como lo dejó una version vieja

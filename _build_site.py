@@ -1466,7 +1466,9 @@ def _sustituir(txt, ini, fin, cuerpo):
     a = txt.index(ini) + len(ini); b = txt.index(fin)
     return txt[:a] + cuerpo + txt[b:]
 
-_gs_path = os.path.join(HERE, "apps-script", "Code.gs")
+# El catalogo vive en Datos.gs desde que Code.gs dejo de poder guardarse (Apps Script rechaza
+# el fichero al pasar de ~220 KB). Aqui se inyecta donde esta el dato, no donde estaba.
+_gs_path = os.path.join(HERE, "apps-script", "Datos.gs")
 _gs = open(_gs_path, encoding="utf-8").read()
 _gs = _sustituir(_gs, "var CROMOS = [\n", "\n];\n// CROMOS-FIN", _js_cromos())
 _gs = _sustituir(_gs, "var HEROES = [\n", "\n];\n// HEROES-FIN", _js_heroes())
@@ -1502,7 +1504,7 @@ if _sin:
 _gs = _sustituir(_gs, "var AYUDA_RETOS = ", ";\n// AYUDA-FIN",
                  json.dumps(_ayuda, ensure_ascii=False, indent=1, sort_keys=True))
 open(_gs_path, "w", encoding="utf-8").write(_gs)
-open(os.path.join(HERE, "assets", "descargas", "Code.gs.txt"), "w", encoding="utf-8").write(_gs)
+open(os.path.join(HERE, "assets", "descargas", "Datos.gs.txt"), "w", encoding="utf-8").write(_gs)
 open(os.path.join(HERE, "assets", "descargas", "Dialog.html.txt"), "w", encoding="utf-8").write(
     open(os.path.join(HERE, "apps-script", "Dialog.html"), encoding="utf-8").read())
 # Copias 100% ASCII para pegar sin riesgo de que se rompan los acentos (ver _ascii_gs.py)

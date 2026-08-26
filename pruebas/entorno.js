@@ -15,6 +15,9 @@ const FormApp = require("./formapp.js");
 const RUTA_GS = process.env.STARGATE_GS
   ? path.resolve(process.env.STARGATE_GS)
   : path.join(__dirname, "..", "apps-script", "Code.gs");
+const RUTA_DATOS = process.env.STARGATE_DATOS
+  ? path.resolve(process.env.STARGATE_DATOS)
+  : path.join(__dirname, "..", "apps-script", "Datos.gs");
 
 // ------------------------------------------------------------------ comprobaciones
 let ok = 0, mal = 0;
@@ -84,7 +87,11 @@ function nuevoMundo() {
     Date, String, Number, Object, Array, RegExp, Error, parseInt, parseFloat, isNaN, encodeURIComponent, decodeURIComponent
   };
   vm.createContext(contexto);
+  // Apps Script comparte el ambito global entre ficheros. Se carga Code.gs PRIMERO y Datos.gs
+  // despues —el orden mas desfavorable— para que cualquier dependencia de arranque salte aqui y no
+  // en produccion.
   vm.runInContext(fs.readFileSync(RUTA_GS, "utf8"), contexto, { filename: "Code.gs" });
+  vm.runInContext(fs.readFileSync(RUTA_DATOS, "utf8"), contexto, { filename: "Datos.gs" });
 
   contexto._maestra = maestra;
   contexto._raiz = raiz;
