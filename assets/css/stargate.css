@@ -352,7 +352,22 @@ td.who{white-space:nowrap}
 td.who{display:flex;align-items:center;gap:6px}td.who>span{display:inline-block;line-height:1.25}
 
 /* ---- La Nave del Recluta ---- */
-.nave-accesos{margin:6px 0 22px}
+/* La barra de accesos de la Nave: ANCLADA bajo el menú y con los botones grandes. Estaba debajo
+   de la ficha, así que para registrar un logro había que hacer scroll — y lo que no se ve, no se
+   usa. Participar es voluntario: si cuesta encontrarlo, no lo encuentran. */
+.nave-barra{position:sticky;top:54px;z-index:15;margin:0 0 22px;padding:10px 0;
+  background:rgba(8,12,20,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nave-accesos{display:grid;gap:10px;margin:0;grid-template-columns:repeat(auto-fit,minmax(178px,1fr))}
+.nave-accesos .acc{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:14px;
+  border:1px solid var(--line);background:var(--card);color:inherit;text-decoration:none;
+  transition:transform .12s ease,border-color .12s ease}
+.nave-accesos .acc b{font-size:1.02rem;line-height:1.2}
+.nave-accesos .acc em{font-style:normal;font-size:.78rem;color:var(--mut)}
+.nave-accesos .acc:hover{transform:translateY(-2px);border-color:var(--teal)}
+.nave-accesos .acc.primary{background:linear-gradient(180deg,rgba(14,127,140,.30),rgba(14,127,140,.14));
+  border-color:var(--teal)}
+@media(max-width:620px){.nave-barra{top:0}.nave-accesos .acc em{display:none}}
+body.embed .nave-barra{top:0}
 .nave-mapa{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:12px;margin-top:14px}
 .nave-pl{position:relative;text-align:center;padding:14px 8px 12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02)}
 .nave-pl img{width:78px;height:78px;object-fit:contain;filter:drop-shadow(0 8px 20px rgba(0,0,0,.55))}

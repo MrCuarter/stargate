@@ -143,11 +143,13 @@
   }
   function accesos(){
     var d=st.d;
-    return '<div class="cta-row nave-accesos">'
-      +(d.panel?'<a class="btn primary" href="'+esc(d.panel)+'" target="_blank" rel="noopener">🪐 Panel de control</a>':'')
-      +(d.formBitacora?'<a class="btn'+(d.panel?'':' primary')+'" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">📓 Registrar una insignia</a>':'')
-      +(d.formTicket?'<a class="btn" href="'+esc(d.formTicket)+'" target="_blank" rel="noopener">🎟️ Contacta con NEBULA</a>':'')
-      +'<a class="btn" href="registro.html?per='+encodeURIComponent(per)+'" target="_blank" rel="noopener">🏆 Tablero completo</a></div>';
+    return '<div class="nave-barra"><div class="nave-accesos">'
+      +(d.formBitacora?'<a class="acc primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener"><b>📓 Registrar un logro</b><em>marca lo que has hecho</em></a>':'')
+      +(d.formCanje?'<a class="acc" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener"><b>🎁 Canjear</b><em>gasta tus ◈ créditos</em></a>':'')
+      +'<a class="acc" href="registro.html?per='+encodeURIComponent(per)+'" target="_blank" rel="noopener"><b>🏆 Tablero</b><em>cómo va tu grupo</em></a>'
+      +(d.formTicket?'<a class="acc" href="'+esc(d.formTicket)+'" target="_blank" rel="noopener"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
+      +(d.panel?'<a class="acc" href="'+esc(d.panel)+'" target="_blank" rel="noopener"><b>🪐 Panel</b><em>los ocho planetas</em></a>':'')
+      +'</div></div>';
   }
   function mapa(){
     var tiles=PLAN.map(function(p,i){
@@ -233,7 +235,7 @@
 
   // ---------- render ----------
   function render(){
-    root.innerHTML=cabecera()+personaje()+accesos()+estaSemana()+mapa()+recompensas();
+    root.innerHTML=cabecera()+accesos()+personaje()+estaSemana()+mapa()+recompensas();
     wireYt(root);
     var det=root.querySelector('#nave-detalle');
     Array.prototype.forEach.call(root.querySelectorAll('.nave-pl.on'),function(el){
