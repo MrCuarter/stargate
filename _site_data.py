@@ -279,8 +279,11 @@ NIVELES = [
 ]
 XP_VIAJE = {"REGULAR": 5000, "PUA": 4100}   # xp máximos del viaje completo (para escalar PUA)
 # ◈ que da cada tipo de logro (el xp lo sigue fijando la tabla de retos del Apps Script)
-CREDITOS = {"reclutamiento": 10, "retoA": 10, "retoB": 30, "retoB_pua": 35,
-            "actividad": 60, "final": 60, "derivada": 40}
+# 26-ago · SUBE LO QUE SE GANA. Con el vestuario de héroes hay mucho más donde gastar, y con la
+# economía vieja (590 ◈ el viaje entero) elegir una recompensa de nota significaba renunciar a
+# coleccionar del todo. Ahora el viaje completo son 1.000 ◈ redondos en REGULAR.
+CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55,
+            "actividad": 100, "final": 100, "derivada": 60}
 # ---------- calendario del PER (v3.14) ----------
 # Decisión del usuario (25-ago): los formularios NO se abren y cierran a ojo. Por defecto:
 #   · abren UNA SEMANA ANTES de la semana 1 (para que el alumnado se aliste con margen),
@@ -297,22 +300,18 @@ RECOMPENSAS = [
   "Una carta al azar de las 20 del álbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. Se abre solo y tu álbum está en la Nave.", 2, "cromo"),
  ("Cambiar 3 repetidos por un sobre", 0, 99,
   "¿Cartas repetidas? Cámbialas. Por cada 3 repetidas te llevas un sobre nuevo, gratis. No cuesta créditos y se comprueba solo: si no llegas a 3, se te avisa y no pierdes nada.", 2, "cromo_repes"),
- ("Título de recluta", 25, 3,
+ ("Título de recluta", 40, 3,
   "Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario). Se aplica solo.", 3, "titulo"),
- ("Fondo de ficha: tu planeta", 20, 1,
+ ("Fondo de ficha: tu planeta", 35, 1,
   "Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.", 4, "fondo"),
- ("Cambio de avatar", 35, 3,
-  "Elige otro personaje inicial (1-4) o vuelve a uno (indícalo en el propio formulario de canje). Se aplica solo.", 2, "avatar"),
- ("Marco dorado del avatar", 35, 1,
+ ("Marco dorado del avatar", 60, 1,
   "Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.", 6, "marco"),
- ("Personaje exclusivo", 60, 3,
-  "Desbloquea y ponte uno de los personajes exclusivos 5-7 (indícalo en el formulario). Se aplica solo.", 7, "avatar_exclusivo"),
- ("Avatar personal (tu propia imagen)", 90, 1,
-  "Pon tu propia imagen como avatar. Al alistarte esto NO se ofrece: es una recompensa. Sube la foto a postimages.org (sin registrarte), copia el «Enlace directo» (acaba en .jpg o .png) y pégalo en este formulario. También vale un enlace de Google Drive compartido con «cualquier persona con el enlace». Se aplica solo.", 5, "avatar_url"),
- ("Subir 0,5 en un entregable", 110, 1, "Se aplica a la actividad que elijas", 14, "nota"),
- ("Subir 1 punto en un entregable", 170, 1, "Se aplica a la actividad que elijas", 14, "nota"),
- ("Recalificar un trabajo entregado fuera de plazo", 240, 1, "Indica la actividad", 14, "nota"),
- ("Recalificar un suspenso", 330, 1, "Indica la actividad", 14, "nota"),
+ ("Héroe de la Rebelión", 60, 99,
+  "Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión, cada una única. Se acumulan —cuantos más tengas, más donde elegir— y te lo pones y te lo quitas cuando quieras desde tu Nave, gratis. Los que aún no tienes salen en sombra. Y hay uno LEGENDARIO que no se deja ver hasta que cae.", 2, "heroe"),
+ ("Subir 0,5 en un entregable", 200, 1, "Se aplica a la actividad que elijas", 14, "nota"),
+ ("Subir 1 punto en un entregable", 320, 1, "Se aplica a la actividad que elijas", 14, "nota"),
+ ("Recalificar un trabajo entregado fuera de plazo", 450, 1, "Indica la actividad", 14, "nota"),
+ ("Recalificar un suspenso", 600, 1, "Indica la actividad", 14, "nota"),
 ]
 assert [n[0] for n in NIVELES] == list(range(1, 11)), "los niveles van del 1 al 10"
 assert all(NIVELES[i][1] < NIVELES[i+1][1] for i in range(9)), "los umbrales de nivel deben crecer"
