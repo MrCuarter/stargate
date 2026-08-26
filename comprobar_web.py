@@ -21,18 +21,27 @@ import urllib.error, urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from _site_data import CROMOS   # noqa: E402  · un dato, un sitio
+from _site_data import CROMOS, HEROES   # noqa: E402  · un dato, un sitio
 
 
-def _del_code_gs(patron, grupo=1):
-    """Lee un dato del Code.gs en vez de copiarlo aquí: quien descarga los orbes es él."""
-    gs = open(os.path.join(HERE, "apps-script", "Code.gs"), encoding="utf-8").read()
-    return re.findall(patron, gs)
+def _del_apps_script(patron):
+    """Lee un dato del Apps Script en vez de copiarlo aquí: quien descarga los orbes es él.
+
+    Mira en los DOS ficheros porque el motor se partió en Code.gs + Datos.gs (Apps Script no deja
+    guardar uno de 200 KB) y `var WEB` se fue a Datos.gs: buscando solo en Code.gs, esta
+    comprobación —la que existe para no repetir el 504 de Hostinger— se caía al arrancar.
+    """
+    hallado = []
+    for f in ("Code.gs", "Datos.gs"):
+        hallado += re.findall(patron, open(os.path.join(HERE, "apps-script", f), encoding="utf-8").read())
+    if not hallado:
+        raise SystemExit("🔴 No encuentro %s en el Apps Script: ¿se ha movido o renombrado?" % patron)
+    return hallado
 
 
 # Los 8 orbes, tal y como los pide orbeBlob_: WEB + assets/img/planetas/ + TEMAS[t][2] + .png
-PLANETAS = _del_code_gs(r'\["[^"]+","[^"]+","(p\d_[a-z]+)"\]')
-BASE = _del_code_gs(r'var WEB = "([^"]+)"')[0]
+PLANETAS = _del_apps_script(r'\["[^"]+","[^"]+","(p\d_[a-z]+)"\]')
+BASE = _del_apps_script(r'var WEB = "([^"]+)"')[0]
 # El CDN de OpenArt tumba el User-Agent de urllib; el dominio propio no lo necesita, pero cuesta cero
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 STARGATE-check"
 TIMEOUT = 20
@@ -117,6 +126,10 @@ def main():
         # 5) las 20 cartas del álbum
         malos += tanda("Cartas del álbum",
                        [base + "assets/img/tarjetas/" + c[0] + "_carta.png" for c in CROMOS], base)
+        # 6) los héroes y sus siluetas: media galería en negro si falta el «_bloqueado»
+        malos += tanda("Héroes de la Rebelión (retrato y silueta)",
+                       [base + "assets/img/heroes/" + h[0] + cola + ".jpg"
+                        for h in HEROES for cola in ("", "_bloqueado")], base)
 
     print("\n" + "═" * 51)
     if malos:

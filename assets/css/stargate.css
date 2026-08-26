@@ -554,6 +554,11 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 
 /* --- solo el ranking (&solo=1): para incrustar en un Genially sin nada alrededor --- */
 .solo-ranking .nav,.solo-ranking .hero,.solo-ranking footer,.solo-ranking section:not(:has(#tablero-app)){display:none}
+/* El titulo y el pie viven DENTRO de la misma seccion que el tablero, asi que el :not(:has())
+   de arriba no se los lleva: en un Genially salian la cabecera de la web y, peor, el enlace al
+   generador de embeds del profesorado. Fuera los tres. */
+.solo-ranking #tablero .eyebrow,.solo-ranking #tablero h2,.solo-ranking #tablero .lead{display:none}
+.solo-ranking #tablero .wrap{padding-top:0}
 .solo-ranking #tablero-app{padding:14px}
 .solo-ranking .buscar{margin-top:10px}
 
