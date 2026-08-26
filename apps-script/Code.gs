@@ -708,10 +708,9 @@ function crearPER(datos) {
   var fc = formDesdePlantilla_("PLANTILLA · Canje de recompensas", "STARGATE · " + nombre + " · Canje de recompensas", carpeta);
   fc.setDescription(DESC_CANJE);
   fc.setCollectEmail(true).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true).setConfirmationMessage("Solicitud recibida. Recibirás un correo con el resultado.");
-  var lr = fc.addListItem().setTitle("Recompensa").setRequired(true); lr.setChoiceValues(etiquetasRecompensas_());
-  ponerOpciones_(fc.addListItem().setTitle(TIT_ACTIVIDAD).setRequired(true), OPC_ACTIVIDAD, TIT_ACTIVIDAD);
-  anadirCamposAvatar_(fc);
+  fc.addListItem().setTitle("Recompensa").setRequired(true);
   fc.addParagraphTextItem().setTitle("Comentario (opcional)");
+  reestructurarCanje_(fc);   // pone las preguntas, las secciones y el enrutado, todo en un sitio
   publicar_(fc);
   _creados.push(fc);
   try { vincular_(fc, ss.getId()); } catch (e) { _deshacer(e); }
@@ -759,10 +758,11 @@ function crearPER(datos) {
     restos: restos, sinPlantilla: _SIN_PLANTILLA.slice(),
     pendiente: (pend.imagenes || pend.doc || pend.dossier) ? pend : null, ms: _t.ms() };
 }
-function etiquetasRecompensas_() {
-  var d = hoja_(H.REC).getDataRange().getValues().slice(1).filter(function(r){ return r[0]; });
-  return d.map(function(r){ return r[0] + " — " + r[1] + " créditos"; });
-}
+// v3.17 · Las etiquetas SALEN del catalogo, no de una segunda lectura de la hoja: el enrutado por
+// secciones empareja etiqueta[k] con catalogo[k], y si las dos listas se leyeran por separado un dia
+// dejarian de cuadrar y cada recompensa mandaria a la seccion de otra.
+function etiquetaRecompensa_(x) { return x.nombre + " — " + x.coste + " créditos"; }
+function etiquetasRecompensas_() { return recompensasCat_().map(etiquetaRecompensa_); }
 // Preguntas del canje de avatar (se usan al crear el PER y al actualizar PERs anteriores)
 var TIT_DOCENTE = "¿Quién imparte tu clase?";
 var AYUDA_DOCENTE = "Para que tu profe pueda seguir a su grupo y le avise el sistema cuando canjees algo " +
@@ -775,7 +775,68 @@ var DESC_CANJE = "Cambia tus CRÉDITOS ◈ por ventajas. Ojo: los créditos son 
   "al instante y te responde por correo.";
 var TIT_ACTIVIDAD = "Actividad a la que se aplica";
 var OPC_ACTIVIDAD = ["Actividad 1 · imagen con IA", "Actividad 2 · paisaje de aprendizaje",
-                     "No aplica (no es un canje de nota)", "Otra (la indico en el comentario)"];
+                     "Otra (la indico en el comentario)"];
+// v3.17 · EL CANJE, POR SECCIONES. Antes todo estaba en una sola pagina y se podia pedir un heroe y
+// de paso marcar un titulo y un planeta: cosas incompatibles en el mismo envio, y el alumno creyendo
+// que se lleva tres. Ahora la eleccion de recompensa MANDA a la seccion que necesita —o directa a
+// enviar si no necesita nada— y cada seccion termina enviando, asi que no se puede caer en la
+// siguiente. De paso, «Actividad a la que se aplica» deja de ser obligatoria para todo el mundo:
+// solo se pregunta a quien canjea nota.
+var SEC_TITULO = "Un dato más: tu título";
+var SEC_FONDO  = "Un dato más: tu planeta";
+var SEC_NOTA   = "Un dato más: la actividad";
+var SECCIONES_CANJE = [SEC_TITULO, SEC_FONDO, SEC_NOTA];
+// 🔴 FUNCION, no objeto: TIT_TITULO y TIT_FONDO se declaran MAS ABAJO en el fichero, asi que un
+// mapa construido aqui arriba guardaria «undefined» y ordenarItems_ no encontraria nada. Que el
+// orden saliera bien de todos modos era casualidad (el orden en que se anaden las preguntas), y una
+// casualidad no es una garantia. Lo caza la bateria 23.
+function preguntaDeSeccion_(sec) {
+  return sec === SEC_TITULO ? TIT_TITULO : sec === SEC_FONDO ? TIT_FONDO : sec === SEC_NOTA ? TIT_ACTIVIDAD : "";
+}
+var AYUDA_SECCION = {};
+AYUDA_SECCION[SEC_TITULO] = "Ya casi. Solo falta elegir el título que lucirás bajo tu alias.";
+AYUDA_SECCION[SEC_FONDO]  = "Ya casi. Solo falta elegir el planeta que quieres de fondo en tu ficha.";
+AYUDA_SECCION[SEC_NOTA]   = "Ya casi. Dime en qué entregable quieres que se aplique.";
+function seccionDe_(tipo) {
+  return tipo === "titulo" ? SEC_TITULO : tipo === "fondo" ? SEC_FONDO : tipo === "nota" ? SEC_NOTA : "";
+}
+// Deja los items en el orden pedido. Los que no esten en la lista se quedan detras, en su orden.
+function ordenarItems_(form, titulos) {
+  titulos.forEach(function(t, destino){
+    var it = form.getItems().filter(function(i){ return i.getTitle() === t; })[0];
+    if (it && it.getIndex() !== destino) { try { form.moveItem(it.getIndex(), destino); } catch (e) {} }
+  });
+}
+function reestructurarCanje_(fc) {
+  var buscar = function(t){ return fc.getItems().filter(function(i){ return i.getTitle() === t; })[0] || null; };
+  // 1) las preguntas que tienen que existir (anadirCamposAvatar_ pone titulo y fondo, y quita las retiradas)
+  anadirCamposAvatar_(fc);
+  var act = buscar(TIT_ACTIVIDAD) || fc.addListItem().setTitle(TIT_ACTIVIDAD);
+  ponerOpciones_(act.asListItem().setRequired(true).setHelpText(AYUDA_SECCION[SEC_NOTA]), OPC_ACTIVIDAD, TIT_ACTIVIDAD);
+  var rec = buscar("Recompensa") || fc.addListItem().setTitle("Recompensa");
+  // 2) los saltos de pagina se reconstruyen enteros: no llevan datos, asi que borrarlos no pierde nada
+  fc.getItems(FormApp.ItemType.PAGE_BREAK).forEach(function(pb){ try { fc.deleteItem(pb); } catch (e) {} });
+  // 3) solo se crean las secciones que el catalogo de HOY necesita
+  var cat = recompensasCat_(), pbs = {};
+  SECCIONES_CANJE.forEach(function(sec){
+    if (!cat.some(function(x){ return seccionDe_(x.tipo) === sec; })) return;
+    pbs[sec] = fc.addPageBreakItem().setTitle(sec).setHelpText(AYUDA_SECCION[sec]);
+  });
+  // 4) pagina 1 primero y luego cada seccion con SU pregunta detras
+  var orden = ["Recompensa", "Comentario (opcional)"];
+  SECCIONES_CANJE.forEach(function(sec){ if (pbs[sec]) orden.push(sec, preguntaDeSeccion_(sec)); });
+  ordenarItems_(fc, orden);
+  // 5) 🔴 cada seccion TERMINA enviando: si no, quien pide un titulo cae ademas en la de planeta
+  SECCIONES_CANJE.forEach(function(sec){
+    if (pbs[sec]) try { pbs[sec].setGoToPage(FormApp.PageNavigationType.SUBMIT); } catch (e) {}
+  });
+  // 6) y cada recompensa manda a donde tiene que ir (o directa a enviar)
+  var lr = rec.asListItem(), etiquetas = cat.map(etiquetaRecompensa_);
+  lr.setChoices(cat.map(function(x, k){
+    var sec = seccionDe_(x.tipo);
+    return lr.createChoice(etiquetas[k], sec && pbs[sec] ? pbs[sec] : FormApp.PageNavigationType.SUBMIT);
+  })).setRequired(true);
+}
 var TIT_NAV = "¿Qué vienes a registrar hoy?";
 var OPC_NADA = "Nada más: solo me alisto / actualizo mis datos";
 var AYUDA_NAV = "Elige y te llevo DIRECTO a esa sección; al marcar tus casillas, envías y listo. " +
@@ -861,7 +922,6 @@ function actualizarRecompensas() {
 // El trabajo de verdad, sin interfaz: lo llama el menú y también el trigger de continuación.
 function actualizarFormularios_() {
   var t = reloj_();
-  var et = etiquetasRecompensas_();
   var pers = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
   var pr = progreso_("formularios") || { i: 0, n: 0, canjes: 0, fallos: [] };
   pr.total = pers.length;
@@ -869,11 +929,7 @@ function actualizarFormularios_() {
     var v = pers[pr.i];
     try { var f = formDelPER_(perObj_(v), "C"); if (!f) throw new Error("sin formulario de canje");
           f.setDescription(DESC_CANJE);
-          f.getItems(FormApp.ItemType.LIST).forEach(function(i){
-            if (i.getTitle() === "Recompensa") { ponerOpciones_(i.asListItem(), et, "Recompensa"); pr.canjes++; }
-            if (i.getTitle() === TIT_ACTIVIDAD) ponerOpciones_(i.asListItem(), OPC_ACTIVIDAD, TIT_ACTIVIDAD);
-          });
-          anadirCamposAvatar_(f); }
+          reestructurarCanje_(f); pr.canjes++; }
     catch (e) { pr.fallos.push(String(v[1]) + " (canje): " + e.message); }
     try { var fbx = formDelPER_(perObj_(v), "B"); if (!fbx) throw new Error("sin Bitácora");
           var tit2 = fbx.getItems().map(function(i){ return i.getTitle(); });
