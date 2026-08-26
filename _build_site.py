@@ -1514,6 +1514,26 @@ print("apps-script: CROMOS (%d cartas) + HEROES (%d) + NIVELES (%d) + RECOMPENSA
       % (len(CROMOS), len(HEROES), len(NIVELES), len(RECOMPENSAS), len(AYUDA_RETOS),
          sum(1 for _v in AYUDA_RETOS.values() if _v.startswith("(falta)"))))
 
+# ================= LAS IMÁGENES QUE EL JS CONSTRUYE, ¿ESTÁN? =================
+# El 26-ago el cartel de «HÉROE DE LA REBELIÓN» pedía `heroes/<clave>.png` y los archivos son .jpg:
+# la celebración salía con la figura rota, justo lo contrario de lo que se buscaba. El fallo no lo
+# ve nadie leyendo el código, porque la ruta se arma concatenando. Así que aquí se arma igual:
+# se sacan del JS los trozos literales que rodean a la clave y se mira si el archivo está en disco.
+_RUTA = _re.compile(r"assets/img/(heroes|tarjetas)/'\s*\+\s*[A-Za-z0-9_.\[\]]+\s*\+\s*'([^']*?\.(?:jpg|png))")
+_CATALOGO = {"heroes": [h[0] for h in HEROES], "tarjetas": [c[0] for c in CROMOS]}
+_rotas = []
+for _js in sorted(_glob.glob(os.path.join(HERE, "assets", "js", "*.js"))):
+    for _carpeta, _cola in set(_RUTA.findall(open(_js, encoding="utf-8").read())):
+        for _clave in _CATALOGO[_carpeta]:
+            _f = os.path.join(HERE, "assets", "img", _carpeta, _clave + _cola)
+            if not os.path.exists(_f):
+                _rotas.append("%s → assets/img/%s/%s%s" % (os.path.basename(_js), _carpeta, _clave, _cola))
+if _rotas:
+    raise SystemExit("🔴 El JS pide imágenes que no existen (saldrían rotas en la Nave):\n   "
+                     + "\n   ".join(_rotas[:12])
+                     + ("\n   ... y %d más" % (len(_rotas) - 12) if len(_rotas) > 12 else ""))
+print("imagenes: las %d rutas que arma el JS existen todas" % (len(_CATALOGO["heroes"]) + len(_CATALOGO["tarjetas"])))
+
 # ================= COMPROBACIÓN DE LA WEB PUBLICADA (§12.9) =================
 # A propósito NO se hace por defecto: el build tiene que funcionar sin internet. Pero el 504 de
 # Hostinger del 25-ago nos costó una ejecución entera de Apps Script y se descubrió de casualidad,

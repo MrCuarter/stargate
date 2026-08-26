@@ -328,7 +328,7 @@
       if((ant.heroes||[]).indexOf(k)>=0||!HE[k]) return;
       // SG_HEROES va [clave, nombre, peso, rareza]: la rareza es el 3, no el 2 (el 2 es el peso del sorteo)
       L.push({peso:PESO.heroe, eyebrow:'HÉROE DE LA REBELIÓN', titulo:HE[k][1], sub:HE[k][3]||'',
-        img:'assets/img/heroes/'+k+'.png', clase:'figura'});
+        img:'assets/img/heroes/'+k+'.jpg', clase:'figura'});
     });
     if((r.nivel||1)>(ant.nivel||1)){
       var SG2=window.SG||{}, ni=SG2.nivelInfo?SG2.nivelInfo(r.xp,st.d&&st.d.tipo):null;
