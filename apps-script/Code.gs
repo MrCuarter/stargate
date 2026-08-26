@@ -2934,6 +2934,10 @@ function doPost(e) {
         bio:yo.bio || "", bitacora:yo.bitacora || "",
         titulo:yo.titulo || "", marco:yo.marco || "", fondo:yo.fondo || "", cromos:yo.cromos || {}, corona:!!yo.corona,
         heroes:yo.heroes || [], skins:yo.skins || [], viste:yo.viste || "",
+        // v3.19 · la ficha del alumno tiene que traer TODO lo que la Nave celebra y pinta. Faltaban
+        // estos tres y por eso la celebracion no veia los bonus ni los planetas completos.
+        bonus:yo.bonus || [], planetas_completos:yo.planetas_completos || [], coleccion:yo.coleccion || null,
+        xp7:yo.xp7 || 0,
         repes:yo.repes || 0, repes_disponibles:yo.repes_disponibles || 0, racha:yo.racha || 0 } : null })).setMimeType(ContentService.MimeType.JSON);
     }
     // v3.16 · VESTIRSE, sin PIN a propósito. El alumnado no va a recordar otra clave y pedírsela

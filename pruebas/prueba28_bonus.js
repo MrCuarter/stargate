@@ -105,4 +105,18 @@ c(err.indexOf("encuentro") >= 0 || JSON.stringify(pide("nadie@alumno.es")).index
 const sobre = G.recompensasCat_().filter(x => x.tipo === "cromo")[0];
 igual(G.BONUS_TUTORIAL.creditos, sobre.coste * 2, "🔴 el pago del tutorial son DOS sobres justos (" + sobre.coste + " ◈ cada uno)");
 
+// ---------------------------------------------------------------- h) la FICHA del alumno lo trae
+// 🔴 Pasó en vivo: doGet (el tablero público) devolvía los bonus, pero «quien» —la ficha que pide la
+// Nave— no. Resultado: la celebración no se enteraba de los planetas ni de las rachas, y nadie lo
+// vio porque ninguna batería comparaba las dos salidas. Son dos caminos al MISMO dato: si uno crece,
+// el otro tiene que crecer.
+const ficha = JSON.parse(G.doPost({ postData: { contents: JSON.stringify(
+  { accion: "quien", per: PER, email: "nova@alumno.es" }) } }).getContent()).yo;
+const delTablero = f();
+["bonus", "planetas_completos", "coleccion", "heroes", "skins", "cromos", "insignias", "nivel", "racha", "xp7"]
+  .forEach(k => c(ficha[k] !== undefined, "«quien» devuelve «" + k + "», que la Nave necesita para pintar y celebrar"));
+igual(ficha.bonus, delTablero.bonus, "🔴 y los bonus coinciden con los del tablero: es el mismo dato");
+igual(ficha.planetas_completos, delTablero.planetas_completos, "y los planetas completos también");
+igual(ficha.coleccion.pct, delTablero.coleccion.pct, "y el porcentaje de colección");
+
 E.resumen("Los bonus");
