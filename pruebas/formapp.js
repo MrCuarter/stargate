@@ -36,7 +36,13 @@ class Item {
   setRequired(b) { this.obligatorio = !!b; return this; }
   getIndex() { return this.form.items.indexOf(this); }
   // listas / casillas
-  setChoiceValues(vs) { this.opciones = (vs || []).map(v => new Opcion(v)); return this; }
+  // Google NO acepta una lista vacia: revienta con «La matriz está vacía: values». El simulador lo
+  // aceptaba sin rechistar, y por eso el banco se quedo verde mientras crearPER se caia en produccion
+  // al retirar los personajes exclusivos. Un simulador mas permisivo que la realidad no sirve de nada.
+  setChoiceValues(vs) {
+    if (!vs || !vs.length) throw new Error("La matriz está vacía: values");
+    this.opciones = vs.map(v => new Opcion(v)); return this;
+  }
   getChoices() { return this.opciones.slice(); }
   setChoices(cs) { this.opciones = (cs || []).slice(); return this; }
   createChoice(v, destino) { return new Opcion(v, destino); }

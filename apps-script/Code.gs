@@ -780,17 +780,41 @@ var TIT_URL_AVATAR = "URL de tu nueva imagen (solo para «Avatar personal»)";
 var TIT_EXCLUSIVO = "Personaje exclusivo (solo para «Personaje exclusivo»)";
 var TIT_TITULO = "Tu título (solo para «Título de recluta»)";
 var TIT_FONDO = "Tu planeta de fondo (solo para «Fondo de ficha»)";
+// v3.17 · Las TRES preguntas de avatar (cambio de avatar, personaje exclusivo y URL propia) estan
+// RETIRADAS: el personaje ya no se compra, se desbloquea por nivel y se elige en la Nave. Se siguen
+// LEYENDO mas abajo para no perder las respuestas viejas, pero no se vuelven a crear, y si un
+// formulario antiguo las tiene, se le quitan.
+var CAMPOS_AVATAR_RETIRADOS = [TIT_NUEVO_AVATAR, TIT_EXCLUSIVO, TIT_URL_AVATAR];
+// Google revienta con «La matriz está vacía: values» si le das una lista vacia, y ese mensaje no
+// dice nada de donde esta el problema. Aqui se cuenta.
+function ponerOpciones_(item, valores, queEs) {
+  var v = (valores || []).map(function(x){ return String(x == null ? "" : x).trim(); })
+                         .filter(function(x){ return x; });
+  if (!v.length) throw new Error("La pregunta «" + queEs + "» se quedaria sin opciones: revisa el catalogo antes de crear o actualizar los formularios.");
+  item.setChoiceValues(v);
+  return item;
+}
+function quitarCamposRetirados_(fc) {
+  var n = 0;
+  fc.getItems().slice().forEach(function(it){
+    if (CAMPOS_AVATAR_RETIRADOS.indexOf(it.getTitle()) >= 0) { try { fc.deleteItem(it); n++; } catch (e) {} }
+  });
+  return n;
+}
+// Idempotente a proposito: la llaman al crear el PER y al actualizar los formularios, y en los dos
+// casos tiene que dejar el formulario igual (poner lo que falte, quitar lo retirado).
 function anadirCamposAvatar_(fc) {
-  var avl = fc.addListItem().setTitle(TIT_NUEVO_AVATAR).setHelpText("Si canjeas «Cambio de avatar», elige aquí el nuevo (personajes iniciales). Se aplica solo al concederse.");
-  avl.setChoiceValues(opcIniciales_());
-  var exl = fc.addListItem().setTitle(TIT_EXCLUSIVO).setHelpText("Si canjeas «Personaje exclusivo», elige cuál. Se aplica solo al concederse.");
-  exl.setChoiceValues(opcExclusivos_());
-  var ttl = fc.addListItem().setTitle(TIT_TITULO).setHelpText("Si canjeas «Título de recluta», elige el que lucirás bajo tu alias.");
-  ttl.setChoiceValues(TITULOS);
-  var fnd = fc.addListItem().setTitle(TIT_FONDO).setHelpText("Si canjeas «Fondo de ficha», elige tu planeta.");
-  fnd.setChoiceValues([TEMAS[1][0],TEMAS[2][0],TEMAS[3][0],TEMAS[4][0],TEMAS[5][0],TEMAS[6][0],TEMAS[7][0],TEMAS[8][0]]);
-  var url = fc.addTextItem().setTitle(TIT_URL_AVATAR).setHelpText("Si canjeas «Avatar personal», pega el ENLACE DIRECTO a tu imagen (.jpg/.png; postimages.org → «Enlace directo») o un enlace de Drive compartido con «cualquier persona con el enlace».");
-  url.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
+  var hay = fc.getItems().map(function(i){ return i.getTitle(); });
+  if (hay.indexOf(TIT_TITULO) < 0) {
+    ponerOpciones_(fc.addListItem().setTitle(TIT_TITULO)
+      .setHelpText("Si canjeas «Título de recluta», elige el que lucirás bajo tu alias."), TITULOS, TIT_TITULO);
+  }
+  if (hay.indexOf(TIT_FONDO) < 0) {
+    ponerOpciones_(fc.addListItem().setTitle(TIT_FONDO)
+      .setHelpText("Si canjeas «Fondo de ficha», elige tu planeta."),
+      [TEMAS[1][0],TEMAS[2][0],TEMAS[3][0],TEMAS[4][0],TEMAS[5][0],TEMAS[6][0],TEMAS[7][0],TEMAS[8][0]], TIT_FONDO);
+  }
+  quitarCamposRetirados_(fc);
 }
 function extra_(o, email, accion, valor) { hoja_(H.AJ).appendRow([new Date(), o.id, email, "EXTRA", accion, valor, "canje"]); }
 function actualizarRecompensas() {
@@ -823,9 +847,8 @@ function actualizarFormularios_() {
   while (pr.i < pers.length && t.puedo()) {
     var v = pers[pr.i];
     try { var f = formDelPER_(perObj_(v), "C"); if (!f) throw new Error("sin formulario de canje");
-          var titulos = f.getItems().map(function(i){ return i.getTitle(); });
-          f.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle() === "Recompensa") { i.asListItem().setChoiceValues(et); pr.canjes++; } });
-          if (titulos.indexOf(TIT_NUEVO_AVATAR) < 0) anadirCamposAvatar_(f); }
+          f.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle() === "Recompensa") { ponerOpciones_(i.asListItem(), et, "Recompensa"); pr.canjes++; } });
+          anadirCamposAvatar_(f); }
     catch (e) { pr.fallos.push(String(v[1]) + " (canje): " + e.message); }
     try { var fbx = formDelPER_(perObj_(v), "B"); if (!fbx) throw new Error("sin Bitácora");
           var tit2 = fbx.getItems().map(function(i){ return i.getTitle(); });
