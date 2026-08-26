@@ -702,11 +702,10 @@ function crearPER(datos) {
 
   // ---- 3 · Canje de recompensas (Google login) ----
   var fc = formDesdePlantilla_("PLANTILLA · Canje de recompensas", "STARGATE · " + nombre + " · Canje de recompensas", carpeta);
-  fc.setDescription("Cambia tus xp por ventajas. El sistema comprueba tus puntos al instante y te responde por correo.");
+  fc.setDescription(DESC_CANJE);
   fc.setCollectEmail(true).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true).setConfirmationMessage("Solicitud recibida. Recibirás un correo con el resultado.");
   var lr = fc.addListItem().setTitle("Recompensa").setRequired(true); lr.setChoiceValues(etiquetasRecompensas_());
-  var la = fc.addListItem().setTitle("Actividad a la que se aplica").setRequired(true);
-  la.setChoiceValues(["Actividad 1 · imagen con IA","Actividad 2 · paisaje de aprendizaje","No aplica (canje de avatar)","Otra (la indico en el comentario)"]);
+  ponerOpciones_(fc.addListItem().setTitle(TIT_ACTIVIDAD).setRequired(true), OPC_ACTIVIDAD, TIT_ACTIVIDAD);
   anadirCamposAvatar_(fc);
   fc.addParagraphTextItem().setTitle("Comentario (opcional)");
   publicar_(fc);
@@ -764,13 +763,27 @@ function etiquetasRecompensas_() {
 var TIT_DOCENTE = "¿Quién imparte tu clase?";
 var AYUDA_DOCENTE = "Para que tu profe pueda seguir a su grupo y le avise el sistema cuando canjees algo " +
   "que tenga que aplicar él o ella (subir nota, recalificar). Si cambias de clase, edita esta respuesta.";
+// v3.17 · El canje se paga en CREDITOS, no en xp (son dos monedas y confundirlas es lo peor que
+// puede pasar). Estos dos textos los ponia SOLO crearPER, asi que un PER ya creado se quedaba con
+// la version vieja para siempre; ahora los refresca tambien Mantenimiento.
+var DESC_CANJE = "Cambia tus CRÉDITOS ◈ por ventajas. Ojo: los créditos son lo único que se gasta; " +
+  "tus xp miden el viaje y nunca bajan, así que comprar no te baja de nivel. El sistema comprueba tu saldo " +
+  "al instante y te responde por correo.";
+var TIT_ACTIVIDAD = "Actividad a la que se aplica";
+var OPC_ACTIVIDAD = ["Actividad 1 · imagen con IA", "Actividad 2 · paisaje de aprendizaje",
+                     "No aplica (no es un canje de nota)", "Otra (la indico en el comentario)"];
 var TIT_NAV = "¿Qué vienes a registrar hoy?";
 var OPC_NADA = "Nada más: solo me alisto / actualizo mis datos";
 var AYUDA_NAV = "Elige y te llevo DIRECTO a esa sección; al marcar tus casillas, envías y listo. " +
   "Lo que registraste otras veces se conserva aunque no pases por su página: el sistema solo añade, nunca borra.";
-var AYUDA_AVATAR = "Personajes 1-" + AVATARES_INICIALES + " en versión ella/él. Evolucionan con tu NIVEL " +
-  "(Recluta → Cadete → Oficial → Comandante → Leyenda). Los personajes 5-7 son EXCLUSIVOS y poner tu propia " +
-  "imagen también: son recompensas que se canjean con créditos. Elige bien: cambiar de avatar cuesta créditos.";
+// v3.17 · Este texto decia que los personajes 5-7 eran exclusivos, que podias poner tu propia imagen
+// y que cambiar de avatar costaba creditos. Las tres cosas estan retiradas: los 7 estan abiertos
+// desde el principio, el personaje NO se cambia (es tuyo para todo el viaje) y lo que se desbloquea
+// por nivel son sus 5 versiones de arte -las SKINS-, que se eligen gratis desde la Nave.
+var AYUDA_AVATAR = "Los " + AVATARES_INICIALES + " personajes en versión ella/él, todos disponibles desde ya. " +
+  "Elige con calma, porque este personaje te acompaña TODO el viaje y no se cambia. Lo que sí cambia es su " +
+  "aspecto: al subir de nivel se te desbloquean sus 5 versiones (Recluta → Cadete → Oficial → Comandante → " +
+  "Leyenda) y eliges cuál llevas desde tu Nave, gratis y cuando quieras.";
 function etiquetaNav_(t) { return t >= 1 && t <= 8 ? "Tema " + t + " · " + TEMAS[t][0] : "La batalla final"; }
 // La lamina de personajes que va dentro de la Bitacora. En una constante porque la escriben
 // DOS sitios: quien la pone al crear el PER y quien la refresca desde Mantenimiento.
@@ -847,7 +860,11 @@ function actualizarFormularios_() {
   while (pr.i < pers.length && t.puedo()) {
     var v = pers[pr.i];
     try { var f = formDelPER_(perObj_(v), "C"); if (!f) throw new Error("sin formulario de canje");
-          f.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle() === "Recompensa") { ponerOpciones_(i.asListItem(), et, "Recompensa"); pr.canjes++; } });
+          f.setDescription(DESC_CANJE);
+          f.getItems(FormApp.ItemType.LIST).forEach(function(i){
+            if (i.getTitle() === "Recompensa") { ponerOpciones_(i.asListItem(), et, "Recompensa"); pr.canjes++; }
+            if (i.getTitle() === TIT_ACTIVIDAD) ponerOpciones_(i.asListItem(), OPC_ACTIVIDAD, TIT_ACTIVIDAD);
+          });
           anadirCamposAvatar_(f); }
     catch (e) { pr.fallos.push(String(v[1]) + " (canje): " + e.message); }
     try { var fbx = formDelPER_(perObj_(v), "B"); if (!fbx) throw new Error("sin Bitácora");

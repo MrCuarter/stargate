@@ -59,4 +59,28 @@ let reventado = false;
 try { G.FormApp.create("y").addListItem().setChoiceValues([]); } catch (e) { reventado = true; }
 c(reventado, "🔴 el simulador reproduce el fallo de Google: sin esto el banco no lo habría visto");
 
+// ---------------------------------------------------------------- e) los textos del mundo viejo
+// El canje se paga en CREDITOS. Los xp miden el viaje y NUNCA bajan: si el formulario dice «cambia
+// tus xp», el alumnado cree que comprar le baja de nivel, que es justo lo contrario de lo que pasa.
+const desc = canje.descripcion || "";
+contiene(desc, "CRÉDITOS", "el canje dice que se paga en CRÉDITOS");
+c(desc.indexOf("Cambia tus xp") < 0, "🔴 y ya no dice «cambia tus xp por ventajas»: son dos monedas distintas");
+const act = canje.getItems().filter(i => i.getTitle() === G.TIT_ACTIVIDAD)[0].getChoices().map(o => o.getValue());
+c(!act.some(x => x.indexOf("canje de avatar") >= 0), "🔴 ni ofrece «no aplica (canje de avatar)»: el avatar ya no se canjea");
+
+// el texto del avatar en la Bitácora tampoco puede prometer lo retirado
+c(G.AYUDA_AVATAR.indexOf("EXCLUSIVOS") < 0, "🔴 la ayuda del avatar no dice que haya personajes exclusivos");
+c(G.AYUDA_AVATAR.indexOf("tu propia") < 0, "ni que puedas poner tu propia imagen");
+c(G.AYUDA_AVATAR.indexOf("cambiar de avatar cuesta") < 0, "ni que cambiar de avatar cueste créditos");
+contiene(G.AYUDA_AVATAR, "no se cambia", "dice la verdad: el personaje te acompaña todo el viaje");
+
+// ---------------------------------------------------------------- f) y un PER ya creado los recibe
+canje.setDescription("Cambia tus xp por ventajas.");            // como lo dejó una version vieja
+canje.getItems().filter(i => i.getTitle() === G.TIT_ACTIVIDAD)[0].setChoiceValues(["No aplica (canje de avatar)"]);
+let v = 0; let rr = G.actualizarFormularios_();
+while (!rr.terminado && v < 20) { rr = G.actualizarFormularios_(); v++; }
+contiene(canje.descripcion, "CRÉDITOS", "🔴 «Actualizar formularios» arregla la descripción de un PER ya creado");
+const act2 = canje.getItems().filter(i => i.getTitle() === G.TIT_ACTIVIDAD)[0].getChoices().map(o => o.getValue());
+c(!act2.some(x => x.indexOf("canje de avatar") >= 0), "🔴 y tambien sus opciones: no hace falta rehacer el PER");
+
 E.resumen("Preguntas retiradas del canje");
