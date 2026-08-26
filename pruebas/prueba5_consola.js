@@ -64,7 +64,39 @@ G.consolidarDatos();
 const datos = G._maestra.getSheetByName("DATOS");
 const res = G._maestra.getSheetByName("RESUMEN");
 c(datos.getLastRow() > 1, "DATOS se rellena");
-igual(res.getRange(1, 1, 1, 13).getValues()[0][6], "nivel", "RESUMEN lleva la columna de nivel");
 igual(res.getLastRow() - 1, 3, "RESUMEN tiene una fila por recluta");
+
+// ---------------------------------------------------------------- las dos pestañas son PARA INVESTIGAR
+// v3.23 · llevan el DOCENTE (la variable que faltaba) y NO llevan a nadie identificado. La vista con
+// nombres es la Consola; estas dos se comparten fuera, así que salen seudonimizadas.
+const cabD = datos.getRange(1, 1, 1, datos.getLastColumn()).getValues()[0].map(String);
+const cabR = res.getRange(1, 1, 1, res.getLastColumn()).getValues()[0].map(String);
+[["DATOS", cabD], ["RESUMEN", cabR]].forEach(([nom, cab]) => {
+  c(cab.indexOf("docente") >= 0, nom + " lleva la columna del docente");
+  c(cab.indexOf("seudonimo") >= 0, nom + " identifica por seudónimo");
+  ["email", "alias", "nombre"].forEach(x =>
+    c(cab.indexOf(x) < 0, "🔴 " + nom + " NO lleva la columna «" + x + "»"));
+});
+igual(cabR[cabR.indexOf("nivel")], "nivel", "RESUMEN sigue llevando el nivel");
+
+const cuerpo = datos.getRange(2, 1, datos.getLastRow() - 1, datos.getLastColumn()).getValues()
+  .concat(res.getRange(2, 1, res.getLastRow() - 1, res.getLastColumn()).getValues());
+const conArroba = cuerpo.filter(f => f.some(x => String(x).indexOf("@") >= 0));
+igual(conArroba.length, 0, "🔴 y no se escapa ni un correo por las celdas");
+
+const seuds = res.getRange(2, cabR.indexOf("seudonimo") + 1, res.getLastRow() - 1, 1)
+  .getValues().map(f => String(f[0]));
+igual(new Set(seuds).size, seuds.length, "cada recluta tiene SU seudónimo (no colisionan)");
+c(seuds.every(x => /^R-[0-9a-f]{12}$/.test(x)), "y todos tienen la misma forma: " + seuds[0]);
+
+const docentes = res.getRange(2, cabR.indexOf("docente") + 1, res.getLastRow() - 1, 1)
+  .getValues().map(f => String(f[0])).filter(Boolean);
+c(docentes.length > 0, "el docente llega de verdad a las filas (" + docentes.length + " de " + seuds.length + ")");
+
+// el seudónimo es ESTABLE: si cambiara en cada consolidación, no habría serie que seguir
+G.consolidarDatos();
+const res2 = G._maestra.getSheetByName("RESUMEN");
+igual(res2.getRange(2, cabR.indexOf("seudonimo") + 1, res2.getLastRow() - 1, 1).getValues().map(f => String(f[0])),
+      seuds, "🔴 el mismo recluta conserva su seudónimo entre consolidaciones");
 
 E.resumen("Consola del profesorado y DATOS/RESUMEN");

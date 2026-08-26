@@ -120,6 +120,10 @@ function asegurarHojas_() {
   // y lo que permite filtrar cada grupo por docente. Se puede editar a mano en esta pestaña.
   // rol: "referente", "imparte" o "referente+imparte" (el referente puede dar clase también)
   hoja_(H.DOC, ["per","nombre","correo","rol"], "#0e7f8c");
+  // 🔬 v3.23 · quién autoriza que sus datos se usen para investigar. NO se pregunta dentro del juego
+  // y NO condiciona nada: quien no consiente juega igual, solo se queda fuera de las exportaciones.
+  // Mientras esta pestaña esté VACÍA, DATOS y RESUMEN salen completos, como hasta ahora.
+  hoja_(H.CONS, ["email","consiente (SI/NO)","fecha","nota"], "#8a97a0");
   var pers = hoja_(H.PERS);
   if (String(pers.getRange(1,20).getValue()||"") !== "Panel Genially (ver)")
     pers.getRange(1,19,1,4).setValues([["Documento de enlaces","Panel Genially (ver)","Panel Genially (editar)","Archivado"]]);
@@ -747,6 +751,32 @@ function actualizarRecompensas() {
     (r.fallos.length ? "\n\nNo se pudo con:\n" + r.fallos.slice(0, 12).join("\n") : ""), ui.ButtonSet.OK);
 }
 // El trabajo de verdad, sin interfaz: lo llama el menú y también el trigger de continuación.
+// 🔬 v3.23 · mete los ítems de puesta en escena en un ticket YA CREADO, dentro de la página del
+// tema —la que se responde una y otra vez, sesión tras sesión—. Idempotente: si ya están, no toca nada.
+// Se puede añadir sin miedo a un formulario con respuestas: las columnas nuevas se añaden a la
+// derecha y todo lo que lee tickets se lee POR CABECERA, no por posición (ver doPost «tickets»).
+// 🔴 Aun así hay que ponerlos ANTES del primer tema del curso: añadidos a mitad, la serie empieza
+// tarde y los temas de antes no tienen con qué compararse.
+function anadirPuestaEnEscena_(ft) {
+  var titulos = ft.getItems().map(function(i){ return i.getTitle(); });
+  var faltan = PUESTA_EN_ESCENA.filter(function(q){ return titulos.indexOf(q[0]) < 0; });
+  if (!faltan.length) return 0;
+  var items = ft.getItems(), iTema = -1, iSig = -1;
+  for (var k = 0; k < items.length; k++) {
+    if (items[k].getType() !== FormApp.ItemType.PAGE_BREAK) continue;
+    if (items[k].getTitle() === TIT_PAG_TEMA) iTema = k;
+    else if (iTema >= 0 && iSig < 0) iSig = k;
+  }
+  if (iTema < 0) return 0;   // un ticket que no tiene esa página: no es este formulario, no se toca
+  var destino = iSig < 0 ? items.length : iSig;
+  faltan.forEach(function(q){
+    var it = ft.addScaleItem().setTitle(q[0]).setBounds(1,5).setLabels(q[1], q[2]);
+    ft.moveItem(it.getIndex(), destino);   // nace al final; se muda al final de la página del tema
+    destino++;
+  });
+  return faltan.length;
+}
+
 function actualizarFormularios_() {
   var t = reloj_();
   var pers = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
@@ -766,6 +796,8 @@ function actualizarFormularios_() {
             if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); }
           reestructurarBitacora_(fbx, perObj_(v)); }
     catch (e) { pr.fallos.push(String(v[1]) + " (bitácora): " + e.message); }
+    try { var ftx = formDelPER_(perObj_(v), "T"); if (ftx) anadirPuestaEnEscena_(ftx); }
+    catch (e) { pr.fallos.push(String(v[1]) + " (ticket): " + e.message); }
     pr.i++; pr.n++; t.marcar();
   }
   var terminado = pr.i >= pers.length;
@@ -906,6 +938,7 @@ function construirTicket_(ft, referente, profesores, perId) {
   escala_(ft, "Valora la satisfacción con los contenidos teóricos vistos en clase sobre este tema", "Muy insatisfecho/a", "Muy satisfecho/a");
   escala_(ft, "Valora la satisfacción con las estrategias prácticas vistas en clase sobre este tema", "Muy insatisfecho/a", "Muy satisfecho/a");
   escala_(ft, "Valora tu grado de participación en clase", "No he participado en absoluto", "He participado en todo lo que he podido");
+  PUESTA_EN_ESCENA.forEach(function(q){ escala_(ft, q[0], q[1], q[2]); });   // 🔬 mismos ítems que en los PER ya creados
   pTema.setGoToPage(FormApp.PageNavigationType.SUBMIT);
   var pAct = ft.addPageBreakItem().setTitle("Sobre la actividad escogida").setHelpText("Dudas, inquietudes o incidencias sobre la actividad evaluable. Todos los campos son opcionales.");
   ft.addParagraphTextItem().setTitle("¿Te ha quedado alguna duda sobre la actividad o quieres hacernos llegar algún comentario?");
@@ -1213,6 +1246,7 @@ function restaurarRecompensas() {
     RECOMPENSAS_INICIALES.map(function(r){ return "· " + r[0] + " — " + r[1] + " ◈ (desde la semana " + r[4] + ")"; }).join("\n") + "\n\n" +
     "Se pierden los cambios manuales que hayas hecho en esa pestaña. ¿Continuar?", ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
   restaurarRecompensas_();
+  sellarCatalogo_();   // 🔬 deja en AJUSTES la hora y la versión del catálogo nuevo
   ui.alert("Catálogo restaurado. Ahora ejecuta «Actualizar formularios» para que los formularios de canje muestren los nuevos precios.");
 }
 function restaurarRecompensas_() {
@@ -1836,6 +1870,7 @@ function resolverCanje_(o, sh, fila) {
   // v3.12 · la ficha se busca por etiqueta EXACTA. Antes bastaba el prefijo y el primero del catálogo
   // ganaba: «Sobre de cromos premium» se resolvía como «Sobre de cromos» (otro tope y otro efecto).
   var cat = recompensasCat_();
+  sellarCatalogo_(cat);   // 🔬 si alguien ha tocado precios, queda la hora y la versión
   var ficha = cat.filter(function(x){ return rec === x.nombre + " — " + x.coste + " créditos"; })[0] || null;
   if (!ficha) {   // etiquetas viejas (en xp) o precio cambiado: gana el nombre MÁS LARGO que encaje
     ficha = cat.filter(function(x){ return rec.indexOf(x.nombre) === 0; })
@@ -2160,17 +2195,125 @@ function parseAvatar_(s) {
 }
 function idx_(cab, frag) { frag = frag.toLowerCase(); for (var i = 0; i < cab.length; i++) if (cab[i].toLowerCase().indexOf(frag) >= 0) return i; return -1; }
 
+// ================= INVESTIGACIÓN: seudónimos, consentimiento y sello del catálogo =================
+// Nada de esto cambia el juego ni lo que ve el alumnado. Existe para que los datos SIRVAN y para que
+// puedan compartirse sin llevarse a nadie por delante. Contexto: Project_CCD/INVESTIGACION_TESIS.md.
+
+var PROP_SAL = "SAL_SEUDONIMO", PROP_CAT = "VERSION_CATALOGO";
+var _SAL = null, _SEU = {};   // en memoria: una ejecución puede seudonimizar miles de filas
+
+// Un seudónimo ESTABLE por correo. La sal se guarda en las propiedades del script y no sale de aquí:
+// sin ella el seudónimo se rompería probando direcciones, porque un correo tiene poquísima entropía
+// (un SHA-256 pelado de «nombre.apellido@…» no protege a nadie).
+function seudonimo_(email) {
+  email = String(email || "").toLowerCase().trim();
+  if (!email) return "";
+  if (_SEU[email]) return _SEU[email];
+  if (!_SAL) {
+    var pr = PropertiesService.getScriptProperties();
+    _SAL = pr.getProperty(PROP_SAL);
+    if (!_SAL) { _SAL = Utilities.getUuid(); pr.setProperty(PROP_SAL, _SAL); }
+  }
+  var b = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, _SAL + "·" + email, Utilities.Charset.UTF_8);
+  var h = "";
+  for (var i = 0; i < 6; i++) { var x = (b[i] + 256) % 256; h += (x < 16 ? "0" : "") + x.toString(16); }
+  return (_SEU[email] = "R-" + h);
+}
+
+// Los correos que han autorizado el uso de sus datos. Devuelve null —que aquí significa «no filtres»—
+// si la pestaña no existe o no tiene un solo SÍ: así el sistema se comporta como siempre mientras el
+// consentimiento todavía no exista, en vez de vaciar las exportaciones y parecer un fallo.
+function consienten_() {
+  var sh = SpreadsheetApp.getActive().getSheetByName(H.CONS);
+  if (!sh || sh.getLastRow() < 2) return null;
+  var ok = {}, hay = false;
+  sh.getDataRange().getValues().slice(1).forEach(function(v){
+    var em = String(v[0] || "").toLowerCase().trim();
+    if (em && /^s[ií]$/i.test(String(v[1] || "").trim())) { ok[em] = true; hay = true; }
+  });
+  return hay ? ok : null;
+}
+
+// La huella del catálogo VIGENTE: cambia si cambia un precio, un tope o una semana de desbloqueo.
+function versionCatalogo_(cat) {
+  var s = (cat || recompensasCat_()).map(function(x){
+    return x.nombre + "|" + x.coste + "|" + x.max + "|" + x.desde + "|" + x.tipo; }).join("¶");
+  var b = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, s, Utilities.Charset.UTF_8);
+  var h = "";
+  for (var i = 0; i < 4; i++) { var x = (b[i] + 256) % 256; h += (x < 16 ? "0" : "") + x.toString(16); }
+  return h;
+}
+
+// 🔬 Deja constancia en AJUSTES CADA VEZ QUE EL CATÁLOGO CAMBIA — no en cada canje, que llenaría la
+// hoja de ruido. Con el sello y su hora, cualquier canje es atribuible a la lista de precios que
+// estaba en vigor, que es lo que hace comparables las decisiones de compra. Sin esto, «Restaurar
+// catálogo» reescribe precios en silencio y lo de antes y lo de después deja de poder mirarse junto.
+// Va envuelto en try porque esto JAMÁS puede tumbar un canje: si falla, se pierde el sello, no la compra.
+function sellarCatalogo_(cat) {
+  try {
+    cat = cat || recompensasCat_();
+    var v = versionCatalogo_(cat), pr = PropertiesService.getScriptProperties();
+    if (pr.getProperty(PROP_CAT) === v) return v;
+    pr.setProperty(PROP_CAT, v);
+    // per y email vacíos: el catálogo es de toda la hoja, no de un grupo ni de una persona.
+    hoja_(H.AJ).appendRow([new Date(), "", "", "CATALOGO", "version", v,
+      cat.map(function(x){ return x.nombre + "=" + x.coste + "@" + x.desde; }).join(" · ")]);
+    return v;
+  } catch (e) { Logger.log("sellarCatalogo_: " + e); return ""; }
+}
+
 // ================= DATOS / RESUMEN (investigación) =================
 function consolidarDatos() {
   var ss = SpreadsheetApp.getActive(); var pers = hoja_(H.PERS).getDataRange().getValues().slice(1);
-  var filas = [["per","tipo","fecha","email","alias","reto_id","reto","tema","xp","origen"]];
-  hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(v){ var p = pers.filter(function(x){ return x[0] === v[1]; })[0];
-    filas.push([v[1], p ? p[2] : "", v[0], v[2], v[3], v[4], v[5], v[6], v[7], v[8]]); });
-  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){ var p = pers.filter(function(x){ return x[0] === v[1]; })[0];
-    filas.push([v[1], p ? p[2] : "", v[0], v[2], "", v[3], v[4] + (v[5] ? " · " + v[5] : ""), "", "", "ajuste:" + v[6]]); });
+  // 🔬 v3.23 · el DOCENTE era la variable que faltaba. El sistema sabe desde v3.11 quién imparte a
+  // cada alumno (la ficha lleva `profe` y clase.html filtra por él), pero no salía en NINGUNA de las
+  // dos exportaciones — justo la que hace falta para estudiar si lo que hace el docente en clase
+  // cambia algo. Los tableros se calculan UNA vez y se reparten entre las dos pestañas.
+  var tabs = {}, deQuien = {};
+  pers.forEach(function(p){
+    if (!p[0]) return;
+    try {
+      var t = tablero_(p[0], true); tabs[p[0]] = t;
+      (t.reclutas || []).forEach(function(x){ deQuien[p[0] + "·" + x.email] = x.profe || ""; });
+    } catch (e) { Logger.log("consolidarDatos/" + p[0] + ": " + e); }
+  });
+  var soloEstos = consienten_();
+  // Las filas SIN correo (p. ej. el sello del catálogo) no son de nadie: pasan siempre.
+  var pasa = function(em) { return !em || !soloEstos || !!soloEstos[em]; };
+  var quien = function(per, em) { return deQuien[per + "·" + em] || ""; };
+  // 🔴 Los campos libres arrastran correos sin que se note: el aviso de un canje de nota guarda en
+  // AJUSTES A QUIÉN se le avisó, o sea las direcciones del PROFESORADO, y de ahí salían enteras por
+  // la columna «origen». Seudonimizar solo la columna del correo no basta si el correo también viaja
+  // dentro de un texto. Lo cazó la batería 5 comprobando que no queda ni una «@» en las dos pestañas.
+  var limpio = function(t) { return String(t == null ? "" : t).replace(/[^\s,;·]+@[^\s,;·]+/g, "(correo)"); };
+  var tipoDe = function(id) { var p = pers.filter(function(x){ return x[0] === id; })[0]; return p ? p[2] : ""; };
+
+  // 🔴 Ni correo, ni alias, ni nombre: estas dos pestañas son PARA INVESTIGAR y salen seudonimizadas.
+  // Quien necesite ver nombres tiene la Consola del profesorado, que es la vista operativa.
+  var filas = [["per","tipo","fecha","seudonimo","docente","reto_id","reto","tema","xp","origen"]];
+  hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(v){
+    var em = String(v[2] || "").toLowerCase().trim(); if (!pasa(em)) return;
+    filas.push([v[1], tipoDe(v[1]), v[0], seudonimo_(em), quien(v[1], em), v[4], limpio(v[5]), v[6], v[7], limpio(v[8])]);
+  });
+  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
+    var em = String(v[2] || "").toLowerCase().trim(); if (!pasa(em)) return;
+    filas.push([v[1], tipoDe(v[1]), v[0], seudonimo_(em), quien(v[1], em), v[3],
+                limpio(v[4] + (v[5] ? " · " + v[5] : "")), "", "", "ajuste:" + limpio(v[6])]);
+  });
   var out = ss.getSheetByName(H.DATOS) || ss.insertSheet(H.DATOS); out.clearContents(); out.getRange(1,1,filas.length,filas[0].length).setValues(filas); out.setFrozenRows(1); out.setTabColor("#f5b043");
-  var res = [["per","tipo","alias","email","nombre","xp","nivel","creditos","creditos_ganados","n_insignias","tema_max","insignias","bitacora"]];
-  pers.forEach(function(p){ var t = tablero_(p[0], true); (t.reclutas||[]).forEach(function(x){ res.push([p[0], p[2], x.alias, x.email, x.nombre, x.xp, x.nivel, x.creditos, x.creditos_ganados, x.n, x.tema, x.insignias.join(" "), x.bitacora]); }); });
+
+  // `bitacora` deja de ser la URL del ePortfolio y pasa a ser SÍ/NO: la URL lleva al portfolio de una
+  // persona con su nombre, y eso rompía la seudonimización de todo lo demás. Lo analizable —si lo
+  // publicó o no— se conserva.
+  var res = [["per","tipo","seudonimo","docente","xp","nivel","creditos","creditos_ganados","n_insignias","tema_max","insignias","tiene_bitacora"]];
+  pers.forEach(function(p){
+    if (!p[0] || !tabs[p[0]]) return;
+    (tabs[p[0]].reclutas || []).forEach(function(x){
+      if (!pasa(String(x.email || "").toLowerCase().trim())) return;
+      res.push([p[0], p[2], seudonimo_(x.email), x.profe || "", x.xp, x.nivel, x.creditos,
+                x.creditos_ganados, x.n, x.tema, x.insignias.join(" "), x.bitacora ? "SÍ" : ""]);
+    });
+  });
   var rs = ss.getSheetByName(H.RES) || ss.insertSheet(H.RES); rs.clearContents(); rs.getRange(1,1,res.length,res[0].length).setValues(res); rs.setFrozenRows(1);
 }
 

@@ -4,7 +4,7 @@ automatización (o por cualquier editor con la codificación mal puesta) sin que
 rompan los acentos. Dentro de cadenas y expresiones regulares, cada carácter no
 ASCII se escribe como \\uXXXX —que JavaScript interpreta idéntico—; en los
 comentarios se translitera, porque ahí da igual."""
-import io, os, sys, unicodedata
+import io, json, os, sys, unicodedata
 
 TRANS = {"·":"-", "«":'"', "»":'"', "—":"-", "–":"-", "→":"->", "×":"x", "≥":">=", "…":"...",
          "◈":"(cred)", "★":"*", "♛":"corona", "✦":"*", "🃏":"", "👑":"", "⏳":"", "⚡":"", "🔒":"", "🔴":"", "⚠":"(!)", "✓":"ok", "✗":"x", "═":"=", "▶":">",
@@ -58,6 +58,11 @@ def convertir(src):
         i += 1
     r = "".join(out)
     _comprobar(r, en_cadena)
+    # 🔴 Quien tiene que sobrevivir intacto es lo que va DENTRO DE CADENAS: eso acaba en la pantalla
+    # de alguien. Lo de los comentarios se translitera a posta y da igual. El banco no puede saber
+    # cuál es cuál sin reimplementar este analizador —y dos analizadores del mismo problema es
+    # justamente lo que no queremos—, así que se lo decimos nosotros.
+    convertir.en_cadena = sorted(set(en_cadena))
     return r
 
 
@@ -99,4 +104,7 @@ if __name__ == "__main__":
         malos = [c for c in r if ord(c) > 127]
         assert not malos, "quedan no-ASCII: " + repr(malos[:5])
         io.open(os.path.join(base, dest), "w", encoding="utf-8").write(r)
+        if not orig.endswith(".html"):
+            io.open(os.path.join(base, dest.replace(".ascii.txt", ".encadena.json")), "w",
+                    encoding="utf-8").write(json.dumps(convertir.en_cadena, ensure_ascii=False))
         print("%-28s -> %-34s %d bytes, 100%% ASCII" % (orig, dest, len(r)))

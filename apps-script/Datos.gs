@@ -12,6 +12,22 @@
  * que esté entre marcas (CROMOS, HEROES, NIVELES, RECOMPENSAS, AYUDA, BONUS): se pierde al compilar.
  */
 
+// 🔬 PUESTA EN ESCENA · los tres ítems que el alumnado responde en el ticket, tema a tema.
+// No preguntan por la calidad del docente: preguntan por lo que PASÓ en clase, que es observable y
+// no obliga a nadie a juzgar a su profesor. Llevan el prefijo «STARGATE ·» a propósito: es lo que
+// permite que NO salgan proyectados en el panorama de clase (ver tickets.js).
+// 🔴 El título es la CLAVE con la que se leen las respuestas (se leen por cabecera, no por posición),
+// así que cambiarlo parte la serie en dos. Si hay que tocarlo: se añade uno nuevo y se jubila el viejo.
+var TIT_PAG_TEMA = "Sobre el tema escogido";
+var PUESTA_EN_ESCENA = [
+  ["STARGATE · En esta clase se ha hablado de la misión (ranking, insignias, planetas)",
+   "Ni se ha mencionado", "Ha estado muy presente"],
+  ["STARGATE · Se ha mostrado el tablero o el ranking durante la clase",
+   "No se ha mostrado", "Sí, lo hemos visto"],
+  ["STARGATE · Se ha reconocido en público el avance de alguien de la clase",
+   "No", "Sí, varias veces"]
+];
+
 // ================= CATÁLOGO =================
 // [id, etiqueta de la casilla, insignias, xp, tema]
 var RETOS_REGULAR = [
@@ -220,7 +236,8 @@ function creditosDe_(id, tipo) {
   if (c === "B") return (tipo === "PUA" ? CREDITOS.retoB_pua : CREDITOS.retoB) || 0;
   return 0;
 }
-var H = { PERS:"PERs", REC:"RECOMPENSAS", EV:"EVENTOS", AJ:"AJUSTES", DATOS:"DATOS", RES:"RESUMEN", DOC:"DOCENTES" };
+var H = { PERS:"PERs", REC:"RECOMPENSAS", EV:"EVENTOS", AJ:"AJUSTES", DATOS:"DATOS", RES:"RESUMEN", DOC:"DOCENTES",
+          CONS:"CONSENTIMIENTO" };
 // v3.16 · los SIETE personajes se eligen al alistarse. Los 5-7 eran "exclusivos" de pago, pero
 // eran personas normales y nadie paga por eso: quien quiera algo especial va al vestuario de heroes.
 var AVATARES_INICIALES = 7;

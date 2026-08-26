@@ -5,6 +5,10 @@
   // v3.20 · &panorama=1 · para PROYECTAR en clase dentro de un Genially horizontal: las cifras
   // grandes, el ultimo tema y sus comentarios a dos columnas. Sin listas largas ni acordeones.
   if(q.get('panorama')==='1') document.body.classList.add('panorama');
+  // Los items de puesta en escena («¿se ha mostrado el ranking?») son un espejo PARA EL DOCENTE, y
+  // se le enseñan en su panel. En el panorama NO: ese se proyecta delante de la clase, y un
+  // «se ha reconocido a alguien: 2,1» en pantalla gigante no ayuda a nadie.
+  var PANO=q.get('panorama')==='1', KESC='STARGATE \u00b7';
   var st={pin:sessionStorage.getItem('sgPin')||'',per:q.get('per')||'',pers:[],tickets:[],prof:q.get('profe')||'',demo:q.get('demo')==='1'};
   var KSEL='Selecciona el tema',KPROF='profesor o profesora';
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -31,7 +35,7 @@
     var por={};tf.forEach(function(x){var k=String(campo(x.r,KSEL)||'(sin sección)');(por[k]=por[k]||[]).push(x);});
     var orden=Object.keys(por).sort(function(a,b){function w(s){if(/^Presentaci/.test(s))return 0;var m=s.match(/^Tema (\d)/);if(m)return 10+Number(m[1]);var a2=s.match(/^Actividad (\d)/);if(a2)return 5+Number(a2[1])*4;return 90;}return w(a)-w(b);});
     var html=orden.map(function(k){var l=por[k];var num={},txt=[];
-      l.forEach(function(x){Object.keys(x.r).forEach(function(c){if(c.indexOf(KSEL)>=0||c.indexOf(KPROF)>=0)return;var v=x.r[c];if(/^[1-5]$/.test(String(v))){(num[c]=num[c]||[]).push(Number(v));}else if(String(v).trim()){txt.push({p:c,v:String(v),x:x});}});});
+      l.forEach(function(x){Object.keys(x.r).forEach(function(c){if(c.indexOf(KSEL)>=0||c.indexOf(KPROF)>=0)return;if(PANO&&c.indexOf(KESC)===0)return;var v=x.r[c];if(/^[1-5]$/.test(String(v))){(num[c]=num[c]||[]).push(Number(v));}else if(String(v).trim()){txt.push({p:c,v:String(v),x:x});}});});
       var cards=Object.keys(num).map(function(c){var a=num[c];var m=a.reduce(function(p,q2){return p+q2;},0)/a.length;return '<div class="qcard">'+gauge(m)+'<div class="qtxt"><b>'+esc(c)+'</b><span class="small muted">'+a.length+' respuestas</span>'+barra(a)+'</div></div>';}).join('');
       var dudas=txt.map(function(d){var res=!!d.x.resuelto;return '<div class="duda'+(res?' ok':'')+'"><div class="dq small muted">'+esc(d.p)+' · '+esc(f(d.x.fecha))+(campo(d.x.r,KPROF)?' · '+esc(campo(d.x.r,KPROF)):'')+'</div><div class="dv">'+esc(d.v)+'</div><button class="btn small'+(res?'':' primary')+'" data-f="'+d.x.fila+'" data-v="'+(res?'0':'1')+'">'+(res?'✓ Resuelta ('+esc(d.x.resuelto)+') · deshacer':'Marcar resuelta')+'</button></div>';}).join('');
       return '<details class="semana" open><summary><span class="num">'+l.length+'</span><span class="ttl"><b>'+esc(k)+'</b><em>'+Object.keys(num).length+' valoraciones · '+txt.length+' comentarios</em></span></summary><div class="sem-body">'+(cards?'<div class="qgrid">'+cards+'</div>':'')+(dudas?'<h4>💬 Dudas y comentarios</h4><div class="dudas">'+dudas+'</div>':'')+'</div></details>';}).join('');

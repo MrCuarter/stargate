@@ -40,8 +40,15 @@ function paresDe(ch) {
   const alto = 0xD800 + (o >> 10), bajo = 0xDC00 + (o & 0x3FF);
   return "\\u" + alto.toString(16).padStart(4, "0") + "\\u" + bajo.toString(16).padStart(4, "0");
 }
-const fuera = [...new Set([...ORIG].filter(ch => ch.codePointAt(0) > 0xFFFF))];
-c(fuera.length > 0, "el Code.gs usa " + fuera.length + " carácter(es) fuera del BMP: " + fuera.join(" "));
+// 🔴 Solo se exige que sobreviva lo que va DENTRO DE CADENAS: eso es lo que acaba en la pantalla de
+// alguien (el semáforo del parte de salud). Lo de los comentarios se translitera a posta, y exigirlo
+// aquí daba un falso rojo en cuanto alguien escribía un emoji nuevo en un comentario.
+// La lista la publica el propio conversor (_ascii_gs.py → *.encadena.json): un solo analizador.
+const EN_CADENA = JSON.parse(fs.readFileSync(path.join(RAIZ, "assets", "descargas", "Code.gs.encadena.json"), "utf8"));
+const fuera = EN_CADENA.filter(ch => ch.codePointAt(0) > 0xFFFF);
+c(fuera.length > 0, "el Code.gs pone " + fuera.length + " carácter(es) fuera del BMP en pantalla: " + fuera.join(" "));
+EN_CADENA.forEach(ch => c(ORIG.indexOf(ch) >= 0,
+  "«" + ch + "» sale de una cadena del Code.gs de verdad (el conversor no se lo inventa)"));
 fuera.forEach(ch => {
   const par = paresDe(ch);
   c(ASCII.indexOf(par) >= 0, "🔴 «" + ch + "» va como par surrogado (" + par + ")");

@@ -290,6 +290,17 @@ const Utils = {
       .replace(/mm/g, p(f.getMinutes())).replace(/ss/g, p(f.getSeconds()));
   },
   getUuid() { return "uuid-" + (++Utils._n); }, _n: 0,
+  // Hash DE VERDAD (el de node), no un simulacro: de él depende que dos correos distintos no
+  // compartan seudónimo, y un hash de juguete colisionaría sin que la batería se enterase.
+  // Apps Script devuelve bytes CON SIGNO (-128..127); aquí se replica, porque el código de
+  // producción hace (b[i]+256)%256 contando con ello.
+  computeDigest(alg, texto) {
+    const crypto = require("crypto");
+    const h = crypto.createHash(String(alg) === "MD5" ? "md5" : "sha256").update(String(texto), "utf8").digest();
+    return Array.from(h).map(b => (b > 127 ? b - 256 : b));
+  },
+  DigestAlgorithm: { SHA_256: "SHA_256", MD5: "MD5" },
+  Charset: { UTF_8: "UTF_8" },
   sleep() {},
   base64Encode: s => Buffer.from(String(s)).toString("base64"),
   newBlob: (c, t, n) => ({ getBytes: () => [], getContentType: () => t, getName: () => n, getDataAsString: () => String(c) })
