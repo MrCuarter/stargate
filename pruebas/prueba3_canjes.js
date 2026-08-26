@@ -90,14 +90,19 @@ let fichaH = G.tablero_(PER, true).reclutas[0];
 igual(fichaH.heroes.length, 1, "y entra en el vestuario");
 igual(fichaH.creditos, antesH - 60, "cobrando sus 60 créditos");
 
-const vistos = {};
-fichaH.heroes.forEach(k => vistos[k] = true);
-for (let i = 0; i < G.HEROES.length - 1; i++) E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Héroe de la Rebelión") });
+// 🔴 Comprar los 30 héroes cuesta 1.800 ◈, más de lo que da el viaje entero: nadie completa el
+// vestuario en un curso, y si esta prueba los comprara, el recluta se quedaría sin créditos y lo que
+// fallaría después sería el canje de nota. Se le conceden por ajuste, que es gratis y es lo que se
+// quiere comprobar: que con el vestuario lleno se DENIEGA en vez de cobrar.
+// (Que el sorteo no repite ya lo prueba la batería 20 sobre sortearHeroe_.)
+G.HEROES.forEach(h => G.hoja_(G.H.AJ).appendRow(
+  [new Date(), PER, "rico@alumno.es", "EXTRA", "heroe", h[0], "prueba"]));
 fichaH = G.tablero_(PER, true).reclutas[0];
-igual(fichaH.heroes.length, G.HEROES.length, "comprando " + G.HEROES.length + " veces salen los " + G.HEROES.length + ", sin repetir ninguno");
-igual(new Set(fichaH.heroes).size, fichaH.heroes.length, "y no hay duplicados");
+igual(fichaH.heroes.length, G.HEROES.length, "con los " + G.HEROES.length + " héroes, el vestuario está lleno");
+const creditosAntes = fichaH.creditos;
 r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Héroe de la Rebelión") });
 contiene(r.estado, "vestuario entero", "con el vestuario completo se deniega en vez de cobrar");
+igual(G.tablero_(PER, true).reclutas[0].creditos, creditosAntes, "🔴 y NO se le cobra: denegar nunca cuesta créditos");
 
 // --- recompensa de nota: AQUÍ sí se avisa a una persona -------------------------------------------
 M.Correo.limpiar();

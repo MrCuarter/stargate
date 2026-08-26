@@ -264,16 +264,41 @@ assert sum(c[4] for c in CROMOS) == 100, "los pesos de CROMOS deben sumar 100"
 # El fichero vive en assets/img/heroes/<clave>.jpg.
 # [clave, nombre, rareza, peso] · los pesos suman 100
 HEROES = [
- ("H01_custodio",   "Custodio de Fôrge",      "épica",       12),
- ("H02_custodia",   "Custodia de Fôrge",      "épica",       12),
- ("H03_xeno",       "Xeno de Liminar",        "rara",        12),
- ("H04_xena",       "Xena de Liminar",        "rara",        12),
- ("H05_eco",        "Eco de la Cero",         "épica",       12),
- ("H06_eca",        "Eco de la Cero (ella)",  "épica",       12),
- ("H07_tejedor",    "Tejedor de Sendara",     "rara",        12),
- ("H08_tejedora",   "Tejedora de Sendara",    "rara",        12),
- ("H29_heredero",   "Heredero de la Sombra",  "LEGENDARIA",   2),
- ("H30_heredera",   "Heredera de la Sombra",  "LEGENDARIA",   2),
+ # 30 figuras de la Rebelión. Salen AL AZAR al canjear «Héroe de la Rebelión» y se acumulan: los que
+ # no tienes se ven en sombra, y la sombra es la del héroe de verdad — por eso reconoces el contorno
+ # cuando por fin te toca. Van en parejas él/ella para que nadie se quede sin alguien en quien verse.
+ # 🔴 Los pesos suman 100 (lo comprueba el assert de abajo): son la probabilidad de cada uno.
+ #   14 raras × 4 = 56 · 12 épicas × 3 = 36 · 4 LEGENDARIAS × 2 = 8
+ ("H01_custodio",    "Custodio de Fôrge",                "épica",       3),
+ ("H02_custodia",    "Custodia de Fôrge",                "épica",       3),
+ ("H03_xeno",        "Xeno de Liminar",                  "rara",        4),
+ ("H04_xena",        "Xena de Liminar",                  "rara",        4),
+ ("H05_eco",         "Eco de la Cero",                   "épica",       3),
+ ("H06_eca",         "Eca de la Cero",                   "épica",       3),
+ ("H07_tejedor",     "Tejedor de Sendara",               "rara",        4),
+ ("H08_tejedora",    "Tejedora de Sendara",              "rara",        4),
+ ("H09_pregonero",   "El Pregonero de Ecos",             "rara",        4),
+ ("H10_pregonera",   "La Pregonera de Ecos",             "rara",        4),
+ ("H11_correo",      "El Correo de Reliae",              "rara",        4),
+ ("H12_correa",      "La Correo de Reliae",              "rara",        4),
+ ("H13_agrimensor",  "El Agrimensor de Umbral",          "épica",       3),
+ ("H14_agrimensora", "La Agrimensora de Umbral",         "épica",       3),
+ ("H15_croupier",    "El Croupier de Ludo",              "rara",        4),
+ ("H16_croupiera",   "La Croupier de Ludo",              "rara",        4),
+ ("H17_abanderado",  "El Abanderado de Vínculo",         "épica",       3),
+ ("H18_abanderada",  "La Abanderada de Vínculo",         "épica",       3),
+ ("H19_relojero",    "El Relojero de la Cero",           "épica",       3),
+ ("H20_relojera",    "La Relojera de la Cero",           "épica",       3),
+ ("H21_cartografo",  "El Cartógrafo de lo que no existe","épica",       3),
+ ("H22_cartografa",  "La Cartógrafa de lo que no existe","épica",       3),
+ ("H23_bardo",       "El Último Bardo",                  "rara",        4),
+ ("H24_barda",       "La Última Bardo",                  "rara",        4),
+ ("H27_silencioso",  "El Silencioso de Fôrge",           "rara",        4),
+ ("H28_silenciosa",  "La Silenciosa de Fôrge",           "rara",        4),
+ ("H25_desertor",    "El Desertor de la Estática",       "LEGENDARIA",  2),
+ ("H26_desertora",   "La Desertora de la Estática",      "LEGENDARIA",  2),
+ ("H29_heredero",    "Heredero de la Sombra",            "LEGENDARIA",  2),
+ ("H30_heredera",    "Heredera de la Sombra",            "LEGENDARIA",  2),
 ]
 assert sum(h[3] for h in HEROES) == 100, "los pesos de HEROES deben sumar 100"
 # Los LEGENDARIOS no se pueden previsualizar: bloqueados salen como una silueta negra
