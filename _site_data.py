@@ -308,6 +308,41 @@ XP_VIAJE = {"REGULAR": 5000, "PUA": 4100}   # xp máximos del viaje completo (pa
 # 26-ago · SUBE LO QUE SE GANA. Con el vestuario de héroes hay mucho más donde gastar, y con la
 # economía vieja (590 ◈ el viaje entero) elegir una recompensa de nota significaba renunciar a
 # coleccionar del todo. Ahora el viaje completo son 1.000 ◈ redondos en REGULAR.
+# ================= QUÉ HAY QUE HACER EN CADA RETO =================
+# Va dentro del formulario, en la sección de su tema. Un alumno que no sabe qué se le pide ESCRIBE
+# UN CORREO, y cada correo evitado aquí es media hora que tu equipo no pierde. Google Forms no
+# permite ayuda por opción, así que las líneas se juntan bajo la casilla de cada tema.
+#
+# Se edita AQUÍ, no en Code.gs: _build_site.py lo inyecta.
+#
+# 🔴 PENDIENTE DE TUS PALABRAS: los ocho «Reto A» llevan un texto provisional. De ellos solo existe
+# el título en todo el proyecto, así que no me invento lo que piden. Sustituye las líneas marcadas
+# con «(falta)» por una frase tuya que diga QUÉ se entrega. Lo demás sale de la propia etiqueta del
+# reto, que ya nombra el entregable.
+AYUDA_RETOS = {
+  # --- los que se deducen de su etiqueta ---
+  "B1": "Una imagen creada con IA. Súbela a tu Bitácora y marca la casilla cuando esté publicada.",
+  "B2": "Un videotutorial con su videoquiz. En tu Bitácora, y con el enlace funcionando.",
+  "B3": "Una matriz 8×6 terminada, en tu Bitácora.",
+  "B4": "Tu entorno de aula montado. Enlázalo desde la Bitácora.",
+  "B5": "La rúbrica aplicada a tu ePortfolio: la Bitácora medida contra sus criterios.",
+  "B6": "Un juego digital jugable. El enlace tiene que abrirse sin pedir permisos.",
+  "B7": "Tu propuesta de microgamificación, en la Bitácora.",
+  "B8": "Una pieza de RA/RV y la Bitácora PUBLICADA (que se vea sin iniciar sesión).",
+  "X1": "La Actividad 1 entregada donde te la pide tu profesor. Marca la casilla cuando la hayas ENVIADO, no cuando la empieces.",
+  "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al enviarla.",
+  "XF": "El examen hecho. Se marca después de haberlo presentado.",
+  # --- los «Reto A»: 🔴 falta tu frase ---
+  "A1": "(falta) Lo explica tu profe al abrir Fôrge.",
+  "A2": "(falta) Lo explica tu profe al abrir Ecos.",
+  "A3": "(falta) Lo explica tu profe al abrir Sendara.",
+  "A4": "(falta) Lo explica tu profe al abrir Reliae.",
+  "A5": "(falta) Lo explica tu profe al abrir Umbral.",
+  "A6": "(falta) Lo explica tu profe al abrir Ludo.",
+  "A7": "(falta) Lo explica tu profe al abrir Vínculo.",
+  "A8": "(falta) Lo explica tu profe al abrir Liminar.",
+}
+
 CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55,
             "actividad": 100, "final": 100, "derivada": 60}
 # ---------- calendario del PER (v3.14) ----------

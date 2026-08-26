@@ -8,7 +8,7 @@ from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_sema
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
-                        HEROES, HEROES_OCULTOS)
+                        HEROES, HEROES_OCULTOS, AYUDA_RETOS)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
 # no se escriben a mano (si no, cambiarlas en _site_data.py dejaría la web mintiendo).
@@ -1473,6 +1473,8 @@ _gs = _sustituir(_gs, "// NIVELES-INICIO", "\n// NIVELES-FIN",
                  _gs[_gs.index("// NIVELES-INICIO")+len("// NIVELES-INICIO"):_gs.index("var MONEDA")].rstrip("\n")
                  + "\n" + _js_niveles())
 _gs = _sustituir(_gs, "var RECOMPENSAS_INICIALES = [\n", "\n];\n// RECOMPENSAS-FIN", _js_recompensas())
+_gs = _sustituir(_gs, "var AYUDA_RETOS = ", ";\n// AYUDA-FIN",
+                 json.dumps(AYUDA_RETOS, ensure_ascii=False, indent=1, sort_keys=True))
 open(_gs_path, "w", encoding="utf-8").write(_gs)
 open(os.path.join(HERE, "assets", "descargas", "Code.gs.txt"), "w", encoding="utf-8").write(_gs)
 open(os.path.join(HERE, "assets", "descargas", "Dialog.html.txt"), "w", encoding="utf-8").write(
@@ -1480,8 +1482,9 @@ open(os.path.join(HERE, "assets", "descargas", "Dialog.html.txt"), "w", encoding
 # Copias 100% ASCII para pegar sin riesgo de que se rompan los acentos (ver _ascii_gs.py)
 import subprocess as _sp, sys as _sys
 _sp.run(["python3", os.path.join(HERE, "_ascii_gs.py")], check=False, capture_output=True)
-print("apps-script: CROMOS (%d cartas) + HEROES (%d) + NIVELES (%d) + RECOMPENSAS (%d) regenerados y sincronizados"
-      % (len(CROMOS), len(HEROES), len(NIVELES), len(RECOMPENSAS)))
+print("apps-script: CROMOS (%d cartas) + HEROES (%d) + NIVELES (%d) + RECOMPENSAS (%d) + AYUDA_RETOS (%d, %d sin escribir) regenerados"
+      % (len(CROMOS), len(HEROES), len(NIVELES), len(RECOMPENSAS), len(AYUDA_RETOS),
+         sum(1 for _v in AYUDA_RETOS.values() if _v.startswith("(falta)"))))
 
 # ================= COMPROBACIÓN DE LA WEB PUBLICADA (§12.9) =================
 # A propósito NO se hace por defecto: el build tiene que funcionar sin internet. Pero el 504 de

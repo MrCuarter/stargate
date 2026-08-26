@@ -100,6 +100,60 @@ var RETOS_PUA = [
   ["B7","La microgamificación (recupera a Mara)",["P7_mara","R7_microgamificacion"],300,7],
   ["B8","El último umbral: RA/RV + Bitácora publicada (recupera a Noa)",["P8_noa","R8_ultimo-umbral"],300,8]
 ];
+// AYUDA-INICIO · QUE HAY QUE HACER EN CADA RETO. Va dentro del formulario, bajo la casilla de su
+// tema, porque un alumno que no sabe que se le pide ESCRIBE UN CORREO. Lo genera _build_site.py
+// desde _site_data.py (AYUDA_RETOS): NO editar a mano.
+var AYUDA_RETOS = {
+ "A1": "(falta) Lo explica tu profe al abrir Fôrge.",
+ "A2": "(falta) Lo explica tu profe al abrir Ecos.",
+ "A3": "(falta) Lo explica tu profe al abrir Sendara.",
+ "A4": "(falta) Lo explica tu profe al abrir Reliae.",
+ "A5": "(falta) Lo explica tu profe al abrir Umbral.",
+ "A6": "(falta) Lo explica tu profe al abrir Ludo.",
+ "A7": "(falta) Lo explica tu profe al abrir Vínculo.",
+ "A8": "(falta) Lo explica tu profe al abrir Liminar.",
+ "B1": "Una imagen creada con IA. Súbela a tu Bitácora y marca la casilla cuando esté publicada.",
+ "B2": "Un videotutorial con su videoquiz. En tu Bitácora, y con el enlace funcionando.",
+ "B3": "Una matriz 8×6 terminada, en tu Bitácora.",
+ "B4": "Tu entorno de aula montado. Enlázalo desde la Bitácora.",
+ "B5": "La rúbrica aplicada a tu ePortfolio: la Bitácora medida contra sus criterios.",
+ "B6": "Un juego digital jugable. El enlace tiene que abrirse sin pedir permisos.",
+ "B7": "Tu propuesta de microgamificación, en la Bitácora.",
+ "B8": "Una pieza de RA/RV y la Bitácora PUBLICADA (que se vea sin iniciar sesión).",
+ "X1": "La Actividad 1 entregada donde te la pide tu profesor. Marca la casilla cuando la hayas ENVIADO, no cuando la empieces.",
+ "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al enviarla.",
+ "XF": "El examen hecho. Se marca después de haberlo presentado."
+};
+// AYUDA-FIN
+// v3.19 · QUE HAY QUE HACER, DENTRO DEL FORMULARIO. Un alumno que no sabe que se le pide escribe un
+// correo, y ese correo lo paga el profesorado. Google Forms no deja poner ayuda por opcion, asi que
+// las lineas de los retos del tema se juntan bajo su casilla.
+function ayudaDeTema_(o, t) {
+  var L = ["Marca SOLO lo que ya has TERMINADO. Puedes volver a este formulario y añadir más cuando lo tengas: nunca se borra lo de antes."];
+  retosDe_(o.tipo).forEach(function(r){
+    if (r[4] !== t) return;
+    var a = AYUDA_RETOS[r[0]] || "";
+    L.push("\u25B8 " + r[1] + (a ? "\n   " + a : ""));
+  });
+  L.push("¿Sigues con dudas? Está todo explicado en tu Nave: " + WEB + "recluta.html?per=" + o.id);
+  return L.join("\n\n");
+}
+// Una casilla por tema, pero el enlace de evidencia va APARTE en cada seccion y con nombre propio:
+// si todas se llamaran igual, la hoja de respuestas tendria nueve columnas con el mismo titulo y
+// leerFila_ (que indexa por nombre) se quedaria solo con la ultima.
+var EVIDENCIA_PREF = "Enlace \u00b7 ";
+function tituloEvidencia_(t) { return EVIDENCIA_PREF + (t >= 1 && t <= 8 ? "Tema " + t : "Batalla final"); }
+var AYUDA_EVIDENCIA = "Pega el enlace de lo que acabas de marcar: tu Bitácora, el documento, el juego… " +
+  "Ábrelo primero en una ventana de incógnito: si pide permiso para abrirse, tu profe no lo va a poder ver " +
+  "y no cuenta. Si marcas varias cosas a la vez, vale el enlace de tu Bitácora.";
+// El enlace que venga en ESTE envio, mire la seccion que mire.
+function evidenciaDe_(r) {
+  var out = "";
+  Object.keys(r).forEach(function(k){
+    if (k.indexOf(EVIDENCIA_PREF) === 0 && String(r[k] || "").trim()) out = String(r[k]).trim();
+  });
+  return out;
+}
 var XP_RECLUTAMIENTO = 100;
 var DERIVADAS = [   // [insignia, xp, requisitos] · los créditos salen de CREDITOS.derivada
   ["H4_tripulacion-cero",300,["P1_bran","P2_tomas","P3_sylla","P4_amara","P5_vera","P6_joran","P7_mara","P8_noa"]],
@@ -307,7 +361,7 @@ function asegurarHojas_() {
   var rec = hoja_(H.REC, ["Recompensa","Coste (créditos)","Máx. por alumno","Descripción","Disponible desde (semana)","Tipo"], "#f5b043");
   if (rec.getLastRow() < 2) rec.getRange(2,1,RECOMPENSAS_INICIALES.length,6).setValues(RECOMPENSAS_INICIALES);
   else migrarRecompensas_(rec);
-  hoja_(H.EV, ["fecha","per","email","alias","reto_id","reto","tema","xp","origen"], "#aa66cc");
+  hoja_(H.EV, ["fecha","per","email","alias","reto_id","reto","tema","xp","origen","evidencia"], "#aa66cc");
   hoja_(H.AJ, ["fecha","per","email","reto_id","accion","motivo","profe"], "#aa66cc");
   // v3.11 · equipo docente CON CORREO: es a quien se avisa cuando un canje pide su intervención,
   // y lo que permite filtrar cada grupo por docente. Se puede editar a mano en esta pestaña.
@@ -685,7 +739,8 @@ function crearPER(datos) {
     pb.setGoToPage(FormApp.PageNavigationType.SUBMIT);      // al terminar una sección, se envía
     destinos.push([t, pb]);
     var cb = fb.addCheckboxItem().setTitle(t >= 1 && t <= 8 ? "Tema " + t + " · Lo que he completado" : "Batalla final");
-    cb.setChoiceValues(porTema[t].map(function(r){ return r[1]; }));
+    cb.setChoiceValues(porTema[t].map(function(r){ return r[1]; })).setHelpText(ayudaDeTema_({ id:id, tipo:tipo }, t));
+    fb.addTextItem().setTitle(tituloEvidencia_(t)).setHelpText(AYUDA_EVIDENCIA);
   });
   nav.setChoices([nav.createChoice(OPC_NADA, FormApp.PageNavigationType.SUBMIT)].concat(
     destinos.map(function(d){ return nav.createChoice(etiquetaNav_(d[0]), d[1]); })));
@@ -976,6 +1031,20 @@ function reestructurarBitacora_(fb, o) {
   // 2) fuera la pregunta de la URL propia (ahora es una recompensa que se canjea)
   items.forEach(function(it){
     if (it.getTitle().indexOf("URL de tu propia imagen") === 0) { try { fb.deleteItem(it); } catch (e) {} }
+  });
+  // v3.19 · la ayuda de cada tema y su enlace de evidencia, tambien en los PER ya creados
+  var titulos = fb.getItems().map(function(i){ return i.getTitle(); });
+  fb.getItems(FormApp.ItemType.CHECKBOX).forEach(function(it){
+    var m = it.getTitle().match(/^Tema (\d) /);
+    var t = m ? Number(m[1]) : (it.getTitle() === "Batalla final" ? 9 : 0);
+    if (!t) return;
+    try { it.setHelpText(ayudaDeTema_(o, t)); } catch (e) {}
+    if (titulos.indexOf(tituloEvidencia_(t)) < 0) {
+      try {
+        var ev2 = fb.addTextItem().setTitle(tituloEvidencia_(t)).setHelpText(AYUDA_EVIDENCIA);
+        fb.moveItem(ev2.getIndex(), it.getIndex() + 1);   // justo debajo de su casilla
+      } catch (e) {}
+    }
   });
   // 3) secciones rápidas
   var pbs = fb.getItems(FormApp.ItemType.PAGE_BREAK).map(function(i){ return i.asPageBreakItem(); });
@@ -1907,10 +1976,12 @@ function registrarEventos_(o, sh, fila) {
   var alias = r["Alias de recluta (público)"] || ""; var retos = retosDe_(o.tipo); var porEt = {}; retos.forEach(function(x){ porEt[x[1]] = x; });
   var ev = hoja_(H.EV); var previos = {};
   ev.getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] === o.id && String(v[2]).toLowerCase() === email) previos[v[4]] = true; });
-  var nuevos = [];
-  if (!previos["H1"]) nuevos.push([new Date(), o.id, email, alias, "H1", "Reclutamiento", 0, XP_RECLUTAMIENTO, "formulario"]);
-  marcados_(r).forEach(function(et){ var x = porEt[et]; if (x && !previos[x[0]]) nuevos.push([new Date(), o.id, email, alias, x[0], x[1], x[4], x[3], "formulario"]); });
-  if (nuevos.length) ev.getRange(ev.getLastRow()+1, 1, nuevos.length, 9).setValues(nuevos);
+  var nuevos = [], prueba = evidenciaDe_(r);
+  if (!previos["H1"]) nuevos.push([new Date(), o.id, email, alias, "H1", "Reclutamiento", 0, XP_RECLUTAMIENTO, "formulario", ""]);
+  // la evidencia de ESTE envio se guarda con CADA reto que se marca en el: asi el profesorado la ve
+  // al lado del reto, no en una columna suelta que hay que ir a buscar
+  marcados_(r).forEach(function(et){ var x = porEt[et]; if (x && !previos[x[0]]) nuevos.push([new Date(), o.id, email, alias, x[0], x[1], x[4], x[3], "formulario", prueba]); });
+  if (nuevos.length) ev.getRange(ev.getLastRow()+1, 1, nuevos.length, 10).setValues(nuevos);
 }
 // v3: congela el avatar elegido en el PRIMER envío de la Bitácora. Después, editar el formulario
 // no cambia el avatar del tablero: solo lo cambia un canje concedido («Cambio de avatar» / «Avatar personal»).
@@ -2151,7 +2222,8 @@ function tablero_(perId, conPrivados) {
   // 2) eventos (con fecha) + ajustes del profesorado
   hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase();
     var a = por[m] || (por[m] = { email:m, alias:String(v[3]||""), nombre:"", bitacora:"", profe:"", avatar:{tipo:null,n:null,url:""}, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] });
-    a.retos[v[4]] = { fecha:v[0], origen:v[8] }; a.eventos.push({ fecha:v[0], reto_id:v[4], reto:v[5], xp:v[7], origen:v[8] }); });
+    a.retos[v[4]] = { fecha:v[0], origen:v[8], evidencia:String(v[9] || "") };
+    a.eventos.push({ fecha:v[0], reto_id:v[4], reto:v[5], xp:v[7], origen:v[8], evidencia:String(v[9] || "") }); });
   hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase(); var a = por[m]; if (!a) return;
     if (v[4] === "anular") delete a.retos[v[3]]; else if (v[4] === "otorgar") { a.retos[v[3]] = { fecha:v[0], origen:"profesorado" }; }
     else if (v[4] === "avatar") { a._avCanje = String(v[5] || ""); }               // canje concedido: el último gana
