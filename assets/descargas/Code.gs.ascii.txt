@@ -243,7 +243,7 @@ function onOpen() {
       .addItem("Restaurar cat\u00e1logo oficial de recompensas", "restaurarRecompensas")
       .addItem("Organizar los formularios en carpetas por PER", "organizarCarpetasPER")
       .addItem("Limpiar restos de PER borrados (formularios y pesta\u00f1as)", "limpiarRestos")
-      .addItem("Actualizar im\u00e1genes de los planetas en los formularios", "actualizarImagenesPlanetas")
+      .addItem("Actualizar las im\u00e1genes de los formularios (planetas y personajes)", "actualizarImagenesPlanetas")
       .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
     .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
@@ -572,7 +572,7 @@ function crearPER(datos) {
   fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado.").setRequired(true);
   // avatar: SOLO personajes que evolucionan (la galeria clasica ya no existe, y poner tu propia
   // imagen es una RECOMPENSA de pago: se pide en el formulario de canje, no aqui)
-  try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle("Tu personaje evoluciona con tu nivel").setHelpText("Recluta \u2192 Cadete \u2192 Oficial \u2192 Comandante \u2192 Leyenda: el tablero cambia la imagen solo al subir de nivel. Los personajes 5-7 son EXCLUSIVOS: se desbloquean con cr\u00e9ditos durante el curso.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
+  try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle(TIT_LAMINA).setHelpText("Recluta \u2192 Cadete \u2192 Oficial \u2192 Comandante \u2192 Leyenda: el tablero cambia la imagen solo al subir de nivel. Los personajes 5-7 son EXCLUSIVOS: se desbloquean con cr\u00e9ditos durante el curso.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
   fb.addListItem().setTitle("Elige tu avatar").setHelpText(AYUDA_AVATAR).setRequired(true)
     .setChoiceValues(opcIniciales_());
   fb.addListItem().setTitle(TIT_DOCENTE).setHelpText(AYUDA_DOCENTE).setRequired(true)
@@ -686,6 +686,9 @@ var AYUDA_AVATAR = "Personajes 1-" + AVATARES_INICIALES + " en versi\u00f3n ella
   "(Recluta \u2192 Cadete \u2192 Oficial \u2192 Comandante \u2192 Leyenda). Los personajes 5-7 son EXCLUSIVOS y poner tu propia " +
   "imagen tambi\u00e9n: son recompensas que se canjean con cr\u00e9ditos. Elige bien: cambiar de avatar cuesta cr\u00e9ditos.";
 function etiquetaNav_(t) { return t >= 1 && t <= 8 ? "Tema " + t + " \u00b7 " + TEMAS[t][0] : "La batalla final"; }
+// La lamina de personajes que va dentro de la Bitacora. En una constante porque la escriben
+// DOS sitios: quien la pone al crear el PER y quien la refresca desde Mantenimiento.
+var TIT_LAMINA = "Tu personaje evoluciona con tu nivel";
 var TIT_NUEVO_AVATAR = "Nuevo avatar (solo para \u00abCambio de avatar\u00bb)";
 var TIT_URL_AVATAR = "URL de tu nueva imagen (solo para \u00abAvatar personal\u00bb)";
 var TIT_EXCLUSIVO = "Personaje exclusivo (solo para \u00abPersonaje exclusivo\u00bb)";
@@ -1193,8 +1196,8 @@ function restaurarRecompensas_() {
 // (p. ej. el orbe de Sendara) hay que refrescarlas en los PER que ya existen.
 function actualizarImagenesPlanetas() {
   var ui = SpreadsheetApp.getUi();
-  if (ui.alert("Actualizar im\u00e1genes de los planetas",
-      "Vuelve a descargar de la web el orbe de cada planeta y lo sustituye en la Bit\u00e1cora de mando de todos los PER. \u00dasalo cuando cambie el arte de un planeta.\n\n\u00bfContinuar?",
+  if (ui.alert("Actualizar las im\u00e1genes de los formularios",
+      "Vuelve a descargar de la web los ocho orbes de planeta Y la l\u00e1mina de personajes, y los sustituye en la Bit\u00e1cora de mando de todos los PER. \u00dasalo cuando cambie el arte.\n\n\u00bfContinuar?",
       ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
   var blobs = {}, cambiadas = 0, pers = 0, fallos = [];
   borrarOrbesCache_();   // v3.14 - si el arte ha cambiado, la copia de Drive ya no vale
@@ -1202,6 +1205,12 @@ function actualizarImagenesPlanetas() {
     try { blobs[TEMAS[t][0]] = orbeBlob_(t); }
     catch (e) { fallos.push("Descargando " + TEMAS[t][0] + ": " + e.message); }
   }
+  //  26-ago - la LAMINA DE PERSONAJES no se refrescaba nunca. Se quedaba dentro de cada Bitacora
+  // con el arte del dia en que se creo el PER, y no habia forma de cambiarla salvo rehacer el grupo.
+  // Se vio con los umbrales de rango: la lamina llevaba incrustados los de antes de la v3.7
+  // (Cadete 1.000 - Oficial 2.500...) cuando hoy son 700 - 1.650 - 3.450 - 5.000.
+  try { blobs[TIT_LAMINA] = UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob(); }
+  catch (e) { fallos.push("Descargando la l\u00e1mina de personajes: " + e.message); }
   hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
     if (!v[0]) return;
     var f = formDelPER_(perObj_(v), "B"); if (!f) { fallos.push(String(v[1]) + ": sin Bit\u00e1cora accesible"); return; }

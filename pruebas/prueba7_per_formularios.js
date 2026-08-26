@@ -86,4 +86,26 @@ igual(fb.getItems().filter(t => t.getTitle() === "¿Qué vienes a registrar hoy?
 E.enviarBitacora(G, "prueba-banco", { email: "mig@alumno.es", alias: "Mig", nombre: "M M", profe: "Mr Cuarter" });
 igual(G.tablero_("prueba-banco", true).reclutas.length, 1, "tras migrar, el alistamiento sigue funcionando");
 
+// ── Mantenimiento → «Actualizar las imágenes de los formularios» ────────────────────────────────
+// 🔴 26-ago · refrescaba los ocho orbes de planeta y SE DEJABA LA LÁMINA DE PERSONAJES. Como la
+// lámina se copia dentro de la Bitácora al crear el PER, se quedaba congelada para siempre: los
+// grupos vivos seguían enseñando los umbrales de rango de antes de la v3.7 y no había forma de
+// cambiarlos sin rehacer el grupo. Se vio en la web, no aquí, así que aquí queda la comprobación.
+// el título va literal a propósito: si alguien renombra la constante, esto tiene que CANTARLO,
+// no seguir comparando contra un undefined que no coincide con nada
+const TIT_LAM = "Tu personaje evoluciona con tu nivel";
+const fbImg = G.formDelPER_(G.perObj_(G.perFila_("prueba-banco").v), "B");
+const lamina = () => fbImg.getItems("IMAGE").filter(i => i.getTitle() === TIT_LAM)[0] || null;
+c(!!lamina(), "al crear el PER, la Bitácora lleva la lámina de personajes");
+const blobViejo = lamina() && lamina().blob;
+
+M.Fetch.llamadas.length = 0;
+M.UI.responder("YES");
+G.actualizarImagenesPlanetas();
+
+c(M.Fetch.llamadas.some(u => u.indexOf("lamina_personajes.jpg") >= 0),
+  "🔴 al actualizar las imágenes se vuelve a bajar la LÁMINA, no solo los orbes");
+igual(M.Fetch.llamadas.filter(u => u.indexOf("/planetas/") >= 0).length, 8, "y los ocho orbes de planeta");
+c(!!lamina() && lamina().blob !== blobViejo, "la lámina del formulario queda sustituida por la recién bajada");
+
 E.resumen("Creación de PER y migración de formularios antiguos");
