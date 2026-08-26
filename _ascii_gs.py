@@ -15,8 +15,24 @@ def a_ascii(c):
     s = "".join(x for x in d if not unicodedata.combining(x))
     return s if s.isascii() else "?"
 
+def escapar_js(c):
+    """\\uXXXX como lo entiende JavaScript.
+
+    🔴 Los caracteres fuera del BMP (los emojis 🔴🟡🟢, U+1F534 y compañía) NO caben en cuatro
+    dígitos: hay que escribirlos como PAR SURROGADO. Con «\\u%04x» salia «\\u1f534», que JavaScript
+    lee como \\u1f53 seguido de un «4» — y el semáforo del parte de salud aparecía en pantalla
+    como «ù4». Visto en producción el 26-ago.
+    """
+    o = ord(c)
+    if o < 0x10000:
+        return "\\u%04x" % o
+    o -= 0x10000
+    return "\\u%04x\\u%04x" % (0xD800 + (o >> 10), 0xDC00 + (o & 0x3FF))
+
+
 def convertir(src):
     out = []
+    en_cadena = []             # los no-ASCII que van dentro de cadenas: se comprueban al final
     i, n = 0, len(src)
     estado = "codigo"          # codigo | ' | " | ` | linea | bloque
     while i < n:
@@ -36,9 +52,27 @@ def convertir(src):
             if c == "*" and i+1 < n and src[i+1] == "/": estado = "codigo"; out.append("*/"); i += 2; continue
         if ord(c) < 128: out.append(c)
         elif estado in ("linea", "bloque"): out.append(a_ascii(c))
-        else: out.append("".join("\\u%04x" % ord(x) for x in c))
+        else:
+            en_cadena.append(c)
+            out.append(escapar_js(c))
         i += 1
-    return "".join(out)
+    r = "".join(out)
+    _comprobar(r, en_cadena)
+    return r
+
+
+def _comprobar(convertido, esperados):
+    """Que lo escapado se lea como lo original. Es la única forma de saber que lo que se PEGA dice
+    lo mismo que lo que se escribió — y el banco de pruebas no lo ve, porque compara comportamiento,
+    no glifos."""
+    import collections, re as _re
+    crudo = _re.sub(r"\\u([0-9a-fA-F]{4})", lambda m: chr(int(m.group(1), 16)), convertido)
+    # JavaScript une los pares surrogados; Python los deja sueltos, así que se unen igual
+    unido = crudo.encode("utf-16", "surrogatepass").decode("utf-16")
+    hay = collections.Counter(c for c in unido if ord(c) > 127)
+    faltan = collections.Counter(esperados) - hay
+    assert not faltan, ("el escape no se lee igual que el original: " +
+                        ", ".join("%r x%d" % (c, n) for c, n in faltan.items()))
 
 def convertir_html(src):
     """En un HTML hay dos mundos: dentro de <script> valen los \\uXXXX de JavaScript;

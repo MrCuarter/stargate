@@ -2352,12 +2352,12 @@ function salud_() {
 }
 function parteDeSalud() {
   var s = salud_();
-  var icono = { ok: "\u1f7e2", aviso: "\u1f7e1", mal: "\u1f534" };
+  var icono = { ok: "\ud83d\udfe2", aviso: "\ud83d\udfe1", mal: "\ud83d\udd34" };
   var h = '<div style="font:14px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;padding:4px 2px">';
   h += '<p style="margin:0 0 12px"><b style="font-size:16px">' +
-       (s.malos ? "\u1f534 Hay " + s.malos + " cosa" + (s.malos > 1 ? "s" : "") + " que arreglar"
-                : s.avisos ? "\u1f7e1 Todo funciona, con " + s.avisos + " aviso" + (s.avisos > 1 ? "s" : "")
-                           : "\u1f7e2 El sistema est\u00e1 sano") +
+       (s.malos ? "\ud83d\udd34 Hay " + s.malos + " cosa" + (s.malos > 1 ? "s" : "") + " que arreglar"
+                : s.avisos ? "\ud83d\udfe1 Todo funciona, con " + s.avisos + " aviso" + (s.avisos > 1 ? "s" : "")
+                           : "\ud83d\udfe2 El sistema est\u00e1 sano") +
        '</b><br><span style="color:#667">' + s.pers + ' PER activos \u00b7 ' +
        Utilities.formatDate(s.fecha, "Europe/Madrid", "d/MM/yyyy HH:mm") + '</span></p>';
   var orden = { mal: 0, aviso: 1, ok: 2 };
