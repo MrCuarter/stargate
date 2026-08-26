@@ -8,7 +8,7 @@ from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_sema
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
-                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL,
+                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
@@ -1479,8 +1479,28 @@ _gs = _sustituir(_gs, "var BONUS_PLANETA = ", ";\n// BONUS-FIN",
                  json.dumps(BONUS_RACHA, ensure_ascii=False) + ";\nvar BONUS_TUTORIAL = " +
                  json.dumps(BONUS_TUTORIAL, ensure_ascii=False) + ";\nvar NOTA_MIN_PLANETAS = " + str(NOTA_MIN_PLANETAS) + ";\nvar BONUS_SERIE = " + json.dumps(BONUS_SERIE, ensure_ascii=False) +
                  ";\nvar BONUS_ALBUM = " + json.dumps(BONUS_ALBUM, ensure_ascii=False))
+# El texto de cada reto sale del documento maestro (_AYUDA_DOC, por nombre); aquí se empareja con su
+# id leyendo las etiquetas de RETOS_REGULAR/RETOS_PUA, que viven en Code.gs. Así el dato tiene UN solo
+# origen y el emparejamiento tampoco se escribe a mano.
+def _retos_del_gs(nombre):
+    a = _gs.index("var %s = [" % nombre); b = _gs.index("\n];", a)
+    return _re.findall(r'\["([A-Z0-9]+)","([^"]*)"', _gs[a:b])
+
+_ayuda = dict(AYUDA_RETOS)          # X1, X2 y XF: no están en el documento
+_sin = []
+for _nom in ("RETOS_REGULAR", "RETOS_PUA"):
+    for _rid, _et in _retos_del_gs(_nom):
+        if _rid in _ayuda: continue
+        # el nombre del reto va entre comillas angulares (REGULAR) o suelto dentro de la etiqueta (PUA):
+        # se coge el más largo que encaje, para que «El juego» no gane a «El juego digital»
+        _cand = sorted([k for k in _AYUDA_DOC if k in _et], key=len, reverse=True)
+        if _cand: _ayuda[_rid] = _AYUDA_DOC[_cand[0]]
+        else: _sin.append("%s · %s" % (_rid, _et))
+if _sin:
+    raise SystemExit("🔴 Estos retos se quedarían SIN explicación en el formulario, y eso es justo lo "
+                     "que genera los correos al profesorado:\n   " + "\n   ".join(_sin))
 _gs = _sustituir(_gs, "var AYUDA_RETOS = ", ";\n// AYUDA-FIN",
-                 json.dumps(AYUDA_RETOS, ensure_ascii=False, indent=1, sort_keys=True))
+                 json.dumps(_ayuda, ensure_ascii=False, indent=1, sort_keys=True))
 open(_gs_path, "w", encoding="utf-8").write(_gs)
 open(os.path.join(HERE, "assets", "descargas", "Code.gs.txt"), "w", encoding="utf-8").write(_gs)
 open(os.path.join(HERE, "assets", "descargas", "Dialog.html.txt"), "w", encoding="utf-8").write(

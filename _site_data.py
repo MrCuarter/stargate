@@ -347,30 +347,46 @@ NOTA_MIN_PLANETAS = 4
 BONUS_SERIE = {"creditos": 40}
 BONUS_ALBUM = {"xp": 300, "creditos": 200}
 
+def _ayuda_de_los_retos():
+    """Saca de RETOS_INSIGNIAS_STARGATE.md lo que pide cada reto (su bloque LITERAL).
+
+    🔴 NO se copian a mano. El documento maestro es de donde salen también los ocho
+    Material_Genially/T*/Retos_del_tema.md (comprobado: 8 copias, 0 discrepancias). Copiarlos aquí
+    crearía un TERCER sitio con el mismo dato, y el día que se toque uno los otros mentirían.
+
+    Si el documento cambia una redacción, el formulario la recoge al recompilar. Y si un reto se
+    queda sin texto, esto REVIENTA en vez de dejar al alumnado sin saber qué se le pide.
+    """
+    import os, re, io
+    doc = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "RETOS_INSIGNIAS_STARGATE.md")
+    if not os.path.exists(doc):
+        raise SystemExit("🔴 No encuentro RETOS_INSIGNIAS_STARGATE.md: sin él, el formulario no puede "
+                         "explicar los retos. Está en Project_CCD/.")
+    txt = io.open(doc, encoding="utf-8").read()
+    porNombre = {}
+    for bloque in re.split(r"^####\s*", txt, flags=re.M)[1:]:
+        cab = bloque.split("\n")[0]
+        m = re.search(r"«([^»]+)»", cab)
+        lit = re.search(r"\*\*LITERAL:\*\*\s*(.+?)(?=\n- \*\*NARRATIVO|\n####|\n---|\Z)", bloque, re.S)
+        if not (m and lit):
+            continue
+        t = re.sub(r"\s+", " ", lit.group(1)).strip()
+        t = re.sub(r"\*\*(.+?)\*\*", r"\1", t)          # el formulario no entiende markdown
+        t = re.sub(r"\*(.+?)\*", r"\1", t)
+        # El foro es el de la plataforma de UNIR: dicho así, nadie pregunta cuál.
+        t = re.sub(r"\bel foro\b", "el foro de la plataforma de UNIR", t)
+        porNombre[m.group(1)] = t
+    return porNombre
+
+_AYUDA_DOC = _ayuda_de_los_retos()
+
+# Lo que se le enseña al alumnado bajo la casilla de su tema. Sale del documento maestro; aquí solo
+# se escriben a mano las piezas que ese documento no cubre (las Actividades y el examen).
 AYUDA_RETOS = {
-  # --- los que se deducen de su etiqueta ---
-  "B1": "Una imagen creada con IA. Súbela a tu Bitácora y marca la casilla cuando esté publicada.",
-  "B2": "Un videotutorial con su videoquiz. En tu Bitácora, y con el enlace funcionando.",
-  "B3": "Una matriz 8×6 terminada, en tu Bitácora.",
-  "B4": "Tu entorno de aula montado. Enlázalo desde la Bitácora.",
-  "B5": "La rúbrica aplicada a tu ePortfolio: la Bitácora medida contra sus criterios.",
-  "B6": "Un juego digital jugable. El enlace tiene que abrirse sin pedir permisos.",
-  "B7": "Tu propuesta de microgamificación, en la Bitácora.",
-  "B8": "Una pieza de RA/RV y la Bitácora PUBLICADA (que se vea sin iniciar sesión).",
   "X1": "La Actividad 1 entregada donde te la pide tu profesor. Marca la casilla cuando la hayas ENVIADO, no cuando la empieces.",
   "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al enviarla.",
   "XF": "El examen hecho. Se marca después de haberlo presentado.",
-  # --- los «Reto A»: 🔴 falta tu frase ---
-  "A1": "(falta) Lo explica tu profe al abrir Fôrge.",
-  "A2": "(falta) Lo explica tu profe al abrir Ecos.",
-  "A3": "(falta) Lo explica tu profe al abrir Sendara.",
-  "A4": "(falta) Lo explica tu profe al abrir Reliae.",
-  "A5": "(falta) Lo explica tu profe al abrir Umbral.",
-  "A6": "(falta) Lo explica tu profe al abrir Ludo.",
-  "A7": "(falta) Lo explica tu profe al abrir Vínculo.",
-  "A8": "(falta) Lo explica tu profe al abrir Liminar.",
 }
-
 CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55,
             "actividad": 100, "final": 100, "derivada": 60}
 # ---------- calendario del PER (v3.14) ----------

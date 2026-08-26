@@ -54,8 +54,22 @@ G.reestructurarBitacora_(bit, G.perObj_(G.perFila_(per).v));
 G.reestructurarBitacora_(bit, G.perObj_(G.perFila_(per).v));
 igual(titulos().length, antes, "🔴 pasarla dos veces no duplica campos (la ejecutan crearPER y Mantenimiento)");
 
-// ---------------------------------------------------------------- e) el catálogo, sin huecos raros
+// ---------------------------------------------------------------- e) NINGÚN reto sin explicar
+// 🔴 Un reto sin texto es exactamente el que genera el correo al profesorado. El texto sale del
+// documento maestro RETOS_INSIGNIAS_STARGATE.md y lo empareja el build por el nombre del reto: si
+// alguien renombra uno, aquí se ve.
 const ids = G.RETOS_REGULAR.concat(G.RETOS_PUA).map(r => r[0]);
-ids.forEach(id => c(!!G.AYUDA_RETOS[id], "el reto «" + id + "» tiene texto de ayuda"));
+[...new Set(ids)].forEach(id => {
+  const t = G.AYUDA_RETOS[id] || "";
+  c(!!t, "el reto «" + id + "» tiene texto de ayuda");
+  c(t.indexOf("(falta)") < 0, "🔴 y no es un hueco por rellenar");
+  c(t.length > 40, "y dice algo de verdad, no una línea suelta (" + t.length + " caracteres)");
+});
+// el foro es el de UNIR, dicho con todas las letras: si no, preguntan cuál
+Object.keys(G.AYUDA_RETOS).forEach(id => {
+  const t = G.AYUDA_RETOS[id];
+  if (/\bforo\b/.test(t)) contiene(t, "foro de la plataforma de UNIR",
+    "🔴 «" + id + "» dice QUÉ foro: el de la plataforma de UNIR");
+});
 
 E.resumen("La ayuda por reto y el enlace de evidencia");
