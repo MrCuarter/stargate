@@ -2200,7 +2200,22 @@ function tablero_(perId, conPrivados) {
                : (mS && skins.indexOf(Number(mS[1])) >= 0) ? viste : "";
     avatar.skin = puesto.indexOf("skin:") === 0 ? Number(puesto.slice(5)) : niv.rango;
     avatar.heroe = puesto.indexOf("heroe:") === 0 ? puesto.slice(6) : "";
+    // v3.18 - COLECCION. El tercer ranking mide lo que TIENES, no lo que has trabajado: las cartas
+    // distintas del album, los heroes que has sacado y las versiones de tu personaje desbloqueadas.
+    // Los totales salen de los catalogos, asi que el dia que los heroes pasen de 10 a 30 el 100 %
+    // se recalcula solo y a nadie le sube el porcentaje sin haber conseguido nada.
+    var coleccion = {
+      cromos:   { tengo: Object.keys(mis).length, total: CROMOS.length },
+      heroes:   { tengo: heroes.length,           total: HEROES.length },
+      skins:    { tengo: skins.length,            total: RANGOS.length }
+    };
+    coleccion.tengo = coleccion.cromos.tengo + coleccion.heroes.tengo + coleccion.skins.tengo;
+    coleccion.total = coleccion.cromos.total + coleccion.heroes.total + coleccion.skins.total;
+    // el porcentaje NO se redondea aqui: con 35 piezas dos reclutas distintos caerian en el mismo
+    // entero y el ranking los ordenaria al azar. Redondea quien lo pinta; ordena quien lo cuenta.
+    coleccion.pct = coleccion.total ? (coleccion.tengo * 100 / coleccion.total) : 0;
     var out = { alias:a.alias, avatar:avatar, xp:xp, nivel:niv.nivel, rango:niv.rango, rango_nombre:niv.rangoNombre,
+                coleccion: coleccion,
                 heroes: heroes, n_heroes: heroes.length, skins: skins, viste: puesto,
                 repes: repes, repes_gastados: gastados, repes_disponibles: Math.max(0, repes - gastados),
                 insignias_album: album, n_album: album.length, racha: racha_(o, a.eventos),

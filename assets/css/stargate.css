@@ -509,3 +509,14 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .lupa-nav.prev{left:8px}.lupa-nav.next{right:8px}
 .lupa-x:hover,.lupa-nav:hover{border-color:var(--teal);color:var(--teal)}
 @media(max-width:640px){.lupa-carta{max-height:66vh}.lupa-nav{width:38px;height:38px;font-size:1.4rem}}
+
+/* --- los tres rankings del tablero --- */
+.rank-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 6px}
+.rank-tab{font-family:'DMSans';font-weight:700;font-size:.86rem;padding:9px 16px;border-radius:999px;cursor:pointer;
+  border:1px solid #2a4656;background:rgba(16,26,40,.7);color:#c8d8e4;transition:all .12s ease}
+.rank-tab:hover{border-color:var(--teal);color:#eafcff}
+.rank-tab.on{background:var(--teal);border-color:var(--teal);color:#05222a}
+.rank-ayuda{margin:0 0 12px;max-width:68ch}
+.rank th.on{color:var(--teal);border-bottom:2px solid var(--teal)}
+.rank td.on{color:#eafcff;font-weight:700;background:rgba(55,224,236,.07)}
+@media(max-width:640px){.rank-tab{flex:1 1 auto;text-align:center;padding:9px 10px;font-size:.8rem}}
