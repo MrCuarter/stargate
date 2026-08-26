@@ -85,15 +85,17 @@ const titulos = () => ft.getItems().map(i => i.getTitle());
 G.PUESTA_EN_ESCENA.forEach(q =>
   c(titulos().indexOf(q[0]) >= 0, "el ticket nuevo ya trae «" + q[0].slice(0, 42) + "…»"));
 
-// están DENTRO de la página del tema, que es la que se responde una y otra vez
+// v3.24 · cuelgan de la página del DIRECTO (antes iban sueltos en la del tema; ver el apartado e).
+// Lo que se vigila es lo mismo de siempre: que no queden flotando al final del formulario, donde
+// nadie los vería, sino dentro de la sección que les corresponde.
 const items = ft.getItems();
-const iTema = items.findIndex(i => i.getType() === "PAGE_BREAK" && i.getTitle() === G.TIT_PAG_TEMA);
-const iSig = items.findIndex((i, k) => k > iTema && i.getType() === "PAGE_BREAK");
-c(iTema >= 0, "la página «" + G.TIT_PAG_TEMA + "» existe");
+const iDir = items.findIndex(i => i.getType() === "PAGE_BREAK" && i.getTitle() === G.TIT_PAG_DIRECTO);
+const iSig = items.findIndex((i, k) => k > iDir && i.getType() === "PAGE_BREAK");
+c(iDir >= 0, "la página «" + G.TIT_PAG_DIRECTO + "» existe");
 G.PUESTA_EN_ESCENA.forEach(q => {
   const k = titulos().indexOf(q[0]);
-  c(k > iTema && (iSig < 0 || k < iSig),
-    "🔴 «" + q[0].slice(10, 40) + "…» cae dentro de la página del tema, no en otra");
+  c(k > iDir && (iSig < 0 || k < iSig),
+    "🔴 «" + q[0].slice(10, 40) + "…» cae dentro de su página, no suelto al final");
 });
 
 // y en un ticket ANTIGUO se añaden sin duplicarse
@@ -126,5 +128,47 @@ G.ajustesTicket_(tk);
 igual(tk.recogeCorreo, false, "🔴 el ticket vuelve a ser ANÓNIMO aunque alguien lo tocara");
 igual(tk.unaRespuesta, false, "🔴 y vuelve a admitir una respuesta por TEMA, no una por curso");
 igual(tk.otraVez, true, "y vuelve a ofrecer el enlace para responder otra vez");
+
+// ---------------------------------------------------------------- e) la bifurcación directo/diferido
+// Sin esto, los tres ítems de arriba los responde también quien vio la grabación —que no puede
+// saber si se enseñó el ranking— y la medida se llena de ruido. Y las cinco escalas de clase las
+// respondía hasta quien no la vio.
+const pos = (f, t) => f.getItems().map(i => i.getTitle()).indexOf(t);
+const paginas = f => f.getItems().filter(i => i.getType() === "PAGE_BREAK").map(i => i.getTitle());
+
+c(paginas(ft).indexOf(G.TIT_PAG_DIRECTO) >= 0, "el ticket nuevo trae la página «" + G.TIT_PAG_DIRECTO + "»");
+c(pos(ft, G.TIT_COMO_SEGUIDA) >= 0, "y la pregunta que bifurca");
+c(pos(ft, G.TIT_COMO_SEGUIDA) < pos(ft, G.TIT_PAG_DIRECTO),
+  "la pregunta va ANTES de la página: cierra la del tema");
+G.PUESTA_EN_ESCENA.forEach(q =>
+  c(pos(ft, q[0]) > pos(ft, G.TIT_PAG_DIRECTO),
+    "🔴 «" + q[0].slice(10, 38) + "…» queda DETRÁS, solo para quien estuvo en directo"));
+c(pos(ft, "Valora tu grado de participación en clase") < pos(ft, G.TIT_COMO_SEGUIDA),
+  "las escalas de contenido se quedan donde estaban: las responde todo el mundo");
+
+const itComo = ft.getItems().filter(i => i.getTitle() === G.TIT_COMO_SEGUIDA)[0];
+const opciones = itComo.opciones || itComo.choices || [];
+igual(opciones.length, 2, "dos caminos: directo y diferido");
+
+// y en un ticket que YA tenía los ítems sueltos, se bifurca sin duplicar nada
+const previo = G.FormApp.create("ticket sin bifurcar");
+previo.addPageBreakItem().setTitle(G.TIT_PAG_TEMA);
+previo.addParagraphTextItem().setTitle("¿Alguna duda?");
+previo.addScaleItem().setTitle("Valora tu grado de participación en clase");
+G.PUESTA_EN_ESCENA.forEach(q => previo.addScaleItem().setTitle(q[0]));
+previo.addPageBreakItem().setTitle("Sobre la actividad escogida");
+igual(G.bifurcarTicket_(previo), 1, "un ticket sin bifurcar se bifurca");
+igual(G.bifurcarTicket_(previo), 0, "🔴 y al repetir no hace nada: es idempotente");
+const tp = previo.getItems().map(i => i.getTitle());
+igual(new Set(tp).size, tp.length, "sin títulos repetidos");
+c(tp.indexOf(G.TIT_COMO_SEGUIDA) < tp.indexOf(G.TIT_PAG_DIRECTO), "la pregunta, antes de la página");
+G.PUESTA_EN_ESCENA.forEach(q =>
+  c(tp.indexOf(q[0]) > tp.indexOf(G.TIT_PAG_DIRECTO), "y los ítems, dentro de ella"));
+c(tp.indexOf("Sobre la actividad escogida") > tp.indexOf(G.PUESTA_EN_ESCENA[2][0]),
+  "todo queda antes de la página siguiente");
+
+const ajeno2 = G.FormApp.create("form sin items");
+ajeno2.addPageBreakItem().setTitle(G.TIT_PAG_TEMA);
+igual(G.bifurcarTicket_(ajeno2), 0, "🔴 un formulario sin los ítems no se toca");
 
 E.resumen("Investigación: sello, consentimiento y puesta en escena");

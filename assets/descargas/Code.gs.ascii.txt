@@ -766,6 +766,35 @@ function actualizarRecompensas() {
 //     clase y sobre su docente (y de eso vive el dato de puesta en escena).
 // Ahora los repone cada "Actualizar formularios": el ajuste correcto vive en el codigo, no en la
 // memoria de quien toco que interruptor.
+//  v3.24 - LA BIFURCACION. Hasta ahora la pagina del tema daba por hecho que estuviste en clase:
+// cinco escalas que empiezan por "valora la satisfaccion con el desarrollo de la clase" las
+// respondia tambien quien la vio en diferido o no la vio. Y los tres items de puesta en escena
+// -?se enseno el ranking?- no los puede contestar quien no estaba: responden a bulto y ensucian
+// justo la medida que queremos.
+// Ahora la pagina del tema termina preguntando COMO la siguio, y solo quien dice "en directo" pasa
+// a la pagina con esos tres items. Los que ven la grabacion siguen valorando el contenido, que si
+// pueden juzgar. Idempotente: si ya esta bifurcado, no toca nada.
+function bifurcarTicket_(ft) {
+  var items = ft.getItems();
+  if (items.filter(function(i){ return i.getTitle() === TIT_COMO_SEGUIDA; }).length) return 0;
+  var iEsc = -1;
+  for (var k = 0; k < items.length; k++)
+    if (PUESTA_EN_ESCENA.filter(function(q){ return q[0] === items[k].getTitle(); }).length) { iEsc = k; break; }
+  if (iEsc < 0) return 0;   // sin los items no hay nada que separar (ticket viejo o ajeno)
+
+  // La pagina nueva nace donde empiezan los items, asi que se los lleva con ella; y la pregunta que
+  // bifurca queda justo antes, cerrando la pagina del tema.
+  var pDir = ft.addPageBreakItem().setTitle(TIT_PAG_DIRECTO)
+    .setHelpText("Solo para quien estuvo en la clase en directo. An\u00f3nimo, como todo lo dem\u00e1s.");
+  ft.moveItem(pDir.getIndex(), iEsc);
+  var como = ft.addMultipleChoiceItem().setTitle(TIT_COMO_SEGUIDA).setRequired(true);
+  ft.moveItem(como.getIndex(), iEsc);
+  pDir.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  como.setChoices([como.createChoice(OPC_DIRECTO, pDir),
+                   como.createChoice(OPC_DIFERIDO, FormApp.PageNavigationType.SUBMIT)]);
+  return 1;
+}
+
 function ajustesTicket_(ft) {
   try { ft.setCollectEmail(false).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true); }
   catch (e) { Logger.log("ajustesTicket_: " + e); }
@@ -811,7 +840,7 @@ function actualizarFormularios_() {
             if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); }
           reestructurarBitacora_(fbx, perObj_(v)); }
     catch (e) { pr.fallos.push(String(v[1]) + " (bit\u00e1cora): " + e.message); }
-    try { var ftx = formDelPER_(perObj_(v), "T"); if (ftx) { ajustesTicket_(ftx); anadirPuestaEnEscena_(ftx); } }
+    try { var ftx = formDelPER_(perObj_(v), "T"); if (ftx) { ajustesTicket_(ftx); anadirPuestaEnEscena_(ftx); bifurcarTicket_(ftx); } }
     catch (e) { pr.fallos.push(String(v[1]) + " (ticket): " + e.message); }
     pr.i++; pr.n++; t.marcar();
   }
@@ -953,8 +982,14 @@ function construirTicket_(ft, referente, profesores, perId) {
   escala_(ft, "Valora la satisfacci\u00f3n con los contenidos te\u00f3ricos vistos en clase sobre este tema", "Muy insatisfecho/a", "Muy satisfecho/a");
   escala_(ft, "Valora la satisfacci\u00f3n con las estrategias pr\u00e1cticas vistas en clase sobre este tema", "Muy insatisfecho/a", "Muy satisfecho/a");
   escala_(ft, "Valora tu grado de participaci\u00f3n en clase", "No he participado en absoluto", "He participado en todo lo que he podido");
-  PUESTA_EN_ESCENA.forEach(function(q){ escala_(ft, q[0], q[1], q[2]); });   // ? mismos items que en los PER ya creados
+  var comoT = ft.addMultipleChoiceItem().setTitle(TIT_COMO_SEGUIDA).setRequired(true);
   pTema.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  var pDir = ft.addPageBreakItem().setTitle(TIT_PAG_DIRECTO)
+    .setHelpText("Solo para quien estuvo en la clase en directo. An\u00f3nimo, como todo lo dem\u00e1s.");
+  PUESTA_EN_ESCENA.forEach(function(q){ escala_(ft, q[0], q[1], q[2]); });   // ? mismos items que en los PER ya creados
+  pDir.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  comoT.setChoices([comoT.createChoice(OPC_DIRECTO, pDir),
+                    comoT.createChoice(OPC_DIFERIDO, FormApp.PageNavigationType.SUBMIT)]);
   var pAct = ft.addPageBreakItem().setTitle("Sobre la actividad escogida").setHelpText("Dudas, inquietudes o incidencias sobre la actividad evaluable. Todos los campos son opcionales.");
   ft.addParagraphTextItem().setTitle("\u00bfTe ha quedado alguna duda sobre la actividad o quieres hacernos llegar alg\u00fan comentario?");
   escala_(ft, "Valora la utilidad de la actividad propuesta para tu aprendizaje", "Poco \u00fatil", "Muy \u00fatil");

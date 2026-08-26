@@ -19,6 +19,14 @@
 //  El titulo es la CLAVE con la que se leen las respuestas (se leen por cabecera, no por posicion),
 // asi que cambiarlo parte la serie en dos. Si hay que tocarlo: se anade uno nuevo y se jubila el viejo.
 var TIT_PAG_TEMA = "Sobre el tema escogido";
+// La bifurcacion: los tres items de arriba solo tienen sentido si estuviste EN DIRECTO. Quien vio la
+// grabacion puede valorar el contenido igual de bien -esas escalas las responden todos- pero no
+// puede saber si se enseno el ranking en clase. Y de paso, "directo o diferido" por tema y por
+// docente es un dato que hoy no esta en ningun sitio.
+var TIT_PAG_DIRECTO = "Sobre la clase en directo";
+var TIT_COMO_SEGUIDA = "\u00bfC\u00f3mo has seguido esta clase?";
+var OPC_DIRECTO  = "La he seguido EN DIRECTO";
+var OPC_DIFERIDO = "La he visto en diferido (la grabaci\u00f3n)";
 var PUESTA_EN_ESCENA = [
   ["STARGATE \u00b7 En esta clase se ha hablado de la misi\u00f3n (ranking, insignias, planetas)",
    "Ni se ha mencionado", "Ha estado muy presente"],
