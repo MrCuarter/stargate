@@ -79,9 +79,12 @@ class Formulario {
   getPublishedUrl() { return "https://docs.google.com/forms/d/e/" + this.id + "/viewform"; }
   getEditUrl() { return "https://docs.google.com/forms/d/" + this.id + "/edit"; }
   setCollectEmail(b) { this.recogeCorreo = !!b; this._sincronizar(); return this; }
-  setLimitOneResponsePerUser() { return this; }
+  // Guardan el valor de verdad: si el mock los ignora, una batería que compruebe estos ajustes
+  // compara contra undefined y pasa siempre. (Es el mismo error que nos escondió lo de las opciones
+  // vacías en el canje.)
+  setLimitOneResponsePerUser(b) { this.unaRespuesta = !!b; return this; }
   setAllowResponseEdits() { return this; }
-  setShowLinkToRespondAgain() { return this; }
+  setShowLinkToRespondAgain(b) { this.otraVez = !!b; return this; }
   setConfirmationMessage() { return this; }
   setAcceptingResponses(b) { this.aceptando = !!b; return this; }
   isAcceptingResponses() { return this.aceptando; }

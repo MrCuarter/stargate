@@ -116,4 +116,15 @@ ajeno.addParagraphTextItem().setTitle("nada que ver");
 igual(G.anadirPuestaEnEscena_(ajeno), 0, "🔴 un formulario sin la página del tema se deja en paz");
 igual(ajeno.getItems().length, 1, "y sigue con su única pregunta");
 
+// ---------------------------------------------------------------- d) los ajustes del ticket se reponen
+// El 27-ago se encendió «Limitar a 1 respuesta» a mano, probando, y no había forma de volver atrás
+// desde la pantalla de Google. Peor: nada lo habría detectado, y ese interruptor deja el ticket
+// inservible a partir del primer envío (una respuesta por persona en TODO el curso).
+const tk = G.formDelPER_(o, "T");
+tk.setCollectEmail(true).setLimitOneResponsePerUser(true).setShowLinkToRespondAgain(false);
+G.ajustesTicket_(tk);
+igual(tk.recogeCorreo, false, "🔴 el ticket vuelve a ser ANÓNIMO aunque alguien lo tocara");
+igual(tk.unaRespuesta, false, "🔴 y vuelve a admitir una respuesta por TEMA, no una por curso");
+igual(tk.otraVez, true, "y vuelve a ofrecer el enlace para responder otra vez");
+
 E.resumen("Investigación: sello, consentimiento y puesta en escena");

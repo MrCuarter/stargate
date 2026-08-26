@@ -757,6 +757,21 @@ function actualizarRecompensas() {
 // derecha y todo lo que lee tickets se lee POR CABECERA, no por posición (ver doPost «tickets»).
 // 🔴 Aun así hay que ponerlos ANTES del primer tema del curso: añadidos a mitad, la serie empieza
 // tarde y los temas de antes no tienen con qué compararse.
+// 🔴 v3.23 · Los ajustes de respuesta del ticket se aplicaban SOLO al crearlo, así que cualquier
+// toque a mano en la pantalla de Configuración se quedaba para siempre y en silencio. Y dos de ellos
+// no son cosmética:
+//   · «Limitar a 1 respuesta» = una respuesta por persona EN TODO EL CURSO. El ticket se contesta
+//     una vez por tema, así que encenderlo lo deja inservible a partir del primer envío.
+//   · «Recopilar correo» = adiós anonimato, que es lo único que hace que digan la verdad sobre su
+//     clase y sobre su docente (y de eso vive el dato de puesta en escena).
+// Ahora los repone cada «Actualizar formularios»: el ajuste correcto vive en el código, no en la
+// memoria de quién tocó qué interruptor.
+function ajustesTicket_(ft) {
+  try { ft.setCollectEmail(false).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true); }
+  catch (e) { Logger.log("ajustesTicket_: " + e); }
+  return ft;
+}
+
 function anadirPuestaEnEscena_(ft) {
   var titulos = ft.getItems().map(function(i){ return i.getTitle(); });
   var faltan = PUESTA_EN_ESCENA.filter(function(q){ return titulos.indexOf(q[0]) < 0; });
@@ -796,7 +811,7 @@ function actualizarFormularios_() {
             if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); }
           reestructurarBitacora_(fbx, perObj_(v)); }
     catch (e) { pr.fallos.push(String(v[1]) + " (bitácora): " + e.message); }
-    try { var ftx = formDelPER_(perObj_(v), "T"); if (ftx) anadirPuestaEnEscena_(ftx); }
+    try { var ftx = formDelPER_(perObj_(v), "T"); if (ftx) { ajustesTicket_(ftx); anadirPuestaEnEscena_(ftx); } }
     catch (e) { pr.fallos.push(String(v[1]) + " (ticket): " + e.message); }
     pr.i++; pr.n++; t.marcar();
   }
