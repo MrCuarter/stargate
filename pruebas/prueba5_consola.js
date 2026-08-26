@@ -15,7 +15,11 @@ E.enviarBitacora(G, PER, { email: "b@alumno.es", alias: "Bb", nombre: "B B", pro
 E.enviarBitacora(G, PER, { email: "c@alumno.es", alias: "Cc", nombre: "C C", profe: "" });   // sin docente
 E.enviarBitacora(G, PER, { email: "a@alumno.es", marcados: { [col(1)]: RET.filter(r => r[4] === 1).map(r => r[1]).join(", ") } }, 2);
 
-// un canje de nota pendiente de aplicar
+// un canje de nota pendiente de aplicar. Ojo: subir nota EXIGE planetas completos, así que primero
+// se le dan los suyos — que es justo lo que la regla quiere: no se toca la nota sin haber trabajado.
+for (let t2 = 1; t2 <= G.NOTA_MIN_PLANETAS; t2++)
+  RET.filter(r => r[4] === t2).forEach(r => G.hoja_("AJUSTES").appendRow(
+    [new Date(), PER, "a@alumno.es", r[0], "otorgar", "", "banco"]));
 for (let i = 0; i < 3; i++) G.hoja_("AJUSTES").appendRow([new Date(), PER, "a@alumno.es", "Z" + i, "otorgar", "", "banco"]);
 G.hoja_("EVENTOS").appendRow([new Date(), PER, "a@alumno.es", "Aa", "XF", "final", 9, 500, "formulario"]);
 const rc = E.enviarCanje(G, PER, { email: "a@alumno.es", recompensa: E.etiqueta(G, "Subir 0,5 en un entregable"), actividad: "Actividad 1 · imagen con IA" });

@@ -119,4 +119,39 @@ igual(ficha.bonus, delTablero.bonus, "🔴 y los bonus coinciden con los del tab
 igual(ficha.planetas_completos, delTablero.planetas_completos, "y los planetas completos también");
 igual(ficha.coleccion.pct, delTablero.coleccion.pct, "y el porcentaje de colección");
 
+// ---------------------------------------------------------------- i) completar colecciones
+// Mueve el motor: gastas créditos en sobres y parte vuelve. 🔴 Lo que se vigila aquí es que las
+// series NO den xp: los xp son el viaje y mueven el nivel y el ranking principal, y pagarlos por
+// comprar sobres dejaría escalar a quien tiene créditos en vez de a quien ha trabajado.
+igual(G.valorBonus_("serie:" + G.SERIES_ALBUM[0][0]).xp, 0, "🔴 completar una serie NO da xp");
+c(G.valorBonus_("serie:" + G.SERIES_ALBUM[0][0]).creditos > 0, "pero sí créditos: para seguir comprando sobres");
+c(G.valorBonus_("album").xp > 0, "el álbum ENTERO sí da xp: eso ya es una gesta");
+c(G.valorBonus_("album").creditos > 0, "y créditos");
+
+// una serie entera, carta a carta
+const G3 = E.nuevoMundo();
+const P3 = E.crearPERDemo(G3).id;
+E.enviarBitacora(G3, P3, { email: "coli@alumno.es", alias: "Coli", nombre: "C C", profe: "Mr Cuarter" });
+const h = () => G3.tablero_(P3, true).reclutas.filter(x => x.email === "coli@alumno.es")[0];
+const serie1 = G3.SERIES_ALBUM[0];
+const suyas = G3.CROMOS.filter(cr => cr[4] === serie1[1]);
+suyas.slice(0, suyas.length - 1).forEach(cr =>
+  G3.hoja_(G3.H.AJ).appendRow([new Date(), P3, "coli@alumno.es", "EXTRA", "cromo", cr[0], "banco"]));
+igual(h().bonus.filter(b => b.indexOf("serie:") === 0), [], "a falta de una carta, la serie no está completa");
+const antesCr = h().creditos_ganados;
+// la última cae por la vía real: un canje de sobre. Se fuerza el sorteo a esa carta.
+const sortear = G3.sortearCromo_;
+G3.sortearCromo_ = () => suyas[suyas.length - 1];
+E.enviarCanje(G3, P3, { email: "coli@alumno.es", recompensa: E.etiqueta(G3, "Sobre de cromos") });
+G3.sortearCromo_ = sortear;
+const cerrada = h();
+c(cerrada.bonus.indexOf("serie:" + serie1[0]) >= 0, "🔴 al caer la última carta se concede el bonus de la serie");
+igual(cerrada.creditos_ganados - antesCr, G3.BONUS_SERIE.creditos, "y son los créditos del catálogo");
+igual(cerrada.xp, h().xp, "sin tocar los xp");
+
+// y no se concede dos veces
+const bonosAntes = cerrada.bonus.length;
+G3.otorgarBonusColeccion_(G3.perObj_(G3.perFila_(P3).v), "coli@alumno.es");
+igual(h().bonus.length, bonosAntes, "🔴 mirar otra vez no vuelve a conceder nada");
+
 E.resumen("Los bonus");

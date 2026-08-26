@@ -104,6 +104,9 @@ var RETOS_PUA = [
 var BONUS_PLANETA = {"xp": 150, "creditos": 40};
 var BONUS_RACHA = [[3, 40], [6, 80], [10, 150]];
 var BONUS_TUTORIAL = {"creditos": 30};
+var NOTA_MIN_PLANETAS = 4;
+var BONUS_SERIE = {"creditos": 40};
+var BONUS_ALBUM = {"xp": 300, "creditos": 200};
 // BONUS-FIN
 // 🔴 Los bonus se conceden UNA VEZ y quedan escritos en AJUSTES. No se recalculan: la racha BAJA al
 // fallar una semana, y si el bonus se recalculara, quien llego a 6 y luego fallo perderia creditos
@@ -130,6 +133,8 @@ function bonusPendientes_(retos, tipo, racha, yaTiene) {
 function valorBonus_(clave) {
   if (clave.indexOf("planeta:") === 0) return { xp: BONUS_PLANETA.xp || 0, creditos: BONUS_PLANETA.creditos || 0 };
   if (clave === "tutorial") return { xp: 0, creditos: BONUS_TUTORIAL.creditos || 0 };
+  if (clave.indexOf("serie:") === 0) return { xp: 0, creditos: BONUS_SERIE.creditos || 0 };
+  if (clave === "album") return { xp: BONUS_ALBUM.xp || 0, creditos: BONUS_ALBUM.creditos || 0 };
   var m = clave.match(/^racha:(\d+)$/);
   if (m) { var b = BONUS_RACHA.filter(function(x){ return x[0] === Number(m[1]); })[0];
            if (b) return { xp: 0, creditos: b[1] }; }
@@ -240,10 +245,10 @@ var RECOMPENSAS_INICIALES = [
   ["Fondo de ficha: tu planeta",35,1,"Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.",4,"fondo"],
   ["Marco dorado del avatar",60,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.",6,"marco"],
   ["Héroe de la Rebelión",60,99,"Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión, cada una única. Se acumulan —cuantos más tengas, más donde elegir— y te lo pones y te lo quitas cuando quieras desde tu Nave, gratis. Los que aún no tienes salen en sombra. Y hay uno LEGENDARIO que no se deja ver hasta que cae.",2,"heroe"],
-  ["Subir 0,5 en un entregable",200,1,"Se aplica a la actividad que elijas",14,"nota"],
-  ["Subir 1 punto en un entregable",320,1,"Se aplica a la actividad que elijas",14,"nota"],
-  ["Recalificar un trabajo entregado fuera de plazo",450,1,"Indica la actividad",14,"nota"],
-  ["Recalificar un suspenso",600,1,"Indica la actividad",14,"nota"]
+  ["Subir 0,5 en un entregable",320,1,"Se aplica a la actividad que elijas",14,"nota"],
+  ["Subir 1 punto en un entregable",500,1,"Se aplica a la actividad que elijas",14,"nota"],
+  ["Recalificar un trabajo entregado fuera de plazo",700,1,"Indica la actividad",14,"nota"],
+  ["Recalificar un suspenso",950,1,"Indica la actividad",14,"nota"]
 ];
 // RECOMPENSAS-FIN
 
@@ -983,6 +988,20 @@ function anadirCamposAvatar_(fc) {
       [TEMAS[1][0],TEMAS[2][0],TEMAS[3][0],TEMAS[4][0],TEMAS[5][0],TEMAS[6][0],TEMAS[7][0],TEMAS[8][0]], TIT_FONDO);
   }
   quitarCamposRetirados_(fc);
+}
+// v3.19 · Completar una SERIE devuelve creditos; el ALBUM ENTERO, creditos y xp. Se conceden una
+// vez y quedan escritos, como todos los bonus. Se mira al caer cada carta, que es cuando puede
+// cerrarse una serie.
+function otorgarBonusColeccion_(o, email) {
+  var t = tablero_(o.id, true);
+  var yo = (t.reclutas || []).filter(function(x){ return x.email === String(email).toLowerCase(); })[0];
+  if (!yo) return [];
+  var ya = {}; (yo.bonus || []).forEach(function(k){ ya[k] = true; });
+  var nuevos = [];
+  (yo.insignias_album || []).forEach(function(k){ if (!ya["serie:" + k]) nuevos.push("serie:" + k); });
+  if (yo.coleccion && yo.coleccion.cromos.tengo === yo.coleccion.cromos.total && !ya["album"]) nuevos.push("album");
+  nuevos.forEach(function(k){ hoja_(H.AJ).appendRow([new Date(), o.id, String(email).toLowerCase(), "EXTRA", "bonus", k, "sistema"]); });
+  return nuevos;
 }
 function extra_(o, email, accion, valor) { hoja_(H.AJ).appendRow([new Date(), o.id, email, "EXTRA", accion, valor, "canje"]); }
 function actualizarRecompensas() {
@@ -2139,6 +2158,18 @@ function resolverCanje_(o, sh, fila) {
       ? "«" + ficha.nombre + "» ya la tienes: es de una sola vez. No se han gastado créditos."
       : "Ya has canjeado «" + ficha.nombre + "» el máximo de " + ficha.max + " veces. No se han gastado créditos.";
   }
+  // 2 bis) v3.19 · SUBIR NOTA EXIGE HABER TRABAJADO. No se trata de que alguien se ponga la última
+  // semana a entregar chapuzas y compre puntos: se pide en PLANETAS COMPLETOS porque el sistema no
+  // sabe cuándo hiciste el trabajo, solo cuándo lo registraste — y porque una gripe de una semana no
+  // puede dejarte fuera, como pasaría si se pidiera racha.
+  else if (ficha && ficha.tipo === "nota" && NOTA_MIN_PLANETAS > 0 &&
+           (!al || (al.planetas_completos || []).length < NOTA_MIN_PLANETAS)) {
+    var tiene = al ? (al.planetas_completos || []).length : 0;
+    estado = "Denegado (planetas completos: " + tiene + " de " + NOTA_MIN_PLANETAS + ")";
+    cuerpo = "Para tocar la nota hay que haber hecho el trabajo, recluta. Necesitas " + NOTA_MIN_PLANETAS +
+      " planetas COMPLETOS (todos los retos de ese tema) y llevas " + tiene + ". No se han gastado créditos: " +
+      "termina los que tengas a medias y vuelve.";
+  }
   // 3) saldo. 🔴 v3.15 · el canje de repetidos cuesta 0 ◈ a proposito: se paga con cartas, no con
   // creditos, asi que tiene que saltarse esta puerta (que deniega todo lo que cueste 0).
   else if (!al || ((!ficha || ficha.tipo !== "cromo_repes") && (disp < coste || coste <= 0))) {
@@ -2194,6 +2225,7 @@ function resolverCanje_(o, sh, fila) {
   else if (ficha && ficha.tipo === "cromo") {
     var c2 = sortearCromo_();
     extra_(o, email, "cromo", c2[0]);
+    otorgarBonusColeccion_(o, email);   // ¿esa carta acaba de cerrar una serie? ¿o el álbum entero?
     estado = "Concedido";
     cuerpo = "Abres el sobre... ¡" + c2[1] + "! (" + c2[3] + " · " + c2[4] + "). Ya está en tu álbum de la Nave. Te quedan " + (disp - coste) + " créditos." +
       (c2[3] === "LEGENDARIA" ? " ✦ ¡El cromo más difícil de toda la galaxia!" : "");

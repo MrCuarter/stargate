@@ -21,7 +21,8 @@ M.Correo.sendEmail = enviarOriginal;
 
 igual(r.estado, "Concedido", "🔴 el canje se concede aunque el correo reviente");
 const t = G.tablero_("prueba-banco", true).reclutas[0];
-igual(t.creditos_gastados, 200, "y se cobra igual: el estado en la hoja es lo que manda");
+const precio05 = G.recompensasCat_().filter(x => x.nombre === "Subir 0,5 en un entregable")[0].coste;
+igual(t.creditos_gastados, precio05, "y se cobra igual: el estado en la hoja es lo que manda");
 igual(t.canjeados["Subir 0,5 en un entregable"], 1, "y cuenta para el tope por alumno");
 
 // el aviso al docente también va detrás del estado

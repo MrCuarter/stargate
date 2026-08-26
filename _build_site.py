@@ -8,7 +8,8 @@ from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_sema
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
-                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL)
+                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL,
+                        NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
 # no se escriben a mano (si no, cambiarlas en _site_data.py dejaría la web mintiendo).
@@ -1476,7 +1477,8 @@ _gs = _sustituir(_gs, "var RECOMPENSAS_INICIALES = [\n", "\n];\n// RECOMPENSAS-F
 _gs = _sustituir(_gs, "var BONUS_PLANETA = ", ";\n// BONUS-FIN",
                  json.dumps(BONUS_PLANETA, ensure_ascii=False) + ";\nvar BONUS_RACHA = " +
                  json.dumps(BONUS_RACHA, ensure_ascii=False) + ";\nvar BONUS_TUTORIAL = " +
-                 json.dumps(BONUS_TUTORIAL, ensure_ascii=False))
+                 json.dumps(BONUS_TUTORIAL, ensure_ascii=False) + ";\nvar NOTA_MIN_PLANETAS = " + str(NOTA_MIN_PLANETAS) + ";\nvar BONUS_SERIE = " + json.dumps(BONUS_SERIE, ensure_ascii=False) +
+                 ";\nvar BONUS_ALBUM = " + json.dumps(BONUS_ALBUM, ensure_ascii=False))
 _gs = _sustituir(_gs, "var AYUDA_RETOS = ", ";\n// AYUDA-FIN",
                  json.dumps(AYUDA_RETOS, ensure_ascii=False, indent=1, sort_keys=True))
 open(_gs_path, "w", encoding="utf-8").write(_gs)

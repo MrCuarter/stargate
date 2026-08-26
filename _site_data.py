@@ -332,6 +332,21 @@ BONUS_RACHA = [[3, 40], [6, 80], [10, 150]]
 # producido nada, solo has escuchado.
 BONUS_TUTORIAL = {"creditos": 30}
 
+# 🔴 SUBIR NOTA EXIGE HABER TRABAJADO. La idea no es que alguien se ponga la última semana a entregar
+# chapuzas y compre puntos: es premiar a quien ha hecho varias misiones. Se pide en PLANETAS
+# COMPLETOS, no en racha, a propósito — una gripe de una semana no puede dejarte fuera, y el sistema
+# no sabe cuándo hiciste el trabajo, solo cuándo lo registraste.
+NOTA_MIN_PLANETAS = 4
+
+# Completar colecciones mueve el motor: gastas créditos en sobres y parte vuelve, así que sigues
+# jugando. NO es una máquina de dinero — completar el álbum cuesta muchísimos más sobres de los que
+# devuelve (la legendaria sale 1 de cada 100).
+# 🔴 Las series NO dan xp a propósito: los xp son el viaje y mueven el nivel y el ranking principal.
+# Pagarlos por comprar sobres dejaría escalar a quien tiene créditos, no a quien ha trabajado. Para
+# eso está el ranking de Colección. El ÁLBUM ENTERO sí los da: eso ya es una gesta.
+BONUS_SERIE = {"creditos": 40}
+BONUS_ALBUM = {"xp": 300, "creditos": 200}
+
 AYUDA_RETOS = {
   # --- los que se deducen de su etiqueta ---
   "B1": "Una imagen creada con IA. Súbela a tu Bitácora y marca la casilla cuando esté publicada.",
@@ -382,10 +397,10 @@ RECOMPENSAS = [
   "Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.", 6, "marco"),
  ("Héroe de la Rebelión", 60, 99,
   "Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión, cada una única. Se acumulan —cuantos más tengas, más donde elegir— y te lo pones y te lo quitas cuando quieras desde tu Nave, gratis. Los que aún no tienes salen en sombra. Y hay uno LEGENDARIO que no se deja ver hasta que cae.", 2, "heroe"),
- ("Subir 0,5 en un entregable", 200, 1, "Se aplica a la actividad que elijas", 14, "nota"),
- ("Subir 1 punto en un entregable", 320, 1, "Se aplica a la actividad que elijas", 14, "nota"),
- ("Recalificar un trabajo entregado fuera de plazo", 450, 1, "Indica la actividad", 14, "nota"),
- ("Recalificar un suspenso", 600, 1, "Indica la actividad", 14, "nota"),
+ ("Subir 0,5 en un entregable", 320, 1, "Se aplica a la actividad que elijas", 14, "nota"),
+ ("Subir 1 punto en un entregable", 500, 1, "Se aplica a la actividad que elijas", 14, "nota"),
+ ("Recalificar un trabajo entregado fuera de plazo", 700, 1, "Indica la actividad", 14, "nota"),
+ ("Recalificar un suspenso", 950, 1, "Indica la actividad", 14, "nota"),
 ]
 assert [n[0] for n in NIVELES] == list(range(1, 11)), "los niveles van del 1 al 10"
 assert all(NIVELES[i][1] < NIVELES[i+1][1] for i in range(9)), "los umbrales de nivel deben crecer"

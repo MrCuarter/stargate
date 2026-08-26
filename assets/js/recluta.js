@@ -357,10 +357,13 @@
           sub:'Has vuelto cada semana. Eso es lo difícil.', img:'', clase:'texto'});
       else if(k==='tutorial') L.push({peso:PESO.tutorial, eyebrow:'EL CAPITÁN TE PAGA',
           titulo:'Bienvenido a bordo', sub:'Por hacer la visita guiada', img:'', clase:'texto'});
+      else if(k.indexOf('serie:')===0){
+        var sl=(window.SG_SERIES_ALBUM||[]).filter(function(x){return x[0]===k.slice(6);})[0];
+        L.push({peso:PESO.serie, eyebrow:'SERIE COMPLETA', titulo:'✦ '+(sl?sl[2]:'Serie completa'),
+          sub:sl?sl[1]:'', img:'', clase:'texto'}); }
+      else if(k==='album') L.push({peso:PESO.legendaria-1, eyebrow:'COLECCIONISTA',
+          titulo:'🃏 ¡Álbum completo!', sub:'Las 20 cartas. Muy poca gente llega aquí.', img:'', clase:'texto'});
     });
-    if((r.n_album||0)>(ant.n_album||0))
-      L.push({peso:PESO.serie, eyebrow:'SERIE COMPLETA', titulo:'✦ Has completado una serie',
-        sub:'El álbum te lo marca con su sello', img:'', clase:'texto'});
     if(r.titulo&&r.titulo!==ant.titulo)
       L.push({peso:PESO.titulo, eyebrow:'NUEVO TÍTULO', titulo:'«'+r.titulo+'»', sub:'Se lee bajo tu alias', img:'', clase:'texto'});
     if(r.marco&&r.marco!==ant.marco)
