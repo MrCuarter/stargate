@@ -77,4 +77,17 @@ igual(f().avatar.skin, f().rango, "🔴 y no se queda con una skin a la que ya n
 igual(G.HEROES.reduce((a, h) => a + h[2], 0), 100, "los pesos de los héroes suman 100");
 igual(new Set(G.HEROES.map(h => h[0])).size, G.HEROES.length, "sin claves repetidas");
 
+// ---------------------------------------------------------------- h) un héroe que no existe, fuera
+// Los ajustes se escriben a mano cuando hace falta, y una errata (H07_lumen por H07_tejedor) contaba
+// como héroe conseguido: el contador decía «3 de 10» y en la Nave aparecía una figura fantasma que
+// no se podía poner. Si no está en el catálogo, no existe.
+const antesH = f().heroes.length;
+G.hoja_(G.H.AJ).appendRow([new Date(), PER, "nova@alumno.es", "EXTRA", "heroe", "H07_lumen", "banco"]);
+igual(f().heroes.length, antesH, "🔴 un héroe que no está en el catálogo NO entra en el vestuario");
+c(f().heroes.indexOf("H07_lumen") < 0, "y no aparece por ningún lado");
+G.hoja_(G.H.AJ).appendRow([new Date(), PER, "nova@alumno.es", "EXTRA", "heroe", G.HEROES[1][0], "banco"]);
+igual(f().heroes.length, antesH + 1, "mientras que uno bueno sí entra: el filtro no se lleva por delante a los válidos");
+igual(G.esHeroe_("H07_lumen"), false, "esHeroe_ dice que no existe");
+igual(G.esHeroe_(G.HEROES[0][0]), true, "y que el primero del catálogo sí");
+
 E.resumen("Vestuario: skins por nivel y héroes coleccionables");
