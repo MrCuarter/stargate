@@ -63,6 +63,7 @@
       else if(d&&d.yo===null){st.yo=null;st.msgYo='No encuentro ningún recluta con ese correo en este PER. Usa el MISMO correo de Google con el que rellenaste la <b>Bitácora de mando</b> (y si aún no te alistaste, ese es el primer paso).';}
       else{st.yo=null;st.msgYo='La identificación aún no está activa (el mando tiene que actualizar el sistema). El resto de la nave funciona; vuelve a intentarlo más adelante.';}
       render();
+      if(st.yo) celebrar(st.yo);      // después de pintar: el cartel cae encima de su propia ficha
     });
   }
   function olvidar(){st.yo=null;st.email='';st.msgYo='';localStorage.removeItem(KEY_MAIL);render();}
@@ -284,6 +285,130 @@
     ov.querySelector('.tour-prev').onclick=function(){onboarding(i-1);};
     ov.querySelector('.tour-next').onclick=function(){onboarding(i+1);};
     ov.querySelector('.tour-exit').onclick=function(){onboarding(PASOS.length);};
+  }
+
+  // ---------- ¡ENHORABUENA! ----------
+  // v3.19 · El premio se ganaba en un formulario y se contaba por correo, minutos despues. El momento
+  // de ganar y el momento de enterarte estaban en sitios distintos, y por eso «gano algo y no me
+  // entero». Ahora lo cuenta la Nave, que es donde esta el arte: al entrar compara lo que tienes con
+  // lo que tenias la ultima vez que miraste.
+  //
+  // 🔴 La PRIMERA vez no se celebra nada: si no, un recluta que entra por primera vez recibiria una
+  // fanfarria por todo lo que ya tiene. Se guarda la foto en silencio y a partir de ahi se compara.
+  var KEY_VISTO='sgNaveVisto_'+per;
+  var MAX_CARTELES=4;                      // mas que esto es un muro de clics, no una celebracion
+  function foto(r){
+    return { email:st.email, cromos:Object.assign({},r.cromos||{}), heroes:(r.heroes||[]).slice(),
+             skins:(r.skins||[]).slice(), insignias:(r.insignias||[]).slice(), bonus:(r.bonus||[]).slice(),
+             nivel:r.nivel||1, n_album:r.n_album||0, titulo:r.titulo||'', marco:r.marco||'', fondo:r.fondo||'' };
+  }
+  function guardarFoto(r){ try{localStorage.setItem(KEY_VISTO,JSON.stringify(foto(r)));}catch(e){} }
+  function fotoAnterior(){
+    try{ var f=JSON.parse(localStorage.getItem(KEY_VISTO)||'null');
+         return (f && f.email===st.email) ? f : null; }catch(e){ return null; }
+  }
+  // peso = orden de aparicion. Se ordena de MENOS a MAS: lo ultimo que ves es lo mejor que te ha pasado.
+  var PESO={racha:10,tutorial:12,planeta:20,skin:30,insignia:40,serie:45,titulo:48,marco:49,fondo:47,
+            comun:50,rara:55,heroe:60,epica:70,nivel:80,legendaria:99};
+  function logrosNuevos(r,ant){
+    var L=[], NOM=window.SG_BADGE_NAMES||{};
+    var CR={}; (window.SG_CROMOS||[]).forEach(function(c){CR[c[0]]=c;});
+    var HE={}; (window.SG_HEROES||[]).forEach(function(h){HE[h[0]]=h;});
+    // cartas nuevas (o repetidas: tambien es abrir un sobre)
+    Object.keys(r.cromos||{}).forEach(function(k){
+      var n=(r.cromos[k]||0), antes=(ant.cromos&&ant.cromos[k])||0;
+      if(n<=antes||!CR[k]) return;
+      var c=CR[k], rz=String(c[3]||'').toLowerCase();
+      L.push({peso:PESO[rz==='legendaria'?'legendaria':rz==='épica'?'epica':rz==='rara'?'rara':'comun'],
+        eyebrow:antes?'CARTA REPETIDA':'CARTA NUEVA', titulo:c[1],
+        sub:c[3]+(c[2]?' · '+c[2]:'')+(antes?' · ya la tenías, ahora llevas '+n:''),
+        img:'assets/img/tarjetas/'+k+'_carta.png'+CARDV, clase:'carta '+(rz==='legendaria'?'leg':rz==='épica'?'epi':rz==='rara'?'rar':'')});
+    });
+    (r.heroes||[]).forEach(function(k){
+      if((ant.heroes||[]).indexOf(k)>=0||!HE[k]) return;
+      L.push({peso:PESO.heroe, eyebrow:'HÉROE DE LA REBELIÓN', titulo:HE[k][1], sub:HE[k][2]||'',
+        img:'assets/img/heroes/'+k+'.png', clase:'figura'});
+    });
+    if((r.nivel||1)>(ant.nivel||1)){
+      var SG2=window.SG||{}, ni=SG2.nivelInfo?SG2.nivelInfo(r.xp,st.d&&st.d.tipo):null;
+      L.push({peso:PESO.nivel, eyebrow:'HAS SUBIDO DE NIVEL', titulo:'Nivel '+r.nivel,
+        sub:(ni&&ni.titulo?ni.titulo:'')+(r.rango_nombre?' · '+r.rango_nombre:''),
+        img:(SG2.avatarSrc?SG2.avatarSrc(r.avatar,r.alias,r.xp,st.d&&st.d.tipo).src:''), clase:'figura'});
+    }
+    (r.skins||[]).forEach(function(n){
+      if((ant.skins||[]).indexOf(n)>=0) return;
+      var RG=(window.SG&&window.SG.RANGOS)||[];
+      L.push({peso:PESO.skin, eyebrow:'NUEVO ASPECTO', titulo:RG[n-1]||('Skin '+n),
+        sub:'Ya puedes ponértelo desde tu vestuario, gratis', img:'', clase:'texto'});
+    });
+    (r.insignias||[]).forEach(function(k){
+      if((ant.insignias||[]).indexOf(k)>=0) return;
+      L.push({peso:PESO.insignia, eyebrow:'INSIGNIA', titulo:NOM[k]||k, sub:'',
+        img:'assets/img/insignias/'+k+'.png', clase:'figura'});
+    });
+    (r.bonus||[]).forEach(function(k){
+      if((ant.bonus||[]).indexOf(k)>=0) return;
+      var mp=k.match(/^planeta:(\d)$/), mr=k.match(/^racha:(\d+)$/);
+      if(mp){ var pl=(window.SG_PLANETAS||[])[Number(mp[1])-1];
+        L.push({peso:PESO.planeta, eyebrow:'PLANETA COMPLETO', titulo:pl?pl[1]:('Tema '+mp[1]),
+          sub:'Has terminado todos sus retos', img:pl?('assets/img/planetas/'+pl[0]+'.png'+(window.SG_IMGV||'')):'', clase:'figura'}); }
+      else if(mr) L.push({peso:PESO.racha, eyebrow:'CONSTANCIA', titulo:'🔥 '+mr[1]+' semanas seguidas',
+          sub:'Has vuelto cada semana. Eso es lo difícil.', img:'', clase:'texto'});
+      else if(k==='tutorial') L.push({peso:PESO.tutorial, eyebrow:'EL CAPITÁN TE PAGA',
+          titulo:'Bienvenido a bordo', sub:'Por hacer la visita guiada', img:'', clase:'texto'});
+    });
+    if((r.n_album||0)>(ant.n_album||0))
+      L.push({peso:PESO.serie, eyebrow:'SERIE COMPLETA', titulo:'✦ Has completado una serie',
+        sub:'El álbum te lo marca con su sello', img:'', clase:'texto'});
+    if(r.titulo&&r.titulo!==ant.titulo)
+      L.push({peso:PESO.titulo, eyebrow:'NUEVO TÍTULO', titulo:'«'+r.titulo+'»', sub:'Se lee bajo tu alias', img:'', clase:'texto'});
+    if(r.marco&&r.marco!==ant.marco)
+      L.push({peso:PESO.marco, eyebrow:'MARCO DORADO', titulo:'Tu avatar, en oro', sub:'', img:'', clase:'texto'});
+    if(r.fondo&&r.fondo!==ant.fondo)
+      L.push({peso:PESO.fondo, eyebrow:'FONDO DE FICHA', titulo:r.fondo, sub:'Tu ficha, con tu planeta detrás', img:'', clase:'texto'});
+    L.sort(function(a,b){return a.peso-b.peso;});     // en crescendo: lo mejor, al final
+    return L;
+  }
+  function celebrar(r){
+    var ant=fotoAnterior();
+    guardarFoto(r);
+    if(!ant) return;                                   // primera visita: foto en silencio
+    var L=logrosNuevos(r,ant);
+    if(!L.length) return;
+    var extra=[];
+    if(L.length>MAX_CARTELES){ extra=L.slice(0,L.length-MAX_CARTELES); L=L.slice(L.length-MAX_CARTELES); }
+    cartel(L,0,extra);
+  }
+  function cerrarCartel(){
+    var ov=document.getElementById('nave-logro'); if(!ov) return;
+    ov.classList.remove('open'); ov.innerHTML=''; document.removeEventListener('keydown',teclaCartel);
+  }
+  function teclaCartel(e){
+    if(e.key==='Escape'){e.preventDefault();cerrarCartel();}
+    else if(e.key==='Enter'||e.key===' '){var b=document.querySelector('#nave-logro .logro-ok');if(b){e.preventDefault();b.click();}}
+  }
+  function cartel(L,i,extra){
+    if(i>=L.length){ cerrarCartel(); return; }
+    var x=L[i], ultimo=(i===L.length-1);
+    var ov=document.getElementById('nave-logro');
+    if(!ov){ov=document.createElement('div');ov.id='nave-logro';ov.className='logro';document.body.appendChild(ov);}
+    var masCosas=(ultimo&&extra&&extra.length)
+      ? '<p class="logro-mas">Y además: '+extra.map(function(e){return esc(e.titulo);}).join(' · ')+'</p>' : '';
+    ov.innerHTML='<div class="logro-fondo"></div><div class="logro-caja '+x.clase+'" role="dialog" aria-modal="true">'
+      +'<div class="logro-chispas"></div>'
+      +'<div class="logro-eyebrow">'+esc(x.eyebrow)+'</div>'
+      +(x.img?'<img class="logro-img" src="'+x.img+'" alt="">':'')
+      +'<h3>'+esc(x.titulo)+'</h3>'+(x.sub?'<p class="logro-sub">'+esc(x.sub)+'</p>':'')
+      +masCosas
+      +(L.length>1?'<div class="logro-cuenta">'+(i+1)+' de '+L.length+'</div>':'')
+      +'<button type="button" class="btn primary logro-ok">'+(ultimo?'¡A la nave! ✓':'Siguiente →')+'</button>'
+      +'</div>';
+    ov.classList.add('open');
+    ov.querySelector('.logro-fondo').onclick=cerrarCartel;
+    ov.querySelector('.logro-ok').onclick=function(){cartel(L,i+1,extra);};
+    document.removeEventListener('keydown',teclaCartel);
+    document.addEventListener('keydown',teclaCartel);
+    ov.querySelector('.logro-ok').focus();
   }
 
   // ---------- la lupa del álbum ----------

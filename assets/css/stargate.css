@@ -520,3 +520,34 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .rank th.on{color:var(--teal);border-bottom:2px solid var(--teal)}
 .rank td.on{color:#eafcff;font-weight:700;background:rgba(55,224,236,.07)}
 @media(max-width:640px){.rank-tab{flex:1 1 auto;text-align:center;padding:9px 10px;font-size:.8rem}}
+
+/* --- ¡enhorabuena! el cartel de logro --- */
+.logro{position:fixed;inset:0;z-index:90;display:none}
+.logro.open{display:block}
+.logro-fondo{position:absolute;inset:0;background:rgba(4,8,14,.9);backdrop-filter:blur(4px)}
+.logro-caja{position:absolute;inset:0;margin:auto;width:max-content;max-width:min(560px,92vw);height:max-content;
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:26px 30px 24px;
+  background:linear-gradient(180deg,#101a28,#0b1119);border:1px solid #2a5a66;border-radius:22px;
+  box-shadow:0 30px 90px rgba(0,0,0,.75),0 0 70px rgba(55,224,236,.16);
+  animation:logroEntra .38s cubic-bezier(.2,1.4,.4,1)}
+@keyframes logroEntra{from{opacity:0;transform:scale(.86) translateY(14px)}to{opacity:1;transform:none}}
+.logro-eyebrow{font-family:'DMSans';font-weight:700;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--teal)}
+.logro-caja h3{font-family:'Unbounded';margin:0;font-size:1.5rem;line-height:1.15;color:#eafcff}
+.logro-sub{margin:0;color:#b9cbd8;font-size:.95rem;max-width:42ch}
+.logro-mas{margin:6px 0 0;color:var(--amber);font-size:.86rem;max-width:44ch}
+.logro-cuenta{color:var(--mut);font-size:.76rem;letter-spacing:.1em}
+.logro-img{max-width:min(330px,74vw);max-height:52vh;width:auto;border-radius:14px;display:block}
+.logro-caja.carta .logro-img{border:1px solid var(--line)}
+.logro-caja.carta.rar .logro-img{border-color:rgba(96,208,236,.6)}
+.logro-caja.carta.epi{box-shadow:0 30px 90px rgba(0,0,0,.75),0 0 80px rgba(169,140,240,.42)}
+.logro-caja.carta.leg{border-color:var(--amber);box-shadow:0 30px 90px rgba(0,0,0,.75),0 0 100px rgba(245,176,67,.5)}
+.logro-caja.figura .logro-img{max-width:min(240px,60vw);filter:drop-shadow(0 12px 34px rgba(0,0,0,.6))}
+.logro-ok{margin-top:6px}
+/* un destello detrás, sin pasarse */
+.logro-chispas{position:absolute;inset:-40% -20%;pointer-events:none;
+  background:radial-gradient(circle at 50% 42%,rgba(55,224,236,.20),transparent 62%);
+  animation:logroPulso 2.6s ease-in-out infinite}
+.logro-caja.leg .logro-chispas{background:radial-gradient(circle at 50% 42%,rgba(245,176,67,.26),transparent 62%)}
+@keyframes logroPulso{0%,100%{opacity:.55}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.logro-caja,.logro-chispas{animation:none}}
+@media(max-width:640px){.logro-caja{padding:20px 18px}.logro-caja h3{font-size:1.2rem}}
