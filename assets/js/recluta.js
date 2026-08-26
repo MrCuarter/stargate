@@ -315,8 +315,10 @@
       +(mias.length>1?'<button type="button" class="lupa-nav prev" aria-label="Carta anterior">‹</button>'
                      +'<button type="button" class="lupa-nav next" aria-label="Carta siguiente">›</button>':'')
       +'<img class="lupa-carta '+cls+'" src="assets/img/tarjetas/'+clave+'_carta.png'+CARDV+'" alt="'+esc(c[1])+'">'
+      // el pie NO repite lo que ya pone la carta (nombre grande, rareza y probabilidad): solo lo que
+      // la carta no puede saber — de que serie es, cuantas tienes y por donde vas en tu album
       +'<div class="lupa-pie"><h4>'+esc(c[1])+'</h4>'
-      +'<p class="small muted"><span class="rz '+cls+'">'+esc(rz)+'</span> · Serie '+esc(c[2])+(NOMSERIE[c[2]]?' · '+esc(NOMSERIE[c[2]]):'')
+      +'<p class="small muted">'+esc(NOMSERIE[c[2]]||('Serie '+c[2]))
       +(nn>1?' · tienes <b>'+nn+'</b>':'')+(mias.length>1?' · <b>'+(i+1)+'</b> de '+mias.length+' tuyas':'')+'</p></div></div>';
     ov.classList.add('open');
     ov.querySelector('.lupa-fondo').onclick=cerrarLupa;

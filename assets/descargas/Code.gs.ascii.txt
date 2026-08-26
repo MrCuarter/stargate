@@ -841,13 +841,17 @@ function actualizarRecompensas() {
   var r = actualizarFormularios_();
   ui.alert(r.terminado ? "Formularios actualizados" : "Actualizaci\u00f3n en marcha (va por lotes)",
     (r.terminado
-      ? "Listo: " + r.hechos + " grupos de " + r.total + "."
+      // v3.17 - "Listo: 1 de 1" aunque hubiera fallos hacia creer que estaba todo hecho. Se cuentan.
+      ? (r.fallos.length ? "Revisados " + r.hechos + " grupos de " + r.total + ", pero hay " + r.fallos.length +
+                           " cosas que NO se pudieron hacer (abajo)."
+                         : "Listo: " + r.hechos + " grupos de " + r.total + ", sin un solo fallo.")
       : "Hechos " + r.hechos + " de " + r.total + " grupos. Como Apps Script corta a los 6 minutos, el resto " +
         "sigue SOLO dentro de un minuto (y las veces que hagan falta). Tambi\u00e9n puedes volver a pulsar esta opci\u00f3n.") +
-    "\n\n\u00b7 Canje: recompensas con precios en CR\u00c9DITOS y preguntas al d\u00eda.\n" +
-    "\u00b7 Bit\u00e1cora: avatares solo evolutivos (galer\u00eda cl\u00e1sica y URL propia RETIRADAS: poner tu imagen es ahora una " +
-    "recompensa de pago) y SECCIONES R\u00c1PIDAS \u2014 la primera p\u00e1gina pregunta a qu\u00e9 tema vas y salta directo; cada " +
-    "secci\u00f3n env\u00eda al terminar." +
+    "\n\n\u00b7 Canje: precios en CR\u00c9DITOS, \u00abH\u00e9roe de la Rebeli\u00f3n\u00bb en la lista y FUERA las tres preguntas de avatar " +
+    "(cambio de avatar, personaje exclusivo y URL propia): esas recompensas ya no existen.\n" +
+    "\u00b7 Bit\u00e1cora: el personaje ya no se compra ni se cambia \u2014 se elige al alistarse y son sus 5 versiones las que " +
+    "se desbloquean por nivel, gratis, desde la Nave. Y SECCIONES R\u00c1PIDAS: la primera p\u00e1gina pregunta a qu\u00e9 tema " +
+    "vas y salta directo; cada secci\u00f3n env\u00eda al terminar." +
     (r.fallos.length ? "\n\nNo se pudo con:\n" + r.fallos.slice(0, 12).join("\n") : ""), ui.ButtonSet.OK);
 }
 // El trabajo de verdad, sin interfaz: lo llama el menu y tambien el trigger de continuacion.

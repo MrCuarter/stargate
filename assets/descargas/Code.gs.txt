@@ -841,13 +841,17 @@ function actualizarRecompensas() {
   var r = actualizarFormularios_();
   ui.alert(r.terminado ? "Formularios actualizados" : "Actualización en marcha (va por lotes)",
     (r.terminado
-      ? "Listo: " + r.hechos + " grupos de " + r.total + "."
+      // v3.17 · «Listo: 1 de 1» aunque hubiera fallos hacia creer que estaba todo hecho. Se cuentan.
+      ? (r.fallos.length ? "Revisados " + r.hechos + " grupos de " + r.total + ", pero hay " + r.fallos.length +
+                           " cosas que NO se pudieron hacer (abajo)."
+                         : "Listo: " + r.hechos + " grupos de " + r.total + ", sin un solo fallo.")
       : "Hechos " + r.hechos + " de " + r.total + " grupos. Como Apps Script corta a los 6 minutos, el resto " +
         "sigue SOLO dentro de un minuto (y las veces que hagan falta). También puedes volver a pulsar esta opción.") +
-    "\n\n· Canje: recompensas con precios en CRÉDITOS y preguntas al día.\n" +
-    "· Bitácora: avatares solo evolutivos (galería clásica y URL propia RETIRADAS: poner tu imagen es ahora una " +
-    "recompensa de pago) y SECCIONES RÁPIDAS — la primera página pregunta a qué tema vas y salta directo; cada " +
-    "sección envía al terminar." +
+    "\n\n· Canje: precios en CRÉDITOS, «Héroe de la Rebelión» en la lista y FUERA las tres preguntas de avatar " +
+    "(cambio de avatar, personaje exclusivo y URL propia): esas recompensas ya no existen.\n" +
+    "· Bitácora: el personaje ya no se compra ni se cambia — se elige al alistarse y son sus 5 versiones las que " +
+    "se desbloquean por nivel, gratis, desde la Nave. Y SECCIONES RÁPIDAS: la primera página pregunta a qué tema " +
+    "vas y salta directo; cada sección envía al terminar." +
     (r.fallos.length ? "\n\nNo se pudo con:\n" + r.fallos.slice(0, 12).join("\n") : ""), ui.ButtonSet.OK);
 }
 // El trabajo de verdad, sin interfaz: lo llama el menú y también el trigger de continuación.
