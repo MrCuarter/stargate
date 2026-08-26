@@ -2,6 +2,9 @@
 (function(){
   var API=(window.SG_TABLERO_API||"").trim(), root=document.getElementById('tickets-app'); if(!root) return;
   var q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
+  // v3.20 · &panorama=1 · para PROYECTAR en clase dentro de un Genially horizontal: las cifras
+  // grandes, el ultimo tema y sus comentarios a dos columnas. Sin listas largas ni acordeones.
+  if(q.get('panorama')==='1') document.body.classList.add('panorama');
   var st={pin:sessionStorage.getItem('sgPin')||'',per:q.get('per')||'',pers:[],tickets:[],prof:q.get('profe')||'',demo:q.get('demo')==='1'};
   var KSEL='Selecciona el tema',KPROF='profesor o profesora';
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}

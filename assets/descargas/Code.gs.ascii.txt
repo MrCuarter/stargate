@@ -1985,9 +1985,17 @@ function resolverCanje_(o, sh, fila) {
     try { avisarDocente_(o, al, rec, String(r["Actividad a la que se aplica"] || "")); }
     catch (e) { Logger.log("avisarDocente_: " + e); }
   }
-  enviarCorreo_(email, "STARGATE \u00b7 Canje " + (ok ? "concedido" : "denegado"),
-    cuerpo + "\n\nTablero: " + WEB + "registro.html?per=" + o.id + "\nTu nave: " + WEB + "recluta.html?per=" + o.id,
-    o.id, email);
+  // v3.20 - CORREO SOLO CUANDO SE DENIEGA. Lo concedido lo celebra la Nave con la carta en grande, y
+  // un correo mas por cada sobre es ruido que ademas gasta la cuota diaria (100 en una cuenta
+  // gratuita). Pero la DENEGACION no se ve en ningun otro sitio: sin creditos, bloqueado hasta la
+  // semana 14, le faltan planetas... si eso no se cuenta, el alumno escribe al profesorado. Y ese
+  // correo es justo el que no queremos.
+  if (!ok) {
+    enviarCorreo_(email, "STARGATE \u00b7 Canje denegado",
+      cuerpo + "\n\nNo se te ha cobrado nada." +
+      "\n\nTablero: " + WEB + "registro.html?per=" + o.id + "\nTu nave: " + WEB + "recluta.html?per=" + o.id,
+      o.id, email);
+  }
 }
 
 // ================= TABLERO =================

@@ -42,10 +42,14 @@ const alb = G.tablero_(PER, true).reclutas[0].cromos;
 const total = Object.keys(alb).reduce((a, k) => a + alb[k], 0);
 igual(total, sacadas.length, "el álbum suma exactamente las cartas obtenidas (repetidas incluidas)");
 Object.keys(alb).forEach(k => c(G.CROMOS.some(x => x[0] === k), "la carta «" + k + "» existe en el catálogo"));
-const correos = M.Correo.enviados.filter(x => String(x.para).indexOf("col@") >= 0);
-contiene(correos[0].cuerpo, "Abres el sobre", "el correo del sobre narra la apertura");
-c(/común|rara|épica|LEGENDARIA/.test(correos[0].cuerpo), "y nombra la rareza");
-c(/Serie [IV]+ ·/.test(correos[0].cuerpo), "y la serie");
+// v3.20 · abrir un sobre ya NO manda correo: la Nave lo celebra con la carta en grande. Lo que se
+// comprueba es que el relato sigue existiendo (queda en la hoja de canjes, que es el registro).
+igual(M.Correo.enviados.filter(x => String(x.para).indexOf("col@") >= 0).length, 0,
+  "🔴 abrir un sobre no manda correo: se celebra en la Nave");
+const filas = G._maestra.getSheetByName(G.perObj_(G.perFila_(PER).v).tabC).getDataRange().getValues();
+const cab = filas[0].map(String), cEst = cab.indexOf("Estado");
+const relatos = filas.slice(1).map(f => String(f[cEst] || "")).filter(x => x);
+c(relatos.every(x => x.indexOf("Concedido") === 0), "y cada apertura queda registrada como concedida");
 
 // --- corona semanal ------------------------------------------------------------------------------
 const G2 = E.nuevoMundo();

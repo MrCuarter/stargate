@@ -116,6 +116,17 @@ contiene(avisos[0].cuerpo, "clase.html", "y enlaza a su sala de clase");
 M.Correo.limpiar();
 E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Sobre de cromos") });
 igual(M.Correo.enviados.filter(x => x.asunto.indexOf("te toca a ti") >= 0).length, 0, "de un sobre de cromos no se molesta al docente");
-igual(M.Correo.enviados.filter(x => String(x.para).indexOf("rico@") >= 0).length, 1, "pero el alumno sí recibe su correo");
+// v3.20 · lo CONCEDIDO ya no manda correo: lo celebra la Nave con la carta en grande, y un correo
+// por sobre es ruido que ademas gasta la cuota diaria.
+igual(M.Correo.enviados.filter(x => String(x.para).indexOf("rico@") >= 0).length, 0,
+  "🔴 un canje concedido NO manda correo al alumno: lo celebra su Nave");
+// pero lo DENEGADO sí, porque no se ve en ningún otro sitio
+E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Marco dorado del avatar") });
+M.Correo.limpiar();      // el marco es de una sola vez: el SIGUIENTE se deniega seguro
+E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Marco dorado del avatar") });
+const denegado = M.Correo.enviados.filter(x => String(x.para).indexOf("rico@") >= 0);
+igual(denegado.length, 1, "🔴 pero una DENEGACIÓN sí se cuenta: si no, el alumno escribe al profe");
+contiene(denegado[0].asunto, "denegado", "y el asunto lo dice");
+contiene(denegado[0].cuerpo, "No se te ha cobrado", "y deja claro que no ha perdido créditos");
 
 E.resumen("Canjes, topes y avisos");

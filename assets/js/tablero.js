@@ -6,6 +6,9 @@
 (function(){
   var API=(window.SG_TABLERO_API||"").trim(); var root=document.getElementById('tablero-app'); if(!root) return;
   var q=new URLSearchParams(location.search), per=q.get('per'), embed=q.get('embed')==='1'; if(embed) document.body.classList.add('embed');
+  // v3.20 · &solo=1 · SOLO EL RANKING, para incrustarlo en un Genially sin nada alrededor: fuera los
+  // botones de los formularios y fuera la cabecera. Lo que queda es la competición y nada más.
+  var solo=q.get('solo')==='1'; if(solo) document.body.classList.add('solo-ranking');
   var N=window.SG_BADGE_NAMES||{};
   var ORDEN=["P1_bran","P2_tomas","P3_sylla","P4_amara","P5_vera","P6_joran","P7_mara","P8_noa","R1_la-chispa","R2_el-eco-que-ensena","R3_la-matriz","R4_entorno-de-aula","R5_bitacora-medida","R6_el-juego","R7_microgamificacion","R8_ultimo-umbral","E1_nebula","E2_capitan","E3_vaeon","H1_reclutamiento","H2_primera-forja","H3_cartografo","H4_tripulacion-cero","H5_la-liberacion"];
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -88,9 +91,9 @@
           +'<td'+td('sem','small')+'>'+(p.xp7||0)+'</td>'
           +'<td class="small muted">'+(p.creditos!=null?p.creditos:(p.xp_disponibles||0))+'</td></tr>'
           +'<tr class="insrow" data-alias="'+esc(p.alias.toLowerCase())+'"><td colspan="9"><div class="dots">'+dots(p)+'</div></td></tr>';}).join('');
-      root.innerHTML='<div class="tab-head"><div><div class="eyebrow amber">'+esc(d.nombre)+' · '+esc(d.tipo)+' · '+esc(d.estado)+'</div><h3>Ranking de reclutas</h3></div>'
-        +'<div class="small muted">'+todos.length+' reclutas · '+new Date(d.actualizado).toLocaleString('es-ES')+'</div></div>'
-        +forms+pestanas+podio
+      root.innerHTML=(solo?'':'<div class="tab-head"><div><div class="eyebrow amber">'+esc(d.nombre)+' · '+esc(d.tipo)+' · '+esc(d.estado)+'</div><h3>Ranking de reclutas</h3></div>'
+        +'<div class="small muted">'+todos.length+' reclutas · '+new Date(d.actualizado).toLocaleString('es-ES')+'</div></div>')
+        +(solo?'':forms)+pestanas+podio
         +'<div class="buscar"><input id="buscaAlias" type="search" placeholder="Busca tu alias…" autocomplete="off"><span class="small muted">xp = ganados · ◈ = lo que te queda tras canjear</span></div>'
         +(r.length?'<div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Recluta</th><th>Planeta</th><th>Insignias</th>'
             +'<th'+th('col')+' title="Cartas, héroes y versiones de tu personaje">Colección</th><th>Nivel</th>'
