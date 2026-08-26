@@ -255,6 +255,13 @@ function opcExclusivos_() { return opcAvatares_(AVATARES_INICIALES + 1, 7); }
 
 // ================= MENÚ Y HOJAS =================
 function onOpen() {
+  // v3.17 · el menu solo existe si hay una hoja abierta delante. Al ejecutar onOpen desde el editor
+  // (que es como se autoriza el script la primera vez) no hay ventana y getUi() revienta; sin este
+  // try, el error se llevaba por delante a asegurarHojas_(), que si tiene que correr siempre.
+  try { menuStargate_(); } catch (e) {}
+  asegurarHojas_();
+}
+function menuStargate_() {
   SpreadsheetApp.getUi().createMenu("STARGATE")
     .addItem("Crear nuevo PER...", "abrirDialogoNuevoPER")
     .addItem("Publicar y abrir formularios del PER seleccionado", "publicarFormulariosPER")
@@ -282,7 +289,6 @@ function onOpen() {
     .addItem("Guardar URL del web app", "pedirWebAppUrl")
     .addItem("Correo de avisos de reserva", "guardarCorreoAvisos")
     .addToUi();
-  asegurarHojas_();
 }
 function hoja_(nombre, cab, color) {
   var ss = SpreadsheetApp.getActive(); var sh = ss.getSheetByName(nombre);

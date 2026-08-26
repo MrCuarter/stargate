@@ -117,8 +117,10 @@
     var libres=r.repes_disponibles!=null?r.repes_disponibles:repes;
     function rarCls(rz){return rz==='LEGENDARIA'?' leg':rz==='épica'?' epi':rz==='rara'?' rar':'';}
     function celda(c){var nn=tengo[c[0]]||0;
-      return '<div class="c'+(nn?'':' no')+rarCls(c[3])+'" title="'+esc(c[1])+' · '+c[3]+(nn?' · x'+nn:' · aún no ha salido')+'">'
-        +'<img loading="lazy" src="assets/img/tarjetas/'+c[0]+'_carta.png'+CARDV+'" alt="">'
+      // la que ya tienes se abre en grande (la carta lleva texto: hay que poder LEERLA)
+      return '<div class="c'+(nn?'':' no')+rarCls(c[3])+'"'+(nn?' data-c="'+c[0]+'" role="button" tabindex="0"':'')
+        +' title="'+esc(c[1])+' · '+c[3]+(nn?' · x'+nn+' — pulsa para verla en grande':' · aún no ha salido')+'">'
+        +'<img loading="lazy" src="assets/img/tarjetas/'+c[0]+'_carta.png'+CARDV+'" alt="'+(nn?esc(c[1]):'')+'">'
         +(nn>1?'<span class="nx">x'+nn+'</span>':'')+'</div>';}
     var NOMSELLO={}; SELLOS.forEach(function(x){NOMSELLO[x[1]]=x[2];});
     var series=SERIES.map(function(sr){
@@ -284,6 +286,49 @@
     ov.querySelector('.tour-exit').onclick=function(){onboarding(PASOS.length);};
   }
 
+  // ---------- la lupa del álbum ----------
+  // Las cartas llevan texto y a tamaño de miniatura no hay quien lo lea. Solo se abren las que TIENES:
+  // las que no, siguen siendo una silueta y no hay nada que leer en ellas.
+  function cromosMios(){var t=(st.yo&&st.yo.cromos)||{}; return CROMOS.filter(function(c){return t[c[0]];});}
+  function cerrarLupa(){var ov=document.getElementById('cromo-lupa'); if(!ov) return;
+    ov.classList.remove('open'); ov.innerHTML=''; document.removeEventListener('keydown',teclaLupa);}
+  function teclaLupa(e){
+    if(e.key==='Escape'){e.preventDefault();cerrarLupa();return;}
+    var ov=document.getElementById('cromo-lupa'); if(!ov||!ov.classList.contains('open')) return;
+    if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();
+      var mias=cromosMios(), i=Number(ov.getAttribute('data-i'))||0;
+      if(mias.length<2) return;
+      lupaCromo(mias[(i+(e.key==='ArrowLeft'?-1:1)+mias.length)%mias.length][0]);}
+  }
+  function lupaCromo(clave){
+    var mias=cromosMios(), i=-1;
+    for(var k=0;k<mias.length;k++) if(mias[k][0]===clave) i=k;
+    if(i<0) return;                                   // no la tiene: no hay nada que abrir
+    var c=mias[i], t=(st.yo&&st.yo.cromos)||{}, nn=t[clave]||1;
+    var NOMSERIE={}; SERIES.forEach(function(sr){NOMSERIE[sr[0]]=sr[1];});
+    var rz=c[3], cls=rz==='LEGENDARIA'?'leg':rz==='épica'?'epi':rz==='rara'?'rar':'com';
+    var ov=document.getElementById('cromo-lupa');
+    if(!ov){ov=document.createElement('div');ov.id='cromo-lupa';ov.className='lupa';document.body.appendChild(ov);}
+    ov.setAttribute('data-i',i);
+    ov.innerHTML='<div class="lupa-fondo"></div><div class="lupa-caja" role="dialog" aria-modal="true" aria-label="'+esc(c[1])+'">'
+      +'<button type="button" class="lupa-x" aria-label="Cerrar">×</button>'
+      +(mias.length>1?'<button type="button" class="lupa-nav prev" aria-label="Carta anterior">‹</button>'
+                     +'<button type="button" class="lupa-nav next" aria-label="Carta siguiente">›</button>':'')
+      +'<img class="lupa-carta '+cls+'" src="assets/img/tarjetas/'+clave+'_carta.png'+CARDV+'" alt="'+esc(c[1])+'">'
+      +'<div class="lupa-pie"><h4>'+esc(c[1])+'</h4>'
+      +'<p class="small muted"><span class="rz '+cls+'">'+esc(rz)+'</span> · Serie '+esc(c[2])+(NOMSERIE[c[2]]?' · '+esc(NOMSERIE[c[2]]):'')
+      +(nn>1?' · tienes <b>'+nn+'</b>':'')+(mias.length>1?' · <b>'+(i+1)+'</b> de '+mias.length+' tuyas':'')+'</p></div></div>';
+    ov.classList.add('open');
+    ov.querySelector('.lupa-fondo').onclick=cerrarLupa;
+    ov.querySelector('.lupa-x').onclick=cerrarLupa;
+    var pv=ov.querySelector('.lupa-nav.prev'), nx=ov.querySelector('.lupa-nav.next');
+    if(pv)pv.onclick=function(){lupaCromo(mias[(i-1+mias.length)%mias.length][0]);};
+    if(nx)nx.onclick=function(){lupaCromo(mias[(i+1)%mias.length][0]);};
+    document.removeEventListener('keydown',teclaLupa);
+    document.addEventListener('keydown',teclaLupa);
+    ov.querySelector('.lupa-x').focus();
+  }
+
   // ---------- render ----------
   function render(){
     root.innerHTML=cabecera()+accesos()+personaje()+vestuario()+estaSemana()+mapa()+recompensas();
@@ -308,6 +353,11 @@
           identificar(st.email);        // recarga la ficha y repinta con lo puesto
         },function(e){ b.disabled=false; alert(e); });
       };});
+    Array.prototype.forEach.call(root.querySelectorAll('.album .c[data-c]'),function(el){
+      var clave=el.getAttribute('data-c');
+      el.onclick=function(){lupaCromo(clave);};
+      el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();lupaCromo(clave);}});
+    });
     var ob=root.querySelector('#btn-onboard'); if(ob)ob.onclick=function(){onboarding(0);};
   }
 

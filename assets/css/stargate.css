@@ -487,3 +487,25 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .vest.on b::after{content:" ✓";color:var(--oro,#f5b043)}
 .vest.no{cursor:default;opacity:.85}
 .vest.no b{color:var(--mut)}
+
+/* --- la lupa del álbum: las cartas llevan texto y hay que poder leerlas --- */
+.album .c[data-c]{cursor:zoom-in;transition:transform .12s ease,box-shadow .12s ease}
+.album .c[data-c]:hover,.album .c[data-c]:focus-visible{transform:translateY(-3px) scale(1.03);outline:none;box-shadow:0 10px 26px rgba(0,0,0,.6),0 0 0 2px var(--teal)}
+.lupa{position:fixed;inset:0;z-index:80;display:none}
+.lupa.open{display:block}
+.lupa-fondo{position:absolute;inset:0;background:rgba(4,8,14,.86);backdrop-filter:blur(3px)}
+.lupa-caja{position:absolute;inset:0;margin:auto;width:max-content;max-width:96vw;height:max-content;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px}
+.lupa-carta{max-width:min(560px,88vw);max-height:76vh;width:auto;height:auto;display:block;border-radius:14px;border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.75)}
+.lupa-carta.rar{border-color:rgba(96,208,236,.6)}
+.lupa-carta.epi{border-color:#a98cf0;box-shadow:0 30px 80px rgba(0,0,0,.75),0 0 40px rgba(169,140,240,.45)}
+.lupa-carta.leg{border-color:var(--amber);box-shadow:0 30px 80px rgba(0,0,0,.75),0 0 46px rgba(245,176,67,.5)}
+.lupa-pie{text-align:center;color:var(--ink);max-width:min(560px,88vw)}
+.lupa-pie h4{font-family:'Unbounded';margin:0 0 .25em;font-size:1.05rem;color:#eafcff}
+.lupa-pie p{margin:0}
+.lupa-pie .rz{text-transform:uppercase;letter-spacing:.1em;font-weight:700;font-size:.72rem}
+.lupa-pie .rz.rar{color:#60d0ec}.lupa-pie .rz.epi{color:#a98cf0}.lupa-pie .rz.leg{color:var(--amber)}
+.lupa-x{position:absolute;top:10px;right:14px;background:rgba(16,26,40,.9);border:1px solid #2a4656;color:#eafcff;font-size:1.4rem;line-height:1;width:38px;height:38px;border-radius:50%;cursor:pointer}
+.lupa-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(16,26,40,.9);border:1px solid #2a4656;color:#eafcff;font-size:1.8rem;line-height:1;width:44px;height:44px;border-radius:50%;cursor:pointer}
+.lupa-nav.prev{left:8px}.lupa-nav.next{right:8px}
+.lupa-x:hover,.lupa-nav:hover{border-color:var(--teal);color:var(--teal)}
+@media(max-width:640px){.lupa-carta{max-height:66vh}.lupa-nav{width:38px;height:38px;font-size:1.4rem}}
