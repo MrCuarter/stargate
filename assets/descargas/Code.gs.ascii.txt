@@ -1730,6 +1730,8 @@ function fotoNocturna() {
   try { actualizarConsola(); } catch (e) { Logger.log("actualizarConsola: " + e); }
   try { dossier_(); } catch (e) { Logger.log("dossier_: " + e); }
   try { avisoCierreCanje(); } catch (e) { Logger.log("avisoCierreCanje: " + e); }
+  // el ultimo, y a proposito: si algo de lo de arriba deja el sistema tocado, el vigia lo ve HOY
+  try { vigiaDiario(); } catch (e) { Logger.log("vigiaDiario: " + e); }
 }
 // v3.15 - SE ACABA EL CANJE (?12.8). La ultima semana ya no se gana nada: solo se gasta lo ganado, y
 // quien llega con 200 (cred) sin tocar los pierde. La fecha se ve en la Nave, pero nadie te da un toque.
@@ -2617,6 +2619,69 @@ function salud_() {
   var avisos = puntos.filter(function(p){ return p.nivel === "aviso"; }).length;
   return { ok: malos === 0, malos: malos, avisos: avisos, puntos: puntos, pers: pers.length,
            incompleto: incompleto, fecha: new Date() };
+}
+// ================= EL VIGIA =================
+// v3.18 - El parte de salud ya sabia detectar los triggers duplicados, la cuota de correo, los
+// canjes sin resolver y los errores del trigger. Los duplicados los descubrimos a mano, de
+// casualidad, mirando el registro de ejecuciones - porque NADIE ABRIO EL PARTE. A este sistema no
+// le faltaba inteligencia: le faltaba boca.
+//
+// Cuelga de fotoNocturna (4:00) a proposito: ni un trigger nuevo que instalar, mantener o duplicar.
+//
+// Cuando habla y cuando calla:
+//   - hay algo mal o en aviso  -> escribe si el problema es NUEVO, y si sigue igual insiste cada 7 dias
+//   - se ha arreglado todo     -> lo dice UNA vez, y calla
+//   - todo bien desde hace 30 dias -> una senal de vida, porque si no el silencio de un script muerto
+//     es identico al silencio de un sistema sano, y eso es justo lo que no queremos durante una baja
+var VIGIA_INSISTE_DIAS = 7;
+var VIGIA_LATIDO_DIAS = 30;
+function vigiaDiario() {
+  var pr = PropertiesService.getScriptProperties();
+  var s;
+  try { s = salud_(); }
+  catch (e) {
+    // que el parte reviente ES la peor noticia posible, asi que se cuenta igual
+    enviarCorreo_(correoDeReserva_(), "STARGATE \u00b7 el parte de salud no se puede ni ejecutar",
+      "Al mirar el sistema ha saltado un error:\n\n" + (e && e.message ? e.message : e) +
+      "\n\nHoja: " + SpreadsheetApp.getActive().getUrl());
+    return { enviado: true, motivo: "el parte revento" };
+  }
+  var pegas = s.puntos.filter(function(p){ return p.nivel !== "ok"; });
+  var huella = pegas.map(function(p){ return p.nivel + ":" + p.clave; }).sort().join("|");
+  var ant = {}; try { ant = JSON.parse(pr.getProperty("VIGIA_ESTADO") || "{}"); } catch (e2) {}
+  var dias = ant.fecha ? Math.floor((new Date().getTime() - new Date(ant.fecha).getTime()) / 864e5) : 999;
+
+  var motivo = "";
+  if (huella) {
+    if (huella !== ant.huella) motivo = "algo nuevo";
+    else if (dias >= VIGIA_INSISTE_DIAS) motivo = "sigue sin arreglarse";
+  } else if (ant.huella) motivo = "ya esta arreglado";
+  else if (dias >= VIGIA_LATIDO_DIAS) motivo = "senal de vida";
+
+  if (!motivo) return { enviado: false, huella: huella };
+
+  // ojo con el nombre: "icono" es el semaforo de parteDeSalud (los emojis del ?19). Este es otro.
+  var marca = { mal: "[!]", aviso: "[-]" };
+  var titulo = huella
+    ? (s.malos ? "\uD83D\uDD34 STARGATE \u00b7 " + s.malos + " cosa" + (s.malos > 1 ? "s" : "") + " que arreglar"
+               : "\uD83D\uDFE1 STARGATE \u00b7 " + s.avisos + " aviso" + (s.avisos > 1 ? "s" : ""))
+    : (ant.huella ? "\uD83D\uDFE2 STARGATE \u00b7 arreglado, todo en orden"
+                  : "\uD83D\uDFE2 STARGATE \u00b7 sigo vigilando, todo en orden");
+  var cuerpo = huella
+    ? "Esto es lo que he visto esta manana en STARGATE:\n\n" +
+      pegas.map(function(p){ return (marca[p.nivel] || "") + " " + p.titulo + " \u2014 " + p.detalle +
+        (p.arreglo ? "\n    Que hacer: " + p.arreglo : ""); }).join("\n\n") +
+      (motivo === "sigue sin arreglarse" ? "\n\n(Esto ya te lo dije hace " + dias + " dias y sigue igual.)" : "")
+    : (ant.huella ? "Lo que estaba mal ya no lo esta. No hay nada pendiente."
+                  : "Llevo " + dias + " dias mirando y no ha hecho falta molestarte. Sigo aqui.");
+  cuerpo += "\n\n" + s.pers + " PER activos \u00b7 " +
+            Utilities.formatDate(s.fecha, "Europe/Madrid", "d/MM/yyyy HH:mm") +
+            "\nHoja: " + SpreadsheetApp.getActive().getUrl() +
+            "\n\nEste aviso sale solo cuando hay algo que contar. Si no recibes nada, es que va bien.";
+
+  var ok = enviarCorreo_(correoDeReserva_(), titulo, cuerpo);
+  pr.setProperty("VIGIA_ESTADO", JSON.stringify({ huella: huella, fecha: new Date().toISOString() }));
+  return { enviado: ok, motivo: motivo, huella: huella, titulo: titulo };
 }
 function parteDeSalud() {
   var s = salud_();
