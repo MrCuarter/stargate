@@ -254,6 +254,32 @@ CROMOS = [
 ]
 assert sum(c[4] for c in CROMOS) == 100, "los pesos de CROMOS deben sumar 100"
 
+# ---------- vestuario: skins del personaje + héroes coleccionables (v3.16) ----------
+# DOS COSAS DISTINTAS, y conviene no mezclarlas:
+#   · SKINS. Tu personaje tiene 5 versiones de arte (RANGOS) que se desbloquean POR NIVEL. Antes se
+#     imponían al subir; ahora se ELIGEN. No hacen falta imágenes nuevas: son las de siempre.
+#   · HÉROES. Figuras únicas de la Rebelión que salen AL AZAR de la recompensa «Héroe de la
+#     Rebelión». Se acumulan y también se eligen. Uno por imagen: ni ella/él ni evoluciones — por eso
+#     un catálogo grande es asumible.
+# El fichero vive en assets/img/heroes/<clave>.jpg.
+# [clave, nombre, rareza, peso] · los pesos suman 100
+HEROES = [
+ ("H01_custodio",   "Custodio de Fôrge",      "épica",       12),
+ ("H02_custodia",   "Custodia de Fôrge",      "épica",       12),
+ ("H03_xeno",       "Xeno de Liminar",        "rara",        12),
+ ("H04_xena",       "Xena de Liminar",        "rara",        12),
+ ("H05_eco",        "Eco de la Cero",         "épica",       12),
+ ("H06_eca",        "Eco de la Cero (ella)",  "épica",       12),
+ ("H07_tejedor",    "Tejedor de Sendara",     "rara",        12),
+ ("H08_tejedora",   "Tejedora de Sendara",    "rara",        12),
+ ("H29_heredero",   "Heredero de la Sombra",  "LEGENDARIA",   2),
+ ("H30_heredera",   "Heredera de la Sombra",  "LEGENDARIA",   2),
+]
+assert sum(h[3] for h in HEROES) == 100, "los pesos de HEROES deben sumar 100"
+# Los LEGENDARIOS no se pueden previsualizar: bloqueados salen como una silueta negra
+# (assets/img/heroes/<clave>_bloqueado.jpg). Querer algo que no sabes cómo es tira más que verlo.
+HEROES_OCULTOS = [h[0] for h in HEROES if h[2] == "LEGENDARIA"]
+
 # ---------- niveles, rangos y economía (v3.7) ----------
 # DOS MONEDAS, a propósito (y es la lección de gamificación de la asignatura):
 #   · XP  = progreso del viaje. SOLO SUBEN. Determinan el NIVEL y la evolución del avatar.

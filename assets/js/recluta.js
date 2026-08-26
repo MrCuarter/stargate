@@ -43,6 +43,16 @@
       .then(function(r){return r.json();}).then(cb)
       .catch(function(){cb({error:'red'});});
   }
+  // Vestirse escribe, pero SIN PIN a propósito: el alumnado no va a recordar otra clave. El servidor
+  // solo deja ponerse algo que ya se tiene desbloqueado, así que lo peor que puede pasar es que
+  // alguien le cambie el disfraz a un compañero — cosmético y se deshace en un clic.
+  function post(cuerpo,cb,err){
+    fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(cuerpo)})
+      .then(function(r){return r.json();})
+      .then(function(d){ if(d&&d.error){ if(err)err(d.error); else alert(d.error); return; } cb(d); })
+      .catch(function(e){ if(err)err('Error de red'); });
+  }
   function identificar(email){
     email=String(email||'').toLowerCase().trim();
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){st.msgYo='Eso no parece un correo. Prueba otra vez.';render();return;}
@@ -141,6 +151,47 @@
       +'<p class="small" style="margin-top:10px"><button class="btn small" id="btn-olvidar" type="button">No soy yo / salir</button></p></div>'
       +'<div class="card"><h3>Tu colección · '+(r.insignias||[]).length+' / '+BADGES.length+'</h3><div class="badge-col">'+col+'</div></div></div>'+album;
   }
+  // v3.16 · EL VESTUARIO. Las cinco versiones de arte del personaje ya no se imponen al subir de
+  // nivel: se desbloquean y se ELIGEN. Y encima están los héroes, que salen al azar y se acumulan.
+  // Los que no tienes salen en SOMBRA: querer algo que no sabes cómo es tira más que verlo.
+  function vestuario(){
+    var d=st.d, yo=st.yo; if(!yo) return '';
+    var HER=window.SG_HEROES||[], RANGOS=(window.SG&&window.SG.RANGOS)||[];
+    var mios={}; (yo.heroes||[]).forEach(function(k){mios[k]=true;});
+    var skins=yo.skins||[1], puesto=yo.viste||'';
+    var av=yo.avatar||{};
+    function celda(clave,img,tit,sub,on,libre){
+      return '<button type="button" class="vest'+(on?' on':'')+(libre?'':' no')+'" data-viste="'+esc(clave)+'"'
+        +(libre?'':' disabled')+' title="'+esc(libre?tit:'Todavía no lo tienes')+'">'
+        +'<img loading="lazy" src="'+esc(img)+'" alt="">'
+        +'<b>'+esc(libre?tit:'???')+'</b><em>'+esc(sub)+'</em></button>';
+    }
+    var sk=[1,2,3,4,5].map(function(r){
+      var libre=skins.indexOf(r)>=0;
+      var img='assets/img/avatares/evo/p'+(av.n||1)+(av.v||'f')+'_r'+r+'.jpg';
+      var nivel=[1,1,3,5,8,10][r];
+      return celda('skin:'+r, img, RANGOS[r-1]||('Skin '+r),
+        libre?'desbloqueada':'nivel '+nivel, puesto==='skin:'+r||(!puesto&&av.skin===r), libre);
+    }).join('');
+    var he=HER.map(function(h){
+      var tengo=!!mios[h[0]];
+      return celda('heroe:'+h[0], 'assets/img/heroes/'+h[0]+(tengo?'':'_bloqueado')+'.jpg',
+        h[1], tengo?h[3]:'sin descubrir', puesto==='heroe:'+h[0], tengo);
+    }).join('');
+    var n=(yo.heroes||[]).length;
+    return '<section id="vestuario"><div class="eyebrow amber">Tu vestuario</div>'
+      +'<h2>Ponte lo que quieras</h2>'
+      +'<p class="lead">Las <b>skins</b> de tu personaje se desbloquean al subir de nivel, y los '
+      +'<b>héroes</b> salen al azar al canjear «Héroe de la Rebelión». Todo lo que tengas te lo pones '
+      +'y te lo quitas cuando quieras, <b>gratis</b>.</p>'
+      +'<h3 style="margin-top:1em">Tus skins <span class="small muted">'+skins.length+' de 5</span></h3>'
+      +'<div class="vest-grid">'+sk+'</div>'
+      +'<h3 style="margin-top:1.4em">Héroes de la Rebelión <span class="small muted">'+n+' de '+HER.length+'</span></h3>'
+      +'<div class="vest-grid">'+he+'</div>'
+      +(d.formCanje?'<p style="margin-top:12px"><a class="btn small primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎭 Conseguir un héroe →</a></p>':'')
+      +'</section>';
+  }
+
   function accesos(){
     var d=st.d;
     return '<div class="nave-barra"><div class="nave-accesos">'
@@ -235,7 +286,7 @@
 
   // ---------- render ----------
   function render(){
-    root.innerHTML=cabecera()+accesos()+personaje()+estaSemana()+mapa()+recompensas();
+    root.innerHTML=cabecera()+accesos()+personaje()+vestuario()+estaSemana()+mapa()+recompensas();
     wireYt(root);
     var det=root.querySelector('#nave-detalle');
     Array.prototype.forEach.call(root.querySelectorAll('.nave-pl.on'),function(el){
@@ -249,6 +300,14 @@
     if(bm)bm.onclick=function(){identificar(im.value);};
     if(im)im.addEventListener('keydown',function(e){if(e.key==='Enter')identificar(im.value);});
     var bo=root.querySelector('#btn-olvidar'); if(bo)bo.onclick=olvidar;
+    Array.prototype.forEach.call(root.querySelectorAll('button.vest[data-viste]'),function(b){
+      b.onclick=function(){
+        if(b.classList.contains('no')||!st.email) return;
+        b.disabled=true;
+        post({accion:'vestir',per:per,email:st.email,viste:b.getAttribute('data-viste')},function(){
+          identificar(st.email);        // recarga la ficha y repinta con lo puesto
+        },function(e){ b.disabled=false; alert(e); });
+      };});
     var ob=root.querySelector('#btn-onboard'); if(ob)ob.onclick=function(){onboarding(0);};
   }
 

@@ -471,3 +471,19 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
   color:#ffb347;background:rgba(255,140,50,.13);border:1px solid rgba(255,140,50,.4);border-radius:999px;
   padding:1px 8px;margin-left:6px;white-space:nowrap}
 .rank .full{color:var(--amber)}
+
+/* ---------- El vestuario de la Nave (v3.16) ---------------------------------------------------
+   Skins y héroes en la misma rejilla, porque para el alumnado son lo mismo: cosas que ponerse.
+   Lo que no tienes sale en sombra y no se puede pulsar — pero se VE, que es lo que pica. */
+.vest-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));margin-top:8px}
+.vest{display:flex;flex-direction:column;gap:2px;padding:0 0 8px;border-radius:14px;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);color:inherit;overflow:hidden;text-align:center;
+  transition:transform .12s ease,border-color .12s ease}
+.vest img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+.vest b{font-size:.82rem;line-height:1.2;padding:6px 6px 0}
+.vest em{font-style:normal;font-size:.7rem;color:var(--mut)}
+.vest:hover:not(.no){transform:translateY(-3px);border-color:var(--teal)}
+.vest.on{border-color:var(--oro,#f5b043);box-shadow:0 0 0 2px rgba(245,176,67,.35)}
+.vest.on b::after{content:" ✓";color:var(--oro,#f5b043)}
+.vest.no{cursor:default;opacity:.85}
+.vest.no b{color:var(--mut)}

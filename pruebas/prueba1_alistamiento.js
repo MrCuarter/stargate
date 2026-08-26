@@ -19,11 +19,11 @@ igual(t.reclutas.length, 3, "se alistan 3 reclutas");
 const ana = t.reclutas.filter(x => x.email === "ana@alumno.es")[0];
 c(!!ana, "el correo se normaliza a minúsculas");
 igual(ana.xp, 100, "alistarse da 100 xp (reclutamiento)");
-igual(ana.creditos, 10, "alistarse da 10 créditos");
+igual(ana.creditos, 20, "alistarse da 20 créditos");
 igual(ana.nivel, 1, "con 100 xp sigue en nivel 1");
 igual(ana.rango_nombre, "Recluta", "rango de arte 1 = Recluta");
 igual(ana.profe, "Mr Cuarter", "el tablero devuelve el docente declarado");
-igual(ana.avatar, { tipo: "evo", n: 2, v: "m", url: "" }, "el avatar elegido se lee bien");
+igual([ana.avatar.tipo, ana.avatar.n, ana.avatar.v].join("/"), "evo/2/m", "el avatar elegido se lee bien");
 igual(ana.bitacora, "https://ana.example/eport", "el ePortfolio viaja en la ficha privada");
 igual(t.reclutas.filter(x => x.email === "caro@alumno.es")[0].profe, "", "quien no elige docente se queda sin él");
 
@@ -41,7 +41,7 @@ E.enviarBitacora(G, PER, { email: "ana@alumno.es", marcados: { "Tema 1 · Lo que
 t = G.tablero_(PER, true);
 const ana2 = t.reclutas.filter(x => x.email === "ana@alumno.es")[0];
 igual(ana2.xp, 100 + 100 + 250 + 500, "xp = reclutamiento + A1 + B1 + X1");
-igual(ana2.creditos_ganados, 10 + 10 + 30 + 60, "créditos = 10 + retoA 10 + retoB 30 + actividad 60");
+igual(ana2.creditos_ganados, 20 + 20 + 50 + 100, "créditos = 20 + retoA 20 + retoB 50 + actividad 100");
 igual(ana2.creditos_gastados, 0, "aún no ha gastado nada");
 igual(ana2.nivel, 3, "950 xp = nivel 3");
 igual(ana2.rango, 2, "nivel 3 estrena el rango de arte 2 (Cadete)");
@@ -71,7 +71,7 @@ E.enviarBitacora(G2, "pua-banco", { email: "pua@alumno.es",
   marcados: { "Tema 1 · Lo que he completado": [RP[0][1], RP[1][1]].join(", ") } }, 2);
 const tp = G2.tablero_("pua-banco", true).reclutas[0];
 igual(tp.xp, 100 + 300 + 500, "PUA: reclutamiento + B1 + X1");
-igual(tp.creditos_ganados, 10 + 35 + 60, "PUA: el reto B vale 35 créditos");
+igual(tp.creditos_ganados, 20 + 55 + 100, "PUA: el reto B vale 55 créditos");
 igual(G2.nivelDe_(900, "PUA"), G.nivelDe_(900 * 5000 / 4100, "REGULAR"), "los umbrales de PUA están escalados por el total del viaje");
 igual(G2.desdeEfectiva_(15, "PUA"), 8, "una recompensa de la semana 15 en REGULAR abre en la 8 en PUA");
 

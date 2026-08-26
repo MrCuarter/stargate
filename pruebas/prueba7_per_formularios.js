@@ -68,8 +68,8 @@ igual(titulos.filter(t => t === "¿Quién imparte tu clase?").length, 1, "la mig
 igual(titulos.filter(t => t === "¿Qué vienes a registrar hoy?").length, 1, "y el selector de secciones");
 igual(titulos.filter(t => t.indexOf("URL de tu propia imagen") === 0).length, 0, "y RETIRA la URL propia gratis");
 const av = fb.getItems().filter(i => i.getTitle() === "Elige tu avatar")[0];
-c(av.getChoices().every(x => /^Personaje [1-4] · /.test(x.getValue())), "el avatar ya solo ofrece personajes evolutivos 1-4");
-igual(av.getChoices().length, 8, "los 4 personajes × ella/él");
+c(av.getChoices().every(x => /^Personaje [1-7] · /.test(x.getValue())), "el avatar ofrece los SIETE personajes: los 5-7 dejan de ser de pago");
+igual(av.getChoices().length, 14, "los 7 personajes × ella/él");
 const pbs = fb.getItems("PAGE_BREAK");
 c(pbs.length > 0 && pbs.every(p => p.getGoToPage() === "SUBMIT"), "cada sección envía al terminar");
 const nav = fb.getItems().filter(i => i.getTitle() === "¿Qué vienes a registrar hoy?")[0];

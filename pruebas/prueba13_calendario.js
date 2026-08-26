@@ -98,8 +98,11 @@ igual(r2.cierreCanje, "2026-12-07", "y el canje se va una semana detrás, igual"
 // ---------------------------------------------------------------- desbloqueos nuevos
 const cat = {};
 G2.RECOMPENSAS_INICIALES.forEach(x => { cat[x[0]] = x[4]; });
-igual(cat["Cambio de avatar"], 2, "«Cambio de avatar» se adelanta a la semana 2");
-igual(cat["Avatar personal (tu propia imagen)"], 5, "«Avatar personal» pasa de la 10 a la 5");
+// v3.16 · las tres recompensas de avatar se retiraron; el vestuario de héroes las sustituye
+igual(cat["Héroe de la Rebelión"], 2, "«Héroe de la Rebelión» se abre en la semana 2, con el sobre");
+igual(cat["Cambio de avatar"], undefined, "«Cambio de avatar» ya no está en el catálogo");
+igual(cat["Avatar personal (tu propia imagen)"], undefined, "ni «Avatar personal»");
+igual(cat["Personaje exclusivo"], undefined, "ni «Personaje exclusivo»: los 5-7 son de todos");
 igual(cat["Sobre de cromos"], 2, "los cromos siguen en la 2");
 igual(cat["Subir 0,5 en un entregable"], 14, "y las notas en la 14");
 

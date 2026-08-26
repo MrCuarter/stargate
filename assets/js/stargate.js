@@ -74,6 +74,11 @@ window.SG.avatarSrc = function(av, alias, xp, tipoPer){
   var n = av.n; if(!(n>=1&&n<=7)) n=(h%7)+1;      // sin personaje válido, uno estable por alias
   var v = av.v || ((h>>3)%2 ? 'm' : 'f');
   var r = window.SG.rango(xp||0, tipoPer);
+  // v3.16 · manda lo que lleva PUESTO. Un héroe es una imagen suya; una skin es el tramo de arte
+  // que ha elegido. Si no ha elegido nada, la más alta que tenga (que es lo de siempre).
+  if (av.heroe) return { src:'assets/img/heroes/'+av.heroe+'.jpg', fallback:'assets/img/heroes/'+av.heroe+'.jpg',
+                         rango: window.SG.RANGOS[r-1], r: r, evo:false, heroe: av.heroe };
+  if (av.skin >= 1 && av.skin <= 5) r = av.skin;
   var fallback = 'assets/img/avatares/evo/p'+n+v+'_r'+r+'.jpg';
   var u = av.url ? String(av.url).trim() : '';
   if(u){ var m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([A-Za-z0-9_-]{10,})/); if(m) u = 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
@@ -81,7 +86,7 @@ window.SG.avatarSrc = function(av, alias, xp, tipoPer){
   return { src: u || fallback, fallback: fallback, rango: window.SG.RANGOS[r-1], r: r, evo: !u };
 };
 window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
-  return '<img class="av '+(cls||'')+' r'+r.r+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" title="'+r.rango+'" loading="lazy" referrerpolicy="no-referrer" onerror="var f=this.dataset.fb; if(this.src.indexOf(f)<0){this.src=f;} else if(!this.dataset.rt){this.dataset.rt=1; this.src=f+(f.indexOf(String.fromCharCode(63))<0?'?rt=1':'&amp;rt=1');}">'; };
+  return '<img class="av '+(cls||'')+' r'+r.r+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" title="'+r.rango+'" loading="lazy" referrerpolicy="no-referrer" onerror="var f=this.dataset.fb; if(this.src.indexOf(f)<0){this.src=f;} else if(!this.dataset.rt){this.dataset.rt=1; this.src=f+(f.indexOf(String.fromCharCode(63))<0?\'?rt=1\':\'&amp;rt=1\');}">'; };
 
 // ---------- lista de PERs (grupos): caché de 12 h + revalidación en segundo plano ----------
 // La usa el desplegable «Grupos» del menú y grupos.html. doGet ?per=all NO pide PIN y solo

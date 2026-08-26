@@ -7,13 +7,13 @@ import os, json, hashlib
 from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
-                        RECOMPENSAS, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES)
+                        RECOMPENSAS, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
+                        HEROES, HEROES_OCULTOS)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
 # no se escriben a mano (si no, cambiarlas en _site_data.py dejaría la web mintiendo).
 _DESDE = {r[0]: r[4] for r in RECOMPENSAS}
-_SEM_AVATAR_URL = _DESDE["Avatar personal (tu propia imagen)"]
-_SEM_AVATAR = _DESDE["Cambio de avatar"]
+_SEM_HEROE = _DESDE["Héroe de la Rebelión"]
 
 _SERIE_TIT_WEB = {k: t for k, t, _ in CROMO_SERIES}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -818,8 +818,8 @@ Aunque un recluta no pase por la página del Tema 3, su insignia del Tema 3 sigu
 respuesta son sus datos de identidad, y esa página se ve siempre.</div>
 
 <h3 style="margin-top:1.6em">Avatares</h3>
-<div><p class="lead">Cada recluta elige su avatar en la Bitácora de mando: un <b>personaje que evoluciona con su NIVEL</b> (10 niveles y <b>5 versiones de arte</b>: Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b>; cambia al entrar en los niveles <b>3, 5, 8 y 10</b>, escalado solo en PUA — ver <a href="#economia">la tabla de niveles</a>). Al alistarse se eligen los personajes <b>1-4</b>; los <b>5-7 son EXCLUSIVOS</b> y se desbloquean con <b>créditos ◈</b> — otro motor de motivación. <b>Poner su propia imagen ya no es gratis</b>: es la recompensa «Avatar personal» (90 ◈, desde la semana {_SEM_AVATAR_URL}), y se pide en el formulario de canje — no al alistarse. La antigua galería clásica de 16 avatares fijos <b>se ha retirado</b>: todos los reclutas llevan un personaje que evoluciona.</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
-<div class="official" style="display:block">🖼️ <b>Cómo poner su propia imagen (cuando el alumno canjea «Avatar personal», 90 ◈):</b> 1) entra en <a href="https://postimages.org" target="_blank" rel="noopener">postimages.org</a>, pulsa <i>Elegir imágenes</i> y sube la foto (no hace falta registrarse); 2) copia el campo <b>«Enlace directo»</b> (termina en .jpg o .png); 3) pégalo en el <b>formulario de canje</b>, en la pregunta de la URL. También vale un enlace de <b>Google Drive</b> compartido como «cualquier persona con el enlace». Un enlace a Instagram o a una página web no funciona.</div></div>
+<div><p class="lead">Cada recluta elige su personaje en la Bitácora de mando: uno de los <b>siete</b>, en versión ella/él. Cada personaje tiene <b>cinco versiones de arte</b> — Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b> — que se <b>desbloquean por nivel</b> (3, 5, 8 y 10; ver <a href="#economia">la tabla de niveles</a>). Al desbloquear una nueva se pone sola, pero desde ese momento son <b>skins</b>: el recluta elige cuál lleva desde su Nave, cuando quiera y gratis.</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
+<div class="official" style="display:block">🎭 <b>El vestuario de héroes.</b> Además de las skins, hay <b>héroes de la Rebelión</b>: figuras únicas que salen <b>al azar</b> con la recompensa del mismo nombre (60 ◈, desde la semana {_SEM_HEROE}) y que se <b>acumulan</b>. Se ponen y se quitan gratis desde la Nave. Los que aún no tienes salen en <b>sombra</b>, y los <b>LEGENDARIOS</b> no se dejan ver hasta que caen. Poner tu propia imagen y comprar un personaje suelto <b>se han retirado</b>: el vestuario los sustituye.</div></div>
 </div>
 <h3 id="economia" style="margin-top:1.6em">Dos marcadores: xp y créditos ◈</h3>
 <p class="lead">Es la decisión de diseño más importante del sistema, y de paso el ejemplo vivo de una
@@ -1025,6 +1025,11 @@ window.SG.avatarSrc = function(av, alias, xp, tipoPer){
   var n = av.n; if(!(n>=1&&n<=7)) n=(h%7)+1;      // sin personaje válido, uno estable por alias
   var v = av.v || ((h>>3)%2 ? 'm' : 'f');
   var r = window.SG.rango(xp||0, tipoPer);
+  // v3.16 · manda lo que lleva PUESTO. Un héroe es una imagen suya; una skin es el tramo de arte
+  // que ha elegido. Si no ha elegido nada, la más alta que tenga (que es lo de siempre).
+  if (av.heroe) return { src:'assets/img/heroes/'+av.heroe+'.jpg', fallback:'assets/img/heroes/'+av.heroe+'.jpg',
+                         rango: window.SG.RANGOS[r-1], r: r, evo:false, heroe: av.heroe };
+  if (av.skin >= 1 && av.skin <= 5) r = av.skin;
   var fallback = 'assets/img/avatares/evo/p'+n+v+'_r'+r+'.jpg';
   var u = av.url ? String(av.url).trim() : '';
   if(u){ var m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([A-Za-z0-9_-]{10,})/); if(m) u = 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
@@ -1032,7 +1037,7 @@ window.SG.avatarSrc = function(av, alias, xp, tipoPer){
   return { src: u || fallback, fallback: fallback, rango: window.SG.RANGOS[r-1], r: r, evo: !u };
 };
 window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
-  return '<img class="av '+(cls||'')+' r'+r.r+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" title="'+r.rango+'" loading="lazy" referrerpolicy="no-referrer" onerror="var f=this.dataset.fb; if(this.src.indexOf(f)<0){this.src=f;} else if(!this.dataset.rt){this.dataset.rt=1; this.src=f+(f.indexOf(String.fromCharCode(63))<0?'?rt=1':'&amp;rt=1');}">'; };
+  return '<img class="av '+(cls||'')+' r'+r.r+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" title="'+r.rango+'" loading="lazy" referrerpolicy="no-referrer" onerror="var f=this.dataset.fb; if(this.src.indexOf(f)<0){this.src=f;} else if(!this.dataset.rt){this.dataset.rt=1; this.src=f+(f.indexOf(String.fromCharCode(63))<0?\'?rt=1\':\'&amp;rt=1\');}">'; };
 
 // ---------- lista de PERs (grupos): caché de 12 h + revalidación en segundo plano ----------
 // La usa el desplegable «Grupos» del menú y grupos.html. doGet ?per=all NO pide PIN y solo
@@ -1152,6 +1157,18 @@ js = (JS_TEMPLATE.replace("__BADGE__", json.dumps(BADGE_INFO, ensure_ascii=False
                  .replace("__RANGOS__", json.dumps(RANGOS, ensure_ascii=False))
                  .replace("__NIVELES__", json.dumps([list(n) for n in NIVELES], ensure_ascii=False))
                  .replace("__XPVIAJE__", json.dumps(XP_VIAJE, ensure_ascii=False)))
+def _js_valido(nombre, codigo):
+    """Comprueba la sintaxis del JS generado antes de escribirlo. Sin esto, un error de comillas se
+    publica tal cual y la página se queda sin window.SG: la Nave carga a medias y nada lo canta."""
+    import subprocess, tempfile
+    with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as t:
+        t.write(codigo); ruta = t.name
+    r = subprocess.run(["node", "--check", ruta], capture_output=True, text=True)
+    os.unlink(ruta)
+    if r.returncode != 0:
+        raise SystemExit("\n🔴 %s tiene un error de sintaxis y NO se ha escrito:\n%s" % (nombre, r.stderr))
+
+_js_valido("stargate.js", js)
 open(os.path.join(HERE,"assets","js","stargate.js"),"w",encoding="utf-8").write(js)
 open(os.path.join(HERE,"assets","js","tour.js"),"w",encoding="utf-8").write(TOUR_JS)
 
@@ -1284,7 +1301,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS, ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
 </div></section>
@@ -1402,6 +1419,14 @@ def _js_cromos():
     filas[-1] = filas[-1][:-1]
     return "\n".join(filas)
 
+def _js_heroes():
+    filas = []
+    for clave, nombre, rareza, peso in HEROES:
+        filas.append('  ["%s",%s,%d,%s],' % (clave, json.dumps(nombre, ensure_ascii=False), peso,
+                                             json.dumps(rareza, ensure_ascii=False)))
+    filas[-1] = filas[-1][:-1]
+    return "\n".join(filas)
+
 def _js_niveles():
     L = []
     L.append('var MONEDA = %s;' % json.dumps(MONEDA, ensure_ascii=False))
@@ -1443,6 +1468,7 @@ def _sustituir(txt, ini, fin, cuerpo):
 _gs_path = os.path.join(HERE, "apps-script", "Code.gs")
 _gs = open(_gs_path, encoding="utf-8").read()
 _gs = _sustituir(_gs, "var CROMOS = [\n", "\n];\n// CROMOS-FIN", _js_cromos())
+_gs = _sustituir(_gs, "var HEROES = [\n", "\n];\n// HEROES-FIN", _js_heroes())
 _gs = _sustituir(_gs, "// NIVELES-INICIO", "\n// NIVELES-FIN",
                  _gs[_gs.index("// NIVELES-INICIO")+len("// NIVELES-INICIO"):_gs.index("var MONEDA")].rstrip("\n")
                  + "\n" + _js_niveles())
@@ -1454,8 +1480,8 @@ open(os.path.join(HERE, "assets", "descargas", "Dialog.html.txt"), "w", encoding
 # Copias 100% ASCII para pegar sin riesgo de que se rompan los acentos (ver _ascii_gs.py)
 import subprocess as _sp, sys as _sys
 _sp.run(["python3", os.path.join(HERE, "_ascii_gs.py")], check=False, capture_output=True)
-print("apps-script: CROMOS (%d cartas) + NIVELES (%d) + RECOMPENSAS (%d) regenerados y sincronizados"
-      % (len(CROMOS), len(NIVELES), len(RECOMPENSAS)))
+print("apps-script: CROMOS (%d cartas) + HEROES (%d) + NIVELES (%d) + RECOMPENSAS (%d) regenerados y sincronizados"
+      % (len(CROMOS), len(HEROES), len(NIVELES), len(RECOMPENSAS)))
 
 # ================= COMPROBACIÓN DE LA WEB PUBLICADA (§12.9) =================
 # A propósito NO se hace por defecto: el build tiene que funcionar sin internet. Pero el 504 de

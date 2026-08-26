@@ -19,7 +19,7 @@ RET.forEach(r => { const k = col(r[4] > 8 ? 9 : r[4]); const kk = r[4] > 8 ? "Ba
 E.enviarBitacora(G, PER, { email: "rico@alumno.es", alias: "Rico", nombre: "Rico R", profe: "Mr Cuarter" });
 E.enviarBitacora(G, PER, { email: "rico@alumno.es", marcados: todo }, 2);
 let rico = G.tablero_(PER, true).reclutas[0];
-igual(rico.creditos_ganados, 590, "el viaje completo da 590 créditos");
+igual(rico.creditos_ganados, 1000, "el viaje completo da 1.000 créditos");
 igual(rico.xp, 5000, "y 5000 xp: nivel 10");
 igual(rico.nivel, 10, "nivel 10");
 igual(rico.rango_nombre, "Leyenda", "rango de arte 5 = Leyenda");
@@ -48,7 +48,7 @@ igual(r.estado, "Concedido", "el marco dorado se concede la primera vez");
 igual(G.tablero_(PER, true).reclutas[0].marco, "oro", "y se aplica solo");
 r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Marco dorado del avatar") });
 contiene(r.estado, "máximo", "la segunda vez se DENIEGA por tope (máx. 1)");
-igual(G.tablero_(PER, true).reclutas[0].creditos_gastados, 35, "y no se cobra dos veces");
+igual(G.tablero_(PER, true).reclutas[0].creditos_gastados, 60, "y no se cobra dos veces");
 
 // --- puerta 3: saldo ---------------------------------------------------------------------------
 const G3 = E.nuevoMundo();
@@ -56,7 +56,7 @@ E.crearPERDemo(G3, { nombre: "POBRE BANCO" });
 E.enviarBitacora(G3, "pobre-banco", { email: "pobre@alumno.es", alias: "Pobre", nombre: "P P", profe: "Mr Cuarter" });
 r = E.enviarCanje(G3, "pobre-banco", { email: "pobre@alumno.es", recompensa: E.etiqueta(G3, "Título de recluta"), titulo: "Voz de NEBULA" });
 contiene(r.estado, "Denegado", "con 10 créditos no se compra un título de 25");
-contiene(r.estado, "cuesta 25", "el mensaje dice cuánto cuesta");
+contiene(r.estado, "cuesta 40", "el mensaje dice cuánto cuesta");
 
 // --- efectos automáticos ------------------------------------------------------------------------
 r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Título de recluta"), titulo: "Voz de NEBULA" });
@@ -69,16 +69,28 @@ contiene(r.estado, "falta elegir el título", "sin elegir título se deniega con
 r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Fondo de ficha: tu planeta"), fondo: "Ludo" });
 igual(G.tablero_(PER, true).reclutas[0].fondo, "Ludo", "el fondo de ficha se aplica");
 
-r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Cambio de avatar"), avatar: "Personaje 6 · ella (evoluciona)" });
-contiene(r.estado, "exclusivo", "«Cambio de avatar» rechaza un personaje EXCLUSIVO");
-r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Cambio de avatar"), avatar: "Personaje 3 · él (evoluciona)" });
-igual(G.tablero_(PER, true).reclutas[0].avatar.n, 3, "y sí acepta uno inicial");
+// v3.16 · las tres recompensas de avatar («Cambio de avatar», «Personaje exclusivo» y «Avatar
+// personal») se RETIRARON: los 7 personajes se eligen al alistarse y lo especial es el vestuario.
+// Quien las canjeara con una etiqueta vieja tiene que encontrarse una negativa clara, no un cobro.
+r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: "Cambio de avatar — 35 créditos", avatar: "Personaje 3 · él (evoluciona)" });
+contiene(r.estado, "cat\u00e1logo", "una recompensa retirada se DENIEGA, no se cobra");
 
-r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Personaje exclusivo"), exclusivo: "Personaje 6 · ella (evoluciona)" });
-igual(G.tablero_(PER, true).reclutas[0].avatar.n, 6, "«Personaje exclusivo» sí desbloquea el 5-7");
+// --- el vestuario: héroes al azar, acumulables, sin repetir ---------------------------------------
+const antesH = G.tablero_(PER, true).reclutas[0].creditos;
+r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Héroe de la Rebelión") });
+igual(r.estado, "Concedido", "el héroe se concede");
+let fichaH = G.tablero_(PER, true).reclutas[0];
+igual(fichaH.heroes.length, 1, "y entra en el vestuario");
+igual(fichaH.creditos, antesH - 60, "cobrando sus 60 créditos");
 
-r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Avatar personal (tu propia imagen)"), url: "no-es-una-url" });
-contiene(r.estado, "falta la URL", "una URL inválida se deniega");
+const vistos = {};
+fichaH.heroes.forEach(k => vistos[k] = true);
+for (let i = 0; i < G.HEROES.length - 1; i++) E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Héroe de la Rebelión") });
+fichaH = G.tablero_(PER, true).reclutas[0];
+igual(fichaH.heroes.length, G.HEROES.length, "comprando " + G.HEROES.length + " veces salen los " + G.HEROES.length + ", sin repetir ninguno");
+igual(new Set(fichaH.heroes).size, fichaH.heroes.length, "y no hay duplicados");
+r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Héroe de la Rebelión") });
+contiene(r.estado, "vestuario entero", "con el vestuario completo se deniega en vez de cobrar");
 
 // --- recompensa de nota: AQUÍ sí se avisa a una persona -------------------------------------------
 M.Correo.limpiar();

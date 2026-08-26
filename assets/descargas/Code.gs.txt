@@ -128,7 +128,7 @@ var NIVELES = [   // [nivel, xp REGULAR, rango de arte 1-5, titulo]
   [10,5000,5,"Leyenda de la Cero"]
 ];
 var XP_VIAJE = {"REGULAR": 5000, "PUA": 4100};
-var CREDITOS = {"reclutamiento": 10, "retoA": 10, "retoB": 30, "retoB_pua": 35, "actividad": 60, "final": 60, "derivada": 40};
+var CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55, "actividad": 100, "final": 100, "derivada": 60};
 // Calendario del PER: apertura una semana antes de la 1, cierre al acabar la ultima,
 // y el canje una semana mas. Generado desde _site_data.py: no editar a mano.
 var SEMANAS_PER = {"REGULAR": 15, "PUA": 8};
@@ -147,16 +147,14 @@ var SERIES_ALBUM = [
 var RECOMPENSAS_INICIALES = [
   ["Sobre de cromos",15,99,"Una carta al azar de las 20 del álbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. Se abre solo y tu álbum está en la Nave.",2,"cromo"],
   ["Cambiar 3 repetidos por un sobre",0,99,"¿Cartas repetidas? Cámbialas. Por cada 3 repetidas te llevas un sobre nuevo, gratis. No cuesta créditos y se comprueba solo: si no llegas a 3, se te avisa y no pierdes nada.",2,"cromo_repes"],
-  ["Título de recluta",25,3,"Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario). Se aplica solo.",3,"titulo"],
-  ["Fondo de ficha: tu planeta",20,1,"Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.",4,"fondo"],
-  ["Cambio de avatar",35,3,"Elige otro personaje inicial (1-4) o vuelve a uno (indícalo en el propio formulario de canje). Se aplica solo.",2,"avatar"],
-  ["Marco dorado del avatar",35,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.",6,"marco"],
-  ["Personaje exclusivo",60,3,"Desbloquea y ponte uno de los personajes exclusivos 5-7 (indícalo en el formulario). Se aplica solo.",7,"avatar_exclusivo"],
-  ["Avatar personal (tu propia imagen)",90,1,"Pon tu propia imagen como avatar. Al alistarte esto NO se ofrece: es una recompensa. Sube la foto a postimages.org (sin registrarte), copia el «Enlace directo» (acaba en .jpg o .png) y pégalo en este formulario. También vale un enlace de Google Drive compartido con «cualquier persona con el enlace». Se aplica solo.",5,"avatar_url"],
-  ["Subir 0,5 en un entregable",110,1,"Se aplica a la actividad que elijas",14,"nota"],
-  ["Subir 1 punto en un entregable",170,1,"Se aplica a la actividad que elijas",14,"nota"],
-  ["Recalificar un trabajo entregado fuera de plazo",240,1,"Indica la actividad",14,"nota"],
-  ["Recalificar un suspenso",330,1,"Indica la actividad",14,"nota"]
+  ["Título de recluta",40,3,"Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario). Se aplica solo.",3,"titulo"],
+  ["Fondo de ficha: tu planeta",35,1,"Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.",4,"fondo"],
+  ["Marco dorado del avatar",60,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.",6,"marco"],
+  ["Héroe de la Rebelión",60,99,"Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión, cada una única. Se acumulan —cuantos más tengas, más donde elegir— y te lo pones y te lo quitas cuando quieras desde tu Nave, gratis. Los que aún no tienes salen en sombra. Y hay uno LEGENDARIO que no se deja ver hasta que cae.",2,"heroe"],
+  ["Subir 0,5 en un entregable",200,1,"Se aplica a la actividad que elijas",14,"nota"],
+  ["Subir 1 punto en un entregable",320,1,"Se aplica a la actividad que elijas",14,"nota"],
+  ["Recalificar un trabajo entregado fuera de plazo",450,1,"Indica la actividad",14,"nota"],
+  ["Recalificar un suspenso",600,1,"Indica la actividad",14,"nota"]
 ];
 // RECOMPENSAS-FIN
 
@@ -181,8 +179,42 @@ function creditosDe_(id, tipo) {
   return 0;
 }
 var H = { PERS:"PERs", REC:"RECOMPENSAS", EV:"EVENTOS", AJ:"AJUSTES", DATOS:"DATOS", RES:"RESUMEN", DOC:"DOCENTES" };
-// Personajes evolutivos: los 1-4 se eligen al alistarse; los 5-7 son EXCLUSIVOS (solo por canje)
-var AVATARES_INICIALES = 4;
+// v3.16 · los SIETE personajes se eligen al alistarse. Los 5-7 eran "exclusivos" de pago, pero
+// eran personas normales y nadie paga por eso: quien quiera algo especial va al vestuario de heroes.
+var AVATARES_INICIALES = 7;
+// HEROES-INICIO · [clave, nombre, peso, rareza]. Los pesos suman 100. Lo genera
+// web-stargate/_build_site.py desde _site_data.py (HEROES): NO editar a mano.
+var HEROES = [
+  ["H01_custodio","Custodio de Fôrge",12,"épica"],
+  ["H02_custodia","Custodia de Fôrge",12,"épica"],
+  ["H03_xeno","Xeno de Liminar",12,"rara"],
+  ["H04_xena","Xena de Liminar",12,"rara"],
+  ["H05_eco","Eco de la Cero",12,"épica"],
+  ["H06_eca","Eco de la Cero (ella)",12,"épica"],
+  ["H07_tejedor","Tejedor de Sendara",12,"rara"],
+  ["H08_tejedora","Tejedora de Sendara",12,"rara"],
+  ["H29_heredero","Heredero de la Sombra",2,"LEGENDARIA"],
+  ["H30_heredera","Heredera de la Sombra",2,"LEGENDARIA"]
+];
+// HEROES-FIN
+// Un h\u00e9roe al azar de los que NO tiene todav\u00eda. Sin repetidos a prop\u00f3sito: repetir un h\u00e9roe no
+// aporta nada (no hay album que completar con duplicados) y frustra; que no repita mantiene el
+// picoteo hasta el final. Devuelve null cuando ya los tiene todos.
+function sortearHeroe_(yaTiene) {
+  var tengo = {}; (yaTiene || []).forEach(function(k){ tengo[k] = true; });
+  var bolsa = [];
+  HEROES.forEach(function(h, i){ if (!tengo[h[0]]) for (var w = 0; w < h[2]; w++) bolsa.push(i); });
+  if (!bolsa.length) return null;
+  return HEROES[bolsa[Math.floor(Math.random() * bolsa.length)]];
+}
+// La skin es el tramo de arte del personaje propio (1-5). Se desbloquea POR NIVEL: son las mismas
+// cinco versiones de siempre, pero ahora se ELIGEN en vez de imponerse. rangoDe_ dice cual es la
+// mas alta disponible con esos xp.
+function skinsDe_(xp, tipo) {
+  var alto = nivelInfo_(xp, tipo).rango, out = [];
+  for (var r = 1; r <= alto; r++) out.push(r);
+  return out;
+}
 // CROMOS-INICIO · [clave de carta, nombre, peso, rareza, serie]. Los pesos suman 100.
 // Lo genera web-stargate/_build_site.py desde _site_data.py (CROMOS): NO editar a mano.
 var CROMOS = [
@@ -396,16 +428,37 @@ function abrirDialogoNuevoPER() {
   var html = HtmlService.createHtmlOutputFromFile("Dialog").setWidth(540).setHeight(680);
   SpreadsheetApp.getUi().showModalDialog(html, "Crear nuevo PER");
 }
+// 🔴 26-ago · LAS PLANTILLAS SON DE mutecdgami Y ESTÁN COMPARTIDAS. getFilesByName recorre el Drive
+// de QUIEN EJECUTA, y ahí no aparecen: el script no las encontraba, se iba al FormApp.create() de
+// abajo y creaba los formularios EN BLANCO —sin color ni cabecera— sin decir una palabra. Por eso
+// «los formularios no siguen la plantilla». Se buscan DENTRO de su carpeta, por id.
+var PLANTILLAS_ID = "1lOdziIkLr70YQ2JyCmw3vteAOAF37aQH";
+function carpetaPlantillas_() {
+  var id = PropertiesService.getScriptProperties().getProperty("PLANTILLAS_ID") || PLANTILLAS_ID;
+  try { return DriveApp.getFolderById(id); } catch (e) { Logger.log("carpetaPlantillas_: " + e); return null; }
+}
 function plantilla_(nombre) {
-  var it = DriveApp.getFilesByName(nombre);
+  var carpeta = carpetaPlantillas_();
+  if (carpeta) {
+    var ic = carpeta.getFilesByName(nombre);
+    while (ic.hasNext()) { var fc = ic.next(); if (fc.getMimeType() === MimeType.GOOGLE_FORMS) return fc; }
+  }
+  var it = DriveApp.getFilesByName(nombre);   // por si algún día están en el Drive de quien ejecuta
   while (it.hasNext()) { var f = it.next(); if (f.getMimeType() === MimeType.GOOGLE_FORMS) return f; }
   return null;
 }
+var _SIN_PLANTILLA = [];
 function formDesdePlantilla_(plantillaNombre, titulo, carpeta) {
   var pl = plantilla_(plantillaNombre); var form;
   if (pl) { var copia = pl.makeCopy(titulo, carpeta); form = FormApp.openById(copia.getId());
             form.getItems().forEach(function(i){ form.deleteItem(i); }); }
-  else { form = FormApp.create(titulo); DriveApp.getFileById(form.getId()).moveTo(carpeta); }
+  else {
+    // Degradar en silencio es lo que escondió el fallo durante semanas: el PER se creaba "bien" y
+    // los formularios salían sin estética. Ahora queda anotado y crearPER lo devuelve.
+    Logger.log("formDesdePlantilla_: NO encuentro la plantilla «" + plantillaNombre + "»");
+    _SIN_PLANTILLA.push(plantillaNombre);
+    form = FormApp.create(titulo); DriveApp.getFileById(form.getId()).moveTo(carpeta);
+  }
   form.setTitle(titulo);
   return form;
 }
@@ -522,8 +575,29 @@ function vincular_(form, ssId) {
     "Último error de Google: " + ultimo + ". Suele ser pasajero: vuelve a crear el PER en un minuto.");
 }
 
+// 🔴 26-ago · QUIÉN EJECUTA IMPORTA. El script está VINCULADO a la hoja pero corre como quien pulsa
+// el menú, y todo lo que crea (los 3 formularios, la carpeta, el documento, la Consola, el dossier)
+// queda a nombre de esa persona. Creando los PER desde una cuenta personal, la universidad se
+// quedaba sin nada suyo — y entre cuentas de gmail la propiedad no se transfiere sin que el
+// destinatario acepte. Se saca sin pedir permisos OAuth nuevos: el dueño de la raíz del Drive de
+// quien ejecuta ES quien ejecuta (Session.getActiveUser pediría un permiso más y obligaría a todo
+// el mundo a volver a autorizar).
+function ejecutaComo_() {
+  try { return String(DriveApp.getRootFolder().getOwner().getEmail() || "").toLowerCase(); } catch (e) { return ""; }
+}
+function duenoDeLaHoja_() {
+  try { return String(SpreadsheetApp.getActive().getOwner().getEmail() || "").toLowerCase(); } catch (e) { return ""; }
+}
 function crearPER(datos) {
   var _t = reloj_();
+  _SIN_PLANTILLA = [];
+  var _yo = ejecutaComo_(), _dueno = duenoDeLaHoja_();
+  if (_yo && _dueno && _yo !== _dueno) {
+    throw new Error("Este PER lo estás creando con la cuenta " + _yo + ", y la hoja es de " + _dueno +
+      ". Todo lo que se cree (los 3 formularios, la carpeta de Drive, el documento de enlaces y el " +
+      "dossier) quedaría en propiedad de " + _yo + " y NO de la universidad, y después no se puede " +
+      "transferir sin que el destinatario acepte uno a uno.\n\nEntra con " + _dueno + " y vuelve a crearlo.");
+  }
   var nombre = (datos.nombre || "").trim(); if (!nombre) throw new Error("Falta el nombre del PER");
   var tipo = datos.tipo === "PUA" ? "PUA" : "REGULAR";
   var id = slug_(nombre); if (perFila_(id)) throw new Error("Ya existe un PER con id «" + id + "». Si es uno viejo, archívalo o bórralo antes (menú STARGATE), o usa otro nombre.");
@@ -565,16 +639,21 @@ function crearPER(datos) {
   var fb = formDesdePlantilla_("PLANTILLA · Bitácora de mando", "STARGATE · " + nombre + " · Bitácora de mando", carpeta);
   fb.setDescription("Tu registro de la misión. Rellénalo una vez y vuelve a editarlo cada vez que ganes una insignia (marca la casilla nueva y envía). " +
     "Tu correo y tu nombre solo los ve el profesorado; en el tablero aparece tu alias. Profesorado: " + (datos.profesores || ""));
-  fb.setCollectEmail(true).setLimitOneResponsePerUser(true).setAllowResponseEdits(true).setShowLinkToRespondAgain(false)
+  // 🔴 26-ago · SIN «una sola respuesta». Google enseñaba «Solo puedes rellenar este formulario una
+  // vez» —mensaje suyo, no se puede cambiar— y este formulario se rellena tantas veces como haga
+  // falta. El motor ya es append-only, así que quitar el límite no rompe nada: la identidad se toma
+  // del último valor NO VACÍO de cada correo (ver tablero_), y por eso los campos de identidad
+  // dejan de ser obligatorios: solo se rellenan la primera vez.
+  fb.setCollectEmail(true).setLimitOneResponsePerUser(false).setAllowResponseEdits(true).setShowLinkToRespondAgain(true)
     .setConfirmationMessage("Registrado. Tu Bitácora crece. Mira el tablero en " + WEB + "registro.html?per=" + id);
   fb.addSectionHeaderItem().setTitle("Quién soy").setHelpText("Solo la primera vez.");
-  fb.addTextItem().setTitle("Alias de recluta (público)").setHelpText("Lo que se verá en el tablero.").setRequired(true);
-  fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado.").setRequired(true);
+  fb.addTextItem().setTitle("Alias de recluta (público)").setHelpText("Lo que se verá en el tablero. Solo la primera vez: si ya te alistaste, déjalo en blanco.").setRequired(false);
+  fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado. Solo la primera vez.").setRequired(false);
   // avatar: SOLO personajes que evolucionan (la galería clásica ya no existe, y poner tu propia
   // imagen es una RECOMPENSA de pago: se pide en el formulario de canje, no aquí)
   try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle(TIT_LAMINA).setHelpText("Recluta → Cadete → Oficial → Comandante → Leyenda: el tablero cambia la imagen solo al subir de nivel. Los personajes 5-7 son EXCLUSIVOS: se desbloquean con créditos durante el curso.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
-  fb.addListItem().setTitle("Elige tu avatar").setHelpText(AYUDA_AVATAR).setRequired(true)
-    .setChoiceValues(opcIniciales_());
+  fb.addListItem().setTitle("Elige tu avatar").setHelpText(AYUDA_AVATAR)
+    .setChoiceValues(opcIniciales_()).setRequired(false);
   fb.addListItem().setTitle(TIT_DOCENTE).setHelpText(AYUDA_DOCENTE).setRequired(true)
     .setChoiceValues(listaProfes_(datos.referente || "", datos.profesores || "", id));
   var bit = fb.addTextItem().setTitle("Enlace a mi Bitácora (ePortfolio)").setHelpText("Un único enlace donde está toda tu evidencia. Puedes añadirlo más adelante.");
@@ -668,7 +747,8 @@ function crearPER(datos) {
     panelVer: String(datos.panelVer || "").trim() || panelStd_().ver, panelEdit: String(datos.panelEdit || "").trim() || panelStd_().editar,
     inicio: fechaIso_(inicio), apertura: aperturaIso, cierre: cierreIso, cierreCanje: cierreCanjeIso,
     semanas: fx ? fx.semanas : semanasDe_(tipo),
-    restos: restos, pendiente: (pend.imagenes || pend.doc || pend.dossier) ? pend : null, ms: _t.ms() };
+    restos: restos, sinPlantilla: _SIN_PLANTILLA.slice(),
+    pendiente: (pend.imagenes || pend.doc || pend.dossier) ? pend : null, ms: _t.ms() };
 }
 function etiquetasRecompensas_() {
   var d = hoja_(H.REC).getDataRange().getValues().slice(1).filter(function(r){ return r[0]; });
@@ -1857,6 +1937,22 @@ function resolverCanje_(o, sh, fila) {
         (cr[3] === "LEGENDARIA" ? " ✦ ¡El cromo mas dificil de toda la galaxia!" : "");
     }
   }
+  // v3.16 · HÉROE DE LA REBELIÓN: uno al azar del vestuario, de los que aún no tiene.
+  else if (ficha && ficha.tipo === "heroe") {
+    var h = sortearHeroe_(al ? (al.heroes || []) : []);
+    if (!h) {
+      estado = "Denegado (ya tienes el vestuario entero)";
+      cuerpo = "Los tienes TODOS, recluta: no queda un solo héroe de la Rebelión por descubrir. " +
+        "No se han gastado créditos.";
+    } else {
+      extra_(o, email, "heroe", h[0]);
+      estado = "Concedido";
+      cuerpo = "De la sombra sale... ¡" + h[1] + "! (" + h[3] + "). Ya está en tu vestuario: " +
+        "póntelo cuando quieras desde tu Nave, y cámbialo las veces que te apetezca. Te quedan " +
+        (disp - coste) + " créditos." +
+        (h[3] === "LEGENDARIA" ? " ✦ ¡Un LEGENDARIO! Casi nadie llega a verle la cara." : "");
+    }
+  }
   else if (ficha && ficha.tipo === "cromo") {
     var c2 = sortearCromo_();
     extra_(o, email, "cromo", c2[0]);
@@ -1922,7 +2018,18 @@ function tablero_(perId, conPrivados) {
       var mp = avs.match(/Personaje (\d) · (ella|él|modelo A|modelo B)/);   // v3.8: la galería clásica ya no existe
       var avatar = mp ? { tipo:"evo", n:Number(mp[1]), v: (mp[2] === "él" || mp[2] === "modelo B") ? "m" : "f" } : { tipo:null, n:null };
       avatar.url = avu;
-      por[m] = { email:m, alias:String(vals[i][cA]||""), nombre:String(vals[i][cN]||""), bitacora:String(vals[i][cB]||""), bio:cBio >= 0 ? String(vals[i][cBio]||"") : "", profe:cProf >= 0 ? String(vals[i][cProf]||"").trim() : "", avatar:avatar, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] }; }
+      // v3.16 · el ÚLTIMO VALOR NO VACÍO de cada campo, no la última fila entera. Al quitar el
+      // límite de una respuesta, el alumnado envía muchas veces y solo rellena su identidad la
+      // primera: si nos quedáramos con la última fila, un envío de «solo marco un reto» borraría
+      // su alias, su avatar y su docente.
+      var y = por[m] || { email:m, alias:"", nombre:"", bitacora:"", bio:"", profe:"",
+                          avatar:{tipo:null,n:null,url:""}, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] };
+      function pon(campo, valor) { valor = String(valor == null ? "" : valor).trim(); if (valor) y[campo] = valor; }
+      pon("alias", vals[i][cA]); pon("nombre", vals[i][cN]); pon("bitacora", vals[i][cB]);
+      if (cBio >= 0) pon("bio", vals[i][cBio]);
+      if (cProf >= 0) pon("profe", vals[i][cProf]);
+      if (avatar.tipo || avatar.url) y.avatar = avatar;
+      por[m] = y; }
   }
   // 2) eventos (con fecha) + ajustes del profesorado
   hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase();
@@ -1936,7 +2043,10 @@ function tablero_(perId, conPrivados) {
     else if (v[4] === "marco") { a._marco = String(v[5] || ""); }
     else if (v[4] === "fondo") { a._fondo = String(v[5] || ""); }
     else if (v[4] === "cromo") { a._cromos = a._cromos || {}; var ck = String(v[5] || ""); a._cromos[ck] = (a._cromos[ck] || 0) + 1; }
-    else if (v[4] === "repes") { a._repes = (a._repes || 0) + (Number(v[5]) || 0); } });   // v3.15 · repetidos gastados
+    else if (v[4] === "repes") { a._repes = (a._repes || 0) + (Number(v[5]) || 0); }   // v3.15 · repetidos gastados
+    // v3.16 · el vestuario: los héroes que ha ido sacando y lo que lleva puesto ahora mismo
+    else if (v[4] === "heroe") { a._heroes = a._heroes || []; var hk = String(v[5] || ""); if (hk && a._heroes.indexOf(hk) < 0) a._heroes.push(hk); }
+    else if (v[4] === "viste") { a._viste = String(v[5] || ""); } });
   // 3) cálculo
   var canjes = {}; var shC = SpreadsheetApp.getActive().getSheetByName(o.tabC);
   if (shC && shC.getLastRow() > 1) { var vc = shC.getDataRange().getValues(); var cc = vc[0].map(String); var cE = cc.indexOf("Estado"), cMm = idx_(cc,"correo") >= 0 ? idx_(cc,"correo") : idx_(cc,"email"), cR = cc.indexOf("Recompensa"), cEnt = cc.indexOf("Entregado");
@@ -1966,7 +2076,18 @@ function tablero_(perId, conPrivados) {
     var album = SERIES_ALBUM.filter(function(sr){
       return CROMOS.filter(function(cr){ return cr[4] === sr[1]; }).every(function(cr){ return mis[cr[0]]; });
     }).map(function(sr){ return sr[0]; });
+    // v3.16 · VESTUARIO. Las 5 versiones de arte del personaje dejan de imponerse: se desbloquean
+    // por nivel y el recluta ELIGE cuál lleva. Y encima están los héroes que haya ido sacando.
+    // Si no ha elegido nada, va la skin más alta que tenga: así al subir de nivel se pone sola y
+    // no se pierde el momento de «he subido y mi personaje ha cambiado».
+    var heroes = a._heroes || [], skins = skinsDe_(xp, o.tipo), viste = String(a._viste || "");
+    var mH = viste.match(/^heroe:(.+)$/), mS = viste.match(/^skin:([1-5])$/);
+    var puesto = (mH && heroes.indexOf(mH[1]) >= 0) ? viste
+               : (mS && skins.indexOf(Number(mS[1])) >= 0) ? viste : "";
+    avatar.skin = puesto.indexOf("skin:") === 0 ? Number(puesto.slice(5)) : niv.rango;
+    avatar.heroe = puesto.indexOf("heroe:") === 0 ? puesto.slice(6) : "";
     var out = { alias:a.alias, avatar:avatar, xp:xp, nivel:niv.nivel, rango:niv.rango, rango_nombre:niv.rangoNombre,
+                heroes: heroes, n_heroes: heroes.length, skins: skins, viste: puesto,
                 repes: repes, repes_gastados: gastados, repes_disponibles: Math.max(0, repes - gastados),
                 insignias_album: album, n_album: album.length, racha: racha_(o, a.eventos),
                 nivel_titulo:niv.titulo, xp_siguiente:niv.siguiente, xp_faltan:niv.faltan,
@@ -2462,7 +2583,26 @@ function doPost(e) {
         canjeados:yo.canjeados || {},
         profe:yo.profe || "", planeta:yo.planeta, tema:yo.tema, insignias:yo.insignias, n:yo.n, pos:yo.pos,
         bio:yo.bio || "", bitacora:yo.bitacora || "",
-        titulo:yo.titulo || "", marco:yo.marco || "", fondo:yo.fondo || "", cromos:yo.cromos || {}, corona:!!yo.corona } : null })).setMimeType(ContentService.MimeType.JSON);
+        titulo:yo.titulo || "", marco:yo.marco || "", fondo:yo.fondo || "", cromos:yo.cromos || {}, corona:!!yo.corona,
+        heroes:yo.heroes || [], skins:yo.skins || [], viste:yo.viste || "",
+        repes:yo.repes || 0, repes_disponibles:yo.repes_disponibles || 0, racha:yo.racha || 0 } : null })).setMimeType(ContentService.MimeType.JSON);
+    }
+    // v3.16 · VESTIRSE, sin PIN a propósito. El alumnado no va a recordar otra clave y pedírsela
+    // sería peor que el problema: lo único que se puede hacer aquí es ponerse algo QUE YA SE TIENE
+    // desbloqueado. Es cosmético, se deshace en un clic y no toca ni xp ni créditos.
+    if (q.accion === "vestir") {
+      var tv = tablero_(q.per, true); if (tv.error) throw new Error(tv.error);
+      var ev = String(q.email || "").toLowerCase().trim();
+      var yov = (tv.reclutas || []).filter(function(x){ return x.email === ev; })[0];
+      if (!yov) throw new Error("No encuentro a ese recluta en el grupo");
+      var val = String(q.viste || "");
+      var mh = val.match(/^heroe:(.+)$/), ms = val.match(/^skin:([1-5])$/);
+      var vale = mh ? (yov.heroes || []).indexOf(mh[1]) >= 0
+               : ms ? (yov.skins || []).indexOf(Number(ms[1])) >= 0 : false;
+      if (!vale) throw new Error("Eso todavía no lo tienes desbloqueado");
+      extra_(perObj_(perFila_(q.per).v), ev, "viste", val);
+      return ContentService.createTextOutput(JSON.stringify({ ok:true, viste:val }))
+        .setMimeType(ContentService.MimeType.JSON);
     }
     var pin = PropertiesService.getScriptProperties().getProperty("PIN_PROFES") || "";
     if (!pin || q.pin !== pin) throw new Error("PIN incorrecto");

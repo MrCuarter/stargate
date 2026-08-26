@@ -37,7 +37,7 @@ igual(r.enviados, 1, "🔴 a 7 días del cierre sale UN aviso: solo a quien le q
 igual(correosA("conplata@alumno.es").length, 1, "le llega a quien tiene saldo");
 igual(correosA("pelado@alumno.es").length, 0, "🔴 y NO se molesta a quien ya lo gastó todo");
 const av = correosA("conplata@alumno.es")[0];
-contiene(av.cuerpo, "590", "el correo dice cuántos créditos le quedan");
+contiene(av.cuerpo, "1000", "el correo dice cuántos créditos le quedan");
 contiene(av.cuerpo, "7 días", "y cuántos días");
 contiene(av.cuerpo, "recluta.html", "con enlace a la Nave");
 contiene(av.cuerpo, "PRUEBA BANCO", "y dice de qué grupo habla");
