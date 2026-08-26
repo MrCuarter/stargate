@@ -2169,17 +2169,26 @@ function tablero_(perId, conPrivados) {
       var nom = nombreDe_(vc[j][cR]);
       if (nom) canjes[m2].veces[nom] = (canjes[m2].veces[nom] || 0) + 1;
       canjes[m2].lista.push({ fecha:vc[j][0], recompensa:vc[j][cR], actividad:vc[j][cc.indexOf("Actividad a la que se aplica")], entregado: cEnt >= 0 ? vc[j][cEnt] : "", fila:j+1 }); } } }
-  var lista = Object.keys(por).map(function(m){ var a = por[m]; var xp = 0, cred = 0, tema = 0, ins = {};
-    Object.keys(a.retos).forEach(function(id){ if (id === "H1") { xp += XP_RECLUTAMIENTO; cred += creditosDe_("H1", o.tipo); ins["H1_reclutamiento"] = true; ins["E1_nebula"] = true; return; }
-      var x = porId[id]; if (!x) return; xp += x[3]; cred += creditosDe_(id, o.tipo); if (x[4] > tema && x[4] <= 8) tema = x[4]; x[2].forEach(function(k){ ins[k] = true; }); });
+  // v3.18 · El xp de la SEMANA sale de los MISMOS retos que producen el xp total, cada uno con su
+  // fecha. Antes se sumaban los eventos, y los retos que otorga el profesorado a mano viven en
+  // AJUSTES, no en EVENTOS: quien tenia todo validado por su profe salia con 0 esta semana y la
+  // corona semanal se la llevaba otro. Un dato, un sitio.
+  var hace7 = new Date().getTime() - 7 * 864e5;
+  var ts_ = function(f){ try { var t = new Date(f).getTime(); return isNaN(t) ? 0 : t; } catch (e) { return 0; } };
+  var lista = Object.keys(por).map(function(m){ var a = por[m]; var xp = 0, cred = 0, tema = 0, ins = {}, xp7 = 0, cuando = {};
+    Object.keys(a.retos).forEach(function(id){ var t7 = ts_(a.retos[id].fecha), nuevo = t7 >= hace7;
+      if (id === "H1") { xp += XP_RECLUTAMIENTO; if (nuevo) xp7 += XP_RECLUTAMIENTO; cred += creditosDe_("H1", o.tipo); ins["H1_reclutamiento"] = true; ins["E1_nebula"] = true; return; }
+      var x = porId[id]; if (!x) return; xp += x[3]; if (nuevo) xp7 += x[3];
+      cred += creditosDe_(id, o.tipo); if (x[4] > tema && x[4] <= 8) tema = x[4];
+      x[2].forEach(function(k){ ins[k] = true; if (t7 > (cuando[k] || 0)) cuando[k] = t7; }); });
     if (Object.keys(a.retos).length) { ins["H1_reclutamiento"] = true; ins["E1_nebula"] = true; }
-    DERIVADAS.forEach(function(d){ if (d[2].every(function(k){ return ins[k]; })) { ins[d[0]] = true; xp += d[1]; cred += CREDITOS.derivada || 0; } });
+    // una insignia derivada se gana cuando cae la ULTIMA de las suyas: esa es su fecha
+    DERIVADAS.forEach(function(d){ if (d[2].every(function(k){ return ins[k]; })) { ins[d[0]] = true; xp += d[1]; cred += CREDITOS.derivada || 0;
+      var ult = 0; d[2].forEach(function(k){ if ((cuando[k] || 0) > ult) ult = cuando[k] || 0; });
+      if (ult >= hace7) xp7 += d[1]; } });
     var gast = canjes[m] ? canjes[m].gastado : 0;   // gastado SIEMPRE en créditos: los xp no se tocan
     // avatar: canje concedido > elección congelada al alistarse > valor actual del formulario (respuestas antiguas)
     var avatar = a._avCanje ? parseAvatar_(a._avCanje) : a._avBase ? parseAvatar_(a._avBase) : (a.avatar || {tipo:null,n:null,url:""});
-    // xp de los últimos 7 días (para la corona semanal)
-    var hace7 = new Date().getTime() - 7 * 864e5, xp7 = 0;
-    a.eventos.forEach(function(ev){ try { if (new Date(ev.fecha).getTime() >= hace7) xp7 += Number(ev.xp) || 0; } catch (e) {} });
     var niv = nivelInfo_(xp, o.tipo);
     // v3.15 · ÁLBUM: repetidos (los que sobran de cada carta, menos los ya cambiados) y sellos por
     // serie completa. Los sellos van en un campo APARTE: «insignias» son las 24 de la misión y se
