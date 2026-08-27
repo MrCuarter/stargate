@@ -578,3 +578,18 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .panorama .dudas .duda{font-size:1rem}
 .panorama h4{margin-top:0}
 @media(max-aspect-ratio:1/1){.panorama .sem-body{grid-template-columns:1fr}}
+
+/* --- el pase de lista en directo (v3.27) --- */
+/* La consigna se enseña en la sala del docente y se proyecta en clase: por eso es enorme, con
+   espaciado entre letras, para que se lea desde el fondo del aula o en una videollamada. */
+.pase-abierto{border:1px solid rgba(245,176,67,.55);background:linear-gradient(180deg,rgba(245,176,67,.10),transparent)}
+.consigna{font-family:'Unbounded',system-ui,sans-serif;font-weight:800;font-size:clamp(3rem,12vw,7rem);
+  letter-spacing:.18em;text-align:center;color:#f5b043;margin:.2em 0 .1em;
+  text-shadow:0 0 28px rgba(245,176,67,.45)}
+.pase-nave{border:1px solid rgba(245,176,67,.55);background:rgba(245,176,67,.10);border-radius:14px;
+  padding:12px 16px;margin:0 0 14px;display:flex;flex-direction:column;gap:6px}
+.pase-nave.hecho{border-color:rgba(55,224,236,.5);background:rgba(55,224,236,.10)}
+.pase-fila{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pase-fila input{width:8ch;font-family:'Unbounded',system-ui,sans-serif;font-size:1.5rem;font-weight:800;
+  letter-spacing:.22em;text-align:center;text-transform:uppercase;padding:6px 10px;border-radius:10px;
+  border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.35);color:#e2eaf1}

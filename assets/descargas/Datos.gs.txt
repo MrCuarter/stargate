@@ -80,6 +80,7 @@ var NOTA_MIN_PLANETAS = 4;
 var BONUS_SERIE = {"creditos": 40};
 var BONUS_ALBUM = {"xp": 300, "creditos": 200};
 var BONUS_TRIPULACION = {"fraccion": 0.25, "creditos": 15, "semanas_activo": 4};
+var BONUS_PASE = {"creditos": 5, "minutos": 3};
 // BONUS-FIN
 // 🔴 Los bonus se conceden UNA VEZ y quedan escritos en AJUSTES. No se recalculan: la racha BAJA al
 // fallar una semana, y si el bonus se recalculara, quien llego a 6 y luego fallo perderia creditos
@@ -109,6 +110,7 @@ function valorBonus_(clave) {
   if (clave.indexOf("serie:") === 0) return { xp: 0, creditos: BONUS_SERIE.creditos || 0 };
   if (clave === "album") return { xp: BONUS_ALBUM.xp || 0, creditos: BONUS_ALBUM.creditos || 0 };
   if (clave.indexOf("tripulacion:") === 0) return { xp: 0, creditos: bonusTripulacion_().creditos };
+  if (clave.indexOf("pase:") === 0) return { xp: 0, creditos: cfgPase_().creditos };
   var m = clave.match(/^racha:(\d+)$/);
   if (m) { var b = BONUS_RACHA.filter(function(x){ return x[0] === Number(m[1]); })[0];
            if (b) return { xp: 0, creditos: b[1] }; }

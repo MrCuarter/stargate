@@ -379,6 +379,14 @@ BONUS_ALBUM = {"xp": 300, "creditos": 200}
 # esto es solo el valor de partida.
 BONUS_TRIPULACION = {"fraccion": 0.25, "creditos": 15, "semanas_activo": 4}
 
+# EL PASE DE LISTA · el docente abre una ventana desde su sala y enseña una consigna de 4 letras;
+# quien esté en la clase EN DIRECTO la teclea en su Nave y se lleva unos créditos. Una vez por
+# sesión. Es simbólico a propósito: si un docente se olvida de abrirlo, sus alumnos no pueden hacer
+# nada al respecto, así que la diferencia tiene que ser pequeña.
+# 🔴 Y hay que decirlo claro: en un máster online esto mide «estaba mirando cuando se abrió», no
+# «asistió». La consigna se puede pasar por chat. Sube el listón; no es una prueba de asistencia.
+BONUS_PASE = {"creditos": 5, "minutos": 3}
+
 def _ayuda_de_los_retos():
     """Saca de RETOS_INSIGNIAS_STARGATE.md lo que pide cada reto (su bloque LITERAL).
 

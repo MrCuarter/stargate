@@ -95,6 +95,7 @@ function menuStargate_() {
       .addItem("Limpiar restos de PER borrados (formularios y pestañas)", "limpiarRestos")
       .addItem("Actualizar las imágenes de los formularios (planetas y personajes)", "actualizarImagenesPlanetas")
       .addItem("Bonus de la tripulación (umbral y créditos)", "ajustarBonusTripulacion")
+      .addItem("Pase de lista en directo (créditos y minutos)", "ajustarPase")
       .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
     .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
@@ -2250,6 +2251,98 @@ function parseAvatar_(s) {
 }
 function idx_(cab, frag) { frag = frag.toLowerCase(); for (var i = 0; i < cab.length; i++) if (cab[i].toLowerCase().indexOf(frag) >= 0) return i; return -1; }
 
+// ================= EL PASE DE LISTA EN DIRECTO =================
+// El docente abre una ventana de unos minutos desde su sala y su pantalla muestra una CONSIGNA de
+// cuatro letras. Quien esté en la clase la teclea en su Nave y se lleva unos créditos, una vez por
+// sesión.
+// 🔴 Honestidad sobre lo que mide: en un máster online esto es «estaba mirando cuando se abrió», no
+// «asistió». La consigna se pasa por chat en dos segundos. Sube mucho el listón respecto a no tener
+// nada, pero NO es una prueba de asistencia y no conviene venderla como tal.
+// 🔬 Y de paso deja la mejor traza de implicación docente que hay: cuándo y cuántas veces abre cada
+// docente la ventana, y en qué momento del curso deja de hacerlo.
+
+var PROP_PASE = "BONUS_PASE";
+// Sin I, O ni L: se leen en voz alta y se confunden con 1 y 0.
+var LETRAS_CONSIGNA = "ABCDEFGHJKMNPQRSTUVWXYZ";
+
+function cfgPase_() {
+  var d = { creditos: BONUS_PASE.creditos, minutos: BONUS_PASE.minutos };
+  try {
+    var v = String(PropertiesService.getScriptProperties().getProperty(PROP_PASE) || "");
+    if (v) {
+      var p = v.split("|"), c = parseInt(p[0], 10), m = parseInt(p[1], 10);
+      if (c >= 0 && !isNaN(c)) d.creditos = c;
+      if (m > 0 && !isNaN(m)) d.minutos = m;
+    }
+  } catch (e) {}
+  return d;
+}
+
+function consigna_() {
+  var s = "";
+  for (var i = 0; i < 4; i++) s += LETRAS_CONSIGNA.charAt(Math.floor(Math.random() * LETRAS_CONSIGNA.length));
+  return s;
+}
+
+// La ventana vive en AJUSTES: así queda la traza de quién la abrió y cuándo, que es justo el dato
+// que interesa — y no hace falta un sitio nuevo donde guardar estado.
+// Fila: [fecha, per, "", "PASE", "pase", "<consigna>|<hasta ISO>|<id>", "<docente>"]
+function abrirPase_(o, profe, minutos) {
+  var cfg = cfgPase_(), mins = minutos > 0 ? minutos : cfg.minutos;
+  var ahora = new Date(), hasta = new Date(ahora.getTime() + mins * 60000);
+  var palabra = consigna_();
+  // 🔴 El id lleva la HORA CON SEGUNDOS y la propia consigna. Con precisión de minuto, dos ventanas
+  // abiertas seguidas compartían identificador y quien hubiera cobrado la primera se quedaba fuera
+  // de la segunda. La consigna, que es aleatoria, remata lo que los segundos no distinguen.
+  var id = Utilities.formatDate(ahora, "Europe/Madrid", "yyyyMMdd-HHmmss") + "-" + palabra;
+  hoja_(H.AJ).appendRow([ahora, o.id, "", "PASE", "pase",
+    palabra + "|" + hasta.toISOString() + "|" + id, String(profe || "")]);
+  return { palabra: palabra, hasta: hasta, id: id, minutos: mins, creditos: cfg.creditos };
+}
+
+// La ventana ABIERTA de un PER, si la hay. Se mira la última, no todas: abrir otra cierra la anterior.
+function paseActivo_(perId) {
+  var ultima = null;
+  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
+    if (v[1] === perId && v[4] === "pase") ultima = v; });
+  if (!ultima) return null;
+  var p = String(ultima[5] || "").split("|");
+  if (p.length < 3) return null;
+  var hasta = new Date(p[1]);
+  if (!(hasta > new Date())) return null;
+  return { palabra: p[0], hasta: hasta, id: p[2], profe: String(ultima[6] || "") };
+}
+
+// El recluta teclea la consigna. Sin PIN, como vestirse: el alumnado no tiene clave, y lo único que
+// se puede hacer aquí es cobrar UNA vez una ventana que un docente ha abierto hace minutos.
+function reclamarPase_(perId, email, palabra) {
+  var act = paseActivo_(perId);
+  if (!act) return { ok: false, error: "Ahora mismo no hay ningún pase de lista abierto." };
+  if (String(palabra || "").toUpperCase().replace(/\s/g, "") !== act.palabra)
+    return { ok: false, error: "Esa no es la consigna. Míralas bien: son las cuatro letras que hay en la pantalla." };
+  var clave = "pase:" + act.id;
+  var ya = false;
+  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
+    if (v[1] === perId && String(v[2]).toLowerCase() === email && v[4] === "bonus" && String(v[5]) === clave) ya = true; });
+  if (ya) return { ok: true, yaEstaba: true, creditos: 0 };
+  hoja_(H.AJ).appendRow([new Date(), perId, email, "EXTRA", "bonus", clave, "sistema"]);
+  return { ok: true, creditos: cfgPase_().creditos };
+}
+
+function ajustarPase() {
+  var ui = SpreadsheetApp.getUi(), cfg = cfgPase_();
+  var r = ui.prompt("Pase de lista en directo",
+    "El docente abre una ventana desde su sala y enseña una consigna de 4 letras; quien está en la " +
+    "clase la teclea en su Nave.\n\nAhora mismo: " + cfg.creditos + " créditos, ventana de " + cfg.minutos + " minutos.\n\n" +
+    "Escribe el nuevo valor así:  créditos, minutos\nPor ejemplo «5, 3».", ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var p = String(r.getResponseText() || "").split(","), c = parseInt(p[0], 10), m = parseInt(p[1], 10);
+  if (isNaN(c) || c < 0 || isNaN(m) || m <= 0)
+    return ui.alert("No he entendido «" + r.getResponseText() + "». Se escribe: créditos, minutos. Por ejemplo: 5, 3");
+  PropertiesService.getScriptProperties().setProperty(PROP_PASE, c + "|" + m);
+  ui.alert("Hecho: " + c + " créditos, ventana de " + m + " minutos.");
+}
+
 // ================= EL PARTE DE LA TRIPULACIÓN (bonus de grupo por el ticket) =================
 // Si en un tema responde al ticket al menos una fracción del grupo, TODA la tripulación cobra. No se
 // puede premiar a quien respondió porque el ticket es anónimo, y romper ese anonimato para poder
@@ -3048,7 +3141,13 @@ function doPost(e) {
         // estos tres y por eso la celebracion no veia los bonus ni los planetas completos.
         bonus:yo.bonus || [], planetas_completos:yo.planetas_completos || [], coleccion:yo.coleccion || null,
         xp7:yo.xp7 || 0,
-        repes:yo.repes || 0, repes_disponibles:yo.repes_disponibles || 0, racha:yo.racha || 0 } : null })).setMimeType(ContentService.MimeType.JSON);
+        repes:yo.repes || 0, repes_disponibles:yo.repes_disponibles || 0, racha:yo.racha || 0 } : null,
+        // 🔴 se dice que la ventana está abierta y hasta cuándo, pero NUNCA la consigna: si viajara
+        // hasta aquí, no haría falta estar en clase para verla y todo esto no valdría nada.
+        pase: (function(){ var pa = paseActivo_(q.per); if (!pa) return null;
+          var cobrado = yo && (yo.bonus || []).indexOf("pase:" + pa.id) >= 0;
+          return { abierto: true, hasta: pa.hasta, cobrado: cobrado, creditos: cfgPase_().creditos }; })()
+      })).setMimeType(ContentService.MimeType.JSON);
     }
     // v3.16 · VESTIRSE, sin PIN a propósito. El alumnado no va a recordar otra clave y pedírsela
     // sería peor que el problema: lo único que se puede hacer aquí es ponerse algo QUE YA SE TIENE
@@ -3065,6 +3164,15 @@ function doPost(e) {
           .setMimeType(ContentService.MimeType.JSON);
       hoja_(H.AJ).appendRow([new Date(), q.per, et2, "EXTRA", "bonus", "tutorial", "sistema"]);
       return ContentService.createTextOutput(JSON.stringify({ ok: true, creditos: BONUS_TUTORIAL.creditos || 0 }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    // el pase de lista: sin PIN, como vestirse y como el tutorial
+    if (q.accion === "pase") {
+      var tp = tablero_(q.per, true); if (tp.error) throw new Error(tp.error);
+      var ep = String(q.email || "").toLowerCase().trim();
+      if (!(tp.reclutas || []).filter(function(x){ return x.email === ep; }).length)
+        throw new Error("No te encuentro en este grupo");
+      return ContentService.createTextOutput(JSON.stringify(reclamarPase_(q.per, ep, q.palabra)))
         .setMimeType(ContentService.MimeType.JSON);
     }
     if (q.accion === "vestir") {
@@ -3087,6 +3195,8 @@ function doPost(e) {
     if (a === "pers") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; })
       .map(function(v){ var ob = perObj_(v); ob.docentes = docentesDe_(ob.id); ob.semana = semanaDe_(ob); return ob; }) };
     else if (a === "alumnos") out = tablero_(per, true);
+    else if (a === "pase_abrir") out = abrirPase_(perObj_(perFila_(per).v), q.profe, q.minutos);
+    else if (a === "pase_estado") { var pact = paseActivo_(per); out = { pase: pact }; }
     else if (a === "tickets") { var o = perObj_(perFila_(per).v); var sh = SpreadsheetApp.getActive().getSheetByName(o.tabT); var v = sh && sh.getLastRow() > 1 ? sh.getDataRange().getValues() : [[]];
       var cabT = (v[0]||[]).map(String);
       var cRes = cabT.indexOf("Resuelto");

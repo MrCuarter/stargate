@@ -60,6 +60,7 @@
     quien(email,function(d){
       st.cargandoYo=false;
       if(d&&d.yo){st.yo=d.yo;st.email=email;localStorage.setItem(KEY_MAIL,email);st.msgYo='';}
+      st.pase=(d&&d.pase)||null;   // v3.27 · ¿hay pase de lista abierto ahora mismo?
       else if(d&&d.yo===null){st.yo=null;st.msgYo='No encuentro ningún recluta con ese correo en este PER. Usa el MISMO correo de Google con el que rellenaste la <b>Bitácora de mando</b> (y si aún no te alistaste, ese es el primer paso).';}
       else{st.yo=null;st.msgYo='La identificación aún no está activa (el mando tiene que actualizar el sistema). El resto de la nave funciona; vuelve a intentarlo más adelante.';}
       render();
@@ -195,9 +196,21 @@
       +'</section>';
   }
 
+  // v3.27 · EL PASE DE LISTA. Solo se ve mientras el docente tiene la ventana abierta. La consigna
+  // NO llega hasta aqui: la tiene en su pantalla, y por eso hay que estar en la clase.
+  function avisoPase(){
+    var p=st.pase;
+    if(!p||!p.abierto||!st.yo) return '';
+    if(p.cobrado) return '<div class="pase-nave hecho">✅ <b>Pase de lista registrado.</b> Nos vemos en la próxima.</div>';
+    return '<div class="pase-nave"><b>🎓 Pase de lista abierto</b>'
+      +'<span class="small">Escribe la consigna de cuatro letras que hay en la pantalla de tu profe y te llevas '+(p.creditos||0)+' ◈.</span>'
+      +'<div class="pase-fila"><input id="pase-in" maxlength="4" autocomplete="off" spellcheck="false" placeholder="ABCD">'
+      +'<button class="btn primary" id="pase-ok" type="button">Estoy en clase</button></div>'
+      +'<div class="small muted" id="pase-msg"></div></div>';
+  }
   function accesos(){
     var d=st.d;
-    return '<div class="nave-barra"><div class="nave-accesos">'
+    return avisoPase()+'<div class="nave-barra"><div class="nave-accesos">'
       +(d.formBitacora?'<a class="acc primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener"><b>📓 Registrar un logro</b><em>marca lo que has hecho</em></a>':'')
       +(d.formCanje?'<a class="acc" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener"><b>🎁 Canjear</b><em>gasta tus ◈ créditos</em></a>':'')
       +'<a class="acc" href="registro.html?per='+encodeURIComponent(per)+'" target="_blank" rel="noopener"><b>🏆 Tablero</b><em>cómo va tu grupo</em></a>'
@@ -489,6 +502,17 @@
       el.onclick=function(){lupaCromo(clave);};
       el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();lupaCromo(clave);}});
     });
+    var pb=root.querySelector('#pase-ok');
+    if(pb)pb.onclick=function(){
+      var inp=root.querySelector('#pase-in'), msg=root.querySelector('#pase-msg');
+      var val=String(inp.value||'').trim().toUpperCase();
+      if(val.length!==4){msg.textContent='Son cuatro letras.';return;}
+      pb.disabled=true; msg.textContent='Enviando…';
+      post({accion:'pase',per:per,email:st.email,palabra:val},function(r){
+        if(r&&r.ok){ msg.textContent=''; identificar(st.email); }   // recarga: celebra y actualiza créditos
+        else { pb.disabled=false; msg.textContent=(r&&r.error)||'No ha podido ser.'; }
+      },function(e){ pb.disabled=false; msg.textContent=e; });
+    };
     var ob=root.querySelector('#btn-onboard'); if(ob)ob.onclick=function(){onboarding(0);};
   }
 

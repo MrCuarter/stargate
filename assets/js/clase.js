@@ -69,8 +69,11 @@
   function cargarPer(){
     root.innerHTML=cargando('Cargando '+esc(st.per)+'…','Alumnos, canjes y tickets');
     post({accion:'alumnos',per:st.per},function(d){ st.d=d;
-      post({accion:'tickets',per:st.per},function(t){ st.tickets=t.tickets||[]; render(); },
-           function(){ st.tickets=[]; render(); });
+      post({accion:'tickets',per:st.per},function(t){ st.tickets=t.tickets||[];
+        // si hay un pase abierto de hace un rato, que siga a la vista al recargar la sala
+        post({accion:'pase_estado',per:st.per},function(pp){ st.pase=pp.pase||null; render(); },
+             function(){ st.pase=null; render(); });
+      }, function(){ st.tickets=[]; render(); });
     });}
 
   // ---------- piezas ----------
@@ -116,6 +119,30 @@
       +'</div>'
       +'<div class="selrow">'+(mp.length>1?'<select id="selPer">'+opc+'</select>':'')
       +'<button class="btn small" id="cambiarD">No soy '+esc(st.profe)+'</button></div></div>';}
+
+  // v3.27 · EL PASE DE LISTA. El docente abre una ventana de unos minutos y su pantalla enseña una
+  // consigna de cuatro letras; quien esté en la clase la teclea en su Nave. La consigna se muestra
+  // AQUI y en ningun otro sitio: si viajara a la Nave del alumno, no haria falta estar en clase.
+  function bloquePase(){
+    var p=st.pase;
+    if(!p||!p.hasta||new Date(p.hasta)<=new Date())
+      return '<div class="card"><h3>🎓 Pase de lista en directo</h3>'
+        +'<p class="small muted">Abre una ventana y enseña la consigna en pantalla. Quien esté en clase la teclea en su Nave y se lleva unos créditos. Una vez por sesión.</p>'
+        +'<p><button class="btn primary" id="abrirPase">Abrir el pase de lista</button></p>'
+        +'<p class="small muted">Ojo: esto premia estar en la clase en directo, no es un control de asistencia — la consigna se puede pasar por chat.</p></div>';
+    return '<div class="card pase-abierto"><h3>🎓 Pase de lista ABIERTO</h3>'
+      +'<p class="small muted">Enséñales esta pantalla. Se cierra sola.</p>'
+      +'<div class="consigna">'+esc(p.palabra)+'</div>'
+      +'<p class="small muted">Cierra a las <b>'+hora(p.hasta)+'</b> · <span id="cuenta"></span></p>'
+      +'<p><button class="btn small" id="abrirPase">Abrir otra ventana</button></p></div>';}
+
+  function hora(d){var x=new Date(d);return ('0'+x.getHours()).slice(-2)+':'+('0'+x.getMinutes()).slice(-2)+':'+('0'+x.getSeconds()).slice(-2);}
+  function cuentaAtras(){
+    var e=document.getElementById('cuenta'); if(!e||!st.pase)return;
+    var s=Math.round((new Date(st.pase.hasta)-new Date())/1000);
+    if(s<=0){st.pase=null;render();return;}
+    e.textContent='quedan '+Math.floor(s/60)+' min '+('0'+(s%60)).slice(-2)+' s';
+    setTimeout(cuentaAtras,1000);}
 
   function bloqueIntervencion(){
     var pd=pendientes(), tk=ticketsMios().filter(function(t){return !t.resuelto;});
@@ -257,7 +284,12 @@
       document.getElementById('cambiarD').onclick=function(){localStorage.removeItem('sgProfe');st.profe='';elegirDocente();};
       return;
     }
-    root.innerHTML=cabecera()+bloqueIntervencion()+bloqueClase()+bloqueGrupo()+bloqueEnlaces()+bloqueMisPers();
+    root.innerHTML=cabecera()+bloquePase()+bloqueIntervencion()+bloqueClase()+bloqueGrupo()+bloqueEnlaces()+bloqueMisPers();
+    var ap=document.getElementById('abrirPase');
+    if(ap)ap.onclick=function(){ap.disabled=true;
+      post({accion:'pase_abrir',per:st.per,profe:st.profe},function(d){st.pase=d;render();},
+           function(e){ap.disabled=false;alert(e);});};
+    cuentaAtras();
     var sp=document.getElementById('selPer'); if(sp)sp.onchange=function(){st.per=sp.value;localStorage.setItem('sgClasePer',st.per);cargarPer();};
     document.getElementById('cambiarD').onclick=function(){localStorage.removeItem('sgProfe');st.profe='';elegirDocente();};
     var stm=document.getElementById('selTema'); if(stm)stm.onchange=function(){st.tema=stm.value;render();};

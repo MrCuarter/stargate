@@ -9,7 +9,7 @@ from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_sema
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
-                        NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION)
+                        NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
 # no se escriben a mano (si no, cambiarlas en _site_data.py dejaría la web mintiendo).
@@ -1481,7 +1481,8 @@ _gs = _sustituir(_gs, "var BONUS_PLANETA = ", ";\n// BONUS-FIN",
                  json.dumps(BONUS_RACHA, ensure_ascii=False) + ";\nvar BONUS_TUTORIAL = " +
                  json.dumps(BONUS_TUTORIAL, ensure_ascii=False) + ";\nvar NOTA_MIN_PLANETAS = " + str(NOTA_MIN_PLANETAS) + ";\nvar BONUS_SERIE = " + json.dumps(BONUS_SERIE, ensure_ascii=False) +
                  ";\nvar BONUS_ALBUM = " + json.dumps(BONUS_ALBUM, ensure_ascii=False) +
-                 ";\nvar BONUS_TRIPULACION = " + json.dumps(BONUS_TRIPULACION, ensure_ascii=False))
+                 ";\nvar BONUS_TRIPULACION = " + json.dumps(BONUS_TRIPULACION, ensure_ascii=False) +
+                 ";\nvar BONUS_PASE = " + json.dumps(BONUS_PASE, ensure_ascii=False))
 # El texto de cada reto sale del documento maestro (_AYUDA_DOC, por nombre); aquí se empareja con su
 # id leyendo las etiquetas de RETOS_REGULAR/RETOS_PUA, que viven en Code.gs. Así el dato tiene UN solo
 # origen y el emparejamiento tampoco se escribe a mano.
