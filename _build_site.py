@@ -1318,6 +1318,65 @@ TICKETS = head("STARGATE · Tickets de salida", "Panel visual de los tickets de 
 html=(TICKETS.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
 open(os.path.join(HERE,"tickets.html"),"w",encoding="utf-8").write(html); print("escrito: tickets.html")
 
+# ---- La visita guiada de la sala (v3.35) ----------------------------------------------------
+# Lo que más falta hacía no era «qué es cada cosa», sino EL ORDEN de lo que tiene que hacer el
+# alumnado: sin la Bitácora rellenada no existe nadie en el sistema, y todo lo demás se cae detrás.
+# Los objetivos los pinta clase.js; `sel2` es el bloque de reserva por si ese enlace concreto aún no
+# existe (un PER sin formularios publicados). El build comprueba que las anclas siguen en clase.js.
+TOUR_CLASE = {
+ "clave": "sala",
+ "invita": "¿Te enseño tu sala?",
+ "invita2": "Sobre todo, el orden en que tu alumnado tiene que hacer las cosas.",
+ "pasos": [
+  {"sel":"#sala-cabecera","pose":"saluda","t":"Esta es tu sala, Capitán",
+   "x":"Todo lo que necesitas antes de entrar al aula, en una página. Pero empecemos por lo que más "
+       "se atasca: <b>el orden en que tu alumnado tiene que hacer las cosas</b>. Son cinco pasos, y el "
+       "primero no se puede saltar."},
+  {"sel":"[data-acc=\'bitacora\']","sel2":"#sala-enlaces","pose":"senala","t":"1 · Que se alisten. Hoy, en clase",
+   "x":"La <b>Bitácora de mando</b>. Que la abran <b>con su cuenta de Google</b> y pongan alias, "
+       "personaje y quién les da clase. Hasta que no la envían <b>no existen para el sistema</b>: no "
+       "salen en el tablero, no tienen Nave y no pueden canjear nada. Es lo primero que hay que hacer "
+       "en la primera sesión, delante de ti."},
+  {"sel":"[data-acc=\'nave\']","sel2":"#sala-enlaces","pose":"tablet","t":"2 · Dónde se ven a sí mismos",
+   "x":"La <b>Nave del Recluta</b>. Entran con <b>el mismo correo de Google</b> con el que se alistaron "
+       "y ahí está su personaje, su nivel, sus insignias, sus cartas y sus créditos. Si alguien dice "
+       "que «no le sale nada», casi siempre es esto: entró con otra cuenta."},
+  {"sel":"[data-acc=\'bitacora\']","sel2":"#sala-enlaces","pose":"pensativo","t":"3 · Cómo registran lo que van haciendo",
+   "x":"Vuelven a <b>la misma Bitácora</b> y <b>editan su respuesta</b>: marcan lo nuevo y envían. "
+       "<b>No se empieza de cero.</b> Google les avisará de que solo se puede rellenar una vez: es "
+       "normal — entran igual y les sale su respuesta para modificar. Así nadie acaba duplicado con "
+       "dos alias y dos avatares."},
+  {"sel":"[data-acc=\'ticket\']","sel2":"#sala-clase","pose":"senala","t":"4 · Al terminar la clase: el ticket",
+   "x":"El <b>ticket de salida</b>, treinta segundos y <b>anónimo</b>. Lo que escriban te llega aquí, "
+       "a «Con qué empezar la clase», filtrable por tema y por fecha. Es tu termómetro de la sesión."},
+  {"sel":"[data-acc=\'canje\']","sel2":"#sala-enlaces","pose":"brazos","t":"5 · Cuando tengan créditos: el canje",
+   "x":"El <b>canje de recompensas</b> se valida solo y descuenta los créditos. A ti solo te llega lo "
+       "que tiene que aplicar una persona — subir una nota, recalificar—, y lo tienes en el primer "
+       "bloque de esta página."},
+  {"sel":"#sala-intervencion","pose":"tablet","t":"Y ahora lo tuyo: lo primero al llegar",
+   "x":"<b>Requiere tu intervención</b>. Canjes ya cobrados que esperan por ti: el alumno ya pagó y ya "
+       "lo sabe. Si aparece el aviso ámbar de <b>reclutas sin docente</b>, arréglalo antes que nada: "
+       "sin docente, sus avisos no le llegan a ninguna persona concreta."},
+  {"sel":"#sala-clase","pose":"senala","t":"La orden de la semana",
+   "x":"Qué toca hoy según la fecha de la semana 1 del grupo: qué se lanza, el <b>mensaje del foro "
+       "listo para copiar</b> y la semana entera en la cronología. Debajo, las dudas del ticket."},
+  {"sel":"#sala-grupo","pose":"brazos","t":"Tu gente, y sus errores",
+   "x":"Tu grupo con su nivel, sus créditos y sus insignias. Pulsa cualquier fila —o «Corregir»— y "
+       "arreglas <b>desde aquí</b> el alias, el nombre, el docente, el enlace del ePortfolio y los "
+       "retos marcados. No hace falta abrir ninguna hoja de cálculo."},
+  {"sel":"#sala-pase","pose":"pulgar","t":"El pase de lista en directo",
+   "x":"Abre una ventana de unos minutos y enseña la consigna <b>en tu pantalla</b>. Quien esté en "
+       "clase la teclea en su Nave y se lleva unos créditos. Premia estar en la sesión en directo; "
+       "no es un control de asistencia, la consigna se puede pasar por chat."},
+  {"sel":"#sala-enlaces","pose":"tablet","t":"Todo lo del grupo, sin buscar en Drive",
+   "x":"Los enlaces de <b>este</b> grupo: tablero, Nave, los tres formularios, el panel de Genially, "
+       "el foro y el generador de embeds y QR. Y si eres el referente, el panel completo."},
+  {"sel":"#sala-cabecera","pose":"pulgar","t":"Listo, Capitán",
+   "x":"Recuerda los dos primeros pasos y el resto va solo: <b>que se alisten</b> y <b>que editen su "
+       "respuesta</b> en vez de empezar de cero. Puedes volver a ver esto cuando quieras con el botón "
+       "«Visita guiada» de la barra de arriba."}
+ ]}
+
 # ================= v3.11 · LA SALA DEL DOCENTE =================
 # Un solo sitio para quien imparte: sus grupos, lo que requiere SU intervención, las dudas del ticket
 # filtradas, su gente (con corrección de errores) y los enlaces. Con PIN, y de escritura.
@@ -1329,7 +1388,7 @@ la orden de la semana, las <b>dudas del ticket de salida</b> filtrables por tema
 <p class="small muted"><b>Entra con el PIN</b> que te dé el profe referente y <b>elige tu nombre</b>:
 solo la primera vez. Después este navegador te reconoce y llegas directo a tu clase.</p></header>
 <section><div class="wrap"><div id="clase-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_SEMANAS={SEMANAS_JSON};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_SEMANAS={SEMANAS_JSON};window.SG_TOUR_LOCAL={json.dumps(TOUR_CLASE, ensure_ascii=False)};</script>
 <script src="assets/js/clase.js" defer></script>
 </div></section>
 ''' + FOOT
@@ -1621,6 +1680,25 @@ if _rotas:
                      + "\n   ".join(_rotas[:12])
                      + ("\n   ... y %d más" % (len(_rotas) - 12) if len(_rotas) > 12 else ""))
 print("imagenes: las %d rutas que arma el JS existen todas" % (len(_CATALOGO["heroes"]) + len(_CATALOGO["tarjetas"])))
+
+# ================= LAS ANCLAS DE LA VISITA GUIADA, ¿SIGUEN AHÍ? =================
+# La sala del docente la pinta clase.js entera, así que los objetivos de la visita son ids y claves
+# que viven en ESE fichero. Si alguien renombra un bloque, la visita señalaría al vacío sin decir ni
+# mu (el paso se ve, pero no se resalta ni se baja a él). Aquí se comprueba, que es barato.
+_clase_js = open(os.path.join(HERE, "assets", "js", "clase.js"), encoding="utf-8").read()
+_sin_ancla = []
+for _paso in TOUR_CLASE["pasos"]:
+    for _sel in [_paso["sel"]] + ([_paso["sel2"]] if _paso.get("sel2") else []):
+        _m = _re.match(r"^#([a-z-]+)$", _sel) or _re.match(r"^\[data-acc='([a-z]+)'\]$", _sel)
+        if not _m:
+            _sin_ancla.append("%s (no se sabe comprobar)" % _sel); continue
+        _busca = ('id="%s"' % _m.group(1)) if _sel[0] == "#" else ("'%s')" % _m.group(1))
+        if _busca not in _clase_js:
+            _sin_ancla.append("%s → falta %s en clase.js" % (_sel, _busca))
+if _sin_ancla:
+    raise SystemExit("🔴 La visita guiada de la sala señala a sitios que ya no existen:\n   "
+                     + "\n   ".join(sorted(set(_sin_ancla))))
+print("visita guiada: los %d pasos de la sala señalan a anclas que existen" % len(TOUR_CLASE["pasos"]))
 
 # ================= COMPROBACIÓN DE LA WEB PUBLICADA (§12.9) =================
 # A propósito NO se hace por defecto: el build tiene que funcionar sin internet. Pero el 504 de

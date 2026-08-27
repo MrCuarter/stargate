@@ -103,7 +103,7 @@
   function cabecera(){
     var mp=misPers(), act=st.pers.filter(function(p){return p.id===st.per;})[0]||{};
     var opc=mp.map(function(p){return '<option value="'+esc(p.id)+'"'+(p.id===st.per?' selected':'')+'>'+esc(p.nombre)+' · '+estadoPer(p)+'</option>';}).join('');
-    return '<div class="tab-head"><div><div class="eyebrow teal">Sala del docente · '+esc(st.profe)+'</div>'
+    return '<div class="tab-head" id="sala-cabecera"><div><div class="eyebrow teal">Sala del docente · '+esc(st.profe)+'</div>'
       +'<h3>'+esc(act.nombre||'—')+'</h3>'
       +'<p class="small muted">'+esc(act.tipo||'')+' · '+estadoPer(act)
       +(act.semana!=null&&act.semana>0?' · semana '+act.semana:'')+' · '+((st.d&&st.d.reclutas)||[]).length+' reclutas en el PER'
@@ -126,11 +126,11 @@
   function bloquePase(){
     var p=st.pase;
     if(!p||!p.hasta||new Date(p.hasta)<=new Date())
-      return '<div class="card"><h3>🎓 Pase de lista en directo</h3>'
+      return '<div class="card" id="sala-pase"><h3>🎓 Pase de lista en directo</h3>'
         +'<p class="small muted">Abre una ventana y enseña la consigna en pantalla. Quien esté en clase la teclea en su Nave y se lleva unos créditos. Una vez por sesión.</p>'
         +'<p><button class="btn primary" id="abrirPase">Abrir el pase de lista</button></p>'
         +'<p class="small muted">Ojo: esto premia estar en la clase en directo, no es un control de asistencia — la consigna se puede pasar por chat.</p></div>';
-    return '<div class="card pase-abierto"><h3>🎓 Pase de lista ABIERTO</h3>'
+    return '<div class="card pase-abierto" id="sala-pase"><h3>🎓 Pase de lista ABIERTO</h3>'
       +'<p class="small muted">Enséñales esta pantalla. Se cierra sola.</p>'
       +'<div class="consigna">'+esc(p.palabra)+'</div>'
       +'<p class="small muted">Cierra a las <b>'+hora(p.hasta)+'</b> · <span id="cuenta"></span></p>'
@@ -149,7 +149,7 @@
   function bloquePanel(){
     var yo=((st.d&&st.d.docentes)||[]).filter(function(d){return d.nombre===st.profe;})[0]||{};
     var delPer=(st.d&&st.d.panel)||'';
-    return '<div class="card"><h3>🪐 Tu panel de Genially</h3>'
+    return '<div class="card" id="sala-panel"><h3>🪐 Tu panel de Genially</h3>'
       +'<p class="small muted">Es lo que abren TUS alumnos desde la Nave. Dejalo vacio y veran el del grupo.</p>'
       +'<div class="pase-fila" style="max-width:640px">'
       +'<input id="miPanel" style="flex:1;min-width:260px" placeholder="https://view.genially.com/..." value="'+esc(yo.panel||'')+'">'
@@ -176,7 +176,7 @@
         +(sinDoc.length>8?' …':'')+'</p>'
         +'<p><button class="btn small" id="verSinDoc">Ver a todo el grupo y corregirlo →</button></p></div>'
       : '';
-    return '<section><div class="eyebrow amber">Lo primero</div><h2>Requiere tu intervención</h2>'
+    return '<section id="sala-intervencion"><div class="eyebrow amber">Lo primero</div><h2>Requiere tu intervención</h2>'
       +avisoSinDoc
       +(pd.length
         ? '<p class="lead">Estos canjes ya están cobrados y el alumno lo sabe: falta que tú los apliques.</p>'
@@ -195,7 +195,7 @@
       return '<tr><td>'+esc(f(x.fecha))+'</td><td>'+esc(x._tema||'—')+'</td><td>'+(txt.join('<br>')||'<span class="muted">—</span>')+'</td>'
         +'<td>'+(x.resuelto?'<span class="chip ok">resuelto</span> <button class="btn small" data-tk="'+x.fila+'" data-v="0">deshacer</button>'
                           :'<button class="btn small primary" data-tk="'+x.fila+'" data-v="1">Resuelto</button>')+'</td></tr>';}).join('');
-    return '<section><div class="eyebrow violet">Antes de entrar</div><h2>Con qué empezar la clase</h2>'
+    return '<section id="sala-clase"><div class="eyebrow violet">Antes de entrar</div><h2>Con qué empezar la clase</h2>'
       +(s?'<div class="card"><h3>La orden de la semana '+sem+' · '+esc(s.tema)+'</h3><p class="small">'+esc(s.sub||'')+'</p>'
         +'<p class="small"><b>Se lanza:</b> '+esc((s.lanza||[]).join(' · ')||'—')+'</p>'
         +'<p><a class="btn small" href="foro.html?per='+encodeURIComponent(st.per)+'" target="_blank" rel="noopener">Ver el mensaje del foro para copiar ↗</a> '
@@ -220,7 +220,7 @@
         +'<td>N'+p.nivel+' <span class="small muted">'+esc(p.rango_nombre||'')+'</span></td>'
         +'<td class="pts">'+p.xp+'</td><td>'+p.creditos+' ◈</td><td>'+p.n+'/24</td><td class="small muted">'+ult+'</td>'
         +'<td><button class="btn small" data-al="'+i+'">Corregir</button></td></tr>';}).join('');
-    return '<section><div class="eyebrow teal">Tu gente</div><h2>Mi grupo</h2>'
+    return '<section id="sala-grupo"><div class="eyebrow teal">Tu gente</div><h2>Mi grupo</h2>'
       +'<p class="lead">Todo se corrige desde aquí: no hace falta abrir ninguna hoja de cálculo. '
       +'<label class="small" style="margin-left:8px"><input type="checkbox" id="chkMios"'+(st.soloMios?' checked':'')+'> solo mis alumnos</label></p>'
       +(r.length?'<div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Recluta</th><th>Correo</th><th>Docente</th><th>Nivel</th><th>xp</th><th>◈</th><th>Insignias</th><th>Últ. registro</th><th></th></tr></thead><tbody>'+filas+'</tbody></table></div><div id="ficha"></div>'
@@ -292,19 +292,20 @@
 
   function bloqueEnlaces(){
     var d=st.d||{};
-    function a(t,u,n){return u?'<a class="acceso" href="'+esc(u)+'" target="_blank" rel="noopener"><span class="ic">'+t+'</span><b>'+n+'</b></a>':'';}
-    return '<section><div class="eyebrow">Sin buscar en Drive</div><h2>Los enlaces de este grupo</h2>'
+    // La clave (data-acc) la usa la visita guiada para señalar el enlace CONCRETO del que habla.
+    function a(t,u,n,k){return u?'<a class="acceso" data-acc="'+k+'" href="'+esc(u)+'" target="_blank" rel="noopener"><span class="ic">'+t+'</span><b>'+n+'</b></a>':'';}
+    return '<section id="sala-enlaces"><div class="eyebrow">Sin buscar en Drive</div><h2>Los enlaces de este grupo</h2>'
       +'<div class="accesos">'
-      +a('🏆','registro.html?per='+encodeURIComponent(st.per),'Tablero del grupo')
-      +a('🚀','recluta.html?per='+encodeURIComponent(st.per),'La Nave del recluta')
-      +a('📓',d.formBitacora,'Bitácora de mando (alumnado)')
-      +a('🎁',d.formCanje,'Canje de recompensas')
-      +a('🎟️',d.formTicket,'Ticket de salida')
-      +a('🪐',d.panel,'Panel de control (Genially)')
-      +a('🔗','embed.html?per='+encodeURIComponent(st.per)+'&profe='+encodeURIComponent(st.profe),'Enlaces, embeds y QR')
-      +a('💬','foro.html?per='+encodeURIComponent(st.per),'Foro dinámico')
-      +a('📄',d.doc,'Documento de enlaces del PER')
-      +a('🧑‍🏫','profes.html?per='+encodeURIComponent(st.per),'Panel completo (referente)')
+      +a('🏆','registro.html?per='+encodeURIComponent(st.per),'Tablero del grupo','tablero')
+      +a('🚀','recluta.html?per='+encodeURIComponent(st.per),'La Nave del recluta','nave')
+      +a('📓',d.formBitacora,'Bitácora de mando (alumnado)','bitacora')
+      +a('🎁',d.formCanje,'Canje de recompensas','canje')
+      +a('🎟️',d.formTicket,'Ticket de salida','ticket')
+      +a('🪐',d.panel,'Panel de control (Genially)','panel')
+      +a('🔗','embed.html?per='+encodeURIComponent(st.per)+'&profe='+encodeURIComponent(st.profe),'Enlaces, embeds y QR','embed')
+      +a('💬','foro.html?per='+encodeURIComponent(st.per),'Foro dinámico','foro')
+      +a('📄',d.doc,'Documento de enlaces del PER','doc')
+      +a('🧑‍🏫','profes.html?per='+encodeURIComponent(st.per),'Panel completo (referente)','profes')
       +'</div></section>';}
 
   function bloqueMisPers(){
@@ -314,7 +315,7 @@
       +'<td>'+(p.inicio?esc(f(p.inicio)):'—')+'</td>'
       +'<td><button class="btn small" data-ir="'+esc(p.id)+'">Abrir</button></td></tr>';};
     var vivos=mp.filter(function(p){return estadoPer(p)!=='pasado';}), pasados=mp.filter(function(p){return estadoPer(p)==='pasado';});
-    return '<section><div class="eyebrow">Tu historial</div><h2>Todos tus grupos</h2>'
+    return '<section id="sala-pers"><div class="eyebrow">Tu historial</div><h2>Todos tus grupos</h2>'
       +'<div class="tablewrap"><table><thead><tr><th>Grupo</th><th>Tipo</th><th>Estado</th><th>Empezó</th><th></th></tr></thead><tbody>'
       +vivos.map(fila).join('')+pasados.map(fila).join('')+'</tbody></table></div></section>';}
 
@@ -360,6 +361,9 @@
       b.onclick=function(){b.disabled=true;post({accion:'ticket_resuelto',per:st.per,fila:parseInt(b.getAttribute('data-tk'),10),valor:b.getAttribute('data-v')==='1',profe:st.profe},function(){cargarPer();});};});
     Array.prototype.forEach.call(root.querySelectorAll('button[data-ir]'),function(b){
       b.onclick=function(){st.per=b.getAttribute('data-ir');localStorage.setItem('sgClasePer',st.per);cargarPer();};});
+    // La visita guiada de la sala no se puede ofrecer antes: hasta aquí no hay ni un objetivo que
+    // señalar (primero el PIN, luego «¿quién eres?»).
+    if(window.sgTour&&window.sgTour.ofrecerLocal) window.sgTour.ofrecerLocal();
   }
 
   if(!API){root.innerHTML='<p class="lead">El tablero aún no está conectado.</p>';return;}
