@@ -50,11 +50,14 @@
      vacio:'Nadie ha empezado a coleccionar todavía. Los sobres se abren desde la semana 2.'}
   ];
   // ---------- v3.29 · LA FICHA DEL RECLUTA ----------
-  // Se abre al pulsar su fila en el ranking. Enseña lo que el recluta ha CONSEGUIDO —insignias con
-  // su nombre, cartas, héroes, bonus, su bio— y a propósito NO enseña:
-  //   · las versiones de su personaje (skins): son la sorpresa de subir de nivel, y verlas de
-  //     antemano en la ficha de otro le quita la gracia a la tuya;
-  //   · el correo ni el nombre real: ninguno de los dos sale siquiera del Apps Script.
+  // Se abre al pulsar su fila en el ranking. Este tablero se INCRUSTA en un Genially que ve toda la
+  // clase, así que enseña lo justo: el personaje que lleva puesto, su bio, nivel, xp, insignias y
+  // cartas. Y a propósito NO enseña:
+  //   · los personajes ganados —héroes y versiones del avatar—: son la sorpresa de ir avanzando, y
+  //     verlos de antemano en la ficha de otro le quita la gracia a la tuya;
+  //   · los créditos: cuánto dinero tiene cada uno no es asunto de la clase;
+  //   · el correo ni el nombre real: ninguno de los dos sale siquiera del Apps Script (batería 33).
+  // Todo eso SÍ lo ve el profesorado en su sala, que está detrás del PIN.
   function cerrarFicha(){var o=document.getElementById('ficha-recluta'); if(o) o.style.display='none';}
   function abrirFicha(clave){
     var p=(window.__fichas||{})[clave]; if(!p) return;
@@ -68,9 +71,6 @@
       var n=(p.cromos||{})[k]||1;
       return '<span class="fr-cro"><img src="assets/img/tarjetas/'+k+'_carta.png'+(window.SG_CARDV||'')+'" alt="">'
         +'<em>'+esc(c?c[1]:k)+(n>1?' ×'+n:'')+'</em></span>';}).join('');
-    var HE=window.SG_HEROES||[];
-    var her=(p.heroes||[]).map(function(k){var h=HE.filter(function(x){return x[0]===k;})[0];
-      return '<span class="fr-cro"><img src="assets/img/heroes/'+k+'.jpg" alt=""><em>'+esc(h?h[1]:k)+'</em></span>';}).join('');
     var col=p.coleccion||{};
     var o=document.getElementById('ficha-recluta');
     if(!o){o=document.createElement('div');o.id='ficha-recluta';o.className='lupa';document.body.appendChild(o);}
@@ -86,11 +86,9 @@
       +'<div class="fr-kpis">'
         +'<div><b>'+p.n+'</b><span>de 24 insignias</span></div>'
         +'<div><b>'+(col.cromos?col.cromos.tengo:0)+'</b><span>de '+(col.cromos?col.cromos.total:20)+' cartas</span></div>'
-        +'<div><b>'+(col.heroes?col.heroes.tengo:0)+'</b><span>de '+(col.heroes?col.heroes.total:30)+' héroes</span></div>'
         +'<div><b>'+pct2(p.coleccion?p.coleccion.pct:0)+'%</b><span>del juego</span></div></div>'
       +(ins?'<h4>Insignias</h4><div class="fr-lista">'+ins+'</div>':'')
       +(cro?'<h4>Cartas del álbum</h4><div class="fr-lista">'+cro+'</div>':'')
-      +(her?'<h4>Héroes de la Rebelión</h4><div class="fr-lista">'+her+'</div>':'')
       +'</div>';
     o.style.display='flex';
     o.querySelector('.lupa-fondo').onclick=cerrarFicha;
@@ -144,15 +142,15 @@
           +'<td class="small"><b>'+(SG.nivel?SG.nivel(p.xp,d.tipo):1)+'</b> <span class="muted">'+esc(SG.avatarSrc(p.avatar,p.alias,p.xp,d.tipo).rango)+'</span></td>'
           +'<td'+td('xp','pts')+'>'+p.xp+'</td>'
           +'<td'+td('sem','small')+'>'+(p.xp7||0)+'</td>'
-          +'<td class="small muted">'+(p.creditos!=null?p.creditos:(p.xp_disponibles||0))+'</td></tr>'
-          +'<tr class="insrow" data-alias="'+esc(p.alias.toLowerCase())+'"><td colspan="9"><div class="dots">'+dots(p)+'</div></td></tr>';}).join('');
+          +'</tr>'
+          +'<tr class="insrow" data-alias="'+esc(p.alias.toLowerCase())+'"><td colspan="8"><div class="dots">'+dots(p)+'</div></td></tr>';}).join('');
       root.innerHTML=(solo?'':'<div class="tab-head"><div><div class="eyebrow amber">'+esc(d.nombre)+' · '+esc(d.tipo)+' · '+esc(d.estado)+'</div><h3>Ranking de reclutas</h3></div>'
         +'<div class="small muted">'+todos.length+' reclutas · '+new Date(d.actualizado).toLocaleString('es-ES')+'</div></div>')
         +(solo?'':forms)+pestanas+podio
         +'<div class="buscar"><input id="buscaAlias" type="search" placeholder="Busca tu alias…" autocomplete="off"><span class="small muted">xp = ganados · ◈ = lo que te queda tras canjear</span></div>'
         +(r.length?'<div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Recluta</th><th>Planeta</th><th>Insignias</th>'
             +'<th'+th('col')+' title="Cartas, héroes y versiones de tu personaje">Colección</th><th>Nivel</th>'
-            +'<th'+th('xp')+'>xp</th><th'+th('sem')+' title="xp de los últimos 7 días">Semana</th><th>◈</th></tr></thead>'
+            +'<th'+th('xp')+'>xp</th><th'+th('sem')+' title="xp de los últimos 7 días">Semana</th></tr></thead>'
             +'<tbody id="rankBody">'+filas+'</tbody></table></div>'
           :'<p class="lead">'+(todos.length?modo.vacio:'Todavía nadie se ha alistado. Sé el primero: rellena tu Bitácora de mando.')+'</p>');
       var inp=document.getElementById('buscaAlias');

@@ -214,7 +214,7 @@
     var r=mios();
     var filas=r.map(function(p,i){
       var ult=(p.eventos||[]).length?f((p.eventos||[]).map(function(e){return e.fecha;}).sort().pop()):'—';
-      return '<tr><td>'+p.pos+'</td><td><b>'+esc(p.alias)+'</b><br><span class="small muted">'+esc(p.nombre||'')+'</span></td>'
+      return '<tr class="clicable" data-al-fila="'+i+'" title="Ver la ficha de '+esc(p.alias)+'"><td>'+p.pos+'</td><td><b>'+esc(p.alias)+'</b><br><span class="small muted">'+esc(p.nombre||'')+'</span></td>'
         +'<td class="small">'+esc(p.email||'')+'</td>'
         +'<td>'+(String(p.profe||'').trim()?esc(p.profe):'<span class="chip" style="background:#f5b04333;color:#8a5b00">⚠ sin docente</span>')+'</td>'
         +'<td>N'+p.nivel+' <span class="small muted">'+esc(p.rango_nombre||'')+'</span></td>'
@@ -226,6 +226,30 @@
       +(r.length?'<div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Recluta</th><th>Correo</th><th>Docente</th><th>Nivel</th><th>xp</th><th>◈</th><th>Insignias</th><th>Últ. registro</th><th></th></tr></thead><tbody>'+filas+'</tbody></table></div><div id="ficha"></div>'
         :'<p class="lead">Ningún recluta te ha elegido todavía como docente. Si ya tienes clase, revisa que hayan respondido «¿Quién imparte tu clase?» en su Bitácora — o desmarca «solo mis alumnos» y corrígeselo tú.</p>')
       +'</section>';}
+
+  function bloqueColeccion(p){
+    var N=window.SG_BADGE_NAMES||{}, CR=window.SG_CROMOS||[], HE=window.SG_HEROES||[];
+    var col=p.coleccion||{};
+    var ins=(p.insignias||[]).map(function(k){
+      return '<span class="fr-ins"><img src="assets/img/insignias/'+k+'.png" alt=""><em>'+esc(N[k]||k)+'</em></span>';}).join('');
+    var cro=Object.keys(p.cromos||{}).map(function(k){var c=CR.filter(function(x){return x[0]===k;})[0];
+      var n=(p.cromos||{})[k]||1;
+      return '<span class="fr-cro"><img src="assets/img/tarjetas/'+k+'_carta.png'+(window.SG_CARDV||'')+'" alt="">'
+        +'<em>'+esc(c?c[1]:k)+(n>1?' \u00d7'+n:'')+'</em></span>';}).join('');
+    var her=(p.heroes||[]).map(function(k){var h=HE.filter(function(x){return x[0]===k;})[0];
+      return '<span class="fr-cro"><img src="assets/img/heroes/'+k+'.jpg" alt=""><em>'+esc(h?h[1]:k)+'</em></span>';}).join('');
+    var pct=Math.round((Number(col.pct)||0)*100)/100;
+    return '<div style="margin-top:16px">'
+      +(p.bio?'<p class="fr-bio">\u00ab'+esc(p.bio)+'\u00bb</p>':'')
+      +'<div class="fr-kpis">'
+        +'<div><b>'+p.n+'</b><span>de 24 insignias</span></div>'
+        +'<div><b>'+(col.cromos?col.cromos.tengo:0)+'</b><span>de '+(col.cromos?col.cromos.total:20)+' cartas</span></div>'
+        +'<div><b>'+(col.heroes?col.heroes.tengo:0)+'</b><span>de '+(col.heroes?col.heroes.total:30)+' h\u00e9roes</span></div>'
+        +'<div><b>'+p.creditos+' \u25c8</b><span>cr\u00e9ditos · '+pct+' % del juego</span></div></div>'
+      +(ins?'<h4>Insignias</h4><div class="fr-lista">'+ins+'</div>':'')
+      +(cro?'<h4>Cartas del \u00e1lbum</h4><div class="fr-lista">'+cro+'</div>':'')
+      +(her?'<h4>Personajes ganados</h4><div class="fr-lista">'+her+'</div>':'')
+      +'</div>';}
 
   function fichaAlumno(p){
     var box=document.getElementById('ficha'); if(!box) return;
@@ -246,7 +270,12 @@
         return '<tr><td class="small">'+esc(x[1])+'</td><td>'+(tiene
           ?'<span class="chip ok">hecho</span> <button class="btn small" data-aj="anular" data-r="'+x[0]+'">quitar</button>'
           :'<button class="btn small" data-aj="otorgar" data-r="'+x[0]+'">dárselo</button>')+'</td></tr>';}).join('')
-      +'</tbody></table></div></div></div></div>';
+      +'</tbody></table></div></div></div>'
+      // v3.29 · Aqui SI se enseña todo lo que el tablero publico esconde: el correo (arriba), los
+      // creditos, los personajes ganados y las versiones desbloqueadas. Esta pantalla vive detras
+      // del PIN y es la de quien tiene que poder ayudar a un alumno concreto.
+      + bloqueColeccion(p)
+      +'</div>';
     document.getElementById('cerrarF').onclick=function(){box.innerHTML='';};
     document.getElementById('fGuardar').onclick=function(){
       var m=document.getElementById('fMsg'); m.textContent='Guardando…';
@@ -299,6 +328,9 @@
       return;
     }
     root.innerHTML=cabecera()+bloquePase()+bloquePanel()+bloqueIntervencion()+bloqueClase()+bloqueGrupo()+bloqueEnlaces()+bloqueMisPers();
+    Array.prototype.forEach.call(root.querySelectorAll('tr[data-al-fila]'),function(tr){
+      tr.onclick=function(e){ if(e.target.closest('button')) return;   // el boton «Corregir» ya lo hace
+        fichaAlumno(mios()[Number(tr.getAttribute('data-al-fila'))]); };});
     var gp=document.getElementById('guardarPanel');
     if(gp)gp.onclick=function(){var i=document.getElementById('miPanel'),m=document.getElementById('msgPanel');
       gp.disabled=true;m.textContent='Guardando…';

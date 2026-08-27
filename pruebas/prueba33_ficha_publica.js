@@ -46,4 +46,24 @@ const dp = JSON.parse(priv.getContent());
 c(JSON.stringify(dp).indexOf("ana.secreta@correo-privado.es") >= 0,
   "el profesorado SÍ ve el correo desde su panel (con PIN): lo necesita para corregir fichas");
 
+// ---------------------------------------------------------------- la frontera, en el JS que pinta
+// 🔴 El servidor manda heroes y creditos porque LA NAVE del propio alumno los necesita (misma API).
+// Quien decide qué se enseña en el tablero incrustado es tablero.js, así que la frontera se vigila
+// ahí: si alguien vuelve a pintar los personajes ganados o el dinero, esto se pone en rojo.
+const fs = require("fs"), path = require("path");
+const TB = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "tablero.js"), "utf8");
+const ficha = TB.slice(TB.indexOf("function abrirFicha"), TB.indexOf("document.addEventListener('keydown'"));
+c(ficha.indexOf("img/heroes/") < 0, "🔴 la ficha pública NO pinta los personajes ganados");
+c(!/creditos/.test(ficha), "🔴 ni los créditos");
+c(!/skins/.test(ficha), "🔴 ni las versiones del personaje");
+c(ficha.indexOf("p.bio") >= 0, "pero sí la bio");
+c(ficha.indexOf("img/insignias/") >= 0, "las insignias");
+c(ficha.indexOf("img/tarjetas/") >= 0, "y las cartas");
+c(TB.indexOf("<th>◈</th>") < 0, "🔴 y la tabla del ranking ya no lleva columna de dinero");
+
+// y en la sala del docente, que va con PIN, sí se enseña todo
+const CL = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "clase.js"), "utf8");
+c(CL.indexOf("img/heroes/") >= 0, "en la sala del docente sí se ven los personajes ganados");
+c(/p\.email/.test(CL), "y el correo del alumno, que es quien tiene que poder ayudarle");
+
 E.resumen("Lo que sale al tablero público");
