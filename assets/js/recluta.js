@@ -208,6 +208,12 @@
       +'<button class="btn primary" id="pase-ok" type="button">Estoy en clase</button></div>'
       +'<div class="small muted" id="pase-msg"></div></div>';
   }
+  // v3.28 · El Genially del alumno es el de SU docente si lo tiene; si no, el del grupo. Algunos
+  // docentes retocan el panel para sus alumnos y ese es el que tienen que ver.
+  function miPanel(){
+    var d=st.d||{}, p=(st.yo&&st.yo.profe)||'';
+    return (p && d.paneles && d.paneles[p]) || d.panel || '';
+  }
   function accesos(){
     var d=st.d;
     return avisoPase()+'<div class="nave-barra"><div class="nave-accesos">'
@@ -215,7 +221,7 @@
       +(d.formCanje?'<a class="acc" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener"><b>🎁 Canjear</b><em>gasta tus ◈ créditos</em></a>':'')
       +'<a class="acc" href="registro.html?per='+encodeURIComponent(per)+'" target="_blank" rel="noopener"><b>🏆 Tablero</b><em>cómo va tu grupo</em></a>'
       +(d.formTicket?'<a class="acc" href="'+esc(d.formTicket)+'" target="_blank" rel="noopener"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
-      +(d.panel?'<a class="acc" href="'+esc(d.panel)+'" target="_blank" rel="noopener"><b>🪐 Panel</b><em>los ocho planetas</em></a>':'')
+      +(miPanel()?'<a class="acc" href="'+esc(miPanel())+'" target="_blank" rel="noopener"><b>🪐 Panel</b><em>los ocho planetas</em></a>':'')
       +'</div></div>';
   }
   function mapa(){

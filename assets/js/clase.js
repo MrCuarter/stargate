@@ -144,6 +144,20 @@
     e.textContent='quedan '+Math.floor(s/60)+' min '+('0'+(s%60)).slice(-2)+' s';
     setTimeout(cuentaAtras,1000);}
 
+  // v3.28 · CADA DOCENTE, SU GENIALLY. Algunos retocan el panel para sus alumnos; los suyos deben
+  // ver el suyo. Si lo deja vacio, sus alumnos ven el del grupo (y ese, el estandar).
+  function bloquePanel(){
+    var yo=((st.d&&st.d.docentes)||[]).filter(function(d){return d.nombre===st.profe;})[0]||{};
+    var delPer=(st.d&&st.d.panel)||'';
+    return '<div class="card"><h3>🪐 Tu panel de Genially</h3>'
+      +'<p class="small muted">Es lo que abren TUS alumnos desde la Nave. Dejalo vacio y veran el del grupo.</p>'
+      +'<div class="pase-fila" style="max-width:640px">'
+      +'<input id="miPanel" style="flex:1;min-width:260px" placeholder="https://view.genially.com/..." value="'+esc(yo.panel||'')+'">'
+      +'<button class="btn primary" id="guardarPanel">Guardar</button></div>'
+      +'<p class="small muted">'+(yo.panel?'Ahora mismo tus alumnos ven <b>el tuyo</b>.'
+         :('Ahora mismo tus alumnos ven el del grupo: '+(delPer?'<a href="'+esc(delPer)+'" target="_blank" rel="noopener">'+esc(delPer)+'</a>':'<b>ninguno, no hay panel definido</b>')))
+      +'</p><p class="small muted" id="msgPanel"></p></div>';}
+
   function bloqueIntervencion(){
     var pd=pendientes(), tk=ticketsMios().filter(function(t){return !t.resuelto;});
     var filas=pd.map(function(x,i){
@@ -284,7 +298,13 @@
       document.getElementById('cambiarD').onclick=function(){localStorage.removeItem('sgProfe');st.profe='';elegirDocente();};
       return;
     }
-    root.innerHTML=cabecera()+bloquePase()+bloqueIntervencion()+bloqueClase()+bloqueGrupo()+bloqueEnlaces()+bloqueMisPers();
+    root.innerHTML=cabecera()+bloquePase()+bloquePanel()+bloqueIntervencion()+bloqueClase()+bloqueGrupo()+bloqueEnlaces()+bloqueMisPers();
+    var gp=document.getElementById('guardarPanel');
+    if(gp)gp.onclick=function(){var i=document.getElementById('miPanel'),m=document.getElementById('msgPanel');
+      gp.disabled=true;m.textContent='Guardando…';
+      post({accion:'mi_panel',per:st.per,profe:st.profe,url:i.value.trim()},function(r){
+        if(r&&r.ok){m.textContent='Guardado.';cargarPer();}else{gp.disabled=false;m.textContent=(r&&r.error)||'No se ha podido.';}
+      },function(e){gp.disabled=false;m.textContent=e;});};
     var ap=document.getElementById('abrirPase');
     if(ap)ap.onclick=function(){ap.disabled=true;
       post({accion:'pase_abrir',per:st.per,profe:st.profe},function(d){st.pase=d;render();},

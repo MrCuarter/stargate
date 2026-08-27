@@ -121,7 +121,10 @@ function asegurarHojas_() {
   // v3.11 · equipo docente CON CORREO: es a quien se avisa cuando un canje pide su intervención,
   // y lo que permite filtrar cada grupo por docente. Se puede editar a mano en esta pestaña.
   // rol: "referente", "imparte" o "referente+imparte" (el referente puede dar clase también)
-  hoja_(H.DOC, ["per","nombre","correo","rol"], "#0e7f8c");
+  // v3.28 · «panel»: el Genially propio de ese docente. Algunos retocan el panel para SUS alumnos,
+  // asi que manda sobre el del PER. Vacio = usa el del PER (y ese, si esta vacio, el estandar).
+  var doc = hoja_(H.DOC, ["per","nombre","correo","rol","panel"], "#0e7f8c");
+  if (String(doc.getRange(1,5).getValue()||"") !== "panel") doc.getRange(1,5).setValue("panel");
   // 🔬 v3.23 · quién autoriza que sus datos se usen para investigar. NO se pregunta dentro del juego
   // y NO condiciona nada: quien no consiente juega igual, solo se queda fuera de las exportaciones.
   // Mientras esta pestaña esté VACÍA, DATOS y RESUMEN salen completos, como hasta ahora.
@@ -921,7 +924,8 @@ function docentesDe_(perId) {
   try {
     hoja_(H.DOC).getDataRange().getValues().slice(1).forEach(function(v){
       if (String(v[0]) !== perId || !String(v[1] || "").trim()) return;
-      out.push({ nombre:String(v[1]).trim(), correo:String(v[2] || "").trim().toLowerCase(), rol:String(v[3] || "imparte") });
+      out.push({ nombre:String(v[1]).trim(), correo:String(v[2] || "").trim().toLowerCase(),
+                 rol:String(v[3] || "imparte"), panel:String(v[4] || "").trim() });
     });
   } catch (e) {}
   if (out.length) return out;
@@ -934,10 +938,37 @@ function docentesDe_(perId) {
 }
 function guardarDocentes_(perId, docentes) {
   var sh = hoja_(H.DOC), v = sh.getDataRange().getValues();
+  // 🔴 El panel propio de cada docente NO viaja en el formulario del equipo, asi que si no se
+  // rescatara antes de reescribir las filas, editar el equipo se lo llevaria por delante en silencio.
+  var panelDe = {};
+  v.slice(1).forEach(function(f){ if (String(f[0]) === perId && f[4]) panelDe[String(f[1]).trim()] = String(f[4]).trim(); });
   for (var i = v.length; i >= 2; i--) if (String(v[i-1][0]) === perId) sh.deleteRow(i);
   var filas = (docentes || []).filter(function(d){ return d && String(d.nombre || "").trim(); })
-    .map(function(d){ return [perId, String(d.nombre).trim(), String(d.correo || "").trim().toLowerCase(), d.rol || "imparte"]; });
-  if (filas.length) sh.getRange(sh.getLastRow() + 1, 1, filas.length, 4).setValues(filas);
+    .map(function(d){ var nom = String(d.nombre).trim();
+      return [perId, nom, String(d.correo || "").trim().toLowerCase(), d.rol || "imparte",
+              d.panel !== undefined ? String(d.panel || "").trim() : (panelDe[nom] || "")]; });
+  if (filas.length) sh.getRange(sh.getLastRow() + 1, 1, filas.length, 5).setValues(filas);
+}
+
+// v3.28 · El Genially que le toca a un alumno concreto: el de SU docente si lo tiene, si no el del
+// PER, si no el estandar. Tres escalones, del mas concreto al mas general.
+function panelDe_(o, nombreDocente) {
+  if (nombreDocente) {
+    var d = docentesDe_(o.id).filter(function(x){ return x.nombre === nombreDocente; })[0];
+    if (d && d.panel) return d.panel;
+  }
+  return o.panelVer || panelStd_().ver || "";
+}
+
+// Un docente cambia SU panel sin tocar el de nadie mas.
+function guardarPanelDocente_(perId, nombre, url) {
+  var sh = hoja_(H.DOC), v = sh.getDataRange().getValues();
+  for (var i = 1; i < v.length; i++)
+    if (String(v[i][0]) === perId && String(v[i][1]).trim() === String(nombre).trim()) {
+      sh.getRange(i + 1, 5).setValue(String(url || "").trim());
+      return true;
+    }
+  return false;
 }
 // Correos a los que avisar de algo de este PER: el docente indicado + siempre el referente.
 function correosAviso_(perId, nombreDocente) {
@@ -2228,6 +2259,9 @@ function tablero_(perId, conPrivados) {
   var res = { per:perId, nombre:o.nombre, tipo:o.tipo, profesorado:o.profesorado, referente:o.referente, estado:o.estado, inicio:o.inicio,
            formBitacora:o.formBitacora, formTicket:o.formTicket, formCanje:o.formCanje, reclutas:lista,
            recompensas:recompensasCat_(), semana:semanaDe_(o), semanas:semanasDe_(o.tipo), panel:o.panelVer || std.ver,
+           // v3.28 · el Genially propio de cada docente, para quien lo tenga. La Nave elige el del
+           // docente del alumno y, si ese docente no tiene el suyo, se queda con «panel».
+           paneles:(function(){ var m = {}; docentesDe_(o.id).forEach(function(d){ if (d.panel) m[d.nombre] = d.panel; }); return m; })(),
            // v3.14 · para que el alumnado y el profesorado sepan HASTA CUÁNDO, sin preguntar
            apertura:o.apertura, cierre_misiones:o.cierre, cierre_canje:o.cierreCanje || o.cierre,
            docentes:docentesDe_(perId).map(function(d){ return { nombre:d.nombre, rol:d.rol, imparte:imparte_(d), referente:esReferente_(d) }; }),
@@ -2922,6 +2956,9 @@ function doPost(e) {
     if (a === "pers") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; })
       .map(function(v){ var ob = perObj_(v); ob.docentes = docentesDe_(ob.id); ob.semana = semanaDe_(ob); return ob; }) };
     else if (a === "alumnos") out = tablero_(per, true);
+    else if (a === "mi_panel") { var okp = guardarPanelDocente_(per, q.profe, q.url);
+      out = { ok: okp, panel: String(q.url || "").trim(),
+              error: okp ? "" : "No encuentro a «" + q.profe + "» en el equipo docente de este grupo." }; }
     else if (a === "pase_abrir") out = abrirPase_(perObj_(perFila_(per).v), q.profe, q.minutos);
     else if (a === "pase_estado") { var pact = paseActivo_(per); out = { pase: pact }; }
     else if (a === "tickets") { var o = perObj_(perFila_(per).v); var sh = SpreadsheetApp.getActive().getSheetByName(o.tabT); var v = sh && sh.getLastRow() > 1 ? sh.getDataRange().getValues() : [[]];
