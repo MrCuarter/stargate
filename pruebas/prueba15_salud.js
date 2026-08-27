@@ -19,6 +19,9 @@ E.crearPERDemo(G);
 E.reclutaRico(G, "prueba-banco", "sano@alumno.es", { profe: "Mr Cuarter" });
 G.asegurarTriggers_();
 M.Props.getScriptProperties().setProperty("PIN_PROFES", "estrella7");
+// v3.35 · un mundo sano tiene los DOS PIN: sin el de referente, cualquiera del equipo mueve la
+// semana 1 de cualquier grupo o lo archiva, y el parte lo avisa en ámbar (batería 36).
+M.Props.getScriptProperties().setProperty("PIN_REFERENTE", "orion-referente");
 G.actualizarConsola();
 G.dossier_();
 

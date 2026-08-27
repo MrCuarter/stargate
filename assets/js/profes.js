@@ -3,9 +3,16 @@
   var API=(window.SG_TABLERO_API||"").trim(); var root=document.getElementById('profes-app'); if(!root) return;
   var q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
   var N=window.SG_BADGE_NAMES||{}, RET=window.SG_RETOS||{};
-  var st={pin:sessionStorage.getItem('sgPin')||'',per:q.get('per')||'',pers:[],datos:null,vista:'alumnos'};
+  var st={pin:sessionStorage.getItem('sgPin')||'',per:q.get('per')||'',pers:[],datos:null,vista:'alumnos',nivel:''};
+  // v3.35 · el servidor dice con qué nivel se ha entrado. Esconder Ajustes es CORTESÍA, no seguridad:
+  // quien lo comprueba de verdad es doPost (nadie se salta eso desde la consola del navegador).
+  function esReferente(){return st.nivel==='referente';}
+  // Las acciones que afectan a un grupo entero quedan firmadas en AJUSTES. Se pregunta una sola vez.
+  function yo(){var n=localStorage.getItem('sgProfe')||'';
+    if(!n){n=(prompt('Tu nombre (queda en el registro del grupo):')||'').trim();if(n)localStorage.setItem('sgProfe',n);}
+    return n;}
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-  function post(b,cb){b.pin=st.pin;fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)}).then(function(r){return r.json();}).then(function(d){if(d.error){if(/PIN/.test(d.error)){sessionStorage.removeItem('sgPin');st.pin='';pedirPin(d.error);return;}alert(d.error);return;}cb(d);}).catch(function(e){alert('Error: '+e.message);});}
+  function post(b,cb){b.pin=st.pin;fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)}).then(function(r){return r.json();}).then(function(d){if(d.error){if(/PIN/.test(d.error)){sessionStorage.removeItem('sgPin');st.pin='';pedirPin(d.error);return;}alert(d.error);return;}if(d.nivel)st.nivel=d.nivel;cb(d);}).catch(function(e){alert('Error: '+e.message);});}
   function f(d){try{return new Date(d).toLocaleDateString('es-ES');}catch(e){return d;}}
   function cargando(txt,pista){return '<div class="cargando"><div class="txt">'+txt+'</div><div class="barra"><i></i></div>'+(pista?'<div class="pista">'+pista+'</div>':'')+'</div>';}
   if(!API){root.innerHTML='<div class="wip"><span class="ic">🛰️</span><div><b>Panel pendiente de conectar</b> (falta la URL del web app).</div></div>';return;}
@@ -17,12 +24,13 @@
   function sel(){return '<select id="selPer">'+st.pers.map(function(p){return '<option value="'+esc(p.id)+'"'+(p.id===st.per?' selected':'')+'>'+(p.archivado?'\u{1F4E6} ':'')+esc(p.nombre)+' · '+esc(p.tipo)+' · '+(p.archivado?'archivado':esc(p.estado))+'</option>';}).join('')+'</select>';}
   function render(){var d=st.datos,p=st.pers.filter(function(x){return x.id===st.per;})[0]||{};
     root.innerHTML='<div class="tab-head"><div><div class="eyebrow amber">Panel del profesorado</div><h3>'+esc(d.nombre)+'</h3><div class="small muted">'+esc(d.tipo)+' · '+esc(d.estado)+' · referente: '+esc(d.referente||'—')+' · profesorado: '+esc(d.profesorado||'—')+' · semana 1: '+esc(d.inicio||'sin fecha')+(d.cierre_canje?' · misiones hasta '+fecha(d.cierre_misiones)+' · canje hasta '+fecha(d.cierre_canje):'')+(d.archivado?' · <b>\u{1F4E6} ARCHIVADO</b> ('+esc(d.archivado)+')':'')+'</div></div><div>'+sel()+'</div></div>'
-      +'<div class="tabs"><button data-v="alumnos">👥 Alumnos ('+(d.reclutas||[]).length+')</button><button data-v="tickets">🎟️ Tickets de salida</button><button data-v="canjes">🎁 Canjes</button><button data-v="per">⚙️ Ajustes del PER</button><button class="salir">Salir</button></div><div id="vista"></div>';
+      +'<div class="tabs"><button data-v="alumnos">👥 Alumnos ('+(d.reclutas||[]).length+')</button><button data-v="tickets">🎟️ Tickets de salida</button><button data-v="canjes">🎁 Canjes</button>'+(esReferente()?'<button data-v="per">⚙️ Ajustes del PER</button>':'')+'<button class="salir">Salir</button></div><div id="vista"></div>';
     document.getElementById('selPer').onchange=function(){st.per=this.value;history.replaceState(null,'','?per='+st.per+(document.body.classList.contains('embed')?'&embed=1':''));cargarPer();};
     Array.prototype.forEach.call(root.querySelectorAll('.tabs button[data-v]'),function(b){b.onclick=function(){st.vista=b.getAttribute('data-v');vista();};if(b.getAttribute('data-v')===st.vista)b.classList.add('on');});
     root.querySelector('.salir').onclick=function(){sessionStorage.removeItem('sgPin');st.pin='';pedirPin();};
     vista();}
-  function vista(){Array.prototype.forEach.call(root.querySelectorAll('.tabs button[data-v]'),function(b){b.classList.toggle('on',b.getAttribute('data-v')===st.vista);});var v=document.getElementById('vista');
+  function vista(){if(st.vista==='per'&&!esReferente())st.vista='alumnos';
+    Array.prototype.forEach.call(root.querySelectorAll('.tabs button[data-v]'),function(b){b.classList.toggle('on',b.getAttribute('data-v')===st.vista);});var v=document.getElementById('vista');
     if(st.vista==='alumnos')vAlumnos(v);else if(st.vista==='tickets')vTickets(v);else if(st.vista==='canjes')vCanjes(v);else vPer(v);}
   function vAlumnos(v){var r=st.datos.reclutas||[];var retos=RET[st.datos.tipo]||[];
     // v3.13 · dos cosas que dejan avisos sin destinatario: reclutas sin docente y docentes sin correo
@@ -95,9 +103,9 @@
       +'<label class="small muted">Enlace de VISUALIZACIÓN (lo ve el alumnado; view.genially.com/…)</label><input id="pver" value="'+esc(d.panelPropio&&d.panel?d.panel:'')+'" placeholder="'+esc(d.panelPropio?'':(d.panel||'sin panel estándar definido'))+'" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">'
       +'<label class="small muted" style="margin-top:8px;display:block">Enlace de EDICIÓN (solo profesorado; app.genially.com/editor/…)</label><input id="pedit" value="'+esc(d.panelPropio&&d.panelEdit?d.panelEdit:'')+'" placeholder="'+esc(d.panelPropio?'':(d.panelEdit||''))+'" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">'
       +'<button class="btn small" id="gpanel" style="margin-top:8px">Guardar panel</button>'+(d.panel?' <a class="btn small" href="'+esc(d.panel)+'" target="_blank" rel="noopener">Ver el panel actual ↗</a>':'')+(d.panelEdit?' <a class="btn small" href="'+esc(d.panelEdit)+'" target="_blank" rel="noopener">Editarlo ↗</a>':'')+'</div></div>';
-    var gd=document.getElementById('gendoc'); if(gd)gd.onclick=function(){gd.textContent='Generando…';gd.disabled=true;post({accion:'documento',per:st.per},function(r){cargarPer();});};
-    document.getElementById('arch').onclick=function(){var a=!d.archivado;if(a&&!confirm('¿Archivar «'+d.nombre+'»? Se cerrarán sus formularios y dejará de aparecer en los listados del alumnado. No se borra nada.'))return;post({accion:'archivar',per:st.per,valor:a},function(){cargarPers();});};
-    document.getElementById('gpanel').onclick=function(){post({accion:'panel',per:st.per,ver:document.getElementById('pver').value.trim(),editar:document.getElementById('pedit').value.trim()},function(){cargarPer();});};
+    var gd=document.getElementById('gendoc'); if(gd)gd.onclick=function(){gd.textContent='Generando…';gd.disabled=true;post({accion:'documento',per:st.per,profe:yo()},function(r){cargarPer();});};
+    document.getElementById('arch').onclick=function(){var a=!d.archivado;if(a&&!confirm('¿Archivar «'+d.nombre+'»? Se cerrarán sus formularios y dejará de aparecer en los listados del alumnado. No se borra nada.'))return;post({accion:'archivar',per:st.per,valor:a,profe:yo()},function(){cargarPers();});};
+    document.getElementById('gpanel').onclick=function(){post({accion:'panel',per:st.per,ver:document.getElementById('pver').value.trim(),editar:document.getElementById('pedit').value.trim(),profe:yo()},function(){cargarPer();});};
     document.getElementById('masDoc').onclick=function(){var tb=document.getElementById('tbDoc');var i=tb.children.length;tb.insertAdjacentHTML('beforeend',filaDoc({nombre:'',correo:'',rol:'imparte'},i));wireDoc();};
     function wireDoc(){Array.prototype.forEach.call(document.querySelectorAll('button[data-quitar]'),function(b){b.onclick=function(){b.closest('tr').remove();};});}
     wireDoc();
@@ -113,9 +121,9 @@
       if(malos.length){alert('Revisa el correo de '+malos[0].nombre);return;}
       post({accion:'profesorado',per:st.per,referente:ref,
             profesorado:docentes.filter(function(x){return /imparte/.test(x.rol)&&x.nombre!==ref;}).map(function(x){return x.nombre;}).join(', '),
-            docentes:docentes},function(){cargarPer();});};
-    document.getElementById('gini').onclick=function(){post({accion:'inicio',per:st.per,inicio:document.getElementById('ini').value},function(){cargarPer();});};
-    document.getElementById('abrir').onclick=function(){post({accion:'abrir',per:st.per},function(){cargarPer();});};
-    document.getElementById('cerrar').onclick=function(){if(confirm('¿Cerrar los formularios de este PER?'))post({accion:'cerrar',per:st.per},function(){cargarPer();});};}
+            docentes:docentes,profe:yo()},function(){cargarPer();});};
+    document.getElementById('gini').onclick=function(){post({accion:'inicio',per:st.per,inicio:document.getElementById('ini').value,profe:yo()},function(){cargarPer();});};
+    document.getElementById('abrir').onclick=function(){post({accion:'abrir',per:st.per,profe:yo()},function(){cargarPer();});};
+    document.getElementById('cerrar').onclick=function(){if(confirm('¿Cerrar los formularios de este PER?'))post({accion:'cerrar',per:st.per,profe:yo()},function(){cargarPer();});};}
   if(st.pin)cargarPers();else pedirPin();
 })();

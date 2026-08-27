@@ -99,6 +99,7 @@ function menuStargate_() {
       .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
     .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
+    .addItem("PIN del profesor referente (acciones de grupo entero)", "cambiarPinReferente")
     .addItem("Guardar URL del web app", "pedirWebAppUrl")
     .addItem("Correo de avisos de reserva", "guardarCorreoAvisos")
     .addToUi();
@@ -2759,14 +2760,31 @@ function salud_() {
       "Se repone sola ma\u00f1ana. Los canjes se resuelven igual (el correo es un extra), pero nadie recibe aviso.", q);
   });
 
-  // 10) PIN - la unica puerta que protege nombres y correos del alumnado
+  // 10) LOS DOS PIN - el del profesorado protege nombres y correos del alumnado; el de referente,
+  // las acciones que afectan a un grupo entero (calendario, archivar, formularios, equipo docente)
   seguro("pin", "PIN del profesorado", function(){
-    var pin = PropertiesService.getScriptProperties().getProperty("PIN_PROFES") || "";
-    if (pin.length >= 6) return punto("pin", "ok", "PIN del profesorado", "puesto, de " + pin.length + " caracteres");
-    punto("pin", "mal", "PIN del profesorado",
-      pin ? "demasiado corto (" + pin.length + " caracteres): es lo \u00fanico que protege nombres y correos del alumnado"
-          : "NO HAY PIN: cualquiera con el enlace ve nombres y correos",
-      "Men\u00fa \u2192 \u00abCambiar PIN del profesorado\u00bb. Seis caracteres o m\u00e1s.", 1);
+    var pr = PropertiesService.getScriptProperties();
+    var pin = pr.getProperty("PIN_PROFES") || "", ref = pr.getProperty("PIN_REFERENTE") || "";
+    if (pin && ref && pin === ref)
+      return punto("pin", "mal", "PIN del profesorado",
+        "los dos PIN son IGUALES: as\u00ed no separan nada y todo el equipo puede mover la semana 1 o archivar un grupo",
+        "Men\u00fa \u2192 \u00abPIN del profesor referente\u00bb: pon uno distinto, y m\u00e1s largo que el del d\u00eda a d\u00eda.", 1);
+    if (pin.length < 6)
+      return punto("pin", "mal", "PIN del profesorado",
+        pin ? "el del profesorado es demasiado corto (" + pin.length + " caracteres): es lo \u00fanico que protege nombres y correos del alumnado"
+            : "NO HAY PIN: cualquiera con el enlace ve nombres y correos",
+        "Men\u00fa \u2192 \u00abCambiar PIN del profesorado\u00bb. Seis caracteres o m\u00e1s.", 1);
+    if (ref && ref.length < 8)
+      return punto("pin", "mal", "PIN del profesorado",
+        "el de referente es demasiado corto (" + ref.length + " caracteres) y abre lo que afecta a un grupo entero",
+        "Men\u00fa \u2192 \u00abPIN del profesor referente\u00bb. Ocho o m\u00e1s: ese no se teclea con prisa antes de clase.", 1);
+    if (!ref)
+      return punto("pin", "aviso", "PIN del profesorado",
+        "el del profesorado est\u00e1 puesto (" + pin.length + " caracteres), pero NO hay PIN de referente: " +
+        "cualquiera del equipo puede mover la semana 1 de cualquier grupo, archivarlo o cerrar sus formularios",
+        "Men\u00fa \u2192 \u00abPIN del profesor referente\u00bb. Hasta que lo pongas, todo sigue funcionando como hasta ahora.");
+    punto("pin", "ok", "PIN del profesorado",
+      "los dos puestos y distintos: profesorado de " + pin.length + " caracteres, referente de " + ref.length);
   });
 
   // 11) CONSOLA Y DOSSIER
@@ -2958,6 +2976,40 @@ function continuarReprocesarCanjes() {
 }
 
 // ================= API =================
+// v3.35 - DOS PIN, UN SOLO NIVEL. Hasta hoy el rol de referente no protegia nada: solo ordenaba la
+// vista. Cualquiera con el PIN del profesorado podia mover la semana 1 de cualquier grupo -que
+// reprograma el calendario entero-, archivar el PER, cerrar los formularios o reescribir el equipo
+// docente. Son acciones que afectan a TODO el alumnado de un grupo.
+// La pantalla del PIN sigue siendo la misma: nadie tiene que saber por donde entrar. El servidor
+// mira que PIN han tecleado y decide que abre.
+var ACCIONES_REFERENTE = ["profesorado", "inicio", "abrir", "cerrar", "archivar", "panel", "documento"];
+function nivelDePin_(pin) {
+  var pr = PropertiesService.getScriptProperties();
+  var docente = pr.getProperty("PIN_PROFES") || "", referente = pr.getProperty("PIN_REFERENTE") || "";
+  var p = String(pin == null ? "" : pin);
+  if (!docente) return "";                                  // sin PIN de profesorado no entra nadie
+  // Se mira el de referente PRIMERO. Si alguien los dejo iguales manda el nivel alto: nadie se queda
+  // fuera y el sistema se comporta como antes del cambio. El parte de salud lo canta en rojo.
+  if (referente && p === referente) return "referente";
+  if (p !== docente) return "";
+  //  COMPATIBILIDAD: mientras nadie configure el PIN de referente, el de siempre lo abre TODO,
+  // exactamente como hasta hoy. Esto es lo que permite desplegar esto a mitad de curso sin avisar a
+  // nadie: el nivel nuevo se activa el dia que el referente pone el suyo.
+  return referente ? "docente" : "referente";
+}
+// Quien movio el calendario o archivo un grupo deja de ser opcional cuando hay dos niveles.
+// Sin correos: la exportacion de investigacion sale seudonimizada y un correo dentro de un texto
+// libre se cuela por ahi (lo caza la bateria 5).
+function trazaReferente_(a, per, q) {
+  try {
+    var d = "";
+    if (a === "inicio") d = q.inicio ? "semana 1: " + q.inicio : "sin fecha";
+    else if (a === "archivar") d = q.valor ? "archivado" : "desarchivado";
+    else if (a === "panel") d = "paneles del grupo";
+    else if (a === "profesorado") d = "referente: " + String(q.referente || "");
+    hoja_(H.AJ).appendRow([new Date(), per || "", "", "REFERENTE", a, d, String(q.profe || "").trim()]);
+  } catch (e) { Logger.log("trazaReferente_: " + e); }
+}
 function doGet(e) {
   var per = (e && e.parameter && e.parameter.per) || "all"; var out;
   if (per === "all") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0] && !v[21]; })
@@ -3035,11 +3087,19 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ ok:true, viste:val }))
         .setMimeType(ContentService.MimeType.JSON);
     }
-    var pin = PropertiesService.getScriptProperties().getProperty("PIN_PROFES") || "";
-    if (!pin || q.pin !== pin) throw new Error("PIN incorrecto");
+    //  Lo comprueba el SERVIDOR, que es la unica puerta. Esconder la pestana de Ajustes en el
+    // navegador es cortesia, no seguridad: con la consola abierta la llamada se hace igual.
     var a = q.accion, per = q.per;
+    var nivel = nivelDePin_(q.pin);
+    if (!nivel) throw new Error("PIN incorrecto");
+    if (nivel !== "referente" && ACCIONES_REFERENTE.indexOf(a) >= 0)
+      throw new Error("Esto lo hace el profesor referente del grupo, con su PIN.");
+    // La pantalla de "?Quien eres?" pinta un desplegable de NOMBRES: los correos de todo el
+    // profesorado no pintan nada ahi (el doGet publico ya los filtraba; esto no).
     if (a === "pers") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; })
-      .map(function(v){ var ob = perObj_(v); ob.docentes = docentesDe_(ob.id); ob.semana = semanaDe_(ob); return ob; }) };
+      .map(function(v){ var ob = perObj_(v);
+        ob.docentes = docentesDe_(ob.id).map(function(d){ return { nombre:d.nombre, rol:d.rol, panel:d.panel }; });
+        ob.semana = semanaDe_(ob); return ob; }) };
     else if (a === "alumnos") out = tablero_(per, true);
     else if (a === "mi_panel") { var okp = guardarPanelDocente_(per, q.profe, q.url);
       out = { ok: okp, panel: String(q.url || "").trim(),
@@ -3086,13 +3146,43 @@ function doPost(e) {
     else if (a === "entregado") { var o2 = perObj_(perFila_(per).v); var shc = SpreadsheetApp.getActive().getSheetByName(o2.tabC); var cab = shc.getRange(1,1,1,shc.getLastColumn()).getValues()[0].map(String);
       var col = cab.indexOf("Entregado") + 1; if (!col) { col = shc.getLastColumn() + 1; shc.getRange(1, col).setValue("Entregado"); } shc.getRange(q.fila, col).setValue(q.valor ? "S\u00ed \u00b7 " + (q.profe||"") : ""); out = { ok:true }; }
     else throw new Error("Acci\u00f3n desconocida");
+    if (out && typeof out === "object") out.nivel = nivel;   // para que la web se adapte sola
+    // Se apunta DESPUES de que la accion haya salido bien: el registro cuenta lo que paso, no lo
+    // que se intento.
+    if (ACCIONES_REFERENTE.indexOf(a) >= 0) trazaReferente_(a, per, q);
   } catch (err) { out = { error: err.message }; }
   return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
 }
 
 // ================= UTILIDADES =================
 function slug_(s) { return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
-function cambiarPin() { var ui = SpreadsheetApp.getUi(); var r = ui.prompt("PIN del profesorado", "Nuevo PIN (4-12 caracteres). Lo usar\u00e1n los profes en el panel web.", ui.ButtonSet.OK_CANCEL);
-  if (r.getSelectedButton() === ui.Button.OK && r.getResponseText().trim().length >= 4) { PropertiesService.getScriptProperties().setProperty("PIN_PROFES", r.getResponseText().trim()); ui.alert("PIN guardado."); } }
+function cambiarPin() { var ui = SpreadsheetApp.getUi(); var pr = PropertiesService.getScriptProperties();
+  var r = ui.prompt("PIN del profesorado", "Nuevo PIN (6 caracteres o m\u00e1s). Lo usar\u00e1n los profes en el panel web, para su d\u00eda a d\u00eda.", ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var v = r.getResponseText().trim();
+  if (v.length < 4) return;
+  // Si los dos PIN coinciden no separan nada, y la sensacion de seguridad seria falsa.
+  if (v === (pr.getProperty("PIN_REFERENTE") || "")) {
+    ui.alert("Ese es el mismo PIN que el del profesor referente. Si son iguales no separan nada. No se ha guardado."); return; }
+  pr.setProperty("PIN_PROFES", v); ui.alert("PIN guardado."); }
+// v3.35 - El segundo nivel. Abre lo que afecta a TODO un grupo; el del dia a dia no lo toca.
+function cambiarPinReferente() {
+  var ui = SpreadsheetApp.getUi(), pr = PropertiesService.getScriptProperties();
+  var r = ui.prompt("PIN del profesor referente",
+    "Abre lo que afecta a UN GRUPO ENTERO: mover la semana 1 (que reprograma todo el calendario), " +
+    "archivar, abrir y cerrar los formularios, el equipo docente y los paneles.\n\n" +
+    "Ocho caracteres o m\u00e1s, y distinto del PIN del d\u00eda a d\u00eda. No lo metas en el dossier ni en el " +
+    "documento de enlaces: esos papeles circulan por todo el equipo.\n\n" +
+    "D\u00e9jalo vac\u00edo para quitarlo: entonces el PIN del profesorado vuelve a abrirlo todo, como antes.",
+    ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var v = r.getResponseText().trim();
+  if (!v) { pr.deleteProperty("PIN_REFERENTE"); ui.alert("Quitado. El PIN del profesorado vuelve a abrirlo todo."); return; }
+  if (v.length < 8) { ui.alert("Demasiado corto: ocho caracteres o m\u00e1s. No se ha guardado."); return; }
+  if (v === (pr.getProperty("PIN_PROFES") || "")) {
+    ui.alert("Ese es el mismo PIN que el del profesorado. Si son iguales no separan nada y la seguridad ser\u00eda falsa. No se ha guardado."); return; }
+  pr.setProperty("PIN_REFERENTE", v);
+  ui.alert("PIN de referente guardado. Desde ahora, mover la semana 1, archivar, abrir y cerrar formularios, " +
+           "el equipo docente y los paneles piden ESTE PIN."); }
 function pedirWebAppUrl() { var ui = SpreadsheetApp.getUi(); var r = ui.prompt("URL del web app", "Pega la URL que termina en /exec", ui.ButtonSet.OK_CANCEL);
   if (r.getSelectedButton() === ui.Button.OK) { PropertiesService.getScriptProperties().setProperty("WEBAPP_URL", r.getResponseText().trim()); ui.alert("Guardada."); } }
