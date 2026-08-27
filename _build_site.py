@@ -1108,7 +1108,8 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding del prof
   function page(){var p=location.pathname.split('/').pop(); return p||'index.html';}
   function qs(){var m=location.search.match(/[?&]tour=(\d+)/); return m?parseInt(m[1],10):null;}
   var ov=null, recien=true, vigia=null, manual=false;
-  ['wheel','touchstart','keydown'].forEach(function(ev){
+  // mousedown incluido: arrastrar la barra de scroll no dispara «wheel», y ahi tambien manda el usuario
+  ['wheel','touchstart','keydown','mousedown'].forEach(function(ev){
     window.addEventListener(ev,function(){manual=true;},{passive:true});});
   function clearTarget(){Array.prototype.forEach.call(document.querySelectorAll('.tour-target'),function(e){e.classList.remove('tour-target');});}
   // v3.30 - EL SCROLL DE LA VISITA. scrollIntoView({block:'center'}) fallaba por dos motivos: al
@@ -1138,12 +1139,25 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding del prof
       if(Math.abs(y-arriba)<6) return;
       try{window.scrollTo({top:y,behavior:suave?'smooth':'auto'});}catch(e){window.scrollTo(0,y);}}
     ir(!instante);
-    // se reajusta un par de segundos por si la pagina crece por debajo, y se aparta en cuanto el
-    // usuario toca la rueda: manda quien lee.
-    var t=0;
-    setTimeout(function(){ vigia=setInterval(function(){ t+=250;
-      if(manual||t>2600){clearInterval(vigia); vigia=null; return;}
-      ir(false); },250); }, instante?200:700);
+    // En la web de verdad la pagina sigue moviendose MUCHO despues de que el guion arranque: las
+    // fotos entran sin medidas puestas y lo empujan todo. Asi que no basta con reintentar un par de
+    // segundos: se insiste hasta que el objetivo lleve tres vueltas quieto y la pagina este cargada
+    // del todo (con tope de 9 segundos), y se suelta el volante en cuanto el usuario toca la rueda.
+    var t0 = new Date().getTime(), antes = null, quietas = 0;
+    if (document.readyState !== 'complete')
+      window.addEventListener('load', function(){ if(!manual) ir(false); });
+    setTimeout(function(){
+      if (manual) return;
+      vigia = setInterval(function(){
+        if (manual) { clearInterval(vigia); vigia=null; return; }
+        var pos = Math.round(tg.getBoundingClientRect().top + (window.pageYOffset||document.documentElement.scrollTop||0));
+        if (pos === antes) quietas++; else { quietas = 0; antes = pos; }
+        ir(false);
+        if ((document.readyState === 'complete' && quietas >= 3) || new Date().getTime()-t0 > 9000) {
+          clearInterval(vigia); vigia = null;
+        }
+      }, 220);
+    }, instante ? 120 : 700);
   }
   function render(i){
     var S=steps(); var s=S[i]; if(!s) return end();
