@@ -899,6 +899,17 @@ function reestructurarBitacora_(fb, o) {
       fb.setConfirmationMessage("Registrado. Tu Bitácora crece. Cuando ganes otra insignia vuelve a ESTE MISMO ENLACE " +
         "y edita tu respuesta: no empieces de cero, que se conserva todo. Tablero: " + WEB + "registro.html?per=" + o.id);
   } catch (e) { Logger.log("reestructurarBitacora_ (una respuesta): " + e); }
+  // La pregunta «Correo» viene de la plantilla y es un doble check a proposito (en clase se les dice
+  // que escriban el mismo). Que al menos explique para que sirve y que pasa si no coincide.
+  try {
+    fb.getItems(FormApp.ItemType.TEXT).forEach(function(it){
+      if (String(it.getTitle() || "").toLowerCase().trim() !== "correo") return;
+      it.asTextItem().setHelpText("Escribe el MISMO correo con el que has iniciado sesion (lo ves arriba). " +
+        "Sirve de comprobacion: tu progreso se guarda siempre en la cuenta con la que entras, asi que si " +
+        "los dos no coinciden te avisamos por correo — es la forma de pillar a tiempo haberte registrado " +
+        "con otra cuenta sin querer.");
+    });
+  } catch (e) { Logger.log("reestructurarBitacora_ (ayuda del correo): " + e); }
   var items = fb.getItems();
   // 0) v3.11 · «¿Quién imparte tu clase?»: es lo que ata cada alumno a su docente
   var itProf = items.filter(function(i){ return i.getTitle() === TIT_DOCENTE; })[0];
@@ -1920,13 +1931,25 @@ function comprobarCorreoDoble_(o, r, cuenta) {
     hoja_(H.AJ).appendRow([new Date(), o.id, cuenta, "AVISO", "correo",
       "escribio " + escrito + " y su cuenta es " + cuenta, "sistema"]);
   } catch (e) {}
-  enviarCorreo_(cuenta, "STARGATE · revisa el correo que has escrito",
-    "En la Bitacora de mando has escrito el correo:\n\n    " + escrito + "\n\n" +
-    "...pero has entrado con la cuenta de Google:\n\n    " + cuenta + "\n\n" +
-    "Tu registro esta guardado y NO has perdido nada: el sistema usa siempre el de tu cuenta, que es " +
-    "el que no se puede confundir. Pero conviene que los dos digan lo mismo, asi que cuando puedas " +
-    "edita tu respuesta y corrige el correo escrito.\n\n" +
-    "Tu nave: " + WEB + "recluta.html?per=" + o.id + "\n", o.id, cuenta);
+  // 🔴 Se avisa a LAS DOS direcciones, y esto es lo importante del arreglo. El caso que de verdad
+  // duele no es el despiste al teclear: es entrar con la cuenta del trabajo (o la de otro Google
+  // abierto en el navegador) sin darse cuenta. Entonces el progreso se guarda en esa cuenta, y su
+  // correo de siempre no encuentra nada en la Nave. Mandandolo tambien a la direccion ESCRITA, el
+  // aviso le llega alli donde el cree estar.
+  var cuerpo =
+    "Al registrarte en STARGATE has escrito este correo:\n\n    " + escrito + "\n\n" +
+    "...pero has entrado con esta cuenta de Google:\n\n    " + cuenta + "\n\n" +
+    "TU PROGRESO SE HA GUARDADO EN «" + cuenta + "», que es la cuenta con la que entraste. No has " +
+    "perdido nada, pero conviene que lo mires ahora y no en diciembre:\n\n" +
+    "· Si «" + cuenta + "» es tu cuenta de siempre: entra en tu Nave con ESE correo y listo. De paso, " +
+    "edita tu respuesta y corrige el correo escrito para que los dos digan lo mismo.\n" +
+    "· Si te has registrado sin querer con otra cuenta (la del trabajo, o la que tenias abierta): " +
+    "cierra sesion en Google, vuelve a entrar con la tuya y rellena la Bitacora otra vez. Avisa a tu " +
+    "profesor/a para que borre el registro que ha quedado en la cuenta equivocada.\n\n" +
+    "Tu nave: " + WEB + "recluta.html?per=" + o.id + "\n";
+  var asunto = "STARGATE · dos correos distintos: revisa con que cuenta te has registrado";
+  enviarCorreo_(cuenta, asunto, cuerpo, o.id, cuenta);
+  enviarCorreo_(escrito, asunto, cuerpo, o.id, cuenta);
   return true;
 }
 function registrarEventos_(o, sh, fila) {

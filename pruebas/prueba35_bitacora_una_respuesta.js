@@ -97,11 +97,13 @@ shB.getRange(fB, shB.getRange(1,1,1,shB.getLastColumn()).getValues()[0].map(Stri
    .setValue("el.que.creia@otro.com");
 M.Correo.limpiar();
 G.registrarEventos_(G.perObj_(G.perFila_("prueba-banco").v), shB, fB);
-const aviso = M.Correo.enviados.filter(x => /revisa el correo/i.test(x.asunto));
-igual(aviso.length, 1, "🔴 si NO coincide, se le avisa a él, que es quien puede arreglarlo");
-contiene(aviso[0].para, "cuenta@alumno.es", "el aviso va a la cuenta de verdad, no a la inventada");
-contiene(aviso[0].cuerpo, "el.que.creia@otro.com", "y le dice exactamente qué escribió");
-contiene(aviso[0].cuerpo, "NO has perdido nada", "sin alarmarle: su registro está guardado");
+const aviso = M.Correo.enviados.filter(x => /dos correos distintos/i.test(x.asunto));
+igual(aviso.length, 2, "🔴 si NO coincide, se avisa a LAS DOS direcciones");
+c(aviso.some(x => /cuenta@alumno\.es/.test(x.para)), "a la cuenta con la que entró");
+c(aviso.some(x => /el\.que\.creia@otro\.com/.test(x.para)),
+  "🔴 y a la que escribió — que es donde mira si se registró con la cuenta del trabajo sin darse cuenta");
+contiene(aviso[0].cuerpo, "SE HA GUARDADO EN", "le dice dónde ha quedado su progreso");
+contiene(aviso[0].cuerpo, "cierra sesion en Google", "y qué hacer si se equivocó de cuenta");
 const traza = G.hoja_(G.H.AJ).getDataRange().getValues().slice(1).filter(v => v[4] === "correo");
 igual(traza.length, 1, "y queda traza en AJUSTES para el profesorado");
 
