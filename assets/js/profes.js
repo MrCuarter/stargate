@@ -6,7 +6,10 @@
   var st={pin:sessionStorage.getItem('sgPin')||'',per:q.get('per')||'',pers:[],datos:null,vista:'alumnos',nivel:''};
   // v3.35 · el servidor dice con qué nivel se ha entrado. Esconder Ajustes es CORTESÍA, no seguridad:
   // quien lo comprueba de verdad es doPost (nadie se salta eso desde la consola del navegador).
-  function esReferente(){return st.nivel==='referente';}
+  // 🔴 Si NO viene nivel, se enseña todo: es lo que pasa mientras la web nueva convive con un Apps
+  // Script viejo (entre el push y el despliegue de la versión). Esconder la pestaña ahí dejaría al
+  // referente sin Ajustes sin que nadie hubiera pedido nada — y el servidor sigue mandando igual.
+  function esReferente(){return st.nivel!=='docente';}
   // Las acciones que afectan a un grupo entero quedan firmadas en AJUSTES. Se pregunta una sola vez.
   function yo(){var n=localStorage.getItem('sgProfe')||'';
     if(!n){n=(prompt('Tu nombre (queda en el registro del grupo):')||'').trim();if(n)localStorage.setItem('sgProfe',n);}
