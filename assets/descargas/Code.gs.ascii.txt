@@ -298,7 +298,7 @@ function formDesdePlantilla_(plantillaNombre, titulo, carpeta) {
   return form;
 }
 function imagen_(form, tema, texto) {
-  try { var blob = UrlFetchApp.fetch(WEB + "assets/img/planetas/" + TEMAS[tema][2] + ".png").getBlob();
+  try { var blob = UrlFetchApp.fetch(sinCache_(WEB + "assets/img/planetas/" + TEMAS[tema][2] + ".png")).getBlob();
         form.addImageItem().setImage(blob).setTitle(texto).setAlignment(FormApp.Alignment.CENTER).setWidth(160); } catch (e) {}
 }
 // v3.13 - Pone el orbe de cada planeta justo debajo de su salto de pagina. Se llama DESPUES de
@@ -313,7 +313,7 @@ function orbeBlob_(tema) {
   var carpeta = null;
   try { carpeta = carpetaPER_(); } catch (e) {}
   if (carpeta) { var it = carpeta.getFilesByName(nombre); if (it.hasNext()) { try { return it.next().getBlob(); } catch (e2) {} } }
-  var r = UrlFetchApp.fetch(WEB + "assets/img/planetas/" + TEMAS[tema][2] + ".png", { muteHttpExceptions: true });
+  var r = UrlFetchApp.fetch(sinCache_(WEB + "assets/img/planetas/" + TEMAS[tema][2] + ".png"), { muteHttpExceptions: true });
   if (r.getResponseCode() !== 200) throw new Error("la web respondi\u00f3 " + r.getResponseCode());
   var blob = r.getBlob().setName(nombre);
   if (carpeta) { try { carpeta.createFile(blob); } catch (e3) {} }
@@ -496,7 +496,7 @@ function crearPER(datos) {
   fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado. Solo la primera vez.").setRequired(false);
   // avatar: SOLO personajes que evolucionan (la galeria clasica ya no existe, y poner tu propia
   // imagen es una RECOMPENSA de pago: se pide en el formulario de canje, no aqui)
-  try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle(TIT_LAMINA).setHelpText("Los siete est\u00e1n disponibles desde el primer d\u00eda: elige con calma, porque el personaje te acompa\u00f1a TODO el viaje. Lo que cambia es su aspecto \u2014 Recluta \u2192 Cadete \u2192 Oficial \u2192 Comandante \u2192 Leyenda\u2014, que se desbloquea al subir de nivel.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
+  try { fb.addImageItem().setImage(UrlFetchApp.fetch(sinCache_(WEB + "assets/img/avatares/lamina_personajes.jpg")).getBlob()).setTitle(TIT_LAMINA).setHelpText("Los siete est\u00e1n disponibles desde el primer d\u00eda: elige con calma, porque el personaje te acompa\u00f1a TODO el viaje. Lo que cambia es su aspecto \u2014 Recluta \u2192 Cadete \u2192 Oficial \u2192 Comandante \u2192 Leyenda\u2014, que se desbloquea al subir de nivel.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
   fb.addListItem().setTitle("Elige tu avatar").setHelpText(ayudaAvatar_())
     .setChoiceValues(opcIniciales_()).setRequired(false);
   fb.addListItem().setTitle(TIT_DOCENTE).setHelpText(AYUDA_DOCENTE).setRequired(true)
@@ -1418,7 +1418,7 @@ function actualizarImagenesPlanetas() {
   // con el arte del dia en que se creo el PER, y no habia forma de cambiarla salvo rehacer el grupo.
   // Se vio con los umbrales de rango: la lamina llevaba incrustados los de antes de la v3.7
   // (Cadete 1.000 - Oficial 2.500...) cuando hoy son 700 - 1.650 - 3.450 - 5.000.
-  try { blobs[TIT_LAMINA] = UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob(); }
+  try { blobs[TIT_LAMINA] = UrlFetchApp.fetch(sinCache_(WEB + "assets/img/avatares/lamina_personajes.jpg")).getBlob(); }
   catch (e) { fallos.push("Descargando la l\u00e1mina de personajes: " + e.message); }
   hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
     if (!v[0]) return;

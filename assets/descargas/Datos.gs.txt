@@ -181,6 +181,13 @@ var TEMAS = [null,
   ["Umbral","Evaluación y ePortfolio","p5_umbral"],["Ludo","Aprendizaje Basado en el Juego","p6_ludo"],
   ["Vínculo","Gamificación","p7_vinculo"],["Liminar","Realidad Aumentada y Virtual","p8_liminar"]];
 var WEB = "https://stargate.mistercuarter.es/";
+// 🔴 El CDN de Hostinger cachea las imagenes SIETE DIAS (cache-control: max-age=604800). Al
+// regenerar la lamina de personajes el 27-ago, el fichero nuevo ya estaba en el servidor pero el
+// CDN seguia sirviendo el viejo — y este script se lo tragaba, asi que los formularios habrian
+// seguido con la imagen desfasada una semana entera. Con un parametro que cambia en cada descarga,
+// el CDN no puede devolver su copia. Son descargas puntuales (crear PER, actualizar imagenes), asi
+// que saltarse la cache aqui no cuesta nada.
+function sinCache_(url) { return url + (url.indexOf("?") >= 0 ? "&" : "?") + "t=" + new Date().getTime(); }
 // NIVELES-INICIO · dos monedas: los XP SOLO SUBEN (dan nivel y evolución del avatar) y los
 // CRÉDITOS son lo único que se gasta. Lo genera web-stargate/_build_site.py desde _site_data.py.
 var MONEDA = "◈";

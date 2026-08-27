@@ -133,4 +133,22 @@ igual([viejoAv.tipo, viejoAv.n, viejoAv.v], ["evo", 3, "f"],
   "🔴 y el VIEJO también: quien se alistó antes del cambio no pierde su personaje");
 igual(G.parseAvatar_("Personaje 5 · modelo B").v, "m", "y el modelo B del personaje 5 sigue siendo el masculino");
 
+
+
+// ---------------------------------------------------------------- g) el CDN no puede colarnos una imagen vieja
+// El CDN de Hostinger cachea SIETE DIAS (max-age=604800). Al regenerar la lámina, el servidor ya
+// tenía la nueva y el CDN seguía dando la vieja — el Apps Script se la habría incrustado en los
+// formularios durante una semana. Se descubrió comparando el md5 de la imagen local con la servida.
+G = E.nuevoMundo();
+const u1 = G.sinCache_("https://x.es/a/lamina.jpg");
+c(/[?&]t=\d+/.test(u1), "🔴 la descarga lleva un parámetro que cambia: el CDN no puede servir su copia");
+c(G.sinCache_("https://x.es/a.png?v=1").indexOf("&t=") > 0, "y respeta la query que ya hubiera");
+
+// y las cuatro descargas de imagen del script pasan por ahí
+const fuente = require("fs").readFileSync(require("path").join(__dirname, "..", "apps-script", "Code.gs"), "utf8");
+igual((fuente.match(/UrlFetchApp\.fetch\(sinCache_\(WEB/g) || []).length, 4,
+  "🔴 las cuatro descargas de imagen (orbes y lámina) se saltan la caché");
+igual((fuente.match(/UrlFetchApp\.fetch\(WEB \+ "assets/g) || []).length, 0,
+  "y no queda ninguna que pida la imagen a pelo");
+
 E.resumen("La Bitácora: una respuesta, editable");
