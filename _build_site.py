@@ -1490,8 +1490,9 @@ print("cache-bust img:", len(_imgv), "imagenes versionadas · sendara =", _imgv.
 
 
 # ================= APPS SCRIPT: catálogo de cromos y copia descargable =================
-# El bloque «var CROMOS» del Code.gs se GENERA desde _site_data.CROMOS (un dato, un sitio),
-# y assets/descargas/Code.gs.txt es siempre una copia exacta del .gs.
+# El bloque «var CROMOS» vive en Datos.gs y se GENERA desde _site_data.CROMOS (un dato, un sitio).
+# Las cuatro copias de assets/descargas/ son copias EXACTAS de apps-script/ — es lo que la página de
+# instalación manda pegar en el editor, así que se reescriben en cada build y la batería 19 lo vigila.
 _SERIE_TIT = _SERIE_TIT_WEB
 def _js_cromos():
     filas = []
@@ -1587,11 +1588,13 @@ if _sin:
 _gs = _sustituir(_gs, "var AYUDA_RETOS = ", ";\n// AYUDA-FIN",
                  json.dumps(_ayuda, ensure_ascii=False, indent=1, sort_keys=True))
 open(_gs_path, "w", encoding="utf-8").write(_gs)
-open(os.path.join(HERE, "assets", "descargas", "Datos.gs.txt"), "w", encoding="utf-8").write(_gs)
-open(os.path.join(HERE, "assets", "descargas", "Bonus.gs.txt"), "w", encoding="utf-8").write(
-    open(os.path.join(HERE, "apps-script", "Bonus.gs"), encoding="utf-8").read())
-open(os.path.join(HERE, "assets", "descargas", "Dialog.html.txt"), "w", encoding="utf-8").write(
-    open(os.path.join(HERE, "apps-script", "Dialog.html"), encoding="utf-8").read())
+# 🔴 27-ago noche · La copia de Code.gs NO la escribía nadie, pese al comentario de arriba. La página
+# de instalación manda pegar `Code.gs.txt` y llevaba un día entero parada: sin el arreglo de la Nave
+# en blanco ni el de la caché del CDN. Las cuatro copias se escriben AQUÍ, en un solo bucle, y la
+# batería 19 comprueba que son idénticas a su fuente.
+for _f in ("Code.gs", "Datos.gs", "Bonus.gs", "Dialog.html"):
+    open(os.path.join(HERE, "assets", "descargas", _f + ".txt"), "w", encoding="utf-8").write(
+        open(os.path.join(HERE, "apps-script", _f), encoding="utf-8").read())
 # Copias 100% ASCII para pegar sin riesgo de que se rompan los acentos (ver _ascii_gs.py)
 import subprocess as _sp, sys as _sys
 _sp.run(["python3", os.path.join(HERE, "_ascii_gs.py")], check=False, capture_output=True)

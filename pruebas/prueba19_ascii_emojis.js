@@ -84,4 +84,20 @@ c(typeof G1.salud_ === "function", "el Code.gs cargado expone salud_()");
 c(Math.abs(ASCII.length - ORIG.length) < ORIG.length * 0.15,
   "las dos copias tienen un tamaño parecido (" + ORIG.length + " vs " + ASCII.length + ")");
 
+// ---------------------------------------------------------------- f) y la copia CON acentos también
+// 🔴 27-ago noche. La página de instalación manda pegar `assets/descargas/Code.gs.txt`, y el build
+// escribía las copias de Datos, Bonus y Dialog... pero la de Code.gs NO la escribía NADIE, pese al
+// comentario que juraba que «es siempre una copia exacta del .gs». Llevaba un día entero parada: 861
+// líneas de diferencia, sin el arreglo de la Nave en blanco ni el de la caché del CDN. Quien montara
+// el sistema hoy se llevaría el Code.gs de anteayer.
+// Un dato, un sitio: si es una copia, que se compruebe que lo es.
+[["Code.gs", "Code.gs.txt"], ["Datos.gs", "Datos.gs.txt"],
+ ["Bonus.gs", "Bonus.gs.txt"], ["Dialog.html", "Dialog.html.txt"]].forEach(function(par){
+  const fuente = fs.readFileSync(path.join(RAIZ, "apps-script", par[0]), "utf8");
+  const copia  = fs.readFileSync(path.join(RAIZ, "assets", "descargas", par[1]), "utf8");
+  igual(copia.length, fuente.length,
+    "🔴 " + par[1] + " es copia EXACTA de " + par[0] + " (es el fichero que la web manda pegar)");
+  c(copia === fuente, "   y byte a byte, no solo del mismo tamaño");
+});
+
 E.resumen("La copia ASCII dice lo mismo");
