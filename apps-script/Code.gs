@@ -474,6 +474,7 @@ function crearPER(datos) {
   var fb = formDesdePlantilla_("PLANTILLA · Bitácora de mando", "STARGATE · " + nombre + " · Bitácora de mando", carpeta);
   fb.setDescription("Tu registro de la misión: se rellena UNA vez y a partir de ahí se EDITA. Cada vez que ganes " +
     "una insignia vuelve a este mismo enlace, edítala, marca la casilla nueva y envía; lo de antes se conserva. " +
+    "Si Google te dice que solo puedes rellenarlo una vez, es normal: entra igual y te saldrá tu respuesta para editar. " +
     "Tu correo y tu nombre solo los ve el profesorado; en el tablero aparece tu alias. Profesorado: " + (datos.profesores || ""));
   // 🔴 27-ago · UNA RESPUESTA POR PERSONA, EDITABLE. Se probó lo contrario y salió mal: al terminar,
   // Google ofrecía «Modificar tu respuesta» Y «Enviar otra respuesta», y el segundo botón hace
@@ -895,6 +896,15 @@ function reestructurarBitacora_(fb, o) {
   // solo valdría para los PER nuevos — y los que están en marcha seguirían duplicando reclutas.
   try {
     fb.setLimitOneResponsePerUser(true).setAllowResponseEdits(true).setShowLinkToRespondAgain(false);
+    // 🔴 Y la descripción, que es la que desactiva el susto: al limitar a una respuesta Google
+    // enseña «Solo puedes rellenar este formulario una vez» —mensaje suyo, no se puede quitar— y
+    // en un formulario al que hay que volver cada semana eso descoloca. Si la descripción no lo
+    // explica, el arreglo crea un problema distinto.
+    if (String(fb.getDescription ? fb.getDescription() : "").indexOf("se EDITA") < 0)
+      fb.setDescription("Tu registro de la misión: se rellena UNA vez y a partir de ahí se EDITA. Cada vez que ganes " +
+        "una insignia vuelve a este mismo enlace, edítala, marca la casilla nueva y envía; lo de antes se conserva. " +
+        "Si Google te dice que solo puedes rellenarlo una vez, es normal: entra igual y te saldrá tu respuesta para editar. " +
+        "Tu correo y tu nombre solo los ve el profesorado; en el tablero aparece tu alias.");
     if (String(fb.getConfirmationMessage ? fb.getConfirmationMessage() : "").indexOf("MISMO ENLACE") < 0)
       fb.setConfirmationMessage("Registrado. Tu Bitácora crece. Cuando ganes otra insignia vuelve a ESTE MISMO ENLACE " +
         "y edita tu respuesta: no empieces de cero, que se conserva todo. Tablero: " + WEB + "registro.html?per=" + o.id);

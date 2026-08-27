@@ -474,6 +474,7 @@ function crearPER(datos) {
   var fb = formDesdePlantilla_("PLANTILLA \u00b7 Bit\u00e1cora de mando", "STARGATE \u00b7 " + nombre + " \u00b7 Bit\u00e1cora de mando", carpeta);
   fb.setDescription("Tu registro de la misi\u00f3n: se rellena UNA vez y a partir de ah\u00ed se EDITA. Cada vez que ganes " +
     "una insignia vuelve a este mismo enlace, ed\u00edtala, marca la casilla nueva y env\u00eda; lo de antes se conserva. " +
+    "Si Google te dice que solo puedes rellenarlo una vez, es normal: entra igual y te saldr\u00e1 tu respuesta para editar. " +
     "Tu correo y tu nombre solo los ve el profesorado; en el tablero aparece tu alias. Profesorado: " + (datos.profesores || ""));
   //  27-ago - UNA RESPUESTA POR PERSONA, EDITABLE. Se probo lo contrario y salio mal: al terminar,
   // Google ofrecia "Modificar tu respuesta" Y "Enviar otra respuesta", y el segundo boton hace
@@ -895,6 +896,15 @@ function reestructurarBitacora_(fb, o) {
   // solo valdria para los PER nuevos - y los que estan en marcha seguirian duplicando reclutas.
   try {
     fb.setLimitOneResponsePerUser(true).setAllowResponseEdits(true).setShowLinkToRespondAgain(false);
+    //  Y la descripcion, que es la que desactiva el susto: al limitar a una respuesta Google
+    // ensena "Solo puedes rellenar este formulario una vez" -mensaje suyo, no se puede quitar- y
+    // en un formulario al que hay que volver cada semana eso descoloca. Si la descripcion no lo
+    // explica, el arreglo crea un problema distinto.
+    if (String(fb.getDescription ? fb.getDescription() : "").indexOf("se EDITA") < 0)
+      fb.setDescription("Tu registro de la misi\u00f3n: se rellena UNA vez y a partir de ah\u00ed se EDITA. Cada vez que ganes " +
+        "una insignia vuelve a este mismo enlace, ed\u00edtala, marca la casilla nueva y env\u00eda; lo de antes se conserva. " +
+        "Si Google te dice que solo puedes rellenarlo una vez, es normal: entra igual y te saldr\u00e1 tu respuesta para editar. " +
+        "Tu correo y tu nombre solo los ve el profesorado; en el tablero aparece tu alias.");
     if (String(fb.getConfirmationMessage ? fb.getConfirmationMessage() : "").indexOf("MISMO ENLACE") < 0)
       fb.setConfirmationMessage("Registrado. Tu Bit\u00e1cora crece. Cuando ganes otra insignia vuelve a ESTE MISMO ENLACE " +
         "y edita tu respuesta: no empieces de cero, que se conserva todo. Tablero: " + WEB + "registro.html?per=" + o.id);

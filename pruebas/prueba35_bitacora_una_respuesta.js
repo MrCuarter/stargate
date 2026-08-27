@@ -32,6 +32,8 @@ igual(G.formDelPER_(o, "C").unaRespuesta, false, "y el canje también: se canjea
 // Si Google va a decir «solo puedes rellenar esto una vez», el formulario tiene que desmentirlo
 // antes de que cunda el pánico.
 contiene(fb.descripcion, "edítala", "la descripción dice que se EDITA la misma respuesta");
+contiene(fb.descripcion, "es normal",
+  "🔴 y desactiva el susto: Google dirá «solo puedes rellenarlo una vez» y la descripción lo explica");
 contiene(fb.confirmacion.toLowerCase(), "mismo enlace", "y el mensaje final recuerda por dónde se vuelve");
 
 // ---------------------------------------------------------------- c) en un formulario YA creado
@@ -46,6 +48,8 @@ igual(viejo.unaRespuesta, false, "partimos de un formulario con el ajuste viejo"
 G.actualizarFormularios_();
 igual(G.formDelPER_(o2, "B").unaRespuesta, true, "🔴 «Actualizar formularios» lo corrige en los grupos ya creados");
 igual(G.formDelPER_(o2, "B").otraVez, false, "y también quita el enlace de volver a empezar");
+contiene(G.formDelPER_(o2, "B").descripcion, "se EDITA",
+  "🔴 y le pone la descripción que explica el aviso de Google (si no, el arreglo asusta)");
 
 // ---------------------------------------------------------------- d) y sigue sin perderse nada
 // La razón por la que esto es seguro: el registro es append-only y la fecha la pone el script.
