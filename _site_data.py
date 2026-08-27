@@ -385,7 +385,10 @@ BONUS_TRIPULACION = {"fraccion": 0.25, "creditos": 15, "semanas_activo": 4}
 # nada al respecto, así que la diferencia tiene que ser pequeña.
 # 🔴 Y hay que decirlo claro: en un máster online esto mide «estaba mirando cuando se abrió», no
 # «asistió». La consigna se puede pasar por chat. Sube el listón; no es una prueba de asistencia.
-BONUS_PASE = {"creditos": 5, "minutos": 3}
+# 50 minutos = lo que dura una clase, a propósito. Con una ventana corta, quien entra cinco
+# minutos tarde se queda fuera y le pide al docente que la reabra: eso revienta el chat y le
+# roba la clase. El pase premia ASISTIR, no estar conectado en el minuto exacto.
+BONUS_PASE = {"creditos": 5, "minutos": 50}
 
 def _ayuda_de_los_retos():
     """Saca de RETOS_INSIGNIAS_STARGATE.md lo que pide cada reto (su bloque LITERAL).

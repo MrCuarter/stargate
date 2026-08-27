@@ -59,8 +59,11 @@
     st.cargandoYo=true;st.msgYo='';render();
     quien(email,function(d){
       st.cargandoYo=false;
-      if(d&&d.yo){st.yo=d.yo;st.email=email;localStorage.setItem(KEY_MAIL,email);st.msgYo='';}
+      // 🔴 Esta línea va ANTES del if, y se queda aquí. Metida entre el if y el else if partía la
+      // cadena, el fichero entero dejaba de compilar («Unexpected token 'else'») y la Nave se
+      // quedaba EN BLANCO para todos los grupos. Visto en producción el 27-ago.
       st.pase=(d&&d.pase)||null;   // v3.27 · ¿hay pase de lista abierto ahora mismo?
+      if(d&&d.yo){st.yo=d.yo;st.email=email;localStorage.setItem(KEY_MAIL,email);st.msgYo='';}
       else if(d&&d.yo===null){st.yo=null;st.msgYo='No encuentro ningún recluta con ese correo en este PER. Usa el MISMO correo de Google con el que rellenaste la <b>Bitácora de mando</b> (y si aún no te alistaste, ese es el primer paso).';}
       else{st.yo=null;st.msgYo='La identificación aún no está activa (el mando tiene que actualizar el sistema). El resto de la nave funciona; vuelve a intentarlo más adelante.';}
       render();

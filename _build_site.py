@@ -3,7 +3,7 @@
 Páginas: index (portada) · guia · cronologia · actividades · geniallys · registro · recursos.
 Ejecutar desde web-stargate/:  python3 _build_site.py
 Datos de cronología/vídeos/geniallys en _site_data.py."""
-import os, json, hashlib
+import os, json, hashlib, subprocess
 from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
@@ -1232,6 +1232,26 @@ _js_valido("stargate.js", js)
 open(os.path.join(HERE,"assets","js","stargate.js"),"w",encoding="utf-8").write(js)
 open(os.path.join(HERE,"assets","js","tour.js"),"w",encoding="utf-8").write(TOUR_JS)
 
+# 🔴 Y TODOS los .js del sitio, no solo los generados aquí. El 27-ago se desplegó un `recluta.js`
+# con una línea metida entre un `if` y su `else if`: el fichero entero dejaba de compilar y la Nave
+# se quedaba EN BLANCO para todos los grupos. Nadie lo cantó — el banco prueba el Apps Script, no el
+# JS del navegador—, y se descubrió porque un profesor dijo «no se puede hacer nada aquí».
+# Un fichero roto no se puede desplegar: el build se para.
+_dir_js = os.path.join(HERE, "assets", "js")
+_rotos = []
+for _f in sorted(os.listdir(_dir_js)):
+    if not _f.endswith(".js"):
+        continue
+    _r = subprocess.run(["node", "--check", os.path.join(_dir_js, _f)], capture_output=True, text=True)
+    if _r.returncode != 0:
+        _rotos.append((_f, (_r.stderr or "").strip().split("\n")[:4]))
+if _rotos:
+    raise SystemExit("\n🔴 NO SE PUBLICA: %d fichero(s) JS no compilan\n\n%s"
+                     % (len(_rotos), "\n\n".join("   " + f + "\n      " + "\n      ".join(e)
+                                                  for f, e in _rotos)))
+print("js: los %d ficheros de assets/js compilan" %
+      len([f for f in os.listdir(_dir_js) if f.endswith(".js")]))
+
 PAGES=[("index.html",PORTADA),("guia.html",GUIA),("cronologia.html",CRONOLOGIA),("actividades.html",ACT),
        ("geniallys.html",GENPAGE),("registro.html",REGPAGE),("recursos.html",REC)]
 def _ver(rel): return hashlib.md5(open(os.path.join(HERE,rel),"rb").read()).hexdigest()[:10]
@@ -1305,8 +1325,8 @@ CLASE = head("STARGATE · Mi clase", "La sala del docente: tus grupos, lo que re
 <p>Todo lo que necesitas antes de entrar al aula, en una página: <b>lo que requiere tu intervención</b>,
 la orden de la semana, las <b>dudas del ticket de salida</b> filtrables por tema y fecha, y <b>tu gente</b>
 —con sus errores corregibles desde aquí—. Las hojas de cálculo y el Drive son cosa del profe referente.</p>
-<p class="small muted">Se abre por tu nombre: <code>clase.html?per=&lt;id&gt;&amp;profe=Nombre</code>, o eliges
-una vez y se recuerda en este navegador. Para incrustar: <code>&amp;embed=1</code>.</p></header>
+<p class="small muted"><b>Entra con el PIN</b> que te dé el profe referente y <b>elige tu nombre</b>:
+solo la primera vez. Después este navegador te reconoce y llegas directo a tu clase.</p></header>
 <section><div class="wrap"><div id="clase-app"></div>
 <script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_SEMANAS={SEMANAS_JSON};</script>
 <script src="assets/js/clase.js" defer></script>

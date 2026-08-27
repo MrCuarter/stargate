@@ -100,11 +100,11 @@ function ajustarPase() {
   var r = ui.prompt("Pase de lista en directo",
     "El docente abre una ventana desde su sala y enseña una consigna de 4 letras; quien está en la " +
     "clase la teclea en su Nave.\n\nAhora mismo: " + cfg.creditos + " créditos, ventana de " + cfg.minutos + " minutos.\n\n" +
-    "Escribe el nuevo valor así:  créditos, minutos\nPor ejemplo «5, 3».", ui.ButtonSet.OK_CANCEL);
+    "Escribe el nuevo valor así:  créditos, minutos\nPor ejemplo «5, 50».", ui.ButtonSet.OK_CANCEL);
   if (r.getSelectedButton() !== ui.Button.OK) return;
   var p = String(r.getResponseText() || "").split(","), c = parseInt(p[0], 10), m = parseInt(p[1], 10);
   if (isNaN(c) || c < 0 || isNaN(m) || m <= 0)
-    return ui.alert("No he entendido «" + r.getResponseText() + "». Se escribe: créditos, minutos. Por ejemplo: 5, 3");
+    return ui.alert("No he entendido «" + r.getResponseText() + "». Se escribe: créditos, minutos. Por ejemplo: 5, 50");
   PropertiesService.getScriptProperties().setProperty(PROP_PASE, c + "|" + m);
   ui.alert("Hecho: " + c + " créditos, ventana de " + m + " minutos.");
 }

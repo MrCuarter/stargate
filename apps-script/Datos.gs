@@ -80,7 +80,7 @@ var NOTA_MIN_PLANETAS = 4;
 var BONUS_SERIE = {"creditos": 40};
 var BONUS_ALBUM = {"xp": 300, "creditos": 200};
 var BONUS_TRIPULACION = {"fraccion": 0.25, "creditos": 15, "semanas_activo": 4};
-var BONUS_PASE = {"creditos": 5, "minutos": 3};
+var BONUS_PASE = {"creditos": 5, "minutos": 50};
 // BONUS-FIN
 // 🔴 Los bonus se conceden UNA VEZ y quedan escritos en AJUSTES. No se recalculan: la racha BAJA al
 // fallar una semana, y si el bonus se recalculara, quien llego a 6 y luego fallo perderia creditos

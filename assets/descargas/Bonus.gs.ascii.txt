@@ -100,11 +100,11 @@ function ajustarPase() {
   var r = ui.prompt("Pase de lista en directo",
     "El docente abre una ventana desde su sala y ense\u00f1a una consigna de 4 letras; quien est\u00e1 en la " +
     "clase la teclea en su Nave.\n\nAhora mismo: " + cfg.creditos + " cr\u00e9ditos, ventana de " + cfg.minutos + " minutos.\n\n" +
-    "Escribe el nuevo valor as\u00ed:  cr\u00e9ditos, minutos\nPor ejemplo \u00ab5, 3\u00bb.", ui.ButtonSet.OK_CANCEL);
+    "Escribe el nuevo valor as\u00ed:  cr\u00e9ditos, minutos\nPor ejemplo \u00ab5, 50\u00bb.", ui.ButtonSet.OK_CANCEL);
   if (r.getSelectedButton() !== ui.Button.OK) return;
   var p = String(r.getResponseText() || "").split(","), c = parseInt(p[0], 10), m = parseInt(p[1], 10);
   if (isNaN(c) || c < 0 || isNaN(m) || m <= 0)
-    return ui.alert("No he entendido \u00ab" + r.getResponseText() + "\u00bb. Se escribe: cr\u00e9ditos, minutos. Por ejemplo: 5, 3");
+    return ui.alert("No he entendido \u00ab" + r.getResponseText() + "\u00bb. Se escribe: cr\u00e9ditos, minutos. Por ejemplo: 5, 50");
   PropertiesService.getScriptProperties().setProperty(PROP_PASE, c + "|" + m);
   ui.alert("Hecho: " + c + " cr\u00e9ditos, ventana de " + m + " minutos.");
 }
