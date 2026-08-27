@@ -138,13 +138,21 @@ function asegurarHojas_() {
   if (String(pers.getRange(1,24).getValue()||"") !== "Cierre del canje") pers.getRange(1,24).setValue("Cierre del canje");
 }
 // panel de control Genially estándar (compartido por todos los PER salvo override en su fila)
+// v3.30 · Viene de fábrica: el Genially oficial del máster. Antes había que acordarse de guardarlo a
+// mano y, si nadie lo hacía, los PER nacían sin panel. El referente puede sustituirlo cuando quiera
+// (menú STARGATE → Guardar panel de control estándar), y un PER concreto puede llevar el suyo.
+var PANEL_OFICIAL_VER  = "https://view.genially.com/6a8bfc4f5068ad5903fc39e3";
+var PANEL_OFICIAL_EDIT = "https://app.genially.com/editor/6a8bfc4f5068ad5903fc39e3";
 function panelStd_() { var pr = PropertiesService.getScriptProperties();
-  return { ver: pr.getProperty("PANEL_STD_VER") || "", editar: pr.getProperty("PANEL_STD_EDIT") || "" }; }
+  return { ver: pr.getProperty("PANEL_STD_VER") || PANEL_OFICIAL_VER,
+           editar: pr.getProperty("PANEL_STD_EDIT") || PANEL_OFICIAL_EDIT }; }
 function guardarPanelEstandar() {
   var ui = SpreadsheetApp.getUi(); var pr = PropertiesService.getScriptProperties();
-  var r1 = ui.prompt("Panel de control estándar", "Enlace de VISUALIZACIÓN del Genially (view.genially.com/…):", ui.ButtonSet.OK_CANCEL);
+  var r1 = ui.prompt("Panel de control estándar", "Enlace de VISUALIZACIÓN del Genially (view.genially.com/…).\n\nAhora mismo: " +
+    panelStd_().ver + "\n\nDéjalo VACÍO para volver al panel oficial del máster.", ui.ButtonSet.OK_CANCEL);
   if (r1.getSelectedButton() !== ui.Button.OK) return; pr.setProperty("PANEL_STD_VER", r1.getResponseText().trim());
-  var r2 = ui.prompt("Panel de control estándar", "Enlace de EDICIÓN del Genially (app.genially.com/editor/…):", ui.ButtonSet.OK_CANCEL);
+  var r2 = ui.prompt("Panel de control estándar", "Enlace de EDICIÓN del Genially (app.genially.com/editor/…).\n\nAhora mismo: " +
+    panelStd_().editar + "\n\nDéjalo VACÍO para volver al panel oficial del máster.", ui.ButtonSet.OK_CANCEL);
   if (r2.getSelectedButton() === ui.Button.OK) pr.setProperty("PANEL_STD_EDIT", r2.getResponseText().trim());
   ui.alert("Guardado. Los PER sin enlaces propios usarán estos.");
 }
@@ -189,9 +197,10 @@ function semanasDe_(tipo) { return SEMANAS_PER[tipo === "PUA" ? "PUA" : "REGULAR
 function desdeEfectiva_(desde, tipo) { desde = Number(desde) || 0; if (!desde) return 0;
   return tipo === "PUA" ? Math.max(1, Math.round(desde * semanasDe_("PUA") / semanasDe_("REGULAR"))) : desde; }
 // v3.14 · El calendario por defecto de un PER, calculado desde la fecha de la semana 1.
-// Los formularios abren UNA SEMANA ANTES (para alistarse con margen), el registro de misiones y el
-// ticket cierran al ACABAR la última semana, y el CANJE aguanta UNA SEMANA MÁS: se reclama lo
-// ganado cuando ya no se puede ganar nada. Se puede sobrescribir a mano al crear el PER.
+// v3.30 · Ya no se pregunta nada de esto al crear el PER: la fecha de la semana 1 lo decide todo.
+// Los formularios abren EL PRIMER DÍA de la semana 1, el registro de misiones y el ticket cierran al
+// ACABAR la última semana, y el CANJE aguanta UNA SEMANA MÁS: se reclama lo ganado cuando ya no se
+// puede ganar nada. (DIAS_APERTURA_ANTES vive en Datos.gs y hoy vale 0.)
 function fechasPER_(inicio, tipo) {
   if (!inicio) return null;
   var ini = new Date(String(inicio) + "T00:00:00");
@@ -567,6 +576,8 @@ function crearPER(datos) {
     hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id,
     foro: WEB + "foro.html?per=" + id + (inicio ? "&inicio=" + fechaIso_(inicio) + "&tipo=" + tipo : ""), nave: WEB + "recluta.html?per=" + id,
     embedAlumnos: '<iframe src="' + WEB + 'registro.html?per=' + id + '&embed=1" width="100%" height="760" style="border:0;border-radius:16px"></iframe>',
+    ranking: WEB + "registro.html?per=" + id + "&solo=1",
+    embedRanking: '<iframe src="' + WEB + 'registro.html?per=' + id + '&embed=1&solo=1" width="100%" height="720" style="border:0;border-radius:16px"></iframe>',
     embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + (inicio ? '&inicio=' + fechaIso_(inicio) + '&tipo=' + tipo : '') + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>',
     embedNave: '<iframe src="' + WEB + 'recluta.html?per=' + id + '&embed=1" width="100%" height="900" style="border:0;border-radius:16px"></iframe>',
     panelVer: String(datos.panelVer || "").trim() || panelStd_().ver, panelEdit: String(datos.panelEdit || "").trim() || panelStd_().editar,
@@ -1087,6 +1098,11 @@ function crearDocumentoPER_(perId) {
   par("Embed de la Nave:"); code(ifr(WEB + "recluta.html?per=" + o.id + "&embed=1", 900));
   link("Bitácora de mando (registro de insignias; botón)", o.formBitacora); qr(o.formBitacora, "QR de la Bitácora de mando");
   link("Tablero de reclutas", WEB + "registro.html?per=" + o.id); par("Embed del tablero:"); code(ifr(WEB + "registro.html?per=" + o.id + "&embed=1", 760));
+  link("Ranking público (solo la clasificación)", WEB + "registro.html?per=" + o.id + "&solo=1");
+  par("Embed del ranking público: los tres rankings en vivo (xp, semana y colección) sin cabecera ni botones. " +
+      "Al pulsar a un recluta se abre su ficha —personaje, biografía, nivel, xp, insignias y cartas—, y NO enseña " +
+      "ni los personajes que ha ganado, ni los créditos, ni el correo: eso solo se ve en la sala del docente, con PIN.");
+  code(ifr(WEB + "registro.html?per=" + o.id + "&embed=1&solo=1", 720));
   link("Foro dinámico (la orden de la semana)", WEB + "foro.html?per=" + o.id); par("Embed del foro:"); code(ifr(WEB + "foro.html?per=" + o.id + "&embed=1", 640));
   link("Ticket de salida «Contacta con NEBULA» (anónimo; botón)", o.formTicket); qr(o.formTicket, "QR del ticket de salida");
   link("Canje de xp (botón)", o.formCanje); qr(o.formCanje, "QR del canje");
@@ -2803,29 +2819,7 @@ function vigiaDiario() {
   pr.setProperty("VIGIA_ESTADO", JSON.stringify({ huella: huella, fecha: new Date().toISOString() }));
   return { enviado: ok, motivo: motivo, huella: huella, titulo: titulo, fallo: ok ? "" : _falloCorreo };
 }
-function parteDeSalud() {
-  var s = salud_();
-  var icono = { ok: "🟢", aviso: "🟡", mal: "🔴" };
-  var h = '<div style="font:14px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;padding:4px 2px">';
-  h += '<p style="margin:0 0 12px"><b style="font-size:16px">' +
-       (s.malos ? "🔴 Hay " + s.malos + " cosa" + (s.malos > 1 ? "s" : "") + " que arreglar"
-                : s.avisos ? "🟡 Todo funciona, con " + s.avisos + " aviso" + (s.avisos > 1 ? "s" : "")
-                           : "🟢 El sistema está sano") +
-       '</b><br><span style="color:#667">' + s.pers + ' PER activos · ' +
-       Utilities.formatDate(s.fecha, "Europe/Madrid", "d/MM/yyyy HH:mm") + '</span></p>';
-  var orden = { mal: 0, aviso: 1, ok: 2 };
-  s.puntos.slice().sort(function(a, b){ return orden[a.nivel] - orden[b.nivel]; }).forEach(function(p){
-    h += '<div style="padding:7px 0;border-top:1px solid #e6e8ee">' +
-         icono[p.nivel] + ' <b>' + p.titulo + '</b> — ' + escapar_(p.detalle) +
-         (p.arreglo ? '<br><span style="color:#4a5568;font-size:13px">↳ ' + escapar_(p.arreglo) + '</span>' : '') +
-         '</div>';
-  });
-  h += '<p style="margin:14px 0 0;color:#667;font-size:12px">Este parte no cambia nada: solo mira y cuenta.' +
-       (s.incompleto ? ' <b style="color:#b8860b">No le dio tiempo a mirarlo todo: vuelve a abrirlo.</b>' : '') +
-       '</p></div>';
-  SpreadsheetApp.getUi().showModalDialog(
-    HtmlService.createHtmlOutput(h).setWidth(560).setHeight(560), "STARGATE · Parte de salud");
-}
+// El parte de salud (parteDeSalud / saludHtml) vive en Bonus.gs: Code.gs no tiene sitio.
 function escapar_(s) { return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
 // ================= REPROCESAR CANJES SIN RESOLVER (v3.15) =================

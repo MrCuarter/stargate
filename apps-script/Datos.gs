@@ -199,11 +199,12 @@ var NIVELES = [   // [nivel, xp REGULAR, rango de arte 1-5, titulo]
 ];
 var XP_VIAJE = {"REGULAR": 5000, "PUA": 4100};
 var CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55, "actividad": 100, "final": 100, "derivada": 60};
-// Calendario del PER: apertura una semana antes de la 1, cierre al acabar la ultima,
-// y el canje una semana mas. Generado desde _site_data.py: no editar a mano.
+// Calendario del PER: los formularios abren el primer dia de la semana 1, el registro
+// de misiones cierra al acabar la ultima semana y el canje aguanta una semana mas.
+// Generado desde _site_data.py: no editar a mano.
 var SEMANAS_PER = {"REGULAR": 15, "PUA": 8};
 var SEMANAS_CANJE_EXTRA = 1;
-var DIAS_APERTURA_ANTES = 7;
+var DIAS_APERTURA_ANTES = 0;
 // Insignia por serie completa. [clave, titulo de la serie tal y como aparece en CROMOS, nombre]
 var SERIES_ALBUM = [
   ["A1_tripulacion","Serie I · La Tripulación Cero","La Tripulación Cero al completo"],

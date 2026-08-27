@@ -436,7 +436,7 @@ CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55,
 #   · y el CANJE aguanta UNA SEMANA MÁS: se reclama lo ganado cuando ya no se gana nada.
 SEMANAS_PER = {"REGULAR": 15, "PUA": 8}   # duración del viaje, en semanas
 SEMANAS_CANJE_EXTRA = 1                    # semanas de propina para reclamar recompensas
-DIAS_APERTURA_ANTES = 7                    # cuánto se adelanta la apertura respecto a la semana 1
+DIAS_APERTURA_ANTES = 0                    # los formularios abren el primer día de la semana 1
 
 # Catálogo oficial de recompensas — [nombre, coste ◈, máx por alumno, descripción, desde semana, tipo]
 # tipo: cromo · titulo · fondo · avatar · marco · avatar_exclusivo · avatar_url · nota

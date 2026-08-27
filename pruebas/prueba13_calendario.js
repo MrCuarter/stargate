@@ -1,7 +1,8 @@
 'use strict';
-// 13 · CALENDARIO DEL PER (v3.14, petición del usuario 25-ago)
-//      Los formularios abren UNA SEMANA ANTES de la semana 1, el registro de misiones cierra al
-//      acabar la última semana, y el CANJE aguanta UNA SEMANA MÁS.
+// 13 · CALENDARIO DEL PER (v3.14; revisado en la v3.30 a petición del usuario)
+//      Los formularios abren EL PRIMER DÍA de la semana 1, el registro de misiones cierra al
+//      acabar la última semana, y el CANJE aguanta UNA SEMANA MÁS. Ya no se pregunta ninguna de
+//      las tres fechas al crear el PER: salen todas de la semana 1.
 const E = require("./entorno.js");
 const { comprobar: c, igual, contiene } = E;
 const M = E.M;
@@ -13,10 +14,10 @@ const triggersDe = fn => M.Guiones.getProjectTriggers().filter(t => t.getHandler
 // ---------------------------------------------------------------- las cuentas
 igual(G.SEMANAS_PER, { REGULAR: 15, PUA: 8 }, "el viaje dura 15 semanas (8 en PUA)");
 igual(G.SEMANAS_CANJE_EXTRA, 1, "el canje aguanta una semana más");
-igual(G.DIAS_APERTURA_ANTES, 7, "y los formularios abren una semana antes");
+igual(G.DIAS_APERTURA_ANTES, 0, "🔴 y los formularios abren el primer día de la semana 1, no antes");
 
 let fx = G.fechasPER_("2026-09-14", "REGULAR");
-igual(fx.apertura, "2026-09-07", "apertura = una semana antes de la semana 1");
+igual(fx.apertura, "2026-09-14", "apertura = el día que empieza la semana 1");
 igual(fx.cierreMisiones, "2026-12-27", "misiones hasta el último día de la semana 15");
 igual(fx.cierreCanje, "2027-01-03", "y el canje una semana más");
 igual(G.semanaDe_({ inicio: "2026-09-14" }) !== null, true, "semanaDe_ sigue funcionando");
@@ -33,7 +34,7 @@ igual(G.desdeEfectiva_(2, "REGULAR"), 2, "y en REGULAR no se toca");
 
 // ---------------------------------------------------------------- al crear el PER
 const r = E.crearPERDemo(G, { inicio: "2026-09-14", apertura: "", cierre: "" });
-igual(r.apertura, "2026-09-07", "crearPER rellena la apertura sola");
+igual(r.apertura, "2026-09-14", "crearPER rellena la apertura sola");
 igual(r.cierre, "2026-12-27", "y el cierre de misiones");
 igual(r.cierreCanje, "2027-01-03", "y el del canje, una semana después");
 igual(r.semanas, 15, "y dice cuántas semanas dura");
@@ -74,7 +75,7 @@ igual(G.formDelPER_(o, "B").isAcceptingResponses(), false, "pero sí la Bitácor
 const pub = G.tablero_("prueba-banco", false);
 igual(pub.cierre_misiones, "2026-12-27", "el tablero público dice hasta cuándo se registran misiones");
 igual(pub.cierre_canje, "2027-01-03", "y hasta cuándo se canjea");
-igual(pub.apertura, "2026-09-07", "y desde cuándo está abierto");
+igual(pub.apertura, "2026-09-14", "y desde cuándo está abierto: el día 1 de la semana 1");
 igual(pub.semanas, 15, "y cuántas semanas dura el viaje");
 
 // ---------------------------------------------------------------- mover la semana 1 mueve todo
@@ -82,7 +83,7 @@ M.Props.getScriptProperties().setProperty("PIN_PROFES", "sg2026");
 const post = q => JSON.parse(G.doPost({ postData: { contents: JSON.stringify(q) } }).getContent());
 const rr = post({ accion: "inicio", per: "prueba-banco", pin: "sg2026", inicio: "2026-10-05" });
 igual(rr.ok, true, "cambiar la semana 1 responde ok");
-igual(rr.calendario.apertura, "2026-09-28", "y recalcula la apertura");
+igual(rr.calendario.apertura, "2026-10-05", "y recalcula la apertura, que va pegada a la semana 1");
 igual(rr.calendario.cierreMisiones, "2027-01-17", "el cierre de misiones");
 igual(rr.calendario.cierreCanje, "2027-01-24", "y el del canje");
 igual(G.perObj_(G.perFila_("prueba-banco").v).cierreCanje, "2027-01-24", "y lo guarda en la hoja");

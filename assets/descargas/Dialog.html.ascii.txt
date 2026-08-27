@@ -17,7 +17,7 @@
 <div id="form">
  <label>Nombre del PER</label><input id="nombre" placeholder="p. ej. 14210 4P 2026-27">
  <div class="row"><div><label>Tipo</label><select id="tipo"><option value="REGULAR">REGULAR (15 semanas, examen)</option><option value="PUA">PUA (compacto, un tema por semana, sin examen)</option></select></div>
- <div><label>Semana 1 empieza el</label><input id="inicio" type="date"><small>Para el foro din&#xE1;mico</small></div></div>
+ <div><label>Semana 1 empieza el</label><input id="inicio" type="date"><small>Marca el ritmo de todo</small></div></div>
  <label>Equipo docente</label>
  <small>El <b>referente</b> gestiona el PER (solo uno). <b>Imparte</b> marca a quien da clase: son los
  nombres que ver&#xE1; el alumnado en su Bit&#xE1;cora y en el ticket de salida. El referente puede ser las dos
@@ -30,12 +30,10 @@
       <th style="width:70px;text-align:center;font-size:12px;color:#6d7b85">Imparte</th></tr>
  </table>
  <button type="button" id="mas" style="margin-top:8px;background:#eef3f7;color:#0b5b66;padding:6px 12px;font-size:13px">+ A&#xF1;adir docente</button>
- <div class="row"><div><label>Formularios abiertos desde</label><input id="apertura" type="date"></div><div><label>hasta (registro de misiones)</label><input id="cierre" type="date"></div></div>
- <div class="row"><div><label>El canje de recompensas cierra el</label><input id="cierreCanje" type="date"></div><div><label>&nbsp;</label><div id="calNota" class="small" style="color:#55606a;line-height:1.35"></div></div></div>
+ <div id="calNota" class="small" style="color:#55606a;line-height:1.4;margin-top:14px"></div>
  <label>Panel de control (Genially) &#xB7; enlace de VISUALIZACI&#xD3;N</label><input id="panelVer" placeholder="view.genially.com/&#x2026; (en blanco = panel est&#xE1;ndar)">
  <label>Panel de control (Genially) &#xB7; enlace de EDICI&#xD3;N</label><input id="panelEdit" placeholder="app.genially.com/editor/&#x2026; (en blanco = panel est&#xE1;ndar)">
  <small>El panel de control es el Genially con los planetas que enlaza a las presentaciones. D&#xE9;jalos en blanco para usar el est&#xE1;ndar compartido; ponlos solo si este PER usar&#xE1; una copia propia. Se pueden cambiar despu&#xE9;s desde el panel de profes (Ajustes del PER).</small>
- <small>Se rellenan solas al poner la fecha de la semana 1: <b>abren una semana antes</b> (para alistarse con margen), el <b>registro de misiones</b> cierra al acabar la &#xFA;ltima semana y el <b>canje aguanta una semana m&#xE1;s</b> &#x2014; se reclama lo ganado cuando ya no se gana nada. Puedes cambiarlas. El cierre se aplica a las 23:59.</small>
  <button id="go" onclick="crear()">Crear PER</button>
  <div id="err" class="err"></div>
 </div>
@@ -72,7 +70,7 @@ function crear(){
   if(malos.length){document.getElementById('err').textContent='Revisa el correo de '+malos[0].nombre;return;}
   var d={nombre:v('nombre'),tipo:v('tipo'),inicio:v('inicio'),referente:ref,
          profesores:docentes.filter(function(x){return x.rol.indexOf('imparte')>=0&&x.nombre!==ref;}).map(function(x){return x.nombre;}).join(', '),
-         docentes:docentes,apertura:v('apertura'),cierre:v('cierre'),cierreCanje:v('cierreCanje'),panelVer:v('panelVer'),panelEdit:v('panelEdit')};
+         docentes:docentes,panelVer:v('panelVer'),panelEdit:v('panelEdit')};
   if(!d.nombre){document.getElementById('err').textContent='Pon el nombre del PER';return;}
   if(!docentes.length){document.getElementById('err').textContent='A\u00f1ade al menos un docente';return;}
   document.getElementById('go').disabled=true;document.getElementById('err').textContent='Creando los 3 formularios y las pesta\u00f1as (30-60 s)\u2026';
@@ -91,49 +89,38 @@ function ok(r){
 +b('Generador de embeds en la web (elige tu nombre)','https://stargate.mistercuarter.es/embed.html?per='+r.id)+b('Tablero del PER en la web',r.web)+b('Foro din\u00e1mico del PER',r.foro)
   +(r.embedNave?'<div class="ok"><b>Embed de la Nave del Recluta para el Genially del PER</b><br><textarea class="emb" readonly>'+r.embedNave.replace(/</g,'&lt;')+'</textarea></div>':'')
   +'<div class="ok"><b>Embed del tablero para el Genially del PER</b><br><textarea class="emb" readonly>'+r.embedAlumnos.replace(/</g,'&lt;')+'</textarea></div>'
+  +(r.embedRanking?'<div class="ok"><b>Embed del ranking p\u00fablico</b><br><small>Los tres rankings en vivo (xp, semana y colecci\u00f3n), sin cabecera ni botones. Al pulsar a un recluta se abre su ficha; no ense\u00f1a personajes ganados, ni cr\u00e9ditos, ni correo.</small><br><textarea class="emb" readonly>'+r.embedRanking.replace(/</g,'&lt;')+'</textarea></div>':'')
   +'<div class="ok"><b>Embed del foro din\u00e1mico</b><br><textarea class="emb" readonly>'+r.embedForo.replace(/</g,'&lt;')+'</textarea></div>'
   +'<div class="ok"><b>QR de la Bit\u00e1cora</b><br><img src="https://quickchart.io/qr?size=160&text='+encodeURIComponent(r.formBitacora)+'"></div>'
   +'<small>Todo queda apuntado en la pesta\u00f1a PERs. El panel del profesorado: '+'<a href="https://stargate.mistercuarter.es/profes.html" target="_blank">profes.html</a></small>';
 }
 
-// v3.14 - Calendario por defecto: al poner la fecha de la semana 1 (o cambiar el tipo) se rellenan
-// solas la apertura y los dos cierres. Si el usuario las toca a mano, se respetan.
+// v3.30 - El calendario ya no se pregunta: sale entero de la fecha de la semana 1. Los formularios
+// abren ese mismo dia, el registro de misiones cierra al acabar la ultima semana y el canje aguanta
+// una semana mas. Aqui solo se cuenta, para que el docente lo vea antes de crear nada.
 (function(){
-  var SEM = {"REGULAR":15,"PUA":8}, EXTRA = 1, ANTES = 7;
-  var tocado = {apertura:false, cierre:false, cierreCanje:false};
-  ["apertura","cierre","cierreCanje"].forEach(function(k){
-    var el = document.getElementById(k);
-    if (el) el.addEventListener('input', function(){ tocado[k] = true; recalcular(true); });
-  });
+  var SEM = {"REGULAR":15,"PUA":8}, EXTRA = 1;
   function iso(d){ var p=function(n){return (n<10?'0':'')+n;}; return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
   function mas(base, dias){ var d = new Date(base.getTime()); d.setDate(d.getDate()+dias); return d; }
   function bonito(s){ if(!s) return '\u2014'; var p = s.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
-  function recalcular(soloNota){
-    var ini = document.getElementById('inicio').value;
+  var elIni = document.getElementById('inicio');
+  // el lunes que viene a las 00:00 (si hoy es lunes, hoy): es cuando empiezan las semanas del curso
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  if (elIni && !elIni.value) elIni.value = iso(mas(hoy, (8 - (hoy.getDay() || 7)) % 7));
+  function recalcular(){
+    var nota = document.getElementById('calNota'); if (!nota) return;
+    var ini = elIni ? elIni.value : '';
     var tipo = document.getElementById('tipo').value === 'PUA' ? 'PUA' : 'REGULAR';
     var n = SEM[tipo];
-    var nota = document.getElementById('calNota');
-    if (!ini) { if (nota) nota.textContent = 'Pon la fecha de la semana 1 y se calculan solas.'; return; }
-    var base = new Date(ini + 'T00:00:00');
-    if (isNaN(base.getTime())) return;
-    var ap = iso(mas(base, -ANTES)), cm = iso(mas(base, n*7-1)), cc = iso(mas(base, (n+EXTRA)*7-1));
-    if (!soloNota) {
-      if (!tocado.apertura)   document.getElementById('apertura').value = ap;
-      if (!tocado.cierre)     document.getElementById('cierre').value = cm;
-      if (!tocado.cierreCanje) document.getElementById('cierreCanje').value = cc;
-    } else if (tocado.cierre && !tocado.cierreCanje) {
-      var c = document.getElementById('cierre').value;
-      if (c) document.getElementById('cierreCanje').value = iso(mas(new Date(c+'T00:00:00'), 7*EXTRA));
-    }
-    if (nota) nota.innerHTML = tipo + ' &middot; ' + n + ' semanas<br>Abre el <b>' +
-      bonito(document.getElementById('apertura').value || ap) + '</b><br>Misiones hasta el <b>' +
-      bonito(document.getElementById('cierre').value || cm) + '</b><br>Canje hasta el <b>' +
-      bonito(document.getElementById('cierreCanje').value || cc) + '</b>';
+    if (!ini) { nota.textContent = 'Pon la fecha en la que empieza la semana 1 y el calendario se calcula solo.'; return; }
+    var base = new Date(ini + 'T00:00:00'); if (isNaN(base.getTime())) return;
+    nota.innerHTML = '<b>' + tipo + ' \u00b7 ' + n + ' semanas.</b> Los tres formularios abren el <b>' + bonito(ini) +
+      '</b>, el registro de misiones cierra el <b>' + bonito(iso(mas(base, n*7-1))) +
+      '</b> y el canje de recompensas el <b>' + bonito(iso(mas(base, (n+EXTRA)*7-1))) +
+      '</b>, a las 23:59. Se puede mover despu\u00e9s desde el panel de profes.';
   }
-  ['inicio','tipo'].forEach(function(k){
-    var el = document.getElementById(k);
-    if (el) el.addEventListener('change', function(){ recalcular(false); });
-  });
-  recalcular(false);
+  ['inicio','tipo'].forEach(function(k){ var el = document.getElementById(k);
+    if (el) { el.addEventListener('change', recalcular); el.addEventListener('input', recalcular); } });
+  recalcular();
 })();
 </script></body></html>

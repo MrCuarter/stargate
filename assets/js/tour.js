@@ -26,15 +26,51 @@
   var KEY='sgTourStep';
   function page(){var p=location.pathname.split('/').pop(); return p||'index.html';}
   function qs(){var m=location.search.match(/[?&]tour=(\d+)/); return m?parseInt(m[1],10):null;}
-  var ov=null;
+  var ov=null, recien=true, vigia=null, manual=false;
+  ['wheel','touchstart','keydown'].forEach(function(ev){
+    window.addEventListener(ev,function(){manual=true;},{passive:true});});
   function clearTarget(){Array.prototype.forEach.call(document.querySelectorAll('.tour-target'),function(e){e.classList.remove('tour-target');});}
+  // v3.30 - EL SCROLL DE LA VISITA. scrollIntoView({block:'center'}) fallaba por dos motivos: al
+  // llegar desde otra pagina se dispara mientras el navegador todavia esta colocando su propio
+  // scroll, que lo cancela -por eso la visita se quedaba arriba del todo-; y con un objetivo mas
+  // alto que la ventana, «centrar» deja el titulo fuera de plano. Ahora la posicion se calcula a
+  // mano (debajo de la barra pegajosa y sin que el panel del Capitan tape lo señalado) y se
+  // reintenta mientras la pagina siga creciendo, que las miniaturas de YouTube entran tarde.
+  function altoBarra(){var n=document.querySelector('.nav'); if(!n) return 0;
+    var p=getComputedStyle(n).position; return (p==='sticky'||p==='fixed')?n.getBoundingClientRect().height:0;}
+  function donde(tg){
+    var arriba=window.pageYOffset||document.documentElement.scrollTop||0;
+    var r=tg.getBoundingClientRect(), y=r.top+arriba;
+    var vh=document.documentElement.clientHeight, barra=altoBarra(), reserva=0;
+    var caja=ov&&ov.querySelector('.tour-box');
+    if(caja){var c=caja.getBoundingClientRect(); if(c.right>r.left&&c.left<r.right) reserva=c.height+24;}
+    var libre=Math.max(140, vh-barra-reserva);
+    var margen=(r.height>libre-32)?20:Math.max(20,(libre-r.height)/2);
+    var tope=Math.max(0, document.documentElement.scrollHeight-vh);
+    return Math.max(0, Math.min(tope, Math.round(y-barra-margen)));
+  }
+  function enfocar(tg,instante){
+    if(vigia){clearInterval(vigia); vigia=null;}
+    if(!tg) return;
+    manual=false;
+    function ir(suave){var y=donde(tg), arriba=window.pageYOffset||document.documentElement.scrollTop||0;
+      if(Math.abs(y-arriba)<6) return;
+      try{window.scrollTo({top:y,behavior:suave?'smooth':'auto'});}catch(e){window.scrollTo(0,y);}}
+    ir(!instante);
+    // se reajusta un par de segundos por si la pagina crece por debajo, y se aparta en cuanto el
+    // usuario toca la rueda: manda quien lee.
+    var t=0;
+    setTimeout(function(){ vigia=setInterval(function(){ t+=250;
+      if(manual||t>2600){clearInterval(vigia); vigia=null; return;}
+      ir(false); },250); }, instante?200:700);
+  }
   function render(i){
     var S=steps(); var s=S[i]; if(!s) return end();
     if(s.p!==page()){localStorage.setItem(KEY,String(i)); location.href=s.p+'?tour='+i; return;}
     localStorage.setItem(KEY,String(i));
     clearTarget();
     var tg=document.querySelector(s.sel);
-    if(tg){tg.classList.add('tour-target'); if(tg.tagName==='DETAILS') tg.open=true; tg.scrollIntoView({behavior:'smooth',block:'center'});}
+    if(tg){tg.classList.add('tour-target'); if(tg.tagName==='DETAILS') tg.open=true;}
     if(!ov){ov=document.createElement('div'); ov.className='tour'; document.body.appendChild(ov);}
     var btns = s.ask
       ? '<button type="button" class="tour-rol primary" data-rol="ref">🛰️ Sí, soy referente</button>'
@@ -51,12 +87,14 @@
            ov.querySelector('.tour-next').onclick=function(){ if(i===S.length-1) end(); else render(i+1);}; }
     ov.querySelector('.tour-exit').onclick=end;
     ov.classList.add('open');
+    enfocar(tg,recien); recien=false;   // el panel ya esta puesto: ahora se sabe cuanto tapa
   }
   function end(){localStorage.removeItem(KEY); localStorage.setItem('sgTourDone','1'); clearTarget();
     if(ov){ov.classList.remove('open'); ov.innerHTML='';}
     if(qs()!==null) history.replaceState(null,'',location.pathname);}
   document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.tour-start'); if(b){e.preventDefault(); render(0);}});
-  var q=qs(); if(q!==null) render(q);
+  // al saltar de pagina en pagina, el navegador restaura SU scroll y se lleva por delante el nuestro
+  var q=qs(); if(q!==null){ try{ if('scrollRestoration' in history) history.scrollRestoration='manual'; }catch(e){} render(q); }
   // primera visita a la portada: invitación discreta
   if(page()==='index.html' && q===null && !localStorage.getItem('sgTourDone') && !localStorage.getItem(KEY)){
     var inv=document.createElement('div'); inv.className='tour-invite';

@@ -289,3 +289,65 @@ function sellarCatalogo_(cat) {
     return v;
   } catch (e) { Logger.log("sellarCatalogo_: " + e); return ""; }
 }
+
+
+// ================= PARTE DE SALUD =================
+// v3.30 · Vive aquí y no en Code.gs, que ya roza el tamaño en el que Apps Script deja de guardar.
+// El parte tarda casi un minuto: abre los formularios de cada grupo uno a uno, repasa disparadores,
+// cuota de correo y datos del ticket. Hasta ahora la hoja se quedaba muda todo ese rato y parecía
+// que el menú no había hecho nada. Ahora la ventana se abre AL INSTANTE contando lo que está
+// mirando, y el informe la sustituye cuando llega.
+function parteDeSalud() {
+  var espera = '<!doctype html><html><head><meta charset="utf-8"><base target="_top"><style>' +
+    'body{font:14px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;color:#182430;margin:0;padding:24px 22px}' +
+    'h3{font-size:16px;margin:0 0 6px}.mut{color:#6d7b85;font-size:13px}' +
+    '.barra{height:8px;border-radius:99px;background:#e7edf1;overflow:hidden;margin:20px 0 14px}' +
+    '.barra i{display:block;height:100%;width:38%;border-radius:99px;background:#0e7f8c;animation:v 1.6s ease-in-out infinite}' +
+    '@keyframes v{0%{margin-left:-38%}100%{margin-left:100%}}' +
+    '.paso{font-weight:700;color:#0b5b66;min-height:22px}' +
+    '</style></head><body><div id="todo">' +
+    '<h3>Revisando el sistema…</h3>' +
+    '<div class="mut">Tarda hasta un minuto: hay que abrir los formularios de cada grupo, uno a uno. ' +
+    'No cambia nada, solo mira y cuenta.</div>' +
+    '<div class="barra"><i></i></div>' +
+    '<div class="paso" id="p">Abriendo el maletín de herramientas…</div>' +
+    '<div class="mut" id="s">0 s</div></div><script>' +
+    'var P=["Abriendo el maletín de herramientas…","Contando los grupos activos…",' +
+    '"Mirando los formularios de cada grupo…","Repasando los disparadores…",' +
+    '"Comprobando la cuota de correo…","Buscando dos cuentas de la misma persona…",' +
+    '"Cuadrando los partes del ticket de salida…","Ya casi: ordenando el informe…"];' +
+    'var i=0,t0=new Date().getTime();' +
+    'setInterval(function(){var e=document.getElementById("s");' +
+    'if(e)e.textContent=Math.round((new Date().getTime()-t0)/1000)+" s";},1000);' +
+    'setInterval(function(){i++;var e=document.getElementById("p");' +
+    'if(e)e.textContent=P[Math.min(i,P.length-1)];},7000);' +
+    'google.script.run.withSuccessHandler(function(h){document.getElementById("todo").innerHTML=h;})' +
+    '.withFailureHandler(function(e){document.getElementById("todo").innerHTML=' +
+    '"<h3>El parte no ha podido terminar</h3><p>"+e.message+"</p>";}).saludHtml();' +
+    '<' + '/script></body></html>';
+  SpreadsheetApp.getUi().showModalDialog(
+    HtmlService.createHtmlOutput(espera).setWidth(560).setHeight(560), "STARGATE · Parte de salud");
+}
+// El informe en sí. Público (sin guion bajo) porque lo pide la ventana con google.script.run.
+function saludHtml() {
+  var s = salud_();
+  var icono = { ok: "🟢", aviso: "🟡", mal: "🔴" };
+  var h = '<div style="font:14px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;padding:4px 2px">';
+  h += '<p style="margin:0 0 12px"><b style="font-size:16px">' +
+       (s.malos ? "🔴 Hay " + s.malos + " cosa" + (s.malos > 1 ? "s" : "") + " que arreglar"
+                : s.avisos ? "🟡 Todo funciona, con " + s.avisos + " aviso" + (s.avisos > 1 ? "s" : "")
+                           : "🟢 El sistema está sano") +
+       '</b><br><span style="color:#667">' + s.pers + ' PER activos · ' +
+       Utilities.formatDate(s.fecha, "Europe/Madrid", "d/MM/yyyy HH:mm") + '</span></p>';
+  var orden = { mal: 0, aviso: 1, ok: 2 };
+  s.puntos.slice().sort(function(a, b){ return orden[a.nivel] - orden[b.nivel]; }).forEach(function(p){
+    h += '<div style="padding:7px 0;border-top:1px solid #e6e8ee">' +
+         icono[p.nivel] + ' <b>' + p.titulo + '</b> — ' + escapar_(p.detalle) +
+         (p.arreglo ? '<br><span style="color:#4a5568;font-size:13px">↳ ' + escapar_(p.arreglo) + '</span>' : '') +
+         '</div>';
+  });
+  h += '<p style="margin:14px 0 0;color:#667;font-size:12px">Este parte no cambia nada: solo mira y cuenta.' +
+       (s.incompleto ? ' <b style="color:#b8860b">No le dio tiempo a mirarlo todo: vuelve a abrirlo.</b>' : '') +
+       '</p></div>';
+  return h;
+}

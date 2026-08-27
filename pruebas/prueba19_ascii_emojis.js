@@ -12,11 +12,16 @@ const { comprobar: c, igual } = E;
 console.log("\n▶ 19 · La copia ASCII dice lo mismo que el original (emojis incluidos)");
 
 const RAIZ = path.join(__dirname, "..");
+// v3.30 · El parte de salud se mudó a Bonus.gs (Code.gs ya no cabía), y con él el semáforo. La
+// regla vale para los DOS ficheros que se pegan a mano, así que se miran los dos.
 const ORIG = fs.readFileSync(path.join(RAIZ, "apps-script", "Code.gs"), "utf8");
 const ASCII = fs.readFileSync(path.join(RAIZ, "assets", "descargas", "Code.gs.ascii.txt"), "utf8");
+const ORIG_B = fs.readFileSync(path.join(RAIZ, "apps-script", "Bonus.gs"), "utf8");
+const ASCII_B = fs.readFileSync(path.join(RAIZ, "assets", "descargas", "Bonus.gs.ascii.txt"), "utf8");
 
 // ---------------------------------------------------------------- a) la copia es ASCII de verdad
 igual([...ASCII].filter(ch => ch.charCodeAt(0) > 127).length, 0, "la copia no tiene un solo byte no-ASCII");
+igual([...ASCII_B].filter(ch => ch.charCodeAt(0) > 127).length, 0, "y la de Bonus.gs, tampoco");
 
 // ---------------------------------------------------------------- b) ningún surrogado suelto
 // OJO: «cinco dígitos» no se puede detectar contando caracteres — JavaScript lee SIEMPRE cuatro, y
@@ -44,21 +49,26 @@ function paresDe(ch) {
 // alguien (el semáforo del parte de salud). Lo de los comentarios se translitera a posta, y exigirlo
 // aquí daba un falso rojo en cuanto alguien escribía un emoji nuevo en un comentario.
 // La lista la publica el propio conversor (_ascii_gs.py → *.encadena.json): un solo analizador.
-const EN_CADENA = JSON.parse(fs.readFileSync(path.join(RAIZ, "assets", "descargas", "Code.gs.encadena.json"), "utf8"));
-const fuera = EN_CADENA.filter(ch => ch.codePointAt(0) > 0xFFFF);
-c(fuera.length > 0, "el Code.gs pone " + fuera.length + " carácter(es) fuera del BMP en pantalla: " + fuera.join(" "));
-EN_CADENA.forEach(ch => c(ORIG.indexOf(ch) >= 0,
-  "«" + ch + "» sale de una cadena del Code.gs de verdad (el conversor no se lo inventa)"));
-fuera.forEach(ch => {
-  const par = paresDe(ch);
-  c(ASCII.indexOf(par) >= 0, "🔴 «" + ch + "» va como par surrogado (" + par + ")");
-  igual(eval('"' + par + '"'), ch, "y JavaScript lo lee otra vez como «" + ch + "»");
+[["Code.gs", "Code.gs.encadena.json", ORIG, ASCII],
+ ["Bonus.gs", "Bonus.gs.encadena.json", ORIG_B, ASCII_B]].forEach(([nombre, json, orig, ascii]) => {
+  const EN_CADENA = JSON.parse(fs.readFileSync(path.join(RAIZ, "assets", "descargas", json), "utf8"));
+  EN_CADENA.forEach(ch => c(orig.indexOf(ch) >= 0,
+    "«" + ch + "» sale de una cadena del " + nombre + " de verdad (el conversor no se lo inventa)"));
+  EN_CADENA.filter(ch => ch.codePointAt(0) > 0xFFFF).forEach(ch => {
+    const par = paresDe(ch);
+    c(ascii.indexOf(par) >= 0, "🔴 «" + ch + "» va como par surrogado en " + nombre + " (" + par + ")");
+    igual(eval('"' + par + '"'), ch, "y JavaScript lo lee otra vez como «" + ch + "»");
+  });
 });
+const TODO_EN_CADENA = ["Code.gs.encadena.json", "Bonus.gs.encadena.json"]
+  .reduce((L, j) => L.concat(JSON.parse(fs.readFileSync(path.join(RAIZ, "assets", "descargas", j), "utf8"))), []);
+const fuera = TODO_EN_CADENA.filter(ch => ch.codePointAt(0) > 0xFFFF);
+c(fuera.length > 0, "lo que se pega pone " + fuera.length + " carácter(es) fuera del BMP en pantalla: " + fuera.join(" "));
 
 // ---------------------------------------------------------------- d) el semáforo del parte de salud
 // es lo que se vio roto en producción: se comprueba tal cual, en la copia que se pega
-const m = ASCII.match(/var icono = \{[^}]*\}/);
-c(!!m, "el semáforo del parte de salud está en la copia");
+const m = ASCII_B.match(/var icono = \{[^}]*\}/);
+c(!!m, "el semáforo del parte de salud está en la copia de Bonus.gs");
 if (m) {
   const iconos = eval("(" + m[0].replace("var icono = ", "") + ")");
   igual(iconos.mal, "🔴", "🔴 rojo = rojo (no «ù4»)");
