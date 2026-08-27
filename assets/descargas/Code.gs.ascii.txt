@@ -2213,7 +2213,10 @@ function tablero_(perId, conPrivados) {
                 creditos: cred - gast, creditos_ganados: cred, creditos_gastados: gast,
                 canjeados: canjes[m] ? canjes[m].veces : {},
                 profe:a.profe || "", planeta: tema ? TEMAS[tema][0] : "\u2014", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length,
-                titulo:a._titulo || "", marco:a._marco || "", fondo:a._fondo || "", cromos:a._cromos || {}, xp7:xp7 };
+                titulo:a._titulo || "", marco:a._marco || "", fondo:a._fondo || "", cromos:a._cromos || {}, xp7:xp7,
+                // v3.26 - la ultima vez que registro algo POR SU CUENTA (los retos que le otorga el
+                // profesorado no cuentan: la senal es si sigue jugando, no si alguien juega por el)
+                ultima: a.eventos.length ? new Date(Math.max.apply(null, a.eventos.map(function(e){ return new Date(e.fecha).getTime(); }))) : "" };
     if (conPrivados) { out.email = m; out.nombre = a.nombre; out.bitacora = a.bitacora; out.bio = a.bio || ""; out.eventos = a.eventos; out.retos = a.retos; out.canjes = canjes[m] ? canjes[m].lista : []; }
     return out; });
   lista.sort(function(a,b){ return b.xp - a.xp || b.n - a.n || a.alias.localeCompare(b.alias); }); lista.forEach(function(x,i){ x.pos = i+1; });
@@ -2299,6 +2302,18 @@ function partesPorSeccion_(o) {
   return out;
 }
 
+//  EL DIVISOR SON LOS VIVOS, no todos los que pasaron por aqui alguna vez. Si contaramos a todos,
+// el umbral se volveria imposible segun avanza el curso: de 100 matriculados se alistan 70, de esos
+// 20 solo aparecen el primer dia - y esos 20 seguirian en el denominador en la semana 14, justo
+// cuando la participacion es mas baja. Vivo = ha registrado algo por su cuenta ultimamente.
+// Cobran TODOS igual: es un premio de tripulacion, y a quien vuelva le esperan sus creditos.
+function reclutasActivos_(reclutas, semanas) {
+  var dias = 7 * (semanas || BONUS_TRIPULACION.semanas_activo || 4);
+  var corte = new Date(); corte.setDate(corte.getDate() - dias);
+  var vivos = reclutas.filter(function(r){ return r.ultima && new Date(r.ultima) >= corte; }).length;
+  return vivos || reclutas.length;   // si no hay nadie vivo, el umbral NO se abarata
+}
+
 // Reparte lo pendiente. Idempotente: cada recluta cobra una vez por seccion, mirando lo que ya
 // tiene en AJUSTES. Devuelve cuantas filas ha escrito.
 function otorgarBonusTripulacion_(o) {
@@ -2306,7 +2321,7 @@ function otorgarBonusTripulacion_(o) {
   if (!cfg.creditos) return 0;
   var t = tablero_(o.id, true), reclutas = (t.reclutas || []);
   if (!reclutas.length) return 0;
-  var partes = partesPorSeccion_(o), umbral = Math.max(1, Math.ceil(cfg.fraccion * reclutas.length));
+  var partes = partesPorSeccion_(o), umbral = Math.max(1, Math.ceil(cfg.fraccion * reclutasActivos_(reclutas)));
   var yaTiene = {};
   hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
     if (v[1] === o.id && v[4] === "bonus" && String(v[5] || "").indexOf("tripulacion:") === 0)

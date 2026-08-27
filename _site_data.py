@@ -377,7 +377,7 @@ BONUS_ALBUM = {"xp": 300, "creditos": 200}
 # quién respondió — y contando cabezas en vez de nombres, nadie tiene que renunciar a decir la verdad
 # para cobrar. 🔧 Se ajusta sin tocar código desde el menú (Mantenimiento → Bonus de la tripulación);
 # esto es solo el valor de partida.
-BONUS_TRIPULACION = {"fraccion": 0.25, "creditos": 15}
+BONUS_TRIPULACION = {"fraccion": 0.25, "creditos": 15, "semanas_activo": 4}
 
 def _ayuda_de_los_retos():
     """Saca de RETOS_INSIGNIAS_STARGATE.md lo que pide cada reto (su bloque LITERAL).

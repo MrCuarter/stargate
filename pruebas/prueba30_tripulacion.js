@@ -89,4 +89,38 @@ igual(punto("partes").nivel, "aviso", "🔴 más partes que reclutas en un tema 
 contiene(punto("partes").detalle, "t4", "diciendo en qué tema");
 contiene(punto("partes").arreglo, "inflando", "y avisando de que puede ser alguien inflando el bonus");
 
+// ---------------------------------------------------------------- g) el divisor son los VIVOS
+// De 100 matriculados se alistan 70, y de esos 20 aparecen el primer día y no vuelven. Si el divisor
+// fuera «todos los que se alistaron», esos 20 seguirían contando en la semana 14 y el umbral se
+// volvería imposible justo cuando la participación es más baja.
+const G2 = E.nuevoMundo();
+const P2 = E.crearPERDemo(G2).id;
+const o2 = () => G2.perObj_(G2.perFila_(P2).v);
+// diez se alistan; solo dos registran algo hace poco, los otros ocho llevan meses sin aparecer
+for (let i = 0; i < 10; i++)
+  E.enviarBitacora(G2, P2, { email: "r" + i + "@alumno.es", alias: "R" + i, nombre: "R " + i, profe: "Mr Cuarter" });
+const evs = G2.hoja_(G2.H.EV);
+evs.getDataRange().getValues().slice(1).forEach((v2, k) => {
+  const viejo = E.haceSemanas(20);
+  if (["r0@alumno.es", "r1@alumno.es"].indexOf(String(v2[2])) < 0) evs.getRange(k + 2, 1).setValue(viejo);
+});
+const fichas = () => G2.tablero_(P2, true).reclutas;
+igual(fichas().length, 10, "diez alistados");
+igual(G2.reclutasActivos_(fichas()), 2, "🔴 pero solo dos vivos: el resto lleva meses sin registrar nada");
+c(fichas().every(x => x.ultima !== undefined), "la ficha dice cuándo registró algo por última vez");
+
+// 25 % de 2 vivos → basta 1 parte. Con el divisor viejo (10) habrían hecho falta 3.
+const sh2 = G2._maestra.getSheetByName("T · " + P2);
+if (sh2.getLastRow() < 1) sh2.appendRow(["Marca temporal", TIT_SEL]);
+const cab2 = sh2.getRange(1, 1, 1, sh2.getLastColumn()).getValues()[0].map(String);
+sh2.appendRow(cab2.map(x => x === TIT_SEL ? "Tema 1: Fôrge (FORGE)" : (x === "Marca temporal" ? new Date() : "")));
+igual(Object.keys(G2.partesPorSeccion_(o2())).join(), "t1", "el parte llega y se cuenta en t1");
+igual(G2.otorgarBonusTripulacion_(o2()), 10,
+      "🔴 con un solo parte se paga, porque el grupo vivo son dos — y cobran los DIEZ");
+
+// y si no queda nadie vivo, el umbral no se abarata: se cuenta con todos
+evs.getDataRange().getValues().slice(1).forEach((v2, k) => evs.getRange(k + 2, 1).setValue(E.haceSemanas(20)));
+igual(G2.reclutasActivos_(G2.tablero_(P2, true).reclutas), 10,
+      "🔴 sin nadie vivo NO se abarata el umbral: vuelve a contar con todos");
+
 E.resumen("El parte de la tripulación y los dos ojos nuevos");
