@@ -82,7 +82,7 @@ function pruebaTriggers() {
 // propósito: crearPER cae solo en el ESTÁNDAR (panelStd_), que es lo que queremos comprobar.
 function pruebaCrearPER2() {
   var r = crearPER({
-    nombre: "PRUEBA 10 RECLUTAS", tipo: "REGULAR", inicio: "2026-05-04",
+    nombre: "PRUEBA 10 RECLUTAS", tipo: "REGULAR", inicio: "2026-07-23",   // 5 semanas atras = SEMANA 6
     referente: "Norberto Cuartero", profesores: "Norberto Cuartero, Norberto Genially",
     docentes: [
       { nombre: "Norberto Cuartero", correo: "n.cuartero.10@gmail.com", rol: "referente+imparte" },
@@ -165,6 +165,58 @@ function pruebaSembrar() {
            x.creditos + " ◈ · " + x.n + " insignias · col " + (x.coleccion ? x.coleccion.pct : "?") + "%"; });
   Logger.log("SEMBRADO en " + o.id + "\n" + resumen.join("\n"));
   return { per: o.id, reclutas: resumen };
+}
+
+// Tickets de salida de mentira, para que el panel del docente y el panorama tengan algo que enseñar.
+// Se rellenan por cabecera, no por posicion: es como los lee el sistema, y asi da igual el orden.
+function pruebaTickets() {
+  var per = pruebaUltimoPER_(), o = perObj_(perFila_(per).v);
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabT);
+  var cab = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String);
+  var idx = function(frag){ for (var i = 0; i < cab.length; i++) if (cab[i].indexOf(frag) >= 0) return i; return -1; };
+  var cProf = idx("profesor o profesora"), cSel = idx("Selecciona el tema"),
+      cComo = idx(TIT_COMO_SEGUIDA), cDuda = idx("Alguna duda");
+  var esc = [], stg = [];
+  cab.forEach(function(t, i){ if (t.indexOf("STARGATE \u00b7") === 0) stg.push(i); else if (t.indexOf("Valora") === 0) esc.push(i); });
+
+  // semana 6: han pasado la presentacion y cinco temas. Reparte partes con distinta participacion
+  // por tema, y con menos segun avanza el curso, que es lo que pasa de verdad.
+  var secciones = [["Presentaci\u00f3n de la asignatura", 9], ["Tema 1", 8], ["Tema 2", 6],
+                   ["Tema 3", 5], ["Tema 4", 4], ["Tema 5", 3]];
+  var opcSel = [];
+  try { var it = FormApp.openByUrl(o.formTicketEdit).getItems().filter(function(x){ return x.getTitle().indexOf("Selecciona el tema") === 0; })[0];
+        opcSel = it ? it.asListItem().getChoices().map(function(c){ return c.getValue(); }) : []; } catch (e) {}
+  var casa = function(pref){ for (var i = 0; i < opcSel.length; i++) if (opcSel[i].indexOf(pref) === 0) return opcSel[i]; return pref; };
+
+  var VOCES = ["Me ha costado seguir el ritmo, pero el ejemplo del final lo aclaro todo.",
+    "\u00bfHay alguna forma de repetir la parte de la herramienta? Me perdi a mitad.",
+    "Muy bien explicado, aunque el chat iba muy rapido.",
+    "No me queda claro que hay que entregar exactamente en la actividad 1.",
+    "La parte practica es lo mejor con diferencia.",
+    "Se me ha hecho corta. Mas ejemplos, por favor."];
+  var profes = docentesDe_(o.id).filter(imparte_).map(function(d){ return d.nombre; });
+  if (!profes.length) profes = ["Profesorado"];
+
+  var filas = [], hoy = new Date(), v = 0;
+  secciones.forEach(function(sec, si){
+    for (var k = 0; k < sec[1]; k++) {
+      var f = []; for (var z = 0; z < cab.length; z++) f.push("");
+      f[0] = new Date(hoy.getTime() - (30 - si * 5 - (k % 3)) * 86400000);
+      if (cProf >= 0) f[cProf] = profes[(si + k) % profes.length];
+      if (cSel >= 0) f[cSel] = casa(sec[0]);
+      // las escalas: gente contenta con alguna nota baja suelta, para que la media no salga plana
+      esc.forEach(function(i, j){ f[i] = String(((si + k + j) % 3 === 0) ? 3 + (k % 3) : 4 + ((k + j) % 2)); });
+      var directo = (k % 3) !== 2;
+      if (cComo >= 0) f[cComo] = directo ? OPC_DIRECTO : OPC_DIFERIDO;
+      // los items de puesta en escena SOLO los rellena quien estuvo en directo, como en la vida real
+      if (directo) stg.forEach(function(i, j){ f[i] = String(2 + ((si + k + j) % 4)); });
+      if (cDuda >= 0 && k % 4 === 0) { f[cDuda] = VOCES[v % VOCES.length]; v++; }
+      filas.push(f);
+    }
+  });
+  if (filas.length) sh.getRange(sh.getLastRow() + 1, 1, filas.length, cab.length).setValues(filas);
+  Logger.log("TICKETS SEMBRADOS: " + filas.length + " en " + o.id + " (semana " + semanaDe_(o) + ")");
+  return { per: o.id, tickets: filas.length, semana: semanaDe_(o) };
 }
 
 function pruebaUltimoPER_() {

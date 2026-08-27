@@ -72,4 +72,23 @@ const secs2 = canje.getItems(G.FormApp.ItemType.PAGE_BREAK).map(p => p.getTitle(
 c(secs2.indexOf(G.SEC_TITULO) < 0, "🔴 si el catálogo se queda sin títulos, su sección desaparece");
 igual(secs2.length, 2, "y quedan las otras dos");
 
+// ---------------------------------------------------------------- desde una plantilla VACIA
+// 🔴 Todas las pruebas de arriba parten de un canje que YA trae sus preguntas, y por eso ninguna
+// recorría el camino de crearlas. En producción, la plantilla no las trae: el 27-ago crearPER se
+// cayó con «act.asListItem is not a function» y el banco seguía verde.
+// La diferencia es sutil y de Google: getItems() devuelve Items GENÉRICOS (con asListItem()) y
+// addListItem() devuelve ya un ListItem, que NO lo tiene. Encadenar los dos revienta.
+const virgen = G.FormApp.create("canje recien nacido");
+G.reestructurarCanje_(virgen);   // si vuelve el fallo, esto sola lanza la excepción
+const tits = virgen.getItems().map(i => i.getTitle());
+c(tits.indexOf("Recompensa") >= 0, "en un canje vacío se crea la pregunta «Recompensa»");
+c(tits.indexOf(G.TIT_ACTIVIDAD) >= 0, "y la de «" + G.TIT_ACTIVIDAD + "»");
+const lista = virgen.getItems().filter(i => i.getTitle() === "Recompensa")[0];
+c(lista.asListItem().getChoices().length > 0, "con sus opciones puestas, no vacía");
+const secsV = virgen.getItems(G.FormApp.ItemType.PAGE_BREAK).map(p => p.getTitle());
+c(secsV.length > 0, "y sus secciones (" + secsV.join(", ") + ")");
+igual(G.reestructurarCanje_(virgen) === undefined || true, true, "y repetirlo no revienta");
+igual(new Set(virgen.getItems().map(i => i.getTitle())).size,
+      virgen.getItems().map(i => i.getTitle()).length, "🔴 sin preguntas duplicadas al repetir");
+
 E.resumen("El canje, por secciones");

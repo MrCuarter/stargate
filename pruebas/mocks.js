@@ -43,7 +43,21 @@ class Rango {
     return out;
   }
   getValue() { return this.getValues()[0][0]; }
-  setValues(vals) { vals.forEach((r, i) => r.forEach((v, j) => this.h._set(this.f - 1 + i, this.c - 1 + j, v))); return this; }
+  // 🔴 Google exige que la matriz CUADRE con el rango: «The number of rows in the data does not
+  // match the number of rows in the range». El simulador escribia igual, asi que un getRange mal
+  // contado pasaba desapercibido aqui y reventaba en produccion.
+  setValues(vals) {
+    if (!Array.isArray(vals) || !Array.isArray(vals[0]))
+      throw new Error("setValues espera una matriz de filas");
+    if (vals.length !== this.nf)
+      throw new Error("The number of rows in the data does not match the number of rows in the range. " +
+                      "Datos: " + vals.length + " · rango: " + this.nf);
+    vals.forEach(r => { if (r.length !== this.nc)
+      throw new Error("The number of columns in the data does not match the number of columns in the range. " +
+                      "Datos: " + r.length + " · rango: " + this.nc); });
+    vals.forEach((r, i) => r.forEach((v, j) => this.h._set(this.f - 1 + i, this.c - 1 + j, v)));
+    return this;
+  }
   setValue(v) { for (let i = 0; i < this.nf; i++) for (let j = 0; j < this.nc; j++) this.h._set(this.f - 1 + i, this.c - 1 + j, v); return this; }
   clearContent() { return this.setValue(""); }
   setFontWeight() { return this; } setFontSize() { return this; } setBackground() { return this; }

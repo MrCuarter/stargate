@@ -44,7 +44,11 @@ class Item {
     this.opciones = vs.map(v => new Opcion(v)); return this;
   }
   getChoices() { return this.opciones.slice(); }
-  setChoices(cs) { this.opciones = (cs || []).slice(); return this; }
+  // Igual que setChoiceValues: Google no acepta una lista de opciones vacia.
+  setChoices(cs) {
+    if (!cs || !cs.length) throw new Error("La matriz está vacía: choices");
+    this.opciones = cs.slice(); return this;
+  }
   createChoice(v, destino) { return new Opcion(v, destino); }
   showOtherOption() { return this; }
   setValidation() { return this; }
@@ -89,7 +93,25 @@ class Formulario {
   setAcceptingResponses(b) { this.aceptando = !!b; return this; }
   isAcceptingResponses() { return this.aceptando; }
   setPublished(b) { this.publicado = !!b; return this; }
-  _add(tipo) { const it = new Item(this, tipo); this.items.push(it); this._sincronizar(); return it; }
+  // 🔴 Google devuelve cosas DISTINTAS: getItems() da Items GENERICOS (con asListItem() y compañia)
+  // y addListItem() da ya un ListItem, que NO tiene as*Item. Encadenar los dos revienta, y el
+  // simulador lo dejaba pasar porque devolvia el mismo objeto en los dos casos: por eso crearPER se
+  // cayo en produccion el 27-ago con «act.asListItem is not a function» y el banco seguia verde.
+  // Aqui se devuelve una VISTA sin esos metodos, que es lo que hace Google.
+  _add(tipo) {
+    const it = new Item(this, tipo); this.items.push(it); this._sincronizar();
+    // 🔴 Y los metodos encadenables tienen que devolver LA VISTA, no el objeto crudo: si
+    // addListItem().setTitle(x) devolviera el Item de dentro, la cadena recuperaria los as*Item que
+    // Google no da, y el simulador volveria a mentir justo donde nos mordio.
+    let vista;
+    vista = new Proxy(it, { get(o, k) {
+      if (typeof k === "string" && /^as[A-Z].*Item$/.test(k)) return undefined;
+      const v = o[k];
+      if (typeof v !== "function") return v;
+      return function () { const r = v.apply(o, arguments); return r === o ? vista : r; };
+    } });
+    return vista;
+  }
   addTextItem() { return this._add(TIPOS.TEXT); }
   addParagraphTextItem() { return this._add(TIPOS.PARAGRAPH_TEXT); }
   addListItem() { return this._add(TIPOS.LIST); }

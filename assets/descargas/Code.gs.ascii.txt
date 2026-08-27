@@ -628,9 +628,15 @@ function reestructurarCanje_(fc) {
   var buscar = function(t){ return fc.getItems().filter(function(i){ return i.getTitle() === t; })[0] || null; };
   // 1) las preguntas que tienen que existir (anadirCamposAvatar_ pone titulo y fondo, y quita las retiradas)
   anadirCamposAvatar_(fc);
-  var act = buscar(TIT_ACTIVIDAD) || fc.addListItem().setTitle(TIT_ACTIVIDAD);
-  ponerOpciones_(act.asListItem().setRequired(true).setHelpText(AYUDA_SECCION[SEC_NOTA]), OPC_ACTIVIDAD, TIT_ACTIVIDAD);
-  var rec = buscar("Recompensa") || fc.addListItem().setTitle("Recompensa");
+  //  `buscar()` devuelve un Item GENERICO -que hay que convertir con asListItem()- pero
+  // addListItem() devuelve YA un ListItem, que no tiene ese metodo. Encadenarlos revienta con
+  // "act.asListItem is not a function", y solo cuando la pregunta NO existia: o sea, al crear un PER
+  // desde una plantilla que no la trae. Visto en produccion el 27-ago creando el PER de 10 reclutas.
+  var itAct = buscar(TIT_ACTIVIDAD);
+  var act = itAct ? itAct.asListItem() : fc.addListItem().setTitle(TIT_ACTIVIDAD);
+  ponerOpciones_(act.setRequired(true).setHelpText(AYUDA_SECCION[SEC_NOTA]), OPC_ACTIVIDAD, TIT_ACTIVIDAD);
+  var itRec = buscar("Recompensa");
+  var rec = itRec ? itRec.asListItem() : fc.addListItem().setTitle("Recompensa");
   // 2) los saltos de pagina se reconstruyen enteros: no llevan datos, asi que borrarlos no pierde nada
   fc.getItems(FormApp.ItemType.PAGE_BREAK).forEach(function(pb){ try { fc.deleteItem(pb); } catch (e) {} });
   // 3) solo se crean las secciones que el catalogo de HOY necesita
@@ -648,7 +654,7 @@ function reestructurarCanje_(fc) {
     if (pbs[sec]) try { pbs[sec].setGoToPage(FormApp.PageNavigationType.SUBMIT); } catch (e) {}
   });
   // 6) y cada recompensa manda a donde tiene que ir (o directa a enviar)
-  var lr = rec.asListItem(), etiquetas = cat.map(etiquetaRecompensa_);
+  var lr = rec, etiquetas = cat.map(etiquetaRecompensa_);
   lr.setChoices(cat.map(function(x, k){
     var sec = seccionDe_(x.tipo);
     return lr.createChoice(etiquetas[k], sec && pbs[sec] ? pbs[sec] : FormApp.PageNavigationType.SUBMIT);
