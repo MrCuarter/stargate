@@ -244,3 +244,20 @@ function pruebaPanelEstandar() {
   Logger.log("PANEL ESTANDAR -> ver: " + (s.ver || "(NO HAY)") + " | editar: " + (s.editar || "(NO HAY)"));
   return s;
 }
+
+// ¿A que pestaña escribe DE VERDAD cada formulario? Es lo que decide si una pestaña «restos ·» se
+// puede borrar: si un formulario vivo escribe en ella, borrarla rompe los envios.
+function pruebaVinculos() {
+  var ss = SpreadsheetApp.getActive();
+  var out = { pestanas: [], pers: [] };
+  ss.getSheets().forEach(function(sh){
+    var u = ""; try { u = sh.getFormUrl() || ""; } catch (e) {}
+    if (u) out.pestanas.push({ pestana: sh.getName(), filas: Math.max(0, sh.getLastRow() - 1), form: u });
+  });
+  hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; }).forEach(function(v){
+    var o = perObj_(v);
+    out.pers.push({ id: o.id, tabB: o.tabB, tabT: o.tabT, tabC: o.tabC });
+  });
+  Logger.log(JSON.stringify(out, null, 1));
+  return out;
+}
