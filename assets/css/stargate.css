@@ -573,6 +573,12 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .panorama .semana:not(:first-of-type){display:none}
 .panorama .semana summary{font-size:1.05rem}
 .panorama .sem-body{display:grid;grid-template-columns:1.15fr .85fr;gap:26px;align-items:start}
+/* 🔴 Son TRES hijos (valoraciones, el título «Dudas», las voces) en dos columnas, así que la rejilla
+   los colocaba 1-2-1: el título se iba arriba a la derecha y los comentarios caían abajo a la
+   izquierda, debajo de las gráficas. Visto al proyectarlo. Cada uno a su sitio, explícitamente. */
+.panorama .sem-body > .qgrid{grid-column:1;grid-row:1 / span 2}
+.panorama .sem-body > h4{grid-column:2;grid-row:1}
+.panorama .sem-body > .dudas{grid-column:2;grid-row:2}
 .panorama .qgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .panorama .dudas{max-height:46vh;overflow:auto}
 .panorama .dudas .duda{font-size:1rem}
