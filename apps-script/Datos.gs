@@ -342,8 +342,12 @@ var TITULOS = ["Cartógrafo/a estelar","Guardián/a de la Bitácora","Voz de NEB
 
 function retosDe_(tipo){ return tipo === "PUA" ? RETOS_PUA : RETOS_REGULAR; }
 function opcAvatares_(desde, hasta) {
+  // 27-ago · sin el «(evoluciona)» del final: sobra en el desplegable —lo cuenta el texto de ayuda—
+  // y solo alarga cada opcion. 🔴 Es seguro cambiarlo: parseAvatar_ reconoce el avatar con
+  // /Personaje (\d) · (ella|él|modelo A|modelo B)/, que NO exige ese sufijo, asi que las respuestas
+  // antiguas (que si lo llevan) se siguen leyendo igual.
   var opc = []; for (var pj = desde; pj <= hasta; pj++) { var et = pj !== 5 ? ["ella","él"] : ["modelo A","modelo B"];
-    opc.push("Personaje " + pj + " · " + et[0] + " (evoluciona)"); opc.push("Personaje " + pj + " · " + et[1] + " (evoluciona)"); }
+    opc.push("Personaje " + pj + " · " + et[0]); opc.push("Personaje " + pj + " · " + et[1]); }
   return opc;
 }
 function opcIniciales_() { return opcAvatares_(1, AVATARES_INICIALES); }

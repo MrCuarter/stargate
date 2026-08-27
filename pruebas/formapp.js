@@ -72,7 +72,7 @@ class Item {
 class Formulario {
   constructor(titulo, id) {
     this.titulo = titulo; this.id = id || ("form_" + (++nId)); this.items = [];
-    this.descripcion = ""; this.recogeCorreo = false; this.aceptando = true; this.publicado = false;
+    this.descripcion = ""; this.confirmacion = ""; this.recogeCorreo = false; this.aceptando = true; this.publicado = false;
     this.destino = null; this.hojaDestino = null;
     Formulario.registro[this.id] = this;
   }
@@ -89,7 +89,8 @@ class Formulario {
   setLimitOneResponsePerUser(b) { this.unaRespuesta = !!b; return this; }
   setAllowResponseEdits() { return this; }
   setShowLinkToRespondAgain(b) { this.otraVez = !!b; return this; }
-  setConfirmationMessage() { return this; }
+  setConfirmationMessage(m) { this.confirmacion = m; return this; }
+  getConfirmationMessage() { return this.confirmacion || ""; }
   setAcceptingResponses(b) { this.aceptando = !!b; return this; }
   isAcceptingResponses() { return this.aceptando; }
   setPublished(b) { this.publicado = !!b; return this; }

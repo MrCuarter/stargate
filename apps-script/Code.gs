@@ -472,21 +472,30 @@ function crearPER(datos) {
 
   // ---- 1 · Bitácora de mando (Google login, 1 respuesta editable) ----
   var fb = formDesdePlantilla_("PLANTILLA · Bitácora de mando", "STARGATE · " + nombre + " · Bitácora de mando", carpeta);
-  fb.setDescription("Tu registro de la misión. Rellénalo una vez y vuelve a editarlo cada vez que ganes una insignia (marca la casilla nueva y envía). " +
+  fb.setDescription("Tu registro de la misión: se rellena UNA vez y a partir de ahí se EDITA. Cada vez que ganes " +
+    "una insignia vuelve a este mismo enlace, edítala, marca la casilla nueva y envía; lo de antes se conserva. " +
     "Tu correo y tu nombre solo los ve el profesorado; en el tablero aparece tu alias. Profesorado: " + (datos.profesores || ""));
-  // 🔴 26-ago · SIN «una sola respuesta». Google enseñaba «Solo puedes rellenar este formulario una
-  // vez» —mensaje suyo, no se puede cambiar— y este formulario se rellena tantas veces como haga
-  // falta. El motor ya es append-only, así que quitar el límite no rompe nada: la identidad se toma
-  // del último valor NO VACÍO de cada correo (ver tablero_), y por eso los campos de identidad
-  // dejan de ser obligatorios: solo se rellenan la primera vez.
-  fb.setCollectEmail(true).setLimitOneResponsePerUser(false).setAllowResponseEdits(true).setShowLinkToRespondAgain(true)
-    .setConfirmationMessage("Registrado. Tu Bitácora crece. Mira el tablero en " + WEB + "registro.html?per=" + id);
+  // 🔴 27-ago · UNA RESPUESTA POR PERSONA, EDITABLE. Se probó lo contrario y salió mal: al terminar,
+  // Google ofrecía «Modificar tu respuesta» Y «Enviar otra respuesta», y el segundo botón hace
+  // rellenar el formulario DESDE CERO. Con un grupo entero eso son alias distintos, avatares
+  // distintos y reclutas duplicados — y el sistema se identifica por correo.
+  //
+  // El motivo por el que se había quitado el límite (26-ago) era que Google enseña «Solo puedes
+  // rellenar este formulario una vez», que asusta en un formulario pensado para volver. Se asume:
+  // editar SIGUE funcionando (setAllowResponseEdits) y la descripción y el mensaje final lo dicen
+  // con todas las letras. Un mensaje confuso se explica en clase; treinta reclutas duplicados, no.
+  //
+  // Y no se pierde nada al guardar una sola respuesta: la marca temporal del formulario NO la usa
+  // nadie. Cada evento se guarda en EVENTOS con su propia fecha (ver registrarEventos_).
+  fb.setCollectEmail(true).setLimitOneResponsePerUser(true).setAllowResponseEdits(true).setShowLinkToRespondAgain(false)
+    .setConfirmationMessage("Registrado. Tu Bitácora crece. Cuando ganes otra insignia vuelve a ESTE MISMO ENLACE " +
+      "y edita tu respuesta: no empieces de cero, que se conserva todo. Tablero: " + WEB + "registro.html?per=" + id);
   fb.addSectionHeaderItem().setTitle("Quién soy").setHelpText("Solo la primera vez.");
   fb.addTextItem().setTitle("Alias de recluta (público)").setHelpText("Lo que se verá en el tablero. Solo la primera vez: si ya te alistaste, déjalo en blanco.").setRequired(false);
   fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado. Solo la primera vez.").setRequired(false);
   // avatar: SOLO personajes que evolucionan (la galería clásica ya no existe, y poner tu propia
   // imagen es una RECOMPENSA de pago: se pide en el formulario de canje, no aquí)
-  try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle(TIT_LAMINA).setHelpText("Recluta → Cadete → Oficial → Comandante → Leyenda: el tablero cambia la imagen solo al subir de nivel. Los personajes 5-7 son EXCLUSIVOS: se desbloquean con créditos durante el curso.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
+  try { fb.addImageItem().setImage(UrlFetchApp.fetch(WEB + "assets/img/avatares/lamina_personajes.jpg").getBlob()).setTitle(TIT_LAMINA).setHelpText("Los siete están disponibles desde el primer día: elige con calma, porque el personaje te acompaña TODO el viaje. Lo que cambia es su aspecto — Recluta → Cadete → Oficial → Comandante → Leyenda—, que se desbloquea al subir de nivel.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
   fb.addListItem().setTitle("Elige tu avatar").setHelpText(ayudaAvatar_())
     .setChoiceValues(opcIniciales_()).setRequired(false);
   fb.addListItem().setTitle(TIT_DOCENTE).setHelpText(AYUDA_DOCENTE).setRequired(true)
@@ -881,6 +890,15 @@ function continuarActualizarFormularios() {
 // el selector que salta directo a la sección del tema (cada sección envía al terminar).
 // Es idempotente: si ya está reestructurada, no toca nada.
 function reestructurarBitacora_(fb, o) {
+  // 🔴 27-ago · Lo primero: una respuesta por persona, editable, y sin el enlace de «enviar otra
+  // respuesta». Los grupos ya creados no se rehacen, así que si esto no estuviera aquí el arreglo
+  // solo valdría para los PER nuevos — y los que están en marcha seguirían duplicando reclutas.
+  try {
+    fb.setLimitOneResponsePerUser(true).setAllowResponseEdits(true).setShowLinkToRespondAgain(false);
+    if (String(fb.getConfirmationMessage ? fb.getConfirmationMessage() : "").indexOf("MISMO ENLACE") < 0)
+      fb.setConfirmationMessage("Registrado. Tu Bitácora crece. Cuando ganes otra insignia vuelve a ESTE MISMO ENLACE " +
+        "y edita tu respuesta: no empieces de cero, que se conserva todo. Tablero: " + WEB + "registro.html?per=" + o.id);
+  } catch (e) { Logger.log("reestructurarBitacora_ (una respuesta): " + e); }
   var items = fb.getItems();
   // 0) v3.11 · «¿Quién imparte tu clase?»: es lo que ata cada alumno a su docente
   var itProf = items.filter(function(i){ return i.getTitle() === TIT_DOCENTE; })[0];
@@ -1882,8 +1900,38 @@ function marcados_(o) { // casillas marcadas en una fila de Bitácora -> [etique
   var out = []; Object.keys(o).forEach(function(c){ if (c.indexOf("Lo que he completado") >= 0 || c === "Batalla final") String(o[c]||"").split(", ").forEach(function(x){ if (x.trim()) out.push(x.trim()); }); });
   return out;
 }
+// v3.32 · EL DOBLE CHECK DEL CORREO, QUE AHORA COMPRUEBA ALGO
+//
+// El formulario pide el correo a mano AUNQUE Google ya identifique la cuenta: es a propósito, en
+// clase se les dice que escriban el mismo. Pero hasta hoy nadie comparaba los dos, así que el
+// "doble check" no comprobaba nada: si el alumno escribía otro correo, el sistema usaba el de
+// Google (el fiable) y el alumno se quedaba convencido de haber puesto el suyo.
+//
+// Ahora, si no coinciden: se le avisa a ÉL —que es quien puede arreglarlo— y queda traza en
+// AJUSTES para el parte de salud. El sistema sigue usando el de la cuenta: ese no se puede falsear.
+function comprobarCorreoDoble_(o, r, cuenta) {
+  var escrito = "";
+  Object.keys(r).forEach(function(col){
+    // la pregunta se llama «Correo» a secas; la de Google es «Dirección de correo electrónico»
+    if (col.toLowerCase().trim() === "correo" && String(r[col] || "").trim()) escrito = String(r[col]).toLowerCase().trim();
+  });
+  if (!escrito || escrito === cuenta) return false;
+  try {
+    hoja_(H.AJ).appendRow([new Date(), o.id, cuenta, "AVISO", "correo",
+      "escribio " + escrito + " y su cuenta es " + cuenta, "sistema"]);
+  } catch (e) {}
+  enviarCorreo_(cuenta, "STARGATE · revisa el correo que has escrito",
+    "En la Bitacora de mando has escrito el correo:\n\n    " + escrito + "\n\n" +
+    "...pero has entrado con la cuenta de Google:\n\n    " + cuenta + "\n\n" +
+    "Tu registro esta guardado y NO has perdido nada: el sistema usa siempre el de tu cuenta, que es " +
+    "el que no se puede confundir. Pero conviene que los dos digan lo mismo, asi que cuando puedas " +
+    "edita tu respuesta y corrige el correo escrito.\n\n" +
+    "Tu nave: " + WEB + "recluta.html?per=" + o.id + "\n", o.id, cuenta);
+  return true;
+}
 function registrarEventos_(o, sh, fila) {
   var r = leerFila_(sh, fila); var email = String(r["Dirección de correo electrónico"] || r["Email Address"] || "").toLowerCase().trim(); if (!email) return;
+  comprobarCorreoDoble_(o, r, email);
   congelarAvatarBase_(o, email, r);
   var alias = r["Alias de recluta (público)"] || ""; var retos = retosDe_(o.tipo); var porEt = {}; retos.forEach(function(x){ porEt[x[1]] = x; });
   var ev = hoja_(H.EV); var previos = {}, mios = [];
