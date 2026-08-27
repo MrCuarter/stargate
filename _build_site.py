@@ -1080,7 +1080,7 @@ window.SG.pers = function(cb){
 })();
 """
 
-TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding del profesorado)
+TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _build_site.py: editar TOUR_JS, no este fichero)
 // Pregunta el rol al empezar: profe referente -> pasos extra (hoja maestra, PIN, panel de control).
 (function(){
   var KEYR='sgTourRol';
@@ -1104,8 +1104,21 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding del prof
    {p:'geniallys.html',sel:'#lista',pose:'brazos',t:'Referente: el panel de control Genially',x:'El <b>panel de control</b> es el Genially con los planetas que enlaza a las presentaciones. Todos los PER heredan el <b>estándar</b> (menú STARGATE → Guardar panel de control estándar). ¿Un profe quiere el suyo? Que duplique el Genially y pegue sus enlaces en <b>Panel de profes → Ajustes del PER</b>.'}
   ];
   var FINAL={p:'index.html',sel:'#hero-cta',pose:'pulgar',t:'Listo para el salto',x:'Eso es todo, Capitán. La nave es tuya. Y recuerda: <b>una obra que no se documenta, no existe</b>. Corto y cierro.'};
-  function steps(){ return (localStorage.getItem(KEYR)==='ref' ? BASE.concat(REF) : BASE).concat([FINAL]); }
+  // v3.35 · VISITAS DE UNA SOLA PÁGINA. La de arriba recorre toda la web; una página puede declarar
+  // la suya con `window.SG_TOUR_LOCAL = {clave, pasos:[…]}` — es lo que hace la sala del docente para
+  // explicar el ORDEN de lo que tiene que hacer el alumnado. No salta de página y lleva su propia
+  // cuenta de «ya vista», para que una no borre a la otra.
+  function local(){ return window.SG_TOUR_LOCAL || null; }
+  var modo='global';
+  function steps(){
+    if(modo==='local'){ var L=local(); return (L&&L.pasos)||[]; }
+    return (localStorage.getItem(KEYR)==='ref' ? BASE.concat(REF) : BASE).concat([FINAL]); }
   var KEY='sgTourStep';
+  function clavePaso(){ return modo==='local' ? 'sgTour_'+(local().clave||'x')+'_paso' : KEY; }
+  function claveHecha(){ return modo==='local' ? 'sgTour_'+(local().clave||'x')+'_hecha' : 'sgTourDone'; }
+  // Un paso puede traer un objetivo de reserva: el enlace del que habla no siempre existe (un PER sin
+  // formularios publicados todavía), y entonces se señala el bloque que lo contiene.
+  function objetivo(s){ var t=document.querySelector(s.sel); return t || (s.sel2 ? document.querySelector(s.sel2) : null); }
   function page(){var p=location.pathname.split('/').pop(); return p||'index.html';}
   function qs(){var m=location.search.match(/[?&]tour=(\d+)/); return m?parseInt(m[1],10):null;}
   var ov=null, recien=true, vigia=null, manual=false;
@@ -1169,10 +1182,10 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding del prof
   }
   function render(i){
     var S=steps(); var s=S[i]; if(!s) return end();
-    if(s.p!==page()){localStorage.setItem(KEY,String(i)); location.href=s.p+'?tour='+i; return;}
-    localStorage.setItem(KEY,String(i));
+    if(s.p&&s.p!==page()){localStorage.setItem(KEY,String(i)); location.href=s.p+'?tour='+i; return;}
+    localStorage.setItem(clavePaso(),String(i));
     clearTarget();
-    var tg=document.querySelector(s.sel);
+    var tg=objetivo(s);
     if(tg){tg.classList.add('tour-target'); if(tg.tagName==='DETAILS') tg.open=true;}
     if(!ov){ov=document.createElement('div'); ov.className='tour'; document.body.appendChild(ov);}
     var btns = s.ask
@@ -1192,10 +1205,32 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (onboarding del prof
     ov.classList.add('open');
     enfocar(tg,recien); recien=false;   // el panel ya esta puesto: ahora se sabe cuanto tapa
   }
-  function end(){localStorage.removeItem(KEY); localStorage.setItem('sgTourDone','1'); clearTarget();
+  function end(){localStorage.removeItem(clavePaso()); localStorage.setItem(claveHecha(),'1'); clearTarget();
     if(ov){ov.classList.remove('open'); ov.innerHTML='';}
     if(qs()!==null) history.replaceState(null,'',location.pathname);}
-  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.tour-start'); if(b){e.preventDefault(); render(0);}});
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.tour-start'); if(b){e.preventDefault();
+    // El botón de la barra enseña LA VISITA DE ESTA PÁGINA si la hay y ya está pintada. Si todavía
+    // no lo está —en la sala del docente hay que pasar el PIN antes—, no habría nada que señalar,
+    // así que hace lo de siempre: la visita general de la web.
+    var L=local();
+    modo=(L&&L.pasos&&L.pasos.length&&document.querySelector(L.pasos[0].sel))?'local':'global';
+    recien=true; render(0);}});
+  // La página avisa cuando ya tiene algo que enseñar (ver clase.js). Se ofrece una sola vez.
+  var ofrecida=false;
+  window.sgTour={
+    empezarLocal:function(){ var L=local(); if(!L)return; modo='local'; recien=true; render(0); },
+    ofrecerLocal:function(){
+      var L=local(); if(!L||ofrecida||localStorage.getItem('sgTour_'+(L.clave||'x')+'_hecha')) return;
+      if(!document.querySelector(L.pasos[0].sel)) return;
+      ofrecida=true;
+      var inv=document.createElement('div'); inv.className='tour-invite';
+      inv.innerHTML='<img src="assets/img/capitan/saluda.png" alt=""><div><b>'+(L.invita||'¿Te enseño esta sala?')+'</b><br>'
+        +(L.invita2||'Sobre todo, el orden en que tu alumnado tiene que hacer las cosas.')+'</div>'
+        +'<button type="button" class="tour-aqui">Empezar</button><button type="button" class="x" aria-label="Cerrar">✕</button>';
+      document.body.appendChild(inv);
+      inv.querySelector('.x').onclick=function(){inv.remove(); localStorage.setItem('sgTour_'+(L.clave||'x')+'_hecha','1');};
+      inv.querySelector('.tour-aqui').onclick=function(){inv.remove(); window.sgTour.empezarLocal();};
+    }};
   // al saltar de pagina en pagina, el navegador restaura SU scroll y se lleva por delante el nuestro
   var q=qs(); if(q!==null){ try{ if('scrollRestoration' in history) history.scrollRestoration='manual'; }catch(e){} render(q); }
   // primera visita a la portada: invitación discreta

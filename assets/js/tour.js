@@ -1,4 +1,4 @@
-// STARGATE — visita guiada con el Capitán (onboarding del profesorado)
+// STARGATE — visita guiada con el Capitán (autogenerado por _build_site.py: editar TOUR_JS, no este fichero)
 // Pregunta el rol al empezar: profe referente -> pasos extra (hoja maestra, PIN, panel de control).
 (function(){
   var KEYR='sgTourRol';
