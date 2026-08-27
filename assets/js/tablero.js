@@ -45,6 +45,55 @@
      val:pctCol, unidad:' %', pct:true, soloConValor:true,
      vacio:'Nadie ha empezado a coleccionar todavía. Los sobres se abren desde la semana 2.'}
   ];
+  // ---------- v3.29 · LA FICHA DEL RECLUTA ----------
+  // Se abre al pulsar su fila en el ranking. Enseña lo que el recluta ha CONSEGUIDO —insignias con
+  // su nombre, cartas, héroes, bonus, su bio— y a propósito NO enseña:
+  //   · las versiones de su personaje (skins): son la sorpresa de subir de nivel, y verlas de
+  //     antemano en la ficha de otro le quita la gracia a la tuya;
+  //   · el correo ni el nombre real: ninguno de los dos sale siquiera del Apps Script.
+  function cerrarFicha(){var o=document.getElementById('ficha-recluta'); if(o) o.style.display='none';}
+  function abrirFicha(clave){
+    var p=(window.__fichas||{})[clave]; if(!p) return;
+    var d=window.__d||{};
+    var av=SG.avatarSrc(p.avatar,p.alias,p.xp,d.tipo);
+    var ins=(p.insignias||[]).map(function(k){
+      return '<span class="fr-ins"><img src="assets/img/insignias/'+k+'.png" alt=""><em>'+esc(N[k]||k)+'</em></span>';}).join('');
+    var CR=window.SG_CROMOS||[];
+    var mios=Object.keys(p.cromos||{});
+    var cro=mios.map(function(k){var c=CR.filter(function(x){return x[0]===k;})[0];
+      var n=(p.cromos||{})[k]||1;
+      return '<span class="fr-cro"><img src="assets/img/tarjetas/'+k+'_carta.png'+(window.SG_CARDV||'')+'" alt="">'
+        +'<em>'+esc(c?c[1]:k)+(n>1?' ×'+n:'')+'</em></span>';}).join('');
+    var HE=window.SG_HEROES||[];
+    var her=(p.heroes||[]).map(function(k){var h=HE.filter(function(x){return x[0]===k;})[0];
+      return '<span class="fr-cro"><img src="assets/img/heroes/'+k+'.jpg" alt=""><em>'+esc(h?h[1]:k)+'</em></span>';}).join('');
+    var col=p.coleccion||{};
+    var o=document.getElementById('ficha-recluta');
+    if(!o){o=document.createElement('div');o.id='ficha-recluta';o.className='lupa';document.body.appendChild(o);}
+    o.innerHTML='<div class="lupa-fondo"></div><div class="fr-caja" role="dialog" aria-label="Ficha de '+esc(p.alias)+'">'
+      +'<button class="lupa-x" aria-label="Cerrar">×</button>'
+      +'<div class="fr-cab"><img class="fr-av'+(p.marco==='oro'?' marco-oro':'')+'" src="'+esc(av.src)+'" alt="">'
+        +'<div><div class="eyebrow amber">'+esc(av.rango)+' · puesto '+p._pos+'</div>'
+        +'<h3>'+(p.corona?'👑 ':'')+esc(p.alias)+'</h3>'
+        +(p.titulo?'<div class="titulo-recluta">«'+esc(p.titulo)+'»</div>':'')
+        +'<div class="small muted">Nivel '+(SG.nivel?SG.nivel(p.xp,d.tipo):1)+' · '+p.xp+' xp · planeta '+esc(p.planeta)
+        +(p.racha>=3?' · 🔥 '+p.racha+' semanas seguidas':'')+'</div></div></div>'
+      +(p.bio?'<p class="fr-bio">«'+esc(p.bio)+'»</p>':'')
+      +'<div class="fr-kpis">'
+        +'<div><b>'+p.n+'</b><span>de 24 insignias</span></div>'
+        +'<div><b>'+(col.cromos?col.cromos.tengo:0)+'</b><span>de '+(col.cromos?col.cromos.total:20)+' cartas</span></div>'
+        +'<div><b>'+(col.heroes?col.heroes.tengo:0)+'</b><span>de '+(col.heroes?col.heroes.total:30)+' héroes</span></div>'
+        +'<div><b>'+(p.coleccion?p.coleccion.pct:0)+'%</b><span>del juego</span></div></div>'
+      +(ins?'<h4>Insignias</h4><div class="fr-lista">'+ins+'</div>':'')
+      +(cro?'<h4>Cartas del álbum</h4><div class="fr-lista">'+cro+'</div>':'')
+      +(her?'<h4>Héroes de la Rebelión</h4><div class="fr-lista">'+her+'</div>':'')
+      +'</div>';
+    o.style.display='flex';
+    o.querySelector('.lupa-fondo').onclick=cerrarFicha;
+    o.querySelector('.lupa-x').onclick=cerrarFicha;
+  }
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') cerrarFicha(); });
+
   function modoDe(k){for(var i=0;i<MODOS.length;i++) if(MODOS[i].k===k) return MODOS[i]; return MODOS[0];}
   var modo=modoDe(q.get('ranking')||'xp');
 
@@ -79,8 +128,10 @@
           +'<div class="pts">'+cifra(p,modo)+'</div><div class="h"></div></div>';}).join('')+'</div>':'';
       var th=function(c){return modo.col===c?' class="on"':'';};
       var td=function(c,extra){return ' class="'+(extra||'')+(modo.col===c?' on':'')+'"';};
+      window.__d=d; window.__fichas={};   // para abrirla al pulsar, sin volver a pedir nada
       var filas=r.map(function(p){
-        return '<tr data-alias="'+esc(p.alias.toLowerCase())+'"><td><b>'+p._pos+'</b></td>'
+        window.__fichas[p.alias.toLowerCase()]=p;
+        return '<tr class="clicable" data-ficha="'+esc(p.alias.toLowerCase())+'" data-alias="'+esc(p.alias.toLowerCase())+'" tabindex="0" title="Ver la ficha de '+esc(p.alias)+'"><td><b>'+p._pos+'</b></td>'
           +'<td class="who">'+SG.avatarImg(p.avatar,p.alias,p.marco==='oro'?'marco-oro':'')+'<span><b>'+(p.corona?'👑 ':'')+esc(p.alias)+'</b>'
           +(p.racha>=3?'<span class="chip-racha" title="'+p.racha+' semanas seguidas registrando algo">🔥 '+p.racha+'</span>':'')
           +(p.titulo?'<em class="titulo-recluta">«'+esc(p.titulo)+'»</em>':'')+'</span></td>'
@@ -104,6 +155,9 @@
       if(inp){inp.addEventListener('input',function(){var t=inp.value.trim().toLowerCase();
         Array.prototype.forEach.call(document.querySelectorAll('#rankBody tr'),function(tr){
           tr.style.display=(!t||tr.getAttribute('data-alias').indexOf(t)>=0)?'':'none';});});}
+      Array.prototype.forEach.call(root.querySelectorAll('tr[data-ficha]'),function(tr){
+        tr.onclick=function(){abrirFicha(tr.getAttribute('data-ficha'));};
+        tr.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();abrirFicha(tr.getAttribute('data-ficha'));}};});
       Array.prototype.forEach.call(root.querySelectorAll('.rank-tab'),function(b){
         b.onclick=function(){
           modo=modoDe(b.getAttribute('data-modo'));

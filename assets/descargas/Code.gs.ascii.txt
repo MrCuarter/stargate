@@ -2252,6 +2252,10 @@ function tablero_(perId, conPrivados) {
                 canjeados: canjes[m] ? canjes[m].veces : {},
                 profe:a.profe || "", planeta: tema ? TEMAS[tema][0] : "\u2014", tema:tema, insignias:Object.keys(ins), n:Object.keys(ins).length,
                 titulo:a._titulo || "", marco:a._marco || "", fondo:a._fondo || "", cromos:a._cromos || {}, xp7:xp7,
+                // v3.29 - la BIO viaja al tablero: la escribe el propio recluta para su personaje y
+                // es lo que da vida a su ficha cuando alguien pulsa su nombre en el ranking.
+                //  El correo y el nombre real NO viajan, y asi se queda: se comprueba en la bateria.
+                bio:a.bio || "",
                 // v3.26 - la ultima vez que registro algo POR SU CUENTA (los retos que le otorga el
                 // profesorado no cuentan: la senal es si sigue jugando, no si alguien juega por el)
                 ultima: a.eventos.length ? new Date(Math.max.apply(null, a.eventos.map(function(e){ return new Date(e.fecha).getTime(); }))) : "" };

@@ -599,3 +599,37 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .pase-fila input{width:8ch;font-family:'Unbounded',system-ui,sans-serif;font-size:1.5rem;font-weight:800;
   letter-spacing:.22em;text-align:center;text-transform:uppercase;padding:6px 10px;border-radius:10px;
   border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.35);color:#e2eaf1}
+
+/* --- v3.29 · la ficha del recluta (tablero) y la valoracion en grande (tickets) --- */
+tr.clicable,.qcard.clicable{cursor:zoom-in}
+tr.clicable:hover td{background:rgba(55,224,236,.07)}
+.qcard.clicable:hover{border-color:rgba(55,224,236,.5)}
+
+.fr-caja,.zq-caja{position:relative;z-index:1;max-width:760px;width:min(92vw,760px);max-height:88vh;overflow:auto;
+  background:#0b1018;border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:22px 24px}
+.fr-cab{display:flex;gap:16px;align-items:center;margin-bottom:10px}
+.fr-av{width:104px;height:104px;border-radius:14px;object-fit:cover;background:#050810}
+.fr-cab h3{margin:.1em 0}
+.fr-bio{font-style:italic;color:#c9d6e2;border-left:3px solid rgba(245,176,67,.6);padding-left:12px;margin:14px 0}
+.fr-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.fr-kpis div{background:rgba(255,255,255,.05);border-radius:12px;padding:10px;text-align:center}
+.fr-kpis b{display:block;font-size:1.6rem;line-height:1.1;color:#37e0ec}
+.fr-kpis span{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:#8fa3b4}
+.fr-lista{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.fr-ins{display:flex;flex-direction:column;align-items:center;width:74px;font-size:.66rem;text-align:center;color:#b9c8d6}
+.fr-ins img{width:46px;height:46px;object-fit:contain}
+.fr-cro{display:flex;flex-direction:column;align-items:center;width:84px;font-size:.66rem;text-align:center;color:#b9c8d6}
+.fr-cro img{width:72px;border-radius:8px;object-fit:cover;aspect-ratio:1000/1680}
+
+.zq-preg{margin:.2em 0 .6em;font-size:1.5rem}
+.zq-media{display:flex;align-items:baseline;gap:12px;margin-bottom:18px}
+.zq-media b{font-family:'Unbounded',system-ui,sans-serif;font-size:3.4rem;color:#37e0ec;line-height:1}
+.zq-media span{color:#8fa3b4;font-size:.9rem}
+.zq-barras{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;align-items:end}
+.zb{text-align:center}
+.zb-col{height:180px;display:flex;align-items:flex-end;background:rgba(255,255,255,.04);border-radius:10px;overflow:hidden}
+.zb-fill{width:100%;background:linear-gradient(180deg,#37e0ec,rgba(55,224,236,.35));border-radius:10px 10px 0 0;min-height:3px}
+.zb-n{font-family:'Unbounded',system-ui,sans-serif;font-weight:700;margin-top:8px;color:#e2eaf1}
+.zb-d{font-size:.78rem;color:#8fa3b4}
+.zb-d span{opacity:.75}
+@media(max-width:620px){.fr-kpis{grid-template-columns:repeat(2,1fr)}.fr-cab{flex-direction:column;text-align:center}}

@@ -21,7 +21,36 @@
   function cargar(){post({accion:'tickets',per:st.per},function(d){st.tickets=d.tickets||[];render();});}
   function barra(vals){var c=[0,0,0,0,0];vals.forEach(function(v){if(v>=1&&v<=5)c[v-1]++;});var mx=Math.max.apply(null,c)||1;return '<div class="hist">'+c.map(function(n,i){return '<div class="hb" title="'+(i+1)+': '+n+'"><div class="hf" style="height:'+Math.round(100*n/mx)+'%"></div><span>'+(i+1)+'</span></div>';}).join('')+'</div>';}
   function gauge(m){var pct=Math.round((m-1)/4*100);var col=m>=4?'#37e0ec':m>=3?'#f5b043':'#ff6b6b';return '<div class="gauge" style="--p:'+pct+'%;--c:'+col+'"><b>'+m.toFixed(1)+'</b></div>';}
-  function render(){var per=st.pers.filter(function(x){return x.id===st.per;})[0]||{};var t=st.tickets;
+  var QDATOS={}, QN=0;
+  // ---------- v3.29 · LA VALORACIÓN, EN GRANDE ----------
+  // La misma pregunta con la media enorme, el reparto de respuestas leyéndose desde lejos y cuánta
+  // gente contestó. Pensado para proyectarlo: «mirad lo que habéis contestado hoy».
+  function cerrarZoom(){var o=document.getElementById('zoom-q'); if(o) o.style.display='none';}
+  function abrirZoom(id){
+    var q=QDATOS[id]; if(!q) return;
+    var total=q.a.length, c=[0,0,0,0,0];
+    q.a.forEach(function(v){ if(v>=1&&v<=5) c[v-1]++; });
+    var mx=Math.max.apply(null,c)||1;
+    var barras=c.map(function(n,i){
+      var pct=total?Math.round(100*n/total):0;
+      return '<div class="zb"><div class="zb-col"><div class="zb-fill" style="height:'+Math.round(100*n/mx)+'%"></div></div>'
+        +'<div class="zb-n">'+(i+1)+'</div>'
+        +'<div class="zb-d">'+n+' <span>('+pct+'%)</span></div></div>';}).join('');
+    var o=document.getElementById('zoom-q');
+    if(!o){o=document.createElement('div');o.id='zoom-q';o.className='lupa';document.body.appendChild(o);}
+    o.innerHTML='<div class="lupa-fondo"></div><div class="zq-caja" role="dialog">'
+      +'<button class="lupa-x" aria-label="Cerrar">×</button>'
+      +'<div class="eyebrow amber">'+esc(q.sec||'')+'</div>'
+      +'<h3 class="zq-preg">'+esc(q.c)+'</h3>'
+      +'<div class="zq-media"><b>'+q.m.toFixed(1)+'</b><span>media sobre 5 · '+total+' respuestas</span></div>'
+      +'<div class="zq-barras">'+barras+'</div></div>';
+    o.style.display='flex';
+    o.querySelector('.lupa-fondo').onclick=cerrarZoom;
+    o.querySelector('.lupa-x').onclick=cerrarZoom;
+  }
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') cerrarZoom(); });
+
+  function render(){QDATOS={};QN=0;var per=st.pers.filter(function(x){return x.id===st.per;})[0]||{};var t=st.tickets;
     var profes={};t.forEach(function(x){var p=String(campo(x.r,KPROF)||'');if(p)profes[p]=(profes[p]||0)+1;});
     var tf=st.prof?t.filter(function(x){return campo(x.r,KPROF)===st.prof;}):t;
     var sel='<select id="selPer">'+st.pers.map(function(p){return '<option value="'+esc(p.id)+'"'+(p.id===st.per?' selected':'')+'>'+esc(p.nombre)+'</option>';}).join('')+'</select>'
@@ -36,11 +65,19 @@
     var orden=Object.keys(por).sort(function(a,b){function w(s){if(/^Presentaci/.test(s))return 0;var m=s.match(/^Tema (\d)/);if(m)return 10+Number(m[1]);var a2=s.match(/^Actividad (\d)/);if(a2)return 5+Number(a2[1])*4;return 90;}return w(a)-w(b);});
     var html=orden.map(function(k){var l=por[k];var num={},txt=[];
       l.forEach(function(x){Object.keys(x.r).forEach(function(c){if(c.indexOf(KSEL)>=0||c.indexOf(KPROF)>=0)return;if(PANO&&c.indexOf(KESC)===0)return;var v=x.r[c];if(/^[1-5]$/.test(String(v))){(num[c]=num[c]||[]).push(Number(v));}else if(String(v).trim()){txt.push({p:c,v:String(v),x:x});}});});
-      var cards=Object.keys(num).map(function(c){var a=num[c];var m=a.reduce(function(p,q2){return p+q2;},0)/a.length;return '<div class="qcard">'+gauge(m)+'<div class="qtxt"><b>'+esc(c)+'</b><span class="small muted">'+a.length+' respuestas</span>'+barra(a)+'</div></div>';}).join('');
+      var cards=Object.keys(num).map(function(c){var a=num[c];var m=a.reduce(function(p,q2){return p+q2;},0)/a.length;
+        // v3.29 · pulsable: en el panel las tarjetas son pequeñas y el histograma no se lee. Los datos
+        // se guardan aquí y no se vuelven a pedir: la ampliación es instantánea.
+        var id='q'+(QN++); QDATOS[id]={c:c,a:a,m:m,sec:k};
+        return '<div class="qcard clicable" data-zoom="'+id+'" tabindex="0" title="Ver en grande">'+gauge(m)+'<div class="qtxt"><b>'+esc(c)+'</b><span class="small muted">'+a.length+' respuestas</span>'+barra(a)+'</div></div>';}).join('');
       var dudas=txt.map(function(d){var res=!!d.x.resuelto;return '<div class="duda'+(res?' ok':'')+'"><div class="dq small muted">'+esc(d.p)+' · '+esc(f(d.x.fecha))+(campo(d.x.r,KPROF)?' · '+esc(campo(d.x.r,KPROF)):'')+'</div><div class="dv">'+esc(d.v)+'</div><button class="btn small'+(res?'':' primary')+'" data-f="'+d.x.fila+'" data-v="'+(res?'0':'1')+'">'+(res?'✓ Resuelta ('+esc(d.x.resuelto)+') · deshacer':'Marcar resuelta')+'</button></div>';}).join('');
       return '<details class="semana" open><summary><span class="num">'+l.length+'</span><span class="ttl"><b>'+esc(k)+'</b><em>'+Object.keys(num).length+' valoraciones · '+txt.length+' comentarios</em></span></summary><div class="sem-body">'+(cards?'<div class="qgrid">'+cards+'</div>':'')+(dudas?'<h4>💬 Dudas y comentarios</h4><div class="dudas">'+dudas+'</div>':'')+'</div></details>';}).join('');
     root.innerHTML=head+html;wire();}
-  function wire(){var sp=document.getElementById('selPer');if(sp)sp.onchange=function(){st.per=this.value;st.prof='';cargar();};var sf=document.getElementById('selProf');if(sf)sf.onchange=function(){st.prof=this.value;render();};
+  function wire(){
+    Array.prototype.forEach.call(root.querySelectorAll('[data-zoom]'),function(el){
+      el.onclick=function(){abrirZoom(el.getAttribute('data-zoom'));};
+      el.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();abrirZoom(el.getAttribute('data-zoom'));}};});
+var sp=document.getElementById('selPer');if(sp)sp.onchange=function(){st.per=this.value;st.prof='';cargar();};var sf=document.getElementById('selProf');if(sf)sf.onchange=function(){st.prof=this.value;render();};
     Array.prototype.forEach.call(root.querySelectorAll('button[data-f]'),function(b){b.onclick=function(){var profe=localStorage.getItem('sgProfe')||prompt('Tu nombre (para el registro):')||'';localStorage.setItem('sgProfe',profe);post({accion:'ticket_resuelto',per:st.per,fila:parseInt(b.getAttribute('data-f'),10),valor:b.getAttribute('data-v')==='1',profe:profe},function(){cargar();});};});}
   function demo(b){if(b.accion==='pers')return {pers:[{id:'demo',nombre:'PER de demostración',tipo:'REGULAR',estado:'Abierto'}]};if(b.accion==='ticket_resuelto'){var t=st.tickets.filter(function(x){return x.fila===b.fila;})[0];if(t)t.resuelto=b.valor?'Sí · demo':'';return {ok:true};}
     var P=['Ana Pérez','Luis Gómez'],S='Selecciona el tema o actividad',PR='El profesor o profesora que imparte tu clase...',out=[],i;
