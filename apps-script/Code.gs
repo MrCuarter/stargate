@@ -94,6 +94,7 @@ function menuStargate_() {
       .addItem("Organizar los formularios en carpetas por PER", "organizarCarpetasPER")
       .addItem("Limpiar restos de PER borrados (formularios y pestañas)", "limpiarRestos")
       .addItem("Actualizar las imágenes de los formularios (planetas y personajes)", "actualizarImagenesPlanetas")
+      .addItem("Bonus de la tripulación (umbral y créditos)", "ajustarBonusTripulacion")
       .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
     .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
@@ -1659,6 +1660,7 @@ function fotoNocturna() {
   try { consolidarDatos(); } catch (e) { Logger.log("consolidarDatos: " + e); }
   try { actualizarConsola(); } catch (e) { Logger.log("actualizarConsola: " + e); }
   try { dossier_(); } catch (e) { Logger.log("dossier_: " + e); }
+  try { repartirBonusTripulacion_(); } catch (e) { Logger.log("bonus tripulacion: " + e); }
   try { avisoCierreCanje(); } catch (e) { Logger.log("avisoCierreCanje: " + e); }
   // el ultimo, y a proposito: si algo de lo de arriba deja el sistema tocado, el vigia lo ve HOY
   try { vigiaDiario(); } catch (e) { Logger.log("vigiaDiario: " + e); }
@@ -2245,6 +2247,108 @@ function parseAvatar_(s) {
 }
 function idx_(cab, frag) { frag = frag.toLowerCase(); for (var i = 0; i < cab.length; i++) if (cab[i].toLowerCase().indexOf(frag) >= 0) return i; return -1; }
 
+// ================= EL PARTE DE LA TRIPULACIÓN (bonus de grupo por el ticket) =================
+// Si en un tema responde al ticket al menos una fracción del grupo, TODA la tripulación cobra. No se
+// puede premiar a quien respondió porque el ticket es anónimo, y romper ese anonimato para poder
+// pagar costaría mucho más de lo que vale el premio. Así que se cuentan cabezas.
+// Se reparte de MADRUGADA, no al vuelo: el ticket no sabe quién lo envió, así que no hay «envío» al
+// que colgar la comprobación. Y de paso el premio aparece al día siguiente con su cartel en la Nave.
+
+var PROP_TRIPU = "BONUS_TRIPULACION";
+
+// Los valores vigentes: los de Datos.gs, salvo que el profesorado los haya cambiado desde el menú.
+// Para comparar nombres escritos por personas: sin acentos, sin mayúsculas y sin espacios de más.
+function normalizar_(txt) {
+  return String(txt || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function bonusTripulacion_() {
+  var d = { fraccion: BONUS_TRIPULACION.fraccion, creditos: BONUS_TRIPULACION.creditos };
+  try {
+    var v = String(PropertiesService.getScriptProperties().getProperty(PROP_TRIPU) || "");
+    if (v) {
+      var p = v.split("|"), f = parseFloat(p[0]), c = parseInt(p[1], 10);
+      if (f > 0 && f <= 1) d.fraccion = f;
+      if (c >= 0 && !isNaN(c)) d.creditos = c;
+    }
+  } catch (e) {}
+  return d;
+}
+
+// Una clave corta y ESTABLE por sección del ticket. El texto largo («Tema 3: Sendara (…)») cambia en
+// cuanto se retoca el nombre de un tema, y entonces el mismo tema contaría como dos.
+function claveSeccion_(txt) {
+  txt = String(txt || "").trim();
+  var m = txt.match(/^Tema\s+(\d)/i);          if (m) return "t" + m[1];
+  m = txt.match(/^Actividad\s+(\d)/i);         if (m) return "a" + m[1];
+  if (/^Presentaci/i.test(txt)) return "pres";
+  if (/^Repaso/i.test(txt)) return "fin";
+  return "";
+}
+
+// Cuántos partes ha recibido cada sección de un PER. Devuelve { t1: 7, t2: 3, ... }.
+function partesPorSeccion_(o) {
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabT);
+  if (!sh || sh.getLastRow() < 2) return {};
+  var v = sh.getDataRange().getValues(), cab = v[0].map(String), col = -1;
+  for (var i = 0; i < cab.length; i++) if (cab[i].indexOf("Selecciona el tema") === 0) { col = i; break; }
+  if (col < 0) return {};
+  var out = {};
+  v.slice(1).forEach(function(f){ var k = claveSeccion_(f[col]); if (k) out[k] = (out[k] || 0) + 1; });
+  return out;
+}
+
+// Reparte lo pendiente. Idempotente: cada recluta cobra una vez por sección, mirando lo que ya
+// tiene en AJUSTES. Devuelve cuántas filas ha escrito.
+function otorgarBonusTripulacion_(o) {
+  var cfg = bonusTripulacion_();
+  if (!cfg.creditos) return 0;
+  var t = tablero_(o.id, true), reclutas = (t.reclutas || []);
+  if (!reclutas.length) return 0;
+  var partes = partesPorSeccion_(o), umbral = Math.max(1, Math.ceil(cfg.fraccion * reclutas.length));
+  var yaTiene = {};
+  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
+    if (v[1] === o.id && v[4] === "bonus" && String(v[5] || "").indexOf("tripulacion:") === 0)
+      yaTiene[String(v[2]).toLowerCase() + "|" + String(v[5])] = true; });
+  var filas = [];
+  Object.keys(partes).forEach(function(k){
+    if (partes[k] < umbral) return;
+    var clave = "tripulacion:" + k;
+    reclutas.forEach(function(r){
+      if (yaTiene[String(r.email).toLowerCase() + "|" + clave]) return;
+      filas.push([new Date(), o.id, r.email, "EXTRA", "bonus", clave, "sistema"]);
+    });
+  });
+  if (filas.length) hoja_(H.AJ).getRange(hoja_(H.AJ).getLastRow() + 1, 1, filas.length, 7).setValues(filas);
+  return filas.length;
+}
+
+function repartirBonusTripulacion_() {
+  var n = 0;
+  hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
+    if (!v[0] || v[21]) return;   // los archivados no reparten nada
+    try { n += otorgarBonusTripulacion_(perObj_(v)); } catch (e) { Logger.log("tripulacion/" + v[0] + ": " + e); }
+  });
+  return n;
+}
+
+function ajustarBonusTripulacion() {
+  var ui = SpreadsheetApp.getUi(), cfg = bonusTripulacion_();
+  var r = ui.prompt("Bonus de la tripulación",
+    "Si en un tema responde al ticket una parte del grupo, TODA la tripulación cobra.\n\n" +
+    "Ahora mismo: " + Math.round(cfg.fraccion * 100) + " % del grupo → " + cfg.creditos + " créditos para cada recluta.\n\n" +
+    "Escribe el nuevo valor así:  porcentaje, créditos\n" +
+    "Por ejemplo «25, 15» (uno de cada cuatro, 15 créditos).", ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var p = String(r.getResponseText() || "").split(","), f = parseFloat(p[0]), c = parseInt(p[1], 10);
+  if (!(f > 0 && f <= 100) || isNaN(c) || c < 0)
+    return ui.alert("No he entendido «" + r.getResponseText() + "». Se escribe: porcentaje, créditos. Por ejemplo: 25, 15");
+  PropertiesService.getScriptProperties().setProperty(PROP_TRIPU, (f / 100) + "|" + c);
+  ui.alert("Hecho: " + Math.round(f) + " % del grupo → " + c + " créditos.\n\n" +
+           "Se aplica esta madrugada. Lo ya repartido no se toca: nadie pierde lo que cobró.");
+}
+
 // ================= INVESTIGACIÓN: seudónimos, consentimiento y sello del catálogo =================
 // Nada de esto cambia el juego ni lo que ve el alumnado. Existe para que los datos SIRVAN y para que
 // puedan compartirse sin llevarse a nadie por delante. Contexto: Project_CCD/INVESTIGACION_TESIS.md.
@@ -2698,6 +2802,46 @@ function salud_() {
     if (!falta.length) return punto("consola", "ok", "Consola y dossier", "las dos creadas");
     punto("consola", "aviso", "Consola y dossier", "falta: " + falta.join(" y "),
       "Menú → «Abrir la Consola del profesorado» y «Dossier del profesorado». También se rehacen de madrugada.", falta.length);
+  });
+
+  // 12) DOS CUENTAS, UNA PERSONA · el recluta se identifica por el correo que trae su cuenta de
+  // Google, así que no hay erratas al teclearlo — pero quien entra un día con la cuenta del máster y
+  // otro con la personal sale DOS VECES en el ranking, cada una con sus xp y ninguna completa.
+  // No se puede impedir; sí se puede ver antes de que el alumno escriba preguntando qué le pasa.
+  seguro("dobles", "Dos cuentas, una persona", function(){
+    var sospechas = [];
+    pers.forEach(function(v){
+      var o = perObj_(v), vistos = {};
+      (tablero_(o.id, true).reclutas || []).forEach(function(r){
+        var k = normalizar_(r.nombre); if (!k) return;
+        if (vistos[k] && vistos[k] !== r.email) sospechas.push(o.nombre + ": «" + r.nombre + "» con " + vistos[k] + " y " + r.email);
+        else vistos[k] = r.email;
+      });
+    });
+    if (!sospechas.length) return punto("dobles", "ok", "Dos cuentas, una persona", "nadie aparece dos veces");
+    punto("dobles", "aviso", "Dos cuentas, una persona", sospechas.slice(0, 5).join(" · ") +
+      (sospechas.length > 5 ? " (y " + (sospechas.length - 5) + " más)" : ""),
+      "Pregúntale con cuál quiere quedarse y pásale los retos de la otra desde AJUSTES (acción «otorgar»). " +
+      "Y recuérdale a la clase que entre SIEMPRE con la misma cuenta.", sospechas.length);
+  });
+
+  // 13) PARTES INFLADOS · el ticket es anónimo y no se puede deduplicar, así que alguien podría
+  // enviarlo muchas veces para disparar el bonus de la tripulación. No se puede impedir; lo que sí
+  // se puede es que no pase desapercibido: más partes que reclutas en un tema es raro de por sí.
+  seguro("partes", "Partes del ticket", function(){
+    var raros = [];
+    pers.forEach(function(v){
+      var o = perObj_(v), n = (tablero_(o.id, true).reclutas || []).length;
+      if (!n) return;
+      var partes = partesPorSeccion_(o);
+      Object.keys(partes).forEach(function(k){
+        if (partes[k] > n) raros.push(o.nombre + " · " + k + ": " + partes[k] + " partes para " + n + " reclutas");
+      });
+    });
+    if (!raros.length) return punto("partes", "ok", "Partes del ticket", "ningún tema recibe más partes que reclutas hay");
+    punto("partes", "aviso", "Partes del ticket", raros.slice(0, 5).join(" · "),
+      "Puede ser normal (alguien lo mandó dos veces sin querer) o alguien inflando el bonus de la " +
+      "tripulación. Mira las respuestas de ese tema antes de darlo por bueno.", raros.length);
   });
 
   var malos = puntos.filter(function(p){ return p.nivel === "mal"; }).length;
