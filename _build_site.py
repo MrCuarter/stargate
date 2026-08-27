@@ -1507,6 +1507,8 @@ _gs = _sustituir(_gs, "var AYUDA_RETOS = ", ";\n// AYUDA-FIN",
                  json.dumps(_ayuda, ensure_ascii=False, indent=1, sort_keys=True))
 open(_gs_path, "w", encoding="utf-8").write(_gs)
 open(os.path.join(HERE, "assets", "descargas", "Datos.gs.txt"), "w", encoding="utf-8").write(_gs)
+open(os.path.join(HERE, "assets", "descargas", "Bonus.gs.txt"), "w", encoding="utf-8").write(
+    open(os.path.join(HERE, "apps-script", "Bonus.gs"), encoding="utf-8").read())
 open(os.path.join(HERE, "assets", "descargas", "Dialog.html.txt"), "w", encoding="utf-8").write(
     open(os.path.join(HERE, "apps-script", "Dialog.html"), encoding="utf-8").read())
 # Copias 100% ASCII para pegar sin riesgo de que se rompan los acentos (ver _ascii_gs.py)

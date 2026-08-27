@@ -18,6 +18,9 @@ const RUTA_GS = process.env.STARGATE_GS
 const RUTA_DATOS = process.env.STARGATE_DATOS
   ? path.resolve(process.env.STARGATE_DATOS)
   : path.join(__dirname, "..", "apps-script", "Datos.gs");
+const RUTA_BONUS = process.env.STARGATE_BONUS
+  ? path.resolve(process.env.STARGATE_BONUS)
+  : path.join(__dirname, "..", "apps-script", "Bonus.gs");
 
 // ------------------------------------------------------------------ comprobaciones
 let ok = 0, mal = 0;
@@ -91,6 +94,7 @@ function nuevoMundo() {
   // despues —el orden mas desfavorable— para que cualquier dependencia de arranque salte aqui y no
   // en produccion.
   vm.runInContext(fs.readFileSync(RUTA_GS, "utf8"), contexto, { filename: "Code.gs" });
+  vm.runInContext(fs.readFileSync(RUTA_BONUS, "utf8"), contexto, { filename: "Bonus.gs" });
   vm.runInContext(fs.readFileSync(RUTA_DATOS, "utf8"), contexto, { filename: "Datos.gs" });
 
   contexto._maestra = maestra;
