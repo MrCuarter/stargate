@@ -63,5 +63,8 @@ c(!/\.scrollIntoView\(/.test(T), "🔴 la visita ya no llama a scrollIntoView, q
 c(/function enfocar\(/.test(T), "calcula la posición a mano");
 c(/scrollRestoration/.test(T), "y le quita el volante al navegador mientras dura la visita");
 c(T.indexOf("enfocar(tg,recien)") >= 0, "🔴 y enfoca DESPUÉS de pintar el panel, que es lo que tapa");
+c(/scrollBehavior='auto'/.test(T), "🔴 y desactiva el scroll suave del CSS al reajustar: si no, se pasa de largo");
+const CSS = fs.readFileSync(path.join(__dirname, "..", "assets", "css", "stargate.css"), "utf8");
+c(/html\{scroll-behavior:smooth\}/.test(CSS), "(el CSS sigue teniendo el scroll suave, que es lo que obliga a lo anterior)");
 
 E.resumen("El alta pregunta menos y el ranking se puede incrustar");

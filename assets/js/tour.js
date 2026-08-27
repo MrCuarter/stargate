@@ -54,9 +54,16 @@
     if(vigia){clearInterval(vigia); vigia=null;}
     if(!tg) return;
     manual=false;
+    // El CSS de la web pone html{scroll-behavior:smooth}, asi que hasta el ajuste mas pequeño se
+    // convertia en una animacion; y mientras dura, lo que mide el guion no cuadra con lo que se ve
+    // en pantalla, asi que el ajuste siguiente salia disparado (se iba 500 px de largo). Los
+    // reajustes cortan en seco —y devuelven el CSS a su sitio— y solo el salto de paso es suave.
     function ir(suave){var y=donde(tg), arriba=window.pageYOffset||document.documentElement.scrollTop||0;
       if(Math.abs(y-arriba)<6) return;
-      try{window.scrollTo({top:y,behavior:suave?'smooth':'auto'});}catch(e){window.scrollTo(0,y);}}
+      var raiz=document.documentElement, antes=raiz.style.scrollBehavior;
+      if(!suave) raiz.style.scrollBehavior='auto';
+      try{window.scrollTo({top:y,behavior:suave?'smooth':'auto'});}catch(e){window.scrollTo(0,y);}
+      if(!suave) raiz.style.scrollBehavior=antes;}
     ir(!instante);
     // En la web de verdad la pagina sigue moviendose MUCHO despues de que el guion arranque: las
     // fotos entran sin medidas puestas y lo empujan todo. Asi que no basta con reintentar un par de
