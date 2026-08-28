@@ -31,6 +31,11 @@ igual(G.formDelPER_(o, "C").unaRespuesta, false, "y el canje también: se canjea
 // ---------------------------------------------------------------- b) el texto explica el flujo
 // Si Google va a decir «solo puedes rellenar esto una vez», el formulario tiene que desmentirlo
 // antes de que cunda el pánico.
+// 28-ago · Lo que más despista de todo el sistema: es UN SOLO formulario para DOS cosas. Quien lo
+// abre por primera vez tiene que entender que ahí se alista, y quien vuelve, que ahí registra.
+contiene(fb.descripcion.toLowerCase(), "te alistas", "🔴 la descripción dice que aquí se ALISTA (la primera vez)");
+contiene(fb.descripcion.toLowerCase(), "registras", "🔴 y que aquí REGISTRA lo que va completando (todas las demás)");
+contiene(fb.descripcion.toLowerCase(), "mismo enlace", "y que es el mismo enlace para las dos cosas");
 contiene(fb.descripcion, "edítala", "la descripción dice que se EDITA la misma respuesta");
 contiene(fb.descripcion, "es normal",
   "🔴 y desactiva el susto: Google dirá «solo puedes rellenarlo una vez» y la descripción lo explica");
@@ -50,6 +55,27 @@ igual(G.formDelPER_(o2, "B").unaRespuesta, true, "🔴 «Actualizar formularios�
 igual(G.formDelPER_(o2, "B").otraVez, false, "y también quita el enlace de volver a empezar");
 contiene(G.formDelPER_(o2, "B").descripcion, "se EDITA",
   "🔴 y le pone la descripción que explica el aviso de Google (si no, el arreglo asusta)");
+
+// 🔴 28-ago · UN DATO, UN SITIO. La descripción y el mensaje final estaban escritos DOS veces (en
+// crearPER y en reestructurarBitacora_) y se desincronizaron a la primera: al mejorar el texto en
+// uno, el otro se quedó con el viejo — y además el guardián era «¿contiene "se EDITA"?», así que a
+// un grupo ya arreglado la mejora NO le llegaba nunca. Ahora los dos caminos salen del mismo sitio.
+const nuevoPER = G.formDelPER_(o, "B");            // el del PER recién creado, arriba
+const puestoAlDia = G.formDelPER_(o2, "B");        // el viejo, después de «Actualizar formularios»
+igual(puestoAlDia.descripcion, nuevoPER.descripcion,
+  "🔴 un grupo puesto al día acaba con la MISMA descripción que uno nuevo, letra por letra");
+igual(puestoAlDia.confirmacion, nuevoPER.confirmacion,
+  "🔴 y con el mismo mensaje final");
+
+// y el caso que se colaba: un grupo que ya tenía la descripción vieja «buena» (con «se EDITA»)
+// también recibe la mejora, no se queda anclado
+const G3 = E.nuevoMundo(); E.crearPERDemo(G3);
+const o3 = G3.perObj_(G3.perFila_("prueba-banco").v);
+G3.formDelPER_(o3, "B").setDescription(
+  "Tu registro de la misión: se rellena UNA vez y a partir de ahí se EDITA. (texto viejo)");
+G3.actualizarFormularios_();
+contiene(G3.formDelPER_(o3, "B").descripcion.toLowerCase(), "te alistas",
+  "🔴 y uno que ya tenía la descripción vieja «correcta» TAMBIÉN se pone al día");
 
 // ---------------------------------------------------------------- d) y sigue sin perderse nada
 // La razón por la que esto es seguro: el registro es append-only y la fecha la pone el script.

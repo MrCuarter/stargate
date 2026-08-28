@@ -102,7 +102,7 @@
   get(API+'?per='+encodeURIComponent(per),function(d){
     if(d.error){msg('<b>'+esc(d.error)+'</b>');return;}
     var todos=d.reclutas||[];
-    var forms='<div class="cta-row" style="justify-content:flex-start">'+(d.formBitacora?'<a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">📓 Mi Bitácora de mando (registrar insignias)</a>':'')
+    var forms='<div class="cta-row" style="justify-content:flex-start">'+(d.formBitacora?'<a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">📓 Mi Bitácora de mando (registrar lo que he hecho)</a>':'')
       +(d.formTicket?'<a class="btn" href="'+esc(d.formTicket)+'" target="_blank" rel="noopener">🎟️ Ticket de salida</a>':'')
       +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎁 Canjear créditos</a>':'')+'</div>';
 

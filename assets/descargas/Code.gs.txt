@@ -472,11 +472,10 @@ function crearPER(datos) {
   }
 
   // ---- 1 · Bitácora de mando (Google login, 1 respuesta editable) ----
+  // El texto vive en textoBitacora_/confirmacionBitacora_ (más abajo): lo usan tanto esto como
+  // reestructurarBitacora_, que es quien pone al día los grupos que ya existen.
   var fb = formDesdePlantilla_("PLANTILLA · Bitácora de mando", "STARGATE · " + nombre + " · Bitácora de mando", carpeta);
-  fb.setDescription("Tu registro de la misión: se rellena UNA vez y a partir de ahí se EDITA. Cada vez que ganes " +
-    "una insignia vuelve a este mismo enlace, edítala, marca la casilla nueva y envía; lo de antes se conserva. " +
-    "Si Google te dice que solo puedes rellenarlo una vez, es normal: entra igual y te saldrá tu respuesta para editar. " +
-    "Tu correo y tu nombre solo los ve el profesorado; en el tablero aparece tu alias. Profesorado: " + (datos.profesores || ""));
+  fb.setDescription(textoBitacora_(datos.profesores));
   // 🔴 27-ago · UNA RESPUESTA POR PERSONA, EDITABLE. Se probó lo contrario y salió mal: al terminar,
   // Google ofrecía «Modificar tu respuesta» Y «Enviar otra respuesta», y el segundo botón hace
   // rellenar el formulario DESDE CERO. Con un grupo entero eso son alias distintos, avatares
@@ -490,9 +489,9 @@ function crearPER(datos) {
   // Y no se pierde nada al guardar una sola respuesta: la marca temporal del formulario NO la usa
   // nadie. Cada evento se guarda en EVENTOS con su propia fecha (ver registrarEventos_).
   fb.setCollectEmail(true).setLimitOneResponsePerUser(true).setAllowResponseEdits(true).setShowLinkToRespondAgain(false)
-    .setConfirmationMessage("Registrado. Tu Bitácora crece. Cuando ganes otra insignia vuelve a ESTE MISMO ENLACE " +
-      "y edita tu respuesta: no empieces de cero, que se conserva todo. Tablero: " + WEB + "registro.html?per=" + id);
-  fb.addSectionHeaderItem().setTitle("Quién soy").setHelpText("Solo la primera vez.");
+    .setConfirmationMessage(confirmacionBitacora_(id));
+  fb.addSectionHeaderItem().setTitle("Quién soy")
+    .setHelpText("Esto es el ALISTAMIENTO y solo se hace una vez. Si ya te alistaste, salta a los temas y marca lo nuevo.");
   fb.addTextItem().setTitle("Alias de recluta (público)").setHelpText("Lo que se verá en el tablero. Solo la primera vez: si ya te alistaste, déjalo en blanco.").setRequired(false);
   fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado. Solo la primera vez.").setRequired(false);
   // avatar: SOLO personajes que evolucionan (la galería clásica ya no existe, y poner tu propia
@@ -891,6 +890,25 @@ function continuarActualizarFormularios() {
 // v3.8 · pone al día una Bitácora ya creada: quita la galería clásica y la URL gratis, y le añade
 // el selector que salta directo a la sección del tema (cada sección envía al terminar).
 // Es idempotente: si ya está reestructurada, no toca nada.
+// 🔴 UN DATO, UN SITIO. El texto de la Bitácora estaba escrito DOS veces —al crear el PER y al
+// poner al día los que ya existen— y se desincronizó a la primera: el 28-ago se mejoró en un sitio
+// y el otro se quedó con el viejo, así que la mejora no habría llegado a ningún grupo en marcha.
+// Ahora los dos caminos leen de aquí, y el banco comprueba que acaban con el MISMO texto.
+//
+// Lo que más despista de todo el sistema: este formulario hace DOS cosas con UN solo enlace. Quien
+// lo abre por primera vez tiene que ver que aquí se alista; quien vuelve, que aquí registra.
+function textoBitacora_(profesores) {
+  return "Aquí haces las dos cosas, y siempre con el MISMO enlace: la primera vez TE ALISTAS " +
+    "(alias, personaje y quién te da clase) y de ahí en adelante REGISTRAS lo que vas completando. " +
+    "Se rellena UNA vez y a partir de ahí se EDITA: cada vez que ganes una insignia vuelve a este mismo enlace, " +
+    "edítala, marca la casilla nueva y envía; lo de antes se conserva. " +
+    "Si Google te dice que solo puedes rellenarlo una vez, es normal: entra igual y te saldrá tu respuesta para editar. " +
+    "Tu correo y tu nombre solo los ve el profesorado; en el tablero aparece tu alias. Profesorado: " + (profesores || "");
+}
+function confirmacionBitacora_(perId) {
+  return "Registrado. Tu Bitácora crece. Cuando ganes otra insignia vuelve a ESTE MISMO ENLACE " +
+    "y edita tu respuesta: no empieces de cero, que se conserva todo. Tablero: " + WEB + "registro.html?per=" + perId;
+}
 function reestructurarBitacora_(fb, o) {
   // 🔴 27-ago · Lo primero: una respuesta por persona, editable, y sin el enlace de «enviar otra
   // respuesta». Los grupos ya creados no se rehacen, así que si esto no estuviera aquí el arreglo
@@ -901,14 +919,13 @@ function reestructurarBitacora_(fb, o) {
     // enseña «Solo puedes rellenar este formulario una vez» —mensaje suyo, no se puede quitar— y
     // en un formulario al que hay que volver cada semana eso descoloca. Si la descripción no lo
     // explica, el arreglo crea un problema distinto.
-    if (String(fb.getDescription ? fb.getDescription() : "").indexOf("se EDITA") < 0)
-      fb.setDescription("Tu registro de la misión: se rellena UNA vez y a partir de ahí se EDITA. Cada vez que ganes " +
-        "una insignia vuelve a este mismo enlace, edítala, marca la casilla nueva y envía; lo de antes se conserva. " +
-        "Si Google te dice que solo puedes rellenarlo una vez, es normal: entra igual y te saldrá tu respuesta para editar. " +
-        "Tu correo y tu nombre solo los ve el profesorado; en el tablero aparece tu alias.");
-    if (String(fb.getConfirmationMessage ? fb.getConfirmationMessage() : "").indexOf("MISMO ENLACE") < 0)
-      fb.setConfirmationMessage("Registrado. Tu Bitácora crece. Cuando ganes otra insignia vuelve a ESTE MISMO ENLACE " +
-        "y edita tu respuesta: no empieces de cero, que se conserva todo. Tablero: " + WEB + "registro.html?per=" + o.id);
+    // 🔴 28-ago · Se compara con el texto BUENO, no con un fragmento. Antes preguntaba «¿contiene
+    // "se EDITA"?», así que a un grupo ya arreglado no le llegaba ninguna mejora posterior: el
+    // texto se quedaba anclado en la primera versión que le tocó.
+    var descBuena = textoBitacora_(o.profesorado);
+    if (String(fb.getDescription ? fb.getDescription() : "") !== descBuena) fb.setDescription(descBuena);
+    var confBuena = confirmacionBitacora_(o.id);
+    if (String(fb.getConfirmationMessage ? fb.getConfirmationMessage() : "") !== confBuena) fb.setConfirmationMessage(confBuena);
   } catch (e) { Logger.log("reestructurarBitacora_ (una respuesta): " + e); }
   // La pregunta «Correo» viene de la plantilla y es un doble check a proposito (en clase se les dice
   // que escriban el mismo). Que al menos explique para que sirve y que pasa si no coincide.
@@ -1106,11 +1123,36 @@ function construirTicket_(ft, referente, profesores, perId) {
 }
 
 // ================= DOCUMENTO DE ENLACES (Google Docs) =================
+// v3.36 · Un enlace dentro de un ui.alert() NO se puede pulsar: Apps Script lo pinta como texto y
+// hay que seleccionarlo a mano. Cada vez que el menú crea o pone al día un documento se enseña con
+// este diálogo, que sí es pulsable y además deja el enlace listo para copiar. Lo usan los tres
+// sitios que devuelven un documento, para que ninguno vuelva a desviarse.
+function dialogoEnlace_(titulo, frase, url, etiqueta, pie) {
+  var u = String(url || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  var html = HtmlService.createHtmlOutput(
+      '<div style="font:14px/1.6 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:#202124">'
+    + '<p style="margin:0 0 16px">' + frase + '</p>'
+    + '<p style="margin:0 0 18px"><a href="' + u + '" target="_blank" rel="noopener" '
+    +   'style="display:inline-block;background:#1a73e8;color:#fff;text-decoration:none;'
+    +   'padding:10px 18px;border-radius:6px;font-weight:600">' + etiqueta + ' &#8599;</a></p>'
+    + '<p style="margin:0 0 6px;color:#5f6368;font-size:12px">O copia el enlace:</p>'
+    + '<input value="' + u + '" readonly onclick="this.select()" '
+    +   'style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #dadce0;'
+    +   'border-radius:5px;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:#3c4043">'
+    + (pie ? '<p style="margin:16px 0 0;color:#5f6368;font-size:12.5px">' + pie + '</p>' : '')
+    + '</div>').setWidth(470).setHeight(pie ? 275 : 220);
+  SpreadsheetApp.getUi().showModalDialog(html, titulo);
+}
 function documentoPERSeleccionado() {
   var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
   if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) { SpreadsheetApp.getUi().alert("Selecciona una fila de la pestaña PERs."); return; }
-  var url = crearDocumentoPER_(sh.getRange(fila, 1).getValue());
-  SpreadsheetApp.getUi().alert("Documento creado:\n" + url);
+  var perId = sh.getRange(fila, 1).getValue();
+  var nom = String(sh.getRange(fila, 2).getValue() || perId);
+  var url = crearDocumentoPER_(perId);
+  dialogoEnlace_("STARGATE \u00b7 Documento del grupo",
+    "Enlaces, embeds y QR de <b>" + nom.replace(/</g, "&lt;") + "</b>, al d\u00eda.",
+    url, "Abrir el documento",
+    "El enlace es <b>siempre el mismo</b>: si ya se lo pasaste a tu equipo, no hace falta repartirlo otra vez \u2014 se reescribe encima.");
 }
 function crearDocumentoPER_(perId) {
   var p = perFila_(perId); if (!p) throw new Error("PER no encontrado"); var o = perObj_(p.v);
@@ -1133,10 +1175,20 @@ function crearDocumentoPER_(perId) {
   link("Edición (para el profesorado)", o.panelEdit || stdD.editar || "(sin definir)");
   par(o.panelVer || o.panelEdit ? "Este PER usa un panel PROPIO." : "Este PER usa el panel ESTÁNDAR compartido. Si el profesorado quiere el suyo, se cambia desde el panel de profes (Ajustes del PER).");
   h("Para el Genially del alumnado", 2);
+  // v3.36 · La Bitácora va la PRIMERA, y con el nombre de lo que se HACE ahí. Estaba en tercer
+  // lugar y llamada «registro de insignias» —el resultado, no la acción—, y el profesorado no la
+  // encontraba: es el enlace que se usa cada semana, el más importante de la lista.
+  par("El orden en que lo usa el alumnado: 1) se alista en la Bitácora · 2) se ve en la Nave · " +
+      "3) vuelve a la Bitácora a marcar lo que va completando. Todo lo demás cuelga de ahí.");
+  link("📓 BITÁCORA DE MANDO — donde el alumnado se alista y registra sus retos (botón o QR)", o.formBitacora);
+  par("Es el enlace que más se usa: el MISMO para alistarse y para registrar. Se rellena UNA vez " +
+      "(alias, personaje, docente) y a partir de ahí se EDITA: cada semana entran, marcan los retos " +
+      "que han completado y envían. Entran con su cuenta de Google, así que cada uno solo ve su " +
+      "respuesta. El mismo enlace vale todo el curso.");
+  qr(o.formBitacora, "QR de la Bitácora de mando");
   link("La Nave del Recluta (el hub del alumnado: onboarding, semanas, su estado y recompensas)", WEB + "recluta.html?per=" + o.id);
   qr(WEB + "recluta.html?per=" + o.id, "QR de la Nave del Recluta");
   par("Embed de la Nave:"); code(ifr(WEB + "recluta.html?per=" + o.id + "&embed=1", 900));
-  link("Bitácora de mando (registro de insignias; botón)", o.formBitacora); qr(o.formBitacora, "QR de la Bitácora de mando");
   link("Tablero de reclutas", WEB + "registro.html?per=" + o.id); par("Embed del tablero:"); code(ifr(WEB + "registro.html?per=" + o.id + "&embed=1", 760));
   link("Ranking público (solo la clasificación)", WEB + "registro.html?per=" + o.id + "&solo=1");
   par("Embed del ranking público: los tres rankings en vivo (xp, semana y colección) sin cabecera ni botones. " +
@@ -1242,7 +1294,7 @@ function dossier_() {
     link("Documento de enlaces y embeds del grupo", o.doc || "");
 
     h("Formularios del grupo", 2);
-    link("Bitácora de mando (alumnado)", o.formBitacora);
+    link("Bitácora de mando — donde el alumnado se alista y registra sus retos", o.formBitacora);
     link("Canje de recompensas (alumnado)", o.formCanje);
     link("Contacta con NEBULA · ticket de salida (anónimo)", o.formTicket);
     qr(o.formBitacora, "QR de la Bitácora de mando (para proyectar en clase)");
@@ -1268,10 +1320,10 @@ function dossier_() {
 function crearDossierProfesorado() {
   var ui = SpreadsheetApp.getUi();
   var url = dossier_();
-  var html = HtmlService.createHtmlOutput('<p style="font:14px/1.5 system-ui">Dossier del profesorado al día.<br><br>'
-    + '<a href="' + url + '" target="_blank"><b>Abrir el dossier ↗</b></a><br><br>'
-    + '<span style="color:#667">El enlace es siempre el mismo: gu&aacute;rdalo y comp&aacute;rtelo sin miedo.</span></p>').setHeight(160);
-  ui.showModalDialog(html, "STARGATE · Dossier del profesorado");
+  dialogoEnlace_("STARGATE · Dossier del profesorado",
+    "El dossier con <b>todos los grupos</b>, sus equipos y sus enlaces, al día.",
+    url, "Abrir el dossier",
+    "El enlace es <b>siempre el mismo</b>: guárdalo y compártelo sin miedo.");
 }
 // Manda el enlace del dossier a todo el profesorado con correo, en UN solo mensaje.
 function enviarDossier_() {
@@ -2619,9 +2671,10 @@ function actualizarConsola() {
 function abrirConsola() {
   try { asegurarTriggers_(); } catch (e) {}   // de paso deja instalada la foto nocturna
   var url = actualizarConsola();
-  var html = HtmlService.createHtmlOutput('<p style="font:14px/1.5 system-ui">Consola al día.<br><br>'
-    + '<a href="' + url + '" target="_blank"><b>Abrir la Consola del profesorado ↗</b></a></p>').setHeight(120);
-  SpreadsheetApp.getUi().showModalDialog(html, "STARGATE · Consola");
+  dialogoEnlace_("STARGATE · Consola del profesorado",
+    "La Consola está al día: reclutas, canjes por aplicar y últimos registros, grupo por grupo.",
+    url, "Abrir la Consola",
+    "Es una <b>foto</b>: se rehace desde este mismo menú y sola cada madrugada.");
 }
 
 // ================= PARTE DE SALUD (v3.15) =================

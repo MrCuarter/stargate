@@ -108,4 +108,36 @@ c(M.Fetch.llamadas.some(u => u.indexOf("lamina_personajes.jpg") >= 0),
 igual(M.Fetch.llamadas.filter(u => u.indexOf("/planetas/") >= 0).length, 8, "y los ocho orbes de planeta");
 c(!!lamina() && lamina().blob !== blobViejo, "la lámina del formulario queda sustituida por la recién bajada");
 
+// ---------------------------------------------------------------- el documento del grupo
+// 28-ago. Norberto leyó el documento entero y preguntó: «aquí no aparece el enlace más importante,
+// el formulario de registro de retos, ¿cómo registran retos los estudiantes?». SÍ estaba — pero se
+// llamaba «registro de insignias» (el resultado, no la acción) y salía en TERCER lugar, detrás de
+// la Nave, su QR y su embed. El enlace que se usa cada semana, enterrado y con otro nombre.
+const G9 = E.nuevoMundo();
+E.crearPERDemo(G9, { nombre: "GRUPO DOC" });
+const urlDoc = G9.crearDocumentoPER_("grupo-doc");
+const cuerpo = M.Documento.registro[urlDoc.match(/document\/d\/([^/]+)/)[1]].cuerpo;
+const parrafos = cuerpo.parrafos.map(x => x.texto);
+const texto = parrafos.join("\n");
+
+const iAlum = parrafos.findIndex(t => /Para el Genially del alumnado/.test(t));
+const iBit  = parrafos.findIndex(t => /Bit[áa]cora de mando/.test(t));
+const iNave = parrafos.findIndex(t => /La Nave del Recluta/.test(t));
+c(iBit > iAlum, "la Bitácora está en la sección del alumnado");
+c(iBit < iNave, "🔴 y va la PRIMERA de esa sección: es el enlace que se usa cada semana");
+contiene(texto, "registra sus retos",
+  "🔴 se llama por lo que se HACE ahí (registrar retos), no solo por las insignias que salen");
+contiene(texto, "se alista", "y dice que es también donde se alistan: es el MISMO formulario");
+contiene(texto.toLowerCase(), "mismo enlace",
+  "y que el enlace no cambia: la primera vez se rellena y después se edita");
+
+// el dossier y el generador de embeds tienen que llamarlo IGUAL, o el profe cree que son dos cosas
+const urlDos = G9.dossier_();
+const dossier = M.Documento.registro[M.Props.getScriptProperties().getProperty("DOSSIER_ID")].cuerpo
+  .parrafos.map(x => x.texto).join("\n");
+contiene(dossier, "registra sus retos", "el dossier lo llama exactamente igual que el documento del grupo");
+const embedJs = require("fs").readFileSync(
+  require("path").join(__dirname, "..", "assets", "js", "embed.js"), "utf8");
+c(/registra sus retos/.test(embedJs), "y el generador de embeds de la web, también");
+
 E.resumen("Creación de PER y migración de formularios antiguos");

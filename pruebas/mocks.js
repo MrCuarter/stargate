@@ -157,9 +157,11 @@ const UI = {
                 addSubMenu(s) { m._items.push(["sub", s]); return m; }, addToUi() { UI.menu = m; return m; } };
     return m;
   },
-  showModalDialog(html, titulo) { this.dialogos = this.dialogos || []; this.dialogos.push(titulo); },
+  // se guarda tambien el CONTENIDO: es donde se ve si el enlace es pulsable o texto pelado
+  showModalDialog(html, titulo) { this.dialogos = this.dialogos || []; this.dialogos.push(titulo);
+    this.htmls = this.htmls || []; this.htmls.push(html && html.getContent ? html.getContent() : String(html)); },
   showSidebar() {},
-  limpiar() { this.avisos = []; this.preguntas = []; this.cola = []; this.dialogos = []; }
+  limpiar() { this.avisos = []; this.preguntas = []; this.cola = []; this.dialogos = []; this.htmls = []; }
 };
 
 // ---------------------------------------------------------------- Drive

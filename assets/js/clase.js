@@ -298,7 +298,7 @@
       +'<div class="accesos">'
       +a('🏆','registro.html?per='+encodeURIComponent(st.per),'Tablero del grupo','tablero')
       +a('🚀','recluta.html?per='+encodeURIComponent(st.per),'La Nave del recluta','nave')
-      +a('📓',d.formBitacora,'Bitácora de mando (alumnado)','bitacora')
+      +a('📓',d.formBitacora,'Bitácora: se alistan y registran retos','bitacora')
       +a('🎁',d.formCanje,'Canje de recompensas','canje')
       +a('🎟️',d.formTicket,'Ticket de salida','ticket')
       +a('🪐',d.panel,'Panel de control (Genially)','panel')

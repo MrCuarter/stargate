@@ -401,6 +401,13 @@ body.embed .nave-accesos{margin-top:0}
 #nave-app .selrow select{min-width:260px}
 .nave-login .nebula-mini{width:74px;height:74px;object-fit:contain;filter:drop-shadow(0 0 16px rgba(55,224,236,.4))}
 .nave-login input[type=email]{flex:1;min-width:220px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff;font:inherit}
+/* La puerta para quien AUN no se ha alistado. Va separada con una linea y su rotulo: si se mezcla
+   con el campo del correo, el que no esta alistado no la ve — que es justo lo que pasaba. */
+.nave-alta{margin-top:20px;padding-top:18px;border-top:1px solid var(--line);position:relative;text-align:center}
+.nave-alta .o{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--card,#0f1726);
+  padding:0 12px;font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--mut,#8fa3bf)}
+.nave-alta .btn{margin-top:4px}
+.nave-alta p{margin:10px auto 0;max-width:56ch}
 .nave-bio{margin:12px 0 0;padding:10px 14px;border-left:3px solid var(--teal);background:rgba(55,224,236,.06);border-radius:0 10px 10px 0;font-style:italic;font-size:.92rem;color:var(--ink)}
 .btn.grande{font-size:1.02rem;padding:14px 22px;font-weight:800}
 .doc-card{border-color:var(--teal)}

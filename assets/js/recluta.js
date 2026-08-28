@@ -64,7 +64,7 @@
       // quedaba EN BLANCO para todos los grupos. Visto en producción el 27-ago.
       st.pase=(d&&d.pase)||null;   // v3.27 · ¿hay pase de lista abierto ahora mismo?
       if(d&&d.yo){st.yo=d.yo;st.email=email;localStorage.setItem(KEY_MAIL,email);st.msgYo='';}
-      else if(d&&d.yo===null){st.yo=null;st.msgYo='No encuentro ningún recluta con ese correo en este PER. Usa el MISMO correo de Google con el que rellenaste la <b>Bitácora de mando</b> (y si aún no te alistaste, ese es el primer paso).';}
+      else if(d&&d.yo===null){st.yo=null;st.msgYo='No encuentro a nadie con ese correo en este grupo. Tiene que ser el <b>mismo correo de Google</b> con el que rellenaste la Bitácora de mando. ¿Todavía no te has alistado? Ese es el primer paso — el botón de abajo.';}
       else{st.yo=null;st.msgYo='La identificación aún no está activa (el mando tiene que actualizar el sistema). El resto de la nave funciona; vuelve a intentarlo más adelante.';}
       render();
       if(st.yo) celebrar(st.yo);      // después de pintar: el cartel cae encima de su propia ficha
@@ -93,10 +93,18 @@
   function personaje(){
     if(st.cargandoYo) return '<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>';
     if(!st.yo){
+      // 28-ago · Aqui faltaba la puerta de entrada: quien todavia NO se ha alistado escribia su
+      // correo, no le encontraba, y se quedaba sin saber que hacer. El alistamiento es el paso 1 de
+      // todo el sistema, asi que ahora esta a la vista y separado, no escondido en un parrafo.
+      var alta = st.d && st.d.formBitacora;
       return '<div class="card nave-login"><div class="nave-perfil">'+nebulaVideo('nebula-mini')+''
         +'<div><h3>Identifícate, recluta</h3><p class="small muted">Escribe el correo con el que te alistaste en la Bitácora de mando. Solo lo pediré una vez en este dispositivo, y solo te enseño <b>tu</b> ficha.</p></div></div>'
         +'<div class="selrow"><input id="in-mail" type="email" placeholder="tu.correo@ejemplo.com" autocomplete="email"><button class="btn primary" id="btn-mail" type="button">Entrar en la nave</button></div>'
         +(st.msgYo?'<p class="small" style="margin-top:8px;color:var(--amber)">'+st.msgYo+'</p>':'')
+        +(alta?'<div class="nave-alta"><span class="o">¿aún no te has alistado?</span>'
+          +'<a class="btn primary" href="'+esc(st.d.formBitacora)+'" target="_blank" rel="noopener">📓 Alistarme en la Bitácora de mando →</a>'
+          +'<p class="small muted">Es el <b>primer paso</b> y solo se hace una vez: eliges alias y personaje. '
+          +'Hasta que no lo envíes no existes a bordo. Después vuelve aquí con <b>ese mismo correo</b>.</p></div>':'')
         +'</div>';
     }
     var r=st.yo, d=st.d, SG=window.SG||{};
@@ -220,7 +228,7 @@
   function accesos(){
     var d=st.d;
     return avisoPase()+'<div class="nave-barra"><div class="nave-accesos">'
-      +(d.formBitacora?'<a class="acc primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener"><b>📓 Registrar un logro</b><em>marca lo que has hecho</em></a>':'')
+      +(d.formBitacora?'<a class="acc primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener"><b>📓 Mi Bitácora de mando</b><em>marca lo que has completado</em></a>':'')
       +(d.formCanje?'<a class="acc" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener"><b>🎁 Canjear</b><em>gasta tus ◈ créditos</em></a>':'')
       +'<a class="acc" href="registro.html?per='+encodeURIComponent(per)+'" target="_blank" rel="noopener"><b>🏆 Tablero</b><em>cómo va tu grupo</em></a>'
       +(d.formTicket?'<a class="acc" href="'+esc(d.formTicket)+'" target="_blank" rel="noopener"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
