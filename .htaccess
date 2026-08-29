@@ -1,2 +1,10 @@
 AddDefaultCharset UTF-8
 AddCharset UTF-8 .txt .html .css .js .json .csv
+
+# v3.37 · CORS solo para las copias descargables del script: son ficheros publicos de texto y
+# permite que la automatizacion (y cualquier herramienta) los lea con fetch desde otro dominio.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(txt|json)$">
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
+</IfModule>
