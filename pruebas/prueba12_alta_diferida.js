@@ -24,11 +24,16 @@ igual(orbes.sort().join(","), PLANETAS.slice().sort().join(","), "uno por planet
 // cada orbe va justo debajo de su salto de página
 for (let t = 1; t <= 8; t++) {
   const items = fb.getItems();
-  const pb = items.filter(i => i.getType() === "PAGE_BREAK" && i.getTitle().indexOf("Tema " + t + " ") === 0)[0];
+  const pb = items.filter(i => i.getType() === "PAGE_BREAK" && G.temaDePagina_(i.getTitle()) === t)[0];
   const img = items.filter(i => i.getType() === "IMAGE" && i.getTitle() === G.TEMAS[t][0])[0];
   if (t === 1) c(!!pb && !!img && items.indexOf(img) === items.indexOf(pb) + 1, "el orbe va justo debajo de su salto de página");
 }
-igual(G.imagenesBitacora_(fb), { puestos: 0, faltan: 0 }, "volver a llamarlo no duplica ninguna imagen (idempotente)");
+igual(G.imagenesBitacora_(fb), { puestos: 0, faltan: 0, agrandadas: 8 },
+  "volver a llamarlo no duplica ninguna imagen: las que ya están solo se ponen al ancho bueno");
+// v3.37 · «están muy pequeños» (Norberto, 29-ago). A 160 px el orbe era un icono en un formulario
+// que da 640 de ancho.
+c(fb.getItems("IMAGE").filter(i => PLANETAS.indexOf(i.getTitle()) >= 0).every(i => i.ancho === G.ANCHO_ORBE),
+  "🔴 y los ocho orbes salen a " + G.ANCHO_ORBE + " px, no a 160");
 
 // ---------------------------------------------------------------- sin tiempo: se aplaza
 G = E.nuevoMundo();

@@ -162,11 +162,41 @@ function tituloEvidencia_(t) { return EVIDENCIA_PREF + (t >= 1 && t <= 8 ? "Tema
 var AYUDA_EVIDENCIA = "Pega el enlace de lo que acabas de marcar: tu Bitácora, el documento, el juego… " +
   "Ábrelo primero en una ventana de incógnito: si pide permiso para abrirse, tu profe no lo va a poder ver " +
   "y no cuenta. Si marcas varias cosas a la vez, vale el enlace de tu Bitácora.";
-// El enlace que venga en ESTE envio, mire la seccion que mire.
+// ================= v3.37 · UNA PREGUNTA POR RETO =================
+// Petición de Norberto (29-ago). Hasta hoy cada tema era UNA casilla con todos sus retos dentro y UN
+// solo enlace de evidencia para lo que marcaras. Problemas: el enunciado del reto no se veía (estaba
+// apelotonado en la ayuda de la casilla) y la evidencia no se sabía de cuál era.
+//
+// Ahora cada reto es su propio bloque: título = el reto, ayuda = su enunciado, una casilla de
+// «lo he completado» y SU enlace debajo.
+//
+// 🔴 El título de cada pregunta es la COLUMNA de la hoja de respuestas, así que estos dos nombres son
+// contrato con el lector (`marcados_` y `registrarEventos_`): no se tocan a la ligera.
+var OPC_HECHO = "\u2705 Lo he completado";
+function tituloEvidenciaReto_(r) { return EVIDENCIA_PREF + r[1]; }
+// «Planeta 3 · Sendara» en vez de «Tema 3 · Sendara»: en el juego son planetas, y el alumnado elige
+// por el nombre del planeta, no por un número de tema que solo existe en la guía docente.
+function tituloPlaneta_(t) { return t >= 1 && t <= 8 ? "Planeta " + t + " \u00b7 " + TEMAS[t][0] : "La batalla final"; }
+function ayudaReto_(r) {
+  var a = AYUDA_RETOS[r[0]] || "";
+  var premio = r[3] ? "Da " + r[3] + " xp." : "";
+  return (a ? a + "\n\n" : "") + (premio ? premio + " " : "") +
+    "Marca la casilla SOLO cuando lo hayas TERMINADO. Puedes volver cuando quieras: lo de antes nunca se borra.";
+}
+var AYUDA_EVIDENCIA_RETO = "Pega el enlace de ESTE reto (tu Bitácora, el documento, el vídeo, el juego…). " +
+  "Ábrelo antes en una ventana de inc\u00f3gnito: si pide permiso para abrirse, tu profe no lo va a poder ver y no cuenta.";
+
+// El enlace GENÉRICO de este envío: el de las columnas «Enlace - Tema N», que es como se pedía antes
+// de la reforma del 29-ago (un enlace por planeta, valía para todo lo que marcaras en él).
+// 🔴 Los enlaces POR RETO empiezan por el mismo prefijo, así que hay que excluirlos: si se colaran,
+// el enlace de UN reto se copiaría como evidencia de todos los demás del mismo envío.
 function evidenciaDe_(r) {
   var out = "";
   Object.keys(r).forEach(function(k){
-    if (k.indexOf(EVIDENCIA_PREF) === 0 && String(r[k] || "").trim()) out = String(r[k]).trim();
+    if (k.indexOf(EVIDENCIA_PREF) !== 0) return;
+    var resto = k.substring(EVIDENCIA_PREF.length);
+    if (!/^(Tema \d|Batalla final)$/.test(resto)) return;
+    if (String(r[k] || "").trim()) out = String(r[k]).trim();
   });
   return out;
 }
@@ -210,6 +240,8 @@ var CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55, 
 // de misiones cierra al acabar la ultima semana y el canje aguanta una semana mas.
 // Generado desde _site_data.py: no editar a mano.
 var SEMANAS_PER = {"REGULAR": 15, "PUA": 8};
+// Primera semana en que se abre cada tema. Generado desde el CRONO de la web: no editar a mano.
+var SEMANA_DEL_TEMA = {"1": 1, "2": 3, "3": 5, "4": 7, "5": 9, "6": 10, "7": 11, "8": 13};
 var SEMANAS_CANJE_EXTRA = 1;
 var DIAS_APERTURA_ANTES = 0;
 // Insignia por serie completa. [clave, titulo de la serie tal y como aparece en CROMOS, nombre]
@@ -257,7 +289,13 @@ function creditosDe_(id, tipo) {
   return 0;
 }
 var H = { PERS:"PERs", REC:"RECOMPENSAS", EV:"EVENTOS", AJ:"AJUSTES", DATOS:"DATOS", RES:"RESUMEN", DOC:"DOCENTES",
-          CONS:"CONSENTIMIENTO" };
+          CONS:"CONSENTIMIENTO",
+          // v3.36 · ALUMNADO: la vista operativa de las personas, con nombre y correo. No confundir
+          // con DATOS/RESUMEN, que son las de investigacion y salen seudonimizadas a proposito.
+          ALU:"ALUMNADO",
+          // v3.36 · el archivo. Al archivar un PER sus registros se MUDAN aqui: EVENTOS y AJUSTES
+          // se quedan solo con los grupos vivos, y el historico sigue entero y consultable.
+          EVA:"EVENTOS ARCHIVADOS", AJA:"AJUSTES ARCHIVADOS" };
 // v3.16 · los SIETE personajes se eligen al alistarse. Los 5-7 eran "exclusivos" de pago, pero
 // eran personas normales y nadie paga por eso: quien quiera algo especial va al vestuario de heroes.
 var AVATARES_INICIALES = 7;

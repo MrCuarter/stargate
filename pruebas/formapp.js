@@ -58,7 +58,7 @@ class Item {
   // imagen
   setImage(b) { this.blob = b; return this; }
   setAlignment() { return this; }
-  setWidth() { return this; }
+  setWidth(w) { this.ancho = w; return this; }   // se GUARDA: el banco comprueba que el orbe salió grande
   // salto de página
   setGoToPage(d) { this.destino = d; return this; }
   getGoToPage() { return this.destino; }

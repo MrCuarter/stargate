@@ -1301,6 +1301,24 @@ for name,html in PAGES:
 print("OK sitio v2 generado · css?v="+vc)
 
 # ================= v2.1 · PANEL DE PROFESORADO + FORO DINÁMICO =================
+# ================= EL CATÁLOGO COMPLETO DE RETOS, PARA LA NAVE =================
+# 🔴 La lista de aquí abajo (RETOS_REGULAR/RETOS_PUA de la web) es un resumen id+título para la
+# cronología. La Nave necesita el catálogo ENTERO —xp y tema incluidos— y su explicación, y eso vive
+# en apps-script/Datos.gs, que a su vez se regenera desde el documento maestro. Se lee de ahí: si se
+# inyectara el resumen, la sección de retos de la Nave saldría vacía (pasó el 29-ago: r[4] no existía).
+import re as _re
+_datos_src = open(os.path.join(HERE, "apps-script", "Datos.gs"), encoding="utf-8").read()
+def _catalogo_retos(nombre):
+    _a = _datos_src.index("var %s = [" % nombre); _b = _datos_src.index("\n];", _a)
+    filas = [json.loads(m) for m in _re.findall(r'^\s*(\[.*\]),?$', _datos_src[_a:_b], _re.M)]
+    assert filas and all(len(f) == 5 for f in filas), "el catálogo %s de Datos.gs no tiene la forma esperada" % nombre
+    return filas
+_RETOS_NAVE = {"REGULAR": _catalogo_retos("RETOS_REGULAR"), "PUA": _catalogo_retos("RETOS_PUA")}
+_a0 = _datos_src.index("var AYUDA_RETOS = "); _b0 = _datos_src.index(";\n// AYUDA-FIN", _a0)
+_AYUDA_NAVE = json.loads(_datos_src[_a0 + len("var AYUDA_RETOS = "):_b0])
+# 19 = A1-A8 + B1-B8 + X1 + X2 + XF (los PUA reutilizan los mismos ids)
+assert len(_AYUDA_NAVE) >= 19, "AYUDA_RETOS de Datos.gs se ha quedado corta (%d)" % len(_AYUDA_NAVE)
+
 RETOS_REGULAR=[("A1","Reto A «El boceto sin quemar» (Bran)"),("B1","Reto B «La chispa»"),("X1","Actividad 1 entregada"),("A2","Reto A «Un mensaje para quien faltó» (Tomás)"),("B2","Reto B «El eco que enseña»"),("A3","Reto A «Dos senderos» (Sylla)"),("B3","Reto B «La matriz»"),("X2","Actividad 2 entregada"),("A4","Reto A «Abre el canal» (Amara)"),("B4","Reto B «El entorno de aula»"),("A5","Reto A «Mide con método» (Vera)"),("B5","Reto B «La Bitácora medida»"),("A6","Reto A «Ensaya jugando» (Joran)"),("B6","Reto B «El juego»"),("A7","Reto A «Un porqué» (Mara)"),("B7","Reto B «La microgamificación»"),("A8","Reto A «La capa posible» (Noa)"),("B8","Reto B «El último umbral»"),("XF","Batalla final")]
 RETOS_PUA=[("B1","La chispa (Bran)"),("X1","Actividad 1 entregada"),("B2","El eco que enseña (Tomás)"),("B3","La matriz (Sylla)"),("X2","Actividad 2 entregada"),("B4","El entorno de aula (Amara)"),("B5","La Bitácora medida (Vera)"),("B6","El juego (Joran)"),("B7","La microgamificación (Mara)"),("B8","El último umbral (Noa)")]
 SEMANAS_JSON = json.dumps([{
@@ -1476,9 +1494,18 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS, ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS, ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
+</div></section>
+<section id="nave-ranking"><div class="wrap">
+<div class="eyebrow amber">El tablero de tu grupo</div>
+<h2>¿Cómo va la tripulación?</h2>
+<p class="lead">Los tres rankings, en vivo. Pulsa sobre cualquier recluta para ver su ficha: su personaje,
+su biografía, su nivel y las insignias que lleva. Aquí solo se ven <b>alias</b> — ni nombres ni correos.</p>
+<div id="tablero-app"></div>
+<script>window.SG_TABLERO_ALOJADO=true;</script>
+<script src="assets/js/tablero.js" defer></script>
 </div></section>
 <footer><div class="wrap">STARGATE · La Bitácora Estelar — Proyecto Gamificado del <b>Máster en Tecnología Educativa</b> de la UNIR.</div></footer></body></html>'''
 html=(RECLUTA.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"'))
@@ -1604,6 +1631,7 @@ def _js_heroes():
     return "\n".join(filas)
 
 def _js_niveles():
+    import re as _re2
     L = []
     L.append('var MONEDA = %s;' % json.dumps(MONEDA, ensure_ascii=False))
     L.append('var RANGOS = %s;' % json.dumps(RANGOS, ensure_ascii=False))
@@ -1618,6 +1646,15 @@ def _js_niveles():
     L.append('// de misiones cierra al acabar la ultima semana y el canje aguanta una semana mas.')
     L.append('// Generado desde _site_data.py: no editar a mano.')
     L.append('var SEMANAS_PER = %s;' % json.dumps(SEMANAS_PER, ensure_ascii=False))
+    # v3.37 · la primera semana en que se abre cada tema, sacada del CRONO (el mismo dato que usa la
+    # web para desbloquear planetas). Lo necesita la siembra de alumnado de prueba para poner fechas
+    # creíbles — un recluta no puede tener un reto del tema 5 fechado en la semana 2.
+    _sem_tema = {}
+    for _s in CRONO:
+        _m = _re2.match(r"Tema (\d)", str(_s.get("tema") or ""))
+        if _m and int(_m.group(1)) not in _sem_tema: _sem_tema[int(_m.group(1))] = _s["sem"]
+    L.append('// Primera semana en que se abre cada tema. Generado desde el CRONO de la web: no editar a mano.')
+    L.append('var SEMANA_DEL_TEMA = %s;' % json.dumps(_sem_tema, sort_keys=True))
     L.append('var SEMANAS_CANJE_EXTRA = %d;' % SEMANAS_CANJE_EXTRA)
     L.append('var DIAS_APERTURA_ANTES = %d;' % DIAS_APERTURA_ANTES)
     L.append('// Insignia por serie completa. [clave, titulo de la serie tal y como aparece en CROMOS, nombre]')

@@ -50,7 +50,7 @@ const fc = G.formDelPER_(o, "C");
 const rec = fc.getItems().filter(i => i.getTitle() === "Recompensa")[0];
 c(rec.getChoices().every(x => /créditos$/.test(x.getValue())), "las recompensas del canje van en créditos");
 const fb = G.formDelPER_(o, "B");
-igual(fb.getItems().filter(i => i.getTitle() === "¿Qué vienes a registrar hoy?").length, 1, "y la Bitácora tiene el selector de secciones");
+igual(fb.getItems().filter(i => i.getTitle() === G.TIT_HOY).length, 1, "y la Bitácora tiene su portada con el selector");
 
 // ---------------------------------------------------------------- resetear la hoja
 G = mundoConPERs(5);

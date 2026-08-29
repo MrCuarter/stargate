@@ -10,12 +10,9 @@ const G = E.nuevoMundo();
 E.crearPERDemo(G);
 const PER = "prueba-banco";
 const RET = G.retosDe_("REGULAR");
-const col = t => "Tema " + t + " · Lo que he completado";
 
 // Un recluta con MUCHOS créditos: se lo lleva todo (590 ◈ el viaje completo)
-const todo = {};
-RET.forEach(r => { const k = col(r[4] > 8 ? 9 : r[4]); const kk = r[4] > 8 ? "Batalla final" : k;
-  todo[kk] = (todo[kk] ? todo[kk] + ", " : "") + r[1]; });
+const todo = E.marcar(G, RET);
 E.enviarBitacora(G, PER, { email: "rico@alumno.es", alias: "Rico", nombre: "Rico R", profe: "Mr Cuarter" });
 E.enviarBitacora(G, PER, { email: "rico@alumno.es", marcados: todo }, 2);
 let rico = G.tablero_(PER, true).reclutas[0];

@@ -294,16 +294,27 @@
     var d=st.d||{};
     // La clave (data-acc) la usa la visita guiada para señalar el enlace CONCRETO del que habla.
     function a(t,u,n,k){return u?'<a class="acceso" data-acc="'+k+'" href="'+esc(u)+'" target="_blank" rel="noopener"><span class="ic">'+t+'</span><b>'+n+'</b></a>':'';}
+    // v3.36 · EN DOS BLOQUES. Antes iban los diez en la misma rejilla y con la misma pinta, así que
+    // el «Tablero del grupo» —que es registro.html, o sea la web del método con la guía de
+    // instalación y el acceso con PIN— parecía tan repartible como la Bitácora. Arriba, lo que se
+    // comparte; abajo, lo que no sale de aquí.
     return '<section id="sala-enlaces"><div class="eyebrow">Sin buscar en Drive</div><h2>Los enlaces de este grupo</h2>'
+      +'<h3 class="acc-tit acc-alu">✅ Esto sí se comparte con el alumnado</h3>'
+      +'<p class="acc-nota">Cinco cosas, y no hay una sexta: los tres formularios, su Nave y el Genially.</p>'
+      +'<div class="accesos">'
+      +a('📓',d.formBitacora,'Bitácora: se alistan y registran retos','bitacora')
+      +a('🚀','recluta.html?per='+encodeURIComponent(st.per),'La Nave del recluta','nave')
+      +a('🎟️',d.formTicket,'Ticket de salida','ticket')
+      +a('🎁',d.formCanje,'Canje de recompensas','canje')
+      +a('🪐',d.panel,'Panel de control (Genially)','panel')
+      +'</div>'
+      +'<h3 class="acc-tit acc-profe">🔒 Solo para el profesorado — no lo repartas</h3>'
+      +'<p class="acc-nota">El tablero y el foro sí se enseñan en clase, pero <b>embebidos dentro del Genially</b>'
+      +' (el código está en «Enlaces, embeds y QR»). Sus enlaces sueltos llevan a la web del profesorado.</p>'
       +'<div class="accesos">'
       +a('🏆','registro.html?per='+encodeURIComponent(st.per),'Tablero del grupo','tablero')
-      +a('🚀','recluta.html?per='+encodeURIComponent(st.per),'La Nave del recluta','nave')
-      +a('📓',d.formBitacora,'Bitácora: se alistan y registran retos','bitacora')
-      +a('🎁',d.formCanje,'Canje de recompensas','canje')
-      +a('🎟️',d.formTicket,'Ticket de salida','ticket')
-      +a('🪐',d.panel,'Panel de control (Genially)','panel')
-      +a('🔗','embed.html?per='+encodeURIComponent(st.per)+'&profe='+encodeURIComponent(st.profe),'Enlaces, embeds y QR','embed')
       +a('💬','foro.html?per='+encodeURIComponent(st.per),'Foro dinámico','foro')
+      +a('🔗','embed.html?per='+encodeURIComponent(st.per)+'&profe='+encodeURIComponent(st.profe),'Enlaces, embeds y QR','embed')
       +a('📄',d.doc,'Documento de enlaces del PER','doc')
       +a('🧑‍🏫','profes.html?per='+encodeURIComponent(st.per),'Panel completo (referente)','profes')
       +'</div></section>';}

@@ -45,6 +45,18 @@ img{max-width:100%;height:auto}
 .accesos .acceso .ic{font-size:1.1rem}
 .accesos .acceso b{display:block;color:var(--txt);font-size:.88rem;margin-top:2px}
 .accesos .acceso em{display:block;font-style:normal;font-size:.72rem;color:var(--mut);line-height:1.4;margin-top:3px}
+/* v3.36 · QUIÉN VE QUÉ. El profesorado tiene que distinguir de un vistazo lo que reparte de lo que
+   no: hasta hoy los enlaces del alumnado y los de la sala iban en la misma rejilla, todos iguales. */
+.acc-tit{font-family:'DMSans';font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;
+  margin:16px 0 0;padding-left:9px;border-left:3px solid var(--line)}
+.acc-tit.acc-alu{color:#43c98a;border-left-color:#43c98a}
+.acc-tit.acc-profe{color:var(--amber);border-left-color:var(--amber)}
+.acc-tit + .accesos{margin-top:8px}
+.acc-nota{font-size:.74rem;color:var(--mut);margin:6px 0 0;line-height:1.5}
+.acceso .quien{display:inline-block;font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;
+  padding:1px 6px;border-radius:999px;margin-left:6px;vertical-align:middle}
+.acceso .quien.alu{color:#43c98a;background:rgba(67,201,138,.12)}
+.acceso .quien.profe{color:var(--amber);background:rgba(245,176,67,.12)}
 .grupo .forms{display:flex;flex-wrap:wrap;gap:8px}
 .chip-link{display:inline-block;padding:5px 11px;border:1px solid var(--line);border-radius:999px;
   font-size:.76rem;text-decoration:none;color:var(--mut)}
@@ -482,6 +494,72 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 /* ---------- El vestuario de la Nave (v3.16) ---------------------------------------------------
    Skins y héroes en la misma rejilla, porque para el alumnado son lo mismo: cosas que ponerse.
    Lo que no tienes sale en sombra y no se puede pulsar — pero se VE, que es lo que pica. */
+/* ===== LA VENTANA EMBEBIDA (formularios y Genially sin salir de la Nave) ===== */
+.vent{position:fixed;inset:0;z-index:85;display:none}
+.vent.open{display:block}
+.vent-fondo{position:absolute;inset:0;background:rgba(4,8,14,.88);backdrop-filter:blur(3px)}
+.vent-caja{position:absolute;inset:0;margin:auto;width:min(860px,94vw);height:min(88vh,900px);
+  display:flex;flex-direction:column;border-radius:16px;border:1px solid var(--line);
+  background:#0b141d;box-shadow:0 30px 90px rgba(0,0,0,.8);overflow:hidden}
+.vent-caja header{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.vent-caja header b{font-family:'DMSans';font-size:.92rem;color:var(--ink);flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vent-aparte{font-size:.74rem;color:var(--mut);text-decoration:none;border:1px solid var(--line);
+  border-radius:999px;padding:4px 10px;flex:0 0 auto}
+.vent-aparte:hover{color:var(--teal);border-color:var(--teal)}
+.vent-x{flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:50%;width:30px;height:30px;
+  color:var(--ink);font-size:1.05rem;line-height:1;cursor:pointer}
+.vent-x:hover{border-color:var(--teal);color:var(--teal)}
+.vent-cuerpo{position:relative;flex:1;background:#fff}
+.vent-cuerpo iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vent-carga{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:#55606a;background:#0b141d;font-family:'DMSans';font-size:.9rem}
+body.vent-abierta{overflow:hidden}
+@media (max-width:640px){.vent-caja{width:100vw;height:100vh;border-radius:0;border:0}}
+
+/* ===== 29-ago · LA NAVE, POR PESTAÑAS =====
+   La página crecía sin fin hacia abajo (ficha + vestuario + semana + planetas + recompensas +
+   retos + tablero). Se descartó partirla en varias páginas: la Nave es la ÚNICA dirección que se
+   le da al alumnado y multiplicarla es multiplicar los sitios donde perderse. */
+.nave-tabs{display:flex;gap:6px;overflow-x:auto;margin:18px 0 4px;padding-bottom:6px;
+  scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.nave-tab{display:flex;align-items:center;gap:7px;flex:0 0 auto;cursor:pointer;
+  padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.02);
+  color:var(--mut);font-family:'DMSans';font-size:.86rem;transition:.16s}
+.nave-tab .ic{font-size:1rem;line-height:1}
+.nave-tab b{font-weight:600}
+.nave-tab:hover{border-color:var(--teal);color:var(--ink)}
+.nave-tab.on{border-color:var(--teal);color:#04222a;background:var(--teal)}
+.nave-tab:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+/* ===== LOS RETOS, EXPLICADOS =====
+   Cada planeta es un <details>: se ve el titular y se despliega lo largo. El del planeta de esta
+   semana viene abierto, que es el que se va a leer. */
+.reto-pl{border:1px solid var(--line);border-radius:14px;margin:10px 0;background:rgba(255,255,255,.02);overflow:hidden}
+.reto-pl>summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;padding:13px 15px;
+  font-family:'DMSans';list-style:none}
+.reto-pl>summary::-webkit-details-marker{display:none}
+.reto-pl>summary::after{content:"▾";margin-left:auto;color:var(--mut);transition:transform .18s}
+.reto-pl[open]>summary::after{transform:rotate(180deg)}
+.reto-pl .pl-n{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);
+  border:1px solid var(--line);border-radius:999px;padding:2px 8px}
+.reto-pl>summary b{color:var(--ink);font-size:.98rem}
+.reto-pl>summary em{font-style:normal;font-size:.78rem;color:var(--mut)}
+.reto-pl .reto-cuenta{margin-left:auto;font-size:.78rem;color:var(--teal);font-weight:700}
+.reto-pl[open]>summary{border-bottom:1px solid var(--line)}
+.reto-pl.actual{border-color:var(--teal)}
+.reto-pl.lock{opacity:.6}
+.reto-pl.lock>summary{cursor:default}
+.reto{padding:14px 15px;border-top:1px solid rgba(255,255,255,.05)}
+.reto:first-of-type{border-top:0}
+.reto header{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:7px}
+.reto header h4{margin:0;font-family:'DMSans';font-size:.92rem;color:var(--ink);flex:1 1 220px}
+.reto-id{font-size:.66rem;font-weight:700;letter-spacing:.08em;color:var(--amber);
+  border:1px solid var(--amber);border-radius:6px;padding:1px 6px}
+.reto-xp{font-size:.74rem;color:var(--teal);font-weight:700}
+.reto-ya{font-size:.72rem;color:#43c98a}
+.reto.ok{background:rgba(67,201,138,.06)}
+.reto p{margin:0 0 6px;font-size:.86rem;line-height:1.62;color:var(--mut);white-space:pre-line}
 .vest-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));margin-top:8px}
 .vest{display:flex;flex-direction:column;gap:2px;padding:0 0 8px;border-radius:14px;cursor:pointer;
   border:1px solid var(--line);background:var(--card);color:inherit;overflow:hidden;text-align:center;
@@ -492,6 +570,17 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .vest:hover:not(.no){transform:translateY(-3px);border-color:var(--teal)}
 .vest.on{border-color:var(--oro,#f5b043);box-shadow:0 0 0 2px rgba(245,176,67,.35)}
 .vest.on b::after{content:" ✓";color:var(--oro,#f5b043)}
+.vest.guardando{opacity:.72}
+.vest.guardando b::after{content:" …";color:var(--mut)}
+/* El cartel de «ya llevas puesto X». Abajo y por encima de todo, pero sin bloquear: el alumno
+   sigue probándose cosas mientras lo lee. */
+.nave-aviso{position:fixed;left:50%;bottom:22px;transform:translate(-50%,14px);z-index:90;
+  max-width:min(440px,92vw);padding:11px 16px;border-radius:999px;border:1px solid var(--teal);
+  background:rgba(9,18,26,.96);color:var(--ink);font-size:.86rem;text-align:center;
+  box-shadow:0 14px 40px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.nave-aviso.ver{opacity:1;transform:translate(-50%,0)}
+.nave-aviso.malo{border-color:var(--amber)}
+@media (prefers-reduced-motion:reduce){.nave-aviso{transition:none}}
 .vest.no{cursor:default;opacity:.85}
 .vest.no b{color:var(--mut)}
 
@@ -506,6 +595,14 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .lupa-carta.rar{border-color:rgba(96,208,236,.6)}
 .lupa-carta.epi{border-color:#a98cf0;box-shadow:0 30px 80px rgba(0,0,0,.75),0 0 40px rgba(169,140,240,.45)}
 .lupa-carta.leg{border-color:var(--amber);box-shadow:0 30px 80px rgba(0,0,0,.75),0 0 46px rgba(245,176,67,.5)}
+/* 29-ago · el personaje, en grande. La imagen ya la tenemos a buena resolución; solo faltaba
+   poder verla. El botón no debe parecer un botón: es la foto, y se nota al pasar por encima. */
+.av-lupa{background:none;border:0;padding:0;margin:0;cursor:zoom-in;line-height:0;border-radius:50%;
+  display:inline-block;transition:transform .18s,filter .18s}
+.av-lupa:hover{transform:scale(1.04);filter:brightness(1.08)}
+.av-lupa:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+.lupa-av{max-width:min(520px,86vw);max-height:74vh;width:auto;height:auto;display:block;border-radius:18px;
+  border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.75),0 0 46px rgba(55,224,236,.22)}
 .lupa-pie{text-align:center;color:var(--ink);max-width:min(560px,88vw)}
 .lupa-pie h4{font-family:'Unbounded';margin:0 0 .25em;font-size:1.05rem;color:#eafcff}
 .lupa-pie p{margin:0}

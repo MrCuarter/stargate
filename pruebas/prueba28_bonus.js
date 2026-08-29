@@ -12,21 +12,20 @@ const G = E.nuevoMundo();
 const PER = E.crearPERDemo(G).id;
 const RET = G.retosDe_("REGULAR");
 const et = id => RET.filter(r => r[0] === id)[0][1];
-const col = t => "Tema " + t + " · Lo que he completado";
 const f = () => G.tablero_(PER, true).reclutas.filter(x => x.email === "nova@alumno.es")[0];
 const bonusEscritos = () => G.hoja_(G.H.AJ).getDataRange().getValues().filter(r => r[4] === "bonus");
 
 E.enviarBitacora(G, PER, { email: "nova@alumno.es", alias: "Nova", nombre: "N N", profe: "Mr Cuarter" });
 
 // ---------------------------------------------------------------- a) medio planeta no cuenta
-E.enviarBitacora(G, PER, { email: "nova@alumno.es", marcados: { [col(1)]: et("A1") } }, 2);
+E.enviarBitacora(G, PER, { email: "nova@alumno.es", marcados: E.marcar(G, [et("A1")]) }, 2);
 igual(f().planetas_completos, [], "con un solo reto del tema, el planeta no está completo");
 igual(f().bonus, [], "y no hay bonus");
 
 // ---------------------------------------------------------------- b) el planeta entero sí
 const base = f().xp, baseCr = f().creditos_ganados;
 E.enviarBitacora(G, PER, { email: "nova@alumno.es",
-  marcados: { [col(1)]: [et("A1"), et("B1"), et("X1")].join(", ") } }, 2);
+  marcados: E.marcar(G, [et("A1"), et("B1"), et("X1")]) }, 2);
 const tras = f();
 igual(tras.planetas_completos, [1], "con los tres retos del tema 1, el planeta está completo");
 c(tras.bonus.indexOf("planeta:1") >= 0, "🔴 y el bonus queda ESCRITO, no calculado al vuelo");
@@ -36,7 +35,7 @@ igual(tras.creditos_ganados - baseCr, 50 + 100 + G.BONUS_PLANETA.creditos, "y su
 // ---------------------------------------------------------------- c) una vez, y solo una
 const escritos = bonusEscritos().length;
 E.enviarBitacora(G, PER, { email: "nova@alumno.es",
-  marcados: { [col(1)]: [et("A1"), et("B1"), et("X1")].join(", ") } }, 2);
+  marcados: E.marcar(G, [et("A1"), et("B1"), et("X1")]) }, 2);
 igual(bonusEscritos().length, escritos, "🔴 reenviar lo mismo NO vuelve a conceder el bonus");
 igual(f().xp, tras.xp, "ni suma xp de más");
 
@@ -54,7 +53,7 @@ const hace = d => { const x = new Date(); x.setDate(x.getDate() - d); return x; 
   [hace(d), P2, "orion@alumno.es", "Orion", R2[i][0], R2[i][1], R2[i][4], R2[i][3], "formulario", ""]));
 c(g().racha >= 3, "lleva " + g().racha + " semanas seguidas");
 // el bonus se concede al REGISTRAR, así que hace falta un envío que lo dispare
-E.enviarBitacora(G2, P2, { email: "orion@alumno.es", marcados: { [col(8)]: et("A8") } }, 2);
+E.enviarBitacora(G2, P2, { email: "orion@alumno.es", marcados: E.marcar(G2, [et("A8")]) }, 2);
 const conRacha = g();
 c(conRacha.bonus.indexOf("racha:3") >= 0, "🔴 al llegar a 3 semanas se concede el bonus de racha");
 igual(conRacha.bonus.filter(b => b === "racha:6").length, 0, "pero no el de 6, que aún no ha llegado");

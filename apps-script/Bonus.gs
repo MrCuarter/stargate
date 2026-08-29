@@ -69,8 +69,8 @@ function abrirPase_(o, profe, minutos) {
 // La ventana ABIERTA de un PER, si la hay. Se mira la última, no todas: abrir otra cierra la anterior.
 function paseActivo_(perId) {
   var ultima = null;
-  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
-    if (v[1] === perId && v[4] === "pase") ultima = v; });
+  registros_(H.AJ, perId).forEach(function(v){
+    if (v[4] === "pase") ultima = v; });
   if (!ultima) return null;
   var p = String(ultima[5] || "").split("|");
   if (p.length < 3) return null;
@@ -88,8 +88,8 @@ function reclamarPase_(perId, email, palabra) {
     return { ok: false, error: "Esa no es la consigna. Míralas bien: son las cuatro letras que hay en la pantalla." };
   var clave = "pase:" + act.id;
   var ya = false;
-  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
-    if (v[1] === perId && String(v[2]).toLowerCase() === email && v[4] === "bonus" && String(v[5]) === clave) ya = true; });
+  registros_(H.AJ, perId).forEach(function(v){
+    if (String(v[2]).toLowerCase() === email && v[4] === "bonus" && String(v[5]) === clave) ya = true; });
   if (ya) return { ok: true, yaEstaba: true, creditos: 0 };
   hoja_(H.AJ).appendRow([new Date(), perId, email, "EXTRA", "bonus", clave, "sistema"]);
   return { ok: true, creditos: cfgPase_().creditos };
@@ -182,8 +182,8 @@ function otorgarBonusTripulacion_(o) {
   if (!reclutas.length) return 0;
   var partes = partesPorSeccion_(o), umbral = Math.max(1, Math.ceil(cfg.fraccion * reclutasActivos_(reclutas)));
   var yaTiene = {};
-  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
-    if (v[1] === o.id && v[4] === "bonus" && String(v[5] || "").indexOf("tripulacion:") === 0)
+  registros_(H.AJ, o.id).forEach(function(v){
+    if (v[4] === "bonus" && String(v[5] || "").indexOf("tripulacion:") === 0)
       yaTiene[String(v[2]).toLowerCase() + "|" + String(v[5])] = true; });
   var filas = [];
   Object.keys(partes).forEach(function(k){

@@ -35,7 +35,9 @@
 
   // ---------- estado ----------
   var KEY_MAIL='sgNaveEmail_'+per;
-  var st={d:null,semanas:[],actual:1,estado:'curso',email:localStorage.getItem(KEY_MAIL)||'',yo:null,cargandoYo:false,msgYo:''};
+  var st={d:null,semanas:[],actual:1,estado:'curso',email:localStorage.getItem(KEY_MAIL)||'',yo:null,cargandoYo:false,msgYo:'',
+          // la pestaña abierta sale del #hash: así un enlace a #retos abre esa, y F5 no te devuelve al principio
+          tab:(location.hash||'').replace('#','')||'ficha'};
 
   function quien(email,cb){
     fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},
@@ -52,6 +54,26 @@
       .then(function(r){return r.json();})
       .then(function(d){ if(d&&d.error){ if(err)err(d.error); else alert(d.error); return; } cb(d); })
       .catch(function(e){ if(err)err('Error de red'); });
+  }
+  // Un cartel breve abajo del todo. No usa alert() a propósito: alert() BLOQUEA la página y hay que
+  // pulsar «Aceptar» para seguir vistiéndose, que es peor que no avisar.
+  function aviso(html, malo){
+    var el=document.getElementById('nave-aviso');
+    if(!el){el=document.createElement('div');el.id='nave-aviso';el.className='nave-aviso';document.body.appendChild(el);}
+    el.className='nave-aviso'+(malo?' malo':'')+' ver';
+    el.innerHTML=html;
+    el.setAttribute('role','status');
+    clearTimeout(aviso._t);
+    aviso._t=setTimeout(function(){ el.classList.remove('ver'); }, malo?6000:3200);
+  }
+  // Vuelve a pedir la ficha SIN la pantalla de «Contactando con NEBULA…»: se usa cuando el alumno ya
+  // ha visto el cambio y solo hay que poner al día lo que el servidor calcula (xp, créditos, rango).
+  function refrescarYo(){
+    if(!st.email) return;
+    quien(st.email,function(d){
+      if(!d||!d.yo) return;                     // si algo va mal, se queda lo que ya se veía: no se rompe nada
+      st.yo=d.yo; st.pase=(d&&d.pase)||null; render();
+    });
   }
   function identificar(email){
     email=String(email||'').toLowerCase().trim();
@@ -155,7 +177,11 @@
                    :(libres?' ('+libres+' sin cambiar): con 3 te llevas un sobre gratis.':' — ya los has cambiado todos por sobres.'))
         +(libres>=3&&d.formCanje?' <a class="btn small" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Cambiar 3 repetidos →</a>':'')+'</p>':'')
       +series+'</div>'):'';
-    return '<div class="grid cols-2 nave-estado"><div class="card"'+estiloFicha+'><div class="nave-perfil">'+av
+    // 29-ago · el personaje se abre en grande al pulsarlo. Es la imagen que el recluta ha elegido y
+    // la que evoluciona con su nivel: verla del tamaño de un pulgar era desaprovecharla. Reusa la
+    // misma lupa que las cartas, así que ya trae fondo, Escape, foco y botón de cerrar.
+    return '<div class="grid cols-2 nave-estado"><div class="card"'+estiloFicha+'><div class="nave-perfil">'
+      +'<button type="button" class="av-lupa" id="btn-av" title="Pulsa para verte en grande" aria-label="Ampliar tu personaje">'+av+'</button>'
       +'<div><h3>'+(r.corona?'👑 ':'')+esc(r.alias)+(r.racha>=3?' <span class="chip-racha" title="Semanas seguidas registrando algo">🔥 '+r.racha+'</span>':'')+'</h3>'
       +(r.titulo?'<div class="titulo-recluta">«'+esc(r.titulo)+'»</div>':'')
       +'<p class="small"><b>Nivel '+ni.nivel+' · '+esc(ni.rangoNombre)+'</b>'+(ni.titulo&&ni.titulo!==ni.rangoNombre?' <span class="muted">('+esc(ni.titulo)+')</span>':'')+' · puesto '+r.pos+' · planeta '+esc(r.planeta)+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
@@ -225,15 +251,167 @@
     var d=st.d||{}, p=(st.yo&&st.yo.profe)||'';
     return (p && d.paneles && d.paneles[p]) || d.panel || '';
   }
+  // ================= LA VENTANA EMBEBIDA (29-ago) =================
+  // «Si evitamos abrir pestañas en el navegador, se agradecerá». Los formularios de Google y los
+  // Genially se embeben bien, así que la Nave los abre en una ventana encima de sí misma: el alumno
+  // registra su reto y sigue donde estaba, sin perder la página ni multiplicar pestañas.
+  //
+  // 🔴 El «abrir aparte ↗» de la esquina NO es decoración: con las cookies de terceros bloqueadas
+  // (Safari, o Chrome en incógnito) Google puede negarse a identificar al alumno DENTRO del iframe,
+  // y la Bitácora necesita su cuenta. Si el formulario se queja dentro de la ventana, esa es la salida.
+  function formEmbed(u){
+    u=String(u||'');
+    // los formularios publicados de Google aceptan ?embedded=true: quita su propia cabecera
+    if(/docs\.google\.com\/forms|forms\.gle/.test(u) && u.indexOf('embedded=')<0)
+      u+=(u.indexOf('?')<0?'?':'&')+'embedded=true';
+    return u;
+  }
+  function ventana(titulo, url){
+    var ov=document.getElementById('nave-ventana');
+    if(!ov){ov=document.createElement('div');ov.id='nave-ventana';ov.className='vent';document.body.appendChild(ov);}
+    ov.innerHTML='<div class="vent-fondo"></div><div class="vent-caja" role="dialog" aria-modal="true" aria-label="'+esc(titulo)+'">'
+      +'<header><b>'+esc(titulo)+'</b>'
+      +'<a class="vent-aparte" href="'+esc(url)+'" target="_blank" rel="noopener" title="Si aquí dentro no te deja entrar con tu cuenta, ábrelo aparte">abrir aparte ↗</a>'
+      +'<button type="button" class="vent-x" aria-label="Cerrar">×</button></header>'
+      +'<div class="vent-cuerpo"><div class="vent-carga">Cargando…</div>'
+      +'<iframe src="'+esc(formEmbed(url))+'" loading="eager" allow="fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe></div></div>';
+    ov.classList.add('open');
+    document.body.classList.add('vent-abierta');
+    var f=ov.querySelector('iframe'); f.addEventListener('load',function(){var c=ov.querySelector('.vent-carga'); if(c)c.remove();});
+    function cerrar(){ov.classList.remove('open');ov.innerHTML='';document.body.classList.remove('vent-abierta');
+      document.removeEventListener('keydown',esc27);}
+    function esc27(e){if(e.key==='Escape'){e.preventDefault();cerrar();}}
+    ov.querySelector('.vent-fondo').onclick=cerrar;
+    ov.querySelector('.vent-x').onclick=cerrar;
+    document.addEventListener('keydown',esc27);
+    ov.querySelector('.vent-x').focus();
+    return false;
+  }
+  // Cablea como ventana todo enlace marcado con data-vent (los formularios y el Genially).
+  function wireVentanas(caja){
+    Array.prototype.forEach.call(caja.querySelectorAll('[data-vent]'),function(a){
+      a.onclick=function(e){ e.preventDefault(); ventana(a.getAttribute('data-vent'), a.getAttribute('href')); };
+    });
+  }
+  // ================= PESTAÑAS (29-ago) =================
+  // «La página del recluta crece mucho hacia abajo». Y crecía: ficha + vestuario + semana + mapa +
+  // recompensas + retos + tablero, todo del tirón. Se valoró partirla en varias páginas y se
+  // descartó: la Nave es la ÚNICA dirección que se le da al alumnado, y multiplicarla es multiplicar
+  // los sitios donde perderse (y los enlaces que se pueden colar). Pestañas: una sola URL, los datos
+  // se piden UNA vez y cambiar de pestaña es instantáneo. El #hash las hace enlazables y compartibles.
+  var TABS=[['ficha','🧑‍🚀','Mi ficha'],['retos','🎯','Mis retos'],['semana','🛰️','Esta semana'],
+            ['planetas','🪐','Los planetas'],['premios','🎁','Recompensas'],['tablero','🏆','El tablero']];
+  function tabValida(k){ return TABS.some(function(x){return x[0]===k;}) ? k : 'ficha'; }
+  st.tab=tabValida(st.tab);
+  // el botón «atrás» del navegador también cambia de pestaña: es lo que espera cualquiera
+  window.addEventListener('hashchange',function(){ irA((location.hash||'').replace('#',''), false); });
+  function pestanas(){
+    return '<nav class="nave-tabs" role="tablist">'+TABS.map(function(x){
+      return '<button type="button" class="nave-tab'+(st.tab===x[0]?' on':'')+'" role="tab"'
+        +' aria-selected="'+(st.tab===x[0])+'" data-tab="'+x[0]+'">'
+        +'<span class="ic" aria-hidden="true">'+x[1]+'</span><b>'+x[2]+'</b></button>';
+    }).join('')+'</nav>';
+  }
+  function contenido(){
+    if(st.tab==='ficha')    return personaje()+vestuario();
+    if(st.tab==='retos')    return retos();
+    if(st.tab==='semana')   return estaSemana();
+    if(st.tab==='planetas') return mapa();
+    if(st.tab==='premios')  return recompensas();
+    return '';                                  // «tablero»: vive en su propia sección del HTML
+  }
+  // El tablero es una <section> aparte del HTML (la pinta tablero.js), así que se enseña y se esconde
+  // en vez de repintarse: repintarlo obligaría a pedir los datos otra vez cada vez que se cambia de pestaña.
+  function verTablero(si){
+    var sec=document.getElementById('nave-ranking');
+    if(sec) sec.style.display = si ? '' : 'none';
+  }
+  function irA(k, empujarHash){
+    st.tab=tabValida(k);
+    if(empujarHash!==false){ try{ history.replaceState(null,'','#'+st.tab); }catch(e){} }
+    render();
+    var barra=root.querySelector('.nave-tabs');
+    if(barra) barra.scrollIntoView({block:'start', behavior:'smooth'});
+  }
   function accesos(){
     var d=st.d;
+    // v3.37 · los formularios y el Genially se abren EMBEBIDOS en una ventana encima de la Nave
+    // (data-vent), no en otra pestaña. Y el tablero es una pestaña de la propia página: registro.html
+    // era la web del profesorado y aquí no pinta nada.
     return avisoPase()+'<div class="nave-barra"><div class="nave-accesos">'
-      +(d.formBitacora?'<a class="acc primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener"><b>📓 Mi Bitácora de mando</b><em>marca lo que has completado</em></a>':'')
-      +(d.formCanje?'<a class="acc" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener"><b>🎁 Canjear</b><em>gasta tus ◈ créditos</em></a>':'')
-      +'<a class="acc" href="registro.html?per='+encodeURIComponent(per)+'" target="_blank" rel="noopener"><b>🏆 Tablero</b><em>cómo va tu grupo</em></a>'
-      +(d.formTicket?'<a class="acc" href="'+esc(d.formTicket)+'" target="_blank" rel="noopener"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
-      +(miPanel()?'<a class="acc" href="'+esc(miPanel())+'" target="_blank" rel="noopener"><b>🪐 Panel</b><em>los ocho planetas</em></a>':'')
+      +(d.formBitacora?'<a class="acc primary" href="'+esc(d.formBitacora)+'" data-vent="📓 Bitácora de mando"><b>📓 Mi Bitácora de mando</b><em>marca lo que has completado</em></a>':'')
+      +(d.formCanje?'<a class="acc" href="'+esc(d.formCanje)+'" data-vent="🎁 Canje de recompensas"><b>🎁 Canjear</b><em>gasta tus ◈ créditos</em></a>':'')
+      +'<a class="acc" href="#tablero" data-ir="tablero"><b>🏆 Tablero</b><em>cómo va tu grupo</em></a>'
+      +(d.formTicket?'<a class="acc" href="'+esc(d.formTicket)+'" data-vent="🎟️ Contacta con NEBULA"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
+      +(miPanel()?'<a class="acc" href="'+esc(miPanel())+'" data-vent="🪐 Panel de control"><b>🪐 Panel</b><em>los ocho planetas</em></a>':'')
       +'</div></div>';
+  }
+  // ================= LOS RETOS, EXPLICADOS (29-ago) =================
+  // 🔴 El formulario llevaba semanas prometiendo «está todo explicado en tu Nave» y era MENTIRA: la
+  // Nave solo listaba los nombres de los retos dentro del detalle de cada planeta. Quien no entendía
+  // un reto no tenía dónde mirar, y eso acaba en un correo al profesorado o en un mensaje al foro.
+  //
+  // Se desbloquean con el CALENDARIO, igual que los planetas: enseñar de golpe los 19 retos del curso
+  // en la semana 1 es justo lo que agobia. Se ve lo de hoy y lo de antes, no lo de dentro de un mes.
+  function retos(){
+    var RET=(window.SG_RETOS||{})[(st.d&&st.d.tipo)||'REGULAR']||[];
+    var AY=window.SG_AYUDA_RETOS||{};
+    if(!RET.length) return '<section><div class="eyebrow">Tus retos</div><h2>Qué hay que hacer</h2>'
+      +'<p class="lead">El catálogo de retos todavía no ha llegado a esta página.</p></section>';
+    var mios={}; ((st.yo&&st.yo.retos)||[]).forEach(function(k){mios[k]=true;});
+    var abiertos=0, hechos=0, bloques='';
+    PLAN.forEach(function(p,i){
+      var t=i+1;
+      var sems=st.semanas.filter(function(s){return s.tema_n===t;});
+      var abre=sems.length?sems[0].sem:99;
+      var abierto=st.actual>=abre&&st.estado!=='antes';
+      var suyos=RET.filter(function(r){return r[4]===t;});
+      if(!suyos.length) return;
+      if(!abierto){
+        bloques+='<details class="reto-pl lock"><summary><span class="pl-n">Planeta '+t+'</span>'
+          +'<b>???</b><em>🔇 Se abre en la semana '+abre+'</em></summary>'
+          +'<p class="small muted">Todavía no. La nave llega a este planeta en la semana '+abre+'.</p></details>';
+        return;
+      }
+      abiertos+=suyos.length;
+      var hechosAqui=suyos.filter(function(r){return mios[r[0]];}).length;
+      hechos+=hechosAqui;
+      var fichas=suyos.map(function(r){
+        var ya=!!mios[r[0]];
+        var texto=AY[r[0]]||'';
+        return '<article class="reto'+(ya?' ok':'')+'">'
+          +'<header><span class="reto-id">'+esc(r[0])+'</span><h4>'+esc(r[1])+'</h4>'
+          +'<span class="reto-xp">'+r[3]+' xp</span>'
+          +(ya?'<span class="reto-ya">✅ ya lo tienes</span>':'')+'</header>'
+          +(texto?'<p>'+esc(texto)+'</p>':'<p class="small muted">Sin descripción todavía: pregunta a tu docente.</p>')
+          +(ya?'':'<p class="small muted">Cuando lo termines, márcalo en tu Bitácora de mando y pega ahí el enlace de lo que has hecho.</p>')
+          +'</article>';
+      }).join('');
+      var actual=sems.some(function(s){return s.sem===st.actual;});
+      bloques+='<details class="reto-pl'+(actual?' actual':'')+'"'+(actual?' open':'')+'>'
+        +'<summary><span class="pl-n">Planeta '+t+'</span><b>'+esc(p[1])+'</b>'
+        +'<em>'+esc(p[2])+'</em><span class="reto-cuenta">'+hechosAqui+'/'+suyos.length+'</span></summary>'
+        +fichas+'</details>';
+    });
+    var finales=RET.filter(function(r){return r[4]>8;});
+    if(finales.length){
+      var abiertoFin=st.estado==='fin'||st.actual>=(st.semanas.length?st.semanas[st.semanas.length-1].sem:99);
+      bloques+='<details class="reto-pl'+(abiertoFin?'':' lock')+'"><summary><span class="pl-n">Final</span>'
+        +'<b>'+(abiertoFin?'La batalla final':'???')+'</b><em>'+(abiertoFin?'el examen':'🔇 al terminar el viaje')+'</em></summary>'
+        +(abiertoFin?finales.map(function(r){
+            return '<article class="reto'+(mios[r[0]]?' ok':'')+'"><header><span class="reto-id">'+esc(r[0])+'</span>'
+              +'<h4>'+esc(r[1])+'</h4><span class="reto-xp">'+r[3]+' xp</span>'
+              +(mios[r[0]]?'<span class="reto-ya">✅ ya lo tienes</span>':'')+'</header>'
+              +'<p>'+esc(AY[r[0]]||'Se abre al final del viaje.')+'</p></article>';
+          }).join('')
+        :'<p class="small muted">Se desbloquea al final del viaje.</p>')+'</details>';
+    }
+    return '<section><div class="eyebrow">Tus retos</div><h2>Qué hay que hacer, explicado</h2>'
+      +'<p class="lead">Llevas <b>'+hechos+' de '+abiertos+'</b> retos de los que ya están abiertos. '
+      +'Los planetas se desbloquean con el calendario: aquí solo ves lo que ya puedes hacer, para no agobiarte con lo que aún no toca. '
+      +'Pulsa un planeta para desplegar sus retos.'
+      +(st.d.formBitacora?' Cuando termines uno, márcalo en tu <a href="'+esc(st.d.formBitacora)+'" data-vent="📓 Bitácora de mando"><b>Bitácora de mando</b></a>.':'')
+      +'</p>'+bloques+'</section>';
   }
   function mapa(){
     var tiles=PLAN.map(function(p,i){
@@ -449,11 +627,36 @@
   // Las cartas llevan texto y a tamaño de miniatura no hay quien lo lea. Solo se abren las que TIENES:
   // las que no, siguen siendo una silueta y no hay nada que leer en ellas.
   function cromosMios(){var t=(st.yo&&st.yo.cromos)||{}; return CROMOS.filter(function(c){return t[c[0]];});}
+  // El personaje, en grande. Mismo overlay que las cartas: si un día cambia el fondo o el cerrar,
+  // cambia para los dos. `data-modo` lo distingue, que las flechas solo tienen sentido en el álbum.
+  function lupaAvatar(){
+    var r=st.yo, d=st.d, SG=window.SG||{}; if(!r) return;
+    var src=SG.avatarSrc?SG.avatarSrc(r.avatar,r.alias,r.xp,d.tipo):null; if(!src) return;
+    var ni=SG.nivelInfo?SG.nivelInfo(r.xp,d.tipo):{nivel:1,rangoNombre:''};
+    var ov=document.getElementById('cromo-lupa');
+    if(!ov){ov=document.createElement('div');ov.id='cromo-lupa';ov.className='lupa';document.body.appendChild(ov);}
+    ov.setAttribute('data-modo','avatar');
+    ov.innerHTML='<div class="lupa-fondo"></div><div class="lupa-caja" role="dialog" aria-modal="true" aria-label="Tu personaje">'
+      +'<button type="button" class="lupa-x" aria-label="Cerrar">×</button>'
+      +'<img class="lupa-av" src="'+esc(src.src)+'" data-fb="'+esc(src.fallback)+'" alt="Tu personaje"'
+      +' onerror="var f=this.dataset.fb; if(this.src.indexOf(f)<0)this.src=f;">'
+      +'<div class="lupa-pie"><h4>'+(r.corona?'👑 ':'')+esc(r.alias)+'</h4>'
+      +(r.titulo?'<p class="small">«'+esc(r.titulo)+'»</p>':'')
+      +'<p class="small muted">Nivel '+ni.nivel+' · '+esc(ni.rangoNombre||src.rango||'')+'</p></div></div>';
+    ov.classList.add('open');
+    ov.querySelector('.lupa-fondo').onclick=cerrarLupa;
+    ov.querySelector('.lupa-x').onclick=cerrarLupa;
+    document.removeEventListener('keydown',teclaLupa);
+    document.addEventListener('keydown',teclaLupa);
+    ov.querySelector('.lupa-x').focus();
+  }
   function cerrarLupa(){var ov=document.getElementById('cromo-lupa'); if(!ov) return;
-    ov.classList.remove('open'); ov.innerHTML=''; document.removeEventListener('keydown',teclaLupa);}
+    ov.classList.remove('open'); ov.innerHTML=''; ov.removeAttribute('data-modo');
+    document.removeEventListener('keydown',teclaLupa);}
   function teclaLupa(e){
     if(e.key==='Escape'){e.preventDefault();cerrarLupa();return;}
     var ov=document.getElementById('cromo-lupa'); if(!ov||!ov.classList.contains('open')) return;
+    if(ov.getAttribute('data-modo')==='avatar') return;      // el personaje es uno: no hay anterior ni siguiente
     if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();
       var mias=cromosMios(), i=Number(ov.getAttribute('data-i'))||0;
       if(mias.length<2) return;
@@ -492,8 +695,17 @@
 
   // ---------- render ----------
   function render(){
-    root.innerHTML=cabecera()+accesos()+personaje()+vestuario()+estaSemana()+mapa()+recompensas();
+    root.innerHTML=cabecera()+accesos()+pestanas()+contenido();
+    verTablero(st.tab==='tablero');
+    Array.prototype.forEach.call(root.querySelectorAll('.nave-tab[data-tab]'),function(b){
+      b.onclick=function(){ irA(b.getAttribute('data-tab')); };
+    });
     wireYt(root);
+    Array.prototype.forEach.call(root.querySelectorAll('.acc[data-ir]'),function(a){
+      a.onclick=function(e){ e.preventDefault(); irA(a.getAttribute('data-ir')); };
+    });
+    wireVentanas(root);
+    var bav=root.querySelector('#btn-av'); if(bav) bav.onclick=lupaAvatar;
     var det=root.querySelector('#nave-detalle');
     Array.prototype.forEach.call(root.querySelectorAll('.nave-pl.on'),function(el){
       function abrir(){var t=Number(el.getAttribute('data-tema'));
@@ -506,13 +718,36 @@
     if(bm)bm.onclick=function(){identificar(im.value);};
     if(im)im.addEventListener('keydown',function(e){if(e.key==='Enter')identificar(im.value);});
     var bo=root.querySelector('#btn-olvidar'); if(bo)bo.onclick=olvidar;
+    // 29-ago · VESTIRSE TIENE QUE NOTARSE. Funcionaba, pero el único aviso era que el botón se
+    // quedaba gris mientras Apps Script contestaba (2-5 s) y el repintado llegaba solo, arriba del
+    // todo, donde el alumno no estaba mirando: parecía que el clic no había hecho nada, y volvía a
+    // pulsar. Ahora: se marca AL INSTANTE (optimista), se cambia el avatar de la ficha en el sitio,
+    // y al confirmar el servidor sale un cartel. Si falla, se deshace y se dice por qué.
     Array.prototype.forEach.call(root.querySelectorAll('button.vest[data-viste]'),function(b){
       b.onclick=function(){
         if(b.classList.contains('no')||!st.email) return;
-        b.disabled=true;
-        post({accion:'vestir',per:per,email:st.email,viste:b.getAttribute('data-viste')},function(){
-          identificar(st.email);        // recarga la ficha y repinta con lo puesto
-        },function(e){ b.disabled=false; alert(e); });
+        var clave=b.getAttribute('data-viste');
+        if(b.classList.contains('on')) return;            // ya lo llevas puesto: no molestes al servidor
+        var antes=root.querySelector('button.vest.on');
+        var nombre=(b.querySelector('b')||{}).textContent||'tu personaje';
+        var img=(b.querySelector('img')||{}).getAttribute&&b.querySelector('img').getAttribute('src');
+        // 1) al instante, antes de que el servidor conteste
+        if(antes) antes.classList.remove('on');
+        b.classList.add('on'); b.classList.add('guardando');
+        var av=root.querySelector('#btn-av img.av'); var avAntes=av?av.getAttribute('src'):null;
+        if(av&&img) av.setAttribute('src',img);
+        // 2) y se pide de verdad
+        post({accion:'vestir',per:per,email:st.email,viste:clave},function(){
+          b.classList.remove('guardando');
+          if(st.yo) st.yo.viste=clave;
+          aviso('✅ Ya llevas puesto <b>'+esc(nombre)+'</b>');
+          refrescarYo();                                   // callado: sin pantalla de carga ni saltos
+        },function(e){
+          b.classList.remove('on'); b.classList.remove('guardando');
+          if(antes) antes.classList.add('on');
+          if(av&&avAntes) av.setAttribute('src',avAntes);
+          aviso('⚠️ No se ha podido cambiar: '+esc(String(e)), true);
+        });
       };});
     Array.prototype.forEach.call(root.querySelectorAll('.album .c[data-c]'),function(el){
       var clave=el.getAttribute('data-c');

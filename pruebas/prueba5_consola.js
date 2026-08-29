@@ -8,12 +8,11 @@ const G = E.nuevoMundo();
 E.crearPERDemo(G);
 const PER = "prueba-banco";
 const RET = G.retosDe_("REGULAR");
-const col = t => "Tema " + t + " · Lo que he completado";
 
 E.enviarBitacora(G, PER, { email: "a@alumno.es", alias: "Aa", nombre: "A A", profe: "Mr Cuarter" });
 E.enviarBitacora(G, PER, { email: "b@alumno.es", alias: "Bb", nombre: "B B", profe: "Norberto Genially" });
 E.enviarBitacora(G, PER, { email: "c@alumno.es", alias: "Cc", nombre: "C C", profe: "" });   // sin docente
-E.enviarBitacora(G, PER, { email: "a@alumno.es", marcados: { [col(1)]: RET.filter(r => r[4] === 1).map(r => r[1]).join(", ") } }, 2);
+E.enviarBitacora(G, PER, { email: "a@alumno.es", marcados: E.marcar(G, RET.filter(r => r[4] === 1)) }, 2);
 
 // un canje de nota pendiente de aplicar. Ojo: subir nota EXIGE planetas completos, así que primero
 // se le dan los suyos — que es justo lo que la regla quiere: no se toca la nota sin haber trabajado.

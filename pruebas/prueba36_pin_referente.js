@@ -109,14 +109,25 @@ igual(Object.keys(enElCodigo).length, 17, "y siguen siendo 17");
 G = mundo(DOCENTE, REFERENTE);
 G._post({ accion: "inicio", per: PER, pin: REFERENTE, inicio: E.iso(E.haceSemanas(3)), profe: "Norberto Cuartero" });
 G._post({ accion: "archivar", per: PER, pin: REFERENTE, valor: true, profe: "Norberto Cuartero" });
-const traza = G.hoja_(G.H.AJ).getDataRange().getValues().slice(1).filter(v => v[3] === "REFERENTE");
+// v3.36 · se lee por registros_(), la puerta única: la segunda acción de esta prueba es ARCHIVAR, y
+// archivar MUEVE los registros del grupo a «AJUSTES ARCHIVADOS». Mirando solo la pestaña viva, media
+// traza habría desaparecido — que es justo lo que no puede pasar con un registro de quién tocó qué.
+// Se ordena por NOMBRE, no por fecha: las dos filas se escriben en el mismo milisegundo y ordenar
+// por hora aquí sería tirar una moneda al aire cada vez que se ejecuta el banco.
+const trazaDe = () => G.registros_(G.H.AJ, PER).filter(v => v[3] === "REFERENTE");
+const traza = trazaDe();
 igual(traza.length, 2, "🔴 cada acción de referente deja su fila en AJUSTES");
-igual(traza.map(v => v[4]), ["inicio", "archivar"], "con la acción");
-igual((traza[0] || [])[6], "Norberto Cuartero", "y con quién la hizo");
+igual(traza.map(v => v[4]).sort(), ["archivar", "inicio"], "con la acción");
+c(traza.every(v => v[6] === "Norberto Cuartero"), "y con quién la hizo");
 c(traza.every(v => !/@/.test(String(v[5]))), "sin arrastrar correos al motivo (la exportación de investigación va seudonimizada)");
+// 🔴 y lo importante del archivo: la traza NO se pierde al mudarse, solo cambia de pestaña
+igual(G.hoja_(G.H.AJA).getDataRange().getValues().slice(1).filter(v => v[4] === "inicio").length, 1,
+  "🔴 archivar MUEVE la traza al archivo, no la borra");
+igual(G.hoja_(G.H.AJ).getDataRange().getValues().slice(1).filter(v => v[1] === PER && v[4] === "inicio").length, 0,
+  "y deja de estorbar en la pestaña viva, que es de lo que se trataba");
 // y lo que NO se hizo no deja rastro: si no, el registro miente
 G._post({ accion: "cerrar", per: PER, pin: DOCENTE });
-igual(G.hoja_(G.H.AJ).getDataRange().getValues().slice(1).filter(v => v[3] === "REFERENTE").length, 2,
+igual(trazaDe().length, 2,
   "🔴 lo rechazado no se apunta: el registro cuenta lo que PASÓ, no lo que se intentó");
 
 // ---------------------------------------------------------------- f) los dos PIN iguales

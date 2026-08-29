@@ -71,7 +71,19 @@ function nuevoMundo() {
     getUi: () => M.UI,
     getActiveRange: () => maestra.getActiveRange(),
     getActiveSheet: () => maestra.getActiveSheet(),
-    newDataValidation() { const v = { requireValueInList: () => v, setAllowInvalid: () => v, build: () => ({}) }; return v; }
+    newDataValidation() { const v = { requireValueInList: () => v, setAllowInvalid: () => v, build: () => ({}) }; return v; },
+    // Constructor de reglas de formato condicional. Guarda lo que le piden para que las baterías
+    // puedan leer QUÉ fórmula y QUÉ color se pusieron, y en qué orden.
+    newConditionalFormatRule() {
+      const r = { formula: "", fondo: "", rangos: [] };
+      const api = {
+        whenFormulaSatisfied(f) { r.formula = f; return api; },
+        setBackground(c) { r.fondo = c; return api; },
+        setRanges(rs) { r.rangos = rs; return api; },
+        build: () => r
+      };
+      return api;
+    }
   };
 
   const registro = [];
@@ -142,7 +154,11 @@ function enviarBitacora(G, perId, datos, editarFila) {
   poner("¿Quién imparte tu clase?", datos.profe, "");
   poner("Enlace a mi Bitácora (ePortfolio)", datos.bitacora, "");
   poner("Breve biografía de tu personaje", datos.bio, "Un recluta.");
-  poner("¿Qué vienes a registrar hoy?", datos.nav, "Nada más: solo me alisto / actualizo mis datos");
+  // v3.37 · los dos desplegables de navegación del formulario nuevo. No los lee nadie del servidor
+  // (solo mandan al alumno a una página u otra), pero se rellenan para que la fila sea como la real.
+  poner("¿QUÉ QUIERES HACER HOY?", datos.hoy, "🚀 REGISTRAR RETOS que ya he completado");
+  poner("Ya está. ¿Quieres registrar algún reto ahora?", datos.tras, "No, ya está: ENVIAR");
+  poner("¿De qué planeta es lo que has completado?", datos.planeta, "");
   Object.keys(datos.marcados || {}).forEach(k => { v[k] = datos.marcados[k]; });
   return _enviar(G, hoja, v, editarFila);
 }
@@ -187,8 +203,47 @@ function etiqueta(G, nombre) {
   return r.nombre + " — " + r.coste + " créditos";
 }
 
+// Marca los retos que se le pasen (etiquetas o filas del catálogo). Las baterías dicen QUÉ retos
+// marca el alumno; cómo se llama la columna es cosa del formulario y vive aquí, en un solo sitio.
+// Antes cada batería escribía a mano «Tema N · Lo que he completado», y al rediseñar el formulario
+// hubo que tocarlas todas. No otra vez.
+function marcar(G, retos, enlace) {
+  const cat = G.RETOS_REGULAR.concat(G.RETOS_PUA);
+  const m = {};
+  (retos || []).forEach(x => {
+    const et = Array.isArray(x) ? x[1] : String(x);
+    m[et] = G.OPC_HECHO;
+    if (enlace) {
+      const r = cat.filter(y => y[1] === et)[0];
+      if (r) m[G.tituloEvidenciaReto_(r)] = enlace;
+    }
+  });
+  return m;
+}
+
 // Marca TODOS los retos del tipo indicado: deja al recluta con el viaje completo (590 ◈ · 5000 xp)
-function todoMarcado(G, tipo) {
+// v3.37 · una columna POR RETO (antes era una casilla por planeta con las etiquetas separadas por
+// coma). `conEnlace` pone además la evidencia de cada uno, que ahora también va por reto.
+function todoMarcado(G, tipo, conEnlace) {
+  const m = {};
+  G.retosDe_(tipo || "REGULAR").forEach(r => {
+    m[r[1]] = G.OPC_HECHO;
+    if (conEnlace) m[G.tituloEvidenciaReto_(r)] = typeof conEnlace === "string" ? conEnlace : "https://evidencia.example/" + r[0];
+  });
+  return m;
+}
+// Lo contrario de marcar(): la columna llega VACÍA. Es lo que pasa de verdad cuando el alumno edita
+// su respuesta desde otra sección — Google reescribe la fila entera y las casillas que no ve van en
+// blanco. El sistema solo AÑADE, así que no puede perder lo de antes.
+function desmarcar(G, retos) {
+  const m = {};
+  (retos || []).forEach(x => { m[Array.isArray(x) ? x[1] : String(x)] = ""; });
+  return m;
+}
+
+// El formato VIEJO (una casilla por planeta), para comprobar que se siguen leyendo las respuestas
+// anteriores a la reforma del 29-ago: sus columnas se quedan en la hoja para siempre.
+function todoMarcadoViejo(G, tipo) {
   const m = {};
   G.retosDe_(tipo || "REGULAR").forEach(r => {
     const k = r[4] > 8 ? "Batalla final" : "Tema " + r[4] + " · Lo que he completado";
@@ -227,5 +282,5 @@ function crearPERDemo(G, extra) {
 }
 
 module.exports = { nuevoMundo, comprobar, igual, contiene, resumen, iso, haceSemanas,
-                   enviarBitacora, enviarCanje, canjeSinResolver, etiqueta, crearPERDemo, todoMarcado, reclutaRico,
+                   enviarBitacora, enviarCanje, canjeSinResolver, etiqueta, crearPERDemo, todoMarcado, todoMarcadoViejo, marcar, desmarcar, reclutaRico,
                    DOCENTES_DEMO, M, FormApp };

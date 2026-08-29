@@ -14,39 +14,71 @@ const bit = G.FormApp.openByUrl(G.perObj_(G.perFila_(per).v).formBitacoraEdit);
 const item = t => bit.getItems().filter(i => i.getTitle() === t)[0];
 const titulos = () => bit.getItems().map(i => i.getTitle());
 
-// ---------------------------------------------------------------- a) cada tema explica sus retos
-const cas = bit.getItems(G.FormApp.ItemType.CHECKBOX).filter(i => /^Tema \d /.test(i.getTitle()));
-c(cas.length >= 8, "hay una casilla por tema (" + cas.length + ")");
-cas.forEach(cb => {
-  const t = Number(cb.getTitle().match(/^Tema (\d) /)[1]);
-  const ayuda = cb.getHelpText();
-  const suyos = G.RETOS_REGULAR.filter(r => r[4] === t);
-  suyos.forEach(r => {
-    contiene(ayuda, r[1], "el tema " + t + " nombra «" + r[1].slice(0, 28) + "…»");
-    if (G.AYUDA_RETOS[r[0]]) contiene(ayuda, G.AYUDA_RETOS[r[0]].slice(0, 24),
-      "🔴 y dice QUÉ hay que hacer, no solo cómo se llama");
-  });
-  contiene(ayuda, "recluta.html?per=" + per, "y enlaza su Nave por si aun así hay dudas");
+// ---------------------------------------------------------------- a) UN BLOQUE POR RETO (v3.37)
+// Reforma del 29-ago. Antes cada planeta era UNA casilla con todos sus retos dentro y su enunciado
+// apelotonado en la ayuda: el alumno leía un muro de texto y no sabía a cuál correspondía qué.
+// Ahora cada reto es su propia pregunta —título, enunciado, casilla y SU enlace—, que es lo que
+// pidió Norberto leyéndolo en vivo.
+const RETOS = G.RETOS_REGULAR;
+RETOS.forEach(r => {
+  const cb = item(r[1]);
+  c(!!cb && cb.getType() === "CHECKBOX", "el reto «" + r[0] + "» tiene su propia casilla");
+  if (!cb) return;
+  igual(cb.getChoices().map(x => x.getValue()), [G.OPC_HECHO], "y una sola opción: lo he completado");
+  if (G.AYUDA_RETOS[r[0]])
+    contiene(cb.getHelpText(), G.AYUDA_RETOS[r[0]].slice(0, 24),
+      "🔴 con SU enunciado al lado, no el de los tres retos del planeta juntos");
+});
+igual(titulos().filter(t => /^Tema \d · Lo que he completado$/.test(t)).length, 0,
+  "y ya no queda ninguna casilla «una por planeta»");
+
+// ---------------------------------------------------------------- b) un enlace POR RETO
+const evs = titulos().filter(t => t.indexOf(G.EVIDENCIA_PREF) === 0);
+igual(evs.length, RETOS.length, "un enlace de evidencia por RETO, no uno por planeta");
+igual(new Set(evs).size, evs.length,
+  "🔴 con nombre DISTINTO cada uno: si se llamaran igual, la hoja tendría columnas repetidas y leerFila_ solo vería la última");
+contiene(item(G.tituloEvidenciaReto_(RETOS[0])).getHelpText(), "incógnito",
+  "y avisa de lo que más falla: un enlace que pide permiso no lo puede abrir el profe");
+// el orden importa: el enlace va PEGADO a su casilla, no al final de la página
+const orden = titulos();
+RETOS.forEach(r => {
+  igual(orden.indexOf(G.tituloEvidenciaReto_(r)), orden.indexOf(r[1]) + 1,
+    "el enlace del reto " + r[0] + " va justo debajo de su casilla");
 });
 
-// ---------------------------------------------------------------- b) el enlace de evidencia
-const evs = titulos().filter(t => t.indexOf(G.EVIDENCIA_PREF) === 0);
-igual(evs.length, cas.length + 1, "un enlace de evidencia por sección, incluida la batalla final");
-igual(new Set(evs).size, evs.length,
-  "🔴 con nombre DISTINTO cada uno: si se llamaran igual, la hoja de respuestas tendría nueve columnas iguales y leerFila_ solo vería la última");
-contiene(item(G.tituloEvidencia_(1)).getHelpText(), "incógnito",
-  "y avisa de lo que más falla: un enlace que pide permiso no lo puede abrir el profe");
-
-// ---------------------------------------------------------------- c) se guarda CON el reto
-const delTema1 = G.RETOS_REGULAR.filter(r => r[4] === 1).slice(0, 2);
+// ---------------------------------------------------------------- c) cada enlace, con SU reto
+// Lo que esto de verdad arregla: antes había UN enlace por envío y se copiaba en TODOS los retos
+// marcados, así que el profe veía la misma URL en tres retos distintos sin saber cuál era cuál.
+const delTema1 = RETOS.filter(r => r[4] === 1).slice(0, 2);
+const marcas = E.marcar(G, delTema1);
+marcas[G.tituloEvidenciaReto_(delTema1[0])] = "https://view.genially.com/uno";
+marcas[G.tituloEvidenciaReto_(delTema1[1])] = "https://view.genially.com/dos";
 E.enviarBitacora(G, per, { email: "nova@alumno.es", alias: "Nova", nombre: "N N", profe: "Mr Cuarter",
-  marcados: { "Tema 1 · Lo que he completado": delTema1.map(r => r[1]).join(", "),
-              [G.tituloEvidencia_(1)]: "https://view.genially.com/bitacora-nova" } });
+  marcados: marcas });
 const yo = G.tablero_(per, true).reclutas.filter(x => x.email === "nova@alumno.es")[0];
-const conPrueba = yo.eventos.filter(e => e.evidencia);
-igual(conPrueba.length, 2, "🔴 el enlace queda pegado a CADA reto de ese envío, no en una columna suelta");
-conPrueba.forEach(e => igual(e.evidencia, "https://view.genially.com/bitacora-nova", "y es el que puso"));
+const ev1 = yo.eventos.filter(e => e.reto_id === delTema1[0][0])[0];
+const ev2 = yo.eventos.filter(e => e.reto_id === delTema1[1][0])[0];
+igual(ev1.evidencia, "https://view.genially.com/uno", "🔴 cada reto guarda EL SUYO…");
+igual(ev2.evidencia, "https://view.genially.com/dos", "…y no el del de al lado");
 igual(yo.eventos.filter(e => e.reto_id === "H1")[0].evidencia, "", "el reclutamiento no lleva enlace: no se entrega nada");
+
+// ---------------------------------------------------------------- c bis) las respuestas VIEJAS
+// 🔴 Las columnas del formato anterior NO desaparecen de la hoja al cambiar el formulario: Google
+// las conserva con lo que cada alumno contestó. Si el lector dejara de entenderlas, todo lo
+// registrado antes de la reforma se volvería invisible en el siguiente envío de esa persona.
+const shV = G._maestra.getSheetByName("B · " + per);
+const cabV = shV.getRange(1, 1, 1, shV.getLastColumn()).getValues()[0].map(String);
+const nc = cabV.length;
+shV.getRange(1, nc + 1, 1, 2).setValues([["Tema 2 · Lo que he completado", G.EVIDENCIA_PREF + "Tema 2"]]);
+const delTema2 = RETOS.filter(r => r[4] === 2);
+shV.getRange(2, nc + 1, 1, 2).setValues([[delTema2.map(r => r[1]).join(", "), "https://view.genially.com/viejo"]]);
+G.alRecibirRespuesta({ range: { getSheet: () => shV, getRow: () => 2 } });
+const yo2 = G.tablero_(per, true).reclutas.filter(x => x.email === "nova@alumno.es")[0];
+delTema2.forEach(r => {
+  const e = yo2.eventos.filter(x => x.reto_id === r[0])[0];
+  c(!!e, "se sigue leyendo el formato viejo: " + r[0]);
+  if (e) igual(e.evidencia, "https://view.genially.com/viejo", "con su enlace de entonces, el del planeta entero");
+});
 
 // ---------------------------------------------------------------- d) idempotente
 const antes = titulos().length;

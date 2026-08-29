@@ -5,10 +5,17 @@
 // El orden lo decide el modo; los datos son siempre los mismos y las tres columnas se ven a la vez.
 (function(){
   var API=(window.SG_TABLERO_API||"").trim(); var root=document.getElementById('tablero-app'); if(!root) return;
-  var q=new URLSearchParams(location.search), per=q.get('per'), embed=q.get('embed')==='1'; if(embed) document.body.classList.add('embed');
+  var q=new URLSearchParams(location.search), per=q.get('per');
+  // v3.37 · ALOJADO: este mismo ranking vive ahora DENTRO de la Nave del Recluta. Es la única página
+  // web que se le da al alumnado, así que el tablero tenía que estar ahí — hasta hoy la Nave
+  // enlazaba a registro.html, que es la web del profesorado con la guía de instalación.
+  // 🔴 Cuando va alojado NO se tocan las clases del <body>: «solo-ranking» esconde todas las
+  // secciones que no llevan el tablero dentro, o sea que dejaría la Nave en blanco.
+  var alojado=!!window.SG_TABLERO_ALOJADO;
+  var embed=q.get('embed')==='1'; if(embed&&!alojado) document.body.classList.add('embed');
   // v3.20 · &solo=1 · SOLO EL RANKING, para incrustarlo en un Genially sin nada alrededor: fuera los
   // botones de los formularios y fuera la cabecera. Lo que queda es la competición y nada más.
-  var solo=q.get('solo')==='1'; if(solo) document.body.classList.add('solo-ranking');
+  var solo=alojado||q.get('solo')==='1'; if(solo&&!alojado) document.body.classList.add('solo-ranking');
   var N=window.SG_BADGE_NAMES||{};
   var ORDEN=["P1_bran","P2_tomas","P3_sylla","P4_amara","P5_vera","P6_joran","P7_mara","P8_noa","R1_la-chispa","R2_el-eco-que-ensena","R3_la-matriz","R4_entorno-de-aula","R5_bitacora-medida","R6_el-juego","R7_microgamificacion","R8_ultimo-umbral","E1_nebula","E2_capitan","E3_vaeon","H1_reclutamiento","H2_primera-forja","H3_cartografo","H4_tripulacion-cero","H5_la-liberacion"];
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}

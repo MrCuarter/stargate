@@ -36,7 +36,7 @@ const RET = G.retosDe_("REGULAR");
 const etA1 = RET.filter(r => r[0] === "A1")[0][1];
 const etB1 = RET.filter(r => r[0] === "B1")[0][1];
 const etX1 = RET.filter(r => r[0] === "X1")[0][1];
-E.enviarBitacora(G, PER, { email: "ana@alumno.es", marcados: { "Tema 1 · Lo que he completado": [etA1, etB1, etX1].join(", ") } }, 2);
+E.enviarBitacora(G, PER, { email: "ana@alumno.es", marcados: E.marcar(G, [etA1, etB1, etX1]) }, 2);
 
 t = G.tablero_(PER, true);
 const ana2 = t.reclutas.filter(x => x.email === "ana@alumno.es")[0];
@@ -58,9 +58,7 @@ igual(ana2.xp_faltan, 1150 - ana2.xp, "lo que falta para el nivel 4 cuadra con e
 
 // --- derivadas ------------------------------------------------------------------------------
 const todosA = RET.filter(r => r[0].charAt(0) === "A");
-const porTema = {};
-todosA.forEach(r => { const k = "Tema " + r[4] + " · Lo que he completado"; porTema[k] = (porTema[k] ? porTema[k] + ", " : "") + r[1]; });
-E.enviarBitacora(G, PER, { email: "bea@alumno.es", marcados: porTema }, 3);
+E.enviarBitacora(G, PER, { email: "bea@alumno.es", marcados: E.marcar(G, todosA) }, 3);
 t = G.tablero_(PER, true);
 const bea = t.reclutas.filter(x => x.email === "bea@alumno.es")[0];
 c(bea.insignias.indexOf("H4_tripulacion-cero") >= 0, "recuperar a los 8 da la insignia derivada «Tripulación Cero»");
@@ -72,7 +70,7 @@ E.crearPERDemo(G2, { nombre: "PUA BANCO", tipo: "PUA" });
 E.enviarBitacora(G2, "pua-banco", { email: "pua@alumno.es", alias: "Pua", nombre: "P U", profe: "Mr Cuarter" });
 const RP = G2.retosDe_("PUA");
 E.enviarBitacora(G2, "pua-banco", { email: "pua@alumno.es",
-  marcados: { "Tema 1 · Lo que he completado": [RP[0][1], RP[1][1]].join(", ") } }, 2);
+  marcados: E.marcar(G2, [RP[0], RP[1]]) }, 2);
 const tp = G2.tablero_("pua-banco", true).reclutas[0];
 igual(tp.xp, 100 + 300 + 500 + G2.BONUS_PLANETA.xp, "PUA: reclutamiento + B1 + X1 + planeta completo");
 igual(tp.creditos_ganados, 20 + 55 + 100 + G2.BONUS_PLANETA.creditos, "PUA: el reto B vale 55 créditos, más el bonus");

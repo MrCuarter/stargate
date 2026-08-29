@@ -83,6 +83,8 @@ function menuStargate_() {
     .addItem("Guardar panel de control estándar (Genially)", "guardarPanelEstandar")
     .addItem("Abrir la Consola del profesorado (y ponerla al día)", "abrirConsola")
     .addItem("Parte de salud del sistema", "parteDeSalud")
+    .addItem("Pestaña ALUMNADO (quién es quién, al día)", "actualizarAlumnado")
+    .addItem("Colorear la hoja (un color por grupo y los avisos)", "colorearHoja")
     .addItem("Consolidar DATOS / RESUMEN (investigación)", "consolidarDatos")
     .addSeparator()
     .addSubMenu(SpreadsheetApp.getUi().createMenu("Ciclo de vida del PER (fila seleccionada)")
@@ -96,6 +98,7 @@ function menuStargate_() {
       .addItem("Actualizar las imágenes de los formularios (planetas y personajes)", "actualizarImagenesPlanetas")
       .addItem("Bonus de la tripulación (umbral y créditos)", "ajustarBonusTripulacion")
       .addItem("Pase de lista en directo (créditos y minutos)", "ajustarPase")
+      .addItem("Sembrar alumnado de PRUEBA (PER seleccionado)", "sembrarDemo")
       .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
     .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
@@ -111,14 +114,72 @@ function hoja_(nombre, cab, color) {
   if (!sh) { sh = ss.insertSheet(nombre); if (cab && cab.length) { sh.appendRow(cab); sh.setFrozenRows(1); } if (color) sh.setTabColor(color); }
   return sh;
 }
+// ================= EL ARCHIVO Y EL ACCESO A LOS REGISTROS =================
+// Las cabeceras viven aquí y NO se repiten: las pestañas vivas, sus archivos y quien mueve filas de
+// una a otra leen todas de estas dos listas. Un dato, un sitio.
+var CAB_EV = ["fecha","per","email","alias","reto_id","reto","tema","xp","origen","evidencia"];
+var CAB_AJ = ["fecha","per","email","reto_id","accion","motivo","profe"];
+var CAB_ALUMNADO = ["PER","Grupo","Nombre y apellidos","Correo","Alias","Docente","Nivel","Rango","xp",
+                    "Créditos","Ganados","Gastados","Insignias","Retos","Canjes","Qué ha canjeado",
+                    "Cromos","Héroes","Planeta","Bitácora","Última actividad","Grupo archivado"];
+
+function archivoDe_(nombre) { return nombre === H.AJ || nombre === H.AJA ? H.AJA : H.EVA; }
+function vivaDe_(nombre)    { return nombre === H.AJ || nombre === H.AJA ? H.AJ  : H.EV; }
+function anchoDe_(nombre) {
+  if (nombre === H.EV) return CAB_EV.length;
+  if (nombre === H.EVA) return CAB_EV.length + 1;
+  if (nombre === H.AJ) return CAB_AJ.length;
+  if (nombre === H.AJA) return CAB_AJ.length + 1;
+  return 0;
+}
+// 🔴 LA ÚNICA PUERTA DE LECTURA de EVENTOS y AJUSTES. Mira la pestaña viva Y su archivo, porque un
+// PER archivado tiene sus filas mudadas y su tablero histórico —el que abre el enlace directo— se
+// quedaría vacío. Quien lea sin pasar por aquí verá medio sistema: lo comprueba la batería 37.
+// Escribir, en cambio, va SIEMPRE a la pestaña viva: un grupo archivado tiene los formularios
+// cerrados y no recibe nada nuevo.
+function registros_(nombre, perId) {
+  var out = [], ss = SpreadsheetApp.getActive();
+  [vivaDe_(nombre), archivoDe_(nombre)].forEach(function(n){
+    var sh = ss.getSheetByName(n); if (!sh || sh.getLastRow() < 2) return;
+    sh.getDataRange().getValues().slice(1).forEach(function(v){
+      if (!v[0] && !v[1] && !v[2]) return;                  // filas en blanco del final
+      if (!perId || String(v[1]) === String(perId)) out.push(v);
+    });
+  });
+  return out;
+}
+// Todas las pestañas del sistema que guardan datos de PER. «Resetear la hoja» las vacía TODAS, y la
+// lista está aquí para que añadir una pestaña nueva y olvidarse de vaciarla no vuelva a pasar.
+//
+// 🔴 CONSENTIMIENTO NO ESTÁ, Y ES A PROPÓSITO (decisión de Norberto, 29-ago): es el registro de quién
+// autorizó que sus datos se usen para investigar. Los grupos van y vienen; la autorización de una
+// persona no. Si se borrara, un paper publicado el año que viene se quedaría sin el papel que lo
+// respalda — y eso no se puede reconstruir preguntando otra vez. Se conserva, como el catálogo.
+function hojasDeDatos_() { return [H.EV, H.AJ, H.EVA, H.AJA, H.DOC, H.ALU, H.DATOS, H.RES]; }
+// Lo que el reseteo NO toca, con su motivo. Se usa para explicarlo en el aviso y lo comprueba el banco.
+function hojasQueSobreviven_() { return [H.PERS, H.REC, H.CONS]; }
+function vaciarHoja_(nombre) {
+  var sh = SpreadsheetApp.getActive().getSheetByName(nombre); if (!sh) return 0;
+  var filas = sh.getLastRow() - 1; if (filas < 1) return 0;
+  sh.getRange(2, 1, filas, Math.max(sh.getLastColumn(), 1)).clearContent();
+  return filas;
+}
 function asegurarHojas_() {
   hoja_(H.PERS, ["id","PER","Tipo","Profesorado","Inicio (semana 1)","Apertura","Cierre","Estado",
                  "Bitácora (alumnado)","Bitácora (editar)","Ticket (alumnado)","Canje (alumnado)","Pestaña B","Pestaña T","Pestaña C","Creado","Referente","Ticket (editar)"], "#37e0ec");
   var rec = hoja_(H.REC, ["Recompensa","Coste (créditos)","Máx. por alumno","Descripción","Disponible desde (semana)","Tipo"], "#f5b043");
   if (rec.getLastRow() < 2) rec.getRange(2,1,RECOMPENSAS_INICIALES.length,6).setValues(RECOMPENSAS_INICIALES);
   else migrarRecompensas_(rec);
-  hoja_(H.EV, ["fecha","per","email","alias","reto_id","reto","tema","xp","origen","evidencia"], "#aa66cc");
-  hoja_(H.AJ, ["fecha","per","email","reto_id","accion","motivo","profe"], "#aa66cc");
+  hoja_(H.EV, CAB_EV, "#aa66cc");
+  hoja_(H.AJ, CAB_AJ, "#aa66cc");
+  // v3.36 · EL ARCHIVO. Archivar un PER MUEVE sus registros aquí: EVENTOS y AJUSTES se quedan con
+  // los grupos vivos —que es lo que se lee cien veces al día— y el histórico sigue entero. Las dos
+  // llevan una columna de más, «archivado», con el día en que se mudó cada fila.
+  hoja_(H.EVA, CAB_EV.concat(["archivado"]), "#6b4f8a");
+  hoja_(H.AJA, CAB_AJ.concat(["archivado"]), "#6b4f8a");
+  // v3.36 · ALUMNADO · la foto operativa de las personas, con nombre y correo. Se rehace entera al
+  // pedirla (menú) y de madrugada: NO se escribe a mano, que se pierde al refrescar.
+  hoja_(H.ALU, CAB_ALUMNADO, "#37e0ec");
   // v3.11 · equipo docente CON CORREO: es a quien se avisa cuando un canje pide su intervención,
   // y lo que permite filtrar cada grupo por docente. Se puede editar a mano en esta pestaña.
   // rol: "referente", "imparte" o "referente+imparte" (el referente puede dar clase también)
@@ -330,22 +391,29 @@ function borrarOrbesCache_() {
 // Coloca el orbe justo debajo de su salto de página. Idempotente. Devuelve cuántos faltan por poner:
 // si la web no responde se para a las 2 seguidas (no tiene sentido esperar 8 veces 12 segundos) y deja
 // el resto pendiente para la continuación.
+// v3.37 · el orbe pasa de 160 a ANCHO_ORBE px. Norberto: «podrías poner la imagen de los planetas más
+// grandes, están muy pequeños». A 160 px era un icono; el formulario da 640 de ancho.
+var ANCHO_ORBE = 460;
 function imagenesBitacora_(fb) {
   var puestas = {};
-  fb.getItems(FormApp.ItemType.IMAGE).forEach(function(i){ puestas[i.getTitle()] = true; });
-  var n = 0, faltan = 0, seguidos = 0;
+  fb.getItems(FormApp.ItemType.IMAGE).forEach(function(i){ puestas[i.getTitle()] = i; });
+  var n = 0, faltan = 0, seguidos = 0, agrandadas = 0;
   for (var t = 1; t <= 8; t++) {
-    if (puestas[TEMAS[t][0]]) continue;
-    var pb = fb.getItems(FormApp.ItemType.PAGE_BREAK).filter(function(p){ return p.getTitle().indexOf("Tema " + t + " ") === 0; })[0];
+    // la que ya está solo necesita crecer: ni se descarga ni se vuelve a subir
+    if (puestas[TEMAS[t][0]]) {
+      try { puestas[TEMAS[t][0]].setWidth(ANCHO_ORBE).setAlignment(FormApp.Alignment.CENTER); agrandadas++; } catch (e) {}
+      continue;
+    }
+    var pb = fb.getItems(FormApp.ItemType.PAGE_BREAK).filter(function(p){ return temaDePagina_(p.getTitle()) === t; })[0];
     if (!pb) continue;
     if (seguidos >= 2) { faltan++; continue; }        // la web está caída: no insistas ocho veces
     try {
-      var it2 = fb.addImageItem().setImage(orbeBlob_(t)).setTitle(TEMAS[t][0]).setAlignment(FormApp.Alignment.CENTER).setWidth(160);
+      var it2 = fb.addImageItem().setImage(orbeBlob_(t)).setTitle(TEMAS[t][0]).setAlignment(FormApp.Alignment.CENTER).setWidth(ANCHO_ORBE);
       fb.moveItem(it2.getIndex(), pb.getIndex() + 1);
       n++; seguidos = 0;
     } catch (e) { Logger.log("imagenesBitacora_ tema " + t + ": " + e); faltan++; seguidos++; }
   }
-  return { puestos: n, faltan: faltan };
+  return { puestos: n, faltan: faltan, agrandadas: agrandadas };
 }
 function publicar_(form) { try { if (form.setPublished) form.setPublished(true); } catch (e) { Logger.log("setPublished: " + e); } }
 function publicarFormulariosPER() {
@@ -490,41 +558,42 @@ function crearPER(datos) {
   // nadie. Cada evento se guarda en EVENTOS con su propia fecha (ver registrarEventos_).
   fb.setCollectEmail(true).setLimitOneResponsePerUser(true).setAllowResponseEdits(true).setShowLinkToRespondAgain(false)
     .setConfirmationMessage(confirmacionBitacora_(id));
-  fb.addSectionHeaderItem().setTitle("Quién soy")
-    .setHelpText("Esto es el ALISTAMIENTO y solo se hace una vez. Si ya te alistaste, salta a los temas y marca lo nuevo.");
-  fb.addTextItem().setTitle("Alias de recluta (público)").setHelpText("Lo que se verá en el tablero. Solo la primera vez: si ya te alistaste, déjalo en blanco.").setRequired(false);
-  fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado. Solo la primera vez.").setRequired(false);
-  // avatar: SOLO personajes que evolucionan (la galería clásica ya no existe, y poner tu propia
-  // imagen es una RECOMPENSA de pago: se pide en el formulario de canje, no aquí)
-  try { fb.addImageItem().setImage(UrlFetchApp.fetch(sinCache_(WEB + "assets/img/avatares/lamina_personajes.jpg")).getBlob()).setTitle(TIT_LAMINA).setHelpText("Los siete están disponibles desde el primer día: elige con calma, porque el personaje te acompaña TODO el viaje. Lo que cambia es su aspecto — Recluta → Cadete → Oficial → Comandante → Leyenda—, que se desbloquea al subir de nivel.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
-  fb.addListItem().setTitle("Elige tu avatar").setHelpText(ayudaAvatar_())
-    .setChoiceValues(opcIniciales_()).setRequired(false);
-  fb.addListItem().setTitle(TIT_DOCENTE).setHelpText(AYUDA_DOCENTE).setRequired(true)
-    .setChoiceValues(listaProfes_(datos.referente || "", datos.profesores || "", id));
-  var bit = fb.addTextItem().setTitle("Enlace a mi Bitácora (ePortfolio)").setHelpText("Un único enlace donde está toda tu evidencia. Puedes añadirlo más adelante.");
-  bit.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
-  fb.addParagraphTextItem().setTitle("Breve biografía de tu personaje").setHelpText("2-3 frases sobre tu recluta: quién es, de dónde viene, qué se le da bien. Aparecerá al pie de tu personaje en la Nave del Recluta.").setRequired(true);
-  // v3.8 · atajo: la primera página es SIEMPRE la identidad (así nunca se pierde) y termina con un
-  // selector que salta DIRECTO al tema que se viene a registrar. Cada tema envía al terminar.
-  var nav = fb.addListItem().setTitle(TIT_NAV).setHelpText(AYUDA_NAV).setRequired(true);
+  // ---- PÁGINA 1 · la portada: qué vienes a hacer hoy ----
+  fb.addSectionHeaderItem().setTitle(TIT_INTRO).setHelpText(AYUDA_INTRO);
+  var hoy = fb.addListItem().setTitle(TIT_HOY).setHelpText(AYUDA_HOY).setRequired(true);
+
+  // ---- PÁGINA 2 · el alistamiento (lo que antes era la página 1) ----
+  var pbAlta = fb.addPageBreakItem().setTitle(TIT_PAG_ALTA).setHelpText(AYUDA_PAG_ALTA);
+  identidadBitacora_(fb, datos, id);
+  var tras = fb.addListItem().setTitle(TIT_TRAS_ALTA).setRequired(true);
+
+  // ---- PÁGINA 3 · elige el planeta ----
+  var pbPl = fb.addPageBreakItem().setTitle(TIT_PAG_PLANETA).setHelpText(AYUDA_PAG_PLANETA);
+  var sel = fb.addListItem().setTitle(TIT_PLANETA).setHelpText(AYUDA_PLANETA).setRequired(true);
+
+  // ---- UNA PÁGINA POR PLANETA, y dentro UN BLOQUE POR RETO ----
   var destinos = [];
   var porTema = {}; retos.forEach(function(r){ (porTema[r[4]] = porTema[r[4]] || []).push(r); });
   Object.keys(porTema).sort(function(a,b){ return a-b; }).forEach(function(t){
     t = Number(t);
-    var pb;
     // v3.13 · el orbe del planeta NO se pone aquí: son 8 descargas + 8 subidas y es lo que empujaba
-    // crearPER contra los 6 minutos de Apps Script. Lo hace imagenesBitacora_() después, cuando ya
-    // existe el PER (o en la continuación si no diera tiempo). Es decoración: puede esperar un minuto.
-    if (t >= 1 && t <= 8) { pb = fb.addPageBreakItem().setTitle("Tema " + t + " · " + TEMAS[t][0]).setHelpText(TEMAS[t][1]); }
-    else { pb = fb.addPageBreakItem().setTitle("La batalla final").setHelpText("Solo cuando hayas hecho el examen."); }
+    // crearPER contra los 6 minutos de Apps Script. Lo hace imagenesBitacora_() después.
+    var pb = fb.addPageBreakItem().setTitle(tituloPlaneta_(t))
+      .setHelpText(t >= 1 && t <= 8 ? TEMAS[t][1] : "Solo cuando hayas hecho el examen.");
     pb.setGoToPage(FormApp.PageNavigationType.SUBMIT);      // al terminar una sección, se envía
     destinos.push([t, pb]);
-    var cb = fb.addCheckboxItem().setTitle(t >= 1 && t <= 8 ? "Tema " + t + " · Lo que he completado" : "Batalla final");
-    cb.setChoiceValues(porTema[t].map(function(r){ return r[1]; })).setHelpText(ayudaDeTema_({ id:id, tipo:tipo }, t));
-    fb.addTextItem().setTitle(tituloEvidencia_(t)).setHelpText(AYUDA_EVIDENCIA);
+    retosDelPlaneta_(fb, porTema[t]);
   });
-  nav.setChoices([nav.createChoice(OPC_NADA, FormApp.PageNavigationType.SUBMIT)].concat(
-    destinos.map(function(d){ return nav.createChoice(etiquetaNav_(d[0]), d[1]); })));
+
+  // los tres desplegables se rellenan al final, cuando ya existen todas las páginas a las que llevan
+  hoy.setChoices([hoy.createChoice(OPC_ALTA, pbAlta), hoy.createChoice(OPC_RETOS, pbPl)]);
+  tras.setChoices([tras.createChoice(OPC_SOLO_ALTA, FormApp.PageNavigationType.SUBMIT),
+                   tras.createChoice(OPC_SIGO, pbPl)]);
+  sel.setChoices(destinos.map(function(d){ return sel.createChoice(tituloPlaneta_(d[0]), d[1]); }));
+  // por si alguien llega al final de una de estas dos páginas sin contestar el desplegable
+  pbAlta.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  pbPl.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  ayudaCorreo_(fb);
   publicar_(fb);
   _creados.push(fb);
   try { vincular_(fb, ss.getId()); } catch (e) { _deshacer(e); }
@@ -582,6 +651,9 @@ function crearPER(datos) {
     guardarProgreso_("alta", pend); programarContinuacion_("continuarAltaPER");
     Logger.log("crearPER: acabado aplazado a continuarAltaPER -> " + JSON.stringify(pend));
   } else { guardarProgreso_("alta", null); }
+  // v3.36 · el grupo nuevo estrena su color en el momento, no de madrugada: si no, durante el primer
+  // día la hoja tiene un grupo más que colores y parece que el sistema se ha dejado uno.
+  try { colorear_(); } catch (e) { Logger.log("colorear_ al crear el PER: " + e); }
   return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", doc:docUrl, dossier:dossierUrl, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
     hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id,
     foro: WEB + "foro.html?per=" + id + (inicio ? "&inicio=" + fechaIso_(inicio) + "&tipo=" + tipo : ""), nave: WEB + "recluta.html?per=" + id,
@@ -681,6 +753,34 @@ function reestructurarCanje_(fc) {
     return lr.createChoice(etiquetas[k], sec && pbs[sec] ? pbs[sec] : FormApp.PageNavigationType.SUBMIT);
   })).setRequired(true);
 }
+// v3.37 · LA PORTADA DEL FORMULARIO (petición de Norberto, 29-ago). Antes se entraba directamente al
+// alistamiento y la navegación estaba AL FINAL de esa página: quien solo venía a marcar un reto tenía
+// que bajar por todos sus datos para encontrar el desplegable. Ahora la primera pantalla explica el
+// funcionamiento en cuatro líneas, pide el correo y pregunta UNA cosa.
+var TIT_INTRO = "CÓMO FUNCIONA ESTA BITÁCORA";
+var AYUDA_INTRO = "Este formulario es UNO SOLO y sirve para dos cosas, siempre con el MISMO enlace:\n\n" +
+  "1) La PRIMERA vez te ALISTAS: eliges alias, personaje y quién te da clase. Solo se hace una vez.\n" +
+  "2) De ahí en adelante REGISTRAS los retos que vas completando: eliges el planeta, marcas lo que has " +
+  "terminado y pegas el enlace de tu evidencia.\n\n" +
+  "No hace falta rellenarlo entero cada vez ni empezar de cero: lo que ya registraste se conserva SIEMPRE. " +
+  "Elige abajo qué vienes a hacer hoy y te llevo directo.";
+var TIT_HOY = "¿QUÉ QUIERES HACER HOY?";
+var AYUDA_HOY = "Elige y te llevo directo. Si te equivocas, no pasa nada: vuelves a entrar y ya está.";
+var OPC_ALTA  = "🪪 ALISTARME — es mi primera vez aquí";
+var OPC_RETOS = "🚀 REGISTRAR RETOS que ya he completado";
+var TIT_PAG_ALTA = "🪪 Alistamiento · esto solo se hace una vez";
+var AYUDA_PAG_ALTA = "Quién eres a bordo. Si ya te alistaste otro día, estos datos ya los tengo: " +
+  "puedes cambiarlos si quieres, o bajar directo al final de la página.";
+var TIT_TRAS_ALTA = "Ya está. ¿Quieres registrar algún reto ahora?";
+var OPC_SOLO_ALTA = "No, ya está: ENVIAR";
+var OPC_SIGO = "Sí, llévame a elegir planeta";
+var TIT_PAG_PLANETA = "🪐 ¡Perfecto! Elige el planeta";
+var AYUDA_PAG_PLANETA = "Cada planeta es un tema del curso. Elige el del reto que has completado y te " +
+  "llevo a su sección. Si has terminado retos de varios planetas, envía este y vuelve a entrar: " +
+  "lo de antes se conserva.";
+var TIT_PLANETA = "¿De qué planeta es lo que has completado?";
+var AYUDA_PLANETA = "Solo aparecen los planetas del viaje. No hace falta ir en orden.";
+// Se conservan para RECONOCER los formularios antiguos y reconvertirlos (ver estructuraBitacora_).
 var TIT_NAV = "¿Qué vienes a registrar hoy?";
 var OPC_NADA = "Nada más: solo me alisto / actualizo mis datos";
 var AYUDA_NAV = "Elige y te llevo DIRECTO a esa sección; al marcar tus casillas, envías y listo. " +
@@ -698,7 +798,6 @@ function ayudaAvatar_() {
     "aspecto: al subir de nivel se te desbloquean sus 5 versiones (Recluta → Cadete → Oficial → Comandante → " +
     "Leyenda) y eliges cuál llevas desde tu Nave, gratis y cuando quieras.";
 }
-function etiquetaNav_(t) { return t >= 1 && t <= 8 ? "Tema " + t + " · " + TEMAS[t][0] : "La batalla final"; }
 // La lamina de personajes que va dentro de la Bitacora. En una constante porque la escriben
 // DOS sitios: quien la pone al crear el PER y quien la refresca desde Mantenimiento.
 var TIT_LAMINA = "Tu personaje evoluciona con tu nivel";
@@ -897,18 +996,64 @@ function continuarActualizarFormularios() {
 //
 // Lo que más despista de todo el sistema: este formulario hace DOS cosas con UN solo enlace. Quien
 // lo abre por primera vez tiene que ver que aquí se alista; quien vuelve, que aquí registra.
+// v3.36 · El aviso del correo, en UN SOLO SITIO. Lo pide la pregunta «Correo» del formulario y lo
+// repite la descripción de arriba: es el fallo más caro de todo el sistema (quien se alista con una
+// cuenta y vuelve con otra no se encuentra en la Nave, y para entonces ya ha registrado media misión).
+// La pregunta «Correo» viene de la PLANTILLA, así que existe tanto en un PER recién creado como en
+// uno antiguo. Su ayuda se pone AQUÍ y la llaman los dos caminos: crearPER y reestructurarBitacora_.
+// 🔴 Antes solo la ponía el segundo, o sea que un grupo nuevo estrenaba el formulario sin el aviso
+// —y es justo el grupo cuyo alumnado se está alistando por primera vez, que es cuando importa.
+function ayudaCorreo_(fb) {
+  try {
+    fb.getItems(FormApp.ItemType.TEXT).forEach(function(it){
+      if (String(it.getTitle() || "").toLowerCase().trim() !== "correo") return;
+      it.asTextItem().setHelpText(AYUDA_CORREO);
+    });
+  } catch (e) { Logger.log("ayudaCorreo_: " + e); }
+}
+var AYUDA_CORREO = "¡Ojo! Usa el MISMO correo con el que has iniciado sesión — lo ves ahí arriba. " +
+  "Tu progreso se guarda SIEMPRE en la cuenta con la que envías, no en el correo que escribas aquí: " +
+  "esta pregunta solo sirve para comprobar que no te has alistado con otra cuenta sin darte cuenta. " +
+  "Si los dos no coinciden, te avisamos a las dos direcciones para que lo arregles a tiempo.";
 function textoBitacora_(profesores) {
   return "Aquí haces las dos cosas, y siempre con el MISMO enlace: la primera vez TE ALISTAS " +
     "(alias, personaje y quién te da clase) y de ahí en adelante REGISTRAS lo que vas completando. " +
     "Se rellena UNA vez y a partir de ahí se EDITA: cada vez que ganes una insignia vuelve a este mismo enlace, " +
     "edítala, marca la casilla nueva y envía; lo de antes se conserva. " +
-    "Si Google te dice que solo puedes rellenarlo una vez, es normal: entra igual y te saldrá tu respuesta para editar. " +
+    "⚠️ Si Google te dice «solo puedes rellenar este formulario una vez», ES NORMAL y NO es un error: " +
+    "entra igual y te saldrá tu respuesta con el botón «Modificar tu respuesta». " +
+    "¡OJO CON LA CUENTA! Entra siempre con la MISMA cuenta de Google: tu progreso se guarda en ella, " +
+    "no en el correo que escribas. Si un día entras con otra, la Nave no te encontrará. " +
     "Tu correo y tu nombre solo los ve el profesorado; en el tablero aparece tu alias. Profesorado: " + (profesores || "");
 }
 function confirmacionBitacora_(perId) {
-  return "Registrado. Tu Bitácora crece. Cuando ganes otra insignia vuelve a ESTE MISMO ENLACE " +
-    "y edita tu respuesta: no empieces de cero, que se conserva todo. Tablero: " + WEB + "registro.html?per=" + perId;
+  // 🔴 29-ago · ESTE MENSAJE ES SOPORTE TÉCNICO. Norberto: «muchos estudiantes llenan el foro de dudas
+  // diciendo que solo les deja rellenar el formulario una vez». Ese texto lo pone Google, está debajo
+  // de este mensaje y NO se puede quitar ni traducir. Lo único que se puede hacer es llegar antes:
+  // nombrarlo, decir que es normal, y señalar con el dedo el enlace que resuelve el problema —que
+  // Google pinta al final del todo, justo debajo de las flechas.
+  //
+  // Por eso el orden es el que es: primero lo bueno, luego la Nave, y las flechas LAS ÚLTIMAS. Mover
+  // el enlace de la Nave detrás de las flechas rompería el truco: apuntarían a la Nave, no al botón.
+  //
+  // Emojis y MAYÚSCULAS a propósito: es lo único que hace que un adulto con prisa lea un párrafo en
+  // una pantalla de confirmación. Google Forms no admite negrita ni HTML aquí, solo texto y saltos.
+  return "✅ ¡REGISTRADO! Tu Bitácora crece. 🎉\n\n" +
+    "🚀 Mira cómo va tu recluta en tu Nave:\n" +
+    WEB + "recluta.html?per=" + perId + "\n\n" +
+    "━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+    "⚠️ ¿VUELVES A REGISTRAR ALGO? LEE ESTO ⚠️\n" +
+    "━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+    "NO empieces de cero. Usa SIEMPRE este mismo enlace y pulsa «Modificar tu respuesta»: marcas la " +
+    "casilla nueva, envías, y todo lo que ya tenías SE CONSERVA.\n\n" +
+    "🟡 Google te va a decir aquí abajo «Solo puedes rellenar este formulario una vez». " +
+    "ES NORMAL. NO es un error, NO te has quedado fuera y NO hace falta que preguntes en el foro: " +
+    "tu respuesta está guardada y la puedes editar las veces que quieras. 😉\n\n" +
+    "👇👇👇 EL BOTÓN QUE BUSCAS ESTÁ AQUÍ ABAJO 👇👇👇\n" +
+    "          ⬇️  «MODIFICAR TU RESPUESTA»  ⬇️\n" +
+    "👇👇👇👇👇👇👇👇👇👇👇👇👇👇👇";
 }
+
 function reestructurarBitacora_(fb, o) {
   // 🔴 27-ago · Lo primero: una respuesta por persona, editable, y sin el enlace de «enviar otra
   // respuesta». Los grupos ya creados no se rehacen, así que si esto no estuviera aquí el arreglo
@@ -929,15 +1074,7 @@ function reestructurarBitacora_(fb, o) {
   } catch (e) { Logger.log("reestructurarBitacora_ (una respuesta): " + e); }
   // La pregunta «Correo» viene de la plantilla y es un doble check a proposito (en clase se les dice
   // que escriban el mismo). Que al menos explique para que sirve y que pasa si no coincide.
-  try {
-    fb.getItems(FormApp.ItemType.TEXT).forEach(function(it){
-      if (String(it.getTitle() || "").toLowerCase().trim() !== "correo") return;
-      it.asTextItem().setHelpText("Escribe el MISMO correo con el que has iniciado sesion (lo ves arriba). " +
-        "Sirve de comprobacion: tu progreso se guarda siempre en la cuenta con la que entras, asi que si " +
-        "los dos no coinciden te avisamos por correo — es la forma de pillar a tiempo haberte registrado " +
-        "con otra cuenta sin querer.");
-    });
-  } catch (e) { Logger.log("reestructurarBitacora_ (ayuda del correo): " + e); }
+  ayudaCorreo_(fb);
   var items = fb.getItems();
   // 0) v3.11 · «¿Quién imparte tu clase?»: es lo que ata cada alumno a su docente
   var itProf = items.filter(function(i){ return i.getTitle() === TIT_DOCENTE; })[0];
@@ -959,34 +1096,135 @@ function reestructurarBitacora_(fb, o) {
   items.forEach(function(it){
     if (it.getTitle().indexOf("URL de tu propia imagen") === 0) { try { fb.deleteItem(it); } catch (e) {} }
   });
-  // v3.19 · la ayuda de cada tema y su enlace de evidencia, tambien en los PER ya creados
-  var titulos = fb.getItems().map(function(i){ return i.getTitle(); });
-  fb.getItems(FormApp.ItemType.CHECKBOX).forEach(function(it){
-    var m = it.getTitle().match(/^Tema (\d) /);
-    var t = m ? Number(m[1]) : (it.getTitle() === "Batalla final" ? 9 : 0);
-    if (!t) return;
-    try { it.setHelpText(ayudaDeTema_(o, t)); } catch (e) {}
-    if (titulos.indexOf(tituloEvidencia_(t)) < 0) {
-      try {
-        var ev2 = fb.addTextItem().setTitle(tituloEvidencia_(t)).setHelpText(AYUDA_EVIDENCIA);
-        fb.moveItem(ev2.getIndex(), it.getIndex() + 1);   // justo debajo de su casilla
-      } catch (e) {}
-    }
+  // v3.37 · toda la estructura (portada, alistamiento, elegir planeta y un bloque por reto)
+  estructuraBitacora_(fb, o);
+}
+
+// ================= LA ESTRUCTURA DE LA BITÁCORA, EN UN GRUPO QUE YA EXISTE =================
+// Reforma del 29-ago aplicada a un formulario vivo. Es la función más delicada del fichero, así que
+// dos decisiones que la hacen segura:
+//
+//  1) NO se reconstruye el formulario: se le añade lo que falta, se le quita lo que sobra y se
+//     REORDENA todo de una vez con una lista calculada. Mover item a item «hacia donde toca» es
+//     donde esto se rompe; calcular el orden final y aplicarlo es idempotente — pasarla dos veces
+//     seguidas deja el mismo resultado.
+//  2) Los items que no reconoce NO se borran ni se dejan al final (acabarían dentro de la página del
+//     último planeta): se colocan en el alistamiento, que es donde estaban, y se apuntan en el log.
+//
+// ⚠️ Lo que sí se pierde: las casillas viejas «Tema N · Lo que he completado» desaparecen del
+// formulario, así que el alumnado deja de ver ahí lo que marcó. No se pierde NADA de lo registrado:
+// eso vive en EVENTOS y se sigue viendo en la Nave, y las columnas viejas siguen en la hoja.
+function estructuraBitacora_(fb, o) {
+  var buscar = function(t){ return fb.getItems().filter(function(i){ return i.getTitle() === t; })[0] || null; };
+  var retos = retosDe_(o.tipo);
+  var porTema = {}; retos.forEach(function(r){ (porTema[r[4]] = porTema[r[4]] || []).push(r); });
+  var temas = Object.keys(porTema).map(Number).sort(function(a,b){ return a-b; });
+
+  // --- 1) lo que falta, se crea (y lo que ya está, se pone al día) ---
+  var intro = buscar(TIT_INTRO) || fb.addSectionHeaderItem().setTitle(TIT_INTRO);
+  try { intro.setHelpText(AYUDA_INTRO); } catch (e) {}
+  var hoy = (buscar(TIT_HOY) || fb.addListItem().setTitle(TIT_HOY)).asListItem()
+              .setHelpText(AYUDA_HOY).setRequired(true);
+  var pbAlta = (buscar(TIT_PAG_ALTA) || fb.addPageBreakItem().setTitle(TIT_PAG_ALTA)).asPageBreakItem();
+  try { pbAlta.setHelpText(AYUDA_PAG_ALTA); } catch (e) {}
+  // el desplegable viejo del final del alistamiento se RECONVIERTE: es el mismo sitio y el mismo papel
+  var tras = buscar(TIT_TRAS_ALTA) || buscar(TIT_NAV);
+  if (!tras) tras = fb.addListItem().setTitle(TIT_TRAS_ALTA);
+  tras = tras.asListItem(); try { tras.setTitle(TIT_TRAS_ALTA); } catch (e) {}
+  tras.setHelpText("").setRequired(true);
+  var pbPl = (buscar(TIT_PAG_PLANETA) || fb.addPageBreakItem().setTitle(TIT_PAG_PLANETA)).asPageBreakItem();
+  try { pbPl.setHelpText(AYUDA_PAG_PLANETA); } catch (e) {}
+  var sel = (buscar(TIT_PLANETA) || fb.addListItem().setTitle(TIT_PLANETA)).asListItem()
+              .setHelpText(AYUDA_PLANETA).setRequired(true);
+
+  // --- 2) las páginas de planeta: renombrar «Tema N» -> «Planeta N» ---
+  var pagina = {};
+  fb.getItems(FormApp.ItemType.PAGE_BREAK).forEach(function(it){
+    var t = temaDePagina_(it.getTitle());
+    if (t) { try { if (it.getTitle() !== tituloPlaneta_(t)) it.setTitle(tituloPlaneta_(t)); } catch (e) {} pagina[t] = it.asPageBreakItem(); }
   });
-  // 3) secciones rápidas
-  var pbs = fb.getItems(FormApp.ItemType.PAGE_BREAK).map(function(i){ return i.asPageBreakItem(); });
-  if (!pbs.length) return;
-  pbs.forEach(function(pb){ try { pb.setGoToPage(FormApp.PageNavigationType.SUBMIT); } catch (e) {} });
-  var yaHay = fb.getItems().filter(function(i){ return i.getTitle() === TIT_NAV; })[0];
-  var nav = yaHay ? yaHay.asListItem()
-                  : fb.addListItem().setTitle(TIT_NAV).setHelpText(AYUDA_NAV).setRequired(true);
-  var opciones = [nav.createChoice(OPC_NADA, FormApp.PageNavigationType.SUBMIT)];
-  pbs.forEach(function(pb){
-    var m = pb.getTitle().match(/^Tema (\d)/);
-    opciones.push(nav.createChoice(m ? etiquetaNav_(Number(m[1])) : "La batalla final", pb));
+  temas.forEach(function(t){
+    if (pagina[t]) return;
+    var pb = fb.addPageBreakItem().setTitle(tituloPlaneta_(t))
+      .setHelpText(t >= 1 && t <= 8 ? TEMAS[t][1] : "Solo cuando hayas hecho el examen.");
+    pagina[t] = pb;
   });
-  nav.setChoices(opciones).setHelpText(AYUDA_NAV).setRequired(true);
-  if (!yaHay) { try { fb.moveItem(nav.getIndex(), pbs[0].getIndex()); } catch (e) {} }
+  temas.forEach(function(t){ try { pagina[t].setGoToPage(FormApp.PageNavigationType.SUBMIT); } catch (e) {} });
+
+  // --- 3) fuera las casillas y los enlaces de la etapa anterior (una por planeta) ---
+  fb.getItems().forEach(function(it){
+    var tit = String(it.getTitle() || "");
+    var vieja = /^Tema \d · Lo que he completado$/.test(tit) || tit === "Batalla final"
+             || /^Enlace · (Tema \d|Batalla final)$/.test(tit);
+    if (vieja) { try { fb.deleteItem(it); } catch (e) { Logger.log("estructuraBitacora_ borrando «" + tit + "»: " + e); } }
+  });
+
+  // --- 4) un bloque por reto en cada planeta (los que ya estén, se ponen al día) ---
+  temas.forEach(function(t){
+    porTema[t].forEach(function(r){
+      var cb = buscar(r[1]);
+      if (!cb) { cb = fb.addCheckboxItem().setTitle(r[1]); ponerOpciones_(cb, [OPC_HECHO], r[1]); }
+      try { cb.setHelpText(ayudaReto_(r)); } catch (e) {}
+      var ev = buscar(tituloEvidenciaReto_(r));
+      if (!ev) ev = fb.addTextItem().setTitle(tituloEvidenciaReto_(r));
+      try { ev.setHelpText(AYUDA_EVIDENCIA_RETO); } catch (e) {}
+    });
+  });
+
+  // --- 5) EL ORDEN, de una vez ---
+  var orden = [], dentro = {};
+  var mete = function(it){ if (it && !dentro[it.getId()]) { dentro[it.getId()] = true; orden.push(it); } };
+  mete(intro);
+  mete(buscar("Correo"));
+  mete(hoy);
+  mete(pbAlta);
+  ["Quién soy", "Alias de recluta (público)", "Nombre y apellidos", TIT_LAMINA, "Elige tu avatar",
+   TIT_DOCENTE, "Enlace a mi Bitácora (ePortfolio)", "Breve biografía de tu personaje"]
+    .forEach(function(t){ mete(buscar(t)); });
+  // lo que no reconocemos se queda en el alistamiento: es de donde viene, y ahí no estorba
+  var sueltos = fb.getItems().filter(function(it){
+    if (dentro[it.getId()]) return false;
+    if (it.getType() === FormApp.ItemType.PAGE_BREAK) return false;
+    if (it === tras || it === sel) return false;
+    if (temaDePagina_(it.getTitle())) return false;
+    return !esDeReto_(it.getTitle(), retos) && !esOrbe_(it.getTitle());
+  });
+  if (sueltos.length) Logger.log("estructuraBitacora_: preguntas no reconocidas, van al alistamiento -> " +
+    sueltos.map(function(x){ return x.getTitle(); }).join(" | "));
+  sueltos.forEach(mete);
+  mete(tras);
+  mete(pbPl);
+  mete(sel);
+  temas.forEach(function(t){
+    mete(pagina[t]);
+    mete(buscar(TEMAS[t] ? TEMAS[t][0] : ""));      // el orbe del planeta, si ya está puesto
+    porTema[t].forEach(function(r){ mete(buscar(r[1])); mete(buscar(tituloEvidenciaReto_(r))); });
+  });
+  orden.forEach(function(it, k){
+    var ahora = it.getIndex();
+    if (ahora !== k) { try { fb.moveItem(ahora, k); } catch (e) { Logger.log("moveItem «" + it.getTitle() + "»: " + e); } }
+  });
+
+  // --- 6) y ahora sí, los desplegables (ya existen todas las páginas a las que llevan) ---
+  hoy.setChoices([hoy.createChoice(OPC_ALTA, pbAlta), hoy.createChoice(OPC_RETOS, pbPl)]);
+  tras.setChoices([tras.createChoice(OPC_SOLO_ALTA, FormApp.PageNavigationType.SUBMIT),
+                   tras.createChoice(OPC_SIGO, pbPl)]);
+  sel.setChoices(temas.map(function(t){ return sel.createChoice(tituloPlaneta_(t), pagina[t]); }));
+  try { pbAlta.setGoToPage(FormApp.PageNavigationType.SUBMIT); } catch (e) {}
+  try { pbPl.setGoToPage(FormApp.PageNavigationType.SUBMIT); } catch (e) {}
+}
+// «Tema 3 · Sendara» o «Planeta 3 · Sendara» -> 3 · «La batalla final» -> 9 · cualquier otra cosa -> 0
+function temaDePagina_(titulo) {
+  var m = String(titulo || "").match(/^(?:Tema|Planeta) (\d)/);
+  if (m) return Number(m[1]);
+  return String(titulo || "") === "La batalla final" ? 9 : 0;
+}
+function esDeReto_(titulo, retos) {
+  return (retos || []).some(function(r){ return titulo === r[1] || titulo === tituloEvidenciaReto_(r); });
+}
+function esOrbe_(titulo) {
+  for (var t = 1; t <= 8; t++) if (TEMAS[t] && TEMAS[t][0] === titulo) return true;
+  return titulo === TIT_LAMINA;
 }
 
 // Equipo docente de un PER. Si la pestaña DOCENTES tiene filas, manda; si no, se reconstruye desde
@@ -1154,6 +1392,35 @@ function documentoPERSeleccionado() {
     url, "Abrir el documento",
     "El enlace es <b>siempre el mismo</b>: si ya se lo pasaste a tu equipo, no hace falta repartirlo otra vez \u2014 se reescribe encima.");
 }
+// ================= LOS DOS BLOQUES DEL FORMULARIO =================
+// Están aquí fuera porque los usan DOS caminos: crearPER (grupo nuevo) y estructuraBitacora_ (grupo
+// que ya existe). Es la lección de siempre en este proyecto: el texto que se escribe en dos sitios
+// se desincroniza a la primera.
+function identidadBitacora_(fb, datos, id) {
+  fb.addSectionHeaderItem().setTitle("Quién soy")
+    .setHelpText("Esto es el ALISTAMIENTO y solo se hace una vez. Si ya te alistaste, no hace falta que lo repitas.");
+  fb.addTextItem().setTitle("Alias de recluta (público)").setHelpText("Lo que se verá en el tablero. Solo la primera vez: si ya te alistaste, déjalo en blanco.").setRequired(false);
+  fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado. Solo la primera vez.").setRequired(false);
+  try { fb.addImageItem().setImage(UrlFetchApp.fetch(sinCache_(WEB + "assets/img/avatares/lamina_personajes.jpg")).getBlob()).setTitle(TIT_LAMINA).setHelpText("Los siete están disponibles desde el primer día: elige con calma, porque el personaje te acompaña TODO el viaje. Lo que cambia es su aspecto — Recluta → Cadete → Oficial → Comandante → Leyenda—, que se desbloquea al subir de nivel.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
+  fb.addListItem().setTitle("Elige tu avatar").setHelpText(ayudaAvatar_())
+    .setChoiceValues(opcIniciales_()).setRequired(false);
+  fb.addListItem().setTitle(TIT_DOCENTE).setHelpText(AYUDA_DOCENTE).setRequired(true)
+    .setChoiceValues(listaProfes_(datos.referente || "", datos.profesores || "", id));
+  var bit = fb.addTextItem().setTitle("Enlace a mi Bitácora (ePortfolio)").setHelpText("Un único enlace donde está toda tu evidencia. Puedes añadirlo más adelante.");
+  bit.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
+  fb.addParagraphTextItem().setTitle("Breve biografía de tu personaje").setHelpText("2-3 frases sobre tu recluta: quién es, de dónde viene, qué se le da bien. Aparecerá al pie de tu personaje en la Nave del Recluta.").setRequired(true);
+}
+// v3.37 · UN BLOQUE POR RETO: enunciado + casilla + su enlace. Antes era UNA casilla por planeta con
+// todos los retos dentro y UN solo enlace: no se leía el enunciado de cada reto y no se sabía de cuál
+// era la evidencia. 🔴 Los títulos son las COLUMNAS de la hoja: los fija tituloEvidenciaReto_ y el
+// propio nombre del reto, y de ahí los lee marcados_(). No se cambian sin cambiar el lector.
+function retosDelPlaneta_(fb, retos) {
+  (retos || []).forEach(function(r){
+    var cb = fb.addCheckboxItem().setTitle(r[1]).setHelpText(ayudaReto_(r)).setRequired(false);
+    ponerOpciones_(cb, [OPC_HECHO], r[1]);
+    fb.addTextItem().setTitle(tituloEvidenciaReto_(r)).setHelpText(AYUDA_EVIDENCIA_RETO).setRequired(false);
+  });
+}
 function crearDocumentoPER_(perId) {
   var p = perFila_(perId); if (!p) throw new Error("PER no encontrado"); var o = perObj_(p.v);
   var ss = SpreadsheetApp.getActive();
@@ -1169,41 +1436,83 @@ function crearDocumentoPER_(perId) {
   h("STARGATE · " + o.nombre, 1);
   par("Tipo: " + o.tipo + " · Referente: " + (o.referente || "—") + " · Profesorado: " + (o.profesorado || "—") + " · Semana 1: " + (o.inicio || "sin fecha") + " · Generado: " + Utilities.formatDate(new Date(), "Europe/Madrid", "dd/MM/yyyy HH:mm"));
   par("Cómo se incrusta en Genially: Insertar → Código embed, pegar el código y ajustar al lienzo. Para los formularios, mejor un botón con el enlace (o el QR para proyectar).");
-  h("Panel de control (Genially de los planetas)", 2);
-  var stdD = panelStd_();
-  link("Visualización (para el alumnado)", o.panelVer || stdD.ver || "(sin definir: menú STARGATE → Guardar panel de control estándar)");
-  link("Edición (para el profesorado)", o.panelEdit || stdD.editar || "(sin definir)");
-  par(o.panelVer || o.panelEdit ? "Este PER usa un panel PROPIO." : "Este PER usa el panel ESTÁNDAR compartido. Si el profesorado quiere el suyo, se cambia desde el panel de profes (Ajustes del PER).");
-  h("Para el Genially del alumnado", 2);
-  // v3.36 · La Bitácora va la PRIMERA, y con el nombre de lo que se HACE ahí. Estaba en tercer
-  // lugar y llamada «registro de insignias» —el resultado, no la acción—, y el profesorado no la
-  // encontraba: es el enlace que se usa cada semana, el más importante de la lista.
+  // v3.36 · EL DOCUMENTO, PARTIDO EN DOS MUNDOS. Petición de Norberto, 29-ago, leyéndolo en vivo:
+  // «los docentes deben tener MUY CLARO qué enlaces se comparten con los estudiantes y cuáles son
+  // solo para el profesorado». Tenía razón y era un fallo de verdad, no de redacción: bajo el título
+  // «Para el Genially del alumnado» estaba el enlace de registro.html —que es la WEB DEL MÉTODO, con
+  // la guía de instalación y el acceso con PIN— llamado «Tablero de reclutas». Quien lo repartiera
+  // mandaba a su clase a la documentación del profesorado.
+  //
+  // La regla, escrita una vez y respetada abajo: el alumnado toca CINCO cosas —el Genially, los tres
+  // formularios y la Nave—. Todo lo demás vive en la sección del profesorado, y las páginas que sí se
+  // enseñan en clase se enseñan EMBEBIDAS dentro del Genially, nunca por su enlace suelto.
+  var LINK_ALUMNO = "✅ SE COMPARTE CON EL ALUMNADO", LINK_PROFE = "🔒 SOLO PROFESORADO";
+  h("1 · LO QUE SE COMPARTE CON EL ALUMNADO (y nada más)", 2);
+  par("Son CINCO enlaces, y no hay un sexto. Todo lo que viene después de esta sección es del " +
+      "profesorado: repartirlo manda al alumnado a la web del método o a una pantalla que le pide un PIN.");
   par("El orden en que lo usa el alumnado: 1) se alista en la Bitácora · 2) se ve en la Nave · " +
       "3) vuelve a la Bitácora a marcar lo que va completando. Todo lo demás cuelga de ahí.");
-  link("📓 BITÁCORA DE MANDO — donde el alumnado se alista y registra sus retos (botón o QR)", o.formBitacora);
+  var stdD = panelStd_();
+  link(LINK_ALUMNO + " · 🪐 PANEL DE CONTROL (el Genially de los ocho planetas)",
+       o.panelVer || stdD.ver || "(sin definir: menú STARGATE → Guardar panel de control estándar)");
+  par(o.panelVer || o.panelEdit ? "Este grupo usa un panel PROPIO." :
+      "Este grupo usa el panel ESTÁNDAR compartido. Si el profesorado quiere el suyo, se cambia desde " +
+      "la sala de clase (Ajustes del PER). El enlace de EDICIÓN está más abajo, en la sección del profesorado: " +
+      "no es el mismo y no se reparte.");
+  link(LINK_ALUMNO + " · 📓 BITÁCORA DE MANDO — donde el alumnado se alista y registra sus retos (botón o QR)", o.formBitacora);
   par("Es el enlace que más se usa: el MISMO para alistarse y para registrar. Se rellena UNA vez " +
       "(alias, personaje, docente) y a partir de ahí se EDITA: cada semana entran, marcan los retos " +
       "que han completado y envían. Entran con su cuenta de Google, así que cada uno solo ve su " +
       "respuesta. El mismo enlace vale todo el curso.");
+  par("⚠ Insísteles en que entren SIEMPRE con la misma cuenta de Google: el progreso se guarda en la " +
+      "cuenta con la que envían, no en el correo que escriban. Quien se alista con una y vuelve con " +
+      "otra no se encuentra en la Nave, y para entonces ya lleva media misión registrada.");
   qr(o.formBitacora, "QR de la Bitácora de mando");
-  link("La Nave del Recluta (el hub del alumnado: onboarding, semanas, su estado y recompensas)", WEB + "recluta.html?per=" + o.id);
+  link(LINK_ALUMNO + " · 🚀 LA NAVE DEL RECLUTA — el hub del alumnado (su estado, las semanas, sus recompensas)",
+       WEB + "recluta.html?per=" + o.id);
+  par("Es la ÚNICA página web del sistema que se le da al alumnado. Aquí ve su personaje, sus xp, sus " +
+      "créditos, lo que tiene desbloqueado y la orden de la semana; y desde aquí vuelve a la Bitácora. " +
+      "Es también a donde va a parar al terminar el formulario.");
   qr(WEB + "recluta.html?per=" + o.id, "QR de la Nave del Recluta");
-  par("Embed de la Nave:"); code(ifr(WEB + "recluta.html?per=" + o.id + "&embed=1", 900));
-  link("Tablero de reclutas", WEB + "registro.html?per=" + o.id); par("Embed del tablero:"); code(ifr(WEB + "registro.html?per=" + o.id + "&embed=1", 760));
-  link("Ranking público (solo la clasificación)", WEB + "registro.html?per=" + o.id + "&solo=1");
-  par("Embed del ranking público: los tres rankings en vivo (xp, semana y colección) sin cabecera ni botones. " +
-      "Al pulsar a un recluta se abre su ficha —personaje, biografía, nivel, xp, insignias y cartas—, y NO enseña " +
-      "ni los personajes que ha ganado, ni los créditos, ni el correo: eso solo se ve en la sala del docente, con PIN.");
+  link(LINK_ALUMNO + " · 🎫 TICKET DE SALIDA «Contacta con NEBULA» (anónimo; botón o QR)", o.formTicket);
+  qr(o.formTicket, "QR del ticket de salida");
+  link(LINK_ALUMNO + " · 🛒 CANJE DE CRÉDITOS (botón o QR)", o.formCanje);
+  qr(o.formCanje, "QR del canje");
+
+  h("2 · Para MONTAR el Genially del alumnado (códigos embed, no enlaces)", 2);
+  par("Esto NO se reparte: se PEGA. En Genially, Insertar → Código embed, y ajustar al lienzo. " +
+      "🔴 No repartas los enlaces sueltos de estas páginas: el tablero y el foro viven en la web del " +
+      "profesorado, y desde ahí se llega a la guía de instalación y al acceso con PIN. Embebidos " +
+      "dentro del Genially el alumnado ve solo lo suyo.");
+  par("Embed de la Nave del Recluta:"); code(ifr(WEB + "recluta.html?per=" + o.id + "&embed=1", 900));
+  par("Embed del ranking público — los tres rankings en vivo (xp, semana y colección) sin cabecera ni " +
+      "botones. Al pulsar a un recluta se abre su ficha —personaje, biografía, nivel, xp, insignias y " +
+      "cartas— y NO enseña ni los personajes ganados, ni los créditos, ni el correo: eso solo se ve en " +
+      "la sala del docente, con PIN.");
   code(ifr(WEB + "registro.html?per=" + o.id + "&embed=1&solo=1", 720));
-  link("Foro dinámico (la orden de la semana)", WEB + "foro.html?per=" + o.id); par("Embed del foro:"); code(ifr(WEB + "foro.html?per=" + o.id + "&embed=1", 640));
-  link("Ticket de salida «Contacta con NEBULA» (anónimo; botón)", o.formTicket); qr(o.formTicket, "QR del ticket de salida");
-  link("Canje de xp (botón)", o.formCanje); qr(o.formCanje, "QR del canje");
-  h("Para el Genially del profesorado (con PIN)", 2);
-  link("Panel del PER", WEB + "profes.html?per=" + o.id); code(ifr(WEB + "profes.html?per=" + o.id + "&embed=1", 900));
-  link("Tickets de salida (visual)", WEB + "tickets.html?per=" + o.id); code(ifr(WEB + "tickets.html?per=" + o.id + "&embed=1", 900));
-  par("Para filtrar los tickets por profesor/a añade &profe=NOMBRE a la URL del panel de tickets, o usa el generador de la web: " + WEB + "embed.html?per=" + o.id);
-  h("Solo profesorado referente", 2);
-  link("Hoja maestra", ss.getUrl()); link("Editar la Bitácora de mando", o.formBitacoraEdit); link("Editar el ticket", o.formTicketEdit || "");
+  par("Embed del tablero completo de reclutas:"); code(ifr(WEB + "registro.html?per=" + o.id + "&embed=1", 760));
+  par("Embed del foro dinámico (la orden de la semana):"); code(ifr(WEB + "foro.html?per=" + o.id + "&embed=1", 640));
+
+  h("3 · SOLO PROFESORADO — todo esto pide el PIN", 2);
+  par("Ni uno de estos enlaces se comparte con el alumnado. Van en el Genially del equipo docente, o " +
+      "en un marcador del navegador.");
+  link(LINK_PROFE + " · Sala de clase (lo que requiere tu intervención, tu gente, el pase de lista)", WEB + "clase.html?per=" + o.id);
+  link(LINK_PROFE + " · Panel del PER (alumnado, insignias, canjes y ajustes)", WEB + "profes.html?per=" + o.id);
+  code(ifr(WEB + "profes.html?per=" + o.id + "&embed=1", 900));
+  link(LINK_PROFE + " · Tickets de salida (visual)", WEB + "tickets.html?per=" + o.id);
+  code(ifr(WEB + "tickets.html?per=" + o.id + "&embed=1", 900));
+  par("Para filtrar los tickets por profesor/a, añade &profe=NOMBRE a la URL, o usa el generador de embeds.");
+  link(LINK_PROFE + " · Generador de embeds del grupo", WEB + "embed.html?per=" + o.id);
+  link(LINK_PROFE + " · Tablero y método (la web que explica el sistema, con la guía de instalación)", WEB + "registro.html?per=" + o.id);
+  link(LINK_PROFE + " · Foro dinámico, como página suelta", WEB + "foro.html?per=" + o.id);
+  link(LINK_PROFE + " · Panel de control, enlace de EDICIÓN del Genially",
+       o.panelEdit || stdD.editar || "(sin definir)");
+
+  h("4 · Solo el profesor referente", 2);
+  par("Con esto se mueve el calendario de todo el grupo y se reescriben los formularios. No circula por el equipo.");
+  link(LINK_PROFE + " · Hoja maestra", ss.getUrl());
+  link(LINK_PROFE + " · Editar la Bitácora de mando", o.formBitacoraEdit);
+  link(LINK_PROFE + " · Editar el ticket", o.formTicketEdit || "");
   doc.saveAndClose();
   var url = doc.getUrl(); hoja_(H.PERS).getRange(p.fila, 19).setValue(url); hoja_(H.PERS).getRange(1, 19).setValue("Documento de enlaces");
   return url;
@@ -1283,21 +1592,30 @@ function dossier_() {
     par("El equipo se edita en la pestaña DOCENTES de la hoja maestra o en el panel del profesorado → Ajustes del PER. " +
         "El rol es combinable: quien es referente y además da clase se marca con las dos casillas (nunca dos filas).");
 
-    h("Enlaces del grupo", 2);
-    link("Sala de clase (para cada docente; con PIN)", WEB + "clase.html?per=" + o.id);
-    link("Panel del profesorado (con PIN)", WEB + "profes.html?per=" + o.id);
-    link("Tablero de reclutas (alumnado)", WEB + "registro.html?per=" + o.id);
-    link("La Nave del Recluta (alumnado)", WEB + "recluta.html?per=" + o.id);
-    link("Foro dinámico (la orden de la semana)", WEB + "foro.html?per=" + o.id + (o.inicio ? "&inicio=" + o.inicio + "&tipo=" + o.tipo : ""));
-    link("Tickets de salida (visual, con PIN)", WEB + "tickets.html?per=" + o.id);
-    link("Generador de embeds", WEB + "embed.html?per=" + o.id);
-    link("Documento de enlaces y embeds del grupo", o.doc || "");
-
-    h("Formularios del grupo", 2);
-    link("Bitácora de mando — donde el alumnado se alista y registra sus retos", o.formBitacora);
-    link("Canje de recompensas (alumnado)", o.formCanje);
-    link("Contacta con NEBULA · ticket de salida (anónimo)", o.formTicket);
+    // v3.36 · las dos listas SEPARADAS y etiquetadas, igual que en el documento del grupo. El dossier
+    // circula por todo el equipo docente: es justo el papel del que alguien copia un enlace y lo pega
+    // en el Genially del alumnado. «Tablero de reclutas (alumnado)» apuntando a registro.html —que es
+    // la web del método, con la instalación y el acceso con PIN— era una trampa esperando a que
+    // alguien cayera.
+    h("Lo que SE COMPARTE con el alumnado (y nada más)", 2);
+    par("Cinco cosas: el Genially, los tres formularios y la Nave. Ni un enlace más.");
+    link("✅ Panel de control · el Genially de los planetas (visualización)", o.panelVer || panelStd_().ver || "(sin definir)");
+    link("✅ Bitácora de mando — donde el alumnado se alista y registra sus retos", o.formBitacora);
+    link("✅ La Nave del Recluta — la única página web que ve el alumnado", WEB + "recluta.html?per=" + o.id);
+    link("✅ Contacta con NEBULA · ticket de salida (anónimo)", o.formTicket);
+    link("✅ Canje de recompensas", o.formCanje);
     qr(o.formBitacora, "QR de la Bitácora de mando (para proyectar en clase)");
+
+    h("Solo profesorado (pide PIN)", 2);
+    par("El tablero y el foro se enseñan en clase EMBEBIDOS dentro del Genially, con el código que hay " +
+        "en el documento del grupo. Sus enlaces sueltos llevan a la web del profesorado: no se reparten.");
+    link("🔒 Sala de clase (para cada docente)", WEB + "clase.html?per=" + o.id);
+    link("🔒 Panel del profesorado", WEB + "profes.html?per=" + o.id);
+    link("🔒 Tickets de salida (visual)", WEB + "tickets.html?per=" + o.id);
+    link("🔒 Tablero y método (la web que explica el sistema)", WEB + "registro.html?per=" + o.id);
+    link("🔒 Foro dinámico, como página suelta", WEB + "foro.html?per=" + o.id + (o.inicio ? "&inicio=" + o.inicio + "&tipo=" + o.tipo : ""));
+    link("🔒 Generador de embeds", WEB + "embed.html?per=" + o.id);
+    link("🔒 Documento de enlaces y embeds del grupo", o.doc || "");
 
     h("Panel de control de Genially", 2);
     var std = panelStd_();
@@ -1402,6 +1720,46 @@ function setArchivado_(perId, arch) {
   hoja_(H.PERS).getRange(p.fila, 22).setValue(arch ? new Date() : "");
   if (arch) { try { setAbierto_(perId, false); } catch (e) {} }
   [o.tabB, o.tabT, o.tabC].forEach(function(n){ try { var sh = ss.getSheetByName(n); if (sh) { if (arch) sh.hideSheet(); else sh.showSheet(); } } catch (e) {} });
+  // v3.36 · y sus registros se MUDAN. Es lo que de verdad quita el grupo de en medio: hasta hoy
+  // EVENTOS y AJUSTES seguían mezclando los cursos viejos con los vivos para siempre.
+  var movidas = 0;
+  try { movidas = moverRegistros_(perId, arch); } catch (e) { Logger.log("moverRegistros_: " + e); }
+  try { colorear_(); } catch (e) {}
+  return movidas;
+}
+// Mueve las filas de UN PER entre EVENTOS/AJUSTES y su archivo (y al revés al desarchivar). De una
+// tacada: leer, partir y reescribir. Nada de borrar fila a fila — con un curso entero eso son miles
+// de llamadas y Apps Script se queda por el camino.
+function moverRegistros_(perId, aArchivo) {
+  var total = 0, sello = new Date();
+  [[H.EV, H.EVA], [H.AJ, H.AJA]].forEach(function(par){
+    var nomO = aArchivo ? par[0] : par[1], nomD = aArchivo ? par[1] : par[0];
+    var aO = anchoDe_(nomO), aD = anchoDe_(nomD);
+    var shO = hoja_(nomO); if (shO.getLastRow() < 2) return;
+    var v = shO.getDataRange().getValues();
+    var quedan = [], van = [];
+    for (var i = 1; i < v.length; i++) {
+      if (!v[i][0] && !v[i][1] && !v[i][2]) continue;                       // filas en blanco
+      if (String(v[i][1]) === String(perId)) van.push(encajar_(v[i], aD, aArchivo ? sello : null));
+      else quedan.push(encajar_(v[i], aO, null));
+    }
+    if (!van.length) return;
+    var alto = shO.getLastRow() - 1;
+    shO.getRange(2, 1, alto, Math.max(shO.getLastColumn(), aO)).clearContent();
+    if (quedan.length) shO.getRange(2, 1, quedan.length, aO).setValues(quedan);
+    var shD = hoja_(nomD);
+    shD.getRange(shD.getLastRow() + 1, 1, van.length, aD).setValues(van);
+    total += van.length;
+  });
+  return total;
+}
+// Una fila con el ancho EXACTO de la pestaña a la que va. Al archivar sobra un hueco al final y ahí
+// se escribe la fecha; al desarchivar, ese hueco se cae solo con el recorte.
+function encajar_(fila, ancho, sello) {
+  var r = fila.slice(0, ancho);
+  while (r.length < ancho) r.push("");
+  if (sello) r[ancho - 1] = sello;
+  return r;
 }
 function borrarPERSeleccionado() {
   var sel = filaPERSeleccionada_(); if (!sel) return; var ui = SpreadsheetApp.getUi();
@@ -1426,15 +1784,35 @@ function borrarPER_(o, fila) {
   // la carpeta propia del PER (con lo que quede dentro) a la papelera
   try { var raizP = carpetaPER_(); var itP = raizP.getFoldersByName(o.nombre);
         if (itP.hasNext()) itP.next().setTrashed(true); } catch (e) {}
-  borrarFilasDe_(hoja_(H.EV), o.id); borrarFilasDe_(hoja_(H.AJ), o.id);
+  // v3.36 · TODO lo del PER, incluido el archivo y —lo que faltaba— su equipo docente y su fila de
+  // ALUMNADO. DOCENTES no se limpiaba desde ningún sitio: borrar un grupo dejaba ahí a su
+  // profesorado para siempre, y de ahí salían los «residuos» de la hoja.
+  [H.EV, H.AJ, H.EVA, H.AJA].forEach(function(n){ borrarFilasDe_(hoja_(n), o.id); });
+  borrarFilasDe_(hoja_(H.DOC), o.id, 0);
+  borrarFilasDe_(hoja_(H.ALU), o.id, 0);
   var props = PropertiesService.getScriptProperties();
   ScriptApp.getProjectTriggers().forEach(function(t){ if (props.getProperty("trg_" + t.getUniqueId()) === o.id) {
     props.deleteProperty("trg_" + t.getUniqueId()); ScriptApp.deleteTrigger(t); } });
   hoja_(H.PERS).deleteRow(fila);
 }
-function borrarFilasDe_(sh, perId) { // la columna 2 es el per en EVENTOS y AJUSTES
-  var v = sh.getDataRange().getValues();
-  for (var i = v.length - 1; i >= 1; i--) if (v[i][1] === perId) sh.deleteRow(i + 1);
+// Quita de una pestaña TODAS las filas de un PER. `col` es dónde está el per: 1 (la segunda columna)
+// en EVENTOS, AJUSTES y sus archivos; 0 en DOCENTES y ALUMNADO.
+// v3.36 · se reescribe la pestaña de una vez en lugar de borrar fila a fila: con un curso entero,
+// deleteRow en bucle son miles de llamadas y el borrado se quedaba a medias por tiempo.
+function borrarFilasDe_(sh, perId, col) {
+  col = col === undefined ? 1 : col;
+  if (!sh || sh.getLastRow() < 2) return 0;
+  var v = sh.getDataRange().getValues(), ancho = Math.max(sh.getLastColumn(), 1);
+  var quedan = [], fuera = 0;
+  for (var i = 1; i < v.length; i++) {
+    if (String(v[i][col]) === String(perId)) { fuera++; continue; }
+    if (!v[i].some(function(x){ return x !== "" && x !== null && x !== undefined; })) continue;
+    quedan.push(encajar_(v[i], ancho, null));
+  }
+  if (!fuera) return 0;
+  sh.getRange(2, 1, v.length - 1, ancho).clearContent();
+  if (quedan.length) sh.getRange(2, 1, quedan.length, ancho).setValues(quedan);
+  return fuera;
 }
 function restaurarRecompensas() {
   var ui = SpreadsheetApp.getUi();
@@ -1556,6 +1934,87 @@ function limpiarRestos() {
     "Formularios a la papelera: " + okF + " de " + forms.length + "\nPestañas borradas: " + okT + " de " + tabs.length +
     (errores.length ? "\n\nNo se pudo con:\n" + errores.join("\n") : ""), ui.ButtonSet.OK);
 }
+// ================= v3.37 · ALUMNADO DE PRUEBA =================
+// Reemplaza al pruebaSembrar del difunto Pruebas.gs, pero hecho para quedarse: vive en el repo, lo
+// cubre la batería 39 y tiene la puerta que a aquel le faltaba (solo siembra en grupos DEMO/PRUEBA).
+//
+// No pasa por los formularios —la Bitácora admite una respuesta por cuenta de Google y las cuentas
+// no existen—: escribe la identidad en la pestaña B y los retos en EVENTOS, que es exactamente lo
+// que habría dejado el formulario. Las fechas se reparten con SEMANA_DEL_TEMA para que el ranking
+// semanal, la racha y la «última actividad» cuenten una historia creíble, no un big bang de hoy.
+var SIEMBRA_ALIAS = [["Vega","f"],["Orion","m"],["Lyra","f"],["Nix","m"],["Talia","f"],
+                     ["Bruma","f"],["Cosmo","m"],["Runa","f"],["Halcon","m"],["Pixel","f"]];
+function sembrarDemo() {
+  var sel = filaPERSeleccionada_(); if (!sel) return; var ui = SpreadsheetApp.getUi();
+  var nom = String(sel.o.nombre || "").toUpperCase();
+  if (nom.indexOf("DEMO") < 0 && nom.indexOf("PRUEBA") < 0) {
+    ui.alert("Este PER no parece de prueba",
+      "Solo siembro en grupos cuyo nombre lleve DEMO o PRUEBA: «" + sel.o.nombre + "» no lo lleva.\n\n" +
+      "Es la puerta que le faltaba al viejo Pruebas.gs, que creó un PER entero sin querer.", ui.ButtonSet.OK);
+    return;
+  }
+  if (ui.alert("Sembrar alumnado de PRUEBA",
+      "Añade " + SIEMBRA_ALIAS.length + " reclutas de mentira a «" + sel.o.nombre + "» (correos @reclutas.demo), " +
+      "con progreso repartido desde la semana 1 hasta la actual. Los que ya estén sembrados no se duplican.\n\n¿Sembrar?",
+      ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var r = sembrarDemo_(sel.o.id);
+  try { alumnado_(); } catch (e) {}
+  ui.alert("Siembra hecha", r.nuevos + " reclutas nuevos (" + r.yaEstaban + " ya estaban) · " +
+    r.eventos + " registros en EVENTOS.\n\nMíralos en el tablero o en la pestaña ALUMNADO.", ui.ButtonSet.OK);
+}
+function sembrarDemo_(perId) {
+  var p = perFila_(perId); if (!p) throw new Error("PER no encontrado: " + perId);
+  var o = perObj_(p.v);
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabB);
+  if (!sh) throw new Error("El PER no tiene pestaña de Bitácora (" + o.tabB + ")");
+  var cab = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 1)).getValues()[0].map(String);
+  var col = function(frag){ return idx_(cab, frag); };
+  var cCorreo = col("dirección de correo") >= 0 ? col("dirección de correo") : col("email address");
+  if (cCorreo < 0) throw new Error("La pestaña B no tiene la columna del correo de Google");
+  var vivos = {};
+  if (sh.getLastRow() > 1) sh.getDataRange().getValues().slice(1).forEach(function(v){
+    var m = String(v[cCorreo] || "").toLowerCase().trim(); if (m) vivos[m] = true; });
+  // el docente de cada recluta: se reparten entre quienes IMPARTEN, como hizo Norberto a mano el 28-ago
+  var profes = docentesDe_(perId).filter(imparte_).map(function(d){ return d.nombre; });
+  if (!profes.length) profes = [""];
+  var semAhora = Math.max(1, Math.min(semanaDe_(o) || 1, semanasDe_(o.tipo)));
+  var retos = retosDe_(o.tipo);
+  var ini = new Date(o.inicio + "T12:00:00");
+  var fecha = function(sem, dia){ var d = new Date(ini.getTime()); d.setDate(d.getDate() + (sem - 1) * 7 + (dia % 6)); 
+    return d > new Date() ? new Date() : d; };
+  var ev = hoja_(H.EV), filasEv = [], nuevos = 0, yaEstaban = 0;
+  SIEMBRA_ALIAS.forEach(function(a, i){
+    var email = "demo" + (i < 9 ? "0" : "") + (i + 1) + "@reclutas.demo";
+    if (vivos[email]) { yaEstaban++; return; }
+    nuevos++;
+    // identidad en la pestaña B, por NOMBRE de columna (aguanta reordenaciones del formulario)
+    var fila = []; while (fila.length < cab.length) fila.push("");
+    var pon = function(frag, valor){ var c = col(frag); if (c >= 0) fila[c] = valor; };
+    fila[cCorreo] = email;
+    pon("marca temporal", fecha(1, i));
+    pon("alias", a[0]);
+    pon("apellidos", "Recluta de prueba " + (i + 1));
+    pon("elige tu avatar", "Personaje " + ((i % 7) + 1) + " · " + (a[1] === "m" ? "él" : "ella") + " (evoluciona)");
+    pon("quién imparte", profes[i % profes.length]);
+    pon("biograf", "Recluta de siembra: existo para que el tablero tenga vida en las pruebas.");
+    sh.appendRow(fila);
+    // el viaje: el recluta i llega «hasta donde llega». 0 = solo alistado; el último lo lleva todo
+    // lo abierto. El reparto da niveles distintos y un ranking con escalones, que es lo que se quiere ver.
+    var hasta = Math.round(semAhora * i / (SIEMBRA_ALIAS.length - 1));       // en SEMANAS del calendario
+    filasEv.push([fecha(1, i), o.id, email, a[0], "H1", "Reclutamiento", 0, XP_RECLUTAMIENTO, "siembra", ""]);
+    retos.forEach(function(r){
+      var t = r[4]; if (t > 8) return;                                       // la batalla final no se siembra
+      var abre = SEMANA_DEL_TEMA[String(t)] || SEMANA_DEL_TEMA[t] || 99;
+      if (abre > hasta) return;
+      // dentro del tema, no todos lo hacen todo: al recluta le falta el último reto de su tema más alto
+      if (abre === hasta && r[0].charAt(0) === "X" && i % 2) return;
+      filasEv.push([fecha(abre, i + t), o.id, email, a[0], r[0], r[1], t, r[3], "siembra",
+                    "https://view.genially.com/demo-" + a[0].toLowerCase() + "-" + r[0].toLowerCase()]);
+    });
+  });
+  if (filasEv.length) ev.getRange(ev.getLastRow() + 1, 1, filasEv.length, 10).setValues(filasEv);
+  return { nuevos: nuevos, yaEstaban: yaEstaban, eventos: filasEv.length };
+}
 function resetearHoja() {
   var ui = SpreadsheetApp.getUi();
   var pendiente = progreso_("reset");
@@ -1570,9 +2029,15 @@ function resetearHoja() {
     var total = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; }).length;
     if (!total) { restaurarRecompensas_(); ui.alert("No había ningún PER. Catálogo de recompensas restaurado."); return; }
     var r = ui.prompt("Resetear la hoja",
-      "Deja la hoja como recién instalada: borra los " + total + " PER (formularios y documentos a la papelera, " +
-      "pestañas de respuestas, EVENTOS, AJUSTES, DATOS y RESUMEN) y restaura el catálogo de recompensas.\n\n" +
-      "SE CONSERVAN: el PIN del profesorado, la URL del web app, el panel de control estándar y las plantillas de formulario.\n\n" +
+      "Deja la hoja como recién instalada: borra los " + total + " PER (sus formularios y documentos a la papelera y " +
+      "sus pestañas de respuestas) y VACÍA todas las pestañas de datos, sin dejar residuos:\n" +
+      hojasDeDatos_().join(" · ") + ".\n\nTambién restaura el catálogo de recompensas.\n\n" +
+      "⚠ Eso incluye el EQUIPO DOCENTE (pestaña DOCENTES): es gente que pertenece a esos grupos, y " +
+      "dejarla ahí era justo el residuo que había que quitar.\n\n" +
+      "🔬 SE CONSERVA CONSENTIMIENTO: quién autorizó que sus datos se usen para investigar. Los grupos " +
+      "van y vienen; esa autorización, no — y sin ella un paper se queda sin respaldo. Si algún día " +
+      "quieres vaciarla, se hace a mano.\n\n" +
+      "SE CONSERVAN ADEMÁS: los dos PIN, la URL del web app, el panel de control estándar y las plantillas.\n\n" +
       "Si hay muchos grupos tardará más de lo que Apps Script permite de una vez: no pasa nada, sigue solo por lotes.\n\n" +
       "Escribe RESETEAR para confirmar:", ui.ButtonSet.OK_CANCEL);
     if (r.getSelectedButton() !== ui.Button.OK || r.getResponseText().trim().toUpperCase() !== "RESETEAR") { ui.alert("Cancelado: nada se ha borrado."); return; }
@@ -1605,7 +2070,10 @@ function resetear_() {
   }
   // fase 2 · registros y catálogo
   if (pr.fase === "colas" && t.puedo()) {
-    [H.EV, H.AJ].forEach(function(nom){ var x = hoja_(nom); if (x.getLastRow() > 1) x.getRange(2,1,x.getLastRow()-1,x.getLastColumn()).clearContent(); });
+    // v3.36 · TODAS las pestañas de datos, de la lista de hojasDeDatos_(). Antes solo se vaciaban
+    // EVENTOS y AJUSTES, así que un reseteo dejaba atrás el equipo docente, los consentimientos y
+    // —cuando existían— las fichas de alumnado: residuos de gente y grupos que ya no existen.
+    hojasDeDatos_().forEach(function(nom){ try { vaciarHoja_(nom); } catch (e) { pr.fallos.push(nom + ": " + e.message); } });
     restaurarRecompensas_();
     pr.fase = "sueltos"; t.marcar();
   }
@@ -1643,6 +2111,7 @@ function resetear_() {
     try { consolidarDatos(); } catch (e) { pr.fallos.push("DATOS: " + e.message); }
     try { actualizarConsola(); } catch (e) { pr.fallos.push("Consola: " + e.message); }
     try { dossier_(); } catch (e) { pr.fallos.push("Dossier: " + e.message); }
+    try { colorear_(); } catch (e) { pr.fallos.push("Colores: " + e.message); }
     pr.fase = "fin"; t.marcar();
   }
   var terminado = pr.fase === "fin";
@@ -1804,6 +2273,9 @@ function asegurarTriggers_() {
 }
 function fotoNocturna() {
   try { consolidarDatos(); } catch (e) { Logger.log("consolidarDatos: " + e); }
+  // v3.36 · ALUMNADO se rehace aquí (y pinta la hoja al terminar): así por la mañana está al día sin
+  // que nadie toque el menú, igual que la Consola y el dossier.
+  try { alumnado_(); } catch (e) { Logger.log("alumnado_: " + e); }
   try { actualizarConsola(); } catch (e) { Logger.log("actualizarConsola: " + e); }
   try { dossier_(); } catch (e) { Logger.log("dossier_: " + e); }
   try { repartirBonusTripulacion_(); } catch (e) { Logger.log("bonus tripulacion: " + e); }
@@ -1970,8 +2442,26 @@ function leerFila_(sh, fila) {
   var cab = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(String); var v = sh.getRange(fila,1,1,sh.getLastColumn()).getValues()[0];
   var o = {}; cab.forEach(function(c,i){ o[c] = v[i]; }); return o;
 }
-function marcados_(o) { // casillas marcadas en una fila de Bitácora -> [etiquetas]
-  var out = []; Object.keys(o).forEach(function(c){ if (c.indexOf("Lo que he completado") >= 0 || c === "Batalla final") String(o[c]||"").split(", ").forEach(function(x){ if (x.trim()) out.push(x.trim()); }); });
+// Las casillas marcadas en una fila de la Bitácora -> [etiquetas de reto].
+//
+// 🔴 LEE LOS DOS FORMATOS, Y TIENE QUE SEGUIR HACIÉNDOLO:
+//   · v3.37 (nuevo): una pregunta por reto. La columna se llama como el reto y basta con que traiga
+//     algo para contarla por marcada.
+//   · anterior: una casilla por planeta con las etiquetas separadas por coma.
+// Las columnas viejas NO desaparecen de la hoja al cambiar el formulario —Google las conserva para
+// siempre con lo que ya contestó cada alumno—, así que quitar la segunda mitad de esta función
+// dejaría de leer todo lo registrado antes de la reforma.
+function marcados_(o, tipo) {
+  var vistos = {}, out = [];
+  var mete = function(x){ x = String(x || "").trim(); if (x && !vistos[x]) { vistos[x] = true; out.push(x); } };
+  if (tipo) {
+    try { retosDe_(tipo).forEach(function(r){ if (String(o[r[1]] || "").trim()) mete(r[1]); }); }
+    catch (e) { Logger.log("marcados_ (formato nuevo): " + e); }
+  }
+  Object.keys(o).forEach(function(c){
+    if (c.indexOf("Lo que he completado") >= 0 || c === "Batalla final")
+      String(o[c]||"").split(", ").forEach(mete);
+  });
   return out;
 }
 // v3.32 · EL DOBLE CHECK DEL CORREO, QUE AHORA COMPRUEBA ALGO
@@ -2021,13 +2511,16 @@ function registrarEventos_(o, sh, fila) {
   congelarAvatarBase_(o, email, r);
   var alias = r["Alias de recluta (público)"] || ""; var retos = retosDe_(o.tipo); var porEt = {}; retos.forEach(function(x){ porEt[x[1]] = x; });
   var ev = hoja_(H.EV); var previos = {}, mios = [];
-  ev.getDataRange().getValues().slice(1).forEach(function(v){
-    if (v[1] === o.id && String(v[2]).toLowerCase() === email) { previos[v[4]] = true; mios.push({ fecha:v[0], reto_id:v[4] }); } });
+  registros_(H.EV, o.id).forEach(function(v){
+    if (String(v[2]).toLowerCase() === email) { previos[v[4]] = true; mios.push({ fecha:v[0], reto_id:v[4] }); } });
   var nuevos = [], prueba = evidenciaDe_(r);
   if (!previos["H1"]) nuevos.push([new Date(), o.id, email, alias, "H1", "Reclutamiento", 0, XP_RECLUTAMIENTO, "formulario", ""]);
-  // la evidencia de ESTE envio se guarda con CADA reto que se marca en el: asi el profesorado la ve
-  // al lado del reto, no en una columna suelta que hay que ir a buscar
-  marcados_(r).forEach(function(et){ var x = porEt[et]; if (x && !previos[x[0]]) nuevos.push([new Date(), o.id, email, alias, x[0], x[1], x[4], x[3], "formulario", prueba]); });
+  // v3.37 · CADA RETO CON SU PROPIA EVIDENCIA. Ahora el formulario pide un enlace por reto, así que
+  // se coge el suyo; si no lo hay (respuestas anteriores a la reforma, que tenían UN enlace por
+  // planeta) se cae al genérico de ese envío, que es lo que había hasta ahora.
+  marcados_(r, o.tipo).forEach(function(et){ var x = porEt[et]; if (!x || previos[x[0]]) return;
+    var suya = String(r[tituloEvidenciaReto_(x)] || "").trim();
+    nuevos.push([new Date(), o.id, email, alias, x[0], x[1], x[4], x[3], "formulario", suya || prueba]); });
   if (nuevos.length) ev.getRange(ev.getLastRow()+1, 1, nuevos.length, 10).setValues(nuevos);
   if (nuevos.length) otorgarBonus_(o, email, previos, mios.concat(nuevos.map(function(v){ return { fecha:v[0], reto_id:v[4] }; })));
 }
@@ -2038,8 +2531,8 @@ function otorgarBonus_(o, email, previos, eventos) {
   var retos = {}; Object.keys(previos).forEach(function(k){ retos[k] = true; });
   eventos.forEach(function(e){ retos[e.reto_id] = true; });
   var yaTiene = {};
-  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
-    if (v[1] === o.id && String(v[2]).toLowerCase() === email && v[4] === "bonus") yaTiene[String(v[5] || "")] = true; });
+  registros_(H.AJ, o.id).forEach(function(v){
+    if (String(v[2]).toLowerCase() === email && v[4] === "bonus") yaTiene[String(v[5] || "")] = true; });
   var pend = bonusPendientes_(retos, o.tipo, racha_(o, eventos), yaTiene);
   pend.forEach(function(k){ hoja_(H.AJ).appendRow([new Date(), o.id, email, "EXTRA", "bonus", k, "sistema"]); });
   return pend;
@@ -2049,8 +2542,8 @@ function otorgarBonus_(o, email, previos, eventos) {
 function congelarAvatarBase_(o, email, r) {
   try {
     var aj = hoja_(H.AJ);
-    var hay = aj.getDataRange().getValues().slice(1).some(function(v){
-      return v[1] === o.id && String(v[2]).toLowerCase() === email && v[3] === "AVATAR"; });
+    var hay = registros_(H.AJ, o.id).some(function(v){
+      return String(v[2]).toLowerCase() === email && v[3] === "AVATAR"; });
     if (hay) return;
     var txt = String(r["Elige tu avatar"] || ""); var url = String(r["URL de tu propia imagen (opcional)"] || "").trim();
     var valor = txt + (url ? " | " + url : "");
@@ -2303,11 +2796,11 @@ function tablero_(perId, conPrivados) {
       por[m] = y; }
   }
   // 2) eventos (con fecha) + ajustes del profesorado
-  hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase();
+  registros_(H.EV, perId).forEach(function(v){ var m = String(v[2]).toLowerCase();
     var a = por[m] || (por[m] = { email:m, alias:String(v[3]||""), nombre:"", bitacora:"", profe:"", avatar:{tipo:null,n:null,url:""}, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] });
     a.retos[v[4]] = { fecha:v[0], origen:v[8], evidencia:String(v[9] || "") };
     a.eventos.push({ fecha:v[0], reto_id:v[4], reto:v[5], xp:v[7], origen:v[8], evidencia:String(v[9] || "") }); });
-  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){ if (v[1] !== perId) return; var m = String(v[2]).toLowerCase(); var a = por[m]; if (!a) return;
+  registros_(H.AJ, perId).forEach(function(v){ var m = String(v[2]).toLowerCase(); var a = por[m]; if (!a) return;
     if (v[4] === "anular") delete a.retos[v[3]]; else if (v[4] === "otorgar") { a.retos[v[3]] = { fecha:v[0], origen:"profesorado" }; }
     else if (v[4] === "avatar") { a._avCanje = String(v[5] || ""); }               // canje concedido: el último gana
     else if (v[4] === "avatar_base" && !a._avBase) { a._avBase = String(v[5] || ""); }      // primera elección congelada
@@ -2445,6 +2938,125 @@ function parseAvatar_(s) {
 }
 function idx_(cab, frag) { frag = frag.toLowerCase(); for (var i = 0; i < cab.length; i++) if (cab[i].toLowerCase().indexOf(frag) >= 0) return i; return -1; }
 
+// ================= ALUMNADO (la vista operativa de las personas) =================
+// 🔴 NO confundir con DATOS/RESUMEN. Aquellas dos son PARA INVESTIGAR y salen seudonimizadas a
+// propósito; esta lleva nombre y correo porque es la que se usa para dar clase: quién es quién, de
+// quién es alumno, cuánto lleva y qué se ha gastado. Vive detrás del PIN igual que la hoja entera.
+//
+// Es una FOTO, como la Consola: se rehace entera al pedirla y de madrugada. Lo que se escriba a mano
+// aquí se pierde en el siguiente refresco — el dato de verdad está en EVENTOS, AJUSTES y los
+// formularios, y esta pestaña solo los junta.
+function actualizarAlumnado() {
+  var ui = SpreadsheetApp.getUi();
+  var r = alumnado_();
+  try { SpreadsheetApp.getActive().setActiveSheet(hoja_(H.ALU)); } catch (e) {}
+  ui.alert("Pestaña ALUMNADO al día",
+    r.reclutas + " personas de " + r.grupos + " grupo(s)" +
+    (r.archivados ? " (" + r.archivados + " de grupos archivados, en gris)" : "") + ".\n\n" +
+    "Es una foto: se rehace sola de madrugada y cada vez que la pidas desde el menú. No escribas en " +
+    "ella, que se pierde al refrescar.", ui.ButtonSet.OK);
+}
+function alumnado_() {
+  var pers = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
+  var filas = [], grupos = 0, archivados = 0;
+  pers.forEach(function(v){
+    var o = perObj_(v), t;
+    try { t = tablero_(o.id, true); } catch (e) { Logger.log("alumnado_/" + o.id + ": " + e); return; }
+    if (!t || !t.reclutas) return;
+    grupos++;
+    t.reclutas.forEach(function(x){
+      var canjes = x.canjes || [], veces = {};
+      canjes.forEach(function(c){ var n = nombreDe_(c.recompensa); if (n) veces[n] = (veces[n] || 0) + 1; });
+      if (o.archivado) archivados++;
+      filas.push([o.id, o.nombre, x.nombre || "", x.email || "", x.alias || "", x.profe || "",
+                  x.nivel, x.rango_nombre || "", x.xp,
+                  x.creditos, x.creditos_ganados, x.creditos_gastados,
+                  x.n, Object.keys(x.retos || {}).length, canjes.length,
+                  Object.keys(veces).map(function(k){ return veces[k] > 1 ? k + " x" + veces[k] : k; }).join(", "),
+                  x.coleccion && x.coleccion.cromos ? x.coleccion.cromos.tengo : 0,
+                  x.n_heroes || 0, x.planeta || "", x.bitacora ? "SÍ" : "", x.ultima || "", o.archivado || ""]);
+    });
+  });
+  var sh = hoja_(H.ALU, CAB_ALUMNADO, "#37e0ec");
+  sh.clearContents();
+  sh.getRange(1, 1, 1, CAB_ALUMNADO.length).setValues([CAB_ALUMNADO]);
+  if (filas.length) sh.getRange(2, 1, filas.length, CAB_ALUMNADO.length).setValues(filas);
+  sh.setFrozenRows(1);
+  try { colorear_(); } catch (e) { Logger.log("colorear_ desde alumnado_: " + e); }
+  return { reclutas: filas.length, grupos: grupos, archivados: archivados };
+}
+
+// ================= COLOR (cada grupo el suyo, y los avisos encima) =================
+// Reglas de formato condicional DE VERDAD, no celdas pintadas a mano: se aplican solas a las filas
+// que van llegando por formulario, y sobreviven a ordenar, filtrar e insertar.
+//
+// El orden IMPORTA: en Sheets manda la PRIMERA regla que casa. Por eso los avisos van delante del
+// color del grupo — si no, el tinte del grupo taparía siempre al aviso y no se vería nada.
+var COLORES_PER = ["#d7f0f7","#ffe8cf","#e6dff7","#daf2e2","#ffe1e8",
+                   "#fff6c8","#dde9ff","#f2e5d3","#dff5ef","#f7ddf1"];
+var COLOR_ARCHIVADO = "#e8eaed";   // gris: lo archivado se lee, no se trabaja
+var COLOR_AVISO     = "#ffd9d9";   // rojo claro: falta algo que impide que el sistema funcione
+var COLOR_OJO       = "#fff3c4";   // ámbar: no está roto, pero míralo
+
+// El color de cada PER sale de su ORDEN en la pestaña PERs, no de un hash: así los diez primeros
+// grupos tienen diez colores distintos garantizados y no dos parecidos por casualidad.
+function coloresPER_() {
+  var m = {}, i = 0;
+  hoja_(H.PERS).getDataRange().getValues().slice(1).forEach(function(v){
+    if (!v[0]) return; m[String(v[0])] = COLORES_PER[i % COLORES_PER.length]; i++;
+  });
+  return m;
+}
+function colorear_() {
+  var ss = SpreadsheetApp.getActive(), col = coloresPER_();
+  var n = 0;
+  // PERs · la columna A es el id. En gris lo archivado (columna V = «Archivado»).
+  n += reglas_(ss.getSheetByName(H.PERS), "$A", col,
+    [{ f: '=$V2<>""', c: COLOR_ARCHIVADO }]);
+  // EVENTOS, AJUSTES y sus archivos · la columna B es el per
+  [H.EV, H.AJ, H.EVA, H.AJA].forEach(function(nom){
+    n += reglas_(ss.getSheetByName(nom), "$B", col, []);
+  });
+  // ALUMNADO · la columna A es el per. Delante van los tres avisos que se leen de un vistazo.
+  n += reglas_(ss.getSheetByName(H.ALU), "$A", col, [
+    { f: '=$V2<>""', c: COLOR_ARCHIVADO },                        // el grupo está archivado
+    { f: '=AND($D2<>"",$F2="")', c: COLOR_AVISO },                // alistado pero sin docente
+    { f: '=AND($U2<>"",$U2<TODAY()-14)', c: COLOR_OJO }           // dos semanas sin registrar nada
+  ]);
+  // DOCENTES · la columna A es el per
+  n += reglas_(ss.getSheetByName(H.DOC), "$A", col,
+    [{ f: '=AND($B2<>"",$C2="")', c: COLOR_AVISO }]);             // docente sin correo: no recibe avisos
+  return n;
+}
+function reglas_(sh, ref, colores, extras) {
+  if (!sh) return 0;
+  var rango = sh.getRange(2, 1, Math.max(sh.getMaxRows() - 1, 1), Math.max(sh.getMaxColumns(), 1));
+  var lista = [];
+  (extras || []).forEach(function(e){
+    lista.push(SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied(e.f).setBackground(e.c).setRanges([rango]).build());
+  });
+  Object.keys(colores).forEach(function(id){
+    // el id de un PER es un slug (letras, números y guiones), pero se limpian las comillas por si
+    // alguien lo edita a mano: una comilla suelta rompería la fórmula entera y con ella todo el color
+    lista.push(SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=' + ref + '2="' + String(id).replace(/"/g, "") + '"')
+      .setBackground(colores[id]).setRanges([rango]).build());
+  });
+  try { sh.setConditionalFormatRules(lista); } catch (e) { Logger.log("reglas_/" + sh.getName() + ": " + e); return 0; }
+  return lista.length;
+}
+function colorearHoja() {
+  var ui = SpreadsheetApp.getUi(), n = 0;
+  try { n = colorear_(); } catch (e) { ui.alert("No se ha podido colorear: " + e.message); return; }
+  ui.alert("Hoja coloreada",
+    n + " reglas puestas.\n\nCada grupo tiene su color en PERs, EVENTOS, AJUSTES, sus archivos, " +
+    "DOCENTES y ALUMNADO. Encima van los avisos: gris = grupo archivado · rojo = falta el docente " +
+    "(o su correo) · ámbar = dos semanas sin registrar nada.\n\n" +
+    "Son reglas automáticas: las filas nuevas que lleguen por formulario salen ya con su color.",
+    ui.ButtonSet.OK);
+}
+
 // ================= DATOS / RESUMEN (investigación) =================
 function consolidarDatos() {
   var ss = SpreadsheetApp.getActive(); var pers = hoja_(H.PERS).getDataRange().getValues().slice(1);
@@ -2474,11 +3086,11 @@ function consolidarDatos() {
   // 🔴 Ni correo, ni alias, ni nombre: estas dos pestañas son PARA INVESTIGAR y salen seudonimizadas.
   // Quien necesite ver nombres tiene la Consola del profesorado, que es la vista operativa.
   var filas = [["per","tipo","fecha","seudonimo","docente","reto_id","reto","tema","xp","origen"]];
-  hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(v){
+  registros_(H.EV).forEach(function(v){
     var em = String(v[2] || "").toLowerCase().trim(); if (!pasa(em)) return;
     filas.push([v[1], tipoDe(v[1]), v[0], seudonimo_(em), quien(v[1], em), v[4], limpio(v[5]), v[6], v[7], limpio(v[8])]);
   });
-  hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
+  registros_(H.AJ).forEach(function(v){
     var em = String(v[2] || "").toLowerCase().trim(); if (!pasa(em)) return;
     filas.push([v[1], tipoDe(v[1]), v[0], seudonimo_(em), quien(v[1], em), v[3],
                 limpio(v[4] + (v[5] ? " · " + v[5] : "")), "", "", "ajuste:" + limpio(v[6])]);
@@ -2634,7 +3246,7 @@ function actualizarConsola() {
       ["Fecha","Alias","Correo","Logro","xp"],
       (function(){
         var ev = [];
-        hoja_(H.EV).getDataRange().getValues().slice(1).forEach(function(r){ if (r[1] === o.id) ev.push(r); });
+        registros_(H.EV, o.id).forEach(function(r){ ev.push(r); });
         ev.sort(function(a,b){ return new Date(b[0]) - new Date(a[0]); });
         return ev.slice(0, 60).map(function(r){ return [r[0], r[3], r[2], r[5], r[7]]; });
       })());
@@ -3091,6 +3703,10 @@ function doPost(e) {
         // v3.19 · la ficha del alumno tiene que traer TODO lo que la Nave celebra y pinta. Faltaban
         // estos tres y por eso la celebracion no veia los bonus ni los planetas completos.
         bonus:yo.bonus || [], planetas_completos:yo.planetas_completos || [], coleccion:yo.coleccion || null,
+        // v3.37 · los retos que YA tiene, por id. La Nave los necesita para su sección de retos:
+        // deducirlos de las insignias casi funciona, pero las derivadas y las de reclutamiento
+        // enturbian la cuenta, y aquí «casi» significa decirle a alguien que le falta algo que hizo.
+        retos: Object.keys(yo.retos || {}),
         xp7:yo.xp7 || 0,
         repes:yo.repes || 0, repes_disponibles:yo.repes_disponibles || 0, racha:yo.racha || 0 } : null,
         // 🔴 se dice que la ventana está abierta y hasta cuándo, pero NUNCA la consigna: si viajara

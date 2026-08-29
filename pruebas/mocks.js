@@ -68,7 +68,7 @@ class Rango {
 class Hoja {
   constructor(libro, nombre) {
     this.libro = libro; this.nombre = nombre; this.datos = [];
-    this.color = ""; this.oculta = false; this._formUrl = ""; this.congeladas = 0;
+    this.color = ""; this.oculta = false; this._formUrl = ""; this.congeladas = 0; this.reglas = [];
   }
   getName() { return this.nombre; }
   setName(n) {
@@ -95,6 +95,10 @@ class Hoja {
   setFrozenRows(n) { this.congeladas = n; return this; }
   setFrozenColumns() { return this; }
   setTabColor(c) { this.color = c; return this; }
+  // Formato condicional. El simulador GUARDA las reglas (antes ni existían): sin esto, «colorear la
+  // hoja» se podía romper entera sin que el banco se enterara, porque nadie miraba el resultado.
+  setConditionalFormatRules(rs) { this.reglas = (rs || []).slice(); return this; }
+  getConditionalFormatRules() { return (this.reglas || []).slice(); }
   hideSheet() { this.oculta = true; return this; }
   showSheet() { this.oculta = false; return this; }
   autoResizeColumn() { return this; }

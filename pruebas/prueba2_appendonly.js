@@ -10,17 +10,16 @@ E.crearPERDemo(G);
 const PER = "prueba-banco";
 const RET = G.retosDe_("REGULAR");
 const et = id => RET.filter(r => r[0] === id)[0][1];
-const col = t => "Tema " + t + " · Lo que he completado";
 
 E.enviarBitacora(G, PER, { email: "dani@alumno.es", alias: "Dani", nombre: "Dani S", profe: "Mr Cuarter" });
 // 1ª visita: marca el tema 1
-E.enviarBitacora(G, PER, { email: "dani@alumno.es", nav: "Tema 1 · Fôrge", marcados: { [col(1)]: [et("A1"), et("B1")].join(", ") } }, 2);
+E.enviarBitacora(G, PER, { email: "dani@alumno.es", marcados: E.marcar(G, [et("A1"), et("B1")]) }, 2);
 let d = G.tablero_(PER, true).reclutas[0];
 igual(d.xp, 100 + 100 + 250, "tras el tema 1: 450 xp");
 
 // 2ª visita: el alumno salta DIRECTO al tema 6. Google reescribe la fila y el tema 1 llega VACÍO.
-E.enviarBitacora(G, PER, { email: "dani@alumno.es", nav: "Tema 6 · Ludo",
-  marcados: { [col(1)]: "", [col(6)]: [et("A6"), et("B6")].join(", ") } }, 2);
+E.enviarBitacora(G, PER, { email: "dani@alumno.es",
+  marcados: Object.assign(E.desmarcar(G, [et("A1"), et("B1")]), E.marcar(G, [et("A6"), et("B6")])) }, 2);
 d = G.tablero_(PER, true).reclutas[0];
 // A6+B6 son TODOS los retos del tema 6 (no tiene Actividad), así que además cae el planeta completo
 igual(d.xp, 100 + 100 + 250 + 100 + 250 + G.BONUS_PLANETA.xp,
@@ -31,7 +30,7 @@ c(d.insignias.indexOf("P6_joran") >= 0, "y se suma la del tema 6");
 
 // 3ª visita: reenvía lo mismo -> nada se duplica
 const evAntes = G.hoja_("EVENTOS").getLastRow();
-E.enviarBitacora(G, PER, { email: "dani@alumno.es", marcados: { [col(6)]: [et("A6"), et("B6")].join(", ") } }, 2);
+E.enviarBitacora(G, PER, { email: "dani@alumno.es", marcados: E.marcar(G, [et("A6"), et("B6")]) }, 2);
 igual(G.hoja_("EVENTOS").getLastRow(), evAntes, "reenviar lo ya registrado no duplica eventos");
 igual(G.tablero_(PER, true).reclutas[0].xp, 800 + G.BONUS_PLANETA.xp, "ni suma xp de más (800 + el planeta 1 completo)");
 

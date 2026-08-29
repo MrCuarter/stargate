@@ -52,9 +52,12 @@ contiene(r.embedRanking, "<iframe", "y es un código para pegar en Genially, no 
 contiene(r.ranking, "solo=1", "y el enlace para abrirlo aparte");
 
 const docs = Object.keys(M.Documento.registro).map(k => M.Documento.registro[k].getBody().getText());
-const enlaces = docs.filter(t => t.indexOf("Tablero de reclutas") >= 0)[0] || "";
+// v3.36 · el ranking dejó de ser un ENLACE del documento y pasó a ser solo un EMBED: su enlace
+// suelto es registro.html, que es la web del profesorado. Se sigue comprobando que está y que se
+// llama por su nombre — pero en la sección de códigos para pegar en Genially, que es su sitio.
+const enlaces = docs.filter(t => /Para MONTAR el Genially del alumnado/.test(t))[0] || "";
 contiene(enlaces, "&embed=1&solo=1", "el documento de enlaces del grupo también lo lleva");
-contiene(enlaces, "Ranking público", "con su nombre, para encontrarlo");
+contiene(enlaces, "ranking público", "con su nombre, para encontrarlo");
 c(/ni los créditos, ni el correo/.test(enlaces), "y avisa de lo que ese embed NO enseña");
 
 // ---------------------------------------------------------------- e) la visita guiada mira dónde pisa

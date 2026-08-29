@@ -37,7 +37,7 @@ contiene(fb.descripcion.toLowerCase(), "te alistas", "🔴 la descripción dice 
 contiene(fb.descripcion.toLowerCase(), "registras", "🔴 y que aquí REGISTRA lo que va completando (todas las demás)");
 contiene(fb.descripcion.toLowerCase(), "mismo enlace", "y que es el mismo enlace para las dos cosas");
 contiene(fb.descripcion, "edítala", "la descripción dice que se EDITA la misma respuesta");
-contiene(fb.descripcion, "es normal",
+contiene(fb.descripcion.toLowerCase(), "es normal",
   "🔴 y desactiva el susto: Google dirá «solo puedes rellenarlo una vez» y la descripción lo explica");
 contiene(fb.confirmacion.toLowerCase(), "mismo enlace", "y el mensaje final recuerda por dónde se vuelve");
 
@@ -82,14 +82,14 @@ contiene(G3.formDelPER_(o3, "B").descripcion.toLowerCase(), "te alistas",
 G = E.nuevoMundo();
 E.crearPERDemo(G);
 E.enviarBitacora(G, "prueba-banco", { email: "uno@alumno.es", alias: "Uno", profe: "Mr Cuarter",
-  marcados: { "Tema 1 · Lo que he completado": G.RETOS_REGULAR[0][1] } });
+  marcados: E.marcar(G, [G.RETOS_REGULAR[0]]) });
 const fila = G._maestra.getSheetByName("B · prueba-banco").getLastRow();
 const antes = G.tablero_("prueba-banco", true).reclutas[0];
 igual(antes.n >= 2, true, "el primer envío registra su insignia");
 
 // vuelve y marca otra cosa EDITANDO la misma fila (que es justo lo que hará ahora el alumnado)
 E.enviarBitacora(G, "prueba-banco", { email: "uno@alumno.es",
-  marcados: { "Tema 2 · Lo que he completado": G.RETOS_REGULAR[2][1] } }, fila);
+  marcados: E.marcar(G, [G.RETOS_REGULAR[2]]) }, fila);
 const luego = G.tablero_("prueba-banco", true).reclutas[0];
 c(luego.n > antes.n, "editar la MISMA respuesta añade lo nuevo (" + antes.n + " → " + luego.n + ")");
 igual(luego.alias, "Uno", "y no le borra el alias que puso al alistarse");
@@ -176,5 +176,28 @@ igual((fuente.match(/UrlFetchApp\.fetch\(sinCache_\(WEB/g) || []).length, 4,
   "🔴 las cuatro descargas de imagen (orbes y lámina) se saltan la caché");
 igual((fuente.match(/UrlFetchApp\.fetch\(WEB \+ "assets/g) || []).length, 0,
   "y no queda ninguna que pida la imagen a pelo");
+
+
+// ---------------------------------------------------------------- f) el mensaje del final (29-ago)
+// 🔴 Norberto, desde la prueba manual: «muchos estudiantes llenan el foro de dudas diciendo que solo
+// les deja rellenar el formulario una vez». Ese aviso lo pinta GOOGLE, va debajo de nuestro mensaje y
+// no se puede quitar. Así que el mensaje tiene un trabajo concreto: nombrarlo antes de que lo lean,
+// decir que es normal, y apuntar con flechas al enlace que Google deja al final del todo.
+const msg = G.confirmacionBitacora_("prueba-banco");
+contiene(msg, "recluta.html?per=prueba-banco", "🔴 el enlace del final lleva a SU Nave");
+c(msg.indexOf("registro.html") < 0,
+  "y NO a registro.html, que es la web del método con la guía de instalación y el acceso con PIN");
+contiene(msg, "Solo puedes rellenar este formulario una vez",
+  "🔴 nombra LITERALMENTE el aviso de Google: si no lo nombra, el alumno no sabe que hablamos de eso");
+contiene(msg, "ES NORMAL", "y dice que es normal, en mayúsculas, que es lo que se lee");
+contiene(msg, "Modificar tu respuesta", "y nombra el botón EXACTO que tiene que pulsar");
+c(/👇/.test(msg) && /⬇/.test(msg), "con flechas, que es lo que hace que un adulto con prisa mire abajo");
+// las flechas van LAS ÚLTIMAS: Google pone su enlace al final del todo, así que apuntar hacia abajo
+// solo funciona si no queda nada nuestro por debajo
+const lineas = msg.split("\n").filter(x => x.trim());
+c(/👇/.test(lineas[lineas.length - 1]),
+  "🔴 y son lo ÚLTIMO del mensaje: si debajo hubiera un enlace nuestro, las flechas apuntarían a él");
+c(msg.indexOf("recluta.html") < msg.indexOf("👇"),
+  "la Nave va ANTES de las flechas, por lo mismo");
 
 E.resumen("La Bitácora: una respuesta, editable");
