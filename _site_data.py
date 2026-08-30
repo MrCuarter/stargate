@@ -453,6 +453,25 @@ DIAS_APERTURA_ANTES = 0                    # los formularios abren el primer dí
 
 # Catálogo oficial de recompensas — [nombre, coste ◈, máx por alumno, descripción, desde semana, tipo]
 # tipo: cromo · titulo · fondo · avatar · marco · avatar_exclusivo · avatar_url · nota
+# Imagen de ejemplo que enseña el formulario de canje ANTES de confirmar cada recompensa.
+# 🔴 Va aquí y NO en la pestaña RECOMPENSAS de la hoja: esa la edita el profesorado (coste, máximo,
+# semana) y un nombre de fichero solo sería ruido para ellos. Se empareja por NOMBRE, y _build_site.py
+# comprueba que las dos listas coinciden — si alguien renombra una recompensa y se olvida de esto, el
+# build falla en vez de dejar la recompensa muda.
+# Las montadas con arte propio y las generadas en Magnific salen de _build_img_formularios.py.
+IMG_RECOMPENSA = {
+ "Sobre de cromos":                                "sobre.jpg",
+ "Cambiar 3 repetidos por un sobre":               "repetidos.jpg",
+ "Título de recluta":                              "titulo.jpg",
+ "Fondo de ficha: tu planeta":                     "planeta.jpg",
+ "Marco dorado del avatar":                        "marco.jpg",
+ "Héroe de la Rebelión":                           "heroe.jpg",
+ "Subir 0,5 en un entregable":                     "nota_05.jpg",
+ "Subir 1 punto en un entregable":                 "nota_1punto.jpg",
+ "Recalificar un trabajo entregado fuera de plazo": "nota_plazo.jpg",
+ "Recalificar un suspenso":                        "nota_suspenso.jpg",
+}
+
 RECOMPENSAS = [
  ("Sobre de cromos", 15, 99,
   "Una carta al azar de las 20 del álbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. Se abre solo y tu álbum está en la Nave.", 2, "cromo"),

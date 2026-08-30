@@ -34,7 +34,11 @@ const RETOS = G.retosDe_(o.tipo);
 // ================================================================ a) LA PORTADA
 const intro = item(G.TIT_INTRO);
 c(!!intro && intro.getType() === "SECTION_HEADER", "la primera pantalla es una sección que explica el formulario");
-igual(pos(G.TIT_INTRO), 0, "y va la PRIMERA de todo: es lo que se lee antes que nada");
+// v3.42 · delante va la escena del Capitán dando la bienvenida (petición de Norberto, 30-ago): es un
+// banner, se lee de un vistazo y no aparta el texto de su sitio. La explicación sigue siendo lo
+// primero que se LEE.
+igual(pos(G.TIT_ESCENA_PORTADA), 0, "el Capitán abre el formulario");
+igual(pos(G.TIT_INTRO), 1, "y justo detrás, la explicación: es lo que se lee antes que nada");
 contiene(intro.getHelpText(), "ALISTAS", "explica que la primera vez te alistas");
 contiene(intro.getHelpText(), "REGISTRAS", "y que después registras");
 contiene(intro.getHelpText(), "MISMO enlace", "y que es el mismo enlace siempre, que es lo que más despista");
@@ -49,8 +53,10 @@ igual(hoy.getChoices().map(x => x.getValue()), [G.OPC_ALTA, G.OPC_RETOS],
 const pbAlta = item(G.TIT_PAG_ALTA);
 c(!!pbAlta && pbAlta.getType() === "PAGE_BREAK", "el alistamiento es una página aparte");
 const enPortada = titulos().slice(0, pos(G.TIT_PAG_ALTA));
-igual(enPortada.filter(t => t !== G.TIT_INTRO && t !== G.TIT_HOY && t !== "Correo"), [],
+igual(enPortada.filter(t => t !== G.TIT_INTRO && t !== G.TIT_HOY && t !== "Correo" && t !== G.TIT_ESCENA_PORTADA), [],
   "🔴 en la portada no hay NADA más: ni alias, ni personaje, ni retos");
+igual(enPortada.filter(t => t === G.TIT_ESCENA_PORTADA).length, 1,
+  "y la escena de bienvenida está UNA vez, no una por cada pasada de mantenimiento");
 
 // ================================================================ b) EL GRAFO DE SALTOS
 // Se compara por TÍTULO de la página destino, no por identidad del objeto: el simulador entrega
@@ -157,7 +163,8 @@ G.estructuraBitacora_(fb, o);
 G.estructuraBitacora_(fb, o);
 igual(titulos().length, antes, "🔴 pasar la estructura dos veces más no añade ni un campo");
 igual(titulos().filter(t => t === G.TIT_HOY).length, 1, "ni duplica el desplegable de la portada");
-igual(pos(G.TIT_INTRO), 0, "ni descoloca la portada");
+igual(pos(G.TIT_ESCENA_PORTADA), 0, "ni descoloca la portada: la abre el Capitán...");
+igual(pos(G.TIT_INTRO), 1, "...y la explicación sigue justo detrás");
 igual(destinoDe(item(G.TIT_HOY), G.OPC_RETOS), G.TIT_PAG_PLANETA, "y los saltos siguen apuntando bien");
 
 E.resumen("La Bitácora por planetas");

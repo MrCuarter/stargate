@@ -4,6 +4,11 @@
 // título y un planeta. Cosas incompatibles en el mismo envío, y el alumno creyendo que se lleva
 // tres. Ahora la recompensa elegida MANDA a la sección que necesita —o directa a enviar— y cada
 // sección termina enviando, así que nadie cae en la de al lado.
+//
+// v3.42 (30-ago) · Y AHORA CADA RECOMPENSA TIENE SU PROPIA PÁGINA, con su imagen y su explicación:
+// antes seis de las diez saltaban directas a enviar y se canjeaba a ciegas. El recorrido pasó a ser
+// lista -> página de la recompensa -> (si hace falta un dato) su sección -> enviar. Lo que sigue
+// protegiendo esta prueba es lo mismo de siempre: que nadie acabe en la sección de otro.
 const E = require("./entorno.js");
 const { comprobar: c, igual, contiene } = E;
 console.log("\n▶ 23 · El canje, por secciones");
@@ -16,9 +21,15 @@ const item = t => canje.getItems().filter(i => i.getTitle() === t)[0];
 const SUBMIT = G.FormApp.PageNavigationType.SUBMIT;
 
 // ---------------------------------------------------------------- a) las secciones existen
+const cat0 = G.recompensasCat_();
 const saltos = canje.getItems(G.FormApp.ItemType.PAGE_BREAK);
-igual(saltos.length, 3, "hay tres secciones: título, planeta y actividad");
-igual(saltos.map(p => p.getTitle()), G.SECCIONES_CANJE, "y en ese orden");
+const titSaltos = saltos.map(p => p.getTitle());
+igual(saltos.length, cat0.length + 3, "una página por recompensa (" + cat0.length + ") más las tres de dato");
+c(cat0.every(x => titSaltos.indexOf(G.etiquetaRecompensa_(x)) >= 0),
+  "🔴 TODAS las recompensas tienen su página: ninguna se canjea a ciegas");
+igual(titSaltos.slice(cat0.length), G.SECCIONES_CANJE, "y las de dato van al final, en su orden");
+c(cat0.every(x => G.etiquetaRecompensa_(x).indexOf(String(x.coste)) >= 0),
+  "el precio va en el título de la página: se ve lo que cuesta antes de enviar");
 
 // ---------------------------------------------------------------- b) cada recompensa va a la suya
 const cat = G.recompensasCat_();
@@ -29,18 +40,29 @@ const destinoDe = nombre => {
   const o = opciones[k];
   return o.getGotoPage() ? o.getGotoPage().getTitle() : o.getPageNavigationType();
 };
-igual(destinoDe("Héroe de la Rebelión"), SUBMIT, "🔴 el héroe no pregunta nada más: va directo a enviar");
-igual(destinoDe("Sobre de cromos"), SUBMIT, "el sobre de cromos, igual");
-igual(destinoDe("Marco dorado del avatar"), SUBMIT, "y el marco dorado");
-igual(destinoDe("Título de recluta"), G.SEC_TITULO, "🔴 el título SÍ manda a su sección");
-igual(destinoDe("Fondo de ficha: tu planeta"), G.SEC_FONDO, "y el planeta a la suya");
-igual(destinoDe("Recalificar un suspenso"), G.SEC_NOTA, "y los canjes de nota preguntan la actividad");
-c(cat.filter(x => x.tipo === "nota").every(x => destinoDe(x.nombre) === G.SEC_NOTA),
-  "TODAS las de nota van a la sección de actividad, no solo la que miré");
+c(cat.every(x => destinoDe(x.nombre) === G.etiquetaRecompensa_(x)),
+  "🔴 elegir una recompensa lleva a SU página, no a enviar a ciegas");
+
+// y desde esa página se sale a donde toca
+const salidaDe = nombre => {
+  const x = cat.filter(y => y.nombre === nombre)[0];
+  const pb = canje.getItems(G.FormApp.ItemType.PAGE_BREAK)
+                  .filter(p => p.getTitle() === G.etiquetaRecompensa_(x))[0];
+  return pb.getGoToPage() ? pb.getGoToPage().getTitle() : pb.getPageNavigationType();
+};
+igual(salidaDe("Héroe de la Rebelión"), SUBMIT, "🔴 el héroe no pregunta nada más: de su página, a enviar");
+igual(salidaDe("Sobre de cromos"), SUBMIT, "el sobre de cromos, igual");
+igual(salidaDe("Marco dorado del avatar"), SUBMIT, "y el marco dorado");
+igual(salidaDe("Título de recluta"), G.SEC_TITULO, "🔴 el título SÍ pasa por su sección");
+igual(salidaDe("Fondo de ficha: tu planeta"), G.SEC_FONDO, "y el planeta a la suya");
+c(cat.filter(x => x.tipo === "nota").every(x => salidaDe(x.nombre) === G.SEC_NOTA),
+  "TODAS las de nota preguntan la actividad, no solo la que miré");
 
 // ---------------------------------------------------------------- c) nadie cae en la sección de al lado
-saltos.forEach(p => igual(p.getPageNavigationType(), SUBMIT,
-  "🔴 «" + p.getTitle() + "» termina enviando: si no, quien pide un título acabaría eligiendo planeta"));
+canje.getItems(G.FormApp.ItemType.PAGE_BREAK)
+  .filter(p => G.SECCIONES_CANJE.indexOf(p.getTitle()) >= 0)
+  .forEach(p => igual(p.getPageNavigationType(), SUBMIT,
+    "🔴 «" + p.getTitle() + "» termina enviando: si no, quien pide un título acabaría eligiendo planeta"));
 
 // ---------------------------------------------------------------- d) cada pregunta, detrás de SU sección
 const orden = titulos();
@@ -61,7 +83,7 @@ c(!item(G.TIT_ACTIVIDAD).getChoices().some(o => o.getValue().indexOf("No aplica"
 const antes = titulos().length;
 G.reestructurarCanje_(canje); G.reestructurarCanje_(canje);
 igual(titulos().length, antes, "🔴 pasarla dos veces no duplica secciones (la ejecutan crearPER y Mantenimiento)");
-igual(canje.getItems(G.FormApp.ItemType.PAGE_BREAK).length, 3, "ni saltos de página");
+igual(canje.getItems(G.FormApp.ItemType.PAGE_BREAK).length, cat.length + 3, "ni saltos de página");
 
 // si el catálogo no tiene recompensas de título, esa sección no se crea
 const rec = G.hoja_(G.H.REC), datos = rec.getDataRange().getValues();
@@ -70,7 +92,8 @@ rec.deleteRow(filaTitulo + 1);
 G.reestructurarCanje_(canje);
 const secs2 = canje.getItems(G.FormApp.ItemType.PAGE_BREAK).map(p => p.getTitle());
 c(secs2.indexOf(G.SEC_TITULO) < 0, "🔴 si el catálogo se queda sin títulos, su sección desaparece");
-igual(secs2.length, 2, "y quedan las otras dos");
+c(secs2.indexOf("Título de recluta — 40 créditos") < 0, "y su página también");
+igual(secs2.length, (cat.length - 1) + 2, "y quedan las páginas de las que siguen vivas");
 
 // ---------------------------------------------------------------- desde una plantilla VACIA
 // 🔴 Todas las pruebas de arriba parten de un canje que YA trae sus preguntas, y por eso ninguna

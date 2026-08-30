@@ -7,7 +7,7 @@ import os, json, hashlib, subprocess
 from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
-                        RECOMPENSAS, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
+                        RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE)
 
@@ -1679,6 +1679,24 @@ def _js_recompensas():
     filas[-1] = filas[-1][:-1]
     return "\n".join(filas)
 
+def _js_img_recompensas():
+    # 🔴 GUARDA: la imagen se empareja por NOMBRE con el catálogo. Si alguien renombra una recompensa
+    # en RECOMPENSAS y no toca IMG_RECOMPENSA, la recompensa se quedaría muda en el formulario sin
+    # que nadie se entere. Mejor romper el build aquí que descubrirlo con el curso empezado.
+    nombres = {r[0] for r in RECOMPENSAS}
+    faltan, sobran = nombres - set(IMG_RECOMPENSA), set(IMG_RECOMPENSA) - nombres
+    if faltan or sobran:
+        raise SystemExit("IMG_RECOMPENSA no cuadra con RECOMPENSAS.\n  sin imagen: %s\n  sobran: %s"
+                         % (sorted(faltan) or "—", sorted(sobran) or "—"))
+    for r in RECOMPENSAS:
+        ruta = os.path.join(HERE, "assets", "img", "canje", IMG_RECOMPENSA[r[0]])
+        if not os.path.exists(ruta):
+            raise SystemExit("IMG_RECOMPENSA: falta el fichero %s (genera con _build_img_formularios.py)" % ruta)
+    filas = ['  %s: %s,' % (json.dumps(n, ensure_ascii=False), json.dumps(f, ensure_ascii=False))
+             for n, f in ((r[0], IMG_RECOMPENSA[r[0]]) for r in RECOMPENSAS)]
+    filas[-1] = filas[-1][:-1]
+    return "\n".join(filas)
+
 def _sustituir(txt, ini, fin, cuerpo):
     a = txt.index(ini) + len(ini); b = txt.index(fin)
     return txt[:a] + cuerpo + txt[b:]
@@ -1693,6 +1711,7 @@ _gs = _sustituir(_gs, "// NIVELES-INICIO", "\n// NIVELES-FIN",
                  _gs[_gs.index("// NIVELES-INICIO")+len("// NIVELES-INICIO"):_gs.index("var MONEDA")].rstrip("\n")
                  + "\n" + _js_niveles())
 _gs = _sustituir(_gs, "var RECOMPENSAS_INICIALES = [\n", "\n];\n// RECOMPENSAS-FIN", _js_recompensas())
+_gs = _sustituir(_gs, "var IMG_RECOMPENSA = {\n", "\n};\n// IMG-RECOMPENSA-FIN", _js_img_recompensas())
 _gs = _sustituir(_gs, "var BONUS_PLANETA = ", ";\n// BONUS-FIN",
                  json.dumps(BONUS_PLANETA, ensure_ascii=False) + ";\nvar BONUS_RACHA = " +
                  json.dumps(BONUS_RACHA, ensure_ascii=False) + ";\nvar BONUS_TUTORIAL = " +

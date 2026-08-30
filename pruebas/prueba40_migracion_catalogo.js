@@ -210,8 +210,13 @@ function mundoViejo() {
 
   const titulos = fb.getItems().map(i => i.getTitle());
   const pos = t => titulos.indexOf(t);
-  igual(pos(G.TIT_PLANETA), pos(G.TIT_PAG_PLANETA) + 1,
-    "🔴 el selector de planeta va JUSTO detrás de su página, no arrastrado al alistamiento");
+  // v3.42 · entre la página y el selector va la escena de NEBULA («Elige el planeta»), que es un
+  // banner. Lo que esta comprobación protege sigue intacto: que el selector esté EN su página y no
+  // arrastrado al alistamiento, así que se exige que lo único que puede haber en medio sea la escena.
+  const entre = titulos.slice(pos(G.TIT_PAG_PLANETA) + 1, pos(G.TIT_PLANETA));
+  igual(entre, [G.TIT_ESCENA_PLANETA],
+    "🔴 el selector de planeta va en SU página (solo la escena de NEBULA delante), no arrastrado al alistamiento");
+  c(pos(G.TIT_PLANETA) > pos(G.TIT_PAG_PLANETA), "y nunca antes de su propia página");
   igual(pos(G.TIT_TRAS_ALTA) + 1, pos(G.TIT_PAG_PLANETA),
     "y «¿registras algo ahora?» sigue siendo lo último del alistamiento");
   c(pos("Pregunta rara de un curso anterior") > pos(G.TIT_PAG_ALTA) &&

@@ -342,6 +342,24 @@ var RECOMPENSAS_INICIALES = [
 ];
 // RECOMPENSAS-FIN
 
+// La imagen que enseña el formulario de canje ANTES de confirmar cada recompensa: se ve lo que te
+// llevas por tus créditos. Se empareja por NOMBRE con el catálogo y lo REGENERA _build_site.py desde
+// IMG_RECOMPENSA de _site_data.py — no editar a mano. Si una recompensa no está aquí (porque el
+// profesorado la renombró en la hoja), su sección sale sin imagen y el formulario sigue funcionando.
+var IMG_RECOMPENSA = {
+  "Sobre de cromos": "sobre.jpg",
+  "Cambiar 3 repetidos por un sobre": "repetidos.jpg",
+  "Título de recluta": "titulo.jpg",
+  "Fondo de ficha: tu planeta": "planeta.jpg",
+  "Marco dorado del avatar": "marco.jpg",
+  "Héroe de la Rebelión": "heroe.jpg",
+  "Subir 0,5 en un entregable": "nota_05.jpg",
+  "Subir 1 punto en un entregable": "nota_1punto.jpg",
+  "Recalificar un trabajo entregado fuera de plazo": "nota_plazo.jpg",
+  "Recalificar un suspenso": "nota_suspenso.jpg"
+};
+// IMG-RECOMPENSA-FIN
+
 // Nivel (1-10) y rango de arte (1-5) a partir de los xp. En PUA los umbrales se escalan por el
 // total del viaje, para que el camino se sienta igual de largo.
 function escalaXP_(tipo) { var r = XP_VIAJE.REGULAR || 1; return (XP_VIAJE[tipo] || r) / r; }

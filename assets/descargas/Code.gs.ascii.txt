@@ -375,17 +375,25 @@ function imagen_(form, tema, texto) {
 // 504 y cada descarga tardaba 12 s en fallar; ocho de esas se comen la ejecucion entera. Con la copia
 // en Drive, a partir del segundo PER no se toca internet. Si el arte cambia, actualizarImagenesPlanetas
 // borra la copia y la vuelve a bajar.
-function orbeBlob_(tema) {
-  var nombre = "orbe_" + TEMAS[tema][2] + ".png";
+// Baja una imagen de la web y deja la copia en la carpeta del PER. La copia NO es un lujo: visto en
+// vivo, la web devolvio 504 y cada descarga tardaba 12 s en fallar; ocho de esas se comen la
+// ejecucion entera. Lo usan los orbes de los planetas, las recompensas del canje y las escenas de
+// seccion: una sola logica de descarga y cache, no una por sitio.
+function blobDeLaWeb_(rutaWeb, nombreCache) {
   var carpeta = null;
   try { carpeta = carpetaPER_(); } catch (e) {}
-  if (carpeta) { var it = carpeta.getFilesByName(nombre); if (it.hasNext()) { try { return it.next().getBlob(); } catch (e2) {} } }
-  var r = UrlFetchApp.fetch(sinCache_(WEB + "assets/img/planetas/" + TEMAS[tema][2] + ".png"), { muteHttpExceptions: true });
+  if (carpeta) { var it = carpeta.getFilesByName(nombreCache); if (it.hasNext()) { try { return it.next().getBlob(); } catch (e2) {} } }
+  var r = UrlFetchApp.fetch(sinCache_(WEB + rutaWeb), { muteHttpExceptions: true });
   if (r.getResponseCode() !== 200) throw new Error("la web respondi\u00f3 " + r.getResponseCode());
-  var blob = r.getBlob().setName(nombre);
+  var blob = r.getBlob().setName(nombreCache);
   if (carpeta) { try { carpeta.createFile(blob); } catch (e3) {} }
   return blob;
 }
+function orbeBlob_(tema) {
+  return blobDeLaWeb_("assets/img/planetas/" + TEMAS[tema][2] + ".png", "orbe_" + TEMAS[tema][2] + ".png");
+}
+function imgCanjeBlob_(archivo) { return blobDeLaWeb_("assets/img/canje/" + archivo, "canje_" + archivo); }
+function imgSeccionBlob_(archivo) { return blobDeLaWeb_("assets/img/forms/" + archivo, archivo); }
 function borrarOrbesCache_() {
   var n = 0;
   try { var carpeta = carpetaPER_();
@@ -420,6 +428,85 @@ function imagenesBitacora_(fb) {
   }
   return { puestos: n, faltan: faltan, agrandadas: agrandadas };
 }
+// La imagen de cada recompensa, justo debajo de su pagina. Mismo patron que los orbes: idempotente,
+// fuera del camino critico de crearPER y con freno si la web no responde (no tiene sentido esperar
+// diez veces doce segundos). Devuelve cuantas faltan para que la continuacion las remate.
+var ANCHO_CANJE = 560;
+function imagenesCanje_(fc) {
+  var puestas = {};
+  fc.getItems(FormApp.ItemType.IMAGE).forEach(function(i){ puestas[i.getTitle()] = i; });
+  var cat = recompensasCat_(), n = 0, faltan = 0, seguidos = 0;
+  for (var k = 0; k < cat.length; k++) {
+    var x = cat[k], archivo = IMG_RECOMPENSA[x.nombre];
+    // Sin imagen catalogada -p. ej. el profesorado renombro la recompensa en la hoja- la seccion se
+    // queda sin foto, pero el canje sigue funcionando. Nunca se rompe por una imagen.
+    if (!archivo) continue;
+    if (puestas[x.nombre]) {
+      try { puestas[x.nombre].setWidth(ANCHO_CANJE).setAlignment(FormApp.Alignment.CENTER); } catch (e) {}
+      continue;
+    }
+    var etiqueta = etiquetaRecompensa_(x);
+    var pb = fc.getItems(FormApp.ItemType.PAGE_BREAK).filter(function(p){ return p.getTitle() === etiqueta; })[0];
+    if (!pb) continue;
+    if (seguidos >= 2) { faltan++; continue; }
+    try {
+      var it = fc.addImageItem().setImage(imgCanjeBlob_(archivo)).setTitle(x.nombre)
+                 .setAlignment(FormApp.Alignment.CENTER).setWidth(ANCHO_CANJE);
+      fc.moveItem(it.getIndex(), pb.getIndex() + 1);
+      n++; seguidos = 0;
+    } catch (e) { Logger.log("imagenesCanje_ \u00ab" + x.nombre + "\u00bb: " + e); faltan++; seguidos++; }
+  }
+  return { puestos: n, faltan: faltan };
+}
+// Las escenas de seccion: el Capitan y NEBULA presentan cada tramo. Son los MISMOS recortes que el
+// alumnado ve en la web y en los videos, asi que el formulario deja de parecer un tramite suelto y
+// pasa a ser parte del relato. Idempotente por titulo, igual que las demas.
+function escenaSeccion_(form, archivo, titulo, tituloPagina, ancho) {
+  var ya = form.getItems(FormApp.ItemType.IMAGE).filter(function(i){ return i.getTitle() === titulo; })[0];
+  if (ya) { try { ya.setWidth(ancho || 640).setAlignment(FormApp.Alignment.CENTER); } catch (e) {} return 0; }
+  try {
+    var it = form.addImageItem().setImage(imgSeccionBlob_(archivo)).setTitle(titulo)
+               .setAlignment(FormApp.Alignment.CENTER).setWidth(ancho || 640);
+    if (tituloPagina) {
+      var pb = form.getItems(FormApp.ItemType.PAGE_BREAK).filter(function(p){ return p.getTitle() === tituloPagina; })[0];
+      if (pb) form.moveItem(it.getIndex(), pb.getIndex() + 1);
+      else form.moveItem(it.getIndex(), 0);
+    } else form.moveItem(it.getIndex(), 0);
+    return 1;
+  } catch (e) { Logger.log("escenaSeccion_ \u00ab" + titulo + "\u00bb: " + e); return -1; }
+}
+// TODAS las imagenes de los tres formularios en una sola puerta: los orbes de los planetas, las
+// escenas del Capitan y NEBULA, y la foto de cada recompensa del canje. Se llama fuera del camino
+// critico -al final de crearPER si sobra tiempo, y si no desde la continuacion-, porque son ~30
+// descargas y son justo lo que hacia que la creacion se comiera los 6 minutos.
+function imagenesFormularios_(fb, ft, fc) {
+  var puestos = 0, faltan = 0;
+  if (fb) {
+    try { var b = imagenesBitacora_(fb); puestos += b.puestos; faltan += b.faltan; }
+    catch (e) { Logger.log("imagenesFormularios_ orbes: " + e); faltan++; }
+    //  El titulo de la ESCENA no puede ser el de la seccion que ilustra. Se probo y salio mal: la
+    // imagen de la portada se llamaba igual que la cabecera "COMO FUNCIONA ESTA BITACORA", y a partir
+    // de ahi cualquier busqueda por titulo encontraba la foto en vez del texto - la ayuda del
+    // formulario se quedaba vacia sin que nadie lo viera. Titulo propio para cada escena.
+    [[ "sec_portada.jpg", TIT_ESCENA_PORTADA, null ],
+     [ "sec_alistamiento.jpg", TIT_ESCENA_ALTA, TIT_PAG_ALTA ],
+     [ "sec_planeta.jpg", TIT_ESCENA_PLANETA, TIT_PAG_PLANETA ]].forEach(function(e){
+      var r = escenaSeccion_(fb, e[0], e[1], e[2]); if (r > 0) puestos++; else if (r < 0) faltan++;
+    });
+  }
+  if (ft) { var r1 = escenaSeccion_(ft, "sec_ticket.jpg", TIT_ESCENA_TICKET, null); if (r1 > 0) puestos++; else if (r1 < 0) faltan++; }
+  if (fc) {
+    var r2 = escenaSeccion_(fc, "sec_canje.jpg", TIT_ESCENA_CANJE, null); if (r2 > 0) puestos++; else if (r2 < 0) faltan++;
+    try { var c = imagenesCanje_(fc); puestos += c.puestos; faltan += c.faltan; }
+    catch (e) { Logger.log("imagenesFormularios_ canje: " + e); faltan++; }
+  }
+  return { puestos: puestos, faltan: faltan };
+}
+var TIT_ESCENA_PORTADA = "Bienvenido a bordo";
+var TIT_ESCENA_ALTA = "Qui\u00e9n eres a bordo";
+var TIT_ESCENA_PLANETA = "Elige el planeta";
+var TIT_ESCENA_TICKET = "NEBULA te escucha";
+var TIT_ESCENA_CANJE = "Cambia tus cr\u00e9ditos por ventajas";
 function publicar_(form) { try { if (form.setPublished) form.setPublished(true); } catch (e) { Logger.log("setPublished: " + e); } }
 function publicarFormulariosPER() {
   var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
@@ -645,8 +732,8 @@ function crearPER(datos) {
   // dejando el PER a medias. Si no da tiempo, se aparta y lo termina la continuacion dentro de un
   // minuto - sin que el profesorado tenga que hacer nada.
   var pend = { per: id, imagenes: true, doc: true, dossier: true };
-  if (_t.sobra(60000)) { try { var _im = imagenesBitacora_(fb); pend.imagenes = _im.faltan > 0; _t.hito("orbes de los planetas (" + _im.puestos + " puestos, " + _im.faltan + " pendientes)"); }
-                         catch (e) { Logger.log("imagenesBitacora_: " + e); } }
+  if (_t.sobra(60000)) { try { var _im = imagenesFormularios_(fb, ft, fc); pend.imagenes = _im.faltan > 0; _t.hito("imagenes de los formularios (" + _im.puestos + " puestas, " + _im.faltan + " pendientes)"); }
+                         catch (e) { Logger.log("imagenesFormularios_: " + e); } }
   var docUrl = "";
   if (_t.sobra(45000)) { try { docUrl = crearDocumentoPER_(id); pend.doc = false; _t.hito("documento de enlaces"); }
                          catch (e) { Logger.log("crearDocumentoPER_: " + e); } }
@@ -734,44 +821,74 @@ function reestructurarCanje_(fc) {
   // addListItem() devuelve YA un ListItem, que no tiene ese metodo. Encadenarlos revienta con
   // "act.asListItem is not a function", y solo cuando la pregunta NO existia: o sea, al crear un PER
   // desde una plantilla que no la trae. Visto en produccion el 27-ago creando el PER de 10 reclutas.
-  var itAct = buscar(TIT_ACTIVIDAD);
-  var act = itAct ? itAct.asListItem() : fc.addListItem().setTitle(TIT_ACTIVIDAD);
-  ponerOpciones_(act.setRequired(true).setHelpText(AYUDA_SECCION[SEC_NOTA]), OPC_ACTIVIDAD, TIT_ACTIVIDAD);
-  var itRec = buscar("Recompensa");
-  var rec = itRec ? itRec.asListItem() : fc.addListItem().setTitle("Recompensa");
-  // 2) los saltos de pagina se reconstruyen enteros: no llevan datos, asi que borrarlos no pierde nada
-  //  30-ago - PERO ANTES HAY QUE SOLTAR LOS SALTOS. Google no deja borrar una seccion a la que
-  // todavia navega una opcion de "Recompensa": responde "Invalid data updating form", el catch se lo
-  // traga y la seccion sobrevive... con lo que el paso 3 anade otra igual. Cada pasada de
-  // "Actualizar los formularios" duplicaba las secciones del canje. Es el mismo fallo que en la
-  // Bitacora: reescribir el desplegable ANTES de borrar, nunca despues.
-  try {
-    var hay = rec.getChoices();
-    if (hay.length) rec.setChoices(hay.map(function(c){ return rec.createChoice(c.getValue(), FormApp.PageNavigationType.SUBMIT); }));
-  } catch (e) { Logger.log("reestructurarCanje_ soltando los saltos: " + e); }
-  fc.getItems(FormApp.ItemType.PAGE_BREAK).forEach(function(pb){
-    try { fc.deleteItem(pb); } catch (e) { Logger.log("reestructurarCanje_ borrando \u00ab" + pb.getTitle() + "\u00bb: " + e); }
-  });
-  // 3) solo se crean las secciones que el catalogo de HOY necesita
-  var cat = recompensasCat_(), pbs = {};
+  var act = comoLista_(buscar(TIT_ACTIVIDAD) || fc.addListItem().setTitle(TIT_ACTIVIDAD));
+  cambioObligatorio_(act, true);
+  cambioAyuda_(act, AYUDA_SECCION[SEC_NOTA]);
+  ponerOpciones_(act, OPC_ACTIVIDAD, TIT_ACTIVIDAD);
+  var rec = comoLista_(buscar("Recompensa") || fc.addListItem().setTitle("Recompensa"));
+
+  var cat = recompensasCat_();
+  // 2) LO QUE TIENE QUE HABER: una pagina por recompensa -con su imagen y su explicacion, para no
+  // canjear a ciegas- y ademas una pagina por DATO que haga falta pedir. Las cuatro recompensas de
+  // nota comparten "Actividad", porque en Forms una pregunta no puede estar en dos sitios.
+  var quiero = [];
+  cat.forEach(function(x){ quiero.push({ titulo: etiquetaRecompensa_(x), ayuda: ayudaRecompensa_(x) }); });
   SECCIONES_CANJE.forEach(function(sec){
-    if (!cat.some(function(x){ return seccionDe_(x.tipo) === sec; })) return;
-    pbs[sec] = fc.addPageBreakItem().setTitle(sec).setHelpText(AYUDA_SECCION[sec]);
+    if (cat.some(function(x){ return seccionDe_(x.tipo) === sec; })) quiero.push({ titulo: sec, ayuda: AYUDA_SECCION[sec] });
   });
-  // 4) pagina 1 primero y luego cada seccion con SU pregunta detras
+
+  //  3) SE RECONCILIA, NO SE RECONSTRUYE. Borrar todas las paginas y volver a crearlas costaba una
+  // escritura por pagina EN CADA PASADA, y con eso la migracion de un grupo vivo no cabe en los 6
+  // minutos de Apps Script (medido: 490 s). Pasar por aqui con el formulario ya al dia tiene que
+  // costar CERO escrituras - es lo que permite trocear el lote. Misma regla que estructuraBitacora_.
+  var hay = {};
+  fc.getItems(FormApp.ItemType.PAGE_BREAK).forEach(function(pb){ hay[pb.getTitle()] = comoPagina_(pb); });
+  var quiereTitulo = {}; quiero.forEach(function(q){ quiereTitulo[q.titulo] = true; });
+
+  // 3a) primero se suelta la navegacion de lo que vaya a desaparecer. Al reves Forms contesta
+  // "Invalid data updating form" y el borrado falla EN SILENCIO: una opcion que apunta a una pagina
+  // impide borrarla. Paso de verdad el 30-ago en la Bitacora y dejo el formulario a medias.
+  var sobran = Object.keys(hay).filter(function(t){ return !quiereTitulo[t]; });
+  if (sobran.length) {
+    cambioSaltos_(rec, cat.map(function(x){ return [etiquetaRecompensa_(x), FormApp.PageNavigationType.SUBMIT]; }));
+    Object.keys(hay).forEach(function(t){ if (!quiereTitulo[t]) cambioDestino_(hay[t], FormApp.PageNavigationType.SUBMIT); });
+    sobran.forEach(function(t){
+      try { fc.deleteItem(hay[t]); delete hay[t]; }
+      catch (e) { Logger.log("reestructurarCanje_ borrando \u00ab" + t + "\u00bb: " + e); }
+    });
+  }
+  // 3b) y se crea o se pone al dia lo que toca
+  quiero.forEach(function(q){
+    if (hay[q.titulo]) cambioAyuda_(hay[q.titulo], q.ayuda);
+    else hay[q.titulo] = fc.addPageBreakItem().setTitle(q.titulo).setHelpText(q.ayuda);
+  });
+
+  // 4) el orden: portada, cada recompensa con su imagen detras, y al final las preguntas de dato
   var orden = ["Recompensa", "Comentario (opcional)"];
-  SECCIONES_CANJE.forEach(function(sec){ if (pbs[sec]) orden.push(sec, preguntaDeSeccion_(sec)); });
+  cat.forEach(function(x){ orden.push(etiquetaRecompensa_(x), x.nombre); });
+  SECCIONES_CANJE.forEach(function(sec){ if (hay[sec]) orden.push(sec, preguntaDeSeccion_(sec)); });
   ordenarItems_(fc, orden);
-  // 5)  cada seccion TERMINA enviando: si no, quien pide un titulo cae ademas en la de planeta
-  SECCIONES_CANJE.forEach(function(sec){
-    if (pbs[sec]) try { pbs[sec].setGoToPage(FormApp.PageNavigationType.SUBMIT); } catch (e) {}
-  });
-  // 6) y cada recompensa manda a donde tiene que ir (o directa a enviar)
-  var lr = rec, etiquetas = cat.map(etiquetaRecompensa_);
-  lr.setChoices(cat.map(function(x, k){
+
+  // 5) de la pagina de la recompensa se sale a su pregunta de dato, o directo a enviar
+  cat.forEach(function(x){
     var sec = seccionDe_(x.tipo);
-    return lr.createChoice(etiquetas[k], sec && pbs[sec] ? pbs[sec] : FormApp.PageNavigationType.SUBMIT);
-  })).setRequired(true);
+    cambioDestino_(hay[etiquetaRecompensa_(x)], sec && hay[sec] ? hay[sec] : FormApp.PageNavigationType.SUBMIT);
+  });
+  //  y cada pagina de DATO termina enviando: si no, quien pide un titulo caeria ademas en la de planeta
+  SECCIONES_CANJE.forEach(function(sec){ if (hay[sec]) cambioDestino_(hay[sec], FormApp.PageNavigationType.SUBMIT); });
+
+  // 6) y la lista lleva a la pagina de lo que has elegido
+  cambioSaltos_(rec, cat.map(function(x){ return [etiquetaRecompensa_(x), hay[etiquetaRecompensa_(x)]]; }));
+  cambioObligatorio_(rec, true);
+}
+// El texto de la pagina de cada recompensa: lo que te llevas y, al final, la pregunta con su precio.
+// La pagina ES la confirmacion - se avanza al enviar-, asi que no hay un "?si o no?" que ademas
+// habria que denegar por detras y dejaria filas basura en la hoja.
+function ayudaRecompensa_(x) {
+  var cierre = x.coste > 0
+    ? "\n\n\u00bfCambias " + x.coste + " cr\u00e9ditos por esto? Env\u00eda para confirmarlo."
+    : "\n\nNo cuesta cr\u00e9ditos. Env\u00eda para confirmarlo.";
+  return String(x.desc || "") + cierre;
 }
 // v3.37 - LA PORTADA DEL FORMULARIO (peticion de Norberto, 29-ago). Antes se entraba directamente al
 // alistamiento y la navegacion estaba AL FINAL de esa pagina: quien solo venia a marcar un reto tenia
@@ -1332,10 +1449,15 @@ function estructuraBitacora_(fb, o, t) {
   // --- 6) EL ORDEN, de una vez ---
   var orden = [], dentro = {};
   var mete = function(it){ if (it && !dentro[it.getId()]) { dentro[it.getId()] = true; orden.push(it); } };
+  //  Las escenas del Capitan y de NEBULA se declaran AQUI, en su sitio. Si no, esta funcion no las
+  // reconoce, se las lleva al monton de "preguntas sueltas" y las recoloca en cada migracion: medido,
+  // 13 escrituras de mas en la primera pasada de un grupo. Ponerlas donde van cuesta cero.
+  mete(buscar(TIT_ESCENA_PORTADA));
   mete(intro);
   mete(buscar("Correo"));
   mete(hoy);
   mete(pbAlta);
+  mete(buscar(TIT_ESCENA_ALTA));
   trucoGenially_(fb);
   ["Qui\u00e9n soy", "Alias de recluta (p\u00fablico)", "Nombre y apellidos", TIT_LAMINA, "Elige tu avatar",
    TIT_DOCENTE, "Enlace a mi Bit\u00e1cora (ePortfolio)", TIT_TRUCO, "Breve biograf\u00eda de tu personaje"]
@@ -1349,6 +1471,7 @@ function estructuraBitacora_(fb, o, t) {
     if (it.getType() === FormApp.ItemType.PAGE_BREAK) return false;
     if (it.getId() === tras.getId() || it.getId() === sel.getId()) return false;
     if (temaDePagina_(it.getTitle())) return false;
+    if (esEscena_(it.getTitle())) return false;
     return !esDeReto_(it.getTitle(), retos) && !esOrbe_(it.getTitle());
   });
   if (sueltos.length) Logger.log("estructuraBitacora_: preguntas no reconocidas, van al alistamiento -> " +
@@ -1356,6 +1479,7 @@ function estructuraBitacora_(fb, o, t) {
   sueltos.forEach(mete);
   mete(tras);
   mete(pbPl);
+  mete(buscar(TIT_ESCENA_PLANETA));
   mete(sel);
   temas.forEach(function(n){
     mete(pagina[n]);
@@ -1382,6 +1506,10 @@ function temaDePagina_(titulo) {
 }
 function esDeReto_(titulo, retos) {
   return (retos || []).some(function(r){ return titulo === r[1] || titulo === tituloEvidenciaReto_(r); });
+}
+// Las escenas de seccion son imagenes con nombre propio; sin esto se cuelan entre las "sueltas".
+function esEscena_(titulo) {
+  return titulo === TIT_ESCENA_PORTADA || titulo === TIT_ESCENA_ALTA || titulo === TIT_ESCENA_PLANETA;
 }
 function esOrbe_(titulo) {
   for (var t = 1; t <= 8; t++) if (TEMAS[t] && TEMAS[t][0] === titulo) return true;
@@ -2385,7 +2513,8 @@ function continuarAltaPER() {
   if (!p) { guardarProgreso_("alta", null); cancelarContinuacion_("continuarAltaPER"); return; }  // lo borraron
   var o = perObj_(p.v), t = reloj_();
   if (pr.imagenes) {
-    try { var fb = formDelPER_(o, "B"); if (fb) { var im = imagenesBitacora_(fb); pr.imagenes = im.faltan > 0; } }
+    try { var im = imagenesFormularios_(formDelPER_(o, "B"), formDelPER_(o, "T"), formDelPER_(o, "C"));
+          pr.imagenes = im.faltan > 0; }
     catch (e) { Logger.log("continuarAltaPER imagenes: " + e); }
     t.marcar();
   }
