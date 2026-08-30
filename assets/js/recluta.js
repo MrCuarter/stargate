@@ -112,23 +112,28 @@
     return '<div class="tab-head"><div><div class="eyebrow teal">La Nave del Recluta · '+esc(d.nombre)+(d.tipo==='PUA'?' · PUA':'')+'</div><h3>'+pos+'</h3>'+plazos()+'</div>'
       +'<div class="small muted"><button class="btn small" id="btn-onboard" type="button">▶ Repetir bienvenida</button></div></div>';
   }
+  // ================= LA PUERTA (30-ago) =================
+  // Petición de Norberto: la identificación y el menú, FIJOS justo bajo la cabecera; la semana,
+  // después. Antes el login vivía dentro de la pestaña «Mi ficha», debajo de la semana y de los
+  // accesos: lo primero que hay que hacer estaba lo cuarto en pantalla.
+  function login(){
+    if(st.yo||st.cargandoYo) return '';
+    var alta = st.d && st.d.formBitacora;
+    return '<div class="card nave-login"><div class="nave-perfil">'+nebulaVideo('nebula-mini')+''
+      +'<div><h3>Identifícate, recluta</h3><p class="small muted">Escribe el correo con el que te alistaste en la Bitácora de mando. Solo lo pediré una vez en este dispositivo, y solo te enseño <b>tu</b> ficha.</p></div></div>'
+      +'<div class="selrow"><input id="in-mail" type="email" placeholder="tu.correo@ejemplo.com" autocomplete="email"><button class="btn primary" id="btn-mail" type="button">Entrar en la nave</button></div>'
+      +(st.msgYo?'<p class="small" style="margin-top:8px;color:var(--amber)">'+st.msgYo+'</p>':'')
+      +(alta?'<div class="nave-alta"><span class="o">¿aún no te has alistado?</span>'
+        +'<a class="btn primary" href="'+esc(st.d.formBitacora)+'" data-vent="📓 Bitácora de mando">📓 Alistarme en la Bitácora de mando →</a>'
+        +'<p class="small muted">Es el <b>primer paso</b> y solo se hace una vez: eliges alias y personaje. '
+        +'Hasta que no lo envíes no existes a bordo. Después vuelve aquí con <b>ese mismo correo</b>.</p></div>':'')
+      +'</div>';
+  }
   function personaje(){
     if(st.cargandoYo) return '<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>';
-    if(!st.yo){
-      // 28-ago · Aqui faltaba la puerta de entrada: quien todavia NO se ha alistado escribia su
-      // correo, no le encontraba, y se quedaba sin saber que hacer. El alistamiento es el paso 1 de
-      // todo el sistema, asi que ahora esta a la vista y separado, no escondido en un parrafo.
-      var alta = st.d && st.d.formBitacora;
-      return '<div class="card nave-login"><div class="nave-perfil">'+nebulaVideo('nebula-mini')+''
-        +'<div><h3>Identifícate, recluta</h3><p class="small muted">Escribe el correo con el que te alistaste en la Bitácora de mando. Solo lo pediré una vez en este dispositivo, y solo te enseño <b>tu</b> ficha.</p></div></div>'
-        +'<div class="selrow"><input id="in-mail" type="email" placeholder="tu.correo@ejemplo.com" autocomplete="email"><button class="btn primary" id="btn-mail" type="button">Entrar en la nave</button></div>'
-        +(st.msgYo?'<p class="small" style="margin-top:8px;color:var(--amber)">'+st.msgYo+'</p>':'')
-        +(alta?'<div class="nave-alta"><span class="o">¿aún no te has alistado?</span>'
-          +'<a class="btn primary" href="'+esc(st.d.formBitacora)+'" target="_blank" rel="noopener">📓 Alistarme en la Bitácora de mando →</a>'
-          +'<p class="small muted">Es el <b>primer paso</b> y solo se hace una vez: eliges alias y personaje. '
-          +'Hasta que no lo envíes no existes a bordo. Después vuelve aquí con <b>ese mismo correo</b>.</p></div>':'')
-        +'</div>';
-    }
+    // 30-ago · el login ya NO vive aquí: es lo primero de la página (ver login() y el orden de
+    // render). La ficha sin identificar solo apunta hacia arriba.
+    if(!st.yo) return '<div class="card"><p class="small muted">👤 Identifícate arriba para ver tu ficha, tu duelo y tu vestuario. Las demás pestañas funcionan sin identificarse.</p></div>';
     var r=st.yo, d=st.d, SG=window.SG||{};
     var av=SG.avatarImg?SG.avatarImg(r.avatar,r.alias,'grande'+(r.marco==='oro'?' marco-oro':''),r.xp,d.tipo):'';
     // NIVEL (xp, solo suben) y CRÉDITOS (lo único que se gasta)
@@ -313,7 +318,7 @@
     }).join('')+'</nav>';
   }
   function contenido(){
-    if(st.tab==='ficha')    return personaje()+vestuario();
+    if(st.tab==='ficha')    return personaje()+duelo()+vestuario();
     if(st.tab==='retos')    return retos();
     if(st.tab==='semana')   return estaSemana();
     if(st.tab==='planetas') return mapa();
@@ -341,11 +346,87 @@
     return avisoPase()+'<div class="nave-barra"><div class="nave-accesos">'
       +(d.formBitacora?'<a class="acc primary" href="'+esc(d.formBitacora)+'" data-vent="📓 Bitácora de mando"><b>📓 Mi Bitácora de mando</b><em>marca lo que has completado</em></a>':'')
       +(d.formCanje?'<a class="acc" href="'+esc(d.formCanje)+'" data-vent="🎁 Canje de recompensas"><b>🎁 Canjear</b><em>gasta tus ◈ créditos</em></a>':'')
-      +'<a class="acc" href="#tablero" data-ir="tablero"><b>🏆 Tablero</b><em>cómo va tu grupo</em></a>'
+      // 30-ago · fuera el acceso «Tablero»: desde que el tablero vive DENTRO de la Nave, duplicaba
+      // la pestaña «El tablero» (lo vio Norberto en la captura). Aquí quedan solo las ACCIONES.
       +(d.formTicket?'<a class="acc" href="'+esc(d.formTicket)+'" data-vent="🎟️ Contacta con NEBULA"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
       +(miPanel()?'<a class="acc" href="'+esc(miPanel())+'" data-vent="🪐 Panel de control"><b>🪐 Panel</b><em>los ocho planetas</em></a>':'')
       +'</div></div>';
   }
+  // ================= EL DUELO (30-ago) =================
+  // Petición de Norberto: un ranking reducido con quien va justo delante y quien pisa los talones,
+  // y un banco de frases que unas veces apremia a alcanzar y otras a escaparse. Decisiones:
+  //   · TARJETA en «Mi ficha», no ventana al entrar: al abrir la Nave ya compiten NEBULA y las
+  //     celebraciones; un popup más se cierra sin leer, la tarjeta está siempre donde aterrizas.
+  //   · Los datos salen del tablero que la propia página ya carga (sg:tablero): ni una llamada más.
+  //   · La frase sugiere EL RETO CONCRETO que cierra el hueco: «te faltan 120 xp: un Reto B lo
+  //     resuelve» empuja más que un ánimo genérico.
+  var FRASES_ARRIBA=[
+    '¡Tú puedes! Estás a {delta} xp de superar a {alias}. {sugerencia}',
+    '{alias} va justo delante, a solo {delta} xp. Un último empujón y ese puesto es tuyo. 🚀',
+    'NEBULA detecta una nave a {delta} xp por delante: es {alias}. Rumbo de intercepción. 🛰️',
+    'El puesto de {alias} tiembla: {delta} xp y le adelantas. {sugerencia}',
+    '¿Ves esa estela? Es {alias}, a {delta} xp. Nadie recuerda a quien CASI adelanta. 😉'];
+  var FRASES_ABAJO=[
+    '¡Cuidado, te pisan los talones! {alias} está a solo {delta} xp. ¿Hacemos una misión para desmarcarnos?',
+    '{alias} se acerca por popa: {delta} xp de margen. Un reto a tiempo y le pierdes de vista. 🛡️',
+    'Tu margen con {alias} es de {delta} xp. En esta galaxia, quien se acomoda, ve pasar naves. ⚠️',
+    'Aviso de NEBULA: {alias} lleva los motores encendidos y está a {delta} xp. Toca acelerar.'];
+  var FRASES_LIDER=[
+    '👑 Vas en cabeza, recluta. {alias} te sigue a {delta} xp: que el trono no se enfríe.',
+    '👑 Primer puesto. {alias} está a {delta} xp — también en cabeza se entrena. {sugerencia}'];
+  var FRASES_EMPATE=[
+    '⚡ Empate técnico con {alias}: el siguiente reto decide quién va delante. ¿Va a ser tuyo?'];
+  function sugerenciaDuelo(delta){
+    if(delta<=0) return '';
+    if(delta<=100) return 'Cualquier reto te lo da.';
+    if(delta<=250) return 'Un Reto B (250 xp) lo resuelve.';
+    if(delta<=500) return 'Una Actividad (500 xp) lo resuelve de golpe.';
+    return 'Paso a paso: cada reto suma.';
+  }
+  function fraseDuelo(banco, alias, delta){
+    var f=banco[Math.floor(Math.random()*banco.length)];
+    return esc(f).replace('{alias}','<b>'+esc(alias)+'</b>')
+                 .replace('{delta}','<b>'+delta+'</b>')
+                 .replace('{sugerencia}',esc(sugerenciaDuelo(delta)));
+  }
+  function duelo(){
+    if(!st.yo) return '';
+    var d=window.SG_TABLERO_DATA;
+    // el tablero aún no ha llegado: se deja el hueco y sg:tablero repinta cuando esté
+    if(!d||!d.reclutas) return '<div id="duelo-hueco"></div>';
+    var lista=d.reclutas.slice().sort(function(a,b){return (a.pos||99)-(b.pos||99);});
+    var i=lista.findIndex(function(x){return x.pos===st.yo.pos;});
+    if(i<0) return '';
+    var yo=lista[i], arriba=i>0?lista[i-1]:null, abajo=i<lista.length-1?lista[i+1]:null;
+    if(!arriba&&!abajo)
+      return '<div class="card duelo"><h3>⚔️ Tu duelo</h3><p class="small muted">De momento la pista es tuya: nadie delante, nadie detrás. Cuando se alisten más reclutas, aquí verás tu duelo.</p></div>';
+    // la frase: si hay empate con el de arriba manda el empate; si no, se alterna al azar entre
+    // alcanzar al de delante y escaparse del de detrás (que es justo lo que pidió Norberto)
+    var msg;
+    if(arriba&&arriba.xp===yo.xp) msg=fraseDuelo(FRASES_EMPATE,arriba.alias,0);
+    else if(!arriba) msg=fraseDuelo(FRASES_LIDER,abajo.alias,yo.xp-abajo.xp);
+    else if(!abajo) msg=fraseDuelo(FRASES_ARRIBA,arriba.alias,arriba.xp-yo.xp);
+    else msg=Math.random()<0.5?fraseDuelo(FRASES_ARRIBA,arriba.alias,arriba.xp-yo.xp)
+                              :fraseDuelo(FRASES_ABAJO,abajo.alias,yo.xp-abajo.xp);
+    function fila(p,es){
+      if(!p) return '';
+      return '<div class="duelo-fila'+(es==='yo'?' yo':'')+'"><span class="pos">#'+p.pos+'</span>'
+        +'<b>'+(es==='yo'?'TÚ · ':'')+esc(p.alias)+'</b>'
+        +(p.corona?' <span title="corona semanal">👑</span>':'')
+        +'<span class="pts">'+p.xp+' xp</span>'
+        +(es==='arriba'?(p.xp===yo.xp?'<em>⚡ empate</em>':'<em>te saca '+(p.xp-yo.xp)+'</em>')
+          :es==='abajo'?(p.xp===yo.xp?'<em>⚡ empate</em>':'<em>a '+(yo.xp-p.xp)+' de ti</em>'):'<em>tu puesto</em>')
+        +'</div>';
+    }
+    return '<div class="card duelo"><h3>⚔️ Tu duelo</h3>'
+      +'<div class="duelo-tabla">'+fila(arriba,'arriba')+fila(yo,'yo')+fila(abajo,'abajo')+'</div>'
+      +'<p class="duelo-msg">'+msg+'</p>'
+      +'<p class="small" style="margin:8px 0 0"><a href="#tablero" data-ir="tablero" class="btn small">Ver el tablero completo →</a></p></div>';
+  }
+  // cuando el tablero llega después que la ficha, el duelo se pinta solo (una vez)
+  document.addEventListener('sg:tablero',function(){
+    if(st.tab==='ficha'&&st.yo&&document.getElementById('duelo-hueco')) render();
+  });
   // ================= LOS RETOS, EXPLICADOS (29-ago) =================
   // 🔴 El formulario llevaba semanas prometiendo «está todo explicado en tu Nave» y era MENTIRA: la
   // Nave solo listaba los nombres de los retos dentro del detalle de cada planeta. Quien no entendía
@@ -695,7 +776,8 @@
 
   // ---------- render ----------
   function render(){
-    root.innerHTML=cabecera()+accesos()+pestanas()+contenido();
+    // 30-ago · el orden que pidió Norberto: puerta → menú (pegajoso al hacer scroll) → semana → contenido
+    root.innerHTML=login()+pestanas()+accesos()+cabecera()+contenido();
     verTablero(st.tab==='tablero');
     Array.prototype.forEach.call(root.querySelectorAll('.nave-tab[data-tab]'),function(b){
       b.onclick=function(){ irA(b.getAttribute('data-tab')); };
