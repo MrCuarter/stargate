@@ -37,8 +37,25 @@ const evs = titulos().filter(t => t.indexOf(G.EVIDENCIA_PREF) === 0);
 igual(evs.length, RETOS.length, "un enlace de evidencia por RETO, no uno por planeta");
 igual(new Set(evs).size, evs.length,
   "🔴 con nombre DISTINTO cada uno: si se llamaran igual, la hoja tendría columnas repetidas y leerFila_ solo vería la última");
-contiene(item(G.tituloEvidenciaReto_(RETOS[0])).getHelpText(), "incógnito",
-  "y avisa de lo que más falla: un enlace que pide permiso no lo puede abrir el profe");
+// v3.38 · LA EVIDENCIA POR TIPO (petición de Norberto, 30-ago): cada reto dice la forma más fácil
+// de compartir SU producto, no un consejo genérico.
+contiene(item(G.tituloEvidenciaReto_(RETOS[0])).getHelpText(), "ENLACE DIRECTO",
+  "🔴 A1 va del foro: pide el enlace directo al mensaje, no un genérico");
+contiene(item(G.tituloEvidenciaReto_(RETOS[0])).getHelpText(), "postimages",
+  "y da las alternativas (captura a Drive compartido o postimages, o vía Bitácora)");
+const b6 = RETOS.filter(r => r[0] === "B6")[0];
+contiene(item(G.tituloEvidenciaReto_(b6)).getHelpText(), "incógnito",
+  "B6 es un juego con enlace propio: pide el enlace y la prueba del incógnito");
+const xf = G.retosDe_("REGULAR").filter(r => r[0] === "XF")[0];
+if (xf) contiene(item(G.tituloEvidenciaReto_(xf)).getHelpText(), "dejarlo vacío",
+  "y la batalla final dice que no hace falta enlace");
+// 🔴 guardarraíl: ningún reto de NINGÚN catálogo sin tipo, y ningún tipo sin texto. El día que se
+// añada un reto nuevo y nadie decida cómo se comparte, esto lo canta.
+const sinTipo = [...new Set(G.RETOS_REGULAR.concat(G.RETOS_PUA).map(r => r[0]))]
+  .filter(id => !G.EVIDENCIA_TIPO[id]);
+igual(sinTipo, [], "🔴 todos los retos tienen tipo de evidencia asignado");
+const sinTexto = [...new Set(Object.values(G.EVIDENCIA_TIPO))].filter(t => !G.EVIDENCIA_TEXTOS[t]);
+igual(sinTexto, [], "y todos los tipos tienen su texto");
 // el orden importa: el enlace va PEGADO a su casilla, no al final de la página
 const orden = titulos();
 RETOS.forEach(r => {

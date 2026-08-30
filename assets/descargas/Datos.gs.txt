@@ -183,6 +183,35 @@ function ayudaReto_(r) {
   return (a ? a + "\n\n" : "") + (premio ? premio + " " : "") +
     "Marca la casilla SOLO cuando lo hayas TERMINADO. Puedes volver cuando quieras: lo de antes nunca se borra.";
 }
+// ================= v3.38 · LA EVIDENCIA, EXPLICADA POR TIPO DE RETO =================
+// Petición de Norberto (30-ago): nada de un texto genérico — cada reto dice LA FORMA MÁS FÁCIL de
+// compartir SU producto. Un reto de foro pide el enlace directo al mensaje (o captura a Drive
+// compartido / postimages / la Bitácora); un juego o un vídeo publicado piden su propio enlace con
+// la prueba del incógnito. El tipo se asigna a mano aquí; la batería 27 vigila que ningún reto de
+// ningún catálogo se quede sin tipo, y que cada tipo tenga su texto.
+var EVIDENCIA_TIPO = { A1:"foro", A2:"foro", A3:"texto", A4:"foro", A5:"texto", A6:"texto",
+  A7:"texto", A8:"texto", B1:"proceso", B2:"enlace", B3:"documento", B4:"enlace", B5:"bitacora",
+  B6:"enlace", B7:"enlace", B8:"enlace", X1:"actividad", X2:"actividad", XF:"examen" };
+var EVIDENCIA_TEXTOS = {
+  foro: "Tu reto vive en el foro de UNIR: lo más fácil es pegar aquí el ENLACE DIRECTO a tu mensaje " +
+    "(ábrelo en el foro y copia la URL de la barra). ¿El foro no te da enlace? Vale una captura subida " +
+    "a una carpeta compartida de Drive o a postimages.org — o pégala en tu Bitácora y enlaza la Bitácora.",
+  texto: "Es un reto de escribir: ponlo en tu Bitácora (o en el foro de UNIR) y pega aquí ese enlace. " +
+    "También vale una captura subida a Drive compartido o a postimages.org.",
+  enlace: "Esto se comparte con su PROPIO enlace publicado: pégalo aquí tal cual. Ábrelo antes en una " +
+    "ventana de incógnito: si pide permiso para abrirse, tu profe no lo va a poder ver y no cuenta.",
+  documento: "Pega el enlace del documento (Drive/Docs) compartido en modo «cualquiera con el enlace " +
+    "puede ver». Compruébalo en una ventana de incógnito: si pide permiso, no cuenta.",
+  proceso: "Vale el enlace al chat con la IA (compártelo desde la propia herramienta) o unas capturas " +
+    "del proceso subidas a Drive compartido o a postimages.org. Si ya lo tienes todo en tu Bitácora, " +
+    "enlaza la Bitácora.",
+  bitacora: "La prueba ES tu Bitácora: pega aquí su enlace público, a poder ser el de la sección de " +
+    "este reto. Ábrelo en una ventana de incógnito: si pide permiso, tu profe no lo verá.",
+  actividad: "La Actividad se entrega en la plataforma de UNIR, así que aquí basta el enlace de tu " +
+    "Bitácora donde la recoges. Si tu profe ya la ve en la plataforma, puedes dejarlo vacío.",
+  examen: "No hace falta enlace: la batalla final queda registrada en la plataforma de UNIR. Puedes dejarlo vacío."
+};
+function ayudaEvidenciaReto_(r) { return EVIDENCIA_TEXTOS[EVIDENCIA_TIPO[r[0]]] || AYUDA_EVIDENCIA_RETO; }
 var AYUDA_EVIDENCIA_RETO = "Pega el enlace de ESTE reto (tu Bitácora, el documento, el vídeo, el juego…). " +
   "Ábrelo antes en una ventana de inc\u00f3gnito: si pide permiso para abrirse, tu profe no lo va a poder ver y no cuenta.";
 

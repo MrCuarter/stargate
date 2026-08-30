@@ -374,8 +374,13 @@
   var FRASES_LIDER=[
     '👑 Vas en cabeza, recluta. {alias} te sigue a {delta} xp: que el trono no se enfríe.',
     '👑 Primer puesto. {alias} está a {delta} xp — también en cabeza se entrena. {sugerencia}'];
+  // 30-ago · Norberto: «si hay empate, anima a desmarcarse». El empate es la tercera vía del banco
+  // y salta tanto si empatas con el de delante como con el de detrás.
   var FRASES_EMPATE=[
-    '⚡ Empate técnico con {alias}: el siguiente reto decide quién va delante. ¿Va a ser tuyo?'];
+    '⚡ Empate técnico con {alias}: el siguiente reto decide quién va delante. ¿Va a ser tuyo?',
+    '⚡ {alias} y tú vais CLAVADOS a xp. Un solo reto rompe el empate… ¿quién se desmarca primero?',
+    '⚡ Cero distancia con {alias}. En la Cero lo llaman «órbita compartida» — hasta que alguien enciende motores. 🔥',
+    '⚡ Mismos xp que {alias}. Cualquier reto te desmarca: el que tengas a medias es el candidato perfecto.'];
   function sugerenciaDuelo(delta){
     if(delta<=0) return '';
     if(delta<=100) return 'Cualquier reto te lo da.';
@@ -403,7 +408,8 @@
     // la frase: si hay empate con el de arriba manda el empate; si no, se alterna al azar entre
     // alcanzar al de delante y escaparse del de detrás (que es justo lo que pidió Norberto)
     var msg;
-    if(arriba&&arriba.xp===yo.xp) msg=fraseDuelo(FRASES_EMPATE,arriba.alias,0);
+    var empatado=(arriba&&arriba.xp===yo.xp)?arriba:(abajo&&abajo.xp===yo.xp)?abajo:null;
+    if(empatado) msg=fraseDuelo(FRASES_EMPATE,empatado.alias,0);
     else if(!arriba) msg=fraseDuelo(FRASES_LIDER,abajo.alias,yo.xp-abajo.xp);
     else if(!abajo) msg=fraseDuelo(FRASES_ARRIBA,arriba.alias,arriba.xp-yo.xp);
     else msg=Math.random()<0.5?fraseDuelo(FRASES_ARRIBA,arriba.alias,arriba.xp-yo.xp)

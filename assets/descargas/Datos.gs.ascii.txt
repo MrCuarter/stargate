@@ -183,6 +183,35 @@ function ayudaReto_(r) {
   return (a ? a + "\n\n" : "") + (premio ? premio + " " : "") +
     "Marca la casilla SOLO cuando lo hayas TERMINADO. Puedes volver cuando quieras: lo de antes nunca se borra.";
 }
+// ================= v3.38 - LA EVIDENCIA, EXPLICADA POR TIPO DE RETO =================
+// Peticion de Norberto (30-ago): nada de un texto generico - cada reto dice LA FORMA MAS FACIL de
+// compartir SU producto. Un reto de foro pide el enlace directo al mensaje (o captura a Drive
+// compartido / postimages / la Bitacora); un juego o un video publicado piden su propio enlace con
+// la prueba del incognito. El tipo se asigna a mano aqui; la bateria 27 vigila que ningun reto de
+// ningun catalogo se quede sin tipo, y que cada tipo tenga su texto.
+var EVIDENCIA_TIPO = { A1:"foro", A2:"foro", A3:"texto", A4:"foro", A5:"texto", A6:"texto",
+  A7:"texto", A8:"texto", B1:"proceso", B2:"enlace", B3:"documento", B4:"enlace", B5:"bitacora",
+  B6:"enlace", B7:"enlace", B8:"enlace", X1:"actividad", X2:"actividad", XF:"examen" };
+var EVIDENCIA_TEXTOS = {
+  foro: "Tu reto vive en el foro de UNIR: lo m\u00e1s f\u00e1cil es pegar aqu\u00ed el ENLACE DIRECTO a tu mensaje " +
+    "(\u00e1brelo en el foro y copia la URL de la barra). \u00bfEl foro no te da enlace? Vale una captura subida " +
+    "a una carpeta compartida de Drive o a postimages.org \u2014 o p\u00e9gala en tu Bit\u00e1cora y enlaza la Bit\u00e1cora.",
+  texto: "Es un reto de escribir: ponlo en tu Bit\u00e1cora (o en el foro de UNIR) y pega aqu\u00ed ese enlace. " +
+    "Tambi\u00e9n vale una captura subida a Drive compartido o a postimages.org.",
+  enlace: "Esto se comparte con su PROPIO enlace publicado: p\u00e9galo aqu\u00ed tal cual. \u00c1brelo antes en una " +
+    "ventana de inc\u00f3gnito: si pide permiso para abrirse, tu profe no lo va a poder ver y no cuenta.",
+  documento: "Pega el enlace del documento (Drive/Docs) compartido en modo \u00abcualquiera con el enlace " +
+    "puede ver\u00bb. Compru\u00e9balo en una ventana de inc\u00f3gnito: si pide permiso, no cuenta.",
+  proceso: "Vale el enlace al chat con la IA (comp\u00e1rtelo desde la propia herramienta) o unas capturas " +
+    "del proceso subidas a Drive compartido o a postimages.org. Si ya lo tienes todo en tu Bit\u00e1cora, " +
+    "enlaza la Bit\u00e1cora.",
+  bitacora: "La prueba ES tu Bit\u00e1cora: pega aqu\u00ed su enlace p\u00fablico, a poder ser el de la secci\u00f3n de " +
+    "este reto. \u00c1brelo en una ventana de inc\u00f3gnito: si pide permiso, tu profe no lo ver\u00e1.",
+  actividad: "La Actividad se entrega en la plataforma de UNIR, as\u00ed que aqu\u00ed basta el enlace de tu " +
+    "Bit\u00e1cora donde la recoges. Si tu profe ya la ve en la plataforma, puedes dejarlo vac\u00edo.",
+  examen: "No hace falta enlace: la batalla final queda registrada en la plataforma de UNIR. Puedes dejarlo vac\u00edo."
+};
+function ayudaEvidenciaReto_(r) { return EVIDENCIA_TEXTOS[EVIDENCIA_TIPO[r[0]]] || AYUDA_EVIDENCIA_RETO; }
 var AYUDA_EVIDENCIA_RETO = "Pega el enlace de ESTE reto (tu Bit\u00e1cora, el documento, el v\u00eddeo, el juego\u2026). " +
   "\u00c1brelo antes en una ventana de inc\u00f3gnito: si pide permiso para abrirse, tu profe no lo va a poder ver y no cuenta.";
 

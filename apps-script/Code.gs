@@ -1167,7 +1167,7 @@ function estructuraBitacora_(fb, o) {
       try { cb.setHelpText(ayudaReto_(r)); } catch (e) {}
       var ev = buscar(tituloEvidenciaReto_(r));
       if (!ev) ev = fb.addTextItem().setTitle(tituloEvidenciaReto_(r));
-      try { ev.setHelpText(AYUDA_EVIDENCIA_RETO); } catch (e) {}
+      try { ev.setHelpText(ayudaEvidenciaReto_(r)); } catch (e) {}
     });
   });
 
@@ -1418,7 +1418,7 @@ function retosDelPlaneta_(fb, retos) {
   (retos || []).forEach(function(r){
     var cb = fb.addCheckboxItem().setTitle(r[1]).setHelpText(ayudaReto_(r)).setRequired(false);
     ponerOpciones_(cb, [OPC_HECHO], r[1]);
-    fb.addTextItem().setTitle(tituloEvidenciaReto_(r)).setHelpText(AYUDA_EVIDENCIA_RETO).setRequired(false);
+    fb.addTextItem().setTitle(tituloEvidenciaReto_(r)).setHelpText(ayudaEvidenciaReto_(r)).setRequired(false);
   });
 }
 function crearDocumentoPER_(perId) {
