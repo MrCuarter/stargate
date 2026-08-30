@@ -26,7 +26,7 @@ V = {
  "t3i": ("QiBE3TMT4HM", "T3 Sendara · intro"),    "act2": ("dCqsHmtPhUE", "Misión · Actividad 2 (paisaje)"),
  "t3c": ("XSOQrs2IKWw", "T3 Sendara · cierre"),   "f3": ("c3CLpXGL5Hw", "Fragmento 3 · Sylla Bren"),
  "t4i": ("ciTK0GpyCeg", "T4 Reliae · intro"),     "t4c": ("t52SLxzgxPo", "T4 Reliae · cierre"),
- "f4": ("K8djfd302TE", "Fragmento 4 · Amara Sol"),
+ "f4": ("K8djfd302TE", "Fragmento 4 · Alba Sol"),
  "t5i": ("I9cMr2b87RE", "T5 Umbral · intro"),     "t5c": ("VK1iT4umlJU", "T5 Umbral · cierre"),
  "f5": ("6z11HqfPWqg", "Fragmento 5 · Vera Khal"),
  "t6i": ("8XKVjDnTLSU", "T6 Ludo · intro"),       "t6c": ("dS2UNfjuoiA", "T6 Ludo · cierre"),
@@ -97,7 +97,7 @@ CRONO = [
  dict(sem=7, tema="Tema 4 · Reliae", sub="M-learning",
       capitulo="Estableciendo comunicaciones",
       videos=[("t4i","Al abrir el Tema 4")],
-      lanza=["Reto A «Abre el canal» (Amara)", "Reto B «El entorno de aula»"],
+      lanza=["Reto A «Abre el canal» (Alba)", "Reto B «El entorno de aula»"],
       insignias=[], hito="Compartir de forma organizada", clases="Clase 10",
       consejo="Primero compartir ordenado (Sites/Classroom/Moodle); la comunicación viva llega la semana que viene."),
  dict(sem=8, tema="Tema 4 (cont.) · Reliae", sub="El entorno digital de aula",
@@ -105,7 +105,7 @@ CRONO = [
       videos=[("t4c","Al cerrar el bloque"),("f4","Tras el cierre")],
       lanza=[], insignias=["P4_amara","R4_entorno-de-aula"],
       hito="Test del Tema 4 · Bitácora: tu entorno de aula", clases="Clase 11",
-      consejo="La lección de Amara (compartir a tiempo, pulir después) es oro contra el perfeccionismo del alumnado."),
+      consejo="La lección de Alba (compartir a tiempo, pulir después) es oro contra el perfeccionismo del alumnado."),
  dict(sem=9, tema="Tema 5 · Umbral", sub="Evaluación y ePortfolio — aparece la Estática",
       capitulo="Evaluando la situación",
       videos=[("t5i","Al abrir el Tema 5 (¡aparece Vaeon!)"),
@@ -131,7 +131,7 @@ CRONO = [
  dict(sem=12, tema="Tema 7 (cont.) · Vínculo", sub="Gamificación profunda",
       capitulo=None,
       videos=[("t7c","Al cerrar el bloque"),("f7","Tras el cierre")],
-      lanza=[], insignias=["P7_mara","R7_microgamificacion"],
+      lanza=[], insignias=["P7_mara","R7_microgamificacion","E3_vaeon"],
       hito="Test del Tema 7 · Bitácora: tu microgamificación", clases="Clase 16",
       consejo="Momento meta: STARGATE es una gamificación profunda funcionando delante de sus ojos. Díselo."),
  dict(sem=13, tema="Tema 8 · Liminar", sub="Realidad Aumentada",
@@ -152,7 +152,7 @@ CRONO = [
       videos=[("finale","La revelación: la verdad de la Cero (sin resolución)"),
               ("plan","El Capitán presenta el examen: la batalla ES el examen"),
               ("f9","Tras el examen/el cierre: el epílogo de Vaeon")],
-      lanza=[], insignias=["H5_la-liberacion","E3_vaeon"],
+      lanza=[], insignias=["H5_la-liberacion"],
       hito="Repaso + simulacro del examen · Bitácoras publicadas", clases="Clases 19–20",
       consejo="Celebra las Bitácoras publicadas: son el producto real del curso. El Fragmento Prohibido es el regalo final."),
 ]
@@ -234,7 +234,7 @@ CROMOS = [
  ("P1_bran",      "Bran Okafor",                "I",   "común",      7),
  ("P2_tomas",     "Tomás Reyer",                "I",   "común",      7),
  ("P3_sylla",     "Sylla Bren",                 "I",   "común",      7),
- ("P4_amara",     "Amara Sol",                  "I",   "común",      7),
+ ("P4_amara",     "Alba Sol",                  "I",   "común",      7),
  ("P5_vera",      "Vera Khal",                  "I",   "común",      7),
  ("P6_joran",     "Joran Pike",                 "I",   "común",      7),
  ("P7_mara",      "Mara Voss",                  "I",   "común",      7),
@@ -328,7 +328,9 @@ NIVELES = [
  ( 9, 4150, 4, "Comandante de flota"),
  (10, 5000, 5, "Leyenda de la Cero"),
 ]
-XP_VIAJE = {"REGULAR": 5100, "PUA": 4200}   # xp máximos del viaje completo (para escalar PUA); v3.39 con el reto A0
+# v3.41 · fuera la Batalla final (500), dentro el huevo de Pascua S7 (150) — también en PUA.
+# El nivel 10 (5.000) exige ahora los bonus de planeta: Leyenda = completarlo de verdad.
+XP_VIAJE = {"REGULAR": 4750, "PUA": 4350}
 # ◈ que da cada tipo de logro (el xp lo sigue fijando la tabla de retos del Apps Script)
 # 26-ago · SUBE LO QUE SE GANA. Con el vestuario de héroes hay mucho más donde gastar, y con la
 # economía vieja (590 ◈ el viaje entero) elegir una recompensa de nota significaba renunciar a
@@ -434,7 +436,9 @@ AYUDA_RETOS = {
        "desde el primer día — y NEBULA te da su insignia: lo que se comparte no se apaga.",
   "X1": "La Actividad 1 entregada donde te la pide tu profesor. Marca la casilla cuando la hayas ENVIADO, no cuando la empieces.",
   "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al enviarla.",
-  "XF": "El examen hecho. Se marca después de haberlo presentado.",
+  "S7": "🕳️ En la presentación del planeta Vínculo hay un enlace que no debería estar ahí. Encuéntralo, "
+        "resuelve el enigma que esconde y trae la PALABRA que Vaeon borró. Nadie va a decirte dónde mirar: "
+        "los secretos de la gamificación se encuentran jugando.",
 }
 CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55,
             "actividad": 100, "final": 100, "derivada": 60}

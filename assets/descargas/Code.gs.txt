@@ -1155,7 +1155,10 @@ function estructuraBitacora_(fb, o) {
   fb.getItems().forEach(function(it){
     var tit = String(it.getTitle() || "");
     var vieja = /^Tema \d · Lo que he completado$/.test(tit) || tit === "Batalla final"
-             || /^Enlace · (Tema \d|Batalla final)$/.test(tit);
+             || /^Enlace · (Tema \d|Batalla final)$/.test(tit)
+             // v3.41 · la Batalla final salió del catálogo: fuera su casilla, su enlace y su página
+             || tit === "Batalla final: examen realizado" || tit === "Enlace · Batalla final: examen realizado"
+             || (it.getType() === FormApp.ItemType.PAGE_BREAK && tit === "La batalla final" && temas.indexOf(9) < 0);
     if (vieja) { try { fb.deleteItem(it); } catch (e) { Logger.log("estructuraBitacora_ borrando «" + tit + "»: " + e); } }
   });
 
@@ -1168,6 +1171,7 @@ function estructuraBitacora_(fb, o) {
       var ev = buscar(tituloEvidenciaReto_(r));
       if (!ev) ev = fb.addTextItem().setTitle(tituloEvidenciaReto_(r));
       try { ev.setHelpText(ayudaEvidenciaReto_(r, o.padlet)); } catch (e) {}
+      try { validarSecreto_(ev.asTextItem ? ev.asTextItem() : ev, r); } catch (e) {}
     });
   });
 
@@ -1432,8 +1436,20 @@ function retosDelPlaneta_(fb, retos, padletUrl) {
   (retos || []).forEach(function(r){
     var cb = fb.addCheckboxItem().setTitle(r[1]).setHelpText(ayudaReto_(r)).setRequired(false);
     ponerOpciones_(cb, [OPC_HECHO], r[1]);
-    fb.addTextItem().setTitle(tituloEvidenciaReto_(r)).setHelpText(ayudaEvidenciaReto_(r, padletUrl)).setRequired(false);
+    var ev = fb.addTextItem().setTitle(tituloEvidenciaReto_(r)).setHelpText(ayudaEvidenciaReto_(r, padletUrl)).setRequired(false);
+    validarSecreto_(ev, r);
   });
+}
+// v3.41 · el huevo de Pascua se valida SOLO con Google Forms: la evidencia de S7 tiene que contener
+// la palabra secreta (da igual mayúsculas). Sin servidor, sin trampas fáciles: el formulario dice
+// «esa no es» hasta que la traen del enigma. La palabra vive en PALABRA_HUEVO (Datos.gs).
+function validarSecreto_(ev, r) {
+  if ((EVIDENCIA_TIPO[r[0]] || "") !== "secreto") return;
+  try {
+    ev.setValidation(FormApp.createTextValidation()
+      .setHelpText("Esa no es la palabra que borró Vaeon. Sigue el enlace oculto y resuelve el enigma.")
+      .requireTextContainsPattern("(?i)" + PALABRA_HUEVO).build());
+  } catch (e) { Logger.log("validarSecreto_: " + e); }
 }
 // ================= v3.38 · PADLET (API) =================
 // La clave (pdltp_...) del plan actual DEJA publicar chinchetas y leer tableros, pero NO crear ni

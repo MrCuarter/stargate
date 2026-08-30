@@ -63,14 +63,14 @@ Puesto de mando del profesorado — documento vivo. <a href="index.html">Inicio<
 PERS=[("P1_bran","Bran Okafor","Reto A · T1 · Fôrge","Lo imperfecto compartido"),
 ("P2_tomas","Tomás Reyer","Reto A · T2 · Ecos","Tu voz cuando no estás"),
 ("P3_sylla","Sylla Bren","Reto A · T3 · Sendara","No hay una sola ruta"),
-("P4_amara","Amara Sol","Reto A · T4 · Reliae","Compartir a tiempo"),
+("P4_amara","Alba Sol","Reto A · T4 · Reliae","Compartir a tiempo"),
 ("P5_vera","Vera Khal","Reto A · T5 · Umbral","Medir es cuidar"),
 ("P6_joran","Joran Pike","Reto A · T6 · Ludo","El ensayo del miedo"),
 ("P7_mara","Mara Voss","Reto A · T7 · Vínculo","Un porqué mueve personas"),
 ("P8_noa","Noa Lieth","Reto A · T8 · Liminar","Enseñar futuros")]
 ESP=[("E1_nebula","NEBULA","Preséntate a tu tripulación","La Bitácora viva que narra el viaje"),
 ("E2_capitan","El Capitán","Presentar la Act. 1","El mando de la misión: tú, docente"),
-("E3_vaeon","General Vaeon","Batalla final","Señor de la Estática (villano)")]
+("E3_vaeon","General Vaeon","El Fragmento Prohibido (huevo de Pascua)","Señor de la Estática (villano)")]
 RETO=[("R1_la-chispa","La chispa","Reto B · T1","Imagen didáctica con IA (Act 1)"),
 ("R2_el-eco-que-ensena","El eco que enseña","Reto B · T2","Videotutorial + videoquiz"),
 ("R3_la-matriz","La matriz","Reto B · T3","Matriz 8×6 del paisaje (Act 2)"),
@@ -641,7 +641,7 @@ SHORT = {"sinopsis":"Sinopsis","bitacora":"Misión Bitácora","act1":"Misión Ac
  "plan":"Plan de Ataque","finale":"FINALE","f9":"F9 Vaeon (epílogo)"}
 for _i in range(1,9):
     SHORT[f"t{_i}i"]=f"T{_i} intro"; SHORT[f"t{_i}c"]=f"T{_i} cierre"
-for _i,_n in enumerate(["Bran","Tomás","Sylla","Amara","Vera","Joran","Mara","Noa"],1):
+for _i,_n in enumerate(["Bran","Tomás","Sylla","Alba","Vera","Joran","Mara","Noa"],1):
     SHORT[f"f{_i}"]=f"F{_i} {_n}"
 def fila_mapa(s):
     vids = " · ".join(SHORT.get(c, V[c][1]) for c,_ in s["videos"])
@@ -895,7 +895,7 @@ BADGE_INFO = {
  "P1_bran":{"nombre":"Bran Okafor · El Forjador","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 1: «El boceto sin quemar».","cuando":"Tema 1 · Planeta Fôrge","tarea":"Publica en el foro un borrador en bruto de algo que estés creando y una frase sobre qué te daba reparo enseñarlo sin pulir. No se corrige: el único criterio es compartirlo antes de terminarlo. Al hacerlo se recupera el fragmento de Bran."},
  "P2_tomas":{"nombre":"Tomás Reyer · El Cronista","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 2: «Un mensaje para quien faltó».","cuando":"Tema 2 · Planeta Ecos","tarea":"Graba un clip corto (máx. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no vino a clase. Debe entenderse solo, sin ti delante."},
  "P3_sylla":{"nombre":"Sylla Bren · La Rastreadora","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 3: «Dos senderos».","cuando":"Tema 3 · Planeta Sendara","tarea":"Toma un objetivo de aprendizaje y describe dos rutas completamente distintas para alcanzarlo, pensadas para dos alumnos diferentes. Que las dos lleguen a la misma cima."},
- "P4_amara":{"nombre":"Amara Sol · La Operadora","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 4: «Abre el canal».","cuando":"Tema 4 · Planeta Reliae","tarea":"Comparte con tu clase o el foro un recurso útil en menos de 24 h, aunque no esté pulido. Añade qué habrías «guardado en el cajón para pulir» y por qué esta vez no lo hiciste."},
+ "P4_amara":{"nombre":"Alba Sol · La Operadora","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 4: «Abre el canal».","cuando":"Tema 4 · Planeta Reliae","tarea":"Publica en tus redes una reflexión o un recurso del curso con el hashtag #mutecdstargate, en abierto. A tiempo por encima de perfecto: se publica hoy, se pule mañana.","cita":"Llegué tarde por querer llegar perfecta. Nunca más."},
  "P5_vera":{"nombre":"Vera Khal · La Médica","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 5: «Mide con método».","cuando":"Tema 5 · Planeta Umbral","tarea":"Define un indicador observable que vayas a seguir de verdad del aprendizaje de tus alumnos, acompañado de la pregunta que lo convierte en cuidado: «¿qué haré mañana mejor que hoy?»."},
  "P6_joran":{"nombre":"Joran Pike · El Ingeniero-jugador","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 6: «Ensaya jugando».","cuando":"Tema 6 · Planeta Ludo","tarea":"Coge algo que tus alumnos temen o les cuesta y conviértelo en un pequeño ensayo jugable (una mecánica: puntos, rutas, un enigma en cada paso). Que el juego sirva a un objetivo, no juego por juego."},
  "P7_mara":{"nombre":"Mara Voss · El Mando","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 7: «Un porqué».","cuando":"Tema 7 · Planeta Vínculo","tarea":"Toma una tarea rutinaria y escribe el «porqué» / la narrativa que la convierte en una causa. Diseña una insignia con sentido: memoria de un acto significativo, no premio por obedecer."},
@@ -903,7 +903,7 @@ BADGE_INFO = {
  # Especiales
  "E1_nebula":{"nombre":"NEBULA · La Bitácora viva","tipo":"Insignia de personaje (especial)","como":"Completando el reto «Preséntate a tu tripulación»: un vídeo de 60 segundos en el padlet de la clase.","cuando":"Semana 1","tarea":"NEBULA es la IA de la nave y tu narradora constante. Te da su insignia cuando compartes tu cara con la tripulación: preséntate en un vídeo de un minuto y publícalo en el padlet. Lo que se comparte no se apaga."},
  "E2_capitan":{"nombre":"El Capitán · El Mando de la misión","tipo":"Insignia de personaje (especial)","como":"Se obtiene al presentar la Actividad 1.","cuando":"Temas 1–2","tarea":"El Capitán es el mando de la misión (tu profesor o profesora). Su insignia reconoce que has asumido tu primera misión mayor: la actividad didáctica con imagen de IA."},
- "E3_vaeon":{"nombre":"General Vaeon · Señor de la Estática","tipo":"Insignia de villano","como":"Se desbloquea en la batalla final y con el «Fragmento Prohibido».","cuando":"Cierre del viaje","tarea":"Vaeon es el antagonista: personifica los errores del diseño educativo (contenido que no se entiende, recursos que no llegan, saber no compartido). Coleccionar su carta es el trofeo de haber entendido al enemigo."},
+ "E3_vaeon":{"nombre":"General Vaeon · Señor de la Estática","tipo":"Insignia de villano","como":"Resolviendo el huevo de Pascua «El Fragmento Prohibido»: un enlace oculto en la presentación del planeta Vínculo lleva a un enigma, y el enigma a la palabra que Vaeon borró.","cuando":"Tema 7 · Vínculo (si sabes mirar)","tarea":"Vaeon es el antagonista: personifica los errores del diseño educativo (contenido que no se entiende, recursos que no llegan, saber no compartido). Su insignia no se anuncia: se encuentra. Coleccionar su carta es el trofeo de haber entendido al enemigo."},
  # Retos (Reto B)
  "R1_la-chispa":{"nombre":"La chispa","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 1.","cuando":"Tema 1 · Fôrge","tarea":"Genera con una IA una imagen con finalidad didáctica: prompt estructurado (contexto + tipo de imagen + finalidad), al menos una iteración, selección final con tu criterio docente y evidencia del proceso. Es el núcleo de la Actividad 1."},
  "R2_el-eco-que-ensena":{"nombre":"El eco que enseña","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 2.","cuando":"Tema 2 · Ecos","tarea":"Crea un videotutorial de calidad (guion + grabación de pantalla + edición) y enriquécelo con 2–3 preguntas insertadas (videoquiz). Piénsalo para aula invertida y súbelo a la Bitácora con una reflexión breve."},
@@ -917,7 +917,7 @@ BADGE_INFO = {
  "H1_reclutamiento":{"nombre":"Reclutamiento","tipo":"Insignia de hito","como":"Se entrega en la primera sesión, cuando el recluta se presenta ante el mando.","cuando":"Semana 1","tarea":"Aceptas la misión: te alistas en el equipo de rescate de STARGATE y abres tu Bitácora Estelar."},
  "H2_primera-forja":{"nombre":"Primera Forja","tipo":"Insignia de hito","como":"Se entrega con la Actividad 1.","cuando":"Temas 1–2","tarea":"Tu primera obra queda registrada en la Bitácora: la actividad didáctica creada a partir de una imagen con IA."},
  "H3_cartografo":{"nombre":"Cartógrafo","tipo":"Insignia de hito","como":"Se entrega con la Actividad 2.","cuando":"Tema 3 (se resuelve en el 8)","tarea":"Dibujas un territorio, no un camino: entregas el paisaje de aprendizaje con su matriz de programación."},
- "H4_tripulacion-cero":{"nombre":"Tripulación Cero","tipo":"Insignia de hito","como":"Se otorga sola al desbloquear a los 8 personajes de la Cero.","cuando":"A lo largo del viaje","tarea":"Recuperas a Bran, Tomás, Sylla, Amara, Vera, Joran, Mara y Noa. NEBULA vuelve a estar completa."},
+ "H4_tripulacion-cero":{"nombre":"Tripulación Cero","tipo":"Insignia de hito","como":"Se otorga sola al desbloquear a los 8 personajes de la Cero.","cuando":"A lo largo del viaje","tarea":"Recuperas a Bran, Tomás, Sylla, Alba, Vera, Joran, Mara y Noa. NEBULA vuelve a estar completa."},
  "H5_la-liberacion":{"nombre":"La Liberación","tipo":"Insignia de hito","como":"Se otorga sola al completar y publicar la Bitácora.","cuando":"Repaso final","tarea":"Una Bitácora abierta, copiada y compartida no se puede apagar: la Estática retrocede y la puerta a la Tierra se abre. Tu ePortfolio es el camino a casa."},
 }
 # Frase del personaje (se muestra en el modal de las insignias de personaje)
@@ -1323,8 +1323,8 @@ _AYUDA_NAVE = json.loads(_datos_src[_a0 + len("var AYUDA_RETOS = "):_b0])
 # 19 = A1-A8 + B1-B8 + X1 + X2 + XF (los PUA reutilizan los mismos ids)
 assert len(_AYUDA_NAVE) >= 19, "AYUDA_RETOS de Datos.gs se ha quedado corta (%d)" % len(_AYUDA_NAVE)
 
-RETOS_REGULAR=[("A0","Reto «Preséntate a tu tripulación»"),("A1","Reto A «El boceto sin quemar» (Bran)"),("B1","Reto B «La chispa»"),("X1","Actividad 1 entregada"),("A2","Reto A «Un mensaje para quien faltó» (Tomás)"),("B2","Reto B «El eco que enseña»"),("A3","Reto A «Dos senderos» (Sylla)"),("B3","Reto B «La matriz»"),("X2","Actividad 2 entregada"),("A4","Reto A «Abre el canal» (Amara)"),("B4","Reto B «El entorno de aula»"),("A5","Reto A «Mide con método» (Vera)"),("B5","Reto B «La Bitácora medida»"),("A6","Reto A «Ensaya jugando» (Joran)"),("B6","Reto B «El juego»"),("A7","Reto A «Un porqué» (Mara)"),("B7","Reto B «La microgamificación»"),("A8","Reto A «La capa posible» (Noa)"),("B8","Reto B «El último umbral»"),("XF","Batalla final")]
-RETOS_PUA=[("A0","Reto «Preséntate a tu tripulación»"),("B1","La chispa (Bran)"),("X1","Actividad 1 entregada"),("B2","El eco que enseña (Tomás)"),("B3","La matriz (Sylla)"),("X2","Actividad 2 entregada"),("B4","El entorno de aula (Amara)"),("B5","La Bitácora medida (Vera)"),("B6","El juego (Joran)"),("B7","La microgamificación (Mara)"),("B8","El último umbral (Noa)")]
+RETOS_REGULAR=[("A0","Reto «Preséntate a tu tripulación»"),("A1","Reto A «El boceto sin quemar» (Bran)"),("B1","Reto B «La chispa»"),("X1","Actividad 1 entregada"),("A2","Reto A «Un mensaje para quien faltó» (Tomás)"),("B2","Reto B «El eco que enseña»"),("A3","Reto A «Dos senderos» (Sylla)"),("B3","Reto B «La matriz»"),("X2","Actividad 2 entregada"),("A4","Reto A «Abre el canal» (Alba)"),("B4","Reto B «El entorno de aula»"),("A5","Reto A «Mide con método» (Vera)"),("B5","Reto B «La Bitácora medida»"),("A6","Reto A «Ensaya jugando» (Joran)"),("B6","Reto B «El juego»"),("A7","Reto A «Un porqué» (Mara)"),("B7","Reto B «La microgamificación»"),("A8","Reto A «La capa posible» (Noa)"),("B8","Reto B «El último umbral»"),("S7","Reto secreto «El Fragmento Prohibido»")]
+RETOS_PUA=[("A0","Reto «Preséntate a tu tripulación»"),("B1","La chispa (Bran)"),("X1","Actividad 1 entregada"),("B2","El eco que enseña (Tomás)"),("B3","La matriz (Sylla)"),("X2","Actividad 2 entregada"),("B4","El entorno de aula (Alba)"),("B5","La Bitácora medida (Vera)"),("B6","El juego (Joran)"),("B7","La microgamificación (Mara)"),("B8","El último umbral (Noa)")]
 SEMANAS_JSON = json.dumps([{
   "sem": s["sem"], "tema": s["tema"], "sub": s["sub"], "capitulo": s.get("capitulo"),
   "tema_n": int(__import__("re").search(r"Tema (\d)", s["tema"]).group(1)) if "Tema " in s["tema"] else 0,

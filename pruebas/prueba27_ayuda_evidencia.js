@@ -78,6 +78,35 @@ c(itemP(GP.tituloEvidenciaReto_(x1P)).getHelpText().indexOf("padlet") < 0, "y la
 contiene(G.ayudaEvidenciaReto_(RETOS.filter(r => r[0] === "B1")[0], ""), "Bitácora",
   "sin padlet configurado, B1 cae a la Bitácora/captura — nunca a un texto que nombra un muro que no existe");
 
+// ---------------------------------------------------------------- f-bis) el huevo de Pascua (v3.41)
+// S7 sustituye a la Batalla final: la palabra secreta ES la evidencia y la valida el propio
+// formulario de Google — sin la palabra de Vaeon, el campo no acepta la respuesta.
+const s7 = G.RETOS_REGULAR.filter(r => r[0] === "S7")[0];
+c(!!s7, "el reto secreto S7 está en el catálogo REGULAR");
+c(G.RETOS_PUA.some(r => r[0] === "S7"), "y en el PUA");
+igual(s7[2], ["E3_vaeon"], "🔴 da la insignia de Vaeon, que ya no depende del examen");
+const evS7 = item(G.tituloEvidenciaReto_(s7));
+c(!!evS7 && !!evS7.validacion, "🔴 su campo de evidencia lleva validación de Google Forms");
+if (evS7 && evS7.validacion) {
+  igual(evS7.validacion.tipo, "contiene", "del tipo «contiene el patrón»");
+  contiene(evS7.validacion.patron, G.PALABRA_HUEVO, "con la palabra secreta dentro (PALABRA_HUEVO, un solo sitio)");
+  contiene(evS7.validacion.patron, "(?i)", "y sin distinguir mayúsculas: ander vale como ANDER");
+  contiene(evS7.validacion.ayuda, "Vaeon", "el «no» del formulario habla en el idioma del juego");
+}
+contiene(item(G.tituloEvidenciaReto_(s7)).getHelpText(), "PALABRA SECRETA", "la ayuda pide la palabra, no un enlace");
+// y al marcarlo, Vaeon cae
+const GS = E.nuevoMundo(); E.crearPERDemo(GS);
+E.enviarBitacora(GS, "prueba-banco", { email: "sec@alumno.es", alias: "Sec", nombre: "S S", profe: "Mr Cuarter" });
+const marcaS7 = E.marcar(GS, [s7[1]]);
+marcaS7[GS.tituloEvidenciaReto_(s7)] = "ANDER";
+E.enviarBitacora(GS, "prueba-banco", { marcados: marcaS7, email: "sec@alumno.es" }, 2);
+const sec = GS.tablero_("prueba-banco", true).reclutas.filter(x => x.email === "sec@alumno.es")[0];
+c(sec.insignias.indexOf("E3_vaeon") >= 0, "🔴 resolver el huevo de Pascua entrega la insignia del General Vaeon");
+igual(sec.eventos.filter(e => e.reto_id === "S7")[0].evidencia, "ANDER", "y la palabra queda como evidencia");
+// XF ya no existe: nada del catálogo apunta al examen
+c(G.RETOS_REGULAR.every(r => r[0] !== "XF") && G.RETOS_PUA.every(r => r[0] !== "XF"),
+  "🔴 la Batalla final está FUERA de los dos catálogos (decisión de Norberto, 30-ago)");
+
 // ---------------------------------------------------------------- g) la chincheta de bienvenida
 // La clave del plan actual NO deja crear tableros (solo publicar): el padlet se crea a mano y, si
 // hay clave, NEBULA deja la chincheta. Sin clave, NI UNA llamada a la API.

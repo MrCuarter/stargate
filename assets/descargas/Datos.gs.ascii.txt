@@ -50,7 +50,7 @@ var RETOS_REGULAR = [
   ["A3","Reto A \u00abDos senderos\u00bb (recupera a Sylla)",["P3_sylla"],100,3],
   ["B3","Reto B \u00abLa matriz\u00bb (matriz 8\u00d76)",["R3_la-matriz"],250,3],
   ["X2","Actividad 2 entregada (paisaje de aprendizaje)",["H3_cartografo"],500,3],
-  ["A4","Reto A \u00abAbre el canal\u00bb (recupera a Amara)",["P4_amara"],100,4],
+  ["A4","Reto A \u00abAbre el canal\u00bb (recupera a Alba)",["P4_amara"],100,4],
   ["B4","Reto B \u00abEl entorno de aula\u00bb",["R4_entorno-de-aula"],250,4],
   ["A5","Reto A \u00abMide con m\u00e9todo\u00bb (recupera a Vera)",["P5_vera"],100,5],
   ["B5","Reto B \u00abLa Bit\u00e1cora medida\u00bb (r\u00fabrica + ePortfolio)",["R5_bitacora-medida"],250,5],
@@ -58,9 +58,11 @@ var RETOS_REGULAR = [
   ["B6","Reto B \u00abEl juego\u00bb (juego digital)",["R6_el-juego"],250,6],
   ["A7","Reto A \u00abUn porqu\u00e9\u00bb (recupera a Mara)",["P7_mara"],100,7],
   ["B7","Reto B \u00abLa microgamificaci\u00f3n\u00bb",["R7_microgamificacion"],250,7],
+  // v3.41 - el huevo de Pascua: un enlace oculto en la presentacion de Vinculo lleva a un
+  // enigma; la palabra secreta del final es la evidencia (el formulario la valida solo).
+  ["S7","Reto secreto \u00abEl Fragmento Prohibido\u00bb (huevo de Pascua)",["E3_vaeon"],150,7],
   ["A8","Reto A \u00abLa capa posible\u00bb (recupera a Noa)",["P8_noa"],100,8],
-  ["B8","Reto B \u00abEl \u00faltimo umbral\u00bb (RA/RV + Bit\u00e1cora publicada)",["R8_ultimo-umbral"],250,8],
-  ["XF","Batalla final: examen realizado",["E3_vaeon"],500,9]
+  ["B8","Reto B \u00abEl \u00faltimo umbral\u00bb (RA/RV + Bit\u00e1cora publicada)",["R8_ultimo-umbral"],250,8]
 ];
 // PUA: una insignia por tema (el personaje), ganada con la pieza productiva del tema
 var RETOS_PUA = [
@@ -70,10 +72,13 @@ var RETOS_PUA = [
   ["B2","El eco que ense\u00f1a: videotutorial (recupera a Tom\u00e1s)",["P2_tomas","R2_el-eco-que-ensena"],300,2],
   ["B3","La matriz 8\u00d76 (recupera a Sylla)",["P3_sylla","R3_la-matriz"],300,3],
   ["X2","Actividad 2 entregada",["H3_cartografo"],500,3],
-  ["B4","El entorno de aula (recupera a Amara)",["P4_amara","R4_entorno-de-aula"],300,4],
+  ["B4","El entorno de aula (recupera a Alba)",["P4_amara","R4_entorno-de-aula"],300,4],
   ["B5","La Bit\u00e1cora medida (recupera a Vera)",["P5_vera","R5_bitacora-medida"],300,5],
   ["B6","El juego digital (recupera a Joran)",["P6_joran","R6_el-juego"],300,6],
   ["B7","La microgamificaci\u00f3n (recupera a Mara)",["P7_mara","R7_microgamificacion"],300,7],
+  // v3.41 - el huevo de Pascua: un enlace oculto en la presentacion de Vinculo lleva a un
+  // enigma; la palabra secreta del final es la evidencia (el formulario la valida solo).
+  ["S7","Reto secreto \u00abEl Fragmento Prohibido\u00bb (huevo de Pascua)",["E3_vaeon"],150,7],
   ["B8","El \u00faltimo umbral: RA/RV + Bit\u00e1cora publicada (recupera a Noa)",["P8_noa","R8_ultimo-umbral"],300,8]
 ];
 // BONUS-INICIO - Los genera _build_site.py desde _site_data.py: NO editar a mano.
@@ -128,22 +133,22 @@ var AYUDA_RETOS = {
  "A1": "Publica en el foro de la plataforma de UNIR un borrador en bruto de algo que est\u00e9s creando (una idea de recurso, un esquema a medias, un primer intento feo). A\u00f1ade una frase: qu\u00e9 te daba reparo ense\u00f1arlo sin pulir. No se corrige ni se punt\u00faa: el \u00fanico criterio es compartirlo antes de terminarlo.",
  "A2": "Graba un clip corto (m\u00e1x. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no pudo venir a clase. S\u00fabelo o descr\u00edbelo en el foro de la plataforma de UNIR. Criterio \u00fanico: que funcione sin ti delante (se entiende solo).",
  "A3": "Toma un objetivo de aprendizaje y describe dos rutas completamente distintas para alcanzarlo, pensadas para dos alumnos diferentes (p. ej. uno que aprende haciendo y otro que aprende leyendo). 4\u20136 l\u00edneas. Criterio: que las dos rutas lleguen a la misma cima.",
- "A4": "Comparte con tu clase o con el foro de la plataforma de UNIR un recurso \u00fatil en menos de 24 h, aunque no est\u00e9 pulido. A\u00f1ade una l\u00ednea: qu\u00e9 habr\u00edas \u00abguardado en el caj\u00f3n para pulir\u00bb y por qu\u00e9 esta vez no lo hiciste. Criterio: a tiempo por encima de perfecto.",
- "A5": "Define un indicador que vayas a seguir de verdad sobre el aprendizaje de tus alumnos (algo observable), y acomp\u00e1\u00f1alo de la pregunta que lo convierte en cuidado: \u00ab\u00bfqu\u00e9 har\u00e9 ma\u00f1ana mejor que hoy?\u00bb. 3\u20134 l\u00edneas. Criterio: medir para cuidar, no para etiquetar.",
+ "A4": "Publica en tus redes (X, LinkedIn, Instagram\u2026) una reflexi\u00f3n breve o un recurso del curso con el hashtag #mutecdstargate, en abierto. Vale un hilo corto, una imagen con dos l\u00edneas o el enlace a algo que hayas creado. Y gu\u00e1rdate el truco: una reflexi\u00f3n publicada con ese hashtag es evidencia v\u00e1lida tambi\u00e9n en otros retos de este viaje. Criterio: a tiempo por encima de perfecto \u2014 se publica hoy, se pule ma\u00f1ana.",
+ "A5": "Elige UN objetivo o contenido que ya trabajes y dise\u00f1a 2\u20133 formas DISTINTAS de evaluarlo. Ejemplo: \u00abfracciones equivalentes\u00bb \u2192 (1) mini-r\u00fabrica de 3 criterios, (2) videoquiz de 3 preguntas autocorregible, (3) un indicador observable en clase (\u00abresuelve sin contar con los dedos\u00bb). Cu\u00e9ntalo en 4\u20136 l\u00edneas: el objetivo y tus lentes. Criterio: mismo objetivo, varias miradas \u2014 medir para cuidar, no para etiquetar.",
  "A6": "Coge algo que tus alumnos temen o les cuesta y convi\u00e9rtelo en un peque\u00f1o ensayo jugable (una mec\u00e1nica: puntos, rutas, un enigma en cada paso\u2026). Descr\u00edbelo en 4\u20136 l\u00edneas. Criterio: que el juego sirva a un objetivo, no que sea juego por juego.",
  "A7": "Toma una tarea rutinaria de tu aula y escribe el \u00abporqu\u00e9\u00bb / la narrativa que la convierte en una causa (2\u20134 l\u00edneas). Dise\u00f1a una insignia con sentido para ella: no premio por obedecer, sino memoria de un acto significativo (n\u00f3mbrala y di qu\u00e9 reconoce).",
- "A8": "Describe una \u00abcapa\u00bb sobre tu aula real: c\u00f3mo ser\u00eda tu clase si aprendiera a hablar de s\u00ed misma (qu\u00e9 mostrar\u00eda, qu\u00e9 voces tendr\u00eda). Y elige un compromiso: una cosa concreta que te llevas de todo el viaje. 4\u20136 l\u00edneas.",
+ "A8": "Busca un recurso de realidad aumentada o virtual QUE YA EXISTA (una app, una experiencia AR, un modelo 3D, un tour virtual\u2026) y cuenta en 3\u20134 l\u00edneas c\u00f3mo lo usar\u00edas en una clase concreta: qu\u00e9 ver\u00eda el alumnado, qu\u00e9 har\u00eda, y qu\u00e9 a\u00f1ade esa \u00abcapa\u00bb que no da el libro. Aqu\u00ed no se construye nada: se elige bien \u2014 no toda capa se levanta; algunas ya existen y solo esperan a que alguien las traiga al aula.",
  "B1": "Genera con una IA una imagen con finalidad did\u00e1ctica (ilustraci\u00f3n, organizador gr\u00e1fico o infograf\u00eda) para un nivel y tema que elijas. Requisitos m\u00ednimos: (1) prompt estructurado siguiendo un modelo tipo CRAFT/RITA (contexto educativo + tipo de imagen + finalidad); (2) al menos una iteraci\u00f3n del prompt; (3) selecci\u00f3n final con criterio docente justificada en 2\u20133 l\u00edneas; (4) evidencia del proceso (enlace al chat o capturas) y cita de la herramienta. Es la tabla t\u00e9cnica de la Actividad 1: gu\u00e1rdala, ya tienes hecho su n\u00facleo.",
  "B2": "Crea un videotutorial de calidad (guion + grabaci\u00f3n de pantalla + edici\u00f3n) sobre un procedimiento de tu \u00e1rea, y enriqu\u00e9celo con 2\u20133 preguntas insertadas (videoquiz) para comprobar comprensi\u00f3n. Pi\u00e9nsalo para aula invertida. S\u00fabelo a la Bit\u00e1cora con una reflexi\u00f3n breve: qu\u00e9 objetivo did\u00e1ctico cubre y qu\u00e9 aprendiste al hacerlo.",
  "B3": "Construye la matriz de programaci\u00f3n de un paisaje de aprendizaje: una tabla de doble entrada que cruza las 8 inteligencias m\u00faltiples \u00d7 6 niveles de Bloom (48 casillas). Contextualiza una unidad did\u00e1ctica real (nivel, \u00e1rea, objetivos) y rellena al menos 6 cruces variados en complejidad y en talento, con una actividad en cada uno (objetivo, tarea del alumno, recurso, evaluaci\u00f3n, tiempo, tipo: obligatoria/optativa/voluntaria). Es el coraz\u00f3n de planificaci\u00f3n de la Actividad 2.",
- "B4": "Monta un espacio digital de aula organizado (tipo Classroom, Sites, Moodle, Teams\u2026) donde compartas materiales de forma clara y puedas dar feedback y comunicarte en diferido y en directo. Deja en la Bit\u00e1cora el enlace/captura + reflexi\u00f3n breve: c\u00f3mo llega tu contenido al m\u00f3vil del alumno y c\u00f3mo mantienes la conversaci\u00f3n viva.",
- "B5": "(1) Dise\u00f1a una r\u00fabrica digital sencilla para evaluar uno de tus recursos (criterios + niveles). (2) Estructura formalmente tu ePortfolio: portada, secciones para Act 1 y Act 2, y una secci\u00f3n por reto (videotutorial / microgamificaci\u00f3n / reto libre), cada una con el patr\u00f3n evidencia \u2192 contexto \u2192 reflexi\u00f3n \u2192 autoevaluaci\u00f3n. Esta semana adem\u00e1s cierras la Actividad 1 dentro de la Bit\u00e1cora.",
+ "B4": "Monta tu clase digital (Google Classroom, Moodle, Teams\u2026): crea el aula, organiza un par de materiales de ejemplo y deja funcionando el canal de feedback y comunicaci\u00f3n (tabl\u00f3n, comentarios, anuncios). Deja en la Bit\u00e1cora el enlace/captura + reflexi\u00f3n breve: c\u00f3mo llega tu contenido al m\u00f3vil del alumno y c\u00f3mo mantienes la conversaci\u00f3n viva. (La p\u00e1gina web de materiales es OTRO reto: aqu\u00ed montas el AULA.)",
+ "B5": "(1) Monta una p\u00e1gina web de materiales para tu alumnado (Google Sites u otra): 2\u20133 recursos organizados con criterio (por unidad o por tipo) y navegaci\u00f3n clara \u2014 es el ESCAPARATE, distinto del aula de Classroom. (2) Estructura formalmente tu ePortfolio: portada, secciones para Act 1 y Act 2, y una secci\u00f3n por reto, cada una con el patr\u00f3n evidencia \u2192 contexto \u2192 reflexi\u00f3n \u2192 autoevaluaci\u00f3n. Esta semana adem\u00e1s cierras la Actividad 1 dentro de la Bit\u00e1cora.",
  "B6": "Adapta un juego existente o crea uno digital a medida para un objetivo concreto de tu aula (ruleta, quiz, sopa, encuentra las diferencias, escape\u2026). En ABJ el juego ES la actividad: cada mec\u00e1nica debe servir a un aprendizaje. Sube a la Bit\u00e1cora el juego (enlace/captura) + reflexi\u00f3n: qu\u00e9 objetivo cubre y c\u00f3mo lo eval\u00faas.",
  "B7": "Dise\u00f1a una microgamificaci\u00f3n de calidad: un toque de juego sobre una tarea que no es un juego (una insignia, una barra de progreso, un tablero, un reto con narrativa). Dist\u00edngue bien de ABJ: aqu\u00ed no se juega, se toman elementos del juego para enganchar. Sube a la Bit\u00e1cora el recurso + reflexi\u00f3n: qu\u00e9 conducta refuerza y por qu\u00e9.",
  "B8": "(1) Crea una experiencia de Realidad Aumentada o Virtual sencilla para tu materia (capa AR sobre un objeto/l\u00e1mina, o una escena VR para practicar sin riesgo). Puede ser tu reto libre del ePortfolio. (2) Termina y publica la Bit\u00e1cora: convierte tu paisaje de aprendizaje (Act 2) en una imagen interactiva publicada, revisa que las 5 p\u00e1ginas est\u00e9n completas (Act 1, Act 2, videotutorial, microgamificaci\u00f3n, reto libre) y comparte el enlace \u00fanico.",
+ "S7": "\ud83d\udd73\ufe0f En la presentaci\u00f3n del planeta V\u00ednculo hay un enlace que no deber\u00eda estar ah\u00ed. Encu\u00e9ntralo, resuelve el enigma que esconde y trae la PALABRA que Vaeon borr\u00f3. Nadie va a decirte d\u00f3nde mirar: los secretos de la gamificaci\u00f3n se encuentran jugando.",
  "X1": "La Actividad 1 entregada donde te la pide tu profesor. Marca la casilla cuando la hayas ENVIADO, no cuando la empieces.",
- "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al enviarla.",
- "XF": "El examen hecho. Se marca despu\u00e9s de haberlo presentado."
+ "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al enviarla."
 };
 // AYUDA-FIN
 // v3.19 - QUE HAY QUE HACER, DENTRO DEL FORMULARIO. Un alumno que no sabe que se le pide escribe un
@@ -198,9 +203,12 @@ function ayudaReto_(r) {
 // a tipo "padlet" - la imagen con IA (B1), la mecanica jugable (A6) y la insignia disenada (A7).
 // Los de texto ofrecen el padlet como alternativa y los de enlace lo sugieren como escaparate;
 // foro y Actividades quedan como estan (decision explicita del usuario).
-var EVIDENCIA_TIPO = { A0:"padlet", A1:"foro", A2:"foro", A3:"texto", A4:"foro", A5:"texto", A6:"padlet",
+// v3.41 - la palabra del huevo de Pascua. El formulario la exige en la evidencia de S7 (validacion
+// del propio Google Forms, sin servidor). Es el nombre que Vaeon borro - la carta S1 del album.
+var PALABRA_HUEVO = "ANDER";
+var EVIDENCIA_TIPO = { A0:"padlet", A1:"foro", A2:"foro", A3:"texto", A4:"redes", A5:"texto", A6:"padlet",
   A7:"padlet", A8:"texto", B1:"padlet", B2:"enlace", B3:"documento", B4:"enlace", B5:"bitacora",
-  B6:"enlace", B7:"enlace", B8:"enlace", X1:"actividad", X2:"actividad", XF:"examen" };
+  B6:"enlace", B7:"enlace", B8:"enlace", X1:"actividad", X2:"actividad", S7:"secreto" };
 var EVIDENCIA_TEXTOS = {
   foro: "Tu reto vive en el foro de UNIR: lo m\u00e1s f\u00e1cil es pegar aqu\u00ed el ENLACE DIRECTO a tu mensaje " +
     "(\u00e1brelo en el foro y copia la URL de la barra). \u00bfEl foro no te da enlace? Vale una captura subida " +
@@ -222,7 +230,10 @@ var EVIDENCIA_TEXTOS = {
   // profesorado las ve alli. Pedir evidencia de algo ya entregado solo genera dudas.
   actividad: "No hace falta enlace: la Actividad ya la entregas en la plataforma de UNIR y tu profe " +
     "la corrige all\u00ed. Marca la casilla y listo \u2014 puedes dejar esto vac\u00edo.",
-  examen: "No hace falta enlace: la batalla final queda registrada en la plataforma de UNIR. Puedes dejarlo vac\u00edo"
+  redes: "Pega el ENLACE DIRECTO a tu publicaci\u00f3n con #mutecdstargate (\u00e1brela y copia su URL). " +
+    "Si tu perfil es privado, vale una captura subida a Drive compartido o a postimages.org.",
+  secreto: "Escribe aqu\u00ed la PALABRA SECRETA exacta que te da el enigma al resolverlo \u2014 no un enlace. " +
+    "Sin la palabra correcta, el formulario no la acepta: as\u00ed de celoso es Vaeon con su nombre."
   ,padlet_sin_url: "Comp\u00e1rtelo en tu Bit\u00e1cora (o una captura en Drive compartido / postimages.org) y " +
     "pega aqu\u00ed el enlace. Si tu clase tiene padlet, a\u00fan mejor: publ\u00edcalo all\u00ed y pega el enlace de tu publicaci\u00f3n."
 };
@@ -297,7 +308,7 @@ var NIVELES = [   // [nivel, xp REGULAR, rango de arte 1-5, titulo]
   [9,4150,4,"Comandante de flota"],
   [10,5000,5,"Leyenda de la Cero"]
 ];
-var XP_VIAJE = {"REGULAR": 5100, "PUA": 4200};
+var XP_VIAJE = {"REGULAR": 4750, "PUA": 4350};
 var CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55, "actividad": 100, "final": 100, "derivada": 60};
 // Calendario del PER: los formularios abren el primer dia de la semana 1, el registro
 // de misiones cierra al acabar la ultima semana y el canje aguanta una semana mas.
@@ -347,7 +358,7 @@ function creditosDe_(id, tipo) {
   var c = String(id).charAt(0);
   if (id === "XF") return CREDITOS.final || 0;
   if (c === "X") return CREDITOS.actividad || 0;
-  if (c === "A") return CREDITOS.retoA || 0;
+  if (c === "A" || c === "S") return CREDITOS.retoA || 0;
   if (c === "B") return (tipo === "PUA" ? CREDITOS.retoB_pua : CREDITOS.retoB) || 0;
   return 0;
 }
@@ -425,7 +436,7 @@ var CROMOS = [
   ["P1_bran","Bran Okafor",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
   ["P2_tomas","Tom\u00e1s Reyer",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
   ["P3_sylla","Sylla Bren",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
-  ["P4_amara","Amara Sol",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
+  ["P4_amara","Alba Sol",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
   ["P5_vera","Vera Khal",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
   ["P6_joran","Joran Pike",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],
   ["P7_mara","Mara Voss",7,"com\u00fan","Serie I \u00b7 La Tripulaci\u00f3n Cero"],

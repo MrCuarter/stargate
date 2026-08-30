@@ -51,7 +51,7 @@ class Item {
   }
   createChoice(v, destino) { return new Opcion(v, destino); }
   showOtherOption() { return this; }
-  setValidation() { return this; }
+  setValidation(x) { this.validacion = x || null; return this; }
   // escala
   setBounds() { return this; }
   setLabels() { return this; }
@@ -192,7 +192,13 @@ const FormAppMock = {
     if (!f) throw new Error("No se ha podido abrir el formulario por URL: " + url);
     return f;
   },
-  createTextValidation() { const v = { requireTextIsUrl: () => v, requireTextIsEmail: () => v, build: () => ({}) }; return v; },
+  // v3.41 · la validación GUARDA lo que le piden: el huevo de Pascua depende de que el patrón
+  // llegue de verdad al campo, y con un mock que lo tiraba nadie lo habría visto romperse.
+  createTextValidation() { const d = { tipo: "", patron: "", ayuda: "" };
+    const v = { requireTextIsUrl(){ d.tipo="url"; return v; }, requireTextIsEmail(){ d.tipo="email"; return v; },
+      requireTextContainsPattern(p){ d.tipo="contiene"; d.patron=String(p); return v; },
+      requireTextMatchesPattern(p){ d.tipo="coincide"; d.patron=String(p); return v; },
+      setHelpText(t){ d.ayuda=String(t); return v; }, build: () => d }; return v; },
   _Formulario: Formulario, _Item: Item
 };
 

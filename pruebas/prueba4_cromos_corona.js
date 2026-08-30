@@ -71,7 +71,9 @@ igual(porAlias.dos.corona, false, "no de quien más tiene acumulado");
 igual(porAlias.uno.corona, false, "quien no ganó nada esta semana no la lleva");
 
 // empate: la llevan todos
-G2.hoja_("EVENTOS").appendRow([new Date(), P2, "uno@alumno.es", "uno", "XF", "empate", 9, 500, "formulario"]);
+// v3.41 · XF salió del catálogo (un evento de un reto que no existe ya no suma xp): el empate
+// se fabrica con X1 (500, como lo que gano «tres» esta semana): mismo xp7, corona doble
+G2.hoja_("EVENTOS").appendRow([new Date(), P2, "uno@alumno.es", "uno", "X1", "empate", 1, 500, "formulario"]);
 t2 = G2.tablero_(P2, true);
 igual(t2.reclutas.filter(x => x.corona).length, 2, "si hay empate, la corona la llevan los dos");
 
