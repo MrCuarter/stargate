@@ -46,6 +46,7 @@ function nuevoMundo() {
   M.Drive._archivos = {}; M.Drive._carpetas = {}; M.Drive._n = 0;
   M.Libro.registro = {}; M.Libro.n = 0;
   M.Correo.limpiar(); M.UI.limpiar(); M.Guiones._triggers = [];
+  M.Fetch.llamadas = []; M.Fetch.peticiones = []; M.Fetch.codigo = 200;
   Object.keys(M.Props._mapas).forEach(k => delete M.Props._mapas[k]);
 
   const raiz = new M.Carpeta("c_raiz", "Mi unidad", null);

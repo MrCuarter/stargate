@@ -189,8 +189,12 @@ function ayudaReto_(r) {
 // compartido / postimages / la Bitácora); un juego o un vídeo publicado piden su propio enlace con
 // la prueba del incógnito. El tipo se asigna a mano aquí; la batería 27 vigila que ningún reto de
 // ningún catálogo se quede sin tipo, y que cada tipo tenga su texto.
-var EVIDENCIA_TIPO = { A1:"foro", A2:"foro", A3:"texto", A4:"foro", A5:"texto", A6:"texto",
-  A7:"texto", A8:"texto", B1:"proceso", B2:"enlace", B3:"documento", B4:"enlace", B5:"bitacora",
+// 30-ago · PADLET (petición de Norberto): los retos cuyo artefacto LUCE en un muro de clase pasan
+// a tipo "padlet" — la imagen con IA (B1), la mecánica jugable (A6) y la insignia diseñada (A7).
+// Los de texto ofrecen el padlet como alternativa y los de enlace lo sugieren como escaparate;
+// foro y Actividades quedan como están (decisión explícita del usuario).
+var EVIDENCIA_TIPO = { A1:"foro", A2:"foro", A3:"texto", A4:"foro", A5:"texto", A6:"padlet",
+  A7:"padlet", A8:"texto", B1:"padlet", B2:"enlace", B3:"documento", B4:"enlace", B5:"bitacora",
   B6:"enlace", B7:"enlace", B8:"enlace", X1:"actividad", X2:"actividad", XF:"examen" };
 var EVIDENCIA_TEXTOS = {
   foro: "Tu reto vive en el foro de UNIR: lo más fácil es pegar aquí el ENLACE DIRECTO a tu mensaje " +
@@ -211,9 +215,29 @@ var EVIDENCIA_TEXTOS = {
   // profesorado las ve allí. Pedir evidencia de algo ya entregado solo genera dudas.
   actividad: "No hace falta enlace: la Actividad ya la entregas en la plataforma de UNIR y tu profe " +
     "la corrige allí. Marca la casilla y listo — puedes dejar esto vacío.",
-  examen: "No hace falta enlace: la batalla final queda registrada en la plataforma de UNIR. Puedes dejarlo vacío."
+  examen: "No hace falta enlace: la batalla final queda registrada en la plataforma de UNIR. Puedes dejarlo vacío"
+  ,padlet_sin_url: "Compártelo en tu Bitácora (o una captura en Drive compartido / postimages.org) y " +
+    "pega aquí el enlace. Si tu clase tiene padlet, aún mejor: publícalo allí y pega el enlace de tu publicación."
 };
-function ayudaEvidenciaReto_(r) { return EVIDENCIA_TEXTOS[EVIDENCIA_TIPO[r[0]]] || AYUDA_EVIDENCIA_RETO; }
+// La ayuda de la evidencia depende del reto Y del padlet del grupo. Con padlet configurado, los
+// retos "padlet" mandan allí (y piden el enlace de TU publicación), los de texto lo ofrecen como
+// alternativa y los de enlace lo sugieren como escaparate. Sin padlet, cada uno cae a su plan B.
+function ayudaEvidenciaReto_(r, padletUrl) {
+  var tipo = EVIDENCIA_TIPO[r[0]] || "";
+  var u = String(padletUrl || "").trim();
+  if (tipo === "padlet") {
+    if (!u) return EVIDENCIA_TEXTOS.padlet_sin_url;
+    return "Este reto luce en el PADLET de la clase: publica allí tu creación (imagen o captura + una " +
+      "línea contando cómo lo hiciste) y pega aquí el enlace de TU publicación (ábrela en el padlet y " +
+      "copia su enlace). Así toda la clase se inspira. El padlet: " + u;
+  }
+  var base = EVIDENCIA_TEXTOS[tipo] || AYUDA_EVIDENCIA_RETO;
+  if (u && tipo === "texto")
+    base += " Y si lo publicas en el padlet de la clase (" + u + "), pega el enlace de tu publicación: tus compañeros lo verán.";
+  if (u && tipo === "enlace")
+    base += " ¿Quieres que lo vea la clase? Cuélgalo también en el padlet: " + u;
+  return base;
+}
 var AYUDA_EVIDENCIA_RETO = "Pega el enlace de ESTE reto (tu Bitácora, el documento, el vídeo, el juego…). " +
   "Ábrelo antes en una ventana de inc\u00f3gnito: si pide permiso para abrirse, tu profe no lo va a poder ver y no cuenta.";
 

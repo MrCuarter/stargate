@@ -31,6 +31,8 @@
  </table>
  <button type="button" id="mas" style="margin-top:8px;background:#eef3f7;color:#0b5b66;padding:6px 12px;font-size:13px">+ A&#xF1;adir docente</button>
  <div id="calNota" class="small" style="color:#55606a;line-height:1.4;margin-top:14px"></div>
+ <label>Padlet de la clase (opcional)</label><input id="padlet" placeholder="padlet.com/&#x2026; (el muro donde el alumnado comparte sus retos)">
+ <small>Cr&#xE9;alo antes en padlet.com y pega aqu&#xED; su enlace. El formulario dir&#xE1; reto a reto cu&#xE1;ndo publicar ah&#xED;, la Nave tendr&#xE1; acceso directo y, si has guardado la clave API (men&#xFA; STARGATE), NEBULA dejar&#xE1; la chincheta de bienvenida.</small>
  <label>Panel de control (Genially) &#xB7; enlace de VISUALIZACI&#xD3;N</label><input id="panelVer" placeholder="view.genially.com/&#x2026; (en blanco = panel est&#xE1;ndar)">
  <label>Panel de control (Genially) &#xB7; enlace de EDICI&#xD3;N</label><input id="panelEdit" placeholder="app.genially.com/editor/&#x2026; (en blanco = panel est&#xE1;ndar)">
  <small>El panel de control es el Genially con los planetas que enlaza a las presentaciones. D&#xE9;jalos en blanco para usar el est&#xE1;ndar compartido; ponlos solo si este PER usar&#xE1; una copia propia. Se pueden cambiar despu&#xE9;s desde el panel de profes (Ajustes del PER).</small>
@@ -70,7 +72,7 @@ function crear(){
   if(malos.length){document.getElementById('err').textContent='Revisa el correo de '+malos[0].nombre;return;}
   var d={nombre:v('nombre'),tipo:v('tipo'),inicio:v('inicio'),referente:ref,
          profesores:docentes.filter(function(x){return x.rol.indexOf('imparte')>=0&&x.nombre!==ref;}).map(function(x){return x.nombre;}).join(', '),
-         docentes:docentes,panelVer:v('panelVer'),panelEdit:v('panelEdit')};
+         docentes:docentes,panelVer:v('panelVer'),panelEdit:v('panelEdit'),padlet:v('padlet')};
   if(!d.nombre){document.getElementById('err').textContent='Pon el nombre del PER';return;}
   if(!docentes.length){document.getElementById('err').textContent='A\u00f1ade al menos un docente';return;}
   document.getElementById('go').disabled=true;document.getElementById('err').textContent='Creando los 3 formularios y las pesta\u00f1as (30-60 s)\u2026';
@@ -84,6 +86,7 @@ function ok(r){
   +b('Bit\u00e1cora de mando (alumnado)',r.formBitacora)+b('Ticket de salida (an\u00f3nimo)',r.formTicket)+b('Canje de recompensas',r.formCanje)
   +(r.doc?'<div class="destacado"><b>Todo el PER en un documento</b><small>Enlaces, c\u00f3digos para incrustar y QR, listo para compartir con tu profesorado</small><a href="'+r.doc+'" target="_blank">ABRIR EL DOCUMENTO DE ENLACES</a></div>':'')
   +(r.nave?b('La Nave del Recluta (la web del alumnado: onboarding, semanas, estado y recompensas)',r.nave):'')
+  +(r.padlet?b('\ud83e\uddf1 Padlet de la clase (el muro de los retos)',r.padlet):'')
   +(r.panelVer?b('Panel de control (visualizaci\u00f3n, para el alumnado)',r.panelVer):'<div class="ok"><b>Panel de control:</b> sin definir. Ponlo en la hoja (men\u00fa STARGATE \u2192 Guardar panel de control est\u00e1ndar) o en Ajustes del PER.</div>')
   +(r.panelEdit?b('\u270f\ufe0f Panel de control (edici\u00f3n, para el profesorado)',r.panelEdit):'')
 +b('Generador de embeds en la web (elige tu nombre)','https://stargate.mistercuarter.es/embed.html?per='+r.id)+b('Tablero del PER en la web',r.web)+b('Foro din\u00e1mico del PER',r.foro)

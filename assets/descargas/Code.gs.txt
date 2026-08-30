@@ -105,6 +105,7 @@ function menuStargate_() {
     .addItem("PIN del profesor referente (acciones de grupo entero)", "cambiarPinReferente")
     .addItem("Guardar URL del web app", "pedirWebAppUrl")
     .addItem("Correo de avisos de reserva", "guardarCorreoAvisos")
+    .addItem("Clave API de Padlet (chincheta de bienvenida)", "guardarClavePadlet")
     .addToUi();
 }
 function hoja_(nombre, cab, color) {
@@ -198,6 +199,8 @@ function asegurarHojas_() {
   if (String(pers.getRange(1,23).getValue()||"") !== "Canje (editar)") pers.getRange(1,23).setValue("Canje (editar)");
   // v3.14 · el canje cierra una semana después que el registro de misiones: necesita su propia fecha
   if (String(pers.getRange(1,24).getValue()||"") !== "Cierre del canje") pers.getRange(1,24).setValue("Cierre del canje");
+  // v3.38 · el padlet de la clase: se pregunta al crear el PER y se puede editar aquí a mano
+  if (String(pers.getRange(1,25).getValue()||"") !== "Padlet") pers.getRange(1,25).setValue("Padlet");
 }
 // panel de control Genially estándar (compartido por todos los PER salvo override en su fila)
 // v3.30 · Viene de fábrica: el Genially oficial del máster. Antes había que acordarse de guardarlo a
@@ -316,7 +319,8 @@ function perObj_(v) {
   return { id:v[0], nombre:v[1], tipo:v[2]||"REGULAR", profesorado:v[3], inicio:fechaIso_(v[4]), apertura:fechaIso_(v[5]), cierre:fechaIso_(v[6]),
            estado:v[7], formBitacora:v[8], formBitacoraEdit:v[9], formTicket:v[10], formCanje:v[11], tabB:v[12], tabT:v[13], tabC:v[14], referente:v[16]||"", formTicketEdit:v[17]||"",
            doc:String(v[18]||""), panelVer:String(v[19]||""), panelEdit:String(v[20]||""), archivado: v[21] ? fechaIso_(v[21]) : "",
-           formCanjeEdit:String(v[22]||""), cierreCanje: v[23] ? fechaIso_(v[23]) : "" };
+           formCanjeEdit:String(v[22]||""), cierreCanje: v[23] ? fechaIso_(v[23]) : "",
+           padlet:String(v[24]||"").trim() };
 }
 function fechaIso_(d) { if (!d) return ""; if (d instanceof Date) return Utilities.formatDate(d, "Europe/Madrid", "yyyy-MM-dd"); return String(d); }
 
@@ -419,7 +423,7 @@ function publicar_(form) { try { if (form.setPublished) form.setPublished(true);
 function publicarFormulariosPER() {
   var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
   if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) { SpreadsheetApp.getUi().alert("Selecciona una fila de la pestaña PERs."); return; }
-  var o = perObj_(sh.getRange(fila, 1, 1, 24).getValues()[0]); var n = 0;
+  var o = perObj_(sh.getRange(fila, 1, 1, 25).getValues()[0]); var n = 0;
   formsDelPER_(o).forEach(function(f){ try { publicar_(f); f.setAcceptingResponses(true); n++; } catch (e) {} });
   sh.getRange(fila, 8).setValue("Abierto");
   SpreadsheetApp.getUi().alert("Publicados y abiertos " + n + " formularios de " + o.nombre + ".");
@@ -582,7 +586,7 @@ function crearPER(datos) {
       .setHelpText(t >= 1 && t <= 8 ? TEMAS[t][1] : "Solo cuando hayas hecho el examen.");
     pb.setGoToPage(FormApp.PageNavigationType.SUBMIT);      // al terminar una sección, se envía
     destinos.push([t, pb]);
-    retosDelPlaneta_(fb, porTema[t]);
+    retosDelPlaneta_(fb, porTema[t], datos.padlet);
   });
 
   // los tres desplegables se rellenan al final, cuando ya existen todas las páginas a las que llevan
@@ -631,7 +635,8 @@ function crearPER(datos) {
 
   hoja_(H.PERS).appendRow([id, nombre, tipo, datos.profesores || "", inicio || "", apertura || "", cierre || "", estado,
     fb.getPublishedUrl(), fb.getEditUrl(), ft.getPublishedUrl(), fc.getPublishedUrl(), tabB, tabT, tabC, new Date(), datos.referente || "", ft.getEditUrl(),
-    "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim(), "", fc.getEditUrl(), cierreCanje || ""]);
+    "", String(datos.panelVer || "").trim(), String(datos.panelEdit || "").trim(), "", fc.getEditUrl(), cierreCanje || "",
+    String(datos.padlet || "").trim()]);
   _t.hito("fila del PER escrita");
   // v3.13 · A PARTIR DE AQUÍ EL PER YA EXISTE Y FUNCIONA. Lo que queda es acabado: los orbes de los
   // planetas, el documento de enlaces y el dossier del profesorado. Son ~15 descargas de imagen y
@@ -654,6 +659,8 @@ function crearPER(datos) {
   // v3.36 · el grupo nuevo estrena su color en el momento, no de madrugada: si no, durante el primer
   // día la hoja tiene un grupo más que colores y parece que el sistema se ha dejado uno.
   try { colorear_(); } catch (e) { Logger.log("colorear_ al crear el PER: " + e); }
+  // v3.38 · si el grupo tiene padlet y hay clave API, NEBULA deja la chincheta de bienvenida
+  if (datos.padlet) { try { if (chinchetaBienvenida_(perObj_(perFila_(id).v))) _t.hito("chincheta de bienvenida en el padlet"); } catch (e) {} }
   return { id:id, nombre:nombre, tipo:tipo, estado:estado, referente:datos.referente||"", doc:docUrl, dossier:dossierUrl, formBitacora:fb.getPublishedUrl(), formTicket:ft.getPublishedUrl(), formCanje:fc.getPublishedUrl(),
     hoja: ss.getUrl(), web: WEB + "registro.html?per=" + id,
     foro: WEB + "foro.html?per=" + id + (inicio ? "&inicio=" + fechaIso_(inicio) + "&tipo=" + tipo : ""), nave: WEB + "recluta.html?per=" + id,
@@ -663,6 +670,7 @@ function crearPER(datos) {
     embedForo: '<iframe src="' + WEB + 'foro.html?per=' + id + (inicio ? '&inicio=' + fechaIso_(inicio) + '&tipo=' + tipo : '') + '&embed=1" width="100%" height="640" style="border:0;border-radius:16px"></iframe>',
     embedNave: '<iframe src="' + WEB + 'recluta.html?per=' + id + '&embed=1" width="100%" height="900" style="border:0;border-radius:16px"></iframe>',
     panelVer: String(datos.panelVer || "").trim() || panelStd_().ver, panelEdit: String(datos.panelEdit || "").trim() || panelStd_().editar,
+    padlet: String(datos.padlet || "").trim(),
     inicio: fechaIso_(inicio), apertura: aperturaIso, cierre: cierreIso, cierreCanje: cierreCanjeIso,
     semanas: fx ? fx.semanas : semanasDe_(tipo),
     restos: restos, sinPlantilla: _SIN_PLANTILLA.slice(),
@@ -1167,7 +1175,7 @@ function estructuraBitacora_(fb, o) {
       try { cb.setHelpText(ayudaReto_(r)); } catch (e) {}
       var ev = buscar(tituloEvidenciaReto_(r));
       if (!ev) ev = fb.addTextItem().setTitle(tituloEvidenciaReto_(r));
-      try { ev.setHelpText(ayudaEvidenciaReto_(r)); } catch (e) {}
+      try { ev.setHelpText(ayudaEvidenciaReto_(r, o.padlet)); } catch (e) {}
     });
   });
 
@@ -1414,12 +1422,54 @@ function identidadBitacora_(fb, datos, id) {
 // todos los retos dentro y UN solo enlace: no se leía el enunciado de cada reto y no se sabía de cuál
 // era la evidencia. 🔴 Los títulos son las COLUMNAS de la hoja: los fija tituloEvidenciaReto_ y el
 // propio nombre del reto, y de ahí los lee marcados_(). No se cambian sin cambiar el lector.
-function retosDelPlaneta_(fb, retos) {
+function retosDelPlaneta_(fb, retos, padletUrl) {
   (retos || []).forEach(function(r){
     var cb = fb.addCheckboxItem().setTitle(r[1]).setHelpText(ayudaReto_(r)).setRequired(false);
     ponerOpciones_(cb, [OPC_HECHO], r[1]);
-    fb.addTextItem().setTitle(tituloEvidenciaReto_(r)).setHelpText(ayudaEvidenciaReto_(r)).setRequired(false);
+    fb.addTextItem().setTitle(tituloEvidenciaReto_(r)).setHelpText(ayudaEvidenciaReto_(r, padletUrl)).setRequired(false);
   });
+}
+// ================= v3.38 · PADLET (API) =================
+// La clave (pdltp_...) del plan actual DEJA publicar chinchetas y leer tableros, pero NO crear ni
+// borrar tableros (Padlet lo reserva a Zapier; comprobado el 30-ago). Por eso el padlet del grupo se
+// crea a mano y aquí solo se guarda su URL — y, si hay clave, NEBULA publica una chincheta de
+// bienvenida con las instrucciones. La clave vive en ScriptProperties, NUNCA en el código.
+function guardarClavePadlet() {
+  var ui = SpreadsheetApp.getUi();
+  var r = ui.prompt("Clave API de Padlet",
+    "Pega la clave (empieza por pdltp_). Se usa solo para publicar la chincheta de bienvenida al " +
+    "crear un PER con padlet. En blanco = quitarla.", ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var v = r.getResponseText().trim();
+  var pr = PropertiesService.getScriptProperties();
+  if (!v) { pr.deleteProperty("PADLET_KEY"); ui.alert("Clave quitada."); return; }
+  if (v.indexOf("pdltp_") !== 0) { ui.alert("Eso no parece una clave de Padlet (empiezan por pdltp_). No se ha guardado."); return; }
+  pr.setProperty("PADLET_KEY", v);
+  ui.alert("Clave guardada. Al crear un PER con padlet, NEBULA publicará la chincheta de bienvenida.");
+}
+// «https://padlet.com/usuario/lo-que-sea-abc123» -> «abc123» (el id va siempre al final del slug)
+function padletBoardId_(url) {
+  var m = String(url || "").match(/padlet\.com\/[^\/]+\/(?:.*-)?([a-z0-9]{8,20})(?:[\/?#]|$)/i);
+  return m ? m[1] : "";
+}
+function chinchetaBienvenida_(o) {
+  var key = PropertiesService.getScriptProperties().getProperty("PADLET_KEY");
+  var id = padletBoardId_(o.padlet);
+  if (!key || !id) return false;
+  var cuerpo = { data: { type: "post", attributes: { content: {
+    subject: "\ud83d\udef0\ufe0f NEBULA \u00b7 Bienvenida, tripulaci\u00f3n de " + o.nombre,
+    body: "Este muro es vuestro escaparate: aqu\u00ed se comparten los retos que lucen \u2014 la imagen con IA, " +
+      "la insignia dise\u00f1ada, la mec\u00e1nica jugable\u2026 Publica tu creaci\u00f3n con una l\u00ednea contando c\u00f3mo la hiciste, " +
+      "copia el enlace de TU chincheta y p\u00e9galo en la Bit\u00e1cora de mando como evidencia. Tu Nave: " +
+      WEB + "recluta.html?per=" + o.id } } } };
+  try {
+    var resp = UrlFetchApp.fetch("https://api.padlet.dev/v1/boards/" + id + "/posts", {
+      method: "post", contentType: "application/json", headers: { "X-Api-Key": key },
+      payload: JSON.stringify(cuerpo), muteHttpExceptions: true });
+    var cod = resp.getResponseCode ? resp.getResponseCode() : 200;
+    if (cod >= 300) { Logger.log("chinchetaBienvenida_: HTTP " + cod + " " + resp.getContentText().slice(0, 200)); return false; }
+    return true;
+  } catch (e) { Logger.log("chinchetaBienvenida_: " + e); return false; }
 }
 function crearDocumentoPER_(perId) {
   var p = perFila_(perId); if (!p) throw new Error("PER no encontrado"); var o = perObj_(p.v);
@@ -1474,6 +1524,11 @@ function crearDocumentoPER_(perId) {
       "créditos, lo que tiene desbloqueado y la orden de la semana; y desde aquí vuelve a la Bitácora. " +
       "Es también a donde va a parar al terminar el formulario.");
   qr(WEB + "recluta.html?per=" + o.id, "QR de la Nave del Recluta");
+  if (o.padlet) {
+    link(LINK_ALUMNO + " · 🧱 PADLET DE LA CLASE — el muro donde se comparten los retos", o.padlet);
+    par("Aquí cuelga el alumnado sus creaciones (la imagen con IA, la insignia diseñada, la mecánica " +
+        "jugable…) para que toda la clase se inspire. El formulario ya se lo recuerda reto a reto.");
+  }
   link(LINK_ALUMNO + " · 🎫 TICKET DE SALIDA «Contacta con NEBULA» (anónimo; botón o QR)", o.formTicket);
   qr(o.formTicket, "QR del ticket de salida");
   link(LINK_ALUMNO + " · 🛒 CANJE DE CRÉDITOS (botón o QR)", o.formCanje);
@@ -1604,6 +1659,7 @@ function dossier_() {
     link("✅ La Nave del Recluta — la única página web que ve el alumnado", WEB + "recluta.html?per=" + o.id);
     link("✅ Contacta con NEBULA · ticket de salida (anónimo)", o.formTicket);
     link("✅ Canje de recompensas", o.formCanje);
+    if (o.padlet) link("✅ Padlet de la clase (el muro de los retos)", o.padlet);
     qr(o.formBitacora, "QR de la Bitácora de mando (para proyectar en clase)");
 
     h("Solo profesorado (pide PIN)", 2);
@@ -1698,7 +1754,7 @@ function filaPERSeleccionada_() {
   var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
   if (SpreadsheetApp.getActiveSheet().getName() !== H.PERS || fila < 2) {
     SpreadsheetApp.getUi().alert("Selecciona primero una fila de la pestaña PERs."); return null; }
-  var v = sh.getRange(fila, 1, 1, 24).getValues()[0];
+  var v = sh.getRange(fila, 1, 1, 25).getValues()[0];
   if (!v[0]) { SpreadsheetApp.getUi().alert("Esa fila no tiene ningún PER."); return null; }
   return { fila: fila, o: perObj_(v) };
 }
@@ -2062,7 +2118,7 @@ function resetear_() {
     var d = sh.getDataRange().getValues(), fila = 0;
     for (var i = 1; i < d.length; i++) if (d[i][0]) { fila = i + 1; break; }
     if (!fila) { pr.fase = "colas"; break; }
-    try { borrarPER_(perObj_(sh.getRange(fila, 1, 1, 24).getValues()[0]), fila); pr.n++; }
+    try { borrarPER_(perObj_(sh.getRange(fila, 1, 1, 25).getValues()[0]), fila); pr.n++; }
     catch (e) { pr.fallos.push("PER fila " + fila + ": " + e.message); Logger.log(e);
                 try { sh.deleteRow(fila); } catch (e2) {} }   // pase lo que pase, la fila SE VA: si no, bucle infinito
     t.marcar();
@@ -2917,6 +2973,8 @@ function tablero_(perId, conPrivados) {
            paneles:(function(){ var m = {}; docentesDe_(o.id).forEach(function(d){ if (d.panel) m[d.nombre] = d.panel; }); return m; })(),
            // v3.14 · para que el alumnado y el profesorado sepan HASTA CUÁNDO, sin preguntar
            apertura:o.apertura, cierre_misiones:o.cierre, cierre_canje:o.cierreCanje || o.cierre,
+           // v3.38 · el padlet de la clase es del alumnado: la Nave le pone acceso directo
+           padlet:o.padlet || "",
            docentes:docentesDe_(perId).map(function(d){ return { nombre:d.nombre, rol:d.rol, imparte:imparte_(d), referente:esReferente_(d) }; }),
            actualizado:new Date() };
   if (conPrivados) { res.docentes_full = docentesDe_(perId);   // con correo: solo tras el PIN

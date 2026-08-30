@@ -358,9 +358,10 @@ const Html = {
   createHtmlOutputFromFile(n) { return Html.createHtmlOutput("<!-- " + n + " -->"); }
 };
 const Fetch = {
-  llamadas: [], codigo: 200,   // el banco puede simular una web caída (504) como la del 25-ago
+  llamadas: [], peticiones: [], codigo: 200,   // el banco puede simular una web caída (504) como la del 25-ago
   fetch(url, opciones) {
     Fetch.llamadas.push(url);
+    Fetch.peticiones.push({ url: url, opciones: opciones || null });   // v3.38 · con QUÉ se llamó (la chincheta de Padlet)
     const cod = Fetch.codigo;
     if (cod !== 200 && !(opciones && opciones.muteHttpExceptions))
       throw new Error("Request failed for " + url + " returned code " + cod);

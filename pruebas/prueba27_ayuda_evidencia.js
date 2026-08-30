@@ -55,12 +55,56 @@ contiene(item(G.tituloEvidenciaReto_(b6)).getHelpText(), "incógnito",
 const xf = G.retosDe_("REGULAR").filter(r => r[0] === "XF")[0];
 if (xf) contiene(item(G.tituloEvidenciaReto_(xf)).getHelpText(), "dejarlo vacío",
   "y la batalla final dice que no hace falta enlace");
+// v3.38 · EL PADLET (30-ago). Con padlet configurado, B1/A6/A7 mandan allí y piden el enlace de TU
+// publicación; sin padlet, caen a su plan B. Y foro/Actividades ni lo mencionan: decisión explícita.
+const GP = E.nuevoMundo();
+E.crearPERDemo(GP, { nombre: "GRUPO PADLET", padlet: "https://padlet.com/profe/muro-de-clase-abc123def" });
+const bitP = GP.FormApp.openByUrl(GP.perObj_(GP.perFila_("grupo-padlet").v).formBitacoraEdit);
+const itemP = t => bitP.getItems().filter(i => i.getTitle() === t)[0];
+["B1", "A6", "A7"].forEach(id => {
+  const r = GP.RETOS_REGULAR.filter(x => x[0] === id)[0];
+  const ay = itemP(GP.tituloEvidenciaReto_(r)).getHelpText();
+  contiene(ay, "PADLET", "🔴 " + id + " manda al padlet de la clase");
+  contiene(ay, "muro-de-clase-abc123def", "con SU enlace, no uno genérico");
+  contiene(ay, "TU publicación", "y pide el enlace de la publicación propia, que es la evidencia");
+});
+const a1P = GP.RETOS_REGULAR.filter(x => x[0] === "A1")[0];
+c(itemP(GP.tituloEvidenciaReto_(a1P)).getHelpText().indexOf("padlet") < 0,
+  "los retos de FORO no mencionan el padlet: el foro es el foro (decisión de Norberto)");
+const x1P = GP.RETOS_REGULAR.filter(x => x[0] === "X1")[0];
+c(itemP(GP.tituloEvidenciaReto_(x1P)).getHelpText().indexOf("padlet") < 0, "y las Actividades tampoco");
+// sin padlet, B1 no se queda huérfano
+contiene(G.ayudaEvidenciaReto_(RETOS.filter(r => r[0] === "B1")[0], ""), "Bitácora",
+  "sin padlet configurado, B1 cae a la Bitácora/captura — nunca a un texto que nombra un muro que no existe");
+
+// ---------------------------------------------------------------- g) la chincheta de bienvenida
+// La clave del plan actual NO deja crear tableros (solo publicar): el padlet se crea a mano y, si
+// hay clave, NEBULA deja la chincheta. Sin clave, NI UNA llamada a la API.
+igual(GP.M ? 0 : 0, 0, "");
+const llamadasSin = E.M.Fetch.peticiones.filter(x => x.url.indexOf("api.padlet.dev") >= 0).length;
+igual(llamadasSin, 0, "🔴 sin clave API no se llama a Padlet (crear el PER no depende de fuera)");
+const GK = E.nuevoMundo();
+E.M.Props.getScriptProperties().setProperty("PADLET_KEY", "pdltp_prueba");
+E.crearPERDemo(GK, { nombre: "GRUPO CHINCHETA", padlet: "https://padlet.com/profe/muro-xyz987abc" });
+const alPadlet = E.M.Fetch.peticiones.filter(x => x.url.indexOf("api.padlet.dev/v1/boards/xyz987abc/posts") >= 0);
+igual(alPadlet.length, 1, "🔴 con clave y padlet, NEBULA publica UNA chincheta de bienvenida");
+if (alPadlet.length) {
+  const op = alPadlet[0].opciones || {};
+  igual((op.headers || {})["X-Api-Key"], "pdltp_prueba", "con la clave en la cabecera, no en la URL");
+  contiene(String(op.payload || ""), "recluta.html?per=grupo-chincheta", "y la chincheta enlaza la Nave del grupo");
+  c(op.muteHttpExceptions === true, "sin reventar el alta si Padlet falla: la chincheta es un extra, no un requisito");
+}
+igual(GK.padletBoardId_("https://padlet.com/mutecdUNIR/regulacion-de-dispositivos-moviles-en-la-escuela-yw8mpoacbudl"),
+  "yw8mpoacbudl", "el id del tablero se saca del final del slug (probado con uno real)");
+
 // 🔴 guardarraíl: ningún reto de NINGÚN catálogo sin tipo, y ningún tipo sin texto. El día que se
 // añada un reto nuevo y nadie decida cómo se comparte, esto lo canta.
 const sinTipo = [...new Set(G.RETOS_REGULAR.concat(G.RETOS_PUA).map(r => r[0]))]
   .filter(id => !G.EVIDENCIA_TIPO[id]);
 igual(sinTipo, [], "🔴 todos los retos tienen tipo de evidencia asignado");
-const sinTexto = [...new Set(Object.values(G.EVIDENCIA_TIPO))].filter(t => !G.EVIDENCIA_TEXTOS[t]);
+// el tipo "padlet" se compone en ayudaEvidenciaReto_ (URL del grupo o su plan B padlet_sin_url)
+const sinTexto = [...new Set(Object.values(G.EVIDENCIA_TIPO))]
+  .filter(t => !G.EVIDENCIA_TEXTOS[t] && !(t === "padlet" && G.EVIDENCIA_TEXTOS.padlet_sin_url));
 igual(sinTexto, [], "y todos los tipos tienen su texto");
 // el orden importa: el enlace va PEGADO a su casilla, no al final de la página
 const orden = titulos();

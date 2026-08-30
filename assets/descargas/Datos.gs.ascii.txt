@@ -189,8 +189,12 @@ function ayudaReto_(r) {
 // compartido / postimages / la Bitacora); un juego o un video publicado piden su propio enlace con
 // la prueba del incognito. El tipo se asigna a mano aqui; la bateria 27 vigila que ningun reto de
 // ningun catalogo se quede sin tipo, y que cada tipo tenga su texto.
-var EVIDENCIA_TIPO = { A1:"foro", A2:"foro", A3:"texto", A4:"foro", A5:"texto", A6:"texto",
-  A7:"texto", A8:"texto", B1:"proceso", B2:"enlace", B3:"documento", B4:"enlace", B5:"bitacora",
+// 30-ago - PADLET (peticion de Norberto): los retos cuyo artefacto LUCE en un muro de clase pasan
+// a tipo "padlet" - la imagen con IA (B1), la mecanica jugable (A6) y la insignia disenada (A7).
+// Los de texto ofrecen el padlet como alternativa y los de enlace lo sugieren como escaparate;
+// foro y Actividades quedan como estan (decision explicita del usuario).
+var EVIDENCIA_TIPO = { A1:"foro", A2:"foro", A3:"texto", A4:"foro", A5:"texto", A6:"padlet",
+  A7:"padlet", A8:"texto", B1:"padlet", B2:"enlace", B3:"documento", B4:"enlace", B5:"bitacora",
   B6:"enlace", B7:"enlace", B8:"enlace", X1:"actividad", X2:"actividad", XF:"examen" };
 var EVIDENCIA_TEXTOS = {
   foro: "Tu reto vive en el foro de UNIR: lo m\u00e1s f\u00e1cil es pegar aqu\u00ed el ENLACE DIRECTO a tu mensaje " +
@@ -211,9 +215,29 @@ var EVIDENCIA_TEXTOS = {
   // profesorado las ve alli. Pedir evidencia de algo ya entregado solo genera dudas.
   actividad: "No hace falta enlace: la Actividad ya la entregas en la plataforma de UNIR y tu profe " +
     "la corrige all\u00ed. Marca la casilla y listo \u2014 puedes dejar esto vac\u00edo.",
-  examen: "No hace falta enlace: la batalla final queda registrada en la plataforma de UNIR. Puedes dejarlo vac\u00edo."
+  examen: "No hace falta enlace: la batalla final queda registrada en la plataforma de UNIR. Puedes dejarlo vac\u00edo"
+  ,padlet_sin_url: "Comp\u00e1rtelo en tu Bit\u00e1cora (o una captura en Drive compartido / postimages.org) y " +
+    "pega aqu\u00ed el enlace. Si tu clase tiene padlet, a\u00fan mejor: publ\u00edcalo all\u00ed y pega el enlace de tu publicaci\u00f3n."
 };
-function ayudaEvidenciaReto_(r) { return EVIDENCIA_TEXTOS[EVIDENCIA_TIPO[r[0]]] || AYUDA_EVIDENCIA_RETO; }
+// La ayuda de la evidencia depende del reto Y del padlet del grupo. Con padlet configurado, los
+// retos "padlet" mandan alli (y piden el enlace de TU publicacion), los de texto lo ofrecen como
+// alternativa y los de enlace lo sugieren como escaparate. Sin padlet, cada uno cae a su plan B.
+function ayudaEvidenciaReto_(r, padletUrl) {
+  var tipo = EVIDENCIA_TIPO[r[0]] || "";
+  var u = String(padletUrl || "").trim();
+  if (tipo === "padlet") {
+    if (!u) return EVIDENCIA_TEXTOS.padlet_sin_url;
+    return "Este reto luce en el PADLET de la clase: publica all\u00ed tu creaci\u00f3n (imagen o captura + una " +
+      "l\u00ednea contando c\u00f3mo lo hiciste) y pega aqu\u00ed el enlace de TU publicaci\u00f3n (\u00e1brela en el padlet y " +
+      "copia su enlace). As\u00ed toda la clase se inspira. El padlet: " + u;
+  }
+  var base = EVIDENCIA_TEXTOS[tipo] || AYUDA_EVIDENCIA_RETO;
+  if (u && tipo === "texto")
+    base += " Y si lo publicas en el padlet de la clase (" + u + "), pega el enlace de tu publicaci\u00f3n: tus compa\u00f1eros lo ver\u00e1n.";
+  if (u && tipo === "enlace")
+    base += " \u00bfQuieres que lo vea la clase? Cu\u00e9lgalo tambi\u00e9n en el padlet: " + u;
+  return base;
+}
 var AYUDA_EVIDENCIA_RETO = "Pega el enlace de ESTE reto (tu Bit\u00e1cora, el documento, el v\u00eddeo, el juego\u2026). " +
   "\u00c1brelo antes en una ventana de inc\u00f3gnito: si pide permiso para abrirse, tu profe no lo va a poder ver y no cuenta.";
 

@@ -350,6 +350,7 @@
       // la pestaña «El tablero» (lo vio Norberto en la captura). Aquí quedan solo las ACCIONES.
       +(d.formTicket?'<a class="acc" href="'+esc(d.formTicket)+'" data-vent="🎟️ Contacta con NEBULA"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
       +(miPanel()?'<a class="acc" href="'+esc(miPanel())+'" data-vent="🪐 Panel de control"><b>🪐 Panel</b><em>los ocho planetas</em></a>':'')
+      +(d.padlet?'<a class="acc" href="'+esc(d.padlet)+'" data-vent="🧱 Padlet de la clase"><b>🧱 Padlet</b><em>el muro de la clase</em></a>':'')
       +'</div></div>';
   }
   // ================= EL DUELO (30-ago) =================
