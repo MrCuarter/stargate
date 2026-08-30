@@ -394,7 +394,10 @@ body.embed .nave-barra{top:0}
 #nave-detalle{margin-top:16px}
 #nave-detalle .foro-card{margin-bottom:16px}
 .nave-perfil{display:flex;gap:16px;align-items:center;margin-bottom:12px}
-.nave-perfil img.av{width:92px;height:92px;border-radius:14px;object-fit:cover;border:1px solid var(--line)}
+/* 30-ago · el personaje manda en la ficha (petición de Norberto): de sello de 92px a retrato.
+   En móvil baja un punto para no comerse la pantalla. */
+.nave-perfil img.av{width:170px;height:170px;border-radius:18px;object-fit:cover;border:1px solid var(--line)}
+@media (max-width:640px){.nave-perfil img.av{width:128px;height:128px}}
 .progress{height:10px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;border:1px solid var(--line)}
 .progress i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--amber))}
 .badge-col{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:10px;margin-top:8px}
