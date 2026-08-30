@@ -6,6 +6,9 @@ const { comprobar: c, igual, contiene } = E;
 const M = E.M;
 console.log("\n▶ 8 · Lotes con continuación (resetear y actualizar formularios)");
 
+// dónde va el lote, en una cadena comparable
+function clave(pr) { return pr ? pr.i + "/" + pr.fase : "fin"; }
+
 function mundoConPERs(n) {
   const G = E.nuevoMundo();
   for (let i = 1; i <= n; i++) {
@@ -22,15 +25,30 @@ c(typeof G.actualizarFormularios_ === "function", "existe el núcleo sin interfa
 G.MARGEN_MS = 0;                       // se acaba el tiempo enseguida: obliga a trocear
 let r = G.actualizarFormularios_();
 igual(r.terminado, false, "con poco tiempo NO termina de una pasada");
-c(r.hechos >= 1, "pero deja hecho al menos un PER (" + r.hechos + ")");
+// v3.42 · la unidad de trabajo YA NO ES UN PER: cada uno va por fases (canje · Bitácora · ticket) y
+// la Bitácora puede además quedarse a medias, porque ella sola se pasa de los 6 minutos en un grupo
+// vivo. Así que lo que hay que exigir no es «un PER entero por pasada», sino que la pasada AVANCE:
+// con el reloj a cero, se hace una unidad y se guarda por dónde iba.
+const donde = G.progreso_("formularios");
+c(!!donde && (donde.i > 0 || donde.fase > 0), "pero AVANZA: deja apuntado por dónde iba (fase " +
+  (donde && donde.fase) + " del PER " + (donde && donde.i) + ")");
 igual(r.total, 5, "y sabe cuántos hay en total");
 c(!!G.progreso_("formularios"), "guarda por dónde iba");
 c(M.Guiones.getProjectTriggers().some(t => t.getHandlerFunction() === "continuarActualizarFormularios"),
   "y programa la continuación automática");
 
-let vueltas = 0;
-while (!r.terminado && vueltas < 20) { r = G.actualizarFormularios_(); vueltas++; }
-igual(r.terminado, true, "en varias pasadas acaba");
+// 🔴 y ADEMÁS no se atasca: cada pasada tiene que dejar el marcador más adelante que la anterior.
+// Es la comprobación que faltaba el 30-ago, cuando dos pasadas seguidas dejaron el formulario igual.
+let vueltas = 0, atascos = 0, antes = clave(G.progreso_("formularios"));
+while (!r.terminado && vueltas < 200) {
+  r = G.actualizarFormularios_(); vueltas++;
+  const ahora = clave(G.progreso_("formularios"));
+  if (r.terminado) break;
+  if (ahora === antes) atascos++;
+  antes = ahora;
+}
+igual(atascos, 0, "ninguna pasada se queda donde estaba: el lote siempre avanza");
+igual(r.terminado, true, "en varias pasadas acaba (" + (vueltas + 1) + ")");
 igual(r.hechos, 5, "y acaba con los 5 PER");
 igual(G.progreso_("formularios"), null, "al terminar se borra el progreso");
 c(!M.Guiones.getProjectTriggers().some(t => t.getHandlerFunction() === "continuarActualizarFormularios"),

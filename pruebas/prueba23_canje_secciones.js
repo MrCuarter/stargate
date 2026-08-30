@@ -39,7 +39,7 @@ c(cat.filter(x => x.tipo === "nota").every(x => destinoDe(x.nombre) === G.SEC_NO
   "TODAS las de nota van a la sección de actividad, no solo la que miré");
 
 // ---------------------------------------------------------------- c) nadie cae en la sección de al lado
-saltos.forEach(p => igual(p.getGoToPage(), SUBMIT,
+saltos.forEach(p => igual(p.getPageNavigationType(), SUBMIT,
   "🔴 «" + p.getTitle() + "» termina enviando: si no, quien pide un título acabaría eligiendo planeta"));
 
 // ---------------------------------------------------------------- d) cada pregunta, detrás de SU sección

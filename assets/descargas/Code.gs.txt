@@ -740,7 +740,18 @@ function reestructurarCanje_(fc) {
   var itRec = buscar("Recompensa");
   var rec = itRec ? itRec.asListItem() : fc.addListItem().setTitle("Recompensa");
   // 2) los saltos de pagina se reconstruyen enteros: no llevan datos, asi que borrarlos no pierde nada
-  fc.getItems(FormApp.ItemType.PAGE_BREAK).forEach(function(pb){ try { fc.deleteItem(pb); } catch (e) {} });
+  // 🔴 30-ago · PERO ANTES HAY QUE SOLTAR LOS SALTOS. Google no deja borrar una seccion a la que
+  // todavia navega una opcion de «Recompensa»: responde «Invalid data updating form», el catch se lo
+  // traga y la seccion sobrevive... con lo que el paso 3 anade otra igual. Cada pasada de
+  // «Actualizar los formularios» duplicaba las secciones del canje. Es el mismo fallo que en la
+  // Bitacora: reescribir el desplegable ANTES de borrar, nunca despues.
+  try {
+    var hay = rec.getChoices();
+    if (hay.length) rec.setChoices(hay.map(function(c){ return rec.createChoice(c.getValue(), FormApp.PageNavigationType.SUBMIT); }));
+  } catch (e) { Logger.log("reestructurarCanje_ soltando los saltos: " + e); }
+  fc.getItems(FormApp.ItemType.PAGE_BREAK).forEach(function(pb){
+    try { fc.deleteItem(pb); } catch (e) { Logger.log("reestructurarCanje_ borrando «" + pb.getTitle() + "»: " + e); }
+  });
   // 3) solo se crean las secciones que el catalogo de HOY necesita
   var cat = recompensasCat_(), pbs = {};
   SECCIONES_CANJE.forEach(function(sec){
@@ -968,24 +979,51 @@ function actualizarFormularios_() {
   var t = reloj_();
   var pers = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
   var pr = progreso_("formularios") || { i: 0, n: 0, canjes: 0, fallos: [] };
+  if (typeof pr.fase !== "number") pr.fase = 0;
   pr.total = pers.length;
+  // 🔴 30-ago · EL LOTE IBA POR PER, Y LA UNIDAD QUE NO CABE EN LOS 6 MINUTOS ES UN PER. La Bitácora
+  // de un grupo vivo se pasa ella sola del tiempo (medido: ~300 s solo en poner al día los bloques,
+  // y muerte en el bucle de mover items), así que trocear por PER no servía de nada: las dos pasadas
+  // del 30-ago murieron en el mismo punto y dejaron el formulario intacto.
+  // Ahora cada PER va por FASES —canje, Bitácora, ticket— y la de la Bitácora puede quedarse a
+  // medias: `reestructurarBitacora_` devuelve false, se guarda la fase y la pasada siguiente
+  // CONTINÚA por donde iba sin repetir las otras dos.
+  //
+  // ¿cabe otra tarea atómica? La regla de oro manda: si esta pasada aún no ha hecho NADA, se hace
+  // igual —sin esto, con el reloj justo el lote se quedaría parado para siempre.
+  var hecho = false;
+  var cabe = function(){ return !hecho || t.sobra(MARGEN_FASE_MS); };
   while (pr.i < pers.length && t.puedo()) {
     var v = pers[pr.i];
-    try { var f = formDelPER_(perObj_(v), "C"); if (!f) throw new Error("sin formulario de canje");
-          f.setDescription(DESC_CANJE);
-          reestructurarCanje_(f); pr.canjes++; }
-    catch (e) { pr.fallos.push(String(v[1]) + " (canje): " + e.message); }
-    try { var fbx = formDelPER_(perObj_(v), "B"); if (!fbx) throw new Error("sin Bitácora");
-          var tit2 = fbx.getItems().map(function(i){ return i.getTitle(); });
-          if (tit2.indexOf("Breve biografía de tu personaje") < 0) {
-            var bioIt = fbx.addParagraphTextItem().setTitle("Breve biografía de tu personaje").setHelpText("2-3 frases sobre tu recluta: quién es, de dónde viene, qué se le da bien. Aparecerá al pie de tu personaje en la Nave del Recluta.");
-            var pos = tit2.indexOf("Enlace a mi Bitácora (ePortfolio)");
-            if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); }
-          reestructurarBitacora_(fbx, perObj_(v)); }
-    catch (e) { pr.fallos.push(String(v[1]) + " (bitácora): " + e.message); }
+    if (pr.fase === 0) {
+      if (!cabe()) break;
+      try { var f = formDelPER_(perObj_(v), "C"); if (!f) throw new Error("sin formulario de canje");
+            f.setDescription(DESC_CANJE);
+            reestructurarCanje_(f); pr.canjes++; }
+      catch (e) { pr.fallos.push(String(v[1]) + " (canje): " + e.message); }
+      pr.fase = 1; hecho = true; t.marcar();
+      if (!t.puedo()) break;
+    }
+    if (pr.fase === 1) {
+      // si algo revienta se da por acabada: un PER roto no puede dejar el lote dando vueltas
+      var acabada = true;
+      try { var fbx = formDelPER_(perObj_(v), "B"); if (!fbx) throw new Error("sin Bitácora");
+            var tit2 = fbx.getItems().map(function(i){ return i.getTitle(); });
+            if (tit2.indexOf("Breve biografía de tu personaje") < 0) {
+              var bioIt = fbx.addParagraphTextItem().setTitle("Breve biografía de tu personaje").setHelpText("2-3 frases sobre tu recluta: quién es, de dónde viene, qué se le da bien. Aparecerá al pie de tu personaje en la Nave del Recluta.");
+              var pos = tit2.indexOf("Enlace a mi Bitácora (ePortfolio)");
+              if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); }
+            acabada = reestructurarBitacora_(fbx, perObj_(v), t) !== false; }
+      catch (e) { pr.fallos.push(String(v[1]) + " (bitácora): " + e.message); }
+      hecho = true; t.marcar();
+      if (!acabada) break;    // sigue con ESTE MISMO PER, y en esta MISMA fase, en la pasada siguiente
+      pr.fase = 2;
+      if (!t.puedo()) break;
+    }
+    if (!cabe()) break;
     try { var ftx = formDelPER_(perObj_(v), "T"); if (ftx) { ajustesTicket_(ftx); anadirPuestaEnEscena_(ftx); bifurcarTicket_(ftx); } }
     catch (e) { pr.fallos.push(String(v[1]) + " (ticket): " + e.message); }
-    pr.i++; pr.n++; t.marcar();
+    pr.i++; pr.n++; pr.fase = 0; hecho = true; t.marcar();
   }
   var terminado = pr.i >= pers.length;
   if (terminado) { guardarProgreso_("formularios", null); cancelarContinuacion_("continuarActualizarFormularios"); }
@@ -1019,7 +1057,7 @@ function ayudaCorreo_(fb) {
   try {
     fb.getItems(FormApp.ItemType.TEXT).forEach(function(it){
       if (String(it.getTitle() || "").toLowerCase().trim() !== "correo") return;
-      it.asTextItem().setHelpText(AYUDA_CORREO);
+      cambioAyuda_(it.asTextItem(), AYUDA_CORREO);
     });
   } catch (e) { Logger.log("ayudaCorreo_: " + e); }
 }
@@ -1054,7 +1092,8 @@ function confirmacionBitacora_(perId) {
 }
 
 
-function reestructurarBitacora_(fb, o) {
+// v3.42 · Recibe el reloj del lote y DEVUELVE si ha terminado (ver estructuraBitacora_).
+function reestructurarBitacora_(fb, o, t) {
   // 🔴 27-ago · Lo primero: una respuesta por persona, editable, y sin el enlace de «enviar otra
   // respuesta». Los grupos ya creados no se rehacen, así que si esto no estuviera aquí el arreglo
   // solo valdría para los PER nuevos — y los que están en marcha seguirían duplicando reclutas.
@@ -1079,7 +1118,7 @@ function reestructurarBitacora_(fb, o) {
   // 0) v3.11 · «¿Quién imparte tu clase?»: es lo que ata cada alumno a su docente
   var itProf = items.filter(function(i){ return i.getTitle() === TIT_DOCENTE; })[0];
   var opciones = listaProfes_(o.referente || "", o.profesorado || "", o.id);
-  if (itProf) { try { itProf.asListItem().setChoiceValues(opciones).setHelpText(AYUDA_DOCENTE); } catch (e) {} }
+  if (itProf) { try { var li = itProf.asListItem(); cambioValores_(li, opciones); cambioAyuda_(li, AYUDA_DOCENTE); } catch (e) {} }
   else {
     var nuevo = fb.addListItem().setTitle(TIT_DOCENTE).setHelpText(AYUDA_DOCENTE).setRequired(true).setChoiceValues(opciones);
     var pos = items.map(function(i){ return i.getTitle(); }).indexOf("Enlace a mi Bitácora (ePortfolio)");
@@ -1089,7 +1128,8 @@ function reestructurarBitacora_(fb, o) {
   // 1) avatar: solo personajes que evolucionan
   items.forEach(function(it){
     if (it.getType() === FormApp.ItemType.LIST && it.getTitle() === "Elige tu avatar") {
-      it.asListItem().setChoiceValues(opcIniciales_()).setHelpText(ayudaAvatar_());
+      var av = it.asListItem();
+      cambioValores_(av, opcIniciales_()); cambioAyuda_(av, ayudaAvatar_());
     }
   });
   // 2) fuera la pregunta de la URL propia (ahora es una recompensa que se canjea)
@@ -1097,8 +1137,71 @@ function reestructurarBitacora_(fb, o) {
     if (it.getTitle().indexOf("URL de tu propia imagen") === 0) { try { fb.deleteItem(it); } catch (e) {} }
   });
   // v3.37 · toda la estructura (portada, alistamiento, elegir planeta y un bloque por reto)
-  estructuraBitacora_(fb, o);
+  return estructuraBitacora_(fb, o, t);
 }
+
+// ================= ESCRIBIR SOLO LO QUE CAMBIA =================
+// 🔴 30-ago · La migración de un grupo VIVO no cabía en los 6 minutos de Apps Script y las dos
+// pasadas que se probaron murieron con «Exceeded maximum execution time» dejando el formulario
+// igual que estaba. Lo caro no es LEER (un `getItems()` de 72 preguntas cuesta 66 ms, medido), es
+// ESCRIBIR. Y se reescribía TODO en cada pasada, así que el trabajo ya hecho se pagaba otra vez y
+// la migración no avanzaba nunca.
+//
+// A partir de aquí se escribe SOLO lo que de verdad cambia. Cada función devuelve `true` si ha
+// escrito, que es como se cuenta el trabajo para saber cuándo parar. Efecto: pasar la migración
+// sobre un formulario que ya está al día cuesta CERO escrituras, y por eso se puede trocear.
+function cambioAyuda_(it, txt) {
+  try { if (String(it.getHelpText() || "") === String(txt || "")) return false;
+        it.setHelpText(txt || ""); return true; } catch (e) { return false; }
+}
+function cambioTitulo_(it, txt) {
+  try { if (String(it.getTitle() || "") === String(txt)) return false;
+        it.setTitle(txt); return true; } catch (e) { return false; }
+}
+function cambioObligatorio_(it, b) {
+  try { if (it.isRequired() === !!b) return false; it.setRequired(!!b); return true; } catch (e) { return false; }
+}
+function cambioValores_(it, vals) {
+  try {
+    var hay = it.getChoices().map(function(c){ return c.getValue(); });
+    if (hay.length === vals.length && hay.every(function(v, i){ return v === vals[i]; })) return false;
+    it.setChoiceValues(vals); return true;
+  } catch (e) { return false; }
+}
+// Un desplegable de NAVEGACIÓN: pares [texto, destino], y el destino es un salto de página o una
+// constante de PageNavigationType.
+function cambioSaltos_(it, pares) {
+  try {
+    var hay = it.getChoices();
+    var mismo = hay.length === pares.length && pares.every(function(par, i) {
+      var c = hay[i];
+      if (c.getValue() !== par[0]) return false;
+      var pb = c.getGotoPage();
+      if (pb) return !!(par[1] && par[1].getId) && pb.getId() === par[1].getId();
+      return c.getPageNavigationType() === par[1];
+    });
+    if (mismo) return false;
+    it.setChoices(pares.map(function(par){ return it.createChoice(par[0], par[1]); }));
+    return true;
+  } catch (e) { return false; }
+}
+// A dónde va una página al terminarla. 🔴 `getGoToPage()` devuelve la PÁGINA destino o null; el
+// «enviar» / «continuar» se lee con `getPageNavigationType()`, que es otra llamada distinta.
+function cambioDestino_(pb, destino) {
+  try {
+    var haciaPagina = !!(destino && destino.getId);
+    var pagina = pb.getGoToPage();
+    if (haciaPagina) { if (pagina && pagina.getId() === destino.getId()) return false; }
+    else if (!pagina && pb.getPageNavigationType() === destino) return false;
+    pb.setGoToPage(destino); return true;
+  } catch (e) { return false; }
+}
+// Google devuelve cosas DISTINTAS: `getItems()` da items GENÉRICOS (con asListItem() y compañía) y
+// `addListItem()` da ya un ListItem, que NO tiene as*Item. 🔴 Encadenarlos revienta —y reventaba
+// justo al migrar un formulario viejo al que le faltara alguna de estas piezas, que es el único
+// caso en el que se crean aquí.
+function comoLista_(it) { return it && it.asListItem ? it.asListItem() : it; }
+function comoPagina_(it) { return it && it.asPageBreakItem ? it.asPageBreakItem() : it; }
 
 // ================= LA ESTRUCTURA DE LA BITÁCORA, EN UN GRUPO QUE YA EXISTE =================
 // Reforma del 29-ago aplicada a un formulario vivo. Es la función más delicada del fichero, así que
@@ -1114,68 +1217,119 @@ function reestructurarBitacora_(fb, o) {
 // ⚠️ Lo que sí se pierde: las casillas viejas «Tema N · Lo que he completado» desaparecen del
 // formulario, así que el alumnado deja de ver ahí lo que marcó. No se pierde NADA de lo registrado:
 // eso vive en EVENTOS y se sigue viendo en la Nave, y las columnas viejas siguen en la hoja.
-function estructuraBitacora_(fb, o) {
-  var buscar = function(t){ return fb.getItems().filter(function(i){ return i.getTitle() === t; })[0] || null; };
+// v3.42 · Recibe el reloj del lote (`t`, opcional). Devuelve TRUE si ha dejado el formulario
+// terminado y FALSE si se ha quedado a medias porque se acababa el tiempo: quien la llama guarda el
+// progreso y vuelve a entrar en la pasada siguiente. Como todo se escribe solo si cambia, volver a
+// entrar cuesta prácticamente nada y la migración avanza hasta acabar.
+function estructuraBitacora_(fb, o, t) {
+  var buscar = function(tit){ return fb.getItems().filter(function(i){ return i.getTitle() === tit; })[0] || null; };
   var retos = retosDe_(o.tipo);
   var porTema = {}; retos.forEach(function(r){ (porTema[r[4]] = porTema[r[4]] || []).push(r); });
   var temas = Object.keys(porTema).map(Number).sort(function(a,b){ return a-b; });
 
+  // REGLA DE ORO, también aquí dentro: mientras no se haya escrito NADA en esta pasada se sigue,
+  // pase lo que pase con el reloj; en cuanto hay una escritura, manda el reloj. Así una pasada
+  // nunca se queda sin hacer nada y nunca se pasa de los 6 minutos.
+  var escrito = false;
+  var apunta = function(hubo){ if (hubo) { escrito = true; if (t) t.marcar(); } return hubo; };
+  var sigo = function(){ return !t || !escrito || t.puedo(); };
+
   // --- 1) lo que falta, se crea (y lo que ya está, se pone al día) ---
   var intro = buscar(TIT_INTRO) || fb.addSectionHeaderItem().setTitle(TIT_INTRO);
-  try { intro.setHelpText(AYUDA_INTRO); } catch (e) {}
-  var hoy = (buscar(TIT_HOY) || fb.addListItem().setTitle(TIT_HOY)).asListItem()
-              .setHelpText(AYUDA_HOY).setRequired(true);
-  var pbAlta = (buscar(TIT_PAG_ALTA) || fb.addPageBreakItem().setTitle(TIT_PAG_ALTA)).asPageBreakItem();
-  try { pbAlta.setHelpText(AYUDA_PAG_ALTA); } catch (e) {}
+  apunta(cambioAyuda_(intro, AYUDA_INTRO));
+  var hoy = comoLista_(buscar(TIT_HOY) || fb.addListItem().setTitle(TIT_HOY));
+  apunta(cambioAyuda_(hoy, AYUDA_HOY)); apunta(cambioObligatorio_(hoy, true));
+  var pbAlta = comoPagina_(buscar(TIT_PAG_ALTA) || fb.addPageBreakItem().setTitle(TIT_PAG_ALTA));
+  apunta(cambioAyuda_(pbAlta, AYUDA_PAG_ALTA));
   // el desplegable viejo del final del alistamiento se RECONVIERTE: es el mismo sitio y el mismo papel
-  var tras = buscar(TIT_TRAS_ALTA) || buscar(TIT_NAV);
-  if (!tras) tras = fb.addListItem().setTitle(TIT_TRAS_ALTA);
-  tras = tras.asListItem(); try { tras.setTitle(TIT_TRAS_ALTA); } catch (e) {}
-  tras.setHelpText("").setRequired(true);
-  var pbPl = (buscar(TIT_PAG_PLANETA) || fb.addPageBreakItem().setTitle(TIT_PAG_PLANETA)).asPageBreakItem();
-  try { pbPl.setHelpText(AYUDA_PAG_PLANETA); } catch (e) {}
-  var sel = (buscar(TIT_PLANETA) || fb.addListItem().setTitle(TIT_PLANETA)).asListItem()
-              .setHelpText(AYUDA_PLANETA).setRequired(true);
+  var tras = buscar(TIT_TRAS_ALTA) || buscar(TIT_NAV) || fb.addListItem().setTitle(TIT_TRAS_ALTA);
+  tras = comoLista_(tras);
+  apunta(cambioTitulo_(tras, TIT_TRAS_ALTA));
+  apunta(cambioAyuda_(tras, "")); apunta(cambioObligatorio_(tras, true));
+  var pbPl = comoPagina_(buscar(TIT_PAG_PLANETA) || fb.addPageBreakItem().setTitle(TIT_PAG_PLANETA));
+  apunta(cambioAyuda_(pbPl, AYUDA_PAG_PLANETA));
+  var sel = comoLista_(buscar(TIT_PLANETA) || fb.addListItem().setTitle(TIT_PLANETA));
+  apunta(cambioAyuda_(sel, AYUDA_PLANETA)); apunta(cambioObligatorio_(sel, true));
+  if (!sigo()) return false;
 
   // --- 2) las páginas de planeta: renombrar «Tema N» -> «Planeta N» ---
   var pagina = {};
   fb.getItems(FormApp.ItemType.PAGE_BREAK).forEach(function(it){
-    var t = temaDePagina_(it.getTitle());
-    if (t) { try { if (it.getTitle() !== tituloPlaneta_(t)) it.setTitle(tituloPlaneta_(t)); } catch (e) {} pagina[t] = it.asPageBreakItem(); }
+    var n = temaDePagina_(it.getTitle());
+    if (n) { apunta(cambioTitulo_(it, tituloPlaneta_(n))); pagina[n] = comoPagina_(it); }
   });
-  temas.forEach(function(t){
-    if (pagina[t]) return;
-    var pb = fb.addPageBreakItem().setTitle(tituloPlaneta_(t))
-      .setHelpText(t >= 1 && t <= 8 ? TEMAS[t][1] : "Solo cuando hayas hecho el examen.");
-    pagina[t] = pb;
-  });
-  temas.forEach(function(t){ try { pagina[t].setGoToPage(FormApp.PageNavigationType.SUBMIT); } catch (e) {} });
+  for (var p = 0; p < temas.length; p++) {
+    if (!sigo()) return false;
+    var tt = temas[p];
+    if (!pagina[tt]) { pagina[tt] = fb.addPageBreakItem().setTitle(tituloPlaneta_(tt)); apunta(true); }
+    // 🔴 la descripción del planeta también se pone al día en los grupos que ya existen: sale del
+    // catálogo (TEMAS), y antes solo se escribía al CREAR la página — o sea que un grupo en marcha
+    // se quedaba con la del curso anterior para siempre.
+    apunta(cambioAyuda_(pagina[tt], tt >= 1 && tt <= 8 ? TEMAS[tt][1] : "Solo cuando hayas hecho el examen."));
+    apunta(cambioDestino_(pagina[tt], FormApp.PageNavigationType.SUBMIT));
+  }
 
-  // --- 3) fuera las casillas y los enlaces de la etapa anterior (una por planeta) ---
-  fb.getItems().forEach(function(it){
+  // --- 3) LOS DESPLEGABLES, ANTES DE BORRAR NADA ---
+  // 🔴 30-ago, EL FALLO EN VIVO. Esto estaba AL FINAL, después del borrado, y por eso la migración
+  // no podía converger: Google NO deja borrar una página a la que todavía navega una opción de un
+  // desplegable —responde «Invalid data updating form»— y el selector de planeta seguía teniendo su
+  // opción «La batalla final». El borrado fallaba SIEMPRE en la primera pasada, y la segunda (que
+  // ya habría podido) no llegaba nunca porque se acababa el tiempo. Se reescriben primero: las
+  // páginas a las que llevan ya existen todas (paso 2) y las que sobran dejan de tener quien las
+  // apunte, así que el paso 4 puede borrarlas.
+  var desplegables = function() {
+    for (var q = 0; q < temas.length; q++) if (!pagina[temas[q]]) {
+      // No debería pasar (el paso 2 las crea todas), pero si pasara sería gravísimo escribir el
+      // selector a medias: se deja para la pasada siguiente, que vuelve a intentar crearlas.
+      Logger.log("estructuraBitacora_: falta la página del planeta " + temas[q]); return false;
+    }
+    apunta(cambioSaltos_(hoy, [[OPC_ALTA, pbAlta], [OPC_RETOS, pbPl]]));
+    apunta(cambioSaltos_(tras, [[OPC_SOLO_ALTA, FormApp.PageNavigationType.SUBMIT], [OPC_SIGO, pbPl]]));
+    apunta(cambioSaltos_(sel, temas.map(function(n){ return [tituloPlaneta_(n), pagina[n]]; })));
+    apunta(cambioDestino_(pbAlta, FormApp.PageNavigationType.SUBMIT));
+    apunta(cambioDestino_(pbPl, FormApp.PageNavigationType.SUBMIT));
+    return true;
+  };
+  if (!desplegables()) return false;
+  if (!sigo()) return false;
+
+  // --- 4) fuera las casillas y los enlaces de la etapa anterior (una por planeta) ---
+  var viejos = fb.getItems().filter(function(it){
     var tit = String(it.getTitle() || "");
-    var vieja = /^Tema \d · Lo que he completado$/.test(tit) || tit === "Batalla final"
-             || /^Enlace · (Tema \d|Batalla final)$/.test(tit)
-             // v3.41 · la Batalla final salió del catálogo: fuera su casilla, su enlace y su página
-             || tit === "Batalla final: examen realizado" || tit === "Enlace · Batalla final: examen realizado"
-             || (it.getType() === FormApp.ItemType.PAGE_BREAK && tit === "La batalla final" && temas.indexOf(9) < 0);
-    if (vieja) { try { fb.deleteItem(it); } catch (e) { Logger.log("estructuraBitacora_ borrando «" + tit + "»: " + e); } }
+    return /^Tema \d · Lo que he completado$/.test(tit) || tit === "Batalla final"
+        || /^Enlace · (Tema \d|Batalla final)$/.test(tit)
+        // v3.41 · la Batalla final salió del catálogo: fuera su casilla, su enlace y su página
+        || tit === "Batalla final: examen realizado" || tit === "Enlace · Batalla final: examen realizado"
+        || (it.getType() === FormApp.ItemType.PAGE_BREAK && tit === "La batalla final" && temas.indexOf(9) < 0);
   });
+  for (var d = 0; d < viejos.length; d++) {
+    if (!sigo()) return false;
+    try { fb.deleteItem(viejos[d]); apunta(true); }
+    catch (e) { Logger.log("estructuraBitacora_ borrando «" + viejos[d].getTitle() + "»: " + e); }
+  }
 
-  // --- 4) un bloque por reto en cada planeta (los que ya estén, se ponen al día) ---
-  temas.forEach(function(t){
-    porTema[t].forEach(function(r){
+  // --- 5) un bloque por reto en cada planeta (los que ya estén, se ponen al día) ---
+  for (var ti = 0; ti < temas.length; ti++) {
+    var lista = porTema[temas[ti]];
+    for (var ri = 0; ri < lista.length; ri++) {
+      if (!sigo()) return false;
+      var r = lista[ri];
       var cb = buscar(r[1]);
-      if (!cb) { cb = fb.addCheckboxItem().setTitle(r[1]); ponerOpciones_(cb, [OPC_HECHO], r[1]); }
-      try { cb.setHelpText(ayudaReto_(r)); } catch (e) {}
-      var ev = buscar(tituloEvidenciaReto_(r));
-      if (!ev) ev = fb.addTextItem().setTitle(tituloEvidenciaReto_(r));
-      try { ev.setHelpText(ayudaEvidenciaReto_(r, o.padlet)); } catch (e) {}
-      try { validarSecreto_(ev.asTextItem ? ev.asTextItem() : ev, r); } catch (e) {}
-    });
-  });
+      if (!cb) { cb = fb.addCheckboxItem().setTitle(r[1]); ponerOpciones_(cb, [OPC_HECHO], r[1]); apunta(true); }
+      apunta(cambioAyuda_(cb, ayudaReto_(r)));
+      var ev = buscar(tituloEvidenciaReto_(r)), nuevoEv = false;
+      if (!ev) { ev = fb.addTextItem().setTitle(tituloEvidenciaReto_(r)); nuevoEv = true; apunta(true); }
+      var cambio = cambioAyuda_(ev, ayudaEvidenciaReto_(r, o.padlet));
+      apunta(cambio);
+      // 🔴 La validación NO tiene getter en Apps Script, así que no se puede comparar: se pone
+      // cuando el campo es NUEVO o cuando su ayuda ha cambiado, que es justo cuando el tipo de
+      // evidencia se ha movido en el catálogo (`ayudaEvidenciaReto_` sale de EVIDENCIA_TIPO). Si se
+      // pusiera siempre, cada pasada escribiría de más y una migración troceada no acabaría nunca.
+      if (nuevoEv || cambio) apunta(validarSecreto_(ev.asTextItem ? ev.asTextItem() : ev, r, true));
+    }
+  }
 
-  // --- 5) EL ORDEN, de una vez ---
+  // --- 6) EL ORDEN, de una vez ---
   var orden = [], dentro = {};
   var mete = function(it){ if (it && !dentro[it.getId()]) { dentro[it.getId()] = true; orden.push(it); } };
   mete(intro);
@@ -1185,12 +1339,15 @@ function estructuraBitacora_(fb, o) {
   trucoGenially_(fb);
   ["Quién soy", "Alias de recluta (público)", "Nombre y apellidos", TIT_LAMINA, "Elige tu avatar",
    TIT_DOCENTE, "Enlace a mi Bitácora (ePortfolio)", TIT_TRUCO, "Breve biografía de tu personaje"]
-    .forEach(function(t){ mete(buscar(t)); });
+    .forEach(function(tit){ mete(buscar(tit)); });
   // lo que no reconocemos se queda en el alistamiento: es de donde viene, y ahí no estorba
+  // 🔴 La identidad de un item es su getId(), NUNCA `===`: cada getItems() de Google devuelve
+  // envoltorios NUEVOS, así que `it === tras` era false SIEMPRE y el desplegable de planeta se
+  // colaba entre las «sueltas» — es decir, acababa DENTRO del alistamiento.
   var sueltos = fb.getItems().filter(function(it){
     if (dentro[it.getId()]) return false;
     if (it.getType() === FormApp.ItemType.PAGE_BREAK) return false;
-    if (it === tras || it === sel) return false;
+    if (it.getId() === tras.getId() || it.getId() === sel.getId()) return false;
     if (temaDePagina_(it.getTitle())) return false;
     return !esDeReto_(it.getTitle(), retos) && !esOrbe_(it.getTitle());
   });
@@ -1200,23 +1357,22 @@ function estructuraBitacora_(fb, o) {
   mete(tras);
   mete(pbPl);
   mete(sel);
-  temas.forEach(function(t){
-    mete(pagina[t]);
-    mete(buscar(TEMAS[t] ? TEMAS[t][0] : ""));      // el orbe del planeta, si ya está puesto
-    porTema[t].forEach(function(r){ mete(buscar(r[1])); mete(buscar(tituloEvidenciaReto_(r))); });
+  temas.forEach(function(n){
+    mete(pagina[n]);
+    mete(buscar(TEMAS[n] ? TEMAS[n][0] : ""));      // el orbe del planeta, si ya está puesto
+    porTema[n].forEach(function(r){ mete(buscar(r[1])); mete(buscar(tituloEvidenciaReto_(r))); });
   });
-  orden.forEach(function(it, k){
-    var ahora = it.getIndex();
-    if (ahora !== k) { try { fb.moveItem(ahora, k); } catch (e) { Logger.log("moveItem «" + it.getTitle() + "»: " + e); } }
-  });
+  for (var k = 0; k < orden.length; k++) {
+    if (!sigo()) return false;
+    var ahora = orden[k].getIndex();
+    if (ahora === k) continue;
+    try { fb.moveItem(ahora, k); apunta(true); }
+    catch (e) { Logger.log("moveItem «" + orden[k].getTitle() + "»: " + e); }
+  }
 
-  // --- 6) y ahora sí, los desplegables (ya existen todas las páginas a las que llevan) ---
-  hoy.setChoices([hoy.createChoice(OPC_ALTA, pbAlta), hoy.createChoice(OPC_RETOS, pbPl)]);
-  tras.setChoices([tras.createChoice(OPC_SOLO_ALTA, FormApp.PageNavigationType.SUBMIT),
-                   tras.createChoice(OPC_SIGO, pbPl)]);
-  sel.setChoices(temas.map(function(t){ return sel.createChoice(tituloPlaneta_(t), pagina[t]); }));
-  try { pbAlta.setGoToPage(FormApp.PageNavigationType.SUBMIT); } catch (e) {}
-  try { pbPl.setGoToPage(FormApp.PageNavigationType.SUBMIT); } catch (e) {}
+  // --- 7) y de cierre, los desplegables otra vez: baratos y siempre coherentes con el orden final ---
+  desplegables();
+  return true;
 }
 // «Tema 3 · Sendara» o «Planeta 3 · Sendara» -> 3 · «La batalla final» -> 9 · cualquier otra cosa -> 0
 function temaDePagina_(titulo) {
@@ -1437,19 +1593,24 @@ function retosDelPlaneta_(fb, retos, padletUrl) {
     var cb = fb.addCheckboxItem().setTitle(r[1]).setHelpText(ayudaReto_(r)).setRequired(false);
     ponerOpciones_(cb, [OPC_HECHO], r[1]);
     var ev = fb.addTextItem().setTitle(tituloEvidenciaReto_(r)).setHelpText(ayudaEvidenciaReto_(r, padletUrl)).setRequired(false);
-    validarSecreto_(ev, r);
+    validarSecreto_(ev, r, true);
   });
 }
 // v3.41 · el huevo de Pascua se valida SOLO con Google Forms: la evidencia de S7 tiene que contener
 // la palabra secreta (da igual mayúsculas). Sin servidor, sin trampas fáciles: el formulario dice
 // «esa no es» hasta que la traen del enigma. La palabra vive en PALABRA_HUEVO (Datos.gs).
-function validarSecreto_(ev, r) {
-  if ((EVIDENCIA_TIPO[r[0]] || "") !== "secreto") return;
+// `poner` es siempre true: se pide EXPLÍCITAMENTE porque la validación no se puede leer (Apps Script
+// no tiene getValidation) y ponerla en cada pasada de la migración sería una escritura de más por
+// formulario. Devuelve si ha escrito.
+function validarSecreto_(ev, r, poner) {
+  if ((EVIDENCIA_TIPO[r[0]] || "") !== "secreto") return false;
+  if (poner === false) return false;
   try {
     ev.setValidation(FormApp.createTextValidation()
       .setHelpText("Esa no es la palabra que borró Vaeon. Sigue el enlace oculto y resuelve el enigma.")
       .requireTextContainsPattern("(?i)" + PALABRA_HUEVO).build());
-  } catch (e) { Logger.log("validarSecreto_: " + e); }
+    return true;
+  } catch (e) { Logger.log("validarSecreto_: " + e); return false; }
 }
 // ================= v3.38 · PADLET (API) =================
 // La clave (pdltp_...) del plan actual DEJA publicar chinchetas y leer tableros, pero NO crear ni
@@ -2245,6 +2406,11 @@ function continuarReset() {
 // lo que le cabe, guarda por dónde iba en las propiedades del script y programa su continuación.
 // Regla de oro: SIEMPRE se hace al menos una unidad de trabajo por pasada, para que nunca se atasque.
 var MARGEN_MS = 270000;          // 4,5 min de trabajo efectivo; el resto es margen para cerrar
+// 🔴 30-ago · Y un colchón para las tareas ATÓMICAS: las que, una vez empezadas, no saben pararse a
+// medias (rehacer el formulario de canje, poner al día el del ticket). Empezar una a los 4 minutos y
+// medio se comía el margen de cierre entero y rozaba el corte duro de los 6 minutos. Con esto solo
+// se empiezan si quedan al menos 90 s de trabajo efectivo por delante.
+var MARGEN_FASE_MS = 90000;
 var PROP_TAREA = "TAREA_";
 
 function reloj_() { var t0 = new Date().getTime(), algo = false, ultimo = t0;

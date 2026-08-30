@@ -5,7 +5,10 @@
  * y para que la pestaña de respuestas tenga LAS MISMAS CABECERAS que en Google (que es de donde
  * Code.gs saca los datos con idx_()).
  */
-const { Archivo, Drive, Libro } = require("./mocks.js");
+const { Archivo, Drive, Libro, cronometro } = require("./mocks.js");
+
+// Toda ESCRITURA del formulario pasa por aquí: es lo que le cuesta el tiempo a Apps Script.
+const cobrar = (n) => cronometro.cobrar(n);
 
 const TIPOS = {
   TEXT: "TEXT", PARAGRAPH_TEXT: "PARAGRAPH_TEXT", LIST: "LIST", CHECKBOX: "CHECKBOX",
@@ -17,8 +20,12 @@ const PREGUNTA = ["TEXT", "PARAGRAPH_TEXT", "LIST", "CHECKBOX", "MULTIPLE_CHOICE
 
 let nId = 0;
 
+// Un item puede llegar envuelto en una VISTA (ver Formulario.getItems): por dentro se guarda
+// siempre el objeto crudo, que es el que da identidad.
+const crudo = x => (x && x._crudo) || x;
+
 class Opcion {
-  constructor(valor, destino) { this.valor = valor; this.destino = destino || null; }
+  constructor(valor, destino) { this.valor = valor; this.destino = crudo(destino) || null; }
   getValue() { return this.valor; }
   getGotoPage() { return this.destino && this.destino.tipo === "PAGE_BREAK" ? this.destino : null; }
   getPageNavigationType() { return typeof this.destino === "string" ? this.destino : null; }
@@ -29,11 +36,11 @@ class Item {
   getId() { return this.id; }
   getType() { return this.tipo; }
   getTitle() { return this.titulo; }
-  setTitle(t) { this.titulo = String(t); this.form._sincronizar(); return this; }
+  setTitle(t) { cobrar(); this.titulo = String(t); this.form._sincronizar(); return this; }
   getHelpText() { return this.ayuda; }
-  setHelpText(t) { this.ayuda = String(t); return this; }
+  setHelpText(t) { cobrar(); this.ayuda = String(t); return this; }
   isRequired() { return this.obligatorio; }
-  setRequired(b) { this.obligatorio = !!b; return this; }
+  setRequired(b) { cobrar(); this.obligatorio = !!b; return this; }
   getIndex() { return this.form.items.indexOf(this); }
   // listas / casillas
   // Google NO acepta una lista vacia: revienta con «La matriz está vacía: values». El simulador lo
@@ -41,32 +48,57 @@ class Item {
   // al retirar los personajes exclusivos. Un simulador mas permisivo que la realidad no sirve de nada.
   setChoiceValues(vs) {
     if (!vs || !vs.length) throw new Error("La matriz está vacía: values");
-    this.opciones = vs.map(v => new Opcion(v)); return this;
+    cobrar(); this.opciones = vs.map(v => new Opcion(v)); return this;
   }
   getChoices() { return this.opciones.slice(); }
   // Igual que setChoiceValues: Google no acepta una lista de opciones vacia.
   setChoices(cs) {
     if (!cs || !cs.length) throw new Error("La matriz está vacía: choices");
-    this.opciones = cs.slice(); return this;
+    cobrar(); this.opciones = cs.slice(); return this;
   }
-  createChoice(v, destino) { return new Opcion(v, destino); }
+  createChoice(v, destino) { return new Opcion(v, crudo(destino)); }
   showOtherOption() { return this; }
-  setValidation(x) { this.validacion = x || null; return this; }
+  setValidation(x) { cobrar(); this.validacion = x || null; return this; }
   // escala
   setBounds() { return this; }
   setLabels() { return this; }
   // imagen
-  setImage(b) { this.blob = b; return this; }
+  setImage(b) { cobrar(); this.blob = b; return this; }
   setAlignment() { return this; }
-  setWidth(w) { this.ancho = w; return this; }   // se GUARDA: el banco comprueba que el orbe salió grande
+  setWidth(w) { cobrar(); this.ancho = w; return this; }   // se GUARDA: el banco comprueba que el orbe salió grande
   // salto de página
-  setGoToPage(d) { this.destino = d; return this; }
-  getGoToPage() { return this.destino; }
+  // 🔴 Como en Google: `getGoToPage()` da la PÁGINA destino (o null) y el «enviar»/«continuar» se
+  // lee con `getPageNavigationType()`, que es OTRA llamada. El simulador devolvía la constante por
+  // `getGoToPage()`, así que el código no podía comprobar si el salto ya estaba puesto sin
+  // reescribirlo — y reescribir de más es justo lo que no deja trocear la migración.
+  setGoToPage(d) {
+    cobrar();
+    if (d && typeof d === "object") { this.destino = crudo(d); this.navTipo = "GO_TO_PAGE"; }
+    else { this.destino = null; this.navTipo = d || "CONTINUE"; }
+    return this;
+  }
+  getGoToPage() { return this.destino || null; }
+  getPageNavigationType() { return this.navTipo || "CONTINUE"; }
   // conversiones
   asListItem() { return this; } asCheckboxItem() { return this; } asPageBreakItem() { return this; }
   asImageItem() { return this; } asTextItem() { return this; } asParagraphTextItem() { return this; }
   asMultipleChoiceItem() { return this; } asScaleItem() { return this; } asSectionHeaderItem() { return this; }
   duplicate() { const c = new Item(this.form, this.tipo); c.titulo = this.titulo; this.form.items.push(c); return c; }
+  // 🔴 30-ago · CADA getItems() DEVUELVE ENVOLTORIOS NUEVOS, como Google. Antes el simulador
+  // devolvía SIEMPRE el mismo objeto, así que comparar dos items con `===` funcionaba aquí y no en
+  // producción: el filtro `sueltos` de `estructuraBitacora_` decía `it === tras` y eso es false
+  // siempre en Google (dos getItems() dan dos envoltorios distintos del mismo item). La identidad
+  // se compara con getId(), y ahora el banco lo obliga.
+  _vista() {
+    const o = this;
+    const vista = new Proxy(o, { get(dst, k) {
+      if (k === "_crudo") return o;
+      const val = dst[k];
+      if (typeof val !== "function") return val;
+      return function () { const r = val.apply(o, arguments); return r === o ? vista : r; };
+    } });
+    return vista;
+  }
 }
 
 class Formulario {
@@ -79,7 +111,10 @@ class Formulario {
   getId() { return this.id; }
   getTitle() { return this.titulo; }
   setTitle(t) { this.titulo = t; return this; }
-  setDescription(d) { this.descripcion = d; return this; }
+  // 🔴 Form.getDescription() EXISTE en Apps Script. Faltaba aquí, así que la comparación de
+  // `reestructurarBitacora_` («¿la descripción ya es la buena?») leía undefined y reescribía SIEMPRE.
+  getDescription() { return this.descripcion || ""; }
+  setDescription(d) { cobrar(); this.descripcion = d; return this; }
   getPublishedUrl() { return "https://docs.google.com/forms/d/e/" + this.id + "/viewform"; }
   getEditUrl() { return "https://docs.google.com/forms/d/" + this.id + "/edit"; }
   setCollectEmail(b) { this.recogeCorreo = !!b; this._sincronizar(); return this; }
@@ -89,7 +124,7 @@ class Formulario {
   setLimitOneResponsePerUser(b) { this.unaRespuesta = !!b; return this; }
   setAllowResponseEdits() { return this; }
   setShowLinkToRespondAgain(b) { this.otraVez = !!b; return this; }
-  setConfirmationMessage(m) { this.confirmacion = m; return this; }
+  setConfirmationMessage(m) { cobrar(); this.confirmacion = m; return this; }
   getConfirmationMessage() { return this.confirmacion || ""; }
   setAcceptingResponses(b) { this.aceptando = !!b; return this; }
   isAcceptingResponses() { return this.aceptando; }
@@ -100,12 +135,14 @@ class Formulario {
   // cayo en produccion el 27-ago con «act.asListItem is not a function» y el banco seguia verde.
   // Aqui se devuelve una VISTA sin esos metodos, que es lo que hace Google.
   _add(tipo) {
+    cobrar();
     const it = new Item(this, tipo); this.items.push(it); this._sincronizar();
     // 🔴 Y los metodos encadenables tienen que devolver LA VISTA, no el objeto crudo: si
     // addListItem().setTitle(x) devolviera el Item de dentro, la cadena recuperaria los as*Item que
     // Google no da, y el simulador volveria a mentir justo donde nos mordio.
     let vista;
     vista = new Proxy(it, { get(o, k) {
+      if (k === "_crudo") return o;   // el item de dentro: es quien da identidad y quien es destino
       if (typeof k === "string" && /^as[A-Z].*Item$/.test(k)) return undefined;
       const v = o[k];
       if (typeof v !== "function") return v;
@@ -122,15 +159,40 @@ class Formulario {
   addPageBreakItem() { return this._add(TIPOS.PAGE_BREAK); }
   addImageItem() { return this._add(TIPOS.IMAGE); }
   addSectionHeaderItem() { return this._add(TIPOS.SECTION_HEADER); }
-  getItems(tipo) { return tipo ? this.items.filter(i => i.tipo === tipo) : this.items.slice(); }
+  getItems(tipo) {
+    return (tipo ? this.items.filter(i => i.tipo === tipo) : this.items).map(i => i._vista());
+  }
+  // 🔴 30-ago · GOOGLE NO DEJA BORRAR UNA PÁGINA A LA QUE ALGUIEN NAVEGA. Si una opción de un
+  // desplegable (o el salto de otra página) apunta a este salto de página, Forms responde
+  // «Invalid data updating form» y el borrado NO se hace. El simulador lo permitía sin rechistar,
+  // y por eso el banco daba verde mientras `estructuraBitacora_` fallaba SIEMPRE en producción al
+  // intentar quitar «La batalla final» antes de reescribir el selector de planeta.
+  _quienNavegaA(it) {
+    const quien = [];
+    this.items.forEach(otro => {
+      if (otro === it) return;
+      if (otro.destino && typeof otro.destino === "object" && otro.destino === it) quien.push(otro);
+      (otro.opciones || []).forEach(op => { if (op.destino && op.destino === it) quien.push(otro); });
+    });
+    return quien;
+  }
   deleteItem(it) {
-    const i = typeof it === "number" ? it : this.items.indexOf(it);
-    if (i >= 0) this.items.splice(i, 1);
+    const i = typeof it === "number" ? it : this.items.indexOf(crudo(it));
+    if (i < 0) return this;
+    const obj = this.items[i];
+    if (obj.tipo === TIPOS.PAGE_BREAK) {
+      const quien = this._quienNavegaA(obj);
+      if (quien.length) throw new Error("Invalid data updating form. Detalles: la página «" + obj.titulo +
+        "» sigue siendo destino de " + quien.map(x => "«" + x.titulo + "»").join(", "));
+    }
+    cobrar();
+    this.items.splice(i, 1);
     return this;
   }
   moveItem(desde, hasta) {
-    const it = typeof desde === "number" ? this.items[desde] : desde;
+    const it = typeof desde === "number" ? this.items[desde] : crudo(desde);
     const i = this.items.indexOf(it); if (i < 0) return it;
+    cobrar();
     this.items.splice(i, 1); this.items.splice(hasta, 0, it); return it;
   }
   getDestinationId() { return this.destino ? this.destino.getId() : null; }

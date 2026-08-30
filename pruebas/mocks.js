@@ -25,6 +25,48 @@ class FakeDate extends RealDate {
   static now() { return reloj.ahora.getTime(); }
 }
 
+// ------------------------------------------------- CRONÓMETRO: el simulador COBRA las escrituras
+// 🔴 30-ago · El banco no vio nunca el peor fallo de la migración —que `estructuraBitacora_` se
+// pasa de los 6 minutos de Apps Script— porque aquí escribir era GRATIS: un simulador más rápido
+// que la realidad miente igual que uno más permisivo. Ahora cada escritura de Forms suma `coste`
+// milisegundos a un reloj artificial que el `Date` del contexto SÍ ve, así que `reloj_()` /
+// `t.puedo()` se comportan como en Google.
+//
+// Y cuando una pasada se pasa de `limite`, se marca `muerto` ANTES de lanzar: Apps Script mata la
+// ejecución y ningún `try/catch` la salva, pero aquí el `catch (e) {}` de Code.gs sí se tragaría la
+// excepción. La bandera sobrevive a eso, y es lo que miran las baterías.
+//
+// Por defecto `coste` es 0: sin tocar nada, el mundo va como siempre.
+const cronometro = {
+  extra: 0,        // ms artificiales acumulados (los ve el Date del contexto)
+  coste: 0,        // lo que cuesta CADA escritura de Forms; 0 = gratis, como hasta ahora
+  limite: 0,       // el corte duro de Apps Script (360000 en Google); 0 = no hay corte
+  t0: 0,           // `extra` cuando arrancó la pasada actual
+  muerto: false,   // ¿esta pasada se pasó del corte duro?
+  escrituras: 0,   // cuántas escrituras van, se cobren o no
+  arrancar() { this.t0 = this.extra; this.muerto = false; this.escrituras = 0; },
+  cobrar(n) {
+    this.escrituras += (n || 1);
+    if (!this.coste) return;
+    this.extra += (n || 1) * this.coste;
+    if (this.limite && (this.extra - this.t0) > this.limite) {
+      this.muerto = true;
+      throw new Error("Exceeded maximum execution time");
+    }
+  },
+  cero() { this.extra = 0; this.coste = 0; this.limite = 0; this.t0 = 0; this.muerto = false; this.escrituras = 0; }
+};
+// El Date que va al contexto: la hora de verdad MÁS lo que hayan costado las escrituras.
+class DateCron extends RealDate {
+  constructor(...a) { if (a.length === 0) super(RealDate.now() + cronometro.extra); else super(...a); }
+  static now() { return RealDate.now() + cronometro.extra; }
+  // 🔴 `fechaIso_` hace `d instanceof Date` con fechas que fabrican los OTROS mocks (Date de verdad).
+  // Sin esto, dentro del contexto `Date` sería DateCron y esa comprobación daría false para todas
+  // ellas: las fechas de las hojas se convertirían en cadenas y medio banco se caería por un
+  // detalle del simulador, no por un fallo del código.
+  static [Symbol.hasInstance](x) { return x instanceof RealDate; }
+}
+
 // ---------------------------------------------------------------- Sheets
 class Rango {
   constructor(h, f, c, nf, nc) { this.h = h; this.f = f; this.c = c; this.nf = nf; this.nc = nc; }
@@ -383,4 +425,4 @@ const Sesion = {
 
 module.exports = { Rango, Hoja, Libro, UI, Archivo, Carpeta, Drive, Docs, Documento,
                    Props, Correo, Cerrojo, Utils, Guiones, Contenido, Html, Fetch, Mimes,
-                   Sesion, reloj, FakeDate, RealDate, iterador };
+                   Sesion, reloj, FakeDate, RealDate, iterador, cronometro, DateCron };

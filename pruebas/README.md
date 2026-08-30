@@ -5,7 +5,7 @@ Forms, correo, propiedades del script, cerrojo y triggers, todo simulado. No sus
 vivo, pero coge los fallos de lógica en **dos segundos y sin gastar cuota** — y ya ha encontrado
 nueve: los tres de la v3.12, los cuatro de la v3.13 y los dos peores de la prueba en vivo del 25-ago.
 
-**Hoy: 18 baterías · 516 comprobaciones · 0 fallos**, y las mismas cifras contra la copia ASCII.
+**Hoy: 40 baterías · 1.671 comprobaciones · 0 fallos**, y las mismas cifras contra la copia ASCII.
 
 ## Cómo se usa
 
@@ -57,6 +57,24 @@ mismas baterías contra esa copia**: si las dos dan el mismo resultado, lo que s
 | 16 | v3.15 · **cuota de correo**: sin cuota el canje se concede igual y queda traza; el aviso de cuota baja, uno al día |
 | 17 | v3.15 · **3 repetidos = 1 sobre**, insignias por **serie completa** (sin tocar el «/24») y **racha** de semanas |
 | 18 | v3.15 · **aviso antes de que cierre el canje**: umbrales 7 y 1 días, solo a quien le quedan créditos, una vez |
+| … | (19-39: la tabla se quedó corta; el título de cada batería lo dice su primera línea) |
+| 40 | v3.42 · **migrar el catálogo en un grupo vivo**: el orden de operaciones al borrar páginas, los 6 minutos de Apps Script y la identidad de un item |
+
+## 🔴 El simulador NO es más fácil que Google (v3.42)
+
+Los dos peores fallos del 30-ago pasaron el banco porque el simulador era más benévolo. Ya no:
+
+- **Borrar tiene reglas.** `deleteItem` sobre un salto de página al que todavía navega una opción de
+  un desplegable (o el salto de otra página) lanza `Invalid data updating form`, igual que Forms.
+  Se reescriben los desplegables ANTES de borrar, nunca después.
+- **Escribir cuesta tiempo.** `M.cronometro` cobra cada escritura de Forms y puede matar la pasada al
+  llegar al corte de los 6 minutos. `coste = 0` por defecto: hay que pedirlo. La bandera
+  `cronometro.muerto` sobrevive a los `try/catch` de Code.gs, así que es lo que hay que mirar.
+  `cronometro.escrituras` cuenta cuántas van (sirve para exigir que una pasada repetida no escriba).
+- **Cada `getItems()` devuelve envoltorios NUEVOS.** Comparar items con `===` entre dos lecturas es
+  false SIEMPRE, como en Google: la identidad es `getId()`, y la posición, `getIndex()`.
+- **`getGoToPage()` da la PÁGINA destino o null**; el «enviar»/«continuar» se lee con
+  `getPageNavigationType()`. Y `Form.getDescription()` existe.
 
 ## Añadir una batería
 
@@ -65,6 +83,7 @@ y `E.resumen("...")` al final. `run.js` la recoge sola por el nombre.
 
 ## Lo que el banco NO puede ver
 
-Permisos y OAuth · el despliegue del web app · cómo se ve un Google Form de verdad · los tiempos
-reales de Drive y Forms (aquí todo es instantáneo, así que los timeouts hay que provocarlos poniendo
-`G.MARGEN_MS = 0`) · el navegador. Para eso está el guion de prueba en vivo del traspaso.
+Permisos y OAuth · el despliegue del web app · cómo se ve un Google Form de verdad · el navegador ·
+las LECTURAS, que aquí siguen siendo gratis (solo se cobran las escrituras de Forms). Los timeouts se
+provocan con `G.MARGEN_MS = 0` o, si se quiere el peso real de una migración, con `M.cronometro`.
+Para el resto está el guion de prueba en vivo del traspaso.

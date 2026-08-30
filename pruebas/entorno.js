@@ -47,6 +47,7 @@ function nuevoMundo() {
   M.Libro.registro = {}; M.Libro.n = 0;
   M.Correo.limpiar(); M.UI.limpiar(); M.Guiones._triggers = [];
   M.Fetch.llamadas = []; M.Fetch.peticiones = []; M.Fetch.codigo = 200;
+  M.cronometro.cero();   // cada mundo empieza con las escrituras gratis (ver mocks.js)
   Object.keys(M.Props._mapas).forEach(k => delete M.Props._mapas[k]);
 
   const raiz = new M.Carpeta("c_raiz", "Mi unidad", null);
@@ -100,7 +101,10 @@ function nuevoMundo() {
     Utilities: M.Utils, ScriptApp: M.Guiones, ContentService: M.Contenido, HtmlService: M.Html,
     UrlFetchApp: M.Fetch, MimeType: M.Mimes, Session: M.Sesion, Logger,
     console, JSON, Math: Object.assign(Object.create(Math), { random: aleatorio }),
-    Date, String, Number, Object, Array, RegExp, Error, parseInt, parseFloat, isNaN, encodeURIComponent, decodeURIComponent
+    // 🔴 el Date del contexto es el del CRONÓMETRO: la hora de verdad más lo que hayan costado las
+    // escrituras de Forms. Con `cronometro.coste = 0` (lo normal) es exactamente el Date de siempre.
+    Date: M.DateCron,
+    String, Number, Object, Array, RegExp, Error, parseInt, parseFloat, isNaN, encodeURIComponent, decodeURIComponent
   };
   vm.createContext(contexto);
   // Apps Script comparte el ambito global entre ficheros. Se carga Code.gs PRIMERO y Datos.gs

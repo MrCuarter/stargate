@@ -102,9 +102,12 @@ temas.forEach(t => {
   const pb = items().filter(i => i.getType() === "PAGE_BREAK" && G.temaDePagina_(i.getTitle()) === t)[0];
   c(!!pb, "existe la página del planeta " + t);
   if (!pb) return;
-  igual(pb.getGoToPage(), "SUBMIT", "y al terminarla se envía: no se cae en la del planeta siguiente");
+  // getPageNavigationType, no getGoToPage: en Google el «enviar» no es una página (getGoToPage da null)
+  igual(pb.getPageNavigationType(), "SUBMIT", "y al terminarla se envía: no se cae en la del planeta siguiente");
   const suyos = RETOS.filter(r => r[4] === t);
-  const desde = items().indexOf(pb);
+  // 🔴 por getIndex(), no por indexOf: cada getItems() devuelve envoltorios NUEVOS (como Google),
+  // así que buscar un item por identidad en otra lista da -1 — que es justo el fallo que se persigue.
+  const desde = pb.getIndex();
   // lo que hay entre este salto de página y el siguiente
   const sig = items().slice(desde + 1);
   const corte = sig.findIndex(i => i.getType() === "PAGE_BREAK");
