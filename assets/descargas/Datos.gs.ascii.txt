@@ -207,8 +207,10 @@ var EVIDENCIA_TEXTOS = {
     "enlaza la Bit\u00e1cora.",
   bitacora: "La prueba ES tu Bit\u00e1cora: pega aqu\u00ed su enlace p\u00fablico, a poder ser el de la secci\u00f3n de " +
     "este reto. \u00c1brelo en una ventana de inc\u00f3gnito: si pide permiso, tu profe no lo ver\u00e1.",
-  actividad: "La Actividad se entrega en la plataforma de UNIR, as\u00ed que aqu\u00ed basta el enlace de tu " +
-    "Bit\u00e1cora donde la recoges. Si tu profe ya la ve en la plataforma, puedes dejarlo vac\u00edo.",
+  // 30-ago - Norberto: las Actividades NO piden enlace - ya se suben a la plataforma de UNIR y el
+  // profesorado las ve alli. Pedir evidencia de algo ya entregado solo genera dudas.
+  actividad: "No hace falta enlace: la Actividad ya la entregas en la plataforma de UNIR y tu profe " +
+    "la corrige all\u00ed. Marca la casilla y listo \u2014 puedes dejar esto vac\u00edo.",
   examen: "No hace falta enlace: la batalla final queda registrada en la plataforma de UNIR. Puedes dejarlo vac\u00edo."
 };
 function ayudaEvidenciaReto_(r) { return EVIDENCIA_TEXTOS[EVIDENCIA_TIPO[r[0]]] || AYUDA_EVIDENCIA_RETO; }

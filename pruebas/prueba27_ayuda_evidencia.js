@@ -46,6 +46,12 @@ contiene(item(G.tituloEvidenciaReto_(RETOS[0])).getHelpText(), "postimages",
 const b6 = RETOS.filter(r => r[0] === "B6")[0];
 contiene(item(G.tituloEvidenciaReto_(b6)).getHelpText(), "incógnito",
   "B6 es un juego con enlace propio: pide el enlace y la prueba del incógnito");
+// 30-ago · Norberto: las Actividades ya se entregan en la plataforma de UNIR — aquí NO se pide enlace
+["X1", "X2"].forEach(id => {
+  const x = G.retosDe_("REGULAR").filter(r => r[0] === id)[0];
+  contiene(item(G.tituloEvidenciaReto_(x)).getHelpText(), "No hace falta enlace",
+    "🔴 la Actividad " + id + " dice claro que no hace falta enlace: ya está entregada en UNIR");
+});
 const xf = G.retosDe_("REGULAR").filter(r => r[0] === "XF")[0];
 if (xf) contiene(item(G.tituloEvidenciaReto_(xf)).getHelpText(), "dejarlo vacío",
   "y la batalla final dice que no hace falta enlace");
