@@ -92,4 +92,28 @@ const antesEsc = bit.getItems().length;
 G.imagenesFormularios_(bit, G.FormApp.openByUrl(o.formTicketEdit), canje);
 igual(bit.getItems().length, antesEsc, "🔴 las escenas tampoco se duplican al repetir");
 
+// ------------------------------------------------- f) EL ORDEN CONVERGE AUNQUE FALTEN IMÁGENES
+// 🔴 LA REGRESIÓN DEL 30-ago EN PRODUCCIÓN. El orden que pide reestructurarCanje_ incluye el título
+// de la imagen de cada recompensa, pero en un grupo que YA existía las imágenes todavía no están
+// (se suben en otra fase). Como el destino de cada item era su posición en la lista, esos diez
+// huecos corrían a todos los demás: el orden pedido era INALCANZABLE y cada pasada reintentaba los
+// mismos movimientos. Dos pasadas de 6 minutos dejaron el canje EXACTAMENTE IGUAL.
+const sinFotos = G.FormApp.create("canje de un grupo viejo");
+G.reestructurarCanje_(sinFotos);
+const foto = t => sinFotos.getItems().map(i => i.getTitle()).indexOf(t);
+const orden1 = sinFotos.getItems().map(i => i.getTitle());
+G.reestructurarCanje_(sinFotos);
+const orden2 = sinFotos.getItems().map(i => i.getTitle());
+igual(orden2, orden1, "🔴 sin las imágenes puestas, el orden CONVERGE: la 2ª pasada no mueve nada");
+c(foto("Recompensa") === 0, "y «Recompensa» queda la primera de todo");
+const cat3 = G.recompensasCat_();
+c(cat3.every(x => foto(G.etiquetaRecompensa_(x)) > 0), "con la página de cada recompensa detrás");
+
+// y una vez puestas las fotos, sigue convergiendo
+G.imagenesCanje_(sinFotos);
+const orden3 = sinFotos.getItems().map(i => i.getTitle());
+G.reestructurarCanje_(sinFotos);
+igual(sinFotos.getItems().map(i => i.getTitle()), orden3,
+  "🔴 y con las imágenes ya puestas tampoco mueve nada: cero escrituras");
+
 E.resumen("Las imágenes de los tres formularios");

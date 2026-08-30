@@ -807,8 +807,15 @@ function seccionDe_(tipo) {
   return tipo === "titulo" ? SEC_TITULO : tipo === "fondo" ? SEC_FONDO : tipo === "nota" ? SEC_NOTA : "";
 }
 // Deja los items en el orden pedido. Los que no esten en la lista se quedan detras, en su orden.
+//  SOLO CUENTAN LOS TITULOS QUE EXISTEN. El destino de cada item es su posicion en la lista, asi
+// que un titulo que todavia no esta en el formulario deja un HUECO que corre a todos los demas: el
+// orden pedido se vuelve inalcanzable y cada pasada reintenta los mismos movimientos, para siempre.
+// Visto en produccion el 30-ago con el canje: la lista pedia las imagenes de las diez recompensas
+// -que se suben en otro paso- y DOS pasadas de 6 minutos dejaron el formulario EXACTAMENTE IGUAL.
 function ordenarItems_(form, titulos) {
-  titulos.forEach(function(t, destino){
+  var hay = {};
+  form.getItems().forEach(function(i){ hay[i.getTitle()] = true; });
+  titulos.filter(function(t){ return hay[t]; }).forEach(function(t, destino){
     var it = form.getItems().filter(function(i){ return i.getTitle() === t; })[0];
     if (it && it.getIndex() !== destino) { try { form.moveItem(it.getIndex(), destino); } catch (e) {} }
   });
@@ -1137,9 +1144,20 @@ function actualizarFormularios_() {
       pr.fase = 2;
       if (!t.puedo()) break;
     }
+    if (pr.fase === 2) {
+      if (!cabe()) break;
+      try { var ftx = formDelPER_(perObj_(v), "T"); if (ftx) { ajustesTicket_(ftx); anadirPuestaEnEscena_(ftx); bifurcarTicket_(ftx); } }
+      catch (e) { pr.fallos.push(String(v[1]) + " (ticket): " + e.message); }
+      pr.fase = 3; hecho = true; t.marcar();
+      if (!t.puedo()) break;
+    }
+    //  fase 3 - LAS IMAGENES. Sin esto solo las tendrian los PER recien creados, y los grupos que
+    // ya existen se quedarian con el canje mudo para siempre. Va en su propia fase porque son ~30
+    // descargas: es justo lo que no cabe junto a lo demas en los 6 minutos.
     if (!cabe()) break;
-    try { var ftx = formDelPER_(perObj_(v), "T"); if (ftx) { ajustesTicket_(ftx); anadirPuestaEnEscena_(ftx); bifurcarTicket_(ftx); } }
-    catch (e) { pr.fallos.push(String(v[1]) + " (ticket): " + e.message); }
+    try { var im = imagenesFormularios_(formDelPER_(perObj_(v), "B"), formDelPER_(perObj_(v), "T"), formDelPER_(perObj_(v), "C"));
+          if (im.faltan) pr.fallos.push(String(v[1]) + " (imagenes): faltan " + im.faltan); }
+    catch (e) { pr.fallos.push(String(v[1]) + " (imagenes): " + e.message); }
     pr.i++; pr.n++; pr.fase = 0; hecho = true; t.marcar();
   }
   var terminado = pr.i >= pers.length;
