@@ -32,7 +32,7 @@
  <button type="button" id="mas" style="margin-top:8px;background:#eef3f7;color:#0b5b66;padding:6px 12px;font-size:13px">+ Añadir docente</button>
  <div id="calNota" class="small" style="color:#55606a;line-height:1.4;margin-top:14px"></div>
  <label>Padlet de la clase (opcional)</label><input id="padlet" placeholder="padlet.com/… (el muro donde el alumnado comparte sus retos)">
- <small>Créalo antes en padlet.com y pega aquí su enlace. El formulario dirá reto a reto cuándo publicar ahí, la Nave tendrá acceso directo y, si has guardado la clave API (menú STARGATE), NEBULA dejará la chincheta de bienvenida.</small>
+ <small>Créalo antes en padlet.com — formato <b>«Muro con secciones»</b> con cuatro: 📹 Preséntate · 🎨 La chispa · 🎲 Ensaya jugando · 🛡️ Mi insignia — y pega aquí su enlace. El formulario dirá reto a reto cuándo publicar ahí (título = alias, primera línea = «Capitán: su profe»), la Nave tendrá acceso directo y, si has guardado la clave API (menú STARGATE), NEBULA dejará la chincheta de bienvenida con esas normas.</small>
  <label>Panel de control (Genially) · enlace de VISUALIZACIÓN</label><input id="panelVer" placeholder="view.genially.com/… (en blanco = panel estándar)">
  <label>Panel de control (Genially) · enlace de EDICIÓN</label><input id="panelEdit" placeholder="app.genially.com/editor/… (en blanco = panel estándar)">
  <small>El panel de control es el Genially con los planetas que enlaza a las presentaciones. Déjalos en blanco para usar el estándar compartido; ponlos solo si este PER usará una copia propia. Se pueden cambiar después desde el panel de profes (Ajustes del PER).</small>

@@ -809,6 +809,9 @@ function ayudaAvatar_() {
 // La lamina de personajes que va dentro de la Bitacora. En una constante porque la escriben
 // DOS sitios: quien la pone al crear el PER y quien la refresca desde Mantenimiento.
 var TIT_LAMINA = "Tu personaje evoluciona con tu nivel";
+// v3.39 - la guia visual del truco de Genially ("Compartir desde esta pagina"): la ponen los dos
+// caminos del formulario junto al campo del ePortfolio. Idea y captura de Norberto, 30-ago.
+var TIT_TRUCO = "Truco: comparte tu Bit\u00e1cora abierta por la p\u00e1gina exacta";
 var TIT_NUEVO_AVATAR = "Nuevo avatar (solo para \u00abCambio de avatar\u00bb)";
 var TIT_URL_AVATAR = "URL de tu nueva imagen (solo para \u00abAvatar personal\u00bb)";
 var TIT_EXCLUSIVO = "Personaje exclusivo (solo para \u00abPersonaje exclusivo\u00bb)";
@@ -1035,32 +1038,20 @@ function textoBitacora_(profesores) {
     "Tu correo y tu nombre solo los ve el profesorado; en el tablero aparece tu alias. Profesorado: " + (profesores || "");
 }
 function confirmacionBitacora_(perId) {
-  //  29-ago - ESTE MENSAJE ES SOPORTE TECNICO. Norberto: "muchos estudiantes llenan el foro de dudas
-  // diciendo que solo les deja rellenar el formulario una vez". Ese texto lo pone Google, esta debajo
-  // de este mensaje y NO se puede quitar ni traducir. Lo unico que se puede hacer es llegar antes:
-  // nombrarlo, decir que es normal, y senalar con el dedo el enlace que resuelve el problema -que
-  // Google pinta al final del todo, justo debajo de las flechas.
-  //
-  // Por eso el orden es el que es: primero lo bueno, luego la Nave, y las flechas LAS ULTIMAS. Mover
-  // el enlace de la Nave detras de las flechas romperia el truco: apuntarian a la Nave, no al boton.
-  //
-  // Emojis y MAYUSCULAS a proposito: es lo unico que hace que un adulto con prisa lea un parrafo en
-  // una pantalla de confirmacion. Google Forms no admite negrita ni HTML aqui, solo texto y saltos.
+  // v3.39 - SIMPLIFICADO (30-ago). El aviso de Google "solo puedes rellenarlo una vez" YA NO aparece
+  // con la respuesta editable (lo comprobo Norberto en vivo), asi que el parrafo que lo desactivaba
+  // sobraba. Queda lo esencial: la Nave, el "se conserva" y las flechas al boton - que siguen siendo
+  // LO ULTIMO a proposito: el enlace "Modificar tu respuesta" de Google va justo debajo.
   return "\u2705 \u00a1REGISTRADO! Tu Bit\u00e1cora crece. \ud83c\udf89\n\n" +
     "\ud83d\ude80 Mira c\u00f3mo va tu recluta en tu Nave:\n" +
     WEB + "recluta.html?per=" + perId + "\n\n" +
-    "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n" +
-    "\u26a0\ufe0f \u00bfVUELVES A REGISTRAR ALGO? LEE ESTO \u26a0\ufe0f\n" +
-    "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n" +
-    "NO empieces de cero. Usa SIEMPRE este mismo enlace y pulsa \u00abModificar tu respuesta\u00bb: marcas la " +
-    "casilla nueva, env\u00edas, y todo lo que ya ten\u00edas SE CONSERVA.\n\n" +
-    "\ud83d\udfe1 Google te va a decir aqu\u00ed abajo \u00abSolo puedes rellenar este formulario una vez\u00bb. " +
-    "ES NORMAL. NO es un error, NO te has quedado fuera y NO hace falta que preguntes en el foro: " +
-    "tu respuesta est\u00e1 guardada y la puedes editar las veces que quieras. \ud83d\ude09\n\n" +
-    "\ud83d\udc47\ud83d\udc47\ud83d\udc47 EL BOT\u00d3N QUE BUSCAS EST\u00c1 AQU\u00cd ABAJO \ud83d\udc47\ud83d\udc47\ud83d\udc47\n" +
-    "          \u2b07\ufe0f  \u00abMODIFICAR TU RESPUESTA\u00bb  \u2b07\ufe0f\n" +
-    "\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47";
+    "Para registrar m\u00e1s retos, vuelve a ESTE MISMO ENLACE y pulsa \u00abModificar tu respuesta\u00bb: " +
+    "marcas lo nuevo, env\u00edas, y lo de antes SE CONSERVA.\n\n" +
+    "\ud83d\udc47\ud83d\udc47\ud83d\udc47 EL BOT\u00d3N M\u00c1GICO \ud83d\udc47\ud83d\udc47\ud83d\udc47\n" +
+    "      \u2b07\ufe0f  \u00abMODIFICAR TU RESPUESTA\u00bb  \u2b07\ufe0f\n" +
+    "\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47\ud83d\udc47";
 }
+
 
 function reestructurarBitacora_(fb, o) {
   //  27-ago - Lo primero: una respuesta por persona, editable, y sin el enlace de "enviar otra
@@ -1186,8 +1177,9 @@ function estructuraBitacora_(fb, o) {
   mete(buscar("Correo"));
   mete(hoy);
   mete(pbAlta);
+  trucoGenially_(fb);
   ["Qui\u00e9n soy", "Alias de recluta (p\u00fablico)", "Nombre y apellidos", TIT_LAMINA, "Elige tu avatar",
-   TIT_DOCENTE, "Enlace a mi Bit\u00e1cora (ePortfolio)", "Breve biograf\u00eda de tu personaje"]
+   TIT_DOCENTE, "Enlace a mi Bit\u00e1cora (ePortfolio)", TIT_TRUCO, "Breve biograf\u00eda de tu personaje"]
     .forEach(function(t){ mete(buscar(t)); });
   // lo que no reconocemos se queda en el alistamiento: es de donde viene, y ahi no estorba
   var sueltos = fb.getItems().filter(function(it){
@@ -1232,7 +1224,7 @@ function esDeReto_(titulo, retos) {
 }
 function esOrbe_(titulo) {
   for (var t = 1; t <= 8; t++) if (TEMAS[t] && TEMAS[t][0] === titulo) return true;
-  return titulo === TIT_LAMINA;
+  return titulo === TIT_LAMINA || titulo === TIT_TRUCO;
 }
 
 // Equipo docente de un PER. Si la pestana DOCENTES tiene filas, manda; si no, se reconstruye desde
@@ -1416,12 +1408,25 @@ function identidadBitacora_(fb, datos, id) {
     .setChoiceValues(listaProfes_(datos.referente || "", datos.profesores || "", id));
   var bit = fb.addTextItem().setTitle("Enlace a mi Bit\u00e1cora (ePortfolio)").setHelpText("Un \u00fanico enlace donde est\u00e1 toda tu evidencia. Puedes a\u00f1adirlo m\u00e1s adelante.");
   bit.setValidation(FormApp.createTextValidation().requireTextIsUrl().build());
+  trucoGenially_(fb);
   fb.addParagraphTextItem().setTitle("Breve biograf\u00eda de tu personaje").setHelpText("2-3 frases sobre tu recluta: qui\u00e9n es, de d\u00f3nde viene, qu\u00e9 se le da bien. Aparecer\u00e1 al pie de tu personaje en la Nave del Recluta.").setRequired(true);
 }
 // v3.37 \u00b7 UN BLOQUE POR RETO: enunciado + casilla + su enlace. Antes era UNA casilla por planeta con
 // todos los retos dentro y UN solo enlace: no se le\u00eda el enunciado de cada reto y no se sab\u00eda de cu\u00e1l
 // era la evidencia. \ud83d\udd34 Los t\u00edtulos son las COLUMNAS de la hoja: los fija tituloEvidenciaReto_ y el
 // propio nombre del reto, y de ah\u00ed los lee marcados_(). No se cambian sin cambiar el lector.
+// La imagen-gu\u00eda del truco de Genially. La usan crearPER y estructuraBitacora_; si la web no
+// responde, el formulario sigue sin la imagen (es ayuda, no requisito).
+function trucoGenially_(fb) {
+  try {
+    if (fb.getItems(FormApp.ItemType.IMAGE).some(function(i){ return i.getTitle() === TIT_TRUCO; })) return;
+    fb.addImageItem().setImage(UrlFetchApp.fetch(sinCache_(WEB + "assets/img/ayuda/genially_pagina.png")).getBlob())
+      .setTitle(TIT_TRUCO)
+      .setHelpText("En Genially, al pulsar Compartir, marca \u00abCompartir desde esta p\u00e1gina\u00bb: el enlace abrir\u00e1 tu " +
+        "Bit\u00e1cora JUSTO por la p\u00e1gina que quieras ense\u00f1ar. \u00dasalo cuando un reto te pida el enlace de una secci\u00f3n concreta.")
+      .setAlignment(FormApp.Alignment.CENTER).setWidth(480);
+  } catch (e) { Logger.log("trucoGenially_: " + e); }
+}
 function retosDelPlaneta_(fb, retos, padletUrl) {
   (retos || []).forEach(function(r){
     var cb = fb.addCheckboxItem().setTitle(r[1]).setHelpText(ayudaReto_(r)).setRequired(false);
@@ -1458,10 +1463,11 @@ function chinchetaBienvenida_(o) {
   if (!key || !id) return false;
   var cuerpo = { data: { type: "post", attributes: { content: {
     subject: "\ud83d\udef0\ufe0f NEBULA \u00b7 Bienvenida, tripulaci\u00f3n de " + o.nombre,
-    body: "Este muro es vuestro escaparate: aqu\u00ed se comparten los retos que lucen \u2014 la imagen con IA, " +
-      "la insignia dise\u00f1ada, la mec\u00e1nica jugable\u2026 Publica tu creaci\u00f3n con una l\u00ednea contando c\u00f3mo la hiciste, " +
-      "copia el enlace de TU chincheta y p\u00e9galo en la Bit\u00e1cora de mando como evidencia. Tu Nave: " +
-      WEB + "recluta.html?per=" + o.id } } } };
+    body: "Este muro es vuestro escaparate. Cuatro secciones, cuatro retos: \ud83d\udcf9 Pres\u00e9ntate \u00b7 " +
+      "\ud83c\udfa8 La chispa \u00b7 \ud83c\udfb2 Ensaya jugando \u00b7 \ud83d\udee1\ufe0f Mi insignia. " +
+      "Publica en la secci\u00f3n de tu reto con este formato: T\u00cdTULO = tu alias, y en la primera l\u00ednea " +
+      "\u00abCapit\u00e1n: (tu profe)\u00bb. Despu\u00e9s copia el enlace de TU chincheta y p\u00e9galo en la " +
+      "Bit\u00e1cora de mando como evidencia. Tu Nave: " + WEB + "recluta.html?per=" + o.id } } } };
   try {
     var resp = UrlFetchApp.fetch("https://api.padlet.dev/v1/boards/" + id + "/posts", {
       method: "post", contentType: "application/json", headers: { "X-Api-Key": key },
@@ -1526,8 +1532,10 @@ function crearDocumentoPER_(perId) {
   qr(WEB + "recluta.html?per=" + o.id, "QR de la Nave del Recluta");
   if (o.padlet) {
     link(LINK_ALUMNO + " \u00b7 \ud83e\uddf1 PADLET DE LA CLASE \u2014 el muro donde se comparten los retos", o.padlet);
-    par("Aqu\u00ed cuelga el alumnado sus creaciones (la imagen con IA, la insignia dise\u00f1ada, la mec\u00e1nica " +
-        "jugable\u2026) para que toda la clase se inspire. El formulario ya se lo recuerda reto a reto.");
+    par("Formato \u00abMuro con secciones\u00bb, con cuatro: \ud83d\udcf9 Pres\u00e9ntate (A0) \u00b7 \ud83c\udfa8 La chispa (B1) \u00b7 \ud83c\udfb2 Ensaya " +
+        "jugando (A6) \u00b7 \ud83d\udee1\ufe0f Mi insignia (A7). Convenci\u00f3n para saber qui\u00e9n es qui\u00e9n sin listas de clase: " +
+        "el T\u00cdTULO de cada chincheta es el alias del recluta y la primera l\u00ednea dice \u00abCapit\u00e1n: (su profe)\u00bb. " +
+        "El formulario se lo recuerda reto a reto.");
   }
   link(LINK_ALUMNO + " \u00b7 \ud83c\udfab TICKET DE SALIDA \u00abContacta con NEBULA\u00bb (an\u00f3nimo; bot\u00f3n o QR)", o.formTicket);
   qr(o.formTicket, "QR del ticket de salida");
@@ -2889,7 +2897,9 @@ function tablero_(perId, conPrivados) {
   var ts_ = function(f){ try { var t = new Date(f).getTime(); return isNaN(t) ? 0 : t; } catch (e) { return 0; } };
   var lista = Object.keys(por).map(function(m){ var a = por[m]; var xp = 0, cred = 0, tema = 0, ins = {}, xp7 = 0, cuando = {};
     Object.keys(a.retos).forEach(function(id){ var t7 = ts_(a.retos[id].fecha), nuevo = t7 >= hace7;
-      if (id === "H1") { xp += XP_RECLUTAMIENTO; if (nuevo) xp7 += XP_RECLUTAMIENTO; cred += creditosDe_("H1", o.tipo); ins["H1_reclutamiento"] = true; ins["E1_nebula"] = true; return; }
+      // v3.39 - E1 (NEBULA) ya NO se regala aqui: se gana con el reto A0 "Presentate a tu
+      // tripulacion", que la trae en su lista de insignias como cualquier otro reto.
+      if (id === "H1") { xp += XP_RECLUTAMIENTO; if (nuevo) xp7 += XP_RECLUTAMIENTO; cred += creditosDe_("H1", o.tipo); ins["H1_reclutamiento"] = true; return; }
       var x = porId[id]; if (!x) return; xp += x[3]; if (nuevo) xp7 += x[3];
       cred += creditosDe_(id, o.tipo); if (x[4] > tema && x[4] <= 8) tema = x[4];
       x[2].forEach(function(k){ ins[k] = true; if (t7 > (cuando[k] || 0)) cuando[k] = t7; }); });
@@ -2899,7 +2909,7 @@ function tablero_(perId, conPrivados) {
       var val = valorBonus_(k); xp += val.xp; cred += val.creditos;
       if (ts_(bonus[k]) >= hace7) xp7 += val.xp;
     });
-    if (Object.keys(a.retos).length) { ins["H1_reclutamiento"] = true; ins["E1_nebula"] = true; }
+    if (Object.keys(a.retos).length) { ins["H1_reclutamiento"] = true; }
     // una insignia derivada se gana cuando cae la ULTIMA de las suyas: esa es su fecha
     DERIVADAS.forEach(function(d){ if (d[2].every(function(k){ return ins[k]; })) { ins[d[0]] = true; xp += d[1]; cred += CREDITOS.derivada || 0;
       var ult = 0; d[2].forEach(function(k){ if ((cuando[k] || 0) > ult) ult = cuando[k] || 0; });

@@ -172,8 +172,8 @@ c(G.sinCache_("https://x.es/a.png?v=1").indexOf("&t=") > 0, "y respeta la query 
 
 // y las cuatro descargas de imagen del script pasan por ahí
 const fuente = require("fs").readFileSync(require("path").join(__dirname, "..", "apps-script", "Code.gs"), "utf8");
-igual((fuente.match(/UrlFetchApp\.fetch\(sinCache_\(WEB/g) || []).length, 4,
-  "🔴 las cuatro descargas de imagen (orbes y lámina) se saltan la caché");
+igual((fuente.match(/UrlFetchApp\.fetch\(sinCache_\(WEB/g) || []).length, 5,
+  "🔴 las CINCO descargas de imagen (orbes, lámina y el truco de Genially) se saltan la caché");
 igual((fuente.match(/UrlFetchApp\.fetch\(WEB \+ "assets/g) || []).length, 0,
   "y no queda ninguna que pida la imagen a pelo");
 
@@ -187,9 +187,11 @@ const msg = G.confirmacionBitacora_("prueba-banco");
 contiene(msg, "recluta.html?per=prueba-banco", "🔴 el enlace del final lleva a SU Nave");
 c(msg.indexOf("registro.html") < 0,
   "y NO a registro.html, que es la web del método con la guía de instalación y el acceso con PIN");
-contiene(msg, "Solo puedes rellenar este formulario una vez",
-  "🔴 nombra LITERALMENTE el aviso de Google: si no lo nombra, el alumno no sabe que hablamos de eso");
-contiene(msg, "ES NORMAL", "y dice que es normal, en mayúsculas, que es lo que se lee");
+// v3.39 · Google ya no enseña el «solo puedes rellenarlo una vez» con la respuesta editable
+// (lo comprobó Norberto en vivo, 30-ago), así que el mensaje se simplificó: sin párrafo que
+// desactive un susto que ya no existe, pero con las flechas al botón intactas.
+c(msg.indexOf("Solo puedes rellenar") < 0, "ya no se menciona un aviso de Google que ya no aparece");
+contiene(msg, "SE CONSERVA", "dice lo esencial: lo de antes se conserva");
 contiene(msg, "Modificar tu respuesta", "y nombra el botón EXACTO que tiene que pulsar");
 c(/👇/.test(msg) && /⬇/.test(msg), "con flechas, que es lo que hace que un adulto con prisa mire abajo");
 // las flechas van LAS ÚLTIMAS: Google pone su enlace al final del todo, así que apuntar hacia abajo

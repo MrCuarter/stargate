@@ -25,17 +25,17 @@ igual(f().bonus, [], "y no hay bonus");
 // ---------------------------------------------------------------- b) el planeta entero sí
 const base = f().xp, baseCr = f().creditos_ganados;
 E.enviarBitacora(G, PER, { email: "nova@alumno.es",
-  marcados: E.marcar(G, [et("A1"), et("B1"), et("X1")]) }, 2);
+  marcados: E.marcar(G, [et("A0"), et("A1"), et("B1"), et("X1")]) }, 2);
 const tras = f();
-igual(tras.planetas_completos, [1], "con los tres retos del tema 1, el planeta está completo");
+igual(tras.planetas_completos, [1], "con los CUATRO retos del tema 1 (A0 incluido), el planeta está completo");
 c(tras.bonus.indexOf("planeta:1") >= 0, "🔴 y el bonus queda ESCRITO, no calculado al vuelo");
-igual(tras.xp - base, 250 + 500 + G.BONUS_PLANETA.xp, "suma los xp de los retos MÁS los del planeta");
-igual(tras.creditos_ganados - baseCr, 50 + 100 + G.BONUS_PLANETA.creditos, "y sus créditos");
+igual(tras.xp - base, 100 + 250 + 500 + G.BONUS_PLANETA.xp, "suma los xp de los retos MÁS los del planeta");
+igual(tras.creditos_ganados - baseCr, 20 + 50 + 100 + G.BONUS_PLANETA.creditos, "y sus créditos");
 
 // ---------------------------------------------------------------- c) una vez, y solo una
 const escritos = bonusEscritos().length;
 E.enviarBitacora(G, PER, { email: "nova@alumno.es",
-  marcados: E.marcar(G, [et("A1"), et("B1"), et("X1")]) }, 2);
+  marcados: E.marcar(G, [et("A0"), et("A1"), et("B1"), et("X1")]) }, 2);
 igual(bonusEscritos().length, escritos, "🔴 reenviar lo mismo NO vuelve a conceder el bonus");
 igual(f().xp, tras.xp, "ni suma xp de más");
 

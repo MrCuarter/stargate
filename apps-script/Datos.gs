@@ -39,6 +39,9 @@ var PUESTA_EN_ESCENA = [
 // ================= CATÁLOGO =================
 // [id, etiqueta de la casilla, insignias, xp, tema]
 var RETOS_REGULAR = [
+  // v3.39 · el clásico que faltaba (30-ago): presentarse a la tripulación. Da la insignia de NEBULA,
+  // que hasta hoy se regalaba al alistarse — ahora se GANA compartiendo tu cara con la clase.
+  ["A0","Reto «Preséntate a tu tripulación» (vídeo de 60 s)",["E1_nebula"],100,1],
   ["A1","Reto A «El boceto sin quemar» (recupera a Bran)",["P1_bran"],100,1],
   ["B1","Reto B «La chispa» (imagen con IA)",["R1_la-chispa"],250,1],
   ["X1","Actividad 1 entregada (imagen con IA)",["H2_primera-forja","E2_capitan"],500,1],
@@ -61,6 +64,7 @@ var RETOS_REGULAR = [
 ];
 // PUA: una insignia por tema (el personaje), ganada con la pieza productiva del tema
 var RETOS_PUA = [
+  ["A0","Reto «Preséntate a tu tripulación» (vídeo de 60 s)",["E1_nebula"],100,1],
   ["B1","La chispa: imagen con IA (recupera a Bran)",["P1_bran","R1_la-chispa"],300,1],
   ["X1","Actividad 1 entregada",["H2_primera-forja","E2_capitan"],500,1],
   ["B2","El eco que enseña: videotutorial (recupera a Tomás)",["P2_tomas","R2_el-eco-que-ensena"],300,2],
@@ -120,6 +124,7 @@ function valorBonus_(clave) {
 // tema, porque un alumno que no sabe que se le pide ESCRIBE UN CORREO. Lo genera _build_site.py
 // desde _site_data.py (AYUDA_RETOS): NO editar a mano.
 var AYUDA_RETOS = {
+ "A0": "Graba un vídeo de MÁXIMO 60 segundos presentándote al resto de la tripulación y publícalo en la sección 📹 «Preséntate» del padlet de la clase (título = tu alias; primera línea = «Capitán: tu profe»). No hace falta guion de cine — si te da apuro, responde a tres o cuatro de estas: ¿quién eres y a qué te dedicas? ¿desde dónde te conectas? ¿por qué educación? ¿una herramienta que ames y una que sufras? ¿un dato curioso que nadie adivinaría? Grábalo del tirón con el móvil: natural gana a perfecto. Sirve para ponernos cara desde el primer día — y NEBULA te da su insignia: lo que se comparte no se apaga.",
  "A1": "Publica en el foro de la plataforma de UNIR un borrador en bruto de algo que estés creando (una idea de recurso, un esquema a medias, un primer intento feo). Añade una frase: qué te daba reparo enseñarlo sin pulir. No se corrige ni se puntúa: el único criterio es compartirlo antes de terminarlo.",
  "A2": "Graba un clip corto (máx. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no pudo venir a clase. Súbelo o descríbelo en el foro de la plataforma de UNIR. Criterio único: que funcione sin ti delante (se entiende solo).",
  "A3": "Toma un objetivo de aprendizaje y describe dos rutas completamente distintas para alcanzarlo, pensadas para dos alumnos diferentes (p. ej. uno que aprende haciendo y otro que aprende leyendo). 4–6 líneas. Criterio: que las dos rutas lleguen a la misma cima.",
@@ -193,15 +198,16 @@ function ayudaReto_(r) {
 // a tipo "padlet" — la imagen con IA (B1), la mecánica jugable (A6) y la insignia diseñada (A7).
 // Los de texto ofrecen el padlet como alternativa y los de enlace lo sugieren como escaparate;
 // foro y Actividades quedan como están (decisión explícita del usuario).
-var EVIDENCIA_TIPO = { A1:"foro", A2:"foro", A3:"texto", A4:"foro", A5:"texto", A6:"padlet",
+var EVIDENCIA_TIPO = { A0:"padlet", A1:"foro", A2:"foro", A3:"texto", A4:"foro", A5:"texto", A6:"padlet",
   A7:"padlet", A8:"texto", B1:"padlet", B2:"enlace", B3:"documento", B4:"enlace", B5:"bitacora",
   B6:"enlace", B7:"enlace", B8:"enlace", X1:"actividad", X2:"actividad", XF:"examen" };
 var EVIDENCIA_TEXTOS = {
   foro: "Tu reto vive en el foro de UNIR: lo más fácil es pegar aquí el ENLACE DIRECTO a tu mensaje " +
     "(ábrelo en el foro y copia la URL de la barra). ¿El foro no te da enlace? Vale una captura subida " +
     "a una carpeta compartida de Drive o a postimages.org — o pégala en tu Bitácora y enlaza la Bitácora.",
-  texto: "Es un reto de escribir: ponlo en tu Bitácora (o en el foro de UNIR) y pega aquí ese enlace. " +
-    "También vale una captura subida a Drive compartido o a postimages.org.",
+  texto: "Es un reto de escribir: ponlo en tu Bitácora (o en el foro de UNIR) y pega aquí ese enlace " +
+    "— si tu Bitácora es un Genially, marca «Compartir desde esta página» al copiar el enlace y se " +
+    "abrirá justo por este reto. También vale una captura subida a Drive compartido o a postimages.org.",
   enlace: "Esto se comparte con su PROPIO enlace publicado: pégalo aquí tal cual. Ábrelo antes en una " +
     "ventana de incógnito: si pide permiso para abrirse, tu profe no lo va a poder ver y no cuenta.",
   documento: "Pega el enlace del documento (Drive/Docs) compartido en modo «cualquiera con el enlace " +
@@ -209,8 +215,9 @@ var EVIDENCIA_TEXTOS = {
   proceso: "Vale el enlace al chat con la IA (compártelo desde la propia herramienta) o unas capturas " +
     "del proceso subidas a Drive compartido o a postimages.org. Si ya lo tienes todo en tu Bitácora, " +
     "enlaza la Bitácora.",
-  bitacora: "La prueba ES tu Bitácora: pega aquí su enlace público, a poder ser el de la sección de " +
-    "este reto. Ábrelo en una ventana de incógnito: si pide permiso, tu profe no lo verá.",
+  bitacora: "La prueba ES tu Bitácora: pega aquí su enlace público. Truco de Genially: al compartir, " +
+    "marca «Compartir desde esta página» y el enlace abrirá JUSTO la página de este reto. " +
+    "Ábrelo en una ventana de incógnito: si pide permiso, tu profe no lo verá.",
   // 30-ago · Norberto: las Actividades NO piden enlace — ya se suben a la plataforma de UNIR y el
   // profesorado las ve allí. Pedir evidencia de algo ya entregado solo genera dudas.
   actividad: "No hace falta enlace: la Actividad ya la entregas en la plataforma de UNIR y tu profe " +
@@ -227,9 +234,10 @@ function ayudaEvidenciaReto_(r, padletUrl) {
   var u = String(padletUrl || "").trim();
   if (tipo === "padlet") {
     if (!u) return EVIDENCIA_TEXTOS.padlet_sin_url;
-    return "Este reto luce en el PADLET de la clase: publica allí tu creación (imagen o captura + una " +
-      "línea contando cómo lo hiciste) y pega aquí el enlace de TU publicación (ábrela en el padlet y " +
-      "copia su enlace). Así toda la clase se inspira. El padlet: " + u;
+    return "Este reto luce en el PADLET de la clase: publica allí tu creación (la imagen, el vídeo o una " +
+      "captura + una línea contando cómo lo hiciste) en SU sección, con este formato: TÍTULO = tu alias, " +
+      "y en la primera línea «Capitán: (tu profe)». Después pega aquí el enlace de TU publicación " +
+      "(ábrela en el padlet y copia su enlace). Así toda la clase se inspira. El padlet: " + u;
   }
   var base = EVIDENCIA_TEXTOS[tipo] || AYUDA_EVIDENCIA_RETO;
   if (u && tipo === "texto")
@@ -289,7 +297,7 @@ var NIVELES = [   // [nivel, xp REGULAR, rango de arte 1-5, titulo]
   [9,4150,4,"Comandante de flota"],
   [10,5000,5,"Leyenda de la Cero"]
 ];
-var XP_VIAJE = {"REGULAR": 5000, "PUA": 4100};
+var XP_VIAJE = {"REGULAR": 5100, "PUA": 4200};
 var CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55, "actividad": 100, "final": 100, "derivada": 60};
 // Calendario del PER: los formularios abren el primer dia de la semana 1, el registro
 // de misiones cierra al acabar la ultima semana y el canje aguanta una semana mas.

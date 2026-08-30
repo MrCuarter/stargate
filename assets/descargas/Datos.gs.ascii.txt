@@ -39,6 +39,9 @@ var PUESTA_EN_ESCENA = [
 // ================= CATALOGO =================
 // [id, etiqueta de la casilla, insignias, xp, tema]
 var RETOS_REGULAR = [
+  // v3.39 - el clasico que faltaba (30-ago): presentarse a la tripulacion. Da la insignia de NEBULA,
+  // que hasta hoy se regalaba al alistarse - ahora se GANA compartiendo tu cara con la clase.
+  ["A0","Reto \u00abPres\u00e9ntate a tu tripulaci\u00f3n\u00bb (v\u00eddeo de 60 s)",["E1_nebula"],100,1],
   ["A1","Reto A \u00abEl boceto sin quemar\u00bb (recupera a Bran)",["P1_bran"],100,1],
   ["B1","Reto B \u00abLa chispa\u00bb (imagen con IA)",["R1_la-chispa"],250,1],
   ["X1","Actividad 1 entregada (imagen con IA)",["H2_primera-forja","E2_capitan"],500,1],
@@ -61,6 +64,7 @@ var RETOS_REGULAR = [
 ];
 // PUA: una insignia por tema (el personaje), ganada con la pieza productiva del tema
 var RETOS_PUA = [
+  ["A0","Reto \u00abPres\u00e9ntate a tu tripulaci\u00f3n\u00bb (v\u00eddeo de 60 s)",["E1_nebula"],100,1],
   ["B1","La chispa: imagen con IA (recupera a Bran)",["P1_bran","R1_la-chispa"],300,1],
   ["X1","Actividad 1 entregada",["H2_primera-forja","E2_capitan"],500,1],
   ["B2","El eco que ense\u00f1a: videotutorial (recupera a Tom\u00e1s)",["P2_tomas","R2_el-eco-que-ensena"],300,2],
@@ -120,6 +124,7 @@ function valorBonus_(clave) {
 // tema, porque un alumno que no sabe que se le pide ESCRIBE UN CORREO. Lo genera _build_site.py
 // desde _site_data.py (AYUDA_RETOS): NO editar a mano.
 var AYUDA_RETOS = {
+ "A0": "Graba un v\u00eddeo de M\u00c1XIMO 60 segundos present\u00e1ndote al resto de la tripulaci\u00f3n y publ\u00edcalo en la secci\u00f3n \ud83d\udcf9 \u00abPres\u00e9ntate\u00bb del padlet de la clase (t\u00edtulo = tu alias; primera l\u00ednea = \u00abCapit\u00e1n: tu profe\u00bb). No hace falta guion de cine \u2014 si te da apuro, responde a tres o cuatro de estas: \u00bfqui\u00e9n eres y a qu\u00e9 te dedicas? \u00bfdesde d\u00f3nde te conectas? \u00bfpor qu\u00e9 educaci\u00f3n? \u00bfuna herramienta que ames y una que sufras? \u00bfun dato curioso que nadie adivinar\u00eda? Gr\u00e1balo del tir\u00f3n con el m\u00f3vil: natural gana a perfecto. Sirve para ponernos cara desde el primer d\u00eda \u2014 y NEBULA te da su insignia: lo que se comparte no se apaga.",
  "A1": "Publica en el foro de la plataforma de UNIR un borrador en bruto de algo que est\u00e9s creando (una idea de recurso, un esquema a medias, un primer intento feo). A\u00f1ade una frase: qu\u00e9 te daba reparo ense\u00f1arlo sin pulir. No se corrige ni se punt\u00faa: el \u00fanico criterio es compartirlo antes de terminarlo.",
  "A2": "Graba un clip corto (m\u00e1x. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no pudo venir a clase. S\u00fabelo o descr\u00edbelo en el foro de la plataforma de UNIR. Criterio \u00fanico: que funcione sin ti delante (se entiende solo).",
  "A3": "Toma un objetivo de aprendizaje y describe dos rutas completamente distintas para alcanzarlo, pensadas para dos alumnos diferentes (p. ej. uno que aprende haciendo y otro que aprende leyendo). 4\u20136 l\u00edneas. Criterio: que las dos rutas lleguen a la misma cima.",
@@ -193,15 +198,16 @@ function ayudaReto_(r) {
 // a tipo "padlet" - la imagen con IA (B1), la mecanica jugable (A6) y la insignia disenada (A7).
 // Los de texto ofrecen el padlet como alternativa y los de enlace lo sugieren como escaparate;
 // foro y Actividades quedan como estan (decision explicita del usuario).
-var EVIDENCIA_TIPO = { A1:"foro", A2:"foro", A3:"texto", A4:"foro", A5:"texto", A6:"padlet",
+var EVIDENCIA_TIPO = { A0:"padlet", A1:"foro", A2:"foro", A3:"texto", A4:"foro", A5:"texto", A6:"padlet",
   A7:"padlet", A8:"texto", B1:"padlet", B2:"enlace", B3:"documento", B4:"enlace", B5:"bitacora",
   B6:"enlace", B7:"enlace", B8:"enlace", X1:"actividad", X2:"actividad", XF:"examen" };
 var EVIDENCIA_TEXTOS = {
   foro: "Tu reto vive en el foro de UNIR: lo m\u00e1s f\u00e1cil es pegar aqu\u00ed el ENLACE DIRECTO a tu mensaje " +
     "(\u00e1brelo en el foro y copia la URL de la barra). \u00bfEl foro no te da enlace? Vale una captura subida " +
     "a una carpeta compartida de Drive o a postimages.org \u2014 o p\u00e9gala en tu Bit\u00e1cora y enlaza la Bit\u00e1cora.",
-  texto: "Es un reto de escribir: ponlo en tu Bit\u00e1cora (o en el foro de UNIR) y pega aqu\u00ed ese enlace. " +
-    "Tambi\u00e9n vale una captura subida a Drive compartido o a postimages.org.",
+  texto: "Es un reto de escribir: ponlo en tu Bit\u00e1cora (o en el foro de UNIR) y pega aqu\u00ed ese enlace " +
+    "\u2014 si tu Bit\u00e1cora es un Genially, marca \u00abCompartir desde esta p\u00e1gina\u00bb al copiar el enlace y se " +
+    "abrir\u00e1 justo por este reto. Tambi\u00e9n vale una captura subida a Drive compartido o a postimages.org.",
   enlace: "Esto se comparte con su PROPIO enlace publicado: p\u00e9galo aqu\u00ed tal cual. \u00c1brelo antes en una " +
     "ventana de inc\u00f3gnito: si pide permiso para abrirse, tu profe no lo va a poder ver y no cuenta.",
   documento: "Pega el enlace del documento (Drive/Docs) compartido en modo \u00abcualquiera con el enlace " +
@@ -209,8 +215,9 @@ var EVIDENCIA_TEXTOS = {
   proceso: "Vale el enlace al chat con la IA (comp\u00e1rtelo desde la propia herramienta) o unas capturas " +
     "del proceso subidas a Drive compartido o a postimages.org. Si ya lo tienes todo en tu Bit\u00e1cora, " +
     "enlaza la Bit\u00e1cora.",
-  bitacora: "La prueba ES tu Bit\u00e1cora: pega aqu\u00ed su enlace p\u00fablico, a poder ser el de la secci\u00f3n de " +
-    "este reto. \u00c1brelo en una ventana de inc\u00f3gnito: si pide permiso, tu profe no lo ver\u00e1.",
+  bitacora: "La prueba ES tu Bit\u00e1cora: pega aqu\u00ed su enlace p\u00fablico. Truco de Genially: al compartir, " +
+    "marca \u00abCompartir desde esta p\u00e1gina\u00bb y el enlace abrir\u00e1 JUSTO la p\u00e1gina de este reto. " +
+    "\u00c1brelo en una ventana de inc\u00f3gnito: si pide permiso, tu profe no lo ver\u00e1.",
   // 30-ago - Norberto: las Actividades NO piden enlace - ya se suben a la plataforma de UNIR y el
   // profesorado las ve alli. Pedir evidencia de algo ya entregado solo genera dudas.
   actividad: "No hace falta enlace: la Actividad ya la entregas en la plataforma de UNIR y tu profe " +
@@ -227,9 +234,10 @@ function ayudaEvidenciaReto_(r, padletUrl) {
   var u = String(padletUrl || "").trim();
   if (tipo === "padlet") {
     if (!u) return EVIDENCIA_TEXTOS.padlet_sin_url;
-    return "Este reto luce en el PADLET de la clase: publica all\u00ed tu creaci\u00f3n (imagen o captura + una " +
-      "l\u00ednea contando c\u00f3mo lo hiciste) y pega aqu\u00ed el enlace de TU publicaci\u00f3n (\u00e1brela en el padlet y " +
-      "copia su enlace). As\u00ed toda la clase se inspira. El padlet: " + u;
+    return "Este reto luce en el PADLET de la clase: publica all\u00ed tu creaci\u00f3n (la imagen, el v\u00eddeo o una " +
+      "captura + una l\u00ednea contando c\u00f3mo lo hiciste) en SU secci\u00f3n, con este formato: T\u00cdTULO = tu alias, " +
+      "y en la primera l\u00ednea \u00abCapit\u00e1n: (tu profe)\u00bb. Despu\u00e9s pega aqu\u00ed el enlace de TU publicaci\u00f3n " +
+      "(\u00e1brela en el padlet y copia su enlace). As\u00ed toda la clase se inspira. El padlet: " + u;
   }
   var base = EVIDENCIA_TEXTOS[tipo] || AYUDA_EVIDENCIA_RETO;
   if (u && tipo === "texto")
@@ -289,7 +297,7 @@ var NIVELES = [   // [nivel, xp REGULAR, rango de arte 1-5, titulo]
   [9,4150,4,"Comandante de flota"],
   [10,5000,5,"Leyenda de la Cero"]
 ];
-var XP_VIAJE = {"REGULAR": 5000, "PUA": 4100};
+var XP_VIAJE = {"REGULAR": 5100, "PUA": 4200};
 var CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55, "actividad": 100, "final": 100, "derivada": 60};
 // Calendario del PER: los formularios abren el primer dia de la semana 1, el registro
 // de misiones cierra al acabar la ultima semana y el canje aguanta una semana mas.

@@ -22,7 +22,8 @@ let rico = G.tablero_(PER, true).reclutas[0];
 // bonus de racha. Eso es correcto: la constancia exige semanas de verdad, no una sentada.
 const bonoXP = G.BONUS_PLANETA.xp * 8;
 const bonoCR = G.BONUS_PLANETA.creditos * 8;
-igual(rico.creditos_ganados, 1000 + bonoCR, "el viaje completo da los 1.000 ◈ de base más los bonus");
+// 1.020 ◈ de base: los 1.000 de siempre más los 20 del reto A0 (v3.39)
+igual(rico.creditos_ganados, 1020 + bonoCR, "el viaje completo da los 1.020 ◈ de base más los bonus");
 igual(rico.xp, G.XP_VIAJE.REGULAR + bonoXP, "y los xp del viaje más el bonus de los 8 planetas");
 igual(rico.nivel, 10, "🔴 y sigue siendo nivel 10: los bonus no se saltan el techo");
 igual(rico.nivel, 10, "nivel 10");

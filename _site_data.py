@@ -53,7 +53,7 @@ CRONO = [
       videos=[("sinopsis","Primera sesión: el gancho de arranque"),
               ("bitacora","Tras la sinopsis: presenta la Bitácora (ePortfolio)"),
               ("t1i","Al abrir el Tema 1")],
-      lanza=["Reto A «El boceto sin quemar» (Bran)", "Reto B «La chispa» (imagen con IA)"],
+      lanza=["Reto «Preséntate a tu tripulación» (vídeo 60 s)", "Reto A «El boceto sin quemar» (Bran)", "Reto B «La chispa» (imagen con IA)"],
       insignias=["E1_nebula","H1_reclutamiento"],
       hito="Presentación ante el mando · Bitácora de la semana: un recurso multimedia con IA",
       clases="Clases 01–02",
@@ -328,7 +328,7 @@ NIVELES = [
  ( 9, 4150, 4, "Comandante de flota"),
  (10, 5000, 5, "Leyenda de la Cero"),
 ]
-XP_VIAJE = {"REGULAR": 5000, "PUA": 4100}   # xp máximos del viaje completo (para escalar PUA)
+XP_VIAJE = {"REGULAR": 5100, "PUA": 4200}   # xp máximos del viaje completo (para escalar PUA); v3.39 con el reto A0
 # ◈ que da cada tipo de logro (el xp lo sigue fijando la tabla de retos del Apps Script)
 # 26-ago · SUBE LO QUE SE GANA. Con el vestuario de héroes hay mucho más donde gastar, y con la
 # economía vieja (590 ◈ el viaje entero) elegir una recompensa de nota significaba renunciar a
@@ -426,6 +426,12 @@ _AYUDA_DOC = _ayuda_de_los_retos()
 # Lo que se le enseña al alumnado bajo la casilla de su tema. Sale del documento maestro; aquí solo
 # se escriben a mano las piezas que ese documento no cubre (las Actividades y el examen).
 AYUDA_RETOS = {
+ "A0": "Graba un vídeo de MÁXIMO 60 segundos presentándote al resto de la tripulación y publícalo en la "
+       "sección 📹 «Preséntate» del padlet de la clase (título = tu alias; primera línea = «Capitán: tu profe»). No hace falta guion de cine — si te da apuro, "
+       "responde a tres o cuatro de estas: ¿quién eres y a qué te dedicas? ¿desde dónde te conectas? "
+       "¿por qué educación? ¿una herramienta que ames y una que sufras? ¿un dato curioso que nadie "
+       "adivinaría? Grábalo del tirón con el móvil: natural gana a perfecto. Sirve para ponernos cara "
+       "desde el primer día — y NEBULA te da su insignia: lo que se comparte no se apaga.",
   "X1": "La Actividad 1 entregada donde te la pide tu profesor. Marca la casilla cuando la hayas ENVIADO, no cuando la empieces.",
   "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al enviarla.",
   "XF": "El examen hecho. Se marca después de haberlo presentado.",

@@ -29,32 +29,35 @@ igual(t.reclutas.filter(x => x.email === "caro@alumno.es")[0].profe, "", "quien 
 
 // insignias base
 c(ana.insignias.indexOf("H1_reclutamiento") >= 0, "alistarse da la insignia de reclutamiento");
-c(ana.insignias.indexOf("E1_nebula") >= 0, "alistarse da la carta de NEBULA");
+// v3.39 · E1 ya NO se regala al alistarse: se gana con el reto A0 «Preséntate a tu tripulación»
+c(ana.insignias.indexOf("E1_nebula") < 0, "🔴 alistarse ya NO regala la carta de NEBULA: hay que presentarse");
 
 // --- registrar retos: xp y créditos por tipo -------------------------------------------------
 const RET = G.retosDe_("REGULAR");
+const etA0 = RET.filter(r => r[0] === "A0")[0][1];
 const etA1 = RET.filter(r => r[0] === "A1")[0][1];
 const etB1 = RET.filter(r => r[0] === "B1")[0][1];
 const etX1 = RET.filter(r => r[0] === "X1")[0][1];
-E.enviarBitacora(G, PER, { email: "ana@alumno.es", marcados: E.marcar(G, [etA1, etB1, etX1]) }, 2);
+E.enviarBitacora(G, PER, { email: "ana@alumno.es", marcados: E.marcar(G, [etA0, etA1, etB1, etX1]) }, 2);
 
 t = G.tablero_(PER, true);
 const ana2 = t.reclutas.filter(x => x.email === "ana@alumno.es")[0];
 // A1+B1+X1 son TODOS los retos del tema 1, así que además cae el bonus de planeta completo
-igual(ana2.planetas_completos, [1], "con A1+B1+X1 el planeta 1 queda completo");
-igual(ana2.xp, 100 + 100 + 250 + 500 + G.BONUS_PLANETA.xp, "xp = reclutamiento + A1 + B1 + X1 + planeta completo");
-igual(ana2.creditos_ganados, 20 + 20 + 50 + 100 + G.BONUS_PLANETA.creditos,
+igual(ana2.planetas_completos, [1], "con A0+A1+B1+X1 el planeta 1 queda completo (A0 cuenta: es un reto más)");
+c(ana2.insignias.indexOf("E1_nebula") >= 0, "y presentarse trae POR FIN la carta de NEBULA");
+igual(ana2.xp, 100 + 100 + 100 + 250 + 500 + G.BONUS_PLANETA.xp, "xp = reclutamiento + A0 + A1 + B1 + X1 + planeta completo");
+igual(ana2.creditos_ganados, 20 + 20 + 20 + 50 + 100 + G.BONUS_PLANETA.creditos,
   "créditos = 20 + retoA 20 + retoB 50 + actividad 100 + el bonus del planeta");
 c(ana2.bonus.indexOf("planeta:1") >= 0, "🔴 y queda ESCRITO: los bonus no se recalculan, se conceden una vez");
 igual(ana2.creditos_gastados, 0, "aún no ha gastado nada");
-igual(ana2.nivel, 3, ana2.xp + " xp = nivel 3");
-igual(ana2.rango, 2, "nivel 3 estrena el rango de arte 2 (Cadete)");
+igual(ana2.nivel, 4, ana2.xp + " xp = nivel 4 (con A0, el planeta 1 completo cruza el umbral de 1150)");
+igual(ana2.rango, 2, "nivel 4 sigue en el rango de arte 2 (Cadete)");
 igual(ana2.planeta, "Fôrge", "el planeta es el del último tema alcanzado");
 c(ana2.insignias.indexOf("P1_bran") >= 0 && ana2.insignias.indexOf("E2_capitan") >= 0, "las insignias del reto se conceden");
 
 // los xp NO se gastan nunca: son el viaje
-igual(ana2.xp_siguiente, 1150, "el siguiente umbral es 1150");
-igual(ana2.xp_faltan, 1150 - ana2.xp, "lo que falta para el nivel 4 cuadra con el umbral");
+igual(ana2.xp_siguiente, 1650, "el siguiente umbral es 1650");
+igual(ana2.xp_faltan, 1650 - ana2.xp, "lo que falta para el nivel 5 cuadra con el umbral");
 
 // --- derivadas ------------------------------------------------------------------------------
 const todosA = RET.filter(r => r[0].charAt(0) === "A");
@@ -62,7 +65,8 @@ E.enviarBitacora(G, PER, { email: "bea@alumno.es", marcados: E.marcar(G, todosA)
 t = G.tablero_(PER, true);
 const bea = t.reclutas.filter(x => x.email === "bea@alumno.es")[0];
 c(bea.insignias.indexOf("H4_tripulacion-cero") >= 0, "recuperar a los 8 da la insignia derivada «Tripulación Cero»");
-igual(bea.xp, 100 + 8 * 100 + 300, "la derivada suma sus 300 xp");
+// bea marca TODOS los retos A — y A0 también es un reto A, así que son 9 de 100
+igual(bea.xp, 100 + 9 * 100 + 300, "la derivada suma sus 300 xp");
 
 // --- PUA: el camino se siente igual de largo -------------------------------------------------
 const G2 = E.nuevoMundo();
@@ -70,10 +74,10 @@ E.crearPERDemo(G2, { nombre: "PUA BANCO", tipo: "PUA" });
 E.enviarBitacora(G2, "pua-banco", { email: "pua@alumno.es", alias: "Pua", nombre: "P U", profe: "Mr Cuarter" });
 const RP = G2.retosDe_("PUA");
 E.enviarBitacora(G2, "pua-banco", { email: "pua@alumno.es",
-  marcados: E.marcar(G2, [RP[0], RP[1]]) }, 2);
+  marcados: E.marcar(G2, RP.filter(r => r[4] === 1)) }, 2);
 const tp = G2.tablero_("pua-banco", true).reclutas[0];
-igual(tp.xp, 100 + 300 + 500 + G2.BONUS_PLANETA.xp, "PUA: reclutamiento + B1 + X1 + planeta completo");
-igual(tp.creditos_ganados, 20 + 55 + 100 + G2.BONUS_PLANETA.creditos, "PUA: el reto B vale 55 créditos, más el bonus");
+igual(tp.xp, 100 + 100 + 300 + 500 + G2.BONUS_PLANETA.xp, "PUA: reclutamiento + A0 + B1 + X1 + planeta completo");
+igual(tp.creditos_ganados, 20 + 20 + 55 + 100 + G2.BONUS_PLANETA.creditos, "PUA: el reto B vale 55 créditos, más A0 y el bonus");
 igual(G2.nivelDe_(900, "PUA"), G.nivelDe_(900 * 5000 / 4100, "REGULAR"), "los umbrales de PUA están escalados por el total del viaje");
 igual(G2.desdeEfectiva_(15, "PUA"), 8, "una recompensa de la semana 15 en REGULAR abre en la 8 en PUA");
 

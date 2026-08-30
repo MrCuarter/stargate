@@ -39,9 +39,10 @@ igual(new Set(evs).size, evs.length,
   "🔴 con nombre DISTINTO cada uno: si se llamaran igual, la hoja tendría columnas repetidas y leerFila_ solo vería la última");
 // v3.38 · LA EVIDENCIA POR TIPO (petición de Norberto, 30-ago): cada reto dice la forma más fácil
 // de compartir SU producto, no un consejo genérico.
-contiene(item(G.tituloEvidenciaReto_(RETOS[0])).getHelpText(), "ENLACE DIRECTO",
+const a1 = RETOS.filter(r => r[0] === "A1")[0];
+contiene(item(G.tituloEvidenciaReto_(a1)).getHelpText(), "ENLACE DIRECTO",
   "🔴 A1 va del foro: pide el enlace directo al mensaje, no un genérico");
-contiene(item(G.tituloEvidenciaReto_(RETOS[0])).getHelpText(), "postimages",
+contiene(item(G.tituloEvidenciaReto_(a1)).getHelpText(), "postimages",
   "y da las alternativas (captura a Drive compartido o postimages, o vía Bitácora)");
 const b6 = RETOS.filter(r => r[0] === "B6")[0];
 contiene(item(G.tituloEvidenciaReto_(b6)).getHelpText(), "incógnito",
@@ -61,7 +62,7 @@ const GP = E.nuevoMundo();
 E.crearPERDemo(GP, { nombre: "GRUPO PADLET", padlet: "https://padlet.com/profe/muro-de-clase-abc123def" });
 const bitP = GP.FormApp.openByUrl(GP.perObj_(GP.perFila_("grupo-padlet").v).formBitacoraEdit);
 const itemP = t => bitP.getItems().filter(i => i.getTitle() === t)[0];
-["B1", "A6", "A7"].forEach(id => {
+["A0", "B1", "A6", "A7"].forEach(id => {
   const r = GP.RETOS_REGULAR.filter(x => x[0] === id)[0];
   const ay = itemP(GP.tituloEvidenciaReto_(r)).getHelpText();
   contiene(ay, "PADLET", "🔴 " + id + " manda al padlet de la clase");
