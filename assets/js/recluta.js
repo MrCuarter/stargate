@@ -219,10 +219,15 @@
       return celda('skin:'+r, img, RANGOS[r-1]||('Skin '+r),
         libre?'desbloqueada':'nivel '+nivel, puesto==='skin:'+r||(!puesto&&av.skin===r), libre);
     }).join('');
+    // v3.39 · los TRES rangos de la Rebelión, con nombre y probabilidad (petición de Norberto):
+    // ⚔️ Resistencia (raras, 4% cada una · 56% del sobre) — el grueso del ejército, las primeras en caer
+    // 🔥 Vanguardia (épicas, 3% · 36%) — van por delante, cuesta alcanzarlas
+    // 🌟 Mito (legendarias, 2% · 8%) — nadie las ha visto: van en sombra hasta que caen
+    var RANGO_HEROE={'rara':'⚔️ Resistencia','épica':'🔥 Vanguardia','epica':'🔥 Vanguardia','LEGENDARIA':'🌟 MITO'};
     var he=HER.map(function(h){
       var tengo=!!mios[h[0]];
       return celda('heroe:'+h[0], 'assets/img/heroes/'+h[0]+(tengo?'':'_bloqueado')+'.jpg',
-        h[1], tengo?h[3]:'sin descubrir', puesto==='heroe:'+h[0], tengo);
+        h[1], tengo?(RANGO_HEROE[h[3]]||h[3]):'sin descubrir', puesto==='heroe:'+h[0], tengo);
     }).join('');
     var n=(yo.heroes||[]).length;
     return '<section id="vestuario"><div class="eyebrow amber">Tu vestuario</div>'
@@ -720,6 +725,10 @@
   function lupaAvatar(){
     var r=st.yo, d=st.d, SG=window.SG||{}; if(!r) return;
     var src=SG.avatarSrc?SG.avatarSrc(r.avatar,r.alias,r.xp,d.tipo):null; if(!src) return;
+    // lo que manda es lo que el recluta VE: si la foto de la ficha ya cambió (vestirse optimista),
+    // la lupa abre esa misma imagen aunque el servidor aún no haya contestado
+    var enFicha=document.querySelector('#btn-av img.av');
+    if(enFicha&&enFicha.getAttribute('src')) src={src:enFicha.getAttribute('src'),fallback:enFicha.getAttribute('data-fb')||src.fallback,rango:src.rango};
     var ni=SG.nivelInfo?SG.nivelInfo(r.xp,d.tipo):{nivel:1,rangoNombre:''};
     var ov=document.getElementById('cromo-lupa');
     if(!ov){ov=document.createElement('div');ov.id='cromo-lupa';ov.className='lupa';document.body.appendChild(ov);}
@@ -826,6 +835,10 @@
         var av=root.querySelector('#btn-av img.av'); var avAntes=av?av.getAttribute('src'):null;
         if(av&&img) av.setAttribute('src',img);
         // 2) y se pide de verdad
+        // 30-ago · el parche optimista también toca avatar.heroe/skin: la lupa del personaje lee de
+        // ahí, y si solo cambiáramos la foto abriría el traje ANTERIOR (visto por Norberto en vivo).
+        if(st.yo&&st.yo.avatar){var mh=clave.match(/^heroe:(.+)$/),ms=clave.match(/^skin:([1-5])$/);
+          st.yo.avatar.heroe=mh?mh[1]:'';if(ms)st.yo.avatar.skin=Number(ms[1]);}
         post({accion:'vestir',per:per,email:st.email,viste:clave},function(){
           b.classList.remove('guardando');
           if(st.yo) st.yo.viste=clave;

@@ -461,7 +461,7 @@ RECOMPENSAS = [
  ("Marco dorado del avatar", 60, 1,
   "Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.", 6, "marco"),
  ("Héroe de la Rebelión", 60, 99,
-  "Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión, cada una única. Se acumulan —cuantos más tengas, más donde elegir— y te lo pones y te lo quitas cuando quieras desde tu Nave, gratis. Los que aún no tienes salen en sombra. Y hay uno LEGENDARIO que no se deja ver hasta que cae.", 2, "heroe"),
+  "Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión en tres rangos. ⚔️ La Resistencia (56% del sobre): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave.", 2, "heroe"),
  ("Subir 0,5 en un entregable", 320, 1, "Se aplica a la actividad que elijas", 14, "nota"),
  ("Subir 1 punto en un entregable", 500, 1, "Se aplica a la actividad que elijas", 14, "nota"),
  ("Recalificar un trabajo entregado fuera de plazo", 700, 1, "Indica la actividad", 14, "nota"),

@@ -323,7 +323,7 @@ var RECOMPENSAS_INICIALES = [
   ["T\u00edtulo de recluta",40,3,"Un t\u00edtulo narrativo bajo tu alias en el tablero y la Nave (el\u00edgelo en el formulario). Se aplica solo.",3,"titulo"],
   ["Fondo de ficha: tu planeta",35,1,"Tu ficha de la Nave con el planeta que elijas de fondo (ind\u00edcalo en el formulario). Se aplica solo.",4,"fondo"],
   ["Marco dorado del avatar",60,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.",6,"marco"],
-  ["H\u00e9roe de la Rebeli\u00f3n",60,99,"Un h\u00e9roe AL AZAR del vestuario: 30 figuras de la Rebeli\u00f3n, cada una \u00fanica. Se acumulan \u2014cuantos m\u00e1s tengas, m\u00e1s donde elegir\u2014 y te lo pones y te lo quitas cuando quieras desde tu Nave, gratis. Los que a\u00fan no tienes salen en sombra. Y hay uno LEGENDARIO que no se deja ver hasta que cae.",2,"heroe"],
+  ["H\u00e9roe de la Rebeli\u00f3n",60,99,"Un h\u00e9roe AL AZAR del vestuario: 30 figuras de la Rebeli\u00f3n en tres rangos. \u2694\ufe0f La Resistencia (56% del sobre): el grueso del ej\u00e9rcito. \ud83d\udd25 La Vanguardia (36%): van por delante, cuesta alcanzarlas. \ud83c\udf1f Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan \u2014cuantos m\u00e1s tengas, m\u00e1s donde elegir\u2014 y te los pones gratis desde tu Nave.",2,"heroe"],
   ["Subir 0,5 en un entregable",320,1,"Se aplica a la actividad que elijas",14,"nota"],
   ["Subir 1 punto en un entregable",500,1,"Se aplica a la actividad que elijas",14,"nota"],
   ["Recalificar un trabajo entregado fuera de plazo",700,1,"Indica la actividad",14,"nota"],
