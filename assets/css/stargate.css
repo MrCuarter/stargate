@@ -581,6 +581,9 @@ body.vent-abierta{overflow:hidden}
 .reto-ya{font-size:.72rem;color:#43c98a}
 .reto.ok{background:rgba(67,201,138,.06)}
 .reto p{margin:0 0 6px;font-size:.86rem;line-height:1.62;color:var(--mut);white-space:pre-line}
+.badge-col .b[data-key]{cursor:zoom-in;transition:transform .15s}
+.badge-col .b[data-key]:hover{transform:translateY(-2px)}
+.badge-col .b[data-key]:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 .vest-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));margin-top:8px}
 .vest{display:flex;flex-direction:column;gap:2px;padding:0 0 8px;border-radius:14px;cursor:pointer;
   border:1px solid var(--line);background:var(--card);color:inherit;overflow:hidden;text-align:center;

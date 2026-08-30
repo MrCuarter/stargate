@@ -804,15 +804,17 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="card"><h3>2 · Nadie hace nada</h3><p>Todo vive en <b>una sola hoja maestra</b> (cuenta <b>mutecdgami</b>): una pestaña de respuestas por PER, más <b>DATOS</b> (todos los registros de todos los PER en formato largo, para análisis e investigación) y <b>RESUMEN</b> (puntos e insignias por recluta y PER), que se rehacen solas con cada respuesta. El script calcula alias, insignias, planeta actual y puntos. Las insignias de hito <b>Tripulación Cero</b> y <b>La Liberación</b> se otorgan solas. Si hay un registro falso, el profesorado escribe algo en la columna <b>Anulado</b> de la hoja y desaparece.</p></div>
 <div class="card"><h3>3 · Un PER nuevo, un clic</h3><p>Antes, dos minutos en padlet.com: crea el <b>padlet del grupo</b> en formato <b>«Muro con secciones»</b> con cuatro secciones — <b>📹 Preséntate · 🎨 La chispa · 🎲 Ensaya jugando · 🛡️ Mi insignia</b> — y actívale que los visitantes puedan escribir. Después, menú <b>🛰️ STARGATE → Crear nuevo PER…</b>: pide nombre del PER, profesorado, fechas y el <b>enlace del padlet</b>; crea los formularios y las pestañas, y el propio formulario recordará al alumnado el formato de las chinchetas (título = alias · primera línea = «Capitán: su profe»).</p></div>
 </div>
-<h3 style="margin-top:1.6em">La Bitácora de mando, por secciones (rápida de rellenar)</h3>
+<h3 style="margin-top:1.6em">La Bitácora de mando, por planetas (rápida de rellenar)</h3>
 <p class="lead">Es el formulario que el alumnado <b>rellena una vez y edita</b> cada vez que gana una insignia,
-así que tiene que costar segundos. Está organizado así:</p>
-<div class="flow" style="margin:0 0 1em"><span class="node">1 · Quién soy</span><span class="ar">→</span>
-<span class="node">«¿Qué vienes a registrar hoy?»</span><span class="ar">→</span>
-<span class="node">salta al tema elegido</span><span class="ar">→</span><span class="node">Enviar</span></div>
-<p class="lead">La primera página es siempre la identidad (alias, personaje, enlace a la Bitácora y biografía)
-y termina con un desplegable que <b>salta directo</b> a la sección del tema que se viene a registrar; al marcar
-las casillas de esa sección, <b>se envía y ya está</b>. Antes había que pasar por las diez páginas.</p>
+así que tiene que costar segundos. Está organizado así (v3.37):</p>
+<div class="flow" style="margin:0 0 1em"><span class="node">Portada · «¿QUÉ QUIERES HACER HOY?»</span><span class="ar">→</span>
+<span class="node">🪪 Alistarme</span><span class="ar">|</span>
+<span class="node">🚀 Registrar retos → elige el planeta</span><span class="ar">→</span><span class="node">Enviar</span></div>
+<p class="lead">La portada explica el formulario y pregunta UNA cosa: <b>alistarse</b> (solo la primera vez: alias,
+personaje, docente, biografía) o <b>registrar retos</b>, que salta directo a elegir planeta. Dentro de cada planeta,
+<b>cada reto es su propio bloque</b>: el enunciado completo, una casilla «✅ Lo he completado» y su enlace de
+evidencia — con el consejo de CÓMO compartirlo (foro con enlace directo, padlet, enlace propio en incógnito…).
+Al terminar la sección, <b>se envía y ya está</b>.</p>
 <div class="official" style="display:block">🔒 <b>Por qué es seguro saltarse secciones:</b> las insignias no viven en el formulario,
 viven en la hoja <b>EVENTOS</b>, y el sistema <b>solo añade</b> lo que aún no estaba registrado — nunca borra.
 Aunque un recluta no pase por la página del Tema 3, su insignia del Tema 3 sigue ahí. Lo único que se lee de la
@@ -983,6 +985,8 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
     el.addEventListener('click',function(){fn(el.getAttribute(attr));});
     el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fn(el.getAttribute(attr));}});});}
   wire('.badge[data-key]','data-key',openBadge);
+  // v3.40 · el modal tambien para contenido que se pinta DESPUES (la coleccion de la Nave)
+  window.SG_OPEN_BADGE=openBadge;
   wire('.card-thumb[data-card]','data-card',openCard);
   // vídeos de YouTube: miniatura -> iframe al pulsar
   function playYT(el){var id=el.getAttribute('data-id'); if(!id||el.classList.contains('on')) return;

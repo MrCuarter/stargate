@@ -30,6 +30,8 @@
     el.addEventListener('click',function(){fn(el.getAttribute(attr));});
     el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fn(el.getAttribute(attr));}});});}
   wire('.badge[data-key]','data-key',openBadge);
+  // v3.40 · el modal tambien para contenido que se pinta DESPUES (la coleccion de la Nave)
+  window.SG_OPEN_BADGE=openBadge;
   wire('.card-thumb[data-card]','data-card',openCard);
   // vídeos de YouTube: miniatura -> iframe al pulsar
   function playYT(el){var id=el.getAttribute('data-id'); if(!id||el.classList.contains('on')) return;

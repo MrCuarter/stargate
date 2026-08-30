@@ -145,8 +145,11 @@
         +'<p class="small muted">Te faltan <b>'+ni.faltan+'</b> xp para el <b>nivel '+(ni.nivel+1)+'</b>'
         +(ni.evo?' · tu personaje evoluciona a <b>'+esc(ni.evo.rango)+'</b> al llegar al nivel '+ni.evo.nivel:'')+'</p>'
       :'<p class="small muted">Nivel máximo: <b>'+esc(ni.titulo)+'</b>. Has hecho el viaje entero. 🫡</p>';
+    // 30-ago · cada insignia se abre en grande con su ficha (planeta y qué hay que hacer para
+    // ganarla) — el modal ya existía en la web; aquí solo se cablea. Las pendientes también: ver
+    // qué pide una insignia que no tienes es la mejor gasolina.
     var col=BADGES.map(function(kk){var tiene=(r.insignias||[]).indexOf(kk)>=0;
-      return '<div class="b'+(tiene?'':' no')+'" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+'"><img loading="lazy" src="assets/img/insignias/'+kk+'.png" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';}).join('');
+      return '<div class="b'+(tiene?'':' no')+'" data-key="'+kk+'" role="button" tabindex="0" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+' — pulsa para ver cómo se gana"><img loading="lazy" src="assets/img/insignias/'+kk+'.png" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';}).join('');
     // fondo de ficha: su planeta elegido
     var PLK={}; PLAN.forEach(function(p){PLK[p[1]]=p[0];});
     var estiloFicha=r.fondo&&PLK[r.fondo]?' style="background-image:linear-gradient(rgba(10,16,26,.82),rgba(10,16,26,.9)),url(assets/img/planetas/'+PLK[r.fondo]+'.png);background-size:cover;background-position:center"':'';
@@ -274,6 +277,11 @@
     // los formularios publicados de Google aceptan ?embedded=true: quita su propia cabecera
     if(/docs\.google\.com\/forms|forms\.gle/.test(u) && u.indexOf('embedded=')<0)
       u+=(u.indexOf('?')<0?'?':'&')+'embedded=true';
+    // 30-ago · Padlet bloquea su URL directa dentro de un iframe; la de embed se deriva del id del
+    // tablero (el final del slug), así que con el enlace normal basta — no hace falta pedir el
+    // código de inserción de cada PER.
+    var mp=u.match(/padlet\.com\/[^\/]+\/(?:.*-)?([a-z0-9]{8,20})(?:[\/?#]|$)/i);
+    if(mp && u.indexOf('/embed/')<0) u='https://padlet.com/embed/'+mp[1];
     return u;
   }
   function ventana(titulo, url){
@@ -851,6 +859,11 @@
           aviso('⚠️ No se ha podido cambiar: '+esc(String(e)), true);
         });
       };});
+    Array.prototype.forEach.call(root.querySelectorAll('.badge-col .b[data-key]'),function(el){
+      function abrirB(){ if(window.SG_OPEN_BADGE) window.SG_OPEN_BADGE(el.getAttribute('data-key')); }
+      el.onclick=abrirB;
+      el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();abrirB();}});
+    });
     Array.prototype.forEach.call(root.querySelectorAll('.album .c[data-c]'),function(el){
       var clave=el.getAttribute('data-c');
       el.onclick=function(){lupaCromo(clave);};

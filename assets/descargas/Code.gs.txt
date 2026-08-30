@@ -99,6 +99,7 @@ function menuStargate_() {
       .addItem("Bonus de la tripulación (umbral y créditos)", "ajustarBonusTripulacion")
       .addItem("Pase de lista en directo (créditos y minutos)", "ajustarPase")
       .addItem("Sembrar alumnado de PRUEBA (PER seleccionado)", "sembrarDemo")
+      .addItem("Chincheta de bienvenida en el padlet (PER seleccionado)", "chinchetaPadlet")
       .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
     .addSeparator()
     .addItem("Cambiar PIN del profesorado", "cambiarPin")
@@ -1457,6 +1458,21 @@ function padletBoardId_(url) {
   var m = String(url || "").match(/padlet\.com\/[^\/]+\/(?:.*-)?([a-z0-9]{8,20})(?:[\/?#]|$)/i);
   return m ? m[1] : "";
 }
+// v3.40 · la chincheta también desde el menú: para el PER que ya existía cuando se configuró el
+// padlet (CLASE DEMO), o si al crear falló la red. No duplica a ciegas: avisa y deja elegir.
+function chinchetaPadlet() {
+  var sel = filaPERSeleccionada_(); if (!sel) return; var ui = SpreadsheetUi_();
+  if (!sel.o.padlet) { ui.alert("Este PER no tiene padlet en la columna 25. Pon primero su enlace."); return; }
+  if (!PropertiesService.getScriptProperties().getProperty("PADLET_KEY")) {
+    ui.alert("Falta la clave API (menú STARGATE → Clave API de Padlet)."); return; }
+  if (ui.alert("Chincheta de bienvenida",
+      "NEBULA publicará la chincheta con las normas del muro en el padlet de «" + sel.o.nombre + "». " +
+      "Si ya la publicó otra vez, quedará repetida (bórrala a mano en Padlet). ¿Publicar?",
+      ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  ui.alert(chinchetaBienvenida_(sel.o) ? "Publicada. Mírala en el padlet." :
+    "No se ha podido publicar: revisa la clave y el enlace (detalle en el registro de ejecuciones).");
+}
+function SpreadsheetUi_() { return SpreadsheetApp.getUi(); }
 function chinchetaBienvenida_(o) {
   var key = PropertiesService.getScriptProperties().getProperty("PADLET_KEY");
   var id = padletBoardId_(o.padlet);
@@ -2724,7 +2740,13 @@ function resolverCanje_(o, sh, fila) {
   // creditos, asi que tiene que saltarse esta puerta (que deniega todo lo que cueste 0).
   else if (!al || ((!ficha || ficha.tipo !== "cromo_repes") && (disp < coste || coste <= 0))) {
     estado = "Denegado (" + disp + " créditos, cuesta " + coste + ")";
-    cuerpo = "No tienes créditos suficientes para «" + rec + "»: te quedan " + disp + " créditos. (Tus xp no se gastan: son tu nivel.)";
+    // v3.40 · Norberto: el caso que confunde no es no tener créditos — es TENERLOS en otra cuenta.
+    // Quien se alistó con un correo y canjea con otro ve «0 créditos» y cree que el sistema falla.
+    cuerpo = "No tienes créditos suficientes para «" + rec + "»: a este correo le quedan " + disp + " créditos. " +
+      "(Tus xp no se gastan: son tu nivel.)\n\n" +
+      "\u26a0\ufe0f Si crees que S\u00cd tienes cr\u00e9ditos suficientes, casi seguro que est\u00e1s usando otra cuenta de Google: " +
+      "tu progreso vive en el correo con el que te alistaste en la Bit\u00e1cora de mando. Sal de todas las cuentas, " +
+      "entra solo con esa, y vuelve a enviar el canje. Comprueba tu saldo real en tu Nave: " + WEB + "recluta.html?per=" + o.id;
   }
   // 4) canjes automáticos: se aplican solos
   else if (ficha && ficha.tipo === "avatar") {
