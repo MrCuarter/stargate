@@ -60,6 +60,12 @@ c(ficha.indexOf("p.bio") >= 0, "pero sí la bio");
 c(ficha.indexOf("img/insignias/") >= 0, "las insignias");
 c(ficha.indexOf("img/tarjetas/") >= 0, "y las cartas");
 c(TB.indexOf("<th>◈</th>") < 0, "🔴 y la tabla del ranking ya no lleva columna de dinero");
+// 🔴 Visto en el tablero VIVO el 8-sep: la columna de dinero se quito, pero su leyenda
+// («xp = ganados · ◈ = lo que te queda tras canjear») se quedo debajo del buscador, explicando una
+// columna que ya no existe — y nombrando el dinero justo en la vista que toda la clase ve incrustada.
+// tablero.js SOLO pinta lo publico (el bolsillo del propio alumno lo pinta recluta.js), asi que aqui
+// el simbolo no pinta nada: si vuelve a aparecer, es que alguien ha vuelto a colar el dinero.
+c(TB.indexOf("◈") < 0, "🔴 y en TODO el fichero del tablero publico no queda ni el simbolo del credito");
 
 // y en la sala del docente, que va con PIN, sí se enseña todo
 const CL = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "clase.js"), "utf8");
