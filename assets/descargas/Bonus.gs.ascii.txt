@@ -440,8 +440,12 @@ function revertirCanje_(o, fila, profe) {
 // funcionando, no un decorado - y si el canje tuviera un fallo, la demo lo ensenaria tambien.
 // Puerta: igual que sembrarDemo_, solo grupos con DEMO o PRUEBA en el nombre.
 // Idempotente: a quien ya tiene heroes no se le vuelve a comprar.
-var SIEMBRA_HEROES = 4;      // lo que pidio Norberto para la ficha de la demo
-var SIEMBRA_SOBRES = 6;      // suficientes para que el album tenga algo que ensenar
+// Norberto, afinando la demo: "quiero que Runa tenga algunos cromos (3 o 4) y (2 o 3 avatares)
+// para poder mostrar como se cambia o para que sirven". La gracia no es acumular: es que haya
+// ELECCION que ensenar - con 3 heroes el vestuario tiene de donde elegir sin abrumar, y con 4
+// cromos el album ensena huecos, que es lo que da ganas de seguir abriendo sobres.
+var SIEMBRA_HEROES = 3;
+var SIEMBRA_SOBRES = 4;
 
 function sembrarCanjesDemo_(perId) {
   var p = perFila_(perId); if (!p) throw new Error("PER no encontrado: " + perId);

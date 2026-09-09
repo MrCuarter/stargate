@@ -83,7 +83,7 @@ c(res.comprados > 0, "se compran canjes de verdad (" + res.comprados + ")");
 const ricos = G.tablero_(PER, true).reclutas.filter(function(x){ return (x.n_heroes||0) > 0; });
 c(ricos.length > 0, "y hay reclutas con vestuario (" + ricos.length + ")");
 const uno = ricos.sort(function(a,b){ return b.n_heroes - a.n_heroes; })[0];
-igual(uno.n_heroes, 4, "🔴 el que mas tiene lleva los 4 héroes que pidió Norberto");
+igual(uno.n_heroes, G.SIEMBRA_HEROES, "🔴 el que mas tiene lleva los " + G.SIEMBRA_HEROES + " héroes: hay de donde elegir sin abrumar");
 c((uno.coleccion.cromos.tengo || 0) > 0, "   y cromos en el álbum (" + uno.coleccion.cromos.tengo + ")");
 c(uno.creditos_gastados > 0, "🔴 los ha PAGADO: " + uno.creditos_gastados + " ◈ gastados");
 igual(uno.creditos, uno.creditos_ganados - uno.creditos_gastados, "   y el saldo cuadra");
@@ -98,8 +98,8 @@ c(estados.filter(function(e){ return e.indexOf("Concedido") === 0; }).length > 0
 // idempotente: pasarla dos veces no le compra otros cuatro
 const res2 = G.sembrarCanjesDemo_(PER);
 igual(res2.comprados, 0, "🔴 sembrar dos veces no compra nada mas");
-igual(G.tablero_(PER, true).reclutas.filter(function(x){ return x.email === uno.email; })[0].n_heroes, 4,
-  "   y sigue con 4 héroes, no con 8");
+igual(G.tablero_(PER, true).reclutas.filter(function(x){ return x.email === uno.email; })[0].n_heroes, G.SIEMBRA_HEROES,
+  "   y sigue con los mismos héroes, no con el doble");
 
 // la puerta: en un grupo que no es de pruebas, ni se intenta
 let sePuede = true;
