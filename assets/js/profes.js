@@ -72,14 +72,14 @@
   function filaDoc(x,i){var e=function(t){return esc(t||'');};
     return '<tr data-d="'+i+'"><td><input class="dn" value="'+e(x.nombre)+'" placeholder="Nombre Apellido" style="width:100%;padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:#fff"></td>'
       +'<td><input class="dc" type="email" value="'+e(x.correo)+'" placeholder="correo@unir.net" style="width:100%;padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:#fff"></td>'
-      +'<td style="text-align:center"><input class="dr" type="radio" name="refD"'+(/referente/.test(x.rol||'')?' checked':'')+'></td>'
+      +'<td style="text-align:center"><input class="dr" type="checkbox"'+(/referente/.test(x.rol||'')?' checked':'')+'></td>'
       +'<td style="text-align:center"><input class="di" type="checkbox"'+(/imparte/.test(x.rol||'')?' checked':'')+'></td>'
       +'<td><button class="btn small" data-quitar="'+i+'">✕</button></td></tr>';}
   // v3.14 · 2026-12-27 -> 27/12/2026
   function fecha(iso){ if(!iso) return '—'; var p=String(iso).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:esc(String(iso)); }
   function vPer(v){var d=st.datos;var docs=(d.docentes_full||[]).slice();if(!docs.length)docs=[{nombre:d.referente||'',correo:'',rol:'referente+imparte'}];
     v.innerHTML='<div class="grid cols-2"><div class="card"><h3>Equipo docente</h3>'
-      +'<p class="small muted">El <b>referente</b> gestiona el PER (solo uno). <b>Imparte</b> marca a quien da clase: son los nombres que ve el alumnado en su Bitácora y en el ticket. El referente puede ser las dos cosas. El <b>correo</b> es a quien se avisa cuando un canje necesita que alguien suba una nota.</p>'
+      +'<p class="small muted">El <b>referente</b> gestiona el PER: puede tocar el grupo entero. Pueden ser <b>varios</b> (el titular y su ayudante). <b>Imparte</b> marca a quien da clase: son los nombres que ve el alumnado en su Bitácora y en el ticket. El referente puede ser las dos cosas. El <b>correo</b> es a quien se avisa cuando un canje necesita que alguien suba una nota.</p>'
       +'<div class="tablewrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Ref.</th><th>Imparte</th><th></th></tr></thead><tbody id="tbDoc">'+docs.map(filaDoc).join('')+'</tbody></table></div>'
       +'<button class="btn small" id="masDoc" style="margin-top:8px">+ Añadir docente</button> <button class="btn small primary" id="gprof" style="margin-top:8px">Guardar equipo</button>'
       +'<div class="small muted" style="margin-top:6px">Actualiza también el desplegable del ticket de salida y el de la Bitácora.</div></div>'

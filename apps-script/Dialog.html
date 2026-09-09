@@ -19,7 +19,7 @@
  <div class="row"><div><label>Tipo</label><select id="tipo"><option value="REGULAR">REGULAR (15 semanas, examen)</option><option value="PUA">PUA (compacto, un tema por semana, sin examen)</option></select></div>
  <div><label>Semana 1 empieza el</label><input id="inicio" type="date"><small>Marca el ritmo de todo</small></div></div>
  <label>Equipo docente</label>
- <small>El <b>referente</b> gestiona el PER (solo uno). <b>Imparte</b> marca a quien da clase: son los
+ <small>El <b>referente</b> gestiona el PER: marca a quien pueda tocar el grupo entero (mover la semana 1, cerrar formularios, archivar). Pueden ser <b>varios</b> — lo normal es el titular y su ayudante. <b>Imparte</b> marca a quien da clase: son los
  nombres que verá el alumnado en su Bitácora y en el ticket de salida. El referente puede ser las dos
  cosas: deja marcadas las dos casillas. El <b>correo</b> importa: es a quien se avisa cuando un alumno
  canjea algo que requiere su intervención (subir nota, recalificar). Hasta 10.</small>
@@ -49,7 +49,7 @@ function filaDocente(){
   var tr=document.createElement('tr'); tr.setAttribute('data-fila',nFilas);
   tr.innerHTML='<td style="padding:2px 4px 2px 0"><input class="dn" placeholder="Nombre Apellido"></td>'
     +'<td style="padding:2px 0"><input class="dc" type="email" placeholder="correo@unir.net"></td>'
-    +'<td style="text-align:center"><input class="dr" type="radio" name="ref" style="width:auto"'+(nFilas===1?' checked':'')+'></td>'
+    +'<td style="text-align:center"><input class="dr" type="checkbox" style="width:auto"'+(nFilas===1?' checked':'')+'></td>'
     +'<td style="text-align:center"><input class="di" type="checkbox" style="width:auto" checked></td>';
   document.getElementById('docentes').appendChild(tr);
   if(nFilas>=10) document.getElementById('mas').disabled=true;

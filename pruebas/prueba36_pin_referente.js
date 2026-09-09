@@ -186,4 +186,39 @@ c(!/@/.test(JSON.stringify(pers)), "🔒 y en toda la respuesta no viaja ni una 
 c(!!G._post({ accion: "alumnos", per: PER, pin: REFERENTE }).docentes_full[0].correo,
   "los Ajustes del PER siguen recibiéndolos: ahí se editan");
 
+// ---------------------------------------------------------------- DOS referentes (9-sep)
+// Lo pidio Norberto: «habitualmente hay un profe referente y un ayudante». El modelo de datos ya lo
+// aguantaba —cada docente lleva su propio `rol` y `esReferente_` mira si contiene «referente»— lo
+// que lo impedia era un boton de RADIO en el formulario. Aqui se comprueba las dos mitades: que el
+// servidor guarda y devuelve varios, y que la interfaz ya no obliga a elegir uno.
+{
+  const G9 = E.nuevoMundo();
+  const P9 = E.crearPERDemo(G9).id;
+  G9.PropertiesService.getScriptProperties().setProperty("PIN_PROFES", DOCENTE);
+  const post9 = q => JSON.parse(G9.doPost({ postData: { contents: JSON.stringify(
+    Object.assign({ per: P9, pin: DOCENTE }, q)) } }).getContent());
+
+  post9({ accion: "profesorado", referente: "Ana Titular", profesorado: "Ana Titular, Beto Ayudante",
+          docentes: [{ nombre: "Ana Titular",   correo: "ana@unir.net",  rol: "referente+imparte" },
+                     { nombre: "Beto Ayudante", correo: "beto@unir.net", rol: "referente+imparte" },
+                     { nombre: "Caro Profe",    correo: "caro@unir.net", rol: "imparte" }] });
+
+  const d9 = post9({ accion: "alumnos" });
+  const refs = (d9.docentes || []).filter(x => x.referente).map(x => x.nombre).sort();
+  igual(refs.join(" y "), "Ana Titular y Beto Ayudante",
+        "🔴 DOS referentes se guardan y vuelven los dos (titular y ayudante)");
+  igual((d9.docentes || []).filter(x => x.imparte).length, 3, "y los tres siguen impartiendo");
+  const dosRoles = G9.docentesDe_(P9).filter(x => G9.esReferente_(x) && G9.imparte_(x)).length;
+  igual(dosRoles, 2, "y ser referente NO quita ser docente: los dos hacen las dos cosas");
+
+  // la interfaz: si vuelve a ser un radio, solo se puede marcar uno y esto no vale de nada
+  const fs2 = require("fs"), path2 = require("path");
+  const dlg = fs2.readFileSync(path2.join(__dirname, "..", "apps-script", "Dialog.html"), "utf8");
+  const pf  = fs2.readFileSync(path2.join(__dirname, "..", "assets", "js", "profes.js"), "utf8");
+  c(/class="dr" type="checkbox"/.test(dlg),
+    "🔴 el diálogo de crear PER marca al referente con CASILLA, no con radio");
+  c(/class="dr" type="checkbox"/.test(pf),
+    "🔴 y el panel de profes también (si no, editar el equipo dejaría uno solo)");
+}
+
 E.resumen("El PIN de referente");
