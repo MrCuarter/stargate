@@ -841,3 +841,5 @@ tr.clicable:hover td{background:rgba(55,224,236,.07)}
 .fr-cnt.full{border-color:var(--amber);color:var(--amber)}
 .fr-pc{font-size:.72rem;color:#5d6b7a;margin-left:7px;font-variant-numeric:tabular-nums}
 .fr-bio.muted{color:#6f7f8f;font-style:normal;border-left-color:var(--line)}
+/* datos privados tapados en la sala del docente (v3.44) */
+.tapado{letter-spacing:.08em;color:#4a5a6b;user-select:none}

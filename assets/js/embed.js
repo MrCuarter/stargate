@@ -6,31 +6,73 @@
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function ifr(u,h){return '<iframe src="'+u+'" width="100%" height="'+h+'" style="border:0;border-radius:16px" allowfullscreen loading="lazy"></iframe>';}
   function qr(u){return 'https://quickchart.io/qr?size=260&margin=2&dark=0e5f6c&text='+encodeURIComponent(u);}
-  function bloque(t,desc,url,code,extra){return '<div class="card emb"><h3>'+t+'</h3><p class="small muted">'+desc+'</p>'
+  // 🔴 9-sep · REESCRITO POR SECCIONES. Antes eran ONCE bloques en una lista plana, mezclando lo del
+  // profesorado con lo del alumnado y con DOS bloques que decian ser el tablero: uno («Tablero de
+  // reclutas») traia el ranking MAS los tres formularios MAS la explicacion de las monedas, y el otro
+  // era el limpio. Por eso el embed «no era lo que prometia»: el del nombre bonito era el sucio.
+  // Ahora: primero lo del profesorado, despues lo del alumnado (con la Nave arriba del todo, que es
+  // la puerta a todo lo demas) y los codigos de embed al final, en su seccion opcional.
+  function enlace(t,desc,url,extra){return '<div class="card emb"><h3>'+t+'</h3><p class="small muted">'+desc+'</p>'
     +(url?'<div class="embrow"><input readonly value="'+esc(url)+'"><button class="btn small" data-c="'+esc(url)+'">Copiar enlace</button></div>':'')
-    +(code?'<div class="embrow"><textarea readonly rows="2">'+esc(code)+'</textarea><button class="btn small primary" data-c="'+esc(code)+'">Copiar embed</button></div>':'')+(extra||'')+'</div>';}
+    +(extra||'')+'</div>';}
+  function conQR(u,n,per){return '<div class="qrbox"><img src="'+qr(u)+'" alt="QR"><a class="btn small" href="'+qr(u)+'" download="qr_'+n+'_'+esc(per)+'.png" target="_blank">Descargar QR</a></div>';}
+  function emb(t,desc,code){return '<div class="card emb"><h3>'+t+'</h3><p class="small muted">'+desc+'</p>'
+    +'<div class="embrow"><textarea readonly rows="2">'+esc(code)+'</textarea><button class="btn small primary" data-c="'+esc(code)+'">Copiar embed</button></div></div>';}
+
   function render(){var d=st.d;var per=st.per;var pe=st.prof?'&profe='+encodeURIComponent(st.prof):'';
     var profes=[d.referente].concat(String(d.profesorado||'').split(',')).map(function(x){return x.trim();}).filter(function(x,i,a){return x&&a.indexOf(x)===i;});
     var sel='<div class="selrow"><select id="selPer">'+st.pers.map(function(p){return '<option value="'+esc(p.id)+'"'+(p.id===per?' selected':'')+'>'+esc(p.nombre)+' · '+esc(p.tipo)+'</option>';}).join('')+'</select>'
       +'<select id="selProf"><option value="">Soy… (elige tu nombre)</option>'+profes.map(function(p){return '<option value="'+esc(p)+'"'+(p===st.prof?' selected':'')+'>'+esc(p)+'</option>';}).join('')+'</select></div>';
-    var uReg=WEB+'registro.html?per='+per, uForo=WEB+'foro.html?per='+per+(d.inicio?'&inicio='+d.inicio+'&tipo='+(d.tipo||'REGULAR'):''), uTick=WEB+'tickets.html?per='+per+pe, uProf=WEB+'profes.html?per='+per, uNave=WEB+'recluta.html?per='+per;
-    root.innerHTML='<div class="tab-head"><div><div class="eyebrow amber">Generador de enlaces y embeds</div><h3>'+esc(d.nombre)+(st.prof?' · '+esc(st.prof):'')+'</h3><div class="small muted">'+esc(d.tipo)+' · '+esc(d.estado)+' · referente: '+esc(d.referente||'—')+'</div></div>'+sel+'</div>'
-      +'<div class="card doc-card" style="margin:10px 0 18px"><h3>📄 ¿Buscas el documento con TODO el PER?</h3><p class="small muted">El documento que se genera al crear el PER (enlaces, embeds y QR, incluidos los del profesorado) está en el <b>panel del profesorado</b>, que pide PIN: contiene accesos de edición y no puede estar abierto aquí.</p><a class="btn primary grande" href="profes.html?per='+esc(per)+'" target="_blank" rel="noopener">IR AL PANEL DEL PROFESORADO ↗</a></div>'
-      +'<div class="official" style="margin:8px 0 18px;display:block">🧩 <b>Cómo se incrusta en Genially:</b> en tu Genially, <i>Insertar → Código embed (o «Insertar» → «Código»)</i>, pega el código y ajusta el tamaño al lienzo. Para los formularios, mejor un <b>botón con el enlace</b> (se abre en pestaña nueva y el alumno inicia sesión en Google sin problemas) o el <b>QR</b> para proyectar en clase.</div>'
-      +'<h2 style="font-size:1.2rem">Para el Genially del alumnado</h2><div class="grid cols-2">'
-      +bloque('🪐 Panel de control (mapa de planetas)','Los 8 planetas sobre el universo en bucle; cada uno lleva al Genially de su tema. Con <b>?per=</b> los planetas se van <b>desbloqueando solos</b> según el calendario del PER. Úsalo como página suelta o incrústalo en tu Genially.',WEB+'panel.html?per='+per,ifr(WEB+'panel.html?per='+per,620),'<div class="qrbox"><img src="'+qr(WEB+'panel.html?per='+per)+'" alt="QR"><a class="btn small" href="'+qr(WEB+'panel.html?per='+per)+'" download="qr_panel_'+esc(per)+'.png" target="_blank">Descargar QR</a></div>')
-      +bloque('🚀 La Nave del Recluta','El hub del alumnado: onboarding con NEBULA, la orden de cada semana, los planetas que se desbloquean, su ficha y las recompensas. Embed para el Genially del PER, o enlace/QR directo.',uNave,ifr(uNave+'&embed=1',900),'<div class="qrbox"><img src="'+qr(uNave)+'" alt="QR"><a class="btn small" href="'+qr(uNave)+'" download="qr_nave_'+esc(per)+'.png" target="_blank">Descargar QR</a></div>')
-      +bloque('📓 Bitácora de mando — se alista y registra sus retos','El enlace que más se usa, y el MISMO para las dos cosas: se rellena una vez (alias, personaje, docente) y después se EDITA para ir marcando los retos completados. Entran con su cuenta de Google, así que cada uno solo ve su respuesta.',d.formBitacora,null,'<div class="qrbox"><img src="'+qr(d.formBitacora)+'" alt="QR"><a class="btn small" href="'+qr(d.formBitacora)+'" download="qr_bitacora_'+esc(per)+'.png" target="_blank">Descargar QR</a></div>')
-      +bloque('🏆 Tablero de reclutas','Ranking, insignias y botones de los 3 formularios. Embébelo en la página principal del Genially del PER.',uReg,ifr(uReg+'&embed=1',760))
-      +bloque('🥇 SOLO el ranking','El ranking y nada más: sin cabecera y sin los botones de los formularios. Para una página de Genially dedicada a la clasificación. Los tres ejes (xp, semana y colección) se cambian con las pestañas, y puedes fijar uno con <b>&amp;ranking=semana</b> o <b>&amp;ranking=coleccion</b>.',uReg+'&solo=1',ifr(uReg+'&embed=1&solo=1',720))
-      +bloque('💬 Foro dinámico (la orden de la semana)','Muestra solo la semana en curso y cambia solo. Semana 1: '+esc(d.inicio||'sin fecha (ponla en el panel)')+'.',uForo,ifr(uForo+'&embed=1',640))
-      +bloque('🎟️ Ticket de salida «Contacta con NEBULA»','Anónimo. Botón o QR al final de cada tema.',d.formTicket,null,'<div class="qrbox"><img src="'+qr(d.formTicket)+'" alt="QR"><a class="btn small" href="'+qr(d.formTicket)+'" download="qr_ticket_'+esc(per)+'.png" target="_blank">Descargar QR</a></div>')
-      +bloque('🎁 Canje de xp','Botón. Valida los xp y responde por correo.',d.formCanje,null,'<div class="qrbox"><img src="'+qr(d.formCanje)+'" alt="QR"><a class="btn small" href="'+qr(d.formCanje)+'" download="qr_canje_'+esc(per)+'.png" target="_blank">Descargar QR</a></div>')
-      +'</div><h2 style="font-size:1.2rem;margin-top:26px">Para el Genially del profesorado (con PIN)</h2><div class="grid cols-2">'
-      +bloque('📊 Resultados de clase EN DIRECTO (horizontal)','Para proyectar dentro de un Genially apaisado: satisfacción media y valoraciones en grande, y las voces del último tema al lado. Se actualiza al recargar, así que sirve para enseñarlo al final de la sesión.',uTick+(pe?'&':'')+'&panorama=1',ifr(uTick+'&embed=1&panorama=1',640))
-      +bloque('🎟️ Tickets de mi clase','Valoraciones y dudas'+(st.prof?' filtradas para <b>'+esc(st.prof)+'</b>':' (elige tu nombre arriba para filtrar por tu clase)')+'.',uTick,ifr(uTick+'&embed=1',900))
-      +bloque('🔐 Panel del PER','Alumnos, insignias, canjes, equipo docente, abrir/cerrar.',uProf,ifr(uProf+'&embed=1',900))
-      +'</div>';
+    var uNave=WEB+'recluta.html?per='+per,
+        uProy=WEB+'registro.html?per='+per+'&solo=1',
+        uPlan=WEB+'panel.html?per='+per,
+        uForo=WEB+'foro.html?per='+per+(d.inicio?'&inicio='+d.inicio+'&tipo='+(d.tipo||'REGULAR'):''),
+        uTick=WEB+'tickets.html?per='+per+pe,
+        uProf=WEB+'profes.html?per='+per;
+
+    root.innerHTML='<div class="tab-head"><div><div class="eyebrow amber">Enlaces del grupo</div><h3>'+esc(d.nombre)+(st.prof?' · '+esc(st.prof):'')+'</h3><div class="small muted">'+esc(d.tipo)+' · '+esc(d.estado)+' · referente: '+esc(d.referente||'—')+'</div></div>'+sel+'</div>'
+
+      // ───────────────────────── 1 · profesorado
+      +'<h2 style="font-size:1.2rem;margin-top:6px">1 · Para el profesorado</h2>'
+      +'<p class="lead small">Esto <b>no se reparte al alumnado</b>. Los dos paneles piden el PIN.</p>'
+      +'<div class="grid cols-2">'
+      +enlace('🧑\u200d🏫 La web del profesorado','El puesto de mando: la guía, la cronología semana a semana, las actividades y los recursos. Es el enlace que se pasa a un compañero que empieza.',WEB)
+      +enlace('🔐 Panel del PER (con PIN)','Alumnos con nombre y correo, insignias, canjes, equipo docente, abrir y cerrar. Y ahí dentro está el <b>documento del PER</b>, que incluye el enlace de <b>edición</b> del Genially — por eso no puede estar en esta página, que es abierta.',uProf)
+      +enlace('🎟️ Tickets de mi clase (con PIN)','Valoraciones y dudas'+(st.prof?' filtradas para <b>'+esc(st.prof)+'</b>':' (elige tu nombre arriba para filtrar por tu clase)')+'.',uTick)
+      +'</div>'
+
+      // ───────────────────────── 2 · alumnado
+      +'<h2 style="font-size:1.2rem;margin-top:30px">2 · Para el alumnado</h2>'
+      +'<p class="lead small">Lo primero es la Nave: desde ahí se llega a todo lo demás. Los otros enlaces '
+      +'sirven para poner un botón o un QR sueltos, pero no hace falta repartirlos todos.</p>'
+      +'<div class="grid cols-2">'
+      +enlace('🚀 La Nave del Recluta <span class="chip ok">empieza por aquí</span>','El hub del alumnado: se identifican con su correo una vez, y ahí tienen su ficha, la orden de la semana, los planetas que se van desbloqueando, las recompensas y el tablero. <b>Desde la Nave se llega a los tres formularios</b>, así que con este enlace basta.',uNave,conQR(uNave,'nave',per))
+      +enlace('📽️ Ranking para proyectar en clase','El ranking del grupo y un botón a la Nave, sin nada más. <b>Ábrelo con tranquilidad cuando compartas pantalla:</b> esta página no pide PIN, así que el servidor NO le manda el correo ni el nombre real de nadie — no es que estén ocultos, es que no llegan.',uProy)
+      +enlace('🪐 Panel de control (mapa de planetas)','Los 8 planetas sobre el universo en bucle; cada uno lleva al Genially de su tema, y se van <b>desbloqueando solos</b> con el calendario del grupo.',uPlan,conQR(uPlan,'panel',per))
+      +'</div>'
+      +'<h3 style="margin-top:22px">Los tres formularios</h3>'
+      +'<p class="lead small">Están dentro de la Nave. Estos enlaces son para poner un QR en clase o un botón suelto.</p>'
+      +'<div class="grid cols-3">'
+      +enlace('📓 Bitácora de mando','Se alista y registra sus retos. El MISMO enlace para las dos cosas, todo el curso.',d.formBitacora,conQR(d.formBitacora,'bitacora',per))
+      +enlace('🎟️ Ticket de salida','Anónimo. Al final de cada tema.',d.formTicket,conQR(d.formTicket,'ticket',per))
+      +enlace('🎁 Canje de recompensas','Valida los créditos y responde por correo.',d.formCanje,conQR(d.formCanje,'canje',per))
+      +'</div>'
+
+      // ───────────────────────── 3 · embeds
+      +'<h2 style="font-size:1.2rem;margin-top:34px">3 · Embeds para Genially <span class="chip">opcional</span></h2>'
+      +'<p class="lead small">Solo si montas tu propio Genially. En Genially: <i>Insertar → Código embed</i>, '
+      +'pega y ajusta al lienzo. Para los formularios es mejor un <b>botón con el enlace</b> que un embed: '
+      +'se abren en pestaña nueva y el alumno inicia sesión en Google sin problemas.</p>'
+      +'<div class="grid cols-2">'
+      +emb('🚀 La Nave del Recluta','Lo más útil de esta sección: el alumno gestiona todo sin salir del Genially.',ifr(uNave+'&embed=1',900))
+      +emb('📽️ Ranking del grupo','El ranking y el botón a la Nave. Sin datos de nadie.',ifr(WEB+'registro.html?per='+per+'&embed=1&solo=1',720))
+      +emb('🪐 Mapa de planetas','Los ocho planetas, desbloqueándose con el calendario.',ifr(uPlan,620))
+      +emb('💬 Foro de la semana','La orden de la semana en curso; cambia sola. Semana 1: '+esc(d.inicio||'sin fecha')+'.',ifr(uForo+'&embed=1',640))
+      +emb('📊 Resultados del ticket (apaisado)','Para proyectar al final de la sesión, dentro de un Genially horizontal. Pide PIN.',ifr(uTick+'&embed=1&panorama=1',640))
+      +'</div>'
+
+      +'<div class="card doc-card" style="margin:26px 0 0"><h3>📄 ¿Buscas el documento con TODO el PER?</h3><p class="small muted">El que se genera al crear el grupo (enlaces, embeds, QR y los accesos de edición) vive en el <b>panel del profesorado</b>, que pide PIN.</p><a class="btn primary" href="profes.html?per='+esc(per)+'" target="_blank" rel="noopener">IR AL PANEL DEL PROFESORADO ↗</a></div>';
+
     document.getElementById('selPer').onchange=function(){st.per=this.value;st.prof='';cargar();};document.getElementById('selProf').onchange=function(){st.prof=this.value;render();};
     Array.prototype.forEach.call(root.querySelectorAll('button[data-c]'),function(b){b.onclick=function(){var t=b.getAttribute('data-c');function ok(){var o=b.textContent;b.textContent='¡Copiado!';setTimeout(function(){b.textContent=o;},1500);}
       if(navigator.clipboard)navigator.clipboard.writeText(t).then(ok);else{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();ok();}};});}

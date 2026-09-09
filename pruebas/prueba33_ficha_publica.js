@@ -89,4 +89,28 @@ c(/ORD\.map\(/.test(colec) && /CR\.map\(/.test(colec) && /HE\.map\(/.test(colec)
 c(colec.indexOf("_bloqueado") >= 0,
   "y los personajes que aún no tiene usan su imagen bloqueada");
 
+// ---------------------------------------------------------------- proyectar sin filtrar (9-sep)
+// Norberto: «cuando el docente comparte su pantalla y quiere mostrar el ranking, ¿cómo evitamos que
+// se cuele información confidencial?». La respuesta NO es un interruptor —los datos seguirían en la
+// página, a un clic del proyector— sino una pantalla DISTINTA: `registro.html?per=…&solo=1` no manda
+// PIN, asi que el servidor nunca le entrega correos ni nombres. No estan ocultos: no llegan.
+// El interruptor de la sala existe igual, pero como cortesia mientras se trabaja, no como proteccion.
+c(/registro\.html\?per=.*&solo=1/.test(CL) || CL.indexOf("&solo=1") >= 0,
+  "🔴 la sala del docente tiene un botón para PROYECTAR el ranking público");
+c(CL.indexOf("Proyectar el ranking") >= 0, "y se llama por lo que hace");
+c(/function priv\(/.test(CL), "y el correo y el nombre real se pintan tapados por defecto");
+c(!/'\+esc\(p\.email\|\|''\)\+'/.test(CL),
+  "🔴 ningún sitio de la tabla escupe el correo sin pasar por el tapado");
+c(/verPrivado:false/.test(CL),
+  "🔴 y nacen tapados en CADA visita: recordarlo dejaría de proteger justo el día que importa");
+
+// ---------------------------------------------------------------- el generador, por secciones
+const EMB = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "embed.js"), "utf8");
+c(EMB.indexOf("1 · Para el profesorado") >= 0 && EMB.indexOf("2 · Para el alumnado") >= 0
+  && EMB.indexOf("3 · Embeds para Genially") >= 0,
+  "el generador va por secciones: profesorado, alumnado y embeds");
+c(EMB.indexOf("Tablero de reclutas") < 0,
+  "🔴 y ya no hay DOS bloques que dicen ser el tablero (el duplicado traía los formularios dentro)");
+c(EMB.indexOf("Ranking para proyectar") >= 0, "el ranking limpio se llama por su uso: proyectar");
+
 E.resumen("Lo que sale al tablero público");

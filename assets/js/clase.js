@@ -10,9 +10,17 @@
   if(q.get('embed')==='1') document.body.classList.add('embed');
   var st={pin:sessionStorage.getItem('sgPin')||'', profe:q.get('profe')||localStorage.getItem('sgProfe')||'',
           per:q.get('per')||localStorage.getItem('sgClasePer')||'', pers:[], d:null, tickets:[],
-          tema:'', dias:'14', soloMios:true, vista:'hoy', demo:q.get('demo')==='1'};
+          tema:'', dias:'14', soloMios:true, vista:'hoy', demo:q.get('demo')==='1',
+  // 🔴 9-sep · EL CORREO Y EL NOMBRE REAL NACEN TAPADOS. No es la proteccion principal —para
+  // proyectar esta el ranking publico, que directamente NO recibe esos datos del servidor— sino
+  // una cortesia para cuando el docente comparte pantalla mientras trabaja. Y nace tapado en cada
+  // visita a proposito: si se recordara, dejaria de proteger justo el dia que importa.
+          verPrivado:false};
   // en la demo se entra ya como docente: el selector de «¿quien eres?» no es lo que se quiere enseñar
   if(st.demo&&!q.get('profe')) st.profe='Mr Cuarter';
+  // tapa un dato privado mientras `verPrivado` esté apagado. Devuelve YA escapado.
+  function priv(t){ t=String(t||''); if(!t) return '';
+    return st.verPrivado ? esc(t) : '<span class="tapado" title="Oculto: pulsa «ver datos» arriba">'+esc(t.replace(/./g,'\u2022')).slice(0,60)+'</span>'; }
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function f(v){try{var d=new Date(v);return isNaN(d)?String(v):d.toLocaleDateString('es-ES',{day:'2-digit',month:'short'});}catch(e){return String(v);}}
   function cargando(t,p){return '<div class="cargando"><div class="txt">'+t+'</div><div class="barra"><i></i></div>'+(p?'<div class="pista">'+p+'</div>':'')+'</div>';}
@@ -177,7 +185,7 @@
   function bloqueIntervencion(){
     var pd=pendientes(), tk=ticketsMios().filter(function(t){return !t.resuelto;});
     var filas=pd.map(function(x,i){
-      return '<tr><td>'+esc(f(x.c.fecha))+'</td><td><b>'+esc(x.p.alias)+'</b><br><span class="small muted">'+esc(x.p.nombre||x.p.email)+'</span></td>'
+      return '<tr><td>'+esc(f(x.c.fecha))+'</td><td><b>'+esc(x.p.alias)+'</b><br><span class="small muted">'+priv(x.p.nombre||x.p.email)+'</span></td>'
         +'<td>'+esc(x.c.recompensa)+'</td><td>'+esc(x.c.actividad||'—')+'</td>'
         +'<td><button class="btn small primary" data-apl="'+x.c.fila+'">Ya lo he aplicado</button></td></tr>';}).join('');
     // v3.13 · los reclutas que no han dicho quién les da clase: sin eso el aviso de sus canjes no
@@ -188,7 +196,7 @@
         +'<p class="small">No han contestado «¿Quién imparte tu clase?». Cuando canjeen algo que haya que aplicar '
         +'a mano, el aviso <b>no le llegará a ninguna persona concreta</b>: solo al profe referente. '
         +'Asígnaselos tú desde <b>Mi grupo</b> → «Corregir».</p>'
-        +'<p class="small muted">'+sinDoc.slice(0,8).map(function(x){return esc(x.alias||x.email||'');}).join(' · ')
+        +'<p class="small muted">'+sinDoc.slice(0,8).map(function(x){return (x.alias?esc(x.alias):priv(x.email));}).join(' · ')
         +(sinDoc.length>8?' …':'')+'</p>'
         +'<p><button class="btn small" id="verSinDoc">Ver a todo el grupo y corregirlo →</button></p></div>'
       : '';
@@ -233,14 +241,14 @@
     var r=mios();
     var filas=r.map(function(p,i){
       var ult=(p.eventos||[]).length?f((p.eventos||[]).map(function(e){return e.fecha;}).sort().pop()):'—';
-      return '<tr class="clicable" data-al-fila="'+i+'" title="Ver la ficha de '+esc(p.alias)+'"><td>'+p.pos+'</td><td><b>'+esc(p.alias)+'</b><br><span class="small muted">'+esc(p.nombre||'')+'</span></td>'
-        +'<td class="small">'+esc(p.email||'')+'</td>'
+      return '<tr class="clicable" data-al-fila="'+i+'" title="Ver la ficha de '+esc(p.alias)+'"><td>'+p.pos+'</td><td><b>'+esc(p.alias)+'</b><br><span class="small muted">'+priv(p.nombre)+'</span></td>'
+        +'<td class="small">'+priv(p.email)+'</td>'
         +'<td>'+(String(p.profe||'').trim()?esc(p.profe):'<span class="chip" style="background:#f5b04333;color:#8a5b00">⚠ sin docente</span>')+'</td>'
         +'<td>N'+p.nivel+' <span class="small muted">'+esc(p.rango_nombre||'')+'</span></td>'
         +'<td class="pts">'+p.xp+'</td><td>'+p.creditos+' ◈</td><td>'+p.n+'/24</td><td class="small muted">'+ult+'</td>'
         +'<td><button class="btn small primary" data-al="'+i+'">Ver ficha</button></td></tr>';}).join('');
     return '<section id="sala-grupo"><div class="eyebrow teal">Tu gente</div><h2>Mi grupo</h2>'
-      +'<p class="lead">Pulsa <b>Ver ficha</b> (o la fila) y tienes la radiografía completa de esa persona: su inventario, sus canjes y los mismos campos para corregirla. No hace falta abrir ninguna hoja de cálculo. '
+      +'<div class="cta-row" style="justify-content:flex-start;margin:0 0 12px">'+'<a class="btn primary" href="registro.html?per='+encodeURIComponent(st.per)+'&solo=1" target="_blank" rel="noopener">📽️ Proyectar el ranking</a>'+'<button class="btn small" id="verPriv">'+(st.verPrivado?'🙈 Tapar correos y nombres':'👁 Ver correos y nombres')+'</button></div>'+'<p class="lead small">📽️ abre <b>otra página, sin PIN</b>: el servidor no le manda correos ni nombres, así que se puede compartir pantalla con ella sin miedo. Aquí, en cambio, están tapados solo por fuera.</p>'+'<p class="lead">Pulsa <b>Ver ficha</b> (o la fila) y tienes la radiografía completa de esa persona: su inventario, sus canjes y los mismos campos para corregirla. No hace falta abrir ninguna hoja de cálculo. '
       +'<label class="small" style="margin-left:8px"><input type="checkbox" id="chkMios"'+(st.soloMios?' checked':'')+'> solo mis alumnos</label></p>'
       +(r.length?'<div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Recluta</th><th>Correo</th><th>Docente</th><th>Nivel</th><th>xp</th><th>◈</th><th>Insignias</th><th>Últ. registro</th><th></th></tr></thead><tbody>'+filas+'</tbody></table></div><div id="ficha"></div>'
         :'<p class="lead">Ningún recluta te ha elegido todavía como docente. Si ya tienes clase, revisa que hayan respondido «¿Quién imparte tu clase?» en su Bitácora — o desmarca «solo mis alumnos» y corrígeselo tú.</p>')
@@ -329,7 +337,7 @@
     var tipo=(st.d&&st.d.tipo)||'REGULAR', cat=RET[tipo]||[];
     var docs=((st.d&&st.d.docentes)||[]).map(function(d){return d.nombre;});
     if(docs.indexOf(p.profe)<0&&p.profe) docs.push(p.profe);
-    box.innerHTML='<div class="card" style="margin-top:14px"><div class="tab-head"><div><h3>'+esc(p.alias)+' <span class="small muted">'+esc(p.nombre||'')+' · '+esc(p.email||'')+'</span></h3></div><button class="btn small" id="fToggle">\u270e Corregir</button> <button class="btn small" id="cerrarF">\u2715</button></div>'
+    box.innerHTML='<div class="card" style="margin-top:14px"><div class="tab-head"><div><h3>'+esc(p.alias)+' <span class="small muted">'+priv(p.nombre)+' · '+priv(p.email)+'</span></h3></div><button class="btn small" id="fToggle">\u270e Corregir</button> <button class="btn small" id="cerrarF">\u2715</button></div>'
       // 🔴 v3.43 · La radiografia PRIMERO y la correccion detras de un boton. Antes se abria por los
       // campos de edicion, que es lo que menos se usa: se entra a mirar, no a arreglar.
       + bloqueColeccion(p)
@@ -440,6 +448,8 @@
       post({accion:'pase_abrir',per:st.per,profe:st.profe},function(d){st.pase=d;render();},
            function(e){ap.disabled=false;alert(e);});};
     // tapar la consigna NO cierra la ventana: solo deja de enseñarla
+    var vp=document.getElementById('verPriv');
+    if(vp)vp.onclick=function(){ st.verPrivado=!st.verPrivado; render(); };
     var tp=document.getElementById('taparPase');
     if(tp)tp.onclick=function(){ st.paseOculto=!st.paseOculto; render(); };
     cuentaAtras();
