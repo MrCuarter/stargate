@@ -633,14 +633,20 @@ function crearPER(datos) {
   // dejando el PER a medias. Si no da tiempo, se aparta y lo termina la continuacion dentro de un
   // minuto - sin que el profesorado tenga que hacer nada.
   var pend = { per: id, imagenes: true, doc: true, dossier: true };
-  if (_t.sobra(60000)) { try { var _im = imagenesFormularios_(fb, ft, fc, _t); pend.imagenes = _im.faltan > 0; _t.hito("imagenes de los formularios (" + _im.puestos + " puestas, " + _im.faltan + " pendientes)"); }
-                         catch (e) { Logger.log("imagenesFormularios_: " + e); } }
+  //  9-sep - PRIMERO LO QUE SE REPARTE, DESPUES LO BONITO. Lo pregunto Norberto ("si falla al
+  // principio estamos muertos") y tenia razon el orden estaba al reves: iban las ~23 imagenes de
+  // los formularios ANTES del documento de enlaces. O sea que en el peor caso el profe se quedaba
+  // con los formularios ilustrados y SIN el documento, que es lo unico que tiene que repartir a su
+  // clase. Ahora: documento -> dossier -> imagenes. Si algo se cae, lo que falta es cosmetica, y la
+  // continuacion la pone dentro de un minuto sin que nadie haga nada.
   var docUrl = "";
-  if (_t.sobra(45000)) { try { docUrl = crearDocumentoPER_(id); pend.doc = false; _t.hito("documento de enlaces"); }
+  if (_t.sobra(60000)) { try { docUrl = crearDocumentoPER_(id); pend.doc = false; _t.hito("documento de enlaces"); }
                          catch (e) { Logger.log("crearDocumentoPER_: " + e); } }
   var dossierUrl = "";
-  if (_t.sobra(30000)) { try { dossierUrl = dossier_(); pend.dossier = false; _t.hito("dossier del profesorado"); }
+  if (_t.sobra(45000)) { try { dossierUrl = dossier_(); pend.dossier = false; _t.hito("dossier del profesorado"); }
                          catch (e) { Logger.log("dossier_: " + e); } }
+  if (_t.sobra(30000)) { try { var _im = imagenesFormularios_(fb, ft, fc, _t); pend.imagenes = _im.faltan > 0; _t.hito("imagenes de los formularios (" + _im.puestos + " puestas, " + _im.faltan + " pendientes)"); }
+                         catch (e) { Logger.log("imagenesFormularios_: " + e); } }
   if (pend.imagenes || pend.doc || pend.dossier) {
     guardarProgreso_("alta", pend); programarContinuacion_("continuarAltaPER");
     Logger.log("crearPER: acabado aplazado a continuarAltaPER -> " + JSON.stringify(pend));
@@ -2433,7 +2439,10 @@ function continuarAltaPER() {
   var p = perFila_(pr.per);
   if (!p) { guardarProgreso_("alta", null); cancelarContinuacion_("continuarAltaPER"); return; }  // lo borraron
   var o = perObj_(p.v), t = reloj_();
-  if (pr.imagenes) {
+  // el MISMO orden que en el alta: primero lo que se reparte, al final lo bonito.
+  if (pr.doc && t.puedo()) { try { crearDocumentoPER_(pr.per); pr.doc = false; } catch (e) { Logger.log("continuarAltaPER doc: " + e); } t.marcar(); }
+  if (pr.dossier && t.puedo()) { try { dossier_(); pr.dossier = false; } catch (e) { Logger.log("continuarAltaPER dossier: " + e); } t.marcar(); }
+  if (pr.imagenes && t.puedo()) {
     //  aqui TAMBIEN va el reloj. Sin el, la continuacion podia comerse sus propios 6 minutos en
     // las imagenes y morir antes del documento - el mismo fallo que aplaza, repetido en el que
     // deberia rematarlo: el PER no se terminaba NUNCA por muchas vueltas que diera.
@@ -2442,8 +2451,6 @@ function continuarAltaPER() {
     catch (e) { Logger.log("continuarAltaPER imagenes: " + e); }
     t.marcar();
   }
-  if (pr.doc && t.puedo()) { try { crearDocumentoPER_(pr.per); pr.doc = false; } catch (e) { Logger.log("continuarAltaPER doc: " + e); } t.marcar(); }
-  if (pr.dossier && t.puedo()) { try { dossier_(); pr.dossier = false; } catch (e) { Logger.log("continuarAltaPER dossier: " + e); } t.marcar(); }
   if (pr.imagenes || pr.doc || pr.dossier) { guardarProgreso_("alta", pr); programarContinuacion_("continuarAltaPER"); }
   else { guardarProgreso_("alta", null); cancelarContinuacion_("continuarAltaPER"); Logger.log("continuarAltaPER: acabado del PER " + pr.per + " completo"); }
 }

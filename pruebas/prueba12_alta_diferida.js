@@ -120,4 +120,40 @@ c(vueltas >= 1 && vueltas < 10, "el acabado avanza a trozos y acaba (" + vueltas
         "con tiempo de sobra no queda ninguna pendiente");
 }
 
+// ---------------------------------------------------------------- el ORDEN: primero lo que se reparte
+// 🔴 Lo pregunto Norberto el 9-sep: «si falla al principio estamos muertos». Tenia razon — el orden
+// estaba al reves. Iban las ~23 imagenes de los formularios ANTES del documento de enlaces, asi que
+// en el peor caso el profe se quedaba con los formularios ilustrados y SIN el unico papel que tiene
+// que repartir a su clase. Ahora: documento -> dossier -> imagenes. Si algo se cae, lo que falta es
+// cosmetica.
+{
+  const G5 = E.nuevoMundo();
+  // margen justo: da para el documento, no para las 23 imagenes
+  G5.MARGEN_MS = 70000;
+  const P5 = E.crearPERDemo(G5).id;
+  const o5 = G5.perObj_(G5.perFila_(P5).v);
+  c(!!o5.doc, "🔴 con el tiempo justo, el DOCUMENTO DE ENLACES sí se hace: es lo que se reparte");
+  const pr5 = G5.progreso_("alta");
+  if (pr5) {
+    igual(!!pr5.doc, false, "y no queda pendiente");
+    c(!!pr5.imagenes, "lo que se aplaza son las IMÁGENES, que son cosmética");
+  } else {
+    c(true, "con este margen cupo todo, que también vale");
+  }
+  // y el orden tambien en la continuacion
+  const src = require("fs").readFileSync(
+    require("path").join(__dirname, "..", "apps-script", "Code.gs"), "utf8");
+  const cont = src.slice(src.indexOf("function continuarAltaPER"), src.indexOf("function continuarReset"));
+  c(cont.indexOf("crearDocumentoPER_") < cont.indexOf("imagenesFormularios_"),
+    "🔴 y la continuación remata en el MISMO orden: documento antes que imágenes");
+  // 🔴 El orden se comprueba sobre el CODIGO, no ejecutando: el banco es mucho mas rapido que Apps
+  // Script (no hay descargas de verdad), asi que ninguna prueba de reloj distingue un orden del otro.
+  // Y el orden ES la decision: si manaña alguien vuelve a poner las imagenes primero, esto se entera.
+  const alta = src.slice(src.indexOf("var pend = { per: id"), src.indexOf("if (pend.imagenes || pend.doc"));
+  c(alta.indexOf("crearDocumentoPER_") < alta.indexOf("imagenesFormularios_"),
+    "🔴 en el ALTA, el documento de enlaces va ANTES que las imágenes");
+  c(alta.indexOf("dossier_(") < alta.indexOf("imagenesFormularios_"),
+    "y el dossier también: lo cosmético, lo último");
+}
+
 E.resumen("Alta de PER con acabado diferido");
