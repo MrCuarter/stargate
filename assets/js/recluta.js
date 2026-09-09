@@ -476,7 +476,10 @@
   }
   function vestirDemo(){
     if(st.yo||!demoPermitido()) return false;
-    var d=window.SG_TABLERO_DATA, r=(d&&d.reclutas)||[];
+    // 🔴 Los reclutas vienen YA en la respuesta de la Nave (st.d.reclutas): no hay que esperar al
+    // tablero ni pedir nada. Buscarlos fuera era la causa de que la demo no arrancase.
+    var r=(st.d&&st.d.reclutas)||[];
+    if(!r.length){ var g=window.SG_TABLERO_DATA; r=(g&&g.reclutas)||[]; }
     if(!r.length) return false;
     ponDemo(r); return true;
   }
@@ -486,6 +489,7 @@
   // Aqui se pide el tablero PUBLICO directamente: el mismo que ve cualquiera, sin correos ni
   // nombres. Una llamada de mas solo en demo, y a cambio arranca siempre.
   function vestirDemoSeguro(){
+    try{ window.__sgDemo={DEMO:DEMO, nombre:(st.d&&st.d.nombre), permitido:demoPermitido(), nDatos:((st.d&&st.d.reclutas)||[]).length, yo:!!st.yo}; }catch(e){}
     if(vestirDemo()){ render(); return; }
     if(st.yo||!demoPermitido()) return;
     fetch(API+'?accion=tablero&per='+encodeURIComponent(per),{redirect:'follow'})
