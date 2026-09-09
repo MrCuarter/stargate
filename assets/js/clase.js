@@ -475,9 +475,11 @@
       var quien=function(alias,nombre,mail,profe,nRetos,nCro,nHer,bio,canjes){
         var retos={}, i;
         for(i=0;i<Math.min(nRetos,cat.length);i++) retos[cat[i][0]]={fecha:hace(60-i*3),origen:'alumnado'};
+        // 🔴 El catalogo que recibe la sala es solo [id, titulo]: no dice que insignia da cada reto
+        // (eso vive en el servidor). Para la demo se reparten las primeras del catalogo de insignias,
+        // que es lo que hay que enseñar: unas puestas y otras no.
         var ins={}, cro={}, her=[];
-        Object.keys(retos).forEach(function(id){var x=cat.filter(function(y){return y[0]===id;})[0];
-          if(x&&x[2]) x[2].forEach(function(k){ins[k]=true;});});
+        for(i=0;i<Math.min(nRetos,ORD.length);i++) ins[ORD[i]]=true;
         for(i=0;i<nCro&&i<CR.length;i++) cro[CR[i][0]]=(i===1?2:1);
         for(i=0;i<nHer&&i<HE.length;i++) her.push(HE[i][0]);
         var gastado=(canjes||[]).reduce(function(a,c){return a+c.coste;},0);

@@ -33,9 +33,13 @@ ALUMNO = "demo05@reclutas.demo"        # recluta sembrado, correo inventado a pr
 DESTINO = os.path.join(HERE, "assets", "img", "pasos")
 
 # La Nave guarda a quien eres en localStorage, con la clave del PER.
-SEMBRAR = ("localStorage.setItem('sgNaveEmail_%s','%s');"
+# el globo del Capitan («¿Te enseño tu sala?») se cuela en las capturas: se da por vista.
+SIN_GLOBO = ("try{Object.keys(localStorage).forEach(function(k){if(/^sgTour_/.test(k))localStorage.removeItem(k);});"
+             "localStorage.setItem('sgTour_sala_hecha','1');localStorage.setItem('sgTourRol','doc');}catch(e){}")
+
+SEMBRAR = (SIN_GLOBO + "localStorage.setItem('sgNaveEmail_%s','%s');"
            "localStorage.setItem('sgNaveOnboard_%s','1');" % (PER, ALUMNO, PER))
-OLVIDAR = ("localStorage.removeItem('sgNaveEmail_%s');"
+OLVIDAR = (SIN_GLOBO + "localStorage.removeItem('sgNaveEmail_%s');"
            "localStorage.setItem('sgNaveOnboard_%s','1');" % (PER, PER))
 # 🔴 La Nave tiene TRES mensajes de espera distintos («Contactando», «Estableciendo conexion»,
 # «Sincronizando»). Comprobar la ausencia de UNO dejaba pasar los otros dos y la captura salia a
@@ -65,10 +69,10 @@ def url_form(cual):
 
 # nombre -> el trabajo. `form:` se resuelve contra la API antes de disparar.
 TOMAS = {
- "d1_portada.png":    dict(url=WEB + "/index.html", ancho=1440, alto=900, espera=5),
+ "d1_portada.png":    dict(antes=SIN_GLOBO, url=WEB + "/index.html", ancho=1440, alto=900, espera=5),
  "d2_cronologia.png": dict(url=WEB + "/cronologia.html", ancho=1440, alto=1150, espera=6,
                            scroll=subir("Semana 1")),
- "d6_tablero.png":    dict(url=WEB + "/registro.html?per=%s&embed=1&solo=1" % PER,
+ "d6_tablero.png":    dict(antes=SIN_GLOBO, url=WEB + "/registro.html?per=%s&embed=1&solo=1" % PER,
                            ancho=1280, alto=1000, espera=4,
                            listo="document.querySelectorAll('#tablero tbody tr').length>0"),
  "e1_nave.png":       dict(url=WEB + "/recluta.html?per=%s" % PER, ancho=1280, alto=950, espera=4,
@@ -79,20 +83,20 @@ TOMAS = {
 # 🔴 Las tres de detras del PIN se retratan en MODO DEMO (?demo=1), con alumnado inventado. No es
 # un atajo: es la unica forma de que se puedan REGENERAR: ningun script puede escribir un PIN, y
 # una captura que no se puede rehacer acaba mintiendo el dia que cambie la pantalla.
- "d3_sala.png":       dict(url=WEB + "/clase.html?demo=1", ancho=1400, alto=1150, espera=4,
+ "d3_sala.png":       dict(antes=SIN_GLOBO, url=WEB + "/clase.html?demo=1", ancho=1400, alto=1150, espera=4,
                            listo="document.querySelectorAll('#sala-grupo button[data-al]').length>0",
                            scroll="(function(){document.querySelectorAll('#sala-grupo button[data-al]')[0].click();"
                                   "return 1;})()",
                            listo2="document.querySelectorAll('#ficha .fr-ins').length>20",
                            scroll2="(function(){var f=document.getElementById('ficha');"
                                    "window.scrollTo(0,f.getBoundingClientRect().top+window.pageYOffset-90);return 1;})()"),
- "d4_pase.png":       dict(url=WEB + "/clase.html?demo=1", ancho=1400, alto=800, espera=4,
+ "d4_pase.png":       dict(antes=SIN_GLOBO, url=WEB + "/clase.html?demo=1", ancho=1400, alto=800, espera=4,
                            listo="!!document.getElementById('abrirPase')",
                            scroll="(function(){document.getElementById('abrirPase').click();return 1;})()",
                            listo2="!!document.querySelector('.consigna')",
                            scroll2="(function(){var p=document.getElementById('sala-pase');"
                                    "window.scrollTo(0,p.getBoundingClientRect().top+window.pageYOffset-90);return 1;})()"),
- "d5_tickets.png":    dict(url=WEB + "/tickets.html?demo=1", ancho=1400, alto=1050, espera=4,
+ "d5_tickets.png":    dict(antes=SIN_GLOBO, url=WEB + "/tickets.html?demo=1", ancho=1400, alto=1050, espera=4,
                            listo="document.querySelectorAll('.temachip').length>2",
                            scroll="(function(){var c=document.querySelector('.temachips');"
                                   "window.scrollTo(0,c.getBoundingClientRect().top+window.pageYOffset-90);return 1;})()"),
