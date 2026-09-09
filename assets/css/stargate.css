@@ -211,7 +211,15 @@ footer a{color:var(--teal2)}
 .trio{display:flex;justify-content:center;align-items:flex-end;gap:8px;min-width:0;overflow:hidden}
 .trio img{max-height:330px;max-width:32%;width:auto;object-fit:contain;object-position:bottom;filter:drop-shadow(0 12px 30px rgba(0,0,0,.6))}
 .trio img:nth-child(2){max-height:360px;z-index:2}
-@media(max-width:760px){.trio img{max-height:220px}.trio img:nth-child(2){max-height:240px}}
+/* 🔴 Vaeon sale enano al lado de NEBULA y el Capitan, y es el ANTAGONISTA: tiene que imponer.
+   La causa no era el alto sino el ANCHO — su armadura es mucho mas ancha que las otras figuras,
+   asi que topaba con max-width:32% y se quedaba corto de alto sin llegar a su limite. Se le suelta
+   el ancho y se le sube el alto; NEBULA cede un poco para que los tres quepan sin recortarse.
+   Solo afecta a los trios de TRES (la guia tiene de dos y de uno). */
+.trio img:first-child:nth-last-child(3){max-width:30%}
+.trio img:first-child:nth-last-child(3)~img:nth-child(3){max-height:410px;max-width:37%}
+@media(max-width:760px){.trio img{max-height:220px}.trio img:nth-child(2){max-height:240px}
+  .trio img:first-child:nth-last-child(3)~img:nth-child(3){max-height:270px}}
 .trio img:only-child{max-width:100%}
 .trio img:first-child:nth-last-child(2),.trio img:first-child:nth-last-child(2)~img{max-width:48%}
 /* FAQ */
