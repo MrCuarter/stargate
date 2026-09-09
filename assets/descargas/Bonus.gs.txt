@@ -469,8 +469,16 @@ function sembrarCanjesDemo_(perId) {
   // el estado ANTES: quien ya tiene vestuario no se toca, y hay que saber de cuanto dispone cada uno
   var antes = {}; tablero_(perId, true).reclutas.forEach(function(x){ antes[String(x.email).toLowerCase()] = x; });
 
-  var comprados = 0, saltados = 0, sinDinero = 0;
+  // 🔴 9-sep · CON RELOJ. La primera version no lo llevaba y se comio los 6 minutos sembrando
+  // CLASE DEMO (10 reclutas x 7 canjes, y cada canje pasa por resolverCanje_, que no es barato):
+  // el docente se encontraba «Se ha superado el tiempo maximo de ejecucion» en vez de un resultado.
+  // Ahora para a tiempo y dice cuantos quedan. Como es idempotente, se vuelve a pasar y sigue por
+  // donde iba — que es mas simple y mas robusto que programar una continuacion para una utilidad
+  // de pruebas que se usa dos veces en la vida.
+  var _t = reloj_();
+  var comprados = 0, saltados = 0, sinDinero = 0, pendientes = 0;
   Object.keys(antes).forEach(function(email){
+    if (!_t.sobra(45000)) { pendientes++; return; }   // 45 s: lo que cuesta servir a uno entero
     if (email.indexOf("@reclutas.demo") < 0) return;          // solo el alumnado sembrado
     var yo = antes[email];
     if ((yo.n_heroes || 0) > 0) { saltados++; return; }        // ya tiene: no se le compra dos veces
@@ -491,7 +499,7 @@ function sembrarCanjesDemo_(perId) {
       comprados++;
     });
   });
-  return { comprados: comprados, saltados: saltados, sinDinero: sinDinero };
+  return { comprados: comprados, saltados: saltados, sinDinero: sinDinero, pendientes: pendientes };
 }
 
 function sembrarCanjesDemo() {
@@ -505,6 +513,8 @@ function sembrarCanjesDemo() {
     var r = sembrarCanjesDemo_(sel.o.id);
     ui.alert("Canjes sembrados", r.comprados + " canjes hechos · " + r.saltados + " reclutas ya tenían vestuario" +
       (r.sinDinero ? " · " + r.sinDinero + " sin créditos suficientes" : "") +
+      (r.pendientes ? "\n\n⏳ Quedan " + r.pendientes + " reclutas por servir: se acabó el tiempo de esta pasada. " +
+        "Vuelve a darle y sigue por donde iba (no compra dos veces a nadie)." : "") +
       "\n\nMíralo en la Nave con &demo=1 o en el tablero.", ui.ButtonSet.OK);
   } catch (e) { ui.alert("No se pudo sembrar", String(e.message || e), ui.ButtonSet.OK); }
 }

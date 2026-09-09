@@ -106,4 +106,10 @@ let sePuede = true;
 try { G2.sembrarCanjesDemo_("master-2026"); } catch (e) { sePuede = false; }
 igual(sePuede, false, "🔴 en un grupo que no es DEMO ni PRUEBA se niega");
 
+// el reloj: sembrar CLASE DEMO entera se comio los 6 minutos en produccion (10 reclutas x 7 canjes,
+// y cada canje pasa por resolverCanje_). Ahora para a tiempo y dice cuantos quedan.
+c(/var _t = reloj_\(\);/.test(require("fs").readFileSync(require("path").join(__dirname,"..","apps-script","Bonus.gs"),"utf8")),
+  "🔴 la siembra de canjes lleva reloj: no se come los 6 minutos");
+c(typeof res.pendientes === "number", "   y dice cuántos quedan por servir (" + res.pendientes + ")");
+
 E.resumen("La siembra de alumnado de prueba");
