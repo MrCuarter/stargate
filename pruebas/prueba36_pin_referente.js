@@ -22,10 +22,10 @@ console.log("\n▶ 36 · El PIN de referente");
 const PER = "prueba-banco";
 const DOCENTE = "sg2026docente", REFERENTE = "sg2026-referente-largo";
 
-// Las 17 acciones con PIN, repartidas. Escritas AQUÍ a mano a propósito: si mañana alguien añade una
+// Las 18 acciones con PIN, repartidas. Escritas AQUÍ a mano a propósito: si mañana alguien añade una
 // acción nueva a doPost y no decide su nivel, el apartado (g) lo caza.
 const DIA_A_DIA = ["pers","alumnos","tickets","ticket_resuelto","ficha","ajuste","entregado",
-                   "pase_abrir","pase_estado","mi_panel"];
+                   "pase_abrir","pase_estado","mi_panel","canje_revertir"];
 const RESERVADAS = ["profesorado","inicio","abrir","cerrar","archivar","panel","documento"];
 
 function mundo(pinDocente, pinReferente) {
@@ -48,7 +48,10 @@ const ARGS = {
   mi_panel: { profe: "Mr Cuarter", url: "https://panel.example" }, pase_abrir: { profe: "Mr Cuarter", minutos: 5 },
   profesorado: { referente: "Norberto Cuartero", profesorado: "Mr Cuarter" },
   inicio: { inicio: E.iso(E.haceSemanas(2)) }, archivar: { valor: false },
-  panel: { ver: "https://ver.example", editar: "" }
+  panel: { ver: "https://ver.example", editar: "" },
+  // revertir es del DIA A DIA: quien da clase corrige a SU gente, como con «ficha» o «ajuste».
+  // La fila 2 puede no existir en el mundo de juguete; da igual, aqui solo se prueba la puerta.
+  canje_revertir: { fila: 2, profe: "Mr Cuarter" }
 };
 
 // ---------------------------------------------------------------- a) SIN PIN de referente: como hoy
@@ -57,7 +60,7 @@ const ARGS = {
 let G = mundo(DOCENTE, "");
 E.enviarBitacora(G, PER, { email: "ana@alumno.es", alias: "Ana", profe: "Mr Cuarter" });
 let fuera = DIA_A_DIA.concat(RESERVADAS).filter(a => !pasaLaPuerta(G, a, DOCENTE));
-igual(fuera, [], "🔴 sin PIN_REFERENTE configurado, las 17 acciones siguen abiertas con el PIN de siempre");
+igual(fuera, [], "🔴 sin PIN_REFERENTE configurado, las 18 acciones siguen abiertas con el PIN de siempre");
 igual(G._post({ accion: "pers", pin: DOCENTE }).nivel, "referente",
   "y el nivel que se devuelve lo dice: mientras no haya PIN de referente, el de siempre lo abre todo");
 igual(G._post({ accion: "pers", pin: "otro" }).error, "PIN incorrecto", "un PIN inventado sigue sin entrar");
@@ -71,7 +74,7 @@ igual(coladas, [], "🔴 con el PIN de docente, las 7 acciones de grupo entero q
 const bloqueadas = DIA_A_DIA.filter(a => !pasaLaPuerta(G, a, DOCENTE));
 igual(bloqueadas, [], "🔴 y el día a día NO se toca: las 10 de siempre siguen funcionando con el PIN de docente");
 const cerradasAlJefe = DIA_A_DIA.concat(RESERVADAS).filter(a => !pasaLaPuerta(G, a, REFERENTE));
-igual(cerradasAlJefe, [], "con el PIN de referente pasan las 17");
+igual(cerradasAlJefe, [], "con el PIN de referente pasan las 18");
 
 // el mensaje tiene que decir QUÉ hacer, no solo que no
 const negado = G._post({ accion: "cerrar", per: PER, pin: DOCENTE });
@@ -102,7 +105,7 @@ const enElCodigo = {};
 (tramo.match(/a === "([a-z_]+)"/g) || []).forEach(x => { enElCodigo[x.match(/"([a-z_]+)"/)[1]] = true; });
 const sinClasificar = Object.keys(enElCodigo).filter(a => DIA_A_DIA.indexOf(a) < 0 && RESERVADAS.indexOf(a) < 0);
 igual(sinClasificar, [], "🔴 toda acción de doPost tiene su nivel decidido (si esto falla, hay una nueva sin clasificar)");
-igual(Object.keys(enElCodigo).length, 17, "y siguen siendo 17");
+igual(Object.keys(enElCodigo).length, 18, "y siguen siendo 18");
 
 // ---------------------------------------------------------------- e) queda traza de quién tocó qué
 // Con dos niveles, saber quién recalendarizó o archivó deja de ser opcional.

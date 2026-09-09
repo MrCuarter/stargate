@@ -260,7 +260,28 @@
       +(ins?'<h4>Insignias</h4><div class="fr-lista">'+ins+'</div>':'')
       +(cro?'<h4>Cartas del \u00e1lbum</h4><div class="fr-lista">'+cro+'</div>':'')
       +(her?'<h4>Personajes ganados</h4><div class="fr-lista">'+her+'</div>':'')
+      + bloqueCanjes(p)
       +'</div>';}
+
+  // 🔴 v3.43 · EL HISTORIAL DE CANJES, que pidio Norberto para tener «una radiografia completa».
+  // El dato ya viajaba (canjes[m].lista, solo con PIN): fecha, recompensa, actividad y la FILA de
+  // la pestaña C, que es la que permite revertir. Revertir = marcar esa fila como no concedida; el
+  // dinero vuelve solo, porque «gastado» solo suma las filas que empiezan por «Concedido».
+  function bloqueCanjes(p){
+    var l=(p.canjes||[]).slice().sort(function(a,b){return new Date(b.fecha)-new Date(a.fecha);});
+    if(!l.length) return '<h4>Canjes</h4><p class="small muted">Todavía no ha canjeado nada. '
+      +'Lleva <b>'+(p.creditos||0)+' \u25c8</b> sin gastar.</p>';
+    var filas=l.map(function(c){
+      var ent=String(c.entregado||'').trim();
+      return '<tr><td class="small muted">'+esc(f(c.fecha))+'</td>'
+        +'<td><b>'+esc(c.recompensa||'')+'</b>'+(c.actividad?'<br><span class="small muted">'+esc(c.actividad)+'</span>':'')+'</td>'
+        +'<td class="small">'+(ent?'<span class="chip ok">entregado</span>':'<span class="small muted">pendiente</span>')+'</td>'
+        +'<td><button class="btn small" data-revertir="'+c.fila+'" data-nom="'+esc(c.recompensa||'')+'">Revertir</button></td></tr>';}).join('');
+    return '<h4>Canjes <span class="small muted">('+l.length+' \u00b7 '+(p.creditos_gastados||0)+' \u25c8 gastados, '
+      +(p.creditos||0)+' \u25c8 en el bolsillo)</span></h4>'
+      +'<p class="small muted">Revertir le quita la recompensa y le <b>devuelve los créditos</b>. '
+      +'Úsalo si se equivocó de opción o si algo se cobró dos veces.</p>'
+      +'<div class="tablewrap"><table class="rank"><tbody>'+filas+'</tbody></table></div>';}
 
   function fichaAlumno(p){
     var box=document.getElementById('ficha'); if(!box) return;
@@ -298,6 +319,16 @@
             bitacora:document.getElementById('fBit').value.trim(),profe_edita:st.profe},
         function(){ m.textContent='Guardado.'; cargarPer(); },
         function(e){ m.textContent=e; });};
+    Array.prototype.forEach.call(box.querySelectorAll('button[data-revertir]'),function(b){
+      b.onclick=function(){
+        if(!confirm('¿Revertir «'+b.getAttribute('data-nom')+'»?\n\nSe le quita la recompensa y se le devuelven los créditos.')) return;
+        b.disabled=true; b.textContent='Revirtiendo…';
+        post({accion:'canje_revertir',per:st.per,fila:Number(b.getAttribute('data-revertir')),profe:st.profe},
+          function(){ cargarPer(); },
+          function(e){ b.disabled=false; b.textContent='Revertir';
+            alert(/desconocida|accion/i.test(String(e))
+              ? 'Esta versión de Apps Script todavía no sabe revertir canjes. Hay que desplegar la actualización (Bonus.gs + una línea de Code.gs).'
+              : e); });};});
     Array.prototype.forEach.call(box.querySelectorAll('button[data-aj]'),function(b){
       b.onclick=function(){ b.disabled=true;
         post({accion:'ajuste',per:st.per,email:p.email,reto_id:b.getAttribute('data-r'),

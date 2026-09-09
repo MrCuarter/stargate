@@ -3231,6 +3231,15 @@ function tablero_(perId, conPrivados) {
     else if (v[4] === "heroe") { a._heroes = a._heroes || []; var hk = String(v[5] || "");
       if (hk && esHeroe_(hk) && a._heroes.indexOf(hk) < 0) a._heroes.push(hk); }
     else if (v[4] === "viste") { a._viste = String(v[5] || ""); }
+    // v3.43 · DESHACER UN CANJE. Una fila que retira el efecto de una recompensa revertida. Va por
+    // orden cronologico como todo lo demas, asi que una compra posterior a la reversion NO se pierde.
+    // 🔴 Los sorteos (cromos) no se revierten nunca: ver revertirCanje_ en Bonus.gs.
+    else if (v[4] === "quitar_extra") { var qe = String(v[5] || ""), qk = qe.indexOf(":") >= 0 ? qe.split(":") : [qe, ""];
+      if (qk[0] === "heroe") { a._heroes = (a._heroes || []).filter(function(x){ return x !== qk[1]; });
+        if (String(a._viste || "") === "heroe:" + qk[1]) a._viste = ""; }
+      else if (qk[0] === "titulo") a._titulo = "";
+      else if (qk[0] === "marco")  a._marco  = "";
+      else if (qk[0] === "fondo")  a._fondo  = ""; }
     else if (v[4] === "bonus") { a._bonus = a._bonus || {}; a._bonus[String(v[5] || "")] = v[0]; } });
   // 3) cálculo
   var canjes = {}; var shC = SpreadsheetApp.getActive().getSheetByName(o.tabC);
@@ -4233,6 +4242,7 @@ function doPost(e) {
     else if (a === "abrir" || a === "cerrar") { setAbierto_(per, a === "abrir"); out = { ok:true }; }
     else if (a === "entregado") { var o2 = perObj_(perFila_(per).v); var shc = SpreadsheetApp.getActive().getSheetByName(o2.tabC); var cab = shc.getRange(1,1,1,shc.getLastColumn()).getValues()[0].map(String);
       var col = cab.indexOf("Entregado") + 1; if (!col) { col = shc.getLastColumn() + 1; shc.getRange(1, col).setValue("Entregado"); } shc.getRange(q.fila, col).setValue(q.valor ? "Sí · " + (q.profe||"") : ""); out = { ok:true }; }
+    else if (a === "canje_revertir") { out = revertirCanje_(perObj_(perFila_(per).v), q.fila, q.profe); }
     else throw new Error("Acción desconocida");
     if (out && typeof out === "object") out.nivel = nivel;   // para que la web se adapte sola
     // Se apunta DESPUÉS de que la acción haya salido bien: el registro cuenta lo que pasó, no lo

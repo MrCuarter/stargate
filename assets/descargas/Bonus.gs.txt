@@ -351,3 +351,81 @@ function saludHtml() {
        '</p></div>';
   return h;
 }
+
+// ── REVERTIR UN CANJE (v3.43) ────────────────────────────────────────────────────────────────
+// Lo pidio Norberto el 9-sep: en la ficha del alumno, poder deshacer un canje y devolverle los
+// creditos. Se equivocan de opcion, o algo se cobra dos veces, y hasta ahora habia que entrar en
+// la pestaña C a mano.
+//
+// 🔴 NO se borra la fila NI se toca ningun contador. El dinero gastado se calcula sumando las
+// filas cuyo Estado empieza por «Concedido», asi que basta con que deje de empezar por ahi: el
+// saldo vuelve solo en el siguiente tablero_(). Append-only, como todo lo demas — la fila queda,
+// con quien la revirtio y cuando, y por eso se puede auditar.
+//
+// La recompensa se retira igual de sola: `canjes[m].veces` cuenta esas mismas filas, o sea que
+// un heroe revertido deja de estar en su coleccion y un titulo revertido deja de pintarse.
+function revertirCanje_(o, fila, profe) {
+  fila = Number(fila || 0);
+  if (fila < 2) throw new Error("Esa fila no existe");
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabC);
+  if (!sh) throw new Error("Ese grupo no tiene pestaña de canjes");
+  if (fila > sh.getLastRow()) throw new Error("Esa fila ya no existe: recarga la ficha");
+  var cab = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String);
+  var cEstado = cab.indexOf("Estado") + 1;
+  if (!cEstado) throw new Error("La pestaña de canjes no tiene columna Estado");
+  var antes = String(sh.getRange(fila, cEstado).getValue() || "");
+  if (antes.indexOf("Concedido") !== 0)
+    return { ok: true, yaEstaba: true, estado: antes };   // idempotente: revertir dos veces no paga dos veces
+
+  var cR = cab.indexOf("Recompensa");
+  var cM = idx_(cab, "correo") >= 0 ? idx_(cab, "correo") : idx_(cab, "email");
+  var etiqueta = String(sh.getRange(fila, cR + 1).getValue() || "");
+  var email = String(sh.getRange(fila, cM + 1).getValue() || "").toLowerCase().trim();
+  var cuando = sh.getRange(fila, 1).getValue();
+
+  // que recompensa era, para saber que efecto hay que deshacer
+  var cat = recompensasCat_();
+  var f = cat.filter(function(x){ return etiqueta === x.nombre + " — " + x.coste + " créditos"; })[0]
+       || cat.filter(function(x){ return etiqueta.indexOf(x.nombre) === 0; })
+              .sort(function(a, b){ return b.nombre.length - a.nombre.length; })[0] || null;
+  var tipo = f ? String(f.tipo || "") : "";
+
+  // 🔴 LOS SORTEOS NO SE REVIERTEN. Un sobre de cromos ya esta repartido: devolverlo dejaria
+  // volver a sortear hasta que salga la carta buena, que es dinero infinito disfrazado de arreglo.
+  if (tipo === "cromo" || tipo === "cromo_repes")
+    throw new Error("Un sobre de cromos no se revierte: las cartas ya están repartidas y devolverlo "
+      + "dejaría sortear otra vez hasta que salga la buena. Si se cobró de más, compénsalo por otra vía.");
+
+  var sello = "Revertido · " + (profe || "profesorado") + " · " +
+              Utilities.formatDate(new Date(), "Europe/Madrid", "dd/MM/yyyy HH:mm");
+  sh.getRange(fila, cEstado).setValue(sello);
+
+  // Y ahora el EFECTO. Si solo se devolviera el dinero, se quedaria con el premio Y con los
+  // creditos: revertir seria un regalo. Los efectos viven en AJUSTES como filas «extra», asi que
+  // se compensan con una fila «quitar_extra» — append-only, nada se borra.
+  var quitado = "";
+  if (tipo === "heroe") {
+    // cual le toco: la fila «heroe» de ese correo escrita al resolver ESTE canje. Se busca por
+    // cercania en el tiempo porque extra_() se ejecuta dentro del mismo disparo (segundos).
+    var t0 = new Date(cuando).getTime();
+    var mejor = null, dist = 10 * 60 * 1000;   // 10 minutos de margen
+    registros_(H.AJ, o.id).forEach(function(v){
+      if (String(v[4]) !== "heroe") return;
+      if (String(v[2]).toLowerCase().trim() !== email) return;
+      var d = Math.abs(new Date(v[0]).getTime() - t0);
+      if (d <= dist) { dist = d; mejor = String(v[5] || ""); } });
+    if (mejor) { extra_(o, email, "quitar_extra", "heroe:" + mejor); quitado = mejor; }
+  } else if (tipo === "titulo" || tipo === "marco" || tipo === "fondo") {
+    extra_(o, email, "quitar_extra", tipo); quitado = tipo;
+  }
+  // tipo «nota» no tiene efecto automatico que deshacer: la subida la aplica una persona a mano,
+  // asi que aqui solo vuelve el dinero y el aviso se lo lleva quien la aplico.
+
+  // la traza, donde se mira cuando algo no cuadra
+  try {
+    hoja_(H.AJ).appendRow([new Date(), o.id, email, "", "canje_revertido", etiqueta, profe || ""]);
+  } catch (e) { Logger.log("revertirCanje_ (traza): " + e); }
+
+  return { ok: true, estado: sello, tipo: tipo, quitado: quitado,
+           nota: tipo === "nota" ? "Los créditos vuelven, pero la subida de nota la tienes que deshacer tú donde la aplicaste." : "" };
+}
