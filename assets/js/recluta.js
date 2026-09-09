@@ -948,7 +948,12 @@
     if(st.estado==='fin')st.actual=st.semanas.length;
     if(st.estado==='antes')st.actual=0;
     render();
-    if(st.email)identificar(st.email);
+    // 🔴 El modo demo se intenta AQUI ademas de en sg:tablero, porque el tablero puede llegar antes
+    // que los datos del PER: entonces demoPermitido() todavia no sabia el nombre del grupo y la
+    // demo no arrancaba nunca. Con los dos puntos de entrada da igual quien llegue primero.
+    // Y en demo NO se identifica a nadie: el correo guardado de otro dia no pinta nada aqui.
+    if(DEMO){ if(vestirDemo()) render(); }
+    else if(st.email)identificar(st.email);
     if(!localStorage.getItem('sgNaveOnboard_'+per))onboarding(0);
   }).catch(function(){root.innerHTML='<p class="lead">No se pudo contactar con NEBULA. Prueba a recargar.</p>';});
 })();
