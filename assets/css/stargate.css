@@ -220,13 +220,16 @@ footer a{color:var(--teal2)}
    que se cierne sobre NEBULA y el Capitan—, asi que va al fondo, mas alto que los dos, en penumbra
    y a contraluz. Los drop-shadow siguen la SILUETA del png (no una caja): por eso parece luz por
    detras y no un halo pegado.
-   El padding-top es lo que le deja sitio a la cabeza: sin el, `overflow:hidden` se la cortaba.
+   OJO CON EL ALTO: un absolute con height:% se mide contra la caja del padre, que YA incluye el
+   padding-top — poner 118% era perseguirse la cola (crecia 53px por encima y se los comia el
+   overflow). Con 100% mide justo la caja entera, y como los otros dos solo ocupan el contenido,
+   Vaeon queda exactamente esos 76px mas alto. Que es el efecto que se buscaba.
    Clase propia en vez de contar hijos: la guia tiene trios de dos y de uno y no se enteran. */
 .trio-amenaza{position:relative;padding-top:76px}
 .trio-amenaza>img{position:relative;z-index:2;max-width:34%}
 .trio-amenaza>img:nth-child(3){
   position:absolute;left:50%;bottom:0;transform:translateX(-50%);
-  z-index:0;max-height:none;max-width:none;height:118%;width:auto;
+  z-index:0;max-height:none;max-width:none;height:100%;width:auto;
   opacity:.82;pointer-events:none;
   filter:brightness(.5) contrast(1.15) saturate(.8)
          drop-shadow(0 0 22px rgba(80,220,240,.34))
@@ -234,7 +237,7 @@ footer a{color:var(--teal2)}
 }
 @media(max-width:760px){
   .trio-amenaza{padding-top:48px}
-  .trio-amenaza>img:nth-child(3){height:112%;opacity:.72}
+  .trio-amenaza>img:nth-child(3){opacity:.72}
 }
 @media(max-width:760px){.trio img{max-height:220px}.trio img:nth-child(2){max-height:240px}
   .trio img:first-child:nth-last-child(3)~img:nth-child(3){max-height:270px}}
