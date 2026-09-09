@@ -1,5 +1,17 @@
 // STARGATE — generador de enlaces, embeds y QR por PER y profesor/a
 (function(){
+  // 🔴 9-sep · CON DOS REFERENTES, EL CAMPO DE TEXTO SE QUEDA CORTO. `d.referente` es una cadena y
+  // solo guarda al primero, asi que la cabecera decia «referente: Norberto» cuando el grupo tenia
+  // titular Y ayudante (lo pidio Norberto: «habitualmente hay un profe referente y un ayudante»).
+  // La verdad esta en el equipo docente, que lleva la marca por persona; el campo viejo queda de
+  // reserva para los grupos creados antes del cambio.
+  function referentes(d){
+    var l=((d&&(d.docentes_full||d.docentes))||[])
+      .filter(function(x){ return x.referente || /referente/.test(String(x.rol||'')); })
+      .map(function(x){ return x.nombre; })
+      .filter(function(x,i,a){ return x && a.indexOf(x)===i; });
+    return l.length ? l.join(' · ') : ((d&&d.referente)||'—');
+  }
   var API=(window.SG_TABLERO_API||"").trim(), root=document.getElementById('embed-app'), WEB=location.origin+location.pathname.replace(/[^/]*$/,'');
   if(location.protocol==='file:') WEB='https://stargate.mistercuarter.es/';
   var q=new URLSearchParams(location.search), st={per:q.get('per')||'',prof:q.get('profe')||'',pers:[],d:null};
@@ -30,7 +42,7 @@
         uTick=WEB+'tickets.html?per='+per+pe,
         uProf=WEB+'profes.html?per='+per;
 
-    root.innerHTML='<div class="tab-head"><div><div class="eyebrow amber">Enlaces del grupo</div><h3>'+esc(d.nombre)+(st.prof?' · '+esc(st.prof):'')+'</h3><div class="small muted">'+esc(d.tipo)+' · '+esc(d.estado)+' · referente: '+esc(d.referente||'—')+'</div></div>'+sel+'</div>'
+    root.innerHTML='<div class="tab-head"><div><div class="eyebrow amber">Enlaces del grupo</div><h3>'+esc(d.nombre)+(st.prof?' · '+esc(st.prof):'')+'</h3><div class="small muted">'+esc(d.tipo)+' · '+esc(d.estado)+' · referente: '+esc(referentes(d))+'</div></div>'+sel+'</div>'
 
       // ───────────────────────── 1 · profesorado
       +'<h2 style="font-size:1.2rem;margin-top:6px">1 · Para el profesorado</h2>'

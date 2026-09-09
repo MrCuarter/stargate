@@ -1,5 +1,17 @@
 // STARGATE — panel del profesorado (PIN). profes.html[?per=id][&embed=1]
 (function(){
+  // 🔴 9-sep · CON DOS REFERENTES, EL CAMPO DE TEXTO SE QUEDA CORTO. `d.referente` es una cadena y
+  // solo guarda al primero, asi que la cabecera decia «referente: Norberto» cuando el grupo tenia
+  // titular Y ayudante (lo pidio Norberto: «habitualmente hay un profe referente y un ayudante»).
+  // La verdad esta en el equipo docente, que lleva la marca por persona; el campo viejo queda de
+  // reserva para los grupos creados antes del cambio.
+  function referentes(d){
+    var l=((d&&(d.docentes_full||d.docentes))||[])
+      .filter(function(x){ return x.referente || /referente/.test(String(x.rol||'')); })
+      .map(function(x){ return x.nombre; })
+      .filter(function(x,i,a){ return x && a.indexOf(x)===i; });
+    return l.length ? l.join(' · ') : ((d&&d.referente)||'—');
+  }
   var API=(window.SG_TABLERO_API||"").trim(); var root=document.getElementById('profes-app'); if(!root) return;
   var q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
   var N=window.SG_BADGE_NAMES||{}, RET=window.SG_RETOS||{};
@@ -26,7 +38,7 @@
   function cargarPer(){root.innerHTML=cargando('Cargando el PER…','Reclutas, insignias, tickets y canjes');post({accion:'alumnos',per:st.per},function(d){st.datos=d;render();});}
   function sel(){return '<select id="selPer">'+st.pers.map(function(p){return '<option value="'+esc(p.id)+'"'+(p.id===st.per?' selected':'')+'>'+(p.archivado?'\u{1F4E6} ':'')+esc(p.nombre)+' · '+esc(p.tipo)+' · '+(p.archivado?'archivado':esc(p.estado))+'</option>';}).join('')+'</select>';}
   function render(){var d=st.datos,p=st.pers.filter(function(x){return x.id===st.per;})[0]||{};
-    root.innerHTML='<div class="tab-head"><div><div class="eyebrow amber">Panel del profesorado</div><h3>'+esc(d.nombre)+'</h3><div class="small muted">'+esc(d.tipo)+' · '+esc(d.estado)+' · referente: '+esc(d.referente||'—')+' · profesorado: '+esc(d.profesorado||'—')+' · semana 1: '+esc(d.inicio||'sin fecha')+(d.cierre_canje?' · misiones hasta '+fecha(d.cierre_misiones)+' · canje hasta '+fecha(d.cierre_canje):'')+(d.archivado?' · <b>\u{1F4E6} ARCHIVADO</b> ('+esc(d.archivado)+')':'')+'</div></div><div>'+sel()+'</div></div>'
+    root.innerHTML='<div class="tab-head"><div><div class="eyebrow amber">Panel del profesorado</div><h3>'+esc(d.nombre)+'</h3><div class="small muted">'+esc(d.tipo)+' · '+esc(d.estado)+' · referente: '+esc(referentes(d))+' · profesorado: '+esc(d.profesorado||'—')+' · semana 1: '+esc(d.inicio||'sin fecha')+(d.cierre_canje?' · misiones hasta '+fecha(d.cierre_misiones)+' · canje hasta '+fecha(d.cierre_canje):'')+(d.archivado?' · <b>\u{1F4E6} ARCHIVADO</b> ('+esc(d.archivado)+')':'')+'</div></div><div>'+sel()+'</div></div>'
       +'<div class="tabs"><button data-v="alumnos">👥 Alumnos ('+(d.reclutas||[]).length+')</button><button data-v="tickets">🎟️ Tickets de salida</button><button data-v="canjes">🎁 Canjes</button>'+(esReferente()?'<button data-v="per">⚙️ Ajustes del PER</button>':'')+'<button class="salir">Salir</button></div><div id="vista"></div>';
     document.getElementById('selPer').onchange=function(){st.per=this.value;history.replaceState(null,'','?per='+st.per+(document.body.classList.contains('embed')?'&embed=1':''));cargarPer();};
     Array.prototype.forEach.call(root.querySelectorAll('.tabs button[data-v]'),function(b){b.onclick=function(){st.vista=b.getAttribute('data-v');vista();};if(b.getAttribute('data-v')===st.vista)b.classList.add('on');});

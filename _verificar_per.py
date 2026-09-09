@@ -26,7 +26,16 @@ for k, nombre, imgs_min in [("formBitacora","Bitácora",8),("formCanje","Canje",
     if not d.get(k): continue
     h = baja(d[k])
     p = payload(h)
-    if not p: mal.append(f"{nombre}: no se puede leer"); continue
+    if not p:
+        # 🔴 9-sep · UN FORMULARIO CERRADO NO ES UN FORMULARIO ROTO. Un PER «Programado» tiene los
+        # tres formularios cerrados hasta el primer dia de la semana 1, y Google sirve entonces
+        # «Ya no se aceptan mas respuestas» en vez del payload. Decir «no se puede leer» y pintarlo
+        # en rojo hacia pensar que el grupo habia salido mal, cuando es el calendario funcionando.
+        if "no se aceptan" in h or "no longer accepting" in h:
+            ok.append(f"{nombre}: cerrado todavia (abre el {d.get('apertura') or d.get('inicio')}) — normal en un PER programado")
+        else:
+            mal.append(f"{nombre}: no se puede leer")
+        continue
     items = p[1][1] or []
     tipos = {}
     for it in items: tipos[it[3]] = tipos.get(it[3], 0) + 1

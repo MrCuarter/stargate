@@ -221,4 +221,16 @@ c(!!G._post({ accion: "alumnos", per: PER, pin: REFERENTE }).docentes_full[0].co
     "🔴 y el panel de profes también (si no, editar el equipo dejaría uno solo)");
 }
 
+
+// ---------------------------------------------------------------- dos referentes (v54, 9-sep)
+// «Habitualmente hay un profe referente y un ayudante» — y el campo `referente` del PER es UNA
+// cadena, asi que solo guarda al primero. Si las cabeceras leyeran de ahi dirian que hay un solo
+// referente cuando hay dos. La verdad esta en el equipo docente, marca por persona.
+["assets/js/profes.js", "assets/js/embed.js"].forEach(function(f){
+  const j = require("fs").readFileSync(require("path").join(__dirname, "..", f), "utf8");
+  c(/function referentes\(d\)/.test(j), "🔴 " + f + " saca los referentes del equipo docente");
+  c(j.indexOf("' · referente: '+esc(d.referente||'—')+'") < 0,
+    "   y ya no lee el campo viejo, que solo guarda a uno");
+});
+
 E.resumen("El PIN de referente");
