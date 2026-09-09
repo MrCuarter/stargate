@@ -238,28 +238,58 @@
         :'<p class="lead">Ningún recluta te ha elegido todavía como docente. Si ya tienes clase, revisa que hayan respondido «¿Quién imparte tu clase?» en su Bitácora — o desmarca «solo mis alumnos» y corrígeselo tú.</p>')
       +'</section>';}
 
+  // 🔴 v3.43 · LA RADIOGRAFIA COMPLETA. Antes solo se pintaba lo que el alumno TENIA, asi que la
+  // ficha de quien no habia canjeado nada salia sin cartas y sin personajes — parecia rota. Lo pidio
+  // Norberto el 9-sep: enseñar TODO lo que se puede ganar, iluminado lo conseguido y apagado lo que
+  // falta. Asi la ficha dice de un vistazo por donde va y cuanto le queda.
+  // Se reutiliza el lenguaje visual de la Nave (clase `.no` = gris al 30 %) para que el docente y el
+  // alumno vean lo mismo, y para no mantener dos estilos que dicen lo mismo.
   function bloqueColeccion(p){
-    var N=window.SG_BADGE_NAMES||{}, CR=window.SG_CROMOS||[], HE=window.SG_HEROES||[];
-    var col=p.coleccion||{};
-    var ins=(p.insignias||[]).map(function(k){
-      return '<span class="fr-ins"><img src="assets/img/insignias/'+k+'.png" alt=""><em>'+esc(N[k]||k)+'</em></span>';}).join('');
-    var cro=Object.keys(p.cromos||{}).map(function(k){var c=CR.filter(function(x){return x[0]===k;})[0];
-      var n=(p.cromos||{})[k]||1;
-      return '<span class="fr-cro"><img src="assets/img/tarjetas/'+k+'_carta.png'+(window.SG_CARDV||'')+'" alt="">'
-        +'<em>'+esc(c?c[1]:k)+(n>1?' \u00d7'+n:'')+'</em></span>';}).join('');
-    var her=(p.heroes||[]).map(function(k){var h=HE.filter(function(x){return x[0]===k;})[0];
-      return '<span class="fr-cro"><img src="assets/img/heroes/'+k+'.jpg" alt=""><em>'+esc(h?h[1]:k)+'</em></span>';}).join('');
+    var N=window.SG_BADGE_NAMES||{}, ORD=window.SG_BADGES||Object.keys(N),
+        CR=window.SG_CROMOS||[], HE=window.SG_HEROES||[], CV=window.SG_CARDV||'';
+    var col=p.coleccion||{}, tengoIns={}, tengoCro=p.cromos||{}, tengoHer={};
+    (p.insignias||[]).forEach(function(k){tengoIns[k]=true;});
+    (p.heroes||[]).forEach(function(k){tengoHer[k]=true;});
+
+    function cabecera(tit, tengo, total){
+      var pct=total?Math.round(tengo*1000/total)/10:0;
+      return '<h4>'+tit+' <span class="fr-cnt'+(tengo===total&&total?' full':'')+'">'+tengo+' / '+total+'</span>'
+        +'<span class="fr-pc">'+pct+' %</span></h4>';}
+
+    // insignias: las 24, en el orden del catalogo
+    var ins=ORD.map(function(k){var t=!!tengoIns[k];
+      return '<span class="fr-ins'+(t?'':' no')+'" title="'+esc(N[k]||k)+(t?'':' \u00b7 todav\u00eda no')+'">'
+        +'<img src="assets/img/insignias/'+k+'.png" alt="" loading="lazy"><em>'+esc(N[k]||k)+'</em></span>';}).join('');
+
+    // cartas: las 20, con su rareza (el borde lo pone la clase, como en la Nave)
+    function rar(r){r=String(r||'').toLowerCase();
+      return r.indexOf('legend')>=0?' leg':r.indexOf('épica')>=0||r.indexOf('epica')>=0?' epi':r.indexOf('rara')>=0?' rar':'';}
+    var cro=CR.map(function(c){var n=tengoCro[c[0]]||0;
+      return '<span class="fr-cro'+(n?'':' no')+rar(c[3])+'" title="'+esc(c[1])+' \u00b7 '+esc(c[3]||'')
+        +(n?(n>1?' \u00b7 x'+n:''):' \u00b7 a\u00fan no le ha salido')+'">'
+        +'<img src="assets/img/tarjetas/'+c[0]+'_carta.png'+CV+'" alt="" loading="lazy">'
+        +'<em>'+esc(c[1])+(n>1?' \u00d7'+n:'')+'</em></span>';}).join('');
+
+    // personajes: los 30. Los que no tiene usan la imagen _bloqueado, que ya existe para la Nave.
+    var her=HE.map(function(h){var t=!!tengoHer[h[0]];
+      return '<span class="fr-cro'+(t?'':' no')+'" title="'+esc(h[1])+' \u00b7 '+esc(h[2]||'')
+        +(t?'':' \u00b7 sin descubrir')+'">'
+        +'<img src="assets/img/heroes/'+h[0]+(t?'':'_bloqueado')+'.jpg" alt="" loading="lazy">'
+        +'<em>'+(t?esc(h[1]):'\u2014')+'</em></span>';}).join('');
+
     var pct=Math.round((Number(col.pct)||0)*100)/100;
+    var nCro=col.cromos?col.cromos.tengo:0, tCro=col.cromos?col.cromos.total:CR.length;
+    var nHer=col.heroes?col.heroes.tengo:0, tHer=col.heroes?col.heroes.total:HE.length;
     return '<div style="margin-top:16px">'
-      +(p.bio?'<p class="fr-bio">\u00ab'+esc(p.bio)+'\u00bb</p>':'')
+      +(p.bio?'<p class="fr-bio">\u00ab'+esc(p.bio)+'\u00bb</p>':'<p class="fr-bio muted">Sin biograf\u00eda todav\u00eda.</p>')
       +'<div class="fr-kpis">'
-        +'<div><b>'+p.n+'</b><span>de 24 insignias</span></div>'
-        +'<div><b>'+(col.cromos?col.cromos.tengo:0)+'</b><span>de '+(col.cromos?col.cromos.total:20)+' cartas</span></div>'
-        +'<div><b>'+(col.heroes?col.heroes.tengo:0)+'</b><span>de '+(col.heroes?col.heroes.total:30)+' h\u00e9roes</span></div>'
-        +'<div><b>'+p.creditos+' \u25c8</b><span>cr\u00e9ditos · '+pct+' % del juego</span></div></div>'
-      +(ins?'<h4>Insignias</h4><div class="fr-lista">'+ins+'</div>':'')
-      +(cro?'<h4>Cartas del \u00e1lbum</h4><div class="fr-lista">'+cro+'</div>':'')
-      +(her?'<h4>Personajes ganados</h4><div class="fr-lista">'+her+'</div>':'')
+        +'<div><b>'+p.n+'</b><span>de '+ORD.length+' insignias</span></div>'
+        +'<div><b>'+nCro+'</b><span>de '+tCro+' cartas</span></div>'
+        +'<div><b>'+nHer+'</b><span>de '+tHer+' personajes</span></div>'
+        +'<div><b>'+p.creditos+' \u25c8</b><span>cr\u00e9ditos \u00b7 '+pct+' % del juego</span></div></div>'
+      +cabecera('Insignias', p.n||0, ORD.length)+'<div class="fr-lista">'+ins+'</div>'
+      +cabecera('Cartas del \u00e1lbum', nCro, tCro)+'<div class="fr-lista">'+cro+'</div>'
+      +cabecera('Personajes de la Rebeli\u00f3n', nHer, tHer)+'<div class="fr-lista">'+her+'</div>'
       + bloqueCanjes(p)
       +'</div>';}
 

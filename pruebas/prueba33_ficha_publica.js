@@ -72,4 +72,21 @@ const CL = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "clase.js"
 c(CL.indexOf("img/heroes/") >= 0, "en la sala del docente sí se ven los personajes ganados");
 c(/p\.email/.test(CL), "y el correo del alumno, que es quien tiene que poder ayudarle");
 
+// ---------------------------------------------------------------- la radiografía completa
+// 🔴 Visto en vivo el 9-sep: en la ficha no salían ni cartas ni personajes. La causa no estaba en
+// clase.js sino en clase.html, que NO le pasaba los catálogos —solo los tenía la Nave—, así que
+// `window.SG_CROMOS||[]` era una lista vacía y la galería se quedaba en blanco sin avisar de nada.
+// Estas cuatro comprobaciones cubren las dos mitades: que la página entrega los catálogos y que el
+// JS los recorre ENTEROS (si volviera a pintar solo lo que el alumno tiene, la ficha de quien no ha
+// canjeado nada volvería a parecer rota).
+const CLH = fs.readFileSync(path.join(__dirname, "..", "clase.html"), "utf8");
+["SG_BADGES", "SG_CROMOS", "SG_HEROES"].forEach(function(g){
+  c(CLH.indexOf("window." + g + "=") >= 0,
+    "🔴 clase.html le entrega " + g + " a la sala (sin esto la ficha sale vacía y no avisa)"); });
+const colec = CL.slice(CL.indexOf("function bloqueColeccion"), CL.indexOf("function bloqueCanjes"));
+c(/ORD\.map\(/.test(colec) && /CR\.map\(/.test(colec) && /HE\.map\(/.test(colec),
+  "🔴 la ficha recorre los CATÁLOGOS enteros, no solo lo que el alumno tiene");
+c(colec.indexOf("_bloqueado") >= 0,
+  "y los personajes que aún no tiene usan su imagen bloqueada");
+
 E.resumen("Lo que sale al tablero público");

@@ -602,6 +602,10 @@ El resto de documentos oficiales están en <a href="actividades.html#docs">Activ
 # ================= CRONOLOGÍA =================
 FORO = foro_por_semana()
 BADGE_NAME = {k:t for k,t,*_ in PERS+ESP+RETO+HITO}
+# 🔴 Las 24 insignias EN ORDEN. Vivia mucho mas abajo, junto a la Nave, porque solo la Nave las
+# pintaba. Ahora la ficha del alumno en la sala del docente enseña el catalogo COMPLETO —lo que
+# tiene iluminado y lo que le falta apagado— y necesita la lista antes de generar clase.html.
+NAVE_BADGES = [k for k,*_ in PERS]+[k for k,*_ in ESP]+[k for k,*_ in RETO]+[k for k,*_ in HITO]
 
 def mini_badges(keys):
     if not keys: return '<span class="muted">— ninguna esta semana —</span>'
@@ -1336,6 +1340,7 @@ PROFES = head("STARGATE · Panel del profesorado", "Panel del profesorado de STA
 <header class="hero"><div class="kicker">Solo profesorado · PIN</div><h1>Panel del profesorado</h1>
 <p>Elige el PER y gestiona sin tocar la hoja: alumnos con nombre y correo, insignias (anular / otorgar), tickets de salida por tema, canjes pendientes de entregar, profesorado, fecha de inicio y apertura/cierre de formularios.</p></header>
 <section id="panel"><div class="wrap">
+
 <div id="profes-app"></div>
 <script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};</script>
 <script src="assets/js/profes.js" defer></script>
@@ -1454,7 +1459,7 @@ la orden de la semana, las <b>dudas del ticket de salida</b> filtrables por tema
 <p class="small muted"><b>Entra con el PIN</b> que te dé el profe referente y <b>elige tu nombre</b>:
 solo la primera vez. Después este navegador te reconoce y llegas directo a tu clase.</p></header>
 <section><div class="wrap"><div id="clase-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_SEMANAS={SEMANAS_JSON};window.SG_TOUR_LOCAL={json.dumps(TOUR_CLASE, ensure_ascii=False)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_SEMANAS={SEMANAS_JSON};window.SG_TOUR_LOCAL={json.dumps(TOUR_CLASE, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";</script>
 <script src="assets/js/clase.js" defer></script>
 </div></section>
 ''' + FOOT
@@ -1491,7 +1496,6 @@ html=(EMBED.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'
 open(os.path.join(HERE,"embed.html"),"w",encoding="utf-8").write(html); print("escrito: embed.html")
 
 # ================= v3 · LA NAVE DEL RECLUTA (web del alumnado por PER) =================
-NAVE_BADGES = [k for k,*_ in PERS]+[k for k,*_ in ESP]+[k for k,*_ in RETO]+[k for k,*_ in HITO]
 RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>STARGATE · La Nave del Recluta</title>
@@ -1784,6 +1788,26 @@ if _rotas:
                      + "\n   ".join(_rotas[:12])
                      + ("\n   ... y %d más" % (len(_rotas) - 12) if len(_rotas) > 12 else ""))
 print("imagenes: las %d rutas que arma el JS existen todas" % (len(_CATALOGO["heroes"]) + len(_CATALOGO["tarjetas"])))
+
+# 🔴 La ficha del alumno (sala del docente) pinta el CATALOGO ENTERO: las 24 insignias, las 20
+# cartas y los 30 personajes con su variante «_bloqueado» para los que aun no tiene. Son 104
+# imagenes y ninguna la arma una ruta literal, asi que si falta una sale un hueco roto en la
+# pantalla que el profesorado usa para hablar con un alumno. Se comprueban aqui, al construir.
+_falta_ficha = []
+for _k in NAVE_BADGES:
+    if not os.path.exists(os.path.join(HERE, "assets", "img", "insignias", _k + ".png")):
+        _falta_ficha.append("insignia " + _k)
+for _c in CROMOS:
+    if not os.path.exists(os.path.join(HERE, "assets", "img", "tarjetas", _c[0] + "_carta.png")):
+        _falta_ficha.append("carta " + _c[0])
+for _h in HEROES:
+    for _suf in ("", "_bloqueado"):
+        if not os.path.exists(os.path.join(HERE, "assets", "img", "heroes", _h[0] + _suf + ".jpg")):
+            _falta_ficha.append("heroe " + _h[0] + _suf)
+if _falta_ficha:
+    raise SystemExit("\n🔴 A la ficha del alumno le faltan imágenes:\n   " + "\n   ".join(_falta_ficha))
+print("ficha del alumno: las %d imágenes del catálogo completo existen todas"
+      % (len(NAVE_BADGES) + len(CROMOS) + len(HEROES) * 2))
 
 # ================= LAS ANCLAS DE LA VISITA GUIADA, ¿SIGUEN AHÍ? =================
 # La sala del docente la pinta clase.js entera, así que los objetivos de la visita son ids y claves

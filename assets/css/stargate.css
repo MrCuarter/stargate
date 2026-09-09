@@ -825,3 +825,19 @@ tr.clicable:hover td{background:rgba(55,224,236,.07)}
 .minis .mini.baja{border-color:#7a3b3b;color:#e59b9b}
 .minis .mini.baja b{color:#ff9d9d}
 @media (max-width:640px){.temachip{padding:6px 11px;font-size:13px}}
+
+/* La radiografía completa de la ficha (v3.43): se enseña TODO el catálogo, y lo que aún no se
+   tiene queda apagado. Mismo lenguaje que el álbum de la Nave, para no mantener dos estilos. */
+.fr-ins.no img,.fr-cro.no img{filter:grayscale(1) brightness(.32);}
+.fr-ins.no em,.fr-cro.no em{color:#5d6b7a}
+.fr-cro img{border:1px solid var(--line)}
+.fr-cro.rar img{border-color:rgba(96,208,236,.55)}
+.fr-cro.epi img{border-color:#a98cf0}
+.fr-cro.epi:not(.no) img{box-shadow:0 0 10px rgba(169,140,240,.45)}
+.fr-cro.leg img{border-color:var(--amber)}
+.fr-cro.leg:not(.no) img{box-shadow:0 0 10px rgba(245,176,67,.5)}
+.fr-cnt{font-size:.72rem;font-weight:700;letter-spacing:.04em;font-variant-numeric:tabular-nums;
+  border:1px solid var(--line);border-radius:999px;padding:2px 9px;margin-left:9px;color:#8fa3b4}
+.fr-cnt.full{border-color:var(--amber);color:var(--amber)}
+.fr-pc{font-size:.72rem;color:#5d6b7a;margin-left:7px;font-variant-numeric:tabular-nums}
+.fr-bio.muted{color:#6f7f8f;font-style:normal;border-left-color:var(--line)}
