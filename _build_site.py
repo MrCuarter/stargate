@@ -1284,8 +1284,11 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
     }};
   // al saltar de pagina en pagina, el navegador restaura SU scroll y se lleva por delante el nuestro
   var q=qs(); if(q!==null){ try{ if('scrollRestoration' in history) history.scrollRestoration='manual'; }catch(e){} render(q); }
-  // primera visita a la portada: invitación discreta
-  if(page()==='index.html' && q===null && !localStorage.getItem('sgTourDone') && !localStorage.getItem(KEY)){
+  // 🔴 9-sep · LA INVITACION SE MUDA A LA GUIA. Vivia en index.html cuando index.html ERA el puesto
+  // de mando. Desde que la portada es la puerta publica del proyecto, el globo del Capitan le
+  // preguntaba «¿primera vez en el puesto de mando?» a cualquiera que pasara por ahi — a un
+  // estudiante, a alguien de fuera. Ahora saluda en guia.html, que es adonde lleva «Soy docente».
+  if(page()==='guia.html' && q===null && !localStorage.getItem('sgTourDone') && !localStorage.getItem(KEY)){
     var inv=document.createElement('div'); inv.className='tour-invite';
     inv.innerHTML='<img src="assets/img/capitan/saluda.png" alt=""><div><b>¿Primera vez en el puesto de mando?</b><br>Te lo enseño en dos minutos.</div><button type="button" class="tour-start">Empezar</button><button type="button" class="x" aria-label="Cerrar">✕</button>';
     document.body.appendChild(inv);

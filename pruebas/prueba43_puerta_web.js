@@ -62,4 +62,22 @@ const A = leer("actividades.html");
     f + " sigue accesible: es material del alumnado, no del profesorado");
 });
 
+
+// ---------------------------------------------------------------- la portada es PUBLICA de verdad
+// 9-sep · Visto en una captura: la portada seguia enseñando el globo del Capitan «¿primera vez en
+// el puesto de mando?». Vivia ahi de cuando index.html ERA el puesto de mando, y se lo preguntaba
+// a cualquiera — a un estudiante, a alguien de fuera. Con el menu pasa igual.
+const tour = leer("assets/js/tour.js");
+c(/page\(\)==='guia\.html' && q===null/.test(tour),
+  "🔴 la invitación del Capitán saluda en la guía, no en la portada pública");
+c(!/page\(\)==='index\.html' && q===null/.test(tour),
+  "   y ya no se dispara en index.html");
+
+const port = leer("index.html");
+["Mi clase", "tour-start", "modo docente"].forEach(function(t){
+  c(port.indexOf(t) < 0, "🔴 la portada no lleva «" + t + "»: es la puerta de todos, no la del profesorado");
+});
+c(port.indexOf('href="recluta.html">🚀 Soy estudiante') >= 0 && port.indexOf('href="guia.html">🎓 Soy docente') >= 0,
+  "🔴 y su menú son las dos puertas: estudiante y docente");
+
 E.resumen("La puerta del profesorado");

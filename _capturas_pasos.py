@@ -39,8 +39,11 @@ DESTINO = os.path.join(HERE, "assets", "img", "pasos")
 
 # La Nave guarda a quien eres en localStorage, con la clave del PER.
 # el globo del Capitan («¿Te enseño tu sala?») se cuela en las capturas: se da por vista.
-SIN_GLOBO = ("try{Object.keys(localStorage).forEach(function(k){if(/^sgTour_/.test(k))localStorage.removeItem(k);});"
-             "localStorage.setItem('sgTour_sala_hecha','1');localStorage.setItem('sgTourRol','doc');}catch(e){}")
+# 🔴 «sgTourDone» NO empieza por «sgTour_» (no lleva guion bajo), asi que el barrido de arriba no lo
+# tocaba y el globo del Capitan se colaba en la captura de la portada. Se pone a mano.
+SIN_GLOBO = ("try{Object.keys(localStorage).forEach(function(k){if(/^sgTour/.test(k))localStorage.removeItem(k);});"
+             "localStorage.setItem('sgTour_sala_hecha','1');localStorage.setItem('sgTourDone','1');"
+             "localStorage.setItem('sgTourRol','doc');}catch(e){}")
 
 SEMBRAR = (SIN_GLOBO + "localStorage.setItem('sgNaveEmail_%s','%s');"
            "localStorage.setItem('sgNaveOnboard_%s','1');" % (PER, ALUMNO, PER))
