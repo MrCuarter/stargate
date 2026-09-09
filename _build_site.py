@@ -9,7 +9,8 @@ from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_sema
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
-                        NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE)
+                        NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
+                        PASOS)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
 # no se escriben a mano (si no, cambiarlas en _site_data.py dejaría la web mintiendo).
@@ -21,7 +22,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E"
 
 NAV = [("index.html","Inicio","inicio"),("guia.html","Guía","guia"),("cronologia.html","Cronología","crono"),
-       ("actividades.html","Actividades","act"),("geniallys.html","Geniallys","gen"),
+       ("actividades.html","Actividades","act"),("pasos.html","Cómo se hace","pasos"),("geniallys.html","Geniallys","gen"),
        ("registro.html","Registro","reg"),("grupos.html","Grupos","grp"),("clase.html","Mi clase","cla"),("recursos.html","Recursos","rec")]
 
 def head(title, desc, active):
@@ -1794,6 +1795,109 @@ if _sin_ancla:
     raise SystemExit("🔴 La visita guiada de la sala señala a sitios que ya no existen:\n   "
                      + "\n   ".join(sorted(set(_sin_ancla))))
 print("visita guiada: los %d pasos de la sala señalan a anclas que existen" % len(TOUR_CLASE["pasos"]))
+
+# ================= «CÓMO SE HACE»: LOS TRES CAMINOS (v3.43) =================
+# Sustituye a los tres videos de onboarding que iba a grabar Norberto. Misma informacion,
+# pero viva: el texto sale de PASOS (_site_data.py), las capturas las regenera
+# _capturas_pasos.py y el audio del Capitan _audio_pasos.py. Cambiar una frase aqui la cambia
+# en la pagina, en la voz y en el guion — un dato, un sitio.
+_DIR_PASOS = os.path.join(HERE, "assets", "img", "pasos")
+_DIR_AUD   = os.path.join(HERE, "assets", "audio", "pasos")
+os.makedirs(_DIR_PASOS, exist_ok=True); os.makedirs(_DIR_AUD, exist_ok=True)
+
+def _paso_html(i, s, camino):
+    cod = s["cod"]
+    clase = "paso aviso" if s.get("aviso") else "paso"
+    # la captura: si falta, un hueco honesto en ambar en vez de una imagen rota
+    img = s.get("img")
+    if img and os.path.exists(os.path.join(_DIR_PASOS, img)):
+        v = _ver(os.path.join("assets", "img", "pasos", img))
+        fig = ('<figure><img src="assets/img/pasos/%s?v=%s" alt="%s" loading="lazy"></figure>'
+               % (img, v, s["t"].replace('"', "")))
+    else:
+        fig = ('<div class="paso-falta"><b>Captura pendiente</b>'
+               'Esta pantalla vive detrás de un PIN o dentro de la hoja maestra, así que el '
+               'generador no puede entrar a por ella. Se añade dejando el PNG en '
+               '<code>assets/img/pasos/</code> y volviendo a construir.</div>')
+    # el audio, solo si existe el mp3
+    mp3 = os.path.join(_DIR_AUD, cod + ".mp3")
+    aud = ""
+    if os.path.exists(mp3):
+        aud = ('<button class="paso-audio" type="button" data-audio="assets/audio/pasos/%s.mp3">'
+               '▶ Escuchar al Capitán</button>' % cod)
+    return ('<article class="%s" id="%s"><div class="paso-num">'
+            '<img class="cap" src="assets/img/capitan/%s.png" alt="" loading="lazy">'
+            '<span class="n">%s</span></div>'
+            '<div class="paso-cuerpo"><h3><a href="#%s">%s</a></h3>'
+            '<p class="paso-hacer">%s</p>%s<p class="paso-voz">%s</p>%s</div></article>'
+            % (clase, cod, s["pose"], cod, cod, s["t"], s["hacer"], fig, s["voz"], aud))
+
+_tabs, _paneles, _faltan = [], [], []
+for _ci, _c in enumerate(PASOS):
+    _sel = "true" if _ci == 0 else "false"
+    _tabs.append('<button class="camino-tab" role="tab" aria-selected="%s" aria-controls="cam-%s" '
+                 'id="tab-%s" data-camino="%s"><i>%s</i><b>%s<span>%s</span></b></button>'
+                 % (_sel, _c["id"], _c["id"], _c["id"], _c["icono"], _c["titulo"], _c["cuanto"]))
+    _cuerpo = "".join(_paso_html(_i, _s, _c) for _i, _s in enumerate(_c["pasos"]))
+    for _s in _c["pasos"]:
+        if not _s.get("img") or not os.path.exists(os.path.join(_DIR_PASOS, _s["img"] or "")):
+            _faltan.append("%s (%s)" % (_s["cod"], _c["titulo"]))
+    _paneles.append('<section class="camino-panel" id="cam-%s" role="tabpanel" aria-labelledby="tab-%s"%s>'
+                    '<div class="camino-intro"><p><b>Para quién:</b> %s</p><p>%s</p></div>%s</section>'
+                    % (_c["id"], _c["id"], "" if _ci == 0 else " hidden", _c["quien"], _c["porque"], _cuerpo))
+
+_PASOS_JS = """
+<script>
+(function(){
+ var tabs=[].slice.call(document.querySelectorAll('.camino-tab'));
+ var pans=[].slice.call(document.querySelectorAll('.camino-panel'));
+ function ver(id,guardar){
+   tabs.forEach(function(t){t.setAttribute('aria-selected', t.dataset.camino===id?'true':'false');});
+   pans.forEach(function(p){p.hidden = p.id!=='cam-'+id;});
+   if(guardar){ try{localStorage.setItem('sgCamino',id);}catch(e){}
+     history.replaceState(null,'','?camino='+id); }
+ }
+ tabs.forEach(function(t){ t.onclick=function(){ver(t.dataset.camino,true);}; });
+ // el enlace manda: ?camino=… o una ancla #R3 abren su camino solo
+ var q=(location.search.match(/camino=([a-z]+)/)||[])[1];
+ var anc=(location.hash||'').replace('#','');
+ if(!q && anc){ pans.forEach(function(p){ if(p.querySelector('#'+CSS.escape(anc))) q=p.id.slice(4); }); }
+ if(!q){ try{q=localStorage.getItem('sgCamino');}catch(e){} }
+ if(q && document.getElementById('cam-'+q)) ver(q,false);
+ if(anc){ var el=document.getElementById(anc); if(el) setTimeout(function(){el.scrollIntoView({block:'center'});},60); }
+ // un solo audio a la vez
+ var sonando=null;
+ document.addEventListener('click',function(e){
+   var b=e.target.closest && e.target.closest('.paso-audio'); if(!b) return;
+   if(sonando){ sonando.pause(); document.querySelectorAll('.paso-audio').forEach(function(x){x.removeAttribute('data-sonando');x.textContent='\\u25b6 Escuchar al Capit\\u00e1n';}); }
+   if(b.getAttribute('data-sonando')){ sonando=null; return; }
+   sonando=new Audio(b.getAttribute('data-audio'));
+   b.setAttribute('data-sonando','1'); b.textContent='\\u23f8 Parar';
+   sonando.onended=function(){ b.removeAttribute('data-sonando'); b.textContent='\\u25b6 Escuchar al Capit\\u00e1n'; sonando=null; };
+   sonando.play();
+ });
+})();
+</script>"""
+
+_html = head("STARGATE · Cómo se hace", "Los tres caminos de STARGATE paso a paso, con capturas y la voz "
+             "del Capitán: crear el grupo, dar las clases y alistarse como recluta.", "pasos") + f'''
+<header class="hero"><div class="kicker">Paso a paso</div><h1>Cómo se hace</h1>
+<p>Tres caminos, según lo que seas hoy. Cada paso dice <b>dónde pulsar</b> y <b>qué está pasando</b>.
+Es la misma información que habría en un vídeo, pero se actualiza con el sistema en vez de envejecer con él.</p></header>
+<section id="pasos"><div class="wrap">
+<div class="caminos" role="tablist" aria-label="Elige tu camino">{"".join(_tabs)}</div>
+{"".join(_paneles)}
+</div></section>
+{_PASOS_JS}
+''' + FOOT
+open(os.path.join(HERE, "pasos.html"), "w", encoding="utf-8").write(_html)
+print("escrito: pasos.html  (%d pasos en %d caminos)" % (sum(len(c["pasos"]) for c in PASOS), len(PASOS)))
+_ntot = sum(len(c["pasos"]) for c in PASOS)
+_naud = sum(1 for c in PASOS for s in c["pasos"] if os.path.exists(os.path.join(_DIR_AUD, s["cod"] + ".mp3")))
+print("   capturas: %d de %d puestas%s" % (_ntot - len(_faltan), _ntot,
+      ("  ·  faltan: " + ", ".join(_faltan)) if _faltan else ""))
+print("   audio del Capitán: %d de %d (se genera con _audio_pasos.py)" % (_naud, _ntot))
+
 
 # ================= COMPROBACIÓN DE LA WEB PUBLICADA (§12.9) =================
 # A propósito NO se hace por defecto: el build tiene que funcionar sin internet. Pero el 504 de

@@ -129,12 +129,20 @@
       return '<div class="card" id="sala-pase"><h3>🎓 Pase de lista en directo</h3>'
         +'<p class="small muted">Abre una ventana y enseña la consigna en pantalla. Quien esté en clase la teclea en su Nave y se lleva unos créditos. Una vez por sesión.</p>'
         +'<p><button class="btn primary" id="abrirPase">Abrir el pase de lista</button></p>'
-        +'<p class="small muted">Ojo: esto premia estar en la clase en directo, no es un control de asistencia — la consigna se puede pasar por chat.</p></div>';
+        +'<p class="small muted">Ojo: premia <b>estar</b> en la sesión en directo, pero no es un control de asistencia fiable: quien está en clase puede escribirle la consigna por el chat a quien no está. Si te importa que no se filtre, ábrelo con la clase ya empezada y déjalo pocos minutos.</p></div>';
+    // 🔴 v3.43 · El interruptor de ocultar lo pidio Norberto: la consigna ocupa media pantalla y el
+    // docente comparte esa misma pantalla para dar clase. Tapada sigue VALIENDO —la ventana no se
+    // cierra—, solo deja de verse; asi puede enseñar otra cosa sin cerrar el pase.
+    var tapada = !!st.paseOculto;
     return '<div class="card pase-abierto" id="sala-pase"><h3>🎓 Pase de lista ABIERTO</h3>'
       +'<p class="small muted">Enséñales esta pantalla. Se cierra sola.</p>'
-      +'<div class="consigna">'+esc(p.palabra)+'</div>'
-      +'<p class="small muted">Cierra a las <b>'+hora(p.hasta)+'</b> · <span id="cuenta"></span></p>'
-      +'<p><button class="btn small" id="abrirPase">Abrir otra ventana</button></p></div>';}
+      +(tapada
+        ? '<div class="consigna consigna-tapada" title="La ventana sigue abierta">\u2022 \u2022 \u2022 \u2022</div>'
+        : '<div class="consigna">'+esc(p.palabra)+'</div>')
+      +'<p class="small muted">Cierra a las <b>'+hora(p.hasta)+'</b> · <span id="cuenta"></span>'
+      +(tapada?' · <b>tapada</b>, pero sigue abierta':'')+'</p>'
+      +'<p><button class="btn small" id="taparPase">'+(tapada?'\ud83d\udc41 Ver la consigna':'\ud83d\ude48 Ocultar la consigna')+'</button> '
+      +'<button class="btn small" id="abrirPase">Abrir otra ventana</button></p></div>';}
 
   function hora(d){var x=new Date(d);return ('0'+x.getHours()).slice(-2)+':'+('0'+x.getMinutes()).slice(-2)+':'+('0'+x.getSeconds()).slice(-2);}
   function cuentaAtras(){
@@ -210,6 +218,9 @@
                 :'<p class="lead">Ningún ticket con ese filtro.</p>')
       +'</section>';}
 
+  // 🔴 v3.43 · El boton decia «Corregir» y por eso Norberto no encontro la ficha (9-sep): abre la
+  // radiografia entera —inventario, canjes y los campos de correccion— pero su nombre solo prometia
+  // lo ultimo. Una sola puerta, y que se llame por lo que hay detras.
   function bloqueGrupo(){
     var r=mios();
     var filas=r.map(function(p,i){
@@ -219,9 +230,9 @@
         +'<td>'+(String(p.profe||'').trim()?esc(p.profe):'<span class="chip" style="background:#f5b04333;color:#8a5b00">⚠ sin docente</span>')+'</td>'
         +'<td>N'+p.nivel+' <span class="small muted">'+esc(p.rango_nombre||'')+'</span></td>'
         +'<td class="pts">'+p.xp+'</td><td>'+p.creditos+' ◈</td><td>'+p.n+'/24</td><td class="small muted">'+ult+'</td>'
-        +'<td><button class="btn small" data-al="'+i+'">Corregir</button></td></tr>';}).join('');
+        +'<td><button class="btn small primary" data-al="'+i+'">Ver ficha</button></td></tr>';}).join('');
     return '<section id="sala-grupo"><div class="eyebrow teal">Tu gente</div><h2>Mi grupo</h2>'
-      +'<p class="lead">Todo se corrige desde aquí: no hace falta abrir ninguna hoja de cálculo. '
+      +'<p class="lead">Pulsa <b>Ver ficha</b> (o la fila) y tienes la radiografía completa de esa persona: su inventario, sus canjes y los mismos campos para corregirla. No hace falta abrir ninguna hoja de cálculo. '
       +'<label class="small" style="margin-left:8px"><input type="checkbox" id="chkMios"'+(st.soloMios?' checked':'')+'> solo mis alumnos</label></p>'
       +(r.length?'<div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Recluta</th><th>Correo</th><th>Docente</th><th>Nivel</th><th>xp</th><th>◈</th><th>Insignias</th><th>Últ. registro</th><th></th></tr></thead><tbody>'+filas+'</tbody></table></div><div id="ficha"></div>'
         :'<p class="lead">Ningún recluta te ha elegido todavía como docente. Si ya tienes clase, revisa que hayan respondido «¿Quién imparte tu clase?» en su Bitácora — o desmarca «solo mis alumnos» y corrígeselo tú.</p>')
@@ -256,8 +267,11 @@
     var tipo=(st.d&&st.d.tipo)||'REGULAR', cat=RET[tipo]||[];
     var docs=((st.d&&st.d.docentes)||[]).map(function(d){return d.nombre;});
     if(docs.indexOf(p.profe)<0&&p.profe) docs.push(p.profe);
-    box.innerHTML='<div class="card" style="margin-top:14px"><div class="tab-head"><div><h3>'+esc(p.alias)+' <span class="small muted">'+esc(p.nombre||'')+' · '+esc(p.email||'')+'</span></h3></div><button class="btn small" id="cerrarF">✕</button></div>'
-      +'<div class="grid cols-2"><div><h4>Corregir su ficha</h4><p class="small muted">Se escribe en su respuesta de la Bitácora, que es de donde sale la identidad del tablero.</p>'
+    box.innerHTML='<div class="card" style="margin-top:14px"><div class="tab-head"><div><h3>'+esc(p.alias)+' <span class="small muted">'+esc(p.nombre||'')+' · '+esc(p.email||'')+'</span></h3></div><button class="btn small" id="fToggle">\u270e Corregir</button> <button class="btn small" id="cerrarF">\u2715</button></div>'
+      // 🔴 v3.43 · La radiografia PRIMERO y la correccion detras de un boton. Antes se abria por los
+      // campos de edicion, que es lo que menos se usa: se entra a mirar, no a arreglar.
+      + bloqueColeccion(p)
+      +'<div id="fEditar" hidden><div class="grid cols-2"><div><h4>Corregir su ficha</h4><p class="small muted">Se escribe en su respuesta de la Bitácora, que es de donde sale la identidad del tablero.</p>'
       +'<label class="small muted">Alias</label><input id="fAlias" value="'+esc(p.alias)+'" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">'
       +'<label class="small muted" style="margin-top:8px;display:block">Nombre y apellidos</label><input id="fNombre" value="'+esc(p.nombre||'')+'" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">'
       +'<label class="small muted" style="margin-top:8px;display:block">Docente</label><select id="fProfe" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">'
@@ -270,13 +284,13 @@
         return '<tr><td class="small">'+esc(x[1])+'</td><td>'+(tiene
           ?'<span class="chip ok">hecho</span> <button class="btn small" data-aj="anular" data-r="'+x[0]+'">quitar</button>'
           :'<button class="btn small" data-aj="otorgar" data-r="'+x[0]+'">dárselo</button>')+'</td></tr>';}).join('')
-      +'</tbody></table></div></div></div>'
-      // v3.29 · Aqui SI se enseña todo lo que el tablero publico esconde: el correo (arriba), los
-      // creditos, los personajes ganados y las versiones desbloqueadas. Esta pantalla vive detras
-      // del PIN y es la de quien tiene que poder ayudar a un alumno concreto.
-      + bloqueColeccion(p)
+      +'</tbody></table></div></div></div></div>'
       +'</div>';
     document.getElementById('cerrarF').onclick=function(){box.innerHTML='';};
+    var bEd=document.getElementById('fToggle'), cEd=document.getElementById('fEditar');
+    bEd.onclick=function(){ cEd.hidden=!cEd.hidden;
+      bEd.textContent=cEd.hidden?'\u270e Corregir':'\u2715 Dejar de corregir';
+      if(!cEd.hidden) cEd.scrollIntoView({block:'nearest'}); };
     document.getElementById('fGuardar').onclick=function(){
       var m=document.getElementById('fMsg'); m.textContent='Guardando…';
       post({accion:'ficha',per:st.per,email:p.email,alias:document.getElementById('fAlias').value.trim(),
@@ -350,9 +364,12 @@
         if(r&&r.ok){m.textContent='Guardado.';cargarPer();}else{gp.disabled=false;m.textContent=(r&&r.error)||'No se ha podido.';}
       },function(e){gp.disabled=false;m.textContent=e;});};
     var ap=document.getElementById('abrirPase');
-    if(ap)ap.onclick=function(){ap.disabled=true;
+    if(ap)ap.onclick=function(){ap.disabled=true; st.paseOculto=false;
       post({accion:'pase_abrir',per:st.per,profe:st.profe},function(d){st.pase=d;render();},
            function(e){ap.disabled=false;alert(e);});};
+    // tapar la consigna NO cierra la ventana: solo deja de enseñarla
+    var tp=document.getElementById('taparPase');
+    if(tp)tp.onclick=function(){ st.paseOculto=!st.paseOculto; render(); };
     cuentaAtras();
     var sp=document.getElementById('selPer'); if(sp)sp.onchange=function(){st.per=sp.value;localStorage.setItem('sgClasePer',st.per);cargarPer();};
     document.getElementById('cambiarD').onclick=function(){localStorage.removeItem('sgProfe');st.profe='';elegirDocente();};

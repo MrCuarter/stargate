@@ -761,3 +761,67 @@ tr.clicable:hover td{background:rgba(55,224,236,.07)}
 .zb-d{font-size:.78rem;color:#8fa3b4}
 .zb-d span{opacity:.75}
 @media(max-width:620px){.fr-kpis{grid-template-columns:repeat(2,1fr)}.fr-cab{flex-direction:column;text-align:center}}
+
+/* ---- «Cómo se hace»: los tres caminos (v3.43) ---------------------------------- */
+.caminos{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 6px}
+.camino-tab{display:flex;align-items:center;gap:9px;background:#101722;border:1px solid #22304a;
+  color:#cfe0f0;border-radius:12px;padding:12px 16px;cursor:pointer;font:inherit;font-size:15px;
+  transition:border-color .18s,background .18s}
+.camino-tab:hover{border-color:#37e0ec}
+.camino-tab[aria-selected="true"]{border-color:#37e0ec;background:#0e2c33;color:#eafcff}
+.camino-tab i{font-style:normal;font-size:20px;line-height:1}
+.camino-tab b{font-weight:600}
+.camino-tab span{display:block;font-size:12.5px;color:#8ba0b8;font-weight:400}
+.camino-tab[aria-selected="true"] span{color:#8fd7e0}
+.camino-intro{background:#101722;border:1px solid #22304a;border-radius:12px;padding:16px 18px;margin:16px 0 30px}
+.camino-intro p{margin:0 0 8px}
+.camino-intro p:last-child{margin:0}
+.paso{display:grid;grid-template-columns:64px 1fr;gap:18px;margin:0 0 34px;scroll-margin-top:80px}
+.paso-num{position:relative}
+.paso-num .cap{width:64px;height:64px;border-radius:50%;background:#0e2c33;border:1px solid #22304a;
+  object-fit:cover;object-position:top center;display:block}
+.paso-num .n{display:block;text-align:center;font-size:12px;color:#8ba0b8;margin-top:7px;
+  font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.paso-cuerpo{min-width:0}
+.paso h3{margin:2px 0 10px;font-size:20px}
+.paso h3 a{color:#37e0ec}
+.paso-hacer{background:#0d1420;border-left:3px solid #37e0ec;border-radius:0 8px 8px 0;
+  padding:10px 14px;margin:0 0 14px;font-size:14.5px;color:#bcd0e4}
+.paso-hacer code{background:#1b2536;padding:1px 5px;border-radius:4px}
+.paso-voz{font-size:16.5px;line-height:1.62;color:#dbe7f3;margin:0 0 14px}
+.paso figure{margin:0 0 14px}
+.paso figure img{width:100%;border-radius:10px;border:1px solid #22304a;display:block}
+.paso-falta{background:#241c0d;border:1px dashed #6b5a30;border-radius:10px;padding:22px 18px;
+  color:#f5b043;font-size:14.5px;text-align:center}
+.paso-falta b{display:block;font-size:15.5px;margin-bottom:5px}
+.paso.aviso .paso-hacer{border-left-color:#f5b043}
+.paso.aviso h3::before{content:"🔴 ";}
+.paso-audio{display:inline-flex;align-items:center;gap:8px;background:#101722;border:1px solid #22304a;
+  color:#8fd7e0;border-radius:999px;padding:7px 15px;cursor:pointer;font:inherit;font-size:13.5px}
+.paso-audio:hover{border-color:#37e0ec}
+.paso-audio[data-sonando="1"]{background:#0e2c33;border-color:#37e0ec}
+@media (max-width:640px){
+  .paso{grid-template-columns:48px 1fr;gap:13px}
+  .paso-num .cap{width:48px;height:48px}
+  .paso-voz{font-size:15.5px}
+}
+/* el pase tapado: mismo hueco, sin la palabra (v3.43) */
+.consigna-tapada{color:#3a4a5e;letter-spacing:.22em;user-select:none}
+/* tickets por tema (v3.43) — saltar al tema que toca sin bajar por una pared de tarjetas */
+.temachips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.temachip{display:inline-flex;align-items:center;gap:6px;background:#101722;border:1px solid #22304a;
+  color:#cfe0f0;border-radius:999px;padding:7px 14px;cursor:pointer;font:inherit;font-size:14px;
+  transition:border-color .16s,background .16s}
+.temachip:hover{border-color:#37e0ec}
+.temachip.on{background:#0e2c33;border-color:#37e0ec;color:#eafcff}
+.temachip em{font-style:normal;font-size:12px;color:#8ba0b8;font-variant-numeric:tabular-nums}
+.temachip.on em{color:#8fd7e0}
+.temachip .pt{font-style:normal;font-size:11px;font-weight:700;background:#f5b043;color:#1a1206;
+  border-radius:999px;padding:1px 6px;margin-left:2px}
+.minis{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.minis .mini{font-size:11.5px;background:#0d1420;border:1px solid #22304a;border-radius:6px;
+  padding:2px 7px;color:#8ba0b8;font-variant-numeric:tabular-nums}
+.minis .mini b{color:#cfe0f0;font-weight:600}
+.minis .mini.baja{border-color:#7a3b3b;color:#e59b9b}
+.minis .mini.baja b{color:#ff9d9d}
+@media (max-width:640px){.temachip{padding:6px 11px;font-size:13px}}

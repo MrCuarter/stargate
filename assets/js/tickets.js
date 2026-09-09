@@ -9,7 +9,7 @@
   // se le enseñan en su panel. En el panorama NO: ese se proyecta delante de la clase, y un
   // «se ha reconocido a alguien: 2,1» en pantalla gigante no ayuda a nadie.
   var PANO=q.get('panorama')==='1', KESC='STARGATE \u00b7';
-  var st={pin:sessionStorage.getItem('sgPin')||'',per:q.get('per')||'',pers:[],tickets:[],prof:q.get('profe')||'',demo:q.get('demo')==='1'};
+  var st={pin:sessionStorage.getItem('sgPin')||'',per:q.get('per')||'',pers:[],tickets:[],prof:q.get('profe')||'',tema:q.get('tema')||'',demo:q.get('demo')==='1'};
   var KSEL='Selecciona el tema',KPROF='profesor o profesora';
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function f(d){try{return new Date(d).toLocaleDateString('es-ES');}catch(e){return d;}}
@@ -63,7 +63,48 @@
     if(!tf.length){root.innerHTML=head+'<p class="lead">Sin tickets todavía'+(st.prof?' para este profesor/a':'')+'.</p>';wire();return;}
     var por={};tf.forEach(function(x){var k=String(campo(x.r,KSEL)||'(sin sección)');(por[k]=por[k]||[]).push(x);});
     var orden=Object.keys(por).sort(function(a,b){function w(s){if(/^Presentaci/.test(s))return 0;var m=s.match(/^Tema (\d)/);if(m)return 10+Number(m[1]);var a2=s.match(/^Actividad (\d)/);if(a2)return 5+Number(a2[1])*4;return 90;}return w(a)-w(b);});
-    var html=orden.map(function(k){var l=por[k];var num={},txt=[];
+
+    // 🔴 v3.43 · POR TEMA. Lo pidio Norberto con un caso concreto: «empiezo el tema 7 y quiero
+    // repasar el 6 antes de clase». Antes salian TODAS las secciones abiertas a la vez, asi que
+    // llegar al tema 6 era bajar por una pared de tarjetas. Ahora: chips para saltar a uno, y con
+    // «Todos» un panorama de las preguntas que se repiten + las secciones plegadas.
+    function pendientesDe(l){return l.filter(function(x){return !x.resuelto&&Object.keys(x.r).some(function(c){
+      return c.indexOf(KSEL)<0&&c.indexOf(KPROF)<0&&!/^[1-5]$/.test(String(x.r[c]))&&String(x.r[c]).trim();});}).length;}
+    function corto(k){var m=k.match(/^Tema (\d+)/);if(m)return 'T'+m[1];
+      var a2=k.match(/^Actividad (\d+)/);if(a2)return 'Act '+a2[1];
+      if(/^Presentaci/.test(k))return 'Presentación';if(/^Repaso/.test(k))return 'Balance';return k.slice(0,18);}
+    if(st.tema&&!por[st.tema]) st.tema='';
+    var chips='<div class="temachips"><button class="temachip'+(st.tema?'':' on')+'" data-tema="">Todos <em>'+tf.length+'</em></button>'
+      +orden.map(function(k){var pd=pendientesDe(por[k]);
+        return '<button class="temachip'+(st.tema===k?' on':'')+'" data-tema="'+esc(k)+'" title="'+esc(k)+'">'+esc(corto(k))
+          +' <em>'+por[k].length+'</em>'+(pd?'<i class="pt" title="'+pd+' sin resolver">'+pd+'</i>':'')+'</button>';}).join('')+'</div>';
+
+    // el panorama global: las preguntas que aparecen en MAS DE UNA seccion, con su media total y
+    // como se mueve tema a tema. Es la vista que responde «como va la asignatura», no «como fue el 6».
+    var global='';
+    if(!st.tema){
+      var g={};
+      orden.forEach(function(k){ por[k].forEach(function(x){ Object.keys(x.r).forEach(function(c){
+        if(c.indexOf(KSEL)>=0||c.indexOf(KPROF)>=0)return; if(PANO&&c.indexOf(KESC)===0)return;
+        if(!/^[1-5]$/.test(String(x.r[c])))return;
+        g[c]=g[c]||{todo:[],porSec:{}}; g[c].todo.push(Number(x.r[c]));
+        (g[c].porSec[k]=g[c].porSec[k]||[]).push(Number(x.r[c])); });});});
+      var repes=Object.keys(g).filter(function(c){return Object.keys(g[c].porSec).length>1;});
+      if(repes.length){
+        var tarj=repes.map(function(c){var a=g[c].todo,m=a.reduce(function(p,q2){return p+q2;},0)/a.length;
+          var id='q'+(QN++); QDATOS[id]={c:c,a:a,m:m,sec:'todas las secciones'};
+          var mini=orden.filter(function(k){return g[c].porSec[k];}).map(function(k){
+            var b=g[c].porSec[k],mm=b.reduce(function(p,q2){return p+q2;},0)/b.length;
+            return '<span class="mini'+(mm<3?' baja':'')+'" title="'+esc(k)+' · '+b.length+' resp.">'+esc(corto(k))+' <b>'+mm.toFixed(1)+'</b></span>';}).join('');
+          return '<div class="qcard clicable" data-zoom="'+id+'" tabindex="0" title="Ver en grande">'+gauge(m)
+            +'<div class="qtxt"><b>'+esc(c)+'</b><span class="small muted">'+a.length+' respuestas en '
+            +Object.keys(g[c].porSec).length+' secciones</span><div class="minis">'+mini+'</div></div></div>';}).join('');
+        global='<details class="semana" open><summary><span class="num">'+repes.length+'</span><span class="ttl">'
+          +'<b>Panorama de la asignatura</b><em>las preguntas que se repiten en todos los temas, con su media</em>'
+          +'</span></summary><div class="sem-body"><div class="qgrid">'+tarj+'</div></div></details>';
+      }
+    }
+    var html=orden.filter(function(k){return !st.tema||k===st.tema;}).map(function(k){var l=por[k];var num={},txt=[];
       l.forEach(function(x){Object.keys(x.r).forEach(function(c){if(c.indexOf(KSEL)>=0||c.indexOf(KPROF)>=0)return;if(PANO&&c.indexOf(KESC)===0)return;var v=x.r[c];if(/^[1-5]$/.test(String(v))){(num[c]=num[c]||[]).push(Number(v));}else if(String(v).trim()){txt.push({p:c,v:String(v),x:x});}});});
       var cards=Object.keys(num).map(function(c){var a=num[c];var m=a.reduce(function(p,q2){return p+q2;},0)/a.length;
         // v3.29 · pulsable: en el panel las tarjetas son pequeñas y el histograma no se lee. Los datos
@@ -71,13 +112,14 @@
         var id='q'+(QN++); QDATOS[id]={c:c,a:a,m:m,sec:k};
         return '<div class="qcard clicable" data-zoom="'+id+'" tabindex="0" title="Ver en grande">'+gauge(m)+'<div class="qtxt"><b>'+esc(c)+'</b><span class="small muted">'+a.length+' respuestas</span>'+barra(a)+'</div></div>';}).join('');
       var dudas=txt.map(function(d){var res=!!d.x.resuelto;return '<div class="duda'+(res?' ok':'')+'"><div class="dq small muted">'+esc(d.p)+' · '+esc(f(d.x.fecha))+(campo(d.x.r,KPROF)?' · '+esc(campo(d.x.r,KPROF)):'')+'</div><div class="dv">'+esc(d.v)+'</div><button class="btn small'+(res?'':' primary')+'" data-f="'+d.x.fila+'" data-v="'+(res?'0':'1')+'">'+(res?'✓ Resuelta ('+esc(d.x.resuelto)+') · deshacer':'Marcar resuelta')+'</button></div>';}).join('');
-      return '<details class="semana" open><summary><span class="num">'+l.length+'</span><span class="ttl"><b>'+esc(k)+'</b><em>'+Object.keys(num).length+' valoraciones · '+txt.length+' comentarios</em></span></summary><div class="sem-body">'+(cards?'<div class="qgrid">'+cards+'</div>':'')+(dudas?'<h4>💬 Dudas y comentarios</h4><div class="dudas">'+dudas+'</div>':'')+'</div></details>';}).join('');
-    root.innerHTML=head+html;wire();}
+      return '<details class="semana"'+((st.tema||orden.length===1)?' open':'')+'><summary><span class="num">'+l.length+'</span><span class="ttl"><b>'+esc(k)+'</b><em>'+Object.keys(num).length+' valoraciones · '+txt.length+' comentarios</em></span></summary><div class="sem-body">'+(cards?'<div class="qgrid">'+cards+'</div>':'')+(dudas?'<h4>💬 Dudas y comentarios</h4><div class="dudas">'+dudas+'</div>':'')+'</div></details>';}).join('');
+    root.innerHTML=head+chips+global+html;wire();}
   function wire(){
     Array.prototype.forEach.call(root.querySelectorAll('[data-zoom]'),function(el){
       el.onclick=function(){abrirZoom(el.getAttribute('data-zoom'));};
       el.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();abrirZoom(el.getAttribute('data-zoom'));}};});
-var sp=document.getElementById('selPer');if(sp)sp.onchange=function(){st.per=this.value;st.prof='';cargar();};var sf=document.getElementById('selProf');if(sf)sf.onchange=function(){st.prof=this.value;render();};
+Array.prototype.forEach.call(root.querySelectorAll('.temachip'),function(b){b.onclick=function(){st.tema=b.getAttribute('data-tema');render();var c=root.querySelector('.temachips');if(c)c.scrollIntoView({block:'nearest'});};});
+var sp=document.getElementById('selPer');if(sp)sp.onchange=function(){st.per=this.value;st.prof='';st.tema='';cargar();};var sf=document.getElementById('selProf');if(sf)sf.onchange=function(){st.prof=this.value;render();};
     Array.prototype.forEach.call(root.querySelectorAll('button[data-f]'),function(b){b.onclick=function(){var profe=localStorage.getItem('sgProfe')||prompt('Tu nombre (para el registro):')||'';localStorage.setItem('sgProfe',profe);post({accion:'ticket_resuelto',per:st.per,fila:parseInt(b.getAttribute('data-f'),10),valor:b.getAttribute('data-v')==='1',profe:profe},function(){cargar();});};});}
   function demo(b){if(b.accion==='pers')return {pers:[{id:'demo',nombre:'PER de demostración',tipo:'REGULAR',estado:'Abierto'}]};if(b.accion==='ticket_resuelto'){var t=st.tickets.filter(function(x){return x.fila===b.fila;})[0];if(t)t.resuelto=b.valor?'Sí · demo':'';return {ok:true};}
     var P=['Ana Pérez','Luis Gómez'],S='Selecciona el tema o actividad',PR='El profesor o profesora que imparte tu clase...',out=[],i;
