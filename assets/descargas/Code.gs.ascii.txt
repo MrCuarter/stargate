@@ -389,9 +389,6 @@ function blobDeLaWeb_(rutaWeb, nombreCache) {
   if (carpeta) { try { carpeta.createFile(blob); } catch (e3) {} }
   return blob;
 }
-function orbeBlob_(tema) {
-  return blobDeLaWeb_("assets/img/planetas/" + TEMAS[tema][2] + ".png", "orbe_" + TEMAS[tema][2] + ".png");
-}
 function imgCanjeBlob_(archivo) { return blobDeLaWeb_("assets/img/canje/" + archivo, "canje_" + archivo); }
 function imgSeccionBlob_(archivo) { return blobDeLaWeb_("assets/img/forms/" + archivo, archivo); }
 function borrarOrbesCache_() {
@@ -407,114 +404,10 @@ function borrarOrbesCache_() {
 // v3.37 - el orbe pasa de 160 a ANCHO_ORBE px. Norberto: "podrias poner la imagen de los planetas mas
 // grandes, estan muy pequenos". A 160 px era un icono; el formulario da 640 de ancho.
 var ANCHO_ORBE = 460;
-function imagenesBitacora_(fb, reloj) {
-  var puestas = {};
-  fb.getItems(FormApp.ItemType.IMAGE).forEach(function(i){ puestas[i.getTitle()] = i; });
-  var n = 0, faltan = 0, seguidos = 0, agrandadas = 0;
-  for (var t = 1; t <= 8; t++) {
-    //  el reloj manda: lo que no da tiempo se cuenta como pendiente y lo remata continuarAltaPER
-    if (frenarImagenes_(reloj, n) && !puestas[TEMAS[t][0]]) { faltan++; continue; }
-    // la que ya esta solo necesita crecer: ni se descarga ni se vuelve a subir
-    if (puestas[TEMAS[t][0]]) {
-      try { puestas[TEMAS[t][0]].setWidth(ANCHO_ORBE).setAlignment(FormApp.Alignment.CENTER); agrandadas++; } catch (e) {}
-      continue;
-    }
-    var pb = fb.getItems(FormApp.ItemType.PAGE_BREAK).filter(function(p){ return temaDePagina_(p.getTitle()) === t; })[0];
-    if (!pb) continue;
-    if (seguidos >= 2) { faltan++; continue; }        // la web esta caida: no insistas ocho veces
-    try {
-      var it2 = fb.addImageItem().setImage(orbeBlob_(t)).setTitle(TEMAS[t][0]).setAlignment(FormApp.Alignment.CENTER).setWidth(ANCHO_ORBE);
-      fb.moveItem(it2.getIndex(), pb.getIndex() + 1);
-      n++; seguidos = 0;
-    } catch (e) { Logger.log("imagenesBitacora_ tema " + t + ": " + e); faltan++; seguidos++; }
-  }
-  return { puestos: n, faltan: faltan, agrandadas: agrandadas };
-}
 // La imagen de cada recompensa, justo debajo de su pagina. Mismo patron que los orbes: idempotente,
 // fuera del camino critico de crearPER y con freno si la web no responde (no tiene sentido esperar
 // diez veces doce segundos). Devuelve cuantas faltan para que la continuacion las remate.
 var ANCHO_CANJE = 560;
-function imagenesCanje_(fc, reloj) {
-  var puestas = {};
-  fc.getItems(FormApp.ItemType.IMAGE).forEach(function(i){ puestas[i.getTitle()] = i; });
-  var cat = recompensasCat_(), n = 0, faltan = 0, seguidos = 0;
-  for (var k = 0; k < cat.length; k++) {
-    var x = cat[k], archivo = IMG_RECOMPENSA[x.nombre];
-    // igual que en los orbes: parar a tiempo vale mas que terminar y morir en el intento
-    if (frenarImagenes_(reloj, n) && archivo && !puestas[x.nombre]) { faltan++; continue; }
-    // Sin imagen catalogada -p. ej. el profesorado renombro la recompensa en la hoja- la seccion se
-    // queda sin foto, pero el canje sigue funcionando. Nunca se rompe por una imagen.
-    if (!archivo) continue;
-    if (puestas[x.nombre]) {
-      try { puestas[x.nombre].setWidth(ANCHO_CANJE).setAlignment(FormApp.Alignment.CENTER); } catch (e) {}
-      continue;
-    }
-    var etiqueta = etiquetaRecompensa_(x);
-    var pb = fc.getItems(FormApp.ItemType.PAGE_BREAK).filter(function(p){ return p.getTitle() === etiqueta; })[0];
-    if (!pb) continue;
-    if (seguidos >= 2) { faltan++; continue; }
-    try {
-      var it = fc.addImageItem().setImage(imgCanjeBlob_(archivo)).setTitle(x.nombre)
-                 .setAlignment(FormApp.Alignment.CENTER).setWidth(ANCHO_CANJE);
-      fc.moveItem(it.getIndex(), pb.getIndex() + 1);
-      n++; seguidos = 0;
-    } catch (e) { Logger.log("imagenesCanje_ \u00ab" + x.nombre + "\u00bb: " + e); faltan++; seguidos++; }
-  }
-  return { puestos: n, faltan: faltan };
-}
-// Las escenas de seccion: el Capitan y NEBULA presentan cada tramo. Son los MISMOS recortes que el
-// alumnado ve en la web y en los videos, asi que el formulario deja de parecer un tramite suelto y
-// pasa a ser parte del relato. Idempotente por titulo, igual que las demas.
-function escenaSeccion_(form, archivo, titulo, tituloPagina, ancho) {
-  var ya = form.getItems(FormApp.ItemType.IMAGE).filter(function(i){ return i.getTitle() === titulo; })[0];
-  if (ya) { try { ya.setWidth(ancho || 640).setAlignment(FormApp.Alignment.CENTER); } catch (e) {} return 0; }
-  try {
-    var it = form.addImageItem().setImage(imgSeccionBlob_(archivo)).setTitle(titulo)
-               .setAlignment(FormApp.Alignment.CENTER).setWidth(ancho || 640);
-    if (tituloPagina) {
-      var pb = form.getItems(FormApp.ItemType.PAGE_BREAK).filter(function(p){ return p.getTitle() === tituloPagina; })[0];
-      if (pb) form.moveItem(it.getIndex(), pb.getIndex() + 1);
-      else form.moveItem(it.getIndex(), 0);
-    } else form.moveItem(it.getIndex(), 0);
-    return 1;
-  } catch (e) { Logger.log("escenaSeccion_ \u00ab" + titulo + "\u00bb: " + e); return -1; }
-}
-// TODAS las imagenes de los tres formularios en una sola puerta: los orbes de los planetas, las
-// escenas del Capitan y NEBULA, y la foto de cada recompensa del canje. Se llama fuera del camino
-// critico -al final de crearPER si sobra tiempo, y si no desde la continuacion-, porque son ~30
-// descargas y son justo lo que hacia que la creacion se comiera los 6 minutos.
-function imagenesFormularios_(fb, ft, fc, t) {
-  //  El reloj frena los DOS bucles largos (8 orbes + 10 recompensas), no las 5 escenas: son
-  // pocas, idempotentes, y frenarlas contaba como "pendiente" algo que ya estaba puesto - con lo
-  // que `faltan` no bajaba nunca y el acabado se reprogramaba en bucle. Lo cazo la bateria 12.
-  var puestos = 0, faltan = 0;
-  // sin reloj (llamada desde el menu de Mantenimiento) no hay prisa: se hacen todas
-  if (fb) {
-    try { var b = imagenesBitacora_(fb, t); puestos += b.puestos; faltan += b.faltan; }
-    catch (e) { Logger.log("imagenesFormularios_ orbes: " + e); faltan++; }
-    //  El titulo de la ESCENA no puede ser el de la seccion que ilustra. Se probo y salio mal: la
-    // imagen de la portada se llamaba igual que la cabecera "COMO FUNCIONA ESTA BITACORA", y a partir
-    // de ahi cualquier busqueda por titulo encontraba la foto en vez del texto - la ayuda del
-    // formulario se quedaba vacia sin que nadie lo viera. Titulo propio para cada escena.
-    [[ "sec_portada.jpg", TIT_ESCENA_PORTADA, null ],
-     [ "sec_alistamiento.jpg", TIT_ESCENA_ALTA, TIT_PAG_ALTA ],
-     [ "sec_planeta.jpg", TIT_ESCENA_PLANETA, TIT_PAG_PLANETA ]].forEach(function(e){
-      var r = escenaSeccion_(fb, e[0], e[1], e[2]); if (r > 0) puestos++; else if (r < 0) faltan++;
-    });
-  }
-  if (ft) { var r1 = escenaSeccion_(ft, "sec_ticket.jpg", TIT_ESCENA_TICKET, null); if (r1 > 0) puestos++; else if (r1 < 0) faltan++; }
-  if (fc) {
-    var r2 = escenaSeccion_(fc, "sec_canje.jpg", TIT_ESCENA_CANJE, null); if (r2 > 0) puestos++; else if (r2 < 0) faltan++;
-    try { var c = imagenesCanje_(fc, t); puestos += c.puestos; faltan += c.faltan; }
-    catch (e) { Logger.log("imagenesFormularios_ canje: " + e); faltan++; }
-  }
-  return { puestos: puestos, faltan: faltan };
-}
-var TIT_ESCENA_PORTADA = "Bienvenido a bordo";
-var TIT_ESCENA_ALTA = "Qui\u00e9n eres a bordo";
-var TIT_ESCENA_PLANETA = "Elige el planeta";
-var TIT_ESCENA_TICKET = "NEBULA te escucha";
-var TIT_ESCENA_CANJE = "Cambia tus cr\u00e9ditos por ventajas";
 function publicar_(form) { try { if (form.setPublished) form.setPublished(true); } catch (e) { Logger.log("setPublished: " + e); } }
 function publicarFormulariosPER() {
   var sh = hoja_(H.PERS); var fila = SpreadsheetApp.getActiveRange().getRow();
@@ -2566,24 +2459,6 @@ function continuarReset() {
 // lo que le cabe, guarda por donde iba en las propiedades del script y programa su continuacion.
 // Regla de oro: SIEMPRE se hace al menos una unidad de trabajo por pasada, para que nunca se atasque.
 var MARGEN_MS = 270000;          // 4,5 min de trabajo efectivo; el resto es margen para cerrar
-//  9-sep - LO QUE HAY QUE DEJAR LIBRE ANTES DE SEGUIR PONIENDO IMAGENES. Visto creando un PER de
-// verdad: `crearPER` reserva 60 s antes de las imagenes, pero el bucle de imagenes NO miraba el
-// reloj, y con el catalogo v3.42 son ~23 descargas (8 orbes + 5 escenas + 10 recompensas). Se comio
-// los 6 minutos de Apps Script, asi que la ejecucion murio ANTES de llegar a las lineas que aplazan
-// lo que falta: el grupo quedo con sus tres formularios pero SIN documento de enlaces y sin
-// continuacion programada. El profe ve un error rojo y se queda sin el documento que hay que
-// repartir. Ahora los bucles paran solos y lo que no dio tiempo se cuenta como pendiente, que es
-// justo lo que `continuarAltaPER` sabe rematar.
-var RESERVA_CIERRE_MS = 90000;   // documento (45 s) + dossier (30 s) + apuntar lo pendiente
-//  Y UN MINIMO POR PASADA, que lo canto la bateria 12: si el freno del reloj es absoluto, una
-// continuacion sin margen no coloca NI UNA imagen, `faltan` no baja nunca y el acabado se reprograma
-// eternamente. Cada pasada pone al menos unas cuantas antes de hacer caso al reloj: asi siempre
-// avanza y el bucle termina, aunque haga falta mas de una vuelta.
-var MIN_IMG_PASADA = 4;
-// ?toca parar? Solo si ya se ha hecho el minimo de esta pasada Y el tiempo aprieta.
-function frenarImagenes_(reloj, hechas) {
-  return !!reloj && hechas >= MIN_IMG_PASADA && !reloj.sobra(RESERVA_CIERRE_MS);
-}
 //  30-ago - Y un colchon para las tareas ATOMICAS: las que, una vez empezadas, no saben pararse a
 // medias (rehacer el formulario de canje, poner al dia el del ticket). Empezar una a los 4 minutos y
 // medio se comia el margen de cierre entero y rozaba el corte duro de los 6 minutos. Con esto solo

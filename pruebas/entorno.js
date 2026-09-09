@@ -21,6 +21,9 @@ const RUTA_DATOS = process.env.STARGATE_DATOS
 const RUTA_BONUS = process.env.STARGATE_BONUS
   ? path.resolve(process.env.STARGATE_BONUS)
   : path.join(__dirname, "..", "apps-script", "Bonus.gs");
+const RUTA_IMG = process.env.STARGATE_IMAGENES
+  ? path.resolve(process.env.STARGATE_IMAGENES)
+  : path.join(__dirname, "..", "apps-script", "Imagenes.gs");
 
 // ------------------------------------------------------------------ comprobaciones
 let ok = 0, mal = 0;
@@ -113,6 +116,9 @@ function nuevoMundo() {
   vm.runInContext(fs.readFileSync(RUTA_GS, "utf8"), contexto, { filename: "Code.gs" });
   vm.runInContext(fs.readFileSync(RUTA_BONUS, "utf8"), contexto, { filename: "Bonus.gs" });
   vm.runInContext(fs.readFileSync(RUTA_DATOS, "utf8"), contexto, { filename: "Datos.gs" });
+  // v3.44 · Imagenes.gs se carga EL ULTIMO a proposito: si alguna de sus constantes se leyera al
+  // cargar (y no dentro de una funcion), aqui reventaria — que es justo lo que se quiere saber.
+  vm.runInContext(fs.readFileSync(RUTA_IMG, "utf8"), contexto, { filename: "Imagenes.gs" });
 
   contexto._maestra = maestra;
   contexto._raiz = raiz;

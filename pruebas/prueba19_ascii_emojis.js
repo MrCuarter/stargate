@@ -92,12 +92,26 @@ c(Math.abs(ASCII.length - ORIG.length) < ORIG.length * 0.15,
 // el sistema hoy se llevaría el Code.gs de anteayer.
 // Un dato, un sitio: si es una copia, que se compruebe que lo es.
 [["Code.gs", "Code.gs.txt"], ["Datos.gs", "Datos.gs.txt"],
- ["Bonus.gs", "Bonus.gs.txt"], ["Dialog.html", "Dialog.html.txt"]].forEach(function(par){
+ ["Bonus.gs", "Bonus.gs.txt"], ["Imagenes.gs", "Imagenes.gs.txt"],
+ ["Dialog.html", "Dialog.html.txt"]].forEach(function(par){
   const fuente = fs.readFileSync(path.join(RAIZ, "apps-script", par[0]), "utf8");
   const copia  = fs.readFileSync(path.join(RAIZ, "assets", "descargas", par[1]), "utf8");
   igual(copia.length, fuente.length,
     "🔴 " + par[1] + " es copia EXACTA de " + par[0] + " (es el fichero que la web manda pegar)");
   c(copia === fuente, "   y byte a byte, no solo del mismo tamaño");
+});
+
+// ---------------------------------------------------------------- el techo de Apps Script
+// 🔴 EL EDITOR DE APPS SCRIPT SE NIEGA A GUARDAR UN FICHERO GRANDE, Y LO HACE EN SILENCIO: dice
+// «Cambios sin guardar» y ya. Pegas, guardas, recargas y sigue el codigo viejo — y lo peor es que
+// parece que fue bien. Ha pasado tres veces (agosto ×2 y el 9-sep). Medido: 299.471 bytes se
+// guardan, 302.135 NO. El limite se pone con margen, y cuando salte, la solucion es la de siempre:
+// sacar un bloque coherente a su propio fichero (asi nacieron Datos.gs, Bonus.gs e Imagenes.gs).
+const TECHO = 295000;
+["Code.gs", "Datos.gs", "Bonus.gs", "Imagenes.gs"].forEach(function(f){
+  const n2 = fs.readFileSync(path.join(RAIZ, "apps-script", f), "utf8").length;
+  c(n2 < TECHO, "🔴 " + f + " cabe en el editor de Apps Script (" + n2.toLocaleString("es-ES") +
+    " bytes, tope " + TECHO.toLocaleString("es-ES") + ")");
 });
 
 E.resumen("La copia ASCII dice lo mismo");
