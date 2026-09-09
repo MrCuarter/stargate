@@ -230,11 +230,15 @@ footer a{color:var(--teal2)}
    100%), asi que no hay nada que recortar, y el halo se apaga solo contra el fondo. Ademas se
    reparte en tres capas de radio creciente y opacidad decreciente: asi no tiene un borde donde
    termina, que es lo que delata a un halo pegado. */
-.trio-amenaza{position:relative;padding-top:76px;overflow:visible;
-  /* los tres png estan recortados a la cintura y acababan en una linea recta. Se disuelven en el
-     ultimo tramo para que no se vea donde termina la imagen y empieza la pagina. */
-  -webkit-mask-image:linear-gradient(to bottom,#000 84%,rgba(0,0,0,.45) 95%,transparent 100%);
-          mask-image:linear-gradient(to bottom,#000 84%,rgba(0,0,0,.45) 95%,transparent 100%)}
+/* 🔴 OJO CON LA MASCARA: recorta TODO lo que sale de la caja del elemento, asi que al ponerla para
+   disolver el corte de abajo volvi a cortar el halo por los lados — el mismo problema que acababa
+   de quitar, entrando por otra puerta. La solucion es darle caja de sobra: 120px de padding a los
+   lados (compensados con margen negativo para no mover nada de sitio) para que el resplandor, que
+   se difumina hasta 120px, quepa DENTRO. Asi los bordes de la mascara caen donde ya no se pinta
+   nada, y lo unico que se nota es el desvanecido de abajo, que es lo que se buscaba. */
+.trio-amenaza{position:relative;padding:76px 120px 0;margin:0 -120px;overflow:visible;
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 38px),transparent 100%);
+          mask-image:linear-gradient(to bottom,#000 calc(100% - 38px),transparent 100%)}
 .trio-amenaza>img{position:relative;z-index:2;max-width:34%}
 .trio-amenaza>img:nth-child(3){
   position:absolute;left:50%;bottom:0;transform:translateX(-50%);
@@ -246,7 +250,7 @@ footer a{color:var(--teal2)}
          drop-shadow(0 0 120px rgba(30,90,130,.26));
 }
 @media(max-width:760px){
-  .trio-amenaza{padding-top:48px}
+  .trio-amenaza{padding:48px 60px 0;margin:0 -60px}
   .trio-amenaza>img:nth-child(3){opacity:.72}
 }
 @media(max-width:760px){.trio img{max-height:220px}.trio img:nth-child(2){max-height:240px}
