@@ -76,4 +76,48 @@ let vueltas = 0;
 while (G.progreso_("alta") && vueltas < 10) { G.continuarAltaPER(); vueltas++; }
 c(vueltas >= 1 && vueltas < 10, "el acabado avanza a trozos y acaba (" + vueltas + " pasadas)");
 
+// ---------------------------------------------------------------- el reloj DENTRO de las imagenes
+// 🔴 9-sep, visto creando un PER de verdad: crearPER reserva 60 s antes de las imagenes, pero el
+// bucle de imagenes no miraba el reloj. Con el catalogo v3.42 son ~23 descargas y se comio los 6
+// minutos enteros: la ejecucion murio ANTES de las lineas que aplazan lo que falta, o sea que el
+// grupo quedo con sus formularios pero SIN documento de enlaces y SIN continuacion programada.
+// El profe ve un error rojo y se queda sin el documento que tiene que repartir.
+{
+  const G3 = E.nuevoMundo();
+  G3.MARGEN_MS = 0;                    // se crea SIN imagenes, que es el escenario a probar
+  const P3 = E.crearPERDemo(G3).id;
+  G3.MARGEN_MS = 270000;
+  const o3 = G3.perObj_(G3.perFila_(P3).v);
+  const fbx = G3.formDelPER_(o3, "B"), ftx = G3.formDelPER_(o3, "T"), fcx = G3.formDelPER_(o3, "C");
+  const cuenta = f => f.getItems(G3.FormApp.ItemType.IMAGE).length;
+
+  // un reloj que dice que NO queda tiempo: sin margen ninguno
+  const seco = { sobra: function(){ return false; }, marcar: function(){}, puedo: function(){ return false; },
+                 ms: function(){ return 999999; }, hito: function(){} };
+  const antes = cuenta(fbx) + cuenta(fcx);
+  const r1 = G3.imagenesFormularios_(fbx, ftx, fcx, seco);
+  const despues = cuenta(fbx) + cuenta(fcx);
+  c(despues > antes, "🔴 sin tiempo AUN ASI pone algunas: una pasada que no avanza es un bucle eterno ("
+    + (despues - antes) + " imágenes)");
+  c(r1.faltan > 0, "y avisa de que faltan (" + r1.faltan + "), que es lo que dispara la continuación");
+  c(despues - antes <= 4 + 4 + 5 + 2,
+    "pero NO las hace todas: para cuando el reloj aprieta (" + (despues - antes) + ")");
+
+  // dando vueltas con el reloj seco, acaba: eso es lo que hace `continuarAltaPER`
+  let v2 = 0;
+  while (G3.imagenesFormularios_(fbx, ftx, fcx, seco).faltan > 0 && v2 < 12) v2++;
+  c(v2 < 12, "🔴 y a base de pasadas termina, aunque nunca haya margen (" + (v2 + 1) + " vueltas)");
+
+  // con reloj holgado, de una sentada
+  const G4 = E.nuevoMundo();
+  G4.MARGEN_MS = 0;
+  const P4 = E.crearPERDemo(G4).id;
+  G4.MARGEN_MS = 270000;
+  const o4 = G4.perObj_(G4.perFila_(P4).v);
+  const holgado = { sobra: function(){ return true; }, marcar: function(){}, puedo: function(){ return true; },
+                    ms: function(){ return 0; }, hito: function(){} };
+  igual(G4.imagenesFormularios_(G4.formDelPER_(o4,"B"), G4.formDelPER_(o4,"T"), G4.formDelPER_(o4,"C"), holgado).faltan, 0,
+        "con tiempo de sobra no queda ninguna pendiente");
+}
+
 E.resumen("Alta de PER con acabado diferido");
