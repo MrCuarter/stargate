@@ -156,7 +156,15 @@
           +'<tr class="insrow" data-alias="'+esc(p.alias.toLowerCase())+'"><td colspan="8"><div class="dots">'+dots(p)+'</div></td></tr>';}).join('');
       root.innerHTML=(solo?'':'<div class="tab-head"><div><div class="eyebrow amber">'+esc(d.nombre)+' · '+esc(d.tipo)+' · '+esc(d.estado)+'</div><h3>Ranking de reclutas</h3></div>'
         +'<div class="small muted">'+todos.length+' reclutas · '+new Date(d.actualizado).toLocaleString('es-ES')+'</div></div>')
-        +(solo?'':forms)+pestanas+podio
+        // 🔴 9-sep · EN «SOLO EL RANKING» va un boton a la Nave, y nada mas. Lo pidio Norberto: el
+        // embed del Genially tiene que ser el ranking de SU grupo y una puerta para que el alumno
+        // entre a su panel a registrar y canjear. Ni los tres formularios sueltos ni la cabecera:
+        // desde la Nave se llega a todo, y asi el Genially no se convierte en una lista de enlaces.
+        +(solo
+            ? '<div class="cta-row" style="justify-content:center;margin:0 0 14px">'
+              +'<a class="btn primary grande" href="recluta.html?per='+encodeURIComponent(per)
+              +'" target="_blank" rel="noopener">🚀 Entrar en mi Nave — registrar y canjear</a></div>'
+            : forms)+pestanas+podio
         +'<div class="buscar"><input id="buscaAlias" type="search" placeholder="Busca tu alias…" autocomplete="off"><span class="small muted">pulsa en cualquier recluta para ver su ficha · «Semana» son los xp de los últimos 7 días</span></div>'
         +(r.length?'<div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Recluta</th><th>Planeta</th><th>Insignias</th>'
             +'<th'+th('col')+' title="Cartas, héroes y versiones de tu personaje">Colección</th><th>Nivel</th>'

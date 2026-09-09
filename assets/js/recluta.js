@@ -885,6 +885,13 @@
 
   // ---------- carga ----------
   if(!API){root.innerHTML='<p class="lead">La nave aún no está conectada.</p>';return;}
+  // 🔴 9-sep · EL TABLERO EMPIEZA ESCONDIDO. Visto por Norberto en el embed de la Nave dentro de un
+  // Genially: mientras la Nave dice «Estableciendo conexión con NEBULA…», DEBAJO ya se veia
+  // «¿Cómo va la tripulación?» con su propio «Cargando el tablero…». Dos cargas apiladas, y en un
+  // embed —donde no hay cabecera ni pie— parecen restos de otra página. La sección es una <section>
+  // del HTML que pinta tablero.js por su cuenta, asi que hay que apagarla a mano hasta que la Nave
+  // sepa en qué pestaña está.
+  verTablero(false);
   root.innerHTML=cargando('Estableciendo conexión con NEBULA…','Sincronizando la Bitácora de tu PER');
   fetch(API+'?per='+encodeURIComponent(per),{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){
     if(d.error){root.innerHTML='<p class="lead">PER no encontrado. Pregunta a tu Capitán por el enlace bueno.</p>';return;}
