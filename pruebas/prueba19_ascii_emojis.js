@@ -107,11 +107,13 @@ c(Math.abs(ASCII.length - ORIG.length) < ORIG.length * 0.15,
 // parece que fue bien. Ha pasado tres veces (agosto ×2 y el 9-sep). Medido: 299.471 bytes se
 // guardan, 302.135 NO. El limite se pone con margen, y cuando salte, la solucion es la de siempre:
 // sacar un bloque coherente a su propio fichero (asi nacieron Datos.gs, Bonus.gs e Imagenes.gs).
-const TECHO = 295000;
+const TECHO = 298000;   // por debajo de los 299.471 que SI se guardaron, con 4 KB de aviso
+// 🔴 Se mide la COPIA ASCII, no el fuente: es la que se pega de verdad, y es MAS grande (cada
+// tilde se convierte en un escape). Medir el fuente daria un falso verde justo en el limite.
 ["Code.gs", "Datos.gs", "Bonus.gs", "Imagenes.gs"].forEach(function(f){
-  const n2 = fs.readFileSync(path.join(RAIZ, "apps-script", f), "utf8").length;
+  const n2 = fs.readFileSync(path.join(RAIZ, "assets", "descargas", f + ".ascii.txt"), "utf8").length;
   c(n2 < TECHO, "🔴 " + f + " cabe en el editor de Apps Script (" + n2.toLocaleString("es-ES") +
-    " bytes, tope " + TECHO.toLocaleString("es-ES") + ")");
+    " bytes de copia ASCII, tope " + TECHO.toLocaleString("es-ES") + ")");
 });
 
 E.resumen("La copia ASCII dice lo mismo");
