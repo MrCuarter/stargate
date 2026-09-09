@@ -51,6 +51,16 @@
       +enlace('🧑\u200d🏫 La web del profesorado','El puesto de mando: la guía, la cronología semana a semana, las actividades y los recursos. Es el enlace que se pasa a un compañero que empieza.',WEB)
       +enlace('🔐 Panel del PER (con PIN)','Alumnos con nombre y correo, insignias, canjes, equipo docente, abrir y cerrar. Y ahí dentro está el <b>documento del PER</b>, que incluye el enlace de <b>edición</b> del Genially — por eso no puede estar en esta página, que es abierta.',uProf)
       +enlace('🎟️ Tickets de mi clase (con PIN)','Valoraciones y dudas'+(st.prof?' filtradas para <b>'+esc(st.prof)+'</b>':' (elige tu nombre arriba para filtrar por tu clase)')+'.',uTick)
+      // 9-sep · Para enseñar la plataforma sin ser nadie (una charla, un compañero, SIMO). Solo sale
+      // en grupos de prueba: en una clase real enseñaria la ficha de un alumno DE VERDAD, asi que
+      // el modo demo ni existe alli. Misma regla que usa el Apps Script para sembrar alumnado falso.
+      +(/DEMO|PRUEBA/.test(String(d.nombre||'').toUpperCase())
+        ? enlace('🎬 Enseñar la plataforma (modo demostración)',
+            'Abre la Nave <b>sin pedir correo</b>, con la ficha de un recluta de mentira, para enseñar cómo lo ve el alumnado. '
+            +'Los formularios se pueden abrir y probar. <b>Solo funciona en grupos de prueba</b> como éste: en una clase real '
+            +'enseñaría la ficha de un alumno auténtico, así que allí no existe.',
+            WEB+'recluta.html?per='+encodeURIComponent(d.per)+'&demo=1')
+        : '')
       +'</div>'
 
       // ───────────────────────── 2 · alumnado

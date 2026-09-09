@@ -143,7 +143,11 @@
     if(st.cargandoYo) return '<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>';
     // 30-ago · el login ya NO vive aquí: es lo primero de la página (ver login() y el orden de
     // render). La ficha sin identificar solo apunta hacia arriba.
-    if(!st.yo) return '<div class="card"><p class="small muted">👤 Identifícate arriba para ver tu ficha, tu duelo y tu vestuario. Las demás pestañas funcionan sin identificarse.</p></div>';
+    // 9-sep · INALCANZABLE desde que la Nave nace cerrada: sin identificar, render() no llama a
+    // contenido(). Se queda como red de seguridad, pero SIN el texto viejo, que decia «las demas
+    // pestañas funcionan sin identificarse» — y desde hoy no funciona ninguna. Un cartel que miente
+    // es peor que no tener cartel.
+    if(!st.yo) return '';
     var r=st.yo, d=st.d, SG=window.SG||{};
     var av=SG.avatarImg?SG.avatarImg(r.avatar,r.alias,'grande'+(r.marco==='oro'?' marco-oro':''),r.xp,d.tipo):'';
     // NIVEL (xp, solo suben) y CRÉDITOS (lo único que se gasta)
@@ -623,8 +627,8 @@
   var PASOS=[
     {t:'Canal abierto, recluta',x:'Soy <b>NEBULA</b>, la inteligencia de esta nave. La galaxia se apaga por <b>la Estática</b> — un silencio que hace que nadie cree, registre ni comparta. Cruzarás <b>ocho planetas</b> (los ocho temas del curso) para reencenderla. Esta es tu nave.'},
     {t:'Tu arma: la Bitácora',x:'Contra la Estática no sirven las armas: sirve <b>dejar constancia</b>. Tu <b>Bitácora Estelar</b> es tu ePortfolio: cada evidencia que registres la hace más fuerte. Cuando esté completa, la puerta a la Tierra se abrirá.'},
-    {t:'Alístate',x:'Tu primer acto: la <b>Bitácora de mando</b>. Elige tu <b>alias</b>, tu <b>avatar</b> (¡evoluciona con tus xp!) y escribe la <b>biografía</b> de tu personaje. Ganarás la insignia de <b>Reclutamiento</b>. Cada vez que superes un reto, vuelve, marca la casilla y envía.'},
-    {t:'Tu personaje, al mando',x:'Escribe tu <b>correo</b> una sola vez en este dispositivo y la nave te reconocerá: verás tu personaje con su <b>rango</b>, tu biografía, tus xp y tu colección de insignias nada más entrar.'},
+    {t:'Alístate',x:'Tu primer acto: la <b>Bitácora de mando</b>. Escribe tu <b>correo</b> aquí arriba y, si todavía no estás a bordo, te doy el enlace: eliges tu <b>alias</b>, tu <b>avatar</b> (¡evoluciona con tus xp!) y escribes la <b>biografía</b> de tu personaje. Ganarás la insignia de <b>Reclutamiento</b>. Cada vez que superes un reto, vuelve, marca la casilla y envía.'},
+    {t:'Tu personaje, al mando',x:'Ese mismo <b>correo</b>, una sola vez en este dispositivo, y la nave te reconocerá: verás tu personaje con su <b>rango</b>, tu biografía, tus xp y tu colección de insignias nada más entrar. Hasta que no lo escribas, la nave está <b>cerrada</b> — y es a propósito: así nadie de fuera anda toqueteando los formularios de tu clase.'},
     {t:'La nave avanza sola',x:'Cada semana se desbloquea una nueva orden: el planeta, sus vídeos, sus <b>dos retos</b> y sus insignias. Los planetas futuros están en silencio… de momento. Vuelve cada semana.'},
     {t:'Dos marcadores, no uno',x:'Ojo a esto: los <b>xp</b> miden tu viaje y <b>nunca bajan</b> — suben tu <b>nivel</b> (del 1 al 10) y hacen <b>evolucionar a tu personaje</b>. Los <b>créditos ◈</b> los ganas con el mismo trabajo y son lo <b>único que se gasta</b> en la sección de <b>recompensas</b>. Comprar cromos no te baja de nivel. Y si te pierdes, usa el ticket <b>«Contacta con NEBULA»</b>: te leo, aunque sea anónimo. Corto y cierro.'}
   ];
