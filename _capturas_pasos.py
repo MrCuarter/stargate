@@ -76,6 +76,26 @@ TOMAS = {
  "e2_cuenta.png":     dict(url="form:bitacora", ancho=1100, alto=900, espera=7),
  "e3_alistarse.png":  dict(url="form:bitacora", ancho=1100, alto=1250, espera=7),
  "e4_reto.png":       dict(url="form:canje", ancho=1100, alto=1000, espera=7),
+# 🔴 Las tres de detras del PIN se retratan en MODO DEMO (?demo=1), con alumnado inventado. No es
+# un atajo: es la unica forma de que se puedan REGENERAR: ningun script puede escribir un PIN, y
+# una captura que no se puede rehacer acaba mintiendo el dia que cambie la pantalla.
+ "d3_sala.png":       dict(url=WEB + "/clase.html?demo=1", ancho=1400, alto=1150, espera=4,
+                           listo="document.querySelectorAll('#sala-grupo button[data-al]').length>0",
+                           scroll="(function(){document.querySelectorAll('#sala-grupo button[data-al]')[0].click();"
+                                  "return 1;})()",
+                           listo2="document.querySelectorAll('#ficha .fr-ins').length>20",
+                           scroll2="(function(){var f=document.getElementById('ficha');"
+                                   "window.scrollTo(0,f.getBoundingClientRect().top+window.pageYOffset-90);return 1;})()"),
+ "d4_pase.png":       dict(url=WEB + "/clase.html?demo=1", ancho=1400, alto=800, espera=4,
+                           listo="!!document.getElementById('abrirPase')",
+                           scroll="(function(){document.getElementById('abrirPase').click();return 1;})()",
+                           listo2="!!document.querySelector('.consigna')",
+                           scroll2="(function(){var p=document.getElementById('sala-pase');"
+                                   "window.scrollTo(0,p.getBoundingClientRect().top+window.pageYOffset-90);return 1;})()"),
+ "d5_tickets.png":    dict(url=WEB + "/tickets.html?demo=1", ancho=1400, alto=1050, espera=4,
+                           listo="document.querySelectorAll('.temachip').length>2",
+                           scroll="(function(){var c=document.querySelector('.temachips');"
+                                  "window.scrollTo(0,c.getBoundingClientRect().top+window.pageYOffset-90);return 1;})()"),
  "e5_ficha.png":      dict(url=WEB + "/recluta.html?per=%s" % PER, ancho=1280, alto=1080, espera=4,
                            antes=SEMBRAR, listo=CARGADA, scroll=pestana("Mi ficha"),
                            listo2="/créditos/.test(document.body.innerText)"),
@@ -87,7 +107,7 @@ TOMAS = {
                            listo2="(document.body.innerText.match(/◈/g)||[]).length>4"),
  "e8_tablero.png":    dict(url=WEB + "/recluta.html?per=%s" % PER, ancho=1280, alto=1000, espera=4,
                            antes=SEMBRAR, listo=CARGADA, scroll=pestana("El tablero"),
-                           listo2="document.querySelectorAll('#tablero tbody tr').length>0"),
+                           listo2="document.querySelectorAll('#rankBody tr').length>0"),
 }
 
 def main():

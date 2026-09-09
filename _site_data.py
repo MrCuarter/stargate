@@ -598,20 +598,20 @@ PASOS = [
         "proyectar, qué reto lanzar y qué insignia entregar. Abajo del todo está el mensaje del "
         "foro, ya escrito. Lo copias, lo pegas en el foro de la plataforma de UNIR y sigues con tu vida."),
 
-   dict(cod="D3", t="Dos: tu sala", pose="tablet", img=None,
+   dict(cod="D3", t="Dos: tu sala", pose="tablet", img="d3_sala.png",
     hacer="<b>Mi clase</b> → PIN → pulsa cualquier alumno para abrir su ficha completa.",
     voz="Esta es tu sala, y solo sale tu alumnado, no el del grupo entero. Si pulsas a cualquiera "
         "se abre su ficha completa: lo que lleva hecho, sus insignias, sus créditos y su correo, "
         "por si tienes que escribirle. Desde aquí también puedes darle o quitarle un reto a mano "
         "cuando algo se tuerza."),
 
-   dict(cod="D4", t="Tres: el pase de lista", pose="brazos", img=None,
+   dict(cod="D4", t="Tres: el pase de lista", pose="brazos", img="d4_pase.png",
     hacer="En tu sala, bloque del <b>pase de lista</b> → <b>Abrir</b>. Sale una palabra de cuatro letras.",
     voz="Si das clase en directo, esto. Abres la ventana y en tu pantalla sale una palabra de cuatro "
         "letras. Quien está en clase la escribe en su Nave y cobra unos créditos. La palabra no "
         "viaja a ningún sitio: solo la ve quien te está mirando. Es simbólico, pero funciona."),
 
-   dict(cod="D5", t="Cuatro: los tickets", pose="pensativo", img=None,
+   dict(cod="D5", t="Cuatro: los tickets", pose="pensativo", img="d5_tickets.png",
     hacer="<b>Tickets</b> → PIN → pulsa cualquier valoración para verla en grande.",
     voz="El ticket de salida es tu termómetro, y es anónimo, así que la gente dice lo que piensa de "
         "verdad. Pulsa cualquier resultado y se ve en grande. Y hay una versión apaisada pensada "

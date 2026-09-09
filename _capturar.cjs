@@ -95,6 +95,7 @@ function conectar(url) {
         }
         if (!ok2) throw new Error("«" + t.nombre + "»: la pestaña no llego a pintarse (" + t.listo2 + ")");
       }
+      if (t.scroll2) await c.enviar("Runtime.evaluate", { expression: t.scroll2, awaitPromise: true });
       await dormir(1500);
       const s = await c.enviar("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
       const f = path.join(DESTINO, t.nombre);

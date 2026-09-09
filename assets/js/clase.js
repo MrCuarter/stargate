@@ -11,6 +11,8 @@
   var st={pin:sessionStorage.getItem('sgPin')||'', profe:q.get('profe')||localStorage.getItem('sgProfe')||'',
           per:q.get('per')||localStorage.getItem('sgClasePer')||'', pers:[], d:null, tickets:[],
           tema:'', dias:'14', soloMios:true, vista:'hoy', demo:q.get('demo')==='1'};
+  // en la demo se entra ya como docente: el selector de «¿quien eres?» no es lo que se quiere enseñar
+  if(st.demo&&!q.get('profe')) st.profe='Mr Cuarter';
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function f(v){try{var d=new Date(v);return isNaN(d)?String(v):d.toLocaleDateString('es-ES',{day:'2-digit',month:'short'});}catch(e){return String(v);}}
   function cargando(t,p){return '<div class="cargando"><div class="txt">'+t+'</div><div class="barra"><i></i></div>'+(p?'<div class="pista">'+p+'</div>':'')+'</div>';}
@@ -507,7 +509,9 @@
         quien('Kepler','Sara Lem (ficticia)','kepler@ejemplo.demo','Norberto Cuartero',11,4,2,
           'La Bitácora me ha cambiado la forma de estudiar.',[]) ];
       rec.sort(function(a,b){return b.xp-a.xp;}); rec.forEach(function(r,i){r.pos=i+1;});
-      st._demo={ pers:[{id:'demo',nombre:'CLASE DE DEMOSTRACIÓN',tipo:'REGULAR',estado:'Abierto',semana:11,semanas:15}],
+      st._demo={ pers:[{id:'demo',nombre:'CLASE DE DEMOSTRACIÓN',tipo:'REGULAR',estado:'Abierto',semana:11,semanas:15,
+                  // la lista de docentes vive DENTRO de cada PER: sin ella la sala pide «¿quien eres?»
+                  docentes:[{nombre:'Mr Cuarter'},{nombre:'Norberto Cuartero'}]}],
         d:{ nombre:'CLASE DE DEMOSTRACIÓN', tipo:'REGULAR', estado:'Abierto', semana:11, semanas:15,
             cierre_misiones:'11/10/2026', cierre_canje:'18/10/2026',
             docentes:[{nombre:'Mr Cuarter',panel:''},{nombre:'Norberto Cuartero',panel:''}],
