@@ -429,3 +429,78 @@ function revertirCanje_(o, fila, profe) {
   return { ok: true, estado: sello, tipo: tipo, quitado: quitado,
            nota: tipo === "nota" ? "Los cr\u00e9ditos vuelven, pero la subida de nota la tienes que deshacer t\u00fa donde la aplicaste." : "" };
 }
+
+// ===========================================================================================
+// SEMBRAR CANJES DE PRUEBA - 9-sep-2026
+// Norberto, preparando la demo para compartir pantalla con estudiantes: "haz que haya conseguido
+// algunos cromos y 4 heroes de la rebelion. Debe ser funcional todo".
+//  NO se falsean los datos. Se mete la fila en la pestana de canjes y se llama a resolverCanje_,
+// que es LA MISMA funcion que atiende un canje de verdad: cobra los creditos, sortea la carta o el
+// heroe, escribe el estado y deja el historial. Asi lo que se ensena en clase es el sistema real
+// funcionando, no un decorado - y si el canje tuviera un fallo, la demo lo ensenaria tambien.
+// Puerta: igual que sembrarDemo_, solo grupos con DEMO o PRUEBA en el nombre.
+// Idempotente: a quien ya tiene heroes no se le vuelve a comprar.
+var SIEMBRA_HEROES = 4;      // lo que pidio Norberto para la ficha de la demo
+var SIEMBRA_SOBRES = 6;      // suficientes para que el album tenga algo que ensenar
+
+function sembrarCanjesDemo_(perId) {
+  var p = perFila_(perId); if (!p) throw new Error("PER no encontrado: " + perId);
+  var o = perObj_(p.v);
+  var nom = String(o.nombre || "").toUpperCase();
+  if (nom.indexOf("DEMO") < 0 && nom.indexOf("PRUEBA") < 0)
+    throw new Error("Solo siembro canjes en grupos DEMO o PRUEBA: \u00ab" + o.nombre + "\u00bb no lo es.");
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabC);
+  if (!sh) throw new Error("El PER no tiene pesta\u00f1a de canjes (" + o.tabC + ")");
+  var cab = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 1)).getValues()[0].map(String);
+  var cM = idx_(cab, "correo") >= 0 ? idx_(cab, "correo") : idx_(cab, "email");
+  var cR = cab.indexOf("Recompensa");
+  if (cM < 0 || cR < 0) throw new Error("La pesta\u00f1a de canjes no tiene las columnas de correo y recompensa");
+
+  var cat = recompensasCat_();
+  var elegir = function(tipo){ return cat.filter(function(x){ return x.tipo === tipo && x.coste > 0; })[0]; };
+  var HEROE = elegir("heroe"), SOBRE = elegir("cromo");
+  if (!HEROE || !SOBRE) throw new Error("El catalogo no tiene heroe o sobre de cromos");
+  var etiqueta = function(r){ return r.nombre + " \u2014 " + r.coste + " cr\u00e9ditos"; };
+
+  // el estado ANTES: quien ya tiene vestuario no se toca, y hay que saber de cuanto dispone cada uno
+  var antes = {}; tablero_(perId, true).reclutas.forEach(function(x){ antes[String(x.email).toLowerCase()] = x; });
+
+  var comprados = 0, saltados = 0, sinDinero = 0;
+  Object.keys(antes).forEach(function(email){
+    if (email.indexOf("@reclutas.demo") < 0) return;          // solo el alumnado sembrado
+    var yo = antes[email];
+    if ((yo.n_heroes || 0) > 0) { saltados++; return; }        // ya tiene: no se le compra dos veces
+    //  Se compra solo lo que PUEDE pagar: si no, resolverCanje_ deniega -correctamente- y la
+    // pestana se llena de rechazos que no pintan nada en una demo.
+    var bolsa = yo.creditos || 0;
+    var nH = Math.min(SIEMBRA_HEROES, Math.floor(bolsa * 0.55 / HEROE.coste));
+    var nS = Math.min(SIEMBRA_SOBRES, Math.floor((bolsa - nH * HEROE.coste) * 0.4 / SOBRE.coste));
+    if (nH <= 0 && nS <= 0) { sinDinero++; return; }
+    var lote = [];
+    for (var h = 0; h < nH; h++) lote.push(HEROE);
+    for (var c = 0; c < nS; c++) lote.push(SOBRE);
+    lote.forEach(function(rec){
+      var fila = []; while (fila.length < cab.length) fila.push("");
+      fila[0] = new Date(); fila[cM] = email; fila[cR] = etiqueta(rec);
+      sh.appendRow(fila);
+      resolverCanje_(o, sh, sh.getLastRow());     // la maquinaria de verdad: cobra y concede
+      comprados++;
+    });
+  });
+  return { comprados: comprados, saltados: saltados, sinDinero: sinDinero };
+}
+
+function sembrarCanjesDemo() {
+  var sel = filaPERSeleccionada_(); if (!sel) return; var ui = SpreadsheetApp.getUi();
+  if (ui.alert("Sembrar canjes de PRUEBA",
+      "Compra " + SIEMBRA_HEROES + " h\u00e9roes y " + SIEMBRA_SOBRES + " sobres de cromos para cada recluta " +
+      "sembrado de \u00ab" + sel.o.nombre + "\u00bb que a\u00fan no tenga vestuario, pag\u00e1ndolos con sus cr\u00e9ditos.\n\n" +
+      "Usa el canje DE VERDAD, as\u00ed que el historial y el dinero quedan como en un curso real.\n\n\u00bfSembrar?",
+      ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  try {
+    var r = sembrarCanjesDemo_(sel.o.id);
+    ui.alert("Canjes sembrados", r.comprados + " canjes hechos \u00b7 " + r.saltados + " reclutas ya ten\u00edan vestuario" +
+      (r.sinDinero ? " \u00b7 " + r.sinDinero + " sin cr\u00e9ditos suficientes" : "") +
+      "\n\nM\u00edralo en la Nave con &demo=1 o en el tablero.", ui.ButtonSet.OK);
+  } catch (e) { ui.alert("No se pudo sembrar", String(e.message || e), ui.ButtonSet.OK); }
+}

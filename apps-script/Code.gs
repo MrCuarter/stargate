@@ -99,6 +99,7 @@ function menuStargate_() {
       .addItem("Bonus de la tripulación (umbral y créditos)", "ajustarBonusTripulacion")
       .addItem("Pase de lista en directo (créditos y minutos)", "ajustarPase")
       .addItem("Sembrar alumnado de PRUEBA (PER seleccionado)", "sembrarDemo")
+      .addItem("Sembrar canjes de PRUEBA (cromos y heroes)", "sembrarCanjesDemo")
       .addItem("Chincheta de bienvenida en el padlet (PER seleccionado)", "chinchetaPadlet")
       .addItem("Resetear la hoja (borra TODOS los PER)", "resetearHoja"))
     .addSeparator()

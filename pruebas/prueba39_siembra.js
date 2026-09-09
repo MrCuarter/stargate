@@ -66,4 +66,44 @@ const salud = G.salud_();
 c(!salud.puntos.some(x => x.clave === "sindocente" && x.nivel === "mal"),
   "y el parte de salud no protesta por reclutas sin docente");
 
+
+// ---------------------------------------------------------------- e) los canjes de la demo (9-sep)
+// «Haz que haya conseguido algunos cromos y 4 heroes de la rebelion. Debe ser funcional todo».
+// 🔴 La clave: NO se falsean los datos. Se mete la fila y se llama a resolverCanje_, la MISMA
+// funcion que atiende un canje real. Si eso se cambiara por un apaño que escribe los extras a mano,
+// la demo enseñaria un sistema que no existe — y los creditos no cuadrarian con lo comprado.
+G.sembrarDemo_(PER);
+const antesC = G.tablero_(PER, true).reclutas.filter(function(x){ return (x.creditos||0) > 300; });
+c(antesC.length > 0, "hay reclutas con dinero de sobra para comprar (" + antesC.length + ")");
+antesC.forEach(function(x){ igual(x.n_heroes, 0, "«" + x.alias + "» empieza sin vestuario"); });
+
+const res = G.sembrarCanjesDemo_(PER);
+c(res.comprados > 0, "se compran canjes de verdad (" + res.comprados + ")");
+
+const ricos = G.tablero_(PER, true).reclutas.filter(function(x){ return (x.n_heroes||0) > 0; });
+c(ricos.length > 0, "y hay reclutas con vestuario (" + ricos.length + ")");
+const uno = ricos.sort(function(a,b){ return b.n_heroes - a.n_heroes; })[0];
+igual(uno.n_heroes, 4, "🔴 el que mas tiene lleva los 4 héroes que pidió Norberto");
+c((uno.coleccion.cromos.tengo || 0) > 0, "   y cromos en el álbum (" + uno.coleccion.cromos.tengo + ")");
+c(uno.creditos_gastados > 0, "🔴 los ha PAGADO: " + uno.creditos_gastados + " ◈ gastados");
+igual(uno.creditos, uno.creditos_ganados - uno.creditos_gastados, "   y el saldo cuadra");
+c(uno.creditos >= 0, "   sin quedarse en negativo");
+
+// el historial existe: es lo que se enseña en la ficha del docente
+const shC = G._maestra.getSheetByName(o.tabC);
+c(shC.getLastRow() > 1, "queda historial de canjes (" + (shC.getLastRow()-1) + " filas)");
+const estados = shC.getDataRange().getValues().slice(1).map(function(v){ return String(v[shC.getDataRange().getValues()[0].map(String).indexOf("Estado")]||""); });
+c(estados.filter(function(e){ return e.indexOf("Concedido") === 0; }).length > 0, "y estan concedidos");
+
+// idempotente: pasarla dos veces no le compra otros cuatro
+const res2 = G.sembrarCanjesDemo_(PER);
+igual(res2.comprados, 0, "🔴 sembrar dos veces no compra nada mas");
+igual(G.tablero_(PER, true).reclutas.filter(function(x){ return x.email === uno.email; })[0].n_heroes, 4,
+  "   y sigue con 4 héroes, no con 8");
+
+// la puerta: en un grupo que no es de pruebas, ni se intenta
+let sePuede = true;
+try { G2.sembrarCanjesDemo_("master-2026"); } catch (e) { sePuede = false; }
+igual(sePuede, false, "🔴 en un grupo que no es DEMO ni PRUEBA se niega");
+
 E.resumen("La siembra de alumnado de prueba");
