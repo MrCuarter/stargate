@@ -1416,16 +1416,24 @@ TOUR_CLASE = {
        "lo sabe. Si aparece el aviso ámbar de <b>reclutas sin docente</b>, arréglalo antes que nada: "
        "sin docente, sus avisos no le llegan a ninguna persona concreta."},
   {"sel":"#sala-clase","pose":"senala","t":"La orden de la semana",
-   "x":"Qué toca hoy según la fecha de la semana 1 del grupo: qué se lanza, el <b>mensaje del foro "
-       "listo para copiar</b> y la semana entera en la cronología. Debajo, las dudas del ticket."},
+   "x":"Qué toca hoy según la fecha de la semana 1 del grupo, y el <b>mensaje del foro</b> de esta "
+       "semana. <b>No tienes que repartirlo:</b> a tu alumnado ya le sale solo en su Nave, pestaña "
+       "«Esta semana», y también dentro del Genially si tenéis incrustado el foro dinámico. Cambia "
+       "de semana él solo. Aquí lo tienes para leerlo antes de clase — o para copiarlo al foro de "
+       "la plataforma de UNIR si quieres además dejarlo escrito ahí. Debajo, las dudas del ticket."},
   {"sel":"#sala-grupo","pose":"brazos","t":"Tu gente, y sus errores",
-   "x":"Tu grupo con su nivel, sus créditos y sus insignias. Pulsa cualquier fila —o «Corregir»— y "
-       "arreglas <b>desde aquí</b> el alias, el nombre, el docente, el enlace del ePortfolio y los "
-       "retos marcados. No hace falta abrir ninguna hoja de cálculo."},
-  {"sel":"#sala-pase","pose":"pulgar","t":"El pase de lista en directo",
-   "x":"Abre una ventana de unos minutos y enseña la consigna <b>en tu pantalla</b>. Quien esté en "
-       "clase la teclea en su Nave y se lleva unos créditos. Premia estar en la sesión en directo; "
-       "no es un control de asistencia, la consigna se puede pasar por chat."},
+   "x":"Tu grupo con su nivel, sus créditos y sus insignias. Pulsa <b>«Ver ficha»</b> —o la fila— y "
+       "tienes la radiografía completa de esa persona: su biografía, sus insignias, sus cartas, los "
+       "personajes que ha ganado y su correo. Y ahí dentro, el botón <b>Corregir</b> arregla el alias, "
+       "el nombre, el docente, el enlace del ePortfolio y los retos marcados. No hace falta abrir "
+       "ninguna hoja de cálculo."},
+    {"sel":"#sala-pase","pose":"brazos","t":"El pase de lista en directo",
+   "x":"Abre una ventana de unos minutos y enseña la consigna en tu pantalla. Quien esté en clase "
+       "la teclea en su Nave y se lleva unos créditos. La consigna <b>no viaja</b>: no está en "
+       "ningún enlace ni en los datos que recibe el alumnado, solo en tu pantalla. Aun así no es "
+       "un control de asistencia fiable —quien está en clase puede escribírsela por el chat a "
+       "quien no está—, así que ábrelo con la clase ya empezada y déjalo pocos minutos. Y si "
+       "necesitas la pantalla para otra cosa, <b>tápala</b>: la ventana sigue abierta."},
   {"sel":"#sala-enlaces","pose":"tablet","t":"Todo lo del grupo, sin buscar en Drive",
    "x":"Los enlaces de <b>este</b> grupo: tablero, Nave, los tres formularios, el panel de Genially, "
        "el foro y el generador de embeds y QR. Y si eres el referente, el panel completo."},
