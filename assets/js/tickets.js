@@ -124,8 +124,30 @@ var sp=document.getElementById('selPer');if(sp)sp.onchange=function(){st.per=thi
   function demo(b){if(b.accion==='pers')return {pers:[{id:'demo',nombre:'PER de demostración',tipo:'REGULAR',estado:'Abierto'}]};if(b.accion==='ticket_resuelto'){var t=st.tickets.filter(function(x){return x.fila===b.fila;})[0];if(t)t.resuelto=b.valor?'Sí · demo':'';return {ok:true};}
     var P=['Ana Pérez','Luis Gómez'],S='Selecciona el tema o actividad',PR='El profesor o profesora que imparte tu clase...',out=[],i;
     function r(a,b2){return a+Math.floor(Math.random()*(b2-a+1));}
-    for(i=0;i<18;i++){var o={};o[PR]=P[i%2];o[S]='Tema 1: Creación de contenido multimedia (Fôrge)';o['Valora la utilidad de las herramientas o estrategias vistas en clase']=r(3,5);o['Valora la satisfacción general del desarrollo de la clase']=r(3,5);o['Valora la satisfacción con los contenidos teóricos vistos en clase sobre este tema']=r(2,5);o['Valora tu grado de participación en clase']=r(1,5);if(i%4===0)o['¿Alguna duda? ¿Te ha quedado alguna duda o quieres hacernos llegar algún comentario?']=['¿La imagen con IA puede ser un collage de varias?','No entendí la diferencia entre prompt y contexto','¿Cuántas iteraciones hay que documentar?','¿Sirve Canva para la Act. 1?'][i/4%4];out.push({fecha:new Date(Date.now()-i*864e5).toISOString(),fila:i+2,resuelto:i===4?'Sí · Ana · 20/08':'',r:o});}
-    for(i=0;i<7;i++){var o2={};o2[PR]=P[i%2];o2[S]='Presentación de la asignatura';o2['¿Qué vibraciones te ha transmitido la presentación?']=r(4,5);o2['Valora la utilidad que percibes del temario de la asignatura']=r(3,5);o2['¿Cómo valorarías tus conocimientos iniciales sobre herramientas TIC?']=r(1,4);if(i<2)o2['¿Qué esperas de la asignatura? ¿Qué te gustaría aprender?']=['Herramientas que pueda usar el lunes en clase','Aprender a gamificar sin volverme loca'][i];out.push({fecha:new Date(Date.now()-(20+i)*864e5).toISOString(),fila:30+i,resuelto:'',r:o2});}
+    // 🔴 v3.43 · La demo genera TRES temas con el mismo bloque de preguntas, no uno. Con un solo
+    // tema el «Panorama de la asignatura» no aparece nunca (necesita preguntas repetidas en varias
+    // secciones), asi que la demostracion no enseñaba justo lo que se acaba de añadir.
+    var TEMAS=[['Tema 1: Creación de contenido multimedia (Fôrge)',18,0],
+               ['Tema 2: El vídeo como recurso (Ecos)',14,-1],
+               ['Tema 3: Contenidos interactivos (Sendara)',11,1]];
+    var DUDAS=['¿La imagen con IA puede ser un collage de varias?','No entendí la diferencia entre prompt y contexto',
+               '¿Cuántas iteraciones hay que documentar?','¿Sirve Canva para la Act. 1?',
+               '¿El vídeo tiene que ser mío o puedo usar uno de YouTube?','¿Genially cuenta como contenido interactivo?'];
+    var fila=2, dud=0;
+    TEMAS.forEach(function(T,ti){
+      var nom=T[0], cuantos=T[1], sesgo=T[2];
+      function rr(a,b2){var v=r(a,b2)+sesgo;return Math.max(1,Math.min(5,v));}
+      for(i=0;i<cuantos;i++){var o={};o[PR]=P[i%2];o[S]=nom;
+        o['Valora la utilidad de las herramientas o estrategias vistas en clase']=rr(3,5);
+        o['Valora la satisfacción general del desarrollo de la clase']=rr(3,5);
+        o['Valora la satisfacción con los contenidos teóricos vistos en clase sobre este tema']=rr(2,5);
+        o['Valora tu grado de participación en clase']=rr(1,4);
+        if(i%4===0){o['¿Alguna duda? ¿Te ha quedado alguna duda o quieres hacernos llegar algún comentario?']=DUDAS[dud%DUDAS.length];dud++;}
+        out.push({fecha:new Date(Date.now()-((ti*30)+i)*864e5).toISOString(),fila:fila,
+                  resuelto:(ti===0&&i===4)?'Sí · Ana · 20/08':'',r:o});
+        fila++;}
+    });
+    for(i=0;i<7;i++){var o2={};o2[PR]=P[i%2];o2[S]='Presentación de la asignatura';o2['¿Qué vibraciones te ha transmitido la presentación?']=r(4,5);o2['Valora la utilidad que percibes del temario de la asignatura']=r(3,5);o2['¿Cómo valorarías tus conocimientos iniciales sobre herramientas TIC?']=r(1,4);if(i<2)o2['¿Qué esperas de la asignatura? ¿Qué te gustaría aprender?']=['Herramientas que pueda usar el lunes en clase','Aprender a gamificar sin volverme loca'][i];out.push({fecha:new Date(Date.now()-(120+i)*864e5).toISOString(),fila:fila+i,resuelto:'',r:o2});}
     return {tickets:out};}
   if(st.demo||st.pin)inicio();else pedirPin();
 })();
