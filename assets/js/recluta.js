@@ -483,20 +483,12 @@
     if(!r.length) return false;
     ponDemo(r); return true;
   }
-  // 🔴 9-sep · LA DEMO NO PUEDE DEPENDER DE QUIEN LLEGUE PRIMERO. Esperar al aviso «sg:tablero» era
+  // 🔴 9-sep · POR QUE NO ARRANCABA. La primera version esperaba al aviso «sg:tablero», y eso era
   // una carrera: si el tablero llegaba antes que los datos del PER, el aviso ya habia pasado y la
-  // demo no arrancaba nunca (pasó en vivo, y sin un solo error en consola — de los que no se ven).
-  // Aqui se pide el tablero PUBLICO directamente: el mismo que ve cualquiera, sin correos ni
-  // nombres. Una llamada de mas solo en demo, y a cambio arranca siempre.
-  function vestirDemoSeguro(){
-    try{ window.__sgDemo={DEMO:DEMO, nombre:(st.d&&st.d.nombre), permitido:demoPermitido(), nDatos:((st.d&&st.d.reclutas)||[]).length, yo:!!st.yo}; }catch(e){}
-    if(vestirDemo()){ render(); return; }
-    if(st.yo||!demoPermitido()) return;
-    fetch(API+'?accion=tablero&per='+encodeURIComponent(per),{redirect:'follow'})
-      .then(function(r){return r.json();})
-      .then(function(t){ var l=(t&&t.reclutas)||[]; if(l.length&&!st.yo){ ponDemo(l); render(); } })
-      .catch(function(){});
-  }
+  // demo no arrancaba NUNCA — sin un solo error en consola, de los fallos que no se ven. Y buscaba
+  // los reclutas fuera (window.SG_TABLERO_DATA) cuando ya venian DENTRO de la propia respuesta de
+  // la Nave. Mirando en casa no hay carrera que perder ni llamada que hacer.
+  function vestirDemoSeguro(){ if(vestirDemo()) render(); }
   // cuando el tablero llega después que la ficha, el duelo se pinta solo (una vez)
   document.addEventListener('sg:tablero',function(){
     if(vestirDemo()){ render(); return; }
