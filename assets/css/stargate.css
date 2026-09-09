@@ -216,23 +216,25 @@ footer a{color:var(--teal2)}
    asi que topaba con max-width:32% y se quedaba corto de alto sin llegar a su limite. Se le suelta
    el ancho y se le sube el alto; NEBULA cede un poco para que los tres quepan sin recortarse.
    Solo afecta a los trios de TRES (la guia tiene de dos y de uno). */
-/* 🔴 VAEON NO VA AL LADO: VA DETRAS. Puesto en fila era un señor mas del grupo. Es la Estatica —
-   lo que se cierne sobre NEBULA y el Capitan—, asi que se coloca al fondo, mas grande que los dos,
-   en penumbra y con luz por detras. Los drop-shadow siguen la SILUETA del png (no una caja), que es
-   lo que hace que parezca contraluz y no un halo pegado. */
-.trio{position:relative}
-.trio img:first-child:nth-last-child(3){max-width:34%;position:relative;z-index:2}
-.trio img:first-child:nth-last-child(3)~img:nth-child(2){position:relative;z-index:2}
-.trio img:first-child:nth-last-child(3)~img:nth-child(3){
-  position:absolute;left:50%;bottom:-4%;transform:translateX(-50%);
-  z-index:0;max-height:none;max-width:none;height:126%;width:auto;
+/* 🔴 VAEON NO VA AL LADO: VA DETRAS. Puesto en fila era un señor mas del grupo. Es la Estatica —lo
+   que se cierne sobre NEBULA y el Capitan—, asi que va al fondo, mas alto que los dos, en penumbra
+   y a contraluz. Los drop-shadow siguen la SILUETA del png (no una caja): por eso parece luz por
+   detras y no un halo pegado.
+   El padding-top es lo que le deja sitio a la cabeza: sin el, `overflow:hidden` se la cortaba.
+   Clase propia en vez de contar hijos: la guia tiene trios de dos y de uno y no se enteran. */
+.trio-amenaza{position:relative;padding-top:76px}
+.trio-amenaza>img{position:relative;z-index:2;max-width:34%}
+.trio-amenaza>img:nth-child(3){
+  position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  z-index:0;max-height:none;max-width:none;height:118%;width:auto;
   opacity:.82;pointer-events:none;
   filter:brightness(.5) contrast(1.15) saturate(.8)
          drop-shadow(0 0 22px rgba(80,220,240,.34))
          drop-shadow(0 0 70px rgba(40,130,170,.42));
 }
 @media(max-width:760px){
-  .trio img:first-child:nth-last-child(3)~img:nth-child(3){height:118%;opacity:.7}
+  .trio-amenaza{padding-top:48px}
+  .trio-amenaza>img:nth-child(3){height:112%;opacity:.72}
 }
 @media(max-width:760px){.trio img{max-height:220px}.trio img:nth-child(2){max-height:240px}
   .trio img:first-child:nth-last-child(3)~img:nth-child(3){max-height:270px}}

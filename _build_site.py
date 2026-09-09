@@ -263,7 +263,7 @@ logros (insignias) y sostienes la moral; el foro se firma siempre como <i>Capit�
 es la personificación de los errores de diseño educativo, y aparece en el Tema 5.</p>
 <p><a class="btn" href="guia.html#pers">Conoce a la Tripulación Cero →</a></p>
 </div>
-<div class="trio"><img src="assets/img/personajes/nebula.png" alt="NEBULA"><img src="assets/img/capitan/brazos.png" alt="El Capitán"><img src="assets/img/personajes/vaeon.png" alt="General Vaeon"></div>
+<div class="trio trio-amenaza"><img src="assets/img/personajes/nebula.png" alt="NEBULA"><img src="assets/img/capitan/brazos.png" alt="El Capitán"><img src="assets/img/personajes/vaeon.png" alt="General Vaeon"></div>
 </div>
 </div></section>
 ''' + FOOT
