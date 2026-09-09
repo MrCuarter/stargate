@@ -27,7 +27,10 @@ NAV = [("index.html","Inicio","inicio"),("guia.html","Guía","guia"),("cronologi
 
 # `puerta=True` tapa la pagina hasta que se valida el PIN del profesorado (assets/js/puerta.js).
 # 🔴 Esconde el CAMINO, no el contenido: un fichero de assets/ se baja igual desde su URL.
-def head(title, desc, active, puerta=False):
+# `publica=True` es la PORTADA: menu minimo y sin visita guiada. 🔴 Si la portada llevara el menu
+# del profesorado, la bifurcacion seria mentira: un estudiante veria «Mi clase» y «Geniallys»
+# antes que su propia Nave.
+def head(title, desc, active, puerta=False, publica=False):
     def _lnk(h, t, k):
         act = " active" if k == active else ""
         if k != "grp":
@@ -38,7 +41,9 @@ def head(title, desc, active, puerta=False):
                 f'<div class="drop-menu" role="menu" hidden>'
                 f'<a class="drop-all" href="{h}" role="menuitem">Ver todos los grupos →</a>'
                 f'<div class="drop-list"><span class="drop-msg">Cargando grupos…</span></div></div></div>')
-    links = "".join(_lnk(h, t, k) for h, t, k in NAV)
+    links = ('<a class="lnk" href="recluta.html">🚀 Soy estudiante</a>'
+             '<a class="lnk" href="guia.html">🎓 Soy docente</a>') if publica else \
+            "".join(_lnk(h, t, k) for h, t, k in NAV)
     return f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
@@ -53,9 +58,9 @@ def head(title, desc, active, puerta=False):
 {'<script>document.documentElement.classList.add("cerrado")</script><script src="assets/js/puerta.js" defer></script>' if puerta else ''}
 </head><body>
 <nav class="nav"><div class="wrap">
-<a class="brand" href="index.html">◈ STARGATE <span class="modo docente">Capitán<i> · docentes</i></span></a>
+<a class="brand" href="index.html">◈ STARGATE {'' if publica else '<span class="modo docente">Capitán<i> · docentes</i></span>'}</a>
 {links}
-<button class="tour-start" type="button" title="Visita guiada con el Capitán">▶ Visita guiada</button>
+{'' if publica else '<button class="tour-start" type="button" title="Visita guiada con el Capitán">&#9654; Visita guiada</button>'}
 </div></nav>'''
 
 FOOT = '''<footer><div class="wrap">
@@ -189,7 +194,7 @@ tiles_html="\n".join(f'<a class="tile" href="{h}"><span class="ic">{i}</span><b>
 # Ahora es la ENTRADA al proyecto: que es STARGATE, y dos puertas. Sirve ademas para enseñarlo fuera
 # (SIMO, redes, un compañero curioso) sin que nadie caiga en la trastienda.
 PORTADA = head("STARGATE · La Bitácora Estelar",
-  "STARGATE, el proyecto gamificado del Máster en Tecnología Educativa de la UNIR: ocho planetas, ocho temas y una Bitácora que lo reenciende todo.","inicio") + f'''
+  "STARGATE, el proyecto gamificado del Máster en Tecnología Educativa de la UNIR: ocho planetas, ocho temas y una Bitácora que lo reenciende todo.","inicio", publica=True) + f'''
 <header class="hero hero-video">
 <video autoplay muted loop playsinline preload="auto" poster="{HERO_POSTER}"><source src="{HERO_MP4}" type="video/mp4"></video>
 <div class="veil"></div>
