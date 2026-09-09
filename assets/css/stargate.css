@@ -230,7 +230,11 @@ footer a{color:var(--teal2)}
    100%), asi que no hay nada que recortar, y el halo se apaga solo contra el fondo. Ademas se
    reparte en tres capas de radio creciente y opacidad decreciente: asi no tiene un borde donde
    termina, que es lo que delata a un halo pegado. */
-.trio-amenaza{position:relative;padding-top:76px;overflow:visible}
+.trio-amenaza{position:relative;padding-top:76px;overflow:visible;
+  /* los tres png estan recortados a la cintura y acababan en una linea recta. Se disuelven en el
+     ultimo tramo para que no se vea donde termina la imagen y empieza la pagina. */
+  -webkit-mask-image:linear-gradient(to bottom,#000 84%,rgba(0,0,0,.45) 95%,transparent 100%);
+          mask-image:linear-gradient(to bottom,#000 84%,rgba(0,0,0,.45) 95%,transparent 100%)}
 .trio-amenaza>img{position:relative;z-index:2;max-width:34%}
 .trio-amenaza>img:nth-child(3){
   position:absolute;left:50%;bottom:0;transform:translateX(-50%);
