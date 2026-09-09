@@ -25,7 +25,9 @@ NAV = [("index.html","Inicio","inicio"),("guia.html","Guía","guia"),("cronologi
        ("actividades.html","Actividades","act"),("pasos.html","Cómo se hace","pasos"),("geniallys.html","Geniallys","gen"),
        ("registro.html","Registro","reg"),("grupos.html","Grupos","grp"),("clase.html","Mi clase","cla"),("recursos.html","Recursos","rec")]
 
-def head(title, desc, active):
+# `puerta=True` tapa la pagina hasta que se valida el PIN del profesorado (assets/js/puerta.js).
+# 🔴 Esconde el CAMINO, no el contenido: un fichero de assets/ se baja igual desde su URL.
+def head(title, desc, active, puerta=False):
     def _lnk(h, t, k):
         act = " active" if k == active else ""
         if k != "grp":
@@ -48,6 +50,7 @@ def head(title, desc, active):
 <script>window.SG_TABLERO_API="{TABLERO_API}";</script>
 <script src="assets/js/stargate.js" defer></script>
 <script src="assets/js/tour.js" defer></script>
+{'<script>document.documentElement.classList.add("cerrado")</script><script src="assets/js/puerta.js" defer></script>' if puerta else ''}
 </head><body>
 <nav class="nav"><div class="wrap">
 <a class="brand" href="index.html">◈ STARGATE <span class="modo docente">Capitán<i> · docentes</i></span></a>
@@ -181,20 +184,24 @@ tiles = [
 ]
 tiles_html="\n".join(f'<a class="tile" href="{h}"><span class="ic">{i}</span><b>{t}</b><em>{d}</em></a>' for h,i,t,d in tiles)
 
-PORTADA = head("STARGATE · Puesto de mando del profesorado",
-  "Todo lo que un docente necesita para pilotar STARGATE: narrativa, cronología semana a semana, retos, insignias, vídeos y Geniallys.","inicio") + f'''
+# 🔴 9-sep · LA PORTADA YA NO ES LA COCINA. Era «Puesto de mando del profesorado» y llevaba directo
+# a la guia, la cronologia y los Geniallys — el material del equipo, abierto a quien pasara por ahi.
+# Ahora es la ENTRADA al proyecto: que es STARGATE, y dos puertas. Sirve ademas para enseñarlo fuera
+# (SIMO, redes, un compañero curioso) sin que nadie caiga en la trastienda.
+PORTADA = head("STARGATE · La Bitácora Estelar",
+  "STARGATE, el proyecto gamificado del Máster en Tecnología Educativa de la UNIR: ocho planetas, ocho temas y una Bitácora que lo reenciende todo.","inicio") + f'''
 <header class="hero hero-video">
 <video autoplay muted loop playsinline preload="auto" poster="{HERO_POSTER}"><source src="{HERO_MP4}" type="video/mp4"></video>
 <div class="veil"></div>
 <div class="hero-inner">
-<div class="kicker">Puesto de mando del profesorado</div>
+<div class="kicker">Máster en Tecnología Educativa · UNIR</div>
 <h1>STARGATE</h1>
 <div class="sub">La Bitácora Estelar</div>
-<p>La galaxia se apaga por la Estática. Tu alumnado son los reclutas, ocho planetas son los ocho temas y
-la Bitácora es su ePortfolio. Aquí está todo lo que necesitas para pilotar la misión.</p>
+<p>La galaxia se apaga por la Estática. El alumnado son los reclutas, ocho planetas son los ocho temas
+y la Bitácora —su ePortfolio— es lo que vuelve a encenderlo todo.</p>
 <div id="hero-cta" class="cta-row">
-<button class="btn primary tour-start" type="button">▶ Visita guiada con el Capitán</button>
-<a class="btn" href="cronologia.html">Ver la cronología</a>
+<a class="btn primary grande" href="recluta.html">🚀 Soy estudiante — a mi Nave</a>
+<a class="btn grande" href="guia.html">🎓 Soy docente</a>
 <a class="btn ghost" href="{PLAYLIST}" target="_blank" rel="noopener">Serie completa en YouTube ↗</a>
 </div>
 </div></header>
@@ -215,8 +222,30 @@ La batalla final es el examen.</p></div>
 <div class="planetas">{planetas_html}</div>
 </div></section>
 
+<section id="puertas"><div class="wrap">
+<div class="eyebrow teal">Por dónde entras</div><h2>Dos caminos</h2>
+<div class="grid cols-2">
+  <a class="card puerta-tile" href="recluta.html">
+    <span class="ic">🚀</span>
+    <h3>Soy estudiante</h3>
+    <p>Tu Nave: te identificas con tu correo y ahí tienes tu personaje, la orden de la semana, los
+    planetas que se van abriendo, tus insignias y las recompensas. Desde ahí registras lo que
+    completas y canjeas lo que ganas.</p>
+    <span class="chip ok">Entrar en la Nave →</span>
+  </a>
+  <a class="card puerta-tile" href="guia.html">
+    <span class="ic">🎓</span>
+    <h3>Soy docente</h3>
+    <p>La guía del método, la cronología semana a semana, las actividades, los Geniallys del equipo y
+    tu sala de clase. <b>Pide el PIN una vez</b> — te lo da tu profe referente— y ya no vuelve a
+    pedírtelo en este navegador.</p>
+    <span class="chip">Entrar con el PIN →</span>
+  </a>
+</div>
+</div></section>
 <section id="secciones"><div class="wrap">
-<div class="eyebrow teal">Navegación</div><h2>Dónde está cada cosa</h2>
+<div class="eyebrow teal">Zona del profesorado</div><h2>Dónde está cada cosa</h2>
+<p class="lead small">Todo esto pide el PIN. Si eres estudiante, tu sitio es la Nave.</p>
 <div class="tiles">{tiles_html}</div>
 </div></section>
 
@@ -258,7 +287,7 @@ FAQ = [
 faq_html="\n".join(f'<details class="faq"><summary>{q}</summary><div>{a}</div></details>' for q,a in FAQ)
 
 GUIA = head("STARGATE · Guía para el profesorado",
-  "La gamificación STARGATE: narrativa, personajes, retos e insignias, la Bitácora y cómo dinamizarla en clase.","guia") + f'''
+  "La gamificación STARGATE: narrativa, personajes, retos e insignias, la Bitácora y cómo dinamizarla en clase.","guia", puerta=True) + f'''
 <header class="hero"><div class="kicker">Guía para el profesorado</div>
 <h1>La guía</h1>
 <p>La capa narrativa que convierte la asignatura en una misión: cruzar ocho planetas y construir una
@@ -452,10 +481,18 @@ DOCS = [
  ("Ejemplo_examen.pdf","Ejemplo de examen","Para preparar el simulacro de la semana 15"),
  ("Ejemplo_ePortfolio_alumnado.pdf","Ejemplo de ePortfolio","Informe real de un grupo, como referencia de nivel (16 MB)"),
 ]
-docs_html="\n".join(f'<a class="doc" href="assets/docs/{f}" download><span class="ext">{f.rsplit(".",1)[1].upper()}</span><b>{t}</b><em>{d}</em></a>' for f,t,d in DOCS)
+# 🔴 9-sep · TRES DOCUMENTOS RESERVADOS. El ejemplo de examen y las dos rubricas viven en una
+# subcarpeta con nombre derivado del contenido (`_docs_reservados.txt`, lo genera el propio build):
+# su URL deja de ser adivinable y los buscadores no la alcanzan. NO es proteccion de verdad —quien
+# tenga el enlace se lo baja igual— pero suma a que la pagina ya pide PIN. Lo unico que reserva un
+# documento de verdad es no tenerlo en un servidor publico.
+_RESERVADOS = {"Ejemplo_examen.pdf", "Rubrica_Actividad_1.xlsx", "Rubrica_Actividad_2_ePortfolio.xlsx"}
+_SUB = open(os.path.join(HERE, "_docs_reservados.txt")).read().strip()
+def doc_url(f): return "assets/docs/%s%s" % ((_SUB + "/") if f in _RESERVADOS else "", f)
+docs_html="\n".join(f'<a class="doc" href="{doc_url(f)}" download><span class="ext">{f.rsplit(".",1)[1].upper()}</span><b>{t}</b><em>{d}</em></a>' for f,t,d in DOCS)
 
 ACT = head("STARGATE · Actividades y evaluación",
-  "Las misiones (actividades), el ePortfolio, la evaluación, el examen y los documentos oficiales de la asignatura con su marco narrativo STARGATE.","act") + f'''
+  "Las misiones (actividades), el ePortfolio, la evaluación, el examen y los documentos oficiales de la asignatura con su marco narrativo STARGATE.","act", puerta=True) + f'''
 <header class="hero"><div class="kicker">Documentos oficiales</div>
 <h1>Misiones y evaluación</h1>
 <p>Las dos actividades mayores, el ePortfolio (la Bitácora), cómo se evalúa la asignatura y el examen —con su
@@ -529,7 +566,7 @@ plataforma en directo, tablero de retos, reglas de ortografía, enlaces público
 <div class="yt-full">{ytbox("plan","Semana 15 · antes del simulacro")}</div>
 <div class="grid cols-3">
 <div class="card"><h3>Preparación</h3><p>Los <b>tests de cada tema</b> fijan los conceptos y entrenan para el examen.</p></div>
-<div class="card"><h3>Repaso + simulacro</h3><p>Semana 15: <b>repaso</b> y <b>simulacro</b> (hay un <a href="assets/docs/Ejemplo_examen.pdf">ejemplo de examen</a>).</p></div>
+<div class="card"><h3>Repaso + simulacro</h3><p>Semana 15: <b>repaso</b> y <b>simulacro</b> (hay un <a href="{doc_url('Ejemplo_examen.pdf')}">ejemplo de examen</a>).</p></div>
 <div class="card"><h3>Examen final</h3><p>Semana 16 (semana de exámenes). Formato y fechas exactas: aula virtual.</p></div>
 </div>
 </div></section>
@@ -555,7 +592,7 @@ else:
         'El enlace se añadirá aquí en cuanto esté publicado.</p>')
 
 REC = head("STARGATE · Sala de recursos",
-  "Tablero de las 24 insignias, ranking de reclutas y materiales del proyecto STARGATE.","rec") + f'''
+  "Tablero de las 24 insignias, ranking de reclutas y materiales del proyecto STARGATE.","rec", puerta=True) + f'''
 <header class="hero"><div class="kicker">Sala de recursos</div>
 <h1>Sala de recursos</h1>
 <p>El tablero de las 24 insignias, el ranking de reclutas y los materiales gráficos. Los Geniallys tienen
@@ -655,7 +692,7 @@ def fila_mapa(s):
 mapa_html = "\n".join(fila_mapa(s) for s in CRONO)
 
 CRONOLOGIA = head("STARGATE · Cronología semana a semana",
-  "Qué vídeo proyectar, qué reto lanzar, qué insignia entregar y el mensaje del foro de cada semana del curso STARGATE.","crono") + f'''
+  "Qué vídeo proyectar, qué reto lanzar, qué insignia entregar y el mensaje del foro de cada semana del curso STARGATE.","crono", puerta=True) + f'''
 <header class="hero"><div class="kicker">Carta de navegación</div>
 <h1>Cronología</h1>
 <p>Las <b>15 semanas</b> del curso, sin fechas (cambian cada convocatoria): qué vídeo se proyecta, qué reto se lanza, qué
@@ -702,7 +739,7 @@ def gen_slot(i, g):
 gen_html = "\n".join(gen_slot(i, g) for i, g in GENIALLYS.items())
 
 GENPAGE = head("STARGATE · Los Geniallys",
-  "Los Geniallys de cada planeta del proyecto STARGATE: carpeta del equipo y enlaces por tema.","gen") + f'''
+  "Los Geniallys de cada planeta del proyecto STARGATE: carpeta del equipo y enlaces por tema.","gen", puerta=True) + f'''
 <header class="hero"><div class="kicker">Un Genially por planeta</div>
 <h1>Los Geniallys</h1>
 <p>La carpeta de Genially está <b>compartida con todo el profesorado</b>. Entra, busca la carpeta de tu
@@ -740,7 +777,7 @@ GENPAGE = head("STARGATE · Los Geniallys",
 orden_html = "".join(f'<tr><td>S{s["sem"]}</td><td>{s["tema"]}</td><td><div class="minis">{mini_badges(s["insignias"])}</div></td></tr>' for s in CRONO if s["insignias"])
 
 REGPAGE = head("STARGATE · Registro y tablero en vivo",
-  "El sistema de autoregistro de STARGATE: el alumnado registra sus insignias, el tablero se actualiza solo y el profesorado anima y da la ceremonia.","reg") + f'''
+  "El sistema de autoregistro de STARGATE: el alumnado registra sus insignias, el tablero se actualiza solo y el profesorado anima y da la ceremonia.","reg", puerta=True) + f'''
 <header class="hero"><div class="kicker">Registro y tablero en vivo</div>
 <h1>Registro de insignias</h1>
 <p>El registro es <b>automático</b>: cada estudiante anota sus propias insignias en la <b>Bitácora de mando</b> de su PER
@@ -1468,7 +1505,7 @@ open(os.path.join(HERE,"clase.html"),"w",encoding="utf-8").write(html); print("e
 
 # ================= v3.6 · GRUPOS (un panel de accesos por PER) =================
 # La lista sale de doGet ?per=all (sin PIN); los formularios de cada grupo, de doGet ?per=<id>.
-GRUPOS = head("STARGATE · Grupos", "Tus grupos (PER) de STARGATE: tablero, nave del alumnado, panel del profesorado, tickets, foro y enlaces de cada uno.", "grp") + f'''
+GRUPOS = head("STARGATE · Grupos", "Tus grupos (PER) de STARGATE: tablero, nave del alumnado, panel del profesorado, tickets, foro y enlaces de cada uno.", "grp", puerta=True) + f'''
 <header class="hero"><div class="kicker">Un grupo, un panel</div><h1>Tus grupos</h1>
 <p>Cada clase que se da de alta en la hoja maestra es un <b>PER</b>: su tablero, su nave, su foro y sus
 formularios. Aquí los tienes todos, y desde el menú <b>Grupos</b> puedes saltar a cualquiera desde
@@ -1485,7 +1522,7 @@ html=(GRUPOS.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+
 open(os.path.join(HERE,"grupos.html"),"w",encoding="utf-8").write(html); print("escrito: grupos.html")
 
 # ================= v2.3 · GENERADOR DE EMBEDS =================
-EMBED = head("STARGATE · Enlaces y embeds", "Genera los enlaces, códigos de incrustación y QR de un PER para los Geniallys del alumnado y del profesorado.", "gen") + f'''
+EMBED = head("STARGATE · Enlaces y embeds", "Genera los enlaces, códigos de incrustación y QR de un PER para los Geniallys del alumnado y del profesorado.", "gen", puerta=True) + f'''
 <header class="hero"><div class="kicker">Para montar tu Genially</div><h1>Enlaces, embeds y QR</h1>
 <p>Elige el PER y tu nombre: aquí están todos los enlaces, los códigos para incrustar y los QR, listos para copiar.</p></header>
 <section id="panel"><div class="wrap"><div id="embed-app"></div>
@@ -1912,7 +1949,7 @@ _PASOS_JS = """
 </script>"""
 
 _html = head("STARGATE · Cómo se hace", "Los tres caminos de STARGATE paso a paso, con capturas y la voz "
-             "del Capitán: crear el grupo, dar las clases y alistarse como recluta.", "pasos") + f'''
+             "del Capitán: crear el grupo, dar las clases y alistarse como recluta.", "pasos", puerta=True) + f'''
 <header class="hero"><div class="kicker">Paso a paso</div><h1>Cómo se hace</h1>
 <p>Tres caminos, según lo que seas hoy. Cada paso dice <b>dónde pulsar</b> y <b>qué está pasando</b>.
 Es la misma información que habría en un vídeo, pero se actualiza con el sistema en vez de envejecer con él.</p></header>

@@ -1,0 +1,70 @@
+// STARGATE — la puerta del profesorado. UNA vez por navegador, no una por página.
+//
+// 🔴 9-sep · Antes toda la zona del método estaba abierta: la guía, la cronología con los mensajes
+// del foro, las actividades con sus documentos, la carpeta de equipo de Genially y las
+// instrucciones de instalación. Ninguna tiene datos personales —eso ya iba con PIN— pero es el
+// material del profesorado y no tenía por qué encontrarlo cualquiera que pasara por ahí.
+//
+// 🔴 Y LO QUE ESTA PUERTA **NO** HACE, dicho aquí para que nadie se confíe: no protege los
+// FICHEROS. Un .pdf o un .docx en assets/ se baja desde su URL sin pasar por ninguna página. Esto
+// esconde el camino, no el contenido. Lo que de verdad reserva un documento es no tenerlo en el
+// servidor público — o, para el material del equipo, los permisos de Genially y de Drive.
+//
+// El PIN es el MISMO del profesorado, y se guarda donde ya lo guardaban «Mi clase», los tickets y
+// el panel: `sessionStorage.sgPin`. Así, quien entra en cualquiera de los tres no vuelve a verla, y
+// quien pasa por aquí entra en los tres sin teclear nada.
+(function(){
+  var API = (window.SG_TABLERO_API || "").trim();
+  var raiz = document.documentElement;
+  function abrir(){ raiz.classList.remove('cerrado'); var p=document.getElementById('puerta'); if(p) p.remove(); }
+
+  // 🔴 LA EXCEPCION QUE NO PUEDE FALTAR. `registro.html` es DOS cosas: la pagina del metodo (con la
+  // guia de instalacion) y, con `&solo=1` o `&embed=1`, el RANKING PUBLICO — el que se proyecta en
+  // clase y el que va incrustado en el Genially del alumnado. Si la puerta tapara esos modos, el
+  // alumnado se encontraria con un PIN dentro de su propio Genially. Lo mismo con el panorama de
+  // tickets, que se proyecta apaisado.
+  var q = new URLSearchParams(location.search);
+  if (q.get('embed') === '1' || q.get('solo') === '1' || q.get('panorama') === '1') { abrir(); return; }
+
+  if (sessionStorage.getItem('sgPin')) { abrir(); return; }
+  if (!API) { abrir(); return; }        // sin API no se puede validar: mejor abrir que dejar tapado
+
+  function pintar(aviso){
+    var d = document.createElement('div');
+    d.id = 'puerta';
+    d.innerHTML =
+      '<div class="puerta-caja">'
+      + '<div class="eyebrow amber">Zona del profesorado</div>'
+      + '<h2>Entra con el PIN</h2>'
+      + '<p class="small muted">El mismo que usas en «Mi clase» y en los tickets. Te lo da tu profe '
+      + 'referente. Se guarda en este navegador hasta que lo cierres: solo se pide una vez.</p>'
+      + (aviso ? '<p class="puerta-mal">' + aviso + '</p>' : '')
+      + '<div class="embrow"><input id="puertaPin" type="password" placeholder="PIN" autocomplete="off">'
+      + '<button class="btn primary" id="puertaOk">Entrar</button></div>'
+      + '<p class="small muted" style="margin-top:14px">¿Eres estudiante? Tu sitio es '
+      + '<a href="index.html">la puerta principal</a> — aquí no hay nada para ti.</p>'
+      + '</div>';
+    document.body.appendChild(d);
+    var inp = document.getElementById('puertaPin'), btn = document.getElementById('puertaOk');
+    function probar(){
+      var v = inp.value.trim(); if (!v) return;
+      btn.disabled = true; btn.textContent = 'Comprobando…';
+      fetch(API, { method:'POST', redirect:'follow',
+                   headers:{'Content-Type':'text/plain;charset=utf-8'},
+                   body: JSON.stringify({ accion:'pers', pin:v }) })
+        .then(function(r){ return r.json(); })
+        .then(function(d2){
+          if (d2 && d2.error && /PIN/.test(d2.error)) {
+            d.remove(); pintar('Ese PIN no vale. Prueba otra vez.'); return;
+          }
+          sessionStorage.setItem('sgPin', v); abrir();
+        })
+        .catch(function(e){ d.remove(); pintar('No se ha podido comprobar: ' + e.message); });
+    }
+    btn.onclick = probar;
+    inp.onkeydown = function(e){ if (e.key === 'Enter') probar(); };
+    inp.focus();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ pintar(''); });
+  else pintar('');
+})();

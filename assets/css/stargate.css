@@ -843,3 +843,22 @@ tr.clicable:hover td{background:rgba(55,224,236,.07)}
 .fr-bio.muted{color:#6f7f8f;font-style:normal;border-left-color:var(--line)}
 /* datos privados tapados en la sala del docente (v3.44) */
 .tapado{letter-spacing:.08em;color:#4a5a6b;user-select:none}
+
+/* La puerta del profesorado (v3.45) — tapa la página hasta que se valida el PIN */
+html.cerrado body > *:not(nav):not(#puerta){display:none!important}
+html.cerrado{background:#080c14}
+#puerta{position:fixed;inset:0;z-index:9000;display:grid;place-items:center;padding:24px;
+  background:radial-gradient(120% 90% at 50% 0%,#0e1c2b 0%,#080c14 70%)}
+.puerta-caja{max-width:440px;width:100%;background:#101722;border:1px solid #22304a;
+  border-radius:18px;padding:26px 24px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.puerta-caja h2{margin:.2em 0 .4em}
+.puerta-caja input{flex:1;padding:11px;border-radius:10px;border:1px solid var(--line);
+  background:var(--bg);color:#fff}
+.puerta-mal{color:#ff9d9d;font-size:.9rem;margin:.4em 0}
+/* las dos puertas de la portada (v3.45) */
+.puerta-tile{display:block;text-decoration:none;color:inherit;transition:border-color .18s,transform .18s}
+.puerta-tile:hover{border-color:#37e0ec;transform:translateY(-2px)}
+.puerta-tile .ic{font-size:2.2rem;display:block;margin-bottom:.3em}
+.puerta-tile h3{margin:.1em 0 .4em}
+.puerta-tile p{color:#b9c8d6;font-size:.95rem}
+.btn.grande{font-size:1.02rem;padding:13px 22px}
