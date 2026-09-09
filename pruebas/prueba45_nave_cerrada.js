@@ -61,6 +61,8 @@ c(/function demoPermitido\(\)/.test(R) && /if\(st\.yo\|\|!demoPermitido\(\)\) re
   "   y nunca pisa a un recluta ya identificado");
 c(/window\.SG_TABLERO_DATA/.test(R),
   "🔬 se viste con el tablero PÚBLICO (sin correos ni nombres): no pide nada privado");
+c(/function vestirDemoSeguro\(\)/.test(R) && /accion=tablero/.test(R),
+  "🔴 y si el tablero no ha llegado lo pide él: la demo no depende de quién gane la carrera");
 c(/Modo demostración/.test(R),
   "   y avisa en pantalla de que es una demostración, para que nadie la confunda con su ficha");
 

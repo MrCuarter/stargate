@@ -467,16 +467,31 @@
     var n=String((st.d&&st.d.nombre)||'').toUpperCase();
     return DEMO && (n.indexOf('DEMO')>=0 || n.indexOf('PRUEBA')>=0);
   }
-  function vestirDemo(){
-    if(st.yo||!demoPermitido()) return false;
-    var d=window.SG_TABLERO_DATA, r=(d&&d.reclutas)||[];
-    if(!r.length) return false;
+  function ponDemo(r){
     // el 3.º del ranking: tiene recorrido que enseñar (insignias, cromos, un duelo por arriba y por
     // abajo) sin ser el primero, que no tiene a nadie delante y deja el duelo a medias.
     var lista=r.slice().sort(function(a,b){return (a.pos||99)-(b.pos||99);});
     st.yo=lista[Math.min(2,lista.length-1)];
     st.email=''; st.msgYo='';
-    return true;
+  }
+  function vestirDemo(){
+    if(st.yo||!demoPermitido()) return false;
+    var d=window.SG_TABLERO_DATA, r=(d&&d.reclutas)||[];
+    if(!r.length) return false;
+    ponDemo(r); return true;
+  }
+  // 🔴 9-sep · LA DEMO NO PUEDE DEPENDER DE QUIEN LLEGUE PRIMERO. Esperar al aviso «sg:tablero» era
+  // una carrera: si el tablero llegaba antes que los datos del PER, el aviso ya habia pasado y la
+  // demo no arrancaba nunca (pasó en vivo, y sin un solo error en consola — de los que no se ven).
+  // Aqui se pide el tablero PUBLICO directamente: el mismo que ve cualquiera, sin correos ni
+  // nombres. Una llamada de mas solo en demo, y a cambio arranca siempre.
+  function vestirDemoSeguro(){
+    if(vestirDemo()){ render(); return; }
+    if(st.yo||!demoPermitido()) return;
+    fetch(API+'?accion=tablero&per='+encodeURIComponent(per),{redirect:'follow'})
+      .then(function(r){return r.json();})
+      .then(function(t){ var l=(t&&t.reclutas)||[]; if(l.length&&!st.yo){ ponDemo(l); render(); } })
+      .catch(function(){});
   }
   // cuando el tablero llega después que la ficha, el duelo se pinta solo (una vez)
   document.addEventListener('sg:tablero',function(){
@@ -952,7 +967,7 @@
     // que los datos del PER: entonces demoPermitido() todavia no sabia el nombre del grupo y la
     // demo no arrancaba nunca. Con los dos puntos de entrada da igual quien llegue primero.
     // Y en demo NO se identifica a nadie: el correo guardado de otro dia no pinta nada aqui.
-    if(DEMO){ if(vestirDemo()) render(); }
+    if(DEMO) vestirDemoSeguro();
     else if(st.email)identificar(st.email);
     if(!localStorage.getItem('sgNaveOnboard_'+per))onboarding(0);
   }).catch(function(){root.innerHTML='<p class="lead">No se pudo contactar con NEBULA. Prueba a recargar.</p>';});
