@@ -10,11 +10,17 @@
   if(q.get('embed')==='1') document.body.classList.add('embed');
   var st={pin:sessionStorage.getItem('sgPin')||'', profe:q.get('profe')||localStorage.getItem('sgProfe')||'',
           per:q.get('per')||localStorage.getItem('sgClasePer')||'', pers:[], d:null, tickets:[],
-          tema:'', dias:'14', soloMios:true, vista:'hoy'};
+          tema:'', dias:'14', soloMios:true, vista:'hoy', demo:q.get('demo')==='1'};
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function f(v){try{var d=new Date(v);return isNaN(d)?String(v):d.toLocaleDateString('es-ES',{day:'2-digit',month:'short'});}catch(e){return String(v);}}
   function cargando(t,p){return '<div class="cargando"><div class="txt">'+t+'</div><div class="barra"><i></i></div>'+(p?'<div class="pista">'+p+'</div>':'')+'</div>';}
-  function post(b,cb,err){b.pin=st.pin;
+  function post(b,cb,err){
+    // 🔴 MODO DEMO (?demo=1), como el de los tickets. Dos motivos: enseñarle la sala a un docente
+    // nuevo sin darle el PIN, y que las capturas de «Como se hace» se puedan REGENERAR con un
+    // comando (detras del PIN no entra ningun script). Los datos son inventados y se arman con los
+    // catalogos de verdad, asi que el dia que cambien las insignias, la demo cambia sola.
+    if(st.demo){ try{ return cb(demo(b)); }catch(e){ if(err) err(e.message); return; } }
+    b.pin=st.pin;
     fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)})
       .then(function(r){return r.json();}).then(function(d){
         if(d.error){ if(/PIN/.test(d.error)){sessionStorage.removeItem('sgPin');st.pin='';pedirPin(d.error);return;}
@@ -275,7 +281,10 @@
       return '<span class="fr-cro'+(t?'':' no')+'" title="'+esc(h[1])+' \u00b7 '+esc(h[2]||'')
         +(t?'':' \u00b7 sin descubrir')+'">'
         +'<img src="assets/img/heroes/'+h[0]+(t?'':'_bloqueado')+'.jpg" alt="" loading="lazy">'
-        +'<em>'+(t?esc(h[1]):'\u2014')+'</em></span>';}).join('');
+        // 🔴 El nombre SI, aunque no lo tenga. En la Nave el heroe sin descubrir es una silueta muda
+        // a proposito —es la sorpresa del alumno—, pero aqui son 30 siluetas identicas que no dicen
+        // nada: el docente necesita leer el catalogo, no adivinarlo. Y esta pantalla va tras el PIN.
+        +'<em>'+esc(h[1])+'</em></span>';}).join('');
 
     var pct=Math.round((Number(col.pct)||0)*100)/100;
     var nCro=col.cromos?col.cromos.tengo:0, tCro=col.cromos?col.cromos.total:CR.length;
@@ -455,6 +464,74 @@
     if(window.sgTour&&window.sgTour.ofrecerLocal) window.sgTour.ofrecerLocal();
   }
 
-  if(!API){root.innerHTML='<p class="lead">El tablero aún no está conectado.</p>';return;}
-  if(st.pin)inicio(); else pedirPin();
+  // ---------------------------------------------------------------- los datos de mentira
+  function demo(b){
+    var ORD=window.SG_BADGES||Object.keys(N), CR=window.SG_CROMOS||[], HE=window.SG_HEROES||[];
+    if(!st._demo){
+      var hoy=new Date(), hace=function(d){var x=new Date(hoy);x.setDate(x.getDate()-d);return x.toISOString();};
+      var cat=(RET.REGULAR||[]);
+      var quien=function(alias,nombre,mail,profe,nRetos,nCro,nHer,bio,canjes){
+        var retos={}, i;
+        for(i=0;i<Math.min(nRetos,cat.length);i++) retos[cat[i][0]]={fecha:hace(60-i*3),origen:'alumnado'};
+        var ins={}, cro={}, her=[];
+        Object.keys(retos).forEach(function(id){var x=cat.filter(function(y){return y[0]===id;})[0];
+          if(x&&x[2]) x[2].forEach(function(k){ins[k]=true;});});
+        for(i=0;i<nCro&&i<CR.length;i++) cro[CR[i][0]]=(i===1?2:1);
+        for(i=0;i<nHer&&i<HE.length;i++) her.push(HE[i][0]);
+        var gastado=(canjes||[]).reduce(function(a,c){return a+c.coste;},0);
+        var ganados=nRetos*40+120;
+        return {alias:alias, nombre:nombre, email:mail, profe:profe, bio:bio,
+          pos:0, nivel:Math.min(10,1+Math.floor(nRetos/2)), rango_nombre:['Recluta','Cadete','Oficial','Veterano','Leyenda'][Math.min(4,Math.floor(nRetos/5))],
+          xp:nRetos*250, xp7:nRetos?250:0, n:Object.keys(ins).length, insignias:Object.keys(ins),
+          creditos:ganados-gastado, creditos_ganados:ganados, creditos_gastados:gastado,
+          cromos:cro, heroes:her, skins:[], retos:retos,
+          eventos:Object.keys(retos).map(function(id){return {fecha:retos[id].fecha};}),
+          canjes:(canjes||[]).map(function(c,k){return {fecha:hace(c.dias), recompensa:c.nombre+' — '+c.coste+' créditos',
+                    actividad:c.act||'', entregado:c.ent?'Sí · Mr Cuarter':'', fila:k+2};}),
+          coleccion:{cromos:{tengo:Object.keys(cro).length,total:CR.length},
+                     heroes:{tengo:her.length,total:HE.length},
+                     skins:{tengo:0,total:5},
+                     pct:(Object.keys(cro).length+her.length)*100/((CR.length+HE.length+5)||1)}};};
+      var rec=[
+        quien('Nova','Ana Ruiz (ficticia)','nova@ejemplo.demo','Mr Cuarter',14,7,3,
+          'Piloto de reconocimiento. Colecciono todo lo que brilla.',
+          [{nombre:'Héroe de la Rebelión',coste:60,dias:5,ent:true},
+           {nombre:'Sobre de cromos',coste:15,dias:12,ent:true},
+           {nombre:'Título de recluta',coste:40,dias:20,ent:false}]),
+        quien('Orion','Luis Gómez (ficticio)','orion@ejemplo.demo','Mr Cuarter',9,3,1,
+          'Vine por los puntos y me quedé por la historia.',
+          [{nombre:'Sobre de cromos',coste:15,dias:8,ent:true}]),
+        quien('Lyra','Marta Sol (ficticia)','lyra@ejemplo.demo','Mr Cuarter',5,1,0,
+          'Todavía me estoy orientando.',[]),
+        quien('Vega','Iván Paz (ficticio)','vega@ejemplo.demo','Mr Cuarter',2,0,0,'',[]),
+        quien('Kepler','Sara Lem (ficticia)','kepler@ejemplo.demo','Norberto Cuartero',11,4,2,
+          'La Bitácora me ha cambiado la forma de estudiar.',[]) ];
+      rec.sort(function(a,b){return b.xp-a.xp;}); rec.forEach(function(r,i){r.pos=i+1;});
+      st._demo={ pers:[{id:'demo',nombre:'CLASE DE DEMOSTRACIÓN',tipo:'REGULAR',estado:'Abierto',semana:11,semanas:15}],
+        d:{ nombre:'CLASE DE DEMOSTRACIÓN', tipo:'REGULAR', estado:'Abierto', semana:11, semanas:15,
+            cierre_misiones:'11/10/2026', cierre_canje:'18/10/2026',
+            docentes:[{nombre:'Mr Cuarter',panel:''},{nombre:'Norberto Cuartero',panel:''}],
+            reclutas:rec, panel:'https://view.genially.com/6a8bfc4f5068ad5903fc39e3',
+            formBitacora:'#demo', formTicket:'#demo', formCanje:'#demo', doc:'#demo', padlet:'#demo' },
+        tickets:[] };
+    }
+    var D=st._demo;
+    if(b.accion==='pers')   return {pers:D.pers};
+    if(b.accion==='alumnos')return JSON.parse(JSON.stringify(D.d));
+    if(b.accion==='tickets')return {tickets:D.tickets};
+    if(b.accion==='pase_estado') return {pase:st.pase||null};
+    if(b.accion==='pase_abrir')  return {palabra:'RUTA', hasta:new Date(Date.now()+3*60000).toISOString(), id:'demo'};
+    if(b.accion==='canje_revertir'){
+      D.d.reclutas.forEach(function(r){ (r.canjes||[]).forEach(function(c){
+        if(c.fila===b.fila){ var co=parseInt((c.recompensa.match(/(\d+)/)||[0,0])[1],10)||0;
+          r.canjes=r.canjes.filter(function(x){return x!==c;});
+          r.creditos+=co; r.creditos_gastados-=co;
+          if(/Héroe/.test(c.recompensa)&&r.heroes.length){ r.heroes.pop();
+            r.coleccion.heroes.tengo=r.heroes.length; } } }); });
+      return {ok:true};}
+    return {ok:true};
+  }
+
+  if(!API&&!st.demo){root.innerHTML='<p class="lead">El tablero aún no está conectado.</p>';return;}
+  if(st.pin||st.demo)inicio(); else pedirPin();
 })();
