@@ -14,9 +14,14 @@ Dispara Chrome headless por CDP (`_capturar.cjs`, sin dependencias). Eso permite
 alumno por ahi, y el correo NO viaja en la URL a proposito— y ESPERAR POR CONDICION en vez de por
 reloj, que es lo unico fiable cuando los datos vienen de Apps Script.
 
-Lo que NO puede capturar (y sale en ambar en la pagina): la hoja maestra (cuenta mutecdgami,
-dentro de Google Sheets) y lo que va detras del PIN del profesorado. Esas se dejan a mano en
-assets/img/pasos/ con el nombre que diga PASOS.
+LO QUE ESTE SCRIPT NO CAPTURA (y por que):
+ · Las de la HOJA MAESTRA (R1-R3, R5-R9) se sacaron el 9-sep conduciendo el Chrome de mutecdgami
+   con la extension y retratando la ventana con `_capturar_ventana.py`. No se pueden rehacer
+   desde aqui porque hace falta esa sesion de Google: si cambia el menu, se repiten a mano con
+   ese mismo metodo (esta explicado en el traspaso).
+ · R4 —el dialogo que sale AL TERMINAR de crear un PER— exige crear un PER de verdad, con sus
+   tres formularios y su documento en Drive. Se deja en ambar a proposito: se saca el dia que se
+   cree un grupo nuevo, que es cuando toca sin ensuciar nada.
 
 Que lo retratado siga existiendo lo vigila el banco: la bateria 33 comprueba que la ficha del
 alumno pinta los catalogos enteros, y el build que existen sus 104 imagenes.

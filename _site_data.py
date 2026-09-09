@@ -522,19 +522,19 @@ PASOS = [
   porque="Todo esto vive dentro de la hoja maestra, en la cuenta <b>mutecdgami</b>. Es la única "
          "parte del sistema que no se puede enseñar desde la web, así que va con capturas.",
   pasos=[
-   dict(cod="R1", t="La sala de máquinas", pose="saluda", img=None,
+   dict(cod="R1", t="La sala de máquinas", pose="saluda", img="r1_menu.png",
     hacer="Hoja maestra → pestaña <code>PERs</code> → menú <b>STARGATE</b> desplegado.",
     voz="Esto es la sala de máquinas de STARGATE. Es una hoja de cálculo, y desde ese menú se hace "
         "todo. Si eres el profe referente de tu grupo, esta página es para ti. Son nueve pasos, y "
         "luego casi no vuelves por aquí."),
 
-   dict(cod="R2", t="Lo primero: el parte de salud", pose="tablet", img=None,
+   dict(cod="R2", t="Lo primero: el parte de salud", pose="tablet", img="r2_salud.png",
     hacer="Menú <b>STARGATE → Parte de salud del sistema</b>.",
     voz="Antes de crear nada, esto. El parte de salud revisa el sistema entero y te dice en verde, "
         "ámbar o rojo qué está bien y qué no. Cuando algo falla, además te dice cómo se arregla. "
         "Empieza siempre por aquí, y vuelve cuando algo se comporte raro."),
 
-   dict(cod="R3", t="Crear el grupo", pose="pensativo", img=None,
+   dict(cod="R3", t="Crear el grupo", pose="pensativo", img="r3_crear.png",
     hacer="Menú <b>STARGATE → Crear nuevo PER…</b> y rellenar el diálogo.",
     voz="Un PER es un grupo: un curso concreto con su gente y su calendario. El nombre es para ti. "
         "El tipo cambia el ritmo, porque REGULAR son quince semanas y PUA va comprimido. Y la fecha "
@@ -547,32 +547,32 @@ PASOS = [
         "tablero en vivo, la Nave del recluta, el foro dinámico y un documento con todos los "
         "enlaces. No hay que configurar nada más: ya está funcionando."),
 
-   dict(cod="R5", t="El documento de enlaces", pose="senala", img=None,
+   dict(cod="R5", t="El documento de enlaces", pose="senala", img="r5_doc.png",
     hacer="Ábrelo desde el diálogo, o menú <b>STARGATE → Documento de enlaces y embeds</b>.",
     voz="Este documento es lo único que tienes que repartir, y está partido en dos. Lo de arriba, "
         "con el visto verde, es lo que puedes dar al alumnado sin miedo. Lo de abajo, con el "
         "candado, es solo para el profesorado: lleva dentro el enlace a la hoja maestra. No mandes "
         "el documento entero a una clase."),
 
-   dict(cod="R6", t="Las dos llaves", pose="pensativo", img=None,
+   dict(cod="R6", t="Las dos llaves", pose="pensativo", img="r6_pin.png",
     hacer="Menú <b>STARGATE → Cambiar PIN del profesorado</b> y <b>→ PIN del profesor referente</b>.",
     voz="Hay dos llaves. El PIN del profesorado lo repartes entre quienes dan clase, y les abre su "
         "sala y los tickets. El de referente te lo quedas tú, y es el que permite tocar el grupo "
         "entero: mover la semana uno, cerrar formularios, archivar. Cámbialos los dos antes de que "
         "entre nadie de verdad."),
 
-   dict(cod="R7", t="Repartir sin perseguir a nadie", pose="tablet", img=None,
+   dict(cod="R7", t="Repartir sin perseguir a nadie", pose="tablet", img="r7_dossier.png",
     hacer="Menú <b>STARGATE → Dossier del profesorado</b>, y después <b>Enviar el dossier por correo</b>.",
     voz="En vez de mandar enlaces uno a uno, el dossier reúne todos los grupos y a cada docente le "
         "llega por correo lo suyo. Si alguien lo pierde, se vuelve a mandar y ya está."),
 
-   dict(cod="R8", t="Cuando el curso acaba", pose="senala", img=None,
+   dict(cod="R8", t="Cuando el curso acaba", pose="senala", img="r8_ciclo.png",
     hacer="Selecciona la fila del grupo → menú <b>STARGATE → Ciclo de vida del PER</b>.",
     voz="Cuando un grupo termina, se archiva: cierra los formularios, lo quita de en medio y "
         "conserva todos los datos. Borrar es otra cosa, y se lleva los formularios por delante, "
         "así que te pide escribir el nombre del grupo para asegurarse. Archivar es lo normal."),
 
-   dict(cod="R9", t="Y ya está", pose="pulgar", img=None,
+   dict(cod="R9", t="Y ya está", pose="pulgar", img="r9_pers.png",
     hacer="Vuelve a la pestaña <code>PERs</code>: ahí vive tu grupo.",
     voz="A partir de aquí esto funciona solo. El alumnado se registra, el tablero se actualiza y a "
         "quien da clase le llega lo suyo. Si algo va raro, el parte de salud. Nos vemos arriba."),
