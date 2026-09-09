@@ -1548,7 +1548,9 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <link rel="stylesheet" href="assets/css/stargate.css">
 <script src="assets/js/stargate.js" defer></script>
 </head><body>
-<nav class="nav"><div class="wrap"><a class="brand" href="recluta.html">◈ STARGATE <span class="modo recluta">Recluta<i> · alumnado</i></span></a></div></nav>
+<!-- 🔴 El logo llevaba a recluta.html, o sea a si mismo: pulsarlo no hacia nada. Ahora sale a la
+     portada, que es la puerta publica del proyecto. -->
+<nav class="nav"><div class="wrap"><a class="brand" href="index.html">◈ STARGATE <span class="modo recluta">Recluta<i> · alumnado</i></span></a></div></nav>
 <header class="hero"><div class="kicker">Canal del alumnado</div><h1>La Nave del Recluta</h1>
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>

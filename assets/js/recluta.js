@@ -24,6 +24,10 @@
   var per=q.get('per');
   if(!per){
     if(!API){root.innerHTML='<p class="lead">La nave aún no está conectada.</p>';return;}
+    // 🔴 9-sep · SIN ?per= EL SELECTOR SALIA DOS VECES. Esta pantalla ya pregunta «¿de qué PER eres
+    // recluta?», y debajo la sección del tablero —que pinta tablero.js por su cuenta— preguntaba
+    // «elige tu PER» otra vez, con la misma lista. Se apaga: aquí todavía no hay grupo que enseñar.
+    verTablero(false);
     root.innerHTML=cargando('Contactando con NEBULA…','Localizando los PER activos');
     fetch(API+'?per=all',{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){
       var pers=d.pers||[];
@@ -118,9 +122,15 @@
   // accesos: lo primero que hay que hacer estaba lo cuarto en pantalla.
   function login(){
     if(st.yo||st.cargandoYo) return '';
-    var alta = st.d && st.d.formBitacora;
+    // 🔴 9-sep · NINGUN FORMULARIO ANTES DEL CORREO. Norberto: «hasta no poner el mail no se
+    // deberia ver ningun enlace ni form, no quiero trolls». El de Dudas es ANONIMO (por eso se le
+    // pueden mandar tickets sin sesion), asi que a la vista de cualquiera es una invitacion a
+    // ensuciar la clase. Los otros dos piden cuenta de Google, pero tampoco pintan nada aqui.
+    // El de alistarse aparece SOLO cuando ya se ha buscado un correo y no estaba: es el flujo de
+    // toda la vida «no te encuentro → registrate», y de paso no hay ni un enlace que rastrear.
+    var alta = st.d && st.d.formBitacora && st.msgYo;
     return '<div class="card nave-login"><div class="nave-perfil">'+nebulaVideo('nebula-mini')+''
-      +'<div><h3>Identifícate, recluta</h3><p class="small muted">Escribe el correo con el que te alistaste en la Bitácora de mando. Solo lo pediré una vez en este dispositivo, y solo te enseño <b>tu</b> ficha.</p></div></div>'
+      +'<div><h3>Identifícate, recluta</h3><p class="small muted">Escribe el correo con el que te alistaste en la Bitácora de mando. Solo lo pediré una vez en este dispositivo, y solo te enseño <b>tu</b> ficha.<br><b>¿Primera vez?</b> Escríbelo igualmente y te digo cómo subir a bordo.</p></div></div>'
       +'<div class="selrow"><input id="in-mail" type="email" placeholder="tu.correo@ejemplo.com" autocomplete="email"><button class="btn primary" id="btn-mail" type="button">Entrar en la nave</button></div>'
       +(st.msgYo?'<p class="small" style="margin-top:8px;color:var(--amber)">'+st.msgYo+'</p>':'')
       +(alta?'<div class="nave-alta"><span class="o">¿aún no te has alistado?</span>'
@@ -443,8 +453,34 @@
       +'<p class="duelo-msg">'+msg+'</p>'
       +'<p class="small" style="margin:8px 0 0"><a href="#tablero" data-ir="tablero" class="btn small">Ver el tablero completo →</a></p></div>';
   }
+  // ================= MODO DEMO · enseñar la Nave sin ser nadie (9-sep) =================
+  // Norberto: «un PER de prueba abierto, sin correo... para enseñar al público o mostrar la
+  // plataforma desde el punto de vista del estudiante».
+  // 🔴 LA PUERTA: solo funciona en grupos cuyo nombre lleve DEMO o PRUEBA — exactamente la misma
+  // regla que usa sembrarDemo() para decidir dónde puede meter alumnado falso. Así, por definición,
+  // solo se puede enseñar un grupo que ya está poblado de mentira: en una clase real «14210 AP
+  // 2026-27» el modo demo no existe, y nadie ve la ficha de un alumno de verdad sin identificarse.
+  // Y no hace ni una llamada nueva: se viste con un recluta del tablero PÚBLICO, que no lleva
+  // correos ni nombres. Aunque alguien fuerce ?demo=1, no hay nada privado que enseñar.
+  var DEMO = q.get('demo')==='1';
+  function demoPermitido(){
+    var n=String((st.d&&st.d.nombre)||'').toUpperCase();
+    return DEMO && (n.indexOf('DEMO')>=0 || n.indexOf('PRUEBA')>=0);
+  }
+  function vestirDemo(){
+    if(st.yo||!demoPermitido()) return false;
+    var d=window.SG_TABLERO_DATA, r=(d&&d.reclutas)||[];
+    if(!r.length) return false;
+    // el 3.º del ranking: tiene recorrido que enseñar (insignias, cromos, un duelo por arriba y por
+    // abajo) sin ser el primero, que no tiene a nadie delante y deja el duelo a medias.
+    var lista=r.slice().sort(function(a,b){return (a.pos||99)-(b.pos||99);});
+    st.yo=lista[Math.min(2,lista.length-1)];
+    st.email=''; st.msgYo='';
+    return true;
+  }
   // cuando el tablero llega después que la ficha, el duelo se pinta solo (una vez)
   document.addEventListener('sg:tablero',function(){
+    if(vestirDemo()){ render(); return; }
     if(st.tab==='ficha'&&st.yo&&document.getElementById('duelo-hueco')) render();
   });
   // ================= LOS RETOS, EXPLICADOS (29-ago) =================
@@ -801,8 +837,18 @@
   // ---------- render ----------
   function render(){
     // 30-ago · el orden que pidió Norberto: puerta → menú (pegajoso al hacer scroll) → semana → contenido
-    root.innerHTML=login()+pestanas()+accesos()+cabecera()+contenido();
-    verTablero(st.tab==='tablero');
+    // 🔴 Sin identificar no se pinta la nave: ni pestañas, ni accesos a los formularios, ni
+    // tablero. Antes se veia el panel entero y solo la ficha estaba vacia.
+    var dentro = !!st.yo;
+    var avisoDemo = (dentro && DEMO && !st.email)
+      ? '<div class="card" style="border-color:var(--amber)"><p class="small" style="margin:0;color:var(--amber)">'
+        + '🎬 <b>Modo demostración.</b> Estás viendo la Nave con la ficha de <b>'+esc(st.yo.alias||'un recluta')
+        + '</b>, un recluta de mentira de un grupo de pruebas. Nada de lo que hagas aquí se guarda.</p></div>'
+      : '';
+    root.innerHTML = avisoDemo + (dentro
+      ? login()+pestanas()+accesos()+cabecera()+contenido()
+      : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
+    verTablero(dentro && st.tab==='tablero');
     Array.prototype.forEach.call(root.querySelectorAll('.nave-tab[data-tab]'),function(b){
       b.onclick=function(){ irA(b.getAttribute('data-tab')); };
     });
