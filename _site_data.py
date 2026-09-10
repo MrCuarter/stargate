@@ -576,6 +576,22 @@ PROCESO_CIFRAS = [
   ("{voces}", "pistas de voz", "narración y fragmentos de la Cero"),
 ]
 
+# El casting, tal cual está en CASTING_CERO.md. Se publican los NOMBRES de las voces y su acento,
+# no los ids internos de ElevenLabs: al lector le dicen algo los primeros y nada los segundos, y los
+# ids cambian si algún día hay recast. (nombre, papel, voz, acento/nota)
+CASTING = [
+  ("NEBULA",        "La IA de la nave · narradora",  "Voz fija de la serie", "narra los diecisiete vídeos"),
+  ("Bran Okafor",   "El Forjador",                   "Pablo Ortega",   "grave, lento, suave"),
+  ("Tomás Reyer",   "El Cronista",                   "Javier Olmedo",  "medio-grave, íntimo"),
+  ("Sylla Bren",    "La Rastreadora",                "Martina Rossi",  "firme sin perder suavidad"),
+  ("Amara Sol",     "La Operadora",                  "Sofía Ramírez",  "colombiana nativa · <b>recast</b>: la primera no sonaba de allí"),
+  ("Vera Khal",     "La Médica",                     "Emilia Álvarez", "serena, culta"),
+  ("Joran Pike",    "El Ingeniero-jugador",          "Iván Mendoza",   "joven, con chispa"),
+  ("Cap. Mara Voss","El Mando",                      "Isabel Ríos",    "autoridad sincera"),
+  ("Noa Lieth",     "La Arquitecta",                 "Ana Beltrán",    "castellana dulce · se descartaron <b>dos</b> antes"),
+  ("Vaeon",         "El antagonista",                "Manuel Ferrer",  "la misma voz desde el primer día"),
+]
+
 # ─────────────────────────── PASOS · «Cómo se hace» (v3.43) ───────────────────────────
 # La sección de la web que sustituye a los tres vídeos de onboarding. Idea de Norberto
 # (9-sep): en vez de grabar vídeos que envejecen con cada cambio de pantalla, una sección

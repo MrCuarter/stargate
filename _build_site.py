@@ -5,7 +5,7 @@ Ejecutar desde web-stargate/:  python3 _build_site.py
 Datos de cronología/vídeos/geniallys en _site_data.py."""
 import os, json, hashlib, subprocess, glob
 from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana, COMO_SE_HIZO,
-                        PROCESO, PROCESO_CIFRAS,
+                        PROCESO, PROCESO_CIFRAS, CASTING,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
@@ -66,7 +66,7 @@ def head(title, desc, active, puerta=False, publica=False):
 
 FOOT = '''<footer><div class="wrap">
 STARGATE · La Bitácora Estelar — Proyecto Gamificado del <b>Máster en Tecnología Educativa</b> de la UNIR.<br>
-Puesto de mando del profesorado — documento vivo. <a href="index.html">Inicio</a> · <a href="cronologia.html">Cronología</a> · <a href="guia.html#faq">Preguntas frecuentes</a>
+Puesto de mando del profesorado — documento vivo. <a href="index.html">Inicio</a> · <a href="comosehizo.html">Cómo se hizo</a> · <a href="cronologia.html">Cronología</a> · <a href="guia.html#faq">Preguntas frecuentes</a>
 </div></footer></body></html>'''
 
 # ---------- galerías ----------
@@ -320,35 +320,9 @@ herramientas conectadas entre sí. Lo cuento porque la pregunta que más me hace
 entras por ahí, a ti no te cuesta más y este proyecto recibe una pequeña ayuda. Se dice para que lo
 sepas — puedes ir a sus webs directamente y no pasa nada.</p>
 
-<h3 style="margin-top:34px">El proceso, paso a paso</h3>
-<p class="lead small">Cómo se pasa de una idea dicha en voz alta a diecisiete vídeos con voz propia.
-Sin saltarse la parte fea, que es la que más se calla.</p>
-<div class="pasos-proc">{proceso_html}</div>
-
-<div class="cifras">{cifras_html}</div>
-<p class="small muted">Estas cifras se cuentan solas del disco cada vez que se publica la web: si
-mañana hay tres planos más, aquí lo pone.</p>
-
-<div class="two" style="margin-top:26px">
-<div>
-<h3>Lo que lo hace posible: que hablen entre ellas</h3>
-<p class="small">La pieza que no se ve es el <b>MCP</b>: un estándar que permite conectar
-herramientas externas a Claude para que pueda usarlas <b>durante la conversación</b>, sin que nadie
-copie y pegue de una ventana a otra. Pedir una imagen, recibirla, decir «el casco más oscuro» y que
-la siguiente salga corregida — todo en el mismo hilo, sin salir a ningún sitio.</p>
-<p class="small">Eso es lo que convierte un rato de trabajo en algo terminado: no es que la máquina
-haga el proyecto, es que <b>deja de haber costuras</b> entre pensar, escribir, dibujar y montar.</p>
-</div>
-<div>
-<h3>Y lo que sigue siendo trabajo humano</h3>
-<p class="small">La narrativa, la decisión pedagógica de qué se evalúa y qué no, el criterio para
-tirar a la basura lo que no funcionaba y <b>revisarlo todo</b>. Las herramientas aceleran; no
-deciden. Los ocho planetas son ocho temas de verdad, con sus rúbricas y su programación oficial
-detrás.</p>
-<p class="small muted">Si esto te sirve de ejemplo para tu asignatura, cógelo. Para eso está
-contado.</p>
-</div>
-</div>
+<p style="margin-top:26px"><a class="btn primary grande" href="comosehizo.html">📖 Cómo se hizo, con todo el detalle →</a></p>
+<p class="small muted">El casting de las nueve voces, las anclas de personaje, por qué esos modelos
+y cuántos borradores hubo de verdad.</p>
 </div></section>
 ''' + FOOT
 
@@ -1426,7 +1400,113 @@ if _rotos:
 print("js: los %d ficheros de assets/js compilan" %
       len([f for f in os.listdir(_dir_js) if f.endswith(".js")]))
 
-PAGES=[("index.html",PORTADA),("guia.html",GUIA),("cronologia.html",CRONOLOGIA),("actividades.html",ACT),
+# ================= CÓMO SE HIZO (comosehizo.html) =================
+# Norberto quiso una página propia: «hacer clic e ir a otra página con todo explicado». La portada
+# se queda con el adelanto y el botón; aquí cabe el detalle sin apretar.
+# 🔴 PÚBLICA: sin puerta.js. Es la cara del proyecto hacia fuera, igual que la portada.
+casting_html = "\n".join(
+  '<tr><td><b>{n}</b><em>{p}</em></td><td>{v}</td><td class="nota">{a}</td></tr>'.format(
+     n=n_, p=p_, v=v_, a=a_) for n_, p_, v_, a_ in CASTING)
+
+COMOSEHIZO = head("STARGATE · Cómo se hizo",
+  "El proceso real detrás de STARGATE: la narrativa a cuatro manos, el casting de voces, las anclas "
+  "de personaje, los modelos y los borradores. Contado con los datos de producción.",
+  "comosehizo", publica=True) + f'''
+<header class="hero"><div class="kicker">Cómo se hizo</div>
+<h1>Esto lo ha montado un profesor</h1>
+<p>Sin estudio, sin productora y sin equipo: un docente, un ordenador y tres herramientas
+conectadas entre sí. Lo cuento entero —incluida la parte fea— porque la pregunta que más me hacen
+al enseñarlo es «¿y esto cuánto cuesta encargarlo?», y la respuesta es que no se encargó.</p>
+<p style="margin-top:18px"><span class="pill">17 vídeos</span><span class="pill">8 planetas</span>
+<span class="pill">24 insignias</span><span class="pill">20 cartas</span></p>
+</header>
+
+<section><div class="wrap">
+<div class="eyebrow teal">Las herramientas</div><h2>Tres, y que hablen entre ellas</h2>
+<div class="grid cols-3">{comohizo_html}</div>
+<!-- 🔴 Si hay botones, se dice que son de referido. Ver bateria 43. -->
+<p class="small muted" style="margin-top:14px">Los botones son <b>enlaces de referido</b>: si entras
+por ahí, a ti no te cuesta más y este proyecto recibe una pequeña ayuda. Se dice para que lo sepas —
+puedes ir a sus webs directamente y no pasa nada.</p>
+
+<div class="two" style="margin-top:30px">
+<div>
+<h3>La pieza que no se ve: MCP</h3>
+<p class="small">Es un estándar que permite conectar herramientas externas a Claude para que pueda
+usarlas <b>durante la conversación</b>, sin que nadie copie y pegue de una ventana a otra. Pedir una
+imagen, recibirla, decir «el casco más oscuro» y que la siguiente salga corregida — todo en el mismo
+hilo.</p>
+<p class="small">Eso es lo que convierte un rato de trabajo en algo terminado: no es que la máquina
+haga el proyecto, es que <b>deja de haber costuras</b> entre pensar, escribir, dibujar y montar.</p>
+</div>
+<div>
+<h3>Y lo que sigue siendo trabajo humano</h3>
+<p class="small">La narrativa, la decisión pedagógica de qué se evalúa y qué no, el criterio para
+tirar a la basura lo que no funcionaba y <b>revisarlo todo</b>. Las herramientas aceleran; no
+deciden. Los ocho planetas son ocho temas de verdad, con sus rúbricas y su programación oficial
+detrás.</p>
+</div>
+</div>
+</div></section>
+
+<section><div class="wrap">
+<div class="eyebrow teal">El proceso</div><h2>De una idea a diecisiete vídeos</h2>
+<p class="lead small">Sin saltarse la parte fea, que es la que más se calla.</p>
+<div class="pasos-proc">{proceso_html}</div>
+<div class="cifras">{cifras_html}</div>
+<p class="small muted">Estas cifras se cuentan solas del disco cada vez que se publica esta web: si
+mañana hay tres planos más, aquí lo pone.</p>
+</div></section>
+
+<section><div class="wrap">
+<div class="eyebrow amber">El casting</div><h2>Nueve voces con nombre y apellidos</h2>
+<p class="lead">Cada tripulante tiene una voz elegida a mano en <b>ElevenLabs</b>, con acentos de
+varios países <b>a propósito</b>: la Tripulación Cero se reclutó por todo el mundo, y se nota al
+oírla. No todas salieron a la primera.</p>
+<div class="scroll-x"><table class="casting">
+<tr><th>Personaje</th><th>Voz</th><th>Por qué esa</th></tr>
+{casting_html}
+</table></div>
+<p class="small muted">Los <b>recasts</b> están en la tabla a propósito. Una voz que no encaja se
+nota en el primer segundo, y arreglarlo es una llamada — no rehacer el vídeo.</p>
+</div></section>
+
+<section><div class="wrap">
+<div class="eyebrow teal">Las decisiones</div><h2>Por qué así y no de otra manera</h2>
+<div class="grid cols-2">
+<div class="card"><h3>Un sufijo de estilo, repetido en todas</h3><p class="small">Todas las imágenes
+llevan pegada la misma coletilla: <i>«cinematic sci-fi, dark teal and electric blue palette, amber
+accents, volumetric light, full-frame no letterbox, 16:9»</i>. Es aburrido y es justo lo que hace
+que ocho planetas distintos parezcan la misma galaxia.</p></div>
+<div class="card"><h3>Anclas, no descripciones</h3><p class="small">Describir a un personaje con
+palabras da un parecido distinto cada vez. Las <b>anclas</b> se crearon <b>subiendo los originales</b>,
+no regenerándolos. Y si en un plano hay varios personajes hay que pasarlas <b>todas</b>, o el modelo
+se inventa al que falta: eso se aprendió fallando.</p></div>
+<div class="card"><h3>Imágenes quietas, animadas después</h3><p class="small">Generar vídeo entero
+para cada plano sería carísimo. Casi todo son <b>imágenes fijas con paneo real</b> —no solo zoom—
+sobre un lienzo mucho más grande, para que no tiemblen. El vídeo generado se reserva para los planos
+que de verdad lo piden.</p></div>
+<div class="card"><h3>Los vídeos no nombran aplicaciones</h3><p class="small">Ni una herramienta
+concreta dentro de la narrativa: solo conceptos. Así el material <b>no caduca</b> cuando una app
+cambia de nombre o desaparece. Lo actual va en los mensajes semanales, que sí se reescriben.</p></div>
+</div>
+</div></section>
+
+<section><div class="wrap">
+<div class="two">
+<div>
+<div class="eyebrow amber">Si te sirve</div><h2>Cógelo</h2>
+<p class="lead">Está contado para eso. Si das clase y quieres montar algo parecido en tu asignatura,
+lo que necesitas no es un equipo: es tiempo, criterio para tirar lo que no funciona y aguantar los
+borradores.</p>
+<p><a class="btn primary" href="index.html">Ver el proyecto ↗</a></p>
+</div>
+<div class="trio trio-amenaza"><img src="assets/img/personajes/nebula.png" alt="NEBULA"><img src="assets/img/capitan/brazos.png" alt="El Capitán"><img src="assets/img/personajes/vaeon.png" alt="General Vaeon"></div>
+</div>
+</div></section>
+''' + FOOT
+
+PAGES=[("index.html",PORTADA),("comosehizo.html",COMOSEHIZO),("guia.html",GUIA),("cronologia.html",CRONOLOGIA),("actividades.html",ACT),
        ("geniallys.html",GENPAGE),("registro.html",REGPAGE),("recursos.html",REC)]
 def _ver(rel): return hashlib.md5(open(os.path.join(HERE,rel),"rb").read()).hexdigest()[:10]
 vc,vj,vt = _ver("assets/css/stargate.css"), _ver("assets/js/stargate.js"), _ver("assets/js/tour.js")

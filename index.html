@@ -5,7 +5,7 @@
 <meta property="og:title" content="STARGATE · La Bitácora Estelar"><meta property="og:description" content="STARGATE, el proyecto gamificado del Máster en Tecnología Educativa de la UNIR: ocho planetas, ocho temas y una Bitácora que lo reenciende todo.">
 <meta name="theme-color" content="#080c14">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="assets/css/stargate.css?v=487198d620">
+<link rel="stylesheet" href="assets/css/stargate.css?v=62ffe8dd90">
 <script>window.SG_TABLERO_API="https://script.google.com/macros/s/AKfycbxlrRGIBJPD9h8-6D46Y4IJ8Gb2fu9v4-6wYZjgPAom2W1QfLh14ltBZmXV2Sx3_nXvPg/exec";</script>
 <script src="assets/js/stargate.js?v=11231d47e0" defer></script>
 <script src="assets/js/tour.js?v=bb700ee487" defer></script>
@@ -121,46 +121,11 @@ herramientas conectadas entre sí. Lo cuento porque la pregunta que más me hace
 entras por ahí, a ti no te cuesta más y este proyecto recibe una pequeña ayuda. Se dice para que lo
 sepas — puedes ir a sus webs directamente y no pasa nada.</p>
 
-<h3 style="margin-top:34px">El proceso, paso a paso</h3>
-<p class="lead small">Cómo se pasa de una idea dicha en voz alta a diecisiete vídeos con voz propia.
-Sin saltarse la parte fea, que es la que más se calla.</p>
-<div class="pasos-proc"><div class="paso"><div class="paso-n">1</div><div><h3>Una idea dicha en voz alta</h3><p class="small">No empezó con un guion: empezó con «quiero que la asignatura sea un viaje por ocho planetas». A partir de ahí, conversando: quién narra, quién es el enemigo, por qué el portfolio es el arma. Lo que no funcionaba se tiraba y se volvía a empezar — y eso pasó más de una vez.</p></div></div>
-<div class="paso"><div class="paso-n">2</div><div><h3>El casting: nueve voces con nombre y apellidos</h3><p class="small">Cada tripulante tiene una voz elegida a mano en <b>ElevenLabs</b> (dentro de Magnific), con acentos de varios países <b>a propósito</b>: la Tripulación Cero se reclutó por todo el mundo. Y hubo <b>recasts</b>: Amara Sol se rehízo entera con una voz colombiana nativa porque la primera no sonaba de allí, y para Noa Lieth se descartaron dos antes de dar con la buena.</p></div></div>
-<div class="paso"><div class="paso-n">3</div><div><h3>Las anclas: que el personaje sea el mismo en todos los planos</h3><p class="small">Este es el problema que hunde la mayoría de los intentos: pides dos imágenes del mismo personaje y salen dos personas distintas. Se resuelve con <b>anclas</b> en Magnific — NEBULA, Vaeon, la nave y los ocho planetas—, creadas <b>subiendo los originales</b>, no regenerándolos. Y una regla aprendida a base de fallos: si en un plano hay varios personajes, hay que pasar <b>todas</b> las anclas, o el modelo se inventa al otro.</p></div></div>
-<div class="paso"><div class="paso-n">4</div><div><h3>Las imágenes</h3><p class="small">Generadas en <b>OpenArt</b> con un sufijo de estilo fijo, palabra por palabra, en todas: <i>«cinematic sci-fi, dark teal and electric blue palette, amber accents, volumetric light, full-frame no letterbox, 16:9»</i>. Esa repetición es la que hace que ocho planetas distintos parezcan la misma galaxia.</p></div></div>
-<div class="paso"><div class="paso-n">5</div><div><h3>De imagen quieta a vídeo</h3><p class="small">Las imágenes no se quedan quietas: un motor propio les da <b>paneo real</b> —no solo zoom— sobre un lienzo enorme para que no tiemblen, más grado de color teal y ámbar, viñeta de cine y fundidos encadenados. Los planos de Vaeon llevan además un <b>glitch</b>: no es decoración, es la Estática comiéndose la imagen.</p></div></div>
-<div class="paso"><div class="paso-n">6</div><div><h3>La voz manda sobre el montaje</h3><p class="small">Primero la narración, después las imágenes. Cada plano dura lo que dura la frase que lo acompaña, y los subtítulos se cuadran con los tiempos que detecta <b>Whisper</b> — pero el texto que se lee es el del guion, no lo que la máquina creyó oír.</p></div></div>
-<div class="paso"><div class="paso-n">7</div><div><h3>Y muchos borradores</h3><p class="small">Esta es la parte que no se enseña nunca: para las piezas publicadas hay <b>42 carpetas de montaje</b> en el disco. Hay un «opening» y un «opening-v2» uno al lado del otro. La serie entera se rehízo una vez, de v1 a v2, cuando quedó claro que cada planeta necesitaba entrada y cierre por separado en vez de un vídeo único.</p></div></div></div>
-
-<div class="cifras"><div class="cifra"><b>42</b><span>carpetas de montaje</span><em>para 17 piezas publicadas</em></div>
-<div class="cifra"><b>92</b><span>imágenes master</span><em>los originales de personajes y lugares</em></div>
-<div class="cifra"><b>587</b><span>planos</span><em>repartidos por todas las piezas</em></div>
-<div class="cifra"><b>64</b><span>pistas de voz</span><em>narración y fragmentos de la Cero</em></div></div>
-<p class="small muted">Estas cifras se cuentan solas del disco cada vez que se publica la web: si
-mañana hay tres planos más, aquí lo pone.</p>
-
-<div class="two" style="margin-top:26px">
-<div>
-<h3>Lo que lo hace posible: que hablen entre ellas</h3>
-<p class="small">La pieza que no se ve es el <b>MCP</b>: un estándar que permite conectar
-herramientas externas a Claude para que pueda usarlas <b>durante la conversación</b>, sin que nadie
-copie y pegue de una ventana a otra. Pedir una imagen, recibirla, decir «el casco más oscuro» y que
-la siguiente salga corregida — todo en el mismo hilo, sin salir a ningún sitio.</p>
-<p class="small">Eso es lo que convierte un rato de trabajo en algo terminado: no es que la máquina
-haga el proyecto, es que <b>deja de haber costuras</b> entre pensar, escribir, dibujar y montar.</p>
-</div>
-<div>
-<h3>Y lo que sigue siendo trabajo humano</h3>
-<p class="small">La narrativa, la decisión pedagógica de qué se evalúa y qué no, el criterio para
-tirar a la basura lo que no funcionaba y <b>revisarlo todo</b>. Las herramientas aceleran; no
-deciden. Los ocho planetas son ocho temas de verdad, con sus rúbricas y su programación oficial
-detrás.</p>
-<p class="small muted">Si esto te sirve de ejemplo para tu asignatura, cógelo. Para eso está
-contado.</p>
-</div>
-</div>
+<p style="margin-top:26px"><a class="btn primary grande" href="comosehizo.html">📖 Cómo se hizo, con todo el detalle →</a></p>
+<p class="small muted">El casting de las nueve voces, las anclas de personaje, por qué esos modelos
+y cuántos borradores hubo de verdad.</p>
 </div></section>
 <footer><div class="wrap">
 STARGATE · La Bitácora Estelar — Proyecto Gamificado del <b>Máster en Tecnología Educativa</b> de la UNIR.<br>
-Puesto de mando del profesorado — documento vivo. <a href="index.html">Inicio</a> · <a href="cronologia.html">Cronología</a> · <a href="guia.html#faq">Preguntas frecuentes</a>
+Puesto de mando del profesorado — documento vivo. <a href="index.html">Inicio</a> · <a href="comosehizo.html">Cómo se hizo</a> · <a href="cronologia.html">Cronología</a> · <a href="guia.html#faq">Preguntas frecuentes</a>
 </div></footer></body></html>

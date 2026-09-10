@@ -99,19 +99,33 @@ const botones = (como.match(/Probar /g) || []).length;
 igual(botones, urls, "🔬 hay tantos botones de apoyo como enlaces de referido puestos (" + urls + ")");
 // 🔴 Si hay botones, hay que DECIR que son de referido. Ocultarlo seria lo contrario de un
 // proyecto que va de dejar constancia — y la peticion se sostiene mejor dicha en voz alta.
-// ---- el proceso paso a paso, con cifras contadas del disco
-c((como.match(/class="paso"/g) || []).length >= 7, "el proceso se cuenta paso a paso (7 pasos)");
-c(/Amara Sol se rehízo/.test(como), "   y no esconde los recasts del casting de voces");
-c(/opening-v2/.test(como), "   ni los borradores («opening» y «opening-v2»)");
-// 🔴 EL FALLO CLASICO DE ESTE PATRON: que se cuele un marcador sin sustituir en la pagina publica.
-c(!/\{piezas\}|\{masters\}|\{planos\}|\{voces\}/.test(como),
-  "🔴 ningún marcador {…} se cuela sin sustituir en la web");
-const cifras = (como.match(/<div class="cifra"><b>(\d+)<\/b>/g) || []);
-igual(cifras.length, 4, "las cuatro cifras del proceso están puestas");
-c(cifras.every(function(x){ return Number(x.replace(/\D/g, "")) > 0; }),
-  "🔴 y ninguna es cero: contar mal y publicar un 0 sería peor que no contar");
+// ---- la portada solo ADELANTA: el detalle vive en su propia pagina (peticion del 11-sep)
+c(/href="comosehizo\.html"/.test(como), "🔴 la portada lleva a la página del «cómo se hizo»");
+c((como.match(/class="paso"/g) || []).length === 0,
+  "   y no repite ahí el detalle: para eso está la página");
 
 if (botones > 0) c(/enlaces de referido/.test(como),
   "🔴 y la página avisa de que son enlaces de referido");
+
+// ---------------------------------------------------------------- la página «cómo se hizo»
+// Es PUBLICA a proposito: es la cara del proyecto hacia fuera, como la portada. Si algun dia
+// alguien le pone la puerta del profesorado, se rompe el motivo de existir.
+const CSH = leer("comosehizo.html");
+c(CSH.indexOf("assets/js/puerta.js") < 0, "🔴 «cómo se hizo» NO pide PIN: es pública");
+c(CSH.indexOf("Genially") < 0, "🔴 y tampoco nombra Genially");
+c((CSH.match(/class="paso"/g) || []).length >= 7, "cuenta el proceso paso a paso (7 pasos)");
+c(/Amara Sol/.test(CSH) && /recast/i.test(CSH), "   y no esconde los recasts del casting de voces");
+c(/opening-v2/.test(CSH), "   ni los borradores («opening» y «opening-v2»)");
+c((CSH.match(/<tr>/g) || []).length >= 10, "la tabla del casting tiene a los nueve y a NEBULA");
+// 🔴 EL FALLO CLASICO DE ESTE PATRON: un marcador sin sustituir en una pagina publica.
+c(!/\{piezas\}|\{masters\}|\{planos\}|\{voces\}/.test(CSH),
+  "🔴 ningún marcador {…} se cuela sin sustituir");
+const cifras = (CSH.match(/<div class="cifra"><b>(\d+)<\/b>/g) || []);
+igual(cifras.length, 4, "las cuatro cifras del proceso están puestas");
+c(cifras.every(function(x){ return Number(x.replace(/\D/g, "")) > 0; }),
+  "🔴 y ninguna es cero: publicar un 0 sería peor que no contar");
+// los ids internos de ElevenLabs no pintan nada en abierto
+c(!/\(\s*\d{2,4}\s*\)/.test(CSH.split("casting")[1] || ""),
+  "🔬 el casting publica NOMBRES de voz, no los ids internos");
 
 E.resumen("La puerta del profesorado");
