@@ -80,4 +80,22 @@ const port = leer("index.html");
 c(port.indexOf('href="recluta.html">🚀 Soy estudiante') >= 0 && port.indexOf('href="guia.html">🎓 Soy docente') >= 0,
   "🔴 y su menú son las dos puertas: estudiante y docente");
 
+// ---------------------------------------------------------------- «Cómo se hizo» (11-sep)
+// Norberto quiso contar en abierto con qué se hizo esto. Dos cosas que vigilar:
+const como = (port.match(/<section id="comohizo"[\s\S]*?<\/section>/) || [""])[0];
+c(como.length > 0, "la portada cuenta cómo se hizo el proyecto");
+["Claude", "OpenArt", "Magnific"].forEach(function(h){
+  c(como.indexOf(h) >= 0, "   y nombra «" + h + "»");
+});
+// 🔴 La regla del proyecto: en comunicación pública NO se citan las herramientas del aula. Estas
+// tres son de producción y las cita él a propósito; Genially es de aula y no puede colarse aquí.
+c(como.indexOf("Genially") < 0,
+  "🔴 y NO nombra Genially: en abierto no se citan las herramientas del aula");
+// el botón de referido solo si hay enlace: uno vacío llevaría a ninguna parte
+const conUrl = require("fs").readFileSync(require("path").join(RAIZ, "_site_data.py"), "utf8")
+  .split("COMO_SE_HIZO")[1].split("# ───")[0];
+const urls = (conUrl.match(/url="[^"]*"/g) || []).filter(function(u){ return u !== 'url=""'; }).length;
+const botones = (como.match(/Probar /g) || []).length;
+igual(botones, urls, "🔬 hay tantos botones de apoyo como enlaces de referido puestos (" + urls + ")");
+
 E.resumen("La puerta del profesorado");

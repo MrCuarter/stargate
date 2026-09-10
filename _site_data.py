@@ -494,6 +494,33 @@ assert [n[0] for n in NIVELES] == list(range(1, 11)), "los niveles van del 1 al 
 assert all(NIVELES[i][1] < NIVELES[i+1][1] for i in range(9)), "los umbrales de nivel deben crecer"
 
 
+# ─────────────────────────── CÓMO SE HIZO · portada pública (11-sep) ───────────────────────────
+# Petición de Norberto: contar en la web abierta cómo se ha hecho esto de verdad, y para qué sirvió
+# cada herramienta. Los datos salen de KIT_PROYECTO.json, no de memoria:
+#   · las imágenes de la serie v2 → OpenArt (nano-banana-2)
+#   · el audio y el vídeo → Magnific/Freepik, donde viven además las ANCLAS de personaje
+# 🔴 NO se nombra Genially aquí: la regla del proyecto es que en comunicación pública no se citan
+# las herramientas del aula. Estas tres son de producción, no de aula, y las cita él a propósito.
+#
+# Los enlaces de referido los pasa Norberto cuando los tenga. Mientras el url esté vacío, la
+# tarjeta se pinta igual pero SIN botón: mejor no enseñar un enlace que no lleva a ningún sitio.
+COMO_SE_HIZO = [
+  dict(clave="claude", icono="🛠️", titulo="Claude", papel="El taller",
+       url="",
+       texto="Aquí se ha escrito <b>todo lo que no es imagen</b>: la narrativa de los ocho planetas, "
+             "los retos, esta web, el sistema que lleva las cuentas del alumnado y el banco de "
+             "pruebas que lo vigila. Conversando, revisando y corrigiendo — no de una tacada."),
+  dict(clave="openart", icono="🎨", titulo="OpenArt", papel="El mundo dibujado",
+       url="",
+       texto="De aquí salieron <b>las imágenes</b>: los ocho planetas, la Tripulación Cero, las "
+             "portadas de cada tema, las 24 insignias y las 20 cartas del álbum."),
+  dict(clave="magnific", icono="🎬", titulo="Magnific", papel="La voz y el movimiento",
+       url="",
+       texto="Puso <b>las voces</b> de los personajes y <b>los clips de vídeo</b>. Y algo que no se "
+             "ve pero se nota: las <b>anclas</b> de personaje, que son las que hacen que NEBULA sea "
+             "la misma en los diecisiete vídeos y no una parecida en cada plano."),
+]
+
 # ─────────────────────────── PASOS · «Cómo se hace» (v3.43) ───────────────────────────
 # La sección de la web que sustituye a los tres vídeos de onboarding. Idea de Norberto
 # (9-sep): en vez de grabar vídeos que envejecen con cada cambio de pantalla, una sección

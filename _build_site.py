@@ -4,7 +4,7 @@ Páginas: index (portada) · guia · cronologia · actividades · geniallys · r
 Ejecutar desde web-stargate/:  python3 _build_site.py
 Datos de cronología/vídeos/geniallys en _site_data.py."""
 import os, json, hashlib, subprocess
-from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
+from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana, COMO_SE_HIZO,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
@@ -187,6 +187,16 @@ tiles = [
  ("panel.html","🪐","Panel de control","El mapa de los ocho planetas sobre el universo: cada uno lleva a la presentación de su tema."),
  ("recursos.html","📦","Sala de recursos","Tablero de las 24 insignias, ranking y materiales."),
 ]
+# Cada herramienta, una tarjeta. El boton de apoyo solo aparece si hay enlace de referido: una
+# tarjeta sin boton se lee perfectamente, un boton que no lleva a ningun sitio no.
+comohizo_html = "\n".join(
+  '<div class="card comohizo"><div class="ch-top"><span class="ic">{i}</span>'
+  '<div><div class="eyebrow teal">{p}</div><h3>{t}</h3></div></div><p class="small">{x}</p>{b}</div>'.format(
+     i=h["icono"], p=h["papel"], t=h["titulo"], x=h["texto"],
+     b=('<a class="btn ghost peq" href="%s" target="_blank" rel="noopener">Probar %s ↗</a>'
+        % (h["url"], h["titulo"])) if h.get("url") else "")
+  for h in COMO_SE_HIZO)
+
 tiles_html="\n".join(f'<a class="tile" href="{h}"><span class="ic">{i}</span><b>{t}</b><em>{d}</em></a>' for h,i,t,d in tiles)
 
 # 🔴 9-sep · LA PORTADA YA NO ES LA COCINA. Era «Puesto de mando del profesorado» y llevaba directo
@@ -264,6 +274,36 @@ es la personificación de los errores de diseño educativo, y aparece en el Tema
 <p><a class="btn" href="guia.html#pers">Conoce a la Tripulación Cero →</a></p>
 </div>
 <div class="trio trio-amenaza"><img src="assets/img/personajes/nebula.png" alt="NEBULA"><img src="assets/img/capitan/brazos.png" alt="El Capitán"><img src="assets/img/personajes/vaeon.png" alt="General Vaeon"></div>
+</div>
+</div></section>
+
+<section id="comohizo"><div class="wrap">
+<div class="eyebrow teal">Cómo se hizo</div><h2>Esto lo ha montado un profesor</h2>
+<p class="lead">Sin estudio, sin productora y sin equipo: un docente, un ordenador y tres
+herramientas conectadas entre sí. Lo cuento porque la pregunta que más me hacen al enseñarlo es
+«¿y esto cuánto cuesta encargarlo?» — y la respuesta es que no se encargó.</p>
+
+<div class="grid cols-3">{comohizo_html}</div>
+
+<div class="two" style="margin-top:26px">
+<div>
+<h3>Lo que lo hace posible: que hablen entre ellas</h3>
+<p class="small">La pieza que no se ve es el <b>MCP</b>: un estándar que permite conectar
+herramientas externas a Claude para que pueda usarlas <b>durante la conversación</b>, sin que nadie
+copie y pegue de una ventana a otra. Pedir una imagen, recibirla, decir «el casco más oscuro» y que
+la siguiente salga corregida — todo en el mismo hilo, sin salir a ningún sitio.</p>
+<p class="small">Eso es lo que convierte un rato de trabajo en algo terminado: no es que la máquina
+haga el proyecto, es que <b>deja de haber costuras</b> entre pensar, escribir, dibujar y montar.</p>
+</div>
+<div>
+<h3>Y lo que sigue siendo trabajo humano</h3>
+<p class="small">La narrativa, la decisión pedagógica de qué se evalúa y qué no, el criterio para
+tirar a la basura lo que no funcionaba y <b>revisarlo todo</b>. Las herramientas aceleran; no
+deciden. Los ocho planetas son ocho temas de verdad, con sus rúbricas y su programación oficial
+detrás.</p>
+<p class="small muted">Si esto te sirve de ejemplo para tu asignatura, cógelo. Para eso está
+contado.</p>
+</div>
 </div>
 </div></section>
 ''' + FOOT

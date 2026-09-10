@@ -905,3 +905,11 @@ html.cerrado{background:#080c14}
 .puerta-tile h3{margin:.1em 0 .4em}
 .puerta-tile p{color:#b9c8d6;font-size:.95rem}
 .btn.grande{font-size:1.02rem;padding:13px 22px}
+
+/* «Cómo se hizo» de la portada: tarjeta de herramienta con su icono y su papel arriba. El boton
+   de apoyo es discreto a proposito — la seccion explica, no vende. */
+.comohizo .ch-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.comohizo .ch-top .ic{font-size:30px;line-height:1;flex:none}
+.comohizo .ch-top h3{margin:2px 0 0}
+.comohizo .eyebrow{margin:0}
+.btn.peq{font-size:13px;padding:6px 12px;margin-top:12px}
