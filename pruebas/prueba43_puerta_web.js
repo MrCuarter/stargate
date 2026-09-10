@@ -97,5 +97,9 @@ const conUrl = require("fs").readFileSync(require("path").join(RAIZ, "_site_data
 const urls = (conUrl.match(/url="[^"]*"/g) || []).filter(function(u){ return u !== 'url=""'; }).length;
 const botones = (como.match(/Probar /g) || []).length;
 igual(botones, urls, "🔬 hay tantos botones de apoyo como enlaces de referido puestos (" + urls + ")");
+// 🔴 Si hay botones, hay que DECIR que son de referido. Ocultarlo seria lo contrario de un
+// proyecto que va de dejar constancia — y la peticion se sostiene mejor dicha en voz alta.
+if (botones > 0) c(/enlaces de referido/.test(como),
+  "🔴 y la página avisa de que son enlaces de referido");
 
 E.resumen("La puerta del profesorado");

@@ -506,7 +506,7 @@ assert all(NIVELES[i][1] < NIVELES[i+1][1] for i in range(9)), "los umbrales de 
 # tarjeta se pinta igual pero SIN botón: mejor no enseñar un enlace que no lleva a ningún sitio.
 COMO_SE_HIZO = [
   dict(clave="claude", icono="🛠️", titulo="Claude", papel="El taller",
-       url="",
+       url="https://claude.ai/referral/pp8xmqpz3Q",
        texto="Aquí se ha escrito <b>todo lo que no es imagen</b>: la narrativa de los ocho planetas, "
              "los retos, esta web, el sistema que lleva las cuentas del alumnado y el banco de "
              "pruebas que lo vigila. Conversando, revisando y corrigiendo — no de una tacada."),
@@ -515,7 +515,7 @@ COMO_SE_HIZO = [
        texto="De aquí salieron <b>las imágenes</b>: los ocho planetas, la Tripulación Cero, las "
              "portadas de cada tema, las 24 insignias y las 20 cartas del álbum."),
   dict(clave="magnific", icono="🎬", titulo="Magnific", papel="La voz y el movimiento",
-       url="",
+       url="https://referral.magnific.com/mzW6daB",
        texto="Puso <b>las voces</b> de los personajes y <b>los clips de vídeo</b>. Y algo que no se "
              "ve pero se nota: las <b>anclas</b> de personaje, que son las que hacen que NEBULA sea "
              "la misma en los diecisiete vídeos y no una parecida en cada plano."),

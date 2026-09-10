@@ -284,6 +284,11 @@ herramientas conectadas entre sí. Lo cuento porque la pregunta que más me hace
 «¿y esto cuánto cuesta encargarlo?» — y la respuesta es que no se encargó.</p>
 
 <div class="grid cols-3">{comohizo_html}</div>
+<!-- 🔴 Decirlo. Son enlaces de referido y ocultarlo seria justo lo contrario del proyecto, que va de
+     dejar constancia. Ademas la peticion se sostiene mejor dicha en voz alta que disimulada. -->
+<p class="small muted" style="margin-top:14px">Los botones son <b>enlaces de referido</b>: si
+entras por ahí, a ti no te cuesta más y este proyecto recibe una pequeña ayuda. Se dice para que lo
+sepas — puedes ir a sus webs directamente y no pasa nada.</p>
 
 <div class="two" style="margin-top:26px">
 <div>
