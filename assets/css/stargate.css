@@ -913,3 +913,20 @@ html.cerrado{background:#080c14}
 .comohizo .ch-top h3{margin:2px 0 0}
 .comohizo .eyebrow{margin:0}
 .btn.peq{font-size:13px;padding:6px 12px;margin-top:12px}
+
+/* El proceso, paso a paso: numero grande a la izquierda, texto a la derecha. Sin tarjetas — es una
+   lectura seguida, no un menu de opciones. */
+.pasos-proc{margin:18px 0 0;border-left:2px solid var(--line);padding-left:0}
+.paso{display:flex;gap:16px;align-items:flex-start;padding:16px 0 16px 20px;margin-left:-2px;
+  border-left:2px solid transparent}
+.paso:hover{border-left-color:var(--teal)}
+.paso-n{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  background:var(--surface-2);color:var(--teal);font-weight:700;font-size:15px;margin-top:1px}
+.paso h3{margin:3px 0 6px;font-size:17px}
+.paso p{margin:0}
+.cifras{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:26px 0 8px}
+.cifra{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.cifra b{display:block;font-family:"Unbounded","DM Sans",sans-serif;font-size:26px;color:var(--teal);line-height:1.1}
+.cifra span{display:block;font-weight:500;font-size:14px;margin-top:2px}
+.cifra em{display:block;font-style:normal;font-size:12.5px;color:var(--muted);margin-top:3px}
+@media(max-width:640px){.paso{padding-left:12px;gap:12px}}

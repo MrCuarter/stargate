@@ -521,6 +521,61 @@ COMO_SE_HIZO = [
              "la misma en los diecisiete vídeos y no una parecida en cada plano."),
 ]
 
+# ─────────────────────────── EL PROCESO, PASO A PASO (11-sep) ───────────────────────────
+# 🔴 TODO ESTO SALE DE LOS FICHEROS DE PRODUCCIÓN, no de la memoria ni de una version bonita:
+#   · CASTING_CERO.md ......... las 9 voces con su id de ElevenLabs, y los DOS recasts
+#   · NARRATIVA_STARGARTE §8 .. el sufijo de estilo literal y el reparto de herramientas
+#   · KIT_PROYECTO.json ....... las anclas y de donde salieron
+#   · Videos Narrativa/ ....... 42 carpetas de montaje, 92 masters, 587 planos, 64 pistas de voz
+#   · kenburns.py ............. el motor de imagen→video (Ken Burns 8K, grado, glitch de Vaeon)
+# Si algun dia cambian, se actualiza AQUI y la web sola. Nada de numeros a mano en el HTML.
+PROCESO = [
+  dict(n="1", t="Una idea dicha en voz alta",
+       x="No empezó con un guion: empezó con «quiero que la asignatura sea un viaje por ocho "
+         "planetas». A partir de ahí, conversando: quién narra, quién es el enemigo, por qué el "
+         "portfolio es el arma. Lo que no funcionaba se tiraba y se volvía a empezar — y eso pasó "
+         "más de una vez."),
+  dict(n="2", t="El casting: nueve voces con nombre y apellidos",
+       x="Cada tripulante tiene una voz elegida a mano en <b>ElevenLabs</b> (dentro de Magnific), "
+         "con acentos de varios países <b>a propósito</b>: la Tripulación Cero se reclutó por todo "
+         "el mundo. Y hubo <b>recasts</b>: Amara Sol se rehízo entera con una voz colombiana nativa "
+         "porque la primera no sonaba de allí, y para Noa Lieth se descartaron dos antes de dar "
+         "con la buena."),
+  dict(n="3", t="Las anclas: que el personaje sea el mismo en todos los planos",
+       x="Este es el problema que hunde la mayoría de los intentos: pides dos imágenes del mismo "
+         "personaje y salen dos personas distintas. Se resuelve con <b>anclas</b> en Magnific — "
+         "NEBULA, Vaeon, la nave y los ocho planetas—, creadas <b>subiendo los originales</b>, no "
+         "regenerándolos. Y una regla aprendida a base de fallos: si en un plano hay varios "
+         "personajes, hay que pasar <b>todas</b> las anclas, o el modelo se inventa al otro."),
+  dict(n="4", t="Las imágenes",
+       x="Generadas en <b>OpenArt</b> con un sufijo de estilo fijo, palabra por palabra, en todas: "
+         "<i>«cinematic sci-fi, dark teal and electric blue palette, amber accents, volumetric "
+         "light, full-frame no letterbox, 16:9»</i>. Esa repetición es la que hace que ocho "
+         "planetas distintos parezcan la misma galaxia."),
+  dict(n="5", t="De imagen quieta a vídeo",
+       x="Las imágenes no se quedan quietas: un motor propio les da <b>paneo real</b> —no solo "
+         "zoom— sobre un lienzo enorme para que no tiemblen, más grado de color teal y ámbar, "
+         "viñeta de cine y fundidos encadenados. Los planos de Vaeon llevan además un "
+         "<b>glitch</b>: no es decoración, es la Estática comiéndose la imagen."),
+  dict(n="6", t="La voz manda sobre el montaje",
+       x="Primero la narración, después las imágenes. Cada plano dura lo que dura la frase que lo "
+         "acompaña, y los subtítulos se cuadran con los tiempos que detecta <b>Whisper</b> — pero "
+         "el texto que se lee es el del guion, no lo que la máquina creyó oír."),
+  dict(n="7", t="Y muchos borradores",
+       x="Esta es la parte que no se enseña nunca: para las piezas publicadas hay <b>{piezas} "
+         "carpetas de montaje</b> en el disco. Hay un «opening» y un «opening-v2» uno al lado del "
+         "otro. La serie entera se rehízo una vez, de v1 a v2, cuando quedó claro que cada planeta "
+         "necesitaba entrada y cierre por separado en vez de un vídeo único."),
+]
+# Los numeros se leen del disco al construir la web (ver _build_site.py): si manaña hay mas planos,
+# la cifra cambia sola. Un dato, un sitio.
+PROCESO_CIFRAS = [
+  ("{piezas}", "carpetas de montaje", "para 17 piezas publicadas"),
+  ("{masters}", "imágenes master", "los originales de personajes y lugares"),
+  ("{planos}", "planos", "repartidos por todas las piezas"),
+  ("{voces}", "pistas de voz", "narración y fragmentos de la Cero"),
+]
+
 # ─────────────────────────── PASOS · «Cómo se hace» (v3.43) ───────────────────────────
 # La sección de la web que sustituye a los tres vídeos de onboarding. Idea de Norberto
 # (9-sep): en vez de grabar vídeos que envejecen con cada cambio de pantalla, una sección

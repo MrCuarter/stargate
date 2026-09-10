@@ -3,8 +3,9 @@
 Páginas: index (portada) · guia · cronologia · actividades · geniallys · registro · recursos.
 Ejecutar desde web-stargate/:  python3 _build_site.py
 Datos de cronología/vídeos/geniallys en _site_data.py."""
-import os, json, hashlib, subprocess
+import os, json, hashlib, subprocess, glob
 from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana, COMO_SE_HIZO,
+                        PROCESO, PROCESO_CIFRAS,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
@@ -187,6 +188,35 @@ tiles = [
  ("panel.html","🪐","Panel de control","El mapa de los ocho planetas sobre el universo: cada uno lleva a la presentación de su tema."),
  ("recursos.html","📦","Sala de recursos","Tablero de las 24 insignias, ranking y materiales."),
 ]
+# 🔴 Las cifras del proceso se CUENTAN del disco, no se escriben a mano: si mañana hay tres planos
+# mas, la web lo dice sola. Si la carpeta de produccion no esta a mano (se construye desde otro
+# sitio, o se movio), se usa el ultimo recuento conocido y se AVISA — mejor un numero viejo
+# senalado que un build roto o, peor, un cero silencioso en una pagina publica.
+_VID = os.path.join(HERE, "..", "Videos Narrativa")
+_ULTIMO = dict(piezas=42, masters=92, planos=587, voces=64)   # recuento del 11-sep-2026
+def _cifras_proceso():
+    try:
+        piezas  = len([d for d in os.listdir(_VID) if d.startswith("stargarte-")])
+        masters = len(glob.glob(os.path.join(_VID, "_shared", "*.png")))
+        planos  = len(glob.glob(os.path.join(_VID, "stargarte-*", "assets", "*.png")))
+        voces   = len(glob.glob(os.path.join(HERE, "..", "Audios Narrativa", "**", "*.mp3"), recursive=True))
+        c = dict(piezas=piezas, masters=masters, planos=planos, voces=voces)
+        if min(c.values()) == 0: raise ValueError("algun recuento sali\u00f3 a cero")
+        return c
+    except Exception as e:
+        print("   \u26a0 no pude contar la produccion (%s): uso el recuento del 11-sep" % e)
+        return dict(_ULTIMO)
+CIFRAS = _cifras_proceso()
+
+proceso_html = "\n".join(
+  '<div class="paso"><div class="paso-n">{n}</div><div><h3>{t}</h3><p class="small">{x}</p></div></div>'.format(
+     n=q["n"], t=q["t"], x=q["x"].format(**CIFRAS))
+  for q in PROCESO)
+cifras_html = "\n".join(
+  '<div class="cifra"><b>{a}</b><span>{b}</span><em>{c}</em></div>'.format(
+     a=a.format(**CIFRAS), b=b, c=c)
+  for a, b, c in PROCESO_CIFRAS)
+
 # Cada herramienta, una tarjeta. El boton de apoyo solo aparece si hay enlace de referido: una
 # tarjeta sin boton se lee perfectamente, un boton que no lleva a ningun sitio no.
 comohizo_html = "\n".join(
@@ -289,6 +319,15 @@ herramientas conectadas entre sí. Lo cuento porque la pregunta que más me hace
 <p class="small muted" style="margin-top:14px">Los botones son <b>enlaces de referido</b>: si
 entras por ahí, a ti no te cuesta más y este proyecto recibe una pequeña ayuda. Se dice para que lo
 sepas — puedes ir a sus webs directamente y no pasa nada.</p>
+
+<h3 style="margin-top:34px">El proceso, paso a paso</h3>
+<p class="lead small">Cómo se pasa de una idea dicha en voz alta a diecisiete vídeos con voz propia.
+Sin saltarse la parte fea, que es la que más se calla.</p>
+<div class="pasos-proc">{proceso_html}</div>
+
+<div class="cifras">{cifras_html}</div>
+<p class="small muted">Estas cifras se cuentan solas del disco cada vez que se publica la web: si
+mañana hay tres planos más, aquí lo pone.</p>
 
 <div class="two" style="margin-top:26px">
 <div>
