@@ -378,7 +378,7 @@
     // era la web del profesorado y aquí no pinta nada.
     return avisoPase()+'<div class="nave-barra"><div class="nave-accesos">'
       +(d.formBitacora?'<a class="acc primary" href="'+esc(d.formBitacora)+'" data-vent="📓 Bitácora de mando"><b>📓 Mi Bitácora de mando</b><em>marca lo que has completado</em></a>':'')
-      +(d.formCanje?'<a class="acc" href="'+esc(d.formCanje)+'" data-vent="🎁 Canje de recompensas"><b>🎁 Canjear</b><em>gasta tus ◈ créditos</em></a>':'')
+      +(d.formCanje?'<a class="acc" href="'+esc(d.formCanje)+'" data-vent="🛸 Mercado Estelar"><b>🛸 Mercado Estelar</b><em>gasta tus ◈ créditos</em></a>':'')
       // 30-ago · fuera el acceso «Tablero»: desde que el tablero vive DENTRO de la Nave, duplicaba
       // la pestaña «El tablero» (lo vio Norberto en la captura). Aquí quedan solo las ACCIONES.
       +(d.formTicket?'<a class="acc" href="'+esc(d.formTicket)+'" data-vent="🎟️ Contacta con NEBULA"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
@@ -629,7 +629,7 @@
         ? '<p class="small" style="color:var(--amber)"><b>Ojo al calendario:</b> las misiones se registran hasta el <b>'+fecha(d.cierre_misiones)+'</b>, pero el canje sigue abierto <b>una semana más</b>, hasta el <b>'+fecha(d.cierre_canje)+'</b>. Esa última semana ya no se gana nada: solo se gasta lo ganado.</p>'
         : (d.cierre_canje?'<p class="small muted">El canje cierra el <b>'+fecha(d.cierre_canje)+'</b>.</p>':''))
       +'<div class="grid cols-3 nave-rec">'+cards+'</div>'
-      +(abiertas&&d.formCanje?'<p style="margin-top:14px"><a class="btn primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎁 Canjear una recompensa</a></p>':'<p class="small muted" style="margin-top:14px">Aún no hay recompensas canjeables: sigue sumando xp.</p>')
+      +(abiertas&&d.formCanje?'<p style="margin-top:14px"><a class="btn primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🛸 Ir al Mercado Estelar</a></p>':'<p class="small muted" style="margin-top:14px">Aún no hay recompensas canjeables: sigue sumando xp.</p>')
       +'</section>';
   }
 
@@ -642,21 +642,19 @@
   //   ACTO 2 (a bordo) · ya con su ficha delante, qué es cada cosa.
   var PASOS_PUERTA=[
     {t:'Canal abierto, recluta',x:'Soy <b>NEBULA</b>, la inteligencia de esta nave. La galaxia se apaga por <b>la Estática</b> — un silencio que hace que nadie cree, registre ni comparta. Cruzarás <b>ocho planetas</b> (los ocho temas del curso) para reencenderla.'},
-    {t:'Primero, ¿quién eres?',x:'Esta nave es <b>tuya</b>, pero no puedo abrirla sin saber a quién se la abro. Escribe ahí arriba el <b>correo</b> con el que te alistaste y te enseño tu ficha: tu personaje, tus insignias y lo que llevas ganado.<br><br>¿Todavía no te has alistado? Escríbelo igualmente: te doy el enlace para subir a bordo.'}
+    {t:'Tu arma: la Bitácora',x:'Contra la Estática no sirven las armas: sirve <b>dejar constancia</b>. Tu <b>Bitácora Estelar</b> es tu ePortfolio: cada evidencia que registres la hace más fuerte. Cuando esté completa, la puerta a la Tierra se abrirá.'},
+    {t:'Y ahora, ¿quién eres?',x:'Esta nave es <b>tuya</b>, pero no puedo abrirla sin saber a quién se la abro. Escribe ahí arriba el <b>correo</b> con el que te alistaste.<br><br>¿Todavía no te has alistado? Escríbelo igualmente: te doy el enlace para subir a bordo.<br><br><b>Nos vemos al otro lado.</b>'}
   ];
   var PASOS=[
-    {t:'Te tengo, recluta',x:'Identificación confirmada. A partir de aquí esta nave se abre sola cada vez que vuelvas <b>desde este dispositivo</b>: no tendrás que escribir el correo otra vez. Déjame enseñarte lo que tienes a bordo.'},
-    {t:'Tu arma: la Bitácora',x:'Contra la Estática no sirven las armas: sirve <b>dejar constancia</b>. Tu <b>Bitácora Estelar</b> es tu ePortfolio: cada evidencia que registres la hace más fuerte. Cuando esté completa, la puerta a la Tierra se abrirá.'},
-    {t:'Cada reto, una vuelta aquí',x:'La <b>Bitácora de mando</b> es el formulario donde marcas lo que has completado. Cada vez que superes un reto: vuelves, marcas la casilla, pegas tu evidencia y envías. Lo demás —xp, nivel, insignias, créditos— se calcula solo y aparece aquí.'},
-    {t:'Tu personaje evoluciona',x:'Ese de ahí arriba eres tú. Tu avatar <b>cambia de aspecto</b> al llegar a los niveles 3, 5, 8 y 10: no es el mismo dibujo con otro marco, es otra versión del personaje. Y en <b>tu vestuario</b> te pones y te quitas lo que vayas ganando, gratis y las veces que quieras.'},
-    {t:'La nave avanza sola',x:'Cada semana se desbloquea una nueva orden: el planeta, sus vídeos, sus <b>dos retos</b> y sus insignias. Los planetas futuros están en silencio… de momento. Vuelve cada semana.'},
-    {t:'Dos marcadores, no uno',x:'Ojo a esto: los <b>xp</b> miden tu viaje y <b>nunca bajan</b> — suben tu <b>nivel</b> (del 1 al 10) y hacen <b>evolucionar a tu personaje</b>. Los <b>créditos ◈</b> los ganas con el mismo trabajo y son lo <b>único que se gasta</b> en la sección de <b>recompensas</b>. Comprar cromos no te baja de nivel. Y si te pierdes, usa el ticket <b>«Contacta con NEBULA»</b>: te leo, aunque sea anónimo. Corto y cierro.'}
+    {t:'Te tengo, recluta',x:'Identificación confirmada. Desde este dispositivo la nave se abrirá sola cada vez que vuelvas: no tendrás que escribir el correo otra vez. Esto de aquí ya es tuyo.'},
+    {t:'Cada misión te da dos cosas',x:'Cuando completas un reto y lo registras en tu Bitácora ganas <b>experiencia</b>, que sube de <b>nivel</b> a tu personaje y le cambia el aspecto; y ganas <b>créditos ◈</b>, que son dinero para gastar en el <b>Mercado Estelar</b>.<br><br>La experiencia <b>nunca baja</b>: los créditos se gastan, tu nivel no.'},
+    {t:'La nave avanza sola',x:'Cada semana se desbloquea una nueva orden: el planeta, sus vídeos, sus <b>dos retos</b> y sus insignias. Los planetas futuros están en silencio… de momento. Vuelve cada semana, y si te pierdes usa el ticket <b>Dudas</b>: te leo, aunque sea anónimo. Corto y cierro.'}
   ];
   // Un solo motor para los dos actos: el acto decide QUÉ pasos, con qué clave de memoria y qué pone
   // el último botón. Duplicar la función habría sido la vía rápida para que uno de los dos se quede
   // sin arreglar el día que se toque algo.
   var ACTOS={
-    puerta:{pasos:PASOS_PUERTA, clave:'sgNavePuerta_', fin:'Entendido ✓'},
+    puerta:{pasos:PASOS_PUERTA, clave:'sgNavePuerta_', fin:'Escribo mi correo ✓'},
     nave:  {pasos:PASOS,        clave:'sgNaveOnboard_', fin:'A la nave ✓'}
   };
   function onboarding(i, acto){

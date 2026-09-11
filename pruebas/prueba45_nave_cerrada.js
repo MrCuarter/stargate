@@ -91,5 +91,15 @@ const puerta = R.slice(R.indexOf("var PASOS_PUERTA=["), R.indexOf("var PASOS=[")
   c(puerta.indexOf(t) < 0, "🔬 el acto 1 no menciona «" + t + "»: todavía no hay nada de eso");
 });
 c(/correo/.test(puerta), "   y sí dice lo único que hace falta: el correo");
+c(/Nos vemos al otro lado/.test(puerta), "   y se despide hasta después de identificarse");
+igual((puerta.match(/\{t:/g) || []).length, 3, "🔬 el acto 1 son tres pasos");
+const nave = R.slice(R.indexOf("var PASOS=["), R.indexOf("// Un solo motor"));
+igual((nave.match(/\{t:/g) || []).length, 3, "   y el acto 2, otros tres");
+
+// ---- el Mercado Estelar (11-sep): «Canjear» no contaba nada; esto es un sitio al que ir
+c(/Mercado Estelar/.test(R), "🔴 el canje se llama «Mercado Estelar»");
+c(!/Canjear<\/b>/.test(R), "   y ya no «Canjear» a secas");
+c(!/🪐 Mercado|🧱 Mercado|📓 Mercado/.test(R),
+  "🔬 con un emoji propio, sin repetir el del Panel ni el del Padlet");
 
 E.resumen("La Nave nace cerrada");

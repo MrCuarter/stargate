@@ -114,7 +114,7 @@
     var todos=d.reclutas||[];
     var forms='<div class="cta-row" style="justify-content:flex-start">'+(d.formBitacora?'<a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">📓 Mi Bitácora de mando (registrar lo que he hecho)</a>':'')
       +(d.formTicket?'<a class="btn" href="'+esc(d.formTicket)+'" target="_blank" rel="noopener">🎟️ Ticket de salida</a>':'')
-      +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎁 Canjear créditos</a>':'')+'</div>';
+      +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🛸 Mercado Estelar</a>':'')+'</div>';
 
     function clasificar(m){
       var r=todos.slice();
