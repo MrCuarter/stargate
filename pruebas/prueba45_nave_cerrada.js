@@ -8,7 +8,7 @@
 // tampoco pintan nada antes de identificarse.
 // Esta batería vigila que la puerta siga cerrada, porque volver a abrirla es una línea de nada.
 const E = require("./entorno.js");
-const { comprobar: c } = E;
+const { comprobar: c, igual } = E;
 const fs = require("fs"), path = require("path");
 const RAIZ = path.join(__dirname, "..");
 const leer = f => fs.readFileSync(path.join(RAIZ, f), "utf8");
@@ -93,8 +93,8 @@ const puerta = R.slice(R.indexOf("var PASOS_PUERTA=["), R.indexOf("var PASOS=[")
 c(/correo/.test(puerta), "   y sí dice lo único que hace falta: el correo");
 c(/Nos vemos al otro lado/.test(puerta), "   y se despide hasta después de identificarse");
 igual((puerta.match(/\{t:/g) || []).length, 3, "🔬 el acto 1 son tres pasos");
-const nave = R.slice(R.indexOf("var PASOS=["), R.indexOf("// Un solo motor"));
-igual((nave.match(/\{t:/g) || []).length, 3, "   y el acto 2, otros tres");
+const actoDos = R.slice(R.indexOf("var PASOS=["), R.indexOf("// Un solo motor"));
+igual((actoDos.match(/\{t:/g) || []).length, 3, "   y el acto 2, otros tres");
 
 // ---- el Mercado Estelar (11-sep): «Canjear» no contaba nada; esto es un sitio al que ir
 c(/Mercado Estelar/.test(R), "🔴 el canje se llama «Mercado Estelar»");
