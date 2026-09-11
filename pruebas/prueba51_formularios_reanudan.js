@@ -64,6 +64,21 @@ c(/cancelarContinuacion_\("continuarActualizarFormularios"\)/.test(cola),
 c(/programarContinuacion_\("continuarActualizarFormularios", 60000\)/.test(cola),
   "🔴 al acabar una pasada sin terminar se re-arma CORTO (1 min): ahí ya no hay nada corriendo");
 
+// ---------------------------------------------------------------- c bis) y sabe rendirse
+// 🔴 Tercera lección del mismo día: con el progreso ya bien guardado y sin solapes, la tanda se
+// quedó dando vueltas TRES HORAS —una pasada cada 8 minutos, todas agotando los 6 minutos, sin
+// avanzar— porque algo de un grupo no cabe en una pasada y no sabe partirse. Reintentar sin tope
+// solo quema cuota, y la cuota se comparte con el disparador que procesa las respuestas de los
+// formularios. Un sistema de mantenimiento cero no puede tener bucles sin salida.
+c(/MAX_VUELTAS_FORM/.test(gs), "🔴 hay un tope de reintentos");
+c(/pr\.vueltas = \(pr\.vueltas \|\| 0\) \+ 1/.test(CODIGO), "que se cuenta en el progreso, no en memoria");
+const tope = CODIGO.slice(CODIGO.indexOf("pr.vueltas"), CODIGO.indexOf("while (pr.i < pers.length"));
+c(/cancelarContinuacion_/.test(tope), "🔴 al rendirse se quita el disparador: si no, seguiría el bucle");
+c(/guardarProgreso_\("formularios", null\)/.test(tope), "   y se borra el progreso, para poder reintentar limpio a mano");
+c(/atascado: true/.test(tope), "y se devuelve que está atascado, no que sigue trabajando");
+c(/Atascado en el grupo/.test(tope), "🔴 diciendo EN QUÉ GRUPO y EN QUÉ FASE: sin eso, rendirse no sirve de nada");
+c(/Actualizaci\u00f3n DETENIDA|Actualización DETENIDA/.test(gs), "y el menú lo dice en voz alta");
+
 // ---------------------------------------------------------------- d) el reloj sigue donde estaba
 // Arreglar el guardado no puede haberse llevado por delante los frenos que ya existían.
 c(/t\.puedo\(\)/.test(CODIGO), "el bucle sigue mirando el reloj entre fases");

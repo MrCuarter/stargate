@@ -953,8 +953,11 @@ function actualizarRecompensas() {
     guardarProgreso_("formularios", null);
   }
   var r = actualizarFormularios_();
-  ui.alert(r.terminado ? "Formularios actualizados" : "Actualizaci\u00f3n en marcha (va por lotes)",
-    (r.terminado
+  ui.alert(r.atascado ? "Actualizaci\u00f3n DETENIDA" : r.terminado ? "Formularios actualizados" : "Actualizaci\u00f3n en marcha (va por lotes)",
+    (r.atascado
+      ? "Me he parado solo tras varios intentos sin avanzar, para no quedarme dando vueltas y " +
+        "gastar cuota. Abajo tienes d\u00f3nde se atasc\u00f3. Lo dem\u00e1s S\u00cd est\u00e1 aplicado."
+      : r.terminado
       // v3.17 - "Listo: 1 de 1" aunque hubiera fallos hacia creer que estaba todo hecho. Se cuentan.
       ? (r.fallos.length ? "Revisados " + r.hechos + " grupos de " + r.total + ", pero hay " + r.fallos.length +
                            " cosas que NO se pudieron hacer (abajo)."
@@ -1066,6 +1069,23 @@ function actualizarFormularios_() {
   // mismo sitio. Volver a pulsar el menu no arreglaba nada: repetia el mismo suicidio.
   // Ahora el disparador se crea ANTES y se cancela al terminar, y el progreso se guarda despues de
   // CADA fase. Un corte en seco ya no cuesta el trabajo hecho.
+  //  11-sep, tercera leccion del mismo dia: UN REINTENTO SIN TOPE ES UN BUCLE INFINITO.
+  // Con el progreso ya bien guardado y sin solapes, la tanda se quedo dando vueltas TRES HORAS:
+  // una pasada cada 8 minutos, todas agotando los 6 minutos, sin avanzar. Algo de un grupo no cabe
+  // en una pasada y no sabe partirse, asi que reintentar eternamente solo quema cuota - y la cuota
+  // es compartida con los disparadores que SI importan (el que procesa cada respuesta de
+  // formulario). Un sistema de mantenimiento cero no puede tener bucles sin salida: mejor pararse y
+  // decir donde se atasco.
+  pr.vueltas = (pr.vueltas || 0) + 1;
+  if (pr.vueltas > MAX_VUELTAS_FORM) {
+    cancelarContinuacion_("continuarActualizarFormularios");
+    guardarProgreso_("formularios", null);
+    var atasco = "Se par\u00f3 tras " + (pr.vueltas - 1) + " intentos sin avanzar. Atascado en el grupo " +
+                 (pr.i + 1) + " de " + pers.length + ", fase " + pr.fase + ".";
+    Logger.log("actualizarFormularios_: " + atasco);
+    return { terminado: false, atascado: true, hechos: pr.n, total: pers.length,
+             canjes: pr.canjes, fallos: (pr.fallos || []).concat([atasco]) };
+  }
   // 7 minutos: mas que el corte duro. Si la pasada acaba bien, al final se re-arma a 1 minuto; si
   // muere en seco, este salta y la retoma. Nunca dos pasadas a la vez.
   programarContinuacion_("continuarActualizarFormularios", 420000);
@@ -2564,6 +2584,9 @@ var MARGEN_MS = 270000;          // 4,5 min de trabajo efectivo; el resto es mar
 // medio se comia el margen de cierre entero y rozaba el corte duro de los 6 minutos. Con esto solo
 // se empiezan si quedan al menos 90 s de trabajo efectivo por delante.
 var MARGEN_FASE_MS = 90000;
+// Cuantas pasadas seguidas se le dan a "Actualizar formularios" antes de rendirse y decirlo. Con
+// dos grupos sobran 12: si en doce intentos no ha terminado, no va a terminar.
+var MAX_VUELTAS_FORM = 12;
 var PROP_TAREA = "TAREA_";
 
 function reloj_() { var t0 = new Date().getTime(), algo = false, ultimo = t0;
