@@ -15,6 +15,11 @@ const leer = f => fs.readFileSync(path.join(RAIZ, f), "utf8");
 console.log("\n▶ 45 · La Nave nace cerrada");
 
 const R = leer("assets/js/recluta.js");
+// 🔴 Para comprobar «este código NO está», hay que mirar el CÓDIGO, no los comentarios: la primera
+// versión de la comprobación de abajo daba roja porque yo mismo escribí «no se usa location.reload()»
+// en un comentario explicando por qué no lo usaba. Ya me pasó en la batería 43 con un comentario
+// HTML. Mismo error, distinto lenguaje.
+const CODIGO = R.replace(/^\s*\/\/.*$/gm, "");
 
 // ---------------------------------------------------------------- a) sin identificar, solo la puerta
 c(/root\.innerHTML = avisoDemo \+ \(dentro/.test(R),
@@ -120,7 +125,7 @@ c(!/🪐 Mercado|🧱 Mercado|📓 Mercado/.test(R),
 c(/if\(envio\) refrescar\(\);/.test(R), "🔴 al cerrar la ventana se refresca la ficha");
 c(/cargas\+\+; if\(cargas>1\) envio=true;/.test(R),
   "   pero SOLO si el formulario llegó a enviarse (se detecta por la segunda carga del iframe)");
-c(/function refrescar\(\)/.test(R) && !/location\.reload/.test(R),
+c(/function refrescar\(\)/.test(R) && !/location\.reload/.test(CODIGO),
   "🔬 y se repinta pidiendo los datos, sin recargar la página: no se pierde la pestaña ni el scroll");
 
 E.resumen("La Nave nace cerrada");
