@@ -3161,7 +3161,63 @@ function resolverCanje_(o, sh, fila) {
 }
 
 // ================= TABLERO =================
-function tablero_(perId, conPrivados) {
+// v3.66 · LA CACHE DEL TABLERO. Medido en produccion: calcular el tablero cuesta ~2 s con 12
+// reclutas y 10 s en el peor caso. Como cada visita a la Nave lo recalcula ENTERO para devolver UNA
+// ficha, con 200 alumnos por PER abriendo la Nave en la misma clase se juntan 200 peticiones contra
+// el tope de 30 ejecuciones simultaneas de Apps Script: el primero espera y el resto recibe error.
+// Con la cache, la primera paga el calculo y las otras 199 leen memoria.
+// 🔴 LA CLAVE LLEVA EL ESTADO DE LAS HOJAS, no solo el PER. Primero lo monte con caducidad corta e
+// invalidacion a mano en los tres sitios que se me ocurrieron, y el banco lo tumbo al instante: 50
+// fallos en 20 baterias, porque se escribe desde MUCHOS mas puntos de los que engancie. Contar
+// puntos de escritura a mano es una carrera que se pierde. Ahora la clave incluye cuantas filas
+// tienen las hojas que alimentan el tablero: cualquier apunte nuevo cambia la clave y la cache
+// caduca sola, sin que nadie tenga que acordarse. `getLastRow()` cuesta milisegundos; recalcular,
+// segundos.
+// Lo unico que no detecta es EDITAR una fila que ya existia (editar la Bitacora no añade fila), y
+// para eso esta la caducidad de 45 s: como mucho, tres cuartos de minuto de retraso.
+var CACHE_TABLERO_S = 45, CACHE_TROZO = 90000;
+function cacheTableroLeer_(k) {
+  try {
+    var c = CacheService.getScriptCache(), n = Number(c.get(k + "_n") || 0);
+    if (!n) return null;
+    var ks = []; for (var i = 0; i < n; i++) ks.push(k + "_" + i);
+    var todo = c.getAll(ks), txt = "";
+    for (var j = 0; j < n; j++) { var t = todo[k + "_" + j]; if (t == null) return null; txt += t; }
+    return JSON.parse(txt);
+  } catch (e) { return null; }
+}
+function cacheTableroGuardar_(k, obj) {
+  try {
+    var txt = JSON.stringify(obj), c = CacheService.getScriptCache(), m = {}, n = 0;
+    for (var i = 0; i < txt.length; i += CACHE_TROZO) { m[k + "_" + n] = txt.substring(i, i + CACHE_TROZO); n++; }
+    if (n > 8) return;                       // demasiado grande: mejor sin cache que a medias
+    m[k + "_n"] = String(n);
+    c.putAll(m, CACHE_TABLERO_S);
+  } catch (e) {}
+}
+// Huella barata del estado: si cambia, el tablero cambió.
+function selloTablero_(o) {
+  var ss = SpreadsheetApp.getActive(), n = [];
+  [o.tabB, o.tabC, o.tabT].forEach(function(t){ var h = t && ss.getSheetByName(t); n.push(h ? h.getLastRow() : 0); });
+  [H.EV, H.AJ].forEach(function(t){ try { n.push(hoja_(t).getLastRow()); } catch (e) { n.push(0); } });
+  return n.join(".");
+}
+// 🔴 Y LA CACHE SOLO SE USA DESDE FUERA, nunca desde dentro del motor. Al ponerla en `tablero_`
+// para todo el mundo, el banco se puso rojo en 20 baterias: `resolverCanje_` y compania llaman al
+// tablero, escriben, y vuelven a llamarlo esperando ver su propia escritura. Una cache es segura
+// para CONTESTAR a un navegador y venenosa en medio de una transaccion. Por eso hay que pedirla
+// (`tableroCache_`) en vez de recibirla sin querer.
+function tableroCache_(perId, conPrivados) {
+  var pf = perFila_(perId); if (!pf) return tableroCalcular_(perId, conPrivados);
+  var ck = "TAB_" + perId + (conPrivados ? "_p" : "_x") + "_" + selloTablero_(perObj_(pf.v));
+  var hit = cacheTableroLeer_(ck);
+  if (hit) return hit;
+  var res = tableroCalcular_(perId, conPrivados);
+  if (res && !res.error) cacheTableroGuardar_(ck, res);
+  return res;
+}
+function tablero_(perId, conPrivados) { return tableroCalcular_(perId, conPrivados); }
+function tableroCalcular_(perId, conPrivados) {
   var p = perFila_(perId); if (!p) return { error: "PER no encontrado: " + perId }; var o = perObj_(p.v);
   var retos = retosDe_(o.tipo); var porId = {}; retos.forEach(function(x){ porId[x[0]] = x; });
   var por = {};
@@ -3502,68 +3558,6 @@ function colorearHoja() {
 }
 
 // ================= DATOS / RESUMEN (investigación) =================
-function consolidarDatos() {
-  var ss = SpreadsheetApp.getActive(); var pers = hoja_(H.PERS).getDataRange().getValues().slice(1);
-  // 🔬 v3.23 · el DOCENTE era la variable que faltaba. El sistema sabe desde v3.11 quién imparte a
-  // cada alumno (la ficha lleva `profe` y clase.html filtra por él), pero no salía en NINGUNA de las
-  // dos exportaciones — justo la que hace falta para estudiar si lo que hace el docente en clase
-  // cambia algo. Los tableros se calculan UNA vez y se reparten entre las dos pestañas.
-  var tabs = {}, deQuien = {};
-  pers.forEach(function(p){
-    if (!p[0]) return;
-    try {
-      var t = tablero_(p[0], true); tabs[p[0]] = t;
-      (t.reclutas || []).forEach(function(x){ deQuien[p[0] + "·" + x.email] = x.profe || ""; });
-    } catch (e) { Logger.log("consolidarDatos/" + p[0] + ": " + e); }
-  });
-  var soloEstos = consienten_();
-  // Las filas SIN correo (p. ej. el sello del catálogo) no son de nadie: pasan siempre.
-  var pasa = function(em) { return !em || !soloEstos || !!soloEstos[em]; };
-  var quien = function(per, em) { return deQuien[per + "·" + em] || ""; };
-  // 🔴 Los campos libres arrastran correos sin que se note: el aviso de un canje de nota guarda en
-  // AJUSTES A QUIÉN se le avisó, o sea las direcciones del PROFESORADO, y de ahí salían enteras por
-  // la columna «origen». Seudonimizar solo la columna del correo no basta si el correo también viaja
-  // dentro de un texto. Lo cazó la batería 5 comprobando que no queda ni una «@» en las dos pestañas.
-  var limpio = function(t) { return String(t == null ? "" : t).replace(/[^\s,;·]+@[^\s,;·]+/g, "(correo)"); };
-  var tipoDe = function(id) { var p = pers.filter(function(x){ return x[0] === id; })[0]; return p ? p[2] : ""; };
-
-  // 🔴 Ni correo, ni alias, ni nombre: estas dos pestañas son PARA INVESTIGAR y salen seudonimizadas.
-  // Quien necesite ver nombres tiene la Consola del profesorado, que es la vista operativa.
-  var filas = [["per","tipo","fecha","seudonimo","docente","reto_id","reto","tema","xp","origen"]];
-  registros_(H.EV).forEach(function(v){
-    var em = String(v[2] || "").toLowerCase().trim(); if (!pasa(em)) return;
-    filas.push([v[1], tipoDe(v[1]), v[0], seudonimo_(em), quien(v[1], em), v[4], limpio(v[5]), v[6], v[7], limpio(v[8])]);
-  });
-  registros_(H.AJ).forEach(function(v){
-    var em = String(v[2] || "").toLowerCase().trim(); if (!pasa(em)) return;
-    filas.push([v[1], tipoDe(v[1]), v[0], seudonimo_(em), quien(v[1], em), v[3],
-                limpio(v[4] + (v[5] ? " · " + v[5] : "")), "", "", "ajuste:" + limpio(v[6])]);
-  });
-  var out = ss.getSheetByName(H.DATOS) || ss.insertSheet(H.DATOS); out.clearContents(); out.getRange(1,1,filas.length,filas[0].length).setValues(filas); out.setFrozenRows(1); out.setTabColor("#f5b043");
-
-  // `bitacora` deja de ser la URL del ePortfolio y pasa a ser SÍ/NO: la URL lleva al portfolio de una
-  // persona con su nombre, y eso rompía la seudonimización de todo lo demás. Lo analizable —si lo
-  // publicó o no— se conserva.
-  var res = [["per","tipo","seudonimo","docente","xp","nivel","creditos","creditos_ganados","n_insignias","tema_max","insignias","tiene_bitacora"]];
-  pers.forEach(function(p){
-    if (!p[0] || !tabs[p[0]]) return;
-    (tabs[p[0]].reclutas || []).forEach(function(x){
-      if (!pasa(String(x.email || "").toLowerCase().trim())) return;
-      res.push([p[0], p[2], seudonimo_(x.email), x.profe || "", x.xp, x.nivel, x.creditos,
-                x.creditos_ganados, x.n, x.tema, x.insignias.join(" "), x.bitacora ? "SÍ" : ""]);
-    });
-  });
-  var rs = ss.getSheetByName(H.RES) || ss.insertSheet(H.RES); rs.clearContents(); rs.getRange(1,1,res.length,res[0].length).setValues(res); rs.setFrozenRows(1);
-}
-
-// ================= CONSOLA (segunda hoja de cálculo, limpia) =================
-// La hoja maestra es la materia prima: sus 3 pestañas de respuestas por PER la vuelven ilegible en
-// cuanto hay varios grupos. Esta función mantiene un SEGUNDO archivo de Google Sheets, «STARGATE ·
-// Consola del profesorado», con una portada de todos los PER y una pestaña por PER con lo que de
-// verdad se consulta. Es una FOTO: se rehace desde el menú y sola una vez al día. No se escribe nada
-// en ella a mano (se borra al refrescar) y no interviene en el juego: si se borra, no pasa nada.
-var PROP_CONSOLA = "CONSOLA_ID";
-
 function consolaSS_() {
   var pr = PropertiesService.getScriptProperties(), id = pr.getProperty(PROP_CONSOLA), ss = null;
   if (id) { try { ss = SpreadsheetApp.openById(id); DriveApp.getFileById(id); } catch (e) { ss = null; } }
@@ -3917,7 +3911,7 @@ function doGet(e) {
   }
   if (per === "all") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0] && !v[21]; })
       .map(function(v){ var o = perObj_(v); return { id:o.id, nombre:o.nombre, tipo:o.tipo, estado:o.estado, inicio:o.inicio }; }) };
-  else out = tablero_(per, false);
+  else out = tableroCache_(per, false);
   return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
 }
 function doPost(e) {
@@ -3926,7 +3920,7 @@ function doPost(e) {
     var q = JSON.parse(e.postData.contents || "{}");
     // identificación del recluta (sin PIN): devuelve SOLO la ficha del correo indicado; nunca lista correos
     if (q.accion === "quien") {
-      var tq = tablero_(q.per, true); if (tq.error) throw new Error(tq.error);
+      var tq = tableroCache_(q.per, true); if (tq.error) throw new Error(tq.error);
       // v3.65 · Con token, el correo lo pone GOOGLE y no el navegador. Es lo que cierra el agujero:
       // hasta ahora bastaba teclear el correo de un companero para ver su ficha —su nombre, su
       // correo y su progreso—, porque el servidor se creia lo que le mandaran.

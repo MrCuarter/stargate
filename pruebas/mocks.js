@@ -419,6 +419,23 @@ const Fetch = {
     return { getBlob: () => blob, getContentText: () => (pre ? pre.cuerpo : ""), getResponseCode: () => cod };
   }
 };
+// v3.66 · CacheService. Sin esto, la caché del tablero se comportaba como un no-op silencioso: el
+// try/catch se tragaba el «CacheService is not defined» y la batería pasaba en verde sin haber
+// cacheado nada. Una caché que no cachea y no lo dice es peor que no tenerla.
+const Cache = {
+  datos: {}, puestas: 0, quitadas: 0,
+  vaciar() { Cache.datos = {}; Cache.puestas = 0; Cache.quitadas = 0; },
+  getScriptCache() { return Cache._api; },
+  getUserCache() { return Cache._api; },
+  _api: {
+    get(k) { return Object.prototype.hasOwnProperty.call(Cache.datos, k) ? Cache.datos[k] : null; },
+    getAll(ks) { const o = {}; (ks || []).forEach(k => { if (Object.prototype.hasOwnProperty.call(Cache.datos, k)) o[k] = Cache.datos[k]; }); return o; },
+    put(k, v) { Cache.datos[k] = String(v); Cache.puestas++; },
+    putAll(m) { Object.keys(m || {}).forEach(k => { Cache.datos[k] = String(m[k]); }); Cache.puestas++; },
+    remove(k) { delete Cache.datos[k]; Cache.quitadas++; },
+    removeAll(ks) { (ks || []).forEach(k => delete Cache.datos[k]); Cache.quitadas++; }
+  }
+};
 const Mimes = {
   GOOGLE_FORMS: "application/vnd.google-apps.form",
   GOOGLE_SHEETS: "application/vnd.google-apps.spreadsheet",
@@ -431,6 +448,6 @@ const Sesion = {
   getScriptTimeZone: () => "Europe/Madrid"
 };
 
-module.exports = { Rango, Hoja, Libro, UI, Archivo, Carpeta, Drive, Docs, Documento,
+module.exports = { Cache, Rango, Hoja, Libro, UI, Archivo, Carpeta, Drive, Docs, Documento,
                    Props, Correo, Cerrojo, Utils, Guiones, Contenido, Html, Fetch, Mimes,
                    Sesion, reloj, FakeDate, RealDate, iterador, cronometro, DateCron };

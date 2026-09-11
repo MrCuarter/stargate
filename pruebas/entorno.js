@@ -102,7 +102,7 @@ function nuevoMundo() {
     SpreadsheetApp, DriveApp: M.Drive, DocumentApp: M.Docs, FormApp,
     PropertiesService: M.Props, MailApp: M.Correo, GmailApp: M.Correo, LockService: M.Cerrojo,
     Utilities: M.Utils, ScriptApp: M.Guiones, ContentService: M.Contenido, HtmlService: M.Html,
-    UrlFetchApp: M.Fetch, MimeType: M.Mimes, Session: M.Sesion, Logger,
+    UrlFetchApp: M.Fetch, MimeType: M.Mimes, Session: M.Sesion, CacheService: M.Cache, Logger,
     console, JSON, Math: Object.assign(Object.create(Math), { random: aleatorio }),
     // 🔴 el Date del contexto es el del CRONÓMETRO: la hora de verdad más lo que hayan costado las
     // escrituras de Forms. Con `cronometro.coste = 0` (lo normal) es exactamente el Date de siempre.

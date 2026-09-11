@@ -936,3 +936,69 @@ function sembrarDemo() {
   ui.alert("Siembra hecha", r.nuevos + " reclutas nuevos (" + r.yaEstaban + " ya estaban) · " +
     r.eventos + " registros en EVENTOS.\n\nMíralos en el tablero o en la pestaña ALUMNADO.", ui.ButtonSet.OK);
 }
+
+// ═══ CONSOLIDAR DATOS / RESUMEN (investigación) ═════════════════════════════════════════════════
+// Mudado desde Code.gs el 11-sep (séptima vez que roza el techo de Apps Script). No tiene nada que
+// ver con el motor del juego: vuelca EVENTOS y AJUSTES a las pestañas de investigación. Se elige
+// siempre lo más periférico para mudar, nunca algo del camino caliente.
+function consolidarDatos() {
+  var ss = SpreadsheetApp.getActive(); var pers = hoja_(H.PERS).getDataRange().getValues().slice(1);
+  // 🔬 v3.23 · el DOCENTE era la variable que faltaba. El sistema sabe desde v3.11 quién imparte a
+  // cada alumno (la ficha lleva `profe` y clase.html filtra por él), pero no salía en NINGUNA de las
+  // dos exportaciones — justo la que hace falta para estudiar si lo que hace el docente en clase
+  // cambia algo. Los tableros se calculan UNA vez y se reparten entre las dos pestañas.
+  var tabs = {}, deQuien = {};
+  pers.forEach(function(p){
+    if (!p[0]) return;
+    try {
+      var t = tablero_(p[0], true); tabs[p[0]] = t;
+      (t.reclutas || []).forEach(function(x){ deQuien[p[0] + "·" + x.email] = x.profe || ""; });
+    } catch (e) { Logger.log("consolidarDatos/" + p[0] + ": " + e); }
+  });
+  var soloEstos = consienten_();
+  // Las filas SIN correo (p. ej. el sello del catálogo) no son de nadie: pasan siempre.
+  var pasa = function(em) { return !em || !soloEstos || !!soloEstos[em]; };
+  var quien = function(per, em) { return deQuien[per + "·" + em] || ""; };
+  // 🔴 Los campos libres arrastran correos sin que se note: el aviso de un canje de nota guarda en
+  // AJUSTES A QUIÉN se le avisó, o sea las direcciones del PROFESORADO, y de ahí salían enteras por
+  // la columna «origen». Seudonimizar solo la columna del correo no basta si el correo también viaja
+  // dentro de un texto. Lo cazó la batería 5 comprobando que no queda ni una «@» en las dos pestañas.
+  var limpio = function(t) { return String(t == null ? "" : t).replace(/[^\s,;·]+@[^\s,;·]+/g, "(correo)"); };
+  var tipoDe = function(id) { var p = pers.filter(function(x){ return x[0] === id; })[0]; return p ? p[2] : ""; };
+
+  // 🔴 Ni correo, ni alias, ni nombre: estas dos pestañas son PARA INVESTIGAR y salen seudonimizadas.
+  // Quien necesite ver nombres tiene la Consola del profesorado, que es la vista operativa.
+  var filas = [["per","tipo","fecha","seudonimo","docente","reto_id","reto","tema","xp","origen"]];
+  registros_(H.EV).forEach(function(v){
+    var em = String(v[2] || "").toLowerCase().trim(); if (!pasa(em)) return;
+    filas.push([v[1], tipoDe(v[1]), v[0], seudonimo_(em), quien(v[1], em), v[4], limpio(v[5]), v[6], v[7], limpio(v[8])]);
+  });
+  registros_(H.AJ).forEach(function(v){
+    var em = String(v[2] || "").toLowerCase().trim(); if (!pasa(em)) return;
+    filas.push([v[1], tipoDe(v[1]), v[0], seudonimo_(em), quien(v[1], em), v[3],
+                limpio(v[4] + (v[5] ? " · " + v[5] : "")), "", "", "ajuste:" + limpio(v[6])]);
+  });
+  var out = ss.getSheetByName(H.DATOS) || ss.insertSheet(H.DATOS); out.clearContents(); out.getRange(1,1,filas.length,filas[0].length).setValues(filas); out.setFrozenRows(1); out.setTabColor("#f5b043");
+
+  // `bitacora` deja de ser la URL del ePortfolio y pasa a ser SÍ/NO: la URL lleva al portfolio de una
+  // persona con su nombre, y eso rompía la seudonimización de todo lo demás. Lo analizable —si lo
+  // publicó o no— se conserva.
+  var res = [["per","tipo","seudonimo","docente","xp","nivel","creditos","creditos_ganados","n_insignias","tema_max","insignias","tiene_bitacora"]];
+  pers.forEach(function(p){
+    if (!p[0] || !tabs[p[0]]) return;
+    (tabs[p[0]].reclutas || []).forEach(function(x){
+      if (!pasa(String(x.email || "").toLowerCase().trim())) return;
+      res.push([p[0], p[2], seudonimo_(x.email), x.profe || "", x.xp, x.nivel, x.creditos,
+                x.creditos_ganados, x.n, x.tema, x.insignias.join(" "), x.bitacora ? "SÍ" : ""]);
+    });
+  });
+  var rs = ss.getSheetByName(H.RES) || ss.insertSheet(H.RES); rs.clearContents(); rs.getRange(1,1,res.length,res[0].length).setValues(res); rs.setFrozenRows(1);
+}
+
+// ================= CONSOLA (segunda hoja de cálculo, limpia) =================
+// La hoja maestra es la materia prima: sus 3 pestañas de respuestas por PER la vuelven ilegible en
+// cuanto hay varios grupos. Esta función mantiene un SEGUNDO archivo de Google Sheets, «STARGATE ·
+// Consola del profesorado», con una portada de todos los PER y una pestaña por PER con lo que de
+// verdad se consulta. Es una FOTO: se rehace desde el menú y sola una vez al día. No se escribe nada
+// en ella a mano (se borra al refrescar) y no interviene en el juego: si se borra, no pasa nada.
+var PROP_CONSOLA = "CONSOLA_ID";
