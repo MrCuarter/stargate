@@ -1767,8 +1767,10 @@ CLASE = head("STARGATE · Mi clase", "La sala del docente: tus grupos, lo que re
 <p>Todo lo que necesitas antes de entrar al aula, en una página: <b>lo que requiere tu intervención</b>,
 la orden de la semana, las <b>dudas del ticket de salida</b> filtrables por tema y fecha, y <b>tu gente</b>
 —con sus errores corregibles desde aquí—. Las hojas de cálculo y el Drive son cosa del profe referente.</p>
-<p class="small muted"><b>Entra con el PIN</b> que te dé el profe referente y <b>elige tu nombre</b>:
-solo la primera vez. Después este navegador te reconoce y llegas directo a tu clase.</p></header>
+<p class="small muted"><b>Entra con el PIN</b> que te dé el profe referente y escribe <b>tu correo</b>
+(preferiblemente el de UNIR, el mismo con el que figuras en el equipo docente): solo la primera vez.
+Después este navegador te reconoce y llegas directo a tu clase. Si tu correo todavía no está en
+ningún grupo, entras igual y te dejo la <b>clase de prácticas</b> para explorarlo sin romper nada.</p></header>
 <section><div class="wrap"><div id="clase-app"></div>
 <script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_SEMANAS={SEMANAS_JSON};window.SG_TOUR_LOCAL={json.dumps(TOUR_CLASE, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";</script>
 <script src="assets/js/clase.js" defer></script>

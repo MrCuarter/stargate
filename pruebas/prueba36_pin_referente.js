@@ -30,7 +30,9 @@ const DOCENTE = "sg2026docente", REFERENTE = "sg2026-referente-largo";
 const DIA_A_DIA = ["pers","alumnos","tickets","ticket_resuelto","ficha","ajuste","entregado",
                    "pase_abrir","pase_estado","mi_panel","canje_revertir",
                    "pendientes","pendiente_resolver"];
-const RESERVADAS = ["profesorado","inicio","abrir","cerrar","archivar","panel","documento"];
+// v3.62 · «traspasar» (pasar los alumnos de un docente a otro) entra aquí: reasigna a TODO el
+// grupo de una persona, así que es del referente, no del día a día.
+const RESERVADAS = ["profesorado","traspasar","inicio","abrir","cerrar","archivar","panel","documento"];
 
 function mundo(pinDocente, pinReferente) {
   const G = E.nuevoMundo();
@@ -112,7 +114,7 @@ const enElCodigo = {};
 (tramo.match(/\ba === "([a-z_]+)"/g) || []).forEach(x => { enElCodigo[x.match(/"([a-z_]+)"/)[1]] = true; });
 const sinClasificar = Object.keys(enElCodigo).filter(a => DIA_A_DIA.indexOf(a) < 0 && RESERVADAS.indexOf(a) < 0);
 igual(sinClasificar, [], "🔴 toda acción de doPost tiene su nivel decidido (si esto falla, hay una nueva sin clasificar)");
-igual(Object.keys(enElCodigo).length, 20, "y siguen siendo 20");
+igual(Object.keys(enElCodigo).length, 21, "y siguen siendo 21");
 
 // ---------------------------------------------------------------- e) queda traza de quién tocó qué
 // Con dos niveles, saber quién recalendarizó o archivó deja de ser opcional.

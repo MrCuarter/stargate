@@ -89,6 +89,30 @@
       +'<td><button class="btn small" data-quitar="'+i+'">✕</button></td></tr>';}
   // v3.14 · 2026-12-27 -> 27/12/2026
   function fecha(iso){ if(!iso) return '—'; var p=String(iso).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:esc(String(iso)); }
+  // v3.62 · el diálogo de traspaso. Se enseña UNA vez por docente huérfano, con la cuenta delante:
+  // «Ana ya no está en el equipo y 18 alumnos siguen con su nombre». Saltárselo es legítimo (quizá
+  // vuelve la semana que viene), así que se puede cerrar sin hacer nada.
+  function traspaso(huerfanos, vivos){
+    var h=huerfanos[0];
+    if(!h){ cargarPer(); return; }
+    var resto=huerfanos.slice(1);
+    if(!vivos.length){
+      alert('«'+h.nombre+'» ya no está en el equipo y '+h.alumnos+' alumnos siguen con su nombre, '
+            +'pero no queda nadie que imparta a quien pasárselos.');
+      traspaso(resto,vivos); return;
+    }
+    var op=vivos.map(function(n,i){return (i+1)+') '+n;}).join('\n');
+    var r=prompt('«'+h.nombre+'» ya no está en el equipo docente y '+h.alumnos+' alumno(s) siguen '
+      +'con su nombre puesto en la Bitácora.\n\n¿A quién se los paso? Escribe el número, o deja '
+      +'vacío para no tocar nada.\n\n'+op);
+    if(!r||!r.trim()){ traspaso(resto,vivos); return; }
+    var i=parseInt(r.trim(),10)-1;
+    if(!(i>=0&&i<vivos.length)){ alert('Número no válido. No se ha cambiado nada.'); traspaso(resto,vivos); return; }
+    post({accion:'traspasar',per:st.per,de:h.nombre,a:vivos[i],profe:yo()},function(res){
+      alert((res&&res.cambiados||0)+' alumno(s) pasan de «'+h.nombre+'» a «'+vivos[i]+'».');
+      traspaso(resto,vivos);
+    });
+  }
   function vPer(v){var d=st.datos;var docs=(d.docentes_full||[]).slice();if(!docs.length)docs=[{nombre:d.referente||'',correo:'',rol:'referente+imparte'}];
     v.innerHTML='<div class="grid cols-2"><div class="card"><h3>Equipo docente</h3>'
       +'<p class="small muted">El <b>referente</b> gestiona el PER: puede tocar el grupo entero. Pueden ser <b>varios</b> (el titular y su ayudante). <b>Imparte</b> marca a quien da clase: son los nombres que ve el alumnado en su Bitácora y en el ticket. El referente puede ser las dos cosas. El <b>correo</b> es a quien se avisa cuando un canje necesita que alguien suba una nota.</p>'
@@ -136,7 +160,15 @@
       if(malos.length){alert('Revisa el correo de '+malos[0].nombre);return;}
       post({accion:'profesorado',per:st.per,referente:ref,
             profesorado:docentes.filter(function(x){return /imparte/.test(x.rol)&&x.nombre!==ref;}).map(function(x){return x.nombre;}).join(', '),
-            docentes:docentes,profe:yo()},function(){cargarPer();});};
+            docentes:docentes,profe:yo()},function(r){
+        if(r&&r.aviso) alert(r.aviso);
+        // v3.62 · quien sale del equipo deja alumnos con su nombre puesto. Antes había que
+        // arreglarlo de uno en uno desde la ficha; ahora se ofrece pasarlos de golpe, AQUÍ, que es
+        // el único momento en que alguien se acuerda de que existe el problema.
+        var h=(r&&r.huerfanos)||[];
+        if(h.length) traspaso(h, docentes.filter(function(x){return /imparte/.test(x.rol);}).map(function(x){return x.nombre;}));
+        else cargarPer();
+      });};
     document.getElementById('gini').onclick=function(){post({accion:'inicio',per:st.per,inicio:document.getElementById('ini').value,profe:yo()},function(){cargarPer();});};
     document.getElementById('abrir').onclick=function(){post({accion:'abrir',per:st.per,profe:yo()},function(){cargarPer();});};
     document.getElementById('cerrar').onclick=function(){if(confirm('¿Cerrar los formularios de este PER?'))post({accion:'cerrar',per:st.per,profe:yo()},function(){cargarPer();});};}

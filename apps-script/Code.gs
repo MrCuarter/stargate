@@ -1550,6 +1550,43 @@ function correosAviso_(perId, nombreDocente) {
   });
   return out;
 }
+// v3.62 · PASAR LOS ALUMNOS DE UN DOCENTE A OTRO.
+// Norberto, 11-sep: «a veces entran profesores a mitad de PER o abandonan». Quitar a alguien del
+// equipo docente era facil; lo que no lo era es que sus 20 alumnos seguian con su nombre puesto en
+// la Bitacora, y arreglarlo iba de uno en uno desde la ficha.
+// 🔴 Se escribe en la PESTANA de respuestas, que es la fuente: el alumno declaro ahi a su docente y
+// de ahi lo lee todo lo demas (tablero, sala, avisos). Tocar solo ALUMNADO no serviria: se regenera.
+function traspasarDocente_(perId, de, a) {
+  de = String(de || "").trim(); a = String(a || "").trim();
+  if (!de) throw new Error("Falta el docente de origen");
+  if (de === a) throw new Error("El de origen y el de destino son el mismo");
+  var o = perObj_(perFila_(perId).v);
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabB);
+  if (!sh || sh.getLastRow() < 2) return { cambiados: 0, de: de, a: a };
+  var cab = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String);
+  var c = idxExacto_(cab, TIT_DOCENTE); if (c < 0) c = idx_(cab, "imparte tu clase");
+  if (c < 0) throw new Error("La Bitacora de este grupo no tiene la pregunta del docente");
+  var n = sh.getLastRow() - 1;
+  var col = sh.getRange(2, c + 1, n, 1);
+  var v = col.getValues(), tocados = 0;
+  for (var i = 0; i < v.length; i++) if (String(v[i][0]).trim() === de) { v[i][0] = a; tocados++; }
+  if (tocados) col.setValues(v);
+  // ALUMNADO es una vista: si no se regenera, la pestana seguiria diciendo lo de antes.
+  if (tocados) { try { alumnado_(); } catch (e) {} }
+  return { cambiados: tocados, de: de, a: a };
+}
+// v3.62 · El desplegable «¿Quien imparte tu clase?» de la BITACORA se quedaba con el equipo viejo
+// hasta que alguien corriera «Actualizar formularios» (6 minutos, y hay que acordarse). El del
+// ticket ya se refrescaba aqui mismo; este no, y era el que de verdad importa.
+function sincronizarDocentesBitacora_(perId, referente, profesorado) {
+  var o = perObj_(perFila_(perId).v);
+  var fb = FormApp.openByUrl(o.formBitacoraEdit);
+  var it = fb.getItems(FormApp.ItemType.LIST)
+    .filter(function(i){ return i.getTitle() === TIT_DOCENTE; })[0];
+  if (!it) return false;
+  cambioValores_(it.asListItem(), listaProfes_(referente, profesorado, perId));
+  return true;
+}
 function listaProfes_(referente, profesores, perId) {
   var l = [];
   if (perId) {
@@ -3858,7 +3895,7 @@ function continuarReprocesarCanjes() {
 // docente. Son acciones que afectan a TODO el alumnado de un grupo.
 // La pantalla del PIN sigue siendo la misma: nadie tiene que saber por dónde entrar. El servidor
 // mira qué PIN han tecleado y decide qué abre.
-var ACCIONES_REFERENTE = ["profesorado", "inicio", "abrir", "cerrar", "archivar", "panel", "documento"];
+var ACCIONES_REFERENTE = ["profesorado", "traspasar", "inicio", "abrir", "cerrar", "archivar", "panel", "documento"];
 function nivelDePin_(pin) {
   var pr = PropertiesService.getScriptProperties();
   var docente = pr.getProperty("PIN_PROFES") || "", referente = pr.getProperty("PIN_REFERENTE") || "";
@@ -4038,7 +4075,22 @@ function doPost(e) {
     else if (a === "profesorado") { var p = perFila_(per); var sh4 = hoja_(H.PERS); sh4.getRange(p.fila, 4).setValue(q.profesorado || ""); sh4.getRange(p.fila, 17).setValue(q.referente || "");
       if (q.docentes) guardarDocentes_(per, q.docentes);
       try { var o4 = perObj_(perFila_(per).v); var ftx = FormApp.openByUrl(o4.formTicketEdit); ftx.getItems(FormApp.ItemType.LIST).forEach(function(i){ if (i.getTitle().indexOf("profesor o profesora") >= 0) i.asListItem().setChoiceValues(listaProfes_(q.referente, q.profesorado, per)); }); } catch (e2) {}
-      out = { ok:true }; }
+      // v3.62 · y el de la BITACORA, que es el que ata cada alumno a su docente
+      var avisoForm = "";
+      try { sincronizarDocentesBitacora_(per, q.referente, q.profesorado); }
+      catch (e6) { avisoForm = "El equipo se ha guardado, pero no he podido refrescar el desplegable de la Bitacora: " + e6.message; }
+      // quien se ha quedado fuera y todavia tiene alumnos: la sala lo usa para ofrecer el traspaso
+      var huerfanos = [];
+      try {
+        var vivos = {}; docentesDe_(per).forEach(function(d){ vivos[d.nombre] = true; });
+        var cuenta = {};
+        tablero_(per, true).reclutas.forEach(function(r){ var pn = String(r.profe || "").trim();
+          if (pn && !vivos[pn]) cuenta[pn] = (cuenta[pn] || 0) + 1; });
+        huerfanos = Object.keys(cuenta).map(function(k){ return { nombre:k, alumnos:cuenta[k] }; });
+      } catch (e7) {}
+      out = { ok:true, aviso:avisoForm, huerfanos:huerfanos }; }
+    // v3.62 · pasar de golpe todos los alumnos de un docente a otro
+    else if (a === "traspasar") out = traspasarDocente_(per, q.de, q.a);
     else if (a === "ficha") {
       var of = perObj_(perFila_(per).v); var shf = SpreadsheetApp.getActive().getSheetByName(of.tabB);
       if (!shf || shf.getLastRow() < 2) throw new Error("Ese grupo aún no tiene respuestas de la Bitácora");
