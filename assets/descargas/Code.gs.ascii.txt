@@ -1057,6 +1057,17 @@ function actualizarFormularios_() {
   // igual -sin esto, con el reloj justo el lote se quedaria parado para siempre.
   var hecho = false;
   var cabe = function(){ return !hecho || t.sobra(MARGEN_FASE_MS); };
+  //  11-sep - POR QUE SE ARMA LA RED ANTES DE SALTAR.
+  // El progreso se guardaba SOLO al salir del bucle, y la continuacion se programaba ahi mismo. Si
+  // Apps Script mata la ejecucion en seco a los 6 minutos -dentro de una fase, no entre fases- ese
+  // codigo NUNCA corre: no se guarda nada y no queda disparador. Resultado observado hoy: cinco
+  // pasadas seguidas de 360 s exactos, "Tiempo de espera agotado", y CERO ejecuciones de
+  // `continuarActualizarFormularios` en el registro. Cada pasada empezaba de cero y moria en el
+  // mismo sitio. Volver a pulsar el menu no arreglaba nada: repetia el mismo suicidio.
+  // Ahora el disparador se crea ANTES y se cancela al terminar, y el progreso se guarda despues de
+  // CADA fase. Un corte en seco ya no cuesta el trabajo hecho.
+  programarContinuacion_("continuarActualizarFormularios");
+  var apuntar = function(){ try { guardarProgreso_("formularios", pr); } catch (e) {} };
   while (pr.i < pers.length && t.puedo()) {
     var v = pers[pr.i];
     if (pr.fase === 0) {
@@ -1065,7 +1076,7 @@ function actualizarFormularios_() {
             f.setDescription(DESC_CANJE);
             reestructurarCanje_(f, perObj_(v)); pr.canjes++; }
       catch (e) { pr.fallos.push(String(v[1]) + " (canje): " + e.message); }
-      pr.fase = 1; hecho = true; t.marcar();
+      pr.fase = 1; hecho = true; t.marcar(); apuntar();
       if (!t.puedo()) break;
     }
     if (pr.fase === 1) {
@@ -1079,16 +1090,16 @@ function actualizarFormularios_() {
               if (pos >= 0) fbx.moveItem(bioIt.getIndex(), pos + 1); }
             acabada = reestructurarBitacora_(fbx, perObj_(v), t) !== false; }
       catch (e) { pr.fallos.push(String(v[1]) + " (bit\u00e1cora): " + e.message); }
-      hecho = true; t.marcar();
+      hecho = true; t.marcar(); apuntar();
       if (!acabada) break;    // sigue con ESTE MISMO PER, y en esta MISMA fase, en la pasada siguiente
-      pr.fase = 2;
+      pr.fase = 2; apuntar();
       if (!t.puedo()) break;
     }
     if (pr.fase === 2) {
       if (!cabe()) break;
       try { var ftx = formDelPER_(perObj_(v), "T"); if (ftx) { ajustesTicket_(ftx); anadirPuestaEnEscena_(ftx); bifurcarTicket_(ftx); } }
       catch (e) { pr.fallos.push(String(v[1]) + " (ticket): " + e.message); }
-      pr.fase = 3; hecho = true; t.marcar();
+      pr.fase = 3; hecho = true; t.marcar(); apuntar();
       if (!t.puedo()) break;
     }
     //  fase 3 - LAS IMAGENES. Sin esto solo las tendrian los PER recien creados, y los grupos que
@@ -1100,11 +1111,11 @@ function actualizarFormularios_() {
     try { var im = imagenesFormularios_(formDelPER_(perObj_(v), "B"), formDelPER_(perObj_(v), "T"), formDelPER_(perObj_(v), "C"), t);
           if (im.faltan) pr.fallos.push(String(v[1]) + " (imagenes): faltan " + im.faltan); }
     catch (e) { pr.fallos.push(String(v[1]) + " (imagenes): " + e.message); }
-    pr.i++; pr.n++; pr.fase = 0; hecho = true; t.marcar();
+    pr.i++; pr.n++; pr.fase = 0; hecho = true; t.marcar(); apuntar();
   }
   var terminado = pr.i >= pers.length;
   if (terminado) { guardarProgreso_("formularios", null); cancelarContinuacion_("continuarActualizarFormularios"); }
-  else { guardarProgreso_("formularios", pr); programarContinuacion_("continuarActualizarFormularios"); }
+  else apuntar();   // el disparador ya se armo al entrar
   return { terminado: terminado, hechos: pr.n, total: pers.length, canjes: pr.canjes, fallos: pr.fallos };
 }
 // Lo dispara el trigger de un minuto: sin interfaz, porque un trigger no tiene ventanas.
