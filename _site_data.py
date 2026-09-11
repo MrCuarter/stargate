@@ -212,7 +212,7 @@ def foro_por_semana():
 # protege la puerta es que el servidor comprueba que el token se emitio PARA este id (el campo
 # `aud`), no que el id sea privado.
 # Vacio = la prueba esta APAGADA: la pagina lo dice y no carga nada de Google.
-GOOGLE_CLIENT_ID = ""
+GOOGLE_CLIENT_ID = "631545413622-fpc6e9lteh6j9ikk79o2opdquh0a1art.apps.googleusercontent.com"
 
 # ---------- tablero de reclutas (web app de Apps Script en mutecdgami) ----------
 # URL del despliegue «Aplicación web» (termina en /exec). Vacío = tablero pendiente de conectar.
