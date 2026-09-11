@@ -448,6 +448,10 @@ CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55,
 #   · el registro de misiones (Bitácora) y el ticket cierran al ACABAR la última semana,
 #   · y el CANJE aguanta UNA SEMANA MÁS: se reclama lo ganado cuando ya no se gana nada.
 SEMANAS_PER = {"REGULAR": 15, "PUA": 8}   # duración del viaje, en semanas
+# 🔴 La semana en que se abre el ARSENAL DE BATALLA (las recompensas de nota). Va aquí y no
+# suelta en el catálogo para que el aviso del formulario y el bloqueo del servidor no puedan
+# decir cosas distintas. Ver la nota larga en RECOMPENSAS.
+SEMANA_ARSENAL = 15
 SEMANAS_CANJE_EXTRA = 1                    # semanas de propina para reclamar recompensas
 DIAS_APERTURA_ANTES = 0                    # los formularios abren el primer día de la semana 1
 
@@ -485,10 +489,22 @@ RECOMPENSAS = [
   "Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.", 6, "marco"),
  ("Héroe de la Rebelión", 60, 99,
   "Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión en tres rangos. ⚔️ La Resistencia (56% del sobre): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave.", 2, "heroe"),
- ("Subir 0,5 en un entregable", 320, 1, "Se aplica a la actividad que elijas", 14, "nota"),
- ("Subir 1 punto en un entregable", 500, 1, "Se aplica a la actividad que elijas", 14, "nota"),
- ("Recalificar un trabajo entregado fuera de plazo", 700, 1, "Indica la actividad", 14, "nota"),
- ("Recalificar un suspenso", 950, 1, "Indica la actividad", 14, "nota"),
+ ("Subir 0,5 en un entregable", 550, 1,
+  "⚔️ ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. "
+  "🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — "
+  "estarías tirando 550 créditos a la basura. Comprueba tu nota primero. Con esos créditos cierras "
+  "media docena de sobres o te llevas nueve héroes.", 15, "nota"),
+ ("Subir 1 punto en un entregable", 850, 1,
+  "⚔️ ARSENAL DE BATALLA · Un punto entero en una actividad ya entregada y corregida. "
+  "🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, no te sube nada y pierdes "
+  "los 850 créditos. Es la recompensa más cara del catálogo a propósito: elegirla significa "
+  "renunciar a casi todo lo demás.", 15, "nota"),
+ ("Recalificar un trabajo entregado fuera de plazo", 700, 1,
+  "⚔️ ARSENAL DE BATALLA · Que se te corrija un trabajo que entregaste tarde. No es un aprobado "
+  "automático: es que se mire y se puntúe como si hubiera llegado a tiempo.", 15, "nota"),
+ ("Recalificar un suspenso", 950, 1,
+  "⚔️ ARSENAL DE BATALLA · Una segunda oportunidad sobre un trabajo suspenso: lo rehaces y se "
+  "vuelve a corregir. Pensada para quien ha trabajado y se le atragantó una entrega.", 15, "nota"),
 ]
 assert [n[0] for n in NIVELES] == list(range(1, 11)), "los niveles van del 1 al 10"
 assert all(NIVELES[i][1] < NIVELES[i+1][1] for i in range(9)), "los umbrales de nivel deben crecer"

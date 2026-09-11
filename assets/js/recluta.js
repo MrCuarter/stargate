@@ -315,9 +315,23 @@
       +'<iframe src="'+esc(formEmbed(url))+'" loading="eager" allow="fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe></div></div>';
     ov.classList.add('open');
     document.body.classList.add('vent-abierta');
-    var f=ov.querySelector('iframe'); f.addEventListener('load',function(){var c=ov.querySelector('.vent-carga'); if(c)c.remove();});
+    // Google Forms no deja mirar dentro del iframe (otro dominio), pero SÍ se nota que ha navegado:
+    // al enviar carga la pantalla de «respuesta registrada», y eso es un `load` más. El primero es
+    // el formulario; a partir del segundo, algo se ha enviado.
+    var envio=false, cargas=0;
+    var f=ov.querySelector('iframe');
+    f.addEventListener('load',function(){
+      cargas++; if(cargas>1) envio=true;
+      var c=ov.querySelector('.vent-carga'); if(c)c.remove();
+    });
+    // 🔴 11-sep · AL CERRAR, REFRESCAR. Petición de Norberto y fallo real de recorrido: canjeabas un
+    // héroe, cerrabas la ventana y la Nave seguía enseñando los créditos de antes. Parecía que no
+    // había pasado nada, y el siguiente paso natural del alumno era volver a canjearlo.
+    // Solo si el formulario ha llegado a ENVIARSE (ver `envio`): cerrar sin enviar no cambia nada, y
+    // recargar por gusto es hacerle esperar dos segundos para enseñarle lo mismo.
     function cerrar(){ov.classList.remove('open');ov.innerHTML='';document.body.classList.remove('vent-abierta');
-      document.removeEventListener('keydown',esc27);}
+      document.removeEventListener('keydown',esc27);
+      if(envio) refrescar();}
     function esc27(e){if(e.key==='Escape'){e.preventDefault();cerrar();}}
     ov.querySelector('.vent-fondo').onclick=cerrar;
     ov.querySelector('.vent-x').onclick=cerrar;
@@ -326,6 +340,16 @@
     return false;
   }
   // Cablea como ventana todo enlace marcado con data-vent (los formularios y el Genially).
+  // Vuelve a pedir los datos y repinta. No se usa location.reload() a propósito: eso perdería la
+  // pestaña en la que estabas y te devolvería arriba del todo, que es peor que no refrescar.
+  function refrescar(){
+    if(!st.email) return;
+    var aviso=document.createElement('div');
+    aviso.className='nave-refresco'; aviso.textContent='Actualizando tu ficha…';
+    document.body.appendChild(aviso);
+    identificar(st.email);
+    setTimeout(function(){ if(aviso.parentNode) aviso.parentNode.removeChild(aviso); }, 2600);
+  }
   function wireVentanas(caja){
     Array.prototype.forEach.call(caja.querySelectorAll('[data-vent]'),function(a){
       a.onclick=function(e){ e.preventDefault(); ventana(a.getAttribute('data-vent'), a.getAttribute('href')); };
@@ -646,9 +670,14 @@
     {t:'Y ahora, ¿quién eres?',x:'Esta nave es <b>tuya</b>, pero no puedo abrirla sin saber a quién se la abro. Escribe ahí arriba el <b>correo</b> con el que te alistaste.<br><br>¿Todavía no te has alistado? Escríbelo igualmente: te doy el enlace para subir a bordo.<br><br><b>Nos vemos al otro lado.</b>'}
   ];
   var PASOS=[
-    {t:'Te tengo, recluta',x:'Identificación confirmada. Desde este dispositivo la nave se abrirá sola cada vez que vuelvas: no tendrás que escribir el correo otra vez. Esto de aquí ya es tuyo.'},
-    {t:'Cada misión te da dos cosas',x:'Cuando completas un reto y lo registras en tu Bitácora ganas <b>experiencia</b>, que sube de <b>nivel</b> a tu personaje y le cambia el aspecto; y ganas <b>créditos ◈</b>, que son dinero para gastar en el <b>Mercado Estelar</b>.<br><br>La experiencia <b>nunca baja</b>: los créditos se gastan, tu nivel no.'},
-    {t:'La nave avanza sola',x:'Cada semana se desbloquea una nueva orden: el planeta, sus vídeos, sus <b>dos retos</b> y sus insignias. Los planetas futuros están en silencio… de momento. Vuelve cada semana, y si te pierdes usa el ticket <b>Dudas</b>: te leo, aunque sea anónimo. Corto y cierro.'}
+    {t:'Te tengo, recluta',foco:'.nave-tab[data-tab="ficha"]',
+     x:'Identificación confirmada. Desde este dispositivo la nave se abrirá sola cada vez que vuelvas. <b>Esto de aquí abajo eres tú</b>: tu personaje, tu nivel y lo que llevas ganado.'},
+    {t:'Cada misión te da dos cosas',foco:'.acc[data-vent^="📓"]',
+     x:'Cuando completas un reto lo marcas <b>aquí</b>, en tu Bitácora. A cambio ganas <b>experiencia</b>, que sube de nivel a tu personaje y le cambia el aspecto; y <b>créditos ◈</b>, que son dinero.<br><br>La experiencia <b>nunca baja</b>. Los créditos se gastan.'},
+    {t:'La nave avanza sola',foco:'.nave-tabs',
+     x:'Aquí arriba cambias de sección: tus retos, la orden de esta semana, el mapa de los ocho planetas y el tablero de tu clase. Cada semana se desbloquea un planeta nuevo; los de más adelante están en silencio… de momento.'},
+    {t:'Y ahora, estrénate',foco:'.acc[data-vent^="🛸"]',
+     x:'Ahí está el <b>Mercado Estelar</b>: donde se gastan los créditos. Si ya tienes para uno, prueba con un <b>sobre de cromos</b> (15 ◈, una carta al azar de las 20) o con un <b>Héroe de la Rebelión</b> (60 ◈, una figura de las 30 para tu vestuario).<br><br>Es la forma más rápida de entender para qué sirve todo esto. Corto y cierro.'}
   ];
   // Un solo motor para los dos actos: el acto decide QUÉ pasos, con qué clave de memoria y qué pone
   // el último botón. Duplicar la función habría sido la vía rápida para que uno de los dos se quede
@@ -661,13 +690,23 @@
     acto=acto||'nave'; var A=ACTOS[acto], P=A.pasos;
     var ov=document.getElementById('nave-onboard');
     if(!ov){ov=document.createElement('div');ov.id='nave-onboard';ov.className='tour open';document.body.appendChild(ov);}
-    if(i>=P.length){ov.classList.remove('open');ov.innerHTML='';localStorage.setItem(A.clave+per,'1');return;}
+    if(i>=P.length){ov.classList.remove('open');ov.innerHTML='';localStorage.setItem(A.clave+per,'1');
+      Array.prototype.forEach.call(document.querySelectorAll('.tour-foco'),function(el){el.classList.remove('tour-foco');});
+      return;}
     var s=P[i];
     ov.innerHTML='<div class="tour-box">'+nebulaVideo('tour-cap nebula')
       +'<div class="tour-panel"><div class="tour-step">NEBULA · '+(i+1)+' / '+P.length+'</div><h3>'+s.t+'</h3><p>'+s.x+'</p>'
       +'<div class="tour-btns"><button type="button" class="tour-prev"'+(i===0?' disabled':'')+'>← Anterior</button>'
       +'<button type="button" class="tour-next primary">'+(i===P.length-1?A.fin:'Siguiente →')+'</button>'
       +'<button type="button" class="tour-exit">Salir</button></div></div></div>';
+    // 🔴 Resaltar y DESPLAZAR: explicar «esto de aquí» sin que se vea el «aquí» no explica nada. Se
+    // limpia siempre antes, para que no se queden dos cosas encendidas si alguien va y viene.
+    Array.prototype.forEach.call(document.querySelectorAll('.tour-foco'),function(el){el.classList.remove('tour-foco');});
+    if(s.foco){ try{
+      var diana=document.querySelector(s.foco);
+      if(diana){ diana.classList.add('tour-foco');
+        diana.scrollIntoView({behavior:'smooth',block:'center'}); }
+    }catch(e){} }
     ov.querySelector('.tour-prev').onclick=function(){onboarding(i-1,acto);};
     ov.querySelector('.tour-next').onclick=function(){onboarding(i+1,acto);};
     ov.querySelector('.tour-exit').onclick=function(){onboarding(P.length,acto);};

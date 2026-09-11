@@ -518,3 +518,243 @@ function sembrarCanjesDemo() {
       "\n\nMíralo en la Nave con &demo=1 o en el tablero.", ui.ButtonSet.OK);
   } catch (e) { ui.alert("No se pudo sembrar", String(e.message || e), ui.ButtonSet.OK); }
 }
+
+// 🔴 11-sep · LLEGÓ AQUÍ DESDE Code.gs, que volvió a rozar el techo de guardado de Apps Script.
+// Cuarta mudanza por la misma razón. El parte encaja: es autónomo, solo lee y solo informa.
+// ================= PARTE DE SALUD (v3.15) =================
+// Los dos peores fallos de la prueba en vivo (la hoja sin triggers, un canje sin resolver) eran
+// INVISIBLES: había que ir a mirarlos a seis sitios distintos. Esto los junta en una pantalla.
+// 🔴 No repara NADA: solo informa y dice qué opción del menú lo arregla. Reparar por sorpresa lo
+// que no se ha entendido todavía es justo como se rompen las cosas en producción.
+function salud_() {
+  var puntos = [], t = reloj_(), incompleto = false;
+  function punto(clave, nivel, titulo, detalle, arreglo, n) {
+    puntos.push({ clave: clave, nivel: nivel, titulo: titulo, detalle: detalle || "",
+                  arreglo: nivel === "ok" ? "" : (arreglo || ""), n: n || 0 });
+  }
+  function seguro(clave, titulo, fn) {
+    try { fn(); }
+    catch (e) { punto(clave, "mal", titulo, "no se ha podido comprobar: " + (e && e.message ? e.message : e),
+                      "Vuelve a abrir la hoja y prueba otra vez; si sigue, mira el registro de ejecuciones."); }
+  }
+  var pers = [], todos = [];
+  try {
+    todos = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
+    pers = todos.filter(function(v){ return !v[21]; });   // activos: lo que se mira grupo a grupo
+  } catch (e) {}
+
+  // 1) TRIGGERS · sin alRecibirRespuesta no se procesa ni un formulario; duplicados = todo dos veces
+  seguro("triggers", "Triggers", function(){
+    var cuenta = {};
+    ScriptApp.getProjectTriggers().forEach(function(t){ var f = t.getHandlerFunction(); cuenta[f] = (cuenta[f] || 0) + 1; });
+    var faltan = [], dobles = [];
+    ["alRecibirRespuesta", "fotoNocturna"].forEach(function(f){
+      if (!cuenta[f]) faltan.push(f); else if (cuenta[f] > 1) dobles.push(f + " ×" + cuenta[f]);
+    });
+    if (!faltan.length && !dobles.length) return punto("triggers", "ok", "Triggers", "los dos instalados, uno de cada");
+    punto("triggers", "mal", "Triggers",
+      (faltan.length ? "FALTA: " + faltan.join(", ") + ". " : "") +
+      (dobles.length ? "DUPLICADO: " + dobles.join(", ") + " (cada envío se procesa dos veces)." : ""),
+      "Menú → «Abrir la Consola del profesorado»: repone los que falten y borra los duplicados.",
+      faltan.length + dobles.length);
+  });
+
+  // 2) TAREAS A MEDIAS · normal durante unos minutos; preocupante si se quedó ahí
+  seguro("tareas", "Tareas a medias", function(){
+    var medias = [];
+    ["reset", "formularios", "alta", "canjes"].forEach(function(k){
+      var p = progreso_(k); if (p) medias.push(k + " (" + (p.n || p.i || 0) + " de " + (p.total || "?") + ")");
+    });
+    if (!medias.length) return punto("tareas", "ok", "Tareas a medias", "ninguna pendiente");
+    punto("tareas", "aviso", "Tareas a medias", medias.join(" · "),
+      "Se reanudan solas dentro de un minuto. Si llevan ahí mucho rato, vuelve a lanzar esa misma opción del menú.",
+      medias.length);
+  });
+
+  // 3) CANJES SIN RESOLVER · el fallo que se escondió: el alumno no cobra, no recibe y nadie se entera
+  // 🔴 REVISIÓN 26-ago · aquí se miran TODOS los grupos, archivados incluidos: un canje sin resolver
+  // es dinero cobrado sin entregar nada, y archivar el grupo no lo arregla — lo esconde para siempre.
+  // (Es además lo que ya hacía reprocesarCanjes_: tenían dos criterios distintos.)
+  seguro("canjes", "Canjes sin resolver", function(){
+    var n = 0, donde = [];
+    todos.forEach(function(v){
+      var o = perObj_(v), arch = v[21] ? " · archivado" : "";
+      var sh = SpreadsheetApp.getActive().getSheetByName(o.tabC);
+      if (!sh || sh.getLastRow() < 2) return;
+      var vals = sh.getDataRange().getValues(), col = vals[0].map(String).indexOf("Estado");
+      if (col < 0) { n += vals.length - 1; donde.push(o.nombre + ": " + (vals.length - 1) + " (sin columna Estado)" + arch); return; }
+      var k = 0;
+      for (var i = 1; i < vals.length; i++) if (!String(vals[i][col] || "").trim()) k++;
+      if (k) { n += k; donde.push(o.nombre + ": " + k + arch); }
+    });
+    if (!n) return punto("canjes", "ok", "Canjes sin resolver", "ninguno");
+    punto("canjes", "mal", "Canjes sin resolver", n + " sin resolver · " + donde.join(" · "),
+      "Menú → Mantenimiento → «Reprocesar canjes sin resolver».", n);
+  });
+
+  // 4) y 5) AJUSTES · errores del trigger y avisos que no llegaron a nadie (últimos 7 días)
+  var errores = 0, avisosPerdidos = 0, ultimoError = "";
+  seguro("errores", "Errores del trigger", function(){
+    var desde = new Date().getTime() - 7 * 864e5;
+    hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
+      var t = 0; try { t = new Date(v[0]).getTime(); } catch (e) { t = desde; }
+      if (t < desde) return;
+      if (v[3] === "ERROR") { errores++; ultimoError = String(v[5] || ""); }
+      else if (v[3] === "AVISO" && String(v[6] || "").indexOf("SIN CORREO") >= 0) avisosPerdidos++;
+    });
+    if (!errores) punto("errores", "ok", "Errores del trigger", "ninguno en 7 días");
+    else punto("errores", "mal", "Errores del trigger", errores + " en los últimos 7 días · último: " + ultimoError,
+      "Míralos en la pestaña AJUSTES (filas ERROR). Si son de canjes, «Reprocesar canjes sin resolver» los recupera.", errores);
+    if (!avisosPerdidos) punto("avisos", "ok", "Avisos entregados", "todos llegaron a alguien");
+    else punto("avisos", "mal", "Avisos sin destinatario", avisosPerdidos + " avisos no llegaron a nadie en 7 días",
+      "Pon el correo de cada docente en la pestaña DOCENTES, y un correo de reserva en menú → «Correo de avisos de reserva».", avisosPerdidos);
+  });
+
+  // 6) DOCENTES SIN CORREO · sin correo no hay avisos de canje
+  seguro("docentes", "Docentes sin correo", function(){
+    var sin = [];
+    pers.forEach(function(v){
+      docentesDe_(v[0]).forEach(function(d){ if (!String(d.correo || "").trim()) sin.push(d.nombre + " (" + v[1] + ")"); });
+    });
+    if (!sin.length) return punto("docentes", "ok", "Docentes sin correo", "todo el profesorado tiene correo");
+    punto("docentes", "aviso", "Docentes sin correo", sin.slice(0, 8).join(" · ") + (sin.length > 8 ? " …" : ""),
+      "Pestaña DOCENTES de la hoja, o profes.html → «Ajustes del PER».", sin.length);
+  });
+
+  // 7) RECLUTAS SIN DOCENTE · no salen en la sala de nadie
+  seguro("reclutas", "Reclutas sin docente", function(){
+    var n = 0, donde = [], sinMirar = 0;
+    pers.forEach(function(v){
+      // calcular un tablero por grupo es lo único caro de este parte: con muchos PER se puede ir de
+      // los 6 minutos. Antes de quedarse sin tiempo, se para y lo dice.
+      if (!t.sobra(20000)) { sinMirar++; return; }
+      var tb = tablero_(v[0], true);
+      if (tb && tb.sin_docente) { n += tb.sin_docente; donde.push(v[1] + ": " + tb.sin_docente); }
+    });
+    if (sinMirar) incompleto = true;
+    var cola = sinMirar ? " (no dio tiempo a mirar " + sinMirar + " grupo(s))" : "";
+    if (!n) return punto("reclutas", sinMirar ? "aviso" : "ok", "Reclutas sin docente",
+      (sinMirar ? "sin terminar" : "todos tienen docente") + cola,
+      sinMirar ? "Vuelve a abrir el parte: sigue por donde no llegó." : "", sinMirar);
+    punto("reclutas", "aviso", "Reclutas sin docente", n + " sin docente · " + donde.join(" · ") + cola,
+      "Se arregla uno a uno en clase.html → «Corregir la ficha», o en profes.html.", n);
+  });
+
+  // 8) PER SIN DOCUMENTO · el documento de enlaces es lo que se reparte al profesorado
+  seguro("documentos", "PER sin documento", function(){
+    var sin = pers.filter(function(v){ return !perObj_(v).doc; }).map(function(v){ return v[1]; });
+    if (!sin.length) return punto("documentos", "ok", "Documento de enlaces", pers.length + " PER, todos con documento");
+    punto("documentos", "aviso", "PER sin documento", sin.join(" · "),
+      "Selecciona su fila y usa menú → «Documento de enlaces y embeds del PER seleccionado».", sin.length);
+  });
+
+  // 9) CUOTA DE CORREO · 100 al día en cuentas gratuitas, y cuando se acaba el correo no sale
+  seguro("cuota", "Cuota de correo", function(){
+    var q = cuotaCorreo_();
+    if (q >= 20) return punto("cuota", "ok", "Cuota de correo", q + " correos disponibles hoy");
+    punto("cuota", q > 0 ? "aviso" : "mal", "Cuota de correo",
+      q > 0 ? "quedan solo " + q + " correos hoy" : "AGOTADA: hoy ya no sale ningún correo",
+      "Se repone sola mañana. Los canjes se resuelven igual (el correo es un extra), pero nadie recibe aviso.", q);
+  });
+
+  // 10) LOS DOS PIN · el del profesorado protege nombres y correos del alumnado; el de referente,
+  // las acciones que afectan a un grupo entero (calendario, archivar, formularios, equipo docente)
+  seguro("pin", "PIN del profesorado", function(){
+    var pr = PropertiesService.getScriptProperties();
+    var pin = pr.getProperty("PIN_PROFES") || "", ref = pr.getProperty("PIN_REFERENTE") || "";
+    if (pin && ref && pin === ref)
+      return punto("pin", "mal", "PIN del profesorado",
+        "los dos PIN son IGUALES: así no separan nada y todo el equipo puede mover la semana 1 o archivar un grupo",
+        "Menú → «PIN del profesor referente»: pon uno distinto, y más largo que el del día a día.", 1);
+    if (pin.length < 6)
+      return punto("pin", "mal", "PIN del profesorado",
+        pin ? "el del profesorado es demasiado corto (" + pin.length + " caracteres): es lo único que protege nombres y correos del alumnado"
+            : "NO HAY PIN: cualquiera con el enlace ve nombres y correos",
+        "Menú → «Cambiar PIN del profesorado». Seis caracteres o más.", 1);
+    if (ref && ref.length < 8)
+      return punto("pin", "mal", "PIN del profesorado",
+        "el de referente es demasiado corto (" + ref.length + " caracteres) y abre lo que afecta a un grupo entero",
+        "Menú → «PIN del profesor referente». Ocho o más: ese no se teclea con prisa antes de clase.", 1);
+    if (!ref)
+      return punto("pin", "aviso", "PIN del profesorado",
+        "el del profesorado está puesto (" + pin.length + " caracteres), pero NO hay PIN de referente: " +
+        "cualquiera del equipo puede mover la semana 1 de cualquier grupo, archivarlo o cerrar sus formularios",
+        "Menú → «PIN del profesor referente». Hasta que lo pongas, todo sigue funcionando como hasta ahora.");
+    punto("pin", "ok", "PIN del profesorado",
+      "los dos puestos y distintos: profesorado de " + pin.length + " caracteres, referente de " + ref.length);
+  });
+
+  // 11) CONSOLA Y DOSSIER
+  seguro("consola", "Consola y dossier", function(){
+    var pr = PropertiesService.getScriptProperties();
+    var falta = [];
+    if (!pr.getProperty(PROP_CONSOLA)) falta.push("Consola");
+    if (!pr.getProperty(PROP_DOSSIER)) falta.push("dossier");
+    if (!falta.length) return punto("consola", "ok", "Consola y dossier", "las dos creadas");
+    punto("consola", "aviso", "Consola y dossier", "falta: " + falta.join(" y "),
+      "Menú → «Abrir la Consola del profesorado» y «Dossier del profesorado». También se rehacen de madrugada.", falta.length);
+  });
+
+  // 12) DOS CUENTAS, UNA PERSONA · el recluta se identifica por el correo que trae su cuenta de
+  // Google, así que no hay erratas al teclearlo — pero quien entra un día con la cuenta del máster y
+  // otro con la personal sale DOS VECES en el ranking, cada una con sus xp y ninguna completa.
+  // No se puede impedir; sí se puede ver antes de que el alumno escriba preguntando qué le pasa.
+  seguro("dobles", "Dos cuentas, una persona", function(){
+    var sospechas = [];
+    pers.forEach(function(v){
+      var o = perObj_(v), vistos = {};
+      (tablero_(o.id, true).reclutas || []).forEach(function(r){
+        var k = normalizar_(r.nombre); if (!k) return;
+        if (vistos[k] && vistos[k] !== r.email) sospechas.push(o.nombre + ": «" + r.nombre + "» con " + vistos[k] + " y " + r.email);
+        else vistos[k] = r.email;
+      });
+    });
+    if (!sospechas.length) return punto("dobles", "ok", "Dos cuentas, una persona", "nadie aparece dos veces");
+    punto("dobles", "aviso", "Dos cuentas, una persona", sospechas.slice(0, 5).join(" · ") +
+      (sospechas.length > 5 ? " (y " + (sospechas.length - 5) + " más)" : ""),
+      "Pregúntale con cuál quiere quedarse y pásale los retos de la otra desde AJUSTES (acción «otorgar»). " +
+      "Y recuérdale a la clase que entre SIEMPRE con la misma cuenta.", sospechas.length);
+  });
+
+  // 13) PARTES INFLADOS · el ticket es anónimo y no se puede deduplicar, así que alguien podría
+  // enviarlo muchas veces para disparar el bonus de la tripulación. No se puede impedir; lo que sí
+  // se puede es que no pase desapercibido: más partes que reclutas en un tema es raro de por sí.
+  seguro("partes", "Partes del ticket", function(){
+    var raros = [];
+    pers.forEach(function(v){
+      var o = perObj_(v), n = (tablero_(o.id, true).reclutas || []).length;
+      if (!n) return;
+      var partes = partesPorSeccion_(o);
+      Object.keys(partes).forEach(function(k){
+        if (partes[k] > n) raros.push(o.nombre + " · " + k + ": " + partes[k] + " partes para " + n + " reclutas");
+      });
+    });
+    if (!raros.length) return punto("partes", "ok", "Partes del ticket", "ningún tema recibe más partes que reclutas hay");
+    punto("partes", "aviso", "Partes del ticket", raros.slice(0, 5).join(" · "),
+      "Puede ser normal (alguien lo mandó dos veces sin querer) o alguien inflando el bonus de la " +
+      "tripulación. Mira las respuestas de ese tema antes de darlo por bueno.", raros.length);
+  });
+
+  var malos = puntos.filter(function(p){ return p.nivel === "mal"; }).length;
+  var avisos = puntos.filter(function(p){ return p.nivel === "aviso"; }).length;
+  return { ok: malos === 0, malos: malos, avisos: avisos, puntos: puntos, pers: pers.length,
+           incompleto: incompleto, fecha: new Date() };
+}
+// ================= EL VIGIA =================
+// v3.18 · El parte de salud ya sabia detectar los triggers duplicados, la cuota de correo, los
+// canjes sin resolver y los errores del trigger. Los duplicados los descubrimos a mano, de
+// casualidad, mirando el registro de ejecuciones — porque NADIE ABRIO EL PARTE. A este sistema no
+// le faltaba inteligencia: le faltaba boca.
+//
+// Cuelga de fotoNocturna (4:00) a proposito: ni un trigger nuevo que instalar, mantener o duplicar.
+//
+// Cuando habla y cuando calla:
+//   · hay algo mal o en aviso  -> escribe si el problema es NUEVO, y si sigue igual insiste cada 7 dias
+//   · se ha arreglado todo     -> lo dice UNA vez, y calla
+//   · todo bien desde hace 30 dias -> una senal de vida, porque si no el silencio de un script muerto
+//     es identico al silencio de un sistema sano, y eso es justo lo que no queremos durante una baja
+// El vigia deja constancia en AJUSTES de lo que decidio y de si el correo salio. El registro de
+// Cloud no siempre esta disponible en este proyecto (lo dice el propio codigo mas arriba), asi que
+// sin este rastro un vigia averiado es indistinguible de un sistema sano. Que es exactamente lo
+// contrario de para lo que sirve.
+

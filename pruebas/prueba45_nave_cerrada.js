@@ -94,12 +94,33 @@ c(/correo/.test(puerta), "   y sí dice lo único que hace falta: el correo");
 c(/Nos vemos al otro lado/.test(puerta), "   y se despide hasta después de identificarse");
 igual((puerta.match(/\{t:/g) || []).length, 3, "🔬 el acto 1 son tres pasos");
 const actoDos = R.slice(R.indexOf("var PASOS=["), R.indexOf("// Un solo motor"));
-igual((actoDos.match(/\{t:/g) || []).length, 3, "   y el acto 2, otros tres");
+// 🔴 El acto 2 son CUATRO: los tres de contenido más la invitación a estrenar el Mercado. Norberto:
+// «acaba invitando a ir al mercado estelar y comprar un héroe o un sobre». Un tutorial que termina
+// diciendo «ahora ve y haz esto» se recuerda; uno que termina con «ya está» no.
+igual((actoDos.match(/\{t:/g) || []).length, 4, "   y el acto 2, cuatro (el último invita a estrenarse)");
+c(/Mercado Estelar/.test(actoDos) && /sobre de cromos/i.test(actoDos) && /Héroe de la Rebelión/.test(actoDos),
+  "   invitando a un sobre o a un héroe, con su precio");
+// cada paso señala algo de la pantalla: explicar «esto de aquí» sin que se vea el aquí no explica
+igual((actoDos.match(/foco:/g) || []).length, 4, "🔴 los cuatro pasos resaltan la zona de la que hablan");
+c(/classList\.add\('tour-foco'\)/.test(R) && /scrollIntoView/.test(R),
+  "   y la nave se desplaza hasta ella");
+c(/querySelectorAll\('\.tour-foco'\)/.test(R),
+  "🔬 y el resalte se apaga al cambiar de paso: si no, se quedarían dos encendidos");
 
 // ---- el Mercado Estelar (11-sep): «Canjear» no contaba nada; esto es un sitio al que ir
 c(/Mercado Estelar/.test(R), "🔴 el canje se llama «Mercado Estelar»");
 c(!/Canjear<\/b>/.test(R), "   y ya no «Canjear» a secas");
 c(!/🪐 Mercado|🧱 Mercado|📓 Mercado/.test(R),
   "🔬 con un emoji propio, sin repetir el del Panel ni el del Padlet");
+
+// ---------------------------------------------------------------- h) al cerrar el form, refrescar
+// Norberto: «al abrir el form desde la web, al cerrarlo, debería actualizarse sola». Fallo real de
+// recorrido: canjeabas un héroe, cerrabas y la Nave seguía con los créditos de antes — parecía que
+// no había pasado nada, y el siguiente paso natural era volver a canjearlo.
+c(/if\(envio\) refrescar\(\);/.test(R), "🔴 al cerrar la ventana se refresca la ficha");
+c(/cargas\+\+; if\(cargas>1\) envio=true;/.test(R),
+  "   pero SOLO si el formulario llegó a enviarse (se detecta por la segunda carga del iframe)");
+c(/function refrescar\(\)/.test(R) && !/location\.reload/.test(R),
+  "🔬 y se repinta pidiendo los datos, sin recargar la página: no se pierde la pestaña ni el scroll");
 
 E.resumen("La Nave nace cerrada");

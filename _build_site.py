@@ -8,7 +8,7 @@ from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_sema
                         PROCESO, PROCESO_CIFRAS, CASTING, DIRECTOR, BRAZOS,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
-                        RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
+                        RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
                         PASOS)
@@ -1979,6 +1979,8 @@ def _js_niveles():
     L.append('// Primera semana en que se abre cada tema. Generado desde el CRONO de la web: no editar a mano.')
     L.append('var SEMANA_DEL_TEMA = %s;' % json.dumps(_sem_tema, sort_keys=True))
     L.append('var SEMANAS_CANJE_EXTRA = %d;' % SEMANAS_CANJE_EXTRA)
+    L.append('// La semana en que se abre el ARSENAL DE BATALLA (recompensas de nota).')
+    L.append('var SEMANA_ARSENAL = %d;' % SEMANA_ARSENAL)
     L.append('var DIAS_APERTURA_ANTES = %d;' % DIAS_APERTURA_ANTES)
     L.append('// Insignia por serie completa. [clave, titulo de la serie tal y como aparece en CROMOS, nombre]')
     L.append('var SERIES_ALBUM = [')

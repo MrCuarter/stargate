@@ -114,4 +114,35 @@ igual(G.reestructurarCanje_(virgen) === undefined || true, true, "y repetirlo no
 igual(new Set(virgen.getItems().map(i => i.getTitle())).size,
       virgen.getItems().map(i => i.getTitle()).length, "🔴 sin preguntas duplicadas al repetir");
 
+// ---------------------------------------------------------------- el enrutado, opción por opción
+// 🔴 11-sep · Norberto, canjeando de verdad: «al canjear un héroe de la rebelión, el form me lleva a
+// la sección de dato actividad». En el código NO pasa —lo de abajo lo demuestra— pero su formulario
+// vivo se construyó antes y nadie lo había vuelto a reestructurar. Que el código esté bien no sirve
+// de nada si lo que el alumnado abre está viejo: por eso esto se comprueba OPCIÓN POR OPCIÓN.
+(function(){
+  const f = canje;
+  const rec = f.getItems(G.FormApp.ItemType.LIST).filter(i => i.getTitle() === "Recompensa")[0].asListItem();
+  const SEC = { titulo:"tu título", fondo:"tu planeta", nota:"Arsenal" };
+  const cat = G.recompensasCat_();
+  rec.getChoices().forEach(function(ch){
+    const et = ch.getValue();
+    const ficha = cat.filter(function(x){ return et.indexOf(x.nombre) === 0; })
+                     .sort(function(a,b){ return b.nombre.length - a.nombre.length; })[0];
+    if (!ficha) return;
+    const pg = ch.getGotoPage();
+    c(!!pg, "«" + ficha.nombre + "» lleva a su página");
+    if (!pg) return;
+    const go = pg.getGoToPage ? pg.getGoToPage() : null;
+    const esperaSeccion = SEC[ficha.tipo];
+    if (esperaSeccion) {
+      c(!!go && go.getTitle().indexOf(esperaSeccion) >= 0,
+        "   y de ahí a «" + esperaSeccion + "», que es el dato que le falta");
+    } else {
+      // 🔴 ESTE es el fallo que vio Norberto: sin dato pendiente, la página TIENE que enviar.
+      c(!go && pg.getPageNavigationType() === G.FormApp.PageNavigationType.SUBMIT,
+        "🔴 «" + ficha.nombre + "» ENVÍA directo: no necesita ningún dato más");
+    }
+  });
+})();
+
 E.resumen("El canje, por secciones");

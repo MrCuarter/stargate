@@ -317,6 +317,8 @@ var SEMANAS_PER = {"REGULAR": 15, "PUA": 8};
 // Primera semana en que se abre cada tema. Generado desde el CRONO de la web: no editar a mano.
 var SEMANA_DEL_TEMA = {"1": 1, "2": 3, "3": 5, "4": 7, "5": 9, "6": 10, "7": 11, "8": 13};
 var SEMANAS_CANJE_EXTRA = 1;
+// La semana en que se abre el ARSENAL DE BATALLA (recompensas de nota).
+var SEMANA_ARSENAL = 15;
 var DIAS_APERTURA_ANTES = 0;
 // Insignia por serie completa. [clave, titulo de la serie tal y como aparece en CROMOS, nombre]
 var SERIES_ALBUM = [
@@ -335,10 +337,10 @@ var RECOMPENSAS_INICIALES = [
   ["Fondo de ficha: tu planeta",35,1,"Tu ficha de la Nave con el planeta que elijas de fondo (ind\u00edcalo en el formulario). Se aplica solo.",4,"fondo"],
   ["Marco dorado del avatar",60,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.",6,"marco"],
   ["H\u00e9roe de la Rebeli\u00f3n",60,99,"Un h\u00e9roe AL AZAR del vestuario: 30 figuras de la Rebeli\u00f3n en tres rangos. \u2694\ufe0f La Resistencia (56% del sobre): el grueso del ej\u00e9rcito. \ud83d\udd25 La Vanguardia (36%): van por delante, cuesta alcanzarlas. \ud83c\udf1f Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan \u2014cuantos m\u00e1s tengas, m\u00e1s donde elegir\u2014 y te los pones gratis desde tu Nave.",2,"heroe"],
-  ["Subir 0,5 en un entregable",320,1,"Se aplica a la actividad que elijas",14,"nota"],
-  ["Subir 1 punto en un entregable",500,1,"Se aplica a la actividad que elijas",14,"nota"],
-  ["Recalificar un trabajo entregado fuera de plazo",700,1,"Indica la actividad",14,"nota"],
-  ["Recalificar un suspenso",950,1,"Indica la actividad",14,"nota"]
+  ["Subir 0,5 en un entregable",550,1,"\u2694\ufe0f ARSENAL DE BATALLA \u00b7 Medio punto m\u00e1s en una actividad ya entregada y corregida. \ud83d\udd34 LEE ESTO ANTES: si ya tienes la nota m\u00e1xima de evaluaci\u00f3n continua, esto NO te sube nada \u2014 estar\u00edas tirando 550 cr\u00e9ditos a la basura. Comprueba tu nota primero. Con esos cr\u00e9ditos cierras media docena de sobres o te llevas nueve h\u00e9roes.",15,"nota"],
+  ["Subir 1 punto en un entregable",850,1,"\u2694\ufe0f ARSENAL DE BATALLA \u00b7 Un punto entero en una actividad ya entregada y corregida. \ud83d\udd34 LEE ESTO ANTES: si ya tienes la nota m\u00e1xima de evaluaci\u00f3n continua, no te sube nada y pierdes los 850 cr\u00e9ditos. Es la recompensa m\u00e1s cara del cat\u00e1logo a prop\u00f3sito: elegirla significa renunciar a casi todo lo dem\u00e1s.",15,"nota"],
+  ["Recalificar un trabajo entregado fuera de plazo",700,1,"\u2694\ufe0f ARSENAL DE BATALLA \u00b7 Que se te corrija un trabajo que entregaste tarde. No es un aprobado autom\u00e1tico: es que se mire y se punt\u00fae como si hubiera llegado a tiempo.",15,"nota"],
+  ["Recalificar un suspenso",950,1,"\u2694\ufe0f ARSENAL DE BATALLA \u00b7 Una segunda oportunidad sobre un trabajo suspenso: lo rehaces y se vuelve a corregir. Pensada para quien ha trabajado y se le atragant\u00f3 una entrega.",15,"nota"]
 ];
 // RECOMPENSAS-FIN
 

@@ -105,6 +105,13 @@ igual(cat["Cambio de avatar"], undefined, "«Cambio de avatar» ya no está en e
 igual(cat["Avatar personal (tu propia imagen)"], undefined, "ni «Avatar personal»");
 igual(cat["Personaje exclusivo"], undefined, "ni «Personaje exclusivo»: los 5-7 son de todos");
 igual(cat["Sobre de cromos"], 2, "los cromos siguen en la 2");
-igual(cat["Subir 0,5 en un entregable"], 14, "y las notas en la 14");
+// 🔴 11-sep · Las notas pasan de la 14 a la ÚLTIMA semana. El motivo es de carga de trabajo, no de
+// diseño de juego: en la 14 el alumnado aún no sabe su nota de evaluación continua y compra «por si
+// acaso» — y cada compra es una nota que el docente tiene que cambiar a mano. Abriéndolo en la 15,
+// la mayoría ya sabe que tiene el máximo y no lo necesita. De 70 correcciones a 3 o 4.
+igual(cat["Subir 0,5 en un entregable"], G.SEMANA_ARSENAL, "y las notas en la última semana (" + G.SEMANA_ARSENAL + ")");
+igual(G.SEMANA_ARSENAL, G.semanasDe_("REGULAR"), "🔴 que es LA última: ni una semana antes");
+c(G.desdeEfectiva_(G.SEMANA_ARSENAL, "PUA") <= G.semanasDe_("PUA"),
+  "   y en PUA se escala sin salirse del curso (" + G.desdeEfectiva_(G.SEMANA_ARSENAL, "PUA") + " de " + G.semanasDe_("PUA") + ")");
 
 E.resumen("Calendario por defecto del PER");

@@ -609,7 +609,7 @@ function crearPER(datos) {
   fc.setCollectEmail(true).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true).setConfirmationMessage("Solicitud recibida. Recibir\u00e1s un correo con el resultado.");
   fc.addListItem().setTitle("Recompensa").setRequired(true);
   fc.addParagraphTextItem().setTitle("Comentario (opcional)");
-  reestructurarCanje_(fc);   // pone las preguntas, las secciones y el enrutado, todo en un sitio
+  reestructurarCanje_(fc, { inicio: datos.inicio, tipo: tipo });   // pone las preguntas, las secciones y el enrutado, todo en un sitio
   publicar_(fc);
   _creados.push(fc);
   try { vincular_(fc, ss.getId()); } catch (e) { _deshacer(e); }
@@ -698,7 +698,11 @@ var OPC_ACTIVIDAD = ["Actividad 1 \u00b7 imagen con IA", "Actividad 2 \u00b7 pai
 // solo se pregunta a quien canjea nota.
 var SEC_TITULO = "Un dato m\u00e1s: tu t\u00edtulo";
 var SEC_FONDO  = "Un dato m\u00e1s: tu planeta";
-var SEC_NOTA   = "Un dato m\u00e1s: la actividad";
+//  11-sep - "Un dato mas: la actividad" no decia nada. Ahora la seccion tiene nombre propio y
+// avisa de la ventana: es LA pieza que evita que setenta personas con un 9,5 compren medio punto en
+// la semana 3. El aviso se escribe con la FECHA EXACTA del grupo, no con "la semana 15" - nadie
+// sabe de memoria que dia es la semana 15.
+var SEC_NOTA   = "\u2694\ufe0f Arsenal de Batalla";
 var SECCIONES_CANJE = [SEC_TITULO, SEC_FONDO, SEC_NOTA];
 //  FUNCION, no objeto: TIT_TITULO y TIT_FONDO se declaran MAS ABAJO en el fichero, asi que un
 // mapa construido aqui arriba guardaria "undefined" y ordenarItems_ no encontraria nada. Que el
@@ -711,6 +715,27 @@ var AYUDA_SECCION = {};
 AYUDA_SECCION[SEC_TITULO] = "Ya casi. Solo falta elegir el t\u00edtulo que lucir\u00e1s bajo tu alias.";
 AYUDA_SECCION[SEC_FONDO]  = "Ya casi. Solo falta elegir el planeta que quieres de fondo en tu ficha.";
 AYUDA_SECCION[SEC_NOTA]   = "Ya casi. Dime en qu\u00e9 entregable quieres que se aplique.";
+// La fecha en que se abre el Arsenal para ESTE grupo. Sin PER (o sin fecha de inicio) se dice la
+// semana a secas: mejor una frase honesta que una fecha inventada.
+function aperturaArsenal_(o) {
+  var sem = desdeEfectiva_(SEMANA_ARSENAL, o && o.tipo);
+  if (!o || !o.inicio) return { sem: sem, fecha: "" };
+  var d = new Date(String(o.inicio) + "T00:00:00");
+  if (isNaN(d.getTime())) return { sem: sem, fecha: "" };
+  d.setDate(d.getDate() + (sem - 1) * 7);
+  return { sem: sem, fecha: Utilities.formatDate(d, "Europe/Madrid", "d 'de' MMMM 'de' yyyy") };
+}
+function ayudaSeccion_(sec, o) {
+  if (sec !== SEC_NOTA) return AYUDA_SECCION[sec] || "";
+  var a = aperturaArsenal_(o);
+  return "\ud83d\udd34 EL ARSENAL SOLO SE ABRE AL FINAL: a partir de la semana " + a.sem +
+    (a.fecha ? " (" + a.fecha + ")" : "") + ". Antes de esa fecha esta solicitud se DENIEGA y no se " +
+    "te cobra nada.\n\n" +
+    "Y antes de gastar: si ya tienes la nota m\u00e1xima de evaluaci\u00f3n continua, subirla no te da nada. " +
+    "Mira tu nota primero. Si no la necesitas, esos cr\u00e9ditos rinden much\u00edsimo m\u00e1s en el \u00e1lbum de " +
+    "cromos o en el vestuario de h\u00e9roes.\n\n" +
+    "Dime en qu\u00e9 entregable quieres que se aplique.";
+}
 function seccionDe_(tipo) {
   return tipo === "titulo" ? SEC_TITULO : tipo === "fondo" ? SEC_FONDO : tipo === "nota" ? SEC_NOTA : "";
 }
@@ -728,7 +753,10 @@ function ordenarItems_(form, titulos) {
     if (it && it.getIndex() !== destino) { try { form.moveItem(it.getIndex(), destino); } catch (e) {} }
   });
 }
-function reestructurarCanje_(fc) {
+// `o` es el PER, opcional: sirve para escribir la fecha exacta del Arsenal. Sin el, el texto dice
+// la semana a secas y sigue siendo cierto.
+function reestructurarCanje_(fc, o) {
+  var _perCanje = o || null;
   var buscar = function(t){ return fc.getItems().filter(function(i){ return i.getTitle() === t; })[0] || null; };
   // 1) las preguntas que tienen que existir (anadirCamposAvatar_ pone titulo y fondo, y quita las retiradas)
   anadirCamposAvatar_(fc);
@@ -738,7 +766,7 @@ function reestructurarCanje_(fc) {
   // desde una plantilla que no la trae. Visto en produccion el 27-ago creando el PER de 10 reclutas.
   var act = comoLista_(buscar(TIT_ACTIVIDAD) || fc.addListItem().setTitle(TIT_ACTIVIDAD));
   cambioObligatorio_(act, true);
-  cambioAyuda_(act, AYUDA_SECCION[SEC_NOTA]);
+  cambioAyuda_(act, ayudaSeccion_(SEC_NOTA, _perCanje));
   ponerOpciones_(act, OPC_ACTIVIDAD, TIT_ACTIVIDAD);
   var rec = comoLista_(buscar("Recompensa") || fc.addListItem().setTitle("Recompensa"));
 
@@ -749,7 +777,7 @@ function reestructurarCanje_(fc) {
   var quiero = [];
   cat.forEach(function(x){ quiero.push({ titulo: etiquetaRecompensa_(x), ayuda: ayudaRecompensa_(x) }); });
   SECCIONES_CANJE.forEach(function(sec){
-    if (cat.some(function(x){ return seccionDe_(x.tipo) === sec; })) quiero.push({ titulo: sec, ayuda: AYUDA_SECCION[sec] });
+    if (cat.some(function(x){ return seccionDe_(x.tipo) === sec; })) quiero.push({ titulo: sec, ayuda: ayudaSeccion_(sec, _perCanje) });
   });
 
   //  3) SE RECONCILIA, NO SE RECONSTRUYE. Borrar todas las paginas y volver a crearlas costaba una
@@ -1031,7 +1059,7 @@ function actualizarFormularios_() {
       if (!cabe()) break;
       try { var f = formDelPER_(perObj_(v), "C"); if (!f) throw new Error("sin formulario de canje");
             f.setDescription(DESC_CANJE);
-            reestructurarCanje_(f); pr.canjes++; }
+            reestructurarCanje_(f, perObj_(v)); pr.canjes++; }
       catch (e) { pr.fallos.push(String(v[1]) + " (canje): " + e.message); }
       pr.fase = 1; hecho = true; t.marcar();
       if (!t.puedo()) break;
@@ -3669,243 +3697,12 @@ function abrirConsola() {
     url, "Abrir la Consola",
     "Es una <b>foto</b>: se rehace desde este mismo men\u00fa y sola cada madrugada.");
 }
+// \ud83d\udd34 11-sep \u00b7 EL PARTE DE SALUD SE MUD\u00d3 A Bonus.gs. Code.gs volvi\u00f3 a rozar el techo de Apps
+// Script (299.714 bytes de copia ASCII, tope medido 298.000) y la regla del proyecto es sacar un
+// bloque, no pelearse con el bot\u00f3n de guardar. El parte era el candidato limpio: es una pieza
+// entera y aut\u00f3noma \u2014solo informa, no repara nada\u2014 y los documentos de instalaci\u00f3n ya dec\u00edan que
+// viv\u00eda ah\u00ed. Es la CUARTA vez que pasa: la pr\u00f3xima, otro bloque.
 
-// ================= PARTE DE SALUD (v3.15) =================
-// Los dos peores fallos de la prueba en vivo (la hoja sin triggers, un canje sin resolver) eran
-// INVISIBLES: hab\u00eda que ir a mirarlos a seis sitios distintos. Esto los junta en una pantalla.
-// \ud83d\udd34 No repara NADA: solo informa y dice qu\u00e9 opci\u00f3n del men\u00fa lo arregla. Reparar por sorpresa lo
-// que no se ha entendido todav\u00eda es justo como se rompen las cosas en producci\u00f3n.
-function salud_() {
-  var puntos = [], t = reloj_(), incompleto = false;
-  function punto(clave, nivel, titulo, detalle, arreglo, n) {
-    puntos.push({ clave: clave, nivel: nivel, titulo: titulo, detalle: detalle || "",
-                  arreglo: nivel === "ok" ? "" : (arreglo || ""), n: n || 0 });
-  }
-  function seguro(clave, titulo, fn) {
-    try { fn(); }
-    catch (e) { punto(clave, "mal", titulo, "no se ha podido comprobar: " + (e && e.message ? e.message : e),
-                      "Vuelve a abrir la hoja y prueba otra vez; si sigue, mira el registro de ejecuciones."); }
-  }
-  var pers = [], todos = [];
-  try {
-    todos = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; });
-    pers = todos.filter(function(v){ return !v[21]; });   // activos: lo que se mira grupo a grupo
-  } catch (e) {}
-
-  // 1) TRIGGERS \u00b7 sin alRecibirRespuesta no se procesa ni un formulario; duplicados = todo dos veces
-  seguro("triggers", "Triggers", function(){
-    var cuenta = {};
-    ScriptApp.getProjectTriggers().forEach(function(t){ var f = t.getHandlerFunction(); cuenta[f] = (cuenta[f] || 0) + 1; });
-    var faltan = [], dobles = [];
-    ["alRecibirRespuesta", "fotoNocturna"].forEach(function(f){
-      if (!cuenta[f]) faltan.push(f); else if (cuenta[f] > 1) dobles.push(f + " \u00d7" + cuenta[f]);
-    });
-    if (!faltan.length && !dobles.length) return punto("triggers", "ok", "Triggers", "los dos instalados, uno de cada");
-    punto("triggers", "mal", "Triggers",
-      (faltan.length ? "FALTA: " + faltan.join(", ") + ". " : "") +
-      (dobles.length ? "DUPLICADO: " + dobles.join(", ") + " (cada env\u00edo se procesa dos veces)." : ""),
-      "Men\u00fa \u2192 \u00abAbrir la Consola del profesorado\u00bb: repone los que falten y borra los duplicados.",
-      faltan.length + dobles.length);
-  });
-
-  // 2) TAREAS A MEDIAS \u00b7 normal durante unos minutos; preocupante si se qued\u00f3 ah\u00ed
-  seguro("tareas", "Tareas a medias", function(){
-    var medias = [];
-    ["reset", "formularios", "alta", "canjes"].forEach(function(k){
-      var p = progreso_(k); if (p) medias.push(k + " (" + (p.n || p.i || 0) + " de " + (p.total || "?") + ")");
-    });
-    if (!medias.length) return punto("tareas", "ok", "Tareas a medias", "ninguna pendiente");
-    punto("tareas", "aviso", "Tareas a medias", medias.join(" \u00b7 "),
-      "Se reanudan solas dentro de un minuto. Si llevan ah\u00ed mucho rato, vuelve a lanzar esa misma opci\u00f3n del men\u00fa.",
-      medias.length);
-  });
-
-  // 3) CANJES SIN RESOLVER \u00b7 el fallo que se escondi\u00f3: el alumno no cobra, no recibe y nadie se entera
-  // \ud83d\udd34 REVISI\u00d3N 26-ago \u00b7 aqu\u00ed se miran TODOS los grupos, archivados incluidos: un canje sin resolver
-  // es dinero cobrado sin entregar nada, y archivar el grupo no lo arregla \u2014 lo esconde para siempre.
-  // (Es adem\u00e1s lo que ya hac\u00eda reprocesarCanjes_: ten\u00edan dos criterios distintos.)
-  seguro("canjes", "Canjes sin resolver", function(){
-    var n = 0, donde = [];
-    todos.forEach(function(v){
-      var o = perObj_(v), arch = v[21] ? " \u00b7 archivado" : "";
-      var sh = SpreadsheetApp.getActive().getSheetByName(o.tabC);
-      if (!sh || sh.getLastRow() < 2) return;
-      var vals = sh.getDataRange().getValues(), col = vals[0].map(String).indexOf("Estado");
-      if (col < 0) { n += vals.length - 1; donde.push(o.nombre + ": " + (vals.length - 1) + " (sin columna Estado)" + arch); return; }
-      var k = 0;
-      for (var i = 1; i < vals.length; i++) if (!String(vals[i][col] || "").trim()) k++;
-      if (k) { n += k; donde.push(o.nombre + ": " + k + arch); }
-    });
-    if (!n) return punto("canjes", "ok", "Canjes sin resolver", "ninguno");
-    punto("canjes", "mal", "Canjes sin resolver", n + " sin resolver \u00b7 " + donde.join(" \u00b7 "),
-      "Men\u00fa \u2192 Mantenimiento \u2192 \u00abReprocesar canjes sin resolver\u00bb.", n);
-  });
-
-  // 4) y 5) AJUSTES \u00b7 errores del trigger y avisos que no llegaron a nadie (\u00faltimos 7 d\u00edas)
-  var errores = 0, avisosPerdidos = 0, ultimoError = "";
-  seguro("errores", "Errores del trigger", function(){
-    var desde = new Date().getTime() - 7 * 864e5;
-    hoja_(H.AJ).getDataRange().getValues().slice(1).forEach(function(v){
-      var t = 0; try { t = new Date(v[0]).getTime(); } catch (e) { t = desde; }
-      if (t < desde) return;
-      if (v[3] === "ERROR") { errores++; ultimoError = String(v[5] || ""); }
-      else if (v[3] === "AVISO" && String(v[6] || "").indexOf("SIN CORREO") >= 0) avisosPerdidos++;
-    });
-    if (!errores) punto("errores", "ok", "Errores del trigger", "ninguno en 7 d\u00edas");
-    else punto("errores", "mal", "Errores del trigger", errores + " en los \u00faltimos 7 d\u00edas \u00b7 \u00faltimo: " + ultimoError,
-      "M\u00edralos en la pesta\u00f1a AJUSTES (filas ERROR). Si son de canjes, \u00abReprocesar canjes sin resolver\u00bb los recupera.", errores);
-    if (!avisosPerdidos) punto("avisos", "ok", "Avisos entregados", "todos llegaron a alguien");
-    else punto("avisos", "mal", "Avisos sin destinatario", avisosPerdidos + " avisos no llegaron a nadie en 7 d\u00edas",
-      "Pon el correo de cada docente en la pesta\u00f1a DOCENTES, y un correo de reserva en men\u00fa \u2192 \u00abCorreo de avisos de reserva\u00bb.", avisosPerdidos);
-  });
-
-  // 6) DOCENTES SIN CORREO \u00b7 sin correo no hay avisos de canje
-  seguro("docentes", "Docentes sin correo", function(){
-    var sin = [];
-    pers.forEach(function(v){
-      docentesDe_(v[0]).forEach(function(d){ if (!String(d.correo || "").trim()) sin.push(d.nombre + " (" + v[1] + ")"); });
-    });
-    if (!sin.length) return punto("docentes", "ok", "Docentes sin correo", "todo el profesorado tiene correo");
-    punto("docentes", "aviso", "Docentes sin correo", sin.slice(0, 8).join(" \u00b7 ") + (sin.length > 8 ? " \u2026" : ""),
-      "Pesta\u00f1a DOCENTES de la hoja, o profes.html \u2192 \u00abAjustes del PER\u00bb.", sin.length);
-  });
-
-  // 7) RECLUTAS SIN DOCENTE \u00b7 no salen en la sala de nadie
-  seguro("reclutas", "Reclutas sin docente", function(){
-    var n = 0, donde = [], sinMirar = 0;
-    pers.forEach(function(v){
-      // calcular un tablero por grupo es lo \u00fanico caro de este parte: con muchos PER se puede ir de
-      // los 6 minutos. Antes de quedarse sin tiempo, se para y lo dice.
-      if (!t.sobra(20000)) { sinMirar++; return; }
-      var tb = tablero_(v[0], true);
-      if (tb && tb.sin_docente) { n += tb.sin_docente; donde.push(v[1] + ": " + tb.sin_docente); }
-    });
-    if (sinMirar) incompleto = true;
-    var cola = sinMirar ? " (no dio tiempo a mirar " + sinMirar + " grupo(s))" : "";
-    if (!n) return punto("reclutas", sinMirar ? "aviso" : "ok", "Reclutas sin docente",
-      (sinMirar ? "sin terminar" : "todos tienen docente") + cola,
-      sinMirar ? "Vuelve a abrir el parte: sigue por donde no lleg\u00f3." : "", sinMirar);
-    punto("reclutas", "aviso", "Reclutas sin docente", n + " sin docente \u00b7 " + donde.join(" \u00b7 ") + cola,
-      "Se arregla uno a uno en clase.html \u2192 \u00abCorregir la ficha\u00bb, o en profes.html.", n);
-  });
-
-  // 8) PER SIN DOCUMENTO \u00b7 el documento de enlaces es lo que se reparte al profesorado
-  seguro("documentos", "PER sin documento", function(){
-    var sin = pers.filter(function(v){ return !perObj_(v).doc; }).map(function(v){ return v[1]; });
-    if (!sin.length) return punto("documentos", "ok", "Documento de enlaces", pers.length + " PER, todos con documento");
-    punto("documentos", "aviso", "PER sin documento", sin.join(" \u00b7 "),
-      "Selecciona su fila y usa men\u00fa \u2192 \u00abDocumento de enlaces y embeds del PER seleccionado\u00bb.", sin.length);
-  });
-
-  // 9) CUOTA DE CORREO \u00b7 100 al d\u00eda en cuentas gratuitas, y cuando se acaba el correo no sale
-  seguro("cuota", "Cuota de correo", function(){
-    var q = cuotaCorreo_();
-    if (q >= 20) return punto("cuota", "ok", "Cuota de correo", q + " correos disponibles hoy");
-    punto("cuota", q > 0 ? "aviso" : "mal", "Cuota de correo",
-      q > 0 ? "quedan solo " + q + " correos hoy" : "AGOTADA: hoy ya no sale ning\u00fan correo",
-      "Se repone sola ma\u00f1ana. Los canjes se resuelven igual (el correo es un extra), pero nadie recibe aviso.", q);
-  });
-
-  // 10) LOS DOS PIN \u00b7 el del profesorado protege nombres y correos del alumnado; el de referente,
-  // las acciones que afectan a un grupo entero (calendario, archivar, formularios, equipo docente)
-  seguro("pin", "PIN del profesorado", function(){
-    var pr = PropertiesService.getScriptProperties();
-    var pin = pr.getProperty("PIN_PROFES") || "", ref = pr.getProperty("PIN_REFERENTE") || "";
-    if (pin && ref && pin === ref)
-      return punto("pin", "mal", "PIN del profesorado",
-        "los dos PIN son IGUALES: as\u00ed no separan nada y todo el equipo puede mover la semana 1 o archivar un grupo",
-        "Men\u00fa \u2192 \u00abPIN del profesor referente\u00bb: pon uno distinto, y m\u00e1s largo que el del d\u00eda a d\u00eda.", 1);
-    if (pin.length < 6)
-      return punto("pin", "mal", "PIN del profesorado",
-        pin ? "el del profesorado es demasiado corto (" + pin.length + " caracteres): es lo \u00fanico que protege nombres y correos del alumnado"
-            : "NO HAY PIN: cualquiera con el enlace ve nombres y correos",
-        "Men\u00fa \u2192 \u00abCambiar PIN del profesorado\u00bb. Seis caracteres o m\u00e1s.", 1);
-    if (ref && ref.length < 8)
-      return punto("pin", "mal", "PIN del profesorado",
-        "el de referente es demasiado corto (" + ref.length + " caracteres) y abre lo que afecta a un grupo entero",
-        "Men\u00fa \u2192 \u00abPIN del profesor referente\u00bb. Ocho o m\u00e1s: ese no se teclea con prisa antes de clase.", 1);
-    if (!ref)
-      return punto("pin", "aviso", "PIN del profesorado",
-        "el del profesorado est\u00e1 puesto (" + pin.length + " caracteres), pero NO hay PIN de referente: " +
-        "cualquiera del equipo puede mover la semana 1 de cualquier grupo, archivarlo o cerrar sus formularios",
-        "Men\u00fa \u2192 \u00abPIN del profesor referente\u00bb. Hasta que lo pongas, todo sigue funcionando como hasta ahora.");
-    punto("pin", "ok", "PIN del profesorado",
-      "los dos puestos y distintos: profesorado de " + pin.length + " caracteres, referente de " + ref.length);
-  });
-
-  // 11) CONSOLA Y DOSSIER
-  seguro("consola", "Consola y dossier", function(){
-    var pr = PropertiesService.getScriptProperties();
-    var falta = [];
-    if (!pr.getProperty(PROP_CONSOLA)) falta.push("Consola");
-    if (!pr.getProperty(PROP_DOSSIER)) falta.push("dossier");
-    if (!falta.length) return punto("consola", "ok", "Consola y dossier", "las dos creadas");
-    punto("consola", "aviso", "Consola y dossier", "falta: " + falta.join(" y "),
-      "Men\u00fa \u2192 \u00abAbrir la Consola del profesorado\u00bb y \u00abDossier del profesorado\u00bb. Tambi\u00e9n se rehacen de madrugada.", falta.length);
-  });
-
-  // 12) DOS CUENTAS, UNA PERSONA \u00b7 el recluta se identifica por el correo que trae su cuenta de
-  // Google, as\u00ed que no hay erratas al teclearlo \u2014 pero quien entra un d\u00eda con la cuenta del m\u00e1ster y
-  // otro con la personal sale DOS VECES en el ranking, cada una con sus xp y ninguna completa.
-  // No se puede impedir; s\u00ed se puede ver antes de que el alumno escriba preguntando qu\u00e9 le pasa.
-  seguro("dobles", "Dos cuentas, una persona", function(){
-    var sospechas = [];
-    pers.forEach(function(v){
-      var o = perObj_(v), vistos = {};
-      (tablero_(o.id, true).reclutas || []).forEach(function(r){
-        var k = normalizar_(r.nombre); if (!k) return;
-        if (vistos[k] && vistos[k] !== r.email) sospechas.push(o.nombre + ": \u00ab" + r.nombre + "\u00bb con " + vistos[k] + " y " + r.email);
-        else vistos[k] = r.email;
-      });
-    });
-    if (!sospechas.length) return punto("dobles", "ok", "Dos cuentas, una persona", "nadie aparece dos veces");
-    punto("dobles", "aviso", "Dos cuentas, una persona", sospechas.slice(0, 5).join(" \u00b7 ") +
-      (sospechas.length > 5 ? " (y " + (sospechas.length - 5) + " m\u00e1s)" : ""),
-      "Preg\u00fantale con cu\u00e1l quiere quedarse y p\u00e1sale los retos de la otra desde AJUSTES (acci\u00f3n \u00abotorgar\u00bb). " +
-      "Y recu\u00e9rdale a la clase que entre SIEMPRE con la misma cuenta.", sospechas.length);
-  });
-
-  // 13) PARTES INFLADOS \u00b7 el ticket es an\u00f3nimo y no se puede deduplicar, as\u00ed que alguien podr\u00eda
-  // enviarlo muchas veces para disparar el bonus de la tripulaci\u00f3n. No se puede impedir; lo que s\u00ed
-  // se puede es que no pase desapercibido: m\u00e1s partes que reclutas en un tema es raro de por s\u00ed.
-  seguro("partes", "Partes del ticket", function(){
-    var raros = [];
-    pers.forEach(function(v){
-      var o = perObj_(v), n = (tablero_(o.id, true).reclutas || []).length;
-      if (!n) return;
-      var partes = partesPorSeccion_(o);
-      Object.keys(partes).forEach(function(k){
-        if (partes[k] > n) raros.push(o.nombre + " \u00b7 " + k + ": " + partes[k] + " partes para " + n + " reclutas");
-      });
-    });
-    if (!raros.length) return punto("partes", "ok", "Partes del ticket", "ning\u00fan tema recibe m\u00e1s partes que reclutas hay");
-    punto("partes", "aviso", "Partes del ticket", raros.slice(0, 5).join(" \u00b7 "),
-      "Puede ser normal (alguien lo mand\u00f3 dos veces sin querer) o alguien inflando el bonus de la " +
-      "tripulaci\u00f3n. Mira las respuestas de ese tema antes de darlo por bueno.", raros.length);
-  });
-
-  var malos = puntos.filter(function(p){ return p.nivel === "mal"; }).length;
-  var avisos = puntos.filter(function(p){ return p.nivel === "aviso"; }).length;
-  return { ok: malos === 0, malos: malos, avisos: avisos, puntos: puntos, pers: pers.length,
-           incompleto: incompleto, fecha: new Date() };
-}
-// ================= EL VIGIA =================
-// v3.18 \u00b7 El parte de salud ya sabia detectar los triggers duplicados, la cuota de correo, los
-// canjes sin resolver y los errores del trigger. Los duplicados los descubrimos a mano, de
-// casualidad, mirando el registro de ejecuciones \u2014 porque NADIE ABRIO EL PARTE. A este sistema no
-// le faltaba inteligencia: le faltaba boca.
-//
-// Cuelga de fotoNocturna (4:00) a proposito: ni un trigger nuevo que instalar, mantener o duplicar.
-//
-// Cuando habla y cuando calla:
-//   \u00b7 hay algo mal o en aviso  -> escribe si el problema es NUEVO, y si sigue igual insiste cada 7 dias
-//   \u00b7 se ha arreglado todo     -> lo dice UNA vez, y calla
-//   \u00b7 todo bien desde hace 30 dias -> una senal de vida, porque si no el silencio de un script muerto
-//     es identico al silencio de un sistema sano, y eso es justo lo que no queremos durante una baja
-// El vigia deja constancia en AJUSTES de lo que decidio y de si el correo salio. El registro de
-// Cloud no siempre esta disponible en este proyecto (lo dice el propio codigo mas arriba), asi que
-// sin este rastro un vigia averiado es indistinguible de un sistema sano. Que es exactamente lo
-// contrario de para lo que sirve.
 function rastroVigia_(motivo, ok, detalle) {
   try { hoja_(H.AJ).appendRow([new Date(), "", "", "VIGIA", motivo || "callado",
     (ok ? "aviso enviado" : "NO salio el aviso") + (detalle ? " \u00b7 " + detalle : ""), "sistema"]); } catch (e) {}

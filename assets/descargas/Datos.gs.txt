@@ -317,6 +317,8 @@ var SEMANAS_PER = {"REGULAR": 15, "PUA": 8};
 // Primera semana en que se abre cada tema. Generado desde el CRONO de la web: no editar a mano.
 var SEMANA_DEL_TEMA = {"1": 1, "2": 3, "3": 5, "4": 7, "5": 9, "6": 10, "7": 11, "8": 13};
 var SEMANAS_CANJE_EXTRA = 1;
+// La semana en que se abre el ARSENAL DE BATALLA (recompensas de nota).
+var SEMANA_ARSENAL = 15;
 var DIAS_APERTURA_ANTES = 0;
 // Insignia por serie completa. [clave, titulo de la serie tal y como aparece en CROMOS, nombre]
 var SERIES_ALBUM = [
@@ -335,10 +337,10 @@ var RECOMPENSAS_INICIALES = [
   ["Fondo de ficha: tu planeta",35,1,"Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.",4,"fondo"],
   ["Marco dorado del avatar",60,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.",6,"marco"],
   ["Héroe de la Rebelión",60,99,"Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión en tres rangos. ⚔️ La Resistencia (56% del sobre): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave.",2,"heroe"],
-  ["Subir 0,5 en un entregable",320,1,"Se aplica a la actividad que elijas",14,"nota"],
-  ["Subir 1 punto en un entregable",500,1,"Se aplica a la actividad que elijas",14,"nota"],
-  ["Recalificar un trabajo entregado fuera de plazo",700,1,"Indica la actividad",14,"nota"],
-  ["Recalificar un suspenso",950,1,"Indica la actividad",14,"nota"]
+  ["Subir 0,5 en un entregable",550,1,"⚔️ ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. 🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — estarías tirando 550 créditos a la basura. Comprueba tu nota primero. Con esos créditos cierras media docena de sobres o te llevas nueve héroes.",15,"nota"],
+  ["Subir 1 punto en un entregable",850,1,"⚔️ ARSENAL DE BATALLA · Un punto entero en una actividad ya entregada y corregida. 🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, no te sube nada y pierdes los 850 créditos. Es la recompensa más cara del catálogo a propósito: elegirla significa renunciar a casi todo lo demás.",15,"nota"],
+  ["Recalificar un trabajo entregado fuera de plazo",700,1,"⚔️ ARSENAL DE BATALLA · Que se te corrija un trabajo que entregaste tarde. No es un aprobado automático: es que se mire y se puntúe como si hubiera llegado a tiempo.",15,"nota"],
+  ["Recalificar un suspenso",950,1,"⚔️ ARSENAL DE BATALLA · Una segunda oportunidad sobre un trabajo suspenso: lo rehaces y se vuelve a corregir. Pensada para quien ha trabajado y se le atragantó una entrega.",15,"nota"]
 ];
 // RECOMPENSAS-FIN
 
