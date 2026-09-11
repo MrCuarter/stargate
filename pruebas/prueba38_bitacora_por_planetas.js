@@ -83,7 +83,7 @@ c(pos(G.TIT_HOY) < pos(G.TIT_PAG_ALTA), "portada, alistamiento y elegir planeta 
 c(pos(G.TIT_PAG_ALTA) < pos(G.TIT_PAG_PLANETA), "");
 
 // la identidad vive ENTERA dentro del alistamiento
-["Alias de recluta (público)", "Nombre y apellidos", "Elige tu avatar",
+["Alias de recluta (público)", "Nombre", "Apellidos", "Elige tu avatar",
  "¿Quién imparte tu clase?", "Enlace a mi Bitácora (ePortfolio)", "Breve biografía de tu personaje"]
   .forEach(t => {
     const p = pos(t);

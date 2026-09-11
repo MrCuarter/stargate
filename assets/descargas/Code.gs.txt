@@ -122,7 +122,7 @@ function hoja_(nombre, cab, color) {
 // una a otra leen todas de estas dos listas. Un dato, un sitio.
 var CAB_EV = ["fecha","per","email","alias","reto_id","reto","tema","xp","origen","evidencia"];
 var CAB_AJ = ["fecha","per","email","reto_id","accion","motivo","profe"];
-var CAB_ALUMNADO = ["PER","Grupo","Nombre y apellidos","Correo","Alias","Docente","Nivel","Rango","xp",
+var CAB_ALUMNADO = ["PER","Grupo","Apellidos","Nombre","Correo","Alias","Docente","Nivel","Rango","xp",
                     "Créditos","Ganados","Gastados","Insignias","Retos","Canjes","Qué ha canjeado",
                     "Cromos","Héroes","Planeta","Bitácora","Última actividad","Grupo archivado"];
 
@@ -1387,7 +1387,7 @@ function estructuraBitacora_(fb, o, t) {
   mete(pbAlta);
   mete(buscar(TIT_ESCENA_ALTA));
   trucoGenially_(fb);
-  ["Quién soy", "Alias de recluta (público)", "Nombre y apellidos", TIT_LAMINA, "Elige tu avatar",
+  ["Quién soy", "Alias de recluta (público)", "Nombre", "Apellidos", TIT_LAMINA, "Elige tu avatar",
    TIT_DOCENTE, "Enlace a mi Bitácora (ePortfolio)", TIT_TRUCO, "Breve biografía de tu personaje"]
     .forEach(function(tit){ mete(buscar(tit)); });
   // lo que no reconocemos se queda en el alistamiento: es de donde viene, y ahí no estorba
@@ -1617,7 +1617,8 @@ function identidadBitacora_(fb, datos, id) {
   fb.addSectionHeaderItem().setTitle("Quién soy")
     .setHelpText("Esto es el ALISTAMIENTO y solo se hace una vez. Si ya te alistaste, no hace falta que lo repitas.");
   fb.addTextItem().setTitle("Alias de recluta (público)").setHelpText("Lo que se verá en el tablero. Solo la primera vez: si ya te alistaste, déjalo en blanco.").setRequired(false);
-  fb.addTextItem().setTitle("Nombre y apellidos").setHelpText("Solo para el profesorado. Solo la primera vez.").setRequired(false);
+  fb.addTextItem().setTitle("Nombre").setHelpText("Solo para el profesorado. Solo la primera vez.").setRequired(false);
+  fb.addTextItem().setTitle("Apellidos").setHelpText("Los dos, si tienes dos. Sirve para ordenar la lista de clase.").setRequired(false);
   try { fb.addImageItem().setImage(UrlFetchApp.fetch(sinCache_(WEB + "assets/img/avatares/lamina_personajes.jpg")).getBlob()).setTitle(TIT_LAMINA).setHelpText("Los siete están disponibles desde el primer día: elige con calma, porque el personaje te acompaña TODO el viaje. Lo que cambia es su aspecto — Recluta → Cadete → Oficial → Comandante → Leyenda—, que se desbloquea al subir de nivel.").setAlignment(FormApp.Alignment.CENTER).setWidth(640); } catch (e) {}
   fb.addListItem().setTitle("Elige tu avatar").setHelpText(ayudaAvatar_())
     .setChoiceValues(opcIniciales_()).setRequired(false);
@@ -2307,6 +2308,7 @@ function sembrarDemo_(perId) {
     pon("marca temporal", fecha(1, i));
     pon("alias", a[0]);
     pon("apellidos", "Recluta de prueba " + (i + 1));
+    pon("nombre", a[0]);            // formulario nuevo: el alias hace de nombre de pila
     pon("elige tu avatar", "Personaje " + ((i % 7) + 1) + " · " + (a[1] === "m" ? "él" : "ella") + " (evoluciona)");
     pon("quién imparte", profes[i % profes.length]);
     pon("biograf", "Recluta de siembra: existo para que el tablero tenga vida en las pruebas.");
@@ -3104,7 +3106,7 @@ function tablero_(perId, conPrivados) {
   var shB = SpreadsheetApp.getActive().getSheetByName(o.tabB);
   if (shB && shB.getLastRow() > 1) {
     var vals = shB.getDataRange().getValues(); var cab = vals[0].map(String);
-    var cM = idx_(cab,"correo") >= 0 ? idx_(cab,"correo") : idx_(cab,"email"); var cA = idx_(cab,"alias"), cN = idx_(cab,"apellidos"), cB = idx_(cab,"bitácora"), cBio = idx_(cab,"biograf");
+    var cM = idx_(cab,"correo") >= 0 ? idx_(cab,"correo") : idx_(cab,"email"); var cA = idx_(cab,"alias"), cB = idx_(cab,"bitácora"), cBio = idx_(cab,"biograf");
     var cAv = idx_(cab,"elige tu avatar"), cAvU = idx_(cab,"url de tu propia imagen"), cProf = idx_(cab,"quién imparte");
     for (var i = 1; i < vals.length; i++) { var m = String(vals[i][cM]||"").toLowerCase().trim(); if (!m) continue;
       var avs = cAv >= 0 ? String(vals[i][cAv]||"") : ""; var avu = cAvU >= 0 ? String(vals[i][cAvU]||"").trim() : "";
@@ -3118,7 +3120,12 @@ function tablero_(perId, conPrivados) {
       var y = por[m] || { email:m, alias:"", nombre:"", bitacora:"", bio:"", profe:"",
                           avatar:{tipo:null,n:null,url:""}, retos:{}, insignias:{}, xp:0, tema:0, eventos:[] };
       function pon(campo, valor) { valor = String(valor == null ? "" : valor).trim(); if (valor) y[campo] = valor; }
-      pon("alias", vals[i][cA]); pon("nombre", vals[i][cN]); pon("bitacora", vals[i][cB]);
+      // `nombre` sigue siendo el ENTERO —lo usan la ficha, la sala y los avisos— y las dos mitades
+      // se añaden aparte, para la hoja ALUMNADO. Cambiar el significado de `nombre` habria roto
+      // media docena de sitios por ahorrarse un campo.
+      var _np = nombrePartido_(cab, vals[i]);
+      pon("alias", vals[i][cA]); pon("nombre", nombreCompleto_(cab, vals[i]));
+      pon("nombre_pila", _np.nombre); pon("apellidos", _np.apellidos); pon("bitacora", vals[i][cB]);
       if (cBio >= 0) pon("bio", vals[i][cBio]);
       if (cProf >= 0) pon("profe", vals[i][cProf]);
       if (avatar.tipo || avatar.url) y.avatar = avatar;
@@ -3242,7 +3249,11 @@ function tablero_(perId, conPrivados) {
                 // v3.26 · la última vez que registró algo POR SU CUENTA (los retos que le otorga el
                 // profesorado no cuentan: la señal es si sigue jugando, no si alguien juega por él)
                 ultima: a.eventos.length ? new Date(Math.max.apply(null, a.eventos.map(function(e){ return new Date(e.fecha).getTime(); }))) : "" };
-    if (conPrivados) { out.email = m; out.nombre = a.nombre; out.bitacora = a.bitacora; out.bio = a.bio || ""; out.eventos = a.eventos; out.retos = a.retos; out.canjes = canjes[m] ? canjes[m].lista : []; }
+    // 🔴 Las dos mitades del nombre son DATO PERSONAL, igual que el entero: van solo aquí, en la
+    // rama privada. El endpoint público no las ve, como no ve el correo.
+    if (conPrivados) { out.email = m; out.nombre = a.nombre;
+      out.nombre_pila = a.nombre_pila || ""; out.apellidos = a.apellidos || "";
+      out.bitacora = a.bitacora; out.bio = a.bio || ""; out.eventos = a.eventos; out.retos = a.retos; out.canjes = canjes[m] ? canjes[m].lista : []; }
     return out; });
   lista.sort(function(a,b){ return b.xp - a.xp || b.n - a.n || a.alias.localeCompare(b.alias); }); lista.forEach(function(x,i){ x.pos = i+1; });
   // corona semanal: el/los que más xp ganaron en los últimos 7 días
@@ -3279,6 +3290,34 @@ function parseAvatar_(s) {
   av.url = url; return av;
 }
 function idx_(cab, frag) { frag = frag.toLowerCase(); for (var i = 0; i < cab.length; i++) if (cab[i].toLowerCase().indexOf(frag) >= 0) return i; return -1; }
+// 🔴 11-sep · NOMBRE Y APELLIDOS, SEPARADOS. Antes era un solo campo y no se podia ordenar por
+// apellido. Separarlos a maquina es imposible en español —«Jose Luis Garcia de la Torre»: ¿donde
+// acaba el nombre?— asi que se pregunta dos veces.
+// idxExacto_ existe porque idx_ busca SUBCADENA, y eso aqui es una trampa: «nombre» tambien casa
+// con la columna vieja «Nombre y apellidos» y se leeria el campo equivocado sin avisar.
+function idxExacto_(cab, titulo) {
+  titulo = String(titulo).toLowerCase().trim();
+  for (var i = 0; i < cab.length; i++) if (String(cab[i]).toLowerCase().trim() === titulo) return i;
+  return -1;
+}
+// El nombre completo, venga del formato NUEVO (dos columnas) o del VIEJO (una). Un solo sitio: si
+// esto se repartiera por el codigo, tarde o temprano un camino se actualiza y el otro no.
+function nombreCompleto_(cab, fila) {
+  var n = idxExacto_(cab, "Nombre"), a = idxExacto_(cab, "Apellidos");
+  if (n >= 0 || a >= 0)
+    return [n >= 0 ? fila[n] : "", a >= 0 ? fila[a] : ""].join(" ").replace(/\s+/g, " ").trim();
+  var v = idx_(cab, "nombre y apellidos");
+  return v >= 0 ? String(fila[v] || "").trim() : "";
+}
+// Las dos mitades por separado, para la hoja ALUMNADO (ordenar por apellido es el motivo del
+// cambio). En el formato viejo no hay forma fiable de partirlo: va entero en Apellidos, que es la
+// columna por la que se ordena, y Nombre queda vacio.
+function nombrePartido_(cab, fila) {
+  var n = idxExacto_(cab, "Nombre"), a = idxExacto_(cab, "Apellidos");
+  if (n >= 0 || a >= 0)
+    return { nombre: String(n >= 0 ? fila[n] : "").trim(), apellidos: String(a >= 0 ? fila[a] : "").trim() };
+  return { nombre: "", apellidos: nombreCompleto_(cab, fila) };
+}
 
 // ================= ALUMNADO (la vista operativa de las personas) =================
 // 🔴 NO confundir con DATOS/RESUMEN. Aquellas dos son PARA INVESTIGAR y salen seudonimizadas a
@@ -3310,7 +3349,7 @@ function alumnado_() {
       var canjes = x.canjes || [], veces = {};
       canjes.forEach(function(c){ var n = nombreDe_(c.recompensa); if (n) veces[n] = (veces[n] || 0) + 1; });
       if (o.archivado) archivados++;
-      filas.push([o.id, o.nombre, x.nombre || "", x.email || "", x.alias || "", x.profe || "",
+      filas.push([o.id, o.nombre, x.apellidos || x.nombre || "", x.nombre_pila || "", x.email || "", x.alias || "", x.profe || "",
                   x.nivel, x.rango_nombre || "", x.xp,
                   x.creditos, x.creditos_ganados, x.creditos_gastados,
                   x.n, Object.keys(x.retos || {}).length, canjes.length,
@@ -4136,7 +4175,11 @@ function doPost(e) {
       var mail = String(q.email || "").toLowerCase().trim(); var filaF = 0;
       for (var i3 = 1; i3 < vf.length; i3++) if (String(vf[i3][cMf] || "").toLowerCase().trim() === mail) filaF = i3 + 1;
       if (!filaF) throw new Error("No encuentro a ese recluta en la Bitácora del grupo");
-      var campos = [["alias", idx_(cf,"alias")], ["nombre", idx_(cf,"apellidos")],
+      // 🔴 Con el formulario nuevo hay DOS columnas. La ficha manda «nombre» y «apellidos» por
+      // separado; si el grupo es viejo y solo tiene la columna de siempre, «nombre» cae ahi.
+      var cNom = idxExacto_(cf, "Nombre"), cApe = idxExacto_(cf, "Apellidos");
+      if (cNom < 0 && cApe < 0) cNom = idx_(cf, "nombre y apellidos");
+      var campos = [["alias", idx_(cf,"alias")], ["nombre", cNom], ["apellidos", cApe],
                     ["profe", idx_(cf,"quién imparte")], ["bitacora", idx_(cf,"bitácora")]];
       var tocados = [];
       campos.forEach(function(c){

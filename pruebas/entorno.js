@@ -160,7 +160,18 @@ function enviarBitacora(G, perId, datos, editarFila) {
   };
   v["Dirección de correo electrónico"] = datos.email;
   poner("Alias de recluta (público)", datos.alias, "");
-  poner("Nombre y apellidos", datos.nombre, "");
+  // 🔴 El formulario real ya tiene DOS campos. Las baterias siguen pasando `nombre` entero por
+  // comodidad, asi que aqui se parte por el primer espacio — pero OJO: eso vale para un mock y no
+  // valdria en produccion, que es justo el motivo de haber separado los campos.
+  // 🔴 OJO con `undefined`: poner() solo escribe si el valor NO es undefined, porque editar una
+  // respuesta en Google conserva los campos que no tocas. Si aqui se pasara siempre una cadena, la
+  // segunda llamada (la que marca retos) BORRARIA el nombre — me pasó al escribir esto.
+  if (datos.nombre !== undefined) {
+    var _n = String(datos.nombre == null ? "" : datos.nombre).trim();
+    var _c = _n.indexOf(" ");
+    poner("Nombre",    _c < 0 ? _n : _n.slice(0, _c));
+    poner("Apellidos", _c < 0 ? ""  : _n.slice(_c + 1).trim());
+  } else if (!editarFila) { poner("Nombre", ""); poner("Apellidos", ""); }
   poner("Elige tu avatar", datos.avatar, "Personaje 1 · ella (evoluciona)");
   poner("¿Quién imparte tu clase?", datos.profe, "");
   poner("Enlace a mi Bitácora (ePortfolio)", datos.bitacora, "");

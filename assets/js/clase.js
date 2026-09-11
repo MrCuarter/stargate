@@ -343,7 +343,11 @@
       + bloqueColeccion(p)
       +'<div id="fEditar" hidden><div class="grid cols-2"><div><h4>Corregir su ficha</h4><p class="small muted">Se escribe en su respuesta de la Bitácora, que es de donde sale la identidad del tablero.</p>'
       +'<label class="small muted">Alias</label><input id="fAlias" value="'+esc(p.alias)+'" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">'
-      +'<label class="small muted" style="margin-top:8px;display:block">Nombre y apellidos</label><input id="fNombre" value="'+esc(p.nombre||'')+'" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">'
+      // 🔴 11-sep · DOS CAMPOS, como el formulario. Antes era uno y no se podia ordenar la clase por
+      // apellido; y partirlo a maquina en español es imposible («José Luis García de la Torre»).
+      // Si el grupo es viejo y solo tiene la columna de siempre, el servidor mete ahí lo del nombre.
+      +'<label class="small muted" style="margin-top:8px;display:block">Nombre</label><input id="fNombre" value="'+esc(p.nombre_pila||p.nombre||'')+'" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">'
+      +'<label class="small muted" style="margin-top:8px;display:block">Apellidos</label><input id="fApellidos" value="'+esc(p.apellidos||'')+'" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">'
       +'<label class="small muted" style="margin-top:8px;display:block">Docente</label><select id="fProfe" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">'
       +'<option value="">— sin indicar —</option>'+docs.map(function(x){return '<option value="'+esc(x)+'"'+(x===p.profe?' selected':'')+'>'+esc(x)+'</option>';}).join('')+'</select>'
       +'<label class="small muted" style="margin-top:8px;display:block">Enlace a su Bitácora (ePortfolio)</label><input id="fBit" value="'+esc(p.bitacora||'')+'" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">'
@@ -364,7 +368,9 @@
     document.getElementById('fGuardar').onclick=function(){
       var m=document.getElementById('fMsg'); m.textContent='Guardando…';
       post({accion:'ficha',per:st.per,email:p.email,alias:document.getElementById('fAlias').value.trim(),
-            nombre:document.getElementById('fNombre').value.trim(),profe:document.getElementById('fProfe').value,
+            nombre:document.getElementById('fNombre').value.trim(),
+            apellidos:(document.getElementById('fApellidos')||{value:''}).value.trim(),
+            profe:document.getElementById('fProfe').value,
             bitacora:document.getElementById('fBit').value.trim(),profe_edita:st.profe},
         function(){ m.textContent='Guardado.'; cargarPer(); },
         function(e){ m.textContent=e; });};

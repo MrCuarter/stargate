@@ -79,7 +79,12 @@ igual(r.reclutas, 3, "y lo cuenta al terminar");
 const col = n => G.CAB_ALUMNADO.indexOf(n);
 const ana = alu.slice(1).filter(v => v[col("Correo")] === "ana@alumno.es")[0] || [];
 igual(ana[col("PER")], A, "cada fila dice de qué grupo es");
-igual(ana[col("Nombre y apellidos")], "Recluta ana@alumno.es", "🔴 con el NOMBRE REAL: esta pestaña es la operativa, no la de investigar");
+// 🔴 11-sep · ALUMNADO parte el nombre en dos columnas, con el APELLIDO delante: es por lo que se
+// ordena una lista de clase, y era el motivo del cambio.
+igual([ana[col("Nombre")], ana[col("Apellidos")]].join(" ").trim(), "Recluta ana@alumno.es",
+  "🔴 con el NOMBRE REAL: esta pestaña es la operativa, no la de investigar");
+c(col("Nombre") >= 0 && col("Apellidos") >= 0, "   y va partido en dos columnas, para poder ordenar");
+c(col("Apellidos") < col("Nombre"), "   con el apellido DELANTE, que es por lo que se ordena");
 igual(ana[col("Alias")], "ana", "y con su alias");
 igual(ana[col("Docente")], "Mr Cuarter", "y con quién le da clase");
 c(Number(ana[col("xp")]) > 0, "los xp");
