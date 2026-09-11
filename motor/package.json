@@ -1,0 +1,6 @@
+{
+  "name": "stargate-motor",
+  "private": true,
+  "type": "commonjs",
+  "description": "El puente entre STARGATE y el motor de GamificaPro (Firestore)"
+}

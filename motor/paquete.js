@@ -1,0 +1,277 @@
+'use strict';
+/**
+ * STARGATE · DE CATÁLOGO A MOTOR
+ *
+ * Traduce el catálogo de STARGATE al vocabulario de GamificaPro. Un reto es una misión, un planeta
+ * es una campaña, una recompensa es una recompensa. Nada de esto se inventa: se lee del catálogo
+ * (que a su vez lee Datos.gs) y se pinta con los campos que el motor entiende.
+ *
+ * 🔴 Lo que NO se traduce, y por qué no pasa nada: la corona semanal, la racha, la Tripulación
+ * Cero, el porcentaje de colección y los repetidos. GamificaPro no los conoce, pero tampoco los
+ * necesita: guarda los HECHOS (qué misión completó quién y cuándo, qué lleva en el inventario) y
+ * esas cinco cosas se calculan a partir de ellos. Van en el adaptador, del lado de la Nave.
+ *
+ * Lo único que sí exige servidor es REGALAR xp o créditos, porque las reglas de Firestore prohíben
+ * que el navegador escriba en la economía. Por eso el bonus de planeta es una CAMPAÑA: el motor ya
+ * sabe premiar al completar un conjunto de misiones, y lo hace desde dentro.
+ *
+ * Se usa igual en Node (las pruebas, el sembrador) y en el navegador (la consola del referente).
+ */
+(function (raiz, fabrica) {
+  if (typeof module === "object" && module.exports) module.exports = fabrica();
+  else (raiz.SG = raiz.SG || {}).PAQUETE = fabrica();
+})(typeof self !== "undefined" ? self : this, function () {
+
+  var DIA = 864e5;
+
+  // 🔴 Nada de `toISOString` aquí. La fecha se construye en hora local (T00:00:00) y en Madrid, con
+  // horario de verano, pasarla a UTC la retrasa dos horas — o sea, al día ANTERIOR. La batería 54 lo
+  // cazó porque el cierre de misiones salía un día antes que en el motor viejo: un día de menos para
+  // registrar, regalado por una conversión de zona horaria que nadie había pedido.
+  function masDias(iso, n) {
+    var d = new Date(iso + "T00:00:00");
+    d.setDate(d.getDate() + n);
+    return d.getFullYear() + "-" + dos(d.getMonth() + 1) + "-" + dos(d.getDate());
+  }
+  function dos(n) { return (n < 10 ? "0" : "") + n; }
+  // La semana 1 empieza el día de `inicio`. La semana N se abre N-1 semanas después.
+  function inicioDeSemana(inicio, semana) { return masDias(inicio, (Math.max(1, semana) - 1) * 7); }
+  function ms(iso) { return iso ? new Date(iso + "T00:00:00").getTime() : null; }
+
+  /**
+   * Un PUA dura 8 semanas y un REGULAR 15. Las puertas del catálogo están escritas en semanas de
+   * REGULAR, así que en PUA se escalan proporcionalmente en vez de copiarse: si no, el Arsenal de
+   * la semana 15 no se abriría nunca en un curso que acaba en la 8.
+   */
+  function semanaEnTipo(semanaRegular, tipo, cat) {
+    if (tipo !== "PUA") return semanaRegular;
+    var total = cat.semanas.REGULAR || 15, suyas = cat.semanas.PUA || 8;
+    return Math.max(1, Math.min(suyas, Math.round(semanaRegular * suyas / total)));
+  }
+
+  // Los créditos de un reto salen de su forma, igual que en el motor viejo: lo dice el id.
+  function creditosDe(reto, tipo, cat) {
+    var c = cat.creditos;
+    if (reto.id === "H1") return c.reclutamiento;
+    if (reto.id.charAt(0) === "X") return c.actividad;
+    if (reto.id.charAt(0) === "A") return c.retoA;
+    if (reto.id.charAt(0) === "S") return c.retoA;
+    if (reto.id.charAt(0) === "B") return tipo === "PUA" ? c.retoB_pua : c.retoB;
+    return c.retoA;
+  }
+
+  /**
+   * El paquete de un PER: el documento del proyecto, sus misiones, sus campañas y su tienda.
+   *
+   * `per` trae lo que el referente escribe en la consola: nombre, tipo, fecha de la semana 1,
+   * equipo docente, el padlet y los Geniallys. Nada más: lo demás lo pone el catálogo.
+   */
+  function paquete(per, cat) {
+    var tipo = per.tipo === "PUA" ? "PUA" : "REGULAR";
+    var inicio = String(per.inicio || "").slice(0, 10);
+    if (!inicio) throw new Error("Falta la fecha de la semana 1");
+    var semanas = cat.semanas[tipo];
+    var retos = cat.retos[tipo];
+    // El último día de la semana n, y el canje una semana entera por detrás. Calculados los dos
+    // desde el inicio —no el segundo desde el primero— para que sea imposible que se desincronicen.
+    var cierre = masDias(inicio, semanas * 7 - 1);
+    var cierreCanje = masDias(inicio, (semanas + (cat.semanasCanjeExtra || 1)) * 7 - 1);
+    var docentes = (per.docentes || []).map(function (d) {
+      return { nombre: String(d.nombre || "").trim(), correo: String(d.correo || "").toLowerCase().trim(),
+               rol: d.rol || "docente", panel: String(d.panel || "").trim() };
+    }).filter(function (d) { return d.nombre || d.correo; });
+
+    // ---------------------------------------------------------------- el proyecto
+    // Todo lo que es NUESTRO va bajo `stargate`. GamificaPro no lee ahí, y sus 58 escrituras sobre
+    // proyectos son `updateDoc` (nunca reemplazan el documento entero), así que este apartado
+    // sobrevive a que un docente entre a su editor y toque lo que quiera.
+    var proyecto = {
+      name: per.nombre,
+      description: per.descripcion || "Proyecto Gamificado del Máster en Tecnología Educativa de la UNIR.",
+      active: true,
+      editorMode: "simple",
+      coTeacherEmails: docentes.map(function (d) { return d.correo; }).filter(Boolean),
+      avatarProgressionEnabled: true,
+      characterStatsEnabled: false,
+      levelSystem: cat.niveles.map(function (n) {
+        return { level: n.nivel, xpRequired: escalaXp(n.xp, tipo, cat), title: n.titulo, phase: n.rango };
+      }),
+      stargate: {
+        version: cat.version,
+        tipo: tipo,
+        inicio: inicio,
+        apertura: inicio,
+        cierre: cierre,
+        cierreCanje: cierreCanje,
+        semanas: semanas,
+        referente: String(per.referente || "").toLowerCase().trim(),
+        docentes: docentes,
+        padlet: String(per.padlet || "").trim(),
+        panelVer: String(per.panelVer || "").trim(),
+        panelEdit: String(per.panelEdit || "").trim(),
+        // El Genially propio de cada docente, si lo tiene. La Nave elige el del docente del alumno.
+        paneles: docentes.reduce(function (m, d) { if (d.panel) m[d.nombre] = d.panel; return m; }, {}),
+        semanaDelTema: cat.semanaDelTema,
+        temas: cat.temas
+      }
+    };
+
+    // ---------------------------------------------------------------- las misiones
+    // El id del documento es el id del reto (`A1`, `B3`, `X1`). Deliberado: así el adaptador puede
+    // traducir de motor a motor sin una tabla de equivalencias que mantener, y los ajustes que el
+    // profesorado hizo en la hoja vieja siguen nombrando lo mismo.
+    // 🔴 Alistarse ES un reto. En el motor viejo no aparece en la tabla porque no hay que marcarlo
+    // —se otorga solo al llegar la primera respuesta—, pero suma xp, créditos y la insignia de
+    // Reclutamiento. Sin esta misión, el xp de la semana salía 100 por debajo y la corona podía
+    // cambiar de dueño. Lo cazó la batería 54 comparando con el motor de siempre.
+    var conAlta = [{ id: "H1", titulo: "Alistamiento: te unes a la tripulación",
+                     insignias: ["H1_reclutamiento"], xp: cat.xpReclutamiento, tema: 0 }].concat(retos);
+    var misiones = conAlta.map(function (r, i) {
+      var semana = cat.semanaDelTema[String(r.tema)] || r.tema;
+      return {
+        id: r.id,
+        order: i,
+        title: r.titulo,
+        description: descripcionDe(r, cat),
+        points: r.xp,
+        coinsReward: creditosDe(r, tipo, cat),
+        badge: r.insignias[0] || "",
+        // Las insignias extra de un reto (X1 da dos) viajan aparte: el motor solo pinta una.
+        stargateBadges: r.insignias,
+        stargateTema: r.tema,
+        stargateSemana: semanaEnTipo(semana, tipo, cat),
+        campaignId: r.tema ? "tema" + r.tema : null,
+        // Manual y sin cola: marcar un reto es lo que hoy hace el formulario, y entonces tampoco
+        // esperaba a nadie. La revisión del profesorado sigue existiendo — puede anularlo después.
+        completionMethod: { type: "manual" },
+        requiresTeacherValidation: false,
+        enabled: true,
+        isMandatory: r.id.charAt(0) !== "S"
+      };
+    });
+
+    // ---------------------------------------------------------------- las campañas (los planetas)
+    // Un planeta completo = bonus. El motor ya sabe premiar al terminar un conjunto de misiones,
+    // así que el bonus de planeta deja de ser código nuestro y pasa a ser una regla suya.
+    var campanas = cat.temas.map(function (t) {
+      var mias = misiones.filter(function (m) { return m.stargateTema === t.n; });
+      if (!mias.length) return null;
+      var semana = semanaEnTipo(cat.semanaDelTema[String(t.n)] || t.n, tipo, cat);
+      return {
+        id: "tema" + t.n,
+        order: t.n,
+        title: "Tema " + t.n + " · " + t.planeta,
+        description: t.materia,
+        missionIds: mias.map(function (m) { return m.id; }),
+        // El reto secreto no puede ser obligatorio para dar el planeta por completo: es un huevo
+        // de Pascua, y quien no lo encuentre no puede quedarse sin su bonus.
+        optionalMissionIds: mias.filter(function (m) { return m.id.charAt(0) === "S"; })
+                                .map(function (m) { return m.id; }),
+        // 🔴 El bonus de planeta deja de ser código nuestro: es la recompensa de la campaña, y la
+        // paga el motor desde dentro. Mismos 150 xp y 40 créditos de siempre — salen del catálogo.
+        rewards: [{ type: "xp", value: (cat.bonus.planeta || {}).xp || 0 },
+                  { type: "coins", value: (cat.bonus.planeta || {}).creditos || 0 }],
+        enabled: true,
+        visibleFromTimestamp: ms(inicioDeSemana(inicio, semana)),
+        stargatePlaneta: t.clave
+      };
+    }).filter(Boolean);
+
+    // Las insignias derivadas (Tripulación Cero, La Liberación) también son campañas: un conjunto
+    // de misiones que, al completarse, da xp y una insignia. Mismo mecanismo, otro conjunto.
+    cat.derivadas.forEach(function (d, i) {
+      var necesita = misiones.filter(function (m) {
+        return m.stargateBadges.some(function (b) { return d.requiere.indexOf(b) >= 0; });
+      }).map(function (m) { return m.id; });
+      if (!necesita.length) return;
+      campanas.push({
+        id: "derivada" + (i + 1),
+        order: 100 + i,
+        title: (cat.insignias[d.insignia] || {}).nombre || d.insignia,
+        description: (cat.insignias[d.insignia] || {}).tarea || "",
+        missionIds: necesita,
+        rewards: [{ type: "xp", value: d.xp }, { type: "coins", value: cat.creditos.derivada }],
+        enabled: true,
+        stargateInsignia: d.insignia
+      });
+    });
+
+    // ---------------------------------------------------------------- la tienda
+    var tienda = cat.recompensas.map(function (r, i) {
+      var semana = semanaEnTipo(r.desdeSemana, tipo, cat);
+      return {
+        id: "rec" + (i + 1),
+        title: r.nombre,
+        description: r.descripcion,
+        cost: r.coste,
+        maxPerUser: r.maximo >= 99 ? null : r.maximo,
+        // 🔴 La puerta de semana, que el motor viejo comprobaba a mano en tres sitios distintos.
+        // Aquí es un campo: el Arsenal no existe hasta la semana 15 y punto.
+        availableFrom: ms(inicioDeSemana(inicio, semana)),
+        availableUntil: ms(cierreCanje),
+        inStore: true,
+        // 🔴 LA COLA DE NOTA. Las subidas de nota NO se conceden solas: generan un vale que el
+        // docente aprueba en bloque, y los créditos no se mueven hasta entonces. Es exactamente lo
+        // que diseñamos, y el motor ya lo trae de fábrica.
+        requiresApproval: r.tipo === "nota",
+        requiresDelivery: r.tipo === "nota",
+        stargateTipo: r.tipo,
+        stargateSemana: semana,
+        icon: "gift"
+      };
+    });
+
+    // ---------------------------------------------------------------- el álbum y el vestuario
+    // Cada carta y cada héroe es una recompensa que NO está en la tienda: no se compran sueltos,
+    // salen del sobre. Así el inventario del motor guarda lo que tiene cada recluta —incluidos los
+    // repetidos, porque el inventario admite entradas iguales— y el álbum deja de ser cuenta aparte.
+    var coleccionables = cat.cromos.map(function (c) {
+      return { id: "cromo_" + c.clave, title: c.nombre, description: c.serie, cost: 0, inStore: false,
+               rarity: rareza(c.rareza), stargateTipo: "cromo", stargateSerie: c.serie, icon: "sparkles" };
+    }).concat(cat.heroes.map(function (h) {
+      return { id: "heroe_" + h.clave, title: h.nombre, description: "Héroe de la Rebelión", cost: 0,
+               inStore: false, rarity: rareza(h.rareza), stargateTipo: "heroe", icon: "user" };
+    }));
+
+    // El sobre y el sobre de héroes se convierten en cofres del motor: consumirlos da una pieza al
+    // azar con los MISMOS pesos del catálogo. El sorteo deja de ser código nuestro.
+    function cofre(prefijo, piezas) {
+      return { items: piezas.map(function (x) {
+        return { rewardId: prefijo + x.clave, probability: x.peso, maxStock: 0 };
+      }) };
+    }
+    tienda.forEach(function (r) {
+      if (r.stargateTipo === "cromo") { r.isConsumable = true; r.maxUses = 1;
+        r.consumeEffects = { lootBox: cofre("cromo_", cat.cromos) }; }
+      if (r.stargateTipo === "heroe") { r.isConsumable = true; r.maxUses = 1;
+        r.consumeEffects = { lootBox: cofre("heroe_", cat.heroes) }; }
+    });
+
+    return { proyecto: proyecto, misiones: misiones, campanas: campanas,
+             recompensas: tienda.concat(coleccionables), series: cat.series };
+  }
+
+  // El motor pinta el borde de la carta por rareza; nuestras palabras no son las suyas.
+  function rareza(r) {
+    return { "común": "common", "comun": "common", "rara": "rare",
+             "épica": "epic", "epica": "epic", "legendaria": "legendary" }[String(r).toLowerCase()] || "common";
+  }
+
+  // Los xp de nivel están escritos para un REGULAR (4.750 de viaje). Un PUA recorre 4.350: si se
+  // copiaran tal cual, en PUA sería imposible llegar a Leyenda por pura aritmética.
+  function escalaXp(xp, tipo, cat) {
+    if (tipo !== "PUA" || !cat.xpViaje || !cat.xpViaje.REGULAR) return xp;
+    return Math.round(xp * cat.xpViaje.PUA / cat.xpViaje.REGULAR);
+  }
+
+  // El texto que ve el recluta: lo que pide el reto y qué insignia se lleva.
+  function descripcionDe(reto, cat) {
+    var fichas = reto.insignias.map(function (k) { return cat.insignias[k]; }).filter(Boolean);
+    var tarea = fichas.map(function (f) { return f.tarea; }).filter(Boolean)[0] || "";
+    var nombres = fichas.map(function (f) { return f.nombre; }).filter(Boolean);
+    return tarea + (nombres.length ? "\n\nInsignia: " + nombres.join(" · ") : "");
+  }
+
+  return { paquete: paquete, masDias: masDias, inicioDeSemana: inicioDeSemana,
+           semanaEnTipo: semanaEnTipo, creditosDe: creditosDe, escalaXp: escalaXp };
+});

@@ -1,0 +1,291 @@
+'use strict';
+/**
+ * STARGATE · EL TRADUCTOR
+ *
+ * Recibe documentos de Firestore tal y como los guarda GamificaPro y devuelve EXACTAMENTE el mismo
+ * objeto que devuelve `tablero_()` en Apps Script. Ni un campo más, ni uno menos, ni con otro
+ * nombre.
+ *
+ * 🔴 Esa obsesión es el plan entero. Si el objeto es el mismo, `recluta.js`, `clase.js`, `panel.js`
+ * y `sesion.js` siguen funcionando sin tocarlos, las 53 baterías siguen siendo válidas y se puede
+ * cambiar de motor con un interruptor en vez de con una reescritura. Es lo que convierte esto en un
+ * MOD y no en «la versión 2, que ya veremos si sale».
+ *
+ * Aquí NO se habla con Firebase: entra un puñado de objetos y sale otro. Es una función pura, y por
+ * eso se puede probar entera sin red, sin cuenta y sin esperar a nadie.
+ */
+(function (raiz, fabrica) {
+  if (typeof module === "object" && module.exports) module.exports = fabrica();
+  else (raiz.SG = raiz.SG || {}).TABLERO = fabrica();
+})(typeof self !== "undefined" ? self : this, function () {
+
+  var SEMANA_MS = 6048e5;
+
+  function ts(f) { if (!f) return 0; var t = new Date(f).getTime(); return isNaN(t) ? 0 : t; }
+  function iso(ms) { return ms ? new Date(ms).toISOString().slice(0, 10) : ""; }
+
+  // La semana del PER en la que cae una fecha. Habla el idioma del curso, no el del calendario.
+  function semanaDeFecha(inicio, fecha) {
+    if (!inicio) return null;
+    var t = ts(fecha); if (!t) return null;
+    var d = new Date(t); d.setHours(0, 0, 0, 0);
+    return Math.floor((d.getTime() - new Date(inicio + "T00:00:00").getTime()) / SEMANA_MS) + 1;
+  }
+  function semanaDe(inicio, ahora) {
+    if (!inicio) return null;
+    var hoy = new Date(ahora || Date.now()); hoy.setHours(0, 0, 0, 0);
+    return Math.floor((hoy - new Date(inicio + "T00:00:00")) / SEMANA_MS) + 1;
+  }
+
+  function nivelInfo(xp, niveles, rangos) {
+    var n = 1;
+    for (var i = 0; i < niveles.length; i++) if (xp >= niveles[i].xp) n = niveles[i].nivel;
+    var f = niveles[n - 1];
+    var sig = n < niveles.length ? niveles[n][1] != null ? niveles[n].xp : null : null;
+    if (n < niveles.length) sig = niveles[n].xp; else sig = null;
+    return { nivel: n, rango: f.rango, rangoNombre: rangos[f.rango - 1], titulo: f.titulo,
+             siguiente: sig, faltan: sig === null ? 0 : Math.max(0, sig - xp) };
+  }
+
+  /**
+   * Semanas CONSECUTIVAS del PER con al menos un registro, contando hacia atrás desde la semana en
+   * curso. Si esta semana aún no ha registrado nada se cuenta desde la anterior: a nadie se le
+   * rompe la racha un lunes por la mañana.
+   */
+  function racha(inicio, fechas, ahora) {
+    var sem = semanaDe(inicio, ahora);
+    if (sem === null || !fechas || !fechas.length) return 0;
+    var con = {};
+    fechas.forEach(function (f) { var w = semanaDeFecha(inicio, f); if (w !== null && w >= 1) con[w] = true; });
+    var w2 = con[sem] ? sem : sem - 1, n = 0;
+    while (w2 >= 1 && con[w2]) { n++; w2--; }
+    return n;
+  }
+
+  /**
+   * El tablero de un PER.
+   *
+   * `datos` son documentos crudos de Firestore:
+   *   proyecto    projects/{perId}                (con su apartado `stargate`)
+   *   misiones    missions donde projectId == per
+   *   campanas    campaigns donde projectId == per
+   *   recompensas rewards   donde projectId == per
+   *   perfiles    student_profiles donde projectId == per
+   *   privados    { profileId: {firstName, lastName, email, bitacora, bio} }  · solo tras el PIN
+   *   vales       purchased_vouchers donde projectId == per
+   *
+   * `conPrivados` decide si salen correo, nombre y el detalle. Igual que en el motor viejo: el
+   * endpoint público NO ve ni un correo ni un nombre real, y eso lo comprueba una batería.
+   */
+  function tablero(datos, conPrivados, ahora) {
+    var P = datos.proyecto || {}, S = P.stargate || {};
+    var tipo = S.tipo === "PUA" ? "PUA" : "REGULAR";
+    var inicio = S.inicio || "";
+    var cat = datos.catalogo;
+    var porId = {}; (datos.misiones || []).forEach(function (m) { porId[m.id] = m; });
+    var privados = datos.privados || {};
+
+    // Los vales de canje, agrupados por quien los compró. `studentId` es el uid del alumno.
+    var valesDe = {};
+    (datos.vales || []).forEach(function (v) {
+      var k = String(v.studentId || "");
+      (valesDe[k] = valesDe[k] || []).push(v);
+    });
+
+    var hace7 = (ahora || Date.now()) - 7 * 864e5;
+
+    var lista = (datos.perfiles || []).map(function (p) {
+      var hechas = p.completedMissionIds || [];
+      var sellos = p.missionTimestamps || {};
+      // `retos` con la forma de siempre: { A1: {fecha, origen} }. La fecha es el ÚLTIMO registro.
+      var retos = {}, fechas = [], eventos = [];
+      hechas.forEach(function (id) {
+        var marcas = sellos[id] || [];
+        var f = marcas.length ? marcas[marcas.length - 1] : "";
+        retos[id] = { fecha: f, origen: "recluta", evidencia: "" };
+        if (f) fechas.push(f);
+        var m = porId[id];
+        eventos.push({ fecha: f, reto_id: id, reto: m ? m.title : id,
+                       xp: m ? m.points : 0, origen: "recluta", evidencia: "" });
+      });
+
+      // 🔴 El xp de LA SEMANA. Sale de los mismos retos que producen el xp total, cada uno con su
+      // fecha — no de una lista de eventos aparte. Ese error ya se pagó una vez: quien tenía todo
+      // validado por su profe salía con 0 y la corona se la llevaba otro.
+      var xp7 = 0;
+      hechas.forEach(function (id) {
+        var m = porId[id]; if (!m) return;
+        if (ts(retos[id].fecha) >= hace7) xp7 += m.points || 0;
+      });
+      // 🔴 Y los bonus. Un planeta completo da 150 xp que el motor ya sumó al total, pero Firestore
+      // no guarda CUÁNDO se completó la campaña. No hace falta: un planeta se completa el día que
+      // cae su última misión, así que la fecha se deduce de las misiones. Sin esto, quien remata un
+      // planeta esta semana pierde 150 xp de cara a la corona — y la corona se la lleva otro.
+      // (Lo cazó la batería 54 comparando con el motor de siempre: 1.200 contra 1.050.)
+      (datos.campanas || []).forEach(function (cm) {
+        if ((p.completedCampaignIds || []).indexOf(cm.id) < 0) return;
+        var premio = (cm.rewards || []).filter(function (x) { return x.type === "xp"; })[0];
+        if (!premio || !premio.value) return;
+        var cuando = 0;
+        (cm.missionIds || []).forEach(function (mid) {
+          if (retos[mid] && ts(retos[mid].fecha) > cuando) cuando = ts(retos[mid].fecha);
+        });
+        if (cuando >= hace7) xp7 += premio.value;
+      });
+
+      // Las insignias: las de cada reto hecho, más las derivadas cuyas campañas estén completas.
+      var ins = {};
+      hechas.forEach(function (id) {
+        var m = porId[id]; if (!m) return;
+        (m.stargateBadges || (m.badge ? [m.badge] : [])).forEach(function (b) { ins[b] = true; });
+      });
+      if (hechas.length) ins["H1_reclutamiento"] = true;
+      (datos.campanas || []).forEach(function (c) {
+        if (!c.stargateInsignia) return;
+        if ((p.completedCampaignIds || []).indexOf(c.id) >= 0) ins[c.stargateInsignia] = true;
+      });
+
+      // El inventario: cartas, héroes y lo demás. Las entradas repetidas son, literalmente, repes.
+      var inv = p.inventory || [], cromos = {}, heroes = [], repes = 0;
+      inv.forEach(function (x) {
+        if (String(x).indexOf("cromo_") === 0) {
+          var k = String(x).slice(6);
+          cromos[k] = (cromos[k] || 0) + 1;
+          if (cromos[k] > 1) repes++;
+        } else if (String(x).indexOf("heroe_") === 0) {
+          var h = String(x).slice(6);
+          if (heroes.indexOf(h) < 0) heroes.push(h);
+        }
+      });
+      var gastados = Number(p.stargateRepesGastados || 0);
+
+      var xp = Number(p.totalPoints || 0);
+      var niv = nivelInfo(xp, cat.niveles, cat.rangos);
+      var skins = []; for (var r = 1; r <= niv.rango; r++) skins.push(r);
+
+      var album = cat.series.filter(function (sr) {
+        return cat.cromos.filter(function (cr) { return cr.serie === sr.serie; })
+                          .every(function (cr) { return cromos[cr.clave]; });
+      }).map(function (sr) { return sr.clave; });
+
+      var coleccion = {
+        cromos: { tengo: Object.keys(cromos).length, total: cat.cromos.length },
+        heroes: { tengo: heroes.length, total: cat.heroes.length },
+        skins:  { tengo: skins.length,  total: cat.rangos.length }
+      };
+      coleccion.tengo = coleccion.cromos.tengo + coleccion.heroes.tengo + coleccion.skins.tengo;
+      coleccion.total = coleccion.cromos.total + coleccion.heroes.total + coleccion.skins.total;
+      coleccion.pct = coleccion.total ? (coleccion.tengo * 100 / coleccion.total) : 0;
+
+      // Planetas completos: los temas cuyos retos obligatorios están todos hechos.
+      var planetas = [];
+      for (var t = 1; t <= 8; t++) {
+        var suyos = (datos.misiones || []).filter(function (m) {
+          return m.stargateTema === t && m.isMandatory !== false;
+        });
+        if (suyos.length && suyos.every(function (m) { return retos[m.id]; })) planetas.push(t);
+      }
+
+      var vales = valesDe[p.userId] || [];
+      var veces = {};
+      vales.forEach(function (v) { if (v.rewardTitle) veces[v.rewardTitle] = (veces[v.rewardTitle] || 0) + 1; });
+
+      var priv = privados[p.id] || {};
+      var puesto = String(p.stargateViste || "");
+      var mH = puesto.match(/^heroe:(.+)$/), mS = puesto.match(/^skin:([1-5])$/);
+      var valido = (mH && heroes.indexOf(mH[1]) >= 0) ? puesto
+                 : (mS && skins.indexOf(Number(mS[1])) >= 0) ? puesto : "";
+      var avatar = p.stargateAvatar || { tipo: null, n: null, url: "" };
+      avatar.skin = valido.indexOf("skin:") === 0 ? Number(valido.slice(5)) : niv.rango;
+      avatar.heroe = valido.indexOf("heroe:") === 0 ? valido.slice(6) : "";
+
+      var out = {
+        alias: p.displayName || "", avatar: avatar, xp: xp, nivel: niv.nivel, rango: niv.rango,
+        rango_nombre: niv.rangoNombre, coleccion: coleccion,
+        bonus: (p.completedCampaignIds || []).slice(),
+        planetas_completos: planetas, heroes: heroes, n_heroes: heroes.length, skins: skins,
+        viste: valido, repes: repes, repes_gastados: gastados,
+        repes_disponibles: Math.max(0, repes - gastados),
+        insignias_album: album, n_album: album.length,
+        racha: racha(inicio, fechas, ahora),
+        nivel_titulo: niv.titulo, xp_siguiente: niv.siguiente, xp_faltan: niv.faltan,
+        creditos: Number(p.coins || 0),
+        creditos_ganados: Number(p.stargateCreditosGanados != null ? p.stargateCreditosGanados : p.coins || 0),
+        creditos_gastados: Number(p.stargateCreditosGastados || 0),
+        canjeados: veces, profe: p.stargateProfe || "",
+        planeta: planetaDe(retos, datos.misiones, cat), tema: temaDe(retos, datos.misiones),
+        insignias: Object.keys(ins), n: Object.keys(ins).length,
+        titulo: p.stargateTitulo || "", marco: p.stargateMarco || "", fondo: p.stargateFondo || "",
+        cromos: cromos, xp7: xp7, bio: priv.bio || p.stargateBio || "",
+        ultima: fechas.length ? new Date(Math.max.apply(null, fechas.map(ts))) : ""
+      };
+      // 🔴 El correo y el nombre real solo aquí. El endpoint público no los ve, y eso no cambia
+      // porque cambiemos de motor: en Firestore viven en `student_profiles/{id}/privado`, que las
+      // reglas cierran a todo el mundo salvo el propio alumno y su equipo docente.
+      if (conPrivados) {
+        out.email = priv.email || ""; out.nombre = [priv.firstName, priv.lastName].filter(Boolean).join(" ");
+        out.nombre_pila = priv.firstName || ""; out.apellidos = priv.lastName || "";
+        out.bitacora = priv.bitacora || ""; out.eventos = eventos; out.retos = retos;
+        out.canjes = vales.map(function (v) {
+          return { fecha: v.createdAt ? new Date(v.createdAt) : "", recompensa: v.rewardTitle || "",
+                   actividad: v.stargateActividad || "", entregado: v.deliveredAt ? "Sí" : "",
+                   estado: v.status || "" };
+        });
+      }
+      return out;
+    });
+
+    lista.sort(function (a, b) { return b.xp - a.xp || b.n - a.n || a.alias.localeCompare(b.alias); });
+    lista.forEach(function (x, i) { x.pos = i + 1; });
+    // La corona semanal: quien más xp ganó en los últimos 7 días. Puede haber empate.
+    var maxSem = 0; lista.forEach(function (x) { if (x.xp7 > maxSem) maxSem = x.xp7; });
+    lista.forEach(function (x) { x.corona = maxSem > 0 && x.xp7 === maxSem; });
+
+    var docentes = S.docentes || [];
+    var res = {
+      per: P.id, nombre: P.name || "", tipo: tipo,
+      profesorado: docentes.map(function (d) { return d.nombre; }).join(", "),
+      referente: S.referente || "", estado: P.active === false ? "cerrado" : "abierto",
+      inicio: inicio, reclutas: lista,
+      recompensas: (datos.recompensas || []).filter(function (r) { return r.inStore !== false; })
+        .map(function (r) {
+          return { nombre: r.title, coste: r.cost, maximo: r.maxPerUser == null ? 99 : r.maxPerUser,
+                   descripcion: r.description, desde: r.stargateSemana || 0, tipo: r.stargateTipo || "" };
+        }),
+      semana: semanaDe(inicio, ahora), semanas: S.semanas || 15,
+      panel: S.panelVer || "", paneles: S.paneles || {},
+      apertura: S.apertura || "", cierre_misiones: S.cierre || "", cierre_canje: S.cierreCanje || "",
+      padlet: S.padlet || "",
+      docentes: docentes.map(function (d) {
+        return { nombre: d.nombre, rol: d.rol, imparte: d.imparte || "",
+                 referente: String(d.correo || "").toLowerCase() === String(S.referente || "").toLowerCase() };
+      }),
+      actualizado: new Date(ahora || Date.now())
+    };
+    if (conPrivados) {
+      res.docentes_full = docentes;
+      res.sin_docente = lista.filter(function (x) { return !String(x.profe || "").trim(); }).length;
+      res.docentes_sin_correo = docentes.filter(function (d) { return !d.correo; }).map(function (d) { return d.nombre; });
+      res.panelEdit = S.panelEdit || ""; res.panelPropio = !!(S.panelVer || S.panelEdit);
+      res.archivado = P.archived ? "sí" : "";
+    }
+    return res;
+  }
+
+  // El tema más alto que ha tocado, y su planeta. Igual que antes: el número mayor, no el último.
+  function temaDe(retos, misiones) {
+    var alto = 0;
+    (misiones || []).forEach(function (m) {
+      if (retos[m.id] && m.stargateTema > alto && m.stargateTema <= 8) alto = m.stargateTema;
+    });
+    return alto;
+  }
+  function planetaDe(retos, misiones, cat) {
+    var t = temaDe(retos, misiones);
+    var tema = (cat.temas || []).filter(function (x) { return x.n === t; })[0];
+    return tema ? tema.planeta : "—";
+  }
+
+  return { tablero: tablero, racha: racha, semanaDe: semanaDe, semanaDeFecha: semanaDeFecha,
+           nivelInfo: nivelInfo };
+});
