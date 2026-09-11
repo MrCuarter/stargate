@@ -1480,6 +1480,14 @@ function esOrbe_(titulo) {
 // los nombres sueltos de la fila del PER (PERs antiguos, sin correo).
 function esReferente_(d) { return String(d.rol || "").indexOf("referente") >= 0; }
 function imparte_(d) { return String(d.rol || "").indexOf("imparte") >= 0; }
+// v3.61 - Un PER es "de practicas" si lleva DEMO en el nombre. Este grupo se le ofrece a TODO el
+// profesorado, asi que la regla tiene que ser estrecha.
+//  Empece aceptando tambien PRUEBA, por reutilizar la de la Nave (recluta.js, demoPermitido). La
+// bateria 49 enseno el problema: los grupos desechables del referente -"PRUEBA V54 DOS
+// REFERENTES" y compania- apareceran en la sala de todos los docentes como si fueran para ellos.
+// La Nave usa PRUEBA para otra cosa (permitir el modo demostracion en un grupo cualquiera), y eso
+// no obliga a que aqui signifique lo mismo.
+function esDemo_(o) { return /\bDEMO\b/i.test(String((o && o.nombre) || "")); }
 function docentesDe_(perId) {
   var out = [];
   try {
@@ -3987,12 +3995,33 @@ function doPost(e) {
     if (!nivel) throw new Error("PIN incorrecto");
     if (nivel !== "referente" && ACCIONES_REFERENTE.indexOf(a) >= 0)
       throw new Error("Esto lo hace el profesor referente del grupo, con su PIN.");
-    // La pantalla de \u00ab\u00bfQui\u00e9n eres?\u00bb pinta un desplegable de NOMBRES: los correos de todo el
-    // profesorado no pintan nada ah\u00ed (el doGet p\u00fablico ya los filtraba; esto no).
-    if (a === "pers") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; })
-      .map(function(v){ var ob = perObj_(v);
-        ob.docentes = docentesDe_(ob.id).map(function(d){ return { nombre:d.nombre, rol:d.rol, panel:d.panel }; });
-        ob.semana = semanaDe_(ob); return ob; }) };
+    // v3.61 \u00b7 QUIEN ERES, POR CORREO. Antes la sala pintaba un desplegable con los NOMBRES de todo
+    // el profesorado y cada uno elegia el suyo: cualquiera con el PIN veia la plantilla entera y
+    // podia entrar como un companero. Ahora el docente escribe su correo y el SERVIDOR decide que
+    // grupos le tocan. El navegador sigue sin recibir ni un correo ajeno.
+    // \ud83d\udd34 Esto es ORDEN, no seguridad: quien tenga el PIN y sepa el correo de otro puede escribirlo.
+    // La puerta de verdad sigue siendo el PIN.
+    if (a === "pers") {
+      var _correo = String(q.correo || "").trim().toLowerCase();
+      var _todos = hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0]; })
+        .map(function(v){ var ob = perObj_(v);
+          var _docs = docentesDe_(ob.id);
+          ob.docentes = _docs.map(function(d){ return { nombre:d.nombre, rol:d.rol, panel:d.panel }; });
+          ob.demo = esDemo_(ob);
+          ob._mio = !!_correo && _docs.some(function(d){ return d.correo === _correo; });
+          ob._yo = ob._mio ? (_docs.filter(function(d){ return d.correo === _correo; })[0] || {}).nombre || "" : "";
+          ob.semana = semanaDe_(ob); return ob; });
+      if (!_correo) { _todos.forEach(function(o){ delete o._mio; delete o._yo; }); out = { pers: _todos }; }
+      else {
+        var _mios = _todos.filter(function(o){ return o._mio; });
+        // Sin grupo asignado no se ense\u00f1a la sala vacia: se ense\u00f1a la DEMO, que es donde se practica
+        // sin miedo. Y quien si tiene grupos tambien la conserva, por lo mismo.
+        var _demo = _todos.filter(function(o){ return o.demo && !o._mio; });
+        var _nombre = (_mios.filter(function(o){ return o._yo; })[0] || {})._yo || "";
+        out = { pers: _mios.concat(_demo), yo: { correo:_correo, nombre:_nombre, encontrado: _mios.length > 0 },
+                demo: _demo.map(function(o){ return o.id; }) };
+      }
+    }
     else if (a === "alumnos") out = tablero_(per, true);
     else if (a === "mi_panel") { var okp = guardarPanelDocente_(per, q.profe, q.url);
       out = { ok: okp, panel: String(q.url || "").trim(),

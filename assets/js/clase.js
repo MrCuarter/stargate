@@ -9,6 +9,8 @@
   var q=new URLSearchParams(location.search);
   if(q.get('embed')==='1') document.body.classList.add('embed');
   var st={pin:sessionStorage.getItem('sgPin')||'', profe:q.get('profe')||localStorage.getItem('sgProfe')||'',
+          correo:(q.get('correo')||localStorage.getItem('sgClaseCorreo')||'').trim().toLowerCase(),
+          yo:null, demoIds:[],
           per:q.get('per')||localStorage.getItem('sgClasePer')||'', pers:[], d:null, tickets:[],
           tema:'', dias:'14', soloMios:true, vista:'hoy', demo:q.get('demo')==='1',
   // 🔴 9-sep · EL CORREO Y EL NOMBRE REAL NACEN TAPADOS. No es la proteccion principal —para
@@ -47,7 +49,14 @@
 
   // ---------- quién eres ----------
   function todosLosDocentes(){var m={};st.pers.forEach(function(p){(p.docentes||[]).forEach(function(d){if(d.nombre)m[d.nombre]=1;});});return Object.keys(m).sort();}
-  function misPers(){return st.pers.filter(function(p){return (p.docentes||[]).some(function(d){return d.nombre===st.profe;});});}
+  // v3.61 · con correo, el filtro lo hizo el SERVIDOR y st.pers ya viene recortado. Sin correo
+  // (la demo sin PIN, clase.html?demo=1) se sigue filtrando por nombre, como antes.
+  function misPers(){ return st.correo ? st.pers
+    : st.pers.filter(function(p){return (p.docentes||[]).some(function(d){return d.nombre===st.profe;});}); }
+  function esDemoPer(id){ return st.demoIds.indexOf(id)>=0; }
+  // en un grupo de practicas el docente no figura en su equipo: filtrar «solo mis alumnos» lo
+  // dejaria a cero y pareceria vacio. Ahi se enseñan todos.
+  function soloMiosReal(){ return st.soloMios && !esDemoPer(st.per); }
   function estadoPer(p){
     var n=(p.tipo==='PUA'?10:15);
     if(p.archivado) return 'pasado';
@@ -55,24 +64,55 @@
     if(p.semana<1) return 'por empezar';
     return p.semana>n ? 'pasado' : 'en marcha';
   }
-  function elegirDocente(){
-    var ds=todosLosDocentes();
+  // v3.61 · ANTES: un desplegable con los NOMBRES de todo el profesorado y cada uno elegia el suyo.
+  // Eso enseñaba la plantilla entera a cualquiera con el PIN, y dejaba entrar como un companero con
+  // dos clics. AHORA: escribes tu correo y el servidor te devuelve SOLO tus grupos.
+  // 🔴 No es seguridad: quien tenga el PIN y sepa el correo de otro puede escribirlo. Es orden —y
+  // que nadie vea la lista del equipo. La puerta sigue siendo el PIN.
+  function pedirCorreo(msg){
     root.innerHTML='<div class="card" style="max-width:520px"><h3>¿Quién eres?</h3>'
-      +'<p class="small muted">Se guarda en este navegador. Toda la sala se filtra por ti: solo verás tus grupos y tus alumnos.</p>'
-      +(ds.length?'<div class="selrow"><select id="selD"><option value="">— elige tu nombre —</option>'
-        +ds.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>';}).join('')
-        +'</select><button class="btn primary" id="okD">Entrar</button></div>'
-        :'<p class="small">Todavía no hay docentes dados de alta. El profe referente los añade al crear el PER, o en el <a href="profes.html">panel</a> → Ajustes del PER.</p>')
-      +'</div>';
-    var b=document.getElementById('okD');
-    if(b)b.onclick=function(){var v=document.getElementById('selD').value;if(!v)return;st.profe=v;localStorage.setItem('sgProfe',v);cargarPers();};}
+      +'<p class="small muted">'+(msg||'Escribe tu correo <b>(preferiblemente el de UNIR)</b>. '
+        +'Se guarda en este navegador y solo verás <b>tus grupos</b> y tus alumnos.')+'</p>'
+      +'<input id="mailD" type="email" autocomplete="email" placeholder="tu.correo@unir.net" '
+      +'style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">'
+      +'<button class="btn primary" id="okD" style="margin-top:10px">Entrar</button>'
+      +'<p class="small muted" style="margin-top:12px">¿Todavía sin grupo asignado? Entra igual: '
+      +'te dejo la <b>clase de prácticas</b> para que lo explores sin miedo a romper nada.</p></div>';
+    var i=document.getElementById('mailD'), b=document.getElementById('okD');
+    function entrar(){
+      var v=(i.value||'').trim().toLowerCase();
+      if(!v||v.indexOf('@')<0){ i.focus(); return; }
+      st.correo=v; localStorage.setItem('sgClaseCorreo',v);
+      st.per=''; localStorage.removeItem('sgClasePer');   // el grupo guardado puede no ser suyo
+      root.innerHTML=cargando('Buscando tus grupos…',v);
+      cargarPers();
+    }
+    b.onclick=entrar;
+    i.addEventListener('keydown',function(e){ if(e.key==='Enter') entrar(); });
+    i.focus();
+  }
+  function olvidarCorreo(){
+    localStorage.removeItem('sgClaseCorreo'); localStorage.removeItem('sgProfe');
+    localStorage.removeItem('sgClasePer');
+    st.correo=''; st.profe=''; st.yo=null; st.per=''; st.pers=[];
+    pedirCorreo();
+  }
 
   // ---------- carga ----------
   function inicio(){ root.innerHTML=cargando('Abriendo tu sala…','Buscando tus grupos'); cargarPers(); }
   function cargarPers(){
-    post({accion:'pers'},function(d){
+    // la demo sin PIN (clase.html?demo=1) entra sin correo: ahi se sigue por nombre
+    if(!st.correo && !st.demo){ pedirCorreo(); return; }
+    post({accion:'pers', correo:st.correo},function(d){
       st.pers=(d.pers||[]).filter(function(p){return p.id;});
-      if(!st.profe||todosLosDocentes().indexOf(st.profe)<0){elegirDocente();return;}
+      st.demoIds=d.demo||[];
+      st.yo=d.yo||null;
+      if(st.yo){
+        // el nombre lo dice el servidor a partir del correo: ya no se teclea ni se elige
+        st.profe=st.yo.nombre||'Invitado';
+        localStorage.setItem('sgProfe',st.profe);
+      }
+      if(!st.correo && (!st.profe||todosLosDocentes().indexOf(st.profe)<0)){pedirCorreo();return;}
       var mios=misPers();
       if(!mios.length){render();return;}
       if(!st.per||!mios.some(function(p){return p.id===st.per;})){
@@ -96,7 +136,7 @@
     });}
 
   // ---------- piezas ----------
-  function mios(){var r=(st.d&&st.d.reclutas)||[];return st.soloMios?r.filter(function(x){return x.profe===st.profe;}):r;}
+  function mios(){var r=(st.d&&st.d.reclutas)||[];return soloMiosReal()?r.filter(function(x){return x.profe===st.profe;}):r;}
   function pendientes(){   // canjes concedidos que TIENE que aplicar una persona
     var out=[];
     mios().forEach(function(p){ (p.canjes||[]).forEach(function(c){
@@ -111,7 +151,7 @@
       var campos=t.r||{}, prof='', tema='';
       Object.keys(campos).forEach(function(k){ if(k.indexOf(KP)>=0)prof=String(campos[k]||''); if(k.indexOf(KS)>=0)tema=String(campos[k]||''); });
       t._prof=prof; t._tema=tema;
-      if(st.soloMios&&prof&&prof!==st.profe) return false;
+      if(soloMiosReal()&&prof&&prof!==st.profe) return false;
       if(st.tema&&tema!==st.tema) return false;
       if(lim){ try{ if(new Date(t.fecha).getTime()<lim) return false; }catch(e){} }
       return true;
@@ -137,7 +177,7 @@
         : '')
       +'</div>'
       +'<div class="selrow">'+(mp.length>1?'<select id="selPer">'+opc+'</select>':'')
-      +'<button class="btn small" id="cambiarD">No soy '+esc(st.profe)+'</button></div></div>';}
+      +'<button class="btn small" id="cambiarD" title="'+esc(st.correo||'')+'">No soy '+esc(st.profe)+'</button></div></div>';}
 
   // v3.27 · EL PASE DE LISTA. El docente abre una ventana de unos minutos y su pantalla enseña una
   // consigna de cuatro letras; quien esté en la clase la teclea en su Nave. La consigna se muestra
@@ -484,15 +524,30 @@
   }
 
   // ---------- render ----------
+  // v3.61 · quien entra con un correo que no figura en ningun equipo NO se encuentra una sala
+  // vacia: se encuentra la clase de practicas y una explicacion de por que. Es el momento en que
+  // un companero decidiria que «esto no funciona» y escribiria pidiendo ayuda.
+  function avisoSinGrupo(){
+    if(!st.yo || st.yo.encontrado || !st.correo) return '';
+    return '<div class="card" style="border-color:var(--amber)"><h3>Todavía no tienes grupo asignado</h3>'
+      +'<p>No encuentro <b>'+esc(st.correo)+'</b> en el equipo docente de ningún grupo. '
+      +'Pídele a tu <b>profesor/a referente</b> que te añada con ese mismo correo '
+      +'(panel del profesorado → Ajustes del PER → equipo docente).</p>'
+      +'<p class="small muted">Mientras tanto te dejo abajo la <b>clase de prácticas</b>: es un grupo '
+      +'de mentira con alumnado inventado. Tócalo todo, no se rompe nada.</p>'
+      +'<p><button class="btn small" id="cambiarD2">Probar con otro correo</button></p></div>';
+  }
   function render(){
     if(!misPers().length){
-      root.innerHTML='<div class="card"><h3>Hola, '+esc(st.profe)+'</h3>'
-        +'<p class="small muted">No apareces en el equipo docente de ningún grupo. Pídele al profe referente que te añada al crear el PER o desde el <a href="profes.html">panel</a> → Ajustes del PER.</p>'
-        +'<p><button class="btn small" id="cambiarD">No soy '+esc(st.profe)+'</button></p></div>';
-      document.getElementById('cambiarD').onclick=function(){localStorage.removeItem('sgProfe');st.profe='';elegirDocente();};
+      root.innerHTML='<div class="card"><h3>No encuentro tus grupos</h3>'
+        +'<p class="small muted">'+(st.correo
+          ? 'El correo <b>'+esc(st.correo)+'</b> no aparece en el equipo docente de ningún grupo, y tampoco hay una clase de prácticas abierta. Pídele al profe referente que te añada desde el <a href="profes.html">panel</a> → Ajustes del PER.'
+          : 'No apareces en el equipo docente de ningún grupo.')+'</p>'
+        +'<p><button class="btn small" id="cambiarD">Probar con otro correo</button></p></div>';
+      document.getElementById('cambiarD').onclick=olvidarCorreo;
       return;
     }
-    root.innerHTML=cabecera()+bloqueCola()+bloquePase()+bloquePanel()+bloqueIntervencion()+bloqueClase()+bloqueGrupo()+bloqueEnlaces()+bloqueMisPers();
+    root.innerHTML=avisoSinGrupo()+cabecera()+bloqueCola()+bloquePase()+bloquePanel()+bloqueIntervencion()+bloqueClase()+bloqueGrupo()+bloqueEnlaces()+bloqueMisPers();
     Array.prototype.forEach.call(root.querySelectorAll('[data-ap]'),function(b){
       b.onclick=function(){ resolverCola(Number(b.getAttribute('data-ap')), true); };});
     Array.prototype.forEach.call(root.querySelectorAll('[data-rc]'),function(b){
@@ -517,7 +572,8 @@
     if(tp)tp.onclick=function(){ st.paseOculto=!st.paseOculto; render(); };
     cuentaAtras();
     var sp=document.getElementById('selPer'); if(sp)sp.onchange=function(){st.per=sp.value;localStorage.setItem('sgClasePer',st.per);cargarPer();};
-    document.getElementById('cambiarD').onclick=function(){localStorage.removeItem('sgProfe');st.profe='';elegirDocente();};
+    var cd=document.getElementById('cambiarD'); if(cd) cd.onclick=olvidarCorreo;
+    var cd2=document.getElementById('cambiarD2'); if(cd2) cd2.onclick=olvidarCorreo;
     var stm=document.getElementById('selTema'); if(stm)stm.onchange=function(){st.tema=stm.value;render();};
     var sd=document.getElementById('selDias'); if(sd)sd.onchange=function(){st.dias=sd.value;render();};
     var ch=document.getElementById('chkMios'); if(ch)ch.onchange=function(){st.soloMios=ch.checked;render();};
