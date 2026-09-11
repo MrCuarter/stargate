@@ -114,6 +114,18 @@ const CSH = leer("comosehizo.html");
 c(CSH.indexOf("assets/js/puerta.js") < 0, "🔴 «cómo se hizo» NO pide PIN: es pública");
 c(CSH.indexOf("Genially") < 0, "🔴 y tampoco nombra Genially");
 c((CSH.match(/class="paso"/g) || []).length >= 7, "cuenta el proceso paso a paso (7 pasos)");
+
+// ---- los logos: usarlos obliga a decir que no hay relacion con esas empresas
+// 🔴 La politica de afiliados de OpenArt prohibe expresamente dar a entender una relacion que no
+// existe. Un logo junto a un enlace de referido se lee como «partner oficial» si no se aclara.
+const logos = ["claude", "openart", "magnific", "elevenlabs"];
+logos.forEach(function(g){
+  c(new RegExp("assets/img/logos/" + g).test(CSH), "lleva el logo de " + g);
+  c(fs.existsSync(path.join(RAIZ, "assets", "img", "logos", g + (g === "openart" || g === "claude" ? ".png" : ".svg"))),
+    "   y el fichero existe de verdad");
+});
+c(/no está afiliado a ninguna de ellas/.test(CSH),
+  "🔴 y dice CLARAMENTE que el proyecto no está afiliado ni respaldado por ellas");
 c(/Amara Sol/.test(CSH) && /recast/i.test(CSH), "   y no esconde los recasts del casting de voces");
 c(/opening-v2/.test(CSH), "   ni los borradores («opening» y «opening-v2»)");
 c((CSH.match(/<tr>/g) || []).length >= 10, "la tabla del casting tiene a los nueve y a NEBULA");

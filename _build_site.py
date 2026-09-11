@@ -220,9 +220,9 @@ cifras_html = "\n".join(
 # Cada herramienta, una tarjeta. El boton de apoyo solo aparece si hay enlace de referido: una
 # tarjeta sin boton se lee perfectamente, un boton que no lleva a ningun sitio no.
 comohizo_html = "\n".join(
-  '<div class="card comohizo"><div class="ch-top"><span class="ic">{i}</span>'
+  '<div class="card comohizo"><div class="ch-top"><span class="logo-app"><img src="assets/img/logos/{g}" alt="{t}" loading="lazy"></span>'
   '<div><div class="eyebrow teal">{p}</div><h3>{t}</h3></div></div><p class="small">{x}</p>{b}</div>'.format(
-     i=h["icono"], p=h["papel"], t=h["titulo"], x=h["texto"],
+     g=h["logo"], p=h["papel"], t=h["titulo"], x=h["texto"],
      b=('<a class="btn ghost peq" href="%s" target="_blank" rel="noopener">Probar %s ↗</a>'
         % (h["url"], h["titulo"])) if h.get("url") else "")
   for h in COMO_SE_HIZO)
@@ -1428,6 +1428,11 @@ al enseñarlo es «¿y esto cuánto cuesta encargarlo?», y la respuesta es que 
 <p class="small muted" style="margin-top:14px">Los botones son <b>enlaces de referido</b>: si entras
 por ahí, a ti no te cuesta más y este proyecto recibe una pequeña ayuda. Se dice para que lo sepas —
 puedes ir a sus webs directamente y no pasa nada.</p>
+<!-- 🔴 Los logos son de sus dueños y se usan para DECIR QUE SE USARON, nada mas. La politica de
+     afiliados de OpenArt prohibe expresamente dar a entender una relacion que no existe. -->
+<p class="small muted">Los logos pertenecen a sus respectivas empresas y aparecen aquí solo para
+identificar las herramientas que se usaron. <b>Este proyecto no está afiliado a ninguna de ellas
+ni cuenta con su respaldo</b>.</p>
 
 <div class="two" style="margin-top:30px">
 <div>
@@ -1459,7 +1464,8 @@ mañana hay tres planos más, aquí lo pone.</p>
 </div></section>
 
 <section><div class="wrap">
-<div class="eyebrow amber">El casting</div><h2>Nueve voces con nombre y apellidos</h2>
+<div class="eyebrow amber">El casting</div>
+<h2 class="con-logo"><span class="logo-app peq"><img src="assets/img/logos/elevenlabs.svg" alt="ElevenLabs" loading="lazy"></span> Nueve voces con nombre y apellidos</h2>
 <p class="lead">Cada tripulante tiene una voz elegida a mano en <b>ElevenLabs</b>, con acentos de
 varios países <b>a propósito</b>: la Tripulación Cero se reclutó por todo el mundo, y se nota al
 oírla. No todas salieron a la primera.</p>

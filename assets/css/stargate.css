@@ -942,3 +942,12 @@ table.casting tr:last-child td{border-bottom:0}
 table.casting td b{display:block}
 table.casting td em{display:block;font-style:normal;font-size:13px;color:var(--muted);margin-top:2px}
 table.casting td.nota{color:var(--ink-2);font-size:14px}
+
+/* Logos de las herramientas. Van sobre una baldosa blanca redondeada —como un icono de app— porque
+   cada marca trae sus propios colores y varias son oscuras: sobre el fondo del sitio desaparecerian.
+   Y pequeños a proposito: identifican, no condecoran. */
+.logo-app{flex:none;width:42px;height:42px;border-radius:10px;background:#fff;display:grid;
+  place-items:center;padding:7px;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.logo-app img{width:100%;height:100%;object-fit:contain;display:block}
+.logo-app.peq{width:30px;height:30px;border-radius:7px;padding:5px;display:inline-grid;vertical-align:-7px}
+h2.con-logo{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
