@@ -91,7 +91,11 @@
       // cadena, el fichero entero dejaba de compilar («Unexpected token 'else'») y la Nave se
       // quedaba EN BLANCO para todos los grupos. Visto en producción el 27-ago.
       st.pase=(d&&d.pase)||null;   // v3.27 · ¿hay pase de lista abierto ahora mismo?
-      if(d&&d.yo){st.yo=d.yo;st.email=email;localStorage.setItem(KEY_MAIL,email);st.msgYo='';}
+      if(d&&d.yo){st.yo=d.yo;st.email=email;localStorage.setItem(KEY_MAIL,email);st.msgYo='';
+        // 🔴 ACTO 2: aquí, con su ficha ya delante. Se espera un poco a que la nave termine de
+        // pintarse — explicar «mira tu personaje» sobre una pantalla en blanco no explica nada.
+        if(!localStorage.getItem('sgNaveOnboard_'+per)) setTimeout(function(){ onboarding(0,'nave'); }, 700);
+      }
       else if(d&&d.yo===null){st.yo=null;st.msgYo='No encuentro a nadie con ese correo en este grupo. Tiene que ser el <b>mismo correo de Google</b> con el que rellenaste la Bitácora de mando. ¿Todavía no te has alistado? Ese es el primer paso — el botón de abajo.';}
       else{st.yo=null;st.msgYo='La identificación aún no está activa (el mando tiene que actualizar el sistema). El resto de la nave funciona; vuelve a intentarlo más adelante.';}
       render();
@@ -629,28 +633,46 @@
       +'</section>';
   }
 
-  // ---------- onboarding NEBULA ----------
+  // ---------- onboarding NEBULA, en DOS actos ----------
+  // 🔴 11-sep · Norberto: «debería tener dos momentos». Tenía razón y era un fallo de fondo: NEBULA
+  // te explicaba tu ficha, tus créditos y tu personaje ANTES de que existiera nada de eso, porque la
+  // nave está cerrada hasta que escribes el correo. Explicar una habitación a oscuras y luego
+  // encender la luz es el orden equivocado.
+  //   ACTO 1 (puerta)  · quién soy y qué necesito de ti. Nada más.
+  //   ACTO 2 (a bordo) · ya con su ficha delante, qué es cada cosa.
+  var PASOS_PUERTA=[
+    {t:'Canal abierto, recluta',x:'Soy <b>NEBULA</b>, la inteligencia de esta nave. La galaxia se apaga por <b>la Estática</b> — un silencio que hace que nadie cree, registre ni comparta. Cruzarás <b>ocho planetas</b> (los ocho temas del curso) para reencenderla.'},
+    {t:'Primero, ¿quién eres?',x:'Esta nave es <b>tuya</b>, pero no puedo abrirla sin saber a quién se la abro. Escribe ahí arriba el <b>correo</b> con el que te alistaste y te enseño tu ficha: tu personaje, tus insignias y lo que llevas ganado.<br><br>¿Todavía no te has alistado? Escríbelo igualmente: te doy el enlace para subir a bordo.'}
+  ];
   var PASOS=[
-    {t:'Canal abierto, recluta',x:'Soy <b>NEBULA</b>, la inteligencia de esta nave. La galaxia se apaga por <b>la Estática</b> — un silencio que hace que nadie cree, registre ni comparta. Cruzarás <b>ocho planetas</b> (los ocho temas del curso) para reencenderla. Esta es tu nave.'},
+    {t:'Te tengo, recluta',x:'Identificación confirmada. A partir de aquí esta nave se abre sola cada vez que vuelvas <b>desde este dispositivo</b>: no tendrás que escribir el correo otra vez. Déjame enseñarte lo que tienes a bordo.'},
     {t:'Tu arma: la Bitácora',x:'Contra la Estática no sirven las armas: sirve <b>dejar constancia</b>. Tu <b>Bitácora Estelar</b> es tu ePortfolio: cada evidencia que registres la hace más fuerte. Cuando esté completa, la puerta a la Tierra se abrirá.'},
-    {t:'Alístate',x:'Tu primer acto: la <b>Bitácora de mando</b>. Escribe tu <b>correo</b> aquí arriba y, si todavía no estás a bordo, te doy el enlace: eliges tu <b>alias</b>, tu <b>avatar</b> (¡evoluciona con tus xp!) y escribes la <b>biografía</b> de tu personaje. Ganarás la insignia de <b>Reclutamiento</b>. Cada vez que superes un reto, vuelve, marca la casilla y envía.'},
-    {t:'Tu personaje, al mando',x:'Ese mismo <b>correo</b>, una sola vez en este dispositivo, y la nave te reconocerá: verás tu personaje con su <b>rango</b>, tu biografía, tus xp y tu colección de insignias nada más entrar. Hasta que no lo escribas, la nave está <b>cerrada</b> — y es a propósito: así nadie de fuera anda toqueteando los formularios de tu clase.'},
+    {t:'Cada reto, una vuelta aquí',x:'La <b>Bitácora de mando</b> es el formulario donde marcas lo que has completado. Cada vez que superes un reto: vuelves, marcas la casilla, pegas tu evidencia y envías. Lo demás —xp, nivel, insignias, créditos— se calcula solo y aparece aquí.'},
+    {t:'Tu personaje evoluciona',x:'Ese de ahí arriba eres tú. Tu avatar <b>cambia de aspecto</b> al llegar a los niveles 3, 5, 8 y 10: no es el mismo dibujo con otro marco, es otra versión del personaje. Y en <b>tu vestuario</b> te pones y te quitas lo que vayas ganando, gratis y las veces que quieras.'},
     {t:'La nave avanza sola',x:'Cada semana se desbloquea una nueva orden: el planeta, sus vídeos, sus <b>dos retos</b> y sus insignias. Los planetas futuros están en silencio… de momento. Vuelve cada semana.'},
     {t:'Dos marcadores, no uno',x:'Ojo a esto: los <b>xp</b> miden tu viaje y <b>nunca bajan</b> — suben tu <b>nivel</b> (del 1 al 10) y hacen <b>evolucionar a tu personaje</b>. Los <b>créditos ◈</b> los ganas con el mismo trabajo y son lo <b>único que se gasta</b> en la sección de <b>recompensas</b>. Comprar cromos no te baja de nivel. Y si te pierdes, usa el ticket <b>«Contacta con NEBULA»</b>: te leo, aunque sea anónimo. Corto y cierro.'}
   ];
-  function onboarding(i){
+  // Un solo motor para los dos actos: el acto decide QUÉ pasos, con qué clave de memoria y qué pone
+  // el último botón. Duplicar la función habría sido la vía rápida para que uno de los dos se quede
+  // sin arreglar el día que se toque algo.
+  var ACTOS={
+    puerta:{pasos:PASOS_PUERTA, clave:'sgNavePuerta_', fin:'Entendido ✓'},
+    nave:  {pasos:PASOS,        clave:'sgNaveOnboard_', fin:'A la nave ✓'}
+  };
+  function onboarding(i, acto){
+    acto=acto||'nave'; var A=ACTOS[acto], P=A.pasos;
     var ov=document.getElementById('nave-onboard');
     if(!ov){ov=document.createElement('div');ov.id='nave-onboard';ov.className='tour open';document.body.appendChild(ov);}
-    if(i>=PASOS.length){ov.classList.remove('open');ov.innerHTML='';localStorage.setItem('sgNaveOnboard_'+per,'1');return;}
-    var s=PASOS[i];
+    if(i>=P.length){ov.classList.remove('open');ov.innerHTML='';localStorage.setItem(A.clave+per,'1');return;}
+    var s=P[i];
     ov.innerHTML='<div class="tour-box">'+nebulaVideo('tour-cap nebula')
-      +'<div class="tour-panel"><div class="tour-step">NEBULA · '+(i+1)+' / '+PASOS.length+'</div><h3>'+s.t+'</h3><p>'+s.x+'</p>'
+      +'<div class="tour-panel"><div class="tour-step">NEBULA · '+(i+1)+' / '+P.length+'</div><h3>'+s.t+'</h3><p>'+s.x+'</p>'
       +'<div class="tour-btns"><button type="button" class="tour-prev"'+(i===0?' disabled':'')+'>← Anterior</button>'
-      +'<button type="button" class="tour-next primary">'+(i===PASOS.length-1?'A la nave ✓':'Siguiente →')+'</button>'
+      +'<button type="button" class="tour-next primary">'+(i===P.length-1?A.fin:'Siguiente →')+'</button>'
       +'<button type="button" class="tour-exit">Salir</button></div></div></div>';
-    ov.querySelector('.tour-prev').onclick=function(){onboarding(i-1);};
-    ov.querySelector('.tour-next').onclick=function(){onboarding(i+1);};
-    ov.querySelector('.tour-exit').onclick=function(){onboarding(PASOS.length);};
+    ov.querySelector('.tour-prev').onclick=function(){onboarding(i-1,acto);};
+    ov.querySelector('.tour-next').onclick=function(){onboarding(i+1,acto);};
+    ov.querySelector('.tour-exit').onclick=function(){onboarding(P.length,acto);};
   }
 
   // ---------- ¡ENHORABUENA! ----------
@@ -947,7 +969,7 @@
         else { pb.disabled=false; msg.textContent=(r&&r.error)||'No ha podido ser.'; }
       },function(e){ pb.disabled=false; msg.textContent=e; });
     };
-    var ob=root.querySelector('#btn-onboard'); if(ob)ob.onclick=function(){onboarding(0);};
+    var ob=root.querySelector('#btn-onboard'); if(ob)ob.onclick=function(){onboarding(0, st.yo?'nave':'puerta');};
   }
 
   // ---------- carga ----------
@@ -975,6 +997,8 @@
     // Y en demo NO se identifica a nadie: el correo guardado de otro dia no pinta nada aqui.
     if(DEMO) vestirDemoSeguro();
     else if(st.email)identificar(st.email);
-    if(!localStorage.getItem('sgNaveOnboard_'+per))onboarding(0);
+    // 🔴 Acto 1 solo si la nave está cerrada. Si el recluta ya está identificado (vuelve desde el
+    // mismo dispositivo) no tiene sentido presentarse otra vez: va directo a lo suyo.
+    if(!st.yo && !DEMO && !localStorage.getItem('sgNavePuerta_'+per)) onboarding(0,'puerta');
   }).catch(function(){root.innerHTML='<p class="lead">No se pudo contactar con NEBULA. Prueba a recargar.</p>';});
 })();

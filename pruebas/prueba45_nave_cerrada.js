@@ -72,4 +72,24 @@ const GS = fs.readFileSync(path.join(RAIZ, "apps-script", "Code.gs"), "utf8");
 c(/nom\.indexOf\("DEMO"\) < 0 && nom\.indexOf\("PRUEBA"\) < 0/.test(GS),
   "🔴 sembrarDemo() usa esa MISMA regla: se puede enseñar justo lo que se puede sembrar");
 
+// ---------------------------------------------------------------- g) el tutorial, en DOS actos
+// Norberto, 11-sep: «debería tener dos momentos». Y era un fallo de fondo, no de gusto: NEBULA
+// explicaba la ficha, los créditos y el personaje ANTES de que existiera nada de eso, porque la
+// nave está cerrada hasta que escribes el correo. Explicar una habitación a oscuras y luego
+// encender la luz es el orden equivocado.
+c(/var PASOS_PUERTA=\[/.test(R), "🔴 hay un acto 1, para antes de identificarse");
+c(/ACTOS=\{[\s\S]*?puerta:[\s\S]*?nave:/.test(R), "   y un solo motor sirve a los dos");
+c(/if\(!st\.yo && !DEMO && !localStorage\.getItem\('sgNavePuerta_'\+per\)\) onboarding\(0,'puerta'\)/.test(R),
+  "🔴 el acto 1 solo salta con la nave CERRADA (y nunca en demo)");
+c(/if\(!localStorage\.getItem\('sgNaveOnboard_'\+per\)\) setTimeout/.test(R),
+  "🔴 y el acto 2 arranca al validarse el correo, no antes");
+c(/sgNavePuerta_/.test(R) && /sgNaveOnboard_/.test(R),
+  "   cada acto recuerda por su cuenta si ya se vio");
+// el acto 1 no puede hablar de lo que aún no existe
+const puerta = R.slice(R.indexOf("var PASOS_PUERTA=["), R.indexOf("var PASOS=["));
+["créditos", "insignias que llevas", "vestuario", "nivel 3"].forEach(function(t){
+  c(puerta.indexOf(t) < 0, "🔬 el acto 1 no menciona «" + t + "»: todavía no hay nada de eso");
+});
+c(/correo/.test(puerta), "   y sí dice lo único que hace falta: el correo");
+
 E.resumen("La Nave nace cerrada");
