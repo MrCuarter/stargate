@@ -1531,7 +1531,77 @@ borradores.</p>
 </div></section>
 ''' + FOOT
 
-PAGES=[("index.html",PORTADA),("comosehizo.html",COMOSEHIZO),("guia.html",GUIA),("cronologia.html",CRONOLOGIA),("actividades.html",ACT),
+# ================= AYUDA PARA EL ALUMNADO (ayuda.html) =================
+# 🔴 PÚBLICA y sin PIN: la usa el alumnado, que no tiene. Nace de dos grabaciones de pantalla de
+# Norberto (11-sep) — los GIF salen de ahí, no de una reconstrucción.
+AYUDA = head("STARGATE · Cómo comparto mi evidencia",
+  "Los dos enlaces que más se fallan al registrar un reto: la publicación de Padlet y la página "
+  "concreta de un Genially. Con los pasos en movimiento.",
+  "ayuda", publica=True) + '''
+<header class="hero"><div class="kicker">Guía rápida · alumnado</div>
+<h1>Que tu enlace abra <i>lo tuyo</i></h1>
+<p>Cuando un reto te pide un enlace, ese enlace tiene que llevar <b>directamente a tu trabajo</b>:
+no al muro entero, no al genially por la primera página. Si quien lo abre tiene que buscarte, la
+evidencia no cuenta como evidencia.</p>
+<p style="margin-top:16px"><span class="pill">2 minutos</span><span class="pill">sirve para toda la asignatura</span></p>
+</header>
+
+<section><div class="wrap">
+<div class="eyebrow teal">Padlet</div><h2>El enlace a <i>tu</i> publicación</h2>
+<p class="lead">Copiar la dirección del navegador te da el muro entero, con las publicaciones de
+todo el mundo. Lo que hace falta es el enlace de <b>tu chincheta</b>.</p>
+<div class="two">
+<div>
+<ol class="pasos-num">
+<li>Pon el ratón sobre <b>tu publicación</b>.</li>
+<li>Pulsa los <b>tres puntos</b> (⋮) de la esquina.</li>
+<li>Elige <b>«Copiar el enlace a la publicación»</b>.</li>
+<li>Pégalo en el formulario. Ya está.</li>
+</ol>
+<p class="small muted">Ojo: «Abrir publicación» solo la abre para ti. El que copia el enlace es el
+tercero de la lista.</p>
+</div>
+<div><img class="gif-ayuda" src="assets/img/ayuda/compartir-padlet.gif"
+  alt="Pulsar los tres puntos de una publicación de Padlet y elegir «Copiar el enlace a la publicación»"
+  loading="lazy" width="640"></div>
+</div>
+</div></section>
+
+<section><div class="wrap">
+<div class="eyebrow amber">Genially</div><h2>Compartir desde <i>una página concreta</i></h2>
+<p class="lead">Un genially puede tener veinte páginas. Si mandas el enlace normal, se abre por la
+primera y hay que buscar la tuya. Se puede mandar <b>abierto por la página exacta</b>, pero solo
+desde el <b>modo visualización</b> — no desde el editor.</p>
+<div class="two">
+<div>
+<ol class="pasos-num">
+<li>En el editor, pulsa <b>Presentar</b> y luego <b>«Mostrar creación»</b>. Eso lo abre en modo
+visualización, que es donde está la opción.</li>
+<li>Ve a la <b>página que quieres compartir</b>.</li>
+<li>Abajo a la derecha, pulsa <b>«Opciones del genially»</b> (⋯).</li>
+<li>En la pestaña <b>Enlace</b>, marca <b>«Compartir desde esta página»</b>. Verás que la dirección
+cambia y se le añade un trozo al final.</li>
+<li>Pulsa <b>«Copiar enlace»</b> y pégalo.</li>
+</ol>
+<p class="small muted">Si el enlace que copias no lleva ese trozo al final, es que la casilla no
+estaba marcada: se abrirá por la primera página.</p>
+</div>
+<div><img class="gif-ayuda" src="assets/img/ayuda/compartir-genially.gif"
+  alt="Abrir el genially en modo visualización, ir a la página, abrir Opciones y marcar «Compartir desde esta página»"
+  loading="lazy" width="760"></div>
+</div>
+</div></section>
+
+<section><div class="wrap">
+<div class="card"><h3>Antes de enviar, compruébalo</h3>
+<p class="small">Abre tu propio enlace en una <b>ventana de incógnito</b> (o pásaselo a alguien).
+Si se abre justo donde tiene que abrirse y sin pedir permisos, está bien. Es el minuto mejor
+invertido de todo el reto.</p>
+<p style="margin-top:14px"><a class="btn primary" href="recluta.html">🚀 Volver a mi Nave</a></p></div>
+</div></section>
+''' + FOOT
+
+PAGES=[("index.html",PORTADA),("comosehizo.html",COMOSEHIZO),("ayuda.html",AYUDA),("guia.html",GUIA),("cronologia.html",CRONOLOGIA),("actividades.html",ACT),
        ("geniallys.html",GENPAGE),("registro.html",REGPAGE),("recursos.html",REC)]
 def _ver(rel): return hashlib.md5(open(os.path.join(HERE,rel),"rb").read()).hexdigest()[:10]
 vc,vj,vt = _ver("assets/css/stargate.css"), _ver("assets/js/stargate.js"), _ver("assets/js/tour.js")

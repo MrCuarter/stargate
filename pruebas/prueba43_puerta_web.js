@@ -24,7 +24,7 @@ console.log("\n▶ 43 · La puerta del profesorado");
 
 // ---------------------------------------------------------------- b) lo que NO puede pedirlo
 // La Nave y el foro los abre el alumnado, que no tiene PIN. La portada es la cara del proyecto.
-["index.html", "recluta.html", "foro.html", "panel.html"].forEach(function(f){
+["index.html", "recluta.html", "foro.html", "panel.html", "ayuda.html", "comosehizo.html"].forEach(function(f){
   c(leer(f).indexOf("assets/js/puerta.js") < 0,
     "🔴 " + f + " sigue ABIERTA: la usa el alumnado (o es la puerta principal)");
 });
@@ -170,5 +170,20 @@ c(cifras.every(function(x){ return Number(x.replace(/\D/g, "")) > 0; }),
 // los ids internos de ElevenLabs no pintan nada en abierto
 c(!/\(\s*\d{2,4}\s*\)/.test(CSH.split("casting")[1] || ""),
   "🔬 el casting publica NOMBRES de voz, no los ids internos");
+
+// ---- la ayuda del alumnado (11-sep): los GIF salen de grabaciones reales, no de un dibujo
+const AY = sinComentarios(leer("ayuda.html"));
+["compartir-padlet.gif", "compartir-genially.gif"].forEach(function(g){
+  c(AY.indexOf("assets/img/ayuda/" + g) >= 0, "la ayuda enseña " + g);
+  c(fs.existsSync(path.join(RAIZ, "assets", "img", "ayuda", g)), "   y el fichero existe");
+});
+c(/Compartir desde esta página/.test(AY), "explica la casilla de Genially, que es la clave");
+c(/Copiar el enlace a la publicación/.test(AY), "y la opción exacta de Padlet");
+c(/loading="lazy"/.test(AY), "🔬 los GIF cargan en diferido: pesan 2 MB entre los dos");
+// la Nave lleva a la ayuda: es donde el recluta esta cuando duda
+c(/href="ayuda\.html"/.test(leer("assets/js/recluta.js")), "🔴 la Nave enlaza a la ayuda");
+// 🔴 y el selector de grupo no enseña jerga de hoja de calculo
+c(!/esc\(p\.tipo\)/.test(leer("assets/js/recluta.js")),
+  "🔴 el selector de grupo NO enseña REGULAR/PUA: al alumnado no le dice nada");
 
 E.resumen("La puerta del profesorado");

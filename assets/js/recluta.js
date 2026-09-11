@@ -32,7 +32,9 @@
     fetch(API+'?per=all',{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){
       var pers=d.pers||[];
       root.innerHTML='<div class="card"><h3>¿De qué PER eres recluta?</h3><p class="small muted">Elige tu grupo para entrar en tu nave. Si no lo sabes, pregunta a tu Capitán.</p>'
-        +pers.map(function(p){return '<p><a class="btn" href="recluta.html?per='+encodeURIComponent(p.id)+'">🚀 '+esc(p.nombre)+' · '+esc(p.tipo)+'</a></p>';}).join('')+'</div>';
+        // 🔴 Solo el NOMBRE del grupo. «REGULAR/PUA» es jerga de la hoja de cálculo: al alumnado no le
+        // dice nada y le hace dudar de si ha elegido bien.
+        +pers.map(function(p){return '<p><a class="btn" href="recluta.html?per='+encodeURIComponent(p.id)+'">🚀 '+esc(p.nombre)+'</a></p>';}).join('')+'</div>';
     }).catch(function(){root.innerHTML='<p class="lead">No se pudo cargar la lista de PERs.</p>';});
     return;
   }
@@ -378,6 +380,10 @@
       +(d.formTicket?'<a class="acc" href="'+esc(d.formTicket)+'" data-vent="🎟️ Contacta con NEBULA"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
       +(miPanel()?'<a class="acc" href="'+esc(miPanel())+'" data-vent="🪐 Panel de control"><b>🪐 Panel</b><em>los ocho planetas</em></a>':'')
       +(d.padlet?'<a class="acc" href="'+esc(d.padlet)+'" data-vent="🧱 Padlet de la clase"><b>🧱 Padlet</b><em>el muro de la clase</em></a>':'')
+      // 🔴 Aquí y no en otro sitio: es el momento exacto en que el recluta va a pegar un enlace y
+      // duda de si el suyo abre lo que tiene que abrir. Va en pestaña aparte para no perder lo que
+      // estuviera escribiendo en el formulario.
+      +'<a class="acc" href="ayuda.html" target="_blank" rel="noopener"><b>❓ Mi enlace</b><em>que abra lo tuyo, no el muro entero</em></a>'
       +'</div></div>';
   }
   // ================= EL DUELO (30-ago) =================

@@ -977,3 +977,11 @@ h2.con-logo{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
 .conector::after{content:"";position:absolute;top:12px;left:16%;right:16%;height:1px;background:var(--line)}
 .brazos{margin-top:0}
 @media(max-width:760px){.conector{display:none}.dir-cab{flex-direction:column;gap:12px}}
+
+/* Los GIF de ayuda: encuadrados y con sombra, para que se vea que son una captura y no parte de la
+   pagina. Escalan solos en movil. */
+.gif-ayuda{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--line);
+  box-shadow:0 6px 24px rgba(0,0,0,.35);display:block}
+ol.pasos-num{padding-left:22px;margin:14px 0}
+ol.pasos-num li{margin-bottom:10px;font-size:15.5px;color:var(--ink-2);line-height:1.55}
+ol.pasos-num li b{color:var(--ink)}
