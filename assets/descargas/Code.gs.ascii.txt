@@ -3880,6 +3880,27 @@ function trazaReferente_(a, per, q) {
 }
 function doGet(e) {
   var per = (e && e.parameter && e.parameter.per) || "all"; var out;
+  // \u2550\u2550\u2550 SONDA DE IDENTIDAD (11-sep) \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+  // \ud83d\udd34 Para saber si podemos quitarnos los formularios de Google hace falta una cosa: que el
+  // servidor sepa con CERTEZA qui\u00e9n llama, sin pedirle a nadie que teclee su correo.
+  // Apps Script lo da gratis SI el despliegue es \u00abejecutar como el usuario que accede\u00bb \u2014 pero
+  // getActiveUser().getEmail() vuelve VAC\u00cdO en algunos casos con cuentas de Gmail de consumo, y eso
+  // hay que verlo, no suponerlo. Esta sonda lo dice en un vistazo.
+  // Devuelve \u00fanicamente el correo de QUIEN LLAMA: nada que esa persona no sepa ya.
+  if (e && e.parameter && e.parameter.accion === "quien_google") {
+    var act = "", efe = "", err = "";
+    try { act = Session.getActiveUser().getEmail() || ""; } catch (x) { err += "activo: " + x + " "; }
+    try { efe = Session.getEffectiveUser().getEmail() || ""; } catch (x) { err += "efectivo: " + x; }
+    return ContentService.createTextOutput(JSON.stringify({
+      // el que nos interesa: qui\u00e9n ha abierto la URL
+      activo: act,
+      // el due\u00f1o del script. Si SOLO llega este, el despliegue es \u00abejecutar como yo\u00bb y la sonda
+      // est\u00e1 mirando el endpoint equivocado.
+      efectivo: efe,
+      sirve: !!act && act !== efe,
+      error: err
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
   if (per === "all") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0] && !v[21]; })
       .map(function(v){ var o = perObj_(v); return { id:o.id, nombre:o.nombre, tipo:o.tipo, estado:o.estado, inicio:o.inicio }; }) };
   else out = tablero_(per, false);

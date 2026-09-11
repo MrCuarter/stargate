@@ -225,6 +225,8 @@
     return '<section id="sala-clase"><div class="eyebrow violet">Antes de entrar</div><h2>Con qué empezar la clase</h2>'
       +(s?'<div class="card"><h3>La orden de la semana '+sem+' · '+esc(s.tema)+'</h3><p class="small">'+esc(s.sub||'')+'</p>'
         +'<p class="small"><b>Se lanza:</b> '+esc((s.lanza||[]).join(' · ')||'—')+'</p>'
+        +'<p><a class="btn primary" href="sesion.html?per='+encodeURIComponent(st.per)+'&sem='+sem+'" target="_blank" rel="noopener">📽️ Proyectar la sesión de la semana ↗</a></p>'
+        +'<p class="small muted">Se abre la semana entera montada como presentación: el planeta, los vídeos con su momento, las misiones con lo que piden, las insignias y el hito. No hace falta montar ningún Genially.</p>'
         +'<p><a class="btn small" href="foro.html?per='+encodeURIComponent(st.per)+'" target="_blank" rel="noopener">Ver el mensaje del foro para copiar ↗</a> '
         +'<a class="btn small" href="cronologia.html#sem'+sem+'" target="_blank" rel="noopener">La semana entera ↗</a></p></div>':'')
       +'<h3 style="margin-top:1.2em">Dudas del ticket de salida</h3>'

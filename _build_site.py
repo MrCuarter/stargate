@@ -1080,6 +1080,10 @@ CARD_TITLES = {k: (BADGE_INFO[k]["nombre"] if k in BADGE_INFO else CROMO_TITULO[
 JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado por _build_site.py)
 (function(){
   var BADGE=__BADGE__, CARDT=__CARDS__;
+  // v3.60 · la ficha completa de cada insignia (nombre, cómo se gana, la cita) vivía encerrada
+  // en este modal. La sala de sesión la necesita para proyectarla en clase, y copiarla habría
+  // sido tener el mismo dato en dos sitios: se expone y punto.
+  window.SG = window.SG || {}; window.SG.BADGE = BADGE; window.SG.CARDT = CARDT;
   var back=document.createElement('div');
   back.className='modal-backdrop'; back.setAttribute('role','dialog'); back.setAttribute('aria-modal','true');
   document.body.appendChild(back);
@@ -1638,7 +1642,10 @@ SEMANAS_JSON = json.dumps([{
   "sem": s["sem"], "tema": s["tema"], "sub": s["sub"], "capitulo": s.get("capitulo"),
   "tema_n": int(__import__("re").search(r"Tema (\d)", s["tema"]).group(1)) if "Tema " in s["tema"] else 0,
   "videos": [[{"id": yt(c)["id"], "titulo": yt(c)["titulo"]}, cuando] for c, cuando in s["videos"]],
-  "lanza": s["lanza"], "insignias": s["insignias"], "foro": FORO.get(s["sem"], ""), "hito": s["hito"]} for s in CRONO], ensure_ascii=False)
+  "lanza": s["lanza"], "insignias": s["insignias"], "foro": FORO.get(s["sem"], ""), "hito": s["hito"],
+  # v3.60 · el consejo y las clases ya vivian en el CRONO pero no viajaban al navegador: los necesita
+  # la sala de sesion (sesion.html) para la tira de preparacion del docente.
+  "consejo": s.get("consejo", ""), "clases": s.get("clases", "")} for s in CRONO], ensure_ascii=False)
 
 PROFES = head("STARGATE · Panel del profesorado", "Panel del profesorado de STARGATE: alumnos, insignias, tickets de salida, canjes y ajustes de cada PER.", "reg") + f'''
 <header class="hero"><div class="kicker">Solo profesorado · PIN</div><h1>Panel del profesorado</h1>
@@ -1769,6 +1776,30 @@ solo la primera vez. Después este navegador te reconoce y llegas directo a tu c
 ''' + FOOT
 html=(CLASE.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
 open(os.path.join(HERE,"clase.html"),"w",encoding="utf-8").write(html); print("escrito: clase.html")
+
+# ================= v3.60 · LA SESION DE LA SEMANA (proyectable) =================
+# 🔴 Lo pidio Norberto el 11-sep: «que el docente viera todo lo de esa semana de forma que al
+# compartir pantalla pudiera explicarlo sin necesidad de crear un genially». El temario, los videos,
+# las misiones, las insignias y el hito son IGUALES para todo el profesorado: montarlo cada uno por
+# su cuenta era trabajo repetido. Lo unico propio de cada docente son sus ejemplos, y para eso el
+# mazo termina en una diapositiva en blanco.
+# Con PIN, como «Mi clase»: la tira de preparacion lleva el consejo del Capitan, que no debe verse
+# proyectado.
+SESION = head("STARGATE · La sesión de la semana", "La semana en curso montada como presentación: planeta, vídeos, misiones, insignias y hito. Para proyectar en clase sin montar un Genially.", "cla", puerta=True) + f'''
+<header class="hero"><div class="kicker">Solo profesorado · PIN</div><h1>La sesión de la semana</h1>
+<p>La semana en curso, ya montada para proyectar: el planeta, los vídeos con el momento en que van,
+las misiones que se lanzan <b>con lo que pide cada una</b>, las insignias que entregas y el hito.
+Pasa con las flechas <b>←</b> y <b>→</b>.</p>
+<p class="small muted">El <b>consejo del Capitán</b> y el mensaje del foro están arriba, fuera del mazo:
+al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></header>
+<section><div class="wrap"><div id="sesion-app"></div>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";</script>
+<script src="assets/js/calendario.js" defer></script>
+<script src="assets/js/sesion.js" defer></script>
+</div></section>
+''' + FOOT
+html=(SESION.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
+open(os.path.join(HERE,"sesion.html"),"w",encoding="utf-8").write(html); print("escrito: sesion.html")
 
 # ================= v3.6 · GRUPOS (un panel de accesos por PER) =================
 # La lista sale de doGet ?per=all (sin PIN); los formularios de cada grupo, de doGet ?per=<id>.

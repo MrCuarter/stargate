@@ -3880,6 +3880,27 @@ function trazaReferente_(a, per, q) {
 }
 function doGet(e) {
   var per = (e && e.parameter && e.parameter.per) || "all"; var out;
+  // ═══ SONDA DE IDENTIDAD (11-sep) ═══════════════════════════════════════════════════════════
+  // 🔴 Para saber si podemos quitarnos los formularios de Google hace falta una cosa: que el
+  // servidor sepa con CERTEZA quién llama, sin pedirle a nadie que teclee su correo.
+  // Apps Script lo da gratis SI el despliegue es «ejecutar como el usuario que accede» — pero
+  // getActiveUser().getEmail() vuelve VACÍO en algunos casos con cuentas de Gmail de consumo, y eso
+  // hay que verlo, no suponerlo. Esta sonda lo dice en un vistazo.
+  // Devuelve únicamente el correo de QUIEN LLAMA: nada que esa persona no sepa ya.
+  if (e && e.parameter && e.parameter.accion === "quien_google") {
+    var act = "", efe = "", err = "";
+    try { act = Session.getActiveUser().getEmail() || ""; } catch (x) { err += "activo: " + x + " "; }
+    try { efe = Session.getEffectiveUser().getEmail() || ""; } catch (x) { err += "efectivo: " + x; }
+    return ContentService.createTextOutput(JSON.stringify({
+      // el que nos interesa: quién ha abierto la URL
+      activo: act,
+      // el dueño del script. Si SOLO llega este, el despliegue es «ejecutar como yo» y la sonda
+      // está mirando el endpoint equivocado.
+      efectivo: efe,
+      sirve: !!act && act !== efe,
+      error: err
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
   if (per === "all") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0] && !v[21]; })
       .map(function(v){ var o = perObj_(v); return { id:o.id, nombre:o.nombre, tipo:o.tipo, estado:o.estado, inicio:o.inicio }; }) };
   else out = tablero_(per, false);
