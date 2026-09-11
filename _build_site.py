@@ -4,8 +4,8 @@ Páginas: index (portada) · guia · cronologia · actividades · geniallys · r
 Ejecutar desde web-stargate/:  python3 _build_site.py
 Datos de cronología/vídeos/geniallys en _site_data.py."""
 import os, json, hashlib, subprocess, glob
-from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana, COMO_SE_HIZO,
-                        PROCESO, PROCESO_CIFRAS, CASTING,
+from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
+                        PROCESO, PROCESO_CIFRAS, CASTING, DIRECTOR, BRAZOS,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, DIAS_APERTURA_ANTES,
@@ -217,15 +217,33 @@ cifras_html = "\n".join(
      a=a.format(**CIFRAS), b=b, c=c)
   for a, b, c in PROCESO_CIFRAS)
 
-# Cada herramienta, una tarjeta. El boton de apoyo solo aparece si hay enlace de referido: una
-# tarjeta sin boton se lee perfectamente, un boton que no lleva a ningun sitio no.
-comohizo_html = "\n".join(
+# 🔴 El director va aparte y ARRIBA, y los brazos salen de el. Ponerlos en fila como cuatro iguales
+# contaba mal el proceso: las tres herramientas no se hablan entre ellas, hablan con el centro.
+def _boton(h):
+    return ('<a class="btn ghost peq" href="%s" target="_blank" rel="noopener">Probar %s ↗</a>'
+            % (h["url"], h["titulo"])) if h.get("url") else ""
+
+director_html = (
+  '<div class="director">'
+  '<div class="dir-cab"><span class="logo-app grande"><img src="assets/img/logos/{g}" alt="{t}" loading="lazy"></span>'
+  '<div><div class="eyebrow teal">{p}</div><h3>{t}</h3><p class="dir-entra">{e}</p></div></div>'
+  '<div class="dir-cuerpo">{cuerpo}'
+  '<p class="dir-humano">{h}</p>{b}</div></div>'
+).format(g=DIRECTOR["logo"], t=DIRECTOR["titulo"], p=DIRECTOR["papel"], e=DIRECTOR["entradilla"],
+         cuerpo="".join('<p class="small">%s</p>' % x for x in DIRECTOR["parrafos"]),
+         h=DIRECTOR["humano"], b=_boton(DIRECTOR))
+
+# el conector: tres lineas que bajan del centro a cada brazo. Puro adorno con significado, y se
+# esconde en movil, donde las tarjetas ya van una debajo de otra y la linea no aclararia nada.
+conector_html = ('<div class="conector" aria-hidden="true"><span></span><span></span><span></span></div>')
+
+brazos_html = "\n".join(
   '<div class="card comohizo"><div class="ch-top"><span class="logo-app"><img src="assets/img/logos/{g}" alt="{t}" loading="lazy"></span>'
   '<div><div class="eyebrow teal">{p}</div><h3>{t}</h3></div></div><p class="small">{x}</p>{b}</div>'.format(
-     g=h["logo"], p=h["papel"], t=h["titulo"], x=h["texto"],
-     b=('<a class="btn ghost peq" href="%s" target="_blank" rel="noopener">Probar %s ↗</a>'
-        % (h["url"], h["titulo"])) if h.get("url") else "")
-  for h in COMO_SE_HIZO)
+     g=h["logo"], p=h["papel"], t=h["titulo"], x=h["texto"], b=_boton(h))
+  for h in BRAZOS)
+
+comohizo_html = director_html + conector_html + '<div class="grid cols-3 brazos">' + brazos_html + '</div>'
 
 tiles_html="\n".join(f'<a class="tile" href="{h}"><span class="ic">{i}</span><b>{t}</b><em>{d}</em></a>' for h,i,t,d in tiles)
 
@@ -1422,8 +1440,8 @@ al enseñarlo es «¿y esto cuánto cuesta encargarlo?», y la respuesta es que 
 </header>
 
 <section><div class="wrap">
-<div class="eyebrow teal">Las herramientas</div><h2>Cuatro piezas, y tres que hablan entre ellas</h2>
-<div class="grid cols-3">{comohizo_html}</div>
+<div class="eyebrow teal">Las herramientas</div><h2>Una que dirige y tres que ejecutan</h2>
+{comohizo_html}
 <!-- 🔴 Si hay botones, se dice que son de afiliado y que gana cada parte. Ver bateria 43. -->
 <p class="small muted" style="margin-top:14px">Los botones son <b>enlaces de afiliado</b>, y se dice
 para que lo sepas. Donde la herramienta lo ofrece, <b>quien entra por ahí se lleva un descuento o un

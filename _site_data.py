@@ -504,12 +504,36 @@ assert all(NIVELES[i][1] < NIVELES[i+1][1] for i in range(9)), "los umbrales de 
 #
 # Los enlaces de referido los pasa Norberto cuando los tenga. Mientras el url esté vacío, la
 # tarjeta se pinta igual pero SIN botón: mejor no enseñar un enlace que no lleva a ningún sitio.
-COMO_SE_HIZO = [
-  dict(clave="claude", icono="🛠️", logo="claude.png", titulo="Claude", papel="El taller",
-       url="https://claude.ai/referral/pp8xmqpz3Q",
-       texto="Aquí se ha escrito <b>todo lo que no es imagen</b>: la narrativa de los ocho planetas, "
-             "los retos, esta web, el sistema que lleva las cuentas del alumnado y el banco de "
-             "pruebas que lo vigila. Conversando, revisando y corrigiendo — no de una tacada."),
+# ─── EL DIRECTOR DE ORQUESTA Y LOS BRAZOS ───
+# 🔴 Esta estructura NO es decorativa: es como funciona de verdad. OpenArt, Magnific y Hostinger no
+# se hablan entre ellas — cada una habla con el centro. Una imagen no viaja de OpenArt a Magnific:
+# vuelve a la conversacion y sale otra vez. Por eso el centro no es «una herramienta mas» y dibujarlo
+# en fila, como si fueran cuatro iguales, contaba mal el proceso.
+DIRECTOR = dict(
+  clave="claude", logo="claude.png", titulo="Claude", papel="El director de orquesta",
+  url="https://claude.ai/referral/pp8xmqpz3Q",
+  entradilla="Todo pasa por aquí. No es un paso más de la cadena: es la cadena.",
+  parrafos=[
+    "Aquí se escribió <b>todo lo que no es una imagen</b>: la narrativa de los ocho planetas, quién "
+    "es cada tripulante, los retos de cada tema, los mensajes semanales del foro, esta web entera, "
+    "el sistema que lleva las cuentas del alumnado y el banco de pruebas que lo vigila.",
+    "Pero lo que de verdad cambia las cosas es que <b>también dirige a las demás</b>. El prompt de "
+    "cada imagen se escribe aquí, se envía a OpenArt sin salir de la conversación, vuelve la imagen, "
+    "se mira, se dice «el casco más oscuro» y sale corregida. Lo mismo con las voces. Y el código "
+    "que después junta esas imágenes y ese audio en un vídeo también se escribe aquí.",
+    "<b>Por eso no es un paso que se pueda saltar.</b> OpenArt, Magnific y Hostinger no se hablan "
+    "entre ellas: cada una habla con el centro. Una imagen no viaja sola de una a otra — vuelve a la "
+    "conversación, se decide qué hacer con ella, y sale otra vez.",
+  ],
+  # 🔴 El contrapeso, y va DENTRO del bloque del director a proposito: si la pagina presume de
+  # orquesta sin decir quien escribe la partitura, se convierte en publicidad.
+  humano="Con una condición que conviene decir alto: <b>la partitura la escribe el docente</b>. Qué "
+         "se cuenta, qué se evalúa, qué se tira a la basura porque no funcionaba. La orquesta toca; "
+         "no decide qué obra se interpreta.",
+)
+
+# Los tres brazos. Salen del centro, no van en fila con él.
+BRAZOS = [
   dict(clave="openart", icono="🎨", logo="openart.png", titulo="OpenArt", papel="El mundo dibujado",
        url="",
        texto="De aquí salieron <b>las imágenes</b>: los ocho planetas, la Tripulación Cero, las "

@@ -89,6 +89,7 @@ c(port.indexOf('href="recluta.html">🚀 Soy estudiante') >= 0 && port.indexOf('
 // una frase seguida. Comprobar contra el texto CON saltos obliga a escribir expresiones fragiles que
 // se rompen cada vez que alguien reajusta un margen.
 const sinComentarios = h => String(h).replace(/<!--[\s\S]*?-->/g, "").replace(/\s+/g, " ");
+const CSH = sinComentarios(leer("comosehizo.html"));
 const como = sinComentarios((port.match(/<section id="comohizo"[\s\S]*?<\/section>/) || [""])[0]);
 c(como.length > 0, "la portada cuenta cómo se hizo el proyecto");
 ["Claude", "OpenArt", "Magnific"].forEach(function(h){
@@ -99,8 +100,8 @@ c(como.length > 0, "la portada cuenta cómo se hizo el proyecto");
 c(como.indexOf("Genially") < 0,
   "🔴 y NO nombra Genially: en abierto no se citan las herramientas del aula");
 // el botón de referido solo si hay enlace: uno vacío llevaría a ninguna parte
-const conUrl = require("fs").readFileSync(require("path").join(RAIZ, "_site_data.py"), "utf8")
-  .split("COMO_SE_HIZO")[1].split("# ───")[0];
+const datos = require("fs").readFileSync(require("path").join(RAIZ, "_site_data.py"), "utf8");
+const conUrl = datos.slice(datos.indexOf("DIRECTOR = dict("), datos.indexOf("# Los numeros se leen"));
 const urls = (conUrl.match(/url="[^"]*"/g) || []).filter(function(u){ return u !== 'url=""'; }).length;
 const botones = (como.match(/Probar /g) || []).length;
 igual(botones, urls, "🔬 hay tantos botones de apoyo como enlaces de referido puestos (" + urls + ")");
@@ -108,6 +109,21 @@ igual(botones, urls, "🔬 hay tantos botones de apoyo como enlaces de referido 
 // proyecto que va de dejar constancia — y la peticion se sostiene mejor dicha en voz alta.
 // ---- la portada solo ADELANTA: el detalle vive en su propia pagina (peticion del 11-sep)
 c(/href="comosehizo\.html"/.test(como), "🔴 la portada lleva a la página del «cómo se hizo»");
+
+// ---- el director de orquesta, y que se vea que lo es
+// 🔴 No es maquetacion bonita: las tres herramientas no se hablan entre ellas, hablan con el centro.
+// Si algun dia esto vuelve a ser una fila de cuatro iguales, el proceso queda mal contado.
+[["la portada", como], ["«cómo se hizo»", CSH]].forEach(function(par){
+  const nom = par[0], doc = par[1];
+  c(/class="director"/.test(doc), "en " + nom + " Claude va en su propio bloque, no en fila");
+  c(doc.indexOf('class="director"') < doc.indexOf('class="grid cols-3 brazos"'),
+    "   y ARRIBA: los tres brazos salen de él");
+  c((doc.match(/class="card comohizo"/g) || []).length === 3, "   y los brazos son tres");
+  c(/no es un paso que se pueda saltar/i.test(doc), "   dice por qué no se puede saltar");
+  // el contrapeso: sin esto la pagina seria publicidad
+  c(/la partitura la escribe el docente/i.test(doc),
+    "🔴 y que la partitura la escribe el DOCENTE, que es lo que evita que esto sea un anuncio");
+});
 c((como.match(/class="paso"/g) || []).length === 0,
   "   y no repite ahí el detalle: para eso está la página");
 
@@ -121,7 +137,7 @@ if (botones > 0) {
 // ---------------------------------------------------------------- la página «cómo se hizo»
 // Es PUBLICA a proposito: es la cara del proyecto hacia fuera, como la portada. Si algun dia
 // alguien le pone la puerta del profesorado, se rompe el motivo de existir.
-const CSH = sinComentarios(leer("comosehizo.html"));
+
 c(CSH.indexOf("assets/js/puerta.js") < 0, "🔴 «cómo se hizo» NO pide PIN: es pública");
 c(CSH.indexOf("Genially") < 0, "🔴 y tampoco nombra Genially");
 c((CSH.match(/class="paso"/g) || []).length >= 7, "cuenta el proceso paso a paso (7 pasos)");
