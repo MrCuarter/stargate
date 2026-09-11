@@ -1066,7 +1066,9 @@ function actualizarFormularios_() {
   // mismo sitio. Volver a pulsar el menu no arreglaba nada: repetia el mismo suicidio.
   // Ahora el disparador se crea ANTES y se cancela al terminar, y el progreso se guarda despues de
   // CADA fase. Un corte en seco ya no cuesta el trabajo hecho.
-  programarContinuacion_("continuarActualizarFormularios");
+  // 7 minutos: mas que el corte duro. Si la pasada acaba bien, al final se re-arma a 1 minuto; si
+  // muere en seco, este salta y la retoma. Nunca dos pasadas a la vez.
+  programarContinuacion_("continuarActualizarFormularios", 420000);
   var apuntar = function(){ try { guardarProgreso_("formularios", pr); } catch (e) {} };
   while (pr.i < pers.length && t.puedo()) {
     var v = pers[pr.i];
@@ -1115,7 +1117,7 @@ function actualizarFormularios_() {
   }
   var terminado = pr.i >= pers.length;
   if (terminado) { guardarProgreso_("formularios", null); cancelarContinuacion_("continuarActualizarFormularios"); }
-  else apuntar();   // el disparador ya se armo al entrar
+  else { apuntar(); programarContinuacion_("continuarActualizarFormularios", 60000); }
   return { terminado: terminado, hechos: pr.n, total: pers.length, canjes: pr.canjes, fallos: pr.fallos };
 }
 // Lo dispara el trigger de un minuto: sin interfaz, porque un trigger no tiene ventanas.
@@ -2585,9 +2587,15 @@ function guardarProgreso_(clave, o) {
 function cancelarContinuacion_(fn) {
   ScriptApp.getProjectTriggers().forEach(function(t){ if (t.getHandlerFunction() === fn) { try { ScriptApp.deleteTrigger(t); } catch (e) {} } });
 }
-function programarContinuacion_(fn) {
+// `ms` = dentro de cuanto salta.  11-sep - EL RETARDO IMPORTA MAS DE LO QUE PARECE.
+// Armar la red ANTES de empezar (para sobrevivir al corte duro) con el retardo corto de siempre
+// creo una cascada: el disparador saltaba al minuto mientras la pasada seguia viva, esa arrancaba
+// otra, y a los cinco minutos habia CUATRO ejecuciones a la vez peleandose por el mismo progreso y
+// quemando cuota. Regla: si el disparador se arma antes de trabajar, su retardo tiene que ser MAYOR
+// que lo que puede durar el trabajo (el corte duro son 6 minutos). Si se arma al terminar, corto.
+function programarContinuacion_(fn, ms) {
   cancelarContinuacion_(fn);   // nunca mas de uno: los triggers son un recurso limitado
-  try { ScriptApp.newTrigger(fn).timeBased().after(60000).create(); }
+  try { ScriptApp.newTrigger(fn).timeBased().after(ms || 60000).create(); }
   catch (e) { Logger.log("programarContinuacion_ " + fn + ": " + e); }
 }
 // Correo al que avisar cuando no hay nadie mas a quien avisar (ver avisarDocente_).

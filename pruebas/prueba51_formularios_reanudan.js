@@ -28,8 +28,13 @@ const CODIGO = fn.replace(/^\s*\/\/.*$/gm, "");
 
 // ---------------------------------------------------------------- a) la red, antes del salto
 const cabeza = CODIGO.slice(0, CODIGO.indexOf("while (pr.i < pers.length"));
-c(/programarContinuacion_\("continuarActualizarFormularios"\)/.test(cabeza),
-  "🔴 el disparador de continuación se arma ANTES del bucle, no después");
+c(/programarContinuacion_\("continuarActualizarFormularios", 420000\)/.test(cabeza),
+  "🔴 el disparador se arma ANTES del bucle Y con retardo LARGO (7 min > el corte duro de 6)");
+// 🔴 El fallo que introduje y me comí en producción: armarlo antes con el retardo corto de siempre
+// hacía que saltara al minuto MIENTRAS la pasada seguía viva. Esa arrancaba otra, y a los cinco
+// minutos había CUATRO ejecuciones a la vez peleándose por el mismo progreso y quemando cuota.
+c(!/programarContinuacion_\("continuarActualizarFormularios"\)\s*;/.test(cabeza),
+  "   y NUNCA con el retardo por defecto: eso solaparía pasadas");
 c(/var apuntar = function\(\)/.test(cabeza),
   "y hay una forma corta de apuntar el progreso, para poder llamarla en cada tramo");
 
@@ -56,8 +61,8 @@ c(/guardarProgreso_\("formularios", null\)/.test(cola), "al terminar se borra el
 c(/cancelarContinuacion_\("continuarActualizarFormularios"\)/.test(cola),
   "🔴 y se quita el disparador: si no, quedaría uno dando vueltas para siempre");
 // y el disparador NO se vuelve a programar al final: ya está puesto desde el principio
-c((cola.match(/programarContinuacion_/g) || []).length === 0,
-  "no se re-arma al final (ya estaba armado): un disparador, no dos");
+c(/programarContinuacion_\("continuarActualizarFormularios", 60000\)/.test(cola),
+  "🔴 al acabar una pasada sin terminar se re-arma CORTO (1 min): ahí ya no hay nada corriendo");
 
 // ---------------------------------------------------------------- d) el reloj sigue donde estaba
 // Arreglar el guardado no puede haberse llevado por delante los frenos que ya existían.
@@ -69,7 +74,8 @@ c(/reestructurarBitacora_\(fbx, perObj_\(v\), t\)/.test(CODIGO),
 // ---------------------------------------------------------------- e) y la continuación existe
 c(/function continuarActualizarFormularios\(\)/.test(gs),
   "la función que dispara el trigger existe (es la que nunca llegó a ejecutarse)");
-c(/function programarContinuacion_/.test(gs) && /after\(60000\)/.test(gs),
-  "y reintenta al minuto");
+c(/function programarContinuacion_\(fn, ms\)/.test(gs),
+  "🔴 programarContinuacion_ acepta el retardo: sin eso no se puede distinguir «red de seguridad» de «sigue ya»");
+c(/after\(ms \|\| 60000\)/.test(gs), "y por defecto sigue siendo un minuto, como siempre");
 
 E.resumen("Actualizar formularios tiene que poder morir y seguir");
