@@ -87,8 +87,11 @@
     post({accion:'alumnos',per:st.per},function(d){ st.d=d;
       post({accion:'tickets',per:st.per},function(t){ st.tickets=t.tickets||[];
         // si hay un pase abierto de hace un rato, que siga a la vista al recargar la sala
-        post({accion:'pase_estado',per:st.per},function(pp){ st.pase=pp.pase||null; render(); },
-             function(){ st.pase=null; render(); });
+        post({accion:'pase_estado',per:st.per},function(pp){ st.pase=pp.pase||null;
+          // la cola va detrás: si falla, la sala se abre igual — no puede tumbarla
+          post({accion:'pendientes',per:st.per},function(pc){ st.pendientes=(pc&&pc.pendientes)||[]; render(); },
+               function(){ st.pendientes=[]; render(); });
+        }, function(){ st.pase=null; render(); });
       }, function(){ st.tickets=[]; render(); });
     });}
 
@@ -430,6 +433,54 @@
       +'<div class="tablewrap"><table><thead><tr><th>Grupo</th><th>Tipo</th><th>Estado</th><th>Empezó</th><th></th></tr></thead><tbody>'
       +vivos.map(fila).join('')+pasados.map(fila).join('')+'</tbody></table></div></section>';}
 
+  // ---------- LA COLA DE SOLICITUDES DE NOTA (11-sep) ----------
+  // 🔴 Norberto: «el docente no puede subir manualmente la nota a 70 alumnos que quieren maquillar,
+  // es trabajar el doble y es tiempo no reflejado». Antes se concedían solas y llegaba un correo por
+  // cada una: trabajo a goteo y sin decidir nada. Aquí se ven todas juntas y se resuelven de una
+  // sentada, con derecho a veto.
+  // Va ARRIBA DEL TODO cuando hay algo pendiente: es lo único de esta sala que tiene a alguien
+  // esperando una respuesta.
+  function bloqueCola(){
+    var ps=(st.pendientes||[]);
+    if(!ps.length) return '';
+    var filas=ps.map(function(x,i){
+      var quien=st.verPrivado?(esc(x.nombre||x.alias)):esc(x.alias||'—');
+      return '<tr><td><b>'+quien+'</b><br><span class="small muted">'+priv(x.email)+'</span></td>'
+        +'<td>'+esc(x.recompensa)+'</td>'
+        +'<td class="small">'+esc(x.actividad||'—')+'</td>'
+        +'<td class="pts">'+x.coste+' ◈</td>'
+        +'<td>'+(x.puede
+            ? '<span class="small muted">le quedan '+x.saldo+'</span>'
+            : '<span class="chip" style="background:#a3342b33;color:#ff8f80">ya no le llegan ('+(x.saldo==null?'?':x.saldo)+')</span>')+'</td>'
+        +'<td><button class="btn small primary" data-ap="'+i+'"'+(x.puede?'':' disabled')+'>Aprobar</button> '
+        +'<button class="btn small" data-rc="'+i+'">Rechazar</button></td></tr>';
+    }).join('');
+    return '<section id="cola"><div class="eyebrow amber">Te esperan</div>'
+      +'<h2>⚔️ Solicitudes de nota · '+ps.length+'</h2>'
+      +'<p class="lead">Nadie ha pagado nada todavía: <b>los créditos se cobran al aprobar</b>. Si '
+      +'rechazas, esa persona se queda con su dinero entero y recibe el motivo.</p>'
+      +'<p class="small muted">Aprobar significa que <b>tú</b> aplicarás la nota en la plataforma de la '
+      +'asignatura: el sistema no toca ninguna nota, solo lleva la cuenta.</p>'
+      +'<div class="tablewrap"><table class="rank"><thead><tr><th>Quién</th><th>Qué pide</th>'
+      +'<th>Actividad</th><th>Cuesta</th><th>Saldo</th><th></th></tr></thead><tbody>'+filas
+      +'</tbody></table></div></section>';
+  }
+  function cargarCola(){
+    post({accion:'pendientes',per:st.per},function(d){ st.pendientes=(d&&d.pendientes)||[]; render(); },
+         function(){ st.pendientes=[]; render(); });
+  }
+  function resolverCola(i, aprueba){
+    var x=(st.pendientes||[])[i]; if(!x) return;
+    var motivo='';
+    if(!aprueba){ motivo=prompt('¿Por qué la rechazas? (lo verá quien la pidió)','Ya tenías la nota máxima')||''; }
+    else if(!confirm('Aprobar «'+x.recompensa+'» de '+(x.alias||x.email)+'.\n\nSe le cobrarán '+x.coste
+        +' créditos y TÚ tendrás que aplicar la nota en la plataforma. ¿Seguro?')) return;
+    post({accion:'pendiente_resolver',per:st.per,fila:x.fila,profe:st.profe,
+          aprueba:aprueba,motivo:motivo},
+         function(d){ if(d&&d.error){ alert(d.error); return; } cargarCola(); },
+         function(e){ alert('No se pudo resolver: '+e); });
+  }
+
   // ---------- render ----------
   function render(){
     if(!misPers().length){
@@ -439,7 +490,11 @@
       document.getElementById('cambiarD').onclick=function(){localStorage.removeItem('sgProfe');st.profe='';elegirDocente();};
       return;
     }
-    root.innerHTML=cabecera()+bloquePase()+bloquePanel()+bloqueIntervencion()+bloqueClase()+bloqueGrupo()+bloqueEnlaces()+bloqueMisPers();
+    root.innerHTML=cabecera()+bloqueCola()+bloquePase()+bloquePanel()+bloqueIntervencion()+bloqueClase()+bloqueGrupo()+bloqueEnlaces()+bloqueMisPers();
+    Array.prototype.forEach.call(root.querySelectorAll('[data-ap]'),function(b){
+      b.onclick=function(){ resolverCola(Number(b.getAttribute('data-ap')), true); };});
+    Array.prototype.forEach.call(root.querySelectorAll('[data-rc]'),function(b){
+      b.onclick=function(){ resolverCola(Number(b.getAttribute('data-rc')), false); };});
     Array.prototype.forEach.call(root.querySelectorAll('tr[data-al-fila]'),function(tr){
       tr.onclick=function(e){ if(e.target.closest('button')) return;   // el boton «Corregir» ya lo hace
         fichaAlumno(mios()[Number(tr.getAttribute('data-al-fila'))]); };});

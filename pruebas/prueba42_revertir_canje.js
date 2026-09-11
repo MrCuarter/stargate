@@ -106,12 +106,43 @@ igual(String(shC.getRange(filaSobre, 8).getValue()).indexOf("Concedido"), 0,
 // el dinero, y la respuesta lo dice para que el docente no se olvide de deshacerla donde la puso.
 const rico2 = "rico@alumno.es";
 const antesNota = ficha().creditos;
-E.enviarCanje(G, PER, { email: rico2, recompensa: "Subir 0,5 en un entregable — 320 créditos", actividad: "Actividad 1" });
+E.enviarCanje(G, PER, { email: rico2, recompensa: "Subir 0,5 en un entregable — 550 créditos", actividad: "Actividad 1" });
 const filaNota = shC.getLastRow();
-c(ficha().creditos < antesNota, "la subida de nota se cobra");
-const rn = api({ accion: "canje_revertir", per: PER, fila: filaNota, profe: "Mr Cuarter", pin: PIN });
-igual(rn.ok, true, "y se puede revertir");
-igual(ficha().creditos, antesNota, "🔴 el dinero vuelve entero");
-contiene(rn.nota, "deshacer", "🔴 pero avisa de que la nota la tiene que deshacer una persona");
+
+// 🔴 11-sep · AHORA HAY UN PASO MÁS. Un canje de nota ya no se concede solo: queda en la cola del
+// profesorado y NO se cobra. Eso cambia el recorrido de revertir — antes se revertía algo concedido,
+// ahora primero hay que aprobarlo (o rechazarlo, que es el camino barato).
+igual(ficha().creditos, antesNota, "🔴 pedir una subida de nota NO cuesta créditos todavía");
+const cola = api({ accion: "pendientes", per: PER, pin: PIN });
+igual((cola.pendientes || []).length, 1, "y aparece en la cola del profesorado");
+igual(cola.pendientes[0].coste, 550, "   con lo que va a costar");
+igual(cola.pendientes[0].puede, true, "   y si le llegan los créditos");
+
+// rechazar: no cuesta nada a nadie y devuelve el sitio
+const rech = api({ accion: "pendiente_resolver", per: PER, fila: filaNota, profe: "Mr Cuarter",
+                   aprueba: false, motivo: "ya tenías el máximo", pin: PIN });
+igual(rech.ok, true, "el profesorado la rechaza");
+igual(ficha().creditos, antesNota, "🔴 y no se le ha cobrado NADA: rechazar no cuesta dinero");
+igual((api({ accion: "pendientes", per: PER, pin: PIN }).pendientes || []).length, 0,
+  "   y desaparece de la cola");
+
+// aprobar: ahora sí se cobra, y entonces ya se puede revertir como cualquier otro canje
+E.enviarCanje(G, PER, { email: rico2, recompensa: "Subir 1 punto en un entregable — 850 créditos", actividad: "Actividad 2" });
+const fila2 = shC.getLastRow();
+const antes2 = ficha().creditos;
+const apr = api({ accion: "pendiente_resolver", per: PER, fila: fila2, profe: "Mr Cuarter", aprueba: true, pin: PIN });
+igual(apr.ok, true, "y aprueba otra");
+igual(ficha().creditos, antes2 - 850, "🔴 AHORA sí se cobra: al aprobar, no al pedir");
+
+const rn = api({ accion: "canje_revertir", per: PER, fila: fila2, profe: "Mr Cuarter", pin: PIN });
+igual(rn.ok, true, "y una vez aprobada se puede revertir");
+igual(ficha().creditos, antes2, "🔴 el dinero vuelve entero");
+contiene(rn.nota, "deshacer", "🔴 y avisa de que la nota la tiene que deshacer una persona");
+
+// 🔴 Y una pendiente NO se puede revertir: no hay nada que deshacer y el dinero no se ha movido.
+E.enviarCanje(G, PER, { email: rico2, recompensa: "Recalificar un suspenso — 950 créditos", actividad: "Actividad 1" });
+const fila3 = shC.getLastRow();
+const rv3 = api({ accion: "canje_revertir", per: PER, fila: fila3, profe: "Mr Cuarter", pin: PIN });
+igual(rv3.yaEstaba, true, "🔬 revertir una solicitud PENDIENTE no hace nada: no hay nada que deshacer");
 
 E.resumen("Revertir un canje");

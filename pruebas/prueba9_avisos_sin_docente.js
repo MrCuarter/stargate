@@ -19,7 +19,7 @@ igual(G.correosAviso_(PER, "Profe Luis"), [], "el equipo docente no tiene ni un 
 M.Correo.limpiar();
 const r = E.enviarCanje(G, PER, { email: "x@alumno.es", recompensa: E.etiqueta(G, "Subir 0,5 en un entregable"),
   actividad: "Actividad 2 · paisaje de aprendizaje" });
-igual(r.estado, "Concedido", "el canje se concede igual (el alumno no tiene la culpa)");
+igual(r.estado, "Pendiente de revisión", "el canje entra igual en la cola (el alumno no tiene la culpa)");
 
 const avisos = M.Correo.enviados.filter(x => x.asunto.indexOf("te toca a ti") >= 0 || x.asunto.indexOf("sin destinatario") >= 0);
 c(avisos.length >= 1, "🔴 el aviso NO se pierde: llega a alguien");

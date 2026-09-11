@@ -22,7 +22,7 @@ for (let t2 = 1; t2 <= G.NOTA_MIN_PLANETAS; t2++)
 for (let i = 0; i < 3; i++) G.hoja_("AJUSTES").appendRow([new Date(), PER, "a@alumno.es", "Z" + i, "otorgar", "", "banco"]);
 G.hoja_("EVENTOS").appendRow([new Date(), PER, "a@alumno.es", "Aa", "XF", "final", 9, 500, "formulario"]);
 const rc = E.enviarCanje(G, PER, { email: "a@alumno.es", recompensa: E.etiqueta(G, "Subir 0,5 en un entregable"), actividad: "Actividad 1 · imagen con IA" });
-igual(rc.estado, "Concedido", "el canje de nota queda concedido y pendiente de aplicar");
+igual(rc.estado, "Pendiente de revisión", "el canje de nota queda PENDIENTE de que lo resuelva el profesorado");
 
 const url = G.actualizarConsola();
 c(/spreadsheets/.test(url), "la consola devuelve la URL de su archivo");

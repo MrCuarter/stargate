@@ -19,18 +19,23 @@ let r = E.enviarCanje(G, "prueba-banco", { email: "rico@alumno.es",
   recompensa: E.etiqueta(G, "Subir 0,5 en un entregable"), actividad: "Actividad 1 · imagen con IA" });
 M.Correo.sendEmail = enviarOriginal;
 
-igual(r.estado, "Concedido", "🔴 el canje se concede aunque el correo reviente");
+// 🔴 Lo que esta batería vigila NO ha cambiado: que el ESTADO se escriba pase lo que pase con los
+// correos. Lo que cambió es cuál es ese estado — un canje de nota ya no se concede solo, entra en
+// la cola del profesorado. Y ahí está la otra mitad: los créditos NO se cobran todavía.
+igual(r.estado, "Pendiente de revisión", "🔴 el estado se escribe aunque el correo reviente");
 const t = G.tablero_("prueba-banco", true).reclutas[0];
-const precio05 = G.recompensasCat_().filter(x => x.nombre === "Subir 0,5 en un entregable")[0].coste;
-igual(t.creditos_gastados, precio05, "y se cobra igual: el estado en la hoja es lo que manda");
-igual(t.canjeados["Subir 0,5 en un entregable"], 1, "y cuenta para el tope por alumno");
+igual(t.creditos_gastados, 0, "y NO se cobra: pendiente no es concedido");
+// pero ocupa el sitio: si no, se mandan cinco solicitudes iguales y la cola se llena de duplicados
+const sh14 = G._maestra.getSheetByName(G.perObj_(G.perFila_("prueba-banco").v).tabC);
+igual(G.concedidasDe_(sh14, 0, "rico@alumno.es", "Subir 0,5 en un entregable"), 1,
+  "🔴 y cuenta para el tope por alumno: una pendiente ocupa el sitio");
 
 // el aviso al docente también va detrás del estado
 G.avisarDocente_ = function(){ throw new Error("boom"); };
 E.reclutaRico(G, "prueba-banco", "otro@alumno.es");
 r = E.enviarCanje(G, "prueba-banco", { email: "otro@alumno.es",
   recompensa: E.etiqueta(G, "Subir 1 punto en un entregable"), actividad: "Actividad 2 · paisaje de aprendizaje" });
-igual(r.estado, "Concedido", "🔴 y aunque reviente el aviso al docente");
+igual(r.estado, "Pendiente de revisión", "🔴 y aunque reviente el aviso al docente");
 
 // ---------------------------------------------------------------- b) triggers sin duplicados
 G = E.nuevoMundo();

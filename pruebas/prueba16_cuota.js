@@ -46,7 +46,7 @@ M.Correo.limpiar();
 M.Correo.cuota = 0;
 r = E.enviarCanje(G, "prueba-banco", { email: "nota@alumno.es",
   recompensa: E.etiqueta(G, "Subir 1 punto en un entregable"), actividad: "Actividad 2" });
-igual(r.estado, "Concedido", "🔴 el canje de nota se concede aunque no haya cuota");
+igual(r.estado, "Pendiente de revisión", "🔴 el canje de nota entra en la cola aunque no haya cuota");
 const avisos = G.hoja_(G.H.AJ).getDataRange().getValues().slice(1).filter(v => v[3] === "AVISO");
 igual(avisos.length, 1, "y queda la traza del aviso al docente");
 contiene(String(avisos[0][6]), "SIN CUOTA", "diciendo que fue por la cuota, no por falta de correos");

@@ -758,3 +758,101 @@ function salud_() {
 // sin este rastro un vigia averiado es indistinguible de un sistema sano. Que es exactamente lo
 // contrario de para lo que sirve.
 
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════
+// LA COLA DE SOLICITUDES DE NOTA · 11-sep-2026
+// Norberto: «el docente no puede subir manualmente la nota a 70 alumnos que quieren maquillar, es
+// trabajar el doble y es tiempo no reflejado».
+// El problema no era solo CUÁNTAS llegan —eso lo arreglan la semana 15 y los precios— sino CÓMO:
+// concediéndose solas, una por una, con un correo cada vez. Trabajo a goteo y sin decidir nada.
+// Ahora se acumulan aquí y se resuelven de una sentada, con derecho a veto.
+//
+// 🔴 LOS CRÉDITOS NO SE MUEVEN HASTA QUE SE APRUEBA. `gastado` solo suma las filas que empiezan por
+// «Concedido», así que una solicitud pendiente no cuesta nada. Si se rechaza, no hay que devolver
+// nada porque nunca se cobró — y nadie pierde dinero por preguntar.
+
+// Las solicitudes que esperan, de un grupo. Devuelve lo justo para decidir: quién, qué, cuándo, a
+// qué actividad y si le siguen dando los créditos.
+function pendientesNota_(perId) {
+  var o = perObj_(perFila_(perId).v);
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabC);
+  if (!sh || sh.getLastRow() < 2) return { pendientes: [] };
+  var v = sh.getDataRange().getValues(), cab = v[0].map(String);
+  var cE = cab.indexOf("Estado"), cR = cab.indexOf("Recompensa");
+  var cM = idx_(cab, "correo") >= 0 ? idx_(cab, "correo") : idx_(cab, "email");
+  var cA = idx_(cab, "actividad");
+  if (cE < 0 || cR < 0 || cM < 0) return { pendientes: [] };
+  // el saldo de cada uno HOY: entre pedirlo y aprobarlo puede haberse gastado los créditos en otra
+  // cosa, y aprobar a ciegas lo dejaría en negativo
+  var saldo = {}, quien = {};
+  tablero_(perId, true).reclutas.forEach(function(x){
+    var m = String(x.email || "").toLowerCase();
+    saldo[m] = x.creditos; quien[m] = { alias: x.alias, nombre: x.nombre || "" };
+  });
+  var out = [];
+  for (var i = 1; i < v.length; i++) {
+    if (String(v[i][cE] || "").indexOf(EST_PENDIENTE) !== 0) continue;
+    var em = String(v[i][cM] || "").toLowerCase().trim();
+    var et = String(v[i][cR] || "");
+    var f = recompensasCat_().filter(function(x){ return et.indexOf(x.nombre) === 0; })
+             .sort(function(a, b){ return b.nombre.length - a.nombre.length; })[0];
+    var coste = f ? f.coste : 0;
+    out.push({ fila: i + 1, fecha: v[i][0], email: em,
+               alias: (quien[em] || {}).alias || "", nombre: (quien[em] || {}).nombre || "",
+               recompensa: et, coste: coste,
+               actividad: cA >= 0 ? String(v[i][cA] || "") : "",
+               saldo: saldo[em] == null ? null : saldo[em],
+               puede: saldo[em] != null && saldo[em] >= coste });
+  }
+  return { pendientes: out };
+}
+
+// Aprobar o rechazar. Idempotente: si ya está resuelta, lo dice y no toca nada.
+function resolverPendiente_(perId, fila, profe, aprueba, motivo) {
+  fila = Number(fila || 0);
+  if (fila < 2) throw new Error("Esa fila no existe");
+  var o = perObj_(perFila_(perId).v);
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabC);
+  if (!sh) throw new Error("Ese grupo no tiene pestaña de canjes");
+  if (fila > sh.getLastRow()) throw new Error("Esa fila ya no existe: recarga la lista");
+  var cab = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String);
+  var cE = cab.indexOf("Estado") + 1;
+  if (!cE) throw new Error("La pestaña de canjes no tiene columna Estado");
+  var antes = String(sh.getRange(fila, cE).getValue() || "");
+  if (antes.indexOf(EST_PENDIENTE) !== 0) return { ok: true, yaEstaba: true, estado: antes };
+
+  var cM = idx_(cab, "correo") >= 0 ? idx_(cab, "correo") : idx_(cab, "email");
+  var cR = cab.indexOf("Recompensa");
+  var email = String(sh.getRange(fila, cM + 1).getValue() || "").toLowerCase().trim();
+  var et = String(sh.getRange(fila, cR + 1).getValue() || "");
+  var sello = " · " + (profe || "profesorado") + " · " +
+              Utilities.formatDate(new Date(), "Europe/Madrid", "dd/MM/yyyy HH:mm");
+
+  if (!aprueba) {
+    sh.getRange(fila, cE).setValue("Rechazado" + sello + (motivo ? " · " + motivo : ""));
+    try { enviarCorreo_(email, "STARGATE · Tu solicitud de nota",
+      "Tu profesorado ha revisado la solicitud de «" + et + "» y no la ha aplicado" +
+      (motivo ? ": " + motivo : ".") + "\n\n🔴 No se te han cobrado los créditos: los tienes enteros, " +
+      "y puedes gastarlos en lo que quieras.\n\nTu nave: " + WEB + "recluta.html?per=" + o.id,
+      o.id, email); } catch (e) { Logger.log("aviso de rechazo: " + e); }
+    return { ok: true, aprobado: false, estado: "Rechazado" };
+  }
+
+  // 🔴 Comprobar el saldo AHORA, no el de cuando lo pidió: entre medias ha podido gastárselo en
+  // sobres. Aprobar a ciegas lo dejaría en negativo, y el saldo negativo no se ve venir.
+  var yo = tablero_(perId, true).reclutas.filter(function(x){
+    return String(x.email || "").toLowerCase() === email; })[0];
+  var f = recompensasCat_().filter(function(x){ return et.indexOf(x.nombre) === 0; })
+           .sort(function(a, b){ return b.nombre.length - a.nombre.length; })[0];
+  var coste = f ? f.coste : 0;
+  if (!yo || yo.creditos < coste)
+    return { ok: false, error: "Ya no le llegan los créditos: tiene " + (yo ? yo.creditos : 0) +
+             " y cuesta " + coste + ". Se los habrá gastado después de pedirlo." };
+
+  sh.getRange(fila, cE).setValue("Concedido" + sello);
+  try { enviarCorreo_(email, "STARGATE · Solicitud de nota aprobada",
+    "Tu profesorado ha aprobado «" + et + "». Se te han descontado " + coste + " créditos y la nota " +
+    "se aplicará en la plataforma de la asignatura.\n\nTu nave: " + WEB + "recluta.html?per=" + o.id,
+    o.id, email); } catch (e) { Logger.log("aviso de aprobacion: " + e); }
+  return { ok: true, aprobado: true, estado: "Concedido", coste: coste };
+}

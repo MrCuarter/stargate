@@ -106,7 +106,7 @@ igual(G.tablero_(PER, true).reclutas[0].creditos, creditosAntes, "🔴 y NO se l
 M.Correo.limpiar();
 r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Subir 0,5 en un entregable"),
   actividad: "Actividad 1 · imagen con IA" });
-igual(r.estado, "Concedido", "el canje de nota se concede");
+igual(r.estado, "Pendiente de revisión", "el canje de nota queda PENDIENTE de que lo mire el profesorado");
 const avisos = M.Correo.enviados.filter(x => x.asunto.indexOf("te toca a ti") >= 0);
 igual(avisos.length, 1, "se manda UN aviso al profesorado");
 contiene(avisos[0].para, "mrcuarter@gmail.com", "al docente que el alumno declaró");

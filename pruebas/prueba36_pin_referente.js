@@ -24,8 +24,12 @@ const DOCENTE = "sg2026docente", REFERENTE = "sg2026-referente-largo";
 
 // Las 18 acciones con PIN, repartidas. Escritas AQUÍ a mano a propósito: si mañana alguien añade una
 // acción nueva a doPost y no decide su nivel, el apartado (g) lo caza.
+// 🔴 «pendientes» y «pendiente_resolver» son de DÍA A DÍA, no de referente: quien corrige a ese
+// grupo es quien decide si le sube la nota, y eso no tiene por qué ser el referente. El nivel de
+// referente es para lo que afecta al grupo ENTERO (mover el calendario, archivar, cerrar).
 const DIA_A_DIA = ["pers","alumnos","tickets","ticket_resuelto","ficha","ajuste","entregado",
-                   "pase_abrir","pase_estado","mi_panel","canje_revertir"];
+                   "pase_abrir","pase_estado","mi_panel","canje_revertir",
+                   "pendientes","pendiente_resolver"];
 const RESERVADAS = ["profesorado","inicio","abrir","cerrar","archivar","panel","documento"];
 
 function mundo(pinDocente, pinReferente) {
@@ -102,10 +106,13 @@ const fuente = fs.readFileSync(process.env.STARGATE_GS ||
   path.join(__dirname, "..", "apps-script", "Code.gs"), "utf8");
 const tramo = fuente.slice(fuente.indexOf("nivelDePin_(q.pin)"), fuente.indexOf('Acci') );
 const enElCodigo = {};
-(tramo.match(/a === "([a-z_]+)"/g) || []).forEach(x => { enElCodigo[x.match(/"([a-z_]+)"/)[1]] = true; });
+// 🔴 11-sep · El escáner casaba SUBCADENAS: «q.aprueba === "true"» contiene «a === "true"», y
+// colaba «true» como si fuera una acción sin clasificar. Con \b delante, «a» tiene que ser la
+// variable entera. Lo destapó una acción nueva, pero el fallo llevaba ahí desde el principio.
+(tramo.match(/\ba === "([a-z_]+)"/g) || []).forEach(x => { enElCodigo[x.match(/"([a-z_]+)"/)[1]] = true; });
 const sinClasificar = Object.keys(enElCodigo).filter(a => DIA_A_DIA.indexOf(a) < 0 && RESERVADAS.indexOf(a) < 0);
 igual(sinClasificar, [], "🔴 toda acción de doPost tiene su nivel decidido (si esto falla, hay una nueva sin clasificar)");
-igual(Object.keys(enElCodigo).length, 18, "y siguen siendo 18");
+igual(Object.keys(enElCodigo).length, 20, "y siguen siendo 20");
 
 // ---------------------------------------------------------------- e) queda traza de quién tocó qué
 // Con dos niveles, saber quién recalendarizó o archivó deja de ser opcional.

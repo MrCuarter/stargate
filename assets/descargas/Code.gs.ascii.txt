@@ -696,6 +696,10 @@ var OPC_ACTIVIDAD = ["Actividad 1 \u00b7 imagen con IA", "Actividad 2 \u00b7 pai
 // enviar si no necesita nada- y cada seccion termina enviando, asi que no se puede caer en la
 // siguiente. De paso, "Actividad a la que se aplica" deja de ser obligatoria para todo el mundo:
 // solo se pregunta a quien canjea nota.
+//  El estado de un canje que espera al profesorado. Se compara por PREFIJO en varios sitios (el
+// lector de pendientes, el que aprueba, el que rechaza), asi que vive en UNA constante: tenerlo
+// escrito a mano en cinco sitios es exactamente como se desincronizan estas cosas.
+var EST_PENDIENTE = "Pendiente de revisi\u00f3n";
 var SEC_TITULO = "Un dato m\u00e1s: tu t\u00edtulo";
 var SEC_FONDO  = "Un dato m\u00e1s: tu planeta";
 //  11-sep - "Un dato mas: la actividad" no decia nada. Ahora la seccion tiene nombre propio y
@@ -2787,7 +2791,12 @@ function concedidasDe_(sh, fila, email, nombreRec) {
     if (i + 1 === fila) continue;
     if (String(v[i][cM] || "").toLowerCase().trim() !== email) continue;
     if (nombreDe_(v[i][cR]) !== nombreRec) continue;   // exacto: "X premium" no cuenta como "X"
-    if (String(v[i][cE] || "").indexOf("Concedido") === 0) n++;
+    //  11-sep - LAS PENDIENTES TAMBIEN CUENTAN. Si no, alguien manda cinco solicitudes iguales de
+    // "Subir 1 punto" y le llena la lista al docente de duplicados - justo el goteo que la cola
+    // venia a evitar. Una pendiente ocupa el sitio hasta que se resuelve; si se rechaza, deja de
+    // contar y puede volver a pedirla.
+    var est = String(v[i][cE] || "");
+    if (est.indexOf("Concedido") === 0 || est.indexOf(EST_PENDIENTE) === 0) n++;
   }
   return n;
 }
@@ -2993,6 +3002,9 @@ function resolverCanje_(o, sh, fila) {
   // 2) tope por alumno: el catalogo dice cuantas veces puede concederse a la misma persona
   else if (ficha && ficha.max && concedidasDe_(sh, fila, email, ficha.nombre) >= ficha.max) {
     estado = "Denegado (ya alcanz\u00f3 el m\u00e1ximo de " + ficha.max + ")";
+    // si lo que ocupa el sitio es una solicitud sin resolver, decirlo: no es lo mismo "ya lo tienes"
+    // que "lo has pedido y tu profesorado aun no ha contestado"
+    var _pend = ficha.tipo === "nota";
     cuerpo = ficha.max === 1
       ? "\u00ab" + ficha.nombre + "\u00bb ya la tienes: es de una sola vez. No se han gastado cr\u00e9ditos."
       : "Ya has canjeado \u00ab" + ficha.nombre + "\u00bb el m\u00e1ximo de " + ficha.max + " veces. No se han gastado cr\u00e9ditos.";
@@ -3094,13 +3106,24 @@ function resolverCanje_(o, sh, fila) {
     if (!/^https?:\/\//i.test(u)) { estado = "Denegado (falta la URL de la imagen en el formulario)"; cuerpo = "Para \u00abAvatar personal\u00bb tienes que pegar la URL directa de tu imagen en el propio formulario. Vuelve a enviarlo con el enlace; no se han gastado cr\u00e9ditos."; }
     else { aplicarAvatar_(o, email, u); estado = "Concedido"; cuerpo = "Concedido: " + rec + ". Tu imagen ya es tu avatar en el tablero (si no carga, revisa que el enlace sea directo). Te quedan " + (disp - coste) + " cr\u00e9ditos."; }
   }
-  // 5) recompensas de nota: las aplica el profesorado al terminar las clases en directo.
-  // Aqui SI hace falta una persona, asi que se le avisa por correo (v3.11).
+  // 5) recompensas de nota: NO se conceden solas. Quedan PENDIENTES y el profesorado las resuelve
+  // en bloque desde su panel.
+  //  11-sep - Norberto: "cambiar 100 notas con cada actividad es una carga de trabajo INMENSA y no
+  // compensa". El problema no era solo cuantas llegan -eso lo arreglan la semana 15 y los precios-
+  // sino COMO llegan: concediendose solas, una por una, con un correo cada vez. Eso es trabajo a
+  // goteo y sin decidir nada. Ahora se acumulan en una lista y se resuelven de una sentada.
+  // Los creditos NO se cobran al pedirlo: `gastado` solo suma las filas que empiezan por
+  // "Concedido", asi que una solicitud pendiente no cuesta nada hasta que se aprueba. Si se rechaza,
+  // no se ha movido un credito y no hay nada que devolver.
   else {
-    estado = "Concedido";
-    cuerpo = "Concedido: " + rec + ". Te quedan " + (disp - coste) + " cr\u00e9ditos. Importante: esta recompensa se har\u00e1 efectiva al terminar las clases en directo; el profesorado la aplicar\u00e1 entonces.";
+    estado = EST_PENDIENTE;
+    cuerpo = "Solicitud registrada: " + rec + ". \ud83d\udd34 Todav\u00eda NO se te han cobrado los cr\u00e9ditos y la " +
+      "recompensa NO est\u00e1 concedida: la revisa tu profesorado y te llegar\u00e1 su respuesta. " +
+      "Si ya tienes la nota m\u00e1xima de evaluaci\u00f3n continua, av\u00edsale para retirarla \u2014 as\u00ed no gastas " +
+      "los cr\u00e9ditos en algo que no te sube nada.";
   }
   var ok = estado === "Concedido";
+  var pendiente = estado === EST_PENDIENTE;
   //  v3.14 - EL ESTADO SE ESCRIBE LO PRIMERO. Es lo que cobra los creditos y lo que lee el tablero:
   // si se escribiera despues de los correos, cualquier fallo mandando un aviso dejaria el canje SIN
   // resolver -ni concedido ni denegado- y el alumno sin respuesta. Paso en la prueba en vivo del
@@ -3108,7 +3131,7 @@ function resolverCanje_(o, sh, fila) {
   sh.getRange(fila, col).setValue(estado);
   SpreadsheetApp.flush();
   // Y solo entonces los efectos secundarios, cada uno con su red.
-  if (ok && ficha && ficha.tipo === "nota") {
+  if (pendiente && ficha && ficha.tipo === "nota") {
     try { avisarDocente_(o, al, rec, String(r["Actividad a la que se aplica"] || "")); }
     catch (e) { Logger.log("avisarDocente_: " + e); }
   }
@@ -3117,7 +3140,7 @@ function resolverCanje_(o, sh, fila) {
   // gratuita). Pero la DENEGACION no se ve en ningun otro sitio: sin creditos, bloqueado hasta la
   // semana 14, le faltan planetas... si eso no se cuenta, el alumno escribe al profesorado. Y ese
   // correo es justo el que no queremos.
-  if (!ok) {
+  if (!ok && !pendiente) {
     enviarCorreo_(email, "STARGATE \u00b7 Canje denegado",
       cuerpo + "\n\nNo se te ha cobrado nada." +
       "\n\nTablero: " + WEB + "registro.html?per=" + o.id + "\nTu nave: " + WEB + "recluta.html?per=" + o.id,
@@ -3594,7 +3617,9 @@ function actualizarConsola() {
     var t = tablero_(o.id, true); var rec = (t.reclutas || []);
     var canjes = canjesDe_(o), tk = ticketsDe_(o), sem = semanaDe_(o);
     var concedidos = canjes.filter(function(c){ return c.estado.indexOf("Concedido") === 0; });
-    var pendientes = concedidos.filter(function(c){ return !c.entregado; });
+    // 11-sep \u00b7 \u00abpendientes\u00bb pasa a significar SOLICITUDES SIN RESOLVER, que es lo que ahora le hace
+    // falta ver al docente de un vistazo: cu\u00e1ntas le esperan en la cola.
+    var pendientes = canjes.filter(function(c){ return c.estado.indexOf(EST_PENDIENTE) === 0; });
     var xpMedia = rec.length ? Math.round(rec.reduce(function(a,x){ return a + x.xp; }, 0) / rec.length) : 0;
     var credCirc = rec.reduce(function(a,x){ return a + (x.creditos || 0); }, 0);
 
@@ -3996,6 +4021,11 @@ function doPost(e) {
     else if (a === "abrir" || a === "cerrar") { setAbierto_(per, a === "abrir"); out = { ok:true }; }
     else if (a === "entregado") { var o2 = perObj_(perFila_(per).v); var shc = SpreadsheetApp.getActive().getSheetByName(o2.tabC); var cab = shc.getRange(1,1,1,shc.getLastColumn()).getValues()[0].map(String);
       var col = cab.indexOf("Entregado") + 1; if (!col) { col = shc.getLastColumn() + 1; shc.getRange(1, col).setValue("Entregado"); } shc.getRange(q.fila, col).setValue(q.valor ? "S\u00ed \u00b7 " + (q.profe||"") : ""); out = { ok:true }; }
+    // 11-sep \u00b7 la cola de solicitudes de nota: leerlas y resolverlas en bloque
+    else if (a === "pendientes") { out = pendientesNota_(per); }
+    else if (a === "pendiente_resolver") {
+      out = resolverPendiente_(per, q.fila, q.profe, q.aprueba === true || q.aprueba === "true", q.motivo);
+    }
     else if (a === "canje_revertir") { out = revertirCanje_(perObj_(perFila_(per).v), q.fila, q.profe); }
     else throw new Error("Acci\u00f3n desconocida");
     if (out && typeof out === "object") out.nivel = nivel;   // para que la web se adapte sola
