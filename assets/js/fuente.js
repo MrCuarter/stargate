@@ -51,6 +51,16 @@
   function firestore() {
     // El traductor y el catálogo son ficheros normales; la puerta pública no necesita Firebase, así
     // que un tablero incrustado se pinta sin cargar el SDK entero.
+    // Los identificadores que guarda la ficha son de documento («grupo__A1»); la Nave habla en
+    // identificadores de STARGATE («A1»). Se traducen con lo que ya trajo el tablero.
+    var misRetos = function (f) {
+      var porDoc = {};
+      ((crudo && crudo.misiones) || []).forEach(function (m) { porDoc[m.docId] = m.id; });
+      // 🔴 Una LISTA de identificadores, no un objeto. Es la forma exacta que devolvía el motor
+      // viejo (`retos: Object.keys(yo.retos)`) y la que espera la Nave. Devolver un objeto no daba
+      // error visible: la pestaña de retos se quedaba vacía y en blanco, sin decir por qué.
+      return (f.completedMissionIds || []).map(function (doc) { return porDoc[doc] || doc; });
+    };
     var esperarTraductor = function () {
       return new Promise(function (ok) {
         var mira = function () {
@@ -59,6 +69,22 @@
         };
         mira();
       });
+    };
+    // Mi ficha en este grupo. Se pide más de una vez por visita, así que se guarda: cada consulta a
+    // Firestore es una ida y vuelta, y aquí no cambia nada entre una y otra.
+    var cacheFicha = {};
+    var crudo = null;
+    var olvidarFicha = function () { cacheFicha = {}; };
+    var miFicha = function (M, per, yo) {
+      var k = per + "|" + yo.uid;
+      if (cacheFicha[k]) return Promise.resolve(cacheFicha[k]);
+      return M.getDocs(M.query(M.collection(M.db, "student_profiles"),
+        M.where("projectId", "==", per), M.where("userId", "==", yo.uid)))
+        .then(function (r) {
+          if (r.empty) return null;
+          cacheFicha[k] = Object.assign({ id: r.docs[0].id }, r.docs[0].data());
+          return cacheFicha[k];
+        });
     };
     var esperar = function () {
       return new Promise(function (ok) {
@@ -93,13 +119,18 @@
        * Y devuelve los documentos en crudo: la aritmética la hace el traductor, que vive en un solo
        * sitio. Dos copias de las mismas cuentas es garantizar que un día dicen cosas distintas.
        */
-      tablero: function (per) {
-        return fetch(PUBLICA + "?per=" + encodeURIComponent(per))
+      tablero: function (per, fresco) {
+        // 🔴 El tablero público se cachea 30 s en el servidor, y eso es lo que salva una clase de
+        // 200 mirándolo a la vez. Pero justo después de marcar un reto esa caché es veneno: el
+        // alumno pulsa, se registra, y su Nave le sigue enseñando lo de antes. Quien acaba de
+        // escribir pide fresco; los 200 que solo miran, no.
+        return fetch(PUBLICA + "?per=" + encodeURIComponent(per) + (fresco ? "&t=" + Date.now() : ""))
           .then(function (r) { return r.json(); })
           .then(function (d) {
             if (d.error) return d;
             return esperarTraductor().then(function () {
               d.catalogo = window.SG_CATALOGO;
+              crudo = d;   // hace falta abajo para saber QUÉ retos tiene uno mismo
               return window.SG.TABLERO.tablero(d, false);
             });
           })
@@ -117,22 +148,80 @@
         return esperar().then(function (M) {
           return M.sesion().then(function (yo) {
             if (!yo) return { error: "Entra con tu cuenta de Google para ver tu ficha." };
-            return window.SG.FUENTE.tablero(per).then(function (t) {
-              return M.getDocs(M.query(M.collection(M.db, "student_profiles"),
-                M.where("projectId", "==", per), M.where("userId", "==", yo.uid)))
-                .then(function (r) {
-                  if (r.empty) return { error: "Todavía no te has alistado en este grupo.", sinFicha: true };
-                  var alias = r.docs[0].data().displayName;
-                  var yo_ = t.reclutas.filter(function (x) { return x.alias === alias; })[0];
-                  return { yo: yo_, correo: yo.correo, verificado: true };
-                });
+            return window.SG.FUENTE.tablero(per, true).then(function (t) {
+              return miFicha(M, per, yo).then(function (f) {
+                if (!f) return { error: "Todavía no te has alistado en este grupo.", sinFicha: true };
+                var yo_ = t.reclutas.filter(function (x) { return x.alias === f.displayName; })[0];
+                // 🔴 A CADA CUAL, LO SUYO. El tablero público no dice qué retos concretos ha hecho
+                // nadie —y así se queda—, pero uno tiene derecho a ver los suyos: es lo que la Nave
+                // necesita para saber qué casillas pintar hechas y cuáles ofrecer para marcar.
+                // Sale de la ficha de quien pregunta, no del tablero de todos.
+                if (yo_) yo_.retos = misRetos(f);
+                return { yo: yo_, correo: yo.correo, verificado: true };
+              });
             });
           });
         }).catch(function (e) { return { error: e.message }; });
       },
+      /**
+       * Las escrituras.
+       *
+       * El motor viejo tenía un solo buzón —«accion»— y el Apps Script decidía dentro. Aquí cada
+       * cosa va por su camino: lo que mueve dinero, al servidor; lo que es puro disfraz, directo.
+       *
+       * 🔴 Y esa diferencia no es de estilo. Las reglas de Firestore PROHÍBEN que el navegador
+       * escriba experiencia, monedas o inventario, así que registrar un reto tiene que pasar por
+       * `completeMission` aunque sea más largo de escribir. Lo cosmético (qué figura llevas puesta)
+       * sí lo escribe el navegador: falsearlo solo te cambia el disfraz a ti.
+       */
       accion: function (cuerpo) {
-        return esperar().then(function (M) { return M.llamar(cuerpo.accion, cuerpo); })
-          .catch(function (e) { return { error: e.message }; });
+        return esperar().then(function (M) {
+          return M.sesion().then(function (yo) {
+            if (!yo) return { error: "Entra con tu cuenta para poder hacer eso." };
+            return miFicha(M, cuerpo.per, yo).then(function (ficha) {
+              if (!ficha) return { error: "Todavía no te has alistado en este grupo." };
+
+              // Lo que se escriba deja la ficha guardada obsoleta: se tira sin contemplaciones.
+              olvidarFicha();
+              if (cuerpo.accion === "registrar") {
+                return M.getDocs(M.query(M.collection(M.db, "missions"),
+                  M.where("projectId", "==", cuerpo.per), M.where("stargateId", "==", cuerpo.reto)))
+                  .then(function (r) {
+                    if (r.empty) return { error: "Ese reto no existe en tu grupo." };
+                    var mid = r.docs[0].id;
+                    // 🔴 `entregas` NO es donde va el enlace de evidencia. El servidor espera ahí un
+                    // objeto con una entrada por cada «entregable» declarado en la misión, y las
+                    // nuestras no declaran ninguno: mandarle una cadena hacía reventar la función
+                    // con un «INTERNAL» que no decía absolutamente nada. La evidencia tiene su
+                    // propio sitio —`mission_deliveries`— y ahí es donde la busca el profesorado.
+                    return M.llamar("completeMission",
+                      { projectId: cuerpo.per, missionId: mid, studentProfileId: ficha.id })
+                      .then(function () {
+                        var ev = String(cuerpo.evidencia || "").trim();
+                        if (!ev) return { ok: true };
+                        // Si la evidencia falla, el reto YA está registrado y así se queda: perder
+                        // el enlace es molesto, perder el reto es injusto.
+                        return M.setDoc(M.doc(M.db, "mission_deliveries", mid + "__" + ficha.id), {
+                          projectId: cuerpo.per, missionId: mid, studentProfileId: ficha.id,
+                          userId: yo.uid, stargateReto: cuerpo.reto, enlace: ev, createdAt: Date.now()
+                        }).then(function () { return { ok: true }; })
+                         .catch(function () { return { ok: true, avisoEvidencia: true }; });
+                      });
+                  });
+              }
+
+              if (cuerpo.accion === "vestir")
+                return M.updateDoc(M.doc(M.db, "student_profiles", ficha.id),
+                  { stargateViste: cuerpo.viste || "" }).then(function () { return { ok: true }; });
+
+              if (cuerpo.accion === "canje")
+                return M.llamar("purchaseReward", { projectId: cuerpo.per, rewardId: cuerpo.recompensa,
+                  studentProfileId: ficha.id });
+
+              return { error: "Todavía no sé hacer eso con el motor nuevo: " + cuerpo.accion };
+            });
+          });
+        }).catch(function (e) { return { error: e.message }; });
       }
     };
   }

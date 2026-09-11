@@ -197,4 +197,33 @@ c(arsPua.stargateSemana <= cat.semanas.PUA,
 c(pua.proyecto.levelSystem[9].xpRequired < p.proyecto.levelSystem[9].xpRequired,
   "y llegar a Leyenda cuesta menos xp en PUA, porque el viaje da menos");
 
+// ------------------------------------------------------------------ i) los dos identificadores
+// 🔴 Esto casi se cuela en producción. Las colecciones de GamificaPro son comunes a todos los
+// proyectos, así que el documento de una misión se llama «grupo__A1» — y eso es lo que escribe
+// `completeMission` en la ficha del alumno. Pero el resto del sistema (los ajustes del
+// profesorado, los enlaces de los Geniallys, este banco) habla en «A1». Si el traductor solo
+// entendiera uno de los dos, el tablero saldría en blanco para todo el mundo: cero xp, cero
+// insignias, cero retos hechos, sin un solo error por ninguna parte.
+const conDoc = perfiles.map(function (f) {
+  const copia = JSON.parse(JSON.stringify(f));
+  copia.completedMissionIds = f.completedMissionIds.map(function (x) { return PER + "__" + x; });
+  copia.missionTimestamps = {};
+  Object.keys(f.missionTimestamps).forEach(function (k) {
+    copia.missionTimestamps[PER + "__" + k] = f.missionTimestamps[k];
+  });
+  return copia;
+});
+const misionesConDoc = p.misiones.map(function (m) {
+  return Object.assign({}, m, { docId: PER + "__" + m.id });
+});
+const largo = NUEVO.tablero({ proyecto: Object.assign({ id: PER }, p.proyecto),
+  misiones: misionesConDoc, campanas: p.campanas, recompensas: p.recompensas,
+  perfiles: conDoc, privados: privados, vales: [], catalogo: cat }, true);
+igual(largo.reclutas.map(x => [x.alias, x.xp, x.n]), nuevo.reclutas.map(x => [x.alias, x.xp, x.n]),
+  "🔴 con identificadores de DOCUMENTO sale exactamente el mismo tablero que con los cortos");
+igual(Object.keys(largo.reclutas[0].retos).sort(), Object.keys(nuevo.reclutas[0].retos).sort(),
+  "   y los retos se devuelven SIEMPRE con el identificador de STARGATE, venga como venga guardado");
+c(Object.keys(largo.reclutas[0].retos).every(k => k.indexOf("__") < 0),
+  "   nunca con el del documento: la Nave y los Geniallys hablan en «A1», no en «grupo__A1»");
+
 E.resumen("El traductor: mismo tablero, otro motor");

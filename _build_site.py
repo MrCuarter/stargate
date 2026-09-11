@@ -2423,13 +2423,18 @@ def _ver_assets(html):
                 .replace('assets/js/stargate.js"', 'assets/js/stargate.js?v=' + _ver("assets/js/stargate.js") + '"')
                 .replace('assets/js/tour.js"', 'assets/js/tour.js?v=' + _ver("assets/js/tour.js") + '"'))
 
+def _v(rel):
+    """La ruta con su huella. Sin esto, cambiar un fichero y no verlo cambiar es cuestión de tiempo
+    —y el síntoma es siempre el mismo: «pero si eso ya lo he arreglado»."""
+    return rel + "?v=" + _ver(rel)
+
 def _cabeza_motor():
     """Los scripts del motor, para las páginas que SIEMPRE lo usan (consola, crear, alistarse…)."""
     return ('<script>window.SG_FIREBASE=%s;</script>'
-            '<script src="motor/paquete.js" defer></script>'
-            '<script src="motor/tablero.js" defer></script>'
-            '<script type="module" src="assets/js/motor.js"></script>'
-            % _json.dumps(FIREBASE))
+            '<script src="%s" defer></script>'
+            '<script src="%s" defer></script>'
+            '<script type="module" src="%s"></script>'
+            % (_json.dumps(FIREBASE), _v("motor/paquete.js"), _v("motor/tablero.js"), _v("assets/js/motor.js")))
 
 def _cabeza_fuente():
     """
@@ -2439,18 +2444,20 @@ def _cabeza_fuente():
     Nave de siempre no puede pagar medio megabyte de SDK que no necesita — y sobre todo no puede
     romperse si Google tarda en servirlo.
     """
-    return ('<script>window.SG_FIREBASE=%s;window.SG_MOTOR=%s;</script>'
-            '<script src="assets/js/fuente.js" defer></script>'
-            '<script>(function(){var q=new URLSearchParams(location.search);'
-            'if(((q.get("motor")||window.SG_MOTOR||"apps")+"").toLowerCase()!=="firestore")return;'
-            '["motor/paquete.js","motor/tablero.js"].forEach(function(u){'
-            'var e=document.createElement("script");e.src=u;e.defer=true;document.head.appendChild(e);});'
-            # El catálogo hace falta para pintar un tablero incrustado, donde no hay sesión ni SDK.
-            'fetch("motor/catalogo.json").then(function(r){return r.json();})'
-            '.then(function(c){window.SG_CATALOGO=c;});'
-            'var m=document.createElement("script");m.type="module";m.src="assets/js/motor.js";'
-            'document.head.appendChild(m);})();</script>'
-            % (_json.dumps(FIREBASE), _json.dumps(MOTOR_POR_DEFECTO)))
+    cfg = _json.dumps(FIREBASE)
+    modo = _json.dumps(MOTOR_POR_DEFECTO)
+    return (
+        '<script>window.SG_FIREBASE=' + cfg + ';window.SG_MOTOR=' + modo + ';</script>'
+        '<script src="' + _v("assets/js/fuente.js") + '" defer></script>'
+        '<script>(function(){var q=new URLSearchParams(location.search);'
+        'if(((q.get("motor")||window.SG_MOTOR||"apps")+"").toLowerCase()!=="firestore")return;'
+        '["' + _v("motor/paquete.js") + '","' + _v("motor/tablero.js") + '"].forEach(function(u){'
+        'var e=document.createElement("script");e.src=u;e.defer=true;document.head.appendChild(e);});'
+        # El catálogo hace falta para pintar un tablero incrustado, donde no hay sesión ni SDK.
+        'fetch("' + _v("motor/catalogo.json") + '").then(function(r){return r.json();})'
+        '.then(function(c){window.SG_CATALOGO=c;});'
+        'var m=document.createElement("script");m.type="module";m.src="' + _v("assets/js/motor.js") + '";'
+        'document.head.appendChild(m);})();</script>')
 
 # 🔴 Mientras dure la mudanza, «apps» manda: el sistema que funciona no se apaga por uno que aún se
 # está probando. Se prueba grupo a grupo con ?motor=firestore, y el día que esté, se cambia aquí.
@@ -2466,7 +2473,7 @@ la tienda con sus precios y fechas, el álbum de cromos y el vestuario de héroe
 y sin formularios: la fecha de la semana 1 decide el calendario completo.</p></header>
 <section id="crear"><div class="wrap">
 <div id="crear-app"><p class="muted">Cargando…</p></div>
-<script src="assets/js/crear.js" defer></script>
+''' + '<script src="' + _v("assets/js/crear.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "crear.html"), "w", encoding="utf-8").write(_ver_assets(_html))
@@ -2480,7 +2487,7 @@ _html = head("STARGATE · Validar un reto",
 <header class="hero"><div class="kicker">Registro de reto</div><h1>Validar</h1></header>
 <section id="validar"><div class="wrap">
 <div id="validar-app"><p class="muted">Cargando…</p></div>
-<script src="assets/js/validar.js" defer></script>
+''' + '<script src="' + _v("assets/js/validar.js") + '" defer></script>' + '''
 <p class="small muted" style="margin-top:22px">Para el profesorado: este enlace sirve en
 <b>todos</b> los grupos y en todas las convocatorias. El grupo no va en el enlace — lo pone quien
 pulsa, porque se le busca por su cuenta. Móntalo una vez en el Genially y olvídate.</p>
@@ -2497,7 +2504,7 @@ _html = head("STARGATE · Alistarse",
 <p>Se hace una vez. Entra con tu cuenta, di quién eres y elige a tu Comandante: él te llevará a tu escuadrón.</p></header>
 <section id="alistarse"><div class="wrap">
 <div id="alistarse-app"><p class="muted">Cargando…</p></div>
-<script src="assets/js/alistarse.js" defer></script>
+''' + '<script src="' + _v("assets/js/alistarse.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "alistarse.html"), "w", encoding="utf-8").write(_ver_assets(_html))
@@ -2512,7 +2519,7 @@ _html = head("STARGATE · Consola",
 el equipo docente y los ajustes del grupo. Sin PIN — entras con tu cuenta y ves lo tuyo.</p></header>
 <section id="consola"><div class="wrap">
 <div id="consola-app"><p class="muted">Cargando…</p></div>
-<script src="assets/js/consola.js" defer></script>
+''' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "consola.html"), "w", encoding="utf-8").write(_ver_assets(_html))

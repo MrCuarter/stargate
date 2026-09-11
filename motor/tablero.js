@@ -21,6 +21,13 @@
 
   var SEMANA_MS = 6048e5;
 
+  // Las campañas, igual que las misiones: la ficha guarda el identificador del DOCUMENTO y el resto
+  // del sistema habla en el de STARGATE. Se aceptan los dos, en un solo sitio.
+  function tieneCampana(p, c) {
+    var suyas = p.completedCampaignIds || [];
+    return suyas.indexOf(c.id) >= 0 || (c.docId && suyas.indexOf(c.docId) >= 0);
+  }
+
   function ts(f) { if (!f) return 0; var t = new Date(f).getTime(); return isNaN(t) ? 0 : t; }
   function iso(ms) { return ms ? new Date(ms).toISOString().slice(0, 10) : ""; }
 
@@ -82,7 +89,16 @@
     var tipo = S.tipo === "PUA" ? "PUA" : "REGULAR";
     var inicio = S.inicio || "";
     var cat = datos.catalogo;
-    var porId = {}; (datos.misiones || []).forEach(function (m) { porId[m.id] = m; });
+    // 🔴 Las misiones se buscan por LOS DOS identificadores: el de STARGATE («A1») y el del
+    // documento («grupo__A1»). No es indecisión: la ficha de un alumno guarda el del documento
+    // —es lo que escribe el motor al completar una misión— pero todo lo demás del sistema, los
+    // ajustes del profesorado y los enlaces de los Geniallys hablan en el de STARGATE. Aceptar los
+    // dos aquí, en un solo sitio, evita una tabla de conversión repartida por seis ficheros.
+    var porId = {};
+    (datos.misiones || []).forEach(function (m) {
+      porId[m.id] = m;
+      if (m.docId) porId[m.docId] = m;
+    });
     var privados = datos.privados || {};
 
     // Los vales de canje, agrupados por quien los compró. `studentId` es el uid del alumno.
@@ -99,12 +115,13 @@
       var sellos = p.missionTimestamps || {};
       // `retos` con la forma de siempre: { A1: {fecha, origen} }. La fecha es el ÚLTIMO registro.
       var retos = {}, fechas = [], eventos = [];
-      hechas.forEach(function (id) {
-        var marcas = sellos[id] || [];
+      hechas.forEach(function (guardado) {
+        var m = porId[guardado];
+        var id = m ? m.id : guardado;               // siempre el de STARGATE de cara afuera
+        var marcas = sellos[guardado] || sellos[id] || [];
         var f = marcas.length ? marcas[marcas.length - 1] : "";
         retos[id] = { fecha: f, origen: "recluta", evidencia: "" };
         if (f) fechas.push(f);
-        var m = porId[id];
         eventos.push({ fecha: f, reto_id: id, reto: m ? m.title : id,
                        xp: m ? m.points : 0, origen: "recluta", evidencia: "" });
       });
@@ -113,9 +130,9 @@
       // fecha — no de una lista de eventos aparte. Ese error ya se pagó una vez: quien tenía todo
       // validado por su profe salía con 0 y la corona se la llevaba otro.
       var xp7 = 0;
-      hechas.forEach(function (id) {
-        var m = porId[id]; if (!m) return;
-        if (ts(retos[id].fecha) >= hace7) xp7 += m.points || 0;
+      hechas.forEach(function (guardado) {
+        var m = porId[guardado]; if (!m) return;
+        if (ts((retos[m.id] || {}).fecha) >= hace7) xp7 += m.points || 0;
       });
       // 🔴 Y los bonus. Un planeta completo da 150 xp que el motor ya sumó al total, pero Firestore
       // no guarda CUÁNDO se completó la campaña. No hace falta: un planeta se completa el día que
@@ -123,8 +140,8 @@
       // planeta esta semana pierde 150 xp de cara a la corona — y la corona se la lleva otro.
       // (Lo cazó la batería 54 comparando con el motor de siempre: 1.200 contra 1.050.)
       (datos.campanas || []).forEach(function (cm) {
-        if ((p.completedCampaignIds || []).indexOf(cm.id) < 0) return;
-        var premio = (cm.rewards || []).filter(function (x) { return x.type === "xp"; })[0];
+        if (!tieneCampana(p, cm)) return;
+        var premio = (cm.rewards || []).filter(function (x) { return x.type === "xp_extra"; })[0];
         if (!premio || !premio.value) return;
         var cuando = 0;
         (cm.missionIds || []).forEach(function (mid) {
@@ -135,14 +152,14 @@
 
       // Las insignias: las de cada reto hecho, más las derivadas cuyas campañas estén completas.
       var ins = {};
-      hechas.forEach(function (id) {
-        var m = porId[id]; if (!m) return;
+      hechas.forEach(function (g) {
+        var m = porId[g]; if (!m) return;
         (m.stargateBadges || (m.badge ? [m.badge] : [])).forEach(function (b) { ins[b] = true; });
       });
       if (hechas.length) ins["H1_reclutamiento"] = true;
       (datos.campanas || []).forEach(function (c) {
         if (!c.stargateInsignia) return;
-        if ((p.completedCampaignIds || []).indexOf(c.id) >= 0) ins[c.stargateInsignia] = true;
+        if (tieneCampana(p, c)) ins[c.stargateInsignia] = true;
       });
 
       // El inventario: cartas, héroes y lo demás. Las entradas repetidas son, literalmente, repes.
@@ -161,9 +178,9 @@
 
       var xp = Number(p.totalPoints || 0);
       var ganados = 0;
-      hechas.forEach(function (id) { var m = porId[id]; if (m) ganados += Number(m.coinsReward || 0); });
+      hechas.forEach(function (g) { var m = porId[g]; if (m) ganados += Number(m.coinsReward || 0); });
       (datos.campanas || []).forEach(function (cm) {
-        if ((p.completedCampaignIds || []).indexOf(cm.id) < 0) return;
+        if (!tieneCampana(p, cm)) return;
         (cm.rewards || []).forEach(function (x) { if (x.type === "coins") ganados += Number(x.value || 0); });
       });
       var niv = nivelInfo(xp, cat.niveles, cat.rangos);
@@ -265,7 +282,9 @@
       inicio: inicio, reclutas: lista,
       recompensas: (datos.recompensas || []).filter(function (r) { return r.inStore !== false; })
         .map(function (r) {
-          return { nombre: r.title, coste: r.cost, maximo: r.maxPerUser == null ? 99 : r.maxPerUser,
+          // El identificador viaja con la recompensa: sin él, canjear habría que hacerlo POR NOMBRE,
+          // y el día que alguien renombre «Sobre de cromos» se rompe en silencio.
+          return { id: r.id, nombre: r.title, coste: r.cost, maximo: r.maxPerUser == null ? 99 : r.maxPerUser,
                    descripcion: r.description, desde: r.stargateSemana || 0, tipo: r.stargateTipo || "" };
         }),
       semana: semanaDe(inicio, ahora), semanas: S.semanas || 15,

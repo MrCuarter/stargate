@@ -202,7 +202,7 @@
                                 .map(function (m) { return m.id; }),
         // 🔴 El bonus de planeta deja de ser código nuestro: es la recompensa de la campaña, y la
         // paga el motor desde dentro. Mismos 150 xp y 40 créditos de siempre — salen del catálogo.
-        rewards: [{ type: "xp", value: (cat.bonus.planeta || {}).xp || 0 },
+        rewards: [{ type: "xp_extra", value: (cat.bonus.planeta || {}).xp || 0 },
                   { type: "coins", value: (cat.bonus.planeta || {}).creditos || 0 }],
         enabled: true,
         visibleFromTimestamp: ms(inicioDeSemana(inicio, semana)),
@@ -223,7 +223,7 @@
         title: (cat.insignias[d.insignia] || {}).nombre || d.insignia,
         description: (cat.insignias[d.insignia] || {}).tarea || "",
         missionIds: necesita,
-        rewards: [{ type: "xp", value: d.xp }, { type: "coins", value: cat.creditos.derivada }],
+        rewards: [{ type: "xp_extra", value: d.xp }, { type: "coins", value: cat.creditos.derivada }],
         enabled: true,
         stargateInsignia: d.insignia
       });

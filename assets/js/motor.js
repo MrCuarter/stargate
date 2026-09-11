@@ -140,7 +140,8 @@ async function sembrarPER(per, alAvanzar) {
     for (let i = 0; i < lista.length; i += 200) {
       const lote = writeBatch(db);
       lista.slice(i, i + 200).forEach(x => {
-        lote.set(doc(db, col, id + "__" + x.id), Object.assign({}, x, { projectId: id, stargateId: x.id }));
+        const { id: _fuera, ...resto } = x;   // ver conIdsDeDocumento: el `id` no entra en el documento
+        lote.set(doc(db, col, id + "__" + x.id), Object.assign({}, resto, conIdsDeDocumento(id, x)));
       });
       await lote.commit();
     }
@@ -302,6 +303,34 @@ async function resolverVale(valeId, aprobar, mensaje) {
   }
   await updateDoc(v.ref, { status: aprobar ? "approved" : "rejected",
                            resolvedAt: Date.now(), councilMessage: mensaje || "" });
+}
+
+/**
+ * Los campos que hay que traducir al guardar: el identificador del documento lleva el grupo por
+ * delante.
+ *
+ * 🔴 `missionIds` de una campaña es el caso que casi se cuela. El motor comprueba si una campaña
+ * está completa mirando si sus `missionIds` están en `completedMissionIds` del alumno — y ahí dentro
+ * viven identificadores de DOCUMENTO. Con los cortos, la comparación no casa nunca: el bonus de
+ * planeta no se concedería jamás, y sin un solo error por ninguna parte.
+ */
+function conIdsDeDocumento(per, x) {
+  // 🔴 `id: undefined` NO es un capricho. GamificaPro lee sus documentos con
+  // `{ id: doc.id, ...doc.data() }`, así que un campo `id` DENTRO del documento pisa el
+  // identificador real y todo el motor empieza a hablar de «A1» donde el documento se llama
+  // «grupo__A1». El síntoma fue de los peores: la misión se registraba bien y a continuación la
+  // función reventaba con un «INTERNAL» mudo al cerrar la campaña del planeta.
+  const out = { projectId: per, stargateId: x.id };
+  const doc_ = s => per + "__" + s;
+  if (Array.isArray(x.missionIds)) out.missionIds = x.missionIds.map(doc_);
+  if (Array.isArray(x.optionalMissionIds)) out.optionalMissionIds = x.optionalMissionIds.map(doc_);
+  if (Array.isArray(x.rewardItemIds)) out.rewardItemIds = x.rewardItemIds.map(doc_);
+  if (x.consumeEffects && x.consumeEffects.lootBox)
+    out.consumeEffects = Object.assign({}, x.consumeEffects, { lootBox: { items:
+      x.consumeEffects.lootBox.items.map(i => Object.assign({}, i, { rewardId: doc_(i.rewardId) })) } });
+  if (x.campaignId) out.campaignId = doc_(x.campaignId);
+  if (x.unlockWhenCampaignComplete) out.unlockWhenCampaignComplete = doc_(x.unlockWhenCampaignComplete);
+  return out;
 }
 
 const llamar = (nombre, datos) => httpsCallable(fns, nombre)(datos).then(r => r.data);

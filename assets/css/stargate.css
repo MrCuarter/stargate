@@ -1152,3 +1152,10 @@ ol.pasos-num li b{color:var(--ink)}
 #consola input,#consola select{display:block;width:100%;margin-top:5px;padding:11px 13px;border-radius:9px;
   border:1px solid #24304a;background:#0d1420;color:#e8eefc;font:inherit;font-weight:400}
 #consola code{display:inline-block;padding:4px 8px;background:#0d1420;border-radius:6px;word-break:break-all}
+/* Marcar un reto desde la propia Nave (motor nuevo) */
+.reto-marcar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.reto-marcar .reto-ev{flex:1 1 220px;min-width:0;padding:9px 12px;border-radius:8px;border:1px solid #24304a;
+  background:#0d1420;color:#e8eefc;font:inherit;font-size:.9rem}
+.reto-marcar .reto-ev:focus{outline:2px solid #4da3ff;border-color:transparent}
+.reto-marcar .btn{white-space:nowrap}
+.reto-marcar .btn:disabled{opacity:.6;cursor:wait}

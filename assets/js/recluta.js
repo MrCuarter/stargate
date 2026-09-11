@@ -605,7 +605,15 @@
           +'<span class="reto-xp">'+r[3]+' xp</span>'
           +(ya?'<span class="reto-ya">✅ ya lo tienes</span>':'')+'</header>'
           +(texto?'<p>'+esc(texto)+'</p>':'<p class="small muted">Sin descripción todavía: pregunta a tu docente.</p>')
-          +(ya?'':'<p class="small muted">Cuando lo termines, márcalo en tu Bitácora de mando y pega ahí el enlace de lo que has hecho.</p>')
+          // 🔴 Con el motor nuevo el reto se marca AQUÍ. Era el último motivo por el que seguía
+          // haciendo falta un formulario de Google: ir a otra pestaña, buscar tu reto entre veinte
+          // casillas y enviarlo. Ahora está donde se lee lo que hay que hacer, que es donde tiene
+          // que estar.
+          +(ya?'':(motorNuevo()
+             ? '<div class="reto-marcar">'
+               +'<input class="reto-ev" data-ev="'+esc(r[0])+'" type="url" placeholder="Enlace de lo que has hecho (opcional)">'
+               +'<button class="btn primary" type="button" data-hecho="'+esc(r[0])+'">✅ Lo he hecho</button></div>'
+             : '<p class="small muted">Cuando lo termines, márcalo en tu Bitácora de mando y pega ahí el enlace de lo que has hecho.</p>'))
           +'</article>';
       }).join('');
       var actual=sems.some(function(s){return s.sem===st.actual;});
@@ -680,7 +688,14 @@
         :(mis>=x.coste?'<span class="chip ok">Te lo puedes permitir</span>':'<span class="chip wip">Te faltan '+(x.coste-mis)+' ◈</span>')
         +(veces?' <span class="chip">canjeada '+veces+(repetible?' vece'+(veces===1?'z':'s'):' de '+x.max)+'</span>':'');
       var aviso=x.tipo==='nota'?'<p class="small muted">⏳ Se hace efectiva al terminar las clases en directo.</p>':x.tipo==='avatar'||x.tipo==='avatar_url'?'<p class="small muted">⚡ Automática: si se concede, tu avatar cambia solo.</p>':'';
-      return '<div class="card rec-card'+(tope?' agotada':'')+'"><h3>'+esc(x.nombre)+'</h3><p class="pts">'+x.coste+' ◈</p><p class="small">'+esc(x.desc||'')+'</p>'+aviso+afford+'</div>';
+      // 🔴 Con el motor nuevo se canjea aquí mismo. El cobro y la comprobación de saldo los hace el
+      // servidor —el navegador no puede tocar los créditos ni queriendo—, así que el botón solo
+      // pide; si no llega, contesta que no y no se mueve nada.
+      var boton = (motorNuevo() && r && !tope && mis>=x.coste && x.id)
+        ? '<p style="margin-top:10px"><button class="btn primary" type="button" data-canje="'+esc(x.id)+'" '
+          +'data-nombre="'+esc(x.nombre)+'" data-coste="'+x.coste+'">Canjear por '+x.coste+' ◈</button></p>'
+        : '';
+      return '<div class="card rec-card'+(tope?' agotada':'')+'"><h3>'+esc(x.nombre)+'</h3><p class="pts">'+x.coste+' ◈</p><p class="small">'+esc(x.desc||'')+'</p>'+aviso+afford+boton+'</div>';
     }).join('');
     return '<section><div class="eyebrow violet">Recompensas</div><h2>El canje de xp</h2>'
       +'<p class="lead">Tus <b>xp</b> no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje. Lo que se canjea son los <b>créditos ◈</b>, que ganas con el mismo trabajo. Las recompensas se van desbloqueando con el viaje.</p>'
@@ -688,7 +703,9 @@
         ? '<p class="small" style="color:var(--amber)"><b>Ojo al calendario:</b> las misiones se registran hasta el <b>'+fecha(d.cierre_misiones)+'</b>, pero el canje sigue abierto <b>una semana más</b>, hasta el <b>'+fecha(d.cierre_canje)+'</b>. Esa última semana ya no se gana nada: solo se gasta lo ganado.</p>'
         : (d.cierre_canje?'<p class="small muted">El canje cierra el <b>'+fecha(d.cierre_canje)+'</b>.</p>':''))
       +'<div class="grid cols-3 nave-rec">'+cards+'</div>'
-      +(abiertas&&d.formCanje?'<p style="margin-top:14px"><a class="btn primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🛸 Ir al Mercado Estelar</a></p>':'<p class="small muted" style="margin-top:14px">Aún no hay recompensas canjeables: sigue sumando xp.</p>')
+      +(motorNuevo()
+        ? (abiertas?'<p class="small muted" style="margin-top:14px">Se canjea desde aquí mismo: no hay formulario que rellenar. Las subidas de nota quedan <b>pendientes</b> hasta que tu docente las apruebe.</p>':'')
+        : (abiertas&&d.formCanje?'<p style="margin-top:14px"><a class="btn primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🛸 Ir al Mercado Estelar</a></p>':'<p class="small muted" style="margin-top:14px">Aún no hay recompensas canjeables: sigue sumando xp.</p>'))
       +'</section>';
   }
 
@@ -1005,6 +1022,45 @@
     sc.onerror=function(){ hueco.innerHTML='<p class="small muted">No he podido cargar el botón de Google. Entra escribiendo tu correo.</p>'; };
     document.head.appendChild(sc);
   }
+  // Marcar un reto. Se bloquea el botón mientras va y vuelve: sin eso, dos clics nerviosos mandan
+  // dos peticiones y la segunda se encuentra el reto ya hecho, con un error que no ha hecho nadie.
+  // Si la sesión cambia mientras la Nave está abierta —se entra, se sale, o Firebase termina de
+  // restaurar una sesión guardada— la ficha se vuelve a pedir sola. Sin esto había que recargar.
+  document.addEventListener('sg:sesion',function(e){
+    if(!motorNuevo()) return;
+    if(!e.detail){ if(st.yo){ st.yo=null; st.email=''; st.verificado=false; render(); } return; }
+    // 🔴 Si entra OTRA cuenta hay que volver a pedir la ficha, no solo si no había ninguna. Con la
+    // comprobación a medias, cambiar de usuario dejaba en pantalla la ficha del anterior: sus
+    // retos, sus créditos y sus insignias, con el nombre del nuevo. Pasa en un ordenador
+    // compartido, que en un máster es casi la norma.
+    var otro = String(e.detail.correo||'').toLowerCase() !== String(st.email||'').toLowerCase();
+    if(!st.yo || otro) identificarPorSesion();
+  });
+
+  function marcarReto(id, boton){
+    if(boton){ boton.disabled=true; boton.textContent='Registrando…'; }
+    var ev=document.querySelector('.reto-ev[data-ev="'+id+'"]');
+    post({accion:'registrar',per:per,reto:id,evidencia:ev?ev.value.trim():''},function(){
+      aviso('✅ Reto <b>'+esc(id)+'</b> registrado. ¡Buen trabajo!');
+      identificarPorSesion();
+    },function(e){
+      if(boton){ boton.disabled=false; boton.textContent='✅ Lo he hecho'; }
+      aviso('No he podido registrarlo: '+esc(e), true);
+    });
+  }
+
+  function canjear(id, nombre, coste, boton){
+    if(!confirm('¿Canjear «'+nombre+'» por '+coste+' créditos?')) return;
+    if(boton){ boton.disabled=true; boton.textContent='Canjeando…'; }
+    post({accion:'canje',per:per,recompensa:id},function(){
+      aviso('🎁 <b>'+esc(nombre)+'</b> canjeada.');
+      identificarPorSesion();
+    },function(e){
+      if(boton){ boton.disabled=false; boton.textContent='Canjear por '+coste+' ◈'; }
+      aviso('No he podido canjearla: '+esc(e), true);
+    });
+  }
+
   function render(){
     // 30-ago · el orden que pidió Norberto: puerta → menú (pegajoso al hacer scroll) → semana → contenido
     // 🔴 Sin identificar no se pinta la nave: ni pestañas, ni accesos a los formularios, ni
@@ -1022,6 +1078,13 @@
     montarBotonGoogle();   // el hueco del botón solo existe cuando se pinta el login
     Array.prototype.forEach.call(root.querySelectorAll('.nave-tab[data-tab]'),function(b){
       b.onclick=function(){ irA(b.getAttribute('data-tab')); };
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-hecho]'),function(b){
+      b.onclick=function(){ marcarReto(b.getAttribute('data-hecho'), b); };
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-canje]'),function(b){
+      b.onclick=function(){ canjear(b.getAttribute('data-canje'), b.getAttribute('data-nombre'),
+                                   Number(b.getAttribute('data-coste')), b); };
     });
     wireYt(root);
     Array.prototype.forEach.call(root.querySelectorAll('.acc[data-ir]'),function(a){

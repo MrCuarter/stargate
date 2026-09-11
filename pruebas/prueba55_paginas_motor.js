@@ -121,4 +121,46 @@ c(sembrar.indexOf('setDoc(doc(db, "projects", id)') < sembrar.indexOf("writeBatc
   "🔴 el proyecto se crea solo y ANTES que sus misiones");
 c(/i \+= 200/.test(sembrar), "y lo demás en lotes, que Firestore admite 500 por tanda");
 
+// ---------------------------------------------------------------- l) los dos sembradores, iguales
+// 🔴 Se siembra desde dos sitios —la consola del referente (navegador) y la línea de órdenes— y los
+// dos tienen que escribir EXACTAMENTE lo mismo. Si uno traduce los identificadores y el otro no, la
+// mitad de los grupos del curso quedan con el bonus de planeta roto y nadie se entera hasta que
+// alguien complete un planeta y no cobre.
+const SEMBRAR = fs.readFileSync(path.join(__dirname, "..", "motor", "sembrar.js"), "utf8");
+const trozo = t => {
+  const a = t.indexOf("function conIdsDeDocumento");
+  return t.slice(a, t.indexOf("\n}", a)).replace(/\s+/g, " ");
+};
+igual(trozo(MOTOR), trozo(SEMBRAR),
+  "🔴 los dos sembradores traducen los identificadores exactamente igual");
+["missionIds", "optionalMissionIds", "rewardItemIds", "campaignId", "unlockWhenCampaignComplete", "lootBox"]
+  .forEach(function (k) {
+    c(trozo(MOTOR).indexOf(k) >= 0, "   y traducen «" + k + "»");
+  });
+// El que más duele si se olvida: el motor da una campaña por completa comparando sus `missionIds`
+// con los retos hechos del alumno, y ahí dentro hay identificadores de documento.
+c(/if \(Array\.isArray\(x\.missionIds\)\)/.test(MOTOR),
+  "🔴 missionIds se traduce: es lo que decide si un planeta está completo y paga su bonus");
+
+// ---------------------------------------------------------------- m) el `id` no entra al documento
+// 🔴 La lección más cara de la noche. GamificaPro lee TODOS sus documentos con
+// `{ id: doc.id, ...doc.data() }`. Si el documento lleva dentro un campo `id`, ese campo PISA el
+// identificador real y el motor entero empieza a hablar de «A1» donde el documento se llama
+// «grupo__A1». El síntoma fue de los peores que hay: la misión se registraba correctamente y, acto
+// seguido, la función reventaba con un «INTERNAL» mudo — al cerrar la campaña del planeta.
+[["assets/js/motor.js", MOTOR], ["motor/sembrar.js", SEMBRAR]].forEach(function (par) {
+  c(/const \{ id: _fuera, \.\.\.resto \} = x;/.test(par[1]),
+    "🔴 " + par[0] + " quita el campo `id` antes de escribir el documento");
+  c(par[1].indexOf("Object.assign({}, resto, conIdsDeDocumento") >= 0,
+    "   y escribe el resto, nunca el objeto entero");
+});
+
+// El premio de una campaña se llama `xp_extra`, no `xp`. Con el nombre equivocado el bonus de
+// planeta se concedía... a cero: la campaña se cerraba, los créditos entraban y los 150 xp no.
+const PAQ = fs.readFileSync(path.join(__dirname, "..", "motor", "paquete.js"), "utf8");
+c(/type: "xp_extra"/.test(PAQ), "🔴 el xp de una campaña se declara como «xp_extra», que es lo que el motor entiende");
+c(!/type: "xp",/.test(PAQ), "   y nunca como «xp», que se ignora en silencio");
+const TABL = fs.readFileSync(path.join(__dirname, "..", "motor", "tablero.js"), "utf8");
+c(/x\.type === "xp_extra"/.test(TABL), "   y el traductor lo lee con el mismo nombre");
+
 E.resumen("Las páginas del motor nuevo");
