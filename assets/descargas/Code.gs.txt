@@ -1060,28 +1060,20 @@ function actualizarFormularios_() {
   // igual —sin esto, con el reloj justo el lote se quedaría parado para siempre.
   var hecho = false;
   var cabe = function(){ return !hecho || t.sobra(MARGEN_FASE_MS); };
-  // 🔴 11-sep · POR QUE SE ARMA LA RED ANTES DE SALTAR.
-  // El progreso se guardaba SOLO al salir del bucle, y la continuacion se programaba ahi mismo. Si
-  // Apps Script mata la ejecucion en seco a los 6 minutos —dentro de una fase, no entre fases— ese
-  // codigo NUNCA corre: no se guarda nada y no queda disparador. Resultado observado hoy: cinco
-  // pasadas seguidas de 360 s exactos, «Tiempo de espera agotado», y CERO ejecuciones de
-  // `continuarActualizarFormularios` en el registro. Cada pasada empezaba de cero y moria en el
-  // mismo sitio. Volver a pulsar el menu no arreglaba nada: repetia el mismo suicidio.
-  // Ahora el disparador se crea ANTES y se cancela al terminar, y el progreso se guarda despues de
-  // CADA fase. Un corte en seco ya no cuesta el trabajo hecho.
-  // 🔴 11-sep, tercera lección del mismo día: UN REINTENTO SIN TOPE ES UN BUCLE INFINITO.
-  // Con el progreso ya bien guardado y sin solapes, la tanda se quedó dando vueltas TRES HORAS:
-  // una pasada cada 8 minutos, todas agotando los 6 minutos, sin avanzar. Algo de un grupo no cabe
-  // en una pasada y no sabe partirse, así que reintentar eternamente solo quema cuota — y la cuota
-  // es compartida con los disparadores que SÍ importan (el que procesa cada respuesta de
-  // formulario). Un sistema de mantenimiento cero no puede tener bucles sin salida: mejor pararse y
-  // decir dónde se atascó.
-  pr.vueltas = (pr.vueltas || 0) + 1;
-  if (pr.vueltas > MAX_VUELTAS_FORM) {
+  // 🔴 LA RED, ANTES DEL SALTO. El progreso se guardaba al SALIR del bucle: si el corte duro de los
+  // 6 minutos mata la ejecucion dentro de una fase, ese codigo no corre y se pierde todo. Ahora el
+  // disparador se arma antes y el progreso se apunta tras cada fase. El relato, en la bateria 51.
+  // 🔴 UN REINTENTO SIN TOPE ES UN BUCLE INFINITO: la tanda estuvo tres horas girando sin avanzar, y
+  // la cuota que quema es la del disparador que procesa las respuestas. Se cuentan las pasadas SIN
+  // AVANCE, no las totales (contar totales rompia los trabajos largos buenos).
+  var _marca = pr.i + ":" + pr.fase;
+  pr.quieto = (pr.desde === _marca) ? (pr.quieto || 0) + 1 : 0;
+  pr.desde = _marca;
+  if (pr.quieto > MAX_SIN_AVANCE) {
     cancelarContinuacion_("continuarActualizarFormularios");
     guardarProgreso_("formularios", null);
-    var atasco = "Se paró tras " + (pr.vueltas - 1) + " intentos sin avanzar. Atascado en el grupo " +
-                 (pr.i + 1) + " de " + pers.length + ", fase " + pr.fase + ".";
+    var atasco = "Parado tras " + pr.quieto + " pasadas sin avanzar: grupo " + (pr.i + 1) +
+                 " de " + pers.length + ", fase " + pr.fase + ".";
     Logger.log("actualizarFormularios_: " + atasco);
     return { terminado: false, atascado: true, hechos: pr.n, total: pers.length,
              canjes: pr.canjes, fallos: (pr.fallos || []).concat([atasco]) };
@@ -2584,9 +2576,10 @@ var MARGEN_MS = 270000;          // 4,5 min de trabajo efectivo; el resto es mar
 // medio se comía el margen de cierre entero y rozaba el corte duro de los 6 minutos. Con esto solo
 // se empiezan si quedan al menos 90 s de trabajo efectivo por delante.
 var MARGEN_FASE_MS = 90000;
-// Cuántas pasadas seguidas se le dan a «Actualizar formularios» antes de rendirse y decirlo. Con
-// dos grupos sobran 12: si en doce intentos no ha terminado, no va a terminar.
-var MAX_VUELTAS_FORM = 12;
+// Pasadas SIN AVANZAR que se toleran antes de rendirse. 🔴 Contar las pasadas totales rompía los
+// trabajos largos legítimos (5 grupos necesitan cientos): lo que delata un atasco no es tardar,
+// es repetir sin moverse.
+var MAX_SIN_AVANCE = 8;
 var PROP_TAREA = "TAREA_";
 
 function reloj_() { var t0 = new Date().getTime(), algo = false, ultimo = t0;
@@ -2610,12 +2603,9 @@ function guardarProgreso_(clave, o) {
 function cancelarContinuacion_(fn) {
   ScriptApp.getProjectTriggers().forEach(function(t){ if (t.getHandlerFunction() === fn) { try { ScriptApp.deleteTrigger(t); } catch (e) {} } });
 }
-// `ms` = dentro de cuánto salta. 🔴 11-sep · EL RETARDO IMPORTA MÁS DE LO QUE PARECE.
-// Armar la red ANTES de empezar (para sobrevivir al corte duro) con el retardo corto de siempre
-// creó una cascada: el disparador saltaba al minuto mientras la pasada seguía viva, esa arrancaba
-// otra, y a los cinco minutos había CUATRO ejecuciones a la vez peleándose por el mismo progreso y
-// quemando cuota. Regla: si el disparador se arma antes de trabajar, su retardo tiene que ser MAYOR
-// que lo que puede durar el trabajo (el corte duro son 6 minutos). Si se arma al terminar, corto.
+// `ms` = dentro de cuanto salta. 🔴 Si el disparador se arma ANTES de trabajar, su retardo tiene que
+// ser MAYOR que lo que dura el trabajo (corte duro: 6 min). Armarlo antes con 60 s creo una cascada
+// de cuatro ejecuciones simultaneas. Si se arma al terminar, corto.
 function programarContinuacion_(fn, ms) {
   cancelarContinuacion_(fn);   // nunca más de uno: los triggers son un recurso limitado
   try { ScriptApp.newTrigger(fn).timeBased().after(ms || 60000).create(); }

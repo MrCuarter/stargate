@@ -70,13 +70,17 @@ c(/programarContinuacion_\("continuarActualizarFormularios", 60000\)/.test(cola)
 // avanzar— porque algo de un grupo no cabe en una pasada y no sabe partirse. Reintentar sin tope
 // solo quema cuota, y la cuota se comparte con el disparador que procesa las respuestas de los
 // formularios. Un sistema de mantenimiento cero no puede tener bucles sin salida.
-c(/MAX_VUELTAS_FORM/.test(gs), "🔴 hay un tope de reintentos");
-c(/pr\.vueltas = \(pr\.vueltas \|\| 0\) \+ 1/.test(CODIGO), "que se cuenta en el progreso, no en memoria");
-const tope = CODIGO.slice(CODIGO.indexOf("pr.vueltas"), CODIGO.indexOf("while (pr.i < pers.length"));
+c(/MAX_SIN_AVANCE/.test(gs), "🔴 hay un tope de reintentos");
+// 🔴 Contar las pasadas TOTALES rompía los trabajos largos legítimos: con 5 grupos el banco necesita
+// cientos de pasadas y son todas buenas. Lo que delata un atasco no es tardar, es repetir sin
+// moverse. Lo cazó la batería 8 en cuanto puse un tope de 12 a secas.
+c(/pr\.desde = _marca/.test(CODIGO), "   y cuenta las pasadas SIN AVANCE, no las totales");
+c(/pr\.quieto = /.test(CODIGO), "que se cuenta en el progreso, no en memoria (cada pasada es otra ejecución)");
+const tope = CODIGO.slice(CODIGO.indexOf("var _marca"), CODIGO.indexOf("while (pr.i < pers.length"));
 c(/cancelarContinuacion_/.test(tope), "🔴 al rendirse se quita el disparador: si no, seguiría el bucle");
 c(/guardarProgreso_\("formularios", null\)/.test(tope), "   y se borra el progreso, para poder reintentar limpio a mano");
 c(/atascado: true/.test(tope), "y se devuelve que está atascado, no que sigue trabajando");
-c(/Atascado en el grupo/.test(tope), "🔴 diciendo EN QUÉ GRUPO y EN QUÉ FASE: sin eso, rendirse no sirve de nada");
+c(/pasadas sin avanzar: grupo/.test(tope), "🔴 diciendo EN QUÉ GRUPO y EN QUÉ FASE: sin eso, rendirse no sirve de nada");
 c(/Actualizaci\u00f3n DETENIDA|Actualización DETENIDA/.test(gs), "y el menú lo dice en voz alta");
 
 // ---------------------------------------------------------------- d) el reloj sigue donde estaba
