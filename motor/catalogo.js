@@ -89,6 +89,7 @@ function catalogo() {
     cromos: D.CROMOS.map(cromo),
     heroes: D.HEROES.map(heroe),
     series: D.SERIES_ALBUM.map(s => ({ clave: s[0], serie: s[1], nombre: s[2] })),
+    escuadrones: (D.ESCUADRONES || []).map(e => ({ clave: e[0], nombre: e[1], lema: e[2], origen: e[3] })),
     moneda: D.MONEDA,
     imagenRecompensa: D.IMG_RECOMPENSA || {}
   };

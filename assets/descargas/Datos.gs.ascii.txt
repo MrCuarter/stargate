@@ -328,6 +328,22 @@ var SERIES_ALBUM = [
   ["A4_sombra","Serie IV \u00b7 La Sombra","La Sombra al completo"]
 ];
 // NIVELES-FIN
+// ESCUADRONES-INICIO - [clave, nombre, lema, de quien sale]. Un escuadron por docente. El
+// estudiante NO elige escuadron: elige COMANDANTE, que es lo unico que conoce el primer dia.
+// Lo genera web-stargate/_build_site.py desde _site_data.py: NO editar a mano.
+var ESCUADRONES = [
+  ["esc_yunques", "Los Yunques", "Lo que se forja, aguanta.", "Bran Okafor \u00b7 F\u00f4rge"],
+  ["esc_eco_largo", "Eco Largo", "Si ves esto, es que hoy no llegu\u00e9 a cont\u00e1rtelo yo.", "Tom\u00e1s Reyer \u00b7 Ecos"],
+  ["esc_cartografos", "Los Cart\u00f3grafos", "Dos senderos, una misma cima.", "Sylla Bren \u00b7 Sendara"],
+  ["esc_senal", "Se\u00f1al Abierta", "A tiempo por encima de perfecto.", "Amara Sol \u00b7 Reliae"],
+  ["esc_faro", "Faro Umbral", "Medir es mirar con m\u00e9todo a alguien que te importa.", "Vera Khal \u00b7 Umbral"],
+  ["esc_ruta_azul", "Ruta Azul", "Esta ya la hemos ganado cien veces.", "Joran Pike \u00b7 Ludo"],
+  ["esc_porques", "Los Porqu\u00e9s", "Una orden mueve cuerpos. Un porqu\u00e9 mueve personas.", "Mara Voss \u00b7 V\u00ednculo"],
+  ["esc_capa", "Capa Liminar", "Un aula que aprende a hablar de s\u00ed misma.", "Noa Lieth \u00b7 Liminar"],
+  ["esc_copistas", "Los Copistas", "Cuarenta manos, un mismo trazo.", "Los Copistas de F\u00f4rge"],
+  ["esc_guardia", "Guardia Cero", "Que conste que nadie nos oblig\u00f3. Elegimos.", "La Tripulaci\u00f3n Cero"]
+];
+// ESCUADRONES-FIN
 // RECOMPENSAS-INICIO - [nombre, coste en creditos, max por alumno, descripcion, desde (semana
 // REGULAR; en PUA se escala), tipo]. Generado desde _site_data.py: no editar a mano.
 var RECOMPENSAS_INICIALES = [

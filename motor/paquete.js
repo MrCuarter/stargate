@@ -81,6 +81,18 @@
                rol: d.rol || "docente", panel: String(d.panel || "").trim() };
     }).filter(function (d) { return d.nombre || d.correo; });
 
+    // ---------------------------------------------------------------- los escuadrones
+    // 🔴 Un escuadrón por docente, y el alumnado lo elige al alistarse. Eso mata dos pájaros: deja
+    // de existir la pregunta «¿quién imparte tu clase?» —que era texto libre y por eso llegaba
+    // escrito de siete maneras distintas— y a cambio cada grupo tiene nombre, lema e identidad
+    // desde el primer día. Elegir profe deja de ser burocracia y pasa a ser elegir bando.
+    var escuadrones = docentes.map(function (d, i) {
+      var e = cat.escuadrones[i % cat.escuadrones.length];
+      return { id: d.escuadron || e.clave, name: d.escuadronNombre || e.nombre, score: 0,
+               assignedTeacherEmails: d.correo ? [d.correo] : [],
+               teacherName: d.nombre, lema: e.lema, origen: e.origen };
+    });
+
     // ---------------------------------------------------------------- el proyecto
     // Todo lo que es NUESTRO va bajo `stargate`. GamificaPro no lee ahí, y sus 58 escrituras sobre
     // proyectos son `updateDoc` (nunca reemplazan el documento entero), así que este apartado
@@ -93,6 +105,10 @@
       coTeacherEmails: docentes.map(function (d) { return d.correo; }).filter(Boolean),
       avatarProgressionEnabled: true,
       characterStatsEnabled: false,
+      // El alumnado elige su escuadrón al alistarse: `predefined` es justo eso.
+      factionMode: escuadrones.length ? "predefined" : "none",
+      squadTerminology: "Escuadrón",
+      factions: escuadrones,
       levelSystem: cat.niveles.map(function (n) {
         return { level: n.nivel, xpRequired: escalaXp(n.xp, tipo, cat), title: n.titulo, phase: n.rango };
       }),

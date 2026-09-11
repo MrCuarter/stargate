@@ -847,3 +847,22 @@ PASOS = [
 
 assert len({p["id"] for p in PASOS}) == 3, "los tres caminos deben tener id distinto"
 assert all(len({s["cod"] for s in c["pasos"]}) == len(c["pasos"]) for c in PASOS), "codigos repetidos"
+
+# ---------- escuadrones ----------
+# Un escuadrón por docente. 🔴 El estudiante NO elige escuadrón: elige COMANDANTE, que es lo único
+# que conoce el primer día —el nombre de quien le da clase—. El escuadrón viene detrás, con su
+# nombre, su lema y su emblema, y así enterarse de a qué bando perteneces es una recompensa en vez
+# de un formulario. Todos salen de la Tripulación Cero: quien elige comandante, hereda un legado.
+# [clave, nombre, lema, de quién sale]
+ESCUADRONES = [
+ ("esc_yunques",     "Los Yunques",     "Lo que se forja, aguanta.",                          "Bran Okafor · Fôrge"),
+ ("esc_eco_largo",   "Eco Largo",       "Si ves esto, es que hoy no llegué a contártelo yo.",  "Tomás Reyer · Ecos"),
+ ("esc_cartografos", "Los Cartógrafos", "Dos senderos, una misma cima.",                       "Sylla Bren · Sendara"),
+ ("esc_senal",       "Señal Abierta",   "A tiempo por encima de perfecto.",                    "Amara Sol · Reliae"),
+ ("esc_faro",        "Faro Umbral",     "Medir es mirar con método a alguien que te importa.", "Vera Khal · Umbral"),
+ ("esc_ruta_azul",   "Ruta Azul",       "Esta ya la hemos ganado cien veces.",                 "Joran Pike · Ludo"),
+ ("esc_porques",     "Los Porqués",     "Una orden mueve cuerpos. Un porqué mueve personas.",  "Mara Voss · Vínculo"),
+ ("esc_capa",        "Capa Liminar",    "Un aula que aprende a hablar de sí misma.",           "Noa Lieth · Liminar"),
+ ("esc_copistas",    "Los Copistas",    "Cuarenta manos, un mismo trazo.",                     "Los Copistas de Fôrge"),
+ ("esc_guardia",     "Guardia Cero",    "Que conste que nadie nos obligó. Elegimos.",          "La Tripulación Cero"),
+]

@@ -328,6 +328,22 @@ var SERIES_ALBUM = [
   ["A4_sombra","Serie IV · La Sombra","La Sombra al completo"]
 ];
 // NIVELES-FIN
+// ESCUADRONES-INICIO · [clave, nombre, lema, de quién sale]. Un escuadrón por docente. El
+// estudiante NO elige escuadrón: elige COMANDANTE, que es lo único que conoce el primer día.
+// Lo genera web-stargate/_build_site.py desde _site_data.py: NO editar a mano.
+var ESCUADRONES = [
+  ["esc_yunques", "Los Yunques", "Lo que se forja, aguanta.", "Bran Okafor · Fôrge"],
+  ["esc_eco_largo", "Eco Largo", "Si ves esto, es que hoy no llegué a contártelo yo.", "Tomás Reyer · Ecos"],
+  ["esc_cartografos", "Los Cartógrafos", "Dos senderos, una misma cima.", "Sylla Bren · Sendara"],
+  ["esc_senal", "Señal Abierta", "A tiempo por encima de perfecto.", "Amara Sol · Reliae"],
+  ["esc_faro", "Faro Umbral", "Medir es mirar con método a alguien que te importa.", "Vera Khal · Umbral"],
+  ["esc_ruta_azul", "Ruta Azul", "Esta ya la hemos ganado cien veces.", "Joran Pike · Ludo"],
+  ["esc_porques", "Los Porqués", "Una orden mueve cuerpos. Un porqué mueve personas.", "Mara Voss · Vínculo"],
+  ["esc_capa", "Capa Liminar", "Un aula que aprende a hablar de sí misma.", "Noa Lieth · Liminar"],
+  ["esc_copistas", "Los Copistas", "Cuarenta manos, un mismo trazo.", "Los Copistas de Fôrge"],
+  ["esc_guardia", "Guardia Cero", "Que conste que nadie nos obligó. Elegimos.", "La Tripulación Cero"]
+];
+// ESCUADRONES-FIN
 // RECOMPENSAS-INICIO · [nombre, coste en créditos, máx por alumno, descripción, desde (semana
 // REGULAR; en PUA se escala), tipo]. Generado desde _site_data.py: no editar a mano.
 var RECOMPENSAS_INICIALES = [

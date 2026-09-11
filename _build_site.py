@@ -12,7 +12,7 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
-                        PASOS)
+                        PASOS, ESCUADRONES)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
 # no se escriben a mano (si no, cambiarlas en _site_data.py dejaría la web mintiendo).
@@ -2157,6 +2157,10 @@ def _js_img_recompensas():
     filas[-1] = filas[-1][:-1]
     return "\n".join(filas)
 
+def _js_escuadrones():
+    return ",\n".join('  [%s]' % ", ".join(json.dumps(x, ensure_ascii=False) for x in e)
+                      for e in ESCUADRONES)
+
 def _sustituir(txt, ini, fin, cuerpo):
     a = txt.index(ini) + len(ini); b = txt.index(fin)
     return txt[:a] + cuerpo + txt[b:]
@@ -2170,6 +2174,7 @@ _gs = _sustituir(_gs, "var HEROES = [\n", "\n];\n// HEROES-FIN", _js_heroes())
 _gs = _sustituir(_gs, "// NIVELES-INICIO", "\n// NIVELES-FIN",
                  _gs[_gs.index("// NIVELES-INICIO")+len("// NIVELES-INICIO"):_gs.index("var MONEDA")].rstrip("\n")
                  + "\n" + _js_niveles())
+_gs = _sustituir(_gs, "var ESCUADRONES = [\n", "\n];\n// ESCUADRONES-FIN", _js_escuadrones())
 _gs = _sustituir(_gs, "var RECOMPENSAS_INICIALES = [\n", "\n];\n// RECOMPENSAS-FIN", _js_recompensas())
 _gs = _sustituir(_gs, "var IMG_RECOMPENSA = {\n", "\n};\n// IMG-RECOMPENSA-FIN", _js_img_recompensas())
 _gs = _sustituir(_gs, "var BONUS_PLANETA = ", ";\n// BONUS-FIN",
