@@ -309,16 +309,17 @@ es la personificación de los errores de diseño educativo, y aparece en el Tema
 
 <section id="comohizo"><div class="wrap">
 <div class="eyebrow teal">Cómo se hizo</div><h2>Esto lo ha montado un profesor</h2>
-<p class="lead">Sin estudio, sin productora y sin equipo: un docente, un ordenador y tres
-herramientas conectadas entre sí. Lo cuento porque la pregunta que más me hacen al enseñarlo es
+<p class="lead">Sin estudio, sin productora y sin equipo: un docente, un ordenador y cuatro
+herramientas. Lo cuento porque la pregunta que más me hacen al enseñarlo es
 «¿y esto cuánto cuesta encargarlo?» — y la respuesta es que no se encargó.</p>
 
 <div class="grid cols-3">{comohizo_html}</div>
-<!-- 🔴 Decirlo. Son enlaces de referido y ocultarlo seria justo lo contrario del proyecto, que va de
-     dejar constancia. Ademas la peticion se sostiene mejor dicha en voz alta que disimulada. -->
-<p class="small muted" style="margin-top:14px">Los botones son <b>enlaces de referido</b>: si
-entras por ahí, a ti no te cuesta más y este proyecto recibe una pequeña ayuda. Se dice para que lo
-sepas — puedes ir a sus webs directamente y no pasa nada.</p>
+<!-- 🔴 Decirlo. Son de afiliado y ocultarlo seria justo lo contrario del proyecto, que va de dejar
+     constancia. Ademas la peticion se sostiene mejor dicha en voz alta que disimulada. -->
+<p class="small muted" style="margin-top:14px">Los botones son <b>enlaces de afiliado</b>, y se
+dice para que lo sepas. Donde la herramienta lo ofrece, <b>quien entra por ahí se lleva un descuento
+o un crédito de bienvenida</b>; y en todos los casos este proyecto recibe créditos que se reinvierten
+en seguir ampliando la aventura.</p>
 
 <p style="margin-top:26px"><a class="btn primary grande" href="comosehizo.html">📖 Cómo se hizo, con todo el detalle →</a></p>
 <p class="small muted">El casting de las nueve voces, las anclas de personaje, por qué esos modelos
@@ -1414,20 +1415,20 @@ COMOSEHIZO = head("STARGATE · Cómo se hizo",
   "comosehizo", publica=True) + f'''
 <header class="hero"><div class="kicker">Cómo se hizo</div>
 <h1>Esto lo ha montado un profesor</h1>
-<p>Sin estudio, sin productora y sin equipo: un docente, un ordenador y tres herramientas
-conectadas entre sí. Lo cuento entero —incluida la parte fea— porque la pregunta que más me hacen
+<p>Sin estudio, sin productora y sin equipo: un docente, un ordenador y cuatro herramientas. Lo cuento entero —incluida la parte fea— porque la pregunta que más me hacen
 al enseñarlo es «¿y esto cuánto cuesta encargarlo?», y la respuesta es que no se encargó.</p>
 <p style="margin-top:18px"><span class="pill">17 vídeos</span><span class="pill">8 planetas</span>
 <span class="pill">24 insignias</span><span class="pill">20 cartas</span></p>
 </header>
 
 <section><div class="wrap">
-<div class="eyebrow teal">Las herramientas</div><h2>Tres, y que hablen entre ellas</h2>
+<div class="eyebrow teal">Las herramientas</div><h2>Cuatro piezas, y tres que hablan entre ellas</h2>
 <div class="grid cols-3">{comohizo_html}</div>
-<!-- 🔴 Si hay botones, se dice que son de referido. Ver bateria 43. -->
-<p class="small muted" style="margin-top:14px">Los botones son <b>enlaces de referido</b>: si entras
-por ahí, a ti no te cuesta más y este proyecto recibe una pequeña ayuda. Se dice para que lo sepas —
-puedes ir a sus webs directamente y no pasa nada.</p>
+<!-- 🔴 Si hay botones, se dice que son de afiliado y que gana cada parte. Ver bateria 43. -->
+<p class="small muted" style="margin-top:14px">Los botones son <b>enlaces de afiliado</b>, y se dice
+para que lo sepas. Donde la herramienta lo ofrece, <b>quien entra por ahí se lleva un descuento o un
+crédito de bienvenida</b>; y en todos los casos este proyecto recibe créditos que se reinvierten en
+seguir ampliando la aventura. Puedes ir a sus webs directamente y no pasa nada.</p>
 <!-- 🔴 Los logos son de sus dueños y se usan para DECIR QUE SE USARON, nada mas. La politica de
      afiliados de OpenArt prohibe expresamente dar a entender una relacion que no existe. -->
 <p class="small muted">Los logos pertenecen a sus respectivas empresas y aparecen aquí solo para

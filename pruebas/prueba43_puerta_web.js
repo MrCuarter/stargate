@@ -82,7 +82,14 @@ c(port.indexOf('href="recluta.html">🚀 Soy estudiante') >= 0 && port.indexOf('
 
 // ---------------------------------------------------------------- «Cómo se hizo» (11-sep)
 // Norberto quiso contar en abierto con qué se hizo esto. Dos cosas que vigilar:
-const como = (port.match(/<section id="comohizo"[\s\S]*?<\/section>/) || [""])[0];
+// 🔴 11-sep · SIN COMENTARIOS. La comprobacion de «lo dice la pagina» pasaba por un comentario
+// HTML que el lector no ve nunca: el guardian daba verde por el motivo equivocado, que es lo mismo
+// que no tener guardian. Desde aqui, todo lo que se comprueba es lo que se LEE.
+// Y de paso se juntan los espacios: el HTML parte los parrafos en varias lineas, pero el lector ve
+// una frase seguida. Comprobar contra el texto CON saltos obliga a escribir expresiones fragiles que
+// se rompen cada vez que alguien reajusta un margen.
+const sinComentarios = h => String(h).replace(/<!--[\s\S]*?-->/g, "").replace(/\s+/g, " ");
+const como = sinComentarios((port.match(/<section id="comohizo"[\s\S]*?<\/section>/) || [""])[0]);
 c(como.length > 0, "la portada cuenta cómo se hizo el proyecto");
 ["Claude", "OpenArt", "Magnific"].forEach(function(h){
   c(como.indexOf(h) >= 0, "   y nombra «" + h + "»");
@@ -104,13 +111,17 @@ c(/href="comosehizo\.html"/.test(como), "🔴 la portada lleva a la página del 
 c((como.match(/class="paso"/g) || []).length === 0,
   "   y no repite ahí el detalle: para eso está la página");
 
-if (botones > 0) c(/enlaces de referido/.test(como),
-  "🔴 y la página avisa de que son enlaces de referido");
+if (botones > 0) {
+  c(/enlaces de afiliado/.test(como), "🔴 y la página avisa de que son enlaces de afiliado");
+  c(/descuento o un crédito de bienvenida/.test(como),
+    "   diciendo qué gana quien entra por ahí…");
+  c(/se reinvierten en seguir ampliando/.test(como), "   …y qué gana el proyecto");
+}
 
 // ---------------------------------------------------------------- la página «cómo se hizo»
 // Es PUBLICA a proposito: es la cara del proyecto hacia fuera, como la portada. Si algun dia
 // alguien le pone la puerta del profesorado, se rompe el motivo de existir.
-const CSH = leer("comosehizo.html");
+const CSH = sinComentarios(leer("comosehizo.html"));
 c(CSH.indexOf("assets/js/puerta.js") < 0, "🔴 «cómo se hizo» NO pide PIN: es pública");
 c(CSH.indexOf("Genially") < 0, "🔴 y tampoco nombra Genially");
 c((CSH.match(/class="paso"/g) || []).length >= 7, "cuenta el proceso paso a paso (7 pasos)");
@@ -118,14 +129,18 @@ c((CSH.match(/class="paso"/g) || []).length >= 7, "cuenta el proceso paso a paso
 // ---- los logos: usarlos obliga a decir que no hay relacion con esas empresas
 // 🔴 La politica de afiliados de OpenArt prohibe expresamente dar a entender una relacion que no
 // existe. Un logo junto a un enlace de referido se lee como «partner oficial» si no se aclara.
-const logos = ["claude", "openart", "magnific", "elevenlabs"];
+const logos = ["claude", "openart", "magnific", "elevenlabs", "hostinger"];
 logos.forEach(function(g){
   c(new RegExp("assets/img/logos/" + g).test(CSH), "lleva el logo de " + g);
-  c(fs.existsSync(path.join(RAIZ, "assets", "img", "logos", g + (g === "openart" || g === "claude" ? ".png" : ".svg"))),
+  c(fs.existsSync(path.join(RAIZ, "assets", "img", "logos", g + (g === "magnific" || g === "elevenlabs" ? ".svg" : ".png"))),
     "   y el fichero existe de verdad");
 });
 c(/no está afiliado a ninguna de ellas/.test(CSH),
   "🔴 y dice CLARAMENTE que el proyecto no está afiliado ni respaldado por ellas");
+// el mismo aviso que la portada, aqui tambien: es LA pagina de los enlaces, no puede decir menos
+c(/enlaces de afiliado/.test(CSH), "🔴 la página avisa de que son enlaces de afiliado");
+c(/descuento o un crédito de bienvenida/.test(CSH), "   dice qué gana quien entra por ahí…");
+c(/se reinvierten en seguir ampliando/.test(CSH), "   …y qué gana el proyecto");
 c(/Amara Sol/.test(CSH) && /recast/i.test(CSH), "   y no esconde los recasts del casting de voces");
 c(/opening-v2/.test(CSH), "   ni los borradores («opening» y «opening-v2»)");
 c((CSH.match(/<tr>/g) || []).length >= 10, "la tabla del casting tiene a los nueve y a NEBULA");

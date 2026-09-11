@@ -522,6 +522,15 @@ COMO_SE_HIZO = [
        texto="Puso <b>las voces</b> de los personajes y <b>los clips de vídeo</b>. Y algo que no se "
              "ve pero se nota: las <b>anclas</b> de personaje, que son las que hacen que NEBULA sea "
              "la misma en los diecisiete vídeos y no una parecida en cada plano."),
+  # 🔴 El cuarto pilar. No es una herramienta de creación como las otras tres —no habla por MCP con
+  # nadie— pero sin ella no habría web: es donde vive todo. Comprobado en la cabecera HTTP del
+  # propio sitio (`platform: hostinger`), no supuesto.
+  dict(clave="hostinger", icono="🌍", logo="hostinger.png", titulo="Hostinger", papel="Donde vive todo",
+       url="https://www.hostinger.com/es?REFERRALCODE=TH1MRCUARNEM",
+       texto="La web que estás leyendo, el panel del profesorado y la Nave del alumnado están "
+             "alojados aquí. Es la pieza menos vistosa de las cuatro y la única sin la que nada de "
+             "esto existiría: sin un sitio donde vivir, un proyecto así se queda en una carpeta del "
+             "ordenador."),
 ]
 
 # ─────────────────────────── EL PROCESO, PASO A PASO (11-sep) ───────────────────────────
