@@ -67,7 +67,7 @@ def head(title, desc, active, puerta=False, publica=False):
 
 FOOT = '''<footer><div class="wrap">
 STARGATE · La Bitácora Estelar — Proyecto Gamificado del <b>Máster en Tecnología Educativa</b> de la UNIR.<br>
-Puesto de mando del profesorado — documento vivo. <a href="index.html">Inicio</a> · <a href="comosehizo.html">Cómo se hizo</a> · <a href="cronologia.html">Cronología</a> · <a href="guia.html#faq">Preguntas frecuentes</a>
+Puesto de mando del profesorado — documento vivo. <a href="index.html">Inicio</a> · <a href="comosehizo.html">Cómo se hizo</a> · <a href="cronologia.html">Cronología</a> · <a href="guia.html#faq">Preguntas frecuentes</a> · <a href="privacidad.html">Privacidad</a>
 </div></footer></body></html>'''
 
 # ---------- galerías ----------
@@ -1539,6 +1539,92 @@ borradores.</p>
 # ================= AYUDA PARA EL ALUMNADO (ayuda.html) =================
 # 🔴 PÚBLICA y sin PIN: la usa el alumnado, que no tiene. Nace de dos grabaciones de pantalla de
 # Norberto (11-sep) — los GIF salen de ahí, no de una reconstrucción.
+# ================= v3.64 · POLÍTICA DE PRIVACIDAD =================
+# 🔴 Pública a propósito, y sin la puerta del PIN: Google la EXIGE accesible sin iniciar sesión para
+# publicar la aplicación de «Iniciar sesión con Google», y el alumnado tiene derecho a leerla antes
+# de pulsar el botón. Una política detrás de un PIN no es una política.
+# Se describe lo que el sistema hace DE VERDAD, no lo que quedaría bonito: si mañana cambia lo que
+# se recoge, esto se cambia el mismo día.
+PRIVACIDAD = head("STARGATE · Política de privacidad",
+  "Qué datos recoge STARGATE, para qué, quién los ve y cómo pedir que se borren.",
+  "", publica=True) + '''
+<header class="hero"><div class="kicker">Última actualización: 11 de septiembre de 2026</div>
+<h1>Política de privacidad</h1>
+<p>STARGATE · La Bitácora Estelar es el <b>proyecto gamificado del Máster en Tecnología Educativa de
+la UNIR</b>. Esta página cuenta, sin rodeos, qué datos se recogen, para qué sirven, quién puede
+verlos y cómo pedir que se borren.</p></header>
+
+<section><div class="wrap">
+
+<h2>1 · Quién trata los datos</h2>
+<p>El profesorado del máster, encabezado por <b>Norberto Cuartero</b>, con fines exclusivamente
+docentes dentro de la asignatura. Para cualquier cosa relacionada con tus datos:
+<a href="mailto:n.cuartero.10@gmail.com">n.cuartero.10@gmail.com</a>.</p>
+
+<h2>2 · Qué datos se recogen</h2>
+<p>Solo lo necesario para que el juego funcione. Nada más.</p>
+
+<h3>Si usas «Iniciar sesión con Google»</h3>
+<p>Se recibe <b>tu dirección de correo y tu nombre público</b>. Nada más. En concreto:</p>
+<ul>
+<li>🔴 <b>No</b> se recibe ni se pide tu contraseña.</li>
+<li>🔴 <b>No</b> hay acceso a tu Drive, tu Gmail, tus contactos ni tus documentos. La pantalla de
+  permisos de Google lo dice: solo «ver tu dirección de correo electrónico».</li>
+<li>El correo sirve para <b>encontrar tu ficha</b> y para que nadie pueda registrar misiones ni
+  canjear recompensas haciéndose pasar por ti.</li>
+</ul>
+
+<h3>Lo que escribes tú</h3>
+<ul>
+<li><b>Nombre y apellidos</b>, para que el profesorado sepa a quién corresponde cada progreso.</li>
+<li><b>Alias de recluta</b>: el nombre que se ve en público.</li>
+<li><b>Quién imparte tu clase</b>, para que tu docente vea tu progreso.</li>
+<li><b>El enlace a tu Bitácora</b> (tu ePortfolio) y las evidencias de cada misión.</li>
+<li>Una <b>biografía breve</b> de tu personaje, si quieres escribirla.</li>
+</ul>
+
+<h3>Lo que genera el juego</h3>
+<p>Misiones completadas, experiencia, nivel, créditos, insignias, cartas y recompensas canjeadas.</p>
+
+<h3>Los tickets de salida</h3>
+<p><b>Son anónimos.</b> No se guarda quién los escribe. Sirven para que el docente sepa qué ha
+quedado flojo en clase, no para saber quién lo dijo.</p>
+
+<h2>3 · Dónde se guardan</h2>
+<p>En una <b>hoja de cálculo de Google y formularios de Google</b>, dentro de una cuenta de Google
+gestionada por el equipo docente del máster. No hay servidores propios ni bases de datos externas: la
+infraestructura es de Google, con conexión cifrada.</p>
+
+<h2>4 · Quién puede verlos</h2>
+<ul>
+<li><b>El profesorado de tu asignatura.</b> Cada docente ve a su grupo.</li>
+<li>🔴 <b>El tablero público de clase enseña SOLO tu alias</b>, tu avatar y tus puntos. Nunca tu
+  correo ni tu nombre real, ni siquiera si el docente comparte pantalla. Está construido así a
+  propósito: esos datos no salen del servidor.</li>
+<li><b>Nadie más.</b> No se venden, no se ceden, no se usan para publicidad y no se comparten con
+  ninguna empresa. Tampoco hay analítica ni rastreo de terceros en esta web.</li>
+</ul>
+
+<h2>5 · Cuánto tiempo</h2>
+<p>Durante el curso y el periodo de evaluación. Después el grupo se archiva, y se borra cuando ya no
+hace falta para justificar las calificaciones. Puedes pedir que se borre lo tuyo antes.</p>
+
+<h2>6 · Tus derechos</h2>
+<p>Puedes pedir <b>ver, corregir o borrar</b> tus datos cuando quieras, y <b>retirar el permiso</b>
+que le diste a la aplicación desde
+<a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">tu cuenta de
+Google</a>. Escribe a <a href="mailto:n.cuartero.10@gmail.com">n.cuartero.10@gmail.com</a> y se
+atiende.</p>
+<p class="small muted">Participar en la gamificación es <b>voluntario</b>: si prefieres no usarla,
+díselo a tu docente y se acuerda otra forma de seguir la asignatura.</p>
+
+<h2>7 · Si esto cambia</h2>
+<p>Si algún día se recoge algo distinto, se cambia esta página <b>el mismo día</b> y se avisa en
+clase. La fecha de arriba dice cuándo se tocó por última vez.</p>
+
+</div></section>
+''' + FOOT
+
 AYUDA = head("STARGATE · Cómo comparto mi evidencia",
   "Los dos enlaces que más se fallan al registrar un reto: la publicación de Padlet y la página "
   "concreta de un Genially. Con los pasos en movimiento.",
@@ -1606,7 +1692,7 @@ invertido de todo el reto.</p>
 </div></section>
 ''' + FOOT
 
-PAGES=[("index.html",PORTADA),("comosehizo.html",COMOSEHIZO),("ayuda.html",AYUDA),("guia.html",GUIA),("cronologia.html",CRONOLOGIA),("actividades.html",ACT),
+PAGES=[("index.html",PORTADA),("comosehizo.html",COMOSEHIZO),("ayuda.html",AYUDA),("privacidad.html",PRIVACIDAD),("guia.html",GUIA),("cronologia.html",CRONOLOGIA),("actividades.html",ACT),
        ("geniallys.html",GENPAGE),("registro.html",REGPAGE),("recursos.html",REC)]
 def _ver(rel): return hashlib.md5(open(os.path.join(HERE,rel),"rb").read()).hexdigest()[:10]
 vc,vj,vt = _ver("assets/css/stargate.css"), _ver("assets/js/stargate.js"), _ver("assets/js/tour.js")
