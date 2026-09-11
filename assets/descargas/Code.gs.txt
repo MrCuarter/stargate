@@ -3925,26 +3925,41 @@ function trazaReferente_(a, per, q) {
 }
 function doGet(e) {
   var per = (e && e.parameter && e.parameter.per) || "all"; var out;
-  // ═══ SONDA DE IDENTIDAD (11-sep) ═══════════════════════════════════════════════════════════
-  // 🔴 Para saber si podemos quitarnos los formularios de Google hace falta una cosa: que el
-  // servidor sepa con CERTEZA quién llama, sin pedirle a nadie que teclee su correo.
-  // Apps Script lo da gratis SI el despliegue es «ejecutar como el usuario que accede» — pero
-  // getActiveUser().getEmail() vuelve VACÍO en algunos casos con cuentas de Gmail de consumo, y eso
-  // hay que verlo, no suponerlo. Esta sonda lo dice en un vistazo.
-  // Devuelve únicamente el correo de QUIEN LLAMA: nada que esa persona no sepa ya.
-  if (e && e.parameter && e.parameter.accion === "quien_google") {
-    var act = "", efe = "", err = "";
-    try { act = Session.getActiveUser().getEmail() || ""; } catch (x) { err += "activo: " + x + " "; }
-    try { efe = Session.getEffectiveUser().getEmail() || ""; } catch (x) { err += "efectivo: " + x; }
-    return ContentService.createTextOutput(JSON.stringify({
-      // el que nos interesa: quién ha abierto la URL
-      activo: act,
-      // el dueño del script. Si SOLO llega este, el despliegue es «ejecutar como yo» y la sonda
-      // está mirando el endpoint equivocado.
-      efectivo: efe,
-      sirve: !!act && act !== efe,
-      error: err
-    })).setMimeType(ContentService.MimeType.JSON);
+  // ═══ PRUEBA EN PARALELO · INICIO DE SESION CON GOOGLE (11-sep) ════════════════════════════
+  // Norberto: «¿no podemos hacer una prueba paralela para iniciar sesion con Google? Algo que no
+  // rompa nada».
+  //
+  // 🔴 QUE SE PROBO ANTES Y POR QUE SE DESCARTO: un segundo despliegue «ejecuta como quien accede».
+  // Funcionaba —devolvia el correo verificado— pero obligaba a cada estudiante a autorizar TODOS
+  // los permisos del script: Drive entero, Hojas, Formularios, enviar correo. Google lo marca como
+  // sensible y, al no estar la app verificada, enseñaba una pantalla roja. Inaceptable para 70
+  // personas. Los dos despliegues estan archivados.
+  //
+  // ESTE CAMINO ES OTRO. El navegador usa «Iniciar sesion con Google» (Google Identity Services)
+  // pidiendo SOLO el correo —permiso no sensible, sin pantalla roja y sin proceso de verificacion—
+  // y manda aqui el token firmado. El script NO pide nada al estudiante: solo le pregunta a Google
+  // si ese token es autentico. Por eso no cambia ni un permiso de lo que ya funciona.
+  //
+  // Mientras GOOGLE_CLIENT_ID este vacio, esto devuelve un error claro y no hace nada: la prueba
+  // esta apagada hasta que exista el ID de cliente.
+  if (e && e.parameter && e.parameter.accion === "verificar_token") {
+    var res = { ok:false, correo:"", error:"" };
+    try {
+      var cid = PropertiesService.getScriptProperties().getProperty("GOOGLE_CLIENT_ID") || "";
+      var tok = String(e.parameter.token || "");
+      if (!cid) throw new Error("Falta GOOGLE_CLIENT_ID en las propiedades del script");
+      if (!tok) throw new Error("No ha llegado ningun token");
+      var r = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" +
+                                encodeURIComponent(tok), { muteHttpExceptions:true });
+      var d = JSON.parse(r.getContentText() || "{}");
+      // 🔴 LA COMPROBACION QUE LO SOSTIENE TODO: que el token se emitio PARA NOSOTROS. Sin mirar
+      // `aud`, cualquiera podria colar el token de otra web y entrar como quien quisiera.
+      if (d.aud !== cid) throw new Error("El token no es de esta aplicacion");
+      if (!d.email) throw new Error("El token no trae correo");
+      if (String(d.email_verified) !== "true") throw new Error("Google no da ese correo por verificado");
+      res.ok = true; res.correo = String(d.email).toLowerCase();
+    } catch (x) { res.error = x.message; }
+    return ContentService.createTextOutput(JSON.stringify(res)).setMimeType(ContentService.MimeType.JSON);
   }
   if (per === "all") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0] && !v[21]; })
       .map(function(v){ var o = perObj_(v); return { id:o.id, nombre:o.nombre, tipo:o.tipo, estado:o.estado, inicio:o.inicio }; }) };

@@ -4,7 +4,8 @@ Páginas: index (portada) · guia · cronologia · actividades · geniallys · r
 Ejecutar desde web-stargate/:  python3 _build_site.py
 Datos de cronología/vídeos/geniallys en _site_data.py."""
 import os, json, hashlib, subprocess, glob
-from _site_data import (V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
+from _site_data import (GOOGLE_CLIENT_ID,
+                        V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
                         PROCESO, PROCESO_CIFRAS, CASTING, DIRECTOR, BRAZOS,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
@@ -1802,6 +1803,25 @@ al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></heade
 ''' + FOOT
 html=(SESION.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
 open(os.path.join(HERE,"sesion.html"),"w",encoding="utf-8").write(html); print("escrito: sesion.html")
+
+# ================= v3.63 · PRUEBA EN PARALELO DEL LOGIN DE GOOGLE =================
+# 🔴 Esta pagina NO va en el menu, ni en el pie, ni enlazada desde ningun sitio. Es un banco de
+# pruebas. Norberto, 11-sep: «algo que no rompa nada, algo paralelo para probar».
+# Tampoco lleva la puerta del PIN: no enseña ni un dato del curso, solo el correo de quien pulsa.
+PRUEBALOGIN = head("STARGATE · Prueba de inicio de sesion", "Banco de pruebas del inicio de sesion con Google. Pagina interna.", "") + f'''
+<header class="hero"><div class="kicker">Banco de pruebas · pagina interna</div><h1>Inicio de sesión con Google</h1>
+<p>Esta página <b>no está enlazada desde ningún sitio</b> y no toca nada de lo que funciona: ni la
+Nave, ni los formularios, ni los despliegues, ni los permisos del script. Es solo para comprobar si
+podemos saber quién es cada estudiante <b>sin pedirle permiso sobre tu Drive</b>.</p>
+<p class="small muted">Lo que se prueba: que el estudiante ve la pantalla <b>normal</b> de Google
+(solo «ver tu correo», sin cartel rojo) y que el servidor puede <b>verificar</b> ese correo.</p></header>
+<section><div class="wrap"><div id="login-app"></div>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";</script>
+<script src="assets/js/pruebalogin.js" defer></script>
+</div></section>
+''' + FOOT
+html=(PRUEBALOGIN.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
+open(os.path.join(HERE,"pruebalogin.html"),"w",encoding="utf-8").write(html); print("escrito: pruebalogin.html  (interna, sin enlazar)")
 
 # ================= v3.6 · GRUPOS (un panel de accesos por PER) =================
 # La lista sale de doGet ?per=all (sin PIN); los formularios de cada grupo, de doGet ?per=<id>.

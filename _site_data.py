@@ -205,6 +205,15 @@ def foro_por_semana():
         out[sem] = cuerpo.strip()
     return out
 
+# ---------- PRUEBA EN PARALELO · inicio de sesion con Google (11-sep-2026) ----------
+# ID de cliente de OAuth (Google Cloud → Credenciales → ID de cliente de OAuth → Aplicacion web,
+# con https://stargate.mistercuarter.es en «Origenes autorizados de JavaScript»).
+# 🔴 NO es un secreto: viaja en el HTML de cualquier web que use «Iniciar sesion con Google». Lo que
+# protege la puerta es que el servidor comprueba que el token se emitio PARA este id (el campo
+# `aud`), no que el id sea privado.
+# Vacio = la prueba esta APAGADA: la pagina lo dice y no carga nada de Google.
+GOOGLE_CLIENT_ID = ""
+
 # ---------- tablero de reclutas (web app de Apps Script en mutecdgami) ----------
 # URL del despliegue «Aplicación web» (termina en /exec). Vacío = tablero pendiente de conectar.
 TABLERO_API = "https://script.google.com/macros/s/AKfycbxlrRGIBJPD9h8-6D46Y4IJ8Gb2fu9v4-6wYZjgPAom2W1QfLh14ltBZmXV2Sx3_nXvPg/exec"
