@@ -165,7 +165,10 @@
     // toda la vida «no te encuentro → registrate», y de paso no hay ni un enlace que rastrear.
     var alta = st.d && st.d.formBitacora && st.msgYo;
     return '<div class="card nave-login"><div class="nave-perfil">'+nebulaVideo('nebula-mini')+''
-      +'<div><h3>Identifícate, recluta</h3><p class="small muted">Escribe el correo con el que te alistaste en la Bitácora de mando. Solo lo pediré una vez en este dispositivo, y solo te enseño <b>tu</b> ficha.<br><b>¿Primera vez?</b> Escríbelo igualmente y te digo cómo subir a bordo.</p></div></div>'
+      +'<div><h3>Identifícate, recluta</h3><p class="small muted">'
+      +(CID?'Entra con la <b>misma cuenta de Google</b> con la que rellenas la Bitácora de mando. Solo se te pedirá una vez en este dispositivo, y solo verás <b>tu</b> ficha.'
+           :'Escribe el correo con el que te alistaste en la Bitácora de mando. Solo lo pediré una vez en este dispositivo, y solo te enseño <b>tu</b> ficha.')
+      +'<br><b>¿Primera vez?</b> Entra igualmente y te digo cómo subir a bordo.</p></div></div>'
       +(CID?'<div id="g-nave" class="g-nave"></div>'
         +'<p class="small muted" style="margin:6px 0 14px">Es la forma segura: Google nos dice quién eres y '
         +'<b>nadie puede entrar con tu correo</b>. Solo pide ver tu dirección de correo — ni Drive, ni contraseña.</p>'
