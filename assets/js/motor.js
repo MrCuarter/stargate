@@ -306,6 +306,14 @@ async function resolverVale(valeId, aprobar, mensaje) {
 
 const llamar = (nombre, datos) => httpsCallable(fns, nombre)(datos).then(r => r.data);
 
+// El catálogo (retos, insignias, niveles, tienda) sale de Datos.gs y se congela en la construcción.
+// Se pide aquí y no se incrusta en cada página: son 25 KB que solo necesitan las pantallas del motor
+// nuevo, y el navegador lo cachea una vez para todas.
+if (!window.SG_CATALOGO) {
+  try { window.SG_CATALOGO = await fetch("motor/catalogo.json").then(r => r.json()); }
+  catch (e) { console.error("[STARGATE] no he podido cargar el catálogo:", e); }
+}
+
 window.SG = window.SG || {};
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, otorgarReto, anularReto, traspasar, resolverVale,

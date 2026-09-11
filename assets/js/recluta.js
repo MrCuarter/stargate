@@ -30,7 +30,7 @@
     // «elige tu PER» otra vez, con la misma lista. Se apaga: aquí todavía no hay grupo que enseñar.
     verTablero(false);
     root.innerHTML=cargando('Contactando con NEBULA…','Localizando los PER activos');
-    fetch(API+'?per=all',{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){
+    SG.FUENTE.lista().then(function(d){
       var pers=d.pers||[];
       root.innerHTML='<div class="card"><h3>¿De qué PER eres recluta?</h3><p class="small muted">Elige tu grupo para entrar en tu nave. Si no lo sabes, pregunta a tu Capitán.</p>'
         // 🔴 Solo el NOMBRE del grupo. «REGULAR/PUA» es jerga de la hoja de cálculo: al alumnado no le
@@ -49,22 +49,17 @@
   // v3.65 · `quien` admite dos formas de decir quién eres: el correo tecleado (como siempre) o el
   // token de «Iniciar sesión con Google». 🔴 Con token, el correo lo pone GOOGLE en el servidor, no
   // el navegador: es lo que impide que alguien escriba el correo de un compañero y vea su ficha.
+  // 🔴 La Nave ya no sabe CON QUIÉN habla, y ese es el truco entero de la mudanza: pide su ficha y
+  // se la dan, venga del Apps Script de siempre o de Firestore. Lo decide assets/js/fuente.js con un
+  // interruptor, así que volver al motor viejo es cambiar una palabra y no reescribir esta página.
   function quien(quien_,cb){
-    var cuerpo = (quien_ && quien_.token)
-      ? {accion:'quien',per:per,token:quien_.token}
-      : {accion:'quien',per:per,email:String(quien_||'')};
-    fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify(cuerpo)})
-      .then(function(r){return r.json();}).then(cb)
-      .catch(function(){cb({error:'red'});});
+    SG.FUENTE.quien(per,quien_).then(cb).catch(function(){cb({error:'red'});});
   }
   // Vestirse escribe, pero SIN PIN a propósito: el alumnado no va a recordar otra clave. El servidor
   // solo deja ponerse algo que ya se tiene desbloqueado, así que lo peor que puede pasar es que
   // alguien le cambie el disfraz a un compañero — cosmético y se deshace en un clic.
   function post(cuerpo,cb,err){
-    fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify(cuerpo)})
-      .then(function(r){return r.json();})
+    SG.FUENTE.accion(cuerpo)
       .then(function(d){ if(d&&d.error){ if(err)err(d.error); else alert(d.error); return; } cb(d); })
       .catch(function(e){ if(err)err('Error de red'); });
   }
@@ -166,14 +161,18 @@
     var alta = st.d && st.d.formBitacora && st.msgYo;
     return '<div class="card nave-login"><div class="nave-perfil">'+nebulaVideo('nebula-mini')+''
       +'<div><h3>Identifícate, recluta</h3><p class="small muted">'
-      +(CID?'Entra con la <b>misma cuenta de Google</b> con la que rellenas la Bitácora de mando. Solo se te pedirá una vez en este dispositivo, y solo verás <b>tu</b> ficha.'
+      +((CID||motorNuevo())?'Entra con la <b>misma cuenta de Google</b> con la que rellenas la Bitácora de mando. Solo se te pedirá una vez en este dispositivo, y solo verás <b>tu</b> ficha.'
            :'Escribe el correo con el que te alistaste en la Bitácora de mando. Solo lo pediré una vez en este dispositivo, y solo te enseño <b>tu</b> ficha.')
       +'<br><b>¿Primera vez?</b> Entra igualmente y te digo cómo subir a bordo.</p></div></div>'
-      +(CID?'<div id="g-nave" class="g-nave"></div>'
+      +((CID||motorNuevo())?'<div id="g-nave" class="g-nave"></div>'
         +'<p class="small muted" style="margin:6px 0 14px">Es la forma segura: Google nos dice quién eres y '
         +'<b>nadie puede entrar con tu correo</b>. Solo pide ver tu dirección de correo — ni Drive, ni contraseña.</p>'
-        +'<div class="o-bien"><span>o escríbelo a mano</span></div>':'')
-      +'<div class="selrow"><input id="in-mail" type="email" placeholder="tu.correo@ejemplo.com" autocomplete="email"><button class="btn primary" id="btn-mail" type="button">Entrar en la nave</button></div>'
+        +(motorNuevo()?'':'<div class="o-bien"><span>o escríbelo a mano</span></div>'):'')
+      // 🔴 Con el motor nuevo el correo NO se teclea: quien pide la ficha es quien ha iniciado
+      // sesión y el servidor lo sabe sin preguntar. Dejar el campo sería ofrecer una puerta que no
+      // lleva a ningún sitio — y era justo la puerta por la que se veía la ficha del vecino.
+      +(motorNuevo()?''
+        :'<div class="selrow"><input id="in-mail" type="email" placeholder="tu.correo@ejemplo.com" autocomplete="email"><button class="btn primary" id="btn-mail" type="button">Entrar en la nave</button></div>')
       +(st.msgYo?'<p class="small" style="margin-top:8px;color:var(--amber)">'+st.msgYo+'</p>':'')
       +(alta?'<div class="nave-alta"><span class="o">¿aún no te has alistado?</span>'
         +'<a class="btn primary" href="'+esc(st.d.formBitacora)+'" data-vent="📓 Bitácora de mando">📓 Alistarme en la Bitácora de mando →</a>'
@@ -955,7 +954,38 @@
   // vuelve a crear entera cada vez. 🔴 La librería se carga una sola vez y solo si hace falta: si no
   // hay ID de cliente, esta web no habla con Google en absoluto.
   var gsiCargado=false, gsiListo=false;
+  // ¿Estamos con el motor nuevo? Entonces entrar es entrar en Firebase, no pedirle un token a
+  // Google para mandárselo a un servidor que lo verifique. Es el mismo botón y menos piezas.
+  function motorNuevo(){ return window.SG && SG.FUENTE && SG.FUENTE.nombre==='firestore'; }
+
+  function montarBotonFirebase(){
+    var hueco=document.getElementById('g-nave'); if(!hueco) return;
+    hueco.innerHTML='<button class="btn primary grande" type="button" id="fb-entrar">Entrar con Google</button>';
+    document.getElementById('fb-entrar').onclick=function(){
+      var M=window.SG.MOTOR;
+      if(!M) return;
+      M.entrar().then(function(){ identificarPorSesion(); })
+       .catch(function(e){ st.msgYo='No he podido entrar: '+esc(e.message); render(); });
+    };
+  }
+  // Con sesión iniciada no hace falta preguntar nada: quien pide la ficha ES quien ha entrado.
+  function identificarPorSesion(){
+    st.cargandoYo=true; st.msgYo=''; render();
+    quien(null,function(d){
+      st.cargandoYo=false;
+      if(d&&d.yo){ st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true;
+        if(st.email) localStorage.setItem(KEY_MAIL,st.email);
+        if(!localStorage.getItem('sgNaveOnboard_'+per)) setTimeout(function(){ onboarding(0,'nave'); }, 700);
+      } else if(d&&d.sinFicha){
+        st.verificado=true;
+        st.msgYo='Tu cuenta es correcta, pero todavía no te has alistado en este grupo.';
+      } else if(d&&d.error){ st.msgYo=esc(d.error); }
+      render();
+    });
+  }
+
   function montarBotonGoogle(){
+    if(motorNuevo()) return montarBotonFirebase();
     var hueco=document.getElementById('g-nave');
     if(!hueco||!CID) return;
     function pinta(){
@@ -1080,7 +1110,7 @@
   // sepa en qué pestaña está.
   verTablero(false);
   root.innerHTML=cargando('Estableciendo conexión con NEBULA…','Sincronizando la Bitácora de tu PER');
-  fetch(API+'?per='+encodeURIComponent(per),{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){
+  SG.FUENTE.tablero(per).then(function(d){
     if(d.error){root.innerHTML='<p class="lead">PER no encontrado. Pregunta a tu Capitán por el enlace bueno.</p>';return;}
     st.d=d; st.semanas=window.SGCAL.vista(d.tipo,SEM);
     var a=window.SGCAL.semanaActual(d.inicio); var forzada=parseInt(q.get('semana')||'0',10); if(forzada)a=forzada;
@@ -1094,6 +1124,9 @@
     // demo no arrancaba nunca. Con los dos puntos de entrada da igual quien llegue primero.
     // Y en demo NO se identifica a nadie: el correo guardado de otro dia no pinta nada aqui.
     if(DEMO) vestirDemoSeguro();
+    // Con el motor nuevo, si la sesión de Firebase sigue viva se entra sin pulsar nada; con el
+    // viejo, lo que se recuerda es el correo que se tecleó una vez.
+    else if(motorNuevo()) identificarPorSesion();
     else if(st.email)identificar(st.email);
     // 🔴 Acto 1 solo si la nave está cerrada. Si el recluta ya está identificado (vuelve desde el
     // mismo dispositivo) no tiene sentido presentarse otra vez: va directo a lo suyo.

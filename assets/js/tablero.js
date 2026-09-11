@@ -20,9 +20,15 @@
   var ORDEN=["P1_bran","P2_tomas","P3_sylla","P4_amara","P5_vera","P6_joran","P7_mara","P8_noa","R1_la-chispa","R2_el-eco-que-ensena","R3_la-matriz","R4_entorno-de-aula","R5_bitacora-medida","R6_el-juego","R7_microgamificacion","R8_ultimo-umbral","E1_nebula","E2_capitan","E3_vaeon","H1_reclutamiento","H2_primera-forja","H3_cartografo","H4_tripulacion-cero","H5_la-liberacion"];
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function msg(h){root.innerHTML='<div class="wip"><span class="ic">🛰️</span><div>'+h+'</div></div>';}
-  if(!API){msg('<b>Tablero pendiente de conectar.</b> Falta la URL del web app (guía de instalación, abajo).');return;}
-  function get(u,cb){fetch(u,{redirect:'follow'}).then(function(r){return r.json();}).then(cb).catch(function(e){msg('<b>No se pudo cargar el tablero.</b> '+esc(e.message));});}
-  if(!per){get(API+'?per=all',function(d){if(!d.pers||!d.pers.length){msg('<b>Aún no hay ningún PER.</b>');return;}
+  var FUENTE=(window.SG&&SG.FUENTE)||null;
+  if(!API&&(!FUENTE||FUENTE.nombre!=='firestore')){msg('<b>Tablero pendiente de conectar.</b> Falta la URL del web app (guía de instalación, abajo).');return;}
+  // 🔴 Este tablero es el que vive DENTRO de los Geniallys del profesorado, donde no hay sesión de
+  // nadie. Por eso pide los datos a la fuente y no a Firestore: con el motor nuevo hay una puerta
+  // pública de solo lectura montada justo para esto.
+  function fallo(e){msg('<b>No se pudo cargar el tablero.</b> '+esc(e&&e.message||e));}
+  function lista(cb){ (FUENTE?FUENTE.lista():fetch(API+'?per=all').then(function(r){return r.json();})).then(cb).catch(fallo); }
+  function uno(id,cb){ (FUENTE?FUENTE.tablero(id):fetch(API+'?per='+encodeURIComponent(id)).then(function(r){return r.json();})).then(cb).catch(fallo); }
+  if(!per){lista(function(d){if(!d.pers||!d.pers.length){msg('<b>Aún no hay ningún PER.</b>');return;}
     root.innerHTML='<h3>Elige tu PER</h3><div class="pers">'+d.pers.map(function(p){return '<a class="btn" href="?per='+encodeURIComponent(p.id)+(embed?'&embed=1':'')+'">'+esc(p.nombre)+' <small>· '+esc(p.tipo)+' · '+esc(p.estado)+'</small></a>';}).join('')+'</div>';});return;}
   msg('Cargando el tablero…');
   function dots(p){return ORDEN.map(function(k){var on=p.insignias.indexOf(k)>=0;return '<img class="dot'+(on?'':' off')+'" src="assets/img/insignias/'+k+'.png" title="'+esc(N[k]||k)+(on?'':' (pendiente)')+'" alt="">';}).join('');}
@@ -106,7 +112,7 @@
   function modoDe(k){for(var i=0;i<MODOS.length;i++) if(MODOS[i].k===k) return MODOS[i]; return MODOS[0];}
   var modo=modoDe(q.get('ranking')||'xp');
 
-  get(API+'?per='+encodeURIComponent(per),function(d){
+  uno(per,function(d){
     if(d.error){msg('<b>'+esc(d.error)+'</b>');return;}
     // v3.38 · los datos se comparten con quien viva en la misma página: el «duelo» de la Nave
     // calcula con ellos quién va justo delante y quién pisa los talones, sin pedirlos otra vez.

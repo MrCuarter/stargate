@@ -33,8 +33,9 @@
     // catalogos de verdad, asi que el dia que cambien las insignias, la demo cambia sola.
     if(st.demo){ try{ return cb(demo(b)); }catch(e){ if(err) err(e.message); return; } }
     b.pin=st.pin;
-    fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)})
-      .then(function(r){return r.json();}).then(function(d){
+    (window.SG&&SG.FUENTE?SG.FUENTE.accion(b)
+      :fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)}).then(function(r){return r.json();}))
+      .then(function(d){
         if(d.error){ if(/PIN/.test(d.error)){sessionStorage.removeItem('sgPin');st.pin='';pedirPin(d.error);return;}
           if(err)err(d.error); else alert(d.error); return; }
         cb(d);

@@ -69,7 +69,7 @@
     var t = window.SG.TABLERO.tablero(DATOS, true);
     app.innerHTML =
       '<div class="card cuenta"><p><b>' + esc(t.nombre) + '</b> · ' + esc(t.tipo) +
-        ' · semana ' + t.semana + " de " + t.semanas + ' · ' + t.reclutas.length + ' reclutas' +
+        ' · ' + semanaTexto(t) + ' · ' + t.reclutas.length + ' reclutas' +
         (PERS.length > 1 ? ' <button class="btn min" id="c-cambiar">Cambiar de grupo</button>' : '') +
         ' <button class="btn min" id="c-salir">Salir</button></p></div>' +
       '<div class="pestanas">' + TABS.map(function (x) {
@@ -83,6 +83,15 @@
     if ($("#c-cambiar")) $("#c-cambiar").onclick = function () { url.delete("per"); elegirGrupo(); };
     $("#c-salir").onclick = function () { MOTOR.salir(); };
     ({ alumnado: verAlumnado, canjes: verCanjes, equipo: verEquipo, ajustes: verAjustes })[TAB](t);
+  }
+
+  // Un grupo que empieza dentro de dos semanas está en la «semana -1», que es verdad y no dice
+  // nada. Lo que el docente necesita saber es cuándo arranca.
+  function semanaTexto(t) {
+    if (t.semana === null || t.semana === undefined) return "sin fecha de inicio";
+    if (t.semana < 1) return "empieza el " + t.inicio;
+    if (t.semana > t.semanas) return "terminado";
+    return "semana " + t.semana + " de " + t.semanas;
   }
 
   function aviso(txt, bien) {
@@ -113,7 +122,7 @@
   }
 
   function verFicha(r, retos) {
-    var ficha = (DATOS.perfiles.filter(function (p) { return p.displayName === r.alias; })[0] || {}).id;
+    var ficha = r.ficha;
     $("#c-ficha").innerHTML = '<div class="card"><h3>' + esc(r.alias) + ' · ' + esc(r.nombre || "") + "</h3>" +
       '<p class="small">' + r.xp + ' xp · ' + r.creditos + ' ◈ · nivel ' + r.nivel + " " + esc(r.rango_nombre) +
       ' · racha ' + r.racha + " semanas</p>" +

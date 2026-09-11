@@ -89,8 +89,19 @@ c(!/jwt|atob\(|base64/i.test(gs.slice(gs.indexOf("function correoDeToken_"), gs.
 // ---------------------------------------------------------------- f) la Nave
 const R = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "recluta.js"), "utf8");
 const CODIGO = R.replace(/^\s*\/\/.*$/gm, "");
-c(/accion:'quien',per:per,token:quien_\.token/.test(CODIGO),
-  "🔴 la Nave manda el TOKEN, no el correo, cuando se entra con Google");
+// 🔴 12-sep · Esta comprobación se mudó de sitio, no desapareció. La Nave ya no habla con el Apps
+// Script directamente: pide sus datos a `assets/js/fuente.js`, que decide si contesta el motor viejo
+// o Firestore. El camino del token sigue existiendo igual —y sigue siendo el que manda— pero vive
+// en la capa de transporte. Si algún día alguien lo quita de ahí, esta línea salta.
+const F = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "fuente.js"), "utf8");
+c(/accion: "quien", per: per, token: quien_\.token/.test(F),
+  "🔴 con el motor viejo se manda el TOKEN, no el correo, cuando se entra con Google");
+c(/SG\.FUENTE\.quien\(per,quien_\)/.test(CODIGO),
+  "   y la Nave pide su ficha a la fuente, sin saber qué motor hay detrás");
+// Y con Firestore el token deja de hacer falta: quien pide los datos ES quien inició sesión, y eso
+// lo sabe el servidor sin que nadie se lo cuente. El correo tecleado desaparece del problema.
+c(/M\.sesion\(\)/.test(F) && /No se puede|Entra con tu cuenta/.test(F),
+  "🔴 y con el motor nuevo, sin sesión no hay ficha: no hay correo que verificar porque no se teclea");
 c(/function identificarConGoogle/.test(R), "y tiene su camino propio de identificación");
 c(/st\.verificado=true/.test(CODIGO), "que deja marcado que esa identidad está verificada");
 c(/id="in-mail"/.test(R), "🔴 el campo de escribir el correo SIGUE estando: nadie se queda fuera si el botón falla");

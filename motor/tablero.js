@@ -232,6 +232,10 @@
       // porque cambiemos de motor: en Firestore viven en `student_profiles/{id}/privado`, que las
       // reglas cierran a todo el mundo salvo el propio alumno y su equipo docente.
       if (conPrivados) {
+        // 🔴 El identificador de la ficha viaja con ella. Sin esto, la consola tenía que emparejar
+        // por ALIAS para saber a quién estaba editando, y dos reclutas con el mismo alias —que
+        // pasa— significaban otorgarle un reto a la persona equivocada sin enterarse.
+        out.ficha = p.id;
         out.email = priv.email || ""; out.nombre = [priv.firstName, priv.lastName].filter(Boolean).join(" ");
         out.nombre_pila = priv.firstName || ""; out.apellidos = priv.lastName || "";
         out.bitacora = priv.bitacora || ""; out.eventos = eventos; out.retos = retos;

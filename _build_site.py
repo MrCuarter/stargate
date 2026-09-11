@@ -2424,13 +2424,37 @@ def _ver_assets(html):
                 .replace('assets/js/tour.js"', 'assets/js/tour.js?v=' + _ver("assets/js/tour.js") + '"'))
 
 def _cabeza_motor():
-    """Los scripts del motor. El catálogo va incrustado: son 25 KB y evita una petición más."""
-    cat = open(_CAT, encoding="utf-8").read().strip() if os.path.exists(_CAT) else "{}"
-    return ('<script>window.SG_FIREBASE=%s;window.SG_CATALOGO=%s;</script>'
+    """Los scripts del motor, para las páginas que SIEMPRE lo usan (consola, crear, alistarse…)."""
+    return ('<script>window.SG_FIREBASE=%s;</script>'
             '<script src="motor/paquete.js" defer></script>'
             '<script src="motor/tablero.js" defer></script>'
             '<script type="module" src="assets/js/motor.js"></script>'
-            % (_json.dumps(FIREBASE), cat))
+            % _json.dumps(FIREBASE))
+
+def _cabeza_fuente():
+    """
+    Para las páginas que hablan con UN motor u OTRO: la Nave, la sala de clase, el panel.
+
+    🔴 Firebase solo se carga si de verdad se va a usar. Mientras el sistema viejo siga en pie, la
+    Nave de siempre no puede pagar medio megabyte de SDK que no necesita — y sobre todo no puede
+    romperse si Google tarda en servirlo.
+    """
+    return ('<script>window.SG_FIREBASE=%s;window.SG_MOTOR=%s;</script>'
+            '<script src="assets/js/fuente.js" defer></script>'
+            '<script>(function(){var q=new URLSearchParams(location.search);'
+            'if(((q.get("motor")||window.SG_MOTOR||"apps")+"").toLowerCase()!=="firestore")return;'
+            '["motor/paquete.js","motor/tablero.js"].forEach(function(u){'
+            'var e=document.createElement("script");e.src=u;e.defer=true;document.head.appendChild(e);});'
+            # El catálogo hace falta para pintar un tablero incrustado, donde no hay sesión ni SDK.
+            'fetch("motor/catalogo.json").then(function(r){return r.json();})'
+            '.then(function(c){window.SG_CATALOGO=c;});'
+            'var m=document.createElement("script");m.type="module";m.src="assets/js/motor.js";'
+            'document.head.appendChild(m);})();</script>'
+            % (_json.dumps(FIREBASE), _json.dumps(MOTOR_POR_DEFECTO)))
+
+# 🔴 Mientras dure la mudanza, «apps» manda: el sistema que funciona no se apaga por uno que aún se
+# está probando. Se prueba grupo a grupo con ?motor=firestore, y el día que esté, se cambia aquí.
+MOTOR_POR_DEFECTO = "apps"
 
 # ---------------------------------------------------------------- la consola del referente
 _html = head("STARGATE · Crear un grupo",
@@ -2493,3 +2517,20 @@ el equipo docente y los ajustes del grupo. Sin PIN — entras con tu cuenta y ve
 ''' + FOOT
 open(os.path.join(HERE, "consola.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: consola.html  (el puesto de mando, sin hoja de cálculo)")
+
+# ---------------------------------------------------------------- el interruptor, en las páginas de siempre
+# La Nave, la sala de clase, el panel y la sesión proyectable tienen que poder hablar con CUALQUIERA
+# de los dos motores. Se les añade aquí, al final, porque se escriben mucho antes de que exista
+# `_cabeza_fuente` — y moverlas de sitio para ahorrarse este paso sería tocar media construcción por
+# una elegancia que nadie va a ver.
+for _f in ("recluta.html", "clase.html", "panel.html", "sesion.html", "grupos.html", "tickets.html",
+           "profes.html", "registro.html", "embed.html", "foro.html"):
+    _ruta = os.path.join(HERE, _f)
+    if not os.path.exists(_ruta):
+        continue
+    _h = open(_ruta, encoding="utf-8").read()
+    if "assets/js/fuente.js" in _h:
+        continue
+    _h = _h.replace("</head>", _cabeza_fuente() + "\n</head>", 1)
+    open(_ruta, "w", encoding="utf-8").write(_ver_assets(_h))
+print("interruptor de motor puesto en: recluta, clase, panel, sesión, grupos, tickets y profes")
