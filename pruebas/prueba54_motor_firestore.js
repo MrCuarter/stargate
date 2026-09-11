@@ -154,14 +154,37 @@ igual(sobre.consumeEffects.lootBox.items.reduce((a, b) => a + b.probability, 0),
 const conEnlaces = paquete({ id: "x", nombre: "X", tipo: "REGULAR", inicio: "2026-09-15",
   referente: "REF@unir.net", padlet: "https://padlet.com/clase",
   panelVer: "https://view.genially.com/ver", panelEdit: "https://app.genially.com/editor/ed",
-  docentes: [{ nombre: "Ana", correo: "ana@unir.net", panel: "https://view.genially.com/ana" }] }, cat).proyecto;
-igual(conEnlaces.stargate.padlet, "https://padlet.com/clase", "🔴 el padlet del PER se guarda con el PER");
-igual(conEnlaces.stargate.panelVer, "https://view.genially.com/ver", "   y el Genially de la clase");
-igual(conEnlaces.stargate.paneles, { "Ana": "https://view.genially.com/ana" },
+  docentes: [{ nombre: "Ana", correo: "ana@unir.net", panel: "https://view.genially.com/ana" }] }, cat);
+igual(conEnlaces.proyecto.stargate.padlet, "https://padlet.com/clase", "🔴 el padlet del PER se guarda con el PER");
+igual(conEnlaces.proyecto.stargate.panelVer, "https://view.genially.com/ver", "   y el Genially de la clase");
+igual(conEnlaces.proyecto.stargate.paneles, { "Ana": "https://view.genially.com/ana" },
   "   y el Genially propio de cada docente, que es lo que pidió el profesorado");
-igual(conEnlaces.stargate.referente, "ref@unir.net", "el referente se guarda en minúsculas, como su correo");
-igual(conEnlaces.coTeacherEmails, ["ana@unir.net"],
+igual(conEnlaces.privado.referente, "ref@unir.net", "el referente se guarda en minúsculas, como su correo");
+igual(conEnlaces.proyecto.coTeacherEmails, ["ana@unir.net"],
   "🔴 y el equipo docente va TAMBIÉN en coTeacherEmails: es lo que mira la regla de Firestore para dejarles editar");
+
+// ------------------------------------------------------------------ g bis) lo que NO puede ir en abierto
+// El documento del proyecto lo lee cualquiera con sesión en GamificaPro —lo necesitan el ranking y
+// el salón de la fama—, así que lo que se guarde ahí es público de hecho. El enlace de EDICIÓN del
+// Genially no le sirve de nada a un extraño (Genially comprueba permisos por su cuenta), pero no
+// pinta nada en el documento que lee todo el mundo; y los correos del profesorado, tampoco.
+const enAbierto = JSON.stringify(conEnlaces.proyecto.stargate);
+c(enAbierto.indexOf("app.genially.com/editor") < 0,
+  "🔴 el enlace de EDICIÓN del Genially NO está en el documento abierto del proyecto");
+c(enAbierto.indexOf("@unir.net") < 0,
+  "🔴 ni un solo correo del profesorado en el documento abierto");
+c(conEnlaces.proyecto.stargate.docentes.every(d => d.correo === undefined),
+  "   los docentes salen con nombre y rol, sin correo");
+igual(conEnlaces.proyecto.stargate.docentes, [{ nombre: "Ana", rol: "docente" }],
+  "   porque el alumnado sí necesita saber quién le imparte");
+igual(conEnlaces.privado.panelEdit, "https://app.genially.com/editor/ed",
+  "y lo de editar vive en `privado`, con su propia regla");
+c(conEnlaces.privado.docentes[0].correo === "ana@unir.net", "   junto con los correos");
+
+// el tablero que ve el alumnado no puede enseñar ni el enlace de edición ni un correo
+const sinPin = JSON.stringify(publico);
+c(sinPin.indexOf("app.genially.com/editor") < 0, "🔴 y el tablero público tampoco lo enseña");
+c(sinPin.indexOf("@") < 0 || sinPin.indexOf("unir.net") < 0, "   ni un correo del equipo docente");
 
 // ------------------------------------------------------------------ h) PUA no es REGULAR recortado
 // 15 semanas y 8 semanas no son la misma escala. Copiar las puertas tal cual dejaría el Arsenal de

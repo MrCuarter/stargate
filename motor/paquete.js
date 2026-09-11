@@ -96,6 +96,15 @@
       levelSystem: cat.niveles.map(function (n) {
         return { level: n.nivel, xpRequired: escalaXp(n.xp, tipo, cat), title: n.titulo, phase: n.rango };
       }),
+      // QUÉ VA AQUÍ Y QUÉ NO. El documento del proyecto lo puede leer cualquiera con sesión en
+      // GamificaPro: es lo que necesitan el ranking, la galería y el salón de la fama. Así que aquí
+      // solo va lo que ya es público de hecho —el calendario, el padlet de la clase, el panel de
+      // VER y el NOMBRE de cada docente—, y nada más.
+      //
+      // El enlace de EDICIÓN del Genially y los correos del profesorado se guardan aparte, en
+      // `privado`. No porque el enlace sirva de nada a un extraño —Genially comprueba permisos, así
+      // que tenerlo no da acceso a editar— sino porque lo que solo le importa al equipo docente no
+      // tiene por qué estar en el documento que lee todo el mundo. Cuesta cero y ordena.
       stargate: {
         version: cat.version,
         tipo: tipo,
@@ -104,16 +113,24 @@
         cierre: cierre,
         cierreCanje: cierreCanje,
         semanas: semanas,
-        referente: String(per.referente || "").toLowerCase().trim(),
-        docentes: docentes,
         padlet: String(per.padlet || "").trim(),
         panelVer: String(per.panelVer || "").trim(),
-        panelEdit: String(per.panelEdit || "").trim(),
         // El Genially propio de cada docente, si lo tiene. La Nave elige el del docente del alumno.
+        // Es de ver, no de editar: por eso puede ir aquí.
         paneles: docentes.reduce(function (m, d) { if (d.panel) m[d.nombre] = d.panel; return m; }, {}),
+        docentes: docentes.map(function (d) { return { nombre: d.nombre, rol: d.rol }; }),
         semanaDelTema: cat.semanaDelTema,
         temas: cat.temas
       }
+    };
+
+    // Lo que solo debe ver el equipo docente. Va a `projects/{id}/privado/stargate`, con su propia
+    // regla. Es un camino NUEVO en las reglas de Firestore: añade, no cambia, así que no puede
+    // romper nada de lo que GamificaPro ya hace.
+    var privado = {
+      referente: String(per.referente || "").toLowerCase().trim(),
+      panelEdit: String(per.panelEdit || "").trim(),
+      docentes: docentes
     };
 
     // ---------------------------------------------------------------- las misiones
@@ -247,7 +264,7 @@
         r.consumeEffects = { lootBox: cofre("heroe_", cat.heroes) }; }
     });
 
-    return { proyecto: proyecto, misiones: misiones, campanas: campanas,
+    return { proyecto: proyecto, privado: privado, misiones: misiones, campanas: campanas,
              recompensas: tienda.concat(coleccionables), series: cat.series };
   }
 

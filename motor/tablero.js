@@ -241,11 +241,14 @@
     var maxSem = 0; lista.forEach(function (x) { if (x.xp7 > maxSem) maxSem = x.xp7; });
     lista.forEach(function (x) { x.corona = maxSem > 0 && x.xp7 === maxSem; });
 
-    var docentes = S.docentes || [];
+    // Los nombres del profesorado son públicos (el alumnado necesita saber quién le imparte); los
+    // correos y el enlace de edición solo llegan si Firestore ha dejado leer `privado`.
+    var PRIV = datos.privadoPER || {};
+    var docentes = (PRIV.docentes && PRIV.docentes.length) ? PRIV.docentes : (S.docentes || []);
     var res = {
       per: P.id, nombre: P.name || "", tipo: tipo,
       profesorado: docentes.map(function (d) { return d.nombre; }).join(", "),
-      referente: S.referente || "", estado: P.active === false ? "cerrado" : "abierto",
+      referente: PRIV.referente || "", estado: P.active === false ? "cerrado" : "abierto",
       inicio: inicio, reclutas: lista,
       recompensas: (datos.recompensas || []).filter(function (r) { return r.inStore !== false; })
         .map(function (r) {
@@ -258,7 +261,7 @@
       padlet: S.padlet || "",
       docentes: docentes.map(function (d) {
         return { nombre: d.nombre, rol: d.rol, imparte: d.imparte || "",
-                 referente: String(d.correo || "").toLowerCase() === String(S.referente || "").toLowerCase() };
+                 referente: d.rol === "referente" };
       }),
       actualizado: new Date(ahora || Date.now())
     };
@@ -266,7 +269,7 @@
       res.docentes_full = docentes;
       res.sin_docente = lista.filter(function (x) { return !String(x.profe || "").trim(); }).length;
       res.docentes_sin_correo = docentes.filter(function (d) { return !d.correo; }).map(function (d) { return d.nombre; });
-      res.panelEdit = S.panelEdit || ""; res.panelPropio = !!(S.panelVer || S.panelEdit);
+      res.panelEdit = PRIV.panelEdit || ""; res.panelPropio = !!(S.panelVer || PRIV.panelEdit);
       res.archivado = P.archived ? "sí" : "";
     }
     return res;

@@ -373,7 +373,7 @@ body.embed #tablero{padding:14px 0;border:0}
 .foro-card h2{margin:.3em 0 0;font-size:1.6rem}
 .foro-msg{white-space:pre-wrap;font-family:'DMSans';font-size:1rem;line-height:1.6;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0;color:var(--ink)}
 .foro-card h4{margin:16px 0 8px;font-family:'DMSans';font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
-body.embed #panel,body.embed .foro-card{padding-top:0}
+body.embed #panel,body.embed .foro-card,body.embed #validar{padding-top:0}
 /* tickets visual */
 .selrow{display:flex;gap:8px;flex-wrap:wrap}
 .selrow select,#selPer{padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff;font:inherit;max-width:100%}

@@ -2387,3 +2387,68 @@ if "--check" in _sys.argv:
     _sys.exit(_sp.run([_sys.executable, os.path.join(HERE, "comprobar_web.py")]).returncode)
 print("\nrecuerda: python3 comprobar_web.py  ANTES de crear un PER o actualizar las imágenes de los\n"
       "formularios (de esa web bajan los orbes; si está caída, el alta se arrastra o queda a medias).")
+
+
+# ================= EL MOTOR NUEVO (Firestore) =================
+# Dos páginas que no hablan con Apps Script sino con el motor de GamificaPro. Conviven con todo lo
+# demás: mientras el sistema viejo siga en pie, estas son un camino paralelo que no estorba.
+#
+# 🔴 El catálogo NO se escribe aquí. Se congela desde Datos.gs con motor/catalogo.js, para que un
+# reto añadido en la hoja llegue solo a Firestore. «Un dato, un sitio».
+import json as _json, subprocess as _subp
+_CAT = os.path.join(HERE, "motor", "catalogo.json")
+try:
+    _subp.run(["node", os.path.join(HERE, "motor", "catalogo.js")], check=True,
+              stdout=open(_CAT, "w", encoding="utf-8"))
+    print("escrito: motor/catalogo.json  (el catálogo, congelado desde Datos.gs)")
+except Exception as _e:
+    print("⚠️  no he podido regenerar motor/catalogo.json: %s" % _e)
+
+FIREBASE = {"apiKey": "AIzaSyBv-PLACEHOLDER", "authDomain": "gamificapro-99e0a.firebaseapp.com",
+            "projectId": "gamificapro-99e0a", "storageBucket": "gamificapro-99e0a.firebasestorage.app",
+            "messagingSenderId": "388656371280", "appId": "1:388656371280:web:b3d4178a235df271846355"}
+_FB = os.path.join(HERE, "assets", "js", "firebase_config.json")
+if os.path.exists(_FB):
+    FIREBASE = _json.load(open(_FB, encoding="utf-8"))
+
+def _cabeza_motor():
+    """Los scripts del motor. El catálogo va incrustado: son 25 KB y evita una petición más."""
+    cat = open(_CAT, encoding="utf-8").read().strip() if os.path.exists(_CAT) else "{}"
+    return ('<script>window.SG_FIREBASE=%s;window.SG_CATALOGO=%s;</script>'
+            '<script src="motor/paquete.js" defer></script>'
+            '<script src="motor/tablero.js" defer></script>'
+            '<script type="module" src="assets/js/motor.js"></script>'
+            % (_json.dumps(FIREBASE), cat))
+
+# ---------------------------------------------------------------- la consola del referente
+_html = head("STARGATE · Crear un grupo",
+             "Crea un grupo (PER) de STARGATE: calendario, equipo docente, padlet y paneles. Sin hojas de cálculo.",
+             "reg").replace("</head>", _cabeza_motor() + "\n</head>") + f'''
+<header class="hero"><div class="kicker">Solo profesorado referente</div><h1>Crear un grupo</h1>
+<p>Escribe cinco datos y el grupo queda sembrado entero: los {len(RETOS_REGULAR)} retos con sus insignias, los 8 planetas,
+la tienda con sus precios y fechas, el álbum de cromos y el vestuario de héroes. Sin hojas de cálculo
+y sin formularios: la fecha de la semana 1 decide el calendario completo.</p></header>
+<section id="crear"><div class="wrap">
+<div id="crear-app"><p class="muted">Cargando…</p></div>
+<script src="assets/js/crear.js" defer></script>
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "crear.html"), "w", encoding="utf-8").write(_html)
+print("escrito: crear.html  (la consola del referente)")
+
+# ---------------------------------------------------------------- validar un reto desde fuera
+# Pública a propósito: el enlace vive dentro de un Genially y lo pulsa el alumnado.
+_html = head("STARGATE · Validar un reto",
+             "Registra un reto de STARGATE desde un Genially, un escape room o un juego.",
+             "reg", publica=True).replace("</head>", _cabeza_motor() + "\n</head>") + '''
+<header class="hero"><div class="kicker">Registro de reto</div><h1>Validar</h1></header>
+<section id="validar"><div class="wrap">
+<div id="validar-app"><p class="muted">Cargando…</p></div>
+<script src="assets/js/validar.js" defer></script>
+<p class="small muted" style="margin-top:22px">Para el profesorado: este enlace sirve en
+<b>todos</b> los grupos y en todas las convocatorias. El grupo no va en el enlace — lo pone quien
+pulsa, porque se le busca por su cuenta. Móntalo una vez en el Genially y olvídate.</p>
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "validar.html"), "w", encoding="utf-8").write(_html)
+print("escrito: validar.html  (enlaces universales para Genially)")
