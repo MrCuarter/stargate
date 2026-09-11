@@ -513,7 +513,10 @@ COMO_SE_HIZO = [
   dict(clave="openart", icono="🎨", logo="openart.png", titulo="OpenArt", papel="El mundo dibujado",
        url="",
        texto="De aquí salieron <b>las imágenes</b>: los ocho planetas, la Tripulación Cero, las "
-             "portadas de cada tema, las 24 insignias y las 20 cartas del álbum."),
+             "portadas de cada tema, las 24 insignias y las 20 cartas del álbum. Con "
+             "<b>nano-banana</b>, elegido por una razón práctica: acepta una imagen de "
+             "referencia y respeta el encuadre 16:9 sin recortar por su cuenta — que es lo que "
+             "hace falta cuando el plano tiene que encajar en un montaje."),
   dict(clave="magnific", icono="🎬", logo="magnific.svg", titulo="Magnific", papel="La voz y el movimiento",
        url="https://referral.magnific.com/mzW6daB",
        texto="Puso <b>las voces</b> de los personajes y <b>los clips de vídeo</b>. Y algo que no se "
