@@ -15,7 +15,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, writeBatch }
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { getFunctions, httpsCallable }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
@@ -149,9 +149,165 @@ async function sembrarPER(per, alAvanzar) {
   return id;
 }
 
+/**
+ * ALISTARSE. Abre la ficha del recluta y le da su insignia de Reclutamiento.
+ *
+ * 🔴 La ficha nace A CERO y así tiene que ser: la regla de Firestore lo exige (`naceEnCero`), y por
+ * un buen motivo — sin eso, cualquiera podía crearse un segundo perfil con 999.999 de experiencia,
+ * porque al CREAR no se miraba la economía. Los 100 xp y los 20 créditos del alistamiento los da el
+ * servidor después, completando la misión H1, que es el único camino por el que entra dinero.
+ */
+async function alistar(perId, datos, alAvanzar) {
+  const yo = await sesion();
+  if (!yo) throw new Error("Entra con tu cuenta antes de alistarte");
+  const avisa = t => { if (alAvanzar) alAvanzar(t); };
+  const p = await getDoc(doc(db, "projects", perId));
+  if (!p.exists()) throw new Error("No existe el grupo «" + perId + "»");
+  const proy = p.data();
+
+  // El escuadrón sale del Comandante elegido: quien elige profe, hereda bando.
+  const escuadron = (proy.factions || []).filter(f =>
+    f.teacherName === datos.comandante ||
+    (f.assignedTeacherEmails || []).indexOf(String(datos.comandante || "").toLowerCase()) >= 0)[0] || null;
+
+  avisa("Abriendo tu ficha…");
+  const ficha = doc(collection(db, "student_profiles"));
+  await setDoc(ficha, {
+    userId: yo.uid, projectId: perId, displayName: datos.alias,
+    totalPoints: 0, coins: 0, inventory: [], earnedBadges: [],
+    completedMissionIds: [], completedCampaignIds: [], currentPhase: 1, role: "student",
+    hubCustomization: {}, createdAt: Date.now(),
+    squadId: escuadron ? escuadron.id : null, factionId: escuadron ? escuadron.id : null,
+    stargateProfe: datos.comandante || "", stargateAvatar: datos.avatar || null,
+    stargateBio: datos.bio || ""
+  });
+
+  // 🔴 El nombre y el correo NO van en la ficha: van a `privado/datos`, que solo leen el propio
+  // alumno y su equipo docente. La ficha la lee cualquiera con sesión —la necesitan el ranking y el
+  // salón de la fama—, y ahí dentro un nombre real es un nombre real a la vista de todos.
+  avisa("Guardando tus datos…");
+  await setDoc(doc(db, "student_profiles", ficha.id, "privado", "datos"), {
+    firstName: datos.nombre || "", lastName: datos.apellidos || "",
+    email: datos.correo || yo.correo, bitacora: datos.bitacora || "", bio: datos.bio || ""
+  });
+
+  avisa("Entregando tu insignia…");
+  try {
+    const r = await getDocs(query(collection(db, "missions"),
+      where("projectId", "==", perId), where("stargateId", "==", "H1")));
+    if (!r.empty) await llamar("completeMission",
+      { projectId: perId, missionId: r.docs[0].id, studentProfileId: ficha.id });
+  } catch (e) {
+    // Que falle la insignia no puede dejar a nadie sin alistar: la ficha ya existe y el profesorado
+    // puede otorgar el reto a mano. Mejor dentro sin insignia que fuera con un error.
+    console.warn("[STARGATE] la insignia de reclutamiento no ha entrado:", e && e.message);
+  }
+  return escuadron;
+}
+
+// ------------------------------------------------------------------ el puesto de mando
+/** Cambiar los ajustes de un grupo. Lo público y lo privado van a sitios distintos, como siempre. */
+async function guardarAjustes(perId, publico, privado) {
+  if (publico && Object.keys(publico).length) await updateDoc(doc(db, "projects", perId), publico);
+  if (privado && Object.keys(privado).length)
+    await setDoc(doc(db, "projects", perId, "privado", "stargate"), privado, { merge: true });
+}
+
+/**
+ * OTORGAR un reto a mano. Lo que hacía «otorgar» en la hoja: el profesorado da por bueno algo que
+ * vio en clase y que el alumno no registró.
+ *
+ * Va por `completeMission`, no por una escritura directa, y eso no es ceremonia: la experiencia y
+ * los créditos solo los puede mover el servidor, y así queda asiento en el libro de xp. Un regalo
+ * sin registro es un descuadre esperando a que alguien pregunte.
+ */
+async function otorgarReto(perId, fichaId, retoId) {
+  const r = await getDocs(query(collection(db, "missions"),
+    where("projectId", "==", perId), where("stargateId", "==", retoId)));
+  if (r.empty) throw new Error("Ese reto no existe en este grupo: " + retoId);
+  return llamar("completeMission", { projectId: perId, missionId: r.docs[0].id, studentProfileId: fichaId });
+}
+
+/**
+ * ANULAR un reto. Se quita de la lista y se descuenta lo que dio.
+ *
+ * 🔴 El descuento va por `applyXpDelta` (con su asiento en el libro) y la lista por escritura
+ * directa del docente, que sí puede. Quitar el reto sin quitar la experiencia dejaría a alguien con
+ * xp que no se corresponde con nada: el clásico «tiene 300 puntos y ninguna misión».
+ */
+async function anularReto(perId, fichaId, retoId, motivo) {
+  const [mi, ficha] = await Promise.all([
+    getDocs(query(collection(db, "missions"), where("projectId", "==", perId), where("stargateId", "==", retoId))),
+    getDoc(doc(db, "student_profiles", fichaId))
+  ]);
+  if (mi.empty) throw new Error("Ese reto no existe en este grupo: " + retoId);
+  if (!ficha.exists()) throw new Error("No encuentro la ficha");
+  const m = mi.docs[0], d = ficha.data();
+  if ((d.completedMissionIds || []).indexOf(m.id) < 0) throw new Error("Ese reto no lo tenía registrado");
+  await llamar("applyXpDelta", {
+    projectId: perId, studentProfileId: fichaId, userId: d.userId,
+    deltaXp: -Number(m.data().points || 0), deltaCoins: -Number(m.data().coinsReward || 0),
+    source: "teacher_adjustment", details: "Anulado: " + retoId + (motivo ? " · " + motivo : "")
+  });
+  const sellos = Object.assign({}, d.missionTimestamps || {}); delete sellos[m.id];
+  await updateDoc(doc(db, "student_profiles", fichaId), {
+    completedMissionIds: (d.completedMissionIds || []).filter(x => x !== m.id),
+    missionTimestamps: sellos
+  });
+}
+
+/**
+ * PASAR TODO EL ALUMNADO de un docente a otro. Pasa de verdad —un docente se va a mitad de curso—
+ * y a mano son doscientas fichas.
+ *
+ * Cambia el Comandante y el escuadrón de un golpe: quien se queda hereda el grupo entero.
+ */
+async function traspasar(perId, deNombre, aNombre) {
+  const p = await getDoc(doc(db, "projects", perId));
+  const destino = (p.data().factions || []).filter(f => f.teacherName === aNombre)[0] || null;
+  const r = await getDocs(query(collection(db, "student_profiles"),
+    where("projectId", "==", perId), where("stargateProfe", "==", deNombre)));
+  let n = 0;
+  for (let i = 0; i < r.docs.length; i += 200) {
+    const lote = writeBatch(db);
+    r.docs.slice(i, i + 200).forEach(d => {
+      lote.update(d.ref, { stargateProfe: aNombre,
+        squadId: destino ? destino.id : null, factionId: destino ? destino.id : null });
+      n++;
+    });
+    await lote.commit();
+  }
+  return n;
+}
+
+/**
+ * Resolver un vale de la cola de nota.
+ *
+ * 🔴 Ojo a una diferencia con el sistema viejo, y es a mejor: aquí los créditos se cobran AL PEDIR
+ * y se devuelven si se deniega. Antes se cobraban al conceder, y mientras tanto ese saldo seguía
+ * disponible — se podía pedir dos subidas de nota con dinero para una sola.
+ */
+async function resolverVale(valeId, aprobar, mensaje) {
+  const v = await getDoc(doc(db, "purchased_vouchers", valeId));
+  if (!v.exists()) throw new Error("Ese vale ya no está");
+  const d = v.data();
+  if ((d.status || "pending") !== "pending") throw new Error("Ese vale ya estaba resuelto");
+  if (!aprobar) {
+    const ficha = d.studentProfileId ? await getDoc(doc(db, "student_profiles", d.studentProfileId)) : null;
+    if (ficha && ficha.exists() && Number(d.cost || 0) > 0) {
+      const f = ficha.data(), inv = (f.inventory || []).slice(), k = inv.indexOf(d.rewardId);
+      if (k >= 0) inv.splice(k, 1);
+      await updateDoc(ficha.ref, { coins: Number(f.coins || 0) + Number(d.cost || 0), inventory: inv });
+    }
+  }
+  await updateDoc(v.ref, { status: aprobar ? "approved" : "rejected",
+                           resolvedAt: Date.now(), councilMessage: mensaje || "" });
+}
+
 const llamar = (nombre, datos) => httpsCallable(fns, nombre)(datos).then(r => r.data);
 
 window.SG = window.SG || {};
-window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, llamar,
-                    db, auth, doc, getDoc, setDoc, collection, query, where, getDocs };
+window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
+                    guardarAjustes, otorgarReto, anularReto, traspasar, resolverVale,
+                    db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

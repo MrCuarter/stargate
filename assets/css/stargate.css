@@ -1100,3 +1100,55 @@ ol.pasos-num li b{color:var(--ink)}
 .g-nave{display:flex;justify-content:center;margin:14px 0 0;min-height:44px}
 .o-bien{display:flex;align-items:center;gap:12px;margin:0 0 12px;color:var(--muted);font-size:.82rem}
 .o-bien::before,.o-bien::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ---------- el motor nuevo: alistarse y la consola del referente ---------- */
+#alistarse .card,#crear .card{margin:0 0 16px}
+#alistarse label,#crear label{display:block;margin:12px 0;font-weight:600}
+#alistarse input,#alistarse textarea,#crear input,#crear select{display:block;width:100%;margin-top:5px;
+  padding:11px 13px;border-radius:9px;border:1px solid #24304a;background:#0d1420;color:#e8eefc;
+  font:inherit;font-weight:400}
+#alistarse input:focus,#crear input:focus,#crear select:focus{outline:2px solid #4da3ff;border-color:transparent}
+#alistarse label i,#crear label i{font-style:normal;font-weight:400;opacity:.65}
+/* Los Comandantes: botones grandes, no un desplegable. El primer día se elige persona, no opción. */
+.comandantes{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.comandante{display:flex;align-items:center;gap:9px;margin:0;padding:11px 15px;border:1px solid #24304a;
+  border-radius:10px;background:#0d1420;cursor:pointer;font-weight:600}
+.comandante:has(input:checked){border-color:#4da3ff;background:#14243c;box-shadow:0 0 0 1px #4da3ff inset}
+.comandante input{width:auto;margin:0}
+/* Los personajes, en rejilla. Se ve la cara: es lo que se elige. */
+.avatares{display:grid;grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:9px;margin-top:10px}
+.av{padding:0;border:2px solid transparent;border-radius:11px;background:none;cursor:pointer;overflow:hidden;line-height:0}
+.av img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px}
+.av.elegido{border-color:#ffd166;box-shadow:0 0 14px rgba(255,209,102,.35)}
+.lema{font-size:1.15rem;font-style:italic;color:#ffd166;margin:14px 0}
+/* Cada docente en su fila, como en el panel de profes */
+#crear .docente{display:grid;grid-template-columns:1.2fr 1.2fr .7fr 1.3fr auto;gap:8px;margin:9px 0;align-items:center}
+#crear .docente input,#crear .docente select{margin-top:0}
+#crear .resumen ul{margin:6px 0 0;padding-left:20px;line-height:1.7}
+#crear .cuenta p,#alistarse .cuenta p{margin:4px 0}
+.aviso{padding:11px 14px;border-radius:9px;margin:0 0 14px;background:#14243c;border:1px solid #24304a}
+.aviso.malo{background:#2a1420;border-color:#a33}
+.card.bien{border-color:#3a7;box-shadow:0 0 0 1px #3a7 inset}
+@media(max-width:700px){#crear .docente{grid-template-columns:1fr;gap:6px}}
+/* ---------- la consola ---------- */
+.pestanas{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.pest{padding:9px 16px;border-radius:9px 9px 0 0;border:1px solid #24304a;border-bottom:none;
+  background:#0d1420;color:#9fb0ce;cursor:pointer;font:inherit;font-weight:600}
+.pest.activa{background:#14243c;color:#e8eefc;border-color:#4da3ff}
+#consola .tabla{width:100%;border-collapse:collapse;margin-top:10px;font-size:.93rem}
+#consola .tabla th{text-align:left;padding:8px 9px;border-bottom:1px solid #24304a;color:#9fb0ce;font-size:.85rem}
+#consola .tabla td{padding:8px 9px;border-bottom:1px solid #182238;vertical-align:top}
+#consola .tabla tbody tr[data-r]{cursor:pointer}
+#consola .tabla tbody tr[data-r]:hover{background:#14243c}
+.retos-ficha{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.reto{padding:7px 12px;border-radius:8px;border:1px solid #24304a;background:#0d1420;color:#9fb0ce;
+  cursor:pointer;font:inherit;font-weight:700;font-size:.85rem}
+.reto.hecho{background:#14301f;border-color:#3a7;color:#8fe3b0}
+.reto:disabled{opacity:.5;cursor:wait}
+.vale{padding:12px 14px;border:1px solid #24304a;border-radius:10px;margin:10px 0;background:#0d1420}
+.vale .si{border-color:#3a7;color:#8fe3b0}
+.vale .no{border-color:#a55;color:#e3a0a0}
+#consola label{display:block;margin:12px 0;font-weight:600}
+#consola input,#consola select{display:block;width:100%;margin-top:5px;padding:11px 13px;border-radius:9px;
+  border:1px solid #24304a;background:#0d1420;color:#e8eefc;font:inherit;font-weight:400}
+#consola code{display:inline-block;padding:4px 8px;background:#0d1420;border-radius:6px;word-break:break-all}

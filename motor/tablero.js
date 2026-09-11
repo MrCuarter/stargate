@@ -160,6 +160,12 @@
       var gastados = Number(p.stargateRepesGastados || 0);
 
       var xp = Number(p.totalPoints || 0);
+      var ganados = 0;
+      hechas.forEach(function (id) { var m = porId[id]; if (m) ganados += Number(m.coinsReward || 0); });
+      (datos.campanas || []).forEach(function (cm) {
+        if ((p.completedCampaignIds || []).indexOf(cm.id) < 0) return;
+        (cm.rewards || []).forEach(function (x) { if (x.type === "coins") ganados += Number(x.value || 0); });
+      });
       var niv = nivelInfo(xp, cat.niveles, cat.rangos);
       var skins = []; for (var r = 1; r <= niv.rango; r++) skins.push(r);
 
@@ -210,8 +216,11 @@
         racha: racha(inicio, fechas, ahora),
         nivel_titulo: niv.titulo, xp_siguiente: niv.siguiente, xp_faltan: niv.faltan,
         creditos: Number(p.coins || 0),
-        creditos_ganados: Number(p.stargateCreditosGanados != null ? p.stargateCreditosGanados : p.coins || 0),
-        creditos_gastados: Number(p.stargateCreditosGastados || 0),
+        // 🔴 Ganados y gastados se DEDUCEN de lo que hizo, no se guardan en el perfil. Guardarlos
+        // sería dejar dos campos que el propio alumno puede escribir desde la consola del navegador
+        // (no están en la lista de campos protegidos de Firestore, y no pueden estarlo: no son
+        // economía de verdad). Lo que se puede calcular no se guarda.
+        creditos_ganados: ganados, creditos_gastados: Math.max(0, ganados - Number(p.coins || 0)),
         canjeados: veces, profe: p.stargateProfe || "",
         planeta: planetaDe(retos, datos.misiones, cat), tema: temaDe(retos, datos.misiones),
         insignias: Object.keys(ins), n: Object.keys(ins).length,

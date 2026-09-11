@@ -2416,6 +2416,13 @@ _FB = os.path.join(HERE, "assets", "js", "firebase_config.json")
 if os.path.exists(_FB):
     FIREBASE = _json.load(open(_FB, encoding="utf-8"))
 
+def _ver_assets(html):
+    """La marca de versión en CSS y JS. Sin esto el navegador sirve la hoja de estilos de ayer y la
+    página sale a medio maquetar sin que nada falle: el peor tipo de error, el que no avisa."""
+    return (html.replace('assets/css/stargate.css"', 'assets/css/stargate.css?v=' + _ver("assets/css/stargate.css") + '"')
+                .replace('assets/js/stargate.js"', 'assets/js/stargate.js?v=' + _ver("assets/js/stargate.js") + '"')
+                .replace('assets/js/tour.js"', 'assets/js/tour.js?v=' + _ver("assets/js/tour.js") + '"'))
+
 def _cabeza_motor():
     """Los scripts del motor. El catálogo va incrustado: son 25 KB y evita una petición más."""
     cat = open(_CAT, encoding="utf-8").read().strip() if os.path.exists(_CAT) else "{}"
@@ -2438,7 +2445,7 @@ y sin formularios: la fecha de la semana 1 decide el calendario completo.</p></h
 <script src="assets/js/crear.js" defer></script>
 </div></section>
 ''' + FOOT
-open(os.path.join(HERE, "crear.html"), "w", encoding="utf-8").write(_html)
+open(os.path.join(HERE, "crear.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: crear.html  (la consola del referente)")
 
 # ---------------------------------------------------------------- validar un reto desde fuera
@@ -2455,5 +2462,34 @@ _html = head("STARGATE · Validar un reto",
 pulsa, porque se le busca por su cuenta. Móntalo una vez en el Genially y olvídate.</p>
 </div></section>
 ''' + FOOT
-open(os.path.join(HERE, "validar.html"), "w", encoding="utf-8").write(_html)
+open(os.path.join(HERE, "validar.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: validar.html  (enlaces universales para Genially)")
+
+# ---------------------------------------------------------------- alistarse (sustituye al formulario)
+_html = head("STARGATE · Alistarse",
+             "Alístate en tu grupo de STARGATE: entra con tu cuenta, elige Comandante y personaje y abre tu Bitácora.",
+             "reg", publica=True).replace("</head>", _cabeza_motor() + "\n</head>") + '''
+<header class="hero"><div class="kicker">Alistamiento</div><h1>Únete a la tripulación</h1>
+<p>Se hace una vez. Entra con tu cuenta, di quién eres y elige a tu Comandante: él te llevará a tu escuadrón.</p></header>
+<section id="alistarse"><div class="wrap">
+<div id="alistarse-app"><p class="muted">Cargando…</p></div>
+<script src="assets/js/alistarse.js" defer></script>
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "alistarse.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: alistarse.html  (el alistamiento, sin formularios)")
+
+# ---------------------------------------------------------------- la consola (sustituye a la hoja)
+_html = head("STARGATE · Consola",
+             "Puesto de mando de STARGATE: alumnado, cola de nota, equipo docente y ajustes de cada grupo.",
+             "reg").replace("</head>", _cabeza_motor() + "\n</head>") + '''
+<header class="hero"><div class="kicker">Profesorado</div><h1>Consola</h1>
+<p>Todo lo que antes se hacía en la hoja de cálculo: el alumnado con nombre y correo, la cola de nota,
+el equipo docente y los ajustes del grupo. Sin PIN — entras con tu cuenta y ves lo tuyo.</p></header>
+<section id="consola"><div class="wrap">
+<div id="consola-app"><p class="muted">Cargando…</p></div>
+<script src="assets/js/consola.js" defer></script>
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "consola.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: consola.html  (el puesto de mando, sin hoja de cálculo)")
