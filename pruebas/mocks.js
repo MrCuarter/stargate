@@ -401,14 +401,22 @@ const Html = {
 };
 const Fetch = {
   llamadas: [], peticiones: [], codigo: 200,   // el banco puede simular una web caída (504) como la del 25-ago
+  // v3.65 · Respuestas por URL: `Fetch.responde("tokeninfo", '{"aud":"..."}')` hace que cualquier
+  // llamada cuya URL contenga ese trozo devuelva ese cuerpo. Hacía falta para poder probar DE VERDAD
+  // la verificación del login de Google —que es una llamada a Google— en vez de mirar el código y
+  // confiar. Sin respuesta preparada, se comporta como siempre: cuerpo vacío.
+  cuerpos: [],
+  responde(trozo, cuerpo) { Fetch.cuerpos.push({ trozo: trozo, cuerpo: cuerpo }); },
+  olvida() { Fetch.cuerpos = []; },
   fetch(url, opciones) {
     Fetch.llamadas.push(url);
     Fetch.peticiones.push({ url: url, opciones: opciones || null });   // v3.38 · con QUÉ se llamó (la chincheta de Padlet)
     const cod = Fetch.codigo;
     if (cod !== 200 && !(opciones && opciones.muteHttpExceptions))
       throw new Error("Request failed for " + url + " returned code " + cod);
+    const pre = Fetch.cuerpos.filter(x => String(url).indexOf(x.trozo) >= 0).pop();
     const blob = { _n: "blob", getName() { return this._n; }, getContentType: () => "image/png", setName(n) { this._n = n; return this; } };
-    return { getBlob: () => blob, getContentText: () => "", getResponseCode: () => cod };
+    return { getBlob: () => blob, getContentText: () => (pre ? pre.cuerpo : ""), getResponseCode: () => cod };
   }
 };
 const Mimes = {

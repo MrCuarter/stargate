@@ -72,8 +72,12 @@ c(!/window\.__sgDemo/.test(R), "🔬 sin restos del diagnóstico que usé para e
 c(/Modo demostración/.test(R),
   "   y avisa en pantalla de que es una demostración, para que nadie la confunda con su ficha");
 
-// la misma regla, en el Apps Script: si una de las dos cambia, dejan de coincidir
-const GS = fs.readFileSync(path.join(RAIZ, "apps-script", "Code.gs"), "utf8");
+// La misma regla, en el Apps Script: si una de las dos cambia, dejan de coincidir.
+// 🔴 Se leen LOS DOS ficheros a propósito: `sembrarDemo` empezó en Code.gs y se mudó a Bonus.gs el
+// 11-sep, cuando Code.gs volvió a rozar el techo de Apps Script. La comprobación es de la REGLA, no
+// del sitio donde vive; atarla a un fichero la habría roto por una mudanza que no cambia nada.
+const GS = fs.readFileSync(path.join(RAIZ, "apps-script", "Code.gs"), "utf8")
+         + fs.readFileSync(path.join(RAIZ, "apps-script", "Bonus.gs"), "utf8");
 c(/nom\.indexOf\("DEMO"\) < 0 && nom\.indexOf\("PRUEBA"\) < 0/.test(GS),
   "🔴 sembrarDemo() usa esa MISMA regla: se puede enseñar justo lo que se puede sembrar");
 

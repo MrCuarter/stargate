@@ -1092,3 +1092,11 @@ ol.pasos-num li b{color:var(--ink)}
   .barra-pasos .p span{display:none}
   .barra-pasos .p{min-height:10px;padding:5px 0}
 }
+
+/* ---- v3.65 · «Entrar con Google» en la Nave ----
+   El botón lo dibuja Google y no se puede reestilar (lo sirve en un iframe): lo único que hacemos es
+   centrarlo y darle aire. El separador deja claro que escribir el correo sigue siendo posible —
+   mientras el login sea una prueba, nadie puede quedarse fuera de su propia Nave. */
+.g-nave{display:flex;justify-content:center;margin:14px 0 0;min-height:44px}
+.o-bien{display:flex;align-items:center;gap:12px;margin:0 0 12px;color:var(--muted);font-size:.82rem}
+.o-bien::before,.o-bien::after{content:"";flex:1;height:1px;background:var(--line)}

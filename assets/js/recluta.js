@@ -3,7 +3,8 @@
 // Identificación: el recluta escribe su correo UNA vez por dispositivo (localStorage); la nave pide al
 // servidor SOLO su ficha (doPost accion=quien, sin PIN). El correo nunca va en la URL ni se lista en el API.
 (function(){
-  var API=(window.SG_TABLERO_API||"").trim(), SEM=window.SG_SEMANAS||[], NOMBRES=window.SG_BADGE_NAMES||{},
+  var API=(window.SG_TABLERO_API||"").trim(), CID=(window.SG_GOOGLE_CLIENT_ID||"").trim(),
+      SEM=window.SG_SEMANAS||[], NOMBRES=window.SG_BADGE_NAMES||{},
       BADGES=window.SG_BADGES||[], PLAN=window.SG_PLANETAS||[], root=document.getElementById('nave-app'),
       CROMOS=window.SG_CROMOS||[], SERIES=window.SG_CROMO_SERIES||[], CARDV=window.SG_CARDV||'',
       SELLOS=window.SG_SERIES_ALBUM||[];
@@ -45,9 +46,15 @@
           // la pestaña abierta sale del #hash: así un enlace a #retos abre esa, y F5 no te devuelve al principio
           tab:(location.hash||'').replace('#','')||'ficha'};
 
-  function quien(email,cb){
+  // v3.65 · `quien` admite dos formas de decir quién eres: el correo tecleado (como siempre) o el
+  // token de «Iniciar sesión con Google». 🔴 Con token, el correo lo pone GOOGLE en el servidor, no
+  // el navegador: es lo que impide que alguien escriba el correo de un compañero y vea su ficha.
+  function quien(quien_,cb){
+    var cuerpo = (quien_ && quien_.token)
+      ? {accion:'quien',per:per,token:quien_.token}
+      : {accion:'quien',per:per,email:String(quien_||'')};
     fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({accion:'quien',per:per,email:email})})
+      body:JSON.stringify(cuerpo)})
       .then(function(r){return r.json();}).then(cb)
       .catch(function(){cb({error:'red'});});
   }
@@ -79,6 +86,28 @@
     quien(st.email,function(d){
       if(!d||!d.yo) return;                     // si algo va mal, se queda lo que ya se veía: no se rompe nada
       st.yo=d.yo; st.pase=(d&&d.pase)||null; render();
+    });
+  }
+  // Entrar con la cuenta de Google: el correo lo resuelve el servidor a partir del token firmado.
+  function identificarConGoogle(token){
+    st.cargandoYo=true; st.msgYo=''; render();
+    quien({token:token},function(d){
+      st.cargandoYo=false;
+      st.pase=(d&&d.pase)||null;
+      if(d&&d.yo){
+        st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true;
+        if(st.email) localStorage.setItem(KEY_MAIL,st.email);
+        st.msgYo='';
+        if(!localStorage.getItem('sgNaveOnboard_'+per)) setTimeout(function(){ onboarding(0,'nave'); }, 700);
+      } else if(d&&d.error){
+        st.msgYo='No he podido comprobar tu cuenta: '+esc(d.error);
+      } else {
+        // Entró bien en Google pero no está en este grupo: es el flujo de «no te encuentro →
+        // alístate», igual que con el correo tecleado.
+        st.email=(d&&d.correo)||''; st.verificado=true;
+        st.msgYo='Tu cuenta es correcta, pero todavía no estás alistado en este grupo.';
+      }
+      render();
     });
   }
   function identificar(email){
@@ -137,6 +166,10 @@
     var alta = st.d && st.d.formBitacora && st.msgYo;
     return '<div class="card nave-login"><div class="nave-perfil">'+nebulaVideo('nebula-mini')+''
       +'<div><h3>Identifícate, recluta</h3><p class="small muted">Escribe el correo con el que te alistaste en la Bitácora de mando. Solo lo pediré una vez en este dispositivo, y solo te enseño <b>tu</b> ficha.<br><b>¿Primera vez?</b> Escríbelo igualmente y te digo cómo subir a bordo.</p></div></div>'
+      +(CID?'<div id="g-nave" class="g-nave"></div>'
+        +'<p class="small muted" style="margin:6px 0 14px">Es la forma segura: Google nos dice quién eres y '
+        +'<b>nadie puede entrar con tu correo</b>. Solo pide ver tu dirección de correo — ni Drive, ni contraseña.</p>'
+        +'<div class="o-bien"><span>o escríbelo a mano</span></div>':'')
       +'<div class="selrow"><input id="in-mail" type="email" placeholder="tu.correo@ejemplo.com" autocomplete="email"><button class="btn primary" id="btn-mail" type="button">Entrar en la nave</button></div>'
       +(st.msgYo?'<p class="small" style="margin-top:8px;color:var(--amber)">'+st.msgYo+'</p>':'')
       +(alta?'<div class="nave-alta"><span class="o">¿aún no te has alistado?</span>'
@@ -915,6 +948,30 @@
   }
 
   // ---------- render ----------
+  // v3.65 · El botón de Google se pinta DESPUÉS de cada render, porque la tarjeta de login se
+  // vuelve a crear entera cada vez. 🔴 La librería se carga una sola vez y solo si hace falta: si no
+  // hay ID de cliente, esta web no habla con Google en absoluto.
+  var gsiCargado=false, gsiListo=false;
+  function montarBotonGoogle(){
+    var hueco=document.getElementById('g-nave');
+    if(!hueco||!CID) return;
+    function pinta(){
+      try{
+        if(!gsiListo){ google.accounts.id.initialize({client_id:CID,callback:function(r){
+          if(r&&r.credential) identificarConGoogle(r.credential);
+        }}); gsiListo=true; }
+        google.accounts.id.renderButton(hueco,{theme:'filled_blue',size:'large',text:'signin_with',locale:'es',width:280});
+      }catch(e){ hueco.innerHTML='<p class="small muted">No he podido cargar el botón de Google. Entra escribiendo tu correo.</p>'; }
+    }
+    if(window.google&&window.google.accounts&&window.google.accounts.id) return pinta();
+    if(gsiCargado) return;
+    gsiCargado=true;
+    var sc=document.createElement('script');
+    sc.src='https://accounts.google.com/gsi/client'; sc.async=true;
+    sc.onload=function(){ pinta(); };
+    sc.onerror=function(){ hueco.innerHTML='<p class="small muted">No he podido cargar el botón de Google. Entra escribiendo tu correo.</p>'; };
+    document.head.appendChild(sc);
+  }
   function render(){
     // 30-ago · el orden que pidió Norberto: puerta → menú (pegajoso al hacer scroll) → semana → contenido
     // 🔴 Sin identificar no se pinta la nave: ni pestañas, ni accesos a los formularios, ni
@@ -929,6 +986,7 @@
       ? login()+pestanas()+accesos()+cabecera()+contenido()
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
     verTablero(dentro && st.tab==='tablero');
+    montarBotonGoogle();   // el hueco del botón solo existe cuando se pinta el login
     Array.prototype.forEach.call(root.querySelectorAll('.nave-tab[data-tab]'),function(b){
       b.onclick=function(){ irA(b.getAttribute('data-tab')); };
     });

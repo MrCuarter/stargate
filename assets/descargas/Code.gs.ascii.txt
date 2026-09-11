@@ -2360,78 +2360,6 @@ function limpiarRestos() {
 // semanal, la racha y la "ultima actividad" cuenten una historia creible, no un big bang de hoy.
 var SIEMBRA_ALIAS = [["Vega","f"],["Orion","m"],["Lyra","f"],["Nix","m"],["Talia","f"],
                      ["Bruma","f"],["Cosmo","m"],["Runa","f"],["Halcon","m"],["Pixel","f"]];
-function sembrarDemo() {
-  var sel = filaPERSeleccionada_(); if (!sel) return; var ui = SpreadsheetApp.getUi();
-  var nom = String(sel.o.nombre || "").toUpperCase();
-  if (nom.indexOf("DEMO") < 0 && nom.indexOf("PRUEBA") < 0) {
-    ui.alert("Este PER no parece de prueba",
-      "Solo siembro en grupos cuyo nombre lleve DEMO o PRUEBA: \u00ab" + sel.o.nombre + "\u00bb no lo lleva.\n\n" +
-      "Es la puerta que le faltaba al viejo Pruebas.gs, que cre\u00f3 un PER entero sin querer.", ui.ButtonSet.OK);
-    return;
-  }
-  if (ui.alert("Sembrar alumnado de PRUEBA",
-      "A\u00f1ade " + SIEMBRA_ALIAS.length + " reclutas de mentira a \u00ab" + sel.o.nombre + "\u00bb (correos @reclutas.demo), " +
-      "con progreso repartido desde la semana 1 hasta la actual. Los que ya est\u00e9n sembrados no se duplican.\n\n\u00bfSembrar?",
-      ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
-  var r = sembrarDemo_(sel.o.id);
-  try { alumnado_(); } catch (e) {}
-  ui.alert("Siembra hecha", r.nuevos + " reclutas nuevos (" + r.yaEstaban + " ya estaban) \u00b7 " +
-    r.eventos + " registros en EVENTOS.\n\nM\u00edralos en el tablero o en la pesta\u00f1a ALUMNADO.", ui.ButtonSet.OK);
-}
-function sembrarDemo_(perId) {
-  var p = perFila_(perId); if (!p) throw new Error("PER no encontrado: " + perId);
-  var o = perObj_(p.v);
-  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabB);
-  if (!sh) throw new Error("El PER no tiene pesta\u00f1a de Bit\u00e1cora (" + o.tabB + ")");
-  var cab = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 1)).getValues()[0].map(String);
-  var col = function(frag){ return idx_(cab, frag); };
-  var cCorreo = col("direcci\u00f3n de correo") >= 0 ? col("direcci\u00f3n de correo") : col("email address");
-  if (cCorreo < 0) throw new Error("La pesta\u00f1a B no tiene la columna del correo de Google");
-  var vivos = {};
-  if (sh.getLastRow() > 1) sh.getDataRange().getValues().slice(1).forEach(function(v){
-    var m = String(v[cCorreo] || "").toLowerCase().trim(); if (m) vivos[m] = true; });
-  // el docente de cada recluta: se reparten entre quienes IMPARTEN, como hizo Norberto a mano el 28-ago
-  var profes = docentesDe_(perId).filter(imparte_).map(function(d){ return d.nombre; });
-  if (!profes.length) profes = [""];
-  var semAhora = Math.max(1, Math.min(semanaDe_(o) || 1, semanasDe_(o.tipo)));
-  var retos = retosDe_(o.tipo);
-  var ini = new Date(o.inicio + "T12:00:00");
-  var fecha = function(sem, dia){ var d = new Date(ini.getTime()); d.setDate(d.getDate() + (sem - 1) * 7 + (dia % 6)); 
-    return d > new Date() ? new Date() : d; };
-  var ev = hoja_(H.EV), filasEv = [], nuevos = 0, yaEstaban = 0;
-  SIEMBRA_ALIAS.forEach(function(a, i){
-    var email = "demo" + (i < 9 ? "0" : "") + (i + 1) + "@reclutas.demo";
-    if (vivos[email]) { yaEstaban++; return; }
-    nuevos++;
-    // identidad en la pestana B, por NOMBRE de columna (aguanta reordenaciones del formulario)
-    var fila = []; while (fila.length < cab.length) fila.push("");
-    var pon = function(frag, valor){ var c = col(frag); if (c >= 0) fila[c] = valor; };
-    fila[cCorreo] = email;
-    pon("marca temporal", fecha(1, i));
-    pon("alias", a[0]);
-    pon("apellidos", "Recluta de prueba " + (i + 1));
-    pon("nombre", a[0]);            // formulario nuevo: el alias hace de nombre de pila
-    pon("elige tu avatar", "Personaje " + ((i % 7) + 1) + " \u00b7 " + (a[1] === "m" ? "\u00e9l" : "ella") + " (evoluciona)");
-    pon("qui\u00e9n imparte", profes[i % profes.length]);
-    pon("biograf", "Recluta de siembra: existo para que el tablero tenga vida en las pruebas.");
-    sh.appendRow(fila);
-    // el viaje: el recluta i llega "hasta donde llega". 0 = solo alistado; el ultimo lo lleva todo
-    // lo abierto. El reparto da niveles distintos y un ranking con escalones, que es lo que se quiere ver.
-    var hasta = Math.round(semAhora * i / (SIEMBRA_ALIAS.length - 1));       // en SEMANAS del calendario
-    filasEv.push([fecha(1, i), o.id, email, a[0], "H1", "Reclutamiento", 0, XP_RECLUTAMIENTO, "siembra", ""]);
-    retos.forEach(function(r){
-      var t = r[4]; if (t > 8) return;                                       // la batalla final no se siembra
-      var abre = SEMANA_DEL_TEMA[String(t)] || SEMANA_DEL_TEMA[t] || 99;
-      if (abre > hasta) return;
-      // dentro del tema, no todos lo hacen todo: al recluta le falta el ultimo reto de su tema mas alto
-      if (abre === hasta && r[0].charAt(0) === "X" && i % 2) return;
-      filasEv.push([fecha(abre, i + t), o.id, email, a[0], r[0], r[1], t, r[3], "siembra",
-                    "https://view.genially.com/demo-" + a[0].toLowerCase() + "-" + r[0].toLowerCase()]);
-    });
-  });
-  if (filasEv.length) ev.getRange(ev.getLastRow() + 1, 1, filasEv.length, 10).setValues(filasEv);
-  return { nuevos: nuevos, yaEstaban: yaEstaban, eventos: filasEv.length };
-}
 function resetearHoja() {
   var ui = SpreadsheetApp.getUi();
   var pendiente = progreso_("reset");
@@ -2581,6 +2509,13 @@ var MARGEN_FASE_MS = 90000;
 // es repetir sin moverse.
 var MAX_SIN_AVANCE = 8;
 var PROP_TAREA = "TAREA_";
+// v3.65 - ?Se exige entrar con Google para ver la ficha? Interruptor, no decision grabada a fuego:
+// se enciende poniendo EXIGE_LOGIN a "si" en las propiedades del script, y se apaga quitandolo.
+// Apagado mientras el login sea una prueba: si fallara, nadie se queda sin ver su Nave - y los
+// formularios, que es donde se trabaja de verdad, no dependen de esto.
+function exigeLogin_() {
+  return (PropertiesService.getScriptProperties().getProperty("EXIGE_LOGIN") || "").toLowerCase() === "si";
+}
 
 function reloj_() { var t0 = new Date().getTime(), algo = false, ultimo = t0;
   return { marcar: function(){ algo = true; },
@@ -3976,21 +3911,8 @@ function doGet(e) {
   // esta apagada hasta que exista el ID de cliente.
   if (e && e.parameter && e.parameter.accion === "verificar_token") {
     var res = { ok:false, correo:"", error:"" };
-    try {
-      var cid = PropertiesService.getScriptProperties().getProperty("GOOGLE_CLIENT_ID") || "";
-      var tok = String(e.parameter.token || "");
-      if (!cid) throw new Error("Falta GOOGLE_CLIENT_ID en las propiedades del script");
-      if (!tok) throw new Error("No ha llegado ningun token");
-      var r = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" +
-                                encodeURIComponent(tok), { muteHttpExceptions:true });
-      var d = JSON.parse(r.getContentText() || "{}");
-      // \ud83d\udd34 LA COMPROBACION QUE LO SOSTIENE TODO: que el token se emitio PARA NOSOTROS. Sin mirar
-      // `aud`, cualquiera podria colar el token de otra web y entrar como quien quisiera.
-      if (d.aud !== cid) throw new Error("El token no es de esta aplicacion");
-      if (!d.email) throw new Error("El token no trae correo");
-      if (String(d.email_verified) !== "true") throw new Error("Google no da ese correo por verificado");
-      res.ok = true; res.correo = String(d.email).toLowerCase();
-    } catch (x) { res.error = x.message; }
+    try { res.correo = correoDeToken_(e.parameter.token); res.ok = true; }
+    catch (x) { res.error = x.message; }
     return ContentService.createTextOutput(JSON.stringify(res)).setMimeType(ContentService.MimeType.JSON);
   }
   if (per === "all") out = { pers: hoja_(H.PERS).getDataRange().getValues().slice(1).filter(function(v){ return v[0] && !v[21]; })
@@ -4005,7 +3927,15 @@ function doPost(e) {
     // identificaci\u00f3n del recluta (sin PIN): devuelve SOLO la ficha del correo indicado; nunca lista correos
     if (q.accion === "quien") {
       var tq = tablero_(q.per, true); if (tq.error) throw new Error(tq.error);
-      var eq = String(q.email || "").toLowerCase().trim();
+      // v3.65 \u00b7 Con token, el correo lo pone GOOGLE y no el navegador. Es lo que cierra el agujero:
+      // hasta ahora bastaba teclear el correo de un companero para ver su ficha \u2014su nombre, su
+      // correo y su progreso\u2014, porque el servidor se creia lo que le mandaran.
+      // \ud83d\udd34 La comprobacion tiene que estar AQUI. Si el navegador verificara el token y luego pidiera
+      // la ficha por correo, el troll se saltaria el primer paso y pediria la ficha directamente.
+      var eq;
+      if (q.token) eq = correoDeToken_(q.token);
+      else if (exigeLogin_()) throw new Error("Entra con tu cuenta de Google para ver tu ficha.");
+      else eq = String(q.email || "").toLowerCase().trim();
       var yo = (tq.reclutas || []).filter(function(x){ return x.email === eq; })[0] || null;
       return ContentService.createTextOutput(JSON.stringify({ yo: yo ? { alias:yo.alias, avatar:yo.avatar, xp:yo.xp,
         nivel:yo.nivel, rango:yo.rango, rango_nombre:yo.rango_nombre, nivel_titulo:yo.nivel_titulo,
@@ -4024,7 +3954,7 @@ function doPost(e) {
         // enturbian la cuenta, y aqu\u00ed \u00abcasi\u00bb significa decirle a alguien que le falta algo que hizo.
         retos: Object.keys(yo.retos || {}),
         xp7:yo.xp7 || 0,
-        repes:yo.repes || 0, repes_disponibles:yo.repes_disponibles || 0, racha:yo.racha || 0 } : null,
+        repes:yo.repes || 0, repes_disponibles:yo.repes_disponibles || 0, racha:yo.racha || 0 } : null, correo: eq,
         // \ud83d\udd34 se dice que la ventana est\u00e1 abierta y hasta cu\u00e1ndo, pero NUNCA la consigna: si viajara
         // hasta aqu\u00ed, no har\u00eda falta estar en clase para verla y todo esto no valdr\u00eda nada.
         pase: (function(){ var pa = paseActivo_(q.per); if (!pa) return null;
@@ -4186,6 +4116,24 @@ function doPost(e) {
 }
 
 // ================= UTILIDADES =================
+// v3.65 \u00b7 IDENTIDAD VERIFICADA POR GOOGLE. Devuelve el correo de quien pulso \u00abIniciar sesion con
+// Google\u00bb, o revienta. \ud83d\udd34 Las tres comprobaciones son las tres: que Google reconozca el token, que
+// se emitiera PARA NOSOTROS (`aud`) y que el correo este verificado. Sin la de `aud`, el token de
+// cualquier otra web valdria para entrar como quien se quisiera. Probado con un token falsificado
+// que decia ser nuestro: rechazado.
+function correoDeToken_(token) {
+  var cid = PropertiesService.getScriptProperties().getProperty("GOOGLE_CLIENT_ID") || "";
+  var tok = String(token || "");
+  if (!cid) throw new Error("Falta GOOGLE_CLIENT_ID en las propiedades del script");
+  if (!tok) throw new Error("No ha llegado ningun token");
+  var r = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(tok),
+                            { muteHttpExceptions: true });
+  var d = JSON.parse(r.getContentText() || "{}");
+  if (d.aud !== cid) throw new Error("El token no es de esta aplicacion");
+  if (!d.email) throw new Error("El token no trae correo");
+  if (String(d.email_verified) !== "true") throw new Error("Google no da ese correo por verificado");
+  return String(d.email).toLowerCase();
+}
 function slug_(s) { return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
 function cambiarPin() { var ui = SpreadsheetApp.getUi(); var pr = PropertiesService.getScriptProperties();
   var r = ui.prompt("PIN del profesorado", "Nuevo PIN (6 caracteres o m\u00e1s). Lo usar\u00e1n los profes en el panel web, para su d\u00eda a d\u00eda.", ui.ButtonSet.OK_CANCEL);

@@ -856,3 +856,83 @@ function resolverPendiente_(perId, fila, profe, aprueba, motivo) {
     o.id, email); } catch (e) { Logger.log("aviso de aprobacion: " + e); }
   return { ok: true, aprobado: true, estado: "Concedido", coste: coste };
 }
+
+// ═══ LA SIEMBRA DE ALUMNADO DE PRUEBA ═══════════════════════════════════════════════════════════
+// 🔴 Vive AQUI y no en Code.gs por una razon tonta y muy real: Apps Script deja de guardar un
+// fichero pasados ~298.000 bytes, sin decirlo. Es la sexta vez que Code.gs roza el techo. Cuando
+// pasa, se saca un bloque entero —no se pelea con el boton de guardar— y se elige uno que no tenga
+// nada que ver con el motor. Su hermana `sembrarCanjesDemo_` ya estaba aqui.
+
+function sembrarDemo_(perId) {
+  var p = perFila_(perId); if (!p) throw new Error("PER no encontrado: " + perId);
+  var o = perObj_(p.v);
+  var sh = SpreadsheetApp.getActive().getSheetByName(o.tabB);
+  if (!sh) throw new Error("El PER no tiene pestaña de Bitácora (" + o.tabB + ")");
+  var cab = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 1)).getValues()[0].map(String);
+  var col = function(frag){ return idx_(cab, frag); };
+  var cCorreo = col("dirección de correo") >= 0 ? col("dirección de correo") : col("email address");
+  if (cCorreo < 0) throw new Error("La pestaña B no tiene la columna del correo de Google");
+  var vivos = {};
+  if (sh.getLastRow() > 1) sh.getDataRange().getValues().slice(1).forEach(function(v){
+    var m = String(v[cCorreo] || "").toLowerCase().trim(); if (m) vivos[m] = true; });
+  // el docente de cada recluta: se reparten entre quienes IMPARTEN, como hizo Norberto a mano el 28-ago
+  var profes = docentesDe_(perId).filter(imparte_).map(function(d){ return d.nombre; });
+  if (!profes.length) profes = [""];
+  var semAhora = Math.max(1, Math.min(semanaDe_(o) || 1, semanasDe_(o.tipo)));
+  var retos = retosDe_(o.tipo);
+  var ini = new Date(o.inicio + "T12:00:00");
+  var fecha = function(sem, dia){ var d = new Date(ini.getTime()); d.setDate(d.getDate() + (sem - 1) * 7 + (dia % 6)); 
+    return d > new Date() ? new Date() : d; };
+  var ev = hoja_(H.EV), filasEv = [], nuevos = 0, yaEstaban = 0;
+  SIEMBRA_ALIAS.forEach(function(a, i){
+    var email = "demo" + (i < 9 ? "0" : "") + (i + 1) + "@reclutas.demo";
+    if (vivos[email]) { yaEstaban++; return; }
+    nuevos++;
+    // identidad en la pestaña B, por NOMBRE de columna (aguanta reordenaciones del formulario)
+    var fila = []; while (fila.length < cab.length) fila.push("");
+    var pon = function(frag, valor){ var c = col(frag); if (c >= 0) fila[c] = valor; };
+    fila[cCorreo] = email;
+    pon("marca temporal", fecha(1, i));
+    pon("alias", a[0]);
+    pon("apellidos", "Recluta de prueba " + (i + 1));
+    pon("nombre", a[0]);            // formulario nuevo: el alias hace de nombre de pila
+    pon("elige tu avatar", "Personaje " + ((i % 7) + 1) + " · " + (a[1] === "m" ? "él" : "ella") + " (evoluciona)");
+    pon("quién imparte", profes[i % profes.length]);
+    pon("biograf", "Recluta de siembra: existo para que el tablero tenga vida en las pruebas.");
+    sh.appendRow(fila);
+    // el viaje: el recluta i llega «hasta donde llega». 0 = solo alistado; el último lo lleva todo
+    // lo abierto. El reparto da niveles distintos y un ranking con escalones, que es lo que se quiere ver.
+    var hasta = Math.round(semAhora * i / (SIEMBRA_ALIAS.length - 1));       // en SEMANAS del calendario
+    filasEv.push([fecha(1, i), o.id, email, a[0], "H1", "Reclutamiento", 0, XP_RECLUTAMIENTO, "siembra", ""]);
+    retos.forEach(function(r){
+      var t = r[4]; if (t > 8) return;                                       // la batalla final no se siembra
+      var abre = SEMANA_DEL_TEMA[String(t)] || SEMANA_DEL_TEMA[t] || 99;
+      if (abre > hasta) return;
+      // dentro del tema, no todos lo hacen todo: al recluta le falta el último reto de su tema más alto
+      if (abre === hasta && r[0].charAt(0) === "X" && i % 2) return;
+      filasEv.push([fecha(abre, i + t), o.id, email, a[0], r[0], r[1], t, r[3], "siembra",
+                    "https://view.genially.com/demo-" + a[0].toLowerCase() + "-" + r[0].toLowerCase()]);
+    });
+  });
+  if (filasEv.length) ev.getRange(ev.getLastRow() + 1, 1, filasEv.length, 10).setValues(filasEv);
+  return { nuevos: nuevos, yaEstaban: yaEstaban, eventos: filasEv.length };
+}
+
+function sembrarDemo() {
+  var sel = filaPERSeleccionada_(); if (!sel) return; var ui = SpreadsheetApp.getUi();
+  var nom = String(sel.o.nombre || "").toUpperCase();
+  if (nom.indexOf("DEMO") < 0 && nom.indexOf("PRUEBA") < 0) {
+    ui.alert("Este PER no parece de prueba",
+      "Solo siembro en grupos cuyo nombre lleve DEMO o PRUEBA: «" + sel.o.nombre + "» no lo lleva.\n\n" +
+      "Es la puerta que le faltaba al viejo Pruebas.gs, que creó un PER entero sin querer.", ui.ButtonSet.OK);
+    return;
+  }
+  if (ui.alert("Sembrar alumnado de PRUEBA",
+      "Añade " + SIEMBRA_ALIAS.length + " reclutas de mentira a «" + sel.o.nombre + "» (correos @reclutas.demo), " +
+      "con progreso repartido desde la semana 1 hasta la actual. Los que ya estén sembrados no se duplican.\n\n¿Sembrar?",
+      ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  var r = sembrarDemo_(sel.o.id);
+  try { alumnado_(); } catch (e) {}
+  ui.alert("Siembra hecha", r.nuevos + " reclutas nuevos (" + r.yaEstaban + " ya estaban) · " +
+    r.eventos + " registros en EVENTOS.\n\nMíralos en el tablero o en la pestaña ALUMNADO.", ui.ButtonSet.OK);
+}
