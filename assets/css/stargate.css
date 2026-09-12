@@ -1140,6 +1140,72 @@ ol.pasos-num li b{color:var(--ink)}
      acabas de tocar, que es justo lo que este bloque venía a arreglar. */
   .avatar-grande{order:-1;position:static;max-width:220px;margin:0 auto}
 }
+/* ═══════════ EL AULA · el puesto de mando dentro del Genially ═══════════
+   Se proyecta o se mira en un embed estrecho: todo grande, nada de tablas de ocho columnas. */
+#aula .wrap{max-width:760px}
+.au-barra{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:0 0 12px;
+  border-bottom:1px solid #24304a}
+.au-quien{display:flex;flex-direction:column;line-height:1.25}
+.au-quien b{font-size:.98rem}
+.au-tabs{display:flex;gap:5px;margin-left:auto;flex-wrap:wrap}
+.au-t{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;border:1px solid #24304a;
+  background:#0b1119;color:#9fb0ce;font:inherit;font-size:.88rem;cursor:pointer;transition:all .15s}
+.au-t:hover{color:#fff;border-color:var(--teal);background:rgba(55,224,236,.08)}
+.au-t.on{background:#14243c;border-color:#4da3ff;color:#fff;font-weight:600}
+.au-t .i{font-size:1rem}
+.au-caja{background:#0d1420;border:1px solid #24304a;border-radius:16px;padding:28px 24px;text-align:center}
+.au-icono{font-size:2.4rem;line-height:1;margin-bottom:8px}
+.au-caja h2{margin:0 0 8px}
+.au-sub{color:#9fb0ce;margin:0 0 16px}
+.au-tarjeta{background:#0d1420;border:1px solid #24304a;border-radius:14px;padding:18px 20px;margin:0 0 14px}
+.au-tarjeta h3{margin:0 0 8px;font-size:1.08rem}
+.au-lista{margin:8px 0 0;padding-left:20px;line-height:1.7;font-size:.93rem;color:#c7d6ee}
+.au-consejo{margin:12px 0 0;padding:11px 14px;border-left:2px solid var(--amber);background:#1a1608;
+  border-radius:0 9px 9px 0;font-size:.9rem;color:#e6d3a8}
+/* la llamada dentro del aula */
+.au-llamada{background:#0d1420;border:1px solid #24304a;border-radius:14px;padding:18px 20px;margin:0 0 14px}
+.au-llamada.viva{border-color:var(--amber);box-shadow:0 0 26px rgba(245,176,67,.2)}
+.au-cab{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:1.05rem}
+.au-cuenta{font-variant-numeric:tabular-nums;color:var(--amber);font-weight:700}
+.au-presentes{font-size:1rem;color:#9fb0ce;margin:10px 0 6px}
+.au-presentes b{font-size:2.4rem;color:var(--teal);display:inline-block;vertical-align:middle;margin-right:8px;
+  font-variant-numeric:tabular-nums}
+.au-nombres{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px;min-height:26px}
+.au-chip{padding:3px 11px;border-radius:999px;background:#14243c;border:1px solid #2a4a6a;font-size:.84rem;
+  color:#cfe0f5}
+/* la gente */
+.au-gente{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.au-p{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;background:#0b1119;
+  border:1px solid #24304a;font-size:.92rem}
+.au-p b{font-weight:600}
+.au-p span{color:var(--teal);font-size:.84rem;font-variant-numeric:tabular-nums}
+.au-p.nuevo{border-color:#2a4a3a;background:#0c1a14}
+.au-p.nuevo span{color:#4fd18b}
+.au-p.frio{opacity:.6}
+/* rankings del aula */
+.au-rank{list-style:none;margin:10px 0 0;padding:0;counter-reset:r}
+.au-rank li{display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid #182238}
+.au-rank li:first-child{border-top:0}
+.au-rank li span{width:22px;text-align:center;color:#6d8398;font-variant-numeric:tabular-nums}
+.au-rank li b{flex:1;font-weight:500}
+.au-rank li em{font-style:normal;color:var(--teal);font-variant-numeric:tabular-nums}
+.au-emb{width:30px;height:30px;object-fit:contain}
+/* premiar */
+.au-premios{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.au-pr{padding:12px 18px;border-radius:11px;border:1px solid #24304a;background:#0b1119;color:#e8eefc;
+  font:inherit;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .15s}
+.au-pr:hover{border-color:var(--teal);background:rgba(55,224,236,.1);transform:translateY(-1px)}
+.au-pr:disabled{opacity:.5;cursor:default;transform:none}
+.au-pr.doble{border-color:#4a3a1a;color:var(--amber)}
+.au-pr.carta{border-color:#3d2a52;color:#c79be6}
+#au-pmsg{font-size:.95rem;color:#cfe0f5;min-height:22px}
+@media(max-width:560px){
+  .au-tabs{margin-left:0;width:100%}
+  .au-t b{display:none}
+  .au-t{flex:1;justify-content:center;padding:10px}
+}
+@media (prefers-reduced-motion:reduce){.au-t,.au-pr{transition:none}.au-pr:hover{transform:none}}
+
 /* ═══════════ LLAMADA A FILAS ═══════════
    El botón que vive dentro del Genially. Se proyecta, así que todo va GRANDE: se tiene que leer
    desde la última fila del aula. */

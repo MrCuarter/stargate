@@ -505,6 +505,46 @@ function vigilarLlamada(perId, alCambiar) {
     () => alCambiar(null));
 }
 
+/**
+ * ════════════ PREMIOS A MANO ════════════
+ * Lo que el docente reparte en clase: unos xp por una intervención buena, unos créditos por ayudar,
+ * una carta de regalo. No sustituye a los retos — los complementa: es la gasolina de la clase en
+ * directo, y es lo que convierte «participar» en algo que pasa de verdad.
+ */
+async function premiar(perId, fichaId, { xp = 0, creditos = 0, motivo = "" } = {}) {
+  const f = await getDoc(doc(db, "student_profiles", fichaId));
+  if (!f.exists()) throw new Error("No encuentro la ficha");
+  const d = f.data();
+  await llamar("applyXpDelta", {
+    projectId: perId, studentProfileId: fichaId, userId: d.userId,
+    deltaXp: Number(xp) || 0, deltaCoins: Number(creditos) || 0,
+    source: AJUSTE_DOCENTE, details: motivo || "Premio en clase"
+  });
+}
+
+/**
+ * Regalar una carta.
+ *
+ * 🔴 Va al inventario con el identificador de DOCUMENTO («grupo__cromo_x»), que es lo que guarda el
+ * motor. Escribir la clave corta dejaría una carta que el álbum no sabría leer — justamente el fallo
+ * que se arregló el 12-sep.
+ */
+async function regalarCromo(perId, fichaId, clave) {
+  const f = await getDoc(doc(db, "student_profiles", fichaId));
+  if (!f.exists()) throw new Error("No encuentro la ficha");
+  const cat = window.SG_CATALOGO || {};
+  const cromos = cat.cromos || [];
+  if (!cromos.length) throw new Error("No tengo el catálogo de cartas");
+  const elegido = clave
+    ? cromos.filter(c => c.clave === clave)[0]
+    : cromos[Math.floor(Math.random() * cromos.length)];
+  if (!elegido) throw new Error("Esa carta no existe");
+  const idDoc = perId + "__cromo_" + elegido.clave;
+  await updateDoc(doc(db, "student_profiles", fichaId),
+    { inventory: (f.data().inventory || []).concat([idDoc]) });
+  return { clave: elegido.clave, nombre: elegido.nombre, rareza: elegido.rareza };
+}
+
 /** Quién ha fichado en una llamada, para verlo en directo desde el puesto de mando. */
 async function fichajesDe(sesionId) {
   const r = await getDocs(query(collection(db, FICHAJES), where("sessionId", "==", sesionId)));
@@ -517,5 +557,6 @@ window.SG = window.SG || {};
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, otorgarReto, anularReto, traspasar, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
+                    premiar, regalarCromo,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

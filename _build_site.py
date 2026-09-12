@@ -2623,6 +2623,29 @@ Con <code>?embed=1</code> se incrusta sin cabecera ni pie.</p>
 open(os.path.join(HERE, "llamada.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: llamada.html  (el pase de lista, dentro del Genially)")
 
+# ---------------------------------------------------------------- el aula (embed del docente)
+# 🔴 El puesto de mando del docente DENTRO del Genially. El enemigo de una gamificación en clase es
+# tener que salir de la presentación: abrir otra pestaña, buscar el grupo, volver, perder el hilo.
+# Aquí está lo que hace falta para mover la clase sin salir. Y el grupo no va en el enlace: se
+# deduce de quién pulsa, así que es UNO para todos los Geniallys y todos los años.
+_html = head("STARGATE · El aula",
+             "El puesto de mando del docente dentro del Genially: llamada a filas, quién ficha en "
+             "directo, a quién felicitar, el ranking y premios a mano.",
+             "reg").replace("</head>", _cabeza_motor() + chr(10) + '<script>window.SG_SEMANAS=' + SEMANAS_JSON + ';</script>' + "\n</head>") + '''
+<header class="hero"><div class="kicker">Profesorado</div><h1>El aula</h1>
+<p>Todo lo que hace falta para mover tu clase, sin salir del Genially.</p></header>
+<section id="aula"><div class="wrap">
+<div id="aula-app"><p class="muted">Cargando…</p></div>
+''' + '<script src="' + _v("assets/js/aula.js") + '" defer></script>' + '''
+<p class="small muted" style="margin-top:22px">Este enlace vale en <b>todos</b> tus grupos y en todas
+las convocatorias: el grupo se deduce de tu cuenta. Móntalo una vez en tus Geniallys.<br>
+Con <code>?embed=1</code> se incrusta sin cabecera ni pie, y con <code>?per=&lt;grupo&gt;</code> se
+fija a uno concreto si das clase en varios.</p>
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "aula.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: aula.html  (el puesto de mando dentro del Genially)")
+
 # ---------------------------------------------------------------- alistarse (sustituye al formulario)
 _html = head("STARGATE · Alistarse",
              "Alístate en tu grupo de STARGATE: entra con tu cuenta, elige Comandante y personaje y abre tu Bitácora.",
