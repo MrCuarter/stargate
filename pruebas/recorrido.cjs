@@ -98,6 +98,27 @@ window.SG.MOTOR = {
   deleteDoc: function () { return P(); },
   writeBatch: function () { return { set: function () {}, update: function () {}, commit: function () { return P(); } }; },
 };
+
+/**
+ * 🔴 EL TRADUCTOR TAMBIÉN VIAJA EN motor.js. SG.TABLERO sale de motor/tablero.js, que va dentro
+ * del mismo fichero: al sustituirlo por este doble desaparecía, y la consola no podía ni pintar un
+ * grupo. Sin esto no se puede comprobar lo que más importa de la web del docente —qué pestañas ve
+ * cada rol—, que es justo lo que Norberto revisa a mano cada vez.
+ */
+window.SG.TABLERO = {
+  tablero: function () {
+    return {
+      nombre: "PRUEBA HUMANA", tipo: "REGULAR", semana: 10, total: 15, inicio: "2026-07-11",
+      reclutas: [{ id: "r1", alias: "Eco-7", nombre: "Ana Ruiz", correo: "ana@ejemplo.com",
+                   xp: 1400, coins: 120, profe: "Docente", escuadron: "Los Yunques",
+                   insignias: [], retos: [], canjes: [], cromos: [], heroes: [] }],
+      retos: [{ id: "A1", nombre: "El boceto sin quemar", xp: 100 }],
+      recompensas: [{ id: "rw1", nombre: "Sobre de cromos", precio: 15, desc: "Tres cartas", max: 0 }],
+      insignias: [], campanas: [], vales: [], tickets: [], docentes: [],
+      escuadrones: [{ nombre: "Los Yunques", emblema: "" }],
+    };
+  },
+};
 document.dispatchEvent(new CustomEvent("sg:motor"));
 document.dispatchEvent(new CustomEvent("sg:sesion", { detail: YO }));
 `;

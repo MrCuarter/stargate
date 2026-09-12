@@ -207,6 +207,55 @@ const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disa
       comprobar("referente · sí se le ofrece «Crear grupo»", crear);
     }
 
+    // ============================================================ 4bis · LAS PESTAÑAS DE CADA ROL
+    /**
+     * 🔴 LA COMPROBACIÓN QUE NORBERTO HACE A MANO CADA VEZ: «¿se le escapa algo al docente que no
+     * debería ver?». Hasta hoy nadie la hacía sola. El referente ve siete pestañas; el docente raso,
+     * tres. Y no es cosmética: Escuadrones reparte al alumnado, Ajustes mueve la semana 1 —que
+     * recalendariza el curso entero— y Escondites reparte premios.
+     */
+    {
+      const ESPERADO = {
+        referente: ["Mi gente", "Cola de nota", "Mis enlaces", "Equipo docente", "Escuadrones",
+                    "Escondites", "Ajustes del grupo"],
+        docente: ["Mi gente", "Cola de nota", "Mis enlaces"],
+      };
+      for (const quien of ["referente", "docente"]) {
+        const c = await abrirSeguro(quien, "consola.html?per=prueba-humana",
+                                    "!!document.querySelector('.pestanas .pest')");
+        if (!c) { comprobar("pestañas · " + quien, false, "no llegó a pintar el grupo"); continue; }
+        const tabs = await evaluar(c, `[].slice.call(document.querySelectorAll('.pestanas .pest'))
+          .map(function(b){ return b.textContent.trim(); })`);
+        const faltan = ESPERADO[quien].filter(t => (tabs || []).indexOf(t) < 0);
+        const sobran = (tabs || []).filter(t => ESPERADO[quien].indexOf(t) < 0);
+        comprobar("pestañas · el " + quien + " ve exactamente las suyas (" + ESPERADO[quien].length + ")",
+                  faltan.length === 0 && sobran.length === 0,
+                  "faltan [" + faltan + "] sobran [" + sobran + "] · vio [" + (tabs || []) + "]");
+        await c.destruir();
+      }
+    }
+
+    // ============================================================ 4ter · DATOS MALOS, SIN PANTALLA EN BLANCO
+    /**
+     * Un enlace mal copiado es lo más normal del mundo. Lo que no puede pasar es que la página se
+     * quede en blanco: quien lo ve no sabe si se ha equivocado él, si la web está caída o si tiene
+     * que esperar. Un mensaje, aunque sea corto, cierra esa duda.
+     */
+    {
+      const mudas = [];
+      for (const url of ["consola.html?per=no-existe", "alistarse.html?per=no-existe",
+                         "sesion.html?per=no-existe", "recluta.html?per=no-existe",
+                         "huevo.html?h=no-existe", "validar.html?reto=NOEXISTE"]) {
+        const c = await abrirSeguro("estudiante", url);
+        if (!c) { mudas.push(url + " (no abrió)"); continue; }
+        const txt = await evaluar(c, "(document.body.innerText||'').replace(/\\s+/g,' ').trim().length");
+        if (!txt || txt < 40) mudas.push(url + " (" + txt + " caracteres)");
+        await c.destruir();
+      }
+      comprobar("datos malos · ninguna página se queda muda con un enlace roto",
+                mudas.length === 0, mudas.join(" · "));
+    }
+
     // ============================================================ 5 · NINGÚN ENLACE AL VACÍO
     // 🔴 Esto se lee del HTML, no se abre en Chrome: son 28 páginas y un enlace roto no necesita un
     // navegador para verse. Abrirlas una a una tardaba más que todo lo demás junto.
