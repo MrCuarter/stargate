@@ -342,7 +342,17 @@
   // La explicación de un reto, partida en pasos. Las frases cortas se pegan a la anterior: «Piénsalo
   // para aula invertida.» no es un paso, es una coletilla de la frase de antes.
   function pasosDeReto(txt){
-    var fr=String(txt||'').split(/(?<=\.)\s+/).map(function(x){return x.trim();}).filter(Boolean);
+    // 🔴 NADA DE LOOKBEHIND. `split(/(?<=\.)\s+/)` era lo natural, pero el lookbehind es ES2018 y
+    // Safari no lo entendió hasta la 16.4: en un iPhone de hace tres años esto NO es un bucle que
+    // falla, es un error de SINTAXIS que tumba el fichero entero — la Nave no cargaría. Y la Nave la
+    // abren doscientos móviles cualesquiera. Se parte a mano, que funciona en todas partes.
+    var texto=String(txt||''), fr=[], act='';
+    for(var i=0;i<texto.length;i++){
+      act+=texto[i];
+      if(texto[i]==='.' && (i+1>=texto.length || /\s/.test(texto[i+1]))){ fr.push(act.trim()); act=''; }
+    }
+    if(act.trim()) fr.push(act.trim());
+    fr=fr.filter(Boolean);
     var out=[];
     fr.forEach(function(f){
       if(out.length && f.length<42) out[out.length-1]+=' '+f; else out.push(f);

@@ -140,4 +140,29 @@ c(/localStorage\.removeItem\("sgEsDocente"\)/.test(MOTOR),
 c(PUERTA.indexOf("sgEsDocente") > PUERTA.indexOf("sessionStorage.getItem('sgPin')"),
   "   el PIN de siempre sigue funcionando primero: los grupos viejos no se tocan");
 
+// ---------------------------------------------------------------- j) nada que tumbe un móvil viejo
+// 🔴 `split(/(?<=\.)\s+/)` era lo natural para partir por frases, pero el LOOKBEHIND es ES2018 y
+// Safari no lo entendió hasta la 16.4. En un iPhone de hace tres años eso no es una función que
+// falla: es un error de SINTAXIS que tumba el fichero entero y la Nave no carga. Y la Nave la abren
+// doscientos móviles cualesquiera el primer día de clase.
+const NO_MODULOS = ["recluta.js", "tablero.js", "clase.js", "aula.js", "llamada.js",
+                    "alistarse.js", "consola.js", "crear.js", "tickets.js", "fuente.js",
+                    "validar.js", "puerta.js", "fiesta.js"];
+/**
+ * Se miran solo las INSTRUCCIONES: fuera comentarios y fuera el texto entre comillas. Si no, salta
+ * con el comentario que explica por qué no hay lookbehind, y con cada «???» que se pinte en pantalla.
+ */
+function soloCodigo(t) {
+  return t.replace(/\/\*[\s\S]*?\*\//g, " ")
+          .replace(/^\s*\/\/.*$/gm, " ")
+          .replace(/'(?:[^'\\\n]|\\.)*'/g, "''")
+          .replace(/"(?:[^"\\\n]|\\.)*"/g, '""');
+}
+NO_MODULOS.forEach(function (f) {
+  const codigo = soloCodigo(js(f));
+  c(!/\(\?<[=!]/.test(codigo), "🔴 " + f + " no usa lookbehind (Safari < 16.4 no carga el fichero)");
+  c(!/\?\?/.test(codigo), "   ni el operador ?? (Safari < 13.1)");
+  c(codigo.indexOf("?.") < 0, "   ni el encadenamiento opcional ?. en " + f);
+});
+
 E.resumen("La Nave rediseñada");
