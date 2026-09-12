@@ -310,9 +310,11 @@ PORTADA = head("STARGATE · La Bitácora Estelar",
 y la Bitácora —su ePortfolio— es lo que vuelve a encenderlo todo.</p>
 <div id="hero-cta" class="cta-row">
 <a class="btn primary grande btn-google" href="entrar.html">{LOGO_G}<span>Iniciar sesión con Google</span></a>
+<a class="btn grande btn-demo" href="recluta.html?per=demo-stargate&amp;demo=1">🎬 Ver la demo</a>
 <a class="btn ghost" href="{PLAYLIST}" target="_blank" rel="noopener">Serie completa en YouTube ↗</a>
 <p class="cta-pie small muted">Estudiante o docente, se entra por aquí: al entrar, el sistema te
-reconoce y te lleva a tu sitio.</p>
+reconoce y te lleva a tu sitio. <b>¿Solo quieres curiosear?</b> La demo te enseña la Nave de un
+estudiante por dentro, sin cuenta y sin que se guarde nada.</p>
 </div>
 </div></header>
 
@@ -359,8 +361,9 @@ que elegir bando en la puerta ni recordar ningún PIN.</p>
     <span class="chip">Un código de 6 letras →</span>
   </div>
 </div>
-<p style="text-align:center;margin-top:26px">
-<a class="btn primary grande btn-google" href="entrar.html">{LOGO_G}<span>Iniciar sesión con Google</span></a></p>
+<p class="cta-row" style="margin-top:26px">
+<a class="btn primary grande btn-google" href="entrar.html">{LOGO_G}<span>Iniciar sesión con Google</span></a>
+<a class="btn grande btn-demo" href="recluta.html?per=demo-stargate&amp;demo=1">🎬 Ver la demo sin cuenta</a></p>
 </div></section>
 <section id="secciones"><div class="wrap">
 <div class="eyebrow teal">Zona del profesorado</div><h2>Dónde está cada cosa</h2>

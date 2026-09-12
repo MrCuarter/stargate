@@ -107,7 +107,54 @@
   // Vestirse escribe, pero SIN PIN a propósito: el alumnado no va a recordar otra clave. El servidor
   // solo deja ponerse algo que ya se tiene desbloqueado, así que lo peor que puede pasar es que
   // alguien le cambie el disfraz a un compañero — cosmético y se deshace en un clic.
+  // lo que haría cada botón si no fuera una demo — para que el aviso diga algo concreto
+  var QUE_HARIA = {
+    registrar: 'sumaría los puntos del reto al momento',
+    cancelar: 'desharía el reto y te devolvería lo que costó',
+    evidencia: 'guardaría el enlace de tu evidencia',
+    canje: 'cobraría los créditos y te daría la recompensa',
+    vestir: 'te cambiaría el personaje',
+    adorno: 'te pondría el adorno en la ficha y en el tablero',
+    pase: 'te daría los créditos de la asistencia'
+  };
+  function enDemo(){ return DEMO && !st.email && demoPermitido(); }
   function post(cuerpo,cb,err){
+    /**
+     * 🔴 EN LA DEMOSTRACIÓN NO SE ESCRIBE NADA, y se dice con amabilidad. Todo lo que pasa por aquí
+     * es una escritura —registrar un reto, canjear, vestirse, poner un adorno, fichar—, y el
+     * visitante de la demo no tiene sesión: el servidor contestaría «no autenticado» y la pantalla
+     * enseñaría un error rojo en la página que existe precisamente para causar buena impresión.
+     * Peor que un error: un botón que parece roto.
+     *
+     * Así que se frena aquí, en el único embudo por el que salen todas, y se explica qué habría
+     * pasado. La demo sigue siendo navegable de punta a punta; solo no deja huella.
+     */
+    if(enDemo()){
+      var hace = QUE_HARIA[cuerpo.accion] || 'guardaría el cambio';
+      var capa = document.querySelector('.neb-capa');
+      // Si NEBULA estaba en pantalla (el canje), lo explica ELLA, en personaje. Un cartel rojo de
+      // «no autenticado» encima de su ventana sería lo contrario de lo que la demo quiere enseñar.
+      if(capa){
+        capa.innerHTML='<div class="neb-caja" role="dialog" aria-modal="true">'
+          +'<div class="neb-cara"><img src="assets/img/personajes/nebula.png" alt="NEBULA"></div>'
+          +'<div class="neb-quien">NEBULA</div><h3>Esto es una demostración</h3>'
+          +'<p class="neb-nota">En tu Nave de verdad, ahora mismo '+hace+'. Aquí no se cobra nada '
+          +'ni se guarda nada: puedes pulsar todo lo que quieras.</p>'
+          +'<div class="neb-botones"><button type="button" class="btn primary" data-cerrar>Entendido</button></div></div>';
+        var bc=capa.querySelector('[data-cerrar]');
+        var fuera=function(){ capa.classList.add('cerrando');
+          setTimeout(function(){ if(capa.parentNode) capa.parentNode.removeChild(capa); render(); },160); };
+        bc.onclick=fuera; capa.onclick=function(ev){ if(ev.target===capa) fuera(); };
+        setTimeout(function(){ bc.focus(); },40);
+      } else {
+        aviso('🎬 <b>Esto es una demostración.</b> En tu Nave de verdad, este botón ' + hace
+          + '. Aquí no se guarda nada.');
+        // 🔴 Y se repinta: quien llamó ya había puesto el botón en «Registrando…» y deshabilitado.
+        // Sin repintar se quedaría así para siempre, que es un botón roto en la página del escaparate.
+        setTimeout(render, 60);
+      }
+      return;
+    }
     SG.FUENTE.accion(cuerpo)
       .then(function(d){ if(d&&d.error){ if(err)err(d.error); else alert(d.error); return; } cb(d); })
       .catch(function(e){ if(err)err('Error de red'); });
@@ -797,6 +844,7 @@
     if(!b||!st.yo||!st.yo.ficha) return;
     b.disabled=true; b.textContent='Registrando…';
     var antes=JSON.parse(JSON.stringify(st.yo)), donde=puntoDe(b);
+    if(enDemo()){ aviso('🎬 <b>Esto es una demostración.</b> En tu Nave de verdad, «Presente» te daría los créditos de la asistencia.'); return; }
     window.SG.MOTOR.ficharLlamada(per, st.yo.ficha).then(function(r){
       st.fichado=true;
       if(r&&r.repetido){ if(m) m.textContent='Ya constabas en la lista de hoy.'; render(); return; }
@@ -2135,10 +2183,19 @@
     // por eso ese modo no aparece allí: no se esconde por seguridad, es que no significa nada.
     try{ window.SG_YO_ALIAS = st.yo ? st.yo.alias : ''; }catch(e){}
     if(st.yo) vigilarLlamada();
+    /**
+     * 🔴 LA DEMO TIENE SALIDA. Es la página del escaparate —la enlaza el botón DEMO de la portada—, y
+     * una demo que no dice cómo se entra de verdad deja al visitante mirando algo que no puede usar.
+     * El cartel dice lo que es, que se puede pulsar todo sin miedo, y ofrece las dos salidas que
+     * alguien busca en ese momento: entrar con su cuenta o volver a la presentación.
+     */
     var avisoDemo = (dentro && DEMO && !st.email)
-      ? '<div class="card" style="border-color:var(--amber)"><p class="small" style="margin:0;color:var(--amber)">'
+      ? '<div class="card demo-aviso"><p class="small">'
         + '🎬 <b>Modo demostración.</b> Estás viendo la Nave con la ficha de <b>'+esc(st.yo.alias||'un recluta')
-        + '</b>, un recluta de mentira de un grupo de pruebas. Nada de lo que hagas aquí se guarda.</p></div>'
+        + '</b>, un recluta de ejemplo. Pulsa lo que quieras: aquí no se guarda nada.</p>'
+        + '<p class="demo-salidas"><a class="btn primary btn-google" href="entrar.html">'
+        + ((window.SG && window.SG.LOGO_G) || '') + '<span>Entrar con mi cuenta</span></a>'
+        + '<a class="btn ghost" href="index.html">Volver a la presentación</a></p></div>'
       : '';
     root.innerHTML = avisoDemo + (dentro
       ? login()+pestanas()+avisoPase()+cabecera()

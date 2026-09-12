@@ -2216,3 +2216,15 @@ section[id]{scroll-margin-top:110px}
 .puertas-3 .puerta-tile:hover{transform:none}
 
 @media (prefers-reduced-motion:reduce){.barra-indef i{animation:none;width:100%;opacity:.5}}
+
+/* el cartel de la demo: dice lo que es y ofrece la salida */
+.demo-aviso{border-color:var(--amber,#f2b544)!important;background:rgba(242,181,68,.06)}
+.demo-aviso p{margin:0;color:var(--amber,#f2b544)}
+.demo-aviso .demo-salidas{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.demo-aviso .demo-salidas .btn{font-size:.9rem}
+
+/* 🔴 El botón DEMO no compite con el de Google: es la segunda opción, la del curioso. Borde ámbar
+   —el color que en toda la web significa «esto es de ejemplo»— y sin relleno, para que el ojo vaya
+   primero a la pastilla blanca, que es lo que tiene que pulsar quien viene a entrar. */
+.btn.btn-demo{background:transparent;border:1.5px solid var(--amber,#f2b544);color:var(--amber,#f2b544)}
+.btn.btn-demo:hover{background:rgba(242,181,68,.12);color:#ffd27a}

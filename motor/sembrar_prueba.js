@@ -6,8 +6,14 @@
  * con progresos MUY distintos a propósito —desde quien no ha hecho nada hasta quien va sobrado— y el
  * equipo docente real, para poder entrar con cada cuenta y ver exactamente lo que ve cada rol.
  *
- * 🔴 Escribe en el Firestore de VERDAD. Solo crea documentos bajo `prueba-humana`; no toca nada más.
- *   node motor/sembrar_prueba.js
+ * 🔴 Escribe en el Firestore de VERDAD. Solo crea documentos bajo su propio grupo; no toca nada más.
+ *   node motor/sembrar_prueba.js            → la clase de prueba de Norberto (prueba-humana)
+ *   node motor/sembrar_prueba.js --demo     → el grupo del botón DEMO de la portada (demo-stargate)
+ *
+ * LA DEMO ES OTRO GRUPO, Y A PROPÓSITO. La clase de prueba es para tocarla: Norberto se aliste en
+ * ella, completa retos, abre llamadas. El escaparate público no puede cambiar cada vez que alguien
+ * prueba algo, así que va aparte, con profesorado de ficción y la semana CONGELADA (`demoSemana`):
+ * el tablero hace como si hoy fuera la semana 10 y la demo no caduca nunca.
  */
 const path = require("path");
 const GP = "/Users/nor/Claude/vibewebs/gamificapro";
@@ -18,8 +24,10 @@ const { paquete } = require("./paquete.js");
 admin.initializeApp({ credential: admin.credential.cert(require(path.join(GP, "service-account.json"))) });
 const db = admin.firestore();
 
-const ID = "prueba-humana";
-const NOMBRE = "PRUEBA HUMANA · 20 reclutas";
+const DEMO = process.argv.includes("--demo");
+const ID = DEMO ? "demo-stargate" : "prueba-humana";
+// 🔴 El nombre de la demo tiene que llevar «DEMO»: es la llave de `demoPermitido()` en la Nave.
+const NOMBRE = DEMO ? "STARGATE · DEMO" : "PRUEBA HUMANA · 20 reclutas";
 // Semana 10 hoy: la semana 1 empezó hace 9 semanas justas.
 const INICIO = new Date(Date.now() - 9 * 7 * 864e5).toISOString().slice(0, 10);
 
@@ -28,7 +36,12 @@ const INICIO = new Date(Date.now() - 9 * 7 * 864e5).toISOString().slice(0, 10);
  * él mismo describió —«un docente puede ser referente, docente o los dos a la vez»— y el que hay que
  * poder probar: solo quien imparte se lleva escuadrón y alumnado.
  */
-const DOCENTES = [
+const DOCENTES = DEMO ? [
+  // Profesorado de ficción: el público ve estos nombres en el tablero y en la ficha de cada recluta.
+  // Los correos no existen ni pueden existir (.invalid está reservado para eso, RFC 2606).
+  { nombre: "Capitana Vega",    correo: "capitana.vega@stargate.invalid",    rol: "referente", imparte: true },
+  { nombre: "Comandante Orion", correo: "comandante.orion@stargate.invalid", rol: "docente",   imparte: true }
+] : [
   { nombre: "Norberto Cuartero", correo: "n.cuartero.10@gmail.com", rol: "referente", imparte: true },
   { nombre: "Norberto Genially", correo: "norberto@genially.com",   rol: "docente",   imparte: true }
 ];
@@ -41,7 +54,7 @@ const ALIAS = [
   ["Umbra","Sara","Peña"],        ["Bóreas","Diego","Lara"],     ["Perseo","Nuria","Gil"],
   ["Atlas","Iván","Serra"],       ["Lyra","Carmen","Vidal"],     ["Halo","Rubén","Castro"],
   ["Eclipse","Alba","Nieto"],     ["Cronos","Hugo","Prieto"],    ["Iris","Paula","Mena"],
-  ["Zenit","Marcos","Roldán"],    ["Deriva","清","Ortega"],      ["Faro","Adriana","Cid"],
+  ["Zenit","Marcos","Roldán"],    ["Deriva","Clara","Ortega"],      ["Faro","Adriana","Cid"],
   ["Silbo","Óscar","Reyes"],      ["Nébula","Irene","Bravo"]
 ];
 // Cuántos retos lleva cada uno. Escalado a propósito: dos sin empezar, un puñado a medias y tres
@@ -54,9 +67,11 @@ async function main() {
   const paq = paquete({ id: ID, nombre: NOMBRE, tipo: "REGULAR", inicio: INICIO,
                         docentes: DOCENTES, referente: DOCENTES[0].correo }, cat);
 
-  await db.collection("projects").doc(ID).set(Object.assign({}, paq.proyecto, {
+  const proyecto = Object.assign({}, paq.proyecto, {
     ownerId: "sembrado", createdAt: Date.now(), isOnboardingComplete: true
-  }));
+  });
+  if (DEMO) proyecto.stargate = Object.assign({}, proyecto.stargate, { demoSemana: 10 });
+  await db.collection("projects").doc(ID).set(proyecto);
   await db.collection("projects").doc(ID).collection("privado").doc("stargate").set(paq.privado);
 
   const porId = {};
@@ -100,10 +115,21 @@ async function main() {
     const profe = DOCENTES[k % 2].nombre;
     const esc = (paq.proyecto.factions || []).filter(f => f.teacherName === profe)[0];
     const ficha = db.collection("student_profiles").doc();
+    // 🔴 En la demo el álbum no puede salir a 0/26: es lo primero que se mira y lo que más engancha.
+    // Cada recluta lleva cartas en proporción a lo que ha hecho —con alguna repetida, que es lo que
+    // da sentido al cambio de tres repetidas por un sobre— y los que van arriba, un héroe ganado.
+    const inventario = [];
+    if (DEMO) {
+      const cromos = paq.recompensas.filter(r => r.stargateTipo === "cromo" && /^cromo_/.test(r.id)).map(r => r.id);
+      const heroes = paq.recompensas.filter(r => r.stargateTipo === "heroe" && /^heroe_/.test(r.id)).map(r => r.id);
+      const cuantas = Math.round(retos.length * 1.6);
+      for (let c = 0; c < cuantas; c++) inventario.push(ID + "__" + cromos[(k * 7 + c * 3) % Math.min(20, cromos.length)]);
+      if (retos.length >= 9) inventario.push(ID + "__" + heroes[k % heroes.length]);
+    }
     await ficha.set({
-      userId: "prueba_" + alias.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, ""),
+      userId: (DEMO ? "demo_" : "prueba_") + alias.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, ""),
       projectId: ID, displayName: alias,
-      totalPoints: xp, coins: cred, inventory: [], earnedBadges: [],
+      totalPoints: xp, coins: cred, inventory: inventario, earnedBadges: [],
       completedMissionIds: hechas, missionTimestamps: sellos, completedCampaignIds: [],
       currentPhase: 1, role: "student", hubCustomization: {}, createdAt: Date.now(),
       squadId: esc ? esc.id : null, factionId: esc ? esc.id : null,
@@ -118,16 +144,16 @@ async function main() {
     });
   }
 
-  // Un escondite por planeta, listos para pegar en los Geniallys.
-  const huevos = [1,2,3,4,5,6,7,8].map(n => ({
+  // Un escondite por planeta, listos para pegar en los Geniallys. (En la demo no: no hay Geniallys.)
+  const huevos = DEMO ? [] : [1,2,3,4,5,6,7,8].map(n => ({
     id: "p" + n, nombre: "Presentación del Tema " + n,
     premio: n % 3 === 0 ? "bolsa" : n % 3 === 1 ? "sobre" : "heroe",
     limite: 0, activo: true, creditos: 50
   }));
-  await db.collection("projects").doc(ID).update({ "stargate.huevos": huevos });
+  if (huevos.length) await db.collection("projects").doc(ID).update({ "stargate.huevos": huevos });
 
   console.log("✓ sembrado:", ID);
-  console.log("  semana 1:", INICIO, "· hoy debería ser la semana 10");
+  console.log("  semana 1:", INICIO, DEMO ? "· congelada en la semana 10 para siempre" : "· hoy debería ser la semana 10");
   console.log("  reclutas:", ALIAS.length, "· escondites:", huevos.length);
   console.log("  código de acceso:", paq.proyecto.joinCode);
 }

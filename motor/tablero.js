@@ -88,6 +88,23 @@
     var P = datos.proyecto || {}, S = P.stargate || {};
     var tipo = S.tipo === "PUA" ? "PUA" : "REGULAR";
     var inicio = S.inicio || "";
+    /**
+     * 🔴 LA DEMO QUE NO CADUCA. El grupo de demostración de la portada se sembró con fechas reales
+     * y su semana avanza con el calendario como la de cualquier clase: en noviembre el visitante
+     * vería un curso TERMINADO, sin retos de la semana y con la corona repartida hace un mes. Y
+     * resembrarlo cada trimestre es exactamente el mantenimiento que no puede haber.
+     *
+     * Así que no se tocan las fechas: se le dice al tablero «haz como si hoy fuera la semana N».
+     * Todo lo demás —rachas, corona semanal, retos de la semana, planetas abiertos— se calcula
+     * igual que siempre desde ese «hoy», y como los registros sembrados conservan sus fechas, la
+     * foto es coherente: nadie aparece con actividad en una semana que todavía no ha llegado.
+     *
+     * Solo lo activa un grupo que lleve `demoSemana` en su documento, y solo cuando nadie ha pedido
+     * un «ahora» concreto. Una clase de verdad no lo tiene y no hay forma de que lo tenga sin querer.
+     */
+    if (!ahora && inicio && S.demoSemana > 0) {
+      ahora = new Date(inicio + "T12:00:00").getTime() + ((S.demoSemana - 1) * 7 + 3) * 864e5;
+    }
     var cat = datos.catalogo;
     // 🔴 Las misiones se buscan por LOS DOS identificadores: el de STARGATE («A1») y el del
     // documento («grupo__A1»). No es indecisión: la ficha de un alumno guarda el del documento
