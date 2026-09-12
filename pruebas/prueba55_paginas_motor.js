@@ -167,4 +167,33 @@ c(!/type: "xp",/.test(PAQ), "   y nunca como «xp», que se ignora en silencio")
 const TABL = fs.readFileSync(path.join(__dirname, "..", "motor", "tablero.js"), "utf8");
 c(/x\.type === "xp_extra"/.test(TABL), "   y el traductor lo lee con el mismo nombre");
 
+// ---------------------------------------------------------------- n) la puerta pública, por fuera
+// 🔴 Esta batería vigila el fichero que vive en el OTRO repositorio (gamificapro/functions), y lo
+// hace a propósito: es la única lectura de STARGATE que funciona sin sesión —la que sostiene los
+// tableros incrustados en los Geniallys— y por tanto la única por la que se puede escapar algo.
+//
+// Se coló una vez: los escuadrones llevan los correos del profesorado (`assignedTeacherEmails`,
+// que es como el motor sabe de quién es cada grupo) y el documento del proyecto viajaba entero.
+// Lo cazó una comprobación a mano contra producción, no el banco. Por eso ahora está aquí.
+const PUERTA = path.join("/Users/nor/Claude/vibewebs/gamificapro", "functions", "stargate.js");
+if (fs.existsSync(PUERTA)) {
+  const P = fs.readFileSync(PUERTA, "utf8");
+  // Mirar el CÓDIGO, no los comentarios: aquí se habla justo de los campos que NO deben salir.
+  const PC = sinComentarios(P);
+  c(/const PUBLICO_DEL_PERFIL = \[/.test(P),
+    "🔴 la puerta pública filtra los perfiles con una LISTA BLANCA");
+  c(/const escuadronPublico = /.test(P),
+    "🔴 y los escuadrones también: sin ella salían los correos del profesorado");
+  c(PC.indexOf("assignedTeacherEmails") < 0,
+    "   y `assignedTeacherEmails` no aparece por ninguna parte de lo que se devuelve");
+  ["email", "firstName", "lastName", "coTeacherEmails", "panelEdit"].forEach(function (k) {
+    c(PC.indexOf("'" + k + "'") < 0 && PC.indexOf('"' + k + '"') < 0,
+      "   ni «" + k + "»");
+  });
+  c(/\(p\.data\(\)\.stargate \|\| \{\}\)\.version/.test(PC),
+    "🔴 y solo contesta a grupos de STARGATE: si no, dejaría leer sin sesión cualquier proyecto de la plataforma");
+} else {
+  console.log("   (no encuentro gamificapro/functions/stargate.js: me salto la puerta pública)");
+}
+
 E.resumen("Las páginas del motor nuevo");
