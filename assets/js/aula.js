@@ -13,6 +13,12 @@
 (function () {
   var app = document.getElementById("aula-app");
   if (!app) return;
+  // 🔴 Sin esto, incrustar la página metía el MENÚ ENTERO de la web dentro del Genially —y con él
+  // «Mi clase», «Registro», «Grupos»— justo encima de lo único que se quería enseñar. La hoja de
+  // estilos ya sabe esconder cabecera, hero y pie (`body.embed .nav{display:none}`); lo que
+  // faltaba era que alguien pusiera la clase. Otras siete páginas lo hacen; estas dos, que son las
+  // que de verdad viven embebidas, se habían quedado sin ello.
+  if (new URLSearchParams(location.search).get("embed") === "1") document.body.classList.add("embed");
   var url = new URLSearchParams(location.search);
   var PER_FIJO = url.get("per") || "";
   var MOTOR = null, YO = null, GRUPOS = [], PER = "", D = null, TAB = "clase";

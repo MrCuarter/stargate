@@ -60,4 +60,17 @@ const clase = raiz("assets/js/clase.js");
 contiene(clase, "aula.html?per=", "la sala del docente enlaza el aula");
 contiene(clase, "llamada.html?per=", "   y la llamada a filas");
 
+// ---------------------------------------------------------------- g) y se incrustan de verdad
+// 🔴 El fallo: las dos páginas hechas para vivir DENTRO del Genially eran las únicas que no se
+// ponían `body.embed`. Su propia documentación prometía «?embed=1 se incrusta sin cabecera ni pie»
+// y no lo hacía nadie: al pegarlas en una presentación aparecía el menú entero de la web —«Mi
+// clase», «Registro», «Grupos»— encima de lo que se quería enseñar. Sin error, sin aviso.
+["assets/js/aula.js", "assets/js/llamada.js"].forEach(function (f) {
+  c(/get\("embed"\)\s*===\s*"1"[\s\S]{0,80}classList\.add\("embed"\)/.test(raiz(f)),
+    "🔴 " + f.split("/").pop() + " se quita la cabecera al incrustarse");
+});
+// y la hoja de estilos tiene que seguir sabiendo esconderla: la clase sola no pinta nada
+contiene(raiz("assets/css/stargate.css"), "body.embed .nav",
+  "   y la hoja de estilos esconde el menú cuando esa clase está puesta");
+
 E.resumen("Lo nuevo es lo que manda");
