@@ -59,4 +59,18 @@ c(/escribe su alias exactamente/.test(CONSOLA),
   "🔴 borrar pide escribir el alias: es lo único que impide un clic distraído sobre la persona equivocada");
 c(/No hay deshacer/.test(CONSOLA), "   y se avisa de que no hay vuelta atrás");
 
+// ---------------------------------------------------------------- e) el enlace que se reparte LLEVA el código
+// 🔴 Este fallo duró veinte minutos y lo creé yo: al añadir el código, `crear.js` seguía dando el
+// enlace de alistamiento SIN él. El referente sembraba un grupo, copiaba el enlace, se lo pasaba a
+// su clase… y nadie podía entrar. Repartir una puerta cerrada el primer día.
+const CREAR = js("crear.js");
+c(/creado && creado\.codigo/.test(CREAR), "🔴 al crear un grupo se recoge su código");
+c(/'&codigo=' \+ esc\(codigo\)/.test(CREAR), "   y va DENTRO del enlace que se reparte");
+c(/codigo-grande/.test(CREAR), "   y se enseña en grande, para quien llegue sin el enlace");
+c(/return \{ id: id, codigo: paq\.proyecto\.joinCode \|\| "" \};/.test(MOTOR),
+  "🔴 `sembrarPER` devuelve el código: si solo devolviera el id, no habría de dónde sacarlo");
+const SEM = fs.readFileSync(path.join(__dirname, "..", "motor", "sembrar.js"), "utf8");
+c(/Código de acceso/.test(SEM),
+  "   y el sembrador de la línea de órdenes también lo imprime: sembrar sin decir el código es sembrar un grupo cerrado");
+
 E.resumen("Quién entra y quién se va");

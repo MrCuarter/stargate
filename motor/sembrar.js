@@ -133,7 +133,13 @@ async function main() {
     }
     console.log("· reclutas de muestra:", SIEMBRA.length);
   }
-  console.log("\nListo. La Nave: recluta.html?per=" + id + "&motor=firestore");
+  // 🔴 El código se imprime SIEMPRE. Sembrar un grupo y no decir su código es sembrar un grupo en el
+  // que nadie puede alistarse, y el dato solo está aquí.
+  console.log("\nListo.");
+  console.log("  Código de acceso : " + (paq.proyecto.joinCode || "(sin código)"));
+  console.log("  Alistarse        : alistarse.html?per=" + id + "&motor=firestore" +
+              (paq.proyecto.joinCode ? "&codigo=" + paq.proyecto.joinCode : ""));
+  console.log("  La Nave          : recluta.html?per=" + id + "&motor=firestore");
 }
 
 main().then(() => process.exit(0)).catch(e => { console.error("💥", e.message); process.exit(1); });

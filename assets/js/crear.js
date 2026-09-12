@@ -180,13 +180,24 @@
     var boton = $("#btn-crear"); boton.disabled = true;
     var paso = $("#f-progreso");
     try {
-      await MOTOR.sembrarPER(d, function (t) { paso.textContent = t; });
+      var creado = await MOTOR.sembrarPER(d, function (t) { paso.textContent = t; });
+      var codigo = (creado && creado.codigo) || "";
       // El enlace que se le da al alumnado es el de ALISTARSE, no el de la Nave: a la Nave no se
       // puede entrar sin ficha, y la ficha se abre alistándose. Dar el otro era mandarles a una
       // puerta cerrada el primer día.
-      var alta = location.origin + '/alistarse.html?per=' + esc(d.id) + MOTOR_EN_ENLACES;
+      //
+      // 🔴 Y LLEVA EL CÓDIGO DENTRO. Sin él, el enlace es otra puerta cerrada: el grupo pide código
+      // desde que se siembra, así que repartir el enlace pelado sería repartir un «no puedes entrar».
+      var alta = location.origin + '/alistarse.html?per=' + esc(d.id) + MOTOR_EN_ENLACES +
+                 (codigo ? '&codigo=' + esc(codigo) : '');
       app.innerHTML = '<div class="card bien"><h3>Grupo creado</h3>' +
         '<p><b>' + esc(d.nombre) + '</b> está sembrado y listo.</p>' +
+        (codigo
+          ? '<p class="small muted" style="margin-bottom:2px">Código de acceso de la clase:</p>' +
+            '<p class="codigo-grande">' + esc(codigo) + '</p>' +
+            '<p class="small muted">Hace falta para alistarse. El enlace de abajo ya lo lleva dentro; ' +
+            'apúntate el código para quien llegue sin el enlace.</p>'
+          : '') +
         '<p>El enlace de alistamiento para tu alumnado:<br><code>' + alta + '</code></p>' +
         '<p><a class="btn" href="consola.html?per=' + esc(d.id) + '">Ir a la consola</a> ' +
         '<a class="btn min" href="crear.html">Crear otro</a></p></div>';

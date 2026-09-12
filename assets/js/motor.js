@@ -157,7 +157,9 @@ async function sembrarPER(per, alAvanzar) {
     }
   }
   avisa("Listo");
-  return id;
+  // 🔴 Devuelve TAMBIÉN el código de acceso. Si solo devolviera el id, la consola daría el enlace de
+  // alistamiento sin él y nadie podría entrar — el referente repartiría una puerta cerrada.
+  return { id: id, codigo: paq.proyecto.joinCode || "" };
 }
 
 /**

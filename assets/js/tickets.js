@@ -94,7 +94,7 @@
     var sats=[];tf.forEach(function(x){Object.keys(x.r).forEach(function(c){if(/satisfacci/i.test(c)&&/^[1-5]$/.test(String(x.r[c])))sats.push(Number(x.r[c]));});});
     var satm=sats.length?sats.reduce(function(a,b){return a+b;},0)/sats.length:0;
     var head='<div class="tab-head"><div><div class="eyebrow amber">Contacta con NEBULA · tickets de salida</div><h3>'+esc(per.nombre||'')+'</h3></div><div class="selrow">'+sel+'</div></div>'
-      +'<div class="kpis"><div class="kpi"><b>'+tf.length+'</b><span>tickets</span></div><div class="kpi"><b>'+pend+'</b><span>dudas sin resolver</span></div><div class="kpi"><b>'+(sats.length?satm.toFixed(1):'—')+'</b><span>satisfacción media</span></div><div class="kpi"><b>'+(tf.length?esc(f(tf[tf.length-1].fecha)):'—')+'</b><span>último ticket</span></div></div>';
+      +'<div class="kpis"><div class="kpi"><b>'+tf.length+'</b><span>'+(tf.length===1?'ticket':'tickets')+'</span></div><div class="kpi"><b>'+pend+'</b><span>'+(pend===1?'duda sin resolver':'dudas sin resolver')+'</span></div><div class="kpi"><b>'+(sats.length?satm.toFixed(1):'—')+'</b><span>satisfacción media</span></div><div class="kpi"><b>'+(tf.length?esc(f(tf[tf.length-1].fecha)):'—')+'</b><span>último ticket</span></div></div>';
     if(!tf.length){root.innerHTML=head+'<p class="lead">Sin tickets todavía'+(st.prof?' para este profesor/a':'')+'.</p>';wire();return;}
     var por={};tf.forEach(function(x){var k=String(campo(x.r,KSEL)||'(sin sección)');(por[k]=por[k]||[]).push(x);});
     var orden=Object.keys(por).sort(function(a,b){function w(s){if(/^Presentaci/.test(s))return 0;var m=s.match(/^Tema (\d)/);if(m)return 10+Number(m[1]);var a2=s.match(/^Actividad (\d)/);if(a2)return 5+Number(a2[1])*4;return 90;}return w(a)-w(b);});
