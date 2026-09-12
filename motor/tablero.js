@@ -284,7 +284,10 @@
         .map(function (r) {
           // El identificador viaja con la recompensa: sin él, canjear habría que hacerlo POR NOMBRE,
           // y el día que alguien renombre «Sobre de cromos» se rompe en silencio.
-          return { id: r.id, nombre: r.title, coste: r.cost, maximo: r.maxPerUser == null ? 99 : r.maxPerUser,
+          // 🔴 Los DOS identificadores, como con las misiones: el corto para hablar (y para que los
+          // enlaces valgan en todos los grupos) y el del documento para que el servidor la encuentre.
+          return { id: r.id, doc: r.docId || r.id, nombre: r.title, coste: r.cost,
+                   maximo: r.maxPerUser == null ? 99 : r.maxPerUser,
                    descripcion: r.description, desde: r.stargateSemana || 0, tipo: r.stargateTipo || "" };
         }),
       semana: semanaDe(inicio, ahora), semanas: S.semanas || 15,

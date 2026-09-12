@@ -109,8 +109,12 @@ c(arranca.indexOf("if (!YO) return puerta();") < arranca.indexOf('"projects", PE
   "🔴 el alistamiento comprueba la sesión ANTES de leer el grupo");
 
 // ---------------------------------------------------------------- j) alistarse dos veces, no
-c(/if \(!mias\.empty\) return location\.replace\("recluta\.html/.test(ALTA),
+c(/if \(!mias\.empty\) return location\.replace\(naveUrl\(\)\);/.test(ALTA),
   "🔴 quien ya se alistó va derecho a su Nave: dos fichas de la misma persona es peor que ninguna");
+// 🔴 Y el salto conserva el interruptor de motor. Sin eso, quien se alista en el motor nuevo aterriza
+// en la Nave del viejo y se encuentra un «PER no encontrado» después de haberlo hecho todo bien.
+c(/function naveUrl\(\)/.test(ALTA) && /q\.get\("motor"\)/.test(ALTA),
+  "   y el enlace de la Nave conserva el motor con el que se entró");
 
 // ---------------------------------------------------------------- k) el proyecto va solo, y primero
 // La regla que deja crear misiones pregunta «¿eres docente de ese proyecto?», y para contestar tiene

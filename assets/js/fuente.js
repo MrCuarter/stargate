@@ -214,9 +214,26 @@
                 return M.updateDoc(M.doc(M.db, "student_profiles", ficha.id),
                   { stargateViste: cuerpo.viste || "" }).then(function () { return { ok: true }; });
 
+              /**
+               * Canjear. Y si lo canjeado es un SOBRE, abrirlo en el mismo gesto.
+               *
+               * 🔴 En el motor un sobre es un consumible: se compra y luego se usa. Para el recluta
+               * eso serían dos pasos y una pregunta («¿y ahora qué hago con esto?») donde antes
+               * había uno. El catálogo lo promete así de claro —«se abre solo y tu álbum está en la
+               * Nave»— y una promesa del catálogo no se rompe por una comodidad de implementación.
+               */
               if (cuerpo.accion === "canje")
                 return M.llamar("purchaseReward", { projectId: cuerpo.per, rewardId: cuerpo.recompensa,
-                  studentProfileId: ficha.id });
+                  studentProfileId: ficha.id })
+                  .then(function () {
+                    if (!cuerpo.abrir) return { ok: true };
+                    return M.llamar("consumeItem", { projectId: cuerpo.per, rewardId: cuerpo.recompensa,
+                      studentProfileId: ficha.id })
+                      .then(function (r) { return { ok: true, botin: r && (r.botin || r.obtenido || null) }; })
+                      // Si el sobre no se abre, ya está comprado y sigue en el inventario: se avisa,
+                      // no se pierde nada y se puede abrir después.
+                      .catch(function () { return { ok: true, sinAbrir: true }; });
+                  });
 
               return { error: "Todavía no sé hacer eso con el motor nuevo: " + cuerpo.accion };
             });

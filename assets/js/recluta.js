@@ -692,8 +692,9 @@
       // servidor —el navegador no puede tocar los créditos ni queriendo—, así que el botón solo
       // pide; si no llega, contesta que no y no se mueve nada.
       var boton = (motorNuevo() && r && !tope && mis>=x.coste && x.id)
-        ? '<p style="margin-top:10px"><button class="btn primary" type="button" data-canje="'+esc(x.id)+'" '
-          +'data-nombre="'+esc(x.nombre)+'" data-coste="'+x.coste+'">Canjear por '+x.coste+' ◈</button></p>'
+        ? '<p style="margin-top:10px"><button class="btn primary" type="button" data-canje="'+esc(x.doc||x.id)+'" '
+          +'data-nombre="'+esc(x.nombre)+'" data-coste="'+x.coste+'"'
+          +' data-abrir="'+((x.tipo==='cromo'||x.tipo==='heroe')?'1':'0')+'">Canjear por '+x.coste+' ◈</button></p>'
         : '';
       return '<div class="card rec-card'+(tope?' agotada':'')+'"><h3>'+esc(x.nombre)+'</h3><p class="pts">'+x.coste+' ◈</p><p class="small">'+esc(x.desc||'')+'</p>'+aviso+afford+boton+'</div>';
     }).join('');
@@ -987,6 +988,10 @@
   }
   // Con sesión iniciada no hace falta preguntar nada: quien pide la ficha ES quien ha entrado.
   function identificarPorSesion(){
+    // 🔴 Sin los datos del grupo no hay Nave que pintar. Si el enlace trae un grupo que no existe,
+    // la página ya lo ha dicho con sus palabras; llegar aquí y renderizar encima reventaba con un
+    // error de consola feísimo y dejaba la pantalla a medias.
+    if(!st.d) return;
     st.cargandoYo=true; st.msgYo=''; render();
     quien(null,function(d){
       st.cargandoYo=false;
@@ -1028,6 +1033,7 @@
   // restaurar una sesión guardada— la ficha se vuelve a pedir sola. Sin esto había que recargar.
   document.addEventListener('sg:sesion',function(e){
     if(!motorNuevo()) return;
+    if(!st.d) return;
     if(!e.detail){ if(st.yo){ st.yo=null; st.email=''; st.verificado=false; render(); } return; }
     // 🔴 Si entra OTRA cuenta hay que volver a pedir la ficha, no solo si no había ninguna. Con la
     // comprobación a medias, cambiar de usuario dejaba en pantalla la ficha del anterior: sus
@@ -1049,11 +1055,26 @@
     });
   }
 
-  function canjear(id, nombre, coste, boton){
+  // El servidor devuelve el identificador del documento («grupo__cromo_P1_bran»); el recluta merece
+  // ver el nombre del personaje, no eso.
+  function nombreDeCarta(docId){
+    var k=String(docId).split('__').pop().replace(/^(cromo|heroe)_/,'');
+    var c=(window.SG_CROMOS||[]).filter(function(x){return x[0]===k;})[0];
+    if(c) return c[1];
+    var h=(window.SG_HEROES||[]).filter(function(x){return x[0]===k;})[0];
+    return h?h[1]:k;
+  }
+
+  function canjear(id, nombre, coste, boton, abrir){
     if(!confirm('¿Canjear «'+nombre+'» por '+coste+' créditos?')) return;
     if(boton){ boton.disabled=true; boton.textContent='Canjeando…'; }
-    post({accion:'canje',per:per,recompensa:id},function(){
-      aviso('🎁 <b>'+esc(nombre)+'</b> canjeada.');
+    post({accion:'canje',per:per,recompensa:id,abrir:abrir},function(d){
+      var botin = d && d.botin;
+      aviso(botin
+        ? '🎁 ¡Te ha tocado <b>'+esc(nombreDeCarta(botin))+'</b>! Míralo en tu álbum.'
+        : (d && d.sinAbrir
+            ? '🎁 <b>'+esc(nombre)+'</b> es tuya. No he podido abrirla ahora: vuelve a intentarlo desde tu álbum.'
+            : '🎁 <b>'+esc(nombre)+'</b> canjeada.'));
       identificarPorSesion();
     },function(e){
       if(boton){ boton.disabled=false; boton.textContent='Canjear por '+coste+' ◈'; }
@@ -1084,7 +1105,8 @@
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-canje]'),function(b){
       b.onclick=function(){ canjear(b.getAttribute('data-canje'), b.getAttribute('data-nombre'),
-                                   Number(b.getAttribute('data-coste')), b); };
+                                   Number(b.getAttribute('data-coste')), b,
+                                   b.getAttribute('data-abrir')==='1'); };
     });
     wireYt(root);
     Array.prototype.forEach.call(root.querySelectorAll('.acc[data-ir]'),function(a){

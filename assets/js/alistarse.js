@@ -43,6 +43,15 @@
 
   function docentes() { return ((PROY.stargate || {}).docentes || []); }
 
+  // 🔴 El interruptor de motor tiene que sobrevivir al salto a la Nave. Sin él, quien se alista con
+  // ?motor=firestore aterriza en la Nave del motor VIEJO y se encuentra un «PER no encontrado»
+  // después de haberlo hecho todo bien.
+  function naveUrl() {
+    var q = new URLSearchParams(location.search);
+    var m = q.get("motor");
+    return "recluta.html?per=" + encodeURIComponent(PER) + (m ? "&motor=" + encodeURIComponent(m) : "");
+  }
+
   function formulario() {
     var S = PROY.stargate || {};
     app.innerHTML =
@@ -155,7 +164,7 @@
           '<p class="small muted">' + esc(escuadron.origen || "") + '</p>'
         : '<p class="lead">Tu ficha está abierta.</p>') +
       '<p>Insignia de <b>Reclutamiento</b> · +100 xp · +20 créditos ◈</p>' +
-      '<p><a class="btn grande" href="recluta.html?per=' + esc(PER) + '">Entrar en mi Nave</a></p>');
+      '<p><a class="btn grande" href="' + naveUrl() + '">Entrar en mi Nave</a></p>');
   }
 
   async function arrancar() {
@@ -175,7 +184,7 @@
       // camino más corto a tener dos fichas con la misma persona dentro.
       var mias = await MOTOR.getDocs(MOTOR.query(MOTOR.collection(MOTOR.db, "student_profiles"),
         MOTOR.where("projectId", "==", PER), MOTOR.where("userId", "==", YO.uid)));
-      if (!mias.empty) return location.replace("recluta.html?per=" + encodeURIComponent(PER));
+      if (!mias.empty) return location.replace(naveUrl());
       formulario();
     };
     MOTOR.sesion().then(mirar);

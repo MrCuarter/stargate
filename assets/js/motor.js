@@ -214,19 +214,44 @@ async function guardarAjustes(perId, publico, privado) {
     await setDoc(doc(db, "projects", perId, "privado", "stargate"), privado, { merge: true });
 }
 
+// La fuente que el motor acepta para un movimiento hecho por el profesorado. No es decorativo:
+// `applyXpDelta` rechaza cualquier nombre que no esté en su lista, y con razón — así nadie puede
+// colar experiencia disfrazándola de otra cosa.
+const AJUSTE_DOCENTE = "teacher_resource_adjustment";
+
 /**
  * OTORGAR un reto a mano. Lo que hacía «otorgar» en la hoja: el profesorado da por bueno algo que
  * vio en clase y que el alumno no registró.
  *
- * Va por `completeMission`, no por una escritura directa, y eso no es ceremonia: la experiencia y
- * los créditos solo los puede mover el servidor, y así queda asiento en el libro de xp. Un regalo
- * sin registro es un descuadre esperando a que alguien pregunte.
+ * 🔴 NO va por `completeMission`. Esa función exige que el perfil sea del que llama —«ese perfil no
+ * es tuyo»— y hace bien: una misión la completa quien la hace. Lo del docente es otra cosa y tiene
+ * su propio camino: `applyXpDelta` mueve la experiencia y los créditos dejando asiento en el libro,
+ * y la lista de retos la escribe el docente, que sí puede. Un regalo sin registro es un descuadre
+ * esperando a que alguien pregunte.
  */
 async function otorgarReto(perId, fichaId, retoId) {
-  const r = await getDocs(query(collection(db, "missions"),
-    where("projectId", "==", perId), where("stargateId", "==", retoId)));
-  if (r.empty) throw new Error("Ese reto no existe en este grupo: " + retoId);
-  return llamar("completeMission", { projectId: perId, missionId: r.docs[0].id, studentProfileId: fichaId });
+  const [mi, ficha] = await Promise.all([
+    getDocs(query(collection(db, "missions"), where("projectId", "==", perId), where("stargateId", "==", retoId))),
+    getDoc(doc(db, "student_profiles", fichaId))
+  ]);
+  if (mi.empty) throw new Error("Ese reto no existe en este grupo: " + retoId);
+  if (!ficha.exists()) throw new Error("No encuentro la ficha");
+  const m = mi.docs[0], d = ficha.data();
+  if ((d.completedMissionIds || []).indexOf(m.id) >= 0) throw new Error("Ya lo tenía registrado");
+  await llamar("applyXpDelta", {
+    projectId: perId, studentProfileId: fichaId, userId: d.userId,
+    deltaXp: Number(m.data().points || 0), deltaCoins: Number(m.data().coinsReward || 0),
+    source: AJUSTE_DOCENTE, details: "Otorgado a mano: " + retoId
+  });
+  const sellos = Object.assign({}, d.missionTimestamps || {});
+  sellos[m.id] = (sellos[m.id] || []).concat([new Date().toISOString()]);
+  const insignias = (d.earnedBadges || []).slice();
+  const badge = m.data().badge;
+  if (badge && insignias.indexOf(badge) < 0) insignias.push(badge);
+  await updateDoc(doc(db, "student_profiles", fichaId), {
+    completedMissionIds: (d.completedMissionIds || []).concat([m.id]),
+    missionTimestamps: sellos, earnedBadges: insignias
+  });
 }
 
 /**
@@ -248,7 +273,7 @@ async function anularReto(perId, fichaId, retoId, motivo) {
   await llamar("applyXpDelta", {
     projectId: perId, studentProfileId: fichaId, userId: d.userId,
     deltaXp: -Number(m.data().points || 0), deltaCoins: -Number(m.data().coinsReward || 0),
-    source: "teacher_adjustment", details: "Anulado: " + retoId + (motivo ? " · " + motivo : "")
+    source: AJUSTE_DOCENTE, details: "Anulado: " + retoId + (motivo ? " · " + motivo : "")
   });
   const sellos = Object.assign({}, d.missionTimestamps || {}); delete sellos[m.id];
   await updateDoc(doc(db, "student_profiles", fichaId), {
