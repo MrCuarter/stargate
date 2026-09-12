@@ -241,9 +241,12 @@
   function panelEmbebido(){
     var u = miPanel();
     if (!u) return '';
-    return '<div class="card panel-planetas"><h3>🪐 Los ocho planetas</h3>'
-      + '<p class="small muted">Tu panel de control: cada planeta es un tema, con sus retos y sus '
-      + 'materiales. Se abre aquí mismo.</p>'
+    // 🔴 No se llama «Los ocho planetas»: así se llama el MAPA, que está en «Mis retos» y es otra
+    // cosa (qué está abierto y qué no). Dos títulos iguales para dos pantallas distintas es la forma
+    // más barata de que alguien busque una y encuentre la otra.
+    return '<div class="card panel-planetas"><h3>🪐 Tu panel de control</h3>'
+      + '<p class="small muted">Cada planeta es un tema, con sus retos y sus materiales. Se abre '
+      + 'aquí mismo, sin salir de la Nave.</p>'
       + '<div class="marco-genially"><iframe src="' + esc(u) + '" loading="lazy" allowfullscreen '
       + 'allow="fullscreen" referrerpolicy="no-referrer-when-downgrade" '
       + 'title="Panel de control de los planetas"></iframe></div>'

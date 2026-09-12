@@ -81,7 +81,11 @@
      vacio:'Todavía no se ha entregado ninguna insignia.'},
     {k:'planetas', et:'🪐 Explorador', col:'pl',
      ayuda:'Planetas <b>completos</b>: temas con todos sus retos cerrados. Premia terminar lo que se empieza en vez de picotear.',
-     val:function(p){return (p.planetas_completos||0);}, unidad:function(v){return v===1?' planeta':' planetas';}, soloConValor:true,
+     // 🔴 `planetas_completos` es un ARRAY con los números de los temas cerrados, no un contador.
+     // Restando dos arrays sale NaN y el orden se rompe SIN error: la tabla salía en el orden en que
+     // llegaron los datos y parecía un ranking.
+     val:function(p){var v=p.planetas_completos; return Array.isArray(v)?v.length:(v||0);},
+     unidad:function(v){return v===1?' planeta':' planetas';}, soloConValor:true,
      vacio:'Nadie ha cerrado un planeta entero todavía. El primero que lo haga sale aquí solo.'},
     {k:'escuadrones', et:'⚔️ Escuadrones', col:'xp', porEquipos:true,
      ayuda:'Los escuadrones entre sí, por <b>media de xp por recluta</b>. 🔴 Por media y no por total: sumando ganaría siempre el más numeroso, y eso no mediría nada.',

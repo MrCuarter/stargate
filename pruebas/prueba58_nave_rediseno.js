@@ -26,8 +26,11 @@ c(/if\(TABS_VIEJAS\[k\]\) k=TABS_VIEJAS\[k\];/.test(NAVE), "   la traducción oc
 c(/function pestanas\(\)[\s\S]{0,900}nave-barra-u/.test(NAVE), "hay una barra única");
 c(/id="nb-xp"/.test(NAVE) && /id="nb-cr"/.test(NAVE),
   "🔴 los contadores viven en la barra: si no, marcar un reto desde otra pestaña celebra en una cifra que nadie mira");
-c(/position:sticky;top:0/.test(CSS.slice(CSS.indexOf(".nave-barra-u"), CSS.indexOf(".nave-barra-u") + 260)),
-  "   y la barra se queda pegada arriba");
+const cssBarra = CSS.slice(CSS.indexOf(".nave-barra-u{"), CSS.indexOf(".nave-barra-u{") + 260);
+c(/position:sticky;top:47px;z-index:15/.test(cssBarra),
+  "🔴 la barra se pega DEBAJO del menú de la web (47 px) y por debajo en z: encima lo dejaba inalcanzable");
+c(/body\.embed \.nave-barra-u\{top:0\}/.test(CSS),
+  "   y arriba del todo cuando va incrustada, que ahí no hay menú");
 c(NAVE.indexOf("function accesos()") < 0,
   "🔴 la parrilla de accesos ya no existe: era el puente a los formularios de Google");
 c(/function menuMas\(\)/.test(NAVE), "   lo ocasional vive en el menú «···»");
@@ -106,5 +109,19 @@ c(/noEresComandante/.test(LLAMADA),
 });
 c(/perId \+ "__cromo_"/.test(MOTOR),
   "🔴 y la carta regalada se guarda con el identificador de DOCUMENTO, o el álbum no sabría leerla");
+
+// ---------------------------------------------------------------- h) los rankings ordenan de verdad
+// 🔴 `planetas_completos` es un ARRAY con los temas cerrados, no un contador. El ranking «Explorador»
+// lo restaba como número: `[1,2] - [1]` es NaN, el `sort` no ordena nada y la tabla sale en el orden
+// en que llegaron los datos — pareciendo un ranking. Sin error, claro.
+c(/Array\.isArray\(v\)\?v\.length/.test(TABLERO),
+  "🔴 el ranking de planetas cuenta la LONGITUD del array, no el array");
+// Y de paso: ningún modo puede devolver algo que no sea un número.
+const CAMPOS_VAL = TABLERO.match(/val:function\(p\)\{return [^}]+\}/g) || [];
+c(CAMPOS_VAL.length >= 6, "hay un extractor de valor por ranking");
+CAMPOS_VAL.forEach(function (f) {
+  c(/\|\|\s*0|\?v\.length|p\.xp;|pctCol/.test(f),
+    "   y todos se defienden de que falte el dato: " + f.slice(0, 46));
+});
 
 E.resumen("La Nave rediseñada");

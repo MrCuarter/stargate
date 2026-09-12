@@ -1256,7 +1256,11 @@ ol.pasos-num li b{color:var(--ink)}
    Sustituye a las dos filas de antes (pestañas 56 px + parrilla de accesos 89 px = 144 px fijos).
    Una sola de 56. Los contadores viven aquí para que la celebración de ganar xp se vea estés en la
    pestaña que estés. */
-.nave-barra-u{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
+/* 🔴 SE PEGA DEBAJO DEL MENÚ DEL SITIO, no encima. El menú de STARGATE ya es `sticky top:0` con
+   z-index 20: con `top:0` y z-index 30 esta barra se le montaba encima al hacer scroll y dejaba el
+   menú de la web inalcanzable. Mismos valores que usaba la barra vieja, que ya lo tenía resuelto:
+   47 px de hueco (lo que mide el menú) y por DEBAJO en z. */
+.nave-barra-u{position:sticky;top:47px;z-index:15;display:flex;align-items:center;gap:14px;
   height:56px;padding:0 14px;margin:0 0 18px;
   background:rgba(10,16,24,.93);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);border-radius:0 0 12px 12px}
@@ -1300,12 +1304,32 @@ ol.pasos-num li b{color:var(--ink)}
 .nb-fiesta{padding:4px 11px}
 .nb-fiesta #sg-son.en-menu{position:static;width:auto;height:auto;padding:4px 10px;border-radius:8px;
   box-shadow:none}
+/* 🔴 12-sep · EN UN MÓVIL DE 375 px NO CABÍAN LAS CINCO. Se veían tres y las otras dos quedaban
+   detrás de un scroll horizontal que nadie iba a descubrir: media Nave escondida sin decirlo.
+   La cuenta es esta: 375 menos el avatar (38), los contadores (≈125) y el «···» (40) dejaba 172 para
+   cinco pestañas de 34. Faltaban 8 px y sobraba una cara que en el móvil no aporta nada — tu ficha
+   está a un toque. Fuera el avatar, pestañas más juntas y contadores más estrechos. */
+/* Incrustada en un Genially no hay menú de la web, así que se pega arriba del todo. */
+body.embed .nave-barra-u{top:0}
 @media(max-width:760px){
-  .nave-barra-u{gap:8px;padding:0 9px}
+  .nave-barra-u{gap:6px;padding:0 7px}
+  .nb-cara{display:none}
   .nb-yo b,.nb-nv{display:none}
-  .nb-t{padding:0 10px}
+  .nb-yo{display:none}
+  .nb-tabs{margin:0;flex:1 1 auto;justify-content:space-around}
+  .nb-t{padding:0 8px}
   .nb-t b{display:none}
-  .nb-m{padding:3px 8px;font-size:.78rem}
+  .nb-t .i{font-size:1.15rem}
+  .nb-m{padding:3px 7px;font-size:.74rem}
+  .nb-mas{width:28px;height:28px;font-size:.9rem}
+  .nb-menu{right:6px;left:6px;width:auto}
+}
+/* Por debajo de 340 px (un iPhone SE en horizontal partido) puede seguir sin caber: entonces sí
+   hace falta el scroll, y se avisa con un degradado en el borde en vez de cortar en seco. */
+@media(max-width:340px){
+  .nb-tabs{justify-content:flex-start;
+    -webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);
+    mask-image:linear-gradient(90deg,#000 85%,transparent)}
 }
 @media (prefers-reduced-motion:reduce){.nb-t,.nb-t .i,.nb-t::after,.nb-m{transition:none}}
 
