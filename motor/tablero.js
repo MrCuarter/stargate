@@ -294,6 +294,9 @@
       panel: S.panelVer || "", paneles: S.paneles || {},
       apertura: S.apertura || "", cierre_misiones: S.cierre || "", cierre_canje: S.cierreCanje || "",
       padlet: S.padlet || "",
+      // La web lleva llamándolo `formTicket` desde el primer día y en siete sitios distintos.
+      // Renombrarlo aquí solo serviría para tener que tocar esos siete.
+      formTicket: S.ticket || "",
       docentes: docentes.map(function (d) {
         return { nombre: d.nombre, rol: d.rol, imparte: d.imparte || "",
                  referente: d.rol === "referente" };

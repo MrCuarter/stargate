@@ -76,10 +76,13 @@
       '<div class="card"><h3>2 · Los enlaces de la clase</h3>' +
       '<p class="small">Opcionales: se pueden poner y cambiar después.</p>' +
       '<label>Padlet de la clase<input id="f-padlet" placeholder="https://padlet.com/…" autocomplete="off"></label>' +
+      '<label>Ticket de salida <i>(formulario de Google)</i><input id="f-ticket" placeholder="https://forms.gle/…" autocomplete="off"></label>' +
       '<label>Panel de control (ver)<input id="f-panel" placeholder="https://view.genially.com/…" autocomplete="off"></label>' +
       '<label>Panel de control (editar)<input id="f-paneled" placeholder="https://app.genially.com/editor/…" autocomplete="off"></label>' +
       '<p class="small muted">Si no pones ninguno, el grupo usa el panel oficial. Cada docente puede ' +
-      'tener además el suyo propio, abajo.</p></div>' +
+      'tener además el suyo propio, abajo.<br>El <b>ticket de salida</b> sigue siendo un formulario ' +
+      'de Google porque tiene que ser anónimo: duplica el de siempre para este grupo y pega aquí su ' +
+      'enlace.</p></div>' +
 
       '<div class="card"><h3>3 · El equipo docente</h3>' +
       '<p class="small">Quien esté en esta lista verá el grupo al entrar con su correo. El <b>referente</b> ' +
@@ -131,6 +134,7 @@
       tipo: $("#f-tipo").value,
       inicio: $("#f-inicio").value,
       padlet: $("#f-padlet").value.trim(),
+      ticket: $("#f-ticket").value.trim(),
       panelVer: $("#f-panel").value.trim(),
       panelEdit: $("#f-paneled").value.trim(),
       referente: (docentes.filter(function (d) { return d.rol === "referente"; })[0] || {}).correo || YO.correo,

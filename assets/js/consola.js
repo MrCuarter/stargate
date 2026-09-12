@@ -224,6 +224,7 @@
       '<p class="small muted">Calendario actual: apertura ' + esc(S.apertura || "—") + ' · cierre de misiones ' +
       esc(S.cierre || "—") + ' · cierre de canje ' + esc(S.cierreCanje || "—") + "</p>" +
       '<label>Padlet de la clase<input id="s-padlet" value="' + esc(S.padlet || "") + '"></label>' +
+      '<label>Ticket de salida <i>(formulario de Google, anónimo)</i><input id="s-ticket" value="' + esc(S.ticket || "") + '"></label>' +
       '<label>Panel de control (ver)<input id="s-panel" value="' + esc(S.panelVer || "") + '"></label>' +
       '<label>Panel de control (editar)<input id="s-paneled" value="' + esc(P.panelEdit || "") + '"></label>' +
       '<p><button class="btn" id="s-guardar">Guardar</button></p></div>' +
@@ -244,6 +245,7 @@
             "stargate.inicio": inicio, "stargate.apertura": fechas.apertura,
             "stargate.cierre": fechas.cierre, "stargate.cierreCanje": fechas.cierreCanje,
             "stargate.padlet": $("#s-padlet").value.trim(),
+            "stargate.ticket": $("#s-ticket").value.trim(),
             "stargate.panelVer": $("#s-panel").value.trim() },
           { panelEdit: $("#s-paneled").value.trim() });
         await refrescar(); aviso("Guardado", true);

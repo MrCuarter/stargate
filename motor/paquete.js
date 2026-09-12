@@ -133,6 +133,10 @@
         cierreCanje: cierreCanje,
         semanas: semanas,
         padlet: String(per.padlet || "").trim(),
+        // 🔴 El ticket de salida sigue siendo un formulario de Google, y a propósito: tiene que ser
+        // ANÓNIMO, y el motor guarda quién responde cada formulario suyo. Un enlace externo es la
+        // única forma de prometer anonimato y cumplirlo. Lo duplica el referente, como el Genially.
+        ticket: String(per.ticket || "").trim(),
         panelVer: String(per.panelVer || "").trim(),
         // El Genially propio de cada docente, si lo tiene. La Nave elige el del docente del alumno.
         // Es de ver, no de editar: por eso puede ir aquí.
