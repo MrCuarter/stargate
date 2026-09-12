@@ -2842,6 +2842,27 @@ Con <code>?embed=1</code> se incrusta sin cabecera ni pie.</p>
 open(os.path.join(HERE, "llamada.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: llamada.html  (el pase de lista, dentro del Genially)")
 
+# ---------------------------------------------------------------- el huevo de Pascua
+# 🔴 Pública como la llamada, y por el mismo motivo: vive DENTRO de una presentación. Aquí el
+# secreto no es el enlace —circulará, seguro— sino ENCONTRARLO. Y aunque alguien lo comparta, cada
+# escondite se reclama una sola vez por persona: lo impide la marca en su propia ficha.
+_html = head("STARGATE · Un escondite",
+             "Has encontrado un escondite de la Tripulación Cero. Reclama lo que hay dentro.",
+             "reg", publica=True).replace("</head>", _cabeza_motor() + "\n</head>") + '''
+<header class="hero corto"><h1>Un escondite</h1></header>
+<section id="huevo"><div class="wrap">
+<div id="huevo-app"><p class="muted">Cargando…</p></div>
+''' + '<script src="' + _v("assets/js/huevo.js") + '" defer></script>' + '''
+<p class="small muted" style="margin-top:22px">Para el profesorado: un enlace por escondite
+(<code>?h=p1</code>, <code>?h=p2</code>…), y cada uno vale en <b>todos</b> los grupos y todas las
+convocatorias — el grupo se deduce de quién pulsa. Se configuran en
+<a href="consola.html">tu puesto de mando → Ajustes</a>.<br>
+Con <code>?embed=1</code> se incrusta sin cabecera ni pie.</p>
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "huevo.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: huevo.html  (el escondite de cada presentación)")
+
 # ---------------------------------------------------------------- el aula (embed del docente)
 # 🔴 El puesto de mando del docente DENTRO del Genially. El enemigo de una gamificación en clase es
 # tener que salir de la presentación: abrir otra pestaña, buscar el grupo, volver, perder el hilo.

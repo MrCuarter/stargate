@@ -186,7 +186,7 @@
    */
   var TABS = [["alumnado", "Mi gente"], ["canjes", "Cola de nota"], ["mios", "Mis enlaces"],
               ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1],
-              ["ajustes", "Ajustes del grupo", 1]];
+              ["huevos", "Escondites", 1], ["ajustes", "Ajustes del grupo", 1]];
   function misTabs() {
     var ref = !!(PERS.filter(function (p) { return p.id === PER; })[0] || {}).soyReferente;
     return TABS.filter(function (x) { return !x[2] || ref; });
@@ -224,7 +224,7 @@
     // con #ajustes— se cae al primero en vez de pintar una pantalla que no debería ver.
     if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
     ({ alumnado: verAlumnado, canjes: verCanjes, mios: verMios, equipo: verEquipo,
-       escuadrones: verEscuadrones, ajustes: verAjustes })[TAB](t);
+       escuadrones: verEscuadrones, huevos: verHuevos, ajustes: verAjustes })[TAB](t);
   }
 
   // Un grupo que empieza dentro de dos semanas está en la «semana -1», que es verdad y no dice
@@ -412,6 +412,92 @@
     return '<div class="m-fila"><span>' + ico + '</span><b>' + esc(tit) + '</b>' +
       '<a href="' + esc(url) + '" target="_blank" rel="noopener">Abrir ↗</a>' +
       '<button class="btn min" data-copiar="' + esc(url) + '">Copiar</button></div>';
+  }
+
+  // ---------------------------------------------------------------- escondites
+  var PREMIOS = [["sobre","🃏 Un sobre de cromos (3 cartas)"],
+                 ["heroe","🛡️ Un héroe de la Rebelión"],
+                 ["bolsa","💰 Una bolsa de créditos"]];
+  /**
+   * LOS ESCONDITES, uno por presentación.
+   *
+   * 🔴 El límite va en el ESCONDITE, no en el premio. Norberto preguntó si hacía falta «una
+   * recompensa por presentación limitada a 1 por persona», o una semanal —con el riesgo de que
+   * alguien reclame la misma cada semana sin encontrar el resto—. Las dos atan el límite al premio,
+   * y lo que hay que contar no es cuántos premios se lleva alguien: es cuántos escondites DISTINTOS
+   * ha encontrado. Con el id en el enlace y una marca en su ficha, repetir es imposible y el mismo
+   * premio se puede usar en los ocho.
+   */
+  function verHuevos(t) {
+    var H = ((DATOS.proyecto || {}).stargate || {}).huevos || [];
+    $("#c-cuerpo").innerHTML =
+      '<div class="card"><h3>Escondites</h3>' +
+      '<p class="small muted">Uno por presentación. Pega el enlace en un rincón del Genially —una ' +
+      'estrella, un detalle del fondo— y quien lo encuentre se lleva lo que pongas. ' +
+      '<b>Cada persona solo puede reclamar cada escondite una vez</b>, aunque el enlace circule.</p>' +
+      '<div id="hv-lista" class="hv-lista">' + (H.length ? H.map(filaHuevo).join("") :
+        '<p class="small muted">Todavía no hay ninguno.</p>') + '</div>' +
+      '<p style="margin-top:14px"><button class="btn" id="hv-add">+ Añadir un escondite</button> ' +
+      '<button class="btn primary" id="hv-save">Guardar</button></p></div>';
+    cablearHuevos(H);
+  }
+  function filaHuevo(h, i) {
+    return '<div class="hv-f" data-i="' + i + '">' +
+      '<input class="h-id" value="' + esc(h.id || "") + '" placeholder="p1" maxlength="12" title="Identificador: va en el enlace">' +
+      '<input class="h-nom" value="' + esc(h.nombre || "") + '" placeholder="Presentación del Tema 1">' +
+      '<select class="h-premio">' + PREMIOS.map(function (p) {
+        return '<option value="' + p[0] + '"' + (h.premio === p[0] ? " selected" : "") + ">" + p[1] + "</option>"; }).join("") + '</select>' +
+      // 🔴 Los dos límites que pidió: 0 = sin tope (todo el que lo encuentre), o «solo los N primeros».
+      '<input class="h-lim" type="number" min="0" value="' + (Number(h.limite) || 0) + '" title="0 = sin tope; 5 = solo los cinco primeros">' +
+      '<label class="h-act"><input type="checkbox" class="h-on"' + (h.activo === false ? "" : " checked") + '> activo</label>' +
+      '<button class="btn min h-del" title="Quitar">✕</button>' +
+      '<code class="h-url">' + esc(location.origin) + '/huevo.html?h=' + esc(h.id || "…") + '&amp;embed=1</code>' +
+      '<button class="btn min" data-copiar="' + esc(location.origin + "/huevo.html?h=" + (h.id || "") + "&embed=1") + '">Copiar</button>' +
+      '</div>';
+  }
+  function cablearHuevos(H) {
+    var lista = H.slice();
+    var repintar = function () {
+      $("#hv-lista").innerHTML = lista.length ? lista.map(filaHuevo).join("")
+        : '<p class="small muted">Todavía no hay ninguno.</p>';
+      cablearFilas();
+    };
+    var cablearFilas = function () {
+      Array.prototype.forEach.call($("#hv-lista").querySelectorAll(".hv-f"), function (f) {
+        var i = Number(f.getAttribute("data-i"));
+        var leer = function () {
+          lista[i] = { id: $(".h-id", f).value.trim(), nombre: $(".h-nom", f).value.trim(),
+                       premio: $(".h-premio", f).value, limite: Number($(".h-lim", f).value) || 0,
+                       activo: $(".h-on", f).checked, creditos: 50 };
+        };
+        ["h-id","h-nom","h-premio","h-lim","h-on"].forEach(function (k) {
+          var e = $("." + k, f); e.oninput = e.onchange = leer;
+        });
+        $(".h-del", f).onclick = function () { lista.splice(i, 1); repintar(); };
+      });
+      Array.prototype.forEach.call($("#hv-lista").querySelectorAll("[data-copiar]"), function (b) {
+        b.onclick = function () {
+          var txt = b.getAttribute("data-copiar");
+          if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () {
+            var v = b.textContent; b.textContent = "✓"; setTimeout(function(){ b.textContent = v; }, 1400); });
+          else prompt("Copia:", txt);
+        };
+      });
+    };
+    cablearFilas();
+    $("#hv-add").onclick = function () {
+      lista.push({ id: "p" + (lista.length + 1), nombre: "", premio: "sobre", limite: 0, activo: true, creditos: 50 });
+      repintar();
+    };
+    $("#hv-save").onclick = async function () {
+      var malos = lista.filter(function (h) { return !h.id; });
+      if (malos.length) return aviso("Cada escondite necesita un identificador (va en el enlace).");
+      var ids = lista.map(function (h) { return h.id; });
+      if (new Set(ids).size !== ids.length) return aviso("Hay dos escondites con el mismo identificador.");
+      $("#hv-save").disabled = true;
+      try { await MOTOR.guardarHuevos(PER, lista); await refrescar(); aviso("Guardado.", true); }
+      catch (e) { $("#hv-save").disabled = false; aviso(e.message); }
+    };
   }
 
   // ---------------------------------------------------------------- equipo docente

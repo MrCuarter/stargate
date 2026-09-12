@@ -752,6 +752,114 @@ async function referenteEnTodos(persona, perIds) {
   return { hechos, fallos };
 }
 
+/**
+ * ════════ LOS HUEVOS DE PASCUA ════════
+ *
+ * Norberto: «me encantaría esconder un huevo de Pascua en cada presentación. Si el estudiante lo
+ * encuentra gana un sobre de cromos, un avatar o una bolsa de dinero».
+ *
+ * 🔴 Y preguntó bien la parte difícil: «¿tendría que crear una recompensa por presentación y
+ * limitar a 1 por persona? ¿O una semanal, pero entonces uno podría reclamar la misma cada semana
+ * sin encontrar el resto?». Las dos opciones tienen el mismo fallo: atan el límite a la RECOMPENSA,
+ * y lo que hay que contar no es cuántos premios se lleva alguien — es CUÁNTOS HUEVOS DISTINTOS ha
+ * encontrado.
+ *
+ * Así que el límite va en el HUEVO, no en el premio:
+ *   · cada escondite tiene su id (`p1`, `p2`… uno por presentación) y viaja en el enlace;
+ *   · el perfil guarda qué huevos ha abierto ya (`stargateHuevos`);
+ *   · el premio es solo una consecuencia, y se puede repetir entre huevos sin problema.
+ *
+ * Con esto sobra crear ocho recompensas, y reclamar dos veces el mismo escondite es imposible
+ * aunque el enlace circule por WhatsApp: el segundo intento ve su propia marca y no paga.
+ */
+/**
+ * EN QUÉ GRUPO ESTÁ ESTA PERSONA.
+ *
+ * 🔴 Esto es lo que permite que el enlace del huevo NO lleve el grupo dentro — y por tanto que se
+ * monte UNA vez por presentación y valga para todos los grupos y todos los años. Es la misma idea
+ * que ya usan la llamada a filas y validar retos: el grupo se deduce de quién pulsa.
+ *
+ * Las fichas se buscan por `userId`, que es lo que ata a una persona con su expediente, y no por
+ * correo: alguien puede cambiarse el correo visible, pero no su identidad de Google.
+ */
+async function misGruposDeAlumno(uid) {
+  const r = await getDocs(query(collection(db, "student_profiles"), where("userId", "==", uid)));
+  return r.docs.map(d => ({ ficha: d.id, per: d.data().projectId }))
+               .filter(x => x.per);
+}
+
+async function huevosDe(perId) {
+  const p = await getDoc(doc(db, "projects", perId));
+  return ((p.exists() ? p.data().stargate : null) || {}).huevos || [];
+}
+
+async function guardarHuevos(perId, lista) {
+  await updateDoc(doc(db, "projects", perId), { "stargate.huevos": lista });
+  return lista;
+}
+
+/**
+ * Reclamar un huevo. Devuelve qué ha tocado, o por qué no.
+ * 🔴 El orden importa: primero se comprueba, luego se MARCA, y solo después se paga. Al revés, un
+ * doble clic pagaría dos veces antes de que la marca llegase a escribirse.
+ */
+async function reclamarHuevo(perId, huevoId, fichaId) {
+  const yo = await sesion();
+  if (!yo) throw new Error("Entra con tu cuenta para reclamarlo");
+
+  const huevos = await huevosDe(perId);
+  const h = huevos.filter(x => String(x.id) === String(huevoId))[0];
+  if (!h) throw new Error("Este escondite no existe en tu grupo.");
+  if (h.activo === false) throw new Error("Este escondite ya está cerrado.");
+
+  const f = await getDoc(doc(db, "student_profiles", fichaId));
+  if (!f.exists()) throw new Error("No encuentro tu ficha");
+  const perfil = f.data();
+  const mios = perfil.stargateHuevos || [];
+  if (mios.indexOf(String(huevoId)) >= 0) return { yaEra: true, premio: h.premio };
+
+  /**
+   * El tope global, si lo puso el referente: «solo los diez primeros». Se cuenta preguntando
+   * cuántas fichas del grupo lo llevan ya — una consulta, y solo al reclamar.
+   * 🔴 No es a prueba de dos personas pulsando en el mismo segundo, y no puede serlo sin una
+   * transacción del servidor. Para «los diez primeros de una clase» eso es irrelevante; si algún
+   * día el premio fuera valioso de verdad, esto tendría que subir a una Cloud Function.
+   */
+  const tope = Number(h.limite || 0);
+  if (tope > 0) {
+    const ya = await getDocs(query(collection(db, "student_profiles"),
+      where("projectId", "==", perId), where("stargateHuevos", "array-contains", String(huevoId))));
+    if (ya.size >= tope) throw new Error("Llegaste tarde: este ya lo encontraron " + tope + " personas.");
+  }
+
+  await updateDoc(doc(db, "student_profiles", fichaId),
+    { stargateHuevos: mios.concat([String(huevoId)]) });
+
+  // Y ahora el premio. Si algo falla aquí, la marca ya está: mejor perder un premio que dejar un
+  // escondite reclamable en bucle.
+  let detalle = null;
+  if (h.premio === "sobre") detalle = { tipo: "sobre", cartas: await regalarSobre(perId, fichaId, 3) };
+  else if (h.premio === "heroe") {
+    const heroes = (window.SG_CATALOGO || {}).heroes || [];
+    const el = alAzarPorPeso(heroes.map(x => Object.assign({ peso: 1 }, x)));
+    if (el) {
+      await updateDoc(doc(db, "student_profiles", fichaId),
+        { inventory: (perfil.inventory || []).concat([perId + "__heroe_" + el.clave]) });
+      detalle = { tipo: "heroe", nombre: el.nombre, clave: el.clave };
+    }
+  } else if (h.premio === "bolsa") {
+    const cuanto = Number(h.creditos || 50);
+    await llamar("applyXpDelta", {
+      projectId: perId, studentProfileId: fichaId, userId: yo.uid,
+      deltaXp: 0, deltaCoins: cuanto,
+      source: "teacher_resource_adjustment", details: "Huevo de Pascua: " + huevoId,
+      idempotencyKey: "huevo_" + perId + "_" + huevoId + "_" + yo.uid
+    });
+    detalle = { tipo: "bolsa", creditos: cuanto };
+  }
+  return { ok: true, premio: h.premio, detalle: detalle, nombre: h.nombre || "" };
+}
+
 async function nuevoCodigo(perId) {
   const c = window.SG.PAQUETE.codigoNuevo();
   await updateDoc(doc(db, "projects", perId), { joinCode: c });
@@ -841,6 +949,7 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     guardarAjustes, otorgarReto, anularReto, traspasar, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
                     premiar, regalarCromo, regalarSobre, darDeBaja, nuevoCodigo,
+                    huevosDe, guardarHuevos, reclamarHuevo, misGruposDeAlumno,
                     anadirDocente, referenteEnTodos,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));
