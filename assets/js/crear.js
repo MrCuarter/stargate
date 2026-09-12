@@ -45,7 +45,11 @@
       '<div class="card"><h3>Entra con tu cuenta</h3>' +
       '<p>Para crear un grupo hay que identificarse. El grupo quedará a nombre de la cuenta con la ' +
       'que entres, así que <b>entra con la cuenta de la universidad</b>.</p>' +
-      '<p><button class="btn" id="btn-entrar">Entrar con Google</button></p></div>';
+      '<p><button class="btn primary grande btn-google" id="btn-entrar">' +
+      ((window.SG && window.SG.LOGO_G) || "") +
+      '<span>Iniciar sesión con Google</span></button></p>' +
+      '<p class="small muted">Te llevará a la pantalla de Google. Tu contraseña se escribe allí, ' +
+      'nunca aquí.</p></div>';
     $("#btn-entrar").onclick = function () {
       MOTOR.entrar().catch(function (e) { aviso("No he podido entrar: " + esc(e.message), "malo"); });
     };

@@ -766,11 +766,17 @@
     root.innerHTML=cargando('Abriendo tu sala…','Comprobando tu cuenta');
     M.sesion().then(function(u){
       if(!u){
-        root.innerHTML='<div class="card" style="max-width:520px"><h3>Tu sala</h3>'
-          +'<p class="small muted">Entra con la cuenta que tu referente puso en el equipo docente. '
-          +'Solo verás <b>tus grupos</b> y tu alumnado.</p>'
-          +'<button class="btn primary" id="okG">Entrar con Google</button></div>';
-        document.getElementById('okG').onclick=function(){M.entrar();};
+        /**
+         * 🔴 12-sep · AQUÍ DIBUJÁBAMOS LA PUERTA, Y ERA EL PEOR SITIO POSIBLE. `root` es
+         * `#clase-app`, que va DESPUÉS del hero: el botón de Google caía a 734 px de scroll en una
+         * página de 1.013. Norberto llegó aquí desde la guía, vio una pared de texto sin un solo
+         * botón y concluyó —con toda la razón— que «no hay manera de iniciar sesión».
+         *
+         * Ya no se dibuja ninguna puerta: se manda a la única que hay, que es una página entera
+         * dedicada a eso y no puede esconder nada. Al volver, la sala ya tiene sesión y esta rama
+         * ni se pisa.
+         */
+        location.replace('entrar.html?volver=clase.html');
         return;
       }
       st.correo=u.correo; localStorage.setItem('sgClaseCorreo',u.correo);

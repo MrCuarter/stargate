@@ -19,13 +19,10 @@
 // esconde el camino, no el contenido. Lo que de verdad reserva un documento es no tenerlo en el
 // servidor público — o, para el material del equipo, los permisos de Genially y de Drive.
 (function(){
-  // La «G» oficial de Google, en sus cuatro colores. Tal cual la publica su guía de marca.
-  var LOGO_G = '<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" focusable="false">'
-    + '<path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.2-.4-4.7H24v8.9h11.8c-.5 2.7-2 5-4.3 6.6v5.5h7c4.1-3.8 6.6-9.4 6.6-16.3z"/>'
-    + '<path fill="#34A853" d="M24 46c5.8 0 10.7-1.9 14.3-5.2l-7-5.5c-1.9 1.3-4.4 2.1-7.3 2.1-5.6 0-10.4-3.8-12.1-8.9H4.7v5.6C8.3 41.4 15.6 46 24 46z"/>'
-    + '<path fill="#FBBC05" d="M11.9 28.5c-.4-1.3-.7-2.7-.7-4.5s.3-3.2.7-4.5v-5.6H4.7C3.2 17 2.4 20.4 2.4 24s.8 7 2.3 10.1l7.2-5.6z"/>'
-    + '<path fill="#EA4335" d="M24 9.5c3.2 0 6 1.1 8.2 3.2l6.2-6.2C34.7 3 29.8 1 24 1 15.6 1 8.3 5.6 4.7 13.9l7.2 5.6C13.6 14.4 18.4 9.5 24 9.5z"/>'
-    + '</svg>';
+  // La «G» oficial de Google vive en stargate.js (window.SG.LOGO_G) — una sola copia para las
+  // cinco puertas. Estas páginas cargan stargate.js antes que este fichero (ambos `defer`, y
+  // `defer` respeta el orden del documento), así que a esta altura ya está puesta.
+  var LOGO_G = (window.SG && window.SG.LOGO_G) || "";
 
   var raiz = document.documentElement;
   function abrir(){ raiz.classList.remove('cerrado'); var p=document.getElementById('puerta'); if(p) p.remove(); }
@@ -85,13 +82,19 @@
       /**
        * 🔴 La mayoría de estas páginas NO cargan el motor: la guía, la cronología, los recursos y
        * las actividades son documentos, y meterles medio megabyte de Firebase para vigilar una
-       * puerta sería pagar en cada visita por algo que se usa una vez. Así que se manda a la sala,
+       * puerta sería pagar en cada visita por algo que se usa una vez. Así que se manda a `entrar.html`,
        * que sí lo carga, CON EL DESTINO PUESTO: allí se entra con la cuenta, queda la marca y la
-       * sala devuelve a la persona a donde iba. Sin el `volver` se quedaría en la sala mirando otra
-       * cosa, preguntándose qué ha pasado con el enlace que pulsó.
+       * puerta devuelve a la persona a donde iba.
+       *
+       * 🔴 12-sep · ANTES MANDABA A `clase.html`, Y AHÍ ESTABA EL FALLO QUE PILLÓ NORBERTO AL
+       * PRIMER CLIC. La sala dibuja su botón de Google DENTRO de `#clase-app`, que va después del
+       * hero: a 734 px de scroll en una página de 1.013. Pulsabas «Iniciar sesión con Google» en la
+       * guía, aterrizabas en una pared de texto sin un solo botón a la vista y concluías —con toda
+       * la razón— que «no hay manera de iniciar sesión». Un redirect no sirve de nada si deja a la
+       * persona mirando la mitad equivocada de otra página.
        */
       if (!M || !M.sesion || !M.misPERs) {
-        location.href = 'clase.html?volver=' + encodeURIComponent(location.pathname.replace(/^\//, ''));
+        location.href = 'entrar.html?volver=' + encodeURIComponent(location.pathname.replace(/^\//, ''));
         return;
       }
       M.sesion().then(function(yo){

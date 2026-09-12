@@ -152,7 +152,9 @@
   // 🔴 9-sep · LA INVITACION SE MUDA A LA GUIA. Vivia en index.html cuando index.html ERA el puesto
   // de mando. Desde que la portada es la puerta publica del proyecto, el globo del Capitan le
   // preguntaba «¿primera vez en el puesto de mando?» a cualquiera que pasara por ahi — a un
-  // estudiante, a alguien de fuera. Ahora saluda en guia.html, que es adonde lleva «Soy docente».
+  // estudiante, a alguien de fuera. Ahora saluda en guia.html, la primera parada de quien lee el
+  // metodo. 🔴 12-sep · «Soy docente» ya NO lleva a la guia sino a consola.html: quien pulsa eso
+  // quiere ENTRAR, no leer, y la guia es un documento.
   if(page()==='guia.html' && q===null && !localStorage.getItem('sgTourDone') && !localStorage.getItem(KEY)){
     var inv=document.createElement('div'); inv.className='tour-invite';
     inv.innerHTML='<img src="assets/img/capitan/saluda.png" alt=""><div><b>¿Primera vez en el puesto de mando?</b><br>Te lo enseño en dos minutos.</div><button type="button" class="tour-start">Empezar</button><button type="button" class="x" aria-label="Cerrar">✕</button>';

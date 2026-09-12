@@ -52,6 +52,16 @@ NAV = [("consola.html","Mis grupos","cons"),("guia.html","Guía","guia"),
 # `publica=True` es la PORTADA: menu minimo y sin visita guiada. 🔴 Si la portada llevara el menu
 # del profesorado, la bifurcacion seria mentira: un estudiante veria «Mi clase» y «Geniallys»
 # antes que su propia Nave.
+# La «G» de Google para el HTML que se escribe desde Python (el botón de la portada es un <a>, no
+# un <button>, así que no pasa por el JS que la pinta en las demás puertas). Misma marca, un solo
+# sitio en cada lenguaje. Ver `window.SG.LOGO_G` en stargate.js para el porqué.
+LOGO_G = ('<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" focusable="false">'
+  '<path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.2-.4-4.7H24v8.9h11.8c-.5 2.7-2 5-4.3 6.6v5.5h7c4.1-3.8 6.6-9.4 6.6-16.3z"/>'
+  '<path fill="#34A853" d="M24 46c5.8 0 10.7-1.9 14.3-5.2l-7-5.5c-1.9 1.3-4.4 2.1-7.3 2.1-5.6 0-10.4-3.8-12.1-8.9H4.7v5.6C8.3 41.4 15.6 46 24 46z"/>'
+  '<path fill="#FBBC05" d="M11.9 28.5c-.4-1.3-.7-2.7-.7-4.5s.3-3.2.7-4.5v-5.6H4.7C3.2 17 2.4 20.4 2.4 24s.8 7 2.3 10.1l7.2-5.6z"/>'
+  '<path fill="#EA4335" d="M24 9.5c3.2 0 6 1.1 8.2 3.2l6.2-6.2C34.7 3 29.8 1 24 1 15.6 1 8.3 5.6 4.7 13.9l7.2 5.6C13.6 14.4 18.4 9.5 24 9.5z"/>'
+  '</svg>')
+
 def head(title, desc, active, puerta=False, publica=False):
     def _lnk(h, t, k, solo=""):
         act = " active" if k == active else ""
@@ -69,8 +79,10 @@ def head(title, desc, active, puerta=False, publica=False):
                 f'<div class="drop-menu" role="menu" hidden>'
                 f'<a class="drop-all" href="{h}" role="menuitem">Ver todos los grupos →</a>'
                 f'<div class="drop-list"><span class="drop-msg">Cargando grupos…</span></div></div></div>')
-    links = ('<a class="lnk" href="recluta.html">🚀 Soy estudiante</a>'
-             '<a class="lnk" href="guia.html">🎓 Soy docente</a>') if publica else \
+    # 🔴 12-sep · UNA PUERTA, NO DOS. La portada bifurcaba en «Soy estudiante» / «Soy docente», y
+    # eso obliga a acertar ANTES de que el sistema sepa quién eres: quien elegía mal acababa en la
+    # mitad equivocada de la web. Ahora se entra primero y el servidor reparte.
+    links = ('<a class="lnk" href="entrar.html">Entrar</a>') if publica else \
             "".join(_lnk(e[0], e[1], e[2], e[3] if len(e) > 3 else "") for e in NAV)
     return f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -213,9 +225,9 @@ tiles = [
  ("cronologia.html","🗓️","La cronología","Semana a semana: qué vídeo, qué reto, qué insignia y el mensaje del foro."),
  ("actividades.html","🎯","Misiones y evaluación","Las dos actividades, el ePortfolio y el examen con los requisitos oficiales."),
  ("registro.html","🏅","Registro de insignias","Tablero en vivo por PER, formularios del alumnado y cómo funciona."),
- ("consola.html","🎛️","Puesto de mando","Tus grupos: gente, canjes, cola de nota y ajustes. Se entra con tu cuenta, sin PIN."),
+ ("consola.html","🎛️","Puesto de mando","Tus grupos: gente, canjes, cola de nota y ajustes, y lo que se usa en directo."),
  ("crear.html","✨","Crear un grupo","Siembra un grupo entero —retos, planetas, tienda y álbum— en un minuto."),
- ("tickets.html","🎟️","Tickets de salida","Valoraciones y dudas del alumnado, visual y por clase (con PIN)."),
+ ("tickets.html","🎟️","Tickets de salida","Valoraciones y dudas del alumnado, visual y por clase."),
  ("embed.html","🧩","Enlaces, embeds y QR","Elige tu PER y tu nombre: todo listo para pegar en Genially."),
  ("foro.html","💬","Foro dinamizador","El mensaje de la semana en curso (embebible en el Genially del PER) o todos de una vez, para copiar."),
  ("recluta.html","🚀","La Nave del Recluta","La web del alumnado: onboarding con NEBULA, planetas por semanas, su ficha y las recompensas."),
@@ -297,9 +309,10 @@ PORTADA = head("STARGATE · La Bitácora Estelar",
 <p>La galaxia se apaga por la Estática. El alumnado son los reclutas, ocho planetas son los ocho temas
 y la Bitácora —su ePortfolio— es lo que vuelve a encenderlo todo.</p>
 <div id="hero-cta" class="cta-row">
-<a class="btn primary grande" href="recluta.html">🚀 Soy estudiante — a mi Nave</a>
-<a class="btn grande" href="guia.html">🎓 Soy docente</a>
+<a class="btn primary grande btn-google" href="entrar.html">{LOGO_G}<span>Iniciar sesión con Google</span></a>
 <a class="btn ghost" href="{PLAYLIST}" target="_blank" rel="noopener">Serie completa en YouTube ↗</a>
+<p class="cta-pie small muted">Estudiante o docente, se entra por aquí: al entrar, el sistema te
+reconoce y te lleva a tu sitio.</p>
 </div>
 </div></header>
 
@@ -320,29 +333,39 @@ La batalla final es el examen.</p></div>
 </div></section>
 
 <section id="puertas"><div class="wrap">
-<div class="eyebrow teal">Por dónde entras</div><h2>Dos caminos</h2>
-<div class="grid cols-2">
-  <a class="card puerta-tile" href="recluta.html">
+<div class="eyebrow teal">Por dónde entras</div><h2>Una sola puerta</h2>
+<p class="lead">Da igual quién seas: entras con tu cuenta de Google y el sistema te reconoce. No hay
+que elegir bando en la puerta ni recordar ningún PIN.</p>
+<div class="grid cols-3 puertas-3">
+  <div class="card puerta-tile">
     <span class="ic">🚀</span>
-    <h3>Soy estudiante</h3>
-    <p>Tu Nave: te identificas con tu correo y ahí tienes tu personaje, la orden de la semana, los
-    planetas que se van abriendo, tus insignias y las recompensas. Desde ahí registras lo que
-    completas y canjeas lo que ganas.</p>
-    <span class="chip ok">Entrar en la Nave →</span>
-  </a>
-  <a class="card puerta-tile" href="guia.html">
+    <h3>Si eres estudiante</h3>
+    <p>Vas a tu <b>Nave</b>: tu personaje, la orden de la semana, los planetas que se abren, tus
+    insignias y el Mercado Estelar. Desde ahí registras lo que completas y canjeas lo que ganas.</p>
+    <span class="chip ok">Te lleva solo →</span>
+  </div>
+  <div class="card puerta-tile">
     <span class="ic">🎓</span>
-    <h3>Soy docente</h3>
-    <p>La guía del método, la cronología semana a semana, las actividades, los Geniallys del equipo y
-    tu sala de clase. <b>Entras con tu cuenta de Google</b> —la misma con la que tu referente te
-    apuntó al equipo— y no hay ningún PIN que recordar.</p>
-    <span class="chip">Entrar con mi cuenta →</span>
-  </a>
+    <h3>Si eres docente</h3>
+    <p>Vas a tu <b>puesto de mando</b>: tus grupos, y en cada uno lo que se usa en directo —proyectar
+    la sesión, la llamada a filas y el aula—. Y desde ahí, la guía del método y las actividades.</p>
+    <span class="chip">Te lleva solo →</span>
+  </div>
+  <div class="card puerta-tile">
+    <span class="ic">🔑</span>
+    <h3>Si aún no estás</h3>
+    <p>Te pide el <b>código de clase</b>, el que reparte tu docente el primer día. Con él te alistas
+    en el momento y ya tienes Nave. Es lo único que hay que teclear en toda la web.</p>
+    <span class="chip">Un código de 6 letras →</span>
+  </div>
 </div>
+<p style="text-align:center;margin-top:26px">
+<a class="btn primary grande btn-google" href="entrar.html">{LOGO_G}<span>Iniciar sesión con Google</span></a></p>
 </div></section>
 <section id="secciones"><div class="wrap">
 <div class="eyebrow teal">Zona del profesorado</div><h2>Dónde está cada cosa</h2>
-<p class="lead small">Todo esto pide el PIN. Si eres estudiante, tu sitio es la Nave.</p>
+<p class="lead small">Todo esto es material del profesorado: se abre con la misma cuenta con la que
+entras. Si eres estudiante, tu sitio es la Nave.</p>
 <div class="tiles">{tiles_html}</div>
 </div></section>
 
@@ -1295,6 +1318,27 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
 
 // ---- avatares: SOLO personajes que evolucionan (v3.8: fuera la galería clásica) + URL propia por canje ----
 window.SG = window.SG || {};
+
+/**
+ * LA «G» DE GOOGLE, EN UN SOLO SITIO. Tal cual la publica su guía de marca.
+ *
+ * 🔴 Norberto lo pidió al primer vistazo: «aquí no aparece el inicio de Google, debe quedar claro.
+ * Podrías usar el logo de Google también, da más confianza». Un botón que solo dice «entrar» no
+ * promete nada — quien lo pulsa no sabe si le van a pedir una contraseña nueva o inventarse un
+ * usuario. La marca dice, sin leer una palabra, que la contraseña se teclea en Google y no aquí.
+ *
+ * Va aquí y no copiada en cada puerta porque las puertas son cinco (la del material docente, la
+ * consola, la sala, crear y alistarse) y un logo repetido cinco veces es un logo que el día que
+ * cambie se quedará viejo en cuatro. Y va en SVG DENTRO de la página, no cargado del servidor de
+ * Google: el día que ese enlace cambie, el botón se quedaría mudo justo en la pantalla que pide
+ * confianza.
+ */
+window.SG.LOGO_G = '<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" focusable="false">'
+  + '<path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.2-.4-4.7H24v8.9h11.8c-.5 2.7-2 5-4.3 6.6v5.5h7c4.1-3.8 6.6-9.4 6.6-16.3z"/>'
+  + '<path fill="#34A853" d="M24 46c5.8 0 10.7-1.9 14.3-5.2l-7-5.5c-1.9 1.3-4.4 2.1-7.3 2.1-5.6 0-10.4-3.8-12.1-8.9H4.7v5.6C8.3 41.4 15.6 46 24 46z"/>'
+  + '<path fill="#FBBC05" d="M11.9 28.5c-.4-1.3-.7-2.7-.7-4.5s.3-3.2.7-4.5v-5.6H4.7C3.2 17 2.4 20.4 2.4 24s.8 7 2.3 10.1l7.2-5.6z"/>'
+  + '<path fill="#EA4335" d="M24 9.5c3.2 0 6 1.1 8.2 3.2l6.2-6.2C34.7 3 29.8 1 24 1 15.6 1 8.3 5.6 4.7 13.9l7.2 5.6C13.6 14.4 18.4 9.5 24 9.5z"/>'
+  + '</svg>';
 // Niveles y rangos (v3.7). Los XP SOLO SUBEN: dan nivel, y el avatar evoluciona al entrar en
 // los niveles marcados. Lo gastable son los CRÉDITOS, que viajan aparte en la ficha del recluta.
 window.SG.MONEDA = __MONEDA__;
@@ -1572,7 +1616,9 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
   // 🔴 9-sep · LA INVITACION SE MUDA A LA GUIA. Vivia en index.html cuando index.html ERA el puesto
   // de mando. Desde que la portada es la puerta publica del proyecto, el globo del Capitan le
   // preguntaba «¿primera vez en el puesto de mando?» a cualquiera que pasara por ahi — a un
-  // estudiante, a alguien de fuera. Ahora saluda en guia.html, que es adonde lleva «Soy docente».
+  // estudiante, a alguien de fuera. Ahora saluda en guia.html, la primera parada de quien lee el
+  // metodo. 🔴 12-sep · «Soy docente» ya NO lleva a la guia sino a consola.html: quien pulsa eso
+  // quiere ENTRAR, no leer, y la guia es un documento.
   if(page()==='guia.html' && q===null && !localStorage.getItem('sgTourDone') && !localStorage.getItem(KEY)){
     var inv=document.createElement('div'); inv.className='tour-invite';
     inv.innerHTML='<img src="assets/img/capitan/saluda.png" alt=""><div><b>¿Primera vez en el puesto de mando?</b><br>Te lo enseño en dos minutos.</div><button type="button" class="tour-start">Empezar</button><button type="button" class="x" aria-label="Cerrar">✕</button>';
@@ -2161,7 +2207,7 @@ la orden de la semana, las <b>dudas del ticket de salida</b> filtrables por tema
 <p class="small muted"><b>Entra con tu cuenta de Google</b>: la misma con la que tu referente te puso en
 el equipo docente. No hay PIN que recordar ni correo que escribir — el servidor sabe quién eres y te
 enseña solo <b>tus grupos y tu alumnado</b>.<br>
-<i>En los grupos del sistema anterior sigue pidiéndose el PIN del profesorado, como siempre.</i></p></header>
+</p></header>
 <section><div class="wrap"><div id="clase-app"></div>
 <script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_SEMANAS={SEMANAS_JSON};window.SG_TOUR_LOCAL={json.dumps(TOUR_CLASE, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";</script>
 <script src="assets/js/clase.js" defer></script>
@@ -2841,6 +2887,27 @@ Con <code>?embed=1</code> se incrusta sin cabecera ni pie.</p>
 ''' + FOOT
 open(os.path.join(HERE, "llamada.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: llamada.html  (el pase de lista, dentro del Genially)")
+
+# ---------------------------------------------------------------- LA PUERTA ÚNICA
+# 🔴 12-sep · «Después botón de iniciar sesión con Google y ya detecta si es docente, estudiante o
+# referente. Una vez iniciada sesión, si no detecta usuario, le pide introducir código de clase.»
+#
+# Pública porque es, literalmente, la puerta: si pidiera algo para llegar a ella no serviría de
+# nada. Y deliberadamente CORTA — una tarjeta y un botón, sin hero que empuje nada bajo el pliegue.
+# Esa fue la causa exacta del fallo que la trajo: en `clase.html` el botón de Google quedaba a 734 px
+# de scroll y la persona concluía que no había forma de entrar.
+_html = head("STARGATE · Entrar",
+             "Entra en STARGATE con tu cuenta de Google. El sistema reconoce si eres estudiante o "
+             "docente y te lleva a tu sitio.",
+             "reg", publica=True).replace("</head>", _cabeza_motor() + "\n</head>") + \
+'''
+<section id="entrar"><div class="wrap wrap-puerta">
+<div id="entrar-app"><div class="card puerta-unica"><h3>Abriendo…</h3></div></div>
+''' + '<script src="' + _v("assets/js/entrar.js") + '" defer></script>' + '''
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "entrar.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: entrar.html  (la puerta única: Google decide quién eres)")
 
 # ---------------------------------------------------------------- el huevo de Pascua
 # 🔴 Pública como la llamada, y por el mismo motivo: vive DENTRO de una presentación. Aquí el

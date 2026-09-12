@@ -86,6 +86,27 @@
 
 // ---- avatares: SOLO personajes que evolucionan (v3.8: fuera la galería clásica) + URL propia por canje ----
 window.SG = window.SG || {};
+
+/**
+ * LA «G» DE GOOGLE, EN UN SOLO SITIO. Tal cual la publica su guía de marca.
+ *
+ * 🔴 Norberto lo pidió al primer vistazo: «aquí no aparece el inicio de Google, debe quedar claro.
+ * Podrías usar el logo de Google también, da más confianza». Un botón que solo dice «entrar» no
+ * promete nada — quien lo pulsa no sabe si le van a pedir una contraseña nueva o inventarse un
+ * usuario. La marca dice, sin leer una palabra, que la contraseña se teclea en Google y no aquí.
+ *
+ * Va aquí y no copiada en cada puerta porque las puertas son cinco (la del material docente, la
+ * consola, la sala, crear y alistarse) y un logo repetido cinco veces es un logo que el día que
+ * cambie se quedará viejo en cuatro. Y va en SVG DENTRO de la página, no cargado del servidor de
+ * Google: el día que ese enlace cambie, el botón se quedaría mudo justo en la pantalla que pide
+ * confianza.
+ */
+window.SG.LOGO_G = '<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" focusable="false">'
+  + '<path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.2-.4-4.7H24v8.9h11.8c-.5 2.7-2 5-4.3 6.6v5.5h7c4.1-3.8 6.6-9.4 6.6-16.3z"/>'
+  + '<path fill="#34A853" d="M24 46c5.8 0 10.7-1.9 14.3-5.2l-7-5.5c-1.9 1.3-4.4 2.1-7.3 2.1-5.6 0-10.4-3.8-12.1-8.9H4.7v5.6C8.3 41.4 15.6 46 24 46z"/>'
+  + '<path fill="#FBBC05" d="M11.9 28.5c-.4-1.3-.7-2.7-.7-4.5s.3-3.2.7-4.5v-5.6H4.7C3.2 17 2.4 20.4 2.4 24s.8 7 2.3 10.1l7.2-5.6z"/>'
+  + '<path fill="#EA4335" d="M24 9.5c3.2 0 6 1.1 8.2 3.2l6.2-6.2C34.7 3 29.8 1 24 1 15.6 1 8.3 5.6 4.7 13.9l7.2 5.6C13.6 14.4 18.4 9.5 24 9.5z"/>'
+  + '</svg>';
 // Niveles y rangos (v3.7). Los XP SOLO SUBEN: dan nivel, y el avatar evoluciona al entrar en
 // los niveles marcados. Lo gastable son los CRÉDITOS, que viajan aparte en la ficha del recluta.
 window.SG.MONEDA = "◈";

@@ -29,10 +29,16 @@
   function cargando(t) { app.innerHTML = '<div class="card"><p class="muted">' + esc(t || "Cargando…") + "</p></div>"; }
   function fallo(t) { app.innerHTML = '<div class="card"><p class="malo">' + esc(t) + "</p></div>"; }
 
+  // la «G» de Google vive en stargate.js (window.SG.LOGO_G), no copiada aquí
+  var LOGO_G = (window.SG && window.SG.LOGO_G) || "";
+
   function puerta() {
     app.innerHTML = '<div class="card"><h3>Entra con tu cuenta</h3>' +
       '<p>Verás los grupos en los que figuras como docente. Si aún no tienes ninguno, podrás crear el primero.</p>' +
-      '<p><button class="btn grande" id="c-entrar">Entrar con Google</button></p></div>';
+      '<p><button class="btn primary grande btn-google" id="c-entrar">' + LOGO_G +
+      '<span>Iniciar sesión con Google</span></button></p>' +
+      '<p class="small muted">Te llevará a la pantalla de Google. Tu contraseña se escribe allí, ' +
+      'nunca aquí.</p></div>';
     $("#c-entrar").onclick = function () { MOTOR.entrar().catch(function (e) { fallo(e.message); }); };
   }
 
@@ -112,6 +118,9 @@
         '<p><a class="btn grande" href="crear.html">Crear el primero</a></p></div>';
       return;
     }
+    var volver = url.get("volver");
+    if (volver && /^[a-z0-9_-]+\.html$/i.test(volver)) { location.replace(volver); return; }
+
     var guardado = url.get("per");
     if (guardado && PERS.filter(function (p) { return p.id === guardado; }).length) return abrir(guardado);
 

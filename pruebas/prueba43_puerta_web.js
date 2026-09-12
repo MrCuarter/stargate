@@ -49,10 +49,15 @@ c(/q\.get\('panorama'\)\s*===\s*'1'/.test(P), "y con el panorama de tickets, que
 c(!/sgPin/.test(P), "🔴 la puerta ya no sabe nada de PIN: la llave es la cuenta");
 c(P.indexOf("sgEsDocente") >= 0, "   y se abre con la marca que pone el motor al reconocer a un docente");
 
-// ---------------------------------------------------------------- d) la portada bifurca
+// ---------------------------------------------------------------- d) la portada YA NO bifurca
+// 🔴 12-sep · ANTES se comprobaba que la portada ofreciera «los dos caminos», y era exactamente lo
+// que había que dejar de hacer. Bifurcar obliga a la persona a acertar ANTES de que el sistema sepa
+// quién es, y quien elegía mal acababa en la mitad equivocada de la web. Lo zanjó Norberto después
+// de estrellarse él mismo en el primer clic: una puerta, y que el servidor reparta.
 const I = leer("index.html");
-c(/Soy estudiante/.test(I) && /Soy docente/.test(I), "la portada ofrece los dos caminos");
-c(I.indexOf("recluta.html") >= 0, "y el del alumnado lleva a la Nave");
+c(/entrar\.html/.test(I), "la portada lleva a la puerta única");
+c(!/Soy docente/.test(I), "🔴 y ya no pide elegir bando: se entra primero y se reparte después");
+c(/Iniciar sesión con Google/.test(I), "y lo dice con todas las letras");
 c(!/Puesto de mando del profesorado<\/title>/.test(I),
   "🔴 y ya no se presenta como «puesto de mando del profesorado»: es la entrada al proyecto");
 
@@ -87,8 +92,8 @@ const port = leer("index.html");
 ["Mi clase", "tour-start", "modo docente"].forEach(function(t){
   c(port.indexOf(t) < 0, "🔴 la portada no lleva «" + t + "»: es la puerta de todos, no la del profesorado");
 });
-c(port.indexOf('href="recluta.html">🚀 Soy estudiante') >= 0 && port.indexOf('href="guia.html">🎓 Soy docente') >= 0,
-  "🔴 y su menú son las dos puertas: estudiante y docente");
+c(port.indexOf('href="entrar.html"') >= 0,
+  "🔴 y su menú es una sola entrada: la puerta única");
 
 // ---------------------------------------------------------------- «Cómo se hizo» (11-sep)
 // Norberto quiso contar en abierto con qué se hizo esto. Dos cosas que vigilar:

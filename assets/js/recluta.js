@@ -1669,7 +1669,11 @@
 
   function montarBotonFirebase(){
     var hueco=document.getElementById('g-nave'); if(!hueco) return;
-    hueco.innerHTML='<button class="btn primary grande" type="button" id="fb-entrar">Entrar con Google</button>';
+    // la «G» de Google: la misma que en las demás puertas, y por la misma razón —un botón que solo
+    // dice «entrar» no promete nada, y este es el que más gente va a pulsar de toda la web
+    hueco.innerHTML='<button class="btn primary grande btn-google" type="button" id="fb-entrar">'
+      + ((window.SG && window.SG.LOGO_G) || '')
+      + '<span>Iniciar sesión con Google</span></button>';
     document.getElementById('fb-entrar').onclick=function(){
       var M=window.SG.MOTOR;
       if(!M) return;

@@ -788,6 +788,32 @@ async function misGruposDeAlumno(uid) {
                .filter(x => x.per);
 }
 
+/**
+ * BUSCAR UN GRUPO POR SU CÓDIGO DE CLASE, sin saber cuál es.
+ *
+ * 🔴 Esta es la pieza que faltaba para la puerta única. Hasta ahora el código solo se COMPROBABA:
+ * `alistarse.html?per=X&codigo=Y` ya sabía a qué grupo iba y solo miraba si la clave cuadraba. Pero
+ * Norberto quiere que el código sea la puerta de verdad — «una vez iniciada sesión, si no detecta
+ * usuario, le pide introducir código de clase» —, y para eso el código tiene que ENCONTRAR el
+ * grupo, no confirmarlo.
+ *
+ * Por qué se puede preguntar desde el navegador: la regla de `projects` es `allow read: if
+ * isSignedIn()`, la misma por la que `misPERs` busca los grupos de un docente por su correo. Solo
+ * se llega aquí con sesión abierta, así que quien pregunta ya tiene nombre.
+ *
+ * Y por qué no es un agujero: el código no da acceso a nada. Da de alta en un grupo, que es
+ * exactamente lo que hace hoy el enlace de alistamiento que el docente reparte en clase — solo que
+ * sin tener que llevar el id del grupo pegado en la URL.
+ */
+async function grupoPorCodigo(codigo) {
+  const c = String(codigo || "").trim().toUpperCase();
+  if (!c) return null;
+  const r = await getDocs(query(collection(db, "projects"), where("joinCode", "==", c)));
+  const g = r.docs.map(d => ({ id: d.id, nombre: d.data().name, stargate: d.data().stargate || {} }))
+                  .filter(x => x.stargate.version)[0];
+  return g || null;
+}
+
 async function huevosDe(perId) {
   const p = await getDoc(doc(db, "projects", perId));
   return ((p.exists() ? p.data().stargate : null) || {}).huevos || [];
@@ -949,7 +975,7 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     guardarAjustes, otorgarReto, anularReto, traspasar, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
                     premiar, regalarCromo, regalarSobre, darDeBaja, nuevoCodigo,
-                    huevosDe, guardarHuevos, reclamarHuevo, misGruposDeAlumno,
+                    huevosDe, guardarHuevos, reclamarHuevo, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, referenteEnTodos,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

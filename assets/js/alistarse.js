@@ -33,7 +33,9 @@
     tarjeta('<h3>Alístate en tu grupo</h3>' +
       '<p>Entra con tu cuenta de Google. Puede ser cualquiera —no hace falta que sea la de la ' +
       'universidad—, pero <b>usa siempre la misma</b>: es la que te reconoce la Nave.</p>' +
-      '<p><button class="btn grande" id="a-entrar">Entrar con Google</button></p>' +
+      '<p><button class="btn primary grande btn-google" id="a-entrar">' +
+      ((window.SG && window.SG.LOGO_G) || "") +
+      '<span>Iniciar sesión con Google</span></button></p>' +
       '<p class="small muted">Solo pedimos tu nombre y tu correo. Puedes leer la ' +
       '<a href="privacidad.html">política de privacidad</a>.</p>');
     document.querySelector("#a-entrar").onclick = function () {

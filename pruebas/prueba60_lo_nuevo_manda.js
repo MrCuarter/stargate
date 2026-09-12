@@ -85,9 +85,17 @@ c(!/sgPin|puertaPin/.test(pta),
   "   y NO queda ni rastro del PIN: nadie lo reparte ya, era una puerta sin llave");
 c(/sgEsDocente/.test(pta), "sigue abriéndose sola a quien el motor ya reconoció como docente");
 // Las páginas tapadas no cargan el motor, así que la puerta no puede preguntar por sí misma:
-// manda a la sala, que sí lo carga — y la sala tiene que saber devolver a la persona.
-c(/clase\.html\?volver=/.test(pta),
-  "🔴 y si la página no lleva motor, manda a la sala CON el destino puesto");
+// manda a `entrar.html`, que sí lo carga — y que sabe devolver a la persona a donde iba.
+//
+// 🔴 12-sep · ANTES MANDABA A `clase.html` Y ESO ERA EL CALLEJÓN. La sala dibuja su botón de Google
+// dentro de `#clase-app`, después del hero: a 734 px de scroll. Norberto pulsó «Iniciar sesión con
+// Google» en la guía, aterrizó en una pared de texto sin botón a la vista y dijo, con razón, «no
+// hay manera de iniciar sesión». Un redirect no vale de nada si deja a la persona mirando la mitad
+// equivocada de otra página — y por eso ahora va a una página que no tiene otra mitad.
+c(/entrar\.html\?volver=/.test(pta),
+  "🔴 y si la página no lleva motor, manda a la PUERTA ÚNICA con el destino puesto");
+c(!/clase\.html\?volver=/.test(pta),
+  "   y no a la sala, donde el botón quedaba bajo el pliegue");
 contiene(raiz("assets/js/clase.js"), "volver",
   "🔴 y la sala devuelve a quien venía de otra página, en vez de dejarle ahí plantado");
 

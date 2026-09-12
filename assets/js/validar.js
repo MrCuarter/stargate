@@ -39,7 +39,9 @@
   function puerta() {
     tarjeta('<h3>' + esc(nombreDelReto(window.SG_CATALOGO)) + '</h3>' +
       '<p>Entra con la cuenta con la que te alistaste y tu reto quedará registrado.</p>' +
-      '<p><button class="btn grande" id="v-entrar">Entrar con Google</button></p>' +
+      '<p><button class="btn primary grande btn-google" id="v-entrar">' +
+      ((window.SG && window.SG.LOGO_G) || "") +
+      '<span>Iniciar sesión con Google</span></button></p>' +
       '<p class="small muted">Solo se comprueba quién eres. No se publica nada.</p>');
     document.querySelector("#v-entrar").onclick = function () {
       MOTOR.entrar().catch(function (e) { fallo("No he podido entrar: " + e.message); });

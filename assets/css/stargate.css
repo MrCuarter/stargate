@@ -2156,3 +2156,38 @@ section[id]{scroll-margin-top:110px}
 .hv-f .h-url{grid-column:1/-2;font-size:.74rem;color:#7f9ab0;word-break:break-all;
   background:#0a1018;border-radius:7px;padding:6px 9px;user-select:all}
 @media(max-width:820px){.hv-f{grid-template-columns:1fr 1fr;gap:7px}.hv-f .h-url{grid-column:1/-1}}
+
+
+/* ------------------------------------------------------------------ LA PUERTA ÚNICA (entrar.html)
+   🔴 Corta a propósito y centrada en la pantalla. La razón está escrita con sangre: el botón de
+   Google de `clase.html` quedaba a 734 px de scroll bajo un hero de texto, y Norberto —que conoce
+   esta web mejor que nadie— concluyó que «no hay manera de iniciar sesión». Una puerta que hay que
+   buscar no es una puerta. Aquí no hay hero, no hay nada debajo y no se puede hacer scroll para
+   perderse: la tarjeta ES la página. */
+.wrap-puerta{min-height:62vh;display:grid;place-items:center;padding:48px 0}
+.puerta-unica{max-width:460px;width:100%;text-align:center}
+.puerta-unica h3{font-size:1.45rem;margin:.1em 0 .5em}
+.puerta-unica .btn{width:100%;justify-content:center}
+.puerta-unica .eyebrow{justify-content:center}
+
+/* el código de clase: grande, espaciado y en mayúsculas — se teclea una sola vez en la vida y
+   normalmente copiándolo de una pizarra */
+.cod-grande{width:100%;padding:15px 12px;border-radius:12px;border:1px solid var(--line2,#2b5460);
+  background:var(--bg,#080c14);color:#fff;font:600 1.5rem/1.2 ui-monospace,'IBM Plex Mono',monospace;
+  letter-spacing:.32em;text-align:center;text-transform:uppercase}
+.cod-grande:focus{outline:2px solid var(--teal,#3ed6c8);outline-offset:2px;border-color:transparent}
+.cod-grande::placeholder{color:#40616b;letter-spacing:.32em}
+
+/* barra de «esto está tardando» para los dos saltos que hace la puerta (Google, y luego el
+   servidor diciendo qué eres). Sin ella, dos segundos en blanco parecen una web rota. */
+.barra-indef{height:5px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;margin:16px 0 2px}
+.barra-indef i{display:block;height:100%;width:38%;border-radius:99px;
+  background:linear-gradient(90deg,transparent,var(--teal,#3ed6c8),transparent);
+  animation:indef 1.15s ease-in-out infinite}
+@keyframes indef{0%{transform:translateX(-100%)}100%{transform:translateX(330%)}}
+
+.cta-pie{flex-basis:100%;margin:14px 0 0;max-width:52ch;margin-left:auto;margin-right:auto}
+.puertas-3 .puerta-tile{cursor:default}
+.puertas-3 .puerta-tile:hover{transform:none}
+
+@media (prefers-reduced-motion:reduce){.barra-indef i{animation:none;width:100%;opacity:.5}}

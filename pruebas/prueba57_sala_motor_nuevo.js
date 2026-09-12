@@ -84,8 +84,14 @@ c(/st\.correo=u\.correo/.test(SALA),
 const html = fs.readFileSync(path.join(__dirname, "..", "clase.html"), "utf8");
 c(!/Entra con el PIN/.test(html), "🔴 y la portada de la sala ya no promete un PIN que no se pide");
 c(/Entra con tu cuenta de Google/.test(html), "   sino la cuenta");
-c(/sistema anterior sigue pidiéndose el PIN/.test(html),
-  "   diciendo que en los grupos viejos sigue siendo el de siempre");
+// 🔴 12-sep · SE RETIRA la frase «en el sistema anterior sigue pidiéndose el PIN». Era verdad y
+// sobraba igual: Norberto dejó dicho «el legacy ahora me da igual, céntrate en que funcione lo
+// nuevo», y una nota sobre un PIN que nadie va a teclear solo siembra la duda de si a ti te tocará.
+c(!/sistema anterior sigue pidiéndose el PIN/.test(html),
+  "🔴 y ya no nombra el PIN del sistema archivado: sembraba una duda que no le toca a nadie");
+// y la sala ya no dibuja su propia puerta bajo el hero — manda a la única que hay
+c(/entrar\.html\?volver=clase\.html/.test(SALA),
+  "🔴 sin sesión NO pinta un botón a 734 px de scroll: manda a la puerta única");
 
 // ---------------------------------------------------------------- f) el nombre con el que se firma
 // Los ajustes quedan anotados con el nombre del docente. Ese nombre sale del CORREO de la sesión,
