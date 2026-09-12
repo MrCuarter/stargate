@@ -9,20 +9,16 @@
   var q=new URLSearchParams(location.search);
   if(q.get('embed')==='1') document.body.classList.add('embed');
 
-  // 🔴 DURANTE LA MUDANZA. Esta sala habla trece idiomas distintos con el Apps Script —otorgar,
-  // anular, tickets, canjes, pases…— y todavía no se ha traducido ninguno. Si alguien llega aquí
-  // con un grupo del motor nuevo, lo honrado es decírselo y llevarlo a la consola, no dejar que
-  // vaya chocando con un error distinto en cada botón.
-  if(window.SG && SG.FUENTE && SG.FUENTE.nombre==='firestore'){
-    var per=q.get('per')||'';
-    root.innerHTML='<div class="card"><h3>Esta sala todavía no habla con el motor nuevo</h3>'
-      +'<p>Tu puesto de mando para este grupo es la <b>Consola</b>: ahí tienes el alumnado con nombre '
-      +'y correo, otorgar y anular retos, la cola de nota, el equipo docente y los ajustes.</p>'
-      +'<p><a class="btn grande" href="consola.html'+(per?'?per='+encodeURIComponent(per):'')+'">Ir a la consola</a></p>'
-      +'<p class="small muted">La sala de clase se migrará también; mientras tanto sigue funcionando '
-      +'con los grupos del sistema de siempre.</p></div>';
-    return;
-  }
+  // 🔴 12-sep · LA SALA YA HABLA CON EL MOTOR NUEVO. Hasta hoy enseñaba un cartel y mandaba a la
+  // consola: sus trece peticiones no estaban traducidas. No eran trece problemas, era uno — todas
+  // pasaban por el buzón del alumnado, que empieza buscando la ficha de recluta de quien pregunta,
+  // y un docente no tiene ficha en su propio grupo. Traducido en `fuente.js` (el bloque DOCENTE).
+  //
+  // Quedan DOS sin traducir, y se apagan a la vista en vez de fallar al pulsarlas: el pase de lista
+  // (el motor nuevo no tiene dónde guardar una palabra que el alumnado pueda comprobar sin poder
+  // leerla antes) y el panel de tickets (las respuestas viven ahora en una hoja de Google
+  // compartida por todos los grupos, que es otra fuente y se lee aparte).
+  var NUEVO = !!(window.SG && SG.FUENTE && SG.FUENTE.nombre==='firestore');
   var st={pin:sessionStorage.getItem('sgPin')||'', profe:q.get('profe')||localStorage.getItem('sgProfe')||'',
           correo:(q.get('correo')||localStorage.getItem('sgClaseCorreo')||'').trim().toLowerCase(),
           yo:null, demoIds:[],
@@ -199,6 +195,15 @@
   // consigna de cuatro letras; quien esté en la clase la teclea en su Nave. La consigna se muestra
   // AQUI y en ningun otro sitio: si viajara a la Nave del alumno, no haria falta estar en clase.
   function bloquePase(){
+    // 🔴 El pase de lista NO se ha migrado, y se dice en vez de enseñar un botón que falla. El
+    // motivo es de diseño, no de tiempo: la gracia del pase es que la palabra solo la ve quien está
+    // mirando la pantalla. Con la hoja, el servidor la guardaba y la comparaba. En Firestore, un
+    // sitio donde el alumnado pueda comprobarla es un sitio donde puede leerla antes — y entonces
+    // no hay pase que valga. Necesita su propia puerta en el servidor, y eso es otro trabajo.
+    if(NUEVO) return '<div class="card apagado" id="sala-pase"><h3>🎓 Pase de lista en directo</h3>'
+      +'<p class="small muted">Todavía no funciona en los grupos del motor nuevo. La palabra tiene '
+      +'que poder comprobarse sin que se pueda leer antes, y eso pide una puerta propia en el '
+      +'servidor.</p></div>';
     var p=st.pase;
     if(!p||!p.hasta||new Date(p.hasta)<=new Date())
       return '<div class="card" id="sala-pase"><h3>🎓 Pase de lista en directo</h3>'
@@ -682,6 +687,33 @@
       return {ok:true};}
     return {ok:true};
   }
+
+  /**
+   * LA PUERTA. Con el motor viejo era un PIN compartido; con el nuevo es tu cuenta de Google, y la
+   * diferencia no es de comodidad.
+   *
+   * 🔴 Un PIN compartido identifica al GRUPO, no a la persona: quien lo tuviera podía escribir el
+   * correo de un compañero y entrar en su sala. Se dejó dicho en su día que eso era orden y no
+   * seguridad. Con la cuenta ya no hay nada que escribir — quien pregunta ES quien ha entrado, y de
+   * eso responde el servidor, no el navegador.
+   */
+  function puertaNueva(){
+    var M=window.SG&&window.SG.MOTOR; if(!M){document.addEventListener('sg:motor',puertaNueva,{once:true});return;}
+    root.innerHTML=cargando('Abriendo tu sala…','Comprobando tu cuenta');
+    M.sesion().then(function(u){
+      if(!u){
+        root.innerHTML='<div class="card" style="max-width:520px"><h3>Tu sala</h3>'
+          +'<p class="small muted">Entra con la cuenta que tu referente puso en el equipo docente. '
+          +'Solo verás <b>tus grupos</b> y tu alumnado.</p>'
+          +'<button class="btn primary" id="okG">Entrar con Google</button></div>';
+        document.getElementById('okG').onclick=function(){M.entrar();};
+        return;
+      }
+      st.correo=u.correo; localStorage.setItem('sgClaseCorreo',u.correo);
+      inicio();
+    });
+  }
+  if(NUEVO){ document.addEventListener('sg:sesion',function(){ puertaNueva(); }); puertaNueva(); return; }
 
   if(!API&&!st.demo){root.innerHTML='<p class="lead">El tablero aún no está conectado.</p>';return;}
   if(st.pin||st.demo)inicio(); else pedirPin();

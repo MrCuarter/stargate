@@ -92,6 +92,179 @@
         document.addEventListener("sg:motor", function () { ok(window.SG.MOTOR); });
       });
     };
+    /**
+     * LO QUE PIDE LA SALA DEL DOCENTE.
+     *
+     * `clase.html` llevaba trece peticiones sin traducir y enseñaba un cartel de «esta sala todavía
+     * no habla con el motor nuevo». No eran trece problemas: eran uno. Todas pasan por el mismo
+     * buzón que usa el alumnado, y ese buzón empezaba buscando la ficha de recluta de quien
+     * pregunta. Un docente no tiene ficha en su propio grupo, así que recibía «todavía no te has
+     * alistado» a todo.
+     *
+     * 🔴 Aquí NO se comprueba quién manda. Parece un descuido y es lo contrario: quien decide es
+     * Firestore, que sabe si tu correo está en `coTeacherEmails` y no se puede engañar desde el
+     * navegador. Una comprobación aquí daría sensación de puerta sin serlo, que es peor que no
+     * tenerla — la lección del PIN del motor viejo.
+     */
+    var SEMANA_MS = 7 * 24 * 3600 * 1000;
+    var semanaDe = function (inicio) {
+      if (!inicio) return null;
+      var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+      return Math.floor((hoy - new Date(inicio + "T00:00:00")) / SEMANA_MS) + 1;
+    };
+    /**
+     * EL TABLERO CON LO PRIVADO. No es `FUENTE.tablero`, y la diferencia costó una prueba en falso.
+     *
+     * 🔴 `FUENTE.tablero(per, fresco)` sale por la puerta PÚBLICA del servidor, que no manda correos
+     * ni nombres ni el detalle de los retos de nadie — es la que usan los Geniallys proyectados, sin
+     * sesión. Su segundo argumento es «sáltate la caché», no «tráeme lo privado». Pedirle datos
+     * privados devuelve fichas sin correo y sin identificador, en silencio.
+     *
+     * El puesto de mando lee por la otra puerta: Firestore directamente, con la sesión del docente,
+     * y Firestore decide si le deja. Es la misma lectura que hace la consola del referente.
+     */
+    var tableroPrivado = function (M, per) {
+      return M.leerPER(per, true).then(function (datos) {
+        return window.SG.TABLERO.tablero(datos, true);
+      });
+    };
+    // La ficha de un recluta por su correo. El correo vive en la subcolección privada, así que hay
+    // que pasar por el tablero con privados: es la única lectura que lo trae.
+    var fichaPorCorreo = function (M, per, correo) {
+      return tableroPrivado(M, per).then(function (t) {
+        var c = String(correo || "").toLowerCase().trim();
+        var r = (t.reclutas || []).filter(function (x) { return String(x.email || "").toLowerCase() === c; })[0];
+        if (!r) throw new Error("No encuentro a nadie con ese correo en el grupo");
+        if (!r.ficha) throw new Error("Esa ficha no trae identificador: recarga la sala");
+        return r;
+      });
+    };
+    var DOCENTE = {
+      /**
+       * Mis grupos. El motor viejo miraba una hoja con todos y tachaba los ajenos; aquí Firestore
+       * solo devuelve aquellos en cuyo `coTeacherEmails` está tu correo, así que la lista ya llega
+       * filtrada por el servidor y no hay nada que tachar.
+       */
+      pers: function (M, yo) {
+        return M.misPERs(yo.correo).then(function (ps) {
+          var mio = "";
+          var pers = ps.map(function (p) {
+            var S = p.stargate || {};
+            (S.docentes || []).forEach(function (d) {
+              // El nombre con el que firmas los ajustes sale de tu correo, no de un desplegable:
+              // así nadie puede otorgarse retos firmando con el nombre de un compañero.
+              if (String(d.correo || "").toLowerCase() === yo.correo && !mio) mio = d.nombre;
+            });
+            return { id: p.id, nombre: p.nombre, tipo: S.tipo || "REGULAR", inicio: S.inicio || "",
+                     semana: semanaDe(S.inicio), archivado: S.archivado ? "sí" : "",
+                     docentes: (S.docentes || []).map(function (d) {
+                       return { nombre: d.nombre, rol: d.rol, panel: (S.paneles || {})[d.nombre] || "" }; }) };
+          });
+          // 🔴 El nombre puede no estar en el proyecto abierto: los correos del equipo viven en
+          // `privado`, que solo lee el profesorado. Si el listado no lo trajo, se pregunta allí.
+          if (mio || !pers.length) return { pers: pers, demo: [], yo: { correo: yo.correo, nombre: mio, encontrado: !!pers.length } };
+          return Promise.all(pers.map(function (p) {
+            return M.getDoc(M.doc(M.db, "projects", p.id, "privado", "stargate"))
+              .then(function (d) { return d.exists() ? d.data() : null; }).catch(function () { return null; });
+          })).then(function (privs) {
+            privs.forEach(function (pr) {
+              ((pr && pr.docentes) || []).forEach(function (d) {
+                if (String(d.correo || "").toLowerCase() === yo.correo && !mio) mio = d.nombre; });
+            });
+            return { pers: pers, demo: [], yo: { correo: yo.correo, nombre: mio, encontrado: true } };
+          });
+        });
+      },
+
+      // El tablero entero con lo privado. Es la misma lectura que hace la consola: una sola.
+      alumnos: function (M, yo, q) { return tableroPrivado(M, q.per); },
+
+      /**
+       * Otorgar o anular un reto a mano. Lo que en la hoja era apuntar una fila en AJUSTES aquí
+       * mueve la experiencia de verdad, con su asiento en el libro del motor.
+       */
+      ajuste: function (M, yo, q) {
+        return fichaPorCorreo(M, q.per, q.email).then(function (r) {
+          var dar = String(q.tipo || "") === "dar";
+          return (dar ? M.otorgarReto(q.per, r.ficha, q.reto_id)
+                      : M.anularReto(q.per, r.ficha, q.reto_id, q.motivo || "desde la sala"))
+            .then(function () { return { ok: true }; });
+        });
+      },
+
+      /**
+       * Corregir la ficha de alguien: el alias que sale en el tablero, su nombre real, de quién es
+       * alumno y el enlace de su Bitácora.
+       *
+       * 🔴 Va a DOS sitios a propósito. El alias y el Comandante son públicos —los ve la clase—; el
+       * nombre, los apellidos y la Bitácora viven en la subcolección privada, que el alumnado ajeno
+       * no puede leer. Escribirlo todo junto en el documento abierto habría tirado por tierra la
+       * separación que costó montar.
+       */
+      ficha: function (M, yo, q) {
+        return fichaPorCorreo(M, q.per, q.email).then(function (r) {
+          var publico = {}, privado = {}, tocados = [];
+          if (q.alias !== undefined && q.alias !== r.alias) { publico.displayName = q.alias; tocados.push("alias"); }
+          if (q.profe !== undefined && q.profe !== r.profe) { publico.stargateProfe = q.profe; tocados.push("profe"); }
+          if (q.nombre !== undefined) { privado.firstName = q.nombre; tocados.push("nombre"); }
+          if (q.apellidos !== undefined) { privado.lastName = q.apellidos; tocados.push("apellidos"); }
+          if (q.bitacora !== undefined) { privado.bitacora = q.bitacora; tocados.push("bitacora"); }
+          // Cambiar de Comandante cambia de escuadrón: el emblema tiene que seguir al alumno o el
+          // tablero enseñaría un escudo que ya no es el suyo.
+          var pasos = [];
+          if (publico.stargateProfe !== undefined) {
+            pasos.push(M.getDoc(M.doc(M.db, "projects", q.per)).then(function (pd) {
+              var f = ((pd.data() || {}).factions || []).filter(function (x) { return x.teacherName === q.profe; })[0];
+              publico.squadId = f ? f.id : null; publico.factionId = f ? f.id : null;
+            }));
+          }
+          return Promise.all(pasos).then(function () {
+            var escrituras = [];
+            if (Object.keys(publico).length)
+              escrituras.push(M.updateDoc(M.doc(M.db, "student_profiles", r.ficha), publico));
+            if (Object.keys(privado).length)
+              escrituras.push(M.setDoc(M.doc(M.db, "student_profiles", r.ficha, "privado", "datos"), privado, { merge: true }));
+            return Promise.all(escrituras).then(function () { return { ok: true, tocados: tocados }; });
+          });
+        });
+      },
+
+      // El Genially propio de cada docente, que sustituye al oficial en su sala.
+      mi_panel: function (M, yo, q) {
+        return M.getDoc(M.doc(M.db, "projects", q.per)).then(function (pd) {
+          var S = (pd.data() || {}).stargate || {}, paneles = Object.assign({}, S.paneles || {});
+          var nombre = String(q.profe || "").trim();
+          if (!nombre) return { ok: false, error: "No sé quién eres en este grupo." };
+          if (String(q.url || "").trim()) paneles[nombre] = String(q.url).trim();
+          else delete paneles[nombre];
+          return M.updateDoc(M.doc(M.db, "projects", q.per), { "stargate.paneles": paneles })
+            .then(function () { return { ok: true, panel: String(q.url || "").trim() }; });
+        });
+      },
+
+      // La cola de subidas de nota. El tablero ya la trae: no hay que volver a preguntarla.
+      pendientes: function (M, yo, q) {
+        return tableroPrivado(M, q.per).then(function (t) {
+          return { pendientes: (t.pendientes || []) };
+        });
+      },
+      pendiente_resolver: function (M, yo, q) {
+        var si = q.aprueba === true || q.aprueba === "true";
+        return M.resolverVale(q.fila, si, q.motivo || "").then(function () { return { ok: true }; });
+      },
+
+      // Marcar una recompensa como entregada en mano, y deshacer un canje.
+      entregado: function (M, yo, q) {
+        return M.updateDoc(M.doc(M.db, "purchased_vouchers", String(q.fila)),
+          { entregado: !!q.valor, entregadoPor: q.profe || "", entregadoEl: Date.now() })
+          .then(function () { return { ok: true }; });
+      },
+      canje_revertir: function (M, yo, q) {
+        return M.resolverVale(String(q.fila), false, "Revertido por " + (q.profe || "el profesorado"))
+          .then(function () { return { ok: true }; });
+      }
+    };
+
     return {
       nombre: "firestore",
       lista: function () {
@@ -178,6 +351,11 @@
         return esperar().then(function (M) {
           return M.sesion().then(function (yo) {
             if (!yo) return { error: "Entra con tu cuenta para poder hacer eso." };
+            // 🔴 Lo del PROFESORADO va ANTES de buscar ficha. Un docente no tiene ficha de recluta
+            // en su propio grupo, así que el `miFicha` de abajo le contestaría «todavía no te has
+            // alistado» a todo lo que pidiera. Esa era la razón —y la única— de que la sala de
+            // clase no hablara con el motor nuevo.
+            if (DOCENTE[cuerpo.accion]) return DOCENTE[cuerpo.accion](M, yo, cuerpo);
             return miFicha(M, cuerpo.per, yo).then(function (ficha) {
               if (!ficha) return { error: "Todavía no te has alistado en este grupo." };
 

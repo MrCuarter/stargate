@@ -253,12 +253,18 @@
         // por ALIAS para saber a quién estaba editando, y dos reclutas con el mismo alias —que
         // pasa— significaban otorgarle un reto a la persona equivocada sin enterarse.
         out.ficha = p.id;
+        // El uid es lo que ata a un recluta con sus vales de canje. Va en la rama privada, con el
+        // correo: identifica a una persona y no tiene por qué salir del puesto de mando.
+        out.uid = p.userId || "";
         out.email = priv.email || ""; out.nombre = [priv.firstName, priv.lastName].filter(Boolean).join(" ");
         out.nombre_pila = priv.firstName || ""; out.apellidos = priv.lastName || "";
         out.bitacora = priv.bitacora || ""; out.eventos = eventos; out.retos = retos;
+        // 🔴 `fila` era el número de fila en la hoja; aquí es el identificador del vale. Se sigue
+        // llamando igual porque la sala del docente lo manda de vuelta tal cual para revertir un
+        // canje o marcarlo entregado: renombrarlo obligaría a tocar la sala sin ganar nada.
         out.canjes = vales.map(function (v) {
-          return { fecha: v.createdAt ? new Date(v.createdAt) : "", recompensa: v.rewardTitle || "",
-                   actividad: v.stargateActividad || "", entregado: v.deliveredAt ? "Sí" : "",
+          return { fila: v.id, fecha: v.createdAt ? new Date(v.createdAt) : "", recompensa: v.rewardTitle || "",
+                   actividad: v.stargateActividad || "", entregado: v.deliveredAt || v.entregado ? "Sí" : "",
                    estado: v.status || "" };
         });
       }
@@ -308,6 +314,29 @@
       actualizado: new Date(ahora || Date.now())
     };
     if (conPrivados) {
+      /**
+       * LA COLA DE NOTA. Las subidas de nota no se conceden solas: se piden, los créditos quedan
+       * retenidos y el profesorado decide. Vive aquí —y no en quien pregunta— porque la calculan
+       * dos pantallas distintas (la consola del referente y la sala del docente) y dos copias de
+       * la misma cuenta son dos oportunidades de que un día digan cosas distintas.
+       *
+       * `saldo` y `puede` son el motivo de que no baste con listar los vales: entre pedir y
+       * aprobar pueden haberse gastado el dinero en otra cosa.
+       */
+      var porUid = {};
+      lista.forEach(function (x) { if (x.uid) porUid[x.uid] = x; });
+      res.pendientes = (datos.vales || [])
+        .filter(function (v) { return (v.status || "pending") === "pending"; })
+        .map(function (v) {
+          var q = porUid[v.studentId] || porUid[v.userId] || {};
+          var coste = Number(v.cost || 0);
+          return { fila: v.id, fecha: v.createdAt ? new Date(v.createdAt) : "",
+                   email: q.email || "", alias: q.alias || "", nombre: q.nombre || "",
+                   recompensa: v.rewardTitle || "", coste: coste,
+                   actividad: v.stargateActividad || "",
+                   saldo: q.creditos == null ? null : q.creditos,
+                   puede: q.creditos != null };
+        });
       res.docentes_full = docentes;
       res.sin_docente = lista.filter(function (x) { return !String(x.profe || "").trim(); }).length;
       res.docentes_sin_correo = docentes.filter(function (d) { return !d.correo; }).map(function (d) { return d.nombre; });
