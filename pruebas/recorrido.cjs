@@ -44,6 +44,12 @@ const QUIENES = {
                pers: [], fichas: [{ ficha: "f1", per: "prueba-humana" }] },
   desconocido:{ yo: { uid: "u-x", correo: "nadie@ejemplo.com", nombre: "Nadie" },
                pers: [], fichas: [] },
+  // 🔴 LAS DOS COSAS A LA VEZ, que es lo normal y no la excepción: un docente que se alistó en un
+  // grupo de prácticas para verlo por dentro. Si el reparto mirara primero las fichas de alumno,
+  // este acabaría en la Nave cada vez que entra a dar clase.
+  ambos:     { yo: { uid: "u-ambos", correo: "dos@ejemplo.com", nombre: "Dos Sombreros" },
+               pers: [Object.assign({}, GRUPO, { soyReferente: false })],
+               fichas: [{ ficha: "f9", per: "practicas" }] },
   anonimo:   { yo: null, pers: [], fichas: [] },
 };
 

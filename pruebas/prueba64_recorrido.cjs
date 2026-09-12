@@ -123,6 +123,14 @@ const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disa
       comprobar("reparto · " + titulo, fue, "acabó en " + await evaluar(c, "location.pathname"));
     }
     {
+      // 🔴 las dos cosas a la vez: docente con ficha de alumno en un grupo de prácticas
+      const c = await pestana(QUIENES.ambos); abiertas.push(c);
+      await c.enviar("Page.navigate", { url: BASE + "entrar.html" });
+      const fue = await hasta(c, "location.pathname.indexOf('consola.html')>=0", 15);
+      comprobar("reparto · quien es docente Y alumno va a dar clase, no a su Nave", fue,
+                await evaluar(c, "location.pathname"));
+    }
+    {
       // el desconocido: no va a ninguna parte, se le pide el código
       const c = await pestana(QUIENES.desconocido); abiertas.push(c);
       await c.enviar("Page.navigate", { url: BASE + "entrar.html" });
@@ -253,6 +261,56 @@ const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disa
       comprobar("sin PIN · ninguna página se lo pide ya al visitante", conPin.length === 0, conPin.join(" · "));
     }
 
+
+    // ============================================================ 8bis · TODAS LAS PUERTAS IGUALES
+    /**
+     * 🔴 Hay cinco sitios donde se puede entrar con Google, y los cinco tienen que verse igual. Uno
+     * de ellos salía turquesa porque `.btn.primary` le ganaba en especificidad a `.btn-google`: la
+     * «G» sobre nuestro color, que es exactamente lo que no reconoce nadie. Se comprueba el COLOR
+     * CALCULADO, no la clase: vigilar la clase es vigilar la intención.
+     */
+    {
+      const raras = [];
+      const PUERTAS = [["entrar.html", "anonimo", "#e-google"],
+                       ["consola.html", "anonimo", "#c-entrar"],
+                       ["crear.html", "anonimo", "#btn-entrar"],
+                       ["guia.html", "anonimo", "#puertaCuenta"]];
+      for (const [pag, quien, sel] of PUERTAS) {
+        const c = await abrirSeguro(quien, pag, "!!document.querySelector('" + sel + "')");
+        if (!c) { raras.push(pag + ": no se pudo abrir"); continue; }
+        const v = await evaluar(c, `(function(){
+          var b = document.querySelector('${sel}'); if (!b) return null;
+          var s = getComputedStyle(b), m = s.backgroundColor.match(/\\d+/g) || [];
+          var r = b.getBoundingClientRect();
+          return { claro: m.length>=3 && +m[0]>230 && +m[1]>230 && +m[2]>230, fondo: s.backgroundColor,
+                   svg: !!b.querySelector('svg'), arriba: Math.round(r.top + scrollY) };
+        })()`);
+        if (!v) { raras.push(pag + ": sin botón"); continue; }
+        if (!v.claro) raras.push(pag + " no es blanco (" + v.fondo + ")");
+        if (!v.svg) raras.push(pag + " sin la «G»");
+        if (v.arriba > 700) raras.push(pag + " bajo el pliegue (" + v.arriba + ")");
+        await c.destruir();
+      }
+      comprobar("puertas · las cuatro se ven igual: pastilla blanca, «G» y sobre el pliegue",
+                raras.length === 0, raras.join(" · "));
+    }
+
+    // ============================================================ 8ter · LA MARCHA ATRÁS
+    /**
+     * `?motor=apps` es el freno de mano: si el motor nuevo fallara en mitad de una clase, ese
+     * carácter devuelve la página al sistema archivado. Una salida de emergencia que nadie prueba
+     * no es una salida de emergencia.
+     */
+    {
+      const c = await abrirSeguro("referente", "recluta.html?motor=apps");
+      const cual = c ? await evaluar(c, "(window.SG && SG.FUENTE && SG.FUENTE.nombre) || 'sin fuente'") : "no abrió";
+      comprobar("marcha atrás · ?motor=apps devuelve al sistema archivado", cual === "apps", String(cual));
+      if (c) await c.destruir();
+      const d = await abrirSeguro("referente", "recluta.html");
+      const cual2 = d ? await evaluar(d, "(window.SG && SG.FUENTE && SG.FUENTE.nombre) || 'sin fuente'") : "no abrió";
+      comprobar("marcha atrás · y sin nada en la URL manda LO NUEVO", cual2 === "firestore", String(cual2));
+      if (d) await d.destruir();
+    }
 
     // ============================================================ 9 · NINGUNA PÁGINA REVIENTA
     /**
