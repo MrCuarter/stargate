@@ -8,6 +8,21 @@
   var N=window.SG_BADGE_NAMES||{}, RET=window.SG_RETOS||{}, SEM=window.SG_SEMANAS||[];
   var q=new URLSearchParams(location.search);
   if(q.get('embed')==='1') document.body.classList.add('embed');
+
+  // 🔴 DURANTE LA MUDANZA. Esta sala habla trece idiomas distintos con el Apps Script —otorgar,
+  // anular, tickets, canjes, pases…— y todavía no se ha traducido ninguno. Si alguien llega aquí
+  // con un grupo del motor nuevo, lo honrado es decírselo y llevarlo a la consola, no dejar que
+  // vaya chocando con un error distinto en cada botón.
+  if(window.SG && SG.FUENTE && SG.FUENTE.nombre==='firestore'){
+    var per=q.get('per')||'';
+    root.innerHTML='<div class="card"><h3>Esta sala todavía no habla con el motor nuevo</h3>'
+      +'<p>Tu puesto de mando para este grupo es la <b>Consola</b>: ahí tienes el alumnado con nombre '
+      +'y correo, otorgar y anular retos, la cola de nota, el equipo docente y los ajustes.</p>'
+      +'<p><a class="btn grande" href="consola.html'+(per?'?per='+encodeURIComponent(per):'')+'">Ir a la consola</a></p>'
+      +'<p class="small muted">La sala de clase se migrará también; mientras tanto sigue funcionando '
+      +'con los grupos del sistema de siempre.</p></div>';
+    return;
+  }
   var st={pin:sessionStorage.getItem('sgPin')||'', profe:q.get('profe')||localStorage.getItem('sgProfe')||'',
           correo:(q.get('correo')||localStorage.getItem('sgClaseCorreo')||'').trim().toLowerCase(),
           yo:null, demoIds:[],
