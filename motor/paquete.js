@@ -90,7 +90,10 @@
       var e = cat.escuadrones[i % cat.escuadrones.length];
       return { id: d.escuadron || e.clave, name: d.escuadronNombre || e.nombre, score: 0,
                assignedTeacherEmails: d.correo ? [d.correo] : [],
-               teacherName: d.nombre, lema: e.lema, origen: e.origen };
+               teacherName: d.nombre, lema: e.lema, origen: e.origen,
+               // `imageUrl` es el campo que ya usa GamificaPro para el emblema de una facción:
+               // se guarda ahí y no en uno nuestro, para que su interfaz también lo pinte.
+               imageUrl: e.emblema };
     });
 
     // ---------------------------------------------------------------- el proyecto

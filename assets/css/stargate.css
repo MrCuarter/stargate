@@ -1159,3 +1159,9 @@ ol.pasos-num li b{color:var(--ink)}
 .reto-marcar .reto-ev:focus{outline:2px solid #4da3ff;border-color:transparent}
 .reto-marcar .btn{white-space:nowrap}
 .reto-marcar .btn:disabled{opacity:.6;cursor:wait}
+/* El emblema del escuadrón: grande cuando se revela, minúsculo cuando solo identifica */
+.emblema{display:block;margin:6px auto 14px;max-width:220px;height:auto;
+  filter:drop-shadow(0 0 26px rgba(55,224,236,.28))}
+.celda-esc{white-space:nowrap}
+.emb-mini{vertical-align:middle;margin-right:7px;border-radius:50%}
+@media(max-width:520px){.emblema{max-width:170px}}

@@ -158,7 +158,11 @@
   function bienvenida(alias, comandante, escuadron) {
     tarjeta('<h3>Estás dentro, ' + esc(alias) + '</h3>' +
       (escuadron
-        ? '<p class="lead">Tu Comandante es <b>' + esc(comandante ? comandante.nombre : "") + '</b>, ' +
+        ? (escuadron.imageUrl
+            ? '<img class="emblema" src="' + esc(escuadron.imageUrl) + '" alt="Emblema de ' +
+              esc(escuadron.name) + '" width="220" height="220">'
+            : '') +
+          '<p class="lead">Tu Comandante es <b>' + esc(comandante ? comandante.nombre : "") + '</b>, ' +
           'así que te unes a <b>' + esc(escuadron.name) + '</b>.</p>' +
           '<p class="lema">«' + esc(escuadron.lema || "") + '»</p>' +
           '<p class="small muted">' + esc(escuadron.origen || "") + '</p>'

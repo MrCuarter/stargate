@@ -1163,61 +1163,71 @@
       "clave": "esc_yunques",
       "nombre": "Los Yunques",
       "lema": "Lo que se forja, aguanta.",
-      "origen": "Bran Okafor · Fôrge"
+      "origen": "Bran Okafor · Fôrge",
+      "emblema": "assets/img/escuadrones/esc_yunques.png"
     },
     {
       "clave": "esc_eco_largo",
       "nombre": "Eco Largo",
       "lema": "Si ves esto, es que hoy no llegué a contártelo yo.",
-      "origen": "Tomás Reyer · Ecos"
+      "origen": "Tomás Reyer · Ecos",
+      "emblema": "assets/img/escuadrones/esc_eco_largo.png"
     },
     {
       "clave": "esc_cartografos",
       "nombre": "Los Cartógrafos",
       "lema": "Dos senderos, una misma cima.",
-      "origen": "Sylla Bren · Sendara"
+      "origen": "Sylla Bren · Sendara",
+      "emblema": "assets/img/escuadrones/esc_cartografos.png"
     },
     {
       "clave": "esc_senal",
       "nombre": "Señal Abierta",
       "lema": "A tiempo por encima de perfecto.",
-      "origen": "Amara Sol · Reliae"
+      "origen": "Amara Sol · Reliae",
+      "emblema": "assets/img/escuadrones/esc_senal.png"
     },
     {
       "clave": "esc_faro",
       "nombre": "Faro Umbral",
       "lema": "Medir es mirar con método a alguien que te importa.",
-      "origen": "Vera Khal · Umbral"
+      "origen": "Vera Khal · Umbral",
+      "emblema": "assets/img/escuadrones/esc_faro.png"
     },
     {
       "clave": "esc_ruta_azul",
       "nombre": "Ruta Azul",
       "lema": "Esta ya la hemos ganado cien veces.",
-      "origen": "Joran Pike · Ludo"
+      "origen": "Joran Pike · Ludo",
+      "emblema": "assets/img/escuadrones/esc_ruta_azul.png"
     },
     {
       "clave": "esc_porques",
       "nombre": "Los Porqués",
       "lema": "Una orden mueve cuerpos. Un porqué mueve personas.",
-      "origen": "Mara Voss · Vínculo"
+      "origen": "Mara Voss · Vínculo",
+      "emblema": "assets/img/escuadrones/esc_porques.png"
     },
     {
       "clave": "esc_capa",
       "nombre": "Capa Liminar",
       "lema": "Un aula que aprende a hablar de sí misma.",
-      "origen": "Noa Lieth · Liminar"
+      "origen": "Noa Lieth · Liminar",
+      "emblema": "assets/img/escuadrones/esc_capa.png"
     },
     {
       "clave": "esc_copistas",
       "nombre": "Los Copistas",
       "lema": "Cuarenta manos, un mismo trazo.",
-      "origen": "Los Copistas de Fôrge"
+      "origen": "Los Copistas de Fôrge",
+      "emblema": "assets/img/escuadrones/esc_copistas.png"
     },
     {
       "clave": "esc_guardia",
       "nombre": "Guardia Cero",
       "lema": "Que conste que nadie nos obligó. Elegimos.",
-      "origen": "La Tripulación Cero"
+      "origen": "La Tripulación Cero",
+      "emblema": "assets/img/escuadrones/esc_guardia.png"
     }
   ],
   "moneda": "◈",

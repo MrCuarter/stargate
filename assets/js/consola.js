@@ -193,8 +193,11 @@
       docs.map(function (d) {
         var esc_ = (DATOS.proyecto.factions || []).filter(function (f) { return f.teacherName === d.nombre; })[0];
         var n = t.reclutas.filter(function (r) { return r.profe === d.nombre; }).length;
+        var emb = esc_ && esc_.imageUrl
+          ? '<img class="emb-mini" src="' + esc(esc_.imageUrl) + '" alt="" width="28" height="28"> ' : "";
         return "<tr><td><b>" + esc(d.nombre) + "</b></td><td>" + esc(d.correo || "—") + "</td><td>" +
-          esc(d.rol || "docente") + "</td><td>" + esc(esc_ ? esc_.name : "—") + "</td><td>" + n + "</td></tr>";
+          esc(d.rol || "docente") + '</td><td class="celda-esc">' + emb + esc(esc_ ? esc_.name : "—") +
+          "</td><td>" + n + "</td></tr>";
       }).join("") + "</tbody></table></div>" +
       '<div class="card"><h3>Pasar el alumnado de un docente a otro</h3>' +
       // Pasa de verdad: alguien se va a mitad de curso y sus doscientos reclutas se quedan sin

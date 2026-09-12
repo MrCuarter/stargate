@@ -196,4 +196,25 @@ if (fs.existsSync(PUERTA)) {
   console.log("   (no encuentro gamificapro/functions/stargate.js: me salto la puerta pública)");
 }
 
+// ---------------------------------------------------------------- o) los emblemas existen
+// 🔴 Un escuadrón sin emblema no se rompe: se queda mudo. La revelación del alistamiento —que es
+// el único momento en que el sistema le dice a alguien a qué bando pertenece— se quedaría en un
+// texto. Así que se comprueba que los diez ficheros están, no solo que el catálogo los nombra.
+const { catalogo: _cat } = require(path.join(__dirname, "..", "motor", "catalogo.js"));
+const ESC = _cat().escuadrones;
+igual(ESC.length, 10, "hay diez escuadrones");
+ESC.forEach(function (e) {
+  c(!!e.emblema, e.nombre + " declara su emblema");
+  c(fs.existsSync(path.join(__dirname, "..", e.emblema)), "   y el fichero existe: " + e.emblema);
+  c(!!e.lema, "   y tiene lema, que es lo que se lee al revelarlo");
+});
+// La ruta se DERIVA de la clave: una columna con la ruta sería el mismo dato en dos sitios.
+ESC.forEach(function (e) {
+  igual(e.emblema, "assets/img/escuadrones/" + e.clave + ".png",
+    "   la ruta de " + e.nombre + " sale de su clave, no de una columna aparte");
+});
+const PAQ2 = fs.readFileSync(path.join(__dirname, "..", "motor", "paquete.js"), "utf8");
+c(/imageUrl: e\.emblema/.test(PAQ2),
+  "🔴 el emblema se guarda en `imageUrl`, que es el campo que ya usa GamificaPro para las facciones");
+
 E.resumen("Las páginas del motor nuevo");
