@@ -1867,12 +1867,24 @@
     var RET=(window.SG_RETOS||{})[(st.d&&st.d.tipo)||'REGULAR']||[];
     var t=RET.filter(function(x){return x[0]===id;})[0];
     var xp=t?t[3]:0, cr=t?creditosDeReto(id):0;
+    // 🔴 12-sep · Si ya se ha gastado lo que dio el reto, NO se puede deshacer (lo decide el servidor:
+    // marcar → gastar → deshacer era quedarse gratis con lo comprado). Se avisa ANTES de preguntar,
+    // con el saldo delante, en vez de dejar pulsar para decir que no después.
+    var tengo=(st.yo&&st.yo.creditos!=null)?Number(st.yo.creditos):0;
+    if(cr>0 && tengo<cr){
+      return nebulaPregunta({
+        titulo:'Este ya no se puede deshacer tú solo',
+        cuerpo:'<p class="neb-nota">Este reto te dio <b>'+cr+' ◈</b> y ya te los has gastado (te quedan <b>'
+          +tengo+' ◈</b>). Deshacerlo te dejaría con lo comprado gratis, así que eso lo decide tu '
+          +'Comandante: escríbele si lo marcaste sin querer.</p>',
+        si:'Entendido', no:''
+      });
+    }
     nebulaPregunta({
       titulo:'¿Deshacemos «'+esc(t?t[1]:id)+'»?',
       cuerpo:'<p class="neb-precio"><b>−'+xp+' xp · −'+cr+' ◈</b>'
         +'<span>vuelve a quedar pendiente</span></p>'
-        +'<p class="neb-nota">Puedes volver a marcarlo cuando lo tengas hecho de verdad. Si ya te '
-        +'habías gastado esos créditos, el saldo se queda a cero.</p>',
+        +'<p class="neb-nota">Puedes volver a marcarlo cuando lo tengas hecho de verdad.</p>',
       si:'Sí, deshacer', no:'Mejor no'
     }).then(function(ok){
       if(!ok) return;
@@ -1884,7 +1896,7 @@
         refrescarYCelebrar(antes, null, 'canje-mudo', '');
       },function(e){
         boton.disabled=false; boton.textContent='↩︎ No lo he hecho todavía';
-        nebulaProblema(e);
+        nebulaProblema(e, 'No he podido deshacerlo', 'No se ha tocado nada: el reto sigue registrado.');
       });
     });
   }
@@ -1973,7 +1985,7 @@
         + '<h3 id="neb-t">' + (o.titulo || '') + '</h3>'
         + (o.cuerpo ? '<div class="neb-cuerpo">' + o.cuerpo + '</div>' : '')
         + '<div class="neb-botones">'
-        + '<button type="button" class="btn" data-no>' + esc(o.no || 'Ahora no') + '</button>'
+        + (o.no === '' ? '' : '<button type="button" class="btn" data-no>' + esc(o.no || 'Ahora no') + '</button>')
         + '<button type="button" class="btn primary" data-si>' + esc(o.si || 'Confirmar') + '</button>'
         + '</div></div>';
       document.body.appendChild(capa);
@@ -2177,14 +2189,17 @@
       +'<div class="neb-barra"><i></i></div></div>';
   }
   /** Y si no ha podido ser, lo dice ella, no un cartel en el borde de la pantalla. */
-  function nebulaProblema(e){
+  // 🔴 12-sep · Con su título y su tranquilidad según qué haya fallado. Servía solo para el canje y
+  // se usaba también al deshacer: el recluta leía «No he podido canjearla · No se te ha cobrado
+  // nada» cuando lo que había intentado era deshacer un reto.
+  function nebulaProblema(e, titulo, calma){
     var capa=document.querySelector('.neb-capa');
-    if(!capa){ aviso('No he podido canjearla: '+esc(e), true); return; }
+    if(!capa){ aviso((titulo||'No he podido canjearla')+': '+esc(e), true); return; }
     capa.innerHTML='<div class="neb-caja mal" role="dialog" aria-modal="true">'
       +'<div class="neb-cara"><img src="assets/img/personajes/nebula.png" alt="NEBULA"></div>'
-      +'<div class="neb-quien">NEBULA</div><h3>No he podido canjearla</h3>'
+      +'<div class="neb-quien">NEBULA</div><h3>'+esc(titulo||'No he podido canjearla')+'</h3>'
       +'<p class="neb-nota">'+esc(e)+'</p>'
-      +'<p class="neb-nota"><b>No se te ha cobrado nada.</b></p>'
+      +'<p class="neb-nota"><b>'+esc(calma||'No se te ha cobrado nada.')+'</b></p>'
       +'<div class="neb-botones"><button type="button" class="btn primary" data-cerrar>Entendido</button></div></div>';
     var b=capa.querySelector('[data-cerrar]');
     function fuera(){ capa.classList.add('cerrando'); setTimeout(function(){ if(capa.parentNode) capa.parentNode.removeChild(capa); },160); }

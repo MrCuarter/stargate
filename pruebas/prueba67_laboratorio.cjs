@@ -15,6 +15,7 @@ const VER = process.argv.includes("--ver");
 const SOLO = (process.argv.find(a => a.indexOf("--solo=") === 0) || "").split("=")[1];
 const FOTOS = "/tmp/lab-fotos"; require("fs").mkdirSync(FOTOS, { recursive: true });
 const hacer = n => !SOLO || SOLO.split(",").indexOf(String(n)) >= 0;
+const REG = {};   // cifras que se apuntan para el informe
 
 (async () => {
   if (!(await L.emuladoresVivos())) {
@@ -433,6 +434,84 @@ const hacer = n => !SOLO || SOLO.split(",").indexOf(String(n)) >= 0;
       c("🔴 repetidas · con menos de 3, el SERVIDOR lo rechaza aunque se llame a mano", /Necesitas 3/.test(r), r);
     }
 
+    // ============================================================ 10 · EL TRAMPOSO
+    /**
+     * Norberto: «simula qué ocurre si un estudiante verifica todas las misiones sin ninguna
+     * evidencia, gasta sus créditos y el docente deshace todos los cambios. ¿Qué pasa? ¿Qué
+     * deberíamos hacer?». Aquí se hace de verdad y se apuntan las cifras para el informe.
+     */
+    if (hacer(10)) {
+      const beto = await nueva("Beto hace trampa");
+      await beto.ir("entrar.html"); await beto.entrarComo("beto@lab.test", "Beto Prueba");
+      const f0 = await fichaDe("beto@lab.test", "lab-clase");
+      await beto.ir("recluta.html?per=lab-clase#retos");
+      await beto.hasta("[].slice.call(document.querySelectorAll('button')).some(function(b){return /Lo he hecho/.test(b.textContent)})", 25);
+      let marcados = 0;
+      for (let k = 0; k < 25; k++) {
+        const hay = await beto.js("(function(){var b=[].slice.call(document.querySelectorAll('button')).filter(function(x){return /Lo he hecho/.test(x.textContent)&&!x.disabled})[0]; if(!b) return false; b.click(); return true;})()");
+        if (!hay) break;
+        marcados++; await dormir(4500);
+        await beto.js("var f=document.querySelector('.sb-fin, .neb-capa [data-cerrar]'); if(f) f.click(); 1");
+      }
+      const f1 = await fichaDe("beto@lab.test", "lab-clase");
+      REG.tramposo = { marcados, xp: f1.totalPoints - f0.totalPoints, creditos: f1.coins - f0.coins };
+      c("tramposo · marca de un tirón todos los retos abiertos, sin evidencia", marcados >= 5, JSON.stringify(REG.tramposo));
+      // se lo gasta en sobres
+      let sobres = 0;
+      for (let k = 0; k < 80; k++) {
+        const f = await fichaDe("beto@lab.test", "lab-clase"); if (f.coins < 15) break;
+        await beto.ir("recluta.html?per=lab-clase#mercado");
+        await beto.hasta("!!document.querySelector('button[data-canje]')", 15);
+        const ok = await beto.js(`(function(){ var b=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(x){return /Sobre de cromos/.test(x.getAttribute('data-nombre')||'')})[0]; if(!b) return false; b.click(); return true; })()`);
+        if (!ok) break;
+        await beto.hasta("!!document.querySelector('.neb-capa')", 8);
+        const conf = await beto.js("(function(){var c=document.querySelector('.neb-capa'); if(!c) return 'sin ventana'; var b=[].slice.call(c.querySelectorAll('button')).filter(function(x){return /canjear/i.test(x.textContent)})[0]; if(!b) return 'NO:'+c.innerText.replace(/\\s+/g,' ').slice(0,160); b.click(); return 'ok';})()");
+        if (conf !== "ok") { REG.tramposo.paroEnSobres = conf; await beto.js("var n=document.querySelector('.neb-capa [data-no], .neb-capa [data-cerrar]'); if(n) n.click(); 1"); break; }
+        await beto.hasta("!!document.querySelector('.sb-capa')", 20);
+        await beto.js("var s=document.querySelector('.sb-saltar'); if(s) s.click(); 1"); await dormir(400);
+        await beto.js("var f=document.querySelector('.sb-fin'); if(f) f.click(); 1"); await dormir(600);
+        sobres++;
+      }
+      const f2 = await fichaDe("beto@lab.test", "lab-clase");
+      REG.tramposo.sobres = sobres; REG.tramposo.saldoTrasGastar = f2.coins;
+      c("tramposo · se gasta los créditos en sobres", sobres >= 1, sobres + " sobres, le quedan " + f2.coins + " ◈");
+      c("🔴 cofres · " + sobres + " sobres seguidos del mismo grupo y NINGUNO sale vacío", !REG.tramposo.paroEnSobres,
+        REG.tramposo.paroEnSobres || "");
+      // intenta deshacer, para recuperar créditos, un reto QUE DIO CRÉDITOS (los A solo dan xp)
+      const M = await consultar("missions", "projectId", "lab-clase");
+      // solo los retos que el recluta ve con su botón de deshacer (A, B, X); los hitos (H1…) van solos
+      const conCreditos = (f2.completedMissionIds || []).map(id => M.find(m => m._id === id))
+        .filter(m => m && /^[ABX]\d/.test(m.stargateId || "") && Number(m.coinsReward || 0) > f2.coins);
+      const objetivo = conCreditos[0] && conCreditos[0].stargateId;
+      if (!objetivo) { c("tramposo · tiene un reto con créditos que ya gastó", false, JSON.stringify(REG.tramposo)); throw new Error("sin reto objetivo"); }
+      REG.tramposo.intentaDeshacer = objetivo + " (" + (conCreditos[0] && conCreditos[0].coinsReward) + " ◈, le quedan " + f2.coins + ")";
+      await beto.ir("recluta.html?per=lab-clase#retos");
+      await beto.hasta("!!document.querySelector('[data-deshacer=\"" + objetivo + "\"]')", 20);
+      await beto.js("document.querySelector('[data-deshacer=\"" + objetivo + "\"]').click(); 1");
+      await beto.hasta("/ya no se puede|te los has gastado/i.test((document.querySelector('.neb-capa')||{}).innerText||'')", 6);
+      const aviso = await beto.js("(document.querySelector('.neb-capa')||{}).innerText||''");
+      c("🔴 tramposo · no puede deshacer un reto cuyos créditos ya gastó: la Nave se lo explica", /ya no se puede deshacer|ya te los has gastado/i.test(aviso), aviso.replace(/\s+/g, " ").slice(0, 200));
+      await beto.foto(FOTOS + "/10-tramposo-no-puede.png");
+      await beto.js("var b=document.querySelector('.neb-capa [data-si], .neb-capa [data-cerrar], .neb-capa .btn'); if(b) b.click(); 1");
+      const forzado = await beto.js("window.SG.MOTOR.llamar('stargateAnularReto',{projectId:'lab-clase',studentProfileId:" + JSON.stringify(f2._id) + ",retoId:" + JSON.stringify(objetivo) + "}).then(function(){return 'LO DEJÓ'}).catch(function(e){return e.message})");
+      c("🔴 tramposo · y si lo fuerza a mano, el SERVIDOR también se lo niega", /gastado/i.test(forzado), forzado.slice(0, 160));
+      // la docente lo anula todo, uno a uno (como en la consola)
+      const rita = await nueva("Rita anula al tramposo");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("consola.html?per=lab-clase");
+      await rita.hasta("!!(window.SG && SG.MOTOR)", 15);
+      const suyos = (f2.completedMissionIds || []).map(id => (M.find(m => m._id === id) || {}).stargateId).filter(Boolean);
+      const res = await rita.js("(async function(){ var out=[]; var L=" + JSON.stringify(suyos) + "; for (var k=0;k<L.length;k++){ try{ out.push(await window.SG.MOTOR.anularReto('lab-clase'," + JSON.stringify(f2._id) + ",L[k],'trampa')); }catch(e){ out.push({error:e.message}); } } return out; })()", 120000);
+      const f3 = await fichaDe("beto@lab.test", "lab-clase");
+      const noRet = (res || []).reduce((a, x) => a + Number((x && x.noRetirados) || 0), 0);
+      REG.tramposo.anulados = suyos.length; REG.tramposo.noRetirados = noRet;
+      REG.tramposo.xpFinal = f3.totalPoints; REG.tramposo.saldoFinal = f3.coins;
+      REG.tramposo.cartasQueConserva = (f3.inventory || []).filter(x => /__cromo_/.test(x)).length;
+      c("tramposo · la docente anula todos sus retos y la xp de los retos desaparece", (f3.completedMissionIds || []).length === 0,
+        JSON.stringify((res || []).filter(x => x && x.error)));
+      c("tramposo · el servidor le dice a la docente cuánto no pudo retirar", noRet > 0, noRet + " ◈ que ya se había gastado");
+      console.error("   · TRAMPOSO: " + JSON.stringify(REG.tramposo));
+    }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
   } finally {

@@ -376,10 +376,19 @@
         if (tiene && !confirm("¿Anular el reto " + id + " a " + r.alias + "?\n\nSe le descontarán los xp y los créditos que dio.")) return;
         b.disabled = true;
         try {
-          if (tiene) await MOTOR.anularReto(PER, f, id, "desde la consola");
-          else await MOTOR.otorgarReto(PER, f, id);
+          var res = tiene ? await MOTOR.anularReto(PER, f, id, "desde la consola")
+                          : await MOTOR.otorgarReto(PER, f, id);
           await refrescar();
-          aviso((tiene ? "Anulado " : "Otorgado ") + id + " a " + r.alias, true);
+          /**
+           * 🔴 Si ya se había gastado lo que le dio el reto, se le dice al docente, con la cifra. El
+           * saldo no baja de cero, así que un recluta que marca retos sin hacerlos y se lo gasta
+           * todo conserva lo comprado aunque le anules: sin este aviso, el docente creería que lo ha
+           * deshecho del todo. La xp sí se retira entera —el ranking y el nivel quedan limpios— y la
+           * nota nunca estuvo en juego: las subidas de nota esperan tu visto bueno en la cola.
+           */
+          var falta = res && Number(res.noRetirados || 0);
+          aviso((tiene ? "Anulado " : "Otorgado ") + id + " a " + r.alias +
+                (falta ? " · ya se había gastado " + falta + " ◈ de este reto: no se le han podido retirar." : ""), !falta);
         } catch (e) { b.disabled = false; aviso(e.message); }
       };
     });

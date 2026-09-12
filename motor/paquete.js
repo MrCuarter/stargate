@@ -336,9 +336,19 @@
 
     // El sobre y el sobre de héroes se convierten en cofres del motor: consumirlos da una pieza al
     // azar con los MISMOS pesos del catálogo. El sorteo deja de ser código nuestro.
+    /**
+     * 🔴 12-sep · `maxStock` NO PUEDE SER 0. En STARGATE se escribió 0 queriendo decir «sin tope»,
+     * pero GamificaPro lo normaliza con `Math.max(1, …)` → UNO, y el contador de cartas repartidas
+     * vive en el sobre del GRUPO, compartido por toda la clase. Resultado: cada carta salía una sola
+     * vez por grupo, y en cuanto la clase había abierto las 26 (unos nueve sobres entre todos), TODOS
+     * los sobres salían vacíos: pagabas 15 ◈ y NEBULA decía «no he podido abrirla». En la beta habría
+     * pasado el primer día de Mercado. Lo destapó el laboratorio con un recluta que compró nueve
+     * sobres seguidos. «Sin tope», en GamificaPro, se escribe con un número que no se alcanza nunca.
+     */
+    var SIN_TOPE = 1000000;
     function cofre(prefijo, piezas) {
       return { items: piezas.map(function (x) {
-        return { rewardId: prefijo + x.clave, probability: x.peso, maxStock: 0 };
+        return { rewardId: prefijo + x.clave, probability: x.peso, maxStock: SIN_TOPE };
       }) };
     }
     tienda.forEach(function (r) {
