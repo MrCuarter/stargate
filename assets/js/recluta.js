@@ -58,6 +58,29 @@
     root.innerHTML=cargando('Contactando con NEBULA…','Localizando los PER activos');
     SG.FUENTE.lista().then(function(d){
       var pers=d.pers||[];
+      /**
+       * 🔴 UN AGUJERO NEGRO. Norberto: «si pongo "soy estudiante" llego a un agujero negro, no
+       * puedo seguir». Y era literal: esta pantalla pregunta «¿de qué PER eres recluta?» y pintaba
+       * la lista de grupos… que con el motor nuevo llega VACÍA, porque esa lista la servía el
+       * sistema viejo. Resultado: una pregunta, ninguna respuesta posible y ni un enlace.
+       *
+       * Los grupos del motor nuevo no se pueden listar en abierto, y es a propósito: sería publicar
+       * cuántas clases hay y cómo se llaman a cualquiera que pase. Así que cuando no hay lista se
+       * dice la VERDAD —a tu Nave se entra por el enlace de tu clase— y se ofrecen las dos únicas
+       * salidas reales: pedirle el enlace a tu Comandante, o alistarte si aún no lo has hecho.
+       */
+      if(!pers.length){
+        root.innerHTML='<div class="card"><h3>Te falta el enlace de tu clase</h3>'
+          +'<p class="lead">A tu Nave se entra por el enlace que reparte tu Comandante: lleva tu '
+          +'grupo dentro. Sin él no puedo saber de qué clase eres.</p>'
+          +'<p class="small muted">Búscalo donde tu docente lo haya dejado —el aula virtual, el foro '
+          +'de la plataforma de UNIR o el Genially de clase—. Si no lo encuentras, pídeselo: es el '
+          +'mismo para todo el grupo y no caduca.</p>'
+          +'<p class="small muted">¿Todavía no te has alistado? Ese enlace es el mismo: el '
+          +'alistamiento y la Nave son la misma puerta.</p>'
+          +'<p><a class="btn" href="index.html">← Volver al inicio</a></p></div>';
+        return;
+      }
       root.innerHTML='<div class="card"><h3>¿De qué PER eres recluta?</h3><p class="small muted">Elige tu grupo para entrar en tu nave. Si no lo sabes, pregunta a tu Capitán.</p>'
         // 🔴 Solo el NOMBRE del grupo. «REGULAR/PUA» es jerga de la hoja de cálculo: al alumnado no le
         // dice nada y le hace dudar de si ha elegido bien.
@@ -1296,7 +1319,9 @@
       // se avisa aquí para que ni lo intente (el script también lo deniega sin cobrar).
       var veces=(r&&r.canjeados?r.canjeados[x.nombre]:0)||0;
       var repetible=!x.max||x.max>=99, tope=!repetible&&veces>=x.max;
-      var afford=!r?'':tope?'<span class="chip done">Ya la tienes'+(x.max>1?' ('+veces+'/'+x.max+')':'')+'</span>'
+      var afford=!r?'':faltanRepes
+        ? '<span class="chip wip">Necesitas 3 repetidas · tienes '+((r&&r.repes_disponibles)||0)+'</span>'
+        :tope?'<span class="chip done">Ya la tienes'+(x.max>1?' ('+veces+'/'+x.max+')':'')+'</span>'
         :(mis>=x.coste?'<span class="chip ok">Te lo puedes permitir</span>':'<span class="chip wip">Te faltan '+(x.coste-mis)+' ◈</span>')
         +(veces?' <span class="chip">canjeada '+veces+(repetible?' vece'+(veces===1?'z':'s'):' de '+x.max)+'</span>':'');
       var aviso=x.tipo==='nota'?'<p class="small muted">⏳ Se hace efectiva al terminar las clases en directo.</p>':x.tipo==='avatar'||x.tipo==='avatar_url'?'<p class="small muted">⚡ Automática: si se concede, tu avatar cambia solo.</p>':'';
@@ -1307,7 +1332,13 @@
       // repetidos). Con `x.coste === 0` la tarjeta decía «0 ◈» y el botón «Canjear por 0 ◈», que no
       // es que sea feo: es que dice una cosa falsa sobre lo que te va a costar.
       var gratis = !x.coste;
-      var boton = (motorNuevo() && r && !tope && mis>=x.coste && x.id)
+      /**
+       * 🔴 «Aunque no tenga 3 cromos, me deja darle a seguir». Cierto: el servidor lo deniega, pero
+       * la pantalla dejaba pulsar, abría la ventana de NEBULA y solo entonces decía que no. Hacer
+       * pulsar para decir «no» es la forma más barata de parecer roto.
+       */
+      var faltanRepes = x.tipo === 'cromo_repes' && (r ? (r.repes_disponibles || 0) : 0) < 3;
+      var boton = (motorNuevo() && r && !tope && !faltanRepes && mis>=x.coste && x.id)
         ? '<button class="btn primary" type="button" data-canje="'+esc(x.doc||x.id)+'" '
           +'data-nombre="'+esc(x.nombre)+'" data-coste="'+x.coste+'" data-tipo="'+esc(x.tipo||'')+'"'
           +' data-abrir="'+((x.tipo==='cromo'||x.tipo==='heroe')?'1':'0')+'">'
