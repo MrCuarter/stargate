@@ -162,8 +162,22 @@
         if (tieneCampana(p, c)) ins[c.stargateInsignia] = true;
       });
 
-      // El inventario: cartas, héroes y lo demás. Las entradas repetidas son, literalmente, repes.
-      var inv = p.inventory || [], cromos = {}, heroes = [], repes = 0;
+      /**
+       * El inventario: cartas, héroes y lo demás. Las entradas repetidas son, literalmente, repes.
+       *
+       * 🔴 12-sep · EL INVENTARIO GUARDA IDENTIFICADORES DE DOCUMENTO, y esos llevan el grupo
+       * delante: «demo-motor__cromo_E1_nebula», no «cromo_E1_nebula». Este bucle buscaba el prefijo
+       * corto, así que NO reconocía ni una carta: el álbum decía 0/20 con el álbum lleno y los
+       * repetidos no se contaban nunca. No dio error, que es lo peor que puede pasar.
+       *
+       * Se quita lo que haya hasta el último «__». Sirve para las dos formas, por si alguna entrada
+       * vieja se guardó sin prefijo.
+       */
+      var sinGrupo = function (x) {
+        var t = String(x), i = t.lastIndexOf("__");
+        return i >= 0 ? t.slice(i + 2) : t;
+      };
+      var inv = (p.inventory || []).map(sinGrupo), cromos = {}, heroes = [], repes = 0;
       inv.forEach(function (x) {
         if (String(x).indexOf("cromo_") === 0) {
           var k = String(x).slice(6);

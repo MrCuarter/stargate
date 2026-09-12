@@ -136,4 +136,30 @@ if (API) {
   c(true, "TICKETS_API todavía sin desplegar: el panel lo dice y da la hoja (comprobado arriba)");
 }
 
+// ---------------------------------------------------------------- h) el inventario lleva el grupo delante
+// 🔴 12-sep · Los identificadores de documento llevan el grupo delante («g__cromo_x»), y el bucle
+// que cuenta el álbum buscaba «cromo_x» a secas. Resultado: el álbum decía 0/20 con el álbum lleno,
+// los repetidos no se contaban y el sobre parecía no dar nada. SIN ERROR, que es lo peor.
+const { catalogo } = require(path.join(__dirname, "..", "motor", "catalogo.js"));
+const { paquete: paq57 } = require(path.join(__dirname, "..", "motor", "paquete.js"));
+const T57 = require(path.join(__dirname, "..", "motor", "tablero.js"));
+const cat57 = catalogo();
+const p57 = paq57({ id: "g", nombre: "G", tipo: "REGULAR", inicio: "2026-06-08",
+                    referente: "x@y.z", docentes: [{ nombre: "D", correo: "d@y.z", rol: "referente" }] }, cat57);
+function conInventario(inv) {
+  const t = T57.tablero({ proyecto: Object.assign({ id: "g" }, p57.proyecto), misiones: p57.misiones,
+    campanas: p57.campanas, recompensas: p57.recompensas, privados: {}, vales: [], catalogo: cat57,
+    perfiles: [{ id: "p1", userId: "u1", projectId: "g", displayName: "Ana", totalPoints: 0, coins: 0,
+                 completedMissionIds: [], missionTimestamps: {}, completedCampaignIds: [], inventory: inv }] }, false);
+  return t.reclutas[0];
+}
+const c0 = cat57.cromos[0].clave, c1 = cat57.cromos[1].clave, h0 = cat57.heroes[0].clave;
+const conPrefijo = conInventario(["g__cromo_" + c0, "g__cromo_" + c0, "g__cromo_" + c1, "g__heroe_" + h0]);
+igual(conPrefijo.coleccion.cromos.tengo, 2, "🔴 con el prefijo del grupo, las cartas SE CUENTAN");
+igual(conPrefijo.repes, 1, "   y los repetidos también");
+igual(conPrefijo.n_heroes, 1, "   y los héroes");
+const sinPrefijo = conInventario(["cromo_" + c0, "cromo_" + c0, "cromo_" + c1, "heroe_" + h0]);
+igual(sinPrefijo.coleccion.cromos.tengo, 2, "y sin prefijo también, por si quedó alguna entrada vieja");
+c(/lastIndexOf\("__"\)/.test(TAB), "   porque se corta por el ÚLTIMO «__», no por el primero");
+
 E.resumen("La sala del docente, en el motor nuevo");
