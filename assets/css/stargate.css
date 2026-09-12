@@ -1684,3 +1684,12 @@ body.embed #sg-son{display:none}
 .puerta-pin > summary::before{content:"▸ ";color:var(--teal)}
 .puerta-pin[open] > summary::before{content:"▾ "}
 .puerta-pin > summary:hover{color:var(--ink)}
+
+/* El botón de Google: su logo sobre fondo claro, como manda su guía de marca. Un botón de
+   identidad tiene que PARECERSE al de siempre; si lo tiñes de la paleta de tu web deja de
+   reconocerse de un vistazo, que es justo lo que lo hace fiable. */
+.btn-google{display:inline-flex;align-items:center;gap:11px;background:#fff;color:#1f1f1f;
+  border:1px solid #dadce0;font-weight:600;padding:11px 20px;border-radius:10px}
+.btn-google:hover{background:#f7f8f8;border-color:#c8ccd0;color:#1f1f1f}
+.btn-google svg{flex:none}
+.puerta-tranquilo{margin-top:-4px}

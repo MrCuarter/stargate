@@ -19,6 +19,14 @@
 // esconde el camino, no el contenido. Lo que de verdad reserva un documento es no tenerlo en el
 // servidor público — o, para el material del equipo, los permisos de Genially y de Drive.
 (function(){
+  // La «G» oficial de Google, en sus cuatro colores. Tal cual la publica su guía de marca.
+  var LOGO_G = '<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" focusable="false">'
+    + '<path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.2-.4-4.7H24v8.9h11.8c-.5 2.7-2 5-4.3 6.6v5.5h7c4.1-3.8 6.6-9.4 6.6-16.3z"/>'
+    + '<path fill="#34A853" d="M24 46c5.8 0 10.7-1.9 14.3-5.2l-7-5.5c-1.9 1.3-4.4 2.1-7.3 2.1-5.6 0-10.4-3.8-12.1-8.9H4.7v5.6C8.3 41.4 15.6 46 24 46z"/>'
+    + '<path fill="#FBBC05" d="M11.9 28.5c-.4-1.3-.7-2.7-.7-4.5s.3-3.2.7-4.5v-5.6H4.7C3.2 17 2.4 20.4 2.4 24s.8 7 2.3 10.1l7.2-5.6z"/>'
+    + '<path fill="#EA4335" d="M24 9.5c3.2 0 6 1.1 8.2 3.2l6.2-6.2C34.7 3 29.8 1 24 1 15.6 1 8.3 5.6 4.7 13.9l7.2 5.6C13.6 14.4 18.4 9.5 24 9.5z"/>'
+    + '</svg>';
+
   var raiz = document.documentElement;
   function abrir(){ raiz.classList.remove('cerrado'); var p=document.getElementById('puerta'); if(p) p.remove(); }
 
@@ -50,7 +58,20 @@
       + 'te apuntó al equipo docente. No hay ningún PIN: se te reconoce una vez en este navegador y '
       + 'no se vuelve a pedir.</p>'
       + (aviso ? '<p class="puerta-mal">' + aviso + '</p>' : '')
-      + '<p><button class="btn primary" id="puertaCuenta">Entrar con mi cuenta</button></p>'
+      /**
+       * 🔴 EL LOGO DE GOOGLE, Y NO ES DECORACIÓN. Norberto lo vio al primer vistazo: «aquí no
+       * aparece el inicio de Google, debe quedar claro». Un botón que solo dice «entrar con mi
+       * cuenta» no promete nada — quien lo pulsa no sabe si le va a pedir una contraseña nueva,
+       * inventarse un usuario o qué. La marca de Google dice, sin leer una palabra, que la
+       * contraseña se teclea en Google y no aquí. Es la diferencia entre pulsar y desconfiar.
+       *
+       * Va en SVG dentro de la página a propósito: si se cargara de un servidor de Google, el día
+       * que ese enlace cambie el botón se queda mudo justo en la pantalla que pide confianza.
+       */
+      + '<p><button class="btn primary btn-google" id="puertaCuenta">' + LOGO_G
+      + '<span>Iniciar sesión con Google</span></button></p>'
+      + '<p class="small muted puerta-tranquilo">Te llevará a la pantalla de Google. '
+      + 'Tu contraseña se escribe allí, nunca aquí.</p>'
       + '<p class="small muted" style="margin-top:14px">¿Eres estudiante? Tu sitio es '
       + '<a href="index.html">la puerta principal</a> — aquí no hay nada para ti.</p>'
       + '</div>';

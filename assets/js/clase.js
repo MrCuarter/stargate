@@ -605,19 +605,30 @@
     if(!st.yo || st.yo.encontrado || !st.correo) return '';
     return '<div class="card" style="border-color:var(--amber)"><h3>Todavía no tienes grupo asignado</h3>'
       +'<p>No encuentro <b>'+esc(st.correo)+'</b> en el equipo docente de ningún grupo. '
-      +'Pídele a tu <b>profesor/a referente</b> que te añada con ese mismo correo '
-      +'(panel del profesorado → Ajustes del PER → equipo docente).</p>'
+      +'Pídele a tu <b>profesor/a referente</b> que te añada con ese mismo correo desde '
+      +'<b>Puesto de mando → Equipo docente → Añadir a alguien al equipo</b>.</p>'
       +'<p class="small muted">Mientras tanto te dejo abajo la <b>clase de prácticas</b>: es un grupo '
       +'de mentira con alumnado inventado. Tócalo todo, no se rompe nada.</p>'
       +'<p><button class="btn small" id="cambiarD2">Probar con otro correo</button></p></div>';
   }
   function render(){
     if(!misPers().length){
+      // 🔴 ESTA PANTALLA ERA UN CALLEJÓN SIN SALIDA, y se lo comió Norberto en su propia web:
+      // decía «pídele al profe referente que te añada» — incluso SIENDO ÉL el referente— y
+      // apuntaba al panel viejo y a una hoja de cálculo que ya no existe. Quien llega aquí es una
+      // de dos cosas, y las dos necesitan un botón, no un recado:
+      //   · alguien del equipo al que aún no han apuntado → que sepa qué pedir y a quién;
+      //   · el referente estrenando el sistema, que lo que necesita es CREAR su primer grupo.
       root.innerHTML='<div class="card"><h3>No encuentro tus grupos</h3>'
-        +'<p class="small muted">'+(st.correo
-          ? 'El correo <b>'+esc(st.correo)+'</b> no aparece en el equipo docente de ningún grupo, y tampoco hay una clase de prácticas abierta. Pídele al profe referente que te añada desde el <a href="profes.html">panel</a> → Ajustes del PER.'
+        +'<p>'+(st.correo
+          ? 'El correo <b>'+esc(st.correo)+'</b> no aparece en el equipo docente de ningún grupo.'
           : 'No apareces en el equipo docente de ningún grupo.')+'</p>'
-        +'<p><button class="btn small" id="cambiarD">Probar con otro correo</button></p></div>';
+        +'<p class="small muted">Dos motivos posibles: o <b>aún no has creado ninguno</b>, o alguien '
+        +'tiene que añadirte con <b>ese mismo correo</b> desde <b>Puesto de mando → Equipo docente</b>. '
+        +'Ojo también a <b>con qué cuenta de Google has entrado</b>: es el despiste más común.</p>'
+        +'<p><a class="btn primary" href="crear.html">✨ Crear mi primer grupo</a> '
+        +'<a class="btn" href="consola.html">🎛️ Puesto de mando</a></p>'
+        +'<p><button class="btn small" id="cambiarD">Entrar con otra cuenta</button></p></div>';
       document.getElementById('cambiarD').onclick=olvidarCorreo;
       return;
     }

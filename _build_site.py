@@ -24,9 +24,16 @@ _SERIE_TIT_WEB = {k: t for k, t, _ in CROMO_SERIES}
 HERE = os.path.dirname(os.path.abspath(__file__))
 FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E"
 
-NAV = [("index.html","Inicio","inicio"),("guia.html","Guía","guia"),("cronologia.html","Cronología","crono"),
+# 🔴 12-sep · FALTABAN LAS DOS ACCIONES QUE MÁS SE USAN. Norberto, mirando la web publicada: «No
+# entiendo ahora el proceso de creación de grupos como profe referente, ¿cómo lo hago?». Y tenía
+# toda la razón: `crear.html` y `consola.html` solo se alcanzaban desde las tarjetas de la PORTADA.
+# En cuanto entrabas al material del profesorado —que es donde pasas el tiempo— desaparecían del
+# mapa. El menú llevaba a siete documentos que se leen una vez y a ninguna de las dos cosas que se
+# hacen de verdad: crear un grupo y gobernarlo.
+NAV = [("index.html","Inicio","inicio"),("crear.html","Crear grupo","crear"),("consola.html","Puesto de mando","cons"),
+       ("clase.html","Mi clase","cla"),("guia.html","Guía","guia"),("cronologia.html","Cronología","crono"),
        ("actividades.html","Actividades","act"),("pasos.html","Cómo se hace","pasos"),("geniallys.html","Geniallys","gen"),
-       ("registro.html","Registro","reg"),("grupos.html","Grupos","grp"),("clase.html","Mi clase","cla"),("recursos.html","Recursos","rec")]
+       ("registro.html","Registro","reg"),("grupos.html","Grupos","grp"),("recursos.html","Recursos","rec")]
 
 # `puerta=True` tapa la pagina hasta que el servidor confirma que esa cuenta lleva algun grupo
 # (assets/js/puerta.js). Ya no hay PIN: la llave es la cuenta de Google del equipo docente.
