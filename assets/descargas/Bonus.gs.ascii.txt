@@ -1002,3 +1002,102 @@ function consolidarDatos() {
 // verdad se consulta. Es una FOTO: se rehace desde el menu y sola una vez al dia. No se escribe nada
 // en ella a mano (se borra al refrescar) y no interviene en el juego: si se borra, no pasa nada.
 var PROP_CONSOLA = "CONSOLA_ID";
+
+// =============================================================================================
+// EL TICKET DE SALIDA, LO UNICO QUE SE QUEDA AQUI
+// =============================================================================================
+//
+// 12-sep-2026. STARGATE se mudo al motor de GamificaPro: los grupos se crean desde la web, los
+// retos se marcan desde la Nave y el canje va por Firestore. De esta hoja no depende ya nada de
+// eso.
+//
+//  Menos el ticket de salida, y por un motivo que no tiene arreglo del otro lado: tiene que ser
+// ANONIMO. El motor guarda quien responde cada formulario suyo - es lo correcto para casi todo y
+// es exactamente lo que aqui no puede pasar. Un formulario de Google que no pide el correo es la
+// unica forma de prometer anonimato y cumplirlo.
+//
+// Asi que la hoja se queda, pero solo para esto. Y el argumento que lo hace tranquilo: lo que
+// reventaba Apps Script era recalcular el tablero en cada visita y doscientas personas registrando
+// retos a la vez. El ticket es un goteo - una respuesta por estudiante y tema, ocho veces en todo
+// el curso. Eso cabe de sobra.
+//
+// Y otra cosa que se ordena sola: el PIN deja de guardar nombres, correos y el poder de cambiar
+// notas. Solo guarda valoraciones anonimas. Un PIN flojo pasa a ser proporcionado al riesgo.
+
+/**
+ * Crea el ticket de salida de un grupo que vive en el motor nuevo.
+ *
+ * Sustituye a "Crear PER" entero: aquella creaba tres formularios, una carpeta, un documento de
+ * enlaces y un dossier. Esta hace UNA cosa, y devuelve el enlace para pegarlo en la consola.
+ */
+function crearTicketDeSalida() {
+  var ui = SpreadsheetApp.getUi();
+  var _yo = ejecutaComo_(), _dueno = duenoDeLaHoja_();
+  if (_yo && _dueno && _yo !== _dueno) {
+    ui.alert("Est\u00e1s con la cuenta " + _yo + " y la hoja es de " + _dueno + ".\n\n" +
+      "El formulario quedar\u00eda en propiedad de " + _yo + " y no de la universidad, y despu\u00e9s no se " +
+      "puede transferir sin que el destinatario lo acepte.\n\nEntra con " + _dueno + " y rep\u00edtelo.");
+    return;
+  }
+
+  var r1 = ui.prompt("Ticket de salida",
+    "Identificador del grupo, tal y como aparece en la consola.\n" +
+    "Por ejemplo: per-septiembre-2026", ui.ButtonSet.OK_CANCEL);
+  if (r1.getSelectedButton() !== ui.Button.OK) return;
+  var id = slug_(r1.getResponseText());
+  if (!id) { ui.alert("Sin identificador no puedo hacer nada."); return; }
+  if (perFila_(id)) {
+    var o0 = perObj_(perFila_(id).v);
+    ui.alert("Ese grupo ya tiene ticket:\n\n" + (o0.formTicket || "(sin enlace)"));
+    return;
+  }
+
+  var r2 = ui.prompt("Ticket de salida",
+    "Nombre del grupo, para el t\u00edtulo del formulario.\n" +
+    "Por ejemplo: PER Septiembre 2026", ui.ButtonSet.OK_CANCEL);
+  if (r2.getSelectedButton() !== ui.Button.OK) return;
+  var nombre = (r2.getResponseText() || id).trim();
+
+  // El ticket pregunta "quien imparte tu clase" para que el profesorado pueda filtrar sus dudas.
+  // Sin esa lista, el desplegable sale vacio y las respuestas no se pueden repartir.
+  var r3 = ui.prompt("Ticket de salida",
+    "Nombres del profesorado, separados por comas.\n" +
+    "Los ver\u00e1 el alumnado al elegir de qui\u00e9n es la clase.", ui.ButtonSet.OK_CANCEL);
+  if (r3.getSelectedButton() !== ui.Button.OK) return;
+  var profesores = (r3.getResponseText() || "").trim();
+
+  var ss = SpreadsheetApp.getActive();
+  var master = DriveApp.getFileById(ss.getId()), padres = master.getParents();
+  var raiz = padres.hasNext() ? padres.next() : DriveApp.getRootFolder();
+  var subs = raiz.getFoldersByName("Formularios PER");
+  var padre = subs.hasNext() ? subs.next() : raiz.createFolder("Formularios PER");
+  var carpetas = padre.getFoldersByName(nombre);
+  var carpeta = carpetas.hasNext() ? carpetas.next() : padre.createFolder(nombre);
+
+  var ft;
+  try {
+    ft = formDesdePlantilla_("PLANTILLA \u00b7 Ticket de salida",
+      "STARGATE \u00b7 " + nombre + " \u00b7 Contacta con NEBULA (ticket de salida)", carpeta);
+    construirTicket_(ft, "", profesores, id);
+    publicar_(ft);
+    vincular_(ft, ss.getId());
+  } catch (e) {
+    try { if (ft) DriveApp.getFileById(ft.getId()).setTrashed(true); } catch (e2) {}
+    ui.alert("No he podido crearlo: " + e.message);
+    return;
+  }
+  var tabT = pestanaDe_(ft, "T \u00b7 " + id, "#9fb2c2");
+
+  //  La fila en PERs es lo que hace que el panel de tickets encuentre las respuestas: busca por
+  // identificador y lee la pestana que diga la fila. Solo se rellenan las columnas del ticket; las
+  // demas se quedan vacias a proposito, porque de ellas ya se encarga el motor nuevo y tenerlas
+  // aqui a medias seria invitar a que alguien las creyera.
+  hoja_(H.PERS).appendRow([id, nombre, "REGULAR", profesores, "", "", "", "abierto",
+    "", "", ft.getPublishedUrl(), "", "", tabT, "", new Date(), "", ft.getEditUrl(),
+    "", "", "", "", "", "", ""]);
+
+  ui.alert("Ticket creado\n\n" +
+    "Pega este enlace en la consola de STARGATE, en los ajustes del grupo:\n\n" +
+    ft.getPublishedUrl() + "\n\n" +
+    "Las respuestas caen en la pesta\u00f1a \u00ab" + tabT + "\u00bb y se ven en el panel de tickets de la web.");
+}

@@ -75,6 +75,10 @@ function onOpen() {
 function menuStargate_() {
   SpreadsheetApp.getUi().createMenu("STARGATE")
     .addItem("Crear nuevo PER...", "abrirDialogoNuevoPER")
+    // 🔴 12-sep · Lo único que esta hoja seguirá haciendo cuando termine la mudanza al motor de
+    // GamificaPro: el ticket de salida, que tiene que ser ANÓNIMO y por eso no puede vivir allí.
+    // Los grupos se crean ya desde la web; esta entrada solo crea su ticket y devuelve el enlace.
+    .addItem("Crear ticket de salida (grupo del motor nuevo)...", "crearTicketDeSalida")
     .addItem("Publicar y abrir formularios del PER seleccionado", "publicarFormulariosPER")
     .addItem("Documento de enlaces y embeds del PER seleccionado", "documentoPERSeleccionado")
     .addItem("Dossier del profesorado (TODOS los grupos)", "crearDossierProfesorado")
