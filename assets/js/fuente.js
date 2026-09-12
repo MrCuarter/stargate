@@ -510,12 +510,38 @@
                   studentProfileId: ficha.id })
                   .then(function () {
                     if (!cuerpo.abrir) return { ok: true };
-                    return M.llamar("consumeItem", { projectId: cuerpo.per, rewardId: cuerpo.recompensa,
-                      studentProfileId: ficha.id })
-                      .then(function (r) { return { ok: true, botin: r && (r.botin || r.obtenido || null) }; })
-                      // Si el sobre no se abre, ya está comprado y sigue en el inventario: se avisa,
-                      // no se pierde nada y se puede abrir después.
-                      .catch(function () { return { ok: true, sinAbrir: true }; });
+                    /**
+                     * 🔴 UN SOBRE SON TRES CARTAS, así que se abre tres veces. `maxUses` deja tres
+                     * usos en el inventario por cada sobre comprado; consumirlos de golpe es lo que
+                     * el catálogo promete («tres cartas al azar») y lo que evita que el recluta se
+                     * quede con dos usos colgando sin saber que los tiene.
+                     *
+                     * En SERIE, no en paralelo: `consumeItem` lee y escribe el mismo perfil, y tres
+                     * llamadas a la vez se pisarían la última escritura entre ellas — dos cartas
+                     * pagadas y una sola guardada.
+                     */
+                    var usos = Number(cuerpo.usos || 1), sacadas = [];
+                    var abrirUna = function (n) {
+                      if (n <= 0) return Promise.resolve();
+                      return M.llamar("consumeItem", { projectId: cuerpo.per, rewardId: cuerpo.recompensa,
+                        studentProfileId: ficha.id })
+                        .then(function (r) {
+                          var b = r && (r.botin || r.obtenido || null);
+                          if (b) sacadas.push(b);
+                          return abrirUna(n - 1);
+                        });
+                    };
+                    return abrirUna(usos)
+                      .then(function () {
+                        // Si alguna no se abrió, sigue en el inventario: se avisa y se abre después.
+                        return { ok: true, botin: sacadas[0] || null, botines: sacadas,
+                                 sinAbrir: sacadas.length < usos && !sacadas.length };
+                      })
+                      .catch(function () {
+                        return sacadas.length
+                          ? { ok: true, botin: sacadas[0], botines: sacadas }
+                          : { ok: true, sinAbrir: true };
+                      });
                   });
 
               return { error: "Todavía no sé hacer eso con el motor nuevo: " + cuerpo.accion };

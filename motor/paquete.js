@@ -342,7 +342,21 @@
       }) };
     }
     tienda.forEach(function (r) {
-      if (r.stargateTipo === "cromo") { r.isConsumable = true; r.maxUses = 1;
+      /**
+       * 🔴 TRES CARTAS POR SOBRE, no una. Con una, NADIE completaba el álbum jamás: simulando 3.000
+       * álbumes con la economía real (800 ◈ en todo el viaje, sobre a 15 ◈), quien se lo gastaba
+       * TODO en cromos terminaba con 4 huecos de media. Una colección que no se puede cerrar deja
+       * de ser una colección.
+       *
+       * Con tres sale justo la curva que pidió Norberto —«no quiero que un estudiante que haga TODO
+       * pueda completar TODO; es la gracia del juego»—: el que se especializa lo cierra el 55 % de
+       * las veces, y el que reparte entre cromos, avatares y subir nota, un 6 %. Hay que ELEGIR.
+       *
+       * Se hace con `maxUses`, no abriendo tres veces: un sobre comprado son tres usos del mismo
+       * consumible. Llamar tres veces a `consumeItem` gastaría tres sobres del inventario y solo se
+       * compró uno.
+       */
+      if (r.stargateTipo === "cromo") { r.isConsumable = true; r.maxUses = 3;
         r.consumeEffects = { lootBox: cofre("cromo_", cat.cromos) }; }
       if (r.stargateTipo === "heroe") { r.isConsumable = true; r.maxUses = 1;
         r.consumeEffects = { lootBox: cofre("heroe_", cat.heroes) }; }

@@ -348,7 +348,7 @@ var ESCUADRONES = [
 // RECOMPENSAS-INICIO - [nombre, coste en creditos, max por alumno, descripcion, desde (semana
 // REGULAR; en PUA se escala), tipo]. Generado desde _site_data.py: no editar a mano.
 var RECOMPENSAS_INICIALES = [
-  ["Sobre de cromos",15,99,"Una carta al azar de las 20 del \u00e1lbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capit\u00e1n, raros; el Recluta y la Est\u00e1tica, \u00e9picos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. ",2,"cromo"],
+  ["Sobre de cromos",15,99,"TRES cartas al azar de las 26 del \u00e1lbum (5 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capit\u00e1n, raros; el Recluta y la Est\u00e1tica, \u00e9picos; y dos LEGENDARIOS: el General Vaeon y Ander Vaeon, la identidad del villano. La serie V cuenta la ca\u00edda de Vaeon, de ni\u00f1o a general.",2,"cromo"],
   ["Cambiar 3 repetidos por un sobre",0,99,"\u00bfCartas repetidas? C\u00e1mbialas. Por cada 3 repetidas te llevas un sobre nuevo, gratis. No cuesta cr\u00e9ditos y se comprueba solo: si no llegas a 3, se te avisa y no pierdes nada.",2,"cromo_repes"],
   ["T\u00edtulo de recluta",40,3,"Un t\u00edtulo narrativo bajo tu alias en el tablero y la Nave Lo eliges t\u00fa en Mi bot\u00edn.",3,"titulo"],
   ["Fondo de ficha: tu planeta",35,1,"Tu ficha de la Nave con el planeta que elijas de fondo Eliges cu\u00e1l de los ocho en Mi bot\u00edn.",4,"fondo"],

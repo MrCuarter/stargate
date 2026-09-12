@@ -800,6 +800,28 @@
     window.SG.MOTOR.ficharLlamada(per, st.yo.ficha).then(function(r){
       st.fichado=true;
       if(r&&r.repetido){ if(m) m.textContent='Ya constabas en la lista de hoy.'; render(); return; }
+      /**
+       * 🔴 LA RACHA SE DICE, o no sirve de nada. Un bonus que llega sin avisar es dinero que
+       * aparece: no premia la constancia porque nadie lo relaciona con haber venido tres veces
+       * seguidas. Decirlo EN el momento es lo que convierte +10 créditos en una racha.
+       */
+      // El regalo del docente, si lo puso al abrir la llamada. Va con la ventana de NEBULA porque
+      // es lo mismo que un canje: has ganado algo y hay que ver QUÉ.
+      if(r && r.regalo && r.regalo.length){
+        nebulaEntrega({
+          tipo:'cromo', coste:0, antes:(st.yo&&st.yo.creditos)||0,
+          arte: arteDeCarta('cromo_'+r.regalo[0].clave),
+          titulo:'🎁 Regalo del Comandante',
+          queEs: r.regalo.map(function(c){ return c.nombre; }).join(' · '),
+          donde:'Por venir a clase. Están en tu álbum.'
+        });
+      }
+      if(r && r.racha > 1){
+        var txt = '🔥 <b>'+r.racha+' clases seguidas</b>'
+          + (r.extra ? ' · +'+r.extra+' ◈ extra por constancia' : '');
+        if(r.extra >= 25) txt += ' (el tope)';
+        aviso(txt);
+      }
       refrescarYCelebrar(antes, donde, 'reto');
     }).catch(function(e){
       b.disabled=false; b.textContent='✋ Presente';
@@ -1341,7 +1363,10 @@
       var boton = (motorNuevo() && r && !tope && !faltanRepes && mis>=x.coste && x.id)
         ? '<button class="btn primary" type="button" data-canje="'+esc(x.doc||x.id)+'" '
           +'data-nombre="'+esc(x.nombre)+'" data-coste="'+x.coste+'" data-tipo="'+esc(x.tipo||'')+'"'
-          +' data-abrir="'+((x.tipo==='cromo'||x.tipo==='heroe')?'1':'0')+'">'
+          +' data-abrir="'+((x.tipo==='cromo'||x.tipo==='heroe')?'1':'0')+'"'
+          // 🔴 Cuántas cartas trae: un sobre son TRES, un héroe uno. El dato viaja con el botón
+          // porque el número lo decide el catálogo (`maxUses`), no la Nave.
+          +' data-usos="'+(x.tipo==='cromo'?3:1)+'">'
           +(gratis?'Cambiar':'Canjear por '+x.coste+' ◈')+'</button>'
         : '';
       // El pie va aparte y se pega abajo (`margin-top:auto`): así el botón de todas las tarjetas de
@@ -1896,7 +1921,7 @@
     });
   }
 
-  function canjear(id, nombre, coste, boton, abrir, tipo){
+  function canjear(id, nombre, coste, boton, abrir, tipo, usos){
     var precio = coste > 0
       ? '<p class="neb-precio"><b>' + coste + ' ◈</b><span>de tus ' + (st.yo && st.yo.creditos != null ? st.yo.creditos : 0) + ' ◈</span></p>'
       : '<p class="neb-precio"><b>Sin créditos</b><span>esta no se paga con ◈</span></p>';
@@ -1905,7 +1930,7 @@
       cuerpo: precio + '<p class="neb-nota">Los créditos se descuentan al confirmar. Tus <b>xp</b> no se tocan: el nivel de tu personaje no baja nunca.</p>',
       si: coste > 0 ? 'Sí, canjear' : 'Sí, cambiar',
       no: 'Ahora no'
-    }).then(function(ok){ if(ok) canjearYa(id, nombre, coste, boton, abrir, tipo); });
+    }).then(function(ok){ if(ok) canjearYa(id, nombre, coste, boton, abrir, tipo, usos); });
   }
 
   /**
@@ -1986,13 +2011,13 @@
     }, o.coste ? 1000 : 300);
   }
 
-  function canjearYa(id, nombre, coste, boton, abrir, tipo){
+  function canjearYa(id, nombre, coste, boton, abrir, tipo, usos){
     if(boton){ boton.disabled=true; boton.textContent='Canjeando…'; }
     var antes=st.yo?JSON.parse(JSON.stringify(st.yo)):{};
     var tenia=(st.yo&&st.yo.creditos!=null)?st.yo.creditos:0;
     var donde=puntoDe(boton);
     esperandoNebula();
-    post({accion:'canje',per:per,recompensa:id,abrir:abrir},function(d){
+    post({accion:'canje',per:per,recompensa:id,abrir:abrir,usos:usos||1},function(d){
       var botin = d && d.botin;
       // Si ha tocado una carta, lo que se enseña es LA CARTA, no «Sobre de cromos»: nadie compra un
       // sobre por el sobre.
@@ -2000,6 +2025,7 @@
       // propia recompensa —que ya existe en assets/img/canje/ para las diez— y solo si no hubiera
       // ninguna se cae al emoji. Entregar un icono genérico teniendo la ilustración es desperdiciar
       // el único momento en que se enseña lo comprado.
+      var varias = (d && d.botines) || (botin ? [botin] : []);
       var arte = botin ? arteDeCarta(botin) : null;
       if (!arte) {
         var propia = (window.SG_IMG_RECOMPENSA || {})[nombre];
@@ -2007,8 +2033,10 @@
       }
       nebulaEntrega({
         tipo: tipo, coste: coste, antes: tenia, arte: arte,
-        titulo: botin ? '¡Te ha tocado!' : '¡Es tuya!',
-        queEs: botin ? nombreDeCarta(botin) : nombre,
+        titulo: varias.length > 1 ? '¡Te han tocado ' + varias.length + '!' : (botin ? '¡Te ha tocado!' : '¡Es tuya!'),
+        queEs: varias.length > 1
+          ? varias.map(nombreDeCarta).join(' · ')
+          : (botin ? nombreDeCarta(botin) : nombre),
         donde: (d && d.sinAbrir)
           ? 'La tienes, pero no he podido abrirla ahora. Ábrela desde tu álbum cuando quieras.'
           : null
@@ -2166,7 +2194,8 @@
       b.onclick=function(){ canjear(b.getAttribute('data-canje'), b.getAttribute('data-nombre'),
                                    Number(b.getAttribute('data-coste')), b,
                                    b.getAttribute('data-abrir')==='1',
-                                   b.getAttribute('data-tipo')); };
+                                   b.getAttribute('data-tipo'),
+                                   Number(b.getAttribute('data-usos')||1)); };
     });
     wireYt(root);
     Array.prototype.forEach.call(root.querySelectorAll('.acc[data-ir]'),function(a){

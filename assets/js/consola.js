@@ -126,6 +126,32 @@
       '<div class="gp-cab"><div><h2>Tus grupos</h2>' +
         '<p class="small muted">Todo lo de clase está aquí mismo. Entra en un grupo para su gente y sus enlaces.</p></div>' +
         (soyRef ? '<a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
+      /**
+       * 🔴 LO DEL REFERENTE, EN UNA FRANJA APARTE. Norberto: «el referente básicamente debe tener
+       * un menú extra». Y «extra» es la palabra: su día a día es EXACTAMENTE el del docente —sus
+       * grupos, su gente, proyectar— y solo se le añade lo de gobernar. Hacerle otra pantalla
+       * distinta habría sido mantener dos cosas y que una se quedara atrás.
+       *
+       * Va DEBAJO de sus grupos, no encima: incluso el referente entra aquí a dar clase mucho más a
+       * menudo que a crear un grupo.
+       */
+      (soyRef
+        ? '<details class="cajon ref-zona"><summary><b>★ Como profe referente</b> ' +
+          '<span class="cnt">gobernar los grupos</span></summary>' +
+          '<div class="ref-grid">' +
+            '<a class="ref-b" href="crear.html"><span>✨</span><b>Crear un grupo</b>' +
+              '<em>Calendario, retos, tienda y código, en un minuto.</em></a>' +
+            '<a class="ref-b" href="tickets.html"><span>🎟️</span><b>Los tickets de salida</b>' +
+              '<em>Las dudas de todas tus clases, por tema y fecha.</em></a>' +
+            '<a class="ref-b" href="registro.html"><span>🏅</span><b>Tableros y embeds</b>' +
+              '<em>Lo que se pega en los Geniallys.</em></a>' +
+            '<a class="ref-b" href="pasos.html"><span>🧭</span><b>Montarlo paso a paso</b>' +
+              '<em>El recorrido completo, con capturas.</em></a>' +
+          '</div>' +
+          '<p class="small muted" style="margin-top:12px">Dentro de cada grupo tienes además ' +
+          '<b>Equipo docente</b>, <b>Escuadrones</b> y <b>Ajustes</b>: esas tres solo las ve quien ' +
+          'lleva el grupo.</p></details>'
+        : '') +
       (vivos.length ? '<div class="gp-grid">' + vivos.map(tarjetaGrupo).join("") + '</div>'
                     : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
       (pasados.length

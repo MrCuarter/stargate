@@ -2101,3 +2101,22 @@ section[id]{scroll-margin-top:110px}
   display:grid;place-items:center;font-family:'Unbounded',sans-serif;font-weight:800;
   background:var(--teal);color:#04141a;font-size:1rem}
 .clase-viva h3{margin:6px 0 8px}
+
+/* El regalo opcional al tocar llamada. Solo un sobre de cromos: los xp ordenan el ranking y
+   regalarlos por venir mezclaría lo aprendido con lo asistido. */
+.ll-regalo{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.92rem;margin:4px 0 2px}
+.ll-regalo input{width:19px;height:19px;accent-color:var(--teal);cursor:pointer;flex:none}
+.ll-nota{margin:0 0 14px;font-size:.79rem;color:var(--mut);line-height:1.45}
+
+/* La zona del referente: DEBAJO de sus grupos, plegada. Incluso el referente entra aquí a dar
+   clase mucho más a menudo que a crear un grupo. */
+.ref-zona{margin-top:26px;border-color:rgba(245,176,67,.3)}
+.ref-zona > summary b{color:var(--amber)}
+.ref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:12px}
+.ref-b{display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:12px;
+  background:#0b1119;border:1px solid #24304a;text-decoration:none;color:#e8eefc;transition:.15s}
+.ref-b:hover{border-color:var(--amber);background:rgba(245,176,67,.07);transform:translateY(-2px)}
+.ref-b span{font-size:1.4rem;line-height:1}
+.ref-b b{font-size:.95rem}
+.ref-b em{font-style:normal;font-size:.8rem;color:var(--mut);line-height:1.4}
+@media (prefers-reduced-motion:reduce){.ref-b:hover{transform:none}}

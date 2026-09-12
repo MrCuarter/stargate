@@ -105,6 +105,18 @@
       + '<div class="ll-minutos">' + MINUTOS.map(function (m, i) {
           return '<button type="button" class="ll-m' + (m === 60 ? " on" : "") + '" data-min="' + m + '">'
             + m + " min</button>"; }).join("") + "</div>"
+      /**
+       * 🔴 UN REGALO OPCIONAL PARA QUIEN VENGA. Norberto: «¿te parece regalar un sobre de cromos
+       * junto a la asistencia? O que el docente al lanzar asistencia pueda elegir un regalo».
+       *
+       * Y con un límite que puso él mismo y que es el acierto: «modificar los créditos o
+       * experiencia no, porque podría enturbiar la puntuación». Exacto — los xp ordenan el ranking
+       * y regalarlos por venir mezclaría lo aprendido con lo asistido. Un sobre de cromos no ordena
+       * a nadie: es colección, no puntuación. Por eso solo se puede regalar eso.
+       */
+      + '<label class="ll-campo ll-regalo"><input type="checkbox" id="ll-sobre"> '
+      + 'Regalar un <b>sobre de cromos</b> a quien fiche</label>'
+      + '<p class="ll-nota">Tres cartas al azar. No toca ni los xp ni el ranking: es colección.</p>'
       + '<button class="ll-btn grande" id="ll-tocar">🔔 Tocar llamada</button>'
       + '<p class="ll-pie" id="ll-msg"></p></div>');
 
@@ -120,7 +132,9 @@
     if (sel) sel.onchange = function () { PER = sel.value; };
     document.getElementById("ll-tocar").onclick = function (e) {
       var b = e.currentTarget; b.disabled = true; b.textContent = "Tocando…";
-      MOTOR.abrirLlamada(PER, min).then(function (r) { SESION = r; enMarcha(); })
+      var regalo = document.getElementById("ll-sobre");
+      MOTOR.abrirLlamada(PER, min, { regalo: regalo && regalo.checked ? "sobre" : "" })
+        .then(function (r) { SESION = r; enMarcha(); })
         .catch(function (err) {
           b.disabled = false; b.textContent = "🔔 Tocar llamada";
           document.getElementById("ll-msg").textContent = String(err && err.message || err);

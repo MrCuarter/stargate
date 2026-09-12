@@ -524,7 +524,10 @@ async function abrirLlamada(perId, minutos, opciones) {
     startTime: ahora, endTime: hasta, active: true,
     pointsReward: o.xp == null ? 15 : Number(o.xp),
     coinsReward: o.creditos == null ? 30 : Number(o.creditos),
-    autoReward: true
+    autoReward: true,
+    // 🔴 El regalo se guarda EN LA SESIÓN, no se decide al fichar. Así todo el mundo recibe lo
+    // mismo —lo eligió el docente al abrirla— y quien llega tarde no se lleva algo distinto.
+    stargateRegalo: String(o.regalo || "")
   }, faccion ? { restrictedFactionId: faccion.id } : {}));
   return { id: ref.id, hasta: hasta.getTime(), escuadron: faccion ? faccion.name : null,
            comandante: nombre, minutos: Math.max(1, Number(minutos) || 60) };
@@ -574,7 +577,77 @@ async function ficharLlamada(perId, fichaId) {
     source: "attendance_session_auto_reward", sourceRefId: s.id,
     idempotencyKey: "xp_attendance_" + perId + "_" + s.id + "_" + yo.uid
   });
-  return { ok: true, xp: Number(s.pointsReward || 15), creditos: Number(s.coinsReward || 30) };
+  /**
+   * ════════ LA RACHA ════════
+   *
+   * Norberto: «quiero premiar la asistencia y la constancia. Cada vez que sea una racha seguida se
+   * suman 5 créditos con límite de 25 extra».
+   *
+   * 🔴 Y sale casi gratis: `previos` ya está leído arriba para no cobrar dos veces el mismo día.
+   * Solo falta saber QUÉ sesiones ha habido, que son una por clase (~20 en todo el curso), para
+   * poder contar hacia atrás. Una consulta más, y solo cuando alguien ficha.
+   *
+   * 🔴 Créditos, NUNCA xp. También lo dijo él y tiene razón: los xp marcan el nivel y el puesto en
+   * el ranking, así que premiar la asistencia con xp enturbiaría la puntuación de lo aprendido con
+   * lo de haber venido. Los créditos son dinero: se gastan y no ordenan a nadie.
+   *
+   * La cuenta: 1ª seguida +0, 2ª +5, 3ª +10… hasta +25 y ahí se queda. Perder una clase devuelve
+   * a cero, que es justo lo que hace que una racha signifique algo.
+   */
+  let racha = 1, extra = 0;
+  try {
+    const ses = await getDocs(query(collection(db, LLAMADA), where("projectId", "==", perId)));
+    const mias = new Set(previos.docs.map(d => d.data().sessionId));
+    mias.add(s.id);                                   // la de ahora cuenta, y aún no está en previos
+    const orden = ses.docs
+      .map(d => ({ id: d.id, t: fechaDe(d.data().startTime) }))
+      .filter(x => x.t)
+      .sort((a, b) => b.t - a.t);                     // de la más reciente hacia atrás
+    // Se empieza en la sesión actual y se cuenta hacia atrás mientras no falte ninguna.
+    const desde = orden.findIndex(x => x.id === s.id);
+    if (desde >= 0) {
+      racha = 0;
+      for (let i = desde; i < orden.length; i++) {
+        if (!mias.has(orden[i].id)) break;
+        racha++;
+      }
+    }
+    extra = Math.min(25, Math.max(0, (racha - 1) * 5));
+    if (extra > 0) {
+      await llamar("applyXpDelta", {
+        projectId: perId, studentProfileId: fichaId, userId: yo.uid,
+        deltaXp: 0, deltaCoins: extra,
+        source: "teacher_resource_adjustment",
+        details: "Racha de asistencia: " + racha + " clases seguidas",
+        // 🔴 La misma clave para la misma sesión y persona: si el botón se pulsa dos veces —o la
+        // red duplica la llamada— el extra se paga UNA vez.
+        idempotencyKey: "racha_" + perId + "_" + s.id + "_" + yo.uid
+      });
+    }
+  } catch (e) { extra = 0; }   // la racha es un regalo: si falla, el fichaje ya está hecho y pagado
+
+  /**
+   * EL REGALO DEL DOCENTE, si lo puso al abrir la llamada. Un sobre de cromos: tres cartas al azar.
+   * 🔴 Nunca xp ni créditos — eso enturbiaría el ranking, que mide lo aprendido y no lo asistido.
+   */
+  let regalo = null;
+  if (s.stargateRegalo === "sobre") {
+    try {
+      // 🔴 No se «consume» un sobre: no lo ha comprado, y consumir exige tenerlo en el inventario.
+      // Se regalan las cartas directamente, que es lo que ya hace el docente desde el aula.
+      regalo = await regalarSobre(perId, fichaId, 3);
+    } catch (e) { regalo = null; }   // el regalo nunca puede tumbar el fichaje
+  }
+
+  return { ok: true, xp: Number(s.pointsReward || 15), creditos: Number(s.coinsReward || 30),
+           racha: racha, extra: extra, regalo: regalo };
+}
+
+/** Firestore devuelve Timestamp; de una exportación puede llegar cadena o número. */
+function fechaDe(t) {
+  if (!t) return null;
+  const d = t && t.toDate ? t.toDate() : new Date(t);
+  return isNaN(d.getTime()) ? null : d;
 }
 
 /**
@@ -709,15 +782,45 @@ async function premiar(perId, fichaId, { xp = 0, creditos = 0, motivo = "" } = {
  * motor. Escribir la clave corta dejaría una carta que el álbum no sabría leer — justamente el fallo
  * que se arregló el 12-sep.
  */
+/**
+ * 🔴 AL AZAR, PERO RESPETANDO LAS RAREZAS. Regalar elegía con `Math.random()` uniforme: la
+ * legendaria de Ander —una de cada cien en la tienda— caía igual de fácil que un tripulante común.
+ * Eso no es un detalle: la rareza es TODO el valor de una colección, y un regalo que la ignora
+ * devalúa las cartas que alguien lleva semanas persiguiendo.
+ * El peso ya está en el catálogo; solo había que usarlo.
+ */
+function alAzarPorPeso(lista) {
+  const total = lista.reduce((a, c) => a + (Number(c.peso) || 1), 0);
+  let n = Math.random() * total;
+  for (const c of lista) { n -= (Number(c.peso) || 1); if (n <= 0) return c; }
+  return lista[lista.length - 1];
+}
+
+/** Varias de golpe, para el regalo de la asistencia: un sobre son tres. */
+async function regalarSobre(perId, fichaId, cuantas) {
+  const f = await getDoc(doc(db, "student_profiles", fichaId));
+  if (!f.exists()) throw new Error("No encuentro la ficha");
+  const cromos = (window.SG_CATALOGO || {}).cromos || [];
+  if (!cromos.length) throw new Error("No tengo el catálogo de cartas");
+  const sacadas = [], inv = (f.data().inventory || []).slice();
+  for (let i = 0; i < (cuantas || 3); i++) {
+    const c = alAzarPorPeso(cromos);
+    inv.push(perId + "__cromo_" + c.clave);
+    sacadas.push({ clave: c.clave, nombre: c.nombre, rareza: c.rareza });
+  }
+  // 🔴 Una sola escritura con las tres dentro. Tres `updateDoc` seguidos sobre el mismo documento
+  // se pisan entre sí: se guardaría la última y se perderían dos cartas regaladas.
+  await updateDoc(doc(db, "student_profiles", fichaId), { inventory: inv });
+  return sacadas;
+}
+
 async function regalarCromo(perId, fichaId, clave) {
   const f = await getDoc(doc(db, "student_profiles", fichaId));
   if (!f.exists()) throw new Error("No encuentro la ficha");
   const cat = window.SG_CATALOGO || {};
   const cromos = cat.cromos || [];
   if (!cromos.length) throw new Error("No tengo el catálogo de cartas");
-  const elegido = clave
-    ? cromos.filter(c => c.clave === clave)[0]
-    : cromos[Math.floor(Math.random() * cromos.length)];
+  const elegido = clave ? cromos.filter(c => c.clave === clave)[0] : alAzarPorPeso(cromos);
   if (!elegido) throw new Error("Esa carta no existe");
   const idDoc = perId + "__cromo_" + elegido.clave;
   await updateDoc(doc(db, "student_profiles", fichaId),
@@ -737,7 +840,7 @@ window.SG = window.SG || {};
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, otorgarReto, anularReto, traspasar, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
-                    premiar, regalarCromo, darDeBaja, nuevoCodigo,
+                    premiar, regalarCromo, regalarSobre, darDeBaja, nuevoCodigo,
                     anadirDocente, referenteEnTodos,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));
