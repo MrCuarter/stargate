@@ -89,6 +89,25 @@ const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disa
       comprobar("entrar · la página no obliga a bajar", b.alto < 1100, "alto " + b.alto);
       comprobar("entrar · dice «Google» en el botón", /google/i.test(b.texto || ""), b.texto);
       comprobar("entrar · sin errores de consola", c.errores.length === 0, c.errores[0]);
+
+      /**
+       * 🔴 QUE PAREZCA EL DE GOOGLE, no solo que lo diga. `.btn.primary` (0,2,0) le ganaba en
+       * especificidad a `.btn-google` (0,1,0) y el botón salía turquesa con la «G» encima:
+       * exactamente lo que no reconoce nadie. Un botón de identidad tiene que PARECERSE al de
+       * siempre —pastilla blanca, letra oscura, la «G» a la izquierda—, porque esa forma es medio
+       * mensaje: dice sin leer que la contraseña se teclea en Google. Comprobar el color calculado
+       * y no la clase es la diferencia entre vigilar el resultado y vigilar la intención.
+       */
+      const pinta = await evaluar(c, `(function(){
+        var b = document.querySelector('#e-google'), s = getComputedStyle(b);
+        var m = s.backgroundColor.match(/\\d+/g) || [];
+        return { fondo: s.backgroundColor, claro: m.length >= 3 && +m[0] > 230 && +m[1] > 230 && +m[2] > 230,
+                 svg: !!b.querySelector('svg'), colores: b.querySelectorAll('svg path').length };
+      })()`);
+      comprobar("entrar · el botón lleva la «G» de cuatro colores", pinta.svg && pinta.colores === 4,
+                "svg " + pinta.svg + ", paths " + pinta.colores);
+      comprobar("entrar · y es la pastilla BLANCA de Google, no la de nuestra paleta",
+                pinta.claro, pinta.fondo);
     }
 
     // ============================================================ 2 · REPARTO POR ROL
