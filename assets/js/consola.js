@@ -37,24 +37,77 @@
   }
 
   // ---------------------------------------------------------------- elegir grupo
+  /**
+   * LA CASA DEL DOCENTE. Es lo primero que ve al entrar y, casi siempre, lo único que necesita.
+   *
+   * 🔴 Antes era una lista de botones grises con el id del grupo al lado, y para lanzar la clase
+   * había que entrar al grupo, buscar la pestaña y salir a otra página. Norberto: «un docente debe
+   * poder entrar y tener a mano sus grupos; a golpe de clic seleccionar el grupo actual y poder
+   * lanzar la presentación para clase».
+   *
+   * Así que las acciones de directo —proyectar, el aula, la llamada— están EN la tarjeta, sin
+   * entrar. Entrar al grupo es para lo demás: la gente, la cola de nota, los enlaces.
+   */
+  function tarjetaGrupo(p) {
+    var S = p.stargate || {};
+    var vivo = p.estado === "en marcha";
+    var cuando = p.estado === "en marcha" ? "Semana " + p.semana + " de " + p.total
+               : p.estado === "por empezar" ? "Empieza el " + (S.inicio || "—")
+               : p.estado === "sin fecha" ? "Sin fecha de inicio" : "Terminado";
+    return '<article class="gp' + (vivo ? " vivo" : " off") + '">' +
+      '<header><div><div class="gp-est">' + (vivo ? "EN MARCHA" : p.estado.toUpperCase()) + '</div>' +
+        '<h3>' + esc(p.nombre) + '</h3><p class="gp-cuando">' + esc(cuando) +
+        (S.tipo === "PUA" ? ' · PUA' : '') + '</p></div>' +
+        (p.soyReferente ? '<span class="gp-ref" title="Llevas este grupo">★ referente</span>' : '') +
+      '</header>' +
+      // 🔴 Lo de clase, en la tarjeta. Se busca con los alumnos ya sentados: cada clic de más ahí
+      // es medio minuto de aula mirando una pantalla de carga.
+      '<div class="gp-hacer">' +
+        '<a class="gp-b principal" href="sesion.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
+          '<span>📽️</span><b>Proyectar la clase</b></a>' +
+        '<a class="gp-b" href="aula.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
+          '<span>🎛️</span><b>El aula</b></a>' +
+        '<a class="gp-b" href="llamada.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
+          '<span>🔔</span><b>Llamada a filas</b></a>' +
+      '</div>' +
+      '<button class="gp-abrir" data-per="' + esc(p.id) + '">Ver mi gente y los ajustes →</button>' +
+      '</article>';
+  }
+
   async function elegirGrupo() {
     cargando("Buscando tus grupos…");
     PERS = await MOTOR.misPERs(YO.correo);
     if (!PERS.length) {
+      var puedeCrear = false;
       app.innerHTML = '<div class="card"><h3>Todavía no tienes grupos</h3>' +
         '<p>No figuras como docente en ningún grupo de STARGATE con el correo <b>' + esc(YO.correo) + '</b>.</p>' +
-        '<p><a class="btn grande" href="crear.html">Crear el primero</a></p>' +
-        '<p class="small muted">Si deberías estar en uno, pídele a tu referente que te añada con este correo.</p></div>';
+        '<p class="small muted">Si deberías estar en uno, pídele a tu referente que te añada con ' +
+        '<b>este mismo correo</b>. Y comprueba con qué cuenta de Google has entrado: es el despiste más común.</p>' +
+        '<p><a class="btn grande" href="crear.html">Crear el primero</a></p></div>';
       return;
     }
     var guardado = url.get("per");
     if (guardado && PERS.filter(function (p) { return p.id === guardado; }).length) return abrir(guardado);
-    if (PERS.length === 1) return abrir(PERS[0].id);
-    app.innerHTML = '<div class="card"><h3>Tus grupos</h3>' +
-      PERS.map(function (p) {
-        return '<p><button class="btn" data-per="' + esc(p.id) + '">' + esc(p.nombre) +
-               ' <i>· ' + esc(p.stargate.tipo || "") + '</i></button></p>';
-      }).join("") + '<p><a class="btn min" href="crear.html">+ Crear otro grupo</a></p></div>';
+
+    // 🔴 Ya NO se salta la lista cuando solo hay un grupo. Antes se entraba directo «por comodidad»,
+    // y así el docente no veía nunca los botones de directo —que es para lo que viene— ni sabía que
+    // esta pantalla existía. Con un grupo, la tarjeta ocupa la pantalla entera y se entiende sola.
+    var vivos = PERS.filter(function (p) { return p.estado !== "pasado"; });
+    var pasados = PERS.filter(function (p) { return p.estado === "pasado"; });
+    var soyRef = PERS.some(function (p) { return p.soyReferente; });
+
+    app.innerHTML =
+      '<div class="gp-cab"><div><h2>Tus grupos</h2>' +
+        '<p class="small muted">Todo lo de clase está aquí mismo. Entra en un grupo para su gente y sus enlaces.</p></div>' +
+        (soyRef ? '<a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
+      (vivos.length ? '<div class="gp-grid">' + vivos.map(tarjetaGrupo).join("") + '</div>'
+                    : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
+      (pasados.length
+        ? '<details class="cajon gp-viejos"><summary><b>🗓️ Cursos terminados</b> ' +
+          '<span class="cnt">' + pasados.length + '</span></summary>' +
+          '<div class="gp-grid">' + pasados.map(tarjetaGrupo).join("") + '</div></details>'
+        : '');
+
     Array.prototype.forEach.call(app.querySelectorAll("[data-per]"), function (b) {
       b.onclick = function () { abrir(b.getAttribute("data-per")); };
     });
@@ -69,17 +122,32 @@
     pintar();
   }
 
-  var TABS = [["alumnado", "Alumnado"], ["canjes", "Cola de nota"], ["equipo", "Equipo docente"],
-              ["escuadrones", "Escuadrones"], ["ajustes", "Ajustes"]];
+  /**
+   * 🔴 LO DEL REFERENTE NO LO VE UN DOCENTE. Norberto: «no debe ver NADA del profe referente».
+   *
+   * Y no es solo orden: «Equipo docente» enseña los CORREOS de los compañeros, «Escuadrones»
+   * reparte el alumnado del grupo entero y «Ajustes» toca el calendario y los enlaces de todos.
+   * Nada de eso es de quien solo imparte — y enseñárselo apagado sería peor: le dice que existe y
+   * que a él no le dejan.
+   *
+   * La cuarta columna marca las que solo salen si llevas el grupo.
+   */
+  var TABS = [["alumnado", "Mi gente"], ["canjes", "Cola de nota"],
+              ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1],
+              ["ajustes", "Ajustes del grupo", 1]];
+  function misTabs() {
+    var ref = !!(PERS.filter(function (p) { return p.id === PER; })[0] || {}).soyReferente;
+    return TABS.filter(function (x) { return !x[2] || ref; });
+  }
 
   function pintar() {
     var t = window.SG.TABLERO.tablero(DATOS, true);
     app.innerHTML =
       '<div class="card cuenta"><p><b>' + esc(t.nombre) + '</b> · ' + esc(t.tipo) +
         ' · ' + semanaTexto(t) + ' · ' + t.reclutas.length + ' reclutas' +
-        (PERS.length > 1 ? ' <button class="btn min" id="c-cambiar">Cambiar de grupo</button>' : '') +
+        ' <button class="btn min" id="c-cambiar">← Mis grupos</button>' +
         ' <button class="btn min" id="c-salir">Salir</button></p></div>' +
-      '<div class="pestanas">' + TABS.map(function (x) {
+      '<div class="pestanas">' + misTabs().map(function (x) {
         return '<button class="pest' + (TAB === x[0] ? " activa" : "") + '" data-tab="' + x[0] + '">' + x[1] + "</button>";
       }).join("") + "</div>" +
       '<div id="c-aviso" class="aviso" hidden></div>' +
@@ -89,6 +157,9 @@
     });
     if ($("#c-cambiar")) $("#c-cambiar").onclick = function () { url.delete("per"); elegirGrupo(); };
     $("#c-salir").onclick = function () { MOTOR.salir(); };
+    // 🔴 Y si el TAB recordado ya no le corresponde —dejó de ser referente, o llega por un enlace
+    // con #ajustes— se cae al primero en vez de pintar una pantalla que no debería ver.
+    if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
     ({ alumnado: verAlumnado, canjes: verCanjes, equipo: verEquipo,
        escuadrones: verEscuadrones, ajustes: verAjustes })[TAB](t);
   }

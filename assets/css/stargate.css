@@ -1940,3 +1940,43 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 .vest.no::after{content:"🔒";position:absolute;top:50%;left:50%;transform:translate(-50%,-58%);
   font-size:1.5rem;opacity:.55;pointer-events:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.8))}
 .vest.no b{color:var(--mut)}
+
+/* ══════════ LA CASA DEL DOCENTE ══════════
+   «Un docente debe poder entrar y tener a mano sus grupos. A golpe de clic seleccionar el grupo
+   actual y poder lanzar la presentación para clase» (Norberto). Por eso las acciones de directo van
+   EN la tarjeta y no dentro del grupo: se buscan con los alumnos ya sentados, y cada clic de más
+   ahí es medio minuto de aula mirando una pantalla de carga. */
+.gp-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:6px 0 16px;flex-wrap:wrap}
+.gp-cab h2{margin:0 0 4px}
+.gp-cab p{margin:0}
+.gp-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+.gp{background:var(--surface,#0e1724);border:1px solid var(--line);border-radius:16px;padding:18px 18px 14px;
+  display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+.gp.vivo{border-color:#2a5a66}
+.gp.vivo::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;
+  background:linear-gradient(90deg,var(--teal,#37e0ec),var(--amber,#f5b043))}
+.gp.off{opacity:.72}
+.gp header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.gp h3{margin:2px 0 3px;font-size:1.18rem;line-height:1.25;text-wrap:balance}
+.gp-est{font-size:.62rem;letter-spacing:.16em;font-weight:700;color:var(--teal,#37e0ec)}
+.gp.off .gp-est{color:var(--mut)}
+.gp-cuando{margin:0;font-size:.86rem;color:var(--mut)}
+.gp-ref{flex:none;font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
+  color:var(--amber);background:rgba(245,176,67,.1);border:1px solid rgba(245,176,67,.3);
+  padding:4px 9px;border-radius:99px;white-space:nowrap}
+/* Las tres de directo: la de proyectar manda, las otras dos acompañan. */
+.gp-hacer{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gp-b{display:flex;align-items:center;gap:9px;padding:12px 13px;border-radius:11px;text-decoration:none;
+  background:#0b1119;border:1px solid #24304a;color:#e8eefc;transition:.15s;font-size:.88rem}
+.gp-b span{font-size:1.15rem;line-height:1}
+.gp-b:hover{border-color:var(--teal);background:rgba(55,224,236,.08);transform:translateY(-1px)}
+.gp-b.principal{grid-column:1/-1;background:linear-gradient(135deg,rgba(55,224,236,.16),rgba(55,224,236,.06));
+  border-color:#2a5a66;font-size:.95rem}
+.gp-b.principal b{font-weight:700}
+.gp-abrir{margin-top:auto;background:none;border:0;border-top:1px solid var(--line);padding:11px 0 0;
+  color:var(--mut);font:inherit;font-size:.86rem;cursor:pointer;text-align:left;transition:color .15s}
+.gp-abrir:hover{color:var(--teal)}
+.gp-viejos{margin-top:22px}
+.gp-viejos .gp-grid{margin-top:12px}
+@media(max-width:520px){.gp-hacer{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.gp-b:hover{transform:none}}
