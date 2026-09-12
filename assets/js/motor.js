@@ -364,7 +364,7 @@ const llamar = (nombre, datos) => httpsCallable(fns, nombre)(datos).then(r => r.
 // Se pide aquí y no se incrusta en cada página: son 25 KB que solo necesitan las pantallas del motor
 // nuevo, y el navegador lo cachea una vez para todas.
 if (!window.SG_CATALOGO) {
-  try { window.SG_CATALOGO = await fetch("motor/catalogo.json").then(r => r.json()); }
+  try { window.SG_CATALOGO = await fetch(window.SG_CATALOGO_URL || "motor/catalogo.json").then(r => r.json()); }
   catch (e) { console.error("[STARGATE] no he podido cargar el catálogo:", e); }
 }
 

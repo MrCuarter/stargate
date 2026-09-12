@@ -2430,11 +2430,12 @@ def _v(rel):
 
 def _cabeza_motor():
     """Los scripts del motor, para las páginas que SIEMPRE lo usan (consola, crear, alistarse…)."""
-    return ('<script>window.SG_FIREBASE=%s;</script>'
+    return ('<script>window.SG_FIREBASE=%s;window.SG_CATALOGO_URL="%s";</script>'
             '<script src="%s" defer></script>'
             '<script src="%s" defer></script>'
             '<script type="module" src="%s"></script>'
-            % (_json.dumps(FIREBASE), _v("motor/paquete.js"), _v("motor/tablero.js"), _v("assets/js/motor.js")))
+            % (_json.dumps(FIREBASE), _v("motor/catalogo.json"),
+               _v("motor/paquete.js"), _v("motor/tablero.js"), _v("assets/js/motor.js")))
 
 def _cabeza_fuente():
     """
@@ -2447,15 +2448,15 @@ def _cabeza_fuente():
     cfg = _json.dumps(FIREBASE)
     modo = _json.dumps(MOTOR_POR_DEFECTO)
     return (
-        '<script>window.SG_FIREBASE=' + cfg + ';window.SG_MOTOR=' + modo + ';</script>'
+        '<script>window.SG_FIREBASE=' + cfg + ';window.SG_MOTOR=' + modo + ';'
+        'window.SG_CATALOGO_URL="' + _v("motor/catalogo.json") + '";</script>'
         '<script src="' + _v("assets/js/fuente.js") + '" defer></script>'
         '<script>(function(){var q=new URLSearchParams(location.search);'
         'if(((q.get("motor")||window.SG_MOTOR||"apps")+"").toLowerCase()!=="firestore")return;'
         '["' + _v("motor/paquete.js") + '","' + _v("motor/tablero.js") + '"].forEach(function(u){'
         'var e=document.createElement("script");e.src=u;e.defer=true;document.head.appendChild(e);});'
-        # El catálogo hace falta para pintar un tablero incrustado, donde no hay sesión ni SDK.
-        'fetch("' + _v("motor/catalogo.json") + '").then(function(r){return r.json();})'
-        '.then(function(c){window.SG_CATALOGO=c;});'
+        # El catálogo lo pide motor.js, que se carga justo debajo. Pedirlo también aquí hacía dos
+        # descargas del mismo fichero en cada visita.
         'var m=document.createElement("script");m.type="module";m.src="' + _v("assets/js/motor.js") + '";'
         'document.head.appendChild(m);})();</script>')
 

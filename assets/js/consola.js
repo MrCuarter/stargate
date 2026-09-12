@@ -17,6 +17,12 @@
   var MOTOR = null, YO = null, PERS = [], PER = null, DATOS = null, TAB = "alumnado";
   var url = new URLSearchParams(location.search);
 
+  // 🔴 Mientras el motor por defecto siga siendo el viejo, un enlace a un grupo nuevo SIN el
+  // interruptor lleva a «PER no encontrado». Y ese enlace es el que el profesorado copia y pega a
+  // su clase: no puede estar mal ni un día. El día que se cambie el valor por defecto, esto sobra
+  // y se quita de un sitio.
+  var MOTOR_EN_ENLACES = "&motor=firestore";
+
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function $(s) { return app.querySelector(s); }
@@ -219,8 +225,8 @@
       '<label>Panel de control (editar)<input id="s-paneled" value="' + esc(P.panelEdit || "") + '"></label>' +
       '<p><button class="btn" id="s-guardar">Guardar</button></p></div>' +
       '<div class="card"><h3>Enlaces del grupo</h3>' +
-      '<p class="small">Alistamiento (dáselo a tu alumnado):<br><code>' + location.origin + '/alistarse.html?per=' + esc(PER) + '</code></p>' +
-      '<p class="small">La Nave:<br><code>' + location.origin + '/recluta.html?per=' + esc(PER) + '</code></p>' +
+      '<p class="small">Alistamiento (dáselo a tu alumnado):<br><code>' + location.origin + '/alistarse.html?per=' + esc(PER) + MOTOR_EN_ENLACES + '</code></p>' +
+      '<p class="small">La Nave:<br><code>' + location.origin + '/recluta.html?per=' + esc(PER) + MOTOR_EN_ENLACES + '</code></p>' +
       '<p class="small">Validar un reto desde un Genially (sirve en TODOS los grupos):<br>' +
       '<code>' + location.origin + '/validar.html?reto=S7</code></p></div>';
     $("#s-guardar").onclick = async function () {

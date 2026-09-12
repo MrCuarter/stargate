@@ -19,6 +19,12 @@
 
   var MOTOR = null, YO = null, docentes = [];
 
+  // 🔴 Mientras el motor por defecto siga siendo el viejo, un enlace a un grupo nuevo SIN el
+  // interruptor lleva a «PER no encontrado». Y ese enlace es el que el profesorado copia y pega a
+  // su clase: no puede estar mal ni un día. El día que se cambie el valor por defecto, esto sobra
+  // y se quita de un sitio.
+  var MOTOR_EN_ENLACES = "&motor=firestore";
+
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 
@@ -167,11 +173,14 @@
     var paso = $("#f-progreso");
     try {
       await MOTOR.sembrarPER(d, function (t) { paso.textContent = t; });
+      // El enlace que se le da al alumnado es el de ALISTARSE, no el de la Nave: a la Nave no se
+      // puede entrar sin ficha, y la ficha se abre alistándose. Dar el otro era mandarles a una
+      // puerta cerrada el primer día.
+      var alta = location.origin + '/alistarse.html?per=' + esc(d.id) + MOTOR_EN_ENLACES;
       app.innerHTML = '<div class="card bien"><h3>Grupo creado</h3>' +
         '<p><b>' + esc(d.nombre) + '</b> está sembrado y listo.</p>' +
-        '<p>El enlace de alistamiento para tu alumnado:<br>' +
-        '<code>' + location.origin + '/recluta.html?per=' + esc(d.id) + '</code></p>' +
-        '<p><a class="btn" href="clase.html?per=' + esc(d.id) + '">Ir a la sala de clase</a> ' +
+        '<p>El enlace de alistamiento para tu alumnado:<br><code>' + alta + '</code></p>' +
+        '<p><a class="btn" href="consola.html?per=' + esc(d.id) + '">Ir a la consola</a> ' +
         '<a class="btn min" href="crear.html">Crear otro</a></p></div>';
     } catch (e) {
       boton.disabled = false; paso.textContent = "";
