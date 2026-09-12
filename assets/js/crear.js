@@ -295,6 +295,17 @@
    */
   var DEMO = new URLSearchParams(location.search).get("demo") === "1";
 
+  /** No eres referente: se dice con claridad y se le manda a donde SÍ tiene cosas que hacer. */
+  function pintarSinPermiso(ps) {
+    app.innerHTML = '<div class="card"><h3>Esto lo hace tu profe referente</h3>' +
+      '<p class="lead">Crear un grupo —con su calendario, sus retos y su código— es cosa de quien ' +
+      'coordina la asignatura. Tú ya tienes ' + (ps.length === 1 ? 'tu grupo' : 'tus ' + ps.length + ' grupos') +
+      ' en el puesto de mando.</p>' +
+      '<p class="small muted">Si necesitas un grupo nuevo, pídeselo: lo crea en un minuto y te añade ' +
+      'al equipo con este mismo correo.</p>' +
+      '<p><a class="btn primary" href="consola.html">🎛️ Ir a mis grupos</a></p></div>';
+  }
+
   function arrancar() {
     MOTOR = window.SG.MOTOR;
     if (DEMO) {
@@ -304,8 +315,27 @@
       if (b) { b.disabled = true; b.textContent = "Crear el grupo (apagado en la demostración)"; }
       return;
     }
-    MOTOR.sesion().then(function (u) { YO = u; u ? pintar() : pintarPuerta(); });
-    document.addEventListener("sg:sesion", function (e) { YO = e.detail; YO ? pintar() : pintarPuerta(); });
+    /**
+     * 🔴 CREAR UN GRUPO ES COSA DEL REFERENTE. Y hasta hoy no lo comprobaba NADIE: Norberto entró
+     * como profe normal y pudo llegar hasta el botón. «Me permite crear GRUPO, NO puede ser.»
+     *
+     * Esto es la puerta de la pantalla, no la seguridad: la de verdad la ponen las reglas de
+     * Firestore. Pero un botón que no deberías poder pulsar es una invitación a romper algo sin
+     * querer — y sembrar un grupo entero de más, con su código y sus enlaces, no se deshace solo.
+     *
+     * Quien aún no lleva ningún grupo SÍ pasa: es el caso del referente que estrena el sistema y
+     * todavía no tiene nada que le acredite. Ahí no hay nada que proteger.
+     */
+    var mirar = function (u) {
+      YO = u;
+      if (!YO) return pintarPuerta();
+      MOTOR.misPERs(YO.correo).then(function (ps) {
+        if (!ps.length || ps.some(function (p) { return p.soyReferente; })) return pintar();
+        pintarSinPermiso(ps);
+      }).catch(function () { pintar(); });   // si no se puede comprobar, que no se quede bloqueado
+    };
+    MOTOR.sesion().then(mirar);
+    document.addEventListener("sg:sesion", function (e) { mirar(e.detail); });
   }
   if (window.SG && window.SG.MOTOR) arrancar();
   else document.addEventListener("sg:motor", arrancar);

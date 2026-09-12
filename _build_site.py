@@ -30,10 +30,21 @@ FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0
 # En cuanto entrabas al material del profesorado —que es donde pasas el tiempo— desaparecían del
 # mapa. El menú llevaba a siete documentos que se leen una vez y a ninguna de las dos cosas que se
 # hacen de verdad: crear un grupo y gobernarlo.
-NAV = [("index.html","Inicio","inicio"),("crear.html","Crear grupo","crear"),("consola.html","Puesto de mando","cons"),
-       ("clase.html","Mi clase","cla"),("guia.html","Guía","guia"),("cronologia.html","Cronología","crono"),
-       ("actividades.html","Actividades","act"),("pasos.html","Cómo se hace","pasos"),("geniallys.html","Geniallys","gen"),
-       ("registro.html","Registro","reg"),("grupos.html","Grupos","grp"),("recursos.html","Recursos","rec")]
+NAV = [("consola.html","Mis grupos","cons"),("guia.html","Guía","guia"),
+       ("crear.html","Crear grupo","crear","referente")]
+# 🔴 DE DOCE ENTRADAS A TRES. Norberto, entrando como docente: «¡mucho tomate! Debemos simplificar…
+# cuantas menos opciones tenga el docente mejor, debe ser claro y conciso».
+#
+# Lo que se fue, y a dónde:
+#   · «Inicio» → lo hace el logo. Un enlace a inicio junto a un logo que ya lleva a inicio es una
+#     entrada gastada en no hacer nada.
+#   · Cronología, Actividades, Recursos, Geniallys, Registro, Cómo se hace → DENTRO de la Guía, que
+#     es donde alguien los busca: son el método, no herramientas.
+#   · «Grupos» y «Mi clase» → dentro de «Mis grupos», que es la casa del docente.
+#   · «Crear grupo» lleva una cuarta columna, `referente`: solo sale a quien puede usarlo. Antes lo
+#     veía cualquiera y cualquiera podía pulsarlo.
+#
+# Un docente entra y ve sus grupos. Punto. Todo lo demás está a un clic desde ahí.
 
 # `puerta=True` tapa la pagina hasta que el servidor confirma que esa cuenta lleva algun grupo
 # (assets/js/puerta.js). Ya no hay PIN: la llave es la cuenta de Google del equipo docente.
@@ -42,8 +53,14 @@ NAV = [("index.html","Inicio","inicio"),("crear.html","Crear grupo","crear"),("c
 # del profesorado, la bifurcacion seria mentira: un estudiante veria «Mi clase» y «Geniallys»
 # antes que su propia Nave.
 def head(title, desc, active, puerta=False, publica=False):
-    def _lnk(h, t, k):
+    def _lnk(h, t, k, solo=""):
         act = " active" if k == active else ""
+        # 🔴 Las entradas marcadas `solo` se pintan APAGADAS y las enciende el motor si procede.
+        # No se pueden generar en el servidor —esta web es estática y no sabe quién mira— así que
+        # nacen ocultas: quien no deba verlas no las ve NUNCA, ni un parpadeo antes de esconderse.
+        # Esconder después de enseñar es peor que no esconder: ya lo ha visto y ya sabe que existe.
+        if solo:
+            return f'<a class="lnk solo-{solo}{act}" href="{h}" hidden>{t}</a>'
         if k != "grp":
             return f'<a class="lnk{act}" href="{h}">{t}</a>'
         # «Grupos» despliega los PER activos (los pide stargate.js a la API; sin PIN)
@@ -54,7 +71,7 @@ def head(title, desc, active, puerta=False, publica=False):
                 f'<div class="drop-list"><span class="drop-msg">Cargando grupos…</span></div></div></div>')
     links = ('<a class="lnk" href="recluta.html">🚀 Soy estudiante</a>'
              '<a class="lnk" href="guia.html">🎓 Soy docente</a>') if publica else \
-            "".join(_lnk(h, t, k) for h, t, k in NAV)
+            "".join(_lnk(e[0], e[1], e[2], e[3] if len(e) > 3 else "") for e in NAV)
     return f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>

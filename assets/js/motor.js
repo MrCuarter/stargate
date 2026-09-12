@@ -96,6 +96,8 @@ const tablero = async (perId, conPrivados) =>
 
 /** Los PER en los que figuro como docente, más los que son de demostración. */
 const SEMANA_MS_ = 7 * 24 * 3600 * 1000;
+/** Las dos cuentas que mandan siempre, leídas de donde viven (motor/paquete.js). */
+const REFERENTES_VITALICIOS = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"];
 /** La misma cuenta que hace la sala del docente (clase.js `estadoPer`), en un solo sitio. */
 function estadoDelPER(S) {
   S = S || {};
@@ -132,10 +134,34 @@ async function misPERs(correo) {
   // final. Así, cuando haya que elegir por defecto, el primero ya es el correcto.
   const ORDEN = { "en marcha": 0, "por empezar": 1, "sin fecha": 2, "pasado": 3 };
   mios.sort((a, b) => (ORDEN[a.estado] - ORDEN[b.estado]) || String(a.nombre||"").localeCompare(String(b.nombre||"")));
+
+  /**
+   * 🔴 ¿SOY REFERENTE DE ESTE GRUPO? Hasta hoy nadie lo preguntaba, y se notó: `crear.html` no
+   * comprobaba nada, así que CUALQUIER docente podía sembrar grupos nuevos. Norberto lo pilló
+   * entrando como profe normal: «me permite crear GRUPO, NO puede ser. Solo referente».
+   *
+   * Va aquí y no en cada pantalla porque el dato vive en `privado/stargate` —los correos del equipo
+   * no son públicos— y esa lectura hay que hacerla una vez, no seis. Son como mucho ocho grupos.
+   *
+   * Ante un fallo de lectura se asume que NO eres referente: equivocarse hacia el lado de dar menos
+   * permisos deja a alguien sin un botón; equivocarse al revés le deja crear grupos que no debería.
+   */
+  await Promise.all(mios.map(async x => {
+    if (REFERENTES_VITALICIOS.indexOf(correo) >= 0) { x.soyReferente = true; return; }
+    try {
+      const pv = await getDoc(doc(db, "projects", x.id, "privado", "stargate"));
+      const eq = (pv.exists() ? pv.data().docentes : null) || x.stargate.docentes || [];
+      const yo = eq.filter(d => String(d.correo || "").toLowerCase() === correo)[0];
+      x.soyReferente = !!(yo && yo.rol === "referente");
+    } catch (e) { x.soyReferente = false; }
+  }));
   // 🔴 La marca que abre la puerta del profesorado. Se pone AQUÍ porque este es el único sitio donde
   // el servidor ha dicho que sí: si devuelve grupos, esta cuenta es docente de alguno. No es una
   // contraseña —no se puede teclear— y se borra al salir.
   try { if (mios.length) localStorage.setItem("sgEsDocente", "1"); } catch (e) {}
+  // 🔴 Y la que enciende «Crear grupo» en el menú. Se escribe SIEMPRE —también a "0"— para que
+  // quien deje de ser referente no arrastre el botón de la sesión anterior.
+  try { localStorage.setItem("sgEsReferente", mios.some(x => x.soyReferente) ? "1" : "0"); } catch (e) {}
   return mios;
 }
 
