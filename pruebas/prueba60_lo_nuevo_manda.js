@@ -73,4 +73,22 @@ contiene(clase, "llamada.html?per=", "   y la llamada a filas");
 contiene(raiz("assets/css/stargate.css"), "body.embed .nav",
   "   y la hoja de estilos esconde el menú cuando esa clase está puesta");
 
+// ---------------------------------------------------------------- h) la puerta ya no pide una llave que nadie tiene
+// 🔴 `puerta.js` tapa diez páginas de material del profesorado y solo ofrecía un PIN. Con el motor
+// nuevo NADIE reparte un PIN: un docente que llegue a la guía antes que a su sala —que es lo
+// normal, la guía es lo primero que se lee— se topaba con una caja pidiendo una clave que nunca le
+// dieron y sin ninguna otra salida. Se abre sola si el motor ya le reconoció (`sgEsDocente`), pero
+// en un navegador limpio esa marca no existe todavía.
+const pta = raiz("assets/js/puerta.js");
+contiene(pta, "puertaCuenta", "🔴 la puerta ofrece entrar con la CUENTA, no solo con un PIN");
+c(/class="puerta-pin"/.test(pta),
+  "   y el PIN queda como salida secundaria, plegado, para los grupos del sistema anterior");
+c(/sgEsDocente/.test(pta), "sigue abriéndose sola a quien el motor ya reconoció como docente");
+// Las páginas tapadas no cargan el motor, así que la puerta no puede preguntar por sí misma:
+// manda a la sala, que sí lo carga — y la sala tiene que saber devolver a la persona.
+c(/clase\.html\?volver=/.test(pta),
+  "🔴 y si la página no lleva motor, manda a la sala CON el destino puesto");
+contiene(raiz("assets/js/clase.js"), "volver",
+  "🔴 y la sala devuelve a quien venía de otra página, en vez de dejarle ahí plantado");
+
 E.resumen("Lo nuevo es lo que manda");

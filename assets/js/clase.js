@@ -127,6 +127,15 @@
       if(!st.correo && (!st.profe||todosLosDocentes().indexOf(st.profe)<0)){pedirCorreo();return;}
       var mios=misPers();
       if(!mios.length){render();return;}
+      /**
+       * 🔴 DEVOLVER A QUIEN VENÍA DE OTRA PÁGINA. La puerta del material de profesorado
+       * (`puerta.js`) vive en páginas que no cargan el motor —la guía, la cronología, los
+       * recursos—, así que no puede comprobar por sí misma si quien llama es docente. Manda aquí,
+       * que sí lo carga, y al confirmarse hay que devolver a la persona a donde iba. Sin esto se
+       * quedaba en la sala, mirando otra cosa, preguntándose qué había pasado con el enlace.
+       */
+      var volver=new URLSearchParams(location.search).get('volver');
+      if(volver && /^[a-z0-9_-]+\.html$/i.test(volver)){ location.replace(volver); return; }
       // 🔴 EL GRUPO RECORDADO NO PUEDE SER UNO MUERTO SI HAY OTRO VIVO. Antes solo se elegía de
       // nuevo cuando el guardado no era suyo; si era suyo pero había TERMINADO, la sala se quedaba
       // pegada a él. Efecto real: en febrero abres tu sala y estás mirando el grupo de septiembre

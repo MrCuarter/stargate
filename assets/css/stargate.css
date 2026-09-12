@@ -1676,3 +1676,11 @@ body.embed #sg-son{display:none}
 @media (prefers-reduced-motion:reduce){
   .neb-arte.brilla,.neb-gasto .neb-menos,.neb-caja.esperando .neb-cara{animation:none}
 }
+
+/* El PIN pasa a ser la salida secundaria: con el motor nuevo nadie lo reparte. */
+.puerta-pin{margin-top:16px;text-align:left}
+.puerta-pin > summary{cursor:pointer;font-size:.85rem;color:var(--mut);list-style:none}
+.puerta-pin > summary::-webkit-details-marker{display:none}
+.puerta-pin > summary::before{content:"▸ ";color:var(--teal)}
+.puerta-pin[open] > summary::before{content:"▾ "}
+.puerta-pin > summary:hover{color:var(--ink)}
