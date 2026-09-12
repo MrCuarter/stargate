@@ -182,7 +182,8 @@ tiles = [
  ("actividades.html","🎯","Misiones y evaluación","Las dos actividades, el ePortfolio y el examen con los requisitos oficiales."),
  ("geniallys.html","🪐","Los Geniallys","Uno por planeta. La carpeta compartida con los estándar de tu perfil."),
  ("registro.html","🏅","Registro de insignias","Tablero en vivo por PER, formularios del alumnado y cómo funciona."),
- ("profes.html","🔐","Panel del profesorado","Alumnos, insignias, canjes y ajustes de cada PER (con PIN)."),
+ ("consola.html","🎛️","Puesto de mando","Tus grupos: gente, canjes, cola de nota y ajustes. Se entra con tu cuenta, sin PIN."),
+ ("crear.html","✨","Crear un grupo","Siembra un grupo entero —retos, planetas, tienda y álbum— en un minuto."),
  ("tickets.html","🎟️","Tickets de salida","Valoraciones y dudas del alumnado, visual y por clase (con PIN)."),
  ("embed.html","🧩","Enlaces, embeds y QR","Elige tu PER y tu nombre: todo listo para pegar en Genially."),
  ("foro.html","💬","Foro dinamizador","El mensaje de la semana en curso (embebible en el Genially del PER) o todos de una vez, para copiar."),
@@ -1975,8 +1976,8 @@ TOUR_CLASE = {
        "sin docente, sus avisos no le llegan a ninguna persona concreta."},
   {"sel":"#sala-clase","pose":"senala","t":"La orden de la semana",
    "x":"Qué toca hoy según la fecha de la semana 1 del grupo, y el <b>mensaje del foro</b> de esta "
-       "semana. <b>No tienes que repartirlo:</b> a tu alumnado ya le sale solo en su Nave, pestaña "
-       "«Esta semana», y también dentro del Genially si tenéis incrustado el foro dinámico. Cambia "
+       "semana. <b>No tienes que repartirlo:</b> a tu alumnado ya le sale solo en su Nave, nada "
+       "más entrar, y también dentro del Genially si tenéis incrustado el foro dinámico. Cambia "
        "de semana él solo. Aquí lo tienes para leerlo antes de clase — o para copiarlo al foro de "
        "la plataforma de UNIR si quieres además dejarlo escrito ahí. Debajo, las dudas del ticket."},
   {"sel":"#sala-grupo","pose":"brazos","t":"Tu gente, y sus errores",
@@ -2118,8 +2119,9 @@ tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section id="nave-ranking"><div class="wrap">
 <div class="eyebrow amber">El tablero de tu grupo</div>
 <h2>¿Cómo va la tripulación?</h2>
-<p class="lead">Los tres rankings, en vivo. Pulsa sobre cualquier recluta para ver su ficha: su personaje,
-su biografía, su nivel y las insignias que lleva. Aquí solo se ven <b>alias</b> — ni nombres ni correos.</p>
+<p class="lead">Ocho rankings distintos, en vivo: hay más de una forma de ir primero. Pulsa sobre cualquier
+recluta para ver su ficha: su personaje, su biografía, su nivel y las insignias que lleva. Aquí solo se ven
+<b>alias</b> — ni nombres ni correos.</p>
 <div id="tablero-app"></div>
 <script>window.SG_TABLERO_ALOJADO=true;</script>
 <script src="assets/js/tablero.js" defer></script>
@@ -2625,9 +2627,11 @@ def _cabeza_fuente():
         'var m=document.createElement("script");m.type="module";m.src="' + _v("assets/js/motor.js") + '";'
         'document.head.appendChild(m);})();</script>')
 
-# 🔴 Mientras dure la mudanza, «apps» manda: el sistema que funciona no se apaga por uno que aún se
-# está probando. Se prueba grupo a grupo con ?motor=firestore, y el día que esté, se cambia aquí.
-MOTOR_POR_DEFECTO = "apps"
+# 🔴 12-sep · GIRADO A «firestore». Hasta hoy mandaba «apps» y el motor nuevo solo se veía
+# añadiendo ?motor=firestore a mano — es decir: el enlace que reparte un docente entraba al sistema
+# VIEJO. Norberto lo zanjó: «vamos a usar LO NUEVO, el legacy ahora me da igual».
+# La vuelta atrás sigue existiendo y es de un carácter: ?motor=apps en la URL, o este valor.
+MOTOR_POR_DEFECTO = "firestore"
 
 # ---------------------------------------------------------------- la consola del referente
 _html = head("STARGATE · Crear un grupo",

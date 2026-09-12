@@ -776,7 +776,7 @@ PASOS = [
         "preguntarlo en voz alta."),
 
    dict(cod="D6", t="Lo único que el sistema no hace por ti", pose="pulgar", img="d6_tablero.png",
-    hacer="El tablero en vivo, con los tres rankings.",
+    hacer="El tablero en vivo, con sus ocho rankings.",
     voz="Y una cosa más, que no está en ninguna pantalla. Los puntos los da el sistema; la ceremonia "
         "la haces tú. Nombra en voz alta a quien recupera un personaje. Enseña el ranking en clase de "
         "vez en cuando. Eso es lo que convierte una tabla en un juego."),
