@@ -229,7 +229,57 @@
       '<p class="small muted">Se cambia el Comandante y el escuadrón de todo su alumnado de una vez.</p>' +
       '<label>De<select id="t-de">' + docs.map(function (d) { return "<option>" + esc(d.nombre) + "</option>"; }).join("") + "</select></label>" +
       '<label>A<select id="t-a">' + docs.map(function (d) { return "<option>" + esc(d.nombre) + "</option>"; }).join("") + "</select></label>" +
-      '<p><button class="btn" id="t-ir">Pasar el alumnado</button></p></div>';
+      '<p><button class="btn" id="t-ir">Pasar el alumnado</button></p></div>' +
+      /**
+       * 🔴 AÑADIR A ALGUIEN, que hasta hoy no se podía. El equipo se fijaba al CREAR el grupo y
+       * después era de solo lectura: un docente que se incorpora a mitad de curso o un co-referente
+       * obligaban a volver a sembrar el grupo entero.
+       */
+      '<div class="card"><h3>Añadir a alguien al equipo</h3>' +
+      '<p class="small muted">El correo tiene que ser <b>el de su cuenta de Google</b>: es con el que ' +
+      'entrará, y es lo que el servidor mira para dejarle pasar.</p>' +
+      '<label>Nombre<input id="e-nom" placeholder="Cómo aparece ante su clase" autocomplete="off"></label>' +
+      '<label>Correo<input id="e-mail" type="email" placeholder="nombre@ejemplo.com" autocomplete="off"></label>' +
+      '<label>Rol<select id="e-rol"><option value="docente">Docente (imparte)</option>' +
+        '<option value="referente">Referente (lleva el grupo)</option></select></label>' +
+      '<p><button class="btn" id="e-add">Añadir a este grupo</button> ' +
+      '<button class="btn min" id="e-todos">Hacerle referente de TODOS mis grupos</button></p>' +
+      '<p class="small muted">Añadirle aquí no le da escuadrón ni alumnado: eso se reparte arriba, ' +
+      'con «pasar el alumnado».</p></div>';
+
+    // --- añadir a este grupo
+    $("#e-add").onclick = async function () {
+      var persona = { nombre: $("#e-nom").value, correo: $("#e-mail").value, rol: $("#e-rol").value };
+      if (!persona.correo.trim()) return aviso("Escribe su correo.");
+      $("#e-add").disabled = true;
+      try { var r = await MOTOR.anadirDocente(PER, persona); await refrescar();
+            aviso(r.nombre + " ya está en el equipo como " + r.rol + ".", true); }
+      catch (e) { $("#e-add").disabled = false; aviso(e.message); }
+    };
+    // --- referente de todos
+    // 🔴 «De todos» se escribe grupo a grupo, no es una marca global: `misPERs` pregunta a Firestore
+    // por los grupos donde tu correo está en `coTeacherEmails`, y esa pregunta la responde el
+    // servidor. Una marca guardada en otro sitio no le haría ver ni un grupo.
+    $("#e-todos").onclick = async function () {
+      var persona = { nombre: $("#e-nom").value, correo: $("#e-mail").value, rol: "referente" };
+      if (!persona.correo.trim()) return aviso("Escribe su correo.");
+      var ids = (PERS || []).map(function (p) { return p.id; });
+      if (!confirm("Vas a hacer a «" + (persona.nombre || persona.correo) + "» referente de tus " +
+                   ids.length + " grupo(s).\n\nVerá el alumnado, los correos y los ajustes de todos.")) return;
+      $("#e-todos").disabled = true;
+      try {
+        var r = await MOTOR.referenteEnTodos(persona, ids);
+        await refrescar();
+        // Se dice en cuántos ha entrado Y en cuántos no: creer que alguien tiene acceso a ocho
+        // grupos cuando lo tiene a seis es peor que el fallo original.
+        aviso(r.fallos.length
+          ? "Añadido en " + r.hechos.length + " grupo(s). NO se ha podido en " + r.fallos.length +
+            ": " + r.fallos.map(function (f) { return f.per; }).join(", ")
+          : "Ya es referente de tus " + r.hechos.length + " grupo(s).", !r.fallos.length);
+      } catch (e) { aviso(e.message); }
+      $("#e-todos").disabled = false;
+    };
+
     $("#t-ir").onclick = async function () {
       var de = $("#t-de").value, a = $("#t-a").value;
       if (de === a) return aviso("Son el mismo docente.");

@@ -22,6 +22,15 @@
   else (raiz.SG = raiz.SG || {}).PAQUETE = fabrica();
 })(typeof self !== "undefined" ? self : this, function () {
 
+  /**
+   * 🔴 EL REFERENTE VITALICIO. Norberto lleva el proyecto entero: es referente de todos los grupos,
+   * de este curso y de los que vengan, sin que nadie tenga que acordarse de apuntarlo. Va en el
+   * código y no en un ajuste porque un ajuste se puede borrar sin querer, y el día que eso pasara
+   * se quedaría fuera de su propio sistema — con la prioridad de «mantenimiento 0 mientras estoy de
+   * baja», eso es inaceptable. Los co-referentes sí se añaden desde la app, por grupo o para todos.
+   */
+  var REFERENTE_VITALICIO = "n.cuartero.10@gmail.com";
+
   var DIA = 864e5;
 
   // 🔴 Nada de `toISOString` aquí. La fecha se construye en hora local (T00:00:00) y en Madrid, con
@@ -88,6 +97,34 @@
                rol: d.rol || "docente", panel: String(d.panel || "").trim() };
     }).filter(function (d) { return d.nombre || d.correo; });
 
+    /**
+     * POR QUÉ EL VITALICIO SE ESCRIBE EN EL GRUPO Y NO SE COMPRUEBA EN CADA PANTALLA.
+     *
+     * La tentación era un «¿eres tú? pues pasa» en cada sitio. Eso son diez sitios donde acordarse
+     * y uno donde olvidarse. Pero hay una razón más dura: `misPERs` le pregunta a FIRESTORE por los
+     * proyectos donde tu correo está en `coTeacherEmails`, y esa pregunta la responde el servidor.
+     * Un permiso que solo existiera en el navegador no le haría ver ni un grupo: se encontraría la
+     * pantalla de «esta cuenta no lleva ningún grupo» en su propio sistema.
+     *
+     * Así que se escribe al sembrar: en `coTeacherEmails` (lo que mira Firestore para dejar entrar)
+     * y en el equipo docente con rol de referente (lo que mira la interfaz). Un dato, un sitio, y
+     * todas las pantallas funcionan sin saber nada de esto.
+     *
+     * 🔴 Se aplica DESPUÉS de repartir los escuadrones, a propósito: si entrara antes, contaría
+     * como docente que imparte y se llevaría un escuadrón con alumnado que no es suyo.
+     */
+    var conVitalicio = function (lista) {
+      var yaEsta = lista.some(function (d) { return d.correo === REFERENTE_VITALICIO; });
+      if (yaEsta) {
+        // Si ya estaba puesto a mano se respeta su nombre, pero el rol no se le puede quitar.
+        return lista.map(function (d) {
+          return d.correo === REFERENTE_VITALICIO ? Object.assign({}, d, { rol: "referente" }) : d;
+        });
+      }
+      return lista.concat([{ nombre: "Mr. Cuarter", correo: REFERENTE_VITALICIO,
+                             rol: "referente", panel: "" }]);
+    };
+
     // ---------------------------------------------------------------- los escuadrones
     // 🔴 Un escuadrón por docente, y el alumnado lo elige al alistarse. Eso mata dos pájaros: deja
     // de existir la pregunta «¿quién imparte tu clase?» —que era texto libre y por eso llegaba
@@ -123,7 +160,7 @@
       description: per.descripcion || "Proyecto Gamificado del Máster en Tecnología Educativa de la UNIR.",
       active: true,
       editorMode: "simple",
-      coTeacherEmails: docentes.map(function (d) { return d.correo; }).filter(Boolean),
+      coTeacherEmails: conVitalicio(docentes).map(function (d) { return d.correo; }).filter(Boolean),
       avatarProgressionEnabled: true,
       characterStatsEnabled: false,
       // El alumnado elige su escuadrón al alistarse: `predefined` es justo eso.
@@ -169,9 +206,9 @@
     // regla. Es un camino NUEVO en las reglas de Firestore: añade, no cambia, así que no puede
     // romper nada de lo que GamificaPro ya hace.
     var privado = {
-      referente: String(per.referente || "").toLowerCase().trim(),
+      referente: String(per.referente || "").toLowerCase().trim() || REFERENTE_VITALICIO,
       panelEdit: String(per.panelEdit || "").trim(),
-      docentes: docentes
+      docentes: conVitalicio(docentes)
     };
 
     // ---------------------------------------------------------------- las misiones

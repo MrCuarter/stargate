@@ -569,6 +569,68 @@ async function darDeBaja(perId, fichaId) {
 }
 
 /** Cambiar el código de acceso del grupo. Se usa cuando se ha corrido más de la cuenta. */
+/**
+ * ════════════ AÑADIR A ALGUIEN AL EQUIPO DOCENTE ════════════
+ *
+ * 🔴 Faltaba, y se iba a notar en la primera semana: el equipo se fijaba al CREAR el grupo y no
+ * había forma de tocarlo después. Un docente que se incorpora a mitad de curso, un cambio de última
+ * hora, un co-referente — todo eso obligaba a volver a sembrar el grupo entero.
+ *
+ * Se escribe en los DOS sitios porque cada uno lo mira alguien distinto:
+ *   · `coTeacherEmails` lo mira FIRESTORE, y es lo que decide si esa cuenta puede entrar.
+ *   · `privado.docentes` lo mira la INTERFAZ, y es de donde salen el nombre y el rol.
+ * Escribir solo en uno da un fallo mudo de los peores: o entra y no aparece por ningún lado, o
+ * aparece en las listas y no puede entrar.
+ *
+ * No crea escuadrón. Quien se incorpora tarde recoge alumnado desde «pasar de un docente a otro»,
+ * que ya existe; inventarle un escuadrón vacío a mitad de curso solo ensucia el ranking.
+ */
+async function anadirDocente(perId, persona) {
+  const correo = String(persona && persona.correo || "").toLowerCase().trim();
+  if (!correo || correo.indexOf("@") < 0) throw new Error("Hace falta un correo válido.");
+  const nombre = String(persona && persona.nombre || "").trim() || correo.split("@")[0];
+  const rol = persona && persona.rol === "referente" ? "referente" : "docente";
+
+  const ref = doc(db, "projects", perId);
+  const p = await getDoc(ref);
+  if (!p.exists()) throw new Error("No existe ese grupo.");
+  const correos = Array.isArray(p.data().coTeacherEmails) ? p.data().coTeacherEmails.slice() : [];
+  if (correos.indexOf(correo) < 0) correos.push(correo);
+
+  const pref = doc(db, "projects", perId, "privado", "stargate");
+  const pv = await getDoc(pref);
+  const priv = pv.exists() ? pv.data() : { docentes: [] };
+  const docentes = Array.isArray(priv.docentes) ? priv.docentes.slice() : [];
+  const i = docentes.findIndex(d => String(d.correo || "").toLowerCase() === correo);
+  if (i >= 0) docentes[i] = Object.assign({}, docentes[i], { nombre, rol });
+  else docentes.push({ nombre, correo, rol, panel: "" });
+
+  await updateDoc(ref, { coTeacherEmails: correos });
+  await setDoc(pref, Object.assign({}, priv, { docentes }), { merge: true });
+  return { correo, nombre, rol };
+}
+
+/**
+ * ════════════ CO-REFERENTE DE TODO ════════════
+ *
+ * 🔴 «De forma general» no puede ser una casilla en un ajuste suelto, y la razón es la misma que la
+ * del referente vitalicio: `misPERs` pregunta a FIRESTORE por los grupos donde tu correo está en
+ * `coTeacherEmails`. Una marca global guardada en otro sitio no le haría ver ni un grupo — vería
+ * «esta cuenta no lleva ningún grupo» con todos los permisos del mundo.
+ *
+ * Así que «general» significa: se escribe en CADA grupo, uno por uno. Devuelve en cuáles ha podido
+ * y en cuáles no, porque con varios grupos algo puede fallar a mitad y callarlo sería peor que el
+ * fallo: creerías que alguien tiene acceso a ocho grupos cuando lo tiene a seis.
+ */
+async function referenteEnTodos(persona, perIds) {
+  const hechos = [], fallos = [];
+  for (const id of perIds) {
+    try { await anadirDocente(id, Object.assign({}, persona, { rol: "referente" })); hechos.push(id); }
+    catch (e) { fallos.push({ per: id, error: e.message }); }
+  }
+  return { hechos, fallos };
+}
+
 async function nuevoCodigo(perId) {
   const c = window.SG.PAQUETE.codigoNuevo();
   await updateDoc(doc(db, "projects", perId), { joinCode: c });
@@ -628,5 +690,6 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     guardarAjustes, otorgarReto, anularReto, traspasar, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
                     premiar, regalarCromo, darDeBaja, nuevoCodigo,
+                    anadirDocente, referenteEnTodos,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

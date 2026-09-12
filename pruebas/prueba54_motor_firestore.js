@@ -160,8 +160,24 @@ igual(conEnlaces.proyecto.stargate.panelVer, "https://view.genially.com/ver", " 
 igual(conEnlaces.proyecto.stargate.paneles, { "Ana": "https://view.genially.com/ana" },
   "   y el Genially propio de cada docente, que es lo que pidió el profesorado");
 igual(conEnlaces.privado.referente, "ref@unir.net", "el referente se guarda en minúsculas, como su correo");
-igual(conEnlaces.proyecto.coTeacherEmails, ["ana@unir.net"],
+igual(conEnlaces.proyecto.coTeacherEmails, ["ana@unir.net", "n.cuartero.10@gmail.com"],
   "🔴 y el equipo docente va TAMBIÉN en coTeacherEmails: es lo que mira la regla de Firestore para dejarles editar");
+/**
+ * 🔴 12-sep · EL SEGUNDO CORREO NO SOBRA: es el REFERENTE VITALICIO.
+ *
+ * Norberto lleva el proyecto entero y es referente de todos los grupos, siempre, sin que nadie
+ * tenga que acordarse de apuntarlo al crear uno. Y tiene que ir AQUÍ, en el documento, no en una
+ * comprobación del navegador: `misPERs` le pregunta a Firestore por los proyectos donde tu correo
+ * está en `coTeacherEmails`, y esa pregunta la responde el SERVIDOR. Un permiso que solo existiera
+ * en la página no le haría ver ni un grupo — se encontraría «esta cuenta no lleva ningún grupo» en
+ * su propio sistema.
+ */
+c(conEnlaces.proyecto.coTeacherEmails.indexOf("n.cuartero.10@gmail.com") >= 0,
+  "🔴 el referente vitalicio entra SIEMPRE, aunque no se le ponga en el equipo docente");
+igual((conEnlaces.privado.docentes.filter(function (d) { return d.correo === "n.cuartero.10@gmail.com"; })[0] || {}).rol,
+  "referente", "   y entra con rol de referente, no de docente que imparte");
+igual(conEnlaces.proyecto.factions.length, 1,
+  "🔴 pero NO se lleva un escuadrón: no imparte, y si contara tendría alumnado que no es suyo");
 
 // ------------------------------------------------------------------ g bis) lo que NO puede ir en abierto
 // El documento del proyecto lo lee cualquiera con sesión en GamificaPro —lo necesitan el ranking y
