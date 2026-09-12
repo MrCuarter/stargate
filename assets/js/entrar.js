@@ -91,6 +91,15 @@
     cargando("Comprobando quién eres…", "Un momento");
     MOTOR.sesion().then(function (yo) {
       if (!yo) return puerta("");
+      /**
+       * 🔴 `volver` ES COSA DEL PROFESORADO, Y SOLO SUYA. Lo pone `puerta.js`, que vive únicamente
+       * en el material docente. Si se le hiciera caso también al alumnado se montaría un BUCLE
+       * CERRADO: un estudiante que abre `guia.html` —porque alguien le pasó el enlace— ve la puerta,
+       * pulsa, llega aquí con `?volver=guia.html`, se le devuelve a la guía… que vuelve a enseñarle
+       * la puerta, porque sigue sin ser docente. Y así para siempre, sin un solo error en consola.
+       * Es exactamente el callejón sin salida que esta reforma vino a matar, y casi lo reintroduzco
+       * yo al escribirla.
+       */
       var vuelta = destinoSeguro(url.get("volver"));
 
       return MOTOR.misPERs(yo.correo).then(function (ps) {
@@ -103,7 +112,8 @@
           return ir(vuelta || "consola.html");
         }
         return MOTOR.misGruposDeAlumno(yo.uid).then(function (gs) {
-          if (gs && gs.length) return ir(vuelta || "recluta.html");
+          // sin `vuelta`: al alumnado se le lleva a su Nave, nunca al sitio del que venía
+          if (gs && gs.length) return ir("recluta.html");
           return pedirCodigo(yo, "");
         });
       });

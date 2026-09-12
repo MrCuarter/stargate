@@ -165,6 +165,19 @@ const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disa
                 fue && !(await evaluar(c, "!!document.getElementById('puerta')")));
     }
     {
+      /**
+       * 🔴 EL BUCLE QUE CASI SE CUELA. Un estudiante abre `guia.html` porque alguien le pasó el
+       * enlace, ve la puerta del material docente, pulsa, llega a `entrar.html?volver=guia.html`…
+       * y si se le hiciera caso volvería a la guía, que le enseñaría la puerta otra vez. Para
+       * siempre, y sin un solo error en consola. `volver` es cosa del profesorado y solo suya.
+       */
+      const c = await pestana(QUIENES.estudiante); abiertas.push(c);
+      await c.enviar("Page.navigate", { url: BASE + "entrar.html?volver=guia.html" });
+      const fue = await hasta(c, "location.pathname.indexOf('recluta.html')>=0", 15);
+      comprobar("volver · a un estudiante NO se le devuelve al material docente (bucle infinito)",
+                fue, "acabó en " + await evaluar(c, "location.pathname + location.search"));
+    }
+    {
       // 🔴 CON EL GRUPO PUESTO. Quien pulsa la puerta en `sesion.html?per=X` tiene que volver a ESE
       // grupo, no a «el que la página decida»: en enero un docente lleva dos a la vez.
       const c = await pestana(QUIENES.referente); abiertas.push(c);
