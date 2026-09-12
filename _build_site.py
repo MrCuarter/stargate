@@ -230,7 +230,7 @@ tiles = [
  ("tickets.html","🎟️","Tickets de salida","Valoraciones y dudas del alumnado, visual y por clase."),
  ("embed.html","🧩","Enlaces, embeds y QR","Elige tu grupo y tu nombre: todo listo para pegar en tu presentación."),
  ("foro.html","💬","Foro dinamizador","El mensaje de la semana en curso, listo para incrustar o para copiarlo entero."),
- ("recluta.html","🚀","La Nave del Recluta","La web del alumnado: onboarding con NEBULA, planetas por semanas, su ficha y las recompensas."),
+ ("recluta.html?per=demo-stargate&amp;demo=1","🚀","La Nave del Recluta","Así la ve tu alumnado: su ficha, la orden de la semana, los retos, el álbum y el Mercado. Ábrela en modo demostración."),
  ("panel.html","🪐","Panel de control","El mapa de los ocho planetas sobre el universo: cada uno lleva a la presentación de su tema."),
  ("recursos.html","📦","Sala de recursos","Tablero de las 24 insignias, ranking y materiales."),
 ]
@@ -1014,7 +1014,7 @@ REGPAGE = head("STARGATE · Registro y tablero en vivo",
   "El sistema de autoregistro de STARGATE: el alumnado registra sus insignias, el tablero se actualiza solo y el profesorado anima y da la ceremonia.","reg", puerta=True) + f'''
 <header class="hero"><div class="kicker">Registro y tablero en vivo</div>
 <h1>Registro de insignias</h1>
-<p>El registro es <b>automático</b>: cada estudiante marca sus propios retos desde <a href="recluta.html">su Nave</a>
+<p>El registro es <b>automático</b>: cada estudiante marca sus propios retos desde <a href="recluta.html?per=demo-stargate&amp;demo=1">su Nave</a>
 y los xp, los rangos y el <b>tablero</b> se calculan solos. Tu papel como docente no es apuntar nada:
 es <b>animar</b> — entregar cada insignia en público, con ceremonia, y enseñar el tablero para que el avance se vea.</p>
 <div class="cta-row"><a class="btn primary" href="#tablero">Ver el tablero en vivo</a><a class="btn" href="recursos.html">Ver las 24 insignias</a></div>
@@ -1036,7 +1036,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="grid cols-3">
 <div class="card"><h3>1 · Su alistamiento</h3><p>Se hace <b>una sola vez</b>, con su cuenta de Google: nombre real, alias, Comandante, personaje y el enlace de su ePortfolio. A partir de ahí no vuelven a rellenar nada — marcan cada reto desde <a href="recluta.html">su Nave</a>.</p></div>
 <div class="card"><h3>2 · Todo se calcula solo</h3><p>Los xp, las insignias, el planeta actual y el <b>avatar con rango</b> aparecen en el <a href="#tablero">tablero del PER</a> al momento. Las insignias de hito (Tripulación Cero, La Liberación) se otorgan solas. Ni tú ni nadie toca ninguna hoja.</p></div>
-<div class="card"><h3>3 · Dónde lo ven</h3><p>En la <a href="recluta.html"><b>Nave del Recluta</b></a> (el hub del alumnado, con su ficha, la orden semanal y las recompensas) y en el tablero, que se incrusta en el Genially del PER (o se comparte por enlace/QR desde el <a href="embed.html">generador de embeds</a>). Enséñalos en clase al entregar insignias.</p></div>
+<div class="card"><h3>3 · Dónde lo ven</h3><p>En la <a href="recluta.html?per=demo-stargate&amp;demo=1"><b>Nave del Recluta</b></a> (el hub del alumnado, con su ficha, la orden semanal y las recompensas) y en el tablero, que se incrusta en el Genially del PER (o se comparte por enlace/QR desde el <a href="embed.html">generador de embeds</a>). Enséñalos en clase al entregar insignias.</p></div>
 </div>
 </div></section>
 

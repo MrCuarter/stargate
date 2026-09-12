@@ -32,6 +32,38 @@
   // la «G» de Google vive en stargate.js (window.SG.LOGO_G), no copiada aquí
   var LOGO_G = (window.SG && window.SG.LOGO_G) || "";
 
+  /**
+   * 🔴 UN SOLO CABLEADO PARA TODOS LOS «COPIAR». Antes cada vista se cableaba los suyos, y la LISTA
+   * DE GRUPOS no lo hacía: el «📋 Embed para Genially» de cada tarjeta —en la primera pantalla que ve
+   * cualquier docente— no hacía NADA al pulsarlo. Sin error, sin aviso: un botón muerto a la vista
+   * de todo el mundo. Lo encontró el laboratorio; la batería 64 no, porque daba por hecho que un botón
+   * con `data-*` tenía a alguien escuchando.
+   */
+  // 🔴 Y NO SE CABLEA BOTÓN A BOTÓN, SINO UNA VEZ EN EL CONTENEDOR. La primera versión de este
+  // arreglo cableaba los botones que había al pintar… y el contenido de cada pestaña se dibuja
+  // DESPUÉS (algunas, además, tras pedir datos): los «Copiar» de «Mis enlaces» —donde el docente raso
+  // tiene el enlace de alistamiento— se quedaban igual de mudos. Un oyente delegado en `app` sirve
+  // para lo que hay y para lo que se dibuje luego, y nadie tiene que acordarse de nada.
+  var copiarCableado = false;
+  function cablearCopiar() {
+    if (copiarCableado) return;
+    copiarCableado = true;
+    app.addEventListener("click", function (ev) {
+      var b = ev.target && ev.target.closest ? ev.target.closest("[data-copiar]") : null;
+      if (!b || !app.contains(b)) return;
+      ev.preventDefault();
+      var txt = b.getAttribute("data-copiar");
+      var v = b.getAttribute("data-copiado") || "✓ Copiado";
+      var ok = function () {
+        if (b.__copiando) return; b.__copiando = true;
+        var antes = b.innerHTML; b.textContent = v; b.classList.add("ok");
+        setTimeout(function () { b.innerHTML = antes; b.classList.remove("ok"); b.__copiando = false; }, 1600); };
+      if (navigator.clipboard && navigator.clipboard.writeText)
+        navigator.clipboard.writeText(txt).then(ok).catch(function () { prompt("Copia:", txt); });
+      else prompt("Copia:", txt);
+    });
+  }
+
   function puerta() {
     app.innerHTML = '<div class="card"><h3>Entra con tu cuenta</h3>' +
       '<p>Verás los grupos en los que figuras como docente. Si aún no tienes ninguno, podrás crear el primero.</p>' +
@@ -54,6 +86,15 @@
    * Así que las acciones de directo —proyectar, el aula, la llamada— están EN la tarjeta, sin
    * entrar. Entrar al grupo es para lo demás: la gente, la cola de nota, los enlaces.
    */
+  /** El mensaje que pega el docente en el foro o en el chat de clase. */
+  function invitacion(p) {
+    var enlace = location.origin + "/alistarse.html?per=" + encodeURIComponent(p.id) +
+                 "&codigo=" + encodeURIComponent(p.codigo);
+    return "🚀 Te esperamos en STARGATE, el proyecto gamificado de la asignatura.\n" +
+           "Entra aquí con tu cuenta de Google y alístate: " + enlace + "\n" +
+           "Si te pide un código de clase, es " + p.codigo + ".";
+  }
+
   function tarjetaGrupo(p) {
     var S = p.stargate || {};
     var vivo = p.estado === "en marcha";
@@ -98,6 +139,23 @@
         '<a class="gp-b" href="llamada.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
           '<span>🔔</span><b>Llamada a filas</b></a>' +
       '</div>' +
+      /**
+       * 🔴 EL CÓDIGO DE CLASE, A LA VISTA DE TODO EL EQUIPO. Con la puerta única el alumnado entra
+       * con «el código que reparte tu docente el primer día» —lo dice la portada—, y el docente raso
+       * NO LO VEÍA en ningún sitio: vivía en «Ajustes», que es del referente, y en «Mis enlaces» solo
+       * iba escondido dentro de una URL. Invitar a la clase es lo PRIMERO que hace un docente nuevo.
+       *
+       * El código se enseña grande —se escribe en la pizarra o se dicta— y el botón copia un mensaje
+       * listo para pegar en el foro o en un chat, con el enlace directo que ya lleva el código dentro.
+       * Norberto: «un botón para copiar el enlace de invitación, no hace falta que aparezca el enlace».
+       * En un curso terminado no sale: ya no se alista nadie.
+       */
+      (p.codigo && p.estado !== "pasado"
+        ? '<div class="gp-invita"><div><span>Código de clase</span><b>' + esc(p.codigo) + '</b></div>' +
+          '<button class="btn min" data-copiado="✓ Invitación copiada" data-copiar="' + esc(invitacion(p)) + '" ' +
+            'title="Copia un mensaje listo para pegar en el foro de la plataforma de UNIR o en un chat">' +
+            '📋 Copiar invitación</button></div>'
+        : '') +
       '<div class="gp-pie">' +
         '<button class="gp-abrir" data-per="' + esc(p.id) + '">Ver mi gente y los ajustes →</button>' +
         '<button class="btn min" data-copiar="' + esc(location.origin + "/sesion.html?embed=1") + '" ' +
@@ -136,6 +194,8 @@
       '<div class="gp-cab"><div><h2>Tus grupos</h2>' +
         '<p class="small muted">Todo lo de clase está aquí mismo. Entra en un grupo para su gente y sus enlaces.</p></div>' +
         (soyRef ? '<a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
+      (vivos.length ? '<div class="gp-grid">' + vivos.map(tarjetaGrupo).join("") + '</div>'
+                    : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
       /**
        * 🔴 LO DEL REFERENTE, EN UNA FRANJA APARTE. Norberto: «el referente básicamente debe tener
        * un menú extra». Y «extra» es la palabra: su día a día es EXACTAMENTE el del docente —sus
@@ -143,7 +203,9 @@
        * distinta habría sido mantener dos cosas y que una se quedara atrás.
        *
        * Va DEBAJO de sus grupos, no encima: incluso el referente entra aquí a dar clase mucho más a
-       * menudo que a crear un grupo.
+       * menudo que a crear un grupo. Y por encima de los cursos terminados, que se abren todavía menos.
+       * 🔴 12-sep · El comentario ya decía «debajo» y el código lo pintaba ENCIMA: se leía una cosa
+       * y se veía la contraria. Lo cazó el laboratorio con la primera captura de datos de verdad.
        */
       (soyRef
         ? '<details class="cajon ref-zona"><summary><b>★ Como profe referente</b> ' +
@@ -162,8 +224,7 @@
           '<b>Equipo docente</b>, <b>Escuadrones</b> y <b>Ajustes</b>: esas tres solo las ve quien ' +
           'lleva el grupo.</p></details>'
         : '') +
-      (vivos.length ? '<div class="gp-grid">' + vivos.map(tarjetaGrupo).join("") + '</div>'
-                    : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
+
       (pasados.length
         ? '<details class="cajon gp-viejos"><summary><b>🗓️ Cursos terminados</b> ' +
           '<span class="cnt">' + pasados.length + '</span></summary>' +
@@ -173,6 +234,7 @@
     Array.prototype.forEach.call(app.querySelectorAll("[data-per]"), function (b) {
       b.onclick = function () { abrir(b.getAttribute("data-per")); };
     });
+    cablearCopiar(app);
   }
 
   async function abrir(perId) {
@@ -218,16 +280,7 @@
       b.onclick = function () { TAB = b.getAttribute("data-tab"); pintar(); };
     });
     // Copiar un enlace, con confirmación visible: sin ella no sabes si ha ido.
-    Array.prototype.forEach.call(app.querySelectorAll("[data-copiar]"), function (b) {
-      b.onclick = function () {
-        var txt = b.getAttribute("data-copiar");
-        var ok = function () { var v = b.textContent; b.textContent = "✓";
-          setTimeout(function () { b.textContent = v; }, 1400); };
-        if (navigator.clipboard && navigator.clipboard.writeText)
-          navigator.clipboard.writeText(txt).then(ok).catch(function () { prompt("Copia:", txt); });
-        else prompt("Copia:", txt);
-      };
-    });
+    cablearCopiar(app);
     if ($("#c-cambiar")) $("#c-cambiar").onclick = function () { url.delete("per"); elegirGrupo(); };
     $("#c-salir").onclick = function () { MOTOR.salir(); };
     // 🔴 Y si el TAB recordado ya no le corresponde —dejó de ser referente, o llega por un enlace
@@ -485,14 +538,7 @@
         });
         $(".h-del", f).onclick = function () { lista.splice(i, 1); repintar(); };
       });
-      Array.prototype.forEach.call($("#hv-lista").querySelectorAll("[data-copiar]"), function (b) {
-        b.onclick = function () {
-          var txt = b.getAttribute("data-copiar");
-          if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () {
-            var v = b.textContent; b.textContent = "✓"; setTimeout(function(){ b.textContent = v; }, 1400); });
-          else prompt("Copia:", txt);
-        };
-      });
+      // los «Copiar» de cada escondite los atiende el oyente delegado de `app` (cablearCopiar)
     };
     cablearFilas();
     $("#hv-add").onclick = function () {

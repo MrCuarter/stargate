@@ -74,7 +74,7 @@ c(/btn-demo/.test(I) && /btn-google/.test(I), "   y convive con el de Google sin
 
 // ---------------------------------------------------------------- 5 · el sembrador
 const S = raiz("motor/sembrar_prueba.js");
-c(/NOMBRE = DEMO \? "STARGATE · DEMO"/.test(S), "🔴 el grupo de la demo lleva «DEMO» en el nombre: es la llave de demoPermitido()");
+c(/DEMO \? "STARGATE · DEMO"/.test(S), "🔴 el grupo de la demo lleva «DEMO» en el nombre: es la llave de demoPermitido()");
 c(/demoSemana: 10/.test(S), "   y nace congelado en la semana 10");
 c(/\.invalid/.test(S) && !/demo[\s\S]{0,400}gmail\.com/.test(S.split("] : [")[0] || ""),
   "   con profesorado de ficción: correos .invalid, que por norma no pueden existir");

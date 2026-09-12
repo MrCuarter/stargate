@@ -21,13 +21,25 @@ const admin = require(path.join(GP, "node_modules", "firebase-admin"));
 const { catalogo } = require("./catalogo.js");
 const { paquete } = require("./paquete.js");
 
-admin.initializeApp({ credential: admin.credential.cert(require(path.join(GP, "service-account.json"))) });
+/**
+ * 🔴 EL LABORATORIO (`--lab`) SOLO SIEMBRA EN EL EMULADOR, y el cerrojo va aquí arriba, antes de
+ * abrir ninguna conexión. Si falta FIRESTORE_EMULATOR_HOST se aborta: sembrar el laboratorio en el
+ * Firestore de verdad llenaría producción de grupos de mentira con profesorado inventado. Y en el
+ * emulador no se usa la cuenta de servicio — ni siquiera se lee el fichero.
+ */
+const LAB = process.argv.includes("--lab");
+if (LAB && !process.env.FIRESTORE_EMULATOR_HOST) {
+  console.error("✗ --lab solo siembra en el emulador. Falta FIRESTORE_EMULATOR_HOST. No se ha tocado nada.");
+  process.exit(2);
+}
+if (LAB) admin.initializeApp({ projectId: "demo-stargate" });
+else admin.initializeApp({ credential: admin.credential.cert(require(path.join(GP, "service-account.json"))) });
 const db = admin.firestore();
 
 const DEMO = process.argv.includes("--demo");
-const ID = DEMO ? "demo-stargate" : "prueba-humana";
+const ID = LAB ? "lab-clase" : DEMO ? "demo-stargate" : "prueba-humana";
 // 🔴 El nombre de la demo tiene que llevar «DEMO»: es la llave de `demoPermitido()` en la Nave.
-const NOMBRE = DEMO ? "STARGATE · DEMO" : "PRUEBA HUMANA · 20 reclutas";
+const NOMBRE = LAB ? "LAB · CLASE DE PRUEBA" : DEMO ? "STARGATE · DEMO" : "PRUEBA HUMANA · 20 reclutas";
 // Semana 10 hoy: la semana 1 empezó hace 9 semanas justas.
 const INICIO = new Date(Date.now() - 9 * 7 * 864e5).toISOString().slice(0, 10);
 
@@ -36,7 +48,16 @@ const INICIO = new Date(Date.now() - 9 * 7 * 864e5).toISOString().slice(0, 10);
  * él mismo describió —«un docente puede ser referente, docente o los dos a la vez»— y el que hay que
  * poder probar: solo quien imparte se lleva escuadrón y alumnado.
  */
-const DOCENTES = DEMO ? [
+/**
+ * El laboratorio tiene los TRES casos de profesorado que existen, porque cada uno ve una web distinta:
+ * referente que además imparte, docente raso, y referente que NO imparte (no lleva escuadrón ni
+ * alumnado, pero lo gobierna todo). Norberto: «en ocasiones el referente NO IMPARTE».
+ */
+const DOCENTES = LAB ? [
+  { nombre: "Rita Referente", correo: "rita@lab.test", rol: "referente", imparte: true },
+  { nombre: "Dani Docente",   correo: "dani@lab.test", rol: "docente",   imparte: true },
+  { nombre: "Sol Coordina",   correo: "sol@lab.test",  rol: "referente", imparte: false }
+] : DEMO ? [
   // Profesorado de ficción: el público ve estos nombres en el tablero y en la ficha de cada recluta.
   // Los correos no existen ni pueden existir (.invalid está reservado para eso, RFC 2606).
   { nombre: "Capitana Vega",    correo: "capitana.vega@stargate.invalid",    rol: "referente", imparte: true },
@@ -150,7 +171,20 @@ async function main() {
     premio: n % 3 === 0 ? "bolsa" : n % 3 === 1 ? "sobre" : "heroe",
     limite: 0, activo: true, creditos: 50
   }));
-  if (huevos.length) await db.collection("projects").doc(ID).update({ "stargate.huevos": huevos });
+  if (huevos.length) {
+    await db.collection("projects").doc(ID).update({ "stargate.huevos": huevos });
+    // 🔴 Y sus recompensas en el servidor: sin ellas, el escondite existe en la lista y no se puede
+    // reclamar. La forma sale de paquete.js, la misma que escribe la consola al guardar.
+    const { premioDeHuevo, idPremioHuevo } = require("./paquete.js");
+    const conCofre = paq.recompensas.filter(r => r.consumeEffects && r.consumeEffects.lootBox);
+    const traduce = r => r && Object.assign({}, r, { consumeEffects: { lootBox: { items:
+      r.consumeEffects.lootBox.items.map(i => Object.assign({}, i, { rewardId: ID + "__" + i.rewardId })) } } });
+    const sobre = traduce(conCofre.find(r => r.stargateTipo === "cromo"));
+    const heroe = traduce(conCofre.find(r => r.stargateTipo === "heroe"));
+    const lote = db.batch();
+    huevos.forEach(h => lote.set(db.collection("rewards").doc(idPremioHuevo(ID, h.id)), premioDeHuevo(ID, h, sobre, heroe)));
+    await lote.commit();
+  }
 
   console.log("✓ sembrado:", ID);
   console.log("  semana 1:", INICIO, DEMO ? "· congelada en la semana 10 para siempre" : "· hoy debería ser la semana 10");

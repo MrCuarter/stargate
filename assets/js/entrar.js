@@ -87,10 +87,15 @@
   }
 
   // ---------------------------------------------------------------- 2 · quién eres
+  // 🔴 Una sola vez. Se puede llegar aquí por dos caminos a la vez —el botón y el aviso de sesión— y
+  // repartir dos veces es mandar a la persona a un sitio y, medio segundo después, a otro.
+  var repartiendo = false;
   function repartir() {
+    if (repartiendo) return;
+    repartiendo = true;
     cargando("Comprobando quién eres…", "Un momento");
     MOTOR.sesion().then(function (yo) {
-      if (!yo) return puerta("");
+      if (!yo) { repartiendo = false; return puerta(""); }
       /**
        * 🔴 `volver` ES COSA DEL PROFESORADO, Y SOLO SUYA. Lo pone `puerta.js`, que vive únicamente
        * en el material docente. Si se le hiciera caso también al alumnado se montaría un BUCLE
@@ -102,24 +107,71 @@
        */
       var vuelta = destinoSeguro(url.get("volver"));
 
-      return MOTOR.misPERs(yo.correo).then(function (ps) {
-        if (ps && ps.length) {
+      /**
+       * 🔴 LAS DOS PREGUNTAS A LA VEZ, Y NO UNA DETRÁS DE OTRA. Antes se miraba primero si llevabas
+       * grupos y, solo si no, si tenías ficha de alumno: quien era las dos cosas nunca podía entrar
+       * como alumno. Y el alumnado iba a `recluta.html` A SECAS, sin su grupo — y la Nave sin grupo
+       * dice «te falta el enlace de tu clase». Norberto lo vivió con la cuenta más poderosa del
+       * sistema: «¡soy el referente con todos los poderes y no puedo ni entrar!».
+       *
+       * Ahora se pregunta todo de una vez y se reparte así:
+       *   · solo docente               → su puesto de mando (o a donde iba, si venía de una puerta);
+       *   · solo alumno, de UN grupo   → la Nave DE ESE GRUPO, con `?per=` puesto;
+       *   · cualquier otra combinación → se le pregunta cómo quiere entrar hoy. Es lo que él pidió:
+       *     «has sido detectado como estudiante de X y docente. ¿Cómo quieres entrar?».
+       *   · nada                       → el código de clase.
+       */
+      return Promise.all([MOTOR.misPERs(yo.correo), MOTOR.misGruposDeAlumno(yo.uid)]).then(function (res) {
+        var ps = res[0] || [], gs = res[1] || [];
+        if (ps.length) {
           // 🔴 La marca que abre el material del profesorado. La pone el motor al confirmar que esa
           // cuenta lleva grupos, y aquí se pone también: si no, quien entra por esta puerta y va a
-          // la guía se topa OTRA VEZ con la puerta del material, después de haber entrado. Entrar
-          // dos veces en la misma casa es exactamente el callejón sin salida que estamos matando.
+          // la guía se topa OTRA VEZ con la puerta del material, después de haber entrado.
           try { localStorage.setItem("sgEsDocente", "1"); } catch (e) {}
-          return ir(vuelta || "consola.html");
         }
-        return MOTOR.misGruposDeAlumno(yo.uid).then(function (gs) {
-          // sin `vuelta`: al alumnado se le lleva a su Nave, nunca al sitio del que venía
-          if (gs && gs.length) return ir("recluta.html");
-          return pedirCodigo(yo, "");
-        });
+        if (ps.length && !gs.length) return ir(vuelta || "consola.html");
+        if (!ps.length && gs.length === 1) return ir("recluta.html?per=" + encodeURIComponent(gs[0].per));
+        if (ps.length || gs.length) return elegir(yo, ps, gs, vuelta);
+        return pedirCodigo(yo, "");
       });
     }).catch(function (e) {
+      repartiendo = false;
       puerta("No se ha podido comprobar: " + esc(e.message || "inténtalo otra vez"));
     });
+  }
+
+  // ---------------------------------------------------------------- 2bis · ¿cómo entras hoy?
+  /**
+   * Para quien el sistema reconoce de más de una forma: docente y alumno, o alumno de varios grupos.
+   * No se adivina: se pregunta, con los nombres de sus grupos a la vista. Un botón por camino.
+   */
+  function elegir(yo, ps, gs, vuelta) {
+    var nombreDe = function (id) {
+      var p = ps.filter(function (x) { return x.id === id; })[0];
+      return (p && p.nombre) || id;
+    };
+    tarjeta(
+      '<div class="eyebrow teal">Te conozco de más de un sitio</div>' +
+      "<h3>¿Cómo entras hoy?</h3>" +
+      '<p class="small muted">Has entrado como <b>' + esc(yo.correo) + "</b>.</p>" +
+      '<div class="elegir-camino">' +
+      (ps.length
+        ? '<a class="camino docente" href="' + esc(vuelta || "consola.html") + '"><span>🎓</span><b>Como docente</b>' +
+          "<em>" + ps.length + (ps.length === 1 ? " grupo: " : " grupos: ") +
+          esc(ps.slice(0, 3).map(function (p) { return p.nombre; }).join(" · ")) + (ps.length > 3 ? "…" : "") + "</em></a>"
+        : "") +
+      gs.map(function (g) {
+        return '<a class="camino recluta" href="recluta.html?per=' + encodeURIComponent(g.per) + '"><span>🚀</span>' +
+               "<b>Como recluta</b><em>" + esc(g.nombreGrupo || nombreDe(g.per)) + "</em></a>";
+      }).join("") +
+      "</div>" +
+      '<p class="small muted"><a href="#" id="e-otra">Entrar con otra cuenta</a></p>'
+    );
+    document.getElementById("e-otra").onclick = function (ev) {
+      ev.preventDefault();
+      repartiendo = false;
+      MOTOR.salir().then(function () { puerta(""); }).catch(function () { puerta(""); });
+    };
   }
 
   // ---------------------------------------------------------------- 3 · el código de clase
@@ -171,6 +223,14 @@
     cargando("Abriendo…", "Comprobando si ya has entrado");
     MOTOR.sesion().then(function (yo) { yo ? repartir() : puerta(""); })
                   .catch(function () { puerta(""); });
+    /**
+     * 🔴 Y SI LA SESIÓN LLEGA POR OTRO CAMINO, TAMBIÉN. Antes solo se repartía al volver del botón
+     * propio. Pero la sesión puede aparecer de otras formas: la persona entra en otra pestaña con
+     * la puerta abierta en esta, la ventana de Google tarda más que la promesa, o el navegador
+     * restaura una sesión guardada un instante tarde. En todos esos casos la puerta se quedaba
+     * enseñando «Iniciar sesión» a alguien que YA había entrado. Lo encontró el laboratorio.
+     */
+    document.addEventListener("sg:sesion", function (e) { if (e.detail) repartir(); });
   }
   arrancar();
 })();

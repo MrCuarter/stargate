@@ -24,21 +24,29 @@ igual(bonus(2), 5,  "la segunda seguida, +5");
 igual(bonus(3), 10, "la tercera, +10 — el ejemplo exacto que puso Norberto");
 igual(bonus(6), 25, "la sexta llega al tope");
 igual(bonus(40), 25, "🔴 y de ahí no pasa: sin tope, quien no falta nunca acabaría comprándolo todo con asistencia");
-c(/Math\.min\(25, Math\.max\(0, \(racha - 1\) \* 5\)\)/.test(motor), "y es la cuenta que hay en el motor");
+// 🔴 12-sep · LA RACHA SE PAGA EN EL SERVIDOR (`stargateAsistencia`, en functions/stargate.js de
+// GamificaPro). Antes la pagaba el navegador del alumno con el origen del docente, el servidor se
+// lo negaba y un `catch` lo convertía en «+0»: la racha no llegó a pagarse NUNCA. Lo destapó el
+// laboratorio. Estas comprobaciones miran ahora donde vive la cuenta de verdad.
+const SERVIDOR = require("fs").readFileSync("/Users/nor/Claude/vibewebs/gamificapro/functions/stargate.js", "utf8");
+c(/Math\.min\(25, Math\.max\(0, \(racha - 1\) \* 5\)\)/.test(SERVIDOR), "y es la cuenta que hay en el servidor");
+c(/llamar\("stargateAsistencia"/.test(motor), "🔴 y el navegador la PIDE al servidor: ya no se la paga a sí mismo");
+c(!/deltaCoins: extra,\s*source: "teacher_resource_adjustment"/.test(motor),
+  "   y no queda ni rastro del pago desde el navegador, que el servidor rechazaba en silencio");
 
 // ---------------------------------------------------------------- b) créditos, NUNCA xp
-c(/deltaXp: 0, deltaCoins: extra/.test(motor),
-  "🔴 la racha paga CRÉDITOS y deltaXp va a CERO: los xp ordenan el ranking y esto no puede tocarlo");
-c(/idempotencyKey: "racha_"/.test(motor),
-  "🔴 con clave de idempotencia: dos pulsaciones o una red que duplica NO pagan el extra dos veces");
+c(/cambios\.coins = Math\.max\(0, Number\(p\.coins \?\? 0\) \+ extra\)/.test(SERVIDOR) && !/totalPoints[^\n]*extra/.test(SERVIDOR),
+  "🔴 la racha paga CRÉDITOS y NUNCA xp: los xp ordenan el ranking y esto no puede tocarlo");
+c(/stargate_asistencia/.test(SERVIDOR) && /if \(ya\.exists\) return/.test(SERVIDOR),
+  "🔴 una vez por sesión y persona, dentro de la transacción: dos pulsaciones NO pagan dos veces");
 
 // ---------------------------------------------------------------- c) perder una clase rompe la racha
 // Se cuenta hacia atrás desde la sesión de hoy y se para en la primera que falte. Sin ese `break`,
 // «tres clases sueltas en todo el curso» valdría lo mismo que «tres seguidas» — y entonces no
 // premiaría la constancia, que es justo lo que se pedía.
-c(/if \(!mias\.has\(orden\[i\]\.id\)\) break;/.test(motor),
+c(/i < orden\.length && mias\.has\(orden\[i\]\.id\)/.test(SERVIDOR),
   "🔴 la racha se corta en la primera clase que falta: eso es lo que la hace significar algo");
-c(/sort\(\(a, b\) => b\.t - a\.t\)/.test(motor), "y se cuenta desde la más reciente hacia atrás");
+c(/sort\(\(a, b\) => b\.t - a\.t\)/.test(SERVIDOR), "y se cuenta desde la más reciente hacia atrás");
 
 // ---------------------------------------------------------------- d) el regalo del docente
 c(/stargateRegalo: String\(o\.regalo \|\| ""\)/.test(motor),

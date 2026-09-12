@@ -50,6 +50,20 @@
   // ---------- sin PER: selector ----------
   var per=q.get('per');
   if(!per){
+    /**
+     * 🔴 12-sep · SIN GRUPO, A LA PUERTA ÚNICA. Esta pantalla decía «te falta el enlace de tu clase»
+     * a cualquiera que llegara sin `?per=`, con sesión o sin ella. Tenía sentido cuando no había
+     * forma de saber quién eras; desde que existe `entrar.html`, que lo sabe, era un callejón. Y
+     * Norberto se metió en él con la cuenta del referente vitalicio: pulsó la baldosa «La Nave del
+     * Recluta» de la portada, entró con Google… y la Nave le dijo que le faltaba un enlace.
+     *
+     * La puerta única reparte: al docente a su puesto de mando, al alumno a SU Nave con su grupo
+     * puesto, a quien es las dos cosas le pregunta, y al que no conoce le pide el código. Nadie se
+     * queda aquí mirando un mensaje.
+     */
+    // (con el motor nuevo; la marcha atrás `?motor=apps` conserva su lista de grupos de siempre)
+    var motorEfectivo = (new URLSearchParams(location.search).get('motor') || window.SG_MOTOR || 'apps').toLowerCase();
+    if (motorEfectivo === 'firestore') { location.replace('entrar.html'); return; }
     if(!API){root.innerHTML='<p class="lead">La nave aún no está conectada.</p>';return;}
     // 🔴 9-sep · SIN ?per= EL SELECTOR SALIA DOS VECES. Esta pantalla ya pregunta «¿de qué PER eres
     // recluta?», y debajo la sección del tablero —que pinta tablero.js por su cuenta— preguntaba

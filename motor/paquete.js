@@ -387,7 +387,35 @@
     return tarea + (nombres.length ? "\n\nInsignia: " + nombres.join(" · ") : "");
   }
 
+  /**
+   * UN ESCONDITE, COMO RECOMPENSA DE GAMIFICAPRO. En un solo sitio porque lo escriben dos: la consola
+   * del referente al guardar (navegador) y el sembrador de grupos de prueba (Node). Dos copias de
+   * esta forma serían dos escondites que un día se comportan distinto.
+   *
+   * `h` es la línea de la lista del referente; `sobre` y `heroe`, las recompensas de la tienda del
+   * grupo cuyo cofre se copia —mismo sorteo, mismas cartas que lo comprado—.
+   * 🔴 Sin campo `id` dentro: GamificaPro lee {id: doc.id, ...data} y lo pisaría.
+   */
+  function premioDeHuevo(perId, h, sobre, heroe) {
+    var tipo = h.premio === "heroe" ? "heroe" : h.premio === "bolsa" ? "bolsa" : "sobre";
+    var efecto = tipo === "bolsa" ? { addCoins: Number(h.creditos || 50) }
+               : tipo === "heroe" ? (heroe ? heroe.consumeEffects : null)
+               : (sobre ? sobre.consumeEffects : null);
+    return {
+      projectId: perId, title: h.nombre || ("Escondite " + h.id), description: "Un escondite de la Tripulación Cero.",
+      cost: 0, inStore: false, type: "item", stargateTipo: "huevo", stargateId: "huevo_" + h.id,
+      stargateHuevo: { id: String(h.id), premio: tipo, creditos: Number(h.creditos || 50) },
+      isConsumable: true, maxUses: tipo === "sobre" ? Number((sobre && sobre.maxUses) || 3) : 1,
+      consumeEffects: efecto || {},
+      claimLinkEnabled: h.activo !== false,
+      claimLinkMaxPerUser: 1,
+      claimLinkMaxTotal: Number(h.limite) > 0 ? Number(h.limite) : null,
+      claimLinkMaxPerSquad: Number(h.porEscuadron) > 0 ? Number(h.porEscuadron) : 0
+    };
+  }
+  function idPremioHuevo(perId, huevoId) { return perId + "__huevo_" + String(huevoId); }
+
   return { paquete: paquete, masDias: masDias, inicioDeSemana: inicioDeSemana,
            semanaEnTipo: semanaEnTipo, creditosDe: creditosDe, escalaXp: escalaXp,
-           codigoNuevo: codigoNuevo };
+           codigoNuevo: codigoNuevo, premioDeHuevo: premioDeHuevo, idPremioHuevo: idPremioHuevo };
 });

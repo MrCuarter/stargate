@@ -13,19 +13,48 @@
  * —que son scripts normales— sepa que ya puede usarlo.
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, onAuthStateChanged,
+         connectAuthEmulator }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, getCountFromServer, writeBatch, onSnapshot }
+import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, getCountFromServer, writeBatch, onSnapshot,
+         connectFirestoreEmulator }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import { getFunctions, httpsCallable }
+import { getFunctions, httpsCallable, connectFunctionsEmulator }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
 
-const CFG = window.SG_FIREBASE || {};
+/**
+ * 🔴 EL LABORATORIO. Con esto, la batería 67 recorre la web entera contra el motor DE VERDAD —las
+ * reglas de Firestore, las Cloud Functions, el mismo código que corre en producción— sin tocar
+ * producción y sin ninguna cuenta real. Los emuladores de Firebase corren en la máquina de quien
+ * prueba; aquí solo se les conecta.
+ *
+ * Tres cerrojos, y hacen falta los tres a la vez:
+ *   1. la página se sirve desde 127.0.0.1 o localhost — en stargate.mistercuarter.es esto no existe;
+ *   2. alguien ha puesto `window.SG_EMU = true` antes de cargar (lo hace la batería, por CDP);
+ *   3. el proyecto pasa a llamarse `demo-stargate`. Firebase garantiza que un id que empieza por
+ *      «demo-» NUNCA habla con servicios reales: si algún día se olvidara conectar un emulador, la
+ *      petición fallaría contra un proyecto que no existe en vez de caer en el de verdad.
+ *
+ * Por qué no bastaba con el doble del motor de la batería 64: el doble contesta lo que yo le digo, y
+ * así nunca iba a encontrar un fallo en una compra, un reto o una llamada a filas. Norberto lo
+ * preguntó sin rodeos —«¿estás al 99 % de que no encontraré fallos tontos?»— y la respuesta honesta
+ * era que no, precisamente por esto.
+ */
+const EMU = window.SG_EMU === true && /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
+const CFG = EMU
+  ? Object.assign({}, window.SG_FIREBASE || {}, { projectId: "demo-stargate", apiKey: "demo-api-key",
+                                                  authDomain: "demo-stargate.firebaseapp.com" })
+  : (window.SG_FIREBASE || {});
 const app = initializeApp(CFG);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const fns = getFunctions(app);
 const google = new GoogleAuthProvider();
+if (EMU) {
+  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  connectFunctionsEmulator(fns, "127.0.0.1", 5001);
+}
 
 // ------------------------------------------------------------------ la sesión
 // 🔴 `undefined` es «todavía no sé» y `null` es «no hay nadie». Son dos cosas distintas y
@@ -42,6 +71,19 @@ onAuthStateChanged(auth, u => {
 const sesion = () => new Promise(ok => (quien !== undefined ? ok(quien) : esperando.push(ok)));
 
 async function entrar() { const r = await signInWithPopup(auth, google); return r.user; }
+/**
+ * Entrar como alguien, SIN ventana de Google: solo existe en el laboratorio. El emulador de Auth
+ * acepta un «token de Google» que es un JSON sin firmar —en producción esto sería imposible, y por
+ * eso esta función no se exporta fuera del laboratorio—. No hay contraseña ni cuenta real: la
+ * identidad vive en la memoria del emulador y muere con él.
+ */
+async function entrarComo(correo, nombre) {
+  if (!EMU) throw new Error("solo en el laboratorio");
+  const sub = "emu-" + String(correo).toLowerCase().replace(/[^a-z0-9]/g, "");
+  const cred = GoogleAuthProvider.credential(JSON.stringify({ sub, email: correo, email_verified: true, name: nombre || correo }));
+  const r = await signInWithCredential(auth, cred);
+  return r.user;
+}
 async function salir() {
   // La marca de docente se va con la sesión: si no, quien cierre sesión seguiría entrando en la
   // zona del profesorado desde ese navegador.
@@ -122,7 +164,7 @@ async function misPERs(correo) {
   // —«a golpe de vista se debe ver el nombre, su emblema de escuadrón, número de estudiantes
   // inscritos, semana»— y pedirlo aparte serían N lecturas más para pintar una lista.
   const mios = r.docs.map(d => ({ id: d.id, nombre: d.data().name, factions: d.data().factions || [],
-                                  stargate: d.data().stargate || {} }))
+                                  stargate: d.data().stargate || {}, codigo: d.data().joinCode || "" }))
                      .filter(x => x.stargate.version)
                      .map(x => Object.assign(x, estadoDelPER(x.stargate)));
   // 🔴 EN QUÉ SEMANA VA CADA GRUPO, decidido UNA vez y aquí.
@@ -354,6 +396,32 @@ async function otorgarReto(perId, fichaId, retoId) {
  * xp que no se corresponde con nada: el clásico «tiene 300 puntos y ninguna misión».
  */
 async function anularReto(perId, fichaId, retoId, motivo) {
+  /**
+   * 🔴 12-sep · AHORA LO HACE EL SERVIDOR (`stargateAnularReto`), y para los dos casos.
+   *
+   * Antes esto llamaba a `applyXpDelta` con el origen del docente y luego escribía
+   * `completedMissionIds` desde el navegador. Para un DOCENTE funcionaba. Para un ALUMNO —que lo
+   * usa en «↩︎ No lo he hecho todavía»— las dos cosas eran imposibles: el servidor rechaza ese
+   * origen a quien no es docente y las reglas le prohíben tocar su propia economía. El botón que
+   * Norberto marcó como IMPORTANTE fallaba siempre. Lo destapó el laboratorio.
+   *
+   * Y de paso cierra la trampa «marcar → cobrar → gastar → deshacer»: el alumno solo puede deshacer
+   * mientras conserve los créditos del reto. El servidor devuelve cuánto no pudo retirar cuando
+   * anula un docente, para que la consola se lo diga.
+   */
+  try {
+    return await llamar("stargateAnularReto", { projectId: perId, studentProfileId: fichaId, retoId: retoId,
+                                                motivo: motivo || "" });
+  } catch (e) {
+    // 🔴 PLAN B mientras la función no esté desplegada en producción: el camino viejo, que para un
+    // DOCENTE funciona (a un alumno el servidor se lo seguirá negando, como hasta hoy). Sin esto,
+    // subir la web antes que la función le rompería al profesorado su «quitar reto».
+    const falta = /not-found|unimplemented|internal|does not exist/i.test(String((e && (e.code || "")) + " " + (e && e.message)));
+    if (!falta) throw e;
+    return anularRetoViejo(perId, fichaId, retoId, motivo);
+  }
+}
+async function anularRetoViejo(perId, fichaId, retoId, motivo) {
   const [mi, ficha] = await Promise.all([
     getDocs(query(collection(db, "missions"), where("projectId", "==", perId), where("stargateId", "==", retoId))),
     getDoc(doc(db, "student_profiles", fichaId))
@@ -372,6 +440,7 @@ async function anularReto(perId, fichaId, retoId, motivo) {
     completedMissionIds: (d.completedMissionIds || []).filter(x => x !== m.id),
     missionTimestamps: sellos
   });
+  return { ok: true };
 }
 
 /**
@@ -594,50 +663,37 @@ async function ficharLlamada(perId, fichaId) {
    * La cuenta: 1ª seguida +0, 2ª +5, 3ª +10… hasta +25 y ahí se queda. Perder una clase devuelve
    * a cero, que es justo lo que hace que una racha signifique algo.
    */
-  let racha = 1, extra = 0;
+  /**
+   * ════════ LA RACHA Y EL REGALO, EN EL SERVIDOR ════════
+   *
+   * Norberto: «quiero premiar la asistencia y la constancia. Cada vez que sea una racha seguida se
+   * suman 5 créditos con límite de 25 extra». Y el sobre de cromos, si el docente lo marcó.
+   *
+   * 🔴 12-sep · ANTES LOS PAGABA ESTE NAVEGADOR, Y NO PODÍA. La racha iba por `applyXpDelta` con el
+   * origen del docente —el servidor se lo niega a un alumno— y el sobre escribía `inventory` —las
+   * reglas se lo niegan—. Las dos cosas estaban dentro de un `try` que convertía el rechazo en «+0»
+   * y «sin regalo»: el alumno veía su fichaje correcto y los extras no llegaban NUNCA, sin un solo
+   * aviso. Lo destapó el laboratorio. Ahora lo decide `stargateAsistencia`, que lee del servidor
+   * cuántas llamadas seguidas llevas y paga una sola vez por sesión, pulses lo que pulses.
+   *
+   * El regalo llega como un sobre en el inventario; se abre aquí mismo, carta a carta y EN SERIE,
+   * igual que uno comprado (tres `consumeItem` a la vez se pisarían la última escritura).
+   */
+  let racha = 1, extra = 0, regalo = null;
   try {
-    const ses = await getDocs(query(collection(db, LLAMADA), where("projectId", "==", perId)));
-    const mias = new Set(previos.docs.map(d => d.data().sessionId));
-    mias.add(s.id);                                   // la de ahora cuenta, y aún no está en previos
-    const orden = ses.docs
-      .map(d => ({ id: d.id, t: fechaDe(d.data().startTime) }))
-      .filter(x => x.t)
-      .sort((a, b) => b.t - a.t);                     // de la más reciente hacia atrás
-    // Se empieza en la sesión actual y se cuenta hacia atrás mientras no falte ninguna.
-    const desde = orden.findIndex(x => x.id === s.id);
-    if (desde >= 0) {
-      racha = 0;
-      for (let i = desde; i < orden.length; i++) {
-        if (!mias.has(orden[i].id)) break;
-        racha++;
+    const r = await llamar("stargateAsistencia", { projectId: perId, sessionId: s.id });
+    racha = Number(r.racha || 1); extra = Number(r.extra || 0);
+    if (r.regalo && r.regalo.rewardId) {
+      regalo = [];
+      for (let i = 0; i < Number(r.regalo.usos || 1); i++) {
+        try {
+          const c = await llamar("consumeItem", { projectId: perId, rewardId: r.regalo.rewardId, studentProfileId: fichaId });
+          const b = c && (c.botin || c.obtenido);
+          if (b) regalo.push(b);
+        } catch (e) { break; }   // lo que no se abra se queda en el inventario, para abrirlo en el álbum
       }
     }
-    extra = Math.min(25, Math.max(0, (racha - 1) * 5));
-    if (extra > 0) {
-      await llamar("applyXpDelta", {
-        projectId: perId, studentProfileId: fichaId, userId: yo.uid,
-        deltaXp: 0, deltaCoins: extra,
-        source: "teacher_resource_adjustment",
-        details: "Racha de asistencia: " + racha + " clases seguidas",
-        // 🔴 La misma clave para la misma sesión y persona: si el botón se pulsa dos veces —o la
-        // red duplica la llamada— el extra se paga UNA vez.
-        idempotencyKey: "racha_" + perId + "_" + s.id + "_" + yo.uid
-      });
-    }
-  } catch (e) { extra = 0; }   // la racha es un regalo: si falla, el fichaje ya está hecho y pagado
-
-  /**
-   * EL REGALO DEL DOCENTE, si lo puso al abrir la llamada. Un sobre de cromos: tres cartas al azar.
-   * 🔴 Nunca xp ni créditos — eso enturbiaría el ranking, que mide lo aprendido y no lo asistido.
-   */
-  let regalo = null;
-  if (s.stargateRegalo === "sobre") {
-    try {
-      // 🔴 No se «consume» un sobre: no lo ha comprado, y consumir exige tenerlo en el inventario.
-      // Se regalan las cartas directamente, que es lo que ya hace el docente desde el aula.
-      regalo = await regalarSobre(perId, fichaId, 3);
-    } catch (e) { regalo = null; }   // el regalo nunca puede tumbar el fichaje
-  }
+  } catch (e) { /* el fichaje ya está hecho y pagado: los extras nunca pueden tumbarlo */ }
 
   return { ok: true, xp: Number(s.pointsReward || 15), creditos: Number(s.coinsReward || 30),
            racha: racha, extra: extra, regalo: regalo };
@@ -784,8 +840,14 @@ async function referenteEnTodos(persona, perIds) {
  */
 async function misGruposDeAlumno(uid) {
   const r = await getDocs(query(collection(db, "student_profiles"), where("userId", "==", uid)));
-  return r.docs.map(d => ({ ficha: d.id, per: d.data().projectId }))
-               .filter(x => x.per);
+  const fichas = r.docs.map(d => ({ ficha: d.id, per: d.data().projectId })).filter(x => x.per);
+  // El nombre del grupo, para que la pantalla de «¿cómo entras hoy?» diga «PRUEBA HUMANA» y no
+  // «prueba-humana». Son una o dos lecturas: nadie está alistado en diez grupos a la vez.
+  // Y solo grupos de STARGATE: una ficha de GamificaPro en otro proyecto no es una Nave.
+  const nombres = await Promise.all(fichas.map(f => getDoc(doc(db, "projects", f.per))
+    .then(p => (p.exists() && (p.data().stargate || {}).version) ? (p.data().name || f.per) : null)
+    .catch(() => null)));
+  return fichas.map((f, i) => Object.assign(f, { nombreGrupo: nombres[i] })).filter(f => f.nombreGrupo);
 }
 
 /**
@@ -819,71 +881,101 @@ async function huevosDe(perId) {
   return ((p.exists() ? p.data().stargate : null) || {}).huevos || [];
 }
 
+/**
+ * ════════ LOS ESCONDITES, EN EL SERVIDOR ════════
+ *
+ * 🔴 12-sep · LA PRIMERA VERSIÓN LOS COBRABA EL NAVEGADOR DEL ALUMNO, Y NO PODÍA. Marcaba el escondite
+ * en su ficha y luego se pagaba el premio: el sobre escribiendo `inventory`, la bolsa con
+ * `applyXpDelta` en nombre del docente. Las reglas y el servidor —con razón— se lo niegan a un
+ * alumno. Resultado: el escondite quedaba MARCADO como encontrado y el premio no llegaba nunca. Y
+ * el tope «solo los tres primeros» se contaba en el navegador, así que dos pulsando a la vez se
+ * colaban los dos. Lo destapó el laboratorio.
+ *
+ * El principio no cambia —el límite va en el ESCONDITE, no en el premio—, pero ahora cada escondite
+ * ES una recompensa de GamificaPro con reclamación por enlace (`claimLinkedReward`, ya desplegada):
+ *   · una por persona (`claimLinkMaxPerUser: 1`): el mismo enlace no paga dos veces;
+ *   · el tope total, si lo hay (`claimLinkMaxTotal`), dentro de una TRANSACCIÓN del servidor;
+ *   · y el tope por escuadrón (`claimLinkMaxPerSquad`) — «los tres primeros de cada clase», lo que
+ *     Norberto pidió como «límite por grupo»;
+ *   · el premio va DENTRO: un consumible con el mismo cofre que el sobre o el héroe de la tienda, o
+ *     con `addCoins` si es una bolsa. Se abre con `consumeItem`, como cualquier cosa comprada.
+ *
+ * La lista que edita el referente sigue siendo `stargate.huevos` —una sola fuente—, y cada vez que
+ * se guarda se regeneran sus recompensas. `inStore: false`: no aparecen en el Mercado.
+ */
+const idPremioHuevo = (perId, huevoId) => window.SG.PAQUETE.idPremioHuevo(perId, huevoId);
+
 async function guardarHuevos(perId, lista) {
-  await updateDoc(doc(db, "projects", perId), { "stargate.huevos": lista });
+  // el cofre del sobre y el del héroe se copian de la tienda del grupo: mismo sorteo, mismas cartas
+  const premios = await getDocs(query(collection(db, "rewards"), where("projectId", "==", perId)));
+  const conCofre = premios.docs.map(d => ({ id: d.id, ...d.data() }))
+                              .filter(r => r.consumeEffects && r.consumeEffects.lootBox);
+  const sobre = conCofre.find(r => r.stargateTipo === "cromo");
+  const heroe = conCofre.find(r => r.stargateTipo === "heroe");
+  const antes = await huevosDe(perId);
+
+  const lote = writeBatch(db);
+  lista.forEach(h => {
+    lote.set(doc(db, "rewards", idPremioHuevo(perId, h.id)), window.SG.PAQUETE.premioDeHuevo(perId, h, sobre, heroe), { merge: true });
+  });
+  // los que se han quitado de la lista se CIERRAN (borrar lo puede solo el dueño principal del grupo)
+  antes.filter(a => !lista.some(h => String(h.id) === String(a.id))).forEach(a => {
+    lote.set(doc(db, "rewards", idPremioHuevo(perId, a.id)), { claimLinkEnabled: false, stargateBorrado: true }, { merge: true });
+  });
+  lote.update(doc(db, "projects", perId), { "stargate.huevos": lista });
+  await lote.commit();
   return lista;
 }
 
 /**
- * Reclamar un huevo. Devuelve qué ha tocado, o por qué no.
- * 🔴 El orden importa: primero se comprueba, luego se MARCA, y solo después se paga. Al revés, un
- * doble clic pagaría dos veces antes de que la marca llegase a escribirse.
+ * Reclamar un escondite. Devuelve qué ha tocado, o por qué no — con palabras, no con códigos.
  */
 async function reclamarHuevo(perId, huevoId, fichaId) {
   const yo = await sesion();
   if (!yo) throw new Error("Entra con tu cuenta para reclamarlo");
-
-  const huevos = await huevosDe(perId);
-  const h = huevos.filter(x => String(x.id) === String(huevoId))[0];
-  if (!h) throw new Error("Este escondite no existe en tu grupo.");
-  if (h.activo === false) throw new Error("Este escondite ya está cerrado.");
-
-  const f = await getDoc(doc(db, "student_profiles", fichaId));
+  const rid = idPremioHuevo(perId, huevoId);
+  const [r, f] = await Promise.all([getDoc(doc(db, "rewards", rid)), getDoc(doc(db, "student_profiles", fichaId))]);
+  if (!r.exists() || r.data().stargateBorrado) throw new Error("Este escondite no existe en tu grupo.");
   if (!f.exists()) throw new Error("No encuentro tu ficha");
-  const perfil = f.data();
-  const mios = perfil.stargateHuevos || [];
-  if (mios.indexOf(String(huevoId)) >= 0) return { yaEra: true, premio: h.premio };
+  const R = r.data(), H = R.stargateHuevo || {};
+  if (((f.data().linkedRewardClaims || {})[rid] || 0) >= 1) return { yaEra: true, premio: H.premio };
+  if (R.claimLinkEnabled === false) throw new Error("Este escondite ya está cerrado.");
 
-  /**
-   * El tope global, si lo puso el referente: «solo los diez primeros». Se cuenta preguntando
-   * cuántas fichas del grupo lo llevan ya — una consulta, y solo al reclamar.
-   * 🔴 No es a prueba de dos personas pulsando en el mismo segundo, y no puede serlo sin una
-   * transacción del servidor. Para «los diez primeros de una clase» eso es irrelevante; si algún
-   * día el premio fuera valioso de verdad, esto tendría que subir a una Cloud Function.
-   */
-  const tope = Number(h.limite || 0);
-  if (tope > 0) {
-    const ya = await getDocs(query(collection(db, "student_profiles"),
-      where("projectId", "==", perId), where("stargateHuevos", "array-contains", String(huevoId))));
-    if (ya.size >= tope) throw new Error("Llegaste tarde: este ya lo encontraron " + tope + " personas.");
+  try {
+    await llamar("claimLinkedReward", { rewardId: rid, modo: "item" });
+  } catch (e) {
+    const m = String((e && e.message) || "");
+    if (/SOLD_OUT|resource-exhausted/i.test(m + " " + (e && e.code)))
+      throw new Error("Llegaste tarde: este ya lo encontraron " + (R.claimLinkMaxTotal || "todas las") + " personas que podían.");
+    if (/límite de reclamos/i.test(m)) return { yaEra: true, premio: H.premio };
+    throw new Error(m.replace(/^Lo siento, /, "") || "No he podido reclamarlo.");
   }
-
-  await updateDoc(doc(db, "student_profiles", fichaId),
-    { stargateHuevos: mios.concat([String(huevoId)]) });
-
-  // Y ahora el premio. Si algo falla aquí, la marca ya está: mejor perder un premio que dejar un
-  // escondite reclamable en bucle.
+  // Y se abre en el momento: es un regalo, no un paquete que haya que ir a buscar al álbum.
+  const usos = Math.max(1, Number(R.maxUses || 1)), sacadas = [];
+  for (let i = 0; i < usos; i++) {
+    try {
+      const c = await llamar("consumeItem", { projectId: perId, rewardId: rid, studentProfileId: fichaId });
+      const b = c && (c.botin || c.obtenido);
+      if (b) sacadas.push(b);
+    } catch (e) { break; }   // lo que no se abra queda en el inventario y se abre desde el álbum
+  }
   let detalle = null;
-  if (h.premio === "sobre") detalle = { tipo: "sobre", cartas: await regalarSobre(perId, fichaId, 3) };
-  else if (h.premio === "heroe") {
-    const heroes = (window.SG_CATALOGO || {}).heroes || [];
-    const el = alAzarPorPeso(heroes.map(x => Object.assign({ peso: 1 }, x)));
-    if (el) {
-      await updateDoc(doc(db, "student_profiles", fichaId),
-        { inventory: (perfil.inventory || []).concat([perId + "__heroe_" + el.clave]) });
-      detalle = { tipo: "heroe", nombre: el.nombre, clave: el.clave };
-    }
-  } else if (h.premio === "bolsa") {
-    const cuanto = Number(h.creditos || 50);
-    await llamar("applyXpDelta", {
-      projectId: perId, studentProfileId: fichaId, userId: yo.uid,
-      deltaXp: 0, deltaCoins: cuanto,
-      source: "teacher_resource_adjustment", details: "Huevo de Pascua: " + huevoId,
-      idempotencyKey: "huevo_" + perId + "_" + huevoId + "_" + yo.uid
-    });
-    detalle = { tipo: "bolsa", creditos: cuanto };
-  }
-  return { ok: true, premio: h.premio, detalle: detalle, nombre: h.nombre || "" };
+  if (H.premio === "sobre") detalle = { tipo: "sobre", cartas: sacadas.map(cartaDeBotin) };
+  else if (H.premio === "heroe") {
+    const b = sacadas[0] ? cartaDeBotin(sacadas[0]) : null;
+    detalle = { tipo: "heroe", nombre: b ? b.nombre : "", clave: b ? b.clave : "" };
+  } else if (H.premio === "bolsa") detalle = { tipo: "bolsa", creditos: Number(H.creditos || 50) };
+  return { ok: true, premio: H.premio, detalle: detalle, nombre: R.title || "" };
+}
+
+/** Lo que devuelve un cofre, dicho como lo espera la pantalla del escondite: {clave, nombre, rareza}. */
+function cartaDeBotin(b) {
+  // `consumeItem` devuelve el botín como el ID de la recompensa, en cadena («grupo__cromo_P1_bran»)
+  const id = typeof b === "string" ? b : String((b && (b.rewardId || b.id)) || "");
+  const clave = id.split("__").pop().replace(/^(cromo|heroe)_/, "");
+  const cat = window.SG_CATALOGO || {};
+  const x = (cat.cromos || []).concat(cat.heroes || []).find(c => c.clave === clave) || {};
+  return { clave: clave, nombre: x.nombre || (b && (b.title || b.nombre)) || clave, rareza: x.rareza || "" };
 }
 
 async function nuevoCodigo(perId) {
@@ -971,6 +1063,7 @@ async function fichajesDe(sesionId) {
 }
 
 window.SG = window.SG || {};
+if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, otorgarReto, anularReto, traspasar, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
