@@ -90,8 +90,8 @@ c(/Entra con tu cuenta de Google/.test(html), "   sino la cuenta");
 c(!/sistema anterior sigue pidiéndose el PIN/.test(html),
   "🔴 y ya no nombra el PIN del sistema archivado: sembraba una duda que no le toca a nadie");
 // y la sala ya no dibuja su propia puerta bajo el hero — manda a la única que hay
-c(/entrar\.html\?volver=clase\.html/.test(SALA),
-  "🔴 sin sesión NO pinta un botón a 734 px de scroll: manda a la puerta única");
+c(/entrar\.html\?volver=/.test(SALA) && /clase\.html.*location\.search/.test(SALA),
+  "🔴 sin sesión NO pinta un botón a 734 px de scroll: manda a la puerta única, con su grupo");
 
 // ---------------------------------------------------------------- f) el nombre con el que se firma
 // Los ajustes quedan anotados con el nombre del docente. Ese nombre sale del CORREO de la sesión,
