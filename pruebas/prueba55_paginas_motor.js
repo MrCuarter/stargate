@@ -236,4 +236,58 @@ c(/toPrefilledUrl\(\)/.test(BON),
 c(/SpreadsheetApp\.create\("STARGATE · Tickets de salida"\)/.test(BON),
   "   y las respuestas van a una hoja propia: la de mando se queda como está");
 
+// ---------------------------------------------------------------- q) y el enlace de verdad, puesto
+// Lo anterior comprueba la fontanería. Esto comprueba el AGUA: que el enlace que se creó una vez en
+// la cuenta de mutecdgami está escrito, es un formulario de Google con relleno previo, lleva los dos
+// huecos y llega a las páginas que lo necesitan. Sin esto, todo lo de arriba pasaría en verde con
+// TICKET_URL vacío y el ticket no existiría.
+const DATOS = fs.readFileSync(path.join(__dirname, "..", "_site_data.py"), "utf8");
+const mURL = DATOS.match(/TICKET_URL = \(([\s\S]*?)\)\n/);
+const TICKET = mURL ? (mURL[1].match(/"([^"]*)"/g) || []).map(x => x.slice(1, -1)).join("") : "";
+c(TICKET.length > 0, "🔴 TICKET_URL está puesto: sin él, la Nave no tiene ticket que enseñar");
+c(/^https:\/\/docs\.google\.com\/forms\/d\/e\/[\w-]+\/viewform\?/.test(TICKET),
+  "   y es la dirección pública de un formulario de Google, no el enlace de edición");
+c(TICKET.indexOf("usp=pp_url") > 0,
+  "🔴 lleva `usp=pp_url`: sin eso Google ignora los valores y los dos huecos no rellenan nada");
+c(/[?&]entry\.\d+=\{GRUPO\}/.test(TICKET), "   el hueco del GRUPO cuelga de un campo `entry.N` de verdad");
+c(/[?&]entry\.\d+=\{COMANDANTE\}/.test(TICKET), "   y el del COMANDANTE, de otro distinto");
+const campos = (TICKET.match(/entry\.(\d+)=/g) || []);
+igual(campos.length, new Set(campos).size, "   y no es el MISMO campo dos veces (se pisarían)");
+
+// 🔴 Anonimato. Es la única razón por la que el ticket sigue siendo un formulario de Google y no una
+// misión del motor. Un hueco de más aquí —el correo, el alias, la ficha— y deja de serlo.
+["{EMAIL}", "{CORREO}", "{ALIAS}", "{NOMBRE}", "{FICHA}", "{UID}"].forEach(function (h) {
+  c(TICKET.indexOf(h) < 0, "🔴 el ticket NO lleva " + h + ": es anónimo o no es un ticket");
+});
+igual((TICKET.match(/\{[A-Z]+\}/g) || []).sort(), ["{COMANDANTE}", "{GRUPO}"],
+  "🔴 y esos dos son los ÚNICOS huecos: cualquier otro habría que rellenarlo, y nadie lo haría");
+
+// Llega a las páginas: lo emite la cabecera común, no cada página por su cuenta.
+const CABEZA = fs.readFileSync(path.join(__dirname, "..", "_build_site.py"), "utf8");
+c(/window\.SG_TICKET_URL\s*=/.test(CABEZA), "la cabecera del motor lo emite como `window.SG_TICKET_URL`");
+["crear.html", "consola.html", "alistarse.html", "validar.html"].forEach(function (f) {
+  const h = fs.readFileSync(path.join(__dirname, "..", f), "utf8");
+  c(h.indexOf(TICKET) > 0, "   " + f + " lo lleva escrito, entero y sin recortar");
+});
+c(/SG_TICKET_URL/.test(CREAR),
+  "🔴 y la consola del referente lo trae ya escrito en la casilla: crear un grupo no obliga a buscarlo");
+
+// ---------------------------------------------------------------- r) los dos huecos, rellenados
+// La prueba de arriba abajo: se rellena el hueco del grupo como lo hace el tablero y el del
+// Comandante como lo hace la Nave, y se mira si lo que queda es una dirección que Google entiende.
+const conGrupo = TICKET.replace("{GRUPO}", encodeURIComponent("CLASE DEMO/25"));
+const listo = conGrupo.split("{COMANDANTE}").join(encodeURIComponent("Mr Cuarter"));
+c(listo.indexOf("{") < 0, "🔴 rellenados los dos, no queda ni un hueco sin sustituir");
+const q = new URL(listo).searchParams;
+const valores = [...q.entries()].filter(e => e[0].indexOf("entry.") === 0).map(e => e[1]);
+igual(valores.sort(), ["CLASE DEMO/25", "Mr Cuarter"],
+  "🔴 y Google recibe los valores tal cual: la barra y el espacio sobreviven al escapado");
+c(listo.indexOf("CLASE DEMO/25") < 0,
+  "   porque van escapados en la dirección, no en crudo (en crudo, la barra partiría la ruta)");
+
+// Y el motor viejo, que guarda un enlace por grupo SIN huecos, no se entera de nada.
+const viejoTicket = "https://docs.google.com/forms/d/e/AAA/viewform";
+igual(viejoTicket.split("{COMANDANTE}").join("X"), viejoTicket,
+  "🔴 un enlace sin huecos pasa intacto: el motor viejo sigue funcionando igual");
+
 E.resumen("Las páginas del motor nuevo");

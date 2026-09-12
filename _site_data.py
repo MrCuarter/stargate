@@ -878,4 +878,6 @@ ESCUADRONES = [
 #
 # Para rellenarlo: menú STARGATE → «Ver los datos del ticket compartido» → copiar la línea de
 # DIRECCIÓN CON HUECOS y pegarla aquí.
-TICKET_URL = ""
+TICKET_URL = ("https://docs.google.com/forms/d/e/"
+              "1FAIpQLScqkZRCiUqKkq24s7_yzy2d2ldHXlWz8GoHCqXXmHbQlgKhIQ/viewform"
+              "?usp=pp_url&entry.489397158={GRUPO}&entry.856117988={COMANDANTE}")

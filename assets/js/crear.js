@@ -76,7 +76,11 @@
       '<div class="card"><h3>2 · Los enlaces de la clase</h3>' +
       '<p class="small">Opcionales: se pueden poner y cambiar después.</p>' +
       '<label>Padlet de la clase<input id="f-padlet" placeholder="https://padlet.com/…" autocomplete="off"></label>' +
-      '<label>Ticket de salida <i>(formulario de Google)</i><input id="f-ticket" placeholder="https://forms.gle/…" autocomplete="off"></label>' +
+      // 🔴 Ya viene escrito. Es el MISMO para todos los grupos y todos los años: se creó una vez en
+      // la cuenta de la asignatura y lleva dos huecos que se rellenan solos. Si se deja vacío, el
+      // grupo se queda sin ticket, así que se pone de entrada y quien quiera otro lo sustituye.
+      '<label>Ticket de salida <i>(el mismo para todos los grupos)</i><input id="f-ticket" value="' +
+        esc(window.SG_TICKET_URL || "") + '" placeholder="https://docs.google.com/forms/…" autocomplete="off"></label>' +
       '<label>Panel de control (ver)<input id="f-panel" placeholder="https://view.genially.com/…" autocomplete="off"></label>' +
       '<label>Panel de control (editar)<input id="f-paneled" placeholder="https://app.genially.com/editor/…" autocomplete="off"></label>' +
       '<p class="small muted">Si no pones ninguno, el grupo usa el panel oficial. Cada docente puede ' +
