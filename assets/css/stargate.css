@@ -98,6 +98,12 @@ section h2{font-size:clamp(1.5rem,3.4vw,2.2rem);margin:0 0 .2em}
 .card-thumb:hover img{transform:translateY(-5px) scale(1.02);border-color:var(--amber);box-shadow:0 14px 40px rgba(0,0,0,.5)}
 /* TABLES */
 table{width:100%;border-collapse:collapse;margin:.4em 0;font-size:.94rem}
+/* 🔴 Una tabla de tres columnas no cabe en 390 px y empuja la página entera de lado. Que se
+   desplace la TABLA dentro de su caja y no el documento: el resto del texto se queda quieto. */
+@media(max-width:760px){
+  table:not(.rank):not(.mapa){display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table:not(.rank):not(.mapa) td,table:not(.rank):not(.mapa) th{white-space:nowrap}
+}
 th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
 th{color:var(--teal);font-family:'DMSans';font-weight:700;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
 tr:hover td{background:rgba(55,224,236,.04)}
@@ -250,7 +256,11 @@ footer a{color:var(--teal2)}
          drop-shadow(0 0 120px rgba(30,90,130,.26));
 }
 @media(max-width:760px){
-  .trio-amenaza{padding:48px 60px 0;margin:0 -60px}
+  /* 🔴 SIN SANGRADO EN EL MÓVIL. El margen negativo saca el bloque 60 px por cada lado para que el
+     resplandor de Vaeon se derrame fuera de la columna; en un escritorio sobra sitio y no se nota,
+     pero a 390 px empuja la página 120 px de ancho y el dedo la arrastra de lado. Y una portada que
+     se mueve al tocarla parece rota aunque no lo esté. Lo cazó la batería 64 emulando un móvil. */
+  .trio-amenaza{padding:44px 0 0;margin:0}
   .trio-amenaza>img:nth-child(3){opacity:.72}
 }
 @media(max-width:760px){.trio img{max-height:220px}.trio img:nth-child(2){max-height:240px}

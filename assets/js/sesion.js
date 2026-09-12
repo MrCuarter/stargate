@@ -178,7 +178,12 @@
     ['💬','Contesta el ticket de salida','Treinta segundos, anónimo, y es lo que hace que la clase siguiente vaya mejor.']
   ];
   function invitacion(sem){
-    var c = INVITACIONES[(Number(sem)||1) % CONSEJOS.length];
+    // 🔴 `% INVITACIONES.length`, no `% CONSEJOS.length`. Al renombrar «consejo» por «invitación»
+    // —para que la batería 48 no confundiera esto con el consejo privado del docente— se cambió el
+    // nombre del array y se quedó el viejo aquí dentro. Efecto: `ReferenceError` cada vez que tocaba
+    // esta diapositiva, y el opening de la sesión se quedaba a medias sin decir por qué. Lo encontró
+    // la batería 64 el 12-sep, abriendo la página como alumno. Renombrar es buscar quién lo lee.
+    var c = INVITACIONES[(Number(sem)||1) % INVITACIONES.length];
     return '<div class="dia invita"><div class="kicker">Además de las misiones</div>'
       +'<div class="ses-tip"><span class="ico">'+c[0]+'</span><div><h2>'+esc(c[1])+'</h2>'
       +'<p>'+esc(c[2])+'</p></div></div></div>';

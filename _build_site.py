@@ -228,8 +228,8 @@ tiles = [
  ("consola.html","🎛️","Puesto de mando","Tus grupos: gente, canjes, cola de nota y ajustes, y lo que se usa en directo."),
  ("crear.html","✨","Crear un grupo","Siembra un grupo entero —retos, planetas, tienda y álbum— en un minuto."),
  ("tickets.html","🎟️","Tickets de salida","Valoraciones y dudas del alumnado, visual y por clase."),
- ("embed.html","🧩","Enlaces, embeds y QR","Elige tu PER y tu nombre: todo listo para pegar en Genially."),
- ("foro.html","💬","Foro dinamizador","El mensaje de la semana en curso (embebible en el Genially del PER) o todos de una vez, para copiar."),
+ ("embed.html","🧩","Enlaces, embeds y QR","Elige tu grupo y tu nombre: todo listo para pegar en tu presentación."),
+ ("foro.html","💬","Foro dinamizador","El mensaje de la semana en curso, listo para incrustar o para copiarlo entero."),
  ("recluta.html","🚀","La Nave del Recluta","La web del alumnado: onboarding con NEBULA, planetas por semanas, su ficha y las recompensas."),
  ("panel.html","🪐","Panel de control","El mapa de los ocho planetas sobre el universo: cada uno lleva a la presentación de su tema."),
  ("recursos.html","📦","Sala de recursos","Tablero de las 24 insignias, ranking y materiales."),
@@ -414,7 +414,7 @@ FAQ = [
  ("¿Cuándo pongo cada vídeo?", "La <a href='cronologia.html'>cronología</a> lo dice semana a semana: la <b>intro</b> del planeta al abrir el tema, el <b>cierre</b> al terminar el bloque y el <b>fragmento</b> del tripulante justo después, como recompensa. Las misiones (Bitácora, Act. 1, Act. 2) al lanzar cada una."),
  ("Los vídeos están en «oculto» en YouTube, ¿funcionan?", "Sí. Un vídeo oculto se ve con el enlace y se puede insertar en Genially o en el aula virtual. Van pasando a públicos solos según el calendario de redes del canal; tú no tienes que tocar nada."),
  ("¿El Reto A puntúa?", f"<b>Para nota, no</b> — y es a propósito: es el motor de motivación, y convertirlo en nota le quitaría la función. Sí da <b>100 xp</b> (que suben nivel) y <b>{CREDITOS['retoA']} créditos ◈</b>, y su recompensa real es desbloquear al personaje (fragmento + insignia). El Reto B sí produce una evidencia evaluable de la Bitácora."),
- ("¿Cómo y cuándo entrego las insignias?", "En público y con ceremonia: publica el medallón en el foro/tablero al superar el reto y nombra el logro con la frase del personaje. Qué insignia va cada semana está en la cronología; cómo anotarlas, en <a href='registro.html'>Registro de insignias</a>."),
+ ("¿Cómo y cuándo entrego las insignias?", "En público y con ceremonia: publica el medallón en el foro de la plataforma de UNIR y en el tablero al superar el reto y nombra el logro con la frase del personaje. Qué insignia va cada semana está en la cronología; cómo anotarlas, en <a href='registro.html'>Registro de insignias</a>."),
  ("¿Dónde están los enunciados y rúbricas oficiales?", "En <a href='actividades.html#docs'>Actividades → Documentos oficiales</a> (enunciados de la Act. 1 y 2, pautas del ePortfolio, instrucciones de uso de IA, rúbricas y planificación semanal)."),
  ("¿Qué pasa con el temario (PDF de los temas)?", "Los PDF de temas disponibles son de la programación anterior y con nombres cambiados; <b>no se publican aquí</b> hasta recibir el temario actualizado. Los vídeos de la serie ya siguen el orden nuevo (T6 ABJ → T7 Gamificación)."),
  ("Mi grupo es PUA (condensado). ¿Cómo lo adapto?", "Agrupa los mensajes del foro por bloque (dos semanas en un mensaje) y lanza los dos retos del tema juntos. La cronología sirve igual: son 15 semanas de contenido que tú compactas."),
@@ -653,7 +653,7 @@ guarda nada.</p></div>
 <div class="tip"><b>Usa la distinción Ludo/Vínculo como momento estrella.</b> En T6 <b>se juega</b> (el juego ES la actividad); en T7 <b>no</b> (se toman elementos del juego). Apóyate en Joran y Mara.</div>
 <div class="tip"><b>Reserva a Vaeon para subir la tensión.</b> Haz que la Estática aparezca en T5: justo cuando saben medir, surge el enemigo que silencia.</div>
 <div class="tip"><b>Cierra con La Liberación.</b> En el repaso final, la Bitácora completa vence a la Estática y abre la puerta a la Tierra. Celebra las Bitácoras publicadas.</div>
-<div class="tip"><b>Lo atemporal en los vídeos, lo actual en el foro.</b> Los vídeos hablan solo de conceptos (no nombran apps); las herramientas concretas viven en el foro.</div>
+<div class="tip"><b>Lo atemporal en los vídeos, lo actual en el foro.</b> Los vídeos hablan solo de conceptos (no nombran apps); las herramientas concretas viven en el foro de la plataforma de UNIR.</div>
 </div>
 <blockquote>Errores a evitar: convertir el Reto A en nota · dar insignias sin ceremonia · meter nombres de apps en los vídeos · pedir solo entregables sin la capa narrativa · confundir ABJ y Gamificación delante del alumnado.</blockquote>
 </div></section>

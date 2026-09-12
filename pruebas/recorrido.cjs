@@ -73,6 +73,24 @@ window.SG.MOTOR = {
   fichajesDe: function () { return P([]); },
   vigilarLlamada: function () { return function () {}; },
   llamar: function (n, a) { reg("llamar:" + n, a); return P({ ok: true }); },
+  /**
+   * 🔴 LAS PIEZAS SUELTAS DE FIRESTORE que el motor exporta y que fuente.js usa directamente.
+   * Sin ellas, M.doc(...) era undefined y la sala del docente se quedaba colgada para siempre
+   * en «Abriendo tu sala…»: el fallo saltaba DENTRO de un .map, antes del .catch de la cadena,
+   * así que la promesa nunca se resolvía ni se rechazaba. No era un fallo de la web —en producción
+   * estas funciones existen— sino un agujero de este doble, y agujeros así hacen perder una tarde
+   * buscando un fallo que no está.
+   */
+  db: {}, auth: {},
+  doc: function () { return { __ref: [].slice.call(arguments).join("/") }; },
+  collection: function () { return { __col: [].slice.call(arguments).join("/") }; },
+  query: function (c) { return c; },
+  where: function () { return {}; },
+  getDoc: function () { return P({ exists: function () { return false; }, data: function () { return null; } }); },
+  getDocs: function () { return P({ docs: [], empty: true, size: 0 }); },
+  setDoc: function () { return P(); }, updateDoc: function () { return P(); },
+  deleteDoc: function () { return P(); },
+  writeBatch: function () { return { set: function () {}, update: function () {}, commit: function () { return P(); } }; },
 };
 document.dispatchEvent(new CustomEvent("sg:motor"));
 document.dispatchEvent(new CustomEvent("sg:sesion", { detail: YO }));
@@ -144,8 +162,22 @@ async function pestana(quien) {
   return c;
 }
 
+/** Cualquier promesa con fecha de caducidad. */
+function conTope(promesa, ms, queEra) {
+  let t;
+  return Promise.race([
+    promesa.finally(() => clearTimeout(t)),
+    new Promise((_, mal) => { t = setTimeout(() => mal(new Error("se agotó el tiempo: " + queEra)), ms); }),
+  ]);
+}
+
 async function evaluar(c, expr) {
-  const r = await c.enviar("Runtime.evaluate", { expression: expr, returnByValue: true, awaitPromise: true });
+  // 🔴 `awaitPromise` espera A QUE LA PROMESA TERMINE, y si la página tiene una que no termina
+  // nunca —una petición que nadie resuelve— esta llamada se queda colgada para siempre y con ella
+  // la batería entera. Con tope: lo que no conteste en 8 segundos, no va a contestar.
+  const r = await conTope(
+    c.enviar("Runtime.evaluate", { expression: expr, returnByValue: true, awaitPromise: true }),
+    8000, expr.slice(0, 50));
   if (r.exceptionDetails) throw new Error(r.exceptionDetails.text + " — " + expr.slice(0, 60));
   return r.result.value;
 }
@@ -168,5 +200,5 @@ function comprobar(nombre, cierto, detalle) {
   return false;
 }
 
-module.exports = { pestana, evaluar, hasta, comprobar, QUIENES, P_WEB, P_CDP, CHROME, VER,
+module.exports = { pestana, evaluar, hasta, comprobar, conTope, QUIENES, P_WEB, P_CDP, CHROME, VER,
                    esperarChrome, dormir, RAIZ, marcador: () => ({ ok, fallos }) };

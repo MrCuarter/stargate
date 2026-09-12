@@ -5,8 +5,14 @@
  */
 const fs = require("fs"), path = require("path"), { spawn } = require("child_process");
 const R = require("./recorrido.cjs");
-const { pestana, evaluar, hasta, comprobar, QUIENES, P_WEB, P_CDP, CHROME, VER, esperarChrome,
-        dormir, RAIZ, marcador } = R;
+const { pestana, evaluar, hasta, comprobar, conTope, QUIENES, P_WEB, P_CDP, CHROME, VER,
+        esperarChrome, dormir, RAIZ, marcador } = R;
+/** Ninguna página puede quedarse con la batería. Si se atasca, se anota y se sigue. */
+const ATASCADAS = [];
+async function abrirSeguro(quien, pagina, listo) {
+  try { return await conTope(abrir(quien, pagina, listo), 30000, pagina + " (" + quien + ")"); }
+  catch (e) { ATASCADAS.push(pagina + " (" + quien + "): " + e.message); return null; }
+}
 const BASE = `http://127.0.0.1:${P_WEB}/`;
 
 /** Abre una página y espera a que el JS de pantalla haya pintado algo. */
@@ -227,6 +233,114 @@ const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disa
       }
       comprobar("sin PIN · ninguna página se lo pide ya al visitante", conPin.length === 0, conPin.join(" · "));
     }
+
+
+    // ============================================================ 9 · NINGUNA PÁGINA REVIENTA
+    /**
+     * 🔴 Abrir cada página con cada tipo de persona y mirar la consola. Un error de JavaScript no
+     * pinta nada rojo en la pantalla: la página se queda a medias y el visitante cree que «va
+     * lenta». Es el fallo más caro de todos porque nadie lo reporta — se abandona y ya está.
+     */
+    {
+      const PAGS = ["index.html", "entrar.html", "guia.html", "consola.html", "recluta.html",
+                    "alistarse.html", "crear.html", "aula.html", "llamada.html", "sesion.html",
+                    "huevo.html", "validar.html", "recursos.html", "actividades.html",
+                    "cronologia.html", "registro.html", "clase.html", "panel.html", "embed.html",
+                    "comosehizo.html", "privacidad.html", "pasos.html", "foro.html", "tickets.html"];
+      // 🔴 El ruido que NO es culpa nuestra: sin red de verdad, Firebase y los iframes de YouTube o
+      // Genially se quejan. Lo que se persigue son los errores de NUESTRO código.
+      const RUIDO = /favicon|ERR_|net::|Failed to load resource|firebase|gstatic|youtube|genially|padlet|googleapis|script\.google|CORS|Content Security|MIME|ERR_BLOCKED/i;
+      const rotas = [];
+      for (const quien of ["referente", "estudiante", "anonimo"]) {
+        for (const pag of PAGS) {
+          const c = await abrirSeguro(quien, pag);
+          if (!c) continue;
+          const propios = c.errores.filter(e => !RUIDO.test(e));
+          if (propios.length) rotas.push(pag + " (" + quien + "): " + propios[0].split("\n")[0].slice(0, 90));
+          await c.destruir();
+        }
+      }
+      comprobar("consola · ninguna página revienta con ningún tipo de visitante",
+                rotas.length === 0, rotas.slice(0, 6).join(" | "));
+      comprobar("consola · se han abierto " + (PAGS.length * 3) + " combinaciones", true);
+    }
+
+    // ============================================================ 10 · LOS EMBEDS, DENTRO DEL GENIALLY
+    /**
+     * 🔴 Lo que se pega en una presentación no puede traerse el menú de la web encima. Esto ya mordió
+     * una vez: `aula.js` y `llamada.js` prometían `?embed=1` en su propia documentación y no lo
+     * implementaba nadie, así que al pegarlas en un Genially salía la web entera dentro del panel.
+     */
+    {
+      const malos = [];
+      for (const pag of ["aula.html", "llamada.html", "sesion.html", "huevo.html", "validar.html", "registro.html"]) {
+        const c = await abrirSeguro("referente", pag + "?embed=1");
+        if (!c) continue;
+        const v = await evaluar(c, `(function(){
+          var n = document.querySelector('nav.nav'), f = document.querySelector('footer');
+          function ve(e){ if(!e) return false; var s=getComputedStyle(e);
+            return s.display!=='none' && s.visibility!=='hidden' && e.getBoundingClientRect().height>4; }
+          return { nav: ve(n), pie: ve(f), ancho: document.documentElement.scrollWidth };
+        })()`);
+        if (v.nav) malos.push(pag + " enseña el menú");
+        if (v.pie) malos.push(pag + " enseña el pie");
+        await c.destruir();
+      }
+      comprobar("embeds · ninguno se trae el menú ni el pie de la web", malos.length === 0, malos.join(" · "));
+    }
+
+    // ============================================================ 11 · EN EL MÓVIL NO SE SALE NADA
+    /**
+     * 🔴 El alumnado entra desde el móvil. Una caja más ancha que la pantalla obliga a arrastrar la
+     * página de lado, y en una web con tablas y cromos eso pasa con una facilidad enorme.
+     */
+    {
+      const anchos = [];
+      for (const pag of ["index.html", "entrar.html", "recluta.html", "consola.html", "guia.html",
+                         "alistarse.html", "sesion.html", "aula.html"]) {
+        const c = await pestana(QUIENES.referente);
+        await c.enviar("Emulation.setDeviceMetricsOverride",
+          { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+        await c.enviar("Page.navigate", { url: BASE + pag });
+        await hasta(c, "document.readyState==='complete'", 10);
+        await dormir(500);
+        const v = await evaluar(c, `(function(){
+          var d = document.documentElement;
+          var culpables = [];
+          [].slice.call(document.querySelectorAll('body *')).forEach(function(e){
+            var r = e.getBoundingClientRect();
+            if (r.width > 0 && r.right > d.clientWidth + 2 && getComputedStyle(e).position !== 'fixed') {
+              var p = e.parentElement, tapa = false;
+              while (p && p !== document.body) { if (getComputedStyle(p).overflowX.match(/auto|scroll|hidden/)) { tapa = true; break; } p = p.parentElement; }
+              if (!tapa) culpables.push((e.tagName+'.'+(e.className||'')).slice(0,44));
+            }
+          });
+          return { scroll: d.scrollWidth, ancho: d.clientWidth, culpables: culpables.slice(0,3) };
+        })()`);
+        if (v.culpables.length) anchos.push(pag + ": " + v.culpables.join(","));
+        await c.destruir();
+      }
+      comprobar("móvil · nada se sale de la pantalla a 390 px", anchos.length === 0, anchos.slice(0, 4).join(" | "));
+    }
+
+    // ============================================================ 12 · NINGUNA IMAGEN ROTA
+    {
+      const faltan = [];
+      for (const pag of ["index.html", "entrar.html", "guia.html", "recluta.html", "consola.html",
+                         "alistarse.html", "recursos.html", "panel.html"]) {
+        const c = await abrirSeguro("referente", pag);
+        if (!c) continue;
+        const ms = await evaluar(c, `[].slice.call(document.images)
+          .filter(function(i){ return i.currentSrc && i.complete && i.naturalWidth===0; })
+          .map(function(i){ return i.getAttribute('src'); }).slice(0,5)`);
+        (ms || []).forEach(m => faltan.push(pag + " → " + m));
+        await c.destruir();
+      }
+      comprobar("imágenes · ninguna se queda en el hueco gris", faltan.length === 0, faltan.slice(0, 5).join(" · "));
+    }
+
+    comprobar("ninguna página se queda colgada al abrirla", ATASCADAS.length === 0,
+              ATASCADAS.slice(0, 5).join(" | "));
 
   } finally {
     for (const c of abiertas) { try { await c.destruir(); } catch (e) {} }

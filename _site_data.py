@@ -765,7 +765,7 @@ PASOS = [
     hacer="Copia el <b>enlace de alistamiento</b> que sale al terminar.",
     voz="Un enlace. Uno solo, y es el de alistarse, no el de la Nave: a la Nave no se entra sin "
         "ficha, y la ficha se abre alistándose. Póntelo en el Genially del tema uno y en el foro de "
-        "la semana uno. Ya no hay tres formularios que repartir ni un documento con candado que no "
+        "la plataforma de UNIR de la semana uno. Ya no hay tres formularios que repartir ni un documento con candado que no "
         "puedas mandar entero: este enlace se lo puedes dar a una clase sin pensarlo."),
 
    dict(cod="R7", t="El puesto de mando", pose="pulgar", img="r7_consola.png",
@@ -829,7 +829,7 @@ PASOS = [
 
  dict(
   id="estudiante", icono="🧑‍🚀", titulo="Si eres recluta",
-  quien="El <b>alumnado</b>. Pon el enlace de alistamiento en el Genially del tema 1 y en el foro de la semana 1.",
+  quien="El <b>alumnado</b>. Pon el enlace de alistamiento en el Genially del tema 1 y en el foro de la plataforma de UNIR de la semana 1.",
   cuanto="Siete pasos · el segundo es el que importa de verdad",
   porque="Corto porque nadie lee instrucciones largas. Tiene un objetivo por encima de todos: que se "
          "alisten con la cuenta correcta. Es <b>el fallo más caro del sistema</b> — quien un día entra "
