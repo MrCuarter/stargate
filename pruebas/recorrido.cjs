@@ -57,6 +57,18 @@ const QUIENES = {
 function motorFalso(q) {
   return `
 window.SG = window.SG || {};
+/**
+ * 🔴 EL CATÁLOGO LO CARGA motor.js, no la página. Al sustituir el fichero desaparecía, y
+ * validar.js —que pinta el nombre del reto leyendo SG_CATALOGO— reventaba antes de dibujar su
+ * botón. En la web de verdad está siempre; era un agujero del doble, no del código.
+ */
+if (!window.SG_CATALOGO) {
+  window.SG_CATALOGO = {
+    retos: { REGULAR: [{ id: "A1", titulo: "Reto A «El boceto sin quemar»" }],
+             PUA: [{ id: "B1", titulo: "La chispa" }] },
+    cromos: [], heroes: [], recompensas: [], insignias: [],
+  };
+}
 var YO = ${JSON.stringify(q.yo)};
 var PERS = ${JSON.stringify(q.pers)};
 var FICHAS = ${JSON.stringify(q.fichas)};

@@ -51,8 +51,16 @@
   function puerta() {
     pinta(portada(
       'Para quedártelo tengo que saber quién eres. Entra con <b>la misma cuenta</b> con la que te alistaste.',
+      /**
+       * 🔴 EL BOTÓN ÉPICO, PERO CON LA «G». Aquí hay dos peticiones de Norberto que parecían
+       * pelearse: «este botón debe ser más épico» —es el momento del hallazgo, no un formulario— y
+       * «usa el logo de Google, da más confianza». No se pelean: la forma épica es la emoción y la
+       * «G» es la garantía de que la contraseña se teclea en Google. Sin la marca, un botón dorado
+       * que pide entrar en medio de una presentación se parece demasiado a lo que no hay que pulsar.
+       */
       '<button class="btn epico" id="hv-entrar"><span class="ep-luz"></span>'
-      + '<span class="ep-txt">Entrar con mi cuenta</span></button>'));
+      + '<span class="ep-g">' + ((window.SG && window.SG.LOGO_G) || '') + '</span>'
+      + '<span class="ep-txt">Entrar con Google</span></button>'));
     document.getElementById("hv-entrar").onclick = function () {
       cargando("Abriendo…");
       MOTOR.entrar().then(mirar).catch(function (e) { fallo(e.message); });

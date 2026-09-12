@@ -1777,6 +1777,12 @@ body.embed #sg-son{display:none}
 .btn.epico:active{transform:translateY(1px) scale(.99)}
 .btn.epico:disabled{filter:grayscale(.75) brightness(.7);cursor:default;transform:none;box-shadow:none}
 .btn.epico .ep-txt{position:relative;z-index:2}
+/* la «G» dentro del botón épico: pastilla blanca pequeña, para que se lea como marca de Google
+   sobre el dorado y no como un icono decorativo más */
+.btn.epico .ep-g{position:relative;z-index:2;display:inline-flex;align-items:center;
+  justify-content:center;width:28px;height:28px;border-radius:50%;background:#fff;
+  margin-right:11px;flex:none;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.btn.epico .ep-g svg{width:17px;height:17px;display:block}
 /* El destello que cruza: dice «esto es un momento», no «esto es un formulario». */
 .btn.epico .ep-luz{position:absolute;inset:0;z-index:1;
   background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);

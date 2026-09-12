@@ -374,7 +374,9 @@ const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disa
       const PUERTAS = [["entrar.html", "anonimo", "#e-google"],
                        ["consola.html", "anonimo", "#c-entrar"],
                        ["crear.html", "anonimo", "#btn-entrar"],
-                       ["guia.html", "anonimo", "#puertaCuenta"]];
+                       ["guia.html", "anonimo", "#puertaCuenta"],
+                       ["alistarse.html?per=prueba-humana", "anonimo", "#a-entrar"],
+                       ["validar.html?reto=A1", "anonimo", "#v-entrar"]];
       for (const [pag, quien, sel] of PUERTAS) {
         const c = await abrirSeguro(quien, pag, "!!document.querySelector('" + sel + "')");
         if (!c) { raras.push(pag + ": no se pudo abrir"); continue; }
@@ -391,8 +393,27 @@ const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disa
         if (v.arriba > 700) raras.push(pag + " bajo el pliegue (" + v.arriba + ")");
         await c.destruir();
       }
-      comprobar("puertas · las cuatro se ven igual: pastilla blanca, «G» y sobre el pliegue",
+      comprobar("puertas · las seis se ven igual: pastilla blanca, «G» y sobre el pliegue",
                 raras.length === 0, raras.join(" · "));
+
+      /**
+       * 🔴 LA EXCEPCIÓN, Y ESTÁ PENSADA. El botón del escondite es el ÉPICO —dorado, con su
+       * destello— porque es el momento del hallazgo y Norberto lo pidió así. Pero lleva la «G»
+       * dentro, en su pastilla blanca: sin la marca, un botón dorado que pide entrar en medio de
+       * una presentación se parece demasiado a lo que enseñamos a no pulsar.
+       */
+      const h = await abrirSeguro("anonimo", "huevo.html?h=p1", "!!document.querySelector('#hv-entrar')");
+      if (h) {
+        const v = await evaluar(h, `(function(){
+          var b = document.querySelector('#hv-entrar');
+          return { epico: /epico/.test(b.className), g: !!b.querySelector('svg'),
+                   dice: /google/i.test(b.textContent || '') };
+        })()`);
+        comprobar("puerta del escondite · sigue siendo la épica", v.epico);
+        comprobar("puerta del escondite · pero con la «G» y diciendo Google", v.g && v.dice,
+                  "svg " + v.g + ", texto " + v.dice);
+        await h.destruir();
+      } else comprobar("puerta del escondite · sigue siendo la épica", false, "no abrió");
     }
 
     // ============================================================ 8ter · LA MARCHA ATRÁS
