@@ -191,4 +191,23 @@ c(/return soyReferente\(\) \? \(D\.reclutas \|\| \[\]\) : \[\];/.test(AULA),
 c(/function avisoDeQuienVeo\(\)/.test(AULA), "y se explica por qué la pantalla está vacía");
 c(/No te enseño el alumnado de/.test(AULA), "   diciendo claramente que no se enseña lo ajeno");
 
+// ---------------------------------------------------------------- m) los grupos nuevos, en el menú
+// 🔴 `SG.pers` —que alimenta el desplegable «Grupos» del menú y la página de grupos— preguntaba solo
+// al Apps Script. Un referente creaba un grupo desde la consola y NO LO VEÍA en el menú de su propia
+// web, sin ningún error que lo explicara.
+const ST = js("stargate.js");
+c(/function delMotorNuevo\(\)/.test(ST), "🔴 `SG.pers` también pregunta al motor nuevo");
+c(/function juntar\(a,b\)/.test(ST), "   y junta las dos listas sin repetir");
+c(/if\(fresco && !nuevo\) return;/.test(ST),
+  "🔴 y con el motor nuevo refresca aunque la caché esté fresca: esa caché no conoce los grupos nuevos");
+c(/nuevos\.length/.test(ST), "   sin API sigue habiendo grupos que enseñar, así que no se rinde");
+
+// 🔴 Y LA TRAMPA QUE COSTÓ ENCONTRAR ESTO: `assets/js/stargate.js` NO se edita, se GENERA desde
+// `_build_site.py`. Tocar el fichero y reconstruir borra el cambio sin decir nada — se ve porque el
+// navegador sigue sirviendo la versión de antes. La fuente es el build.
+const BUILD = fs.readFileSync(path.join(__dirname, "..", "_build_site.py"), "utf8");
+c(/open\(os\.path\.join\(HERE,"assets","js","stargate.js"\),"w"/.test(BUILD),
+  "🔴 stargate.js lo escribe la construcción: editarlo a mano no sirve de nada");
+c(BUILD.indexOf("delMotorNuevo") > 0, "   por eso el cambio vive en _build_site.py, que es su fuente");
+
 E.resumen("La Nave rediseñada");

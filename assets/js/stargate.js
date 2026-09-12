@@ -97,18 +97,45 @@ window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.a
 // ---------- lista de PERs (grupos): caché de 12 h + revalidación en segundo plano ----------
 // La usa el desplegable «Grupos» del menú y grupos.html. doGet ?per=all NO pide PIN y solo
 // devuelve id/nombre/tipo/estado/inicio de los PER no archivados.
+/**
+ * La lista de grupos: alimenta el desplegable «Grupos» del menu y la pagina de grupos.
+ *
+ * 12-sep · Preguntaba SOLO al Apps Script, asi que los grupos creados con el motor nuevo no
+ * aparecian en ninguno de los dos sitios. Un referente creaba un grupo desde la consola y no lo veia
+ * en el menu de su propia web, sin ningun error que lo explicara.
+ *
+ * Ahora se juntan las dos listas. La del motor nuevo solo llega si hay sesion (Firestore no contesta
+ * a quien no ha entrado) y si esa pagina carga la fuente, asi que esto ANADE y nunca quita: en una
+ * pagina publica sigue saliendo exactamente lo de siempre.
+ */
 window.SG.pers = function(cb){
   var API=(window.SG_TABLERO_API||'').trim(), K='sgPers_v1';
-  if(!API){ cb([], 'sin-api'); return; }
+  var F = window.SG && window.SG.FUENTE;
+  var nuevo = F && F.nombre === 'firestore';
+  function juntar(a,b){ var v={}, out=[];
+    (a||[]).concat(b||[]).forEach(function(p){ if(!p||!p.id||v[p.id])return; v[p.id]=true; out.push(p); });
+    return out; }
+  function delMotorNuevo(){
+    if(!nuevo) return Promise.resolve([]);
+    return F.lista().then(function(r){ return (r&&r.pers)||[]; }).catch(function(){ return []; }); }
+  if(!API){
+    delMotorNuevo().then(function(n){ cb(n, n.length?'red':'sin-api'); });
+    return; }
   var cache=null; try{ cache=JSON.parse(localStorage.getItem(K)||'null'); }catch(e){}
   var fresco = cache && (Date.now()-cache.ts) < 12*3600*1000;
   if(cache) cb(cache.pers, fresco?'cache':'viejo');
-  if(fresco) return;
-  fetch(API+'?per=all',{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){
-    var pers=(d&&d.pers)||[];
+  if(fresco && !nuevo) return;   // con el motor nuevo se refresca igual: la cache no lo conoce
+  Promise.all([
+    fetch(API+'?per=all',{redirect:'follow'}).then(function(r){return r.json();})
+      .then(function(d){ return (d&&d.pers)||[]; }).catch(function(){ return null; }),
+    delMotorNuevo()
+  ]).then(function(res){
+    var viejos=res[0], nuevos=res[1];
+    if(viejos===null && !nuevos.length){ if(!cache) cb([], 'error'); return; }
+    var pers=juntar(viejos||[], nuevos);
     try{ localStorage.setItem(K, JSON.stringify({ts:Date.now(), pers:pers})); }catch(e){}
     cb(pers, 'red');
-  }).catch(function(){ if(!cache) cb([], 'error'); });
+  });
 };
 
 // ---------- desplegable «Grupos» del menú ----------
