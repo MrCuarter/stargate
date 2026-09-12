@@ -2070,3 +2070,34 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 .m-fila a{font-size:.86rem;white-space:nowrap}
 .m-fila.vacia{opacity:.55}
 .m-fila em{font-style:normal;font-size:.82rem;color:var(--mut)}
+
+/* ══════════ EL SUBMENÚ DE LA GUÍA ══════════
+   La guía es larga a propósito: es el método entero. Sin índice se navega a rueda de ratón. Y se
+   pega arriba al bajar — un índice que desaparece al hacer scroll no es un índice, es una portada. */
+.guia-sub{position:sticky;top:0;z-index:18;background:rgba(8,12,20,.94);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);margin-bottom:8px}
+.guia-sub .wrap{display:flex;gap:4px;overflow-x:auto;padding-top:9px;padding-bottom:9px;
+  scrollbar-width:none}
+.guia-sub .wrap::-webkit-scrollbar{display:none}
+.guia-sub a{flex:none;padding:8px 14px;border-radius:99px;text-decoration:none;font-size:.88rem;
+  color:var(--mut);border:1px solid transparent;transition:.15s;white-space:nowrap}
+.guia-sub a:hover{color:var(--ink);background:rgba(55,224,236,.08);border-color:#2a5a66}
+/* Sin esto, al saltar a una sección la cabecera pegada tapa su título. */
+section[id]{scroll-margin-top:110px}
+
+/* Los enlaces de interés: tarjetas que se pulsan enteras, no un párrafo con un enlace dentro. */
+.card.enl{display:block;text-decoration:none;color:inherit;transition:.16s}
+.card.enl:hover{border-color:var(--teal);transform:translateY(-2px)}
+.enl-ico{font-size:2rem;line-height:1;display:block;margin-bottom:8px}
+.card.enl h3{margin:0 0 6px}
+.card.enl p{margin:0;color:var(--mut);font-size:.9rem;line-height:1.5}
+@media (prefers-reduced-motion:reduce){.card.enl:hover{transform:none}}
+
+/* Los cuatro pasos de una clase en directo. Numerados porque SÍ son una secuencia: no se puede
+   celebrar antes de proyectar ni fichar antes de que se sienten. */
+.clase-viva .card{position:relative;padding-top:26px}
+.cv-n{position:absolute;top:-14px;left:20px;width:34px;height:34px;border-radius:50%;
+  display:grid;place-items:center;font-family:'Unbounded',sans-serif;font-weight:800;
+  background:var(--teal);color:#04141a;font-size:1rem}
+.clase-viva h3{margin:6px 0 8px}
