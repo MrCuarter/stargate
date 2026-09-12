@@ -1864,8 +1864,9 @@ for name, html in [("profes.html", PROFES), ("foro.html", FORO_PAGE)]:
 
 # ================= v2.2 · PANEL VISUAL DE TICKETS =================
 TICKETS = head("STARGATE · Tickets de salida", "Panel visual de los tickets de salida «Contacta con NEBULA»: valoraciones por sección y dudas por resolver, por PER y por profesor/a.", "reg") + f'''
-<header class="hero"><div class="kicker">Solo profesorado · PIN</div><h1>Contacta con NEBULA</h1>
-<p>Elige tu PER y tu clase: verás de un vistazo las valoraciones (1-5) de cada sección y las dudas del alumnado, y podrás marcarlas como resueltas cuando las trates en clase.</p>
+<header class="hero"><div class="kicker">Solo profesorado</div><h1>Contacta con NEBULA</h1>
+<p>Elige tu grupo y tu clase: verás de un vistazo las valoraciones (1-5) de cada sección y las dudas del alumnado, y podrás marcarlas como resueltas cuando las trates en clase.</p>
+<p class="small muted">El ticket es <b>uno solo para todos los grupos y todos los años</b>, y es <b>anónimo</b>: el formulario no recoge ni nombres ni correos. La Nave le dice sola de qué grupo y de qué Comandante viene cada respuesta.<br><i>En los grupos del sistema anterior sigue pidiéndose el PIN del profesorado, como siempre.</i></p>
 <p class="small muted">Embed para el Genially del profesorado: <code>tickets.html?embed=1</code> (o <code>?per=&lt;id&gt;&amp;embed=1</code>). <a href="tickets.html?demo=1">Ver una demostración con datos ficticios</a>.</p></header>
 <section id="panel"><div class="wrap">
 <div id="tickets-app"></div>
