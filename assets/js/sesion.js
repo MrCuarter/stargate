@@ -76,6 +76,119 @@
   // ---------- el mazo ----------
   // Cada diapositiva es {k:clave, rot:rótulo de la tira de pasos, html}. El rótulo se usa en el
   // índice y en la barra inferior: así el docente sabe siempre cuánto queda.
+  /**
+   * ════════ EL OPENING DE LA CLASE ════════
+   *
+   * Brief de Norberto: «debe servir de opening… sitúa al estudiante: antes, misiones hechas,
+   * ranking, tip semanal o invitación, vídeo de inicio, retos que vamos a ver, y acaba con el
+   * Genially embebido del grupo para iniciar la clase». Y sobre los datos del grupo: «TODA ESTA
+   * INFO ES ORO Y ANIMA A VENCER».
+   *
+   * 🔴 Y tiene razón en el porqué, que es lo que hace que esto no sea decoración: un ranking
+   * genérico no le importa a nadie, pero «esta semana Tritón, Nova y Orion han sacado la insignia
+   * de Amara» es gente que está SENTADA EN ESA CLASE. Proyectar eso treinta segundos antes de
+   * empezar hace más por la participación que cualquier discurso.
+   *
+   * Todo sale del tablero que ya se pide para saber la semana: cero peticiones nuevas.
+   */
+  function vivos(){ return (st.d && st.d.reclutas) || []; }
+
+  /** Top 5, ni uno más: una tabla de treinta nombres proyectada no la lee nadie. */
+  function podio(){
+    var r = vivos().slice().sort(function(a,b){ return (b.xp||0)-(a.xp||0); }).slice(0,5);
+    if(r.length < 3) return '';
+    return '<div class="dia datos"><div class="kicker">Cómo va la tripulación</div><h2>Los cinco de arriba</h2>'
+      +'<ol class="ses-podio">'+r.map(function(p,i){
+        return '<li class="p'+(i+1)+'"><span class="pos">'+(i+1)+'</span>'
+          +'<span class="al">'+(p.corona?'👑 ':'')+esc(p.alias)+'</span>'
+          +'<span class="xp">'+(p.xp||0)+' xp</span></li>';
+      }).join('')+'</ol>'
+      +'<p class="ses-pie">Los xp no bajan nunca: esto es trabajo acumulado, no suerte.</p></div>';
+  }
+
+  /** Escuadrones POR MEDIA, nunca por suma: si no, gana siempre el más numeroso. */
+  function escuadrones(){
+    var por={};
+    vivos().forEach(function(p){
+      var e=p.profe||'—'; (por[e]=por[e]||[]).push(p.xp||0);
+    });
+    var ks=Object.keys(por).filter(function(k){return k!=='—';});
+    if(ks.length<2) return '';
+    var filas=ks.map(function(k){
+      var v=por[k]; return {n:k, media:Math.round(v.reduce(function(a,b){return a+b;},0)/v.length), cuantos:v.length};
+    }).sort(function(a,b){return b.media-a.media;});
+    var max=filas[0].media||1;
+    return '<div class="dia datos"><div class="kicker">Entre escuadrones</div><h2>¿Quién tira del grupo?</h2>'
+      +'<div class="ses-esc">'+filas.map(function(f,i){
+        return '<div class="ses-esc-f"><b>'+(i===0?'🏆 ':'')+esc(f.n)+'</b>'
+          +'<div class="ses-bar"><i style="width:'+Math.round(f.media*100/max)+'%"></i></div>'
+          +'<span>'+f.media+' xp de media · '+f.cuantos+'</span></div>';
+      }).join('')+'</div>'
+      +'<p class="ses-pie">Por MEDIA, no por suma: así no gana el escuadrón más numeroso, gana el que se mueve.</p></div>';
+  }
+
+  /** A quién felicitar hoy, con nombre. Es la diapositiva que más cambia una clase. */
+  function logros(){
+    var r = vivos().filter(function(p){ return (p.xp7||0) > 0; })
+                   .sort(function(a,b){ return (b.xp7||0)-(a.xp7||0); }).slice(0,8);
+    if(!r.length) return '';
+    return '<div class="dia datos celebra"><div class="kicker">Esta semana</div>'
+      +'<h2>Han movido ficha</h2>'
+      +'<div class="ses-gente">'+r.map(function(p){
+        return '<span class="ses-uno">'+(p.corona?'👑 ':'')+esc(p.alias)+'<em>+'+(p.xp7||0)+' xp</em></span>';
+      }).join('')+'</div>'
+      +'<p class="ses-pie">Nómbralos en voz alta. Los puntos los da el sistema; la ceremonia la haces tú.</p></div>';
+  }
+
+  /** La misión que más gente ha hecho: dice por dónde va el grupo y a qué se puede apuntar quien falta. */
+  function masHecha(){
+    var cuenta=(st.d&&st.d.retos_n)||{}, act=(st.d&&st.d.activos)||0;
+    var ks=Object.keys(cuenta); if(!ks.length||act<3) return '';
+    var RET=(window.SG_RETOS||{})[st.tipo||'REGULAR']||[];
+    ks.sort(function(a,b){ return cuenta[b]-cuenta[a]; });
+    var k=ks[0], t=RET.filter(function(x){return x[0]===k;})[0];
+    if(!t) return '';
+    return '<div class="dia datos"><div class="kicker">La más hecha</div>'
+      +'<h2>'+esc(t[1])+'</h2>'
+      +'<p class="ses-grande">'+Math.round(cuenta[k]*100/act)+'%</p>'
+      +'<p class="ses-pie">de la gente activa ya la tiene. Si aún no es tu caso, es la más fácil por la que empezar.</p></div>';
+  }
+
+  /**
+   * UNA INVITACIÓN por semana. 🔴 Ojo al nombre: NO es «el consejo» del calendario — ese es material
+   * privado del docente y no se proyecta nunca (lo vigila la batería 48). Esto es lo contrario: algo
+   * que el ALUMNADO puede hacer hoy mismo, además de las misiones.
+   * Rota con el número de semana para que no sea siempre la misma, y todas son accionables: nada de
+   * «esfuérzate».
+   */
+  var INVITACIONES = [
+    ['🃏','Abre un sobre de cromos','15 créditos. Cada carta cuenta un trozo de la historia que no sale en ningún vídeo.'],
+    ['🎭','Cámbiate el personaje','Los que ya tienes desbloqueados se ponen y se quitan gratis, las veces que quieras.'],
+    ['🔁','Cambia tus repetidas','Tres repetidas valen un sobre nuevo, y no cuesta créditos.'],
+    ['🖼️','Ponte un adorno','Título, marco o el planeta de fondo: se ven en tu ficha y en el tablero de clase.'],
+    ['🏅','Mira qué insignia tienes más cerca','En Mi botín, las apagadas dicen exactamente qué piden.'],
+    ['💬','Contesta el ticket de salida','Treinta segundos, anónimo, y es lo que hace que la clase siguiente vaya mejor.']
+  ];
+  function invitacion(sem){
+    var c = INVITACIONES[(Number(sem)||1) % CONSEJOS.length];
+    return '<div class="dia invita"><div class="kicker">Además de las misiones</div>'
+      +'<div class="ses-tip"><span class="ico">'+c[0]+'</span><div><h2>'+esc(c[1])+'</h2>'
+      +'<p>'+esc(c[2])+'</p></div></div></div>';
+  }
+
+  /** Lo que dijeron al salir de la última clase. Sin nombres: el ticket es anónimo y lo seguirá siendo. */
+  function ecos(){
+    var t=(st.d&&st.d.tickets)||[];
+    var frases=t.map(function(x){ return String(x.duda||x.texto||'').trim(); })
+                .filter(function(x){ return x.length>8; }).slice(0,3);
+    if(!frases.length) return '';
+    return '<div class="dia datos"><div class="kicker">Lo que dijisteis al salir</div>'
+      +'<h2>Vuestras dudas de la última sesión</h2>'
+      +'<div class="ses-ecos">'+frases.map(function(f){
+        return '<blockquote>'+esc(f)+'</blockquote>'; }).join('')+'</div>'
+      +'<p class="ses-pie">Anónimo, siempre. Empezar la clase contestando esto vale más que cualquier repaso.</p></div>';
+  }
+
   function construir(s, n){
     var d=[], pl=planeta(s.tema_n);
 
@@ -163,6 +276,60 @@
       +'<h2>Tu ejemplo</h2>'
       +'<p class="sub">Aquí es donde entras tú: el caso que conoces, el recurso que usaste el año pasado, '
       +'la pregunta que siempre hacen. Esta diapositiva está en blanco a propósito.</p></div>'});
+
+    /**
+     * ════════ EL OPENING, EN ORDEN ════════
+     *
+     * Se insertan DESPUÉS del plan y ANTES del contenido de la semana, en el orden que pidió
+     * Norberto: sitúa al estudiante → lo que ya habéis hecho → cómo va la cosa → un consejo → y a
+     * clase. Cada bloque se calla solo si no tiene datos: un ranking de dos personas o un «0 %» no
+     * animan a nadie, desaniman.
+     *
+     * 🔴 Va DESPUÉS del plan a propósito. Lo primero que hay que saber es qué toca hoy; celebrar
+     * antes de decir a qué venimos es empezar por el postre.
+     */
+    var opening = [
+      ['logros',   'Esta semana',   logros()],
+      ['podio',    'El ranking',    podio()],
+      ['escuadr',  'Escuadrones',   escuadrones()],
+      ['mashecha', 'La más hecha',  masHecha()],
+      ['ecos',     'Vuestras dudas', ecos()],
+      ['invita',   'Una invitación', invitacion(s.sem)]
+    ].filter(function(x){ return x[2]; });
+    // se meten justo detrás de «El plan» (índice 1)
+    var cabeza = d.slice(0,2), cola = d.slice(2);
+    d = cabeza.concat(opening.map(function(x){ return {k:x[0], rot:x[1], html:x[2]}; })).concat(cola);
+
+    /**
+     * ════════ Y PARA EMPEZAR DE VERDAD ════════
+     * Las dos cosas que se hacen con la clase ya delante: abrir el fichaje y lanzar el Genially.
+     * Son el final del opening porque son el momento en que la sesión deja de ser una proyección y
+     * pasa a ser una clase.
+     */
+    if (st.per) {
+      d.push({k:'pase', rot:'Pase de lista', html:
+        '<div class="dia accion"><div class="kicker">Con la clase ya sentada</div>'
+        +'<h2>Llamada a filas</h2>'
+        +'<p class="sub">Abre el fichaje y en la Nave de tu gente aparece solo el botón de <b>✋ Presente</b>. '
+        +'Unos créditos por estar, y tú ves quién va llegando en directo.</p>'
+        +'<div class="cta-row">'
+        +'<a class="btn primary grande" href="llamada.html?per='+encodeURIComponent(st.per)+'" target="_blank" rel="noopener">🔔 Tocar llamada a filas ↗</a>'
+        +'<a class="btn" href="aula.html?per='+encodeURIComponent(st.per)+'" target="_blank" rel="noopener">🎛️ Abrir el aula ↗</a>'
+        +'</div></div>'});
+
+      // 🔴 El Genially del grupo, EMBEBIDO y al final: es la señal de «se acabó la introducción,
+      // empieza la clase». Si no hay panel propio se dice, en vez de dejar un hueco negro.
+      var panel = (st.d && (st.d.panel || st.d.panelVer)) || '';
+      d.push({k:'genially', rot:'Empezar', html:
+        '<div class="dia genially">'
+        +(panel
+          ? '<iframe src="'+esc(panel)+'" title="Panel de control del grupo" loading="lazy" '
+            +'allowfullscreen allow="fullscreen"></iframe>'
+          : '<div class="txt"><div class="kicker">Para empezar</div><h2>Tu panel de Genially</h2>'
+            +'<p class="sub">Este grupo todavía no tiene panel propio. Pégalo en '
+            +'<b>Puesto de mando → Ajustes</b> y aparecerá aquí, listo para lanzar la clase.</p></div>')
+        +'</div>'});
+    }
 
     return d;
   }
@@ -274,6 +441,10 @@
   function arrancar(d){
     if(d&&!d.error){
       st.tipo=(d.tipo||'REGULAR'); st.nombre=d.nombre||''; st.inicio=d.inicio||'';
+      // 🔴 El tablero entero, no solo el tipo y la fecha. Norberto: «toda esta info es ORO y anima a
+      // vencer». Y es verdad: el ranking, quién ha completado algo y qué habéis dicho en el ticket
+      // son de este grupo y de nadie más — proyectarlos es lo que convierte una tabla en una clase.
+      st.d = d;
     }
     var forzada=parseInt(q.get('sem')||'0',10);
     if(forzada) st.sem=forzada;

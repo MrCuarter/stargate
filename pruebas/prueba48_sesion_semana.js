@@ -55,7 +55,12 @@ const prep = S.slice(S.indexOf("function prep("), S.indexOf("function pintar("))
 c(prep.indexOf("s.consejo") >= 0, "el consejo del Capitán se pinta en la tira de preparación");
 c(prep.indexOf("s.foro") >= 0, "y el mensaje del foro, también fuera del mazo");
 const construir = S.slice(S.indexOf("function construir("), S.indexOf("// ---------- pintado ----------"));
-c(construir.indexOf("consejo") < 0, "🔴 el consejo NO entra en ninguna diapositiva del mazo");
+// 🔴 La regla es sobre `s.consejo` —el consejo del Capitán que viene del calendario, material
+// PRIVADO del docente— no sobre la palabra. Desde el 12-sep el mazo lleva además una «invitación»
+// semanal, que es lo contrario: algo que el alumnado puede hacer hoy. Buscar la palabra suelta
+// confundía las dos y saltaba con un cambio legítimo.
+c(construir.indexOf("s.consejo") < 0, "🔴 el consejo del Capitán NO entra en ninguna diapositiva del mazo");
+c(construir.indexOf("invitacion(") >= 0, "   pero la invitación al alumnado sí: esa es para proyectarla");
 c(construir.indexOf(".foro") < 0, "🔴 el mensaje del foro tampoco: eso lo copia el docente, no se proyecta");
 c(/mazo&&mazo\.requestFullscreen/.test(CODIGO),
   "🔴 la pantalla completa se pide sobre el MAZO, no sobre la página (si no, el consejo se vería)");
