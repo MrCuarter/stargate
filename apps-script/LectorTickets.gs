@@ -1,0 +1,140 @@
+/**
+ * STARGATE · EL LECTOR DE TICKETS
+ * ------------------------------------------------------------------------------------------------
+ * Un Apps Script diminuto que vive DENTRO de la hoja «STARGATE · Tickets de salida» y no hace más
+ * que una cosa: devolver sus respuestas en JSON para que el panel de tickets de la web las pinte.
+ *
+ * 🔴 POR QUÉ ESTO EXISTE, Y POR QUÉ NO ESTÁ EN NINGUNA OTRA PARTE.
+ *
+ * Todo STARGATE se ha mudado de Apps Script a Firestore. Todo menos el ticket de salida, y a
+ * propósito: tiene que ser ANÓNIMO, y el motor guarda quién completa cada cosa suya. Un formulario
+ * de Google es la única pieza del sistema que puede recoger una respuesta sin saber de quién es.
+ *
+ * Pero entonces las respuestas viven en una hoja de cálculo, y una hoja no se puede leer desde una
+ * página web sin abrirla al mundo. Las tres salidas eran:
+ *   · PUBLICARLA en la web como CSV — sencillo, pero deja las dudas del alumnado a un enlace de
+ *     distancia de cualquiera que lo encuentre. Es una decisión de quien manda, no de quien programa.
+ *   · Leerla desde el SERVIDOR de GamificaPro con una cuenta de servicio — limpio, pero obliga a
+ *     compartir la hoja con un correo raro y a mantener otra credencial.
+ *   · ESTO: que la hoja lleve su propio lector. Corre con la cuenta que la creó, no comparte nada
+ *     con nadie, y se despliega una vez en la vida.
+ *
+ * No reintroduce la dependencia que se quitó: esto lo leen cuatro docentes de vez en cuando, no
+ * doscientos estudiantes a la vez. El techo de 30 ejecuciones de Apps Script no se acerca ni de
+ * lejos, que era el problema que obligó a mudarse.
+ *
+ * ------------------------------------------------------------------------------------------------
+ * CÓMO SE PONE EN MARCHA (una vez, tres minutos)
+ *
+ *  1. Abre la hoja «STARGATE · Tickets de salida» con la cuenta de la asignatura.
+ *  2. Extensiones → Apps Script. Pega este archivo entero encima de lo que haya.
+ *  3. Implementar → Nueva implementación → Aplicación web.
+ *       Ejecutar como: Yo          (para que pueda leer la hoja)
+ *       Acceso:        Cualquier usuario
+ *  4. Copia la URL que acaba en /exec y ponla en `_site_data.py → TICKETS_API`.
+ *
+ * 🔴 Lo que este lector NO devuelve, y no es un olvido: nada que identifique a nadie. Si algún día
+ * el formulario recogiera correos, este script seguiría sin darlos.
+ */
+
+// La pestaña donde el formulario deja las respuestas. Es la primera, y se busca por posición porque
+// Google la nombra en el idioma de quien la creó.
+function hojaDeRespuestas_() {
+  var ss = SpreadsheetApp.getActive();
+  var hs = ss.getSheets();
+  for (var i = 0; i < hs.length; i++) if (hs[i].getFormUrl && hs[i].getFormUrl()) return hs[i];
+  return hs[0];
+}
+
+// La columna «Resuelto» la añade este mismo script la primera vez que alguien marca una duda como
+// tratada. No la crea el formulario, así que puede no existir todavía.
+var COL_RESUELTO = "Resuelto";
+
+function columna_(sh, titulo) {
+  var n = sh.getLastColumn();
+  var cab = sh.getRange(1, 1, 1, n).getValues()[0].map(String);
+  var i = cab.indexOf(titulo);
+  if (i >= 0) return i + 1;
+  sh.getRange(1, n + 1).setValue(titulo);
+  return n + 1;
+}
+
+/**
+ * Las respuestas de UN grupo, en la forma que el panel ya sabe pintar.
+ *
+ * 🔴 El filtro por grupo se hace AQUÍ y no en el navegador. Si se mandaran todas y filtrara la
+ * página, cualquier docente vería las dudas de los grupos de sus compañeros con solo mirar lo que
+ * llegó por la red. Anónimo no quiere decir de dominio público.
+ */
+function ticketsDe_(grupo) {
+  var sh = hojaDeRespuestas_();
+  if (!sh || sh.getLastRow() < 2) return [];
+  var v = sh.getDataRange().getValues();
+  var cab = v[0].map(String);
+  var cGrupo = cab.indexOf("Grupo");
+  var cRes = cab.indexOf(COL_RESUELTO);
+  var g = String(grupo || "").trim().toLowerCase();
+  var out = [];
+  for (var i = 1; i < v.length; i++) {
+    if (g && cGrupo >= 0 && String(v[i][cGrupo] || "").trim().toLowerCase() !== g) continue;
+    var r = {};
+    cab.forEach(function (c, k) {
+      if (k === 0 || c === COL_RESUELTO || c === "Grupo") return;   // la marca de tiempo va aparte
+      if (v[i][k] !== "" && v[i][k] !== null) r[c] = v[i][k];
+    });
+    out.push({ fecha: v[i][0], fila: i + 1,
+               resuelto: cRes >= 0 ? String(v[i][cRes] || "") : "", r: r });
+  }
+  return out;
+}
+
+/** Los grupos que han contestado alguna vez: para el desplegable, sin tener que saberlos de memoria. */
+function gruposConTickets_() {
+  var sh = hojaDeRespuestas_();
+  if (!sh || sh.getLastRow() < 2) return [];
+  var v = sh.getDataRange().getValues();
+  var c = v[0].map(String).indexOf("Grupo");
+  if (c < 0) return [];
+  var vistos = {}, out = [];
+  for (var i = 1; i < v.length; i++) {
+    var g = String(v[i][c] || "").trim();
+    if (g && !vistos[g]) { vistos[g] = true; out.push({ id: g, nombre: g }); }
+  }
+  return out;
+}
+
+function json_(o) {
+  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * La puerta. Dos peticiones y se acabó.
+ *
+ * Se responde a GET y a POST porque el panel manda POST y un navegador curioso (o una prueba desde
+ * la barra de direcciones) manda GET: que las dos funcionen ahorra un rato de desconcierto.
+ */
+function doGet(e) { return atender_((e && e.parameter) || {}); }
+function doPost(e) {
+  var q = {};
+  try { q = JSON.parse((e.postData && e.postData.contents) || "{}"); } catch (err) { q = (e && e.parameter) || {}; }
+  return atender_(q);
+}
+
+function atender_(q) {
+  try {
+    var a = String(q.accion || "tickets");
+    if (a === "pers") return json_({ pers: gruposConTickets_() });
+    if (a === "tickets") return json_({ tickets: ticketsDe_(q.per) });
+    if (a === "ticket_resuelto") {
+      var sh = hojaDeRespuestas_();
+      var col = columna_(sh, COL_RESUELTO);
+      sh.getRange(Number(q.fila), col).setValue(
+        q.valor ? "Sí · " + (q.profe || "") + " · " +
+                  Utilities.formatDate(new Date(), "Europe/Madrid", "dd/MM") : "");
+      return json_({ ok: true });
+    }
+    return json_({ error: "No sé hacer eso: " + a });
+  } catch (err) {
+    return json_({ error: err.message });
+  }
+}

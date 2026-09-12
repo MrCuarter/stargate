@@ -12,7 +12,7 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
-                        PASOS, ESCUADRONES, TICKET_URL)
+                        PASOS, ESCUADRONES, TICKET_URL, TICKETS_API, TICKETS_HOJA)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
 # no se escriben a mano (si no, cambiarlas en _site_data.py dejaría la web mintiendo).
@@ -2547,6 +2547,8 @@ def _cabeza_fuente():
     modo = _json.dumps(MOTOR_POR_DEFECTO)
     return (
         '<script>window.SG_FIREBASE=' + cfg + ';window.SG_MOTOR=' + modo + ';'
+        'window.SG_TICKETS_API=' + _json.dumps(TICKETS_API) + ';'
+        'window.SG_TICKETS_HOJA=' + _json.dumps(TICKETS_HOJA) + ';'
         'window.SG_CATALOGO_URL="' + _v("motor/catalogo.json") + '";</script>'
         '<script src="' + _v("assets/js/fuente.js") + '" defer></script>'
         '<script src="' + _v("assets/js/fiesta.js") + '" defer></script>'

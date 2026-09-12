@@ -95,4 +95,30 @@ c(/String\(d\.correo \|\| ""\)\.toLowerCase\(\) === yo\.correo/.test(F),
 c(/privado", "stargate"/.test(F),
   "   y si el listado no lo trae, se busca en `privado`, que solo lee el profesorado");
 
+// ---------------------------------------------------------------- g) los tickets, que son otra cosa
+// 🔴 El ticket de salida es la ÚNICA pieza que no se ha mudado, y es a propósito: tiene que ser
+// anónimo y el motor guarda quién completa cada cosa suya. Sus respuestas viven en una hoja, y una
+// hoja no se lee desde una página sin abrirla al mundo. Por eso la hoja lleva su propio lector.
+const TK = js("tickets.js");
+const LECTOR = fs.readFileSync(path.join(__dirname, "..", "apps-script", "LectorTickets.gs"), "utf8");
+c(/function doGet\(e\)/.test(LECTOR) && /function doPost\(e\)/.test(LECTOR),
+  "el lector de la hoja contesta a GET y a POST");
+["pers", "tickets", "ticket_resuelto"].forEach(function (a) {
+  c(new RegExp('a === "' + a + '"').test(LECTOR), "   y sabe hacer «" + a + "»");
+});
+c(/if \(g && cGrupo >= 0 && String\(v\[i\]\[cGrupo\]/.test(LECTOR),
+  "🔴 filtra por grupo EN EL SERVIDOR: si filtrara la página, cualquier docente vería las dudas de los grupos de sus compañeros");
+c(LECTOR.indexOf("getEmail") < 0 && !/correo|email/i.test(LECTOR.split("function ticketsDe_")[1].split("}")[0]),
+  "🔴 y no toca ningún correo: anónimo es anónimo");
+
+c(/function sinLector\(\)/.test(TK), "el panel sabe qué hacer cuando el lector no está desplegado");
+c(/El panel todavía no lee esta hoja/.test(TK),
+  "🔴 y lo DICE, en vez de pintar un panel vacío que parecería «tu clase no ha contestado nada»");
+c(/SG_TICKETS_HOJA/.test(TK), "   dando el enlace a la hoja, para que no se pierda nada mientras tanto");
+c(/if\(NUEVO\) \{ if\(LECTOR\) inicio\(\); else sinLector\(\); \}/.test(TK),
+  "🔴 y con el motor nuevo no pide PIN: una credencial para una puerta que no lleva a ningún sitio");
+const tkhtml = fs.readFileSync(path.join(__dirname, "..", "tickets.html"), "utf8");
+c(/window\.SG_TICKETS_API=/.test(tkhtml) && /window\.SG_TICKETS_HOJA=/.test(tkhtml),
+  "y la página lleva las dos direcciones puestas por la construcción, no escritas a mano");
+
 E.resumen("La sala del docente, en el motor nuevo");

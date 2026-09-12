@@ -868,6 +868,19 @@ ESCUADRONES = [
 #
 # Para rellenarlo: menú STARGATE → «Ver los datos del ticket compartido» → copiar la línea de
 # DIRECCIÓN CON HUECOS y pegarla aquí.
+# La hoja donde caen TODAS las respuestas del ticket, de todos los grupos y todos los años. Se
+# creó a la vez que el formulario y se deja a mano porque es la materia prima: si algún día el
+# panel no estuviera disponible, las respuestas se leen aquí.
+TICKETS_HOJA = "https://docs.google.com/spreadsheets/d/1x_5lztVydAttUvAdvuVM0AiC8zseUrXbMmBu4e9uOdM/edit"
+
+# 🔴 El lector de esa hoja. Vive DENTRO de ella (apps-script/LectorTickets.gs) y hay que desplegarlo
+# una vez: Extensiones → Apps Script → pegar → Implementar como aplicación web (ejecutar como Yo,
+# acceso Cualquier usuario) → pegar aquí la URL que acaba en /exec.
+#
+# Mientras esté vacío, el panel de tickets de los grupos del motor nuevo lo dice y manda a la hoja,
+# en vez de quedarse en blanco o inventarse que no hay respuestas.
+TICKETS_API = ""
+
 TICKET_URL = ("https://docs.google.com/forms/d/e/"
               "1FAIpQLScqkZRCiUqKkq24s7_yzy2d2ldHXlWz8GoHCqXXmHbQlgKhIQ/viewform"
               "?usp=pp_url&entry.489397158={GRUPO}&entry.856117988={COMANDANTE}")

@@ -14,7 +14,42 @@
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function f(d){try{return new Date(d).toLocaleDateString('es-ES');}catch(e){return d;}}
   function campo(r,frag){for(var k in r)if(k.indexOf(frag)>=0)return r[k];return '';}
-  function post(b,cb){if(st.demo){return cb(demo(b));}b.pin=st.pin;fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)}).then(function(r){return r.json();}).then(function(d){if(d.error){if(/PIN/.test(d.error)){sessionStorage.removeItem('sgPin');st.pin='';pedirPin(d.error);return;}alert(d.error);return;}cb(d);}).catch(function(e){alert('Error: '+e.message);});}
+  /**
+   * DE DÓNDE SALEN LAS RESPUESTAS.
+   *
+   * 🔴 El ticket de salida es la ÚNICA pieza de STARGATE que no se ha mudado a Firestore, y es a
+   * propósito: tiene que ser anónimo, y el motor guarda quién completa cada cosa suya. Un formulario
+   * de Google es lo único que recoge una respuesta sin saber de quién es.
+   *
+   * Eso deja las respuestas en una hoja de cálculo, que no se puede leer desde una página sin
+   * abrirla al mundo. La solución es que la hoja lleve su propio lector (apps-script/LectorTickets.gs),
+   * desplegado una vez. Mientras no lo esté, esto se DICE — no se enseña un panel vacío que parecería
+   * decir «tu clase no ha contestado nada».
+   */
+  var NUEVO = !!(window.SG && SG.FUENTE && SG.FUENTE.nombre==='firestore');
+  var LECTOR = String(window.SG_TICKETS_API||'').trim();
+
+  function sinLector(){
+    var hoja=String(window.SG_TICKETS_HOJA||'');
+    root.innerHTML='<div class="card"><h3>El panel todavía no lee esta hoja</h3>'
+      +'<p>Desde que el ticket de salida es <b>uno solo para todos los grupos</b>, sus respuestas '
+      +'viven en una hoja aparte. Para pintarlas aquí hay que desplegar su lector <b>una vez</b>: '
+      +'está en <code>apps-script/LectorTickets.gs</code> y lleva las instrucciones dentro.</p>'
+      +(hoja?'<p><a class="btn grande" href="'+esc(hoja)+'" target="_blank" rel="noopener">Abrir la hoja de respuestas</a></p>':'')
+      +'<p class="small muted">Mientras tanto no se pierde nada: las respuestas siguen llegando a la '
+      +'hoja, y el formulario que ve el alumnado funciona igual.</p></div>';
+  }
+
+  function post(b,cb){
+    if(st.demo){return cb(demo(b));}
+    if(NUEVO){
+      if(!LECTOR) return sinLector();
+      return fetch(LECTOR,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)})
+        .then(function(r){return r.json();})
+        .then(function(d){ if(d.error){alert(d.error);return;} cb(d); })
+        .catch(function(e){alert('Error: '+e.message);});
+    }
+    b.pin=st.pin;fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)}).then(function(r){return r.json();}).then(function(d){if(d.error){if(/PIN/.test(d.error)){sessionStorage.removeItem('sgPin');st.pin='';pedirPin(d.error);return;}alert(d.error);return;}cb(d);}).catch(function(e){alert('Error: '+e.message);});}
   function pedirPin(m){root.innerHTML='<div class="card" style="max-width:420px"><h3>Acceso del profesorado</h3><p class="small muted">'+esc(m||'PIN compartido del profesorado.')+'</p><input id="pin" type="password" placeholder="PIN" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff"><button class="btn primary" id="okpin" style="margin-top:10px">Entrar</button></div>';
     document.getElementById('okpin').onclick=function(){st.pin=document.getElementById('pin').value.trim();sessionStorage.setItem('sgPin',st.pin);inicio();};document.getElementById('pin').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('okpin').click();});}
   function inicio(){root.innerHTML='<p class="muted">Cargando…</p>';post({accion:'pers'},function(d){st.pers=d.pers||[];if(!st.per&&st.pers.length)st.per=st.pers[st.pers.length-1].id;cargar();});}
@@ -149,5 +184,11 @@ var sp=document.getElementById('selPer');if(sp)sp.onchange=function(){st.per=thi
     });
     for(i=0;i<7;i++){var o2={};o2[PR]=P[i%2];o2[S]='Presentación de la asignatura';o2['¿Qué vibraciones te ha transmitido la presentación?']=r(4,5);o2['Valora la utilidad que percibes del temario de la asignatura']=r(3,5);o2['¿Cómo valorarías tus conocimientos iniciales sobre herramientas TIC?']=r(1,4);if(i<2)o2['¿Qué esperas de la asignatura? ¿Qué te gustaría aprender?']=['Herramientas que pueda usar el lunes en clase','Aprender a gamificar sin volverme loca'][i];out.push({fecha:new Date(Date.now()-(120+i)*864e5).toISOString(),fila:fila+i,resuelto:'',r:o2});}
     return {tickets:out};}
-  if(st.demo||st.pin)inicio();else pedirPin();
+  // 🔴 Con el motor nuevo no hay PIN: el acceso lo decide la cuenta, igual que en la sala. Y si el
+  // lector de la hoja todavía no está desplegado, se dice de entrada en vez de pedir credenciales
+  // para una puerta que no lleva a ninguna parte.
+  if(st.demo) inicio();
+  else if(NUEVO) { if(LECTOR) inicio(); else sinLector(); }
+  else if(st.pin) inicio();
+  else pedirPin();
 })();
