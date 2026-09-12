@@ -333,6 +333,50 @@
     Array.prototype.forEach.call(app.querySelectorAll("[data-r]"), function (fila) {
       fila.onclick = function () { verFicha(t.reclutas[Number(fila.getAttribute("data-r"))], retos); };
     });
+    /**
+     * 🔴 13-sep · LOS ENLACES DE EVIDENCIA, POR FIN A LA VISTA. El alumnado los guardaba en
+     * `mission_deliveries` y NADA de la consola los leía: se pedían enlaces que caían en un pozo. Y
+     * la razón de pedirlos —Norberto— es que el docente pueda verlos, comprobarlos y «mostrar o
+     * alabar el trabajo de un estudiante en clase». Una consulta por grupo; al lado de quien tenga
+     * retos de evidencia obligatoria SIN enlace, un aviso: así se ve de un vistazo a quien marca
+     * retos sin hacerlos.
+     */
+    // 🔴 Un turno por pintada: la lista se repinta (al refrescar, al volver de una ficha) y cada
+    // consulta en vuelo añadía SU aviso a las filas nuevas — salían «⚠️ 8 sin enlace» dos veces.
+    var turno = ++TURNO_EVID;
+    EVID = null;
+    EVID_LISTO = MOTOR.getDocs(MOTOR.query(MOTOR.collection(MOTOR.db, "mission_deliveries"), MOTOR.where("projectId", "==", PER)))
+      .then(function (r) {
+        if (turno !== TURNO_EVID) return;
+        EVID = {};
+        r.docs.forEach(function (d) { var x = d.data(); (EVID[x.studentProfileId] = EVID[x.studentProfileId] || {})[x.stargateReto || String(x.missionId).split("__").pop()] = x.enlace || ""; });
+        var EVR = window.SG_EVIDENCIA || {};
+        t.reclutas.forEach(function (rc, i) {
+          var mias = EVID[rc.ficha] || {};
+          var faltan = Object.keys(rc.retos || {}).filter(function (id) { return EVR[id] === "obligatoria" && !mias[id]; });
+          if (!faltan.length) return;
+          var celda = app.querySelector('[data-r="' + i + '"] td:nth-child(2)');
+          if (celda && !celda.querySelector(".sin-evid")) celda.insertAdjacentHTML("beforeend", ' <span class="sin-evid" title="Retos que piden enlace y no lo tienen: ' +
+            esc(faltan.join(", ")) + '">⚠️ ' + faltan.length + ' sin enlace</span>');
+        });
+      }).catch(function () { EVID = {}; });
+  }
+  var EVID = null, EVID_LISTO = null, TURNO_EVID = 0;
+
+  /** Sus retos registrados, cada uno con su enlace (o el aviso si le falta uno obligatorio). */
+  function evidenciasDe(r) {
+    var mias = (EVID && EVID[r.ficha]) || {}, EVR = window.SG_EVIDENCIA || {};
+    // solo lo que entrega el recluta (A, B, X, S): los hitos (H…) se completan solos y no son entregas
+    var ids = Object.keys(r.retos || {}).filter(function (id) { return /^[ABXS]\d/.test(id); }).sort();
+    if (!ids.length) return '<p class="small muted">Todavía no ha registrado ningún reto.</p>';
+    if (!EVID) return '<p class="small muted">Buscando sus enlaces…</p>';
+    return '<ul class="evid-lista">' + ids.map(function (id) {
+      var e = mias[id], ob = EVR[id] === "obligatoria";
+      var url = e ? (/^https?:\/\//i.test(e) ? e : "https://" + e) : "";
+      return '<li><b>' + esc(id) + '</b> ' + (e
+        ? '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">🔗 ' + esc(e.replace(/^https?:\/\//i, "").slice(0, 60)) + '</a>'
+        : (ob ? '<span class="sin-evid">⚠️ sin enlace, y este reto lo pide</span>' : '<span class="small muted">sin enlace</span>')) + '</li>';
+    }).join("") + '</ul>';
   }
 
   function verFicha(r, retos) {
@@ -348,6 +392,7 @@
       }).join("") + "</div>" +
       '<p class="small muted">Verde = registrado. Púlsalo para otorgar o anular. Todo queda anotado ' +
       'en el libro de experiencia, con quién y cuándo.</p>' +
+      '<div class="evid-ficha"><h4>Lo que ha entregado</h4><div id="c-evid">' + evidenciasDe(r) + '</div></div>' +
       // 🔴 DAR DE BAJA. Hace falta y no es capricho: alguien se alista en el grupo equivocado,
       // alguien entra con la cuenta que no era y deja una ficha huérfana, o se cuela quien no debía.
       // Sin esto, la única salida era dejarlo ahí para siempre ensuciando el ranking.
@@ -355,6 +400,8 @@
       '<button class="btn min peligro" id="c-baja">Dar de baja a ' + esc(r.alias) + '</button> ' +
       '<span class="small muted">borra su ficha del grupo. Podrá alistarse otra vez, aquí o en otro, ' +
       'empezando de cero.</span></p></div>';
+    // si la ficha se abrió antes de que llegaran los enlaces, se rellena en cuanto lleguen
+    if (!EVID && EVID_LISTO) EVID_LISTO.then(function () { var h = $("#c-evid"); if (h) h.innerHTML = evidenciasDe(r); });
     var baja = $("#c-baja");
     if (baja) baja.onclick = async function () {
       // Dos confirmaciones a propósito: esto borra de verdad y no hay deshacer. La segunda pide

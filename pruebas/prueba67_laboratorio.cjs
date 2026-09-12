@@ -446,16 +446,29 @@ const REG = {};   // cifras que se apuntan para el informe
       const f0 = await fichaDe("beto@lab.test", "lab-clase");
       await beto.ir("recluta.html?per=lab-clase#retos");
       await beto.hasta("[].slice.call(document.querySelectorAll('button')).some(function(b){return /Lo he hecho/.test(b.textContent)})", 25);
-      let marcados = 0;
+      // 🔴 Con las reglas del 13-sep: el tramposo intenta marcarlo TODO, y donde le piden enlace pega
+      // basura («www.culo.com», el ejemplo de Norberto). El tope de 3 al día lo frena igual.
+      let intentos = 0;
       for (let k = 0; k < 25; k++) {
-        const hay = await beto.js("(function(){var b=[].slice.call(document.querySelectorAll('button')).filter(function(x){return /Lo he hecho/.test(x.textContent)&&!x.disabled})[0]; if(!b) return false; b.click(); return true;})()");
+        const hay = await beto.js(`(function(){ var bs=[].slice.call(document.querySelectorAll('button[data-hecho]')).filter(function(x){return !x.disabled && x.offsetParent});
+          var b=bs[0]; if(!b) return false; var id=b.getAttribute('data-hecho');
+          [].slice.call(document.querySelectorAll('[data-ev="'+id+'"]')).forEach(function(i){ i.value='www.culo.com'; });
+          b.click(); return true; })()`);
         if (!hay) break;
-        marcados++; await dormir(4500);
+        intentos++; await dormir(4500);
         await beto.js("var f=document.querySelector('.sb-fin, .neb-capa [data-cerrar]'); if(f) f.click(); 1");
+        if ((await fichaDe("beto@lab.test", "lab-clase")).completedMissionIds.length >= 3 && intentos >= 4) break;
       }
       const f1 = await fichaDe("beto@lab.test", "lab-clase");
-      REG.tramposo = { marcados, xp: f1.totalPoints - f0.totalPoints, creditos: f1.coins - f0.coins };
-      c("tramposo · marca de un tirón todos los retos abiertos, sin evidencia", marcados >= 5, JSON.stringify(REG.tramposo));
+      const marcados = (f1.completedMissionIds || []).length - (f0.completedMissionIds || []).length;
+      REG.tramposo = { antes: "15 retos, +4.100 xp, +880 ◈ en un minuto (sin tope ni enlace)",
+                       marcados, xp: f1.totalPoints - f0.totalPoints, creditos: f1.coins - f0.coins };
+      c("🔴 tramposo · con el tope, por mucho que pulse solo registra 3 retos hoy", marcados === 3, JSON.stringify(REG.tramposo));
+      const avisoTope = await beto.js("(document.getElementById('nave-aviso')||{}).textContent||''");
+      c("tramposo · y la Nave le dice por qué", /Hoy ya has registrado 3/.test(avisoTope), avisoTope.slice(0, 120));
+      const suyas = await consultar("mission_deliveries", "studentProfileId", f1._id);
+      c("tramposo · y deja rastro: su basura queda como evidencia a la vista del docente", suyas.some(x => /culo/.test(x.enlace || "")),
+        JSON.stringify(suyas.map(x => x.stargateReto + ":" + x.enlace)));
       // se lo gasta en sobres
       let sobres = 0;
       for (let k = 0; k < 80; k++) {
@@ -511,6 +524,47 @@ const REG = {};   // cifras que se apuntan para el informe
         JSON.stringify((res || []).filter(x => x && x.error)));
       c("tramposo · el servidor le dice a la docente cuánto no pudo retirar", noRet > 0, noRet + " ◈ que ya se había gastado");
       console.error("   · TRAMPOSO: " + JSON.stringify(REG.tramposo));
+    }
+    // ============================================================ 11 · EL ENLACE OBLIGATORIO Y LO QUE VE EL DOCENTE
+    if (hacer(11)) {
+      const carla = await nueva("Carla y los enlaces");
+      await carla.ir("entrar.html"); await carla.entrarComo("carla@lab.test", "Carla Prueba");
+      await carla.ir("recluta.html?per=lab-clase#retos");
+      await carla.hasta("!!document.querySelector('button[data-hecho=\"B1\"]')", 25);
+      const ph = await carla.js("(document.querySelector('[data-ev=\"B1\"]')||{}).placeholder||''");
+      c("evidencia · el campo de B1 dice que es OBLIGATORIO antes de pulsar", /obligatorio/.test(ph), ph);
+      const ph0 = await carla.js("(document.querySelector('[data-ev=\"A0\"]')||{}).placeholder||''");
+      c("evidencia · y el de A0 (lo primero en clase) solo lo recomienda", /recomendado/.test(ph0), ph0);
+      const antes = await fichaDe("carla@lab.test", "lab-clase");
+      await carla.js("document.querySelector('button[data-hecho=\"B1\"]').click(); 1");
+      await dormir(2500);
+      const f1 = await fichaDe("carla@lab.test", "lab-clase");
+      c("🔴 evidencia · sin enlace, B1 NO se registra", (f1.completedMissionIds || []).length === (antes.completedMissionIds || []).length);
+      c("evidencia · y el campo se marca en rojo con el aviso", await carla.js("!!document.querySelector('[data-ev=\"B1\"].falta')") &&
+        /necesita el enlace/.test(await carla.js("(document.getElementById('nave-aviso')||{}).textContent||''")));
+      await carla.foto(FOTOS + "/11-sin-enlace.png");
+      await carla.js("[].slice.call(document.querySelectorAll('[data-ev=\"B1\"]')).forEach(function(i){i.value='https://padlet.com/carla/mi-imagen-ia';}); document.querySelector('button[data-hecho=\"B1\"]').click(); 1");
+      await dormir(6000);
+      const f2 = await fichaDe("carla@lab.test", "lab-clase");
+      c("evidencia · con enlace, B1 se registra", (f2.completedMissionIds || []).length === (antes.completedMissionIds || []).length + 1);
+      // el docente lo ve: la ficha de Carla con su enlace, y un aviso en quien tenga huecos
+      const A = admin(), fs = A.firestore();
+      const fAna = await fichaDe("ana@lab.test", "lab-clase");
+      // Ana registró un reto obligatorio ANTES de la regla (o se lo otorgaron): sin enlace
+      await fs.collection("student_profiles").doc(fAna._id).update({ completedMissionIds: (fAna.completedMissionIds || []).concat(["lab-clase__B3"]) });
+      const rita = await nueva("Rita revisa evidencias");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("consola.html?per=lab-clase");
+      await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
+      const aviso = await rita.hasta("!!document.querySelector('.sin-evid')", 12);
+      c("🔴 evidencia · en «Mi gente», un aviso junto a quien tiene retos obligatorios sin enlace", aviso,
+        await rita.js("[].slice.call(document.querySelectorAll('.sin-evid')).map(function(x){return x.closest('tr').querySelector('b').textContent+': '+x.textContent}).join(' | ')"));
+      await rita.foto(FOTOS + "/11-mi-gente-avisos.png");
+      await rita.js("[].slice.call(document.querySelectorAll('[data-r]')).filter(function(f){return /Cometa/.test(f.textContent)})[0].click(); 1");
+      const enlace = await rita.hasta("((document.querySelector('.evid-ficha')||{}).innerHTML||'').indexOf('padlet.com/carla')>=0", 12);
+      c("🔴 evidencia · y en la ficha de Carla, su enlace pulsable junto al reto", enlace,
+        await rita.js("(document.querySelector('.evid-ficha')||{}).innerHTML||''"));
+      await rita.foto(FOTOS + "/11-ficha-evidencias.png");
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

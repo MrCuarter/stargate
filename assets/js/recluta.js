@@ -660,7 +660,7 @@
                       :'<p class="small muted">Sin explicación todavía: pregunta a tu docente.</p>')
         +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado.</p>'+accionesDeHecho(t[0])
             :(motorNuevo()
-              ? '<div class="rs-marcar"><input class="rs-ev" data-ev="'+esc(t[0])+'" placeholder="Enlace de tu evidencia (opcional)" autocomplete="off">'
+              ? '<div class="rs-marcar">'+campoEvidencia(t[0],'rs-ev')
                 +'<button class="btn primary" type="button" data-hecho="'+esc(t[0])+'">✅ Lo he hecho</button></div>'
               : (d.formBitacora?'<p style="margin-top:12px"><a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">Marcarlo en la Bitácora →</a></p>':'')))
         +'</div></details>';
@@ -1321,7 +1321,7 @@
           // que estar.
           +(ya?accionesDeHecho(r[0]):(motorNuevo()
              ? '<div class="reto-marcar">'
-               +'<input class="reto-ev" data-ev="'+esc(r[0])+'" type="url" placeholder="Enlace de lo que has hecho (opcional)">'
+               +campoEvidencia(r[0],'reto-ev')
                +'<button class="btn primary" type="button" data-hecho="'+esc(r[0])+'">✅ Lo he hecho</button></div>'
              : '<p class="small muted">Cuando lo termines, márcalo en tu Bitácora de mando y pega ahí el enlace de lo que has hecho.</p>'))
           +'</article>';
@@ -1901,7 +1901,47 @@
     });
   }
 
+  /**
+   * 🔴 13-sep · LA EVIDENCIA Y EL TOPE DIARIO, dichos ANTES de pulsar. La regla vive en
+   * `_site_data.py` (EVIDENCIA_RETOS, TOPE_RETOS_DIA) y llega aquí como SG_EVIDENCIA / SG_TOPE_DIA:
+   * el campo dice «obligatorio» donde lo es, y la Nave comprueba el enlace y el tope antes de
+   * mandar nada. Lo mismo comprueba `fuente.js` en la puerta por la que salen los registros.
+   */
+  function evidenciaDe(id){ return (window.SG_EVIDENCIA||{})[id]||''; }
+  function campoEvidencia(id, clase){
+    var e=evidenciaDe(id);
+    var ph = e==='obligatoria' ? 'Enlace de lo que has hecho (obligatorio)'
+           : e==='recomendada' ? 'Enlace de lo que has hecho (recomendado)'
+           : 'Enlace de lo que has hecho (opcional)';
+    return '<input class="'+clase+(e==='obligatoria'?' obligatoria':'')+'" data-ev="'+esc(id)+'" type="url" inputmode="url" '
+      +'placeholder="'+ph+'" autocomplete="off"'+(e==='obligatoria'?' required aria-required="true"':'')+'>';
+  }
+  /** Un enlace creíble: con dominio y sin espacios. «www.algo.com» vale; «lo subí al foro» no. */
+  function enlaceValido(v){ return /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(v||'').trim()); }
+  function registrosDeHoy(){
+    var hoy=new Date(); hoy.setHours(0,0,0,0);
+    var f=(st.yo&&st.yo.retos_fecha)||{};
+    // solo los retos que registra el propio recluta (A, B, X, S): los hitos (H1…) se completan solos
+    // —el de Reclutamiento, al alistarse— y contarlos le quitaba un hueco el primer día
+    return Object.keys(f).filter(function(k){ return /^[ABXS]\d/.test(k) && new Date(f[k])>=hoy; }).length;
+  }
   function marcarReto(id, boton, alEmpezar){
+    var tope=Number(window.SG_TOPE_DIA||0);
+    if(tope && registrosDeHoy()>=tope){
+      aviso('⏳ <b>Hoy ya has registrado '+tope+' retos.</b> Vuelve mañana: así cada reto cuenta de verdad.', true);
+      return;
+    }
+    if(evidenciaDe(id)==='obligatoria'){
+      var cajas=[].slice.call(document.querySelectorAll('[data-ev="'+id+'"]'));
+      var buena=cajas.filter(function(x){return enlaceValido(x.value);})[0];
+      if(!buena){
+        cajas.forEach(function(x){ x.classList.add('falta'); });
+        if(cajas[0]) cajas[0].focus();
+        aviso('🔗 <b>Este reto necesita el enlace</b> de lo que has hecho (tu Bitácora, el vídeo, el juego…). '
+          +'Así tu Comandante puede verlo — y enseñarlo en clase si es bueno.', true);
+        return;
+      }
+    }
     if(boton){ boton.disabled=true; boton.textContent='Registrando…'; }
     // El mismo reto puede tener casilla de evidencia en dos sitios (la tarjeta de la semana y la
     // pestaña de retos). Se coge la que esté escrita, no la primera que aparezca.

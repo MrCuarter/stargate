@@ -471,6 +471,36 @@ AYUDA_RETOS = {
 # 🔴 Y no se inventa: cada línea es el resumen fiel de su entrada de AYUDA_RETOS (apps-script/
 # Datos.gs). Si la tarea cambia allí, esta línea miente — y mentir aquí es peor que no decir nada,
 # porque esto es lo que se lee y lo otro lo que se abre.
+# ─── QUÉ EVIDENCIA PIDE CADA RETO, Y CUÁNTOS SE PUEDEN REGISTRAR AL DÍA (13-sep) ───────────────
+# Norberto: «¿qué opinas sobre poner un tope de misiones validadas al día? ¿3? … Así evitamos un
+# ansioso que hace clic en todo y llega al nivel 10 sin pestañear. Y que en determinados retos sea
+# obligatorio poner la URL… Las actividades requieren una URL del artefacto sí o sí».
+#
+# 🔴 Por qué hacía falta, con cifras del laboratorio: un recluta marcó 15 retos de un tirón, sin
+# evidencia, y se llevó +4.100 xp y +880 ◈ en un minuto; se lo gastó en 63 sobres y, cuando su
+# docente se lo anuló todo, conservó el álbum entero. El tope y la URL no lo hacen imposible —quien
+# quiera mentir pegará «www.culo.com»—, pero lo frenan a 3 al día y dejan RASTRO: el docente ve el
+# enlace, puede comprobarlo y, si es bueno, enseñarlo en clase.
+#
+#   obligatoria  → sin un enlace, «Lo he hecho» no registra. Las actividades (X) y todos los Reto B:
+#                  cada uno produce un artefacto digital que va a la Bitácora. Y A4, que es una
+#                  publicación en redes: tiene enlace público y es lo más fácil de verificar.
+#   recomendada  → se pide con cariño, no se exige: vídeos o borradores en el Padlet o en el foro de
+#                  la plataforma de UNIR, donde sacar el enlace de UNA publicación no siempre es
+#                  cómodo. A0 va aquí a propósito: es lo primero que se hace en clase y frenar ahí es
+#                  frenar la entrada.
+#   (no está)    → sin enlace: reflexiones escritas (A3, A5, A8) y el secreto (S7).
+EVIDENCIA_RETOS = {
+ "X1": "obligatoria", "X2": "obligatoria",
+ "B1": "obligatoria", "B2": "obligatoria", "B3": "obligatoria", "B4": "obligatoria",
+ "B5": "obligatoria", "B6": "obligatoria", "B7": "obligatoria", "B8": "obligatoria",
+ "A4": "obligatoria",
+ "A0": "recomendada", "A1": "recomendada", "A2": "recomendada", "A6": "recomendada", "A7": "recomendada",
+}
+# Tres al día: el ritmo normal es de 2 retos por semana, así que tres cubren un día de ponerse al
+# día sin dejar que nadie suba diez niveles en una tarde. Deshacer uno libera su hueco.
+TOPE_RETOS_DIA = 3
+
 GANCHO_RETOS = {
  "A0": "Un vídeo de 60 s presentándote, al padlet de la clase.",
  "A1": "Enseña un borrador sin pulir en el foro y di qué te daba reparo.",

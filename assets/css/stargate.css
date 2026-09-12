@@ -2343,3 +2343,16 @@ section[id]{scroll-margin-top:110px}
   .sb-carta,.sb-carta.girada,.sb-mini,.sb-nombre{animation:none!important;transition:none!important}
   .sb-capa.r-legendaria .sb-escena:has(.girada)::before{animation:none}
 }
+
+/* evidencias: el enlace de cada reto en la ficha, y el aviso de lo que falta */
+.sin-evid{display:inline-block;font-size:.74rem;font-weight:600;color:#ffb3a8;background:rgba(255,122,107,.12);
+  border:1px solid rgba(255,122,107,.35);border-radius:99px;padding:2px 8px;margin-left:6px;white-space:nowrap}
+.evid-ficha{margin-top:14px;padding-top:12px;border-top:1px solid #182238}
+.evid-ficha h4{margin:0 0 8px;font-size:.9rem}
+.evid-lista{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.evid-lista li{font-size:.9rem;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.evid-lista li b{min-width:28px}
+.evid-lista a{color:var(--teal,#3ed6c8);word-break:break-all}
+/* la Nave: el campo del enlace, cuando es obligatorio y cuando falta */
+input.obligatoria{border-color:rgba(242,181,68,.55)!important}
+input.falta{border-color:#ff7a6b!important;box-shadow:0 0 0 3px rgba(255,122,107,.25)!important}

@@ -389,6 +389,23 @@
               // Lo que se escriba deja la ficha guardada obsoleta: se tira sin contemplaciones.
               olvidarFicha();
               if (cuerpo.accion === "registrar") {
+                // 🔴 13-sep · El tope diario y la evidencia obligatoria, también aquí, en la puerta por
+                // la que salen TODOS los registros: la Nave lo avisa antes, esto es el cerrojo.
+                var TOPE = Number(window.SG_TOPE_DIA || 0), EV = window.SG_EVIDENCIA || {};
+                if (TOPE) {
+                  var hoy0 = new Date(); hoy0.setHours(0, 0, 0, 0);
+                  var sellos = (ficha.missionTimestamps || {}), hoyN = 0;
+                  Object.keys(sellos).forEach(function (k) {
+                    // solo retos del propio recluta (A, B, X, S); los hitos (H…) se completan solos
+                    if (!/^[ABXS]\d/.test(String(k).split("__").pop())) return;
+                    var l = sellos[k]; var u = Array.isArray(l) ? l[l.length - 1] : l;
+                    if (u && new Date(u) >= hoy0) hoyN++;
+                  });
+                  if (hoyN >= TOPE) return { error: "Hoy ya has registrado " + TOPE + " retos. Vuelve mañana." };
+                }
+                if (EV[cuerpo.reto] === "obligatoria" &&
+                    !/^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(cuerpo.evidencia || "").trim()))
+                  return { error: "Este reto necesita el enlace de lo que has hecho." };
                 return M.getDocs(M.query(M.collection(M.db, "missions"),
                   M.where("projectId", "==", cuerpo.per), M.where("stargateId", "==", cuerpo.reto)))
                   .then(function (r) {
