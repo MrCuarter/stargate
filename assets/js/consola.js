@@ -69,7 +69,8 @@
     pintar();
   }
 
-  var TABS = [["alumnado", "Alumnado"], ["canjes", "Cola de nota"], ["equipo", "Equipo docente"], ["ajustes", "Ajustes"]];
+  var TABS = [["alumnado", "Alumnado"], ["canjes", "Cola de nota"], ["equipo", "Equipo docente"],
+              ["escuadrones", "Escuadrones"], ["ajustes", "Ajustes"]];
 
   function pintar() {
     var t = window.SG.TABLERO.tablero(DATOS, true);
@@ -88,7 +89,8 @@
     });
     if ($("#c-cambiar")) $("#c-cambiar").onclick = function () { url.delete("per"); elegirGrupo(); };
     $("#c-salir").onclick = function () { MOTOR.salir(); };
-    ({ alumnado: verAlumnado, canjes: verCanjes, equipo: verEquipo, ajustes: verAjustes })[TAB](t);
+    ({ alumnado: verAlumnado, canjes: verCanjes, equipo: verEquipo,
+       escuadrones: verEscuadrones, ajustes: verAjustes })[TAB](t);
   }
 
   // Un grupo que empieza dentro de dos semanas está en la «semana -1», que es verdad y no dice
@@ -216,6 +218,54 @@
   }
 
   // ---------------------------------------------------------------- ajustes
+  /**
+   * LOS ESCUADRONES.
+   *
+   * 🔴 Cada docente tiene el suyo y el alumnado lo hereda al elegir Comandante. Aquí se ve quién
+   * está en cada uno y cómo van — que es lo que convierte diez nombres bonitos en equipos de verdad.
+   *
+   * El nombre y el emblema salen del catálogo y se reparten al sembrar: no se tocan desde aquí a
+   * propósito. Cambiar el nombre de un escuadrón a mitad de curso le quita a su gente la cosa a la
+   * que pertenecen, que es justo lo contrario de lo que hace un escuadrón.
+   */
+  function verEscuadrones(t) {
+    var esc7 = (t.escuadrones || []);
+    if (!esc7.length) {
+      $("#c-cuerpo").innerHTML = '<div class="card"><h3>Escuadrones</h3>' +
+        '<p class="small muted">Este grupo se sembró sin escuadrones. Se crean al crear el grupo, ' +
+        'uno por docente del equipo.</p></div>';
+      return;
+    }
+    var conGente = esc7.map(function (e) {
+      var suyos = (t.reclutas || []).filter(function (r) { return r.profe === e.comandante; });
+      var media = suyos.length ? Math.round(suyos.reduce(function (a, r) { return a + r.xp; }, 0) / suyos.length) : 0;
+      return { e: e, suyos: suyos, media: media };
+    }).sort(function (a, b) { return b.media - a.media; });
+    var huerfanos = (t.reclutas || []).filter(function (r) {
+      return !esc7.some(function (e) { return e.comandante === r.profe; });
+    });
+    $("#c-cuerpo").innerHTML = '<div class="card"><h3>Escuadrones</h3>' +
+      '<p class="small muted">Uno por docente. El alumnado entra en el de su Comandante al alistarse. ' +
+      'Se comparan por <b>media de xp</b>: sumando ganaría siempre el más numeroso.</p>' +
+      conGente.map(function (x, i) {
+        return '<div class="esc-card' + (i === 0 && x.suyos.length ? " lider" : "") + '">' +
+          '<div class="esc-pos">' + (i + 1) + "</div>" +
+          (x.e.emblema ? '<img class="esc-emb" loading="lazy" src="' + esc(x.e.emblema) + '" alt="">' : "") +
+          '<div class="esc-txt"><b>' + esc(x.e.nombre) + "</b>" +
+          (x.e.lema ? "<em>«" + esc(x.e.lema) + "»</em>" : "") +
+          '<span class="small muted">' + esc(x.e.comandante) + " · " + x.suyos.length +
+          " recluta" + (x.suyos.length === 1 ? "" : "s") +
+          (x.e.origen ? " · " + esc(x.e.origen) : "") + "</span></div>" +
+          '<div class="esc-val">' + x.media + " xp</div></div>";
+      }).join("") +
+      (huerfanos.length
+        ? '<p class="small" style="margin-top:14px;color:var(--amber)">⚠️ <b>' + huerfanos.length +
+          "</b> recluta" + (huerfanos.length === 1 ? "" : "s") + " sin escuadrón: su Comandante ya no " +
+          "está en el equipo. Pásalos a otro docente desde la pestaña <b>Equipo docente</b>.</p>"
+        : "") +
+      "</div>";
+  }
+
   function verAjustes(t) {
     var S = DATOS.proyecto.stargate || {}, P = DATOS.privadoPER || {};
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>Ajustes del grupo</h3>' +
@@ -228,11 +278,20 @@
       '<label>Panel de control (ver)<input id="s-panel" value="' + esc(S.panelVer || "") + '"></label>' +
       '<label>Panel de control (editar)<input id="s-paneled" value="' + esc(P.panelEdit || "") + '"></label>' +
       '<p><button class="btn" id="s-guardar">Guardar</button></p></div>' +
-      '<div class="card"><h3>Enlaces del grupo</h3>' +
+      // 🔴 Dos listas separadas, y a propósito. Los de arriba llevan el grupo dentro: uno por
+      // grupo y por convocatoria. Los de abajo NO llevan grupo — se deduce de quién pulsa — así que
+      // se montan una vez en los Geniallys y no se vuelven a tocar nunca. Mezclarlos haría que se
+      // rehicieran los universales cada curso sin necesidad.
+      '<div class="card"><h3>Enlaces de este grupo</h3>' +
       '<p class="small">Alistamiento (dáselo a tu alumnado):<br><code>' + location.origin + '/alistarse.html?per=' + esc(PER) + MOTOR_EN_ENLACES + '</code></p>' +
       '<p class="small">La Nave:<br><code>' + location.origin + '/recluta.html?per=' + esc(PER) + MOTOR_EN_ENLACES + '</code></p>' +
-      '<p class="small">Validar un reto desde un Genially (sirve en TODOS los grupos):<br>' +
-      '<code>' + location.origin + '/validar.html?reto=S7</code></p></div>';
+      '<p class="small">La sesión para proyectar:<br><code>' + location.origin + '/sesion.html?per=' + esc(PER) + MOTOR_EN_ENLACES + '</code></p></div>' +
+      '<div class="card"><h3>Para los Geniallys · se montan UNA vez</h3>' +
+      '<p class="small muted">Ninguno lleva el grupo dentro: se deduce de la cuenta de quien pulsa. ' +
+      'Valen en todos los grupos y todas las convocatorias. Añade <code>?embed=1</code> para incrustarlos.</p>' +
+      '<p class="small">🎯 Validar un reto:<br><code>' + location.origin + '/validar.html?reto=S7</code></p>' +
+      '<p class="small">🔔 Llamada a filas (solo la toca el Comandante):<br><code>' + location.origin + '/llamada.html</code></p>' +
+      '<p class="small">🛰️ El aula (el puesto de mando del docente):<br><code>' + location.origin + '/aula.html</code></p></div>';
     $("#s-guardar").onclick = async function () {
       try {
         // Cambiar la fecha de la semana 1 recalcula el calendario entero, igual que al crear: es la

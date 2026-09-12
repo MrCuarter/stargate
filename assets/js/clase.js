@@ -464,7 +464,29 @@
     // el «Tablero del grupo» —que es registro.html, o sea la web del método con la guía de
     // instalación y el acceso con PIN— parecía tan repartible como la Bitácora. Arriba, lo que se
     // comparte; abajo, lo que no sale de aquí.
-    return '<section id="sala-enlaces"><div class="eyebrow">Sin buscar en Drive</div><h2>Los enlaces de este grupo</h2>'
+    // 🔴 12-sep · LO PRIMERO, LAS TRES HERRAMIENTAS DE CLASE. Un docente entra aquí con la clase
+    // empezando, no a leer una lista de enlaces. Proyectar, mover el aula y tocar llamada son lo
+    // que se usa EN DIRECTO: van arriba, grandes, y el resto sigue debajo como estaba.
+    var mot = NUEVO ? '&motor=firestore' : '';
+    var herramientas = '<section id="sala-herramientas"><div class="eyebrow amber">Para dar la clase</div>'
+      + '<h2>Tus tres botones</h2>'
+      + '<div class="herramientas">'
+      + '<a class="herr" href="sesion.html?per=' + encodeURIComponent(st.per) + mot + '" target="_blank" rel="noopener">'
+        + '<span class="ic">📽️</span><b>Proyectar la semana</b>'
+        + '<em>el planeta, los vídeos, los retos y el hito — ya montado para la pantalla</em></a>'
+      + (NUEVO ? '<a class="herr" href="aula.html?per=' + encodeURIComponent(st.per) + mot + '" target="_blank" rel="noopener">'
+        + '<span class="ic">🛰️</span><b>El aula</b>'
+        + '<em>llamada a filas, quién ficha, a quién felicitar y premios a mano</em></a>' : '')
+      + (NUEVO ? '<a class="herr" href="llamada.html?per=' + encodeURIComponent(st.per) + mot + '" target="_blank" rel="noopener">'
+        + '<span class="ic">🔔</span><b>Llamada a filas</b>'
+        + '<em>solo el pase de lista, con el botón grande para proyectar</em></a>' : '')
+      + '</div>'
+      + (NUEVO ? '<p class="acc-nota">🧩 Los dos últimos se pueden <b>incrustar en tu Genially</b> con '
+        + '<code>?embed=1</code>: el mismo enlace vale para todos tus grupos y todos los cursos, '
+        + 'porque el grupo se deduce de tu cuenta.</p>' : '')
+      + '</section>';
+    return herramientas
+      +'<section id="sala-enlaces"><div class="eyebrow">Sin buscar en Drive</div><h2>Los enlaces de este grupo</h2>'
       +'<h3 class="acc-tit acc-alu">✅ Esto sí se comparte con el alumnado</h3>'
       +'<p class="acc-nota">Cinco cosas, y no hay una sexta: los tres formularios, su Nave y el Genially.</p>'
       +'<div class="accesos">'

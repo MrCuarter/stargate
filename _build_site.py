@@ -1974,7 +1974,7 @@ open(os.path.join(HERE,"clase.html"),"w",encoding="utf-8").write(html); print("e
 # Con PIN, como «Mi clase»: la tira de preparacion lleva el consejo del Capitan, que no debe verse
 # proyectado.
 SESION = head("STARGATE · La sesión de la semana", "La semana en curso montada como presentación: planeta, vídeos, misiones, insignias y hito. Para proyectar en clase sin montar un Genially.", "cla", puerta=True) + f'''
-<header class="hero"><div class="kicker">Solo profesorado · PIN</div><h1>La sesión de la semana</h1>
+<header class="hero"><div class="kicker">Solo profesorado</div><h1>La sesión de la semana</h1>
 <p>La semana en curso, ya montada para proyectar: el planeta, los vídeos con el momento en que van,
 las misiones que se lanzan <b>con lo que pide cada una</b>, las insignias que entregas y el hito.
 Pasa con las flechas <b>←</b> y <b>→</b>.</p>

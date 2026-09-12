@@ -1140,6 +1140,17 @@ ol.pasos-num li b{color:var(--ink)}
      acabas de tocar, que es justo lo que este bloque venía a arreglar. */
   .avatar-grande{order:-1;position:static;max-width:220px;margin:0 auto}
 }
+/* Las tres herramientas de clase, arriba de la sala del docente. Grandes porque se buscan con la
+   clase empezando, no leyendo. */
+.herramientas{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:12px 0 8px}
+.herr{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border-radius:14px;
+  background:#0d1420;border:1px solid #24304a;text-decoration:none;color:#e8eefc;transition:all .16s}
+.herr:hover{border-color:var(--teal);background:rgba(55,224,236,.07);transform:translateY(-2px)}
+.herr .ic{font-size:1.6rem;line-height:1}
+.herr b{font-size:1rem}
+.herr em{font-style:normal;font-size:.84rem;color:#9fb0ce;line-height:1.45}
+@media (prefers-reduced-motion:reduce){.herr{transition:none}.herr:hover{transform:none}}
+
 /* ═══════════ EL AULA · el puesto de mando dentro del Genially ═══════════
    Se proyecta o se mira en un embed estrecho: todo grande, nada de tablas de ocho columnas. */
 #aula .wrap{max-width:760px}
