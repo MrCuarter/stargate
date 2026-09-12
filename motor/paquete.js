@@ -23,13 +23,17 @@
 })(typeof self !== "undefined" ? self : this, function () {
 
   /**
-   * 🔴 EL REFERENTE VITALICIO. Norberto lleva el proyecto entero: es referente de todos los grupos,
-   * de este curso y de los que vengan, sin que nadie tenga que acordarse de apuntarlo. Va en el
+   * 🔴 LOS REFERENTES VITALICIOS. Dos cuentas mandan en TODOS los grupos, de este curso y de los que
+   * vengan, sin que nadie tenga que acordarse de apuntarlas: la de Norberto y la de la universidad
+   * (mutecdgami), que es la dueña del material y la que tiene que poder resolver cualquier lío. Van en el
    * código y no en un ajuste porque un ajuste se puede borrar sin querer, y el día que eso pasara
    * se quedaría fuera de su propio sistema — con la prioridad de «mantenimiento 0 mientras estoy de
    * baja», eso es inaceptable. Los co-referentes sí se añaden desde la app, por grupo o para todos.
    */
-  var REFERENTE_VITALICIO = "n.cuartero.10@gmail.com";
+  var REFERENTES_VITALICIOS = [
+    "n.cuartero.10@gmail.com",   // Norberto
+    "mutecdgami@gmail.com"       // la cuenta de la universidad: dueña de todo el material
+  ];
 
   var DIA = 864e5;
 
@@ -113,16 +117,18 @@
      * 🔴 Se aplica DESPUÉS de repartir los escuadrones, a propósito: si entrara antes, contaría
      * como docente que imparte y se llevaría un escuadrón con alumnado que no es suyo.
      */
+    var NOMBRE_VITALICIO = { "n.cuartero.10@gmail.com": "Mr. Cuarter",
+                             "mutecdgami@gmail.com": "Mando UNIR" };
     var conVitalicio = function (lista) {
-      var yaEsta = lista.some(function (d) { return d.correo === REFERENTE_VITALICIO; });
-      if (yaEsta) {
+      var salida = lista.slice();
+      REFERENTES_VITALICIOS.forEach(function (correo) {
+        var i = salida.map(function (d) { return d.correo; }).indexOf(correo);
         // Si ya estaba puesto a mano se respeta su nombre, pero el rol no se le puede quitar.
-        return lista.map(function (d) {
-          return d.correo === REFERENTE_VITALICIO ? Object.assign({}, d, { rol: "referente" }) : d;
-        });
-      }
-      return lista.concat([{ nombre: "Mr. Cuarter", correo: REFERENTE_VITALICIO,
-                             rol: "referente", panel: "" }]);
+        if (i >= 0) salida[i] = Object.assign({}, salida[i], { rol: "referente" });
+        else salida = salida.concat([{ nombre: NOMBRE_VITALICIO[correo] || correo.split("@")[0],
+                                       correo: correo, rol: "referente", panel: "" }]);
+      });
+      return salida;
     };
 
     // ---------------------------------------------------------------- los escuadrones
@@ -206,7 +212,7 @@
     // regla. Es un camino NUEVO en las reglas de Firestore: añade, no cambia, así que no puede
     // romper nada de lo que GamificaPro ya hace.
     var privado = {
-      referente: String(per.referente || "").toLowerCase().trim() || REFERENTE_VITALICIO,
+      referente: String(per.referente || "").toLowerCase().trim() || REFERENTES_VITALICIOS[0],
       panelEdit: String(per.panelEdit || "").trim(),
       docentes: conVitalicio(docentes)
     };

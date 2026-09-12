@@ -160,7 +160,7 @@ igual(conEnlaces.proyecto.stargate.panelVer, "https://view.genially.com/ver", " 
 igual(conEnlaces.proyecto.stargate.paneles, { "Ana": "https://view.genially.com/ana" },
   "   y el Genially propio de cada docente, que es lo que pidió el profesorado");
 igual(conEnlaces.privado.referente, "ref@unir.net", "el referente se guarda en minúsculas, como su correo");
-igual(conEnlaces.proyecto.coTeacherEmails, ["ana@unir.net", "n.cuartero.10@gmail.com"],
+igual(conEnlaces.proyecto.coTeacherEmails, ["ana@unir.net", "n.cuartero.10@gmail.com", "mutecdgami@gmail.com"],
   "🔴 y el equipo docente va TAMBIÉN en coTeacherEmails: es lo que mira la regla de Firestore para dejarles editar");
 /**
  * 🔴 12-sep · EL SEGUNDO CORREO NO SOBRA: es el REFERENTE VITALICIO.

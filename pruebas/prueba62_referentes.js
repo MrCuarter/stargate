@@ -47,8 +47,18 @@ igual((conEl.privado.docentes.filter(d => d.correo === VIT)[0] || {}).rol, "refe
 
 // ---------------------------------------------------------------- c) por qué va en el documento
 const paq = raiz("motor/paquete.js");
-c(/REFERENTE_VITALICIO\s*=\s*"n\.cuartero\.10@gmail\.com"/.test(paq),
-  "🔴 está en el CÓDIGO, no en un ajuste que se pueda borrar sin querer");
+c(/REFERENTES_VITALICIOS\s*=\s*\[/.test(paq) && /n\.cuartero\.10@gmail\.com/.test(paq),
+  "🔴 están en el CÓDIGO, no en un ajuste que se pueda borrar sin querer");
+// 🔴 La segunda cuenta es la de la UNIVERSIDAD: es la dueña del material y la que tiene que poder
+// resolver cualquier lío sin depender de que Norberto esté disponible. Con «mantenimiento 0
+// mientras estoy de baja», tener una sola llave para todo el sistema era el punto único de fallo.
+c(/mutecdgami@gmail\.com/.test(paq), "🔴 y son DOS: la de Norberto y la de la universidad");
+const conDos = PAQ.paquete({ nombre: "DOS MANDOS", tipo: "REGULAR", inicio: "2026-09-14",
+  docentes: [{ nombre: "Ana", correo: "ana@unir.net", rol: "docente" }] }, cat);
+c(conDos.proyecto.coTeacherEmails.indexOf("mutecdgami@gmail.com") >= 0,
+  "   mutecdgami entra en todos los grupos");
+igual(conDos.proyecto.factions.length, 1,
+  "🔴 y las dos juntas siguen sin llevarse escuadrón: solo lo tiene quien imparte");
 c(/coTeacherEmails: conVitalicio\(/.test(paq),
   "🔴 y se escribe en coTeacherEmails, que es lo que mira Firestore para dejar entrar");
 

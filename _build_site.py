@@ -342,7 +342,12 @@ es la personificación de los errores de diseño educativo, y aparece en el Tema
 herramientas. Lo cuento porque la pregunta que más me hacen al enseñarlo es
 «¿y esto cuánto cuesta encargarlo?» — y la respuesta es que no se encargó.</p>
 
-<div class="grid cols-3">{comohizo_html}</div>
+<!-- 🔴 NADA DE grid cols-3 AQUÍ. Este bloque ya trae su propia estructura: Claude a todo lo ancho
+     y las tres herramientas en fila debajo. Metido en una rejilla de tres columnas, Claude quedaba
+     aplastado en 353 px a la izquierda, el conector se comía otra columna entera y las tres
+     herramientas se apilaban en la tercera — con medio bloque en blanco por el medio. En
+     `comosehizo.html` se veía bien porque allí NO va envuelto; aquí sí, y nadie lo comparó. -->
+<div>{comohizo_html}</div>
 <!-- 🔴 Decirlo. Son de afiliado y ocultarlo seria justo lo contrario del proyecto, que va de dejar
      constancia. Ademas la peticion se sostiene mejor dicha en voz alta que disimulada. -->
 <p class="small muted" style="margin-top:14px">Los botones son <b>enlaces de afiliado</b>, y se

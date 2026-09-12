@@ -1142,9 +1142,14 @@ ol.pasos-num li b{color:var(--ink)}
 .aclara.epica span{display:block;margin-top:6px;font-style:normal;font-size:.9rem;color:#b9c6dc}
 /* Elegir personaje: la rejilla a la izquierda y el elegido EN GRANDE a la derecha. A 94 píxeles no
    se distingue lo que se está eligiendo, y es una decisión para todo el curso. */
-.elegir-avatar{display:grid;grid-template-columns:1fr 240px;gap:18px;align-items:start;margin-top:10px}
-.avatar-grande{margin:0;position:sticky;top:14px}
-.avatar-grande img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;
+/* 🔴 SIN AIRE MUERTO. El retrato grande medía ~275 px de alto y la rejilla de caritas, a 94 px en
+   dos filas, unos 200: la caja se quedaba con media pantalla vacía debajo de las miniaturas. Y las
+   caritas eran tan pequeñas que no se distinguía lo que se estaba eligiendo — que es una decisión
+   para todo el curso. Ahora la rejilla ESTIRA sus filas hasta la altura del retrato: el hueco se
+   convierte en tamaño de miniatura, que es justo donde hacía falta. */
+.elegir-avatar{display:grid;grid-template-columns:1fr 260px;gap:16px;align-items:stretch;margin-top:8px}
+.avatar-grande{margin:0;display:flex;flex-direction:column}
+.avatar-grande img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;flex:0 0 auto;
   border:2px solid #ffd166;box-shadow:0 0 22px rgba(255,209,102,.28);background:#0b1119;display:block}
 .avatar-grande figcaption{margin-top:8px;text-align:center;font-size:.88rem;color:#9fb0ce}
 @media(max-width:760px){
@@ -1478,9 +1483,11 @@ body.embed .nave-barra-u{top:0}
 @media (max-width:640px){.panel-planetas .marco-genially{aspect-ratio:4/3}}
 
 /* Los personajes, en rejilla. Se ve la cara: es lo que se elige. */
-.avatares{display:grid;grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:9px;margin-top:10px}
+.avatares{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin-top:8px;
+  grid-auto-rows:1fr;align-content:stretch;height:100%}
 .av{padding:0;border:2px solid transparent;border-radius:11px;background:none;cursor:pointer;overflow:hidden;line-height:0}
-.av img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px}
+.av{display:block;height:100%}
+.av img{width:100%;height:100%;object-fit:cover;border-radius:9px;min-height:0}
 .av.elegido{border-color:#ffd166;box-shadow:0 0 14px rgba(255,209,102,.35)}
 .lema{font-size:1.15rem;font-style:italic;color:#ffd166;margin:14px 0}
 /* Cada docente en su fila, como en el panel de profes */
