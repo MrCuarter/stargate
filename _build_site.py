@@ -2607,7 +2607,15 @@ try:
 except Exception as _e:
     print("⚠️  no he podido regenerar motor/catalogo.json: %s" % _e)
 
-FIREBASE = {"apiKey": "AIzaSyBv-PLACEHOLDER", "authDomain": "gamificapro-99e0a.firebaseapp.com",
+FIREBASE = {"apiKey": "AIzaSyBv-PLACEHOLDER", # 🔴 EL NOMBRE QUE LEE UN ESTUDIANTE AL ENTRAR. Google escribe «Iniciar sesión en <authDomain>», y
+    # ese era `gamificapro-99e0a.firebaseapp.com`: un identificador de máquina, en la primera
+    # pantalla y justo cuando hay que dar confianza. Norberto: «¿es necesario que salga este nombre
+    # tan feo?». No.
+    # `gamificapro.mistercuarter.es` es Firebase Hosting del MISMO proyecto —sirve /__/auth/handler,
+    # comprobado— así que vale como authDomain y ya está en los dominios autorizados.
+    # 🔴 Y `stargate.mistercuarter.es` NO sirve: está en Hostinger y devuelve 404 en esa ruta. Para
+    # que pusiera «stargate» habría que mover la web a Firebase Hosting o poner un proxy.
+    "authDomain": "gamificapro.mistercuarter.es",
             "projectId": "gamificapro-99e0a", "storageBucket": "gamificapro-99e0a.firebasestorage.app",
             "messagingSenderId": "388656371280", "appId": "1:388656371280:web:b3d4178a235df271846355"}
 _FB = os.path.join(HERE, "assets", "js", "firebase_config.json")
