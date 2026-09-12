@@ -21,8 +21,15 @@
       +'<dt>La tarea (tal como la recibe el alumnado)</dt><dd>'+esc(d.tarea)+'</dd></dl>'
       +(d.cita?('<blockquote class="mquote">«'+esc(d.cita)+'»</blockquote>'):'')
       +(d.link?('<a class="mlink" href="'+esc(d.link.href)+'">Forma parte de: '+esc(d.link.text)+' →</a>'):'')
+      // 🔴 UN HUECO PARA QUIEN SEPA MÁS QUE ESTE MODAL. Esta ficha de insignia se usa en media web
+      // —recursos, registro, la sala— y no sabe nada de quién la está mirando. Pero en la Nave sí
+      // se sabe: hay una persona identificada y se sabe si ese reto le falta. En vez de meter aquí
+      // lógica de alumnado, se deja un hueco que la Nave rellena si quiere. Las demás páginas no
+      // definen la función y no pasa nada.
+      +(window.SG_BADGE_EXTRA?window.SG_BADGE_EXTRA(key):'')
       +'</div></div>';
-    afterOpen();}
+    afterOpen();
+    if(window.SG_BADGE_WIRE) window.SG_BADGE_WIRE(key, back, close);}
   function openCard(key){
     back.innerHTML='<div class="modal-card"><button class="modal-close" aria-label="Cerrar">✕</button>'
       +'<img src="assets/img/tarjetas/'+key+'_carta.png?v=8cbcebf632" alt="Carta de '+esc(CARDT[key]||key)+'"></div>';

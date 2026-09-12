@@ -415,6 +415,59 @@
                   });
               }
 
+              /**
+               * CANCELAR UNA ENTREGA PROPIA.
+               *
+               * 🔴 Norberto lo vio venir y tiene razón: «muchos estudiantes darán a completado solo
+               * por probar». Sin una salida, ese clic es irreversible y cada duda acaba siendo un
+               * mensaje al docente. Con salida, probar deja de dar miedo.
+               *
+               * Se reutiliza `anularReto`, que es exactamente lo que hace el profesorado: devuelve
+               * el xp y los créditos y quita el reto. El nivel baja SOLO, porque el nivel no se
+               * guarda: se deduce del xp. Y se anota quién lo canceló, que no es lo mismo que lo
+               * anule un docente.
+               *
+               * 🔴 LO QUE HOY NO PUEDE HACER, dicho aquí para que no se dé por hecho: si ya se gastó
+               * el dinero, el saldo NO queda negativo. `applyXpDelta` de GamificaPro recorta a cero
+               * (`Math.max(0, …)`), así que ahí hay un agujero real —marcar, comprar, cancelar— que
+               * se cierra con un cambio en esa función y su despliegue.
+               */
+              if (cuerpo.accion === "cancelar")
+                return M.anularReto(cuerpo.per, ficha.id, cuerpo.reto,
+                                    "cancelado por el propio recluta")
+                  .then(function () {
+                    // La evidencia se va con el reto: dejarla colgada sin entrega es basura que
+                    // luego aparece en la sala del docente como si hubiera algo entregado.
+                    return M.getDocs(M.query(M.collection(M.db, "missions"),
+                      M.where("projectId", "==", cuerpo.per), M.where("stargateId", "==", cuerpo.reto)))
+                      .then(function (r) {
+                        if (r.empty) return { ok: true };
+                        return M.deleteDoc(M.doc(M.db, "mission_deliveries", r.docs[0].id + "__" + ficha.id))
+                          .then(function () { return { ok: true }; })
+                          .catch(function () { return { ok: true }; });
+                      });
+                  });
+
+              /**
+               * AÑADIR O CAMBIAR LA EVIDENCIA sin tocar el reto.
+               *
+               * 🔴 Antes, para pegar un enlace que se te había olvidado había que CANCELAR la
+               * entrega y volver a hacerla: mover xp, créditos y puede que el nivel arriba y abajo
+               * por un campo de texto. Absurdo y arriesgado.
+               */
+              if (cuerpo.accion === "evidencia")
+                return M.getDocs(M.query(M.collection(M.db, "missions"),
+                  M.where("projectId", "==", cuerpo.per), M.where("stargateId", "==", cuerpo.reto)))
+                  .then(function (r) {
+                    if (r.empty) return { error: "Ese reto no existe en tu grupo." };
+                    var mid = r.docs[0].id;
+                    return M.setDoc(M.doc(M.db, "mission_deliveries", mid + "__" + ficha.id), {
+                      projectId: cuerpo.per, missionId: mid, studentProfileId: ficha.id,
+                      userId: yo.uid, stargateReto: cuerpo.reto,
+                      enlace: String(cuerpo.evidencia || "").trim(), createdAt: Date.now()
+                    }, { merge: true }).then(function () { return { ok: true }; });
+                  });
+
               if (cuerpo.accion === "vestir")
                 return M.updateDoc(M.doc(M.db, "student_profiles", ficha.id),
                   { stargateViste: cuerpo.viste || "" }).then(function () { return { ok: true }; });

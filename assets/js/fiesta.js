@@ -142,15 +142,39 @@
 
   // ---------------------------------------------------------------- subir de nivel
   /** El único momento que para la pantalla. Si subir de nivel no se nota, no es subir de nivel. */
-  function nivelNuevo(nivel, rango, titulo) {
+  /**
+   * SUBIR DE NIVEL, CON EL PERSONAJE DELANTE.
+   *
+   * 🔴 Se anunciaba con un número enorme y nada más. Pero lo que de verdad importa de subir de
+   * nivel en STARGATE es que **tu personaje cambia**: el arte evoluciona por rangos, y eso es la
+   * recompensa. Enseñar un «4» y no enseñar en qué te has convertido era contar el premio sin
+   * darlo.
+   *
+   * Y cuando el RANGO cambia (no solo el nivel), las dos imágenes se cruzan despacio: la vieja se
+   * va mientras la nueva aparece encima, así se ve la transformación en vez de un corte seco.
+   *
+   * `caras` llega como {antes, ahora} desde quien sabe dibujar avatares; si no llega, la ventana
+   * funciona igual que siempre. Esta función no sabe de rangos ni de skins, y no tiene por qué.
+   */
+  function nivelNuevo(nivel, rango, titulo, caras) {
     sonar("nivel");
     var d = document.createElement("div");
     d.className = "nivel-arriba";
+    var cambia = caras && caras.ahora && caras.antes && caras.antes !== caras.ahora;
+    var retrato = caras && caras.ahora
+      ? '<div class="na-avatar' + (cambia ? " na-muda" : "") + '">' +
+          '<span class="na-aura"></span>' +
+          (cambia ? '<img class="na-viejo" src="' + caras.antes + '" alt="">' : '') +
+          '<img class="na-nuevo" src="' + caras.ahora + '" alt="">' +
+        '</div>'
+      : '';
     d.innerHTML = '<div class="na-caja">' +
       '<span class="na-eyebrow">Has subido de nivel</span>' +
+      retrato +
       '<b class="na-n">' + nivel + '</b>' +
       '<span class="na-rango">' + String(rango || "") + '</span>' +
       (titulo ? '<span class="na-titulo">' + String(titulo) + '</span>' : "") +
+      (cambia ? '<span class="na-muda-txt">Tu personaje ha cambiado</span>' : "") +
       '</div>';
     document.body.appendChild(d);
     if (!quieto) setTimeout(function () {
@@ -191,9 +215,26 @@
       if (nuevas.length) setTimeout(function () { insignias(nuevas); }, 620);
 
       if ((ahora.nivel || 0) > (antes.nivel || 0))
-        setTimeout(function () { nivelNuevo(ahora.nivel, ahora.rango_nombre, ahora.nivel_titulo); },
-                   nuevas.length ? 1500 : 760);
+        setTimeout(function () {
+          nivelNuevo(ahora.nivel, ahora.rango_nombre, ahora.nivel_titulo, carasDe(antes, ahora));
+        }, nuevas.length ? 1500 : 760);
     } catch (e) { /* la fiesta nunca puede tumbar lo que ya está guardado */ }
+  }
+
+  /**
+   * Las dos caras: la que tenía y la que tiene. Se piden a quien sabe dibujarlas (`SG.avatarSrc`),
+   * porque el arte depende del rango, del héroe que lleve puesto y de la skin elegida — y esa
+   * cuenta ya existe en un sitio. Si esa función no está cargada, se devuelve nada y la ventana
+   * sale sin retrato en vez de romperse.
+   */
+  function carasDe(antes, ahora) {
+    try {
+      if (!window.SG || !window.SG.avatarSrc) return null;
+      var tipo = (window.SG_TIPO_PER || "REGULAR");
+      var a = window.SG.avatarSrc(antes.avatar, antes.alias, antes.xp, tipo);
+      var b = window.SG.avatarSrc(ahora.avatar, ahora.alias, ahora.xp, tipo);
+      return { antes: a && a.src, ahora: b && b.src };
+    } catch (e) { return null; }
   }
 
   /** Celebra un canje. Los créditos bajan, así que el sonido baja. */

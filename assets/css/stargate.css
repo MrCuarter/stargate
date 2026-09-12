@@ -1760,3 +1760,65 @@ body.embed #sg-son{display:none}
 .exito-acciones .btn.grande{font-size:1.02rem;padding:15px 30px}
 .exito-acciones p{margin:9px 0 0}
 @media(max-width:620px){.exito-cap{flex-direction:column;text-align:center}.exito-cap img{width:92px}}
+
+/* ══════════ SUBIR DE NIVEL: EL PERSONAJE, NO SOLO EL NÚMERO ══════════
+   Lo que de verdad importa de subir de nivel aquí es que TU PERSONAJE CAMBIA: el arte evoluciona
+   por rangos. Enseñar un «4» y no enseñar en qué te has convertido era contar el premio sin darlo. */
+.na-avatar{position:relative;width:168px;height:168px;margin:4px auto 14px}
+.na-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:18px;
+  border:2px solid #ffd166;box-shadow:0 10px 34px rgba(0,0,0,.55)}
+/* El resplandor dorado, detrás y latiendo. */
+.na-aura{position:absolute;inset:-22%;border-radius:50%;z-index:-1;
+  background:radial-gradient(circle,rgba(255,209,102,.85),rgba(255,209,102,.28) 42%,transparent 68%);
+  filter:blur(8px);animation:naAura 2.4s ease-in-out infinite}
+@keyframes naAura{0%,100%{transform:scale(.92);opacity:.75}50%{transform:scale(1.08);opacity:1}}
+/* 🔴 LA TRANSFORMACIÓN. La vieja se va mientras la nueva aparece ENCIMA, despacio: así se ve el
+   cambio de rango en vez de un corte seco. Arranca con retardo para que dé tiempo a ver quién eras. */
+.na-muda .na-viejo{z-index:2;animation:naSale 2.6s ease-in-out .7s both}
+.na-muda .na-nuevo{z-index:1;animation:naEntra 2.6s ease-in-out .7s both}
+@keyframes naSale{0%{opacity:1;transform:scale(1);filter:none}
+  55%{opacity:.45;filter:brightness(1.8) saturate(.4)}
+  100%{opacity:0;transform:scale(1.09);filter:brightness(2.4) saturate(0)}}
+@keyframes naEntra{0%{opacity:0;transform:scale(.94);filter:brightness(2.2)}
+  60%{opacity:.7}
+  100%{opacity:1;transform:scale(1);filter:none}}
+.na-muda-txt{display:block;margin-top:8px;font-size:.84rem;color:#ffd166;letter-spacing:.02em}
+@media(max-width:520px){.na-avatar{width:134px;height:134px}}
+@media (prefers-reduced-motion:reduce){
+  .na-aura{animation:none}
+  .na-muda .na-viejo{display:none}
+  .na-muda .na-nuevo{animation:none;opacity:1}
+}
+
+/* El botón de completar misión dentro de la ficha de una insignia. */
+.mi-hacer{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.mi-hacer p{margin:0 0 9px}
+.mi-ya{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);color:#4fd18b;font-size:.9rem}
+
+/* ══════ QUÉ HACER CON UN RETO YA ENTREGADO ══════
+   «Muchos estudiantes darán a completado solo por probar» (Norberto). Sin salida, ese clic es
+   irreversible y cada duda acaba siendo un mensaje al docente. Con salida, probar deja de dar
+   miedo — y quien prueba, se queda. */
+.rh{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;
+  flex-direction:column;gap:9px;align-items:flex-start}
+.rh-ev{display:flex;gap:8px;width:100%;flex-wrap:wrap}
+.rh-in{flex:1 1 200px;padding:9px 11px;border-radius:9px;border:1px solid #24304a;
+  background:#0b1119;color:#e8eefc;font:inherit;font-size:.88rem}
+.rh-in:focus{outline:none;border-color:var(--teal)}
+.rh-desHacer{color:#f0a9a0;border-color:#5a2f2f;background:rgba(255,122,107,.07)}
+.rh-desHacer:hover{border-color:var(--rose);background:rgba(255,122,107,.14);color:#ffd0c8}
+.rh-nota{margin:0;font-size:.78rem;color:var(--mut);line-height:1.45}
+
+/* ══════ LA COLECCIÓN DE INSIGNIAS, EN GRANDE ══════
+   Eran sellos de 60 px. Se gana UNA cada dos semanas y son el registro visible de todo el viaje:
+   a ese tamaño no se distinguía qué había caído, que es justo lo que hace que apetezca la siguiente. */
+.badge-col{grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:14px}
+.badge-col img{width:104px;height:104px;transition:transform .18s}
+.badge-col .b{font-size:.72rem;cursor:pointer}
+.badge-col .b:hover img{transform:scale(1.06)}
+.badge-col .b span{margin-top:6px;line-height:1.3}
+.badge-col .b:not(.no) img{filter:drop-shadow(0 0 14px rgba(55,224,236,.3))}
+@media(max-width:520px){
+  .badge-col{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
+  .badge-col img{width:84px;height:84px}
+}

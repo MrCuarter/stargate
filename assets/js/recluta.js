@@ -425,6 +425,29 @@
       +pct+'%</span>';
   }
 
+  /**
+   * LO QUE SE PUEDE HACER CON UN RETO YA REGISTRADO. Norberto, y es de las cosas más certeras que
+   * ha dicho: «muchos estudiantes darán a completado solo por probar».
+   *
+   * Sin salida, ese clic es irreversible y cada duda acaba siendo un mensaje al docente. Con
+   * salida, probar deja de dar miedo — y quien prueba, se queda.
+   *
+   * 🔴 Y la evidencia se puede pegar SIN cancelar. Antes, para añadir un enlace olvidado había que
+   * deshacer la entrega y rehacerla: mover xp, créditos y puede que el nivel arriba y abajo por un
+   * campo de texto.
+   */
+  function accionesDeHecho(id){
+    if(!motorNuevo()) return '';
+    return '<div class="rh">'
+      +'<div class="rh-ev"><input class="rh-in" data-evid="'+esc(id)+'" type="url" '
+        +'placeholder="Enlace de tu evidencia (pégalo aquí)" autocomplete="off">'
+      +'<button class="btn min" type="button" data-guardaev="'+esc(id)+'">Guardar enlace</button></div>'
+      +'<button class="btn min rh-desHacer" type="button" data-deshacer="'+esc(id)+'">'
+      +'↩︎ No lo he hecho todavía</button>'
+      +'<p class="rh-nota">Cancelar devuelve los xp y los créditos de este reto. Si ya los has '
+      +'gastado, tu saldo puede quedarse a cero.</p></div>';
+  }
+
   function retosDeLaSemana(){
     var r=st.yo, d=st.d; if(!r||st.estado==='antes') return '';
     var RET=(window.SG_RETOS||{})[(d&&d.tipo)||'REGULAR']||[];
@@ -460,7 +483,7 @@
         +'<div class="rs-detalle">'
         +(pasos.length?'<ol class="rs-pasos">'+pasos.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>'
                       :'<p class="small muted">Sin explicación todavía: pregunta a tu docente.</p>')
-        +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado. Lo que diste por hecho, hecho está.</p>'
+        +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado.</p>'+accionesDeHecho(t[0])
             :(motorNuevo()
               ? '<div class="rs-marcar"><input class="rs-ev" data-ev="'+esc(t[0])+'" placeholder="Enlace de tu evidencia (opcional)" autocomplete="off">'
                 +'<button class="btn primary" type="button" data-hecho="'+esc(t[0])+'">✅ Lo he hecho</button></div>'
@@ -1045,7 +1068,7 @@
           // haciendo falta un formulario de Google: ir a otra pestaña, buscar tu reto entre veinte
           // casillas y enviarlo. Ahora está donde se lee lo que hay que hacer, que es donde tiene
           // que estar.
-          +(ya?'':(motorNuevo()
+          +(ya?accionesDeHecho(r[0]):(motorNuevo()
              ? '<div class="reto-marcar">'
                +'<input class="reto-ev" data-ev="'+esc(r[0])+'" type="url" placeholder="Enlace de lo que has hecho (opcional)">'
                +'<button class="btn primary" type="button" data-hecho="'+esc(r[0])+'">✅ Lo he hecho</button></div>'
@@ -1524,7 +1547,54 @@
     if(!st.yo || otro) identificarPorSesion();
   });
 
-  function marcarReto(id, boton){
+  /** Pegar el enlace que se olvidó, sin tocar el reto ni los puntos. */
+  function guardarEvidencia(id, boton){
+    var caja=document.querySelector('[data-evid="'+id+'"]');
+    var v=caja?caja.value.trim():'';
+    if(!v) return aviso('Pega primero el enlace.', true);
+    boton.disabled=true; boton.textContent='Guardando…';
+    post({accion:'evidencia',per:per,reto:id,evidencia:v},function(){
+      boton.textContent='✓ Guardado';
+      setTimeout(function(){ boton.disabled=false; boton.textContent='Guardar enlace'; },1600);
+      aviso('🔗 Enlace guardado en <b>'+esc(id)+'</b>.');
+    },function(e){
+      boton.disabled=false; boton.textContent='Guardar enlace';
+      aviso('No he podido guardarlo: '+esc(e), true);
+    });
+  }
+
+  /**
+   * Deshacer una entrega propia. Se pregunta con NEBULA, no con el `confirm()` del navegador, y se
+   * dice exactamente qué se va a perder: quitar puntos sin avisar de cuántos es lo que convierte un
+   * botón útil en uno que nadie se atreve a tocar.
+   */
+  function deshacerReto(id, boton){
+    var RET=(window.SG_RETOS||{})[(st.d&&st.d.tipo)||'REGULAR']||[];
+    var t=RET.filter(function(x){return x[0]===id;})[0];
+    var xp=t?t[3]:0, cr=t?creditosDeReto(id):0;
+    nebulaPregunta({
+      titulo:'¿Deshacemos «'+esc(t?t[1]:id)+'»?',
+      cuerpo:'<p class="neb-precio"><b>−'+xp+' xp · −'+cr+' ◈</b>'
+        +'<span>vuelve a quedar pendiente</span></p>'
+        +'<p class="neb-nota">Puedes volver a marcarlo cuando lo tengas hecho de verdad. Si ya te '
+        +'habías gastado esos créditos, el saldo se queda a cero.</p>',
+      si:'Sí, deshacer', no:'Mejor no'
+    }).then(function(ok){
+      if(!ok) return;
+      boton.disabled=true; boton.textContent='Deshaciendo…';
+      var antes=st.yo?JSON.parse(JSON.stringify(st.yo)):{};
+      post({accion:'cancelar',per:per,reto:id},function(){
+        var c=document.querySelector('.neb-capa'); if(c) c.remove();
+        aviso('↩︎ <b>'+esc(id)+'</b> vuelve a estar pendiente.');
+        refrescarYCelebrar(antes, null, 'canje-mudo', '');
+      },function(e){
+        boton.disabled=false; boton.textContent='↩︎ No lo he hecho todavía';
+        nebulaProblema(e);
+      });
+    });
+  }
+
+  function marcarReto(id, boton, alEmpezar){
     if(boton){ boton.disabled=true; boton.textContent='Registrando…'; }
     // El mismo reto puede tener casilla de evidencia en dos sitios (la tarjeta de la semana y la
     // pestaña de retos). Se coge la que esté escrita, no la primera que aparezca.
@@ -1535,6 +1605,9 @@
     var antes=st.yo?JSON.parse(JSON.stringify(st.yo)):{};
     var donde=puntoDe(boton);
     post({accion:'registrar',per:per,reto:id,evidencia:ev?ev.value.trim():''},function(){
+      // Quien haya pedido apartarse (la ficha de la insignia) lo hace AHORA: si la celebración
+      // ocurre debajo de un modal, se pierde la mitad de la recompensa.
+      if(alEmpezar) try{ alEmpezar(); }catch(e){}
       aviso('✅ Reto <b>'+esc(id)+'</b> registrado. ¡Buen trabajo!');
       refrescarYCelebrar(antes, donde, 'reto');
     },function(e){
@@ -1809,6 +1882,39 @@
     return null;
   }
 
+  /**
+   * COMPLETAR LA MISIÓN DESDE LA FICHA DE LA INSIGNIA.
+   *
+   * 🔴 La ficha explicaba perfectamente qué hay que hacer para ganarla… y ahí te dejaba. Quien la
+   * abre convencido tenía que cerrarla, buscar el reto en otra pestaña y marcarlo allí. El botón va
+   * donde nace la intención, no tres pantallas después.
+   *
+   * Solo aparece cuando tiene sentido: en la Nave, con alguien identificado, con el motor nuevo
+   * (el viejo se marca por formulario) y si ese reto AÚN le falta. Si ya lo tiene, se le dice.
+   */
+  function retoDeInsignia(clave){
+    var RET=(window.SG_RETOS||{})[(st.d&&st.d.tipo)||'REGULAR']||[];
+    return RET.filter(function(t){ return (t[2]||[]).indexOf(clave)>=0; })[0]||null;
+  }
+  window.SG_BADGE_EXTRA = function(clave){
+    if(!st.yo || !motorNuevo()) return '';
+    var t = retoDeInsignia(clave); if(!t) return '';
+    var ya = ((st.yo.retos)||[]).indexOf(t[0])>=0;
+    if(ya) return '<p class="mi-ya">✓ Ya la tienes. La ganaste con este reto.</p>';
+    return '<div class="mi-hacer"><p class="small muted">Se gana con <b>'+esc(t[1])+'</b> · +'+t[3]+' xp</p>'
+      +'<button class="btn primary" type="button" id="mi-hecho" data-reto="'+esc(t[0])+'">✅ Lo he hecho</button></div>';
+  };
+  window.SG_BADGE_WIRE = function(clave, caja, cerrar){
+    var b = caja.querySelector('#mi-hecho'); if(!b) return;
+    b.onclick = function(){
+      var id = b.getAttribute('data-reto');
+      b.disabled = true; b.textContent = 'Registrando…';
+      // Se cierra la ficha para que se vea la celebración y los contadores subiendo: taparlos con
+      // un modal encima era quedarse sin la mitad de la recompensa.
+      marcarReto(id, b, function(){ if(cerrar) cerrar(); });
+    };
+  };
+
   function render(){
     // 30-ago · el orden que pidió Norberto: puerta → menú (pegajoso al hacer scroll) → semana → contenido
     // 🔴 Sin identificar no se pinta la nave: ni pestañas, ni accesos a los formularios, ni
@@ -1857,6 +1963,12 @@
     cablearTeclado();
     Array.prototype.forEach.call(root.querySelectorAll('[data-hecho]'),function(b){
       b.onclick=function(){ marcarReto(b.getAttribute('data-hecho'), b); };
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-guardaev]'),function(b){
+      b.onclick=function(){ guardarEvidencia(b.getAttribute('data-guardaev'), b); };
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-deshacer]'),function(b){
+      b.onclick=function(){ deshacerReto(b.getAttribute('data-deshacer'), b); };
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-canje]'),function(b){
       b.onclick=function(){ canjear(b.getAttribute('data-canje'), b.getAttribute('data-nombre'),
@@ -1958,6 +2070,10 @@
   SG.FUENTE.tablero(per).then(function(d){
     if(d.error){root.innerHTML='<p class="lead">PER no encontrado. Pregunta a tu Capitán por el enlace bueno.</p>';return;}
     st.d=d; st.semanas=window.SGCAL.vista(d.tipo,SEM);
+    // 🔴 El rango se calcula distinto en PUA (diez semanas, no quince). La fiesta dibuja el avatar
+    // del nivel nuevo y necesita saberlo, o a un recluta de PUA le enseñaría el arte equivocado
+    // justo en el momento de enseñarle en qué se ha convertido.
+    window.SG_TIPO_PER = d.tipo || 'REGULAR';
     var a=window.SGCAL.semanaActual(d.inicio); var forzada=parseInt(q.get('semana')||'0',10); if(forzada)a=forzada;
     st.actual=a==null?1:a;
     st.estado=a==null?'curso':a<1?'antes':a>st.semanas.length?'fin':'curso';
