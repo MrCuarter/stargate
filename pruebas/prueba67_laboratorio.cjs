@@ -660,6 +660,24 @@ const REG = {};   // cifras que se apuntan para el informe
         (a1.completedMissionIds || []).indexOf("lab-clase__B2") >= 0 && ev && /ana-videotutorial/.test(ev.enlace), JSON.stringify(ev));
       await ana.foto(FOTOS + "/12-validar-embebido.png");
     }
+    // ============================================================ 13 · LA PUERTA DEL MATERIAL, SIN CLIC DE MÁS
+    // Una docente con la sesión de Google abierta pero SIN la marca del navegador (la borró, o entró
+    // por otra puerta) abría «Proyectar la clase» y se encontraba la caja «Iniciar sesión con Google».
+    // Ahora la puerta pregunta sola y se abre. Y al alumnado, con su sesión, se le queda cerrada.
+    if (hacer(13)) {
+      const rita = await nueva("rita-sin-marca");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.js("localStorage.removeItem('sgEsDocente'); 1");
+      await rita.ir("sesion.html?per=lab-clase");
+      const abre = await rita.hasta("!document.getElementById('puerta') && !document.documentElement.classList.contains('cerrado')", 20);
+      c("🔴 puerta · docente con sesión y sin marca: la sesión de la semana se abre SOLA, sin pulsar nada", abre,
+        await rita.js("document.getElementById('puerta')?'sigue la caja':'—'"));
+      const ana = await nueva("ana-en-sesion");
+      await ana.ir("entrar.html"); await ana.entrarComo("ana@lab.test", "Ana Nueva");
+      await ana.ir("sesion.html?per=lab-clase"); await dormir(5000);
+      c("puerta · a una alumna con sesión NO se le abre el material del profesorado",
+        await ana.js("!!document.getElementById('puerta')"));
+    }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
   } finally {

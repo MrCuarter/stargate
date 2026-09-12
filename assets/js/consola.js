@@ -203,7 +203,9 @@
       '<div class="gp-cab"><div><h2>Tus grupos</h2>' +
         '<p class="small muted">Todo lo de clase está aquí mismo. Entra en un grupo para su gente y sus enlaces.</p></div>' +
         (soyRef ? '<a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
-      (vivos.length ? '<div class="gp-grid">' + vivos.map(tarjetaGrupo).join("") + '</div>'
+      // 🔴 13-sep · con UN solo grupo, la tarjeta se tumba en horizontal y ocupa la fila: estrecha y
+      // sola dejaba media pantalla vacía a su derecha. Con varios, rejilla de siempre.
+      (vivos.length ? '<div class="gp-grid' + (vivos.length === 1 ? ' uno' : '') + '">' + vivos.map(tarjetaGrupo).join("") + '</div>'
                     : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
       /**
        * 🔴 LO DEL REFERENTE, EN UNA FRANJA APARTE. Norberto: «el referente básicamente debe tener
@@ -244,6 +246,8 @@
       b.onclick = function () { abrir(b.getAttribute("data-per")); };
     });
     cablearCopiar(app);
+    // el titular «Mi puesto de mando» sobra encima de «Tus grupos»: dos titulares enormes seguidos
+    document.body.classList.add("consola-dentro");
   }
 
   async function abrir(perId) {
@@ -253,6 +257,7 @@
     try { DATOS = await MOTOR.leerPER(perId, true); }
     catch (e) { return fallo("No he podido leer el grupo: " + e.message); }
     pintar();
+    document.body.classList.add("consola-dentro");
   }
 
   /**

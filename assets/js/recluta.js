@@ -330,6 +330,78 @@
   }
 
   /**
+   * ════════ EL VISOR DE VÍDEOS («rollo blockbuster») ════════
+   *
+   * Norberto: «pon los vídeos en una fila exclusiva y genera con código un visor donde los vídeos se
+   * vayan desbloqueando según la fecha, con un menú para ver vídeos anteriores, pero que aparezca un
+   * vídeo a tamaño decente para verlo, no miniaturas: los vídeos de la semana en orden, una fila
+   * debajo para pasar al siguiente y un menú para ver anteriores».
+   *
+   * · La pantalla es grande (16:9, hasta 960 px) y el vídeo solo se carga al pulsar: la carátula la
+   *   sirve YouTube y hasta entonces no se descarga nada. Se usa youtube-nocookie.
+   * · Debajo, la tira de la semana: el que se ve, resaltado; el resto, a un toque.
+   * · Arriba, las semanas como temporadas: las que ya han llegado se pueden ver; las futuras salen
+   *   con candado y sin título —se sabe que hay algo, no qué—, igual que los planetas.
+   */
+  var CINE={sem:0,i:0,jugando:false};
+  function cine(){
+    var L=st.semanas||[]; if(!L.length||st.estado==='antes') return '';
+    var hasta=Math.min(Math.max(st.actual,1),L.length);
+    if(!CINE.sem||CINE.sem>hasta) { CINE.sem=hasta; CINE.i=0; CINE.jugando=false; }
+    // si la semana elegida no trae vídeos, la más reciente que sí
+    var sm=L[CINE.sem-1]; if(!sm||!(sm.videos&&sm.videos.length)){
+      for(var k=hasta;k>=1;k--){ if(L[k-1]&&L[k-1].videos&&L[k-1].videos.length){ CINE.sem=k; sm=L[k-1]; break; } } }
+    if(!sm||!(sm.videos&&sm.videos.length)) return '';
+    var V=sm.videos, i=Math.min(CINE.i,V.length-1), v=V[i][0], nota=V[i][1]||'';
+    var chips=L.map(function(s,j){
+      var n=j+1, abierta=n<=hasta, tiene=s.videos&&s.videos.length;
+      if(!tiene) return '';
+      return abierta
+        ? '<button type="button" class="cine-t'+(n===CINE.sem?' on':'')+'" data-cine-sem="'+n+'" title="'+esc(s.tema||'')+'">S'+n+'</button>'
+        : '<span class="cine-t cerrada" title="Se desbloquea la semana '+n+'">🔒'+n+'</span>';
+    }).join('');
+    var pantalla = CINE.jugando
+      ? '<iframe src="https://www.youtube-nocookie.com/embed/'+esc(v.id)+'?autoplay=1&rel=0&modestbranding=1" title="'+esc(v.titulo)+'" '
+        +'allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>'
+      : '<button type="button" class="cine-poster" data-cine-play="1" aria-label="Ver «'+esc(v.titulo)+'»">'
+        +'<img src="https://i.ytimg.com/vi/'+esc(v.id)+'/maxresdefault.jpg" alt="" loading="lazy" '
+        +'onerror="this.onerror=null;this.src=\'https://i.ytimg.com/vi/'+esc(v.id)+'/hqdefault.jpg\'">'
+        +'<span class="cine-play" aria-hidden="true">▶</span></button>';
+    return '<section class="cine" aria-label="Los vídeos de la semana">'
+      +'<div class="cine-cab"><div><div class="eyebrow teal">Los vídeos · semana '+CINE.sem+(CINE.sem===hasta?' (esta)':'')+'</div>'
+      +'<h3>'+esc(sm.tema||'')+'</h3></div>'
+      +'<div class="cine-temporadas" role="group" aria-label="Semanas">'+chips+'</div></div>'
+      +'<div class="cine-pantalla">'+pantalla+'</div>'
+      +'<div class="cine-info"><div><b>'+esc(v.titulo)+'</b>'+(nota?'<em>'+esc(nota)+'</em>':'')+'</div>'
+      +'<div class="cine-nav"><span>'+(i+1)+' de '+V.length+'</span>'
+      +(i<V.length-1?'<button type="button" class="btn small" data-cine-i="'+(i+1)+'">Siguiente ▶</button>':'')+'</div></div>'
+      +(V.length>1?'<div class="cine-tira">'+V.map(function(x,j){
+          return '<button type="button" class="cine-mini'+(j===i?' on':'')+'" data-cine-i="'+j+'">'
+            +'<img src="https://i.ytimg.com/vi/'+esc(x[0].id)+'/mqdefault.jpg" alt="" loading="lazy">'
+            +'<span><b>'+esc(x[0].titulo)+'</b>'+(x[1]?'<em>'+esc(x[1])+'</em>':'')+'</span></button>';
+        }).join('')+'</div>':'')
+      +'</section>';
+  }
+  document.addEventListener('click', function(ev){
+    var b=ev.target.closest&&ev.target.closest('[data-leer-entero]'); if(!b) return;
+    var m=b.previousElementSibling; if(!m) return;
+    var abierto=m.classList.toggle('abierto');
+    b.textContent=abierto?'Recoger ▴':'Leer entero ▾';
+  });
+  // Un solo oyente para todo el visor: se repinta solo el visor, no la Nave entera (que haría saltar
+  // la página arriba y cortaría el vídeo que suena).
+  document.addEventListener('click', function(ev){
+    var b=ev.target.closest&&ev.target.closest('[data-cine-sem],[data-cine-i],[data-cine-play]');
+    if(!b||!b.closest('.cine')) return;
+    if(b.hasAttribute('data-cine-sem')){ CINE.sem=Number(b.getAttribute('data-cine-sem')); CINE.i=0; CINE.jugando=false; }
+    else if(b.hasAttribute('data-cine-i')){ CINE.i=Number(b.getAttribute('data-cine-i')); CINE.jugando=true; }
+    else CINE.jugando=true;
+    var viejo=document.querySelector('.cine'); if(!viejo) return;
+    var tmp=document.createElement('div'); tmp.innerHTML=cine();
+    if(tmp.firstChild) viejo.parentNode.replaceChild(tmp.firstChild, viejo);
+  });
+
+  /**
    * LA ORDEN DE LA SEMANA, al lado de tu ficha.
    *
    * Es el mensaje del foro que toca hoy — el mismo que el profesorado pega en la plataforma de
@@ -349,7 +421,9 @@
     return '<div class="card orden-sem"><div class="eyebrow amber">La orden de la semana</div>'
       + '<h3>' + esc(sm.tema) + '</h3>'   // el número vive en la cabecera, y en un sitio basta
       + '<p class="small muted">' + esc(sm.sub || '') + '</p>'
-      + '<div class="foro-msg">' + msgHtml(sm.foro, per) + '</div>'
+      // recortado, con «Leer entero»: la orden entera empujaba la tarjeta muy por debajo de la ficha
+      + '<div class="foro-msg recortado">' + msgHtml(sm.foro, per) + '</div>'
+      + '<button type="button" class="leer-entero" data-leer-entero>Leer entero ▾</button>'
       /**
        * 🔴 LOS VÍDEOS DE LA SEMANA, AQUÍ. Estaban solo dentro de «ver la semana entera», a dos
        * clics — y son lo primero que hay que ver: el propio mensaje del foro los nombra por su
@@ -357,9 +431,8 @@
        * mensaje que los menciona, así no abren un hueco nuevo. La carátula la sirve YouTube y el
        * vídeo solo se carga al pulsarlo: no cuesta nada de más en cada visita.
        */
-      + (sm.videos && sm.videos.length
-          ? '<div class="orden-videos">' + sm.videos.map(function(v){ return ytb(v[0], v[1]); }).join('') + '</div>'
-          : '')
+      // 🔴 13-sep · los vídeos se van a su propia fila, al visor (cine()): en una tira de miniaturas
+      // metida aquí, «¿tú crees que alguien va a ver los vídeos en ese tamaño?» (Norberto)
       + (sm.lanza && sm.lanza.length
           ? '<p class="small"><b>Se lanza:</b> ' + sm.lanza.map(esc).join(' · ') + '</p>' : '')
       + '<p class="small" style="margin-top:10px">'
@@ -693,6 +766,26 @@
       +'</div>';
   }
 
+  /**
+   * 🔴 13-sep · LO QUE LLEVAS, EN CUATRO CIFRAS. Debajo de la barra la ficha se quedaba en blanco
+   * (la orden de la semana, a su lado, es más alta) y ese hueco era justo el «aire» del que se quejaba
+   * Norberto. En vez de rellenarlo, se le da trabajo: lo que el recluta ha ganado, de un vistazo, y
+   * cada cifra lleva a su sitio. Nada inventado: son los mismos datos de «Mi botín» y «Mis retos».
+   */
+  function cifrasDeBitacora(r){
+    var tengo=r.cromos||{}, nCr=CROMOS.filter(function(c){return tengo[c[0]];}).length;
+    var nRet=((r.retos||[]).filter(function(k){return /^[ABXS]\d/.test(k);})).length;
+    function c(tab,num,de,que,tit){
+      return '<button type="button" class="nc" data-tab="'+tab+'" title="'+tit+'"><b>'+num+(de?'<small>/'+de+'</small>':'')+'</b><span>'+que+'</span></button>';
+    }
+    return '<div class="nave-cifras">'
+      +c('retos',nRet,'','reto'+(nRet===1?'':'s')+' hecho'+(nRet===1?'':'s'),'Ver tus retos')
+      +c('botin',(r.insignias||[]).length,BADGES.length,'insignias','Ver tus insignias')
+      +(CROMOS.length?c('botin',nCr,CROMOS.length,'cromos','Ver tu álbum de cromos'):'')
+      +c('rankings',r.pos||'—','','puesto','Ver el tablero')
+      +'</div>';
+  }
+
   function personaje(){
     if(st.cargandoYo) return '<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>';
     // 30-ago · el login ya NO vive aquí: es lo primero de la página (ver login() y el orden de
@@ -708,10 +801,19 @@
     var ni=SG.nivelInfo?SG.nivelInfo(r.xp,d.tipo):{nivel:1,rango:1,rangoNombre:'Recluta',titulo:'',pct:0,faltan:0,siguiente:null,evo:null};
     var rg=ni.rango;
     var cred=(r.creditos!=null?r.creditos:(r.xp_disponibles!=null?r.xp_disponibles:0));
+    /**
+     * 🔴 13-sep · LA BARRA DICE LO JUSTO; EL DETALLE, AL PASAR POR ENCIMA. Norberto: «no hace falta
+     * tanta info: "te faltan 300 xp para el nivel 7 · tu personaje evoluciona a Comandante al llegar
+     * al nivel 8". Quizá un texto flotante al poner el ratón sobre la barra». La barra es enfocable
+     * (se abre también con el teclado y con un toque en el móvil), y a su lado solo el número que
+     * importa.
+     */
     var barra=ni.siguiente
-      ?'<div class="progress" title="'+r.xp+' / '+ni.siguiente+' xp"><i style="width:'+ni.pct+'%"></i></div>'
-        +'<p class="small muted">Te faltan <b>'+ni.faltan+'</b> xp para el <b>nivel '+(ni.nivel+1)+'</b>'
-        +(ni.evo?' · tu personaje evoluciona a <b>'+esc(ni.evo.rango)+'</b> al llegar al nivel '+ni.evo.nivel:'')+'</p>'
+      ?'<div class="barra-nivel" tabindex="0" role="img" aria-label="'+ni.faltan+' xp para el nivel '+(ni.nivel+1)+'">'
+        +'<div class="progress"><i style="width:'+ni.pct+'%"></i></div>'
+        +'<span class="bn-tip"><b>'+ni.faltan+' xp</b> para el nivel '+(ni.nivel+1)
+        +(ni.evo?'<br>Tu personaje evoluciona a <b>'+esc(ni.evo.rango)+'</b> en el nivel '+ni.evo.nivel:'')+'</span>'
+        +'<span class="bn-lado">nivel '+(ni.nivel+1)+' en <b>'+ni.faltan+'</b> xp</span></div>'
       :'<p class="small muted">Nivel máximo: <b>'+esc(ni.titulo)+'</b>. Has hecho el viaje entero. 🫡</p>';
     // 30-ago · cada insignia se abre en grande con su ficha (planeta y qué hay que hacer para
     // ganarla) — el modal ya existía en la web; aquí solo se cablea. Las pendientes también: ver
@@ -730,12 +832,16 @@
       +'<p class="small"><b>Nivel '+ni.nivel+' · '+esc(ni.rangoNombre)+'</b>'+(ni.titulo&&ni.titulo!==ni.rangoNombre?' <span class="muted">('+esc(ni.titulo)+')</span>':'')+' · puesto '+r.pos+' · planeta '+esc(r.planeta)+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
       +'<p class="monedas"><span class="m xp" title="Los xp no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje."><b>'+r.xp+'</b> xp</span>'
       +'<span class="m cred" title="Los créditos son la moneda de misión: es lo único que se descuenta al canjear recompensas."><b>'+cred+'</b> ◈ créditos</span></p>'
-      +'<p class="small muted">Los <b>xp</b> solo suben: son tu nivel. Los <b>créditos ◈</b> son lo que gastas.</p></div></div>'+barra
-      +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'<p class="small muted">Sin biografía todavía.</p>')
+      // (lo de «los xp solo suben, los créditos se gastan» ya lo dicen las dos pastillas al pasar por
+      // encima: repetido debajo era una línea de relleno. Y «sin biografía todavía», también.)
+      +'</div></div>'+barra
+      +cifrasDeBitacora(r)
+      +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'')
       +'</div>'
       // Al lado de tu ficha, lo que toca ESTA semana. Es lo único que caduca de toda la pantalla, y
       // por eso es lo que merece el sitio bueno — la colección no cambia porque abras la Nave.
       +ordenDeLaSemana()+'</div>'
+      +cine()
       // 🔴 EL ORDEN DE ESTA PANTALLA, y no es casual:
       //   1 · quién eres y qué toca        (lo que caduca)
       //   2 · los retos de la semana       (lo que se puede hacer HOY)
@@ -2292,6 +2398,12 @@
   };
 
   function render(){
+    /**
+     * 🔴 13-sep · CON SESIÓN, FUERA EL TITULAR GRANDE. «La Nave del Recluta» con su párrafo ocupaba
+     * 250 px arriba del todo en CADA visita, y a quien ya ha entrado no le cuenta nada que la barra
+     * pegada no diga. Se queda para la puerta (sin sesión), que es donde presenta la Nave.
+     */
+    document.body.classList.toggle('nave-dentro', !!st.yo);
     // 30-ago · el orden que pidió Norberto: puerta → menú (pegajoso al hacer scroll) → semana → contenido
     // 🔴 Sin identificar no se pinta la nave: ni pestañas, ni accesos a los formularios, ni
     // tablero. Antes se veia el panel entero y solo la ficha estaba vacia.

@@ -25,7 +25,8 @@
   var LOGO_G = (window.SG && window.SG.LOGO_G) || "";
 
   var raiz = document.documentElement;
-  function abrir(){ raiz.classList.remove('cerrado'); var p=document.getElementById('puerta'); if(p) p.remove(); }
+  var abierta = false;
+  function abrir(){ abierta = true; raiz.classList.remove('cerrado'); var p=document.getElementById('puerta'); if(p) p.remove(); }
 
 
   // 🔴 LA EXCEPCION QUE NO PUEDE FALTAR. `registro.html` es DOS cosas: la pagina del metodo (con la
@@ -45,7 +46,29 @@
    */
   if (localStorage.getItem('sgEsDocente') === '1') { abrir(); return; }
 
+  /**
+   * 🔴 13-sep · SI YA HAY SESIÓN, NO SE PIDE UN CLIC PARA NADA. La marca de arriba vive en este
+   * navegador; quien ya tenía la sesión de Google abierta pero no la marca (la borró, o entró por
+   * otra puerta) veía la caja «Iniciar sesión con Google» y, al pulsar, no pasaba nada visible: la
+   * comprobación era instantánea porque YA estaba dentro. Un botón que no hace falta es un botón que
+   * confunde. En las páginas que cargan el motor (sesión, aula, llamada), la puerta pregunta sola en
+   * cuanto Firebase dice quién hay, y se abre si esa cuenta lleva algún grupo.
+   */
+  function enSilencio(){
+    var M = window.SG && window.SG.MOTOR;
+    if (!M || !M.sesion || !M.misPERs) return;
+    M.sesion().then(function(yo){
+      if (yo) return M.misPERs(yo.correo).then(function(ps){ if (ps && ps.length) abrir(); });
+    }).catch(function(){});
+  }
+  // el motor llega por su cuenta (módulo, a veces antes y a veces después que este fichero):
+  // se cubren los tres momentos — ya estaba, termina de cargar, o alguien entra más tarde
+  document.addEventListener('sg:motor', enSilencio);
+  document.addEventListener('sg:sesion', function(ev){ if (ev.detail) enSilencio(); });
+  enSilencio();
+
   function pintar(aviso){
+    if (abierta) return;   // la comprobación silenciosa pudo ganar la carrera al DOMContentLoaded
     var d = document.createElement('div');
     d.id = 'puerta';
     d.innerHTML =

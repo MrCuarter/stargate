@@ -1043,7 +1043,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <section id="profe-herramientas"><div class="wrap">
 <div class="eyebrow">También desde tu puesto</div><h2>Lo que usas cada semana</h2>
 <div class="grid cols-2">
-<div class="card"><h3>🛰️ El aula, dentro de tu Genially</h3><p>Tu puesto de mando <b>sin salir de la presentación</b>: tocas <b>llamada a filas</b> y ves quién ficha en directo, miras a quién felicitar por lo que ha hecho esta semana y a quién dar la bienvenida, consultas el ranking y repartes premios a mano — experiencia, créditos o una carta de regalo, incluso eligiendo a alguien al azar. Ábrelo desde <a href="clase.html">Mi clase</a> o incrústalo con <code>aula.html?embed=1</code>.</p>
+<div class="card"><h3>🛰️ El aula, dentro de tu Genially</h3><p>Tu puesto de mando <b>sin salir de la presentación</b>: tocas <b>llamada a filas</b> y ves quién ficha en directo, miras a quién felicitar por lo que ha hecho esta semana y a quién dar la bienvenida, consultas el ranking y repartes premios a mano — experiencia, créditos o una carta de regalo, incluso eligiendo a alguien al azar. Ábrelo con el botón <b>«El aula»</b> de tu grupo en <a href="consola.html">Mis grupos</a>, o incrústalo con <code>aula.html?embed=1</code>.</p>
 <p class="small muted">🔴 Ese enlace <b>no lleva el grupo dentro</b>: se deduce de tu cuenta. Se monta una vez en todos tus Geniallys y no se toca más, ni al crear un grupo nuevo ni el curso que viene.</p></div>
 <div class="card"><h3>🔔 Llamada a filas</h3><p>El pase de lista. Lo tocas tú —y solo tú: quien no sea Comandante recibe un aviso que se lo explica— y se abre el fichaje <b>solo para tu escuadrón</b>, los minutos que elijas. En la Nave de tu gente aparece el botón <b>✋ Presente</b> con su cuenta atrás, y al pulsarlo cobran. <a href="llamada.html">llamada.html</a>, también universal.</p>
 <p class="small muted">No hay palabra que dictar: lo que no se puede adivinar es <b>cuándo</b> la vas a tocar.</p></div>
@@ -2232,7 +2232,7 @@ open(os.path.join(HERE,"clase.html"),"w",encoding="utf-8").write(html); print("e
 # Con PIN, como «Mi clase»: la tira de preparacion lleva el consejo del Capitan, que no debe verse
 # proyectado.
 SESION = head("STARGATE · La sesión de la semana", "La semana en curso montada como presentación: planeta, vídeos, misiones, insignias y hito. Para proyectar en clase sin montar un Genially.", "cla", puerta=True) + f'''
-<header class="hero"><div class="kicker">Solo profesorado</div><h1>La sesión de la semana</h1>
+<header class="hero corto"><div class="kicker">Solo profesorado</div><h1>La sesión de la semana</h1>
 <p>La semana en curso, ya montada para proyectar: el planeta, los vídeos con el momento en que van,
 las misiones que se lanzan <b>con lo que pide cada una</b>, las insignias que entregas y el hito.
 Pasa con las flechas <b>←</b> y <b>→</b>.</p>
@@ -2360,14 +2360,14 @@ html,body{{margin:0;height:100%;background:#05080f;overflow:hidden}}
 .panel>video{{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}}
 .panel .velo{{position:absolute;inset:0;background:radial-gradient(60% 60% at 50% 50%,rgba(5,8,15,.55),rgba(5,8,15,.82));z-index:1}}
 .panel .tit{{position:absolute;top:2.4vh;left:0;right:0;text-align:center;z-index:3;pointer-events:none}}
-.panel .tit .k{{font-size:.72rem;letter-spacing:.34em;color:var(--teal);text-transform:uppercase}}
+.panel .tit .k{{font-size:.78rem;letter-spacing:.34em;color:var(--teal);text-transform:uppercase}}
 .panel .tit h1{{font-family:'Unbounded',sans-serif;font-size:clamp(1.6rem,4.4vw,3rem);margin:.15em 0 0;color:#eaf6fb;text-shadow:0 0 34px rgba(55,224,236,.45)}}
-.panel .tit p{{margin:.3em 0 0;color:var(--mut);font-size:clamp(.72rem,1.5vw,.95rem)}}
+.panel .tit p{{margin:.3em 0 0;color:var(--mut);font-size:clamp(.8rem,1.5vw,.95rem)}}
 .mapa{{position:absolute;inset:0;z-index:2}}
 .pl{{position:absolute;transform:translate(-50%,-50%);text-align:center;text-decoration:none;width:clamp(88px,11vw,150px);transition:transform .28s ease}}
 .pl img{{width:100%;display:block;filter:drop-shadow(0 10px 26px rgba(0,0,0,.65));transition:filter .28s ease}}
-.pl b{{display:block;margin-top:.35em;font-size:clamp(.72rem,1.35vw,.95rem);color:#fff;text-shadow:0 2px 12px #000}}
-.pl em{{display:block;font-style:normal;font-size:clamp(.6rem,1.05vw,.75rem);color:var(--teal2);text-shadow:0 2px 10px #000;opacity:0;transition:opacity .28s ease}}
+.pl b{{display:block;margin-top:.35em;font-size:clamp(.8rem,1.35vw,.95rem);color:#fff;text-shadow:0 2px 12px #000}}
+.pl em{{display:block;font-style:normal;font-size:clamp(.75rem,1.05vw,.82rem);color:var(--teal2);text-shadow:0 2px 10px #000;opacity:0;transition:opacity .28s ease}}
 .pl:hover{{transform:translate(-50%,-50%) scale(1.14)}}
 .pl:hover img{{filter:drop-shadow(0 0 26px rgba(55,224,236,.75)) drop-shadow(0 10px 26px rgba(0,0,0,.65))}}
 .pl:hover em{{opacity:1}}
@@ -2376,10 +2376,10 @@ html,body{{margin:0;height:100%;background:#05080f;overflow:hidden}}
 @keyframes giro{{to{{transform:rotate(360deg)}}}}
 .pl[data-pendiente] b::after{{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);margin-left:6px;vertical-align:middle;opacity:.85}}
 .pl[data-pendiente] img{{opacity:.82}}
-.pie{{position:absolute;bottom:1.2vh;left:0;right:0;text-align:center;z-index:3;color:var(--mut);font-size:.72rem}}
+.pie{{position:absolute;bottom:1.2vh;left:0;right:0;text-align:center;z-index:3;color:var(--mut);font-size:.78rem}}
 .pie a{{color:var(--teal2)}}
 @media(max-width:720px){{.pl{{width:74px}} .pl em{{display:none}}}}
-.pl .candado{{display:none;font-size:clamp(.55rem,1vw,.7rem);color:var(--mut);text-shadow:0 2px 10px #000}}
+.pl .candado{{display:none;font-size:clamp(.75rem,1vw,.8rem);color:var(--mut);text-shadow:0 2px 10px #000}}
 .pl.bloq{{pointer-events:none}}
 .pl.bloq img{{filter:grayscale(1) brightness(.4) contrast(1.1)}}
 .pl.bloq b{{color:var(--mut)}}
@@ -2849,7 +2849,7 @@ MOTOR_POR_DEFECTO = "firestore"
 _html = head("STARGATE · Crear un grupo",
              "Crea un grupo (PER) de STARGATE: calendario, equipo docente, padlet y paneles. Sin hojas de cálculo.",
              "reg").replace("</head>", _cabeza_motor() + "\n</head>") + f'''
-<header class="hero"><div class="kicker">Solo profesorado referente</div><h1>Crear un grupo</h1>
+<header class="hero corto"><div class="kicker">Solo profesorado referente</div><h1>Crear un grupo</h1>
 <p>Escribe cinco datos y el grupo queda sembrado entero: los {len(RETOS_REGULAR)} retos con sus insignias, los 8 planetas,
 la tienda con sus precios y fechas, el álbum de cromos y el vestuario de héroes. Sin hojas de cálculo
 y sin formularios: la fecha de la semana 1 decide el calendario completo.</p></header>
@@ -2885,7 +2885,7 @@ _html = head("STARGATE · Llamada a filas",
              "El botón del pase de lista de STARGATE: lo toca el Comandante y el fichaje se abre "
              "solo para su escuadrón, el tiempo que él decida.",
              "reg", publica=True).replace("</head>", _cabeza_motor() + "\n</head>") + '''
-<header class="hero"><div class="kicker">Pase de lista</div><h1>Llamada a filas</h1></header>
+<header class="hero corto"><div class="kicker">Pase de lista</div><h1>Llamada a filas</h1></header>
 <section id="llamada"><div class="wrap">
 <div id="llamada-app"><p class="muted">Cargando…</p></div>
 ''' + '<script src="' + _v("assets/js/llamada.js") + '" defer></script>' + '''
@@ -2949,7 +2949,7 @@ _html = head("STARGATE · El aula",
              "El puesto de mando del docente dentro del Genially: llamada a filas, quién ficha en "
              "directo, a quién felicitar, el ranking y premios a mano.",
              "reg").replace("</head>", _cabeza_motor() + chr(10) + '<script>window.SG_SEMANAS=' + SEMANAS_JSON + ';</script>' + "\n</head>") + '''
-<header class="hero"><div class="kicker">Profesorado</div><h1>El aula</h1>
+<header class="hero corto"><div class="kicker">Profesorado</div><h1>El aula</h1>
 <p>Todo lo que hace falta para mover tu clase, sin salir del Genially.</p></header>
 <section id="aula"><div class="wrap">
 <div id="aula-app"><p class="muted">Cargando…</p></div>
