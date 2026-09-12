@@ -2308,7 +2308,7 @@ open(_gs_path, "w", encoding="utf-8").write(_gs)
 # de instalación manda pegar `Code.gs.txt` y llevaba un día entero parada: sin el arreglo de la Nave
 # en blanco ni el de la caché del CDN. Las cuatro copias se escriben AQUÍ, en un solo bucle, y la
 # batería 19 comprueba que son idénticas a su fuente.
-for _f in ("Code.gs", "Datos.gs", "Bonus.gs", "Imagenes.gs", "Dialog.html"):
+for _f in ("Code.gs", "Datos.gs", "Bonus.gs", "Imagenes.gs", "Dialog.html", "LectorTickets.gs"):
     open(os.path.join(HERE, "assets", "descargas", _f + ".txt"), "w", encoding="utf-8").write(
         open(os.path.join(HERE, "apps-script", _f), encoding="utf-8").read())
 # Copias 100% ASCII para pegar sin riesgo de que se rompan los acentos (ver _ascii_gs.py)
