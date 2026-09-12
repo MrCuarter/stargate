@@ -81,8 +81,8 @@ contiene(raiz("assets/css/stargate.css"), "body.embed .nav",
 // en un navegador limpio esa marca no existe todavía.
 const pta = raiz("assets/js/puerta.js");
 contiene(pta, "puertaCuenta", "🔴 la puerta ofrece entrar con la CUENTA, no solo con un PIN");
-c(/class="puerta-pin"/.test(pta),
-  "   y el PIN queda como salida secundaria, plegado, para los grupos del sistema anterior");
+c(!/sgPin|puertaPin/.test(pta),
+  "   y NO queda ni rastro del PIN: nadie lo reparte ya, era una puerta sin llave");
 c(/sgEsDocente/.test(pta), "sigue abriéndose sola a quien el motor ya reconoció como docente");
 // Las páginas tapadas no cargan el motor, así que la puerta no puede preguntar por sí misma:
 // manda a la sala, que sí lo carga — y la sala tiene que saber devolver a la persona.

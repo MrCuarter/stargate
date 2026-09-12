@@ -28,7 +28,8 @@ NAV = [("index.html","Inicio","inicio"),("guia.html","Guía","guia"),("cronologi
        ("actividades.html","Actividades","act"),("pasos.html","Cómo se hace","pasos"),("geniallys.html","Geniallys","gen"),
        ("registro.html","Registro","reg"),("grupos.html","Grupos","grp"),("clase.html","Mi clase","cla"),("recursos.html","Recursos","rec")]
 
-# `puerta=True` tapa la pagina hasta que se valida el PIN del profesorado (assets/js/puerta.js).
+# `puerta=True` tapa la pagina hasta que el servidor confirma que esa cuenta lleva algun grupo
+# (assets/js/puerta.js). Ya no hay PIN: la llave es la cuenta de Google del equipo docente.
 # 🔴 Esconde el CAMINO, no el contenido: un fichero de assets/ se baja igual desde su URL.
 # `publica=True` es la PORTADA: menu minimo y sin visita guiada. 🔴 Si la portada llevara el menu
 # del profesorado, la bifurcacion seria mentira: un estudiante veria «Mi clase» y «Geniallys»
@@ -303,9 +304,9 @@ La batalla final es el examen.</p></div>
     <span class="ic">🎓</span>
     <h3>Soy docente</h3>
     <p>La guía del método, la cronología semana a semana, las actividades, los Geniallys del equipo y
-    tu sala de clase. <b>Pide el PIN una vez</b> — te lo da tu profe referente— y ya no vuelve a
-    pedírtelo en este navegador.</p>
-    <span class="chip">Entrar con el PIN →</span>
+    tu sala de clase. <b>Entras con tu cuenta de Google</b> —la misma con la que tu referente te
+    apuntó al equipo— y no hay ningún PIN que recordar.</p>
+    <span class="chip">Entrar con mi cuenta →</span>
   </a>
 </div>
 </div></section>
@@ -909,7 +910,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="card"><h3>🛰️ Profesorado referente <span class="pill">gestiona el PER</span></h3>
 <p><b>Crea el grupo</b> desde <a href="crear.html">la consola del referente</a> (con la fecha de la semana 1, que marca el ritmo de todo el sistema), <b>pone el equipo docente</b> —quien esté en esa lista entra con su propia cuenta, sin PIN que repartir—, <b>monta y actualiza el Genially del grupo</b> y gobierna el día a día desde <a href="consola.html">el puesto de mando</a>: alumnado, cola de nota, traspasos y ajustes. La chuleta completa está en <a href="pasos.html#referente">Cómo se hace</a>.</p></div>
 <div class="card"><h3>🎓 Profesorado que imparte <span class="pill">dinamiza el aula</span></h3>
-<p>No toca ninguna hoja: sigue la <a href="cronologia.html">cronología</a>, publica el mensaje del foro, entrega las insignias <b>con ceremonia</b> y usa con el PIN el <a href="profes.html">panel del PER</a> y los <a href="tickets.html">tickets</a>. Si quiere un <b>panel de control Genially propio</b> en vez del estándar: lo acuerda con su referente, que duplica el Genially y pega sus enlaces en Panel de profes → Ajustes del PER.</p></div>
+<p>No toca ninguna hoja: sigue la <a href="cronologia.html">cronología</a>, publica el mensaje del foro, entrega las insignias <b>con ceremonia</b> y usa <a href="clase.html">su sala</a> y los <a href="tickets.html">tickets</a>, que se abren con su propia cuenta. Si quiere un <b>panel de control Genially propio</b> en vez del estándar: lo acuerda con su referente, que duplica el Genially y pega sus enlaces en Panel de profes → Ajustes del PER.</p></div>
 </div>
 <p class="small muted" style="margin-top:10px">En la mayoría de los PER el referente <b>también imparte</b>: entonces te tocan las dos columnas. La <b>visita guiada</b> de la portada pregunta tu papel y te enseña solo lo tuyo.</p>
 </div></section>

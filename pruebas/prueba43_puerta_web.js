@@ -17,7 +17,7 @@ console.log("\n▶ 43 · La puerta del profesorado");
 ["guia.html", "cronologia.html", "actividades.html", "geniallys.html", "registro.html",
  "recursos.html", "grupos.html", "embed.html", "pasos.html"].forEach(function(f){
   const h = leer(f);
-  c(h.indexOf("assets/js/puerta.js") >= 0, "🔒 " + f + " pide el PIN");
+  c(h.indexOf("assets/js/puerta.js") >= 0, "🔒 " + f + " está tras la puerta del profesorado");
   c(h.indexOf('classList.add("cerrado")') >= 0,
     "   y nace tapada, sin enseñar el contenido un instante antes");
 });
@@ -36,8 +36,14 @@ const P = leer("assets/js/puerta.js");
 c(/q\.get\('embed'\)\s*===\s*'1'/.test(P) && /q\.get\('solo'\)\s*===\s*'1'/.test(P),
   "🔴 la puerta se aparta con &embed=1 y &solo=1: si no, el alumnado vería un PIN dentro de su Genially");
 c(/q\.get\('panorama'\)\s*===\s*'1'/.test(P), "y con el panorama de tickets, que se proyecta");
-c(P.indexOf("sessionStorage.getItem('sgPin')") >= 0,
-  "🔴 usa el MISMO PIN que «Mi clase» y los tickets: una sola vez por navegador, no una por página");
+// 🔴 12-sep · AQUÍ HABÍA una comprobación de que la puerta usaba el MISMO `sessionStorage.sgPin`
+// que «Mi clase» y los tickets, para no pedirlo dos veces. Ya no aplica: NO HAY PIN. Lo zanjó
+// Norberto —«el docente entra con su correo de Google, el que el profe referente ha escrito;
+// entonces el sistema ya reconoce al docente y su grupo, ¿para qué PIN?»— y además el PIN se había
+// quedado huérfano: nadie lo repartía en el sistema nuevo, así que era una caja pidiendo una clave
+// que no existía. La llave es la cuenta, y la marca la pone el servidor.
+c(!/sgPin/.test(P), "🔴 la puerta ya no sabe nada de PIN: la llave es la cuenta");
+c(P.indexOf("sgEsDocente") >= 0, "   y se abre con la marca que pone el motor al reconocer a un docente");
 
 // ---------------------------------------------------------------- d) la portada bifurca
 const I = leer("index.html");
