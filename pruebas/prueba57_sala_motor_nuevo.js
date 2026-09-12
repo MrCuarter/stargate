@@ -121,4 +121,19 @@ const tkhtml = fs.readFileSync(path.join(__dirname, "..", "tickets.html"), "utf8
 c(/window\.SG_TICKETS_API=/.test(tkhtml) && /window\.SG_TICKETS_HOJA=/.test(tkhtml),
   "y la página lleva las dos direcciones puestas por la construcción, no escritas a mano");
 
+// 🔴 Y el lector, desplegado. Mientras `TICKETS_API` esté vacío el panel degrada bien —eso se
+// comprueba arriba—, pero una vez puesto tiene que ser una dirección de aplicación web de verdad:
+// un `/dev` en vez de un `/exec` solo funciona para quien tenga sesión de Google, y el panel lo
+// abren docentes desde su navegador sin más.
+const DATOS2 = fs.readFileSync(path.join(__dirname, "..", "_site_data.py"), "utf8");
+const mAPI = DATOS2.match(/TICKETS_API = \(([\s\S]*?)\)\n/);
+const API = mAPI ? (mAPI[1].match(/"([^"]*)"/g) || []).map(x => x.slice(1, -1)).join("") : "";
+if (API) {
+  c(/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(API),
+    "🔴 TICKETS_API es una aplicación web publicada (/exec), no el enlace de pruebas (/dev)");
+  c(tkhtml.indexOf(API) > 0, "   y llega entera a tickets.html");
+} else {
+  c(true, "TICKETS_API todavía sin desplegar: el panel lo dice y da la hoja (comprobado arriba)");
+}
+
 E.resumen("La sala del docente, en el motor nuevo");

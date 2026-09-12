@@ -879,7 +879,9 @@ TICKETS_HOJA = "https://docs.google.com/spreadsheets/d/1x_5lztVydAttUvAdvuVM0AiC
 #
 # Mientras esté vacío, el panel de tickets de los grupos del motor nuevo lo dice y manda a la hoja,
 # en vez de quedarse en blanco o inventarse que no hay respuestas.
-TICKETS_API = ""
+TICKETS_API = ("https://script.google.com/macros/s/"
+               "AKfycbw_xmo_3DLONvYxkPYem-uL70M0yLj-4gmhWwla7hoqlfjYkeAeexEqITNGM49H8CpoHQ"
+               "/exec")
 
 TICKET_URL = ("https://docs.google.com/forms/d/e/"
               "1FAIpQLScqkZRCiUqKkq24s7_yzy2d2ldHXlWz8GoHCqXXmHbQlgKhIQ/viewform"
