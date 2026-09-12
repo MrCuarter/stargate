@@ -1982,6 +1982,10 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 @media (prefers-reduced-motion:reduce){.gp-b:hover{transform:none}}
 
 /* Un hero corto para las páginas donde se viene a HACER algo, no a leer. */
+/* 🔴 El hero no vive dentro de `.wrap`, así que al alinearlo a la izquierda el titular se iba al
+   borde de la ventana, desalineado con todo lo de abajo. Lleva el mismo ancho y el mismo margen que
+   el contenido, o deja de parecer la misma página. */
 .hero.corto{padding:34px 0 18px;text-align:left}
-.hero.corto h1{font-size:clamp(1.7rem,4vw,2.4rem);margin:0}
+.hero.corto > *{max-width:1140px;margin-left:auto;margin-right:auto;padding:0 22px}
+.hero.corto h1{font-size:clamp(1.7rem,4vw,2.4rem);margin:0 auto}
 .hero.corto .kicker{margin-bottom:6px}
