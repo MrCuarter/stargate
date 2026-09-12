@@ -342,14 +342,14 @@ que elegir bando en la puerta ni recordar ningún PIN.</p>
     <h3>Si eres estudiante</h3>
     <p>Vas a tu <b>Nave</b>: tu personaje, la orden de la semana, los planetas que se abren, tus
     insignias y el Mercado Estelar. Desde ahí registras lo que completas y canjeas lo que ganas.</p>
-    <span class="chip ok">Te lleva solo →</span>
+    <span class="chip ok">Sin teclear nada →</span>
   </div>
   <div class="card puerta-tile">
     <span class="ic">🎓</span>
     <h3>Si eres docente</h3>
     <p>Vas a tu <b>puesto de mando</b>: tus grupos, y en cada uno lo que se usa en directo —proyectar
     la sesión, la llamada a filas y el aula—. Y desde ahí, la guía del método y las actividades.</p>
-    <span class="chip">Te lleva solo →</span>
+    <span class="chip">Sin teclear nada →</span>
   </div>
   <div class="card puerta-tile">
     <span class="ic">🔑</span>
