@@ -1910,3 +1910,33 @@ body.nave-dentro .nav{position:sticky;top:0;z-index:25}
 .orden-videos .yt .cap b{font-size:.82rem}
 .orden-videos .yt .cap em{font-size:.72rem}
 @media(max-width:560px){.orden-videos{grid-auto-columns:minmax(168px,1fr)}}
+
+/* ══════════ EL AVATAR NUNCA SE CORTA ══════════
+   🔴 «¡NO SE DEBE CORTAR EL AVATAR! Revisa eso siempre» (Norberto). Y es una regla, no un caso: el
+   personaje es la recompensa de todo el sistema y sale en seis sitios distintos. Donde se rompía:
+   `td.who` es un contenedor FLEX, y un <img> dentro de un flex se estira o se encoge según lo que
+   pida la fila — el retrato salía ancho y bajo, con la cara cortada por los lados.
+
+   `flex:0 0 auto` + alto y ancho iguales: el hueco es cuadrado, la fuente es cuadrada, no hay nada
+   que recortar. Y `object-position` alto, porque si algún día entra una imagen apaisada lo que se
+   pierde son los pies, no la cara. */
+img.av, .nb-cara, .av-lupa img, td.who img.av{
+  flex:0 0 auto !important;
+  object-fit:cover;
+  object-position:50% 22%;
+}
+td.who img.av{width:44px;height:44px;aspect-ratio:1}
+.nb-id .nb-cara{aspect-ratio:1}
+
+/* ══════════ LO QUE NO SE HA GANADO, NO SE ENSEÑA ══════════
+   🔴 «Bloquea las skins que no se han desbloqueado, no rompas la magia» (Norberto). Y era lo peor
+   de los dos mundos: el nombre salía como «???» pero la IMAGEN se veía entera — le quitabas el
+   nombre y le regalabas la sorpresa. Los héroes ya tenían su arte `_bloqueado`; las skins no, y
+   generar cinco variantes por personaje son 70 imágenes. Con CSS sale gratis y se ve mejor:
+   silueta a contraluz, que promete algo sin enseñarlo. */
+.vest.no img{filter:brightness(.10) saturate(0) contrast(1.6) blur(1.5px)}
+.vest.no{position:relative;overflow:hidden}
+/* El candado encima, para que se entienda que no es un fallo de carga. */
+.vest.no::after{content:"🔒";position:absolute;top:50%;left:50%;transform:translate(-50%,-58%);
+  font-size:1.5rem;opacity:.55;pointer-events:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.8))}
+.vest.no b{color:var(--mut)}
