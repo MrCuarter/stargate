@@ -1173,6 +1173,10 @@ ol.pasos-num li b{color:var(--ink)}
 .au-sub{color:#9fb0ce;margin:0 0 16px}
 .au-tarjeta{background:#0d1420;border:1px solid #24304a;border-radius:14px;padding:18px 20px;margin:0 0 14px}
 .au-tarjeta h3{margin:0 0 8px;font-size:1.08rem}
+.au-nota{margin:0 0 14px;padding:12px 15px;border-radius:11px;border-left:2px solid var(--teal);
+  background:#0f1a2b;font-size:.92rem;line-height:1.55;color:#c7d6ee}
+.au-nota.malo{border-left-color:var(--amber);background:#1d1608;color:#e6d3a8}
+.au-nota b{color:#e8eefc}
 .au-lista{margin:8px 0 0;padding-left:20px;line-height:1.7;font-size:.93rem;color:#c7d6ee}
 .au-consejo{margin:12px 0 0;padding:11px 14px;border-left:2px solid var(--amber);background:#1a1608;
   border-radius:0 9px 9px 0;font-size:.9rem;color:#e6d3a8}

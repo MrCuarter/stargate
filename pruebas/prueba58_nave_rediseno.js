@@ -165,4 +165,30 @@ NO_MODULOS.forEach(function (f) {
   c(codigo.indexOf("?.") < 0, "   ni el encadenamiento opcional ?. en " + f);
 });
 
+// ---------------------------------------------------------------- k) TODO pasa por el interruptor
+// 🔴 `perData` —lo que alimenta la sesión proyectable y el foro dinámico— iba SIEMPRE al Apps
+// Script, saltándose el interruptor. En un grupo del motor nuevo la respuesta era «no existe» y
+// ninguna de las dos daba error: se quedaban con sus valores por defecto y enseñaban la SEMANA 1
+// estando en la 14. Un docente habría proyectado la clase equivocada sin enterarse.
+const CAL = js("calendario.js");
+c(/F\.nombre === 'firestore'/.test(CAL), "🔴 `perData` mira qué motor hay antes de pedir nada");
+c(/\? F\.tablero\(per\)/.test(CAL), "   y con el nuevo pide por la fuente, no al Apps Script");
+c(/'sgPerCache_'\+\(nuevo\?'fs_':''\)\+per/.test(CAL),
+  "🔴 y la caché lleva el motor en la clave: si no, al cambiar de motor se leería la foto del otro");
+
+// Nadie más puede hablar con el Apps Script a pelo desde una página que sirve a los dos motores.
+["sesion.js", "foro.js"].forEach(function (f) {
+  const t = soloCodigo(js(f));
+  c(!/fetch\(\s*API\s*\+/.test(t), "   " + f + " no llama al Apps Script por su cuenta");
+});
+
+// ---------------------------------------------------------------- l) el aula no enseña gente ajena
+// 🔴 Si el nombre del docente no cuadraba con ninguno, `mios()` devolvía TODO el grupo. En silencio.
+// Un docente con el nombre escrito distinto en el equipo veía al alumnado de sus compañeros y podía
+// premiar a alguien de otra clase creyendo que era suyo.
+c(/return soyReferente\(\) \? \(D\.reclutas \|\| \[\]\) : \[\];/.test(AULA),
+  "🔴 sin coincidencias solo ve el grupo entero quien es REFERENTE; un docente, nadie");
+c(/function avisoDeQuienVeo\(\)/.test(AULA), "y se explica por qué la pantalla está vacía");
+c(/No te enseño el alumnado de/.test(AULA), "   diciendo claramente que no se enseña lo ajeno");
+
 E.resumen("La Nave rediseñada");

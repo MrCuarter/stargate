@@ -44,11 +44,43 @@
 
   // ---------------------------------------------------------------- los míos
   /** Mi escuadrón: el alumnado de quien está mirando. Con 200 en el grupo, lo demás es ruido. */
+  /**
+   * MI ESCUADRÓN: el alumnado de quien está mirando. Con 200 en el grupo, lo demás es ruido.
+   *
+   * 🔴 12-sep · Aquí había un atajo peligroso: si el nombre no cuadraba con ninguno, devolvía TODO
+   * el grupo. Silenciosamente. Un docente cuyo nombre estuviera escrito distinto en el equipo veía
+   * al alumnado de sus compañeros —con sus nombres— y podía premiar a alguien de otra clase creyendo
+   * que era suyo, sin enterarse jamás.
+   *
+   * Ahora se distingue: si eres el REFERENTE, ver el grupo entero es tu trabajo y se dice. Si eres
+   * docente y no cuadras con nadie, es un problema que hay que enseñar, no tapar.
+   */
+  function soyReferente() {
+    var d = (D && D.docentes_full) || [];
+    var mio = d.filter(function (x) { return String(x.correo || "").toLowerCase() === YO.correo; })[0];
+    if (mio && mio.rol === "referente") return true;
+    return String((D && D.referente) || "").toLowerCase() === YO.correo;
+  }
   function mios() {
     if (!D) return [];
     var yo = nombreDocente();
     var r = (D.reclutas || []).filter(function (x) { return String(x.profe || "") === yo; });
-    return r.length ? r : (D.reclutas || []);
+    if (r.length) return r;
+    return soyReferente() ? (D.reclutas || []) : [];
+  }
+  /** El aviso que explica por qué esta pantalla está vacía, o por qué sale gente de más. */
+  function avisoDeQuienVeo() {
+    if (!D) return "";
+    var yo = nombreDocente();
+    var suyos = (D.reclutas || []).filter(function (x) { return String(x.profe || "") === yo; });
+    if (suyos.length) return "";
+    if (soyReferente())
+      return '<p class="au-nota">👑 Eres el <b>referente</b> de este grupo: aquí ves a <b>toda</b> la ' +
+             "clase, no solo a un escuadrón.</p>";
+    return '<p class="au-nota malo">⚠️ No encuentro alumnado asignado a <b>' + esc(yo || YO.correo) +
+      "</b> en este grupo. Puede que tu nombre esté escrito distinto en el equipo docente, o que " +
+      "todavía no se haya alistado nadie contigo como Comandante. <b>No te enseño el alumnado de " +
+      "otros escuadrones</b>: sería premiar a gente que no es tuya.</p>";
   }
   /**
    * Cómo te llamas en ESTE grupo.
@@ -144,7 +176,8 @@
                   .filter(function (x) { return (x.n || 0) <= 2; });
     var parados = g.filter(function (x) { return !(x.xp7 > 0); });
 
-    return '<div class="au-tarjeta"><div class="eyebrow verde">Para nombrar en voz alta</div>'
+    return avisoDeQuienVeo()
+      + '<div class="au-tarjeta"><div class="eyebrow verde">Para nombrar en voz alta</div>'
       + "<h3>👏 Esta semana han hecho algo</h3>"
       + (semana.length
           ? '<div class="au-gente">' + semana.map(function (x) {
@@ -178,7 +211,7 @@
       return { n: e.nombre, emb: e.emblema, media: Math.round(suyos.reduce(function (a, x) { return a + x.xp; }, 0) / suyos.length) };
     }).filter(Boolean).sort(function (a, b) { return b.media - a.media; });
 
-    return '<div class="au-tarjeta"><h3>🏆 Tu escuadrón</h3>'
+    return avisoDeQuienVeo() + '<div class="au-tarjeta"><h3>🏆 Tu escuadrón</h3>'
       + '<ol class="au-rank">' + g.slice(0, 10).map(function (x, i) {
           return "<li><span>" + (i + 1) + "</span><b>" + (x.corona ? "👑 " : "") + esc(x.alias) + "</b>"
             + "<em>" + x.xp + " xp</em></li>"; }).join("") + "</ol></div>"
@@ -195,7 +228,7 @@
   // ---------------------------------------------------------------- 4 · premiar
   function vistaPremios() {
     var g = mios();
-    return '<div class="au-tarjeta"><h3>🎁 Premiar a mano</h3>'
+    return avisoDeQuienVeo() + '<div class="au-tarjeta"><h3>🎁 Premiar a mano</h3>'
       + '<p class="small muted">Para lo que el sistema no ve: una buena intervención, ayudar a un compañero, '
       + "traer algo que no se pedía.</p>"
       + '<label class="ll-campo">A quién<select id="au-quien">'

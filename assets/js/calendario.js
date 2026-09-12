@@ -9,10 +9,25 @@ window.SGCAL = (function(){
   function desdeEfectiva(desde,tipo,total){desde=Number(desde)||0;if(!desde)return 0;return tipo==='PUA'?Math.max(1,Math.round(desde*total/15)):desde;}
   // datos del PER con caché local (la lentitud es el arranque en frío de Apps Script):
   // pinta al instante con lo cacheado y corrige después con lo fresco. cb(data, esCache) puede llegar 2 veces.
-  function perData(API,per,cb){var K='sgPerCache_'+per,hit=false;
+  /**
+   * 🔴 12-sep · ESTO NO PASABA POR EL INTERRUPTOR DE MOTOR. Iba SIEMPRE al Apps Script, así que en un
+   * grupo del motor nuevo la respuesta era «no existe» — y la sesión proyectable y el foro dinámico
+   * no daban error: se quedaban con sus valores por defecto y enseñaban la SEMANA 1 estando en la
+   * 14. Un docente habría proyectado la clase equivocada sin enterarse, que es el peor tipo de fallo.
+   *
+   * La caché se guarda con el motor en la clave: si no, al cambiar de motor se leería la foto del
+   * otro y volvería el mismo error por otra puerta.
+   */
+  function perData(API,per,cb){
+    var F = window.SG && window.SG.FUENTE;
+    var nuevo = F && F.nombre === 'firestore';
+    var K='sgPerCache_'+(nuevo?'fs_':'')+per, hit=false;
     try{var c=JSON.parse(localStorage.getItem(K)||'null');
         if(c&&c.d&&(Date.now()-c.t)<43200e3){hit=true;cb(c.d,true);}}catch(e){}
-    fetch(API+'?per='+encodeURIComponent(per),{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){
+    var pedir = nuevo
+      ? F.tablero(per)
+      : fetch(API+'?per='+encodeURIComponent(per),{redirect:'follow'}).then(function(r){return r.json();});
+    pedir.then(function(d){
       if(d&&!d.error){try{localStorage.setItem(K,JSON.stringify({t:Date.now(),d:d}));}catch(e){}}
       cb(d,false);
     }).catch(function(){if(!hit)cb(null,false);});}
