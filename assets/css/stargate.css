@@ -1140,6 +1140,38 @@ ol.pasos-num li b{color:var(--ink)}
      acabas de tocar, que es justo lo que este bloque venía a arreglar. */
   .avatar-grande{order:-1;position:static;max-width:220px;margin:0 auto}
 }
+/* ---------- LOS CAJONES DE LA NAVE (12-sep) ----------
+   La primera pantalla aterrizaba con la ficha, 24 insignias, 55 cartas y el vestuario a la vez.
+   Ahora las colecciones viven en <details> cerrados. Se usan <details> de verdad y no divs con
+   JavaScript: se abren sin cargar nada, funcionan con teclado, el navegador recuerda el foco y
+   Cmd+F encuentra lo de dentro aunque esté plegado. */
+.cajon{background:var(--card,#0d1420);border:1px solid var(--line,#24304a);border-radius:14px;
+  margin:14px 0;overflow:hidden}
+.cajon > summary{list-style:none;cursor:pointer;padding:15px 18px;display:flex;align-items:center;
+  gap:10px;font-size:1.02rem;user-select:none}
+.cajon > summary::-webkit-details-marker{display:none}
+.cajon > summary::after{content:"▾";margin-left:auto;color:var(--mut2,#6d8398);
+  transition:transform .18s ease;font-size:.9em}
+.cajon[open] > summary::after{transform:rotate(180deg)}
+.cajon > summary:hover{background:rgba(255,255,255,.03)}
+.cajon > summary:focus-visible{outline:2px solid var(--teal,#37e0ec);outline-offset:-2px}
+.cajon > summary .cnt{font-size:.84rem;font-weight:400;color:var(--mut2,#6d8398);
+  border:1px solid var(--line,#24304a);border-radius:999px;padding:2px 10px}
+.cajon > *:not(summary){padding:0 18px 18px}
+.cajon > section,.cajon > .serie{padding-left:18px;padding-right:18px}
+@media (prefers-reduced-motion:reduce){.cajon > summary::after{transition:none}}
+
+/* La orden de la semana, al lado de la ficha. Es lo único que caduca de esa pantalla. */
+.orden-sem .foro-msg{max-height:260px;overflow:auto;font-size:.88rem;margin:10px 0}
+.orden-sem h3{margin:6px 0 2px}
+
+/* El panel de los planetas, embebido. Genially manda 16:9; en móvil se deja más alto porque
+   si no las tarjetas de dentro salen ilegibles. */
+.panel-planetas .marco-genially{position:relative;width:100%;aspect-ratio:16/9;margin:10px 0;
+  border-radius:12px;overflow:hidden;border:1px solid var(--line,#24304a);background:#0b1119}
+.panel-planetas .marco-genially iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+@media (max-width:640px){.panel-planetas .marco-genially{aspect-ratio:4/3}}
+
 /* Los personajes, en rejilla. Se ve la cara: es lo que se elige. */
 .avatares{display:grid;grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:9px;margin-top:10px}
 .av{padding:0;border:2px solid transparent;border-radius:11px;background:none;cursor:pointer;overflow:hidden;line-height:0}

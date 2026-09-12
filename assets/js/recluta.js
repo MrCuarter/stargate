@@ -180,6 +180,76 @@
         +'Hasta que no lo envíes no existes a bordo. Después vuelve aquí con <b>ese mismo correo</b>.</p></div>':'')
       +'</div>';
   }
+  /**
+   * LAS INSIGNIAS, EN EL ORDEN EN QUE SE GANAN.
+   *
+   * 🔴 El orden sale del CALENDARIO, no de una lista aparte. Cada semana declara qué insignias
+   * entran en juego, así que ese es el único sitio donde el orden es un hecho y no una opinión —
+   * y el día que se mueva un reto de semana, la colección se reordena sola.
+   *
+   * Las que no aparecen en ninguna semana (las de hito, que se otorgan solas) van al final, en el
+   * orden del catálogo: no tienen fecha porque no dependen del calendario sino de lo que hagas.
+   */
+  function badgesCronologicos(){
+    var cuando = {}, n = 0;
+    (st.semanas || SEM || []).forEach(function (sm) {
+      (sm.insignias || []).forEach(function (k) { if (cuando[k] == null) cuando[k] = ++n; });
+    });
+    var sinFecha = 9999;
+    return BADGES.slice().sort(function (a, b) {
+      return (cuando[a] == null ? sinFecha + BADGES.indexOf(a) : cuando[a])
+           - (cuando[b] == null ? sinFecha + BADGES.indexOf(b) : cuando[b]);
+    });
+  }
+
+  /**
+   * LA ORDEN DE LA SEMANA, al lado de tu ficha.
+   *
+   * Es el mensaje del foro que toca hoy — el mismo que el profesorado pega en la plataforma de
+   * UNIR. Aquí no se copia: se lee. Ocupa el sitio que antes tenía la colección de insignias
+   * porque es lo único de esta pantalla que CADUCA: la colección no cambia porque abras la Nave.
+   */
+  function ordenDeLaSemana(){
+    if (st.estado === 'antes')
+      return '<div class="card orden-sem"><div class="eyebrow amber">La orden de la semana</div>'
+        + '<h3>En la rampa de lanzamiento</h3>'
+        + '<p class="small">La misión empieza el <b>' + esc(st.d.inicio) + '</b>. Mientras tanto, '
+        + 've preparando tu Bitácora.</p></div>';
+    var lista = st.semanas || [];
+    if (!lista.length) return '';
+    var sm = lista[Math.min(Math.max(st.actual, 1), lista.length) - 1];
+    if (!sm) return '';
+    return '<div class="card orden-sem"><div class="eyebrow amber">La orden de la semana</div>'
+      + '<h3>Semana ' + sm.sem + ' · ' + esc(sm.tema) + '</h3>'
+      + '<p class="small muted">' + esc(sm.sub || '') + '</p>'
+      + '<pre class="foro-msg">' + msgHtml(sm.foro, per) + '</pre>'
+      + (sm.lanza && sm.lanza.length
+          ? '<p class="small"><b>Se lanza:</b> ' + sm.lanza.map(esc).join(' · ') + '</p>' : '')
+      + '<p class="small" style="margin-top:10px">'
+      + '<button class="btn small" type="button" data-tab="semana">Ver la semana entera →</button></p></div>';
+  }
+
+  /**
+   * EL PANEL DE LOS PLANETAS, EMBEBIDO.
+   *
+   * 🔴 Antes era un botón que abría una ventana encima de la Nave, y eso lo convertía en «algo más
+   * que mirar luego». Es el mapa del viaje: tiene que estar puesto, no escondido detrás de un clic.
+   *
+   * Se carga PEREZOSO (loading="lazy") y va después de la ficha a propósito: un Genially pesa, y
+   * lo primero que tiene que pintar la Nave es quién eres tú.
+   */
+  function panelEmbebido(){
+    var u = miPanel();
+    if (!u) return '';
+    return '<div class="card panel-planetas"><h3>🪐 Los ocho planetas</h3>'
+      + '<p class="small muted">Tu panel de control: cada planeta es un tema, con sus retos y sus '
+      + 'materiales. Se abre aquí mismo.</p>'
+      + '<div class="marco-genially"><iframe src="' + esc(u) + '" loading="lazy" allowfullscreen '
+      + 'allow="fullscreen" referrerpolicy="no-referrer-when-downgrade" '
+      + 'title="Panel de control de los planetas"></iframe></div>'
+      + '<p class="small"><a href="' + esc(u) + '" target="_blank" rel="noopener">Abrirlo a pantalla completa →</a></p></div>';
+  }
+
   function personaje(){
     if(st.cargandoYo) return '<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>';
     // 30-ago · el login ya NO vive aquí: es lo primero de la página (ver login() y el orden de
@@ -203,7 +273,7 @@
     // 30-ago · cada insignia se abre en grande con su ficha (planeta y qué hay que hacer para
     // ganarla) — el modal ya existía en la web; aquí solo se cablea. Las pendientes también: ver
     // qué pide una insignia que no tienes es la mejor gasolina.
-    var col=BADGES.map(function(kk){var tiene=(r.insignias||[]).indexOf(kk)>=0;
+    var col=badgesCronologicos().map(function(kk){var tiene=(r.insignias||[]).indexOf(kk)>=0;
       return '<div class="b'+(tiene?'':' no')+'" data-key="'+kk+'" role="button" tabindex="0" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+' — pulsa para ver cómo se gana"><img loading="lazy" src="assets/img/insignias/'+kk+'.png" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';}).join('');
     // fondo de ficha: su planeta elegido
     var PLK={}; PLAN.forEach(function(p){PLK[p[1]]=p[0];});
@@ -229,7 +299,7 @@
         +(llena?'<span class="sello-serie" title="'+esc(NOMSELLO[sr[1]]||'Serie completa')+'">✦ serie completa</span>':'')+'</h4>'
         +'<p class="small muted">'+esc(sr[2])+'</p>'
         +'<div class="album">'+cs.map(celda).join('')+'</div></div>';}).join('');
-    var album=CROMOS.length?('<div class="card album-cromos"><h3>🃏 Tu álbum de cromos · '+nCromos+' / '+CROMOS.length+'</h3>'
+    var album=CROMOS.length?('<details class="cajon album-cromos"><summary><b>🃏 Tu álbum de cromos</b> <span class="cnt">'+nCromos+' / '+CROMOS.length+'</span></summary>'
       +'<p class="small muted">Cada «Sobre de cromos» (15 ◈) trae una carta al azar. Los ocho tripulantes son <b>comunes</b>; '
       +'los Ecos, NEBULA y el Capitán, <b>raros</b>; el Recluta y la Estática, <b>épicos</b>; y hay dos '
       +'<b>LEGENDARIOS</b>: el General Vaeon (2 de cada 100 sobres) y <b>Ander Vaeon</b>, la carta que revela '
@@ -239,10 +309,26 @@
         +(libres>=3?' — y con 3 te llevas un sobre <b>gratis</b>. Puedes cambiar '+Math.floor(libres/3)+' vez'+(Math.floor(libres/3)===1?'':'es')+'.'
                    :(libres?' ('+libres+' sin cambiar): con 3 te llevas un sobre gratis.':' — ya los has cambiado todos por sobres.'))
         +(libres>=3&&d.formCanje?' <a class="btn small" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Cambiar 3 repetidos →</a>':'')+'</p>':'')
-      +series+'</div>'):'';
+      +series+'</details>'):'';
     // 29-ago · el personaje se abre en grande al pulsarlo. Es la imagen que el recluta ha elegido y
     // la que evoluciona con su nivel: verla del tamaño de un pulgar era desaprovecharla. Reusa la
     // misma lupa que las cartas, así que ya trae fondo, Escape, foco y botón de cerrar.
+    // 🔴 12-sep · LA PRIMERA PANTALLA, REORDENADA. Antes aterrizabas sobre tu ficha, las 24
+    // insignias, el álbum entero de 55 cartas y el vestuario, todo desplegado y a la vez. Era una
+    // pared. Norberto: «la primera pantalla debe mostrar la info justa».
+    //
+    // Lo que se ve de entrada es lo que sirve HOY: quién eres y qué toca esta semana. Lo que es una
+    // colección —insignias, cromos, vestuario— se guarda en cajones cerrados. No se ha quitado
+    // nada: se ha dejado de gritar todo a la vez.
+    //
+    // Y los cajones son <details> de verdad, no divs con JavaScript: se abren sin que cargue nada,
+    // el navegador recuerda el foco, funcionan con teclado y Cmd+F encuentra lo de dentro.
+    var fichaCol = '<details class="cajon"><summary><b>🏅 Tu colección</b> <span class="cnt">'
+      +(r.insignias||[]).length+' / '+BADGES.length+'</span></summary>'
+      +'<p class="small muted">En el orden en que se ganan, de la primera semana a la última. '
+      +'Las apagadas están por conseguir: púlsalas para ver qué piden.</p>'
+      +'<div class="badge-col">'+col+'</div></details>';
+
     return '<div class="grid cols-2 nave-estado"><div class="card"'+estiloFicha+'><div class="nave-perfil">'
       +'<button type="button" class="av-lupa" id="btn-av" title="Pulsa para verte en grande" aria-label="Ampliar tu personaje">'+av+'</button>'
       +'<div><h3>'+(r.corona?'👑 ':'')+esc(r.alias)+(r.racha>=3?' <span class="chip-racha" title="Semanas seguidas registrando algo">🔥 '+r.racha+'</span>':'')+'</h3>'
@@ -253,7 +339,14 @@
       +'<p class="small muted">Los <b>xp</b> solo suben: son tu nivel. Los <b>créditos ◈</b> son lo que gastas.</p></div></div>'+barra
       +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'<p class="small muted">Sin biografía todavía: añádela editando tu <a href="'+esc(d.formBitacora||'#')+'" target="_blank" rel="noopener">Bitácora de mando</a>.</p>')
       +'<p class="small" style="margin-top:10px"><button class="btn small" id="btn-olvidar" type="button">No soy yo / salir</button></p></div>'
-      +'<div class="card"><h3>Tu colección · '+(r.insignias||[]).length+' / '+BADGES.length+'</h3><div class="badge-col">'+col+'</div></div></div>'+album;
+      // Al lado de tu ficha, lo que toca ESTA semana. Es lo único que caduca de toda la pantalla, y
+      // por eso es lo que merece el sitio bueno — la colección no cambia porque abras la Nave.
+      +ordenDeLaSemana()+'</div>'
+      +panelEmbebido()
+      // El duelo es UNA frase y empuja: va con lo visible, antes de los cajones.
+      +duelo()
+      +fichaCol
+      +album;
   }
   // v3.16 · EL VESTUARIO. Las cinco versiones de arte del personaje ya no se imponen al subir de
   // nivel: se desbloquean y se ELIGEN. Y encima están los héroes, que salen al azar y se acumulan.
@@ -410,7 +503,12 @@
     }).join('')+'</nav>';
   }
   function contenido(){
-    if(st.tab==='ficha')    return personaje()+duelo()+vestuario();
+    // 🔴 El orden importa: primero quién eres y qué toca hoy, luego el pique con quien tienes
+    // cerca (una frase), y lo demás en cajones cerrados. El vestuario es una colección, como el
+    // álbum: se mira cuando se quiere mirar, no cada vez que abres la Nave.
+    if(st.tab==='ficha')    return personaje()
+      +'<details class="cajon"><summary><b>🎭 Tu vestuario</b> <span class="cnt">personajes y héroes</span></summary>'
+      +vestuario()+'</details>';
     if(st.tab==='retos')    return retos();
     if(st.tab==='semana')   return estaSemana();
     if(st.tab==='planetas') return mapa();
@@ -441,7 +539,9 @@
       // 30-ago · fuera el acceso «Tablero»: desde que el tablero vive DENTRO de la Nave, duplicaba
       // la pestaña «El tablero» (lo vio Norberto en la captura). Aquí quedan solo las ACCIONES.
       +(d.formTicket?'<a class="acc" href="'+esc(ticketUrl(d))+'" data-vent="🎟️ Contacta con NEBULA"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
-      +(miPanel()?'<a class="acc" href="'+esc(miPanel())+'" data-vent="🪐 Panel de control"><b>🪐 Panel</b><em>los ocho planetas</em></a>':'')
+      // 12-sep · fuera el acceso «Panel»: desde que el Genially va EMBEBIDO debajo de la ficha,
+      // este botón abría en una ventana lo que ya está puesto en la página. Aquí quedan solo las
+      // acciones que llevan a otro sitio.
       +(d.padlet?'<a class="acc" href="'+esc(d.padlet)+'" data-vent="🧱 Padlet de la clase"><b>🧱 Padlet</b><em>el muro de la clase</em></a>':'')
       // 🔴 Aquí y no en otro sitio: es el momento exacto en que el recluta va a pegar un enlace y
       // duda de si el suyo abre lo que tiene que abrir. Va en pestaña aparte para no perder lo que
@@ -1135,7 +1235,9 @@
     // que no hace ruido es una promesa incumplida.
     if(dentro && motorNuevo() && window.SG && SG.FIESTA) SG.FIESTA.montarInterruptor();
     montarBotonGoogle();   // el hueco del botón solo existe cuando se pinta el login
-    Array.prototype.forEach.call(root.querySelectorAll('.nave-tab[data-tab]'),function(b){
+    // Cualquier botón con data-tab cambia de pestaña, no solo los de la barra: la orden de la
+    // semana lleva uno para saltar a la vista completa.
+    Array.prototype.forEach.call(root.querySelectorAll('[data-tab]'),function(b){
       b.onclick=function(){ irA(b.getAttribute('data-tab')); };
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-hecho]'),function(b){
