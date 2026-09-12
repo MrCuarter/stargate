@@ -60,17 +60,27 @@
       '<div id="a-aviso" class="aviso" hidden></div>' +
 
       '<div class="card"><h3>1 · Quién eres</h3>' +
-      // 🔴 Nombre y apellidos POR SEPARADO. Partirlos a máquina en español es imposible («José Luis
-      // García de la Torre»: ¿dónde acaba el nombre?), así que se pregunta dos veces. Y son datos
-      // personales: no salen nunca del expediente privado.
-      '<label>Nombre<input id="a-nombre" autocomplete="given-name" value="' +
+      // 🔴 Aquí se pide el nombre DE VERDAD, y se dice bien claro. Si alguien pone un apodo aquí, el
+      // profesorado no puede ponerle la nota: la lista de clase lleva nombres reales y esta ficha es
+      // lo único que las ata. Decir «solo lo ve tu profesorado» en la misma frase es lo que hace que
+      // se escriba el real en vez del gracioso.
+      '<p class="aclara"><b>Tu nombre real</b>, el de la lista de clase — no un apodo. ' +
+      'Lo necesita tu profesorado para saber que ese avance es tuyo y ponerte la nota.<br>' +
+      '<b>Solo lo ve tu profesorado.</b> Tu clase nunca ve tu nombre ni tu correo: te ve con tu alias.</p>' +
+      // Nombre y apellidos POR SEPARADO. Partirlos a máquina en español es imposible («José Luis
+      // García de la Torre»: ¿dónde acaba el nombre?), así que se pregunta dos veces.
+      '<label>Nombre <i>(real)</i><input id="a-nombre" autocomplete="given-name" value="' +
         esc((YO.nombre || "").split(" ")[0]) + '"></label>' +
-      '<label>Apellidos<input id="a-apellidos" autocomplete="family-name" value="' +
+      '<label>Apellidos <i>(reales)</i><input id="a-apellidos" autocomplete="family-name" value="' +
         esc((YO.nombre || "").split(" ").slice(1).join(" ")) + '"></label>' +
-      '<p class="small muted">Tu nombre y tu correo solo los ve tu profesorado. En el tablero sales ' +
-      'con tu alias.</p>' +
-      '<label>Alias de recluta <i>(el que verá la clase)</i><input id="a-alias" maxlength="24" ' +
-        'autocomplete="off" placeholder="Vega, Orion, Nix…"></label></div>' +
+      // 🔴 El botón de sugerir no es un adorno. El alias es lo primero que se pide y hay quien se
+      // queda en blanco ahí mismo, con la página abierta, sin llegar a alistarse.
+      '<label>Alias de recluta <i>(el que verá la clase)</i>' +
+        '<span class="con-boton"><input id="a-alias" maxlength="24" autocomplete="off" ' +
+          'placeholder="Vega, Orion, Nix…">' +
+        '<button type="button" class="btn min" id="a-dado" title="Proponme un alias">🎲 Sugiéreme uno</button>' +
+      '</span></label>' +
+      '<p class="small muted">¿Sin ideas? Pulsa el dado las veces que quieras hasta que suene bien.</p></div>' +
 
       '<div class="card"><h3>2 · Tu Comandante</h3>' +
       '<p class="small">Quien te da clase. Con esto sabrá seguirte, y además te llevará a tu escuadrón.</p>' +
@@ -83,19 +93,40 @@
 
       '<div class="card"><h3>3 · Tu personaje</h3>' +
       '<p class="small">Evoluciona contigo: cambia de aspecto al subir de rango. Se elige una vez.</p>' +
-      '<div class="avatares" id="a-avatares"></div></div>' +
+      // 🔴 La rejilla sola no vale: las caras salen a 94 píxeles y no se distingue lo que se está
+      // eligiendo. Al lado va el elegido EN GRANDE. Es una decisión que se toma una vez y para todo
+      // el curso, así que hay que poder verla.
+      '<div class="elegir-avatar">' +
+        '<div class="avatares" id="a-avatares"></div>' +
+        '<figure class="avatar-grande"><img id="a-avatar-grande" alt="El personaje que has elegido">' +
+        '<figcaption id="a-avatar-pie">Personaje 1</figcaption></figure>' +
+      '</div></div>' +
 
       '<div class="card"><h3>4 · Tu Bitácora</h3>' +
       '<p class="small">El enlace a tu cuaderno de bitácora (tu ePortfolio). Si todavía no lo tienes, ' +
       'déjalo en blanco y lo añades cuando quieras desde tu Nave.</p>' +
       '<label>Enlace de tu Bitácora<input id="a-bitacora" placeholder="https://…" autocomplete="off"></label>' +
+      '<p class="aclara epica">Todo personaje tiene su historia. ¿Cuál es la tuya?<br>' +
+      '<span>Dos líneas que leerá tu tripulación cuando pulse tu nombre en el tablero. ' +
+      'Puedes dejarlo para más adelante: se cambia cuando quieras desde tu Nave.</span></p>' +
       '<label>Dos líneas sobre tu personaje <i>(opcional, las ve la clase)</i>' +
-        '<textarea id="a-bio" maxlength="280" rows="3"></textarea></label></div>' +
+        '<textarea id="a-bio" maxlength="280" rows="3" ' +
+        'placeholder="Antes de embarcar, yo…"></textarea></label></div>' +
 
       '<div class="card"><p><button class="btn grande" id="a-enviar">Alistarme</button></p>' +
       '<div id="a-paso" class="small muted"></div></div>';
 
     document.querySelector("#a-salir").onclick = function () { MOTOR.salir(); };
+    // El dado no repite el que ya está puesto: pulsarlo y que no cambie nada parece que está roto.
+    var dado = document.querySelector("#a-dado"), campo = document.querySelector("#a-alias");
+    if (dado) dado.onclick = function () {
+      var banco = window.SG_ALIAS || [];
+      if (!banco.length) return;
+      var n = campo.value.trim(), intento = 0;
+      do { n = banco[Math.floor(Math.random() * banco.length)]; } while (n === campo.value.trim() && ++intento < 8);
+      campo.value = n;
+      campo.focus();
+    };
     pintarAvatares();
     document.querySelector("#a-enviar").onclick = alistar;
     var r = app.querySelector('input[name="cmd"]'); if (r) r.checked = true;
@@ -111,14 +142,25 @@
     }
     var caja = document.querySelector("#a-avatares");
     caja.innerHTML = h;
+    // 🔴 El grande enseña el rango 1, el mismo que la miniatura. Enseñar el rango 4 sería más
+    // vistoso y mentiría: nadie empieza pareciéndose a eso.
+    var grande = document.querySelector("#a-avatar-grande"), pie = document.querySelector("#a-avatar-pie");
+    function verEnGrande(n, v) {
+      if (!grande) return;
+      grande.src = "assets/img/avatares/evo/p" + n + v + "_r1.jpg";
+      grande.alt = "Personaje " + n + (v === "f" ? " (ella)" : " (él)");
+      if (pie) pie.textContent = "Personaje " + n + " · " + (v === "f" ? "ella" : "él");
+    }
     Array.prototype.forEach.call(caja.children, function (b) {
       b.onclick = function () {
         sel = { n: Number(b.getAttribute("data-n")), v: b.getAttribute("data-v") };
         Array.prototype.forEach.call(caja.children, function (x) { x.classList.remove("elegido"); });
         b.classList.add("elegido");
+        verEnGrande(sel.n, sel.v);
       };
     });
     caja.children[0].classList.add("elegido");
+    verEnGrande(1, "f");
   }
 
   function aviso(t) {

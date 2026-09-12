@@ -868,6 +868,74 @@ ESCUADRONES = [
 #
 # Para rellenarlo: menú STARGATE → «Ver los datos del ticket compartido» → copiar la línea de
 # DIRECCIÓN CON HUECOS y pegarla aquí.
+# ─────────────────────────── ALIAS SUGERIDOS ───────────────────────────
+# El banco de nombres del botón «Sugiéreme uno» del alistamiento. Existe por una razón concreta y
+# observada: el alias es lo PRIMERO que se pide y hay quien se queda en blanco ahí mismo, con la
+# página abierta, sin alistarse. Un botón que propone quita ese atasco en un segundo.
+#
+# De dónde salen: estrellas y constelaciones reales, lunas y cuerpos del sistema solar, mitología
+# de las constelaciones, fenómenos y partículas, y un puñado de inventados eufónicos. Todos se
+# pronuncian en español y ninguno pisa un nombre que STARGATE ya usa para otra cosa — un planeta o
+# un escuadrón de alias confundiría el tablero.
+#
+# 🔴 No son obligatorios ni exclusivos: el campo se sigue pudiendo escribir a mano, y dos personas
+# pueden repetir alias (el sistema identifica por cuenta, no por alias).
+ALIAS_SUGERIDOS = [
+    "Vega", "Rigel", "Altair", "Sirio", "Antares", "Deneb", "Mizar", "Alcor", "Arturo", "Capella",
+    "Bellatrix", "Aldebarán", "Procyon", "Canopus", "Spica", "Pollux", "Castor", "Regulus",
+    "Achernar", "Hadar", "Atria", "Alnair", "Alphard", "Algol", "Alcyone", "Merak", "Dubhe",
+    "Phecda", "Megrez", "Alioth", "Thuban", "Kochab", "Polaris", "Elnath", "Saiph", "Alnitak",
+    "Alnilam", "Mintaka", "Meissa", "Nihal", "Arneb", "Wezen", "Adhara", "Mirzam", "Furud", "Naos",
+    "Avior", "Miaplacidus", "Almach", "Mirach", "Hamal", "Menkar", "Mira", "Diphda", "Fomalhaut",
+    "Enif", "Sadalsuud", "Sadalmelik", "Markab", "Scheat", "Algenib", "Alderamin", "Errai", "Caph",
+    "Ruchbah", "Segin", "Navi", "Izar", "Muphrid", "Zubeneschamali", "Unukalhai", "Rasalhague",
+    "Rasalgethi", "Sabik", "Shaula", "Sargas", "Kaus", "Nunki", "Ascella", "Albaldah", "Altais",
+    "Eltanin", "Rastaban", "Grumium", "Vindemiatrix", "Porrima", "Zavijava", "Denebola", "Zosma",
+    "Chertan", "Algieba", "Adhafera", "Rasalas", "Subra", "Alterf", "Tegmine", "Acubens", "Asellus",
+    "Talitha", "Tania", "Alula", "Muscida", "Europa", "Ío", "Calisto", "Ganímedes", "Titán",
+    "Encélado", "Mimas", "Tetis", "Dione", "Rea", "Japeto", "Febe", "Tritón", "Nereida", "Caronte",
+    "Hidra", "Nix", "Cerbero", "Estigia", "Deimos", "Fobos", "Ceres", "Palas", "Juno", "Vesta",
+    "Quirón", "Ixión", "Orco", "Sedna", "Haumea", "Makemake", "Eris", "Disnomia", "Amaltea", "Tebe",
+    "Metis", "Adrastea", "Himalia", "Elara", "Pasífae", "Sinope", "Lisitea", "Carme", "Ananké",
+    "Leda", "Calírroe", "Temisto", "Jano", "Epimeteo", "Prometeo", "Pandora", "Atlas", "Pan",
+    "Dafne", "Telesto", "Calipso", "Helena", "Polideuces", "Hiperión", "Kiviuq", "Ymir", "Ariel",
+    "Umbriel", "Titania", "Oberon", "Miranda", "Puck", "Cordelia", "Ofelia", "Bianca", "Cressida",
+    "Desdémona", "Julieta", "Porcia", "Rosalinda", "Belinda", "Perdita", "Cupido", "Mab", "Larisa",
+    "Proteo", "Talasa", "Despina", "Galatea", "Sao", "Laomedeia", "Neso", "Halimede", "Orion",
+    "Lyra", "Perseo", "Andrómeda", "Casiopea", "Cefeo", "Pegaso", "Draco", "Hércules", "Boyero",
+    "Corona", "Cisne", "Águila", "Delfín", "Lira", "Flecha", "Zorra", "Lagarto", "Jirafa", "Lince",
+    "Osa", "Dragón", "Fénix", "Grulla", "Tucán", "Pavo", "Indio", "Quilla", "Popa", "Vela",
+    "Brújula", "Reloj", "Cincel", "Buril", "Retícula", "Altar", "Lobo", "Centauro", "Cruz", "Mosca",
+    "Camaleón", "Tucana", "Hidro", "Dorado", "Volante", "Pintor", "Mesa", "Octante", "Ave",
+    "Triángulo", "Escudo", "Serpiente", "Ofiuco", "Sagita", "Auriga", "Cochero", "Cabra", "Toro",
+    "Carnero", "Balanza", "Copa", "Cuervo", "Sextante", "Unicornio", "Can", "Liebre", "Río",
+    "Horno", "Escultor", "Ballena", "Quásar", "Púlsar", "Magnetar", "Cuásar", "Nebul", "Cénit",
+    "Nadir", "Eclipse", "Cometa", "Aurora", "Boreal", "Austral", "Perihelio", "Afelio", "Cuanto",
+    "Fotón", "Neutrino", "Plasma", "Quark", "Bosón", "Fermión", "Gravitón", "Taquión", "Leptón",
+    "Muón", "Gluón", "Hadrón", "Protón", "Neutrón", "Isótopo", "Espectro", "Prisma", "Refracción",
+    "Paralaje", "Cefeida", "Supernova", "Kilonova", "Hipernova", "Blázar", "Halo", "Cromosfera",
+    "Fotosfera", "Heliopausa", "Termosfera", "Magnetosfera", "Ionosfera", "Exosfera", "Tránsito",
+    "Ocultación", "Conjunción", "Oposición", "Cuadratura", "Sicigia", "Apogeo", "Perigeo",
+    "Absidal", "Nodo", "Eclíptica", "Cenital", "Azimut", "Declinación", "Efeméride", "Meridiano",
+    "Vórtice", "Singularidad", "Horizonte", "Ergosfera", "Acreción", "Jet", "Bólido", "Meteoro",
+    "Aerolito", "Condrita", "Tectita", "Kaelen", "Soren", "Rhiane", "Tavek", "Nyra", "Orrin",
+    "Sable", "Vexa", "Corvid", "Lumen", "Arken", "Sylas", "Thaen", "Iskra", "Vireo", "Nael",
+    "Ordan", "Ravel", "Sidra", "Tarn", "Ulmo", "Varek", "Wrenn", "Xandra", "Yara", "Zephir",
+    "Aluen", "Brask", "Caldon", "Draven", "Elyra", "Faelan", "Gorran", "Halcyon", "Ilvar", "Jorah",
+    "Kyra", "Lirien", "Maren", "Noctis", "Oryx", "Perrin", "Qadir", "Rhea", "Sorrel", "Tyrian",
+    "Ulric", "Vaela", "Wulf", "Xeris", "Ylva", "Zorin", "Amaris", "Bryn", "Calen", "Dorne",
+    "Eirlys", "Fenn", "Galen", "Haleth", "Ione", "Jaro", "Kestra", "Loren", "Mirren", "Nevin",
+    "Oriel", "Pryce", "Quen", "Rune", "Serel", "Torin", "Ulva", "Vandra", "Wynn", "Yorik", "Zaira",
+    "Aethon", "Brannoc", "Cyrion", "Dalen", "Eskel", "Fyren", "Grimm", "Hespera", "Ithel", "Kaida",
+    "Lysander", "Morvan", "Niamh", "Ondine", "Peregrin", "Riven", "Sylvane", "Teryn", "Uriel",
+    "Veyra", "Wystan", "Ysolde", "Zarek", "Anwen", "Belen", "Cinder", "Doran", "Ember", "Falke",
+    "Gwyn", "Haven", "Indris", "Jarek", "Kelric", "Lark", "Merida", "Nyssa", "Orien", "Perla",
+    "Quirin", "Ronan", "Seren", "Thane", "Ulla", "Varen", "Wilder", "Yael", "Zima",
+]
+
+assert len(ALIAS_SUGERIDOS) == len(set(ALIAS_SUGERIDOS)), "hay alias repetidos en el banco"
+assert all(1 <= len(a) <= 24 for a in ALIAS_SUGERIDOS), "un alias no cabe en el campo (24)"
+
 # La hoja donde caen TODAS las respuestas del ticket, de todos los grupos y todos los años. Se
 # creó a la vez que el formulario y se deja a mano porque es la materia prima: si algún día el
 # panel no estuviera disponible, las respuestas se leen aquí.

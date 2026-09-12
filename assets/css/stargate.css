@@ -1115,6 +1115,31 @@ ol.pasos-num li b{color:var(--ink)}
   border-radius:10px;background:#0d1420;cursor:pointer;font-weight:600}
 .comandante:has(input:checked){border-color:#4da3ff;background:#14243c;box-shadow:0 0 0 1px #4da3ff inset}
 .comandante input{width:auto;margin:0}
+/* El campo con su botón al lado (el dado de los alias): no debe partirse en dos líneas. */
+.con-boton{display:flex;gap:8px;align-items:stretch;margin-top:6px}
+.con-boton input{flex:1;margin-top:0}
+.con-boton .btn{flex:0 0 auto;white-space:nowrap;align-self:stretch}
+@media(max-width:520px){.con-boton{flex-wrap:wrap}.con-boton .btn{width:100%}}
+/* Las aclaraciones que de verdad importan (qué datos son reales, qué ve la clase). No es un
+   «small muted» más: si se lee como letra pequeña, no se lee. */
+.aclara{margin:10px 0 4px;padding:11px 14px;border-left:2px solid #4da3ff;background:#0f1a2b;
+  border-radius:0 9px 9px 0;font-size:.94rem;line-height:1.6;color:#c7d6ee}
+.aclara b{color:#e8eefc}
+.aclara.epica{border-left-color:#ffd166;background:#1a1608;font-size:1.02rem;color:#ffd166;font-style:italic}
+.aclara.epica span{display:block;margin-top:6px;font-style:normal;font-size:.9rem;color:#b9c6dc}
+/* Elegir personaje: la rejilla a la izquierda y el elegido EN GRANDE a la derecha. A 94 píxeles no
+   se distingue lo que se está eligiendo, y es una decisión para todo el curso. */
+.elegir-avatar{display:grid;grid-template-columns:1fr 240px;gap:18px;align-items:start;margin-top:10px}
+.avatar-grande{margin:0;position:sticky;top:14px}
+.avatar-grande img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;
+  border:2px solid #ffd166;box-shadow:0 0 22px rgba(255,209,102,.28);background:#0b1119;display:block}
+.avatar-grande figcaption{margin-top:8px;text-align:center;font-size:.88rem;color:#9fb0ce}
+@media(max-width:760px){
+  .elegir-avatar{grid-template-columns:1fr}
+  /* En móvil el grande va ARRIBA: si va debajo de la rejilla hay que hacer scroll para ver lo que
+     acabas de tocar, que es justo lo que este bloque venía a arreglar. */
+  .avatar-grande{order:-1;position:static;max-width:220px;margin:0 auto}
+}
 /* Los personajes, en rejilla. Se ve la cara: es lo que se elige. */
 .avatares{display:grid;grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:9px;margin-top:10px}
 .av{padding:0;border:2px solid transparent;border-radius:11px;background:none;cursor:pointer;overflow:hidden;line-height:0}
