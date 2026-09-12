@@ -2451,6 +2451,7 @@ def _cabeza_fuente():
         '<script>window.SG_FIREBASE=' + cfg + ';window.SG_MOTOR=' + modo + ';'
         'window.SG_CATALOGO_URL="' + _v("motor/catalogo.json") + '";</script>'
         '<script src="' + _v("assets/js/fuente.js") + '" defer></script>'
+        '<script src="' + _v("assets/js/fiesta.js") + '" defer></script>'
         '<script>(function(){var q=new URLSearchParams(location.search);'
         'if(((q.get("motor")||window.SG_MOTOR||"apps")+"").toLowerCase()!=="firestore")return;'
         '["' + _v("motor/paquete.js") + '","' + _v("motor/tablero.js") + '"].forEach(function(u){'

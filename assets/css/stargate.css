@@ -1165,3 +1165,63 @@ ol.pasos-num li b{color:var(--ink)}
 .celda-esc{white-space:nowrap}
 .emb-mini{vertical-align:middle;margin-right:7px;border-radius:50%}
 @media(max-width:520px){.emblema{max-width:170px}}
+
+/* ═══════════ LA FIESTA · señales de «aquí ha pasado algo» ═══════════ */
+/* Cifras que saltan del punto donde has pulsado */
+.salta{position:fixed;z-index:9000;pointer-events:none;font-family:'Unbounded',sans-serif;
+  font-weight:700;font-size:1.35rem;text-shadow:0 2px 14px rgba(0,0,0,.85);
+  animation:sube 1.4s cubic-bezier(.2,.8,.3,1) forwards;white-space:nowrap;transform:translate(-50%,-50%)}
+.salta.xp{color:#37e0ec}
+.salta.cred{color:#f5b043}
+.salta.gasto{color:#e3a0a0;font-size:1.15rem}
+.salta.botin{color:#d7a8f0;font-size:1.2rem}
+@keyframes sube{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}
+  18%{opacity:1;transform:translate(-50%,-64%) scale(1.12)}
+  34%{transform:translate(-50%,-72%) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-190%) scale(.94)}
+}
+/* Las chispas viven en su propio lienzo, encima de todo y sin estorbar al ratón */
+canvas.chispas{position:fixed;z-index:8990;pointer-events:none}
+/* El contador mientras rueda */
+.monedas .m b.rodando{color:#fff;text-shadow:0 0 18px currentColor}
+/* Subir de nivel: lo único que para la pantalla */
+.nivel-arriba{position:fixed;inset:0;z-index:9100;display:grid;place-items:center;
+  background:radial-gradient(ellipse at center,rgba(8,12,20,.86),rgba(8,12,20,.97));
+  animation:nivelEntra .42s ease-out;cursor:pointer}
+.nivel-arriba.se-va{animation:nivelSale .4s ease-in forwards}
+.na-caja{text-align:center;padding:34px 44px}
+.na-eyebrow{display:block;font-family:'Unbounded',sans-serif;font-size:.7rem;letter-spacing:.24em;
+  text-transform:uppercase;color:#37e0ec;margin-bottom:14px}
+.na-n{display:block;font-family:'Unbounded',sans-serif;font-weight:800;font-size:clamp(4rem,16vw,7rem);
+  line-height:1;color:#fff;text-shadow:0 0 46px rgba(55,224,236,.7);animation:naLatido .9s ease-out}
+.na-rango{display:block;font-family:'Unbounded',sans-serif;font-size:1.3rem;color:#f5b043;margin-top:10px}
+.na-titulo{display:block;color:#9fb2c2;margin-top:6px;font-size:.98rem}
+@keyframes nivelEntra{from{opacity:0}to{opacity:1}}
+@keyframes nivelSale{to{opacity:0}}
+@keyframes naLatido{0%{transform:scale(.4);opacity:0}55%{transform:scale(1.14);opacity:1}100%{transform:scale(1)}}
+/* Insignia conseguida: entra por la derecha y se va sola */
+.insignia-gana{position:fixed;right:18px;bottom:74px;z-index:9050;display:flex;gap:14px;align-items:center;
+  background:#101a28;border:1px solid #37e0ec;border-radius:14px;padding:12px 18px 12px 12px;
+  box-shadow:0 14px 44px rgba(0,0,0,.6);animation:igEntra .5s cubic-bezier(.2,.9,.3,1);max-width:330px}
+.insignia-gana.se-va{animation:igSale .4s ease-in forwards}
+.insignia-gana img{border-radius:10px;flex:0 0 auto}
+.ig-eyebrow{display:block;font-family:'Unbounded',sans-serif;font-size:.62rem;letter-spacing:.18em;
+  text-transform:uppercase;color:#37e0ec;margin-bottom:3px}
+.insignia-gana b{font-size:1rem;line-height:1.25;color:#e9f0f6}
+@keyframes igEntra{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}
+@keyframes igSale{to{opacity:0;transform:translateX(60px)}}
+/* El interruptor del sonido, discreto y siempre a mano */
+#sg-son{position:fixed;right:16px;bottom:16px;z-index:9200;width:42px;height:42px;border-radius:50%;
+  border:1px solid #1c2c40;background:#101a28;color:#e9f0f6;font-size:1.05rem;cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,.5);transition:border-color .15s,transform .15s}
+#sg-son:hover{border-color:#37e0ec;transform:translateY(-2px)}
+#sg-son.mudo{opacity:.55}
+#sg-son:focus-visible{outline:2px solid #37e0ec;outline-offset:3px}
+body.embed #sg-son{display:none}
+/* 🔴 Quien pide menos movimiento, menos movimiento. El dato se ve igual: lo que se quita es el viaje. */
+@media (prefers-reduced-motion:reduce){
+  .salta,canvas.chispas{display:none}
+  .nivel-arriba,.insignia-gana{animation:none}
+  .na-n{animation:none}
+}

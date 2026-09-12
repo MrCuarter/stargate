@@ -1046,12 +1046,36 @@
   function marcarReto(id, boton){
     if(boton){ boton.disabled=true; boton.textContent='Registrando…'; }
     var ev=document.querySelector('.reto-ev[data-ev="'+id+'"]');
+    // La foto de cómo estaba la ficha y DÓNDE se ha pulsado. Las dos cosas hay que tomarlas ahora:
+    // dentro de un momento la Nave se repinta entera y ni la una ni la otra existirán.
+    var antes=st.yo?JSON.parse(JSON.stringify(st.yo)):{};
+    var donde=puntoDe(boton);
     post({accion:'registrar',per:per,reto:id,evidencia:ev?ev.value.trim():''},function(){
       aviso('✅ Reto <b>'+esc(id)+'</b> registrado. ¡Buen trabajo!');
-      identificarPorSesion();
+      refrescarYCelebrar(antes, donde, 'reto');
     },function(e){
       if(boton){ boton.disabled=false; boton.textContent='✅ Lo he hecho'; }
+      if(window.SG&&SG.FIESTA) SG.FIESTA.sonar('error');
       aviso('No he podido registrarlo: '+esc(e), true);
+    });
+  }
+
+  function puntoDe(el){
+    if(!el||!el.getBoundingClientRect) return null;
+    var r=el.getBoundingClientRect();
+    return (r.width||r.height)?{x:r.left+r.width/2, y:r.top+r.height/2}:null;
+  }
+
+  // Vuelve a pedir la ficha, repinta, y SOLO ENTONCES celebra: las cifras que ruedan necesitan que
+  // los elementos existan, y existen después del repintado.
+  function refrescarYCelebrar(antes, donde, tipo, extra){
+    quien(null,function(d){
+      st.cargandoYo=false;
+      if(d&&d.yo){ st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true; }
+      render();
+      if(!window.SG||!SG.FIESTA||!d||!d.yo) return;
+      if(tipo==='canje') SG.FIESTA.canje(antes, d.yo, donde, extra);
+      else SG.FIESTA.reto(antes, d.yo, donde);
     });
   }
 
@@ -1068,6 +1092,8 @@
   function canjear(id, nombre, coste, boton, abrir){
     if(!confirm('¿Canjear «'+nombre+'» por '+coste+' créditos?')) return;
     if(boton){ boton.disabled=true; boton.textContent='Canjeando…'; }
+    var antes=st.yo?JSON.parse(JSON.stringify(st.yo)):{};
+    var donde=puntoDe(boton);
     post({accion:'canje',per:per,recompensa:id,abrir:abrir},function(d){
       var botin = d && d.botin;
       aviso(botin
@@ -1075,9 +1101,10 @@
         : (d && d.sinAbrir
             ? '🎁 <b>'+esc(nombre)+'</b> es tuya. No he podido abrirla ahora: vuelve a intentarlo desde tu álbum.'
             : '🎁 <b>'+esc(nombre)+'</b> canjeada.'));
-      identificarPorSesion();
+      refrescarYCelebrar(antes, donde, 'canje', botin?nombreDeCarta(botin):'');
     },function(e){
       if(boton){ boton.disabled=false; boton.textContent='Canjear por '+coste+' ◈'; }
+      if(window.SG&&SG.FIESTA) SG.FIESTA.sonar('error');
       aviso('No he podido canjearla: '+esc(e), true);
     });
   }
@@ -1096,6 +1123,9 @@
       ? login()+pestanas()+accesos()+cabecera()+contenido()
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
     verTablero(dentro && st.tab==='tablero');
+    // Solo con el motor nuevo: en la Nave de siempre no suena nada, y un botón de silenciar algo
+    // que no hace ruido es una promesa incumplida.
+    if(dentro && motorNuevo() && window.SG && SG.FIESTA) SG.FIESTA.montarInterruptor();
     montarBotonGoogle();   // el hueco del botón solo existe cuando se pinta el login
     Array.prototype.forEach.call(root.querySelectorAll('.nave-tab[data-tab]'),function(b){
       b.onclick=function(){ irA(b.getAttribute('data-tab')); };
