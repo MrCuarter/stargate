@@ -1140,6 +1140,41 @@ ol.pasos-num li b{color:var(--ink)}
      acabas de tocar, que es justo lo que este bloque venía a arreglar. */
   .avatar-grande{order:-1;position:static;max-width:220px;margin:0 auto}
 }
+/* ═══════════ LLAMADA A FILAS ═══════════
+   El botón que vive dentro del Genially. Se proyecta, así que todo va GRANDE: se tiene que leer
+   desde la última fila del aula. */
+#llamada .wrap{max-width:620px}
+.ll-caja{background:#0d1420;border:1px solid #24304a;border-radius:18px;padding:30px 26px;text-align:center}
+.ll-caja.ll-viva{border-color:var(--amber);box-shadow:0 0 34px rgba(245,176,67,.22)}
+.ll-caja.ll-no{border-color:#24304a}
+.ll-icono{font-size:2.6rem;line-height:1;margin-bottom:10px}
+.ll-caja h2{margin:0 0 8px;font-size:1.5rem}
+.ll-sub{color:#9fb0ce;margin:0 0 18px;font-size:1rem}
+.ll-pie{color:#6d8398;font-size:.86rem;margin:14px 0 0}
+.ll-campo{display:block;text-align:left;margin:0 0 14px;font-size:.88rem;color:#9fb0ce}
+.ll-campo select{width:100%;margin-top:6px;padding:11px 13px;border-radius:9px;border:1px solid #24304a;
+  background:#0b1119;color:#e8eefc;font:inherit}
+.ll-minutos{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 18px}
+.ll-m{padding:9px 16px;border-radius:999px;border:1px solid #24304a;background:#0b1119;color:#9fb0ce;
+  font:inherit;font-size:.9rem;cursor:pointer;transition:all .15s}
+.ll-m:hover{border-color:var(--teal);color:#fff}
+.ll-m.on{background:#14243c;border-color:#4da3ff;color:#fff;font-weight:600}
+.ll-btn{padding:14px 28px;border-radius:12px;border:1px solid #4da3ff;background:#14243c;color:#fff;
+  font:inherit;font-size:1rem;font-weight:600;cursor:pointer;transition:all .15s}
+.ll-btn:hover{background:#1b3050;box-shadow:0 0 22px rgba(77,163,255,.35)}
+.ll-btn.grande{font-size:1.2rem;padding:16px 34px;width:100%}
+.ll-btn:disabled{opacity:.55;cursor:default}
+.ll-min{padding:7px 15px;border-radius:9px;border:1px solid #24304a;background:transparent;color:#9fb0ce;
+  font:inherit;font-size:.85rem;cursor:pointer}
+.ll-min:hover{color:#fff;border-color:var(--teal)}
+#ll-cuenta{font-variant-numeric:tabular-nums;color:var(--amber);font-weight:700;font-size:1.15rem}
+.ll-lista{margin:16px 0;min-height:56px;display:grid;place-items:center}
+.ll-cuantos{margin:0;font-size:2.4rem;line-height:1.1;color:var(--teal);font-variant-numeric:tabular-nums}
+.ll-cuantos b{font-size:3.2rem;display:block}
+.ll-esperando{color:#6d8398;margin:0;font-size:.92rem}
+/* El aviso en la Nave del alumnado */
+.pase-cuenta{font-variant-numeric:tabular-nums;color:var(--amber);font-size:.86rem;align-self:center}
+
 /* ═══════════ LA BARRA ÚNICA DE LA NAVE (12-sep) ═══════════
    Sustituye a las dos filas de antes (pestañas 56 px + parrilla de accesos 89 px = 144 px fijos).
    Una sola de 56. Los contadores viven aquí para que la celebración de ganar xp se vea estés en la

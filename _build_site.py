@@ -2603,6 +2603,26 @@ pulsa, porque se le busca por su cuenta. Móntalo una vez en el Genially y olví
 open(os.path.join(HERE, "validar.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: validar.html  (enlaces universales para Genially)")
 
+# ---------------------------------------------------------------- la llamada a filas (embed Genially)
+# Pública a propósito: vive dentro del Genially que el docente PROYECTA, así que la ve la clase
+# entera. Quien no sea Comandante recibe un mensaje que lo explica y no pasa nada más.
+_html = head("STARGATE · Llamada a filas",
+             "El botón del pase de lista de STARGATE: lo toca el Comandante y el fichaje se abre "
+             "solo para su escuadrón, el tiempo que él decida.",
+             "reg", publica=True).replace("</head>", _cabeza_motor() + "\n</head>") + '''
+<header class="hero"><div class="kicker">Pase de lista</div><h1>Llamada a filas</h1></header>
+<section id="llamada"><div class="wrap">
+<div id="llamada-app"><p class="muted">Cargando…</p></div>
+''' + '<script src="' + _v("assets/js/llamada.js") + '" defer></script>' + '''
+<p class="small muted" style="margin-top:22px">Para el profesorado: este enlace vale en
+<b>todos</b> los grupos y en todas las convocatorias. El grupo no va dentro — se deduce de quién
+pulsa. Móntalo una vez en tus Geniallys y no vuelvas a tocarlo.<br>
+Con <code>?embed=1</code> se incrusta sin cabecera ni pie.</p>
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "llamada.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: llamada.html  (el pase de lista, dentro del Genially)")
+
 # ---------------------------------------------------------------- alistarse (sustituye al formulario)
 _html = head("STARGATE · Alistarse",
              "Alístate en tu grupo de STARGATE: entra con tu cuenta, elige Comandante y personaje y abre tu Bitácora.",

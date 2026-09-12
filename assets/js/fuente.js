@@ -330,6 +330,10 @@
                 // necesita para saber qué casillas pintar hechas y cuáles ofrecer para marcar.
                 // Sale de la ficha de quien pregunta, no del tablero de todos.
                 if (yo_) yo_.retos = misRetos(f);
+                // 🔴 Y su propio identificador de ficha. El tablero público no lo trae —y así se
+                // queda—, pero uno tiene derecho a saber cuál es la suya: es lo que hace falta para
+                // fichar en la llamada a filas. Es SU ficha, no la de nadie más.
+                if (yo_) yo_.ficha = f.id;
                 return { yo: yo_, correo: yo.correo, verificado: true };
               });
             });

@@ -15,7 +15,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch }
+import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch, onSnapshot }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { getFunctions, httpsCallable }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
@@ -368,8 +368,154 @@ if (!window.SG_CATALOGO) {
   catch (e) { console.error("[STARGATE] no he podido cargar el catálogo:", e); }
 }
 
+/**
+ * ════════════ LA LLAMADA A FILAS ════════════
+ *
+ * El pase de lista, resuelto sin inventar nada. GamificaPro ya tenía la asistencia entera —sesiones
+ * con ventana, restricción por facción, registro y pago verificado en el servidor—, así que esto no
+ * es un sistema nuevo: es hablar con el que hay.
+ *
+ * 🔴 Por qué esto NO lleva una palabra secreta de cuatro letras, como el sistema viejo. En Apps
+ * Script la palabra la guardaba el servidor y el alumnado la mandaba a ciegas. En Firestore, un
+ * sitio donde el alumnado pueda comprobarla es un sitio donde puede leerla antes de que la digas.
+ * La defensa aquí es OTRA: la ventana es corta y la abres cuando quieres. No hay secreto que
+ * proteger porque lo que no se puede adivinar es el MOMENTO. Y en la consola queda quién fichó y a
+ * qué hora, que es el control de verdad de cualquier pase de lista.
+ *
+ * 🔴 Y las cantidades no las decide el navegador: `applyXpDelta` con esta fuente lee lo que paga de
+ * la sesión, en el servidor, e ignora lo que le manden. Un alumno no decide cuánto cobra.
+ */
+const LLAMADA = "attendance_sessions", FICHAJES = "attendance_records";
+
+/** La llamada abierta de un grupo, si la hay. Devuelve null si no hay ninguna o ya ha caducado. */
+async function llamadaAbierta(perId) {
+  const r = await getDocs(query(collection(db, LLAMADA),
+    where("projectId", "==", perId), where("active", "==", true)));
+  const ahora = Date.now();
+  const vivas = r.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(x => fin(x) > ahora)
+    .sort((a, b) => fin(b) - fin(a));
+  return vivas[0] || null;
+}
+const fin = x => {
+  const t = x && x.endTime;
+  if (!t) return 0;
+  return t.toDate ? t.toDate().getTime() : new Date(t).getTime();
+};
+
+/**
+ * Abrir la llamada. La abre un docente para SU escuadrón y nadie más.
+ *
+ * `restrictedFactionId` es lo que hace que la llamada sea «solo de mi clase»: GamificaPro ya lo
+ * comprueba en el servidor al pagar, así que no es una cortesía de la interfaz.
+ */
+async function abrirLlamada(perId, minutos, opciones) {
+  const yo = await sesion();
+  if (!yo) throw new Error("Entra con tu cuenta para tocar llamada a filas");
+  const o = opciones || {};
+  const p = await getDoc(doc(db, "projects", perId));
+  if (!p.exists()) throw new Error("No existe el grupo «" + perId + "»");
+  const proy = p.data();
+  // El escuadrón de quien toca: se busca por su nombre en el equipo docente. Si no aparece (un
+  // referente que no imparte), la llamada va para todo el grupo.
+  const priv = await getDoc(doc(db, "projects", perId, "privado", "stargate")).catch(() => null);
+  const docentes = (priv && priv.exists() ? priv.data().docentes : (proy.stargate || {}).docentes) || [];
+  const mio = docentes.filter(d => String(d.correo || "").toLowerCase() === yo.correo)[0];
+  const nombre = o.comandante || (mio && mio.nombre) || yo.nombre || yo.correo;
+  const faccion = (proy.factions || []).filter(f => f.teacherName === nombre)[0] || null;
+
+  const ahora = new Date();
+  const hasta = new Date(ahora.getTime() + Math.max(1, Number(minutos) || 60) * 60000);
+  const ref = await addDoc(collection(db, LLAMADA), Object.assign({
+    projectId: perId, teacherId: yo.uid, teacherDisplayName: nombre,
+    startTime: ahora, endTime: hasta, active: true,
+    pointsReward: o.xp == null ? 15 : Number(o.xp),
+    coinsReward: o.creditos == null ? 30 : Number(o.creditos),
+    autoReward: true
+  }, faccion ? { restrictedFactionId: faccion.id } : {}));
+  return { id: ref.id, hasta: hasta.getTime(), escuadron: faccion ? faccion.name : null,
+           comandante: nombre, minutos: Math.max(1, Number(minutos) || 60) };
+}
+
+/** Cerrarla antes de tiempo. */
+async function cerrarLlamada(sesionId) {
+  await updateDoc(doc(db, LLAMADA, sesionId), { active: false, endTime: new Date() });
+}
+
+/**
+ * Fichar. Los mismos pasos que hace GamificaPro, en el mismo orden:
+ * comprobar facción → mirar que no hayas fichado hoy → dejar el registro → pedir el pago.
+ */
+async function ficharLlamada(perId, fichaId) {
+  const yo = await sesion();
+  if (!yo) throw new Error("Entra con tu cuenta");
+  const s = await llamadaAbierta(perId);
+  if (!s) throw new Error("La llamada a filas ya no está abierta.");
+  const f = await getDoc(doc(db, "student_profiles", fichaId));
+  if (!f.exists()) throw new Error("No encuentro tu ficha");
+  const perfil = f.data();
+  const restringe = typeof s.restrictedFactionId === "string" && s.restrictedFactionId.trim() !== "";
+  if (restringe && (perfil.factionId ?? null) !== s.restrictedFactionId)
+    throw new Error("Esta llamada es de otro escuadrón.");
+
+  // Una vez al día: si ya fichaste hoy, no se cobra dos veces por estar en la misma clase.
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const previos = await getDocs(query(collection(db, FICHAJES),
+    where("projectId", "==", perId), where("userId", "==", yo.uid)));
+  const yaHoy = previos.docs.some(d => {
+    const t = d.data().registeredAt;
+    const f2 = t && t.toDate ? t.toDate() : new Date(t);
+    return f2 >= hoy;
+  });
+  if (yaHoy) return { ok: true, repetido: true };
+
+  await addDoc(collection(db, FICHAJES), {
+    sessionId: s.id, projectId: perId, userId: yo.uid,
+    studentProfileId: fichaId, registeredAt: new Date()
+  });
+  // 🔴 El servidor lee de la sesión lo que paga e ignora lo que le mandemos. Las cifras van aquí
+  // solo porque la función las pide; quien manda es la sesión.
+  await llamar("applyXpDelta", {
+    projectId: perId, studentProfileId: fichaId, userId: yo.uid,
+    deltaXp: Number(s.pointsReward || 15), deltaCoins: Number(s.coinsReward || 30),
+    source: "attendance_session_auto_reward", sourceRefId: s.id,
+    idempotencyKey: "xp_attendance_" + perId + "_" + s.id + "_" + yo.uid
+  });
+  return { ok: true, xp: Number(s.pointsReward || 15), creditos: Number(s.coinsReward || 30) };
+}
+
+/**
+ * Quedarse a la escucha de la llamada de un grupo, EN DIRECTO.
+ *
+ * 🔴 Escucha, no pregunta cada X segundos. Con 200 alumnos en la Nave, preguntar cada diez segundos
+ * son 1.200 lecturas por minuto por el gusto de enterarse tarde; escuchar es una conexión que avisa
+ * en cuanto el docente pulsa. Devuelve la función para dejar de escuchar: sin llamarla, cambiar de
+ * pestaña deja conexiones vivas de por vida.
+ */
+function vigilarLlamada(perId, alCambiar) {
+  return onSnapshot(query(collection(db, LLAMADA),
+    where("projectId", "==", perId), where("active", "==", true)),
+    r => {
+      const ahora = Date.now();
+      const vivas = r.docs.map(d => ({ id: d.id, ...d.data() }))
+        .filter(x => fin(x) > ahora).sort((a, b) => fin(b) - fin(a));
+      alCambiar(vivas[0] || null);
+    },
+    () => alCambiar(null));
+}
+
+/** Quién ha fichado en una llamada, para verlo en directo desde el puesto de mando. */
+async function fichajesDe(sesionId) {
+  const r = await getDocs(query(collection(db, FICHAJES), where("sessionId", "==", sesionId)));
+  return r.docs.map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => (a.registeredAt?.toDate ? a.registeredAt.toDate() : new Date(a.registeredAt))
+                  - (b.registeredAt?.toDate ? b.registeredAt.toDate() : new Date(b.registeredAt)));
+}
+
 window.SG = window.SG || {};
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, otorgarReto, anularReto, traspasar, resolverVale,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

@@ -114,7 +114,7 @@
       // 🔴 Esta línea va ANTES del if, y se queda aquí. Metida entre el if y el else if partía la
       // cadena, el fichero entero dejaba de compilar («Unexpected token 'else'») y la Nave se
       // quedaba EN BLANCO para todos los grupos. Visto en producción el 27-ago.
-      st.pase=(d&&d.pase)||null;   // v3.27 · ¿hay pase de lista abierto ahora mismo?
+      if(!motorNuevo()) st.pase=(d&&d.pase)||null;   // v3.27 · ¿hay pase de lista abierto ahora mismo?
       if(d&&d.yo){st.yo=d.yo;st.email=email;localStorage.setItem(KEY_MAIL,email);st.msgYo='';
         // 🔴 ACTO 2: aquí, con su ficha ya delante. Se espera un poco a que la nave termine de
         // pintarse — explicar «mira tu personaje» sobre una pantalla en blanco no explica nada.
@@ -507,15 +507,79 @@
 
   // v3.27 · EL PASE DE LISTA. Solo se ve mientras el docente tiene la ventana abierta. La consigna
   // NO llega hasta aqui: la tiene en su pantalla, y por eso hay que estar en la clase.
+  /**
+   * 🔴 LA LLAMADA A FILAS (12-sep) — el pase de lista, rehecho.
+   *
+   * El sistema viejo escondía una palabra de cuatro letras que el alumnado tecleaba. Aquí no hay
+   * palabra: cuando tu Comandante toca llamada, el botón APARECE SOLO en tu Nave y desaparece al
+   * cerrarse la ventana. La defensa no es un secreto, es el momento — tu docente la toca cuando
+   * quiere y dura lo que él decida.
+   *
+   * Llega EN DIRECTO (una conexión a la escucha, no preguntar cada diez segundos: con 200 alumnos
+   * eso serían 1.200 lecturas por minuto para enterarse tarde).
+   */
   function avisoPase(){
-    var p=st.pase;
-    if(!p||!p.abierto||!st.yo) return '';
-    if(p.cobrado) return '<div class="pase-nave hecho">✅ <b>Pase de lista registrado.</b> Nos vemos en la próxima.</div>';
-    return '<div class="pase-nave"><b>🎓 Pase de lista abierto</b>'
-      +'<span class="small">Escribe la consigna de cuatro letras que hay en la pantalla de tu profe y te llevas '+(p.creditos||0)+' ◈.</span>'
-      +'<div class="pase-fila"><input id="pase-in" maxlength="4" autocomplete="off" spellcheck="false" placeholder="ABCD">'
-      +'<button class="btn primary" id="pase-ok" type="button">Estoy en clase</button></div>'
+    var L=st.llamada;
+    if(!L||!st.yo) return '';
+    if(st.fichado) return '<div class="pase-nave hecho">✅ <b>Presente.</b> Ya estás en la lista de hoy.</div>';
+    var seg=Math.max(0,Math.round((L.hasta-Date.now())/1000));
+    return '<div class="pase-nave"><b>🔔 Llamada a filas</b>'
+      +'<span class="small">'+esc(L.comandante||'Tu Comandante')+' ha tocado llamada'
+      +(L.escuadron?' para <b>'+esc(L.escuadron)+'</b>':'')+'. Responde y te llevas <b>'
+      +(L.xp||0)+' xp</b> y <b>'+(L.creditos||0)+' ◈</b>.</span>'
+      +'<div class="pase-fila"><button class="btn primary" id="pase-ok" type="button">✋ Presente</button>'
+      +'<span class="pase-cuenta" id="pase-cuenta">'+reloj(seg)+'</span></div>'
       +'<div class="small muted" id="pase-msg"></div></div>';
+  }
+  function reloj(seg){
+    var m=Math.floor(seg/60), s2=seg%60;
+    return 'quedan '+m+':'+(s2<10?'0':'')+s2;
+  }
+  /**
+   * La escucha. Se monta una vez por visita y se deshace al salir: sin deshacerla, cambiar de grupo
+   * dejaría conexiones vivas escuchando un grupo que ya no miras.
+   */
+  function vigilarLlamada(){
+    if(!motorNuevo()||!per||st.paraVigilar) return;
+    var M=window.SG&&window.SG.MOTOR; if(!M||!M.vigilarLlamada) return;
+    st.paraVigilar = M.vigilarLlamada(per, function(sesion){
+      var antes = st.llamada && st.llamada.id;
+      st.llamada = sesion ? {
+        id: sesion.id,
+        hasta: (sesion.endTime && sesion.endTime.toDate ? sesion.endTime.toDate() : new Date(sesion.endTime)).getTime(),
+        comandante: sesion.teacherDisplayName || '',
+        escuadron: nombreEscuadron(sesion.restrictedFactionId),
+        xp: Number(sesion.pointsReward||15), creditos: Number(sesion.coinsReward||30)
+      } : null;
+      if((st.llamada&&st.llamada.id)!==antes){ st.fichado=false; render(); }
+    });
+    // La cuenta atrás se refresca sola. Cuando llega a cero, se repinta y el aviso desaparece.
+    if(!st.relojLlamada) st.relojLlamada=setInterval(function(){
+      if(!st.llamada) return;
+      var seg=Math.round((st.llamada.hasta-Date.now())/1000);
+      if(seg<=0){ st.llamada=null; render(); return; }
+      var el=document.getElementById('pase-cuenta'); if(el) el.textContent=reloj(seg);
+    },1000);
+  }
+  function nombreEscuadron(id){
+    if(!id) return '';
+    var e=((st.d&&st.d.escuadrones)||[]).filter(function(x){return x.id===id;})[0];
+    return e?e.nombre:'';
+  }
+  function fichar(){
+    var b=document.getElementById('pase-ok'), m=document.getElementById('pase-msg');
+    if(!b||!st.yo||!st.yo.ficha) return;
+    b.disabled=true; b.textContent='Registrando…';
+    var antes=JSON.parse(JSON.stringify(st.yo)), donde=puntoDe(b);
+    window.SG.MOTOR.ficharLlamada(per, st.yo.ficha).then(function(r){
+      st.fichado=true;
+      if(r&&r.repetido){ if(m) m.textContent='Ya constabas en la lista de hoy.'; render(); return; }
+      refrescarYCelebrar(antes, donde, 'reto');
+    }).catch(function(e){
+      b.disabled=false; b.textContent='✋ Presente';
+      if(m) m.textContent=String(e&&e.message||e);
+      if(window.SG&&SG.FIESTA) SG.FIESTA.sonar('error');
+    });
   }
   // v3.28 · El Genially del alumno es el de SU docente si lo tiene; si no, el del grupo. Algunos
   // docentes retocan el panel para sus alumnos y ese es el que tienen que ver.
@@ -1378,6 +1442,7 @@
     // El ranking «Mi escuadrón» necesita saber quién eres. En el tablero proyectado no hay nadie, y
     // por eso ese modo no aparece allí: no se esconde por seguridad, es que no significa nada.
     try{ window.SG_YO_ALIAS = st.yo ? st.yo.alias : ''; }catch(e){}
+    if(st.yo) vigilarLlamada();
     var avisoDemo = (dentro && DEMO && !st.email)
       ? '<div class="card" style="border-color:var(--amber)"><p class="small" style="margin:0;color:var(--amber)">'
         + '🎬 <b>Modo demostración.</b> Estás viendo la Nave con la ficha de <b>'+esc(st.yo.alias||'un recluta')
@@ -1486,7 +1551,11 @@
     });
     var pb=root.querySelector('#pase-ok');
     if(pb)pb.onclick=function(){
+      // Con el motor nuevo no hay palabra que teclear: el botón solo está ahí si la llamada está
+      // abierta, y pulsarlo es la respuesta. Con el viejo sigue pidiéndose la consigna.
+      if(motorNuevo()) return fichar();
       var inp=root.querySelector('#pase-in'), msg=root.querySelector('#pase-msg');
+      if(!inp) return;
       var val=String(inp.value||'').trim().toUpperCase();
       if(val.length!==4){msg.textContent='Son cuatro letras.';return;}
       pb.disabled=true; msg.textContent='Enviando…';
