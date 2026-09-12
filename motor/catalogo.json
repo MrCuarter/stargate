@@ -816,98 +816,98 @@
     {
       "clave": "P1_bran",
       "nombre": "Bran Okafor",
-      "peso": 7,
+      "peso": 5,
       "rareza": "común",
       "serie": "Serie I · La Tripulación Cero"
     },
     {
       "clave": "P2_tomas",
       "nombre": "Tomás Reyer",
-      "peso": 7,
+      "peso": 5,
       "rareza": "común",
       "serie": "Serie I · La Tripulación Cero"
     },
     {
       "clave": "P3_sylla",
       "nombre": "Sylla Bren",
-      "peso": 7,
+      "peso": 5,
       "rareza": "común",
       "serie": "Serie I · La Tripulación Cero"
     },
     {
       "clave": "P4_amara",
       "nombre": "Amara Sol",
-      "peso": 7,
+      "peso": 5,
       "rareza": "común",
       "serie": "Serie I · La Tripulación Cero"
     },
     {
       "clave": "P5_vera",
       "nombre": "Vera Khal",
-      "peso": 7,
+      "peso": 5,
       "rareza": "común",
       "serie": "Serie I · La Tripulación Cero"
     },
     {
       "clave": "P6_joran",
       "nombre": "Joran Pike",
-      "peso": 7,
+      "peso": 5,
       "rareza": "común",
       "serie": "Serie I · La Tripulación Cero"
     },
     {
       "clave": "P7_mara",
       "nombre": "Mara Voss",
-      "peso": 7,
+      "peso": 5,
       "rareza": "común",
       "serie": "Serie I · La Tripulación Cero"
     },
     {
       "clave": "P8_noa",
       "nombre": "Noa Lieth",
-      "peso": 7,
+      "peso": 5,
       "rareza": "común",
       "serie": "Serie I · La Tripulación Cero"
     },
     {
       "clave": "L1_lena",
       "nombre": "Lena Reyer",
-      "peso": 4,
+      "peso": 3,
       "rareza": "rara",
       "serie": "Serie II · Los Ecos"
     },
     {
       "clave": "L2_kel",
       "nombre": "Kel Bren",
-      "peso": 4,
+      "peso": 3,
       "rareza": "rara",
       "serie": "Serie II · Los Ecos"
     },
     {
       "clave": "L3_copistas",
       "nombre": "Los Copistas de Fôrge",
-      "peso": 4,
+      "peso": 3,
       "rareza": "rara",
       "serie": "Serie II · Los Ecos"
     },
     {
       "clave": "L4_ilan",
       "nombre": "Ilan Kesh",
-      "peso": 4,
+      "peso": 3,
       "rareza": "rara",
       "serie": "Serie II · Los Ecos"
     },
     {
       "clave": "L5_ruta_azul",
       "nombre": "Los Niños de la Ruta Azul",
-      "peso": 4,
+      "peso": 3,
       "rareza": "rara",
       "serie": "Serie II · Los Ecos"
     },
     {
       "clave": "L6_oren",
       "nombre": "Oren Vash",
-      "peso": 4,
+      "peso": 3,
       "rareza": "rara",
       "serie": "Serie II · Los Ecos"
     },
@@ -952,6 +952,48 @@
       "peso": 1,
       "rareza": "LEGENDARIA",
       "serie": "Serie IV · La Sombra"
+    },
+    {
+      "clave": "V1_nino",
+      "nombre": "Ander, el niño que preguntaba",
+      "peso": 6,
+      "rareza": "común",
+      "serie": "Serie V · La caída de Vaeon"
+    },
+    {
+      "clave": "V2_aprendiz",
+      "nombre": "Ander, el aprendiz",
+      "peso": 5,
+      "rareza": "común",
+      "serie": "Serie V · La caída de Vaeon"
+    },
+    {
+      "clave": "V3_archivista",
+      "nombre": "Ander, Archivista Mayor",
+      "peso": 4,
+      "rareza": "rara",
+      "serie": "Serie V · La caída de Vaeon"
+    },
+    {
+      "clave": "V4_noche",
+      "nombre": "La noche de la Estática",
+      "peso": 3,
+      "rareza": "rara",
+      "serie": "Serie V · La caída de Vaeon"
+    },
+    {
+      "clave": "V5_relectura",
+      "nombre": "La relectura",
+      "peso": 3,
+      "rareza": "épica",
+      "serie": "Serie V · La caída de Vaeon"
+    },
+    {
+      "clave": "V6_sello",
+      "nombre": "El primer sello",
+      "peso": 1,
+      "rareza": "LEGENDARIA",
+      "serie": "Serie V · La caída de Vaeon"
     }
   ],
   "heroes": [
@@ -1156,6 +1198,11 @@
       "clave": "A4_sombra",
       "serie": "Serie IV · La Sombra",
       "nombre": "La Sombra al completo"
+    },
+    {
+      "clave": "A5_caida",
+      "serie": "Serie V · La caída de Vaeon",
+      "nombre": "La caída de Vaeon al completo"
     }
   ],
   "escuadrones": [

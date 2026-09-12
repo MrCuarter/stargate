@@ -228,8 +228,9 @@ CROMO_SERIES = [
  ("II",  "Serie II · Los Ecos",           "Las personas a las que la Cero les cambió la vida"),
  ("III", "Serie III · La Nave",           "Quienes te acompañan… y tú"),
  ("IV",  "Serie IV · La Sombra",          "El silencio, y quien acabó sirviéndolo"),
+ ("V",   "Serie V · La caída de Vaeon",   "Cómo un buen hombre acabó siendo el enemigo"),
 ]
-# Insignia por completar una SERIE entera (§12.5). El álbum completo (20 cartas, una del 1 %) no es
+# Insignia por completar una SERIE entera (§12.5). El álbum completo (26 cartas) no es
 # meta realista; una serie sí. Van en un campo aparte del tablero (insignias_album), NUNCA entre las
 # 24 de la misión: ese contador se pinta como «n/24» en cuatro sitios y dejaría de ser cierto.
 SERIES_ALBUM = [
@@ -237,29 +238,42 @@ SERIES_ALBUM = [
  ("A2_ecos",        "II",  "Los Ecos al completo"),
  ("A3_nave",        "III", "La Nave al completo"),
  ("A4_sombra",      "IV",  "La Sombra al completo"),
+ # 🔴 12-sep · EL ARCO DE VAEON. Petición de Norberto: «la historia cronológica de Vaeon, desde su
+ # infancia, su evolución hasta convertirse en el malo malvado; ver cómo se va corrompiendo en cada
+ # carta». Seis, no diez: con veinte cromos ya cuesta completar el álbum y veinte más lo harían
+ # imposible. Y seis bastan para que la corrupción se LEA de un vistazo en la rejilla.
+ # Resuelve además un agujero de la narrativa: hasta ahora Vaeon aparecía de golpe en la semana 9
+ # sin que nadie supiera de dónde salía. Ahora su caída se cuenta sin un vídeo más.
+ ("A5_caida",       "V",   "La caída de Vaeon al completo"),
 ]
 # [clave, nombre en el álbum, serie, rareza, peso] · los pesos suman 100
 CROMOS = [
- ("P1_bran",      "Bran Okafor",                "I",   "común",      7),
- ("P2_tomas",     "Tomás Reyer",                "I",   "común",      7),
- ("P3_sylla",     "Sylla Bren",                 "I",   "común",      7),
- ("P4_amara",     "Amara Sol",                  "I",   "común",      7),
- ("P5_vera",      "Vera Khal",                  "I",   "común",      7),
- ("P6_joran",     "Joran Pike",                 "I",   "común",      7),
- ("P7_mara",      "Mara Voss",                  "I",   "común",      7),
- ("P8_noa",       "Noa Lieth",                  "I",   "común",      7),
- ("L1_lena",      "Lena Reyer",                 "II",  "rara",       4),
- ("L2_kel",       "Kel Bren",                   "II",  "rara",       4),
- ("L3_copistas",  "Los Copistas de Fôrge",      "II",  "rara",       4),
- ("L4_ilan",      "Ilan Kesh",                  "II",  "rara",       4),
- ("L5_ruta_azul", "Los Niños de la Ruta Azul",  "II",  "rara",       4),
- ("L6_oren",      "Oren Vash",                  "II",  "rara",       4),
- ("E1_nebula",    "NEBULA",                     "III", "rara",       5),
- ("E2_capitan",   "El Capitán",                 "III", "rara",       5),
- ("N1_recluta",   "El Recluta",                 "III", "épica",      3),
- ("S2_estatica",  "La Estática",                "IV",  "épica",      4),
- ("E3_vaeon",     "General Vaeon",              "IV",  "LEGENDARIA", 2),
- ("S1_ander",     "Ander Vaeon",                "IV",  "LEGENDARIA", 1),
+ ("P1_bran",        "Bran Okafor",                    "I",     "común",        5),
+ ("P2_tomas",       "Tomás Reyer",                    "I",     "común",        5),
+ ("P3_sylla",       "Sylla Bren",                     "I",     "común",        5),
+ ("P4_amara",       "Amara Sol",                      "I",     "común",        5),
+ ("P5_vera",        "Vera Khal",                      "I",     "común",        5),
+ ("P6_joran",       "Joran Pike",                     "I",     "común",        5),
+ ("P7_mara",        "Mara Voss",                      "I",     "común",        5),
+ ("P8_noa",         "Noa Lieth",                      "I",     "común",        5),
+ ("L1_lena",        "Lena Reyer",                     "II",    "rara",         3),
+ ("L2_kel",         "Kel Bren",                       "II",    "rara",         3),
+ ("L3_copistas",    "Los Copistas de Fôrge",          "II",    "rara",         3),
+ ("L4_ilan",        "Ilan Kesh",                      "II",    "rara",         3),
+ ("L5_ruta_azul",   "Los Niños de la Ruta Azul",      "II",    "rara",         3),
+ ("L6_oren",        "Oren Vash",                      "II",    "rara",         3),
+ ("E1_nebula",      "NEBULA",                         "III",   "rara",         5),
+ ("E2_capitan",     "El Capitán",                     "III",   "rara",         5),
+ ("N1_recluta",     "El Recluta",                     "III",   "épica",        3),
+ ("S2_estatica",    "La Estática",                    "IV",    "épica",        4),
+ ("E3_vaeon",       "General Vaeon",                  "IV",    "LEGENDARIA",   2),
+ ("S1_ander",       "Ander Vaeon",                    "IV",    "LEGENDARIA",   1),
+ ("V1_nino",        "Ander, el niño que preguntaba",  "V",     "común",        6),
+ ("V2_aprendiz",    "Ander, el aprendiz",             "V",     "común",        5),
+ ("V3_archivista",  "Ander, Archivista Mayor",        "V",     "rara",         4),
+ ("V4_noche",       "La noche de la Estática",        "V",     "rara",         3),
+ ("V5_relectura",   "La relectura",                   "V",     "épica",        3),
+ ("V6_sello",       "El primer sello",                "V",     "LEGENDARIA",   1),
 ]
 assert sum(c[4] for c in CROMOS) == 100, "los pesos de CROMOS deben sumar 100"
 

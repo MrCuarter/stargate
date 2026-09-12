@@ -14,7 +14,11 @@ const leer = f => fs.readFileSync(path.join(RAIZ, f), "utf8");
 console.log("\n▶ 43 · La puerta del profesorado");
 
 // ---------------------------------------------------------------- a) lo que va tapado
-["guia.html", "cronologia.html", "actividades.html", "geniallys.html", "registro.html",
+// 🔴 12-sep · `geniallys.html` ya no existe. Era una rejilla de OCHO huecos vacíos —los ocho
+// `view` del catálogo están a `None`— es decir, una promesa incumplida enseñada como si fuera una
+// página. Norberto: «eliminamos lo de Genially entonces, promesa incumplida». El enlace a la
+// carpeta compartida, que es lo único que se usaba de ahí, vive en Recursos.
+["guia.html", "cronologia.html", "actividades.html", "registro.html",
  "recursos.html", "grupos.html", "embed.html", "pasos.html"].forEach(function(f){
   const h = leer(f);
   c(h.indexOf("assets/js/puerta.js") >= 0, "🔒 " + f + " está tras la puerta del profesorado");

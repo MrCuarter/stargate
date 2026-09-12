@@ -325,7 +325,8 @@ var SERIES_ALBUM = [
   ["A1_tripulacion","Serie I · La Tripulación Cero","La Tripulación Cero al completo"],
   ["A2_ecos","Serie II · Los Ecos","Los Ecos al completo"],
   ["A3_nave","Serie III · La Nave","La Nave al completo"],
-  ["A4_sombra","Serie IV · La Sombra","La Sombra al completo"]
+  ["A4_sombra","Serie IV · La Sombra","La Sombra al completo"],
+  ["A5_caida","Serie V · La caída de Vaeon","La caída de Vaeon al completo"]
 ];
 // NIVELES-FIN
 // ESCUADRONES-INICIO · [clave, nombre, lema, de quién sale]. Un escuadrón por docente. El
@@ -469,26 +470,32 @@ function skinsDe_(xp, tipo) {
 // CROMOS-INICIO · [clave de carta, nombre, peso, rareza, serie]. Los pesos suman 100.
 // Lo genera web-stargate/_build_site.py desde _site_data.py (CROMOS): NO editar a mano.
 var CROMOS = [
-  ["P1_bran","Bran Okafor",7,"común","Serie I · La Tripulación Cero"],
-  ["P2_tomas","Tomás Reyer",7,"común","Serie I · La Tripulación Cero"],
-  ["P3_sylla","Sylla Bren",7,"común","Serie I · La Tripulación Cero"],
-  ["P4_amara","Amara Sol",7,"común","Serie I · La Tripulación Cero"],
-  ["P5_vera","Vera Khal",7,"común","Serie I · La Tripulación Cero"],
-  ["P6_joran","Joran Pike",7,"común","Serie I · La Tripulación Cero"],
-  ["P7_mara","Mara Voss",7,"común","Serie I · La Tripulación Cero"],
-  ["P8_noa","Noa Lieth",7,"común","Serie I · La Tripulación Cero"],
-  ["L1_lena","Lena Reyer",4,"rara","Serie II · Los Ecos"],
-  ["L2_kel","Kel Bren",4,"rara","Serie II · Los Ecos"],
-  ["L3_copistas","Los Copistas de Fôrge",4,"rara","Serie II · Los Ecos"],
-  ["L4_ilan","Ilan Kesh",4,"rara","Serie II · Los Ecos"],
-  ["L5_ruta_azul","Los Niños de la Ruta Azul",4,"rara","Serie II · Los Ecos"],
-  ["L6_oren","Oren Vash",4,"rara","Serie II · Los Ecos"],
+  ["P1_bran","Bran Okafor",5,"común","Serie I · La Tripulación Cero"],
+  ["P2_tomas","Tomás Reyer",5,"común","Serie I · La Tripulación Cero"],
+  ["P3_sylla","Sylla Bren",5,"común","Serie I · La Tripulación Cero"],
+  ["P4_amara","Amara Sol",5,"común","Serie I · La Tripulación Cero"],
+  ["P5_vera","Vera Khal",5,"común","Serie I · La Tripulación Cero"],
+  ["P6_joran","Joran Pike",5,"común","Serie I · La Tripulación Cero"],
+  ["P7_mara","Mara Voss",5,"común","Serie I · La Tripulación Cero"],
+  ["P8_noa","Noa Lieth",5,"común","Serie I · La Tripulación Cero"],
+  ["L1_lena","Lena Reyer",3,"rara","Serie II · Los Ecos"],
+  ["L2_kel","Kel Bren",3,"rara","Serie II · Los Ecos"],
+  ["L3_copistas","Los Copistas de Fôrge",3,"rara","Serie II · Los Ecos"],
+  ["L4_ilan","Ilan Kesh",3,"rara","Serie II · Los Ecos"],
+  ["L5_ruta_azul","Los Niños de la Ruta Azul",3,"rara","Serie II · Los Ecos"],
+  ["L6_oren","Oren Vash",3,"rara","Serie II · Los Ecos"],
   ["E1_nebula","NEBULA",5,"rara","Serie III · La Nave"],
   ["E2_capitan","El Capitán",5,"rara","Serie III · La Nave"],
   ["N1_recluta","El Recluta",3,"épica","Serie III · La Nave"],
   ["S2_estatica","La Estática",4,"épica","Serie IV · La Sombra"],
   ["E3_vaeon","General Vaeon",2,"LEGENDARIA","Serie IV · La Sombra"],
-  ["S1_ander","Ander Vaeon",1,"LEGENDARIA","Serie IV · La Sombra"]
+  ["S1_ander","Ander Vaeon",1,"LEGENDARIA","Serie IV · La Sombra"],
+  ["V1_nino","Ander, el niño que preguntaba",6,"común","Serie V · La caída de Vaeon"],
+  ["V2_aprendiz","Ander, el aprendiz",5,"común","Serie V · La caída de Vaeon"],
+  ["V3_archivista","Ander, Archivista Mayor",4,"rara","Serie V · La caída de Vaeon"],
+  ["V4_noche","La noche de la Estática",3,"rara","Serie V · La caída de Vaeon"],
+  ["V5_relectura","La relectura",3,"épica","Serie V · La caída de Vaeon"],
+  ["V6_sello","El primer sello",1,"LEGENDARIA","Serie V · La caída de Vaeon"]
 ];
 // CROMOS-FIN
 var TITULOS = ["Cartógrafo/a estelar","Guardián/a de la Bitácora","Voz de NEBULA","Rompe-Estática",

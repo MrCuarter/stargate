@@ -7,6 +7,14 @@ const E = require("./entorno.js");
 const { comprobar: c, igual, contiene } = E;
 const M = E.M;
 console.log("\n▶ 17 · Repetidos, series completas y racha");
+// 🔴 12-sep · EL ÁLBUM CRECE A 26 CARTAS Y 5 SERIES. La serie V es «La caída de Vaeon»: seis
+// cartas que cuentan cómo un buen hombre acabó siendo el enemigo, de niño a general. Resuelve un
+// agujero de la narrativa —Vaeon aparecía de golpe en la semana 9 sin que nadie supiera quién era—
+// y lo hace sin un vídeo más.
+// Los pesos SIGUEN sumando 100: el sitio salió de las comunes (la Tripulación baja de 7 a 5), NUNCA
+// de las raras. Este cambio ya pilló un fallo: al reescalar, el último de la lista absorbía el resto
+// de la división… y el último era la legendaria de Ander, que pasó de peso 1 a 5. Una legendaria que
+// sale una de cada veinte deja de ser una legendaria.
 
 const REPES = "Cambiar 3 repetidos por un sobre";
 function ficha(G, email) { return G.tablero_("prueba-banco", true).reclutas.filter(x => x.email === email)[0]; }
@@ -95,9 +103,9 @@ E.crearPERDemo(G);
 E.reclutaRico(G, "prueba-banco", "todo@alumno.es", { profe: "Mr Cuarter" });
 G.CROMOS.forEach(cr => darCromo(G, "todo@alumno.es", cr[0]));
 f = ficha(G, "todo@alumno.es");
-igual(f.insignias_album.sort(), ["A1_tripulacion", "A2_ecos", "A3_nave", "A4_sombra"],
-  "🔴 el álbum entero da las cuatro insignias de serie");
-igual(f.n_album, 4, "cuatro");
+igual(f.insignias_album.sort(), ["A1_tripulacion", "A2_ecos", "A3_nave", "A4_sombra", "A5_caida"],
+  "🔴 el álbum entero da las cinco insignias de serie");
+igual(f.n_album, 5, "cinco");
 igual(f.repes_disponibles, 0, "y sin repetidos, no hay nada que cambiar");
 
 // ---------------------------------------------------------------- c) racha de semanas del PER

@@ -136,6 +136,13 @@ CROMO_TITULO={
  "N1_recluta":"El Recluta · La última página",
  "S1_ander":"Ander Vaeon · El nombre que borró",
  "S2_estatica":"La Estática · El silencio que avanza",
+ # El arco de Vaeon (serie V): su caída contada en seis cartas, de niño a general.
+ "V1_nino":"Ander, el niño · El que preguntaba",
+ "V2_aprendiz":"Ander, el aprendiz · La promesa",
+ "V3_archivista":"Archivista Mayor · La cumbre",
+ "V4_noche":"La noche de la Estática · Lo que no pudo guardar",
+ "V5_relectura":"La relectura · Mil veces lo mismo",
+ "V6_sello":"El primer sello · El nombre que borró",
 }
 PLANETAS=[("p1_forge","Fôrge","T1 · Contenido multimedia"),("p2_ecos","Ecos","T2 · El vídeo"),
 ("p3_sendara","Sendara","T3 · Interactivos"),("p4_reliae","Reliae","T4 · M-learning"),
@@ -205,7 +212,6 @@ tiles = [
  ("guia.html","🧭","La guía","Narrativa, personajes, retos e insignias y cómo dinamizarlo en clase."),
  ("cronologia.html","🗓️","La cronología","Semana a semana: qué vídeo, qué reto, qué insignia y el mensaje del foro."),
  ("actividades.html","🎯","Misiones y evaluación","Las dos actividades, el ePortfolio y el examen con los requisitos oficiales."),
- ("geniallys.html","🪐","Los Geniallys","Uno por planeta. La carpeta compartida con los estándar de tu perfil."),
  ("registro.html","🏅","Registro de insignias","Tablero en vivo por PER, formularios del alumnado y cómo funciona."),
  ("consola.html","🎛️","Puesto de mando","Tus grupos: gente, canjes, cola de nota y ajustes. Se entra con tu cuenta, sin PIN."),
  ("crear.html","✨","Crear un grupo","Siembra un grupo entero —retos, planetas, tienda y álbum— en un minuto."),
@@ -711,7 +717,7 @@ REC = head("STARGATE · Sala de recursos",
 <header class="hero"><div class="kicker">Sala de recursos</div>
 <h1>Sala de recursos</h1>
 <p>El tablero de las 24 insignias, el ranking de reclutas y los materiales gráficos. Los Geniallys tienen
-<a href="geniallys.html">su propia sala</a>; los vídeos viven en la <a href="cronologia.html">cronología</a>.</p>
+su propia sala; los vídeos viven en la <a href="cronologia.html">cronología</a>.</p>
 </header>
 
 <section><div class="wrap">
@@ -1342,7 +1348,6 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
    {p:'cronologia.html',sel:'#mapa',pose:'senala',t:'Tu carta de navegación',x:'El mapa de las <b>15 semanas</b>: qué vídeo proyectar, qué reto lanzar, qué insignia entregar y el hito de evaluación. Sin fechas: semanas, como tu aula.'},
    {p:'cronologia.html',sel:'#sem1',pose:'pensativo',t:'La orden del día',x:'Despliega una semana y tendrás la orden completa, con los vídeos reproducibles aquí mismo y el <b>mensaje del foro listo para copiar</b> (la firma es siempre «Capitán», a secas). Empieza por la semana 1.'},
    {p:'actividades.html',sel:'#act1',pose:'pensativo',t:'Misiones y evaluación',x:'Las dos misiones mayores, el ePortfolio y el examen con los <b>requisitos oficiales</b>, más los documentos para descargar.'},
-   {p:'geniallys.html',sel:'#lista',pose:'senala',t:'Los Geniallys',x:'La carpeta de Genially está <b>compartida con todo el profesorado</b>: busca la carpeta de tu perfil y usa los <b>Geniallys estándar</b> tal cual. ¿Quieres personalizar uno? Haz una copia; el sistema enlaza siempre a los estándar.'},
    {p:'registro.html',sel:'#registro',pose:'tablet',t:'El registro es automático',x:'Tu alumnado registra sus insignias solo, en la <b>Bitácora de mando</b> de su PER, y el <b>tablero en vivo</b> se actualiza al momento: xp, rangos y avatares. Tu papel es la <b>ceremonia</b>: entrega cada insignia en público y con su frase.'},
    {p:'registro.html',sel:'#profe-herramientas',pose:'brazos',t:'Lo que usas cada semana',x:'El <b>aula</b> es tu puesto de mando dentro del Genially: tocas llamada a filas, ves quién ficha en directo, sabes a quién felicitar y repartes premios a mano. La <b>llamada a filas</b> abre el fichaje solo para tu escuadrón. Y el <b>ticket de salida</b> te devuelve valoraciones y dudas anónimas de cada clase.'},
    {p:'index.html',sel:'#secciones',pose:'senala',t:'Tus herramientas de mando',x:'Desde aquí llegas al <b>panel del profesorado</b> (con el PIN que te dará tu referente), a los <b>tickets</b>, a la <b>Nave del Recluta</b> y al <b>foro dinámico</b> para el Genially del PER, y al <b>generador de enlaces, embeds y QR</b>.'}
@@ -1350,7 +1355,6 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
   var REF=[
    {p:'crear.html',sel:'',pose:'tablet',t:'Referente: crear un grupo',x:'Los grupos se crean <b>aquí</b>, entrando con tu cuenta de Google — ya no hay hoja de cálculo ni menús. Nombre, tipo REGULAR/PUA, fecha de la semana 1, los enlaces de la clase y el equipo docente. En un minuto queda sembrado entero: los retos con sus insignias, los 8 planetas, la tienda, los escuadrones y el álbum.'},
    {p:'crear.html',sel:'',pose:'senala',t:'Referente: el equipo y la fecha',x:'Ya no hay PIN que repartir. Pones a cada docente con <b>su correo</b> en el equipo, y con eso entra en su sala iniciando sesión; si alguien se va, lo quitas de la lista y deja de entrar. Lo que sí tienes que poner bien es la <b>fecha de la semana 1</b>: marca el ritmo de todo — foro dinámico, desbloqueos de la Nave y recompensas.'},
-   {p:'geniallys.html',sel:'#lista',pose:'brazos',t:'Referente: el panel de control Genially',x:'El <b>panel de control</b> es el Genially con los planetas que enlaza a las presentaciones. Todos los grupos heredan el <b>estándar</b>. ¿Un profe quiere el suyo? Que duplique el Genially y lo pegue en <b>Mi clase → Tu panel de Genially</b>: es lo que abrirán sus alumnos desde la Nave.'}
   ];
   var FINAL={p:'index.html',sel:'#hero-cta',pose:'pulgar',t:'Listo para el salto',x:'Eso es todo, Capitán. La nave es tuya. Y recuerda: <b>una obra que no se documenta, no existe</b>. Corto y cierro.'};
   // v3.35 · VISITAS DE UNA SOLA PÁGINA. La de arriba recorre toda la web; una página puede declarar
@@ -1903,7 +1907,7 @@ exactamente el mismo tablero que devolvía la hoja.</p>
 ''' + FOOT
 
 PAGES=[("index.html",PORTADA),("comosehizo.html",COMOSEHIZO),("ayuda.html",AYUDA),("privacidad.html",PRIVACIDAD),("guia.html",GUIA),("cronologia.html",CRONOLOGIA),("actividades.html",ACT),
-       ("geniallys.html",GENPAGE),("registro.html",REGPAGE),("recursos.html",REC),("legacy.html",LEGACY)]
+       ("registro.html",REGPAGE),("recursos.html",REC),("legacy.html",LEGACY)]
 def _ver(rel): return hashlib.md5(open(os.path.join(HERE,rel),"rb").read()).hexdigest()[:10]
 vc,vj,vt = _ver("assets/css/stargate.css"), _ver("assets/js/stargate.js"), _ver("assets/js/tour.js")
 for name,html in PAGES:

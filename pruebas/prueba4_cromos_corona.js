@@ -4,6 +4,14 @@ const E = require("./entorno.js");
 const { comprobar: c, igual, contiene } = E;
 const M = E.M;
 console.log("\n▶ 4 · Cromos, álbum y corona semanal");
+// 🔴 12-sep · EL ÁLBUM CRECE A 26 CARTAS Y 5 SERIES. La serie V es «La caída de Vaeon»: seis
+// cartas que cuentan cómo un buen hombre acabó siendo el enemigo, de niño a general. Resuelve un
+// agujero de la narrativa —Vaeon aparecía de golpe en la semana 9 sin que nadie supiera quién era—
+// y lo hace sin un vídeo más.
+// Los pesos SIGUEN sumando 100: el sitio salió de las comunes (la Tripulación baja de 7 a 5), NUNCA
+// de las raras. Este cambio ya pilló un fallo: al reescalar, el último de la lista absorbía el resto
+// de la división… y el último era la legendaria de Ander, que pasó de peso 1 a 5. Una legendaria que
+// sale una de cada veinte deja de ser una legendaria.
 
 const G = E.nuevoMundo();
 E.crearPERDemo(G);
@@ -11,11 +19,11 @@ const PER = "prueba-banco";
 
 // --- el catálogo de cartas es coherente ---------------------------------------------------------
 const pesos = G.CROMOS.reduce((a, x) => a + x[2], 0);
-igual(pesos, 100, "los pesos de las 20 cartas suman 100");
-igual(G.CROMOS.length, 20, "el álbum tiene 20 cartas");
+igual(pesos, 100, "los pesos de las 26 cartas suman 100");
+igual(G.CROMOS.length, 26, "el álbum tiene 26 cartas");
 const series = {};
 G.CROMOS.forEach(x => { series[x[4]] = (series[x[4]] || 0) + 1; });
-igual(Object.keys(series).length, 4, "repartidas en 4 series");
+igual(Object.keys(series).length, 5, "repartidas en 5 series");
 igual(series["Serie I · La Tripulación Cero"], 8, "Serie I: 8 cartas");
 igual(series["Serie II · Los Ecos"], 6, "Serie II: 6 cartas");
 igual(series["Serie III · La Nave"], 3, "Serie III: 3 cartas");
