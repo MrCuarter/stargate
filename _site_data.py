@@ -676,70 +676,64 @@ CASTING = [
 PASOS = [
  dict(
   id="referente", icono="🛰️", titulo="Si creas el grupo",
-  quien="El profe <b>referente</b>: una persona por curso. Crea el PER y reparte las llaves.",
-  cuanto="Nueve pasos · se hacen UNA vez por grupo",
-  porque="Todo esto vive dentro de la hoja maestra, en la cuenta <b>mutecdgami</b>. Es la única "
-         "parte del sistema que no se puede enseñar desde la web, así que va con capturas.",
+  quien="El profe <b>referente</b>: una persona por curso. Crea el grupo y reparte las llaves.",
+  cuanto="Siete pasos · se hacen UNA vez por grupo",
+  porque="Desde el 12-sep esto ya no vive en una hoja de cálculo: es una página más de la web, y se "
+         "entra con tu cuenta de Google. Lo de la hoja está en <a href='legacy.html'>el archivo</a>.",
   pasos=[
-   dict(cod="R1", t="La sala de máquinas", pose="saluda", img="r1_menu.png",
-    hacer="Hoja maestra → pestaña <code>PERs</code> → menú <b>STARGATE</b> desplegado.",
-    voz="Esto es la sala de máquinas de STARGATE. Es una hoja de cálculo, y desde ese menú se hace "
-        "todo. Si eres el profe referente de tu grupo, esta página es para ti. Son nueve pasos, y "
-        "luego casi no vuelves por aquí."),
+   dict(cod="R1", t="La consola del referente", pose="saluda", img="r1_consola.png",
+    hacer="Abre <code>crear.html</code> y entra con tu cuenta de Google.",
+    voz="Esto es la sala de máquinas de STARGATE. Antes era una hoja de cálculo con un menú; ahora "
+        "es esta página. Entras con tu cuenta de Google, la misma con la que llevas tus cosas de la "
+        "asignatura, y no hay ningún PIN que recordar. Si eres el profe referente de tu grupo, esta "
+        "página es para ti. Son siete pasos, y luego casi no vuelves por aquí."),
 
-   dict(cod="R2", t="Lo primero: el parte de salud", pose="tablet", img="r2_salud.png",
-    hacer="Menú <b>STARGATE → Parte de salud del sistema</b>.",
-    voz="Antes de crear nada, esto. El parte de salud revisa el sistema entero y te dice en verde, "
-        "ámbar o rojo qué está bien y qué no. Cuando algo falla, además te dice cómo se arregla. "
-        "Empieza siempre por aquí, y vuelve cuando algo se comporte raro."),
+   dict(cod="R2", t="Cinco datos y ya", pose="pensativo", img="r2_grupo.png",
+    hacer="Bloque <b>1 · El grupo</b>: nombre, tipo y el primer día de la semana 1.",
+    voz="Un grupo es un curso concreto con su gente y su calendario. El nombre es para ti, y de él "
+        "sale solo el identificador. El tipo cambia el ritmo, porque REGULAR son quince semanas y "
+        "PUA va comprimido. Y la fecha de la semana uno es la pieza importante: de ella dependen el "
+        "foro, los desbloqueos de la Nave y las recompensas. Ponla bien y olvídate."),
 
-   dict(cod="R3", t="Crear el grupo", pose="pensativo", img="r3_crear.png",
-    hacer="Menú <b>STARGATE → Crear nuevo PER…</b> y rellenar el diálogo.",
-    voz="Un PER es un grupo: un curso concreto con su gente y su calendario. El nombre es para ti. "
-        "El tipo cambia el ritmo, porque REGULAR son quince semanas y PUA va comprimido. Y la fecha "
-        "de la semana uno es la pieza importante: de ella dependen el foro, los desbloqueos de la "
-        "Nave y las recompensas. Ponla bien y olvídate."),
+   dict(cod="R3", t="Los enlaces de la clase", pose="senala", img="r3_enlaces.png",
+    hacer="Bloque <b>2 · Los enlaces</b>: Padlet, panel de control y el ticket de salida.",
+    voz="Aquí van el Padlet de la clase y tu panel de control. El ticket de salida ya viene escrito "
+        "y no lo toques: es el mismo para todos los grupos y para todos los años, y la Nave le dice "
+        "sola de qué grupo y de qué Comandante viene cada respuesta. Sigue siendo un formulario de "
+        "Google porque tiene que ser anónimo, y eso es innegociable."),
 
-   dict(cod="R4", t="Lo que aparece solo", pose="brazos", img=None,
-    hacer="Pulsa <b>Crear</b> y espera. Al terminar sale un diálogo con todo lo creado.",
-    voz="Un minuto de paciencia. En ese minuto el sistema crea los tres formularios del grupo, el "
-        "tablero en vivo, la Nave del recluta, el foro dinámico y un documento con todos los "
-        "enlaces. No hay que configurar nada más: ya está funcionando."),
+   dict(cod="R4", t="El equipo docente", pose="tablet", img="r4_equipo.png",
+    hacer="Bloque <b>3 · El equipo</b>: un nombre y un correo por persona. Marca quién es referente.",
+    voz="Esta lista es la llave. Quien esté aquí con su correo entra en su sala simplemente iniciando "
+        "sesión, sin que le tengas que dar nada. Ya no hay dos PIN que repartir ni que cambiar antes "
+        "del estreno: si alguien se va del equipo, lo borras de la lista y deja de entrar. Y cada "
+        "docente se lleva su escuadrón, con su nombre y su emblema."),
 
-   dict(cod="R5", t="El documento de enlaces", pose="senala", img="r5_doc.png",
-    hacer="Ábrelo desde el diálogo, o menú <b>STARGATE → Documento de enlaces y embeds</b>.",
-    voz="Este documento es lo único que tienes que repartir, y está partido en dos. Lo de arriba, "
-        "con el visto verde, es lo que puedes dar al alumnado sin miedo. Lo de abajo, con el "
-        "candado, es solo para el profesorado: lleva dentro el enlace a la hoja maestra. No mandes "
-        "el documento entero a una clase."),
+   dict(cod="R5", t="Lo que aparece solo", pose="brazos", img=None,
+    hacer="Pulsa <b>Crear el grupo</b> y espera. Verás el avance paso a paso.",
+    voz="Un minuto de paciencia. En ese minuto el sistema siembra el grupo entero: los veintiún "
+        "retos con sus insignias, los ocho planetas con su bonus, las sesenta recompensas con sus "
+        "precios y sus fechas, los escuadrones con sus emblemas y los personajes del álbum. No hay "
+        "que configurar nada más: ya está funcionando."),
 
-   dict(cod="R6", t="Las dos llaves", pose="pensativo", img="r6_pin.png",
-    hacer="Menú <b>STARGATE → Cambiar PIN del profesorado</b> y <b>→ PIN del profesor referente</b>.",
-    voz="Hay dos llaves. El PIN del profesorado lo repartes entre quienes dan clase, y les abre su "
-        "sala y los tickets. El de referente te lo quedas tú, y es el que permite tocar el grupo "
-        "entero: mover la semana uno, cerrar formularios, archivar. Cámbialos los dos antes de que "
-        "entre nadie de verdad."),
+   dict(cod="R6", t="Lo único que tienes que repartir", pose="senala", img=None,
+    hacer="Copia el <b>enlace de alistamiento</b> que sale al terminar.",
+    voz="Un enlace. Uno solo, y es el de alistarse, no el de la Nave: a la Nave no se entra sin "
+        "ficha, y la ficha se abre alistándose. Póntelo en el Genially del tema uno y en el foro de "
+        "la semana uno. Ya no hay tres formularios que repartir ni un documento con candado que no "
+        "puedas mandar entero: este enlace se lo puedes dar a una clase sin pensarlo."),
 
-   dict(cod="R7", t="Repartir sin perseguir a nadie", pose="tablet", img="r7_dossier.png",
-    hacer="Menú <b>STARGATE → Dossier del profesorado</b>, y después <b>Enviar el dossier por correo</b>.",
-    voz="En vez de mandar enlaces uno a uno, el dossier reúne todos los grupos y a cada docente le "
-        "llega por correo lo suyo. Si alguien lo pierde, se vuelve a mandar y ya está."),
-
-   dict(cod="R8", t="Cuando el curso acaba", pose="senala", img="r8_ciclo.png",
-    hacer="Selecciona la fila del grupo → menú <b>STARGATE → Ciclo de vida del PER</b>.",
-    voz="Cuando un grupo termina, se archiva: cierra los formularios, lo quita de en medio y "
-        "conserva todos los datos. Borrar es otra cosa, y se lleva los formularios por delante, "
-        "así que te pide escribir el nombre del grupo para asegurarse. Archivar es lo normal."),
-
-   dict(cod="R9", t="Y ya está", pose="pulgar", img="r9_pers.png",
-    hacer="Vuelve a la pestaña <code>PERs</code>: ahí vive tu grupo.",
-    voz="A partir de aquí esto funciona solo. El alumnado se registra, el tablero se actualiza y a "
-        "quien da clase le llega lo suyo. Si algo va raro, el parte de salud. Nos vemos arriba."),
+   dict(cod="R7", t="El puesto de mando", pose="pulgar", img="r7_consola.png",
+    hacer="<code>consola.html</code>: alumnado, cola de nota, equipo docente y ajustes.",
+    voz="Y aquí vives a partir de ahora. El alumnado con su nombre y su correo, otorgar o anular un "
+        "reto cuando algo se tuerza, la cola de subidas de nota que apruebas tú, pasar a todo el "
+        "alumnado de un docente a otro si alguien se va a mitad de curso, y los ajustes del grupo. "
+        "A partir de aquí esto funciona solo. Nos vemos arriba."),
   ]),
 
  dict(
   id="imparte", icono="🎓", titulo="Si das las clases",
-  quien="Quien <b>imparte</b>. Recibes el PIN y el documento de enlaces de tu referente.",
+  quien="Quien <b>imparte</b>. Tu referente te pone en el equipo docente con tu correo: con eso entras.",
   cuanto="Seis pasos · cuatro de ellos son lo que harás cada semana",
   porque="Corto a propósito. La <b>visita guiada</b> del Capitán ya te cuenta la narrativa, los retos "
          "y las insignias — púlsala arriba a la derecha. Aquí está solo lo que se hace cada semana.",
@@ -758,20 +752,21 @@ PASOS = [
         "foro, ya escrito. Lo copias, lo pegas en el foro de la plataforma de UNIR y sigues con tu vida."),
 
    dict(cod="D3", t="Dos: tu sala", pose="tablet", img="d3_sala.png",
-    hacer="<b>Mi clase</b> → PIN → pulsa cualquier alumno para abrir su ficha completa.",
-    voz="Esta es tu sala, y solo sale tu alumnado, no el del grupo entero. Si pulsas a cualquiera "
-        "se abre su ficha completa: lo que lleva hecho, sus insignias, sus créditos y su correo, "
-        "por si tienes que escribirle. Desde aquí también puedes darle o quitarle un reto a mano "
-        "cuando algo se tuerza."),
+    hacer="<b>Mi clase</b> → entra con tu cuenta → pulsa cualquier alumno para abrir su ficha completa.",
+    voz="Esta es tu sala, y entras con tu cuenta de Google: ni PIN, ni escribir tu correo, ni elegir "
+        "tu nombre de una lista. Solo sale tu alumnado, no el del grupo entero. Si pulsas a "
+        "cualquiera se abre su ficha completa: lo que lleva hecho, sus insignias, sus créditos y su "
+        "correo, por si tienes que escribirle. Desde aquí también puedes darle o quitarle un reto a "
+        "mano cuando algo se tuerza."),
 
-   dict(cod="D4", t="Tres: el pase de lista", pose="brazos", img="d4_pase.png",
-    hacer="En tu sala, bloque del <b>pase de lista</b> → <b>Abrir</b>. Sale una palabra de cuatro letras.",
-    voz="Si das clase en directo, esto. Abres la ventana y en tu pantalla sale una palabra de cuatro "
-        "letras. Quien está en clase la escribe en su Nave y cobra unos créditos. La palabra no "
-        "viaja a ningún sitio: solo la ve quien te está mirando. Es simbólico, pero funciona."),
+   dict(cod="D4", t="Tres: tu panel", pose="brazos", img="d4_panel.png",
+    hacer="En tu sala, bloque <b>Tu panel de Genially</b> → pega el tuyo y guarda.",
+    voz="Cada docente puede tener su propio panel de control. Lo pegas aquí y es lo que abren tus "
+        "alumnos desde su Nave; si lo dejas vacío, ven el del grupo. Es la forma de que cada clase "
+        "tenga su cara sin montar un sistema aparte."),
 
    dict(cod="D5", t="Cuatro: los tickets", pose="pensativo", img="d5_tickets.png",
-    hacer="<b>Tickets</b> → PIN → pulsa cualquier valoración para verla en grande.",
+    hacer="<b>Tickets</b> → pulsa cualquier valoración para verla en grande.",
     voz="El ticket de salida es tu termómetro, y es anónimo, así que la gente dice lo que piensa de "
         "verdad. Pulsa cualquier resultado y se ve en grande. Y hay una versión apaisada pensada "
         "para proyectarla en clase: enseñar lo que ha votado el grupo genera más conversación que "
@@ -786,8 +781,8 @@ PASOS = [
 
  dict(
   id="estudiante", icono="🧑‍🚀", titulo="Si eres recluta",
-  quien="El <b>alumnado</b>. Pon el enlace de esta pestaña en el Genially del tema 1 y en el foro de la semana 1.",
-  cuanto="Ocho pasos · el segundo es el que importa de verdad",
+  quien="El <b>alumnado</b>. Pon el enlace de alistamiento en el Genially del tema 1 y en el foro de la semana 1.",
+  cuanto="Siete pasos · el segundo es el que importa de verdad",
   porque="Corto porque nadie lee instrucciones largas. Tiene un objetivo por encima de todos: que se "
          "alisten con la cuenta correcta. Es <b>el fallo más caro del sistema</b> — quien un día entra "
          "con otra cuenta desaparece de su Nave con media misión hecha.",
@@ -799,49 +794,44 @@ PASOS = [
 
    dict(cod="E2", t="La cuenta. Lo único que puede salir mal", pose="senala", img="e2_cuenta.png",
     aviso=True,
-    hacer="Abre la <b>Bitácora de mando</b> y mira <b>arriba del todo</b>: ahí sale tu cuenta de Google.",
-    voz="Para. Esto es lo único importante de toda la página. Arriba del todo ves con qué cuenta de "
-        "Google has entrado. Tu progreso se guarda en esa cuenta. En esa, no en el correo que "
-        "escribas más abajo. Si un día entras con otra, la nave no te encontrará y habrás perdido lo "
-        "que llevabas. Usa siempre la misma. Míralo ahora, antes de seguir."),
+    hacer="Sigue el enlace de alistamiento y pulsa <b>Entrar con Google</b>. Mira con qué cuenta entras.",
+    voz="Para. Esto es lo único importante de toda la página. Tu progreso se guarda en la cuenta de "
+        "Google con la que entres, y en ninguna otra. Si un día entras con otra, la nave no te "
+        "encontrará y habrás perdido lo que llevabas. Usa siempre la misma. Míralo ahora, antes de "
+        "seguir. Ya no hay ningún correo que escribir a mano: quien entra eres tú, y el sistema lo "
+        "sabe sin preguntártelo."),
 
    dict(cod="E3", t="Alistarse", pose="tablet", img="e3_alistarse.png",
-    hacer="En «¿QUÉ QUIERES HACER HOY?» elige <b>ALISTARME</b>. Alias, personaje, docente y biografía.",
-    voz="Alistarme, que es la primera vez. El alias es tu nombre público: es el que sale en el "
-        "tablero, tu nombre real solo lo ve el profesorado. Eliges personaje, dices quién te da "
-        "clase, y escribes una biografía. La biografía la va a leer tu clase cuando pulse tu nombre "
-        "en el ranking, así que dedícale diez segundos."),
+    hacer="Cuatro bloques: quién eres, tu Comandante, tu personaje y tu Bitácora.",
+    voz="Cuatro cosas y estás dentro. El alias es tu nombre público: es el que sale en el tablero, "
+        "tu nombre real solo lo ve el profesorado. Eliges a tu Comandante, que es quien te da clase, "
+        "y con él te toca su escuadrón y su emblema. Eliges personaje. Y pegas el enlace de tu "
+        "Bitácora con dos líneas sobre ti, que las va a leer tu clase cuando pulse tu nombre en el "
+        "ranking, así que dedícales diez segundos."),
 
-   dict(cod="E4", t="Tu primer reto", pose="brazos", img="e4_reto.png",
-    hacer="«¿Quieres registrar algún reto ahora?» → <b>Sí</b> → <b>Planeta 1</b> → marca la casilla y pega el enlace.",
-    voz="Y ya que estás, el primer reto. Preséntate a tu tripulación, que es un vídeo de sesenta "
-        "segundos. Marcas la casilla solo cuando lo tengas hecho de verdad, pegas el enlace y "
-        "envías. Un aviso importante: es el mismo enlace para siempre. Cada vez que termines algo "
-        "vuelves aquí, marcas la casilla nueva y envías. Lo de antes no se borra nunca."),
+   dict(cod="E4", t="Tu primer reto", pose="brazos", img=None,
+    hacer="En la Nave, pestaña <b>Mis retos</b> → <b>Lo he hecho</b> en el reto que hayas terminado.",
+    voz="Nada más alistarte ya estás en la nave, con tu primera insignia. El primer reto es "
+        "presentarte a tu tripulación, que es un vídeo de sesenta segundos. Cuando lo tengas hecho "
+        "de verdad, pulsas Lo he hecho y pegas el enlace. Verás subir los puntos y el dinero en el "
+        "momento, sin recargar nada y sin enviar ningún formulario."),
 
-   dict(cod="E5", t="Vuelve a la nave", pose="pensativo", img="e5_ficha.png",
-    hacer="Abre la Nave y pon tu correo una sola vez. Ahí está tu ficha.",
-    voz="Ahora vuelve a la nave y pon tu correo, una sola vez. Ahí está: tu personaje, tu nivel y "
-        "tus puntos. Y la primera insignia, la de NEBULA, que no se regala por alistarse: hay que "
-        "ganarla con el primer reto. Tu personaje cambia de aspecto según subes de nivel."),
-
-   dict(cod="E6", t="Las seis pestañas", pose="senala", img="e6_pestanas.png",
+   dict(cod="E5", t="Las seis pestañas", pose="senala", img="e6_pestanas.png",
     hacer="Arriba: <b>Mi ficha · Mis retos · Esta semana · Los planetas · Recompensas · El tablero</b>.",
     voz="Seis pestañas. Mi ficha eres tú. Mis retos, lo que llevas y lo que te falta. Esta semana, lo "
         "que toca ahora. Los planetas son los ocho temas, y se van abriendo con el calendario. "
         "Recompensas es la tienda. Y el tablero es la clase entera: si pulsas a alguien ves su "
         "personaje y su biografía."),
 
-   dict(cod="E7", t="Dos marcadores, no uno", pose="tablet", img="e7_premios.png",
+   dict(cod="E6", t="Dos marcadores, no uno", pose="tablet", img="e7_premios.png",
     hacer="Pestaña <b>Recompensas</b>: el catálogo con sus precios.",
     voz="Y una cosa que confunde a todo el mundo: hay dos marcadores. Los xp suben de nivel y no se "
         "gastan nunca. Los créditos son dinero, y sí se gastan. Aquí eliges en qué. Hay cosas de "
         "adorno y cosas que tocan tu nota, así que piensa antes de fundirte el sueldo en un marco dorado."),
 
-   dict(cod="E8", t="Bienvenido a bordo", pose="pulgar", img="e8_tablero.png",
+   dict(cod="E7", t="Bienvenido a bordo", pose="pulgar", img="e8_tablero.png",
     hacer="El tablero de la clase: pulsa a cualquiera para ver su ficha.",
-    voz="Eso es todo. Recuerda las dos reglas: siempre la misma cuenta de Google, y siempre el mismo "
-        "enlace. Bienvenido a bordo, recluta."),
+    voz="Eso es todo. Recuerda la regla: siempre la misma cuenta de Google. Bienvenido a bordo, recluta."),
   ]),
 ]
 

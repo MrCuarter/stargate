@@ -1,0 +1,105 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STARGATE · El archivo: la hoja de cálculo</title>
+<meta name="description" content="Cómo funcionaba STARGATE antes del 12 de septiembre de 2026, qué pasó con los grupos de entonces y cómo volver atrás si hiciera falta.">
+<meta property="og:title" content="STARGATE · El archivo: la hoja de cálculo"><meta property="og:description" content="Cómo funcionaba STARGATE antes del 12 de septiembre de 2026, qué pasó con los grupos de entonces y cómo volver atrás si hiciera falta.">
+<meta name="theme-color" content="#080c14">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/stargate.css?v=e16980723b">
+<script>window.SG_TABLERO_API="https://script.google.com/macros/s/AKfycbxlrRGIBJPD9h8-6D46Y4IJ8Gb2fu9v4-6wYZjgPAom2W1QfLh14ltBZmXV2Sx3_nXvPg/exec";</script>
+<script src="assets/js/stargate.js?v=2ad46b1290" defer></script>
+<script src="assets/js/tour.js?v=ab233a5f8b" defer></script>
+
+</head><body>
+<nav class="nav"><div class="wrap">
+<a class="brand" href="index.html">◈ STARGATE </a>
+<a class="lnk" href="recluta.html">🚀 Soy estudiante</a><a class="lnk" href="guia.html">🎓 Soy docente</a>
+
+</div></nav>
+<header class="hero"><div class="kicker">Archivo · retirado el 12 de septiembre de 2026</div>
+<h1>La hoja de cálculo</h1>
+<p>Durante un año STARGATE vivió dentro de una hoja de cálculo de Google con un menú propio y tres
+formularios por grupo. Funcionaba. Esta página cuenta cómo era, <b>qué pasó con los grupos que la
+usaban</b> y cómo volver atrás si algún día hiciera falta.</p>
+<p class="small muted">Si buscas cómo se crea un grupo <b>hoy</b>, está en
+<a href="pasos.html#referente">Cómo se hace</a>.</p></header>
+
+<section><div class="wrap">
+
+<h2>Qué se ha retirado, y qué no</h2>
+<div class="grid2">
+<div class="card"><h3>Retirado para grupos nuevos</h3>
+<p>El menú <b>STARGATE</b> de la hoja, los tres formularios por grupo (Bitácora, canje y ticket), el
+documento de enlaces, los dos PIN y el dossier del profesorado. Nada de eso hace falta ya: un grupo
+se crea desde <a href="crear.html">la consola del referente</a> y se gobierna desde
+<a href="consola.html">el puesto de mando</a>.</p></div>
+<div class="card"><h3>Sigue en pie</h3>
+<p><b>Los grupos que ya estaban corriendo.</b> No se han tocado ni se van a migrar a la fuerza: su
+Nave, su tablero y su sala funcionan igual que ayer. La web sabe con qué motor hablar en cada caso, y
+un grupo viejo se abre añadiendo <code>?motor=apps</code> si hiciera falta forzarlo.</p></div>
+</div>
+
+<h2>Por qué se cambió</h2>
+<p>No fue por gusto. Apps Script tiene un techo de <b>30 ejecuciones a la vez</b>, y el máster mete
+unos 200 estudiantes por grupo con grupos solapados. El día que una clase entera abriera la Nave a la
+vez, el primero esperaba y el resto recibía un error. Calcular el tablero costaba entre 2 y 10
+segundos y había que recalcularlo entero para devolver <i>una</i> ficha.</p>
+<p>Lo que hay debajo ahora es el motor de <b>GamificaPro</b> —Firestore y funciones en servidor—, que
+no tiene ese techo. STARGATE conserva su cara: la misma web, los mismos retos, las mismas insignias.
+Por dentro cambia quién lleva las cuentas.</p>
+
+<h2>Qué se ganó por el camino</h2>
+<ul class="lista">
+<li><b>Se acabaron los PIN.</b> Un PIN compartido identifica al grupo, no a la persona: quien lo
+tuviera podía escribir el correo de un compañero y entrar en su sala. Ahora se entra con la cuenta de
+Google y quien pregunta <i>es</i> quien ha entrado.</li>
+<li><b>Un enlace en vez de tres formularios.</b> El alumnado se alista una vez y marca sus retos
+desde la propia Nave, viendo subir los puntos en el momento.</li>
+<li><b>Un ticket de salida para siempre.</b> Antes se creaba uno por grupo; ahora es uno solo, con dos
+huecos que se rellenan solos. Sigue siendo un formulario de Google porque tiene que ser
+<b>anónimo</b>.</li>
+<li><b>Enlaces de validación reutilizables.</b> Un botón en un Genially vale para el mismo reto en
+cualquier grupo y en cualquier curso: se montan una vez y se olvidan.</li>
+</ul>
+
+<h2>Dónde están los datos de antes</h2>
+<p>Donde estaban. La hoja maestra sigue en la cuenta de la asignatura con sus pestañas de respuestas,
+y los formularios de los grupos que la usan siguen abiertos. No se ha borrado ni una fila.</p>
+<p>Los <b>tickets de salida</b> son la excepción, y a mejor: desde ahora se recogen en una hoja
+propia, compartida por todos los grupos y todos los años, para que la hoja maestra se pueda congelar
+el día que toque sin arrastrar nada.</p>
+
+<h2>Cómo era</h2>
+<p class="small muted">Estas capturas se conservan porque explican de dónde viene el sistema. Las
+pantallas que retratan siguen existiendo para los grupos antiguos.</p>
+<div class="tiras">
+<figure><img loading="lazy" src="assets/img/pasos/legacy/r1_menu.png" alt="El menú STARGATE dentro de la hoja de cálculo">
+<figcaption>La sala de máquinas: el menú <b>STARGATE</b> sobre la pestaña de grupos.</figcaption></figure>
+<figure><img loading="lazy" src="assets/img/pasos/legacy/r3_crear.png" alt="El diálogo de crear un grupo nuevo">
+<figcaption>Crear un grupo: nombre, tipo y la fecha de la semana 1.</figcaption></figure>
+<figure><img loading="lazy" src="assets/img/pasos/legacy/r5_doc.png" alt="El documento de enlaces y embeds">
+<figcaption>El documento de enlaces, partido en dos: lo que se podía repartir y lo que no.</figcaption></figure>
+<figure><img loading="lazy" src="assets/img/pasos/legacy/r6_pin.png" alt="El diálogo de cambiar el PIN">
+<figcaption>Las dos llaves. Hoy no hay ninguna: se entra con la cuenta.</figcaption></figure>
+<figure><img loading="lazy" src="assets/img/pasos/legacy/r7_dossier.png" alt="El dossier del profesorado">
+<figcaption>El dossier, para repartir enlaces sin perseguir a nadie.</figcaption></figure>
+<figure><img loading="lazy" src="assets/img/pasos/legacy/r8_ciclo.png" alt="El ciclo de vida de un grupo">
+<figcaption>Archivar al terminar el curso. Borrar pedía escribir el nombre del grupo.</figcaption></figure>
+</div>
+
+<h2>Si hubiera que volver atrás</h2>
+<p>El motor viejo <b>no se ha apagado</b>. La web decide con qué hablar mediante un interruptor, y se
+puede forzar visita a visita:</p>
+<ul class="lista">
+<li><code>?motor=apps</code> — el sistema de siempre, con su hoja y sus formularios.</li>
+<li><code>?motor=firestore</code> — el motor nuevo.</li>
+</ul>
+<p>Eso significa que un problema en el motor nuevo no deja a nadie tirado: se vuelve al de siempre
+mientras se arregla. Ese fue el requisito desde el primer día, y por eso el traductor devuelve
+exactamente el mismo tablero que devolvía la hoja.</p>
+
+</div></section>
+<footer><div class="wrap">
+STARGATE · La Bitácora Estelar — Proyecto Gamificado del <b>Máster en Tecnología Educativa</b> de la UNIR.<br>
+Puesto de mando del profesorado — documento vivo. <a href="index.html">Inicio</a> · <a href="comosehizo.html">Cómo se hizo</a> · <a href="cronologia.html">Cronología</a> · <a href="guia.html#faq">Preguntas frecuentes</a> · <a href="privacidad.html">Privacidad</a>
+</div></footer></body></html>

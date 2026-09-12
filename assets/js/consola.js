@@ -253,8 +253,46 @@
     };
   }
 
+  /**
+   * MODO DEMO (?demo=1). El puesto de mando entero, con un grupo de verdad y personas inventadas.
+   *
+   * 🔴 Lee por la puerta PÚBLICA —la misma que usan los Geniallys proyectados— porque esa no pide
+   * sesión, y luego se inventa lo privado: nombres y correos que no son de nadie. Así la captura del
+   * tutorial se regenera con un comando y sin credenciales, y enseña la pantalla REAL: si mañana
+   * cambia la consola, cambia la captura. Las de la hoja de cálculo envejecían en silencio porque
+   * había que sacarlas a mano con una sesión abierta.
+   */
+  async function demostracion() {
+    cargando("Preparando la demostración…");
+    var PUB = window.SG_API_PUBLICA ||
+      "https://us-central1-gamificapro-99e0a.cloudfunctions.net/tableroStargate";
+    var per = url.get("per") || "demo-motor";
+    var d = await fetch(PUB + "?per=" + encodeURIComponent(per)).then(function (r) { return r.json(); });
+    if (d.error) { app.innerHTML = '<div class="card"><h3>La demostración no está disponible</h3><p>' +
+      esc(d.error) + "</p></div>"; return; }
+    var NOM = [["Vega", "Estrella Ruiz"], ["Orion", "Cazador Paz"], ["Lyra", "Cuerda Sol"],
+               ["Nix", "Noche Vera"], ["Talia", "Vuelo Mar"]];
+    var privados = {};
+    (d.perfiles || []).forEach(function (p, i) {
+      var n = NOM[i % NOM.length];
+      privados[p.id] = { firstName: n[0], lastName: n[1],
+                         email: n[0].toLowerCase() + "@ejemplo.es", bitacora: "", bio: "" };
+    });
+    PER = per; PERS = [{ id: per, nombre: (d.proyecto || {}).name || per }];
+    // 🔴 Las mismas claves que arma `leerPER`, con los mismos nombres. El catálogo y `privadoPER`
+    // no son opcionales: sin ellos el traductor revienta al calcular el primer nivel.
+    DATOS = Object.assign({}, d, { privados: privados, vales: d.vales || [],
+                                   catalogo: window.SG_CATALOGO,
+                                   privadoPER: { referente: "referente@ejemplo.es", panelEdit: "", docentes: [] } });
+    pintar();
+    Array.prototype.forEach.call(app.querySelectorAll("button"), function (b) {
+      if (/Guardar|Conceder|Denegar|Pasar el alumnado/.test(b.textContent)) b.disabled = true;
+    });
+  }
+
   function arrancar() {
     MOTOR = window.SG.MOTOR;
+    if (url.get("demo") === "1") return demostracion();
     var mirar = function (u) { YO = u; YO ? elegirGrupo() : puerta(); };
     MOTOR.sesion().then(mirar);
     document.addEventListener("sg:sesion", function (e) { mirar(e.detail); });

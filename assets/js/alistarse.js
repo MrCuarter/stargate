@@ -191,6 +191,24 @@
       if (!mias.empty) return location.replace(naveUrl());
       formulario();
     };
+    /**
+     * MODO DEMO (?demo=1). El mismo formulario, con un grupo de mentira y sin escribir nada.
+     *
+     * 🔴 Existe por las capturas de «Cómo se hace». Una captura que no se puede rehacer con un
+     * comando acaba mintiendo el día que cambie la pantalla — ya pasó con las de la hoja de cálculo.
+     * Y de paso sirve para enseñarle el alistamiento a una clase sin que nadie se aliste de verdad.
+     */
+    if (new URLSearchParams(location.search).get("demo") === "1") {
+      YO = { correo: "recluta@ejemplo.es", nombre: "Recluta" };
+      PROY = { id: PER, name: "CLASE DEMO", stargate: { docentes: [
+        { nombre: "Mr Cuarter", rol: "referente" },
+        { nombre: "Capitana Vega", rol: "docente" },
+        { nombre: "Comandante Orion", rol: "docente" } ] } };
+      formulario();
+      var env = document.getElementById("a-enviar");
+      if (env) { env.disabled = true; env.textContent = "Alistarme (apagado en la demostración)"; }
+      return;
+    }
     MOTOR.sesion().then(mirar);
     document.addEventListener("sg:sesion", function (e) { mirar(e.detail); });
   }

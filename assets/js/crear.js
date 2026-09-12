@@ -197,8 +197,30 @@
   }
 
   // ---------------------------------------------------------------- arranque
+  /**
+   * MODO DEMO (?demo=1). Igual que el de la sala del docente y el de los tickets, y por los mismos
+   * dos motivos: enseñar esta pantalla a alguien sin darle acceso a crear nada de verdad, y que las
+   * capturas de «Cómo se hace» se puedan REGENERAR con un comando.
+   *
+   * 🔴 Lo segundo no es comodidad. Una captura es una foto: si la pantalla cambia y la foto no, el
+   * tutorial miente en silencio. Las capturas de la hoja de cálculo se sacaron a mano conduciendo un
+   * navegador con sesión, y por eso envejecieron sin que nadie se enterara. Esta no puede heredar
+   * ese problema.
+   *
+   * Pinta el formulario de verdad —el mismo código, sin una rama aparte que pudiera divergir— y solo
+   * desarma el botón de crear.
+   */
+  var DEMO = new URLSearchParams(location.search).get("demo") === "1";
+
   function arrancar() {
     MOTOR = window.SG.MOTOR;
+    if (DEMO) {
+      YO = { correo: "referente@ejemplo.es", nombre: "Profe Referente" };
+      pintar();
+      var b = $("#btn-crear");
+      if (b) { b.disabled = true; b.textContent = "Crear el grupo (apagado en la demostración)"; }
+      return;
+    }
     MOTOR.sesion().then(function (u) { YO = u; u ? pintar() : pintarPuerta(); });
     document.addEventListener("sg:sesion", function (e) { YO = e.detail; YO ? pintar() : pintarPuerta(); });
   }

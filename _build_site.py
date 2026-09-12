@@ -364,7 +364,7 @@ FAQ = [
  ("¿Qué es la Nave del Recluta?", "La <a href='recluta.html'>web del alumnado</a> de su PER: se identifican con su correo (una vez por dispositivo) y ven su <b>personaje con rango y biografía</b>, su colección de insignias, la orden de la semana, los planetas que se van desbloqueando y las recompensas. Tiene onboarding con NEBULA. Entrégales el enlace o el QR (están en el Doc de enlaces del PER). <b>Hasta que no escriben su correo no se ve nada</b> —ni pestañas ni formularios—, a propósito: el formulario de dudas es anónimo, y a la vista de cualquiera que diera con la URL era una invitación a ensuciar la clase. Si necesitas <b>enseñar la Nave</b> en una charla o a un compañero, usa el enlace de <b>modo demostración</b> del Doc de enlaces: entra sin correo con un recluta de mentira, y solo funciona en grupos de prueba."),
  ("¿Qué es el panel de control de los planetas?", "El <a href='panel.html'>mapa de la galaxia</a>: los ocho planetas sobre el universo, cada uno enlazando a la presentación de su tema. Con <code>?per=</code> los planetas se <b>desbloquean solos</b> según el calendario del PER. Sirve como página o incrustado en Genially; el <b>referente</b> decide si el PER usa el panel estándar o una copia propia (Panel de profes → Ajustes)."),
  ("¿Qué son los xp, los niveles y los créditos?", f"Son <b>dos marcadores distintos</b>. Los <b>xp</b> (Reto A 100 · Reto B 250 · Actividad 500 · Batalla 500 · hitos 300) miden el viaje, <b>nunca bajan</b> y dan el <b>nivel del 1 al 10</b>: el personaje <b>evoluciona</b> al entrar en los niveles 3 (Cadete), 5 (Oficial), 8 (Comandante) y 10 (<b>Leyenda</b>, el viaje completo). Los <b>créditos ◈</b> (Reto A {CREDITOS['retoA']} · Reto B {CREDITOS['retoB']} · Actividad {CREDITOS['actividad']} · hitos {CREDITOS['derivada']}) son la moneda: es lo único que se descuenta al canjear recompensas. Comprar cromos no baja de nivel a nadie. Todo automático; tabla completa en <a href='registro.html#economia'>Registro</a>."),
- ("¿Cómo abro un PER nuevo?", "Lo hace el <b>profesor/a referente</b> desde la hoja maestra (cuenta mutecdgami): menú STARGATE → Crear nuevo PER… (nombre, REGULAR/PUA, fecha de la semana 1, profesorado y el padlet del grupo — creado antes en padlet.com, formato «Muro con secciones»: 📹 Preséntate · 🎨 La chispa · 🎲 Ensaya jugando · 🛡️ Mi insignia). En un minuto tienes los 3 formularios, el tablero, el foro dinámico, la Nave del Recluta y un <b>documento con todos los enlaces, embeds y QR</b> para repartir al profesorado. El referente también decide el <b>panel de control Genially</b> del PER (estándar o propio). Guía en <a href='registro.html#instalacion'>Registro → Instalación</a>."),
+ ("¿Cómo abro un PER nuevo?", "Lo hace el <b>profesor/a referente</b> desde <a href='crear.html'>la consola</a>, entrando con su cuenta de Google: nombre, tipo REGULAR/PUA, fecha de la semana 1, el equipo docente y los enlaces de la clase. En un minuto el grupo queda sembrado entero —los retos con sus insignias, los 8 planetas, la tienda, los escuadrones y el álbum— y sale <b>un solo enlace</b> para repartir: el de alistarse. <span class='small muted'>Así era antes, con la hoja de cálculo: hoja maestra (cuenta mutecdgami), menú STARGATE → Crear nuevo PER… (nombre, REGULAR/PUA, fecha de la semana 1, profesorado y el padlet del grupo — creado antes en padlet.com, formato «Muro con secciones»: 📹 Preséntate · 🎨 La chispa · 🎲 Ensaya jugando · 🛡️ Mi insignia). En un minuto tienes los 3 formularios, el tablero, el foro dinámico, la Nave del Recluta y un <b>documento con todos los enlaces, embeds y QR</b> para repartir al profesorado. El referente también decide el <b>panel de control Genially</b> del PER (estándar o propio). Guía en <a href='registro.html#instalacion'>Registro → Instalación</a>. Ver <a href='legacy.html'>el archivo</a>.</span>"),
  ("¿Qué hago si un alumno no hace el Reto A?", "Nada punitivo: no cuenta para nota. Pero el tripulante sigue «sin recuperar» y esos 100 xp y 10 ◈ se quedan sin ganar: usa la narrativa (NEBULA sigue incompleta) como invitación, no como castigo. Lo habitual es que el grupo arrastre."),
 ]
 faq_html="\n".join(f'<details class="faq"><summary>{q}</summary><div>{a}</div></details>' for q,a in FAQ)
@@ -901,7 +901,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="eyebrow teal">Dos papeles, un sistema</div><h2>¿Quién hace qué?</h2>
 <div class="grid cols-2">
 <div class="card"><h3>🛰️ Profesorado referente <span class="pill">gestiona el PER</span></h3>
-<p>Trabaja en la <b>hoja maestra</b> (cuenta mutecdgami): <b>crea el PER</b> (menú STARGATE → Crear nuevo PER…, con la fecha de la semana 1 que marca el ritmo de todo el sistema), define el <b>PIN docente</b> y lo reparte, <b>monta y actualiza el Genially del PER</b> (el panel de control: estándar compartido o copia propia), comparte el <b>Doc de enlaces, embeds y QR</b> con su equipo y abre/cierra los formularios. La chuleta completa está abajo, en <a href="#instalacion">el sistema por dentro</a>.</p></div>
+<p><b>Crea el grupo</b> desde <a href="crear.html">la consola del referente</a> (con la fecha de la semana 1, que marca el ritmo de todo el sistema), <b>pone el equipo docente</b> —quien esté en esa lista entra con su propia cuenta, sin PIN que repartir—, <b>monta y actualiza el Genially del grupo</b> y gobierna el día a día desde <a href="consola.html">el puesto de mando</a>: alumnado, cola de nota, traspasos y ajustes. La chuleta completa está en <a href="pasos.html#referente">Cómo se hace</a>.</p></div>
 <div class="card"><h3>🎓 Profesorado que imparte <span class="pill">dinamiza el aula</span></h3>
 <p>No toca ninguna hoja: sigue la <a href="cronologia.html">cronología</a>, publica el mensaje del foro, entrega las insignias <b>con ceremonia</b> y usa con el PIN el <a href="profes.html">panel del PER</a> y los <a href="tickets.html">tickets</a>. Si quiere un <b>panel de control Genially propio</b> en vez del estándar: lo acuerda con su referente, que duplica el Genially y pega sus enlaces en Panel de profes → Ajustes del PER.</p></div>
 </div>
@@ -926,7 +926,8 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="eyebrow amber">Cómo funciona por dentro · para el profesorado referente</div><h2>El sistema de autoregistro</h2>
 <div class="grid cols-3">
 <div class="card"><h3>1 · El alumno registra</h3><p>Cada PER tiene su <b>Bitácora de mando</b>: un formulario con inicio de sesión de Google y <b>una sola respuesta editable</b>. La primera vez pone alias, nombre y el enlace a su ePortfolio; después solo vuelve, marca la casilla de la insignia nueva y envía. Además: el <b>ticket de salida «Contacta con NEBULA»</b> (anónimo, ramificado: presentación / tema / actividad / repaso, con el profe que imparte) y un formulario de <b>canje de xp</b> con validación automática.</p></div>
-<div class="card"><h3>2 · Nadie hace nada</h3><p>Todo vive en <b>una sola hoja maestra</b> (cuenta <b>mutecdgami</b>): una pestaña de respuestas por PER, más <b>DATOS</b> (todos los registros de todos los PER en formato largo, para análisis e investigación) y <b>RESUMEN</b> (puntos e insignias por recluta y PER), que se rehacen solas con cada respuesta. El script calcula alias, insignias, planeta actual y puntos. Las insignias de hito <b>Tripulación Cero</b> y <b>La Liberación</b> se otorgan solas. Si hay un registro falso, el profesorado escribe algo en la columna <b>Anulado</b> de la hoja y desaparece.</p></div>
+<div class="card"><h3>2 · Nadie hace nada</h3><p>Los xp, los créditos, las insignias, el planeta actual y el nivel los calcula el sistema con cada reto que se marca, y el tablero cambia al momento. Las insignias de hito <b>Tripulación Cero</b> y <b>La Liberación</b> se otorgan solas. Si hay un registro falso, el profesorado lo anula desde <a href="clase.html">su sala</a> y se descuenta lo que dio, con su asiento en el libro. Todo queda guardado para análisis e investigación.</p>
+<p class="small muted">Hasta septiembre de 2026 esto vivía en una hoja de cálculo: está contado en <a href="legacy.html">el archivo</a>.</p></div>
 <div class="card"><h3>3 · Un PER nuevo, un clic</h3><p>Antes, dos minutos en padlet.com: crea el <b>padlet del grupo</b> en formato <b>«Muro con secciones»</b> con cuatro secciones — <b>📹 Preséntate · 🎨 La chispa · 🎲 Ensaya jugando · 🛡️ Mi insignia</b> — y actívale que los visitantes puedan escribir. Después, menú <b>🛰️ STARGATE → Crear nuevo PER…</b>: pide nombre del PER, profesorado, fechas y el <b>enlace del padlet</b>; crea los formularios y las pestañas, y el propio formulario recordará al alumnado el formato de las chinchetas (título = alias · primera línea = «Capitán: su profe»).</p></div>
 </div>
 <h3 style="margin-top:1.6em">La Bitácora de mando, por planetas (rápida de rellenar)</h3>
@@ -983,7 +984,8 @@ el profesorado al terminar las clases en directo.</p>
 </tbody></table></div>
 <p class="small muted" style="margin-top:8px">Además, sin canje: la <b>corona semanal</b> 👑 aparece sola en el tablero junto al recluta que más xp ganó en los últimos 7 días.</p>
 <p class="small muted">Las de avatar se conceden y se aplican solas (el avatar cambia en el tablero al instante). Las de nota se conceden solas pero <b>se hacen efectivas al terminar las clases en directo</b>: el correo de confirmación ya lo avisa. Todo es editable en la pestaña <b>RECOMPENSAS</b> de la hoja (coste, máximo, semana de desbloqueo); en PUA las semanas se escalan solas. En la <a href="recluta.html">Nave del Recluta</a> las que aún no tocan aparecen como «recompensa clasificada».</p>
-<details class="faq"><summary>Instalación en la cuenta mutecdgami (una vez, 20 minutos)</summary><div>
+<details class="faq"><summary>📦 ARCHIVO · Instalación del sistema antiguo (hoja de cálculo)</summary><div>
+<p class="official" style="display:block;margin-bottom:14px">🔴 <b>Esto ya no hace falta para empezar.</b> Desde el 12 de septiembre de 2026 un grupo se crea desde <a href="crear.html">la consola</a> en un minuto, sin instalar nada. Estas instrucciones se conservan porque <b>los grupos que ya estaban corriendo siguen sobre este sistema</b> y hay que poder mantenerlos. El porqué del cambio está en <a href="legacy.html">el archivo</a>.</p>
 <ol>
 <li>Con sesión en <b>mutecdgami@gmail.com</b>, crea en la carpeta del proyecto una hoja de cálculo <b>STARGATE · Mando de PERs</b>.</li>
 <li><b>Extensiones → Apps Script</b>: el proyecto son <b>cinco archivos</b>. Sustituye <code>Código.gs</code> por <a href="assets/descargas/Code.gs.txt" target="_blank">Code.gs</a> (debe verse «Bitácora» con tilde) y añade otros tres archivos de código, <a href="assets/descargas/Datos.gs.txt" target="_blank">Datos.gs</a> (catálogo de cromos, héroes, niveles y recompensas) y <a href="assets/descargas/Bonus.gs.txt" target="_blank">Bonus.gs</a> (pase de lista, bonus de tripulación, investigación y parte de salud) e <a href="assets/descargas/Imagenes.gs.txt" target="_blank">Imagenes.gs</a> (las fotos de los tres formularios); después crea un archivo <b>HTML</b> llamado <b>Dialog</b> con <a href="assets/descargas/Dialog.html.txt" target="_blank">Dialog.html</a>. Guarda y recarga la hoja: aparece el menú <b>STARGATE</b>; autoriza la primera vez. <span class="small muted">Si al pegar aparecen tildes raras, usa las copias sin acentos: <a href="assets/descargas/Code.gs.ascii.txt" target="_blank">Code</a> · <a href="assets/descargas/Datos.gs.ascii.txt" target="_blank">Datos</a> · <a href="assets/descargas/Bonus.gs.ascii.txt" target="_blank">Bonus</a> · <a href="assets/descargas/Imagenes.gs.ascii.txt" target="_blank">Imagenes</a> · <a href="assets/descargas/Dialog.html.ascii.txt" target="_blank">Dialog</a>.</span></li>
@@ -1000,7 +1002,8 @@ el profesorado al terminar las clases en directo.</p>
 </ol>
 <p>Si cambia el código: <b>Implementar → Gestionar implementaciones → ✎ → Nueva versión</b> (la URL no cambia).</p>
 </div></details>
-<details class="faq"><summary>Mantenimiento: archivar un PER terminado, borrar los de prueba, empezar de cero</summary><div>
+<details class="faq"><summary>📦 ARCHIVO · Mantenimiento del sistema antiguo: archivar, borrar, empezar de cero</summary><div>
+<p class="small muted">Solo para los grupos que siguen sobre la hoja de cálculo. Los nuevos se gobiernan desde <a href="consola.html">el puesto de mando</a>.</p>
 <p>Todo desde el menú <b>🛰️ STARGATE</b> de la hoja maestra. <b>Nunca dupliques la hoja</b> para empezar de nuevo: se romperían los vínculos con los formularios y cambiaría la URL del web app.</p>
 <ul>
 <li><b>Archivar un PER terminado</b> (menú → Ciclo de vida del PER, o desde el <a href="profes.html">panel de profes → Ajustes</a>): cierra sus formularios, <b>oculta sus pestañas</b> en la hoja y lo saca de los listados del alumnado. <b>No borra nada</b>: sus datos siguen en DATOS/RESUMEN y su tablero es accesible por enlace directo. Es lo que quieres al cerrar una convocatoria: con ocho PERs, solo ves los vivos.</li>
@@ -1232,9 +1235,9 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
    {p:'index.html',sel:'#secciones',pose:'senala',t:'Tus herramientas de mando',x:'Desde aquí llegas al <b>panel del profesorado</b> (con el PIN que te dará tu referente), a los <b>tickets</b>, a la <b>Nave del Recluta</b> y al <b>foro dinámico</b> para el Genially del PER, y al <b>generador de enlaces, embeds y QR</b>.'}
   ];
   var REF=[
-   {p:'registro.html',sel:'#instalacion',pose:'tablet',t:'Referente: la hoja maestra',x:'Los PER se crean desde la <b>hoja maestra</b> (cuenta mutecdgami): menú <b>STARGATE → Crear nuevo PER…</b> — nombre, tipo REGULAR/PUA, fecha de la semana 1 y profesorado. En un minuto: los 3 formularios, el tablero, el foro dinámico, la <b>Nave del Recluta</b> y un <b>Doc con todos los enlaces, embeds y QR</b> para repartir.'},
-   {p:'registro.html',sel:'#instalacion',pose:'senala',t:'Referente: los PIN y las fechas',x:'Define el <b>PIN compartido</b> (menú STARGATE → Cambiar PIN) y repárteselo a tu profesorado: abre el panel del PER y los tickets. Guarda para ti el <b>PIN de referente</b>, que es el que abre mover la semana 1, archivar y cerrar formularios. La <b>fecha de la semana 1</b> que pones al crear el PER marca el ritmo de todo: foro dinámico, desbloqueos de la Nave y recompensas.'},
-   {p:'geniallys.html',sel:'#lista',pose:'brazos',t:'Referente: el panel de control Genially',x:'El <b>panel de control</b> es el Genially con los planetas que enlaza a las presentaciones. Todos los PER heredan el <b>estándar</b> (menú STARGATE → Guardar panel de control estándar). ¿Un profe quiere el suyo? Que duplique el Genially y pegue sus enlaces en <b>Panel de profes → Ajustes del PER</b>.'}
+   {p:'crear.html',sel:'',pose:'tablet',t:'Referente: crear un grupo',x:'Los grupos se crean <b>aquí</b>, entrando con tu cuenta de Google — ya no hay hoja de cálculo ni menús. Nombre, tipo REGULAR/PUA, fecha de la semana 1, los enlaces de la clase y el equipo docente. En un minuto queda sembrado entero: los retos con sus insignias, los 8 planetas, la tienda, los escuadrones y el álbum.'},
+   {p:'crear.html',sel:'',pose:'senala',t:'Referente: el equipo y la fecha',x:'Ya no hay PIN que repartir. Pones a cada docente con <b>su correo</b> en el equipo, y con eso entra en su sala iniciando sesión; si alguien se va, lo quitas de la lista y deja de entrar. Lo que sí tienes que poner bien es la <b>fecha de la semana 1</b>: marca el ritmo de todo — foro dinámico, desbloqueos de la Nave y recompensas.'},
+   {p:'geniallys.html',sel:'#lista',pose:'brazos',t:'Referente: el panel de control Genially',x:'El <b>panel de control</b> es el Genially con los planetas que enlaza a las presentaciones. Todos los grupos heredan el <b>estándar</b>. ¿Un profe quiere el suyo? Que duplique el Genially y lo pegue en <b>Mi clase → Tu panel de Genially</b>: es lo que abrirán sus alumnos desde la Nave.'}
   ];
   var FINAL={p:'index.html',sel:'#hero-cta',pose:'pulgar',t:'Listo para el salto',x:'Eso es todo, Capitán. La nave es tuya. Y recuerda: <b>una obra que no se documenta, no existe</b>. Corto y cierro.'};
   // v3.35 · VISITAS DE UNA SOLA PÁGINA. La de arriba recorre toda la web; una página puede declarar
@@ -1692,8 +1695,102 @@ invertido de todo el reto.</p>
 </div></section>
 ''' + FOOT
 
+# ================= 12-sep · EL ARCHIVO: LA HOJA DE CÁLCULO =================
+# 🔴 Por qué esta página existe y no un `rm -rf`. Norberto pidió «borrar (o dejar en legacy) todo lo
+# de la hoja de cálculo». Borrarlo sin más dejaría dos agujeros: los grupos que YA están corriendo
+# sobre el motor viejo —con gente dentro— y la memoria de por qué el sistema es como es. Un archivo
+# cuesta una página y evita las dos cosas.
+LEGACY = head("STARGATE · El archivo: la hoja de cálculo",
+  "Cómo funcionaba STARGATE antes del 12 de septiembre de 2026, qué pasó con los grupos de entonces "
+  "y cómo volver atrás si hiciera falta.",
+  "", publica=True) + '''
+<header class="hero"><div class="kicker">Archivo · retirado el 12 de septiembre de 2026</div>
+<h1>La hoja de cálculo</h1>
+<p>Durante un año STARGATE vivió dentro de una hoja de cálculo de Google con un menú propio y tres
+formularios por grupo. Funcionaba. Esta página cuenta cómo era, <b>qué pasó con los grupos que la
+usaban</b> y cómo volver atrás si algún día hiciera falta.</p>
+<p class="small muted">Si buscas cómo se crea un grupo <b>hoy</b>, está en
+<a href="pasos.html#referente">Cómo se hace</a>.</p></header>
+
+<section><div class="wrap">
+
+<h2>Qué se ha retirado, y qué no</h2>
+<div class="grid2">
+<div class="card"><h3>Retirado para grupos nuevos</h3>
+<p>El menú <b>STARGATE</b> de la hoja, los tres formularios por grupo (Bitácora, canje y ticket), el
+documento de enlaces, los dos PIN y el dossier del profesorado. Nada de eso hace falta ya: un grupo
+se crea desde <a href="crear.html">la consola del referente</a> y se gobierna desde
+<a href="consola.html">el puesto de mando</a>.</p></div>
+<div class="card"><h3>Sigue en pie</h3>
+<p><b>Los grupos que ya estaban corriendo.</b> No se han tocado ni se van a migrar a la fuerza: su
+Nave, su tablero y su sala funcionan igual que ayer. La web sabe con qué motor hablar en cada caso, y
+un grupo viejo se abre añadiendo <code>?motor=apps</code> si hiciera falta forzarlo.</p></div>
+</div>
+
+<h2>Por qué se cambió</h2>
+<p>No fue por gusto. Apps Script tiene un techo de <b>30 ejecuciones a la vez</b>, y el máster mete
+unos 200 estudiantes por grupo con grupos solapados. El día que una clase entera abriera la Nave a la
+vez, el primero esperaba y el resto recibía un error. Calcular el tablero costaba entre 2 y 10
+segundos y había que recalcularlo entero para devolver <i>una</i> ficha.</p>
+<p>Lo que hay debajo ahora es el motor de <b>GamificaPro</b> —Firestore y funciones en servidor—, que
+no tiene ese techo. STARGATE conserva su cara: la misma web, los mismos retos, las mismas insignias.
+Por dentro cambia quién lleva las cuentas.</p>
+
+<h2>Qué se ganó por el camino</h2>
+<ul class="lista">
+<li><b>Se acabaron los PIN.</b> Un PIN compartido identifica al grupo, no a la persona: quien lo
+tuviera podía escribir el correo de un compañero y entrar en su sala. Ahora se entra con la cuenta de
+Google y quien pregunta <i>es</i> quien ha entrado.</li>
+<li><b>Un enlace en vez de tres formularios.</b> El alumnado se alista una vez y marca sus retos
+desde la propia Nave, viendo subir los puntos en el momento.</li>
+<li><b>Un ticket de salida para siempre.</b> Antes se creaba uno por grupo; ahora es uno solo, con dos
+huecos que se rellenan solos. Sigue siendo un formulario de Google porque tiene que ser
+<b>anónimo</b>.</li>
+<li><b>Enlaces de validación reutilizables.</b> Un botón en un Genially vale para el mismo reto en
+cualquier grupo y en cualquier curso: se montan una vez y se olvidan.</li>
+</ul>
+
+<h2>Dónde están los datos de antes</h2>
+<p>Donde estaban. La hoja maestra sigue en la cuenta de la asignatura con sus pestañas de respuestas,
+y los formularios de los grupos que la usan siguen abiertos. No se ha borrado ni una fila.</p>
+<p>Los <b>tickets de salida</b> son la excepción, y a mejor: desde ahora se recogen en una hoja
+propia, compartida por todos los grupos y todos los años, para que la hoja maestra se pueda congelar
+el día que toque sin arrastrar nada.</p>
+
+<h2>Cómo era</h2>
+<p class="small muted">Estas capturas se conservan porque explican de dónde viene el sistema. Las
+pantallas que retratan siguen existiendo para los grupos antiguos.</p>
+<div class="tiras">
+<figure><img loading="lazy" src="assets/img/pasos/legacy/r1_menu.png" alt="El menú STARGATE dentro de la hoja de cálculo">
+<figcaption>La sala de máquinas: el menú <b>STARGATE</b> sobre la pestaña de grupos.</figcaption></figure>
+<figure><img loading="lazy" src="assets/img/pasos/legacy/r3_crear.png" alt="El diálogo de crear un grupo nuevo">
+<figcaption>Crear un grupo: nombre, tipo y la fecha de la semana 1.</figcaption></figure>
+<figure><img loading="lazy" src="assets/img/pasos/legacy/r5_doc.png" alt="El documento de enlaces y embeds">
+<figcaption>El documento de enlaces, partido en dos: lo que se podía repartir y lo que no.</figcaption></figure>
+<figure><img loading="lazy" src="assets/img/pasos/legacy/r6_pin.png" alt="El diálogo de cambiar el PIN">
+<figcaption>Las dos llaves. Hoy no hay ninguna: se entra con la cuenta.</figcaption></figure>
+<figure><img loading="lazy" src="assets/img/pasos/legacy/r7_dossier.png" alt="El dossier del profesorado">
+<figcaption>El dossier, para repartir enlaces sin perseguir a nadie.</figcaption></figure>
+<figure><img loading="lazy" src="assets/img/pasos/legacy/r8_ciclo.png" alt="El ciclo de vida de un grupo">
+<figcaption>Archivar al terminar el curso. Borrar pedía escribir el nombre del grupo.</figcaption></figure>
+</div>
+
+<h2>Si hubiera que volver atrás</h2>
+<p>El motor viejo <b>no se ha apagado</b>. La web decide con qué hablar mediante un interruptor, y se
+puede forzar visita a visita:</p>
+<ul class="lista">
+<li><code>?motor=apps</code> — el sistema de siempre, con su hoja y sus formularios.</li>
+<li><code>?motor=firestore</code> — el motor nuevo.</li>
+</ul>
+<p>Eso significa que un problema en el motor nuevo no deja a nadie tirado: se vuelve al de siempre
+mientras se arregla. Ese fue el requisito desde el primer día, y por eso el traductor devuelve
+exactamente el mismo tablero que devolvía la hoja.</p>
+
+</div></section>
+''' + FOOT
+
 PAGES=[("index.html",PORTADA),("comosehizo.html",COMOSEHIZO),("ayuda.html",AYUDA),("privacidad.html",PRIVACIDAD),("guia.html",GUIA),("cronologia.html",CRONOLOGIA),("actividades.html",ACT),
-       ("geniallys.html",GENPAGE),("registro.html",REGPAGE),("recursos.html",REC)]
+       ("geniallys.html",GENPAGE),("registro.html",REGPAGE),("recursos.html",REC),("legacy.html",LEGACY)]
 def _ver(rel): return hashlib.md5(open(os.path.join(HERE,rel),"rb").read()).hexdigest()[:10]
 vc,vj,vt = _ver("assets/css/stargate.css"), _ver("assets/js/stargate.js"), _ver("assets/js/tour.js")
 for name,html in PAGES:
@@ -1742,7 +1839,7 @@ PROFES = head("STARGATE · Panel del profesorado", "Panel del profesorado de STA
 <div id="profes-app"></div>
 <script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};</script>
 <script src="assets/js/profes.js" defer></script>
-<div class="official" style="margin-top:18px;display:block">🧩 <b>¿Quieres incrustar esto (o el tablero, el foro, los tickets) en Genially?</b> Usa el <a href="embed.html"><b>generador de enlaces, embeds y QR</b></a>: eliges PER y tu nombre y copias el código. El PIN se cambia desde la hoja maestra (menú STARGATE → Cambiar PIN).</div>
+<div class="official" style="margin-top:18px;display:block">🧩 <b>¿Quieres incrustar esto (o el tablero, el foro, los tickets) en Genially?</b> Usa el <a href="embed.html"><b>generador de enlaces, embeds y QR</b></a>: eliges PER y tu nombre y copias el código. En los grupos del motor nuevo no hay PIN: se entra con la cuenta de Google.</div>
 </div></section>
 ''' + FOOT
 
@@ -1913,10 +2010,10 @@ open(os.path.join(HERE,"pruebalogin.html"),"w",encoding="utf-8").write(html); pr
 # La lista sale de doGet ?per=all (sin PIN); los formularios de cada grupo, de doGet ?per=<id>.
 GRUPOS = head("STARGATE · Grupos", "Tus grupos (PER) de STARGATE: tablero, nave del alumnado, panel del profesorado, tickets, foro y enlaces de cada uno.", "grp", puerta=True) + f'''
 <header class="hero"><div class="kicker">Un grupo, un panel</div><h1>Tus grupos</h1>
-<p>Cada clase que se da de alta en la hoja maestra es un <b>PER</b>: su tablero, su nave, su foro y sus
+<p>Cada clase que se da de alta es un <b>PER</b>: su tablero, su nave, su foro y sus
 formularios. Aquí los tienes todos, y desde el menú <b>Grupos</b> puedes saltar a cualquiera desde
 cualquier página.</p>
-<p class="small muted">Se listan los PER <b>no archivados</b>. Para crear uno: hoja maestra → menú
+<p class="small muted">Se listan los PER <b>no archivados</b>. Para crear uno: <a href="crear.html">la consola del referente</a>. En el sistema antiguo: hoja maestra → menú
 <b>STARGATE → Crear nuevo PER</b>. Para archivarlo o borrarlo, panel del profesorado → Ajustes.</p></header>
 <section><div class="wrap"><div id="grupos-app"></div>
 <script>window.SG_SEMANAS={SEMANAS_JSON};</script>

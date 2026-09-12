@@ -14,14 +14,16 @@ Dispara Chrome headless por CDP (`_capturar.cjs`, sin dependencias). Eso permite
 alumno por ahi, y el correo NO viaja en la URL a proposito— y ESPERAR POR CONDICION en vez de por
 reloj, que es lo unico fiable cuando los datos vienen de Apps Script.
 
+12-sep · YA NO QUEDA NINGUNA CAPTURA A MANO. Las del camino del referente retrataban la hoja de
+calculo y habia que sacarlas conduciendo el Chrome de mutecdgami con una sesion abierta: por eso
+envejecian sin que nadie se enterara. Ahora esas pantallas son paginas de la web con modo
+demostracion (?demo=1), asi que se disparan desde aqui como todas las demas. Quedan dos pasos sin
+foto A PROPOSITO —pulsar un boton y copiar un enlace— porque una captura no aporta nada.
+
 LO QUE ESTE SCRIPT NO CAPTURA (y por que):
- · Las de la HOJA MAESTRA (R1-R3, R5-R9) se sacaron el 9-sep conduciendo el Chrome de mutecdgami
-   con la extension y retratando la ventana con `_capturar_ventana.py`. No se pueden rehacer
-   desde aqui porque hace falta esa sesion de Google: si cambia el menu, se repiten a mano con
-   ese mismo metodo (esta explicado en el traspaso).
- · R4 —el dialogo que sale AL TERMINAR de crear un PER— exige crear un PER de verdad, con sus
-   tres formularios y su documento en Drive. Se deja en ambar a proposito: se saca el dia que se
-   cree un grupo nuevo, que es cuando toca sin ensuciar nada.
+ · Nada que exija una sesion de Google. Si alguna pantalla nueva la exigiera, se le pone modo
+   demostracion antes que sacarle una foto a mano: una captura que no se puede rehacer con un
+   comando acaba mintiendo el dia que cambie la pantalla.
 
 Que lo retratado siga existiendo lo vigila el banco: la bateria 33 comprueba que la ficha del
 alumno pinta los catalogos enteros, y el build que existen sus 104 imagenes.
@@ -32,8 +34,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from _site_data import PASOS, TABLERO_API
 
-WEB = "https://stargate.mistercuarter.es"
+# 🔴 Por defecto se retrata la web VIVA: es la que ve la gente, y una captura de algo que solo
+# existe en este portátil enseña una pantalla que nadie tiene. Pero mientras una pantalla nueva
+# todavia no esta subida, `--local` permite sacarla del servidor de pruebas. Cuando se suba, se
+# vuelven a disparar sin la opcion y quedan las de verdad.
+LOCAL = "--local" in sys.argv
+if LOCAL: sys.argv = [a for a in sys.argv if a != "--local"]
+WEB = "http://localhost:8791" if LOCAL else "https://stargate.mistercuarter.es"
 PER = "clase-demo"                     # el unico grupo con gente: las capturas salen vivas
+PER_NUEVO = "demo-motor"               # su gemelo en el motor nuevo, para las pantallas nuevas
 ALUMNO = "demo05@reclutas.demo"        # recluta sembrado, correo inventado a proposito
 DESTINO = os.path.join(HERE, "assets", "img", "pasos")
 
@@ -108,6 +117,35 @@ TOMAS = {
                            listo="document.querySelectorAll('.temachip').length>2",
                            scroll="(function(){var c=document.querySelector('.temachips');"
                                   "window.scrollTo(0,c.getBoundingClientRect().top+window.pageYOffset-90);return 1;})()"),
+# --- 12-sep · el camino del referente, que ya es web. Modo demostracion: sin sesion y sin escribir.
+ "r1_consola.png":    dict(antes=SIN_GLOBO, url=WEB + "/crear.html?demo=1&motor=firestore",
+                           ancho=1280, alto=900, espera=4,
+                           listo="!!document.getElementById('f-nombre')"),
+ "r2_grupo.png":      dict(antes=SIN_GLOBO, url=WEB + "/crear.html?demo=1&motor=firestore",
+                           ancho=1280, alto=760, espera=4,
+                           listo="!!document.getElementById('f-inicio')",
+                           scroll=subir("1 · El grupo")),
+ "r3_enlaces.png":    dict(antes=SIN_GLOBO, url=WEB + "/crear.html?demo=1&motor=firestore",
+                           ancho=1280, alto=800, espera=4,
+                           listo="!!document.getElementById('f-ticket')",
+                           scroll=subir("2 · Los enlaces")),
+ "r4_equipo.png":     dict(antes=SIN_GLOBO, url=WEB + "/crear.html?demo=1&motor=firestore",
+                           ancho=1280, alto=820, espera=4,
+                           listo="!!document.getElementById('f-docentes')",
+                           scroll=subir("3 · El equipo")),
+ "r7_consola.png":    dict(antes=SIN_GLOBO, url=WEB + "/consola.html?demo=1&motor=firestore",
+                           ancho=1360, alto=980, espera=5,
+                           listo="document.querySelectorAll('tbody tr').length>2"),
+ "e2_cuenta.png":     dict(antes=OLVIDAR, url=WEB + "/alistarse.html?per=%s&motor=firestore" % PER_NUEVO,
+                           ancho=1100, alto=760, espera=5,
+                           listo="/Entrar con Google/.test(document.body.innerText)"),
+ "e3_alistarse.png":  dict(antes=SIN_GLOBO, url=WEB + "/alistarse.html?per=%s&demo=1&motor=firestore" % PER_NUEVO,
+                           ancho=1100, alto=1250, espera=5,
+                           listo="!!document.getElementById('a-enviar')"),
+ "d4_panel.png":      dict(antes=SIN_GLOBO, url=WEB + "/clase.html?demo=1", ancho=1400, alto=760, espera=4,
+                           listo="!!document.getElementById('miPanel')",
+                           scroll="(function(){var p=document.getElementById('miPanel');"
+                                  "window.scrollTo(0,p.getBoundingClientRect().top+window.pageYOffset-160);return 1;})()"),
  "e5_ficha.png":      dict(url=WEB + "/recluta.html?per=%s" % PER, ancho=1280, alto=1080, espera=4,
                            antes=SEMBRAR, listo=CARGADA, scroll=pestana("Mi ficha"),
                            listo2="/créditos/.test(document.body.innerText)"),
