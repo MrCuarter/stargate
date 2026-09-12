@@ -12,7 +12,7 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
-                        PASOS, ESCUADRONES)
+                        PASOS, ESCUADRONES, TICKET_URL)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
 # no se escriben a mano (si no, cambiarlas en _site_data.py dejaría la web mintiendo).
@@ -2430,12 +2430,13 @@ def _v(rel):
 
 def _cabeza_motor():
     """Los scripts del motor, para las páginas que SIEMPRE lo usan (consola, crear, alistarse…)."""
-    return ('<script>window.SG_FIREBASE=%s;window.SG_CATALOGO_URL="%s";</script>'
-            '<script src="%s" defer></script>'
-            '<script src="%s" defer></script>'
-            '<script type="module" src="%s"></script>'
-            % (_json.dumps(FIREBASE), _v("motor/catalogo.json"),
-               _v("motor/paquete.js"), _v("motor/tablero.js"), _v("assets/js/motor.js")))
+    return (
+        '<script>window.SG_FIREBASE=' + _json.dumps(FIREBASE) + ';'
+        'window.SG_CATALOGO_URL="' + _v("motor/catalogo.json") + '";'
+        'window.SG_TICKET_URL=' + _json.dumps(TICKET_URL) + ';</script>'
+        '<script src="' + _v("motor/paquete.js") + '" defer></script>'
+        '<script src="' + _v("motor/tablero.js") + '" defer></script>'
+        '<script type="module" src="' + _v("assets/js/motor.js") + '"></script>')
 
 def _cabeza_fuente():
     """

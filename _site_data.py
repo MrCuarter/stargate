@@ -866,3 +866,16 @@ ESCUADRONES = [
  ("esc_copistas",    "Los Copistas",    "Cuarenta manos, un mismo trazo.",                     "Los Copistas de Fôrge"),
  ("esc_guardia",     "Guardia Cero",    "Que conste que nadie nos obligó. Elegimos.",          "La Tripulación Cero"),
 ]
+
+# ---------- ticket de salida ----------
+# 🔴 UNO para todos los grupos y para siempre. Se crea una sola vez desde el menú de la hoja
+# maestra («Crear el ticket de salida COMPARTIDO») y esa función escribe esta dirección con los dos
+# huecos ya puestos: {GRUPO} lo rellena el tablero y {COMANDANTE} la Nave.
+#
+# No puede vivir en el motor nuevo porque tiene que ser ANÓNIMO, y el motor guarda quién responde
+# cada formulario suyo. Las respuestas caen en la hoja «STARGATE · Tickets de salida», que es la
+# única cosa para la que sigue existiendo una hoja de cálculo.
+#
+# Para rellenarlo: menú STARGATE → «Ver los datos del ticket compartido» → copiar la línea de
+# DIRECCIÓN CON HUECOS y pegarla aquí.
+TICKET_URL = ""

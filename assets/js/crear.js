@@ -80,9 +80,9 @@
       '<label>Panel de control (ver)<input id="f-panel" placeholder="https://view.genially.com/…" autocomplete="off"></label>' +
       '<label>Panel de control (editar)<input id="f-paneled" placeholder="https://app.genially.com/editor/…" autocomplete="off"></label>' +
       '<p class="small muted">Si no pones ninguno, el grupo usa el panel oficial. Cada docente puede ' +
-      'tener además el suyo propio, abajo.<br>El <b>ticket de salida</b> sigue siendo un formulario ' +
-      'de Google porque tiene que ser anónimo: duplica el de siempre para este grupo y pega aquí su ' +
-      'enlace.</p></div>' +
+      'tener además el suyo propio, abajo.<br>El <b>ticket de salida</b> ya viene puesto: es el mismo ' +
+      'para todos los grupos, y la Nave le dice sola de qué grupo y de qué Comandante viene cada ' +
+      'respuesta. Sigue siendo un formulario de Google porque tiene que ser <b>anónimo</b>.</p></div>' +
 
       '<div class="card"><h3>3 · El equipo docente</h3>' +
       '<p class="small">Quien esté en esta lista verá el grupo al entrar con su correo. El <b>referente</b> ' +
