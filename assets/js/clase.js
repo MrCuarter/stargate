@@ -127,9 +127,16 @@
       if(!st.correo && (!st.profe||todosLosDocentes().indexOf(st.profe)<0)){pedirCorreo();return;}
       var mios=misPers();
       if(!mios.length){render();return;}
-      if(!st.per||!mios.some(function(p){return p.id===st.per;})){
-        var vivo=mios.filter(function(p){return estadoPer(p)==='en marcha';})[0]||mios[0];
-        st.per=vivo.id;
+      // 🔴 EL GRUPO RECORDADO NO PUEDE SER UNO MUERTO SI HAY OTRO VIVO. Antes solo se elegía de
+      // nuevo cuando el guardado no era suyo; si era suyo pero había TERMINADO, la sala se quedaba
+      // pegada a él. Efecto real: en febrero abres tu sala y estás mirando el grupo de septiembre
+      // —con su semana 15, sus tickets viejos y su gente— mientras el de febrero, que es al que das
+      // clase hoy, está a un desplegable de distancia que nadie mira. Se puede volver a él a mano
+      // cuando quieras; lo que no vale es que sea lo primero que veas.
+      var suyo=mios.filter(function(p){return p.id===st.per;})[0];
+      var vivos=mios.filter(function(p){return estadoPer(p)==='en marcha';});
+      if(!suyo || (estadoPer(suyo)!=='en marcha' && vivos.length)){
+        st.per=(vivos[0]||mios[0]).id;
       }
       localStorage.setItem('sgClasePer',st.per);
       cargarPer();

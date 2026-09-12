@@ -23,6 +23,7 @@
   var url = new URLSearchParams(location.search);
   var PER_FIJO = url.get("per") || "";
   var MINUTOS = [10, 30, 60, 120];
+  var TODOS = [];
   var MOTOR = null, YO = null, GRUPOS = [], PER = "", SESION = null, reloj = null;
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
@@ -55,6 +56,35 @@
     document.getElementById("ll-otra").onclick = function () { MOTOR.salir(); };
   }
 
+  function nombreDe(id) {
+    var g = TODOS.filter(function (x) { return x.id === id; })[0];
+    return (g && (g.nombre || g.id)) || id;
+  }
+  /** «· semana 3 de 15» o «· empieza en 2 semanas»: lo que distingue dos grupos con nombre parecido. */
+  function coletilla(g) {
+    if (!g) return "";
+    if (g.estado === "por empezar") {
+      var faltan = 1 - (g.semana || 0);
+      return " · empieza en " + faltan + (faltan === 1 ? " semana" : " semanas");
+    }
+    if (g.estado === "en marcha") return " · semana " + g.semana + " de " + g.total;
+    if (g.estado === "sin fecha") return " · sin fecha de inicio";
+    // 🔴 Ante la duda, callarse. Si `estado` no llega —un motor.js viejo en caché, un camino nuevo
+    // que se olvide de calcularlo— lo anterior etiquetaba TODO como «terminado»: un grupo en plena
+    // semana 3 anunciado como acabado. Una coletilla vacía no estorba; una falsa engaña.
+    if (g.estado !== "pasado") return "";
+    return " · terminado";
+  }
+  /** Todos sus grupos han acabado: mejor decirlo que dejarle abrir una llamada que nadie puede usar. */
+  function soloPasados() {
+    pinta('<div class="ll-caja"><div class="ll-icono">🗓️</div>'
+      + "<h2>No tienes ningún grupo en marcha</h2>"
+      + '<p class="ll-sub">Tus grupos ya han terminado, así que no hay a quién pasar lista. '
+      + "Si acabas de crear uno, comprueba su <b>fecha de la semana 1</b> en tu sala.</p>"
+      + '<p class="ll-pie">' + TODOS.map(function (x) {
+          return esc(x.nombre || x.id) + esc(coletilla(x)); }).join("<br>") + "</p></div>");
+  }
+
   // ---------------------------------------------------------------- el botón del Comandante
   function tocar() {
     var g = GRUPOS.filter(function (x) { return x.id === PER; })[0] || {};
@@ -63,10 +93,15 @@
       + '<p class="ll-sub">Abre el fichaje para <b>tu escuadrón</b> durante el tiempo que elijas. '
       + "En la Nave de tu gente aparecerá el botón solo.</p>"
       + (GRUPOS.length > 1
-          ? '<label class="ll-campo">Grupo<select id="ll-per">' + GRUPOS.map(function (x) {
+          // 🔴 Con dos grupos vivos a la vez —que es lo normal en enero, uno acabando y otro
+          // empezando— la elección no puede ser un desplegable discreto que se pasa por alto
+          // proyectando. Se avisa en ámbar y cada opción lleva su semana, que es lo que de verdad
+          // distingue «el que acaba» de «el que empieza» cuando los dos se llaman parecido.
+          ? '<p class="ll-ojo">⚠️ Tienes <b>' + GRUPOS.length + ' grupos abiertos</b>. Comprueba cuál es este.</p>'
+            + '<label class="ll-campo">Grupo<select id="ll-per">' + GRUPOS.map(function (x) {
               return '<option value="' + esc(x.id) + '"' + (x.id === PER ? " selected" : "") + ">"
-                + esc(x.nombre || x.id) + "</option>"; }).join("") + "</select></label>"
-          : '<p class="ll-pie">' + esc(g.nombre || PER) + "</p>")
+                + esc(x.nombre || x.id) + esc(coletilla(x)) + "</option>"; }).join("") + "</select></label>"
+          : '<p class="ll-pie">' + esc(g.nombre || PER) + esc(coletilla(g)) + "</p>")
       + '<div class="ll-minutos">' + MINUTOS.map(function (m, i) {
           return '<button type="button" class="ll-m' + (m === 60 ? " on" : "") + '" data-min="' + m + '">'
             + m + " min</button>"; }).join("") + "</div>"
@@ -100,6 +135,9 @@
   function enMarcha() {
     pinta('<div class="ll-caja ll-viva"><div class="ll-icono">📣</div>'
       + "<h2>Llamada abierta</h2>"
+      // 🔴 DE QUÉ GRUPO. Decía «Para todo el grupo» sin nombrarlo: proyectado delante de una clase,
+      // con dos grupos vivos, no había forma de saber a cuál se la habías abierto.
+      + '<p class="ll-grupo">' + esc(nombreDe(PER)) + "</p>"
       + '<p class="ll-sub">' + (SESION.escuadron ? "Para <b>" + esc(SESION.escuadron) + "</b>" : "Para todo el grupo")
       + ' · <span id="ll-cuenta">' + SESION.minutos + ":00</span></p>"
       + '<div class="ll-lista" id="ll-lista"><p class="ll-esperando">Nadie todavía…</p></div>'
@@ -135,14 +173,37 @@
       if (!YO) return puerta();
       cargando("Buscando tus grupos…");
       MOTOR.misPERs(YO.correo).then(function (ps) {
-        GRUPOS = ps || [];
-        if (!GRUPOS.length) return noEresComandante();
-        PER = PER_FIJO && GRUPOS.some(function (x) { return x.id === PER_FIJO; }) ? PER_FIJO : GRUPOS[0].id;
-        // Si ya había una llamada abierta suya, se retoma en vez de abrir otra encima.
-        MOTOR.llamadaAbierta(PER).then(function (s) {
-          if (s) {
-            SESION = { id: s.id, minutos: 0, escuadron: "",
-              hasta: (s.endTime && s.endTime.toDate ? s.endTime.toDate() : new Date(s.endTime)).getTime() };
+        TODOS = ps || [];
+        if (!TODOS.length) return noEresComandante();
+        /**
+         * 🔴 LOS GRUPOS ACABADOS NO SE OFRECEN. Un docente acumula grupos: al tercer curso lleva
+         * seis, y cinco están muertos. Abrir la llamada en uno terminado no da error —crea la
+         * sesión igual— y nadie de los que están delante puede fichar, porque no son de ese
+         * escuadrón. Se ofrecen solo los vivos; si no queda ninguno, se dice.
+         */
+        GRUPOS = TODOS.filter(function (x) { return x.estado !== "pasado" && !x.archivado; });
+        if (!GRUPOS.length) return soloPasados();
+        // 🔴 El que está EN MARCHA, no el primero de la lista. `misPERs` ya los ordena así, pero
+        // esta pantalla se proyecta delante de una clase: no puede depender de que otro módulo
+        // mantenga un orden. Si ninguno ha empezado todavía, entonces sí vale el primero.
+        var enMarchaYa = GRUPOS.filter(function (x) { return x.estado === "en marcha"; });
+        PER = PER_FIJO && GRUPOS.some(function (x) { return x.id === PER_FIJO; })
+              ? PER_FIJO : (enMarchaYa[0] || GRUPOS[0]).id;
+        /**
+         * 🔴 Y se mira si hay llamada abierta en CUALQUIERA de ellos, no solo en el que tocaba por
+         * defecto. El caso que rompía: abres la llamada del grupo A a las 10:00 para 60 minutos, a
+         * las 10:40 entras a dar clase al grupo B y el embed te enseñaba… la de A, sin decir que era
+         * de A y sin manera de cambiar. Ahora se retoma la que haya, con su nombre delante.
+         */
+        Promise.all(GRUPOS.map(function (g) {
+          return MOTOR.llamadaAbierta(g.id).then(function (s) { return s ? { g: g, s: s } : null; })
+                      .catch(function () { return null; });
+        })).then(function (abiertas) {
+          var viva = abiertas.filter(Boolean)[0];
+          if (viva) {
+            PER = viva.g.id;
+            SESION = { id: viva.s.id, minutos: 0, escuadron: "",
+              hasta: (viva.s.endTime && viva.s.endTime.toDate ? viva.s.endTime.toDate() : new Date(viva.s.endTime)).getTime() };
             enMarcha();
           } else tocar();
         }).catch(tocar);

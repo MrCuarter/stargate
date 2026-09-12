@@ -117,14 +117,33 @@
    * y sin selector el aula enseñaba siempre el primero que devolviera el servidor — sin decirlo,
    * que es lo peor: pasarías lista al grupo equivocado sin enterarte.
    */
+  /**
+   * En qué semana va cada grupo. Con un grupo acabando y otro empezando —que en enero es la
+   * norma— el nombre solo no basta para distinguirlos en un desplegable.
+   */
+  function coletilla(g) {
+    if (!g) return "";
+    if (g.estado === "por empezar") {
+      var faltan = 1 - (g.semana || 0);
+      return " · empieza en " + faltan + (faltan === 1 ? " semana" : " semanas");
+    }
+    if (g.estado === "en marcha") return " · semana " + g.semana + " de " + g.total;
+    if (g.estado === "sin fecha") return " · sin fecha";
+    // 🔴 Ante la duda, callarse. Si `estado` no llega —un motor.js viejo en caché, un camino nuevo
+    // que se olvide de calcularlo— lo anterior etiquetaba TODO como «terminado»: un grupo en plena
+    // semana 3 anunciado como acabado. Una coletilla vacía no estorba; una falsa engaña.
+    if (g.estado !== "pasado") return "";
+    return " · terminado";
+  }
+
   function barra() {
     var g = GRUPOS.filter(function (x) { return x.id === PER; })[0] || {};
     return '<div class="au-barra"><div class="au-quien"><b>' + esc(nombreDocente() || YO.correo) + "</b>"
       + (GRUPOS.length > 1
           ? '<select class="au-grupo" id="au-grupo">' + GRUPOS.map(function (x) {
               return '<option value="' + esc(x.id) + '"' + (x.id === PER ? " selected" : "") + ">"
-                + esc(x.nombre || x.id) + "</option>"; }).join("") + "</select>"
-          : '<span class="small muted">' + esc(g.nombre || PER) + "</span>") + "</div>"
+                + esc(x.nombre || x.id) + esc(coletilla(x)) + "</option>"; }).join("") + "</select>"
+          : '<span class="small muted">' + esc(g.nombre || PER) + esc(coletilla(g)) + "</span>") + "</div>"
       + '<div class="au-tabs">' + TABS.map(function (t) {
           return '<button type="button" class="au-t' + (TAB === t[0] ? " on" : "") + '" data-au="' + t[0] + '">'
             + '<span class="i">' + t[1] + "</span><b>" + t[2] + "</b></button>"; }).join("") + "</div></div>";
@@ -263,7 +282,11 @@
     });
     var selG = document.getElementById("au-grupo");
     if (selG) selG.onchange = function () {
-      PER = selG.value; SESION = null;
+      // 🔴 Y la lista de presentes TAMBIÉN. Se limpiaba `SESION` pero no `PRESENTES`: al saltar del
+      // grupo que acaba al que empieza, el aula seguía anunciando «12 presentes» —los de la otra
+      // clase— hasta que la siguiente consulta lo pisara. Ver a gente que no está delante es peor
+      // que no ver a nadie.
+      PER = selG.value; SESION = null; PRESENTES = [];
       pinta('<div class="au-caja"><p class="ll-esperando">Cambiando de grupo…</p></div>');
       MOTOR.tablero(PER, true).then(function (t) { D = t; render(); vigilar(); })
         .catch(function (e) { puerta("No he podido leer ese grupo: " + e.message); });
@@ -420,7 +443,15 @@
       MOTOR.misPERs(YO.correo).then(function (ps) {
         GRUPOS = ps || [];
         if (!GRUPOS.length) return noEresDocente();
-        PER = PER_FIJO && GRUPOS.some(function (x) { return x.id === PER_FIJO; }) ? PER_FIJO : GRUPOS[0].id;
+        /**
+         * 🔴 El aula SÍ enseña los grupos acabados —aquí se viene también a mirar atrás, a repasar
+         * cómo fue un curso— pero NUNCA empieza en uno. `misPERs` los devuelve ya ordenados (en
+         * marcha primero), así que el primero es el bueno; esto es el cinturón por si algún día
+         * llega en otro orden: el que se abre por defecto es uno vivo o ninguno.
+         */
+        var vivos = GRUPOS.filter(function (x) { return x.estado !== "pasado" && !x.archivado; });
+        PER = PER_FIJO && GRUPOS.some(function (x) { return x.id === PER_FIJO; })
+              ? PER_FIJO : (vivos[0] || GRUPOS[0]).id;
         MOTOR.tablero(PER, true).then(function (t) { D = t; render(); vigilar(); })
           .catch(function (e) { puerta("No he podido leer el grupo: " + e.message); });
       }).catch(function (e) { puerta("No he podido leer tus grupos: " + e.message); });

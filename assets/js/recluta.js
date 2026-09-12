@@ -234,7 +234,7 @@
     var sm = lista[Math.min(Math.max(st.actual, 1), lista.length) - 1];
     if (!sm) return '';
     return '<div class="card orden-sem"><div class="eyebrow amber">La orden de la semana</div>'
-      + '<h3>Semana ' + sm.sem + ' · ' + esc(sm.tema) + '</h3>'
+      + '<h3>' + esc(sm.tema) + '</h3>'   // el número vive en la cabecera, y en un sitio basta
       + '<p class="small muted">' + esc(sm.sub || '') + '</p>'
       + '<pre class="foro-msg">' + msgHtml(sm.foro, per) + '</pre>'
       + (sm.lanza && sm.lanza.length
@@ -465,10 +465,18 @@
       return s1 && s1.sem<=st.actual;
     }).length;
 
+    // 🔴 El titular dice lo que te llevas, no el tema. El tema ya lo dice la tarjeta de justo
+    // encima («La orden de la semana») y repetirlo dos veces seguidas no informaba de nada. Aquí
+    // la pregunta es otra: ¿me merece la pena abrir esto? Pues el botín que queda por coger.
+    var quedanXp=0, quedanCr=0, quedan=0;
+    suyos.forEach(function(t){ if(!mios[t[0]]){ quedan++; quedanXp+=t[3]; quedanCr+=creditosDeReto(t[0]); } });
+    var titular = quedan
+      ? 'Te quedan '+quedanXp+' xp y '+quedanCr+' ◈ por coger'
+      : '✓ Ya tienes todo lo de esta semana';
     return '<div class="card retos-semana"><div class="eyebrow amber">Lo que puedes conseguir esta semana</div>'
-      +'<h3>Semana '+sm.sem+' · '+esc(sm.tema)+'</h3>'
-      +'<p class="small muted">'+(suyos.length===1?'Un reto':suyos.length+' retos')+'. Pulsa uno para ver '
-      +'qué hay que hacer, y márcalo aquí mismo cuando lo tengas.</p>'
+      +'<h3>'+esc(titular)+'</h3>'
+      +'<p class="small muted">'+(suyos.length===1?'Un reto':suyos.length+' retos')+' de '+esc(sm.tema)
+      +'. Pulsa uno para ver qué hay que hacer, y márcalo aquí mismo cuando lo tengas.</p>'
       +'<div class="rs-grid">'+tarjetas+'</div>'
       +(atrasados?'<p class="rs-atras">🕗 Y llevas <b>'+atrasados+'</b> reto'+(atrasados===1?'':'s')
         +' sin registrar de semanas anteriores. '
@@ -1084,7 +1092,10 @@
   function estaSemana(){
     if(st.estado==='antes') return '<section><div class="eyebrow amber">Esta semana</div><h2>En la rampa de lanzamiento</h2><p class="lead">La misión empieza el '+esc(st.d.inicio)+'. Mientras tanto: preséntate ante el mando y registra tu alias en la <a href="'+esc(st.d.formBitacora||'#')+'" target="_blank" rel="noopener">Bitácora de mando</a>.</p></section>';
     var idx=Math.min(Math.max(st.actual,1),st.semanas.length)-1; var s=st.semanas[idx];
-    var tit=st.estado==='fin'?'Última orden — Semana '+s.sem+' · '+s.tema:'Semana '+s.sem+' · '+s.tema;
+    // 🔴 «Semana 14» salía TRES veces en la misma pantalla: en la cabecera, aquí y en los retos.
+    // El número vive en la cabecera —que es donde dice dónde vas, «semana 14 de 15»— y aquí y en
+    // los retos se queda el TEMA, que es lo que de verdad cambia entre una semana y otra.
+    var tit=st.estado==='fin'?'Última orden · '+s.tema:s.tema;
     return '<section><div class="eyebrow amber">La orden de la semana</div><h2>Esta semana en la nave</h2>'+fichaSemana(s,tit)+'</section>';
   }
   /**

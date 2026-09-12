@@ -95,11 +95,43 @@ const tablero = async (perId, conPrivados) =>
   window.SG.TABLERO.tablero(await leerPER(perId, conPrivados), !!conPrivados);
 
 /** Los PER en los que figuro como docente, más los que son de demostración. */
+const SEMANA_MS_ = 7 * 24 * 3600 * 1000;
+/** La misma cuenta que hace la sala del docente (clase.js `estadoPer`), en un solo sitio. */
+function estadoDelPER(S) {
+  S = S || {};
+  const total = (S.tipo === "PUA") ? 10 : 15;
+  let semana = null;
+  if (S.inicio) {
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    semana = Math.floor((hoy - new Date(S.inicio + "T00:00:00")) / SEMANA_MS_) + 1;
+  }
+  let estado;
+  if (S.archivado) estado = "pasado";
+  else if (semana == null) estado = "sin fecha";
+  else if (semana < 1) estado = "por empezar";
+  else estado = semana > total ? "pasado" : "en marcha";
+  return { semana: semana, estado: estado, total: total, archivado: !!S.archivado };
+}
+
 async function misPERs(correo) {
   correo = String(correo || "").toLowerCase();
   const r = await getDocs(query(collection(db, "projects"), where("coTeacherEmails", "array-contains", correo)));
   const mios = r.docs.map(d => ({ id: d.id, nombre: d.data().name, stargate: d.data().stargate || {} }))
-                     .filter(x => x.stargate.version);
+                     .filter(x => x.stargate.version)
+                     .map(x => Object.assign(x, estadoDelPER(x.stargate)));
+  // 🔴 EN QUÉ SEMANA VA CADA GRUPO, decidido UNA vez y aquí.
+  //
+  // Sin esto, cada pantalla elegía «el grupo del docente» a su manera: la sala buscaba el que
+  // estuviera en marcha, el aula y la llamada a filas cogían `GRUPOS[0]` —el primero que devolviera
+  // Firestore, que no tiene ningún orden prometido—. Y eso no es un detalle de conveniencia:
+  // en enero un docente tiene a la vez un grupo acabando y otro empezando, y abrir la llamada a
+  // filas en el grupo equivocado no da ningún error. Simplemente los que están delante no pueden
+  // fichar, y los que no están sí.
+  //
+  // Ordenados: primero los que están en marcha, luego los que van a empezar, y los pasados al
+  // final. Así, cuando haya que elegir por defecto, el primero ya es el correcto.
+  const ORDEN = { "en marcha": 0, "por empezar": 1, "sin fecha": 2, "pasado": 3 };
+  mios.sort((a, b) => (ORDEN[a.estado] - ORDEN[b.estado]) || String(a.nombre||"").localeCompare(String(b.nombre||"")));
   // 🔴 La marca que abre la puerta del profesorado. Se pone AQUÍ porque este es el único sitio donde
   // el servidor ha dicho que sí: si devuelve grupos, esta cuenta es docente de alguno. No es una
   // contraseña —no se puede teclear— y se borra al salir.

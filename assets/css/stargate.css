@@ -1261,6 +1261,13 @@ ol.pasos-num li b{color:var(--ink)}
 .ll-icono{font-size:2.6rem;line-height:1;margin-bottom:10px}
 .ll-caja h2{margin:0 0 8px;font-size:1.5rem}
 .ll-sub{color:#9fb0ce;margin:0 0 18px;font-size:1rem}
+/* 🔴 De qué grupo es la llamada. Proyectado delante de una clase, con un grupo acabando y otro
+   empezando, «Llamada abierta» sin nombre no dice lo único que hace falta saber. */
+.ll-grupo{margin:0 0 4px;font-family:'Unbounded',sans-serif;font-size:1.05rem;font-weight:600;
+  color:var(--teal);line-height:1.25;text-wrap:balance}
+/* Y si hay más de uno vivo, que la elección no se pase por alto. */
+.ll-ojo{margin:0 0 14px;padding:10px 13px;border-radius:10px;font-size:.87rem;line-height:1.45;
+  color:#f0dcb4;background:rgba(242,181,68,.1);border:1px solid rgba(242,181,68,.32)}
 .ll-pie{color:#6d8398;font-size:.86rem;margin:14px 0 0}
 .ll-campo{display:block;text-align:left;margin:0 0 14px;font-size:.88rem;color:#9fb0ce}
 .ll-campo select{width:100%;margin-top:6px;padding:11px 13px;border-radius:9px;border:1px solid #24304a;
