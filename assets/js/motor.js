@@ -972,7 +972,8 @@ async function reclamarHuevo(perId, huevoId, fichaId) {
   else if (H.premio === "heroe") {
     const b = sacadas[0] ? cartaDeBotin(sacadas[0]) : null;
     detalle = { tipo: "heroe", nombre: b ? b.nombre : "", clave: b ? b.clave : "" };
-  } else if (H.premio === "bolsa") detalle = { tipo: "bolsa", creditos: Number(H.creditos || 50) };
+  } else if (H.premio === "bolsa") detalle = { tipo: "bolsa", creditos: Number(H.cantidad || H.creditos || 50) };
+  else if (H.premio === "xp") detalle = { tipo: "xp", xp: Number(H.cantidad || 100) };
   // 🔴 Si no se ha podido abrir, se dice: el premio está en su inventario y se abre desde la Nave. Lo
   // contrario —«+50 ◈, ya está en tu cuenta» con el saldo quieto— es lo que pasó la primera vez.
   if (usos > 0 && !abiertos) detalle = Object.assign({}, detalle || {}, { sinAbrir: true });

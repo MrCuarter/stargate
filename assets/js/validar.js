@@ -98,7 +98,43 @@
     });
   }
 
-  async function registrar(g) {
+  /**
+   * 🔴 13-sep · EL TOPE DIARIO Y EL ENLACE OBLIGATORIO, TAMBIÉN AQUÍ. Este enlace se pega en los
+   * Geniallys y llamaba a `completeMission` directamente: se saltaba las dos reglas que la Nave ya
+   * aplica y ni siquiera guardaba la evidencia. Un botón «Validar B1» registraba el reto sin enlace.
+   * Ahora pide el enlace AHÍ MISMO, dentro de la presentación, cuando el reto lo exige (y lo ofrece
+   * cuando solo se recomienda), respeta los tres al día y guarda lo entregado donde lo lee el docente.
+   */
+  function enlaceValido(v) { return /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(v || "").trim()); }
+  function deHoy(ficha) {
+    var hoy = new Date(), n = 0, S = ficha.missionTimestamps || {};
+    hoy.setHours(0, 0, 0, 0);
+    Object.keys(S).forEach(function (k) {
+      if (!/^[ABXS]\d/.test(String(k).split("__").pop())) return;   // los hitos (H…) van solos
+      var l = S[k], u = Array.isArray(l) ? l[l.length - 1] : l;
+      if (u && new Date(u) >= hoy) n++;
+    });
+    return n;
+  }
+  function pedirEnlace(g, m, obligatorio, aviso) {
+    tarjeta('<h3>' + esc(m.title) + '</h3>' +
+      '<p>' + (obligatorio ? 'Este reto necesita <b>el enlace</b> de lo que has hecho —tu Bitácora, el vídeo, ' +
+        'el juego…—. Así tu Comandante puede verlo, y enseñarlo en clase si es bueno.'
+        : 'Si tienes <b>el enlace</b> de lo que has hecho, pégalo: tu Comandante lo verá.') + '</p>' +
+      (aviso ? '<p class="malo">' + aviso + '</p>' : '') +
+      '<p><input id="v-enlace" type="url" inputmode="url" autocomplete="off" class="v-enlace" placeholder="https://…"></p>' +
+      '<p><button class="btn primary grande" id="v-ok">✅ Registrar el reto</button></p>');
+    var i = document.querySelector("#v-enlace"), b = document.querySelector("#v-ok");
+    b.onclick = function () {
+      var v = i.value.trim();
+      if (obligatorio && !enlaceValido(v)) { i.classList.add("falta"); i.focus(); return; }
+      if (v && !enlaceValido(v)) return pedirEnlace(g, m, obligatorio, "Eso no parece un enlace: debería tener un dominio, como padlet.com/…");
+      registrar(g, v || "", true);
+    };
+    i.focus();
+  }
+
+  async function registrar(g, enlace, yaPedido) {
     tarjeta("<h3>Registrando…</h3><p>" + esc(g.nombre) + "</p>");
     var M = MOTOR;
     // 🔴 Aquí está el truco entero: la misión se busca por su identificador de STARGATE dentro del
@@ -107,13 +143,24 @@
     var r = await M.getDocs(M.query(M.collection(M.db, "missions"),
       M.where("projectId", "==", g.id), M.where("stargateId", "==", RETO)));
     if (r.empty) return fallo("Este reto no existe en tu grupo (" + esc(RETO) + ").");
-    var mision = r.docs[0];
+    var mision = r.docs[0], m = mision.data();
     if ((g.ficha.completedMissionIds || []).indexOf(mision.id) >= 0)
       return tarjeta('<h3>Ya lo tenías</h3><p>Este reto ya estaba registrado. No pasa nada: no se ' +
         'duplica ni se cobra dos veces.</p><p><a class="btn" href="recluta.html?per=' + esc(g.id) + '">Ver mi Nave</a></p>');
+    var TOPE = Number(window.SG_TOPE_DIA || 0), EV = (window.SG_EVIDENCIA || {})[RETO] || "";
+    if (TOPE && deHoy(g.ficha) >= TOPE)
+      return fallo("Hoy ya has registrado " + TOPE + " retos. Vuelve mañana: así cada reto cuenta de verdad.");
+    if (!yaPedido && (EV === "obligatoria" || EV === "recomendada")) return pedirEnlace(g, m, EV === "obligatoria");
     try {
       await M.llamar("completeMission", { projectId: g.id, missionId: mision.id, studentProfileId: g.ficha.id });
-      var m = mision.data();
+      if (enlace) {
+        // la evidencia, donde la lee el docente (la misma ruta que usa la Nave)
+        try {
+          await M.setDoc(M.doc(M.db, "mission_deliveries", mision.id + "__" + g.ficha.id), {
+            projectId: g.id, missionId: mision.id, studentProfileId: g.ficha.id, userId: g.ficha.userId,
+            stargateReto: RETO, enlace: enlace, createdAt: Date.now() });
+        } catch (e) { /* el reto ya está: perder el enlace es molesto, perder el reto sería injusto */ }
+      }
       tarjeta('<h3>✅ Registrado</h3><p><b>' + esc(m.title) + '</b></p>' +
         '<p>+' + (m.points || 0) + ' xp · +' + (m.coinsReward || 0) + ' créditos</p>' +
         '<p><a class="btn grande" href="recluta.html?per=' + esc(g.id) + '">Ver mi Nave</a></p>');
@@ -125,10 +172,13 @@
   function arrancar() {
     MOTOR = window.SG.MOTOR;
     if (!RETO) return fallo("A este enlace le falta el reto. Debería acabar en «?reto=A1».");
-    MOTOR.sesion().then(function (yo) { yo ? validar(yo).catch(function (e) { fallo(e.message); }) : puerta(); });
-    document.addEventListener("sg:sesion", function (e) {
-      if (e.detail) validar(e.detail).catch(function (x) { fallo(x.message); });
-    });
+    // 🔴 Una sola validación por carga: la sesión guardada llega por la promesa Y por el aviso, y dos
+    // validaciones a la vez registraban dos veces (el servidor no cobraba doble, pero la pantalla
+    // parpadeaba entre «Registrando…» y «Ya lo tenías»).
+    var enMarcha = false;
+    var una = function (yo) { if (!yo || enMarcha) return; enMarcha = true; validar(yo).catch(function (e) { fallo(e.message); }); };
+    MOTOR.sesion().then(function (yo) { yo ? una(yo) : puerta(); });
+    document.addEventListener("sg:sesion", function (e) { una(e.detail); });
   }
   if (window.SG && window.SG.MOTOR) arrancar();
   else document.addEventListener("sg:motor", arrancar);

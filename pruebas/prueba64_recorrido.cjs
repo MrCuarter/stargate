@@ -230,7 +230,7 @@ const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disa
     {
       const ESPERADO = {
         referente: ["Mi gente", "Cola de nota", "Mis enlaces", "Equipo docente", "Escuadrones",
-                    "Escondites", "Ajustes del grupo"],
+                    "Premios por enlace", "Ajustes del grupo"],
         docente: ["Mi gente", "Cola de nota", "Mis enlaces"],
       };
       for (const quien of ["referente", "docente"]) {

@@ -279,7 +279,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.hasta("location.pathname.indexOf('consola.html')>=0", 20);
       await rita.ir("consola.html?per=lab-clase");
       await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
-      await rita.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).filter(function(b){return /Escondites/.test(b.textContent)})[0].click(); 1");
+      await rita.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).filter(function(b){return /Premios por enlace/.test(b.textContent)})[0].click(); 1");
       await rita.hasta("!!document.getElementById('hv-save')", 15);
       // p2 → bolsa de 40 con tope TOTAL 1 · p3 → sobre con tope POR ESCUADRÓN 1
       await rita.js(`(function(){
@@ -565,6 +565,100 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 evidencia · y en la ficha de Carla, su enlace pulsable junto al reto", enlace,
         await rita.js("(document.querySelector('.evid-ficha')||{}).innerHTML||''"));
       await rita.foto(FOTOS + "/11-ficha-evidencias.png");
+    }
+    // ============================================================ 12 · PREMIOS POR ENLACE, INCRUSTADOS EN OTRA WEB
+    /**
+     * Norberto: «¿un docente referente podría crear una recompensa de xp, dinero o material y
+     * embeberla en Genially? … por ejemplo: una recompensa para los 5 primeros de cada grupo, al
+     * pulsarla ganan 3 cromos. Hazlo y testéalo». Aquí la crea Rita desde su pantalla y la cobran
+     * los alumnos DESDE DENTRO de una página de otro sitio, como una presentación.
+     */
+    if (hacer(12)) {
+      const rita = await nueva("Rita crea premios");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("consola.html?per=lab-clase");
+      await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
+      await rita.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).filter(function(b){return /Premios por enlace/.test(b.textContent)})[0].click(); 1");
+      await rita.hasta("!!document.getElementById('hv-add')", 15);
+      const nFilas = await rita.js("document.querySelectorAll('.hv-f').length");
+      await rita.js("document.getElementById('hv-add').click(); document.getElementById('hv-add').click(); 1");
+      const ids = await rita.js(`(function(){
+        var f=[].slice.call(document.querySelectorAll('.hv-f')); var a=f[f.length-2], b=f[f.length-1];
+        function pon(x, sel, v, ev){ var e=x.querySelector(sel); e.value=v; e.dispatchEvent(new Event(ev||'input')); }
+        pon(a,'.h-nom','Los 5 primeros de cada escuadrón'); pon(a,'.h-premio','sobre','change'); pon(a,'.h-esc','5');
+        pon(b,'.h-nom','Experiencia para todos'); pon(b,'.h-premio','xp','change'); pon(b,'.h-cantidad','100');
+        var visible = !b.querySelector('.h-cant').hidden && a.querySelector('.h-cant').hidden;
+        document.getElementById('hv-save').click();
+        return { a: a.querySelector('.h-id').value, b: b.querySelector('.h-id').value, cantidadSoloDondeToca: visible };
+      })()`);
+      await dormir(4000);
+      c("premios · la referente añade dos premios desde su pantalla", nFilas + 2 === await rita.js("document.querySelectorAll('.hv-f').length"));
+      c("premios · la caja «Cantidad» solo sale para créditos y xp", ids.cantidadSoloDondeToca);
+      c("premios · los nuevos nacen con un identificador que no se adivina", /^e\d+-[a-z0-9]{5}$/.test(ids.a) && /^e\d+-[a-z0-9]{5}$/.test(ids.b), ids.a + " · " + ids.b);
+      const ra = await leerDoc("rewards/lab-clase__huevo_" + ids.a), rb = await leerDoc("rewards/lab-clase__huevo_" + ids.b);
+      c("premios · «5 primeros de cada escuadrón → sobre» queda así en el servidor", ra && ra.claimLinkMaxPerSquad === 5 && ra.stargateHuevo.premio === "sobre",
+        JSON.stringify(ra && { esc: ra.claimLinkMaxPerSquad, p: ra.stargateHuevo }));
+      c("premios · «+100 xp para todos» también", rb && rb.stargateHuevo.premio === "xp" && rb.consumeEffects.attributes.addPoints === 100,
+        JSON.stringify(rb && rb.consumeEffects));
+      await rita.foto(FOTOS + "/12-premios-por-enlace.png");
+
+      // cobrarlos desde DENTRO de una página de otro sitio (como una presentación de Genially)
+      const cobrar = async (correo, nombre, h) => {
+        const p = await nueva(nombre + " en la presentación");
+        await p.ir("http://127.0.0.1:" + L.P_WEB2 + "/genially.html?que=" + encodeURIComponent("huevo.html?h=" + h + "&embed=1"));
+        const f = await p.marco("huevo.html");
+        if (!f) return { error: "no encuentro el iframe" };
+        const puerta = await f.hasta("!!document.getElementById('hv-entrar')", 15);
+        const sinCabecera = await f.js("!document.querySelector('nav.nav') || getComputedStyle(document.querySelector('nav.nav')).display==='none'");
+        await f.entrarComo(correo, nombre);
+        await f.recargar(); await dormir(2500);
+        const f2 = await p.marco("huevo.html");
+        await f2.hasta("!!document.getElementById('hv-abrir')", 15);
+        await f2.js("var b=document.getElementById('hv-abrir'); if(b) b.click(); 1");
+        await dormir(7000);
+        const sobre = await f2.js("!!document.querySelector('.sb-capa')");
+        if (sobre) { await f2.js("var s=document.querySelector('.sb-saltar'); if(s) s.click(); 1"); await dormir(500);
+                     await f2.js("var x=document.querySelector('.sb-fin'); if(x) x.click(); 1"); await dormir(800); }
+        const t = await f2.texto();
+        await p.foto(FOTOS + "/12-" + nombre + "-" + h + ".png");
+        await p.cerrar();
+        return { puerta, sinCabecera, sobre, texto: t, errores: p.errores };
+      };
+      const b0 = await fichaDe("beto@lab.test", "lab-clase");
+      const rb1 = await cobrar("beto@lab.test", "Beto", ids.a);
+      const b1 = await fichaDe("beto@lab.test", "lab-clase");
+      c("🔴 embebido · dentro de la presentación, sin sesión, sale la puerta de Google AHÍ MISMO", rb1.puerta, rb1.error || "");
+      c("embebido · y sin la cabecera de la web", rb1.sinCabecera);
+      c("🔴 embebido · Beto entra desde el iframe, abre el sobre carta a carta y se lleva 3 cartas", rb1.sobre &&
+        (b1.inventory || []).filter(x => /__cromo_/.test(x)).length - (b0.inventory || []).filter(x => /__cromo_/.test(x)).length === 3,
+        rb1.texto.slice(0, 160));
+      const c0 = await fichaDe("carla@lab.test", "lab-clase");
+      const rc = await cobrar("carla@lab.test", "Carla", ids.b);
+      const c1 = await fichaDe("carla@lab.test", "lab-clase");
+      c("🔴 embebido · Carla cobra «+100 xp» desde la presentación", c1.totalPoints - c0.totalPoints === 100,
+        c0.totalPoints + " → " + c1.totalPoints + " · " + rc.texto.slice(0, 140));
+      c("embebido · sin errores dentro del iframe", !rb1.errores.length && !rc.errores.length, (rb1.errores[0] || "") + (rc.errores[0] || ""));
+
+      // validar un reto desde la presentación: B2 pide enlace, y se pega ahí mismo
+      const ana = await nueva("Ana valida B2 en la presentación");
+      const a0 = await fichaDe("ana@lab.test", "lab-clase");
+      await ana.ir("http://127.0.0.1:" + L.P_WEB2 + "/genially.html?que=" + encodeURIComponent("validar.html?reto=B2&embed=1"));
+      const fv = await ana.marco("validar.html");
+      await fv.hasta("!!document.getElementById('v-entrar')", 15);
+      await fv.entrarComo("ana@lab.test", "Ana Nueva");
+      await fv.recargar(); await dormir(2500);
+      const fv2 = await ana.marco("validar.html");
+      const pide = await fv2.hasta("!!document.getElementById('v-enlace')", 15);
+      c("🔴 validar embebido · B2 pide el enlace ahí mismo, dentro de la presentación", pide, (await fv2.texto()).slice(0, 160));
+      await fv2.js("document.getElementById('v-ok').click(); 1"); await dormir(800);
+      c("validar embebido · sin enlace no deja registrar", await fv2.js("!!document.querySelector('#v-enlace.falta')"));
+      await fv2.js("document.getElementById('v-enlace').value='https://youtu.be/ana-videotutorial'; document.getElementById('v-ok').click(); 1");
+      await fv2.hasta("/Registrado/.test(document.body.innerText)", 15);
+      const a1 = await fichaDe("ana@lab.test", "lab-clase");
+      const ev = await leerDoc("mission_deliveries/lab-clase__B2__" + a1._id);
+      c("validar embebido · con enlace, B2 queda registrado Y su enlace guardado para el docente",
+        (a1.completedMissionIds || []).indexOf("lab-clase__B2") >= 0 && ev && /ana-videotutorial/.test(ev.enlace), JSON.stringify(ev));
+      await ana.foto(FOTOS + "/12-validar-embebido.png");
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

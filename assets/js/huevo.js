@@ -73,8 +73,8 @@
   }
 
   // ---------------------------------------------------------------- el premio
-  var NOMBRES = { sobre: "Un sobre de cromos", heroe: "Un héroe de la Rebelión", bolsa: "Una bolsa de créditos" };
-  var ICONOS  = { sobre: "🃏", heroe: "🛡️", bolsa: "💰" };
+  var NOMBRES = { sobre: "Un sobre de cromos", heroe: "Un héroe de la Rebelión", bolsa: "Una bolsa de créditos", xp: "Experiencia" };
+  var ICONOS  = { sobre: "🃏", heroe: "🛡️", bolsa: "💰", xp: "⚡" };
 
   function reclamar() {
     cargando("Abriendo el escondite…");
@@ -108,6 +108,7 @@
     var que = t === "sobre" ? (d.cartas || []).map(function (c) { return c.nombre; }).join(" · ")
             : t === "heroe" ? (d.nombre || "")
             : t === "bolsa" ? "+" + (d.creditos || 0) + " ◈"
+            : t === "xp" ? "+" + (d.xp || 0) + " xp"
             : "";
     pinta('<div class="hv"><div class="hv-caja gana">'
       + '<div class="hv-icono grande">' + (ICONOS[t] || "🎁") + '</div>'

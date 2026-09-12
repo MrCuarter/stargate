@@ -134,16 +134,43 @@ async function persona(nombre) {
       const d = m.params.exceptionDetails || {};
       errores.push(String((d.exception && d.exception.description) || d.text || "error").split("\n")[0]);
     }
-    if (m.method === "Log.entryAdded" && m.params.entry.level === "error") errores.push(String(m.params.entry.text || ""));
+    if (m.method === "Log.entryAdded" && m.params.entry.level === "error")
+      errores.push(String(m.params.entry.text || "") + (m.params.entry.url ? " ← " + m.params.entry.url : ""));
   });
   const env = (m, p) => NAV.enviar(m, p, sessionId);
+  const INYECCION = `window.SG_EMU = true; window.SG_API_PUBLICA = ${JSON.stringify(PUBLICA)};` +
+    `window.__dialogos = []; window.alert = function(m){ window.__dialogos.push(String(m)); };`;
+  /**
+   * 🔴 LOS IFRAMES DE OTRO SITIO SON OTRO PROCESO. Un escondite pegado en una presentación vive en
+   * un iframe de OTRO sitio (genially.com → stargate.mistercuarter.es), y Chrome lo aísla en un
+   * proceso aparte con su propio almacenamiento. Para entrar ahí hay que engancharse a ese proceso
+   * (auto-attach), ponerle el interruptor del laboratorio ANTES de que cargue nada, y hablarle por
+   * su propia sesión. Sin esto, «probar el embed» sería probar la página suelta, que no es lo mismo.
+   */
+  const hijos = [];
+  NAV.al(async m => {
+    if (m.method !== "Target.attachedToTarget" || m.sessionId !== sessionId) return;
+    const sid = m.params.sessionId;
+    hijos.push({ sid, tipo: m.params.targetInfo.type });
+    NAV.al(x => {
+      if (x.sessionId !== sid) return;
+      if (x.method === "Runtime.exceptionThrown") {
+        const d = x.params.exceptionDetails || {};
+        errores.push("[iframe] " + String((d.exception && d.exception.description) || d.text || "error").split("\n")[0]);
+      }
+    });
+    try {
+      await NAV.enviar("Runtime.enable", {}, sid);
+      await NAV.enviar("Page.enable", {}, sid).catch(() => {});
+      await NAV.enviar("Page.addScriptToEvaluateOnNewDocument", { source: INYECCION }, sid).catch(() => {});
+    } finally { await NAV.enviar("Runtime.runIfWaitingForDebugger", {}, sid).catch(() => {}); }
+  });
   await env("Page.enable"); await env("Runtime.enable"); await env("Log.enable"); await env("Network.enable");
+  await env("Target.setAutoAttach", { autoAttach: true, waitForDebuggerOnStart: true, flatten: true });
   await env("Emulation.setDeviceMetricsOverride", { width: 1280, height: 860, deviceScaleFactor: 1, mobile: false });
   // 🔴 El interruptor del laboratorio, puesto ANTES de que cargue nada en cada documento nuevo.
-  await env("Page.addScriptToEvaluateOnNewDocument", { source:
-    `window.SG_EMU = true; window.SG_API_PUBLICA = ${JSON.stringify(PUBLICA)};` +
-    // los diálogos del navegador (alert/confirm) congelarían la prueba: se aceptan y se anotan
-    `window.__dialogos = []; window.alert = function(m){ window.__dialogos.push(String(m)); };` });
+  // el interruptor del laboratorio, antes de que cargue nada (y los alert se anotan en vez de congelar)
+  await env("Page.addScriptToEvaluateOnNewDocument", { source: INYECCION });
   const p = {
     nombre, errores, rotos, env,
     async ir(pagina) { await env("Page.navigate", { url: pagina.indexOf("http") === 0 ? pagina : BASE + pagina });
@@ -190,6 +217,30 @@ async function persona(nombre) {
       fs.writeFileSync(fichero, Buffer.from(r.data, "base64")); return fichero;
     },
     cerrar() { return NAV.enviar("Target.disposeBrowserContext", { browserContextId }).catch(() => {}); },
+    /** El iframe (de otro sitio) cuya dirección contiene `trozo`, manejable como una página más. */
+    async marco(trozo) {
+      for (let i = 0; i < 40; i++) {
+        for (const h of hijos) {
+          const r = await NAV.enviar("Runtime.evaluate", { expression: "location.href", returnByValue: true }, h.sid).catch(() => null);
+          if (r && r.result && String(r.result.value).indexOf(trozo) >= 0) {
+            const js = async (expr, ms) => {
+              const x = await conTope(NAV.enviar("Runtime.evaluate", { expression: expr, returnByValue: true, awaitPromise: true }, h.sid), ms || 20000, expr.slice(0, 50));
+              if (x.exceptionDetails) throw new Error((x.exceptionDetails.exception && x.exceptionDetails.exception.description || x.exceptionDetails.text || "").split("\n")[0]);
+              return x.result.value;
+            };
+            const hasta = async (expr, seg) => { for (let k = 0; k < (seg || 10) * 5; k++) { try { if (await js(expr, 4000)) return true; } catch (e) {} await dormir(200); } return false; };
+            return { js, hasta, sid: h.sid,
+              // Page.reload solo vale para la pestaña; un iframe se recarga desde dentro
+              recargar: () => NAV.enviar("Runtime.evaluate", { expression: "setTimeout(function(){location.reload()},10); 1" }, h.sid).catch(() => {}),
+              entrarComo: async (correo, nombre) => { await hasta("!!(window.SG && window.SG.EMU && window.SG.MOTOR)", 20);
+                return js(`window.SG.EMU.entrarComo(${JSON.stringify(correo)}, ${JSON.stringify(nombre || correo)}).then(function(u){ return u.email; })`); },
+              texto: () => js("(document.body.innerText||'').replace(/\\s+/g,' ')") };
+          }
+        }
+        await dormir(300);
+      }
+      return null;
+    },
   };
   return p;
 }

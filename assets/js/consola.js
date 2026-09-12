@@ -267,7 +267,7 @@
    */
   var TABS = [["alumnado", "Mi gente"], ["canjes", "Cola de nota"], ["mios", "Mis enlaces"],
               ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1],
-              ["huevos", "Escondites", 1], ["ajustes", "Ajustes del grupo", 1]];
+              ["huevos", "Premios por enlace", 1], ["ajustes", "Ajustes del grupo", 1]];
   function misTabs() {
     var ref = !!(PERS.filter(function (p) { return p.id === PER; })[0] || {}).soyReferente;
     return TABS.filter(function (x) { return !x[2] || ref; });
@@ -545,7 +545,8 @@
   // ---------------------------------------------------------------- escondites
   var PREMIOS = [["sobre","🃏 Un sobre de cromos (3 cartas)"],
                  ["heroe","🛡️ Un héroe de la Rebelión"],
-                 ["bolsa","💰 Una bolsa de créditos"]];
+                 ["bolsa","💰 Créditos"],
+                 ["xp","⚡ Experiencia (xp)"]];
   /**
    * LOS ESCONDITES, uno por presentación.
    *
@@ -559,9 +560,11 @@
   function verHuevos(t) {
     var H = ((DATOS.proyecto || {}).stargate || {}).huevos || [];
     $("#c-cuerpo").innerHTML =
-      '<div class="card"><h3>Escondites</h3>' +
-      '<p class="small muted">Uno por presentación. Pega el enlace en un rincón del Genially —una ' +
-      'estrella, un detalle del fondo— y quien lo encuentre se lleva lo que pongas. ' +
+      '<div class="card"><h3>Premios por enlace</h3>' +
+      '<p class="small muted">Un enlace que da un premio a quien lo pulse. Escóndelo en un rincón del ' +
+      'Genially —una estrella, un detalle del fondo— como <b>huevo de Pascua</b>, o ponlo a la vista: ' +
+      '«los cinco primeros de cada escuadrón se llevan un sobre». Quien lo pulse sin haber entrado verá la ' +
+      'puerta de Google ahí mismo, dentro de la presentación. ' +
       '<b>Cada persona solo puede reclamar cada escondite una vez</b>, aunque el enlace circule. ' +
       'Y si quieres que sea una carrera, pon un tope: <b>total</b> («los tres primeros de toda la clase») ' +
       'o <b>por escuadrón</b> («los dos primeros de cada Comandante»). 0 es sin tope.</p>' +
@@ -583,6 +586,9 @@
        * le dice nada a nadie. Uno por persona va siempre (es un escondite: se encuentra una vez).
        * Los lleva el servidor (`claimLinkedReward`), dentro de una transacción.
        */
+      // la cantidad solo cuenta para créditos y xp: un sobre son siempre tres cartas y un héroe, uno
+      '<label class="h-num h-cant"' + (h.premio === "bolsa" || h.premio === "xp" ? "" : " hidden") + '>Cantidad' +
+        '<input class="h-cantidad" type="number" min="1" value="' + (Number(h.cantidad || h.creditos) || (h.premio === "xp" ? 100 : 50)) + '"></label>' +
       '<label class="h-num">Tope total<input class="h-lim" type="number" min="0" value="' + (Number(h.limite) || 0) + '" title="0 = sin tope; 5 = solo los cinco primeros de todo el grupo"></label>' +
       '<label class="h-num">Por escuadrón<input class="h-esc" type="number" min="0" value="' + (Number(h.porEscuadron) || 0) + '" title="0 = sin tope; 2 = los dos primeros de CADA escuadrón"></label>' +
       '<label class="h-act"><input type="checkbox" class="h-on"' + (h.activo === false ? "" : " checked") + '> activo</label>' +
@@ -602,12 +608,16 @@
       Array.prototype.forEach.call($("#hv-lista").querySelectorAll(".hv-f"), function (f) {
         var i = Number(f.getAttribute("data-i"));
         var leer = function () {
+          var premio = $(".h-premio", f).value, cant = Number($(".h-cantidad", f).value) || 0;
           lista[i] = { id: $(".h-id", f).value.trim(), nombre: $(".h-nom", f).value.trim(),
-                       premio: $(".h-premio", f).value, limite: Number($(".h-lim", f).value) || 0,
+                       premio: premio, limite: Number($(".h-lim", f).value) || 0,
                        porEscuadron: Number($(".h-esc", f).value) || 0,
-                       activo: $(".h-on", f).checked, creditos: 50 };
+                       cantidad: cant || (premio === "xp" ? 100 : 50), creditos: cant || 50,
+                       activo: $(".h-on", f).checked };
+          // la caja de cantidad aparece solo cuando tiene sentido
+          var caja = $(".h-cant", f); if (caja) caja.hidden = !(premio === "bolsa" || premio === "xp");
         };
-        ["h-id","h-nom","h-premio","h-lim","h-esc","h-on"].forEach(function (k) {
+        ["h-id","h-nom","h-premio","h-cantidad","h-lim","h-esc","h-on"].forEach(function (k) {
           var e = $("." + k, f); e.oninput = e.onchange = leer;
         });
         $(".h-del", f).onclick = function () { lista.splice(i, 1); repintar(); };

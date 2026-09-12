@@ -407,16 +407,20 @@
    * 🔴 Sin campo `id` dentro: GamificaPro lee {id: doc.id, ...data} y lo pisaría.
    */
   function premioDeHuevo(perId, h, sobre, heroe) {
-    var tipo = h.premio === "heroe" ? "heroe" : h.premio === "bolsa" ? "bolsa" : "sobre";
+    var tipo = h.premio === "heroe" ? "heroe" : h.premio === "bolsa" ? "bolsa" : h.premio === "xp" ? "xp" : "sobre";
+    var cuanto = Math.max(1, Number(h.cantidad || h.creditos || (tipo === "xp" ? 100 : 50)));
     // 🔴 `attributes.addCoins`, no `addCoins` suelto: así lo lee `efectosDeConsumir` en el servidor.
     // Puesto un nivel más arriba, la bolsa decía «+50 ◈, ya está en tu cuenta» y no pagaba nada.
-    var efecto = tipo === "bolsa" ? { attributes: { addCoins: Number(h.creditos || 50) } }
+    // xp: Norberto lo pidió para los premios que configura el referente («una recompensa de xp,
+    // dinero o material»). No para la asistencia, que enturbiaría la puntuación; esto lo decide él.
+    var efecto = tipo === "bolsa" ? { attributes: { addCoins: cuanto } }
+               : tipo === "xp" ? { attributes: { addPoints: cuanto } }
                : tipo === "heroe" ? (heroe ? heroe.consumeEffects : null)
                : (sobre ? sobre.consumeEffects : null);
     return {
       projectId: perId, title: h.nombre || ("Escondite " + h.id), description: "Un escondite de la Tripulación Cero.",
       cost: 0, inStore: false, type: "item", stargateTipo: "huevo", stargateId: "huevo_" + h.id,
-      stargateHuevo: { id: String(h.id), premio: tipo, creditos: Number(h.creditos || 50) },
+      stargateHuevo: { id: String(h.id), premio: tipo, creditos: cuanto, cantidad: cuanto },
       isConsumable: true, maxUses: tipo === "sobre" ? Number((sobre && sobre.maxUses) || 3) : 1,
       consumeEffects: efecto || {},
       claimLinkEnabled: h.activo !== false,
