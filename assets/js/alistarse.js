@@ -52,6 +52,49 @@
     return "recluta.html?per=" + encodeURIComponent(PER) + (m ? "&motor=" + encodeURIComponent(m) : "");
   }
 
+  /**
+   * EL CÓDIGO DE ACCESO.
+   *
+   * 🔴 Lo que esto protege, dicho sin adornos: que alguien que se tropiece con el enlace —o a quien
+   * se lo reenvíen— se aliste sin más. NO es seguridad: el código vive en el documento del grupo y
+   * quien sepa buscarlo lo encuentra. Es una puerta con pestillo, no una caja fuerte, y para lo que
+   * pasa de verdad en un máster es exactamente lo que hace falta.
+   *
+   * 🔴 Y si el grupo NO tiene código, se entra como siempre. Los grupos creados antes de esto no
+   * pueden quedarse sin poder alistar a nadie por una función que no existía cuando se sembraron.
+   */
+  function codigoDelGrupo() { return String((PROY && PROY.joinCode) || "").trim().toUpperCase(); }
+  function normaliza(c) { return String(c || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, ""); }
+  function codigoCorrecto() {
+    var esperado = codigoDelGrupo();
+    if (!esperado) return true;
+    return normaliza(new URLSearchParams(location.search).get("codigo")) === esperado;
+  }
+
+  function pedirCodigo(aviso) {
+    tarjeta('<h3>El código de tu clase</h3>'
+      + '<p>Para alistarte en <b>' + esc(PROY.name || PER) + '</b> hace falta el código de seis '
+      + 'caracteres que te ha dado tu profesorado. Suele estar en el enlace que te pasaron, o lo '
+      + 'dicen en clase.</p>'
+      + (aviso ? '<p class="aviso malo">' + esc(aviso) + "</p>" : "")
+      + '<label>Código<input id="a-codigo" maxlength="8" autocomplete="off" spellcheck="false" '
+      + 'placeholder="ABC123" style="text-transform:uppercase;letter-spacing:.18em;font-size:1.2rem"></label>'
+      + '<p><button class="btn grande" id="a-codigo-ok">Entrar</button></p>');
+    var inp = document.querySelector("#a-codigo");
+    var mete = function () {
+      if (normaliza(inp.value) !== codigoDelGrupo()) return pedirCodigo("Ese código no es el de este grupo.");
+      // Se mete en la dirección para que un F5 no vuelva a preguntarlo.
+      try {
+        var u = new URL(location.href); u.searchParams.set("codigo", normaliza(inp.value));
+        history.replaceState(null, "", u);
+      } catch (e) {}
+      formulario();
+    };
+    document.querySelector("#a-codigo-ok").onclick = mete;
+    inp.addEventListener("keydown", function (e) { if (e.key === "Enter") mete(); });
+    inp.focus();
+  }
+
   function formulario() {
     var S = PROY.stargate || {};
     app.innerHTML =
@@ -231,6 +274,7 @@
       var mias = await MOTOR.getDocs(MOTOR.query(MOTOR.collection(MOTOR.db, "student_profiles"),
         MOTOR.where("projectId", "==", PER), MOTOR.where("userId", "==", YO.uid)));
       if (!mias.empty) return location.replace(naveUrl());
+      if (!codigoCorrecto()) return pedirCodigo();
       formulario();
     };
     /**

@@ -516,6 +516,32 @@ function vigilarLlamada(perId, alCambiar) {
 }
 
 /**
+ * DAR DE BAJA a alguien del grupo.
+ *
+ * 🔴 Hace falta, y no por capricho: alguien se alista en el grupo equivocado, alguien entra con la
+ * cuenta que no era y se crea una ficha huérfana, o se cuela quien no debía. Sin esto, la única
+ * salida era dejarlo ahí para siempre ensuciando el ranking.
+ *
+ * 🔴 Borra la ficha y su expediente privado, y NO toca el libro de experiencia: ahí queda el rastro
+ * de lo que se le dio y se le quitó. Borrar el rastro contable por borrar una ficha sería perder la
+ * única prueba de lo que pasó.
+ */
+async function darDeBaja(perId, fichaId) {
+  const f = await getDoc(doc(db, "student_profiles", fichaId));
+  if (!f.exists()) throw new Error("Esa ficha ya no está");
+  if (f.data().projectId !== perId) throw new Error("Esa ficha no es de este grupo");
+  try { await deleteDoc(doc(db, "student_profiles", fichaId, "privado", "datos")); } catch (e) {}
+  await deleteDoc(doc(db, "student_profiles", fichaId));
+}
+
+/** Cambiar el código de acceso del grupo. Se usa cuando se ha corrido más de la cuenta. */
+async function nuevoCodigo(perId) {
+  const c = window.SG.PAQUETE.codigoNuevo();
+  await updateDoc(doc(db, "projects", perId), { joinCode: c });
+  return c;
+}
+
+/**
  * ════════════ PREMIOS A MANO ════════════
  * Lo que el docente reparte en clase: unos xp por una intervención buena, unos créditos por ayudar,
  * una carta de regalo. No sustituye a los retos — los complementa: es la gasolina de la clase en
@@ -567,6 +593,6 @@ window.SG = window.SG || {};
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, otorgarReto, anularReto, traspasar, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
-                    premiar, regalarCromo,
+                    premiar, regalarCromo, darDeBaja, nuevoCodigo,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

@@ -141,7 +141,29 @@
                esc(m.title) + '">' + esc(m.id) + (tiene ? " ✓" : "") + "</button>";
       }).join("") + "</div>" +
       '<p class="small muted">Verde = registrado. Púlsalo para otorgar o anular. Todo queda anotado ' +
-      'en el libro de experiencia, con quién y cuándo.</p></div>';
+      'en el libro de experiencia, con quién y cuándo.</p>' +
+      // 🔴 DAR DE BAJA. Hace falta y no es capricho: alguien se alista en el grupo equivocado,
+      // alguien entra con la cuenta que no era y deja una ficha huérfana, o se cuela quien no debía.
+      // Sin esto, la única salida era dejarlo ahí para siempre ensuciando el ranking.
+      '<p style="margin-top:16px;border-top:1px solid #182238;padding-top:14px">' +
+      '<button class="btn min peligro" id="c-baja">Dar de baja a ' + esc(r.alias) + '</button> ' +
+      '<span class="small muted">borra su ficha del grupo. Podrá alistarse otra vez, aquí o en otro, ' +
+      'empezando de cero.</span></p></div>';
+    var baja = $("#c-baja");
+    if (baja) baja.onclick = async function () {
+      // Dos confirmaciones a propósito: esto borra de verdad y no hay deshacer. La segunda pide
+      // escribir el alias, que es lo único que impide un clic distraído sobre la persona equivocada.
+      if (!confirm("Vas a dar de baja a «" + r.alias + "» de este grupo.\n\n" +
+                   "Se borra su ficha: alias, personaje, retos, insignias y cartas. El rastro de lo " +
+                   "que se le dio y se le quitó SÍ se conserva en el libro de experiencia.\n\n" +
+                   "No hay deshacer. ¿Seguimos?")) return;
+      var escrito = prompt("Para confirmar, escribe su alias exactamente:\n\n" + r.alias);
+      if (String(escrito || "").trim() !== r.alias) { aviso("No coincide: no se ha dado de baja a nadie."); return; }
+      baja.disabled = true;
+      try { await MOTOR.darDeBaja(PER, ficha); await refrescar(); $("#c-ficha").innerHTML = "";
+            aviso(r.alias + " ya no está en el grupo.", true); }
+      catch (e) { baja.disabled = false; aviso(e.message); }
+    };
     Array.prototype.forEach.call(app.querySelectorAll("[data-reto]"), function (b) {
       b.onclick = async function () {
         var id = b.getAttribute("data-reto"), f = b.getAttribute("data-ficha"), tiene = b.getAttribute("data-tiene") === "1";
@@ -282,8 +304,22 @@
       // grupo y por convocatoria. Los de abajo NO llevan grupo — se deduce de quién pulsa — así que
       // se montan una vez en los Geniallys y no se vuelven a tocar nunca. Mezclarlos haría que se
       // rehicieran los universales cada curso sin necesidad.
+      // 🔴 EL CÓDIGO DE ACCESO. Sin él, cualquiera con el enlace se alista. Con él, hay que saber
+      // seis caracteres. No es seguridad —el código está en el documento del grupo— pero quita a
+      // quien se tropiece con el enlace o a quien se lo reenvíen, que es lo que pasa de verdad.
+      '<div class="card"><h3>Código de acceso</h3>' +
+      (DATOS.proyecto.joinCode
+        ? '<p class="codigo-grande">' + esc(DATOS.proyecto.joinCode) + '</p>' +
+          '<p class="small muted">Hace falta para alistarse. El enlace de abajo ya lo lleva dentro, ' +
+          'así que quien lo siga no tiene que escribirlo; dícelo en clase para quien llegue sin él.</p>' +
+          '<p><button class="btn min" id="s-codigo">Cambiar el código</button> ' +
+          '<span class="small muted">si se ha corrido más de la cuenta</span></p>'
+        : '<p class="small muted">Este grupo se sembró sin código, así que de momento puede alistarse ' +
+          'cualquiera que tenga el enlace.</p>' +
+          '<p><button class="btn" id="s-codigo">Poner un código</button></p>') +
+      '</div>' +
       '<div class="card"><h3>Enlaces de este grupo</h3>' +
-      '<p class="small">Alistamiento (dáselo a tu alumnado):<br><code>' + location.origin + '/alistarse.html?per=' + esc(PER) + MOTOR_EN_ENLACES + '</code></p>' +
+      '<p class="small">Alistamiento (dáselo a tu alumnado):<br><code>' + location.origin + '/alistarse.html?per=' + esc(PER) + MOTOR_EN_ENLACES + (DATOS.proyecto.joinCode ? '&codigo=' + esc(DATOS.proyecto.joinCode) : '') + '</code></p>' +
       '<p class="small">La Nave:<br><code>' + location.origin + '/recluta.html?per=' + esc(PER) + MOTOR_EN_ENLACES + '</code></p>' +
       '<p class="small">La sesión para proyectar:<br><code>' + location.origin + '/sesion.html?per=' + esc(PER) + MOTOR_EN_ENLACES + '</code></p></div>' +
       '<div class="card"><h3>Para los Geniallys · se montan UNA vez</h3>' +
@@ -292,6 +328,13 @@
       '<p class="small">🎯 Validar un reto:<br><code>' + location.origin + '/validar.html?reto=S7</code></p>' +
       '<p class="small">🔔 Llamada a filas (solo la toca el Comandante):<br><code>' + location.origin + '/llamada.html</code></p>' +
       '<p class="small">🛰️ El aula (el puesto de mando del docente):<br><code>' + location.origin + '/aula.html</code></p></div>';
+    if ($("#s-codigo")) $("#s-codigo").onclick = async function () {
+      if (DATOS.proyecto.joinCode &&
+          !confirm("Se cambiará el código. Quien tenga el enlace viejo ya no podrá alistarse " +
+                   "hasta que le pases el nuevo.\n\n¿Seguimos?")) return;
+      try { var c = await MOTOR.nuevoCodigo(PER); await refrescar(); aviso("Código nuevo: " + c, true); }
+      catch (e) { aviso(e.message); }
+    };
     $("#s-guardar").onclick = async function () {
       try {
         // Cambiar la fecha de la semana 1 recalcula el calendario entero, igual que al crear: es la

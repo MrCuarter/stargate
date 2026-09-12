@@ -50,6 +50,13 @@
   }
 
   // Los créditos de un reto salen de su forma, igual que en el motor viejo: lo dice el id.
+  /** Seis caracteres legibles en voz alta. Sin I, O, 0 ni 1, que se confunden al dictarlos. */
+  function codigoNuevo() {
+    var abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", c = "";
+    for (var i = 0; i < 6; i++) c += abc.charAt(Math.floor(Math.random() * abc.length));
+    return c;
+  }
+
   function creditosDe(reto, tipo, cat) {
     var c = cat.creditos;
     if (reto.id === "H1") return c.reclutamiento;
@@ -100,7 +107,18 @@
     // Todo lo que es NUESTRO va bajo `stargate`. GamificaPro no lee ahí, y sus 58 escrituras sobre
     // proyectos son `updateDoc` (nunca reemplazan el documento entero), así que este apartado
     // sobrevive a que un docente entre a su editor y toque lo que quiera.
+    /**
+     * EL CÓDIGO DE ACCESO. Seis caracteres que hay que saber para alistarse.
+     *
+     * 🔴 Qué protege y qué NO, dicho aquí para que nadie se confíe. Esto NO es seguridad: el código
+     * vive en el documento del grupo, que cualquiera con cuenta puede leer si sabe cómo. Lo que
+     * evita es que alguien que se tropiece con el enlace —o a quien se lo reenvíen por un grupo de
+     * WhatsApp— entre sin más. El 90 % de los curiosos, no el 100 % de los decididos.
+     *
+     * Sin I, O, 0 ni 1: se dicta en voz alta en clase y esos cuatro se confunden siempre.
+     */
     var proyecto = {
+      joinCode: per.codigo || codigoNuevo(),
       name: per.nombre,
       description: per.descripcion || "Proyecto Gamificado del Máster en Tecnología Educativa de la UNIR.",
       active: true,
@@ -313,5 +331,6 @@
   }
 
   return { paquete: paquete, masDias: masDias, inicioDeSemana: inicioDeSemana,
-           semanaEnTipo: semanaEnTipo, creditosDe: creditosDe, escalaXp: escalaXp };
+           semanaEnTipo: semanaEnTipo, creditosDe: creditosDe, escalaXp: escalaXp,
+           codigoNuevo: codigoNuevo };
 });

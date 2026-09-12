@@ -1151,6 +1151,13 @@ ol.pasos-num li b{color:var(--ink)}
 .herr em{font-style:normal;font-size:.84rem;color:#9fb0ce;line-height:1.45}
 @media (prefers-reduced-motion:reduce){.herr{transition:none}.herr:hover{transform:none}}
 
+/* El código de acceso, grande: se dicta en voz alta en clase. */
+.codigo-grande{font-family:'Unbounded',monospace;font-size:2.2rem;letter-spacing:.28em;color:var(--teal);
+  margin:6px 0 10px;text-align:center;background:#0a1018;border:1px solid #1d4a52;border-radius:12px;
+  padding:14px 10px;user-select:all}
+.btn.peligro{border-color:#a33;color:#ff9d9d}
+.btn.peligro:hover{background:#2a1420;border-color:#ff6b6b;color:#fff}
+
 /* ═══════════ EL AULA · el puesto de mando dentro del Genially ═══════════
    Se proyecta o se mira en un embed estrecho: todo grande, nada de tablas de ocho columnas. */
 #aula .wrap{max-width:760px}

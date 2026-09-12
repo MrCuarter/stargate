@@ -25,12 +25,21 @@
           +(prox?' — el siguiente llega en la semana '+prox.abre:'');
     }
   }
-  if(per&&API){
-    fetch(API+'?per='+encodeURIComponent(per),{redirect:'follow'}).then(function(r){return r.json();}).then(function(d){
-      if(d.error) return;
-      var a = forzada || (window.SGCAL? window.SGCAL.semanaActual(d.inicio):null);
+  /**
+   * 🔴 12-sep · ESTO PEDÍA LOS DATOS AL APPS SCRIPT A PELO. Con un grupo del motor nuevo la respuesta
+   * era «no existe», el `return` se lo tragaba y el panel se quedaba como nace: CON LOS OCHO
+   * PLANETAS ABIERTOS. Es decir, en la semana 1 el alumnado veía el curso entero desbloqueado, sin
+   * que nada fallara a la vista.
+   *
+   * `SGCAL.perData` ya sabe con qué motor hablar —y cachea—, así que se usa eso. Puede llamar dos
+   * veces (primero la caché, luego lo fresco): aplicar dos veces no molesta, es idempotente.
+   */
+  if(per && window.SGCAL && window.SGCAL.perData){
+    window.SGCAL.perData(API, per, function(d){
+      if(!d || d.error) return;
+      var a = forzada || window.SGCAL.semanaActual(d.inicio);
       if(a===null||a===undefined) return;
       aplicar(a, d.nombre, d.tipo);
-    }).catch(function(){});
+    });
   } else if(forzada) aplicar(forzada,'','REGULAR');
 })();
