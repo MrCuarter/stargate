@@ -1151,6 +1151,13 @@ ol.pasos-num li b{color:var(--ink)}
 .herr em{font-style:normal;font-size:.84rem;color:#9fb0ce;line-height:1.45}
 @media (prefers-reduced-motion:reduce){.herr{transition:none}.herr:hover{transform:none}}
 
+/* El enlace de alistamiento en la sala del docente: es el único que TIENE que repartir. */
+.acc-alta{background:#0c1a14;border:1px solid #2a4a3a;border-radius:12px;padding:14px 16px;margin:10px 0 14px}
+.acc-alta b{display:block;margin-bottom:7px}
+.acc-alta code{display:block;word-break:break-all;font-size:.84rem;background:#0a1018;border:1px solid #24304a;
+  border-radius:8px;padding:9px 11px;color:#c9dbe9;user-select:all}
+.acc-alta span{display:block;margin-top:8px}
+
 /* El código de acceso, grande: se dicta en voz alta en clase. */
 .codigo-grande{font-family:'Unbounded',monospace;font-size:2.2rem;letter-spacing:.28em;color:var(--teal);
   margin:6px 0 10px;text-align:center;background:#0a1018;border:1px solid #1d4a52;border-radius:12px;

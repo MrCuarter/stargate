@@ -2431,10 +2431,13 @@ def _paso_html(i, s, camino):
         fig = ('<figure><img src="assets/img/pasos/%s?v=%s" alt="%s" loading="lazy"></figure>'
                % (img, v, s["t"].replace('"', "")))
     else:
-        fig = ('<div class="paso-falta"><b>Captura pendiente</b>'
-               'Esta pantalla vive detrás de un PIN o dentro de la hoja maestra, así que el '
-               'generador no puede entrar a por ella. Se añade dejando el PNG en '
-               '<code>assets/img/pasos/</code> y volviendo a construir.</div>')
+        # 🔴 12-sep · El texto decía «vive detrás de un PIN o dentro de la hoja maestra». Ya no queda
+        # ninguna así: las dos que faltan son pulsar un botón y copiar un enlace, y una foto de eso
+        # no enseña nada. Un cartel que da una razón que ya no existe confunde más que no ponerlo.
+        fig = ('<div class="paso-falta"><b>Sin captura, a propósito</b>'
+               'Este paso es un gesto —pulsar un botón, copiar un enlace— y una foto no añade nada. '
+               'Si algún día hace falta, se deja el PNG en <code>assets/img/pasos/</code> y se '
+               'vuelve a construir.</div>')
     # el audio, solo si existe el mp3
     mp3 = os.path.join(_DIR_AUD, cod + ".mp3")
     aud = ""

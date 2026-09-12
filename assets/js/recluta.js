@@ -725,9 +725,15 @@
       +'<div class="nb-yo">'+(mini?'<img class="nb-cara" src="'+esc(mini.src)+'" alt="" '
         +'data-fb="'+esc(mini.fallback)+'" onerror="if(this.src.indexOf(this.dataset.fb)<0)this.src=this.dataset.fb">':'')
         +'<b>'+esc(r.alias||'')+'</b><span class="nb-nv">Nv '+(ni.nivel||1)+'</span></div>'
-      +'<div class="nb-tabs" role="tablist">'+TABS.map(function(x){
-        return '<button type="button" class="nb-t'+(st.tab===x[0]?' on':'')+'" role="tab"'
-          +' aria-selected="'+(st.tab===x[0])+'" data-tab="'+x[0]+'" title="'+esc(x[2])+'">'
+      // 🔴 `role="tab"` PROMETE que las flechas mueven entre pestañas. Si no se cumple, quien navega
+      // con teclado se queda pulsando flechas sin que pase nada — y eso es peor que no poner el rol.
+      // Se cumple abajo, en `cablearTeclado`. Y `tabindex` sigue el patrón estándar: solo la pestaña
+      // activa es alcanzable con el tabulador; dentro, se mueve uno con las flechas.
+      +'<div class="nb-tabs" role="tablist" aria-label="Secciones de tu nave">'+TABS.map(function(x){
+        var on = st.tab===x[0];
+        return '<button type="button" class="nb-t'+(on?' on':'')+'" role="tab"'
+          +' aria-selected="'+on+'" aria-controls="nave-panel" tabindex="'+(on?'0':'-1')+'"'
+          +' id="nb-t-'+x[0]+'" data-tab="'+x[0]+'" title="'+esc(x[2])+'">'
           +'<span class="i" aria-hidden="true">'+x[1]+'</span><b>'+esc(x[2])+'</b></button>';
       }).join('')+'</div>'
       +'<div class="nb-fin">'
@@ -770,6 +776,30 @@
     // faltaba el ranking de tu escuadrón.
     if(si && window.SG_RANKING_REPINTA){ try{ window.SG_RANKING_REPINTA(); }catch(e){} }
   }
+  /**
+   * Las flechas mueven entre pestañas, e Inicio/Fin van a la primera y la última. Es lo que espera
+   * quien navega con teclado en cuanto ve `role="tablist"`, y es lo que promete ese rol.
+   */
+  function cablearTeclado(){
+    var tabs=[].slice.call(root.querySelectorAll('.nb-t'));
+    if(!tabs.length) return;
+    tabs.forEach(function(b,i){
+      b.onkeydown=function(e){
+        var j=null;
+        if(e.key==='ArrowRight') j=(i+1)%tabs.length;
+        else if(e.key==='ArrowLeft') j=(i-1+tabs.length)%tabs.length;
+        else if(e.key==='Home') j=0;
+        else if(e.key==='End') j=tabs.length-1;
+        if(j===null) return;
+        e.preventDefault();
+        irA(tabs[j].getAttribute('data-tab'));
+        // Tras repintar, el foco tiene que quedarse donde el usuario lo dejó.
+        var nueva=root.querySelector('.nb-t[data-tab="'+tabs[j].getAttribute('data-tab')+'"]');
+        if(nueva) nueva.focus();
+      };
+    });
+  }
+
   function irA(k, empujarHash){
     st.tab=tabValida(k);
     if(empujarHash!==false){ try{ history.replaceState(null,'','#'+st.tab); }catch(e){} }
@@ -1470,7 +1500,8 @@
         + '</b>, un recluta de mentira de un grupo de pruebas. Nada de lo que hagas aquí se guarda.</p></div>'
       : '';
     root.innerHTML = avisoDemo + (dentro
-      ? login()+pestanas()+avisoPase()+cabecera()+contenido()
+      ? login()+pestanas()+avisoPase()+cabecera()
+        +'<div id="nave-panel" role="tabpanel" aria-labelledby="nb-t-'+st.tab+'">'+contenido()+'</div>'
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
     verTablero(dentro && st.tab==='rankings');
     // Solo con el motor nuevo: en la Nave de siempre no suena nada, y un botón de silenciar algo
@@ -1499,6 +1530,7 @@
     }
     var salir=document.getElementById('nb-salir');
     if(salir) salir.onclick=function(e){ e.preventDefault(); olvidar(); };
+    cablearTeclado();
     Array.prototype.forEach.call(root.querySelectorAll('[data-hecho]'),function(b){
       b.onclick=function(){ marcarReto(b.getAttribute('data-hecho'), b); };
     });

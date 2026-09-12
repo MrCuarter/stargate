@@ -73,4 +73,31 @@ const SEM = fs.readFileSync(path.join(__dirname, "..", "motor", "sembrar.js"), "
 c(/Código de acceso/.test(SEM),
   "   y el sembrador de la línea de órdenes también lo imprime: sembrar sin decir el código es sembrar un grupo cerrado");
 
+// ---------------------------------------------------------------- f) el docente tiene su enlace
+// 🔴 En el motor nuevo la sala del docente NO enseñaba el enlace de alistarse. Es el único que tiene
+// que repartir —sin él no hay clase— y no estaba por ninguna parte de su propia sala: seguía
+// prometiendo «los tres formularios», que en ese motor no existen.
+const SALA = js("clase.js");
+c(/acc-alta/.test(SALA), "🔴 la sala enseña el enlace de alistamiento");
+c(/Para alistarse — dáselo el primer día/.test(SALA), "   diciendo cuándo se usa");
+c(/'&codigo=' \+ st\.d\.codigo/.test(SALA), "🔴 con el código dentro: juntar dos cosas a mano es donde se falla");
+c(/Este grupo no tiene código/.test(SALA),
+  "   y si el grupo no tiene código lo dice, en vez de dar un enlace que parece protegido y no lo está");
+const TAB = fs.readFileSync(path.join(__dirname, "..", "motor", "tablero.js"), "utf8");
+c(/res\.codigo = P\.joinCode/.test(TAB), "el código llega por el tablero");
+const iCod = TAB.indexOf("res.codigo = P.joinCode");
+c(iCod > TAB.indexOf("if (conPrivados) {"),
+  "🔴 y en la rama PRIVADA: no hay razón para repartirlo en el tablero que se proyecta");
+
+// ---------------------------------------------------------------- g) las pestañas, con teclado
+// 🔴 `role="tab"` PROMETE que las flechas mueven entre pestañas. Prometerlo sin cumplirlo deja a
+// quien navega con teclado pulsando flechas sin que pase nada — peor que no poner el rol.
+const NAVE2 = js("recluta.js");
+c(/function cablearTeclado\(\)/.test(NAVE2), "🔴 las flechas mueven entre pestañas");
+c(/e\.key==='Home'/.test(NAVE2) && /e\.key==='End'/.test(NAVE2), "   e Inicio y Fin van a los extremos");
+c(/tabindex="'\+\(on\?'0':'-1'\)/.test(NAVE2),
+  "   y solo la activa es alcanzable con el tabulador, como manda el patrón");
+c(/aria-controls="nave-panel"/.test(NAVE2) && /role="tabpanel"/.test(NAVE2),
+  "🔴 y las pestañas apuntan a un panel que existe de verdad");
+
 E.resumen("Quién entra y quién se va");

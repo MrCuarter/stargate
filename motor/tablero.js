@@ -358,6 +358,10 @@
                    saldo: q.creditos == null ? null : q.creditos,
                    puede: q.creditos != null };
         });
+      // El código de acceso, para que la sala del docente pueda dar el enlace de alistamiento
+      // completo. Va en la rama PRIVADA: no es un secreto de verdad, pero tampoco hay razón para
+      // repartirlo en el tablero que se proyecta.
+      res.codigo = P.joinCode || "";
       res.docentes_full = docentes;
       res.sin_docente = lista.filter(function (x) { return !String(x.profe || "").trim(); }).length;
       res.docentes_sin_correo = docentes.filter(function (d) { return !d.correo; }).map(function (d) { return d.nombre; });

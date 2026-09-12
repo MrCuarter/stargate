@@ -488,7 +488,22 @@
     return herramientas
       +'<section id="sala-enlaces"><div class="eyebrow">Sin buscar en Drive</div><h2>Los enlaces de este grupo</h2>'
       +'<h3 class="acc-tit acc-alu">✅ Esto sí se comparte con el alumnado</h3>'
-      +'<p class="acc-nota">Cinco cosas, y no hay una sexta: los tres formularios, su Nave y el Genially.</p>'
+      // 🔴 12-sep · EN EL MOTOR NUEVO FALTABA EL ENLACE MÁS IMPORTANTE: el de alistarse. Es el único
+      // que el docente TIENE que repartir —sin él no hay clase— y no estaba por ninguna parte de su
+      // propia sala. Va primero, con el código dentro, para que no haya que juntar dos cosas a mano.
+      +(NUEVO
+        ? '<p class="acc-nota">Dos cosas: el enlace para <b>alistarse</b> (el primer día) y su '
+          + '<b>Nave</b> (el resto del curso). Lo demás ya lo tienen dentro de la Nave.</p>'
+          + '<div class="acc-alta"><b>🧭 Para alistarse — dáselo el primer día</b>'
+          + '<code>' + esc(location.origin + '/alistarse.html?per=' + encodeURIComponent(st.per) + mot
+              + ((st.d && st.d.codigo) ? '&codigo=' + st.d.codigo : '')) + '</code>'
+          + ((st.d && st.d.codigo)
+              ? '<span class="small muted">Lleva el <b>código de la clase (' + esc(st.d.codigo)
+                + ')</b> dentro. Quien llegue sin el enlace tendrá que escribirlo.</span>'
+              : '<span class="small muted">Este grupo no tiene código: puede alistarse cualquiera que '
+                + 'tenga el enlace. Tu referente puede ponerle uno desde la consola.</span>')
+          + '</div>'
+        : '<p class="acc-nota">Cinco cosas, y no hay una sexta: los tres formularios, su Nave y el Genially.</p>')
       +'<div class="accesos">'
       +a('📓',d.formBitacora,'Bitácora: se alistan y registran retos','bitacora')
       +a('🚀','recluta.html?per='+encodeURIComponent(st.per),'La Nave del recluta','nave')
