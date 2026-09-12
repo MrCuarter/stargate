@@ -75,6 +75,7 @@
     );
     var b = document.getElementById("e-google");
     b.onclick = function () {
+      pidioEntrar = true;
       b.disabled = true;
       MOTOR.entrar().then(repartir).catch(function (e) {
         // 🔴 Cerrar la ventana de Google NO es un error que haya que gritar: es lo más normal del
@@ -221,16 +222,57 @@
     MOTOR = window.SG && window.SG.MOTOR;
     if (!MOTOR) { document.addEventListener("sg:motor", arrancar, { once: true }); return; }
     cargando("Abriendo…", "Comprobando si ya has entrado");
-    MOTOR.sesion().then(function (yo) { yo ? repartir() : puerta(""); })
+    /**
+     * 🔴 12-sep · SI YA HAY UNA SESIÓN GUARDADA, SE PREGUNTA. NO SE USA A CIEGAS.
+     *
+     * Norberto entró con n.cuartero.10 y acabó en la Nave diciéndole «te falta el enlace». Firebase
+     * lo explicó: ese navegador guardaba la sesión de mrcuarter@gmail.com, de sus pruebas de la
+     * tarde, y la puerta la vio al abrirse y REPARTIÓ CON ELLA sin decir nada. Él eligió una cuenta
+     * en Google; la puerta ya había decidido con otra. Lo peor no era el reparto: era una puerta que
+     * no te dice quién cree que eres.
+     *
+     * Así que con sesión guardada se enseña «Continuar como <correo>» y, igual de visible, «Usar
+     * otra cuenta». Es lo que hace cualquier servicio serio, y es imprescindible en esta web: el
+     * profesorado prueba con su cuenta de docente y con una de alumno en el mismo navegador.
+     */
+    MOTOR.sesion().then(function (yo) { yo ? continuarComo(yo) : puerta(""); })
                   .catch(function () { puerta(""); });
     /**
-     * 🔴 Y SI LA SESIÓN LLEGA POR OTRO CAMINO, TAMBIÉN. Antes solo se repartía al volver del botón
-     * propio. Pero la sesión puede aparecer de otras formas: la persona entra en otra pestaña con
-     * la puerta abierta en esta, la ventana de Google tarda más que la promesa, o el navegador
-     * restaura una sesión guardada un instante tarde. En todos esos casos la puerta se quedaba
-     * enseñando «Iniciar sesión» a alguien que YA había entrado. Lo encontró el laboratorio.
+     * Y si la sesión llega por otro camino DESPUÉS de que la persona haya pulsado —la ventana de
+     * Google tarda más que la promesa, por ejemplo—, se reparte igual. Pero SOLO si ha pulsado: el
+     * aviso de sesión también salta al cargar la página, al restaurarse la guardada, y reaccionar a
+     * ESE aviso es exactamente el reparto a ciegas que acabamos de quitar.
      */
-    document.addEventListener("sg:sesion", function (e) { if (e.detail) repartir(); });
+    document.addEventListener("sg:sesion", function (e) { if (e.detail && pidioEntrar) repartir(); });
+  }
+
+  // ---------------------------------------------------------------- 0 · ¿eres tú?
+  var pidioEntrar = false;
+  function continuarComo(yo) {
+    var LOGO_G = (window.SG && window.SG.LOGO_G) || "";
+    tarjeta(
+      '<div class="eyebrow teal">Ya habías entrado</div>' +
+      "<h3>¿Eres tú?</h3>" +
+      '<p class="cuenta-actual"><span class="ini">' + esc((yo.nombre || yo.correo || "?").charAt(0).toUpperCase()) + '</span>' +
+        '<span><b>' + esc(yo.nombre || yo.correo) + '</b><em>' + esc(yo.correo) + '</em></span></p>' +
+      '<p><button class="btn primary grande" id="e-seguir">Continuar como ' + esc(yo.nombre ? yo.nombre.split(" ")[0] : yo.correo) + '</button></p>' +
+      '<p><button class="btn grande btn-google" id="e-otra-cuenta">' + LOGO_G + '<span>Usar otra cuenta de Google</span></button></p>' +
+      '<p class="small muted puerta-tranquilo">Si en este navegador usas varias cuentas —la de docente y la ' +
+      'de alumno, por ejemplo—, elige aquí con cuál entras hoy.</p>'
+    );
+    document.getElementById("e-seguir").onclick = function () { pidioEntrar = true; repartir(); };
+    var otra = document.getElementById("e-otra-cuenta");
+    otra.onclick = function () {
+      pidioEntrar = true; otra.disabled = true;
+      // el selector de cuentas de Google sale siempre (prompt=select_account, en motor.js): la
+      // cuenta nueva sustituye a la guardada al volver, sin tener que salir primero
+      MOTOR.entrar().then(function () { repartiendo = false; repartir(); }).catch(function (e) {
+        otra.disabled = false;
+        if (/popup-closed|cancelled-popup|popup-blocked/i.test(e.code || e.message || "")) return;
+        continuarComo(yo);
+      });
+    };
+    document.getElementById("e-seguir").focus();
   }
   arrancar();
 })();

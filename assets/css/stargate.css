@@ -2247,3 +2247,10 @@ section[id]{scroll-margin-top:110px}
 .elegir-camino .camino b{font-size:1.02rem}
 .elegir-camino .camino em{font-style:normal;font-size:.84rem;color:var(--mut,#8aa5ab)}
 .elegir-camino .camino.docente{border-color:rgba(242,181,68,.45)}
+
+/* ¿eres tú? — la cuenta guardada, a la vista antes de usarla */
+.cuenta-actual{display:flex;align-items:center;gap:12px;justify-content:center;margin:14px 0 18px;text-align:left}
+.cuenta-actual .ini{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none;
+  background:linear-gradient(135deg,#0e5f6c,#3ed6c8);color:#04161a;font:800 1.2rem/1 'Unbounded',system-ui,sans-serif}
+.cuenta-actual b{display:block;font-size:1.02rem}
+.cuenta-actual em{display:block;font-style:normal;font-size:.86rem;color:var(--mut,#8aa5ab);word-break:break-all}

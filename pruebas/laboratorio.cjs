@@ -158,6 +158,20 @@ async function persona(nombre) {
       await p.hasta("!!(window.SG && window.SG.EMU && window.SG.MOTOR)", 20);
       return p.js(`window.SG.EMU.entrarComo(${JSON.stringify(correo)}, ${JSON.stringify(nombre || correo)}).then(function(u){ return u.email; })`);
     },
+    /**
+     * Entrar como lo hace una persona: puerta → Google → «¿Eres tú?» → continuar. El laboratorio no
+     * puede abrir la ventana de Google, así que la sesión se abre por detrás (`entrarComo`) y luego
+     * se recarga la puerta, que es cuando aparece «¿Eres tú?»: justo el caso que falló el 12-sep.
+     */
+    async entrarPorLaPuerta(correo, nombre) {
+      await p.ir("entrar.html");
+      await p.entrarComo(correo, nombre);
+      await p.ir("entrar.html");
+      const ok = await p.hasta("!!document.getElementById('e-seguir')", 15);
+      if (!ok) return false;
+      await p.js("document.getElementById('e-seguir').click(); 1");
+      return true;
+    },
     async pulsar(texto, dentro) {
       return p.js(`(function(){
         var raiz = ${dentro ? `document.querySelector(${JSON.stringify(dentro)})` : "document"}; if(!raiz) return "sin contenedor";

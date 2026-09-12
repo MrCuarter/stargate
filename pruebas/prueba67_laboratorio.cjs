@@ -37,8 +37,8 @@ const hacer = n => !SOLO || SOLO.split(",").indexOf(String(n)) >= 0;
       ];
       for (const [correo, nombre, pestanas, quien] of casos) {
         const p = await nueva(quien);
-        await p.ir("entrar.html");
-        await p.entrarComo(correo, nombre);
+        const pregunto = await p.entrarPorLaPuerta(correo, nombre);
+        c("docentes · con sesión guardada, la puerta pregunta «¿Eres tú?» (" + quien + ")", pregunto);
         const fue = await p.hasta("location.pathname.indexOf('consola.html')>=0", 20);
         c("docentes · el " + quien + " entra y cae en su puesto de mando", fue, await p.js("location.pathname"));
         const tarjeta = await p.hasta("document.body.innerText.indexOf('LAB')>=0", 20);
@@ -62,8 +62,7 @@ const hacer = n => !SOLO || SOLO.split(",").indexOf(String(n)) >= 0;
     // ============================================================ 2 · UNA ALUMNA NUEVA, DE PRINCIPIO A FIN
     if (hacer(2)) {
       const ana = await nueva("Ana, alumna nueva");
-      await ana.ir("entrar.html");
-      await ana.entrarComo("ana@lab.test", "Ana Nueva");
+      await ana.entrarPorLaPuerta("ana@lab.test", "Ana Nueva");
       const pide = await ana.hasta("!!document.querySelector('#e-cod')", 20);
       c("alumna · al no estar en ninguna clase, se le pide el código", pide, (await ana.texto()).slice(0, 160));
       await ana.js(`document.querySelector('#e-cod').value=${JSON.stringify(CODIGO.toLowerCase())}; document.querySelector('#e-cod-ok').click(); 1`);
@@ -89,6 +88,8 @@ const hacer = n => !SOLO || SOLO.split(",").indexOf(String(n)) >= 0;
 
       // 🔴 EL FALLO DEL 12-SEP: con ficha, entrar tiene que llevarla a SU Nave, con su grupo puesto
       await ana.ir("entrar.html");
+      await ana.hasta("!!document.getElementById('e-seguir')", 15);
+      await ana.js("document.getElementById('e-seguir').click(); 1");
       const nave = await ana.hasta("location.pathname.indexOf('recluta.html')>=0", 20);
       const q = await ana.js("location.search");
       c("alumna · al volver a entrar va a su Nave CON SU GRUPO (?per=)", nave && /per=lab-clase/.test(q), q);
@@ -97,6 +98,8 @@ const hacer = n => !SOLO || SOLO.split(",").indexOf(String(n)) >= 0;
       c("alumna · sin «te falta el enlace de tu clase»", !/Te falta el enlace/.test(await ana.texto()));
       // y por la puerta de atrás: la Nave sin grupo
       await ana.ir("recluta.html");
+      await ana.hasta("!!document.getElementById('e-seguir')", 15);
+      await ana.js("document.getElementById('e-seguir') && document.getElementById('e-seguir').click(); 1");
       const reencauza = await ana.hasta("/per=lab-clase/.test(location.search)", 20);
       c("alumna · la Nave SIN grupo ya no es un callejón: la reencauza a la suya", reencauza, await ana.js("location.href"));
     }
@@ -107,9 +110,32 @@ const hacer = n => !SOLO || SOLO.split(",").indexOf(String(n)) >= 0;
       await p.ir("recluta.html");                       // lo que hizo él: la Nave sin grupo…
       await p.entrarComo("rita@lab.test", "Rita Referente");   // …y entrar con su cuenta
       await p.ir("recluta.html");
+      const pregunta = await p.hasta("!!document.getElementById('e-seguir')", 15);
+      c("referente · la Nave sin grupo la manda a la puerta, que le pregunta si es ella", pregunta);
+      await p.js("document.getElementById('e-seguir') && document.getElementById('e-seguir').click(); 1");
       const fue = await p.hasta("location.pathname.indexOf('consola.html')>=0", 20);
       c("🔴 referente · la Nave sin grupo le lleva a SU PUESTO DE MANDO, no a «te falta el enlace»", fue,
         await p.js("location.href") + " · " + (await p.texto()).slice(0, 120));
+    }
+
+    // ============================================================ 3bis · EL CASO EXACTO DEL 12-SEP
+    /**
+     * Un navegador con la sesión de OTRA cuenta guardada (la de alumno, de pruebas anteriores) y una
+     * persona que llega a la puerta queriendo entrar como docente. La puerta NO puede repartir con
+     * la guardada sin decirlo: tiene que enseñar quién cree que eres y dejar cambiar.
+     */
+    if (hacer(3)) {
+      const p = await nueva("navegador con la sesión de otra cuenta guardada");
+      await p.ir("entrar.html");
+      await p.entrarComo("ana@lab.test", "Ana Nueva");     // la sesión vieja que había en el navegador
+      await p.ir("entrar.html");                           // y llega la docente
+      const pregunta = await p.hasta("!!document.getElementById('e-seguir')", 15);
+      c("🔴 12-sep · con otra sesión guardada, la puerta NO reparte a ciegas: pregunta", pregunta,
+        await p.js("location.pathname") + " · " + (await p.texto()).slice(0, 120));
+      const dice = await p.texto();
+      c("   y dice con qué cuenta cree que estás", /ana@lab\.test/.test(dice), dice.slice(0, 160));
+      c("   y ofrece usar otra, igual de visible", await p.js("!!document.getElementById('e-otra-cuenta')"));
+      c("   y no se ha movido de la puerta", /entrar\.html/.test(await p.js("location.pathname")));
     }
 
     // ============================================================ 4 · DOCENTE Y ALUMNA A LA VEZ
@@ -125,6 +151,8 @@ const hacer = n => !SOLO || SOLO.split(",").indexOf(String(n)) >= 0;
         await p.hasta("!document.querySelector('#a-enviar')", 25);
       }
       await p.ir("entrar.html");
+      await p.hasta("!!document.getElementById('e-seguir')", 15);
+      await p.js("document.getElementById('e-seguir').click(); 1");
       const pregunta = await p.hasta("!!document.querySelector('.elegir-camino')", 20);
       c("ambos · a quien es docente y alumno se le PREGUNTA cómo entra", pregunta, (await p.texto()).slice(0, 200));
       const caminos = await p.js("[].slice.call(document.querySelectorAll('.elegir-camino .camino')).map(function(a){return a.textContent.replace(/\\s+/g,' ').trim()+' → '+a.getAttribute('href')})");

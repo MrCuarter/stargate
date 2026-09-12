@@ -50,6 +50,10 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const fns = getFunctions(app);
 const google = new GoogleAuthProvider();
+// 🔴 El selector de cuentas SIEMPRE. Sin esto, Google entra en silencio con la última cuenta usada,
+// y quien tiene dos —el profesorado prueba con la suya de docente y con una de alumno— acaba dentro
+// con la equivocada sin saberlo. Norberto lo sufrió en su primera prueba.
+google.setCustomParameters({ prompt: "select_account" });
 if (EMU) {
   connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
   connectFirestoreEmulator(db, "127.0.0.1", 8080);
