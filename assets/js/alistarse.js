@@ -156,7 +156,15 @@
         '<textarea id="a-bio" maxlength="280" rows="3" ' +
         'placeholder="Antes de embarcar, yo…"></textarea></label></div>' +
 
-      '<div class="card"><p><button class="btn grande" id="a-enviar">Alistarme</button></p>' +
+      /**
+       * 🔴 EL ÚLTIMO BOTÓN DEL ALISTAMIENTO. Era un botón gris pequeño perdido en una caja medio
+       * vacía, y es el momento en que alguien entra en el juego para todo el curso. Si el sistema
+       * pide épica en algún sitio, es aquí: se firma una vez y no se repite.
+       */
+      '<div class="card a-firmar"><p class="a-firmar-lema">Todo listo, recluta.</p>' +
+      '<button class="btn epico" id="a-enviar"><span class="ep-luz"></span>' +
+      '<span class="ep-txt">⚡ Embarcar</span></button>' +
+      '<p class="a-firmar-pie">Se hace una sola vez. A partir de aquí, tu Nave.</p>' +
       '<div id="a-paso" class="small muted"></div></div>';
 
     document.querySelector("#a-salir").onclick = function () { MOTOR.salir(); };
@@ -239,21 +247,83 @@
     }
   }
 
-  // El momento que justifica todo lo anterior: enterarte de a qué escuadrón perteneces.
+  /**
+   * EL MOMENTO QUE JUSTIFICA TODO LO ANTERIOR: enterarte de a qué escuadrón perteneces.
+   *
+   * 🔴 Estaba resuelto como un aviso: título a la izquierda, el emblema flotando solo en medio de
+   * un hueco enorme y el resto del texto debajo, desalineado con todo. Es la ÚNICA vez que alguien
+   * ve esta pantalla en todo el curso, y es la que decide si esto parece un juego o un trámite.
+   * Ahora: NEBULA fundida en el fondo, el Capitán dando la bienvenida en primer plano, el emblema
+   * como protagonista, el texto apretado y confeti.
+   */
   function bienvenida(alias, comandante, escuadron) {
-    tarjeta('<h3>Estás dentro, ' + esc(alias) + '</h3>' +
-      (escuadron
-        ? (escuadron.imageUrl
-            ? '<img class="emblema" src="' + esc(escuadron.imageUrl) + '" alt="Emblema de ' +
-              esc(escuadron.name) + '" width="220" height="220">'
-            : '') +
-          '<p class="lead">Tu Comandante es <b>' + esc(comandante ? comandante.nombre : "") + '</b>, ' +
-          'así que te unes a <b>' + esc(escuadron.name) + '</b>.</p>' +
-          '<p class="lema">«' + esc(escuadron.lema || "") + '»</p>' +
-          '<p class="small muted">' + esc(escuadron.origen || "") + '</p>'
-        : '<p class="lead">Tu ficha está abierta.</p>') +
-      '<p>Insignia de <b>Reclutamiento</b> · +100 xp · +20 créditos ◈</p>' +
-      '<p><a class="btn grande" href="' + naveUrl() + '">Entrar en mi Nave</a></p>');
+    tarjeta('<div class="bv">' +
+      '<img class="bv-nebula" src="assets/img/personajes/nebula.png" alt="" aria-hidden="true">' +
+      '<div class="bv-fila">' +
+        '<img class="bv-cap" src="assets/img/capitan/saluda.png" alt="" aria-hidden="true">' +
+        '<div class="bv-txt">' +
+          '<div class="eyebrow teal">Bienvenido a bordo</div>' +
+          '<h3 class="bv-tit">Estás dentro, ' + esc(alias) + '</h3>' +
+          (escuadron
+            ? '<p class="bv-lead">Tu Comandante es <b>' + esc(comandante ? comandante.nombre : "") +
+              '</b>, así que te unes a <b>' + esc(escuadron.name) + '</b>.</p>' +
+              '<p class="bv-lema">«' + esc(escuadron.lema || "") + '»</p>' +
+              '<p class="bv-origen">' + esc(escuadron.origen || "") + '</p>'
+            : '<p class="bv-lead">Tu ficha está abierta.</p>') +
+        '</div>' +
+        (escuadron && escuadron.imageUrl
+          ? '<img class="bv-emblema" src="' + esc(escuadron.imageUrl) + '" alt="Emblema de ' +
+            esc(escuadron.name) + '">'
+          : '') +
+      '</div>' +
+      '<div class="bv-premios"><span>🏅 Insignia de <b>Reclutamiento</b></span>' +
+        '<span>+100 xp</span><span>+20 ◈</span></div>' +
+      '<p class="bv-ir"><a class="btn epico" href="' + naveUrl() + '">' +
+        '<span class="ep-luz"></span><span class="ep-txt">🚀 Entrar en mi Nave</span></a></p>' +
+      '</div>');
+    confeti();
+  }
+
+  /**
+   * CONFETI. Propio y en un canvas, sin librería: esta página no carga `fiesta.js` y añadírselo
+   * entero por catorce segundos de papelillos sería pagar peso en cada visita por el último paso.
+   * Se quita solo al terminar, y no hace nada si el navegador pide menos movimiento.
+   */
+  function confeti() {
+    try {
+      if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      var c = document.createElement("canvas");
+      c.className = "bv-confeti";
+      document.body.appendChild(c);
+      var g = c.getContext("2d"), W = 0, H = 0;
+      var medir = function () { W = c.width = innerWidth; H = c.height = innerHeight; };
+      medir(); addEventListener("resize", medir);
+      var COL = ["#37e0ec", "#ffd166", "#7ef0c8", "#ffffff", "#c79be6"];
+      var P = [];
+      for (var i = 0; i < 110; i++) {
+        P.push({ x: Math.random() * W, y: -20 - Math.random() * H * .5,
+                 vx: (Math.random() - .5) * 1.8, vy: 2 + Math.random() * 3.2,
+                 w: 5 + Math.random() * 6, h: 8 + Math.random() * 8,
+                 a: Math.random() * Math.PI, va: (Math.random() - .5) * .22,
+                 col: COL[(Math.random() * COL.length) | 0] });
+      }
+      var t0 = performance.now();
+      (function paso(t) {
+        var vida = t - t0;
+        g.clearRect(0, 0, W, H);
+        var vivos = 0;
+        P.forEach(function (p) {
+          p.x += p.vx; p.y += p.vy; p.a += p.va; p.vy += .028;
+          if (p.y < H + 40) vivos++;
+          g.save(); g.translate(p.x, p.y); g.rotate(p.a);
+          g.globalAlpha = Math.max(0, 1 - vida / 4200);
+          g.fillStyle = p.col; g.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          g.restore();
+        });
+        if (vivos && vida < 4200) requestAnimationFrame(paso);
+        else { removeEventListener("resize", medir); c.remove(); }
+      })(t0);
+    } catch (e) {}
   }
 
   async function arrancar() {
@@ -292,7 +362,7 @@
         { nombre: "Comandante Orion", rol: "docente" } ] } };
       formulario();
       var env = document.getElementById("a-enviar");
-      if (env) { env.disabled = true; env.textContent = "Alistarme (apagado en la demostración)"; }
+      if (env) { env.disabled = true; env.innerHTML = "<span class=\"ep-txt\">Apagado en la demostración</span>"; }
       return;
     }
     MOTOR.sesion().then(mirar);

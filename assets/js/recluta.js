@@ -389,12 +389,19 @@
     R: ["Insignia", "ins"],
     S: ["Insignia secreta", "esp"]
   };
+  /**
+   * 🔴 LA INSIGNIA, EN GRANDE Y A LA DERECHA. Antes era una pegatina de 30 px al final de un montón
+   * de texto, con media tarjeta en blanco debajo. Norberto: «hay mucho aire; la segunda mitad de la
+   * caja debería ser la insignia en grande, así eliminamos aire y se ve claramente la recompensa».
+   * Y es lo correcto: lo que mueve a hacer un reto es VER lo que te llevas — el personaje que
+   * recuperas tiene cara, y a 30 px no se le ve.
+   */
   function premioDeReto(claves){
     return (claves||[]).map(function(k){
       var c = CLASE_PREMIO[String(k).charAt(0)] || CLASE_PREMIO.R;
-      return '<span class="rs-premio-uno '+c[1]+'">'
+      return '<figure class="rs-trofeo '+c[1]+'">'
         +'<img loading="lazy" src="assets/img/insignias/'+k+'.png" alt="">'
-        +'<span><em>'+c[0]+'</em>'+esc(NOMBRES[k]||k)+'</span></span>';
+        +'<figcaption><em>'+c[0]+'</em><b>'+esc(NOMBRES[k]||k)+'</b></figcaption></figure>';
     }).join('');
   }
   /**
@@ -443,12 +450,13 @@
           +(ya?'✓ Registrado'+cuando:'Pendiente')+'</span>'
           +cuantosLoLlevan(t[0])
           +'<span class="small muted">'+esc(t[0])+'</span></div>'
-        +'<b class="rs-tit">'+esc(t[1])+'</b>'
-        +(gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')
-        +'<div class="rs-premio"><span class="p xp">+'+t[3]+' xp</span>'
-          +'<span class="p cr">+'+creditosDeReto(t[0])+' ◈</span></div>'
-        +'<div class="rs-premios">'+premioDeReto(t[2])+'</div>'
-        +'<div class="rs-abrir">▾ '+(ya?'Ver lo que pedía':'Cómo se hace, paso a paso')+'</div></summary>'
+        +'<div class="rs-cols"><div class="rs-izq">'
+          +'<b class="rs-tit">'+esc(t[1])+'</b>'
+          +(gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')
+          +'<div class="rs-premio"><span class="p xp">+'+t[3]+' xp</span>'
+            +'<span class="p cr">+'+creditosDeReto(t[0])+' ◈</span></div>'
+          +'<div class="rs-abrir">▾ '+(ya?'Ver lo que pedía':'Cómo se hace, paso a paso')+'</div>'
+        +'</div><div class="rs-der">'+premioDeReto(t[2])+'</div></div></summary>'
         +'<div class="rs-detalle">'
         +(pasos.length?'<ol class="rs-pasos">'+pasos.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>'
                       :'<p class="small muted">Sin explicación todavía: pregunta a tu docente.</p>')

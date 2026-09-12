@@ -76,17 +76,24 @@
       '<div class="card"><h3>2 · Los enlaces de la clase</h3>' +
       '<p class="small">Opcionales: se pueden poner y cambiar después.</p>' +
       '<label>Padlet de la clase<input id="f-padlet" placeholder="https://padlet.com/…" autocomplete="off"></label>' +
-      // 🔴 Ya viene escrito. Es el MISMO para todos los grupos y todos los años: se creó una vez en
-      // la cuenta de la asignatura y lleva dos huecos que se rellenan solos. Si se deja vacío, el
-      // grupo se queda sin ticket, así que se pone de entrada y quien quiera otro lo sustituye.
-      '<label>Ticket de salida <i>(el mismo para todos los grupos)</i><input id="f-ticket" value="' +
-        esc(window.SG_TICKET_URL || "") + '" placeholder="https://docs.google.com/forms/…" autocomplete="off"></label>' +
+      /**
+       * 🔴 EL TICKET YA NO SE PREGUNTA. Norberto: «si el ticket de salida es el mismo para todos
+       * los grupos, ¿por qué aparece aquí? No hace falta poner info que no cambia». Exacto: es un
+       * único formulario para todos los grupos y todos los años, y se pone solo.
+       *
+       * Y lo que de verdad había que explicar —que era lo que faltaba— es CÓMO distingue un grupo
+       * de otro sin que nadie toque nada: el enlace va PRECARGADO. Lleva dentro el grupo y el
+       * Comandante, así que cada respuesta llega ya etiquetada. Crear un grupo no obliga a tocar el
+       * formulario, ni a añadirle una opción, ni a mirarlo siquiera.
+       */
       '<label>Panel de control (ver)<input id="f-panel" placeholder="https://view.genially.com/…" autocomplete="off"></label>' +
       '<label>Panel de control (editar)<input id="f-paneled" placeholder="https://app.genially.com/editor/…" autocomplete="off"></label>' +
       '<p class="small muted">Si no pones ninguno, el grupo usa el panel oficial. Cada docente puede ' +
-      'tener además el suyo propio, abajo.<br>El <b>ticket de salida</b> ya viene puesto: es el mismo ' +
-      'para todos los grupos, y la Nave le dice sola de qué grupo y de qué Comandante viene cada ' +
-      'respuesta. Sigue siendo un formulario de Google porque tiene que ser <b>anónimo</b>.</p></div>' +
+      'tener además el suyo propio, abajo.<br>El <b>ticket de salida</b> se pone solo: es el mismo ' +
+      'formulario para todos los grupos y todos los años, y el enlace de este grupo ya lleva dentro ' +
+      'su nombre y el del Comandante, así que cada respuesta te llega etiquetada. <b>No hay que ' +
+      'tocar nada al crear un grupo.</b> Sigue siendo un formulario de Google porque tiene que ser ' +
+      '<b>anónimo</b>.</p></div>' +
 
       '<div class="card"><h3>3 · El equipo docente</h3>' +
       '<p class="small">Quien esté en esta lista verá el grupo al entrar con su correo. El <b>referente</b> ' +
@@ -109,24 +116,50 @@
     repintar();
   }
 
-  function vacio() { return { nombre: "", correo: "", rol: "docente", panel: "" }; }
+  function vacio() { return { nombre: "", correo: "", rol: "docente", imparte: true, panel: "" }; }
+  function esRef(d) { return d.rol === "referente"; }
+  // Quien no lleva la marca es que viene de antes de que existiera: entonces «docente» ya quería
+  // decir que imparte, así que se asume para no cambiarle el grupo a nadie por la espalda.
+  function imparte(d) { return d.imparte == null ? d.rol !== "referente" || !!d.imparteViejo : !!d.imparte; }
 
   function pintarDocentes() {
     $("#f-docentes").innerHTML = docentes.map(function (d, i) {
       return '<div class="docente" data-i="' + i + '">' +
         '<input class="d-nombre" placeholder="Nombre y apellidos" value="' + esc(d.nombre) + '">' +
         '<input class="d-correo" placeholder="correo@unir.net" value="' + esc(d.correo) + '" inputmode="email">' +
-        '<select class="d-rol"><option value="docente"' + (d.rol === "docente" ? " selected" : "") + '>Docente</option>' +
-        '<option value="referente"' + (d.rol === "referente" ? " selected" : "") + '>Referente</option></select>' +
+        /**
+         * 🔴 LOS DOS PAPELES NO SON EXCLUYENTES, y el desplegable obligaba a elegir. Norberto:
+         * «un docente puede ser referente, docente o los dos a la vez. En ocasiones el referente NO
+         * IMPARTE». Son dos cosas distintas: REFERENTE es quien gobierna el grupo (crea, ajusta,
+         * resuelve) e IMPARTE es quien tiene clase y, por tanto, escuadrón y alumnado. El
+         * coordinador del máster suele ser lo primero sin ser lo segundo.
+         * 🔴 Y tiene consecuencia real: solo quien imparte se lleva escuadrón. Marcar «referente»
+         * a quien no da clase y que aun así le tocara un escuadrón significaba un escuadrón vacío
+         * ensuciando el ranking desde el primer día.
+         */
+        '<div class="d-roles">' +
+          '<label><input type="checkbox" class="d-ref"' + (esRef(d) ? " checked" : "") + '> Referente</label>' +
+          '<label><input type="checkbox" class="d-imp"' + (imparte(d) ? " checked" : "") + '> Imparte</label>' +
+        '</div>' +
         '<input class="d-panel" placeholder="Su Genially propio (opcional)" value="' + esc(d.panel) + '">' +
         '<button class="btn min quitar" title="Quitar">✕</button></div>';
     }).join("");
     Array.prototype.forEach.call($("#f-docentes").children, function (fila) {
       var i = Number(fila.getAttribute("data-i"));
-      ["nombre", "correo", "rol", "panel"].forEach(function (k) {
+      ["nombre", "correo", "panel"].forEach(function (k) {
         var e = $(".d-" + k, fila);
         e.oninput = e.onchange = function () { docentes[i][k] = e.value.trim(); repintar(); };
       });
+      var cRef = $(".d-ref", fila), cImp = $(".d-imp", fila);
+      var guarda = function () {
+        // Se sigue guardando UN `rol` porque es lo que lee todo lo demás; «imparte» va aparte.
+        docentes[i].rol = cRef.checked ? "referente" : "docente";
+        docentes[i].imparte = cImp.checked;
+        // Alguien tiene que dar clase: si no es ni una cosa ni la otra, al menos imparte.
+        if (!cRef.checked && !cImp.checked) { cImp.checked = true; docentes[i].imparte = true; }
+        repintar();
+      };
+      cRef.onchange = guarda; cImp.onchange = guarda;
       $(".quitar", fila).onclick = function () { docentes.splice(i, 1); pintarDocentes(); repintar(); };
     });
   }
@@ -138,11 +171,12 @@
       tipo: $("#f-tipo").value,
       inicio: $("#f-inicio").value,
       padlet: $("#f-padlet").value.trim(),
-      ticket: $("#f-ticket").value.trim(),
+      ticket: window.SG_TICKET_URL || "",
       panelVer: $("#f-panel").value.trim(),
       panelEdit: $("#f-paneled").value.trim(),
       referente: (docentes.filter(function (d) { return d.rol === "referente"; })[0] || {}).correo || YO.correo,
       docentes: docentes.filter(function (d) { return d.nombre || d.correo; })
+                        .map(function (d) { return Object.assign({}, d, { imparte: imparte(d) }); })
     };
   }
 
@@ -190,21 +224,59 @@
       // desde que se siembra, así que repartir el enlace pelado sería repartir un «no puedes entrar».
       var alta = location.origin + '/alistarse.html?per=' + esc(d.id) + MOTOR_EN_ENLACES +
                  (codigo ? '&codigo=' + esc(codigo) : '');
-      app.innerHTML = '<div class="card bien"><h3>Grupo creado</h3>' +
-        '<p><b>' + esc(d.nombre) + '</b> está sembrado y listo.</p>' +
+      /**
+       * 🔴 EL ENLACE NO SE ENSEÑA: SE COPIA. Era una URL larguísima a la vista, en monoespaciada,
+       * que nadie va a teclear ni leer — solo copiar. Enseñarla ocupaba media tarjeta y encima
+       * invitaba a seleccionarla a mano y dejarse un trozo. El código SÍ se enseña, y grande,
+       * porque ese sí se dicta en voz alta en clase.
+       *
+       * Y el Capitán felicitando, que no es adorno: crear un grupo es el momento en que el sistema
+       * pasa a existir, y hasta ahora se despachaba con un «Grupo creado» de recibo de compra.
+       */
+      app.innerHTML = '<div class="card bien exito"><div class="exito-cap">' +
+          '<img src="assets/img/capitan/pulgar.png" alt="" loading="lazy">' +
+          '<div><div class="eyebrow teal">Comandante</div>' +
+          '<h3>¡Grupo listo, Capitán!</h3>' +
+          '<p><b>' + esc(d.nombre) + '</b> está sembrado entero: los retos con sus insignias, los ocho ' +
+          'planetas, la tienda y el álbum. No queda nada por configurar.</p></div></div>' +
         (codigo
           ? '<p class="small muted" style="margin-bottom:2px">Código de acceso de la clase:</p>' +
             '<p class="codigo-grande">' + esc(codigo) + '</p>' +
-            '<p class="small muted">Hace falta para alistarse. El enlace de abajo ya lo lleva dentro; ' +
-            'apúntate el código para quien llegue sin el enlace.</p>'
+            '<p class="small muted">Se dicta en voz alta el primer día, para quien llegue sin el enlace.</p>'
           : '') +
-        '<p>El enlace de alistamiento para tu alumnado:<br><code>' + alta + '</code></p>' +
+        '<div class="exito-acciones">' +
+        '<button class="btn primary grande" id="c-copiar" data-url="' + esc(alta) + '">' +
+          '🔗 Copiar el enlace de invitación</button>' +
+        '<p class="small muted">Es lo único que tienes que repartir. Ya lleva el código dentro.</p>' +
+        '</div>' +
         '<p><a class="btn" href="consola.html?per=' + esc(d.id) + '">Ir a la consola</a> ' +
         '<a class="btn min" href="crear.html">Crear otro</a></p></div>';
+
+      var bc = document.getElementById("c-copiar");
+      bc.onclick = function () {
+        var url = bc.getAttribute("data-url");
+        var ok = function () {
+          bc.textContent = "✓ Copiado";
+          setTimeout(function () { bc.textContent = "🔗 Copiar el enlace de invitación"; }, 1800);
+        };
+        // 🔴 Con respaldo: `navigator.clipboard` no existe fuera de https ni en navegadores viejos,
+        // y quedarse sin copiar el único enlace que hay que repartir sería el peor final posible.
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(ok).catch(function () { aMano(url, ok); });
+        } else aMano(url, ok);
+      };
     } catch (e) {
       boton.disabled = false; paso.textContent = "";
       aviso("No se ha podido crear: " + esc(e.message), "malo");
     }
+  }
+
+  function aMano(txt, ok) {
+    try {
+      var a = document.createElement("textarea");
+      a.value = txt; a.style.position = "fixed"; a.style.opacity = "0";
+      document.body.appendChild(a); a.select(); document.execCommand("copy"); a.remove(); ok();
+    } catch (e) { prompt("Copia este enlace:", txt); }
   }
 
   // ---------------------------------------------------------------- arranque

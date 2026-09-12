@@ -326,7 +326,12 @@ details.foro summary::-webkit-details-marker{display:none}
 .doc b{display:block;font-size:.92rem;color:#eafcff}.doc em{font-style:normal;font-size:.8rem;color:var(--mut)}
 .official.warn{border-color:#7a5a1e;color:#e8d6b0;display:block}
 /* TOUR */
-.tour{position:fixed;inset:0;z-index:60;display:none;pointer-events:none}
+/* 🔴 POR ENCIMA DEL ELEMENTO ILUMINADO. `.tour-foco` se sube a z-index 1002 para escapar del velo
+   —eso está bien— pero el tour entero vivía en 60: NEBULA y su cuadro de diálogo quedaban DETRÁS de
+   la propia tarjeta que estaban señalando, medio tapados. Justo en el onboarding, que es la primera
+   vez que alguien ve el sistema. El contenedor no pinta nada ni recibe clics (`pointer-events:none`,
+   solo el cuadro los acepta), así que subirlo no tapa la página: solo pone a quien habla delante. */
+.tour{position:fixed;inset:0;z-index:1010;display:none;pointer-events:none}
 .tour.open{display:block}
 .tour-box{position:fixed;right:18px;bottom:18px;display:flex;align-items:flex-end;gap:0;pointer-events:auto;max-width:min(640px,96vw)}
 .tour-cap{width:190px;height:auto;filter:drop-shadow(0 10px 30px rgba(0,0,0,.7));margin-right:-26px;z-index:2;position:relative}
@@ -1380,7 +1385,11 @@ body.embed .nave-barra-u{top:0}
 @media (prefers-reduced-motion:reduce){.nb-t,.nb-t .i,.nb-t::after,.nb-m{transition:none}}
 
 /* ═══════════ LOS RETOS DE ESTA SEMANA ═══════════ */
-.retos-semana{margin:0 0 18px}
+/* 🔴 Sin margen arriba, esta tarjeta quedaba PEGADA a la rejilla de la ficha: bordes a cero
+   distancia y, con las esquinas redondeadas de las dos, parecía que se montaban una encima de
+   otra. No se solapaban (se midió: 0 px), pero leer «pegado» y leer «encima» es lo mismo para
+   quien mira. El mismo hueco que usa la rejilla, 18 px. */
+.retos-semana{margin:18px 0}
 .rs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:12px}
 .reto-sem{background:#101a28;border:1px solid #24304a;border-radius:13px;overflow:hidden;
   transition:border-color .16s}
@@ -1409,17 +1418,29 @@ body.embed .nave-barra-u{top:0}
   font-weight:600;color:var(--mut);font-variant-numeric:tabular-nums}
 .rs-cuantos svg{opacity:.75}
 /* Lo que te llevas, con su nombre y qué es. */
-.rs-premios{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
-.rs-premio-uno{display:inline-flex;align-items:center;gap:8px;padding:5px 11px 5px 6px;
-  border-radius:10px;background:rgba(0,0,0,.3);border:1px solid #24304a}
-.rs-premio-uno img{width:30px;height:30px;object-fit:contain;flex:none}
-.rs-premio-uno span{display:flex;flex-direction:column;line-height:1.2;font-size:.86rem;font-weight:600}
-.rs-premio-uno em{font-style:normal;font-size:.66rem;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--mut);font-weight:600}
-.rs-premio-uno.per{border-color:#3d2a52} .rs-premio-uno.per span{color:#c79be6}
-.rs-premio-uno.esp{border-color:#4a3a1a} .rs-premio-uno.esp span{color:var(--amber)}
-.rs-premio-uno.hito{border-color:#1f4a38} .rs-premio-uno.hito span{color:#4fd18b}
-.rs-premio-uno.ins{border-color:#1f3a4a} .rs-premio-uno.ins span{color:var(--teal)}
+/* 🔴 DOS MITADES: lo que hay que hacer a la izquierda, lo que te llevas a la derecha. Antes todo
+   iba en columna y la recompensa acababa siendo una pegatina de 30 px al final, con media tarjeta
+   en blanco debajo. Lo que mueve a hacer un reto es VER el premio: el personaje que recuperas tiene
+   cara, y a 30 px no se le ve. */
+.rs-cols{display:grid;grid-template-columns:1fr 128px;gap:14px;align-items:center}
+.rs-izq{min-width:0}
+.rs-der{display:flex;flex-direction:column;gap:8px;align-items:center}
+.rs-trofeo{margin:0;text-align:center;width:100%}
+.rs-trofeo img{width:100%;max-width:112px;aspect-ratio:1;object-fit:contain;display:block;margin:0 auto;
+  filter:drop-shadow(0 4px 16px rgba(0,0,0,.5))}
+.rs-trofeo figcaption{display:flex;flex-direction:column;line-height:1.25;margin-top:5px}
+.rs-trofeo em{font-style:normal;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.rs-trofeo b{font-size:.8rem;font-weight:700}
+.rs-trofeo.per b{color:#c79be6} .rs-trofeo.per img{filter:drop-shadow(0 0 16px rgba(199,155,230,.4))}
+.rs-trofeo.esp b{color:var(--amber)} .rs-trofeo.esp img{filter:drop-shadow(0 0 16px rgba(242,181,68,.4))}
+.rs-trofeo.hito b{color:#4fd18b} .rs-trofeo.hito img{filter:drop-shadow(0 0 16px rgba(79,209,139,.4))}
+.rs-trofeo.ins b{color:var(--teal)} .rs-trofeo.ins img{filter:drop-shadow(0 0 16px rgba(55,224,236,.4))}
+/* Con dos premios (las Actividades dan dos) caben los dos, más pequeños. */
+.rs-der:has(.rs-trofeo + .rs-trofeo) .rs-trofeo img{max-width:74px}
+@media(max-width:560px){
+  .rs-cols{grid-template-columns:1fr 92px;gap:10px}
+  .rs-trofeo img{max-width:84px}
+}
 .rs-abrir{margin-top:11px;font-size:.8rem;color:var(--mut)}
 .reto-sem[open] .rs-abrir{display:none}
 .rs-detalle{padding:0 16px 16px;border-top:1px solid var(--line)}
@@ -1702,3 +1723,40 @@ body.embed #sg-son{display:none}
 .btn-google:hover{background:#f7f8f8;border-color:#c8ccd0;color:#1f1f1f}
 .btn-google svg{flex:none}
 .puerta-tranquilo{margin-top:-4px}
+
+/* ══════════════ EL BOTÓN DE EMBARCAR ══════════════
+   🔴 Era un botón gris pequeño en una caja medio vacía. Es el momento en que alguien entra en el
+   juego para el curso entero y se firma UNA sola vez: si algo merece épica, es esto. */
+.a-firmar{text-align:center;padding:26px 20px}
+.a-firmar-lema{font-family:'Unbounded',sans-serif;font-size:1.15rem;margin:0 0 16px;color:var(--teal);
+  letter-spacing:.01em}
+.a-firmar-pie{margin:14px 0 0;font-size:.85rem;color:var(--mut)}
+.btn.epico{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;
+  font-family:'Unbounded',sans-serif;font-size:1.18rem;font-weight:700;letter-spacing:.03em;
+  padding:18px 46px;border-radius:14px;border:0;cursor:pointer;color:#04141a;
+  background:linear-gradient(135deg,#37e0ec,#7ef0c8 45%,#ffd166);
+  box-shadow:0 0 0 1px rgba(55,224,236,.5),0 10px 34px rgba(55,224,236,.34),0 2px 0 rgba(255,255,255,.35) inset;
+  transition:transform .16s cubic-bezier(.2,.9,.3,1.3),box-shadow .16s}
+.btn.epico:hover{transform:translateY(-2px) scale(1.02);
+  box-shadow:0 0 0 1px rgba(55,224,236,.7),0 16px 44px rgba(55,224,236,.46),0 2px 0 rgba(255,255,255,.4) inset}
+.btn.epico:active{transform:translateY(1px) scale(.99)}
+.btn.epico:disabled{filter:grayscale(.75) brightness(.7);cursor:default;transform:none;box-shadow:none}
+.btn.epico .ep-txt{position:relative;z-index:2}
+/* El destello que cruza: dice «esto es un momento», no «esto es un formulario». */
+.btn.epico .ep-luz{position:absolute;inset:0;z-index:1;
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);
+  transform:translateX(-120%);animation:epBrillo 3.4s ease-in-out infinite}
+@keyframes epBrillo{0%,55%{transform:translateX(-120%)}80%,100%{transform:translateX(120%)}}
+@media (prefers-reduced-motion:reduce){.btn.epico .ep-luz{animation:none;opacity:0}.btn.epico{transition:none}}
+
+/* Crear un grupo es el momento en que el sistema pasa a existir. Se despachaba con un «Grupo
+   creado» de recibo de compra y una URL larguísima a la vista que nadie iba a leer, solo copiar. */
+.card.exito{text-align:center}
+.exito-cap{display:flex;align-items:center;gap:18px;text-align:left;margin-bottom:18px}
+.exito-cap img{width:110px;flex:none;filter:drop-shadow(0 6px 22px rgba(55,224,236,.3))}
+.exito-cap h3{margin:2px 0 6px;font-size:1.35rem}
+.exito-cap p{margin:0;color:var(--mut);line-height:1.5}
+.exito-acciones{margin:18px 0 16px}
+.exito-acciones .btn.grande{font-size:1.02rem;padding:15px 30px}
+.exito-acciones p{margin:9px 0 0}
+@media(max-width:620px){.exito-cap{flex-direction:column;text-align:center}.exito-cap img{width:92px}}
