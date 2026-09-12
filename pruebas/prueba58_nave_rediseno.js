@@ -124,4 +124,20 @@ CAMPOS_VAL.forEach(function (f) {
     "   y todos se defienden de que falte el dato: " + f.slice(0, 46));
 });
 
+// ---------------------------------------------------------------- i) la puerta acepta la cuenta
+// 🔴 La sala del docente enlaza «Proyectar la semana», y esa página está detrás de la puerta del
+// profesorado, que pedía un PIN. Con el motor nuevo NO HAY PIN que repartir: un docente pulsaba su
+// propio botón y se estrellaba. Ahora la cuenta es la llave.
+const PUERTA = js("puerta.js");
+c(/localStorage\.getItem\('sgEsDocente'\) === '1'/.test(PUERTA),
+  "🔴 la puerta se abre si el motor ya reconoció a esa cuenta como docente");
+c(/localStorage\.setItem\("sgEsDocente", "1"\)/.test(MOTOR),
+  "   y la marca la pone `misPERs`, que es donde el SERVIDOR dice que sí");
+c(/if \(mios\.length\)/.test(MOTOR),
+  "🔴 solo si devuelve algún grupo: tener sesión no basta, un alumno también la tiene");
+c(/localStorage\.removeItem\("sgEsDocente"\)/.test(MOTOR),
+  "   y se borra al salir, o cerrar sesión no cerraría nada");
+c(PUERTA.indexOf("sgEsDocente") > PUERTA.indexOf("sessionStorage.getItem('sgPin')"),
+  "   el PIN de siempre sigue funcionando primero: los grupos viejos no se tocan");
+
 E.resumen("La Nave rediseñada");

@@ -42,7 +42,12 @@ onAuthStateChanged(auth, u => {
 const sesion = () => new Promise(ok => (quien !== undefined ? ok(quien) : esperando.push(ok)));
 
 async function entrar() { const r = await signInWithPopup(auth, google); return r.user; }
-async function salir() { await signOut(auth); }
+async function salir() {
+  // La marca de docente se va con la sesión: si no, quien cierre sesión seguiría entrando en la
+  // zona del profesorado desde ese navegador.
+  try { localStorage.removeItem("sgEsDocente"); } catch (e) {}
+  await signOut(auth);
+}
 
 // ------------------------------------------------------------------ leer
 // 🔴 Las colecciones de GamificaPro son comunes a TODOS los proyectos, así que el identificador
@@ -93,8 +98,13 @@ const tablero = async (perId, conPrivados) =>
 async function misPERs(correo) {
   correo = String(correo || "").toLowerCase();
   const r = await getDocs(query(collection(db, "projects"), where("coTeacherEmails", "array-contains", correo)));
-  return r.docs.map(d => ({ id: d.id, nombre: d.data().name, stargate: d.data().stargate || {} }))
-               .filter(x => x.stargate.version);
+  const mios = r.docs.map(d => ({ id: d.id, nombre: d.data().name, stargate: d.data().stargate || {} }))
+                     .filter(x => x.stargate.version);
+  // 🔴 La marca que abre la puerta del profesorado. Se pone AQUÍ porque este es el único sitio donde
+  // el servidor ha dicho que sí: si devuelve grupos, esta cuenta es docente de alguno. No es una
+  // contraseña —no se puede teclear— y se borra al salir.
+  try { if (mios.length) localStorage.setItem("sgEsDocente", "1"); } catch (e) {}
+  return mios;
 }
 
 // ------------------------------------------------------------------ escribir

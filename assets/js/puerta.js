@@ -27,6 +27,22 @@
   if (q.get('embed') === '1' || q.get('solo') === '1' || q.get('panorama') === '1') { abrir(); return; }
 
   if (sessionStorage.getItem('sgPin')) { abrir(); return; }
+
+  /**
+   * 🔴 12-sep · LA CUENTA TAMBIÉN ES UNA LLAVE.
+   *
+   * Con el motor nuevo no hay PIN que repartir: el profesorado entra con su cuenta de Google y el
+   * servidor decide. Esta puerta se quedó pidiendo un PIN que ya nadie tiene — y desde que la sala
+   * del docente enlaza «Proyectar la semana», un docente pulsaba y se estrellaba contra ella.
+   *
+   * La marca la pone el motor cuando confirma que esa cuenta es docente de algún grupo (ver
+   * `misPERs` en motor.js). No es una contraseña que se pueda teclear: o el servidor te ha
+   * reconocido alguna vez en este navegador, o no está.
+   *
+   * Y no se abre por tener sesión a secas: un alumno también la tiene, y esto es material de
+   * profesorado.
+   */
+  if (localStorage.getItem('sgEsDocente') === '1') { abrir(); return; }
   if (!API) { abrir(); return; }        // sin API no se puede validar: mejor abrir que dejar tapado
 
   function pintar(aviso){
