@@ -810,28 +810,36 @@ PASOS = [
         "ranking, así que dedícales diez segundos."),
 
    dict(cod="E4", t="Tu primer reto", pose="brazos", img=None,
-    hacer="En la Nave, pestaña <b>Mis retos</b> → <b>Lo he hecho</b> en el reto que hayas terminado.",
-    voz="Nada más alistarte ya estás en la nave, con tu primera insignia. El primer reto es "
-        "presentarte a tu tripulación, que es un vídeo de sesenta segundos. Cuando lo tengas hecho "
-        "de verdad, pulsas Lo he hecho y pegas el enlace. Verás subir los puntos y el dinero en el "
-        "momento, sin recargar nada y sin enviar ningún formulario."),
+    hacer="En <b>Mi nave</b>, el bloque <b>«Lo que puedes conseguir esta semana»</b> → pulsa el reto "
+          "y dentro, <b>Lo he hecho</b>.",
+    voz="Nada más alistarte ya estás en la nave, con tu primera insignia. Y lo primero que ves es lo "
+        "que puedes conseguir esta semana, con lo que da cada cosa. Pulsa un reto y se abre lo que "
+        "hay que hacer, paso a paso. Cuando lo tengas hecho de verdad, Lo he hecho y pegas el "
+        "enlace. Verás subir los puntos y el dinero arriba, en el momento, sin recargar nada y sin "
+        "enviar ningún formulario."),
 
-   dict(cod="E5", t="Las seis pestañas", pose="senala", img="e6_pestanas.png",
-    hacer="Arriba: <b>Mi ficha · Mis retos · Esta semana · Los planetas · Recompensas · El tablero</b>.",
-    voz="Seis pestañas. Mi ficha eres tú. Mis retos, lo que llevas y lo que te falta. Esta semana, lo "
-        "que toca ahora. Los planetas son los ocho temas, y se van abriendo con el calendario. "
-        "Recompensas es la tienda. Y el tablero es la clase entera: si pulsas a alguien ves su "
-        "personaje y su biografía."),
+   dict(cod="E5", t="La barra de arriba", pose="senala", img="e6_pestanas.png",
+    hacer="Siempre contigo: tu nombre, las cinco pestañas y tus <b>xp</b> y <b>créditos</b>.",
+    voz="Arriba tienes una barra que no se va nunca. A la izquierda estás tú; a la derecha, tus "
+        "puntos y tu dinero, para que los veas subir estés donde estés. Y en medio, cinco sitios. "
+        "Mi nave es donde aterrizas: quién eres, lo que toca esta semana y los planetas. Mis retos "
+        "es el viaje entero. Mi botín es todo lo que llevas ganado: insignias, cartas y personajes. "
+        "El Mercado Estelar es donde gastas. Y Rankings es la clase entera, de ocho maneras "
+        "distintas. Los tres puntos de la derecha guardan lo que se usa de vez en cuando."),
 
    dict(cod="E6", t="Dos marcadores, no uno", pose="tablet", img="e7_premios.png",
-    hacer="Pestaña <b>Recompensas</b>: el catálogo con sus precios.",
+    hacer="Pestaña <b>Mercado Estelar</b>: el catálogo con sus precios.",
     voz="Y una cosa que confunde a todo el mundo: hay dos marcadores. Los xp suben de nivel y no se "
         "gastan nunca. Los créditos son dinero, y sí se gastan. Aquí eliges en qué. Hay cosas de "
         "adorno y cosas que tocan tu nota, así que piensa antes de fundirte el sueldo en un marco dorado."),
 
-   dict(cod="E7", t="Bienvenido a bordo", pose="pulgar", img="e8_tablero.png",
-    hacer="El tablero de la clase: pulsa a cualquiera para ver su ficha.",
-    voz="Eso es todo. Recuerda la regla: siempre la misma cuenta de Google. Bienvenido a bordo, recluta."),
+   dict(cod="E7", t="Ocho formas de ir primero", pose="pulgar", img="e8_tablero.png",
+    hacer="Pestaña <b>Rankings</b>: pulsa a cualquiera para ver su ficha.",
+    voz="Y una última cosa, que es la que más me gusta. No hay un ranking, hay ocho. El de siempre, "
+        "el de esta semana, el de tu escuadrón, el de los escuadrones entre sí, el de quien no falla "
+        "ni una semana, el de quien colecciona, el de las insignias y el de quien termina los "
+        "planetas enteros. Si no destacas en uno, destacas en otro. Siempre la misma cuenta de "
+        "Google, y bienvenido a bordo, recluta."),
   ]),
 ]
 

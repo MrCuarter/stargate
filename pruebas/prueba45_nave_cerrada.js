@@ -107,14 +107,17 @@ c(/correo/.test(puerta), "   y sí dice lo único que hace falta: el correo");
 c(/Nos vemos al otro lado/.test(puerta), "   y se despide hasta después de identificarse");
 igual((puerta.match(/\{t:/g) || []).length, 3, "🔬 el acto 1 son tres pasos");
 const actoDos = R.slice(R.indexOf("var PASOS=["), R.indexOf("// Un solo motor"));
-// 🔴 El acto 2 son CUATRO: los tres de contenido más la invitación a estrenar el Mercado. Norberto:
-// «acaba invitando a ir al mercado estelar y comprar un héroe o un sobre». Un tutorial que termina
-// diciendo «ahora ve y haz esto» se recuerda; uno que termina con «ya está» no.
-igual((actoDos.match(/\{t:/g) || []).length, 4, "   y el acto 2, cuatro (el último invita a estrenarse)");
-c(/Mercado Estelar/.test(actoDos) && /sobre de cromos/i.test(actoDos) && /Héroe de la Rebelión/.test(actoDos),
-  "   invitando a un sobre o a un héroe, con su precio");
-// cada paso señala algo de la pantalla: explicar «esto de aquí» sin que se vea el aquí no explica
-igual((actoDos.match(/foco:/g) || []).length, 4, "🔴 los cuatro pasos resaltan la zona de la que hablan");
+// 🔴 12-sep · El acto 2 son CINCO desde el rediseño, y cada uno señala una zona de la Nave NUEVA.
+// Antes eran cuatro y hablaban de una parrilla de accesos y de marcar los retos en la Bitácora: dos
+// cosas que ya no existen. Un guía que señala a un sitio vacío es peor que no tener guía, así que
+// aquí se comprueba que los focos apunten a algo que de verdad se pinta.
+igual((actoDos.match(/\{t:/g) || []).length, 5, "   y el acto 2, cinco (el último invita a estrenarse)");
+igual((actoDos.match(/foco:/g) || []).length, 5, "🔴 los cinco pasos resaltan la zona de la que hablan");
+["\\.nave-estado", "\\.retos-semana", "\\.nb-fin", "\\.nb-tabs", "\\.nb-t\\[data-tab=\"mercado\"\\]"]
+  .forEach(function (sel) {
+    c(new RegExp("foco:'" + sel + "'").test(actoDos),
+      "   y uno de ellos señala «" + sel.replace(/\\/g, "") + "», que la Nave pinta de verdad");
+  });
 c(/classList\.add\('tour-foco'\)/.test(R) && /scrollIntoView/.test(R),
   "   y la nave se desplaza hasta ella");
 c(/querySelectorAll\('\.tour-foco'\)/.test(R),

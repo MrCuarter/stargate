@@ -1888,6 +1888,8 @@ TOUR_CLASE = {
  "invita": "¿Te enseño tu sala?",
  "invita2": "Sobre todo, el orden en que tu alumnado tiene que hacer las cosas.",
  "pasos": [
+  {"sel":"#sala-herramientas","pose":"senala","t":"Tus tres botones",
+   "x":"Lo que se usa <b>en directo</b>: proyectar la semana ya montada, el <b>aula</b> —donde tocas llamada a filas, ves quién ficha y repartes premios a mano— y la llamada suelta con el botón grande. Los dos últimos se incrustan en tu Genially y valen para todos tus grupos."},
   {"sel":"#sala-cabecera","pose":"saluda","t":"Esta es tu sala, Capitán",
    "x":"Todo lo que necesitas antes de entrar al aula, en una página. Pero empecemos por lo que más "
        "se atasca: <b>el orden en que tu alumnado tiene que hacer las cosas</b>. Son cinco pasos, y el "

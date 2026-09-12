@@ -1036,15 +1036,20 @@
     {t:'Tu arma: la Bitácora',x:'Contra la Estática no sirven las armas: sirve <b>dejar constancia</b>. Tu <b>Bitácora Estelar</b> es tu ePortfolio: cada evidencia que registres la hace más fuerte. Cuando esté completa, la puerta a la Tierra se abrirá.'},
     {t:'Y ahora, ¿quién eres?',x:'Esta nave es <b>tuya</b>, pero no puedo abrirla sin saber a quién se la abro. Escribe ahí arriba el <b>correo</b> con el que te alistaste.<br><br>¿Todavía no te has alistado? Escríbelo igualmente: te doy el enlace para subir a bordo.<br><br><b>Nos vemos al otro lado.</b>'}
   ];
+  // 🔴 12-sep · Reescrito con la Nave nueva. El acto 2 hablaba de «seis pestañas», de marcar los
+  // retos en la Bitácora y señalaba botones de una parrilla de accesos que ya no existe. Un guía que
+  // señala a un sitio vacío es peor que no tener guía.
   var PASOS=[
-    {t:'Te tengo, recluta',foco:'.nave-tab[data-tab="ficha"]',
-     x:'Identificación confirmada. Desde este dispositivo la nave se abrirá sola cada vez que vuelvas. <b>Esto de aquí abajo eres tú</b>: tu personaje, tu nivel y lo que llevas ganado.'},
-    {t:'Cada misión te da dos cosas',foco:'.acc[data-vent^="📓"]',
-     x:'Cuando completas un reto lo marcas <b>aquí</b>, en tu Bitácora. A cambio ganas <b>experiencia</b>, que sube de nivel a tu personaje y le cambia el aspecto; y <b>créditos ◈</b>, que son dinero.<br><br>La experiencia <b>nunca baja</b>. Los créditos se gastan.'},
-    {t:'La nave avanza sola',foco:'.nave-tabs',
-     x:'Aquí arriba cambias de sección: tus retos, la orden de esta semana, el mapa de los ocho planetas y el tablero de tu clase. Cada semana se desbloquea un planeta nuevo; los de más adelante están en silencio… de momento.'},
-    {t:'Y ahora, estrénate',foco:'.acc[data-vent^="🛸"]',
-     x:'Ahí está el <b>Mercado Estelar</b>: donde se gastan los créditos. Si ya tienes para uno, prueba con un <b>sobre de cromos</b> (15 ◈, una carta al azar de las 20) o con un <b>Héroe de la Rebelión</b> (60 ◈, una figura de las 30 para tu vestuario).<br><br>Es la forma más rápida de entender para qué sirve todo esto. Corto y cierro.'}
+    {t:'Te tengo, recluta',foco:'.nave-estado',
+     x:'Identificación confirmada. Desde este dispositivo la nave se abrirá sola cada vez que vuelvas. <b>Esto de aquí eres tú</b>: tu personaje, tu nivel y lo que llevas ganado. Al lado, lo que toca esta semana.'},
+    {t:'Lo que puedes conseguir hoy',foco:'.retos-semana',
+     x:'Aquí abajo están los retos de <b>esta semana</b>, con lo que da cada uno: <b>experiencia</b>, que sube de nivel a tu personaje y le cambia el aspecto, y <b>créditos ◈</b>, que son dinero.<br><br>Pulsa uno y se abre lo que hay que hacer, paso a paso. Cuando lo tengas, <b>«Lo he hecho»</b> ahí mismo.<br><br>La experiencia <b>nunca baja</b>. Los créditos se gastan.'},
+    {t:'Tus dos marcadores, siempre a la vista',foco:'.nb-fin',
+     x:'Arriba a la derecha, tus <b>xp</b> y tus <b>créditos</b>. No se van nunca: estés en la pestaña que estés, los verás subir en el momento en que ganes algo.'},
+    {t:'Cinco sitios, y ya está',foco:'.nb-tabs',
+     x:'<b>Mi nave</b> es esto. <b>Mis retos</b>, el viaje entero por los ocho planetas. <b>Mi botín</b>, todo lo que llevas ganado: insignias, cartas y personajes. <b>Mercado Estelar</b>, donde se gasta. Y <b>Rankings</b>, tu clase de ocho maneras distintas — porque si no destacas en una, destacas en otra.'},
+    {t:'Y ahora, estrénate',foco:'.nb-t[data-tab="mercado"]',
+     x:'Ve al <b>Mercado Estelar</b>. Si ya tienes para uno, prueba con un <b>sobre de cromos</b> (15 ◈, una carta al azar de las 20) o con un <b>Héroe de la Rebelión</b> (60 ◈, una figura de las 30 para tu vestuario).<br><br>Es la forma más rápida de entender para qué sirve todo esto. Corto y cierro.'}
   ];
   // Un solo motor para los dos actos: el acto decide QUÉ pasos, con qué clave de memoria y qué pone
   // el último botón. Duplicar la función habría sido la vía rápida para que uno de los dos se quede
