@@ -808,6 +808,18 @@
   function avisoPase(){
     var L=st.llamada;
     if(!L||!st.yo) return '';
+    /**
+     * 🔴 12-sep · UNA LLAMADA DE OTRO ESCUADRÓN NO ES ASUNTO TUYO. Cada Comandante toca llamada para
+     * SU escuadrón, y la Nave se la enseñaba a todo el grupo: el laboratorio simuló una clase y a
+     * Carla —del otro Comandante— le salió «✋ Presente» en una llamada que no era la suya. Al
+     * pulsar, el servidor le decía que no. Un botón que existe para decirte que no es un botón roto.
+     * El recluta se ata a su escuadrón por el nombre de su Comandante (`profe`), que es la misma
+     * llave que usan los rankings.
+     */
+    if(L.faccion){
+      var e=((st.d&&st.d.escuadrones)||[]).filter(function(x){return x.id===L.faccion;})[0];
+      if(e && st.yo.profe && e.comandante && e.comandante!==st.yo.profe) return '';
+    }
     if(st.fichado) return '<div class="pase-nave hecho">✅ <b>Presente.</b> Ya estás en la lista de hoy.</div>';
     var seg=Math.max(0,Math.round((L.hasta-Date.now())/1000));
     return '<div class="pase-nave"><b>🔔 Llamada a filas</b>'
@@ -836,6 +848,7 @@
         hasta: (sesion.endTime && sesion.endTime.toDate ? sesion.endTime.toDate() : new Date(sesion.endTime)).getTime(),
         comandante: sesion.teacherDisplayName || '',
         escuadron: nombreEscuadron(sesion.restrictedFactionId),
+        faccion: sesion.restrictedFactionId || '',
         xp: Number(sesion.pointsReward||15), creditos: Number(sesion.coinsReward||30)
       } : null;
       if((st.llamada&&st.llamada.id)!==antes){ st.fichado=false; render(); }
@@ -853,12 +866,25 @@
     var e=((st.d&&st.d.escuadrones)||[]).filter(function(x){return x.id===id;})[0];
     return e?e.nombre:'';
   }
+  /** Las cartas que tenía ANTES de este premio, contadas: {clave: n}. */
+  function inventarioDe(yo){
+    // el tablero da `cromos` como {clave: cuántas}; se copia para no tocar la ficha
+    var src=(yo&&yo.cromos)||{}, n={};
+    Object.keys(src).forEach(function(k){ n[k]=Number(src[k])||0; });
+    return n;
+  }
+  function marcaRepetida(c, tenia){
+    var x = (window.SG.SOBRE && SG.SOBRE.normaliza) ? SG.SOBRE.normaliza(c) : c;
+    x.repetida = !!tenia[x.clave]; tenia[x.clave]=(tenia[x.clave]||0)+1;
+    return x;
+  }
   function fichar(){
     var b=document.getElementById('pase-ok'), m=document.getElementById('pase-msg');
     if(!b||!st.yo||!st.yo.ficha) return;
     b.disabled=true; b.textContent='Registrando…';
     var antes=JSON.parse(JSON.stringify(st.yo)), donde=puntoDe(b);
-    if(enDemo()){ aviso('🎬 <b>Esto es una demostración.</b> En tu Nave de verdad, «Presente» te daría los créditos de la asistencia.'); return; }
+    if(enDemo()){ b.disabled=false; b.textContent='✋ Presente';
+      aviso('🎬 <b>Esto es una demostración.</b> En tu Nave de verdad, «Presente» te daría los créditos de la asistencia.'); return; }
     window.SG.MOTOR.ficharLlamada(per, st.yo.ficha).then(function(r){
       st.fichado=true;
       if(r&&r.repetido){ if(m) m.textContent='Ya constabas en la lista de hoy.'; render(); return; }
@@ -869,14 +895,15 @@
        */
       // El regalo del docente, si lo puso al abrir la llamada. Va con la ventana de NEBULA porque
       // es lo mismo que un canje: has ganado algo y hay que ver QUÉ.
-      if(r && r.regalo && r.regalo.length){
-        nebulaEntrega({
-          tipo:'cromo', coste:0, antes:(st.yo&&st.yo.creditos)||0,
-          arte: arteDeCarta('cromo_'+r.regalo[0].clave),
-          titulo:'🎁 Regalo del Comandante',
-          queEs: r.regalo.map(function(c){ return c.nombre; }).join(' · '),
-          donde:'Por venir a clase. Están en tu álbum.'
-        });
+      // 🔴 12-sep · Carta a carta, con el mismo sobre que el Mercado: tres cartas de golpe en una
+      // línea de texto es tirar el mejor momento de la clase. Se deja un segundo para que suban los
+      // contadores de la asistencia, y luego se abre el regalo.
+      if(r && r.regalo && r.regalo.length && window.SG.SOBRE){
+        var tenia = inventarioDe(antes);
+        setTimeout(function(){
+          SG.SOBRE.revelar(r.regalo.map(function(c){ return marcaRepetida(c, tenia); }),
+            { titulo:'🎁 El regalo de tu Comandante', alAlbum:function(){ irA('botin'); } });
+        }, 1300);
       }
       if(r && r.racha > 1){
         var txt = '🔥 <b>'+r.racha+' clases seguidas</b>'
@@ -1428,7 +1455,9 @@
           +' data-abrir="'+((x.tipo==='cromo'||x.tipo==='heroe')?'1':'0')+'"'
           // 🔴 Cuántas cartas trae: un sobre son TRES, un héroe uno. El dato viaja con el botón
           // porque el número lo decide el catálogo (`maxUses`), no la Nave.
-          +' data-usos="'+(x.tipo==='cromo'?3:1)+'">'
+          // 🔴 12-sep · era «3» a fuego, y los grupos creados antes de pasar a tres cartas traen
+          // sobres de UNA: se pedían tres aperturas, dos fallaban en silencio. Ahora lo dice el sobre.
+          +' data-usos="'+(x.usos||(x.tipo==='cromo'?3:1))+'">'
           +(gratis?'Cambiar':'Canjear por '+x.coste+' ◈')+'</button>'
         : '';
       // El pie va aparte y se pega abajo (`margin-top:auto`): así el botón de todas las tarjetas de
@@ -2083,7 +2112,7 @@
     var tenia=(st.yo&&st.yo.creditos!=null)?st.yo.creditos:0;
     var donde=puntoDe(boton);
     esperandoNebula();
-    post({accion:'canje',per:per,recompensa:id,abrir:abrir,usos:usos||1},function(d){
+    post({accion:'canje',per:per,recompensa:id,abrir:abrir,usos:usos||1,tipo:tipo||''},function(d){
       var botin = d && d.botin;
       // Si ha tocado una carta, lo que se enseña es LA CARTA, no «Sobre de cromos»: nadie compra un
       // sobre por el sobre.
@@ -2092,6 +2121,25 @@
       // ninguna se cae al emoji. Entregar un icono genérico teniendo la ilustración es desperdiciar
       // el único momento en que se enseña lo comprado.
       var varias = (d && d.botines) || (botin ? [botin] : []);
+      /**
+       * 🔴 12-sep · SI TRAE CARTAS, SE ABREN CARTA A CARTA. Norberto: «una forma visual y atractiva
+       * de presentar los 3 cromos ganados, uno detrás de otro». NEBULA cede el sitio al sobre —su
+       * ventana enseñaba la primera carta y los nombres de las otras en una línea— y al cerrar se
+       * dice lo que ha costado. Para lo que no son cartas (un marco, subir nota) sigue NEBULA.
+       */
+      if (varias.length && window.SG.SOBRE && !(d && d.sinAbrir)) {
+        var capaN = document.querySelector('.neb-capa'); if (capaN && capaN.parentNode) capaN.parentNode.removeChild(capaN);
+        var tenidas = inventarioDe(antes);
+        SG.SOBRE.revelar(varias.map(function(c){ return marcaRepetida(c, tenidas); }),
+          { titulo: tipo === 'heroe' ? 'Tu héroe de la Rebelión' : 'Tu sobre de cromos',
+            alAlbum: function(){ irA('botin'); } })
+          .then(function(){
+            aviso('🃏 <b>' + varias.length + (varias.length === 1 ? ' carta' : ' cartas') + '</b> a tu álbum'
+              + (coste ? ' · −' + coste + ' ◈' : '') + '.');
+          });
+        refrescarYCelebrar(antes, donde, 'canje-mudo', '');
+        return;
+      }
       var arte = botin ? arteDeCarta(botin) : null;
       if (!arte) {
         var propia = (window.SG_IMG_RECOMPENSA || {})[nombre];

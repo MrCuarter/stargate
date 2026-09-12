@@ -124,9 +124,12 @@ async function persona(nombre) {
   const { browserContextId } = await NAV.enviar("Target.createBrowserContext", { disposeOnDetach: true });
   const { targetId } = await NAV.enviar("Target.createTarget", { url: "about:blank", browserContextId });
   const { sessionId } = await NAV.enviar("Target.attachToTarget", { targetId, flatten: true });
-  const errores = [];
+  const errores = [], rotos = [];
   NAV.al(m => {
     if (m.sessionId !== sessionId) return;
+    // 🔴 El 404 con su DIRECCIÓN: «Failed to load resource» a secas no dice qué falta.
+    if (m.method === "Network.responseReceived" && m.params.response && m.params.response.status >= 400)
+      rotos.push(m.params.response.status + " " + m.params.response.url);
     if (m.method === "Runtime.exceptionThrown") {
       const d = m.params.exceptionDetails || {};
       errores.push(String((d.exception && d.exception.description) || d.text || "error").split("\n")[0]);
@@ -134,7 +137,7 @@ async function persona(nombre) {
     if (m.method === "Log.entryAdded" && m.params.entry.level === "error") errores.push(String(m.params.entry.text || ""));
   });
   const env = (m, p) => NAV.enviar(m, p, sessionId);
-  await env("Page.enable"); await env("Runtime.enable"); await env("Log.enable");
+  await env("Page.enable"); await env("Runtime.enable"); await env("Log.enable"); await env("Network.enable");
   await env("Emulation.setDeviceMetricsOverride", { width: 1280, height: 860, deviceScaleFactor: 1, mobile: false });
   // 🔴 El interruptor del laboratorio, puesto ANTES de que cargue nada en cada documento nuevo.
   await env("Page.addScriptToEvaluateOnNewDocument", { source:
@@ -142,7 +145,7 @@ async function persona(nombre) {
     // los diálogos del navegador (alert/confirm) congelarían la prueba: se aceptan y se anotan
     `window.__dialogos = []; window.alert = function(m){ window.__dialogos.push(String(m)); };` });
   const p = {
-    nombre, errores, env,
+    nombre, errores, rotos, env,
     async ir(pagina) { await env("Page.navigate", { url: pagina.indexOf("http") === 0 ? pagina : BASE + pagina });
                        await p.hasta("document.readyState==='complete'", 15); await dormir(250); },
     async js(expr, ms) {
@@ -191,6 +194,30 @@ async function persona(nombre) {
   return p;
 }
 
+// ------------------------------------------------------------------ administración del emulador
+/**
+ * firebase-admin contra el EMULADOR, para preparar escenas que en la vida real llevan días (una
+ * llamada de ayer para probar la racha) y para mirar lo que ha quedado escrito sin pasar por las
+ * reglas. La variable de entorno se pone ANTES de cargar la librería: si no, hablaría con producción.
+ */
+let _admin = null;
+function admin() {
+  if (_admin) return _admin;
+  process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${EMU.firestore}`;
+  process.env.FIREBASE_AUTH_EMULATOR_HOST = `127.0.0.1:${EMU.auth}`;
+  const a = require("/Users/nor/Claude/vibewebs/gamificapro/node_modules/firebase-admin");
+  if (!a.apps.length) a.initializeApp({ projectId: PROYECTO });
+  _admin = a;
+  return a;
+}
+async function fichaDe(correo, per) {
+  const a = admin();
+  const u = await a.auth().getUserByEmail(correo).catch(() => null);
+  if (!u) return null;
+  const r = await a.firestore().collection("student_profiles").where("projectId", "==", per).where("userId", "==", u.uid).get();
+  return r.empty ? null : Object.assign({ _id: r.docs[0].id, _uid: u.uid }, r.docs[0].data());
+}
+
 // ------------------------------------------------------------------ marcador
 let ok = 0; const fallos = [];
 function comprobar(nombre, cierto, detalle) {
@@ -199,5 +226,5 @@ function comprobar(nombre, cierto, detalle) {
   fallos.push(t); process.stderr.write("   ✗ " + t + "\n"); return false;
 }
 
-module.exports = { emuladoresVivos, reiniciar, leerDoc, consultar, arrancar, parar, persona, comprobar, dormir,
+module.exports = { emuladoresVivos, reiniciar, leerDoc, consultar, arrancar, parar, persona, comprobar, dormir, admin, fichaDe,
                    marcador: () => ({ ok, fallos }), BASE, P_WEB2, PUBLICA, RAIZ };

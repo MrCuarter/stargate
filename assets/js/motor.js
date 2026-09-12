@@ -693,7 +693,9 @@ async function ficharLlamada(perId, fichaId) {
         try {
           const c = await llamar("consumeItem", { projectId: perId, rewardId: r.regalo.rewardId, studentProfileId: fichaId });
           const b = c && (c.botin || c.obtenido);
-          if (b) regalo.push(b);
+          // la pantalla de la Nave espera {clave, nombre, rareza}; el servidor devuelve el id de la
+          // carta en cadena. Sin traducirlo, la celebración pedía «undefined_carta.png».
+          if (b) regalo.push(cartaDeBotin(b));
         } catch (e) { break; }   // lo que no se abra se queda en el inventario, para abrirlo en el álbum
       }
     }
@@ -956,9 +958,11 @@ async function reclamarHuevo(perId, huevoId, fichaId) {
   }
   // Y se abre en el momento: es un regalo, no un paquete que haya que ir a buscar al álbum.
   const usos = Math.max(1, Number(R.maxUses || 1)), sacadas = [];
+  let abiertos = 0;
   for (let i = 0; i < usos; i++) {
     try {
       const c = await llamar("consumeItem", { projectId: perId, rewardId: rid, studentProfileId: fichaId });
+      abiertos++;
       const b = c && (c.botin || c.obtenido);
       if (b) sacadas.push(b);
     } catch (e) { break; }   // lo que no se abra queda en el inventario y se abre desde el álbum
@@ -969,6 +973,9 @@ async function reclamarHuevo(perId, huevoId, fichaId) {
     const b = sacadas[0] ? cartaDeBotin(sacadas[0]) : null;
     detalle = { tipo: "heroe", nombre: b ? b.nombre : "", clave: b ? b.clave : "" };
   } else if (H.premio === "bolsa") detalle = { tipo: "bolsa", creditos: Number(H.creditos || 50) };
+  // 🔴 Si no se ha podido abrir, se dice: el premio está en su inventario y se abre desde la Nave. Lo
+  // contrario —«+50 ◈, ya está en tu cuenta» con el saldo quieto— es lo que pasó la primera vez.
+  if (usos > 0 && !abiertos) detalle = Object.assign({}, detalle || {}, { sinAbrir: true });
   return { ok: true, premio: H.premio, detalle: detalle, nombre: R.title || "" };
 }
 
@@ -979,7 +986,8 @@ function cartaDeBotin(b) {
   const clave = id.split("__").pop().replace(/^(cromo|heroe)_/, "");
   const cat = window.SG_CATALOGO || {};
   const x = (cat.cromos || []).concat(cat.heroes || []).find(c => c.clave === clave) || {};
-  return { clave: clave, nombre: x.nombre || (b && (b.title || b.nombre)) || clave, rareza: x.rareza || "" };
+  const tipo = id.split("__").pop().indexOf("heroe_") === 0 ? "heroe" : "cromo";
+  return { clave: clave, tipo: tipo, nombre: x.nombre || (b && (b.title || b.nombre)) || clave, rareza: x.rareza || "" };
 }
 
 async function nuevoCodigo(perId) {

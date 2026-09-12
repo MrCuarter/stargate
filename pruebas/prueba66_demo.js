@@ -56,8 +56,8 @@ c(/function post\(cuerpo,cb,err\)\{[\s\S]{0,900}if\(enDemo\(\)\)/.test(N),
   c(acciones.length >= 7 && sin.length === 0,
     "   y cada una de las " + acciones.length + " escrituras dice qué habría hecho" + (sin.length ? " (faltan: " + sin + ")" : ""));
 }
-c(/if\(enDemo\(\)\)\{ aviso\([^)]*Presente/.test(N),
-  "🔴 fichar en la llamada, que NO pasa por post(), también se frena");
+c(/if\(enDemo\(\)\)\{[^}]{0,120}aviso\([^)]*Presente/.test(N),
+  "🔴 fichar en la llamada, que NO pasa por post(), también se frena (y deja el botón como estaba)");
 c(/setTimeout\(render, ?60\)/.test(N),
   "   y se repinta: el botón no se queda en «Registrando…» para siempre");
 

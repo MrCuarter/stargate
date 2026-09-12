@@ -2315,6 +2315,7 @@ tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
 <script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS, ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};</script>
 <script src="assets/js/calendario.js" defer></script>
+<script src="assets/js/sobre.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
 </div></section>
 <section id="nave-ranking"><div class="wrap">
@@ -2926,7 +2927,7 @@ _html = head("STARGATE · Un escondite",
 <header class="hero corto"><h1>Un escondite</h1></header>
 <section id="huevo"><div class="wrap">
 <div id="huevo-app"><p class="muted">Cargando…</p></div>
-''' + '<script src="' + _v("assets/js/huevo.js") + '" defer></script>' + '''
+''' + '<script src="' + _v("assets/js/sobre.js") + '" defer></script>' + '<script src="' + _v("assets/js/huevo.js") + '" defer></script>' + '''
 <p class="small muted" style="margin-top:22px">Para el profesorado: un enlace por escondite
 (<code>?h=p1</code>, <code>?h=p2</code>…), y cada uno vale en <b>todos</b> los grupos y todas las
 convocatorias — el grupo se deduce de quién pulsa. Se configuran en

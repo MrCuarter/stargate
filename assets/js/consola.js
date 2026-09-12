@@ -25,7 +25,16 @@
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
-  function $(s) { return app.querySelector(s); }
+  /**
+   * 🔴 12-sep · CON CONTEXTO, COMO EN `crear.js`. Aquí `$` solo aceptaba el selector y buscaba en toda
+   * la consola, pero el editor de escondites lo llamaba como `$(".h-lim", fila)` creyendo que buscaba
+   * DENTRO de cada fila. Siempre devolvía la primera fila de la página: editar cualquier escondite
+   * que no fuera el primero no hacía nada, editar el primero escribía en el último (cada fila pisaba
+   * los manejadores de la anterior) y la ✕ de «quitar» borraba siempre el último. Mismo nombre, dos
+   * comportamientos según el fichero — por eso nadie lo vio. Lo destapó el laboratorio al configurar
+   * «tope total 1» en el segundo escondite: se guardaba sin tope.
+   */
+  function $(s, d) { return (d || app).querySelector(s); }
   function cargando(t) { app.innerHTML = '<div class="card"><p class="muted">' + esc(t || "Cargando…") + "</p></div>"; }
   function fallo(t) { app.innerHTML = '<div class="card"><p class="malo">' + esc(t) + "</p></div>"; }
 
@@ -497,7 +506,9 @@
       '<div class="card"><h3>Escondites</h3>' +
       '<p class="small muted">Uno por presentación. Pega el enlace en un rincón del Genially —una ' +
       'estrella, un detalle del fondo— y quien lo encuentre se lleva lo que pongas. ' +
-      '<b>Cada persona solo puede reclamar cada escondite una vez</b>, aunque el enlace circule.</p>' +
+      '<b>Cada persona solo puede reclamar cada escondite una vez</b>, aunque el enlace circule. ' +
+      'Y si quieres que sea una carrera, pon un tope: <b>total</b> («los tres primeros de toda la clase») ' +
+      'o <b>por escuadrón</b> («los dos primeros de cada Comandante»). 0 es sin tope.</p>' +
       '<div id="hv-lista" class="hv-lista">' + (H.length ? H.map(filaHuevo).join("") :
         '<p class="small muted">Todavía no hay ninguno.</p>') + '</div>' +
       '<p style="margin-top:14px"><button class="btn" id="hv-add">+ Añadir un escondite</button> ' +
@@ -510,8 +521,14 @@
       '<input class="h-nom" value="' + esc(h.nombre || "") + '" placeholder="Presentación del Tema 1">' +
       '<select class="h-premio">' + PREMIOS.map(function (p) {
         return '<option value="' + p[0] + '"' + (h.premio === p[0] ? " selected" : "") + ">" + p[1] + "</option>"; }).join("") + '</select>' +
-      // 🔴 Los dos límites que pidió: 0 = sin tope (todo el que lo encuentre), o «solo los N primeros».
-      '<input class="h-lim" type="number" min="0" value="' + (Number(h.limite) || 0) + '" title="0 = sin tope; 5 = solo los cinco primeros">' +
+      /**
+       * 🔴 LOS TRES LÍMITES QUE PIDIÓ NORBERTO —«global, por grupo, ilimitado, máximo uno por
+       * persona»—, y con NOMBRE. Antes eran dos cajas con un número suelto: un «0» sin etiqueta no
+       * le dice nada a nadie. Uno por persona va siempre (es un escondite: se encuentra una vez).
+       * Los lleva el servidor (`claimLinkedReward`), dentro de una transacción.
+       */
+      '<label class="h-num">Tope total<input class="h-lim" type="number" min="0" value="' + (Number(h.limite) || 0) + '" title="0 = sin tope; 5 = solo los cinco primeros de todo el grupo"></label>' +
+      '<label class="h-num">Por escuadrón<input class="h-esc" type="number" min="0" value="' + (Number(h.porEscuadron) || 0) + '" title="0 = sin tope; 2 = los dos primeros de CADA escuadrón"></label>' +
       '<label class="h-act"><input type="checkbox" class="h-on"' + (h.activo === false ? "" : " checked") + '> activo</label>' +
       '<button class="btn min h-del" title="Quitar">✕</button>' +
       '<code class="h-url">' + esc(location.origin) + '/huevo.html?h=' + esc(h.id || "…") + '&amp;embed=1</code>' +
@@ -531,9 +548,10 @@
         var leer = function () {
           lista[i] = { id: $(".h-id", f).value.trim(), nombre: $(".h-nom", f).value.trim(),
                        premio: $(".h-premio", f).value, limite: Number($(".h-lim", f).value) || 0,
+                       porEscuadron: Number($(".h-esc", f).value) || 0,
                        activo: $(".h-on", f).checked, creditos: 50 };
         };
-        ["h-id","h-nom","h-premio","h-lim","h-on"].forEach(function (k) {
+        ["h-id","h-nom","h-premio","h-lim","h-esc","h-on"].forEach(function (k) {
           var e = $("." + k, f); e.oninput = e.onchange = leer;
         });
         $(".h-del", f).onclick = function () { lista.splice(i, 1); repintar(); };
@@ -542,7 +560,10 @@
     };
     cablearFilas();
     $("#hv-add").onclick = function () {
-      lista.push({ id: "p" + (lista.length + 1), nombre: "", premio: "sobre", limite: 0, activo: true, creditos: 50 });
+      // 🔴 Un identificador que no se adivina. Con «p1, p2…», quien encuentra el primero solo tiene
+      // que cambiar el número del enlace para llevarse todos sin buscar ninguno.
+      var azar = Math.random().toString(36).slice(2, 7);
+      lista.push({ id: "e" + (lista.length + 1) + "-" + azar, nombre: "", premio: "sobre", limite: 0, porEscuadron: 0, activo: true, creditos: 50 });
       repintar();
     };
     $("#hv-save").onclick = async function () {

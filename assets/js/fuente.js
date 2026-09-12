@@ -505,6 +505,25 @@
                * había uno. El catálogo lo promete así de claro —«se abre solo y tu álbum está en la
                * Nave»— y una promesa del catálogo no se rompe por una comodidad de implementación.
                */
+              /**
+               * 🔴 TRES REPETIDAS POR UN SOBRE, en el servidor (`stargateCambiarRepes`). Antes era un
+               * `purchaseReward` de coste cero que no retiraba repetidas ni abría nada: cambios
+               * infinitos que no daban nada. Ahora retira tres copias y entrega un sobre, que se abre
+               * aquí mismo carta a carta, igual que uno comprado.
+               */
+              if (cuerpo.accion === "canje" && cuerpo.tipo === "cromo_repes")
+                return M.llamar("stargateCambiarRepes", { projectId: cuerpo.per }).then(function (r) {
+                  var sacadas = [];
+                  var abrirUna = function (n) {
+                    if (n <= 0) return Promise.resolve();
+                    return M.llamar("consumeItem", { projectId: cuerpo.per, rewardId: r.rewardId, studentProfileId: ficha.id })
+                      .then(function (c) { var b = c && (c.botin || c.obtenido); if (b) sacadas.push(b); return abrirUna(n - 1); });
+                  };
+                  return abrirUna(Number(r.usos || 1)).then(function () {
+                    return { ok: true, botin: sacadas[0] || null, botines: sacadas, sinAbrir: !sacadas.length };
+                  }).catch(function () { return { ok: true, botines: sacadas, sinAbrir: !sacadas.length }; });
+                });
+
               if (cuerpo.accion === "canje")
                 return M.llamar("purchaseReward", { projectId: cuerpo.per, rewardId: cuerpo.recompensa,
                   studentProfileId: ficha.id })

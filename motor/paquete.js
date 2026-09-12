@@ -398,7 +398,9 @@
    */
   function premioDeHuevo(perId, h, sobre, heroe) {
     var tipo = h.premio === "heroe" ? "heroe" : h.premio === "bolsa" ? "bolsa" : "sobre";
-    var efecto = tipo === "bolsa" ? { addCoins: Number(h.creditos || 50) }
+    // 🔴 `attributes.addCoins`, no `addCoins` suelto: así lo lee `efectosDeConsumir` en el servidor.
+    // Puesto un nivel más arriba, la bolsa decía «+50 ◈, ya está en tu cuenta» y no pagaba nada.
+    var efecto = tipo === "bolsa" ? { attributes: { addCoins: Number(h.creditos || 50) } }
                : tipo === "heroe" ? (heroe ? heroe.consumeEffects : null)
                : (sobre ? sobre.consumeEffects : null);
     return {

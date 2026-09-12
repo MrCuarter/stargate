@@ -353,7 +353,9 @@
           //     (El servidor sí lo deniega, pero la pantalla mentía.)
           return { id: r.id, doc: r.docId || r.id, nombre: r.title, coste: r.cost,
                    max: r.maxPerUser == null ? 99 : r.maxPerUser,
-                   desc: r.description, desde: r.stargateSemana || 0, tipo: r.stargateTipo || "" };
+                   desc: r.description, desde: r.stargateSemana || 0, tipo: r.stargateTipo || "",
+                   // cuántas cartas trae un sobre (o usos un consumible): lo dice la recompensa, no la Nave
+                   usos: Math.max(1, Number(r.maxUses || 1)) };
         }),
       semana: semanaDe(inicio, ahora), semanas: S.semanas || 15,
       panel: S.panelVer || "", paneles: S.paneles || {},

@@ -10,7 +10,7 @@
  */
 const path = require("path");
 const L = require("./laboratorio.cjs");
-const { persona, comprobar: c, dormir, leerDoc, consultar } = L;
+const { persona, comprobar: c, dormir, leerDoc, consultar, admin, fichaDe } = L;
 const VER = process.argv.includes("--ver");
 const SOLO = (process.argv.find(a => a.indexOf("--solo=") === 0) || "").split("=")[1];
 const FOTOS = "/tmp/lab-fotos"; require("fs").mkdirSync(FOTOS, { recursive: true });
@@ -161,6 +161,278 @@ const hacer = n => !SOLO || SOLO.split(",").indexOf(String(n)) >= 0;
         JSON.stringify(caminos));
       await p.foto(FOTOS + "/4-como-entras.png");
     }
+    // ============================================================ 5 · UNA CLASE ENTERA
+    /**
+     * Norberto: «simula una clase: el docente lanza la asistencia, varios estudiantes se apuntan,
+     * los que se han alistado aparecen en la ventana del docente, el docente reparte algún premio…».
+     * Todo contra el motor de verdad: si algo se lo niegan las reglas o el servidor, aquí se ve.
+     */
+    if (hacer(5)) {
+      const alistar = async (p, correo, nombre, alias, cmd) => {
+        await p.ir("alistarse.html?per=lab-clase&codigo=" + CODIGO);
+        await p.entrarComo(correo, nombre);
+        await p.hasta("!!document.querySelector('#a-enviar')", 25);
+        await p.js(`(function(){ document.querySelector('#a-nombre').value=${JSON.stringify(nombre.split(" ")[0])};
+          document.querySelector('#a-apellidos').value='Prueba'; document.querySelector('#a-alias').value=${JSON.stringify(alias)};
+          var r=document.querySelectorAll('input[name=cmd]')[${cmd || 0}]; if(r) r.checked=true; return 1; })()`);
+        await p.js("document.querySelector('#a-enviar').click(); 1");
+        return p.hasta("!document.querySelector('#a-enviar')", 25);
+      };
+      const beto = await nueva("Beto"), carla = await nueva("Carla"), ana = await nueva("Ana (otra vez)");
+      c("clase · Beto se alista", await alistar(beto, "beto@lab.test", "Beto Prueba", "Bólido", 0));
+      c("clase · Carla se alista (con el otro Comandante)", await alistar(carla, "carla@lab.test", "Carla Prueba", "Cometa", 1));
+      await ana.ir("entrar.html"); await ana.entrarComo("ana@lab.test", "Ana Nueva");
+
+      // la racha necesita historia: una llamada AYER a la que Ana sí vino
+      const A = admin(), fs = A.firestore();
+      const fAna = await fichaDe("ana@lab.test", "lab-clase");
+      const ayer = new Date(Date.now() - 864e5);
+      const sAyer = await fs.collection("attendance_sessions").add({ projectId: "lab-clase", startTime: ayer,
+        endTime: new Date(ayer.getTime() + 5 * 6e4), pointsReward: 15, coinsReward: 30, autoReward: true, isActive: false });
+      await fs.collection("attendance_records").add({ sessionId: sAyer.id, projectId: "lab-clase", userId: fAna._uid,
+        studentProfileId: fAna._id, registeredAt: ayer });
+
+      // Rita abre la llamada, con el regalo marcado
+      const rita = await nueva("Rita abre la llamada");
+      await rita.entrarPorLaPuerta("rita@lab.test", "Rita Referente");
+      await rita.hasta("location.pathname.indexOf('consola.html')>=0", 20);
+      await rita.ir("llamada.html?per=lab-clase");
+      const lista = await rita.hasta("!!document.getElementById('ll-tocar')", 25);
+      c("clase · la referente ve el botón de tocar la llamada", lista, (await rita.texto()).slice(0, 200));
+      await rita.js("var r=document.getElementById('ll-sobre'); if(r) r.checked=true; document.getElementById('ll-tocar').click(); 1");
+      const abierta = await rita.hasta("!!document.getElementById('ll-lista')", 20);
+      c("clase · la llamada queda abierta, con cuenta atrás", abierta, (await rita.texto()).slice(0, 200));
+      const sesiones = await consultar("attendance_sessions", "projectId", "lab-clase");
+      const hoy = sesiones.filter(x => x.isActive !== false && x._id !== sAyer.id);
+      c("clase · y existe en Firestore, con el regalo apuntado", hoy.some(x => x.stargateRegalo === "sobre"),
+        JSON.stringify(hoy.map(x => ({ regalo: x.stargateRegalo, activa: x.isActive }))));
+      await rita.foto(FOTOS + "/5-llamada-abierta.png");
+
+      // los tres fichan desde su Nave
+      const fichar = async (p, alias) => {
+        await p.ir("recluta.html?per=lab-clase");
+        await p.hasta("/" + alias + "/.test(document.body.innerText)", 25);
+        const hay = await p.hasta("[].slice.call(document.querySelectorAll('button')).some(function(b){return /Presente/.test(b.textContent)})", 25);
+        if (!hay) return { hay: false, texto: (await p.texto()).slice(0, 200) };
+        await p.js("[].slice.call(document.querySelectorAll('button')).filter(function(b){return /Presente/.test(b.textContent)})[0].click(); 1");
+        await dormir(9000);
+        return { hay: true, texto: await p.texto() };
+      };
+      const antesAna = await fichaDe("ana@lab.test", "lab-clase");
+      const rAna = await fichar(ana, "Andrómeda"), rBeto = await fichar(beto, "Bólido");
+      c("clase · a Ana y Beto (escuadrón de Rita) les sale «✋ Presente»", rAna.hay && rBeto.hay,
+        [rAna, rBeto].filter(x => !x.hay).map(x => x.texto).join(" | "));
+      // 🔴 Carla es del OTRO Comandante: la llamada de Rita no es suya y no debe verla
+      await carla.ir("recluta.html?per=lab-clase");
+      await carla.hasta("/Cometa/.test(document.body.innerText)", 25);
+      await dormir(3000);
+      c("🔴 clase · a Carla (otro escuadrón) NO le sale el «Presente» de una llamada que no es suya",
+        !(await carla.js("[].slice.call(document.querySelectorAll('button')).some(function(b){return /Presente/.test(b.textContent)})")));
+      const dAna = await fichaDe("ana@lab.test", "lab-clase");
+      c("clase · fichar paga la asistencia (xp y créditos del servidor)",
+        dAna.totalPoints > antesAna.totalPoints && dAna.coins > antesAna.coins,
+        "xp " + antesAna.totalPoints + "→" + dAna.totalPoints + " · ◈ " + antesAna.coins + "→" + dAna.coins);
+      c("🔴 clase · y la RACHA: Ana vino ayer y hoy → +5 ◈ extra (30 base + 5)",
+        dAna.coins - antesAna.coins === 35, "ha cobrado " + (dAna.coins - antesAna.coins) + " ◈");
+      const cartasAntes = (antesAna.inventory || []).filter(x => /__cromo_/.test(x)).length;
+      const cartasDespues = (dAna.inventory || []).filter(x => /__cromo_/.test(x)).length;
+      c("🔴 clase · y el REGALO: tres cartas nuevas en su álbum", cartasDespues - cartasAntes === 3,
+        "cartas " + cartasAntes + "→" + cartasDespues + " · inventario: " + (dAna.inventory || []).slice(-5).join(","));
+      const marca = await leerDoc("stargate_asistencia/" + hoy[0]._id + "__" + fAna._uid);
+      c("clase · y queda apuntado que ya cobró (no se paga dos veces)", !!marca, JSON.stringify(marca));
+      await ana.foto(FOTOS + "/5-ana-presente.png");
+
+      // pulsar otra vez no paga otra vez
+      const r2 = await fichar(ana, "Andrómeda");
+      const dAna2 = await fichaDe("ana@lab.test", "lab-clase");
+      c("clase · fichar dos veces NO cobra dos veces", dAna2.coins === dAna.coins, dAna.coins + " → " + dAna2.coins);
+
+      // el aula ve a los que han fichado
+      await rita.ir("aula.html?per=lab-clase");
+      const ve = await rita.hasta("/Andrómeda/.test(document.body.innerText) && /Bólido/.test(document.body.innerText)", 25);
+      c("clase · en el aula de la referente aparecen los que han fichado, con su alias", ve, (await rita.texto()).slice(0, 300));
+      c("clase · y dice cuántos van", /2\s*presentes/.test(await rita.texto()));
+      await rita.foto(FOTOS + "/5-aula.png");
+
+      // premio a mano
+      const fBeto = await fichaDe("beto@lab.test", "lab-clase");
+      await rita.js("[].slice.call(document.querySelectorAll('button')).filter(function(b){return /Premiar/.test(b.textContent)})[0].click(); 1");
+      await rita.hasta("!!document.getElementById('au-quien')", 10);
+      await rita.js(`(function(){ var s=document.getElementById('au-quien'); s.value=${JSON.stringify(fBeto._id)};
+        var b=[].slice.call(document.querySelectorAll('.au-pr')).filter(function(x){return x.getAttribute('data-cr')==='20' && x.getAttribute('data-xp')==='0'})[0]; b.click(); return 1; })()`);
+      await dormir(5000);
+      const fBeto2 = await fichaDe("beto@lab.test", "lab-clase");
+      c("clase · la referente premia a mano a Beto con +20 ◈", fBeto2.coins - fBeto.coins === 20,
+        fBeto.coins + " → " + fBeto2.coins + " · " + await rita.js("(document.getElementById('au-pmsg')||{}).textContent||''"));
+      const RUIDO = /youtube|genially|gstatic|googleapis|favicon/i;
+      const propios = [rita, ana, beto, carla].map(p => ({ n: p.nombre, r: p.rotos.filter(u => !RUIDO.test(u)),
+        e: p.errores.filter(x => !/Failed to load resource/.test(x)) }));
+      c("clase · ninguna pantalla revienta ni pide un fichero que no existe", propios.every(x => !x.r.length && !x.e.length),
+        propios.filter(x => x.r.length || x.e.length).map(x => x.n + ": " + (x.r[0] || x.e[0])).join(" | "));
+    }
+
+    // ============================================================ 6 · LOS ESCONDITES, CON SUS TRES TOPES
+    if (hacer(6)) {
+      const rita = await nueva("Rita configura los escondites");
+      await rita.entrarPorLaPuerta("rita@lab.test", "Rita Referente");
+      await rita.hasta("location.pathname.indexOf('consola.html')>=0", 20);
+      await rita.ir("consola.html?per=lab-clase");
+      await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
+      await rita.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).filter(function(b){return /Escondites/.test(b.textContent)})[0].click(); 1");
+      await rita.hasta("!!document.getElementById('hv-save')", 15);
+      // p2 → bolsa de 40 con tope TOTAL 1 · p3 → sobre con tope POR ESCUADRÓN 1
+      await rita.js(`(function(){
+        var filas=[].slice.call(document.querySelectorAll('.hv-f'));
+        function pon(f, premio, lim, esc){ var s=f.querySelector('.h-premio'); s.value=premio; s.dispatchEvent(new Event('change'));
+          var l=f.querySelector('.h-lim'); l.value=lim; l.dispatchEvent(new Event('input'));
+          var e=f.querySelector('.h-esc'); e.value=esc; e.dispatchEvent(new Event('input')); }
+        pon(filas[1],'bolsa',1,0); pon(filas[2],'sobre',0,1);
+        document.getElementById('hv-save').click(); return filas.length; })()`);
+      await dormir(4000);
+      const p2 = await leerDoc("rewards/lab-clase__huevo_p2"), p3 = await leerDoc("rewards/lab-clase__huevo_p3");
+      c("escondites · al guardar, cada uno es una recompensa del servidor", !!p2 && !!p3);
+      c("escondites · p2: bolsa con tope total 1", p2 && p2.claimLinkMaxTotal === 1 && p2.stargateHuevo.premio === "bolsa", JSON.stringify(p2 && { t: p2.claimLinkMaxTotal, pr: p2.stargateHuevo }));
+      c("escondites · p3: tope 1 por escuadrón", p3 && p3.claimLinkMaxPerSquad === 1, JSON.stringify(p3 && p3.claimLinkMaxPerSquad));
+      c("escondites · y no salen en el Mercado", p2 && p2.inStore === false);
+
+      const reclamar = async (correo, nombre, h) => {
+        const p = await nueva(nombre + " busca " + h);
+        await p.ir("huevo.html?h=" + h);
+        await p.entrarComo(correo, nombre);
+        await p.ir("huevo.html?h=" + h);
+        // con sesión, el escondite enseña «🥚 Abrirlo» (hv-abrir); sin ella, la puerta (hv-entrar)
+        const ab = await p.hasta("!!document.getElementById('hv-abrir') || /ya lo ten|no existe|cerrado|tarde/i.test(document.body.innerText)", 15);
+        if (ab) await p.js("var b=document.getElementById('hv-abrir'); if(b) b.click(); 1");
+        await dormir(9000);
+        p.__foto = FOTOS + "/6-" + nombre + "-" + h + ".png"; await p.foto(p.__foto);
+        const t = await p.texto();
+        await p.cerrar();
+        return t;
+      };
+      const antes = await fichaDe("ana@lab.test", "lab-clase");
+      const t1 = await reclamar("ana@lab.test", "Ana", "p1");
+      const d1 = await fichaDe("ana@lab.test", "lab-clase");
+      const nuevas = (d1.inventory || []).filter(x => /__cromo_/.test(x)).length - (antes.inventory || []).filter(x => /__cromo_/.test(x)).length;
+      c("🔴 escondites · Ana encuentra p1 (sobre) y se lleva TRES cartas de verdad", nuevas === 3, "cartas nuevas: " + nuevas + " · " + t1.slice(0, 200));
+      const t1b = await reclamar("ana@lab.test", "Ana", "p1");
+      const d1b = await fichaDe("ana@lab.test", "lab-clase");
+      c("escondites · si vuelve al mismo, «ya lo tenías» y no paga", /ya lo ten|ya era|ya lo encontr/i.test(t1b) &&
+        (d1b.inventory || []).length === (d1.inventory || []).length, t1b.slice(0, 160));
+      const t2a = await reclamar("ana@lab.test", "Ana", "p2");
+      const d2a = await fichaDe("ana@lab.test", "lab-clase");
+      c("🔴 escondites · p2 (tope total 1): Ana llega primera y cobra la bolsa (50 ◈)", d2a.coins - d1b.coins === 50, (d1b.coins) + " → " + d2a.coins + " · " + t2a.slice(0, 160));
+      const bAntes = await fichaDe("beto@lab.test", "lab-clase");
+      const t2b = await reclamar("beto@lab.test", "Beto", "p2");
+      const bDesp = await fichaDe("beto@lab.test", "lab-clase");
+      c("🔴 escondites · p2: Beto llega segundo → «llegaste tarde» y no cobra", /tarde/i.test(t2b) && bDesp.coins === bAntes.coins, t2b.slice(0, 200));
+      // p3, uno por escuadrón: Ana y Beto eligieron el mismo Comandante; Carla, el otro
+      const t3a = await reclamar("ana@lab.test", "Ana", "p3");
+      const t3b = await reclamar("beto@lab.test", "Beto", "p3");
+      const t3c = await reclamar("carla@lab.test", "Carla", "p3");
+      c("🔴 escondites · p3 (1 por escuadrón): Ana sí, Beto (su mismo escuadrón) no, Carla (otro) sí",
+        /cartas|toca|sobre|Ver mi Nave/i.test(t3a) && /tarde|agotado/i.test(t3b) && /cartas|toca|sobre|Ver mi Nave/i.test(t3c),
+        "Ana: " + t3a.slice(0, 80) + " | Beto: " + t3b.slice(0, 80) + " | Carla: " + t3c.slice(0, 80));
+    }
+
+    // ============================================================ 7 · DESHACER, Y EL TRAMPOSO
+    if (hacer(7)) {
+      const ana = await nueva("Ana registra y deshace");
+      await ana.ir("entrar.html"); await ana.entrarComo("ana@lab.test", "Ana Nueva");
+      await ana.ir("recluta.html?per=lab-clase#retos");
+      await ana.hasta("[].slice.call(document.querySelectorAll('button')).some(function(b){return /Lo he hecho/.test(b.textContent)})", 25);
+      const antes = await fichaDe("ana@lab.test", "lab-clase");
+      await ana.js("[].slice.call(document.querySelectorAll('button')).filter(function(b){return /Lo he hecho/.test(b.textContent)&&!b.disabled})[0].click(); 1");
+      await dormir(7000);
+      const tras = await fichaDe("ana@lab.test", "lab-clase");
+      c("deshacer · «Lo he hecho» registra el reto (completeMission de verdad)", tras.totalPoints > antes.totalPoints,
+        antes.totalPoints + " → " + tras.totalPoints);
+      const retoNuevo = (tras.completedMissionIds || []).filter(x => (antes.completedMissionIds || []).indexOf(x) < 0)[0];
+      await ana.ir("recluta.html?per=lab-clase#retos");
+      await ana.hasta("!!document.querySelector('[data-deshacer]')", 20);
+      await ana.js("var b=document.querySelector('[data-deshacer]'); b.click(); 1");
+      await dormir(1500);
+      // NEBULA pregunta; se confirma
+      await ana.js("var c=document.querySelector('.neb-capa'); var b=c&&[].slice.call(c.querySelectorAll('button')).filter(function(x){return !/Ahora no|Mejor no|Cancelar/i.test(x.textContent)})[0]; if(b) b.click(); 1");
+      await dormir(7000);
+      const deshecho = await fichaDe("ana@lab.test", "lab-clase");
+      c("🔴 deshacer · la ALUMNA deshace su propio reto (el botón que Norberto marcó IMPORTANTE)",
+        deshecho.totalPoints === antes.totalPoints && (deshecho.completedMissionIds || []).indexOf(retoNuevo) < 0,
+        "xp " + tras.totalPoints + " → " + deshecho.totalPoints + " (tenía " + antes.totalPoints + ") · " + (await ana.texto()).slice(0, 160));
+      const aud = await consultar("stargate_anulaciones", "projectId", "lab-clase");
+      c("deshacer · y queda escrito quién lo deshizo", aud.some(x => x.por === "recluta"), JSON.stringify(aud.map(x => x.por)));
+    }
+    // ============================================================ 8 · ABRIR UN SOBRE, CARTA A CARTA
+    if (hacer(8)) {
+      const ana = await nueva("Ana abre un sobre");
+      await ana.ir("entrar.html"); await ana.entrarComo("ana@lab.test", "Ana Nueva");
+      await ana.ir("recluta.html?per=lab-clase#mercado");
+      await ana.hasta("!!document.querySelector('button[data-canje]')", 25);
+      const antes = await fichaDe("ana@lab.test", "lab-clase");
+      await ana.js(`(function(){ var b=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(x){return /Sobre de cromos/.test(x.getAttribute('data-nombre')||'')})[0]; b.click(); return 1; })()`);
+      await ana.hasta("!!document.querySelector('.neb-capa')", 8);
+      await ana.js("var c=document.querySelector('.neb-capa'); [].slice.call(c.querySelectorAll('button')).filter(function(x){return /canjear/i.test(x.textContent)})[0].click(); 1");
+      const sale = await ana.hasta("!!document.querySelector('.sb-capa .sb-carta')", 25);
+      c("sobre · al canjear, sale la primera carta BOCA ABAJO", sale && !(await ana.js("document.querySelector('.sb-carta').classList.contains('girada')")));
+      c("sobre · y dice cuántas vienen (tres puntos)", (await ana.js("document.querySelectorAll('.sb-puntos i').length")) === 3);
+      await ana.foto(FOTOS + "/8a-sobre-boca-abajo.png");
+      const vistas = [];
+      for (let k = 0; k < 3; k++) {
+        await ana.js("document.querySelector('.sb-sig').click(); 1");            // darle la vuelta
+        await dormir(900);
+        vistas.push(await ana.js("(document.querySelector('.sb-nombre')||{}).textContent||''"));
+        const img = await ana.js("(function(){var i=document.querySelector('.sb-frente img'); return i? (i.complete && i.naturalWidth>0) : false;})()");
+        c("sobre · la carta " + (k + 1) + " se da la vuelta y su arte carga", img && !!vistas[k], vistas[k]);
+        if (k === 0) await ana.foto(FOTOS + "/8b-sobre-girada.png");
+        await ana.js("document.querySelector('.sb-sig').click(); 1");            // siguiente / resumen
+        await dormir(600);
+      }
+      const abanico = await ana.hasta("document.querySelectorAll('.sb-mini').length===3", 5);
+      c("sobre · al final, las tres juntas en abanico", abanico);
+      await ana.foto(FOTOS + "/8c-sobre-abanico.png");
+      await ana.js("document.querySelector('.sb-fin').click(); 1");
+      await dormir(600);
+      c("sobre · y «Seguir» cierra y vuelve a la Nave", !(await ana.js("!!document.querySelector('.sb-capa')")));
+      const desp = await fichaDe("ana@lab.test", "lab-clase");
+      c("sobre · el servidor cobró 15 ◈ y dio 3 cartas", antes.coins - desp.coins === 15 &&
+        (desp.inventory || []).filter(x => /__cromo_/.test(x)).length - (antes.inventory || []).filter(x => /__cromo_/.test(x)).length === 3,
+        "◈ " + antes.coins + "→" + desp.coins);
+      c("sobre · sin 404 ni errores", !ana.rotos.filter(u => !/youtube|genially|gstatic/.test(u)).length && !ana.errores.filter(x => !/Failed to load/.test(x)).length,
+        (ana.rotos[0] || "") + " " + (ana.errores[0] || ""));
+    }
+    // ============================================================ 9 · TRES REPETIDAS POR UN SOBRE
+    /**
+     * Inventario CONTROLADO: cuatro copias de Bran y nada más repetido (tres repetidas justas). Así
+     * se ve sin ruido si el cambio retira exactamente tres copias, si deja la última, si entrega un
+     * sobre de verdad y si el servidor dice que no cuando ya no llegan.
+     */
+    if (hacer(9)) {
+      const A = admin(), fs = A.firestore();
+      const f0 = await fichaDe("ana@lab.test", "lab-clase");
+      const B = "lab-clase__cromo_P1_bran";
+      await fs.collection("student_profiles").doc(f0._id).update({ inventory: [B, B, B, B], consumableUses: {} });
+      const ana = await nueva("Ana cambia repetidas");
+      await ana.ir("entrar.html"); await ana.entrarComo("ana@lab.test", "Ana Nueva");
+      await ana.ir("recluta.html?per=lab-clase#mercado");
+      const hay = await ana.hasta("[].slice.call(document.querySelectorAll('button[data-canje]')).some(function(b){return b.getAttribute('data-tipo')==='cromo_repes'})", 20);
+      c("repetidas · con 3 repetidas justas, el botón «Cambiar» aparece", hay);
+      await ana.js("[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(b){return b.getAttribute('data-tipo')==='cromo_repes'})[0].click(); 1");
+      await ana.hasta("!!document.querySelector('.neb-capa')", 8);
+      await ana.js("var c=document.querySelector('.neb-capa'); var b=c&&[].slice.call(c.querySelectorAll('button')).filter(function(x){return !/Ahora no/i.test(x.textContent)})[0]; if(b) b.click(); 1");
+      const sobre = await ana.hasta("!!document.querySelector('.sb-capa')", 25);
+      c("repetidas · el cambio abre un SOBRE, carta a carta", sobre);
+      await dormir(1500);
+      const f1 = await fichaDe("ana@lab.test", "lab-clase");
+      const inv = f1.inventory || [];
+      const bran = inv.filter(x => x === B).length;
+      const cartas = inv.filter(x => /__cromo_/.test(x)).length;
+      c("🔴 repetidas · retira tres copias y deja la última (Bran: 4 → 1, más las que traiga el sobre)", bran >= 1 && bran <= 4 && cartas === 4,
+        "Bran " + bran + " · cartas en total " + cartas + " (4 − 3 + 3)");
+      // y sin repetidas suficientes, el servidor dice que no aunque se llame a mano
+      await fs.collection("student_profiles").doc(f0._id).update({ inventory: [B, B, "lab-clase__cromo_P2_tomas"] });
+      const r = await ana.js("window.SG.MOTOR.llamar('stargateCambiarRepes', {projectId:'lab-clase'}).then(function(){return 'LO DEJÓ'}).catch(function(e){return e.message})");
+      c("🔴 repetidas · con menos de 3, el SERVIDOR lo rechaza aunque se llame a mano", /Necesitas 3/.test(r), r);
+    }
+
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
   } finally {

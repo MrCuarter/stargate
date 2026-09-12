@@ -2254,3 +2254,92 @@ section[id]{scroll-margin-top:110px}
   background:linear-gradient(135deg,#0e5f6c,#3ed6c8);color:#04161a;font:800 1.2rem/1 'Unbounded',system-ui,sans-serif}
 .cuenta-actual b{display:block;font-size:1.02rem}
 .cuenta-actual em{display:block;font-style:normal;font-size:.86rem;color:var(--mut,#8aa5ab);word-break:break-all}
+
+/* los topes de cada escondite, con su nombre encima */
+.hv-f .h-num{display:inline-flex;flex-direction:column;gap:2px;font-size:.66rem;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--mut,#8aa5ab);vertical-align:bottom}
+.hv-f .h-num input{width:84px}
+
+/* ================================================================== ABRIR UN SOBRE (sobre.js)
+   Cada carta sale boca abajo y se descubre con un toque. La rareza se nota ANTES de leer el nombre,
+   por el halo: común (turquesa tenue), rara (azul), épica (violeta), legendaria (oro con rayos). */
+.sb-capa{position:fixed;inset:0;z-index:9500;display:grid;grid-template-rows:auto 1fr auto auto;justify-items:center;
+  gap:10px;padding:22px 16px 26px;background:radial-gradient(900px 600px at 50% 42%,rgba(16,34,44,.975),rgba(3,7,10,.99));
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);animation:sbEntra .25s ease-out;color:#fff;overflow:auto}
+.sb-capa.sb-fuera{animation:sbSale .22s ease-in forwards}
+@keyframes sbEntra{from{opacity:0}to{opacity:1}}
+@keyframes sbSale{to{opacity:0}}
+.sb-cab{display:flex;flex-direction:column;align-items:center;gap:8px}
+.sb-titulo{font:700 .78rem/1 'DM Sans',system-ui;letter-spacing:.24em;text-transform:uppercase;color:var(--amber,#f2b544)}
+.sb-puntos{display:flex;gap:8px}
+.sb-puntos i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.18);transition:.2s}
+.sb-puntos i.vista{background:var(--teal,#3ed6c8)}
+.sb-puntos i.ahora{background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.18)}
+.sb-escena{position:relative;display:grid;place-items:center;perspective:1400px;min-height:0;width:100%}
+.sb-halo{position:absolute;width:min(560px,90vw);aspect-ratio:1;border-radius:50%;opacity:0;transition:opacity .5s .15s;
+  background:radial-gradient(circle,var(--sb-c,#3ed6c8) 0%,transparent 62%);filter:blur(18px)}
+.sb-capa.r-comun{--sb-c:rgba(62,214,200,.38)}
+.sb-capa.r-rara{--sb-c:rgba(90,150,255,.5)}
+.sb-capa.r-epica{--sb-c:rgba(190,110,255,.58)}
+.sb-capa.r-legendaria{--sb-c:rgba(255,196,64,.72)}
+.sb-carta.girada ~ .sb-halo,.sb-escena:has(.girada) .sb-halo{opacity:1}
+.sb-capa.r-legendaria .sb-escena:has(.girada)::before{content:"";position:absolute;width:min(760px,120vw);aspect-ratio:1;
+  background:repeating-conic-gradient(from 0deg,rgba(255,210,110,.20) 0 6deg,transparent 6deg 18deg);
+  border-radius:50%;animation:sbRayos 18s linear infinite;mask:radial-gradient(circle,#000 20%,transparent 66%);
+  -webkit-mask:radial-gradient(circle,#000 20%,transparent 66%)}
+@keyframes sbRayos{to{transform:rotate(360deg)}}
+.sb-carta{position:relative;z-index:1;width:min(300px,62vw,calc((100vh - 290px) / 1.681));aspect-ratio:720/1210;
+  border:0;padding:0;background:none;cursor:pointer;transform-style:preserve-3d;
+  transition:transform .7s cubic-bezier(.2,.8,.2,1);animation:sbFlota 3.2s ease-in-out infinite}
+.sb-carta.heroe{aspect-ratio:1;width:min(320px,70vw,calc(100vh - 300px))}
+.sb-carta:focus-visible{outline:3px solid var(--teal,#3ed6c8);outline-offset:6px;border-radius:18px}
+@keyframes sbFlota{0%,100%{translate:0 0}50%{translate:0 -8px}}
+.sb-carta.girada{transform:rotateY(180deg);animation:none}
+.sb-carta.sale{transform:rotateY(180deg) translateX(40%) scale(.85);opacity:0;transition:transform .26s ease-in,opacity .26s ease-in}
+.sb-cara{position:absolute;inset:0;border-radius:18px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  box-shadow:0 22px 60px rgba(0,0,0,.55)}
+.sb-frente{transform:rotateY(180deg);background:#0b1419}
+.sb-frente img{width:100%;height:100%;object-fit:cover;display:block}
+/* el reverso: el sello de la agencia sobre un campo de estrellas, con borde de metal */
+.sb-dorso{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  background:
+    radial-gradient(circle at 50% 42%,rgba(62,214,200,.28),transparent 46%),
+    radial-gradient(1px 1px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 72% 18%,#fff,transparent),
+    radial-gradient(1.5px 1.5px at 84% 64%,#cfe,transparent),radial-gradient(1px 1px at 34% 78%,#fff,transparent),
+    radial-gradient(1px 1px at 58% 52%,#bff,transparent),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.035) 0 2px,transparent 2px 14px),
+    linear-gradient(160deg,#0f2a33,#081218 60%,#1a1206);
+  border:3px solid rgba(242,181,68,.55);box-shadow:inset 0 0 0 7px rgba(8,18,24,.9),inset 0 0 0 8px rgba(242,181,68,.28),0 22px 60px rgba(0,0,0,.55)}
+.sb-sello{font-size:clamp(3.4rem,11vw,5.2rem);line-height:1;color:var(--teal,#3ed6c8);text-shadow:0 0 28px rgba(62,214,200,.7)}
+.sb-marca{font:800 .86rem/1 'Unbounded',system-ui;letter-spacing:.34em;color:rgba(242,181,68,.9)}
+.sb-info{min-height:88px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.sb-pista{margin:8px 0 0;color:var(--mut,#8aa5ab);font-size:.95rem}
+.sb-nombre{margin:0;font:800 clamp(1.3rem,4vw,1.7rem)/1.1 'Unbounded',system-ui;animation:sbSube .4s ease-out}
+.sb-rareza{font:700 .72rem/1 'DM Sans',system-ui;letter-spacing:.2em;text-transform:uppercase;padding:5px 11px;border-radius:99px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
+.sb-capa.r-legendaria .sb-rareza{background:linear-gradient(90deg,#8a5a00,#f5b043,#8a5a00);color:#1b1200;border:0}
+.sb-capa.r-epica .sb-rareza{background:rgba(190,110,255,.25);border-color:rgba(190,110,255,.6)}
+.sb-capa.r-rara .sb-rareza{background:rgba(90,150,255,.22);border-color:rgba(90,150,255,.55)}
+.sb-extra{margin:2px 0 0;font-size:.9rem;color:var(--mut,#8aa5ab)}
+.sb-extra.nueva{color:var(--teal,#3ed6c8)}
+@keyframes sbSube{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
+.sb-pie{display:flex;flex-direction:column;align-items:center;gap:10px}
+.sb-pie .btn{min-width:240px;justify-content:center}
+.sb-saltar{background:none;border:0;color:var(--mut,#8aa5ab);font:inherit;font-size:.85rem;text-decoration:underline;cursor:pointer}
+.sb-saltar:hover{color:#fff}
+/* el resumen: las cartas en abanico */
+.sb-capa.sb-resumen{grid-template-rows:auto 1fr auto auto}
+.sb-abanico{display:flex;align-items:center;justify-content:center;padding:20px 0}
+.sb-mini{margin:0 -18px;width:min(190px,28vw);transform:rotate(calc((var(--j) - (var(--n) - 1) / 2) * 7deg))
+  translateY(calc(max(var(--j) - (var(--n) - 1) / 2, (var(--n) - 1) / 2 - var(--j)) * 10px));
+  transition:transform .2s;animation:sbSube .4s ease-out backwards;animation-delay:calc(var(--j) * 90ms)}
+.sb-mini:hover{transform:translateY(-14px) scale(1.04);z-index:2}
+.sb-mini img{width:100%;aspect-ratio:720/1210;object-fit:cover;border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.55);display:block}
+.sb-mini.r-legendaria img{box-shadow:0 0 0 2px #f5b043,0 0 30px rgba(245,176,67,.6)}
+.sb-mini.r-epica img{box-shadow:0 0 0 2px #b77cff,0 0 24px rgba(183,124,255,.5)}
+.sb-mini figcaption{text-align:center;font-size:.82rem;margin-top:8px;color:#dfe}
+.sb-guardadas{margin:0;color:var(--teal,#3ed6c8);font-weight:600}
+@media (prefers-reduced-motion:reduce){
+  .sb-carta,.sb-carta.girada,.sb-mini,.sb-nombre{animation:none!important;transition:none!important}
+  .sb-capa.r-legendaria .sb-escena:has(.girada)::before{animation:none}
+}

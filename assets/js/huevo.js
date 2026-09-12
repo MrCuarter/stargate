@@ -97,6 +97,14 @@
 
   function premio(r) {
     var d = r.detalle || {}, t = r.premio;
+    // 🔴 Las cartas se abren una a una, con el mismo sobre que el Mercado, y DESPUÉS la pantalla del
+    // hallazgo con el confeti. Es el mismo momento en los tres sitios donde se ganan cartas.
+    if (!r.__abierto && window.SG && SG.SOBRE && !d.sinAbrir &&
+        ((t === "sobre" && d.cartas && d.cartas.length) || (t === "heroe" && d.clave))) {
+      var cartas = t === "sobre" ? d.cartas : [{ clave: d.clave, nombre: d.nombre, tipo: "heroe", rareza: "épica" }];
+      return SG.SOBRE.revelar(cartas, { titulo: t === "sobre" ? "Lo que había en el escondite" : "Un héroe escondido" })
+        .then(function () { r.__abierto = true; premio(r); });
+    }
     var que = t === "sobre" ? (d.cartas || []).map(function (c) { return c.nombre; }).join(" · ")
             : t === "heroe" ? (d.nombre || "")
             : t === "bolsa" ? "+" + (d.creditos || 0) + " ◈"
@@ -106,7 +114,9 @@
       + '<div class="eyebrow amber">Lo has encontrado</div>'
       + '<h2>' + esc(NOMBRES[t] || "Un premio") + '</h2>'
       + (que ? '<p class="hv-que">' + esc(que) + '</p>' : '')
-      + '<p class="hv-sub">Ya está en tu cuenta. Hay uno escondido en cada presentación.</p>'
+      + '<p class="hv-sub">' + (d.sinAbrir
+          ? 'Lo tienes en tu inventario: ábrelo desde tu Nave, en Mi botín.'
+          : 'Ya está en tu cuenta.') + ' Hay uno escondido en cada presentación.</p>'
       + botónNave() + '</div></div>');
     confeti();
     try { if (window.SG && SG.FIESTA) SG.FIESTA.sonar("nivel"); } catch (e) {}
@@ -156,7 +166,21 @@
      */
     MOTOR.misGruposDeAlumno(YO.uid).then(function (fichas) {
       if (!fichas.length) return fallo("No estás alistado en ningún grupo todavía. Alístate primero con el enlace de tu clase.");
-      var elegido = fichas[0];
+      /**
+       * 🔴 12-sep · EL GRUPO QUE TIENE ESTE ESCONDITE, no el primero. El comentario de arriba ya lo
+       * prometía y el código cogía `fichas[0]`: alguien alistado en dos grupos (un repetidor, un
+       * docente que se alistó en uno de prácticas) podía acabar en el grupo equivocado y leer «este
+       * escondite no existe» con el escondite delante. Se mira cuál de sus grupos lo tiene.
+       */
+      return Promise.all(fichas.map(function (f) {
+        return MOTOR.getDoc(MOTOR.doc(MOTOR.db, "rewards", f.per + "__huevo_" + HUEVO))
+          .then(function (d) { return d.exists() && !d.data().stargateBorrado; }).catch(function () { return false; });
+      })).then(function (tiene) {
+        var elegido = fichas.filter(function (f, i) { return tiene[i]; })[0] || fichas[0];
+        return elegido;
+      });
+    }).then(function (elegido) {
+      if (!elegido || !elegido.per) return;
       PER = elegido.per; FICHA = elegido.ficha;
       pinta(portada(
         'Hay algo aquí para ti. Púlsalo y es tuyo — <b>solo se puede una vez</b> por escondite.',
