@@ -328,7 +328,62 @@
       +album
       +'<details class="cajon"><summary><b>🎭 Personajes y héroes</b> <span class="cnt">tu vestuario</span></summary>'
       +vestuario()+'</details>'
+      +adornos()
       +'</section>';
+  }
+
+  /**
+   * LOS ADORNOS COMPRADOS: título, marco y fondo de planeta.
+   *
+   * 🔴 Esto existe porque Norberto compró los tres y «no ha tenido ningún efecto». Sus
+   * descripciones decían «elígelo en el formulario», que era el flujo del sistema VIEJO. Con el
+   * motor nuevo no hay formulario: tres de las diez recompensas de la tienda cobraban créditos y no
+   * hacían nada. La ficha ya sabía pintarlos; faltaba dónde elegirlos.
+   *
+   * Solo aparece lo que se ha comprado — enseñar un selector de algo que no tienes es una tienda
+   * disfrazada de ajustes.
+   */
+  function adornos(){
+    var r=st.yo; if(!r||!motorNuevo()) return '';
+    var comprados=r.canjeados||{};
+    var tieneTit=(comprados['Título de recluta']||0)>0;
+    var tieneFon=(comprados['Fondo de ficha: tu planeta']||0)>0;
+    var tieneMar=(comprados['Marco dorado del avatar']||0)>0;
+    if(!tieneTit&&!tieneFon&&!tieneMar) return '';
+
+    var partes='';
+    if(tieneTit){
+      partes+='<div class="ad-uno"><b>🏷️ Tu título</b>'
+        +'<p class="small muted">Se lee bajo tu alias, en tu ficha y en el tablero.</p>'
+        +'<div class="ad-fila"><input id="ad-titulo" maxlength="40" value="'+esc(r.titulo||'')+'" '
+        +'placeholder="La que no se rinde" autocomplete="off">'
+        +'<button class="btn min" type="button" data-adorno="titulo">Ponérmelo</button></div></div>';
+    }
+    if(tieneFon){
+      // 🔴 Los OCHO planetas, siempre. Preguntó: «respecto al planeta, ¿debería poder elegir?».
+      // Sí, y además poder cambiarlo cuando quiera: se compra una vez y se lleva el que apetezca,
+      // como las skins. Comprarlo otra vez no tendría sentido — el tope de la tienda es 1.
+      var ops=PLAN.map(function(p){
+        return '<button type="button" class="ad-pl'+(r.fondo===p[1]?' on':'')+'" data-fondo="'+esc(p[1])+'" '
+          +'title="'+esc(p[1])+'"><img loading="lazy" src="assets/img/planetas/'+p[0]+'.png'+(window.SG_IMGV||'')+'" alt="">'
+          +'<span>'+esc(p[1])+'</span></button>';
+      }).join('');
+      partes+='<div class="ad-uno"><b>🌌 El fondo de tu ficha</b>'
+        +'<p class="small muted">Elige cuál de los ocho llevas detrás. Puedes cambiarlo cuando quieras.</p>'
+        +'<div class="ad-planetas">'+ops
+        +'<button type="button" class="ad-pl ad-nada'+(r.fondo?'':' on')+'" data-fondo=""><span>Sin fondo</span></button>'
+        +'</div></div>';
+    }
+    if(tieneMar){
+      var puesto=r.marco==='oro';
+      partes+='<div class="ad-uno"><b>🖼️ El marco dorado</b>'
+        +'<p class="small muted">Enmarca tu avatar en tu ficha y en el tablero.</p>'
+        +'<div class="ad-fila"><button class="btn'+(puesto?' primary':' min')+'" type="button" '
+        +'data-marco="'+(puesto?'':'oro')+'">'+(puesto?'✓ Puesto — quitármelo':'Ponérmelo')+'</button></div></div>';
+    }
+    return '<details class="cajon" open><summary><b>✨ Tus adornos</b> '
+      +'<span class="cnt">lo que has comprado</span></summary>'
+      +'<div class="ad-grid">'+partes+'</div></details>';
   }
 
   /**
@@ -1547,6 +1602,19 @@
     if(!st.yo || otro) identificarPorSesion();
   });
 
+  /** Ponerse (o quitarse) un adorno. Cosmético: se aplica al momento y se deshace en un clic. */
+  function ponerAdorno(campo, valor, boton){
+    if(boton){ boton.disabled=true; }
+    post({accion:'adorno',per:per,campo:campo,valor:valor},function(){
+      var antes=st.yo?JSON.parse(JSON.stringify(st.yo)):{};
+      aviso(valor?'✨ Puesto. Míralo en tu ficha.':'Quitado.');
+      refrescarYCelebrar(antes, null, 'canje-mudo', '');
+    },function(e){
+      if(boton){ boton.disabled=false; }
+      aviso('No he podido ponértelo: '+esc(e), true);
+    });
+  }
+
   /** Pegar el enlace que se olvidó, sin tocar el reto ni los puntos. */
   function guardarEvidencia(id, boton){
     var caja=document.querySelector('[data-evid="'+id+'"]');
@@ -1853,7 +1921,11 @@
     var caja=document.querySelector('.neb-caja'); if(!caja) return;
     caja.classList.add('esperando');
     var b=caja.querySelector('.neb-botones');
-    if(b) b.innerHTML='<p class="neb-esperando">NEBULA está tramitando el canje…</p>';
+    // 🔴 Ocupaba media caja y el texto se partía a la mitad sin sentido. Y una espera muda es una
+    // espera que parece rota: la barra no mide nada real —el servidor no informa del progreso— pero
+    // dice «esto sigue vivo», que es justo lo que hace falta durante dos segundos de incertidumbre.
+    if(b) b.innerHTML='<div class="neb-trab"><p>NEBULA está tramitando el canje…</p>'
+      +'<div class="neb-barra"><i></i></div></div>';
   }
   /** Y si no ha podido ser, lo dice ella, no un cartel en el borde de la pantalla. */
   function nebulaProblema(e){
@@ -1963,6 +2035,19 @@
     cablearTeclado();
     Array.prototype.forEach.call(root.querySelectorAll('[data-hecho]'),function(b){
       b.onclick=function(){ marcarReto(b.getAttribute('data-hecho'), b); };
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-adorno]'),function(b){
+      b.onclick=function(){
+        var c=b.getAttribute('data-adorno');
+        var i=document.getElementById('ad-'+c);
+        ponerAdorno(c, i?i.value.trim():'', b);
+      };
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-fondo]'),function(b){
+      b.onclick=function(){ ponerAdorno('fondo', b.getAttribute('data-fondo'), b); };
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-marco]'),function(b){
+      b.onclick=function(){ ponerAdorno('marco', b.getAttribute('data-marco'), b); };
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-guardaev]'),function(b){
       b.onclick=function(){ guardarEvidencia(b.getAttribute('data-guardaev'), b); };

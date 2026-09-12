@@ -518,13 +518,13 @@ IMG_RECOMPENSA = {
 
 RECOMPENSAS = [
  ("Sobre de cromos", 15, 99,
-  "Una carta al azar de las 20 del álbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. Se abre solo y tu álbum está en la Nave.", 2, "cromo"),
+  "Una carta al azar de las 20 del álbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. ", 2, "cromo"),
  ("Cambiar 3 repetidos por un sobre", 0, 99,
   "¿Cartas repetidas? Cámbialas. Por cada 3 repetidas te llevas un sobre nuevo, gratis. No cuesta créditos y se comprueba solo: si no llegas a 3, se te avisa y no pierdes nada.", 2, "cromo_repes"),
  ("Título de recluta", 40, 3,
-  "Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario). Se aplica solo.", 3, "titulo"),
+  "Un título narrativo bajo tu alias en el tablero y la Nave Lo eliges tú en Mi botín.", 3, "titulo"),
  ("Fondo de ficha: tu planeta", 35, 1,
-  "Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.", 4, "fondo"),
+  "Tu ficha de la Nave con el planeta que elijas de fondo Eliges cuál de los ocho en Mi botín.", 4, "fondo"),
  ("Marco dorado del avatar", 60, 1,
   "Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.", 6, "marco"),
  ("Héroe de la Rebelión", 60, 99,

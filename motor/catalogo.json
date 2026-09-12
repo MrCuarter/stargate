@@ -735,7 +735,7 @@
       "nombre": "Sobre de cromos",
       "coste": 15,
       "maximo": 99,
-      "descripcion": "Una carta al azar de las 20 del álbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. Se abre solo y tu álbum está en la Nave.",
+      "descripcion": "Una carta al azar de las 20 del álbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. ",
       "desdeSemana": 2,
       "tipo": "cromo"
     },
@@ -751,7 +751,7 @@
       "nombre": "Título de recluta",
       "coste": 40,
       "maximo": 3,
-      "descripcion": "Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario). Se aplica solo.",
+      "descripcion": "Un título narrativo bajo tu alias en el tablero y la Nave Lo eliges tú en Mi botín.",
       "desdeSemana": 3,
       "tipo": "titulo"
     },
@@ -759,7 +759,7 @@
       "nombre": "Fondo de ficha: tu planeta",
       "coste": 35,
       "maximo": 1,
-      "descripcion": "Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.",
+      "descripcion": "Tu ficha de la Nave con el planeta que elijas de fondo Eliges cuál de los ocho en Mi botín.",
       "desdeSemana": 4,
       "tipo": "fondo"
     },

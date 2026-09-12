@@ -347,10 +347,10 @@ var ESCUADRONES = [
 // RECOMPENSAS-INICIO · [nombre, coste en créditos, máx por alumno, descripción, desde (semana
 // REGULAR; en PUA se escala), tipo]. Generado desde _site_data.py: no editar a mano.
 var RECOMPENSAS_INICIALES = [
-  ["Sobre de cromos",15,99,"Una carta al azar de las 20 del álbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. Se abre solo y tu álbum está en la Nave.",2,"cromo"],
+  ["Sobre de cromos",15,99,"Una carta al azar de las 20 del álbum (4 series). Los tripulantes son comunes; los Ecos, NEBULA y el Capitán, raros; el Recluta y la Estática, épicos; y dos LEGENDARIOS: el General Vaeon (2 %) y Ander Vaeon, la identidad del villano, solo 1 de cada 100. ",2,"cromo"],
   ["Cambiar 3 repetidos por un sobre",0,99,"¿Cartas repetidas? Cámbialas. Por cada 3 repetidas te llevas un sobre nuevo, gratis. No cuesta créditos y se comprueba solo: si no llegas a 3, se te avisa y no pierdes nada.",2,"cromo_repes"],
-  ["Título de recluta",40,3,"Un título narrativo bajo tu alias en el tablero y la Nave (elígelo en el formulario). Se aplica solo.",3,"titulo"],
-  ["Fondo de ficha: tu planeta",35,1,"Tu ficha de la Nave con el planeta que elijas de fondo (indícalo en el formulario). Se aplica solo.",4,"fondo"],
+  ["Título de recluta",40,3,"Un título narrativo bajo tu alias en el tablero y la Nave Lo eliges tú en Mi botín.",3,"titulo"],
+  ["Fondo de ficha: tu planeta",35,1,"Tu ficha de la Nave con el planeta que elijas de fondo Eliges cuál de los ocho en Mi botín.",4,"fondo"],
   ["Marco dorado del avatar",60,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.",6,"marco"],
   ["Héroe de la Rebelión",60,99,"Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión en tres rangos. ⚔️ La Resistencia (56% del sobre): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave.",2,"heroe"],
   ["Subir 0,5 en un entregable",550,1,"⚔️ ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. 🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — estarías tirando 550 créditos a la basura. Comprueba tu nota primero. Con esos créditos cierras media docena de sobres o te llevas nueve héroes.",15,"nota"],

@@ -468,6 +468,31 @@
                     }, { merge: true }).then(function () { return { ok: true }; });
                   });
 
+              /**
+               * PONERSE UN ADORNO COMPRADO (título, marco, fondo de planeta).
+               *
+               * 🔴 EL FALLO QUE ESTO CIERRA, y es el peor de todos: Norberto compró los tres y «no
+               * ha tenido ningún efecto». Sus descripciones decían «elígelo en el formulario» —el
+               * flujo del sistema viejo—. Con el motor nuevo NO hay formulario, así que tres de las
+               * diez recompensas de la tienda cobraban créditos y no hacían absolutamente nada.
+               *
+               * La ficha ya sabía pintarlos (`r.titulo`, `r.marco`, `r.fondo`) y los campos ya
+               * existían en el perfil: lo único que faltaba era poder escribirlos.
+               *
+               * No se comprueba aquí si la compró: lo peor que puede pasar es que alguien se ponga
+               * un marco sin pagarlo, que es cosmético y se deshace en un clic — la misma razón por
+               * la que `vestir` tampoco lo comprueba.
+               */
+              if (cuerpo.accion === "adorno") {
+                var CAMPO = { titulo: "stargateTitulo", marco: "stargateMarco", fondo: "stargateFondo" };
+                var campo = CAMPO[cuerpo.campo];
+                if (!campo) return { error: "Ese adorno no existe." };
+                var cambio = {};
+                cambio[campo] = String(cuerpo.valor || "").slice(0, 60);
+                return M.updateDoc(M.doc(M.db, "student_profiles", ficha.id), cambio)
+                  .then(function () { return { ok: true }; });
+              }
+
               if (cuerpo.accion === "vestir")
                 return M.updateDoc(M.doc(M.db, "student_profiles", ficha.id),
                   { stargateViste: cuerpo.viste || "" }).then(function () { return { ok: true }; });

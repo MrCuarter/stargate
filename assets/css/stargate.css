@@ -1822,3 +1822,42 @@ body.embed #sg-son{display:none}
   .badge-col{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
   .badge-col img{width:84px;height:84px}
 }
+
+/* La espera del canje: a todo el ancho y con barra. Una espera muda parece una espera rota. */
+.neb-trab{width:100%}
+.neb-trab p{margin:0 0 10px;font-size:.9rem;color:var(--mut);text-align:center;white-space:nowrap}
+.neb-barra{height:6px;border-radius:99px;background:rgba(0,0,0,.4);border:1px solid #24304a;overflow:hidden}
+.neb-barra i{display:block;height:100%;width:0;border-radius:99px;
+  background:linear-gradient(90deg,var(--teal-d,#0e5f6c),#37e0ec);
+  animation:nebCarga 2.6s cubic-bezier(.25,.9,.35,1) forwards}
+/* Sube deprisa hasta el 92 % y ahí espera: prometer el 100 % antes de que el servidor conteste
+   sería mentir, y quedarse clavado al 40 % parece colgado. */
+@keyframes nebCarga{0%{width:4%}35%{width:62%}70%{width:84%}100%{width:92%}}
+.neb-botones .neb-trab{grid-column:1/-1}
+@media (prefers-reduced-motion:reduce){.neb-barra i{animation:none;width:70%}}
+
+/* ══════ TUS ADORNOS (Mi botín) ══════
+   Existe porque Norberto compró título, fondo y marco y «no ha tenido ningún efecto»: sus
+   descripciones decían «elígelo en el formulario», el flujo del sistema viejo. Con el motor nuevo
+   no hay formulario — tres de las diez recompensas cobraban y no hacían nada. */
+.ad-grid{display:flex;flex-direction:column;gap:18px;margin-top:10px}
+.ad-uno b{display:block;font-size:1rem;margin-bottom:2px}
+.ad-uno p{margin:0 0 9px}
+.ad-fila{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ad-fila input{flex:1 1 200px;padding:9px 11px;border-radius:9px;border:1px solid #24304a;
+  background:#0b1119;color:#e8eefc;font:inherit;font-size:.9rem}
+.ad-fila input:focus{outline:none;border-color:var(--teal)}
+/* Los ocho planetas, con su cara: elegir «Fôrge» de una lista de texto no es elegir nada. */
+.ad-planetas{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:9px}
+.ad-pl{padding:0;border:2px solid transparent;border-radius:12px;background:#0b1119;cursor:pointer;
+  overflow:hidden;display:flex;flex-direction:column;transition:border-color .15s,transform .15s}
+.ad-pl img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.ad-pl span{font-size:.72rem;color:#c7d6ee;padding:5px 4px;line-height:1.2}
+.ad-pl:hover{border-color:#3a5578;transform:translateY(-2px)}
+.ad-pl.on{border-color:#ffd166;box-shadow:0 0 16px rgba(255,209,102,.35)}
+.ad-pl.on span{color:#ffd166;font-weight:700}
+.ad-nada{justify-content:center;min-height:74px;border-style:dashed;border-color:#24304a}
+@media (prefers-reduced-motion:reduce){.ad-pl{transition:none}.ad-pl:hover{transform:none}}
+
+/* El cromo, más grande en la lupa: es la recompensa, no una miniatura de catálogo. */
+.lupa-carta{max-width:min(480px,86vw)!important;width:auto}
