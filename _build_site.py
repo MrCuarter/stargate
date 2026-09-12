@@ -448,6 +448,10 @@ GUIA = head("STARGATE · Guía para el profesorado",
   <a href="cronologia.html">Cronología</a>
   <a href="actividades.html">Actividades</a>
   <a href="#pers">Personajes</a>
+  <!-- 🔴 «La Bitácora» faltaba en el índice teniendo su propia sección (#bit), y no es una sección
+       menor: es el ePortfolio, o sea lo que de verdad se evalúa. Un índice que se salta el capítulo
+       principal enseña a no fiarse del índice. -->
+  <a href="#bit">La Bitácora</a>
   <a href="#retos">Retos e insignias</a>
   <a href="#din">Una clase en directo</a>
   <a href="#enlaces">Recursos</a>

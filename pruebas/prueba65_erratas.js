@@ -203,6 +203,39 @@ function visible(html) {
   c(sinLang.length === 0, "todas declaran que están en español", sinLang.join(" · "));
 }
 
+// ------------------------------------------------------------------ 12 · los índices no mienten
+/**
+ * 🔴 Cada ancla de un submenú tiene que caer en algo que EXISTE en esa misma página. Un índice que
+ * lleva a la nada es peor que no tener índice: quien lo pulsa y no se mueve nada cree que la página
+ * está rota. Y se pudre solo — basta con renombrar un `id` al reordenar secciones.
+ */
+{
+  const rotas = [], huerfanas = [];
+  PAGINAS.forEach(p => {
+    const h = fs.readFileSync(path.join(RAIZ, p), "utf8");
+    const limpio = h.replace(/<script[\s\S]*?<\/script>/g, "");
+    const ids = {};
+    let m; const reId = /\bid="([^"]+)"/g;
+    while ((m = reId.exec(limpio))) ids[m[1]] = 1;
+    const reA = /<a\b[^>]*?href="#([^"]+)"/g;
+    const anclas = [];
+    while ((m = reA.exec(limpio))) anclas.push(m[1]);
+    anclas.forEach(a => { if (!ids[a]) rotas.push(p + " → #" + a); });
+
+    // y al revés: si la página tiene un índice, que no se salte una sección con título propio
+    const menu = limpio.match(/<nav class="guia-sub"[\s\S]*?<\/nav>/);
+    if (menu) {
+      const enMenu = {};
+      let x; const re2 = /href="#([^"]+)"/g;
+      while ((x = re2.exec(menu[0]))) enMenu[x[1]] = 1;
+      const re3 = /<section id="([^"]+)"/g;
+      while ((x = re3.exec(limpio))) if (!enMenu[x[1]]) huerfanas.push(p + " · #" + x[1]);
+    }
+  });
+  c(rotas.length === 0, "🔴 ningún enlace interno cae en el vacío", [...new Set(rotas)].slice(0, 6).join(" · "));
+  c(huerfanas.length === 0, "y el índice de la guía no se salta ninguna sección", huerfanas.join(" · "));
+}
+
 module.exports = { nombre: "Erratas y texto visible", ok, fallos };
 if (require.main === module) {
   console.log("\n  Batería 65 · erratas y texto visible");
