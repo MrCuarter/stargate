@@ -865,7 +865,7 @@ REGPAGE = head("STARGATE · Registro y tablero en vivo",
   "El sistema de autoregistro de STARGATE: el alumnado registra sus insignias, el tablero se actualiza solo y el profesorado anima y da la ceremonia.","reg", puerta=True) + f'''
 <header class="hero"><div class="kicker">Registro y tablero en vivo</div>
 <h1>Registro de insignias</h1>
-<p>El registro es <b>automático</b>: cada estudiante anota sus propias insignias en la <b>Bitácora de mando</b> de su PER
+<p>El registro es <b>automático</b>: cada estudiante marca sus propios retos desde <a href="recluta.html">su Nave</a>
 y los xp, los rangos y el <b>tablero</b> se calculan solos. Tu papel como docente no es apuntar nada:
 es <b>animar</b> — entregar cada insignia en público, con ceremonia, y enseñar el tablero para que el avance se vea.</p>
 <div class="cta-row"><a class="btn primary" href="#tablero">Ver el tablero en vivo</a><a class="btn" href="recursos.html">Ver las 24 insignias</a></div>
@@ -878,14 +878,14 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="grid cols-3">
 <div class="card"><h3>1 · En público</h3><p>Anuncia el medallón en clase o en el foro en cuanto el recluta supera el reto. El refuerzo funciona cuando se ve.</p></div>
 <div class="card"><h3>2 · Con su frase</h3><p>Nombra el logro con la frase del personaje («una imagen no tiene que ser perfecta, tiene que llegar a tiempo»). Pulsa cualquier insignia en la sala de recursos: la frase está en su ficha.</p></div>
-<div class="card"><h3>3 · Y recuérdales registrarla</h3><p>El estudiante marca su insignia nueva en la Bitácora de mando y el tablero se actualiza al momento. Invítales a mirarlo: una obra que no se documenta, no existe.</p></div>
+<div class="card"><h3>3 · Y recuérdales registrarla</h3><p>El estudiante pulsa «Lo he hecho» en el reto, desde su Nave, y el tablero se actualiza al momento. Invítales a mirarlo: una obra que no se documenta, no existe.</p></div>
 </div>
 </div></section>
 
 <section id="alumnado"><div class="wrap">
 <div class="eyebrow amber">Cómo funciona para tu alumnado</div><h2>Así registran los estudiantes</h2>
 <div class="grid cols-3">
-<div class="card"><h3>1 · Su Bitácora de mando</h3><p>Un formulario con inicio de sesión de Google y <b>una sola respuesta editable</b>. La primera vez eligen alias y avatar y ponen el enlace de su ePortfolio; después solo vuelven, marcan la casilla de la insignia nueva y envían.</p></div>
+<div class="card"><h3>1 · Su alistamiento</h3><p>Se hace <b>una sola vez</b>, con su cuenta de Google: nombre real, alias, Comandante, personaje y el enlace de su ePortfolio. A partir de ahí no vuelven a rellenar nada — marcan cada reto desde <a href="recluta.html">su Nave</a>.</p></div>
 <div class="card"><h3>2 · Todo se calcula solo</h3><p>Los xp, las insignias, el planeta actual y el <b>avatar con rango</b> aparecen en el <a href="#tablero">tablero del PER</a> al momento. Las insignias de hito (Tripulación Cero, La Liberación) se otorgan solas. Ni tú ni nadie toca ninguna hoja.</p></div>
 <div class="card"><h3>3 · Dónde lo ven</h3><p>En la <a href="recluta.html"><b>Nave del Recluta</b></a> (el hub del alumnado, con su ficha, la orden semanal y las recompensas) y en el tablero, que se incrusta en el Genially del PER (o se comparte por enlace/QR desde el <a href="embed.html">generador de embeds</a>). Enséñalos en clase al entregar insignias.</p></div>
 </div>
@@ -922,7 +922,7 @@ lo que no puede faltar es tu ceremonia:</p>
 
 <section id="tablero"><div class="wrap">
 <div class="eyebrow">Tablero en vivo</div><h2>Ranking e insignias de cada PER</h2>
-<p class="lead">Se alimenta solo de la Bitácora de mando de cada PER. Para incrustar el tablero, el foro o los formularios en tu Genially: <a href="embed.html"><b>generador de enlaces, embeds y QR</b></a>.</p>
+<p class="lead">Se alimenta solo de lo que registra cada recluta en su Nave. Para incrustar el tablero, el foro o los formularios en tu Genially: <a href="embed.html"><b>generador de enlaces, embeds y QR</b></a>.</p>
 <div id="tablero-app"></div>
 <script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};</script>
 <script src="assets/js/tablero.js" defer></script>
@@ -931,7 +931,8 @@ lo que no puede faltar es tu ceremonia:</p>
 <section id="instalacion"><div class="wrap">
 <div class="eyebrow amber">Cómo funciona por dentro · para el profesorado referente</div><h2>El sistema de autoregistro</h2>
 <div class="grid cols-3">
-<div class="card"><h3>1 · El alumno registra</h3><p>Cada PER tiene su <b>Bitácora de mando</b>: un formulario con inicio de sesión de Google y <b>una sola respuesta editable</b>. La primera vez pone alias, nombre y el enlace a su ePortfolio; después solo vuelve, marca la casilla de la insignia nueva y envía. Además: el <b>ticket de salida «Contacta con NEBULA»</b> (anónimo, ramificado: presentación / tema / actividad / repaso, con el profe que imparte) y un formulario de <b>canje de xp</b> con validación automática.</p></div>
+<div class="card"><h3>1 · El alumno registra</h3><p>Sin formularios. Cada estudiante se alista <b>una vez</b> con su cuenta de Google —nombre real, alias, Comandante y personaje— y a partir de ahí todo lo hace desde <a href="recluta.html">su Nave</a>: ve los retos de la semana con su paso a paso, pulsa <b>«Lo he hecho»</b> y los puntos suben en el momento. El <b>ticket de salida «Contacta con NEBULA»</b> sigue siendo anónimo y aparte, y el <b>canje</b> ocurre dentro de la Nave: los créditos se descuentan solos y a ti solo te llega lo que tiene que aprobar una persona.</p>
+<p class="small muted">Los grupos creados antes de septiembre de 2026 siguen con los tres formularios de Google: está contado en <a href="legacy.html">el archivo</a>.</p></div>
 <div class="card"><h3>2 · Nadie hace nada</h3><p>Los xp, los créditos, las insignias, el planeta actual y el nivel los calcula el sistema con cada reto que se marca, y el tablero cambia al momento. Las insignias de hito <b>Tripulación Cero</b> y <b>La Liberación</b> se otorgan solas. Si hay un registro falso, el profesorado lo anula desde <a href="clase.html">su sala</a> y se descuenta lo que dio, con su asiento en el libro. Todo queda guardado para análisis e investigación.</p>
 <p class="small muted">Hasta septiembre de 2026 esto vivía en una hoja de cálculo: está contado en <a href="legacy.html">el archivo</a>.</p></div>
 <div class="card"><h3>3 · Un PER nuevo, un clic</h3><p>Antes, dos minutos en padlet.com: crea el <b>padlet del grupo</b> en formato <b>«Muro con secciones»</b> con cuatro secciones — <b>📹 Preséntate · 🎨 La chispa · 🎲 Ensaya jugando · 🛡️ Mi insignia</b> — y actívale que los visitantes puedan escribir. Después, menú <b>🛰️ STARGATE → Crear nuevo PER…</b>: pide nombre del PER, profesorado, fechas y el <b>enlace del padlet</b>; crea los formularios y las pestañas, y el propio formulario recordará al alumnado el formato de las chinchetas (título = alias · primera línea = «Capitán: su profe»).</p></div>
@@ -953,7 +954,7 @@ Aunque un recluta no pase por la página del Tema 3, su insignia del Tema 3 sigu
 respuesta son sus datos de identidad, y esa página se ve siempre.</div>
 
 <h3 style="margin-top:1.6em">Avatares</h3>
-<div><p class="lead">Cada recluta elige su personaje en la Bitácora de mando: uno de los <b>siete</b>, en versión ella/él. Cada personaje tiene <b>cinco versiones de arte</b> — Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b> — que se <b>desbloquean por nivel</b> (3, 5, 8 y 10; ver <a href="#economia">la tabla de niveles</a>). Al desbloquear una nueva se pone sola, pero desde ese momento son <b>skins</b>: el recluta elige cuál lleva desde su Nave, cuando quiera y gratis.</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
+<div><p class="lead">Cada recluta elige su personaje al alistarse: uno de los <b>siete</b>, en versión ella/él. Cada personaje tiene <b>cinco versiones de arte</b> — Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b> — que se <b>desbloquean por nivel</b> (3, 5, 8 y 10; ver <a href="#economia">la tabla de niveles</a>). Al desbloquear una nueva se pone sola, pero desde ese momento son <b>skins</b>: el recluta elige cuál lleva desde su Nave, cuando quiera y gratis.</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
 <div class="official" style="display:block">🎭 <b>El vestuario de héroes.</b> Además de las skins, hay <b>héroes de la Rebelión</b>: figuras únicas que salen <b>al azar</b> con la recompensa del mismo nombre (60 ◈, desde la semana {_SEM_HEROE}) y que se <b>acumulan</b>. Se ponen y se quitan gratis desde la Nave. Los que aún no tienes salen en <b>sombra</b>, y los <b>LEGENDARIOS</b> no se dejan ver hasta que caen. Poner tu propia imagen y comprar un personaje suelto <b>se han retirado</b>: el vestuario los sustituye.</div></div>
 </div>
 <h3 id="economia" style="margin-top:1.6em">Dos marcadores: xp y créditos ◈</h3>

@@ -61,6 +61,28 @@
       // error visible: la pestaña de retos se quedaba vacía y en blanco, sin decir por qué.
       return (f.completedMissionIds || []).map(function (doc) { return porDoc[doc] || doc; });
     };
+    /**
+     * CUÁNDO registró cada reto. La Nave lo pinta desde el principio —«✓ Registrado · 12/09/2026»—
+     * pero NINGÚN motor lo producía: ni el viejo ni este. La fecha no salía nunca y nadie lo notó,
+     * porque un campo que falta no deja hueco, simplemente no escribe nada.
+     * Aquí sí se puede: los sellos de tiempo están en `missionTimestamps`, indexados por el id de
+     * DOCUMENTO («grupo__A1»), y hay que traducirlos al id corto que usa la Nave.
+     */
+    var misFechas = function (f) {
+      var porDoc = {};
+      ((crudo && crudo.misiones) || []).forEach(function (m) { porDoc[m.docId] = m.id; });
+      var sellos = f.missionTimestamps || {}, fechas = {};
+      Object.keys(sellos).forEach(function (doc) {
+        var marcas = sellos[doc] || [];
+        if (!marcas.length) return;
+        var ultima = marcas[marcas.length - 1];
+        // Firestore devuelve Timestamp; de una exportación puede llegar una cadena o un número.
+        var d = ultima && ultima.toDate ? ultima.toDate() : new Date(ultima);
+        if (isNaN(d.getTime())) return;
+        fechas[porDoc[doc] || doc] = d.toISOString().slice(0, 10);
+      });
+      return fechas;
+    };
     var esperarTraductor = function () {
       return new Promise(function (ok) {
         var mira = function () {
@@ -330,6 +352,7 @@
                 // necesita para saber qué casillas pintar hechas y cuáles ofrecer para marcar.
                 // Sale de la ficha de quien pregunta, no del tablero de todos.
                 if (yo_) yo_.retos = misRetos(f);
+                if (yo_) yo_.retos_fecha = misFechas(f);
                 // 🔴 Y su propio identificador de ficha. El tablero público no lo trae —y así se
                 // queda—, pero uno tiene derecho a saber cuál es la suya: es lo que hace falta para
                 // fichar en la llamada a filas. Es SU ficha, no la de nadie más.

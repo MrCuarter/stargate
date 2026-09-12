@@ -66,4 +66,30 @@ c(/vivos=mios\.filter/.test(clase) && /estadoPer\(suyo\)!=='en marcha'/.test(cla
 c(/doc\(db, "projects", perId\)/.test(motor) && /restrictedFactionId/.test(motor),
   "🔴 el escuadrón al que se restringe se lee del grupo que se abre, no de uno recordado");
 
+// ---------------------------------------------------------------- f) el Mercado dice la verdad
+// 🔴 El traductor mandaba `descripcion`/`maximo` donde el Apps Script dice `desc`/`max`. Sin error:
+// el Mercado salía sin una sola descripción y, como `x.max` llegaba undefined, `!x.max` era true y
+// TODO parecía repetible — «Ya la tienes» no salía nunca en las seis recompensas que tienen tope.
+// El servidor sí lo deniega (storePurchase.js comprueba maxPerUser), pero la pantalla mentía.
+const traductor = raiz("motor/tablero.js");
+c(/\bdesc: r\.description/.test(traductor), "🔴 el traductor manda `desc`, que es lo que lee la Nave");
+c(/\bmax: r\.maxPerUser/.test(traductor), "🔴 y `max`, o el tope de compra no se vería nunca");
+c(!/descripcion: r\.description|maximo: r\.maxPerUser/.test(traductor),
+  "   y no quedan los nombres rebautizados que nadie leía");
+
+// ---------------------------------------------------------------- g) nada de formularios fantasma
+// Con el motor nuevo NO hay Bitácora de mando. Mandar a un recluta a buscar un formulario de Google
+// que ya no existe es la peor primera pantalla posible.
+const nave = raiz("assets/js/recluta.js");
+const puerta = nave.slice(nave.indexOf("CID||motorNuevo()"), nave.indexOf("CID||motorNuevo()") + 400);
+c(/motorNuevo\(\)\?'te alistaste'/.test(puerta),
+  "🔴 la puerta de la Nave no nombra la Bitácora de mando cuando el motor es el nuevo");
+
+// ---------------------------------------------------------------- h) la fecha de cada reto
+// La Nave pinta «✓ Registrado · <fecha>» desde el principio, pero NINGÚN motor producía
+// `retos_fecha`: la fecha no salía nunca y no dejaba hueco, así que nadie lo notó.
+const fuente = raiz("assets/js/fuente.js");
+c(/misFechas/.test(fuente) && /missionTimestamps/.test(fuente),
+  "🔴 el motor nuevo sí da la fecha de cada reto (retos_fecha), que nadie producía");
+
 E.resumen("Un docente, dos grupos a la vez");

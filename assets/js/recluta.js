@@ -120,7 +120,7 @@
         // pintarse — explicar «mira tu personaje» sobre una pantalla en blanco no explica nada.
         if(!localStorage.getItem('sgNaveOnboard_'+per)) setTimeout(function(){ onboarding(0,'nave'); }, 700);
       }
-      else if(d&&d.yo===null){st.yo=null;st.msgYo='No encuentro a nadie con ese correo en este grupo. Tiene que ser el <b>mismo correo de Google</b> con el que rellenaste la Bitácora de mando. ¿Todavía no te has alistado? Ese es el primer paso — el botón de abajo.';}
+      else if(d&&d.yo===null){st.yo=null;st.msgYo='No encuentro a nadie con ese correo en este grupo. Tiene que ser el <b>mismo correo de Google</b> con el que '+(motorNuevo()?'te alistaste':'rellenaste la Bitácora de mando')+'. ¿Todavía no te has alistado? Ese es el primer paso — el botón de abajo.';}
       else{st.yo=null;st.msgYo='La identificación aún no está activa (el mando tiene que actualizar el sistema). El resto de la nave funciona; vuelve a intentarlo más adelante.';}
       render();
       if(st.yo) celebrar(st.yo);      // después de pintar: el cartel cae encima de su propia ficha
@@ -170,7 +170,10 @@
     var alta = altaUrl && st.msgYo;
     return '<div class="card nave-login"><div class="nave-perfil">'+nebulaVideo('nebula-mini')+''
       +'<div><h3>Identifícate, recluta</h3><p class="small muted">'
-      +((CID||motorNuevo())?'Entra con la <b>misma cuenta de Google</b> con la que rellenas la Bitácora de mando. Solo se te pedirá una vez en este dispositivo, y solo verás <b>tu</b> ficha.'
+      // 🔴 En el motor nuevo NO hay Bitácora de mando: se alista uno en su propia página. Mandar a
+      // un recluta a buscar un formulario de Google que ya no existe es la peor primera pantalla
+      // posible, y era exactamente lo que ponía aquí.
+      +((CID||motorNuevo())?'Entra con la <b>misma cuenta de Google</b> con la que '+(motorNuevo()?'te alistaste':'rellenas la Bitácora de mando')+'. Solo se te pedirá una vez en este dispositivo, y solo verás <b>tu</b> ficha.'
            :'Escribe el correo con el que te alistaste en la Bitácora de mando. Solo lo pediré una vez en este dispositivo, y solo te enseño <b>tu</b> ficha.')
       +'<br><b>¿Primera vez?</b> Entra igualmente y te digo cómo subir a bordo.</p></div></div>'
       +((CID||motorNuevo())?'<div id="g-nave" class="g-nave"></div>'
@@ -1737,7 +1740,15 @@
       var botin = d && d.botin;
       // Si ha tocado una carta, lo que se enseña es LA CARTA, no «Sobre de cromos»: nadie compra un
       // sobre por el sobre.
+      // El arte de lo que te llevas. Si ha tocado una carta, LA CARTA; si no, la imagen de la
+      // propia recompensa —que ya existe en assets/img/canje/ para las diez— y solo si no hubiera
+      // ninguna se cae al emoji. Entregar un icono genérico teniendo la ilustración es desperdiciar
+      // el único momento en que se enseña lo comprado.
       var arte = botin ? arteDeCarta(botin) : null;
+      if (!arte) {
+        var propia = (window.SG_IMG_RECOMPENSA || {})[nombre];
+        if (propia) arte = 'assets/img/canje/' + propia;
+      }
       nebulaEntrega({
         tipo: tipo, coste: coste, antes: tenia, arte: arte,
         titulo: botin ? '¡Te ha tocado!' : '¡Es tuya!',
