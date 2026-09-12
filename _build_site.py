@@ -1198,14 +1198,33 @@ window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.a
  */
 window.SG.pers = function(cb){
   var API=(window.SG_TABLERO_API||'').trim(), K='sgPers_v1';
-  var F = window.SG && window.SG.FUENTE;
-  var nuevo = F && F.nombre === 'firestore';
+  // 🔴 El motor se decide por la URL o por el ajuste, NO por si `SG.FUENTE` ya existe. Los scripts
+  // van con `defer` y esta funcion la llaman paginas que arrancan antes de que la fuente este
+  // cargada: mirando el objeto, `nuevo` salia falso, se cacheaba la lista sin los grupos del motor
+  // nuevo, y no volvian a aparecer hasta vaciar la cache a mano.
+  var q = new URLSearchParams(location.search);
+  var nuevo = ((q.get('motor')||window.SG_MOTOR||'apps')+'').toLowerCase() === 'firestore';
   function juntar(a,b){ var v={}, out=[];
     (a||[]).concat(b||[]).forEach(function(p){ if(!p||!p.id||v[p.id])return; v[p.id]=true; out.push(p); });
     return out; }
+  /** Espera a que la fuente exista (llega con defer), pero sin colgarse si nunca llega. */
+  function fuente(){
+    return new Promise(function(ok){
+      var t0=Date.now();
+      (function mira(){
+        var F=window.SG && window.SG.FUENTE;
+        if(F && F.nombre==='firestore') return ok(F);
+        if(Date.now()-t0 > 6000) return ok(null);
+        setTimeout(mira, 80);
+      })();
+    });
+  }
   function delMotorNuevo(){
     if(!nuevo) return Promise.resolve([]);
-    return F.lista().then(function(r){ return (r&&r.pers)||[]; }).catch(function(){ return []; }); }
+    return fuente().then(function(F){
+      if(!F) return [];
+      return F.lista().then(function(r){ return (r&&r.pers)||[]; }).catch(function(){ return []; });
+    }); }
   if(!API){
     delMotorNuevo().then(function(n){ cb(n, n.length?'red':'sin-api'); });
     return; }

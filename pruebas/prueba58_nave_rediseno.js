@@ -197,6 +197,17 @@ c(/No te enseño el alumnado de/.test(AULA), "   diciendo claramente que no se e
 // web, sin ningún error que lo explicara.
 const ST = js("stargate.js");
 c(/function delMotorNuevo\(\)/.test(ST), "🔴 `SG.pers` también pregunta al motor nuevo");
+// 🔴 Y el motor se decide por la URL, no por si `SG.FUENTE` ya existe: los scripts van con `defer` y
+// esta función la llaman páginas que arrancan antes de que la fuente esté cargada. Mirando el objeto,
+// `nuevo` salía falso, se cacheaba la lista sin los grupos nuevos, y no volvían a aparecer hasta
+// vaciar la caché a mano.
+c(/q\.get\('motor'\)\|\|window\.SG_MOTOR/.test(ST),
+  "🔴 y decide el motor por la URL, no por si la fuente ya ha cargado");
+c(/function fuente\(\)/.test(ST) && /Date\.now\(\)-t0 > 6000/.test(ST),
+  "   esperándola, pero sin colgarse si nunca llega");
+const GRUPOS = js("grupos.js");
+c(/SGCAL\.perData\(API, p\.id/.test(GRUPOS),
+  "🔴 y la página de grupos pide los detalles por el calendario: al Apps Script a pelo, los grupos nuevos salían sin semana, sin fechas y sin enlaces");
 c(/function juntar\(a,b\)/.test(ST), "   y junta las dos listas sin repetir");
 c(/if\(fresco && !nuevo\) return;/.test(ST),
   "🔴 y con el motor nuevo refresca aunque la caché esté fresca: esa caché no conoce los grupos nuevos");

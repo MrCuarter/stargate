@@ -85,9 +85,13 @@
     pinta(pers);
     pers.forEach(function(p){                      // los formularios de cada grupo, en paralelo
       if(p.id in detalles) return;
-      fetch(API+'?per='+encodeURIComponent(p.id),{redirect:'follow'}).then(function(r){return r.json();})
-        .then(function(d){ detalles[p.id]=d&&!d.error?d:null; pinta(pers); })
-        .catch(function(){ detalles[p.id]=null; pinta(pers); });
+      // 🔴 Por el calendario, que ya sabe con qué motor hablar. Yendo al Apps Script a pelo, los
+      // grupos del motor nuevo salían en la lista pero SIN datos: sin semana, sin fechas y sin
+      // enlaces, como si estuvieran rotos. Y no daba error, así que parecía cosa del grupo.
+      window.SGCAL.perData(API, p.id, function(d){
+        detalles[p.id] = (d && !d.error) ? d : null;
+        pinta(pers);
+      });
     });
   });
 })();
