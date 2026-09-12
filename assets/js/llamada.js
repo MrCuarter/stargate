@@ -44,7 +44,7 @@
       + "<h2>Esto lo toca tu Comandante</h2>"
       + '<p class="ll-sub">Cuando lo haga, el botón de <b>✋ Presente</b> aparecerá solo en '
       + '<b>tu Nave</b>. No hay que hacer nada aquí.</p>'
-      + '<p class="ll-pie">Estás como ' + esc(YO.correo) + '. '
+      + '<p class="ll-pie">' + (YO.correo ? 'Estás como ' + esc(YO.correo) + '. ' : '')
       + '<button class="ll-min" id="ll-otra">No soy yo</button></p></div>');
     document.getElementById("ll-otra").onclick = function () { MOTOR.salir(); };
   }

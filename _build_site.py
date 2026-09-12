@@ -891,8 +891,12 @@ lo que no puede faltar es tu ceremonia:</p>
 </div></section>
 
 <section id="profe-herramientas"><div class="wrap">
-<div class="eyebrow">También desde tu puesto</div><h2>El ticket de salida y el canje, en versión docente</h2>
+<div class="eyebrow">También desde tu puesto</div><h2>Lo que usas cada semana</h2>
 <div class="grid cols-2">
+<div class="card"><h3>🛰️ El aula, dentro de tu Genially</h3><p>Tu puesto de mando <b>sin salir de la presentación</b>: tocas <b>llamada a filas</b> y ves quién ficha en directo, miras a quién felicitar por lo que ha hecho esta semana y a quién dar la bienvenida, consultas el ranking y repartes premios a mano — experiencia, créditos o una carta de regalo, incluso eligiendo a alguien al azar. Ábrelo desde <a href="clase.html">Mi clase</a> o incrústalo con <code>aula.html?embed=1</code>.</p>
+<p class="small muted">🔴 Ese enlace <b>no lleva el grupo dentro</b>: se deduce de tu cuenta. Se monta una vez en todos tus Geniallys y no se toca más, ni al crear un grupo nuevo ni el curso que viene.</p></div>
+<div class="card"><h3>🔔 Llamada a filas</h3><p>El pase de lista. Lo tocas tú —y solo tú: quien no sea Comandante recibe un aviso que se lo explica— y se abre el fichaje <b>solo para tu escuadrón</b>, los minutos que elijas. En la Nave de tu gente aparece el botón <b>✋ Presente</b> con su cuenta atrás, y al pulsarlo cobran. <a href="llamada.html">llamada.html</a>, también universal.</p>
+<p class="small muted">No hay palabra que dictar: lo que no se puede adivinar es <b>cuándo</b> la vas a tocar.</p></div>
 <div class="card"><h3>🎟️ Ticket de salida «Contacta con NEBULA»</h3><p>El alumnado valora la clase y deja dudas de forma <b>anónima</b> (presentación / tema / actividad / repaso, indicando quién imparte). Tú lo explotas en el <a href="tickets.html">panel visual de tickets</a>: valoraciones 1–5 por sección y dudas que puedes marcar como resueltas cuando las trates en clase.</p></div>
 <div class="card"><h3>🎁 Canje de xp</h3><p>Los xp del juego se canjean por recompensas (subir nota, recalificar…) con <b>validación automática</b>: el sistema comprueba el saldo y responde por correo. A ti solo te llegan los <b>canjes pendientes de aplicar</b>, en el <a href="profes.html">panel del profesorado</a>.</p></div>
 </div>
@@ -1232,7 +1236,7 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
    {p:'actividades.html',sel:'#act1',pose:'pensativo',t:'Misiones y evaluación',x:'Las dos misiones mayores, el ePortfolio y el examen con los <b>requisitos oficiales</b>, más los documentos para descargar.'},
    {p:'geniallys.html',sel:'#lista',pose:'senala',t:'Los Geniallys',x:'La carpeta de Genially está <b>compartida con todo el profesorado</b>: busca la carpeta de tu perfil y usa los <b>Geniallys estándar</b> tal cual. ¿Quieres personalizar uno? Haz una copia; el sistema enlaza siempre a los estándar.'},
    {p:'registro.html',sel:'#registro',pose:'tablet',t:'El registro es automático',x:'Tu alumnado registra sus insignias solo, en la <b>Bitácora de mando</b> de su PER, y el <b>tablero en vivo</b> se actualiza al momento: xp, rangos y avatares. Tu papel es la <b>ceremonia</b>: entrega cada insignia en público y con su frase.'},
-   {p:'registro.html',sel:'#profe-herramientas',pose:'brazos',t:'Tus sensores de a bordo',x:'El <b>ticket de salida</b> te devuelve valoraciones y dudas anónimas de cada clase, y el <b>canje de xp</b> se valida solo: a ti solo te llegan los canjes pendientes de aplicar. Cada uno con su panel visual.'},
+   {p:'registro.html',sel:'#profe-herramientas',pose:'brazos',t:'Lo que usas cada semana',x:'El <b>aula</b> es tu puesto de mando dentro del Genially: tocas llamada a filas, ves quién ficha en directo, sabes a quién felicitar y repartes premios a mano. La <b>llamada a filas</b> abre el fichaje solo para tu escuadrón. Y el <b>ticket de salida</b> te devuelve valoraciones y dudas anónimas de cada clase.'},
    {p:'index.html',sel:'#secciones',pose:'senala',t:'Tus herramientas de mando',x:'Desde aquí llegas al <b>panel del profesorado</b> (con el PIN que te dará tu referente), a los <b>tickets</b>, a la <b>Nave del Recluta</b> y al <b>foro dinámico</b> para el Genially del PER, y al <b>generador de enlaces, embeds y QR</b>.'}
   ];
   var REF=[

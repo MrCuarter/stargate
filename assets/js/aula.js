@@ -34,8 +34,11 @@
   function noEresDocente() {
     pinta('<div class="au-caja"><div class="au-icono">🛡️</div><h2>Esto es de tu Comandante</h2>'
       + '<p class="au-sub">Este panel lo usa quien da la clase. Lo tuyo está en <b>tu Nave</b>.</p>'
-      + '<p class="ll-pie">Estás como ' + esc(YO.correo)
-      + ' · <button class="ll-min" id="au-otra">No soy yo</button></p></div>');
+      // 🔴 Una cuenta puede no traer correo (las de prueba, o un proveedor que no lo dé). Sin esta
+      // guarda salía «Estás como · No soy yo», que parece la página rota justo cuando estás
+      // explicándole a alguien que no pasa nada.
+      + '<p class="ll-pie">' + (YO.correo ? 'Estás como ' + esc(YO.correo) + ' · ' : '')
+      + '<button class="ll-min" id="au-otra">No soy yo</button></p></div>');
     document.getElementById("au-otra").onclick = function () { MOTOR.salir(); };
   }
 
@@ -71,10 +74,19 @@
   // ---------------------------------------------------------------- pestañas
   var TABS = [["clase", "🔔", "La clase"], ["gente", "👏", "Mi gente"], ["ranking", "🏆", "Ranking"],
               ["premios", "🎁", "Premiar"]];
+  /**
+   * 🔴 Con más de un grupo hace falta poder cambiar. Un docente del máster puede llevar hasta seis,
+   * y sin selector el aula enseñaba siempre el primero que devolviera el servidor — sin decirlo,
+   * que es lo peor: pasarías lista al grupo equivocado sin enterarte.
+   */
   function barra() {
     var g = GRUPOS.filter(function (x) { return x.id === PER; })[0] || {};
     return '<div class="au-barra"><div class="au-quien"><b>' + esc(nombreDocente() || YO.correo) + "</b>"
-      + '<span class="small muted">' + esc(g.nombre || PER) + "</span></div>"
+      + (GRUPOS.length > 1
+          ? '<select class="au-grupo" id="au-grupo">' + GRUPOS.map(function (x) {
+              return '<option value="' + esc(x.id) + '"' + (x.id === PER ? " selected" : "") + ">"
+                + esc(x.nombre || x.id) + "</option>"; }).join("") + "</select>"
+          : '<span class="small muted">' + esc(g.nombre || PER) + "</span>") + "</div>"
       + '<div class="au-tabs">' + TABS.map(function (t) {
           return '<button type="button" class="au-t' + (TAB === t[0] ? " on" : "") + '" data-au="' + t[0] + '">'
             + '<span class="i">' + t[1] + "</span><b>" + t[2] + "</b></button>"; }).join("") + "</div></div>";
@@ -86,6 +98,11 @@
     var llamada = SESION
       ? '<div class="au-llamada viva"><div class="au-cab"><b>📣 Llamada abierta</b>'
           + '<span id="au-cuenta" class="au-cuenta"></span></div>'
+        // 🔴 Decir PARA QUIÉN está abierta no es un adorno: si das clase a dos escuadrones, saber
+        // que solo vale para uno es la diferencia entre pasar lista bien y pasarla mal.
+        + '<p class="small muted" style="margin:0 0 8px">'
+          + (SESION.escuadron ? 'Solo para <b>' + esc(SESION.escuadron) + '</b>'
+                              : 'Para todo el grupo') + '</p>'
         + '<div class="au-presentes"><b id="au-np">' + PRESENTES.length + "</b> "
           + (PRESENTES.length === 1 ? "presente" : "presentes") + "</div>"
         + '<div class="au-nombres" id="au-nombres"></div>'
@@ -205,6 +222,13 @@
     Array.prototype.forEach.call(app.querySelectorAll("[data-au]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-au"); render(); };
     });
+    var selG = document.getElementById("au-grupo");
+    if (selG) selG.onchange = function () {
+      PER = selG.value; SESION = null;
+      pinta('<div class="au-caja"><p class="ll-esperando">Cambiando de grupo…</p></div>');
+      MOTOR.tablero(PER, true).then(function (t) { D = t; render(); vigilar(); })
+        .catch(function (e) { puerta("No he podido leer ese grupo: " + e.message); });
+    };
     if (TAB === "clase") cablearClase();
     if (TAB === "premios") cablearPremios();
     if (SESION) pintaPresentes();
@@ -259,6 +283,11 @@
     });
   }
 
+  function nombreEscuadron(id) {
+    if (!id || !D) return "";
+    var e = (D.escuadrones || []).filter(function (x) { return x.id === id; })[0];
+    return e ? e.nombre : "";
+  }
   function pintaPresentes() {
     if (!SESION) return;
     MOTOR.fichajesDe(SESION.id).then(function (f) {
@@ -275,7 +304,8 @@
     if (dejarDeVigilar) dejarDeVigilar();
     dejarDeVigilar = MOTOR.vigilarLlamada(PER, function (s) {
       SESION = s ? { id: s.id,
-        hasta: (s.endTime && s.endTime.toDate ? s.endTime.toDate() : new Date(s.endTime)).getTime() } : null;
+        hasta: (s.endTime && s.endTime.toDate ? s.endTime.toDate() : new Date(s.endTime)).getTime(),
+        escuadron: nombreEscuadron(s.restrictedFactionId) } : null;
       render();
     });
     if (!reloj) reloj = setInterval(function () {

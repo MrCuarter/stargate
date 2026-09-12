@@ -1158,6 +1158,9 @@ ol.pasos-num li b{color:var(--ink)}
   border-bottom:1px solid #24304a}
 .au-quien{display:flex;flex-direction:column;line-height:1.25}
 .au-quien b{font-size:.98rem}
+.au-grupo{margin-top:2px;padding:4px 9px;border-radius:8px;border:1px solid #24304a;background:#0b1119;
+  color:#9fb0ce;font:inherit;font-size:.84rem;max-width:200px}
+.au-grupo:focus{outline:2px solid var(--teal);outline-offset:1px}
 .au-tabs{display:flex;gap:5px;margin-left:auto;flex-wrap:wrap}
 .au-t{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;border:1px solid #24304a;
   background:#0b1119;color:#9fb0ce;font:inherit;font-size:.88rem;cursor:pointer;transition:all .15s}
