@@ -162,6 +162,10 @@ async function misPERs(correo) {
   // 🔴 Y la que enciende «Crear grupo» en el menú. Se escribe SIEMPRE —también a "0"— para que
   // quien deje de ser referente no arrastre el botón de la sesión anterior.
   try { localStorage.setItem("sgEsReferente", mios.some(x => x.soyReferente) ? "1" : "0"); } catch (e) {}
+  // 🔴 Y se AVISA. El menú se pinta con el HTML, mucho antes de que el servidor diga quién eres, así
+  // que sin este aviso el referente no veía «Crear grupo» hasta recargar la página — y nadie recarga
+  // para ver si aparece un botón que no sabe que existe.
+  try { document.dispatchEvent(new CustomEvent("sg:rol")); } catch (e) {}
   return mios;
 }
 

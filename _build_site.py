@@ -1125,6 +1125,29 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
   // en este modal. La sala de sesión la necesita para proyectarla en clase, y copiarla habría
   // sido tener el mismo dato en dos sitios: se expone y punto.
   window.SG = window.SG || {}; window.SG.BADGE = BADGE; window.SG.CARDT = CARDT;
+
+  /**
+   * ENCENDER LO QUE SOLO VE EL PROFE REFERENTE.
+   *
+   * 🔴 Las entradas `solo-referente` del menú nacen OCULTAS en el HTML, y es deliberado: esta web
+   * es estática y no sabe quién mira, así que si nacieran visibles habría un parpadeo en el que
+   * cualquier docente vería «Crear grupo» antes de que se escondiera. Esconder después de enseñar
+   * es peor que no esconder: ya lo ha visto y ya sabe que existe.
+   *
+   * Vive aquí —y no en `puerta.js`— porque el menú es el mismo en TODAS las páginas y la puerta solo
+   * se carga en diez. Sin esto, en la consola y en crear el botón no aparecía nunca.
+   *
+   * Se escucha `sg:rol` porque el menú se pinta mucho antes de que el servidor diga quién eres: sin
+   * el aviso, el referente no veía el botón hasta recargar — y nadie recarga para ver si aparece
+   * algo que no sabe que existe.
+   */
+  function encenderSegunRol(){
+    var ref=false; try{ ref = localStorage.getItem('sgEsReferente')==='1'; }catch(e){}
+    if(!ref) return;
+    Array.prototype.forEach.call(document.querySelectorAll('.lnk.solo-referente'),function(a){ a.hidden=false; });
+  }
+  encenderSegunRol();
+  document.addEventListener('sg:rol', encenderSegunRol);
   var back=document.createElement('div');
   back.className='modal-backdrop'; back.setAttribute('role','dialog'); back.setAttribute('aria-modal','true');
   document.body.appendChild(back);
@@ -2773,9 +2796,10 @@ print("escrito: alistarse.html  (el alistamiento, sin formularios)")
 _html = head("STARGATE · Consola",
              "Puesto de mando de STARGATE: alumnado, cola de nota, equipo docente y ajustes de cada grupo.",
              "reg").replace("</head>", _cabeza_motor() + "\n</head>") + '''
-<header class="hero"><div class="kicker">Profesorado</div><h1>Consola</h1>
-<p>Todo lo que antes se hacía en la hoja de cálculo: el alumnado con nombre y correo, la cola de nota,
-el equipo docente y los ajustes del grupo. Sin PIN — entras con tu cuenta y ves lo tuyo.</p></header>
+<!-- 🔴 HERO MÍNIMO. Aquí se viene a hacer algo, no a leer: un titular de tres líneas explicando la
+     página empujaba los grupos fuera de la primera pantalla. Quien entra ya sabe a qué viene, y si
+     no lo sabe, verlos es la mejor explicación posible. -->
+<header class="hero corto"><h1>Mi puesto de mando</h1></header>
 <section id="consola"><div class="wrap">
 <div id="consola-app"><p class="muted">Cargando…</p></div>
 ''' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '''

@@ -28,29 +28,8 @@
     + '</svg>';
 
   var raiz = document.documentElement;
-  function abrir(){ raiz.classList.remove('cerrado'); var p=document.getElementById('puerta'); if(p) p.remove(); encenderSegunRol(); }
+  function abrir(){ raiz.classList.remove('cerrado'); var p=document.getElementById('puerta'); if(p) p.remove(); }
 
-  /**
-   * ENCENDER LO QUE SOLO VE EL REFERENTE.
-   *
-   * 🔴 Las entradas `solo-referente` del menú nacen ocultas en el HTML, y eso es deliberado: la web
-   * es estática y no sabe quién mira, así que si nacieran visibles habría un parpadeo en el que
-   * cualquier docente vería «Crear grupo» antes de que se escondiera. Esconder después de enseñar
-   * es peor que no esconder: ya lo ha visto y ya sabe que existe.
-   *
-   * La marca la deja el motor al confirmar el rol (ver `misPERs`), así que aquí no se decide nada:
-   * solo se obedece.
-   */
-  function encenderSegunRol(){
-    var ref = false;
-    try { ref = localStorage.getItem('sgEsReferente') === '1'; } catch(e){}
-    if (!ref) return;
-    Array.prototype.forEach.call(document.querySelectorAll('.lnk.solo-referente'),
-      function(a){ a.hidden = false; });
-  }
-  // También en las páginas sin puerta (la consola, crear): el menú es el mismo.
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', encenderSegunRol);
-  else encenderSegunRol();
 
   // 🔴 LA EXCEPCION QUE NO PUEDE FALTAR. `registro.html` es DOS cosas: la pagina del metodo (con la
   // guia de instalacion) y, con `&solo=1` o `&embed=1`, el RANKING PUBLICO — el que se proyecta en
