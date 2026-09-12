@@ -78,7 +78,8 @@ function menuStargate_() {
     // 🔴 12-sep · Lo único que esta hoja seguirá haciendo cuando termine la mudanza al motor de
     // GamificaPro: el ticket de salida, que tiene que ser ANÓNIMO y por eso no puede vivir allí.
     // Los grupos se crean ya desde la web; esta entrada solo crea su ticket y devuelve el enlace.
-    .addItem("Crear ticket de salida (grupo del motor nuevo)...", "crearTicketDeSalida")
+    .addItem("Crear el ticket de salida COMPARTIDO (una sola vez)...", "crearTicketUnico")
+    .addItem("Ver los datos del ticket compartido", "verTicketUnico")
     .addItem("Publicar y abrir formularios del PER seleccionado", "publicarFormulariosPER")
     .addItem("Documento de enlaces y embeds del PER seleccionado", "documentoPERSeleccionado")
     .addItem("Dossier del profesorado (TODOS los grupos)", "crearDossierProfesorado")
@@ -703,6 +704,9 @@ var OPC_ACTIVIDAD = ["Actividad 1 · imagen con IA", "Actividad 2 · paisaje de 
 // 🔴 El estado de un canje que espera al profesorado. Se compara por PREFIJO en varios sitios (el
 // lector de pendientes, el que aprueba, el que rechaza), así que vive en UNA constante: tenerlo
 // escrito a mano en cinco sitios es exactamente como se desincronizan estas cosas.
+// El título de la pregunta del grupo en el ticket compartido. Está aquí y no escrito a mano en dos
+// sitios porque la web lo busca por este texto para saber qué columna leer.
+var TIT_GRUPO_TICKET = "Grupo";
 var EST_PENDIENTE = "Pendiente de revisión";
 var SEC_TITULO = "Un dato más: tu título";
 var SEC_FONDO  = "Un dato más: tu planeta";
@@ -1628,11 +1632,29 @@ function listaProfes_(referente, profesores, perId) {
   return l.length ? l : ["Profesorado"];
 }
 function escala_(f, titulo, a, b) { f.addScaleItem().setTitle(titulo).setBounds(1,5).setLabels(a,b); }
+// 🔴 12-sep · EL TICKET COMPARTIDO. Con `perId === "*"` el formulario no es de un grupo: es el de
+// TODOS, para siempre. Entonces las dos primeras preguntas dejan de ser desplegables y pasan a ser
+// texto, porque las rellena la Nave por la dirección (`?usp=pp_url&entry.N=valor`) y el alumnado ni
+// las ve. Un solo formulario, un solo enlace en los Geniallys, y ni un paso al crear un grupo.
 function construirTicket_(ft, referente, profesores, perId) {
   ft.setDescription("En este cuestionario encontrarás un espacio donde formular todas las dudas que tengas sobre la clase. También puedes indicarnos tu grado de satisfacción sobre las herramientas, metodología y progreso. " +
     "Responde con sinceridad: es ANÓNIMO y nos sirve para ayudarte a mejorar.");
   ft.setCollectEmail(false).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true).setConfirmationMessage("Recibido, recluta. NEBULA toma nota y lo resolvemos en la próxima clase.");
-  var prof = ft.addListItem().setTitle("El profesor o profesora que imparte tu clase...").setRequired(true); prof.setChoiceValues(listaProfes_(referente, profesores, perId));
+  // 🔴 EL TICKET COMPARTIDO. Con perId === "*" el formulario no es de un grupo: es el de TODOS, para
+  // siempre. Entonces estas dos preguntas dejan de ser desplegables —que tendrían que cambiar cada
+  // vez que naciera un grupo— y pasan a ser texto, porque las rellena la Nave por la dirección
+  // (?usp=pp_url&entry.N=valor) y el alumnado ni las ve. Un enlace en los Geniallys que no caduca.
+  var compartido = (perId === "*");
+  if (compartido) ft.addTextItem().setTitle(TIT_GRUPO_TICKET)
+    .setHelpText("Lo rellena tu Nave sola. Si está vacío, escribe el identificador que te dio tu profe.")
+    .setRequired(true);
+  var prof;
+  if (compartido) {
+    prof = ft.addTextItem().setTitle("El profesor o profesora que imparte tu clase...").setRequired(true);
+  } else {
+    prof = ft.addListItem().setTitle("El profesor o profesora que imparte tu clase...").setRequired(true);
+    prof.setChoiceValues(listaProfes_(referente, profesores, perId));
+  }
   var sel = ft.addListItem().setTitle("Selecciona el tema o actividad que hemos trabajado y sobre el que quieres hacer una pregunta").setRequired(true);
   // páginas
   var pPres = ft.addPageBreakItem().setTitle("Sobre la presentación de la asignatura").setHelpText("Dudas, inquietudes u opiniones, de manera anónima. Todos los campos son opcionales.");

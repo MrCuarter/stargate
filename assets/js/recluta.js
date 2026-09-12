@@ -440,7 +440,7 @@
       +(d.formCanje?'<a class="acc" href="'+esc(d.formCanje)+'" data-vent="🛸 Mercado Estelar"><b>🛸 Mercado Estelar</b><em>gasta tus ◈ créditos</em></a>':'')
       // 30-ago · fuera el acceso «Tablero»: desde que el tablero vive DENTRO de la Nave, duplicaba
       // la pestaña «El tablero» (lo vio Norberto en la captura). Aquí quedan solo las ACCIONES.
-      +(d.formTicket?'<a class="acc" href="'+esc(d.formTicket)+'" data-vent="🎟️ Contacta con NEBULA"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
+      +(d.formTicket?'<a class="acc" href="'+esc(ticketUrl(d))+'" data-vent="🎟️ Contacta con NEBULA"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
       +(miPanel()?'<a class="acc" href="'+esc(miPanel())+'" data-vent="🪐 Panel de control"><b>🪐 Panel</b><em>los ocho planetas</em></a>':'')
       +(d.padlet?'<a class="acc" href="'+esc(d.padlet)+'" data-vent="🧱 Padlet de la clase"><b>🧱 Padlet</b><em>el muro de la clase</em></a>':'')
       // 🔴 Aquí y no en otro sitio: es el momento exacto en que el recluta va a pegar un enlace y
@@ -1058,6 +1058,14 @@
       if(window.SG&&SG.FIESTA) SG.FIESTA.sonar('error');
       aviso('No he podido registrarlo: '+esc(e), true);
     });
+  }
+
+  // El ticket es un formulario compartido por todos los grupos: lleva un hueco para el Comandante
+  // que solo la Nave puede rellenar, porque es la única que sabe de quién es cada recluta. Si no hay
+  // nadie identificado, el hueco se queda vacío y el alumno lo escribe: nadie se queda sin enviarlo.
+  function ticketUrl(d){
+    var u=String(d.formTicket||'');
+    return u.split('{COMANDANTE}').join(encodeURIComponent((st.yo&&st.yo.profe)||''));
   }
 
   function puntoDe(el){

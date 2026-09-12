@@ -217,4 +217,23 @@ const PAQ2 = fs.readFileSync(path.join(__dirname, "..", "motor", "paquete.js"), 
 c(/imageUrl: e\.emblema/.test(PAQ2),
   "🔴 el emblema se guarda en `imageUrl`, que es el campo que ya usa GamificaPro para las facciones");
 
+// ---------------------------------------------------------------- p) el ticket, uno para siempre
+// 🔴 El ticket de salida no puede vivir en el motor nuevo porque tiene que ser ANÓNIMO, y el motor
+// guarda quién responde cada formulario suyo. Se queda como formulario de Google — pero UNO para
+// todos los grupos y todos los años, con dos huecos que se rellenan solos. Así crear un grupo
+// nuevo no obliga a crear, copiar ni pegar nada.
+const TAB3 = fs.readFileSync(path.join(__dirname, "..", "motor", "tablero.js"), "utf8");
+const NAVE = js("recluta.js");
+c(/\{GRUPO\}/.test(TAB3), "🔴 el tablero rellena el hueco del GRUPO: él es quien lo sabe");
+c(/\{COMANDANTE\}/.test(NAVE), "   y la Nave el del COMANDANTE: ella es quien sabe de quién es cada recluta");
+c(/function ticketUrl\(d\)/.test(NAVE), "   con un solo sitio donde se hace la sustitución");
+c(/encodeURIComponent/.test(TAB3) && /encodeURIComponent/.test(NAVE),
+  "   y los dos escapan el valor: un nombre con espacios rompería la dirección");
+const BON = fs.readFileSync(path.join(__dirname, "..", "apps-script", "Bonus.gs"), "utf8");
+c(/function crearTicketUnico\(\)/.test(BON), "hay una función que lo crea, y se ejecuta UNA vez en la vida");
+c(/toPrefilledUrl\(\)/.test(BON),
+  "🔴 la dirección con huecos se le PIDE a Google: los identificadores de campo de un formulario no son los de sus preguntas y escribirlos a ojo falla en silencio");
+c(/SpreadsheetApp\.create\("STARGATE · Tickets de salida"\)/.test(BON),
+  "   y las respuestas van a una hoja propia: la de mando se queda como está");
+
 E.resumen("Las páginas del motor nuevo");

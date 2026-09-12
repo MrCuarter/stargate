@@ -296,7 +296,11 @@
       padlet: S.padlet || "",
       // La web lleva llamándolo `formTicket` desde el primer día y en siete sitios distintos.
       // Renombrarlo aquí solo serviría para tener que tocar esos siete.
-      formTicket: S.ticket || "",
+      //
+      // 🔴 El enlace del ticket es UNO para todos los grupos y lleva huecos: {GRUPO} se rellena aquí
+      // —lo sabe el tablero— y {COMANDANTE} lo pone la Nave, que es quien sabe de qué docente es
+      // cada recluta. Así el mismo enlace vale en todos los grupos y en todos los años.
+      formTicket: String(S.ticket || "").replace("{GRUPO}", encodeURIComponent(P.id || "")),
       docentes: docentes.map(function (d) {
         return { nombre: d.nombre, rol: d.rol, imparte: d.imparte || "",
                  referente: d.rol === "referente" };

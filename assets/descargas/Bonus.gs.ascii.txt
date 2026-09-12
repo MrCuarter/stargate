@@ -1025,79 +1025,85 @@ var PROP_CONSOLA = "CONSOLA_ID";
 // notas. Solo guarda valoraciones anonimas. Un PIN flojo pasa a ser proporcionado al riesgo.
 
 /**
- * Crea el ticket de salida de un grupo que vive en el motor nuevo.
+ * Crea el ticket de salida UNICO: uno para todos los grupos y para siempre.
  *
- * Sustituye a "Crear PER" entero: aquella creaba tres formularios, una carpeta, un documento de
- * enlaces y un dossier. Esta hace UNA cosa, y devuelve el enlace para pegarlo en la consola.
+ * Sustituye a "Crear PER" en lo unico que quedaba por hacer aqui. Se ejecuta UNA VEZ en la vida:
+ * crea el formulario, lo engancha a una hoja nueva dedicada solo a esto, y escribe en pantalla la
+ * direccion con los huecos ya preparados para que la Nave los rellene sola.
+ *
+ *  A partir de ahi, crear un grupo nuevo no requiere tocar nada de esto. Es la misma idea que los
+ * enlaces de validacion de los Geniallys: el enlace no lleva el grupo, lo pone quien entra.
  */
-function crearTicketDeSalida() {
+function crearTicketUnico() {
   var ui = SpreadsheetApp.getUi();
   var _yo = ejecutaComo_(), _dueno = duenoDeLaHoja_();
   if (_yo && _dueno && _yo !== _dueno) {
     ui.alert("Est\u00e1s con la cuenta " + _yo + " y la hoja es de " + _dueno + ".\n\n" +
-      "El formulario quedar\u00eda en propiedad de " + _yo + " y no de la universidad, y despu\u00e9s no se " +
-      "puede transferir sin que el destinatario lo acepte.\n\nEntra con " + _dueno + " y rep\u00edtelo.");
+      "El formulario y la hoja nueva quedar\u00edan en propiedad de " + _yo + " y no de la universidad, " +
+      "y despu\u00e9s no se pueden transferir sin que el destinatario lo acepte.\n\nEntra con " +
+      _dueno + " y rep\u00edtelo.");
     return;
   }
-
-  var r1 = ui.prompt("Ticket de salida",
-    "Identificador del grupo, tal y como aparece en la consola.\n" +
-    "Por ejemplo: per-septiembre-2026", ui.ButtonSet.OK_CANCEL);
-  if (r1.getSelectedButton() !== ui.Button.OK) return;
-  var id = slug_(r1.getResponseText());
-  if (!id) { ui.alert("Sin identificador no puedo hacer nada."); return; }
-  if (perFila_(id)) {
-    var o0 = perObj_(perFila_(id).v);
-    ui.alert("Ese grupo ya tiene ticket:\n\n" + (o0.formTicket || "(sin enlace)"));
-    return;
+  var P = PropertiesService.getScriptProperties();
+  var ya = P.getProperty("TICKET_UNICO_URL");
+  if (ya) {
+    var r = ui.alert("Ya existe un ticket compartido", "Su direcci\u00f3n es:\n\n" + ya +
+      "\n\n\u00bfCrear OTRO? (solo si el anterior se ha borrado)", ui.ButtonSet.YES_NO);
+    if (r !== ui.Button.YES) return;
   }
-
-  var r2 = ui.prompt("Ticket de salida",
-    "Nombre del grupo, para el t\u00edtulo del formulario.\n" +
-    "Por ejemplo: PER Septiembre 2026", ui.ButtonSet.OK_CANCEL);
-  if (r2.getSelectedButton() !== ui.Button.OK) return;
-  var nombre = (r2.getResponseText() || id).trim();
-
-  // El ticket pregunta "quien imparte tu clase" para que el profesorado pueda filtrar sus dudas.
-  // Sin esa lista, el desplegable sale vacio y las respuestas no se pueden repartir.
-  var r3 = ui.prompt("Ticket de salida",
-    "Nombres del profesorado, separados por comas.\n" +
-    "Los ver\u00e1 el alumnado al elegir de qui\u00e9n es la clase.", ui.ButtonSet.OK_CANCEL);
-  if (r3.getSelectedButton() !== ui.Button.OK) return;
-  var profesores = (r3.getResponseText() || "").trim();
 
   var ss = SpreadsheetApp.getActive();
   var master = DriveApp.getFileById(ss.getId()), padres = master.getParents();
   var raiz = padres.hasNext() ? padres.next() : DriveApp.getRootFolder();
-  var subs = raiz.getFoldersByName("Formularios PER");
-  var padre = subs.hasNext() ? subs.next() : raiz.createFolder("Formularios PER");
-  var carpetas = padre.getFoldersByName(nombre);
-  var carpeta = carpetas.hasNext() ? carpetas.next() : padre.createFolder(nombre);
 
-  var ft;
-  try {
-    ft = formDesdePlantilla_("PLANTILLA \u00b7 Ticket de salida",
-      "STARGATE \u00b7 " + nombre + " \u00b7 Contacta con NEBULA (ticket de salida)", carpeta);
-    construirTicket_(ft, "", profesores, id);
-    publicar_(ft);
-    vincular_(ft, ss.getId());
-  } catch (e) {
-    try { if (ft) DriveApp.getFileById(ft.getId()).setTrashed(true); } catch (e2) {}
-    ui.alert("No he podido crearlo: " + e.message);
-    return;
+  // Hoja propia: la de mando se queda como esta y esta solo recoge tickets, de todos los grupos y
+  // de todos los anos. Separarlas es lo que permite congelar la vieja el dia que toque.
+  var hojaT = SpreadsheetApp.create("STARGATE \u00b7 Tickets de salida");
+  try { DriveApp.getFileById(hojaT.getId()).moveTo(raiz); } catch (e) {}
+
+  var ft = formDesdePlantilla_("PLANTILLA \u00b7 Ticket de salida",
+    "STARGATE \u00b7 Contacta con NEBULA (ticket de salida)", raiz);
+  construirTicket_(ft, "", "", "*");          // "*" = el compartido: grupo y docente son texto
+  publicar_(ft);
+  try { vincular_(ft, hojaT.getId()); } catch (e) {
+    ui.alert("Se ha creado el formulario pero no he podido engancharlo a la hoja: " + e.message);
   }
-  var tabT = pestanaDe_(ft, "T \u00b7 " + id, "#9fb2c2");
 
-  //  La fila en PERs es lo que hace que el panel de tickets encuentre las respuestas: busca por
-  // identificador y lee la pestana que diga la fila. Solo se rellenan las columnas del ticket; las
-  // demas se quedan vacias a proposito, porque de ellas ya se encarga el motor nuevo y tenerlas
-  // aqui a medias seria invitar a que alguien las creyera.
-  hoja_(H.PERS).appendRow([id, nombre, "REGULAR", profesores, "", "", "", "abierto",
-    "", "", ft.getPublishedUrl(), "", "", tabT, "", new Date(), "", ft.getEditUrl(),
-    "", "", "", "", "", "", ""]);
+  //  La direccion con huecos NO se escribe a mano. Los identificadores de campo de un formulario
+  // ("entry.1234567") no son los de sus preguntas y no hay forma de deducirlos: quien los escriba a
+  // ojo se equivoca y el hueco no se rellena, sin decir nada. Google los da si le pides una
+  // respuesta rellenada, asi que se le pide una con dos palabras centinela y se sustituyen despues.
+  var base = ft.getPublishedUrl(), plantilla = base;
+  try {
+    var r = ft.createResponse(), puestos = 0;
+    ft.getItems(FormApp.ItemType.TEXT).forEach(function (it) {
+      var t = it.getTitle();
+      if (t === TIT_GRUPO_TICKET) { r.withItemResponse(it.asTextItem().createResponse("XGRUPOX")); puestos++; }
+      else if (t.indexOf("imparte tu clase") >= 0) { r.withItemResponse(it.asTextItem().createResponse("XMANDOX")); puestos++; }
+    });
+    if (puestos) plantilla = r.toPrefilledUrl().replace("XGRUPOX", "{GRUPO}").replace("XMANDOX", "{COMANDANTE}");
+  } catch (e) { Logger.log("prefill: " + e); }
 
-  ui.alert("Ticket creado\n\n" +
-    "Pega este enlace en la consola de STARGATE, en los ajustes del grupo:\n\n" +
-    ft.getPublishedUrl() + "\n\n" +
-    "Las respuestas caen en la pesta\u00f1a \u00ab" + tabT + "\u00bb y se ven en el panel de tickets de la web.");
+  P.setProperty("TICKET_UNICO_URL", base);
+  P.setProperty("TICKET_UNICO_PLANTILLA", plantilla);
+  P.setProperty("TICKET_UNICO_HOJA", hojaT.getId());
+
+  ui.alert("Ticket compartido creado",
+    "FORMULARIO\n" + base +
+    "\n\nDIRECCI\u00d3N CON HUECOS (esto es lo que hay que poner en la web)\n" + plantilla +
+    "\n\nHOJA DE RESPUESTAS\n" + hojaT.getUrl() +
+    "\n\nNo hay que repetir esto nunca m\u00e1s: vale para todos los grupos y todos los a\u00f1os.",
+    ui.ButtonSet.OK);
+}
+
+/** Vuelve a ensenar los datos del ticket compartido, por si se pierde la ventana. */
+function verTicketUnico() {
+  var P = PropertiesService.getScriptProperties();
+  var base = P.getProperty("TICKET_UNICO_URL");
+  if (!base) { SpreadsheetApp.getUi().alert("Todav\u00eda no se ha creado el ticket compartido."); return; }
+  SpreadsheetApp.getUi().alert("Ticket compartido",
+    "FORMULARIO\n" + base + "\n\nDIRECCI\u00d3N CON HUECOS\n" +
+    (P.getProperty("TICKET_UNICO_PLANTILLA") || "\u2014") + "\n\nHOJA DE RESPUESTAS\n" +
+    "https://docs.google.com/spreadsheets/d/" + (P.getProperty("TICKET_UNICO_HOJA") || "") + "/edit",
+    SpreadsheetApp.getUi().ButtonSet.OK);
 }
