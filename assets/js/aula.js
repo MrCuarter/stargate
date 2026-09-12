@@ -304,8 +304,46 @@
   }
 
   // ---------------------------------------------------------------- arranque
+  /**
+   * MODO DEMOSTRACIÓN (?demo=1). El aula entera, con un grupo de verdad y sin poder tocar nada.
+   *
+   * 🔴 Igual que en la consola y en la Nave, y por el mismo motivo que ya costó una lección: una
+   * captura que no se puede rehacer con un comando acaba mintiendo el día que cambie la pantalla.
+   * Esta pantalla exige sesión de docente, así que sin modo demostración su foto habría que sacarla
+   * a mano — y entonces envejece sola.
+   */
+  function demostracion() {
+    var PUB = window.SG_API_PUBLICA ||
+      "https://us-central1-gamificapro-99e0a.cloudfunctions.net/tableroStargate";
+    var per = url.get("per") || "demo-motor";
+    YO = { correo: "docente@ejemplo.es", nombre: "Capitana Vega" };
+    GRUPOS = [{ id: per, nombre: "CLASE DEMO" }];
+    PER = per;
+    pinta('<div class="au-caja"><p class="ll-esperando">Preparando la demostración…</p></div>');
+    fetch(PUB + "?per=" + encodeURIComponent(per)).then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.error) throw new Error(d.error);
+        var NOM = [["Vega", "vega"], ["Lyra", "lyra"], ["Orion", "orion"], ["Nix", "nix"], ["Talia", "talia"]];
+        var privados = {};
+        (d.perfiles || []).forEach(function (p, i) {
+          var n = NOM[i % NOM.length];
+          privados[p.id] = { firstName: n[0], lastName: "Ejemplo", email: n[1] + "@ejemplo.es" };
+        });
+        D = window.SG.TABLERO.tablero(Object.assign({}, d, { privados: privados, vales: [],
+          catalogo: window.SG_CATALOGO,
+          privadoPER: { referente: "docente@ejemplo.es", panelEdit: "",
+                        docentes: [{ nombre: "Capitana Vega", correo: "docente@ejemplo.es", rol: "docente" }] } }), true);
+        render();
+        Array.prototype.forEach.call(app.querySelectorAll("button"), function (b) {
+          if (!b.getAttribute("data-au")) b.disabled = true;
+        });
+      })
+      .catch(function (e) { puerta("La demostración no está disponible: " + e.message); });
+  }
+
   function arrancar() {
     MOTOR = window.SG.MOTOR;
+    if (url.get("demo") === "1") return demostracion();
     pinta('<div class="au-caja"><p class="ll-esperando">Comprobando quién eres…</p></div>');
     var mirar = function (u) {
       YO = u;

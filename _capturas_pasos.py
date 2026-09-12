@@ -43,6 +43,8 @@ if LOCAL: sys.argv = [a for a in sys.argv if a != "--local"]
 WEB = "http://localhost:8791" if LOCAL else "https://stargate.mistercuarter.es"
 PER = "clase-demo"                     # el unico grupo con gente: las capturas salen vivas
 PER_NUEVO = "demo-motor"               # su gemelo en el motor nuevo, para las pantallas nuevas
+# La Nave rediseñada, en modo demostracion: sin sesion y con un recluta sembrado.
+NAVE_DEMO = WEB + "/recluta.html?per=" + PER_NUEVO + "&demo=1&motor=firestore"
 ALUMNO = "demo05@reclutas.demo"        # recluta sembrado, correo inventado a proposito
 DESTINO = os.path.join(HERE, "assets", "img", "pasos")
 
@@ -146,18 +148,38 @@ TOMAS = {
                            listo="!!document.getElementById('miPanel')",
                            scroll="(function(){var p=document.getElementById('miPanel');"
                                   "window.scrollTo(0,p.getBoundingClientRect().top+window.pageYOffset-160);return 1;})()"),
- "e5_ficha.png":      dict(url=WEB + "/recluta.html?per=%s" % PER, ancho=1280, alto=1080, espera=4,
-                           antes=SEMBRAR, listo=CARGADA, scroll=pestana("Mi ficha"),
-                           listo2="/créditos/.test(document.body.innerText)"),
- "e6_pestanas.png":   dict(url=WEB + "/recluta.html?per=%s" % PER, ancho=1280, alto=1000, espera=4,
-                           antes=SEMBRAR, listo=CARGADA, scroll=pestana("Mis retos"),
-                           listo2="document.querySelectorAll('input[type=checkbox],.reto,.mis-retos').length>0 || /Planeta 1/.test(document.body.innerText)"),
- "e7_premios.png":    dict(url=WEB + "/recluta.html?per=%s" % PER, ancho=1280, alto=1080, espera=4,
-                           antes=SEMBRAR, listo=CARGADA, scroll=pestana("Recompensas"),
+ # --- 12-sep · la Nave REDISEÑADA. Se retrata en modo demostracion (?demo=1) contra el grupo del
+ # motor nuevo: es la unica forma de fotografiar una pantalla que exige sesion sin tener credenciales
+ # en el capturador. Los datos son de un recluta sembrado, no de nadie.
+ "e6_pestanas.png":   dict(antes=SIN_GLOBO, url=NAVE_DEMO, ancho=1340, alto=760, espera=7,
+                           listo="!!document.querySelector('.nave-barra-u')"),
+ "e7_premios.png":    dict(antes=SIN_GLOBO, url=NAVE_DEMO, ancho=1340, alto=1000, espera=7,
+                           listo="!!document.querySelector('.nb-t')",
+                           scroll="(function(){document.querySelector('.nb-t[data-tab=\\'mercado\\']').click();return 1;})()",
                            listo2="(document.body.innerText.match(/◈/g)||[]).length>4"),
- "e8_tablero.png":    dict(url=WEB + "/recluta.html?per=%s" % PER, ancho=1280, alto=1000, espera=4,
-                           antes=SEMBRAR, listo=CARGADA, scroll=pestana("El tablero"),
-                           listo2="document.querySelectorAll('#rankBody tr').length>0"),
+ "e8_tablero.png":    dict(antes=SIN_GLOBO, url=NAVE_DEMO, ancho=1340, alto=1000, espera=7,
+                           listo="!!document.querySelector('.nb-t')",
+                           scroll="(function(){document.querySelector('.nb-t[data-tab=\\'rankings\\']').click();return 1;})()",
+                           listo2="document.querySelectorAll('.rank-tab').length>5"),
+ # 🔴 Este paso habla de ABRIR un reto y marcarlo, asi que la foto tiene que enseñar la tarjeta
+ # ABIERTA. Se abre, se espera a que aparezcan los pasos de dentro y solo entonces se encuadra.
+ "e4_reto.png":       dict(antes=SIN_GLOBO, url=NAVE_DEMO, ancho=1340, alto=900, espera=8,
+                           listo="!!document.querySelector('.reto-sem')",
+                           scroll="(function(){document.querySelectorAll('.reto-sem').forEach(function(d){d.open=true;});return 1;})()",
+                           listo2="!!document.querySelector('.rs-pasos li')",
+                           scroll2="(function(){var d=document.querySelector('.retos-semana');"
+                                   "window.scrollTo(0,d.getBoundingClientRect().top+window.pageYOffset-70);return 1;})()"),
+ "e5_ficha.png":      dict(antes=SIN_GLOBO, url=NAVE_DEMO, ancho=1340, alto=900, espera=7,
+                           listo="!!document.querySelector('.nave-estado')",
+                           scroll="(function(){var d=document.querySelector('.nave-estado');"
+                                  "d.scrollIntoView({block:'start'});window.scrollBy(0,-80);return 1;})()"),
+ "e9_botin.png":      dict(antes=SIN_GLOBO, url=NAVE_DEMO, ancho=1340, alto=900, espera=7,
+                           listo="!!document.querySelector('.nb-t')",
+                           scroll="(function(){document.querySelector('.nb-t[data-tab=\\'botin\\']').click();return 1;})()",
+                           listo2="document.querySelectorAll('details.cajon').length>2"),
+ "d7_aula.png":       dict(antes=SIN_GLOBO, url=WEB + "/aula.html?demo=1&motor=firestore",
+                           ancho=1180, alto=880, espera=7,
+                           listo="document.querySelectorAll('.au-t').length>3"),
 }
 
 def main():

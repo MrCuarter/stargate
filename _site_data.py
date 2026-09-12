@@ -759,11 +759,14 @@ PASOS = [
         "correo, por si tienes que escribirle. Desde aquí también puedes darle o quitarle un reto a "
         "mano cuando algo se tuerza."),
 
-   dict(cod="D4", t="Tres: tu panel", pose="brazos", img="d4_panel.png",
-    hacer="En tu sala, bloque <b>Tu panel de Genially</b> → pega el tuyo y guarda.",
-    voz="Cada docente puede tener su propio panel de control. Lo pegas aquí y es lo que abren tus "
-        "alumnos desde su Nave; si lo dejas vacío, ven el del grupo. Es la forma de que cada clase "
-        "tenga su cara sin montar un sistema aparte."),
+   dict(cod="D4", t="Tres: el aula, dentro del Genially", pose="brazos", img="d7_aula.png",
+    hacer="<b>Mi clase</b> → <b>El aula</b>. O incrustado en tu Genially con <code>?embed=1</code>.",
+    voz="Esto es lo que más te va a cambiar la clase. Es tu puesto de mando y vive dentro del "
+        "Genially, así que no tienes que salir de la presentación para nada. Desde aquí tocas "
+        "llamada a filas y ves quién va fichando en directo; miras a quién felicitar por lo que ha "
+        "hecho esta semana y a quién dar la bienvenida porque acaba de llegar; y repartes premios a "
+        "mano: experiencia, créditos o una carta de regalo. Incluso puede elegir a alguien al azar "
+        "por ti. Se monta una vez y vale para todos tus grupos, siempre."),
 
    dict(cod="D5", t="Cuatro: los tickets", pose="pensativo", img="d5_tickets.png",
     hacer="<b>Tickets</b> → pulsa cualquier valoración para verla en grande.",
@@ -809,7 +812,7 @@ PASOS = [
         "Bitácora con dos líneas sobre ti, que las va a leer tu clase cuando pulse tu nombre en el "
         "ranking, así que dedícales diez segundos."),
 
-   dict(cod="E4", t="Tu primer reto", pose="brazos", img=None,
+   dict(cod="E4", t="Tu primer reto", pose="brazos", img="e4_reto.png",
     hacer="En <b>Mi nave</b>, el bloque <b>«Lo que puedes conseguir esta semana»</b> → pulsa el reto "
           "y dentro, <b>Lo he hecho</b>.",
     voz="Nada más alistarte ya estás en la nave, con tu primera insignia. Y lo primero que ves es lo "

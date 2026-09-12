@@ -705,9 +705,12 @@
     var r=st.yo||{}, SG=window.SG||{};
     var ni=SG.nivelInfo?SG.nivelInfo(r.xp||0,(st.d&&st.d.tipo)||'REGULAR'):{nivel:1};
     var cred=(r.creditos!=null?r.creditos:(r.xp_disponibles||0));
-    var mini=SG.avatarSrc?SG.avatarSrc(r.avatar,r.alias,r.xp||0,(st.d&&st.d.tipo)||'REGULAR'):'';
+    // 🔴 `avatarSrc` devuelve un OBJETO (src, fallback, rango…), no una cadena. Metido tal cual en
+    // un src, el navegador pedía «[object Object]» y la barra salía con la foto rota.
+    var mini=SG.avatarSrc?SG.avatarSrc(r.avatar,r.alias,r.xp||0,(st.d&&st.d.tipo)||'REGULAR'):null;
     return '<nav class="nave-barra-u" role="navigation" aria-label="Tu nave">'
-      +'<div class="nb-yo">'+(mini?'<img class="nb-cara" src="'+esc(mini)+'" alt="">':'')
+      +'<div class="nb-yo">'+(mini?'<img class="nb-cara" src="'+esc(mini.src)+'" alt="" '
+        +'data-fb="'+esc(mini.fallback)+'" onerror="if(this.src.indexOf(this.dataset.fb)<0)this.src=this.dataset.fb">':'')
         +'<b>'+esc(r.alias||'')+'</b><span class="nb-nv">Nv '+(ni.nivel||1)+'</span></div>'
       +'<div class="nb-tabs" role="tablist">'+TABS.map(function(x){
         return '<button type="button" class="nb-t'+(st.tab===x[0]?' on':'')+'" role="tab"'
