@@ -158,7 +158,16 @@
     // ensuciar la clase. Los otros dos piden cuenta de Google, pero tampoco pintan nada aqui.
     // El de alistarse aparece SOLO cuando ya se ha buscado un correo y no estaba: es el flujo de
     // toda la vida «no te encuentro → registrate», y de paso no hay ni un enlace que rastrear.
-    var alta = st.d && st.d.formBitacora && st.msgYo;
+    /**
+     * 🔴 12-sep · CALLEJÓN SIN SALIDA. Con el motor nuevo, `formBitacora` no existe, así que esta
+     * variable era siempre falsa y NO SALÍA EL BOTÓN DE ALISTARSE. Alguien que llegara a la Nave por
+     * el enlace de un compañero entraba con su cuenta, leía «todavía no te has alistado» y se quedaba
+     * ahí, sin nada que pulsar. La única salida era que alguien le pasara otro enlace distinto.
+     */
+    var altaUrl = motorNuevo()
+      ? 'alistarse.html?per=' + encodeURIComponent(per) + '&motor=firestore'
+      : (st.d && st.d.formBitacora) || '';
+    var alta = altaUrl && st.msgYo;
     return '<div class="card nave-login"><div class="nave-perfil">'+nebulaVideo('nebula-mini')+''
       +'<div><h3>Identifícate, recluta</h3><p class="small muted">'
       +((CID||motorNuevo())?'Entra con la <b>misma cuenta de Google</b> con la que rellenas la Bitácora de mando. Solo se te pedirá una vez en este dispositivo, y solo verás <b>tu</b> ficha.'
@@ -175,9 +184,14 @@
         :'<div class="selrow"><input id="in-mail" type="email" placeholder="tu.correo@ejemplo.com" autocomplete="email"><button class="btn primary" id="btn-mail" type="button">Entrar en la nave</button></div>')
       +(st.msgYo?'<p class="small" style="margin-top:8px;color:var(--amber)">'+st.msgYo+'</p>':'')
       +(alta?'<div class="nave-alta"><span class="o">¿aún no te has alistado?</span>'
-        +'<a class="btn primary" href="'+esc(st.d.formBitacora)+'" data-vent="📓 Bitácora de mando">📓 Alistarme en la Bitácora de mando →</a>'
-        +'<p class="small muted">Es el <b>primer paso</b> y solo se hace una vez: eliges alias y personaje. '
-        +'Hasta que no lo envíes no existes a bordo. Después vuelve aquí con <b>ese mismo correo</b>.</p></div>':'')
+        +(motorNuevo()
+          ? '<a class="btn primary" href="'+esc(altaUrl)+'">🧭 Alistarme ahora →</a>'
+            +'<p class="small muted">Es el <b>primer paso</b> y solo se hace una vez: nombre, alias, '
+            +'Comandante y personaje. Si tu clase tiene <b>código</b>, tenlo a mano — te lo pedirá.</p>'
+          : '<a class="btn primary" href="'+esc(altaUrl)+'" data-vent="📓 Bitácora de mando">📓 Alistarme en la Bitácora de mando →</a>'
+            +'<p class="small muted">Es el <b>primer paso</b> y solo se hace una vez: eliges alias y personaje. '
+            +'Hasta que no lo envíes no existes a bordo. Después vuelve aquí con <b>ese mismo correo</b>.</p>')
+        +'</div>':'')
       +'</div>';
   }
   /**
@@ -1365,7 +1379,7 @@
         if(!localStorage.getItem('sgNaveOnboard_'+per)) setTimeout(function(){ onboarding(0,'nave'); }, 700);
       } else if(d&&d.sinFicha){
         st.verificado=true;
-        st.msgYo='Tu cuenta es correcta, pero todavía no te has alistado en este grupo.';
+        st.msgYo='Tu cuenta es correcta, pero todavía no te has alistado en este grupo. Es un minuto:';
       } else if(d&&d.error){ st.msgYo=esc(d.error); }
       render();
     });

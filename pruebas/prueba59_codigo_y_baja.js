@@ -100,4 +100,30 @@ c(/tabindex="'\+\(on\?'0':'-1'\)/.test(NAVE2),
 c(/aria-controls="nave-panel"/.test(NAVE2) && /role="tabpanel"/.test(NAVE2),
   "🔴 y las pestañas apuntan a un panel que existe de verdad");
 
+// ---------------------------------------------------------------- h) la Nave no es un callejón
+// 🔴 Con el motor nuevo, el botón de alistarse de la Nave colgaba de `formBitacora`, que no existe.
+// Alguien que llegara por el enlace de un compañero entraba con su cuenta, leía «todavía no te has
+// alistado» y se quedaba ahí, SIN NADA QUE PULSAR. La única salida era que alguien le pasara otro
+// enlace distinto.
+c(/var altaUrl = motorNuevo\(\)/.test(NAVE2), "🔴 la Nave sabe a dónde mandar a quien no está alistado");
+c(/'alistarse\.html\?per=' \+ encodeURIComponent\(per\) \+ '&motor=firestore'/.test(NAVE2),
+  "   al alistamiento del motor nuevo, con su grupo");
+c(/tenlo a mano — te lo pedirá/.test(NAVE2),
+  "   avisando de que puede pedirle el código, para que no se quede a medias");
+
+// ---------------------------------------------------------------- i) el guía del docente no miente
+// 🔴 Los pasos 1, 3 y 5 describían el sistema viejo —la Bitácora, editar la respuesta, el formulario
+// de canje— y NO se saltaban, porque tenían selector de reserva. Un docente leía instrucciones de un
+// sistema que ya no existe.
+const BUILD2 = fs.readFileSync(path.join(__dirname, "..", "_build_site.py"), "utf8");
+const iTour = BUILD2.indexOf("TOUR_CLASE");
+const tour = BUILD2.slice(iTour, iTour + 4200);
+c(/El <b>enlace de alistarse<\/b>/.test(tour), "🔴 el paso 1 habla del enlace de alistarse");
+c(/pulsan <b>«Lo he hecho»<\/b>/.test(tour), "   el 3, de marcar el reto en la propia Nave");
+c(/El <b>Mercado Estelar<\/b>, dentro de su Nave/.test(tour), "   y el 5, del Mercado");
+["sistema anterior"].forEach(function (x) {
+  igual((tour.match(new RegExp(x, "g")) || []).length >= 3, true,
+    "   y los tres dicen qué pasa en los grupos del sistema anterior, que siguen vivos");
+});
+
 E.resumen("Quién entra y quién se va");

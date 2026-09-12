@@ -1926,26 +1926,30 @@ TOUR_CLASE = {
        "se atasca: <b>el orden en que tu alumnado tiene que hacer las cosas</b>. Son cinco pasos, y el "
        "primero no se puede saltar."},
   {"sel":"[data-acc=\'bitacora\']","sel2":"#sala-enlaces","pose":"senala","t":"1 · Que se alisten. Hoy, en clase",
-   "x":"La <b>Bitácora de mando</b>. Que la abran <b>con su cuenta de Google</b> y pongan alias, "
-       "personaje y quién les da clase. Hasta que no la envían <b>no existen para el sistema</b>: no "
-       "salen en el tablero, no tienen Nave y no pueden canjear nada. Es lo primero que hay que hacer "
-       "en la primera sesión, delante de ti."},
+   "x":"El <b>enlace de alistarse</b> —el de arriba, con el código de tu clase dentro—. Que lo abran "
+       "<b>con su cuenta de Google</b> y pongan nombre real, alias, personaje y quién les da clase. "
+       "Hasta que no lo hacen <b>no existen para el sistema</b>: no salen en el tablero, no tienen "
+       "Nave y no pueden canjear nada. Es lo primero de la primera sesión, delante de ti.<br>"
+       "<span class=\'small muted\'>En los grupos del sistema anterior esto es la Bitácora de mando, "
+       "el formulario de Google.</span>"},
   {"sel":"[data-acc=\'nave\']","sel2":"#sala-enlaces","pose":"tablet","t":"2 · Dónde se ven a sí mismos",
    "x":"La <b>Nave del Recluta</b>. Entran con <b>el mismo correo de Google</b> con el que se alistaron "
        "y ahí está su personaje, su nivel, sus insignias, sus cartas y sus créditos. Si alguien dice "
        "que «no le sale nada», casi siempre es esto: entró con otra cuenta."},
   {"sel":"[data-acc=\'bitacora\']","sel2":"#sala-enlaces","pose":"pensativo","t":"3 · Cómo registran lo que van haciendo",
-   "x":"Vuelven a <b>la misma Bitácora</b> y <b>editan su respuesta</b>: marcan lo nuevo y envían. "
-       "<b>No se empieza de cero.</b> Google les avisará de que solo se puede rellenar una vez: es "
-       "normal — entran igual y les sale su respuesta para modificar. Así nadie acaba duplicado con "
-       "dos alias y dos avatares."},
+   "x":"Desde su <b>propia Nave</b>: en «Mi nave» ven los retos de la semana con lo que da cada uno, "
+       "los abren, leen el paso a paso y pulsan <b>«Lo he hecho»</b>. Los puntos suben en el momento, "
+       "arriba, donde siempre los tienen delante. No hay formulario que enviar.<br>"
+       "<span class=\'small muted\'>En los grupos del sistema anterior vuelven a la misma Bitácora y "
+       "editan su respuesta: no se empieza de cero.</span>"},
   {"sel":"[data-acc=\'ticket\']","sel2":"#sala-clase","pose":"senala","t":"4 · Al terminar la clase: el ticket",
    "x":"El <b>ticket de salida</b>, treinta segundos y <b>anónimo</b>. Lo que escriban te llega aquí, "
        "a «Con qué empezar la clase», filtrable por tema y por fecha. Es tu termómetro de la sesión."},
   {"sel":"[data-acc=\'canje\']","sel2":"#sala-enlaces","pose":"brazos","t":"5 · Cuando tengan créditos: el canje",
-   "x":"El <b>canje de recompensas</b> se valida solo y descuenta los créditos. A ti solo te llega lo "
-       "que tiene que aplicar una persona — subir una nota, recalificar—, y lo tienes en el primer "
-       "bloque de esta página."},
+   "x":"El <b>Mercado Estelar</b>, dentro de su Nave: canjean ahí mismo y los créditos se descuentan "
+       "solos. A ti solo te llega lo que tiene que aplicar una persona —subir una nota, recalificar—, "
+       "y eso queda <b>pendiente de tu visto bueno</b> en la cola de nota.<br>"
+       "<span class=\'small muted\'>En los grupos del sistema anterior es el formulario de canje.</span>"},
   {"sel":"#sala-intervencion","pose":"tablet","t":"Y ahora lo tuyo: lo primero al llegar",
    "x":"<b>Requiere tu intervención</b>. Canjes ya cobrados que esperan por ti: el alumno ya pagó y ya "
        "lo sabe. Si aparece el aviso ámbar de <b>reclutas sin docente</b>, arréglalo antes que nada: "

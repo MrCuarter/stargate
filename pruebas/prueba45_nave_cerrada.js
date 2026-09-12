@@ -30,8 +30,14 @@ c(/verTablero\(dentro && st\.tab==='rankings'\)/.test(R),
   "🔴 el tablero tampoco se enseña sin identificarse");
 
 // ---------------------------------------------------------------- b) ni un enlace a formulario antes del correo
-c(/var alta = st\.d && st\.d\.formBitacora && st\.msgYo;/.test(R),
+// 🔴 12-sep · La condición sigue siendo la misma —`st.msgYo`, o sea «he mirado y no estás»— pero el
+// DESTINO cambia con el motor: la Bitácora en el viejo, `alistarse.html` en el nuevo. Antes colgaba
+// solo de `formBitacora` y en el motor nuevo el botón NO SALÍA NUNCA: quien llegaba por el enlace de
+// un compañero se quedaba mirando un «no estás alistado» sin nada que pulsar.
+c(/var alta = altaUrl && st\.msgYo;/.test(R),
   "🔴 el botón de alistarse aparece SOLO tras buscar un correo y no encontrarlo");
+c(/var altaUrl = motorNuevo\(\)/.test(R),
+  "   y apunta al alistamiento que corresponda a cada motor");
 // 🔴 12-sep · `accesos()` ya no existe: la parrilla de botones era el puente a los formularios de
 // Google y con el motor nuevo se quedó en tres enlaces. Ahora viven en el menú «···» de la barra,
 // que se pinta en `pestanas()` — y `pestanas()` sigue estando SOLO en la rama «dentro». La puerta
