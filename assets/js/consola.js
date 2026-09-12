@@ -132,7 +132,7 @@
    *
    * La cuarta columna marca las que solo salen si llevas el grupo.
    */
-  var TABS = [["alumnado", "Mi gente"], ["canjes", "Cola de nota"],
+  var TABS = [["alumnado", "Mi gente"], ["canjes", "Cola de nota"], ["mios", "Mis enlaces"],
               ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1],
               ["ajustes", "Ajustes del grupo", 1]];
   function misTabs() {
@@ -155,12 +155,23 @@
     Array.prototype.forEach.call(app.querySelectorAll("[data-tab]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-tab"); pintar(); };
     });
+    // Copiar un enlace, con confirmación visible: sin ella no sabes si ha ido.
+    Array.prototype.forEach.call(app.querySelectorAll("[data-copiar]"), function (b) {
+      b.onclick = function () {
+        var txt = b.getAttribute("data-copiar");
+        var ok = function () { var v = b.textContent; b.textContent = "✓";
+          setTimeout(function () { b.textContent = v; }, 1400); };
+        if (navigator.clipboard && navigator.clipboard.writeText)
+          navigator.clipboard.writeText(txt).then(ok).catch(function () { prompt("Copia:", txt); });
+        else prompt("Copia:", txt);
+      };
+    });
     if ($("#c-cambiar")) $("#c-cambiar").onclick = function () { url.delete("per"); elegirGrupo(); };
     $("#c-salir").onclick = function () { MOTOR.salir(); };
     // 🔴 Y si el TAB recordado ya no le corresponde —dejó de ser referente, o llega por un enlace
     // con #ajustes— se cae al primero en vez de pintar una pantalla que no debería ver.
     if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
-    ({ alumnado: verAlumnado, canjes: verCanjes, equipo: verEquipo,
+    ({ alumnado: verAlumnado, canjes: verCanjes, mios: verMios, equipo: verEquipo,
        escuadrones: verEscuadrones, ajustes: verAjustes })[TAB](t);
   }
 
@@ -278,6 +289,77 @@
     };
     Array.prototype.forEach.call(app.querySelectorAll("[data-si]"), function (b) { b.onclick = resolver(b.getAttribute("data-si"), true); });
     Array.prototype.forEach.call(app.querySelectorAll("[data-no]"), function (b) { b.onclick = resolver(b.getAttribute("data-no"), false); });
+  }
+
+  // ---------------------------------------------------------------- mis enlaces
+  /**
+   * LOS ENLACES DE ESTE DOCENTE, para ESTE grupo.
+   *
+   * 🔴 Faltaba, y Norberto lo pidió dos veces: «dentro de sus clases debe poder modificar los
+   * enlaces por defecto» y «facilidad para poner sus propios enlaces». Hasta hoy lo único editable
+   * vivía en «Ajustes del grupo», que es del referente — así que un docente que quisiera su propio
+   * Genially tenía que pedírselo a otra persona.
+   *
+   * 🔴 Y la distinción importa: aquí se toca SU panel, no el del grupo. El del grupo lo comparten
+   * todos y cambiarlo afecta al alumnado de sus compañeros; el suyo solo lo ven los suyos. Por eso
+   * esta pestaña la ve todo el mundo y la de Ajustes no.
+   */
+  function verMios(t) {
+    var yo = (t.docentes_full || []).filter(function (d) {
+      return String(d.correo || "").toLowerCase() === String(YO.correo || "").toLowerCase(); })[0];
+    if (!yo) {
+      $("#c-cuerpo").innerHTML = '<div class="card"><h3>Mis enlaces</h3>' +
+        '<p>No te encuentro en el equipo docente de este grupo con <b>' + esc(YO.correo) + '</b>, ' +
+        'así que no sé cuál es tu sitio aquí.</p></div>';
+      return;
+    }
+    var mio = (t.paneles || {})[yo.nombre] || "";
+    var oficial = t.panel || "";
+    $("#c-cuerpo").innerHTML =
+      '<div class="card"><h3>Tu panel de Genially</h3>' +
+      '<p class="small muted">Es el que abre <b>tu</b> alumnado desde su Nave. Si lo dejas vacío, ' +
+      'usan el panel oficial del grupo — que es lo normal: solo necesitas el tuyo si has duplicado ' +
+      'el Genially para personalizarlo.</p>' +
+      '<label>Tu Genially<input id="m-panel" value="' + esc(mio) + '" ' +
+        'placeholder="https://view.genially.com/…" autocomplete="off"></label>' +
+      '<p><button class="btn primary" id="m-guardar">Guardar</button> ' +
+      (mio ? '<button class="btn min" id="m-quitar">Quitarlo y usar el oficial</button>' : '') + '</p>' +
+      '<p class="small muted">Panel oficial del grupo: ' +
+        (oficial ? '<a href="' + esc(oficial) + '" target="_blank" rel="noopener">abrirlo ↗</a>' : '—') +
+      '</p></div>' +
+
+      // 🔴 Los enlaces del grupo, en solo lectura. Un docente los necesita A MANO —los reparte en
+      // clase— pero cambiarlos es del referente: verlos sin poder tocarlos es exactamente lo que
+      // hace falta, y evita el «¿dónde estaba el padlet?» de cada semana.
+      '<div class="card"><h3>Los enlaces de este grupo</h3>' +
+      '<p class="small muted">Para repartir en clase. Cambiarlos es cosa del profe referente.</p>' +
+      '<div class="m-enlaces">' +
+        enlaceFila("🧭", "Alistarse (con el código)", t.alta || "") +
+        enlaceFila("🚀", "La Nave del alumnado", "recluta.html?per=" + encodeURIComponent(PER)) +
+        enlaceFila("🏅", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1") +
+        enlaceFila("📽️", "La sesión de esta semana", "sesion.html?per=" + encodeURIComponent(PER)) +
+        enlaceFila("🧱", "Padlet de la clase", t.padlet || "") +
+      '</div></div>';
+
+    $("#m-guardar").onclick = async function () {
+      var v = $("#m-panel").value.trim();
+      $("#m-guardar").disabled = true;
+      try { await SG.FUENTE.accion({ accion: "mi_panel", per: PER, profe: yo.nombre, url: v });
+            await refrescar(); aviso(v ? "Guardado. Tu alumnado abrirá el tuyo." : "Quitado.", true); }
+      catch (e) { $("#m-guardar").disabled = false; aviso(e.message); }
+    };
+    if ($("#m-quitar")) $("#m-quitar").onclick = async function () {
+      try { await SG.FUENTE.accion({ accion: "mi_panel", per: PER, profe: yo.nombre, url: "" });
+            await refrescar(); aviso("Quitado. Vuelven al panel oficial.", true); }
+      catch (e) { aviso(e.message); }
+    };
+  }
+  function enlaceFila(ico, tit, url) {
+    if (!url) return '<div class="m-fila vacia"><span>' + ico + '</span><b>' + esc(tit) + '</b>' +
+                     '<em>sin configurar</em></div>';
+    return '<div class="m-fila"><span>' + ico + '</span><b>' + esc(tit) + '</b>' +
+      '<a href="' + esc(url) + '" target="_blank" rel="noopener">Abrir ↗</a>' +
+      '<button class="btn min" data-copiar="' + esc(url) + '">Copiar</button></div>';
   }
 
   // ---------------------------------------------------------------- equipo docente

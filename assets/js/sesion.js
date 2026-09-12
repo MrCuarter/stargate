@@ -18,6 +18,14 @@
       root=document.getElementById('sesion-app');
   if(!root) return;
   var q=new URLSearchParams(location.search);
+  /**
+   * 🔴 ?embed=1 · LA PROYECCIÓN, DENTRO DEL GENIALLY. Norberto: «¿tenemos embed de la proyección de
+   * clase para ponerla en Genially a pantalla completa?». No lo tenía — y era el MISMO fallo que ya
+   * tuvieron el aula y la llamada a filas: la hoja de estilos sabe esconder cabecera, hero y pie
+   * (`body.embed .nav{display:none}`) y nadie ponía la clase. Sin esto, al incrustarla salía el menú
+   * entero de la web encima de la diapositiva.
+   */
+  if (q.get('embed') === '1') document.body.classList.add('embed');
   var st={per:q.get('per')||'', d:null, sem:0, i:0, slides:[], tipo:'REGULAR', nombre:'', inicio:'', aviso:''};
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}

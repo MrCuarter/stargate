@@ -2043,3 +2043,14 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 .dia.genially{padding:0;display:flex}
 .dia.genially iframe{width:100%;height:100%;min-height:60vh;border:0;border-radius:14px;background:#000}
 .dia.genially .txt{margin:auto;padding:40px}
+
+/* Los enlaces del grupo, a mano y en solo lectura: el docente los reparte en clase, pero
+   cambiarlos es del referente. Verlos sin poder tocarlos es justo lo que hace falta. */
+.m-enlaces{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.m-fila{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:11px;
+  background:#0b1119;border:1px solid #24304a}
+.m-fila span{font-size:1.15rem;line-height:1;flex:none}
+.m-fila b{flex:1;font-weight:600;font-size:.92rem;min-width:0}
+.m-fila a{font-size:.86rem;white-space:nowrap}
+.m-fila.vacia{opacity:.55}
+.m-fila em{font-style:normal;font-size:.82rem;color:var(--mut)}
