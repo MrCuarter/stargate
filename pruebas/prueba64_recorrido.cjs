@@ -165,6 +165,26 @@ const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disa
                 fue && !(await evaluar(c, "!!document.getElementById('puerta')")));
     }
     {
+      // 🔴 CON EL GRUPO PUESTO. Quien pulsa la puerta en `sesion.html?per=X` tiene que volver a ESE
+      // grupo, no a «el que la página decida»: en enero un docente lleva dos a la vez.
+      const c = await pestana(QUIENES.referente); abiertas.push(c);
+      await c.enviar("Page.navigate", { url: BASE + "entrar.html?volver=" +
+        encodeURIComponent("sesion.html?per=prueba-humana") });
+      const fue = await hasta(c, "location.pathname.indexOf('sesion.html')>=0", 15);
+      comprobar("volver · se lleva también el grupo de la URL", fue &&
+                /per=prueba-humana/.test(await evaluar(c, "location.search")),
+                await evaluar(c, "location.pathname + location.search"));
+    }
+    {
+      // 🔴 pero una barra sigue siendo una puerta a otra web: se ignora entera
+      const c = await pestana(QUIENES.referente); abiertas.push(c);
+      await c.enviar("Page.navigate", { url: BASE + "entrar.html?volver=" +
+        encodeURIComponent("//ejemplo.com/pillado.html") });
+      await hasta(c, "location.pathname.indexOf('consola.html')>=0", 15);
+      comprobar("volver · un destino con barras se ignora entero",
+                (await evaluar(c, "location.host")) === "127.0.0.1:" + P_WEB);
+    }
+    {
       // 🔴 y que no sirva de trampolín a otro sitio
       const c = await pestana(QUIENES.referente); abiertas.push(c);
       await c.enviar("Page.navigate", { url: BASE + "entrar.html?volver=https://ejemplo.com/pillado" });
@@ -228,6 +248,37 @@ const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disa
                 await evaluar(c, "location.pathname + location.search"));
       comprobar("guía · y con el destino puesto",
                 fue && /volver=guia\.html/.test(await evaluar(c, "location.search")));
+    }
+    {
+      /**
+       * La misma puerta, llegando con algo en la URL: no puede perderlo al mandarte a entrar.
+       *
+       * 🔴 Se prueba con `cronologia.html`, NO con `sesion.html`. La diferencia importa: las páginas
+       * que SÍ cargan el motor —sesión, registro— abren su puerta EN EL SITIO, sin mandarte a
+       * ninguna parte, que es todavía mejor porque no pierdes ni la página ni la URL. El desvío a
+       * `entrar.html` solo existe para los documentos, que no cargan medio megabyte de Firebase para
+       * vigilar una puerta que se usa una vez.
+       */
+      const c = await abrirSeguro("anonimo", "cronologia.html?tema=3",
+                                  "!!document.getElementById('puertaCuenta')");
+      if (c) {
+        await evaluar(c, "(function(){var o=document.getElementById('puertaCuenta'); if(o) o.click(); return 1;})()");
+        const fue = await hasta(c, "location.pathname.indexOf('entrar.html')>=0", 10);
+        const q = fue ? decodeURIComponent(await evaluar(c, "location.search")) : "";
+        comprobar("puerta · al mandarte a entrar se lleva la URL entera, no solo la página",
+                  /volver=cronologia\.html\?tema=3/.test(q), q);
+        await c.destruir();
+      } else comprobar("puerta · al mandarte a entrar se lleva la URL entera, no solo la página", false, "no abrió");
+    }
+    {
+      // y las que SÍ llevan motor abren la puerta sin moverte de sitio
+      const c = await abrirSeguro("anonimo", "sesion.html?per=prueba-humana",
+                                  "!!document.getElementById('puertaCuenta')");
+      if (c) {
+        comprobar("puerta · en las páginas con motor se abre EN EL SITIO, sin perder la URL",
+                  /per=prueba-humana/.test(await evaluar(c, "location.search")));
+        await c.destruir();
+      } else comprobar("puerta · en las páginas con motor se abre EN EL SITIO, sin perder la URL", false, "no abrió");
     }
 
     // ============================================================ 7 · SIN BOTONES MUDOS

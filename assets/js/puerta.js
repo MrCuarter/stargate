@@ -94,7 +94,14 @@
        * persona mirando la mitad equivocada de otra página.
        */
       if (!M || !M.sesion || !M.misPERs) {
-        location.href = 'entrar.html?volver=' + encodeURIComponent(location.pathname.replace(/^\//, ''));
+        /**
+         * 🔴 CON LA CONSULTA PUESTA. Antes solo viajaba el nombre del fichero, así que quien pulsaba
+         * la puerta en `sesion.html?per=prueba-humana` volvía a `sesion.html` a secas y perdía el
+         * grupo. Con uno da igual —se deduce de la cuenta—; con dos a la vez, que es lo que pasa
+         * cada enero, la página abre el que ella decida y no el que tú habías abierto.
+         */
+        var destino = location.pathname.replace(/^\//, '') + (location.search || '');
+        location.href = 'entrar.html?volver=' + encodeURIComponent(destino);
         return;
       }
       M.sesion().then(function(yo){

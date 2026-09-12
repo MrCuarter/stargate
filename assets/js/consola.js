@@ -118,8 +118,9 @@
         '<p><a class="btn grande" href="crear.html">Crear el primero</a></p></div>';
       return;
     }
+    // el mismo filtro que en `entrar.js`: nada de barras ni de dos puntos, o sería un trampolín
     var volver = url.get("volver");
-    if (volver && /^[a-z0-9_-]+\.html$/i.test(volver)) { location.replace(volver); return; }
+    if (volver && /^[a-z0-9_-]+\.html(\?[a-z0-9_=&%.\-]*)?$/i.test(volver)) { location.replace(volver); return; }
 
     var guardado = url.get("per");
     if (guardado && PERS.filter(function (p) { return p.id === guardado; }).length) return abrir(guardado);

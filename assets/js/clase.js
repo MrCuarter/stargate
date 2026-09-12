@@ -776,7 +776,8 @@
          * dedicada a eso y no puede esconder nada. Al volver, la sala ya tiene sesión y esta rama
          * ni se pisa.
          */
-        location.replace('entrar.html?volver=clase.html');
+        location.replace('entrar.html?volver=' +
+          encodeURIComponent('clase.html' + (location.search || '')));
         return;
       }
       st.correo=u.correo; localStorage.setItem('sgClaseCorreo',u.correo);

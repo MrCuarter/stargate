@@ -40,7 +40,14 @@
    * es el peor momento posible para no saber dónde estás—. Solo un nombre de página de aquí.
    */
   function destinoSeguro(v) {
-    return (v && /^[a-z0-9_-]+\.html$/i.test(v)) ? v : "";
+    /**
+     * Un nombre de página de AQUÍ, con su consulta si la traía. Lo que el filtro deja fuera importa
+     * más que lo que deja pasar: nada de barras (que abrirían `//otrositio.com`, una URL absoluta
+     * disfrazada), nada de dos puntos (que abrirían `javascript:` o `https:`) y nada de almohadilla.
+     * Si no encaja entero, se ignora y se va al sitio por defecto — nunca se intenta arreglar una
+     * dirección sospechosa, que es como se cuelan.
+     */
+    return (v && /^[a-z0-9_-]+\.html(\?[a-z0-9_=&%.\-]*)?$/i.test(v)) ? v : "";
   }
 
   function ir(donde) { location.replace(donde); }
