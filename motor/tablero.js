@@ -110,6 +110,20 @@
 
     var hace7 = (ahora || Date.now()) - 7 * 864e5;
 
+    /**
+     * CUÁNTA GENTE LLEVA CADA RETO. Un contador por reto y nada más: ni quién, ni cuándo.
+     *
+     * 🔴 Por qué un agregado y no el dato de cada uno. El tablero PÚBLICO no lleva los retos de
+     * nadie (`out.retos` solo se rellena con `conPrivados`), y eso no es un descuido: saber qué ha
+     * entregado cada compañero es información de su expediente. Pero «somos 18 y esto lo llevan 12»
+     * sí es de todos, y es justo lo que hace que alguien no se sienta el único que va tarde.
+     *
+     * `activos` es el denominador honesto: quien ha registrado ALGO alguna vez. Contar sobre los
+     * matriculados diría «3 %» en una clase donde la mitad ni ha entrado, y ese número no anima a
+     * nadie: desmoraliza y encima es falso sobre quien de verdad está jugando.
+     */
+    var retosN = {}, activos = 0;
+
     var lista = (datos.perfiles || []).map(function (p) {
       var hechas = p.completedMissionIds || [];
       var sellos = p.missionTimestamps || {};
@@ -125,6 +139,11 @@
         eventos.push({ fecha: f, reto_id: id, reto: m ? m.title : id,
                        xp: m ? m.points : 0, origen: "recluta", evidencia: "" });
       });
+
+      if (Object.keys(retos).length) {
+        activos++;
+        Object.keys(retos).forEach(function (k) { retosN[k] = (retosN[k] || 0) + 1; });
+      }
 
       // 🔴 El xp de LA SEMANA. Sale de los mismos retos que producen el xp total, cada uno con su
       // fecha — no de una lista de eventos aparte. Ese error ya se pagó una vez: quien tenía todo
@@ -300,15 +319,24 @@
       profesorado: docentes.map(function (d) { return d.nombre; }).join(", "),
       referente: PRIV.referente || "", estado: P.active === false ? "cerrado" : "abierto",
       inicio: inicio, reclutas: lista,
+      retos_n: retosN, activos: activos,
       recompensas: (datos.recompensas || []).filter(function (r) { return r.inStore !== false; })
         .map(function (r) {
           // El identificador viaja con la recompensa: sin él, canjear habría que hacerlo POR NOMBRE,
           // y el día que alguien renombre «Sobre de cromos» se rompe en silencio.
           // 🔴 Los DOS identificadores, como con las misiones: el corto para hablar (y para que los
           // enlaces valgan en todos los grupos) y el del documento para que el servidor la encuentre.
+          // 🔴 `desc` y `max`, NO `descripcion` y `maximo`. Este traductor promete devolver
+          // EXACTAMENTE el objeto de `tablero_()` del Apps Script (ahí se llaman así, Code.gs:244)
+          // y aquí se rebautizaron. Dos consecuencias, ninguna con error:
+          //   · la Nave lee `x.desc` → el Mercado salía SIN una sola descripción, tarjetas con
+          //     título y precio y nada que explicara qué compras.
+          //   · la Nave lee `x.max` → `!x.max` era true, así que TODO parecía repetible: el aviso
+          //     «Ya la tienes» no salía nunca y se podía volver a pulsar algo de una sola vez.
+          //     (El servidor sí lo deniega, pero la pantalla mentía.)
           return { id: r.id, doc: r.docId || r.id, nombre: r.title, coste: r.cost,
-                   maximo: r.maxPerUser == null ? 99 : r.maxPerUser,
-                   descripcion: r.description, desde: r.stargateSemana || 0, tipo: r.stargateTipo || "" };
+                   max: r.maxPerUser == null ? 99 : r.maxPerUser,
+                   desc: r.description, desde: r.stargateSemana || 0, tipo: r.stargateTipo || "" };
         }),
       semana: semanaDe(inicio, ahora), semanas: S.semanas || 15,
       panel: S.panelVer || "", paneles: S.paneles || {},

@@ -449,7 +449,20 @@ body.embed .nave-barra{top:0}
 .badge-col .b span{display:block;margin-top:2px}
 .badge-col .no{opacity:.75}
 .badge-col .no img{filter:grayscale(1) brightness(.35)}
-.nave-rec .rec-card .pts{font-size:1.3rem;font-weight:800;color:var(--amber);margin:.2em 0}
+/* 🔴 SIMETRÍA DE LAS TARJETAS. La rejilla ya las hacía igual de altas, pero dentro cada cosa
+   flotaba donde el texto la dejara: con un título de tres renglones y otro de uno, los botones de
+   una misma fila caían a tres alturas distintas y la cuadrícula parecía rota.
+   El cuerpo crece y el pie se pega abajo, así que el botón de todas cae en el mismo eje. */
+.nave-rec .rec-card{display:flex;flex-direction:column}
+.nave-rec .rec-card .rec-cuerpo{flex:1 1 auto}
+.nave-rec .rec-card .rec-pie{margin-top:auto;padding-top:12px;display:flex;flex-direction:column;
+  align-items:flex-start;gap:9px}
+.nave-rec .rec-card .rec-pie .btn{width:100%;justify-content:center;text-align:center}
+.nave-rec .rec-card .rec-pie .chip{margin:0}
+.nave-rec .rec-card .pts{font-size:1.3rem;font-weight:800;color:var(--amber);margin:.2em 0;
+  font-variant-numeric:tabular-nums}
+/* La que no cuesta créditos no grita un número: dice lo que es. */
+.nave-rec .rec-card .pts.libre{font-size:1rem;color:var(--teal);letter-spacing:.01em}
 .nave-rec .rec-card.lock{opacity:.6;border-style:dashed}
 .nave-rec .rec-card.agotada{opacity:.62}
 .nave-rec .rec-card.agotada .pts{color:var(--mut)}
@@ -1377,6 +1390,24 @@ body.embed .nave-barra-u{top:0}
 .rs-premio .p.cr{color:var(--amber)}
 .rs-premio .p.ins{color:#c79be6;display:inline-flex;align-items:center;gap:6px}
 .rs-premio .p.ins img{width:20px;height:20px;object-fit:contain}
+/* El gancho: la línea que se lee SIN abrir. Va entre el título y lo que se gana. */
+.rs-gancho{margin:-4px 0 10px;font-size:.9rem;line-height:1.45;color:#a8bcd8}
+/* Cuánta gente lo lleva ya. A la derecha del todo de la cabecera, callado. */
+.rs-cuantos{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:.76rem;
+  font-weight:600;color:var(--mut);font-variant-numeric:tabular-nums}
+.rs-cuantos svg{opacity:.75}
+/* Lo que te llevas, con su nombre y qué es. */
+.rs-premios{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.rs-premio-uno{display:inline-flex;align-items:center;gap:8px;padding:5px 11px 5px 6px;
+  border-radius:10px;background:rgba(0,0,0,.3);border:1px solid #24304a}
+.rs-premio-uno img{width:30px;height:30px;object-fit:contain;flex:none}
+.rs-premio-uno span{display:flex;flex-direction:column;line-height:1.2;font-size:.86rem;font-weight:600}
+.rs-premio-uno em{font-style:normal;font-size:.66rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--mut);font-weight:600}
+.rs-premio-uno.per{border-color:#3d2a52} .rs-premio-uno.per span{color:#c79be6}
+.rs-premio-uno.esp{border-color:#4a3a1a} .rs-premio-uno.esp span{color:var(--amber)}
+.rs-premio-uno.hito{border-color:#1f4a38} .rs-premio-uno.hito span{color:#4fd18b}
+.rs-premio-uno.ins{border-color:#1f3a4a} .rs-premio-uno.ins span{color:var(--teal)}
 .rs-abrir{margin-top:11px;font-size:.8rem;color:var(--mut)}
 .reto-sem[open] .rs-abrir{display:none}
 .rs-detalle{padding:0 16px 16px;border-top:1px solid var(--line)}
@@ -1548,4 +1579,93 @@ body.embed #sg-son{display:none}
   .salta,canvas.chispas{display:none}
   .nivel-arriba,.insignia-gana{animation:none}
   .na-n{animation:none}
+}
+
+/* ══════════════════ NEBULA PREGUNTA ══════════════════
+   🔴 Sustituye al confirm() del navegador. Aquel decía «stargate.mistercuarter.es dice» encima de
+   la pregunta —el nombre del servidor, justo cuando el juego tenía que sostener la ficción— y
+   congelaba la página entera mientras estaba abierto. */
+.neb-capa{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:20px;
+  background:rgba(4,8,14,.78);backdrop-filter:blur(5px);animation:nebIn .16s ease-out}
+.neb-capa.cerrando{animation:nebOut .14s ease-in forwards}
+@keyframes nebIn{from{opacity:0}to{opacity:1}}
+@keyframes nebOut{to{opacity:0}}
+.neb-caja{position:relative;width:100%;max-width:390px;background:linear-gradient(180deg,#132234,#0d1624);
+  border:1px solid #2c4a6a;border-radius:20px;padding:60px 24px 22px;text-align:center;
+  box-shadow:0 26px 70px rgba(0,0,0,.6),0 0 0 1px rgba(55,224,236,.07) inset;
+  animation:nebSube .22s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes nebSube{from{transform:translateY(14px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+.neb-capa.cerrando .neb-caja{animation:none;transform:translateY(6px);opacity:.4;transition:.14s}
+/* La cara sobresale por arriba: es ELLA quien pregunta, no una caja del navegador. */
+.neb-cara{position:absolute;top:-34px;left:50%;transform:translateX(-50%);width:84px;height:84px;
+  border-radius:50%;background:radial-gradient(circle at 50% 35%,#1d3d52,#0c1826);
+  border:2px solid #37e0ec;display:grid;place-items:center;overflow:hidden;
+  box-shadow:0 0 28px rgba(55,224,236,.4)}
+.neb-cara img{width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.neb-quien{font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);
+  font-weight:700;margin-bottom:8px}
+.neb-caja h3{font-family:'Unbounded',sans-serif;font-size:1.06rem;line-height:1.35;margin:0 0 14px;
+  text-wrap:balance}
+.neb-cuerpo{margin-bottom:20px}
+.neb-precio{display:flex;flex-direction:column;gap:2px;margin:0 0 12px;padding:12px;
+  background:rgba(0,0,0,.3);border:1px solid #24304a;border-radius:12px}
+.neb-precio b{font-size:1.5rem;color:var(--amber);font-variant-numeric:tabular-nums;line-height:1.1}
+.neb-precio span{font-size:.78rem;color:var(--mut)}
+.neb-nota{margin:0;font-size:.83rem;line-height:1.5;color:var(--mut)}
+.neb-nota b{color:#c7d6ee}
+/* Los dos botones, mismo ancho y mismo eje: ninguno de los dos es una trampa. */
+.neb-botones{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.neb-botones .btn{width:100%;justify-content:center;text-align:center;margin:0}
+@media (max-width:400px){.neb-botones{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.neb-capa,.neb-caja{animation:none}}
+
+/* ══════════════════ MERCADO: TARJETAS CON CARA ══════════════════
+   🔴 Eran título + precio + botón sobre fondo liso, y encima sin descripción (el traductor la
+   renombraba y nunca llegaba). Comprar era leer un nombre y fiarse. Ahora: la imagen que ya existía
+   en assets/img/canje/ y nunca se usó, qué ES la cosa, qué hace y dónde acaba. */
+.nave-rec{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.nave-rec .rec-card{padding:0;overflow:hidden}
+.rec-foto{aspect-ratio:16/9;background:#0a1119;border-bottom:1px solid var(--line);overflow:hidden;
+  display:grid;place-items:center}
+.rec-foto img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease}
+.nave-rec .rec-card:hover .rec-foto img{transform:scale(1.045)}
+.rec-foto.sin{background:linear-gradient(160deg,#16283c,#0c1522)}
+.rec-foto.sin span{font-size:2.6rem;filter:saturate(.9)}
+.nave-rec .rec-card .rec-cuerpo{padding:15px 17px 0}
+.nave-rec .rec-card .rec-pie{padding:12px 17px 17px}
+.rec-quees{font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;color:var(--teal);
+  font-weight:700;margin-bottom:5px}
+.nave-rec .rec-card h3{margin:0 0 2px;font-size:1.02rem;line-height:1.3;text-wrap:balance}
+.rec-desc{color:var(--mut);line-height:1.5;margin:.5em 0 0}
+/* Dónde acaba la cosa: la pregunta que nadie contestaba. */
+.rec-donde{margin:10px 0 0;padding:8px 11px;border-left:2px solid var(--teal);
+  background:rgba(55,224,236,.06);border-radius:0 8px 8px 0;font-size:.83rem;color:#bcd6e6;line-height:1.45}
+.nave-rec .rec-card.lock{justify-content:center;min-height:230px;padding:20px}
+.nave-rec .rec-card.lock h3{margin-top:0}
+
+/* ══════════════════ NEBULA ENTREGA ══════════════════ */
+.neb-caja.gana{padding-bottom:20px}
+.neb-arte{margin:0 auto 12px;width:150px;border-radius:14px;overflow:hidden;background:#0a1119;
+  border:1px solid #2c4a6a;box-shadow:0 10px 30px rgba(0,0,0,.5);display:grid;place-items:center}
+.neb-arte img{width:100%;height:auto;display:block}
+.neb-arte.emoji{aspect-ratio:1;font-size:3.6rem}
+.neb-arte.brilla{animation:nebBrilla .9s ease-out;border-color:#37e0ec;
+  box-shadow:0 0 34px rgba(55,224,236,.55),0 10px 30px rgba(0,0,0,.5)}
+@keyframes nebBrilla{0%{transform:scale(.9);opacity:.4}55%{transform:scale(1.06)}100%{transform:none;opacity:1}}
+.neb-gana-nom{font-family:'Unbounded',sans-serif;font-size:1.05rem;font-weight:600;color:var(--teal);
+  margin-bottom:10px;line-height:1.3;text-wrap:balance}
+.neb-gasto{margin:0 0 12px;font-size:1.35rem;font-weight:800;color:var(--amber);
+  font-variant-numeric:tabular-nums;display:flex;align-items:baseline;justify-content:center;gap:9px}
+.neb-gasto .neb-menos{font-size:.8rem;font-weight:700;color:#ff7a6b;
+  animation:nebBaja 1s ease-out .3s both}
+@keyframes nebBaja{0%{opacity:0;transform:translateY(-9px)}30%{opacity:1}100%{opacity:.55;transform:translateY(5px)}}
+.neb-donde{margin:0 0 18px;font-size:.88rem;line-height:1.5;color:#bcd6e6;
+  background:rgba(55,224,236,.07);border:1px solid rgba(55,224,236,.2);border-radius:11px;padding:10px 13px}
+.neb-esperando{margin:0;font-size:.88rem;color:var(--mut)}
+.neb-caja.esperando .neb-cara{animation:nebLate 1.1s ease-in-out infinite}
+@keyframes nebLate{0%,100%{box-shadow:0 0 28px rgba(55,224,236,.4)}50%{box-shadow:0 0 44px rgba(55,224,236,.85)}}
+.neb-caja.mal{border-color:#5a2f2f}
+.neb-caja.mal .neb-cara{border-color:#ff7a6b;box-shadow:0 0 26px rgba(255,122,107,.4)}
+@media (prefers-reduced-motion:reduce){
+  .neb-arte.brilla,.neb-gasto .neb-menos,.neb-caja.esperando .neb-cara{animation:none}
 }

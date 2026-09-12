@@ -373,6 +373,48 @@
     });
     return out;
   }
+  /**
+   * QUÉ TE LLEVAS, dicho con su nombre. La insignia ya se enseñaba, pero como una pegatina sin
+   * explicar: una miniatura y un nombre propio («Bran Okafor») que no dice nada a quien aún no
+   * conoce a Bran. La letra del identificador SÍ lo dice, y estaba ahí desde el principio sin usar.
+   */
+  var CLASE_PREMIO = {
+    P: ["Recuperas a", "per"],      // los ocho de la tripulación perdida
+    L: ["Recuperas a", "per"],      // los secundarios de su historia
+    E: ["Insignia especial", "esp"],
+    H: ["Hito", "hito"],
+    R: ["Insignia", "ins"],
+    S: ["Insignia secreta", "esp"]
+  };
+  function premioDeReto(claves){
+    return (claves||[]).map(function(k){
+      var c = CLASE_PREMIO[String(k).charAt(0)] || CLASE_PREMIO.R;
+      return '<span class="rs-premio-uno '+c[1]+'">'
+        +'<img loading="lazy" src="assets/img/insignias/'+k+'.png" alt="">'
+        +'<span><em>'+c[0]+'</em>'+esc(NOMBRES[k]||k)+'</span></span>';
+    }).join('');
+  }
+  /**
+   * CUÁNTA GENTE LO LLEVA YA. Sale del tablero, que trae el contador por reto y el número de
+   * reclutas activos — nunca quién.
+   *
+   * 🔴 Se calla en dos casos, y los dos importan. Con menos de tres activos el porcentaje deja de
+   * ser un dato y pasa a ser un dedo señalando: en un grupo de dos, «50 %» es «tu compañero sí y
+   * tú no». Y con cero hechos tampoco se enseña: «0 %» no informa de nada y apaga las ganas de ser
+   * el primero, que es justo lo contrario de lo que se busca.
+   */
+  function cuantosLoLlevan(id){
+    var d=st.d||{}, act=Number(d.activos||0), n=Number((d.retos_n||{})[id]||0);
+    if(act<3 || !n) return '';
+    var pct=Math.round(n*100/act);
+    return '<span class="rs-cuantos" title="'+n+' de '+act+' reclutas activos de tu grupo">'
+      +'<svg viewBox="0 0 24 24" aria-hidden="true" width="13" height="13"><path fill="currentColor" '
+      +'d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0 1.6c-3 0-6 1.5-6 3.4V19h12v-3c0-1.9-3-3.4-6-3.4Z'
+      +'M17 11.5a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Zm0 1.4c-.7 0-1.4.1-2 .3 1.2.8 2 1.8 2 3V19h4v-2.7'
+      +'c0-1.6-2.5-2.9-4-2.9Z"/></svg>'
+      +pct+'%</span>';
+  }
+
   function retosDeLaSemana(){
     var r=st.yo, d=st.d; if(!r||st.estado==='antes') return '';
     var RET=(window.SG_RETOS||{})[(d&&d.tipo)||'REGULAR']||[];
@@ -391,18 +433,19 @@
 
     var tarjetas=suyos.map(function(t){
       var ya=!!mios[t[0]], pasos=pasosDeReto(AY[t[0]]);
-      var ins=(t[2]||[]).map(function(k){
-        return '<span class="p ins"><img loading="lazy" src="assets/img/insignias/'+k+'.png" alt="">'
-          +esc((NOMBRES[k]||k))+'</span>'; }).join('');
       var cuando=ya&&r.retos_fecha&&r.retos_fecha[t[0]]?' · '+fecha(r.retos_fecha[t[0]]):'';
+      var gancho=(window.SG_GANCHO_RETOS||{})[t[0]]||'';
       return '<details class="reto-sem'+(ya?' hecho':'')+'">'
         +'<summary><div class="rs-cab"><span class="chip '+(ya?'ok':'pend')+'">'
           +(ya?'✓ Registrado'+cuando:'Pendiente')+'</span>'
+          +cuantosLoLlevan(t[0])
           +'<span class="small muted">'+esc(t[0])+'</span></div>'
         +'<b class="rs-tit">'+esc(t[1])+'</b>'
+        +(gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')
         +'<div class="rs-premio"><span class="p xp">+'+t[3]+' xp</span>'
-          +'<span class="p cr">+'+creditosDeReto(t[0])+' ◈</span>'+ins+'</div>'
-        +'<div class="rs-abrir">▾ '+(ya?'Ver lo que pedía':'Qué hay que hacer')+'</div></summary>'
+          +'<span class="p cr">+'+creditosDeReto(t[0])+' ◈</span></div>'
+        +'<div class="rs-premios">'+premioDeReto(t[2])+'</div>'
+        +'<div class="rs-abrir">▾ '+(ya?'Ver lo que pedía':'Cómo se hace, paso a paso')+'</div></summary>'
         +'<div class="rs-detalle">'
         +(pasos.length?'<ol class="rs-pasos">'+pasos.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>'
                       :'<p class="small muted">Sin explicación todavía: pregunta a tu docente.</p>')
@@ -1044,6 +1087,25 @@
     var tit=st.estado==='fin'?'Última orden — Semana '+s.sem+' · '+s.tema:'Semana '+s.sem+' · '+s.tema;
     return '<section><div class="eyebrow amber">La orden de la semana</div><h2>Esta semana en la nave</h2>'+fichaSemana(s,tit)+'</section>';
   }
+  /**
+   * QUÉ ES CADA COSA, en una línea, y DÓNDE se usa.
+   *
+   * 🔴 La descripción del catálogo cuenta la mecánica («una carta al azar de las 20 del álbum…»);
+   * esto contesta otra pregunta, la que de verdad se hace quien acaba de gastar sus créditos: «vale,
+   * ¿y esto dónde está ahora?». Sin ella, comprar un marco dorado y no ver nada distinto en ningún
+   * sitio se parece mucho a que te hayan cobrado por nada.
+   */
+  var QUE_ES = {
+    cromo:      ["🃏","Carta del álbum","Se abre sola y se queda en tu álbum.","Ver mi álbum","botin"],
+    cromo_repes:["🔁","Cambio de repetidos","Tus repetidas se convierten en un sobre nuevo.","Ver mi álbum","botin"],
+    heroe:      ["🛡️","Héroe de la Rebelión","Lo tendrás en el vestuario: puedes vestirlo cuando quieras.","Ir al vestuario","botin"],
+    marco:      ["🖼️","Adorno de tu ficha","Enmarca tu avatar. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
+    fondo:      ["🌌","Adorno de tu ficha","Cambia el fondo de tu ficha. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
+    titulo:     ["🏷️","Adorno de tu ficha","Un título que acompaña a tu alias delante de toda la clase.","Ver mi ficha","nave"],
+    nota:       ["📈","Afecta a tu nota","No se aplica sola: la aprueba tu docente al terminar las clases.","Entendido",""]
+  };
+  function queEs(tipo){ return QUE_ES[tipo] || ["🎁","Recompensa","",'',""]; }
+
   function recompensas(){
     var d=st.d; var cat=d.recompensas||[]; var n=st.semanas.length; var r=st.yo;
     if(!cat.length) return '<section><div class="eyebrow violet">Recompensas</div><h2>El canje de xp</h2><p class="lead">Tus xp se pueden canjear por recompensas. El catálogo se abrirá pronto en la nave; mientras tanto, tu Capitán tiene la lista.</p>'
@@ -1065,12 +1127,30 @@
       // 🔴 Con el motor nuevo se canjea aquí mismo. El cobro y la comprobación de saldo los hace el
       // servidor —el navegador no puede tocar los créditos ni queriendo—, así que el botón solo
       // pide; si no llega, contesta que no y no se mueve nada.
+      // 🔴 Hay recompensas que NO se pagan con créditos (cambiar 3 repetidos por un sobre cuesta
+      // repetidos). Con `x.coste === 0` la tarjeta decía «0 ◈» y el botón «Canjear por 0 ◈», que no
+      // es que sea feo: es que dice una cosa falsa sobre lo que te va a costar.
+      var gratis = !x.coste;
       var boton = (motorNuevo() && r && !tope && mis>=x.coste && x.id)
-        ? '<p style="margin-top:10px"><button class="btn primary" type="button" data-canje="'+esc(x.doc||x.id)+'" '
-          +'data-nombre="'+esc(x.nombre)+'" data-coste="'+x.coste+'"'
-          +' data-abrir="'+((x.tipo==='cromo'||x.tipo==='heroe')?'1':'0')+'">Canjear por '+x.coste+' ◈</button></p>'
+        ? '<button class="btn primary" type="button" data-canje="'+esc(x.doc||x.id)+'" '
+          +'data-nombre="'+esc(x.nombre)+'" data-coste="'+x.coste+'" data-tipo="'+esc(x.tipo||'')+'"'
+          +' data-abrir="'+((x.tipo==='cromo'||x.tipo==='heroe')?'1':'0')+'">'
+          +(gratis?'Cambiar':'Canjear por '+x.coste+' ◈')+'</button>'
         : '';
-      return '<div class="card rec-card'+(tope?' agotada':'')+'"><h3>'+esc(x.nombre)+'</h3><p class="pts">'+x.coste+' ◈</p><p class="small">'+esc(x.desc||'')+'</p>'+aviso+afford+boton+'</div>';
+      // El pie va aparte y se pega abajo (`margin-top:auto`): así el botón de todas las tarjetas de
+      // una fila cae en la MISMA línea, aunque un título ocupe tres renglones y otro uno.
+      var qe=queEs(x.tipo), img=(window.SG_IMG_RECOMPENSA||{})[x.nombre];
+      return '<div class="card rec-card'+(tope?' agotada':'')+'">'
+        +(img?'<div class="rec-foto"><img loading="lazy" src="assets/img/canje/'+esc(img)+'" alt=""></div>'
+             :'<div class="rec-foto sin"><span>'+qe[0]+'</span></div>')
+        +'<div class="rec-cuerpo">'
+        +'<div class="rec-quees">'+qe[0]+' '+esc(qe[1])+'</div>'
+        +'<h3>'+esc(x.nombre)+'</h3>'
+        +'<p class="pts'+(gratis?' libre':'')+'">'+(gratis?'Sin créditos':x.coste+' ◈')+'</p>'
+        +(x.desc?'<p class="small rec-desc">'+esc(x.desc)+'</p>':'')
+        +(qe[2]?'<p class="rec-donde">'+esc(qe[2])+'</p>':'')
+        +aviso+'</div>'
+        +'<div class="rec-pie">'+afford+boton+'</div></div>';
     }).join('');
     return '<section><div class="eyebrow violet">Recompensas</div><h2>El canje de xp</h2>'
       +'<p class="lead">Tus <b>xp</b> no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje. Lo que se canjea son los <b>créditos ◈</b>, que ganas con el mismo trabajo. Las recompensas se van desbloqueando con el viaje.</p>'
@@ -1464,6 +1544,9 @@
       if(d&&d.yo){ st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true; }
       render();
       if(!window.SG||!SG.FIESTA||!d||!d.yo) return;
+      // 'canje-mudo': el canje ya se ha celebrado dentro de la ventana de NEBULA; aquí solo
+      // se ponen los datos al día. Duplicarlo sacaba los números saltarines DEBAJO del diálogo.
+      if(tipo==='canje-mudo') return;
       if(tipo==='canje') SG.FIESTA.canje(antes, d.yo, donde, extra);
       else SG.FIESTA.reto(antes, d.yo, donde);
     });
@@ -1479,24 +1562,221 @@
     return h?h[1]:k;
   }
 
-  function canjear(id, nombre, coste, boton, abrir){
-    if(!confirm('¿Canjear «'+nombre+'» por '+coste+' créditos?')) return;
+  /**
+   * NEBULA PREGUNTA. Sustituye al `confirm()` del navegador, que además de feo decía
+   * «stargate.mistercuarter.es dice» —el nombre del servidor— justo en el momento en que el juego
+   * tenía que sostener la ficción. Y lo peor: `confirm()` CONGELA la página entera mientras está
+   * abierto, así que ni la barra de créditos ni nada podían moverse detrás.
+   *
+   * Devuelve una promesa que resuelve true/false. Se cierra con Escape, pulsando fuera o con
+   * «Ahora no» — porque una ventana de la que no se sabe salir asusta más que una compra.
+   */
+  function nebulaPregunta(o){
+    return new Promise(function(resolve){
+      var previo = document.activeElement;
+      var capa = document.createElement('div');
+      capa.className = 'neb-capa';
+      capa.innerHTML =
+        '<div class="neb-caja" role="dialog" aria-modal="true" aria-labelledby="neb-t">'
+        + '<div class="neb-cara"><img src="assets/img/personajes/nebula.png" alt="NEBULA"></div>'
+        + '<div class="neb-quien">NEBULA</div>'
+        + '<h3 id="neb-t">' + (o.titulo || '') + '</h3>'
+        + (o.cuerpo ? '<div class="neb-cuerpo">' + o.cuerpo + '</div>' : '')
+        + '<div class="neb-botones">'
+        + '<button type="button" class="btn" data-no>' + esc(o.no || 'Ahora no') + '</button>'
+        + '<button type="button" class="btn primary" data-si>' + esc(o.si || 'Confirmar') + '</button>'
+        + '</div></div>';
+      document.body.appendChild(capa);
+      // El primer foco va al botón que NO hace nada: quien pulsa Intro por inercia no compra.
+      var bNo = capa.querySelector('[data-no]'), bSi = capa.querySelector('[data-si]');
+      setTimeout(function(){ bNo.focus(); }, 30);
+
+      /**
+       * 🔴 DECIR QUE SÍ NO CIERRA LA VENTANA. Y no es un detalle de estilo: el «sí» encadena con la
+       * entrega, que se pinta EN ESTA MISMA capa. Cuando esto la quitaba también al confirmar, la
+       * entrega no encontraba dónde pintarse y el canje volvía a terminar en el cartelito de abajo
+       * —exactamente el problema que esta ventana venía a resolver—.
+       * Se va sola solo si dices que no; si dices que sí, se queda y se transforma.
+       */
+      function cerrar(v){
+        if(!capa.parentNode) return;
+        document.removeEventListener('keydown', tecla, true);
+        if(v){ resolve(true); return; }
+        capa.classList.add('cerrando');
+        setTimeout(function(){
+          if(capa.parentNode) capa.parentNode.removeChild(capa);
+          if(previo && previo.focus) { try{ previo.focus(); }catch(e){} }
+        }, 140);
+        resolve(false);
+      }
+      // 🔴 El foco no puede escaparse a la página de detrás: si se va, quien navega con teclado
+      // acaba pulsando botones que no ve y el diálogo deja de ser modal de verdad.
+      function tecla(e){
+        if(e.key === 'Escape'){ e.preventDefault(); cerrar(false); return; }
+        if(e.key !== 'Tab') return;
+        var f = [bNo, bSi];
+        var i = f.indexOf(document.activeElement);
+        e.preventDefault();
+        f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+      }
+      document.addEventListener('keydown', tecla, true);
+      bNo.onclick = function(){ cerrar(false); };
+      bSi.onclick = function(){ cerrar(true); };
+      capa.onclick = function(e){ if(e.target === capa) cerrar(false); };
+    });
+  }
+
+  function canjear(id, nombre, coste, boton, abrir, tipo){
+    var precio = coste > 0
+      ? '<p class="neb-precio"><b>' + coste + ' ◈</b><span>de tus ' + (st.yo && st.yo.creditos != null ? st.yo.creditos : 0) + ' ◈</span></p>'
+      : '<p class="neb-precio"><b>Sin créditos</b><span>esta no se paga con ◈</span></p>';
+    nebulaPregunta({
+      titulo: '¿Canjeo «' + esc(nombre) + '»?',
+      cuerpo: precio + '<p class="neb-nota">Los créditos se descuentan al confirmar. Tus <b>xp</b> no se tocan: el nivel de tu personaje no baja nunca.</p>',
+      si: coste > 0 ? 'Sí, canjear' : 'Sí, cambiar',
+      no: 'Ahora no'
+    }).then(function(ok){ if(ok) canjearYa(id, nombre, coste, boton, abrir, tipo); });
+  }
+
+  /**
+   * LO QUE HAS CONSEGUIDO. La misma ventana en la que NEBULA preguntó se queda abierta y se
+   * convierte en la respuesta: ella preguntó, ella contesta.
+   *
+   * 🔴 Por qué no basta el cartelito de abajo que había antes. El canje es el único momento en que
+   * un recluta GASTA algo suyo, y hasta hoy la respuesta a ese gesto era una línea de texto en el
+   * borde inferior de la pantalla que se iba sola en unos segundos. En el móvil ni se veía. Quien
+   * compraba un marco dorado no sabía si había pasado algo, dónde mirar ni qué hacer con él — y eso
+   * se parece demasiado a que te hayan cobrado por nada.
+   *
+   * Tres cosas que tienen que quedar claras, en este orden:
+   *   1. QUÉ has conseguido — con su imagen, grande, no un nombre suelto.
+   *   2. QUÉ te ha costado — los créditos bajando de verdad, contados, no apareciendo ya bajados.
+   *   3. QUÉ haces ahora con ello — y un botón que te lleva allí, porque «está en tu álbum» no
+   *      sirve de nada si no sabes dónde está el álbum.
+   */
+  function nebulaEntrega(o){
+    var capa = document.querySelector('.neb-capa');
+    if(!capa){ capa=document.createElement('div'); capa.className='neb-capa'; document.body.appendChild(capa); }
+    var qe = queEs(o.tipo);
+    var arte = o.arte
+      ? '<div class="neb-arte"><img src="'+o.arte+'" alt=""></div>'
+      : '<div class="neb-arte emoji"><span>'+qe[0]+'</span></div>';
+    capa.classList.remove('cerrando');
+    capa.innerHTML =
+      '<div class="neb-caja gana" role="dialog" aria-modal="true" aria-labelledby="neb-t">'
+      + '<div class="neb-cara"><img src="assets/img/personajes/nebula.png" alt="NEBULA"></div>'
+      + '<div class="neb-quien">NEBULA</div>'
+      + '<h3 id="neb-t">' + esc(o.titulo) + '</h3>'
+      + arte
+      + '<div class="neb-gana-nom">' + esc(o.queEs || qe[1]) + '</div>'
+      + (o.coste ? '<p class="neb-gasto"><b id="neb-cr">' + (o.antes || 0) + '</b> ◈'
+                 + '<span class="neb-menos">−' + o.coste + '</span></p>' : '')
+      + '<p class="neb-donde">' + esc(o.donde || qe[2]) + '</p>'
+      + '<div class="neb-botones">'
+      + (qe[3] && qe[4] ? '<button type="button" class="btn" data-ir="' + qe[4] + '">' + esc(qe[3]) + '</button>' : '')
+      + '<button type="button" class="btn primary" data-cerrar>Seguir</button>'
+      + '</div></div>';
+
+    var bCerrar = capa.querySelector('[data-cerrar]'), bIr = capa.querySelector('[data-ir]');
+    setTimeout(function(){ bCerrar.focus(); }, 40);
+    function fuera(){
+      capa.classList.add('cerrando');
+      document.removeEventListener('keydown', tecla, true);
+      setTimeout(function(){ if(capa.parentNode) capa.parentNode.removeChild(capa); }, 160);
+    }
+    function tecla(e){
+      if(e.key==='Escape'){ e.preventDefault(); fuera(); return; }
+      if(e.key!=='Tab') return;
+      var f=[]; if(bIr) f.push(bIr); f.push(bCerrar);
+      var i=f.indexOf(document.activeElement); e.preventDefault();
+      f[(i+(e.shiftKey?-1:1)+f.length)%f.length].focus();
+    }
+    document.addEventListener('keydown', tecla, true);
+    bCerrar.onclick = fuera;
+    capa.onclick = function(e){ if(e.target===capa) fuera(); };
+    if(bIr) bIr.onclick = function(){ fuera(); irA(bIr.getAttribute('data-ir')); };
+
+    // Los créditos BAJAN a la vista. Ver el número caer es lo que convierte un cobro en una compra.
+    if(o.coste && window.SG && SG.FIESTA){
+      var cr = capa.querySelector('#neb-cr');
+      setTimeout(function(){
+        SG.FIESTA.sonar('gasto');
+        SG.FIESTA.rodar(cr, o.antes||0, Math.max(0,(o.antes||0)-o.coste), 850);
+      }, 260);
+    }
+    // Y el premio se celebra DESPUÉS del gasto: primero pagas, luego te llevas.
+    if(window.SG && SG.FIESTA) setTimeout(function(){
+      SG.FIESTA.sonar(o.tipo==='nota' ? 'xp' : 'insignia');
+      var a = capa.querySelector('.neb-arte');
+      if(a){
+        a.classList.add('brilla');
+        var r = a.getBoundingClientRect();
+        SG.FIESTA.chispas(r.left+r.width/2, r.top+r.height/2, ['#37e0ec','#f5b043','#ffffff']);
+      }
+    }, o.coste ? 1000 : 300);
+  }
+
+  function canjearYa(id, nombre, coste, boton, abrir, tipo){
     if(boton){ boton.disabled=true; boton.textContent='Canjeando…'; }
     var antes=st.yo?JSON.parse(JSON.stringify(st.yo)):{};
+    var tenia=(st.yo&&st.yo.creditos!=null)?st.yo.creditos:0;
     var donde=puntoDe(boton);
+    esperandoNebula();
     post({accion:'canje',per:per,recompensa:id,abrir:abrir},function(d){
       var botin = d && d.botin;
-      aviso(botin
-        ? '🎁 ¡Te ha tocado <b>'+esc(nombreDeCarta(botin))+'</b>! Míralo en tu álbum.'
-        : (d && d.sinAbrir
-            ? '🎁 <b>'+esc(nombre)+'</b> es tuya. No he podido abrirla ahora: vuelve a intentarlo desde tu álbum.'
-            : '🎁 <b>'+esc(nombre)+'</b> canjeada.'));
-      refrescarYCelebrar(antes, donde, 'canje', botin?nombreDeCarta(botin):'');
+      // Si ha tocado una carta, lo que se enseña es LA CARTA, no «Sobre de cromos»: nadie compra un
+      // sobre por el sobre.
+      var arte = botin ? arteDeCarta(botin) : null;
+      nebulaEntrega({
+        tipo: tipo, coste: coste, antes: tenia, arte: arte,
+        titulo: botin ? '¡Te ha tocado!' : '¡Es tuya!',
+        queEs: botin ? nombreDeCarta(botin) : nombre,
+        donde: (d && d.sinAbrir)
+          ? 'La tienes, pero no he podido abrirla ahora. Ábrela desde tu álbum cuando quieras.'
+          : null
+      });
+      // El refresco sigue pasando por detrás: la ficha, la barra y el álbum quedan al día para
+      // cuando se cierre la ventana. Sin la fiesta de antes, que ahora ocurre DENTRO de la ventana.
+      refrescarYCelebrar(antes, donde, 'canje-mudo', '');
     },function(e){
-      if(boton){ boton.disabled=false; boton.textContent='Canjear por '+coste+' ◈'; }
+      if(boton){ boton.disabled=false; boton.textContent=coste?('Canjear por '+coste+' ◈'):'Cambiar'; }
       if(window.SG&&SG.FIESTA) SG.FIESTA.sonar('error');
-      aviso('No he podido canjearla: '+esc(e), true);
+      nebulaProblema(e);
     });
+  }
+
+  /** Mientras el servidor cobra y reparte. Sin esto, la ventana se quedaba muda unos segundos. */
+  function esperandoNebula(){
+    var caja=document.querySelector('.neb-caja'); if(!caja) return;
+    caja.classList.add('esperando');
+    var b=caja.querySelector('.neb-botones');
+    if(b) b.innerHTML='<p class="neb-esperando">NEBULA está tramitando el canje…</p>';
+  }
+  /** Y si no ha podido ser, lo dice ella, no un cartel en el borde de la pantalla. */
+  function nebulaProblema(e){
+    var capa=document.querySelector('.neb-capa');
+    if(!capa){ aviso('No he podido canjearla: '+esc(e), true); return; }
+    capa.innerHTML='<div class="neb-caja mal" role="dialog" aria-modal="true">'
+      +'<div class="neb-cara"><img src="assets/img/personajes/nebula.png" alt="NEBULA"></div>'
+      +'<div class="neb-quien">NEBULA</div><h3>No he podido canjearla</h3>'
+      +'<p class="neb-nota">'+esc(e)+'</p>'
+      +'<p class="neb-nota"><b>No se te ha cobrado nada.</b></p>'
+      +'<div class="neb-botones"><button type="button" class="btn primary" data-cerrar>Entendido</button></div></div>';
+    var b=capa.querySelector('[data-cerrar]');
+    function fuera(){ capa.classList.add('cerrando'); setTimeout(function(){ if(capa.parentNode) capa.parentNode.removeChild(capa); },160); }
+    b.onclick=fuera; capa.onclick=function(ev){ if(ev.target===capa) fuera(); };
+    setTimeout(function(){ b.focus(); },40);
+  }
+  /** El arte real de la carta o del héroe que ha tocado. */
+  function arteDeCarta(docId){
+    var k=String(docId).split('__').pop();
+    var V=window.SG_CARDV||'';
+    // 🔴 Las cartas del álbum son «<clave>_carta.png», no «<clave>.jpg» (los héroes sí son .jpg).
+    // Con el nombre a medias la imagen no cargaba y la ventana entregaba un hueco: lo peor posible
+    // justo en el momento de enseñar el premio. Es el mismo camino que usa el álbum, línea 295.
+    if(k.indexOf('heroe_')===0) return 'assets/img/heroes/'+k.slice(6)+'.jpg';
+    if(k.indexOf('cromo_')===0) return 'assets/img/tarjetas/'+k.slice(6)+'_carta.png'+V;
+    return null;
   }
 
   function render(){
@@ -1551,7 +1831,8 @@
     Array.prototype.forEach.call(root.querySelectorAll('[data-canje]'),function(b){
       b.onclick=function(){ canjear(b.getAttribute('data-canje'), b.getAttribute('data-nombre'),
                                    Number(b.getAttribute('data-coste')), b,
-                                   b.getAttribute('data-abrir')==='1'); };
+                                   b.getAttribute('data-abrir')==='1',
+                                   b.getAttribute('data-tipo')); };
     });
     wireYt(root);
     Array.prototype.forEach.call(root.querySelectorAll('.acc[data-ir]'),function(a){

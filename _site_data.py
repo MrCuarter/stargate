@@ -449,6 +449,37 @@ AYUDA_RETOS = {
         "resuelve el enigma que esconde y trae la PALABRA que Vaeon borró. Nadie va a decirte dónde mirar: "
         "los secretos de la gamificación se encuentran jugando.",
 }
+# ---------------------------------------------------------------- el gancho de cada reto
+# 🔴 UNA LÍNEA por reto, la que se lee SIN abrir la tarjeta. Existe porque el título solo dice el
+# nombre («Reto B "La chispa"») y la explicación entera son seis líneas: entre las dos faltaba lo
+# único que decide si alguien abre el desplegable o pasa de largo — QUÉ hay que hacer.
+#
+# 🔴 Y no se inventa: cada línea es el resumen fiel de su entrada de AYUDA_RETOS (apps-script/
+# Datos.gs). Si la tarea cambia allí, esta línea miente — y mentir aquí es peor que no decir nada,
+# porque esto es lo que se lee y lo otro lo que se abre.
+GANCHO_RETOS = {
+ "A0": "Un vídeo de 60 s presentándote, al padlet de la clase.",
+ "A1": "Enseña un borrador sin pulir en el foro y di qué te daba reparo.",
+ "B1": "Una imagen didáctica con IA, con el prompt y tus criterios documentados.",
+ "X1": "Marca la casilla cuando hayas ENVIADO la Actividad 1.",
+ "A2": "Un clip de 60 s explicando un concepto a quien faltó a clase.",
+ "B2": "Un videotutorial con dos o tres preguntas insertadas dentro.",
+ "A3": "Un mismo objetivo, dos rutas distintas para dos alumnos distintos.",
+ "B3": "La matriz 8×6: inteligencias múltiples por niveles de Bloom.",
+ "X2": "Marca la casilla cuando hayas ENVIADO la Actividad 2.",
+ "A4": "Comparte algo del curso en abierto con #mutecdstargate.",
+ "B4": "Monta tu aula digital y deja funcionando el canal de feedback.",
+ "A5": "Un solo objetivo, evaluado de dos o tres formas distintas.",
+ "B5": "Tu web de materiales y la estructura de tu ePortfolio.",
+ "A6": "Convierte en juego algo que a tus alumnos les cuesta.",
+ "B6": "Un juego digital donde cada mecánica sirva a un objetivo.",
+ "A7": "El porqué de una tarea rutinaria, y una insignia con sentido.",
+ "B7": "Un toque de juego sobre una tarea que no es un juego.",
+ "S7": "Hay un enlace donde no debería. Encuéntralo y trae la palabra.",
+ "A8": "Busca una experiencia AR/VR que ya exista y cuenta cómo la usarías.",
+ "B8": "Crea tu experiencia AR/VR y publica la Bitácora.",
+}
+
 CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55,
             "actividad": 100, "final": 100, "derivada": 60}
 # ---------- calendario del PER (v3.14) ----------
