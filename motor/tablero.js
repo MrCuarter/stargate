@@ -307,6 +307,13 @@
       // —lo sabe el tablero— y {COMANDANTE} lo pone la Nave, que es quien sabe de qué docente es
       // cada recluta. Así el mismo enlace vale en todos los grupos y en todos los años.
       formTicket: String(S.ticket || "").replace("{GRUPO}", encodeURIComponent(P.id || "")),
+      // 🔴 Los escuadrones, para los rankings. Van SIN el correo de quien los comanda: el tablero se
+      // proyecta en clase. `teacherName` ya es público —el alumnado necesita saber quién le imparte—
+      // y es la llave que ata cada recluta (`profe`) con su escuadrón.
+      escuadrones: ((P.factions || [])).map(function (f) {
+        return { id: f.id, nombre: f.name, comandante: f.teacherName,
+                 lema: f.lema || "", origen: f.origen || "", emblema: f.imageUrl || "" };
+      }),
       docentes: docentes.map(function (d) {
         return { nombre: d.nombre, rol: d.rol, imparte: d.imparte || "",
                  referente: d.rol === "referente" };

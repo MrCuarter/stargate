@@ -1140,6 +1140,116 @@ ol.pasos-num li b{color:var(--ink)}
      acabas de tocar, que es justo lo que este bloque venía a arreglar. */
   .avatar-grande{order:-1;position:static;max-width:220px;margin:0 auto}
 }
+/* ═══════════ LA BARRA ÚNICA DE LA NAVE (12-sep) ═══════════
+   Sustituye a las dos filas de antes (pestañas 56 px + parrilla de accesos 89 px = 144 px fijos).
+   Una sola de 56. Los contadores viven aquí para que la celebración de ganar xp se vea estés en la
+   pestaña que estés. */
+.nave-barra-u{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
+  height:56px;padding:0 14px;margin:0 0 18px;
+  background:rgba(10,16,24,.93);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);border-radius:0 0 12px 12px}
+.nb-yo{display:flex;align-items:center;gap:9px;flex:0 0 auto;min-width:0}
+.nb-cara{width:30px;height:30px;border-radius:9px;object-fit:cover;border:1.5px solid var(--amber);flex:0 0 auto}
+.nb-yo b{font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:9ch}
+.nb-nv{font-size:.7rem;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:1px 8px;white-space:nowrap}
+.nb-tabs{display:flex;gap:2px;margin:0 auto;height:100%;align-items:stretch;min-width:0;overflow-x:auto;
+  scrollbar-width:none}
+.nb-tabs::-webkit-scrollbar{display:none}
+.nb-t{position:relative;display:flex;align-items:center;gap:7px;padding:0 13px;background:none;border:0;
+  color:var(--mut);font:inherit;font-size:.86rem;font-weight:500;cursor:pointer;white-space:nowrap;
+  transition:color .16s ease,background .16s ease}
+.nb-t .i{font-size:1.02rem;transition:transform .16s ease,filter .16s ease}
+.nb-t::after{content:"";position:absolute;left:9px;right:9px;bottom:0;height:2px;border-radius:2px 2px 0 0;
+  background:var(--teal);transform:scaleX(0);transition:transform .18s ease}
+.nb-t:hover{color:#fff;background:rgba(55,224,236,.07)}
+.nb-t:hover .i{transform:translateY(-1px) scale(1.12);filter:drop-shadow(0 0 7px rgba(55,224,236,.7))}
+.nb-t:hover::after{transform:scaleX(.55)}
+.nb-t.on{color:#fff}
+.nb-t.on::after{transform:scaleX(1);box-shadow:0 0 10px rgba(55,224,236,.6)}
+.nb-t.on .i{filter:drop-shadow(0 0 8px rgba(55,224,236,.55))}
+.nb-t:focus-visible{outline:2px solid var(--teal);outline-offset:-3px}
+.nb-fin{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+.nb-m{padding:3px 11px;border-radius:999px;font-size:.83rem;border:1px solid var(--line);
+  background:rgba(0,0,0,.25);font-variant-numeric:tabular-nums;white-space:nowrap;
+  transition:box-shadow .25s,border-color .25s}
+.nb-m.xp{color:var(--teal)}
+.nb-m.cr{color:var(--amber)}
+.nb-mas{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:rgba(0,0,0,.25);
+  color:var(--mut);cursor:pointer;font-size:1rem;line-height:1;flex:0 0 auto;
+  transition:color .16s,border-color .16s,background .16s}
+.nb-mas:hover{color:#fff;border-color:var(--teal);background:rgba(55,224,236,.1)}
+.nb-menu{position:absolute;right:12px;top:52px;width:262px;background:#0d1420;border:1px solid #24304a;
+  border-radius:12px;padding:6px;box-shadow:0 18px 44px rgba(0,0,0,.62);z-index:5}
+.nb-menu a{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:8px;
+  text-decoration:none;color:var(--ink,#e8eefc);font-size:.88rem}
+.nb-menu a:hover{background:rgba(55,224,236,.09)}
+.nb-menu a em{display:block;font-style:normal;font-size:.76rem;color:var(--mut);margin-top:1px}
+.nb-menu hr{border:0;border-top:1px solid var(--line);margin:5px 8px}
+.nb-fiesta{padding:4px 11px}
+.nb-fiesta #sg-son.en-menu{position:static;width:auto;height:auto;padding:4px 10px;border-radius:8px;
+  box-shadow:none}
+@media(max-width:760px){
+  .nave-barra-u{gap:8px;padding:0 9px}
+  .nb-yo b,.nb-nv{display:none}
+  .nb-t{padding:0 10px}
+  .nb-t b{display:none}
+  .nb-m{padding:3px 8px;font-size:.78rem}
+}
+@media (prefers-reduced-motion:reduce){.nb-t,.nb-t .i,.nb-t::after,.nb-m{transition:none}}
+
+/* ═══════════ LOS RETOS DE ESTA SEMANA ═══════════ */
+.retos-semana{margin:0 0 18px}
+.rs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:12px}
+.reto-sem{background:#101a28;border:1px solid #24304a;border-radius:13px;overflow:hidden;
+  transition:border-color .16s}
+.reto-sem:hover{border-color:#3a5578}
+.reto-sem.hecho{border-color:#2a4a3a;background:#0c1a14}
+.reto-sem > summary{list-style:none;cursor:pointer;padding:14px 16px;display:block}
+.reto-sem > summary::-webkit-details-marker{display:none}
+.reto-sem > summary:focus-visible{outline:2px solid var(--teal);outline-offset:-3px}
+.rs-cab{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.reto-sem .chip{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;
+  border-radius:999px;border:1px solid}
+.reto-sem .chip.pend{color:var(--amber);border-color:#4a3a1a;background:#1d1608}
+.reto-sem .chip.ok{color:#4fd18b;border-color:#1f4a38;background:#0d1f18}
+.rs-tit{display:block;font-size:1.02rem;line-height:1.35;font-weight:600;margin-bottom:10px}
+.rs-premio{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.rs-premio .p{padding:4px 11px;border-radius:8px;font-size:.88rem;font-weight:600;
+  background:rgba(0,0,0,.3);border:1px solid #24304a;font-variant-numeric:tabular-nums}
+.rs-premio .p.xp{color:var(--teal)}
+.rs-premio .p.cr{color:var(--amber)}
+.rs-premio .p.ins{color:#c79be6;display:inline-flex;align-items:center;gap:6px}
+.rs-premio .p.ins img{width:20px;height:20px;object-fit:contain}
+.rs-abrir{margin-top:11px;font-size:.8rem;color:var(--mut)}
+.reto-sem[open] .rs-abrir{display:none}
+.rs-detalle{padding:0 16px 16px;border-top:1px solid var(--line)}
+.rs-pasos{margin:13px 0 0;padding:0;list-style:none;counter-reset:q}
+.rs-pasos li{counter-increment:q;position:relative;padding:0 0 10px 30px;font-size:.91rem;color:#c7d6ee}
+.rs-pasos li::before{content:counter(q);position:absolute;left:0;top:1px;width:20px;height:20px;
+  border-radius:50%;background:#14243c;border:1px solid #2a4a6a;color:var(--teal);font-size:.72rem;
+  display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.rs-marcar{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.rs-marcar .rs-ev{flex:1 1 180px;padding:9px 11px;border-radius:9px;border:1px solid #24304a;
+  background:#0b1119;color:#e8eefc;font:inherit;font-size:.88rem}
+.rs-ok{margin:12px 0 0;font-size:.88rem;color:#4fd18b}
+.rs-atras{margin:14px 0 0;font-size:.9rem;color:var(--mut);border-top:1px solid var(--line);padding-top:12px}
+
+/* ═══════════ EL RANKING DE ESCUADRONES ═══════════ */
+.esc-grid{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.esc-card{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:13px;
+  background:#0d1420;border:1px solid #24304a}
+.esc-card.lider{border-color:var(--amber);box-shadow:0 0 20px rgba(245,176,67,.18)}
+.esc-pos{font-family:'Unbounded',sans-serif;font-size:1.1rem;color:var(--mut);width:24px;
+  text-align:center;font-variant-numeric:tabular-nums;flex:0 0 auto}
+.esc-card.lider .esc-pos{color:var(--amber)}
+.esc-emb{width:52px;height:52px;object-fit:contain;flex:0 0 auto}
+.esc-txt{min-width:0;flex:1}
+.esc-txt b{display:block;font-size:1rem}
+.esc-txt em{display:block;font-style:italic;color:var(--amber);font-size:.85rem;margin:1px 0 2px}
+.esc-val{margin-left:auto;font-weight:600;color:var(--teal);white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+@media(max-width:560px){.esc-card{flex-wrap:wrap}.esc-val{margin-left:0;width:100%}}
+
 /* ---------- LOS CAJONES DE LA NAVE (12-sep) ----------
    La primera pantalla aterrizaba con la ficha, 24 insignias, 55 cartas y el vestuario a la vez.
    Ahora las colecciones viven en <details> cerrados. Se usan <details> de verdad y no divs con

@@ -60,8 +60,40 @@
     {k:'coleccion', et:'🃏 Colección', col:'col',
      ayuda:'Lo que <b>tienes</b>, no lo que has trabajado: cartas del álbum, héroes de la Rebelión y versiones de tu personaje. Al 100 % lo tienes TODO.',
      val:pctCol, unidad:' %', pct:true, soloConValor:true,
-     vacio:'Nadie ha empezado a coleccionar todavía. Los sobres se abren desde la semana 2.'}
+     vacio:'Nadie ha empezado a coleccionar todavía. Los sobres se abren desde la semana 2.'},
+    /**
+     * 🔴 12-sep · CINCO RANKINGS MÁS, y no son cinco veces el mismo dato. Norberto lo dijo bien:
+     * «quiero dar la oportunidad a todos de brillar en algún momento». Eso no se consigue con más
+     * tablas de xp — se consigue midiendo COSAS DISTINTAS, para que quien no destaca trabajando
+     * destaque siendo constante, o coleccionando, o terminando lo que empieza.
+     */
+    {k:'escuadron', et:'🛡️ Mi escuadrón', col:'xp', soloSiSeQuienSoy:true,
+     ayuda:'Solo tu gente. En una clase de doscientos, ser el 40.º no dice nada; ser el 3.º de los tuyos, sí.',
+     val:function(p){return p.xp;}, unidad:' xp', filtro:function(p){ return mismoEscuadron(p); },
+     vacio:'Todavía no hay nadie más en tu escuadrón.'},
+    {k:'racha', et:'📆 Constancia', col:'racha',
+     ayuda:'Semanas <b>seguidas</b> registrando algo. Premia a quien no falla, que es justo lo que el ranking de xp no ve.',
+     val:function(p){return p.racha||0;}, unidad:function(v){return v===1?' semana':' semanas';}, soloConValor:true,
+     vacio:'Nadie lleva todavía una racha. Con registrar algo dos semanas seguidas ya sales aquí.'},
+    {k:'insignias', et:'🏅 Insignias', col:'n',
+     ayuda:'Cuántas llevas de las 24. No es lo mismo que los xp: se puede tener mucha experiencia con pocas insignias.',
+     val:function(p){return p.n||0;}, unidad:'', soloConValor:true,
+     vacio:'Todavía no se ha entregado ninguna insignia.'},
+    {k:'planetas', et:'🪐 Explorador', col:'pl',
+     ayuda:'Planetas <b>completos</b>: temas con todos sus retos cerrados. Premia terminar lo que se empieza en vez de picotear.',
+     val:function(p){return (p.planetas_completos||0);}, unidad:function(v){return v===1?' planeta':' planetas';}, soloConValor:true,
+     vacio:'Nadie ha cerrado un planeta entero todavía. El primero que lo haga sale aquí solo.'},
+    {k:'escuadrones', et:'⚔️ Escuadrones', col:'xp', porEquipos:true,
+     ayuda:'Los escuadrones entre sí, por <b>media de xp por recluta</b>. 🔴 Por media y no por total: sumando ganaría siempre el más numeroso, y eso no mediría nada.',
+     val:function(p){return p.xp;}, unidad:' xp de media',
+     vacio:'Todavía no hay escuadrones con gente dentro.'}
   ];
+  /** Quién soy, si la página lo sabe (la Nave lo dice; el tablero proyectado, no). */
+  function yoSoy(){ return (window.SG_YO_ALIAS||'').trim(); }
+  function mismoEscuadron(p){
+    var d=window.SG_TABLERO_DATA||{}, mio=(d.reclutas||[]).filter(function(x){return x.alias===yoSoy();})[0];
+    return !!mio && String(p.profe||'')===String(mio.profe||'');
+  }
   // ---------- v3.29 · LA FICHA DEL RECLUTA ----------
   // Se abre al pulsar su fila en el ranking. Este tablero se INCRUSTA en un Genially que ve toda la
   // clase, así que enseña lo justo: el personaje que lleva puesto, su bio, nivel, xp, insignias y
@@ -122,20 +154,91 @@
       +(d.formTicket?'<a class="btn" href="'+esc(d.formTicket)+'" target="_blank" rel="noopener">🎟️ Ticket de salida</a>':'')
       +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🛸 Mercado Estelar</a>':'')+'</div>';
 
+    /**
+     * EL RANKING DE EQUIPOS. Cada escuadrón se convierte en una fila con la MEDIA de sus reclutas.
+     *
+     * 🔴 Media y no suma. Con la suma gana siempre el escuadrón más numeroso, y entonces la tabla no
+     * mide cómo va cada equipo: mide cuánta gente tiene. Sería un ranking que no se puede remontar.
+     */
+    function porEquipos(m){
+      var esc=d.escuadrones||[], porComandante={};
+      esc.forEach(function(e){ porComandante[e.comandante]=e; });
+      var grupos={};
+      todos.forEach(function(p){
+        var k=String(p.profe||'').trim(); if(!k) return;
+        (grupos[k]=grupos[k]||[]).push(p);
+      });
+      return Object.keys(grupos).map(function(k){
+        var g=grupos[k], e=porComandante[k]||{};
+        var suma=g.reduce(function(a,p){return a+m.val(p);},0);
+        return { alias: e.nombre||k, avatar:null, _equipo:true, _n:g.length,
+                 _emblema: e.emblema||'', _lema: e.lema||'', _comandante:k,
+                 xp: Math.round(suma/g.length), n:0, insignias:[],
+                 _val: Math.round(suma/g.length) };
+      });
+    }
     function clasificar(m){
-      var r=todos.slice();
-      if(m.soloConValor) r=r.filter(function(p){return m.val(p)>0;});
+      var r;
+      if(m.porEquipos){ r=porEquipos(m); }
+      else {
+        r=todos.slice();
+        if(m.filtro) r=r.filter(m.filtro);
+        if(m.soloConValor) r=r.filter(function(p){return m.val(p)>0;});
+      }
+      var valor=m.porEquipos?function(p){return p._val;}:m.val;
       // desempate SIEMPRE igual y estable: la métrica, luego xp, luego insignias, luego el alias
-      r.sort(function(a,b){return m.val(b)-m.val(a) || b.xp-a.xp || b.n-a.n || a.alias.localeCompare(b.alias);});
+      r.sort(function(a,b){return valor(b)-valor(a) || b.xp-a.xp || b.n-a.n || a.alias.localeCompare(b.alias);});
       var pos=0,ant=null;
-      r.forEach(function(p,i){var v=m.val(p); if(ant===null||v!==ant){pos=i+1;ant=v;} p._pos=pos;});  // empatados, mismo puesto
+      r.forEach(function(p,i){var v=valor(p); if(ant===null||v!==ant){pos=i+1;ant=v;} p._pos=pos;});  // empatados, mismo puesto
       return r;
     }
-    function cifra(p,m){return (m.pct?pct2(m.val(p)):m.val(p))+m.unidad;}
+    function unidadDe(m,v){ return typeof m.unidad==='function'?m.unidad(v):(m.unidad||''); }
+    function cifra(p,m){
+      var v=m.porEquipos?p._val:m.val(p);
+      return (m.pct?pct2(v):v)+unidadDe(m,v);
+    }
+
+    /**
+     * EL RANKING DE ESCUADRONES SE PINTA APARTE, y no por pereza: una fila de equipo no tiene
+     * planeta, ni insignias, ni avatar, ni nivel. Meterla en la tabla de personas obligaría a poner
+     * guiones en media docena de columnas — que es la forma más rápida de que una tabla deje de
+     * leerse. Lo que sí tiene un escuadrón: su emblema, su lema, cuánta gente y su media.
+     */
+    function pintaEquipos(){
+      var r=clasificar(modo);
+      var visibles=MODOS.filter(function(m){ return !m.soloSiSeQuienSoy || yoSoy(); });
+      var pestanas='<div class="rank-tabs" role="tablist">'+visibles.map(function(m){
+          return '<button type="button" class="rank-tab'+(m.k===modo.k?' on':'')+'" data-modo="'+m.k+'" role="tab" aria-selected="'+(m.k===modo.k)+'">'+m.et+'</button>';}).join('')
+        +'</div><p class="small muted rank-ayuda">'+modo.ayuda+'</p>';
+      var cuerpo = r.length
+        ? '<div class="esc-grid">'+r.map(function(e,i){
+            return '<div class="esc-card'+(i===0?' lider':'')+'">'
+              +'<div class="esc-pos">'+e._pos+'</div>'
+              +(e._emblema?'<img class="esc-emb" loading="lazy" src="'+esc(e._emblema)+'" alt="">':'')
+              +'<div class="esc-txt"><b>'+esc(e.alias)+'</b>'
+              +(e._lema?'<em>«'+esc(e._lema)+'»</em>':'')
+              +'<span class="small muted">'+esc(e._comandante)+' · '+e._n+' recluta'+(e._n===1?'':'s')+'</span></div>'
+              +'<div class="esc-val">'+cifra(e,modo)+'</div></div>';
+          }).join('')+'</div>'
+        : '<div class="wip"><span class="ic">🛰️</span><div>'+modo.vacio+'</div></div>';
+      root.innerHTML=(solo?'':'<div class="tab-head"><div><div class="eyebrow amber">'+esc(d.nombre)+' · '+esc(d.tipo)+' · '+esc(d.estado)+'</div><h3>Ranking de escuadrones</h3></div>'
+        +'<div class="small muted">'+r.length+' escuadrones · '+todos.length+' reclutas</div></div>')
+        +pestanas+cuerpo;
+      cablearPestanas();
+    }
+    function cablearPestanas(){
+      Array.prototype.forEach.call(root.querySelectorAll('[data-modo]'),function(b){
+        b.onclick=function(){ modo=modoDe(b.getAttribute('data-modo'));
+          try{ var u=new URL(location.href); u.searchParams.set('ranking',modo.k); history.replaceState(null,'',u); }catch(e){}
+          pintaTodo(); };
+      });
+    }
+    function pintaTodo(){ if(modo.porEquipos) pintaEquipos(); else pinta(); }
 
     function pinta(){
       var r=clasificar(modo), top=r.slice(0,3);
-      var pestanas='<div class="rank-tabs" role="tablist">'+MODOS.map(function(m){
+      var visibles=MODOS.filter(function(m){ return !m.soloSiSeQuienSoy || yoSoy(); });
+      var pestanas='<div class="rank-tabs" role="tablist">'+visibles.map(function(m){
           return '<button type="button" class="rank-tab'+(m.k===modo.k?' on':'')+'" data-modo="'+m.k+'" role="tab" aria-selected="'+(m.k===modo.k)+'">'+m.et+'</button>';}).join('')
         +'</div><p class="small muted rank-ayuda">'+modo.ayuda+'</p>';
       var podio=top.length?'<div class="podium">'+[1,0,2].map(function(i){var p=top[i];if(!p)return '';
@@ -189,9 +292,12 @@
           modo=modoDe(b.getAttribute('data-modo'));
           // el modo va en la URL: así se puede enlazar «el ranking de la semana» y sobrevive a un F5
           try{var u=new URL(location.href); u.searchParams.set('ranking',modo.k); history.replaceState(null,'',u);}catch(e){}
-          pinta();
+          pintaTodo();
         };});
     }
-    pinta();
+    // 🔴 El ranking se pinta al cargar, y en ese momento la Nave todavía no ha dicho quién eres —
+    // por eso «Mi escuadrón» no aparecía. Se deja un tirador para que lo repinte cuando lo sepa.
+    window.SG_RANKING_REPINTA = pintaTodo;
+    pintaTodo();
   });
 })();

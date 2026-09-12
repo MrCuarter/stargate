@@ -250,34 +250,21 @@
       + '<p class="small"><a href="' + esc(u) + '" target="_blank" rel="noopener">Abrirlo a pantalla completa →</a></p></div>';
   }
 
-  function personaje(){
-    if(st.cargandoYo) return '<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>';
-    // 30-ago · el login ya NO vive aquí: es lo primero de la página (ver login() y el orden de
-    // render). La ficha sin identificar solo apunta hacia arriba.
-    // 9-sep · INALCANZABLE desde que la Nave nace cerrada: sin identificar, render() no llama a
-    // contenido(). Se queda como red de seguridad, pero SIN el texto viejo, que decia «las demas
-    // pestañas funcionan sin identificarse» — y desde hoy no funciona ninguna. Un cartel que miente
-    // es peor que no tener cartel.
-    if(!st.yo) return '';
-    var r=st.yo, d=st.d, SG=window.SG||{};
-    var av=SG.avatarImg?SG.avatarImg(r.avatar,r.alias,'grande'+(r.marco==='oro'?' marco-oro':''),r.xp,d.tipo):'';
-    // NIVEL (xp, solo suben) y CRÉDITOS (lo único que se gasta)
-    var ni=SG.nivelInfo?SG.nivelInfo(r.xp,d.tipo):{nivel:1,rango:1,rangoNombre:'Recluta',titulo:'',pct:0,faltan:0,siguiente:null,evo:null};
-    var rg=ni.rango;
-    var cred=(r.creditos!=null?r.creditos:(r.xp_disponibles!=null?r.xp_disponibles:0));
-    var barra=ni.siguiente
-      ?'<div class="progress" title="'+r.xp+' / '+ni.siguiente+' xp"><i style="width:'+ni.pct+'%"></i></div>'
-        +'<p class="small muted">Te faltan <b>'+ni.faltan+'</b> xp para el <b>nivel '+(ni.nivel+1)+'</b>'
-        +(ni.evo?' · tu personaje evoluciona a <b>'+esc(ni.evo.rango)+'</b> al llegar al nivel '+ni.evo.nivel:'')+'</p>'
-      :'<p class="small muted">Nivel máximo: <b>'+esc(ni.titulo)+'</b>. Has hecho el viaje entero. 🫡</p>';
-    // 30-ago · cada insignia se abre en grande con su ficha (planeta y qué hay que hacer para
-    // ganarla) — el modal ya existía en la web; aquí solo se cablea. Las pendientes también: ver
-    // qué pide una insignia que no tienes es la mejor gasolina.
+
+  /**
+   * MI BOTÍN · todo lo ganado, en un solo sitio.
+   *
+   * 🔴 Antes esto vivía repartido: las insignias y el álbum dentro de «Mi ficha», el vestuario más
+   * abajo en la misma pantalla. Son la misma pregunta —«¿qué llevo ganado?»— contestada en tres
+   * sitios, y por eso el aterrizaje era una pared. Aquí están las tres cosas y ninguna más.
+   *
+   * Nace con la primera sección abierta y las otras dos cerradas: al entrar quieres ver tus
+   * insignias, no cargar 55 cartas de golpe.
+   */
+  function botin(){
+    var r=st.yo, d=st.d; if(!r) return '';
     var col=badgesCronologicos().map(function(kk){var tiene=(r.insignias||[]).indexOf(kk)>=0;
       return '<div class="b'+(tiene?'':' no')+'" data-key="'+kk+'" role="button" tabindex="0" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+' — pulsa para ver cómo se gana"><img loading="lazy" src="assets/img/insignias/'+kk+'.png" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';}).join('');
-    // fondo de ficha: su planeta elegido
-    var PLK={}; PLAN.forEach(function(p){PLK[p[1]]=p[0];});
-    var estiloFicha=r.fondo&&PLK[r.fondo]?' style="background-image:linear-gradient(rgba(10,16,26,.82),rgba(10,16,26,.9)),url(assets/img/planetas/'+PLK[r.fondo]+'.png);background-size:cover;background-position:center"':'';
     // álbum de cromos (catálogo inyectado por _build_site.py desde _site_data.CROMOS)
     var tengo=r.cromos||{}; var nCromos=CROMOS.filter(function(c){return tengo[c[0]];}).length;
     var repes=0; CROMOS.forEach(function(c){var n=tengo[c[0]]||0; if(n>1) repes+=n-1;});
@@ -310,24 +297,144 @@
                    :(libres?' ('+libres+' sin cambiar): con 3 te llevas un sobre gratis.':' — ya los has cambiado todos por sobres.'))
         +(libres>=3&&d.formCanje?' <a class="btn small" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Cambiar 3 repetidos →</a>':'')+'</p>':'')
       +series+'</details>'):'';
+    var nIns=(r.insignias||[]).length;
+    return '<section><div class="eyebrow">Lo que llevas ganado</div><h2>Mi botín</h2>'
+      +'<p class="lead">Tus insignias, tus cartas y tus personajes. Lo que has conseguido tú, no lo '
+      +'que se puede comprar — eso está en el <button class="btn small" type="button" data-tab="mercado">Mercado Estelar</button>.</p>'
+      +'<details class="cajon" open><summary><b>🏅 Insignias</b> <span class="cnt">'+nIns+' / '+BADGES.length+'</span></summary>'
+      +'<p class="small muted">En el orden en que se ganan, de la primera semana a la última. '
+      +'Las apagadas están por conseguir: púlsalas para ver qué piden.</p>'
+      +'<div class="badge-col">'+col+'</div></details>'
+      +album
+      +'<details class="cajon"><summary><b>🎭 Personajes y héroes</b> <span class="cnt">tu vestuario</span></summary>'
+      +vestuario()+'</details>'
+      +'</section>';
+  }
+
+  /**
+   * LOS RETOS DE ESTA SEMANA, EN GRANDE.
+   *
+   * 🔴 Petición de Norberto y la pieza que faltaba: «lo que se puede conseguir, en grande, clicable
+   * con ficha explicativa y paso a paso». Hasta ahora la Nave te decía qué semana era y te dejaba
+   * buscar el reto entre veinte, en otra pestaña. Aquí están los dos o tres que tocan HOY, con lo
+   * que dan a la vista y el botón de marcarlos dentro.
+   *
+   * El paso a paso sale de la explicación del catálogo partida por frases. No se escribe aparte:
+   * duplicar el texto de un reto es garantizar que un día digan cosas distintas.
+   *
+   * Y debajo, una línea con lo que lleva sin registrar de semanas anteriores. Es el dato que más
+   * mueve y hasta hoy no estaba en ninguna parte.
+   */
+  function creditosDeReto(id){
+    var P=window.SG&&window.SG.PAQUETE, cat=window.SG_CATALOGO;
+    var tipo=(st.d&&st.d.tipo)||'REGULAR';
+    if(P&&P.creditosDe&&cat&&cat.creditos){ try{ return P.creditosDe({id:id},tipo,cat); }catch(e){} }
+    // El motor viejo no carga el catálogo: se cae a los valores de siempre.
+    var l=String(id).charAt(0);
+    if(id==='A0') return 20;
+    if(l==='X') return 100;
+    if(l==='B') return tipo==='PUA'?55:50;
+    return 20;
+  }
+  // La explicación de un reto, partida en pasos. Las frases cortas se pegan a la anterior: «Piénsalo
+  // para aula invertida.» no es un paso, es una coletilla de la frase de antes.
+  function pasosDeReto(txt){
+    var fr=String(txt||'').split(/(?<=\.)\s+/).map(function(x){return x.trim();}).filter(Boolean);
+    var out=[];
+    fr.forEach(function(f){
+      if(out.length && f.length<42) out[out.length-1]+=' '+f; else out.push(f);
+    });
+    return out;
+  }
+  function retosDeLaSemana(){
+    var r=st.yo, d=st.d; if(!r||st.estado==='antes') return '';
+    var RET=(window.SG_RETOS||{})[(d&&d.tipo)||'REGULAR']||[];
+    var AY=window.SG_AYUDA_RETOS||{};
+    var lista=st.semanas||[]; if(!lista.length||!RET.length) return '';
+    var sm=lista[Math.min(Math.max(st.actual,1),lista.length)-1]; if(!sm) return '';
+    var mios={}; ((r.retos)||[]).forEach(function(k){mios[k]=true;});
+
+    // Qué retos entran esta semana: los del tema de la semana que NO entraron en una semana anterior.
+    // Se deduce del calendario, que es quien sabe cuándo abre cada tema.
+    var antes={};
+    lista.forEach(function(x){ if(x.sem<sm.sem) RET.forEach(function(t){ if(t[4]===x.tema_n) antes[t[0]]=true; }); });
+    var suyos=RET.filter(function(t){ return t[4]===sm.tema_n && !antes[t[0]]; });
+    if(!suyos.length) suyos=RET.filter(function(t){ return t[4]===sm.tema_n; });
+    if(!suyos.length) return '';
+
+    var tarjetas=suyos.map(function(t){
+      var ya=!!mios[t[0]], pasos=pasosDeReto(AY[t[0]]);
+      var ins=(t[2]||[]).map(function(k){
+        return '<span class="p ins"><img loading="lazy" src="assets/img/insignias/'+k+'.png" alt="">'
+          +esc((NOMBRES[k]||k))+'</span>'; }).join('');
+      var cuando=ya&&r.retos_fecha&&r.retos_fecha[t[0]]?' · '+fecha(r.retos_fecha[t[0]]):'';
+      return '<details class="reto-sem'+(ya?' hecho':'')+'">'
+        +'<summary><div class="rs-cab"><span class="chip '+(ya?'ok':'pend')+'">'
+          +(ya?'✓ Registrado'+cuando:'Pendiente')+'</span>'
+          +'<span class="small muted">'+esc(t[0])+'</span></div>'
+        +'<b class="rs-tit">'+esc(t[1])+'</b>'
+        +'<div class="rs-premio"><span class="p xp">+'+t[3]+' xp</span>'
+          +'<span class="p cr">+'+creditosDeReto(t[0])+' ◈</span>'+ins+'</div>'
+        +'<div class="rs-abrir">▾ '+(ya?'Ver lo que pedía':'Qué hay que hacer')+'</div></summary>'
+        +'<div class="rs-detalle">'
+        +(pasos.length?'<ol class="rs-pasos">'+pasos.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>'
+                      :'<p class="small muted">Sin explicación todavía: pregunta a tu docente.</p>')
+        +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado. Lo que diste por hecho, hecho está.</p>'
+            :(motorNuevo()
+              ? '<div class="rs-marcar"><input class="rs-ev" data-ev="'+esc(t[0])+'" placeholder="Enlace de tu evidencia (opcional)" autocomplete="off">'
+                +'<button class="btn primary" type="button" data-hecho="'+esc(t[0])+'">✅ Lo he hecho</button></div>'
+              : (d.formBitacora?'<p style="margin-top:12px"><a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">Marcarlo en la Bitácora →</a></p>':'')))
+        +'</div></details>';
+    }).join('');
+
+    // Los atrasados: lo abierto que todavía no ha registrado, sin contar los de esta semana.
+    var deEstaSemana={}; suyos.forEach(function(t){ deEstaSemana[t[0]]=true; });
+    var atrasados=RET.filter(function(t){
+      if(mios[t[0]]||deEstaSemana[t[0]]) return false;
+      var s1=lista.filter(function(x){return x.tema_n===t[4];})[0];
+      return s1 && s1.sem<=st.actual;
+    }).length;
+
+    return '<div class="card retos-semana"><div class="eyebrow amber">Lo que puedes conseguir esta semana</div>'
+      +'<h3>Semana '+sm.sem+' · '+esc(sm.tema)+'</h3>'
+      +'<p class="small muted">'+(suyos.length===1?'Un reto':suyos.length+' retos')+'. Pulsa uno para ver '
+      +'qué hay que hacer, y márcalo aquí mismo cuando lo tengas.</p>'
+      +'<div class="rs-grid">'+tarjetas+'</div>'
+      +(atrasados?'<p class="rs-atras">🕗 Y llevas <b>'+atrasados+'</b> reto'+(atrasados===1?'':'s')
+        +' sin registrar de semanas anteriores. '
+        +'<button class="btn small" type="button" data-tab="retos">Verlos en Mis retos →</button></p>':'')
+      +'</div>';
+  }
+
+  function personaje(){
+    if(st.cargandoYo) return '<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>';
+    // 30-ago · el login ya NO vive aquí: es lo primero de la página (ver login() y el orden de
+    // render). La ficha sin identificar solo apunta hacia arriba.
+    // 9-sep · INALCANZABLE desde que la Nave nace cerrada: sin identificar, render() no llama a
+    // contenido(). Se queda como red de seguridad, pero SIN el texto viejo, que decia «las demas
+    // pestañas funcionan sin identificarse» — y desde hoy no funciona ninguna. Un cartel que miente
+    // es peor que no tener cartel.
+    if(!st.yo) return '';
+    var r=st.yo, d=st.d, SG=window.SG||{};
+    var av=SG.avatarImg?SG.avatarImg(r.avatar,r.alias,'grande'+(r.marco==='oro'?' marco-oro':''),r.xp,d.tipo):'';
+    // NIVEL (xp, solo suben) y CRÉDITOS (lo único que se gasta)
+    var ni=SG.nivelInfo?SG.nivelInfo(r.xp,d.tipo):{nivel:1,rango:1,rangoNombre:'Recluta',titulo:'',pct:0,faltan:0,siguiente:null,evo:null};
+    var rg=ni.rango;
+    var cred=(r.creditos!=null?r.creditos:(r.xp_disponibles!=null?r.xp_disponibles:0));
+    var barra=ni.siguiente
+      ?'<div class="progress" title="'+r.xp+' / '+ni.siguiente+' xp"><i style="width:'+ni.pct+'%"></i></div>'
+        +'<p class="small muted">Te faltan <b>'+ni.faltan+'</b> xp para el <b>nivel '+(ni.nivel+1)+'</b>'
+        +(ni.evo?' · tu personaje evoluciona a <b>'+esc(ni.evo.rango)+'</b> al llegar al nivel '+ni.evo.nivel:'')+'</p>'
+      :'<p class="small muted">Nivel máximo: <b>'+esc(ni.titulo)+'</b>. Has hecho el viaje entero. 🫡</p>';
+    // 30-ago · cada insignia se abre en grande con su ficha (planeta y qué hay que hacer para
+    // ganarla) — el modal ya existía en la web; aquí solo se cablea. Las pendientes también: ver
+    // qué pide una insignia que no tienes es la mejor gasolina.
+    // fondo de ficha: su planeta elegido
+    var PLK={}; PLAN.forEach(function(p){PLK[p[1]]=p[0];});
+    var estiloFicha=r.fondo&&PLK[r.fondo]?' style="background-image:linear-gradient(rgba(10,16,26,.82),rgba(10,16,26,.9)),url(assets/img/planetas/'+PLK[r.fondo]+'.png);background-size:cover;background-position:center"':'';
     // 29-ago · el personaje se abre en grande al pulsarlo. Es la imagen que el recluta ha elegido y
     // la que evoluciona con su nivel: verla del tamaño de un pulgar era desaprovecharla. Reusa la
     // misma lupa que las cartas, así que ya trae fondo, Escape, foco y botón de cerrar.
-    // 🔴 12-sep · LA PRIMERA PANTALLA, REORDENADA. Antes aterrizabas sobre tu ficha, las 24
-    // insignias, el álbum entero de 55 cartas y el vestuario, todo desplegado y a la vez. Era una
-    // pared. Norberto: «la primera pantalla debe mostrar la info justa».
-    //
-    // Lo que se ve de entrada es lo que sirve HOY: quién eres y qué toca esta semana. Lo que es una
-    // colección —insignias, cromos, vestuario— se guarda en cajones cerrados. No se ha quitado
-    // nada: se ha dejado de gritar todo a la vez.
-    //
-    // Y los cajones son <details> de verdad, no divs con JavaScript: se abren sin que cargue nada,
-    // el navegador recuerda el foco, funcionan con teclado y Cmd+F encuentra lo de dentro.
-    var fichaCol = '<details class="cajon"><summary><b>🏅 Tu colección</b> <span class="cnt">'
-      +(r.insignias||[]).length+' / '+BADGES.length+'</span></summary>'
-      +'<p class="small muted">En el orden en que se ganan, de la primera semana a la última. '
-      +'Las apagadas están por conseguir: púlsalas para ver qué piden.</p>'
-      +'<div class="badge-col">'+col+'</div></details>';
 
     return '<div class="grid cols-2 nave-estado"><div class="card"'+estiloFicha+'><div class="nave-perfil">'
       +'<button type="button" class="av-lupa" id="btn-av" title="Pulsa para verte en grande" aria-label="Ampliar tu personaje">'+av+'</button>'
@@ -337,16 +444,20 @@
       +'<p class="monedas"><span class="m xp" title="Los xp no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje."><b>'+r.xp+'</b> xp</span>'
       +'<span class="m cred" title="Los créditos son la moneda de misión: es lo único que se descuenta al canjear recompensas."><b>'+cred+'</b> ◈ créditos</span></p>'
       +'<p class="small muted">Los <b>xp</b> solo suben: son tu nivel. Los <b>créditos ◈</b> son lo que gastas.</p></div></div>'+barra
-      +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'<p class="small muted">Sin biografía todavía: añádela editando tu <a href="'+esc(d.formBitacora||'#')+'" target="_blank" rel="noopener">Bitácora de mando</a>.</p>')
-      +'<p class="small" style="margin-top:10px"><button class="btn small" id="btn-olvidar" type="button">No soy yo / salir</button></p></div>'
+      +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'<p class="small muted">Sin biografía todavía.</p>')
+      +'</div>'
       // Al lado de tu ficha, lo que toca ESTA semana. Es lo único que caduca de toda la pantalla, y
       // por eso es lo que merece el sitio bueno — la colección no cambia porque abras la Nave.
       +ordenDeLaSemana()+'</div>'
+      // 🔴 EL ORDEN DE ESTA PANTALLA, y no es casual:
+      //   1 · quién eres y qué toca        (lo que caduca)
+      //   2 · los retos de la semana       (lo que se puede hacer HOY)
+      //   3 · los planetas, embebido       (a dónde ir a por el material)
+      //   4 · el duelo                     (una frase que empuja)
+      // Lo que es colección se ha ido entero a «Mi botín».
+      +retosDeLaSemana()
       +panelEmbebido()
-      // El duelo es UNA frase y empuja: va con lo visible, antes de los cajones.
-      +duelo()
-      +fichaCol
-      +album;
+      +duelo();
   }
   // v3.16 · EL VESTUARIO. Las cinco versiones de arte del personaje ya no se imponen al subir de
   // nivel: se desbloquean y se ELIGEN. Y encima están los héroes, que salen al azar y se acumulan.
@@ -489,37 +600,95 @@
   // descartó: la Nave es la ÚNICA dirección que se le da al alumnado, y multiplicarla es multiplicar
   // los sitios donde perderse (y los enlaces que se pueden colar). Pestañas: una sola URL, los datos
   // se piden UNA vez y cambiar de pestaña es instantáneo. El #hash las hace enlazables y compartibles.
-  var TABS=[['ficha','🧑‍🚀','Mi ficha'],['retos','🎯','Mis retos'],['semana','🛰️','Esta semana'],
-            ['planetas','🪐','Los planetas'],['premios','🎁','Recompensas'],['tablero','🏆','El tablero']];
-  function tabValida(k){ return TABS.some(function(x){return x[0]===k;}) ? k : 'ficha'; }
+  /**
+   * 🔴 12-sep · DE SEIS PESTAÑAS A CINCO. Las seis mezclaban tres cosas: lo que HACES (retos, semana,
+   * planetas — tres sitios para lo mismo), lo que TIENES (insignias y álbum dentro de la ficha, el
+   * vestuario más abajo) y lo que COMPRAS, que encima se llamaba «Recompensas» y sonaba a lo ganado.
+   *
+   * Ahora cada cosa tiene un sitio y solo uno:
+   *   · «Esta semana» sube al aterrizaje, que es donde se mira nada más entrar.
+   *   · «Los planetas» se funde con «Mis retos», que ya van agrupados por planeta.
+   *   · «Mi botín» recoge todo lo ganado: insignias, cartas y personajes.
+   *   · «Recompensas» pasa a «Mercado Estelar», que es como ya se llamaba el formulario de canje:
+   *     no estrena palabra, y al lado del botín por fin se entiende cuál es cuál.
+   *
+   * La clave interna: los identificadores VIEJOS siguen funcionando (`tabValida` los traduce), así
+   * que los enlaces con #premios o #ficha que alguien tenga guardados no se rompen.
+   */
+  var TABS=[['nave','🛰️','Mi nave'],['retos','🎯','Mis retos'],['botin','🏅','Mi botín'],
+            ['mercado','🛒','Mercado Estelar'],['rankings','🏆','Rankings']];
+  var TABS_VIEJAS={ficha:'nave',semana:'nave',planetas:'retos',premios:'mercado',tablero:'rankings'};
+  function tabValida(k){
+    if(TABS_VIEJAS[k]) k=TABS_VIEJAS[k];
+    return TABS.some(function(x){return x[0]===k;}) ? k : 'nave';
+  }
   st.tab=tabValida(st.tab);
   // el botón «atrás» del navegador también cambia de pestaña: es lo que espera cualquiera
   window.addEventListener('hashchange',function(){ irA((location.hash||'').replace('#',''), false); });
+  /**
+   * LA BARRA. Una sola fila pegada arriba, en vez de dos.
+   *
+   * 🔴 12-sep · Antes había DOS filas fijas: las pestañas (56 px) y una parrilla de accesos (89 px).
+   * 144 px de pantalla permanente. Esa parrilla era el puente a los formularios de Google, y con el
+   * motor nuevo los retos se marcan en la página y el canje está en el Mercado: de cinco botones
+   * quedaban tres, y dos se usan una vez por semana. Ahora: identidad · pestañas · contadores · «···».
+   *
+   * Los contadores van AQUÍ y no es solo por compactar. Antes tus xp solo se veían en la ficha, así
+   * que si marcabas un reto desde otra pestaña la celebración se la llevaba una cifra que no estabas
+   * mirando. En la barra el número sube donde siempre lo tienes delante.
+   */
   function pestanas(){
-    return '<nav class="nave-tabs" role="tablist">'+TABS.map(function(x){
-      return '<button type="button" class="nave-tab'+(st.tab===x[0]?' on':'')+'" role="tab"'
-        +' aria-selected="'+(st.tab===x[0])+'" data-tab="'+x[0]+'">'
-        +'<span class="ic" aria-hidden="true">'+x[1]+'</span><b>'+x[2]+'</b></button>';
-    }).join('')+'</nav>';
+    var r=st.yo||{}, SG=window.SG||{};
+    var ni=SG.nivelInfo?SG.nivelInfo(r.xp||0,(st.d&&st.d.tipo)||'REGULAR'):{nivel:1};
+    var cred=(r.creditos!=null?r.creditos:(r.xp_disponibles||0));
+    var mini=SG.avatarSrc?SG.avatarSrc(r.avatar,r.alias,r.xp||0,(st.d&&st.d.tipo)||'REGULAR'):'';
+    return '<nav class="nave-barra-u" role="navigation" aria-label="Tu nave">'
+      +'<div class="nb-yo">'+(mini?'<img class="nb-cara" src="'+esc(mini)+'" alt="">':'')
+        +'<b>'+esc(r.alias||'')+'</b><span class="nb-nv">Nv '+(ni.nivel||1)+'</span></div>'
+      +'<div class="nb-tabs" role="tablist">'+TABS.map(function(x){
+        return '<button type="button" class="nb-t'+(st.tab===x[0]?' on':'')+'" role="tab"'
+          +' aria-selected="'+(st.tab===x[0])+'" data-tab="'+x[0]+'" title="'+esc(x[2])+'">'
+          +'<span class="i" aria-hidden="true">'+x[1]+'</span><b>'+esc(x[2])+'</b></button>';
+      }).join('')+'</div>'
+      +'<div class="nb-fin">'
+        +'<span class="nb-m xp" id="nb-xp" title="Los xp no se gastan nunca: marcan tu nivel."><b>'+(r.xp||0)+'</b> xp</span>'
+        +'<span class="nb-m cr" id="nb-cr" title="Los créditos son lo único que se gasta."><b>'+cred+'</b> ◈</span>'
+        +'<button type="button" class="nb-mas" id="nb-mas" aria-haspopup="true" aria-expanded="false" aria-label="Más opciones">···</button>'
+      +'</div>'
+      +menuMas()
+      +'</nav>';
+  }
+  /** Lo que se usa una vez por semana no merece un botón permanente: vive aquí dentro. */
+  function menuMas(){
+    var d=st.d||{};
+    return '<div class="nb-menu" id="nb-menu" hidden role="menu">'
+      +(d.formTicket?'<a role="menuitem" href="'+esc(ticketUrl(d))+'" data-vent="🎟️ Contacta con NEBULA">🎟️ <span>Dudas a NEBULA<em>anónimo, no lo ve tu clase</em></span></a>':'')
+      +(d.padlet?'<a role="menuitem" href="'+esc(d.padlet)+'" data-vent="🧱 Padlet de la clase">🧱 <span>Padlet de la clase<em>el muro común</em></span></a>':'')
+      +'<a role="menuitem" href="ayuda.html" target="_blank" rel="noopener">❓ <span>¿Mi enlace abre lo mío?<em>compruébalo antes de entregar</em></span></a>'
+      +(d.formBitacora?'<a role="menuitem" href="'+esc(d.formBitacora)+'" data-vent="📓 Bitácora de mando">📓 <span>Bitácora de mando<em>marca lo completado</em></span></a>':'')
+      +(d.formCanje?'<a role="menuitem" href="'+esc(d.formCanje)+'" data-vent="🛸 Mercado Estelar">🛸 <span>Mercado Estelar<em>gasta tus créditos</em></span></a>':'')
+      +'<hr><div class="nb-fiesta" id="nb-fiesta"></div>'
+      +'<a role="menuitem" href="#" id="nb-salir">🚪 <span>No soy yo / salir</span></a>'
+      +'</div>';
   }
   function contenido(){
     // 🔴 El orden importa: primero quién eres y qué toca hoy, luego el pique con quien tienes
     // cerca (una frase), y lo demás en cajones cerrados. El vestuario es una colección, como el
     // álbum: se mira cuando se quiere mirar, no cada vez que abres la Nave.
-    if(st.tab==='ficha')    return personaje()
-      +'<details class="cajon"><summary><b>🎭 Tu vestuario</b> <span class="cnt">personajes y héroes</span></summary>'
-      +vestuario()+'</details>';
-    if(st.tab==='retos')    return retos();
-    if(st.tab==='semana')   return estaSemana();
-    if(st.tab==='planetas') return mapa();
-    if(st.tab==='premios')  return recompensas();
-    return '';                                  // «tablero»: vive en su propia sección del HTML
+    if(st.tab==='nave')     return personaje();
+    if(st.tab==='retos')    return mapa()+retos();
+    if(st.tab==='botin')    return botin();
+    if(st.tab==='mercado')  return recompensas();
+    return '';                                  // «rankings»: vive en su propia sección del HTML
   }
   // El tablero es una <section> aparte del HTML (la pinta tablero.js), así que se enseña y se esconde
   // en vez de repintarse: repintarlo obligaría a pedir los datos otra vez cada vez que se cambia de pestaña.
   function verTablero(si){
     var sec=document.getElementById('nave-ranking');
     if(sec) sec.style.display = si ? '' : 'none';
+    // Al enseñarlo, que se repinte: puede haberse pintado antes de saber quién eres, y entonces le
+    // faltaba el ranking de tu escuadrón.
+    if(si && window.SG_RANKING_REPINTA){ try{ window.SG_RANKING_REPINTA(); }catch(e){} }
   }
   function irA(k, empujarHash){
     st.tab=tabValida(k);
@@ -528,27 +697,8 @@
     var barra=root.querySelector('.nave-tabs');
     if(barra) barra.scrollIntoView({block:'start', behavior:'smooth'});
   }
-  function accesos(){
-    var d=st.d;
-    // v3.37 · los formularios y el Genially se abren EMBEBIDOS en una ventana encima de la Nave
-    // (data-vent), no en otra pestaña. Y el tablero es una pestaña de la propia página: registro.html
-    // era la web del profesorado y aquí no pinta nada.
-    return avisoPase()+'<div class="nave-barra"><div class="nave-accesos">'
-      +(d.formBitacora?'<a class="acc primary" href="'+esc(d.formBitacora)+'" data-vent="📓 Bitácora de mando"><b>📓 Mi Bitácora de mando</b><em>marca lo que has completado</em></a>':'')
-      +(d.formCanje?'<a class="acc" href="'+esc(d.formCanje)+'" data-vent="🛸 Mercado Estelar"><b>🛸 Mercado Estelar</b><em>gasta tus ◈ créditos</em></a>':'')
-      // 30-ago · fuera el acceso «Tablero»: desde que el tablero vive DENTRO de la Nave, duplicaba
-      // la pestaña «El tablero» (lo vio Norberto en la captura). Aquí quedan solo las ACCIONES.
-      +(d.formTicket?'<a class="acc" href="'+esc(ticketUrl(d))+'" data-vent="🎟️ Contacta con NEBULA"><b>🎟️ Dudas</b><em>anónimo, a NEBULA</em></a>':'')
-      // 12-sep · fuera el acceso «Panel»: desde que el Genially va EMBEBIDO debajo de la ficha,
-      // este botón abría en una ventana lo que ya está puesto en la página. Aquí quedan solo las
-      // acciones que llevan a otro sitio.
-      +(d.padlet?'<a class="acc" href="'+esc(d.padlet)+'" data-vent="🧱 Padlet de la clase"><b>🧱 Padlet</b><em>el muro de la clase</em></a>':'')
-      // 🔴 Aquí y no en otro sitio: es el momento exacto en que el recluta va a pegar un enlace y
-      // duda de si el suyo abre lo que tiene que abrir. Va en pestaña aparte para no perder lo que
-      // estuviera escribiendo en el formulario.
-      +'<a class="acc" href="ayuda.html" target="_blank" rel="noopener"><b>❓ Mi enlace</b><em>que abra lo tuyo, no el muro entero</em></a>'
-      +'</div></div>';
-  }
+  // 12-sep · `accesos()` se ha eliminado: su contenido vive ahora en el menú «···» de la barra,
+  // y el aviso de la llamada a filas se pinta directamente en render().
   // ================= EL DUELO (30-ago) =================
   // Petición de Norberto: un ranking reducido con quien va justo delante y quien pisa los talones,
   // y un banco de frases que unas veces apremia a alcanzar y otras a escaparse. Decisiones:
@@ -1145,7 +1295,10 @@
 
   function marcarReto(id, boton){
     if(boton){ boton.disabled=true; boton.textContent='Registrando…'; }
-    var ev=document.querySelector('.reto-ev[data-ev="'+id+'"]');
+    // El mismo reto puede tener casilla de evidencia en dos sitios (la tarjeta de la semana y la
+    // pestaña de retos). Se coge la que esté escrita, no la primera que aparezca.
+    var evs=[].slice.call(document.querySelectorAll('[data-ev="'+id+'"]'));
+    var ev=evs.filter(function(x){return x.value&&x.value.trim();})[0]||evs[0]||null;
     // La foto de cómo estaba la ficha y DÓNDE se ha pulsado. Las dos cosas hay que tomarlas ahora:
     // dentro de un momento la Nave se repinta entera y ni la una ni la otra existirán.
     var antes=st.yo?JSON.parse(JSON.stringify(st.yo)):{};
@@ -1222,24 +1375,44 @@
     // 🔴 Sin identificar no se pinta la nave: ni pestañas, ni accesos a los formularios, ni
     // tablero. Antes se veia el panel entero y solo la ficha estaba vacia.
     var dentro = !!st.yo;
+    // El ranking «Mi escuadrón» necesita saber quién eres. En el tablero proyectado no hay nadie, y
+    // por eso ese modo no aparece allí: no se esconde por seguridad, es que no significa nada.
+    try{ window.SG_YO_ALIAS = st.yo ? st.yo.alias : ''; }catch(e){}
     var avisoDemo = (dentro && DEMO && !st.email)
       ? '<div class="card" style="border-color:var(--amber)"><p class="small" style="margin:0;color:var(--amber)">'
         + '🎬 <b>Modo demostración.</b> Estás viendo la Nave con la ficha de <b>'+esc(st.yo.alias||'un recluta')
         + '</b>, un recluta de mentira de un grupo de pruebas. Nada de lo que hagas aquí se guarda.</p></div>'
       : '';
     root.innerHTML = avisoDemo + (dentro
-      ? login()+pestanas()+accesos()+cabecera()+contenido()
+      ? login()+pestanas()+avisoPase()+cabecera()+contenido()
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
-    verTablero(dentro && st.tab==='tablero');
+    verTablero(dentro && st.tab==='rankings');
     // Solo con el motor nuevo: en la Nave de siempre no suena nada, y un botón de silenciar algo
     // que no hace ruido es una promesa incumplida.
-    if(dentro && motorNuevo() && window.SG && SG.FIESTA) SG.FIESTA.montarInterruptor();
+    if(dentro && motorNuevo() && window.SG && SG.FIESTA) SG.FIESTA.montarInterruptor('nb-fiesta');
     montarBotonGoogle();   // el hueco del botón solo existe cuando se pinta el login
     // Cualquier botón con data-tab cambia de pestaña, no solo los de la barra: la orden de la
     // semana lleva uno para saltar a la vista completa.
     Array.prototype.forEach.call(root.querySelectorAll('[data-tab]'),function(b){
       b.onclick=function(){ irA(b.getAttribute('data-tab')); };
     });
+    // El menú «···». Se cierra al pulsar fuera y con Escape, como cualquier menú.
+    var mas=document.getElementById('nb-mas'), menu=document.getElementById('nb-menu');
+    if(mas&&menu){
+      mas.onclick=function(e){ e.stopPropagation();
+        var abierto=menu.hidden;
+        menu.hidden=!abierto; mas.setAttribute('aria-expanded', String(abierto)); };
+      menu.onclick=function(e){ e.stopPropagation(); };
+      if(!window.__sgMenuFuera){
+        window.__sgMenuFuera=true;
+        document.addEventListener('click',function(){ var m=document.getElementById('nb-menu'),
+          b=document.getElementById('nb-mas'); if(m){m.hidden=true;} if(b){b.setAttribute('aria-expanded','false');} });
+        document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var m=document.getElementById('nb-menu');
+          if(m&&!m.hidden){ m.hidden=true; var b=document.getElementById('nb-mas'); if(b){b.focus();b.setAttribute('aria-expanded','false');} } } });
+      }
+    }
+    var salir=document.getElementById('nb-salir');
+    if(salir) salir.onclick=function(e){ e.preventDefault(); olvidar(); };
     Array.prototype.forEach.call(root.querySelectorAll('[data-hecho]'),function(b){
       b.onclick=function(){ marcarReto(b.getAttribute('data-hecho'), b); };
     });

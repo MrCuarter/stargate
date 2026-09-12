@@ -252,8 +252,17 @@
   }
 
   // ---------------------------------------------------------------- el interruptor del sonido
-  function montarInterruptor() {
-    if (document.getElementById("sg-son")) return;
+  /**
+   * El interruptor de sonido.
+   *
+   * 🔴 12-sep · Admite un HUECO donde meterse (`donde`). Antes se pegaba siempre al `body` y flotaba
+   * en una esquina; desde que la Nave tiene su menú «···», ahí es donde la gente va a buscarlo. Si no
+   * hay hueco, sigue flotando: las demás páginas no tienen menú.
+   */
+  function montarInterruptor(donde) {
+    var hueco = typeof donde === "string" ? document.getElementById(donde) : donde;
+    var ya = document.getElementById("sg-son");
+    if (ya) { if (hueco && ya.parentNode !== hueco) hueco.appendChild(ya); return; }
     var b = document.createElement("button");
     b.id = "sg-son"; b.type = "button";
     var pinta = function () {
@@ -268,7 +277,8 @@
       if (suena()) sonar("xp");
     };
     pinta();
-    document.body.appendChild(b);
+    (hueco || document.body).appendChild(b);
+    if (hueco) b.classList.add("en-menu");
   }
 
   window.SG = window.SG || {};

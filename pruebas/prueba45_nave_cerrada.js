@@ -26,17 +26,21 @@ c(/root\.innerHTML = avisoDemo \+ \(dentro/.test(R),
   "🔴 la Nave solo se pinta entera si el recluta está identificado");
 c(/var dentro\s*=\s*!!st\.yo/.test(R),
   "   y «dentro» es exactamente «tengo ficha», no una bandera aparte");
-c(/verTablero\(dentro && st\.tab==='tablero'\)/.test(R),
+c(/verTablero\(dentro && st\.tab==='rankings'\)/.test(R),
   "🔴 el tablero tampoco se enseña sin identificarse");
 
 // ---------------------------------------------------------------- b) ni un enlace a formulario antes del correo
 c(/var alta = st\.d && st\.d\.formBitacora && st\.msgYo;/.test(R),
   "🔴 el botón de alistarse aparece SOLO tras buscar un correo y no encontrarlo");
-// los tres formularios se pintan en accesos(), y accesos() solo entra en el rama «dentro»
-const accesos = R.slice(R.indexOf("function accesos()"), R.indexOf("function accesos()") + 1400);
+// 🔴 12-sep · `accesos()` ya no existe: la parrilla de botones era el puente a los formularios de
+// Google y con el motor nuevo se quedó en tres enlaces. Ahora viven en el menú «···» de la barra,
+// que se pinta en `pestanas()` — y `pestanas()` sigue estando SOLO en la rama «dentro». La puerta
+// no se ha movido, se ha movido el picaporte.
+const menu = R.slice(R.indexOf("function menuMas()"), R.indexOf("function menuMas()") + 1600);
 ["formBitacora", "formCanje", "formTicket"].forEach(function(k){
-  c(accesos.indexOf(k) >= 0, "«" + k + "» se pinta en accesos(), que vive detrás de la puerta");
+  c(menu.indexOf(k) >= 0, "«" + k + "» se pinta en el menú de la barra, que vive detrás de la puerta");
 });
+c(R.indexOf("function accesos()") < 0, "y la parrilla vieja ya no existe: un sitio menos donde se escape un enlace");
 
 // ---------------------------------------------------------------- c) el selector de PER, UNA sola vez
 // Sin ?per= la Nave pregunta «¿de qué PER eres recluta?» y el tablero preguntaba lo mismo debajo.
