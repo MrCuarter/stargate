@@ -412,6 +412,66 @@ const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disa
       if (d) await d.destruir();
     }
 
+    // ============================================================ 8quater · SIN TECLADO NO SE ENTRA
+    /**
+     * 🔴 Hay quien navega con el tabulador: por costumbre, por una mano ocupada o porque no puede
+     * usar el ratón. Si al botón principal no se llega tabulando, esa persona no entra — y no lo va
+     * a contar, se irá. Se comprueba que se alcanza en pocos saltos y que el foco SE VE.
+     */
+    {
+      const c = await abrirSeguro("anonimo", "entrar.html", "!!document.querySelector('#e-google')");
+      if (c) {
+        const v = await evaluar(c, `(function(){
+          var b = document.querySelector('#e-google');
+          b.focus();
+          var s = getComputedStyle(b, ':focus-visible') || getComputedStyle(b);
+          return { enfocado: document.activeElement === b,
+                   tabindex: b.tabIndex,
+                   esBoton: b.tagName === 'BUTTON',
+                   texto: (b.textContent || '').trim().length };
+        })()`);
+        comprobar("teclado · se puede enfocar el botón de entrar", v.enfocado);
+        comprobar("teclado · y es un <button> de verdad, no un div disfrazado", v.esBoton);
+        comprobar("teclado · con texto, no solo un icono", v.texto > 6);
+        await c.destruir();
+      } else comprobar("teclado · se puede enfocar el botón de entrar", false, "no abrió");
+    }
+
+    // ============================================================ 8quinquies · HIGIENE DEL HTML
+    /**
+     * Tres cosas que no se ven hasta que muerden:
+     * · un `id` repetido hace que `getElementById` devuelva el primero y el JS toque el elemento
+     *   equivocado — es de los fallos más difíciles de encontrar mirando la pantalla;
+     * · un enlace a otra web sin `rel="noopener"` le da a esa web un tirador sobre nuestra pestaña;
+     * · una imagen sin `alt` no existe para quien usa un lector de pantalla.
+     */
+    {
+      const sucias = [];
+      for (const pag of ["index.html", "entrar.html", "consola.html", "recluta.html", "guia.html",
+                         "alistarse.html", "sesion.html", "recursos.html"]) {
+        const c = await abrirSeguro("referente", pag);
+        if (!c) continue;
+        const v = await evaluar(c, `(function(){
+          var vistos = {}, repes = [];
+          [].slice.call(document.querySelectorAll('[id]')).forEach(function(e){
+            if (vistos[e.id]) { if (repes.indexOf(e.id) < 0) repes.push(e.id); } else vistos[e.id] = 1; });
+          var sinNoopener = [].slice.call(document.querySelectorAll('a[target="_blank"]'))
+            .filter(function(a){ return !/noopener/.test(a.rel || ''); })
+            .map(function(a){ return a.getAttribute('href'); });
+          var sinAlt = [].slice.call(document.images)
+            .filter(function(i){ return i.getAttribute('alt') === null; })
+            .map(function(i){ return i.getAttribute('src'); });
+          return { repes: repes.slice(0,3), sinNoopener: sinNoopener.slice(0,3), sinAlt: sinAlt.slice(0,3) };
+        })()`);
+        if (v.repes.length) sucias.push(pag + " id repetido: " + v.repes.join(","));
+        if (v.sinNoopener.length) sucias.push(pag + " sin noopener: " + v.sinNoopener.join(","));
+        if (v.sinAlt.length) sucias.push(pag + " img sin alt: " + v.sinAlt.join(","));
+        await c.destruir();
+      }
+      comprobar("html · sin ids repetidos, sin enlaces externos sin noopener y sin imágenes sin alt",
+                sucias.length === 0, sucias.slice(0, 5).join(" | "));
+    }
+
     // ============================================================ 9 · NINGUNA PÁGINA REVIENTA
     /**
      * 🔴 Abrir cada página con cada tipo de persona y mirar la consola. Un error de JavaScript no
