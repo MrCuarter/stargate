@@ -1956,12 +1956,28 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 .gp.vivo::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;
   background:linear-gradient(90deg,var(--teal,#37e0ec),var(--amber,#f5b043))}
 .gp.off{opacity:.72}
-.gp header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.gp header{display:flex;align-items:center;gap:13px}
+/* 🔴 El emblema de SU escuadrón, no el del grupo: cada docente comanda uno, y poner el del grupo
+   daría el mismo icono en las seis tarjetas — es decir, ninguna información. */
+.gp-emb{width:54px;height:54px;border-radius:13px;object-fit:cover;flex:0 0 auto;
+  border:1px solid var(--line);background:#0b1119}
+.gp-emb.sin{display:grid;place-items:center;color:var(--teal);font-size:1.4rem}
+.gp-tit{flex:1;min-width:0}
+.gp-esc{margin:2px 0 0;font-size:.82rem;color:var(--teal)}
+/* Las dos cifras que se miran de un vistazo: cuánta gente hay y por dónde vamos. */
+.gp-cifras{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gp-cifras div{padding:10px 13px;border-radius:11px;background:rgba(0,0,0,.28);border:1px solid var(--line)}
+.gp-cifras b{display:block;font-family:'Unbounded',sans-serif;font-size:1.5rem;line-height:1;
+  color:var(--ink);font-variant-numeric:tabular-nums}
+.gp-cifras span{font-size:.76rem;color:var(--mut)}
+.gp-pie{margin-top:auto;border-top:1px solid var(--line);padding-top:11px;display:flex;
+  align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.gp-pie .gp-abrir{border:0;padding:0;margin:0}
 .gp h3{margin:2px 0 3px;font-size:1.18rem;line-height:1.25;text-wrap:balance}
 .gp-est{font-size:.62rem;letter-spacing:.16em;font-weight:700;color:var(--teal,#37e0ec)}
 .gp.off .gp-est{color:var(--mut)}
 .gp-cuando{margin:0;font-size:.86rem;color:var(--mut)}
-.gp-ref{flex:none;font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
+.gp-ref{flex:none;font-size:.9rem;font-weight:700;
   color:var(--amber);background:rgba(245,176,67,.1);border:1px solid rgba(245,176,67,.3);
   padding:4px 9px;border-radius:99px;white-space:nowrap}
 /* Las tres de directo: la de proyectar manda, las otras dos acompañan. */
@@ -1973,7 +1989,7 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 .gp-b.principal{grid-column:1/-1;background:linear-gradient(135deg,rgba(55,224,236,.16),rgba(55,224,236,.06));
   border-color:#2a5a66;font-size:.95rem}
 .gp-b.principal b{font-weight:700}
-.gp-abrir{margin-top:auto;background:none;border:0;border-top:1px solid var(--line);padding:11px 0 0;
+.gp-abrir{background:none;border:0;padding:0;
   color:var(--mut);font:inherit;font-size:.86rem;cursor:pointer;text-align:left;transition:color .15s}
 .gp-abrir:hover{color:var(--teal)}
 .gp-viejos{margin-top:22px}

@@ -15,7 +15,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch, onSnapshot }
+import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, getCountFromServer, writeBatch, onSnapshot }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { getFunctions, httpsCallable }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
@@ -118,7 +118,11 @@ function estadoDelPER(S) {
 async function misPERs(correo) {
   correo = String(correo || "").toLowerCase();
   const r = await getDocs(query(collection(db, "projects"), where("coTeacherEmails", "array-contains", correo)));
-  const mios = r.docs.map(d => ({ id: d.id, nombre: d.data().name, stargate: d.data().stargate || {} }))
+  // 🔴 Las facciones viajan con el grupo: la tarjeta necesita el EMBLEMA del escuadrón de quien mira
+  // —«a golpe de vista se debe ver el nombre, su emblema de escuadrón, número de estudiantes
+  // inscritos, semana»— y pedirlo aparte serían N lecturas más para pintar una lista.
+  const mios = r.docs.map(d => ({ id: d.id, nombre: d.data().name, factions: d.data().factions || [],
+                                  stargate: d.data().stargate || {} }))
                      .filter(x => x.stargate.version)
                      .map(x => Object.assign(x, estadoDelPER(x.stargate)));
   // 🔴 EN QUÉ SEMANA VA CADA GRUPO, decidido UNA vez y aquí.
@@ -158,6 +162,20 @@ async function misPERs(correo) {
   // 🔴 La marca que abre la puerta del profesorado. Se pone AQUÍ porque este es el único sitio donde
   // el servidor ha dicho que sí: si devuelve grupos, esta cuenta es docente de alguno. No es una
   // contraseña —no se puede teclear— y se borra al salir.
+  /**
+   * CUÁNTA GENTE HAY EN CADA GRUPO. Es el dato que más se mira de un vistazo —«¿se han alistado ya?»
+   * es LA pregunta de las dos primeras semanas— y no estaba en ninguna parte sin abrir el grupo.
+   * Se cuenta con `getCountFromServer`, que no se trae las fichas: devuelve el número y ya. Con
+   * doscientos alumnos por grupo, traerlas para contarlas sería absurdo.
+   */
+  await Promise.all(mios.map(async x => {
+    try {
+      const c = await getCountFromServer(query(collection(db, "student_profiles"),
+                                               where("projectId", "==", x.id)));
+      x.reclutas = c.data().count;
+    } catch (e) { x.reclutas = null; }   // sin dato es mejor que un cero que parece verdad
+  }));
+
   try { if (mios.length) localStorage.setItem("sgEsDocente", "1"); } catch (e) {}
   // 🔴 Y la que enciende «Crear grupo» en el menú. Se escribe SIEMPRE —también a "0"— para que
   // quien deje de ser referente no arrastre el botón de la sesión anterior.

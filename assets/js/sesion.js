@@ -449,6 +449,10 @@
   function arrancar(d){
     if(d&&!d.error){
       st.tipo=(d.tipo||'REGULAR'); st.nombre=d.nombre||''; st.inicio=d.inicio||'';
+      if (st.varios && st.varios.length > 1)
+        st.aviso = '<div class="card aviso-per"><p>Proyectando <b>'+esc(st.nombre)+'</b>. '
+          +'Tienes '+st.varios.length+' grupos en marcha; para otro, ábrelo desde '
+          +'<a href="consola.html">tus grupos</a>.</p></div>';
       // 🔴 El tablero entero, no solo el tipo y la fecha. Norberto: «toda esta info es ORO y anima a
       // vencer». Y es verdad: el ranking, quién ha completado algo y qué habéis dicho en el ticket
       // son de este grupo y de nadie más — proyectarlos es lo que convierte una tabla en una clase.
@@ -463,13 +467,55 @@
     pintar();
   }
 
-  if(!st.per){
-    // sin PER no se puede saber ni el tipo ni la semana en curso: se pide, y mientras tanto se
-    // enseña el curso REGULAR desde la semana 1, que es mejor que una página vacía.
+  /**
+   * ════════ EL MISMO ENLACE PARA TODOS TUS GRUPOS ════════
+   *
+   * Norberto lo preguntó y es la pregunta correcta: «¿estos embeds detectan al profe y muestran
+   * automáticamente la info del docente que ha iniciado sesión? Sería lo mejor para que el mismo
+   * embed nos sirva para todo». Sí — y ya lo hacían el aula y la llamada a filas; esta se había
+   * quedado atrás pidiendo `?per=` en el enlace.
+   *
+   * 🔴 Y no es comodidad: un enlace con el grupo dentro obliga a montar el Genially OTRA VEZ por
+   * cada grupo y por cada curso. Sin él, se pega UNA vez y no se vuelve a tocar: ni al crear un
+   * grupo nuevo, ni el año que viene. Es la misma razón por la que `validar.html` tampoco lo lleva.
+   *
+   * Si lleva `?per=` se respeta (un referente puede querer proyectar un grupo que no es suyo).
+   */
+  function porLaCuenta(){
+    var M = window.SG && window.SG.MOTOR;
+    if (!M || !M.sesion || !M.misPERs) return sinGrupo();
+    M.sesion().then(function(yo){
+      if (!yo) return sinGrupo('Entra con tu cuenta y te enseño la sesión de tu grupo.');
+      return M.misPERs(yo.correo).then(function(ps){
+        var vivos = (ps||[]).filter(function(x){ return x.estado === 'en marcha'; });
+        var elegido = vivos[0] || (ps||[])[0];
+        if (!elegido) return sinGrupo('Esa cuenta no lleva ningún grupo.');
+        st.per = elegido.id;
+        // 🔴 Con dos grupos en marcha se dice CUÁL se está proyectando. En enero es lo normal —uno
+        // acabando y otro empezando— y proyectar el equivocado delante de una clase no da error.
+        if (vivos.length > 1) st.varios = vivos.map(function(x){ return x.nombre; });
+        cargarYArrancar();
+      });
+    }).catch(function(){ sinGrupo(); });
+  }
+  function sinGrupo(msg){
     st.aviso='<div class="card aviso-per"><h3>¿De qué grupo?</h3>'
-      +'<p>Abre esta página desde <a href="clase.html">Mi clase</a> o elige el grupo en el menú <b>Grupos</b>: '
-      +'así sé en qué semana vais y si el grupo es PUA. Mientras tanto, este es el calendario estándar.</p></div>';
+      +'<p>'+(msg||'Ábrela desde <a href="consola.html">tus grupos</a>, o entra con tu cuenta y la deduzco sola.')
+      +' Mientras tanto, este es el calendario estándar.</p></div>';
     arrancar(null);
+  }
+  function cargarYArrancar(){
+    root.innerHTML=cargando('Preparando la sesión…','Semana en curso de '+esc(st.per));
+    var yaArranco=false;
+    window.SGCAL.perData(API, st.per, function(d,esCache){
+      if(yaArranco) return;
+      yaArranco=true; arrancar(d);
+    });
+  }
+
+  if(!st.per){
+    if (window.SG && window.SG.MOTOR) porLaCuenta();
+    else document.addEventListener('sg:motor', porLaCuenta);
   } else {
     root.innerHTML=cargando('Preparando la sesión…','Semana en curso de '+esc(st.per));
     var yaArranco=false;

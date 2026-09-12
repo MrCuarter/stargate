@@ -54,12 +54,34 @@
     var cuando = p.estado === "en marcha" ? "Semana " + p.semana + " de " + p.total
                : p.estado === "por empezar" ? "Empieza el " + (S.inicio || "—")
                : p.estado === "sin fecha" ? "Sin fecha de inicio" : "Terminado";
+
+    /**
+     * 🔴 EL EMBLEMA DE TU ESCUADRÓN, no el del grupo. Petición de Norberto: «a golpe de vista se
+     * debe ver el nombre, su emblema de escuadrón, número de estudiantes inscritos, semana».
+     * Y «su» es la palabra: cada docente comanda un escuadrón dentro del grupo, con su propio
+     * emblema. Enseñar el del grupo daría el mismo icono en las seis tarjetas y no diría nada.
+     */
+    var nombreMio = ((S.docentes || []).filter(function (d) {
+      return String(d.correo || "").toLowerCase() === String(YO.correo || "").toLowerCase(); })[0] || {}).nombre;
+    var mio = (p.factions || []).filter(function (f) { return f.teacherName === nombreMio; })[0]
+              || (p.factions || [])[0] || null;
+
     return '<article class="gp' + (vivo ? " vivo" : " off") + '">' +
-      '<header><div><div class="gp-est">' + (vivo ? "EN MARCHA" : p.estado.toUpperCase()) + '</div>' +
-        '<h3>' + esc(p.nombre) + '</h3><p class="gp-cuando">' + esc(cuando) +
-        (S.tipo === "PUA" ? ' · PUA' : '') + '</p></div>' +
-        (p.soyReferente ? '<span class="gp-ref" title="Llevas este grupo">★ referente</span>' : '') +
+      '<header>' +
+        (mio && mio.imageUrl
+          ? '<img class="gp-emb" src="' + esc(mio.imageUrl) + '" alt="" loading="lazy">'
+          : '<div class="gp-emb sin">◈</div>') +
+        '<div class="gp-tit"><div class="gp-est">' + (vivo ? "EN MARCHA" : p.estado.toUpperCase()) + '</div>' +
+          '<h3>' + esc(p.nombre) + '</h3>' +
+          (mio ? '<p class="gp-esc">' + esc(mio.name) + '</p>' : '') + '</div>' +
+        (p.soyReferente ? '<span class="gp-ref" title="Llevas este grupo">★</span>' : '') +
       '</header>' +
+      // Las dos cifras que se miran de un vistazo: cuánta gente hay y por dónde vamos.
+      '<div class="gp-cifras">' +
+        '<div><b>' + (p.reclutas == null ? "—" : p.reclutas) + '</b><span>alistados</span></div>' +
+        '<div><b>' + (p.estado === "en marcha" ? p.semana : "—") + '</b><span>' +
+          (p.estado === "en marcha" ? "de " + p.total + " semanas" : esc(cuando)) + '</span></div>' +
+      '</div>' +
       // 🔴 Lo de clase, en la tarjeta. Se busca con los alumnos ya sentados: cada clic de más ahí
       // es medio minuto de aula mirando una pantalla de carga.
       '<div class="gp-hacer">' +
@@ -70,9 +92,13 @@
         '<a class="gp-b" href="llamada.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
           '<span>🔔</span><b>Llamada a filas</b></a>' +
       '</div>' +
-      '<button class="gp-abrir" data-per="' + esc(p.id) + '">Ver mi gente y los ajustes →</button>' +
-      '</article>';
+      '<div class="gp-pie">' +
+        '<button class="gp-abrir" data-per="' + esc(p.id) + '">Ver mi gente y los ajustes →</button>' +
+        '<button class="btn min" data-copiar="' + esc(location.origin + "/sesion.html?embed=1") + '" ' +
+          'title="El mismo enlace vale para todos tus grupos: sabe quién eres">📋 Embed para Genially</button>' +
+      '</div></article>';
   }
+
 
   async function elegirGrupo() {
     cargando("Buscando tus grupos…");
