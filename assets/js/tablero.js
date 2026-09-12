@@ -273,10 +273,14 @@
         // embed del Genially tiene que ser el ranking de SU grupo y una puerta para que el alumno
         // entre a su panel a registrar y canjear. Ni los tres formularios sueltos ni la cabecera:
         // desde la Nave se llega a todo, y asi el Genially no se convierte en una lista de enlaces.
+        // 🔴 Pero NO cuando el tablero va dentro de la propia Nave (`alojado`): ahí ese botón
+        // invita a abrir en otra pestaña la página en la que ya estás. Norberto: «este botón no lo
+        // entiendo, hace que se abra otra ventana, pero lo he mirado desde la Nave del recluta».
         +(solo
-            ? '<div class="cta-row" style="justify-content:center;margin:0 0 14px">'
+            ? (alojado ? '' :
+               '<div class="cta-row" style="justify-content:center;margin:0 0 14px">'
               +'<a class="btn primary grande" href="recluta.html?per='+encodeURIComponent(per)
-              +'" target="_blank" rel="noopener">🚀 Entrar en mi Nave — registrar y canjear</a></div>'
+              +'" target="_blank" rel="noopener">🚀 Entrar en mi Nave — registrar y canjear</a></div>')
             : forms)+pestanas+podio
         +'<div class="buscar"><input id="buscaAlias" type="search" placeholder="Busca tu alias…" autocomplete="off"><span class="small muted">pulsa en cualquier recluta para ver su ficha · «Semana» son los xp de los últimos 7 días</span></div>'
         +(r.length?'<div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Recluta</th><th>Planeta</th><th>Insignias</th>'

@@ -14,9 +14,35 @@
   // NEBULA en vídeo (holograma vivo); si el navegador no puede, se queda su imagen
   function nebulaVideo(cls){return '<video class="nebula-v '+(cls||'')+'" autoplay muted loop playsinline preload="auto" poster="assets/img/personajes/nebula_poster.jpg"><source src="media/video/nebula_loop.mp4" type="video/mp4"></video>';}
   function cargando(txt,pista){return '<div class="cargando"><div class="txt">'+txt+'</div><div class="barra"><i></i></div>'+(pista?'<div class="pista">'+pista+'</div>':'')+'</div>';}
+  /**
+   * EL MENSAJE DEL FORO, EN PÁRRAFOS DE VERDAD.
+   *
+   * 🔴 Venía de un fichero de texto con los saltos puestos a mano cada ~76 caracteres —así se
+   * escribió para pegarlo en el foro de la plataforma— y aquí se pintaba en un `<pre>`, que respeta
+   * cada salto. Resultado: frases cortadas por la mitad («…llegue a cualquier parte: el / m-learning»)
+   * que parecían un error de carga. Ahora los saltos SUELTOS se cosen —son del formato de origen, no
+   * del autor— y los DOBLES se respetan, que esos sí separan párrafos de verdad.
+   *
+   * Y la firma: el texto acaba en «— Capitán», que es el personaje. Quien lo lee tiene delante a una
+   * persona con nombre, así que se firma con el suyo — «Comandante Ana Ruiz» dice mucho más que
+   * «Capitán», y es lo que pidió Norberto.
+   */
   function msgHtml(txt,perId){txt=String(txt==null?'':txt);
     txt=perId?txt.split('{id-del-PER}').join(perId):txt.split('?per={id-del-PER}').join('');
-    return esc(txt).replace(/https?:\/\/[^\s<»)]+/g,function(u){return '<a href="'+u+'" target="_blank" rel="noopener">'+u+'</a>';});}
+    var jefe=(st.yo&&st.yo.profe)||'';
+    // 🔴 Sin duplicar el tratamiento: hay docentes cuyo nombre en el sistema YA es «Comandante
+    // Orion», y anteponerlo otra vez firmaba «Comandante Comandante Orion».
+    if(jefe){
+      var firma = /^comandante\b/i.test(jefe.trim()) ? jefe.trim() : 'Comandante '+jefe.trim();
+      txt=txt.replace(/—\s*Capit[áa]n\b/g,'— '+firma);
+    }
+    var parrafos=txt.split(/\n\s*\n/).map(function(b){
+      return esc(b.replace(/\s*\n\s*/g,' ').trim());
+    }).filter(Boolean);
+    return parrafos.map(function(b){
+      return '<p>'+b.replace(/https?:\/\/[^\s<»)]+/g,function(u){
+        return '<a href="'+u+'" target="_blank" rel="noopener">'+u+'</a>'; })+'</p>';
+    }).join('');}
   function ytb(v,c){return '<div class="yt" data-id="'+v.id+'" role="button" tabindex="0"><img loading="lazy" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><span class="play">▶</span><div class="cap"><b>'+esc(v.titulo)+'</b><em>'+esc(c)+'</em></div></div>';}
   function wireYt(el){Array.prototype.forEach.call(el.querySelectorAll('.yt'),function(y){y.onclick=function(){if(y.classList.contains('on'))return;var f=document.createElement('iframe');f.src='https://www.youtube-nocookie.com/embed/'+y.getAttribute('data-id')+'?autoplay=1&rel=0';f.allow='autoplay; encrypted-media; picture-in-picture';f.allowFullscreen=true;y.insertBefore(f,y.firstChild);y.classList.add('on');};});}
   function minis(keys){return keys.map(function(k){return '<figure class="mini badge"><img loading="lazy" src="assets/img/insignias/'+k+'.png" alt="'+esc(NOMBRES[k]||k)+'"><figcaption>'+esc(NOMBRES[k]||k)+'</figcaption></figure>';}).join('');}
@@ -143,7 +169,7 @@
   function cabecera(){
     var d=st.d,n=st.semanas.length;
     var pos=st.estado==='antes'?'La misión aún no ha empezado':st.estado==='fin'?'Misión completada — la puerta está abierta':'Semana '+st.actual+' de '+n;
-    return '<div class="tab-head"><div><div class="eyebrow teal">La Nave del Recluta · '+esc(d.nombre)+(d.tipo==='PUA'?' · PUA':'')+'</div><h3>'+pos+'</h3>'+plazos()+'</div>'
+    return '<div class="tab-head"><div><div class="eyebrow teal">La Nave del Recluta · '+esc(d.nombre)+(d.tipo==='PUA'?' · PUA':'')+'</div><h3>'+pos+'</h3>'+(st.tab==='retos'?plazos():'')+'</div>'
       +'<div class="small muted"><button class="btn small" id="btn-onboard" type="button">▶ Repetir bienvenida</button></div></div>';
   }
   // ================= LA PUERTA (30-ago) =================
@@ -239,7 +265,17 @@
     return '<div class="card orden-sem"><div class="eyebrow amber">La orden de la semana</div>'
       + '<h3>' + esc(sm.tema) + '</h3>'   // el número vive en la cabecera, y en un sitio basta
       + '<p class="small muted">' + esc(sm.sub || '') + '</p>'
-      + '<pre class="foro-msg">' + msgHtml(sm.foro, per) + '</pre>'
+      + '<div class="foro-msg">' + msgHtml(sm.foro, per) + '</div>'
+      /**
+       * 🔴 LOS VÍDEOS DE LA SEMANA, AQUÍ. Estaban solo dentro de «ver la semana entera», a dos
+       * clics — y son lo primero que hay que ver: el propio mensaje del foro los nombra por su
+       * enlace y luego no estaban a mano. En tira horizontal y sin cabecera propia, pegados al
+       * mensaje que los menciona, así no abren un hueco nuevo. La carátula la sirve YouTube y el
+       * vídeo solo se carga al pulsarlo: no cuesta nada de más en cada visita.
+       */
+      + (sm.videos && sm.videos.length
+          ? '<div class="orden-videos">' + sm.videos.map(function(v){ return ytb(v[0], v[1]); }).join('') + '</div>'
+          : '')
       + (sm.lanza && sm.lanza.length
           ? '<p class="small"><b>Se lanza:</b> ' + sm.lanza.map(esc).join(' · ') + '</p>' : '')
       + '<p class="small" style="margin-top:10px">'
@@ -875,10 +911,17 @@
     // 🔴 `avatarSrc` devuelve un OBJETO (src, fallback, rango…), no una cadena. Metido tal cual en
     // un src, el navegador pedía «[object Object]» y la barra salía con la foto rota.
     var mini=SG.avatarSrc?SG.avatarSrc(r.avatar,r.alias,r.xp||0,(st.d&&st.d.tipo)||'REGULAR'):null;
+    /**
+     * 🔴 LA IDENTIDAD SUBE A LA LÍNEA DE «STARGATE». Petición de Norberto: «en la línea de arriba
+     * del todo, donde pone STARGATE (recluta), añade la miniatura del personaje, nombre, dinero,
+     * exp, nivel. En la segunda fila los botones, fijo».
+     *
+     * Y gana espacio de verdad: esa primera línea ya existía y solo llevaba una marca. Meter ahí
+     * quién eres y cuánto tienes deja la segunda fila entera para las secciones, y las dos quedan
+     * pegadas arriba desde el primer momento — no hay que hacer scroll para saber tu saldo.
+     */
+    pintarIdentidad(r, ni, cred, mini);
     return '<nav class="nave-barra-u" role="navigation" aria-label="Tu nave">'
-      +'<div class="nb-yo">'+(mini?'<img class="nb-cara" src="'+esc(mini.src)+'" alt="" '
-        +'data-fb="'+esc(mini.fallback)+'" onerror="if(this.src.indexOf(this.dataset.fb)<0)this.src=this.dataset.fb">':'')
-        +'<b>'+esc(r.alias||'')+'</b><span class="nb-nv">Nv '+(ni.nivel||1)+'</span></div>'
       // 🔴 `role="tab"` PROMETE que las flechas mueven entre pestañas. Si no se cumple, quien navega
       // con teclado se queda pulsando flechas sin que pase nada — y eso es peor que no poner el rol.
       // Se cumple abajo, en `cablearTeclado`. Y `tabindex` sigue el patrón estándar: solo la pestaña
@@ -891,13 +934,32 @@
           +'<span class="i" aria-hidden="true">'+x[1]+'</span><b>'+esc(x[2])+'</b></button>';
       }).join('')+'</div>'
       +'<div class="nb-fin">'
-        +'<span class="nb-m xp" id="nb-xp" title="Los xp no se gastan nunca: marcan tu nivel."><b>'+(r.xp||0)+'</b> xp</span>'
-        +'<span class="nb-m cr" id="nb-cr" title="Los créditos son lo único que se gasta."><b>'+cred+'</b> ◈</span>'
         +'<button type="button" class="nb-mas" id="nb-mas" aria-haspopup="true" aria-expanded="false" aria-label="Más opciones">···</button>'
       +'</div>'
       +menuMas()
       +'</nav>';
   }
+  /**
+   * Escribe la identidad en la barra del sitio. Se hace por JS y no en el HTML porque esa barra la
+   * genera `_build_site.py` para las 28 páginas: llenarla de datos de alumnado allí sería meter la
+   * Nave en la cabecera de la guía del profesorado.
+   *
+   * 🔴 Los ids `nb-xp` y `nb-cr` se conservan: son los que hace rodar la fiesta al ganar puntos, y
+   * cambiarlos habría dejado los contadores quietos en el único momento en que tienen que moverse.
+   */
+  function pintarIdentidad(r, ni, cred, mini){
+    var barra=document.querySelector('.nav .wrap'); if(!barra) return;
+    document.body.classList.add('nave-dentro');
+    var caja=barra.querySelector('.nb-id');
+    if(!caja){ caja=document.createElement('div'); caja.className='nb-id'; barra.appendChild(caja); }
+    caja.innerHTML=(mini?'<img class="nb-cara" src="'+esc(mini.src)+'" alt="" '
+        +'data-fb="'+esc(mini.fallback)+'" onerror="if(this.src.indexOf(this.dataset.fb)<0)this.src=this.dataset.fb">':'')
+      +'<div class="nb-id-txt"><b>'+esc(r.alias||'')+'</b>'
+        +'<span class="nb-nv">Nivel '+(ni.nivel||1)+(ni.rangoNombre?' · '+esc(ni.rangoNombre):'')+'</span></div>'
+      +'<span class="nb-m xp" id="nb-xp" title="Los xp no se gastan nunca: marcan tu nivel."><b>'+(r.xp||0)+'</b> xp</span>'
+      +'<span class="nb-m cr" id="nb-cr" title="Los créditos son lo único que se gasta."><b>'+cred+'</b> ◈</span>';
+  }
+
   /** Lo que se usa una vez por semana no merece un botón permanente: vive aquí dentro. */
   function menuMas(){
     var d=st.d||{};
@@ -1172,7 +1234,7 @@
   function fichaSemana(s,titulo){
     return '<div class="foro-card">'+(s.capitulo?'<span class="pill amber">Nuevo capítulo: '+esc(s.capitulo)+'</span>':'')
       +'<h2>'+esc(titulo||('Semana '+s.sem+' · '+s.tema))+'</h2><div class="muted">'+esc(s.sub)+'</div>'
-      +'<pre class="foro-msg">'+msgHtml(s.foro,per)+'</pre>'
+      +'<div class="foro-msg">'+msgHtml(s.foro,per)+'</div>'
       +(s.lanza.length?'<h4>🗝️ Retos</h4><ul>'+s.lanza.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')
       +(s.insignias.length?'<h4>🏅 Insignias en juego</h4><div class="minis">'+minis(s.insignias)+'</div>':'')
       +(s.videos.length?'<h4>🎬 Vídeos</h4><div class="yt-list three">'+s.videos.map(function(v){return ytb(v[0],v[1]);}).join('')+'</div>':'')
@@ -1211,6 +1273,20 @@
     if(!cat.length) return '<section><div class="eyebrow violet">Recompensas</div><h2>El canje de xp</h2><p class="lead">Tus xp se pueden canjear por recompensas. El catálogo se abrirá pronto en la nave; mientras tanto, tu Capitán tiene la lista.</p>'
       +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎁 Ir al formulario de canje</a>':'')+'</section>';
     var abiertas=0;
+    /**
+     * 🔴 LAS BLOQUEADAS, AL FINAL. Norberto: «mueve al final la recompensa bloqueada; deja en la
+     * primera fila cromos, cambiar 3 repetidos y el héroe, así no quedan agujeros».
+     * Y tiene razón en lo de los agujeros: las de nota se abren en la semana 15, así que durante
+     * catorce semanas la tienda se veía llena de huecos grises intercalados entre lo comprable —
+     * parecía rota, no parecía que hubiera algo por venir.
+     */
+    var n=st.semanas.length;
+    cat = cat.slice().sort(function(a,b){
+      var aa=st.estado!=='antes'&&st.actual>=window.SGCAL.desdeEfectiva(a.desde||14,d.tipo,n);
+      var bb=st.estado!=='antes'&&st.actual>=window.SGCAL.desdeEfectiva(b.desde||14,d.tipo,n);
+      if(aa!==bb) return aa?-1:1;          // primero lo que se puede comprar hoy
+      return 0;                            // y dentro de cada grupo, el orden del catálogo
+    });
     var cards=cat.map(function(x){
       var desde=window.SGCAL.desdeEfectiva(x.desde||14,d.tipo,n); var abierta=st.estado!=='antes'&&st.actual>=desde;
       if(!abierta) return '<div class="card rec-card lock"><h3>🔒 Recompensa clasificada</h3><p class="small muted">Se desbloquea en la semana '+desde+'.</p></div>';

@@ -23,7 +23,15 @@ c(/TABS_VIEJAS=\{ficha:'nave',semana:'nave',planetas:'retos',premios:'mercado',t
 c(/if\(TABS_VIEJAS\[k\]\) k=TABS_VIEJAS\[k\];/.test(NAVE), "   la traducción ocurre antes de validar");
 
 // ---------------------------------------------------------------- b) una sola barra, con los contadores dentro
-c(/function pestanas\(\)[\s\S]{0,900}nave-barra-u/.test(NAVE), "hay una barra única");
+// 🔴 12-sep · DOS FILAS, NO UNA. Norberto: «el menú quiero que esté fijo arriba desde el principio.
+// En la línea de arriba del todo, donde pone STARGATE, añade la miniatura del personaje, nombre,
+// dinero, exp, nivel. En la segunda fila los botones de las diferentes páginas, fijo».
+// La primera fila ya existía y solo llevaba una marca: meter ahí la identidad deja la segunda
+// entera para las secciones, y ya no hay que bajar para ver el saldo.
+c(/function pestanas\(\)[\s\S]{0,2600}nave-barra-u/.test(NAVE), "la barra de secciones se sigue pintando");
+c(/function pintarIdentidad/.test(NAVE), "🔴 y la identidad va arriba, en la línea del sitio");
+c(/id="nb-xp"[\s\S]{0,400}id="nb-cr"/.test(NAVE),
+  "🔴 con los MISMOS ids: son los que hace rodar la fiesta al ganar puntos, y cambiarlos habría dejado los contadores quietos justo cuando tienen que moverse");
 c(/id="nb-xp"/.test(NAVE) && /id="nb-cr"/.test(NAVE),
   "🔴 los contadores viven en la barra: si no, marcar un reto desde otra pestaña celebra en una cifra que nadie mira");
 const cssBarra = CSS.slice(CSS.indexOf(".nave-barra-u{"), CSS.indexOf(".nave-barra-u{") + 260);

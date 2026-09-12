@@ -376,7 +376,11 @@ body.embed #tablero{padding:14px 0;border:0}
 .foro-nav a.past{color:#5f7484;border-style:dashed}.foro-nav a.on{color:#05222a;background:var(--teal);border-color:var(--teal)}
 .foro-card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:18px;padding:22px}
 .foro-card h2{margin:.3em 0 0;font-size:1.6rem}
-.foro-msg{white-space:pre-wrap;font-family:'DMSans';font-size:1rem;line-height:1.6;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0;color:var(--ink)}
+/* Ya no es texto preformateado: son párrafos. `pre-wrap` aquí volvería a dibujar los saltos del
+   fichero de origen, que es justo lo que cortaba las frases por la mitad. */
+.foro-msg p{margin:0 0 .9em}
+.foro-msg p:last-child{margin-bottom:0}
+.foro-msg{font-family:'DMSans';font-size:1rem;line-height:1.6;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0;color:var(--ink)}
 .foro-card h4{margin:16px 0 8px;font-family:'DMSans';font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
 body.embed #panel,body.embed .foro-card,body.embed #validar{padding-top:0}
 /* tickets visual */
@@ -444,8 +448,17 @@ body.embed .nave-barra{top:0}
 .nave-perfil{display:flex;gap:16px;align-items:center;margin-bottom:12px}
 /* 30-ago · el personaje manda en la ficha (petición de Norberto): de sello de 92px a retrato.
    En móvil baja un punto para no comerse la pantalla. */
-.nave-perfil img.av{width:170px;height:170px;border-radius:18px;object-fit:cover;border:1px solid var(--line)}
-@media (max-width:640px){.nave-perfil img.av{width:128px;height:128px}}
+/* 🔴 «El avatar debe ser más grande, es importante». Y lo es: el personaje ES la recompensa de
+   todo el sistema —evoluciona con el nivel— y estaba del tamaño de una foto de carnet mientras
+   media tarjeta quedaba en blanco debajo. */
+/* `flex:0 0 auto` o el flex se lo come: pedía 230 y se quedaba en 175. */
+/* El <button> que envuelve el avatar es un item flex: sin esto se encogía y, con `max-width:100%`,
+   arrastraba la imagen con él — pedía 230 px y salía a 175. */
+.nave-perfil .av-lupa{flex:0 0 auto;width:230px}
+@media (max-width:640px){.nave-perfil .av-lupa{width:150px}}
+.nave-perfil img.av{width:230px;height:230px;flex:0 0 auto;border-radius:20px;object-fit:cover;
+  border:1px solid var(--line);box-shadow:0 10px 34px rgba(0,0,0,.45)}
+@media (max-width:640px){.nave-perfil img.av{width:150px;height:150px}}
 .progress{height:10px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;border:1px solid var(--line)}
 .progress i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--amber))}
 .badge-col{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:10px;margin-top:8px}
@@ -1505,13 +1518,16 @@ body.embed .nave-barra-u{top:0}
 
 /* Los personajes, en rejilla. Se ve la cara: es lo que se elige. */
 .avatares{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:8px;margin-top:8px}
-.av{padding:0;border:2px solid transparent;border-radius:11px;background:none;cursor:pointer;overflow:hidden;line-height:0}
+/* 🔴 ACOTADO A LA REJILLA. Este `.av` es el BOTÓN de elegir personaje, pero `.av` es también la
+   clase del avatar en media web (la ficha, el tablero, la barra). Suelto, le metía `width:100%` y
+   un borde a cada retrato del sitio. Se quedó suelto porque en `alistarse` no se notaba. */
+.avatares .av{padding:0;border:2px solid transparent;border-radius:11px;background:none;cursor:pointer;overflow:hidden;line-height:0}
 /* 🔴 `width:100%` EXPLÍCITO. Un <button> en una rejilla no se estira solo a su columna: se queda
    del ancho de su contenido. Con la miniatura a 36 px, la carita quedaba del tamaño de un sello en
    una celda de 122 — y estirarla a la fuerza con `height:100%` la dejaba aplastada, peor todavía. */
-.av{display:block;width:100%}
-.av img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;display:block}
-.av.elegido{border-color:#ffd166;box-shadow:0 0 14px rgba(255,209,102,.35)}
+.avatares .av{display:block;width:100%}
+.avatares .av img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;display:block}
+.avatares .av.elegido{border-color:#ffd166;box-shadow:0 0 14px rgba(255,209,102,.35)}
 .lema{font-size:1.15rem;font-style:italic;color:#ffd166;margin:14px 0}
 /* Cada docente en su fila, como en el panel de profes */
 #crear .docente{display:grid;grid-template-columns:1.2fr 1.2fr .7fr 1.3fr auto;gap:8px;margin:9px 0;align-items:center}
@@ -1861,3 +1877,36 @@ body.embed #sg-son{display:none}
 
 /* El cromo, más grande en la lupa: es la recompensa, no una miniatura de catálogo. */
 .lupa-carta{max-width:min(480px,86vw)!important;width:auto}
+
+/* ══════ LA IDENTIDAD, EN LA LÍNEA DE «STARGATE» ══════
+   «En la línea de arriba del todo, donde pone STARGATE (recluta), añade la miniatura del personaje,
+   nombre, dinero, exp, nivel. En la segunda fila los botones, fijo» (Norberto).
+   Esa línea ya existía y solo llevaba una marca: meter ahí quién eres y cuánto tienes deja la
+   segunda fila entera para las secciones, y ya no hay que bajar para saber el saldo. */
+.nav .wrap{display:flex;align-items:center;gap:14px}
+.nb-id{display:flex;align-items:center;gap:10px;margin-left:auto;min-width:0}
+.nb-id .nb-cara{width:34px;height:34px;border-radius:10px;object-fit:cover;
+  border:2px solid var(--amber);flex:0 0 auto;box-shadow:0 0 12px rgba(242,181,68,.3)}
+.nb-id-txt{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.nb-id-txt b{font-size:.9rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:14ch}
+.nb-id .nb-nv{font-size:.68rem;color:var(--mut);white-space:nowrap}
+.nb-id .nb-m{font-family:'Unbounded',sans-serif;font-size:.8rem;font-weight:700;white-space:nowrap;
+  padding:5px 10px;border-radius:99px;border:1px solid var(--line);background:rgba(0,0,0,.3);
+  font-variant-numeric:tabular-nums}
+.nb-id .nb-m.xp{color:var(--teal)} .nb-id .nb-m.cr{color:var(--amber)}
+/* La barra del sitio pasa a ser fija también: si la identidad vive ahí, tiene que estar siempre. */
+body.nave-dentro .nav{position:sticky;top:0;z-index:25}
+@media(max-width:720px){
+  .nb-id-txt{display:none}
+  .nb-id{gap:7px}
+  .nb-id .nb-m{font-size:.72rem;padding:4px 8px}
+}
+
+/* Los vídeos de la semana, pegados al mensaje que los nombra. En tira: ocupan el ancho sin abrir
+   un hueco nuevo, y en móvil se deslizan en vez de apilarse y alargar la tarjeta. */
+.orden-videos{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(190px,1fr);gap:10px;
+  overflow-x:auto;padding-bottom:4px;margin:12px 0 4px;scrollbar-width:thin}
+.orden-videos .yt{margin:0}
+.orden-videos .yt .cap b{font-size:.82rem}
+.orden-videos .yt .cap em{font-size:.72rem}
+@media(max-width:560px){.orden-videos{grid-auto-columns:minmax(168px,1fr)}}
