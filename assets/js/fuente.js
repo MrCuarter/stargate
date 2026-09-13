@@ -371,6 +371,8 @@
                 // 🔴 13-sep · los capítulos de NEBULA que ya vio (o se saltó): viven en SU ficha, así que
                 // cambiar de ordenador no le hace verlos otra vez
                 if (yo_) yo_.capitulos = f.stargateCapitulos || {};
+                // 14-sep · sus participaciones en los sorteos (el tablero de todos no las trae)
+                if (yo_) yo_.participaciones = f.lotteryEntries || {};
                 /**
                  * 🔴 13-sep · Y SUS ENLACES. El estudiante entregaba un enlace con «Lo he hecho» y
                  * después, en «Mis retos», el campo le salía VACÍO («pégalo aquí»): parecía perdido y
@@ -736,7 +738,8 @@
         var porDoc = {}; (crudo.misiones || []).forEach(function (m) { porDoc[m.docId] = m.id; });
         yo.retos = perfil.completedMissionIds.map(function (x) { return porDoc[x] || x; });
         var fe = {}; Object.keys(perfil.missionTimestamps).forEach(function (k) { fe[porDoc[k] || k] = perfil.missionTimestamps[k][0]; });
-        yo.retos_fecha = fe; }
+        yo.retos_fecha = fe;
+        yo.participaciones = Object.assign({}, perfil.lotteryEntries || {}); }
       return yo;
     };
     var mision = function (id) { return (crudo.misiones || []).filter(function (m) { return m.id === id || m.docId === id; })[0]; };
@@ -832,6 +835,14 @@
             var r = premio(c.recompensa); if (!r) return { error: "Esa recompensa no existe en este grupo." };
             var coste = Number(r.cost) || 0;
             if (P.coins < coste) throw new Error("No tienes suficientes créditos (te faltan " + (coste - P.coins) + " ◈).");
+            // 14-sep · una participación del sorteo: una papeleta más (como `purchaseReward`)
+            if (r.systemEffect === "lottery_ticket") {
+              var k = r.docId || r.id; P.lotteryEntries = P.lotteryEntries || {};
+              if (r.maxPerUser && (P.lotteryEntries[k] || 0) >= r.maxPerUser) throw new Error("Ya tienes las " + r.maxPerUser + " participaciones que se permiten.");
+              if (r.isRaffleCompleted) throw new Error("Este sorteo ya se ha hecho.");
+              P.coins -= coste; P.lotteryEntries[k] = (P.lotteryEntries[k] || 0) + 1;
+              return { ok: true };
+            }
             P.coins -= coste;
             if (c.abrir && (r.stargateTipo === "cromo" || r.stargateTipo === "heroe")) {
               var n = r.stargateTipo === "cromo" ? Math.max(1, Number(c.usos) || 3) : 1, sac = [];

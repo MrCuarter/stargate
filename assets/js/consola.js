@@ -277,7 +277,7 @@
    */
   var TABS = [["alumnado", "Mi gente"], ["canjes", "Cola de nota"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"],
               ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1],
-              ["huevos", "Premios por enlace", 1], ["calendario", "Calendario", 1], ["ajustes", "Ajustes del grupo", 1]];
+              ["huevos", "Premios por enlace", 1], ["sorteos", "Sorteos", 1], ["calendario", "Calendario", 1], ["ajustes", "Ajustes del grupo", 1]];
   function misTabs() {
     var ref = !!(PERS.filter(function (p) { return p.id === PER; })[0] || {}).soyReferente;
     return TABS.filter(function (x) { return !x[2] || ref; });
@@ -306,7 +306,7 @@
     // con #ajustes— se cae al primero en vez de pintar una pantalla que no debería ver.
     if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
     ({ alumnado: verAlumnado, canjes: verCanjes, zoco: verZoco, mios: verMios, equipo: verEquipo,
-       escuadrones: verEscuadrones, huevos: verHuevos, calendario: verCalendario, ajustes: verAjustes })[TAB](t);
+       escuadrones: verEscuadrones, huevos: verHuevos, sorteos: verSorteos, calendario: verCalendario, ajustes: verAjustes })[TAB](t);
     ofrecerVisitaDelGrupo();
     document.body.classList.add("consola-dentro");   // dentro de un grupo, el titular grande sobra
   }
@@ -325,6 +325,7 @@
     equipo: ["Equipo docente", "Quién imparte y quién lleva el grupo, <b>por su correo de Google</b>. Añadir a alguien aquí es darle entrada; quitarlo, quitársela. No hay PIN."],
     escuadrones: ["Escuadrones", "Cada escuadrón con su Comandante. La llamada a filas y el aula de cada docente van por aquí: cada cual ve y llama a los suyos."],
     huevos: ["Premios por enlace", "Crea un premio —xp, créditos, un sobre de cromos, un héroe— con sus topes (en total, por escuadrón o por persona) y pega su enlace donde quieras. Por ejemplo: «los 5 primeros de cada escuadrón, un sobre»."],
+    sorteos: ["Sorteos", "El <b>Gran Sorteo</b> y los que crees tú: tu alumnado compra participaciones, tú las regalas o las escondes en un enlace, y el día señalado lo <b>proyectas</b>. Lo sortea el servidor: una papeleta por participación y nadie gana dos."],
     calendario: ["Calendario", "Las semanas del curso y lo que abre cada una. <b>Congela</b> una semana (Navidad, Semana Santa) y todo lo de detrás se corre; o <b>abre un capítulo antes</b> de su semana. La fecha de la semana 1 también está aquí."],
     ajustes: ["Ajustes del grupo", "El nombre, el código de clase, el padlet, el panel oficial y los enlaces para montar una vez en los Geniallys."]
   };
@@ -611,7 +612,12 @@
                  ["heroe_fijo","🛡️ Un héroe que eliges tú"],
                  ["heroe","🎲 Un héroe al azar"],
                  ["bolsa","💰 Créditos"],
-                 ["xp","⚡ Experiencia (xp)"]];
+                 ["xp","⚡ Experiencia (xp)"],
+                 ["participaciones","🎟️ Participaciones del sorteo"]];
+  // 14-sep · los sorteos del grupo que aún no se han hecho (para regalar participaciones por enlace)
+  function sorteosAbiertos() {
+    return ((DATOS && DATOS.recompensas) || []).filter(function (r) { return r.systemEffect === "lottery_ticket" && !r.isRaffleCompleted; });
+  }
   function heroesDelCatalogo() { return ((window.SG_CATALOGO || {}).heroes) || []; }
   function rarezaBonita(r) { r = String(r || "").toLowerCase(); return r ? r.charAt(0).toUpperCase() + r.slice(1) : ""; }
   // «datetime-local» habla en la hora de quien lo rellena; se guarda como instante (ms)
@@ -666,9 +672,13 @@
       '<label class="h-campo h-c-premio">Premio<select class="h-premio">' + PREMIOS.map(function (p) {
         return '<option value="' + p[0] + '"' + (pr === p[0] ? " selected" : "") + ">" + p[1] + "</option>"; }).join("") + '</select></label>' +
       '<div class="h-extra">' +
-        // la cantidad solo cuenta para créditos y xp: un sobre son siempre tres cartas y un héroe, uno
-        '<label class="h-campo h-cant"' + (pr === "bolsa" || pr === "xp" ? "" : " hidden") + '>Cantidad' +
-          '<input class="h-cantidad" type="number" min="1" value="' + (Number(h.cantidad || h.creditos) || (pr === "xp" ? 100 : 50)) + '"></label>' +
+        // la cantidad solo cuenta para créditos, xp y participaciones: un sobre son siempre tres cartas y un héroe, uno
+        '<label class="h-campo h-cant"' + (pr === "bolsa" || pr === "xp" || pr === "participaciones" ? "" : " hidden") + '>Cantidad' +
+          '<input class="h-cantidad" type="number" min="1" value="' + (Number(h.cantidad || h.creditos) || (pr === "xp" ? 100 : pr === "participaciones" ? 1 : 50)) + '"></label>' +
+        '<label class="h-campo h-c-sorteo"' + (pr === "participaciones" ? "" : " hidden") + '>Del sorteo<select class="h-sorteo">' +
+          (sorteosAbiertos().length ? sorteosAbiertos().map(function (r) {
+            return '<option value="' + esc(r.docId) + '"' + (h.sorteo === r.docId ? " selected" : "") + ">" + esc(((r.stargateSorteo || {}).premio) || r.title) + "</option>"; }).join("")
+            : '<option value="">— no hay ningún sorteo abierto —</option>') + '</select></label>' +
         // la cara, a la izquierda y a la altura de «etiqueta + campo»: así las etiquetas de la fila no se descuadran
         '<div class="h-c-heroe"' + (pr === "heroe_fijo" ? "" : " hidden") + '>' +
           '<img class="h-heroe-img" src="assets/img/heroes/' + esc(heroe) + '.jpg" alt="" width="58" height="58">' +
@@ -733,6 +743,8 @@
       var ids = lista.map(function (h) { return h.id; });
       if (new Set(ids).size !== ids.length) return "Hay dos premios con el mismo identificador.";
       if (lista.some(function (h) { return h.premio === "heroe_fijo" && !h.heroe; })) return "Elige qué héroe se lleva.";
+      if (lista.some(function (h) { return h.premio === "participaciones" && !h.sorteo; })) return "Elige de qué sorteo son las participaciones (o crea uno en «Sorteos»).";
+      if (lista.some(function (h) { return h.premio === "participaciones" && (Number(h.cantidad) < 1 || Number(h.cantidad) > 10); })) return "De 1 a 10 participaciones por enlace.";
       if (lista.some(function (h) { return Number(h.desde) && Number(h.hasta) && Number(h.hasta) <= Number(h.desde); }))
         return "La fecha de «Hasta» tiene que ser después de «Abierto desde».";
       return "";
@@ -750,13 +762,15 @@
           var premio = $(".h-premio", f).value, cant = Number($(".h-cantidad", f).value) || 0;
           lista[i] = { id: $(".h-id", f).value.trim(), nombre: $(".h-nom", f).value.trim(),
                        premio: premio, heroe: premio === "heroe_fijo" ? $(".h-heroe", f).value : "",
+                       sorteo: premio === "participaciones" ? $(".h-sorteo", f).value : "",
                        limite: Number($(".h-lim", f).value) || 0,
                        porEscuadron: Number($(".h-esc", f).value) || 0,
-                       cantidad: cant || (premio === "xp" ? 100 : 50), creditos: cant || 50,
+                       cantidad: cant || (premio === "xp" ? 100 : premio === "participaciones" ? 1 : 50), creditos: cant || 50,
                        desde: deLocal($(".h-desde", f).value), hasta: deLocal($(".h-hasta", f).value),
                        activo: $(".h-on", f).checked };
           // el hueco del detalle cambia con el premio
-          $(".h-cant", f).hidden = !(premio === "bolsa" || premio === "xp");
+          $(".h-cant", f).hidden = !(premio === "bolsa" || premio === "xp" || premio === "participaciones");
+          $(".h-c-sorteo", f).hidden = premio !== "participaciones";
           $(".h-c-heroe", f).hidden = premio !== "heroe_fijo";
           var nota = $(".h-nota", f); nota.hidden = !(premio === "sobre" || premio === "heroe");
           nota.textContent = premio === "heroe" ? "Uno de los " + (heroesDelCatalogo().length || 30) + " héroes, con las mismas probabilidades que en el Mercado"
@@ -764,7 +778,7 @@
           $(".h-heroe-img", f).src = "assets/img/heroes/" + $(".h-heroe", f).value + ".jpg";
           $(".h-estado", f).textContent = textoEstado(lista[i], servidor[lista[i].id] || null);
         };
-        ["h-id","h-nom","h-premio","h-heroe","h-cantidad","h-lim","h-esc","h-desde","h-hasta"].forEach(function (k) {
+        ["h-id","h-nom","h-premio","h-heroe","h-sorteo","h-cantidad","h-lim","h-esc","h-desde","h-hasta"].forEach(function (k) {
           var e = $("." + k, f); e.oninput = e.onchange = function () { leer(); pendiente(true); };
         });
         // 🔴 el interruptor GUARDA AL MOMENTO: es lo que se pulsa en clase, con el reto recién superado
@@ -971,6 +985,186 @@
       "</div>";
   }
 
+  // ---------------------------------------------------------------- 🎟️ los sorteos
+  /**
+   * LOS SORTEOS DEL GRUPO (14-sep). Norberto: «quiero dar más poderes y opciones al profe referente
+   * para dinamizar las clases… el sorteo de dos licencias de Genially de año completo, a partir de la
+   * semana 6: que los estudiantes puedan comprar participaciones y el profe regalarlas, o que el
+   * referente embeba participaciones».
+   *
+   * Aquí se ven (quién lleva cuántas papeletas), se cambian, se crean y se SORTEAN. El sorteo lo hace
+   * el SERVIDOR (GamificaPro, `stargateSortear`: una papeleta por participación, nadie gana dos, una
+   * sola vez); esta pantalla solo lo proyecta, con su ruleta, para que la clase lo vea en directo.
+   */
+  function sorteosDelGrupo() {
+    return ((DATOS && DATOS.recompensas) || []).filter(function (r) { return r.systemEffect === "lottery_ticket"; })
+      .sort(function (a, b) { return Number(a.ticketDeadline || 0) - Number(b.ticketDeadline || 0); });
+  }
+  function premioDelSorteo(t) { return ((DATOS && DATOS.recompensas) || []).filter(function (r) { return r.docId === t.linkedItemId; })[0] || {}; }
+  function bomboDe(t) {
+    return ((DATOS && DATOS.perfiles) || []).filter(function (p) {
+      return Number((p.lotteryEntries || {})[t.docId] || 0) > 0 && !p.graduatedAt && p.isTeacherPreview !== true; })
+      .map(function (p) {
+        var pr = (DATOS.privados || {})[p.id] || {};
+        return { ficha: p.id, alias: p.displayName || "", n: Math.floor(Number(p.lotteryEntries[t.docId])),
+                 nombre: ((pr.firstName || "") + " " + (pr.lastName || "")).trim(), correo: pr.email || "" }; })
+      .sort(function (a, b) { return b.n - a.n; });
+  }
+  function diaDe(ms) { return ms ? new Date(Number(ms)).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" }) : "—"; }
+  function aFecha(ms) { if (!ms) return ""; var d = new Date(Number(ms)); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  function deFecha(v) { return v ? new Date(v + "T00:00:00").getTime() : 0; }
+  function estadoSorteo(t) {
+    var ahora = Date.now();
+    if (t.isRaffleCompleted) return ["hecho", "🏆 Sorteado el " + diaDe(t.raffleResolvedAt)];
+    if (Number(t.availableFrom) > ahora) return ["pronto", "⏳ A la venta desde el " + diaDe(t.availableFrom)];
+    if (Number(t.ticketDeadline) && Number(t.ticketDeadline) <= ahora) return ["listo", "🎲 Venta cerrada: listo para sortear"];
+    return ["venta", "🟢 A la venta · se sortea el " + diaDe(t.ticketDeadline)];
+  }
+  function formSorteo(t, P) {
+    var S = (t && t.stargateSorteo) || {}, hoy = Date.now();
+    var v = t ? { premio: S.premio || P.title || "", descripcion: t.description || "", ganadores: Number(P.globalStockInitial || S.ganadores || 1),
+                  coste: t.cost, maximo: t.maxPerUser || "", desde: t.availableFrom, fecha: t.ticketDeadline }
+              : { premio: "", descripcion: "", ganadores: 1, coste: 20, maximo: 10, desde: hoy, fecha: hoy + 14 * 864e5 };
+    return '<div class="sr-form" data-doc="' + esc(t ? t.docId : "") + '">' +
+      '<label class="h-campo sr-f-premio">Qué se sortea<input class="sr-premio" value="' + esc(v.premio) + '" placeholder="Una licencia de…" maxlength="80"></label>' +
+      '<label class="h-campo sr-f-desc">Cómo lo verá el alumnado<input class="sr-desc" value="' + esc(v.descripcion) + '" placeholder="Una frase: qué es y por qué merece la pena" maxlength="300"></label>' +
+      '<label class="h-campo h-num">Ganadores<input class="sr-gan" type="number" min="1" max="20" value="' + esc(v.ganadores) + '"></label>' +
+      '<label class="h-campo h-num">◈ la participación<input class="sr-coste" type="number" min="0" value="' + esc(v.coste) + '"></label>' +
+      '<label class="h-campo h-num">Máx. por persona<input class="sr-max" type="number" min="0" value="' + esc(v.maximo) + '" placeholder="sin tope"></label>' +
+      '<label class="h-campo h-fecha">A la venta desde<input class="sr-desde" type="date" value="' + aFecha(v.desde) + '"></label>' +
+      '<label class="h-campo h-fecha">Se sortea el<input class="sr-fecha" type="date" value="' + aFecha(v.fecha) + '"></label>' +
+      '<p class="sr-f-pie"><button class="btn primary sr-guardar">' + (t ? "Guardar los cambios" : "Crear el sorteo") + '</button> ' +
+      '<button class="btn sr-cancelar">Cancelar</button></p></div>';
+  }
+  function verSorteos(t) {
+    var L = sorteosDelGrupo(), cat = window.SG_CATALOGO || {}, porDefecto = (cat.sorteos || [])[0];
+    var falta = porDefecto && !L.some(function (x) { return x.stargateId === porDefecto.id; });
+    $("#c-cuerpo").innerHTML =
+      '<div class="card"><h3>🎟️ Sorteos</h3>' +
+      '<p class="small">Para dinamizar la clase. Tu alumnado compra <b>participaciones</b> en el Mercado; tú las <b>regalas</b> en el aula ' +
+      '(Premiar → 🎟️) o las <b>escondes en un enlace</b> (Premios por enlace → 🎟️ Participaciones). El día del sorteo, <b>proyéctalo</b>: ' +
+      'lo hace el servidor, una papeleta por participación, y nadie gana dos.</p>' +
+      (falta ? '<p><button class="btn primary" id="sr-defecto">➕ Añadir el Gran Sorteo: ' + esc(porDefecto.ganadores + " × " + porDefecto.premio) + '</button></p>' : "") +
+      '<p><button class="btn" id="sr-nuevo">+ Crear otro sorteo</button></p><div id="sr-nuevo-f"></div></div>' +
+      (L.length ? L.map(function (x) {
+        var P = premioDelSorteo(x), S = x.stargateSorteo || {}, e = estadoSorteo(x), B = bomboDe(x);
+        var total = B.reduce(function (a, b) { return a + b.n; }, 0), gan = Number(P.globalStockInitial || S.ganadores || 1);
+        var ganadores = (x.raffleWinnerIds || []).map(function (f, i) {
+          var pr = (DATOS.privados || {})[f] || {};
+          return '<li><b>' + esc((x.raffleWinnerNames || [])[i] || "") + '</b> · ' + esc(((pr.firstName || "") + " " + (pr.lastName || "")).trim() || "—") +
+            (pr.email ? ' · <a href="mailto:' + esc(pr.email) + '">' + esc(pr.email) + '</a>' : "") + '</li>'; }).join("");
+        return '<div class="card sr-caja ' + e[0] + '" data-doc="' + esc(x.docId) + '">' +
+          '<div class="sr-cab"><img src="assets/img/canje/' + esc(S.imagen || "sorteo.jpg") + '" alt="">' +
+          '<div><h3>' + esc(S.premio || P.title || x.title) + '</h3><span class="chip' + (e[0] === "hecho" ? " ok" : e[0] === "venta" ? " wip" : "") + '">' + e[1] + '</span>' +
+          '<p class="small">' + gan + ' ganador' + (gan === 1 ? '' : 'es') + ' · ' + x.cost + ' ◈ la participación' + (x.maxPerUser ? ' · máx. ' + x.maxPerUser + ' por persona' : '') +
+          ' · a la venta del ' + diaDe(x.availableFrom) + ' al ' + diaDe(x.ticketDeadline) + '</p></div></div>' +
+          (e[0] === "hecho"
+            ? '<div class="sr-ganadores"><p>🏆 <b>Ganadores</b> (entrégales el premio):</p><ul>' + ganadores + '</ul></div>'
+            : '<p class="sr-cuenta"><b>' + total + '</b> participaci' + (total === 1 ? 'ón' : 'ones') + ' de <b>' + B.length + '</b> recluta' + (B.length === 1 ? '' : 's') + '</p>' +
+              (B.length ? '<details class="cajon"><summary><b>El bombo</b> <span class="cnt">' + B.length + '</span></summary><div class="tabla-envoltura"><table class="tabla sr-tabla"><thead><tr><th>Alias</th><th>Nombre</th><th>Participaciones</th><th>Posibilidades</th></tr></thead><tbody>' +
+                B.map(function (b) { return '<tr><td>' + esc(b.alias) + '</td><td>' + esc(b.nombre || "—") + '</td><td>' + b.n + '</td><td>' + Math.round(100 * b.n / Math.max(1, total)) + ' %</td></tr>'; }).join("") +
+                '</tbody></table></div></details>' : '') +
+              '<p class="sr-botones"><button class="btn primary sr-directo" data-doc="' + esc(x.docId) + '"' + (B.length ? '' : ' disabled title="Nadie tiene participaciones todavía"') + '>🎲 Sortear en directo</button> ' +
+              '<button class="btn sr-editar" data-doc="' + esc(x.docId) + '">✏️ Cambiar</button></p><div class="sr-editar-f"></div>') +
+          '</div>';
+      }).join("") : '<div class="card"><p class="small muted">Este grupo todavía no tiene ningún sorteo.</p></div>');
+    var tras = function (texto) { return refrescar().then(function () { TAB = "sorteos"; pintar(); aviso(texto, true); }); };
+    var leerForm = function (f) {
+      return { premio: $(".sr-premio", f).value.trim(), descripcion: $(".sr-desc", f).value.trim(), ganadores: Number($(".sr-gan", f).value) || 1,
+               coste: Number($(".sr-coste", f).value) || 0, maximo: Number($(".sr-max", f).value) || 0,
+               desde: deFecha($(".sr-desde", f).value), fecha: deFecha($(".sr-fecha", f).value) };
+    };
+    var validar = function (v) {
+      if (!v.premio) return "Di qué se sortea.";
+      if (!v.desde || !v.fecha) return "Pon las dos fechas: desde cuándo se vende y cuándo se sortea.";
+      if (v.fecha <= v.desde) return "El sorteo tiene que ser después de que empiece la venta.";
+      return "";
+    };
+    var cablearForm = function (caja, doc_) {
+      var f = $(".sr-form", caja);
+      $(".sr-cancelar", f).onclick = function () { caja.innerHTML = ""; };
+      $(".sr-guardar", f).onclick = async function () {
+        var v = leerForm(f), malo = validar(v); if (malo) return aviso(malo);
+        this.disabled = true;
+        try {
+          if (doc_) await MOTOR.guardarSorteo(PER, doc_, v);
+          else await MOTOR.crearSorteo(PER, { id: "sorteo" + Date.now().toString(36), premio: v.premio, descripcion: v.descripcion,
+            ganadores: v.ganadores, coste: v.coste, maximo: v.maximo, desde: v.desde, fecha: v.fecha });
+          await tras(doc_ ? "Sorteo cambiado." : "Sorteo creado: ya sale en el Mercado de tu alumnado (desde su fecha).");
+        } catch (e) { this.disabled = false; aviso(e.message); }
+      };
+    };
+    if ($("#sr-defecto")) $("#sr-defecto").onclick = async function () {
+      this.disabled = true;
+      try { await MOTOR.crearSorteo(PER, porDefecto); await tras("El Gran Sorteo ya está en el grupo: sale en el Mercado desde la semana " + porDefecto.desdeSemana + "."); }
+      catch (e) { this.disabled = false; aviso(e.message); }
+    };
+    $("#sr-nuevo").onclick = function () { var c = $("#sr-nuevo-f"); c.innerHTML = formSorteo(null, {}); cablearForm(c, ""); };
+    Array.prototype.forEach.call(app.querySelectorAll(".sr-editar"), function (b) {
+      b.onclick = function () {
+        var x = sorteosDelGrupo().filter(function (y) { return y.docId === b.getAttribute("data-doc"); })[0]; if (!x) return;
+        var c = b.closest(".sr-caja").querySelector(".sr-editar-f"); c.innerHTML = formSorteo(x, premioDelSorteo(x)); cablearForm(c, x.docId);
+      };
+    });
+    Array.prototype.forEach.call(app.querySelectorAll(".sr-directo"), function (b) {
+      b.onclick = function () {
+        var x = sorteosDelGrupo().filter(function (y) { return y.docId === b.getAttribute("data-doc"); })[0]; if (x) sorteoEnDirecto(x);
+      };
+    });
+  }
+  /**
+   * 🎲 EL SORTEO EN DIRECTO, para proyectar. Primero el bombo (cada recluta con sus papeletas); al
+   * pulsar, el SERVIDOR elige y aquí se cuenta con una ruleta que se va frenando hasta caer en cada
+   * ganador. Sin correos ni nombres reales: esto lo ve la clase entera.
+   */
+  function sorteoEnDirecto(x) {
+    var P = premioDelSorteo(x), S = x.stargateSorteo || {}, B = bomboDe(x), gan = Number(P.globalStockInitial || S.ganadores || 1);
+    var capa = document.createElement("div"); capa.className = "sr-proy"; capa.setAttribute("role", "dialog");
+    capa.innerHTML = '<div class="sr-proy-caja"><p class="eyebrow amber">STARGATE · El Gran Sorteo</p>' +
+      '<h2>' + esc(S.premio || P.title || "") + '</h2><p class="sr-proy-sub">' + gan + ' ganador' + (gan === 1 ? '' : 'es') + ' · ' +
+      B.reduce(function (a, b) { return a + b.n; }, 0) + ' papeletas de ' + B.length + ' recluta' + (B.length === 1 ? '' : 's') + ' · nadie gana dos</p>' +
+      '<div class="sr-bombo">' + B.map(function (b) { return '<span class="sr-chip" data-f="' + esc(b.ficha) + '">' + esc(b.alias) + ' <i>×' + b.n + '</i></span>'; }).join("") + '</div>' +
+      '<div class="sr-res" id="sr-res" aria-live="polite"></div>' +
+      '<p class="sr-proy-bot"><button class="btn epico" id="sr-go"><span class="ep-luz"></span><span class="ep-txt">🎲 ¡Sortear!</span></button> ' +
+      '<button class="btn" id="sr-pantalla">⛶ Pantalla completa</button> <button class="btn" id="sr-salir">Cerrar</button></p></div>';
+    document.body.appendChild(capa);
+    var cerrar = function () { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); capa.remove(); refrescar().then(function () { TAB = "sorteos"; pintar(); }); };
+    capa.querySelector("#sr-salir").onclick = cerrar;
+    capa.querySelector("#sr-pantalla").onclick = function () { if (capa.requestFullscreen) capa.requestFullscreen().catch(function () {}); };
+    capa.querySelector("#sr-go").onclick = async function () {
+      var go = this;
+      if (Number(x.ticketDeadline) > Date.now() &&
+          !confirm("Todavía no es el día del sorteo (" + diaDe(x.ticketDeadline) + "). Si sorteas ya, se cierra la venta de participaciones. ¿Sortear ahora?")) return;
+      go.disabled = true; go.querySelector(".ep-txt").textContent = "Sorteando…";
+      var res;
+      try { res = await MOTOR.sortear(PER, x.docId); }
+      catch (e) { go.disabled = false; go.querySelector(".ep-txt").textContent = "🎲 ¡Sortear!"; $("#sr-res", capa).innerHTML = '<p class="malo">' + esc(e.message) + '</p>'; return; }
+      var chips = [].slice.call(capa.querySelectorAll(".sr-chip")), quieto = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var caer = function (g) {
+        return new Promise(function (ok) {
+          var libres = chips.filter(function (c) { return !c.classList.contains("gana"); }), pasos = quieto ? 0 : 26, i = 0, t = 60;
+          var paso = function () {
+            chips.forEach(function (c) { c.classList.remove("luz"); });
+            if (i >= pasos) { var c = capa.querySelector('.sr-chip[data-f="' + g.ficha + '"]'); if (c) c.classList.add("gana"); return ok(); }
+            var c2 = libres[Math.floor(Math.random() * libres.length)]; if (c2) c2.classList.add("luz");
+            i++; t = Math.round(t * 1.11); setTimeout(paso, t);
+          };
+          paso();
+        });
+      };
+      var dichos = [];
+      for (var k = 0; k < res.ganadores.length; k++) {
+        await caer(res.ganadores[k]);
+        dichos.push('<b>' + esc(res.ganadores[k].alias) + '</b>');
+        $("#sr-res", capa).innerHTML = '<p class="sr-gana">🏆 ' + dichos.join(" · ") + '</p>';
+        await new Promise(function (ok) { setTimeout(ok, quieto ? 0 : 900); });
+      }
+      $("#sr-res", capa).innerHTML = '<p class="sr-gana">🏆 ' + dichos.join(" · ") + '</p><p class="sr-proy-sub">¡Enhorabuena! ' +
+        (res.ganadores.length > 1 ? 'Os' : 'Te') + ' llevá' + (res.ganadores.length > 1 ? 'is' : 's') + ' ' + esc(res.premio) + '.</p>';
+      go.remove();   // (`hidden` no basta: .btn lleva su propio display)
+    };
+  }
+
   // ---------------------------------------------------------------- el calendario del grupo
   /**
    * EL CALENDARIO DEL GRUPO (13-sep). Norberto: «algo fácil para ajustar fechas: a veces hay cambios,
@@ -1101,12 +1295,21 @@
         caps.forEach(function (c) { if (CAL.abiertos[c.clave]) (c.mercado || []).forEach(function (x) { tiposYa[x] = true; }); });
         var porId = function (lista) { var m = {}; (lista || []).forEach(function (x) { m[x.id] = x.docId; }); return m; };
         var docC = porId(DATOS.campanas), docR = porId(DATOS.recompensas), escribir = [];
+        var suyo = {}; (DATOS.recompensas || []).forEach(function (x) { suyo[x.docId] = x; });
         paq.campanas.forEach(function (c) {
           if (c.visibleFromTimestamp != null && docC[c.id]) escribir.push(["campaigns", docC[c.id], { visibleFromTimestamp: c.visibleFromTimestamp }]); });
         paq.recompensas.forEach(function (r) {
           if (r.inStore === false || r.availableFrom == null || !docR[r.id]) return;
-          escribir.push(["rewards", docR[r.id], { availableFrom: tiposYa[r.stargateTipo] ? Math.min(r.availableFrom, hoyMs) : r.availableFrom,
-                                                  availableUntil: r.availableUntil }]); });
+          var ya = suyo[docR[r.id]] || {};
+          // 14-sep · un sorteo ya hecho, o con fechas que puso el referente a mano, no se mueve
+          if (ya.isRaffleCompleted || (ya.stargateSorteo && ya.stargateSorteo.fijo)) return;
+          var desde = tiposYa[r.stargateTipo] ? Math.min(r.availableFrom, hoyMs) : r.availableFrom;
+          var campos = { availableFrom: desde, availableUntil: r.availableUntil };
+          if (r.systemEffect === "lottery_ticket") {
+            campos.ticketDeadline = r.ticketDeadline;
+            campos["stargateSorteo.fecha"] = r.ticketDeadline; campos["stargateSorteo.desde"] = desde;
+          }
+          escribir.push(["rewards", docR[r.id], campos]); });
         await MOTOR.guardarCalendario(PER, {
           "stargate.inicio": CAL.inicio, "stargate.pausas": CAL.pausas, "stargate.capitulosAbiertos": CAL.abiertos,
           "stargate.apertura": st.apertura, "stargate.cierre": st.cierre, "stargate.cierreCanje": st.cierreCanje }, escribir);

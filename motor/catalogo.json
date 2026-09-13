@@ -812,6 +812,19 @@
       "tipo": "nota"
     }
   ],
+  "sorteos": [
+    {
+      "id": "sorteo1",
+      "premio": "Licencia de Genially (un año completo)",
+      "descripcion": "Se sortean dos licencias de Genially de un año completo entre toda la tripulación. Cada participación es una papeleta: cuantas más tengas, más posibilidades. Nadie gana dos, y el sorteo lo hace el servidor en clase, a la vista de todos.",
+      "ganadores": 2,
+      "coste": 20,
+      "maximo": 10,
+      "desdeSemana": 6,
+      "semanaSorteo": 15,
+      "imagen": "sorteo.jpg"
+    }
+  ],
   "cromos": [
     {
       "clave": "P1_bran",

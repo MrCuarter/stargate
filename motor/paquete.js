@@ -72,7 +72,10 @@
    */
   function semanaTienda(semanaRegular, tipo, cat) {
     if (tipo !== "PUA" || semanaRegular <= 5) return semanaRegular;
-    return semanaEnTipo(semanaRegular, tipo, cat);
+    // 🔴 14-sep · lo de después de la 5 se reparte en las semanas que le quedan al PUA (6…8), nunca
+    // antes de la 5: escalando el curso entero, la semana 6 (el sorteo) caía en la 3, antes que el Zoco.
+    var total = cat.semanas.REGULAR || 15, suyas = cat.semanas.PUA || 8;
+    return Math.max(Math.min(6, suyas), Math.min(suyas, 5 + Math.ceil((semanaRegular - 5) * (suyas - 5) / (total - 5))));
   }
 
   // Los créditos de un reto salen de su forma, igual que en el motor viejo: lo dice el id.
@@ -393,8 +396,51 @@
         r.consumeEffects = { lootBox: cofre("heroe_", cat.heroes) }; }
     });
 
+    // ---------------------------------------------------------------- el Gran Sorteo (14-sep)
+    var sorteos = [];
+    (cat.sorteos || []).forEach(function (s) {
+      sorteos = sorteos.concat(docsDeSorteo(s, { inicio: inicio, pausas: pausas, tipo: tipo, cat: cat }));
+    });
+
     return { proyecto: proyecto, privado: privado, misiones: misiones, campanas: campanas,
-             recompensas: tienda.concat(coleccionables), series: cat.series };
+             recompensas: tienda.concat(coleccionables).concat(sorteos), series: cat.series };
+  }
+
+  /**
+   * UN SORTEO = DOS RECOMPENSAS de GamificaPro (14-sep). El PREMIO, fuera de la tienda, con tantas
+   * unidades como ganadores (`globalStock`: es lo que el sorteo reparte); y la PARTICIPACIÓN, en la
+   * tienda: `systemEffect: 'lottery_ticket'` apuntando al premio. Comprarla (purchaseReward) suma 1
+   * a `lotteryEntries[participación]` en la ficha; eso es la papeleta. Lo sortea el servidor
+   * (GamificaPro, stargateSortear). Lo escriben dos: el paquete de un grupo nuevo y la consola
+   * del referente al crear o cambiar un sorteo — por eso vive aquí, en un solo sitio.
+   *
+   * La venta y el sorteo van en SEMANAS del curso (se mueven con el calendario del referente), salvo
+   * que el referente ponga fechas (`desde` / `fecha`, en ms): entonces son fijas (`fijo`).
+   * 🔴 Sin campo `id` dentro del documento (GamificaPro lo pisaría): `id` aquí es el sufijo del
+   * documento, y quien escribe lo convierte en `grupo__id` (y `linkedItemId` también).
+   */
+  function docsDeSorteo(s, ctx) {
+    var semDesde = semanaTienda(Number(s.desdeSemana) || 6, ctx.tipo, ctx.cat);
+    var semSorteo = semanaTienda(Number(s.semanaSorteo) || 15, ctx.tipo, ctx.cat);
+    var fijo = !!(s.desde || s.fecha);
+    var desde = Number(s.desde) || ms(inicioDeSemana(ctx.inicio, semDesde, ctx.pausas));
+    // con fecha puesta a mano, la semana en que se abre es la de esa fecha (la Nave lo enseña desde ahí)
+    if (fijo && ctx.inicio) semDesde = Math.max(1, SEM().semanaDelCurso(ctx.inicio, ctx.pausas, desde) || 1);
+    var fecha = Number(s.fecha) || ms(inicioDeSemana(ctx.inicio, semSorteo, ctx.pausas));
+    var ganadores = Math.max(1, Math.floor(Number(s.ganadores) || 1));
+    var premio = { id: "premio_" + s.id, title: String(s.premio || "El premio del sorteo"), description: String(s.descripcion || ""),
+                   cost: 0, inStore: false, type: "item", stargateTipo: "premio_sorteo", stargateSorteoDe: s.id,
+                   isLimitedStock: true, globalStock: ganadores, globalStockInitial: ganadores,
+                   requiresDelivery: true, icon: "trophy" };
+    var ticket = { id: s.id, title: "Participación · " + premio.title, description: premio.description,
+                   cost: Math.max(0, Math.floor(Number(s.coste) || 0)), maxPerUser: Number(s.maximo) > 0 ? Math.floor(Number(s.maximo)) : null,
+                   type: "digital", enabled: true, inStore: true, systemEffect: "lottery_ticket", linkedItemId: premio.id,
+                   ticketDeadline: fecha, availableFrom: desde, availableUntil: fecha,
+                   stargateTipo: "sorteo", stargateSemana: semDesde,
+                   stargateSorteo: { premio: premio.title, ganadores: ganadores, fecha: fecha, desde: desde, fijo: fijo,
+                                     semanaSorteo: fijo ? null : semSorteo, imagen: String(s.imagen || "sorteo.jpg") },
+                   icon: "ticket" };
+    return [premio, ticket];
   }
 
   // El motor pinta el borde de la carta por rareza; nuestras palabras no son las suyas.
@@ -429,8 +475,10 @@
    */
   function premioDeHuevo(perId, h, sobre, heroe) {
     var tipo = h.premio === "heroe_fijo" && h.heroe ? "heroe_fijo"
+             : h.premio === "participaciones" && h.sorteo ? "participaciones"
              : h.premio === "heroe" ? "heroe" : h.premio === "bolsa" ? "bolsa" : h.premio === "xp" ? "xp" : "sobre";
-    var cuanto = Math.max(1, Number(h.cantidad || h.creditos || (tipo === "xp" ? 100 : 50)));
+    var cuanto = tipo === "participaciones" ? Math.max(1, Math.min(10, Math.floor(Number(h.cantidad) || 1)))
+               : Math.max(1, Number(h.cantidad || h.creditos || (tipo === "xp" ? 100 : 50)));
     // 🔴 `attributes.addCoins`, no `addCoins` suelto: así lo lee `efectosDeConsumir` en el servidor.
     // Puesto un nivel más arriba, la bolsa decía «+50 ◈, ya está en tu cuenta» y no pagaba nada.
     // xp: Norberto lo pidió para los premios que configura el referente («una recompensa de xp,
@@ -455,8 +503,10 @@
       projectId: perId, title: h.nombre || ("Escondite " + h.id), description: "Un escondite de la Tripulación Cero.",
       cost: 0, inStore: false, type: "item", stargateTipo: "huevo", stargateId: "huevo_" + h.id,
       stargateHuevo: { id: String(h.id), premio: tipo, creditos: cuanto, cantidad: cuanto,
-                       heroe: tipo === "heroe_fijo" ? String(h.heroe) : null, desde: desde, hasta: hasta },
-      isConsumable: true, maxUses: tipo === "sobre" ? Number((sobre && sobre.maxUses) || 3) : 1,
+                       heroe: tipo === "heroe_fijo" ? String(h.heroe) : null, desde: desde, hasta: hasta,
+                       // 14-sep · participaciones del Gran Sorteo: el servidor las suma a `lotteryEntries`
+                       sorteo: tipo === "participaciones" ? String(h.sorteo) : null },
+      isConsumable: tipo !== "participaciones", maxUses: tipo === "sobre" ? Number((sobre && sobre.maxUses) || 3) : 1,
       consumeEffects: efecto || {},
       claimLinkEnabled: h.activo !== false,
       claimLinkMaxPerUser: 1,
@@ -468,7 +518,7 @@
   }
   function idPremioHuevo(perId, huevoId) { return perId + "__huevo_" + String(huevoId); }
 
-  return { paquete: paquete, masDias: masDias, inicioDeSemana: inicioDeSemana,
+  return { paquete: paquete, masDias: masDias, inicioDeSemana: inicioDeSemana, docsDeSorteo: docsDeSorteo,
            semanaEnTipo: semanaEnTipo, semanaTienda: semanaTienda, creditosDe: creditosDe, escalaXp: escalaXp,
            codigoNuevo: codigoNuevo, premioDeHuevo: premioDeHuevo, idPremioHuevo: idPremioHuevo };
 });

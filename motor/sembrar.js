@@ -56,6 +56,8 @@ function conIdsDeDocumento(per, x) {
       x.consumeEffects.lootBox.items.map(i => Object.assign({}, i, { rewardId: doc_(i.rewardId) })) } });
   if (x.campaignId) out.campaignId = doc_(x.campaignId);
   if (x.unlockWhenCampaignComplete) out.unlockWhenCampaignComplete = doc_(x.unlockWhenCampaignComplete);
+  // 14-sep · la participación de un sorteo apunta al documento de su premio
+  if (x.linkedItemId) out.linkedItemId = doc_(x.linkedItemId);
   return out;
 }
 

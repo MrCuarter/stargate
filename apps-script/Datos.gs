@@ -361,6 +361,14 @@ var RECOMPENSAS_INICIALES = [
 ];
 // RECOMPENSAS-FIN
 
+// SORTEOS-INICIO · El Gran Sorteo (14-sep). [id, premio, descripción, ganadores, coste ◈ de la
+// participación, máx por persona, desde semana (venta), semana del sorteo, imagen]. Lo REGENERA
+// _build_site.py desde SORTEOS de _site_data.py — no editar a mano. Solo lo usa el motor nuevo.
+var SORTEOS = [
+  ["sorteo1","Licencia de Genially (un año completo)","Se sortean dos licencias de Genially de un año completo entre toda la tripulación. Cada participación es una papeleta: cuantas más tengas, más posibilidades. Nadie gana dos, y el sorteo lo hace el servidor en clase, a la vista de todos.",2,20,10,6,15,"sorteo.jpg"]
+];
+// SORTEOS-FIN
+
 // La imagen que enseña el formulario de canje ANTES de confirmar cada recompensa: se ve lo que te
 // llevas por tus créditos. Se empareja por NOMBRE con el catálogo y lo REGENERA _build_site.py desde
 // IMG_RECOMPENSA de _site_data.py — no editar a mano. Si una recompensa no está aquí (porque el

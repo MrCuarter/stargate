@@ -13,7 +13,7 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EVIDENCIA_RETOS, TOPE_RETOS_DIA, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
                         PASOS, ESCUADRONES, TICKET_URL, TICKETS_API, TICKETS_HOJA,
-                        ALIAS_SUGERIDOS, CAPITULOS)
+                        ALIAS_SUGERIDOS, CAPITULOS, SORTEOS)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
 # no se escriben a mano (si no, cambiarlas en _site_data.py dejaría la web mintiendo).
@@ -2510,6 +2510,16 @@ def _js_recompensas():
     filas[-1] = filas[-1][:-1]
     return "\n".join(filas)
 
+def _js_sorteos():
+    filas = []
+    for sid, premio, desc, ganadores, coste, mx, desde, semana_sorteo, img in SORTEOS:
+        if not os.path.exists(os.path.join(HERE, "assets", "img", "canje", img)):
+            raise SystemExit("SORTEOS: falta la imagen assets/img/canje/%s (genera con _build_img_formularios.py)" % img)
+        filas.append('  [%s,%s,%s,%d,%d,%d,%d,%d,%s],' % (json.dumps(sid), json.dumps(premio, ensure_ascii=False),
+                     json.dumps(desc, ensure_ascii=False), ganadores, coste, mx, desde, semana_sorteo, json.dumps(img)))
+    if filas: filas[-1] = filas[-1][:-1]
+    return "\n".join(filas)
+
 def _js_img_recompensas():
     # 🔴 GUARDA: la imagen se empareja por NOMBRE con el catálogo. Si alguien renombra una recompensa
     # en RECOMPENSAS y no toca IMG_RECOMPENSA, la recompensa se quedaría muda en el formulario sin
@@ -2548,6 +2558,7 @@ _gs = _sustituir(_gs, "// NIVELES-INICIO", "\n// NIVELES-FIN",
 _gs = _sustituir(_gs, "var ESCUADRONES = [\n", "\n];\n// ESCUADRONES-FIN", _js_escuadrones())
 _gs = _sustituir(_gs, "var RECOMPENSAS_INICIALES = [\n", "\n];\n// RECOMPENSAS-FIN", _js_recompensas())
 _gs = _sustituir(_gs, "var IMG_RECOMPENSA = {\n", "\n};\n// IMG-RECOMPENSA-FIN", _js_img_recompensas())
+_gs = _sustituir(_gs, "var SORTEOS = [\n", "\n];\n// SORTEOS-FIN", _js_sorteos())
 _gs = _sustituir(_gs, "var BONUS_PLANETA = ", ";\n// BONUS-FIN",
                  json.dumps(BONUS_PLANETA, ensure_ascii=False) + ";\nvar BONUS_RACHA = " +
                  json.dumps(BONUS_RACHA, ensure_ascii=False) + ";\nvar BONUS_TUTORIAL = " +

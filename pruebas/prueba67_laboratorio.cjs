@@ -30,7 +30,7 @@ const REG = {};   // cifras que se apuntan para el informe
   const nueva = async n => { const p = await persona(n); vivas.push(p); return p; };
   // 13-sep · los capítulos de NEBULA, ya vistos (para las secciones que no van de eso: si no, a mitad
   // de una prueba sale NEBULA contando el Mercado)
-  const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
+  const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6','c7'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
   // alistarse de verdad, por la pantalla (lo usan la clase entera y el héroe por enlace)
   const alistar = async (p, correo, nombre, alias, cmd) => {
     await p.ir("alistarse.html?per=lab-clase&codigo=" + CODIGO);
@@ -48,9 +48,9 @@ const REG = {};   // cifras que se apuntan para el informe
       const casos = [
         // 13-sep · +1: «El Zoco» (el registro de trueques y «Deshacer»), para todo el profesorado;
         // y +1 para quien lleva el grupo: «Calendario» (congelar semanas, abrir capítulos antes)
-        ["rita@lab.test", "Rita Referente", 9, "referente que imparte"],
+        ["rita@lab.test", "Rita Referente", 10, "referente que imparte"],
         ["dani@lab.test", "Dani Docente", 4, "docente raso"],
-        ["sol@lab.test", "Sol Coordina", 9, "referente que NO imparte"],
+        ["sol@lab.test", "Sol Coordina", 10, "referente que NO imparte"],
       ];
       for (const [correo, nombre, pestanas, quien] of casos) {
         const p = await nueva(quien);
@@ -780,7 +780,7 @@ const REG = {};   // cifras que se apuntan para el informe
         return {n:o.querySelector('.tour-step').textContent, t:o.querySelector('h3').textContent, x:o.querySelector('p').textContent, foco:f?f.className:''};})()`);
       const p0 = await paso();
       c("🔴 bienvenida · a la alumna recién alistada le sale NEBULA en su primera visita, ya dentro", sale && p0 && /1 \/ 6/.test(p0.n), JSON.stringify(p0));
-      c("🔴 capítulos · llega en la semana 10: le tocan los capítulos 1 a 5, EN ORDEN («Capítulo 1 de 5»)", p0 && /Capítulo 1 de 5/.test(p0.n), p0 && p0.n);
+      c("🔴 capítulos · llega en la semana 10: le tocan los capítulos 1 a 6, EN ORDEN («Capítulo 1 de 6»)", p0 && /Capítulo 1 de 6/.test(p0.n), p0 && p0.n);
       c("bienvenida · y NO le pide «escribe tu correo» (esa puerta ya no existe)", p0 && !/correo/i.test(p0.x), p0 && p0.x.slice(0, 120));
       const focos = [p0 && p0.foco];
       for (let k = 0; k < 5; k++) { await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700); const pk = await paso(); focos.push(pk ? pk.foco : "—"); }
@@ -795,14 +795,14 @@ const REG = {};   // cifras que se apuntan para el informe
         if (titulos.indexOf(pk.n.split(" · ").slice(0, 2).join(" · ")) < 0) titulos.push(pk.n.split(" · ").slice(0, 2).join(" · "));
         await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700);
       }
-      c("🔴 capítulos · detrás del 1 vienen el Mercado, la Rebelión, los adornos y el Zoco, uno tras otro",
-        titulos.length === 4 && /2 de 5/.test(titulos[0]) && /Mercado/.test(titulos[0]) && /Rebeli/.test(titulos[1]) && /insignia de mando/i.test(titulos[2]) && /Zoco/.test(titulos[3]), JSON.stringify(titulos));
+      c("🔴 capítulos · detrás del 1 vienen el Mercado, la Rebelión, los adornos, el Zoco y el Gran Sorteo, uno tras otro",
+        titulos.length === 5 && /2 de 6/.test(titulos[0]) && /Mercado/.test(titulos[0]) && /Rebeli/.test(titulos[1]) && /insignia de mando/i.test(titulos[2]) && /Zoco/.test(titulos[3]) && /Sorteo/.test(titulos[4]), JSON.stringify(titulos));
       c("bienvenida · al terminar se cierra", !(await paso()));
       await dormir(1500);
       const fLeo = await fichaDe("leo@lab.test", "lab-clase");
       const caps = fLeo.stargateCapitulos || {};
-      c("🔴 capítulos · quedan apuntados EN SU FICHA (no solo en el navegador): c1 a c5 «hecho»",
-        ["c1", "c2", "c3", "c4", "c5"].every(k => caps[k] && caps[k].estado === "hecho"), JSON.stringify(caps));
+      c("🔴 capítulos · quedan apuntados EN SU FICHA (no solo en el navegador): c1 a c6 «hecho»",
+        ["c1", "c2", "c3", "c4", "c5", "c6"].every(k => caps[k] && caps[k].estado === "hecho"), JSON.stringify(caps));
       await leo.ir("recluta.html?per=lab-clase"); await leo.hasta("/Lyra Nueva/.test(document.body.innerText)", 25); await dormir(2500);
       c("bienvenida · y en la segunda visita ya no sale", !(await paso()));
       // en otro navegador (sin nada guardado), tampoco: manda su ficha
@@ -812,7 +812,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 capítulos · en otro ordenador tampoco vuelve a salir (lo sabe su ficha)", !(await leo2.js("!!document.querySelector('#nave-onboard.open')")));
       await leo.js("document.getElementById('btn-onboard') && document.getElementById('btn-onboard').click(); 1"); await dormir(400);
       const menu = await leo.js("[].slice.call(document.querySelectorAll('#rep-menu [data-cap]')).map(function(b){return b.textContent})");
-      c("capítulos · «Repetir bienvenida» ofrece los capítulos abiertos (los 5 de la semana 10)", (menu || []).length === 5 && /Canal abierto/.test(menu[0]) && /Zoco/.test(menu[4]), JSON.stringify(menu));
+      c("capítulos · «Repetir bienvenida» ofrece los capítulos abiertos (los 6 de la semana 10)", (menu || []).length === 6 && /Canal abierto/.test(menu[0]) && /Sorteo/.test(menu[5]), JSON.stringify(menu));
       await leo.js("document.querySelector('#rep-menu [data-cap=c1]').click(); 1"); await dormir(700);
       const rep = await paso();
       c("bienvenida · y el 1 se vuelve a poner desde el principio", rep && /1 \/ 6/.test(rep.n), JSON.stringify(rep));
@@ -866,7 +866,7 @@ const REG = {};   // cifras que se apuntan para el informe
           const hay = await p.js("(function(){var b=document.querySelector('.tour.open .tour-next'); if(!b) return 0; b.click(); return 1;})()");
           if (!hay) break; await dormir(700); const v = await vista(); if (!v) break; loc.push(v);
         }
-        const nTabs = ref ? 9 : 4;   // 13-sep · +1: «El Zoco» (todos) y +1: «Calendario» (referente)
+        const nTabs = ref ? 10 : 4;   // 13-sep · +1: «El Zoco» (todos); referente, +«Calendario» y (14-sep) +«Sorteos»
         c("capitán · la visita del grupo tiene " + (nTabs + 2) + " pasos, uno por pestaña que " + nombre + " ve",
           loc.length === nTabs + 2 && loc.slice(1, nTabs + 1).every(v => /\bpest\b/.test(v.diana)), JSON.stringify(loc.map(v => v.t + "→" + v.diana)));
       }
@@ -1253,7 +1253,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('td.bienv')", 25);
       const celda = await rita.js("[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(t){return /Nora Nébula/.test(t.textContent)}).map(function(t){return t.querySelector('td.bienv').textContent})[0]||''");
-      c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 5 abiertos, 1 saltado)", /3\/5/.test(celda) && /1 saltado/.test(celda), celda);
+      c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 6 abiertos, 1 saltado)", /3\/6/.test(celda) && /1 saltado/.test(celda), celda);
     }
 
     // ============================================================ 20 · LA NAVE DEL COMANDANTE (simulacro)
@@ -1344,9 +1344,10 @@ const REG = {};   // cifras que se apuntan para el informe
       const dentro = await rita.hasta("(function(){ var f=document.querySelector('.dia.simulacro iframe'); var d=f&&f.contentDocument; return !!(d&&d.querySelector('.sim-barra')&&d.querySelectorAll('.nb-t').length>0); })()", 30);
       c("sesión · y dentro se puede usar (la barra del simulacro y las pestañas de la semana 2)", dentro);
       await dormir(1500); await rita.foto(FOTOS + "/21-sesion-ensenalo.png");
-      await rita.ir("sesion.html?per=lab-clase&sem=6"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
+      // (14-sep · la 6 ya abre el Gran Sorteo: la que no abre nada es la 7)
+      await rita.ir("sesion.html?per=lab-clase&sem=7"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
       const rot6 = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
-      c("sesión · una semana que no abre nada no lleva esas diapositivas (la 6)", rot6.indexOf("Lo nuevo") < 0, JSON.stringify(rot6));
+      c("sesión · una semana que no abre nada no lleva esas diapositivas (la 7)", rot6.indexOf("Lo nuevo") < 0, JSON.stringify(rot6));
     }
 
     // ============================================================ 22 · EL ZOCO ESTELAR, TODAS LAS COMBINACIONES
@@ -1967,7 +1968,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await cm.ir("entrar.html"); await cm.entrarComo("rita@lab.test", "Rita Referente");
       await cm.ir("recluta.html?simulacro=1&per=" + P + "&semana=6");
       await cm.hasta("!!document.querySelector('.nb-t[data-tab=\"zoco\"]')", 30);
-      await cm.js("['c1','c2','c3','c4','c5','c6'].forEach(function(k){localStorage.setItem('sgCap_" + P + "_'+k,'hecho')}); var c=document.querySelector('.neb-capa'); if(c) c.remove(); 1");
+      await cm.js("['c1','c2','c3','c4','c5','c6','c7'].forEach(function(k){localStorage.setItem('sgCap_" + P + "_'+k,'hecho')}); var c=document.querySelector('.neb-capa'); if(c) c.remove(); 1");
       await alZoco(cm);
       c("zoco · 21 · en la Nave del Comandante (semana 6) el Zoco sale con cosas de «otros reclutas»", await cm.hasta("document.querySelectorAll('[data-zofertar]').length>0", 15));
       const hayMio = await cm.js("document.getElementById('z-poner').click(); !!document.querySelector('.zoco-capa .zm-p:not([disabled])')");
@@ -2056,18 +2057,19 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.foto(FOTOS + "/23-calendario-congelada.png");
       c("calendario · sin pulsar «Guardar» no se ha tocado nada", JSON.stringify((await pref.get()).data().stargate.pausas || []) === JSON.stringify(S0.pausas || []));
       // y abrir antes el Arsenal (capítulo 6, semana 15)
-      await rita.js("var b=document.querySelector('[data-cal-abre=\"c6\"]'); if(b) b.click(); 1");
+      await rita.js("var b=document.querySelector('[data-cal-abre=\"c7\"]'); if(b) b.click(); 1");
       await rita.hasta("/Se abre YA/.test(document.querySelector('.cal-guardar').innerText)", 10);
       await rita.js("document.getElementById('cal-guardar').click(); 1");
       c("calendario · «Guardar» → «Calendario guardado: N fechas recalculadas»", await rita.hasta("/Calendario guardado: \\d+ fechas/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25),
         await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
       const F1 = await foto(), S1 = F1.S;
-      c("🔴 calendario · el grupo guarda la pausa y el capítulo abierto", JSON.stringify(S1.pausas) === JSON.stringify([futura]) && S1.capitulosAbiertos && S1.capitulosAbiertos.c6 === true,
+      c("🔴 calendario · el grupo guarda la pausa y el capítulo abierto", JSON.stringify(S1.pausas) === JSON.stringify([futura]) && S1.capitulosAbiertos && S1.capitulosAbiertos.c7 === true,
         JSON.stringify([S1.pausas, S1.capitulosAbiertos]));
       c("🔴 calendario · el cierre de retos y el de canje, una semana más tarde", S1.cierre === SS.masDias(S0.cierre, 7) && S1.cierreCanje === SS.masDias(S0.cierreCanje, 7),
         S0.cierre + "→" + S1.cierre + " · " + S0.cierreCanje + "→" + S1.cierreCanje);
       const lim = new Date(futura + "T00:00:00").getTime(), hoyMs = SS.fecha(new Date()).getTime();
-      const malR = Object.keys(F0.rw).filter(k => {
+      const esSorteo = k => /__sorteo/.test(k);
+      const malR = Object.keys(F0.rw).filter(k => !esSorteo(k)).filter(k => {
         const [d0, u0, tipo] = F0.rw[k], [d1, u1] = F1.rw[k];
         const esperado = tipo === "nota" ? Math.min(d0 < lim ? d0 : new Date(SS.masDias(SS.iso(d0), 7) + "T00:00:00").getTime(), hoyMs)
                                         : d0 < lim ? d0 : new Date(SS.masDias(SS.iso(d0), 7) + "T00:00:00").getTime();
@@ -2075,6 +2077,10 @@ const REG = {};   // cifras que se apuntan para el informe
       });
       c("🔴 calendario · el Mercado: lo de antes de la pausa igual, lo de después una semana más tarde, y el Arsenal ya a la venta", malR.length === 0 && Object.keys(F0.rw).length > 5,
         malR.map(k => k.split("__")[1] + ":" + SS.iso(F0.rw[k][0]) + "→" + SS.iso(F1.rw[k][0])).join(" "));
+      const kS = Object.keys(F0.rw).filter(esSorteo)[0];
+      c("🔴 calendario · el Gran Sorteo: se sigue vendiendo desde su semana (antes de la pausa) y se sortea una semana más tarde",
+        !!kS && F1.rw[kS][0] === F0.rw[kS][0] && F1.rw[kS][1] === new Date(SS.masDias(SS.iso(F0.rw[kS][1]), 7) + "T00:00:00").getTime(),
+        kS + " · " + (kS ? SS.iso(F0.rw[kS][1]) + "→" + SS.iso(F1.rw[kS][1]) : ""));
       const malC = Object.keys(F0.cp).filter(k => F1.cp[k] !== (F0.cp[k] < lim ? F0.cp[k] : new Date(SS.masDias(SS.iso(F0.cp[k]), 7) + "T00:00:00").getTime()));
       c("calendario · los planetas: los que vienen detrás de la pausa, una semana más tarde", malC.length === 0 && Object.keys(F0.cp).length > 3, malC.join(","));
       // la Nave de una alumna: la semana de hoy no cambia (la pausa es futura) y el Arsenal ya se ve
@@ -2103,13 +2109,13 @@ const REG = {};   // cifras que se apuntan para el informe
       // deshacerlo todo desde el calendario: descongelar y devolver el Arsenal a su semana
       await rita.js("document.querySelector('.pest[data-tab=\"calendario\"]').click(); 1"); await rita.hasta("!!document.querySelector('.cal-tabla')", 20);
       await rita.js(`document.querySelector('[data-cal-sigue="${futura}"]').click(); 1`); await dormir(300);
-      await rita.js("var b=document.querySelector('[data-cal-cierra=\"c6\"]'); if(b) b.click(); 1"); await dormir(300);
+      await rita.js("var b=document.querySelector('[data-cal-cierra=\"c7\"]'); if(b) b.click(); 1"); await dormir(300);
       await rita.js("document.getElementById('cal-guardar').click(); 1");
       await rita.hasta("/Calendario guardado/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25);
       const F2 = await foto();
       c("🔴 calendario · al deshacerlo, TODAS las fechas vuelven exactamente a las de antes",
         JSON.stringify(F2.rw) === JSON.stringify(F0.rw) && JSON.stringify(F2.cp) === JSON.stringify(F0.cp) && F2.S.cierre === S0.cierre && F2.S.cierreCanje === S0.cierreCanje
-        && (F2.S.pausas || []).length === 0 && !(F2.S.capitulosAbiertos || {}).c6);
+        && (F2.S.pausas || []).length === 0 && !(F2.S.capitulosAbiertos || {}).c7);
       // Ajustes ya no mueve la fecha a medias: manda al calendario
       await rita.js("document.querySelector('.pest[data-tab=\"ajustes\"]').click(); 1"); await rita.hasta("!!document.getElementById('s-guardar')", 15);
       c("calendario · en «Ajustes» ya no se cambia la semana 1 (solo se ve) y un botón lleva al calendario",
@@ -2190,6 +2196,179 @@ const REG = {};   // cifras que se apuntan para el informe
       await fs.collection("projects").doc("demo-lab").delete();
       c("borrar · sin errores en la consola", !nor.errores.filter(e => !/Failed to load resource/.test(e)).length, nor.errores[0] || "");
       await nor.cerrar(); await dani.cerrar();
+    }
+    // ============================================================ 25 · EL GRAN SORTEO
+    /**
+     * Norberto: «quiero dar más poderes al profe referente para dinamizar las clases… el sorteo de dos
+     * licencias de Genially de año completo, a partir de la semana 6: que los estudiantes puedan
+     * comprar participaciones y el profe regalarlas, o que el referente embeba participaciones».
+     * Cuatro reclutas: una compra por la pantalla hasta el tope, otro compra dos, la docente regala en
+     * clase, un enlace da participaciones; la referente lo proyecta y lo sortea el SERVIDOR.
+     */
+    if (hacer(25)) {
+      const A = admin(), fs = A.firestore(), P = "lab-clase";
+      const T = P + "__sorteo1", PREMIO = P + "__premio_sorteo1";
+      const GENTE = { sara: ["sara@lab.test", "Sara Prueba", "Sara Saturno", 0], iker: ["iker@lab.test", "Iker Prueba", "Íker Ícaro", 1],
+                      lola: ["lola@lab.test", "Lola Prueba", "Lola Luna", 0], mateo: ["mateo@lab.test", "Mateo Prueba", "Mateo Marte", 1] };
+      for (const k of Object.keys(GENTE)) {
+        const [correo, nombre, alias, cmd] = GENTE[k];
+        for (let i = 0; i < 2 && !(await fichaDe(correo, P)); i++) { const a = await nueva("Alta " + nombre); await alistar(a, correo, nombre, alias, cmd); await a.cerrar(); }
+      }
+      const F = {}; for (const k of Object.keys(GENTE)) F[k] = await fichaDe(GENTE[k][0], P);
+      c("sorteo · cuatro reclutas (uno con alias «Íker Ícaro»: mayúscula con tilde)", Object.keys(F).every(k => F[k] && F[k].displayName === GENTE[k][2]),
+        JSON.stringify(Object.keys(F).map(k => F[k] && F[k].displayName)));
+      for (const k of Object.keys(F)) await fs.collection("student_profiles").doc(F[k]._id).update({ coins: 300 });
+      const ficha = k => fichaDe(GENTE[k][0], P);
+      const papeletas = f => Number(((f && f.lotteryEntries) || {})[T] || 0);
+      const ticket = async () => (await fs.collection("rewards").doc(T).get()).data();
+      c("sorteo · el grupo nace con el Gran Sorteo: la participación (20 ◈, máx. 10) apunta a su premio (2 licencias)",
+        (await ticket()).systemEffect === "lottery_ticket" && (await ticket()).linkedItemId === PREMIO && (await ticket()).cost === 20 && (await ticket()).maxPerUser === 10
+        && (await fs.collection("rewards").doc(PREMIO).get()).data().globalStock === 2);
+      const naveDe = async (k, nota, tab) => {
+        const [correo, nombre] = GENTE[k], q = await nueva(nombre.split(" ")[0] + " · " + nota);
+        await q.ir("entrar.html"); await q.entrarComo(correo, nombre); await sinBienvenidas(q);
+        await q.ir("recluta.html?per=" + P); await q.hasta("!!document.querySelector('.nb-t[data-tab=\"mercado\"]')", 30);
+        if (tab) { await q.js("document.querySelector('.nb-t[data-tab=\"" + tab + "\"]').click(); 1"); await dormir(1200); }
+        return q;
+      };
+      const compra = (q, k) => q.js(`window.SG.MOTOR.llamar('purchaseReward',{projectId:'${P}',rewardId:'${T}',studentProfileId:'${F[k]._id}'}).then(function(){return 'OK'},function(e){return 'ERROR '+e.message})`, 60000);
+
+      // 1 · Sara compra por la pantalla
+      const s1 = await naveDe("sara", "compra", "mercado");
+      c("🔴 sorteo · en el Mercado de la semana 10 está la tarjeta del Gran Sorteo con la licencia", await s1.hasta("!!document.querySelector('.rec-card.sorteo') && /Licencia de Genially/.test(document.querySelector('.rec-card.sorteo').innerText)", 20));
+      c("sorteo · dice cuándo se sortea, cuántos ganan y cuántas llevas («Llevas 0»)", /se sortea el/i.test(await s1.js("document.querySelector('.rec-card.sorteo').innerText"))
+        && /2 ganadores/i.test(await s1.js("document.querySelector('.rec-card.sorteo').innerText")) && /Llevas 0/.test(await s1.js("document.querySelector('.rec-card.sorteo').innerText")));
+      await s1.foto(FOTOS + "/25-mercado-sorteo.png");
+      await s1.js("document.querySelector('.rec-card.sorteo [data-canje]').click(); 1");
+      await s1.hasta("!!document.querySelector('.neb-capa [data-si]')", 10);
+      await s1.js("document.querySelector('.neb-capa [data-si]').click(); 1");
+      // (la PREGUNTA ya dice «una participación del Gran Sorteo»: se espera a la ENTREGA, que explica qué es)
+      c("sorteo · NEBULA lo entrega: «Una participación del Gran Sorteo… es una papeleta más»", await s1.hasta("/papeleta más/i.test((document.querySelector('.neb-capa')||{}).innerText||'')", 30),
+        await s1.js("(document.querySelector('.neb-capa')||{}).innerText||''"));
+      await s1.foto(FOTOS + "/25-participacion-entregada.png");
+      const fS1 = await ficha("sara");
+      c("🔴 sorteo · la papeleta está en su ficha (1) y le han cobrado 20 ◈", papeletas(fS1) === 1 && fS1.coins === 280, papeletas(fS1) + " · " + fS1.coins);
+      await s1.js("var b=document.querySelector('.neb-capa [data-cerrar]'); if(b) b.click(); 1"); await dormir(1500);
+      c("sorteo · y la tarjeta ya dice «Llevas 1»", await s1.hasta("/Llevas 1 participación/.test((document.querySelector('.rec-card.sorteo')||{}).innerText||'')", 15));
+      // hasta el tope (10) y ni una más
+      for (let i = 0; i < 9; i++) await compra(s1, "sara");
+      const once = await compra(s1, "sara");
+      const fS2 = await ficha("sara");
+      c("🔴 sorteo · como mucho 10 por persona: la undécima, el servidor dice que no (y no cobra)", papeletas(fS2) === 10 && /ERROR/.test(once) && fS2.coins === 100, papeletas(fS2) + " · " + fS2.coins + " · " + once);
+      await s1.cerrar();
+      const s2 = await naveDe("sara", "en el tope", "mercado");
+      c("sorteo · y su tarjeta ya no ofrece comprar: «Ya tienes las 10 que se permiten»", await s2.hasta("/Ya tienes las 10/i.test((document.querySelector('.rec-card.sorteo')||{}).innerText||'') && !document.querySelector('.rec-card.sorteo [data-canje]')", 15));
+      await s2.cerrar();
+      // Íker compra dos
+      const i1 = await naveDe("iker", "compra dos");
+      await compra(i1, "iker"); await compra(i1, "iker");
+      c("sorteo · Íker compra dos", papeletas(await ficha("iker")) === 2);
+      c("🔴 sorteo · un estudiante NO puede sortear", /profesorado|equipo docente/i.test(await i1.js(`window.SG.MOTOR.sortear('${P}','${T}').then(function(){return 'SORTEÓ'},function(e){return e.message})`)));
+      c("🔴 sorteo · ni darse participaciones a sí mismo desde la consola del navegador",
+        !/ESCRIBIÓ/.test(await i1.js(`window.SG.MOTOR.updateDoc(window.SG.MOTOR.doc(window.SG.MOTOR.db,'student_profiles','${F.iker._id}'),{'lotteryEntries.${T}':50}).then(function(){return 'ESCRIBIÓ'},function(e){return e.code||e.message})`)));
+      await i1.cerrar();
+
+      // 2 · la docente regala en clase (el aula) y la referente esconde participaciones en un enlace
+      const rita = await nueva("Rita y el sorteo");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("aula.html?per=" + P); await rita.hasta("!!(window.SG&&window.SG.MOTOR)", 20); await dormir(2500);
+      await rita.js("var b=[].slice.call(document.querySelectorAll('[data-au]')).filter(function(x){return x.getAttribute('data-au')==='premios'})[0]; if(b) b.click(); 1");
+      c("sorteo · en el aula, «Premiar» tiene la fila 🎟️ Sorteo (1, 2 o 3 participaciones)", await rita.hasta("document.querySelectorAll('.au-pr[data-k^=\"part\"]').length===3", 15));
+      await rita.foto(FOTOS + "/25-aula-regalar.png");
+      const regalo = await rita.js(`window.SG.MOTOR.regalarEnClase('${P}',['${F.lola._id}','${F.mateo._id}'],{tipo:'participacion',sorteo:'${T}',n:3}).then(function(r){return JSON.stringify(r)},function(e){return 'ERROR '+e.message})`, 60000);
+      c("🔴 sorteo · la docente regala 3 a Lola y 3 a Mateo", papeletas(await ficha("lola")) === 3 && papeletas(await ficha("mateo")) === 3, regalo);
+      const huevos = await rita.js(`window.SG.MOTOR.huevosDe('${P}').then(function(h){return JSON.stringify(h)})`);
+      const lista = JSON.parse(huevos || "[]").concat([{ id: "sorteo-lab", nombre: "Dos papeletas escondidas", premio: "participaciones", sorteo: T, cantidad: 2, activo: true, limite: 0, porEscuadron: 0 }]);
+      await rita.js(`window.SG.MOTOR.guardarHuevos('${P}', ${JSON.stringify(lista)}).then(function(){return 'OK'})`, 60000);
+      const m1 = await nueva("Mateo encuentra el enlace");
+      await m1.ir("huevo.html?h=sorteo-lab&per=" + P); await m1.entrarComo("mateo@lab.test", "Mateo Prueba");
+      await m1.ir("huevo.html?h=sorteo-lab&per=" + P); await m1.hasta("!!document.getElementById('hv-abrir')", 25);
+      await m1.js("document.getElementById('hv-abrir').click(); 1");
+      c("🔴 sorteo · un enlace de «Premios por enlace» da 2 participaciones («+2 participaciones»)", await m1.hasta("/\\+2 participaciones/.test(document.body.innerText)", 25), (await m1.texto()).slice(0, 200));
+      await m1.foto(FOTOS + "/25-enlace-participaciones.png");
+      c("sorteo · …y se suman a su ficha (3 + 2 = 5)", papeletas(await ficha("mateo")) === 5);
+      await m1.ir("huevo.html?h=sorteo-lab&per=" + P); await m1.hasta("/ya lo tenías/i.test(document.body.innerText)", 20);
+      c("sorteo · el mismo enlace otra vez: «Este ya lo tenías» (y no suma)", papeletas(await ficha("mateo")) === 5);
+      await m1.cerrar();
+
+      // 3 · la consola: el bombo, cambiar el precio, y sortear en directo
+      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"sorteos\"]')", 25);
+      await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1");
+      await rita.hasta("!!document.querySelector('.sr-caja')", 20);
+      const cuenta = await rita.js("(document.querySelector('.sr-cuenta')||{}).innerText||''");
+      c("🔴 sorteo · la consola cuenta el bombo: 20 participaciones de 4 reclutas (10 + 2 + 3 + 5)", /20 participaciones de 4 reclutas/.test(cuenta), cuenta);
+      await rita.js("var d=document.querySelector('.sr-caja details'); if(d) d.open=true; 1");
+      c("sorteo · y cada uno con sus posibilidades (Sara, 10 de 20 = 50 %)", /Sara Saturno[\s\S]*50 %/.test(await rita.texto()));
+      await rita.foto(FOTOS + "/25-consola-sorteos.png");
+      await rita.js("document.querySelector('.sr-editar').click(); 1"); await rita.hasta("!!document.querySelector('.sr-editar-f .sr-coste')", 10);
+      await rita.js("var i=document.querySelector('.sr-editar-f .sr-coste'); i.value='25'; document.querySelector('.sr-editar-f .sr-guardar').click(); 1");
+      c("sorteo · la referente cambia el precio a 25 ◈", await rita.hasta("/Sorteo cambiado/.test((document.getElementById('c-aviso')||{}).innerText||'')", 20) && (await ticket()).cost === 25);
+      const i2 = await naveDe("iker", "compra a 25"); await compra(i2, "iker"); await i2.cerrar();
+      const fI = await ficha("iker");
+      c("sorteo · y la siguiente compra ya cuesta 25 (Íker: 300 − 20 − 20 − 25 = 235, con 3 papeletas)", fI.coins === 235 && papeletas(fI) === 3, fI.coins + " · " + papeletas(fI));
+      const antes = {}; for (const k of Object.keys(F)) antes[k] = papeletas(await ficha(k));
+      // el sorteo, proyectado
+      await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1"); await rita.hasta("!!document.querySelector('.sr-directo')", 20);
+      await rita.js("window.confirm=function(){return true}; document.querySelector('.sr-directo').click(); 1");
+      c("sorteo · «Sortear en directo» abre el bombo para proyectar (sin nombres reales ni correos)", await rita.hasta("document.querySelectorAll('.sr-proy .sr-chip').length===4", 10)
+        && !/@lab\.test/.test(await rita.js("document.querySelector('.sr-proy').innerText")));
+      await rita.foto(FOTOS + "/25-bombo.png");
+      await rita.js("document.getElementById('sr-go').click(); 1");
+      c("🔴 sorteo · ¡Sortear! → la ruleta se para en dos ganadores", await rita.hasta("document.querySelectorAll('.sr-chip.gana').length===2 && /Enhorabuena/.test(document.querySelector('.sr-proy').innerText)", 60),
+        await rita.js("(document.querySelector('.sr-proy')||{}).innerText||''"));
+      await rita.foto(FOTOS + "/25-ganadores.png");
+      const tk = await ticket(), gan = tk.raffleWinnerIds || [];
+      const idAk = {}; Object.keys(F).forEach(k => { idAk[F[k]._id] = k; });
+      c("🔴 sorteo · el servidor lo cierra: 2 ganadores DISTINTOS, y los dos tenían participaciones", tk.isRaffleCompleted === true && gan.length === 2 && gan[0] !== gan[1] && gan.every(f => antes[idAk[f]] > 0),
+        JSON.stringify(gan.map(f => idAk[f])));
+      const despues = {}; for (const k of Object.keys(F)) despues[k] = await ficha(k);
+      c("🔴 sorteo · cada ganador tiene su licencia en el inventario, y nadie más", Object.keys(F).every(k => (despues[k].inventory || []).filter(x => x === PREMIO).length === (gan.indexOf(F[k]._id) >= 0 ? 1 : 0)));
+      c("sorteo · las papeletas de este sorteo se retiran a todos", Object.keys(F).every(k => papeletas(despues[k]) === 0));
+      c("sorteo · el premio se queda sin unidades y el sorteo deja de venderse", (await fs.collection("rewards").doc(PREMIO).get()).data().globalStock === 0 && Number(tk.availableUntil) <= Date.now());
+      const arch = (await fs.collection("projects").doc(P).collection("lottery_archives").doc(T).get()).data();
+      c("🔴 sorteo · el bombo entero queda guardado ANTES de borrar nada (4 reclutas, 21 papeletas, las regaladas incluidas)",
+        arch && arch.bombo.length === 4 && arch.totalParticipaciones === 21 && arch.bombo.some(b => b.ficha === F.lola._id && b.n === 3), JSON.stringify(arch && { n: arch.bombo.length, t: arch.totalParticipaciones }));
+      c("🔴 sorteo · dos veces no se puede sortear", /ya se ha hecho/.test(await rita.js(`window.SG.MOTOR.sortear('${P}','${T}').then(function(){return 'OTRA VEZ'},function(e){return e.message})`)));
+      c("sorteo · ni regalar participaciones de un sorteo ya hecho", /ya se ha hecho/.test(await rita.js(`window.SG.MOTOR.regalarEnClase('${P}',['${F.lola._id}'],{tipo:'participacion',sorteo:'${T}',n:1}).then(function(){return 'REGALÓ'},function(e){return e.message})`)));
+      await rita.js("document.getElementById('sr-salir').click(); 1"); await rita.hasta("!!document.querySelector('.sr-ganadores')", 20);
+      c("sorteo · en la consola, los ganadores con su nombre y su correo (para entregarles la licencia)", /@lab\.test/.test(await rita.js("document.querySelector('.sr-ganadores').innerText")));
+      const i3 = await naveDe("iker", "después del sorteo");
+      c("🔴 sorteo · después del sorteo nadie puede comprar (el servidor lo cierra)", /ERROR/.test(await compra(i3, "iker")));
+      await i3.cerrar();
+      const l0 = await nueva("Lola, el enlace tras el sorteo");
+      await l0.ir("huevo.html?h=sorteo-lab&per=" + P); await l0.entrarComo("lola@lab.test", "Lola Prueba");
+      await l0.ir("huevo.html?h=sorteo-lab&per=" + P); await l0.hasta("!!document.getElementById('hv-abrir')", 25);
+      await l0.js("document.getElementById('hv-abrir').click(); 1");
+      c("sorteo · el enlace de participaciones, después del sorteo: «Ese sorteo ya se ha hecho»", await l0.hasta("/ya se ha hecho/i.test(document.body.innerText)", 25), (await l0.texto()).slice(0, 160));
+      c("   (y no le suma nada)", papeletas(await ficha("lola")) === 0);
+      await l0.cerrar();
+      // 4 · lo que ven quien gana y quien no
+      const kG = idAk[gan[0]], kN = Object.keys(F).filter(k => gan.indexOf(F[k]._id) < 0)[0];
+      const g1 = await naveDe(kG, "ha ganado");
+      c("🔴 sorteo · quien gana lo ve nada más entrar: «🏆 ¡Has ganado el Gran Sorteo!»", await g1.hasta("/Has ganado el Gran Sorteo/.test((document.querySelector('.sorteo-aviso')||{}).innerText||'')", 20));
+      await g1.foto(FOTOS + "/25-has-ganado.png");
+      await g1.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
+      c("sorteo · y en Mi botín: «Lo que has ganado en el Gran Sorteo: Licencia de Genially…»", await g1.hasta("/Lo que has ganado en el Gran Sorteo/.test(document.body.innerText) && /Licencia de Genially/.test(document.body.innerText)", 15));
+      await g1.cerrar();
+      const n1 = await naveDe(kN, "no ha ganado", "mercado");
+      c("sorteo · quien no gana lo sabe también («ya se ha hecho… para X y Y»)", /ya se ha hecho/i.test(await n1.js("(document.querySelector('.sorteo-aviso')||{}).innerText||''")));
+      c("sorteo · y en el Mercado la tarjeta dice quién ganó, sin botón de comprar", /Ya se ha sorteado/.test(await n1.js("(document.querySelector('.rec-card.sorteo')||{}).innerText||''")) && !(await n1.js("!!document.querySelector('.rec-card.sorteo [data-canje]')")));
+      await n1.js("document.querySelector('.sorteo-aviso [data-sorteo-visto]:not([data-tab])').click(); 1"); await dormir(400);
+      c("sorteo · el aviso se cierra con ✕ y no vuelve a salir en ese navegador", !(await n1.js("!!document.querySelector('.sorteo-aviso')")));
+      await n1.foto(FOTOS + "/25-mercado-sorteado.png");
+      await n1.cerrar();
+      // 5 · la referente crea otro sorteo desde la consola y sale en el Mercado
+      await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1"); await rita.hasta("!!document.getElementById('sr-nuevo')", 20);
+      await rita.js("document.getElementById('sr-nuevo').click(); 1"); await rita.hasta("!!document.querySelector('#sr-nuevo-f .sr-premio')", 10);
+      await rita.js(`(function(){ var f=document.querySelector('#sr-nuevo-f'); f.querySelector('.sr-premio').value='Una tarde de juegos de mesa'; f.querySelector('.sr-desc').value='Para toda la escuadra ganadora';
+        f.querySelector('.sr-gan').value='1'; f.querySelector('.sr-coste').value='5'; f.querySelector('.sr-max').value='3';
+        f.querySelector('.sr-guardar').click(); return 1; })()`);
+      c("sorteo · la referente crea otro sorteo desde la consola", await rita.hasta("/Sorteo creado/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25),
+        await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
+      const l1 = await naveDe("lola", "el sorteo nuevo", "mercado");
+      c("sorteo · y sale en el Mercado de su alumnado", await l1.hasta("[].slice.call(document.querySelectorAll('.rec-card.sorteo')).some(function(x){return /juegos de mesa/.test(x.innerText)})", 20));
+      c("sorteo · sin errores en las páginas", [rita, l1].every(x => !x.errores.filter(e => !/Failed to load resource/.test(e)).length), [rita, l1].map(x => x.errores[0] || "").join(" | "));
+      await l1.cerrar(); await rita.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

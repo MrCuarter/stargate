@@ -206,6 +206,59 @@ def heroe():
     guardar(base, "heroe.jpg")
 
 
+# ─────────────────────────── El Gran Sorteo (14-sep) ───────────────────────────
+def sorteo():
+    """Dos boletos dorados (dos premios) y NEBULA: montaje con lo que ya hay, sin generar nada."""
+    base = fondo().convert("RGBA")
+    capa = Image.new("RGBA", base.size, (0, 0, 0, 0))
+    resplandor(capa, (330, 80, 950, 460), AMBAR, 60, 90)
+    base.alpha_composite(capa)
+
+    def boleto(cx, cy, ang, num):
+        bw, bh = 520, 250
+        b = Image.new("RGBA", (bw, bh), (0, 0, 0, 0))
+        d = ImageDraw.Draw(b)
+        d.rounded_rectangle((0, 0, bw - 1, bh - 1), 26, fill=(238, 188, 92, 255), outline=(255, 236, 190, 255), width=4)
+        d.rounded_rectangle((14, 14, bw - 15, bh - 15), 18, outline=(120, 76, 18, 255), width=3)
+        for y in (0, bh):                                  # las muescas de un boleto de verdad
+            d.ellipse((bw * 0.68 - 22, y - 22, bw * 0.68 + 22, y + 22), fill=(0, 0, 0, 0))
+        for yy in range(30, bh - 30, 16):                  # el troquel
+            d.line((bw * 0.68, yy, bw * 0.68, yy + 8), fill=(120, 76, 18, 255), width=3)
+        ft = fuente("Unbounded.ttf", 38)
+        d.text((40, 52), "GRAN", font=ft, fill=(60, 34, 6, 255))
+        d.text((40, 100), "SORTEO", font=ft, fill=(60, 34, 6, 255))
+        d.text((40, 162), "STARGATE", font=fuente("DMSans.ttf", 26), fill=(90, 56, 14, 255))
+        fn = fuente("Unbounded.ttf", 64)
+        tn = d.textbbox((0, 0), num, font=fn)
+        d.text((bw * 0.84 - (tn[2] - tn[0]) / 2 - tn[0], bh / 2 - (tn[3] - tn[1]) / 2 - tn[1]), num, font=fn, fill=(60, 34, 6, 255))
+        b = b.rotate(ang, resample=Image.BICUBIC, expand=True)
+        sombra = Image.new("RGBA", b.size, (0, 0, 0, 0))
+        sombra.putalpha(b.getchannel("A").point(lambda v: v * 150 // 255))
+        base.alpha_composite(sombra.filter(ImageFilter.GaussianBlur(14)), (int(cx - b.width / 2) + 10, int(cy - b.height / 2) + 16))
+        base.alpha_composite(b, (int(cx - b.width / 2), int(cy - b.height / 2)))
+
+    boleto(300, 175, 7, "1")
+    boleto(600, 300, -5, "2")
+    neb = Image.open(os.path.join(IMG, "personajes", "nebula.png")).convert("RGBA")
+    alto = 640
+    neb = neb.resize((int(neb.width * alto / neb.height), alto), Image.LANCZOS)
+    # se funde por abajo: cortada a media altura parecía un recorte mal hecho
+    rampa = Image.linear_gradient("L").rotate(180).resize((neb.width, 200))
+    alfa = neb.getchannel("A")
+    fade = Image.new("L", neb.size, 255); fade.paste(rampa, (0, neb.height - 200))
+    neb.putalpha(Image.composite(alfa, Image.new("L", neb.size, 0), fade))
+    base.alpha_composite(neb, (W - neb.width + 20, H - alto + 40))
+    d = ImageDraw.Draw(base)
+    # el texto, en la columna de la izquierda: NEBULA ocupa la derecha
+    def centrado(texto, y, f, color, cx=455):
+        an = d.textbbox((0, 0), texto, font=f)[2]
+        d.text((cx - an // 2, y), texto, font=f, fill=color)
+    centrado("El Gran Sorteo", 488, fuente("Unbounded.ttf", 52), BLANCO)
+    centrado("Dos licencias de Genially de un año completo", 566, fuente("DMSans.ttf", 27), AMBAR)
+    centrado("Cada participación es una papeleta · nadie gana dos", 612, fuente("DMSans.ttf", 25), (150, 170, 185))
+    guardar(base, "sorteo.jpg")
+
+
 # ─────────────────────────── 2 · Cambiar 3 repetidos ───────────────────────────
 def repetidos():
     """Tres cartas iguales entran, una carta nueva sale. Gratis."""
@@ -339,6 +392,11 @@ def envolver(d, texto, ancho, px, fnt, color):
 
 
 if __name__ == "__main__":
+    import sys
+    # `python3 _build_img_formularios.py sorteo` → solo esa (sin tocar las demás)
+    if len(sys.argv) > 1:
+        for n in sys.argv[1:]: globals()[n]()
+        raise SystemExit(0)
     print("Imágenes de los formularios →", IMG)
 
     print("\n· CANJE · montajes con el arte que ya existe")
@@ -347,6 +405,7 @@ if __name__ == "__main__":
     titulo()
     planeta()
     marco()
+    sorteo()
 
     print("\n· CANJE · arte de Magnific, rotulado aquí")
     arte("sobre", "Un sobre de cromos", "Tres cartas al azar de las 26 · se abre solo en tu Nave", "sobre.jpg")

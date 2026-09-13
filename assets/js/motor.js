@@ -596,6 +596,8 @@ function conIdsDeDocumento(per, x) {
       x.consumeEffects.lootBox.items.map(i => Object.assign({}, i, { rewardId: doc_(i.rewardId) })) } });
   if (x.campaignId) out.campaignId = doc_(x.campaignId);
   if (x.unlockWhenCampaignComplete) out.unlockWhenCampaignComplete = doc_(x.unlockWhenCampaignComplete);
+  // 14-sep · la participación de un sorteo apunta al documento de su premio
+  if (x.linkedItemId) out.linkedItemId = doc_(x.linkedItemId);
   return out;
 }
 
@@ -1099,8 +1101,9 @@ async function reclamarHuevo(perId, huevoId, fichaId) {
   if (est === "pronto") throw new Error("Todavía no se puede: se abre " + cuandoEs(R.claimLinkStartsAt) + ".");
   if (est === "cerrado") throw new Error("Se cerró " + cuandoEs(R.claimLinkEndsAt) + ". Llegaste tarde a este.");
 
+  let reclamo;
   try {
-    await llamar("claimLinkedReward", { rewardId: rid, modo: "item" });
+    reclamo = await llamar("claimLinkedReward", { rewardId: rid, modo: "item" });
   } catch (e) {
     const m = String((e && e.message) || "");
     if (/SOLD_OUT|resource-exhausted/i.test(m + " " + (e && e.code)))
@@ -1116,6 +1119,13 @@ async function reclamarHuevo(perId, huevoId, fichaId) {
    * aunque esté repetido, cobrar 40 créditos o un sobre». Queda reclamado y sin abrir, y la página
    * pregunta (`resolverHeroeRepetido`). Si se va sin elegir, al volver se le pregunta otra vez.
    */
+  // 14-sep · participaciones del sorteo: no hay nada que abrir, ya están sumadas en su ficha
+  if (H.premio === "participaciones") {
+    const t = H.sorteo ? await getDoc(doc(db, "rewards", H.sorteo)).catch(() => null) : null;
+    const S = (t && t.exists() && t.data().stargateSorteo) || {};
+    return { ok: true, premio: "participaciones", nombre: R.title || "",
+             detalle: { tipo: "participaciones", n: Number((reclamo && reclamo.participaciones) || H.cantidad || 1), sorteo: S.premio || "", fecha: Number(S.fecha || 0) } };
+  }
   if (copias > 0) {
     const b = cartaDeBotin(heroeId);
     return { ok: true, premio: H.premio, repetido: true, copias: copias, nombre: R.title || "",
@@ -1335,6 +1345,50 @@ const zocoOfertar = (anuncioId, ofrece, mensaje) => llamar("stargateZocoOfertar"
 const zocoResponder = (tratoId, accion, extra) => llamar("stargateZocoResponder", Object.assign({ tratoId, accion }, extra || {}));
 const zocoDeshacer = (tratoId) => llamar("stargateZocoDeshacer", { tratoId });
 
+/**
+ * ════════ EL GRAN SORTEO ════════ (14-sep). Un sorteo son dos recompensas —el premio y la
+ * participación— que arma `SG.PAQUETE.docsDeSorteo` (la misma receta que al crear el grupo). Crearlo
+ * y cambiarlo lo hace el docente (las reglas le dejan escribir sus recompensas); SORTEARLO, el
+ * servidor (`stargateSortear`): elige él, con peso por participaciones y sin repetir ganador.
+ */
+async function crearSorteo(perId, s) {
+  const p = await getDoc(doc(db, "projects", perId));
+  if (!p.exists()) throw new Error("No existe el grupo «" + perId + "»");
+  const S = p.data().stargate || {};
+  const [premio, ticket] = window.SG.PAQUETE.docsDeSorteo(s, { inicio: S.inicio, pausas: S.pausas || [],
+    tipo: S.tipo === "PUA" ? "PUA" : "REGULAR", cat: window.SG_CATALOGO });
+  const lote = writeBatch(db);
+  [premio, ticket].forEach(x => {
+    const { id, ...resto } = x;
+    lote.set(doc(db, "rewards", perId + "__" + id), Object.assign({}, resto, conIdsDeDocumento(perId, x)));
+  });
+  await lote.commit();
+  return { ticket: perId + "__" + ticket.id, premio: perId + "__" + premio.id };
+}
+/** Cambiar un sorteo que aún no se ha hecho: el premio y la participación, en una escritura. */
+async function guardarSorteo(perId, ticketDoc, c) {
+  const [t, p] = await Promise.all([getDoc(doc(db, "rewards", ticketDoc)), getDoc(doc(db, "projects", perId))]);
+  const S = (p.exists() && p.data().stargate) || {};
+  c = Object.assign({ inicio: S.inicio, pausas: S.pausas || [] }, c);
+  if (!t.exists() || t.data().projectId !== perId) throw new Error("Ese sorteo no existe en este grupo.");
+  if (t.data().isRaffleCompleted) throw new Error("Este sorteo ya se ha hecho: no se puede cambiar.");
+  const premio = String(c.premio || "").trim() || "El premio del sorteo";
+  const ganadores = Math.max(1, Math.floor(Number(c.ganadores) || 1));
+  const lote = writeBatch(db);
+  lote.update(doc(db, "rewards", ticketDoc), {
+    title: "Participación · " + premio, description: String(c.descripcion || ""),
+    cost: Math.max(0, Math.floor(Number(c.coste) || 0)), maxPerUser: Number(c.maximo) > 0 ? Math.floor(Number(c.maximo)) : null,
+    availableFrom: Number(c.desde), availableUntil: Number(c.fecha), ticketDeadline: Number(c.fecha),
+    "stargateSorteo.premio": premio, "stargateSorteo.ganadores": ganadores, "stargateSorteo.fecha": Number(c.fecha),
+    "stargateSorteo.desde": Number(c.desde), "stargateSorteo.fijo": true, "stargateSorteo.semanaSorteo": null,
+    // la Nave lo enseña desde la semana de su fecha de venta
+    stargateSemana: Math.max(1, window.SGSEMANAS.semanaDelCurso(c.inicio || "", c.pausas || [], Number(c.desde)) || 1) });
+  lote.update(doc(db, "rewards", t.data().linkedItemId), { title: premio, description: String(c.descripcion || ""),
+    globalStock: ganadores, globalStockInitial: ganadores });
+  await lote.commit();
+}
+const sortear = (perId, ticketDoc) => llamar("stargateSortear", { projectId: perId, ticketId: ticketDoc });
+
 /** Quién ha fichado en una llamada, para verlo en directo desde el puesto de mando. */
 async function fichajesDe(sesionId) {
   const r = await getDocs(query(collection(db, FICHAJES), where("sessionId", "==", sesionId)));
@@ -1352,5 +1406,6 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     huevosDe, guardarHuevos, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
+                    crearSorteo, guardarSorteo, sortear,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

@@ -2916,3 +2916,44 @@ body.simulacro .nav .brand{pointer-events:none}
 .btn.peligro:disabled{opacity:.45;cursor:not-allowed}
 .borrado-ok{border-color:rgba(255,122,107,.45);background:rgba(255,122,107,.06)}
 .borrado-ok p{margin:0}
+/* 14-sep · el Gran Sorteo en la Nave */
+.rec-card.sorteo{border-color:rgba(255,209,102,.55);box-shadow:0 0 0 1px rgba(255,209,102,.18) inset}
+.rec-card.sorteo .rec-quees{color:#ffe3a1}
+.sorteo-mias{margin:4px 0 6px;font-size:1.02rem}
+.sorteo-res{margin:6px 0;font-size:1.02rem;line-height:1.5}
+.sorteo-gane{margin:6px 0;padding:8px 12px;border-radius:10px;background:rgba(255,209,102,.14);color:#ffe3a1}
+.sorteo-aviso{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;margin:0 0 14px;
+  border-color:rgba(255,209,102,.6);background:linear-gradient(90deg,rgba(255,209,102,.12),rgba(255,209,102,.03))}
+.sorteo-aviso.gane{background:linear-gradient(90deg,rgba(255,209,102,.3),rgba(255,209,102,.08))}
+.sorteo-aviso p{margin:0;font-size:1.02rem}
+.sorteo-aviso span{display:flex;gap:8px}
+.botin-premios{border-color:rgba(255,209,102,.55);background:rgba(255,209,102,.08)}
+.botin-premios p{margin:0 0 4px}
+/* 14-sep · la consola: los sorteos */
+.sr-caja .sr-cab{display:flex;gap:16px;align-items:center}
+.sr-caja .sr-cab img{width:180px;aspect-ratio:16/9;object-fit:cover;border-radius:12px;flex:none}
+.sr-caja .sr-cab h3{margin:0 0 6px}
+.sr-caja .sr-cab p{margin:6px 0 0}
+.sr-caja.hecho{border-color:rgba(255,209,102,.5)}
+.sr-cuenta{margin:12px 0 6px;font-size:1.02rem}
+.sr-botones{margin:10px 0 0;display:flex;flex-wrap:wrap;gap:8px}
+.sr-ganadores ul{margin:6px 0 0;padding-left:20px;line-height:1.7}
+.sr-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px 12px;margin:12px 0 0;padding:14px;border-radius:12px;border:1px solid #1d2a40;background:#0b1119}
+.sr-form .sr-f-premio,.sr-form .sr-f-desc{grid-column:1/-1}
+.sr-form .sr-f-pie{grid-column:1/-1;margin:4px 0 0}
+@media (max-width:640px){.sr-caja .sr-cab{flex-direction:column;align-items:flex-start}.sr-caja .sr-cab img{width:100%}}
+/* el sorteo en directo (para proyectar) */
+.sr-proy{position:fixed;inset:0;z-index:160;display:grid;place-items:center;padding:24px;overflow:auto;
+  background:radial-gradient(900px 500px at 50% 0%,rgba(255,209,102,.16),transparent 60%),#050b12}
+.sr-proy-caja{width:min(1100px,100%);text-align:center}
+.sr-proy h2{font-family:'Unbounded',system-ui,sans-serif;font-size:clamp(1.6rem,4vw,2.8rem);margin:.2em 0 .3em;text-wrap:balance}
+.sr-proy-sub{font-size:1.15rem;color:#c9d6e3;margin:0 0 18px}
+.sr-bombo{display:flex;flex-wrap:wrap;justify-content:center;gap:14px 16px;margin:10px 0 18px}
+.sr-chip{padding:10px 16px;border-radius:99px;border:1px solid #2c4a6a;background:#0d1826;font-size:1.15rem;font-weight:700;color:#e8f1fb;transition:transform .12s,background .12s,box-shadow .12s}
+.sr-chip i{font-style:normal;color:#ffe3a1;font-weight:600;margin-left:4px}
+.sr-chip.luz{background:#1f3a55;border-color:#37e0ec;transform:scale(1.05)}
+.sr-chip.gana{background:linear-gradient(180deg,#ffd166,#e2a93b);color:#1b1206;border-color:#fff1c9;transform:scale(1.07);box-shadow:0 0 24px rgba(255,209,102,.55)}
+.sr-chip.gana i{color:#3b2408}
+.sr-res{min-height:3.2em}
+.sr-gana{font-family:'Unbounded',system-ui,sans-serif;font-size:clamp(1.4rem,3.4vw,2.4rem);color:#ffe3a1;margin:.2em 0}
+.sr-proy-bot{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}

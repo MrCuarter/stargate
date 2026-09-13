@@ -37,6 +37,11 @@ CAPS.forEach(ca => (ca.mercado || []).forEach(tipo => {
 cat.recompensas.forEach(r => c(CAPS.some(ca => (ca.mercado || []).indexOf(r.tipo) >= 0),
   "«" + r.nombre + "» tiene un capítulo que lo cuenta", r.tipo));
 
+// 2b · 14-sep · el Gran Sorteo: se vende desde la semana de su capítulo (y en PUA, también)
+const capSorteo = CAPS.filter(ca => (ca.mercado || []).indexOf("sorteo") >= 0)[0];
+c(!!capSorteo && (cat.sorteos || []).length > 0, "hay un capítulo que presenta el sorteo, y un sorteo en el catálogo");
+(cat.sorteos || []).forEach(s => c(capSorteo && s.desdeSemana === capSorteo.semana, "🔴 el sorteo «" + s.premio + "» se vende desde la semana de su capítulo",
+  "catálogo: " + s.desdeSemana + " · capítulo: " + (capSorteo && capSorteo.semana)));
 // 3 · en PUA, la misma regla en la web (semana_capitulo) y en el motor (semanaTienda)
 const caja = { window: {} }; caja.self = caja.window; vm.createContext(caja);
 vm.runInContext(leer("motor/paquete.js"), caja);
@@ -50,7 +55,7 @@ if (semanaTienda) CAPS.forEach(ca =>
 // 4 · la Nave tiene los pasos de NEBULA de cada capítulo que existe, y la sesión lee el mismo calendario
 const R = leer("assets/js/recluta.js");
 CAPS.filter(ca => ca.listo !== false && ca.clave !== "c1").forEach(ca =>
-  c(new RegExp("\\b" + ca.clave + ":\\[\\{t:").test(R), "NEBULA tiene pasos para el capítulo «" + ca.titulo + "»"));
+  c(new RegExp("\\b" + ca.clave + ":(\\[\\{t:|function\\s*\\()").test(R), "NEBULA tiene pasos para el capítulo «" + ca.titulo + "»"));
 c(/SG_CAPITULOS/.test(leer("assets/js/sesion.js")) && /diapositivasNuevas/.test(leer("assets/js/sesion.js")),
   "la sesión proyectable lee el mismo calendario (y pone «Lo nuevo» y «Enséñalo»)");
 ["recluta.html", "sesion.html", "consola.html"].forEach(f =>

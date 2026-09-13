@@ -542,6 +542,9 @@
     return '<section><div class="eyebrow">Lo que llevas ganado</div><h2>Mi botín</h2>'
       +'<p class="lead">Tus insignias, tus cartas y tus personajes. Lo que has conseguido tú, no lo '
       +'que se puede comprar — eso está en el <button class="btn small" type="button" data-tab="mercado">Mercado Estelar</button>.</p>'
+      // 14-sep · lo ganado en un sorteo, lo primero: es lo que más ilusión hace
+      +((r.premios||[]).length?'<div class="card botin-premios"><p>🏆 <b>Lo que has ganado en el Gran Sorteo:</b> '+r.premios.map(esc).join(' · ')
+        +'</p><p class="small muted">Tu docente te dirá cómo recibirlo.</p></div>':'')
       +'<details class="cajon" open><summary><b>🏅 Insignias</b> <span class="cnt">'+nIns+' / '+BADGES.length+'</span></summary>'
       +'<p class="small muted">En el orden en que se ganan, de la primera semana a la última. '
       +'Las apagadas están por conseguir: púlsalas para ver qué piden.</p>'
@@ -1595,8 +1598,43 @@
     marco:      ["🖼️","Adorno de tu ficha","Enmarca tu avatar. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
     fondo:      ["🌌","Adorno de tu ficha","Cambia el fondo de tu ficha. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
     titulo:     ["🏷️","Adorno de tu ficha","Un título que acompaña a tu alias delante de toda la clase.","Ver mi ficha","nave"],
-    nota:       ["📈","Afecta a tu nota","No se aplica sola: la aprueba tu docente al terminar las clases.","Entendido",""]
+    nota:       ["📈","Afecta a tu nota","No se aplica sola: la aprueba tu docente al terminar las clases.","Entendido",""],
+    sorteo:     ["🎟️","Una participación del Gran Sorteo","Es una papeleta más: cuantas tengas, más posibilidades. La ves en el Mercado.","Ver el sorteo","mercado"]
   };
+  /**
+   * EL GRAN SORTEO, EN EL MERCADO (14-sep). Norberto: «dos licencias de Genially de año completo, a
+   * partir de la semana 6: que los estudiantes puedan comprar participaciones y el profe regalarlas».
+   * Una tarjeta propia: qué se sortea, cuándo, cuántas papeletas llevas y, cuando ya se ha hecho,
+   * quién ha ganado. La compra es la de siempre (purchaseReward); la papeleta es `lotteryEntries`.
+   */
+  var MESES_L=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function fechaLarga(ms){ if(!ms) return ''; var f=new Date(Number(ms)); return f.getDate()+' de '+MESES_L[f.getMonth()]; }
+  function tarjetaSorteo(x, r, mis){
+    var S=x.sorteo||{}, mias=Number(((r&&r.participaciones)||{})[x.doc]||0), max=(x.max&&x.max<99)?x.max:0;
+    var img='assets/img/canje/'+esc(S.imagen||'sorteo.jpg');
+    var cab='<div class="rec-foto"><img loading="lazy" src="'+img+'" alt=""></div><div class="rec-cuerpo">'
+      +'<div class="rec-quees">🎟️ El Gran Sorteo</div><h3>'+esc(S.premio||x.nombre)+'</h3>';
+    if(S.hecho){
+      var gane=r&&(S.ganadoresFichas||[]).indexOf(r.fid)>=0;
+      return '<div class="card rec-card sorteo hecho">'+cab
+        +'<p class="sorteo-res">🎉 Ya se ha sorteado. '+(S.ganadoresAlias||[]).length+' ganador'+((S.ganadoresAlias||[]).length===1?'':'es')+': <b>'
+        +(S.ganadoresAlias||[]).map(esc).join('</b> y <b>')+'</b></p>'
+        +(gane?'<p class="sorteo-gane">🏆 <b>¡Has ganado!</b> Tu docente te dirá cómo recibir tu premio.</p>':'')
+        +'</div><div class="rec-pie"></div></div>';
+    }
+    var tope=max&&mias>=max;
+    var afford=!r?'':tope?'<span class="chip done">Ya tienes las '+max+' que se permiten</span>'
+      :(mis>=x.coste?'<span class="chip ok">Te lo puedes permitir</span>':'<span class="chip wip">Te faltan '+(x.coste-mis)+' ◈</span>');
+    var boton=(motorNuevo()&&r&&!tope&&mis>=x.coste&&x.id)
+      ? '<button class="btn primary" type="button" data-canje="'+esc(x.doc||x.id)+'" data-nombre="'+esc('una participación del Gran Sorteo')+'" data-coste="'+x.coste+'" data-tipo="sorteo" data-abrir="0" data-usos="1">🎟️ Una participación · '+x.coste+' ◈</button>'
+      : '';
+    return '<div class="card rec-card sorteo">'+cab
+      +'<p class="pts">'+x.coste+' ◈ <span class="small muted">cada participación</span></p>'
+      +'<p class="sorteo-mias">Llevas <b>'+mias+'</b> participaci'+(mias===1?'ón':'ones')+(max?' <span class="small muted">(como mucho '+max+')</span>':'')+'</p>'
+      +'<p class="small rec-desc">'+(S.ganadores>1?'<b>'+S.ganadores+' ganadores</b>, nadie gana dos':'<b>1 ganador</b>')
+      +(S.fecha?' · se sortea el <b>'+fechaLarga(S.fecha)+'</b> en clase':'')+'. Cada participación es una papeleta: cuantas más, más posibilidades. Tu docente también las regala.</p>'
+      +'</div><div class="rec-pie">'+afford+boton+'</div></div>';
+  }
   function queEs(tipo){ return QUE_ES[tipo] || ["🎁","Recompensa","",'',""]; }
 
   function recompensas(){
@@ -1635,6 +1673,7 @@
       if(!abierta) return '<div class="card rec-card lock"><h3>🔒 Recompensa clasificada</h3><p class="small muted">Se desbloquea en la semana '+desde+'.</p></div>';
       abiertas++;
       var mis=r?(r.creditos!=null?r.creditos:(r.xp_disponibles||0)):0;
+      if(x.tipo==='sorteo'&&x.sorteo) return tarjetaSorteo(x, r, mis);
       // el catálogo limita cuántas veces puede concederse cada recompensa: si ya llegó al tope,
       // se avisa aquí para que ni lo intente (el script también lo deniega sin cobrar).
       var veces=(r&&r.canjeados?r.canjeados[x.nombre]:0)||0;
@@ -2030,6 +2069,21 @@
                 : '🆕 <b>El Zoco Estelar:</b> '+fraseNovedad(nov[0])+(nov.length>1?' <span class="small">(y '+(nov.length-1)+' más)</span>':'');
     return '<div class="card zoco-aviso" role="status"><p>'+txt+'</p><button type="button" class="btn primary" data-tab="zoco">Ir al Zoco</button></div>';
   }
+  /** 14-sep · el Gran Sorteo ya se ha hecho: a quien gana, que lo sepa nada más entrar; y a todos, quién. */
+  function sorteosHechosSinVer(){
+    var r=st.yo; if(!r||SIMULACRO) return [];
+    return ((st.d&&st.d.recompensas)||[]).filter(function(x){
+      return x.tipo==='sorteo'&&x.sorteo&&x.sorteo.hecho&&!localStorage.getItem('sgSorteoVisto_'+per+'_'+x.doc); });
+  }
+  function avisoSorteo(){
+    var l=sorteosHechosSinVer(); if(!l.length) return '';
+    var x=l[0], S=x.sorteo, gane=(S.ganadoresFichas||[]).indexOf(st.yo.fid)>=0;
+    return '<div class="card sorteo-aviso'+(gane?' gane':'')+'" role="status"><p>'+(gane
+        ? '🏆 <b>¡Has ganado el Gran Sorteo!</b> Te llevas: <b>'+esc(S.premio)+'</b>. Tu docente te dirá cómo recibirlo.'
+        : '🎟️ <b>El Gran Sorteo ya se ha hecho:</b> '+esc(S.premio)+' para <b>'+(S.ganadoresAlias||[]).map(esc).join('</b> y <b>')+'</b>.')
+      +'</p><span><button type="button" class="btn primary" data-sorteo-visto="'+esc(x.doc)+'" data-tab="mercado">Ver el sorteo</button>'
+      +'<button type="button" class="btn" data-sorteo-visto="'+esc(x.doc)+'" aria-label="Cerrar el aviso">✕</button></span></div>';
+  }
   function zocoAlEntrar(){
     if(!abierto('zoco')||!st.yo) return;
     cargarZoco().then(function(){ if(zocoPendientes().length||zocoNovedades().length) render(); });
@@ -2119,12 +2173,23 @@
          x:'Ofreces algo y queda <b>apartado</b> hasta que te respondan. Quien vende acepta, rechaza con un mensaje o te hace una <b>contraoferta</b> mirando lo que tienes. Tú tienes la última palabra: <b>3 pasos</b> y trato cerrado.'},
         {t:'Poner lo tuyo',foco:'.nb-t[data-tab="botin"]',
          x:'Desde tu álbum (abre una carta en grande) o desde tu vestuario (el 🔄 de cada héroe): «Poner en el Zoco». Sigue siendo tuyo hasta que aceptes una oferta.'}],
-    c6:[{t:'Se abre el Arsenal de batalla',foco:'.nb-t[data-tab="mercado"]',
+    // 14-sep · el Gran Sorteo: lo cuenta con el premio y los ganadores de SU grupo (el referente
+    // puede cambiarlos), por eso se arma al momento
+    c6:function(){
+      var s=((st.d&&st.d.recompensas)||[]).filter(function(x){ return x.tipo==='sorteo'&&x.sorteo&&!x.sorteo.hecho; })[0];
+      var S=(s&&s.sorteo)||{}, premio=S.premio?'<b>'+esc(S.premio)+'</b>':'un premio', n=Number(S.ganadores)||1;
+      return [{t:'El Gran Sorteo',foco:'.nb-t[data-tab="mercado"]',
+               x:'Se sortea'+(n>1?'n <b>'+n+'</b> × ':' ')+premio+' entre toda la tripulación. Cada <b>participación</b> es una papeleta: cuantas más tengas, más posibilidades.'},
+              {t:'Cómo se consiguen',foco:'.nb-t[data-tab="mercado"]',
+               x:'Se compran en el <b>Mercado</b> con créditos'+(s?' ('+s.coste+' ◈ cada una'+(s.max&&s.max<99?', como mucho '+s.max:'')+')':'')+'. Tu docente también las <b>regala</b> en clase, o las esconde en un enlace. '
+                 +(S.fecha?'Se sortea el <b>'+fechaLarga(S.fecha)+'</b>, en clase y a la vista de todos, ':'Se sortea en clase, a la vista de todos, ')+'y <b>nadie gana dos</b>.'}];
+    },
+    c7:[{t:'Se abre el Arsenal de batalla',foco:'.nb-t[data-tab="mercado"]',
          x:'Los créditos que has ahorrado ya se pueden cambiar por <b>nota</b>: subir 0,5 o 1 punto en un entregable, o que se recalifique un trabajo.'},
         {t:'Antes de comprar, lee esto',foco:'.nb-t[data-tab="mercado"]',
          x:'No se aplica solo: queda <b>pendiente</b> hasta que tu docente lo apruebe. Y si ya tienes la nota máxima de evaluación continua, <b>no te sube nada</b>: compruébalo antes.'}]
   };
-  function pasosDe(clave){ return clave==='c1'?pasosCap1():PASOS_CAP[clave]; }
+  function pasosDe(clave){ var v=PASOS_CAP[clave]; return clave==='c1'?pasosCap1():typeof v==='function'?v():v; }
   /** Lo visto: su ficha manda; el navegador es copia (y la bienvenida de antes cuenta como el capítulo 1). */
   function capsVistos(){
     var v=Object.assign({}, (st.yo&&st.yo.capitulos)||{});
@@ -3110,7 +3175,7 @@
         + '<a class="btn ghost" href="index.html">Volver a la presentación</a></p></div>'
       : '';
     root.innerHTML = avisoDemo + (dentro
-      ? barraSimulacro()+login()+pestanas()+avisoPase()+avisoZoco()+cabecera()
+      ? barraSimulacro()+login()+pestanas()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
         +'<div id="nave-panel" role="tabpanel" aria-labelledby="nb-t-'+st.tab+'">'+contenido()+'</div>'
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
     verTablero(dentro && st.tab==='rankings');
@@ -3140,6 +3205,10 @@
     }
     cablearSimulacro();
     cablearZoco();
+    Array.prototype.forEach.call(root.querySelectorAll('[data-sorteo-visto]'),function(b){
+      var ir=b.onclick;   // el de «Ver el sorteo» ya cambia de pestaña (data-tab)
+      b.onclick=function(e){ try{ localStorage.setItem('sgSorteoVisto_'+per+'_'+b.getAttribute('data-sorteo-visto'),'1'); }catch(x){}
+        if(ir) ir.call(b,e); else render(); }; });
     Array.prototype.forEach.call(root.querySelectorAll('[data-zoco-poner]'),function(b){
       b.onclick=function(e){ e.stopPropagation(); zocoPonerVentana(b.getAttribute('data-zoco-poner')); }; });
     var salir=document.getElementById('nb-salir');

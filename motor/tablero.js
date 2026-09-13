@@ -127,6 +127,15 @@
       if (k && r.title) tituloTienda[k] = r.title;
     });
 
+    // 14-sep · los premios de los sorteos (fuera de la tienda) y cada participación con su premio
+    var premioSorteo = {}, premioPorDoc = {};
+    (datos.recompensas || []).forEach(function (r) {
+      if (r.stargateTipo !== "premio_sorteo") return;
+      var k = String(r.stargateId || r.docId || r.id || ""), i = k.lastIndexOf("__");
+      premioSorteo[i >= 0 ? k.slice(i + 2) : k] = r;
+      premioPorDoc[String(r.docId || r.id)] = r;
+    });
+
     // Los vales de canje, agrupados por quien los compró. `studentId` es el uid del alumno.
     var valesDe = {};
     (datos.vales || []).forEach(function (v) {
@@ -237,6 +246,8 @@
         }
       });
       var gastados = Number(p.stargateRepesGastados || 0);
+      // 14-sep · lo ganado en un sorteo (la licencia): se enseña en su botín
+      var premios = inv.filter(function (x) { return premioSorteo[x]; }).map(function (x) { return premioSorteo[x].title || x; });
 
       var xp = Number(p.totalPoints || 0);
       var ganados = 0;
@@ -305,7 +316,7 @@
         rango_nombre: niv.rangoNombre, coleccion: coleccion,
         bonus: (p.completedCampaignIds || []).slice(),
         planetas_completos: planetas, heroes: heroes, n_heroes: heroes.length, skins: skins,
-        heroes_n: heroesN, heroes_repes: heroesRepes,
+        heroes_n: heroesN, heroes_repes: heroesRepes, premios: premios,
         viste: valido, repes: repes, repes_gastados: gastados,
         repes_disponibles: Math.max(0, repes - gastados),
         insignias_album: album, n_album: album.length,
@@ -382,11 +393,21 @@
           //   · la Nave lee `x.max` → `!x.max` era true, así que TODO parecía repetible: el aviso
           //     «Ya la tienes» no salía nunca y se podía volver a pulsar algo de una sola vez.
           //     (El servidor sí lo deniega, pero la pantalla mentía.)
-          return { id: r.id, doc: r.docId || r.id, nombre: r.title, coste: r.cost,
+          var out = { id: r.id, doc: r.docId || r.id, nombre: r.title, coste: r.cost,
                    max: r.maxPerUser == null ? 99 : r.maxPerUser,
                    desc: r.description, desde: r.stargateSemana || 0, tipo: r.stargateTipo || "",
                    // cuántas cartas trae un sobre (o usos un consumible): lo dice la recompensa, no la Nave
                    usos: Math.max(1, Number(r.maxUses || 1)) };
+          // 14-sep · EL GRAN SORTEO: qué se sortea, cuándo, cuántos ganan y, si ya se hizo, quiénes
+          if (r.systemEffect === "lottery_ticket") {
+            var pr = premioPorDoc[String(r.linkedItemId || "")] || {}, SS = r.stargateSorteo || {};
+            out.tipo = out.tipo || "sorteo";
+            out.sorteo = { premio: pr.title || SS.premio || "", ganadores: Number(pr.globalStockInitial || SS.ganadores || 1),
+                           fecha: Number(r.ticketDeadline || SS.fecha || 0), desde: Number(r.availableFrom || 0),
+                           hecho: r.isRaffleCompleted === true, ganadoresAlias: r.raffleWinnerNames || [],
+                           ganadoresFichas: r.raffleWinnerIds || [], imagen: SS.imagen || "sorteo.jpg" };
+          }
+          return out;
         }),
       semana: semanaDe(inicio, ahora, pausas), semanas: S.semanas || 15,
       // 13-sep · el calendario del referente: semanas congeladas y capítulos abiertos antes de tiempo

@@ -291,6 +291,20 @@
     { g: "Adornos", k: "fondo", t: "🌌 Fondo de ficha", regalo: { tipo: "adorno", cual: "fondo" }, clase: "adorno" },
     { g: "Adornos", k: "titulo", t: "🏷️ Título de recluta", regalo: { tipo: "adorno", cual: "titulo" }, clase: "adorno" }
   ];
+  /**
+   * 14-sep · EL GRAN SORTEO: participaciones de regalo (Norberto: «…y el profe regalarlas»). Solo si
+   * el grupo tiene un sorteo abierto; si tiene varios, del primero que se sortea.
+   */
+  function sorteoAbierto() {
+    return ((D && D.recompensas) || []).filter(function (x) { return x.tipo === "sorteo" && x.sorteo && !x.sorteo.hecho; })
+      .sort(function (a, b) { return (a.sorteo.fecha || 0) - (b.sorteo.fecha || 0); })[0] || null;
+  }
+  function regalosSorteo() {
+    var s = sorteoAbierto(); if (!s) return [];
+    return [1, 2, 3].map(function (n) {
+      return { g: "Sorteo", k: "part" + n, t: "🎟️ " + n + " participaci" + (n === 1 ? "ón" : "ones"), regalo: { tipo: "participacion", sorteo: s.doc, n: n }, clase: "sorteo" }; });
+  }
+  function todosLosRegalos() { return REGALOS.concat(regalosSorteo()); }
   function caraDe(x) {
     try { return (window.SG && SG.avatarSrc) ? SG.avatarSrc(x.avatar, x.alias, x.xp, D && D.tipo).src : ""; }
     catch (e) { return ""; }
@@ -339,8 +353,8 @@
       + '</div>'
       + '<div class="au-tarjeta"><div class="au-cab2"><h3>¿Qué le das?</h3><span class="au-para" id="au-para">' + esc(textoElegidos()) + '</span></div>'
       // tres filas con su nombre —puntos, colección, adornos— en una rejilla que no deja filas cojas
-      +   ["Puntos", "Colección", "Adornos"].map(function (grupo) {
-            var suyos = REGALOS.filter(function (r) { return r.g === grupo; });
+      +   ["Puntos", "Colección", "Adornos", "Sorteo"].filter(function (grupo) { return grupo !== "Sorteo" || regalosSorteo().length; }).map(function (grupo) {
+            var suyos = todosLosRegalos().filter(function (r) { return r.g === grupo; });
             return '<div class="au-grupo-pr' + (suyos.length === 3 ? ' tres' : '') + '" style="--n:' + suyos.length + '"><span class="au-gt">' + grupo + '</span><div class="au-premios">'
               + suyos.map(function (r) {
                   return '<button type="button" class="au-pr' + (r.clase ? " " + r.clase : "") + '" data-k="' + r.k + '"'
@@ -448,6 +462,7 @@
         fin(res.map(function (x) {
           var quien = "<b>" + esc(alias[x.ficha] || "?") + "</b>";
           if (x.error) return '<span class="malo">' + quien + ": " + esc(x.error) + "</span>";
+          if (x.participaciones) return "🎟️ " + quien + " suma " + x.participaciones + " participaci" + (x.participaciones === 1 ? "ón" : "ones") + " al Gran Sorteo";
           if (x.ya) return "➖ " + quien + " ya lo tenía";
           return "🎁 " + quien + " se lleva " + x.piezas.map(function (p) {
             return "<b>" + esc(p.nombre) + "</b>" + (p.rareza ? " (" + esc(String(p.rareza).toLowerCase()) + ")" : ""); }).join(", ");
@@ -455,7 +470,7 @@
       }).catch(function (er) { fin('<span class="malo">' + esc(er && er.message || er) + "</span>"); });
     };
     Array.prototype.forEach.call(app.querySelectorAll(".au-pr"), function (b) {
-      var r = REGALOS.filter(function (x) { return x.k === b.getAttribute("data-k"); })[0];
+      var r = todosLosRegalos().filter(function (x) { return x.k === b.getAttribute("data-k"); })[0];
       b.onclick = function () {
         if (r.elegir) { var el = document.getElementById("au-heroe-el"); el.hidden = !el.hidden; return; }
         dar(r, b);

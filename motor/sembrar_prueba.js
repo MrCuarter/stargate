@@ -110,6 +110,7 @@ async function main() {
           ...(Array.isArray(x.rewardItemIds) ? { rewardItemIds: x.rewardItemIds.map(s => ID + "__" + s) } : {}),
           ...(x.campaignId ? { campaignId: ID + "__" + x.campaignId } : {}),
           ...(x.unlockWhenCampaignComplete ? { unlockWhenCampaignComplete: ID + "__" + x.unlockWhenCampaignComplete } : {}),
+          ...(x.linkedItemId ? { linkedItemId: ID + "__" + x.linkedItemId } : {}),
           ...(x.consumeEffects && x.consumeEffects.lootBox ? { consumeEffects: Object.assign({}, x.consumeEffects,
               { lootBox: { items: x.consumeEffects.lootBox.items.map(i => Object.assign({}, i, { rewardId: ID + "__" + i.rewardId })) } }) } : {})
         }));

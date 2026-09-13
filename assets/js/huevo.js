@@ -200,8 +200,9 @@
   }
 
   // ---------------------------------------------------------------- el premio
-  var NOMBRES = { sobre: "Un sobre de cromos", heroe: "Un héroe de la Rebelión", heroe_fijo: "Un héroe de la Rebelión", bolsa: "Una bolsa de créditos", xp: "Experiencia" };
-  var ICONOS  = { sobre: "🃏", heroe: "🛡️", heroe_fijo: "🛡️", bolsa: "💰", xp: "⚡" };
+  var NOMBRES = { sobre: "Un sobre de cromos", heroe: "Un héroe de la Rebelión", heroe_fijo: "Un héroe de la Rebelión", bolsa: "Una bolsa de créditos", xp: "Experiencia",
+                  participaciones: "Participaciones del Gran Sorteo" };
+  var ICONOS  = { sobre: "🃏", heroe: "🛡️", heroe_fijo: "🛡️", bolsa: "💰", xp: "⚡", participaciones: "🎟️" };
 
   function reclamar() {
     if (esHeroeFijo()) pinta(portadaHeroe(EST.H.heroe, "Tu recompensa", 'Sumándolo a tu colección…', '<div class="hv-cargando"><i></i></div>'));
@@ -232,6 +233,7 @@
             : t === "heroe" ? (d.nombre || "")
             : t === "bolsa" ? "+" + (d.creditos || 0) + " ◈"
             : t === "xp" ? "+" + (d.xp || 0) + " xp"
+            : t === "participaciones" ? "+" + (d.n || 1) + " participaci" + ((d.n || 1) === 1 ? "ón" : "ones") + (d.sorteo ? " · " + d.sorteo : "")
             : "";
     if (fijo && d.clave && !d.sinAbrir) {
       var rep = (r.copias || 0) > 1;
@@ -247,8 +249,9 @@
       + '<div class="eyebrow amber">Lo has encontrado</div>'
       + '<h2>' + esc(NOMBRES[t] || "Un premio") + '</h2>'
       + (que ? '<p class="hv-que">' + esc(que) + '</p>' : '')
-      + '<p class="hv-sub">' + (d.sinAbrir
-          ? 'Lo tienes en tu inventario: ábrelo desde tu Nave, en Mi botín.'
+      + '<p class="hv-sub">' + (t === "participaciones"
+          ? 'Ya son tuyas: cada una es una papeleta más para el sorteo. Las ves en el Mercado de tu Nave.'
+          : d.sinAbrir ? 'Lo tienes en tu inventario: ábrelo desde tu Nave, en Mi botín.'
           : 'Ya está en tu cuenta.') + (fijo ? '' : ' Hay más escondidos por ahí.') + '</p>'
       + botónNave() + '</div></div>');
     confeti();

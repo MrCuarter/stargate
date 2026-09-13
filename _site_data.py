@@ -559,8 +559,12 @@ SEMANA_ARSENAL = 15
 def semana_capitulo(semana_regular, tipo):
     if tipo != "PUA" or semana_regular <= 5:
         return semana_regular
+    # 🔴 14-sep · lo de DESPUÉS de la semana 5 se reparte en las semanas que le quedan al PUA (6…8),
+    # nunca antes de la 5: con la cuenta de antes (escalar todo el curso) la semana 6 caía en la 3,
+    # antes que el Zoco. Misma regla en motor/paquete.js → semanaTienda (la batería 72 lo vigila).
+    import math
     total, suyas = SEMANAS_PER["REGULAR"], SEMANAS_PER["PUA"]
-    return max(1, min(suyas, round(semana_regular * suyas / total)))
+    return max(min(6, suyas), min(suyas, 5 + math.ceil((semana_regular - 5) * (suyas - 5) / (total - 5))))
 
 CAPITULOS = [
     {"n": 1, "clave": "c1", "titulo": "Canal abierto", "icono": "🛰️", "semana": 1,
@@ -599,7 +603,15 @@ CAPITULOS = [
                 "Aceptar, rechazar con un mensaje o contraofertar: 3 pasos y trato cerrado",
                 "Lo que ofreces queda apartado hasta que te respondan"],
      "imagen": "assets/img/canje/heroe.jpg"},
-    {"n": 6, "clave": "c6", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
+    {"n": 6, "clave": "c6", "titulo": "El Gran Sorteo", "icono": "🎟️", "semana": 6,
+     "abre": ["sorteo"], "mercado": ["sorteo"],
+     "cabecera": "El Gran Sorteo de la tripulación",
+     "puedes": ["Se sortean dos licencias de Genially de un año completo",
+                "Cada participación es una papeleta: cuantas más tengas, más posibilidades",
+                "Se compran en el Mercado, y tu docente también las regala (o las esconde en un enlace)",
+                "Nadie gana dos: el sorteo lo hace el servidor, delante de toda la clase"],
+     "imagen": "assets/img/canje/sorteo.jpg"},
+    {"n": 7, "clave": "c7", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
      "abre": ["arsenal"], "mercado": ["nota"],
      "cabecera": "El Arsenal: créditos por nota",
      "puedes": ["Subir 0,5 o 1 punto en un entregable, o que se recalifique un trabajo",
@@ -612,6 +624,22 @@ for _c in CAPITULOS:
 assert [c["n"] for c in CAPITULOS] == list(range(1, len(CAPITULOS) + 1)), "los capítulos van en orden"
 assert all(CAPITULOS[i]["semana"] <= CAPITULOS[i + 1]["semana"] for i in range(len(CAPITULOS) - 1)), \
     "un capítulo no puede abrirse antes que el anterior"
+
+# ─────────────────────────── EL GRAN SORTEO (14-sep) ───────────────────────────
+# Norberto: «el sorteo de dos licencias de Genially de año completo, a partir de la semana 6: que los
+# estudiantes puedan comprar participaciones y el profe regalarlas, o que el referente embeba
+# participaciones». Cada grupo nuevo nace con estos sorteos (motor/paquete.js); el referente puede
+# cambiarlos o crear más desde la consola (pestaña «Sorteos»). Lo decide el servidor
+# (GamificaPro, functions/stargateSorteo.js): una papeleta por participación y nadie gana dos veces.
+#   [id, premio, descripción, ganadores, coste de la participación ◈, máx por persona,
+#    desde semana (venta), semana del sorteo, imagen]
+SORTEOS = [
+    ("sorteo1", "Licencia de Genially (un año completo)",
+     "Se sortean dos licencias de Genially de un año completo entre toda la tripulación. Cada "
+     "participación es una papeleta: cuantas más tengas, más posibilidades. Nadie gana dos, y el "
+     "sorteo lo hace el servidor en clase, a la vista de todos.",
+     2, 20, 10, 6, 15, "sorteo.jpg"),
+]
 
 SEMANAS_CANJE_EXTRA = 1                    # semanas de propina para reclamar recompensas
 DIAS_APERTURA_ANTES = 0                    # los formularios abren el primer día de la semana 1
