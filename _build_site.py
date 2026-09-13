@@ -413,7 +413,7 @@ FAQ = [
  ("¿Tengo que cambiar mi programación para usar STARGATE?", "No. STARGATE no añade trabajo: <b>renombra y da sentido</b> al que ya existe (2 actividades + ePortfolio con 3 retos + tests). Sigue la programación oficial; la capa narrativa va encima."),
  ("¿Cómo entro? ¿Necesito algún PIN?", "No hay PIN. Entras con la <b>cuenta de Google</b> que tu profe referente puso en el equipo docente del grupo, desde la portada (<b>«Iniciar sesión con Google»</b>). El sistema te reconoce y te lleva a <a href='consola.html'>Mis grupos</a>. Si te dice que esa cuenta no lleva ningún grupo, pide a tu referente que te añada con <b>ese mismo correo</b>."),
  ("¿Cómo invito a mi clase?", "En <a href='consola.html'>Mis grupos</a>, cada grupo enseña su <b>código de clase</b> en grande (para la pizarra) y el botón <b>«Copiar invitación»</b>, que copia un mensaje listo para pegar en el foro de la plataforma de UNIR, con el enlace directo. Tu alumnado entra con Google, escribe el código y se alista solo."),
- ("¿Qué uso durante la clase en directo?", "Tres botones en la tarjeta de tu grupo: <b>Proyectar la clase</b> (la sesión de la semana montada: planeta, vídeos, retos e insignias; pasa con las flechas), <b>Llamada a filas</b> (el pase de lista: tu alumnado pulsa «Presente» en su Nave y se lleva créditos y un sobre de cromos) y <b>El aula</b> (quién ha fichado, a quién felicitar, el ranking y los premios a mano). El aula y la llamada se pueden incrustar en tu Genially con <code>?embed=1</code>."),
+ ("¿Qué uso durante la clase en directo?", "Tres botones en la tarjeta de tu grupo: <b>Proyectar la clase</b> (la sesión de la semana montada: planeta, vídeos, retos e insignias; pasa con las flechas), <b>Llamada a filas</b> (el pase de lista: tu alumnado pulsa «Presente» en su Nave y se lleva créditos y un sobre de cromos) y <b>El aula</b> (quién ha fichado, a quién felicitar, el ranking y los premios a mano). Si tu referente te ha dado el <b>Genially de clase</b>, ya los lleva dentro: al abrirlo entras con tu cuenta y eliges el grupo. Si montas el tuyo, copia su código en <b>Mis grupos → Ver mi gente y los ajustes → Para los Geniallys</b> (en Genially: Insertar → Otros → Código)."),
  ("Un estudiante ha marcado retos que no ha hecho. ¿Qué hago?", "En Mis grupos → <b>Ver mi gente y los ajustes</b> → <b>Mi gente</b>, pulsa su fila y <b>anula</b> el reto: se le descuentan los xp y los créditos que dio, y queda anotado. Si ya se había gastado los créditos, lo cosmético que compró se queda (el aviso te dice qué no se ha podido retirar), pero <b>la nota está a salvo</b>: ninguna subida de nota se aplica sin que la apruebes en la <b>Cola de nota</b>. Con el enlace obligatorio y el tope de 3 retos al día, una trampa así se ve enseguida."),
  ("¿Puedo dar un premio que se reclame desde una presentación?", "Sí: <b>Premios por enlace</b>, dentro del grupo (la pestaña la ve quien lo lleva, el referente; si no lo eres, pídeselo). Eliges qué da (xp, créditos, un sobre de cromos, un héroe…), cuántas veces (en total, por escuadrón o por persona) y te llevas un enlace para pegar en cualquier web o presentación. Por ejemplo: «los 5 primeros de cada escuadrón que lo pulsen, un sobre». Quien llega tarde lee que ya se ha agotado."),
  ("¿Dónde veo las dudas y valoraciones de mi alumnado?", "En los <a href='tickets.html'>tickets de salida</a>: al final de cada clase el alumnado valora la sesión y deja dudas de forma <b>anónima</b> («Contacta con NEBULA»), y tú las ves por tema y fecha, y marcas las resueltas."),
@@ -1049,7 +1049,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <section id="profe-herramientas"><div class="wrap">
 <div class="eyebrow">También desde tu puesto</div><h2>Lo que usas cada semana</h2>
 <div class="grid cols-2">
-<div class="card"><h3>🛰️ El aula, dentro de tu Genially</h3><p>Tu puesto de mando <b>sin salir de la presentación</b>: tocas <b>llamada a filas</b> y ves quién ficha en directo, miras a quién felicitar por lo que ha hecho esta semana y a quién dar la bienvenida, consultas el ranking y repartes premios a mano — experiencia, créditos o una carta de regalo, incluso eligiendo a alguien al azar. Ábrelo con el botón <b>«El aula»</b> de tu grupo en <a href="consola.html">Mis grupos</a>, o incrústalo con <code>aula.html?embed=1</code>.</p>
+<div class="card"><h3>🛰️ El aula, dentro de tu Genially</h3><p>Tu puesto de mando <b>sin salir de la presentación</b>: tocas <b>llamada a filas</b> y ves quién ficha en directo, miras a quién felicitar por lo que ha hecho esta semana y a quién dar la bienvenida, consultas el ranking y repartes premios a mano — experiencia, créditos o una carta de regalo, incluso eligiendo a alguien al azar. Ábrelo con el botón <b>«El aula»</b> de tu grupo en <a href="consola.html">Mis grupos</a>, o ábrelo desde el <b>Genially de clase</b> que te da tu referente: pide tu cuenta y te pregunta el grupo.</p>
 <p class="small muted">🔴 Ese enlace <b>no lleva el grupo dentro</b>: se deduce de tu cuenta. Se monta una vez en todos tus Geniallys y no se toca más, ni al crear un grupo nuevo ni el curso que viene.</p></div>
 <div class="card"><h3>🔔 Llamada a filas</h3><p>El pase de lista. Lo tocas tú —y solo tú: quien no sea Comandante recibe un aviso que se lo explica— y se abre el fichaje <b>solo para tu escuadrón</b>, los minutos que elijas. En la Nave de tu gente aparece el botón <b>✋ Presente</b> con su cuenta atrás, y al pulsarlo cobran. <a href="llamada.html">llamada.html</a>, también universal.</p>
 <p class="small muted">No hay palabra que dictar: lo que no se puede adivinar es <b>cuándo</b> la vas a tocar.</p></div>
@@ -1453,7 +1453,7 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
    {p:'consola.html',sel:'.gp',listo:'.gp',espera:1,rol:1,pose:'saluda',t:'Bienvenido al mando',x:'Recluta… perdón: <b>Capitán</b>. Soy tu homólogo en la historia. Esto es <b>Mis grupos</b>, tu puesto de mando: cada tarjeta es un grupo tuyo, y todo lo de clase sale de ella. Te lo enseño en dos minutos.'},
    {p:'consola.html',sel:'.gp-invita',listo:'.gp',espera:1,si:1,pose:'senala',t:'Lo primero: tu clase',x:'El <b>código de clase</b>, en grande para escribirlo en la pizarra. <b>«Copiar invitación»</b> te da un mensaje listo para pegar en el foro de la plataforma de UNIR, con el enlace dentro. Tu alumnado entra con Google, escribe el código y se alista solo.'},
    {p:'consola.html',sel:'.gp-b.principal',listo:'.gp',espera:1,si:1,pose:'tablet',t:'Cada clase empieza aquí',x:'<b>Proyectar la clase</b>: la sesión de la semana ya montada —el planeta, los vídeos, los retos y las insignias—; pasas con las flechas. Arriba, solo para ti, el consejo del Capitán y el mensaje de la semana para el foro.'},
-   {p:'consola.html',sel:'.gp-hacer',listo:'.gp',espera:1,si:1,pose:'brazos',t:'Durante la clase',x:'<b>Llamada a filas</b> es el pase de lista con premio: tu alumnado pulsa «Presente» en su Nave y se lleva créditos y un sobre de cromos. <b>El aula</b> te dice quién ha fichado, a quién felicitar y el ranking, y deja repartir premios a mano. Las dos se incrustan en tu Genially con <code>?embed=1</code>.'},
+   {p:'consola.html',sel:'.gp-hacer',listo:'.gp',espera:1,si:1,pose:'brazos',t:'Durante la clase',x:'<b>Llamada a filas</b> es el pase de lista con premio: tu alumnado pulsa «Presente» en su Nave y se lleva créditos y un sobre de cromos. <b>El aula</b> te dice quién ha fichado, a quién felicitar y el ranking, y deja repartir premios a mano. Si tu referente te ha dado el <b>Genially de clase</b>, ya las lleva dentro: al abrirlo entras con tu cuenta y eliges el grupo.'},
    {p:'consola.html',sel:'.gp-abrir',listo:'.gp',espera:1,si:1,pose:'tablet',t:'Tu gente',x:'<b>Ver mi gente y los ajustes</b>: la lista con sus xp, créditos, insignias y los <b>enlaces de sus evidencias</b>. Pulsa una fila para otorgar o anular un reto. Ahí está también la <b>Cola de nota</b>: ninguna subida de nota se aplica sin tu visto bueno.'},
    {p:'consola.html',sel:'.ref-zona',listo:'.gp',espera:1,si:1,soloRef:1,pose:'senala',t:'Como referente',x:'Lo tuyo como referente: <b>crear un grupo</b> en un minuto, los <b>tickets de salida</b> de todas tus clases y el montaje paso a paso. Dentro de cada grupo verás además <b>Equipo docente</b>, <b>Escuadrones</b>, <b>Premios por enlace</b> y <b>Ajustes</b>.'},
    {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'<b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase.'},
@@ -2925,7 +2925,7 @@ _html = head("STARGATE · Llamada a filas",
 <p class="small muted nota-docente" style="margin-top:22px">Para el profesorado: este enlace vale en
 <b>todos</b> los grupos y en todas las convocatorias. El grupo no va dentro — se deduce de quién
 pulsa. Móntalo una vez en tus presentaciones y no vuelvas a tocarlo.<br>
-Con <code>?embed=1</code> se incrusta sin cabecera ni pie.</p>
+Para ponerlo en un Genially, copia su código en <a href="consola.html">Mis grupos</a> → Ver mi gente y los ajustes → <b>Para los Geniallys</b>.</p>
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "llamada.html"), "w", encoding="utf-8").write(_ver_assets(_html))
@@ -2968,8 +2968,8 @@ _html = head("STARGATE · Un premio para ti",
 <p class="small muted nota-docente" style="margin-top:22px">Para el profesorado: un enlace por premio
 (el que copias con «📋 Copiar enlace»), y cada uno vale en <b>todos</b> los grupos y todas las
 convocatorias — el grupo se deduce de quién pulsa. Se configuran en
-<a href="consola.html">Mis grupos</a> → Ver mi gente y los ajustes → <b>Premios por enlace</b>.<br>
-Con <code>?embed=1</code> se incrusta sin cabecera ni pie.</p>
+<a href="consola.html">Mis grupos</a> → Ver mi gente y los ajustes → <b>Premios por enlace</b>, con su botón
+«&lt;/&gt; Copiar para insertar» (en Genially: Insertar → Otros → Código).</p>
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "huevo.html"), "w", encoding="utf-8").write(_ver_assets(_html))
@@ -2990,9 +2990,8 @@ _html = head("STARGATE · El aula",
 <div id="aula-app"><p class="muted">Cargando…</p></div>
 ''' + '<script src="' + _v("assets/js/aula.js") + '" defer></script>' + '''
 <p class="small muted" style="margin-top:22px">Este enlace vale en <b>todos</b> tus grupos y en todas
-las convocatorias: el grupo se deduce de tu cuenta. Móntalo una vez en tus Geniallys.<br>
-Con <code>?embed=1</code> se incrusta sin cabecera ni pie, y con <code>?per=&lt;grupo&gt;</code> se
-fija a uno concreto si das clase en varios.</p>
+las convocatorias: el grupo se deduce de tu cuenta y, si das clase en varios, lo eliges arriba.<br>
+Para ponerlo en un Genially, copia su código en <a href="consola.html">Mis grupos</a> → Ver mi gente y los ajustes → <b>Para los Geniallys</b>.</p>
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "aula.html"), "w", encoding="utf-8").write(_ver_assets(_html))

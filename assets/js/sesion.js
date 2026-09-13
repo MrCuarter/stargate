@@ -26,6 +26,7 @@
    * entero de la web encima de la diapositiva.
    */
   if (q.get('embed') === '1') document.body.classList.add('embed');
+  var EMBED = q.get('embed') === '1';
   var st={per:q.get('per')||'', d:null, sem:0, i:0, slides:[], tipo:'REGULAR', nombre:'', inicio:'', aviso:''};
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -209,8 +210,15 @@
    * calendario es el mismo que usa la Nave (SG_CAPITULOS): si una semana no abre nada, no sale nada.
    */
   function capitulosDe(sem){
-    var t=st.tipo==='PUA'?'PUA':'REGULAR';
-    return (window.SG_CAPITULOS||[]).filter(function(c){ return c.listo!==false && (c.semanas||{})[t]===sem; });
+    var t=st.tipo==='PUA'?'PUA':'REGULAR', ab=(st.d&&st.d.capitulosAbiertos)||{};
+    return (window.SG_CAPITULOS||[]).filter(function(c){
+      if(c.listo===false) return false;
+      // (los grupos que lo abrieron antes del 14-sep guardaron `true`, sin semana: se presenta en la suya)
+      var suya=(c.semanas||{})[t], antes=ab[c.clave]===true?0:Number(ab[c.clave])||0;
+      // 14-sep · abierto antes de tiempo por el referente: se presenta la semana en que lo abrió
+      if(antes && antes<suya) return antes===sem;
+      return suya===sem;
+    });
   }
   function diapositivasNuevas(s){
     var out=[];
@@ -362,8 +370,9 @@
 
       // 🔴 El Genially del grupo, EMBEBIDO y al final: es la señal de «se acabó la introducción,
       // empieza la clase». Si no hay panel propio se dice, en vez de dejar un hueco negro.
+      // 14-sep · pero NO cuando la sesión ya está DENTRO del Genially: sería el panel dentro de sí mismo.
       var panel = (st.d && (st.d.panel || st.d.panelVer)) || '';
-      d.push({k:'genially', rot:'Empezar', html:
+      if (!EMBED) d.push({k:'genially', rot:'Empezar', html:
         '<div class="dia genially">'
         +(panel
           ? '<iframe src="'+esc(panel)+'" title="Panel de control del grupo" loading="lazy" '
@@ -408,10 +417,10 @@
     if(st.i>=st.slides.length) st.i=st.slides.length-1;
     if(st.i<0) st.i=0;
 
-    root.innerHTML=st.aviso
-      +prep(s)
-      +tira()
+    root.innerHTML=(EMBED ? '' : st.aviso+prep(s)+tira())
       +'<div class="mazo" id="mazo" tabindex="0" aria-live="polite">'
+      // en el embed, con varios grupos: cambiar de grupo sin salir del Genially (discreto: se proyecta)
+      +(st.grupos && st.grupos.length > 1 ? '<button type="button" class="ses-cambiar" id="ses-cambiar" title="Cambiar de grupo">⇄ '+esc(st.nombre||'Grupo')+'</button>' : '')
       +'<div class="lienzo">'+st.slides[st.i].html+'</div>'
       +'<button type="button" class="nav ant" id="ant" aria-label="Anterior">‹</button>'
       +'<button type="button" class="nav sig" id="sig" aria-label="Siguiente">›</button>'
@@ -455,6 +464,8 @@
         pintar();
       };
     });
+    var cg=root.querySelector('#ses-cambiar');
+    if(cg) cg.onclick=function(){ elegirGrupo(st.grupos); };
     var pr=root.querySelector('#proyectar');
     if(pr) pr.onclick=function(){
       // pantalla completa sobre el MAZO: así la tira de preparación (el consejo) queda fuera.
@@ -484,10 +495,6 @@
   function arrancar(d){
     if(d&&!d.error){
       st.tipo=(d.tipo||'REGULAR'); st.nombre=d.nombre||''; st.inicio=d.inicio||''; st.pausas=d.pausas||[];
-      if (st.varios && st.varios.length > 1)
-        st.aviso = '<div class="card aviso-per"><p>Proyectando <b>'+esc(st.nombre)+'</b>. '
-          +'Tienes '+st.varios.length+' grupos en marcha; para otro, ábrelo desde '
-          +'<a href="consola.html">tus grupos</a>.</p></div>';
       // 🔴 El tablero entero, no solo el tipo y la fecha. Norberto: «toda esta info es ORO y anima a
       // vencer». Y es verdad: el ranking, quién ha completado algo y qué habéis dicho en el ticket
       // son de este grupo y de nadie más — proyectarlos es lo que convierte una tabla en una clase.
@@ -516,22 +523,56 @@
    *
    * Si lleva `?per=` se respeta (un referente puede querer proyectar un grupo que no es suyo).
    */
+  /**
+   * 14-sep · EL EMBED DE GENIALLY, PARA TODOS. Norberto: «el referente les va a dar los Geniallys
+   * hechos… que en ese embed pida iniciar sesión al docente, detecte sus grupos, primero le pregunte
+   * en qué grupo estamos y entonces lance la presentación que toca. El mismo embed para todos los
+   * grupos y profesores». Antes, sin sesión, se quedaba en el calendario estándar SIN botón para
+   * entrar (dentro de un Genially no hay otra forma de hacerlo), y con varios grupos cogía el primero.
+   */
   function porLaCuenta(){
     var M = window.SG && window.SG.MOTOR;
     if (!M || !M.sesion || !M.misPERs) return sinGrupo();
+    root.innerHTML=cargando('Buscando tus grupos…','');
     M.sesion().then(function(yo){
-      if (!yo) return sinGrupo('Entra con tu cuenta y te enseño la sesión de tu grupo.');
+      if (!yo) return puertaSesion();
       return M.misPERs(yo.correo).then(function(ps){
         var vivos = (ps||[]).filter(function(x){ return x.estado === 'en marcha'; });
-        var elegido = vivos[0] || (ps||[])[0];
-        if (!elegido) return sinGrupo('Esa cuenta no lleva ningún grupo.');
-        st.per = elegido.id;
-        // 🔴 Con dos grupos en marcha se dice CUÁL se está proyectando. En enero es lo normal —uno
-        // acabando y otro empezando— y proyectar el equivocado delante de una clase no da error.
-        if (vivos.length > 1) st.varios = vivos.map(function(x){ return x.nombre; });
-        cargarYArrancar();
+        var lista = vivos.length ? vivos : (ps||[]);
+        if (!lista.length) return sinGrupos(yo);
+        st.grupos = lista;
+        if (lista.length === 1) { st.per = lista[0].id; return cargarYArrancar(); }
+        elegirGrupo(lista);
       });
     }).catch(function(){ sinGrupo(); });
+  }
+  function caja(html){ root.innerHTML='<div class="ses-puerta"><img class="ses-cap" src="assets/img/capitan/saluda.png" alt="">'
+    +'<div class="ses-puerta-txt"><div class="kicker">STARGATE · La sesión de la semana</div>'+html+'</div></div>'; }
+  function puertaSesion(err){
+    caja('<h2>Entra con tu cuenta de docente</h2>'
+      +'<p class="sub">Te enseño la sesión de tu grupo, en la semana que toca.</p>'
+      +'<button class="btn primary grande btn-google" id="ses-entrar">'+((window.SG && window.SG.LOGO_G) || '')+'<span>Iniciar sesión con Google</span></button>'
+      +(err?'<p class="ses-err">'+esc(err)+'</p>':''));
+    document.getElementById('ses-entrar').onclick=function(){
+      window.SG.MOTOR.entrar().then(function(){ porLaCuenta(); })
+        .catch(function(e){ puertaSesion('No he podido entrar: '+(e&&e.message||e)); });
+    };
+  }
+  function sinGrupos(yo){
+    caja('<h2>Esta cuenta no lleva ningún grupo</h2>'
+      +'<p class="sub">Has entrado como <b>'+esc(yo.correo||'')+'</b>. Si das clase en STARGATE, entra con la cuenta que te dio de alta tu referente.</p>'
+      +'<button class="btn" id="ses-otra">Entrar con otra cuenta</button>');
+    document.getElementById('ses-otra').onclick=function(){ window.SG.MOTOR.salir().then(function(){ puertaSesion(); }); };
+  }
+  function elegirGrupo(lista){
+    caja('<h2>¿En qué grupo estamos?</h2>'
+      +'<div class="ses-grupos">'+lista.map(function(g){
+        return '<button type="button" class="ses-grupo" data-per="'+esc(g.id)+'"><b>'+esc(g.nombre||g.id)+'</b>'
+          +'<span>'+(g.estado==='en marcha'?'Semana '+g.semana+' de '+g.total:esc(g.estado))+(g.stargate&&g.stargate.tipo==='PUA'?' · PUA':'')+'</span></button>';
+      }).join('')+'</div>');
+    Array.prototype.forEach.call(root.querySelectorAll('.ses-grupo'),function(b){
+      b.onclick=function(){ st.per=b.getAttribute('data-per'); st.i=0; st.sem=0; cargarYArrancar(); };
+    });
   }
   function sinGrupo(msg){
     st.aviso='<div class="card aviso-per"><h3>¿De qué grupo?</h3>'

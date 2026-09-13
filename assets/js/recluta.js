@@ -1352,6 +1352,9 @@
     st.tab=tabValida(k);
     if(empujarHash!==false){ try{ history.replaceState(null,'','#'+st.tab); }catch(e){} }
     render();
+    // 14-sep · el Zoco, siempre al día al entrar: se enseñaba lo de la última vez que se abrió (otra
+    // pestaña, otro recluta que acaba de poner algo…). Se pinta lo que hay y se repinta al llegar lo nuevo.
+    if(st.tab==='zoco' && st.zoco) cargarZoco().then(function(){ if(st.tab==='zoco') render(); });
     // 🔴 13-sep · al cambiar de pestaña, arriba del todo. Buscaba `.nave-tabs`, el nombre de la barra
     // de antes del rediseño: no la encontraba y te dejaba a media página de la pestaña nueva.
     try{ window.scrollTo({top:0, behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); }
@@ -1628,6 +1631,9 @@
     var boton=(motorNuevo()&&r&&!tope&&mis>=x.coste&&x.id)
       ? '<button class="btn primary" type="button" data-canje="'+esc(x.doc||x.id)+'" data-nombre="'+esc('una participación del Gran Sorteo')+'" data-coste="'+x.coste+'" data-tipo="sorteo" data-abrir="0" data-usos="1">🎟️ Una participación · '+x.coste+' ◈</button>'
       : '';
+    // 14-sep · la reventa (Norberto: «debes permitir también añadir al Zoco participaciones»)
+    if(mias>0&&r&&motorNuevo()&&abierto('zoco'))
+      boton+='<button class="btn" type="button" data-zoco-poner="'+esc(x.doc)+'">🔄 Revender una en el Zoco</button>';
     return '<div class="card rec-card sorteo">'+cab
       +'<p class="pts">'+x.coste+' ◈ <span class="small muted">cada participación</span></p>'
       +'<p class="sorteo-mias">Llevas <b>'+mias+'</b> participaci'+(mias===1?'ón':'ones')+(max?' <span class="small muted">(como mucho '+max+')</span>':'')+'</p>'
@@ -1792,13 +1798,20 @@
       case 'retirado': return soyVende ? '<b>'+otro+'</b> ha retirado su oferta por tu '+pz+'.'
                                        : '<b>'+otro+'</b> ha retirado '+pz+' del Zoco: lo que ofreciste ha vuelto a ti.';
       case 'caducado': return 'Un trato por '+pz+' caducó sin respuesta: lo apartado ha vuelto a su dueño.';
-      case 'anulado': return 'El trato por '+pz+' se anuló: lo apartado ha vuelto a su dueño.';
+      case 'anulado': return t.motivo==='sorteo' ? 'Se hizo el sorteo antes de cerrar el trato por '+pz+': lo apartado ha vuelto a su dueño.'
+                                                  : 'El trato por '+pz+' se anuló: lo apartado ha vuelto a su dueño.';
       case 'deshecho': return 'Tu docente ha deshecho el trueque de '+pz+': cada cosa ha vuelto a su dueño.';
     }
     return 'Novedades en el trato por '+pz+'.';
   }
-  function piezaDeId(id){ return {id:id, tipo:/__heroe_/.test(id)?'heroe':'cromo', clave:String(id).split('__').pop().replace(/^(heroe|cromo)_/,'')}; }
+  function piezaDeId(id){ return {id:id, tipo:/__heroe_/.test(id)?'heroe':/__sorteo[a-z0-9]*$/i.test(id)?'participacion':'cromo', clave:String(id).split('__').pop().replace(/^(heroe|cromo)_/,'')}; }
+  /** 14-sep · el sorteo de una participación (su premio, su imagen, su precio y si ya se hizo) */
+  function sorteoDePieza(id){ return ((st.d&&st.d.recompensas)||[]).filter(function(x){ return x.doc===id&&x.sorteo; })[0]||null; }
   function datosPieza(p){
+    if(p.tipo==='participacion'){
+      var s=sorteoDePieza(p.id), S=(s&&s.sorteo)||{};
+      return { nombre:'Participación · '+(S.premio||'el sorteo'), rareza:'', img:'assets/img/canje/'+(S.imagen||'sorteo_generico.jpg') };
+    }
     var x=p.tipo==='heroe' ? (window.SG_HEROES||[]).filter(function(h){return h[0]===p.clave;})[0]
                            : (window.SG_CROMOS||[]).filter(function(c){return c[0]===p.clave;})[0];
     return { nombre:x?x[1]:p.clave, rareza:x?String(x[3]||''):'',
@@ -1814,13 +1827,22 @@
     return '<div class="zq">'+(cr?'<span class="zq-cr">'+cr+' ◈</span>':'')+ps.map(function(p){ return miniPieza(p); }).join('')
       +(!cr&&!ps.length?'<em>nada</em>':'')+'</div>';
   }
-  /** Lo que tiene alguien para cambiar: [{id, tipo, clave, n}] (de su ficha del tablero). */
-  function piezasDe(r){
+  /**
+   * Lo que tiene alguien para cambiar: [{id, tipo, clave, n}] (de su ficha del tablero). Con
+   * `conParticipaciones`, también sus participaciones de sorteos abiertos: se pueden VENDER, pero no
+   * sirven para pagar (el servidor no las aparta: una papeleta apartada se quedaría fuera del bombo).
+   */
+  function piezasDe(r, conParticipaciones){
     var out=[];
     Object.keys((r&&r.heroes_n)||{}).forEach(function(k){ out.push({id:per+'__heroe_'+k, tipo:'heroe', clave:k, n:r.heroes_n[k]}); });
     Object.keys((r&&r.cromos)||{}).forEach(function(k){ if(r.cromos[k]>0) out.push({id:per+'__cromo_'+k, tipo:'cromo', clave:k, n:r.cromos[k]}); });
+    if(conParticipaciones) Object.keys((r&&r.participaciones)||{}).forEach(function(id){
+      var s=sorteoDePieza(id), n=Number(r.participaciones[id])||0;
+      if(n>0&&s&&!s.sorteo.hecho) out.push({id:id, tipo:'participacion', clave:String(id).split('__').pop(), n:n}); });
     return out;
   }
+  /** El tope de créditos por una pieza: 3 veces su precio (una participación, 3 veces lo que cuesta). */
+  function topeZoco(p){ if(p.tipo!=='participacion') return TOPE_ZOCO[p.tipo]||45; var s=sorteoDePieza(p.id); return Math.max(15, 3*((s&&s.coste)||0)); }
   var ESTADO_TRATO={aceptado:'✅ Cambiado', rechazado:'✖️ Rechazado', retirado:'↩️ Retirado', caducado:'⌛ Caducó sin respuesta',
     anulado:'🚫 Anulado: ya no lo tenía', vendido:'💰 Se lo quedó otro', deshecho:'↺ Deshecho por el docente'};
   function tarjetaTrato(t, z){
@@ -1840,7 +1862,7 @@
       +'<button class="btn" data-zt="rechazar" data-t="'+t.id+'">✖️ No, gracias</button>';
     else if(t.estado==='abierto' && !soyVende && t.paso===1) botones='<button class="btn small" data-zt="retirar" data-t="'+t.id+'">Retirar mi oferta</button>';
     var estado = t.estado==='abierto' ? (toca?'<span class="chip wip">Te toca</span>':'<span class="chip">⏳ Esperando a '+esc(otro.alias)+'</span>')
-                                      : '<span class="chip">'+(ESTADO_TRATO[t.estado]||t.estado)+'</span>';
+                                      : '<span class="chip">'+(t.estado==='anulado'&&t.motivo==='sorteo'?'🎟️ Anulado: ya se sorteó':(ESTADO_TRATO[t.estado]||t.estado))+'</span>';
     return '<div class="card zt'+(toca?' toca':'')+'"><div class="zt-cab"><img class="zt-pz '+t.pieza.tipo+'" src="'+esc(pz.img)+'" alt="">'
       +'<div><p class="zt-tit">'+tit+'</p>'+estado+(t.paso===2&&t.estado==='abierto'?' <span class="chip">paso 2 de 3</span>':'')+'</div></div>'
       +cuerpo+(botones?'<div class="zt-btns">'+botones+'</div>':'')+'</div>';
@@ -1849,8 +1871,10 @@
     var z=st.zoco, r=st.yo||{};
     if(!z){ cargarZoco().then(function(){ if(st.tab==='zoco') render(); }); return '<section><h2>El Zoco Estelar</h2><div class="card">'+cargando('Abriendo el Zoco…','')+'</div></section>'; }
     if(z.error) return '<section><h2>El Zoco Estelar</h2><div class="card"><p class="malo">No he podido abrir el Zoco: '+esc(z.error)+'</p></div></section>';
-    var pend=zocoPendientes(), mios=z.anuncios.filter(function(a){ return a.vende.uid===z.uid; }),
-        otros=z.anuncios.filter(function(a){ return a.vende.uid!==z.uid; });
+    // 14-sep · las participaciones de un sorteo que ya se ha hecho ya no valen: no se enseñan
+    var vale=function(a){ if(a.pieza.tipo!=='participacion') return true; var s=sorteoDePieza(a.pieza.id); return !!(s&&!s.sorteo.hecho); };
+    var pend=zocoPendientes(), mios=z.anuncios.filter(function(a){ return a.vende.uid===z.uid&&vale(a); }),
+        otros=z.anuncios.filter(function(a){ return a.vende.uid!==z.uid&&vale(a); });
     var apartado=z.tratos.filter(function(t){ return t.estado==='abierto'&&t.compra.uid===z.uid; })
       .reduce(function(a,t){ return a+(Number(t.ofrece&&t.ofrece.creditos)||0); },0);
     var miOferta={}; z.tratos.forEach(function(t){ if(t.estado==='abierto'&&t.compra.uid===z.uid) miOferta[t.anuncio]=t; });
@@ -1858,7 +1882,7 @@
     var tarjeta=function(a, mio){
       var d=datosPieza(a.pieza), mo=miOferta[a.id];
       return '<div class="card zc '+a.pieza.tipo+'"><div class="zc-img"><img src="'+esc(d.img)+'" alt="" loading="lazy"></div>'
-        +'<div class="zc-txt"><b>'+esc(d.nombre)+'</b><span class="zc-meta">'+esc(d.rareza?d.rareza.charAt(0).toUpperCase()+d.rareza.slice(1).toLowerCase():'')+(mio?' · <em>tuyo</em>':' · de '+esc(a.vende.alias))+'</span>'
+        +'<div class="zc-txt"><b>'+esc(d.nombre)+'</b><span class="zc-meta">'+(d.rareza?esc(d.rareza.charAt(0).toUpperCase()+d.rareza.slice(1).toLowerCase())+' · ':'')+(mio?'<em>tuyo</em>':'de '+esc(a.vende.alias))+'</span>'
         +(mio ? (ofertasA[a.id]?'<span class="chip ok">'+ofertasA[a.id]+' oferta'+(ofertasA[a.id]>1?'s':'')+'</span>':'<span class="chip">sin ofertas aún</span>')
                +'<button class="btn small" data-zretirar="'+a.id+'">Retirar</button>'
               : mo ? '<span class="chip">⏳ Ya has ofertado</span>'
@@ -1870,7 +1894,7 @@
     var hist=z.tratos.filter(function(t){ return t.estado!=='abierto' && nov.indexOf(t)<0; }).slice(0,6);
     var abiertos=z.tratos.filter(function(t){ return t.estado==='abierto' && pend.indexOf(t)<0; });
     return '<section class="zoco"><div class="eyebrow violet">Trueque entre reclutas</div><h2>El Zoco Estelar</h2>'
-      +'<p class="lead">Pon tus héroes o cromos y los demás te ofrecen lo suyo: créditos, cartas o héroes. Lo que ofreces queda <b>apartado</b> hasta que te respondan, y cada trato se cierra en <b>3 pasos</b> como mucho.</p>'
+      +'<p class="lead">Pon tus héroes, cromos o participaciones del sorteo y los demás te ofrecen lo suyo: créditos, cartas o héroes. Lo que ofreces queda <b>apartado</b> hasta que te respondan, y cada trato se cierra en <b>3 pasos</b> como mucho.</p>'
       +'<div class="zoco-barra"><button class="btn primary grande" id="z-poner" type="button">➕ Poner algo mío</button>'
       +'<span class="small">Tienes <b>'+(r.creditos!=null?r.creditos:0)+' ◈</b>'+(apartado?' · <b>'+apartado+' ◈</b> apartados en tus ofertas':'')+'</span></div>'
       +(nov.length?'<h3 class="z-h">🆕 Novedades</h3><div class="zt-lista">'+nov.map(function(t){ return '<p class="zt-nov">'+fraseNovedad(t)+'</p>'+tarjetaTrato(t,z); }).join('')+'</div>':'')
@@ -1968,8 +1992,8 @@
         cuerpo:'<p class="neb-nota">Sigue siendo tuyo (y te lo puedes seguir poniendo) hasta que aceptes una oferta. Lo retiras cuando quieras.</p>',
         si:'Sí, ponerlo', no:'Ahora no' }).then(function(ok){ if(ok) tras(ZAPI().zocoPoner(per,[soloId]), function(){ return '🔄 <b>'+esc(pz.nombre)+'</b> ya está en el Zoco.'; }); });
     }
-    var mias=piezasDe(st.yo);
-    if(!mias.length) return aviso('Todavía no tienes héroes ni cromos que cambiar.');
+    var mias=piezasDe(st.yo, true);
+    if(!mias.length) return aviso('Todavía no tienes héroes, cromos ni participaciones que cambiar.');
     var v=zocoCapa('<h3>Poner algo tuyo en el Zoco</h3><p class="small muted">Marca uno o varios. Siguen siendo tuyos hasta que aceptes una oferta.</p>'
       +selector(mias, 8, puestas)
       +'<div class="zm-pie"><button class="btn primary" id="zm-ok" disabled>Poner en el Zoco</button><button class="btn" data-cerrar>Cancelar</button></div>');
@@ -1979,7 +2003,7 @@
       tras(ZAPI().zocoPoner(per,l), function(){ return '🔄 <b>'+l.length+'</b> '+(l.length===1?'cosa':'cosas')+' en el Zoco.'; }); };
   }
   function zocoOfertaVentana(anuncio){
-    var d=datosPieza(anuncio.pieza), tope=TOPE_ZOCO[anuncio.pieza.tipo]||45, mis=Number((st.yo||{}).creditos)||0;
+    var d=datosPieza(anuncio.pieza), tope=topeZoco(anuncio.pieza), mis=Number((st.yo||{}).creditos)||0;
     var z=st.zoco||{anuncios:[]}, puestas={};
     z.anuncios.forEach(function(a){ if(a.vende.uid===z.uid) puestas[a.pieza.id]=(puestas[a.pieza.id]||0)+1; });
     var v=zocoCapa('<h3>Tu oferta por '+esc(d.nombre)+'</h3><p class="small muted">de <b>'+esc(anuncio.vende.alias)+'</b> · lo que ofreces queda apartado hasta que te responda</p>'
@@ -1998,7 +2022,7 @@
     };
   }
   function zocoContraVentana(t){
-    var d=datosPieza(t.pieza), tope=TOPE_ZOCO[t.pieza.tipo]||45;
+    var d=datosPieza(t.pieza), tope=topeZoco(t.pieza);
     var buscar=function(l){ return (l||[]).filter(function(x){ return x.fid===t.compra.ficha; })[0]; };
     var suyo=buscar(st.d&&st.d.reclutas)||buscar((window.SG_TABLERO_DATA||{}).reclutas);
     // lo que tiene el comprador, más lo que ya ofreció (está apartado, pero es suyo)
@@ -2182,7 +2206,8 @@
                x:'Se sortea'+(n>1?'n <b>'+n+'</b> × ':' ')+premio+' entre toda la tripulación. Cada <b>participación</b> es una papeleta: cuantas más tengas, más posibilidades.'},
               {t:'Cómo se consiguen',foco:'.nb-t[data-tab="mercado"]',
                x:'Se compran en el <b>Mercado</b> con créditos'+(s?' ('+s.coste+' ◈ cada una'+(s.max&&s.max<99?', como mucho '+s.max:'')+')':'')+'. Tu docente también las <b>regala</b> en clase, o las esconde en un enlace. '
-                 +(S.fecha?'Se sortea el <b>'+fechaLarga(S.fecha)+'</b>, en clase y a la vista de todos, ':'Se sortea en clase, a la vista de todos, ')+'y <b>nadie gana dos</b>.'}];
+                 +(S.fecha?'Se sortea el <b>'+fechaLarga(S.fecha)+'</b>, en clase y a la vista de todos, ':'Se sortea en clase, a la vista de todos, ')+'y <b>nadie gana dos</b>. '
+                 +'¿Te ofrecen buen precio? Se <b>revenden en el Zoco</b>, como un cromo.'}];
     },
     c7:[{t:'Se abre el Arsenal de batalla',foco:'.nb-t[data-tab="mercado"]',
          x:'Los créditos que has ahorrado ya se pueden cambiar por <b>nota</b>: subir 0,5 o 1 punto en un entregable, o que se recalifique un trabajo.'},

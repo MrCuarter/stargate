@@ -167,11 +167,19 @@
         : '') +
       '<div class="gp-pie">' +
         '<button class="gp-abrir" data-per="' + esc(p.id) + '">Ver mi gente y los ajustes →</button>' +
-        '<button class="btn min" data-copiar="' + esc(location.origin + "/sesion.html?embed=1") + '" ' +
-          'title="El mismo enlace vale para todos tus grupos: sabe quién eres">📋 Embed para Genially</button>' +
+        // 14-sep · el CÓDIGO para insertar, no la dirección: Genially no incrusta una dirección suelta de
+        // una web que no conoce (Norberto: «esto no se embebe… ¡debe poderse embeber!»)
+        '<button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially("sesion.html?embed=1", "STARGATE · La sesión de la semana")) + '" ' +
+          'title="Para Genially: Insertar → Otros → Código. El mismo vale para todos tus grupos: pide la cuenta y pregunta el grupo">📋 Embed para Genially</button>' +
       '</div></article>';
   }
 
+
+  /** El código para insertar en Genially (Insertar → Otros → Código): llena la caja que le des. */
+  function codigoGenially(ruta, titulo) {
+    return '<iframe src="' + location.origin + '/' + ruta + '" width="1200" height="675" style="border:0;width:100%;height:100%" ' +
+      'allow="fullscreen; clipboard-write; autoplay; encrypted-media" allowfullscreen title="' + titulo + '"></iframe>';
+  }
 
   // tras «Borrar este grupo»: que se vea que se ha hecho
   function avisoBorrado() {
@@ -816,11 +824,18 @@
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>El Zoco Estelar</h3><p class="muted">Cargando los trueques…</p></div>';
     MOTOR.zocoTratosGrupo(PER).then(function (lista) {
       var pieza = function (id) {
+        // 14-sep · las participaciones del sorteo también se revenden en el Zoco
+        if (/__sorteo[a-z0-9]*$/i.test(String(id))) {
+          var t = ((DATOS && DATOS.recompensas) || []).filter(function (r) { return r.docId === id; })[0];
+          return "🎟️ Participación · " + esc(((t && t.stargateSorteo) || {}).premio || "sorteo");
+        }
         var k = String(id).split("__").pop(), h = /^heroe_/.test(k), c = k.replace(/^(heroe|cromo)_/, "");
         var x = h ? (window.SG_CATALOGO && SG_CATALOGO.heroes || []).filter(function (y) { return y.clave === c; })[0]
                   : (window.SG_CATALOGO && SG_CATALOGO.cromos || []).filter(function (y) { return y.clave === c; })[0];
         return (h ? "🛡️ " : "🃏 ") + esc((x && x.nombre) || c);
       };
+      // una participación de un sorteo ya hecho no se puede devolver: su trueque ya no se deshace
+      var sorteada = function (id) { return ((DATOS && DATOS.recompensas) || []).some(function (r) { return r.docId === id && r.isRaffleCompleted; }); };
       var pq = function (q) { if (!q) return "—"; var o = []; if (q.creditos) o.push(q.creditos + " ◈"); (q.piezas || []).forEach(function (id) { o.push(pieza(id)); }); return o.join(" + ") || "nada"; };
       var cerrados = lista.filter(function (x) { return x.estado === "aceptado"; }).length;
       $("#c-cuerpo").innerHTML = '<div class="card"><h3>El Zoco Estelar</h3>' +
@@ -829,10 +844,11 @@
         (lista.length ? '<div class="tabla-envoltura"><table class="tabla zoco-tabla"><thead><tr><th>Estado</th><th>Vende</th><th>Qué</th><th>Compra</th><th>Ofrece / paga</th><th>Mensajes</th><th></th></tr></thead><tbody>' +
           lista.map(function (x) {
             var pago = x.estado === "aceptado" ? (x.pagado || x.ofrece) : (x.pide || x.ofrece);
-            return '<tr><td>' + (NOM_ESTADO[x.estado] || esc(x.estado)) + '</td><td>' + esc(x.vende.alias) + '</td><td>' + pieza(x.pieza.id) +
+            var estado = x.estado === "anulado" && x.motivo === "sorteo" ? "🎟️ Anulado: ya se sorteó" : (NOM_ESTADO[x.estado] || esc(x.estado));
+            return '<tr><td>' + estado + '</td><td>' + esc(x.vende.alias) + '</td><td>' + pieza(x.pieza.id) +
               '</td><td>' + esc(x.compra.alias) + '</td><td>' + pq(pago) + '</td><td class="small">' +
               (x.mensajes || []).map(function (m) { return "<b>" + esc(m.de === "vendedor" ? x.vende.alias : x.compra.alias) + ":</b> «" + esc(m.texto) + "»"; }).join("<br>") +
-              '</td><td>' + (x.estado === "aceptado" ? '<button class="btn min" data-deshacer-z="' + esc(x.id) + '">Deshacer</button>' : "") + '</td></tr>';
+              '</td><td>' + (x.estado === "aceptado" && !sorteada(x.pieza.id) ? '<button class="btn min" data-deshacer-z="' + esc(x.id) + '">Deshacer</button>' : "") + '</td></tr>';
           }).join("") + '</tbody></table></div>' : '<p class="small muted">Todavía no ha habido ningún trueque.</p>') + '</div>';
       Array.prototype.forEach.call(app.querySelectorAll("[data-deshacer-z]"), function (b) {
         b.onclick = function () {
@@ -1043,7 +1059,8 @@
       '<div class="card"><h3>🎟️ Sorteos</h3>' +
       '<p class="small">Para dinamizar la clase. Tu alumnado compra <b>participaciones</b> en el Mercado; tú las <b>regalas</b> en el aula ' +
       '(Premiar → 🎟️) o las <b>escondes en un enlace</b> (Premios por enlace → 🎟️ Participaciones). El día del sorteo, <b>proyéctalo</b>: ' +
-      'lo hace el servidor, una papeleta por participación, y nadie gana dos.</p>' +
+      'lo hace el servidor, una papeleta por participación, y nadie gana dos. Entre ellos, las <b>revenden en el Zoco</b>; lo que siga a la venta ' +
+      'al sortear se retira solo y cada oferta devuelve sus créditos.</p>' +
       (falta ? '<p><button class="btn primary" id="sr-defecto">➕ Añadir el Gran Sorteo: ' + esc(porDefecto.ganadores + " × " + porDefecto.premio) + '</button></p>' : "") +
       '<p><button class="btn" id="sr-nuevo">+ Crear otro sorteo</button></p><div id="sr-nuevo-f"></div></div>' +
       (L.length ? L.map(function (x) {
@@ -1284,7 +1301,8 @@
     Array.prototype.forEach.call(app.querySelectorAll("[data-cal-sigue]"), function (b) {
       b.onclick = function () { var p = b.getAttribute("data-cal-sigue"); CAL.pausas = CAL.pausas.filter(function (x) { return x !== p; }); re(); }; });
     Array.prototype.forEach.call(app.querySelectorAll("[data-cal-abre]"), function (b) {
-      b.onclick = function () { CAL.abiertos[b.getAttribute("data-cal-abre")] = true; re(); }; });
+      // se guarda la SEMANA en que se abre (no un «sí»): la sesión proyectada lo presenta esa semana
+      b.onclick = function () { CAL.abiertos[b.getAttribute("data-cal-abre")] = Math.max(1, semHoy || 1); re(); }; });
     Array.prototype.forEach.call(app.querySelectorAll("[data-cal-cierra]"), function (b) {
       b.onclick = function () { delete CAL.abiertos[b.getAttribute("data-cal-cierra")]; re(); }; });
     if ($("#cal-deshacer")) $("#cal-deshacer").onclick = function () { CAL = calDelGrupo(); re(); };
@@ -1393,11 +1411,12 @@
       '<p class="small">La Nave:<br><code>' + location.origin + '/recluta.html?per=' + esc(PER) + MOTOR_EN_ENLACES + '</code></p>' +
       '<p class="small">La sesión para proyectar:<br><code>' + location.origin + '/sesion.html?per=' + esc(PER) + MOTOR_EN_ENLACES + '</code></p></div>' +
       '<div class="card"><h3>Para los Geniallys · se montan UNA vez</h3>' +
-      '<p class="small muted">Ninguno lleva el grupo dentro: se deduce de la cuenta de quien pulsa. ' +
-      'Valen en todos los grupos y todas las convocatorias. Añade <code>?embed=1</code> para incrustarlos.</p>' +
-      '<p class="small">🎯 Validar un reto:<br><code>' + location.origin + '/validar.html?reto=S7</code></p>' +
-      '<p class="small">🔔 Llamada a filas (solo la toca el Comandante):<br><code>' + location.origin + '/llamada.html</code></p>' +
-      '<p class="small">🛰️ El aula (el puesto de mando del docente):<br><code>' + location.origin + '/aula.html</code></p></div>' +
+      '<p class="small muted">Ninguno lleva el grupo dentro: piden la cuenta de quien los abre y, si lleva varios grupos, le preguntan cuál. ' +
+      'Valen en todos los grupos y todas las convocatorias. En Genially: <b>Insertar → Otros → Código</b> y pegar.</p>' +
+      [["📽️ La sesión de la semana", "sesion.html?embed=1"], ["🔔 Llamada a filas (solo la toca el Comandante)", "llamada.html?embed=1"],
+       ["🛰️ El aula (el puesto de mando del docente)", "aula.html?embed=1"], ["🎯 Validar un reto", "validar.html?reto=S7&embed=1"]].map(function (x) {
+        return '<p class="small">' + x[0] + ' <button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[1], "STARGATE · " + x[0].replace(/^\S+\s/, ""))) + '">&lt;/&gt; Copiar para insertar</button></p>';
+      }).join("") + '</div>' +
       tarjetaBorrar();
     cablearBorrar();
     var aCal = app.querySelector('#c-cuerpo [data-tab="calendario"]');

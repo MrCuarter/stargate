@@ -760,7 +760,7 @@
     var otros = function () { return (crudo.perfiles || []).filter(function (p) { return p.id !== FID && p.displayName; }); };
     var otroZ = function () { var o = otros(), x = o[Math.floor(Math.random() * o.length)] || { id: "sim-x", displayName: "Recluta" };
       return { ficha: x.id, uid: "sim-" + x.id, alias: x.displayName }; };
-    var piezaDe = function (id) { return { id: id, tipo: /__heroe_/.test(id) ? "heroe" : "cromo", clave: String(id).split("__").pop().replace(/^(heroe|cromo)_/, "") }; };
+    var piezaDe = function (id) { return { id: id, tipo: /__heroe_/.test(id) ? "heroe" : /__sorteo[a-z0-9]*$/i.test(id) ? "participacion" : "cromo", clave: String(id).split("__").pop().replace(/^(heroe|cromo)_/, "") }; };
     var aviso_ = function () { try { document.dispatchEvent(new CustomEvent("sg:zoco")); } catch (e) {} };
     var zocoIni = function () {
       if (zoco) return;
@@ -784,8 +784,10 @@
         (pago.piezas || []).forEach(function (x) { var i = perfil.inventory.indexOf(x); if (i >= 0) perfil.inventory.splice(i, 1); });
         perfil.inventory.push(t.pieza.id);
       } else {
-        // vendo lo mío: sale la pieza, entra lo pagado
-        var i = perfil.inventory.indexOf(t.pieza.id); if (i >= 0) perfil.inventory.splice(i, 1);
+        // vendo lo mío: sale la pieza (una participación sale de sus papeletas), entra lo pagado
+        if (t.pieza.tipo === "participacion") { perfil.lotteryEntries = perfil.lotteryEntries || {};
+          perfil.lotteryEntries[t.pieza.id] = Math.max(0, (perfil.lotteryEntries[t.pieza.id] || 0) - 1); }
+        else { var i = perfil.inventory.indexOf(t.pieza.id); if (i >= 0) perfil.inventory.splice(i, 1); }
         perfil.coins += Number(pago.creditos) || 0; perfil.inventory = perfil.inventory.concat(pago.piezas || []);
       }
       t.estado = "aceptado"; t.pagado = pago; t.actualizado = Date.now();

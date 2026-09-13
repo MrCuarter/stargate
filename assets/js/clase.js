@@ -497,9 +497,8 @@
         + '<span class="ic">🔔</span><b>Llamada a filas</b>'
         + '<em>solo el pase de lista, con el botón grande para proyectar</em></a>' : '')
       + '</div>'
-      + (NUEVO ? '<p class="acc-nota">🧩 Los dos últimos se pueden <b>incrustar en tu Genially</b> con '
-        + '<code>?embed=1</code>: el mismo enlace vale para todos tus grupos y todos los cursos, '
-        + 'porque el grupo se deduce de tu cuenta.</p>' : '')
+      + (NUEVO ? '<p class="acc-nota">🧩 Los dos últimos ya van dentro del <b>Genially de clase</b> que te da tu referente: '
+        + 'piden tu cuenta y te preguntan el grupo, así que valen para todos tus grupos y todos los cursos.</p>' : '')
       + '</section>';
     return herramientas
       +'<section id="sala-enlaces"><div class="eyebrow">Sin buscar en Drive</div><h2>Los enlaces de este grupo</h2>'

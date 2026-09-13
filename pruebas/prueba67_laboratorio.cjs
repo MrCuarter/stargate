@@ -1832,6 +1832,8 @@ const REG = {};   // cifras que se apuntan para el informe
       const puesto16 = await llama(r16, "zocoOfertar", [L_HE, { creditos: 0, piezas: [CS] }, ""]);
       c("🔴 zoco · 16 · Rut no puede ofrecer su Sylla: la tiene puesta en el Zoco", /está puesto en el Zoco/i.test(puesto16), puesto16);
       await r16.js("document.querySelector('.nb-t[data-tab=\"nave\"]').click(); 1"); await alZoco(r16);
+      // (lo puso por detrás de la pantalla: al volver al Zoco, este se pone al día solo)
+      c("zoco · 16 · al volver a la pestaña, el Zoco se pone al día: su Sylla ya sale en «Lo tuyo»", await r16.hasta(`!!document.querySelector('[data-zretirar="${L_RCS}"]')`, 15));
       await r16.js(`document.querySelector('[data-zofertar="${L_HE}"]').click(); 1`); await r16.hasta("!!document.querySelector('.zoco-capa #zm-ok')", 10);
       const b16 = await r16.js(`(function(){ var b=document.querySelector('.zoco-capa .zm-p[data-p="${CS}"]'); return JSON.stringify({ off: b && b.disabled, t: b && b.innerText }); })()`);
       c("zoco · 16 · y en la ventana de oferta su Sylla sale apagada «ya en el Zoco»", /"off":true/i.test(b16) && /ya en el Zoco/i.test(b16), b16);
@@ -2063,8 +2065,16 @@ const REG = {};   // cifras que se apuntan para el informe
       c("calendario · «Guardar» → «Calendario guardado: N fechas recalculadas»", await rita.hasta("/Calendario guardado: \\d+ fechas/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25),
         await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
       const F1 = await foto(), S1 = F1.S;
-      c("🔴 calendario · el grupo guarda la pausa y el capítulo abierto", JSON.stringify(S1.pausas) === JSON.stringify([futura]) && S1.capitulosAbiertos && S1.capitulosAbiertos.c7 === true,
+      c("🔴 calendario · el grupo guarda la pausa y el capítulo abierto", JSON.stringify(S1.pausas) === JSON.stringify([futura]) && S1.capitulosAbiertos && Number(S1.capitulosAbiertos.c7) === semHoy,
         JSON.stringify([S1.pausas, S1.capitulosAbiertos]));
+      const ses = await nueva("Rita proyecta la semana en que abrió el Arsenal");
+      await ses.ir("entrar.html"); await ses.entrarComo("rita@lab.test", "Rita Referente");
+      await ses.ir("sesion.html?per=" + P + "&sem=" + semHoy); await ses.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
+      await ses.hasta("[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Lo nuevo'})", 20);
+      // (solo se pinta la diapositiva en pantalla: se pulsa cada «Lo nuevo» y se lee lo que sale)
+      const loNuevo = await ses.js("(function(){ var t=''; [].slice.call(document.querySelectorAll('.barra-pasos .p')).forEach(function(b){ if(b.getAttribute('title')==='Lo nuevo'){ b.click(); var d=document.querySelector('.lienzo .dia.nuevo-nave'); t+=(d?d.textContent:'')+' | '; } }); return t; })()");
+      c("calendario · la sesión proyectada de ESTA semana presenta el Arsenal abierto antes de tiempo («Lo nuevo»)", /Arsenal/.test(loNuevo), loNuevo.slice(0, 200));
+      await ses.cerrar();
       c("🔴 calendario · el cierre de retos y el de canje, una semana más tarde", S1.cierre === SS.masDias(S0.cierre, 7) && S1.cierreCanje === SS.masDias(S0.cierreCanje, 7),
         S0.cierre + "→" + S1.cierre + " · " + S0.cierreCanje + "→" + S1.cierreCanje);
       const lim = new Date(futura + "T00:00:00").getTime(), hoyMs = SS.fecha(new Date()).getTime();
@@ -2220,6 +2230,7 @@ const REG = {};   // cifras que se apuntan para el informe
       for (const k of Object.keys(F)) await fs.collection("student_profiles").doc(F[k]._id).update({ coins: 300 });
       const ficha = k => fichaDe(GENTE[k][0], P);
       const papeletas = f => Number(((f && f.lotteryEntries) || {})[T] || 0);
+      const trato25 = async id => (await consultar("stargate_tratos", "projectId", P)).filter(t => t._id === id)[0];
       const ticket = async () => (await fs.collection("rewards").doc(T).get()).data();
       c("sorteo · el grupo nace con el Gran Sorteo: la participación (20 ◈, sin tope por persona) apunta a su premio (2 licencias)",
         (await ticket()).systemEffect === "lottery_ticket" && (await ticket()).linkedItemId === PREMIO && (await ticket()).cost === 20 && (await ticket()).maxPerUser == null
@@ -2291,14 +2302,57 @@ const REG = {};   // cifras que se apuntan para el informe
       c("sorteo · el mismo enlace otra vez: «Este ya lo tenías» (y no suma)", papeletas(await ficha("mateo")) === 5);
       await m1.cerrar();
 
+      // 2b · LA REVENTA EN EL ZOCO (Norberto: «debes permitir también añadir al Zoco participaciones»)
+      const llamaZ = (q, fn, args) => q.js(`window.SG.MOTOR.${fn}(${args.map(a => JSON.stringify(a)).join(",")}).then(function(r){return JSON.stringify(r)},function(e){return "ERROR " + e.message})`, 60000);
+      const s3 = await naveDe("sara", "revende", "mercado");
+      c("🔴 reventa · en la tarjeta del sorteo, «🔄 Revender una en el Zoco»", await s3.hasta(`!!document.querySelector('.rec-card.sorteo [data-zoco-poner="${T}"]')`, 15));
+      await s3.js(`document.querySelector('.rec-card.sorteo').scrollIntoView({block:'center'}); 1`); await s3.foto(FOTOS + "/25-revender.png");
+      await s3.js(`document.querySelector('.rec-card.sorteo [data-zoco-poner="${T}"]').click(); 1`);
+      await s3.hasta("!!document.querySelector('.neb-capa [data-si]')", 10);
+      c("reventa · NEBULA pregunta «¿Pongo «Participación · Licencia de Genially…» en el Zoco?»", /Participación · Licencia de Genially/i.test(await s3.js("document.querySelector('.neb-capa').innerText")));
+      await s3.js("document.querySelector('.neb-capa [data-si]').click(); 1");
+      await s3.hasta("/ya está en el Zoco/i.test((document.getElementById('nave-aviso')||{}).innerText||'')", 25);
+      const anunciosP = async () => (await consultar("stargate_zoco", "projectId", P)).filter(a => a.estado === "abierto" && a.pieza.id === T);
+      await llamaZ(s3, "zocoPoner", [P, [T, T]]);
+      c("🔴 reventa · Sara pone 3 participaciones en el Zoco, y siguen siendo suyas (11)", (await anunciosP()).length === 3 && papeletas(await ficha("sara")) === 11);
+      await s3.cerrar();
+      const iz = await naveDe("iker", "revende de más");
+      c("reventa · no se ponen más de las que se tienen (Íker tiene 2 e intenta poner 3)", /No tienes tantas participaciones/.test(await llamaZ(iz, "zocoPoner", [P, [T, T, T]])));
+      await iz.cerrar();
+      const [A1, A2] = (await anunciosP()).map(a => a._id);
+      const l2 = await naveDe("lola", "compra una", "zoco");
+      await l2.hasta("!!document.getElementById('z-poner')", 20);
+      c("🔴 reventa · Lola ve en el Zoco la «Participación · Licencia de Genially…» de Sara Saturno", await l2.hasta(`!!document.querySelector('[data-zofertar="${A1}"]') && /Participación · Licencia de Genially/.test(document.body.innerText)`, 20));
+      await l2.foto(FOTOS + "/25-zoco-participacion.png");
+      await l2.js(`document.querySelector('[data-zofertar="${A1}"]').click(); 1`); await l2.hasta("!!document.querySelector('.zoco-capa #zm-cr')", 10);
+      const ventana = JSON.parse(await l2.js(`JSON.stringify({ max: document.querySelector('.zoco-capa #zm-cr').max, suya: !!document.querySelector('.zoco-capa .zm-p[data-p="${T}"]'), t: document.querySelector('.zoco-capa').innerText.slice(0,600) })`));
+      c("reventa · el tope por una participación es 3 veces su precio (60 ◈) y sus propias papeletas no sirven para pagar", /como mucho 60/i.test(ventana.t) && !ventana.suya, JSON.stringify(ventana));
+      await l2.js("document.querySelector('.zoco-capa #zm-cr').value='30'; document.querySelector('.zoco-capa #zm-msg').value='Te la compro'; document.querySelector('.zoco-capa #zm-ok').click(); 1");
+      await l2.hasta("/Oferta enviada/i.test((document.getElementById('nave-aviso')||{}).innerText||'')", 25);
+      c("reventa · 61 ◈ por una participación, no", /como mucho 60/.test(await llamaZ(l2, "zocoOfertar", [A2, { creditos: 61, piezas: [] }, ""])));
+      c("🔴 reventa · y pagar con participaciones, tampoco (se quedarían fuera del bombo)", /Ofrece algo/.test(await llamaZ(l2, "zocoOfertar", [A2, { creditos: 0, piezas: [T] }, ""])));
+      await l2.cerrar();
+      const tL = (await consultar("stargate_tratos", "projectId", P)).filter(t => t.anuncio === A1 && t.estado === "abierto")[0];
+      const s4 = await naveDe("sara", "acepta la reventa");
+      const acep = await llamaZ(s4, "zocoResponder", [tL._id, "aceptar", {}]);
+      const fSa = await ficha("sara"), fLo = await ficha("lola");
+      c("🔴 reventa · trato hecho: la papeleta pasa de Sara (11 → 10) a Lola (3 → 4), y 30 ◈ de Lola a Sara",
+        /aceptado/.test(acep) && papeletas(fSa) === 10 && papeletas(fLo) === 4 && fSa.coins === 110 && fLo.coins === 270,
+        acep + " · " + [papeletas(fSa), papeletas(fLo), fSa.coins, fLo.coins].join(" · "));
+      await s4.cerrar();
+      // una oferta que se queda abierta hasta DESPUÉS del sorteo (se comprueba al final)
+      const m3 = await naveDe("mateo", "oferta por otra");
+      await llamaZ(m3, "zocoOfertar", [A2, { creditos: 20, piezas: [] }, ""]); await m3.cerrar();
+      const tM = (await consultar("stargate_tratos", "projectId", P)).filter(t => t.anuncio === A2 && t.estado === "abierto")[0];
+
       // 3 · la consola: el bombo, cambiar el precio, y sortear en directo
       await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"sorteos\"]')", 25);
       await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1");
       await rita.hasta("!!document.querySelector('.sr-caja')", 20);
       const cuenta = await rita.js("(document.querySelector('.sr-cuenta')||{}).innerText||''");
-      c("🔴 sorteo · la consola cuenta el bombo: 21 participaciones de 4 reclutas (11 + 2 + 3 + 5)", /21 participaciones de 4 reclutas/.test(cuenta), cuenta);
+      c("🔴 sorteo · la consola cuenta el bombo: 21 participaciones de 4 reclutas (10 + 2 + 4 + 5, con la reventa)", /21 participaciones de 4 reclutas/.test(cuenta), cuenta);
       await rita.js("var d=document.querySelector('.sr-caja details'); if(d) d.open=true; 1");
-      c("sorteo · y cada uno con sus posibilidades (Sara, 11 de 21 = 52 %)", /Sara Saturno[\s\S]*52 %/.test(await rita.texto()));
+      c("sorteo · y cada uno con sus posibilidades (Sara, 10 de 21 = 48 %)", /Sara Saturno[\s\S]*48 %/.test(await rita.texto()));
       await rita.foto(FOTOS + "/25-consola-sorteos.png");
       await rita.js("document.querySelector('.sr-editar').click(); 1"); await rita.hasta("!!document.querySelector('.sr-editar-f .sr-coste')", 10);
       await rita.js("var i=document.querySelector('.sr-editar-f .sr-coste'); i.value='25'; document.querySelector('.sr-editar-f .sr-guardar').click(); 1");
@@ -2326,8 +2380,8 @@ const REG = {};   // cifras que se apuntan para el informe
       c("sorteo · las papeletas de este sorteo se retiran a todos", Object.keys(F).every(k => papeletas(despues[k]) === 0));
       c("sorteo · el premio se queda sin unidades y el sorteo deja de venderse", (await fs.collection("rewards").doc(PREMIO).get()).data().globalStock === 0 && Number(tk.availableUntil) <= Date.now());
       const arch = (await fs.collection("projects").doc(P).collection("lottery_archives").doc(T).get()).data();
-      c("🔴 sorteo · el bombo entero queda guardado ANTES de borrar nada (4 reclutas, 22 papeletas, las regaladas incluidas)",
-        arch && arch.bombo.length === 4 && arch.totalParticipaciones === 22 && arch.bombo.some(b => b.ficha === F.lola._id && b.n === 3), JSON.stringify(arch && { n: arch.bombo.length, t: arch.totalParticipaciones }));
+      c("🔴 sorteo · el bombo entero queda guardado ANTES de borrar nada (4 reclutas, 22 papeletas, las regaladas y la revendida incluidas)",
+        arch && arch.bombo.length === 4 && arch.totalParticipaciones === 22 && arch.bombo.some(b => b.ficha === F.lola._id && b.n === 4), JSON.stringify(arch && { n: arch.bombo.length, t: arch.totalParticipaciones }));
       c("🔴 sorteo · dos veces no se puede sortear", /ya se ha hecho/.test(await rita.js(`window.SG.MOTOR.sortear('${P}','${T}').then(function(){return 'OTRA VEZ'},function(e){return e.message})`)));
       c("sorteo · ni regalar participaciones de un sorteo ya hecho", /ya se ha hecho/.test(await rita.js(`window.SG.MOTOR.regalarEnClase('${P}',['${F.lola._id}'],{tipo:'participacion',sorteo:'${T}',n:1}).then(function(){return 'REGALÓ'},function(e){return e.message})`)));
       await rita.js("document.getElementById('sr-salir').click(); 1"); await rita.hasta("!!document.querySelector('.sr-ganadores')", 20);
@@ -2342,6 +2396,24 @@ const REG = {};   // cifras que se apuntan para el informe
       c("sorteo · el enlace de participaciones, después del sorteo: «Ese sorteo ya se ha hecho»", await l0.hasta("/ya se ha hecho/i.test(document.body.innerText)", 25), (await l0.texto()).slice(0, 160));
       c("   (y no le suma nada)", papeletas(await ficha("lola")) === 0);
       await l0.cerrar();
+      // 3b · la reventa, tras el sorteo: lo que quedaba en el Zoco se retira SOLO y cada oferta devuelve lo suyo
+      const tM2 = await trato25(tM._id), restos = (await consultar("stargate_zoco", "projectId", P)).filter(a => a.pieza.id === T && a._id !== A1);
+      c("🔴 reventa · al sortear, las 2 participaciones que Sara aún tenía en el Zoco se retiran solas", restos.length === 2 && restos.every(a => a.estado === "retirado"),
+        JSON.stringify(restos.map(a => a.estado)));
+      const fM = await ficha("mateo");
+      c("🔴 reventa · y la oferta de Mateo por una de ellas se anula: le vuelven sus 20 ◈ (300)", tM2.estado === "anulado" && tM2.motivo === "sorteo" && fM.coins === 300,
+        tM2.estado + " · " + tM2.motivo + " · " + fM.coins);
+      const s5 = await naveDe("sara", "tras el sorteo");
+      c("reventa · aceptarla después ya no hace nada («Ese trato ya está cerrado»)", /ya está cerrado/.test(await llamaZ(s5, "zocoResponder", [tM._id, "aceptar", {}])));
+      c("reventa · ni poner en el Zoco participaciones de un sorteo ya hecho", /ya se ha hecho/.test(await llamaZ(s5, "zocoPoner", [P, [T]])));
+      await s5.js("document.querySelector('.nb-t[data-tab=\"zoco\"]').click(); 1"); await s5.hasta("!!document.getElementById('z-poner')", 20);
+      c("reventa · y en el Zoco de Sara ya no se ve ninguna participación en venta", !(await s5.js(`[].slice.call(document.querySelectorAll('[data-zofertar],[data-zretirar]')).some(function(b){ var c=b.closest('.zoco-card,.card,li,article')||b.parentNode; return /Participación · /.test(c.innerText); })`)));
+      await s5.cerrar();
+      const m4 = await naveDe("mateo", "tras el sorteo");
+      c("reventa · Mateo lo ve al entrar: «Se hizo el sorteo antes de cerrar el trato… lo apartado ha vuelto»", await m4.hasta("/Se hizo el sorteo antes de cerrar el trato/.test((document.querySelector('.zoco-aviso')||{}).innerText||'')", 20),
+        await m4.js("(document.querySelector('.zoco-aviso')||{}).innerText||''"));
+      await m4.foto(FOTOS + "/25-reventa-anulada.png");
+      await m4.cerrar();
       // 4 · lo que ven quien gana y quien no
       const kG = idAk[gan[0]], kN = Object.keys(F).filter(k => gan.indexOf(F[k]._id) < 0)[0];
       const g1 = await naveDe(kG, "ha ganado");
@@ -2369,6 +2441,51 @@ const REG = {};   // cifras que se apuntan para el informe
       c("sorteo · y sale en el Mercado de su alumnado", await l1.hasta("[].slice.call(document.querySelectorAll('.rec-card.sorteo')).some(function(x){return /juegos de mesa/.test(x.innerText)})", 20));
       c("sorteo · sin errores en las páginas", [rita, l1].every(x => !x.errores.filter(e => !/Failed to load resource/.test(e)).length), [rita, l1].map(x => x.errores[0] || "").join(" | "));
       await l1.cerrar(); await rita.cerrar();
+    }
+    // ============================================================ 26 · LA SESIÓN, DENTRO DEL GENIALLY
+    /**
+     * Norberto: «el referente les va a dar los Geniallys hechos… que en ese embed pida iniciar sesión
+     * al docente, detecte sus grupos, primero le pregunte en qué grupo estamos y entonces lance la
+     * presentación que toca. El mismo embed para todos». Y: «esto no se embebe… ¡debe poderse embeber!»
+     * (el botón copiaba una dirección suelta, y Genially necesita el código).
+     */
+    if (hacer(26)) {
+      const A = admin(), fs = A.firestore(), P = "lab-clase", P2 = "lab-clase-dos";
+      const base = (await fs.collection("projects").doc(P).get()).data();
+      await fs.collection("projects").doc(P2).set(Object.assign({}, base, { name: "LAB · Segundo grupo", joinCode: "SEGUN2" }));
+      const rita = await nueva("Rita copia el embed");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("consola.html"); await rita.hasta("!!document.querySelector('.gp')", 25);
+      const cod = await rita.js("([].slice.call(document.querySelectorAll('[data-copiar]')).filter(function(b){return /Embed para Genially/.test(b.textContent)})[0]||{getAttribute:function(){return ''}}).getAttribute('data-copiar')");
+      c("🔴 embed · «📋 Embed para Genially» copia el CÓDIGO para insertar (un iframe), no una dirección suelta",
+        /^<iframe src="http:\/\/[^"]+\/sesion\.html\?embed=1"/.test(cod) && /allowfullscreen/.test(cod), cod.slice(0, 120));
+      await rita.cerrar();
+      const p = await nueva("La sesión dentro del Genially");
+      await p.ir("http://127.0.0.1:" + L.P_WEB2 + "/genially.html?que=" + encodeURIComponent("sesion.html?embed=1"));
+      const f = await p.marco("sesion.html");
+      c("🔴 embed · dentro de la presentación, sin sesión: «Entra con tu cuenta de docente» con el botón de Google AHÍ MISMO",
+        !!f && await f.hasta("!!document.getElementById('ses-entrar')", 20));
+      c("embed · y sin la cabecera ni el pie de la web", await f.js("getComputedStyle(document.querySelector('nav.nav')).display==='none' && getComputedStyle(document.querySelector('footer')).display==='none'"));
+      await p.foto(FOTOS + "/26-embed-entrar.png");
+      await f.entrarComo("rita@lab.test", "Rita Referente");
+      await f.recargar(); await dormir(2000);
+      const f2 = await p.marco("sesion.html");
+      c("🔴 embed · con dos grupos, primero pregunta «¿En qué grupo estamos?»", await f2.hasta("document.querySelectorAll('.ses-grupo').length>=2 && /En qué grupo estamos/.test(document.body.innerText)", 25),
+        (await f2.texto()).slice(0, 200));
+      await p.foto(FOTOS + "/26-embed-grupo.png");
+      await f2.js(`[].slice.call(document.querySelectorAll('.ses-grupo')).filter(function(b){return b.getAttribute('data-per')==='${P}'})[0].click(); 1`);
+      c("🔴 embed · elige su grupo y arranca la sesión de la semana que toca", await f2.hasta("!!document.querySelector('.mazo .dia.portada') && /Semana 10/i.test(document.querySelector('.mazo').innerText)", 25),
+        (await f2.texto()).slice(0, 200));
+      const vista = JSON.parse(await f2.js("JSON.stringify({ prep: !!document.querySelector('.prep'), tira: !!document.querySelector('.sem-tira'), panel: [].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Empezar'}), alto: document.querySelector('.mazo').getBoundingClientRect().height, vh: innerHeight, cambiar: !!document.getElementById('ses-cambiar') })"));
+      c("embed · se proyecta solo el mazo: sin la tira del docente (el consejo) ni el selector de semanas", !vista.prep && !vista.tira, JSON.stringify(vista));
+      c("embed · y llena la caja del Genially", Math.abs(vista.alto - vista.vh) < 4, JSON.stringify(vista));
+      c("🔴 embed · sin la diapositiva del panel de Genially (sería el Genially dentro de sí mismo)", !vista.panel, JSON.stringify(vista));
+      await p.foto(FOTOS + "/26-embed-sesion.png");
+      await f2.js("document.getElementById('ses-cambiar').click(); 1");
+      c("embed · «⇄ Cambiar de grupo» vuelve a preguntar", vista.cambiar && await f2.hasta("document.querySelectorAll('.ses-grupo').length>=2", 10));
+      c("embed · sin errores dentro del iframe", !p.errores.filter(e => !/Failed to load resource/.test(e)).length, p.errores[0] || "");
+      await p.cerrar();
+      await fs.collection("projects").doc(P2).delete();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

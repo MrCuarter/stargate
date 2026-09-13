@@ -95,14 +95,39 @@ function conTope(p, ms, que) {
     new Promise((_, mal) => { t = setTimeout(() => mal(new Error("tiempo agotado: " + que)), ms); })]);
 }
 
-let NAV = null, CHROME_PROC = null, WEB = null, WEB2 = null, PERFIL = null;
+let NAV = null, CHROME_PROC = null, WEB = null, WEB2 = null, PERFIL = null, PARANDO = false;
 async function arrancar(ver) {
+  /**
+   * 🔴 14-sep · RESTOS DE OTRA PASADA. Dos laboratorios lanzados a la vez (o uno que se cortó) dejan
+   * su Chrome escuchando en el puerto de depuración: el siguiente se conectaba a ESE navegador viejo
+   * y se colgaba sin decir por qué. Antes de arrancar se limpian los Chrome del laboratorio (solo los
+   * que usan un perfil `sglab-`, nunca el Chrome de nadie) y los servidores de sus dos puertos.
+   */
+  try {
+    spawnSync("pkill", ["-f", "user-data-dir=.*sglab-"]);
+    for (const puerto of [P_WEB, P_WEB2]) {
+      const r = spawnSync("lsof", ["-tiTCP:" + puerto, "-sTCP:LISTEN"], { encoding: "utf8" });
+      (r.stdout || "").split(/\s+/).filter(Boolean).forEach(pid => { try { process.kill(Number(pid)); } catch (e) {} });
+    }
+    // y sus perfiles (unos 120 MB cada uno): se iban quedando en la carpeta temporal, 166 el 14-sep
+    fs.readdirSync(os.tmpdir()).filter(d => /^sglab-/.test(d))
+      .forEach(d => { try { fs.rmSync(path.join(os.tmpdir(), d), { recursive: true, force: true }); } catch (e) {} });
+  } catch (e) {}
+  await dormir(600);
   WEB = spawn("python3", ["-m", "http.server", String(P_WEB), "--bind", "127.0.0.1"], { cwd: RAIZ, stdio: "ignore" });
   PERFIL = fs.mkdtempSync(path.join(os.tmpdir(), "sglab-"));
   const args = ["--disable-gpu", "--no-first-run", "--no-default-browser-check", `--remote-debugging-port=${P_CDP}`,
                 `--user-data-dir=${PERFIL}`, "about:blank"];
   if (!ver) args.unshift("--headless=new");
   CHROME_PROC = spawn(CHROME, args, { stdio: "ignore" });
+  // 🔴 14-sep · si el Chrome del laboratorio se cierra a mitad, las llamadas se quedaban esperando
+  // para siempre (se colgó en la sección 6 sin decir nada): ahora se dice y se para
+  CHROME_PROC.on("exit", (codigo, senal) => {
+    if (PARANDO) return;
+    console.error("\n🔴 El Chrome del laboratorio se ha cerrado a mitad (" + (senal || "código " + codigo) + "). No es la web: vuelve a lanzarlo.");
+    console.error("   (" + ok + " comprobaciones bien hasta ahí, " + fallos.length + " fallos)");
+    process.exit(3);
+  });
   let v = null;
   for (let i = 0; i < 80 && !v; i++) { try { v = await (await fetch(`http://127.0.0.1:${P_CDP}/json/version`)).json(); } catch (e) {} if (!v) await dormir(300); }
   if (!v) throw new Error("Chrome no arrancó");
@@ -112,9 +137,12 @@ async function arrancar(ver) {
   await dormir(500);
 }
 async function parar() {
+  PARANDO = true;
   try { CHROME_PROC && CHROME_PROC.kill(); } catch (e) {}
   try { WEB && WEB.kill(); } catch (e) {}
   try { WEB2 && WEB2.kill(); } catch (e) {}
+  await dormir(400);
+  try { PERFIL && fs.rmSync(PERFIL, { recursive: true, force: true }); } catch (e) {}
 }
 
 /**

@@ -609,6 +609,7 @@ CAPITULOS = [
      "puedes": ["Se sortean dos licencias de Genially de un año completo",
                 "Cada participación es una papeleta: cuantas más tengas, más posibilidades",
                 "Se compran en el Mercado, y tu docente también las regala (o las esconde en un enlace)",
+                "¿Te ofrecen buen precio? Se revenden en el Zoco, como un cromo",
                 "Nadie gana dos: el sorteo lo hace el servidor, delante de toda la clase"],
      "imagen": "assets/img/canje/sorteo.jpg"},
     {"n": 7, "clave": "c7", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
@@ -941,7 +942,7 @@ PASOS = [
         "dónde falta una. Desde aquí también puedes darle o quitarle un reto a mano cuando algo se tuerza."),
 
    dict(cod="D4", t="Tres: el aula, dentro del Genially", pose="brazos", img="d7_aula.png",
-    hacer="<b>Mis grupos</b> → botón <b>El aula</b> de tu grupo. O incrustado en tu Genially con <code>?embed=1</code>.",
+    hacer="<b>Mis grupos</b> → botón <b>El aula</b> de tu grupo. O dentro del <b>Genially de clase</b> que te da tu referente.",
     voz="Esto es lo que más te va a cambiar la clase. Es tu puesto de mando y vive dentro del "
         "Genially, así que no tienes que salir de la presentación para nada. Desde aquí tocas "
         "llamada a filas y ves quién va fichando en directo; miras a quién felicitar por lo que ha "
