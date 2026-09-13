@@ -2789,7 +2789,12 @@ FIREBASE = {"apiKey": "AIzaSyBv-PLACEHOLDER", # 🔴 EL NOMBRE QUE LEE UN ESTUDI
     # Para que ponga «stargate» hay que alojar el ayudante de Google en este dominio Y añadir su
     # dirección en la consola de Google Cloud — eso es una decisión de Norberto, no un arreglo.
     # La batería 70 comprueba que el authDomain sirve el ayudante DE VERDAD (su contenido).
-    "authDomain": "gamificapro-99e0a.firebaseapp.com",
+    # ✅ 13-sep (tarde) · HECHO: el ayudante oficial vive en __/auth/ de esta web (copia de Firebase,
+    # motor/actualizar_ayudante_google.sh) y Norberto añadió https://stargate.mistercuarter.es/__/auth/handler
+    # al cliente OAuth. La ventana dice «stargate.mistercuarter.es», y además es el MISMO dominio que
+    # la web: el inicio de sesión no depende de cookies de terceros (Safari, Chrome sin ellas).
+    # Si algún día falla: motor/comprobar_ayudante_google.cjs, y la vuelta atrás es firebaseapp.com.
+    "authDomain": "stargate.mistercuarter.es",
             "projectId": "gamificapro-99e0a", "storageBucket": "gamificapro-99e0a.firebasestorage.app",
             "messagingSenderId": "388656371280", "appId": "1:388656371280:web:b3d4178a235df271846355"}
 _FB = os.path.join(HERE, "assets", "js", "firebase_config.json")
