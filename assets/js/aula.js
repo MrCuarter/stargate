@@ -32,7 +32,10 @@
   function puerta(msg) {
     pinta('<div class="au-caja"><div class="au-icono">🛰️</div><h2>El aula</h2>'
       + '<p class="au-sub">' + esc(msg || "Entra con tu cuenta para mover tu clase desde aquí.") + "</p>"
-      + '<button class="ll-btn" id="au-entrar">Entrar con mi cuenta</button></div>');
+      // 13-sep · con la «G» de Google, como las demás puertas: «entrar con mi cuenta» a secas no dice
+      // que la contraseña se escribe en Google y no aquí
+      + '<button class="btn primary btn-google" id="au-entrar">' + ((window.SG && window.SG.LOGO_G) || '') +
+        '<span>Iniciar sesión con Google</span></button></div>');
     document.getElementById("au-entrar").onclick = function () {
       MOTOR.entrar().catch(function (e) { puerta("No he podido entrar: " + e.message); });
     };
