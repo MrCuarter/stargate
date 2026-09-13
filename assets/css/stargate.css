@@ -2556,3 +2556,11 @@ body.nave-dentro header.hero+section{border-bottom:0}
 .gp-invita .btn{flex:1 1 100%;justify-content:center}
 /* 2 o 4 grupos: dos columnas, filas llenas */
 @media(min-width:760px){.gp-grid.par{grid-template-columns:repeat(2,1fr)}}
+/* 🔴 13-sep · ELEGIR PERSONAJE SIN VERLE LA CARA. La regla general `.av` (el avatar redondo de 40 px
+   del ranking) también caía sobre los botones del alistamiento: la imagen era cuadrada pero la caja
+   medía 40 px de alto y solo se veía el pelo. Visto haciendo el recorrido de un estudiante de verdad. */
+.avatares .av{height:auto;margin:0;box-shadow:none;border-radius:11px;vertical-align:top;background:none}
+.avatares .av img{height:auto}
+/* el Comandante, con su círculo en línea (las reglas de formulario de #alistarse lo ponían encima) */
+#alistarse .comandante{display:flex;align-items:center;gap:10px;margin:0;font-size:1rem}
+#alistarse .comandante input{display:inline-block;width:18px;height:18px;margin:0;padding:0;accent-color:#4da3ff;flex:none}

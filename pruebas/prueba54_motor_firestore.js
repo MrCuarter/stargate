@@ -191,8 +191,18 @@ c(enAbierto.indexOf("@unir.net") < 0,
   "🔴 ni un solo correo del profesorado en el documento abierto");
 c(conEnlaces.proyecto.stargate.docentes.every(d => d.correo === undefined),
   "   los docentes salen con nombre y rol, sin correo");
-igual(conEnlaces.proyecto.stargate.docentes, [{ nombre: "Ana", rol: "docente" }],
+// 13-sep · y si imparte: un referente que solo coordina no sale como Comandante ni lleva escuadrón
+igual(conEnlaces.proyecto.stargate.docentes, [{ nombre: "Ana", rol: "docente", imparte: true }],
   "   porque el alumnado sí necesita saber quién le imparte");
+{
+  const p2 = paquete({ id: "x-imp", nombre: "Imparte", tipo: "REGULAR", inicio: "2026-09-14",
+    docentes: [{ nombre: "Coordi", correo: "c@x.es", rol: "referente", imparte: false },
+               { nombre: "Profe", correo: "p@x.es", rol: "docente", imparte: true }] }, cat);
+  igual(p2.proyecto.factions.map(f => f.teacherName), ["Profe"],
+    "🔴 quien NO imparte no se lleva escuadrón (Crear grupo lo decía y el paquete lo ignoraba)");
+  c(p2.proyecto.stargate.docentes.some(d => d.nombre === "Coordi" && d.imparte === false),
+    "   y queda marcado como que no imparte, para que el alistamiento no lo ofrezca de Comandante");
+}
 igual(conEnlaces.privado.panelEdit, "https://app.genially.com/editor/ed",
   "y lo de editar vive en `privado`, con su propia regla");
 c(conEnlaces.privado.docentes[0].correo === "ana@unir.net", "   junto con los correos");

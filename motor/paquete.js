@@ -98,8 +98,13 @@
     var cierreCanje = masDias(inicio, (semanas + (cat.semanasCanjeExtra || 1)) * 7 - 1);
     var docentes = (per.docentes || []).map(function (d) {
       return { nombre: String(d.nombre || "").trim(), correo: String(d.correo || "").toLowerCase().trim(),
-               rol: d.rol || "docente", panel: String(d.panel || "").trim() };
+               rol: d.rol || "docente", panel: String(d.panel || "").trim(),
+               // 🔴 13-sep · «imparte» llegaba desde Crear grupo y aquí se PERDÍA: quien coordina sin
+               // dar clase se llevaba un escuadrón vacío y salía como Comandante al alistarse. Solo
+               // un «false» explícito lo excluye; sin dato, imparte (así eran todos antes).
+               imparte: d.imparte === false ? false : true };
     }).filter(function (d) { return d.nombre || d.correo; });
+    var impartenClase = docentes.filter(function (d) { return d.imparte !== false; });
 
     /**
      * POR QUÉ EL VITALICIO SE ESCRIBE EN EL GRUPO Y NO SE COMPRUEBA EN CADA PANTALLA.
@@ -136,7 +141,7 @@
     // de existir la pregunta «¿quién imparte tu clase?» —que era texto libre y por eso llegaba
     // escrito de siete maneras distintas— y a cambio cada grupo tiene nombre, lema e identidad
     // desde el primer día. Elegir profe deja de ser burocracia y pasa a ser elegir bando.
-    var escuadrones = docentes.map(function (d, i) {
+    var escuadrones = impartenClase.map(function (d, i) {
       var e = cat.escuadrones[i % cat.escuadrones.length];
       return { id: d.escuadron || e.clave, name: d.escuadronNombre || e.nombre, score: 0,
                assignedTeacherEmails: d.correo ? [d.correo] : [],
@@ -202,7 +207,7 @@
         // El Genially propio de cada docente, si lo tiene. La Nave elige el del docente del alumno.
         // Es de ver, no de editar: por eso puede ir aquí.
         paneles: docentes.reduce(function (m, d) { if (d.panel) m[d.nombre] = d.panel; return m; }, {}),
-        docentes: docentes.map(function (d) { return { nombre: d.nombre, rol: d.rol }; }),
+        docentes: docentes.map(function (d) { return { nombre: d.nombre, rol: d.rol, imparte: d.imparte }; }),
         semanaDelTema: cat.semanaDelTema,
         temas: cat.temas
       }

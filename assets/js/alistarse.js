@@ -43,7 +43,9 @@
     };
   }
 
-  function docentes() { return ((PROY.stargate || {}).docentes || []); }
+  // Los Comandantes que se ofrecen: quien IMPARTE. Un referente que solo coordina no tiene escuadrón,
+  // y elegirle dejaba al estudiante sin escuadrón (los grupos viejos no traen el dato: salen todos).
+  function docentes() { return ((PROY.stargate || {}).docentes || []).filter(function (d) { return d.imparte !== false; }); }
 
   // 🔴 El interruptor de motor tiene que sobrevivir al salto a la Nave. Sin él, quien se alista con
   // ?motor=firestore aterriza en la Nave del motor VIEJO y se encuentra un «PER no encontrado»
@@ -182,7 +184,9 @@
     };
     pintarAvatares();
     document.querySelector("#a-enviar").onclick = alistar;
-    var r = app.querySelector('input[name="cmd"]'); if (r) r.checked = true;
+    // 🔴 13-sep · Marcado de antemano SOLO si hay un Comandante. Con varios, marcar el primero hacía
+    // que quien no mirara acabara en el escuadrón de otro docente sin enterarse: se elige a mano.
+    var rs = app.querySelectorAll('input[name="cmd"]'); if (rs.length === 1) rs[0].checked = true;
   }
 
   function pintarAvatares() {
@@ -230,6 +234,8 @@
     if (!alias) return aviso("Te falta el alias: es con lo que sales en el tablero.");
     var elegido = app.querySelector('input[name="cmd"]:checked');
     var comandante = elegido ? docentes()[Number(elegido.value)] : null;
+    if (!elegido && docentes().length > 1)
+      return aviso("Elige a tu Comandante: es quien te da clase, y con él te toca su escuadrón.");
     aviso("");
     var boton = document.querySelector("#a-enviar"); boton.disabled = true;
     var paso = document.querySelector("#a-paso");

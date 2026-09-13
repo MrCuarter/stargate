@@ -71,6 +71,12 @@ const REG = {};   // cifras que se apuntan para el informe
       c("alumna · con el código (en minúsculas) llega al alistamiento", alis, await ana.js("location.href"));
       const form = await ana.hasta("!!document.querySelector('#a-enviar')", 25);
       c("alumna · y ve el formulario de alistamiento", form, (await ana.texto()).slice(0, 220));
+      // 🔴 13-sep · Sol coordina y NO imparte: no tiene escuadrón y no puede salir como Comandante
+      const cmds = await ana.js("[].slice.call(document.querySelectorAll('.comandante')).map(function(l){return l.textContent.trim()})");
+      c("alumna · los Comandantes que se ofrecen son solo quienes imparten (sin Sol, que coordina)",
+        cmds.length === 2 && cmds.indexOf("Sol Coordina") < 0 && !(await ana.js("!!document.querySelector('input[name=cmd]:checked')")), JSON.stringify(cmds));
+      c("alumna · las caras de los personajes se ven enteras (no tiras de 40 px)",
+        await ana.js("document.querySelector('#a-avatares .av').getBoundingClientRect().height > 90"));
       await ana.foto(FOTOS + "/2-alistarse.png");
       // el formulario, como lo rellenaría ella
       await ana.js(`(function(){

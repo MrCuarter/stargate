@@ -2982,7 +2982,7 @@ print("escrito: aula.html  (el puesto de mando dentro del Genially)")
 _html = head("STARGATE · Alistarse",
              "Alístate en tu grupo de STARGATE: entra con tu cuenta, elige Comandante y personaje y abre tu Bitácora.",
              "reg", publica=True).replace("</head>", _cabeza_motor() + "\n</head>") + '''
-<header class="hero"><div class="kicker">Alistamiento</div><h1>Únete a la tripulación</h1>
+<header class="hero corto"><div class="kicker">Alistamiento</div><h1>Únete a la tripulación</h1>
 <p>Se hace una vez. Entra con tu cuenta, di quién eres y elige a tu Comandante: él te llevará a tu escuadrón.</p></header>
 <section id="alistarse"><div class="wrap">
 <div id="alistarse-app"><p class="muted">Cargando…</p></div>
