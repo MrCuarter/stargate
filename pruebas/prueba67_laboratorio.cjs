@@ -448,7 +448,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await ana.ir("recluta.html?per=lab-clase#mercado");
       await ana.hasta("!!document.querySelector('button[data-canje]')", 25);
       const antes = await fichaDe("ana@lab.test", "lab-clase");
-      await ana.js(`(function(){ var b=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(x){return /Sobre de cromos/.test(x.getAttribute('data-nombre')||'')})[0]; b.click(); return 1; })()`);
+      await ana.js(`(function(){ var b=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(x){return /Sobre de cromos/.test(x.getAttribute('data-nombre')||'') && !/^oferta/.test(x.getAttribute('data-tipo')||'')})[0]; b.click(); return 1; })()`);
       await ana.hasta("!!document.querySelector('.neb-capa')", 8);
       await ana.js("var c=document.querySelector('.neb-capa'); [].slice.call(c.querySelectorAll('button')).filter(function(x){return /canjear/i.test(x.textContent)})[0].click(); 1");
       const sale = await ana.hasta("!!document.querySelector('.sb-capa .sb-carta')", 25);
@@ -554,7 +554,7 @@ const REG = {};   // cifras que se apuntan para el informe
         const f = await fichaDe("beto@lab.test", "lab-clase"); if (f.coins < 15) break;
         await beto.ir("recluta.html?per=lab-clase#mercado");
         await beto.hasta("!!document.querySelector('button[data-canje]')", 15);
-        const ok = await beto.js(`(function(){ var b=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(x){return /Sobre de cromos/.test(x.getAttribute('data-nombre')||'')})[0]; if(!b) return false; b.click(); return true; })()`);
+        const ok = await beto.js(`(function(){ var b=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(x){return /Sobre de cromos/.test(x.getAttribute('data-nombre')||'') && !/^oferta/.test(x.getAttribute('data-tipo')||'')})[0]; if(!b) return false; b.click(); return true; })()`);
         if (!ok) break;
         await beto.hasta("!!document.querySelector('.neb-capa')", 8);
         const conf = await beto.js("(function(){var c=document.querySelector('.neb-capa'); if(!c) return 'sin ventana'; var b=[].slice.call(c.querySelectorAll('button')).filter(function(x){return /canjear/i.test(x.textContent)})[0]; if(!b) return 'NO:'+c.innerText.replace(/\\s+/g,' ').slice(0,160); b.click(); return 'ok';})()");

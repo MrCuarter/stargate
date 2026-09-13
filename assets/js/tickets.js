@@ -34,7 +34,7 @@
     root.innerHTML='<div class="card"><h3>El panel todavía no lee esta hoja</h3>'
       +'<p>Desde que el ticket de salida es <b>uno solo para todos los grupos</b>, sus respuestas '
       +'viven en una hoja aparte. Para pintarlas aquí hay que desplegar su lector <b>una vez</b>: '
-      +'está en <code>apps-script/LectorTickets.gs</code> y lleva las instrucciones dentro.</p>'
+      +'es <a href="assets/descargas/LectorTickets.gs.txt" target="_blank" rel="noopener">LectorTickets.gs</a> y lleva las instrucciones dentro.</p>'
       +(hoja?'<p><a class="btn grande" href="'+esc(hoja)+'" target="_blank" rel="noopener">Abrir la hoja de respuestas</a></p>':'')
       +'<p class="small muted">Mientras tanto no se pierde nada: las respuestas siguen llegando a la '
       +'hoja, y el formulario que ve el alumnado funciona igual.</p></div>';

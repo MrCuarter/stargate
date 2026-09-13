@@ -8,3 +8,17 @@ AddCharset UTF-8 .txt .html .css .js .json .csv
     Header set Access-Control-Allow-Origin "*"
   </FilesMatch>
 </IfModule>
+
+# 15-sep · LO QUE NO ES LA WEB, NO SE SIRVE. Hostinger publica el repositorio entero: el código fuente
+# (.py, .gs), las pruebas, las notas (.md) y el nombre de la carpeta de documentos reservados se podían
+# descargar. Nada de esto lo pide ninguna página al funcionar (el catálogo va en motor/catalogo.json y
+# las copias del script para pegar siguen en assets/descargas/). El ayudante de Google (__/auth) no se toca.
+<FilesMatch "(\.(py|gs|md|bak|cjs|sh|log)|^_docs_reservados\.txt|^appsscript.*\.json|^launch\.json)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>

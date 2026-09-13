@@ -1,0 +1,8 @@
+# 15-sep · carpeta de trabajo: no se sirve (ver el .htaccess de la raíz)
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>
