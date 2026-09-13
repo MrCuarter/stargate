@@ -1637,6 +1637,25 @@
     puerta:{pasos:PASOS_PUERTA, clave:'sgNavePuerta_', fin:'Escribo mi correo ✓'},
     nave:  {pasos:PASOS,        clave:'sgNaveOnboard_', fin:'A la nave ✓'}
   };
+  /**
+   * 🔴 13-sep · ENCUADRAR LO QUE SE SEÑALA. Con `scrollIntoView({block:'center'})` un bloque alto (los
+   * vídeos, los retos) quedaba con su cabecera fuera de la pantalla o DEBAJO de la ventana de NEBULA,
+   * que ocupa la parte de abajo: «mira esto» y no se veía. Visto recorriendo la Nave con una cuenta
+   * real. Ahora el bloque se coloca bajo las barras pegadas y por encima de la ventana; si cabe, en
+   * medio de ese hueco, y si no, con su cabecera arriba. Lo que vive en la barra no mueve la página.
+   */
+  function llevarA(el, ov){
+    var barra=0;
+    [].slice.call(document.querySelectorAll('.nav,.nave-barra-u,.nave-barra')).forEach(function(n){
+      var st=getComputedStyle(n).position; if(st==='sticky'||st==='fixed') barra=Math.max(barra, n.getBoundingClientRect().bottom); });
+    var r=el.getBoundingClientRect();
+    if(r.top>=0 && r.bottom<=barra+4) return;            // está en la propia barra: ya se ve
+    var caja=ov&&ov.querySelector('.tour-box'), reserva=caja?caja.getBoundingClientRect().height+20:0;
+    var libre=Math.max(160, innerHeight-barra-reserva);
+    var margen=r.height<libre-24 ? Math.max(12,(libre-r.height)/2) : 12;
+    var y=Math.max(0, Math.round(scrollY + r.top - barra - margen));
+    try{ window.scrollTo({top:y, behavior:'smooth'}); }catch(e){ window.scrollTo(0,y); }
+  }
   function onboarding(i, acto){
     acto=acto||'nave'; var A=ACTOS[acto], P=A.pasos;
     var ov=document.getElementById('nave-onboard');
@@ -1660,8 +1679,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('.tour-foco'),function(el){el.classList.remove('tour-foco');});
     if(s.foco){ try{
       var diana=document.querySelector(s.foco);
-      if(diana){ diana.classList.add('tour-foco');
-        diana.scrollIntoView({behavior:'smooth',block:'center'}); }
+      if(diana){ diana.classList.add('tour-foco'); llevarA(diana, ov); }
     }catch(e){} }
     ov.querySelector('.tour-prev').onclick=function(){onboarding._dir=-1; onboarding(i-1,acto);};
     ov.querySelector('.tour-next').onclick=function(){onboarding._dir=1; onboarding(i+1,acto);};
