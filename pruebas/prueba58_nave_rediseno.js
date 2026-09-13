@@ -57,7 +57,8 @@ c(/P\.creditosDe\(\{id:id\},tipo,cat\)/.test(NAVE),
 c(/data-hecho="'\+esc\(t\[0\]\)/.test(NAVE), "y se marca desde ahí mismo");
 c(/rs-atras[\s\S]{0,200}sin registrar de semanas anteriores/.test(NAVE),
   "🔴 y la línea de atrasados, que es el dato que más mueve y no estaba en ninguna parte");
-const evid = NAVE.slice(NAVE.indexOf("function marcarReto"), NAVE.indexOf("function marcarReto") + 700);
+// (15-sep · 3000: el reto secreto, que pide su palabra, va ahora al principio de marcarReto)
+const evid = NAVE.slice(NAVE.indexOf("function marcarReto"), NAVE.indexOf("function marcarReto") + 3000);
 c(/querySelectorAll\('\[data-ev="'\+id\+'"\]'\)/.test(evid),
   "🔴 la evidencia se busca en los DOS sitios donde puede estar (la tarjeta y la pestaña de retos)");
 

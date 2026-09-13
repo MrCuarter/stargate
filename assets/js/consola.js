@@ -653,6 +653,13 @@
                  ["sobre_epico","✨ Un sobre épico (3 cartas, sin comunes)"],
                  ["sobre_raro","💎 Un sobre de raras"],
                  ["sobre_grande","🃏 Un sobre grande (5 cartas)"]];
+  // 15-sep · las cápsulas y los sobres nuevos, solo si el grupo los tiene en su tienda (los grupos de
+  // antes del 14-sep no): si no, el enlace daba en silencio un sobre normal de tres cartas. El que ya
+  // estuviera elegido se queda en la lista, para no cambiar un premio guardado sin decirlo.
+  function premiosDelGrupo(elegido) {
+    var hay = {}; ((DATOS && DATOS.recompensas) || []).forEach(function (r) { hay[r.stargateTipo] = true; });
+    return PREMIOS.filter(function (p) { return !/^(capsula_|sobre_)/.test(p[0]) || hay[p[0]] || p[0] === elegido; });
+  }
   // 14-sep · los sorteos del grupo que aún no se han hecho (para regalar participaciones por enlace)
   function sorteosAbiertos() {
     return ((DATOS && DATOS.recompensas) || []).filter(function (r) { return r.systemEffect === "lottery_ticket" && !r.isRaffleCompleted; });
@@ -708,7 +715,7 @@
     return '<div class="hv-f" data-i="' + i + '"><div class="hv-l1">' +
       '<label class="h-campo h-c-id">Enlace<input class="h-id" value="' + esc(h.id || "") + '" placeholder="p1" maxlength="12" title="Identificador: va en el enlace"></label>' +
       '<label class="h-campo h-c-nom">Nombre<input class="h-nom" value="' + esc(h.nombre || "") + '" placeholder="Presentación del Tema 1 · Reto del lunes"></label>' +
-      '<label class="h-campo h-c-premio">Premio<select class="h-premio">' + PREMIOS.map(function (p) {
+      '<label class="h-campo h-c-premio">Premio<select class="h-premio">' + premiosDelGrupo(pr).map(function (p) {
         return '<option value="' + p[0] + '"' + (pr === p[0] ? " selected" : "") + ">" + p[1] + "</option>"; }).join("") + '</select></label>' +
       '<div class="h-extra">' +
         // la cantidad solo cuenta para créditos, xp y participaciones: un sobre son siempre tres cartas y un héroe, uno
@@ -1105,7 +1112,8 @@
       if (so.cancelada) return ["cancelada", "✖️ Cancelada"];
       if (ahora < Number(so.desde || 0)) return ["pronto", "⏳ Empieza el " + diaDe(so.desde)];
       if (ahora >= Number(fo.endsAt || 0)) return ["fin", "⌛ Terminó el " + diaDe(fo.endsAt)];
-      if (r.isLimitedStock === true && Number(r.globalStock || 0) <= 0) return ["fin", "🔥 Agotada"];
+      // (15-sep · agotada NO es terminada: le faltan unidades, no tiempo; antes solo ofrecía «Reabrir»)
+      if (r.isLimitedStock === true && Number(r.globalStock || 0) <= 0) return ["agotada", "🔥 Agotada"];
       return ["viva", "⚡ A la venta hasta el " + diaDe(fo.endsAt)];
     };
     var fila = function (r) {
@@ -1117,6 +1125,7 @@
         (so.unidades == null ? "sin límite de unidades" : vend + " de " + so.unidades + " vendidas") + ' · una por persona</p></div>' +
         (e[0] === "viva" || e[0] === "pronto" ? '<p class="of-botones"><button class="btn min" data-of-mas="1">+1 día</button> <button class="btn min" data-of-mas="7">+1 semana</button> ' +
           '<button class="btn min" data-of-uds>Unidades…</button> <button class="btn min peligro" data-of-cancelar>Cancelar</button></p>'
+          : e[0] === "agotada" ? '<p class="of-botones"><button class="btn min" data-of-uds>Más unidades…</button> <button class="btn min peligro" data-of-cancelar>Cancelar</button></p>'
           : '<p class="of-botones"><button class="btn min" data-of-mas="7">Reabrir una semana</button></p>') + '</div>';
     };
     $("#c-cuerpo").innerHTML =
@@ -1127,17 +1136,21 @@
       '<p><button class="btn primary" id="of-nueva">+ Crear una oferta</button></p><div id="of-nueva-f"></div></div>' +
       (L.length ? L.map(fila).join("") : '<div class="card"><p class="small muted">Todavía no ha salido ninguna oferta. La primera sale sola en la semana 3, cuando alguien abre su Nave.</p></div>');
     var tras = function (texto) { return refrescar().then(function () { TAB = "ofertas"; pintar(); aviso(texto, true); }); };
-    var pide = function (accion, datos, texto) {
+    // (15-sep · si falla, el botón pulsado vuelve a estar vivo y la casilla vuelve a como estaba)
+    var pide = function (accion, datos, texto, alFallar) {
       return MOTOR.oferta(PER, accion, datos).then(function () { return tras(texto); }).catch(function (e) {
+        if (alFallar) try { alFallar(); } catch (x) {}
         aviso(/not-found|internal/.test(String(e && e.code)) && !/[áéíóú]/.test(String(e && e.message))
           ? "Falta desplegar en el servidor la función «stargateOferta» (el comando está en el traspaso)." : e.message);
       });
     };
-    $("#of-auto").onchange = function () { pide("auto", { on: $("#of-auto").checked }, $("#of-auto").checked ? "⚡ Una oferta automática cada semana." : "Ofertas automáticas apagadas: solo las que crees tú."); };
+    $("#of-auto").onchange = function () { var cb = $("#of-auto"), antes = !cb.checked;
+      pide("auto", { on: cb.checked }, cb.checked ? "⚡ Una oferta automática cada semana." : "Ofertas automáticas apagadas: solo las que crees tú.",
+        function () { cb.checked = antes; }); };
     Array.prototype.forEach.call(app.querySelectorAll("[data-of]"), function (c) {
       var id = c.getAttribute("data-of");
       Array.prototype.forEach.call(c.querySelectorAll("[data-of-mas]"), function (b) {
-        b.onclick = function () { b.disabled = true; pide("extender", { ofertaId: id, dias: Number(b.getAttribute("data-of-mas")) }, "⏳ Oferta alargada."); }; });
+        b.onclick = function () { b.disabled = true; pide("extender", { ofertaId: id, dias: Number(b.getAttribute("data-of-mas")) }, "⏳ Oferta alargada.", function () { b.disabled = false; }); }; });
       var u = c.querySelector("[data-of-uds]");
       if (u) u.onclick = function () {
         var v = prompt("¿Cuántas unidades en total? (escribe «ilimitado» para quitar el tope)", "");
@@ -1166,12 +1179,13 @@
         var q = $("#of-que").value.split(":"), que = q[0] === "cofre" ? { tipo: "cofre", cual: q[1] } : { tipo: q[0], clave: q[1] };
         var uds = $("#of-sin").checked ? "ilimitado" : (Number($("#of-uds").value) > 0 ? Number($("#of-uds").value) : undefined);
         $("#of-crear").disabled = true;
-        pide("crear", { que: que, pct: Number($("#of-pct").value) || 30, unidades: uds, dias: Number($("#of-dias").value) || 7 }, "⚡ Oferta creada: ya está en el Mercado de tu alumnado.");
+        pide("crear", { que: que, pct: Number($("#of-pct").value) || 30, unidades: uds, dias: Number($("#of-dias").value) || 7 }, "⚡ Oferta creada: ya está en el Mercado de tu alumnado.",
+          function () { var c = $("#of-crear"); if (c) c.disabled = false; });
       };
     };
   }
 
-  var SORTEOS_PEDIDOS = false;
+  var SORTEOS_PEDIDOS = {};   // (15-sep · por grupo: al pasar de un grupo a otro sin recargar, el segundo también se pide)
   function verSorteos(t) {
     var L = sorteosDelGrupo(), cat = window.SG_CATALOGO || {}, porDefecto = (cat.sorteos || [])[0];
     var falta = porDefecto && !L.some(function (x) { return x.stargateId === porDefecto.id; });
@@ -1212,8 +1226,8 @@
     var tras = function (texto) { return refrescar().then(function () { TAB = "sorteos"; pintar(); aviso(texto, true); }); };
     // 14-sep · el sorteo que ya ha pasado su fecha se resuelve solo (aquí también, al abrir la pestaña)
     var vencidos = L.filter(function (x) { return !x.isRaffleCompleted && Number(x.ticketDeadline || 0) > 0 && Number(x.ticketDeadline) <= Date.now(); });
-    if (vencidos.length && !SORTEOS_PEDIDOS && MOTOR.sorteosPendientes) {
-      SORTEOS_PEDIDOS = true;
+    if (vencidos.length && !SORTEOS_PEDIDOS[PER] && MOTOR.sorteosPendientes) {
+      SORTEOS_PEDIDOS[PER] = true;
       MOTOR.sorteosPendientes(PER).then(function (r) { if (r && (r.resueltos || []).length) tras("🎟️ El sorteo se ha resuelto solo: ya tienes los ganadores."); }).catch(function () {});
     }
     // «Copiar ganadores»: del ARCHIVO del sorteo (guarda su contacto aunque luego se den de baja)
@@ -1230,9 +1244,19 @@
           var S = x.stargateSorteo || {};
           var texto = "Gran Sorteo · " + (S.premio || x.title || "") + " · " + (DATOS.proyecto.name || PER) + "\n" +
             gente.map(function (g, i) { return (i + 1) + ". " + g.alias + " — " + (g.nombre || "(sin nombre)") + " — " + (g.correo || "(sin correo)"); }).join("\n");
-          try { navigator.clipboard.writeText(texto); aviso("📋 Copiados: " + gente.length + " ganador" + (gente.length === 1 ? "" : "es") + ". Pégalos donde vayas a gestionar las licencias.", true); }
-          catch (e) { prompt("Copia los ganadores:", texto); }
           b.setAttribute("data-copiado-texto", texto);
+          // 🔴 15-sep · el portapapeles se escribe DESPUÉS de leer el archivo (una espera de red) y Safari lo
+          // rechaza; antes no se esperaba la promesa y decía «Copiados» sin haber copiado nada. Si no deja,
+          // la lista sale en un cuadro, ya seleccionada, para copiarla a mano.
+          var hecho = function () { aviso("📋 Copiados: " + gente.length + " ganador" + (gente.length === 1 ? "" : "es") + ". Pégalos donde vayas a gestionar las licencias.", true); };
+          var aMano = function () {
+            var t = b.parentNode.querySelector("textarea.gan-copia");
+            if (!t) { t = document.createElement("textarea"); t.className = "gan-copia"; t.readOnly = true; b.parentNode.insertBefore(t, b.nextSibling); }
+            t.value = texto; t.rows = Math.min(8, gente.length + 2); t.focus(); t.select();
+            aviso("Tu navegador no me deja copiar solo: la lista está en el cuadro, ya seleccionada. Cópiala con Ctrl+C (⌘+C en Mac).", true);
+          };
+          try { var pr = navigator.clipboard && navigator.clipboard.writeText(texto); if (pr && pr.then) pr.then(hecho, aMano); else aMano(); }
+          catch (e) { aMano(); }
         });
       };
     });
@@ -1566,7 +1590,12 @@
       [["📽️ La sesión de la semana", "sesion.html?embed=1"], ["🔔 Llamada a filas (solo la toca el Comandante)", "llamada.html?embed=1"],
        ["🛰️ El aula (el puesto de mando del docente)", "aula.html?embed=1"], ["🎯 Validar un reto", "validar.html?reto=S7&embed=1"]].map(function (x) {
         return '<p class="small">' + x[0] + ' <button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[1], "STARGATE · " + x[0].replace(/^\S+\s/, ""))) + '">&lt;/&gt; Copiar para insertar</button></p>';
-      }).join("") + '</div>' +
+      }).join("") +
+      // 15-sep · el reto secreto (S7): el enlace que «no debería estar» en la presentación de Vínculo
+      '<p class="small">🕳️ <b>El enlace escondido del reto secreto (S7)</b>: en la presentación del planeta <b>Vínculo</b>, ponlo en algo ' +
+      'que no parezca un botón (una estrella, un rincón de la imagen). Lleva al enigma «El Fragmento Prohibido», y el enigma a la palabra ' +
+      'que borró Vaeon y al registro del reto. <button class="btn min" data-copiado="✓ Enlace copiado" data-copiar="' + esc(location.origin + "/fragmento.html") + '">🔗 Copiar el enlace</button></p>' +
+      '</div>' +
       tarjetaBorrar();
     cablearBorrar();
     var aCal = app.querySelector('#c-cuerpo [data-tab="calendario"]');

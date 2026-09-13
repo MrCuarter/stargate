@@ -1021,6 +1021,13 @@
     if(!motorNuevo()||!per||st.paraVigilar) return;
     if(SIMULACRO) return;   // la llamada del simulacro la toca el botón de su barra, no la clase de verdad
     var M=window.SG&&window.SG.MOTOR; if(!M||!M.vigilarLlamada) return;
+    // 15-sep · de las llamadas abiertas, la de SU escuadrón (o una para todo el grupo): si otro
+    // Comandante tenía la suya abierta y era más reciente, este recluta se quedaba sin su «Presente»
+    var deMiEscuadron=function(x){
+      if(!x.restrictedFactionId) return true;
+      var e=((st.d&&st.d.escuadrones)||[]).filter(function(y){return y.id===x.restrictedFactionId;})[0];
+      return !(e && st.yo && st.yo.profe && e.comandante && e.comandante!==st.yo.profe);
+    };
     st.paraVigilar = M.vigilarLlamada(per, function(sesion){
       // 🔴 13-sep · «no hay llamada» es null en los dos lados: antes, `undefined !== null` repintaba la
       // Nave entera con la PRIMERA respuesta aunque no hubiera llamada, y se comía lo que se escribía
@@ -1034,7 +1041,7 @@
         xp: Number(sesion.pointsReward||15), creditos: Number(sesion.coinsReward||30)
       } : null;
       if((st.llamada ? st.llamada.id : null)!==antes){ st.fichado=false; render(); }
-    });
+    }, deMiEscuadron);
     // La cuenta atrás se refresca sola. Cuando llega a cero, se repinta y el aviso desaparece.
     if(!st.relojLlamada) st.relojLlamada=setInterval(function(){
       if(!st.llamada) return;
@@ -1656,7 +1663,7 @@
       +'<p class="pts">'+x.coste+' ◈ <span class="small muted">cada participación</span></p>'
       +'<p class="sorteo-mias">Llevas <b>'+mias+'</b> participaci'+(mias===1?'ón':'ones')+(max?' <span class="small muted">(como mucho '+max+')</span>':'')+'</p>'
       +'<p class="small rec-desc">'+(S.ganadores>1?'<b>'+S.ganadores+' ganadores</b>, nadie gana dos':'<b>1 ganador</b>')
-      +(S.fecha?' · se sortea el <b>'+fechaLarga(S.fecha)+'</b> en clase':'')+'. Cada participación es una papeleta: cuantas más, más posibilidades. Tu docente también las regala.</p>'
+      +(S.fecha?' · se sortea <b>solo</b> el <b>'+fechaLarga(S.fecha)+'</b>: ese día, al entrar, verás el resultado':'')+'. Cada participación es una papeleta: cuantas más, más posibilidades. Tu docente también las regala. Como en una lotería, lo jugado no se devuelve.</p>'
       +'</div><div class="rec-pie">'+afford+boton+'</div></div>';
   }
   function queEs(tipo){ return QUE_ES[tipo] || ["🎁","Recompensa","",'',""]; }
@@ -2196,9 +2203,17 @@
       +'<div class="neb-botones"><button type="button" class="btn primary" data-cerrar>Seguir</button></div></div>';
     document.body.appendChild(capa);
     var fuera=function(){ document.removeEventListener('keydown',tecla,true); if(capa.parentNode) capa.parentNode.removeChild(capa); render(); };
-    var tecla=function(e){ if(e.key==='Escape'){ e.preventDefault(); fuera(); } };
+    // 15-sep · el foco, dentro: en «Seguir» al abrir y el tabulador no se escapa detrás (si no, otro
+    // Enter sobre «Ver resultado» abría una segunda ventana encima)
+    var tecla=function(e){
+      if(e.key==='Escape'){ e.preventDefault(); fuera(); return; }
+      if(e.key==='Tab'){ var fs=[].slice.call(capa.querySelectorAll('button,a[href]')); if(!fs.length) return;
+        var i=fs.indexOf(document.activeElement), sig=e.shiftKey?(i<=0?fs.length-1:i-1):(i>=fs.length-1?0:i+1);
+        e.preventDefault(); fs[sig].focus(); }
+    };
     document.addEventListener('keydown',tecla,true);
     capa.querySelector('[data-cerrar]').onclick=fuera; capa.onclick=function(ev){ if(ev.target===capa) fuera(); };
+    try{ capa.querySelector('[data-cerrar]').focus(); }catch(e){}
     if(gane&&window.SG&&SG.FIESTA) setTimeout(function(){ SG.FIESTA.sonar('insignia'); var a=capa.querySelector('.neb-arte'); if(a){ var r=a.getBoundingClientRect(); SG.FIESTA.chispas(r.left+r.width/2, r.top+r.height/2, ['#ffd166','#37e0ec','#ffffff']); } }, 900);
   }
   /** 14-sep · al entrar: si un sorteo ha pasado su fecha y no se ha hecho, se le pide al servidor (una vez) */
@@ -2800,6 +2815,10 @@
    */
   function evidenciaDe(id){ return (window.SG_EVIDENCIA||{})[id]||''; }
   function campoEvidencia(id, clase){
+    // 15-sep · un reto secreto (S7) no pide un enlace: pide la PALABRA que se trae del enigma
+    if(window.SG_SECRETO&&SG_SECRETO.esSecreto(id))
+      return '<input class="'+clase+' secreto" data-ev="'+esc(id)+'" type="text" autocomplete="off" spellcheck="false" '
+        +'placeholder="La palabra que borró Vaeon" aria-label="La palabra que borró Vaeon">';
     var e=evidenciaDe(id);
     var ph = e==='obligatoria' ? 'Enlace de lo que has hecho (obligatorio)'
            : e==='recomendada' ? 'Enlace de lo que has hecho (recomendado)'
@@ -2822,6 +2841,32 @@
       aviso('⏳ <b>Hoy ya has registrado '+tope+' retos.</b> Vuelve mañana: así cada reto cuenta de verdad.', true);
       return;
     }
+    /**
+     * 🔴 15-sep · EL RETO SECRETO PIDE SU PALABRA. En el motor nuevo nadie la pedía: S7 salía con su
+     * «Lo he hecho» y se regalaba con un clic (150 xp y una insignia legendaria). Se compara su huella
+     * (secreto.js), nunca la palabra; y si no la trae, no se manda nada.
+     */
+    if(window.SG_SECRETO&&SG_SECRETO.esSecreto(id)&&!marcarReto._palabraOk){
+      var cajasS=[].slice.call(document.querySelectorAll('[data-ev="'+id+'"]'));
+      var escrita=cajasS.filter(function(x){return x.value&&x.value.trim();})[0];
+      if(!escrita){
+        cajasS.forEach(function(x){ x.classList.add('falta'); }); if(cajasS[0]) cajasS[0].focus();
+        aviso('🕳️ <b>Este reto pide una palabra</b>: la que borró Vaeon. Está al final de un enlace que no debería estar en la presentación del planeta Vínculo.', true);
+        return;
+      }
+      if(boton){ boton.disabled=true; boton.textContent='Comprobando…'; }
+      SG_SECRETO.comprobar(id, escrita.value).then(function(ok){
+        if(!ok){
+          if(boton){ boton.disabled=false; boton.textContent='✅ Lo he hecho'; }
+          escrita.classList.add('falta'); escrita.focus();
+          aviso('🕳️ <b>Esa no es la palabra que borró Vaeon.</b> Busca el enlace escondido en Vínculo y resuelve el enigma.', true);
+          return;
+        }
+        marcarReto._palabraOk=true;
+        try{ marcarReto(id, boton, alEmpezar); } finally { marcarReto._palabraOk=false; }
+      });
+      return;
+    }
     if(evidenciaDe(id)==='obligatoria'){
       var cajas=[].slice.call(document.querySelectorAll('[data-ev="'+id+'"]'));
       var buena=cajas.filter(function(x){return enlaceValido(x.value);})[0];
@@ -2842,7 +2887,9 @@
     // dentro de un momento la Nave se repinta entera y ni la una ni la otra existirán.
     var antes=st.yo?JSON.parse(JSON.stringify(st.yo)):{};
     var donde=puntoDe(boton);
-    post({accion:'registrar',per:per,reto:id,evidencia:ev?ev.value.trim():''},function(){
+    // (la palabra de un reto secreto no es una evidencia: no se guarda donde el docente lee los enlaces)
+    var secreto=!!(window.SG_SECRETO&&SG_SECRETO.esSecreto(id));
+    post({accion:'registrar',per:per,reto:id,evidencia:ev&&!secreto?ev.value.trim():''},function(){
       // Quien haya pedido apartarse (la ficha de la insignia) lo hace AHORA: si la celebración
       // ocurre debajo de un modal, se pierde la mitad de la recompensa.
       if(alEmpezar) try{ alEmpezar(); }catch(e){}
@@ -3178,13 +3225,15 @@
     var ya = ((st.yo.retos)||[]).indexOf(t[0])>=0;
     if(ya) return '<p class="mi-ya">✓ Ya la tienes. La ganaste con este reto.</p>';
     return '<div class="mi-hacer"><p class="small muted">Se gana con <b>'+esc(t[1])+'</b> · +'+t[3]+' xp</p>'
+      +(window.SG_SECRETO&&SG_SECRETO.esSecreto(t[0])?campoEvidencia(t[0],'mi-ev'):'')
       +'<button class="btn primary" type="button" id="mi-hecho" data-reto="'+esc(t[0])+'">✅ Lo he hecho</button></div>';
   };
   window.SG_BADGE_WIRE = function(clave, caja, cerrar){
     var b = caja.querySelector('#mi-hecho'); if(!b) return;
     b.onclick = function(){
       var id = b.getAttribute('data-reto');
-      b.disabled = true; b.textContent = 'Registrando…';
+      // (15-sep · lo desactiva marcarReto cuando de verdad registra: si faltaba el enlace o la palabra,
+      // el botón se quedaba en «Registrando…» para siempre)
       // Se cierra la ficha para que se vea la celebración y los contadores subiendo: taparlos con
       // un modal encima era quedarse sin la mitad de la recompensa.
       marcarReto(id, b, function(){ if(cerrar) cerrar(); });

@@ -134,6 +134,38 @@
     i.focus();
   }
 
+  /**
+   * 🔴 15-sep · UN RETO SECRETO (S7) PIDE SU PALABRA, también aquí: sin ella, este enlace lo regalaba
+   * a quien lo copiara. Si viene del enigma (fragmento.html la deja en el navegador), se comprueba sola.
+   */
+  function pedirPalabra(g, m, aviso) {
+    var traida = !aviso && window.SG_SECRETO.traida(RETO);
+    if (traida) {
+      tarjeta("<h3>Un momento…</h3><p>Comprobando la palabra.</p>");
+      return window.SG_SECRETO.comprobar(RETO, traida).then(function (ok) {
+        if (ok) { g.palabraOk = true; return registrar(g); }
+        pedirPalabra(g, m, "Esa no es la palabra que borró Vaeon.");
+      });
+    }
+    tarjeta('<h3>' + esc(m.title) + '</h3>' +
+      '<p>Este reto se registra con <b>la palabra que borró Vaeon</b>. Está al final de un enlace que no debería ' +
+      'estar en la presentación del planeta Vínculo.</p>' +
+      (aviso ? '<p class="malo">' + esc(aviso) + '</p>' : '') +
+      '<p><input id="v-palabra" type="text" autocomplete="off" spellcheck="false" class="v-enlace" placeholder="La palabra"></p>' +
+      '<p><button class="btn primary grande" id="v-ok">✅ Registrar el reto</button></p>');
+    var i = document.querySelector("#v-palabra"), b = document.querySelector("#v-ok");
+    i.onkeydown = function (e) { if (e.key === "Enter") b.click(); };
+    b.onclick = function () {
+      var v = i.value.trim(); if (!v) { i.classList.add("falta"); i.focus(); return; }
+      b.disabled = true;
+      window.SG_SECRETO.comprobar(RETO, v).then(function (ok) {
+        if (ok) { g.palabraOk = true; return registrar(g); }
+        pedirPalabra(g, m, "Esa no es la palabra que borró Vaeon. Busca el enlace escondido y resuelve el enigma.");
+      });
+    };
+    i.focus();
+  }
+
   async function registrar(g, enlace, yaPedido) {
     tarjeta("<h3>Registrando…</h3><p>" + esc(g.nombre) + "</p>");
     var M = MOTOR;
@@ -150,9 +182,11 @@
     var TOPE = Number(window.SG_TOPE_DIA || 0), EV = (window.SG_EVIDENCIA || {})[RETO] || "";
     if (TOPE && deHoy(g.ficha) >= TOPE)
       return fallo("Hoy ya has registrado " + TOPE + " retos. Vuelve mañana: así cada reto cuenta de verdad.");
+    if (window.SG_SECRETO && window.SG_SECRETO.esSecreto(RETO) && !g.palabraOk) return pedirPalabra(g, m);
     if (!yaPedido && (EV === "obligatoria" || EV === "recomendada")) return pedirEnlace(g, m, EV === "obligatoria");
     try {
       await M.llamar("completeMission", { projectId: g.id, missionId: mision.id, studentProfileId: g.ficha.id });
+      if (window.SG_SECRETO) window.SG_SECRETO.olvidar(RETO);   // la palabra traída, fuera (el ordenador puede ser compartido)
       if (enlace) {
         // la evidencia, donde la lee el docente (la misma ruta que usa la Nave)
         try {

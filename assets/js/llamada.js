@@ -213,7 +213,7 @@
          * de A y sin manera de cambiar. Ahora se retoma la que haya, con su nombre delante.
          */
         Promise.all(GRUPOS.map(function (g) {
-          return MOTOR.llamadaAbierta(g.id).then(function (s) { return s ? { g: g, s: s } : null; })
+          return MOTOR.llamadaAbierta(g.id, "mia").then(function (s) { return s ? { g: g, s: s } : null; })
                       .catch(function () { return null; });
         })).then(function (abiertas) {
           var viva = abiertas.filter(Boolean)[0];

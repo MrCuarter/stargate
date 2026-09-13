@@ -229,7 +229,8 @@
         if(seg%4===0) pintaGente(s.id);
       },1000);
     };
-    M.llamadaAbierta(st.per).then(function(s){ if(!vivo) return; if(s) abierta(s); else cerrada(); }).catch(cerrada);
+    // (15-sep · la SUYA: la de otro Comandante del grupo no se adopta, ni se cierra desde aquí)
+    M.llamadaAbierta(st.per, 'mia').then(function(s){ if(!vivo) return; if(s) abierta(s); else cerrada(); }).catch(cerrada);
     return function(){ vivo=false; if(reloj) clearInterval(reloj); };
   }
 
@@ -618,8 +619,12 @@
   // teclado: ← → y espacio. Se escucha en el documento porque en pantalla completa el foco puede
   // estar en el iframe de YouTube y entonces el mazo ya no recibe las teclas.
   document.addEventListener('keydown',function(e){
-    if(!st.slides.length) return;
+    // (15-sep · con el selector de grupo o la puerta en pantalla no hay diapositivas que pasar: el mando
+    // redibujaba el grupo de antes y el selector desaparecía)
+    if(!st.slides.length || !root.querySelector('.lienzo')) return;
     if(/^(INPUT|SELECT|TEXTAREA)$/.test((e.target&&e.target.tagName)||'')) return;
+    // la barra espaciadora sobre un botón lo pulsa (no pasa de diapositiva); las flechas y el mando, siempre
+    if(e.key===' ' && e.target && e.target.closest && e.target.closest('button,a,[role=button]')) return;
     if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){ e.preventDefault(); avanzar(); }
     else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); retroceder(); }
   });
@@ -677,7 +682,14 @@
         if (lista.length === 1) { st.per = lista[0].id; return cargarYArrancar(); }
         elegirGrupo(lista);
       });
-    }).catch(function(){ sinGrupo(); });
+    }).catch(function(){ sinRed(porLaCuenta); });
+  }
+  /** Sin conexión (o el servidor no contesta): se dice, y un botón para volver a intentarlo. */
+  function sinRed(otraVez){
+    caja('<h2>No llega el tablero de tu grupo</h2>'
+      +'<p class="sub">Parece que falla la conexión. Comprueba la wifi y vuelve a intentarlo.</p>'
+      +'<button class="btn primary grande" id="ses-reintentar">↻ Reintentar</button>');
+    document.getElementById('ses-reintentar').onclick=function(){ otraVez(); };
   }
   function caja(html){ root.innerHTML='<div class="ses-puerta"><img class="ses-cap" src="assets/img/capitan/saluda.png" alt="">'
     +'<div class="ses-puerta-txt"><div class="kicker">STARGATE · La sesión de la semana</div>'+html+'</div></div>'; }
@@ -698,6 +710,8 @@
     document.getElementById('ses-otra').onclick=function(){ window.SG.MOTOR.salir().then(function(){ puertaSesion(); }); };
   }
   function elegirGrupo(lista){
+    // lo que estuviera vivo en la diapositiva (la llamada pregunta cada 4 s), fuera antes de cambiar
+    if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }
     caja('<h2>¿En qué grupo estamos?</h2>'
       +'<div class="ses-grupos">'+lista.map(function(g){
         return '<button type="button" class="ses-grupo" data-per="'+esc(g.id)+'"><b>'+esc(g.nombre||g.id)+'</b>'
@@ -752,7 +766,11 @@
         if(per!==st.per) return;
         if(esCache){ copia=d; return; }
         if(yaArranco){ if(d&&!d.error) st.d=d; return; }   // llegó tarde: sirve para lo que queda
-        yaArranco=true; clearTimeout(espera); arrancar(d||copia);
+        yaArranco=true; clearTimeout(espera);
+        // 🔴 15-sep · si falla la red, la copia del navegador; y si no hay ninguna de las dos, se dice
+        // (antes arrancaba con el error: la semana 1 del calendario estándar, sin datos y sin aviso)
+        var bueno=d&&!d.error?d:copia;
+        if(bueno) arrancar(bueno); else sinRed(cargarYArrancar);
       });
     });
   }

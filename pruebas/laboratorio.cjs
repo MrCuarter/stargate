@@ -74,6 +74,10 @@ function desFirestore(f) {
 }
 
 // ------------------------------------------------------------------ CDP
+// 15-sep · un rechazo del protocolo que nadie recoge (una pestaña o un iframe que ya no existe) no
+// debe tumbar las 31 secciones: se apunta, bien visible, y se sigue. Los fallos de verdad los cuentan
+// las comprobaciones.
+process.on("unhandledRejection", e => process.stderr.write("   ⚠️  [arnés] rechazo sin recoger: " + ((e && e.message) || e) + "\n"));
 function conectar(url) {
   const ws = new WebSocket(url);
   let id = 0; const pend = new Map(); const oyentes = [];
@@ -188,7 +192,9 @@ async function persona(nombre) {
       }
     });
     try {
-      await NAV.enviar("Runtime.enable", {}, sid);
+      // (15-sep · con .catch: si el iframe desaparece antes de contestar —la Nave se repinta y el vídeo se
+      // sustituye—, «Session with given id not found» sin recoger tumbaba el laboratorio entero)
+      await NAV.enviar("Runtime.enable", {}, sid).catch(() => {});
       await NAV.enviar("Page.enable", {}, sid).catch(() => {});
       await NAV.enviar("Page.addScriptToEvaluateOnNewDocument", { source: INYECCION }, sid).catch(() => {});
     } finally { await NAV.enviar("Runtime.runIfWaitingForDebugger", {}, sid).catch(() => {}); }

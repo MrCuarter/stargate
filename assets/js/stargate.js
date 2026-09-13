@@ -139,11 +139,15 @@ window.SG.avatarSrc = function(av, alias, xp, tipoPer){
   var fallback = 'assets/img/avatares/evo/p'+n+v+'_r'+r+'.jpg';
   var u = av.url ? String(av.url).trim() : '';
   if(u){ var m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([A-Za-z0-9_-]{10,})/); if(m) u = 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
-         if(!/^https?:\/\//i.test(u)) u=''; }
+         // 🔴 15-sep · una dirección con comillas, < >, espacios o barras invertidas no es una imagen: es
+         // un intento de colar código en la Nave de los demás (se pinta dentro de src="…", y el alumno
+         // escribe su propia dirección). Se descarta. Los paréntesis, codificados (por los url() del CSS).
+         if(!/^https?:\/\//i.test(u) || /["'<>`\\\s]/.test(u)) u=''; else u=u.replace(/\(/g,'%28').replace(/\)/g,'%29'); }
   return { src: u || fallback, fallback: fallback, rango: window.SG.RANGOS[r-1], r: r, evo: !u };
 };
 window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
-  return '<img class="av '+(cls||'')+' r'+r.r+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" title="'+r.rango+'" loading="lazy" referrerpolicy="no-referrer" onerror="var f=this.dataset.fb; if(this.src.indexOf(f)<0){this.src=f;} else if(!this.dataset.rt){this.dataset.rt=1; this.src=f+(f.indexOf(String.fromCharCode(63))<0?\'?rt=1\':\'&amp;rt=1\');}">'; };
+  var ea = function(x){ return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); };
+  return '<img class="av '+ea(cls||'')+' r'+r.r+'" src="'+ea(r.src)+'" data-fb="'+ea(r.fallback)+'" alt="" title="'+ea(r.rango)+'" loading="lazy" referrerpolicy="no-referrer" onerror="var f=this.dataset.fb; if(this.src.indexOf(f)<0){this.src=f;} else if(!this.dataset.rt){this.dataset.rt=1; this.src=f+(f.indexOf(String.fromCharCode(63))<0?\'?rt=1\':\'&amp;rt=1\');}">'; };
 
 // ---------- lista de PERs (grupos): caché de 12 h + revalidación en segundo plano ----------
 // La usa el desplegable «Grupos» del menú y grupos.html. doGet ?per=all NO pide PIN y solo

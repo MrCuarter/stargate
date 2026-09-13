@@ -753,7 +753,8 @@
         yo.retos = perfil.completedMissionIds.map(function (x) { return porDoc[x] || x; });
         var fe = {}; Object.keys(perfil.missionTimestamps).forEach(function (k) { fe[porDoc[k] || k] = perfil.missionTimestamps[k][0]; });
         yo.retos_fecha = fe;
-        yo.participaciones = Object.assign({}, perfil.lotteryEntries || {}); }
+        yo.participaciones = Object.assign({}, perfil.lotteryEntries || {});
+        yo.ofertas = Object.assign({}, perfil.stargateOfertas || {}); }
       return yo;
     };
     var mision = function (id) { return (crudo.misiones || []).filter(function (m) { return m.id === id || m.docId === id; })[0]; };
@@ -849,6 +850,22 @@
           }
           if (c.accion === "canje") {
             var r = premio(c.recompensa); if (!r) return { error: "Esa recompensa no existe en este grupo." };
+            // 15-sep · LA OFERTA DE LA SEMANA, de mentira: a su precio rebajado, una por persona y abierta como
+            // en la Nave de verdad (antes cobraba el precio entero y no abría nada)
+            if (r.stargateTipo === "oferta") {
+              var ko = r.docId || r.id, so = r.stargateOferta || {}, fo = r.flashOffer || {};
+              perfil.stargateOfertas = perfil.stargateOfertas || {};
+              if (perfil.stargateOfertas[ko]) throw new Error("Ya la tienes: una por persona.");
+              if (so.cancelada || Date.now() > Number(fo.endsAt || 0)) throw new Error("Esta oferta ya ha terminado.");
+              var pctO = Math.min(90, Math.max(1, Math.floor(Number(fo.discountPercent) || 0)));
+              var precioO = Math.max(0, Math.floor((Number(r.cost) || 0) * (100 - pctO) / 100));
+              if (P.coins < precioO) throw new Error("No tienes suficientes créditos (te faltan " + (precioO - P.coins) + " ◈).");
+              P.coins -= precioO; perfil.stargateOfertas[ko] = Date.now();
+              var sacO = [], nO = Math.max(1, Number(r.maxUses) || 1);
+              for (var jo = 0; jo < nO; jo++) sacO.push(delCofre(r));
+              P.inventory = P.inventory.concat(sacO);
+              return { ok: true, botin: sacO[0], botines: sacO };
+            }
             var coste = Number(r.cost) || 0;
             if (P.coins < coste) throw new Error("No tienes suficientes créditos (te faltan " + (coste - P.coins) + " ◈).");
             // 14-sep · una participación del sorteo: una papeleta más (como `purchaseReward`)

@@ -161,6 +161,22 @@ PLANETAS=[("p1_forge","Fôrge","T1 · Contenido multimedia"),("p2_ecos","Ecos","
 ("p5_umbral","Umbral","T5 · Evaluación"),("p6_ludo","Ludo","T6 · ABJ"),
 ("p7_vinculo","Vínculo","T7 · Gamificación"),("p8_liminar","Liminar","T8 · RA/RV")]
 
+# ---------------------------------------------------------------- 15-sep · LOS RETOS SECRETOS (S7)
+# «Trae la PALABRA que Vaeon borró». La palabra vive en UN sitio: PALABRA_HUEVO de Datos.gs (la que
+# exigía el formulario del motor viejo). De ahí salen, al construir, su HUELLA (SHA-256 de la palabra
+# en mayúsculas y sin tildes: es lo único que viaja a la web, lo compara assets/js/secreto.js) y la
+# INSCRIPCIÓN cifrada del enigma (fragmento.html): la palabra desplazada tantas letras como el número
+# del planeta Vínculo, que es la pista del telar. Cambiar la palabra en Datos.gs lo cambia todo.
+import unicodedata as _ud, re as _reS
+def _palabra_limpia(p):
+    p = "".join(c for c in _ud.normalize("NFD", p) if _ud.category(c) != "Mn").upper()
+    return _reS.sub(r"[^A-Z]", "", p)
+_mS = _reS.search(r'var PALABRA_HUEVO\s*=\s*"([^"]+)"', open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "apps-script", "Datos.gs"), encoding="utf-8").read())
+_PALABRA_S7 = _palabra_limpia(_mS.group(1)) if _mS else ""
+SECRETOS = {"S7": hashlib.sha256(_PALABRA_S7.encode()).hexdigest()} if _PALABRA_S7 else {}
+PASO_S7 = [k for k, *_ in PLANETAS].index("p7_vinculo") + 1
+INSCRIPCION_S7 = "".join(chr((ord(c) - 65 + PASO_S7) % 26 + 65) for c in _PALABRA_S7)
+
 def badge(key,title,tag,sub,sm=False):
     c=" sm" if sm else ""
     return (f'<figure class="badge{c}" data-key="{key}" title="Ver detalle"><img loading="lazy" src="assets/img/insignias/{key}.png" alt="{title}">'
@@ -1340,11 +1356,15 @@ window.SG.avatarSrc = function(av, alias, xp, tipoPer){
   var fallback = 'assets/img/avatares/evo/p'+n+v+'_r'+r+'.jpg';
   var u = av.url ? String(av.url).trim() : '';
   if(u){ var m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([A-Za-z0-9_-]{10,})/); if(m) u = 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400';
-         if(!/^https?:\/\//i.test(u)) u=''; }
+         // 🔴 15-sep · una dirección con comillas, < >, espacios o barras invertidas no es una imagen: es
+         // un intento de colar código en la Nave de los demás (se pinta dentro de src="…", y el alumno
+         // escribe su propia dirección). Se descarta. Los paréntesis, codificados (por los url() del CSS).
+         if(!/^https?:\/\//i.test(u) || /["'<>`\\\s]/.test(u)) u=''; else u=u.replace(/\(/g,'%28').replace(/\)/g,'%29'); }
   return { src: u || fallback, fallback: fallback, rango: window.SG.RANGOS[r-1], r: r, evo: !u };
 };
 window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
-  return '<img class="av '+(cls||'')+' r'+r.r+'" src="'+r.src+'" data-fb="'+r.fallback+'" alt="" title="'+r.rango+'" loading="lazy" referrerpolicy="no-referrer" onerror="var f=this.dataset.fb; if(this.src.indexOf(f)<0){this.src=f;} else if(!this.dataset.rt){this.dataset.rt=1; this.src=f+(f.indexOf(String.fromCharCode(63))<0?\'?rt=1\':\'&amp;rt=1\');}">'; };
+  var ea = function(x){ return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); };
+  return '<img class="av '+ea(cls||'')+' r'+r.r+'" src="'+ea(r.src)+'" data-fb="'+ea(r.fallback)+'" alt="" title="'+ea(r.rango)+'" loading="lazy" referrerpolicy="no-referrer" onerror="var f=this.dataset.fb; if(this.src.indexOf(f)<0){this.src=f;} else if(!this.dataset.rt){this.dataset.rt=1; this.src=f+(f.indexOf(String.fromCharCode(63))<0?\'?rt=1\':\'&amp;rt=1\');}">'; };
 
 // ---------- lista de PERs (grupos): caché de 12 h + revalidación en segundo plano ----------
 // La usa el desplegable «Grupos» del menú y grupos.html. doGet ?per=all NO pide PIN y solo
@@ -2325,7 +2345,8 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS, ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_TOPE_DIA={TOPE_RETOS_DIA};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS, ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_TOPE_DIA={TOPE_RETOS_DIA};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};</script>
+<script src="assets/js/secreto.js" defer></script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sobre.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
@@ -2844,7 +2865,8 @@ def _cabeza_motor():
         'window.SG_ALIAS=' + _json.dumps(ALIAS_SUGERIDOS) + ';'
         # la regla de evidencia de cada reto: la consola marca a quien le falten enlaces obligatorios
         'window.SG_EVIDENCIA=' + _json.dumps(EVIDENCIA_RETOS) + ';window.SG_TOPE_DIA=' + str(TOPE_RETOS_DIA) + ';'
-        'window.SG_CAPITULOS=' + CAPITULOS_JSON + ';</script>'
+        'window.SG_CAPITULOS=' + CAPITULOS_JSON + ';window.SG_SECRETOS=' + _json.dumps(SECRETOS) + ';</script>'
+        '<script src="' + _v("assets/js/secreto.js") + '" defer></script>'
         '<script src="' + _v("motor/paquete.js") + '" defer></script>'
         '<script src="' + _v("motor/tablero.js") + '" defer></script>'
         '<script type="module" src="' + _v("assets/js/motor.js") + '"></script>')
@@ -2914,6 +2936,35 @@ pulsa, porque se le busca por su cuenta. Móntalo una vez en tu presentación y 
 ''' + FOOT
 open(os.path.join(HERE, "validar.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: validar.html  (enlaces universales para Genially)")
+
+# ---------------------------------------------------------------- 15-sep · EL FRAGMENTO PROHIBIDO (S7)
+# El enigma del reto secreto: el enlace escondido en la presentación del planeta Vínculo lleva aquí.
+# Sin menú, sin Capitán y fuera de los buscadores: es un secreto. La inscripción y el paso los pone
+# este build (ver SECRETOS); el registro lo hace validar.html con la palabra que se trae de aquí.
+try:
+    _catS = json.load(open(os.path.join(HERE, "motor", "catalogo.json"), encoding="utf-8"))
+    _xpS7 = [r for r in (_catS.get("retos", {}).get("REGULAR", []) or []) if r.get("id") == "S7"][0].get("xp", 150)
+except Exception:
+    _xpS7 = 150
+_FRAG = {"inscripcion": INSCRIPCION_S7, "paso": PASO_S7, "xp": _xpS7,
+         "insignia": BADGE_NAME.get("E3_vaeon", "General Vaeon"), "insigniaClave": "E3_vaeon"}
+_html = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STARGATE · El Fragmento Prohibido</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Un archivo que no debería existir.">
+<meta name="theme-color" content="#080c14">
+<link rel="icon" href="{FAV}">
+<link rel="stylesheet" href="assets/css/stargate.css">
+<script>window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTO={json.dumps(_FRAG, ensure_ascii=False)};</script>
+<script src="assets/js/secreto.js" defer></script>
+<script src="assets/js/fragmento.js" defer></script>
+</head><body class="fragmento">
+<main id="fr-app" class="fr"><noscript><p style="padding:24px">Este archivo necesita JavaScript.</p></noscript></main>
+</body></html>
+'''
+open(os.path.join(HERE, "fragmento.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: fragmento.html  (el enigma del reto secreto S7)")
 
 # ---------------------------------------------------------------- la llamada a filas (embed Genially)
 # Pública a propósito: vive dentro del Genially que el docente PROYECTA, así que la ve la clase

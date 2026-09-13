@@ -9,6 +9,10 @@ const M = E.M;
 console.log("\n▶ 13 · Calendario por defecto del PER (apertura y dos cierres)");
 
 const G = E.nuevoMundo();
+// 🔴 14-sep · este banco se escribió cuando la semana 1 de su grupo de prueba (el 14-sep-2026) era
+// futura, y el 14-sep a las 00:00 empezó a fallar solo («nace programado» → «Abierto»). Se fija su
+// reloj una semana antes: sigue probando exactamente lo mismo, y ya no caduca.
+M.cronometro.extra = new Date("2026-09-07T10:00:00").getTime() - Date.now();
 const triggersDe = fn => M.Guiones.getProjectTriggers().filter(t => t.getHandlerFunction() === fn);
 
 // ---------------------------------------------------------------- las cuentas

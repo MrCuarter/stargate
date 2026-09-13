@@ -566,7 +566,7 @@
         hasta: (s.endTime && s.endTime.toDate ? s.endTime.toDate() : new Date(s.endTime)).getTime(),
         escuadron: nombreEscuadron(s.restrictedFactionId) } : null;
       render();
-    });
+    }, function (x) { return !YO || !YO.uid || x.teacherId === YO.uid; });   // 15-sep · la SUYA, no la de otro Comandante
     if (!reloj) reloj = setInterval(function () {
       if (!SESION) return;
       var seg = Math.round((SESION.hasta - Date.now()) / 1000);

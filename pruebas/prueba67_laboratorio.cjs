@@ -2250,7 +2250,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // 1 · Sara compra por la pantalla
       const s1 = await naveDe("sara", "compra", "mercado");
       c("🔴 sorteo · en el Mercado de la semana 10 está la tarjeta del Gran Sorteo con la licencia", await s1.hasta("!!document.querySelector('.rec-card.sorteo') && /Licencia de Genially/.test(document.querySelector('.rec-card.sorteo').innerText)", 20));
-      c("sorteo · dice cuándo se sortea, cuántos ganan y cuántas llevas («Llevas 0»)", /se sortea el/i.test(await s1.js("document.querySelector('.rec-card.sorteo').innerText"))
+      c("sorteo · dice cuándo se sortea (solo), cuántos ganan y cuántas llevas («Llevas 0»)", /se sortea solo el/i.test(await s1.js("document.querySelector('.rec-card.sorteo').innerText"))
         && /2 ganadores/i.test(await s1.js("document.querySelector('.rec-card.sorteo').innerText")) && /Llevas 0/.test(await s1.js("document.querySelector('.rec-card.sorteo').innerText")));
       await s1.foto(FOTOS + "/25-mercado-sorteo.png");
       await s1.js("document.querySelector('.rec-card.sorteo [data-canje]').click(); 1");
@@ -2277,7 +2277,8 @@ const REG = {};   // cifras que se apuntan para el informe
       const i1 = await naveDe("iker", "compra dos");
       await compra(i1, "iker"); await compra(i1, "iker");
       c("sorteo · Íker compra dos", papeletas(await ficha("iker")) === 2);
-      c("🔴 sorteo · un estudiante NO puede sortear", /profesorado|equipo docente/i.test(await i1.js(`window.SG.MOTOR.sortear('${P}','${T}').then(function(){return 'SORTEÓ'},function(e){return e.message})`)));
+      const intentoS = await i1.js(`window.SG.MOTOR.sortear('${P}','${T}').then(function(){return 'SORTEÓ'},function(e){return e.message})`);
+      c("🔴 sorteo · un estudiante NO puede sortear (15-sep: lo sortea el referente)", !/SORTEÓ/.test(intentoS) && /referente/i.test(intentoS), intentoS);
       c("🔴 sorteo · ni darse participaciones a sí mismo desde la consola del navegador",
         !/ESCRIBIÓ/.test(await i1.js(`window.SG.MOTOR.updateDoc(window.SG.MOTOR.doc(window.SG.MOTOR.db,'student_profiles','${F.iker._id}'),{'lotteryEntries.${T}':50}).then(function(){return 'ESCRIBIÓ'},function(e){return e.code||e.message})`)));
       await i1.cerrar();
@@ -2900,6 +2901,96 @@ const REG = {};   // cifras que se apuntan para el informe
         await rita.hasta("/gana@lab\\.test/.test(window.__copiado||'') && /Fortuna/.test(window.__copiado)", 15) && /se resolvió solo/.test(await rita.texto()),
         await rita.js("window.__copiado||''"));
       await rita.foto(FOTOS + "/30-consola-ganadores.png");
+      await rita.cerrar();
+    }
+    // ============================================================ 31 · EL RETO SECRETO S7 (EL FRAGMENTO PROHIBIDO)
+    /**
+     * «En la presentación del planeta Vínculo hay un enlace que no debería estar ahí. Encuéntralo,
+     * resuelve el enigma que esconde y trae la PALABRA que Vaeon borró.» En el motor nuevo nadie la
+     * pedía: S7 se regalaba con un clic. Tres puertas, tres personas: la Nave, el enigma y el enlace
+     * universal de validar suelto. Y en ninguna se regala.
+     */
+    if (hacer(31)) {
+      const P = "lab-clase";
+      const S7 = (await consultar("missions", "projectId", P)).filter(m => m.stargateId === "S7")[0];
+      c("secreto · el grupo tiene su reto S7", !!S7);
+      const tiene = async (correo) => { const f = await fichaDe(correo, P); return !!f && (f.completedMissionIds || []).indexOf(S7._id) >= 0; };
+      const PAL = "Ander";   // (la del enigma de Datos.gs; si cambia, esta sección lo dirá)
+      // 1 · por la Nave: la ficha de la insignia pide la palabra
+      const G1 = ["sira@lab.test", "Sira Secreta", "Sirena"];
+      for (let i = 0; i < 2 && !(await fichaDe(G1[0], P)); i++) { const a = await nueva("Alta Sira"); await alistar(a, G1[0], G1[1], G1[2], 0); await a.cerrar(); }
+      const q1 = await nueva("Sira, por la Nave");
+      await q1.ir("entrar.html"); await q1.entrarComo(G1[0], G1[1]); await sinBienvenidas(q1);
+      await q1.ir("recluta.html?per=" + P); await q1.hasta("!!window.SG_OPEN_BADGE && !!document.querySelector('.nb-t')", 30); await dormir(1500);
+      await q1.js("window.SG_OPEN_BADGE('E3_vaeon'); 1");
+      c("secreto · en la ficha de la insignia de Vaeon, la casilla pide «La palabra que borró Vaeon»",
+        await q1.hasta("!!document.querySelector('input.mi-ev.secreto') && /La palabra que borró Vaeon/.test(document.querySelector('input.mi-ev.secreto').placeholder)", 15));
+      await q1.js("document.getElementById('mi-hecho').click(); 1"); await dormir(800);
+      c("🔴 secreto · «Lo he hecho» sin la palabra: no se registra y dice qué pide",
+        /pide una palabra/.test(await q1.texto()) && !(await tiene(G1[0])));
+      await q1.js("document.querySelector('input.mi-ev.secreto').value='Vaeon'; document.getElementById('mi-hecho').click(); 1"); await dormir(1500);
+      c("🔴 secreto · con otra palabra («Vaeon»): «Esa no es» y tampoco", /Esa no es la palabra/.test(await q1.texto()) && !(await tiene(G1[0])));
+      await q1.js("document.querySelector('input.mi-ev.secreto').value='" + PAL.toLowerCase() + " vaeon'; document.getElementById('mi-hecho').click(); 1");
+      c("🔴 secreto · con la palabra (en minúsculas y con su apellido), S7 queda registrado",
+        await (async () => { for (let i = 0; i < 30; i++) { if (await tiene(G1[0])) return true; await dormir(600); } return false; })());
+      const fS = await fichaDe(G1[0], P);
+      c("secreto · y la palabra no queda guardada como «evidencia» (no es un enlace)",
+        !(await consultar("mission_deliveries", "projectId", P)).filter(d => d.missionId === S7._id && d.studentProfileId === fS._id && d.enlace).length);
+      await q1.cerrar();
+      // 2 · por el enigma: el telar, el sello y la revelación, y de ahí a validar
+      const G2 = ["iker@lab.test", "Íker Enigma", "Íkaro"];
+      for (let i = 0; i < 2 && !(await fichaDe(G2[0], P)); i++) { const a = await nueva("Alta Íker"); await alistar(a, G2[0], G2[1], G2[2], 0); await a.cerrar(); }
+      const q2 = await nueva("Íker resuelve el enigma");
+      await q2.ir("entrar.html"); await q2.entrarComo(G2[0], G2[1]);
+      await q2.ir("fragmento.html"); await q2.hasta("!!document.getElementById('fr-app')", 20);
+      await q2.js("localStorage.removeItem('sgFragmento'); location.reload(); 1"); await q2.hasta("!!document.getElementById('fr-seguir')", 20);
+      c("secreto · el enigma abre con «El Fragmento Prohibido», fuera de los buscadores", /El Fragmento Prohibido/.test(await q2.texto())
+        && await q2.js("(document.querySelector('meta[name=robots]')||{}).content==='noindex,nofollow'"));
+      await q2.foto(FOTOS + "/31-portada.png");
+      await q2.js("document.getElementById('fr-seguir').click(); 1"); await dormir(700);
+      await q2.js("[['0','competidor'],['1','triunfador'],['2','explorador'],['3','socializador']].forEach(function(x){ document.querySelector('.fr-op[data-h=\"'+x[0]+'\"][data-t=\"'+x[1]+'\"]').click(); }); document.getElementById('fr-tensar').click(); 1"); await dormir(400);
+      c("secreto · el telar con dos hilos cruzados se destensa (y no deja pasar)", /2 hilos cruzados/.test(await q2.js("document.getElementById('fr-msg').textContent")) && !(await q2.js("!!document.querySelector('.fr-revela')")));
+      await q2.js("document.querySelector('.fr-op[data-h=\"2\"][data-t=\"socializador\"]').click(); document.querySelector('.fr-op[data-h=\"3\"][data-t=\"explorador\"]').click(); document.getElementById('fr-tensar').click(); 1"); await dormir(500);
+      c("secreto · bien tensado, escribe la pista: «tantas veces como planetas has pisado»", /tantas veces como planetas/.test(await q2.texto()));
+      await q2.foto(FOTOS + "/31-telar.png");
+      await q2.js("document.getElementById('fr-seguir').click(); 1"); await dormir(700);
+      for (let i = 0; i < 7; i++) { await q2.js("document.getElementById('fr-atras').click(); 1"); await dormir(100); }
+      await dormir(500);
+      c("🔴 secreto · siete giros atrás (Vínculo es el séptimo planeta) y el sello dice la palabra",
+        (await q2.js("document.querySelector('.fr-lee').textContent")) === PAL.toUpperCase(), await q2.js("document.querySelector('.fr-lee').textContent"));
+      await q2.js("document.getElementById('fr-palabra').value='Vaeon'; document.getElementById('fr-romper').click(); 1"); await dormir(900);
+      c("secreto · con otra palabra, Vaeon se ríe y el sello no se rompe", !!(await q2.js("!!document.querySelector('.fr-vaeon')")) && !(await q2.js("!!document.querySelector('.fr-nombre')")));
+      await q2.foto(FOTOS + "/31-sello.png");
+      await q2.js("document.getElementById('fr-palabra').value='" + PAL + "'; document.getElementById('fr-romper').click(); 1"); await dormir(1500);
+      c("🔴 secreto · con la palabra, la revelación: el nombre y su carta", (await q2.js("(document.querySelector('.fr-nombre')||{}).textContent")) === PAL.toUpperCase()
+        && await q2.js("(function(){var i=document.getElementById('fr-carta'); return !!(i&&i.complete&&i.naturalWidth>0);})()"));
+      await q2.foto(FOTOS + "/31-revelacion.png");
+      await q2.js("document.getElementById('fr-registrar').click(); 1");
+      c("🔴 secreto · «Registrar el reto secreto» → validar.html lo registra solo (la palabra viene del enigma)",
+        await q2.hasta("/Registrado/.test(document.body.innerText)", 40) && await tiene(G2[0]), (await q2.texto()).slice(0, 160));
+      c("secreto · y la palabra traída se borra del navegador", !(await q2.js("localStorage.getItem('sgSecreto:S7')")));
+      c("secreto · el enigma, sin errores", !q2.errores.filter(e => !/Failed to load resource/.test(e)).length, q2.errores[0] || "");
+      await q2.cerrar();
+      // 3 · el enlace universal, suelto: ya no regala S7
+      const G3 = ["otto@lab.test", "Otto Atajo", "Otilio"];
+      for (let i = 0; i < 2 && !(await fichaDe(G3[0], P)); i++) { const a = await nueva("Alta Otto"); await alistar(a, G3[0], G3[1], G3[2], 0); await a.cerrar(); }
+      const q3 = await nueva("Otto va directo a validar");
+      await q3.ir("entrar.html"); await q3.entrarComo(G3[0], G3[1]);
+      await q3.ir("validar.html?reto=S7");
+      c("🔴 secreto · validar.html?reto=S7 sin haber resuelto nada: pide la palabra (antes lo regalaba)",
+        await q3.hasta("!!document.getElementById('v-palabra')", 30) && !(await tiene(G3[0])));
+      await q3.js("document.getElementById('v-palabra').value='nebula'; document.getElementById('v-ok').click(); 1"); await dormir(1200);
+      c("secreto · con otra palabra: «Esa no es» y no se registra", /Esa no es la palabra/.test(await q3.texto()) && !(await tiene(G3[0])));
+      await q3.js("document.getElementById('v-palabra').value='" + PAL + "'; document.getElementById('v-ok').click(); 1");
+      c("secreto · con la palabra, sí", await q3.hasta("/Registrado/.test(document.body.innerText)", 40) && await tiene(G3[0]));
+      await q3.cerrar();
+      // 4 · la consola da el enlace para esconderlo
+      const rita = await nueva("Rita copia el enlace escondido");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"ajustes\"]')", 25);
+      await rita.js("document.querySelector('.pest[data-tab=\"ajustes\"]').click(); 1");
+      c("secreto · consola → Ajustes → «Para los Geniallys»: el enlace escondido del reto secreto (fragmento.html)",
+        await rita.hasta("[].slice.call(document.querySelectorAll('[data-copiar]')).some(function(b){return /fragmento\\.html$/.test(b.getAttribute('data-copiar'))})", 15));
       await rita.cerrar();
     }
   } catch (e) {

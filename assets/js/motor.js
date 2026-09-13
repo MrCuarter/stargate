@@ -633,8 +633,15 @@ if (!window.SG_CATALOGO) {
  */
 const LLAMADA = "attendance_sessions", FICHAJES = "attendance_records";
 
-/** La llamada abierta de un grupo, si la hay. Devuelve null si no hay ninguna o ya ha caducado. */
-async function llamadaAbierta(perId) {
+/**
+ * La llamada abierta de un grupo, si la hay. Devuelve null si no hay ninguna o ya ha caducado.
+ *
+ * 🔴 15-sep · `elegir` (opcional): cuál vale. En un grupo hay varios Comandantes y cada uno toca
+ * llamada para SU escuadrón; si dos la tienen abierta a la vez, «la más reciente» era la del otro:
+ * el alumno se quedaba sin su «Presente» y la sesión de un docente adoptaba (y podía cerrar) la de
+ * otro. Una función (la de mi escuadrón) o 'mia' (la que abrió quien mira).
+ */
+async function llamadaAbierta(perId, elegir) {
   const r = await getDocs(query(collection(db, LLAMADA),
     where("projectId", "==", perId), where("active", "==", true)));
   const ahora = Date.now();
@@ -642,7 +649,9 @@ async function llamadaAbierta(perId) {
     .map(d => ({ id: d.id, ...d.data() }))
     .filter(x => fin(x) > ahora)
     .sort((a, b) => fin(b) - fin(a));
-  return vivas[0] || null;
+  let f = typeof elegir === "function" ? elegir : null;
+  if (elegir === "mia") { const yo = await sesion(); f = x => !!yo && x.teacherId === yo.uid; }
+  return (f ? vivas.filter(f) : vivas)[0] || null;
 }
 const fin = x => {
   const t = x && x.endTime;
@@ -699,11 +708,12 @@ async function cerrarLlamada(sesionId) {
 async function ficharLlamada(perId, fichaId) {
   const yo = await sesion();
   if (!yo) throw new Error("Entra con tu cuenta");
-  const s = await llamadaAbierta(perId);
-  if (!s) throw new Error("La llamada a filas ya no está abierta.");
   const f = await getDoc(doc(db, "student_profiles", fichaId));
   if (!f.exists()) throw new Error("No encuentro tu ficha");
   const perfil = f.data();
+  // la de SU escuadrón (o una para todo el grupo), aunque otra más reciente esté abierta
+  const s = await llamadaAbierta(perId, x => !x.restrictedFactionId || x.restrictedFactionId === (perfil.factionId ?? null));
+  if (!s) throw new Error("La llamada a filas ya no está abierta.");
   const restringe = typeof s.restrictedFactionId === "string" && s.restrictedFactionId.trim() !== "";
   if (restringe && (perfil.factionId ?? null) !== s.restrictedFactionId)
     throw new Error("Esta llamada es de otro escuadrón.");
@@ -801,16 +811,17 @@ function fechaDe(t) {
  * en cuanto el docente pulsa. Devuelve la función para dejar de escuchar: sin llamarla, cambiar de
  * pestaña deja conexiones vivas de por vida.
  */
-function vigilarLlamada(perId, alCambiar) {
+function vigilarLlamada(perId, alCambiar, elegir) {
   return onSnapshot(query(collection(db, LLAMADA),
     where("projectId", "==", perId), where("active", "==", true)),
     r => {
       const ahora = Date.now();
       const vivas = r.docs.map(d => ({ id: d.id, ...d.data() }))
         .filter(x => fin(x) > ahora).sort((a, b) => fin(b) - fin(a));
-      alCambiar(vivas[0] || null);
+      // (15-sep · `elegir`: la de mi escuadrón o la mía, no «la más reciente del grupo»)
+      alCambiar((typeof elegir === "function" ? vivas.filter(elegir) : vivas)[0] || null, vivas);
     },
-    () => alCambiar(null));
+    () => alCambiar(null, []));
 }
 
 /**
