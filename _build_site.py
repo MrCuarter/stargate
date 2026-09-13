@@ -2781,11 +2781,15 @@ FIREBASE = {"apiKey": "AIzaSyBv-PLACEHOLDER", # 🔴 EL NOMBRE QUE LEE UN ESTUDI
     # ese era `gamificapro-99e0a.firebaseapp.com`: un identificador de máquina, en la primera
     # pantalla y justo cuando hay que dar confianza. Norberto: «¿es necesario que salga este nombre
     # tan feo?». No.
-    # `gamificapro.mistercuarter.es` es Firebase Hosting del MISMO proyecto —sirve /__/auth/handler,
-    # comprobado— así que vale como authDomain y ya está en los dominios autorizados.
-    # 🔴 Y `stargate.mistercuarter.es` NO sirve: está en Hostinger y devuelve 404 en esa ruta. Para
-    # que pusiera «stargate» habría que mover la web a Firebase Hosting o poner un proxy.
-    "authDomain": "gamificapro.mistercuarter.es",
+    # 🔴🔴 13-sep · Y NO: `gamificapro.mistercuarter.es` NO es Firebase Hosting. Está en Hostinger, y en
+    # /__/auth/handler devuelve la app de GamificaPro con un 200 (el comodín de una SPA contesta 200 a
+    # CUALQUIER ruta). El «comprobado con curl: 200» del 12-sep miraba el código y no el contenido.
+    # Resultado: la ventana de Google abría GamificaPro y NUNCA terminaba de entrar. Solo funcionaban
+    # las sesiones ya guardadas; una persona nueva no podía entrar. GamificaPro usa firebaseapp.com.
+    # Para que ponga «stargate» hay que alojar el ayudante de Google en este dominio Y añadir su
+    # dirección en la consola de Google Cloud — eso es una decisión de Norberto, no un arreglo.
+    # La batería 70 comprueba que el authDomain sirve el ayudante DE VERDAD (su contenido).
+    "authDomain": "gamificapro-99e0a.firebaseapp.com",
             "projectId": "gamificapro-99e0a", "storageBucket": "gamificapro-99e0a.firebasestorage.app",
             "messagingSenderId": "388656371280", "appId": "1:388656371280:web:b3d4178a235df271846355"}
 _FB = os.path.join(HERE, "assets", "js", "firebase_config.json")
