@@ -697,10 +697,13 @@
    */
   function accionesDeHecho(id){
     if(!motorNuevo()) return '';
+    // el enlace que ya entregó, a la vista y listo para cambiarlo (antes salía vacío: parecía perdido)
+    var ya=((st.yo&&st.yo.evidencias)||{})[id]||'';
     return '<div class="rh">'
-      +'<div class="rh-ev"><input class="rh-in" data-evid="'+esc(id)+'" type="url" '
+      +(ya?'<p class="rh-ya">🔗 Tu enlace: <a href="'+esc(ya)+'" target="_blank" rel="noopener">'+esc(ya.replace(/^https?:\/\//,'').slice(0,60))+'</a></p>':'')
+      +'<div class="rh-ev"><input class="rh-in" data-evid="'+esc(id)+'" type="url" value="'+esc(ya)+'" '
         +'placeholder="Enlace de tu evidencia (pégalo aquí)" autocomplete="off">'
-      +'<button class="btn min" type="button" data-guardaev="'+esc(id)+'">Guardar enlace</button></div>'
+      +'<button class="btn min" type="button" data-guardaev="'+esc(id)+'">'+(ya?'Cambiar enlace':'Guardar enlace')+'</button></div>'
       +'<button class="btn min rh-desHacer" type="button" data-deshacer="'+esc(id)+'">'
       +'↩︎ No lo he hecho todavía</button>'
       +'<p class="rh-nota">Cancelar devuelve los xp y los créditos de este reto. Si ya los has '
@@ -1273,8 +1276,9 @@
     st.tab=tabValida(k);
     if(empujarHash!==false){ try{ history.replaceState(null,'','#'+st.tab); }catch(e){} }
     render();
-    var barra=root.querySelector('.nave-tabs');
-    if(barra) barra.scrollIntoView({block:'start', behavior:'smooth'});
+    // 🔴 13-sep · al cambiar de pestaña, arriba del todo. Buscaba `.nave-tabs`, el nombre de la barra
+    // de antes del rediseño: no la encontraba y te dejaba a media página de la pestaña nueva.
+    try{ window.scrollTo({top:0, behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); }
   }
   // 12-sep · `accesos()` se ha eliminado: su contenido vive ahora en el menú «···» de la barra,
   // y el aviso de la llamada a filas se pinta directamente en render().
@@ -2010,8 +2014,9 @@
     if(!v) return aviso('Pega primero el enlace.', true);
     boton.disabled=true; boton.textContent='Guardando…';
     post({accion:'evidencia',per:per,reto:id,evidencia:v},function(){
+      if(st.yo){ st.yo.evidencias=st.yo.evidencias||{}; st.yo.evidencias[id]=v; }
       boton.textContent='✓ Guardado';
-      setTimeout(function(){ boton.disabled=false; boton.textContent='Guardar enlace'; },1600);
+      setTimeout(function(){ boton.disabled=false; boton.textContent='Cambiar enlace'; },1600);
       aviso('🔗 Enlace guardado en <b>'+esc(id)+'</b>.');
     },function(e){
       boton.disabled=false; boton.textContent='Guardar enlace';

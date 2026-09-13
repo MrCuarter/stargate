@@ -2609,3 +2609,8 @@ body.alistado header.hero{display:none}
   .bv-txt .eyebrow{letter-spacing:.14em}
   .bv-ir .btn{font-size:1.02rem;padding:14px 16px;white-space:nowrap}
 }
+/* el enlace que ya entregaste, a la vista */
+.rh-ya{margin:0 0 8px;font-size:.9rem;color:var(--mut,#8aa5ab);word-break:break-all}
+.rh-ya a{color:var(--teal,#37e0ec)}
+/* dos retos de la semana: si abres uno, el de al lado no se estira vacío */
+.rs-grid{align-items:start}

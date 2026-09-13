@@ -864,6 +864,27 @@ const REG = {};   // cifras que se apuntan para el informe
       c("   y el cursor sigue en el campo, para seguir escribiendo", o.foco, sigue);
       await rita.js("var b=document.getElementById('ll-cerrar'); if(b) b.click(); 1");
     }
+    // ============================================================ 17 · LO QUE ENTREGASTE, A LA VISTA
+    // Visto con una cuenta real: se entregaba un enlace con «Lo he hecho» y en «Mis retos» el campo
+    // salía vacío. Y al cambiar de pestaña la página se quedaba a media altura de la nueva.
+    if (hacer(17)) {
+      const leo = await nueva("Leo entrega y lo ve");
+      await leo.ir("entrar.html"); await leo.entrarComo("leo@lab.test", "Leo Nueva");
+      await leo.js("localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
+      await leo.ir("recluta.html?per=lab-clase");
+      await leo.hasta("!!document.querySelector('.retos-semana details.reto-sem:not(.hecho)')", 25); await dormir(1500);
+      const url = "https://ejemplo.org/leo-entrega-" + Date.now();
+      const reto = await leo.js(`(function(){ var d=document.querySelector('.retos-semana details.reto-sem:not(.hecho)'); d.open=true;
+        var i=d.querySelector('input[data-ev]'); i.value=${JSON.stringify(url)}; var b=d.querySelector('[data-hecho]'); b.click(); return b.getAttribute('data-hecho'); })()`);
+      const hecho = await leo.hasta("/registrado/i.test(document.body.innerText)", 25);
+      c("entregado · Leo registra " + reto + " con su enlace", hecho);
+      await leo.js("window.scrollTo(0, document.body.scrollHeight); 1"); await dormir(400);
+      await leo.js("document.querySelector('.nb-t[data-tab=\"retos\"]').click(); 1"); await dormir(1500);
+      c("entregado · al cambiar de pestaña la página sube al principio", (await leo.js("window.pageYOffset")) < 60, String(await leo.js("window.pageYOffset")));
+      await leo.hasta("!!document.querySelector('.rh-ya')", 15);
+      const ya = await leo.js("[].slice.call(document.querySelectorAll('.rh-ya a')).map(function(a){return a.getAttribute('href')})");
+      c("🔴 entregado · en «Mis retos» ve SU enlace (no un campo vacío que invita a pegarlo otra vez)", (ya || []).indexOf(url) >= 0, JSON.stringify(ya));
+    }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
   } finally {

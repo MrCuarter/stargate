@@ -357,7 +357,21 @@
                 // queda—, pero uno tiene derecho a saber cuál es la suya: es lo que hace falta para
                 // fichar en la llamada a filas. Es SU ficha, no la de nadie más.
                 if (yo_) yo_.ficha = f.id;
-                return { yo: yo_, correo: yo.correo, verificado: true };
+                /**
+                 * 🔴 13-sep · Y SUS ENLACES. El estudiante entregaba un enlace con «Lo he hecho» y
+                 * después, en «Mis retos», el campo le salía VACÍO («pégalo aquí»): parecía perdido y
+                 * le invitaba a pegarlo otra vez. Son sus propias entregas (las reglas solo dejan
+                 * leer las suyas), así que se leen y se enseñan.
+                 */
+                if (!yo_) return { yo: yo_, correo: yo.correo, verificado: true };
+                return M.getDocs(M.query(M.collection(M.db, "mission_deliveries"),
+                    M.where("userId", "==", yo.uid), M.where("projectId", "==", per)))
+                  .then(function (r) {
+                    var ev = {}; r.forEach(function (d) { var x = d.data(); if (x.stargateReto && x.enlace) ev[x.stargateReto] = x.enlace; });
+                    yo_.evidencias = ev;
+                    return { yo: yo_, correo: yo.correo, verificado: true };
+                  })
+                  .catch(function () { return { yo: yo_, correo: yo.correo, verificado: true }; });
               });
             });
           });
