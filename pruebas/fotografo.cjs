@@ -28,17 +28,19 @@ const PANTALLAS = [
   ["rita@lab.test", "Rita", "consola.html?per=lab-clase#huevos", "consola-premios"],
   ["rita@lab.test", "Rita", "crear.html", "crear"],
   ["rita@lab.test", "Rita", "llamada.html?per=lab-clase", "llamada"],
+  ["recluta.nuevo@lab.test", "Recluta Nuevo", "alistarse.html?per=lab-clase&codigo=__CODIGO__", "alistarse"],
 ];
 (async () => {
   await L.arrancar(false);
-  const pequenas = [], desbordes = [], cajas = [];
+  const pequenas = [], desbordes = [], cajas = [], recortes = [], solapes = [], tapados = [];
   for (const movil of [false, true]) {
-    for (const [correo, nombre, url, id] of PANTALLAS) {
+    for (let [correo, nombre, url, id] of PANTALLAS) {
       const p = await L.persona(id);
       await p.env("Emulation.setDeviceMetricsOverride", movil
         ? { width: 390, height: 844, deviceScaleFactor: 2, mobile: true }
         : { width: 1280, height: 860, deviceScaleFactor: 1, mobile: false });
       if (correo) { await p.ir("entrar.html"); await p.entrarComo(correo, nombre); }
+      if (url.indexOf("__CODIGO__") >= 0) { const g = await L.leerDoc("projects/lab-clase"); url = url.replace("__CODIGO__", (g && g.joinCode) || ""); }
       await p.ir(url); await L.dormir(6000);
       // una pestaña concreta de la consola: el hash dice cuál (la consola no lo lee sola)
       const pest = (url.match(/consola\.html\?per=[^#]+#(\w+)/) || [])[1];
@@ -68,6 +70,14 @@ const PANTALLAS = [
           if(r.right>q.right+2||r.left<q.left-2) out.push((e.tagName.toLowerCase())+(typeof e.className==='string'&&e.className?'.'+e.className.trim().split(/\s+/)[0]:'')+' «'+(e.textContent||e.value||'').trim().slice(0,22)+'» sale '+Math.round(Math.max(r.right-q.right,q.left-r.left))+'px de '+(typeof p.className==='string'?p.className.split(' ')[0]:p.tagName));
         }); return out.slice(0,8); })()`);
       if (fuera && fuera.length) cajas.push((movil ? "móvil " : "") + id + ": " + fuera.join(" · "));
+      // 🔴 13-sep · «que no haya errores visuales como el del avatar al que solo se le ve el pelo, o
+      // cajas que se superponen, o capas mal calibradas» (Norberto). Tres detectores: imágenes
+      // recortadas por su caja, hermanas que se pisan y lo pulsable que queda tapado por otra capa.
+      const capas = await p.js(fs.readFileSync(__dirname + "/medir_capas.js", "utf8"));
+      const et = (movil ? "móvil " : "") + id + ": ";
+      if (capas && capas.recortadas.length) recortes.push(et + capas.recortadas.join(" · "));
+      if (capas && capas.solapes.length) solapes.push(et + capas.solapes.join(" · "));
+      if (capas && capas.tapados.length) tapados.push(et + capas.tapados.join(" · "));
       // las visitas guiadas se fotografían aparte: aquí se cierran y se vuelve arriba
       await p.js(`(function(){ [].slice.call(document.querySelectorAll('.tour-exit,.tour .x,[data-tour-salir]')).forEach(function(b){ try{b.click()}catch(e){} });
         window.scrollTo(0,0); return true; })()`);
@@ -81,5 +91,8 @@ const PANTALLAS = [
   console.log("letra < 12 px:\n  " + (pequenas.length ? pequenas.join("\n  ") : "ninguna"));
   console.log("desbordes horizontales:\n  " + (desbordes.length ? desbordes.join("\n  ") : "ninguno"));
   console.log("se sale de su caja:\n  " + (cajas.length ? cajas.join("\n  ") : "nada"));
+  console.log("imágenes recortadas por su caja:\n  " + (recortes.length ? recortes.join("\n  ") : "ninguna"));
+  console.log("cajas que se pisan:\n  " + (solapes.length ? solapes.join("\n  ") : "ninguna"));
+  console.log("pulsables tapados por otra capa:\n  " + (tapados.length ? tapados.join("\n  ") : "ninguno"));
   await L.parar(); process.exit(0);
 })().catch(e => { console.error(e); L.parar(); process.exit(1); });

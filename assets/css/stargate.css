@@ -2564,3 +2564,48 @@ body.nave-dentro header.hero+section{border-bottom:0}
 /* el Comandante, con su círculo en línea (las reglas de formulario de #alistarse lo ponían encima) */
 #alistarse .comandante{display:flex;align-items:center;gap:10px;margin:0;font-size:1rem}
 #alistarse .comandante input{display:inline-block;width:18px;height:18px;margin:0;padding:0;accent-color:#4da3ff;flex:none}
+
+/* ================================================================== LA BIENVENIDA, TRAS ALISTARSE (13-sep)
+   🔴 Su HTML existía desde el 12-sep (NEBULA de fondo, el Capitán saludando, el emblema del
+   escuadrón) pero su CSS NUNCA se escribió: salía una columna de imágenes a tamaño natural con media
+   pantalla vacía. Es lo primero que ve un estudiante al entrar en el juego. Visto con una cuenta real. */
+body.alistado header.hero{display:none}
+.bv{position:relative;overflow:hidden;isolation:isolate;padding:6px 2px 2px}
+.bv-nebula{position:absolute;right:-4%;top:-14%;height:140%;width:auto;max-width:none;opacity:.17;z-index:0;pointer-events:none;
+  -webkit-mask-image:linear-gradient(to left,#000 35%,transparent 92%);mask-image:linear-gradient(to left,#000 35%,transparent 92%)}
+.bv-fila{position:relative;z-index:1;display:grid;grid-template-columns:210px minmax(0,1fr) 180px;gap:28px;align-items:center}
+.bv-cap{display:block;width:100%;height:auto;max-height:310px;object-fit:contain;object-position:bottom;
+  filter:drop-shadow(0 16px 30px rgba(0,0,0,.55))}
+.bv-txt .eyebrow{margin:0 0 6px}
+.bv-tit{font-family:'Unbounded',sans-serif;font-size:clamp(1.5rem,3.2vw,2.3rem);line-height:1.1;margin:0 0 12px;text-wrap:balance}
+.bv-lead{font-size:1.08rem;margin:0 0 12px;line-height:1.5}
+.bv-lema{font-family:'Unbounded',sans-serif;font-size:1.05rem;color:var(--amber,#f5b043);margin:0 0 4px}
+.bv-origen{font-size:.88rem;color:var(--mut,#8aa5ab);margin:0}
+.bv-emblema{display:block;width:100%;height:auto;filter:drop-shadow(0 0 24px rgba(55,224,236,.45))}
+.bv-premios{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0}
+.bv-premios span{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;
+  border:1px solid rgba(55,224,236,.35);background:rgba(55,224,236,.08);font-size:.95rem;font-weight:600}
+.bv-premios span+span{color:var(--teal,#37e0ec)}
+.bv-ir{position:relative;z-index:1;margin:18px 0 0}
+.bv-ir .btn{font-size:1.12rem;padding:15px 32px}
+@media(max-width:760px){
+  .bv-fila{grid-template-columns:112px minmax(0,1fr);gap:14px}
+  .bv-cap{max-height:170px}
+  .bv-emblema{grid-column:1/-1;width:130px;justify-self:center}
+  .bv-nebula{opacity:.1}
+  .bv-ir .btn{width:100%}
+}
+/* la bienvenida, afinada: NEBULA se funde por TODOS los bordes (su imagen trae fondo y dejaba un
+   rectángulo), título a su tamaño, y en el móvil el Capitán y el emblema arriba y el texto a lo ancho */
+.bv-nebula{-webkit-mask-image:radial-gradient(ellipse 55% 50% at 50% 42%,#000 35%,transparent 78%);
+  mask-image:radial-gradient(ellipse 55% 50% at 50% 42%,#000 35%,transparent 78%);opacity:.2;right:-2%}
+#alistarse .bv-tit{font-size:clamp(1.6rem,3.2vw,2.4rem)}
+.bv-fila{grid-template-areas:"cap txt emb"}
+.bv-cap{grid-area:cap}.bv-txt{grid-area:txt}.bv-emblema{grid-area:emb}
+@media(max-width:760px){
+  .bv-fila{grid-template-columns:1fr 1fr;grid-template-areas:"cap emb" "txt txt";gap:10px 14px}
+  .bv-cap{max-height:190px;justify-self:center}
+  .bv-emblema{grid-column:auto;width:128px;justify-self:center;align-self:center}
+  .bv-txt .eyebrow{letter-spacing:.14em}
+  .bv-ir .btn{font-size:1.02rem;padding:14px 16px;white-space:nowrap}
+}

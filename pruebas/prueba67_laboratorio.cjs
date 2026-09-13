@@ -88,6 +88,11 @@ const REG = {};   // cifras que se apuntan para el informe
       await ana.js("document.querySelector('#a-enviar').click(); 1");
       const bienvenida = await ana.hasta("/Bienvenid|Embarc|tu Nave/i.test(document.body.innerText) && !document.querySelector('#a-enviar')", 25);
       c("alumna · se alista de verdad (el motor crea su ficha)", bienvenida, (await ana.texto()).slice(0, 200));
+      // 🔴 13-sep · la bienvenida tenía HTML y NINGÚN estilo: una columna de imágenes a tamaño natural.
+      // Se comprueba que está maquetada (rejilla, Capitán acotado, titular del alistamiento fuera).
+      const bvOk = await ana.js(`(function(){ var f=document.querySelector('.bv-fila'), c=document.querySelector('.bv-cap'), h=document.querySelector('header.hero');
+        return !!f && getComputedStyle(f).display==='grid' && !!c && c.getBoundingClientRect().height<=320 && (!h || getComputedStyle(h).display==='none'); })()`);
+      c("alumna · la bienvenida está maquetada (Capitán, texto y emblema en fila; sin el «Únete» de arriba)", bvOk);
       const fichas = await consultar("student_profiles", "displayName", "Andrómeda");
       c("alumna · y su ficha existe en Firestore, en su grupo", fichas.length === 1 && fichas[0].projectId === "lab-clase",
         JSON.stringify(fichas.map(f => f.projectId)));

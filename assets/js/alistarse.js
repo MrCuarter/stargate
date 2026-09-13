@@ -265,6 +265,9 @@
    * como protagonista, el texto apretado y confeti.
    */
   function bienvenida(alias, comandante, escuadron) {
+    // ya no es «Únete a la tripulación»: ya está dentro. Fuera el titular de la página.
+    document.body.classList.add("alistado");
+    try { window.scrollTo(0, 0); } catch (e) {}
     tarjeta('<div class="bv">' +
       '<img class="bv-nebula" src="assets/img/personajes/nebula.png" alt="" aria-hidden="true">' +
       '<div class="bv-fila">' +
