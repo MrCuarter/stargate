@@ -147,8 +147,13 @@ async function main() {
       for (let c = 0; c < cuantas; c++) inventario.push(ID + "__" + cromos[(k * 7 + c * 3) % Math.min(20, cromos.length)]);
       if (retos.length >= 9) inventario.push(ID + "__" + heroes[k % heroes.length]);
     }
+    const uidFalso = (DEMO ? "demo_" : "prueba_") + alias.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "");
+    // 13-sep · su alias, reservado como lo reserva la web (las reglas lo exigen a quien se aliste después)
+    const clave = alias.toLowerCase().trim().replace(/[áàäâã]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i")
+      .replace(/[óòöôõ]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/ç/g, "c").replace(/\//g, "-").replace(/ +/g, " ");
+    await db.collection("stargate_alias").doc(ID + "__" + clave).set({ projectId: ID, uid: uidFalso, alias: alias, creado: Date.now() });
     await ficha.set({
-      userId: (DEMO ? "demo_" : "prueba_") + alias.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, ""),
+      userId: uidFalso,
       projectId: ID, displayName: alias,
       totalPoints: xp, coins: cred, inventory: inventario, earnedBadges: [],
       completedMissionIds: hechas, missionTimestamps: sellos, completedCampaignIds: [],

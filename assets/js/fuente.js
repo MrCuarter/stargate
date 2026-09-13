@@ -247,7 +247,11 @@
             }));
           return Promise.all(pasos).then(function () {
             var escrituras = [];
-            if (Object.keys(publico).length)
+            // 🔴 el alias, con su reserva (las reglas no dejan cambiarlo sin ella): el resto va con él
+            if (publico.displayName !== undefined) {
+              var nuevo = publico.displayName; delete publico.displayName;
+              escrituras.push(M.cambiarAlias(q.per, r.ficha, nuevo, publico));
+            } else if (Object.keys(publico).length)
               escrituras.push(M.updateDoc(M.doc(M.db, "student_profiles", r.ficha), publico));
             if (Object.keys(privado).length)
               escrituras.push(M.setDoc(M.doc(M.db, "student_profiles", r.ficha, "privado", "datos"), privado, { merge: true }));
@@ -717,8 +721,9 @@
         var quien = M && M.sesion ? M.sesion().catch(function () { return null; }) : Promise.resolve(null);
         return Promise.all([esperarTraductor(), quien]).then(function (r) {
           var yo = r[1];
-          nombre = q.get("comandante") || (yo && yo.nombre) || "Tu Comandante";
-          if (!/^(cmdte|comandante)/i.test(nombre)) nombre = "Cmdte. " + nombre.split(" ")[0];
+          // «Cmdte. Rita» si se sabe quién es; si no (sin sesión, dentro de un Genially), «Tu Comandante»
+          nombre = q.get("comandante") || (yo && yo.nombre) || "";
+          nombre = !nombre ? "Tu Comandante" : /^(cmdte|comandante)/i.test(nombre) ? nombre : "Cmdte. " + nombre.split(" ")[0];
           sembrar();
         });
       });

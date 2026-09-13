@@ -295,6 +295,29 @@ async function sembrarPER(per, alAvanzar) {
  * corrección de la ficha desde el puesto de mando. `excepto` es quien lo pide (su propia ficha no cuenta).
  */
 const aliasPlano = t => String(t || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ");
+/**
+ * LA CLAVE DE LA RESERVA: la MISMA cuenta que hacen las reglas de Firestore (`aliasClave` en
+ * firestore.rules de GamificaPro). Si no coincidiera letra por letra, el servidor rechazaría la
+ * reserva. Las reglas son quienes lo hacen cumplir: el alias reservado no se puede repetir.
+ */
+const aliasClave = a => String(a || "").toLowerCase().trim()
+  .replace(/[áàäâã]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i")
+  .replace(/[óòöôõ]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/ç/g, "c")
+  .replace(/\//g, "-").replace(/ +/g, " ");
+const refAlias = (perId, alias) => doc(db, "stargate_alias", perId + "__" + aliasClave(alias));
+/**
+ * Reserva el alias para `uid` DENTRO del lote que escribe la ficha (las reglas lo exigen así). Si ya
+ * es suyo (vuelve a alistarse, o se corrige la ficha a lo mismo) no hace falta escribirlo; si es de
+ * otro, se para con palabras.
+ */
+async function reservarAlias(lote, perId, uid, alias) {
+  const r = await getDoc(refAlias(perId, alias)).catch(() => null);
+  if (r && r.exists()) {
+    if (r.data().uid === uid) return;
+    throw new Error("«" + alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa 🎲 para que te sugiera uno).");
+  }
+  lote.set(refAlias(perId, alias), { projectId: perId, uid: uid, alias: String(alias), creado: Date.now() });
+}
 async function aliasOcupado(perId, alias, excepto) {
   const e = excepto || {};
   const r = await getDocs(query(collection(db, "student_profiles"), where("projectId", "==", perId)));
@@ -336,7 +359,8 @@ async function alistar(perId, datos, alAvanzar) {
 
   avisa("Abriendo tu ficha…");
   const ficha = doc(collection(db, "student_profiles"));
-  await setDoc(ficha, {
+  // 🔴 la ficha y la reserva de su alias van JUNTAS: las reglas no dejan una sin la otra
+  const datosFicha = {
     userId: yo.uid, projectId: perId, displayName: datos.alias,
     totalPoints: 0, coins: 0, inventory: [], earnedBadges: [],
     completedMissionIds: [], completedCampaignIds: [], currentPhase: 1, role: "student",
@@ -344,7 +368,21 @@ async function alistar(perId, datos, alAvanzar) {
     squadId: escuadron ? escuadron.id : null, factionId: escuadron ? escuadron.id : null,
     stargateProfe: datos.comandante || "", stargateAvatar: datos.avatar || null,
     stargateBio: datos.bio || ""
-  });
+  };
+  const lote = writeBatch(db);
+  await reservarAlias(lote, perId, yo.uid, datos.alias);
+  lote.set(ficha, datosFicha);
+  try { await lote.commit(); }
+  catch (e) {
+    if (!/permission|insufficient/i.test(String(e && (e.code || e.message)))) throw e;
+    // dos personas pulsando a la vez con el mismo alias: el servidor deja pasar a una sola
+    if (await aliasOcupado(perId, datos.alias, { uid: yo.uid }))
+      throw new Error("«" + datos.alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa 🎲 para que te sugiera uno).");
+    // 🔴 servidor con las reglas de ANTES del registro de alias (el despliegue de la web y el de las
+    // reglas no son el mismo segundo): ahí la reserva no existe y la ficha va sola, como siempre.
+    // Con las reglas nuevas esto no pasa nunca: una ficha sin su reserva la rechazan.
+    await setDoc(ficha, datosFicha);
+  }
 
   // 🔴 El nombre y el correo NO van en la ficha: van a `privado/datos`, que solo leen el propio
   // alumno y su equipo docente. La ficha la lee cualquiera con sesión —la necesitan el ranking y el
@@ -774,6 +812,32 @@ async function darDeBaja(perId, fichaId) {
   if (f.data().projectId !== perId) throw new Error("Esa ficha no es de este grupo");
   try { await deleteDoc(doc(db, "student_profiles", fichaId, "privado", "datos")); } catch (e) {}
   await deleteDoc(doc(db, "student_profiles", fichaId));
+  // y su alias queda libre para otro
+  try { const ra = await getDoc(refAlias(perId, f.data().displayName)); if (ra.exists() && ra.data().uid === f.data().userId) await deleteDoc(ra.ref); } catch (e) {}
+}
+
+/**
+ * CAMBIAR EL ALIAS de una ficha (lo usa la corrección de ficha del profesorado): se reserva el nuevo
+ * a nombre del alumno y se libera el viejo, todo en el mismo lote que la ficha.
+ */
+async function cambiarAlias(perId, fichaId, nuevo, extra) {
+  const f = await getDoc(doc(db, "student_profiles", fichaId));
+  if (!f.exists()) throw new Error("Esa ficha ya no está");
+  const uid = f.data().userId, viejo = f.data().displayName;
+  const lote = writeBatch(db);
+  await reservarAlias(lote, perId, uid, nuevo);
+  if (aliasClave(viejo) !== aliasClave(nuevo)) {
+    const rv = await getDoc(refAlias(perId, viejo)).catch(() => null);
+    if (rv && rv.exists() && rv.data().uid === uid) lote.delete(rv.ref);
+  }
+  const cambios = Object.assign({}, extra || {}, { displayName: nuevo });
+  lote.update(doc(db, "student_profiles", fichaId), cambios);
+  try { await lote.commit(); }
+  catch (e) {
+    if (!/permission|insufficient/i.test(String(e && (e.code || e.message)))) throw e;
+    if (await aliasOcupado(perId, nuevo, { ficha: fichaId })) throw new Error("«" + nuevo + "» ya lo lleva otro recluta del grupo.");
+    await updateDoc(doc(db, "student_profiles", fichaId), cambios);   // reglas de antes del registro (ver alistar)
+  }
 }
 
 /** Cambiar el código de acceso del grupo. Se usa cuando se ha corrido más de la cuenta. */
@@ -1234,6 +1298,6 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, nuevoCodigo,
                     huevosDe, guardarHuevos, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
-                    anadirDocente, referenteEnTodos, aliasOcupado,
+                    anadirDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

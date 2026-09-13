@@ -1062,6 +1062,11 @@ const REG = {};   // cifras que se apuntan para el informe
       const rechazo = await dup.hasta("/ya lo lleva alguien/i.test(document.body.innerText)", 20);
       c("🔴 alias · «halo» no se acepta si ya hay un «Halo» en el grupo", rechazo && !(await fichaDe("dup@lab.test", "lab-clase")), (await dup.texto()).slice(0, 200));
 
+      // 🔴 ni desde la consola del navegador: Eva escribe a mano en su ficha «Halo» → el SERVIDOR (reglas) dice que no
+      const consola = await eva.js(`(async function(){ var M=window.SG.MOTOR; var yo=await M.sesion();
+        var r=await M.getDocs(M.query(M.collection(M.db,'student_profiles'), M.where('projectId','==','lab-clase'), M.where('userId','==',yo.uid)));
+        return M.updateDoc(M.doc(M.db,'student_profiles',r.docs[0].id), {displayName:'Halo'}).then(function(){return 'PASÓ'},function(e){return e.code||e.message}); })()`);
+      c("🔴 alias · ni forzándolo desde la consola del navegador: las reglas lo rechazan", consola !== "PASÓ" && (await fichaDe("eva@lab.test", "lab-clase")).displayName === "Eva Estelar", consola);
       // y tampoco desde el puesto de mando: la referente no puede rebautizar a Eva como «HALO»
       // (la corrección de ficha va por la fuente de datos, la que cargan las páginas de clase: registro.html la trae)
       await rita.ir("registro.html?per=lab-clase"); await rita.hasta("!!(window.SG && window.SG.FUENTE && window.SG.MOTOR)", 20);

@@ -2665,7 +2665,9 @@
     return '<div class="sim-barra" role="region" aria-label="Simulacro">'
       +'<span class="sim-tit"><b>🛰️ La Nave de tu Comandante</b><em>Simulacro: nada de esto cuenta ni se guarda</em></span>'
       +'<div class="sim-mandos">'
-      +'<label class="sim-sem">Semana <select id="sim-sem">'+opciones+'</select></label>'
+      // 🔴 13-sep · proyectada en la sesión, la semana es la de la clase y no se cambia: así no hay spoiler
+      // por un despiste delante de todos. Para ensayar otra semana está «Mis enlaces → Tu Nave de Comandante».
+      +(q.get('embed')==='1'?'<span class="sim-sem">Semana <b>'+s+'</b></span>':'<label class="sim-sem">Semana <select id="sim-sem">'+opciones+'</select></label>')
       +'<button type="button" class="btn small" id="sim-pj">🎭 Mi personaje</button>'
       +'<button type="button" class="btn small" id="sim-ll"'+(st.llamada?' disabled':'')+'>📣 Llamada a filas</button>'
       +(cap?'<button type="button" class="btn small primary" id="sim-cap" data-cap="'+cap.clave+'">▶ NEBULA · '+cap.icono+' '+esc(cap.titulo)+'</button>':'')
