@@ -15,6 +15,9 @@ const PANTALLAS = [
   ["ana@lab.test", "Ana", "recluta.html?per=lab-clase#botin", "nave-botin"],
   ["ana@lab.test", "Ana", "recluta.html?per=lab-clase#mercado", "nave-mercado"],
   ["rita@lab.test", "Rita", "consola.html", "consola-grupos"],
+  // 🔴 y con VARIOS grupos (el vitalicio los ve todos): con uno solo no se vio que el botón de la
+  // invitación se salía de las tarjetas estrechas
+  ["n.cuartero.10@gmail.com", "Norberto Cuartero", "consola.html", "consola-varios"],
   ["rita@lab.test", "Rita", "consola.html?per=lab-clase", "consola-gente"],
   ["rita@lab.test", "Rita", "aula.html?per=lab-clase", "aula"],
   ["rita@lab.test", "Rita", "sesion.html?per=lab-clase", "sesion"],
@@ -28,7 +31,7 @@ const PANTALLAS = [
 ];
 (async () => {
   await L.arrancar(false);
-  const pequenas = [], desbordes = [];
+  const pequenas = [], desbordes = [], cajas = [];
   for (const movil of [false, true]) {
     for (const [correo, nombre, url, id] of PANTALLAS) {
       const p = await L.persona(id);
@@ -55,6 +58,16 @@ const PANTALLAS = [
             if(!dentro) out.push(e.tagName.toLowerCase()+(typeof e.className==='string'&&e.className?'.'+e.className.trim().split(/\s+/).join('.'):'')+' →'+Math.round(r.right)); }});
         return ['ancho '+document.documentElement.scrollWidth+' > '+W].concat(out.slice(0,8)); })()`);
       if (anchas.length) desbordes.push((movil ? "móvil " : "") + id + ": " + anchas.join(" · "));
+      // 🔴 13-sep · y lo que se sale de SU caja (un botón que asoma fuera de su tarjeta): la página no
+      // desborda, así que la medición de arriba no lo ve. Así se escapó «Copiar invitación» con varios grupos.
+      const fuera = await p.js(`(function(){ var out=[];
+        [].slice.call(document.querySelectorAll('button,.btn,a.gp-b,input,select,code,img,.chip')).forEach(function(e){
+          var r=e.getBoundingClientRect(); if(!r.width||!r.height) return; var s=getComputedStyle(e); if(s.position==='fixed'||s.position==='absolute') return;
+          var p=e.parentElement; while(p&&p!==document.body){ var ps=getComputedStyle(p); if(ps.overflowX!=='visible') return; if(ps.display!=='contents'&&(ps.borderLeftStyle!=='none'||ps.backgroundColor!=='rgba(0, 0, 0, 0)')) break; p=p.parentElement; }
+          if(!p||p===document.body) return; var q=p.getBoundingClientRect();
+          if(r.right>q.right+2||r.left<q.left-2) out.push((e.tagName.toLowerCase())+(typeof e.className==='string'&&e.className?'.'+e.className.trim().split(/\s+/)[0]:'')+' «'+(e.textContent||e.value||'').trim().slice(0,22)+'» sale '+Math.round(Math.max(r.right-q.right,q.left-r.left))+'px de '+(typeof p.className==='string'?p.className.split(' ')[0]:p.tagName));
+        }); return out.slice(0,8); })()`);
+      if (fuera && fuera.length) cajas.push((movil ? "móvil " : "") + id + ": " + fuera.join(" · "));
       // las visitas guiadas se fotografían aparte: aquí se cierran y se vuelve arriba
       await p.js(`(function(){ [].slice.call(document.querySelectorAll('.tour-exit,.tour .x,[data-tour-salir]')).forEach(function(b){ try{b.click()}catch(e){} });
         window.scrollTo(0,0); return true; })()`);
@@ -67,5 +80,6 @@ const PANTALLAS = [
   console.log("capturas en", OUT);
   console.log("letra < 12 px:\n  " + (pequenas.length ? pequenas.join("\n  ") : "ninguna"));
   console.log("desbordes horizontales:\n  " + (desbordes.length ? desbordes.join("\n  ") : "ninguno"));
+  console.log("se sale de su caja:\n  " + (cajas.length ? cajas.join("\n  ") : "nada"));
   await L.parar(); process.exit(0);
 })().catch(e => { console.error(e); L.parar(); process.exit(1); });

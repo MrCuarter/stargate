@@ -2548,3 +2548,9 @@ body.nave-dentro header.hero+section{border-bottom:0}
 #consola .hv-l2 .h-url{display:block;flex:1;min-width:0;text-align:left;padding:9px 11px}
 .hv-f{align-items:stretch}
 .hv-f .h-cant[hidden]{display:none}
+/* 🔴 13-sep · con VARIOS grupos las tarjetas son estrechas y «Copiar invitación» se salía por la
+   derecha (el «nowrap» de antes solo se había mirado con un grupo). En todas: el código arriba y el
+   botón debajo, a lo ancho. */
+.gp-invita{flex-wrap:wrap;gap:10px}
+.gp-invita>div{flex:1 1 auto}
+.gp-invita .btn{flex:1 1 100%;justify-content:center}
