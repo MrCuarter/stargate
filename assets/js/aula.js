@@ -23,6 +23,8 @@
   var PER_FIJO = url.get("per") || "";
   var MOTOR = null, YO = null, GRUPOS = [], PER = "", D = null, TAB = "clase";
   var SESION = null, reloj = null, dejarDeVigilar = null, PRESENTES = [];
+  // PREMIAR: a quién (se conserva al repintar), de dónde sale la lista y a quién ya se ha preguntado hoy
+  var ELEGIDOS = {}, FUENTE_P = "", PRESENTES_HOY = null, PREGUNTADOS = {};
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
@@ -165,7 +167,8 @@
                               : 'Para todo el grupo') + '</p>'
         + '<div class="au-presentes"><b id="au-np">' + PRESENTES.length + "</b> "
           + (PRESENTES.length === 1 ? "presente" : "presentes") + "</div>"
-        + '<div class="au-nombres" id="au-nombres"></div>'
+        // los nombres sueltos solo si aún no está la tarjeta de «En clase hoy» con sus caras (serían los mismos dos veces)
+        + (enClaseHoy().length ? '' : '<div class="au-nombres" id="au-nombres"></div>')
         + '<button class="ll-min" id="au-cerrar">Cerrar la llamada</button></div>'
       : '<div class="au-llamada"><div class="au-cab"><b>🔔 Llamada a filas</b></div>'
         + '<p class="small muted">Abre el fichaje para tu escuadrón. En la Nave de tu gente aparece solo.</p>'
@@ -185,7 +188,18 @@
         + (s.consejo ? '<p class="au-consejo">💡 ' + esc(s.consejo) + "</p>" : "")
         + "</div>"
       : "";
-    return llamada + orden;
+    // 🔴 13-sep · quién está en clase HOY (ha respondido a una llamada), con lo que se hace con ellos
+    var hoy = enClaseHoy();
+    var enClase = hoy.length
+      ? '<div class="au-tarjeta au-hoy"><h3>🟢 En clase hoy · ' + hoy.length + '</h3>'
+        + '<div class="au-caras mini">' + hoy.slice(0, 30).map(function (x) {
+            var c = caraDe(x);
+            return '<span class="au-cara quieta">' + (c ? '<img src="' + esc(c) + '" alt="" loading="lazy">' : '')
+              + '<b>' + esc(x.alias) + '</b></span>'; }).join("") + '</div>'
+        + '<div class="au-acciones"><button type="button" class="au-azar-btn" id="au-ir-azar">🎲 ¿A quién pregunto?</button>'
+        + '<button type="button" class="ll-min" id="au-ir-premiar">🎁 Premiar a los presentes</button></div></div>'
+      : "";
+    return llamada + enClase + orden;
   }
 
   // ---------------------------------------------------------------- 2 · mi gente
@@ -253,26 +267,92 @@
           : "");
   }
 
-  // ---------------------------------------------------------------- 4 · premiar
+  // ---------------------------------------------------------------- 4 · premiar (y preguntar al azar)
+  /**
+   * 🔴 13-sep · PREMIAR A UNO O A VARIOS, Y PREGUNTAR AL AZAR. Norberto: «un sitio en el que se vean
+   * los estudiantes que han respondido a la llamada, los que tengo en clase en directo, para
+   * seleccionar uno o varios y darles premios, o un selector aleatorio para hacer una pregunta». Y
+   * «regalar también un avatar u otra de las recompensas que podemos ofrecer en clase».
+   *
+   * Antes era un desplegable con 200 alias y seis botones. Ahora: sus CARAS, que se tocan para
+   * elegir (una o varias), la lista de «en clase hoy» —quien ha respondido a una llamada a filas
+   * desde las 00:00, aunque ya se haya cerrado— y todo lo regalable: xp, créditos, carta, sobre,
+   * héroe (al azar o elegido) y los tres adornos. Lo que no es xp ni créditos lo reparte el
+   * servidor, una transacción por estudiante (`stargateRegalar`).
+   */
+  var REGALOS = [
+    { g: "Puntos", k: "xp25", t: "+25 xp", xp: 25 }, { g: "Puntos", k: "xp50", t: "+50 xp", xp: 50 },
+    { g: "Puntos", k: "cr20", t: "+20 ◈", cr: 20 }, { g: "Puntos", k: "cr50", t: "+50 ◈", cr: 50 },
+    { g: "Colección", k: "carta", t: "🃏 Una carta", regalo: { tipo: "carta" }, clase: "carta" },
+    { g: "Colección", k: "sobre", t: "🃏 Un sobre (3 cartas)", regalo: { tipo: "sobre" }, clase: "carta" },
+    { g: "Colección", k: "heroe", t: "🛡️ Un héroe al azar", regalo: { tipo: "heroe" }, clase: "heroe" },
+    { g: "Colección", k: "heroe_el", t: "🛡️ Un héroe que eliges…", elegir: true, clase: "heroe" },
+    { g: "Adornos", k: "marco", t: "🖼️ Marco dorado", regalo: { tipo: "adorno", cual: "marco" }, clase: "adorno" },
+    { g: "Adornos", k: "fondo", t: "🌌 Fondo de ficha", regalo: { tipo: "adorno", cual: "fondo" }, clase: "adorno" },
+    { g: "Adornos", k: "titulo", t: "🏷️ Título de recluta", regalo: { tipo: "adorno", cual: "titulo" }, clase: "adorno" }
+  ];
+  function caraDe(x) {
+    try { return (window.SG && SG.avatarSrc) ? SG.avatarSrc(x.avatar, x.alias, x.xp, D && D.tipo).src : ""; }
+    catch (e) { return ""; }
+  }
+  function enClaseHoy() {
+    var set = {}; (PRESENTES_HOY || []).forEach(function (u) { set[u] = 1; });
+    return mios().filter(function (x) { return x.ficha && set[x.uid]; });
+  }
+  function listaPremiar() {
+    return FUENTE_P === "hoy" ? enClaseHoy() : mios().filter(function (x) { return x.ficha; });
+  }
+  function elegidos() { return listaPremiar().filter(function (x) { return ELEGIDOS[x.ficha]; }); }
+  function textoElegidos() {
+    var e = elegidos();
+    if (!e.length) return "Toca una o varias caras";
+    return "Para " + (e.length === 1 ? "" : e.length + ": ") + e.slice(0, 4).map(function (x) { return x.alias; }).join(", ")
+      + (e.length > 4 ? " y " + (e.length - 4) + " más" : "");
+  }
   function vistaPremios() {
-    var g = mios();
-    return avisoDeQuienVeo() + '<div class="au-tarjeta"><h3>🎁 Premiar a mano</h3>'
-      + '<p class="small muted">Para lo que el sistema no ve: una buena intervención, ayudar a un compañero, '
-      + "traer algo que no se pedía.</p>"
-      + '<label class="ll-campo">A quién<select id="au-quien">'
-        + '<option value="">— elige —</option>'
-        + g.map(function (x) { return '<option value="' + esc(x.ficha || "") + '">' + esc(x.alias) + "</option>"; }).join("")
-        + "</select></label>"
-      + '<button class="ll-min" id="au-azar">🎲 Que elija la suerte</button>'
-      + '<div class="au-premios">'
-        + '<button class="au-pr" data-xp="25" data-cr="0">+25 xp</button>'
-        + '<button class="au-pr" data-xp="50" data-cr="0">+50 xp</button>'
-        + '<button class="au-pr" data-xp="0" data-cr="20">+20 ◈</button>'
-        + '<button class="au-pr" data-xp="0" data-cr="50">+50 ◈</button>'
-        + '<button class="au-pr doble" data-xp="50" data-cr="50">+50 xp y +50 ◈</button>'
-        + '<button class="au-pr carta" data-carta="1">🃏 Regalar una carta</button>'
-      + "</div>"
-      + '<p class="ll-pie" id="au-pmsg"></p></div>';
+    var hoy = enClaseHoy();
+    if (!FUENTE_P) FUENTE_P = hoy.length ? "hoy" : "todos";
+    var g = listaPremiar();
+    var heroes = ((window.SG_CATALOGO || {}).heroes) || [];
+    return avisoDeQuienVeo()
+      + '<div class="au-tarjeta au-quienes">'
+      +   '<div class="au-cab2"><h3>¿A quién?</h3><div class="au-seg" role="group" aria-label="De dónde">'
+      +     '<button type="button" data-fuente="hoy" aria-pressed="' + (FUENTE_P === "hoy") + '">🟢 En clase hoy <b>' + hoy.length + '</b></button>'
+      +     '<button type="button" data-fuente="todos" aria-pressed="' + (FUENTE_P === "todos") + '">Todo mi escuadrón <b>' + mios().filter(function (x) { return x.ficha; }).length + '</b></button>'
+      +   '</div></div>'
+      +   (g.length
+          ? '<div class="au-caras" id="au-caras">' + g.map(function (x) {
+              var c = caraDe(x);
+              return '<button type="button" class="au-cara' + (ELEGIDOS[x.ficha] ? " on" : "") + '" data-ficha="' + esc(x.ficha) + '" aria-pressed="' + (!!ELEGIDOS[x.ficha]) + '">'
+                + (c ? '<img src="' + esc(c) + '" alt="" loading="lazy">' : '<span class="au-sin">' + esc((x.alias || "?").charAt(0)) + '</span>')
+                + '<b>' + esc(x.alias) + '</b></button>'; }).join("") + '</div>'
+          : '<p class="small muted">' + (FUENTE_P === "hoy"
+              ? 'Hoy todavía no ha respondido nadie a la llamada a filas. Tócala en «La clase», o elige de todo tu escuadrón.'
+              : 'Todavía no hay nadie en tu escuadrón.') + '</p>')
+      +   '<div class="au-acciones">'
+      +     '<button type="button" class="ll-min" id="au-todos">Todos</button>'
+      +     '<button type="button" class="ll-min" id="au-nadie">Ninguno</button>'
+      +     '<button type="button" class="au-azar-btn" id="au-azar"' + (g.length ? '' : ' disabled') + '>🎲 Pregunta al azar</button>'
+      +     '<label class="au-sinrep" title="Quien ya ha salido hoy no vuelve a salir hasta que hayan salido todos"><input type="checkbox" id="au-sinrep" checked> Sin repetir</label>'
+      +   '</div>'
+      +   '<div id="au-sorteo" class="au-sorteo" hidden></div>'
+      + '</div>'
+      + '<div class="au-tarjeta"><div class="au-cab2"><h3>¿Qué le das?</h3><span class="au-para" id="au-para">' + esc(textoElegidos()) + '</span></div>'
+      // tres filas con su nombre —puntos, colección, adornos— en una rejilla que no deja filas cojas
+      +   ["Puntos", "Colección", "Adornos"].map(function (grupo) {
+            var suyos = REGALOS.filter(function (r) { return r.g === grupo; });
+            return '<div class="au-grupo-pr' + (suyos.length === 3 ? ' tres' : '') + '" style="--n:' + suyos.length + '"><span class="au-gt">' + grupo + '</span><div class="au-premios">'
+              + suyos.map(function (r) {
+                  return '<button type="button" class="au-pr' + (r.clase ? " " + r.clase : "") + '" data-k="' + r.k + '"'
+                    + (r.xp || r.cr ? ' data-xp="' + (r.xp || 0) + '" data-cr="' + (r.cr || 0) + '"' : '') + '>' + r.t + '</button>'; }).join("")
+              + '</div></div>'; }).join("")
+      +   '<div class="au-heroe-el" id="au-heroe-el" hidden>'
+      +     '<img id="au-heroe-img" src="' + (heroes[0] ? 'assets/img/heroes/' + esc(heroes[0].clave) + '.jpg' : '') + '" alt="" width="64" height="64">'
+      +     '<select id="au-heroe">' + heroes.map(function (h) {
+              return '<option value="' + esc(h.clave) + '">' + esc(h.nombre) + ' · ' + esc(String(h.rareza || "").toLowerCase()) + '</option>'; }).join("") + '</select>'
+      +     '<button type="button" class="btn primary" id="au-heroe-dar">Dárselo</button>'
+      +   '</div>'
+      +   '<div class="ll-pie au-res" id="au-pmsg" aria-live="polite"></div></div>';
   }
 
   // ---------------------------------------------------------------- pintar
@@ -289,9 +369,9 @@
       // grupo que acaba al que empieza, el aula seguía anunciando «12 presentes» —los de la otra
       // clase— hasta que la siguiente consulta lo pisara. Ver a gente que no está delante es peor
       // que no ver a nadie.
-      PER = selG.value; SESION = null; PRESENTES = [];
+      PER = selG.value; SESION = null; PRESENTES = []; PRESENTES_HOY = null; ELEGIDOS = {}; FUENTE_P = "";
       pinta('<div class="au-caja"><p class="ll-esperando">Cambiando de grupo…</p></div>');
-      MOTOR.tablero(PER, true).then(function (t) { D = t; render(); vigilar(); })
+      MOTOR.tablero(PER, true).then(function (t) { D = t; render(); vigilar(); cargarPresentesHoy(); })
         .catch(function (e) { puerta("No he podido leer ese grupo: " + e.message); });
     };
     if (TAB === "clase") cablearClase();
@@ -313,39 +393,124 @@
         .catch(function (e) { t.disabled = false; t.textContent = "🔔 Tocar llamada";
           document.getElementById("au-msg").textContent = String(e && e.message || e); });
     };
+    // «En clase hoy» → a Premiar, con la lista de hoy (y ya sorteando, o con todos elegidos)
+    var ia = document.getElementById("au-ir-azar"), ip = document.getElementById("au-ir-premiar");
+    if (ia) ia.onclick = function () { TAB = "premios"; FUENTE_P = "hoy"; render();
+      var b = document.getElementById("au-azar"); if (b) b.click(); };
+    if (ip) ip.onclick = function () { TAB = "premios"; FUENTE_P = "hoy"; ELEGIDOS = {};
+      enClaseHoy().forEach(function (x) { ELEGIDOS[x.ficha] = true; }); render(); };
     var cc = document.getElementById("au-cerrar");
     if (cc) cc.onclick = function () { MOTOR.cerrarLlamada(SESION.id).then(function () { SESION = null; render(); }); };
   }
 
   function cablearPremios() {
-    var sel = document.getElementById("au-quien"), msg = document.getElementById("au-pmsg");
-    document.getElementById("au-azar").onclick = function () {
-      var g = mios().filter(function (x) { return x.ficha; });
-      if (!g.length) return;
-      var x = g[Math.floor(Math.random() * g.length)];
-      sel.value = x.ficha;
-      msg.innerHTML = "🎲 La suerte ha elegido a <b>" + esc(x.alias) + "</b>.";
+    var msg = document.getElementById("au-pmsg"), para = document.getElementById("au-para");
+    var marcar = function () {
+      Array.prototype.forEach.call(app.querySelectorAll(".au-cara"), function (b) {
+        var on = !!ELEGIDOS[b.getAttribute("data-ficha")];
+        b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on));
+      });
+      if (para) para.textContent = textoElegidos();
+    };
+    Array.prototype.forEach.call(app.querySelectorAll("[data-fuente]"), function (b) {
+      b.onclick = function () { FUENTE_P = b.getAttribute("data-fuente"); render(); };
+    });
+    Array.prototype.forEach.call(app.querySelectorAll(".au-cara"), function (b) {
+      b.onclick = function () { var f = b.getAttribute("data-ficha"); if (ELEGIDOS[f]) delete ELEGIDOS[f]; else ELEGIDOS[f] = true; marcar(); };
+    });
+    document.getElementById("au-todos").onclick = function () { listaPremiar().forEach(function (x) { ELEGIDOS[x.ficha] = true; }); marcar(); };
+    document.getElementById("au-nadie").onclick = function () { ELEGIDOS = {}; marcar(); };
+    document.getElementById("au-azar").onclick = function () { sortear(marcar); };
+
+    var dar = function (r, boton) {
+      var e = elegidos();
+      if (!e.length) { msg.textContent = "Elige antes a quién: toca su cara."; return; }
+      var botones = app.querySelectorAll(".au-pr, #au-heroe-dar");
+      Array.prototype.forEach.call(botones, function (b) { b.disabled = true; });
+      msg.innerHTML = "Repartiendo…";
+      var fin = function (html) { Array.prototype.forEach.call(botones, function (b) { b.disabled = false; }); msg.innerHTML = html; recargar(); };
+      if (r.xp || r.cr) {
+        // xp y créditos: su camino con asiento en el libro, uno detrás de otro (no a la vez: cada uno es una escritura del motor)
+        var hechos = [], fallos = [];
+        e.reduce(function (p, x) {
+          return p.then(function () {
+            return MOTOR.premiar(PER, x.ficha, { xp: r.xp || 0, creditos: r.cr || 0, motivo: "Premio en clase" })
+              .then(function () { hechos.push(x.alias); }, function (er) { fallos.push(x.alias + " (" + (er && er.message || er) + ")"); });
+          });
+        }, Promise.resolve()).then(function () {
+          fin((hechos.length ? "✅ <b>" + esc(hechos.join(", ")) + "</b>: " + (r.xp ? "+" + r.xp + " xp " : "") + (r.cr ? "+" + r.cr + " ◈" : "") : "")
+            + (fallos.length ? '<br><span class="malo">No he podido con: ' + esc(fallos.join(", ")) + '</span>' : ""));
+        });
+        return;
+      }
+      MOTOR.regalarEnClase(PER, e.map(function (x) { return x.ficha; }), r.regalo).then(function (res) {
+        var alias = {}; e.forEach(function (x) { alias[x.ficha] = x.alias; });
+        fin(res.map(function (x) {
+          var quien = "<b>" + esc(alias[x.ficha] || "?") + "</b>";
+          if (x.error) return '<span class="malo">' + quien + ": " + esc(x.error) + "</span>";
+          if (x.ya) return "➖ " + quien + " ya lo tenía";
+          return "🎁 " + quien + " se lleva " + x.piezas.map(function (p) {
+            return "<b>" + esc(p.nombre) + "</b>" + (p.rareza ? " (" + esc(String(p.rareza).toLowerCase()) + ")" : ""); }).join(", ");
+        }).join("<br>"));
+      }).catch(function (er) { fin('<span class="malo">' + esc(er && er.message || er) + "</span>"); });
     };
     Array.prototype.forEach.call(app.querySelectorAll(".au-pr"), function (b) {
+      var r = REGALOS.filter(function (x) { return x.k === b.getAttribute("data-k"); })[0];
       b.onclick = function () {
-        var ficha = sel.value;
-        if (!ficha) { msg.textContent = "Elige antes a quién."; return; }
-        var quien = mios().filter(function (x) { return x.ficha === ficha; })[0] || {};
-        b.disabled = true;
-        var hecho = function (t) { b.disabled = false; msg.innerHTML = t; recargar(); };
-        var mal = function (e) { b.disabled = false; msg.textContent = String(e && e.message || e); };
-        if (b.getAttribute("data-carta")) {
-          MOTOR.regalarCromo(PER, ficha).then(function (c) {
-            hecho("🃏 <b>" + esc(quien.alias) + "</b> se lleva <b>" + esc(c.nombre) + "</b> (" + esc(c.rareza) + ").");
-          }).catch(mal);
-        } else {
-          var xp = Number(b.getAttribute("data-xp")), cr = Number(b.getAttribute("data-cr"));
-          MOTOR.premiar(PER, ficha, { xp: xp, creditos: cr, motivo: "Premio en clase" }).then(function () {
-            hecho("✅ <b>" + esc(quien.alias) + "</b>: " + (xp ? "+" + xp + " xp " : "") + (cr ? "+" + cr + " ◈" : ""));
-          }).catch(mal);
-        }
+        if (r.elegir) { var el = document.getElementById("au-heroe-el"); el.hidden = !el.hidden; return; }
+        dar(r, b);
       };
     });
+    var sel = document.getElementById("au-heroe"), img = document.getElementById("au-heroe-img");
+    if (sel) sel.onchange = function () { img.src = "assets/img/heroes/" + sel.value + ".jpg"; };
+    var darH = document.getElementById("au-heroe-dar");
+    if (darH) darH.onclick = function () { dar({ regalo: { tipo: "heroe", clave: sel.value } }, darH); };
+  }
+
+  /**
+   * 🎲 PREGUNTA AL AZAR. Las caras se iluminan una detrás de otra, cada vez más despacio, y se para
+   * en una: esa queda elegida (lista para premiarla si acierta). «Sin repetir»: quien ya salió hoy
+   * no vuelve a salir hasta que hayan salido todos. Sin animación si el sistema pide poco movimiento.
+   */
+  function sortear(marcar) {
+    var g = listaPremiar(); if (!g.length) return;
+    var sinRep = (document.getElementById("au-sinrep") || {}).checked;
+    var clave = "sgAulaPreguntados_" + PER + "_" + new Date().toDateString();
+    try { PREGUNTADOS = JSON.parse(sessionStorage.getItem(clave) || "{}"); } catch (e) { PREGUNTADOS = {}; }
+    var quedan = sinRep ? g.filter(function (x) { return !PREGUNTADOS[x.ficha]; }) : g;
+    var reinicio = false;
+    if (!quedan.length) { PREGUNTADOS = {}; quedan = g; reinicio = true; }
+    var gana = quedan[Math.floor(Math.random() * quedan.length)];
+    var caras = Array.prototype.slice.call(app.querySelectorAll(".au-cara"));
+    var btn = document.getElementById("au-azar"); if (btn) btn.disabled = true;
+    var quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var pasos = quieto ? 0 : Math.max(14, Math.min(26, caras.length * 2)), i = 0, t = 55;
+    var candidatas = caras.filter(function (b) { return quedan.some(function (x) { return x.ficha === b.getAttribute("data-ficha"); }); });
+    var fin = function () {
+      caras.forEach(function (b) { b.classList.remove("luz", "gana"); });
+      ELEGIDOS = {}; ELEGIDOS[gana.ficha] = true; marcar();
+      PREGUNTADOS[gana.ficha] = true;
+      try { sessionStorage.setItem(clave, JSON.stringify(PREGUNTADOS)); } catch (e) {}
+      var caja = document.getElementById("au-sorteo"), c = caraDe(gana);
+      caja.hidden = false;
+      caja.innerHTML = (c ? '<img src="' + esc(c) + '" alt="">' : '')
+        + '<div><span class="eyebrow amber">Le toca a</span><b>' + esc(gana.alias) + '</b>'
+        + '<em>' + (reinicio ? "Ya habían salido todos: empiezo otra ronda. " : "") + 'Si acierta, dale su premio abajo.</em></div>'
+        + '<button type="button" class="ll-min" id="au-otra-vez">🎲 Otra</button>';
+      document.getElementById("au-otra-vez").onclick = function () { sortear(marcar); };
+      var cara = app.querySelector('.au-cara[data-ficha="' + gana.ficha + '"]');
+      if (cara) cara.classList.add("gana");
+      if (btn) btn.disabled = false;
+    };
+    if (!pasos || candidatas.length < 2) return fin();
+    (function paso() {
+      caras.forEach(function (b) { b.classList.remove("luz", "gana"); });
+      var b = i < pasos - 1 ? candidatas[Math.floor(Math.random() * candidatas.length)]
+                            : app.querySelector('.au-cara[data-ficha="' + gana.ficha + '"]');
+      if (b) b.classList.add("luz");
+      i++; t = t * 1.12;
+      if (i < pasos) setTimeout(paso, t); else setTimeout(fin, 380);
+    })();
   }
 
   function nombreEscuadron(id) {
@@ -356,6 +521,7 @@
   function pintaPresentes() {
     if (!SESION) return;
     MOTOR.fichajesDe(SESION.id).then(function (f) {
+      if (f.length !== PRESENTES.length) cargarPresentesHoy();
       PRESENTES = f;
       var np = document.getElementById("au-np"); if (np) np.textContent = f.length;
       var caja = document.getElementById("au-nombres"); if (!caja) return;
@@ -396,6 +562,15 @@
       D = t;
       if (TAB === "gente" || TAB === "ranking") render();
     });
+  }
+  /** Quién ha respondido hoy a una llamada; si cambia y estás en «Premiar», se repinta (sin perder a quién elegiste). */
+  function cargarPresentesHoy() {
+    if (!MOTOR.presentesDeHoy || !PER) return;
+    MOTOR.presentesDeHoy(PER).then(function (u) {
+      var antes = (PRESENTES_HOY || []).join(",");
+      PRESENTES_HOY = u;
+      if ((TAB === "premios" || TAB === "clase") && antes !== u.join(",")) render();
+    }).catch(function () { PRESENTES_HOY = PRESENTES_HOY || []; });
   }
 
   // ---------------------------------------------------------------- arranque
@@ -456,7 +631,7 @@
         var vivos = GRUPOS.filter(function (x) { return x.estado !== "pasado" && !x.archivado; });
         PER = PER_FIJO && GRUPOS.some(function (x) { return x.id === PER_FIJO; })
               ? PER_FIJO : (vivos[0] || GRUPOS[0]).id;
-        MOTOR.tablero(PER, true).then(function (t) { D = t; render(); vigilar(); })
+        MOTOR.tablero(PER, true).then(function (t) { D = t; render(); vigilar(); cargarPresentesHoy(); })
           .catch(function (e) { puerta("No he podido leer el grupo: " + e.message); });
       }).catch(function (e) { puerta("No he podido leer tus grupos: " + e.message); });
     };

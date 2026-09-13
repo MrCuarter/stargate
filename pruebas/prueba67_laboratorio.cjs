@@ -28,6 +28,17 @@ const REG = {};   // cifras que se apuntan para el informe
   await L.arrancar(VER);
   const vivas = [];
   const nueva = async n => { const p = await persona(n); vivas.push(p); return p; };
+  // alistarse de verdad, por la pantalla (lo usan la clase entera y el héroe por enlace)
+  const alistar = async (p, correo, nombre, alias, cmd) => {
+    await p.ir("alistarse.html?per=lab-clase&codigo=" + CODIGO);
+    await p.entrarComo(correo, nombre);
+    await p.hasta("!!document.querySelector('#a-enviar')", 25);
+    await p.js(`(function(){ document.querySelector('#a-nombre').value=${JSON.stringify(nombre.split(" ")[0])};
+      document.querySelector('#a-apellidos').value='Prueba'; document.querySelector('#a-alias').value=${JSON.stringify(alias)};
+      var r=document.querySelectorAll('input[name=cmd]')[${cmd || 0}]; if(r) r.checked=true; return 1; })()`);
+    await p.js("document.querySelector('#a-enviar').click(); 1");
+    return p.hasta("!document.querySelector('#a-enviar')", 25);
+  };
   try {
     // ============================================================ 1 · LOS TRES DOCENTES
     if (hacer(1)) {
@@ -180,16 +191,6 @@ const REG = {};   // cifras que se apuntan para el informe
      * Todo contra el motor de verdad: si algo se lo niegan las reglas o el servidor, aquí se ve.
      */
     if (hacer(5)) {
-      const alistar = async (p, correo, nombre, alias, cmd) => {
-        await p.ir("alistarse.html?per=lab-clase&codigo=" + CODIGO);
-        await p.entrarComo(correo, nombre);
-        await p.hasta("!!document.querySelector('#a-enviar')", 25);
-        await p.js(`(function(){ document.querySelector('#a-nombre').value=${JSON.stringify(nombre.split(" ")[0])};
-          document.querySelector('#a-apellidos').value='Prueba'; document.querySelector('#a-alias').value=${JSON.stringify(alias)};
-          var r=document.querySelectorAll('input[name=cmd]')[${cmd || 0}]; if(r) r.checked=true; return 1; })()`);
-        await p.js("document.querySelector('#a-enviar').click(); 1");
-        return p.hasta("!document.querySelector('#a-enviar')", 25);
-      };
       const beto = await nueva("Beto"), carla = await nueva("Carla"), ana = await nueva("Ana (otra vez)");
       c("clase · Beto se alista", await alistar(beto, "beto@lab.test", "Beto Prueba", "Bólido", 0));
       c("clase · Carla se alista (con el otro Comandante)", await alistar(carla, "carla@lab.test", "Carla Prueba", "Cometa", 1));
@@ -266,21 +267,82 @@ const REG = {};   // cifras que se apuntan para el informe
       c("clase · y dice cuántos van", /2\s*presentes/.test(await rita.texto()));
       await rita.foto(FOTOS + "/5-aula.png");
 
-      // premio a mano
+      // 🔴 13-sep · «En clase hoy»: quien ha respondido hoy, con sus caras (Carla es de otro escuadrón)
+      c("clase · «La clase» enseña «🟢 En clase hoy · 2»", /En clase hoy · 2/.test(await rita.texto()), (await rita.texto()).slice(0, 300));
+      await rita.js("[].slice.call(document.querySelectorAll('.au-t')).filter(function(b){return /Premiar/.test(b.textContent)})[0].click(); 1");
+      await rita.hasta("document.querySelectorAll('.au-cara').length>0", 15);
+      const caras = await rita.js("[].slice.call(document.querySelectorAll('.au-cara b')).map(function(b){return b.textContent})");
+      const fuente = await rita.js("(document.querySelector('[data-fuente][aria-pressed=true]')||{}).textContent||''");
+      c("premiar · abre en «En clase hoy» con las caras de Ana y Beto (y nadie más)", /En clase hoy/.test(fuente)
+        && caras.length === 2 && caras.indexOf("Andrómeda") >= 0 && caras.indexOf("Bólido") >= 0, fuente + " · " + JSON.stringify(caras));
+      await rita.foto(FOTOS + "/5-aula-premiar.png");
+      const tocar = alias => rita.js(`[].slice.call(document.querySelectorAll('.au-cara')).filter(function(b){return b.querySelector('b').textContent===${JSON.stringify(alias)}})[0].click(); 1`);
+      const dar = async k => { await rita.js(`document.querySelector('.au-pr[data-k=${k}]').click(); 1`);
+        await rita.hasta("!/Repartiendo/.test((document.getElementById('au-pmsg')||{}).textContent||'Repartiendo') && !!(document.getElementById('au-pmsg')||{}).textContent", 30); };
+      // a uno: +20 ◈ a Beto
       const fBeto = await fichaDe("beto@lab.test", "lab-clase");
-      await rita.js("[].slice.call(document.querySelectorAll('button')).filter(function(b){return /Premiar/.test(b.textContent)})[0].click(); 1");
-      await rita.hasta("!!document.getElementById('au-quien')", 10);
-      await rita.js(`(function(){ var s=document.getElementById('au-quien'); s.value=${JSON.stringify(fBeto._id)};
-        var b=[].slice.call(document.querySelectorAll('.au-pr')).filter(function(x){return x.getAttribute('data-cr')==='20' && x.getAttribute('data-xp')==='0'})[0]; b.click(); return 1; })()`);
-      await dormir(5000);
+      await tocar("Bólido"); await dar("cr20");
       const fBeto2 = await fichaDe("beto@lab.test", "lab-clase");
-      c("clase · la referente premia a mano a Beto con +20 ◈", fBeto2.coins - fBeto.coins === 20,
+      c("premiar · tocando su cara, +20 ◈ a Beto", fBeto2.coins - fBeto.coins === 20,
         fBeto.coins + " → " + fBeto2.coins + " · " + await rita.js("(document.getElementById('au-pmsg')||{}).textContent||''"));
+      // a varios: Todos → +25 xp
+      const a0 = await fichaDe("ana@lab.test", "lab-clase"), b0 = await fichaDe("beto@lab.test", "lab-clase");
+      await rita.js("document.getElementById('au-todos').click(); 1");
+      c("premiar · «Todos» elige a los dos", /Para 2/.test(await rita.js("document.getElementById('au-para').textContent")));
+      await dar("xp25");
+      const a1 = await fichaDe("ana@lab.test", "lab-clase"), b1 = await fichaDe("beto@lab.test", "lab-clase");
+      c("🔴 premiar · +25 xp a los DOS de una vez", a1.totalPoints - a0.totalPoints === 25 && b1.totalPoints - b0.totalPoints === 25,
+        (a1.totalPoints - a0.totalPoints) + " / " + (b1.totalPoints - b0.totalPoints));
+      // un héroe al azar a los dos
+      await dar("heroe");
+      const a2 = await fichaDe("ana@lab.test", "lab-clase"), b2 = await fichaDe("beto@lab.test", "lab-clase");
+      const nHe = f => (f.inventory || []).filter(x => /__heroe_/.test(x)).length;
+      c("🔴 premiar · «Un héroe al azar»: uno para cada uno", nHe(a2) - nHe(a1) === 1 && nHe(b2) - nHe(b1) === 1,
+        await rita.js("document.getElementById('au-pmsg').innerText"));
+      // un héroe elegido, solo a Beto
+      await rita.js("document.getElementById('au-nadie').click(); 1"); await tocar("Bólido");
+      await rita.js("document.querySelector('.au-pr[data-k=heroe_el]').click(); var s=document.getElementById('au-heroe'); s.value='H05_eco'; s.dispatchEvent(new Event('change')); 1");
+      const imgH = await rita.js("document.getElementById('au-heroe-img').getAttribute('src')");
+      await rita.js("document.getElementById('au-heroe-dar').click(); 1");
+      await rita.hasta("/Eco de la Cero/.test((document.getElementById('au-pmsg')||{}).textContent||'')", 30);
+      const b3 = await fichaDe("beto@lab.test", "lab-clase");
+      c("premiar · «Un héroe que eliges»: Beto recibe EXACTAMENTE a Eco de la Cero (con su cara en el selector)",
+        (b3.inventory || []).filter(x => x === "lab-clase__heroe_H05_eco").length - (b2.inventory || []).filter(x => x === "lab-clase__heroe_H05_eco").length === 1
+          && /H05_eco/.test(imgH), imgH);
+      // un adorno a Ana, y otra vez (ya lo tiene)
+      await rita.js("document.getElementById('au-nadie').click(); 1"); await tocar("Andrómeda");
+      await dar("marco");
+      const marcoId = ((await consultar("rewards", "projectId", "lab-clase")).filter(r => r.stargateTipo === "marco")[0] || {})._id;
+      const a3 = await fichaDe("ana@lab.test", "lab-clase");
+      c("premiar · el marco dorado entra en el inventario de Ana", !!marcoId && (a3.inventory || []).indexOf(marcoId) >= 0, marcoId);
+      await dar("marco");
+      c("premiar · regalarlo otra vez: «ya lo tenía» (no se duplica)", /ya lo ten/i.test(await rita.js("document.getElementById('au-pmsg').textContent"))
+        && ((await fichaDe("ana@lab.test", "lab-clase")).inventory || []).filter(x => x === marcoId).length === 1);
+      // 🔴 y Ana lo ve en su Nave para ponérselo (el inventario cuenta como comprado)
+      await ana.ir("recluta.html?per=lab-clase");
+      await ana.hasta("!!document.querySelector('.nb-t[data-tab=\"botin\"]')", 25);
+      await ana.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
+      c("🔴 premiar · Ana ve «🖼️ El marco dorado» en Mi botín para ponérselo", await ana.hasta("/El marco dorado/.test(document.body.innerText)", 15));
+      // 🎲 pregunta al azar, sin repetir
+      await rita.js("document.getElementById('au-azar').click(); 1");
+      await rita.hasta("!document.getElementById('au-sorteo').hidden", 15);
+      const sale1 = await rita.js("document.querySelector('#au-sorteo b').textContent");
+      await rita.js("document.getElementById('au-azar').click(); 1"); await dormir(300);
+      await rita.hasta("document.querySelector('#au-sorteo b') && document.querySelector('#au-sorteo b').textContent!==" + JSON.stringify(sale1), 15);
+      const sale2 = await rita.js("document.querySelector('#au-sorteo b').textContent");
+      c("🔴 pregunta al azar · sale uno de los presentes, y el siguiente es el OTRO (sin repetir)",
+        ["Andrómeda", "Bólido"].indexOf(sale1) >= 0 && ["Andrómeda", "Bólido"].indexOf(sale2) >= 0 && sale1 !== sale2, sale1 + " → " + sale2);
+      c("pregunta al azar · y queda elegido para premiarlo", new RegExp("Para " + sale2).test(await rita.js("document.getElementById('au-para').textContent")));
+      await rita.foto(FOTOS + "/5-aula-azar.png");
       const RUIDO = /youtube|genially|gstatic|googleapis|favicon/i;
       const propios = [rita, ana, beto, carla].map(p => ({ n: p.nombre, r: p.rotos.filter(u => !RUIDO.test(u)),
         e: p.errores.filter(x => !/Failed to load resource/.test(x)) }));
       c("clase · ninguna pantalla revienta ni pide un fichero que no existe", propios.every(x => !x.r.length && !x.e.length),
         propios.filter(x => x.r.length || x.e.length).map(x => x.n + ": " + (x.r[0] || x.e[0])).join(" | "));
+      // (después del recuento de errores: este 403 es a propósito)
+      // un estudiante no puede regalarse nada
+      const trampa = await ana.js(`window.SG.MOTOR.llamar("stargateRegalar",{projectId:"lab-clase",fichas:[${JSON.stringify(a3._id)}],regalo:{tipo:"heroe"}}).then(function(){return "PASÓ"},function(e){return e.message})`);
+      c("🔴 premiar · un estudiante que llama a mano a «regalar» recibe un no del servidor", /equipo docente/i.test(trampa), trampa);
     }
 
     // ============================================================ 6 · LOS ESCONDITES, CON SUS TRES TOPES
@@ -884,6 +946,205 @@ const REG = {};   // cifras que se apuntan para el informe
       await leo.hasta("!!document.querySelector('.rh-ya')", 15);
       const ya = await leo.js("[].slice.call(document.querySelectorAll('.rh-ya a')).map(function(a){return a.getAttribute('href')})");
       c("🔴 entregado · en «Mis retos» ve SU enlace (no un campo vacío que invita a pegarlo otra vez)", (ya || []).indexOf(url) >= 0, JSON.stringify(ya));
+    }
+
+    // ============================================================ 18 · UN HÉROE QUE ELIGES TÚ, CON FECHAS Y TOPE
+    /**
+     * Norberto (13-sep): «lanzo un reto en clase y al superarlo les lleva a una página con el héroe
+     * conseguido, que se suma a su colección; activo/desactivado, tiempo activo y cuántos pueden
+     * reclamarlo». Y: «si ya lo tiene, NEBULA le ofrece quedárselo repetido, 40 créditos o un sobre».
+     * Y la mecánica nueva: dos héroes repetidos por uno al azar.
+     */
+    if (hacer(18)) {
+      const HE = "H03_xeno", HID = "lab-clase__heroe_" + HE;
+      // cerrar la revelación: con varias cartas «Verlas todas» + «Seguir»; con una, darle la vuelta y «Guardarlo»
+      const cerrarSobre = async p => {
+        if (!(await p.js("!!document.querySelector('.sb-capa')"))) return;
+        if (await p.js("!!document.querySelector('.sb-saltar')")) { await p.js("document.querySelector('.sb-saltar').click(); 1"); await dormir(500); }
+        else { await p.js("document.querySelector('.sb-sig').click(); 1"); await dormir(700); await p.js("var b=document.querySelector('.sb-sig'); if(b) b.click(); 1"); await dormir(600); }
+        await p.js("var x=document.querySelector('.sb-fin'); if(x) x.click(); 1"); await dormir(900);
+      };
+      const local = ms => { const d = new Date(ms); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16); };
+      const rita = await nueva("Rita crea un héroe por enlace");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("consola.html?per=lab-clase");
+      await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
+      const aPremios = async () => {
+        await rita.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).filter(function(b){return /Premios por enlace/.test(b.textContent)})[0].click(); 1");
+        await rita.hasta("!!document.getElementById('hv-add')", 15); await dormir(1200);
+      };
+      await aPremios();
+      await rita.js("document.getElementById('hv-add').click(); 1");
+      const fila = await rita.js(`(function(){
+        var f=[].slice.call(document.querySelectorAll('.hv-f')).pop();
+        function pon(sel, v, ev){ var e=f.querySelector(sel); e.value=v; e.dispatchEvent(new Event(ev||'input')); }
+        pon('.h-nom','Reto del lunes'); pon('.h-premio','heroe_fijo','change'); pon('.h-heroe',${JSON.stringify(HE)},'change');
+        pon('.h-desde',${JSON.stringify(local(Date.now() + 3600e3))},'change'); pon('.h-lim','4');
+        return { id: f.querySelector('.h-id').value, heroeVisible: !f.querySelector('.h-c-heroe').hidden,
+                 cantidadOculta: f.querySelector('.h-cant').hidden, img: f.querySelector('.h-heroe-img').getAttribute('src'),
+                 estado: f.querySelector('.h-estado').textContent, pendiente: document.getElementById('hv-save').classList.contains('pendiente') };
+      })()`);
+      c("héroe · el editor enseña el selector de héroe con su cara (y esconde «Cantidad»)", fila.heroeVisible && fila.cantidadOculta && fila.img.indexOf(HE) >= 0, JSON.stringify(fila));
+      c("héroe · el estado dice «⏳ Se abre…» antes de guardar, y el botón avisa de cambios", /Se abre/.test(fila.estado) && fila.pendiente, fila.estado);
+      await rita.js("document.getElementById('hv-save').click(); 1"); await dormir(4000);
+      const RID = "lab-clase__huevo_" + fila.id;
+      let R = await leerDoc("rewards/" + RID);
+      c("🔴 héroe · en el servidor: un cofre de UNA pieza, ese héroe, con tope 4 y fecha de apertura",
+        R && R.stargateHuevo.premio === "heroe_fijo" && R.consumeEffects.lootBox.items[0].rewardId === HID && R.claimLinkMaxTotal === 4
+          && R.claimLinkStartsAt > Date.now() + 3000e3, JSON.stringify(R && { p: R.stargateHuevo, lb: R.consumeEffects, t: R.claimLinkMaxTotal, d: R.claimLinkStartsAt }));
+      await rita.foto(FOTOS + "/18-editor-heroe.png");
+
+      // Eva, alumna nueva, llega antes de hora
+      const eva = await nueva("Eva gana el reto");
+      c("héroe · Eva se alista", await alistar(eva, "eva@lab.test", "Eva Prueba", "Eva Estelar", 0));
+      await eva.ir("huevo.html?h=" + fila.id);
+      const pronto = await eva.hasta("/se abre/i.test(document.body.innerText) && !!document.querySelector('.hv-fig img')", 20);
+      c("héroe · antes de la hora, Eva VE el héroe y «se abre…», con el botón apagado", pronto && await eva.js("!!document.querySelector('.btn.epico[disabled]') && !document.getElementById('hv-abrir')"),
+        (await eva.texto()).slice(0, 200));
+      await eva.foto(FOTOS + "/18-eva-pronto.png");
+      const forzado = await eva.js(`window.SG.MOTOR.llamar("claimLinkedReward",{rewardId:${JSON.stringify(RID)},modo:"item"}).then(function(){return "PASÓ"},function(e){return e.message})`);
+      c("🔴 héroe · y si fuerza la llamada, el SERVIDOR dice que aún no está abierto", /aún no está abierto/i.test(forzado), forzado);
+
+      // Rita lo abre desde ya y hasta dentro de una hora
+      await rita.ir("consola.html?per=lab-clase"); await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20); await aPremios();
+      await rita.js(`(function(){ var f=[].slice.call(document.querySelectorAll('.hv-f')).filter(function(x){return x.querySelector('.h-id').value===${JSON.stringify(fila.id)}})[0];
+        function pon(sel, v){ var e=f.querySelector(sel); e.value=v; e.dispatchEvent(new Event('change')); }
+        pon('.h-desde',${JSON.stringify(local(Date.now() - 120e3))}); pon('.h-hasta',${JSON.stringify(local(Date.now() + 3600e3))});
+        document.getElementById('hv-save').click(); return 1; })()`);
+      await dormir(4000);
+      await eva.ir("huevo.html?h=" + fila.id);
+      await eva.hasta("!!document.getElementById('hv-abrir')", 20);
+      c("héroe · abierto: «Sumarlo a mi colección»", /Sumarlo a mi colecci/.test(await eva.texto()));
+      await eva.foto(FOTOS + "/18-eva-abierto.png");
+      await eva.js("document.getElementById('hv-abrir').click(); 1");
+      await eva.hasta("!!document.querySelector('.sb-capa') || /Nuevo en tu colecci/.test(document.body.innerText)", 30);
+      await cerrarSobre(eva);
+      const fe = await fichaDe("eva@lab.test", "lab-clase");
+      c("🔴 héroe · Eva se lleva EXACTAMENTE ese héroe a su colección", (fe.inventory || []).filter(x => x === HID).length === 1, JSON.stringify(fe.inventory));
+      c("héroe · y la pantalla lo celebra como nuevo", /Nuevo en tu colecci/i.test(await eva.texto()), (await eva.texto()).slice(0, 160));
+      await eva.foto(FOTOS + "/18-eva-ganado.png");
+      await eva.ir("huevo.html?h=" + fila.id); await eva.hasta("/ya es tuyo|ya est/i.test(document.body.innerText)", 20);
+      c("héroe · si vuelve, «Ya es tuyo» (sin cobrar otra vez)", (await fichaDe("eva@lab.test", "lab-clase")).inventory.filter(x => x === HID).length === 1);
+
+      // 🔴 un alias que ya lleva otro recluta del grupo no se acepta (el laboratorio siembra un «Halo»)
+      const dup = await nueva("Alguien quiere ser Halo");
+      await dup.ir("alistarse.html?per=lab-clase&codigo=" + CODIGO); await dup.entrarComo("dup@lab.test", "Dup Prueba");
+      await dup.hasta("!!document.querySelector('#a-enviar')", 25);
+      await dup.js(`(function(){ document.querySelector('#a-nombre').value='Dup'; document.querySelector('#a-apellidos').value='Prueba';
+        document.querySelector('#a-alias').value='halo'; var r=document.querySelectorAll('input[name=cmd]')[0]; if(r) r.checked=true;
+        document.querySelector('#a-enviar').click(); return 1; })()`);
+      const rechazo = await dup.hasta("/ya lo lleva alguien/i.test(document.body.innerText)", 20);
+      c("🔴 alias · «halo» no se acepta si ya hay un «Halo» en el grupo", rechazo && !(await fichaDe("dup@lab.test", "lab-clase")), (await dup.texto()).slice(0, 200));
+
+      // y tampoco desde el puesto de mando: la referente no puede rebautizar a Eva como «HALO»
+      // (la corrección de ficha va por la fuente de datos, la que cargan las páginas de clase: registro.html la trae)
+      await rita.ir("registro.html?per=lab-clase"); await rita.hasta("!!(window.SG && window.SG.FUENTE && window.SG.MOTOR)", 20);
+      const reb = await rita.js(`window.SG.FUENTE.accion({accion:"ficha", per:"lab-clase", email:"eva@lab.test", alias:"HALO"}).then(function(r){return JSON.stringify(r)},function(e){return "ERROR " + e.message})`);
+      const evaSigue = (await fichaDe("eva@lab.test", "lab-clase")).displayName;
+      c("🔴 alias · la docente tampoco puede poner a Eva un alias que ya lleva otro («HALO»)", /ya lo lleva/i.test(reb) && evaSigue === "Eva Estelar", reb + " · " + evaSigue);
+
+      // tres que YA lo tienen: NEBULA les ofrece quedárselo, 40 ◈ o un sobre
+      const conHeroe = async (correo, nombre, alias, opcion) => {
+        const p = await nueva(nombre + " ya lo tenía");
+        await alistar(p, correo, nombre, alias, 1);
+        const f0 = await fichaDe(correo, "lab-clase");
+        await admin().firestore().collection("student_profiles").doc(f0._id).update({ inventory: (f0.inventory || []).concat([HID]) });
+        await p.ir("huevo.html?h=" + fila.id);
+        await p.hasta("!!document.getElementById('hv-abrir')", 20);
+        const burbuja = await p.js("(document.querySelector('.hv-copias')||{}).textContent||''");
+        const avisa = /ya lo tienes/i.test(await p.texto());
+        await p.js("document.getElementById('hv-abrir').click(); 1");
+        const ofrece = await p.hasta("document.querySelectorAll('.hv-op').length===3", 20);
+        const txt = await p.texto();
+        if (opcion === "quedar") await p.foto(FOTOS + "/18-nebula-oferta.png");
+        await p.js(`(function(){ var r=document.querySelector('.hv-op input[value=${opcion}]'); r.checked=true; r.dispatchEvent(new Event('change')); document.getElementById('hv-elegir').click(); return 1; })()`);
+        await p.hasta("!!document.querySelector('.sb-capa') || !!document.querySelector('.hv-caja.gana') || !!document.querySelector('.hv-caja.mal')", 40);
+        await cerrarSobre(p);
+        const f1 = await fichaDe(correo, "lab-clase");
+        const fin = await p.texto();
+        await p.foto(FOTOS + "/18-" + opcion + ".png");
+        return { burbuja, avisa, ofrece, txt, f0: Object.assign({}, f0, { inventory: (f0.inventory || []).concat([HID]) }), f1, fin, errores: p.errores };
+      };
+      const cuenta = (f, re) => (f.inventory || []).filter(x => re.test(x)).length;
+      const fer = await conHeroe("fer@lab.test", "Fer Prueba", "Fer Faro", "creditos");
+      c("héroe repetido · la portada avisa «ya lo tienes» con la burbuja ×1", fer.avisa && /×1/.test(fer.burbuja), fer.burbuja);
+      c("🔴 héroe repetido · NEBULA ofrece las tres opciones", fer.ofrece && /parece que ya tienes/i.test(fer.txt), fer.txt.slice(0, 200));
+      c("🔴 héroe repetido · Fer elige 40 ◈: +40 y ni una copia más del héroe", fer.f1.coins - fer.f0.coins === 40 && cuenta(fer.f1, /__heroe_H03_xeno$/) === 1
+        && cuenta(fer.f1, /__huevo_/) === 0, (fer.f1.coins - fer.f0.coins) + " ◈ · " + JSON.stringify(fer.f1.inventory));
+      const gus = await conHeroe("gus@lab.test", "Gus Prueba", "Gus Géiser", "sobre");
+      c("🔴 héroe repetido · Gus elige el sobre: tres cartas nuevas", cuenta(gus.f1, /__cromo_/) - cuenta(gus.f0, /__cromo_/) === 3 && cuenta(gus.f1, /__huevo_/) === 0,
+        JSON.stringify(gus.f1.inventory));
+      const hugo = await conHeroe("hugo@lab.test", "Hugo Prueba", "Hugo Halo", "quedar");
+      c("🔴 héroe repetido · Hugo se lo queda: ahora tiene DOS", cuenta(hugo.f1, /__heroe_H03_xeno$/) === 2, JSON.stringify(hugo.f1.inventory));
+      c("héroe repetido · y la pantalla se lo dice con la burbuja ×2", /Repetido en tu colecci/i.test(hugo.fin), hugo.fin.slice(0, 160));
+      c("héroe repetido · sin errores en ninguna de las tres", !fer.errores.length && !gus.errores.length && !hugo.errores.length,
+        fer.errores[0] || gus.errores[0] || hugo.errores[0] || "");
+      const forzar = await eva.js(`window.SG.MOTOR.llamar("stargateHeroeRepetido",{projectId:"lab-clase",rewardId:${JSON.stringify(RID)},opcion:"creditos"}).then(function(){return "PASÓ"},function(e){return e.message})`);
+      c("🔴 héroe repetido · nadie cobra 40 ◈ por un premio que ya abrió", forzar !== "PASÓ", forzar);
+
+      // en pausa, agotado, cerrado
+      await rita.ir("consola.html?per=lab-clase"); await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20); await aPremios();
+      await rita.js(`(function(){ var f=[].slice.call(document.querySelectorAll('.hv-f')).filter(function(x){return x.querySelector('.h-id').value===${JSON.stringify(fila.id)}})[0];
+        var s=f.querySelector('.h-on'); s.checked=false; s.dispatchEvent(new Event('change')); return 1; })()`);
+      await dormir(4000);
+      R = await leerDoc("rewards/" + RID);
+      c("🔴 héroe · el interruptor lo PAUSA al momento (sin pulsar Guardar)", R.claimLinkEnabled === false, String(R.claimLinkEnabled));
+      const ivan = await nueva("Iván llega tarde");
+      await alistar(ivan, "ivan@lab.test", "Ivan Prueba", "Iván Ión", 0);
+      await ivan.ir("huevo.html?h=" + fila.id);
+      c("héroe · en pausa, Iván lee «Está en pausa»", await ivan.hasta("/en pausa/i.test(document.body.innerText)", 20), (await ivan.texto()).slice(0, 160));
+      await rita.js(`(function(){ var f=[].slice.call(document.querySelectorAll('.hv-f')).filter(function(x){return x.querySelector('.h-id').value===${JSON.stringify(fila.id)}})[0];
+        var s=f.querySelector('.h-on'); s.checked=true; s.dispatchEvent(new Event('change')); return 1; })()`);
+      await dormir(4000);
+      await ivan.ir("huevo.html?h=" + fila.id);
+      c("héroe · activo otra vez, pero con el tope (4) cubierto: «Llegaste tarde»", await ivan.hasta("/llegaste tarde/i.test(document.body.innerText)", 20), (await ivan.texto()).slice(0, 160));
+      const estadoRita = await rita.js(`(function(){ var f=[].slice.call(document.querySelectorAll('.hv-f')).filter(function(x){return x.querySelector('.h-id').value===${JSON.stringify(fila.id)}})[0]; return f.querySelector('.h-estado').textContent; })()`);
+      c("héroe · la referente ve cuántos lo han reclamado", /4 lo han reclamado|Agotado: 4 de 4/.test(estadoRita), estadoRita);
+      await rita.js(`(function(){ var f=[].slice.call(document.querySelectorAll('.hv-f')).filter(function(x){return x.querySelector('.h-id').value===${JSON.stringify(fila.id)}})[0];
+        function pon(sel, v){ var e=f.querySelector(sel); e.value=v; e.dispatchEvent(new Event('change')); }
+        pon('.h-lim',''); pon('.h-desde',${JSON.stringify(local(Date.now() - 7200e3))}); pon('.h-hasta',${JSON.stringify(local(Date.now() - 60e3))});
+        document.getElementById('hv-save').click(); return 1; })()`);
+      await dormir(4000);
+      await ivan.ir("huevo.html?h=" + fila.id);
+      c("héroe · pasada la hora de cierre, «Se cerró…»", await ivan.hasta("/se cerr/i.test(document.body.innerText)", 20), (await ivan.texto()).slice(0, 160));
+      const cerrado = await ivan.js(`window.SG.MOTOR.llamar("claimLinkedReward",{rewardId:${JSON.stringify(RID)},modo:"item"}).then(function(){return "PASÓ"},function(e){return e.message})`);
+      c("🔴 héroe · y el SERVIDOR también lo da por cerrado", /ya se ha cerrado/i.test(cerrado), cerrado);
+
+      // la vista previa de la referente
+      await rita.ir("huevo.html?h=" + fila.id + "&per=lab-clase&vista=1");
+      const vista = await rita.hasta("/vista previa|así lo verá/i.test(document.body.innerText) || /se cerr/i.test(document.body.innerText)", 20);
+      c("héroe · «👁 Ver cómo se ve» enseña la página del alumnado sin reclamar", vista && await rita.js("!document.getElementById('hv-abrir')"), (await rita.texto()).slice(0, 160));
+
+      // DOS REPETIDOS POR UNO AL AZAR: a Hugo le damos otro repetido y cambia desde el vestuario
+      const fh = await fichaDe("hugo@lab.test", "lab-clase");
+      await admin().firestore().collection("student_profiles").doc(fh._id).update({ inventory: fh.inventory.concat(["lab-clase__heroe_H07_tejedor", "lab-clase__heroe_H07_tejedor"]) });
+      const hugo2 = await nueva("Hugo cambia repetidos");
+      await hugo2.ir("entrar.html"); await hugo2.entrarComo("hugo@lab.test", "Hugo Prueba");
+      await hugo2.js("localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
+      await hugo2.ir("recluta.html?per=lab-clase");
+      await hugo2.hasta("!!document.querySelector('.nb-t[data-tab=\"botin\"]')", 25);
+      await hugo2.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
+      const hay = await hugo2.hasta("!!document.querySelector('#vestuario [data-canje=heroe_repes]')", 20);
+      const burb = await hugo2.js("[].slice.call(document.querySelectorAll('#vestuario .vest .nx')).map(function(x){return x.textContent})");
+      c("héroes repetidos · el vestuario enseña las copias (×2) y el botón de cambiar", hay && (burb || []).indexOf("×2") >= 0, JSON.stringify(burb));
+      await hugo2.js("document.querySelector('#vestuario').scrollIntoView(); 1"); await dormir(400);
+      await hugo2.foto(FOTOS + "/18-vestuario-repes.png");
+      const h0 = await fichaDe("hugo@lab.test", "lab-clase");
+      await hugo2.js("document.querySelector('#vestuario [data-canje=heroe_repes]').click(); 1");
+      await hugo2.hasta("!!document.querySelector('.neb-capa .btn.primary')", 10);
+      const pregunta = await hugo2.js("document.querySelector('.neb-capa').innerText");
+      await hugo2.js("document.querySelector('.neb-capa .btn.primary').click(); 1");
+      const revela = await hugo2.hasta("!!document.querySelector('.sb-capa')", 40);
+      const h1 = await fichaDe("hugo@lab.test", "lab-clase");
+      const heroesDe = f => (f.inventory || []).filter(x => /__heroe_/.test(x));
+      const n = (f, k) => (f.inventory || []).filter(x => x === "lab-clase__heroe_" + k).length;
+      c("🔴 héroes repetidos · NEBULA pregunta y dice que nunca se va el último", /nunca el último/i.test(pregunta), pregunta.slice(0, 160));
+      c("🔴 héroes repetidos · se retiran DOS copias y entra UN héroe: uno menos en total", heroesDe(h1).length === heroesDe(h0).length - 1 && revela,
+        heroesDe(h0).length + " → " + heroesDe(h1).length + " · " + JSON.stringify(heroesDe(h1)));
+      c("héroes repetidos · y ninguno pierde su última copia", n(h1, "H03_xeno") >= 1 && n(h1, "H07_tejedor") >= 1, JSON.stringify(heroesDe(h1)));
+      const otra = await hugo2.js(`window.SG.MOTOR.llamar("stargateCambiarHeroesRepes",{projectId:"lab-clase"}).then(function(){return "PASÓ"},function(e){return e.message})`);
+      const repesQuedan = heroesDe(h1).length - new Set(heroesDe(h1)).size;
+      c("héroes repetidos · sin dos repetidos, el servidor no deja cambiar", repesQuedan >= 2 || /Necesitas 2/.test(otra), repesQuedan + " · " + otra);
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

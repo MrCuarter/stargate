@@ -117,6 +117,14 @@
       if (m.docId) porId[m.docId] = m;
     });
     var privados = datos.privados || {};
+    // el título de cada recompensa de la tienda por su id corto («rec5»), para contar lo comprado
+    var tituloTienda = {};
+    (datos.recompensas || []).forEach(function (r) {
+      if (r.inStore === false) return;
+      var k = String(r.stargateId || r.docId || r.id || ""), i = k.lastIndexOf("__");
+      if (i >= 0) k = k.slice(i + 2);
+      if (k && r.title) tituloTienda[k] = r.title;
+    });
 
     // Los vales de canje, agrupados por quien los compró. `studentId` es el uid del alumno.
     var valesDe = {};
@@ -213,7 +221,7 @@
         var t = String(x), i = t.lastIndexOf("__");
         return i >= 0 ? t.slice(i + 2) : t;
       };
-      var inv = (p.inventory || []).map(sinGrupo), cromos = {}, heroes = [], repes = 0;
+      var inv = (p.inventory || []).map(sinGrupo), cromos = {}, heroes = [], repes = 0, heroesN = {}, heroesRepes = 0;
       inv.forEach(function (x) {
         if (String(x).indexOf("cromo_") === 0) {
           var k = String(x).slice(6);
@@ -222,6 +230,9 @@
         } else if (String(x).indexOf("heroe_") === 0) {
           var h = String(x).slice(6);
           if (heroes.indexOf(h) < 0) heroes.push(h);
+          // 13-sep · las copias cuentan: dos héroes repetidos se cambian por uno al azar
+          heroesN[h] = (heroesN[h] || 0) + 1;
+          if (heroesN[h] > 1) heroesRepes++;
         }
       });
       var gastados = Number(p.stargateRepesGastados || 0);
@@ -262,6 +273,16 @@
       var vales = valesDe[p.userId] || [];
       var veces = {};
       vales.forEach(function (v) { if (v.rewardTitle) veces[v.rewardTitle] = (veces[v.rewardTitle] || 0) + 1; });
+      /**
+       * 🔴 13-sep · LO COMPRADO TAMBIÉN SE CUENTA POR EL INVENTARIO. Con el motor nuevo, comprar un
+       * marco lo mete en el inventario y NO deja vale; y el tablero público —el que lee la Nave del
+       * estudiante— no trae vales de nadie. Resultado: el título, el fondo y el marco comprados no
+       * aparecían nunca en «Mi botín» para ponérselos, y el Mercado no decía «Ya la tienes». Lo
+       * destapó preparar el regalo de adornos desde el aula.
+       */
+      var enInv = {};
+      inv.forEach(function (x) { var t = tituloTienda[x]; if (t) enInv[t] = (enInv[t] || 0) + 1; });
+      Object.keys(enInv).forEach(function (t) { veces[t] = Math.max(veces[t] || 0, enInv[t]); });
 
       var priv = privados[p.id] || {};
       var puesto = String(p.stargateViste || "");
@@ -273,10 +294,17 @@
       avatar.heroe = valido.indexOf("heroe:") === 0 ? valido.slice(6) : "";
 
       var out = {
+        /**
+         * 🔴 13-sep · `fid`: el id del documento de la ficha, también en el tablero público. La Nave
+         * se buscaba a sí misma POR EL ALIAS, y con dos «Halo» en el grupo uno veía la Nave del otro.
+         * No destapa nada nuevo: la puerta pública ya devuelve el `id` de cada ficha en crudo.
+         */
+        fid: p.id || "",
         alias: p.displayName || "", avatar: avatar, xp: xp, nivel: niv.nivel, rango: niv.rango,
         rango_nombre: niv.rangoNombre, coleccion: coleccion,
         bonus: (p.completedCampaignIds || []).slice(),
         planetas_completos: planetas, heroes: heroes, n_heroes: heroes.length, skins: skins,
+        heroes_n: heroesN, heroes_repes: heroesRepes,
         viste: valido, repes: repes, repes_gastados: gastados,
         repes_disponibles: Math.max(0, repes - gastados),
         insignias_album: album, n_album: album.length,

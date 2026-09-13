@@ -73,6 +73,16 @@ const idx = leer("index.html");
  ["llamada.js", /if \(!nueva\(e\.detail\)\) return; parar\(\);/], ["validar.js", /enMarcha\) return/]]
   .forEach(([f, re]) => c(re.test(leer("assets/js/" + f)), "🔴 " + f + " se pinta una vez por cuenta (no borra lo escrito al cargar)"));
 
+// 🔴 13-sep · EL TEXTO QUE VA DENTRO DE LAS IMÁGENES también envejece, y ahí no lo ve ninguna búsqueda:
+// el sobre del Mercado decía «Una carta al azar de las 20» (son TRES de 26) y el cambio de repetidas,
+// «una carta nueva» (es un sobre entero). Se rotulan en _build_img_formularios.py: se vigila ahí.
+const IMG = leer("_build_img_formularios.py");
+c(!/carta al azar de las 20/.test(IMG) && /Tres cartas al azar de las 26/.test(IMG), "🔴 la imagen del sobre dice tres cartas de 26 (no «una de las 20»)");
+c(!/→  una carta nueva/.test(IMG) && /3 repetidas  →  un sobre nuevo/.test(IMG), "🔴 la imagen del cambio de repetidas dice «un sobre nuevo»");
+c(/Con 2 repetidos, un héroe nuevo al azar/.test(IMG), "la imagen del héroe cuenta el cambio de 2 repetidos");
+// y el título de la página de premios por enlace: vale para un escondite y para el héroe de un reto
+c(/<h1>Un premio para ti<\/h1>/.test(leer("huevo.html")), "huevo.html se titula «Un premio para ti» (no «Un escondite»)");
+
 module.exports = { nombre: "Lo que se lee dice la verdad de hoy", ok, fallos };
 if (require.main === module) {
   console.log("\n  Batería 69 · lo que se lee dice la verdad de hoy");

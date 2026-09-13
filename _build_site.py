@@ -2938,15 +2938,17 @@ print("escrito: entrar.html  (la puerta única: Google decide quién eres)")
 # 🔴 Pública como la llamada, y por el mismo motivo: vive DENTRO de una presentación. Aquí el
 # secreto no es el enlace —circulará, seguro— sino ENCONTRARLO. Y aunque alguien lo comparta, cada
 # escondite se reclama una sola vez por persona: lo impide la marca en su propia ficha.
-_html = head("STARGATE · Un escondite",
-             "Has encontrado un escondite de la Tripulación Cero. Reclama lo que hay dentro.",
+# 🔴 13-sep · el título, neutro: la misma página sirve para un escondite en una presentación y para
+# el héroe que se gana al superar un reto de clase («Un escondite» ahí no tenía sentido).
+_html = head("STARGATE · Un premio para ti",
+             "Un premio de la Tripulación Cero: reclámalo con tu cuenta.",
              "reg", publica=True).replace("</head>", _cabeza_motor() + "\n</head>") + '''
-<header class="hero corto"><h1>Un escondite</h1></header>
+<header class="hero corto"><h1>Un premio para ti</h1></header>
 <section id="huevo"><div class="wrap">
 <div id="huevo-app"><p class="muted">Cargando…</p></div>
 ''' + '<script src="' + _v("assets/js/sobre.js") + '" defer></script>' + '<script src="' + _v("assets/js/huevo.js") + '" defer></script>' + '''
 <p class="small muted nota-docente" style="margin-top:22px">Para el profesorado: un enlace por premio
-(<code>?h=p1</code>, <code>?h=p2</code>…), y cada uno vale en <b>todos</b> los grupos y todas las
+(el que copias con «📋 Copiar enlace»), y cada uno vale en <b>todos</b> los grupos y todas las
 convocatorias — el grupo se deduce de quién pulsa. Se configuran en
 <a href="consola.html">Mis grupos</a> → Ver mi gente y los ajustes → <b>Premios por enlace</b>.<br>
 Con <code>?embed=1</code> se incrusta sin cabecera ni pie.</p>

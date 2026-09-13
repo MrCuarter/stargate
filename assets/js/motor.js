@@ -289,6 +289,21 @@ async function sembrarPER(per, alAvanzar) {
 }
 
 /**
+ * ¿LO LLEVA YA ALGUIEN DEL GRUPO? Norberto (13-sep): «dos estudiantes NO pueden tener el mismo alias;
+ * si un estudiante escoge un alias en uso, el sistema lo rechaza, PUNTO». Sin mayúsculas ni tildes:
+ * «halo» y «Haló» son el mismo. Lo usan los dos sitios donde se pone un alias: el alistamiento y la
+ * corrección de la ficha desde el puesto de mando. `excepto` es quien lo pide (su propia ficha no cuenta).
+ */
+const aliasPlano = t => String(t || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ");
+async function aliasOcupado(perId, alias, excepto) {
+  const e = excepto || {};
+  const r = await getDocs(query(collection(db, "student_profiles"), where("projectId", "==", perId)));
+  const otro = r.docs.find(d => d.id !== e.ficha && (!e.uid || d.data().userId !== e.uid)
+                                && aliasPlano(d.data().displayName) === aliasPlano(alias));
+  return otro ? String(otro.data().displayName || alias) : null;
+}
+
+/**
  * ALISTARSE. Abre la ficha del recluta y le da su insignia de Reclutamiento.
  *
  * 🔴 La ficha nace A CERO y así tiene que ser: la regla de Firestore lo exige (`naceEnCero`), y por
@@ -308,6 +323,16 @@ async function alistar(perId, datos, alAvanzar) {
   const escuadron = (proy.factions || []).filter(f =>
     f.teacherName === datos.comandante ||
     (f.assignedTeacherEmails || []).indexOf(String(datos.comandante || "").toLowerCase()) >= 0)[0] || null;
+
+  /**
+   * 🔴 13-sep · UN ALIAS, UNA PERSONA. Nada impedía que dos reclutas del mismo grupo se llamaran
+   * igual, y la Nave averiguaba «cuál de las filas del tablero soy yo» POR EL ALIAS: el segundo
+   * «Halo» veía la Nave del primero —su experiencia, sus héroes— sin que nadie se enterara. Lo
+   * destapó el laboratorio. La Nave ya empareja por la ficha; y aquí se pide otro alias, porque en
+   * el ranking dos «Halo» tampoco se distinguen. Sin mayúsculas ni tildes: «halo» y «Haló» son el mismo.
+   */
+  if (await aliasOcupado(perId, datos.alias, { uid: yo.uid }))
+    throw new Error("«" + datos.alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa 🎲 para que te sugiera uno).");
 
   avisa("Abriendo tu ficha…");
   const ficha = doc(collection(db, "student_profiles"));
@@ -934,6 +959,51 @@ async function guardarHuevos(perId, lista) {
 }
 
 /**
+ * CÓMO ESTÁ UN PREMIO POR ENLACE AHORA MISMO, antes de pulsar nada: para que la página enseñe «se
+ * abre el lunes a las 10:00» o «ya lo tenías» en vez de un botón que luego dice que no.
+ * `estado`: abierto · pronto · cerrado · pausado · agotado · borrado. Quien decide de verdad es el
+ * servidor al reclamar; esto solo lo cuenta antes.
+ */
+function estadoDePremio(R, ahora = Date.now()) {
+  if (!R || R.stargateBorrado) return "borrado";
+  if (R.claimLinkEnabled === false) return "pausado";
+  const desde = Number(R.claimLinkStartsAt) || 0, hasta = Number(R.claimLinkEndsAt) || 0;
+  if (desde && ahora < desde) return "pronto";
+  if (hasta && ahora > hasta) return "cerrado";
+  const tope = Number(R.claimLinkMaxTotal) || 0;
+  if (tope && (Number(R.claimLinkTotalClaimed) || 0) >= tope) return "agotado";
+  return "abierto";
+}
+async function estadoHuevo(perId, huevoId, fichaId) {
+  const rid = idPremioHuevo(perId, huevoId);
+  const [r, f] = await Promise.all([getDoc(doc(db, "rewards", rid)),
+                                    fichaId ? getDoc(doc(db, "student_profiles", fichaId)) : Promise.resolve(null)]);
+  const R = r.exists() ? r.data() : null;
+  const H = (R && R.stargateHuevo) || {};
+  const F = f && f.exists() ? f.data() : {};
+  const inv = Array.isArray(F.inventory) ? F.inventory : [];
+  const yaEra = ((F.linkedRewardClaims || {})[rid] || 0) >= 1;
+  // el héroe del enlace: cuántas copias tiene ya (la burbuja «×2» y la oferta de NEBULA)
+  const heroeId = H.premio === "heroe_fijo" && H.heroe ? perId + "__heroe_" + H.heroe : "";
+  return { R, H, yaEra, estado: estadoDePremio(R), desde: Number(R && R.claimLinkStartsAt) || 0,
+           hasta: Number(R && R.claimLinkEndsAt) || 0, tope: Number(R && R.claimLinkMaxTotal) || 0,
+           reclamados: Number(R && R.claimLinkTotalClaimed) || 0,
+           // reclamado pero sin abrir: se fue a mitad de elegir, o no se pudo abrir en su momento
+           sinAbrir: yaEra && inv.indexOf(rid) >= 0,
+           copias: heroeId ? inv.filter(x => x === heroeId).length : 0 };
+}
+/** «el lunes 15 de septiembre a las 10:00», en la hora de quien lo lee. */
+function cuandoEs(ms) {
+  try {
+    const d = new Date(ms), hoy = new Date(), man = new Date(Date.now() + 864e5);
+    const hora = d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+    if (d.toDateString() === hoy.toDateString()) return "hoy a las " + hora;
+    if (d.toDateString() === man.toDateString()) return "mañana a las " + hora;
+    return "el " + d.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" }) + " a las " + hora;
+  } catch (e) { return new Date(ms).toISOString(); }
+}
+
+/**
  * Reclamar un escondite. Devuelve qué ha tocado, o por qué no — con palabras, no con códigos.
  */
 async function reclamarHuevo(perId, huevoId, fichaId) {
@@ -945,7 +1015,12 @@ async function reclamarHuevo(perId, huevoId, fichaId) {
   if (!f.exists()) throw new Error("No encuentro tu ficha");
   const R = r.data(), H = R.stargateHuevo || {};
   if (((f.data().linkedRewardClaims || {})[rid] || 0) >= 1) return { yaEra: true, premio: H.premio };
-  if (R.claimLinkEnabled === false) throw new Error("Este escondite ya está cerrado.");
+  const heroeId = H.premio === "heroe_fijo" && H.heroe ? perId + "__heroe_" + H.heroe : "";
+  const copias = heroeId ? (f.data().inventory || []).filter(x => x === heroeId).length : 0;
+  if (R.claimLinkEnabled === false) throw new Error("Este premio está en pausa: tu docente lo abrirá cuando toque.");
+  const est = estadoDePremio(R);
+  if (est === "pronto") throw new Error("Todavía no se puede: se abre " + cuandoEs(R.claimLinkStartsAt) + ".");
+  if (est === "cerrado") throw new Error("Se cerró " + cuandoEs(R.claimLinkEndsAt) + ". Llegaste tarde a este.");
 
   try {
     await llamar("claimLinkedReward", { rewardId: rid, modo: "item" });
@@ -954,8 +1029,32 @@ async function reclamarHuevo(perId, huevoId, fichaId) {
     if (/SOLD_OUT|resource-exhausted/i.test(m + " " + (e && e.code)))
       throw new Error("Llegaste tarde: este ya lo encontraron " + (R.claimLinkMaxTotal || "todas las") + " personas que podían.");
     if (/límite de reclamos/i.test(m)) return { yaEra: true, premio: H.premio };
+    // la ventana, dicha por el servidor (si el reloj de este equipo no coincide con el suyo)
+    if (/aún no está abierto/i.test(m)) throw new Error("Todavía no se puede: se abre " + cuandoEs(R.claimLinkStartsAt) + ".");
+    if (/ya se ha cerrado/i.test(m)) throw new Error("Se cerró " + cuandoEs(R.claimLinkEndsAt) + ". Llegaste tarde a este.");
     throw new Error(m.replace(/^Lo siento, /, "") || "No he podido reclamarlo.");
   }
+  /**
+   * 🔴 13-sep · EL HÉROE DEL ENLACE QUE YA TENÍAS NO SE ABRE SOLO. Norberto: «se le ofrece mantenerlo
+   * aunque esté repetido, cobrar 40 créditos o un sobre». Queda reclamado y sin abrir, y la página
+   * pregunta (`resolverHeroeRepetido`). Si se va sin elegir, al volver se le pregunta otra vez.
+   */
+  if (copias > 0) {
+    const b = cartaDeBotin(heroeId);
+    return { ok: true, premio: H.premio, repetido: true, copias: copias, nombre: R.title || "",
+             detalle: { tipo: "heroe", clave: H.heroe, nombre: b.nombre, rareza: b.rareza } };
+  }
+  return abrirHuevo(perId, huevoId, fichaId, R);
+}
+
+/**
+ * Abrir un premio por enlace ya reclamado: se consume (el sobre, tres veces) y se cuenta qué ha
+ * tocado. Sirve al reclamar y también para el que se quedó sin abrir.
+ */
+async function abrirHuevo(perId, huevoId, fichaId, R_) {
+  const rid = idPremioHuevo(perId, huevoId);
+  const R = R_ || (await getDoc(doc(db, "rewards", rid))).data() || {};
+  const H = R.stargateHuevo || {};
   // Y se abre en el momento: es un regalo, no un paquete que haya que ir a buscar al álbum.
   const usos = Math.max(1, Number(R.maxUses || 1)), sacadas = [];
   let abiertos = 0;
@@ -969,15 +1068,36 @@ async function reclamarHuevo(perId, huevoId, fichaId) {
   }
   let detalle = null;
   if (H.premio === "sobre") detalle = { tipo: "sobre", cartas: sacadas.map(cartaDeBotin) };
-  else if (H.premio === "heroe") {
-    const b = sacadas[0] ? cartaDeBotin(sacadas[0]) : null;
-    detalle = { tipo: "heroe", nombre: b ? b.nombre : "", clave: b ? b.clave : "" };
+  else if (H.premio === "heroe" || H.premio === "heroe_fijo") {
+    const b = sacadas[0] ? cartaDeBotin(sacadas[0]) : (H.heroe ? cartaDeBotin(perId + "__heroe_" + H.heroe) : null);
+    detalle = { tipo: "heroe", nombre: b ? b.nombre : "", clave: b ? b.clave : "", rareza: b ? b.rareza : "" };
   } else if (H.premio === "bolsa") detalle = { tipo: "bolsa", creditos: Number(H.cantidad || H.creditos || 50) };
   else if (H.premio === "xp") detalle = { tipo: "xp", xp: Number(H.cantidad || 100) };
   // 🔴 Si no se ha podido abrir, se dice: el premio está en su inventario y se abre desde la Nave. Lo
   // contrario —«+50 ◈, ya está en tu cuenta» con el saldo quieto— es lo que pasó la primera vez.
   if (usos > 0 && !abiertos) detalle = Object.assign({}, detalle || {}, { sinAbrir: true });
   return { ok: true, premio: H.premio, detalle: detalle, nombre: R.title || "" };
+}
+
+/**
+ * EL HÉROE REPETIDO DE UN ENLACE: lo que elige el recluta en la oferta de NEBULA.
+ *   · 'quedar'   → se abre como cualquier otro (una copia más, la burbuja pasa a ×2);
+ *   · 'creditos' → 40 ◈, en el servidor (`stargateHeroeRepetido`), sin abrirlo;
+ *   · 'sobre'    → un sobre de cromos que se abre aquí mismo, carta a carta.
+ */
+async function resolverHeroeRepetido(perId, huevoId, fichaId, opcion) {
+  const rid = idPremioHuevo(perId, huevoId);
+  if (opcion === "quedar") return abrirHuevo(perId, huevoId, fichaId);
+  const r = await llamar("stargateHeroeRepetido", { projectId: perId, rewardId: rid, opcion: opcion });
+  if (opcion === "creditos") return { ok: true, premio: "bolsa", detalle: { tipo: "bolsa", creditos: Number(r.creditos || 40) } };
+  const sacadas = [];
+  for (let i = 0; i < Math.max(1, Number(r.usos || 3)); i++) {
+    try {
+      const c = await llamar("consumeItem", { projectId: perId, rewardId: r.rewardId, studentProfileId: fichaId });
+      const b = c && (c.botin || c.obtenido); if (b) sacadas.push(b);
+    } catch (e) { break; }
+  }
+  return { ok: true, premio: "sobre", detalle: { tipo: "sobre", cartas: sacadas.map(cartaDeBotin), sinAbrir: !sacadas.length } };
 }
 
 /** Lo que devuelve un cofre, dicho como lo espera la pantalla del escondite: {clave, nombre, rareza}. */
@@ -1067,6 +1187,38 @@ async function regalarCromo(perId, fichaId, clave) {
   return { clave: elegido.clave, nombre: elegido.nombre, rareza: elegido.rareza };
 }
 
+/**
+ * PREMIAR EN CLASE, a uno o a varios: una carta, un sobre, un héroe (al azar o elegido) o un adorno.
+ * Lo hace el servidor (`stargateRegalar`), una transacción por estudiante. Devuelve, por ficha, qué
+ * le ha tocado ya con nombre: [{ ficha, piezas: [{clave, nombre, rareza, tipo}], ya?, error? }].
+ */
+async function regalarEnClase(perId, fichas, regalo) {
+  const r = await llamar("stargateRegalar", { projectId: perId, fichas: fichas, regalo: regalo });
+  const nombreAdorno = { marco: "Marco dorado", fondo: "Fondo de ficha", titulo: "Título de recluta" };
+  return (r.resultados || []).map(x => Object.assign({}, x, {
+    piezas: (x.piezas || []).map(id => regalo.tipo === "adorno"
+      ? { clave: regalo.cual, nombre: nombreAdorno[regalo.cual] || "Adorno", tipo: "adorno" }
+      : cartaDeBotin(id))
+  }));
+}
+
+/**
+ * QUIÉN ESTÁ EN CLASE HOY: quien ha respondido a una llamada a filas del grupo desde las 00:00.
+ * Norberto: «un sitio donde se vean los que han respondido a la llamada, los que tengo en clase en
+ * directo, para seleccionar uno o varios y premiarlos, o sacar uno al azar y preguntarle». Vale
+ * aunque la llamada ya se haya cerrado: la clase sigue. Devuelve los uid, en orden de llegada.
+ */
+async function presentesDeHoy(perId) {
+  const r = await getDocs(query(collection(db, FICHAJES), where("projectId", "==", perId)));
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const t = x => { const v = x.registeredAt; return v && v.toDate ? v.toDate() : new Date(v || 0); };
+  const vistos = {};
+  return r.docs.map(d => d.data()).filter(x => t(x) >= hoy)
+    .sort((a, b) => t(a) - t(b))
+    .filter(x => x.userId && !vistos[x.userId] && (vistos[x.userId] = true))
+    .map(x => x.userId);
+}
+
 /** Quién ha fichado en una llamada, para verlo en directo desde el puesto de mando. */
 async function fichajesDe(sesionId) {
   const r = await getDocs(query(collection(db, FICHAJES), where("sessionId", "==", sesionId)));
@@ -1080,8 +1232,8 @@ if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, otorgarReto, anularReto, traspasar, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
-                    premiar, regalarCromo, regalarSobre, darDeBaja, nuevoCodigo,
-                    huevosDe, guardarHuevos, reclamarHuevo, misGruposDeAlumno, grupoPorCodigo,
-                    anadirDocente, referenteEnTodos,
+                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, nuevoCodigo,
+                    huevosDe, guardarHuevos, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
+                    anadirDocente, referenteEnTodos, aliasOcupado,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

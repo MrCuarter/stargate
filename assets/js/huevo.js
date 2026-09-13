@@ -22,7 +22,9 @@
 
   var url = new URLSearchParams(location.search);
   var HUEVO = (url.get("h") || url.get("huevo") || "").trim();
-  var MOTOR = null, YO = null, PER = "", FICHA = "";
+  // «👁 Ver cómo se ve» desde la consola: la misma página, sin reclamar nada
+  var VISTA = url.get("vista") === "1", PER_VISTA = (url.get("per") || "").trim();
+  var MOTOR = null, YO = null, PER = "", FICHA = "", EST = null, RELOJ = 0;
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
@@ -40,6 +42,131 @@
 
   function cargando(t) {
     pinta(portada(esc(t), '<div class="hv-cargando"><i></i></div>'));
+  }
+
+  /**
+   * 🔴 13-sep · EL HÉROE, A LA VISTA. Con «un héroe que eliges tú» ya no hay misterio que guardar:
+   * es la meta de un reto de clase, y lo que motiva es VERLO antes de pulsar. Grande, con su rareza,
+   * y el texto de debajo dice en qué punto está (abierto, se abre a las 10:00, cerrado, ya es tuyo).
+   */
+  function heroeDe(clave) {
+    var x = (((window.SG_CATALOGO || {}).heroes) || []).filter(function (h) { return h.clave === clave; })[0] || {};
+    return { clave: clave, nombre: x.nombre || "Un héroe de la Rebelión", rareza: String(x.rareza || "").toLowerCase() };
+  }
+  function portadaHeroe(clave, eyebrow, sub, botón, clase, copias) {
+    var h = heroeDe(clave);
+    return '<div class="hv"><div class="hv-caja hv-heroe ' + (clase || '') + ' r-' + esc(h.rareza.replace(/[^a-záéíóú]/g, "")) + '">'
+      + '<div class="eyebrow amber">' + eyebrow + '</div>'
+      + '<figure class="hv-fig"><img src="assets/img/heroes/' + esc(clave) + '.jpg" alt="' + esc(h.nombre) + '" width="512" height="512">'
+      + (h.rareza ? '<figcaption class="hv-rareza">' + esc(h.rareza.charAt(0).toUpperCase() + h.rareza.slice(1)) + '</figcaption>' : '')
+      + (copias ? '<span class="hv-copias" title="Cuántos tienes">×' + copias + '</span>' : '')
+      + '</figure>'
+      + '<h2>' + esc(h.nombre) + '</h2>'
+      + '<p class="hv-sub">' + sub + '</p>'
+      + (botón || '') + '</div></div>';
+  }
+  function esHeroeFijo() { return EST && EST.H && EST.H.premio === "heroe_fijo" && EST.H.heroe; }
+  /** La portada según cómo esté el premio AHORA. El servidor decide al reclamar; esto lo cuenta antes. */
+  function pintarEstado() {
+    clearTimeout(RELOJ);
+    var e = EST || {}, fijo = esHeroeFijo(), cuando = MOTOR.cuandoEs;
+    var caja = function (sub, botón, clase) {
+      return fijo ? portadaHeroe(e.H.heroe, VISTA ? "Así lo verá tu alumnado" : (e.yaEra ? "Ya es tuyo" : "Tu recompensa"), sub, botón, clase)
+                  : portada(sub, botón);
+    };
+    var parado = function (txt) { return '<button class="btn epico" disabled><span class="ep-txt">' + txt + '</span></button>'; };
+    if (e.estado === "borrado") return fallo("Este premio no existe en tu grupo. Revisa el enlace con tu docente.");
+    if (e.yaEra && !VISTA && e.sinAbrir) {
+      // reclamado y sin abrir: se fue a mitad de elegir, o no se pudo abrir en su momento
+      if (fijo && e.copias > 0) return oferta();
+      pinta(caja('Lo reclamaste, pero quedó sin abrir. Ábrelo ahora.',
+                 '<button class="btn epico" id="hv-abrir"><span class="ep-luz"></span><span class="ep-txt">Abrirlo ahora</span></button>'));
+      document.getElementById("hv-abrir").onclick = function () {
+        cargando("Abriéndolo…");
+        MOTOR.abrirHuevo(PER, HUEVO, FICHA).then(premio).catch(function (x) { fallo(x.message || x); });
+      };
+      return;
+    }
+    if (e.yaEra && !VISTA) {
+      if (fijo) return pinta(portadaHeroe(e.H.heroe, "Ya es tuyo", 'Ya está en tu colección: lo reclamaste en su momento.', botónNave(), 'gana', e.copias));
+      return pinta('<div class="hv"><div class="hv-caja"><div class="hv-icono">✓</div>'
+        + '<h2>Este ya lo tenías</h2>'
+        + '<p class="hv-sub">Lo reclamaste en su momento y está en tu cuenta. Hay más escondidos por ahí.</p>'
+        + botónNave() + '</div></div>');
+    }
+    if (e.estado === "pronto") {
+      pinta(caja('Todavía no: <b>se abre ' + esc(cuando(e.desde)) + '</b>. Deja esta página abierta y el botón se encenderá solo.',
+                 parado("⏳ Se abre " + esc(cuando(e.desde)))));
+      // se enciende sola a la hora (con un segundo de margen para no llegar antes que el servidor)
+      var falta = e.desde - Date.now() + 1000;
+      if (falta > 0 && falta < 864e5) RELOJ = setTimeout(function () { EST.estado = MOTOR.estadoDePremio(EST.R); pintarEstado(); }, falta);
+      return;
+    }
+    if (e.estado === "cerrado") return pinta(caja('Se cerró ' + esc(cuando(e.hasta)) + '. Este ya no se puede reclamar.', ''));
+    if (e.estado === "pausado") {
+      pinta(caja('Está en pausa. Tu docente lo activará cuando toque.',
+                 VISTA ? parado("⏸ En pausa") : '<button class="btn" id="hv-otra">↻ Volver a mirar</button>'));
+      var o = document.getElementById("hv-otra"); if (o) o.onclick = function () { mirar._v = undefined; mirar(YO); };
+      return;
+    }
+    if (e.estado === "agotado") return pinta(caja('Llegaste tarde: ya lo han reclamado las ' + e.tope + ' personas que podían.', ''));
+    // abierto
+    if (VISTA) return pinta(caja(fijo ? 'Súmalo a tu colección. Solo se puede una vez.'
+                                      : 'Hay algo aquí para ti. Púlsalo y es tuyo — <b>solo se puede una vez</b>.',
+                                 parado(fijo ? "🛡️ Sumarlo a mi colección" : "🥚 Abrirlo") + '<p class="hv-nota-vista">Vista previa: desde aquí no se reclama.</p>'));
+    var boton = '<button class="btn epico" id="hv-abrir"><span class="ep-luz"></span>'
+               + '<span class="ep-txt">' + (fijo ? (e.copias ? "🛡️ Reclamarlo" : "🛡️ Sumarlo a mi colección") : "🥚 Abrirlo") + '</span></button>';
+    if (fijo && e.copias) pinta(portadaHeroe(e.H.heroe, "Tu recompensa",
+      'Este <b>ya lo tienes</b>. Reclámalo igualmente: NEBULA te dejará elegir entre quedártelo repetido, <b>40 ◈</b> o un <b>sobre de cromos</b>.',
+      boton, '', e.copias));
+    else pinta(caja(fijo ? 'Súmalo a tu colección. <b>Solo se puede una vez.</b>'
+                         : 'Hay algo aquí para ti. Púlsalo y es tuyo — <b>solo se puede una vez</b>.', boton));
+    document.getElementById("hv-abrir").onclick = reclamar;
+  }
+
+  /**
+   * 🔴 13-sep · «VAYA, PARECE QUE YA LO TIENES». Norberto: «se le ofrece la posibilidad de mantener el
+   * héroe aunque esté repetido (burbuja con el número de veces que lo tiene), cobrar 40 créditos o un
+   * sobre. Ponlo visual. NEBULA diciendo… y un botón para elegir». Tres tarjetas que se ven de un
+   * vistazo y UN botón que dice exactamente lo que va a pasar.
+   */
+  function oferta() {
+    var h = heroeDe(EST.H.heroe), n = EST.copias || 1;
+    pinta('<div class="hv"><div class="hv-caja ancha hv-oferta-caja">'
+      + '<div class="hv-neb"><img src="assets/img/personajes/nebula.png" alt="NEBULA"></div>'
+      + '<div class="eyebrow amber">NEBULA</div>'
+      + '<h2>Vaya, parece que ya tienes a ' + esc(h.nombre) + '</h2>'
+      + '<p class="hv-sub">No quiero que te quedes sin premio. Elige una de estas tres:</p>'
+      + '<div class="hv-oferta" role="radiogroup" aria-label="Elige tu premio">'
+      +   '<label class="hv-op"><input type="radio" name="hv-op" value="quedar">'
+      +     '<span class="hv-op-img"><img src="assets/img/heroes/' + esc(EST.H.heroe) + '.jpg" alt=""><span class="hv-copias">×' + (n + 1) + '</span></span>'
+      +     '<span class="hv-op-txt"><b>Quedármelo</b><em>Tendrás ' + (n + 1) + '. Junta 2 repetidos y cámbialos por un héroe al azar.</em></span></label>'
+      +   '<label class="hv-op"><input type="radio" name="hv-op" value="creditos">'
+      +     '<span class="hv-op-img hv-op-cr"><span>40</span><i>◈</i></span>'
+      +     '<span class="hv-op-txt"><b>40 créditos</b><em>Para gastar en el Mercado.</em></span></label>'
+      +   '<label class="hv-op"><input type="radio" name="hv-op" value="sobre">'
+      +     '<span class="hv-op-img"><img src="assets/img/canje/sobre.jpg" alt=""></span>'
+      +     '<span class="hv-op-txt"><b>Un sobre de cromos</b><em>Tres cartas al azar para tu álbum.</em></span></label>'
+      + '</div>'
+      + '<button class="btn epico" id="hv-elegir" disabled><span class="ep-luz"></span><span class="ep-txt">Elige una</span></button>'
+      + '</div></div>');
+    var btn = document.getElementById("hv-elegir"), elegido = "";
+    var DICE = { quedar: "🛡️ Quedármelo", creditos: "💰 Cobrar 40 ◈", sobre: "🃏 Abrir el sobre" };
+    Array.prototype.forEach.call(app.querySelectorAll('input[name="hv-op"]'), function (r) {
+      r.onchange = function () {
+        elegido = r.value; btn.disabled = false;
+        btn.querySelector(".ep-txt").textContent = DICE[elegido];
+        Array.prototype.forEach.call(app.querySelectorAll(".hv-op"), function (l) { l.classList.toggle("on", l.contains(r)); });
+      };
+    });
+    btn.onclick = function () {
+      if (!elegido) return;
+      btn.disabled = true; btn.querySelector(".ep-txt").textContent = "Un momento…";
+      MOTOR.resolverHeroeRepetido(PER, HUEVO, FICHA, elegido).then(function (r) {
+        if (elegido === "quedar") r.copias = n + 1;
+        premio(r);
+      }).catch(function (x) { fallo(x.message || x); });
+    };
   }
 
   // ---------------------------------------------------------------- la puerta
@@ -73,19 +200,15 @@
   }
 
   // ---------------------------------------------------------------- el premio
-  var NOMBRES = { sobre: "Un sobre de cromos", heroe: "Un héroe de la Rebelión", bolsa: "Una bolsa de créditos", xp: "Experiencia" };
-  var ICONOS  = { sobre: "🃏", heroe: "🛡️", bolsa: "💰", xp: "⚡" };
+  var NOMBRES = { sobre: "Un sobre de cromos", heroe: "Un héroe de la Rebelión", heroe_fijo: "Un héroe de la Rebelión", bolsa: "Una bolsa de créditos", xp: "Experiencia" };
+  var ICONOS  = { sobre: "🃏", heroe: "🛡️", heroe_fijo: "🛡️", bolsa: "💰", xp: "⚡" };
 
   function reclamar() {
-    cargando("Abriendo el escondite…");
+    if (esHeroeFijo()) pinta(portadaHeroe(EST.H.heroe, "Tu recompensa", 'Sumándolo a tu colección…', '<div class="hv-cargando"><i></i></div>'));
+    else cargando("Abriendo el escondite…");
     MOTOR.reclamarHuevo(PER, HUEVO, FICHA).then(function (r) {
-      if (r.yaEra) {
-        pinta('<div class="hv"><div class="hv-caja"><div class="hv-icono">✓</div>'
-          + '<h2>Este ya lo tenías</h2>'
-          + '<p class="hv-sub">Lo encontraste en otra ocasión. Hay más escondidos por ahí — uno en cada presentación.</p>'
-          + botónNave() + '</div></div>');
-        return;
-      }
+      if (r.yaEra) { EST.yaEra = true; return pintarEstado(); }
+      if (r.repetido) { EST.copias = r.copias; EST.yaEra = true; EST.sinAbrir = true; return oferta(); }
       premio(r);
     }).catch(function (e) { fallo(e.message || e); });
   }
@@ -96,13 +219,13 @@
   }
 
   function premio(r) {
-    var d = r.detalle || {}, t = r.premio;
+    var d = r.detalle || {}, t = r.premio === "heroe_fijo" ? "heroe" : r.premio, fijo = r.premio === "heroe_fijo";
     // 🔴 Las cartas se abren una a una, con el mismo sobre que el Mercado, y DESPUÉS la pantalla del
     // hallazgo con el confeti. Es el mismo momento en los tres sitios donde se ganan cartas.
     if (!r.__abierto && window.SG && SG.SOBRE && !d.sinAbrir &&
         ((t === "sobre" && d.cartas && d.cartas.length) || (t === "heroe" && d.clave))) {
-      var cartas = t === "sobre" ? d.cartas : [{ clave: d.clave, nombre: d.nombre, tipo: "heroe", rareza: "épica" }];
-      return SG.SOBRE.revelar(cartas, { titulo: t === "sobre" ? "Lo que había en el escondite" : "Un héroe escondido" })
+      var cartas = t === "sobre" ? d.cartas : [{ clave: d.clave, nombre: d.nombre, tipo: "heroe", rareza: d.rareza || "épica", repetida: (r.copias || 0) > 1 }];
+      return SG.SOBRE.revelar(cartas, { titulo: t === "sobre" ? "Lo que había en el escondite" : fijo ? "Tu recompensa" : "Un héroe escondido" })
         .then(function () { r.__abierto = true; premio(r); });
     }
     var que = t === "sobre" ? (d.cartas || []).map(function (c) { return c.nombre; }).join(" · ")
@@ -110,6 +233,15 @@
             : t === "bolsa" ? "+" + (d.creditos || 0) + " ◈"
             : t === "xp" ? "+" + (d.xp || 0) + " xp"
             : "";
+    if (fijo && d.clave && !d.sinAbrir) {
+      var rep = (r.copias || 0) > 1;
+      pinta(portadaHeroe(d.clave, rep ? "Repetido en tu colección" : "Nuevo en tu colección",
+        rep ? 'Ya tienes ' + r.copias + ' (' + (r.copias - 1) + ' repetido' + (r.copias > 2 ? 's' : '') + '). Junta <b>2 repetidos</b> y cámbialos por <b>un héroe nuevo al azar</b> en tu vestuario.'
+            : 'Ya es tuyo: lo tienes en tu Nave, en el vestuario.', botónNave(), 'gana', rep ? r.copias : 0));
+      confeti();
+      try { if (window.SG && SG.FIESTA) SG.FIESTA.sonar("nivel"); } catch (e) {}
+      return;
+    }
     pinta('<div class="hv"><div class="hv-caja gana">'
       + '<div class="hv-icono grande">' + (ICONOS[t] || "🎁") + '</div>'
       + '<div class="eyebrow amber">Lo has encontrado</div>'
@@ -117,7 +249,7 @@
       + (que ? '<p class="hv-que">' + esc(que) + '</p>' : '')
       + '<p class="hv-sub">' + (d.sinAbrir
           ? 'Lo tienes en tu inventario: ábrelo desde tu Nave, en Mi botín.'
-          : 'Ya está en tu cuenta.') + ' Hay uno escondido en cada presentación.</p>'
+          : 'Ya está en tu cuenta.') + (fijo ? '' : ' Hay más escondidos por ahí.') + '</p>'
       + botónNave() + '</div></div>');
     confeti();
     try { if (window.SG && SG.FIESTA) SG.FIESTA.sonar("nivel"); } catch (e) {}
@@ -161,6 +293,12 @@
     var q_ = u ? u.uid : null; if (q_ === mirar._v) return; mirar._v = q_;  // una vez por cuenta: sesion() y sg:sesion llegan los dos al cargar
     YO = u;
     if (!YO) return puerta();
+    if (VISTA && PER_VISTA) {
+      cargando("Preparando la vista previa…");
+      PER = PER_VISTA;
+      return MOTOR.estadoHuevo(PER, HUEVO, null).then(function (e) { EST = e; pintarEstado(); })
+        .catch(function (e) { fallo(e.message || e); });
+    }
     cargando("Buscando tu ficha…");
     /**
      * 🔴 Se busca en QUÉ grupo está esta persona, no se pide en el enlace. Un estudiante pertenece
@@ -184,11 +322,7 @@
     }).then(function (elegido) {
       if (!elegido || !elegido.per) return;
       PER = elegido.per; FICHA = elegido.ficha;
-      pinta(portada(
-        'Hay algo aquí para ti. Púlsalo y es tuyo — <b>solo se puede una vez</b> por escondite.',
-        '<button class="btn epico" id="hv-abrir"><span class="ep-luz"></span>'
-        + '<span class="ep-txt">🥚 Abrirlo</span></button>'));
-      document.getElementById("hv-abrir").onclick = reclamar;
+      return MOTOR.estadoHuevo(PER, HUEVO, FICHA).then(function (e) { EST = e; pintarEstado(); });
     }).catch(function (e) { fallo(e.message || e); });
   }
 

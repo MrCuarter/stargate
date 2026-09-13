@@ -519,7 +519,9 @@
       +'Las apagadas están por conseguir: púlsalas para ver qué piden.</p>'
       +'<div class="badge-col">'+col+'</div></details>'
       +album
-      +'<details class="cajon"><summary><b>🎭 Personajes y héroes</b> <span class="cnt">tu vestuario</span></summary>'
+      // 🔴 13-sep · el cambio de héroes repetidos vive dentro del cajón plegado: se anuncia en la tapa
+      +'<details class="cajon"><summary><b>🎭 Personajes y héroes</b> <span class="cnt">tu vestuario</span>'
+      +((r.heroes_repes||0)>=2?' <span class="chip ok">🔁 '+r.heroes_repes+' héroes repetidos para cambiar</span>':'')+'</summary>'
       +vestuario()+'</details>'
       +adornos()
       +'</section>';
@@ -893,12 +895,19 @@
     // 🔥 Vanguardia (épicas, 3% · 36%) — van por delante, cuesta alcanzarlas
     // 🌟 Mito (legendarias, 2% · 8%) — nadie las ha visto: van en sombra hasta que caen
     var RANGO_HEROE={'rara':'⚔️ Resistencia','épica':'🔥 Vanguardia','epica':'🔥 Vanguardia','LEGENDARIA':'🌟 MITO'};
+    var copias=yo.heroes_n||{};
     var he=HER.map(function(h){
-      var tengo=!!mios[h[0]];
+      var tengo=!!mios[h[0]], nx=Number(copias[h[0]])||0;
       return celda('heroe:'+h[0], 'assets/img/heroes/'+h[0]+(tengo?'':'_bloqueado')+'.jpg',
-        h[1], tengo?(RANGO_HEROE[h[3]]||h[3]):'sin descubrir', puesto==='heroe:'+h[0], tengo);
+        h[1], tengo?(RANGO_HEROE[h[3]]||h[3]):'sin descubrir', puesto==='heroe:'+h[0], tengo)
+        // la burbuja con las copias, como las cartas del álbum
+        .replace('</button>', nx>1?'<span class="nx" title="Tienes '+nx+'">×'+nx+'</span></button>':'</button>');
     }).join('');
-    var n=(yo.heroes||[]).length;
+    var n=(yo.heroes||[]).length, rh=Number(yo.heroes_repes)||0;
+    var cambio = rh ? '<p class="repes'+(rh>=2?' listo':'')+'">🔁 Llevas <b>'+rh+'</b> héroe'+(rh===1?'':'s')+' repetido'+(rh===1?'':'s')
+      +(rh>=2?' — cambia 2 por <b>un héroe nuevo al azar</b>. '
+          +(motorNuevo()?'<button class="btn small primary" type="button" data-canje="heroe_repes" data-nombre="Cambiar 2 héroes repetidos" data-coste="0" data-tipo="heroe_repes" data-abrir="1" data-usos="1">Cambiar 2 repetidos →</button>':'')
+          :': con 2, un héroe nuevo al azar.')+'</p>' : '';
     return '<section id="vestuario"><div class="eyebrow amber">Tu vestuario</div>'
       +'<h2>Ponte lo que quieras</h2>'
       +'<p class="lead">Las <b>skins</b> de tu personaje se desbloquean al subir de nivel, y los '
@@ -907,6 +916,7 @@
       +'<h3 style="margin-top:1em">Tus skins <span class="small muted">'+skins.length+' de 5</span></h3>'
       +'<div class="vest-grid">'+sk+'</div>'
       +'<h3 style="margin-top:1.4em">Héroes de la Rebelión <span class="small muted">'+n+' de '+HER.length+'</span></h3>'
+      +cambio
       +'<div class="vest-grid">'+he+'</div>'
       +(d.formCanje?'<p style="margin-top:12px"><a class="btn small primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎭 Conseguir un héroe →</a></p>':'')
       +'</section>';
@@ -993,6 +1003,8 @@
     // el tablero da `cromos` como {clave: cuántas}; se copia para no tocar la ficha
     var src=(yo&&yo.cromos)||{}, n={};
     Object.keys(src).forEach(function(k){ n[k]=Number(src[k])||0; });
+    // 🔴 13-sep · y los HÉROES: un héroe repetido se revelaba como nuevo (60 ◈ y ni un aviso)
+    (yo&&yo.heroes||[]).forEach(function(k){ n[k]=Number((yo.heroes_n||{})[k])||1; });
     return n;
   }
   function marcaRepetida(c, tenia){
@@ -1518,6 +1530,7 @@
     cromo:      ["🃏","Carta del álbum","Se abre sola y se queda en tu álbum.","Ver mi álbum","botin"],
     cromo_repes:["🔁","Cambio de repetidos","Tus repetidas se convierten en un sobre nuevo.","Ver mi álbum","botin"],
     heroe:      ["🛡️","Héroe de la Rebelión","Lo tendrás en el vestuario: puedes vestirlo cuando quieras.","Ir al vestuario","botin"],
+    heroe_repes:["🔁","Cambio de héroes repetidos","Dos repetidos se convierten en un héroe nuevo al azar.","Ir al vestuario","botin"],
     marco:      ["🖼️","Adorno de tu ficha","Enmarca tu avatar. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
     fondo:      ["🌌","Adorno de tu ficha","Cambia el fondo de tu ficha. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
     titulo:     ["🏷️","Adorno de tu ficha","Un título que acompaña a tu alias delante de toda la clase.","Ver mi ficha","nave"],
@@ -1538,14 +1551,21 @@
      * parecía rota, no parecía que hubiera algo por venir.
      */
     var n=st.semanas.length;
+    /**
+     * 🔴 13-sep · LA SEMANA DE DESBLOQUEO, UNA SOLA VEZ EN PUA. El motor viejo daba `desde` en semanas
+     * REGULAR y aquí se pasaba a PUA; el motor nuevo YA la da en PUA (`stargateSemana`), y se volvía
+     * a escalar: el Arsenal —semana 8 en el servidor— salía abierto en la 4, con su botón, y al
+     * pulsarlo el servidor decía que no. Lo encontró la revisión del calendario.
+     */
+    var desdeDe=function(x){ return motorNuevo() ? (Number(x.desde)||14) : window.SGCAL.desdeEfectiva(x.desde||14,d.tipo,n); };
     cat = cat.slice().sort(function(a,b){
-      var aa=st.estado!=='antes'&&st.actual>=window.SGCAL.desdeEfectiva(a.desde||14,d.tipo,n);
-      var bb=st.estado!=='antes'&&st.actual>=window.SGCAL.desdeEfectiva(b.desde||14,d.tipo,n);
+      var aa=st.estado!=='antes'&&st.actual>=desdeDe(a);
+      var bb=st.estado!=='antes'&&st.actual>=desdeDe(b);
       if(aa!==bb) return aa?-1:1;          // primero lo que se puede comprar hoy
       return 0;                            // y dentro de cada grupo, el orden del catálogo
     });
     var cards=cat.map(function(x){
-      var desde=window.SGCAL.desdeEfectiva(x.desde||14,d.tipo,n); var abierta=st.estado!=='antes'&&st.actual>=desde;
+      var desde=desdeDe(x); var abierta=st.estado!=='antes'&&st.actual>=desde;
       if(!abierta) return '<div class="card rec-card lock"><h3>🔒 Recompensa clasificada</h3><p class="small muted">Se desbloquea en la semana '+desde+'.</p></div>';
       abiertas++;
       var mis=r?(r.creditos!=null?r.creditos:(r.xp_disponibles||0)):0;
@@ -1585,6 +1605,10 @@
         : '';
       // El pie va aparte y se pega abajo (`margin-top:auto`): así el botón de todas las tarjetas de
       // una fila cae en la MISMA línea, aunque un título ocupe tres renglones y otro uno.
+      // 🔴 13-sep · el cambio de héroes repetidos va EN la tarjeta del héroe, no en una tarjeta más:
+      // se ofrece donde se compran, y solo cuando hay dos que cambiar
+      if(x.tipo==='heroe' && motorNuevo() && r && (r.heroes_repes||0)>=2)
+        boton += '<button class="btn" type="button" data-canje="heroe_repes" data-nombre="Cambiar 2 héroes repetidos" data-coste="0" data-tipo="heroe_repes" data-abrir="1" data-usos="1">🔁 Cambiar 2 repetidos</button>';
       var qe=queEs(x.tipo), img=(window.SG_IMG_RECOMPENSA||{})[x.nombre];
       return '<div class="card rec-card'+(tope?' agotada':'')+'">'
         +(img?'<div class="rec-foto"><img loading="lazy" src="assets/img/canje/'+esc(img)+'" alt=""></div>'
@@ -2235,6 +2259,12 @@
   }
 
   function canjear(id, nombre, coste, boton, abrir, tipo, usos){
+    if(tipo==='heroe_repes') return nebulaPregunta({
+      titulo: '¿Cambio 2 héroes repetidos por uno al azar?',
+      cuerpo: '<p class="neb-precio"><b>2 repetidos</b><span>nunca el último de ninguno</span></p>'
+        + '<p class="neb-nota">Te llevas un héroe con las mismas probabilidades que en el Mercado. Si sale otro repetido, vuelve al montón y lo puedes cambiar otra vez.</p>',
+      si: 'Sí, cambiar', no: 'Ahora no'
+    }).then(function(ok){ if(ok) canjearYa(id, nombre, 0, boton, true, tipo, 1); });
     var precio = coste > 0
       ? '<p class="neb-precio"><b>' + coste + ' ◈</b><span>de tus ' + (st.yo && st.yo.creditos != null ? st.yo.creditos : 0) + ' ◈</span></p>'
       : '<p class="neb-precio"><b>Sin créditos</b><span>esta no se paga con ◈</span></p>';
@@ -2349,10 +2379,11 @@
         var capaN = document.querySelector('.neb-capa'); if (capaN && capaN.parentNode) capaN.parentNode.removeChild(capaN);
         var tenidas = inventarioDe(antes);
         SG.SOBRE.revelar(varias.map(function(c){ return marcaRepetida(c, tenidas); }),
-          { titulo: tipo === 'heroe' ? 'Tu héroe de la Rebelión' : 'Tu sobre de cromos',
+          { titulo: tipo === 'heroe' ? 'Tu héroe de la Rebelión' : tipo === 'heroe_repes' ? 'Tu héroe nuevo (por 2 repetidos)' : 'Tu sobre de cromos',
             alAlbum: function(){ irA('botin'); } })
           .then(function(){
-            aviso('🃏 <b>' + varias.length + (varias.length === 1 ? ' carta' : ' cartas') + '</b> a tu álbum'
+            aviso(/^heroe/.test(tipo || '') ? '🛡️ <b>Un héroe</b> a tu vestuario' + (coste ? ' · −' + coste + ' ◈' : '') + '.'
+              : '🃏 <b>' + varias.length + (varias.length === 1 ? ' carta' : ' cartas') + '</b> a tu álbum'
               + (coste ? ' · −' + coste + ' ◈' : '') + '.');
           });
         refrescarYCelebrar(antes, donde, 'canje-mudo', '');

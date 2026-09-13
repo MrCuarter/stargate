@@ -202,7 +202,7 @@ def heroe():
 
     titular(d, "Un héroe AL AZAR de los 30", 430)
     pie(d, "Resistencia 56 %   ·   Vanguardia 36 %   ·   MITO 8 %", 508)
-    pie(d, "Se acumulan: cuantos más tengas, más donde elegir en tu vestuario", 556, (150, 170, 185), 25)
+    pie(d, "¿Repetido? Con 2 repetidos, un héroe nuevo al azar en tu vestuario", 556, (150, 170, 185), 25)
     guardar(base, "heroe.jpg")
 
 
@@ -230,8 +230,8 @@ def repetidos():
     dt.text(((c.width - (q[2] - q[0])) // 2 - q[0], c.height // 2 - 92), "?", font=fq, fill=CIAN)
     base.alpha_composite(tapada, (900 - c.width // 2, 210 - c.height // 2))
 
-    titular(d, "3 repetidas  →  una carta nueva", 430)
-    pie(d, "GRATIS · no cuesta créditos", 508)
+    titular(d, "3 repetidas  →  un sobre nuevo", 430)
+    pie(d, "GRATIS · tres cartas al azar, sin gastar créditos", 508)
     pie(d, "Si no llegas a 3 repetidas, se te avisa y no pierdes nada", 556, (150, 170, 185), 25)
     guardar(base, "repetidos.jpg")
 
@@ -349,7 +349,7 @@ if __name__ == "__main__":
     marco()
 
     print("\n· CANJE · arte de Magnific, rotulado aquí")
-    arte("sobre", "Un sobre de cromos", "Una carta al azar de las 20 · se abre sola en tu Nave", "sobre.jpg")
+    arte("sobre", "Un sobre de cromos", "Tres cartas al azar de las 26 · se abre solo en tu Nave", "sobre.jpg")
     arte("nota_05", "Media décima más", "Sube 0,5 en el entregable que tú elijas", "nota_05.jpg")
     arte("nota_1punto", "Un punto entero", "Sube 1 punto en el entregable que tú elijas", "nota_1punto.jpg")
     arte("nota_plazo", "El plazo se reabre", "Se recalifica un trabajo que entregaste tarde", "nota_plazo.jpg")

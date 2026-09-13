@@ -174,13 +174,25 @@
     document.querySelector("#a-salir").onclick = function () { MOTOR.salir(); };
     // El dado no repite el que ya está puesto: pulsarlo y que no cambie nada parece que está roto.
     var dado = document.querySelector("#a-dado"), campo = document.querySelector("#a-alias");
+    // 🔴 13-sep · y no propone uno que ya lleve alguien del grupo (el alta lo rechazaría: dos alias
+    // iguales no pueden existir). Los que hay se leen una vez, al pulsar por primera vez.
+    var ocupados = null;
+    var plano = function (t) { return String(t || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); };
     if (dado) dado.onclick = function () {
       var banco = window.SG_ALIAS || [];
       if (!banco.length) return;
-      var n = campo.value.trim(), intento = 0;
-      do { n = banco[Math.floor(Math.random() * banco.length)]; } while (n === campo.value.trim() && ++intento < 8);
-      campo.value = n;
-      campo.focus();
+      var elegir = function () {
+        var n = campo.value.trim(), intento = 0;
+        do { n = banco[Math.floor(Math.random() * banco.length)]; }
+        while ((n === campo.value.trim() || (ocupados && ocupados[plano(n)])) && ++intento < 40);
+        campo.value = n;
+        campo.focus();
+      };
+      if (ocupados) return elegir();
+      MOTOR.getDocs(MOTOR.query(MOTOR.collection(MOTOR.db, "student_profiles"), MOTOR.where("projectId", "==", PER)))
+        .then(function (r) { ocupados = {}; r.forEach(function (d) { ocupados[plano(d.data().displayName)] = 1; }); })
+        .catch(function () { ocupados = {}; })
+        .then(elegir);
     };
     pintarAvatares();
     document.querySelector("#a-enviar").onclick = alistar;

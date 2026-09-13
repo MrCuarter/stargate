@@ -580,11 +580,17 @@
 
   // ---------------------------------------------------------------- escondites
   var PREMIOS = [["sobre","🃏 Un sobre de cromos (3 cartas)"],
-                 ["heroe","🛡️ Un héroe de la Rebelión"],
+                 ["heroe_fijo","🛡️ Un héroe que eliges tú"],
+                 ["heroe","🎲 Un héroe al azar"],
                  ["bolsa","💰 Créditos"],
                  ["xp","⚡ Experiencia (xp)"]];
+  function heroesDelCatalogo() { return ((window.SG_CATALOGO || {}).heroes) || []; }
+  function rarezaBonita(r) { r = String(r || "").toLowerCase(); return r ? r.charAt(0).toUpperCase() + r.slice(1) : ""; }
+  // «datetime-local» habla en la hora de quien lo rellena; se guarda como instante (ms)
+  function aLocal(ms) { if (!ms) return ""; var d = new Date(Number(ms)); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16); }
+  function deLocal(v) { if (!v) return 0; var t = new Date(v).getTime(); return isNaN(t) ? 0 : t; }
   /**
-   * LOS ESCONDITES, uno por presentación.
+   * LOS PREMIOS POR ENLACE, uno por presentación… o por reto de clase.
    *
    * 🔴 El límite va en el ESCONDITE, no en el premio. Norberto preguntó si hacía falta «una
    * recompensa por presentación limitada a 1 por persona», o una semanal —con el riesgo de que
@@ -592,61 +598,122 @@
    * y lo que hay que contar no es cuántos premios se lleva alguien: es cuántos escondites DISTINTOS
    * ha encontrado. Con el id en el enlace y una marca en su ficha, repetir es imposible y el mismo
    * premio se puede usar en los ocho.
+   *
+   * 🔴 13-sep · Y AHORA TAMBIÉN «UN HÉROE QUE ELIGES TÚ», CON FECHAS. Norberto: «lanzo un reto en clase
+   * y al superarlo les lleva a una página donde está el héroe conseguido, que se suma a su colección;
+   * con un botón de activo/desactivado, el tiempo que está abierto y cuántos pueden reclamarlo». El
+   * interruptor guarda al momento —es lo que se pulsa en clase, con prisa—; las fechas las hace
+   * cumplir el servidor.
    */
   function verHuevos(t) {
     var H = ((DATOS.proyecto || {}).stargate || {}).huevos || [];
     $("#c-cuerpo").innerHTML =
       '<div class="card"><h3>Premios por enlace</h3>' +
       '<p class="small muted">Un enlace que da un premio a quien lo pulse. Escóndelo en un rincón del ' +
-      'Genially —una estrella, un detalle del fondo— como <b>huevo de Pascua</b>, o ponlo a la vista: ' +
-      '«los cinco primeros de cada escuadrón se llevan un sobre». Quien lo pulse sin haber entrado verá la ' +
-      'puerta de Google ahí mismo, dentro de la presentación. ' +
-      '<b>Cada persona solo puede reclamar cada premio una vez</b>, aunque el enlace circule. ' +
-      'Y si quieres que sea una carrera, pon un tope: <b>total</b> («los tres primeros de toda la clase») ' +
-      'o <b>por escuadrón</b> («los dos primeros de cada Comandante»). Vacío es sin tope.</p>' +
+      'Genially como <b>huevo de Pascua</b>, o úsalo de <b>meta de un reto de clase</b>: quien lo supera, ' +
+      'llega a la página y se lleva el héroe que hayas elegido. Quien lo pulse sin haber entrado verá la ' +
+      'puerta de Google ahí mismo. <b>Cada persona solo puede reclamarlo una vez</b>, aunque el enlace ' +
+      'circule. Puedes ponerle <b>fechas</b> (abierto solo durante la clase), un <b>tope</b> («los tres ' +
+      'primeros») y pausarlo con su interruptor.</p>' +
       '<div id="hv-lista" class="hv-lista">' + (H.length ? H.map(filaHuevo).join("") :
         '<p class="small muted">Todavía no hay ninguno.</p>') + '</div>' +
-      '<p style="margin-top:14px"><button class="btn" id="hv-add">+ Añadir un premio</button> ' +
+      '<p class="hv-botones"><button class="btn" id="hv-add">+ Añadir un premio</button> ' +
       '<button class="btn primary" id="hv-save">Guardar</button></p></div>';
     cablearHuevos(H);
   }
   /**
-   * 🔴 13-sep · UNA FILA QUE SE LEE. Eran nueve piezas sueltas en una rejilla de seis columnas: el
-   * «✕» de quitar caía debajo con el ancho de un campo (parecía una caja vacía), el desplegable
-   * cortaba «Un sobre de cr…» y un «0» sin más significaba «sin tope». Ahora cada premio son dos
-   * líneas: sus datos, cada uno con su nombre, y su enlace con el botón de copiar.
+   * 🔴 13-sep · UN PREMIO, TRES LÍNEAS QUE SE LEEN: qué es (enlace, nombre, premio y su detalle),
+   * cuándo y cuántos (interruptor, fechas, topes y cómo está ahora mismo) y el enlace con sus botones.
+   * El hueco del detalle cambia con el premio —cantidad, el héroe con su cara, o qué trae un sobre—
+   * para que no quede ninguna caja vacía.
    */
   function filaHuevo(h, i) {
-    var lim = Number(h.limite) || 0, esc_ = Number(h.porEscuadron) || 0;
-    var conCantidad = h.premio === "bolsa" || h.premio === "xp";
+    var lim = Number(h.limite) || 0, esc_ = Number(h.porEscuadron) || 0, pr = h.premio || "sobre";
+    var hs = heroesDelCatalogo(), heroe = h.heroe || (hs[0] && hs[0].clave) || "";
+    var url = location.origin + "/huevo.html?h=" + (h.id || "") + "&embed=1";
+    var insertar = '<iframe src="' + url + '" width="100%" height="620" style="border:0;border-radius:16px" allow="clipboard-write" title="Premio de STARGATE"></iframe>';
     return '<div class="hv-f" data-i="' + i + '"><div class="hv-l1">' +
       '<label class="h-campo h-c-id">Enlace<input class="h-id" value="' + esc(h.id || "") + '" placeholder="p1" maxlength="12" title="Identificador: va en el enlace"></label>' +
-      '<label class="h-campo h-c-nom">Dónde está<input class="h-nom" value="' + esc(h.nombre || "") + '" placeholder="Presentación del Tema 1"></label>' +
+      '<label class="h-campo h-c-nom">Nombre<input class="h-nom" value="' + esc(h.nombre || "") + '" placeholder="Presentación del Tema 1 · Reto del lunes"></label>' +
       '<label class="h-campo h-c-premio">Premio<select class="h-premio">' + PREMIOS.map(function (p) {
-        return '<option value="' + p[0] + '"' + (h.premio === p[0] ? " selected" : "") + ">" + p[1] + "</option>"; }).join("") + '</select></label>' +
+        return '<option value="' + p[0] + '"' + (pr === p[0] ? " selected" : "") + ">" + p[1] + "</option>"; }).join("") + '</select></label>' +
+      '<div class="h-extra">' +
+        // la cantidad solo cuenta para créditos y xp: un sobre son siempre tres cartas y un héroe, uno
+        '<label class="h-campo h-cant"' + (pr === "bolsa" || pr === "xp" ? "" : " hidden") + '>Cantidad' +
+          '<input class="h-cantidad" type="number" min="1" value="' + (Number(h.cantidad || h.creditos) || (pr === "xp" ? 100 : 50)) + '"></label>' +
+        // la cara, a la izquierda y a la altura de «etiqueta + campo»: así las etiquetas de la fila no se descuadran
+        '<div class="h-c-heroe"' + (pr === "heroe_fijo" ? "" : " hidden") + '>' +
+          '<img class="h-heroe-img" src="assets/img/heroes/' + esc(heroe) + '.jpg" alt="" width="58" height="58">' +
+          '<label class="h-campo">Héroe<select class="h-heroe">' + hs.map(function (x) {
+            return '<option value="' + esc(x.clave) + '"' + (x.clave === heroe ? " selected" : "") + ">" + esc(x.nombre) + " · " + esc(rarezaBonita(x.rareza)) + "</option>"; }).join("") +
+          '</select></label></div>' +
+        '<p class="h-nota"' + (pr === "sobre" || pr === "heroe" ? "" : " hidden") + '>' +
+          (pr === "heroe" ? "Uno de los " + (hs.length || 30) + " héroes, con las mismas probabilidades que en el Mercado" : "Tres cartas al azar del álbum, como un sobre del Mercado") + '</p>' +
+      '</div>' +
+      '<button class="btn min h-del" title="Quitar este premio" aria-label="Quitar este premio">✕</button>' +
+      '</div><div class="hv-l3">' +
+      '<label class="h-sw" title="Encendido: se puede reclamar (dentro de sus fechas). Se guarda al momento.">' +
+        '<input type="checkbox" class="h-on"' + (h.activo === false ? "" : " checked") + '><i></i>' +
+        '<span class="h-sw-si">Activo</span><span class="h-sw-no">En pausa</span></label>' +
+      '<label class="h-campo h-fecha">Abierto desde<input class="h-desde" type="datetime-local" value="' + aLocal(h.desde) + '" title="Vacío = ya"></label>' +
+      '<label class="h-campo h-fecha">Hasta<input class="h-hasta" type="datetime-local" value="' + aLocal(h.hasta) + '" title="Vacío = sin fecha de cierre"></label>' +
       /**
        * 🔴 LOS TRES LÍMITES QUE PIDIÓ NORBERTO —«global, por grupo, ilimitado, máximo uno por
        * persona»—, y con NOMBRE. Uno por persona va siempre (es un escondite: se encuentra una vez).
        * Los lleva el servidor (`claimLinkedReward`), dentro de una transacción. Vacío = sin tope.
        */
-      // la cantidad solo cuenta para créditos y xp: un sobre son siempre tres cartas y un héroe, uno
-      '<label class="h-campo h-num h-cant"' + (conCantidad ? "" : " hidden") + '>Cantidad' +
-        '<input class="h-cantidad" type="number" min="1" value="' + (Number(h.cantidad || h.creditos) || (h.premio === "xp" ? 100 : 50)) + '"></label>' +
       '<label class="h-campo h-num">Tope total<input class="h-lim" type="number" min="0" value="' + (lim || "") + '" placeholder="sin tope" title="Vacío = sin tope; 5 = solo los cinco primeros de todo el grupo"></label>' +
       '<label class="h-campo h-num">Por escuadrón<input class="h-esc" type="number" min="0" value="' + (esc_ || "") + '" placeholder="sin tope" title="Vacío = sin tope; 2 = los dos primeros de CADA escuadrón"></label>' +
-      '<label class="h-act"><input type="checkbox" class="h-on"' + (h.activo === false ? "" : " checked") + '> Activo</label>' +
-      '<button class="btn min h-del" title="Quitar este premio" aria-label="Quitar este premio">✕</button>' +
+      '<p class="h-estado" aria-live="polite">' + esc(textoEstado(h, null)) + '</p>' +
       '</div><div class="hv-l2">' +
-      '<code class="h-url">' + esc(location.origin) + '/huevo.html?h=' + esc(h.id || "…") + '&amp;embed=1</code>' +
-      '<button class="btn min" data-copiar="' + esc(location.origin + "/huevo.html?h=" + (h.id || "") + "&embed=1") + '">📋 Copiar enlace</button>' +
+      '<code class="h-url">' + esc(url) + '</code>' +
+      '<button class="btn min" data-copiar="' + esc(url) + '">📋 Copiar enlace</button>' +
+      '<button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(insertar) + '" title="Para Genially: Insertar → Otros → Código">&lt;/&gt; Copiar para insertar</button>' +
+      '<a class="btn min" target="_blank" rel="noopener" href="huevo.html?h=' + esc(h.id || "") + '&per=' + esc(PER) + '&vista=1" title="Así lo verá tu alumnado (sin reclamarlo)">👁 Ver cómo se ve</a>' +
       '</div></div>';
   }
+  /** Cómo está AHORA: con lo que hay en pantalla (aunque no esté guardado) y lo que dice el servidor. */
+  function textoEstado(h, R) {
+    var ahora = Date.now(), cuando = MOTOR && MOTOR.cuandoEs ? MOTOR.cuandoEs : function (ms) { return new Date(ms).toLocaleString("es-ES"); };
+    var n = R ? Number(R.claimLinkTotalClaimed) || 0 : null, tope = Number(h.limite) || 0;
+    var cuantos = n == null ? "" : n ? " · 🙋 " + n + (n === 1 ? " lo ha reclamado" : " lo han reclamado") : " · nadie lo ha reclamado aún";
+    if (h.activo === false) return "⏸ En pausa: nadie puede reclamarlo" + cuantos;
+    if (Number(h.desde) && ahora < Number(h.desde)) return "⏳ Se abre " + cuando(Number(h.desde)) + cuantos;
+    if (Number(h.hasta) && ahora > Number(h.hasta)) return "🔒 Se cerró " + cuando(Number(h.hasta)) + cuantos;
+    if (tope && n != null && n >= tope) return "🏁 Agotado: " + n + " de " + tope;
+    return "🟢 Abierto" + (Number(h.hasta) ? " hasta " + cuando(Number(h.hasta)) : " ahora") + cuantos;
+  }
   function cablearHuevos(H) {
-    var lista = H.slice();
+    var lista = H.slice(), servidor = {};
     var repintar = function () {
       $("#hv-lista").innerHTML = lista.length ? lista.map(filaHuevo).join("")
         : '<p class="small muted">Todavía no hay ninguno.</p>';
       cablearFilas();
+    };
+    var pendiente = function (si) { var b = $("#hv-save"); if (b) { b.classList.toggle("pendiente", !!si); b.textContent = si ? "Guardar cambios" : "Guardar"; } };
+    // lo que dice el servidor de cada uno: cuántos lo han reclamado ya
+    lista.forEach(function (h) {
+      if (!h.id || !MOTOR.estadoHuevo) return;
+      MOTOR.estadoHuevo(PER, h.id).then(function (e) {
+        servidor[h.id] = e.R;
+        var i = lista.indexOf(h), f = i < 0 ? null : $('#hv-lista .hv-f[data-i="' + i + '"]');
+        if (f) $(".h-estado", f).textContent = textoEstado(lista[i], e.R);
+      }).catch(function () {});
+    });
+    var validar = function () {
+      if (lista.some(function (h) { return !h.id; })) return "Cada premio necesita un identificador (va en el enlace).";
+      var ids = lista.map(function (h) { return h.id; });
+      if (new Set(ids).size !== ids.length) return "Hay dos premios con el mismo identificador.";
+      if (lista.some(function (h) { return h.premio === "heroe_fijo" && !h.heroe; })) return "Elige qué héroe se lleva.";
+      if (lista.some(function (h) { return Number(h.desde) && Number(h.hasta) && Number(h.hasta) <= Number(h.desde); }))
+        return "La fecha de «Hasta» tiene que ser después de «Abierto desde».";
+      return "";
+    };
+    var guardar = async function (texto) {
+      var malo = validar(); if (malo) { aviso(malo); return false; }
+      $("#hv-save").disabled = true;
+      try { await MOTOR.guardarHuevos(PER, lista); await refrescar(); aviso(texto || "Guardado.", true); return true; }
+      catch (e) { $("#hv-save").disabled = false; aviso(e.message); return false; }
     };
     var cablearFilas = function () {
       Array.prototype.forEach.call($("#hv-lista").querySelectorAll(".hv-f"), function (f) {
@@ -654,19 +721,34 @@
         var leer = function () {
           var premio = $(".h-premio", f).value, cant = Number($(".h-cantidad", f).value) || 0;
           lista[i] = { id: $(".h-id", f).value.trim(), nombre: $(".h-nom", f).value.trim(),
-                       premio: premio, limite: Number($(".h-lim", f).value) || 0,
+                       premio: premio, heroe: premio === "heroe_fijo" ? $(".h-heroe", f).value : "",
+                       limite: Number($(".h-lim", f).value) || 0,
                        porEscuadron: Number($(".h-esc", f).value) || 0,
                        cantidad: cant || (premio === "xp" ? 100 : 50), creditos: cant || 50,
+                       desde: deLocal($(".h-desde", f).value), hasta: deLocal($(".h-hasta", f).value),
                        activo: $(".h-on", f).checked };
-          // la caja de cantidad aparece solo cuando tiene sentido
-          var caja = $(".h-cant", f); if (caja) caja.hidden = !(premio === "bolsa" || premio === "xp");
+          // el hueco del detalle cambia con el premio
+          $(".h-cant", f).hidden = !(premio === "bolsa" || premio === "xp");
+          $(".h-c-heroe", f).hidden = premio !== "heroe_fijo";
+          var nota = $(".h-nota", f); nota.hidden = !(premio === "sobre" || premio === "heroe");
+          nota.textContent = premio === "heroe" ? "Uno de los " + (heroesDelCatalogo().length || 30) + " héroes, con las mismas probabilidades que en el Mercado"
+                                                : "Tres cartas al azar del álbum, como un sobre del Mercado";
+          $(".h-heroe-img", f).src = "assets/img/heroes/" + $(".h-heroe", f).value + ".jpg";
+          $(".h-estado", f).textContent = textoEstado(lista[i], servidor[lista[i].id] || null);
         };
-        ["h-id","h-nom","h-premio","h-cantidad","h-lim","h-esc","h-on"].forEach(function (k) {
-          var e = $("." + k, f); e.oninput = e.onchange = leer;
+        ["h-id","h-nom","h-premio","h-heroe","h-cantidad","h-lim","h-esc","h-desde","h-hasta"].forEach(function (k) {
+          var e = $("." + k, f); e.oninput = e.onchange = function () { leer(); pendiente(true); };
         });
-        $(".h-del", f).onclick = function () { lista.splice(i, 1); repintar(); };
+        // 🔴 el interruptor GUARDA AL MOMENTO: es lo que se pulsa en clase, con el reto recién superado
+        $(".h-on", f).onchange = async function () {
+          leer();
+          var ok = await guardar(lista[i].activo ? "Activo: ya se puede reclamar" + (Number(lista[i].desde) > Date.now() ? " (cuando llegue la fecha)" : "") + "."
+                                                 : "En pausa: nadie puede reclamarlo hasta que lo actives.");
+          if (!ok) { this.checked = !this.checked; leer(); }
+        };
+        $(".h-del", f).onclick = function () { lista.splice(i, 1); repintar(); pendiente(true); };
       });
-      // los «Copiar» de cada escondite los atiende el oyente delegado de `app` (cablearCopiar)
+      // los «Copiar» de cada premio los atiende el oyente delegado de `app` (cablearCopiar)
     };
     cablearFilas();
     $("#hv-add").onclick = function () {
@@ -674,17 +756,10 @@
       // que cambiar el número del enlace para llevarse todos sin buscar ninguno.
       var azar = Math.random().toString(36).slice(2, 7);
       lista.push({ id: "e" + (lista.length + 1) + "-" + azar, nombre: "", premio: "sobre", limite: 0, porEscuadron: 0, activo: true, creditos: 50 });
-      repintar();
+      repintar(); pendiente(true);
+      var ult = $("#hv-lista").lastElementChild; if (ult && ult.scrollIntoView) ult.scrollIntoView({ block: "center", behavior: "smooth" });
     };
-    $("#hv-save").onclick = async function () {
-      var malos = lista.filter(function (h) { return !h.id; });
-      if (malos.length) return aviso("Cada escondite necesita un identificador (va en el enlace).");
-      var ids = lista.map(function (h) { return h.id; });
-      if (new Set(ids).size !== ids.length) return aviso("Hay dos escondites con el mismo identificador.");
-      $("#hv-save").disabled = true;
-      try { await MOTOR.guardarHuevos(PER, lista); await refrescar(); aviso("Guardado.", true); }
-      catch (e) { $("#hv-save").disabled = false; aviso(e.message); }
-    };
+    $("#hv-save").onclick = function () { guardar(); };
   }
 
   // ---------------------------------------------------------------- equipo docente

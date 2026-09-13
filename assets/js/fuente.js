@@ -240,6 +240,11 @@
               publico.squadId = f ? f.id : null; publico.factionId = f ? f.id : null;
             }));
           }
+          // 🔴 13-sep · el alias nuevo tampoco puede llevarlo otro del grupo (mismo control que al alistarse)
+          if (publico.displayName !== undefined)
+            pasos.push(M.aliasOcupado(q.per, publico.displayName, { ficha: r.ficha }).then(function (otro) {
+              if (otro) throw new Error("«" + publico.displayName + "» ya lo lleva otro recluta del grupo (" + otro + "). Elige otro alias.");
+            }));
           return Promise.all(pasos).then(function () {
             var escrituras = [];
             if (Object.keys(publico).length)
@@ -346,7 +351,10 @@
             return window.SG.FUENTE.tablero(per, true).then(function (t) {
               return miFicha(M, per, yo).then(function (f) {
                 if (!f) return { error: "Todavía no te has alistado en este grupo.", sinFicha: true };
-                var yo_ = t.reclutas.filter(function (x) { return x.alias === f.displayName; })[0];
+                // 🔴 13-sep · por la FICHA, no por el alias: con dos «Halo» en el grupo, uno veía la
+                // Nave del otro. El alias solo sirve si el tablero es de antes de traer `fid`.
+                var yo_ = t.reclutas.filter(function (x) { return x.fid && x.fid === f.id; })[0]
+                       || t.reclutas.filter(function (x) { return !x.fid && x.alias === f.displayName; })[0];
                 // 🔴 A CADA CUAL, LO SUYO. El tablero público no dice qué retos concretos ha hecho
                 // nadie —y así se queda—, pero uno tiene derecho a ver los suyos: es lo que la Nave
                 // necesita para saber qué casillas pintar hechas y cuáles ofrecer para marcar.
@@ -542,8 +550,15 @@
                * infinitos que no daban nada. Ahora retira tres copias y entrega un sobre, que se abre
                * aquí mismo carta a carta, igual que uno comprado.
                */
-              if (cuerpo.accion === "canje" && cuerpo.tipo === "cromo_repes")
-                return M.llamar("stargateCambiarRepes", { projectId: cuerpo.per }).then(function (r) {
+              /**
+               * 🔴 13-sep · DOS HÉROES REPETIDOS POR UNO AL AZAR (`stargateCambiarHeroesRepes`), la
+               * mecánica que pidió Norberto en vez de «sin repetidos»: el azar del Mercado no se toca.
+               * Mismo camino que los cromos: el servidor retira dos copias y entrega un «Héroe de la
+               * Rebelión» del grupo, que se abre aquí mismo.
+               */
+              if (cuerpo.accion === "canje" && (cuerpo.tipo === "cromo_repes" || cuerpo.tipo === "heroe_repes"))
+                return M.llamar(cuerpo.tipo === "heroe_repes" ? "stargateCambiarHeroesRepes" : "stargateCambiarRepes",
+                                { projectId: cuerpo.per }).then(function (r) {
                   var sacadas = [];
                   var abrirUna = function (n) {
                     if (n <= 0) return Promise.resolve();

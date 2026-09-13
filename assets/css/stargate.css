@@ -2614,3 +2614,156 @@ body.alistado header.hero{display:none}
 .rh-ya a{color:var(--teal,#37e0ec)}
 /* dos retos de la semana: si abres uno, el de al lado no se estira vacío */
 .rs-grid{align-items:start}
+
+/* ================================================================== PREMIOS POR ENLACE: el héroe que eliges, las fechas y el
+   interruptor (13-sep). Tres líneas: qué es · cuándo y cuántos · el enlace. El hueco del detalle cambia con el premio. */
+.hv-l1{grid-template-columns:118px minmax(160px,1fr) minmax(220px,1.1fr) minmax(260px,1.4fr) auto}
+.hv-f .h-extra{min-width:0;display:flex;align-items:flex-end}
+.hv-f .h-extra>*{flex:1;min-width:0}
+.hv-f .h-cant[hidden],.hv-f .h-c-heroe[hidden],.hv-f .h-nota[hidden]{display:none!important;visibility:hidden}
+.hv-f .h-nota{margin:0;padding:10px 12px;border-radius:9px;background:rgba(55,224,236,.06);border:1px dashed #2c3a56;
+  color:#bcd6e6;font-size:.86rem;line-height:1.35}
+.hv-f .h-c-heroe{display:flex;align-items:flex-end;gap:10px}
+.hv-f .h-c-heroe .h-campo{flex:1;min-width:0}
+.h-heroe-img{width:58px;height:58px;border-radius:10px;object-fit:cover;object-position:top;border:1px solid rgba(55,224,236,.45);flex:none;background:#0a1018}
+.hv-l2{align-items:stretch}
+#consola .hv-l2 .h-url{display:flex;align-items:center}
+.hv-l3{display:grid;grid-template-columns:auto minmax(180px,1fr) minmax(180px,1fr) 104px 112px minmax(230px,1.5fr);gap:10px;align-items:end}
+.h-estado{margin:0;align-self:end;padding:9px 12px;border-radius:9px;background:#0a1018;border:1px solid #24304a;
+  font-size:.88rem;color:#dbe7f3;line-height:1.35;min-height:40px;display:flex;align-items:center}
+/* el interruptor de activo / en pausa: se ve de lejos cuál está encendido */
+#consola .hv-f .h-sw{display:inline-flex;flex-direction:row;align-items:center;gap:9px;cursor:pointer;align-self:end;
+  height:40px;margin:0;font-weight:700;font-size:.92rem;white-space:nowrap}
+#consola .hv-f .h-sw input{position:absolute;opacity:0;width:1px;height:1px;margin:0;padding:0}
+.h-sw i{position:relative;flex:none;width:48px;height:28px;border-radius:99px;background:#2a3346;border:1px solid #3a4660;transition:background .2s,border-color .2s}
+.h-sw i::after{content:"";position:absolute;top:4px;left:4px;width:18px;height:18px;border-radius:50%;background:#9fb0ce;transition:transform .2s,background .2s}
+.h-sw input:checked+i{background:#0e4f4a;border-color:#37e0ec}
+.h-sw input:checked+i::after{transform:translateX(20px);background:#37e0ec;box-shadow:0 0 10px rgba(55,224,236,.6)}
+.h-sw input:focus-visible+i{outline:2px solid #37e0ec;outline-offset:2px}
+.h-sw .h-sw-si{color:#7ef0c8}.h-sw .h-sw-no{display:none;color:#ffb86b}
+.h-sw input:not(:checked)~.h-sw-si{display:none}.h-sw input:not(:checked)~.h-sw-no{display:inline}
+.hv-f input[type=datetime-local]{color-scheme:dark}
+.hv-l2{flex-wrap:wrap}
+.hv-l2 a.btn{text-decoration:none}
+.hv-botones{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+#hv-save.pendiente{box-shadow:0 0 0 3px rgba(255,209,102,.5)}
+@media(max-width:1180px){.hv-l3{grid-template-columns:auto 1fr 1fr 104px 112px}.h-estado{grid-column:1/-1}}
+@media(max-width:980px){
+  .hv-l1{grid-template-columns:repeat(6,1fr)}
+  .hv-f .h-extra{grid-column:span 4}
+  .hv-l3{grid-template-columns:1fr 1fr}
+  #consola .hv-f .h-sw{grid-column:1/-1}
+}
+/* el héroe que se gana en un reto de clase: grande, con su rareza, antes de pulsar */
+.hv-heroe{padding:26px 26px 30px}
+.hv-fig{position:relative;margin:10px auto 14px;width:min(290px,64vw)}
+.hv-fig img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;border-radius:18px;
+  border:2px solid rgba(55,224,236,.55);box-shadow:0 0 36px rgba(55,224,236,.28),0 18px 40px rgba(0,0,0,.5)}
+.hv-heroe.r-épica .hv-fig img{border-color:#c79be6;box-shadow:0 0 40px rgba(199,155,230,.38),0 18px 40px rgba(0,0,0,.5)}
+.hv-heroe.r-legendaria .hv-fig img{border-color:#ffd166;box-shadow:0 0 48px rgba(255,209,102,.45),0 18px 40px rgba(0,0,0,.5)}
+.hv-rareza{position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);padding:5px 14px;border-radius:99px;
+  background:#0d1624;border:1px solid rgba(55,224,236,.55);color:#bff6fb;font-size:.8rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.hv-heroe.r-épica .hv-rareza{border-color:#c79be6;color:#e7d4f6}
+.hv-heroe.r-legendaria .hv-rareza{border-color:#ffd166;color:#ffe3a1}
+.hv-heroe h2{margin-top:22px;font-size:1.5rem}
+.hv-heroe.gana .hv-fig img{animation:hvSale .7s cubic-bezier(.2,.9,.3,1.5) both}
+.btn.epico[disabled]{opacity:.75;cursor:default;filter:saturate(.5)}
+.hv-nota-vista{margin:12px 0 0;font-size:.86rem;color:var(--mut,#8aa5ab)}
+/* ================================================================== HÉROES REPETIDOS (13-sep): la burbuja ×N, el cambio
+   «2 repetidos → uno al azar» y la oferta de NEBULA cuando el héroe de un enlace ya lo tenías */
+.vest{position:relative}
+.vest .nx{position:absolute;top:6px;right:6px;background:var(--amber,#ffd166);color:#161006;font-size:.8rem;font-weight:800;
+  border-radius:8px;padding:1px 7px;box-shadow:0 2px 8px rgba(0,0,0,.45)}
+#vestuario .repes{margin:4px 0 10px}
+.hv-copias{position:absolute;top:-10px;right:-10px;min-width:44px;height:44px;padding:0 8px;border-radius:99px;
+  display:grid;place-items:center;background:var(--amber,#ffd166);color:#161006;font-family:'Unbounded',sans-serif;
+  font-size:1.05rem;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.5);border:2px solid #0d1624}
+.hv-caja.ancha{max-width:720px}
+.hv-oferta-caja{position:relative;padding-top:58px}
+.hv-neb{position:absolute;top:-38px;left:50%;transform:translateX(-50%);width:88px;height:88px;border-radius:50%;
+  overflow:hidden;border:3px solid #37e0ec;box-shadow:0 0 26px rgba(55,224,236,.45);background:#0d1624}
+.hv-neb img{width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.hv-oferta{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:4px 0 20px;text-align:center}
+.hv-op{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 12px 16px;border-radius:16px;
+  background:#0b1422;border:2px solid #24304a;cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s}
+.hv-op:hover{border-color:#37e0ec88;transform:translateY(-2px)}
+.hv-op.on{border-color:#37e0ec;box-shadow:0 0 0 3px rgba(55,224,236,.25),0 0 30px rgba(55,224,236,.25)}
+.hv-op input{position:absolute;opacity:0;pointer-events:none}
+.hv-op input:focus-visible~.hv-op-img{outline:2px solid #37e0ec;outline-offset:3px}
+.hv-op-img{position:relative;display:block;width:100%;max-width:170px;aspect-ratio:1;border-radius:12px;overflow:visible}
+.hv-op-img img{width:100%;height:100%;object-fit:cover;border-radius:12px;display:block}
+.hv-op-img .hv-copias{top:-8px;right:-8px;min-width:40px;height:40px;font-size:.95rem}
+.hv-op-cr{display:flex;align-items:center;justify-content:center;gap:4px;background:radial-gradient(circle at 50% 40%,#3a2d0a,#140f04);
+  border:2px solid #ffd16655;color:#ffd166;font-family:'Unbounded',sans-serif}
+.hv-op-cr span{font-size:2.6rem;font-weight:800;line-height:1}.hv-op-cr i{font-style:normal;font-size:1.8rem}
+.hv-op-txt{display:flex;flex-direction:column;gap:4px}
+.hv-op b{font-size:1.02rem;color:#eef6ff}
+.hv-op em{font-style:normal;font-size:.86rem;color:#a9c0d6;line-height:1.35}
+@media(max-width:600px){
+  .hv-oferta{grid-template-columns:1fr}
+  .hv-op{flex-direction:row;text-align:left;gap:12px;padding:10px 12px}
+  .hv-op-img{width:86px;flex:none}
+  .hv-op-cr span{font-size:1.7rem}.hv-op-cr i{font-size:1.2rem}
+}
+/* ================================================================== EL AULA: premiar a uno o a varios, «en clase hoy» y la
+   pregunta al azar (13-sep). Caras que se tocan para elegir; grandes, que esto se usa proyectado. */
+.au-cab2{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.au-cab2 h3{margin:0}
+.au-seg{display:inline-flex;border:1px solid #24304a;border-radius:99px;overflow:hidden}
+.au-seg button{background:none;border:0;color:#9fb0ce;font:600 .88rem inherit;font-family:inherit;padding:8px 14px;cursor:pointer}
+.au-seg button b{margin-left:4px;color:var(--teal)}
+.au-seg button[aria-pressed=true]{background:#14243c;color:#fff}
+.au-seg button:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
+.au-caras{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:4px 0 12px}
+.au-cara{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px 9px;border-radius:14px;
+  background:#0b1119;border:2px solid #1d2a40;color:#dfe8f5;cursor:pointer;font:inherit;transition:border-color .12s,transform .12s,box-shadow .12s}
+.au-cara img,.au-cara .au-sin{width:60px;height:60px;border-radius:50%;object-fit:cover;object-position:top;background:#14243c}
+.au-cara .au-sin{display:grid;place-items:center;font-weight:700;font-size:1.4rem;color:var(--teal)}
+.au-cara b{font-size:.84rem;font-weight:600;line-height:1.2;text-align:center;word-break:break-word}
+.au-cara:hover{border-color:#37e0ec88}
+.au-cara.on{border-color:var(--teal);background:#0f2530;box-shadow:0 0 0 2px rgba(55,224,236,.18)}
+.au-cara.on::after{content:"✓";position:absolute;top:6px;right:8px;width:20px;height:20px;border-radius:50%;background:var(--teal);color:#03161b;
+  font-size:.75rem;font-weight:800;display:grid;place-items:center}
+.au-cara.luz{border-color:var(--amber);box-shadow:0 0 22px rgba(255,209,102,.55);transform:scale(1.05)}
+.au-cara.gana{border-color:var(--amber);box-shadow:0 0 28px rgba(255,209,102,.6)}
+.au-cara.quieta{cursor:default}
+.au-caras.mini{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}
+.au-caras.mini .au-cara img{width:48px;height:48px}
+.au-acciones{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.au-azar-btn{padding:10px 18px;border-radius:11px;border:1px solid transparent;background:linear-gradient(180deg,#ffd166,#f5b043);color:#1b1204;
+  font:700 .95rem inherit;font-family:inherit;cursor:pointer}
+.au-azar-btn:hover{box-shadow:0 0 22px rgba(255,209,102,.45)}
+.au-azar-btn:disabled{opacity:.5;cursor:default;box-shadow:none}
+.au-sinrep{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:#9fb0ce;margin-left:auto;cursor:pointer}
+.au-sinrep input{width:17px;height:17px;accent-color:var(--teal);margin:0}
+.au-sorteo{display:flex;align-items:center;gap:14px;margin-top:12px;padding:14px 16px;border-radius:14px;
+  background:linear-gradient(180deg,#221a07,#161005);border:1px solid rgba(255,209,102,.5);box-shadow:0 0 30px rgba(255,209,102,.18)}
+.au-sorteo[hidden]{display:none}
+.au-sorteo img{width:84px;height:84px;border-radius:50%;object-fit:cover;object-position:top;border:3px solid var(--amber);flex:none}
+.au-sorteo div{flex:1;min-width:0}
+.au-sorteo b{display:block;font-family:'Unbounded',sans-serif;font-size:1.45rem;color:#fff;line-height:1.2;margin:2px 0 4px}
+.au-sorteo em{font-style:normal;color:#d9c9a0;font-size:.9rem}
+.au-para{font-size:.9rem;color:var(--teal);font-weight:600}
+.au-pr.heroe{border-color:#1f4a52;color:#9ff3fa}
+.au-pr.adorno{border-color:#4a3a1a;color:#ffd98a}
+.au-heroe-el{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:12px;background:#0b1119;border:1px solid #24304a}
+.au-heroe-el[hidden]{display:none}
+.au-heroe-el img{width:64px;height:64px;border-radius:12px;object-fit:cover;object-position:top;flex:none}
+.au-heroe-el select{flex:1;min-width:0;padding:9px 11px;border-radius:9px;border:1px solid #24304a;background:#0a1018;color:#e8eefc;font:inherit}
+.au-res{line-height:1.6;margin-top:10px}
+.au-res .malo{color:#ffb4b4}
+@media(max-width:560px){.au-caras{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}.au-cara img,.au-cara .au-sin{width:52px;height:52px}
+  .au-sinrep{margin-left:0}.au-heroe-el{flex-wrap:wrap}.au-heroe-el .btn{width:100%}}
+/* los regalos del aula, en tres filas con nombre y rejilla pareja (en el móvil, de dos en dos) */
+.au-grupo-pr{display:grid;grid-template-columns:92px 1fr;gap:10px;align-items:start;margin-top:10px}
+.au-gt{padding-top:12px;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7f95ad}
+.au-grupo-pr .au-premios{display:grid;grid-template-columns:repeat(var(--n,4),minmax(0,1fr));gap:8px;margin-top:0}
+.au-grupo-pr .au-pr{width:100%;text-align:center;padding:12px 10px}
+.au-res:empty{display:none}
+@media(max-width:560px){.au-grupo-pr{grid-template-columns:1fr;gap:4px}.au-gt{padding-top:4px}
+  .au-grupo-pr .au-premios{grid-template-columns:1fr 1fr}.au-grupo-pr.tres .au-premios{grid-template-columns:repeat(3,1fr)}
+  .au-grupo-pr.tres .au-pr{padding:10px 6px;font-size:.86rem}
+  .au-seg button{padding:8px 10px;font-size:.84rem}}
+.au-caras.mini{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+.au-cara b{word-break:normal;overflow-wrap:anywhere;hyphens:auto}
