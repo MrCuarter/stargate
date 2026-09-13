@@ -83,8 +83,10 @@ const A = leer("actividades.html");
 // el puesto de mando?». Vivia ahi de cuando index.html ERA el puesto de mando, y se lo preguntaba
 // a cualquiera — a un estudiante, a alguien de fuera. Con el menu pasa igual.
 const tour = leer("assets/js/tour.js");
-c(/page\(\)==='guia\.html' && q===null/.test(tour),
-  "🔴 la invitación del Capitán saluda en la guía, no en la portada pública");
+// 13-sep · y sobre todo en «Mis grupos», que es donde aterriza el docente; nunca en la portada
+c(/q===null && page\(\)==='guia\.html'\) invitar\(\)/.test(tour) && /q===null && page\(\)==='consola\.html'/.test(tour)
+  && !/page\(\)==='index\.html' && q===null/.test(tour),
+  "🔴 la invitación del Capitán saluda en la guía y en Mis grupos, no en la portada pública");
 c(!/page\(\)==='index\.html' && q===null/.test(tour),
   "   y ya no se dispara en index.html");
 

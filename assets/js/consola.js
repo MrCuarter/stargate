@@ -226,8 +226,8 @@
               '<em>Calendario, retos, tienda y código, en un minuto.</em></a>' +
             '<a class="ref-b" href="tickets.html"><span>🎟️</span><b>Los tickets de salida</b>' +
               '<em>Las dudas de todas tus clases, por tema y fecha.</em></a>' +
-            '<a class="ref-b" href="registro.html"><span>🏅</span><b>Tableros y embeds</b>' +
-              '<em>Lo que se pega en los Geniallys.</em></a>' +
+            '<a class="ref-b" href="registro.html"><span>🏅</span><b>El tablero y las insignias</b>' +
+              '<em>La ceremonia, el ranking y los dos marcadores.</em></a>' +
             '<a class="ref-b" href="pasos.html"><span>🧭</span><b>Montarlo paso a paso</b>' +
               '<em>El recorrido completo, con capturas.</em></a>' +
           '</div>' +
@@ -302,6 +302,36 @@
     if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
     ({ alumnado: verAlumnado, canjes: verCanjes, mios: verMios, equipo: verEquipo,
        escuadrones: verEscuadrones, huevos: verHuevos, ajustes: verAjustes })[TAB](t);
+    ofrecerVisitaDelGrupo();
+  }
+
+  /**
+   * 🔴 13-sep · LA VISITA DE DENTRO DEL GRUPO. La de Mis grupos enseña las tarjetas; aquí dentro hay
+   * siete pestañas (tres si no llevas el grupo) y ninguna explicación. Se ofrece una vez; después la
+   * repite «▶ Visita guiada». Solo con las pestañas que esta cuenta VE: al docente que imparte no se
+   * le habla de Ajustes que no tiene.
+   */
+  var PASOS_GRUPO = {
+    alumnado: ["Mi gente", "Tu alumnado con sus xp, créditos e insignias. <b>Pulsa una fila</b>: ves su ficha, los <b>enlaces de sus evidencias</b> y puedes otorgar o anular un reto. El aviso <b>«⚠️ sin enlace»</b> marca los retos registrados sin evidencia."],
+    canjes: ["Cola de nota", "Las recompensas que tocan la <b>nota</b> no se aplican solas: esperan aquí a que las apruebes. Los créditos no se mueven hasta entonces."],
+    mios: ["Mis enlaces", "Tu panel de Genially, si has hecho una copia propia, y los enlaces del grupo para repartir en clase: la Nave, el tablero para proyectar, la sesión y el padlet."],
+    equipo: ["Equipo docente", "Quién imparte y quién lleva el grupo, <b>por su correo de Google</b>. Añadir a alguien aquí es darle entrada; quitarlo, quitársela. No hay PIN."],
+    escuadrones: ["Escuadrones", "Cada escuadrón con su Comandante. La llamada a filas y el aula de cada docente van por aquí: cada cual ve y llama a los suyos."],
+    huevos: ["Premios por enlace", "Crea un premio —xp, créditos, un sobre de cromos, un héroe— con sus topes (en total, por escuadrón o por persona) y pega su enlace donde quieras. Por ejemplo: «los 5 primeros de cada escuadrón, un sobre»."],
+    ajustes: ["Ajustes del grupo", "El nombre, la <b>fecha de la semana 1</b> (mueve todo el calendario), el código de clase, el padlet, el panel oficial y los enlaces para montar una vez en los Geniallys."]
+  };
+  function ofrecerVisitaDelGrupo() {
+    var pasos = [{ sel: ".pestanas", pose: "saluda", t: "Tu grupo por dentro",
+      x: "Arriba, las pestañas de este grupo. Te cuento en un minuto para qué sirve cada una." }];
+    misTabs().forEach(function (x, i) {
+      var q = PASOS_GRUPO[x[0]]; if (!q) return;
+      pasos.push({ sel: '.pest[data-tab="' + x[0] + '"]', pose: ["tablet", "senala", "brazos", "pensativo"][i % 4], t: q[0], x: q[1] });
+    });
+    pasos.push({ sel: "#c-cambiar", pose: "pulgar", t: "¿Otro grupo?",
+      x: "<b>«← Mis grupos»</b> te devuelve a todos tus grupos. Y esta visita la repites cuando quieras con <b>▶ Visita guiada</b>, arriba." });
+    window.SG_TOUR_LOCAL = { clave: "grupo", invita: "¿Te enseño tu grupo por dentro?",
+      invita2: "Las pestañas, en un minuto.", pasos: pasos };
+    if (window.sgTour && window.sgTour.ofrecerLocal) window.sgTour.ofrecerLocal();
   }
 
   // Un grupo que empieza dentro de dos semanas está en la «semana -1», que es verdad y no dice

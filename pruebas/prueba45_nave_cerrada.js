@@ -98,8 +98,10 @@ c(/nom\.indexOf\("DEMO"\) < 0 && nom\.indexOf\("PRUEBA"\) < 0/.test(GS),
 // encender la luz es el orden equivocado.
 c(/var PASOS_PUERTA=\[/.test(R), "🔴 hay un acto 1, para antes de identificarse");
 c(/ACTOS=\{[\s\S]*?puerta:[\s\S]*?nave:/.test(R), "   y un solo motor sirve a los dos");
-c(/if\(!st\.yo && !DEMO && !localStorage\.getItem\('sgNavePuerta_'\+per\)\) onboarding\(0,'puerta'\)/.test(R),
-  "🔴 el acto 1 solo salta con la nave CERRADA (y nunca en demo)");
+// 13-sep · y SOLO con el motor viejo: con el nuevo no hay correo que teclear, y el acto 1 se le
+// enseñaba a quien ya había entrado (la sesión tarda un instante en confirmarse)
+c(/if\(!motorNuevo\(\) && !st\.yo && !DEMO && !localStorage\.getItem\('sgNavePuerta_'\+per\)\) onboarding\(0,'puerta'\)/.test(R),
+  "🔴 el acto 1 solo salta con la nave CERRADA, nunca en demo y nunca con el motor nuevo");
 c(/if\(!localStorage\.getItem\('sgNaveOnboard_'\+per\)\) setTimeout/.test(R),
   "🔴 y el acto 2 arranca al validarse el correo, no antes");
 c(/sgNavePuerta_/.test(R) && /sgNaveOnboard_/.test(R),
@@ -117,9 +119,11 @@ const actoDos = R.slice(R.indexOf("var PASOS=["), R.indexOf("// Un solo motor"))
 // Antes eran cuatro y hablaban de una parrilla de accesos y de marcar los retos en la Bitácora: dos
 // cosas que ya no existen. Un guía que señala a un sitio vacío es peor que no tener guía, así que
 // aquí se comprueba que los focos apunten a algo que de verdad se pinta.
-igual((actoDos.match(/\{t:/g) || []).length, 5, "   y el acto 2, cinco (el último invita a estrenarse)");
-igual((actoDos.match(/foco:/g) || []).length, 5, "🔴 los cinco pasos resaltan la zona de la que hablan");
-["\\.nave-estado", "\\.retos-semana", "\\.nb-fin", "\\.nb-tabs", "\\.nb-t\\[data-tab=\"mercado\"\\]"]
+// 13-sep · SEIS: la historia de NEBULA abre el acto (ya no hay acto 1 con el motor nuevo) y entra
+// el visor de vídeos
+igual((actoDos.match(/\{t:/g) || []).length, 6, "   y el acto 2, seis (el último invita a estrenarse)");
+igual((actoDos.match(/foco:/g) || []).length, 6, "🔴 los seis pasos resaltan la zona de la que hablan");
+["\\.nave-estado", "\\.cine", "\\.retos-semana", "\\.nb-fin", "\\.nb-tabs", "\\.nb-t\\[data-tab=\"mercado\"\\]"]
   .forEach(function (sel) {
     c(new RegExp("foco:'" + sel + "'").test(actoDos),
       "   y uno de ellos señala «" + sel.replace(/\\/g, "") + "», que la Nave pinta de verdad");

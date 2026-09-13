@@ -1,5 +1,13 @@
 // STARGATE — panel del profesorado (PIN). profes.html[?per=id][&embed=1]
 (function(){
+  /**
+   * 🔴 13-sep · PÁGINA DEL SISTEMA ANTERIOR. Con el motor nuevo todo lo que hacía esta página vive en
+   * «Mis grupos» (consola.html), con la cuenta de Google y sin PIN. Se conserva para la marcha atrás
+   * (`?motor=apps`); con el motor nuevo, quien llegue por un enlace viejo va a su puesto de mando.
+   */
+  if (((new URLSearchParams(location.search).get('motor') || window.SG_MOTOR || 'apps') + '').toLowerCase() === 'firestore') {
+    location.replace('consola.html'); return;
+  }
   // 🔴 9-sep · CON DOS REFERENTES, EL CAMPO DE TEXTO SE QUEDA CORTO. `d.referente` es una cadena y
   // solo guarda al primero, asi que la cabecera decia «referente: Norberto» cuando el grupo tenia
   // titular Y ayudante (lo pidio Norberto: «habitualmente hay un profe referente y un ayudante»).

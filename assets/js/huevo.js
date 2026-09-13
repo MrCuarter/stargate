@@ -166,7 +166,7 @@
      * a uno; si por lo que sea estuviera en dos, se coge el que tenga este escondite configurado.
      */
     MOTOR.misGruposDeAlumno(YO.uid).then(function (fichas) {
-      if (!fichas.length) return fallo("No estás alistado en ningún grupo todavía. Alístate primero con el enlace de tu clase.");
+      if (!fichas.length) return fallo("No estás alistado en ningún grupo todavía. Entra en STARGATE con Google y escribe el código de clase que te dio tu docente.");
       /**
        * 🔴 12-sep · EL GRUPO QUE TIENE ESTE ESCONDITE, no el primero. El comentario de arriba ya lo
        * prometía y el código cogía `fichas[0]`: alguien alistado en dos grupos (un repetidor, un

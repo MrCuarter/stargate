@@ -246,7 +246,7 @@
         '<div class="dia reto"><div class="kicker">🗝️ Misión '+(i+1)+' de '+s.lanza.length+'</div>'
         +'<h2>'+esc(txt)+'</h2>'
         +(pide?'<div class="pide"><div class="et">Qué hay que hacer</div><p>'+esc(pide)+'</p></div>'
-              :'<p class="sub">Se lanza esta semana. El enunciado completo está en la Bitácora del alumnado.</p>')
+              :'<p class="sub">Se lanza esta semana. El enunciado completo está en la Nave, pestaña «Mis retos».</p>')
         +'</div>'});
     });
 
@@ -278,7 +278,7 @@
       '<div class="dia cierre"><div class="kicker">📓 Antes de irse</div>'
       +'<h2>Dónde se registra todo</h2>'
       +'<div class="cierre-grid">'
-      +'<div class="c"><b>1 · Tu Bitácora de mando</b><p>Cada misión superada se marca ahí. Es lo único obligatorio.</p></div>'
+      +'<div class="c"><b>1 · «Lo he hecho», en tu Nave</b><p>Cada reto superado se marca en la Nave, con el enlace de tu evidencia cuando lo pide. Hasta 3 al día.</p></div>'
       +'<div class="c"><b>2 · Tu Nave del Recluta</b><p>Ahí ves tus xp, tu nivel, tus créditos ◈ y tu personaje.</p><a class="btn small" href="recluta.html'+qs+'" target="_blank" rel="noopener">Abrir la Nave ↗</a></div>'
       +'<div class="c"><b>3 · El tablero de la clase</b><p>El ranking en vivo. Se proyecta sin nombres ni correos.</p><a class="btn small" href="registro.html'+qs+(st.per?'&':'?')+'solo=1" target="_blank" rel="noopener">Proyectar el tablero ↗</a></div>'
       +'</div></div>'});
@@ -339,8 +339,8 @@
           ? '<iframe src="'+esc(panel)+'" title="Panel de control del grupo" loading="lazy" '
             +'allowfullscreen allow="fullscreen"></iframe>'
           : '<div class="txt"><div class="kicker">Para empezar</div><h2>Tu panel de Genially</h2>'
-            +'<p class="sub">Este grupo todavía no tiene panel propio. Pégalo en '
-            +'<b>Puesto de mando → Ajustes</b> y aparecerá aquí, listo para lanzar la clase.</p></div>')
+            +'<p class="sub">Este grupo todavía no tiene panel de Genially. Pon el tuyo en '
+            +'<b>Mis grupos → Ver mi gente y los ajustes → Mis enlaces</b> y aparecerá aquí, listo para lanzar la clase.</p></div>')
         +'</div>'});
     }
 
@@ -363,7 +363,7 @@
       +'<button type="button" class="btn primary" id="proyectar">▶ Proyectar la sesión</button></div>'
       +(s.consejo?'<div class="card consejo"><b>El consejo del Capitán.</b> '+esc(s.consejo)+'</div>':'')
       +(s.clases?'<p class="small muted">'+esc(s.clases)+'</p>':'')
-      +(s.foro?'<details class="foro-det"><summary>El mensaje del foro de esta semana (para copiar)</summary>'
+      +(s.foro?'<details class="foro-det"><summary>El mensaje de esta semana para el foro de la plataforma de UNIR (para copiar)</summary>'
         +'<pre class="foro-msg">'+esc(String(s.foro).split('{id-del-PER}').join(st.per||'{id-del-PER}'))+'</pre>'
         +'<button type="button" class="btn small" id="copiarForo">Copiar el mensaje</button></details>':'')
       +'</div>';

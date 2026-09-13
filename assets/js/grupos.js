@@ -2,6 +2,14 @@
 // grupos.html[?per=<id>] · sin PIN: la lista sale de doGet ?per=all (id/nombre/tipo/estado/inicio)
 // y los enlaces de formularios de cada grupo, de doGet ?per=<id> (lo mismo que ve la Nave).
 (function(){
+  /**
+   * 🔴 13-sep · PÁGINA DEL SISTEMA ANTERIOR. Con el motor nuevo todo lo que hacía esta página vive en
+   * «Mis grupos» (consola.html), con la cuenta de Google y sin PIN. Se conserva para la marcha atrás
+   * (`?motor=apps`); con el motor nuevo, quien llegue por un enlace viejo va a su puesto de mando.
+   */
+  if (((new URLSearchParams(location.search).get('motor') || window.SG_MOTOR || 'apps') + '').toLowerCase() === 'firestore') {
+    location.replace('consola.html'); return;
+  }
   var root=document.getElementById('grupos-app'); if(!root) return;
   var API=(window.SG_TABLERO_API||"").trim();
   var q=new URLSearchParams(location.search), foco=q.get('per')||'';

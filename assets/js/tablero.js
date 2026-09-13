@@ -287,7 +287,7 @@
             +'<th'+th('col')+' title="Cartas, héroes y versiones de tu personaje">Colección</th><th>Nivel</th>'
             +'<th'+th('xp')+'>xp</th><th'+th('sem')+' title="xp de los últimos 7 días">Semana</th></tr></thead>'
             +'<tbody id="rankBody">'+filas+'</tbody></table></div>'
-          :'<p class="lead">'+(todos.length?modo.vacio:'Todavía nadie se ha alistado. Sé el primero: rellena tu Bitácora de mando.')+'</p>');
+          :'<p class="lead">'+(todos.length?modo.vacio:'Todavía nadie se ha alistado. Sé el primero: entra en STARGATE con Google y escribe el código de clase.')+'</p>');
       var inp=document.getElementById('buscaAlias');
       if(inp){inp.addEventListener('input',function(){var t=inp.value.trim().toLowerCase();
         Array.prototype.forEach.call(document.querySelectorAll('#rankBody tr'),function(tr){

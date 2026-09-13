@@ -342,7 +342,7 @@
       quien: function (per) {
         return esperar().then(function (M) {
           return M.sesion().then(function (yo) {
-            if (!yo) return { error: "Entra con tu cuenta de Google para ver tu ficha." };
+            if (!yo) return { error: "Entra con tu cuenta de Google para ver tu ficha.", sinSesion: true };
             return window.SG.FUENTE.tablero(per, true).then(function (t) {
               return miFicha(M, per, yo).then(function (f) {
                 if (!f) return { error: "Todavía no te has alistado en este grupo.", sinFicha: true };

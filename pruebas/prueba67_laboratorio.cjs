@@ -678,6 +678,97 @@ const REG = {};   // cifras que se apuntan para el informe
       c("puerta · a una alumna con sesión NO se le abre el material del profesorado",
         await ana.js("!!document.getElementById('puerta')"));
     }
+    // ============================================================ 14 · LAS BIENVENIDAS (SIN AUDIO)
+    // NEBULA para el alumnado, el Capitán para el docente. Cada paso tiene que señalar algo que
+    // EXISTE en pantalla, en el orden que toca, y no volver a salir una vez vista.
+    if (hacer(14)) {
+      // 14a · una alumna recién alistada: NEBULA, un solo acto, ya dentro
+      const leo = await nueva("Leo, recién alistada");
+      await leo.entrarPorLaPuerta("leo@lab.test", "Leo Nueva");
+      await leo.hasta("!!document.querySelector('#e-cod')", 20);
+      await leo.js(`document.querySelector('#e-cod').value=${JSON.stringify(CODIGO)}; document.querySelector('#e-cod-ok').click(); 1`);
+      await leo.hasta("!!document.querySelector('#a-enviar')", 25);
+      await leo.js(`(function(){
+        document.querySelector('#a-nombre').value='Leo'; document.querySelector('#a-apellidos').value='Nueva';
+        document.querySelector('#a-alias').value='Lyra Nueva';
+        var r=document.querySelector('input[name=cmd]'); if(r) r.checked=true;
+        var av=document.querySelector('#a-avatares button, #a-avatares .av'); if(av) av.click(); return 1; })()`);
+      await leo.js("document.querySelector('#a-enviar').click(); 1");
+      await leo.hasta("!document.querySelector('#a-enviar')", 25);
+      await leo.ir("recluta.html?per=lab-clase");
+      const sale = await leo.hasta("!!document.querySelector('#nave-onboard.open')", 25);
+      const paso = () => leo.js(`(function(){var o=document.querySelector('#nave-onboard.open'); if(!o) return null; var f=document.querySelector('.tour-foco');
+        return {n:o.querySelector('.tour-step').textContent, t:o.querySelector('h3').textContent, x:o.querySelector('p').textContent, foco:f?f.className:''};})()`);
+      const p0 = await paso();
+      c("🔴 bienvenida · a la alumna recién alistada le sale NEBULA en su primera visita, ya dentro", sale && p0 && /1 \/ 6/.test(p0.n), JSON.stringify(p0));
+      c("bienvenida · y NO le pide «escribe tu correo» (esa puerta ya no existe)", p0 && !/correo/i.test(p0.x), p0 && p0.x.slice(0, 120));
+      const focos = [p0 && p0.foco];
+      for (let k = 0; k < 5; k++) { await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700); const pk = await paso(); focos.push(pk ? pk.foco : "—"); }
+      const esperados = ["nave-estado", "cine", "retos-semana", "nb-fin", "nb-tabs", "nb-t"];
+      c("bienvenida · cada paso señala lo suyo: ficha, vídeos, retos, marcadores, pestañas y mercado",
+        esperados.every((e, k) => (focos[k] || "").split(/\s+/).indexOf(e) >= 0), JSON.stringify(focos));
+      await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(600);
+      c("bienvenida · al terminar se cierra y queda apuntada", !(await paso()) && (await leo.js("localStorage.getItem('sgNaveOnboard_lab-clase')")) === "1");
+      await leo.ir("recluta.html?per=lab-clase"); await leo.hasta("/Lyra Nueva/.test(document.body.innerText)", 25); await dormir(2500);
+      c("bienvenida · y en la segunda visita ya no sale", !(await paso()));
+      await leo.js("document.getElementById('btn-onboard') && document.getElementById('btn-onboard').click(); 1"); await dormir(700);
+      const rep = await paso();
+      c("bienvenida · «Repetir bienvenida» la vuelve a poner desde el principio", rep && /1 \/ 6/.test(rep.n), JSON.stringify(rep));
+      await leo.js("document.querySelector('#nave-onboard .tour-exit') && document.querySelector('#nave-onboard .tour-exit').click(); 1");
+      // 14b · la Nave sin sesión ya no es otra puerta
+      const nadie = await nueva("sin sesión en la Nave");
+      await nadie.ir("recluta.html?per=lab-clase");
+      c("bienvenida · la Nave sin sesión manda a la puerta única", await nadie.hasta("location.pathname.indexOf('entrar.html')>=0", 20), await nadie.js("location.href"));
+      // 14c · el Capitán, en Mis grupos: referente (con sus pasos) y docente (sin ellos)
+      for (const [correo, nombre, total, ref] of [["rita@lab.test", "Rita Referente", 14, true], ["dani@lab.test", "Dani Docente", 11, false]]) {
+        const p = await nueva("visita " + nombre);
+        await p.entrarPorLaPuerta(correo, nombre);
+        // Dani es también alumna desde la sección 4: entonces la puerta pregunta, y aquí entra como docente
+        await p.hasta("location.pathname.indexOf('consola.html')>=0 || !!document.querySelector('.elegir-camino .camino.docente')", 20);
+        await p.js("(function(){var a=document.querySelector('.elegir-camino .camino.docente'); if(a) a.click(); return 1;})()");
+        await p.hasta("location.pathname.indexOf('consola.html')>=0", 20);
+        const inv = await p.hasta("!!document.querySelector('.tour-invite .tour-start')", 20);
+        c("capitán · a " + nombre + " le ofrece la visita la primera vez que entra en Mis grupos", inv);
+        if (!inv) continue;
+        await p.js("document.querySelector('.tour-invite .tour-start').click(); 1");
+        const vista = () => p.js(`(function(){var o=document.querySelector('.tour.open'); if(!o) return null; var t=document.querySelector('.tour-target');
+          return {pag:location.pathname.split('/').pop(), n:o.querySelector('.tour-step').textContent, t:o.querySelector('h3').textContent, diana:t?t.className:''};})()`);
+        await p.hasta("!!document.querySelector('.tour.open')", 15);
+        const recorrido = [await vista()];
+        for (let k = 0; k < total + 2; k++) {
+          const hay = await p.js("(function(){var b=document.querySelector('.tour.open .tour-next'); if(!b) return 0; b.click(); return 1;})()");
+          if (!hay) break;
+          await p.hasta("!!document.querySelector('.tour.open') || !document.querySelector('.tour')", 12); await dormir(1200);
+          const v = await vista(); if (!v) break; recorrido.push(v);
+        }
+        const nums = recorrido.map(v => v && v.n);
+        c("capitán · " + nombre + ": " + total + " pasos, contados igual de principio a fin", recorrido.length === total && nums.every(n => new RegExp("/ " + total + "$").test(n)), JSON.stringify(nums));
+        const enConsola = recorrido.filter(v => v.pag === "consola.html" && v.t !== "Listo para el salto");
+        c("capitán · " + nombre + ": en Mis grupos cada paso señala un botón de verdad",
+          enConsola.every(v => /\bgp|ref-zona|cajon/.test(v.diana)), JSON.stringify(enConsola.map(v => v.t + "→" + v.diana)));
+        const titulos = recorrido.map(v => v.t);
+        c("capitán · " + nombre + (ref ? " (referente) ve sus pasos: su zona y crear un grupo" : " (docente) NO ve los del referente"),
+          ref ? titulos.indexOf("Como referente") >= 0 && titulos.indexOf("Referente: crear un grupo") >= 0
+              : titulos.indexOf("Como referente") < 0 && !titulos.some(t => /^Referente/.test(t)), JSON.stringify(titulos));
+        c("capitán · " + nombre + ": pasa por la guía, la cronología y las actividades, y acaba en Mis grupos",
+          ["guia.html", "cronologia.html", "actividades.html"].every(x => recorrido.some(v => v.pag === x)) && recorrido[recorrido.length - 1].pag === "consola.html",
+          JSON.stringify(recorrido.map(v => v.pag)));
+        // 14d · la visita de dentro del grupo
+        await p.js("document.querySelector('.tour.open .tour-next') && document.querySelector('.tour.open .tour-next').click(); 1");
+        await p.ir("consola.html?per=lab-clase");
+        const invG = await p.hasta("!!document.querySelector('.tour-invite .tour-aqui')", 20);
+        c("capitán · dentro del grupo ofrece «¿Te enseño tu grupo por dentro?» (" + nombre + ")", invG);
+        await p.js("document.querySelector('.tour-invite .tour-aqui').click(); 1"); await dormir(900);
+        const loc = [await vista()];
+        for (let k = 0; k < 12; k++) {
+          const hay = await p.js("(function(){var b=document.querySelector('.tour.open .tour-next'); if(!b) return 0; b.click(); return 1;})()");
+          if (!hay) break; await dormir(700); const v = await vista(); if (!v) break; loc.push(v);
+        }
+        const nTabs = ref ? 7 : 3;
+        c("capitán · la visita del grupo tiene " + (nTabs + 2) + " pasos, uno por pestaña que " + nombre + " ve",
+          loc.length === nTabs + 2 && loc.slice(1, nTabs + 1).every(v => /\bpest\b/.test(v.diana)), JSON.stringify(loc.map(v => v.t + "→" + v.diana)));
+      }
+    }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
   } finally {

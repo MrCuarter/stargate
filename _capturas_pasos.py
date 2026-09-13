@@ -94,27 +94,16 @@ TOMAS = {
  "d6_tablero.png":    dict(antes=SIN_GLOBO, url=WEB + "/registro.html?per=%s&embed=1&solo=1" % PER,
                            ancho=1280, alto=1000, espera=4,
                            listo="document.querySelectorAll('#tablero tbody tr').length>0"),
- "e1_nave.png":       dict(url=WEB + "/recluta.html?per=%s" % PER, ancho=1280, alto=950, espera=4,
-                           antes=OLVIDAR, listo="/correo/i.test(document.body.innerText)"),
+ # 13-sep · E1 ya no es la Nave sin identificar (con la puerta única no se llega a ella sin sesión):
+ # es la puerta, con su botón de Google.
+ "e1_nave.png":       dict(url=WEB + "/entrar.html", ancho=1280, alto=900, espera=4,
+                           antes=OLVIDAR, listo="/Iniciar sesión con Google/.test(document.body.innerText)"),
  "e2_cuenta.png":     dict(url="form:bitacora", ancho=1100, alto=900, espera=7),
  "e3_alistarse.png":  dict(url="form:bitacora", ancho=1100, alto=1250, espera=7),
  "e4_reto.png":       dict(url="form:canje", ancho=1100, alto=1000, espera=7),
 # 🔴 Las tres de detras del PIN se retratan en MODO DEMO (?demo=1), con alumnado inventado. No es
 # un atajo: es la unica forma de que se puedan REGENERAR: ningun script puede escribir un PIN, y
 # una captura que no se puede rehacer acaba mintiendo el dia que cambie la pantalla.
- "d3_sala.png":       dict(antes=SIN_GLOBO, url=WEB + "/clase.html?demo=1", ancho=1400, alto=1150, espera=4,
-                           listo="document.querySelectorAll('#sala-grupo button[data-al]').length>0",
-                           scroll="(function(){document.querySelectorAll('#sala-grupo button[data-al]')[0].click();"
-                                  "return 1;})()",
-                           listo2="document.querySelectorAll('#ficha .fr-ins').length>20",
-                           scroll2="(function(){var f=document.getElementById('ficha');"
-                                   "window.scrollTo(0,f.getBoundingClientRect().top+window.pageYOffset-90);return 1;})()"),
- "d4_pase.png":       dict(antes=SIN_GLOBO, url=WEB + "/clase.html?demo=1", ancho=1400, alto=800, espera=4,
-                           listo="!!document.getElementById('abrirPase')",
-                           scroll="(function(){document.getElementById('abrirPase').click();return 1;})()",
-                           listo2="!!document.querySelector('.consigna')",
-                           scroll2="(function(){var p=document.getElementById('sala-pase');"
-                                   "window.scrollTo(0,p.getBoundingClientRect().top+window.pageYOffset-90);return 1;})()"),
  "d5_tickets.png":    dict(antes=SIN_GLOBO, url=WEB + "/tickets.html?demo=1", ancho=1400, alto=1050, espera=4,
                            listo="document.querySelectorAll('.temachip').length>2",
                            scroll="(function(){var c=document.querySelector('.temachips');"
@@ -144,10 +133,6 @@ TOMAS = {
  "e3_alistarse.png":  dict(antes=SIN_GLOBO, url=WEB + "/alistarse.html?per=%s&demo=1&motor=firestore" % PER_NUEVO,
                            ancho=1100, alto=1250, espera=5,
                            listo="!!document.getElementById('a-enviar')"),
- "d4_panel.png":      dict(antes=SIN_GLOBO, url=WEB + "/clase.html?demo=1", ancho=1400, alto=760, espera=4,
-                           listo="!!document.getElementById('miPanel')",
-                           scroll="(function(){var p=document.getElementById('miPanel');"
-                                  "window.scrollTo(0,p.getBoundingClientRect().top+window.pageYOffset-160);return 1;})()"),
  # --- 12-sep · la Nave REDISEÑADA. Se retrata en modo demostracion (?demo=1) contra el grupo del
  # motor nuevo: es la unica forma de fotografiar una pantalla que exige sesion sin tener credenciales
  # en el capturador. Los datos son de un recluta sembrado, no de nadie.
@@ -177,6 +162,15 @@ TOMAS = {
                            listo="!!document.querySelector('.nb-t')",
                            scroll="(function(){document.querySelector('.nb-t[data-tab=\\'botin\\']').click();return 1;})()",
                            listo2="document.querySelectorAll('details.cajon').length>2"),
+ # 13-sep · D3 ya no es la sala del docente (clase.html), que se fue: es «Mi gente» en Mis grupos,
+ # con la ficha de un recluta abierta (sus retos, sus enlaces, otorgar y anular).
+ "d3_sala.png":       dict(antes=SIN_GLOBO, url=WEB + "/consola.html?demo=1&motor=firestore",
+                           ancho=1360, alto=1000, espera=5,
+                           listo="document.querySelectorAll('tbody tr').length>2",
+                           scroll="(function(){var f=document.querySelector('tbody tr[data-r]'); if(f) f.click(); return 1;})()",
+                           listo2="!!(document.getElementById('c-ficha')&&document.getElementById('c-ficha').innerText.length>40)",
+                           scroll2="(function(){var f=document.getElementById('c-ficha');"
+                                   "window.scrollTo(0,f.getBoundingClientRect().top+window.pageYOffset-90);return 1;})()"),
  "d7_aula.png":       dict(antes=SIN_GLOBO, url=WEB + "/aula.html?demo=1&motor=firestore",
                            ancho=1180, alto=880, espera=7,
                            listo="document.querySelectorAll('.au-t').length>3"),

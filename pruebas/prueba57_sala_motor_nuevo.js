@@ -79,8 +79,9 @@ c(/if\(NUEVO\)\{ document\.addEventListener\('sg:sesion'/.test(SALA),
 const iPuerta = SALA.indexOf("if(NUEVO){ document.addEventListener('sg:sesion'");
 c(iPuerta > 0 && iPuerta < SALA.indexOf("if(st.pin||st.demo)inicio();"),
   "   y se decide ANTES de llegar al PIN de siempre");
-c(/st\.correo=u\.correo/.test(SALA),
-  "🔴 el correo lo pone la sesión, no el teclado: no hay correo ajeno que escribir");
+// 13-sep · la sala ya no se pinta: con sesión se va a «Mis grupos» (consola.html), con el grupo puesto
+c(/location\.replace\('consola\.html' \+ \(g \?/.test(SALA),
+  "🔴 con sesión, la sala del docente manda a Mis grupos (con su grupo): no queda sala vieja que ver");
 const html = fs.readFileSync(path.join(__dirname, "..", "clase.html"), "utf8");
 c(!/Entra con el PIN/.test(html), "🔴 y la portada de la sala ya no promete un PIN que no se pide");
 c(/Entra con tu cuenta de Google/.test(html), "   sino la cuenta");

@@ -5,7 +5,7 @@
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   // resuelve el placeholder del tablero: con PER conocido pone su id; sin PER deja el enlace genérico
   function resolverTablero(txt,perId){txt=String(txt==null?'':txt);
-    return perId?txt.split('{id-del-PER}').join(perId):txt.split('?per={id-del-PER}').join('');}
+    return perId?txt.split('{id-del-PER}').join(perId):txt.split('?per={id-del-PER}').join('').split('&per={id-del-PER}').join('');}
   // mensaje del foro: escapado + URLs clicables
   function msgHtml(txt,perId){var t=esc(resolverTablero(txt,perId));
     return t.replace(/https?:\/\/[^\s<»)]+/g,function(u){return '<a href="'+u+'" target="_blank" rel="noopener">'+u+'</a>';});}

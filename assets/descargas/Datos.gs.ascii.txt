@@ -147,7 +147,7 @@ var AYUDA_RETOS = {
  "B7": "Dise\u00f1a una microgamificaci\u00f3n de calidad: un toque de juego sobre una tarea que no es un juego (una insignia, una barra de progreso, un tablero, un reto con narrativa). Dist\u00edngue bien de ABJ: aqu\u00ed no se juega, se toman elementos del juego para enganchar. Sube a la Bit\u00e1cora el recurso + reflexi\u00f3n: qu\u00e9 conducta refuerza y por qu\u00e9.",
  "B8": "(1) Crea una experiencia de Realidad Aumentada o Virtual sencilla para tu materia (capa AR sobre un objeto/l\u00e1mina, o una escena VR para practicar sin riesgo). Puede ser tu reto libre del ePortfolio. (2) Termina y publica la Bit\u00e1cora: convierte tu paisaje de aprendizaje (Act 2) en una imagen interactiva publicada, revisa que las 5 p\u00e1ginas est\u00e9n completas (Act 1, Act 2, videotutorial, microgamificaci\u00f3n, reto libre) y comparte el enlace \u00fanico.",
  "S7": "\ud83d\udd73\ufe0f En la presentaci\u00f3n del planeta V\u00ednculo hay un enlace que no deber\u00eda estar ah\u00ed. Encu\u00e9ntralo, resuelve el enigma que esconde y trae la PALABRA que Vaeon borr\u00f3. Nadie va a decirte d\u00f3nde mirar: los secretos de la gamificaci\u00f3n se encuentran jugando.",
- "X1": "La Actividad 1 entregada donde te la pide tu profesor. Marca la casilla cuando la hayas ENVIADO, no cuando la empieces.",
+ "X1": "La Actividad 1 entregada donde te la pide tu profesor. Pulsa \u00abLo he hecho\u00bb cuando la hayas ENVIADO, no cuando la empieces, y pega el enlace (es obligatorio).",
  "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al enviarla."
 };
 // AYUDA-FIN

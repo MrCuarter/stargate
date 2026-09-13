@@ -147,7 +147,7 @@ var AYUDA_RETOS = {
  "B7": "Diseña una microgamificación de calidad: un toque de juego sobre una tarea que no es un juego (una insignia, una barra de progreso, un tablero, un reto con narrativa). Distíngue bien de ABJ: aquí no se juega, se toman elementos del juego para enganchar. Sube a la Bitácora el recurso + reflexión: qué conducta refuerza y por qué.",
  "B8": "(1) Crea una experiencia de Realidad Aumentada o Virtual sencilla para tu materia (capa AR sobre un objeto/lámina, o una escena VR para practicar sin riesgo). Puede ser tu reto libre del ePortfolio. (2) Termina y publica la Bitácora: convierte tu paisaje de aprendizaje (Act 2) en una imagen interactiva publicada, revisa que las 5 páginas estén completas (Act 1, Act 2, videotutorial, microgamificación, reto libre) y comparte el enlace único.",
  "S7": "🕳️ En la presentación del planeta Vínculo hay un enlace que no debería estar ahí. Encuéntralo, resuelve el enigma que esconde y trae la PALABRA que Vaeon borró. Nadie va a decirte dónde mirar: los secretos de la gamificación se encuentran jugando.",
- "X1": "La Actividad 1 entregada donde te la pide tu profesor. Marca la casilla cuando la hayas ENVIADO, no cuando la empieces.",
+ "X1": "La Actividad 1 entregada donde te la pide tu profesor. Pulsa «Lo he hecho» cuando la hayas ENVIADO, no cuando la empieces, y pega el enlace (es obligatorio).",
  "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al enviarla."
 };
 // AYUDA-FIN

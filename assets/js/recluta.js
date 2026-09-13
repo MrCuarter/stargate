@@ -28,7 +28,7 @@
    * «Capitán», y es lo que pidió Norberto.
    */
   function msgHtml(txt,perId){txt=String(txt==null?'':txt);
-    txt=perId?txt.split('{id-del-PER}').join(perId):txt.split('?per={id-del-PER}').join('');
+    txt=perId?txt.split('{id-del-PER}').join(perId):txt.split('?per={id-del-PER}').join('').split('&per={id-del-PER}').join('');
     var jefe=(st.yo&&st.yo.profe)||'';
     // 🔴 Sin duplicar el tratamiento: hay docentes cuyo nombre en el sistema YA es «Comandante
     // Orion», y anteponerlo otra vez firmaba «Comandante Comandante Orion».
@@ -1510,7 +1510,7 @@
 
   function recompensas(){
     var d=st.d; var cat=d.recompensas||[]; var n=st.semanas.length; var r=st.yo;
-    if(!cat.length) return '<section><div class="eyebrow violet">Recompensas</div><h2>El canje de xp</h2><p class="lead">Tus xp se pueden canjear por recompensas. El catálogo se abrirá pronto en la nave; mientras tanto, tu Capitán tiene la lista.</p>'
+    if(!cat.length) return '<section><div class="eyebrow violet">Recompensas</div><h2>Mercado Estelar</h2><p class="lead">Aquí se canjean tus <b>créditos ◈</b> por recompensas (los xp no se gastan nunca). El catálogo se abrirá pronto en la nave; mientras tanto, tu Capitán tiene la lista.</p>'
       +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎁 Ir al formulario de canje</a>':'')+'</section>';
     var abiertas=0;
     /**
@@ -1541,7 +1541,7 @@
         :tope?'<span class="chip done">Ya la tienes'+(x.max>1?' ('+veces+'/'+x.max+')':'')+'</span>'
         :(mis>=x.coste?'<span class="chip ok">Te lo puedes permitir</span>':'<span class="chip wip">Te faltan '+(x.coste-mis)+' ◈</span>')
         +(veces?' <span class="chip">canjeada '+veces+(repetible?' vece'+(veces===1?'z':'s'):' de '+x.max)+'</span>':'');
-      var aviso=x.tipo==='nota'?'<p class="small muted">⏳ Se hace efectiva al terminar las clases en directo.</p>':x.tipo==='avatar'||x.tipo==='avatar_url'?'<p class="small muted">⚡ Automática: si se concede, tu avatar cambia solo.</p>':'';
+      var aviso=x.tipo==='nota'?'<p class="small muted">⏳ Queda pendiente hasta que tu docente la apruebe.</p>':x.tipo==='avatar'||x.tipo==='avatar_url'?'<p class="small muted">⚡ Automática: si se concede, tu avatar cambia solo.</p>':'';
       // 🔴 Con el motor nuevo se canjea aquí mismo. El cobro y la comprobación de saldo los hace el
       // servidor —el navegador no puede tocar los créditos ni queriendo—, así que el botón solo
       // pide; si no llega, contesta que no y no se mueve nada.
@@ -1581,7 +1581,7 @@
         +aviso+'</div>'
         +'<div class="rec-pie">'+afford+boton+'</div></div>';
     }).join('');
-    return '<section><div class="eyebrow violet">Recompensas</div><h2>El canje de xp</h2>'
+    return '<section><div class="eyebrow violet">Recompensas</div><h2>Mercado Estelar</h2>'
       +'<p class="lead">Tus <b>xp</b> no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje. Lo que se canjea son los <b>créditos ◈</b>, que ganas con el mismo trabajo. Las recompensas se van desbloqueando con el viaje.</p>'
       +(d.cierre_canje&&d.cierre_canje!==d.cierre_misiones
         ? '<p class="small" style="color:var(--amber)"><b>Ojo al calendario:</b> las misiones se registran hasta el <b>'+fecha(d.cierre_misiones)+'</b>, pero el canje sigue abierto <b>una semana más</b>, hasta el <b>'+fecha(d.cierre_canje)+'</b>. Esa última semana ya no se gana nada: solo se gasta lo ganado.</p>'
@@ -1608,17 +1608,27 @@
   // 🔴 12-sep · Reescrito con la Nave nueva. El acto 2 hablaba de «seis pestañas», de marcar los
   // retos en la Bitácora y señalaba botones de una parrilla de accesos que ya no existe. Un guía que
   // señala a un sitio vacío es peor que no tener guía.
+  /**
+   * 🔴 13-sep · UN SOLO ACTO, YA DENTRO. Con la puerta única el recluta llega a la Nave con la sesión
+   * de Google hecha: el «acto 1» que le pedía «escribe ahí arriba el correo con el que te
+   * alistaste» se le enseñaba A QUIEN YA HABÍA ENTRADO (la sesión tarda un instante en confirmarse y
+   * la comprobación miraba antes). Así que la historia de NEBULA abre este acto, sobre su propia
+   * ficha, y cada paso señala algo que existe hoy en pantalla: los vídeos, los retos con el enlace y
+   * el tope diario, los marcadores, las pestañas y el mercado.
+   */
   var PASOS=[
-    {t:'Te tengo, recluta',foco:'.nave-estado',
-     x:'Identificación confirmada. Desde este dispositivo la nave se abrirá sola cada vez que vuelvas. <b>Esto de aquí eres tú</b>: tu personaje, tu nivel y lo que llevas ganado. Al lado, lo que toca esta semana.'},
-    {t:'Lo que puedes conseguir hoy',foco:'.retos-semana',
-     x:'Aquí abajo están los retos de <b>esta semana</b>, con lo que da cada uno: <b>experiencia</b>, que sube de nivel a tu personaje y le cambia el aspecto, y <b>créditos ◈</b>, que son dinero.<br><br>Pulsa uno y se abre lo que hay que hacer, paso a paso. Cuando lo tengas, <b>«Lo he hecho»</b> ahí mismo.<br><br>La experiencia <b>nunca baja</b>. Los créditos se gastan.'},
-    {t:'Tus dos marcadores, siempre a la vista',foco:'.nb-fin',
-     x:'Arriba a la derecha, tus <b>xp</b> y tus <b>créditos</b>. No se van nunca: estés en la pestaña que estés, los verás subir en el momento en que ganes algo.'},
+    {t:'Canal abierto, recluta',foco:'.nave-estado',
+     x:'Soy <b>NEBULA</b>, la inteligencia de esta nave. La galaxia se apaga por <b>la Estática</b>, un silencio que hace que nadie cree ni comparta. Cruzarás <b>ocho planetas</b>, los ocho temas del curso, para reencenderla.<br><br><b>Esto de aquí eres tú</b>: tu personaje, tu nivel y lo que llevas ganado. Al lado, la orden de esta semana.'},
+    {t:'La historia, en grande',foco:'.cine',
+     x:'Cada semana se desbloquean los <b>vídeos</b> de la historia. Se ven aquí, a buen tamaño, y con las semanas de arriba vuelves a los anteriores cuando quieras.'},
+    {t:'Lo que puedes conseguir',foco:'.retos-semana',
+     x:'Los <b>retos de esta semana</b>, con lo que da cada uno: <b>experiencia</b>, que sube de nivel a tu personaje y nunca baja, y <b>créditos ◈</b>, que se gastan.<br><br>Pulsa uno, hazlo y márcalo con <b>«Lo he hecho»</b>. Donde hay algo que entregar te pido el <b>enlace</b>: sin él no se registra, y tu docente lo ve. Como mucho, <b>'+(Number(window.SG_TOPE_DIA)||3)+' retos al día</b>.'},
+    {t:'Tus marcadores, siempre a la vista',foco:'.nb-fin',
+     x:'Arriba a la derecha, tus <b>xp</b> y tus <b>créditos</b>. Estés en la pestaña que estés, los verás subir en cuanto ganes algo.'},
     {t:'Cinco sitios, y ya está',foco:'.nb-tabs',
-     x:'<b>Mi nave</b> es esto. <b>Mis retos</b>, el viaje entero por los ocho planetas. <b>Mi botín</b>, todo lo que llevas ganado: insignias, cartas y personajes. <b>Mercado Estelar</b>, donde se gasta. Y <b>Rankings</b>, tu clase de ocho maneras distintas — porque si no destacas en una, destacas en otra.'},
+     x:'<b>Mi nave</b> es esto. <b>Mis retos</b>, el viaje entero por los ocho planetas. <b>Mi botín</b>, lo que llevas ganado: insignias, cromos y personajes. <b>Mercado Estelar</b>, donde se gasta. Y <b>Rankings</b>: tu clase de ocho maneras distintas, porque si no destacas en una, destacas en otra.'},
     {t:'Y ahora, estrénate',foco:'.nb-t[data-tab="mercado"]',
-     x:'Ve al <b>Mercado Estelar</b>. Si ya tienes para uno, prueba con un <b>sobre de cromos</b> (15 ◈, una carta al azar de las 20) o con un <b>Héroe de la Rebelión</b> (60 ◈, una figura de las 30 para tu vestuario).<br><br>Es la forma más rápida de entender para qué sirve todo esto. Corto y cierro.'}
+     x:'Cuando tu docente toque <b>llamada a filas</b> en clase, te saldrá aquí arriba: pulsa <b>«Presente»</b> y te llevas créditos y un sobre.<br><br>Y si ya tienes para uno, ve al <b>Mercado Estelar</b> y abre un <b>sobre de cromos</b>. Es la forma más rápida de entender para qué sirve todo esto. Corto y cierro.'}
   ];
   // Un solo motor para los dos actos: el acto decide QUÉ pasos, con qué clave de memoria y qué pone
   // el último botón. Duplicar la función habría sido la vía rápida para que uno de los dos se quede
@@ -1635,6 +1645,11 @@
       Array.prototype.forEach.call(document.querySelectorAll('.tour-foco'),function(el){el.classList.remove('tour-foco');});
       return;}
     var s=P[i];
+    if(i===0) onboarding._dir=1;
+    if(s.foco && !document.querySelector(s.foco)){
+      var paso=(onboarding._dir||1); var k=i+paso;
+      if(k>=0 && k<P.length) return onboarding(k, acto);
+    }
     ov.innerHTML='<div class="tour-box">'+nebulaVideo('tour-cap nebula')
       +'<div class="tour-panel"><div class="tour-step">NEBULA · '+(i+1)+' / '+P.length+'</div><h3>'+s.t+'</h3><p>'+s.x+'</p>'
       +'<div class="tour-btns"><button type="button" class="tour-prev"'+(i===0?' disabled':'')+'>← Anterior</button>'
@@ -1648,8 +1663,8 @@
       if(diana){ diana.classList.add('tour-foco');
         diana.scrollIntoView({behavior:'smooth',block:'center'}); }
     }catch(e){} }
-    ov.querySelector('.tour-prev').onclick=function(){onboarding(i-1,acto);};
-    ov.querySelector('.tour-next').onclick=function(){onboarding(i+1,acto);};
+    ov.querySelector('.tour-prev').onclick=function(){onboarding._dir=-1; onboarding(i-1,acto);};
+    ov.querySelector('.tour-next').onclick=function(){onboarding._dir=1; onboarding(i+1,acto);};
     ov.querySelector('.tour-exit').onclick=function(){onboarding(P.length,acto);};
   }
 
@@ -1890,6 +1905,15 @@
       if(d&&d.yo){ st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true;
         if(st.email) localStorage.setItem(KEY_MAIL,st.email);
         if(!localStorage.getItem('sgNaveOnboard_'+per)) setTimeout(function(){ onboarding(0,'nave'); }, 700);
+      } else if(d&&d.sinSesion&&!DEMO&&window.top===window.self&&q.get('embed')!=='1'){
+        /**
+         * 🔴 13-sep · SIN SESIÓN, A LA PUERTA ÚNICA. La Nave tenía su propia caja «Identifícate,
+         * recluta», una segunda puerta con otras palabras. Quien llega aquí sin sesión (un enlace
+         * guardado, un marcador) va a la de todos: entra con Google y la puerta le trae de vuelta a
+         * SU Nave, o le pide el código si aún no está. Dentro de una presentación incrustada se
+         * queda la caja de aquí: sacar al alumno de la diapositiva sería peor.
+         */
+        location.replace('entrar.html'); return;
       } else if(d&&d.sinFicha){
         st.verificado=true;
         st.msgYo='Tu cuenta es correcta, pero todavía no te has alistado en este grupo. Es un minuto:';
@@ -2565,7 +2589,7 @@
         else { pb.disabled=false; msg.textContent=(r&&r.error)||'No ha podido ser.'; }
       },function(e){ pb.disabled=false; msg.textContent=e; });
     };
-    var ob=root.querySelector('#btn-onboard'); if(ob)ob.onclick=function(){onboarding(0, st.yo?'nave':'puerta');};
+    var ob=root.querySelector('#btn-onboard'); if(ob)ob.onclick=function(){onboarding(0, (st.yo||motorNuevo())?'nave':'puerta');};
   }
 
   // ---------- carga ----------
@@ -2602,6 +2626,7 @@
     else if(st.email)identificar(st.email);
     // 🔴 Acto 1 solo si la nave está cerrada. Si el recluta ya está identificado (vuelve desde el
     // mismo dispositivo) no tiene sentido presentarse otra vez: va directo a lo suyo.
-    if(!st.yo && !DEMO && !localStorage.getItem('sgNavePuerta_'+per)) onboarding(0,'puerta');
+    // 13-sep · y SOLO con el motor viejo: con el nuevo no hay correo que teclear ni puerta aquí.
+    if(!motorNuevo() && !st.yo && !DEMO && !localStorage.getItem('sgNavePuerta_'+per)) onboarding(0,'puerta');
   }).catch(function(){root.innerHTML='<p class="lead">No se pudo contactar con NEBULA. Prueba a recargar.</p>';});
 })();

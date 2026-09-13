@@ -780,8 +780,14 @@
           encodeURIComponent('clase.html' + (location.search || '')));
         return;
       }
-      st.correo=u.correo; localStorage.setItem('sgClaseCorreo',u.correo);
-      inicio();
+      /**
+       * 🔴 13-sep · LA SALA YA NO EXISTE: SU SITIO ES «MIS GRUPOS». Con sesión, esta página seguía
+       * dibujando la sala del docente entera —con su visita guiada hablando de «editar la respuesta
+       * del formulario» y de la consigna del pase—, y seguía enlazada desde páginas viejas. Quien
+       * llega aquí va al puesto de mando de hoy, con el grupo puesto si lo traía.
+       */
+      var g=new URLSearchParams(location.search).get('per');
+      location.replace('consola.html' + (g ? '?per=' + encodeURIComponent(g) : ''));
     });
   }
   if(NUEVO){ document.addEventListener('sg:sesion',function(){ puertaNueva(); }); puertaNueva(); return; }
