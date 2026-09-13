@@ -128,11 +128,10 @@
      * navegador. Una comprobación aquí daría sensación de puerta sin serlo, que es peor que no
      * tenerla — la lección del PIN del motor viejo.
      */
-    var SEMANA_MS = 7 * 24 * 3600 * 1000;
-    var semanaDe = function (inicio) {
+    // la semana en curso, con las semanas congeladas (motor/semanas.js: una cuenta para todos)
+    var semanaDe = function (inicio, pausas) {
       if (!inicio) return null;
-      var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-      return Math.floor((hoy - new Date(inicio + "T00:00:00")) / SEMANA_MS) + 1;
+      return window.SGSEMANAS.semanaDelCurso(inicio, pausas);
     };
     /**
      * EL TABLERO CON LO PRIVADO. No es `FUENTE.tablero`, y la diferencia costó una prueba en falso.
@@ -177,8 +176,8 @@
               // así nadie puede otorgarse retos firmando con el nombre de un compañero.
               if (String(d.correo || "").toLowerCase() === yo.correo && !mio) mio = d.nombre;
             });
-            return { id: p.id, nombre: p.nombre, tipo: S.tipo || "REGULAR", inicio: S.inicio || "",
-                     semana: semanaDe(S.inicio), archivado: S.archivado ? "sí" : "",
+            return { id: p.id, nombre: p.nombre, tipo: S.tipo || "REGULAR", inicio: S.inicio || "", pausas: S.pausas || [],
+                     semana: semanaDe(S.inicio, S.pausas), archivado: S.archivado ? "sí" : "",
                      docentes: (S.docentes || []).map(function (d) {
                        return { nombre: d.nombre, rol: d.rol, panel: (S.paneles || {})[d.nombre] || "" }; }) };
           });
@@ -675,13 +674,14 @@
     var semanaFija = 0;
     var semanaSim = function () {
       var total = ((cat().semanas || {})[(crudo && crudo.proyecto && crudo.proyecto.stargate || {}).tipo === "PUA" ? "PUA" : "REGULAR"]) || 15;
-      var f = semanaFija || parseInt(q.get("semana") || "0", 10) || (window.SGCAL && window.SGCAL.semanaActual(((crudo.proyecto || {}).stargate || {}).inicio)) || 1;
+      var S0 = (crudo.proyecto || {}).stargate || {};
+      var f = semanaFija || parseInt(q.get("semana") || "0", 10) || (window.SGCAL && window.SGCAL.semanaActual(S0.inicio, S0.pausas)) || 1;
       return Math.max(1, Math.min(total, f));
     };
     var diaDe = function (sem) {
-      var ini = ((crudo.proyecto || {}).stargate || {}).inicio;
-      var d = ini ? new Date(ini + "T12:00:00") : new Date();
-      return new Date(d.getTime() + ((Math.max(1, sem) - 1) * 7 + 2) * 864e5).toISOString().slice(0, 10);
+      var S1 = (crudo.proyecto || {}).stargate || {};
+      if (!S1.inicio) return new Date().toISOString().slice(0, 10);
+      return window.SGSEMANAS.masDias(window.SGSEMANAS.inicioDeSemana(S1.inicio, sem, S1.pausas), 2);
     };
     /** La ficha del Comandante como la tendría un recluta aplicado a estas alturas: lo de las semanas
      *  pasadas hecho, lo de esta pendiente (para enseñar «Lo he hecho»), y algo en el álbum. */
@@ -751,6 +751,43 @@
       }
       return true;
     };
+    // ── el Zoco simulado ──
+    var zoco = null;
+    var yoZ = function () { return { ficha: FID, uid: "simulacro", alias: nombre }; };
+    var otros = function () { return (crudo.perfiles || []).filter(function (p) { return p.id !== FID && p.displayName; }); };
+    var otroZ = function () { var o = otros(), x = o[Math.floor(Math.random() * o.length)] || { id: "sim-x", displayName: "Recluta" };
+      return { ficha: x.id, uid: "sim-" + x.id, alias: x.displayName }; };
+    var piezaDe = function (id) { return { id: id, tipo: /__heroe_/.test(id) ? "heroe" : "cromo", clave: String(id).split("__").pop().replace(/^(heroe|cromo)_/, "") }; };
+    var aviso_ = function () { try { document.dispatchEvent(new CustomEvent("sg:zoco")); } catch (e) {} };
+    var zocoIni = function () {
+      if (zoco) return;
+      zoco = { n: 0, anuncios: [], tratos: [] };
+      var s = semanaSim();
+      [carta(), carta(), s >= 3 ? heroe() : carta(), s >= 3 ? heroe() : carta()].forEach(function (id) {
+        zoco.anuncios.push({ id: "sa" + (++zoco.n), projectId: per, estado: "abierto", vende: otroZ(), pieza: piezaDe(id), creado: Date.now() - zoco.n * 36e5 });
+      });
+    };
+    var cerrarZ = function (t, estado) {
+      if (t.compra.uid === "simulacro") { perfil.coins += Number(t.ofrece.creditos) || 0; perfil.inventory = perfil.inventory.concat(t.ofrece.piezas || []); }
+      t.estado = estado; t.actualizado = Date.now();
+    };
+    var cambiarZ = function (t, pago) {
+      var an = zoco.anuncios.filter(function (a) { return a.id === t.anuncio; })[0];
+      if (t.compra.uid === "simulacro") {
+        // me vuelve lo apartado, pago lo acordado y recibo la pieza
+        perfil.coins += Number(t.ofrece.creditos) || 0; perfil.inventory = perfil.inventory.concat(t.ofrece.piezas || []);
+        if (perfil.coins < (Number(pago.creditos) || 0)) throw new Error("No te llega: te faltan " + ((Number(pago.creditos) || 0) - perfil.coins) + " ◈.");
+        perfil.coins -= Number(pago.creditos) || 0;
+        (pago.piezas || []).forEach(function (x) { var i = perfil.inventory.indexOf(x); if (i >= 0) perfil.inventory.splice(i, 1); });
+        perfil.inventory.push(t.pieza.id);
+      } else {
+        // vendo lo mío: sale la pieza, entra lo pagado
+        var i = perfil.inventory.indexOf(t.pieza.id); if (i >= 0) perfil.inventory.splice(i, 1);
+        perfil.coins += Number(pago.creditos) || 0; perfil.inventory = perfil.inventory.concat(pago.piezas || []);
+      }
+      t.estado = "aceptado"; t.pagado = pago; t.actualizado = Date.now();
+      if (an) an.estado = "cerrado";
+    };
     var api = {
       nombre: "firestore", simulacro: true,
       lista: function () { return Promise.resolve([]); },
@@ -818,7 +855,7 @@
           return { ok: true, regalo: regalo, racha: 1 };
         });
       },
-      reiniciar: function () { return cargar().then(function () { sembrar(); }); },
+      reiniciar: function () { return cargar().then(function () { sembrar(); zoco = null; }); },
       /** Otra semana: la ficha se vuelve a sembrar para esa semana (lo de antes hecho, lo de esta por hacer). */
       ponSemana: function (n) { semanaFija = Math.max(1, Number(n) || 1); return cargar().then(function () { sembrar(); return semanaSim(); }); },
       /** Su personaje: se guarda en este navegador para la próxima vez. */
@@ -827,6 +864,53 @@
         return cargar().then(function () { perfil.stargateAvatar = { tipo: "evo", n: n, v: v, url: "" }; });
       },
       comandante: function () { return nombre; },
+      /**
+       * EL ZOCO, DE MENTIRA: para enseñarlo en clase hace falta «otro recluta» al otro lado, y aquí lo
+       * hace el simulacro. Si ofreces, a los dos segundos te contraoferta (paso 2: te toca la última
+       * palabra); si pones algo tuyo, te llega una oferta. Los tres pasos, sin tocar a nadie de verdad.
+       */
+      zocoDatos: function () { return cargar().then(function () { zocoIni(); return { uid: "simulacro", anuncios: zoco.anuncios.filter(function (a) { return a.estado === "abierto"; }), tratos: zoco.tratos.slice() }; }); },
+      zocoPoner: function (p, piezas) { return cargar().then(function () { zocoIni();
+        piezas.forEach(function (id) {
+          var an = { id: "sa" + (++zoco.n), projectId: per, estado: "abierto", vende: yoZ(), pieza: piezaDe(id), creado: Date.now() };
+          zoco.anuncios.unshift(an);
+          // alguien de la clase se interesa
+          setTimeout(function () { if (an.estado !== "abierto") return;
+            var oferta = { creditos: an.pieza.tipo === "heroe" ? 40 : 10, piezas: [carta()] };
+            zoco.tratos.unshift({ id: "st" + (++zoco.n), anuncio: an.id, vende: yoZ(), compra: otroZ(), pieza: an.pieza, ofrece: oferta, pide: null,
+              paso: 1, turno: "vendedor", estado: "abierto", mensajes: [{ de: "comprador", texto: "¡Me encanta! ¿Te vale esto?", fecha: Date.now() }], creado: Date.now(), actualizado: Date.now() });
+            aviso_(); }, 2500);
+        });
+        return { ok: true };
+      }); },
+      zocoRetirar: function (id) { return cargar().then(function () { var an = zoco.anuncios.filter(function (a) { return a.id === id; })[0];
+        if (an) { an.estado = "retirado"; zoco.tratos.filter(function (t) { return t.anuncio === id && t.estado === "abierto"; }).forEach(function (t) { cerrarZ(t, "retirado"); }); }
+        return { ok: true }; }); },
+      zocoOfertar: function (id, ofrece) { return cargar().then(function () {
+        var an = zoco.anuncios.filter(function (a) { return a.id === id; })[0]; if (!an) throw new Error("Eso ya no está en el Zoco.");
+        var q = { creditos: Math.max(0, Number(ofrece.creditos) || 0), piezas: (ofrece.piezas || []).slice() };
+        if (q.creditos > perfil.coins) throw new Error("No tienes " + q.creditos + " ◈.");
+        q.piezas.forEach(function (x) { var i = perfil.inventory.indexOf(x); if (i < 0) throw new Error("Ya no tienes esa pieza."); perfil.inventory.splice(i, 1); });
+        perfil.coins -= q.creditos;                                   // apartado, como en el de verdad
+        var t = { id: "st" + (++zoco.n), anuncio: id, vende: an.vende, compra: yoZ(), pieza: an.pieza, ofrece: q, pide: null,
+          paso: 1, turno: "vendedor", estado: "abierto", mensajes: [], creado: Date.now(), actualizado: Date.now() };
+        zoco.tratos.unshift(t);
+        // quien lo vende contraoferta: un poco más
+        setTimeout(function () { if (t.estado !== "abierto") return;
+          t.paso = 2; t.turno = "comprador"; t.pide = { creditos: Math.min(q.creditos + 10, an.pieza.tipo === "heroe" ? 180 : 45), piezas: q.piezas.slice() };
+          t.mensajes.push({ de: "vendedor", texto: "Casi… ¿le sumas 10 ◈?", fecha: Date.now() }); t.actualizado = Date.now(); aviso_(); }, 2000);
+        return { ok: true, trato: t.id };
+      }); },
+      zocoResponder: function (id, accion, extra) { return cargar().then(function () {
+        var t = zoco.tratos.filter(function (x) { return x.id === id; })[0]; if (!t || t.estado !== "abierto") throw new Error("Ese trato ya está cerrado.");
+        var soyVende = t.vende.uid === "simulacro";
+        if (extra && extra.mensaje) t.mensajes.push({ de: soyVende ? "vendedor" : "comprador", texto: String(extra.mensaje).slice(0, 140), fecha: Date.now() });
+        if (accion === "rechazar" || accion === "retirar") { cerrarZ(t, accion === "retirar" ? "retirado" : "rechazado"); return { ok: true }; }
+        if (accion === "contraofertar" && soyVende) { t.paso = 2; t.turno = "comprador"; t.pide = extra.pide;
+          setTimeout(function () { if (t.estado === "abierto") { cambiarZ(t, t.pide); aviso_(); } }, 2000); return { ok: true, estado: "contraoferta" }; }
+        if (accion === "aceptar") { cambiarZ(t, t.paso === 2 ? t.pide : t.ofrece); return { ok: true, estado: "aceptado" }; }
+        throw new Error("Ahora no te toca.");
+      }); },
       semana: function () { return crudo ? semanaSim() : 1; }
     };
     return api;

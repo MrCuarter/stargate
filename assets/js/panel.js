@@ -37,7 +37,7 @@
   if(per && window.SGCAL && window.SGCAL.perData){
     window.SGCAL.perData(API, per, function(d){
       if(!d || d.error) return;
-      var a = forzada || window.SGCAL.semanaActual(d.inicio);
+      var a = forzada || window.SGCAL.semanaActual(d.inicio, d.pausas);
       if(a===null||a===undefined) return;
       aplicar(a, d.nombre, d.tipo);
     });

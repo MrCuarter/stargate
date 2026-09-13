@@ -74,7 +74,7 @@ c(/consejo:l\.map/.test(CAL),
 c(/clases:l\.map/.test(CAL), "   y también las clases");
 c(/window\.SGCAL\.vista\(st\.tipo, SEM\)/.test(S),
   "sesion.js usa el MISMO motor de calendario que el foro y la Nave (un dato, un sitio)");
-c(/semanaActual\(st\.inicio\)/.test(S), "la semana que abre es la que toca por la fecha de inicio del PER");
+c(/semanaActual\(st\.inicio, st\.pausas\)/.test(S), "la semana que abre es la que toca por la fecha de inicio del PER (y sus semanas congeladas)");
 
 // ------------------------------------------------------- d) el mazo se construye entero
 ["portada", "plan", "video", "reto", "insignias", "hito", "cierre", "tuyo"].forEach(function (k) {

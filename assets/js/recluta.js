@@ -206,7 +206,7 @@
         st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true;
         if(st.email) localStorage.setItem(KEY_MAIL,st.email);
         st.msgYo='';
-        setTimeout(ofrecerCapitulos, 700);
+        setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200);
       } else if(d&&d.error){
         st.msgYo='No he podido comprobar tu cuenta: '+esc(d.error);
       } else {
@@ -231,7 +231,7 @@
       if(d&&d.yo){st.yo=d.yo;st.email=email;localStorage.setItem(KEY_MAIL,email);st.msgYo='';
         // 🔴 ACTO 2: aquí, con su ficha ya delante. Se espera un poco a que la nave termine de
         // pintarse — explicar «mira tu personaje» sobre una pantalla en blanco no explica nada.
-        setTimeout(ofrecerCapitulos, 700);
+        setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200);
       }
       else if(d&&d.yo===null){st.yo=null;st.msgYo='No encuentro a nadie con ese correo en este grupo. Tiene que ser el <b>mismo correo de Google</b> con el que '+(motorNuevo()?'te alistaste':'rellenaste la Bitácora de mando')+'. ¿Todavía no te has alistado? Ese es el primer paso — el botón de abajo.';}
       else{st.yo=null;st.msgYo='La identificación aún no está activa (el mando tiene que actualizar el sistema). El resto de la nave funciona; vuelve a intentarlo más adelante.';}
@@ -253,17 +253,35 @@
         ? ' y te queda <b>una semana más</b> (hasta el <b>'+fecha(d.cierre_canje)+'</b>) para <b>canjear</b> lo que hayas ganado.'
         : '.')+'</p>';
   }
+  /**
+   * 13-sep · UNA SEMANA CONGELADA (Navidad, Semana Santa): el referente la congela en su calendario
+   * y el curso se para. Que el recluta sepa por qué no avanza nada y cuándo vuelve.
+   */
+  function pausaNave(){
+    var d=st.d||{}; if(!d.pausa||!d.inicio||!window.SGSEMANAS||st.estado!=='curso') return '';
+    var vuelve=window.SGSEMANAS.inicioDeSemana(d.inicio, (st.actual||1)+1, d.pausas);
+    var f=window.SGSEMANAS.fecha(vuelve), MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    return '<p class="prox-cap pausa-nave">⏸️ <b>Semana de pausa.</b> El viaje se detiene: la semana '+((st.actual||1)+1)+' empieza el <b>'+f.getDate()+' de '+MESES[f.getMonth()]+'</b>.</p>';
+  }
   function cabecera(){
     var d=st.d,n=st.semanas.length;
     var pos=st.estado==='antes'?'La misión aún no ha empezado':st.estado==='fin'?'Misión completada — la puerta está abierta':'Semana '+st.actual+' de '+n;
     var prox=porCapitulos()?proximoCap():null, sp=prox?semanaCap(prox):0;
     var ab=porCapitulos()?capsAbiertos().filter(function(c){ return c.clave==='c1'||PASOS_CAP[c.clave]; }):[];
+    // 🔴 13-sep · Norberto: «la posibilidad de ver onboardings pasados». El menú enseña TODOS los
+    // capítulos: los abiertos, con si ya los viste, se vuelven a ver; los que vienen, con su semana.
+    var vistos=porCapitulos()?capsVistos():{}, vienen=porCapitulos()?CAPS.filter(function(c){ return ab.indexOf(c)<0; }):[];
     return '<div class="tab-head"><div><div class="eyebrow teal">La Nave del Recluta · '+esc(d.nombre)+(d.tipo==='PUA'?' · PUA':'')+'</div><h3>'+pos+'</h3>'+(st.tab==='retos'?plazos():'')
       // 🔴 13-sep · lo que llega después, en UNA línea (lo cerrado no se enseña: agobia)
-      +(prox&&st.estado!=='fin'?'<p class="prox-cap">🔓 '+(sp===st.actual+1?'La semana que viene':'En la semana '+sp)+': <b>'+prox.icono+' '+esc(prox.titulo)+'</b></p>':'')+'</div>'
-      +'<div class="small muted rep-caps"><button class="btn small" id="btn-onboard" type="button" aria-haspopup="'+(ab.length>1)+'">▶ Repetir bienvenida</button>'
-      +(ab.length>1?'<div class="rep-menu" id="rep-menu" hidden>'+ab.map(function(c){
-          return '<button type="button" class="btn small" data-cap="'+c.clave+'">'+c.icono+' '+c.n+' · '+esc(c.titulo)+'</button>'; }).join('')+'</div>':'')
+      +(prox&&st.estado!=='fin'?'<p class="prox-cap">🔓 '+(sp===st.actual+1?'La semana que viene':'En la semana '+sp)+': <b>'+prox.icono+' '+esc(prox.titulo)+'</b></p>':'')
+      +pausaNave()+'</div>'
+      +'<div class="small muted rep-caps"><button class="btn small" id="btn-onboard" type="button" aria-haspopup="'+(ab.length>0)+'">▶ '+(ab.length?'Capítulos de NEBULA':'Repetir bienvenida')+'</button>'
+      +(ab.length?'<div class="rep-menu" id="rep-menu" hidden><p class="rep-tit">Capítulos de NEBULA</p>'+ab.map(function(c){
+          var v=vistos[c.clave];
+          return '<button type="button" class="btn small" data-cap="'+c.clave+'"><span>'+c.icono+' '+c.n+' · '+esc(c.titulo)+'</span>'
+            +'<em>'+(v?(v.estado==='saltado'?'saltado · ver':'✓ visto · ver otra vez'):'nuevo · ver')+'</em></button>'; }).join('')
+          +vienen.map(function(c){ return '<div class="rep-vien"><span>🔒 '+c.n+' · '+esc(c.titulo)+'</span><em>semana '+semanaCap(c)+'</em></div>'; }).join('')
+          +'</div>':'')
       +'</div></div>';
   }
   // ================= LA PUERTA (30-ago) =================
@@ -910,10 +928,14 @@
     var verHeroes=abierto('heroes')||(yo.heroes||[]).length>0;
     var he=!verHeroes?'':HER.map(function(h){
       var tengo=!!mios[h[0]], nx=Number(copias[h[0]])||0;
-      return celda('heroe:'+h[0], 'assets/img/heroes/'+h[0]+(tengo?'':'_bloqueado')+'.jpg',
+      var cel=celda('heroe:'+h[0], 'assets/img/heroes/'+h[0]+(tengo?'':'_bloqueado')+'.jpg',
         h[1], tengo?(RANGO_HEROE[h[3]]||h[3]):'sin descubrir', puesto==='heroe:'+h[0], tengo)
         // la burbuja con las copias, como las cartas del álbum
         .replace('</button>', nx>1?'<span class="nx" title="Tienes '+nx+'">×'+nx+'</span></button>':'</button>');
+      // 13-sep · y un botón para ponerlo en el Zoco (pulsar el héroe sigue siendo ponérselo)
+      return tengo&&abierto('zoco')&&motorNuevo()
+        ? '<div class="vest-caja">'+cel+'<button type="button" class="vest-zoco" data-zoco-poner="'+esc(per+'__heroe_'+h[0])+'" title="Poner en el Zoco" aria-label="Poner '+esc(h[1])+' en el Zoco">🔄</button></div>'
+        : cel;
     }).join('');
     var n=(yo.heroes||[]).length, rh=Number(yo.heroes_repes)||0;
     var cambio = rh ? '<p class="repes'+(rh>=2?' listo':'')+'">🔁 Llevas <b>'+rh+'</b> héroe'+(rh===1?'':'s')+' repetido'+(rh===1?'':'s')
@@ -1165,7 +1187,7 @@
    * que los enlaces con #premios o #ficha que alguien tenga guardados no se rompen.
    */
   var TABS=[['nave','🛰️','Mi nave'],['retos','🎯','Mis retos'],['botin','🏅','Mi botín'],
-            ['mercado','🛒','Mercado Estelar'],['rankings','🏆','Rankings']];
+            ['mercado','🛒','Mercado Estelar'],['zoco','🔄','El Zoco'],['rankings','🏆','Rankings']];
   var TABS_VIEJAS={ficha:'nave',semana:'nave',planetas:'retos',premios:'mercado',tablero:'rankings'};
   // ================= LA NAVE POR CAPÍTULOS (13-sep) =================
   // Norberto: «de primeras no quiero que puedan hacer mil cosas, esto puede agobiar; que se
@@ -1236,7 +1258,8 @@
         return '<button type="button" class="nb-t'+(on?' on':'')+'" role="tab"'
           +' aria-selected="'+on+'" aria-controls="nave-panel" tabindex="'+(on?'0':'-1')+'"'
           +' id="nb-t-'+x[0]+'" data-tab="'+x[0]+'" title="'+esc(x[2])+'">'
-          +'<span class="i" aria-hidden="true">'+x[1]+'</span><b>'+esc(x[2])+'</b></button>';
+          +'<span class="i" aria-hidden="true">'+x[1]+'</span><b>'+esc(x[2])+'</b>'
+          +(x[0]==='zoco'&&zocoPendientes().length?'<span class="nb-badge" title="Te toca responder">'+zocoPendientes().length+'</span>':'')+'</button>';
       }).join('')+'</div>'
       +'<div class="nb-fin">'
         +'<button type="button" class="nb-mas" id="nb-mas" aria-haspopup="true" aria-expanded="false" aria-label="Más opciones">···</button>'
@@ -1286,6 +1309,7 @@
     if(st.tab==='retos')    return mapa()+retos();
     if(st.tab==='botin')    return botin();
     if(st.tab==='mercado')  return recompensas();
+    if(st.tab==='zoco')     return zocoVista();
     return '';                                  // «rankings»: vive en su propia sección del HTML
   }
   // El tablero es una <section> aparte del HTML (la pinta tablero.js), así que se enseña y se esconde
@@ -1594,7 +1618,10 @@
      * a escalar: el Arsenal —semana 8 en el servidor— salía abierto en la 4, con su botón, y al
      * pulsarlo el servidor decía que no. Lo encontró la revisión del calendario.
      */
-    var desdeDe=function(x){ return motorNuevo() ? (Number(x.desde)||14) : window.SGCAL.desdeEfectiva(x.desde||14,d.tipo,n); };
+    // 13-sep · y lo de un capítulo que el referente ha abierto antes de tiempo, a la venta desde ya
+    var yaAbierto=function(t){ var ex=d.capitulosAbiertos||{}; return CAPS.some(function(c){ return ex[c.clave]&&(c.mercado||[]).indexOf(t)>=0; }); };
+    var desdeDe=function(x){ if(motorNuevo()&&yaAbierto(x.tipo)) return 1;
+      return motorNuevo() ? (Number(x.desde)||14) : window.SGCAL.desdeEfectiva(x.desde||14,d.tipo,n); };
     cat = cat.slice().sort(function(a,b){
       var aa=st.estado!=='antes'&&st.actual>=desdeDe(a);
       var bb=st.estado!=='antes'&&st.actual>=desdeDe(b);
@@ -1679,6 +1706,336 @@
       +'</section>';
   }
 
+  // ================= EL ZOCO ESTELAR · el trueque entre reclutas (13-sep) =================
+  // Norberto: «el estudiante pulsa en un avatar o una carta y la pone en venta; en el Zoco ve lo que
+  // han puesto los demás y hace su oferta —dinero, cartas, avatares—; el vendedor acepta, rechaza con
+  // un mensaje o contraoferta mirando el inventario del otro, y la pelota vuelve al comprador». Lo
+  // decide TODO el servidor (functions/stargateZoco.js): lo ofrecido queda apartado y el cambio va en
+  // una transacción. Aquí solo se enseña y se pide. En el simulacro, el otro recluta lo hace él.
+  var ZAPI=function(){ return SIMULACRO ? SG.FUENTE : SG.MOTOR; };
+  var TOPE_ZOCO={heroe:180, cromo:45};
+  function cargarZoco(){
+    var Z=ZAPI(); if(!st.yo||!abierto('zoco')||!Z||!Z.zocoDatos) return Promise.resolve();
+    return Z.zocoDatos(per).then(function(d){ st.zoco=d; })
+      .catch(function(e){ st.zoco={error:String(e&&e.message||e), anuncios:[], tratos:[], uid:''}; });
+  }
+  function zocoPendientes(){
+    var z=st.zoco; if(!z||!z.tratos) return [];
+    return z.tratos.filter(function(t){ return t.estado==='abierto'
+      && ((t.vende.uid===z.uid&&t.turno==='vendedor')||(t.compra.uid===z.uid&&t.turno==='comprador')); });
+  }
+  /**
+   * NOVEDADES. 🔴 13-sep · el laboratorio lo destapó: si Olga aceptaba la oferta de Pau, Pau no se
+   * enteraba al entrar (el aviso solo salía cuando «te toca»); lo leía, si acaso, en el historial
+   * plegado. Ahora lo que ha pasado con tus tratos desde la última vez que miraste el Zoco sale en
+   * la franja de arriba y, dentro del Zoco, en «🆕 Novedades». «Visto» se guarda en este navegador.
+   */
+  function zocoVistoClave(){ return 'sgZocoVisto_'+per+'_'+((st.zoco&&st.zoco.uid)||''); }
+  function zocoVisto(){ try{ return Number(localStorage.getItem(zocoVistoClave()))||0; }catch(e){ return 0; } }
+  function zocoNovedades(){
+    var z=st.zoco; if(!z||!z.tratos||SIMULACRO) return [];
+    var v=zocoVisto();
+    return z.tratos.filter(function(t){ return t.estado!=='abierto' && Number(t.actualizado||0)>v; });
+  }
+  function marcaZocoVisto(){
+    var z=st.zoco; if(!z||!z.tratos) return;
+    var m=zocoVisto(); z.tratos.forEach(function(t){ m=Math.max(m, Number(t.actualizado||0)); });
+    try{ localStorage.setItem(zocoVistoClave(), String(m)); }catch(e){}
+  }
+  function fraseNovedad(t){
+    var z=st.zoco||{}, soyVende=t.vende.uid===z.uid, otro=esc((soyVende?t.compra:t.vende).alias), pz='<b>'+esc(datosPieza(t.pieza).nombre)+'</b>';
+    switch(t.estado){
+      case 'aceptado': return soyVende ? '<b>'+otro+'</b> ha aceptado: tu '+pz+' ya es suyo y lo tuyo está en tu cuenta.'
+                                       : '<b>'+otro+'</b> ha aceptado: '+pz+' ya es tuyo.';
+      case 'rechazado': return soyVende ? '<b>'+otro+'</b> no ha aceptado tu contraoferta por '+pz+'.'
+                                        : '<b>'+otro+'</b> ha rechazado tu oferta por '+pz+': lo que ofreciste ha vuelto a ti.';
+      case 'vendido': return pz+' se lo quedó otro recluta: lo que ofreciste ha vuelto a ti.';
+      case 'retirado': return soyVende ? '<b>'+otro+'</b> ha retirado su oferta por tu '+pz+'.'
+                                       : '<b>'+otro+'</b> ha retirado '+pz+' del Zoco: lo que ofreciste ha vuelto a ti.';
+      case 'caducado': return 'Un trato por '+pz+' caducó sin respuesta: lo apartado ha vuelto a su dueño.';
+      case 'anulado': return 'El trato por '+pz+' se anuló: lo apartado ha vuelto a su dueño.';
+      case 'deshecho': return 'Tu docente ha deshecho el trueque de '+pz+': cada cosa ha vuelto a su dueño.';
+    }
+    return 'Novedades en el trato por '+pz+'.';
+  }
+  function piezaDeId(id){ return {id:id, tipo:/__heroe_/.test(id)?'heroe':'cromo', clave:String(id).split('__').pop().replace(/^(heroe|cromo)_/,'')}; }
+  function datosPieza(p){
+    var x=p.tipo==='heroe' ? (window.SG_HEROES||[]).filter(function(h){return h[0]===p.clave;})[0]
+                           : (window.SG_CROMOS||[]).filter(function(c){return c[0]===p.clave;})[0];
+    return { nombre:x?x[1]:p.clave, rareza:x?String(x[3]||''):'',
+             img:p.tipo==='heroe'?'assets/img/heroes/'+p.clave+'.jpg':'assets/img/tarjetas/'+p.clave+'_carta.png'+CARDV };
+  }
+  function miniPieza(p, extra){
+    var d=datosPieza(p);
+    return '<figure class="zp '+p.tipo+'"><img src="'+esc(d.img)+'" alt="" loading="lazy"><figcaption>'+esc(d.nombre)+(extra||'')+'</figcaption></figure>';
+  }
+  function paqueteHtml(q){
+    if(!q) return '';
+    var cr=Number(q.creditos)||0, ps=(q.piezas||[]).map(piezaDeId);
+    return '<div class="zq">'+(cr?'<span class="zq-cr">'+cr+' ◈</span>':'')+ps.map(function(p){ return miniPieza(p); }).join('')
+      +(!cr&&!ps.length?'<em>nada</em>':'')+'</div>';
+  }
+  /** Lo que tiene alguien para cambiar: [{id, tipo, clave, n}] (de su ficha del tablero). */
+  function piezasDe(r){
+    var out=[];
+    Object.keys((r&&r.heroes_n)||{}).forEach(function(k){ out.push({id:per+'__heroe_'+k, tipo:'heroe', clave:k, n:r.heroes_n[k]}); });
+    Object.keys((r&&r.cromos)||{}).forEach(function(k){ if(r.cromos[k]>0) out.push({id:per+'__cromo_'+k, tipo:'cromo', clave:k, n:r.cromos[k]}); });
+    return out;
+  }
+  var ESTADO_TRATO={aceptado:'✅ Cambiado', rechazado:'✖️ Rechazado', retirado:'↩️ Retirado', caducado:'⌛ Caducó sin respuesta',
+    anulado:'🚫 Anulado: ya no lo tenía', vendido:'💰 Se lo quedó otro', deshecho:'↺ Deshecho por el docente'};
+  function tarjetaTrato(t, z){
+    var soyVende=t.vende.uid===z.uid, otro=soyVende?t.compra:t.vende, pz=datosPieza(t.pieza);
+    var toca=t.estado==='abierto'&&((soyVende&&t.turno==='vendedor')||(!soyVende&&t.turno==='comprador'));
+    var tit = soyVende ? '<b>'+esc(otro.alias)+'</b> quiere tu <b>'+esc(pz.nombre)+'</b>'
+                       : 'Tu oferta por <b>'+esc(pz.nombre)+'</b> de <b>'+esc(otro.alias)+'</b>';
+    var cuerpo = '<div class="zt-fila"><div><span class="zt-et">'+(soyVende?'Te ofrece':'Ofreces')+'</span>'+paqueteHtml(t.ofrece)+'</div>'
+      +(t.pide?'<div><span class="zt-et">'+(soyVende?'Le pides':'Te pide')+'</span>'+paqueteHtml(t.pide)+'</div>':'')+'</div>'
+      +((t.mensajes||[]).length?'<ul class="zt-msgs">'+t.mensajes.map(function(m){
+          var suyo=(m.de==='vendedor')===soyVende; return '<li class="'+(suyo?'mio':'suyo')+'"><b>'+esc(suyo?'Tú':otro.alias)+':</b> «'+esc(m.texto)+'»</li>'; }).join('')+'</ul>':'');
+    var botones='';
+    if(toca && soyVende && t.paso===1) botones='<button class="btn primary" data-zt="aceptar" data-t="'+t.id+'">✅ Aceptar</button>'
+      +'<button class="btn" data-zt="contraofertar" data-t="'+t.id+'">↩️ Contraofertar</button>'
+      +'<button class="btn" data-zt="rechazar" data-t="'+t.id+'">✖️ Rechazar</button>';
+    else if(toca && !soyVende && t.paso===2) botones='<button class="btn primary" data-zt="aceptar" data-t="'+t.id+'">✅ Aceptar</button>'
+      +'<button class="btn" data-zt="rechazar" data-t="'+t.id+'">✖️ No, gracias</button>';
+    else if(t.estado==='abierto' && !soyVende && t.paso===1) botones='<button class="btn small" data-zt="retirar" data-t="'+t.id+'">Retirar mi oferta</button>';
+    var estado = t.estado==='abierto' ? (toca?'<span class="chip wip">Te toca</span>':'<span class="chip">⏳ Esperando a '+esc(otro.alias)+'</span>')
+                                      : '<span class="chip">'+(ESTADO_TRATO[t.estado]||t.estado)+'</span>';
+    return '<div class="card zt'+(toca?' toca':'')+'"><div class="zt-cab"><img class="zt-pz '+t.pieza.tipo+'" src="'+esc(pz.img)+'" alt="">'
+      +'<div><p class="zt-tit">'+tit+'</p>'+estado+(t.paso===2&&t.estado==='abierto'?' <span class="chip">paso 2 de 3</span>':'')+'</div></div>'
+      +cuerpo+(botones?'<div class="zt-btns">'+botones+'</div>':'')+'</div>';
+  }
+  function zocoVista(){
+    var z=st.zoco, r=st.yo||{};
+    if(!z){ cargarZoco().then(function(){ if(st.tab==='zoco') render(); }); return '<section><h2>El Zoco Estelar</h2><div class="card">'+cargando('Abriendo el Zoco…','')+'</div></section>'; }
+    if(z.error) return '<section><h2>El Zoco Estelar</h2><div class="card"><p class="malo">No he podido abrir el Zoco: '+esc(z.error)+'</p></div></section>';
+    var pend=zocoPendientes(), mios=z.anuncios.filter(function(a){ return a.vende.uid===z.uid; }),
+        otros=z.anuncios.filter(function(a){ return a.vende.uid!==z.uid; });
+    var apartado=z.tratos.filter(function(t){ return t.estado==='abierto'&&t.compra.uid===z.uid; })
+      .reduce(function(a,t){ return a+(Number(t.ofrece&&t.ofrece.creditos)||0); },0);
+    var miOferta={}; z.tratos.forEach(function(t){ if(t.estado==='abierto'&&t.compra.uid===z.uid) miOferta[t.anuncio]=t; });
+    var ofertasA={}; z.tratos.forEach(function(t){ if(t.estado==='abierto'&&t.vende.uid===z.uid) ofertasA[t.anuncio]=(ofertasA[t.anuncio]||0)+1; });
+    var tarjeta=function(a, mio){
+      var d=datosPieza(a.pieza), mo=miOferta[a.id];
+      return '<div class="card zc '+a.pieza.tipo+'"><div class="zc-img"><img src="'+esc(d.img)+'" alt="" loading="lazy"></div>'
+        +'<div class="zc-txt"><b>'+esc(d.nombre)+'</b><span class="zc-meta">'+esc(d.rareza?d.rareza.charAt(0).toUpperCase()+d.rareza.slice(1).toLowerCase():'')+(mio?' · <em>tuyo</em>':' · de '+esc(a.vende.alias))+'</span>'
+        +(mio ? (ofertasA[a.id]?'<span class="chip ok">'+ofertasA[a.id]+' oferta'+(ofertasA[a.id]>1?'s':'')+'</span>':'<span class="chip">sin ofertas aún</span>')
+               +'<button class="btn small" data-zretirar="'+a.id+'">Retirar</button>'
+              : mo ? '<span class="chip">⏳ Ya has ofertado</span>'
+                   : '<button class="btn primary" data-zofertar="'+a.id+'">Hacer una oferta</button>')
+        +'</div></div>';
+    };
+    if(!st.zocoNov){ st.zocoNov=zocoNovedades().map(function(t){ return t.id; }); marcaZocoVisto(); }
+    var nov=z.tratos.filter(function(t){ return t.estado!=='abierto' && st.zocoNov.indexOf(t.id)>=0; });
+    var hist=z.tratos.filter(function(t){ return t.estado!=='abierto' && nov.indexOf(t)<0; }).slice(0,6);
+    var abiertos=z.tratos.filter(function(t){ return t.estado==='abierto' && pend.indexOf(t)<0; });
+    return '<section class="zoco"><div class="eyebrow violet">Trueque entre reclutas</div><h2>El Zoco Estelar</h2>'
+      +'<p class="lead">Pon tus héroes o cromos y los demás te ofrecen lo suyo: créditos, cartas o héroes. Lo que ofreces queda <b>apartado</b> hasta que te respondan, y cada trato se cierra en <b>3 pasos</b> como mucho.</p>'
+      +'<div class="zoco-barra"><button class="btn primary grande" id="z-poner" type="button">➕ Poner algo mío</button>'
+      +'<span class="small">Tienes <b>'+(r.creditos!=null?r.creditos:0)+' ◈</b>'+(apartado?' · <b>'+apartado+' ◈</b> apartados en tus ofertas':'')+'</span></div>'
+      +(nov.length?'<h3 class="z-h">🆕 Novedades</h3><div class="zt-lista">'+nov.map(function(t){ return '<p class="zt-nov">'+fraseNovedad(t)+'</p>'+tarjetaTrato(t,z); }).join('')+'</div>':'')
+      +(pend.length?'<h3 class="z-h">🔔 Te toca responder</h3><div class="zt-lista">'+pend.map(function(t){ return tarjetaTrato(t,z); }).join('')+'</div>':'')
+      +'<h3 class="z-h">En el Zoco ahora <span class="small muted">'+otros.length+'</span></h3>'
+      +(otros.length?'<div class="zc-grid">'+otros.map(function(a){ return tarjeta(a,false); }).join('')+'</div>'
+                    :'<p class="small muted">Todavía nadie ha puesto nada. Sé el primero: pulsa «Poner algo mío».</p>')
+      +(mios.length?'<h3 class="z-h">Lo tuyo en el Zoco <span class="small muted">'+mios.length+'</span></h3><div class="zc-grid">'+mios.map(function(a){ return tarjeta(a,true); }).join('')+'</div>':'')
+      +(abiertos.length?'<h3 class="z-h">Tus tratos en marcha</h3><div class="zt-lista">'+abiertos.map(function(t){ return tarjetaTrato(t,z); }).join('')+'</div>':'')
+      +(hist.length?'<details class="cajon"><summary><b>Historial</b> <span class="cnt">'+hist.length+'</span></summary><div class="zt-lista">'+hist.map(function(t){ return tarjetaTrato(t,z); }).join('')+'</div></details>':'')
+      +'</section>';
+  }
+  // ── las ventanas del Zoco (poner, ofertar, contraofertar, rechazar)
+  function zocoCapa(html){
+    var capa=document.createElement('div'); capa.className='zoco-capa';
+    capa.innerHTML='<div class="zoco-caja" role="dialog" aria-modal="true">'+html+'</div>';
+    document.body.appendChild(capa);
+    var fuera=function(){ document.removeEventListener('keydown',tecla,true); if(capa.parentNode) capa.parentNode.removeChild(capa); };
+    var tecla=function(e){ if(e.key==='Escape'){ e.preventDefault(); fuera(); } };
+    document.addEventListener('keydown',tecla,true);
+    capa.onclick=function(e){ if(e.target===capa) fuera(); };
+    Array.prototype.forEach.call(capa.querySelectorAll('[data-cerrar]'),function(b){ b.onclick=fuera; });
+    return { capa:capa, fuera:fuera };
+  }
+  function selector(piezas, max, marcadas){
+    return '<div class="zm-grid">'+piezas.map(function(p){
+      var d=datosPieza(p), ya=(marcadas&&marcadas[p.id])||0;
+      return '<button type="button" class="zm-p '+p.tipo+'" data-p="'+esc(p.id)+'" aria-pressed="false"'+(p.n-ya<=0?' disabled':'')+'>'
+        +'<img src="'+esc(d.img)+'" alt="" loading="lazy"><b>'+esc(d.nombre)+'</b>'
+        +(p.n>1?'<span class="nx">×'+p.n+'</span>':'')+(ya?'<span class="zm-ya">'+(p.n-ya<=0?'ya en el Zoco':ya+' en el Zoco')+'</span>':'')+'</button>'; }).join('')+'</div>';
+  }
+  function cablearSelector(caja, max, alCambiar){
+    var el=[];
+    Array.prototype.forEach.call(caja.querySelectorAll('.zm-p'),function(b){
+      b.onclick=function(){ var id=b.getAttribute('data-p'), i=el.indexOf(id);
+        if(i>=0){ el.splice(i,1); b.classList.remove('on'); b.setAttribute('aria-pressed','false'); }
+        else { if(el.length>=max) return; el.push(id); b.classList.add('on'); b.setAttribute('aria-pressed','true'); }
+        alCambiar(el); };
+    });
+    return function(){ return el.slice(); };
+  }
+  /** Los mensajes del servidor nombran las piezas por su clave (H03_xeno): aquí, por su nombre. */
+  function bonitoZoco(t){
+    return String(t||'').replace(/^[A-Za-z]*Error:\s*/,'').replace(/\b([A-Z]\d{1,2}_[a-z0-9_]+)\b/g, function(m){
+      var x=(window.SG_HEROES||[]).filter(function(h){return h[0]===m;})[0]||(window.SG_CROMOS||[]).filter(function(c){return c[0]===m;})[0];
+      return x?'«'+x[1]+'»':m; });
+  }
+  /**
+   * El final de un trato, en la ventana de NEBULA. 🔴 13-sep · «Sí, cambiar» dejaba la pregunta
+   * ABIERTA para siempre: `nebulaPregunta` no se cierra al decir que sí (el sí se transforma en la
+   * entrega), y el Zoco no la transformaba. Ahora el sí pasa a «Un momento…» y luego al resultado.
+   */
+  function zocoFin(o){
+    var capa=document.querySelector('.neb-capa');
+    if(!capa){ capa=document.createElement('div'); capa.className='neb-capa'; document.body.appendChild(capa); }
+    capa.classList.remove('cerrando');
+    capa.innerHTML='<div class="neb-caja '+(o.mal?'mal':'gana')+'" role="dialog" aria-modal="true" aria-labelledby="neb-t">'
+      +'<div class="neb-cara"><img src="assets/img/personajes/nebula.png" alt="NEBULA"></div><div class="neb-quien">NEBULA</div>'
+      +'<h3 id="neb-t">'+o.titulo+'</h3>'+(o.arte?'<div class="neb-arte"><img src="'+esc(o.arte)+'" alt=""></div>':'')
+      +'<p class="neb-nota">'+o.texto+'</p><div class="neb-botones"><button type="button" class="btn primary" data-cerrar>Seguir</button></div></div>';
+    var b=capa.querySelector('[data-cerrar]');
+    var fuera=function(){ document.removeEventListener('keydown',tecla,true); capa.classList.add('cerrando');
+      setTimeout(function(){ if(capa.parentNode) capa.parentNode.removeChild(capa); },160); };
+    var tecla=function(e){ if(e.key==='Escape'){ e.preventDefault(); fuera(); } };
+    document.addEventListener('keydown',tecla,true);
+    b.onclick=fuera; capa.onclick=function(ev){ if(ev.target===capa) fuera(); };
+    setTimeout(function(){ b.focus(); },40);
+  }
+  function zocoEspera(){
+    var bs=document.querySelector('.neb-capa .neb-botones'); if(bs) bs.innerHTML='<p class="neb-nota">Un momento…</p>';
+  }
+  /**
+   * Pedir algo al Zoco y repintar. `ok(r)` devuelve un texto (aviso abajo) o {titulo, texto, arte,
+   * mal} (ventana de NEBULA). Los errores, siempre en la ventana: un aviso de 6 s no se lee entero.
+   */
+  function tras(promesa, ok){
+    zocoEspera();
+    return promesa.then(function(r){
+      return cargarZoco().then(function(){ if(st.tab==='zoco') marcaZocoVisto(); quien(null,function(d){ if(d&&d.yo) st.yo=d.yo; render();
+        var m=ok?ok(r):'';
+        if(m&&typeof m==='object') return zocoFin(m);
+        var capa=document.querySelector('.neb-capa'); if(capa&&capa.parentNode) capa.parentNode.removeChild(capa);
+        if(m) aviso(m); }); });
+    }).catch(function(e){
+      zocoFin({ titulo:'No se ha podido', mal:true, texto:esc(bonitoZoco(e&&e.message||e))+'<br><b>No se ha tocado nada.</b>' });
+      cargarZoco().then(function(){ render(); });
+    });
+  }
+  function zocoPonerVentana(soloId){
+    var z=st.zoco||{anuncios:[]}, puestas={};
+    z.anuncios.forEach(function(a){ if(a.vende.uid===z.uid) puestas[a.pieza.id]=(puestas[a.pieza.id]||0)+1; });
+    if(soloId){
+      var pz=datosPieza(piezaDeId(soloId));
+      return nebulaPregunta({ titulo:'¿Pongo «'+esc(pz.nombre)+'» en el Zoco?',
+        cuerpo:'<p class="neb-nota">Sigue siendo tuyo (y te lo puedes seguir poniendo) hasta que aceptes una oferta. Lo retiras cuando quieras.</p>',
+        si:'Sí, ponerlo', no:'Ahora no' }).then(function(ok){ if(ok) tras(ZAPI().zocoPoner(per,[soloId]), function(){ return '🔄 <b>'+esc(pz.nombre)+'</b> ya está en el Zoco.'; }); });
+    }
+    var mias=piezasDe(st.yo);
+    if(!mias.length) return aviso('Todavía no tienes héroes ni cromos que cambiar.');
+    var v=zocoCapa('<h3>Poner algo tuyo en el Zoco</h3><p class="small muted">Marca uno o varios. Siguen siendo tuyos hasta que aceptes una oferta.</p>'
+      +selector(mias, 8, puestas)
+      +'<div class="zm-pie"><button class="btn primary" id="zm-ok" disabled>Poner en el Zoco</button><button class="btn" data-cerrar>Cancelar</button></div>');
+    var ok=v.capa.querySelector('#zm-ok');
+    var el=cablearSelector(v.capa, 8, function(l){ ok.disabled=!l.length; ok.textContent=l.length?'Poner '+l.length+' en el Zoco':'Poner en el Zoco'; });
+    ok.onclick=function(){ var l=el(); if(!l.length) return; ok.disabled=true; v.fuera();
+      tras(ZAPI().zocoPoner(per,l), function(){ return '🔄 <b>'+l.length+'</b> '+(l.length===1?'cosa':'cosas')+' en el Zoco.'; }); };
+  }
+  function zocoOfertaVentana(anuncio){
+    var d=datosPieza(anuncio.pieza), tope=TOPE_ZOCO[anuncio.pieza.tipo]||45, mis=Number((st.yo||{}).creditos)||0;
+    var z=st.zoco||{anuncios:[]}, puestas={};
+    z.anuncios.forEach(function(a){ if(a.vende.uid===z.uid) puestas[a.pieza.id]=(puestas[a.pieza.id]||0)+1; });
+    var v=zocoCapa('<h3>Tu oferta por '+esc(d.nombre)+'</h3><p class="small muted">de <b>'+esc(anuncio.vende.alias)+'</b> · lo que ofreces queda apartado hasta que te responda</p>'
+      +'<div class="zm-obj">'+miniPieza(anuncio.pieza)+'</div>'
+      +'<label class="zm-campo">Créditos <span class="small muted">(tienes '+mis+' ◈ · como mucho '+tope+')</span><input type="number" id="zm-cr" min="0" max="'+Math.min(tope,mis)+'" value="0"></label>'
+      +'<p class="zm-et">Y/o héroes y cartas tuyos <span class="small muted">(hasta 5)</span></p>'+selector(piezasDe(st.yo), 5, puestas)
+      +'<label class="zm-campo">Un mensaje <span class="small muted">(opcional, lo verá también tu docente)</span><input id="zm-msg" maxlength="140" placeholder="¿Te vale esto?"></label>'
+      +'<div class="zm-pie"><button class="btn primary" id="zm-ok">Enviar oferta</button><button class="btn" data-cerrar>Cancelar</button></div>');
+    var el=cablearSelector(v.capa, 5, function(){});
+    v.capa.querySelector('#zm-ok').onclick=function(){
+      var cr=Math.max(0,Math.floor(Number(v.capa.querySelector('#zm-cr').value)||0)), ps=el();
+      if(!cr&&!ps.length) return aviso('Ofrece algo: créditos, cartas o héroes.');
+      if(cr>mis) return aviso('No tienes '+cr+' ◈.');
+      v.fuera();
+      tras(ZAPI().zocoOfertar(anuncio.id,{creditos:cr,piezas:ps},v.capa.querySelector('#zm-msg').value), function(){ return '📨 Oferta enviada a <b>'+esc(anuncio.vende.alias)+'</b>. Lo ofrecido queda apartado.'; });
+    };
+  }
+  function zocoContraVentana(t){
+    var d=datosPieza(t.pieza), tope=TOPE_ZOCO[t.pieza.tipo]||45;
+    var buscar=function(l){ return (l||[]).filter(function(x){ return x.fid===t.compra.ficha; })[0]; };
+    var suyo=buscar(st.d&&st.d.reclutas)||buscar((window.SG_TABLERO_DATA||{}).reclutas);
+    // lo que tiene el comprador, más lo que ya ofreció (está apartado, pero es suyo)
+    var ps=piezasDe(suyo); (t.ofrece.piezas||[]).forEach(function(id){ if(!ps.some(function(p){return p.id===id;})) { var p=piezaDeId(id); p.n=1; ps.push(p); } });
+    var v=zocoCapa('<h3>Contraoferta por tu '+esc(d.nombre)+'</h3><p class="small muted">Esto es lo que tiene <b>'+esc(t.compra.alias)+'</b>. Elige lo que quieres: la pelota vuelve a su tejado y tendrá la última palabra.</p>'
+      +'<label class="zm-campo">Créditos <span class="small muted">(como mucho '+tope+')</span><input type="number" id="zm-cr" min="0" max="'+tope+'" value="'+(Number(t.ofrece.creditos)||0)+'"></label>'
+      +(ps.length?'<p class="zm-et">Y/o sus héroes y cartas <span class="small muted">(hasta 5)</span></p>'+selector(ps,5):'<p class="small muted">No tiene héroes ni cartas: pídele créditos.</p>')
+      +'<label class="zm-campo">Un mensaje <span class="small muted">(opcional)</span><input id="zm-msg" maxlength="140" placeholder="Casi… ¿le sumas algo?"></label>'
+      +'<div class="zm-pie"><button class="btn primary" id="zm-ok">Enviar contraoferta</button><button class="btn" data-cerrar>Cancelar</button></div>');
+    var el=cablearSelector(v.capa, 5, function(){});
+    v.capa.querySelector('#zm-ok').onclick=function(){
+      var cr=Math.max(0,Math.floor(Number(v.capa.querySelector('#zm-cr').value)||0)), l=el();
+      if(!cr&&!l.length) return aviso('Di qué quieres a cambio.');
+      v.fuera();
+      tras(ZAPI().zocoResponder(t.id,'contraofertar',{pide:{creditos:cr,piezas:l}, mensaje:v.capa.querySelector('#zm-msg').value}), function(){ return '↩️ Contraoferta enviada a <b>'+esc(t.compra.alias)+'</b>: ahora le toca a él.'; });
+    };
+  }
+  function zocoRechazarVentana(t){
+    var soyVende=st.zoco&&t.vende.uid===st.zoco.uid, otro=soyVende?t.compra:t.vende;
+    var v=zocoCapa('<h3>'+(soyVende?'Rechazar la oferta':'No aceptar')+' de '+esc(otro.alias)+'</h3>'
+      +'<p class="small muted">'+(soyVende?'Lo que te ofrecía vuelve a su dueño.':'Lo que ofreciste vuelve a ti.')+' Puedes dejarle un mensaje.</p>'
+      +'<label class="zm-campo">Mensaje <span class="small muted">(opcional)</span><input id="zm-msg" maxlength="140" placeholder="Pides poco · Ya lo tengo · Busco un MITO…"></label>'
+      +'<div class="zm-pie"><button class="btn primary" id="zm-ok">'+(soyVende?'Rechazar':'No, gracias')+'</button><button class="btn" data-cerrar>Volver</button></div>');
+    v.capa.querySelector('#zm-ok').onclick=function(){ var m=v.capa.querySelector('#zm-msg').value; v.fuera();
+      tras(ZAPI().zocoResponder(t.id,'rechazar',{mensaje:m}), function(){ return '✖️ Hecho. '+(soyVende?'Su oferta ha vuelto a '+esc(otro.alias)+'.':'Lo que ofreciste ha vuelto a ti.'); }); };
+  }
+  function cablearZoco(){
+    if(st.tab!=='zoco') return;
+    var z=st.zoco; if(!z) return;
+    var b=document.getElementById('z-poner'); if(b) b.onclick=function(){ zocoPonerVentana(); };
+    Array.prototype.forEach.call(root.querySelectorAll('[data-zofertar]'),function(x){
+      x.onclick=function(){ var a=z.anuncios.filter(function(y){ return y.id===x.getAttribute('data-zofertar'); })[0]; if(a) zocoOfertaVentana(a); }; });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-zretirar]'),function(x){
+      x.onclick=function(){ tras(ZAPI().zocoRetirar(x.getAttribute('data-zretirar')), function(){ return '↩️ Retirado del Zoco. Si había ofertas, han vuelto a sus dueños.'; }); }; });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-zt]'),function(x){
+      x.onclick=function(){
+        var t=z.tratos.filter(function(y){ return y.id===x.getAttribute('data-t'); })[0]; if(!t) return;
+        var acc=x.getAttribute('data-zt'), pz=datosPieza(t.pieza);
+        if(acc==='contraofertar') return zocoContraVentana(t);
+        if(acc==='rechazar') return zocoRechazarVentana(t);
+        if(acc==='retirar') return tras(ZAPI().zocoResponder(t.id,'retirar'), function(){ return '↩️ Oferta retirada: lo apartado ha vuelto a ti.'; });
+        if(acc==='aceptar'){
+          var soyVende=t.vende.uid===z.uid, pago=t.paso===2?t.pide:t.ofrece;
+          return nebulaPregunta({ titulo: soyVende?'¿Cambias tu «'+esc(pz.nombre)+'»?':'¿Aceptas y te llevas «'+esc(pz.nombre)+'»?',
+            cuerpo:'<p class="neb-nota">'+(soyVende?'Te llevas':'Pagas')+':</p>'+paqueteHtml(pago),
+            si:'Sí, cambiar', no:'Ahora no' }).then(function(ok){ if(!ok) return;
+              tras(ZAPI().zocoResponder(t.id,'aceptar'), function(r){
+                if(r&&r.motivo) return { titulo:'Trato anulado', mal:true, texto:esc(bonitoZoco(r.motivo)) };
+                var otro=soyVende?t.compra:t.vende;
+                return { titulo:'¡Trato hecho!', arte:pz.img, texto: soyVende
+                  ? 'Tu <b>'+esc(pz.nombre)+'</b> ya es de <b>'+esc(otro.alias)+'</b>, y lo que te ha dado ya está en tu cuenta.'
+                  : '<b>'+esc(pz.nombre)+'</b> ya es tuyo: lo tienes en «Mi botín».' }; }); });
+        }
+      };
+    });
+  }
+  /**
+   * «El vendedor recibirá un aviso la próxima vez que se conecte» (Norberto). 🔴 Era un aviso
+   * flotante de 3 segundos: quien entraba mirando el móvil no lo veía nunca. Ahora es una franja
+   * FIJA arriba de la Nave, en cualquier pestaña menos el propio Zoco, hasta que responda.
+   */
+  function avisoZoco(){
+    if(!abierto('zoco')||st.tab==='zoco') return '';
+    var n=zocoPendientes().length, nov=zocoNovedades();
+    if(!n&&!nov.length) return '';
+    var txt = n ? '🔔 <b>El Zoco Estelar:</b> tienes <b>'+n+'</b> trato'+(n>1?'s':'')+' esperando tu respuesta.'
+                  +(nov.length?' Y '+nov.length+' novedad'+(nov.length>1?'es':'')+'.':'')
+                : '🆕 <b>El Zoco Estelar:</b> '+fraseNovedad(nov[0])+(nov.length>1?' <span class="small">(y '+(nov.length-1)+' más)</span>':'');
+    return '<div class="card zoco-aviso" role="status"><p>'+txt+'</p><button type="button" class="btn primary" data-tab="zoco">Ir al Zoco</button></div>';
+  }
+  function zocoAlEntrar(){
+    if(!abierto('zoco')||!st.yo) return;
+    cargarZoco().then(function(){ if(zocoPendientes().length||zocoNovedades().length) render(); });
+  }
+  document.addEventListener('sg:zoco', function(){ cargarZoco().then(function(){ render(); }); });
+
   // ---------- onboarding NEBULA, en DOS actos ----------
   // 🔴 11-sep · Norberto: «debería tener dos momentos». Tenía razón y era un fallo de fondo: NEBULA
   // te explicaba tu ficha, tus créditos y tu personaje ANTES de que existiera nada de eso, porque la
@@ -1756,6 +2113,12 @@
          x:'Tres adornos nuevos en el Mercado: un <b>título</b> bajo tu alias, el <b>fondo</b> de tu ficha con el planeta que elijas y el <b>marco dorado</b> de tu avatar.'},
         {t:'Dónde se ven',foco:'.nb-t[data-tab="botin"]',
          x:'Se ponen desde <b>Mi botín</b>, y se ven en tu ficha y en el <b>tablero de toda la clase</b>.'}],
+    c5:[{t:'Se abre El Zoco Estelar',foco:'.nb-t[data-tab="zoco"]',
+         x:'Aquí se <b>cambia</b> entre reclutas, sin tienda de por medio. Pon tus héroes o cromos (repetidos o no) y los demás te ofrecen lo suyo: <b>créditos, cartas o héroes</b>.'},
+        {t:'Cómo se hace un trato',foco:'.nb-t[data-tab="zoco"]',
+         x:'Ofreces algo y queda <b>apartado</b> hasta que te respondan. Quien vende acepta, rechaza con un mensaje o te hace una <b>contraoferta</b> mirando lo que tienes. Tú tienes la última palabra: <b>3 pasos</b> y trato cerrado.'},
+        {t:'Poner lo tuyo',foco:'.nb-t[data-tab="botin"]',
+         x:'Desde tu álbum (abre una carta en grande) o desde tu vestuario (el 🔄 de cada héroe): «Poner en el Zoco». Sigue siendo tuyo hasta que aceptes una oferta.'}],
     c6:[{t:'Se abre el Arsenal de batalla',foco:'.nb-t[data-tab="mercado"]',
          x:'Los créditos que has ahorrado ya se pueden cambiar por <b>nota</b>: subir 0,5 o 1 punto en un entregable, o que se recalifique un trabajo.'},
         {t:'Antes de comprar, lee esto',foco:'.nb-t[data-tab="mercado"]',
@@ -2049,8 +2412,12 @@
       // la carta no puede saber — de que serie es, cuantas tienes y por donde vas en tu album
       +'<div class="lupa-pie"><h4>'+esc(c[1])+'</h4>'
       +'<p class="small muted">'+esc(NOMSERIE[c[2]]||('Serie '+c[2]))
-      +(nn>1?' · tienes <b>'+nn+'</b>':'')+(mias.length>1?' · <b>'+(i+1)+'</b> de '+mias.length+' tuyas':'')+'</p></div></div>';
+      +(nn>1?' · tienes <b>'+nn+'</b>':'')+(mias.length>1?' · <b>'+(i+1)+'</b> de '+mias.length+' tuyas':'')+'</p>'
+      // 13-sep · desde la ficha de la carta, al Zoco (Norberto: «al abrirse la ficha del ítem, un botón "Poner en venta"»)
+      +(abierto('zoco')&&motorNuevo()?'<button type="button" class="btn small lupa-zoco" id="lupa-zoco">🔄 Poner en el Zoco</button>':'')
+      +'</div></div>';
     ov.classList.add('open');
+    var lz=ov.querySelector('#lupa-zoco'); if(lz) lz.onclick=function(){ cerrarLupa(); zocoPonerVentana(per+'__cromo_'+clave); };
     ov.querySelector('.lupa-fondo').onclick=cerrarLupa;
     ov.querySelector('.lupa-x').onclick=cerrarLupa;
     var pv=ov.querySelector('.lupa-nav.prev'), nx=ov.querySelector('.lupa-nav.next');
@@ -2095,7 +2462,7 @@
       st.cargandoYo=false;
       if(d&&d.yo){ st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true;
         if(st.email) localStorage.setItem(KEY_MAIL,st.email);
-        setTimeout(ofrecerCapitulos, 700);
+        setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200);
       } else if(d&&d.sinSesion&&!DEMO&&window.top===window.self&&q.get('embed')!=='1'){
         /**
          * 🔴 13-sep · SIN SESIÓN, A LA PUERTA ÚNICA. La Nave tenía su propia caja «Identifícate,
@@ -2743,7 +3110,7 @@
         + '<a class="btn ghost" href="index.html">Volver a la presentación</a></p></div>'
       : '';
     root.innerHTML = avisoDemo + (dentro
-      ? barraSimulacro()+login()+pestanas()+avisoPase()+cabecera()
+      ? barraSimulacro()+login()+pestanas()+avisoPase()+avisoZoco()+cabecera()
         +'<div id="nave-panel" role="tabpanel" aria-labelledby="nb-t-'+st.tab+'">'+contenido()+'</div>'
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
     verTablero(dentro && st.tab==='rankings');
@@ -2772,6 +3139,9 @@
       }
     }
     cablearSimulacro();
+    cablearZoco();
+    Array.prototype.forEach.call(root.querySelectorAll('[data-zoco-poner]'),function(b){
+      b.onclick=function(e){ e.stopPropagation(); zocoPonerVentana(b.getAttribute('data-zoco-poner')); }; });
     var salir=document.getElementById('nb-salir');
     if(salir) salir.onclick=function(e){ e.preventDefault(); olvidar(); };
     cablearTeclado();
@@ -2890,8 +3260,15 @@
     };
     if(rm) Array.prototype.forEach.call(rm.querySelectorAll('[data-cap]'),function(b){
       b.onclick=function(){ rm.hidden=true; var c=CAPS.filter(function(x){return x.clave===b.getAttribute('data-cap');})[0];
-        if(c) onboarding(0,c.clave,{cap:c}); };
+        if(!c) return;
+        var v=capsVistos()[c.clave];
+        // si lo termina y no estaba visto (o se lo había saltado), queda apuntado como visto
+        onboarding(0,c.clave,{cap:c, alTerminar:function(estado){ if(estado==='hecho'&&(!v||v.estado!=='hecho')){ marcarCap(c,'hecho'); render(); } }}); };
     });
+    // el menú se cierra al pulsar fuera
+    if(rm&&!window.__sgRepFuera){ window.__sgRepFuera=true;
+      document.addEventListener('click',function(e){ var m=document.getElementById('rep-menu'), b2=document.getElementById('btn-onboard');
+        if(m&&!m.hidden&&!m.contains(e.target)&&e.target!==b2&&!(b2&&b2.contains(e.target))) m.hidden=true; }); }
   }
 
   // ---------- carga ----------
@@ -2911,7 +3288,7 @@
     // del nivel nuevo y necesita saberlo, o a un recluta de PUA le enseñaría el arte equivocado
     // justo en el momento de enseñarle en qué se ha convertido.
     window.SG_TIPO_PER = d.tipo || 'REGULAR';
-    var a=window.SGCAL.semanaActual(d.inicio); var forzada=parseInt(q.get('semana')||'0',10); if(forzada)a=forzada;
+    var a=window.SGCAL.semanaActual(d.inicio, d.pausas); var forzada=parseInt(q.get('semana')||'0',10); if(forzada)a=forzada;
     st.actual=a==null?1:a;
     st.estado=a==null?'curso':a<1?'antes':a>st.semanas.length?'fin':'curso';
     if(st.estado==='fin')st.actual=st.semanas.length;

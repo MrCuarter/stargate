@@ -20,7 +20,7 @@
   function semanaDe(p){
     if(!p.inicio||!window.SGCAL) return '';
     var n=window.SGCAL.vista(p.tipo,window.SG_SEMANAS||[]).length;
-    var a=window.SGCAL.semanaActual(p.inicio);
+    var a=window.SGCAL.semanaActual(p.inicio,p.pausas);
     if(a==null) return '';
     if(a<1) return 'aún no ha empezado';
     if(a>n) return 'viaje terminado';

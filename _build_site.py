@@ -3033,3 +3033,21 @@ for _f in ("recluta.html", "clase.html", "panel.html", "sesion.html", "grupos.ht
     _h = _h.replace("</head>", _cabeza_fuente() + "\n</head>", 1)
     open(_ruta, "w", encoding="utf-8").write(_ver_assets(_h))
 print("interruptor de motor puesto en: recluta, clase, panel, sesión, grupos, tickets y profes")
+
+# ---------------------------------------------------------------- las semanas, una cuenta para todos
+# 13-sep · motor/semanas.js (con las semanas congeladas del calendario del referente) va la PRIMERA y
+# sin «defer» en TODA página que calcule semanas. Se pone aquí, al final, cuando ya están escritas
+# todas: el traductor y el paquete se cargan a veces por detrás (sin orden garantizado) y la
+# necesitan ya. La batería 73 comprueba que no falta en ninguna.
+import glob as _glob2, re as _re2
+_TAG_SEM = '<script src="motor/semanas.js?v=' + _ver("motor/semanas.js") + '"></script>'
+_USA_SEMANAS = ("assets/js/calendario.js", "assets/js/fuente.js", "motor/paquete.js", "motor/tablero.js", "assets/js/motor.js")
+_con_sem = []
+for _html in _glob2.glob(os.path.join(HERE, "*.html")):
+    _s = open(_html, encoding="utf-8").read()
+    _s2 = _re2.sub(r'<script src="motor/semanas\.js(\?v=[0-9a-f]+)?"></script>', '', _s)
+    if any(u in _s2 for u in _USA_SEMANAS) and '<script' in _s2:
+        _i = _s2.index('<script'); _s2 = _s2[:_i] + _TAG_SEM + _s2[_i:]; _con_sem.append(os.path.basename(_html))
+    if _s2 != _s:
+        open(_html, "w", encoding="utf-8").write(_s2)
+print("semanas.js en:", len(_con_sem), "páginas")

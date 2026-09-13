@@ -47,8 +47,10 @@
     return d.getFullYear() + "-" + dos(d.getMonth() + 1) + "-" + dos(d.getDate());
   }
   function dos(n) { return (n < 10 ? "0" : "") + n; }
-  // La semana 1 empieza el día de `inicio`. La semana N se abre N-1 semanas después.
-  function inicioDeSemana(inicio, semana) { return masDias(inicio, (Math.max(1, semana) - 1) * 7); }
+  // La semana 1 empieza el día de `inicio`. La semana N se abre N-1 semanas después… sin contar las
+  // semanas CONGELADAS (Navidad, Semana Santa). La cuenta vive en motor/semanas.js, para todos.
+  function SEM() { return typeof module === "object" && module.exports ? require("./semanas.js") : self.SGSEMANAS; }
+  function inicioDeSemana(inicio, semana, pausas) { return SEM().inicioDeSemana(inicio, semana, pausas); }
   function ms(iso) { return iso ? new Date(iso + "T00:00:00").getTime() : null; }
 
   /**
@@ -101,12 +103,14 @@
     var tipo = per.tipo === "PUA" ? "PUA" : "REGULAR";
     var inicio = String(per.inicio || "").slice(0, 10);
     if (!inicio) throw new Error("Falta la fecha de la semana 1");
+    // 13-sep · las semanas congeladas del calendario del referente (todo lo de detrás se corre)
+    var pausas = SEM().limpias(inicio, per.pausas);
     var semanas = cat.semanas[tipo];
     var retos = cat.retos[tipo];
     // El último día de la semana n, y el canje una semana entera por detrás. Calculados los dos
     // desde el inicio —no el segundo desde el primero— para que sea imposible que se desincronicen.
-    var cierre = masDias(inicio, semanas * 7 - 1);
-    var cierreCanje = masDias(inicio, (semanas + (cat.semanasCanjeExtra || 1)) * 7 - 1);
+    var cierre = SEM().finDeSemana(inicio, semanas, pausas);
+    var cierreCanje = SEM().finDeSemana(inicio, semanas + (cat.semanasCanjeExtra || 1), pausas);
     var docentes = (per.docentes || []).map(function (d) {
       return { nombre: String(d.nombre || "").trim(), correo: String(d.correo || "").toLowerCase().trim(),
                rol: d.rol || "docente", panel: String(d.panel || "").trim(),
@@ -208,6 +212,7 @@
         apertura: inicio,
         cierre: cierre,
         cierreCanje: cierreCanje,
+        pausas: pausas,
         semanas: semanas,
         padlet: String(per.padlet || "").trim(),
         // 🔴 El ticket de salida sigue siendo un formulario de Google, y a propósito: tiene que ser
@@ -289,7 +294,7 @@
         rewards: [{ type: "xp_extra", value: (cat.bonus.planeta || {}).xp || 0 },
                   { type: "coins", value: (cat.bonus.planeta || {}).creditos || 0 }],
         enabled: true,
-        visibleFromTimestamp: ms(inicioDeSemana(inicio, semana)),
+        visibleFromTimestamp: ms(inicioDeSemana(inicio, semana, pausas)),
         stargatePlaneta: t.clave
       };
     }).filter(Boolean);
@@ -324,7 +329,7 @@
         maxPerUser: r.maximo >= 99 ? null : r.maximo,
         // 🔴 La puerta de semana, que el motor viejo comprobaba a mano en tres sitios distintos.
         // Aquí es un campo: el Arsenal no existe hasta la semana 15 y punto.
-        availableFrom: ms(inicioDeSemana(inicio, semana)),
+        availableFrom: ms(inicioDeSemana(inicio, semana, pausas)),
         availableUntil: ms(cierreCanje),
         inStore: true,
         // 🔴 LA COLA DE NOTA. Las subidas de nota NO se conceden solas: generan un vale que el

@@ -173,12 +173,17 @@
   }
 
 
+  // tras «Borrar este grupo»: que se vea que se ha hecho
+  function avisoBorrado() {
+    var b = url.get("borrado");
+    return b ? '<div class="card borrado-ok"><p>🗑️ <b>«' + esc(b) + '»</b> borrado, con todo lo suyo.</p></div>' : "";
+  }
   async function elegirGrupo() {
     cargando("Buscando tus grupos…");
     PERS = await MOTOR.misPERs(YO.correo);
     if (!PERS.length) {
       var puedeCrear = false;
-      app.innerHTML = '<div class="card"><h3>Todavía no tienes grupos</h3>' +
+      app.innerHTML = avisoBorrado() + '<div class="card"><h3>Todavía no tienes grupos</h3>' +
         '<p>No figuras como docente en ningún grupo de STARGATE con el correo <b>' + esc(YO.correo) + '</b>.</p>' +
         '<p class="small muted">Si deberías estar en uno, pídele a tu referente que te añada con ' +
         '<b>este mismo correo</b>. Y comprueba con qué cuenta de Google has entrado: es el despiste más común.</p>' +
@@ -199,7 +204,7 @@
     var pasados = PERS.filter(function (p) { return p.estado === "pasado"; });
     var soyRef = PERS.some(function (p) { return p.soyReferente; });
 
-    app.innerHTML =
+    app.innerHTML = avisoBorrado() +
       '<div class="gp-cab"><div><h2>Tus grupos</h2>' +
         '<p class="small muted">Todo lo de clase está aquí mismo. Entra en un grupo para su gente y sus enlaces.</p></div>' +
         (soyRef ? '<a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
@@ -270,9 +275,9 @@
    *
    * La cuarta columna marca las que solo salen si llevas el grupo.
    */
-  var TABS = [["alumnado", "Mi gente"], ["canjes", "Cola de nota"], ["mios", "Mis enlaces"],
+  var TABS = [["alumnado", "Mi gente"], ["canjes", "Cola de nota"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"],
               ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1],
-              ["huevos", "Premios por enlace", 1], ["ajustes", "Ajustes del grupo", 1]];
+              ["huevos", "Premios por enlace", 1], ["calendario", "Calendario", 1], ["ajustes", "Ajustes del grupo", 1]];
   function misTabs() {
     var ref = !!(PERS.filter(function (p) { return p.id === PER; })[0] || {}).soyReferente;
     return TABS.filter(function (x) { return !x[2] || ref; });
@@ -300,8 +305,8 @@
     // 🔴 Y si el TAB recordado ya no le corresponde —dejó de ser referente, o llega por un enlace
     // con #ajustes— se cae al primero en vez de pintar una pantalla que no debería ver.
     if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
-    ({ alumnado: verAlumnado, canjes: verCanjes, mios: verMios, equipo: verEquipo,
-       escuadrones: verEscuadrones, huevos: verHuevos, ajustes: verAjustes })[TAB](t);
+    ({ alumnado: verAlumnado, canjes: verCanjes, zoco: verZoco, mios: verMios, equipo: verEquipo,
+       escuadrones: verEscuadrones, huevos: verHuevos, calendario: verCalendario, ajustes: verAjustes })[TAB](t);
     ofrecerVisitaDelGrupo();
     document.body.classList.add("consola-dentro");   // dentro de un grupo, el titular grande sobra
   }
@@ -315,11 +320,13 @@
   var PASOS_GRUPO = {
     alumnado: ["Mi gente", "Tu alumnado con sus xp, créditos e insignias. <b>Pulsa una fila</b>: ves su ficha, los <b>enlaces de sus evidencias</b> y puedes otorgar o anular un reto. El aviso <b>«⚠️ sin enlace»</b> marca los retos registrados sin evidencia."],
     canjes: ["Cola de nota", "Las recompensas que tocan la <b>nota</b> no se aplican solas: esperan aquí a que las apruebes. Los créditos no se mueven hasta entonces."],
+    zoco: ["El Zoco", "Los trueques entre tu alumnado (se abren en la semana 5): quién cambia qué con quién y los mensajes que se dejan. Si uno no te cuadra, <b>Deshacer</b> devuelve cada cosa a su dueño."],
     mios: ["Mis enlaces", "Tu panel de Genially, si has hecho una copia propia, y los enlaces del grupo para repartir en clase: la Nave, el tablero para proyectar, la sesión y el padlet."],
     equipo: ["Equipo docente", "Quién imparte y quién lleva el grupo, <b>por su correo de Google</b>. Añadir a alguien aquí es darle entrada; quitarlo, quitársela. No hay PIN."],
     escuadrones: ["Escuadrones", "Cada escuadrón con su Comandante. La llamada a filas y el aula de cada docente van por aquí: cada cual ve y llama a los suyos."],
     huevos: ["Premios por enlace", "Crea un premio —xp, créditos, un sobre de cromos, un héroe— con sus topes (en total, por escuadrón o por persona) y pega su enlace donde quieras. Por ejemplo: «los 5 primeros de cada escuadrón, un sobre»."],
-    ajustes: ["Ajustes del grupo", "El nombre, la <b>fecha de la semana 1</b> (mueve todo el calendario), el código de clase, el padlet, el panel oficial y los enlaces para montar una vez en los Geniallys."]
+    calendario: ["Calendario", "Las semanas del curso y lo que abre cada una. <b>Congela</b> una semana (Navidad, Semana Santa) y todo lo de detrás se corre; o <b>abre un capítulo antes</b> de su semana. La fecha de la semana 1 también está aquí."],
+    ajustes: ["Ajustes del grupo", "El nombre, el código de clase, el padlet, el panel oficial y los enlaces para montar una vez en los Geniallys."]
   };
   function ofrecerVisitaDelGrupo() {
     var pasos = [{ sel: ".pestanas", pose: "saluda", t: "Tu grupo por dentro",
@@ -783,6 +790,58 @@
     $("#hv-save").onclick = function () { guardar(); };
   }
 
+  // ---------------------------------------------------------------- el zoco
+  /**
+   * 🔴 13-sep · EL REGISTRO DEL ZOCO. Cada trueque entre reclutas, con lo que se dio, lo que se pidió y
+   * sus mensajes (Norberto: «un mensaje corto… que ve también el docente»). Un docente puede
+   * deshacer un trueque cerrado: lo hace el servidor, y si algo ya no se puede devolver, lo dice.
+   */
+  var NOM_ESTADO = { abierto: "⏳ En marcha", aceptado: "✅ Cambiado", rechazado: "✖️ Rechazado", retirado: "↩️ Retirado",
+    caducado: "⌛ Caducado", anulado: "🚫 Anulado", vendido: "💰 Se lo quedó otro", deshecho: "↺ Deshecho" };
+  function verZoco(t) {
+    $("#c-cuerpo").innerHTML = '<div class="card"><h3>El Zoco Estelar</h3><p class="muted">Cargando los trueques…</p></div>';
+    MOTOR.zocoTratosGrupo(PER).then(function (lista) {
+      var pieza = function (id) {
+        var k = String(id).split("__").pop(), h = /^heroe_/.test(k), c = k.replace(/^(heroe|cromo)_/, "");
+        var x = h ? (window.SG_CATALOGO && SG_CATALOGO.heroes || []).filter(function (y) { return y.clave === c; })[0]
+                  : (window.SG_CATALOGO && SG_CATALOGO.cromos || []).filter(function (y) { return y.clave === c; })[0];
+        return (h ? "🛡️ " : "🃏 ") + esc((x && x.nombre) || c);
+      };
+      var pq = function (q) { if (!q) return "—"; var o = []; if (q.creditos) o.push(q.creditos + " ◈"); (q.piezas || []).forEach(function (id) { o.push(pieza(id)); }); return o.join(" + ") || "nada"; };
+      var cerrados = lista.filter(function (x) { return x.estado === "aceptado"; }).length;
+      $("#c-cuerpo").innerHTML = '<div class="card"><h3>El Zoco Estelar</h3>' +
+        '<p class="small muted">Los trueques entre tu alumnado: ' + lista.length + ' tratos, ' + cerrados + ' cerrados. ' +
+        'Se abre en la <b>semana 5</b>. Lo que se ofrece queda apartado hasta que responden; cada trato, 3 pasos como mucho.</p>' +
+        (lista.length ? '<div class="tabla-envoltura"><table class="tabla zoco-tabla"><thead><tr><th>Estado</th><th>Vende</th><th>Qué</th><th>Compra</th><th>Ofrece / paga</th><th>Mensajes</th><th></th></tr></thead><tbody>' +
+          lista.map(function (x) {
+            var pago = x.estado === "aceptado" ? (x.pagado || x.ofrece) : (x.pide || x.ofrece);
+            return '<tr><td>' + (NOM_ESTADO[x.estado] || esc(x.estado)) + '</td><td>' + esc(x.vende.alias) + '</td><td>' + pieza(x.pieza.id) +
+              '</td><td>' + esc(x.compra.alias) + '</td><td>' + pq(pago) + '</td><td class="small">' +
+              (x.mensajes || []).map(function (m) { return "<b>" + esc(m.de === "vendedor" ? x.vende.alias : x.compra.alias) + ":</b> «" + esc(m.texto) + "»"; }).join("<br>") +
+              '</td><td>' + (x.estado === "aceptado" ? '<button class="btn min" data-deshacer-z="' + esc(x.id) + '">Deshacer</button>' : "") + '</td></tr>';
+          }).join("") + '</tbody></table></div>' : '<p class="small muted">Todavía no ha habido ningún trueque.</p>') + '</div>';
+      Array.prototype.forEach.call(app.querySelectorAll("[data-deshacer-z]"), function (b) {
+        b.onclick = function () {
+          // todo o nada: solo se deshace si cada uno conserva lo que recibió (si no, se crearía algo de la nada)
+          if (!confirm("¿Deshacer este trueque? Cada cosa vuelve a su dueño. Solo se puede si los dos conservan lo que recibieron.")) return;
+          b.disabled = true;
+          MOTOR.zocoDeshacer(b.getAttribute("data-deshacer-z")).then(function () {
+            aviso("Deshecho: cada cosa ha vuelto a su dueño.", true);
+            verZoco(t);
+          }).catch(function (e) {
+            b.disabled = false;
+            // el servidor nombra las piezas por su clave (H05_eco): aquí, por su nombre
+            aviso(String(e.message || e).replace(/\b([A-Z]\d{1,2}_[a-z0-9_]+)\b/g, function (m) {
+              var x = ((window.SG_CATALOGO && SG_CATALOGO.heroes) || []).concat((window.SG_CATALOGO && SG_CATALOGO.cromos) || [])
+                .filter(function (y) { return y.clave === m; })[0];
+              return x ? "«" + x.nombre + "»" : m;
+            }));
+          });
+        };
+      });
+    }).catch(function (e) { $("#c-cuerpo").innerHTML = '<div class="card"><p class="malo">' + esc(e.message) + "</p></div>"; });
+  }
+
   // ---------------------------------------------------------------- equipo docente
   function verEquipo(t) {
     var docs = t.docentes_full || [];
@@ -912,13 +971,195 @@
       "</div>";
   }
 
+  // ---------------------------------------------------------------- el calendario del grupo
+  /**
+   * EL CALENDARIO DEL GRUPO (13-sep). Norberto: «algo fácil para ajustar fechas: a veces hay cambios,
+   * en Navidad se retrasa una semana, o Semana Santa… una página dedicada que se vea el calendario
+   * con posibilidad de mover o congelar una semana». Y del Zoco: «¿botón Abrir ya? Sí».
+   *
+   * Se toca un BORRADOR —nada se guarda hasta «Guardar»— y abajo se ve qué cambia. Al guardar se
+   * recalculan TODAS las fechas que cuelgan de la semana (cierre de retos y de canje, cuándo se ve
+   * cada planeta, cuándo se abre cada cosa del Mercado) con la MISMA receta que al crear el grupo
+   * (motor/paquete.js + motor/semanas.js): un grupo movido y uno recién creado no pueden discrepar.
+   *
+   * 🔴 Lo pasado no se toca: solo se congelan semanas que aún no han empezado. Congelar la de hoy
+   * haría retroceder el curso una semana a mitad de clase (y volvería a cerrar lo que ya se abrió).
+   */
+  var CAL = null;   // el borrador: { per, inicio, pausas: [], abiertos: {} }
+  var MES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  var DSEM = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+  function diaCorto(iso) { var d = window.SGSEMANAS.fecha(iso); return DSEM[d.getDay()] + " " + d.getDate() + " " + MES[d.getMonth()]; }
+  function calDelGrupo() {
+    var S = DATOS.proyecto.stargate || {}, SS = window.SGSEMANAS;
+    return { per: PER, inicio: S.inicio || "", pausas: SS.limpias(S.inicio, S.pausas || []),
+             abiertos: Object.assign({}, S.capitulosAbiertos || {}) };
+  }
+  /** Las fechas que salen de un calendario (inicio + pausas), con la receta de crear el grupo. */
+  function fechasDe(c) {
+    var S = DATOS.proyecto.stargate || {};
+    return window.SG.PAQUETE.paquete({ id: PER, nombre: DATOS.proyecto.name || PER, tipo: S.tipo, inicio: c.inicio,
+                                        pausas: c.pausas, docentes: [] }, window.SG_CATALOGO);
+  }
+  function capsDelCalendario() { return (window.SG_CAPITULOS || []).filter(function (c) { return c.listo !== false && c.clave !== "c1"; }); }
+  function verCalendario(t) {
+    var S = DATOS.proyecto.stargate || {}, SS = window.SGSEMANAS, cat = window.SG_CATALOGO || {};
+    if (!CAL || CAL.per !== PER) CAL = calDelGrupo();
+    if (!CAL.inicio) { $("#c-cuerpo").innerHTML = '<div class="card"><h3>Calendario</h3><p>Este grupo no tiene fecha de semana 1. Ponla en «Ajustes del grupo».</p></div>'; return; }
+    var tipo = S.tipo === "PUA" ? "PUA" : "REGULAR", total = (cat.semanas || {})[tipo] || 15, extra = cat.semanasCanjeExtra || 1;
+    var hoy = SS.iso(new Date()), semHoy = SS.semanaDelCurso(CAL.inicio, CAL.pausas);
+    var filas = SS.calendario(CAL.inicio, CAL.pausas, total, extra);
+    var caps = capsDelCalendario(), semCap = function (c) { return (c.semanas || {})[tipo] || 99; };
+    var planetas = (cat.temas || []).map(function (x) {
+      return { n: x.n, nombre: x.planeta, sem: window.SG.PAQUETE.semanaEnTipo((cat.semanaDelTema || {})[String(x.n)] || x.n, tipo, cat) };
+    });
+    var nuevo = fechasDe(CAL).proyecto.stargate, viejo = fechasDe(calDelGrupo()).proyecto.stargate;
+    var fila = function (f) {
+      var pasada = f.fin < hoy, actual = f.inicio <= hoy && hoy <= f.fin, futura = f.inicio > hoy;
+      var abre = [];
+      if (f.semana) {
+        planetas.filter(function (p) { return p.sem === f.semana; }).forEach(function (p) { abre.push("🪐 Planeta " + p.n + " · " + esc(p.nombre)); });
+        caps.filter(function (c) { return semCap(c) === f.semana; }).forEach(function (c) {
+          abre.push(c.icono + " " + esc(c.titulo) + (CAL.abiertos[c.clave] ? ' <span class="chip ok">ya abierto</span>' : "")); });
+        if (f.semana === total) abre.push("🏁 Último día para registrar retos: <b>" + diaCorto(f.fin) + "</b>");
+        if (f.semana === total + extra) abre.push("🛒 Último día para canjear: <b>" + diaCorto(f.fin) + "</b>");
+      }
+      var nom = f.congelada ? "⏸️ Congelada" : f.canje ? "Canje" : "Semana " + f.semana;
+      var boton = !futura ? "" : f.congelada
+        ? '<button class="btn min" data-cal-sigue="' + f.inicio + '">▶️ Descongelar</button>'
+        : (f.semana ? '<button class="btn min" data-cal-pausa="' + f.inicio + '">⏸️ Congelar</button>' : "");
+      return '<tr class="' + (f.congelada ? "cal-pausa" : "") + (actual ? " cal-hoy" : "") + (pasada ? " cal-pasada" : "") + '">' +
+        '<td class="cal-fechas">' + diaCorto(f.inicio) + " – " + diaCorto(f.fin) + "</td>" +
+        '<td class="cal-sem"><b>' + nom + "</b>" + (actual ? ' <span class="chip wip">hoy</span>' : "") + "</td>" +
+        '<td class="cal-abre">' + (f.congelada ? '<span class="muted">No corre: el curso sigue en la semana de antes y lo de detrás se mueve una semana.</span>'
+                                                : f.canje && !abre.length ? '<span class="muted">Sin retos nuevos: se canjea lo ganado.</span>' : abre.join("<br>")) + "</td>" +
+        "<td>" + boton + "</td></tr>";
+    };
+    // lo que cambia al guardar
+    var cambios = [];
+    var S0 = calDelGrupo();
+    var mas = CAL.pausas.filter(function (p) { return S0.pausas.indexOf(p) < 0; }), menos = S0.pausas.filter(function (p) { return CAL.pausas.indexOf(p) < 0; });
+    if (CAL.inicio !== S0.inicio) cambios.push("La semana 1 empieza el <b>" + diaCorto(CAL.inicio) + "</b> (antes, el " + diaCorto(S0.inicio) + ").");
+    mas.forEach(function (p) { cambios.push("Se congela la semana del <b>" + diaCorto(p) + "</b>."); });
+    menos.forEach(function (p) { cambios.push("Vuelve a correr la semana del <b>" + diaCorto(p) + "</b>."); });
+    caps.forEach(function (c) {
+      if (!!CAL.abiertos[c.clave] !== !!S0.abiertos[c.clave])
+        cambios.push(CAL.abiertos[c.clave] ? "Se abre YA " + c.icono + " <b>" + esc(c.titulo) + "</b> (su semana era la " + semCap(c) + ")."
+                                            : c.icono + " <b>" + esc(c.titulo) + "</b> vuelve a abrirse en su semana (" + semCap(c) + ").");
+    });
+    if (nuevo.cierre !== viejo.cierre) cambios.push("Registrar retos: hasta el <b>" + diaCorto(nuevo.cierre) + "</b> (antes, " + diaCorto(viejo.cierre) + ").");
+    if (nuevo.cierreCanje !== viejo.cierreCanje) cambios.push("Canjear: hasta el <b>" + diaCorto(nuevo.cierreCanje) + "</b> (antes, " + diaCorto(viejo.cierreCanje) + ").");
+    var semAntes = SS.semanaDelCurso(S0.inicio, S0.pausas);
+    if (semAntes !== semHoy) cambios.push("⚠️ <b>Hoy el grupo pasa de la semana " + semAntes + " a la " + semHoy + ".</b>");
+    $("#c-cuerpo").innerHTML =
+      '<div class="card cal-caja"><h3>📅 El calendario del grupo</h3>' +
+      '<p class="small">Cada fila es una semana: lo que se abre y cuándo acaba todo. <b>Congela</b> una semana (Navidad, Semana Santa) ' +
+      'y todo lo de detrás se corre una; o <b>abre un capítulo antes</b> de su semana. Nada cambia hasta que pulses <b>Guardar</b>.</p>' +
+      '<div class="cal-cab"><label>Primer día de la semana 1 <input type="date" id="cal-inicio" value="' + esc(CAL.inicio) + '"></label>' +
+      '<span class="small">Hoy: <b>' + (semHoy < 1 ? "aún no ha empezado" : semHoy > total + extra ? "curso terminado" : "semana " + Math.min(semHoy, total) + " de " + total) + "</b>" +
+      (SS.pausaDe(CAL.inicio, CAL.pausas) ? " · ⏸️ semana congelada" : "") + "</span></div>" +
+      '<div class="tabla-envoltura"><table class="tabla cal-tabla"><thead><tr><th>Fechas</th><th>Semana</th><th>Qué pasa</th><th></th></tr></thead><tbody>' +
+      filas.map(fila).join("") + "</tbody></table></div></div>" +
+      '<div class="card"><h3>Capítulos de la Nave</h3><p class="small muted">Cada capítulo abre algo nuevo en la Nave del alumnado (y NEBULA lo cuenta). ' +
+      'Si tu clase va adelantada, ábrelo ya; lo del Mercado que traiga se puede comprar desde hoy.</p><div class="cal-caps">' +
+      caps.map(function (c) {
+        var porFecha = semHoy >= semCap(c), antes = !!CAL.abiertos[c.clave];
+        var cuando = SS.inicioDeSemana(CAL.inicio, semCap(c), CAL.pausas);
+        return '<div class="cal-cap' + (porFecha || antes ? " on" : "") + '"><b>' + c.icono + " " + esc(c.titulo) + "</b>" +
+          '<span class="small">' + (porFecha ? "Abierto (semana " + semCap(c) + ")" : antes ? "Abierto antes de tiempo · su semana era la " + semCap(c)
+                                    : "Se abre la semana " + semCap(c) + " · " + diaCorto(cuando)) + "</span>" +
+          (porFecha ? "" : antes ? '<button class="btn min" data-cal-cierra="' + c.clave + '">↩️ Volver a su semana</button>'
+                                 : '<button class="btn min" data-cal-abre="' + c.clave + '">🔓 Abrir ya</button>') + "</div>";
+      }).join("") + "</div></div>" +
+      '<div class="card cal-guardar"><h3>Al guardar</h3>' +
+      (cambios.length ? "<ul>" + cambios.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul>" +
+        '<p class="small muted">Se recalculan solas las fechas de los planetas y del Mercado. El alumnado lo ve la próxima vez que abra su Nave.</p>' +
+        '<p><button class="btn primary" id="cal-guardar">Guardar el calendario</button> <button class="btn" id="cal-deshacer">Deshacer los cambios</button></p>'
+        : '<p class="small muted">Sin cambios. Congela una semana o abre un capítulo y aquí verás lo que se moverá.</p>') + "</div>";
+    var re = function () { verCalendario(t); };
+    $("#cal-inicio").onchange = function () {
+      var nuevoIni = this.value; if (!/^\d{4}-\d\d-\d\d$/.test(nuevoIni)) return;
+      // las pausas se quedan en las mismas semanas del calendario (recolocadas sobre la rejilla nueva)
+      CAL.pausas = SS.limpias(nuevoIni, CAL.pausas.map(function (p) {
+        var d = SS.dias(nuevoIni, p); return d < 0 ? "" : SS.masDias(nuevoIni, Math.floor(d / 7) * 7); }));
+      CAL.inicio = nuevoIni; re();
+    };
+    Array.prototype.forEach.call(app.querySelectorAll("[data-cal-pausa]"), function (b) {
+      b.onclick = function () { CAL.pausas = SS.limpias(CAL.inicio, CAL.pausas.concat([b.getAttribute("data-cal-pausa")])); re(); }; });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-cal-sigue]"), function (b) {
+      b.onclick = function () { var p = b.getAttribute("data-cal-sigue"); CAL.pausas = CAL.pausas.filter(function (x) { return x !== p; }); re(); }; });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-cal-abre]"), function (b) {
+      b.onclick = function () { CAL.abiertos[b.getAttribute("data-cal-abre")] = true; re(); }; });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-cal-cierra]"), function (b) {
+      b.onclick = function () { delete CAL.abiertos[b.getAttribute("data-cal-cierra")]; re(); }; });
+    if ($("#cal-deshacer")) $("#cal-deshacer").onclick = function () { CAL = calDelGrupo(); re(); };
+    if ($("#cal-guardar")) $("#cal-guardar").onclick = async function () {
+      var b = this; b.disabled = true; b.textContent = "Guardando…";
+      try {
+        var paq = fechasDe(CAL), st = paq.proyecto.stargate, hoyMs = SS.fecha(new Date()).getTime();
+        // lo del Mercado de un capítulo abierto antes de tiempo, a la venta desde hoy
+        var tiposYa = {};
+        caps.forEach(function (c) { if (CAL.abiertos[c.clave]) (c.mercado || []).forEach(function (x) { tiposYa[x] = true; }); });
+        var porId = function (lista) { var m = {}; (lista || []).forEach(function (x) { m[x.id] = x.docId; }); return m; };
+        var docC = porId(DATOS.campanas), docR = porId(DATOS.recompensas), escribir = [];
+        paq.campanas.forEach(function (c) {
+          if (c.visibleFromTimestamp != null && docC[c.id]) escribir.push(["campaigns", docC[c.id], { visibleFromTimestamp: c.visibleFromTimestamp }]); });
+        paq.recompensas.forEach(function (r) {
+          if (r.inStore === false || r.availableFrom == null || !docR[r.id]) return;
+          escribir.push(["rewards", docR[r.id], { availableFrom: tiposYa[r.stargateTipo] ? Math.min(r.availableFrom, hoyMs) : r.availableFrom,
+                                                  availableUntil: r.availableUntil }]); });
+        await MOTOR.guardarCalendario(PER, {
+          "stargate.inicio": CAL.inicio, "stargate.pausas": CAL.pausas, "stargate.capitulosAbiertos": CAL.abiertos,
+          "stargate.apertura": st.apertura, "stargate.cierre": st.cierre, "stargate.cierreCanje": st.cierreCanje }, escribir);
+        await refrescar(); CAL = calDelGrupo();
+        aviso("Calendario guardado: " + escribir.length + " fechas recalculadas.", true);
+      } catch (e) { b.disabled = false; b.textContent = "Guardar el calendario"; aviso(e.message); }
+    };
+  }
+
+  /**
+   * 🗑️ EMPEZAR DE CERO (13-sep). Norberto: «elimina todo lo viejo, empezamos de cero». Borrar datos
+   * de producción lo hace él, con este botón: escribe el nombre del grupo y confirma. Lo borra el
+   * servidor (`deleteProject` de GamificaPro: el grupo, su alumnado, retos, Mercado, llamadas, Zoco y
+   * alias). Solo quien lo creó o un referente vitalicio; el grupo de la demostración pública, nunca.
+   */
+  var VITALICIOS_WEB = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"];
+  function puedoBorrar() {
+    var P = DATOS.proyecto || {}, u = YO || {};
+    return !!u.uid && (P.ownerId === u.uid || P.teacherId === u.uid || VITALICIOS_WEB.indexOf(String(u.email || "").toLowerCase()) >= 0);
+  }
+  function tarjetaBorrar() {
+    var P = DATOS.proyecto || {}, S = P.stargate || {};
+    if (Number(S.demoSemana || 0) > 0) return '<div class="card"><h3>🗑️ Borrar este grupo</h3><p class="small muted">Es el grupo de la demostración pública: no se borra desde aquí.</p></div>';
+    if (!puedoBorrar()) return '<div class="card"><h3>🗑️ Borrar este grupo</h3><p class="small muted">Solo puede borrarlo quien lo creó' +
+      (P.ownerEmail ? " (" + esc(P.ownerEmail) + ")" : "") + " o un referente vitalicio.</p></div>";
+    return '<div class="card zona-peligro"><h3>🗑️ Borrar este grupo</h3>' +
+      '<p class="small">Se borra <b>todo</b>: el grupo, las fichas de su alumnado, sus retos, el Mercado, las llamadas, el Zoco y los alias. ' +
+      '<b>No se puede deshacer.</b> Pensado para los grupos de prueba.</p>' +
+      '<label>Para confirmarlo, escribe su nombre: <b>' + esc(P.name || PER) + '</b><input id="s-borrar-nombre" autocomplete="off" spellcheck="false"></label>' +
+      '<p><button class="btn peligro" id="s-borrar" type="button" disabled>Borrar el grupo para siempre</button></p></div>';
+  }
+  function cablearBorrar() {
+    var inp = $("#s-borrar-nombre"), b = $("#s-borrar"), nombre = String((DATOS.proyecto || {}).name || PER).trim();
+    if (!inp || !b) return;
+    inp.oninput = function () { b.disabled = inp.value.trim() !== nombre; };
+    b.onclick = async function () {
+      if (inp.value.trim() !== nombre) return;
+      if (!confirm("Última pregunta: ¿borrar «" + nombre + "» y todo lo que tiene? No se puede deshacer.")) return;
+      b.disabled = true; b.textContent = "Borrando…";
+      try {
+        await MOTOR.llamar("deleteProject", { projectId: PER });
+        location.href = "consola.html?borrado=" + encodeURIComponent(nombre);
+      } catch (e) { b.disabled = false; b.textContent = "Borrar el grupo para siempre"; aviso(e.message); }
+    };
+  }
   function verAjustes(t) {
     var S = DATOS.proyecto.stargate || {}, P = DATOS.privadoPER || {};
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>Ajustes del grupo</h3>' +
       '<label>Nombre<input id="s-nombre" value="' + esc(DATOS.proyecto.name) + '"></label>' +
-      '<label>Primer día de la semana 1<input id="s-inicio" type="date" value="' + esc(S.inicio || "") + '"></label>' +
-      '<p class="small muted">Calendario actual: apertura ' + esc(S.apertura || "—") + ' · cierre de misiones ' +
-      esc(S.cierre || "—") + ' · cierre de canje ' + esc(S.cierreCanje || "—") + "</p>" +
+      // 🔴 13-sep · la fecha de la semana 1 vive en «Calendario». Aquí solo cambiaba el documento del
+      // grupo: el Mercado y los planetas se quedaban con sus fechas viejas (se abrían en la semana mala).
+      '<p class="small">Semana 1: <b>' + esc(S.inicio || "—") + '</b> · retos hasta ' + esc(S.cierre || "—") + ' · canje hasta ' +
+      esc(S.cierreCanje || "—") + ' <button class="btn min" data-tab="calendario" type="button">📅 Cambiar en Calendario</button></p>' +
       '<label>Padlet de la clase<input id="s-padlet" value="' + esc(S.padlet || "") + '"></label>' +
       '<label>Ticket de salida <i>(formulario de Google, anónimo)</i><input id="s-ticket" value="' + esc(S.ticket || "") + '"></label>' +
       '<label>Panel de control (ver)<input id="s-panel" value="' + esc(S.panelVer || "") + '"></label>' +
@@ -951,7 +1192,11 @@
       'Valen en todos los grupos y todas las convocatorias. Añade <code>?embed=1</code> para incrustarlos.</p>' +
       '<p class="small">🎯 Validar un reto:<br><code>' + location.origin + '/validar.html?reto=S7</code></p>' +
       '<p class="small">🔔 Llamada a filas (solo la toca el Comandante):<br><code>' + location.origin + '/llamada.html</code></p>' +
-      '<p class="small">🛰️ El aula (el puesto de mando del docente):<br><code>' + location.origin + '/aula.html</code></p></div>';
+      '<p class="small">🛰️ El aula (el puesto de mando del docente):<br><code>' + location.origin + '/aula.html</code></p></div>' +
+      tarjetaBorrar();
+    cablearBorrar();
+    var aCal = app.querySelector('#c-cuerpo [data-tab="calendario"]');
+    if (aCal) aCal.onclick = function () { TAB = "calendario"; pintar(); };
     if ($("#s-codigo")) $("#s-codigo").onclick = async function () {
       if (DATOS.proyecto.joinCode &&
           !confirm("Se cambiará el código. Quien tenga el enlace viejo ya no podrá alistarse " +
@@ -961,15 +1206,8 @@
     };
     $("#s-guardar").onclick = async function () {
       try {
-        // Cambiar la fecha de la semana 1 recalcula el calendario entero, igual que al crear: es la
-        // única fecha que se toca, porque las demás se deducen y no deben poder contradecirla.
-        var inicio = $("#s-inicio").value;
-        var fechas = window.SG.PAQUETE.paquete({ id: PER, nombre: $("#s-nombre").value, tipo: S.tipo,
-          inicio: inicio, docentes: [] }, window.SG_CATALOGO).proyecto.stargate;
         await MOTOR.guardarAjustes(PER,
           { name: $("#s-nombre").value.trim(),
-            "stargate.inicio": inicio, "stargate.apertura": fechas.apertura,
-            "stargate.cierre": fechas.cierre, "stargate.cierreCanje": fechas.cierreCanje,
             "stargate.padlet": $("#s-padlet").value.trim(),
             "stargate.ticket": $("#s-ticket").value.trim(),
             "stargate.panelVer": $("#s-panel").value.trim() },

@@ -19,7 +19,8 @@
   else (raiz.SG = raiz.SG || {}).TABLERO = fabrica();
 })(typeof self !== "undefined" ? self : this, function () {
 
-  var SEMANA_MS = 6048e5;
+  // 13-sep · las semanas se cuentan en UN sitio (motor/semanas.js), con las semanas congeladas
+  function SEM() { return typeof module === "object" && module.exports ? require("./semanas.js") : self.SGSEMANAS; }
 
   // Las campañas, igual que las misiones: la ficha guarda el identificador del DOCUMENTO y el resto
   // del sistema habla en el de STARGATE. Se aceptan los dos, en un solo sitio.
@@ -31,17 +32,16 @@
   function ts(f) { if (!f) return 0; var t = new Date(f).getTime(); return isNaN(t) ? 0 : t; }
   function iso(ms) { return ms ? new Date(ms).toISOString().slice(0, 10) : ""; }
 
-  // La semana del PER en la que cae una fecha. Habla el idioma del curso, no el del calendario.
-  function semanaDeFecha(inicio, fecha) {
+  // La semana del PER en la que cae una fecha. Habla el idioma del curso, no el del calendario
+  // (las semanas congeladas no cuentan: lo registrado en una pausa cuenta para la semana anterior).
+  function semanaDeFecha(inicio, fecha, pausas) {
     if (!inicio) return null;
     var t = ts(fecha); if (!t) return null;
-    var d = new Date(t); d.setHours(0, 0, 0, 0);
-    return Math.floor((d.getTime() - new Date(inicio + "T00:00:00").getTime()) / SEMANA_MS) + 1;
+    return SEM().semanaDelCurso(inicio, pausas, t);
   }
-  function semanaDe(inicio, ahora) {
+  function semanaDe(inicio, ahora, pausas) {
     if (!inicio) return null;
-    var hoy = new Date(ahora || Date.now()); hoy.setHours(0, 0, 0, 0);
-    return Math.floor((hoy - new Date(inicio + "T00:00:00")) / SEMANA_MS) + 1;
+    return SEM().semanaDelCurso(inicio, pausas, ahora || Date.now());
   }
 
   function nivelInfo(xp, niveles, rangos) {
@@ -59,11 +59,11 @@
    * curso. Si esta semana aún no ha registrado nada se cuenta desde la anterior: a nadie se le
    * rompe la racha un lunes por la mañana.
    */
-  function racha(inicio, fechas, ahora) {
-    var sem = semanaDe(inicio, ahora);
+  function racha(inicio, fechas, ahora, pausas) {
+    var sem = semanaDe(inicio, ahora, pausas);
     if (sem === null || !fechas || !fechas.length) return 0;
     var con = {};
-    fechas.forEach(function (f) { var w = semanaDeFecha(inicio, f); if (w !== null && w >= 1) con[w] = true; });
+    fechas.forEach(function (f) { var w = semanaDeFecha(inicio, f, pausas); if (w !== null && w >= 1) con[w] = true; });
     var w2 = con[sem] ? sem : sem - 1, n = 0;
     while (w2 >= 1 && con[w2]) { n++; w2--; }
     return n;
@@ -88,6 +88,7 @@
     var P = datos.proyecto || {}, S = P.stargate || {};
     var tipo = S.tipo === "PUA" ? "PUA" : "REGULAR";
     var inicio = S.inicio || "";
+    var pausas = Array.isArray(S.pausas) ? S.pausas : [];
     /**
      * 🔴 LA DEMO QUE NO CADUCA. El grupo de demostración de la portada se sembró con fechas reales
      * y su semana avanza con el calendario como la de cualquier clase: en noviembre el visitante
@@ -103,7 +104,7 @@
      * un «ahora» concreto. Una clase de verdad no lo tiene y no hay forma de que lo tenga sin querer.
      */
     if (!ahora && inicio && S.demoSemana > 0) {
-      ahora = new Date(inicio + "T12:00:00").getTime() + ((S.demoSemana - 1) * 7 + 3) * 864e5;
+      ahora = SEM().fecha(SEM().inicioDeSemana(inicio, S.demoSemana, pausas)).getTime() + 3.5 * 864e5;
     }
     var cat = datos.catalogo;
     // 🔴 Las misiones se buscan por LOS DOS identificadores: el de STARGATE («A1») y el del
@@ -308,7 +309,7 @@
         viste: valido, repes: repes, repes_gastados: gastados,
         repes_disponibles: Math.max(0, repes - gastados),
         insignias_album: album, n_album: album.length,
-        racha: racha(inicio, fechas, ahora),
+        racha: racha(inicio, fechas, ahora, pausas),
         nivel_titulo: niv.titulo, xp_siguiente: niv.siguiente, xp_faltan: niv.faltan,
         creditos: Number(p.coins || 0),
         // 🔴 Ganados y gastados se DEDUCEN de lo que hizo, no se guardan en el perfil. Guardarlos
@@ -387,7 +388,10 @@
                    // cuántas cartas trae un sobre (o usos un consumible): lo dice la recompensa, no la Nave
                    usos: Math.max(1, Number(r.maxUses || 1)) };
         }),
-      semana: semanaDe(inicio, ahora), semanas: S.semanas || 15,
+      semana: semanaDe(inicio, ahora, pausas), semanas: S.semanas || 15,
+      // 13-sep · el calendario del referente: semanas congeladas y capítulos abiertos antes de tiempo
+      pausas: SEM().limpias(inicio, pausas), pausa: SEM().pausaDe(inicio, pausas, ahora || Date.now()),
+      capitulosAbiertos: S.capitulosAbiertos || {},
       panel: S.panelVer || "", paneles: S.paneles || {},
       apertura: S.apertura || "", cierre_misiones: S.cierre || "", cierre_canje: S.cierreCanje || "",
       padlet: S.padlet || "",

@@ -149,8 +149,8 @@ async function main() {
     }
     const uidFalso = (DEMO ? "demo_" : "prueba_") + alias.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "");
     // 13-sep · su alias, reservado como lo reserva la web (las reglas lo exigen a quien se aliste después)
-    const clave = alias.toLowerCase().trim().replace(/[áàäâã]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i")
-      .replace(/[óòöôõ]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/ç/g, "c").replace(/\//g, "-").replace(/ +/g, " ");
+    const clave = alias.replace(/[A-Z]+/g, m => m.toLowerCase()).trim().replace(/[áàäâãÁÀÄÂÃ]/g, "a").replace(/[éèëêÉÈËÊ]/g, "e").replace(/[íìïîÍÌÏÎ]/g, "i")
+      .replace(/[óòöôõÓÒÖÔÕ]/g, "o").replace(/[úùüûÚÙÜÛ]/g, "u").replace(/[ñÑ]/g, "n").replace(/[çÇ]/g, "c").replace(/\//g, "-").replace(/ +/g, " ");
     await db.collection("stargate_alias").doc(ID + "__" + clave).set({ projectId: ID, uid: uidFalso, alias: alias, creado: Date.now() });
     await ficha.set({
       userId: uidFalso,

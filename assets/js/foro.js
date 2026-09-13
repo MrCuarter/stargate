@@ -13,8 +13,10 @@
   function wire(){Array.prototype.forEach.call(root.querySelectorAll('.yt'),function(el){el.onclick=function(){if(el.classList.contains('on'))return;var f=document.createElement('iframe');f.src='https://www.youtube-nocookie.com/embed/'+el.getAttribute('data-id')+'?autoplay=1&rel=0';f.allow='autoplay; encrypted-media; picture-in-picture';f.allowFullscreen=true;el.insertBefore(f,el.firstChild);el.classList.add('on');};});}
   // PUA: un tema por semana -> fusiona las semanas regulares de cada tema (motor compartido en calendario.js)
   function semanasPua(){return window.SGCAL.semanasPua(SEM);}
-  function pintar(inicio,tipo,nombre){var sem=tipo==='PUA'?semanasPua():SEM;var n=sem.length;var hoy=new Date();hoy.setHours(0,0,0,0);
-    var ini=inicio?new Date(inicio+'T00:00:00'):null;var real=ini?Math.floor((hoy-ini)/(7*864e5))+1:1;
+  function pintar(inicio,tipo,nombre,pausas){var sem=tipo==='PUA'?semanasPua():SEM;var n=sem.length;
+    // 13-sep · las semanas congeladas del calendario del referente no cuentan (motor/semanas.js)
+    if(!pausas&&q.get('pausas')) pausas=q.get('pausas').split(',');
+    var ini=inicio?new Date(inicio+'T00:00:00'):null;var real=ini?window.SGCAL.semanaActual(inicio,pausas):1;
     var actual=real;var forzada=parseInt(q.get('semana')||'0',10);
     // desbloqueo semanal: con fecha de inicio, las semanas futuras están selladas (ni forzándolas por URL)
     if(forzada){ if(!ini||forzada<=Math.max(real,1)) actual=forzada; }
@@ -57,8 +59,8 @@
       if(!d){if(!q.get('inicio'))root.innerHTML='<p class="lead">No se pudo cargar el foro. Prueba a recargar.</p>';return;}
       var p=d.pers?(d.pers||[]).filter(function(x){return x.id===per;})[0]:d;
       if(!p||d.error){root.innerHTML='<p class="lead">PER no encontrado.</p>';return;}
-      var firma=String(p.inicio)+'|'+p.tipo; if(firma===pintado)return; pintado=firma;
-      todos?pintarTodos(p.tipo,per,p.nombre):pintar(p.inicio,p.tipo,p.nombre);
+      var firma=String(p.inicio)+'|'+p.tipo+'|'+(p.pausas||[]).join(','); if(firma===pintado)return; pintado=firma;
+      todos?pintarTodos(p.tipo,per,p.nombre):pintar(p.inicio,p.tipo,p.nombre,p.pausas||[]);
     });
   }
   else if(todos) pintarTodos((q.get('tipo')||'REGULAR').toUpperCase(),null,'');

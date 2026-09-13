@@ -483,7 +483,7 @@
   // ---------- arranque ----------
   function arrancar(d){
     if(d&&!d.error){
-      st.tipo=(d.tipo||'REGULAR'); st.nombre=d.nombre||''; st.inicio=d.inicio||'';
+      st.tipo=(d.tipo||'REGULAR'); st.nombre=d.nombre||''; st.inicio=d.inicio||''; st.pausas=d.pausas||[];
       if (st.varios && st.varios.length > 1)
         st.aviso = '<div class="card aviso-per"><p>Proyectando <b>'+esc(st.nombre)+'</b>. '
           +'Tienes '+st.varios.length+' grupos en marcha; para otro, ábrelo desde '
@@ -496,7 +496,7 @@
     var forzada=parseInt(q.get('sem')||'0',10);
     if(forzada) st.sem=forzada;
     else {
-      var hoy=window.SGCAL.semanaActual(st.inicio);
+      var hoy=window.SGCAL.semanaActual(st.inicio, st.pausas);
       st.sem=hoy&&hoy>0?hoy:1;
     }
     pintar();

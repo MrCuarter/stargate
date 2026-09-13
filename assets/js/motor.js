@@ -141,7 +141,6 @@ const tablero = async (perId, conPrivados) =>
   window.SG.TABLERO.tablero(await leerPER(perId, conPrivados), !!conPrivados);
 
 /** Los PER en los que figuro como docente, más los que son de demostración. */
-const SEMANA_MS_ = 7 * 24 * 3600 * 1000;
 /** Las dos cuentas que mandan siempre, leídas de donde viven (motor/paquete.js). */
 const REFERENTES_VITALICIOS = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"];
 /** La misma cuenta que hace la sala del docente (clase.js `estadoPer`), en un solo sitio. */
@@ -149,10 +148,8 @@ function estadoDelPER(S) {
   S = S || {};
   const total = (S.tipo === "PUA") ? 10 : 15;
   let semana = null;
-  if (S.inicio) {
-    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-    semana = Math.floor((hoy - new Date(S.inicio + "T00:00:00")) / SEMANA_MS_) + 1;
-  }
+  // con las semanas congeladas del calendario del referente (motor/semanas.js)
+  if (S.inicio) semana = window.SGSEMANAS.semanaDelCurso(S.inicio, S.pausas);
   let estado;
   if (S.archivado) estado = "pasado";
   else if (semana == null) estado = "sin fecha";
@@ -300,9 +297,12 @@ const aliasPlano = t => String(t || "").trim().toLowerCase().normalize("NFD").re
  * firestore.rules de GamificaPro). Si no coincidiera letra por letra, el servidor rechazaría la
  * reserva. Las reglas son quienes lo hacen cumplir: el alias reservado no se puede repetir.
  */
-const aliasClave = a => String(a || "").toLowerCase().trim()
-  .replace(/[áàäâã]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i")
-  .replace(/[óòöôõ]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/ç/g, "c")
+// 🔴 13-sep · `lower()` de las reglas SOLO baja la A-Z (la «Ó» de «Olga Órbita» se quedaba en
+// mayúscula y la clave no coincidía: esa alumna no podía alistarse). Así que aquí se baja también
+// solo la A-Z, y las tildes se quitan en mayúscula y en minúscula, igual que en las reglas.
+const aliasClave = a => String(a || "").replace(/[A-Z]+/g, m => m.toLowerCase()).trim()
+  .replace(/[áàäâãÁÀÄÂÃ]/g, "a").replace(/[éèëêÉÈËÊ]/g, "e").replace(/[íìïîÍÌÏÎ]/g, "i")
+  .replace(/[óòöôõÓÒÖÔÕ]/g, "o").replace(/[úùüûÚÙÜÛ]/g, "u").replace(/[ñÑ]/g, "n").replace(/[çÇ]/g, "c")
   .replace(/\//g, "-").replace(/ +/g, " ");
 const refAlias = (perId, alias) => doc(db, "stargate_alias", perId + "__" + aliasClave(alias));
 /**
@@ -413,6 +413,19 @@ async function guardarAjustes(perId, publico, privado) {
   if (publico && Object.keys(publico).length) await updateDoc(doc(db, "projects", perId), publico);
   if (privado && Object.keys(privado).length)
     await setDoc(doc(db, "projects", perId, "privado", "stargate"), privado, { merge: true });
+}
+
+/**
+ * EL CALENDARIO DEL REFERENTE (13-sep): el grupo (semana 1, semanas congeladas, capítulos abiertos
+ * antes y los cierres) y las fechas que cuelgan de la semana —planetas y Mercado—, en UNA escritura:
+ * o se mueve todo o no se mueve nada. Nunca un grupo con el cierre nuevo y el Mercado viejo.
+ * `escribir`: [[colección, id, campos], …] (la consola solo manda documentos que existen).
+ */
+async function guardarCalendario(perId, publico, escribir) {
+  const lote = writeBatch(db);
+  lote.update(doc(db, "projects", perId), publico);
+  (escribir || []).forEach(([col, id, datos]) => lote.update(doc(db, col, id), datos));
+  await lote.commit();
 }
 
 // La fuente que el motor acepta para un movimiento hecho por el profesorado. No es decorativo:
@@ -1283,6 +1296,45 @@ async function presentesDeHoy(perId) {
     .map(x => x.userId);
 }
 
+/**
+ * ════════ EL ZOCO ESTELAR ════════ (el trueque entre reclutas; lo hace el servidor: functions/stargateZoco.js)
+ * Aquí solo se LEE —lo puesto en el Zoco del grupo y mis tratos— y se PIDE: poner, ofertar,
+ * responder. Nada de esto toca créditos ni inventario desde el navegador.
+ */
+async function zocoDatos(perId) {
+  const yo = await sesion();
+  const T = collection(db, "stargate_tratos");
+  const [anuncios, vendo, compro] = await Promise.all([
+    getDocs(query(collection(db, "stargate_zoco"), where("projectId", "==", perId), where("estado", "==", "abierto"))),
+    yo ? getDocs(query(T, where("projectId", "==", perId), where("vende.uid", "==", yo.uid))) : Promise.resolve({ docs: [] }),
+    yo ? getDocs(query(T, where("projectId", "==", perId), where("compra.uid", "==", yo.uid))) : Promise.resolve({ docs: [] })
+  ]);
+  let tratos = vendo.docs.concat(compro.docs).map(d => ({ id: d.id, ...d.data() }));
+  // un trato mío que caducó sin respuesta: se le pide al servidor que lo cierre (y devuelva lo
+  // apartado) antes de enseñarlo. Sin tareas programadas: la caducidad es perezosa.
+  const caducados = tratos.filter(t => t.estado === "abierto" && Number(t.caduca || 0) < Date.now());
+  if (caducados.length && !zocoDatos._cerrando) {
+    zocoDatos._cerrando = true;
+    try {
+      await llamar("stargateZocoResponder", { tratoId: caducados[0].id, accion: "caducar" }).catch(() => null);
+      return await zocoDatos(perId);
+    } finally { zocoDatos._cerrando = false; }
+  }
+  tratos = tratos.sort((a, b) => Number(b.actualizado || b.creado || 0) - Number(a.actualizado || a.creado || 0));
+  return { uid: yo ? yo.uid : "", anuncios: anuncios.docs.map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => Number(b.creado || 0) - Number(a.creado || 0)), tratos };
+}
+/** Todos los tratos del grupo (el docente): el registro y deshacer. */
+async function zocoTratosGrupo(perId) {
+  const r = await getDocs(query(collection(db, "stargate_tratos"), where("projectId", "==", perId)));
+  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => Number(b.actualizado || 0) - Number(a.actualizado || 0));
+}
+const zocoPoner = (perId, piezas) => llamar("stargateZocoPoner", { projectId: perId, piezas });
+const zocoRetirar = (anuncioId) => llamar("stargateZocoRetirar", { anuncioId });
+const zocoOfertar = (anuncioId, ofrece, mensaje) => llamar("stargateZocoOfertar", { anuncioId, ofrece, mensaje: mensaje || "" });
+const zocoResponder = (tratoId, accion, extra) => llamar("stargateZocoResponder", Object.assign({ tratoId, accion }, extra || {}));
+const zocoDeshacer = (tratoId) => llamar("stargateZocoDeshacer", { tratoId });
+
 /** Quién ha fichado en una llamada, para verlo en directo desde el puesto de mando. */
 async function fichajesDe(sesionId) {
   const r = await getDocs(query(collection(db, FICHAJES), where("sessionId", "==", sesionId)));
@@ -1294,10 +1346,11 @@ async function fichajesDe(sesionId) {
 window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
-                    guardarAjustes, otorgarReto, anularReto, traspasar, resolverVale,
+                    guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, nuevoCodigo,
                     huevosDe, guardarHuevos, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
+                    zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

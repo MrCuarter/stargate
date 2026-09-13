@@ -1679,6 +1679,8 @@ body.embed #sg-son{display:none}
 /* Los dos botones, mismo ancho y mismo eje: ninguno de los dos es una trampa. */
 .neb-botones{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .neb-botones .btn{width:100%;justify-content:center;text-align:center;margin:0}
+/* un botón solo («Seguir», «Entendido») ocupa el ancho entero: si no, se quedaba en la mitad izquierda */
+.neb-botones > :only-child{grid-column:1/-1}
 @media (max-width:400px){.neb-botones{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.neb-capa,.neb-caja{animation:none}}
 
@@ -2818,3 +2820,99 @@ body.simulacro .nav .brand{pointer-events:none}
 /* el Mercado por capítulos: con 2 o 4 tarjetas, de dos en dos; con 3 o 6, de tres en tres (auto-fill dejaba huecos) */
 @media(min-width:700px){.grid.nave-rec.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(min-width:980px){.grid.nave-rec.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ================================================================== EL ZOCO ESTELAR (13-sep) */
+.nb-badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;margin-left:6px;border-radius:99px;
+  background:var(--amber,#ffd166);color:#1b1204;font-size:.75rem;font-weight:800}
+.zoco-barra{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin:6px 0 16px}
+.z-h{margin:18px 0 10px;font-size:1.08rem}
+.zc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.zc{display:flex;flex-direction:column;padding:0;overflow:hidden}
+.zc-img{background:#070b12;display:grid;place-items:center;padding:10px}
+.zc-img img{display:block;max-width:100%;height:190px;object-fit:contain;border-radius:10px}
+.zc.heroe .zc-img img{width:100%;height:190px;object-fit:cover;object-position:top}
+.zc-txt{display:flex;flex-direction:column;gap:6px;padding:12px 14px 14px;flex:1}
+.zc-txt b{font-size:1rem;line-height:1.25}
+.zc-meta{font-size:.84rem;color:var(--mut,#8aa5ab)}
+.zc-txt .btn{margin-top:auto;justify-content:center}
+.zt-lista{display:flex;flex-direction:column;gap:10px}
+.zt{padding:14px 16px}
+.zoco-aviso{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;margin:0 0 14px;
+  border-color:rgba(255,209,102,.6);background:linear-gradient(90deg,rgba(255,209,102,.12),rgba(255,209,102,.03))}
+.zoco-aviso p{margin:0;font-size:1.02rem}
+.zt-nov{margin:6px 2px -4px;font-size:1rem}
+.zt.toca{border-color:rgba(255,209,102,.6);box-shadow:0 0 0 1px rgba(255,209,102,.25) inset}
+.zt-cab{display:flex;gap:12px;align-items:center}
+.zt-pz{width:80px;height:80px;border-radius:10px;object-fit:cover;object-position:top;flex:none;background:#070b12}
+.zt-pz.cromo{object-fit:contain;height:108px}
+.zt-tit{margin:0 0 4px;font-size:.98rem}
+.zt-fila{display:flex;flex-wrap:wrap;gap:10px 24px;margin:12px 0 6px}
+.zt-et{display:block;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mut,#8aa5ab);margin-bottom:6px}
+.zq{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.zq-cr{padding:6px 12px;border-radius:99px;background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.4);color:#ffe3a1;font-weight:800}
+.zp{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;width:104px}
+.zp img{width:104px;height:104px;border-radius:10px;object-fit:cover;object-position:top;background:#070b12}
+.zp.cromo img{object-fit:contain;height:142px}
+.zp figcaption{font-size:.82rem;text-align:center;line-height:1.2;color:#dbe7f3}
+.zt-msgs{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:.9rem}
+.zt-msgs li{padding:6px 10px;border-radius:9px;background:#0b1320}
+.zt-msgs li.mio{background:#0f2530}
+.zt-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.zoco-capa{position:fixed;inset:0;z-index:140;display:grid;place-items:center;padding:18px;background:rgba(3,8,14,.72);backdrop-filter:blur(3px)}
+.zoco-caja{width:100%;max-width:720px;max-height:calc(100vh - 36px);overflow:auto;padding:22px 22px 18px;border-radius:18px;
+  background:linear-gradient(180deg,#132234,#0d1624);border:1px solid #2c4a6a;box-shadow:0 26px 70px rgba(0,0,0,.6)}
+.zoco-caja h3{margin:0 0 4px}
+.zm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:8px;margin:12px 0}
+.zm-p{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 6px;border-radius:12px;background:#0b1119;
+  border:2px solid #1d2a40;color:#dfe8f5;cursor:pointer;font:inherit}
+.zm-p img{width:100px;height:100px;border-radius:9px;object-fit:cover;object-position:top}
+.zm-p.cromo img{object-fit:contain;height:136px}
+.zm-p b{font-size:.84rem;font-weight:600;line-height:1.2;text-align:center}
+.zm-p.on{border-color:var(--teal,#37e0ec);background:#0f2530;box-shadow:0 0 0 2px rgba(55,224,236,.2)}
+.zm-p:disabled{opacity:.45;cursor:default}
+.zm-p .nx{position:absolute;top:6px;right:6px;background:var(--amber,#ffd166);color:#161006;font-size:.75rem;font-weight:800;border-radius:7px;padding:0 5px}
+.zm-ya{font-size:.75rem;color:#ffe3a1}
+.zm-obj{display:flex;justify-content:center;margin:8px 0}
+.zm-obj .zp{width:120px}.zm-obj .zp img{width:120px;height:120px}
+.zm-campo{display:flex;flex-direction:column;gap:5px;margin:10px 0;font-weight:600;font-size:.92rem}
+.zm-campo input{padding:10px 12px;border-radius:10px;border:1px solid #24304a;background:#0a1018;color:#e8eefc;font:inherit}
+.zm-et{margin:12px 0 0;font-weight:600;font-size:.92rem}
+.zm-pie{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.lupa-zoco{margin-top:10px}
+.vest-caja{position:relative;display:flex}
+.vest-caja>.vest{flex:1}
+.vest-zoco{position:absolute;top:6px;left:6px;width:34px;height:34px;border-radius:10px;border:1px solid #2c4a6a;background:rgba(7,11,18,.85);
+  color:#e8eefc;font-size:1rem;cursor:pointer;display:grid;place-items:center}
+.vest-zoco:hover{border-color:var(--teal,#37e0ec)}
+@media(max-width:560px){.zc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.zc-img img,.zc.heroe .zc-img img{height:140px}
+  .zm-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.rep-menu{min-width:300px}
+.rep-tit{margin:0 0 4px;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mut,#8aa5ab)}
+.rep-menu .btn{display:flex;justify-content:space-between;gap:10px}
+.rep-menu .btn em,.rep-vien em{font-style:normal;font-size:.8rem;color:var(--mut,#8aa5ab);white-space:nowrap}
+.rep-vien{display:flex;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:8px;border:1px dashed #24304a;color:#6f8399;font-size:.88rem}
+/* 13-sep · la tabla del Zoco en la consola: un mensaje sin espacios la estiraba y se comía «Deshacer» */
+.zoco-tabla td{overflow-wrap:anywhere}
+.zoco-tabla td:nth-child(6){min-width:200px}
+/* 13-sep · el calendario del grupo (consola del referente) */
+.cal-cab{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 22px;margin:6px 0 12px}
+.cal-cab label{margin:0;max-width:260px}
+.cal-tabla td{vertical-align:top}
+.cal-tabla .cal-fechas{white-space:nowrap;font-variant-numeric:tabular-nums}
+.cal-tabla .cal-sem{white-space:nowrap}
+.cal-tabla .cal-abre{line-height:1.55;min-width:240px}
+.cal-tabla tr.cal-pasada td{opacity:.55}
+.cal-tabla tr.cal-hoy td{background:rgba(55,224,236,.07)}
+.cal-tabla tr.cal-pausa td{background:repeating-linear-gradient(135deg,rgba(255,209,102,.07) 0 10px,transparent 10px 20px)}
+.cal-tabla tr.cal-pausa .cal-sem b{color:#ffe3a1}
+.cal-caps{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.cal-cap{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding:12px 14px;border-radius:12px;border:1px solid #1d2a40;background:#0b1119}
+.cal-cap.on{border-color:rgba(55,224,236,.45)}
+.cal-guardar ul{margin:6px 0 10px;padding-left:20px;line-height:1.6}
+/* 13-sep · borrar un grupo de prueba (Ajustes) y el aviso al volver */
+.zona-peligro{border-color:rgba(255,122,107,.55)}
+.btn.peligro{background:#5a1c17;border-color:#ff7a6b;color:#ffe1dc}
+.btn.peligro:hover:not(:disabled){background:#7a241d}
+.btn.peligro:disabled{opacity:.45;cursor:not-allowed}
+.borrado-ok{border-color:rgba(255,122,107,.45);background:rgba(255,122,107,.06)}
+.borrado-ok p{margin:0}
