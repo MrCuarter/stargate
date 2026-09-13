@@ -899,6 +899,15 @@ async function cambiarAlias(perId, fichaId, nuevo, extra) {
  * que ya existe; inventarle un escuadrón vacío a mitad de curso solo ensucia el ranking.
  */
 async function anadirDocente(perId, persona) {
+  // 🔴 15-sep · lo hace el SERVIDOR (`stargateEquipo`, solo para el referente): las reglas ya no dejan
+  // que un codocente toque `coTeacherEmails` ni la lista de roles (antes, cualquiera podía hacerse
+  // referente desde el navegador). Mientras la función no esté desplegada, el camino de antes.
+  try {
+    const r = await llamar("stargateEquipo", { projectId: perId, persona: persona || {} });
+    return r.persona || persona;
+  } catch (e) {
+    if (!/not-found|internal|unavailable/.test(String(e && e.code || "")) || /[áéíóú]/.test(String(e && e.message || ""))) throw e;
+  }
   const correo = String(persona && persona.correo || "").toLowerCase().trim();
   if (!correo || correo.indexOf("@") < 0) throw new Error("Hace falta un correo válido.");
   const nombre = String(persona && persona.nombre || "").trim() || correo.split("@")[0];
@@ -936,6 +945,13 @@ async function anadirDocente(perId, persona) {
  * fallo: creerías que alguien tiene acceso a ocho grupos cuando lo tiene a seis.
  */
 async function referenteEnTodos(persona, perIds) {
+  // (15-sep · de una vez, en el servidor; y si aún no está desplegado, grupo a grupo como antes)
+  try {
+    const r = await llamar("stargateEquipo", { projectIds: perIds, persona: Object.assign({}, persona, { rol: "referente" }) });
+    return { hechos: r.hechos || [], fallos: r.fallos || [] };
+  } catch (e) {
+    if (!/not-found|internal|unavailable/.test(String(e && e.code || "")) || /[áéíóú]/.test(String(e && e.message || ""))) throw e;
+  }
   const hechos = [], fallos = [];
   for (const id of perIds) {
     try { await anadirDocente(id, Object.assign({}, persona, { rol: "referente" })); hechos.push(id); }

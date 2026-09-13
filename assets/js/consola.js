@@ -1057,7 +1057,8 @@
   function premioDelSorteo(t) { return ((DATOS && DATOS.recompensas) || []).filter(function (r) { return r.docId === t.linkedItemId; })[0] || {}; }
   function bomboDe(t) {
     return ((DATOS && DATOS.perfiles) || []).filter(function (p) {
-      return Number((p.lotteryEntries || {})[t.docId] || 0) > 0 && !p.graduatedAt && p.isTeacherPreview !== true; })
+      // (15-sep · como en el servidor: la cuenta congelada no entra en el bombo; si se descongela, vuelve)
+      return Number((p.lotteryEntries || {})[t.docId] || 0) > 0 && !p.graduatedAt && p.isTeacherPreview !== true && !p.stargateCongelado; })
       .map(function (p) {
         var pr = (DATOS.privados || {})[p.id] || {};
         return { ficha: p.id, alias: p.displayName || "", n: Math.floor(Number(p.lotteryEntries[t.docId])),

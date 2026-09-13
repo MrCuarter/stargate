@@ -2853,7 +2853,7 @@ const REG = {};   // cifras que se apuntan para el informe
      */
     if (hacer(30)) {
       const A = admin(), fs = A.firestore(), P = "lab-clase", T = P + "__sorteoauto", PR = P + "__premio_sorteoauto", T0 = P + "__sorteovacio", PR0 = P + "__premio_sorteovacio";
-      const GENTE = { gana: ["gana@lab.test", "Gana Prueba", "Fortuna"], pierde: ["pierde@lab.test", "Pierde Prueba", "Revés"] };
+      const GENTE = { gana: ["gana@lab.test", "Gana Prueba", "Fortuna"], pierde: ["pierde@lab.test", "Pierde Prueba", "Revés"], hielo: ["hielo@lab.test", "Hielo Prueba", "Escarcha"] };
       for (const k of Object.keys(GENTE)) { const [correo, nombre, alias] = GENTE[k];
         for (let i = 0; i < 2 && !(await fichaDe(correo, P)); i++) { const a = await nueva("Alta " + nombre); await alistar(a, correo, nombre, alias, 0); await a.cerrar(); } }
       const F = {}; for (const k of Object.keys(GENTE)) F[k] = await fichaDe(GENTE[k][0], P);
@@ -2868,6 +2868,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await fs.collection("rewards").doc(T0).set(ticket(T0, PR0, "Un sorteo sin nadie"));
       // una sola papeleta en el bombo: gana Fortuna seguro (así se comprueba lo que ve quien gana y quien no)
       await fs.collection("student_profiles").doc(F.gana._id).update({ ["lotteryEntries." + T]: 3 });
+      // 15-sep (decisión de Norberto): una cuenta congelada no entra en el bombo, aunque lleve 50 papeletas
+      await fs.collection("student_profiles").doc(F.hielo._id).update({ ["lotteryEntries." + T]: 50, stargateCongelado: { por: "rita@lab.test", fecha: Date.now() } });
       const n1 = await nueva("Revés entra en la semana 16");
       // (el Gran Sorteo de Genially —si ya se sorteó en la 25— y el vacío, ya vistos: así el aviso es el de este)
       const vistosOtros = q => q.js(`['${P}__sorteo1','${T0}'].forEach(function(d){ localStorage.setItem('sgSorteoVisto_${P}_'+d,'1'); }); 1`);
@@ -2875,6 +2877,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await n1.ir("recluta.html?per=" + P);
       c("🔴 sorteo auto · al entrar alguien, el sorteo vencido se resuelve SOLO en el servidor", await (async () => { for (let i = 0; i < 30; i++) { const t = await leerDoc("rewards/" + T); if (t && t.isRaffleCompleted) return true; await dormir(700); } return false; })());
       const tk = await leerDoc("rewards/" + T), arch = await leerDoc("projects/" + P + "/lottery_archives/" + T);
+      c("🔴 sorteo auto · la cuenta congelada (Escarcha, 50 papeletas) no entra en el bombo ni gana",
+        !!arch && !(arch.bombo || []).some(b => b.ficha === F.hielo._id) && (tk.raffleWinnerIds || []).indexOf(F.hielo._id) < 0, JSON.stringify(arch && arch.bombo));
       c("🔴 sorteo auto · gana quien tenía papeletas, lo marca como automático y guarda su contacto (para dar la licencia a mano)",
         tk.raffleWinnerIds[0] === F.gana._id && tk.raffleResolvedBy === "auto" && arch && arch.automatico === true && arch.ganadoresContacto[0].correo === "gana@lab.test" && /Gana/.test(arch.ganadoresContacto[0].nombre),
         JSON.stringify(arch && arch.ganadoresContacto));
@@ -2992,6 +2996,44 @@ const REG = {};   // cifras que se apuntan para el informe
       c("secreto · consola → Ajustes → «Para los Geniallys»: el enlace escondido del reto secreto (fragmento.html)",
         await rita.hasta("[].slice.call(document.querySelectorAll('[data-copiar]')).some(function(b){return /fragmento\\.html$/.test(b.getAttribute('data-copiar'))})", 15));
       await rita.cerrar();
+    }
+    // ============================================================ 32 · EL EQUIPO DOCENTE, POR EL SERVIDOR
+    /**
+     * Norberto (15-sep): «sí, pásalo al servidor». Añadir a alguien al equipo lo hace `stargateEquipo`,
+     * solo para el referente; y las reglas ya no dejan que un codocente toque el mando del grupo
+     * (los correos con acceso, el dueño, la lista de roles). Rita es referente pero NO dueña del grupo.
+     */
+    if (hacer(32)) {
+      const P = "lab-clase";
+      const rita = await nueva("Rita añade a alguien al equipo");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"equipo\"]')", 25);
+      await rita.js("document.querySelector('.pest[data-tab=\"equipo\"]').click(); 1"); await rita.hasta("!!document.getElementById('e-add')", 15);
+      await rita.js("document.getElementById('e-nom').value='Nuria Nueva'; document.getElementById('e-mail').value='Nuria@Lab.test'; document.getElementById('e-rol').value='docente'; document.getElementById('e-add').click(); 1");
+      c("equipo · la referente (que no es la dueña) añade a Nuria desde «Equipo docente»",
+        await rita.hasta("/ya está en el equipo/.test((document.getElementById('c-aviso')||{}).innerText||'')", 30), await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
+      const pr = await leerDoc("projects/" + P), pv = await leerDoc("projects/" + P + "/privado/stargate");
+      c("🔴 equipo · lo hace el servidor: su correo (en minúsculas) en los accesos y Nuria en la lista, como docente",
+        (pr.coTeacherEmails || []).indexOf("nuria@lab.test") >= 0 && (pv.docentes || []).some(d => d.correo === "nuria@lab.test" && d.rol === "docente"),
+        JSON.stringify([(pr.coTeacherEmails || []).slice(-2), (pv.docentes || []).slice(-1)]));
+      await rita.cerrar();
+      // Dani, docente raso, intenta hacerse referente: por el servidor y a pelo contra Firestore
+      const dani = await nueva("Dani intenta hacerse referente");
+      await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente");
+      await dani.ir("consola.html?per=" + P); await dani.hasta("!!(window.SG && window.SG.MOTOR && window.SG.MOTOR.db)", 25); await dormir(1500);
+      const porServidor = await dani.js(`window.SG.MOTOR.anadirDocente('${P}', { nombre: 'Dani', correo: 'dani@lab.test', rol: 'referente' }).then(function(){return 'LO HIZO'},function(e){return e.message})`, 60000);
+      c("🔴 equipo · un docente raso no se hace referente por el servidor", !/LO HIZO/.test(porServidor) && /referente/i.test(porServidor), porServidor);
+      const intento = (codigo) => dani.js(`(function(){ var M=window.SG.MOTOR; return (${codigo}).then(function(){return 'ESCRIBIÓ'},function(e){return String(e.code||e.message)}); })()`, 60000);
+      const a1 = await intento(`M.setDoc(M.doc(M.db,'projects','${P}','privado','stargate'), { docentes: [{ nombre: 'Dani', correo: 'dani@lab.test', rol: 'referente' }] }, { merge: true })`);
+      const a2 = await intento(`M.updateDoc(M.doc(M.db,'projects','${P}'), { ownerId: M.auth.currentUser.uid })`);
+      const a3 = await intento(`M.updateDoc(M.doc(M.db,'projects','${P}'), { coTeacherEmails: ['dani@lab.test', 'amigo@lab.test'] })`);
+      c("🔴 equipo · ni escribiendo a pelo en Firestore: ni la lista de roles, ni el dueño, ni los correos con acceso",
+        [a1, a2, a3].every(x => /permission/i.test(x)), JSON.stringify([a1, a2, a3]));
+      const pv2 = await leerDoc("projects/" + P + "/privado/stargate");
+      c("equipo · y Dani sigue siendo docente", (pv2.docentes || []).some(d => d.correo === "dani@lab.test" && d.rol !== "referente"), JSON.stringify((pv2.docentes || []).filter(d => /dani/.test(d.correo))));
+      const a4 = await intento(`M.updateDoc(M.doc(M.db,'projects','${P}'), { 'stargate.paneles.Dani': 'https://view.genially.com/dani' })`);
+      c("equipo · lo de siempre lo sigue pudiendo: su panel en «Mis enlaces»", a4 === "ESCRIBIÓ", a4);
+      await dani.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
