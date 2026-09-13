@@ -257,7 +257,6 @@
     try { DATOS = await MOTOR.leerPER(perId, true); }
     catch (e) { return fallo("No he podido leer el grupo: " + e.message); }
     pintar();
-    document.body.classList.add("consola-dentro");
   }
 
   /**
@@ -303,6 +302,7 @@
     ({ alumnado: verAlumnado, canjes: verCanjes, mios: verMios, equipo: verEquipo,
        escuadrones: verEscuadrones, huevos: verHuevos, ajustes: verAjustes })[TAB](t);
     ofrecerVisitaDelGrupo();
+    document.body.classList.add("consola-dentro");   // dentro de un grupo, el titular grande sobra
   }
 
   /**

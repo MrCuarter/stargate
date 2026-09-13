@@ -773,9 +773,9 @@ PASOS = [
         "foro, los desbloqueos de la Nave y las recompensas. Ponla bien y olvídate."),
 
    dict(cod="R3", t="Los enlaces de la clase", pose="senala", img="r3_enlaces.png",
-    hacer="Bloque <b>2 · Los enlaces</b>: Padlet, panel de control y el ticket de salida.",
-    voz="Aquí van el Padlet de la clase y tu panel de control. El ticket de salida ya viene escrito "
-        "y no lo toques: es el mismo para todos los grupos y para todos los años, y la Nave le dice "
+    hacer="Bloque <b>2 · Los enlaces</b>: el Padlet y el panel de control. El ticket de salida ya va solo.",
+    voz="Aquí van el Padlet de la clase y tu panel de control. El ticket de salida ya no se pregunta: "
+        "es el mismo para todos los grupos y para todos los años, y la Nave le dice "
         "sola de qué grupo y de qué Comandante viene cada respuesta. Sigue siendo un formulario de "
         "Google porque tiene que ser anónimo, y eso es innegociable."),
 

@@ -53,7 +53,7 @@ DESTINO = os.path.join(HERE, "assets", "img", "pasos")
 # 🔴 «sgTourDone» NO empieza por «sgTour_» (no lleva guion bajo), asi que el barrido de arriba no lo
 # tocaba y el globo del Capitan se colaba en la captura de la portada. Se pone a mano.
 SIN_GLOBO = ("try{Object.keys(localStorage).forEach(function(k){if(/^sgTour/.test(k))localStorage.removeItem(k);});"
-             "localStorage.setItem('sgTour_sala_hecha','1');localStorage.setItem('sgTourDone','1');"
+             "localStorage.setItem('sgTour_sala_hecha','1');localStorage.setItem('sgTour_grupo_hecha','1');localStorage.setItem('sgTourDone','1');"
              "localStorage.setItem('sgTourRol','doc');}catch(e){}")
 
 SEMBRAR = (SIN_GLOBO + "localStorage.setItem('sgNaveEmail_%s','%s');"
@@ -75,7 +75,9 @@ def pestana(nombre):
             "window.scrollBy(0,-60);}}return 1;})()" % nombre)
 
 def subir(txt):
-    return ("(function(){var b=[].slice.call(document.querySelectorAll('button,h2,h3'))"
+    # 🔴 sin animación: la web pone html{scroll-behavior:smooth} y la foto salía a mitad de viaje
+    return ("(function(){document.documentElement.style.scrollBehavior='auto';"
+            "var b=[].slice.call(document.querySelectorAll('button,h2,h3'))"
             ".filter(function(x){return /%s/.test(x.innerText);})[0];"
             "if(b){b.scrollIntoView({block:'start'});window.scrollBy(0,-70);}return 1;})()" % txt)
 
@@ -89,9 +91,12 @@ def url_form(cual):
 # nombre -> el trabajo. `form:` se resuelve contra la API antes de disparar.
 TOMAS = {
  "d1_portada.png":    dict(antes=SIN_GLOBO, url=WEB + "/index.html", ancho=1440, alto=900, espera=5),
- "d2_cronologia.png": dict(url=WEB + "/cronologia.html", ancho=1440, alto=1150, espera=6,
+ # la cronología es material del profesorado: la marca de docente abre la puerta (no es una llave,
+ # es la señal que deja el motor al entrar un docente; aquí se pone para poder retratarla)
+ "d2_cronologia.png": dict(antes=SIN_GLOBO + "localStorage.setItem('sgEsDocente','1');",
+                           url=WEB + "/cronologia.html", ancho=1440, alto=1150, espera=6,
                            scroll=subir("Semana 1")),
- "d6_tablero.png":    dict(antes=SIN_GLOBO, url=WEB + "/registro.html?per=%s&embed=1&solo=1" % PER,
+ "d6_tablero.png":    dict(antes=SIN_GLOBO, url=WEB + "/registro.html?per=%s&embed=1&solo=1" % PER_NUEVO,
                            ancho=1280, alto=1000, espera=4,
                            listo="document.querySelectorAll('#tablero tbody tr').length>0"),
  # 13-sep · E1 ya no es la Nave sin identificar (con la puerta única no se llega a ella sin sesión):
@@ -118,7 +123,7 @@ TOMAS = {
                            scroll=subir("1 · El grupo")),
  "r3_enlaces.png":    dict(antes=SIN_GLOBO, url=WEB + "/crear.html?demo=1&motor=firestore",
                            ancho=1280, alto=800, espera=4,
-                           listo="!!document.getElementById('f-ticket')",
+                           listo="!!document.getElementById('f-padlet')",
                            scroll=subir("2 · Los enlaces")),
  "r4_equipo.png":     dict(antes=SIN_GLOBO, url=WEB + "/crear.html?demo=1&motor=firestore",
                            ancho=1280, alto=820, espera=4,
@@ -129,7 +134,7 @@ TOMAS = {
                            listo="document.querySelectorAll('tbody tr').length>2"),
  "e2_cuenta.png":     dict(antes=OLVIDAR, url=WEB + "/alistarse.html?per=%s&motor=firestore" % PER_NUEVO,
                            ancho=1100, alto=760, espera=5,
-                           listo="/Entrar con Google/.test(document.body.innerText)"),
+                           listo="/Iniciar sesión con Google|Entrar con Google/.test(document.body.innerText)"),
  "e3_alistarse.png":  dict(antes=SIN_GLOBO, url=WEB + "/alistarse.html?per=%s&demo=1&motor=firestore" % PER_NUEVO,
                            ancho=1100, alto=1250, espera=5,
                            listo="!!document.getElementById('a-enviar')"),
