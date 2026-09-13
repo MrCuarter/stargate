@@ -194,13 +194,16 @@ async function misPERs(correo) {
    * permisos deja a alguien sin un botón; equivocarse al revés le deja crear grupos que no debería.
    */
   await Promise.all(mios.map(async x => {
-    if (REFERENTES_VITALICIOS.indexOf(correo) >= 0) { x.soyReferente = true; return; }
+    const vitalicio = REFERENTES_VITALICIOS.indexOf(correo) >= 0;
     try {
       const pv = await getDoc(doc(db, "projects", x.id, "privado", "stargate"));
       const eq = (pv.exists() ? pv.data().docentes : null) || x.stargate.docentes || [];
       const yo = eq.filter(d => String(d.correo || "").toLowerCase() === correo)[0];
-      x.soyReferente = !!(yo && yo.rol === "referente");
-    } catch (e) { x.soyReferente = false; }
+      x.soyReferente = vitalicio || !!(yo && yo.rol === "referente");
+      // 14-sep · cómo se llama en ESTE grupo (el nombre que llevan las fichas de su escuadrón en «profe»):
+      // la sesión proyectada lo usa para enseñar SU escuadrón y SUS tickets de salida
+      x.miNombre = (yo && yo.nombre) || "";
+    } catch (e) { x.soyReferente = vitalicio; x.miNombre = ""; }
   }));
   // 🔴 La marca que abre la puerta del profesorado. Se pone AQUÍ porque este es el único sitio donde
   // el servidor ha dicho que sí: si devuelve grupos, esta cuenta es docente de alguno. No es una

@@ -333,6 +333,9 @@
         insignias: Object.keys(ins), n: Object.keys(ins).length,
         titulo: p.stargateTitulo || "", marco: p.stargateMarco || "", fondo: p.stargateFondo || "",
         cromos: cromos, xp7: xp7, bio: priv.bio || p.stargateBio || "",
+        // 14-sep · qué misiones ha superado (sus ids de STARGATE): la sesión proyectada enseña quién
+        // hizo cada misión de la semana pasada. No destapa nada que el ranking no enseñe ya.
+        hechos: Object.keys(retos),
         ultima: fechas.length ? new Date(Math.max.apply(null, fechas.map(ts))) : ""
       };
       // 🔴 El correo y el nombre real solo aquí. El endpoint público no los ve, y eso no cambia

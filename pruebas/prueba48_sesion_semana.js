@@ -54,14 +54,21 @@ igual(PLANJSON.length, 8, "viajan los 8 planetas");
 const prep = S.slice(S.indexOf("function prep("), S.indexOf("function pintar("));
 c(prep.indexOf("s.consejo") >= 0, "el consejo del Capitán se pinta en la tira de preparación");
 c(prep.indexOf("s.foro") >= 0, "y el mensaje del foro, también fuera del mazo");
+// 14-sep · el mazo ya no se arma dentro de construir(): cada diapositiva tiene su función (diaPortada,
+// diaLlamada…) y construir() solo las pone en orden. «Lo que se proyecta» es todo ese tramo.
+const MAZO = S.slice(S.indexOf("function vivos()"), S.indexOf("// ---------- pintado ----------")).replace(/^\s*\/\/.*$/gm, "");
 const construir = S.slice(S.indexOf("function construir("), S.indexOf("// ---------- pintado ----------"));
 // 🔴 La regla es sobre `s.consejo` —el consejo del Capitán que viene del calendario, material
 // PRIVADO del docente— no sobre la palabra. Desde el 12-sep el mazo lleva además una «invitación»
 // semanal, que es lo contrario: algo que el alumnado puede hacer hoy. Buscar la palabra suelta
 // confundía las dos y saltaba con un cambio legítimo.
-c(construir.indexOf("s.consejo") < 0, "🔴 el consejo del Capitán NO entra en ninguna diapositiva del mazo");
-c(construir.indexOf("invitacion(") >= 0, "   pero la invitación al alumnado sí: esa es para proyectarla");
-c(construir.indexOf(".foro") < 0, "🔴 el mensaje del foro tampoco: eso lo copia el docente, no se proyecta");
+c(MAZO.indexOf("s.consejo") < 0, "🔴 el consejo del Capitán NO entra en ninguna diapositiva del mazo");
+c(MAZO.indexOf(".foro") < 0, "🔴 el mensaje del foro tampoco: eso lo copia el docente, no se proyecta");
+// 🔴 14-sep · Norberto: «"Nómbralos en voz alta. Los puntos los da el sistema; la ceremonia la haces tú"
+// rompe la magia: esto se proyecta». Nada de lo proyectado le habla al docente.
+["Nómbralos", "la ceremonia la haces tú", "Los xp no bajan nunca", "Por MEDIA, no por suma", "Aquí es donde entras tú"].forEach(function (t) {
+  c(MAZO.indexOf(t) < 0, "🔴 lo proyectado no le habla al docente: fuera «" + t + "»");
+});
 c(/mazo&&mazo\.requestFullscreen/.test(CODIGO),
   "🔴 la pantalla completa se pide sobre el MAZO, no sobre la página (si no, el consejo se vería)");
 c(!/document\.body\.requestFullscreen/.test(CODIGO),
@@ -77,10 +84,25 @@ c(/window\.SGCAL\.vista\(st\.tipo, SEM\)/.test(S),
 c(/semanaActual\(st\.inicio, st\.pausas\)/.test(S), "la semana que abre es la que toca por la fecha de inicio del PER (y sus semanas congeladas)");
 
 // ------------------------------------------------------- d) el mazo se construye entero
-["portada", "plan", "video", "reto", "insignias", "hito", "cierre", "tuyo"].forEach(function (k) {
-  c(construir.indexOf("k:'" + k + "'") >= 0, "el mazo tiene la diapositiva «" + k + "»");
+["portada", "llamada", "video", "anteriores", "movido", "semanal", "top", "escuadrones", "ticket", "nuevo", "simulacro", "reto", "insignias", "hito", "tuyo", "genially"].forEach(function (k) {
+  c(MAZO.indexOf("k:'" + k + "'") >= 0, "el mazo tiene la diapositiva «" + k + "»");
 });
-c(/diapositiva en blanco/.test(S), "el mazo termina en el hueco del docente (sus propios ejemplos)");
+// 🔴 14-sep · el ORDEN que eligió Norberto: portada → llamada a filas → vídeo de intro → misiones de la
+// semana pasada → han movido ficha → ranking semanal → top 5 → escuadrones → ticket de salida → lo
+// nuevo y el simulador → misiones de hoy → tu ejemplo → vídeo de cierre (siempre lo último)
+const orden = ["diaPortada(", "diaLlamada(", "deTipo('inicio')", "diaAnteriores(", "diaMovido(", "diaSemanal(", "diaTop(",
+               "diaEscuadrones(", "diaTicket(", "diapositivasNuevas(", "deTipo('mision')", "diasMisiones(", "k:'tuyo'", "deTipo('cierre')", "deTipo('fragmento')"];
+const pos = orden.map(x => construir.indexOf(x));
+c(pos.every(x => x >= 0) && pos.every((x, i) => i === 0 || x > pos[i - 1]), "🔴 el mazo va en el orden acordado", JSON.stringify(orden.filter((x, i) => pos[i] < 0)));
+c(/if\(st\.per && !EMBED\)/.test(construir), "🔴 el panel de Genially no entra cuando la sesión ya va DENTRO del Genially");
+// los vídeos: la intro al principio y el cierre al final, NUNCA seguidos (en los temas de una semana iban los tres juntos)
+const tipoVideo = new Function("v", S.slice(S.indexOf("function tipoVideo(v){") + 22, S.indexOf("function diaVideo(")).replace(/}\s*$/, ""));
+const tipos = {};
+SEMJSON.forEach(s => (s.videos || []).forEach(v => { const t = tipoVideo(v); (tipos[t] = tipos[t] || []).push(v[0].titulo); }));
+c((tipos.inicio || []).every(t => !/cierre|Fragmento/i.test(t)) && (tipos.inicio || []).some(t => /· intro/.test(t)), "las intros van al principio", JSON.stringify(tipos.inicio));
+c((tipos.cierre || []).length >= 7 && (tipos.cierre || []).every(t => /· cierre/.test(t)), "los cierres, al final", JSON.stringify(tipos.cierre));
+c((tipos.fragmento || []).length === 9, "y los 9 fragmentos, detrás del cierre", JSON.stringify(tipos.fragmento));
+c((tipos.mision || []).every(t => /^Misi|Plan de Ataque/.test(t)), "los vídeos de misión, con las misiones", JSON.stringify(tipos.mision));
 // el enunciado de cada reto no se reescribe aquí: se cruza con el catálogo por texto
 c(/function idDeReto/.test(S), "el «qué hay que hacer» sale del catálogo de retos, no de una copia");
 c(/AYU\[id\]/.test(CODIGO), "   y se lee de AYUDA_RETOS, que ya alimenta la Nave");
@@ -137,7 +159,7 @@ c(/&sem='\+sem/.test(CLASE), "abre directamente en la semana en la que va el gru
 // ------------------------------------------------------- f) no se escapa nada sin escapar
 // El mazo pinta texto que viene del CRONO y de la API (el nombre del PER). Todo por esc().
 c(/function esc\(s\)/.test(S), "sesion.js tiene su esc()");
-["s.tema", "s.sub||''", "s.hito", "st.nombre", "txt", "pide"].forEach(function (v) {
+["s.tema", "s.sub||''", "s.hito", "st.nombre", "tituloReto(txt)", "pide", "p.alias"].forEach(function (v) {
   c(S.indexOf("esc(" + v + ")") >= 0, "se escapa " + v);
 });
 

@@ -576,7 +576,8 @@
       '<p><button class="btn primary" id="m-guardar">Guardar</button> ' +
       (mio ? '<button class="btn min" id="m-quitar">Quitarlo y usar el oficial</button>' : '') + '</p>' +
       '<p class="small muted">Panel oficial del grupo: ' +
-        (oficial ? '<a href="' + esc(oficial) + '" target="_blank" rel="noopener">abrirlo ↗</a>' : '—') +
+        (oficial ? '<a href="' + esc(oficial) + '" target="_blank" rel="noopener">abrirlo ↗</a>'
+                 : (window.SG_PANEL_MAESTRO ? 'el <a href="' + esc(window.SG_PANEL_MAESTRO) + '" target="_blank" rel="noopener">Panel de control maestro</a> de STARGATE (el de todos los grupos)' : '—')) +
       '</p></div>' +
 
       // 🔴 Los enlaces del grupo, en solo lectura. Un docente los necesita A MANO —los reparte en

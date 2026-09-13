@@ -1330,19 +1330,20 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("sesion.html?per=lab-clase&sem=2");
       await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
       const rot = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
-      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='El plan'})[0].click(); 1"); await dormir(500);
-      const plan = await rita.js("[].slice.call(document.querySelectorAll('.pasos-sesion .t')).map(function(x){return x.textContent})");
-      c("🔴 sesión · la semana 2 lleva «Lo nuevo» y «Enséñalo», antes del contenido", rot.indexOf("Lo nuevo") > 0 && rot.indexOf("Enséñalo") === rot.indexOf("Lo nuevo") + 1, JSON.stringify(rot));
-      c("sesión · y el plan de hoy lo anuncia", plan.some(x => /Lo nuevo en la Nave: El Mercado Estelar/.test(x)), JSON.stringify(plan));
+      // (14-sep · «El plan de hoy» ya no va aparte: Norberto eligió juntarlo con las misiones)
+      c("🔴 sesión · la semana 2 lleva «Lo nuevo» y «Enséñalo», justo antes de las misiones de hoy",
+        rot.indexOf("Lo nuevo") > 1 && rot.indexOf("Enséñalo") === rot.indexOf("Lo nuevo") + 1 && rot.indexOf("Misión 1") > rot.indexOf("Enséñalo"), JSON.stringify(rot));
       await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Lo nuevo'})[0].click(); 1"); await dormir(700);
       c("sesión · «🔓 Se abre esta semana en STARGATE: El Mercado Estelar», con lo que se puede hacer", /Se abre esta semana/i.test(await rita.texto()) && /sobres de cromos/i.test(await rita.texto()));
       await rita.foto(FOTOS + "/21-sesion-lo-nuevo.png");
       await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Enséñalo'})[0].click(); 1"); await dormir(700);
       const src = await rita.js("(document.querySelector('.dia.simulacro iframe')||{}).getAttribute ? document.querySelector('.dia.simulacro iframe').getAttribute('src') : ''");
-      c("🔴 sesión · «Enséñalo» incrusta la Nave del Comandante en ESA semana", /simulacro=1/.test(src) && /semana=2/.test(src) && /per=lab-clase/.test(src), src);
+      c("🔴 sesión · «Enséñalo» incrusta la Nave del Comandante en ESA semana, con NEBULA", /simulacro=1/.test(src) && /semana=2/.test(src) && /per=lab-clase/.test(src) && /nebula=1/.test(src), src);
       // (el marco es de la misma web: se mira por dentro desde la página)
       const dentro = await rita.hasta("(function(){ var f=document.querySelector('.dia.simulacro iframe'); var d=f&&f.contentDocument; return !!(d&&d.querySelector('.sim-barra')&&d.querySelectorAll('.nb-t').length>0); })()", 30);
       c("sesión · y dentro se puede usar (la barra del simulacro y las pestañas de la semana 2)", dentro);
+      c("🔴 sesión · y NEBULA arranca sola con el capítulo de la semana (el mismo onboarding que ve el alumnado)",
+        await rita.hasta("(function(){ var f=document.querySelector('.dia.simulacro iframe'); var d=f&&f.contentDocument; var t=d&&d.querySelector('.tour.open'); return !!t && /Mercado/i.test(t.textContent); })()", 20));
       await dormir(1500); await rita.foto(FOTOS + "/21-sesion-ensenalo.png");
       // (14-sep · la 6 ya abre el Gran Sorteo: la que no abre nada es la 7)
       await rita.ir("sesion.html?per=lab-clase&sem=7"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
@@ -2481,6 +2482,50 @@ const REG = {};   // cifras que se apuntan para el informe
       c("embed · y llena la caja del Genially", Math.abs(vista.alto - vista.vh) < 4, JSON.stringify(vista));
       c("🔴 embed · sin la diapositiva del panel de Genially (sería el Genially dentro de sí mismo)", !vista.panel, JSON.stringify(vista));
       await p.foto(FOTOS + "/26-embed-sesion.png");
+      // la sesión rehecha (14-sep): el orden que eligió Norberto y nada que le hable al docente
+      const rots = JSON.parse(await f2.js("JSON.stringify([].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')}))"));
+      c("🔴 sesión · empieza por la portada y la llamada a filas, y el vídeo de cierre va lo último (semana 10)",
+        rots[0] === "Portada" && rots[1] === "Llamada a filas" && rots[2] === "Vídeo" && rots[rots.length - 1] === "Vídeo" && rots.indexOf("Tu ejemplo") === rots.length - 3, JSON.stringify(rots));
+      const ir_ = async t => f2.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return x.getAttribute('title')===${JSON.stringify(t)}})[0]; if(b){ b.click(); return 1; } return 0; })()`);
+      // la llamada a filas, tocada DESDE la sesión, y la gente entrando con su cara
+      for (const d of (await fs.collection("attendance_sessions").where("projectId", "==", P).where("active", "==", true).get()).docs) await d.ref.update({ active: false });
+      const GS = ["sara@lab.test", "Sara Prueba", "Sara Saturno"];
+      for (let k = 0; k < 2 && !(await fichaDe(GS[0], P)); k++) { const a = await nueva("Alta Sara"); await alistar(a, GS[0], GS[1], GS[2], 0); await a.cerrar(); }
+      const FS = await fichaDe(GS[0], P);
+      for (const d of (await fs.collection("attendance_records").where("studentProfileId", "==", FS._id).get()).docs) await d.ref.delete();
+      await ir_("Llamada a filas");
+      c("🔴 sesión · la diapositiva de la llamada trae el botón para tocarla ahí mismo", await f2.hasta("!!document.getElementById('ses-ll-tocar')", 15));
+      await f2.js("document.getElementById('ses-ll-tocar').click(); 1");
+      c("sesión · tocada: «presentes» en directo y la cuenta atrás", await f2.hasta("!!document.getElementById('ses-ll-n') && /quedan/.test(document.getElementById('ses-ll-cuenta').textContent)", 20));
+      const sara = await nueva("Sara ficha en su Nave");
+      await sara.ir("entrar.html"); await sara.entrarComo(GS[0], GS[1]); await sara.ir("recluta.html?per=" + P); await sara.hasta("!!(window.SG&&window.SG.MOTOR)", 20);
+      const fichado = await sara.js(`window.SG.MOTOR.ficharLlamada('${P}','${FS._id}').then(function(){return 'OK'},function(e){return 'ERROR '+e.message})`, 60000);
+      await sara.cerrar();
+      c("🔴 sesión · Sara ficha en su Nave y su cara aparece en la diapositiva, en directo", /OK/.test(fichado) && await f2.hasta("[].slice.call(document.querySelectorAll('#ses-ll-gente figcaption')).some(function(x){return /Sara Saturno/.test(x.textContent)}) && document.getElementById('ses-ll-n').textContent==='1'", 20),
+        fichado + " · " + (await f2.texto()).slice(0, 160));
+      await p.foto(FOTOS + "/26-sesion-llamada.png");
+      await f2.js("document.getElementById('ses-ll-cerrar').click(); 1"); await f2.hasta("!!document.getElementById('ses-ll-tocar')", 15);
+      // el podio de la semana se destapa de uno en uno (si hay podio)
+      if (rots.indexOf("Ranking semanal") >= 0) {
+        await ir_("Ranking semanal");
+        const vistos = async () => Number(await f2.js("document.querySelectorAll('.podio-p.on').length"));
+        const v0 = await vistos();
+        await f2.js("document.getElementById('sig').click(); 1"); await dormir(300); const v1 = await vistos();
+        await f2.js("document.getElementById('sig').click(); 1"); await dormir(300); const v2 = await vistos();
+        const tercero = await f2.js("(document.querySelector('.podio-p.on')||{className:''}).className");
+        c("🔴 sesión · el ranking semanal se destapa de uno en uno: nadie, el último del podio, el siguiente…", v0 === 0 && v1 === 1 && v2 === 2 && /p3|p2/.test(tercero), [v0, v1, v2, tercero].join(" · "));
+        await dormir(900); await p.foto(FOTOS + "/26-sesion-podio.png");
+      }
+      c("sesión · nada de lo proyectado le habla al docente («Nómbralos en voz alta…»)", !/Nómbralos|la ceremonia la haces tú/.test(await f2.texto()));
+      // el fotógrafo: una foto de cada diapositiva de datos (para mirarlas) y nada de letra por debajo de 12 px
+      const chicas = [];
+      for (const t of ["Misiones de la semana 9", "Han movido ficha", "Top 5", "Escuadrones", "Ticket de salida", "Misión 1", "Tu ejemplo"]) {
+        if (!(await ir_(t))) continue;
+        await dormir(1400); await p.foto(FOTOS + "/26-dia-" + t.replace(/\W+/g, "-").toLowerCase() + ".png");
+        const m = await f2.js("(function(){ var out=[]; [].slice.call(document.querySelectorAll('.lienzo *')).forEach(function(e){ if(!e.childNodes.length||![].some.call(e.childNodes,function(n){return n.nodeType===3&&n.textContent.trim()})) return; var fz=parseFloat(getComputedStyle(e).fontSize); if(fz<12) out.push(e.tagName+':'+fz+':'+e.textContent.trim().slice(0,20)); }); return out.join(' | '); })()");
+        if (m) chicas.push(t + " → " + m);
+      }
+      c("sesión · ninguna diapositiva con letra por debajo de 12 px", !chicas.length, chicas.join(" · "));
       await f2.js("document.getElementById('ses-cambiar').click(); 1");
       c("embed · «⇄ Cambiar de grupo» vuelve a preguntar", vista.cambiar && await f2.hasta("document.querySelectorAll('.ses-grupo').length>=2", 10));
       c("embed · sin errores dentro del iframe", !p.errores.filter(e => !/Failed to load resource/.test(e)).length, p.errores[0] || "");

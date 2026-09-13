@@ -1095,7 +1095,8 @@
   // docentes retocan el panel para sus alumnos y ese es el que tienen que ver.
   function miPanel(){
     var d=st.d||{}, p=(st.yo&&st.yo.profe)||'';
-    return (p && d.paneles && d.paneles[p]) || d.panel || '';
+    // 14-sep · y si el grupo no tiene uno: el Panel de control maestro de STARGATE (el de todos)
+    return (p && d.paneles && d.paneles[p]) || d.panel || window.SG_PANEL_MAESTRO || '';
   }
   // ================= LA VENTANA EMBEBIDA (29-ago) =================
   // «Si evitamos abrir pestañas en el navegador, se agradecerá». Los formularios de Google y los
@@ -1564,7 +1565,7 @@
       return '<div class="nave-pl on'+(actual?' actual':'')+'" data-tema="'+t+'" role="button" tabindex="0"><img src="assets/img/planetas/'+p[0]+'.png'+V+'" alt="'+esc(p[1])+'"><b>'+esc(p[1])+'</b><em>'+esc(p[2])+'</em></div>';
     }).join('');
     return '<section><div class="eyebrow">El viaje</div><h2>Los ocho planetas</h2>'
-      +'<p class="lead">Cada semana la nave avanza sola: los planetas se van desbloqueando con el calendario. Pulsa uno visitado para volver a ver sus órdenes, vídeos y retos.'+(st.d.panel?' Las presentaciones de cada planeta están en el <a href="'+esc(st.d.panel)+'" target="_blank" rel="noopener"><b>panel de control</b></a>.':'')+'</p>'
+      +'<p class="lead">Cada semana la nave avanza sola: los planetas se van desbloqueando con el calendario. Pulsa uno visitado para volver a ver sus órdenes, vídeos y retos.'+(miPanel()?' Las presentaciones de cada planeta están en el <a href="'+esc(miPanel())+'" target="_blank" rel="noopener"><b>panel de control</b></a>.':'')+'</p>'
       +'<div class="nave-mapa">'+tiles+'</div><div id="nave-detalle"></div></section>';
   }
   function fichaSemana(s,titulo){
@@ -3164,6 +3165,10 @@
     };
     var cp=document.getElementById('sim-cap');
     if(cp) cp.onclick=function(){ var c=CAPS.filter(function(x){ return x.clave===cp.getAttribute('data-cap'); })[0]; if(c) onboarding(0,c.clave,{cap:c}); };
+    // 14-sep · desde la sesión proyectada (&nebula=1): NEBULA arranca sola con el capítulo de la semana,
+    // el MISMO que verá el alumnado, y el docente lo sigue en directo (Norberto: «el onboarding sirve
+    // también para ellos… que quede grabado en la clase y sepan cómo hacer las cosas»)
+    if(cp && q.get('nebula')==='1' && !st.nebulaSola){ st.nebulaSola=true; setTimeout(function(){ var b=document.getElementById('sim-cap'); if(b) b.click(); }, 900); }
     var cero=document.getElementById('sim-cero');
     if(cero) cero.onclick=function(){ st.llamada=null; st.fichado=false;
       SG.FUENTE.reiniciar().then(function(){ quien(null,function(d){ if(d&&d.yo){ st.yo=d.yo; } irA('nave'); }); }); };

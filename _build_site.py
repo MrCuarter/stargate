@@ -12,7 +12,7 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EVIDENCIA_RETOS, TOPE_RETOS_DIA, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
-                        PASOS, ESCUADRONES, TICKET_URL, TICKETS_API, TICKETS_HOJA,
+                        PASOS, ESCUADRONES, TICKET_URL, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO,
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
@@ -2836,6 +2836,7 @@ def _cabeza_motor():
         '<script>window.SG_FIREBASE=' + _json.dumps(FIREBASE) + ';'
         'window.SG_CATALOGO_URL="' + _v("motor/catalogo.json") + '";'
         'window.SG_TICKET_URL=' + _json.dumps(TICKET_URL) + ';'
+        'window.SG_PANEL_MAESTRO=' + _json.dumps(PANEL_MAESTRO) + ';'
         # El banco de alias solo lo usa el alistamiento, pero va con el resto: son 4 KB y evita una
         # descarga aparte justo en la pantalla donde más prisa tiene la gente.
         'window.SG_ALIAS=' + _json.dumps(ALIAS_SUGERIDOS) + ';'
@@ -2860,6 +2861,7 @@ def _cabeza_fuente():
         '<script>window.SG_FIREBASE=' + cfg + ';window.SG_MOTOR=' + modo + ';'
         'window.SG_TICKETS_API=' + _json.dumps(TICKETS_API) + ';'
         'window.SG_TICKETS_HOJA=' + _json.dumps(TICKETS_HOJA) + ';'
+        'window.SG_PANEL_MAESTRO=' + _json.dumps(PANEL_MAESTRO) + ';'
         'window.SG_CATALOGO_URL="' + _v("motor/catalogo.json") + '";</script>'
         '<script src="' + _v("assets/js/fuente.js") + '" defer></script>'
         '<script src="' + _v("assets/js/fiesta.js") + '" defer></script>'

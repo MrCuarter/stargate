@@ -1146,6 +1146,12 @@ TICKETS_API = ("https://script.google.com/macros/s/"
                "AKfycbw_xmo_3DLONvYxkPYem-uL70M0yLj-4gmhWwla7hoqlfjYkeAeexEqITNGM49H8CpoHQ"
                "/exec")
 
+# 14-sep · EL PANEL DE CONTROL DE CLASE POR DEFECTO (el Genially del referente). Norberto: «por
+# defecto este es el panel de control para todos los grupos (aunque los docentes pueden configurar el
+# suyo propio)… ellos solo pondrán el link». Orden: el propio del docente («Mis enlaces») → el
+# oficial del grupo («Ajustes») → este. Se enseña en un iframe: basta el enlace.
+PANEL_MAESTRO = "https://view.genially.com/6a8bfc4f5068ad5903fc39e3"
+
 TICKET_URL = ("https://docs.google.com/forms/d/e/"
               "1FAIpQLScqkZRCiUqKkq24s7_yzy2d2ldHXlWz8GoHCqXXmHbQlgKhIQ/viewform"
               "?usp=pp_url&entry.489397158={GRUPO}&entry.856117988={COMANDANTE}")

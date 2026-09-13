@@ -27,7 +27,7 @@
    */
   if (q.get('embed') === '1') document.body.classList.add('embed');
   var EMBED = q.get('embed') === '1';
-  var st={per:q.get('per')||'', d:null, sem:0, i:0, slides:[], tipo:'REGULAR', nombre:'', inicio:'', aviso:''};
+  var st={per:q.get('per')||'', d:null, sem:0, i:0, f:0, slides:[], tipo:'REGULAR', nombre:'', inicio:'', aviso:'', miNombre:'', fuera:null};
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function cargando(t,p){return '<div class="cargando"><div class="txt">'+t+'</div><div class="barra"><i></i></div>'+(p?'<div class="pista">'+p+'</div>':'')+'</div>';}
@@ -100,107 +100,284 @@
    *
    * Todo sale del tablero que ya se pide para saber la semana: cero peticiones nuevas.
    */
-  function vivos(){ return (st.d && st.d.reclutas) || []; }
-
-  /** Top 5, ni uno más: una tabla de treinta nombres proyectada no la lee nadie. */
-  function podio(){
-    var r = vivos().slice().sort(function(a,b){ return (b.xp||0)-(a.xp||0); }).slice(0,5);
-    if(r.length < 3) return '';
-    return '<div class="dia datos"><div class="kicker">Cómo va la tripulación</div><h2>Los cinco de arriba</h2>'
-      +'<ol class="ses-podio">'+r.map(function(p,i){
-        return '<li class="p'+(i+1)+'"><span class="pos">'+(i+1)+'</span>'
-          +'<span class="al">'+(p.corona?'👑 ':'')+esc(p.alias)+'</span>'
-          +'<span class="xp">'+(p.xp||0)+' xp</span></li>';
-      }).join('')+'</ol>'
-      +'<p class="ses-pie">Los xp no bajan nunca: esto es trabajo acumulado, no suerte.</p></div>';
-  }
-
-  /** Escuadrones POR MEDIA, nunca por suma: si no, gana siempre el más numeroso. */
-  function escuadrones(){
-    var por={};
-    vivos().forEach(function(p){
-      var e=p.profe||'—'; (por[e]=por[e]||[]).push(p.xp||0);
-    });
-    var ks=Object.keys(por).filter(function(k){return k!=='—';});
-    if(ks.length<2) return '';
-    var filas=ks.map(function(k){
-      var v=por[k]; return {n:k, media:Math.round(v.reduce(function(a,b){return a+b;},0)/v.length), cuantos:v.length};
-    }).sort(function(a,b){return b.media-a.media;});
-    var max=filas[0].media||1;
-    return '<div class="dia datos"><div class="kicker">Entre escuadrones</div><h2>¿Quién tira del grupo?</h2>'
-      +'<div class="ses-esc">'+filas.map(function(f,i){
-        return '<div class="ses-esc-f"><b>'+(i===0?'🏆 ':'')+esc(f.n)+'</b>'
-          +'<div class="ses-bar"><i style="width:'+Math.round(f.media*100/max)+'%"></i></div>'
-          +'<span>'+f.media+' xp de media · '+f.cuantos+'</span></div>';
-      }).join('')+'</div>'
-      +'<p class="ses-pie">Por MEDIA, no por suma: así no gana el escuadrón más numeroso, gana el que se mueve.</p></div>';
-  }
-
-  /** A quién felicitar hoy, con nombre. Es la diapositiva que más cambia una clase. */
-  function logros(){
-    var r = vivos().filter(function(p){ return (p.xp7||0) > 0; })
-                   .sort(function(a,b){ return (b.xp7||0)-(a.xp7||0); }).slice(0,8);
-    if(!r.length) return '';
-    return '<div class="dia datos celebra"><div class="kicker">Esta semana</div>'
-      +'<h2>Han movido ficha</h2>'
-      +'<div class="ses-gente">'+r.map(function(p){
-        return '<span class="ses-uno">'+(p.corona?'👑 ':'')+esc(p.alias)+'<em>+'+(p.xp7||0)+' xp</em></span>';
-      }).join('')+'</div>'
-      +'<p class="ses-pie">Nómbralos en voz alta. Los puntos los da el sistema; la ceremonia la haces tú.</p></div>';
-  }
-
-  /** La misión que más gente ha hecho: dice por dónde va el grupo y a qué se puede apuntar quien falta. */
-  function masHecha(){
-    var cuenta=(st.d&&st.d.retos_n)||{}, act=(st.d&&st.d.activos)||0;
-    var ks=Object.keys(cuenta); if(!ks.length||act<3) return '';
-    var RET=(window.SG_RETOS||{})[st.tipo||'REGULAR']||[];
-    ks.sort(function(a,b){ return cuenta[b]-cuenta[a]; });
-    var k=ks[0], t=RET.filter(function(x){return x[0]===k;})[0];
-    if(!t) return '';
-    return '<div class="dia datos"><div class="kicker">La más hecha</div>'
-      +'<h2>'+esc(t[1])+'</h2>'
-      +'<p class="ses-grande">'+Math.round(cuenta[k]*100/act)+'%</p>'
-      +'<p class="ses-pie">de la gente activa ya la tiene. Si aún no es tu caso, es la más fácil por la que empezar.</p></div>';
-  }
-
   /**
-   * UNA INVITACIÓN por semana. 🔴 Ojo al nombre: NO es «el consejo» del calendario — ese es material
-   * privado del docente y no se proyecta nunca (lo vigila la batería 48). Esto es lo contrario: algo
-   * que el ALUMNADO puede hacer hoy mismo, además de las misiones.
-   * Rota con el número de semana para que no sea siempre la misma, y todas son accionables: nada de
-   * «esfuérzate».
+   * ════════ 14-sep · LA SESIÓN, REHECHA PARA PROYECTAR ════════
+   *
+   * Norberto, viéndola: «embellécela, usa animaciones y apóyate en los personajes e imágenes que
+   * tenemos… tiene mucho aire… "Nómbralos en voz alta, la ceremonia la haces tú" rompe la magia: esto
+   * se proyecta». Y el orden, que eligió él:
+   *   Portada → Llamada a filas (se ve entrar a cada uno) → vídeo de intro → misiones de la semana
+   *   pasada y quién las hizo → han movido ficha → ranking semanal 3º, 2º, 1º → top 5 → escuadrones →
+   *   ticket de salida de tu escuadrón → lo nuevo + el simulador con NEBULA → misiones de hoy con su
+   *   insignia → tu ejemplo → vídeo de cierre (siempre lo último).
+   * Nada de lo que se proyecta le habla al docente: lo que es para él va en la tira de arriba.
+   * Cada bloque se calla solo si no tiene datos: un podio de dos personas o un «0 %» no animan.
    */
-  var INVITACIONES = [
-    ['🃏','Abre un sobre de cromos','15 créditos. Cada carta cuenta un trozo de la historia que no sale en ningún vídeo.'],
-    ['🎭','Cámbiate el personaje','Los que ya tienes desbloqueados se ponen y se quitan gratis, las veces que quieras.'],
-    ['🔁','Cambia tus repetidas','Tres repetidas valen un sobre nuevo, y no cuesta créditos.'],
-    ['🖼️','Ponte un adorno','Título, marco o el planeta de fondo: se ven en tu ficha y en el tablero de clase.'],
-    ['🏅','Mira qué insignia tienes más cerca','En Mi botín, las apagadas dicen exactamente qué piden.'],
-    ['💬','Contesta el ticket de salida','Treinta segundos, anónimo, y es lo que hace que la clase siguiente vaya mejor.']
-  ];
-  function invitacion(sem){
-    // 🔴 `% INVITACIONES.length`, no `% CONSEJOS.length`. Al renombrar «consejo» por «invitación»
-    // —para que la batería 48 no confundiera esto con el consejo privado del docente— se cambió el
-    // nombre del array y se quedó el viejo aquí dentro. Efecto: `ReferenceError` cada vez que tocaba
-    // esta diapositiva, y el opening de la sesión se quedaba a medias sin decir por qué. Lo encontró
-    // la batería 64 el 12-sep, abriendo la página como alumno. Renombrar es buscar quién lo lee.
-    var c = INVITACIONES[(Number(sem)||1) % INVITACIONES.length];
-    return '<div class="dia invita"><div class="kicker">Además de las misiones</div>'
-      +'<div class="ses-tip"><span class="ico">'+c[0]+'</span><div><h2>'+esc(c[1])+'</h2>'
-      +'<p>'+esc(c[2])+'</p></div></div></div>';
+  function vivos(){ return (st.d && st.d.reclutas) || []; }
+  /** Mi escuadrón (la gente sentada en ESTA clase); si no sé quién mira, el grupo entero. */
+  function miGente(){
+    var t=vivos(); if(!st.miNombre) return t;
+    var mios=t.filter(function(p){ return String(p.profe||'')===st.miNombre; });
+    return mios.length ? mios : t;
+  }
+  function cara(p, cls){
+    var src=''; try{ src=(window.SG&&SG.avatarSrc)?SG.avatarSrc(p.avatar,p.alias,p.xp,st.tipo).src:''; }catch(e){}
+    return '<span class="cara'+(cls?' '+cls:'')+'">'+(src?'<img src="'+esc(src)+'" alt="" loading="lazy">'
+      :'<b>'+esc(String(p.alias||'?').charAt(0).toUpperCase())+'</b>')+'</span>';
+  }
+  /** Una rejilla de caras con su alias (y lo que se quiera debajo). Si no caben, «y N más». */
+  function caras(lista, max, pie){
+    var vis=lista.slice(0,max), resto=lista.length-vis.length;
+    return '<div class="ses-caras">'+vis.map(function(p,i){
+      return '<figure style="--i:'+i+'">'+cara(p)+'<figcaption>'+esc(p.alias)+(pie?pie(p):'')+'</figcaption></figure>';
+    }).join('')+(resto>0?'<figure class="mas" style="--i:'+vis.length+'"><span class="cara"><b>+'+resto+'</b></span><figcaption>y '+resto+' más</figcaption></figure>':'')+'</div>';
+  }
+  /** La insignia de una misión: el Reto A del tema N da la del personaje (P N), el B la del reto (R N). */
+  function insigniaDe(id){
+    var m=String(id||'').match(/^([AB])(\d)$/); if(!m) return '';
+    var pre=(m[1]==='A'?'P':'R')+m[2]+'_', ks=Object.keys((window.SG&&SG.BADGE)||{});
+    for(var i=0;i<ks.length;i++) if(ks[i].indexOf(pre)===0) return ks[i];
+    return '';
+  }
+  function tituloReto(txt){ var m=String(txt||'').match(/«([^»]+)»/); return m?m[1]:String(txt||''); }
+  function etiquetaReto(txt){ var t=String(txt||''); return /^Reto A/.test(t)?'Reto A':/^Reto B/.test(t)?'Reto B':/^Actividad/.test(t)?'Actividad':/^Reto/.test(t)?'Reto':'Misión'; }
+  /**
+   * LOS VÍDEOS, CADA UNO EN SU SITIO. Norberto: «no pongas el vídeo de intro y el de cierre a
+   * continuación… vídeo intro al principio, vídeo final siempre lo último». Con un tema de dos
+   * semanas ya salía así (la intro en la 1.ª, el cierre en la 2.ª); en los de una sola semana (el 5 y
+   * el 6) iban los tres seguidos. Los de misión («Misión · Actividad 1») van con las misiones.
+   */
+  function tipoVideo(v){
+    var t=String((v[0]&&v[0].titulo)||'');
+    if(/^Fragmento/i.test(t)) return 'fragmento';
+    if(/·\s*cierre/i.test(t)) return 'cierre';
+    if(/^Misi[oó]n|Plan de Ataque/i.test(t)) return 'mision';
+    return 'inicio';
+  }
+  function diaVideo(v, i, kicker){
+    return {k:'video', rot:'Vídeo', html:'<div class="dia video"><div class="kicker">'+kicker+'</div>'
+      +'<h2>'+esc(v[0].titulo)+'</h2>'+yt(v[0],'')+'</div>'};
   }
 
-  /** Lo que dijeron al salir de la última clase. Sin nombres: el ticket es anónimo y lo seguirá siendo. */
-  function ecos(){
-    var t=(st.d&&st.d.tickets)||[];
-    var frases=t.map(function(x){ return String(x.duda||x.texto||'').trim(); })
-                .filter(function(x){ return x.length>8; }).slice(0,3);
-    if(!frases.length) return '';
-    return '<div class="dia datos"><div class="kicker">Lo que dijisteis al salir</div>'
-      +'<h2>Vuestras dudas de la última sesión</h2>'
-      +'<div class="ses-ecos">'+frases.map(function(f){
-        return '<blockquote>'+esc(f)+'</blockquote>'; }).join('')+'</div>'
-      +'<p class="ses-pie">Anónimo, siempre. Empezar la clase contestando esto vale más que cualquier repaso.</p></div>';
+  // ── 1 · la portada
+  function diaPortada(s, n){
+    var pl=planeta(s.tema_n);
+    return {k:'portada', rot:'Portada', html:
+      '<div class="dia portada'+(pl?' con-planeta':'')+'">'
+      +(pl?'<img class="planeta" src="assets/img/planetas/'+esc(pl[0])+'.png'+(window.SG_IMGV||'')+'" alt="">':'')
+      +'<div class="txt"><div class="kicker">Semana '+s.sem+' de '+n+(st.nombre?' · '+esc(st.nombre):'')+'</div>'
+      +'<h1>'+esc(s.tema)+'</h1><p class="sub">'+esc(s.sub||'')+'</p>'
+      +(pl?'<p class="planeta-nom">Planeta <b>'+esc(pl[1])+'</b> · '+esc(pl[2])+'</p>':'')
+      +(s.capitulo?'<p class="pill amber">Nuevo capítulo de la historia: «'+esc(s.capitulo)+'»</p>':'')
+      +'</div></div>'};
+  }
+
+  // ── 2 · la llamada a filas, con la gente entrando en directo
+  var MINUTOS=[10, 30, 60, 120];
+  function diaLlamada(){
+    return {k:'llamada', rot:'Llamada a filas', html:
+      '<div class="dia llamada"><img class="ll-cap" src="assets/img/capitan/senala.png" alt="">'
+      +'<div class="ll-cuerpo"><div class="kicker">🔔 Para empezar</div><h2>Llamada a filas</h2>'
+      +'<p class="sub">Entra en tu Nave y pulsa <b>✋ Presente</b>.</p>'
+      +'<div class="ll-mando" id="ses-ll"><p class="sub">Un momento…</p></div>'
+      +'<div id="ses-ll-gente"></div></div></div>', montar: montarLlamada};
+  }
+  function montarLlamada(el){
+    var M=window.SG&&window.SG.MOTOR, mando=el.querySelector('#ses-ll'), caja=el.querySelector('#ses-ll-gente');
+    if(!M||!M.llamadaAbierta||!st.per){ mando.innerHTML='<p class="sub">Ábrela desde tu Genially o desde Mis grupos.</p>'; return null; }
+    var reloj=null, vivo=true, vistos={};
+    var cerrada=function(){
+      var min=MINUTOS[1];
+      mando.innerHTML='<div class="ll-minutos">'+MINUTOS.map(function(m){ return '<button type="button" class="ll-m'+(m===min?' on':'')+'" data-min="'+m+'">'+m+' min</button>'; }).join('')+'</div>'
+        +'<label class="ll-regalo"><input type="checkbox" id="ses-ll-sobre"> Regalo: un <b>sobre de cromos</b> a quien fiche</label>'
+        +'<button type="button" class="btn primary grande" id="ses-ll-tocar">🔔 Tocar llamada a filas</button><p class="ses-err" id="ses-ll-err"></p>';
+      Array.prototype.forEach.call(mando.querySelectorAll('.ll-m'),function(b){ b.onclick=function(){
+        min=Number(b.getAttribute('data-min')); Array.prototype.forEach.call(mando.querySelectorAll('.ll-m'),function(x){ x.classList.toggle('on', x===b); }); }; });
+      mando.querySelector('#ses-ll-tocar').onclick=function(e){
+        var b=e.currentTarget; b.disabled=true; b.textContent='Tocando…';
+        M.abrirLlamada(st.per, min, { regalo: mando.querySelector('#ses-ll-sobre').checked ? 'sobre' : '' })
+          .then(function(r){ if(vivo) abierta({ id:r.id, hasta:r.hasta }); })
+          .catch(function(err){ b.disabled=false; b.textContent='🔔 Tocar llamada a filas'; mando.querySelector('#ses-ll-err').textContent=String(err&&err.message||err); });
+      };
+    };
+    var pintaGente=function(id){
+      M.fichajesDe(id).then(function(f){
+        if(!vivo) return;
+        var porFicha={}; vivos().forEach(function(p){ if(p.fid) porFicha[p.fid]=p; });
+        // quien no está en la lista se ha alistado después de abrir la sesión: se pide otra vez
+        if(f.some(function(x){ return !porFicha[x.studentProfileId]; }))
+          refrescarTablero().then(function(ok){ if(ok&&vivo) pintaGente(id); });
+        var gente=f.map(function(x){ return porFicha[x.studentProfileId] || { fid:x.studentProfileId, alias:'Recluta', avatar:null, xp:0 }; });
+        var cuantos=el.querySelector('#ses-ll-n'); if(cuantos) cuantos.textContent=f.length;
+        var pal=el.querySelector('#ses-ll-pal'); if(pal) pal.textContent=f.length===1?'presente':'presentes';
+        caja.innerHTML=gente.length ? '<div class="ses-caras ll">'+gente.map(function(p,i){
+            var nuevo=!vistos[p.fid]; vistos[p.fid]=true;
+            return '<figure class="'+(nuevo?'nuevo':'')+'" style="--i:0">'+cara(p)+'<figcaption>'+esc(p.alias)+'</figcaption></figure>'; }).join('')+'</div>'
+          : '<p class="ll-esperando">Esperando al primero…</p>';
+      }).catch(function(){});
+    };
+    var abierta=function(s){
+      var hasta=s.hasta || (s.endTime && (s.endTime.toDate ? s.endTime.toDate().getTime() : new Date(s.endTime).getTime())) || Date.now();
+      mando.innerHTML='<div class="ll-viva"><span class="ll-punto"></span><b id="ses-ll-n">0</b> <span id="ses-ll-pal">presentes</span>'
+        +'<span class="ll-cuenta" id="ses-ll-cuenta"></span><button type="button" class="btn small" id="ses-ll-cerrar">Cerrar la llamada</button></div>';
+      mando.querySelector('#ses-ll-cerrar').onclick=function(){ M.cerrarLlamada(s.id).then(function(){ if(reloj){ clearInterval(reloj); reloj=null; } caja.innerHTML=''; cerrada(); }); };
+      pintaGente(s.id);
+      reloj=setInterval(function(){
+        var seg=Math.round((hasta-Date.now())/1000), c=el.querySelector('#ses-ll-cuenta');
+        if(seg<=0){ clearInterval(reloj); reloj=null; cerrada(); return; }
+        if(c) c.textContent='quedan '+Math.floor(seg/60)+':'+(seg%60<10?'0':'')+(seg%60);
+        if(seg%4===0) pintaGente(s.id);
+      },1000);
+    };
+    M.llamadaAbierta(st.per).then(function(s){ if(!vivo) return; if(s) abierta(s); else cerrada(); }).catch(cerrada);
+    return function(){ vivo=false; if(reloj) clearInterval(reloj); };
+  }
+
+  // ── 4 · las misiones de la semana pasada, y quién las ha superado
+  function diaAnteriores(s){
+    var lista=semanas(), prev=null;
+    for(var k=s.sem-1;k>=1;k--){ var w=lista[k-1]; if(w&&(w.lanza||[]).length){ prev=w; break; } }
+    var gente=miGente(); if(!prev||!gente.length) return null;
+    var filas=prev.lanza.map(function(txt){
+      var id=idDeReto(txt); return { txt:txt, id:id, ins:insigniaDe(id),
+        hechos:gente.filter(function(p){ return (p.hechos||[]).indexOf(id)>=0; }) }; }).filter(function(f){ return f.id; });
+    if(!filas.length || !filas.some(function(f){ return f.hechos.length; })) return null;
+    return {k:'anteriores', rot:'Misiones de la semana '+prev.sem, html:
+      '<div class="dia anteriores"><div class="kicker">🗝️ Las misiones de la semana '+prev.sem+'</div><h2>¿Quién las ha superado?</h2>'
+      +'<div class="ant-lista">'+filas.map(function(f,i){
+        return '<div class="ant-f" style="--i:'+i+'">'
+          +(f.ins?'<img class="ant-ins" src="assets/img/insignias/'+esc(f.ins)+'.png" alt="">':'<span class="ant-ins vacia">🗝️</span>')
+          +'<div class="ant-txt"><div class="ant-cab"><span class="ant-et">'+etiquetaReto(f.txt)+'</span><b>«'+esc(tituloReto(f.txt))+'»</b>'
+          +'<span class="ant-n"><b>'+f.hechos.length+'</b> de '+gente.length+'</span></div>'
+          +(f.hechos.length?caras(f.hechos, 12):'<p class="sub">¿Quién será el primero?</p>')+'</div></div>';
+      }).join('')+'</div></div>'};
+  }
+
+  // ── 5 · han movido ficha (con su cara)
+  function diaMovido(){
+    var r=miGente().filter(function(p){ return (p.xp7||0)>0; }).sort(function(a,b){ return (b.xp7||0)-(a.xp7||0); });
+    if(!r.length) return null;
+    return {k:'movido', rot:'Han movido ficha', html:
+      '<div class="dia movido"><div class="kicker">⭐ Esta semana</div><h2>Han movido ficha</h2>'
+      +caras(r, 18, function(p){ return '<em>+'+(p.xp7||0)+' xp</em>'; })+'</div>'};
+  }
+
+  // ── 6 · el ranking semanal, de uno en uno: 3.º, 2.º… y el 1.º
+  function diaSemanal(){
+    var r=vivos().filter(function(p){ return (p.xp7||0)>0; }).sort(function(a,b){ return (b.xp7||0)-(a.xp7||0); }).slice(0,3);
+    if(r.length<2) return null;
+    var n=r.length, sitio=function(p,pos){
+      var f=n-pos+1;   // se destapa primero el último del podio
+      return '<div class="podio-p p'+pos+' fr" data-f="'+f+'">'+cara(p,'grande')
+        +'<b class="podio-al">'+(pos===1?'👑 ':'')+esc(p.alias)+'</b><span class="podio-xp">+'+(p.xp7||0)+' xp</span>'
+        +'<div class="podio-escalon"><span>'+pos+'</span></div></div>';
+    };
+    var orden=n===3?[[r[1],2],[r[0],1],[r[2],3]]:[[r[1],2],[r[0],1]];
+    return {k:'semanal', rot:'Ranking semanal', frag:n, html:
+      '<div class="dia semanal"><div class="kicker">🏅 El ranking de la semana</div><h2>Los que más han sumado</h2>'
+      +'<div class="podio">'+orden.map(function(x){ return sitio(x[0],x[1]); }).join('')+'</div></div>'};
+  }
+
+  // ── 7 · el ranking total: los cinco de arriba
+  function diaTop(){
+    var r=vivos().slice().sort(function(a,b){ return (b.xp||0)-(a.xp||0); }).slice(0,5);
+    if(r.length<3) return null;
+    var max=r[0].xp||1;
+    return {k:'top', rot:'Top 5', html:
+      '<div class="dia top"><div class="kicker">🏆 El ranking de la tripulación</div><h2>Los cinco de arriba</h2>'
+      +'<ol class="top5">'+r.map(function(p,i){
+        return '<li style="--i:'+i+'"><span class="top-pos">'+(i+1)+'</span>'+cara(p)
+          +'<span class="top-al"><b>'+esc(p.alias)+'</b><em>'+esc(p.rango_nombre||('Nivel '+(p.nivel||1)))+'</em></span>'
+          +'<span class="top-bar"><i style="width:'+Math.round((p.xp||0)*100/max)+'%"></i></span><span class="top-xp">'+(p.xp||0)+' xp</span></li>';
+      }).join('')+'</ol></div>'};
+  }
+
+  // ── 8 · escuadrones, por MEDIA (si fuera por suma ganaría siempre el más numeroso)
+  function diaEscuadrones(){
+    var por={}; vivos().forEach(function(p){ var e=p.profe||''; if(e) (por[e]=por[e]||[]).push(p.xp||0); });
+    var ks=Object.keys(por); if(ks.length<2) return null;
+    var E=(st.d&&st.d.escuadrones)||[];
+    var filas=ks.map(function(k){ var v=por[k], e=E.filter(function(x){ return x.comandante===k; })[0]||{};
+      return { cmd:k, nombre:e.nombre||k, emblema:e.emblema||'', media:Math.round(v.reduce(function(a,b){return a+b;},0)/v.length), n:v.length }; })
+      .sort(function(a,b){ return b.media-a.media; });
+    var max=filas[0].media||1;
+    return {k:'escuadrones', rot:'Escuadrones', html:
+      '<div class="dia escuadrones"><div class="kicker">🛡️ Entre escuadrones · xp de media</div><h2>¿Qué escuadrón va delante?</h2>'
+      +'<div class="esc-lista">'+filas.map(function(f,i){
+        return '<div class="esc-f'+(f.cmd===st.miNombre?' mio':'')+'" style="--i:'+i+'">'
+          +(f.emblema?'<img class="esc-emb" src="'+esc(f.emblema)+'" alt="">':'<span class="esc-emb vacia">🛡️</span>')
+          +'<span class="esc-nom"><b>'+(i===0?'🏆 ':'')+esc(f.nombre)+'</b><em>Comandante '+esc(f.cmd)+' · '+f.n+' reclutas</em></span>'
+          +'<span class="esc-bar"><i style="width:'+Math.round(f.media*100/max)+'%"></i></span><span class="esc-xp">'+f.media+' xp</span></div>';
+      }).join('')+'</div></div>'};
+  }
+
+  // ── 9 · el ticket de salida de la semana pasada (anónimo), de SU escuadrón
+  function diaTicket(){
+    if(!window.SG_TICKETS_API||!st.per) return null;
+    return {k:'ticket', rot:'Ticket de salida', html:
+      '<div class="dia ticket"><img class="tk-neb" src="assets/img/personajes/nebula.png" alt="">'
+      +'<div class="tk-cuerpo"><div class="kicker">💬 El ticket de salida</div><h2>Lo que dijisteis al salir</h2>'
+      +'<div id="ses-tk"><p class="sub">Leyendo vuestras respuestas…</p></div></div></div>', montar: montarTicket};
+  }
+  var TK=null;
+  function montarTicket(el){
+    var caja=el.querySelector('#ses-tk'), vivo=true;
+    var pinta=function(lista){
+      if(!vivo) return;
+      var campo=function(r,frag){ for(var k in r) if(k.indexOf(frag)>=0) return r[k]; return ''; };
+      var mias=st.miNombre?lista.filter(function(x){ return String(campo(x.r,'profesor o profesora'))===st.miNombre; }):lista;
+      if(mias.length) lista=mias;
+      if(!lista.length){ caja.innerHTML='<p class="sub">Todavía no hay respuestas. El ticket se contesta al final de cada clase, desde la Nave.</p>'; return; }
+      // lo de la última semana con respuestas (la clase anterior)
+      var t=function(x){ return new Date(x.fecha).getTime()||0; }, ult=Math.max.apply(null, lista.map(t));
+      var sem=lista.filter(function(x){ return t(x) > ult-7*864e5; });
+      var sats=[], textos=[];
+      sem.forEach(function(x){ Object.keys(x.r).forEach(function(c){
+        var v=String(x.r[c]).trim(); if(!v||c.indexOf('Selecciona el tema')>=0||c.indexOf('profesor o profesora')>=0||c.indexOf('STARGATE ·')===0) return;
+        if(/^[1-5]$/.test(v)){ if(/satisfacci/i.test(c)) sats.push(Number(v)); }
+        else if(v.length>8) textos.push(v); }); });
+      var media=sats.length?sats.reduce(function(a,b){return a+b;},0)/sats.length:0;
+      caja.innerHTML='<div class="tk-cifras"><div class="tk-c"><b>'+sem.length+'</b><span>'+(sem.length===1?'respuesta':'respuestas')+'</span></div>'
+        +(sats.length?'<div class="tk-c"><b>'+media.toFixed(1)+'</b><span>de 5, cómo os fue</span></div>':'')+'</div>'
+        +(textos.length?'<div class="tk-ecos">'+textos.slice(0,4).map(function(x,i){ return '<blockquote style="--i:'+i+'">'+esc(x.length>220?x.slice(0,217)+'…':x)+'</blockquote>'; }).join('')+'</div>'
+          :'<p class="sub">Sin dudas escritas: todo claro.</p>');
+    };
+    if(TK&&TK.per===st.per){ pinta(TK.lista); }
+    else fetch(String(window.SG_TICKETS_API),{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({accion:'tickets',per:st.per})})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ TK={per:st.per, lista:(d&&d.tickets)||[]}; pinta(TK.lista); })
+      .catch(function(){ if(vivo) caja.innerHTML='<p class="sub">No he podido leer el ticket ahora mismo.</p>'; });
+    return function(){ vivo=false; };
+  }
+
+  // ── 11 · las misiones de hoy, cada una con su insignia (el plan y el hito, dentro)
+  function diasMisiones(s){
+    var out=[], ls=s.lanza||[];
+    ls.forEach(function(txt,i){
+      var id=idDeReto(txt), pide=id?AYU[id]:'', ins=insigniaDe(id), b=ins?badge(ins):null;
+      out.push({k:'reto', rot:'Misión '+(i+1), html:
+        // (clase «mision», no «reto»: `.reto` es el botón de reto de otra página y la dejaba apagada)
+        '<div class="dia mision'+(ins?' con-ins':'')+'">'
+        +(ins?'<figure class="reto-ins"><img src="assets/img/insignias/'+esc(ins)+'.png" alt=""><figcaption>'+esc(b?b.nombre:'')+'</figcaption></figure>':'')
+        +'<div class="reto-txt"><div class="kicker">🎯 Misión '+(i+1)+' de '+ls.length+' · '+etiquetaReto(txt)+'</div>'
+        +'<h2>«'+esc(tituloReto(txt))+'»</h2>'
+        +(pide?'<div class="pide"><div class="et">Qué hay que hacer</div><p>'+esc(pide)+'</p></div>'
+              :'<p class="sub">El enunciado completo está en tu Nave, en «Mis retos».</p>')
+        +(i===ls.length-1&&s.hito?'<p class="reto-hito">🎯 <b>Esta semana se entrega:</b> '+esc(s.hito)+'</p>':'')
+        +'</div></div>'});
+    });
+    if(!ls.length&&s.hito) out.push({k:'hito', rot:'Entrega', html:
+      '<div class="dia hito"><div class="kicker">🎯 Esta semana</div><h2>Lo que se entrega</h2><p class="grande">'+esc(s.hito)+'</p></div>'});
+    // las insignias de la semana que no van con ninguna misión (las de capítulo e historia), juntas
+    var suyas=ls.map(function(t){ return insigniaDe(idDeReto(t)); });
+    var otras=(s.insignias||[]).filter(function(k){ return suyas.indexOf(k)<0; });
+    if(otras.length) out.push({k:'insignias', rot:'Insignias', html:
+      '<div class="dia insignias"><div class="kicker">🏅 También se entregan esta semana</div>'
+      +'<h2>'+(otras.length===1?'La insignia en juego':'Las insignias en juego')+'</h2>'
+      +'<div class="ins-grid">'+otras.map(function(k,i){ var b=badge(k);
+        return '<figure style="--i:'+i+'"><img src="assets/img/insignias/'+esc(k)+'.png" alt=""><figcaption><b>'+esc(b?b.nombre:k)+'</b>'
+          +(b&&b.como?'<em>'+esc(b.como)+'</em>':'')+(b&&b.cita?'<q>'+esc(b.cita)+'</q>':'')+'</figcaption></figure>'; }).join('')+'</div></div>'});
+    return out;
   }
 
   /**
@@ -220,17 +397,22 @@
       return suya===sem;
     });
   }
+  /**
+   * 14-sep · EL SIMULADOR, CON SU ONBOARDING. Norberto: «un estudiante de prueba que está en la
+   * misma semana que los estudiantes, aparece el onboarding y el docente lo sigue en directo… que
+   * quede grabado en la clase y sepan cómo hacer las cosas. Muchos docentes no tendrán ni idea, así
+   * que les sirve a ellos también». Es la Nave del Comandante (nada se guarda) con `&nebula=1`:
+   * NEBULA arranca sola con el MISMO capítulo que verá el alumnado.
+   */
   function diapositivasNuevas(s){
     var out=[];
     capitulosDe(s.sem).forEach(function(c){
       out.push({k:'nuevo', rot:'Lo nuevo', html:
         '<div class="dia nuevo-nave"><div class="nn-txt"><div class="kicker">🔓 Se abre esta semana en STARGATE</div>'
         +'<h2>'+c.icono+' '+esc(c.titulo)+'</h2><p class="sub">'+esc(c.cabecera||'')+'</p>'
-        +'<ul class="nn-lista">'+(c.puedes||[]).map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul>'
-        +'<p class="nn-neb">NEBULA se lo cuenta a cada recluta la primera vez que entre en su Nave esta semana.</p></div>'
+        +'<ul class="nn-lista">'+(c.puedes||[]).map(function(x,i){ return '<li style="--i:'+i+'">'+esc(x)+'</li>'; }).join('')+'</ul></div>'
         +(c.imagen?'<img class="nn-img" src="'+esc(c.imagen)+'" alt="">':'')+'</div>'});
-      // la Nave del Comandante, en ESTA semana: lo que se ve es lo que verán, y no cuenta nada
-      var url='recluta.html?simulacro=1&embed=1&per='+encodeURIComponent(st.per||'demo-motor')+'&semana='+s.sem;
+      var url='recluta.html?simulacro=1&embed=1&nebula=1&per='+encodeURIComponent(st.per||'demo-motor')+'&semana='+s.sem;
       out.push({k:'simulacro', rot:'Enséñalo', html:
         '<div class="dia simulacro"><iframe src="'+esc(url)+'" title="La Nave de tu Comandante: '+esc(c.titulo)+'" loading="lazy"></iframe></div>'});
     });
@@ -238,151 +420,29 @@
   }
 
   function construir(s, n){
-    var d=[], pl=planeta(s.tema_n);
-    var nuevas=diapositivasNuevas(s);
-
-    // 1 · portada
-    d.push({k:'portada', rot:'Portada', html:
-      '<div class="dia portada'+(pl?' con-planeta':'')+'">'
-      +(pl?'<img class="planeta" src="assets/img/planetas/'+esc(pl[0])+'.png'+(window.SG_IMGV||'')+'" alt="">':'')
-      +'<div class="txt">'
-      +'<div class="kicker">Semana '+s.sem+' de '+n+(st.nombre?' · '+esc(st.nombre):'')+'</div>'
-      +'<h1>'+esc(s.tema)+'</h1>'
-      +'<p class="sub">'+esc(s.sub||'')+'</p>'
-      +(pl?'<p class="planeta-nom">Planeta <b>'+esc(pl[1])+'</b> · '+esc(pl[2])+'</p>':'')
-      +(s.capitulo?'<p class="pill amber">Nuevo capítulo de la historia: «'+esc(s.capitulo)+'»</p>':'')
-      +'</div></div>'});
-
-    // 2 · el plan de la sesión (el índice que se proyecta)
-    var pasos=[];
-    capitulosDe(s.sem).forEach(function(c){ pasos.push(['🔓','Lo nuevo en la Nave: '+c.titulo+' (y os lo enseño)']); });
-    if((s.videos||[]).length) pasos.push(['🎬','Ver '+(s.videos.length===1?'el vídeo':'los '+s.videos.length+' vídeos')+' de la semana']);
-    if((s.lanza||[]).length) pasos.push(['🗝️','Lanzar '+(s.lanza.length===1?'la misión':'las '+s.lanza.length+' misiones')]);
-    if((s.insignias||[]).length) pasos.push(['🏅','Entregar '+(s.insignias.length===1?'la insignia':'las '+s.insignias.length+' insignias')]);
-    if(s.hito) pasos.push(['🎯','Lo que hay que entregar']);
-    pasos.push(['📓','Dónde se registra todo']);
-    d.push({k:'plan', rot:'El plan', html:
-      '<div class="dia plan"><div class="kicker">Semana '+s.sem+'</div><h2>El plan de hoy</h2>'
-      +'<ol class="pasos-sesion">'+pasos.map(function(p,i){
-        return '<li><span class="n">'+(i+1)+'</span><span class="ico">'+p[0]+'</span><span class="t">'+esc(p[1])+'</span></li>';
-      }).join('')+'</ol></div>'});
-
-    // 3 · un vídeo por diapositiva, con su «cuándo» como instrucción
-    (s.videos||[]).forEach(function(v,i){
-      d.push({k:'video', rot:'Vídeo '+(i+1), html:
-        '<div class="dia video"><div class="kicker">🎬 Vídeo '+(i+1)+' de '+s.videos.length+'</div>'
-        +'<h2>'+esc(v[0].titulo)+'</h2>'
-        +'<p class="cuando">'+esc(v[1]||'')+'</p>'
-        +yt(v[0],'')+'</div>'});
-    });
-
-    // 4 · las misiones, una por diapositiva, con lo que pide cada una
-    (s.lanza||[]).forEach(function(txt,i){
-      var id=idDeReto(txt), pide=id?AYU[id]:'';
-      d.push({k:'reto', rot:'Misión '+(i+1), html:
-        '<div class="dia reto"><div class="kicker">🗝️ Misión '+(i+1)+' de '+s.lanza.length+'</div>'
-        +'<h2>'+esc(txt)+'</h2>'
-        +(pide?'<div class="pide"><div class="et">Qué hay que hacer</div><p>'+esc(pide)+'</p></div>'
-              :'<p class="sub">Se lanza esta semana. El enunciado completo está en la Nave, pestaña «Mis retos».</p>')
-        +'</div>'});
-    });
-
-    // 5 · insignias en juego (con su historia: es la ceremonia, no un cromo)
-    if((s.insignias||[]).length){
-      d.push({k:'insignias', rot:'Insignias', html:
-        '<div class="dia insignias"><div class="kicker">🏅 Se entregan esta semana</div>'
-        +'<h2>'+(s.insignias.length===1?'La insignia en juego':'Las insignias en juego')+'</h2>'
-        +'<div class="ins-grid">'+s.insignias.map(function(k){
-          var b=badge(k);
-          return '<figure><img src="assets/img/insignias/'+esc(k)+'.png" alt="">'
-            +'<figcaption><b>'+esc(b?b.nombre:k)+'</b>'
-            +(b&&b.como?'<em>'+esc(b.como)+'</em>':'')
-            +(b&&b.cita?'<q>'+esc(b.cita)+'</q>':'')+'</figcaption></figure>';
-        }).join('')+'</div></div>'});
+    var vids=s.videos||[], deTipo=function(t){ return vids.filter(function(v){ return tipoVideo(v)===t; }); };
+    var d=[diaPortada(s, n)];
+    if(st.per) d.push(diaLlamada());
+    deTipo('inicio').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 Para empezar')); });
+    [diaAnteriores(s), diaMovido(), diaSemanal(), diaTop(), diaEscuadrones(), diaTicket()]
+      .forEach(function(x){ if(x) d.push(x); });
+    d=d.concat(diapositivasNuevas(s));
+    deTipo('mision').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 La misión')); });
+    d=d.concat(diasMisiones(s));
+    // 🔴 El Genially del grupo (el panel), EMBEBIDO: es donde empieza la clase de verdad. Si el docente
+    // tiene uno propio («Mis enlaces»), el suyo; si no, el oficial del grupo; si no, el Panel de
+    // control maestro de STARGATE. Y NUNCA cuando la sesión ya va DENTRO del Genially: sería el
+    // panel dentro de sí mismo.
+    if(st.per && !EMBED){
+      var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
+      if(panel) d.push({k:'genially', rot:'El panel', html:
+        '<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});
     }
-
-    // 6 · el hito
-    if(s.hito){
-      d.push({k:'hito', rot:'Entrega', html:
-        '<div class="dia hito"><div class="kicker">🎯 El hito de la semana</div>'
-        +'<h2>Lo que hay que entregar</h2><p class="grande">'+esc(s.hito)+'</p>'
-        +(s.clases?'<p class="sub">'+esc(s.clases)+'</p>':'')+'</div>'});
-    }
-
-    // 7 · dónde se registra (el cierre, siempre igual: es la rutina que hay que repetir)
-    var qs=st.per?'?per='+encodeURIComponent(st.per):'';
-    d.push({k:'cierre', rot:'Registro', html:
-      '<div class="dia cierre"><div class="kicker">📓 Antes de irse</div>'
-      +'<h2>Dónde se registra todo</h2>'
-      +'<div class="cierre-grid">'
-      +'<div class="c"><b>1 · «Lo he hecho», en tu Nave</b><p>Cada reto superado se marca en la Nave, con el enlace de tu evidencia cuando lo pide. Hasta 3 al día.</p></div>'
-      +'<div class="c"><b>2 · Tu Nave del Recluta</b><p>Ahí ves tus xp, tu nivel, tus créditos ◈ y tu personaje.</p><a class="btn small" href="recluta.html'+qs+'" target="_blank" rel="noopener">Abrir la Nave ↗</a></div>'
-      +'<div class="c"><b>3 · El tablero de la clase</b><p>El ranking en vivo. Se proyecta sin nombres ni correos.</p><a class="btn small" href="registro.html'+qs+(st.per?'&':'?')+'solo=1" target="_blank" rel="noopener">Proyectar el tablero ↗</a></div>'
-      +'</div></div>'});
-
-    // 8 · la diapositiva en blanco: el hueco de cada docente
     d.push({k:'tuyo', rot:'Tu ejemplo', html:
-      '<div class="dia tuyo"><div class="kicker">✋ Tu turno</div>'
-      +'<h2>Tu ejemplo</h2>'
-      +'<p class="sub">Aquí es donde entras tú: el caso que conoces, el recurso que usaste el año pasado, '
-      +'la pregunta que siempre hacen. Esta diapositiva está en blanco a propósito.</p></div>'});
-
-    /**
-     * ════════ EL OPENING, EN ORDEN ════════
-     *
-     * Se insertan DESPUÉS del plan y ANTES del contenido de la semana, en el orden que pidió
-     * Norberto: sitúa al estudiante → lo que ya habéis hecho → cómo va la cosa → un consejo → y a
-     * clase. Cada bloque se calla solo si no tiene datos: un ranking de dos personas o un «0 %» no
-     * animan a nadie, desaniman.
-     *
-     * 🔴 Va DESPUÉS del plan a propósito. Lo primero que hay que saber es qué toca hoy; celebrar
-     * antes de decir a qué venimos es empezar por el postre.
-     */
-    var opening = [
-      ['logros',   'Esta semana',   logros()],
-      ['podio',    'El ranking',    podio()],
-      ['escuadr',  'Escuadrones',   escuadrones()],
-      ['mashecha', 'La más hecha',  masHecha()],
-      ['ecos',     'Vuestras dudas', ecos()],
-      ['invita',   'Una invitación', invitacion(s.sem)]
-    ].filter(function(x){ return x[2]; });
-    // se meten justo detrás de «El plan» (índice 1)
-    var cabeza = d.slice(0,2), cola = d.slice(2);
-    // lo nuevo de la Nave va al final del opening y antes del contenido: es la noticia de la semana
-    d = cabeza.concat(opening.map(function(x){ return {k:x[0], rot:x[1], html:x[2]}; })).concat(nuevas).concat(cola);
-
-    /**
-     * ════════ Y PARA EMPEZAR DE VERDAD ════════
-     * Las dos cosas que se hacen con la clase ya delante: abrir el fichaje y lanzar el Genially.
-     * Son el final del opening porque son el momento en que la sesión deja de ser una proyección y
-     * pasa a ser una clase.
-     */
-    if (st.per) {
-      d.push({k:'pase', rot:'Pase de lista', html:
-        '<div class="dia accion"><div class="kicker">Con la clase ya sentada</div>'
-        +'<h2>Llamada a filas</h2>'
-        +'<p class="sub">Abre el fichaje y en la Nave de tu gente aparece solo el botón de <b>✋ Presente</b>. '
-        +'Unos créditos por estar, y tú ves quién va llegando en directo.</p>'
-        +'<div class="cta-row">'
-        +'<a class="btn primary grande" href="llamada.html?per='+encodeURIComponent(st.per)+'" target="_blank" rel="noopener">🔔 Tocar llamada a filas ↗</a>'
-        +'<a class="btn" href="aula.html?per='+encodeURIComponent(st.per)+'" target="_blank" rel="noopener">🎛️ Abrir el aula ↗</a>'
-        +'</div></div>'});
-
-      // 🔴 El Genially del grupo, EMBEBIDO y al final: es la señal de «se acabó la introducción,
-      // empieza la clase». Si no hay panel propio se dice, en vez de dejar un hueco negro.
-      // 14-sep · pero NO cuando la sesión ya está DENTRO del Genially: sería el panel dentro de sí mismo.
-      var panel = (st.d && (st.d.panel || st.d.panelVer)) || '';
-      if (!EMBED) d.push({k:'genially', rot:'Empezar', html:
-        '<div class="dia genially">'
-        +(panel
-          ? '<iframe src="'+esc(panel)+'" title="Panel de control del grupo" loading="lazy" '
-            +'allowfullscreen allow="fullscreen"></iframe>'
-          : '<div class="txt"><div class="kicker">Para empezar</div><h2>Tu panel de Genially</h2>'
-            +'<p class="sub">Este grupo todavía no tiene panel de Genially. Pon el tuyo en '
-            +'<b>Mis grupos → Ver mi gente y los ajustes → Mis enlaces</b> y aparecerá aquí, listo para lanzar la clase.</p></div>')
-        +'</div>'});
-    }
-
+      '<div class="dia tuyo"><img class="tuyo-cap" src="assets/img/capitan/pensativo.png" alt=""><div><div class="kicker">✋ Vuestro turno</div>'
+      +'<h2>Un ejemplo de verdad</h2><p class="sub">Un caso real, una pregunta, algo que ya hayáis probado en un aula.</p></div></div>'});
+    deTipo('cierre').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 Para cerrar el planeta')); });
+    deTipo('fragmento').forEach(function(v,i){ d.push(diaVideo(v, i, '🎁 La recompensa del bloque')); });
     return d;
   }
 
@@ -416,30 +476,60 @@
     st.slides=construir(s,n);
     if(st.i>=st.slides.length) st.i=st.slides.length-1;
     if(st.i<0) st.i=0;
+    if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }
 
     root.innerHTML=(EMBED ? '' : st.aviso+prep(s)+tira())
       +'<div class="mazo" id="mazo" tabindex="0" aria-live="polite">'
-      // en el embed, con varios grupos: cambiar de grupo sin salir del Genially (discreto: se proyecta)
-      +(st.grupos && st.grupos.length > 1 ? '<button type="button" class="ses-cambiar" id="ses-cambiar" title="Cambiar de grupo">⇄ '+esc(st.nombre||'Grupo')+'</button>' : '')
       +'<div class="lienzo">'+st.slides[st.i].html+'</div>'
       +'<button type="button" class="nav ant" id="ant" aria-label="Anterior">‹</button>'
       +'<button type="button" class="nav sig" id="sig" aria-label="Siguiente">›</button>'
-      +'<div class="barra-pasos">'+st.slides.map(function(d,i){
+      // con varios grupos: cambiar de grupo sin salir del Genially (abajo, en la barra: arriba tapaba títulos)
+      +'<div class="barra-pasos">'+(st.grupos && st.grupos.length > 1 ? '<button type="button" class="ses-cambiar" id="ses-cambiar" title="Cambiar de grupo">⇄ '+esc(st.nombre||'Grupo')+'</button>' : '')+st.slides.map(function(d,i){
           return '<button type="button" class="p'+(i===st.i?' on':'')+(i<st.i?' past':'')+'" data-i="'+i+'" title="'+esc(d.rot)+'"><span>'+esc(d.rot)+'</span></button>';
         }).join('')+'</div>'
       +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div>'
       +'</div>';
     wire();
+    montar();
+  }
+  /**
+   * Cada diapositiva puede traer `montar(lienzo)` (la llamada a filas en directo, el ticket que se
+   * lee al llegar) y devolver con qué se apaga al irse; y `frag`: cuántas cosas se destapan de una
+   * en una con → antes de pasar a la siguiente (el podio: 3.º, 2.º… y el 1.º).
+   */
+  function montar(){
+    var lienzo=root.querySelector('.lienzo'), sl=st.slides[st.i]; if(!lienzo||!sl) return;
+    var dia=lienzo.firstElementChild; if(dia) dia.classList.add('entra');
+    frags();
+    if(sl.montar){ try{ st.fuera=sl.montar(lienzo)||null; }catch(e){ st.fuera=null; } }
+  }
+  function frags(){
+    var lienzo=root.querySelector('.lienzo'); if(!lienzo) return;
+    Array.prototype.forEach.call(lienzo.querySelectorAll('[data-f]'),function(x){ x.classList.toggle('on', Number(x.getAttribute('data-f'))<=st.f); });
+  }
+  function avanzar(){
+    var sl=st.slides[st.i];
+    if(sl&&sl.frag&&st.f<sl.frag){ st.f++; frags(); return; }
+    ir(st.i+1);
+  }
+  function retroceder(){
+    var sl=st.slides[st.i];
+    if(sl&&sl.frag&&st.f>0&&st.f<sl.frag){ st.f--; frags(); return; }
+    ir(st.i-1, true);
   }
 
-  function ir(i){
+  function ir(i, hacia_atras){
     var n=st.slides.length;
     if(i<0||i>=n) return;
     st.i=i;
+    // al volver atrás a un podio, se ve entero; al llegar de frente, se destapa de uno en uno
+    st.f=hacia_atras&&st.slides[i].frag?st.slides[i].frag:0;
+    if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }
     var lienzo=root.querySelector('.lienzo');
     if(lienzo){
       lienzo.innerHTML=st.slides[i].html;
       wireYt(lienzo);
+      montar();
       // la barra y el contador se refrescan solos: son lo único que cambia fuera del lienzo
       Array.prototype.forEach.call(root.querySelectorAll('.barra-pasos .p'),function(b,k){
         b.className='p'+(k===i?' on':k<i?' past':'');
@@ -452,8 +542,8 @@
     var mazo=root.querySelector('#mazo');
     wireYt(root);
     var a=root.querySelector('#ant'), g=root.querySelector('#sig');
-    if(a) a.onclick=function(){ ir(st.i-1); };
-    if(g) g.onclick=function(){ ir(st.i+1); };
+    if(a) a.onclick=function(){ retroceder(); };
+    if(g) g.onclick=function(){ avanzar(); };
     Array.prototype.forEach.call(root.querySelectorAll('.barra-pasos .p'),function(b){
       b.onclick=function(){ ir(Number(b.getAttribute('data-i'))); };
     });
@@ -487,8 +577,9 @@
   // estar en el iframe de YouTube y entonces el mazo ya no recibe las teclas.
   document.addEventListener('keydown',function(e){
     if(!st.slides.length) return;
-    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){ e.preventDefault(); ir(st.i+1); }
-    else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); ir(st.i-1); }
+    if(/^(INPUT|SELECT|TEXTAREA)$/.test((e.target&&e.target.tagName)||'')) return;
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){ e.preventDefault(); avanzar(); }
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); retroceder(); }
   });
 
   // ---------- arranque ----------
@@ -580,24 +671,61 @@
       +' Mientras tanto, este es el calendario estándar.</p></div>';
     arrancar(null);
   }
+  /**
+   * Cómo se llama quien proyecta EN ESTE GRUPO (el nombre que llevan en «profe» las fichas de su
+   * escuadrón): con él, «han movido ficha», las misiones y el ticket de salida son de SU clase.
+   */
+  function miNombreDe(per, listo){
+    var g=(st.grupos||[]).filter(function(x){ return x.id===per; })[0];
+    if(g){ st.miNombre=g.miNombre||''; return listo(); }
+    var hecho=false, fin=function(){ if(!hecho){ hecho=true; listo(); } };
+    setTimeout(fin, 4000);   // sin motor o sin cuenta, la sesión sale igual (con el grupo entero)
+    var ir_=function(){
+      var M=window.SG&&window.SG.MOTOR; if(!M||!M.sesion) return fin();
+      M.sesion().then(function(yo){
+        if(!yo) return fin();
+        return M.misPERs(yo.correo).then(function(ps){
+          var x=(ps||[]).filter(function(y){ return y.id===per; })[0];
+          st.miNombre=(x&&x.miNombre)||'';
+          if(!st.grupos) st.grupos=(ps||[]).filter(function(y){ return y.estado==='en marcha'; });
+          fin();
+        });
+      }).catch(fin);
+    };
+    if(window.SG&&window.SG.MOTOR) ir_(); else document.addEventListener('sg:motor', ir_);
+  }
+  /**
+   * 🔴 14-sep · LOS DATOS, FRESCOS. `perData` contesta primero con la copia del navegador (hasta 12 h)
+   * y luego con la de verdad, y aquí se arrancaba con la PRIMERA: el ranking, «han movido ficha» y la
+   * llamada a filas salían con los datos de la mañana (el laboratorio lo pilló: Sara fichaba, el
+   * contador decía «1» y su cara no salía porque se había alistado después). Ahora se espera a la
+   * de verdad; la copia solo se usa si la red tarda más de 6 s.
+   */
   function cargarYArrancar(){
     root.innerHTML=cargando('Preparando la sesión…','Semana en curso de '+esc(st.per));
-    var yaArranco=false;
-    window.SGCAL.perData(API, st.per, function(d,esCache){
-      if(yaArranco) return;
-      yaArranco=true; arrancar(d);
+    var yaArranco=false, copia=null, per=st.per;
+    miNombreDe(per, function(){
+      var espera=setTimeout(function(){ if(!yaArranco&&copia){ yaArranco=true; arrancar(copia); } }, 6000);
+      window.SGCAL.perData(API, per, function(d,esCache){
+        if(per!==st.per) return;
+        if(esCache){ copia=d; return; }
+        if(yaArranco){ if(d&&!d.error) st.d=d; return; }   // llegó tarde: sirve para lo que queda
+        yaArranco=true; clearTimeout(espera); arrancar(d||copia);
+      });
     });
+  }
+  /** Volver a pedir el tablero (alguien ficha y no está en la lista: se ha alistado después). */
+  var refrescado=0;
+  function refrescarTablero(){
+    var F=window.SG&&window.SG.FUENTE;
+    if(!F||!F.tablero||Date.now()-refrescado<15000) return Promise.resolve(false);
+    refrescado=Date.now();
+    // (fresco: el tablero público se guarda 30 s en el servidor, y quien acaba de alistarse no estaría)
+    return F.tablero(st.per, true).then(function(d){ if(d&&!d.error){ st.d=d; return true; } return false; }).catch(function(){ return false; });
   }
 
   if(!st.per){
     if (window.SG && window.SG.MOTOR) porLaCuenta();
     else document.addEventListener('sg:motor', porLaCuenta);
-  } else {
-    root.innerHTML=cargando('Preparando la sesión…','Semana en curso de '+esc(st.per));
-    var yaArranco=false;
-    window.SGCAL.perData(API, st.per, function(d,esCache){
-      if(yaArranco) return;            // el dato fresco no puede mover la diapositiva de sitio
-      yaArranco=true; arrancar(d);
-    });
-  }
+  } else cargarYArrancar();   // (el dato fresco no puede mover la diapositiva de sitio: se arranca una vez)
 })();
