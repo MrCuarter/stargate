@@ -769,6 +769,58 @@ const REG = {};   // cifras que se apuntan para el informe
           loc.length === nTabs + 2 && loc.slice(1, nTabs + 1).every(v => /\bpest\b/.test(v.diana)), JSON.stringify(loc.map(v => v.t + "→" + v.diana)));
       }
     }
+    // ============================================================ 15 · LOS VITALICIOS CREAN GRUPOS
+    // Norberto: «n.cuartero.10 y mutecdgami están flagueados como referente: deberían poder crear
+    // grupos nuevos». Nunca se había probado de punta a punta: formulario → siembra en el motor de
+    // verdad (con sus reglas) → el grupo aparece en Mis grupos con su código → alguien se alista.
+    if (hacer(15)) {
+      const hoy = new Date().toISOString().slice(0, 10);
+      for (const [correo, nombre, grupo] of [["n.cuartero.10@gmail.com", "Norberto Cuartero", "Prueba Vitalicio Uno"],
+                                             ["mutecdgami@gmail.com", "Mando UNIR", "Prueba Vitalicio Dos"]]) {
+        const v = await nueva("vitalicio " + correo);
+        await v.ir("entrar.html"); await v.entrarComo(correo, nombre);
+        await v.ir("crear.html");
+        const form = await v.hasta("!!document.getElementById('f-nombre') && !!document.getElementById('btn-crear')", 25);
+        c("vitalicio · " + correo + " llega al formulario de crear grupo (no al «esto lo hace tu referente»)", form,
+          (await v.texto()).slice(0, 160));
+        if (!form) continue;
+        await v.js(`(function(){ var n=document.getElementById('f-nombre'); n.value=${JSON.stringify(grupo)}; n.dispatchEvent(new Event('input',{bubbles:true}));
+          var f=document.getElementById('f-inicio'); f.value=${JSON.stringify(hoy)}; f.dispatchEvent(new Event('input',{bubbles:true})); f.dispatchEvent(new Event('change',{bubbles:true}));
+          return 1; })()`);
+        await dormir(500);
+        await v.js("document.getElementById('btn-crear').click(); 1");
+        const listo = await v.hasta("/Grupo listo/.test(document.body.innerText)", 60);
+        const codigo = await v.js("(document.querySelector('.codigo-grande')||{}).textContent||''");
+        c("vitalicio · " + correo + " siembra el grupo entero y le sale su código", listo && /^[A-Z0-9]{6}$/.test(codigo),
+          listo ? "código «" + codigo + "»" : (await v.texto()).slice(0, 200));
+        if (!listo) continue;
+        const id = await v.js("(document.querySelector('a[href^=\"consola.html?per=\"]')||{}).getAttribute ? document.querySelector('a[href^=\"consola.html?per=\"]').getAttribute('href').split('per=')[1] : ''");
+        const proy = await leerDoc("projects/" + id);
+        c("vitalicio · el grupo existe en Firestore con los dos vitalicios en el equipo",
+          proy && ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"].every(x => (proy.coTeacherEmails || []).indexOf(x) >= 0),
+          JSON.stringify(proy && proy.coTeacherEmails));
+        const misiones = await consultar("missions", "projectId", id);
+        c("vitalicio · y con sus retos sembrados", misiones.length >= 20, misiones.length + " misiones");
+        await v.ir("consola.html");
+        const ve = await v.hasta("document.body.innerText.indexOf(" + JSON.stringify(grupo.toUpperCase()) + ")>=0 || document.body.innerText.indexOf(" + JSON.stringify(grupo) + ")>=0", 25);
+        c("vitalicio · el grupo nuevo aparece en Mis grupos con su código a la vista", ve && (await v.texto()).indexOf(codigo) >= 0,
+          (await v.texto()).slice(0, 240));
+        // y alguien se alista con ese código
+        const nuevo = await nueva("alumno de " + grupo);
+        const alumno = "alumno." + id.replace(/[^a-z0-9]/g, "") + "@lab.test";
+        await nuevo.entrarPorLaPuerta(alumno, "Alumno Nuevo");
+        await nuevo.hasta("!!document.querySelector('#e-cod')", 20);
+        await nuevo.js(`document.querySelector('#e-cod').value=${JSON.stringify(codigo)}; document.querySelector('#e-cod-ok').click(); 1`);
+        const al = await nuevo.hasta("location.pathname.indexOf('alistarse.html')>=0 && location.search.indexOf(" + JSON.stringify(id) + ")>=0", 20);
+        c("vitalicio · con el código del grupo nuevo, un alumno llega a SU alistamiento", al, await nuevo.js("location.href"));
+      }
+      // y un docente que no es referente, no
+      const dani = await nueva("dani en crear");
+      await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente");
+      await dani.ir("crear.html");
+      const no = await dani.hasta("/Esto lo hace tu profe referente/.test(document.body.innerText)", 20);
+      c("crear · a un docente que no es referente se le dice con claridad que eso lo hace su referente", no, (await dani.texto()).slice(0, 160));
+    }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
   } finally {
