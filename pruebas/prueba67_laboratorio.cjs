@@ -28,6 +28,9 @@ const REG = {};   // cifras que se apuntan para el informe
   await L.arrancar(VER);
   const vivas = [];
   const nueva = async n => { const p = await persona(n); vivas.push(p); return p; };
+  // 13-sep · los capítulos de NEBULA, ya vistos (para las secciones que no van de eso: si no, a mitad
+  // de una prueba sale NEBULA contando el Mercado)
+  const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
   // alistarse de verdad, por la pantalla (lo usan la clase entera y el héroe por enlace)
   const alistar = async (p, correo, nombre, alias, cmd) => {
     await p.ir("alistarse.html?per=lab-clase&codigo=" + CODIGO);
@@ -774,19 +777,42 @@ const REG = {};   // cifras que se apuntan para el informe
         return {n:o.querySelector('.tour-step').textContent, t:o.querySelector('h3').textContent, x:o.querySelector('p').textContent, foco:f?f.className:''};})()`);
       const p0 = await paso();
       c("🔴 bienvenida · a la alumna recién alistada le sale NEBULA en su primera visita, ya dentro", sale && p0 && /1 \/ 6/.test(p0.n), JSON.stringify(p0));
+      c("🔴 capítulos · llega en la semana 10: le tocan los capítulos 1 a 4, EN ORDEN («Capítulo 1 de 4»)", p0 && /Capítulo 1 de 4/.test(p0.n), p0 && p0.n);
       c("bienvenida · y NO le pide «escribe tu correo» (esa puerta ya no existe)", p0 && !/correo/i.test(p0.x), p0 && p0.x.slice(0, 120));
       const focos = [p0 && p0.foco];
       for (let k = 0; k < 5; k++) { await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700); const pk = await paso(); focos.push(pk ? pk.foco : "—"); }
       const esperados = ["nave-estado", "cine", "retos-semana", "nb-fin", "nb-tabs", "nb-t"];
       c("bienvenida · cada paso señala lo suyo: ficha, vídeos, retos, marcadores, pestañas y mercado",
         esperados.every((e, k) => (focos[k] || "").split(/\s+/).indexOf(e) >= 0), JSON.stringify(focos));
-      await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(600);
-      c("bienvenida · al terminar se cierra y queda apuntada", !(await paso()) && (await leo.js("localStorage.getItem('sgNaveOnboard_lab-clase')")) === "1");
+      // al acabar el 1, sigue el 2, el 3 y el 4, cada uno con lo suyo
+      const titulos = [];
+      await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(900);
+      for (let k = 0; k < 12; k++) {
+        const pk = await paso(); if (!pk) break;
+        if (titulos.indexOf(pk.n.split(" · ").slice(0, 2).join(" · ")) < 0) titulos.push(pk.n.split(" · ").slice(0, 2).join(" · "));
+        await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700);
+      }
+      c("🔴 capítulos · detrás del 1 vienen el Mercado, la Rebelión y los adornos, uno tras otro",
+        titulos.length === 3 && /2 de 4/.test(titulos[0]) && /Mercado/.test(titulos[0]) && /Rebeli/.test(titulos[1]) && /insignia de mando/i.test(titulos[2]), JSON.stringify(titulos));
+      c("bienvenida · al terminar se cierra", !(await paso()));
+      await dormir(1500);
+      const fLeo = await fichaDe("leo@lab.test", "lab-clase");
+      const caps = fLeo.stargateCapitulos || {};
+      c("🔴 capítulos · quedan apuntados EN SU FICHA (no solo en el navegador): c1, c2, c3 y c4 «hecho»",
+        ["c1", "c2", "c3", "c4"].every(k => caps[k] && caps[k].estado === "hecho"), JSON.stringify(caps));
       await leo.ir("recluta.html?per=lab-clase"); await leo.hasta("/Lyra Nueva/.test(document.body.innerText)", 25); await dormir(2500);
       c("bienvenida · y en la segunda visita ya no sale", !(await paso()));
-      await leo.js("document.getElementById('btn-onboard') && document.getElementById('btn-onboard').click(); 1"); await dormir(700);
+      // en otro navegador (sin nada guardado), tampoco: manda su ficha
+      const leo2 = await nueva("Leo en otro ordenador");
+      await leo2.ir("entrar.html"); await leo2.entrarComo("leo@lab.test", "Leo Nueva");
+      await leo2.ir("recluta.html?per=lab-clase"); await leo2.hasta("/Lyra Nueva/.test(document.body.innerText)", 25); await dormir(2500);
+      c("🔴 capítulos · en otro ordenador tampoco vuelve a salir (lo sabe su ficha)", !(await leo2.js("!!document.querySelector('#nave-onboard.open')")));
+      await leo.js("document.getElementById('btn-onboard') && document.getElementById('btn-onboard').click(); 1"); await dormir(400);
+      const menu = await leo.js("[].slice.call(document.querySelectorAll('#rep-menu [data-cap]')).map(function(b){return b.textContent})");
+      c("capítulos · «Repetir bienvenida» ofrece los capítulos abiertos", (menu || []).length === 4 && /Canal abierto/.test(menu[0]), JSON.stringify(menu));
+      await leo.js("document.querySelector('#rep-menu [data-cap=c1]').click(); 1"); await dormir(700);
       const rep = await paso();
-      c("bienvenida · «Repetir bienvenida» la vuelve a poner desde el principio", rep && /1 \/ 6/.test(rep.n), JSON.stringify(rep));
+      c("bienvenida · y el 1 se vuelve a poner desde el principio", rep && /1 \/ 6/.test(rep.n), JSON.stringify(rep));
       await leo.js("document.querySelector('#nave-onboard .tour-exit') && document.querySelector('#nave-onboard .tour-exit').click(); 1");
       // 14b · la Nave sin sesión ya no es otra puerta
       const nadie = await nueva("sin sesión en la Nave");
@@ -909,7 +935,7 @@ const REG = {};   // cifras que se apuntan para el informe
       }
       const ana = await nueva("Ana, a media escritura");
       await ana.ir("entrar.html"); await ana.entrarComo("ana@lab.test", "Ana Nueva");
-      await ana.js("localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
+      await sinBienvenidas(ana);
       await ana.ir("recluta.html?per=lab-clase");
       await ana.hasta("!!document.querySelector('.retos-semana details.reto-sem:not(.hecho)')", 25); await dormir(2500);
       const escrito = "https://ejemplo.org/mi-trabajo-a-medias";
@@ -932,7 +958,7 @@ const REG = {};   // cifras que se apuntan para el informe
     if (hacer(17)) {
       const leo = await nueva("Leo entrega y lo ve");
       await leo.ir("entrar.html"); await leo.entrarComo("leo@lab.test", "Leo Nueva");
-      await leo.js("localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
+      await sinBienvenidas(leo);
       await leo.ir("recluta.html?per=lab-clase");
       await leo.hasta("!!document.querySelector('.retos-semana details.reto-sem:not(.hecho)')", 25); await dormir(1500);
       const url = "https://ejemplo.org/leo-entrega-" + Date.now();
@@ -1120,7 +1146,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await admin().firestore().collection("student_profiles").doc(fh._id).update({ inventory: fh.inventory.concat(["lab-clase__heroe_H07_tejedor", "lab-clase__heroe_H07_tejedor"]) });
       const hugo2 = await nueva("Hugo cambia repetidos");
       await hugo2.ir("entrar.html"); await hugo2.entrarComo("hugo@lab.test", "Hugo Prueba");
-      await hugo2.js("localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
+      await sinBienvenidas(hugo2);
       await hugo2.ir("recluta.html?per=lab-clase");
       await hugo2.hasta("!!document.querySelector('.nb-t[data-tab=\"botin\"]')", 25);
       await hugo2.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
@@ -1145,6 +1171,174 @@ const REG = {};   // cifras que se apuntan para el informe
       const otra = await hugo2.js(`window.SG.MOTOR.llamar("stargateCambiarHeroesRepes",{projectId:"lab-clase"}).then(function(){return "PASÓ"},function(e){return e.message})`);
       const repesQuedan = heroesDe(h1).length - new Set(heroesDe(h1)).size;
       c("héroes repetidos · sin dos repetidos, el servidor no deja cambiar", repesQuedan >= 2 || /Necesitas 2/.test(otra), repesQuedan + " · " + otra);
+    }
+
+    // ============================================================ 19 · LA NAVE POR CAPÍTULOS, SEMANA A SEMANA
+    /**
+     * Norberto: «primera semana solo alistarse y primeras misiones; segunda, el Mercado con sobres;
+     * la siguiente, héroes… Si un estudiante se engancha en la semana 3, debería hacer el onboarding
+     * de la semana 1, 2 y 3 en ese orden». La Nave acepta ?semana=N (como la sesión), así que se
+     * recorre el calendario con la misma alumna.
+     */
+    if (hacer(19)) {
+      const nora = await nueva("Nora recorre las semanas");
+      c("semanas · Nora se alista", await alistar(nora, "nora@lab.test", "Nora Prueba", "Nora Nébula", 0));
+      const tabs = () => nora.js("[].slice.call(document.querySelectorAll('.nb-t')).map(function(b){return b.getAttribute('data-tab')})");
+      const paso = () => nora.js(`(function(){var o=document.querySelector('#nave-onboard.open'); if(!o) return null;
+        return {n:o.querySelector('.tour-step').textContent, t:o.querySelector('h3').textContent};})()`);
+      // semana 1
+      await nora.ir("recluta.html?per=lab-clase&semana=1");
+      await nora.hasta("document.querySelectorAll('.nb-t').length>0", 25);
+      const t1 = await tabs();
+      c("🔴 semana 1 · solo Mi nave, Mis retos y Mi botín (ni Mercado ni rankings)", JSON.stringify(t1) === JSON.stringify(["nave", "retos", "botin"]), JSON.stringify(t1));
+      c("semana 1 · una línea dice qué llega: «La semana que viene: 🛒 El Mercado Estelar»", /La semana que viene: .*Mercado Estelar/.test(await nora.texto()));
+      await nora.hasta("!!document.querySelector('#nave-onboard.open')", 15);
+      const q1 = await paso();
+      c("semana 1 · NEBULA: capítulo 1, que no habla del Mercado", q1 && /Capítulo 1/.test(q1.n) && !/2 de/.test(q1.n), JSON.stringify(q1));
+      for (let k = 0; k < 8 && (await paso()); k++) { await nora.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(600); }
+      await nora.foto(FOTOS + "/19-semana1.png");
+      // se intenta ir al Mercado a mano: no existe todavía
+      await nora.ir("recluta.html?per=lab-clase&semana=1#mercado"); await nora.hasta("document.querySelectorAll('.nb-t').length>0", 25); await dormir(1200);
+      c("semana 1 · un enlace a #mercado aterriza en Mi nave", (await nora.js("(document.querySelector('.nb-t.on')||{}).getAttribute ? document.querySelector('.nb-t.on').getAttribute('data-tab') : ''")) === "nave");
+      /**
+       * 🔴 Cada semana, en un navegador NUEVO (como otro ordenador: los capítulos los sabe su ficha). Y
+       * no es solo por eso: con el emulador local (HTTP/1.1), tras escribir en una página, la siguiente
+       * página de ese mismo navegador no conseguía escribir (las conexiones se quedan ocupadas). Firestore
+       * de verdad va por HTTP/2 y no le pasa. Se reprodujo sin la Nave, con dos escrituras y una recarga.
+       */
+      const nora3 = await nueva("Nora en la semana 3");
+      await nora3.ir("entrar.html"); await nora3.entrarComo("nora@lab.test", "Nora Prueba");
+      const paso3 = () => nora3.js(`(function(){var o=document.querySelector('#nave-onboard.open'); if(!o) return null;
+        return {n:o.querySelector('.tour-step').textContent, t:o.querySelector('h3').textContent};})()`);
+      // semana 3: llega de golpe → capítulos 2 y 3, en orden
+      await nora3.ir("recluta.html?per=lab-clase&semana=3");
+      await nora3.hasta("!!document.querySelector('#nave-onboard.open')", 25);
+      const vistos = [];
+      for (let k = 0; k < 10; k++) { const pk = await paso3(); if (!pk) break; const cab = pk.n.split(" · ").slice(0, 2).join(" · "); if (vistos.indexOf(cab) < 0) vistos.push(cab);
+        await nora3.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(600); }
+      c("🔴 semana 3 · le tocan el 2 (Mercado) y el 3 (Rebelión), en ese orden", vistos.length === 2 && /1 de 2 · 🛒/.test(vistos[0]) && /2 de 2 · 🛡️/.test(vistos[1]), JSON.stringify(vistos));
+      const t3 = await nora3.js("[].slice.call(document.querySelectorAll('.nb-t')).map(function(b){return b.getAttribute('data-tab')})");
+      c("semana 3 · ya están el Mercado y los rankings", t3.indexOf("mercado") >= 0 && t3.indexOf("rankings") >= 0, JSON.stringify(t3));
+      await nora3.js("document.querySelector('.nb-t[data-tab=\"mercado\"]').click(); 1"); await dormir(1500);
+      const merc = await nora3.js("[].slice.call(document.querySelectorAll('.nave-rec .rec-card h3')).map(function(h){return h.textContent})");
+      const prox = await nora3.js("(document.querySelector('.rec-prox')||{}).textContent||''");
+      c("🔴 semana 3 · el Mercado enseña sobre, cambio de repetidas y héroe; nada «clasificado»",
+        merc.length === 3 && merc.some(x => /Héroe/.test(x)) && !merc.some(x => /clasificada/i.test(x)), JSON.stringify(merc));
+      c("semana 3 · y una línea con lo que llega: adornos (semana 4) y el Arsenal (semana 15)", /insignia de mando.*semana 4/.test(prox) && /Arsenal.*semana 15/.test(prox), prox);
+      await nora3.foto(FOTOS + "/19-semana3-mercado.png");
+      // lo apunta en segundo plano: se espera a que llegue (como mucho, diez segundos)
+      let fN = await fichaDe("nora@lab.test", "lab-clase");
+      for (let k = 0; k < 20 && !["c1", "c2", "c3"].every(x => (fN.stargateCapitulos || {})[x]); k++) { await dormir(500); fN = await fichaDe("nora@lab.test", "lab-clase"); }
+      c("semanas · en su ficha: c1, c2 y c3 vistos", ["c1", "c2", "c3"].every(k => (fN.stargateCapitulos || {})[k]), JSON.stringify(fN.stargateCapitulos));
+      // semana 4, y «Salir» a mitad: se apunta como saltado
+      const nora4 = await nueva("Nora en la semana 4");
+      await nora4.ir("entrar.html"); await nora4.entrarComo("nora@lab.test", "Nora Prueba");
+      await nora4.ir("recluta.html?per=lab-clase&semana=4");
+      const sale4 = await nora4.hasta("!!document.querySelector('#nave-onboard.open')", 25);
+      c("semana 4 · le sale el capítulo 4", sale4, await nora4.js("JSON.stringify({ls:Object.keys(localStorage).filter(function(k){return /sgCap/.test(k)}), h:(document.querySelector('.tab-head h3')||{}).textContent, ob:(document.querySelector('#nave-onboard')||{}).className, txt:document.body.innerText.slice(0,200)})") + " · " + JSON.stringify(nora4.errores.slice(-4)));
+      await nora4.js("var x=document.querySelector('#nave-onboard .tour-exit'); if(x) x.click(); 1");
+      let fN2 = await fichaDe("nora@lab.test", "lab-clase");
+      for (let k = 0; k < 20 && !((fN2.stargateCapitulos || {}).c4); k++) { await dormir(500); fN2 = await fichaDe("nora@lab.test", "lab-clase"); }
+      c("semanas · «Salir» a mitad del capítulo 4 lo apunta como saltado (lo ve su docente)", ((fN2.stargateCapitulos || {}).c4 || {}).estado === "saltado", JSON.stringify(fN2.stargateCapitulos));
+      // y su docente lo ve en «Alumnado»
+      const rita = await nueva("Rita mira las bienvenidas");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('td.bienv')", 25);
+      const celda = await rita.js("[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(t){return /Nora Nébula/.test(t.textContent)}).map(function(t){return t.querySelector('td.bienv').textContent})[0]||''");
+      c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de 4, 1 saltado)", /3\/4/.test(celda) && /1 saltado/.test(celda), celda);
+    }
+
+    // ============================================================ 20 · LA NAVE DEL COMANDANTE (simulacro)
+    /**
+     * Norberto: «embeber la demo del estudiante con lo desbloqueado para que el docente pueda
+     * interactuar… que el propio Comandante tenga su avatar dentro del juego». La Nave de verdad, con
+     * el Comandante de recluta, y NADA se guarda: se comprueba en la base de datos.
+     */
+    if (hacer(20)) {
+      const A = admin(), fs = A.firestore();
+      const foto0 = async () => {
+        const perf = await fs.collection("student_profiles").where("projectId", "==", "lab-clase").get();
+        const asis = await fs.collection("attendance_records").where("projectId", "==", "lab-clase").get();
+        return { n: perf.size, huella: perf.docs.map(d => d.id + ":" + (d.data().coins || 0) + ":" + (d.data().inventory || []).length).sort().join("|"), asis: asis.size };
+      };
+      const antes = await foto0();
+      const rita = await nueva("Rita enseña la Nave");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("recluta.html?simulacro=1&per=lab-clase&semana=2");
+      const hay = await rita.hasta("!!document.querySelector('.sim-barra') && document.querySelectorAll('.nb-t').length>0", 25);
+      const ident = await rita.js("(document.querySelector('.nb-id-txt b')||{}).textContent||''");
+      c("🔴 simulacro · la Nave del Comandante: su barra, «nada de esto cuenta» y el Comandante de recluta",
+        hay && /nada de esto cuenta/i.test(await rita.texto()) && /^Cmdte\./.test(ident), ident);
+      c("simulacro · en la semana 2 ya está el Mercado (y no los héroes)", (await rita.js("!!document.querySelector('.nb-t[data-tab=\"mercado\"]')"))
+        && !(await rita.js("/Héroes de la Rebelión/.test((document.querySelector('#nave-panel')||{}).innerText||'')")));
+      c("simulacro · NEBULA no salta sola (la lanza el docente cuando quiere)", !(await rita.js("!!document.querySelector('#nave-onboard.open')")));
+      const cr0 = Number(await rita.js("(document.querySelector('#nb-cr b')||{}).textContent||0"));
+      // compra un sobre
+      await rita.js("document.querySelector('.nb-t[data-tab=\"mercado\"]').click(); 1"); await dormir(1200);
+      await rita.js("var b=[].slice.call(document.querySelectorAll('[data-canje]')).filter(function(x){return x.getAttribute('data-tipo')==='cromo'})[0]; b.click(); 1");
+      await rita.hasta("!!document.querySelector('.neb-capa .btn.primary')", 10);
+      await rita.js("document.querySelector('.neb-capa .btn.primary').click(); 1");
+      const sobre = await rita.hasta("!!document.querySelector('.sb-capa')", 15);
+      await rita.js("var s=document.querySelector('.sb-saltar'); if(s) s.click(); 1"); await dormir(500);
+      await rita.js("var x=document.querySelector('.sb-fin'); if(x) x.click(); 1"); await dormir(1500);
+      const cr1 = Number(await rita.js("(document.querySelector('#nb-cr b')||{}).textContent||0"));
+      c("🔴 simulacro · comprar un sobre: se abre carta a carta y bajan 15 ◈ (de mentira)", sobre && cr0 - cr1 === 15, cr0 + " → " + cr1);
+      await rita.foto(FOTOS + "/20-simulacro-sobre.png");
+      // llamada a filas de mentira
+      await rita.js("document.getElementById('sim-ll').click(); 1");
+      await rita.hasta("!!document.getElementById('pase-ok')", 10);
+      await rita.js("document.getElementById('pase-ok').click(); 1");
+      const regalo = await rita.hasta("!!document.querySelector('.sb-capa')", 15);
+      await rita.js("var s=document.querySelector('.sb-saltar'); if(s) s.click(); 1"); await dormir(500);
+      await rita.js("var x=document.querySelector('.sb-fin'); if(x) x.click(); 1"); await dormir(1500);
+      c("simulacro · «📣 Llamada a filas» y «✋ Presente»: créditos y el sobre de regalo", regalo && /Presente/.test(await rita.texto()));
+      // semana 3, sin recargar: héroes, y el capítulo de NEBULA de esa semana
+      await rita.js("var s=document.getElementById('sim-sem'); s.value='3'; s.dispatchEvent(new Event('change')); 1");
+      await rita.hasta("/Rebeli/.test((document.getElementById('sim-cap')||{}).textContent||'')", 15);
+      await rita.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1"); await dormir(1200);
+      c("simulacro · en la semana 3, el vestuario con héroes (y dos repetidos para enseñar el cambio)",
+        await rita.js("!!document.querySelector('#vestuario [data-canje=heroe_repes]')"));
+      await rita.js("document.getElementById('sim-cap').click(); 1");
+      const cap = await rita.hasta("/Rebeli/.test((document.querySelector('#nave-onboard.open .tour-step')||{}).textContent||'')", 10);
+      c("simulacro · «▶ NEBULA» lanza el capítulo de esa semana en pantalla", cap);
+      await rita.js("var x=document.querySelector('#nave-onboard .tour-exit'); if(x) x.click(); 1"); await dormir(500);
+      // su personaje
+      await rita.js("document.getElementById('sim-pj').click(); document.querySelector('#sim-pjs [data-pj=\"6m\"]').click(); 1"); await dormir(1500);
+      c("simulacro · «🎭 Mi personaje» cambia el avatar sin recargar", /p6m/.test(await rita.js("(document.querySelector('.nb-cara')||{}).getAttribute ? document.querySelector('.nb-cara').getAttribute('src') : ''")));
+      // empezar de cero
+      await rita.js("document.getElementById('sim-cero').click(); 1"); await dormir(1500);
+      await rita.foto(FOTOS + "/20-simulacro-semana3.png");
+      await dormir(1500);
+      const despues = await foto0();
+      c("🔴 simulacro · NADA llega a la base de datos: mismas fichas, mismos créditos, ni un fichaje", JSON.stringify(antes) === JSON.stringify(despues),
+        JSON.stringify({ antes: antes.n + "/" + antes.asis, despues: despues.n + "/" + despues.asis }));
+      c("simulacro · sin errores en la página", !rita.errores.filter(x => !/Failed to load resource/.test(x)).length, rita.errores[0] || "");
+    }
+
+    // ============================================================ 21 · LA SESIÓN QUE SE PROYECTA: LO NUEVO DE LA SEMANA
+    if (hacer(21)) {
+      const rita = await nueva("Rita proyecta la semana 2");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("sesion.html?per=lab-clase&sem=2");
+      await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
+      const rot = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
+      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='El plan'})[0].click(); 1"); await dormir(500);
+      const plan = await rita.js("[].slice.call(document.querySelectorAll('.pasos-sesion .t')).map(function(x){return x.textContent})");
+      c("🔴 sesión · la semana 2 lleva «Lo nuevo» y «Enséñalo», antes del contenido", rot.indexOf("Lo nuevo") > 0 && rot.indexOf("Enséñalo") === rot.indexOf("Lo nuevo") + 1, JSON.stringify(rot));
+      c("sesión · y el plan de hoy lo anuncia", plan.some(x => /Lo nuevo en la Nave: El Mercado Estelar/.test(x)), JSON.stringify(plan));
+      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Lo nuevo'})[0].click(); 1"); await dormir(700);
+      c("sesión · «🔓 Se abre esta semana en STARGATE: El Mercado Estelar», con lo que se puede hacer", /Se abre esta semana/i.test(await rita.texto()) && /sobres de cromos/i.test(await rita.texto()));
+      await rita.foto(FOTOS + "/21-sesion-lo-nuevo.png");
+      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Enséñalo'})[0].click(); 1"); await dormir(700);
+      const src = await rita.js("(document.querySelector('.dia.simulacro iframe')||{}).getAttribute ? document.querySelector('.dia.simulacro iframe').getAttribute('src') : ''");
+      c("🔴 sesión · «Enséñalo» incrusta la Nave del Comandante en ESA semana", /simulacro=1/.test(src) && /semana=2/.test(src) && /per=lab-clase/.test(src), src);
+      // (el marco es de la misma web: se mira por dentro desde la página)
+      const dentro = await rita.hasta("(function(){ var f=document.querySelector('.dia.simulacro iframe'); var d=f&&f.contentDocument; return !!(d&&d.querySelector('.sim-barra')&&d.querySelectorAll('.nb-t').length>0); })()", 30);
+      c("sesión · y dentro se puede usar (la barra del simulacro y las pestañas de la semana 2)", dentro);
+      await dormir(1500); await rita.foto(FOTOS + "/21-sesion-ensenalo.png");
+      await rita.ir("sesion.html?per=lab-clase&sem=6"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
+      const rot6 = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
+      c("sesión · una semana que no abre nada no lleva esas diapositivas (la 6)", rot6.indexOf("Lo nuevo") < 0, JSON.stringify(rot6));
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

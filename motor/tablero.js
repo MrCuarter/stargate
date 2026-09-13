@@ -337,6 +337,8 @@
         out.email = priv.email || ""; out.nombre = [priv.firstName, priv.lastName].filter(Boolean).join(" ");
         out.nombre_pila = priv.firstName || ""; out.apellidos = priv.lastName || "";
         out.bitacora = priv.bitacora || ""; out.eventos = eventos; out.retos = retos;
+        // 13-sep · los capítulos de NEBULA que ha visto: la columna «Bienvenida» de la consola
+        out.capitulos = p.stargateCapitulos || {};
         // 🔴 `fila` era el número de fila en la hoja; aquí es el identificador del vale. Se sigue
         // llamando igual porque la sala del docente lo manda de vuelta tal cual para revertir un
         // canje o marcarlo entregado: renombrarlo obligaría a tocar la sala sin ganar nada.

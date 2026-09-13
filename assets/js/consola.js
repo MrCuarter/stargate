@@ -351,18 +351,37 @@
   async function refrescar() { DATOS = await MOTOR.leerPER(PER, true); pintar(); }
 
   // ---------------------------------------------------------------- alumnado
+  /**
+   * 🔴 13-sep · QUIÉN HA VISTO LOS CAPÍTULOS DE NEBULA. Lo pidió Norberto («debería registrar si un
+   * estudiante ha hecho el onboarding») y es también un dato de investigación. Se cuentan los
+   * capítulos YA abiertos en la semana de este grupo: «3/3 ✓», «2/3», o «1 saltado».
+   */
+  function capsDelGrupo(t) {
+    var tipo = (t && t.tipo) === "PUA" ? "PUA" : "REGULAR", sem = Number(t && t.semana) || 1;
+    return (window.SG_CAPITULOS || []).filter(function (c, i) {
+      return c.listo !== false && (i === 0 || ((c.semanas || {})[tipo] || 99) <= sem); });
+  }
+  function celdaBienvenida(r, caps) {
+    var v = r.capitulos || {}, hechos = 0, saltados = 0;
+    caps.forEach(function (c) { var x = v[c.clave]; if (x && x.estado === "saltado") saltados++; else if (x) hechos++; });
+    var n = caps.length, todo = hechos + saltados === n && n > 0;
+    return '<td class="bienv' + (todo && !saltados ? " ok" : "") + '" title="' + esc(caps.map(function (c) {
+        var x = v[c.clave]; return c.n + " · " + c.titulo + ": " + (x ? (x.estado === "saltado" ? "saltado" : "visto") : "pendiente"); }).join("\n")) + '">'
+      + hechos + "/" + n + (todo && !saltados ? " ✓" : "") + (saltados ? '<span class="small muted"> · ' + saltados + " saltado" + (saltados > 1 ? "s" : "") + "</span>" : "") + "</td>";
+  }
   function verAlumnado(t) {
     var retos = DATOS.misiones.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+    var caps = capsDelGrupo(t);
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>Alumnado</h3>' +
       '<p class="small muted">El nombre y el correo solo los ves tú y el resto del equipo docente. ' +
       'Pulsa una fila para otorgar o anular un reto.</p>' +
       '<table class="tabla"><thead><tr><th>#</th><th>Alias</th><th>Nombre</th><th>Comandante</th>' +
-      '<th>xp</th><th>◈</th><th>Insignias</th></tr></thead><tbody>' +
+      '<th>xp</th><th>◈</th><th>Insignias</th><th title="Capítulos de NEBULA vistos (de los ya abiertos)">Bienvenida</th></tr></thead><tbody>' +
       t.reclutas.map(function (r, i) {
         return '<tr data-r="' + i + '"><td>' + r.pos + '</td><td><b>' + esc(r.alias) + '</b>' +
           (r.corona ? " 👑" : "") + '</td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
           esc(r.email || "") + '</span></td><td>' + esc(r.profe || "—") + '</td><td>' + r.xp +
-          '</td><td>' + r.creditos + '</td><td>' + r.n + "/24</td></tr>";
+          '</td><td>' + r.creditos + '</td><td>' + r.n + "/24</td>" + celdaBienvenida(r, caps) + "</tr>";
       }).join("") + "</tbody></table>" +
       (t.sin_docente ? '<p class="aviso">⚠️ ' + t.sin_docente + ' recluta(s) sin Comandante asignado.</p>' : "") +
       "</div><div id='c-ficha'></div>";
@@ -554,6 +573,8 @@
         enlaceFila("🚀", "La Nave del alumnado", "recluta.html?per=" + encodeURIComponent(PER)) +
         enlaceFila("🏅", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1") +
         enlaceFila("📽️", "La sesión de esta semana", "sesion.html?per=" + encodeURIComponent(PER)) +
+        // 13-sep · la Nave con tu Comandante de recluta, para ensayar (o enseñarla fuera de la sesión): no guarda nada
+        enlaceFila("🛰️", "Tu Nave de Comandante (simulacro)", "recluta.html?simulacro=1&per=" + encodeURIComponent(PER)) +
         enlaceFila("🧱", "Padlet de la clase", t.padlet || "") +
       '</div></div>';
 

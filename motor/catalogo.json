@@ -751,15 +751,15 @@
       "nombre": "Título de recluta",
       "coste": 40,
       "maximo": 3,
-      "descripcion": "Un título narrativo bajo tu alias en el tablero y la Nave Lo eliges tú en Mi botín.",
-      "desdeSemana": 3,
+      "descripcion": "Un título narrativo bajo tu alias en el tablero y la Nave. Lo eliges tú en Mi botín.",
+      "desdeSemana": 4,
       "tipo": "titulo"
     },
     {
       "nombre": "Fondo de ficha: tu planeta",
       "coste": 35,
       "maximo": 1,
-      "descripcion": "Tu ficha de la Nave con el planeta que elijas de fondo Eliges cuál de los ocho en Mi botín.",
+      "descripcion": "Tu ficha de la Nave con el planeta que elijas de fondo. Eliges cuál de los ocho en Mi botín.",
       "desdeSemana": 4,
       "tipo": "fondo"
     },
@@ -767,16 +767,16 @@
       "nombre": "Marco dorado del avatar",
       "coste": 60,
       "maximo": 1,
-      "descripcion": "Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.",
-      "desdeSemana": 6,
+      "descripcion": "Tu avatar con marco y brillo dorados en el ranking y la Nave. Te lo pones (y te lo quitas) en Mi botín.",
+      "desdeSemana": 4,
       "tipo": "marco"
     },
     {
       "nombre": "Héroe de la Rebelión",
       "coste": 60,
       "maximo": 99,
-      "descripcion": "Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión en tres rangos. ⚔️ La Resistencia (56% del sobre): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave.",
-      "desdeSemana": 2,
+      "descripcion": "Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión en tres rangos. ⚔️ La Resistencia (56% del sobre): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar.",
+      "desdeSemana": 3,
       "tipo": "heroe"
     },
     {

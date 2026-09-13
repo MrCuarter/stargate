@@ -45,7 +45,8 @@ E.crearPERDemo(G2, { nombre: "NUEVO BANCO", inicio: E.iso(E.haceSemanas(0)) });
 E.enviarBitacora(G2, "nuevo-banco", { email: "nov@alumno.es", alias: "Nov", nombre: "N N", profe: "Mr Cuarter" });
 G2.hoja_("EVENTOS").appendRow([new Date(), "nuevo-banco", "nov@alumno.es", "Nov", "X1", "regalo", 1, 500, "formulario"]);
 const rr = E.enviarCanje(G2, "nuevo-banco", { email: "nov@alumno.es", recompensa: E.etiqueta(G2, "Marco dorado del avatar") });
-contiene(rr.estado, "bloqueada hasta la semana 6", "en la semana 1 el marco dorado está bloqueado");
+// 13-sep · la Nave por capítulos: los adornos se abren en la semana 4 (capítulo «Tu insignia de mando»)
+contiene(rr.estado, "bloqueada hasta la semana 4", "en la semana 1 el marco dorado está bloqueado");
 
 // --- puerta 2: tope por alumno -----------------------------------------------------------------
 r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Marco dorado del avatar") });

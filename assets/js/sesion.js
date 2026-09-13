@@ -202,8 +202,36 @@
       +'<p class="ses-pie">Anónimo, siempre. Empezar la clase contestando esto vale más que cualquier repaso.</p></div>';
   }
 
+  /**
+   * 🔴 13-sep · LO QUE SE ABRE ESTA SEMANA EN LA NAVE. Norberto: «ver en qué semana se les desbloquea
+   * algo y añadir una diapositiva o dos: "esta semana en STARGATE ya puedes…"; y en la siguiente,
+   * embeber la demo del estudiante con lo desbloqueado para que el docente pueda interactuar». El
+   * calendario es el mismo que usa la Nave (SG_CAPITULOS): si una semana no abre nada, no sale nada.
+   */
+  function capitulosDe(sem){
+    var t=st.tipo==='PUA'?'PUA':'REGULAR';
+    return (window.SG_CAPITULOS||[]).filter(function(c){ return c.listo!==false && (c.semanas||{})[t]===sem; });
+  }
+  function diapositivasNuevas(s){
+    var out=[];
+    capitulosDe(s.sem).forEach(function(c){
+      out.push({k:'nuevo', rot:'Lo nuevo', html:
+        '<div class="dia nuevo-nave"><div class="nn-txt"><div class="kicker">🔓 Se abre esta semana en STARGATE</div>'
+        +'<h2>'+c.icono+' '+esc(c.titulo)+'</h2><p class="sub">'+esc(c.cabecera||'')+'</p>'
+        +'<ul class="nn-lista">'+(c.puedes||[]).map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul>'
+        +'<p class="nn-neb">NEBULA se lo cuenta a cada recluta la primera vez que entre en su Nave esta semana.</p></div>'
+        +(c.imagen?'<img class="nn-img" src="'+esc(c.imagen)+'" alt="">':'')+'</div>'});
+      // la Nave del Comandante, en ESTA semana: lo que se ve es lo que verán, y no cuenta nada
+      var url='recluta.html?simulacro=1&embed=1&per='+encodeURIComponent(st.per||'demo-motor')+'&semana='+s.sem;
+      out.push({k:'simulacro', rot:'Enséñalo', html:
+        '<div class="dia simulacro"><iframe src="'+esc(url)+'" title="La Nave de tu Comandante: '+esc(c.titulo)+'" loading="lazy"></iframe></div>'});
+    });
+    return out;
+  }
+
   function construir(s, n){
     var d=[], pl=planeta(s.tema_n);
+    var nuevas=diapositivasNuevas(s);
 
     // 1 · portada
     d.push({k:'portada', rot:'Portada', html:
@@ -219,6 +247,7 @@
 
     // 2 · el plan de la sesión (el índice que se proyecta)
     var pasos=[];
+    capitulosDe(s.sem).forEach(function(c){ pasos.push(['🔓','Lo nuevo en la Nave: '+c.titulo+' (y os lo enseño)']); });
     if((s.videos||[]).length) pasos.push(['🎬','Ver '+(s.videos.length===1?'el vídeo':'los '+s.videos.length+' vídeos')+' de la semana']);
     if((s.lanza||[]).length) pasos.push(['🗝️','Lanzar '+(s.lanza.length===1?'la misión':'las '+s.lanza.length+' misiones')]);
     if((s.insignias||[]).length) pasos.push(['🏅','Entregar '+(s.insignias.length===1?'la insignia':'las '+s.insignias.length+' insignias')]);
@@ -311,7 +340,8 @@
     ].filter(function(x){ return x[2]; });
     // se meten justo detrás de «El plan» (índice 1)
     var cabeza = d.slice(0,2), cola = d.slice(2);
-    d = cabeza.concat(opening.map(function(x){ return {k:x[0], rot:x[1], html:x[2]}; })).concat(cola);
+    // lo nuevo de la Nave va al final del opening y antes del contenido: es la noticia de la semana
+    d = cabeza.concat(opening.map(function(x){ return {k:x[0], rot:x[1], html:x[2]}; })).concat(nuevas).concat(cola);
 
     /**
      * ════════ Y PARA EMPEZAR DE VERDAD ════════

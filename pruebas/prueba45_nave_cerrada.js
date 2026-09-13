@@ -102,8 +102,10 @@ c(/ACTOS=\{[\s\S]*?puerta:[\s\S]*?nave:/.test(R), "   y un solo motor sirve a lo
 // enseñaba a quien ya había entrado (la sesión tarda un instante en confirmarse)
 c(/if\(!motorNuevo\(\) && !st\.yo && !DEMO && !localStorage\.getItem\('sgNavePuerta_'\+per\)\) onboarding\(0,'puerta'\)/.test(R),
   "🔴 el acto 1 solo salta con la nave CERRADA, nunca en demo y nunca con el motor nuevo");
-c(/if\(!localStorage\.getItem\('sgNaveOnboard_'\+per\)\) setTimeout/.test(R),
-  "🔴 y el acto 2 arranca al validarse el correo, no antes");
+// 13-sep · con el motor nuevo, al validarse la sesión se ofrecen los CAPÍTULOS pendientes; con el viejo, el acto 2 de siempre
+c((R.match(/setTimeout\(ofrecerCapitulos, 700\)/g) || []).length === 3
+  && /if\(!localStorage\.getItem\('sgNaveOnboard_'\+per\)\) onboarding\(0,'nave'\)/.test(R),
+  "🔴 y el acto 2 (los capítulos, con el motor nuevo) arranca al validarse el correo, no antes");
 c(/sgNavePuerta_/.test(R) && /sgNaveOnboard_/.test(R),
   "   cada acto recuerda por su cuenta si ya se vio");
 // el acto 1 no puede hablar de lo que aún no existe

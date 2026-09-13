@@ -61,6 +61,17 @@
     var total = cat.semanas.REGULAR || 15, suyas = cat.semanas.PUA || 8;
     return Math.max(1, Math.min(suyas, Math.round(semanaRegular * suyas / total)));
   }
+  /**
+   * 🔴 13-sep · LA SEMANA DE LA TIENDA, POR CAPÍTULOS. En PUA las cinco primeras semanas son las mismas
+   * que en REGULAR —cada semana se abre una pieza nueva de la Nave, y en un curso corto se aprende a
+   * jugar igual de despacio—; lo de después (el Arsenal) se comprime como el resto. Comprimido todo,
+   * en PUA los sobres, los héroes y los adornos se abrían la misma semana y NEBULA los contaba
+   * semanas después. Es la regla de `_site_data.py → semana_capitulo`: la batería 72 lo vigila.
+   */
+  function semanaTienda(semanaRegular, tipo, cat) {
+    if (tipo !== "PUA" || semanaRegular <= 5) return semanaRegular;
+    return semanaEnTipo(semanaRegular, tipo, cat);
+  }
 
   // Los créditos de un reto salen de su forma, igual que en el motor viejo: lo dice el id.
   /** Seis caracteres legibles en voz alta. Sin I, O, 0 ni 1, que se confunden al dictarlos. */
@@ -304,7 +315,7 @@
 
     // ---------------------------------------------------------------- la tienda
     var tienda = cat.recompensas.map(function (r, i) {
-      var semana = semanaEnTipo(r.desdeSemana, tipo, cat);
+      var semana = semanaTienda(r.desdeSemana, tipo, cat);
       return {
         id: "rec" + (i + 1),
         title: r.nombre,
@@ -453,6 +464,6 @@
   function idPremioHuevo(perId, huevoId) { return perId + "__huevo_" + String(huevoId); }
 
   return { paquete: paquete, masDias: masDias, inicioDeSemana: inicioDeSemana,
-           semanaEnTipo: semanaEnTipo, creditosDe: creditosDe, escalaXp: escalaXp,
+           semanaEnTipo: semanaEnTipo, semanaTienda: semanaTienda, creditosDe: creditosDe, escalaXp: escalaXp,
            codigoNuevo: codigoNuevo, premioDeHuevo: premioDeHuevo, idPremioHuevo: idPremioHuevo };
 });

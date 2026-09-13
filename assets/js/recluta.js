@@ -10,6 +10,9 @@
       SELLOS=window.SG_SERIES_ALBUM||[];
   if(!root) return;
   var q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
+  // 🔴 13-sep · LA NAVE DEL COMANDANTE: el simulacro que maneja el docente en clase (ver fuente.js → simulacro)
+  var SIMULACRO = q.get('simulacro')==='1' && !!(window.SG&&SG.FUENTE&&SG.FUENTE.simulacro);
+  if(SIMULACRO){ document.body.classList.add('simulacro'); document.documentElement.style.colorScheme='dark'; }
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   // NEBULA en vídeo (holograma vivo); si el navegador no puede, se queda su imagen
   function nebulaVideo(cls){return '<video class="nebula-v '+(cls||'')+'" autoplay muted loop playsinline preload="auto" poster="assets/img/personajes/nebula_poster.jpg"><source src="media/video/nebula_loop.mp4" type="video/mp4"></video>';}
@@ -203,7 +206,7 @@
         st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true;
         if(st.email) localStorage.setItem(KEY_MAIL,st.email);
         st.msgYo='';
-        if(!localStorage.getItem('sgNaveOnboard_'+per)) setTimeout(function(){ onboarding(0,'nave'); }, 700);
+        setTimeout(ofrecerCapitulos, 700);
       } else if(d&&d.error){
         st.msgYo='No he podido comprobar tu cuenta: '+esc(d.error);
       } else {
@@ -228,7 +231,7 @@
       if(d&&d.yo){st.yo=d.yo;st.email=email;localStorage.setItem(KEY_MAIL,email);st.msgYo='';
         // 🔴 ACTO 2: aquí, con su ficha ya delante. Se espera un poco a que la nave termine de
         // pintarse — explicar «mira tu personaje» sobre una pantalla en blanco no explica nada.
-        if(!localStorage.getItem('sgNaveOnboard_'+per)) setTimeout(function(){ onboarding(0,'nave'); }, 700);
+        setTimeout(ofrecerCapitulos, 700);
       }
       else if(d&&d.yo===null){st.yo=null;st.msgYo='No encuentro a nadie con ese correo en este grupo. Tiene que ser el <b>mismo correo de Google</b> con el que '+(motorNuevo()?'te alistaste':'rellenaste la Bitácora de mando')+'. ¿Todavía no te has alistado? Ese es el primer paso — el botón de abajo.';}
       else{st.yo=null;st.msgYo='La identificación aún no está activa (el mando tiene que actualizar el sistema). El resto de la nave funciona; vuelve a intentarlo más adelante.';}
@@ -253,8 +256,15 @@
   function cabecera(){
     var d=st.d,n=st.semanas.length;
     var pos=st.estado==='antes'?'La misión aún no ha empezado':st.estado==='fin'?'Misión completada — la puerta está abierta':'Semana '+st.actual+' de '+n;
-    return '<div class="tab-head"><div><div class="eyebrow teal">La Nave del Recluta · '+esc(d.nombre)+(d.tipo==='PUA'?' · PUA':'')+'</div><h3>'+pos+'</h3>'+(st.tab==='retos'?plazos():'')+'</div>'
-      +'<div class="small muted"><button class="btn small" id="btn-onboard" type="button">▶ Repetir bienvenida</button></div></div>';
+    var prox=porCapitulos()?proximoCap():null, sp=prox?semanaCap(prox):0;
+    var ab=porCapitulos()?capsAbiertos().filter(function(c){ return c.clave==='c1'||PASOS_CAP[c.clave]; }):[];
+    return '<div class="tab-head"><div><div class="eyebrow teal">La Nave del Recluta · '+esc(d.nombre)+(d.tipo==='PUA'?' · PUA':'')+'</div><h3>'+pos+'</h3>'+(st.tab==='retos'?plazos():'')
+      // 🔴 13-sep · lo que llega después, en UNA línea (lo cerrado no se enseña: agobia)
+      +(prox&&st.estado!=='fin'?'<p class="prox-cap">🔓 '+(sp===st.actual+1?'La semana que viene':'En la semana '+sp)+': <b>'+prox.icono+' '+esc(prox.titulo)+'</b></p>':'')+'</div>'
+      +'<div class="small muted rep-caps"><button class="btn small" id="btn-onboard" type="button" aria-haspopup="'+(ab.length>1)+'">▶ Repetir bienvenida</button>'
+      +(ab.length>1?'<div class="rep-menu" id="rep-menu" hidden>'+ab.map(function(c){
+          return '<button type="button" class="btn small" data-cap="'+c.clave+'">'+c.icono+' '+c.n+' · '+esc(c.titulo)+'</button>'; }).join('')+'</div>':'')
+      +'</div></div>';
   }
   // ================= LA PUERTA (30-ago) =================
   // Petición de Norberto: la identificación y el menú, FIJOS justo bajo la cabecera; la semana,
@@ -775,7 +785,8 @@
       +'<h3>'+esc(titular)+'</h3>'
       +'<p class="small muted">'+(suyos.length===1?'Un reto':suyos.length+' retos')+' de '+esc(sm.tema)
       +'. Pulsa uno para ver qué hay que hacer, y márcalo aquí mismo cuando lo tengas.</p>'
-      +'<div class="rs-grid">'+tarjetas+'</div>'
+      // filas llenas: con 4 retos, dos y dos (de tres en tres quedaba uno solo en la segunda fila)
+      +'<div class="rs-grid'+(suyos.length===4?' par':'')+'">'+tarjetas+'</div>'
       +(atrasados?'<p class="rs-atras">🕗 Y llevas <b>'+atrasados+'</b> reto'+(atrasados===1?'':'s')
         +' sin registrar de semanas anteriores. '
         +'<button class="btn small" type="button" data-tab="retos">Verlos en Mis retos →</button></p>':'')
@@ -896,7 +907,8 @@
     // 🌟 Mito (legendarias, 2% · 8%) — nadie las ha visto: van en sombra hasta que caen
     var RANGO_HEROE={'rara':'⚔️ Resistencia','épica':'🔥 Vanguardia','epica':'🔥 Vanguardia','LEGENDARIA':'🌟 MITO'};
     var copias=yo.heroes_n||{};
-    var he=HER.map(function(h){
+    var verHeroes=abierto('heroes')||(yo.heroes||[]).length>0;
+    var he=!verHeroes?'':HER.map(function(h){
       var tengo=!!mios[h[0]], nx=Number(copias[h[0]])||0;
       return celda('heroe:'+h[0], 'assets/img/heroes/'+h[0]+(tengo?'':'_bloqueado')+'.jpg',
         h[1], tengo?(RANGO_HEROE[h[3]]||h[3]):'sin descubrir', puesto==='heroe:'+h[0], tengo)
@@ -915,9 +927,10 @@
       +'y te lo quitas cuando quieras, <b>gratis</b>.</p>'
       +'<h3 style="margin-top:1em">Tus skins <span class="small muted">'+skins.length+' de 5</span></h3>'
       +'<div class="vest-grid">'+sk+'</div>'
-      +'<h3 style="margin-top:1.4em">Héroes de la Rebelión <span class="small muted">'+n+' de '+HER.length+'</span></h3>'
-      +cambio
-      +'<div class="vest-grid">'+he+'</div>'
+      +(verHeroes
+        ? '<h3 style="margin-top:1.4em">Héroes de la Rebelión <span class="small muted">'+n+' de '+HER.length+'</span></h3>'
+          +cambio+'<div class="vest-grid">'+he+'</div>'
+        : '')
       +(d.formCanje?'<p style="margin-top:12px"><a class="btn small primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎭 Conseguir un héroe →</a></p>':'')
       +'</section>';
   }
@@ -970,6 +983,7 @@
    */
   function vigilarLlamada(){
     if(!motorNuevo()||!per||st.paraVigilar) return;
+    if(SIMULACRO) return;   // la llamada del simulacro la toca el botón de su barra, no la clase de verdad
     var M=window.SG&&window.SG.MOTOR; if(!M||!M.vigilarLlamada) return;
     st.paraVigilar = M.vigilarLlamada(per, function(sesion){
       // 🔴 13-sep · «no hay llamada» es null en los dos lados: antes, `undefined !== null` repintaba la
@@ -1019,7 +1033,7 @@
     var antes=JSON.parse(JSON.stringify(st.yo)), donde=puntoDe(b);
     if(enDemo()){ b.disabled=false; b.textContent='✋ Presente';
       aviso('🎬 <b>Esto es una demostración.</b> En tu Nave de verdad, «Presente» te daría los créditos de la asistencia.'); return; }
-    window.SG.MOTOR.ficharLlamada(per, st.yo.ficha).then(function(r){
+    (SIMULACRO ? SG.FUENTE.fichar() : window.SG.MOTOR.ficharLlamada(per, st.yo.ficha)).then(function(r){
       st.fichado=true;
       if(r&&r.repetido){ if(m) m.textContent='Ya constabas en la lista de hoy.'; render(); return; }
       /**
@@ -1153,9 +1167,32 @@
   var TABS=[['nave','🛰️','Mi nave'],['retos','🎯','Mis retos'],['botin','🏅','Mi botín'],
             ['mercado','🛒','Mercado Estelar'],['rankings','🏆','Rankings']];
   var TABS_VIEJAS={ficha:'nave',semana:'nave',planetas:'retos',premios:'mercado',tablero:'rankings'};
+  // ================= LA NAVE POR CAPÍTULOS (13-sep) =================
+  // Norberto: «de primeras no quiero que puedan hacer mil cosas, esto puede agobiar; que se
+  // desbloquearan las opciones cada semana». El calendario vive en `_site_data.py → CAPITULOS` (llega
+  // como SG_CAPITULOS): cada capítulo abre sus pestañas y piezas en su semana. Lo cerrado NO se enseña
+  // —ni con candado—: una línea dice qué llega después. Lo que ya TIENES se ve siempre (un héroe
+  // regalado en clase antes de la semana de los héroes sigue en tu vestuario). Con el motor viejo,
+  // todo abierto como siempre.
+  var CAPS=(window.SG_CAPITULOS||[]).filter(function(c){ return c.listo!==false; });
+  function semanaCap(c){ return (c.semanas&&c.semanas[(st.d&&st.d.tipo)==='PUA'?'PUA':'REGULAR'])||99; }
+  function porCapitulos(){ return motorNuevo() && CAPS.length>0 && !!st.d; }
+  function capsAbiertos(){
+    if(!porCapitulos()) return CAPS;
+    var sem = st.estado==='antes' ? 0 : st.estado==='fin' ? 999 : (st.actual||1);
+    var extra=(st.d&&st.d.capitulosAbiertos)||{};
+    return CAPS.filter(function(c,i){ return i===0 || semanaCap(c)<=sem || extra[c.clave]; });
+  }
+  function abierto(pieza){
+    if(!porCapitulos()) return true;
+    return capsAbiertos().some(function(c){ return (c.abre||[]).indexOf(pieza)>=0; });
+  }
+  function proximoCap(){ var ab=capsAbiertos(); return CAPS.filter(function(c){ return ab.indexOf(c)<0; })[0]||null; }
+  function tabVisible(k){ return k==='nave'||k==='retos'||k==='botin'||abierto(k); }
+  function tabsVisibles(){ return TABS.filter(function(x){ return tabVisible(x[0]); }); }
   function tabValida(k){
     if(TABS_VIEJAS[k]) k=TABS_VIEJAS[k];
-    return TABS.some(function(x){return x[0]===k;}) ? k : 'nave';
+    return TABS.some(function(x){return x[0]===k;}) && tabVisible(k) ? k : 'nave';
   }
   st.tab=tabValida(st.tab);
   // el botón «atrás» del navegador también cambia de pestaña: es lo que espera cualquiera
@@ -1194,7 +1231,7 @@
       // con teclado se queda pulsando flechas sin que pase nada — y eso es peor que no poner el rol.
       // Se cumple abajo, en `cablearTeclado`. Y `tabindex` sigue el patrón estándar: solo la pestaña
       // activa es alcanzable con el tabulador; dentro, se mueve uno con las flechas.
-      +'<div class="nb-tabs" role="tablist" aria-label="Secciones de tu nave">'+TABS.map(function(x){
+      +'<div class="nb-tabs" role="tablist" aria-label="Secciones de tu nave">'+tabsVisibles().map(function(x){
         var on = st.tab===x[0];
         return '<button type="button" class="nb-t'+(on?' on':'')+'" role="tab"'
           +' aria-selected="'+on+'" aria-controls="nave-panel" tabindex="'+(on?'0':'-1')+'"'
@@ -1337,7 +1374,7 @@
                  .replace('{sugerencia}',esc(sugerenciaDuelo(delta)));
   }
   function duelo(){
-    if(!st.yo) return '';
+    if(!st.yo || !abierto('rankings')) return '';
     var d=window.SG_TABLERO_DATA;
     // el tablero aún no ha llegado: se deja el hueco y sg:tablero repinta cuando esté
     if(!d||!d.reclutas) return '<div id="duelo-hueco"></div>';
@@ -1566,6 +1603,8 @@
     });
     var cards=cat.map(function(x){
       var desde=desdeDe(x); var abierta=st.estado!=='antes'&&st.actual>=desde;
+      // 🔴 13-sep · con la Nave por capítulos, lo cerrado no se enseña: una línea al final dice qué llega
+      if(!abierta&&porCapitulos()) return '';
       if(!abierta) return '<div class="card rec-card lock"><h3>🔒 Recompensa clasificada</h3><p class="small muted">Se desbloquea en la semana '+desde+'.</p></div>';
       abiertas++;
       var mis=r?(r.creditos!=null?r.creditos:(r.xp_disponibles||0)):0;
@@ -1627,7 +1666,13 @@
       +(d.cierre_canje&&d.cierre_canje!==d.cierre_misiones
         ? '<p class="small" style="color:var(--amber)"><b>Ojo al calendario:</b> las misiones se registran hasta el <b>'+fecha(d.cierre_misiones)+'</b>, pero el canje sigue abierto <b>una semana más</b>, hasta el <b>'+fecha(d.cierre_canje)+'</b>. Esa última semana ya no se gana nada: solo se gasta lo ganado.</p>'
         : (d.cierre_canje?'<p class="small muted">El canje cierra el <b>'+fecha(d.cierre_canje)+'</b>.</p>':''))
-      +'<div class="grid cols-3 nave-rec">'+cards+'</div>'
+      // filas llenas: de tres en tres si cuadra, si no de dos en dos (con 2, 4 o 10 tarjetas)
+      +'<div class="grid '+((abiertas%3===0||abiertas<2)?'cols-3':(abiertas%2===0?'cols-2':'cols-3'))+' nave-rec">'+cards+'</div>'
+      +(porCapitulos()?(function(){
+          var ab=capsAbiertos(), vienen=CAPS.filter(function(c){ return ab.indexOf(c)<0 && (c.mercado||[]).length; });
+          return vienen.length?'<p class="rec-prox">🔓 <b>Próximamente en el Mercado:</b> '+vienen.map(function(c){
+            return c.icono+' '+esc(c.titulo)+' <span>(semana '+semanaCap(c)+')</span>'; }).join(' · ')+'</p>':'';
+        })():'')
       +(motorNuevo()
         ? (abiertas?'<p class="small muted" style="margin-top:14px">Se canjea desde aquí mismo: no hay formulario que rellenar. Las subidas de nota quedan <b>pendientes</b> hasta que tu docente las apruebe.</p>':'')
         : (abiertas&&d.formCanje?'<p style="margin-top:14px"><a class="btn primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🛸 Ir al Mercado Estelar</a></p>':'<p class="small muted" style="margin-top:14px">Aún no hay recompensas canjeables: sigue sumando xp.</p>'))
@@ -1679,6 +1724,81 @@
     nave:  {pasos:PASOS,        clave:'sgNaveOnboard_', fin:'A la nave ✓'}
   };
   /**
+   * 🔴 13-sep · NEBULA POR CAPÍTULOS. El capítulo 1 es la bienvenida de siempre, contando SOLO lo que
+   * ya está abierto (en la semana 1 no hay Mercado que señalar). Los demás son cortos —dos o tres
+   * pasos— y señalan las pestañas, que están en la barra estés donde estés. Quien llega tarde los ve
+   * seguidos y en orden: «Capítulo 2 de 3». Lo visto queda en SU ficha (no en el navegador) y el
+   * docente lo ve en «Alumnado».
+   */
+  function pasosCap1(){
+    var p=PASOS.slice(0,4);
+    var nt=tabsVisibles().length;
+    p.push({t:nt>=5?'Cinco sitios, y ya está':'De momento, '+(nt===3?'tres':nt)+' sitios',foco:'.nb-tabs',
+      x:nt>=5?PASOS[4].x
+        :'<b>Mi nave</b> es esto. <b>Mis retos</b>, el viaje entero por los ocho planetas. Y <b>Mi botín</b>, lo que llevas ganado: insignias y cromos.<br><br>Cada semana se abre algo nuevo en la Nave, y te lo cuento yo.'});
+    p.push(abierto('mercado')?PASOS[5]:{t:'Y ahora, estrénate',foco:'.nb-t[data-tab="botin"]',
+      x:'Cuando tu docente toque <b>llamada a filas</b> en clase, te saldrá aquí arriba: pulsa <b>«Presente»</b> y te llevas créditos y un <b>sobre de cromos</b>. Las cartas, en Mi botín.<br><br>Haz tus retos de la semana y márcalos. Corto y cierro.'});
+    return p;
+  }
+  var PASOS_CAP={
+    c1:null,   // se arma al momento (pasosCap1): depende de lo que ya esté abierto
+    c2:[{t:'Se abre el Mercado Estelar',foco:'.nb-t[data-tab="mercado"]',
+         x:'Tus <b>xp</b> no se gastan nunca: suben tu nivel. Lo que se gasta son los <b>créditos ◈</b>, y es aquí. Empieza por un <b>sobre de cromos</b>: tres cartas al azar por 15 ◈.'},
+        {t:'Tu álbum y las repetidas',foco:'.nb-t[data-tab="botin"]',
+         x:'Las cartas van a tu <b>álbum</b>, en Mi botín. ¿Te sale una repetida? Con <b>tres repetidas</b> te llevas un sobre nuevo, gratis.'},
+        {t:'Y los rankings',foco:'.nb-t[data-tab="rankings"]',
+         x:'Tu clase de <b>ocho maneras</b>: por xp, por la semana, por colección, por constancia… Si no destacas en una, destacas en otra. Y en Mi nave, tu <b>duelo</b> con quien va justo delante y justo detrás.'}],
+    c3:[{t:'Llegan los Héroes de la Rebelión',foco:'.nb-t[data-tab="mercado"]',
+         x:'En el Mercado ya puedes conseguir un <b>héroe al azar</b> de los 30 por 60 ◈. Tres rangos: la Resistencia, la Vanguardia y los <b>MITOS</b>, que casi nadie llega a ver.'},
+        {t:'Tu vestuario',foco:'.nb-t[data-tab="botin"]',
+         x:'Tus héroes viven en <b>Mi botín → Personajes y héroes</b>. Te los pones y te los quitas gratis, cuando quieras. ¿Repetido? Con <b>2 repetidos</b>, uno nuevo al azar.'}],
+    c4:[{t:'Tu ficha, a tu gusto',foco:'.nb-t[data-tab="mercado"]',
+         x:'Tres adornos nuevos en el Mercado: un <b>título</b> bajo tu alias, el <b>fondo</b> de tu ficha con el planeta que elijas y el <b>marco dorado</b> de tu avatar.'},
+        {t:'Dónde se ven',foco:'.nb-t[data-tab="botin"]',
+         x:'Se ponen desde <b>Mi botín</b>, y se ven en tu ficha y en el <b>tablero de toda la clase</b>.'}],
+    c6:[{t:'Se abre el Arsenal de batalla',foco:'.nb-t[data-tab="mercado"]',
+         x:'Los créditos que has ahorrado ya se pueden cambiar por <b>nota</b>: subir 0,5 o 1 punto en un entregable, o que se recalifique un trabajo.'},
+        {t:'Antes de comprar, lee esto',foco:'.nb-t[data-tab="mercado"]',
+         x:'No se aplica solo: queda <b>pendiente</b> hasta que tu docente lo apruebe. Y si ya tienes la nota máxima de evaluación continua, <b>no te sube nada</b>: compruébalo antes.'}]
+  };
+  function pasosDe(clave){ return clave==='c1'?pasosCap1():PASOS_CAP[clave]; }
+  /** Lo visto: su ficha manda; el navegador es copia (y la bienvenida de antes cuenta como el capítulo 1). */
+  function capsVistos(){
+    var v=Object.assign({}, (st.yo&&st.yo.capitulos)||{});
+    CAPS.forEach(function(c){ var l=localStorage.getItem('sgCap_'+per+'_'+c.clave); if(l&&!v[c.clave]) v[c.clave]={estado:l}; });
+    if(!v.c1&&localStorage.getItem('sgNaveOnboard_'+per)) v.c1={estado:'hecho'};
+    return v;
+  }
+  function capsPendientes(){
+    var v=capsVistos();
+    return capsAbiertos().filter(function(c){ return (c.clave==='c1'||PASOS_CAP[c.clave]) && !v[c.clave]; });
+  }
+  function marcarCap(c, estado){
+    if(SIMULACRO) return;
+    try{ localStorage.setItem('sgCap_'+per+'_'+c.clave, estado); }catch(e){}
+    if(st.yo){ st.yo.capitulos=Object.assign({}, st.yo.capitulos||{}); st.yo.capitulos[c.clave]={estado:estado, fecha:Date.now()}; }
+    // en su ficha, sin molestar: si falla, queda la copia del navegador y se vuelve a intentar otro día
+    if(motorNuevo()&&SG.FUENTE&&SG.FUENTE.accion)
+      SG.FUENTE.accion({accion:'capitulo', per:per, cap:c.clave, estado:estado, v:1}).catch(function(){});
+  }
+  var enCapitulos=false;
+  function ofrecerCapitulos(){
+    if(!motorNuevo()){ if(!localStorage.getItem('sgNaveOnboard_'+per)) onboarding(0,'nave'); return; }
+    if(enCapitulos||!st.yo||SIMULACRO) return;
+    var lista=capsPendientes(); if(!lista.length) return;
+    enCapitulos=true;
+    (function sigue(i){
+      if(i>=lista.length){ enCapitulos=false; render(); return; }
+      var c=lista[i];
+      onboarding(0, c.clave, { cap:c, orden:i+1, de:lista.length, alTerminar:function(estado){
+        marcarCap(c, estado);
+        // «Salir» se salta lo que queda de esta tanda (se puede repetir desde «Repetir bienvenida»)
+        if(estado==='saltado'){ for(var k=i+1;k<lista.length;k++) marcarCap(lista[k],'saltado'); enCapitulos=false; render(); return; }
+        setTimeout(function(){ sigue(i+1); }, 350);
+      }});
+    })(0);
+  }
+  /**
    * 🔴 13-sep · ENCUADRAR LO QUE SE SEÑALA. Con `scrollIntoView({block:'center'})` un bloque alto (los
    * vídeos, los retos) quedaba con su cabecera fuera de la pantalla o DEBAJO de la ventana de NEBULA,
    * que ocupa la parte de abajo: «mira esto» y no se veía. Visto recorriendo la Nave con una cuenta
@@ -1697,12 +1817,21 @@
     var y=Math.max(0, Math.round(scrollY + r.top - barra - margen));
     try{ window.scrollTo({top:y, behavior:'smooth'}); }catch(e){ window.scrollTo(0,y); }
   }
-  function onboarding(i, acto){
-    acto=acto||'nave'; var A=ACTOS[acto], P=A.pasos;
+  function onboarding(i, acto, op){
+    acto=acto||'nave'; op=op||onboarding._op||{};
+    // un capítulo es un acto más, con sus pasos y sin clave propia (lo apunta marcarCap)
+    var A=ACTOS[acto]||{pasos:pasosDe(acto)||[], clave:'', fin:op.de&&op.orden<op.de?'Siguiente capítulo →':'A la nave ✓'};
+    if(i===0) A.pasosFijos=A.pasos;
+    var P=onboarding._P&&onboarding._acto===acto&&i>0?onboarding._P:A.pasos;
+    onboarding._P=P; onboarding._acto=acto; onboarding._op=op;
     var ov=document.getElementById('nave-onboard');
     if(!ov){ov=document.createElement('div');ov.id='nave-onboard';ov.className='tour open';document.body.appendChild(ov);}
-    if(i>=P.length){ov.classList.remove('open');ov.innerHTML='';localStorage.setItem(A.clave+per,'1');
+    ov.classList.add('open');
+    if(i>=P.length){ov.classList.remove('open');ov.innerHTML='';if(A.clave)localStorage.setItem(A.clave+per,'1');
       Array.prototype.forEach.call(document.querySelectorAll('.tour-foco'),function(el){el.classList.remove('tour-foco');});
+      onboarding._P=null; onboarding._op=null;
+      if(op.alTerminar) op.alTerminar(onboarding._salir?'saltado':'hecho');
+      onboarding._salir=false;
       return;}
     var s=P[i];
     if(i===0) onboarding._dir=1;
@@ -1710,8 +1839,11 @@
       var paso=(onboarding._dir||1); var k=i+paso;
       if(k>=0 && k<P.length) return onboarding(k, acto);
     }
+    var cab=op.cap
+      ? (op.de>1?'Capítulo '+op.orden+' de '+op.de+' · ':'Capítulo '+op.cap.n+' · ')+op.cap.icono+' '+esc(op.cap.titulo)+' · '+(i+1)+' / '+P.length
+      : 'NEBULA · '+(i+1)+' / '+P.length;
     ov.innerHTML='<div class="tour-box">'+nebulaVideo('tour-cap nebula')
-      +'<div class="tour-panel"><div class="tour-step">NEBULA · '+(i+1)+' / '+P.length+'</div><h3>'+s.t+'</h3><p>'+s.x+'</p>'
+      +'<div class="tour-panel"><div class="tour-step">'+cab+'</div><h3>'+s.t+'</h3><p>'+s.x+'</p>'
       +'<div class="tour-btns"><button type="button" class="tour-prev"'+(i===0?' disabled':'')+'>← Anterior</button>'
       +'<button type="button" class="tour-next primary">'+(i===P.length-1?A.fin:'Siguiente →')+'</button>'
       +'<button type="button" class="tour-exit">Salir</button></div></div></div>';
@@ -1724,7 +1856,7 @@
     }catch(e){} }
     ov.querySelector('.tour-prev').onclick=function(){onboarding._dir=-1; onboarding(i-1,acto);};
     ov.querySelector('.tour-next').onclick=function(){onboarding._dir=1; onboarding(i+1,acto);};
-    ov.querySelector('.tour-exit').onclick=function(){onboarding(P.length,acto);};
+    ov.querySelector('.tour-exit').onclick=function(){onboarding._salir=true; onboarding(P.length,acto);};
   }
 
   // ---------- ¡ENHORABUENA! ----------
@@ -1735,7 +1867,7 @@
   //
   // 🔴 La PRIMERA vez no se celebra nada: si no, un recluta que entra por primera vez recibiria una
   // fanfarria por todo lo que ya tiene. Se guarda la foto en silencio y a partir de ahi se compara.
-  var KEY_VISTO='sgNaveVisto_'+per;
+  var KEY_VISTO='sgNaveVisto_'+(SIMULACRO?'sim_':'')+per;
   var MAX_CARTELES=4;                      // mas que esto es un muro de clics, no una celebracion
   function foto(r){
     return { email:st.email, cromos:Object.assign({},r.cromos||{}), heroes:(r.heroes||[]).slice(),
@@ -1963,7 +2095,7 @@
       st.cargandoYo=false;
       if(d&&d.yo){ st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true;
         if(st.email) localStorage.setItem(KEY_MAIL,st.email);
-        if(!localStorage.getItem('sgNaveOnboard_'+per)) setTimeout(function(){ onboarding(0,'nave'); }, 700);
+        setTimeout(ofrecerCapitulos, 700);
       } else if(d&&d.sinSesion&&!DEMO&&window.top===window.self&&q.get('embed')!=='1'){
         /**
          * 🔴 13-sep · SIN SESIÓN, A LA PUERTA ÚNICA. La Nave tenía su propia caja «Identifícate,
@@ -2518,7 +2650,68 @@
     if(Math.abs((window.pageYOffset||0)-e.y)>2){ try{ window.scrollTo(0,e.y); }catch(_){} }
   }
   function render(){ var e=recordarEstado(); pintarNave(); restaurarEstado(e); }
+  /**
+   * 🛰️ LA BARRA DEL SIMULACRO. Lo que el docente necesita para enseñar la Nave delante de la clase:
+   * en qué semana está (se ve lo abierto hasta entonces), su personaje, una llamada a filas de
+   * mentira, el capítulo de NEBULA de esa semana y «Empezar de cero». Y lo más importante, escrito:
+   * nada de esto cuenta.
+   */
+  function barraSimulacro(){
+    if(!SIMULACRO) return '';
+    var n=st.semanas.length||15, s=st.actual||1;
+    var cap=capsAbiertos().filter(function(c){ return semanaCap(c)===s; })[0]
+         || capsAbiertos().filter(function(c){ return PASOS_CAP[c.clave]||c.clave==='c1'; }).slice(-1)[0];
+    var opciones=''; for(var k=1;k<=n;k++) opciones+='<option value="'+k+'"'+(k===s?' selected':'')+'>'+k+'</option>';
+    return '<div class="sim-barra" role="region" aria-label="Simulacro">'
+      +'<span class="sim-tit"><b>🛰️ La Nave de tu Comandante</b><em>Simulacro: nada de esto cuenta ni se guarda</em></span>'
+      +'<div class="sim-mandos">'
+      +'<label class="sim-sem">Semana <select id="sim-sem">'+opciones+'</select></label>'
+      +'<button type="button" class="btn small" id="sim-pj">🎭 Mi personaje</button>'
+      +'<button type="button" class="btn small" id="sim-ll"'+(st.llamada?' disabled':'')+'>📣 Llamada a filas</button>'
+      +(cap?'<button type="button" class="btn small primary" id="sim-cap" data-cap="'+cap.clave+'">▶ NEBULA · '+cap.icono+' '+esc(cap.titulo)+'</button>':'')
+      +'<button type="button" class="btn small" id="sim-cero">↺ Empezar de cero</button>'
+      +'</div>'
+      +'<div class="sim-pjs" id="sim-pjs" hidden>'+[1,2,3,4,5,6,7].map(function(nn){ return ['f','m'].map(function(v){
+          return '<button type="button" data-pj="'+nn+v+'" aria-label="Personaje '+nn+v+'"><img src="assets/img/avatares/evo/p'+nn+v+'_r5.jpg" alt="" loading="lazy"></button>'; }).join(''); }).join('')+'</div>'
+      +'</div>';
+  }
+  function cablearSimulacro(){
+    if(!SIMULACRO) return;
+    // otra semana o otro personaje, SIN recargar: la ficha se vuelve a sembrar y se repinta
+    var fresca=function(){ quien(null,function(d){ if(d&&d.yo){ st.yo=d.yo; } render(); }); };
+    var sem=document.getElementById('sim-sem');
+    if(sem) sem.onchange=function(){
+      SG.FUENTE.ponSemana(sem.value).then(function(n){
+        st.actual=n; st.estado='curso'; st.llamada=null; st.fichado=false;
+        try{ var u=new URL(location.href); u.searchParams.set('semana',n); history.replaceState(null,'',u.toString()); }catch(e){}
+        if(!tabVisible(st.tab)) st.tab='nave';
+        fresca();
+      });
+    };
+    var pj=document.getElementById('sim-pj'), pjs=document.getElementById('sim-pjs');
+    if(pj&&pjs) pj.onclick=function(){ pjs.hidden=!pjs.hidden; };
+    if(pjs) Array.prototype.forEach.call(pjs.querySelectorAll('[data-pj]'),function(b){
+      b.onclick=function(){ var k=b.getAttribute('data-pj'); SG.FUENTE.ponAvatar(Number(k.charAt(0)), k.charAt(1)).then(fresca); };
+    });
+    var ll=document.getElementById('sim-ll');
+    if(ll) ll.onclick=function(){
+      st.llamada={ id:'simulacro', hasta:Date.now()+10*60000, comandante:(SG.FUENTE.comandante&&SG.FUENTE.comandante())||'', escuadron:'', faccion:'', xp:15, creditos:30 };
+      st.fichado=false; render();
+      if(!st.relojLlamada) st.relojLlamada=setInterval(function(){
+        if(!st.llamada) return; var seg=Math.round((st.llamada.hasta-Date.now())/1000);
+        if(seg<=0){ st.llamada=null; render(); return; }
+        var el=document.getElementById('pase-cuenta'); if(el) el.textContent=reloj(seg);
+      },1000);
+    };
+    var cp=document.getElementById('sim-cap');
+    if(cp) cp.onclick=function(){ var c=CAPS.filter(function(x){ return x.clave===cp.getAttribute('data-cap'); })[0]; if(c) onboarding(0,c.clave,{cap:c}); };
+    var cero=document.getElementById('sim-cero');
+    if(cero) cero.onclick=function(){ st.llamada=null; st.fichado=false;
+      SG.FUENTE.reiniciar().then(function(){ quien(null,function(d){ if(d&&d.yo){ st.yo=d.yo; } irA('nave'); }); }); };
+  }
   function pintarNave(){
+    // una pestaña que aún no se ha abierto (un enlace con #mercado en la semana 1) → Mi nave
+    if(st.d&&!tabVisible(st.tab)) st.tab='nave';
     /**
      * 🔴 13-sep · CON SESIÓN, FUERA EL TITULAR GRANDE. «La Nave del Recluta» con su párrafo ocupaba
      * 250 px arriba del todo en CADA visita, y a quien ya ha entrado no le cuenta nada que la barra
@@ -2548,7 +2741,7 @@
         + '<a class="btn ghost" href="index.html">Volver a la presentación</a></p></div>'
       : '';
     root.innerHTML = avisoDemo + (dentro
-      ? login()+pestanas()+avisoPase()+cabecera()
+      ? barraSimulacro()+login()+pestanas()+avisoPase()+cabecera()
         +'<div id="nave-panel" role="tabpanel" aria-labelledby="nb-t-'+st.tab+'">'+contenido()+'</div>'
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
     verTablero(dentro && st.tab==='rankings');
@@ -2576,6 +2769,7 @@
           if(m&&!m.hidden){ m.hidden=true; var b=document.getElementById('nb-mas'); if(b){b.focus();b.setAttribute('aria-expanded','false');} } } });
       }
     }
+    cablearSimulacro();
     var salir=document.getElementById('nb-salir');
     if(salir) salir.onclick=function(e){ e.preventDefault(); olvidar(); };
     cablearTeclado();
@@ -2686,7 +2880,16 @@
         else { pb.disabled=false; msg.textContent=(r&&r.error)||'No ha podido ser.'; }
       },function(e){ pb.disabled=false; msg.textContent=e; });
     };
-    var ob=root.querySelector('#btn-onboard'); if(ob)ob.onclick=function(){onboarding(0, (st.yo||motorNuevo())?'nave':'puerta');};
+    var ob=root.querySelector('#btn-onboard'), rm=root.querySelector('#rep-menu');
+    if(ob)ob.onclick=function(){
+      if(rm){ rm.hidden=!rm.hidden; return; }
+      if(porCapitulos()&&st.yo) return onboarding(0,'c1',{cap:CAPS[0]});
+      onboarding(0, (st.yo||motorNuevo())?'nave':'puerta');
+    };
+    if(rm) Array.prototype.forEach.call(rm.querySelectorAll('[data-cap]'),function(b){
+      b.onclick=function(){ rm.hidden=true; var c=CAPS.filter(function(x){return x.clave===b.getAttribute('data-cap');})[0];
+        if(c) onboarding(0,c.clave,{cap:c}); };
+    });
   }
 
   // ---------- carga ----------

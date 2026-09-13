@@ -365,6 +365,9 @@
                 // queda—, pero uno tiene derecho a saber cuál es la suya: es lo que hace falta para
                 // fichar en la llamada a filas. Es SU ficha, no la de nadie más.
                 if (yo_) yo_.ficha = f.id;
+                // 🔴 13-sep · los capítulos de NEBULA que ya vio (o se saltó): viven en SU ficha, así que
+                // cambiar de ordenador no le hace verlos otra vez
+                if (yo_) yo_.capitulos = f.stargateCapitulos || {};
                 /**
                  * 🔴 13-sep · Y SUS ENLACES. El estudiante entregaba un enlace con «Lo he hecho» y
                  * después, en «Mis retos», el campo le salía VACÍO («pégalo aquí»): parecía perdido y
@@ -532,6 +535,21 @@
                   .then(function () { return { ok: true }; });
               }
 
+              /**
+               * 🔴 13-sep · UN CAPÍTULO DE NEBULA, VISTO O SALTADO. En su ficha (las reglas le dejan
+               * escribirlo: no es economía) para que no se repita en otro ordenador y para que su
+               * docente sepa quién ha visto qué. Solo la marca del capítulo que toca, nada más.
+               */
+              if (cuerpo.accion === "capitulo") {
+                var cap = String(cuerpo.cap || "");
+                if (!/^c\d{1,2}$/.test(cap)) return { error: "Ese capítulo no existe." };
+                var marca = {};
+                marca["stargateCapitulos." + cap] = { v: Number(cuerpo.v) || 1,
+                  estado: cuerpo.estado === "saltado" ? "saltado" : "hecho", fecha: Date.now() };
+                return M.updateDoc(M.doc(M.db, "student_profiles", ficha.id), marca)
+                  .then(function () { return { ok: true }; });
+              }
+
               if (cuerpo.accion === "vestir")
                 return M.updateDoc(M.doc(M.db, "student_profiles", ficha.id),
                   { stargateViste: cuerpo.viste || "" }).then(function () { return { ok: true }; });
@@ -617,6 +635,198 @@
     };
   }
 
+  /**
+   * ════════ LA NAVE DEL COMANDANTE · el simulacro ════════   recluta.html?simulacro=1&per=<grupo>&semana=N
+   *
+   * 🔴 13-sep · Norberto: «en la diapositiva siguiente estaría genial embeber la demo del estudiante
+   * con lo que se haya desbloqueado, para que el docente pueda interactuar… un estudiante demo que
+   * controle el docente, o que el propio Comandante tenga su avatar dentro del juego y enseñe cómo
+   * hacerlo». Se estudiaron las dos y se hizo la segunda, sin sus problemas:
+   *   · un estudiante DE VERDAD que maneja el docente sale en el ranking, gasta plazas de los premios
+   *     con tope, cuenta en los datos (y en la tesis) y solo enseña la semana de hoy;
+   *   · esto es la Nave de verdad —las mismas pantallas y los mismos botones— con el Comandante como
+   *     recluta, en la semana que se elija, y NADA SE GUARDA: cada acción se simula aquí, en memoria.
+   * Lee el tablero PÚBLICO del grupo (lo que ya se proyecta en clase) y le añade una ficha: la suya.
+   */
+  function simulacro() {
+    var per = q.get("per") || "", FID = "simulacro-comandante";
+    var crudo = null, perfil = null, listo = null, nombre = "", evid = {};
+    var cat = function () { return window.SG_CATALOGO || {}; };
+    var avatar = function () {
+      try { var a = JSON.parse(localStorage.getItem("sgComandante") || "null"); if (a && a.n) return a; } catch (e) {}
+      return { n: 3, v: "f" };
+    };
+    var esperarTraductor = function () {
+      return new Promise(function (ok) {
+        (function mira() { if (window.SG && window.SG.TABLERO && window.SG_CATALOGO) return ok(); setTimeout(mira, 60); })();
+      });
+    };
+    var alAzar = function (lista) {
+      var total = lista.reduce(function (a, x) { return a + (Number(x.peso) || 1); }, 0), r = Math.random() * total;
+      for (var i = 0; i < lista.length; i++) { r -= (Number(lista[i].peso) || 1); if (r <= 0) return lista[i]; }
+      return lista[lista.length - 1];
+    };
+    var carta = function () { return per + "__cromo_" + alAzar(cat().cromos || []).clave; };
+    var heroe = function () { return per + "__heroe_" + alAzar(cat().heroes || []).clave; };
+    var semanaFija = 0;
+    var semanaSim = function () {
+      var total = ((cat().semanas || {})[(crudo && crudo.proyecto && crudo.proyecto.stargate || {}).tipo === "PUA" ? "PUA" : "REGULAR"]) || 15;
+      var f = semanaFija || parseInt(q.get("semana") || "0", 10) || (window.SGCAL && window.SGCAL.semanaActual(((crudo.proyecto || {}).stargate || {}).inicio)) || 1;
+      return Math.max(1, Math.min(total, f));
+    };
+    var diaDe = function (sem) {
+      var ini = ((crudo.proyecto || {}).stargate || {}).inicio;
+      var d = ini ? new Date(ini + "T12:00:00") : new Date();
+      return new Date(d.getTime() + ((Math.max(1, sem) - 1) * 7 + 2) * 864e5).toISOString().slice(0, 10);
+    };
+    /** La ficha del Comandante como la tendría un recluta aplicado a estas alturas: lo de las semanas
+     *  pasadas hecho, lo de esta pendiente (para enseñar «Lo he hecho»), y algo en el álbum. */
+    var sembrar = function () {
+      var s = semanaSim(), ms = crudo.misiones || [];
+      var hechas = ms.filter(function (m) {
+        return m.id === "H1" || (Number(m.stargateSemana) > 0 && Number(m.stargateSemana) < s && m.isMandatory !== false && !/^S/.test(m.id));
+      });
+      var sellos = {};
+      hechas.forEach(function (m) { sellos[m.docId || m.id] = [diaDe(Number(m.stargateSemana) || 1)]; });
+      var inv = [];
+      if (s >= 2) { inv.push(carta(), carta(), carta(), carta()); inv.push(inv[0]); }
+      if (s >= 3) { var h1 = heroe(), h2 = heroe(); inv.push(h1, h1, h2, h2); }
+      var esc_ = ((crudo.proyecto || {}).factions || []).filter(function (f) { return f.teacherName === nombre; })[0]
+              || ((crudo.proyecto || {}).factions || [])[0] || null;
+      var a = avatar();
+      perfil = { id: FID, userId: "simulacro", projectId: per, displayName: nombre,
+        totalPoints: hechas.reduce(function (t, m) { return t + (Number(m.pointsReward) || Number(m.points) || 0); }, 0),
+        coins: hechas.reduce(function (t, m) { return t + (Number(m.coinsReward) || 0); }, 0) + (s >= 2 ? 45 : 0),
+        completedMissionIds: hechas.map(function (m) { return m.docId || m.id; }), missionTimestamps: sellos,
+        completedCampaignIds: [], earnedBadges: [], inventory: inv, consumableUses: {},
+        stargateAvatar: { tipo: "evo", n: a.n, v: a.v, url: "" }, stargateProfe: esc_ ? esc_.teacherName : nombre,
+        squadId: esc_ ? esc_.id : null, factionId: esc_ ? esc_.id : null, stargateViste: "", stargateCapitulos: {} };
+      evid = {};
+    };
+    var traducir = function () {
+      var d = Object.assign({}, crudo, { perfiles: (crudo.perfiles || []).filter(function (p) { return p.id !== FID; }).concat([perfil]),
+                                         catalogo: window.SG_CATALOGO });
+      return window.SG.TABLERO.tablero(d, false);
+    };
+    var cargar = function () {
+      if (listo) return listo;
+      listo = fetch(PUBLICA + "?per=" + encodeURIComponent(per)).then(function (r) { return r.json(); }).then(function (d) {
+        if (d.error) throw new Error(d.error);
+        crudo = d;
+        var M = window.SG && window.SG.MOTOR;
+        var quien = M && M.sesion ? M.sesion().catch(function () { return null; }) : Promise.resolve(null);
+        return Promise.all([esperarTraductor(), quien]).then(function (r) {
+          var yo = r[1];
+          nombre = q.get("comandante") || (yo && yo.nombre) || "Tu Comandante";
+          if (!/^(cmdte|comandante)/i.test(nombre)) nombre = "Cmdte. " + nombre.split(" ")[0];
+          sembrar();
+        });
+      });
+      return listo;
+    };
+    var yoDe = function (t) {
+      var yo = (t.reclutas || []).filter(function (x) { return x.fid === FID; })[0] || null;
+      if (yo) { yo.ficha = FID; yo.evidencias = Object.assign({}, evid); yo.capitulos = {};
+        // los retos con su fecha (el tablero público no los trae de nadie; del Comandante, sí)
+        var porDoc = {}; (crudo.misiones || []).forEach(function (m) { porDoc[m.docId] = m.id; });
+        yo.retos = perfil.completedMissionIds.map(function (x) { return porDoc[x] || x; });
+        var fe = {}; Object.keys(perfil.missionTimestamps).forEach(function (k) { fe[porDoc[k] || k] = perfil.missionTimestamps[k][0]; });
+        yo.retos_fecha = fe; }
+      return yo;
+    };
+    var mision = function (id) { return (crudo.misiones || []).filter(function (m) { return m.id === id || m.docId === id; })[0]; };
+    var premio = function (id) { return (crudo.recompensas || []).filter(function (r) { return r.docId === id || r.id === id; })[0]; };
+    var quitaRepes = function (re, n) {
+      var cuenta = {}; perfil.inventory.forEach(function (x) { if (re.test(x)) cuenta[x] = (cuenta[x] || 0) + 1; });
+      var sobran = Object.keys(cuenta).reduce(function (a, k) { return a + cuenta[k] - 1; }, 0);
+      if (sobran < n) return false;
+      while (n > 0) {
+        var k = Object.keys(cuenta).sort(function (a, b) { return cuenta[b] - cuenta[a]; })[0];
+        perfil.inventory.splice(perfil.inventory.lastIndexOf(k), 1); cuenta[k]--; n--;
+      }
+      return true;
+    };
+    var api = {
+      nombre: "firestore", simulacro: true,
+      lista: function () { return Promise.resolve([]); },
+      tablero: function (p) { if (p) per = p; return cargar().then(traducir); },
+      quien: function () { return cargar().then(function () { return { yo: yoDe(traducir()), correo: "comandante@simulacro", verificado: true }; }); },
+      /** Todo lo que en la Nave de verdad escribe algo, aquí se apunta en memoria y ya está. */
+      accion: function (c) {
+        return cargar().then(function () {
+          var P = perfil;
+          if (c.accion === "registrar") {
+            var m = mision(c.reto); if (!m) return { error: "Ese reto no existe en este grupo." };
+            var k = m.docId || m.id; if (P.completedMissionIds.indexOf(k) >= 0) return { ok: true, repetido: true };
+            P.completedMissionIds.push(k); P.missionTimestamps[k] = [new Date().toISOString().slice(0, 10)];
+            P.totalPoints += Number(m.pointsReward) || Number(m.points) || 0; P.coins += Number(m.coinsReward) || 0;
+            if (c.evidencia) evid[m.id] = c.evidencia;
+            return { ok: true };
+          }
+          if (c.accion === "cancelar") {
+            var m2 = mision(c.reto); if (!m2) return { ok: true };
+            var k2 = m2.docId || m2.id, i2 = P.completedMissionIds.indexOf(k2); if (i2 < 0) return { ok: true };
+            P.completedMissionIds.splice(i2, 1); delete P.missionTimestamps[k2];
+            P.totalPoints = Math.max(0, P.totalPoints - (Number(m2.pointsReward) || Number(m2.points) || 0));
+            P.coins = Math.max(0, P.coins - (Number(m2.coinsReward) || 0));
+            return { ok: true };
+          }
+          if (c.accion === "evidencia") { evid[c.reto] = String(c.evidencia || ""); return { ok: true }; }
+          if (c.accion === "vestir") { P.stargateViste = c.viste || ""; return { ok: true }; }
+          if (c.accion === "adorno") {
+            var campo = { titulo: "stargateTitulo", marco: "stargateMarco", fondo: "stargateFondo" }[c.campo];
+            if (campo) P[campo] = String(c.valor || "").slice(0, 60);
+            return { ok: true };
+          }
+          if (c.accion === "canje" && (c.tipo === "cromo_repes" || c.tipo === "heroe_repes")) {
+            var esH = c.tipo === "heroe_repes";
+            if (!quitaRepes(esH ? /__heroe_/ : /__cromo_/, esH ? 2 : 3))
+              throw new Error(esH ? "Necesitas 2 héroes repetidos." : "Necesitas 3 cartas repetidas.");
+            var nuevas = esH ? [heroe()] : [carta(), carta(), carta()];
+            P.inventory = P.inventory.concat(nuevas);
+            return { ok: true, botin: nuevas[0], botines: nuevas };
+          }
+          if (c.accion === "canje") {
+            var r = premio(c.recompensa); if (!r) return { error: "Esa recompensa no existe en este grupo." };
+            var coste = Number(r.cost) || 0;
+            if (P.coins < coste) throw new Error("No tienes suficientes créditos (te faltan " + (coste - P.coins) + " ◈).");
+            P.coins -= coste;
+            if (c.abrir && (r.stargateTipo === "cromo" || r.stargateTipo === "heroe")) {
+              var n = r.stargateTipo === "cromo" ? Math.max(1, Number(c.usos) || 3) : 1, sac = [];
+              for (var j = 0; j < n; j++) sac.push(r.stargateTipo === "cromo" ? carta() : heroe());
+              P.inventory = P.inventory.concat(sac);
+              return { ok: true, botin: sac[0], botines: sac };
+            }
+            P.inventory.push(r.docId || r.id);
+            return { ok: true };
+          }
+          return { ok: true };   // capítulos de NEBULA y lo demás: en un simulacro no se apunta nada
+        });
+      },
+      /** La llamada a filas, de mentira: créditos y el sobre de regalo, como en clase. */
+      fichar: function () {
+        return cargar().then(function () {
+          if (perfil._fichado) return { repetido: true };
+          perfil._fichado = true;
+          perfil.totalPoints += 15; perfil.coins += 30;
+          var regalo = [carta(), carta(), carta()]; perfil.inventory = perfil.inventory.concat(regalo);
+          return { ok: true, regalo: regalo, racha: 1 };
+        });
+      },
+      reiniciar: function () { return cargar().then(function () { sembrar(); }); },
+      /** Otra semana: la ficha se vuelve a sembrar para esa semana (lo de antes hecho, lo de esta por hacer). */
+      ponSemana: function (n) { semanaFija = Math.max(1, Number(n) || 1); return cargar().then(function () { sembrar(); return semanaSim(); }); },
+      /** Su personaje: se guarda en este navegador para la próxima vez. */
+      ponAvatar: function (n, v) {
+        try { localStorage.setItem("sgComandante", JSON.stringify({ n: n, v: v })); } catch (e) {}
+        return cargar().then(function () { perfil.stargateAvatar = { tipo: "evo", n: n, v: v, url: "" }; });
+      },
+      comandante: function () { return nombre; },
+      semana: function () { return crudo ? semanaSim() : 1; }
+    };
+    return api;
+  }
+
   window.SG = window.SG || {};
-  window.SG.FUENTE = CUAL === "firestore" ? firestore() : apps();
+  window.SG.FUENTE = q.get("simulacro") === "1" ? simulacro() : CUAL === "firestore" ? firestore() : apps();
 })();

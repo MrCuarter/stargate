@@ -538,6 +538,79 @@ SEMANAS_PER = {"REGULAR": 15, "PUA": 8}   # duración del viaje, en semanas
 # suelta en el catálogo para que el aviso del formulario y el bloqueo del servidor no puedan
 # decir cosas distintas. Ver la nota larga en RECOMPENSAS.
 SEMANA_ARSENAL = 15
+
+# ─────────────────────────── LA NAVE POR CAPÍTULOS (13-sep) ───────────────────────────
+# Norberto: «de primeras no quiero que puedan hacer mil cosas, esto puede agobiar. Me gustaría ir poco
+# a poco y que se desbloquearan las opciones cada semana». Cada capítulo abre una pieza de la Nave en
+# su semana y NEBULA la presenta en dos o tres pasos. Quien llega tarde ve los que le faltan, EN ORDEN.
+#
+# 🔴 UN SOLO SITIO. Lo leen la Nave (qué pestañas hay y qué cuenta NEBULA), la sesión que proyecta el
+# docente (las diapositivas de «se abre esta semana» y la Nave del Comandante) y la consola (quién ha
+# visto cada capítulo). Las recompensas del Mercado que abre cada capítulo llevan su semana en
+# `apps-script/Datos.gs` (el catálogo del motor) y aquí en RECOMPENSAS: la batería 72 comprueba que
+# las tres cosas coinciden.
+#
+# 🔴 PUA: las cinco primeras semanas son LAS MISMAS que en REGULAR (se aprende a jugar igual de
+# despacio), y lo de después se comprime como el resto del curso. Es la misma regla que aplica
+# `motor/paquete.js → semanaTienda()` a la tienda.
+#
+# `abre`: lo que aparece —pestañas (mercado, rankings, zoco) y piezas (heroes, adornos, arsenal)—.
+# `listo: False` = aún no existe en la Nave (el Zoco): no se enseña ni se cuenta.
+def semana_capitulo(semana_regular, tipo):
+    if tipo != "PUA" or semana_regular <= 5:
+        return semana_regular
+    total, suyas = SEMANAS_PER["REGULAR"], SEMANAS_PER["PUA"]
+    return max(1, min(suyas, round(semana_regular * suyas / total)))
+
+CAPITULOS = [
+    {"n": 1, "clave": "c1", "titulo": "Canal abierto", "icono": "🛰️", "semana": 1,
+     "abre": ["nave", "retos", "botin"], "mercado": [],
+     "cabecera": "Tu Nave, ya en marcha",
+     "puedes": ["Tu personaje, tu nivel y tus créditos, siempre a la vista",
+                "Los retos de la semana: se hacen y se marcan con «Lo he hecho» (con el enlace de tu evidencia)",
+                "✋ Presente en la llamada a filas: créditos y un sobre de regalo",
+                "Mi botín: tus insignias y tu álbum de cromos"],
+     "imagen": "assets/img/canje/sobre.jpg"},
+    {"n": 2, "clave": "c2", "titulo": "El Mercado Estelar", "icono": "🛒", "semana": 2,
+     "abre": ["mercado", "rankings"], "mercado": ["cromo", "cromo_repes"],
+     "cabecera": "Ya puedes gastar tus créditos",
+     "puedes": ["Comprar sobres de cromos: tres cartas al azar por 15 ◈",
+                "Cambiar 3 cartas repetidas por un sobre nuevo, gratis",
+                "Los rankings: tu clase de ocho maneras distintas, y tu duelo con quien tienes cerca"],
+     "imagen": "assets/img/canje/sobre.jpg"},
+    {"n": 3, "clave": "c3", "titulo": "La Rebelión", "icono": "🛡️", "semana": 3,
+     "abre": ["heroes"], "mercado": ["heroe"],
+     "cabecera": "Llegan los Héroes de la Rebelión",
+     "puedes": ["Conseguir héroes en el Mercado: uno al azar de 30 por 60 ◈",
+                "Ponértelos (y quitártelos) gratis en tu vestuario",
+                "Cambiar 2 héroes repetidos por uno nuevo al azar"],
+     "imagen": "assets/img/canje/heroe.jpg"},
+    {"n": 4, "clave": "c4", "titulo": "Tu insignia de mando", "icono": "🖼️", "semana": 4,
+     "abre": ["adornos"], "mercado": ["titulo", "fondo", "marco"],
+     "cabecera": "Tu ficha, a tu gusto",
+     "puedes": ["Un título bajo tu alias", "El fondo de tu ficha: el planeta que elijas",
+                "El marco dorado de tu avatar", "Se ven en tu ficha y en el tablero de la clase"],
+     "imagen": "assets/img/canje/marco.jpg"},
+    {"n": 5, "clave": "c5", "titulo": "El Zoco Estelar", "icono": "🔄", "semana": 5,
+     "abre": ["zoco"], "mercado": [], "listo": False,
+     "cabecera": "El trueque entre reclutas",
+     "puedes": ["Poner tus héroes y cromos en el Zoco", "Ofrecer lo tuyo por lo de otro recluta",
+                "Aceptar, rechazar o contraofertar"],
+     "imagen": "assets/img/canje/heroe.jpg"},
+    {"n": 6, "clave": "c6", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
+     "abre": ["arsenal"], "mercado": ["nota"],
+     "cabecera": "El Arsenal: créditos por nota",
+     "puedes": ["Subir 0,5 o 1 punto en un entregable, o que se recalifique un trabajo",
+                "Queda pendiente hasta que tu docente lo apruebe",
+                "Ojo: si ya tienes la nota máxima, no te sube nada"],
+     "imagen": "assets/img/canje/nota_1punto.jpg"},
+]
+for _c in CAPITULOS:
+    _c["semanas"] = {"REGULAR": _c["semana"], "PUA": semana_capitulo(_c["semana"], "PUA")}
+assert [c["n"] for c in CAPITULOS] == list(range(1, len(CAPITULOS) + 1)), "los capítulos van en orden"
+assert all(CAPITULOS[i]["semana"] <= CAPITULOS[i + 1]["semana"] for i in range(len(CAPITULOS) - 1)), \
+    "un capítulo no puede abrirse antes que el anterior"
+
 SEMANAS_CANJE_EXTRA = 1                    # semanas de propina para reclamar recompensas
 DIAS_APERTURA_ANTES = 0                    # los formularios abren el primer día de la semana 1
 
@@ -568,13 +641,13 @@ RECOMPENSAS = [
  ("Cambiar 3 repetidos por un sobre", 0, 99,
   "¿Cartas repetidas? Cámbialas. Por cada 3 repetidas te llevas un sobre nuevo, gratis. No cuesta créditos y se comprueba solo: si no llegas a 3, se te avisa y no pierdes nada.", 2, "cromo_repes"),
  ("Título de recluta", 40, 3,
-  "Un título narrativo bajo tu alias en el tablero y la Nave Lo eliges tú en Mi botín.", 3, "titulo"),
+  "Un título narrativo bajo tu alias en el tablero y la Nave. Lo eliges tú en Mi botín.", 4, "titulo"),
  ("Fondo de ficha: tu planeta", 35, 1,
-  "Tu ficha de la Nave con el planeta que elijas de fondo Eliges cuál de los ocho en Mi botín.", 4, "fondo"),
+  "Tu ficha de la Nave con el planeta que elijas de fondo. Eliges cuál de los ocho en Mi botín.", 4, "fondo"),
  ("Marco dorado del avatar", 60, 1,
-  "Tu avatar con marco y brillo dorados en el ranking y la Nave. Se aplica solo.", 6, "marco"),
+  "Tu avatar con marco y brillo dorados en el ranking y la Nave. Te lo pones (y te lo quitas) en Mi botín.", 4, "marco"),
  ("Héroe de la Rebelión", 60, 99,
-  "Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión en tres rangos. ⚔️ La Resistencia (56% del sobre): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave.", 2, "heroe"),
+  "Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión en tres rangos. ⚔️ La Resistencia (56% del sobre): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar.", 3, "heroe"),
  ("Subir 0,5 en un entregable", 550, 1,
   "⚔️ ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. "
   "🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — "

@@ -2767,3 +2767,54 @@ body.alistado header.hero{display:none}
   .au-seg button{padding:8px 10px;font-size:.84rem}}
 .au-caras.mini{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
 .au-cara b{word-break:normal;overflow-wrap:anywhere;hyphens:auto}
+
+/* ================================================================== LA NAVE POR CAPÍTULOS (13-sep) */
+.prox-cap{margin:4px 0 0;font-size:.9rem;color:var(--mut,#8aa5ab)}
+.prox-cap b{color:#ffe3a1}
+.rep-caps{position:relative}
+.rep-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;display:flex;flex-direction:column;gap:6px;min-width:250px;
+  padding:10px;border-radius:12px;background:#0d1624;border:1px solid #2c4a6a;box-shadow:0 18px 40px rgba(0,0,0,.5)}
+.rep-menu[hidden]{display:none}
+.rep-menu .btn{justify-content:flex-start;text-align:left;width:100%}
+.rec-prox{margin:14px 0 0;padding:11px 14px;border-radius:11px;background:rgba(255,209,102,.06);border:1px dashed rgba(255,209,102,.35);
+  color:#e9dcb5;font-size:.93rem;line-height:1.5}
+.rec-prox span{color:var(--mut,#8aa5ab)}
+.tabla td.bienv{white-space:nowrap;color:var(--mut,#8aa5ab)}.tabla td.bienv.ok{color:#7ef0c8;font-weight:600}
+/* ================================================================== LA NAVE DEL COMANDANTE (simulacro, 13-sep)
+   Se proyecta dentro de la sesión: la barra dice lo que es y lleva los mandos del docente. */
+body.embed.simulacro .nav{display:block}
+body.simulacro .nav .brand{pointer-events:none}
+.sim-barra{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:0 0 12px;padding:10px 14px;border-radius:14px;
+  background:linear-gradient(90deg,rgba(255,209,102,.14),rgba(55,224,236,.08));border:1px solid rgba(255,209,102,.45)}
+.sim-tit{display:flex;flex-direction:column;line-height:1.25}
+.sim-tit b{font-family:'Unbounded',sans-serif;font-size:.98rem;color:#ffe3a1}
+.sim-tit em{font-style:normal;font-size:.84rem;color:#d9c9a0}
+.sim-mandos{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-left:auto}
+.sim-sem{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;font-weight:600;color:#e8eefc;margin:0}
+.sim-sem select{padding:6px 8px;border-radius:8px;border:1px solid #2c4a6a;background:#0b1119;color:#e8eefc;font:inherit;font-size:.9rem}
+.sim-pjs{flex-basis:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:8px;padding-top:4px}
+.sim-pjs[hidden]{display:none}
+.sim-pjs button{padding:0;border:2px solid #24304a;border-radius:12px;overflow:hidden;background:#0b1119;cursor:pointer;aspect-ratio:1}
+.sim-pjs button:hover{border-color:var(--teal,#37e0ec)}
+.sim-pjs img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+@media(max-width:700px){.sim-mandos{margin-left:0}}
+/* la sesión proyectable: «se abre esta semana» y la Nave del Comandante incrustada */
+.dia.nuevo-nave{flex-direction:row;align-items:center;gap:32px}
+.dia.nuevo-nave .nn-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.dia.nuevo-nave .kicker{color:#ffd166}
+.nn-lista{margin:6px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:1.12rem;line-height:1.4}
+.nn-neb{margin:6px 0 0;color:var(--muted);font-size:.95rem}
+.nn-img{width:min(40%,460px);border-radius:18px;border:1px solid rgba(255,209,102,.35);box-shadow:0 18px 44px rgba(0,0,0,.45)}
+.mazo:fullscreen .nn-lista{font-size:clamp(1.1rem,1.9vw,1.7rem)}
+.dia.simulacro{padding:0;display:flex}
+.dia.simulacro iframe{width:100%;height:100%;min-height:62vh;border:0;border-radius:14px;background:#070b12}
+.mazo:fullscreen .dia.simulacro iframe{min-height:calc(100vh - 92px)}
+@media(max-width:760px){.dia.nuevo-nave{flex-direction:column;align-items:stretch}.nn-img{width:100%}}
+/* las diapositivas con una página dentro (la Nave del Comandante, el Genially): las flechas y el contador
+   del mazo, FUERA del marco (encima tapaban los créditos y el texto de la Nave) */
+.dia.simulacro,.dia.genially{padding:34px 62px 10px}
+.mazo:fullscreen .dia.simulacro,.mazo:fullscreen .dia.genially{padding:34px 62px 10px}
+@media(min-width:900px){.rs-grid.par{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* el Mercado por capítulos: con 2 o 4 tarjetas, de dos en dos; con 3 o 6, de tres en tres (auto-fill dejaba huecos) */
+@media(min-width:700px){.grid.nave-rec.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:980px){.grid.nave-rec.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
