@@ -959,7 +959,9 @@
     if(!motorNuevo()||!per||st.paraVigilar) return;
     var M=window.SG&&window.SG.MOTOR; if(!M||!M.vigilarLlamada) return;
     st.paraVigilar = M.vigilarLlamada(per, function(sesion){
-      var antes = st.llamada && st.llamada.id;
+      // 🔴 13-sep · «no hay llamada» es null en los dos lados: antes, `undefined !== null` repintaba la
+      // Nave entera con la PRIMERA respuesta aunque no hubiera llamada, y se comía lo que se escribía
+      var antes = st.llamada ? st.llamada.id : null;
       st.llamada = sesion ? {
         id: sesion.id,
         hasta: (sesion.endTime && sesion.endTime.toDate ? sesion.endTime.toDate() : new Date(sesion.endTime)).getTime(),
@@ -968,7 +970,7 @@
         faccion: sesion.restrictedFactionId || '',
         xp: Number(sesion.pointsReward||15), creditos: Number(sesion.coinsReward||30)
       } : null;
-      if((st.llamada&&st.llamada.id)!==antes){ st.fichado=false; render(); }
+      if((st.llamada ? st.llamada.id : null)!==antes){ st.fichado=false; render(); }
     });
     // La cuenta atrás se refresca sola. Cuando llega a cero, se repinta y el aviso desaparece.
     if(!st.relojLlamada) st.relojLlamada=setInterval(function(){
@@ -2450,7 +2452,37 @@
     };
   };
 
-  function render(){
+  /**
+   * 🔴 13-sep · LO QUE ESTÁ A MEDIAS NO SE PIERDE AL REPINTAR. La Nave se repinta entera por muchos
+   * motivos (llega la llamada, se refresca la ficha, cambia la sesión…), y cada repintado cerraba la
+   * tarjeta que el estudiante tenía abierta y BORRABA el enlace que estaba pegando. Visto con una
+   * cuenta real: escribes tu enlace, pulsas «Lo he hecho» y no pasa nada. Ahora se recuerdan las
+   * tarjetas abiertas, lo escrito en cada enlace, dónde estaba el cursor y el scroll (misma pestaña).
+   */
+  function claveDetalle(d, i){ var su=d.querySelector('summary'); return (d.className||'')+'::'+(su?su.textContent.replace(/\s+/g,' ').trim().slice(0,70):i); }
+  function recordarEstado(){
+    if(!root) return null;
+    // la pestaña que SE VE (no st.tab: al cambiar de pestaña st.tab ya es la nueva y no hay que restaurar nada)
+    var pan=root.querySelector('#nave-panel'), vista=pan?String(pan.getAttribute('aria-labelledby')||'').replace('nb-t-',''):'';
+    var e={tab:vista, abiertos:[], valores:{}, foco:null, ini:null, fin:null, y:window.pageYOffset||0};
+    [].slice.call(root.querySelectorAll('details')).forEach(function(d,i){ if(d.open) e.abiertos.push(claveDetalle(d,i)); });
+    [].slice.call(root.querySelectorAll('input[data-ev]')).forEach(function(x){ if(x.value) e.valores[x.getAttribute('data-ev')+'|'+x.className.split(' ')[0]]=x.value; });
+    var a=document.activeElement;
+    if(a && root.contains(a) && a.getAttribute && a.getAttribute('data-ev')){
+      e.foco=a.getAttribute('data-ev')+'|'+a.className.split(' ')[0]; try{ e.ini=a.selectionStart; e.fin=a.selectionEnd; }catch(_){}
+    }
+    return e;
+  }
+  function restaurarEstado(e){
+    if(!e||!root||e.tab!==st.tab) return;
+    if(e.abiertos.length) [].slice.call(root.querySelectorAll('details')).forEach(function(d,i){ if(e.abiertos.indexOf(claveDetalle(d,i))>=0) d.open=true; });
+    Object.keys(e.valores).forEach(function(k){ var p=k.split('|'), x=root.querySelector('input[data-ev="'+p[0]+'"].'+p[1]); if(x&&!x.value) x.value=e.valores[k]; });
+    if(e.foco){ var p=e.foco.split('|'), x=root.querySelector('input[data-ev="'+p[0]+'"].'+p[1]);
+      if(x){ try{ x.focus({preventScroll:true}); if(e.ini!=null) x.setSelectionRange(e.ini,e.fin); }catch(_){} } }
+    if(Math.abs((window.pageYOffset||0)-e.y)>2){ try{ window.scrollTo(0,e.y); }catch(_){} }
+  }
+  function render(){ var e=recordarEstado(); pintarNave(); restaurarEstado(e); }
+  function pintarNave(){
     /**
      * 🔴 13-sep · CON SESIÓN, FUERA EL TITULAR GRANDE. «La Nave del Recluta» con su párrafo ocupaba
      * 250 px arriba del todo en CADA visita, y a quien ya ha entrado no le cuenta nada que la barra

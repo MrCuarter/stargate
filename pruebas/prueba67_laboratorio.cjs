@@ -832,6 +832,38 @@ const REG = {};   // cifras que se apuntan para el informe
       const no = await dani.hasta("/Esto lo hace tu profe referente/.test(document.body.innerText)", 20);
       c("crear · a un docente que no es referente se le dice con claridad que eso lo hace su referente", no, (await dani.texto()).slice(0, 160));
     }
+    // ============================================================ 16 · LO QUE ESTÁ A MEDIAS NO SE PIERDE
+    // Visto con una cuenta real: la alumna pega su enlace en un reto, la Nave se repinta (llega una
+    // llamada, se refresca la ficha…) y el enlace desaparece con la tarjeta cerrada. «Lo he hecho» no
+    // hacía nada. Aquí la docente toca llamada a filas JUSTO mientras la alumna escribe.
+    if (hacer(16)) {
+      const rita = await nueva("Rita, la llamada a media escritura");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("llamada.html?per=lab-clase");
+      await rita.hasta("!!document.getElementById('ll-tocar') || !!document.getElementById('ll-cerrar')", 25);
+      if (await rita.js("!!document.getElementById('ll-cerrar')")) {
+        await rita.js("document.getElementById('ll-cerrar').click(); 1");
+        await rita.hasta("!!document.getElementById('ll-tocar')", 20);
+      }
+      const ana = await nueva("Ana, a media escritura");
+      await ana.ir("entrar.html"); await ana.entrarComo("ana@lab.test", "Ana Nueva");
+      await ana.js("localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
+      await ana.ir("recluta.html?per=lab-clase");
+      await ana.hasta("!!document.querySelector('.retos-semana details.reto-sem:not(.hecho)')", 25); await dormir(2500);
+      const escrito = "https://ejemplo.org/mi-trabajo-a-medias";
+      const ok0 = await ana.js(`(function(){ var d=document.querySelector('.retos-semana details.reto-sem:not(.hecho)'); if(!d) return false; d.open=true;
+        var i=d.querySelector('input[data-ev]'); if(!i) return false; i.focus(); i.value=${JSON.stringify(escrito)}; return true; })()`);
+      c("a medias · la alumna abre un reto y pega su enlace", ok0);
+      await rita.js("document.getElementById('ll-tocar').click(); 1");
+      const llega = await ana.hasta("!!document.getElementById('pase-ok')", 25);
+      c("a medias · le llega la llamada de su docente (la Nave se repinta)", llega);
+      const sigue = await ana.js(`(function(){ var i=document.querySelector('.retos-semana input[data-ev]'); var d=i&&i.closest('details');
+        return JSON.stringify({valor:i&&i.value, abierta:!!(d&&d.open), foco:document.activeElement===i}); })()`);
+      const o = JSON.parse(sigue);
+      c("🔴 a medias · su enlace SIGUE escrito y la tarjeta sigue abierta tras el repintado", o.valor === escrito && o.abierta, sigue);
+      c("   y el cursor sigue en el campo, para seguir escribiendo", o.foco, sigue);
+      await rita.js("var b=document.getElementById('ll-cerrar'); if(b) b.click(); 1");
+    }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
   } finally {
