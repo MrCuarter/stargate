@@ -226,8 +226,12 @@
         }).catch(tocar);
       }).catch(function (e) { puerta("No he podido leer tus grupos: " + e.message); });
     };
-    MOTOR.sesion().then(mirar);
-    document.addEventListener("sg:sesion", function (e) { parar(); mirar(e.detail); });
+    // 🔴 una vez por cuenta, y la guarda va ANTES de parar(): si el aviso repetido parara el directo
+    // y luego mirar() no hiciera nada (misma cuenta), la cuenta atrás se quedaba parada para siempre
+    var cuenta;
+    var nueva = function (u) { var q_ = u ? u.uid : null; if (q_ === cuenta) return false; cuenta = q_; return true; };
+    MOTOR.sesion().then(function (u) { if (nueva(u)) mirar(u); });
+    document.addEventListener("sg:sesion", function (e) { if (!nueva(e.detail)) return; parar(); mirar(e.detail); });
   }
   if (window.SG && window.SG.MOTOR) arrancar();
   else document.addEventListener("sg:motor", arrancar);

@@ -65,6 +65,14 @@ const idx = leer("index.html");
 ["embed.html", "foro.html", "profes.html", "grupos.html"].forEach(p =>
   c(idx.indexOf('href="' + p) < 0, "la portada no enlaza " + p + " (del sistema anterior)"));
 
+// 🔴 13-sep · UNA VEZ POR CUENTA. `sesion()` y `sg:sesion` llegan los dos al cargar: sin guarda, la
+// página se pintaba dos veces y el segundo pintado borraba lo que el estudiante ya había escrito
+// (visto alistándose con una cuenta real). Cada página con sesión repinta solo si cambia la cuenta.
+[["alistarse.js", /if \(quien_ === vista\) return;/], ["crear.js", /if \(quien_ === vista\) return;/],
+ ["huevo.js", /mirar\._v/], ["aula.js", /mirar\._v/], ["consola.js", /mirar\._v/],
+ ["llamada.js", /if \(!nueva\(e\.detail\)\) return; parar\(\);/], ["validar.js", /enMarcha\) return/]]
+  .forEach(([f, re]) => c(re.test(leer("assets/js/" + f)), "🔴 " + f + " se pinta una vez por cuenta (no borra lo escrito al cargar)"));
+
 module.exports = { nombre: "Lo que se lee dice la verdad de hoy", ok, fallos };
 if (require.main === module) {
   console.log("\n  Batería 69 · lo que se lee dice la verdad de hoy");

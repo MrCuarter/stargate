@@ -330,7 +330,12 @@
      * Quien aún no lleva ningún grupo SÍ pasa: es el caso del referente que estrena el sistema y
      * todavía no tiene nada que le acredite. Ahí no hay nada que proteger.
      */
+    // una vez por cuenta: `sesion()` y `sg:sesion` llegan los dos al cargar y el segundo borraba lo escrito
+    var vista;
     var mirar = function (u) {
+      var quien_ = u ? u.uid : null;
+      if (quien_ === vista) return;
+      vista = quien_;
       YO = u;
       if (!YO) return pintarPuerta();
       MOTOR.misPERs(YO.correo).then(function (ps) {

@@ -158,6 +158,7 @@
 
   // ---------------------------------------------------------------- arranque
   function mirar(u) {
+    var q_ = u ? u.uid : null; if (q_ === mirar._v) return; mirar._v = q_;  // una vez por cuenta: sesion() y sg:sesion llegan los dos al cargar
     YO = u;
     if (!YO) return puerta();
     cargando("Buscando tu ficha…");

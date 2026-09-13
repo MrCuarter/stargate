@@ -441,6 +441,7 @@
     if (url.get("demo") === "1") return demostracion();
     pinta('<div class="au-caja"><p class="ll-esperando">Comprobando quién eres…</p></div>');
     var mirar = function (u) {
+      var q_ = u ? u.uid : null; if (q_ === mirar._v) return; mirar._v = q_;  // una vez por cuenta: sesion() y sg:sesion llegan los dos al cargar
       YO = u;
       if (!YO) return puerta();
       MOTOR.misPERs(YO.correo).then(function (ps) {

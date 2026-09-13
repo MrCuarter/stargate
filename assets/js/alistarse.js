@@ -338,7 +338,17 @@
     MOTOR = window.SG.MOTOR;
     if (!PER) return fallo("A este enlace le falta el grupo. Debería acabar en «?per=…».");
 
+    /**
+     * 🔴 13-sep · UNA VEZ POR CUENTA. `sesion()` y el aviso `sg:sesion` llegan los dos al cargar, y
+     * cada uno pintaba el formulario: el segundo borraba lo que el estudiante ya hubiera empezado a
+     * escribir (visto con una cuenta real: el primer clic en «Sugiéreme uno» se perdía). Solo se
+     * repinta si cambia la cuenta.
+     */
+    var vista;
     var mirar = async function (u) {
+      var quien_ = u ? u.uid : null;
+      if (quien_ === vista) return;
+      vista = quien_;
       YO = u;
       if (!YO) return puerta();
       tarjeta("<h3>Un momento…</h3><p>Buscando tu grupo.</p>");

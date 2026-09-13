@@ -923,7 +923,10 @@
   function arrancar() {
     MOTOR = window.SG.MOTOR;
     if (url.get("demo") === "1") return demostracion();
-    var mirar = function (u) { YO = u; YO ? elegirGrupo() : puerta(); };
+    var mirar = function (u) {
+      var q_ = u ? u.uid : null; if (q_ === mirar._v) return; mirar._v = q_;  // una vez por cuenta: sesion() y sg:sesion llegan los dos al cargar
+      YO = u; YO ? elegirGrupo() : puerta();
+    };
     MOTOR.sesion().then(mirar);
     document.addEventListener("sg:sesion", function (e) { mirar(e.detail); });
   }
