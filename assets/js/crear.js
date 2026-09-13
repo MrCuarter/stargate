@@ -106,7 +106,7 @@
       '<p><button class="btn min" id="btn-mas">+ Añadir docente</button></p></div>' +
 
       '<div class="card resumen"><h3>Lo que se va a crear</h3><div id="f-resumen">—</div>' +
-      '<p><button class="btn grande" id="btn-crear">Crear el grupo</button></p>' +
+      '<p><button class="btn primary grande" id="btn-crear">✨ Crear el grupo</button></p>' +
       '<div id="f-progreso" class="small muted"></div></div>';
 
     $("#btn-salir").onclick = function () { MOTOR.salir(); };

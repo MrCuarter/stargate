@@ -118,7 +118,7 @@
        * a nadie: es colección, no puntuación. Por eso solo se puede regalar eso.
        */
       + '<label class="ll-campo ll-regalo"><input type="checkbox" id="ll-sobre"> '
-      + 'Regalar un <b>sobre de cromos</b> a quien fiche</label>'
+      + '<span>Regalar un <b>sobre de cromos</b> a quien fiche</span></label>'
       + '<p class="ll-nota">Tres cartas al azar. No toca ni los xp ni el ranking: es colección.</p>'
       + '<button class="ll-btn grande" id="ll-tocar">🔔 Tocar llamada</button>'
       + '<p class="ll-pie" id="ll-msg"></p></div>');

@@ -2489,3 +2489,62 @@ body.embed .nota-docente{display:none}
   .gp-grid.uno .gp-invita>div{flex:1 1 100%}
   .gp-grid.uno .gp-invita .btn{flex:1 1 100%;justify-content:center}
 }
+
+/* ================================================================== PREMIOS POR ENLACE, UNA FILA QUE SE LEE (13-sep) */
+.hv-f{display:flex;flex-direction:column;gap:10px;padding:14px 16px}
+.hv-l1{display:grid;grid-template-columns:104px minmax(150px,1.2fr) minmax(210px,1.3fr) 92px 104px 112px auto auto;gap:10px;align-items:end}
+.hv-f .h-campo{display:flex;flex-direction:column;gap:5px;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut,#8aa5ab);min-width:0}
+.hv-f .h-campo input,.hv-f .h-campo select{width:100%;text-transform:none;letter-spacing:0;font-size:.9rem}
+.hv-f .h-num input{width:100%}
+@media(min-width:981px){.hv-f .h-cant[hidden]{display:flex!important;visibility:hidden}}
+.hv-f .h-act{align-self:center;margin-top:18px;font-size:.84rem}
+.hv-f .h-del{align-self:end;height:38px;width:38px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.hv-l2{display:flex;gap:10px;align-items:center}
+.hv-l2 .h-url{flex:1;min-width:0;grid-column:auto}
+.hv-l2 .btn{white-space:nowrap}
+@media(max-width:980px){
+  .hv-l1{grid-template-columns:repeat(6,1fr)}
+  .hv-f .h-c-id{grid-column:span 2}.hv-f .h-c-nom{grid-column:span 4}.hv-f .h-c-premio{grid-column:span 6}
+  .hv-f .h-num{grid-column:span 2}
+  .hv-f .h-act{grid-column:span 4;margin-top:0}.hv-f .h-del{grid-column:span 2;justify-self:end}
+}
+@media(max-width:520px){.hv-l2{flex-wrap:wrap}.hv-l2 .btn{width:100%}}
+
+/* crear un grupo: los dos papeles en línea, casilla y nombre juntos (salían la casilla encima y el
+   nombre debajo, descolgados) */
+#crear .docente{grid-template-columns:1.2fr 1.2fr auto 1.3fr auto}
+#crear .d-roles{display:flex;gap:16px;align-items:center;padding:0 4px}
+#crear .d-roles label{display:inline-flex;align-items:center;gap:7px;margin:0;font-size:.9rem;font-weight:600;white-space:nowrap;cursor:pointer}
+#crear .d-roles input{width:18px;height:18px;margin:0;accent-color:var(--teal,#37e0ec)}
+@media(max-width:700px){#crear .docente{grid-template-columns:1fr}}
+/* las pestañas de un grupo, en el móvil: una fila que se desliza (en cuatro filas se comían la pantalla) */
+@media(max-width:700px){
+  .pestanas{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+  .pestanas::-webkit-scrollbar{display:none}
+  .pestanas .pest{flex:none}
+}
+/* la portada: diez baldosas en DOS filas llenas (con cuatro por fila quedaba una fila coja de dos) */
+@media(min-width:1100px){#secciones .tiles{grid-template-columns:repeat(5,1fr);gap:14px}
+  #secciones .tile{padding:18px}}
+@media(min-width:700px) and (max-width:1099px){#secciones .tiles{grid-template-columns:repeat(2,1fr)}}
+/* «Una sola puerta»: las tres tarjetas con su etiqueta al pie, a la misma altura y del mismo estilo */
+.puertas-3 .puerta-tile{display:flex;flex-direction:column}
+.puertas-3 .puerta-tile .chip{margin-top:auto;align-self:flex-start}
+
+/* la acción principal de la llamada y del aula, rellena: es EL botón de la pantalla */
+.ll-btn.grande{background:linear-gradient(180deg,#46e3ee,#1cb4c4);color:#03161b;border-color:transparent;font-weight:700}
+.ll-btn.grande:hover{background:linear-gradient(180deg,#5ceaf3,#22c2d2);box-shadow:0 0 26px rgba(55,224,236,.4)}
+.ll-btn.grande:disabled{background:#14243c;color:#9fb0ce;border-color:#24304a;box-shadow:none}
+/* los rankings de la Nave van justo debajo de la barra: sin el colchón y la raya de una sección de portada */
+body.nave-dentro #nave-ranking{padding-top:6px;border-top:0}
+body.nave-dentro header.hero+section{border-bottom:0}
+
+/* (las reglas de formulario de la consola ponen cada input en bloque y al 100 %: aquí no) */
+#consola .hv-f label{margin:0}
+#consola .hv-f .h-act{display:flex;flex-direction:row;align-items:center;gap:7px;font-weight:600}
+#consola .hv-f .h-act input{display:inline-block;width:18px;height:18px;margin:0;padding:0}
+#consola .hv-f .h-campo input,#consola .hv-f .h-campo select{margin-top:0;padding:9px 11px}
+.hv-l2 .h-url{display:block;text-align:left;padding:9px 11px}
+#consola .hv-l2 .h-url{display:block;flex:1;min-width:0;text-align:left;padding:9px 11px}
+.hv-f{align-items:stretch}
+.hv-f .h-cant[hidden]{display:none}

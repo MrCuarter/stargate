@@ -40,12 +40,13 @@
   // 🔴 DOS DECIMALES, ni uno más. Con 35 piezas de colección salen numeros como 27.272727272727273,
   // y eso en pantalla no es precisión: es ruido. Se redondea SOLO al pintar; el valor crudo sigue
   // ordenando el ranking, que es para lo que hace falta entero.
-  function pct2(v){ return String(Math.round((Number(v) || 0) * 100) / 100); }
+  // 13-sep · y con coma decimal y el espacio antes del signo: «4,92 %», no «4.92%», que es inglés
+  function pct2(v){ return String(Math.round((Number(v) || 0) * 100) / 100).replace('.', ','); }
   function colTxt(p){
     if(!p.coleccion) return '—';
     var c=p.coleccion;
     var det='Cartas '+c.cromos.tengo+'/'+c.cromos.total+' · héroes '+c.heroes.tengo+'/'+c.heroes.total+' · skins '+c.skins.tengo+'/'+c.skins.total;
-    return '<span class="'+(c.tengo===c.total?'muted full':'muted')+'" title="'+esc(det)+'">'+pct2(c.pct)+'%</span>'
+    return '<span class="'+(c.tengo===c.total?'muted full':'muted')+'" title="'+esc(det)+'">'+pct2(c.pct)+'&nbsp;%</span>'
       +(p.n_album?' <span class="sello-serie mini" title="Series completas">✦'+p.n_album+'</span>':'');}
 
   // ---------- los tres modos ----------
@@ -135,7 +136,7 @@
       +'<div class="fr-kpis">'
         +'<div><b>'+p.n+'</b><span>de 24 insignias</span></div>'
         +'<div><b>'+(col.cromos?col.cromos.tengo:0)+'</b><span>de '+(col.cromos?col.cromos.total:20)+' cartas</span></div>'
-        +'<div><b>'+pct2(p.coleccion?p.coleccion.pct:0)+'%</b><span>del juego</span></div></div>'
+        +'<div><b>'+pct2(p.coleccion?p.coleccion.pct:0)+'&nbsp;%</b><span>del juego</span></div></div>'
       +(ins?'<h4>Insignias</h4><div class="fr-lista">'+ins+'</div>':'')
       +(cro?'<h4>Cartas del álbum</h4><div class="fr-lista">'+cro+'</div>':'')
       +'</div>';

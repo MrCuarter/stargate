@@ -600,37 +600,45 @@
       'Genially —una estrella, un detalle del fondo— como <b>huevo de Pascua</b>, o ponlo a la vista: ' +
       '«los cinco primeros de cada escuadrón se llevan un sobre». Quien lo pulse sin haber entrado verá la ' +
       'puerta de Google ahí mismo, dentro de la presentación. ' +
-      '<b>Cada persona solo puede reclamar cada escondite una vez</b>, aunque el enlace circule. ' +
+      '<b>Cada persona solo puede reclamar cada premio una vez</b>, aunque el enlace circule. ' +
       'Y si quieres que sea una carrera, pon un tope: <b>total</b> («los tres primeros de toda la clase») ' +
-      'o <b>por escuadrón</b> («los dos primeros de cada Comandante»). 0 es sin tope.</p>' +
+      'o <b>por escuadrón</b> («los dos primeros de cada Comandante»). Vacío es sin tope.</p>' +
       '<div id="hv-lista" class="hv-lista">' + (H.length ? H.map(filaHuevo).join("") :
         '<p class="small muted">Todavía no hay ninguno.</p>') + '</div>' +
-      '<p style="margin-top:14px"><button class="btn" id="hv-add">+ Añadir un escondite</button> ' +
+      '<p style="margin-top:14px"><button class="btn" id="hv-add">+ Añadir un premio</button> ' +
       '<button class="btn primary" id="hv-save">Guardar</button></p></div>';
     cablearHuevos(H);
   }
+  /**
+   * 🔴 13-sep · UNA FILA QUE SE LEE. Eran nueve piezas sueltas en una rejilla de seis columnas: el
+   * «✕» de quitar caía debajo con el ancho de un campo (parecía una caja vacía), el desplegable
+   * cortaba «Un sobre de cr…» y un «0» sin más significaba «sin tope». Ahora cada premio son dos
+   * líneas: sus datos, cada uno con su nombre, y su enlace con el botón de copiar.
+   */
   function filaHuevo(h, i) {
-    return '<div class="hv-f" data-i="' + i + '">' +
-      '<input class="h-id" value="' + esc(h.id || "") + '" placeholder="p1" maxlength="12" title="Identificador: va en el enlace">' +
-      '<input class="h-nom" value="' + esc(h.nombre || "") + '" placeholder="Presentación del Tema 1">' +
-      '<select class="h-premio">' + PREMIOS.map(function (p) {
-        return '<option value="' + p[0] + '"' + (h.premio === p[0] ? " selected" : "") + ">" + p[1] + "</option>"; }).join("") + '</select>' +
+    var lim = Number(h.limite) || 0, esc_ = Number(h.porEscuadron) || 0;
+    var conCantidad = h.premio === "bolsa" || h.premio === "xp";
+    return '<div class="hv-f" data-i="' + i + '"><div class="hv-l1">' +
+      '<label class="h-campo h-c-id">Enlace<input class="h-id" value="' + esc(h.id || "") + '" placeholder="p1" maxlength="12" title="Identificador: va en el enlace"></label>' +
+      '<label class="h-campo h-c-nom">Dónde está<input class="h-nom" value="' + esc(h.nombre || "") + '" placeholder="Presentación del Tema 1"></label>' +
+      '<label class="h-campo h-c-premio">Premio<select class="h-premio">' + PREMIOS.map(function (p) {
+        return '<option value="' + p[0] + '"' + (h.premio === p[0] ? " selected" : "") + ">" + p[1] + "</option>"; }).join("") + '</select></label>' +
       /**
        * 🔴 LOS TRES LÍMITES QUE PIDIÓ NORBERTO —«global, por grupo, ilimitado, máximo uno por
-       * persona»—, y con NOMBRE. Antes eran dos cajas con un número suelto: un «0» sin etiqueta no
-       * le dice nada a nadie. Uno por persona va siempre (es un escondite: se encuentra una vez).
-       * Los lleva el servidor (`claimLinkedReward`), dentro de una transacción.
+       * persona»—, y con NOMBRE. Uno por persona va siempre (es un escondite: se encuentra una vez).
+       * Los lleva el servidor (`claimLinkedReward`), dentro de una transacción. Vacío = sin tope.
        */
       // la cantidad solo cuenta para créditos y xp: un sobre son siempre tres cartas y un héroe, uno
-      '<label class="h-num h-cant"' + (h.premio === "bolsa" || h.premio === "xp" ? "" : " hidden") + '>Cantidad' +
+      '<label class="h-campo h-num h-cant"' + (conCantidad ? "" : " hidden") + '>Cantidad' +
         '<input class="h-cantidad" type="number" min="1" value="' + (Number(h.cantidad || h.creditos) || (h.premio === "xp" ? 100 : 50)) + '"></label>' +
-      '<label class="h-num">Tope total<input class="h-lim" type="number" min="0" value="' + (Number(h.limite) || 0) + '" title="0 = sin tope; 5 = solo los cinco primeros de todo el grupo"></label>' +
-      '<label class="h-num">Por escuadrón<input class="h-esc" type="number" min="0" value="' + (Number(h.porEscuadron) || 0) + '" title="0 = sin tope; 2 = los dos primeros de CADA escuadrón"></label>' +
-      '<label class="h-act"><input type="checkbox" class="h-on"' + (h.activo === false ? "" : " checked") + '> activo</label>' +
-      '<button class="btn min h-del" title="Quitar">✕</button>' +
+      '<label class="h-campo h-num">Tope total<input class="h-lim" type="number" min="0" value="' + (lim || "") + '" placeholder="sin tope" title="Vacío = sin tope; 5 = solo los cinco primeros de todo el grupo"></label>' +
+      '<label class="h-campo h-num">Por escuadrón<input class="h-esc" type="number" min="0" value="' + (esc_ || "") + '" placeholder="sin tope" title="Vacío = sin tope; 2 = los dos primeros de CADA escuadrón"></label>' +
+      '<label class="h-act"><input type="checkbox" class="h-on"' + (h.activo === false ? "" : " checked") + '> Activo</label>' +
+      '<button class="btn min h-del" title="Quitar este premio" aria-label="Quitar este premio">✕</button>' +
+      '</div><div class="hv-l2">' +
       '<code class="h-url">' + esc(location.origin) + '/huevo.html?h=' + esc(h.id || "…") + '&amp;embed=1</code>' +
-      '<button class="btn min" data-copiar="' + esc(location.origin + "/huevo.html?h=" + (h.id || "") + "&embed=1") + '">Copiar</button>' +
-      '</div>';
+      '<button class="btn min" data-copiar="' + esc(location.origin + "/huevo.html?h=" + (h.id || "") + "&embed=1") + '">📋 Copiar enlace</button>' +
+      '</div></div>';
   }
   function cablearHuevos(H) {
     var lista = H.slice();

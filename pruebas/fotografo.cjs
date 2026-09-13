@@ -20,6 +20,11 @@ const PANTALLAS = [
   ["rita@lab.test", "Rita", "sesion.html?per=lab-clase", "sesion"],
   [null, null, "index.html", "portada"],
   [null, null, "entrar.html", "entrar"],
+  ["ana@lab.test", "Ana", "recluta.html?per=lab-clase#rankings", "nave-rankings"],
+  ["rita@lab.test", "Rita", "entrar.html", "entrar-eres-tu"],
+  ["rita@lab.test", "Rita", "consola.html?per=lab-clase#huevos", "consola-premios"],
+  ["rita@lab.test", "Rita", "crear.html", "crear"],
+  ["rita@lab.test", "Rita", "llamada.html?per=lab-clase", "llamada"],
 ];
 (async () => {
   await L.arrancar(false);
@@ -32,6 +37,9 @@ const PANTALLAS = [
         : { width: 1280, height: 860, deviceScaleFactor: 1, mobile: false });
       if (correo) { await p.ir("entrar.html"); await p.entrarComo(correo, nombre); }
       await p.ir(url); await L.dormir(6000);
+      // una pestaña concreta de la consola: el hash dice cuál (la consola no lo lee sola)
+      const pest = (url.match(/consola\.html\?per=[^#]+#(\w+)/) || [])[1];
+      if (pest) { await p.js(`(function(){var b=document.querySelector('.pest[data-tab="${pest}"]'); if(b) b.click(); return 1;})()`); await L.dormir(1500); }
       const chicas = await p.js(`(function(){ var out=[];
         [].slice.call(document.querySelectorAll('body *')).forEach(function(e){
           if(!e.childNodes.length) return; var t=[].slice.call(e.childNodes).filter(function(n){return n.nodeType===3&&n.textContent.trim().length>2}).map(function(n){return n.textContent.trim()}).join(' ');

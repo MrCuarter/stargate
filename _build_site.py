@@ -342,7 +342,7 @@ que elegir bando en la puerta ni recordar ningún PIN.</p>
     <h3>Si eres estudiante</h3>
     <p>Vas a tu <b>Nave</b>: tu personaje, la orden de la semana, los planetas que se abren, tus
     insignias y el Mercado Estelar. Desde ahí registras lo que completas y canjeas lo que ganas.</p>
-    <span class="chip ok">Sin teclear nada →</span>
+    <span class="chip">Sin teclear nada →</span>
   </div>
   <div class="card puerta-tile">
     <span class="ic">🎓</span>
