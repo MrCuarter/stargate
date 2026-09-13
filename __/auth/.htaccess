@@ -1,0 +1,7 @@
+# El ayudante de Google para iniciar sesión (Firebase Auth), alojado AQUÍ para que la ventana de
+# Google diga «stargate.mistercuarter.es» y no «gamificapro-99e0a.firebaseapp.com». Lo sirve igual
+# que Firebase Hosting: `handler` e `iframe` no llevan extensión y tienen que salir como HTML.
+# Se actualiza con motor/actualizar_ayudante_google.sh (copia los ficheros oficiales).
+<FilesMatch "^(handler|iframe)$">
+  ForceType text/html
+</FilesMatch>
