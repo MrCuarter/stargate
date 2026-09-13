@@ -2957,8 +2957,8 @@ _html = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <link rel="icon" href="{FAV}">
 <link rel="stylesheet" href="assets/css/stargate.css">
 <script>window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTO={json.dumps(_FRAG, ensure_ascii=False)};</script>
-<script src="assets/js/secreto.js" defer></script>
-<script src="assets/js/fragmento.js" defer></script>
+<script src="{_v("assets/js/secreto.js")}" defer></script>
+<script src="{_v("assets/js/fragmento.js")}" defer></script>
 </head><body class="fragmento">
 <main id="fr-app" class="fr"><noscript><p style="padding:24px">Este archivo necesita JavaScript.</p></noscript></main>
 </body></html>
