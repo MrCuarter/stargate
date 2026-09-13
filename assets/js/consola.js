@@ -205,7 +205,8 @@
         (soyRef ? '<a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
       // 🔴 13-sep · con UN solo grupo, la tarjeta se tumba en horizontal y ocupa la fila: estrecha y
       // sola dejaba media pantalla vacía a su derecha. Con varios, rejilla de siempre.
-      (vivos.length ? '<div class="gp-grid' + (vivos.length === 1 ? ' uno' : '') + '">' + vivos.map(tarjetaGrupo).join("") + '</div>'
+      // y con 2 o 4, en dos columnas: con tres por fila, cuatro grupos dejaban uno solo abajo
+      (vivos.length ? '<div class="gp-grid' + (vivos.length === 1 ? ' uno' : (vivos.length === 2 || vivos.length === 4) ? ' par' : '') + '">' + vivos.map(tarjetaGrupo).join("") + '</div>'
                     : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
       /**
        * 🔴 LO DEL REFERENTE, EN UNA FRANJA APARTE. Norberto: «el referente básicamente debe tener

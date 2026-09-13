@@ -2554,3 +2554,5 @@ body.nave-dentro header.hero+section{border-bottom:0}
 .gp-invita{flex-wrap:wrap;gap:10px}
 .gp-invita>div{flex:1 1 auto}
 .gp-invita .btn{flex:1 1 100%;justify-content:center}
+/* 2 o 4 grupos: dos columnas, filas llenas */
+@media(min-width:760px){.gp-grid.par{grid-template-columns:repeat(2,1fr)}}
