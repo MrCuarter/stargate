@@ -2221,8 +2221,8 @@ const REG = {};   // cifras que se apuntan para el informe
       const ficha = k => fichaDe(GENTE[k][0], P);
       const papeletas = f => Number(((f && f.lotteryEntries) || {})[T] || 0);
       const ticket = async () => (await fs.collection("rewards").doc(T).get()).data();
-      c("sorteo · el grupo nace con el Gran Sorteo: la participación (20 ◈, máx. 10) apunta a su premio (2 licencias)",
-        (await ticket()).systemEffect === "lottery_ticket" && (await ticket()).linkedItemId === PREMIO && (await ticket()).cost === 20 && (await ticket()).maxPerUser === 10
+      c("sorteo · el grupo nace con el Gran Sorteo: la participación (20 ◈, sin tope por persona) apunta a su premio (2 licencias)",
+        (await ticket()).systemEffect === "lottery_ticket" && (await ticket()).linkedItemId === PREMIO && (await ticket()).cost === 20 && (await ticket()).maxPerUser == null
         && (await fs.collection("rewards").doc(PREMIO).get()).data().globalStock === 2);
       const naveDe = async (k, nota, tab) => {
         const [correo, nombre] = GENTE[k], q = await nueva(nombre.split(" ")[0] + " · " + nota);
@@ -2250,14 +2250,14 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 sorteo · la papeleta está en su ficha (1) y le han cobrado 20 ◈", papeletas(fS1) === 1 && fS1.coins === 280, papeletas(fS1) + " · " + fS1.coins);
       await s1.js("var b=document.querySelector('.neb-capa [data-cerrar]'); if(b) b.click(); 1"); await dormir(1500);
       c("sorteo · y la tarjeta ya dice «Llevas 1»", await s1.hasta("/Llevas 1 participación/.test((document.querySelector('.rec-card.sorteo')||{}).innerText||'')", 15));
-      // hasta el tope (10) y ni una más
+      // sin tope por persona (Norberto: «igual alguien apuesta todo su dinero a por la licencia»)
       for (let i = 0; i < 9; i++) await compra(s1, "sara");
       const once = await compra(s1, "sara");
       const fS2 = await ficha("sara");
-      c("🔴 sorteo · como mucho 10 por persona: la undécima, el servidor dice que no (y no cobra)", papeletas(fS2) === 10 && /ERROR/.test(once) && fS2.coins === 100, papeletas(fS2) + " · " + fS2.coins + " · " + once);
+      c("🔴 sorteo · sin tope por persona: Sara compra 11 (y paga las 11)", papeletas(fS2) === 11 && !/ERROR/.test(once) && fS2.coins === 80, papeletas(fS2) + " · " + fS2.coins + " · " + once);
       await s1.cerrar();
-      const s2 = await naveDe("sara", "en el tope", "mercado");
-      c("sorteo · y su tarjeta ya no ofrece comprar: «Ya tienes las 10 que se permiten»", await s2.hasta("/Ya tienes las 10/i.test((document.querySelector('.rec-card.sorteo')||{}).innerText||'') && !document.querySelector('.rec-card.sorteo [data-canje]')", 15));
+      const s2 = await naveDe("sara", "sin tope", "mercado");
+      c("sorteo · y su tarjeta sigue ofreciendo comprar, sin «como mucho»", await s2.hasta("/Llevas 11 participaciones/.test((document.querySelector('.rec-card.sorteo')||{}).innerText||'') && !!document.querySelector('.rec-card.sorteo [data-canje]') && !/como mucho/.test(document.querySelector('.rec-card.sorteo').innerText)", 15));
       await s2.cerrar();
       // Íker compra dos
       const i1 = await naveDe("iker", "compra dos");
@@ -2296,9 +2296,9 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1");
       await rita.hasta("!!document.querySelector('.sr-caja')", 20);
       const cuenta = await rita.js("(document.querySelector('.sr-cuenta')||{}).innerText||''");
-      c("🔴 sorteo · la consola cuenta el bombo: 20 participaciones de 4 reclutas (10 + 2 + 3 + 5)", /20 participaciones de 4 reclutas/.test(cuenta), cuenta);
+      c("🔴 sorteo · la consola cuenta el bombo: 21 participaciones de 4 reclutas (11 + 2 + 3 + 5)", /21 participaciones de 4 reclutas/.test(cuenta), cuenta);
       await rita.js("var d=document.querySelector('.sr-caja details'); if(d) d.open=true; 1");
-      c("sorteo · y cada uno con sus posibilidades (Sara, 10 de 20 = 50 %)", /Sara Saturno[\s\S]*50 %/.test(await rita.texto()));
+      c("sorteo · y cada uno con sus posibilidades (Sara, 11 de 21 = 52 %)", /Sara Saturno[\s\S]*52 %/.test(await rita.texto()));
       await rita.foto(FOTOS + "/25-consola-sorteos.png");
       await rita.js("document.querySelector('.sr-editar').click(); 1"); await rita.hasta("!!document.querySelector('.sr-editar-f .sr-coste')", 10);
       await rita.js("var i=document.querySelector('.sr-editar-f .sr-coste'); i.value='25'; document.querySelector('.sr-editar-f .sr-guardar').click(); 1");
@@ -2326,8 +2326,8 @@ const REG = {};   // cifras que se apuntan para el informe
       c("sorteo · las papeletas de este sorteo se retiran a todos", Object.keys(F).every(k => papeletas(despues[k]) === 0));
       c("sorteo · el premio se queda sin unidades y el sorteo deja de venderse", (await fs.collection("rewards").doc(PREMIO).get()).data().globalStock === 0 && Number(tk.availableUntil) <= Date.now());
       const arch = (await fs.collection("projects").doc(P).collection("lottery_archives").doc(T).get()).data();
-      c("🔴 sorteo · el bombo entero queda guardado ANTES de borrar nada (4 reclutas, 21 papeletas, las regaladas incluidas)",
-        arch && arch.bombo.length === 4 && arch.totalParticipaciones === 21 && arch.bombo.some(b => b.ficha === F.lola._id && b.n === 3), JSON.stringify(arch && { n: arch.bombo.length, t: arch.totalParticipaciones }));
+      c("🔴 sorteo · el bombo entero queda guardado ANTES de borrar nada (4 reclutas, 22 papeletas, las regaladas incluidas)",
+        arch && arch.bombo.length === 4 && arch.totalParticipaciones === 22 && arch.bombo.some(b => b.ficha === F.lola._id && b.n === 3), JSON.stringify(arch && { n: arch.bombo.length, t: arch.totalParticipaciones }));
       c("🔴 sorteo · dos veces no se puede sortear", /ya se ha hecho/.test(await rita.js(`window.SG.MOTOR.sortear('${P}','${T}').then(function(){return 'OTRA VEZ'},function(e){return e.message})`)));
       c("sorteo · ni regalar participaciones de un sorteo ya hecho", /ya se ha hecho/.test(await rita.js(`window.SG.MOTOR.regalarEnClase('${P}',['${F.lola._id}'],{tipo:'participacion',sorteo:'${T}',n:1}).then(function(){return 'REGALÓ'},function(e){return e.message})`)));
       await rita.js("document.getElementById('sr-salir').click(); 1"); await rita.hasta("!!document.querySelector('.sr-ganadores')", 20);

@@ -638,7 +638,7 @@ SORTEOS = [
      "Se sortean dos licencias de Genially de un año completo entre toda la tripulación. Cada "
      "participación es una papeleta: cuantas más tengas, más posibilidades. Nadie gana dos, y el "
      "sorteo lo hace el servidor en clase, a la vista de todos.",
-     2, 20, 10, 6, 15, "sorteo.jpg"),
+     2, 20, 0, 6, 15, "sorteo.jpg"),   # 0 = sin tope por persona (Norberto, 14-sep: «igual alguien apuesta todo su dinero»)
 ]
 
 SEMANAS_CANJE_EXTRA = 1                    # semanas de propina para reclamar recompensas

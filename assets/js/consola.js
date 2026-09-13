@@ -1024,7 +1024,7 @@
     var S = (t && t.stargateSorteo) || {}, hoy = Date.now();
     var v = t ? { premio: S.premio || P.title || "", descripcion: t.description || "", ganadores: Number(P.globalStockInitial || S.ganadores || 1),
                   coste: t.cost, maximo: t.maxPerUser || "", desde: t.availableFrom, fecha: t.ticketDeadline }
-              : { premio: "", descripcion: "", ganadores: 1, coste: 20, maximo: 10, desde: hoy, fecha: hoy + 14 * 864e5 };
+              : { premio: "", descripcion: "", ganadores: 1, coste: 20, maximo: "", desde: hoy, fecha: hoy + 14 * 864e5 };
     return '<div class="sr-form" data-doc="' + esc(t ? t.docId : "") + '">' +
       '<label class="h-campo sr-f-premio">Qué se sortea<input class="sr-premio" value="' + esc(v.premio) + '" placeholder="Una licencia de…" maxlength="80"></label>' +
       '<label class="h-campo sr-f-desc">Cómo lo verá el alumnado<input class="sr-desc" value="' + esc(v.descripcion) + '" placeholder="Una frase: qué es y por qué merece la pena" maxlength="300"></label>' +
@@ -1120,7 +1120,9 @@
   function sorteoEnDirecto(x) {
     var P = premioDelSorteo(x), S = x.stargateSorteo || {}, B = bomboDe(x), gan = Number(P.globalStockInitial || S.ganadores || 1);
     var capa = document.createElement("div"); capa.className = "sr-proy"; capa.setAttribute("role", "dialog");
-    capa.innerHTML = '<div class="sr-proy-caja"><p class="eyebrow amber">STARGATE · El Gran Sorteo</p>' +
+    // 14-sep · la imagen del sorteo arriba (la del Gran Sorteo lleva el logo de Genially en los boletos)
+    capa.innerHTML = '<div class="sr-proy-caja"><img class="sr-proy-img" src="assets/img/canje/' + esc(S.imagen || "sorteo_generico.jpg") + '" alt="">' +
+      '<p class="eyebrow amber">STARGATE · El Gran Sorteo</p>' +
       '<h2>' + esc(S.premio || P.title || "") + '</h2><p class="sr-proy-sub">' + gan + ' ganador' + (gan === 1 ? '' : 'es') + ' · ' +
       B.reduce(function (a, b) { return a + b.n; }, 0) + ' papeletas de ' + B.length + ' recluta' + (B.length === 1 ? '' : 's') + ' · nadie gana dos</p>' +
       '<div class="sr-bombo">' + B.map(function (b) { return '<span class="sr-chip" data-f="' + esc(b.ficha) + '">' + esc(b.alias) + ' <i>×' + b.n + '</i></span>'; }).join("") + '</div>' +

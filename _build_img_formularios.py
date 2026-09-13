@@ -207,13 +207,17 @@ def heroe():
 
 
 # ─────────────────────────── El Gran Sorteo (14-sep) ───────────────────────────
-def sorteo(premio="Dos licencias de Genially de un año completo", salida="sorteo.jpg"):
+def sorteo(premio="Dos licencias de Genially de un año completo", salida="sorteo.jpg", logo="logo_genially.png"):
     """Dos boletos dorados y NEBULA: montaje con lo que ya hay, sin generar nada. Sin `premio`, la
-    versión para los sorteos que crea el referente (no puede prometer un premio que no es el suyo)."""
+    versión para los sorteos que crea el referente (no puede prometer un premio que no es el suyo).
+    14-sep · Norberto: «el sorteo usa el logo de Genially» → en la matriz de cada boleto, el logo
+    oficial (una licencia por boleto); en la genérica, el número."""
     base = fondo().convert("RGBA")
     capa = Image.new("RGBA", base.size, (0, 0, 0, 0))
     resplandor(capa, (330, 80, 950, 460), AMBAR, 60, 90)
     base.alpha_composite(capa)
+
+    marca = Image.open(os.path.join(OUT, "_raw", logo)).convert("RGBA") if logo else None
 
     def boleto(cx, cy, ang, num):
         bw, bh = 520, 250
@@ -229,17 +233,22 @@ def sorteo(premio="Dos licencias de Genially de un año completo", salida="sorte
         d.text((40, 52), "GRAN", font=ft, fill=(60, 34, 6, 255))
         d.text((40, 100), "SORTEO", font=ft, fill=(60, 34, 6, 255))
         d.text((40, 162), "STARGATE", font=fuente("DMSans.ttf", 26), fill=(90, 56, 14, 255))
-        fn = fuente("Unbounded.ttf", 64)
-        tn = d.textbbox((0, 0), num, font=fn)
-        d.text((bw * 0.84 - (tn[2] - tn[0]) / 2 - tn[0], bh / 2 - (tn[3] - tn[1]) / 2 - tn[1]), num, font=fn, fill=(60, 34, 6, 255))
+        if marca:
+            lado = 124                                     # el logo, a su tamaño (el original mide 180)
+            m = marca.resize((lado, lado), Image.LANCZOS)
+            b.alpha_composite(m, (int(bw * 0.84 - lado / 2), int(bh / 2 - lado / 2)))
+        else:
+            fn = fuente("Unbounded.ttf", 64)
+            tn = d.textbbox((0, 0), num, font=fn)
+            d.text((bw * 0.84 - (tn[2] - tn[0]) / 2 - tn[0], bh / 2 - (tn[3] - tn[1]) / 2 - tn[1]), num, font=fn, fill=(60, 34, 6, 255))
         b = b.rotate(ang, resample=Image.BICUBIC, expand=True)
         sombra = Image.new("RGBA", b.size, (0, 0, 0, 0))
         sombra.putalpha(b.getchannel("A").point(lambda v: v * 150 // 255))
         base.alpha_composite(sombra.filter(ImageFilter.GaussianBlur(14)), (int(cx - b.width / 2) + 10, int(cy - b.height / 2) + 16))
         base.alpha_composite(b, (int(cx - b.width / 2), int(cy - b.height / 2)))
 
-    boleto(300, 175, 7, "1")
-    boleto(600, 300, -5, "2")
+    boleto(285, 150, 7, "1")
+    boleto(615, 318, -5, "2")
     neb = Image.open(os.path.join(IMG, "personajes", "nebula.png")).convert("RGBA")
     alto = 640
     neb = neb.resize((int(neb.width * alto / neb.height), alto), Image.LANCZOS)
@@ -262,7 +271,7 @@ def sorteo(premio="Dos licencias de Genially de un año completo", salida="sorte
 
 
 def sorteo_generico():
-    sorteo(None, "sorteo_generico.jpg")
+    sorteo(None, "sorteo_generico.jpg", None)
 
 
 # ─────────────────────────── 2 · Cambiar 3 repetidos ───────────────────────────

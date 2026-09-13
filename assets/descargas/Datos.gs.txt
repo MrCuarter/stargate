@@ -365,7 +365,7 @@ var RECOMPENSAS_INICIALES = [
 // participación, máx por persona, desde semana (venta), semana del sorteo, imagen]. Lo REGENERA
 // _build_site.py desde SORTEOS de _site_data.py — no editar a mano. Solo lo usa el motor nuevo.
 var SORTEOS = [
-  ["sorteo1","Licencia de Genially (un año completo)","Se sortean dos licencias de Genially de un año completo entre toda la tripulación. Cada participación es una papeleta: cuantas más tengas, más posibilidades. Nadie gana dos, y el sorteo lo hace el servidor en clase, a la vista de todos.",2,20,10,6,15,"sorteo.jpg"]
+  ["sorteo1","Licencia de Genially (un año completo)","Se sortean dos licencias de Genially de un año completo entre toda la tripulación. Cada participación es una papeleta: cuantas más tengas, más posibilidades. Nadie gana dos, y el sorteo lo hace el servidor en clase, a la vista de todos.",2,20,0,6,15,"sorteo.jpg"]
 ];
 // SORTEOS-FIN
 
