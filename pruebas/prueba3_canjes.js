@@ -83,7 +83,7 @@ contiene(r.estado, "cat\u00e1logo", "una recompensa retirada se DENIEGA, no se c
 
 // --- el vestuario: héroes al azar, acumulables, sin repetir ---------------------------------------
 const antesH = G.tablero_(PER, true).reclutas[0].creditos;
-r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Héroe de la Rebelión") });
+r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Cápsula de rescate") });
 igual(r.estado, "Concedido", "el héroe se concede");
 let fichaH = G.tablero_(PER, true).reclutas[0];
 igual(fichaH.heroes.length, 1, "y entra en el vestuario");
@@ -99,7 +99,7 @@ G.HEROES.forEach(h => G.hoja_(G.H.AJ).appendRow(
 fichaH = G.tablero_(PER, true).reclutas[0];
 igual(fichaH.heroes.length, G.HEROES.length, "con los " + G.HEROES.length + " héroes, el vestuario está lleno");
 const creditosAntes = fichaH.creditos;
-r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Héroe de la Rebelión") });
+r = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: E.etiqueta(G, "Cápsula de rescate") });
 contiene(r.estado, "vestuario entero", "con el vestuario completo se deniega en vez de cobrar");
 igual(G.tablero_(PER, true).reclutas[0].creditos, creditosAntes, "🔴 y NO se le cobra: denegar nunca cuesta créditos");
 

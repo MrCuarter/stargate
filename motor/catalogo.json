@@ -772,12 +772,52 @@
       "tipo": "marco"
     },
     {
-      "nombre": "Héroe de la Rebelión",
+      "nombre": "Cápsula de rescate",
       "coste": 60,
       "maximo": 99,
-      "descripcion": "Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión en tres rangos. ⚔️ La Resistencia (56% del sobre): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar.",
+      "descripcion": "Una cápsula de rescate llega a tu Nave con UN héroe de la Rebelión dentro, al azar: 30 figuras en tres rangos. ⚔️ La Resistencia (56%): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar.",
       "desdeSemana": 3,
       "tipo": "heroe"
+    },
+    {
+      "nombre": "Sobre grande",
+      "coste": 25,
+      "maximo": 99,
+      "descripcion": "CINCO cartas al azar del álbum (en vez de tres), con las mismas probabilidades que el sobre de siempre: más cartas por cada crédito.",
+      "desdeSemana": 4,
+      "tipo": "sobre_grande"
+    },
+    {
+      "nombre": "Sobre de raras",
+      "coste": 35,
+      "maximo": 99,
+      "descripcion": "TRES cartas donde las comunes casi desaparecen: rara 64%, épica 18%, legendaria 6% (y común solo 12%). Para cerrar las series difíciles.",
+      "desdeSemana": 6,
+      "tipo": "sobre_raro"
+    },
+    {
+      "nombre": "Sobre épico",
+      "coste": 60,
+      "maximo": 99,
+      "descripcion": "TRES cartas y ninguna común: rara 45%, épica 39% y LEGENDARIA 16% en cada carta, cuatro veces más que en el sobre de siempre.",
+      "desdeSemana": 8,
+      "tipo": "sobre_epico"
+    },
+    {
+      "nombre": "Cápsula de élite",
+      "coste": 140,
+      "maximo": 99,
+      "descripcion": "En esta cápsula no viaja la Resistencia: un héroe de la Vanguardia (69%) o un MITO (31%, casi cuatro veces más que en la de rescate).",
+      "desdeSemana": 8,
+      "tipo": "capsula_elite"
+    },
+    {
+      "nombre": "Cápsula legendaria",
+      "coste": 320,
+      "maximo": 99,
+      "descripcion": "Un MITO seguro: uno de los héroes legendarios de la Rebelión, siempre. La cápsula más cara del hangar, y también la que tu docente puede esconder en una presentación o darte de premio.",
+      "desdeSemana": 8,
+      "tipo": "capsula_legendaria"
     },
     {
       "nombre": "Subir 0,5 en un entregable",
@@ -816,15 +856,67 @@
     {
       "id": "sorteo1",
       "premio": "Licencia de Genially (un año completo)",
-      "descripcion": "Se sortean dos licencias de Genially de un año completo entre toda la tripulación. Cada participación es una papeleta: cuantas más tengas, más posibilidades. Nadie gana dos, y el sorteo lo hace el servidor en clase, a la vista de todos.",
+      "descripcion": "Se sortean dos licencias de Genially de un año completo entre toda la tripulación. Cada participación es una papeleta: cuantas más tengas, más posibilidades. Como en una lotería, lo que pagas no se devuelve: si te toca, enhorabuena. Se sortea SOLO en la semana 16 (la del canje); ese día, al entrar en tu Nave, verás el resultado. Nadie gana dos.",
       "ganadores": 2,
       "coste": 20,
       "maximo": 0,
       "desdeSemana": 6,
-      "semanaSorteo": 15,
+      "semanaSorteo": 16,
       "imagen": "sorteo.jpg"
     }
   ],
+  "cofres": {
+    "cromo": {
+      "piezas": "cromos",
+      "usos": 3
+    },
+    "sobre_grande": {
+      "piezas": "cromos",
+      "usos": 5
+    },
+    "sobre_raro": {
+      "piezas": "cromos",
+      "usos": 3,
+      "pesos": {
+        "común": 0.25,
+        "rara": 2,
+        "épica": 2,
+        "legendaria": 1.5
+      }
+    },
+    "sobre_epico": {
+      "piezas": "cromos",
+      "usos": 3,
+      "pesos": {
+        "común": 0,
+        "rara": 1,
+        "épica": 3,
+        "legendaria": 3
+      }
+    },
+    "heroe": {
+      "piezas": "heroes",
+      "usos": 1
+    },
+    "capsula_elite": {
+      "piezas": "heroes",
+      "usos": 1,
+      "pesos": {
+        "rara": 0,
+        "épica": 1,
+        "legendaria": 2
+      }
+    },
+    "capsula_legendaria": {
+      "piezas": "heroes",
+      "usos": 1,
+      "pesos": {
+        "rara": 0,
+        "épica": 0,
+        "legendaria": 1
+      }
+    }
+  },
   "cromos": [
     {
       "clave": "P1_bran",
@@ -1297,7 +1389,12 @@
     "Título de recluta": "titulo.jpg",
     "Fondo de ficha: tu planeta": "planeta.jpg",
     "Marco dorado del avatar": "marco.jpg",
-    "Héroe de la Rebelión": "heroe.jpg",
+    "Cápsula de rescate": "capsula_rescate.jpg",
+    "Sobre grande": "sobre_grande.jpg",
+    "Sobre de raras": "sobre_raro.jpg",
+    "Sobre épico": "sobre_epico.jpg",
+    "Cápsula de élite": "capsula_elite.jpg",
+    "Cápsula legendaria": "capsula_legendaria.jpg",
     "Subir 0,5 en un entregable": "nota_05.jpg",
     "Subir 1 punto en un entregable": "nota_1punto.jpg",
     "Recalificar un trabajo entregado fuera de plazo": "nota_plazo.jpg",

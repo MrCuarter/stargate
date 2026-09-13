@@ -285,7 +285,7 @@
    */
   var TABS = [["alumnado", "Mi gente"], ["canjes", "Cola de nota"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"],
               ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1],
-              ["huevos", "Premios por enlace", 1], ["sorteos", "Sorteos", 1], ["calendario", "Calendario", 1], ["ajustes", "Ajustes del grupo", 1]];
+              ["huevos", "Premios por enlace", 1], ["sorteos", "Sorteos", 1], ["ofertas", "Ofertas", 1], ["calendario", "Calendario", 1], ["ajustes", "Ajustes del grupo", 1]];
   function misTabs() {
     var ref = !!(PERS.filter(function (p) { return p.id === PER; })[0] || {}).soyReferente;
     return TABS.filter(function (x) { return !x[2] || ref; });
@@ -314,7 +314,7 @@
     // con #ajustes— se cae al primero en vez de pintar una pantalla que no debería ver.
     if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
     ({ alumnado: verAlumnado, canjes: verCanjes, zoco: verZoco, mios: verMios, equipo: verEquipo,
-       escuadrones: verEscuadrones, huevos: verHuevos, sorteos: verSorteos, calendario: verCalendario, ajustes: verAjustes })[TAB](t);
+       escuadrones: verEscuadrones, huevos: verHuevos, sorteos: verSorteos, ofertas: verOfertas, calendario: verCalendario, ajustes: verAjustes })[TAB](t);
     ofrecerVisitaDelGrupo();
     document.body.classList.add("consola-dentro");   // dentro de un grupo, el titular grande sobra
   }
@@ -334,6 +334,7 @@
     escuadrones: ["Escuadrones", "Cada escuadrón con su Comandante. La llamada a filas y el aula de cada docente van por aquí: cada cual ve y llama a los suyos."],
     huevos: ["Premios por enlace", "Crea un premio —xp, créditos, un sobre de cromos, un héroe— con sus topes (en total, por escuadrón o por persona) y pega su enlace donde quieras. Por ejemplo: «los 5 primeros de cada escuadrón, un sobre»."],
     sorteos: ["Sorteos", "El <b>Gran Sorteo</b> y los que crees tú: tu alumnado compra participaciones, tú las regalas o las escondes en un enlace, y el día señalado lo <b>proyectas</b>. Lo sortea el servidor: una papeleta por participación y nadie gana dos."],
+    ofertas: ["Ofertas", "La <b>oferta de la semana</b> sale sola en el Mercado desde la semana 3: un sobre, una cápsula, un héroe o una carta concretos, rebajados y con unidades según los inscritos y la rareza. Aquí la <b>alargas, la cancelas, cambias sus unidades</b> o creas una tú."],
     calendario: ["Calendario", "Las semanas del curso y lo que abre cada una. <b>Congela</b> una semana (Navidad, Semana Santa) y todo lo de detrás se corre; o <b>abre un capítulo antes</b> de su semana. La fecha de la semana 1 también está aquí."],
     ajustes: ["Ajustes del grupo", "El nombre, el código de clase, el padlet, el panel oficial y los enlaces para montar una vez en los Geniallys."]
   };
@@ -394,8 +395,8 @@
       '<table class="tabla"><thead><tr><th>#</th><th>Alias</th><th>Nombre</th><th>Comandante</th>' +
       '<th>xp</th><th>◈</th><th>Insignias</th><th title="Capítulos de NEBULA vistos (de los ya abiertos)">Bienvenida</th></tr></thead><tbody>' +
       t.reclutas.map(function (r, i) {
-        return '<tr data-r="' + i + '"><td>' + r.pos + '</td><td><b>' + esc(r.alias) + '</b>' +
-          (r.corona ? " 👑" : "") + '</td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
+        return '<tr data-r="' + i + '"' + (r.congelado ? ' class="congelado"' : '') + '><td>' + r.pos + '</td><td><b>' + esc(r.alias) + '</b>' +
+          (r.corona ? " 👑" : "") + (r.congelado ? ' <span class="chip" title="Cuenta congelada por el referente">🧊 congelado</span>' : '') + '</td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
           esc(r.email || "") + '</span></td><td>' + esc(r.profe || "—") + '</td><td>' + r.xp +
           '</td><td>' + r.creditos + '</td><td>' + r.n + "/24</td>" + celdaBienvenida(r, caps) + "</tr>";
       }).join("") + "</tbody></table>" +
@@ -452,6 +453,7 @@
 
   function verFicha(r, retos) {
     var ficha = r.ficha;
+    var esRef = !!(PERS.filter(function (p) { return p.id === PER; })[0] || {}).soyReferente;
     $("#c-ficha").innerHTML = '<div class="card"><h3>' + esc(r.alias) + ' · ' + esc(r.nombre || "") + "</h3>" +
       '<p class="small">' + r.xp + ' xp · ' + r.creditos + ' ◈ · nivel ' + r.nivel + " " + esc(r.rango_nombre) +
       ' · racha ' + r.racha + " semanas</p>" +
@@ -467,12 +469,34 @@
       // 🔴 DAR DE BAJA. Hace falta y no es capricho: alguien se alista en el grupo equivocado,
       // alguien entra con la cuenta que no era y deja una ficha huérfana, o se cuela quien no debía.
       // Sin esto, la única salida era dejarlo ahí para siempre ensuciando el ranking.
-      '<p style="margin-top:16px;border-top:1px solid #182238;padding-top:14px">' +
-      '<button class="btn min peligro" id="c-baja">Dar de baja a ' + esc(r.alias) + '</button> ' +
-      '<span class="small muted">borra su ficha del grupo. Podrá alistarse otra vez, aquí o en otro, ' +
-      'empezando de cero.</span></p></div>';
+      // 14-sep · Y CONGELAR. Las dos, solo el referente (Norberto: «el referente tiene poder de
+      // eliminar o congelar: puede acceder, pero no puede hacer nada, bloqueado»).
+      (esRef ? '<div class="ficha-ref"><h4>Solo el referente</h4>' +
+        (r.congelado ? '<p class="small"><b>🧊 Cuenta congelada</b>' + (r.congelado.fecha ? ' desde el ' + diaDe(r.congelado.fecha) : '') +
+          ': entra y mira su Nave, pero no puede hacer nada.</p>' : '') +
+        '<p><button class="btn min" id="c-congelar">' + (r.congelado ? '▶️ Descongelar a ' : '🧊 Congelar a ') + esc(r.alias) + '</button> ' +
+        '<span class="small muted">' + (r.congelado ? 'vuelve a poder hacer de todo.' : 'podrá entrar y mirar, pero no registrar retos, comprar, fichar ni usar el Zoco.') + '</span></p>' +
+        '<p><button class="btn min peligro" id="c-baja">Dar de baja a ' + esc(r.alias) + '</button> ' +
+        '<span class="small muted">borra su ficha del grupo. Podrá alistarse otra vez, aquí o en otro, ' +
+        'empezando de cero.</span></p></div>' : '') + '</div>';
     // si la ficha se abrió antes de que llegaran los enlaces, se rellena en cuanto lleguen
     if (!EVID && EVID_LISTO) EVID_LISTO.then(function () { var h = $("#c-evid"); if (h) h.innerHTML = evidenciasDe(r); });
+    var cong = $("#c-congelar");
+    if (cong) cong.onclick = async function () {
+      var ya = !!r.congelado;
+      if (!ya && !confirm("¿Congelar la cuenta de «" + r.alias + "»?\n\nPodrá entrar y mirar su Nave, pero no hacer nada: ni registrar " +
+                          "retos, ni comprar, ni fichar, ni el Zoco. Lo que tenga en el Zoco se retira (y cada oferta devuelve lo suyo).\n\n" +
+                          "Se descongela con un clic, cuando quieras.")) return;
+      cong.disabled = true;
+      try {
+        await MOTOR.alumno(PER, ficha, ya ? "descongelar" : "congelar"); await refrescar(); $("#c-ficha").innerHTML = "";
+        aviso(ya ? "▶️ " + r.alias + " ya puede volver a hacer de todo." : "🧊 " + r.alias + " está congelado: mira, pero no toca.", true);
+      } catch (e) {
+        cong.disabled = false;
+        aviso(/not-found|internal/.test(String(e && e.code)) && !/[áéíóú]/.test(String(e && e.message))
+          ? "Falta desplegar en el servidor la función «stargateAlumno» (el comando está en el traspaso)." : e.message);
+      }
+    };
     var baja = $("#c-baja");
     if (baja) baja.onclick = async function () {
       // Dos confirmaciones a propósito: esto borra de verdad y no hay deshacer. La segunda pide
@@ -622,7 +646,13 @@
                  ["heroe","🎲 Un héroe al azar"],
                  ["bolsa","💰 Créditos"],
                  ["xp","⚡ Experiencia (xp)"],
-                 ["participaciones","🎟️ Participaciones del sorteo"]];
+                 ["participaciones","🎟️ Participaciones del sorteo"],
+                 // 14-sep · los sobres y las cápsulas nuevos: la legendaria, escondida en una presentación
+                 ["capsula_legendaria","🟨 Una cápsula legendaria (un Mito seguro)"],
+                 ["capsula_elite","🟪 Una cápsula de élite"],
+                 ["sobre_epico","✨ Un sobre épico (3 cartas, sin comunes)"],
+                 ["sobre_raro","💎 Un sobre de raras"],
+                 ["sobre_grande","🃏 Un sobre grande (5 cartas)"]];
   // 14-sep · los sorteos del grupo que aún no se han hecho (para regalar participaciones por enlace)
   function sorteosAbiertos() {
     return ((DATOS && DATOS.recompensas) || []).filter(function (r) { return r.systemEffect === "lottery_ticket" && !r.isRaffleCompleted; });
@@ -1053,6 +1083,95 @@
       '<p class="sr-f-pie"><button class="btn primary sr-guardar">' + (t ? "Guardar los cambios" : "Crear el sorteo") + '</button> ' +
       '<button class="btn sr-cancelar">Cancelar</button></p></div>';
   }
+  // ---------------------------------------------------------------- las ofertas (14-sep)
+  /**
+   * 🔴 14-sep · LAS OFERTAS DE LA SEMANA. Norberto: «un ítem que aparece aleatoriamente de forma
+   * temporal en el mercado, rebajado, con stock limitado en tiempo y en unidades (proporcional a los
+   * inscritos y a la rareza)… el referente tiene el poder siempre de extender el tiempo, cancelar,
+   * editar unidades o incluso elegir y configurar lo que se va a vender». Todo lo hace el servidor
+   * (`stargateOferta`); aquí se enseña y se pide.
+   */
+  function verOfertas(t) {
+    var R = (DATOS && DATOS.recompensas) || [], ahora = Date.now();
+    var L = R.filter(function (r) { return r.stargateTipo === "oferta"; })
+      .sort(function (a, b) { return Number((b.stargateOferta || {}).desde || 0) - Number((a.stargateOferta || {}).desde || 0); });
+    var auto = (DATOS.proyecto.stargate || {}).ofertasAuto !== false;
+    var cofres = R.filter(function (r) { return r.inStore !== false && /^(cromo|heroe|sobre_[a-z]+|capsula_[a-z]+)$/.test(r.stargateTipo || "") && r.consumeEffects && r.consumeEffects.lootBox; });
+    var heroes = R.filter(function (r) { return r.inStore === false && r.stargateTipo === "heroe" && /__heroe_/.test(r.docId || ""); });
+    var cartas = R.filter(function (r) { return r.inStore === false && r.stargateTipo === "cromo" && /__cromo_/.test(r.docId || ""); });
+    var RZ = { common: "común", rare: "rara", epic: "épica", legendary: "legendaria" };
+    var estado = function (r) {
+      var so = r.stargateOferta || {}, fo = r.flashOffer || {};
+      if (so.cancelada) return ["cancelada", "✖️ Cancelada"];
+      if (ahora < Number(so.desde || 0)) return ["pronto", "⏳ Empieza el " + diaDe(so.desde)];
+      if (ahora >= Number(fo.endsAt || 0)) return ["fin", "⌛ Terminó el " + diaDe(fo.endsAt)];
+      if (r.isLimitedStock === true && Number(r.globalStock || 0) <= 0) return ["fin", "🔥 Agotada"];
+      return ["viva", "⚡ A la venta hasta el " + diaDe(fo.endsAt)];
+    };
+    var fila = function (r) {
+      var so = r.stargateOferta || {}, fo = r.flashOffer || {}, e = estado(r), pct = Number(fo.discountPercent || 0);
+      var precio = Math.max(0, Math.floor(Number(r.cost || 0) * (100 - pct) / 100)), vend = Number(fo.unitsSold || 0);
+      return '<div class="card of-fila ' + e[0] + '" data-of="' + esc(r.docId) + '">' +
+        '<div><b>' + esc(so.nombre || r.title) + '</b> <span class="chip">' + esc(so.rareza || "") + '</span> <span class="chip' + (e[0] === "viva" ? " ok" : "") + '">' + e[1] + '</span>' +
+        '<p class="small">' + (so.auto ? "Automática · semana " + (so.semana || "—") : "Creada por " + esc(so.por || "el referente")) + ' · <s>' + r.cost + ' ◈</s> <b>' + precio + ' ◈</b> (−' + pct + ' %) · ' +
+        (so.unidades == null ? "sin límite de unidades" : vend + " de " + so.unidades + " vendidas") + ' · una por persona</p></div>' +
+        (e[0] === "viva" || e[0] === "pronto" ? '<p class="of-botones"><button class="btn min" data-of-mas="1">+1 día</button> <button class="btn min" data-of-mas="7">+1 semana</button> ' +
+          '<button class="btn min" data-of-uds>Unidades…</button> <button class="btn min peligro" data-of-cancelar>Cancelar</button></p>'
+          : '<p class="of-botones"><button class="btn min" data-of-mas="7">Reabrir una semana</button></p>') + '</div>';
+    };
+    $("#c-cuerpo").innerHTML =
+      '<div class="card"><h3>⚡ Ofertas</h3>' +
+      '<p class="small">Cada semana, desde la 3, sale <b>sola</b> una oferta en el Mercado: un sobre, una cápsula, un héroe o una carta concretos, ' +
+      'rebajados un 20-40 %, durante esa semana y con <b>unidades según los inscritos y la rareza</b> (común: sin límite; rara: la mitad; épica: una cuarta parte; legendaria: el 10 %). Una por persona.</p>' +
+      '<label class="of-auto"><input type="checkbox" id="of-auto"' + (auto ? " checked" : "") + '> Oferta automática cada semana</label>' +
+      '<p><button class="btn primary" id="of-nueva">+ Crear una oferta</button></p><div id="of-nueva-f"></div></div>' +
+      (L.length ? L.map(fila).join("") : '<div class="card"><p class="small muted">Todavía no ha salido ninguna oferta. La primera sale sola en la semana 3, cuando alguien abre su Nave.</p></div>');
+    var tras = function (texto) { return refrescar().then(function () { TAB = "ofertas"; pintar(); aviso(texto, true); }); };
+    var pide = function (accion, datos, texto) {
+      return MOTOR.oferta(PER, accion, datos).then(function () { return tras(texto); }).catch(function (e) {
+        aviso(/not-found|internal/.test(String(e && e.code)) && !/[áéíóú]/.test(String(e && e.message))
+          ? "Falta desplegar en el servidor la función «stargateOferta» (el comando está en el traspaso)." : e.message);
+      });
+    };
+    $("#of-auto").onchange = function () { pide("auto", { on: $("#of-auto").checked }, $("#of-auto").checked ? "⚡ Una oferta automática cada semana." : "Ofertas automáticas apagadas: solo las que crees tú."); };
+    Array.prototype.forEach.call(app.querySelectorAll("[data-of]"), function (c) {
+      var id = c.getAttribute("data-of");
+      Array.prototype.forEach.call(c.querySelectorAll("[data-of-mas]"), function (b) {
+        b.onclick = function () { b.disabled = true; pide("extender", { ofertaId: id, dias: Number(b.getAttribute("data-of-mas")) }, "⏳ Oferta alargada."); }; });
+      var u = c.querySelector("[data-of-uds]");
+      if (u) u.onclick = function () {
+        var v = prompt("¿Cuántas unidades en total? (escribe «ilimitado» para quitar el tope)", "");
+        if (v == null || String(v).trim() === "") return;
+        if (!/ilimit/i.test(v) && !/^\s*\d+\s*$/.test(v)) { aviso("Escribe un número de unidades (por ejemplo, 5) o «ilimitado»."); return; }
+        pide("unidades", { ofertaId: id, unidades: /ilimit/i.test(v) ? "ilimitado" : Number(v) }, "Unidades cambiadas.");
+      };
+      var x = c.querySelector("[data-of-cancelar]");
+      if (x) x.onclick = function () { if (!confirm("¿Cancelar esta oferta? Sale del Mercado ya. Quien la compró la conserva.")) return; pide("cancelar", { ofertaId: id }, "✖️ Oferta cancelada."); };
+    });
+    $("#of-nueva").onclick = function () {
+      var op = function (v, t) { return '<option value="' + esc(v) + '">' + esc(t) + '</option>'; };
+      $("#of-nueva-f").innerHTML = '<div class="of-form">' +
+        '<label class="h-campo">Qué se vende<select id="of-que">' +
+          '<optgroup label="Sobres y cápsulas">' + cofres.map(function (r) { return op("cofre:" + r.stargateTipo, r.title + " (" + r.cost + " ◈)"); }).join("") + '</optgroup>' +
+          '<optgroup label="Un héroe concreto">' + heroes.map(function (r) { return op("heroe:" + r.docId.split("__heroe_").pop(), r.title + " · " + (RZ[r.rarity] || r.rarity || "")); }).join("") + '</optgroup>' +
+          '<optgroup label="Una carta concreta">' + cartas.map(function (r) { return op("carta:" + r.docId.split("__cromo_").pop(), r.title + " · " + (RZ[r.rarity] || r.rarity || "")); }).join("") + '</optgroup>' +
+        '</select></label>' +
+        '<label class="h-campo h-num">Descuento %<input id="of-pct" type="number" min="1" max="90" value="30"></label>' +
+        '<label class="h-campo h-num">Unidades<input id="of-uds" type="number" min="1" placeholder="según inscritos y rareza"></label>' +
+        '<label class="of-auto"><input type="checkbox" id="of-sin"> Sin límite de unidades</label>' +
+        '<label class="h-campo h-num">Días<input id="of-dias" type="number" min="1" max="28" value="7"></label>' +
+        '<p><button class="btn primary" id="of-crear">Crear la oferta (empieza ya)</button> <button class="btn" id="of-cancelar-f">Cancelar</button></p></div>';
+      $("#of-cancelar-f").onclick = function () { $("#of-nueva-f").innerHTML = ""; };
+      $("#of-crear").onclick = function () {
+        var q = $("#of-que").value.split(":"), que = q[0] === "cofre" ? { tipo: "cofre", cual: q[1] } : { tipo: q[0], clave: q[1] };
+        var uds = $("#of-sin").checked ? "ilimitado" : (Number($("#of-uds").value) > 0 ? Number($("#of-uds").value) : undefined);
+        $("#of-crear").disabled = true;
+        pide("crear", { que: que, pct: Number($("#of-pct").value) || 30, unidades: uds, dias: Number($("#of-dias").value) || 7 }, "⚡ Oferta creada: ya está en el Mercado de tu alumnado.");
+      };
+    };
+  }
+
+  var SORTEOS_PEDIDOS = false;
   function verSorteos(t) {
     var L = sorteosDelGrupo(), cat = window.SG_CATALOGO || {}, porDefecto = (cat.sorteos || [])[0];
     var falta = porDefecto && !L.some(function (x) { return x.stargateId === porDefecto.id; });
@@ -1077,7 +1196,11 @@
           '<p class="small">' + gan + ' ganador' + (gan === 1 ? '' : 'es') + ' · ' + x.cost + ' ◈ la participación' + (x.maxPerUser ? ' · máx. ' + x.maxPerUser + ' por persona' : '') +
           ' · a la venta del ' + diaDe(x.availableFrom) + ' al ' + diaDe(x.ticketDeadline) + '</p></div></div>' +
           (e[0] === "hecho"
-            ? '<div class="sr-ganadores"><p>🏆 <b>Ganadores</b> (entrégales el premio):</p><ul>' + ganadores + '</ul></div>'
+            ? '<div class="sr-ganadores"><p>🏆 <b>Ganadores</b> (entrégales el premio)' + (x.raffleResolvedBy === "auto" ? ' · <span class="small muted">se resolvió solo el ' + diaDe(x.raffleResolvedAt) + '</span>' : '') + ':</p>' +
+              ((x.raffleWinnerIds || []).length ? '<ul>' + ganadores + '</ul>' +
+                // 14-sep · Norberto: «importante guardar estos datos para poder dar las licencias de forma manual»
+                '<p><button class="btn" data-copiar-gan="' + esc(x.docId) + '">📋 Copiar ganadores (alias, nombre y correo)</button></p>'
+                : '<p class="small muted">Nadie tenía participaciones: se cerró sin ganadores.</p>') + '</div>'
             : '<p class="sr-cuenta"><b>' + total + '</b> participaci' + (total === 1 ? 'ón' : 'ones') + ' de <b>' + B.length + '</b> recluta' + (B.length === 1 ? '' : 's') + '</p>' +
               (B.length ? '<details class="cajon"><summary><b>El bombo</b> <span class="cnt">' + B.length + '</span></summary><div class="tabla-envoltura"><table class="tabla sr-tabla"><thead><tr><th>Alias</th><th>Nombre</th><th>Participaciones</th><th>Posibilidades</th></tr></thead><tbody>' +
                 B.map(function (b) { return '<tr><td>' + esc(b.alias) + '</td><td>' + esc(b.nombre || "—") + '</td><td>' + b.n + '</td><td>' + Math.round(100 * b.n / Math.max(1, total)) + ' %</td></tr>'; }).join("") +
@@ -1087,6 +1210,32 @@
           '</div>';
       }).join("") : '<div class="card"><p class="small muted">Este grupo todavía no tiene ningún sorteo.</p></div>');
     var tras = function (texto) { return refrescar().then(function () { TAB = "sorteos"; pintar(); aviso(texto, true); }); };
+    // 14-sep · el sorteo que ya ha pasado su fecha se resuelve solo (aquí también, al abrir la pestaña)
+    var vencidos = L.filter(function (x) { return !x.isRaffleCompleted && Number(x.ticketDeadline || 0) > 0 && Number(x.ticketDeadline) <= Date.now(); });
+    if (vencidos.length && !SORTEOS_PEDIDOS && MOTOR.sorteosPendientes) {
+      SORTEOS_PEDIDOS = true;
+      MOTOR.sorteosPendientes(PER).then(function (r) { if (r && (r.resueltos || []).length) tras("🎟️ El sorteo se ha resuelto solo: ya tienes los ganadores."); }).catch(function () {});
+    }
+    // «Copiar ganadores»: del ARCHIVO del sorteo (guarda su contacto aunque luego se den de baja)
+    Array.prototype.forEach.call(app.querySelectorAll("[data-copiar-gan]"), function (b) {
+      b.onclick = function () {
+        var d = b.getAttribute("data-copiar-gan"), x = L.filter(function (y) { return y.docId === d; })[0] || {};
+        var desdeDatos = function () {
+          return (x.raffleWinnerIds || []).map(function (f, i) { var pr = (DATOS.privados || {})[f] || {};
+            return { alias: (x.raffleWinnerNames || [])[i] || "", nombre: ((pr.firstName || "") + " " + (pr.lastName || "")).trim(), correo: pr.email || "" }; });
+        };
+        MOTOR.getDoc(MOTOR.doc(MOTOR.db, "projects", PER, "lottery_archives", d)).then(function (a) {
+          return (a.exists() && (a.data().ganadoresContacto || []).length) ? a.data().ganadoresContacto : desdeDatos();
+        }).catch(desdeDatos).then(function (gente) {
+          var S = x.stargateSorteo || {};
+          var texto = "Gran Sorteo · " + (S.premio || x.title || "") + " · " + (DATOS.proyecto.name || PER) + "\n" +
+            gente.map(function (g, i) { return (i + 1) + ". " + g.alias + " — " + (g.nombre || "(sin nombre)") + " — " + (g.correo || "(sin correo)"); }).join("\n");
+          try { navigator.clipboard.writeText(texto); aviso("📋 Copiados: " + gente.length + " ganador" + (gente.length === 1 ? "" : "es") + ". Pégalos donde vayas a gestionar las licencias.", true); }
+          catch (e) { prompt("Copia los ganadores:", texto); }
+          b.setAttribute("data-copiado-texto", texto);
+        });
+      };
+    });
     var leerForm = function (f) {
       return { premio: $(".sr-premio", f).value.trim(), descripcion: $(".sr-desc", f).value.trim(), ganadores: Number($(".sr-gan", f).value) || 1,
                coste: Number($(".sr-coste", f).value) || 0, maximo: Number($(".sr-max", f).value) || 0,

@@ -373,6 +373,10 @@
                 if (yo_) yo_.capitulos = f.stargateCapitulos || {};
                 // 14-sep · sus participaciones en los sorteos (el tablero de todos no las trae)
                 if (yo_) yo_.participaciones = f.lotteryEntries || {};
+                // 14-sep · y si su referente le ha congelado la cuenta (mira, pero no toca)
+                if (yo_) yo_.congelado = !!f.stargateCongelado;
+                // 14-sep · las ofertas que ya ha comprado (una por persona)
+                if (yo_) yo_.ofertas = f.stargateOfertas || {};
                 /**
                  * 🔴 13-sep · Y SUS ENLACES. El estudiante entregaba un enlace con «Lo he hecho» y
                  * después, en «Mis retos», el campo le salía VACÍO («pégalo aquí»): parecía perdido y
@@ -593,9 +597,12 @@
                   }).catch(function () { return { ok: true, botines: sacadas, sinAbrir: !sacadas.length }; });
                 });
 
+              // 14-sep · una OFERTA de la semana se compra por su puerta (una por persona) y se abre igual
               if (cuerpo.accion === "canje")
-                return M.llamar("purchaseReward", { projectId: cuerpo.per, rewardId: cuerpo.recompensa,
-                  studentProfileId: ficha.id })
+                return (/^oferta/.test(cuerpo.tipo || "")
+                  ? M.llamar("stargateOferta", { projectId: cuerpo.per, accion: "comprar", ofertaId: cuerpo.recompensa })
+                  : M.llamar("purchaseReward", { projectId: cuerpo.per, rewardId: cuerpo.recompensa,
+                  studentProfileId: ficha.id }))
                   .then(function () {
                     if (!cuerpo.abrir) return { ok: true };
                     /**
@@ -673,6 +680,13 @@
     };
     var carta = function () { return per + "__cromo_" + alAzar(cat().cromos || []).clave; };
     var heroe = function () { return per + "__heroe_" + alAzar(cat().heroes || []).clave; };
+    // 14-sep · de un cofre (los sobres y cápsulas nuevos): con SUS pesos, como lo sortea el servidor
+    var delCofre = function (r) {
+      var it = ((r.consumeEffects || {}).lootBox || {}).items || [], t = it.reduce(function (a, x) { return a + (Number(x.probability) || 0); }, 0);
+      var z = Math.random() * t;
+      for (var i = 0; i < it.length; i++) { z -= Number(it[i].probability) || 0; if (z <= 0) return it[i].rewardId; }
+      return it.length ? it[it.length - 1].rewardId : carta();
+    };
     var semanaFija = 0;
     var semanaSim = function () {
       var total = ((cat().semanas || {})[(crudo && crudo.proyecto && crudo.proyecto.stargate || {}).tipo === "PUA" ? "PUA" : "REGULAR"]) || 15;
@@ -846,9 +860,10 @@
               return { ok: true };
             }
             P.coins -= coste;
-            if (c.abrir && (r.stargateTipo === "cromo" || r.stargateTipo === "heroe")) {
-              var n = r.stargateTipo === "cromo" ? Math.max(1, Number(c.usos) || 3) : 1, sac = [];
-              for (var j = 0; j < n; j++) sac.push(r.stargateTipo === "cromo" ? carta() : heroe());
+            if (c.abrir && (r.stargateTipo === "cromo" || r.stargateTipo === "heroe" || /^(sobre|capsula)_/.test(r.stargateTipo || ""))) {
+              var nuevo = /^(sobre|capsula)_/.test(r.stargateTipo || "");
+              var n = nuevo ? Math.max(1, Number(r.maxUses) || Number(c.usos) || 1) : r.stargateTipo === "cromo" ? Math.max(1, Number(c.usos) || 3) : 1, sac = [];
+              for (var j = 0; j < n; j++) sac.push(nuevo ? delCofre(r) : r.stargateTipo === "cromo" ? carta() : heroe());
               P.inventory = P.inventory.concat(sac);
               return { ok: true, botin: sac[0], botines: sac };
             }

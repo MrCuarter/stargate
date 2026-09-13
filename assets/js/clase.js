@@ -712,7 +712,7 @@
       var rec=[
         quien('Nova','Ana Ruiz (ficticia)','nova@ejemplo.demo','Mr Cuarter',14,7,3,
           'Piloto de reconocimiento. Colecciono todo lo que brilla.',
-          [{nombre:'Héroe de la Rebelión',coste:60,dias:5,ent:true},
+          [{nombre:'Cápsula de rescate',coste:60,dias:5,ent:true},
            {nombre:'Sobre de cromos',coste:15,dias:12,ent:true},
            {nombre:'Título de recluta',coste:40,dias:20,ent:false}]),
         quien('Orion','Luis Gómez (ficticio)','orion@ejemplo.demo','Mr Cuarter',9,3,1,

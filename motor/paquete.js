@@ -75,6 +75,8 @@
     // 🔴 14-sep · lo de después de la 5 se reparte en las semanas que le quedan al PUA (6…8), nunca
     // antes de la 5: escalando el curso entero, la semana 6 (el sorteo) caía en la 3, antes que el Zoco.
     var total = cat.semanas.REGULAR || 15, suyas = cat.semanas.PUA || 8;
+    // y lo de DESPUÉS del curso (la semana de canje: el Gran Sorteo se resuelve en la 16) va a la suya
+    if (semanaRegular > total) return suyas + (semanaRegular - total);
     return Math.max(Math.min(6, suyas), Math.min(suyas, 5 + Math.ceil((semanaRegular - 5) * (suyas - 5) / (total - 5))));
   }
 
@@ -390,6 +392,8 @@
        * consumible. Llamar tres veces a `consumeItem` gastaría tres sobres del inventario y solo se
        * compró uno.
        */
+      var c = cofreDeTipo(r.stargateTipo, cat);
+      if (c) { r.isConsumable = true; r.maxUses = c.usos; r.consumeEffects = { lootBox: c.lootBox }; return; }
       if (r.stargateTipo === "cromo") { r.isConsumable = true; r.maxUses = 3;
         r.consumeEffects = { lootBox: cofre("cromo_", cat.cromos) }; }
       if (r.stargateTipo === "heroe") { r.isConsumable = true; r.maxUses = 1;
@@ -474,8 +478,26 @@
    * grupo cuyo cofre se copia —mismo sorteo, mismas cartas que lo comprado—.
    * 🔴 Sin campo `id` dentro: GamificaPro lee {id: doc.id, ...data} y lo pisaría.
    */
-  function premioDeHuevo(perId, h, sobre, heroe) {
-    var tipo = h.premio === "heroe_fijo" && h.heroe ? "heroe_fijo"
+  /**
+   * 14-sep · LOS SOBRES Y LAS CÁPSULAS (COFRES del catálogo, _site_data.py). Cada tipo trae `usos`
+   * piezas y cada rareza pesa su peso del catálogo × el factor del tipo (0 = no sale): el sobre épico
+   * no trae comunes y la cápsula legendaria solo trae Mitos. Es el MISMO cofre de GamificaPro que el
+   * sobre de siempre: lo abre `consumeItem` y lo sortea el servidor.
+   */
+  function cofreDeTipo(tipo, cat) {
+    var c = ((cat && cat.cofres) || {})[tipo]; if (!c) return null;
+    var heroes = c.piezas === "heroes", piezas = heroes ? cat.heroes : cat.cromos, f = c.pesos || {};
+    var items = (piezas || []).map(function (x) {
+      var m = f[String(x.rareza || "").toLowerCase()]; m = m == null ? 1 : Number(m);
+      return { rewardId: (heroes ? "heroe_" : "cromo_") + x.clave, probability: Number(x.peso) * m, maxStock: 1000000 };
+    }).filter(function (i) { return i.probability > 0; });
+    return { usos: Math.max(1, Number(c.usos) || 1), lootBox: { items: items } };
+  }
+
+  function premioDeHuevo(perId, h, sobre, heroe, cofres) {
+    // 14-sep · un sobre o una cápsula de los nuevos (la legendaria, por ejemplo): se copia su cofre
+    var cof = cofres && h && cofres[h.premio] && cofres[h.premio].consumeEffects ? cofres[h.premio] : null;
+    var tipo = cof ? String(h.premio) : h.premio === "heroe_fijo" && h.heroe ? "heroe_fijo"
              : h.premio === "participaciones" && h.sorteo ? "participaciones"
              : h.premio === "heroe" ? "heroe" : h.premio === "bolsa" ? "bolsa" : h.premio === "xp" ? "xp" : "sobre";
     var cuanto = tipo === "participaciones" ? Math.max(1, Math.min(10, Math.floor(Number(h.cantidad) || 1)))
@@ -484,7 +506,8 @@
     // Puesto un nivel más arriba, la bolsa decía «+50 ◈, ya está en tu cuenta» y no pagaba nada.
     // xp: Norberto lo pidió para los premios que configura el referente («una recompensa de xp,
     // dinero o material»). No para la asistencia, que enturbiaría la puntuación; esto lo decide él.
-    var efecto = tipo === "bolsa" ? { attributes: { addCoins: cuanto } }
+    var efecto = cof ? cof.consumeEffects
+               : tipo === "bolsa" ? { attributes: { addCoins: cuanto } }
                : tipo === "xp" ? { attributes: { addPoints: cuanto } }
                : tipo === "heroe" ? (heroe ? heroe.consumeEffects : null)
                // 🔴 13-sep · UN HÉROE CONCRETO. Norberto: «lanzo un reto en clase y al superarlo les lleva
@@ -507,7 +530,8 @@
                        heroe: tipo === "heroe_fijo" ? String(h.heroe) : null, desde: desde, hasta: hasta,
                        // 14-sep · participaciones del Gran Sorteo: el servidor las suma a `lotteryEntries`
                        sorteo: tipo === "participaciones" ? String(h.sorteo) : null },
-      isConsumable: tipo !== "participaciones", maxUses: tipo === "sobre" ? Number((sobre && sobre.maxUses) || 3) : 1,
+      isConsumable: tipo !== "participaciones",
+      maxUses: cof ? Math.max(1, Number(cof.maxUses) || 1) : tipo === "sobre" ? Number((sobre && sobre.maxUses) || 3) : 1,
       consumeEffects: efecto || {},
       claimLinkEnabled: h.activo !== false,
       claimLinkMaxPerUser: 1,

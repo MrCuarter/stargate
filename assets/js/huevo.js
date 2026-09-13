@@ -201,8 +201,12 @@
 
   // ---------------------------------------------------------------- el premio
   var NOMBRES = { sobre: "Un sobre de cromos", heroe: "Un héroe de la Rebelión", heroe_fijo: "Un héroe de la Rebelión", bolsa: "Una bolsa de créditos", xp: "Experiencia",
-                  participaciones: "Participaciones del Gran Sorteo" };
-  var ICONOS  = { sobre: "🃏", heroe: "🛡️", heroe_fijo: "🛡️", bolsa: "💰", xp: "⚡", participaciones: "🎟️" };
+                  participaciones: "Participaciones del Gran Sorteo",
+                  // 14-sep · los sobres y las cápsulas nuevos
+                  sobre_grande: "Un sobre grande", sobre_raro: "Un sobre de raras", sobre_epico: "Un sobre épico",
+                  capsula_elite: "Una cápsula de élite", capsula_legendaria: "Una cápsula legendaria" };
+  var ICONOS  = { sobre: "🃏", heroe: "🛡️", heroe_fijo: "🛡️", bolsa: "💰", xp: "⚡", participaciones: "🎟️",
+                  sobre_grande: "🃏", sobre_raro: "💎", sobre_epico: "✨", capsula_elite: "🟪", capsula_legendaria: "🟨" };
 
   function reclamar() {
     if (esHeroeFijo()) pinta(portadaHeroe(EST.H.heroe, "Tu recompensa", 'Sumándolo a tu colección…', '<div class="hv-cargando"><i></i></div>'));
@@ -220,7 +224,8 @@
   }
 
   function premio(r) {
-    var d = r.detalle || {}, t = r.premio === "heroe_fijo" ? "heroe" : r.premio, fijo = r.premio === "heroe_fijo";
+    // (los sobres nuevos se abren como un sobre y las cápsulas como un héroe)
+    var d = r.detalle || {}, t = r.premio === "heroe_fijo" || /^capsula_/.test(r.premio || "") ? "heroe" : /^sobre_/.test(r.premio || "") ? "sobre" : r.premio, fijo = r.premio === "heroe_fijo";
     // 🔴 Las cartas se abren una a una, con el mismo sobre que el Mercado, y DESPUÉS la pantalla del
     // hallazgo con el confeti. Es el mismo momento en los tres sitios donde se ganan cartas.
     if (!r.__abierto && window.SG && SG.SOBRE && !d.sinAbrir &&

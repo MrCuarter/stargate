@@ -3135,3 +3135,76 @@ body.embed .mazo .dia{padding:3vh 4vw}
   .top5 li{grid-template-columns:34px auto 1fr auto}.top-bar{display:none}
   .esc-f{grid-template-columns:auto 1fr auto}.esc-bar{display:none}
 }
+
+/* 14-sep · la cuenta congelada (Nave) y la zona del referente en la ficha (consola) */
+.congelado-aviso{border-color:rgba(120,190,255,.55);background:linear-gradient(180deg,rgba(120,190,255,.14),rgba(120,190,255,.05));margin:0 0 14px}
+.congelado-aviso p{margin:0;font-size:1.02rem}
+.ficha-ref{margin-top:16px;border-top:1px solid #182238;padding-top:12px}
+.ficha-ref h4{margin:0 0 8px;font-size:.9rem;color:var(--amber);text-transform:uppercase;letter-spacing:.08em}
+.ficha-ref p{margin:0 0 10px}
+tr.congelado td{opacity:.75}
+
+/* 7b · los coleccionistas */
+.col-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:4px}
+.col-c{border:1px solid var(--line);border-radius:18px;padding:12px 14px;background:rgba(255,255,255,.025)}
+.col-c h3{margin:0 0 8px;font-size:clamp(1.05rem,1.8vw,1.35rem);color:var(--teal2)}
+.col-c ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.col-c li{display:grid;grid-template-columns:24px auto 1fr auto;align-items:center;gap:10px;animation:ses-sube .45s both;animation-delay:calc(var(--i,0)*90ms + .15s)}
+.col-c .cara{--t:52px}
+.col-c li b{font-size:1.08rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.col-pos{font-weight:900;color:var(--muted);text-align:center}
+.col-n{font-weight:900;color:var(--amber);font-size:1.25rem;font-variant-numeric:tabular-nums}.col-n em{font-style:normal;color:var(--muted);font-size:.85rem;font-weight:600}
+.col-c li:first-child .cara{border-color:#ffd166;box-shadow:0 0 22px rgba(255,209,102,.45)}
+.col-ley{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:10px;border:1px solid rgba(255,209,102,.45);border-radius:16px;
+  padding:10px 14px;background:rgba(255,209,102,.07)}
+.col-ley-t{font-weight:900;color:#ffd166}
+.col-ley-u{display:flex;align-items:center;gap:8px}.col-ley-u .cara{--t:40px;border-color:#ffd166}
+.col-ley-u b{font-size:1rem}.col-ley-u em{font-style:normal;color:var(--muted);font-size:.9rem}
+@media (prefers-reduced-motion:reduce){.col-c li{animation:none}}
+
+/* 14-sep · «Ver resultado del sorteo» (NEBULA): los ganadores, uno a uno */
+.sres-gan{display:flex;flex-wrap:wrap;justify-content:center;gap:14px 22px;margin:6px 0}
+.sres-gan figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px;animation:ses-pop .6s ease-out both;animation-delay:calc(var(--i,0)*700ms + .5s)}
+.sres-gan img{width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #ffd166;box-shadow:0 0 26px rgba(255,209,102,.5)}
+.sres-gan figcaption{font-weight:800;font-size:1.05rem}
+.sres-tu{font-size:1.05rem}
+@media (prefers-reduced-motion:reduce){.sres-gan figure{animation:none}}
+
+/* 14-sep · LA OFERTA DE LA SEMANA, arriba del Mercado: grande, con su rareza en el borde y cuenta atrás */
+.ofertas{display:grid;gap:14px;margin:14px 0 18px}
+.oferta-card{--rz:#37e0ec;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:0;padding:0;overflow:hidden;
+  border:2px solid var(--rz);box-shadow:0 0 30px color-mix(in srgb,var(--rz) 35%,transparent);background:linear-gradient(120deg,rgba(255,255,255,.03),rgba(255,255,255,0))}
+.oferta-card.rz-rara{--rz:#6aa8ff}.oferta-card.rz-epica{--rz:#b77bff}.oferta-card.rz-legendaria{--rz:#ffd166}
+.of-foto{position:relative;min-height:220px;background:#070b12}
+.of-foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.oferta-card.es-carta .of-foto img{object-fit:contain;padding:10px}
+.of-pct{position:absolute;left:12px;top:12px;background:#ff5d5d;color:#fff;font-weight:900;font-size:1.3rem;border-radius:12px;padding:6px 12px;
+  box-shadow:0 6px 20px rgba(255,93,93,.45);animation:of-late 2.4s ease-in-out infinite}
+@keyframes of-late{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.of-cuerpo{padding:16px 20px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+.of-kicker{color:var(--rz);font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-size:.82rem}
+.of-cuerpo h3{margin:0;font-size:clamp(1.25rem,2.4vw,1.7rem)}
+.of-precio{margin:0;font-size:1.2rem}.of-precio s{color:var(--muted)}.of-precio b{color:var(--amber);font-size:1.7rem;margin-left:6px}
+.of-meta{margin:0;display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--muted);font-size:.98rem}.of-meta b{color:#fff}
+.of-cuerpo .btn{align-self:flex-start}
+@media (max-width:720px){.oferta-card{grid-template-columns:1fr}.of-foto{min-height:180px}}
+@media (prefers-reduced-motion:reduce){.of-pct{animation:none}}
+/* la pestaña del referente */
+.of-fila{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.of-fila.fin,.of-fila.cancelada{opacity:.7}
+.of-botones{margin:0;display:flex;gap:6px;flex-wrap:wrap}
+.of-auto{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin:6px 0;cursor:pointer;width:auto}
+.of-auto input{width:20px;height:20px;flex:0 0 auto;margin:0;accent-color:var(--teal)}
+.of-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:8px}
+.of-form select{max-width:340px}
+
+/* 9b · la oferta de la semana, proyectada */
+.dia.oferta-dia{flex-direction:row;align-items:center;gap:28px}
+.of-dia-img{position:relative;width:min(48%,560px);flex:0 0 auto;border-radius:18px;overflow:hidden;border:2px solid #ffd166;box-shadow:0 0 40px rgba(255,209,102,.35);animation:ses-flota 6s ease-in-out infinite}
+.of-dia-img img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.dia.oferta-dia.es-carta .of-dia-img img{object-fit:contain;background:#070b12}
+.of-dia-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.odia-precio{margin:0;font-size:clamp(1.3rem,2.6vw,2rem)}.odia-precio s{color:var(--muted)}.odia-precio b{color:var(--amber);font-size:clamp(2rem,4.4vw,3.2rem);margin-left:8px}
+.odia-meta{margin:0;color:var(--muted);font-size:clamp(1rem,1.7vw,1.3rem)}.odia-meta b{color:#fff}
+@media (max-width:720px){.dia.oferta-dia{flex-direction:column}.of-dia-img{width:100%}}
+@media (prefers-reduced-motion:reduce){.of-dia-img{animation:none}}

@@ -824,7 +824,19 @@ function vigilarLlamada(perId, alCambiar) {
  * de lo que se le dio y se le quitó. Borrar el rastro contable por borrar una ficha sería perder la
  * única prueba de lo que pasó.
  */
+/**
+ * 14-sep · CONGELAR, DESCONGELAR O DAR DE BAJA a un recluta: lo hace el servidor (`stargateAlumno`),
+ * solo para el referente. Norberto: «el referente tiene poder de eliminar o congelar (puede acceder,
+ * pero no puede hacer nada, bloqueado)».
+ */
+const alumno = (perId, fichaId, accion) => llamar("stargateAlumno", { projectId: perId, fichaId, accion });
+// ¿la función aún no está en el servidor? (un 404 del propio Firebase, no un «no» nuestro, que va en español)
+const sinDesplegar = e => /not-found|internal/.test(String(e && e.code)) && !/[áéíóúñ]|recluta|grupo/i.test(String(e && e.message));
 async function darDeBaja(perId, fichaId) {
+  // 🔴 Antes lo hacía el navegador, y las reglas solo dejan borrar fichas al DUEÑO del grupo: un
+  // referente que no lo fuera se daba con «permiso denegado». Ahora, el servidor; si aún no está
+  // desplegado, como antes.
+  try { return await alumno(perId, fichaId, "baja"); } catch (e) { if (!sinDesplegar(e)) throw e; }
   const f = await getDoc(doc(db, "student_profiles", fichaId));
   if (!f.exists()) throw new Error("Esa ficha ya no está");
   if (f.data().projectId !== perId) throw new Error("Esa ficha no es de este grupo");
@@ -1025,11 +1037,14 @@ async function guardarHuevos(perId, lista) {
                               .filter(r => r.consumeEffects && r.consumeEffects.lootBox);
   const sobre = conCofre.find(r => r.stargateTipo === "cromo");
   const heroe = conCofre.find(r => r.stargateTipo === "heroe");
+  // 14-sep · y los sobres y cápsulas nuevos (la cápsula legendaria se puede esconder en un enlace)
+  const cofres = {};
+  conCofre.forEach(r => { if (/^(sobre_|capsula_)/.test(r.stargateTipo || "") && r.inStore !== false) cofres[r.stargateTipo] = r; });
   const antes = await huevosDe(perId);
 
   const lote = writeBatch(db);
   lista.forEach(h => {
-    lote.set(doc(db, "rewards", idPremioHuevo(perId, h.id)), window.SG.PAQUETE.premioDeHuevo(perId, h, sobre, heroe), { merge: true });
+    lote.set(doc(db, "rewards", idPremioHuevo(perId, h.id)), window.SG.PAQUETE.premioDeHuevo(perId, h, sobre, heroe, cofres), { merge: true });
   });
   // los que se han quitado de la lista se CIERRAN (borrar lo puede solo el dueño principal del grupo)
   antes.filter(a => !lista.some(h => String(h.id) === String(a.id))).forEach(a => {
@@ -1157,8 +1172,9 @@ async function abrirHuevo(perId, huevoId, fichaId, R_) {
     } catch (e) { break; }   // lo que no se abra queda en el inventario y se abre desde el álbum
   }
   let detalle = null;
-  if (H.premio === "sobre") detalle = { tipo: "sobre", cartas: sacadas.map(cartaDeBotin) };
-  else if (H.premio === "heroe" || H.premio === "heroe_fijo") {
+  // 14-sep · los sobres nuevos se enseñan como el sobre; las cápsulas, como el héroe
+  if (H.premio === "sobre" || /^sobre_/.test(H.premio || "")) detalle = { tipo: "sobre", cartas: sacadas.map(cartaDeBotin) };
+  else if (H.premio === "heroe" || H.premio === "heroe_fijo" || /^capsula_/.test(H.premio || "")) {
     const b = sacadas[0] ? cartaDeBotin(sacadas[0]) : (H.heroe ? cartaDeBotin(perId + "__heroe_" + H.heroe) : null);
     detalle = { tipo: "heroe", nombre: b ? b.nombre : "", clave: b ? b.clave : "", rareza: b ? b.rareza : "" };
   } else if (H.premio === "bolsa") detalle = { tipo: "bolsa", creditos: Number(H.cantidad || H.creditos || 50) };
@@ -1391,6 +1407,10 @@ async function guardarSorteo(perId, ticketDoc, c) {
   await lote.commit();
 }
 const sortear = (perId, ticketDoc) => llamar("stargateSortear", { projectId: perId, ticketId: ticketDoc });
+// 14-sep · los sorteos que ya han pasado su fecha se resuelven solos al entrar cualquiera del grupo
+const sorteosPendientes = (perId) => llamar("stargateSorteosPendientes", { projectId: perId });
+// 14-sep · las ofertas de la semana: la automática (la pide la Nave al entrar), comprar, y lo del referente
+const oferta = (perId, accion, datos) => llamar("stargateOferta", Object.assign({ projectId: perId, accion: accion }, datos || {}));
 
 /** Quién ha fichado en una llamada, para verlo en directo desde el puesto de mando. */
 async function fichajesDe(sesionId) {
@@ -1405,10 +1425,10 @@ if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
-                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, nuevoCodigo,
+                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, alumno, nuevoCodigo,
                     huevosDe, guardarHuevos, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
-                    crearSorteo, guardarSorteo, sortear,
+                    crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

@@ -272,6 +272,11 @@
       coleccion.tengo = coleccion.cromos.tengo + coleccion.heroes.tengo + coleccion.skins.tengo;
       coleccion.total = coleccion.cromos.total + coleccion.heroes.total + coleccion.skins.total;
       coleccion.pct = coleccion.total ? (coleccion.tengo * 100 / coleccion.total) : 0;
+      // 14-sep · lo LEGENDARIO que tiene (héroes y cromos): la sesión reconoce a los coleccionistas
+      // (Norberto: «es importante dar reconocimiento a los que van más avanzados con los cromos, avatares…»)
+      var esLeyenda = function (x) { return /legend/i.test(String((x && x.rareza) || "")); };
+      var leyendas = cat.heroes.filter(function (h) { return esLeyenda(h) && heroes.indexOf(h.clave) >= 0; }).map(function (h) { return h.nombre; })
+        .concat(cat.cromos.filter(function (c) { return esLeyenda(c) && cromos[c.clave]; }).map(function (c) { return c.nombre; }));
 
       // Planetas completos: los temas cuyos retos obligatorios están todos hechos.
       var planetas = [];
@@ -319,7 +324,7 @@
         heroes_n: heroesN, heroes_repes: heroesRepes, premios: premios,
         viste: valido, repes: repes, repes_gastados: gastados,
         repes_disponibles: Math.max(0, repes - gastados),
-        insignias_album: album, n_album: album.length,
+        insignias_album: album, n_album: album.length, leyendas: leyendas,
         racha: racha(inicio, fechas, ahora, pausas),
         nivel_titulo: niv.titulo, xp_siguiente: niv.siguiente, xp_faltan: niv.faltan,
         creditos: Number(p.coins || 0),
@@ -354,6 +359,8 @@
         out.bitacora = priv.bitacora || ""; out.eventos = eventos; out.retos = retos;
         // 13-sep · los capítulos de NEBULA que ha visto: la columna «Bienvenida» de la consola
         out.capitulos = p.stargateCapitulos || {};
+        // 14-sep · la cuenta congelada por su referente (quién y cuándo)
+        out.congelado = p.stargateCongelado || null;
         // 🔴 `fila` era el número de fila en la hoja; aquí es el identificador del vale. Se sigue
         // llamando igual porque la sala del docente lo manda de vuelta tal cual para revertir un
         // canje o marcarlo entregado: renombrarlo obligaría a tocar la sala sin ganar nada.
@@ -401,6 +408,19 @@
                    desc: r.description, desde: r.stargateSemana || 0, tipo: r.stargateTipo || "",
                    // cuántas cartas trae un sobre (o usos un consumible): lo dice la recompensa, no la Nave
                    usos: Math.max(1, Number(r.maxUses || 1)) };
+          // 14-sep · LA OFERTA DE LA SEMANA (o una del referente): la oferta flash de GamificaPro, con su
+          // precio rebajado (la misma cuenta que cobra el servidor), sus unidades y hasta cuándo dura
+          if (r.stargateTipo === "oferta") {
+            var so = r.stargateOferta || {}, fo = r.flashOffer || {};
+            var pctO = Math.min(90, Math.max(1, Math.floor(Number(fo.discountPercent) || 0))), baseO = Number(r.cost || 0);
+            out.oferta = { base: baseO, precio: Math.max(0, Math.floor(baseO * (100 - pctO) / 100)), pct: pctO,
+                           total: so.unidades == null ? null : Number(so.unidades),
+                           quedan: r.isLimitedStock === true ? Math.max(0, Number(r.globalStock || 0)) : null,
+                           vendidas: Number(fo.unitsSold || 0), desde: Number(so.desde || 0), fin: Number(fo.endsAt || so.fin || 0),
+                           cancelada: !!so.cancelada, abre: so.abre || "sobre", nombre: so.nombre || r.title, rareza: so.rareza || "",
+                           que: so.que || {}, auto: !!so.auto, semana: so.semana || null };
+            out.coste = out.oferta.precio; out.desde = 0;
+          }
           // 14-sep · EL GRAN SORTEO: qué se sortea, cuándo, cuántos ganan y, si ya se hizo, quiénes
           if (r.systemEffect === "lottery_ticket") {
             var pr = premioPorDoc[String(r.linkedItemId || "")] || {}, SS = r.stargateSorteo || {};

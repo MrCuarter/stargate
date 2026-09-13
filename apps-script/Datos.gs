@@ -353,7 +353,12 @@ var RECOMPENSAS_INICIALES = [
   ["Título de recluta",40,3,"Un título narrativo bajo tu alias en el tablero y la Nave. Lo eliges tú en Mi botín.",4,"titulo"],
   ["Fondo de ficha: tu planeta",35,1,"Tu ficha de la Nave con el planeta que elijas de fondo. Eliges cuál de los ocho en Mi botín.",4,"fondo"],
   ["Marco dorado del avatar",60,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Te lo pones (y te lo quitas) en Mi botín.",4,"marco"],
-  ["Héroe de la Rebelión",60,99,"Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión en tres rangos. ⚔️ La Resistencia (56% del sobre): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar.",3,"heroe"],
+  ["Cápsula de rescate",60,99,"Una cápsula de rescate llega a tu Nave con UN héroe de la Rebelión dentro, al azar: 30 figuras en tres rangos. ⚔️ La Resistencia (56%): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar.",3,"heroe"],
+  ["Sobre grande",25,99,"CINCO cartas al azar del álbum (en vez de tres), con las mismas probabilidades que el sobre de siempre: más cartas por cada crédito.",4,"sobre_grande"],
+  ["Sobre de raras",35,99,"TRES cartas donde las comunes casi desaparecen: rara 64%, épica 18%, legendaria 6% (y común solo 12%). Para cerrar las series difíciles.",6,"sobre_raro"],
+  ["Sobre épico",60,99,"TRES cartas y ninguna común: rara 45%, épica 39% y LEGENDARIA 16% en cada carta, cuatro veces más que en el sobre de siempre.",8,"sobre_epico"],
+  ["Cápsula de élite",140,99,"En esta cápsula no viaja la Resistencia: un héroe de la Vanguardia (69%) o un MITO (31%, casi cuatro veces más que en la de rescate).",8,"capsula_elite"],
+  ["Cápsula legendaria",320,99,"Un MITO seguro: uno de los héroes legendarios de la Rebelión, siempre. La cápsula más cara del hangar, y también la que tu docente puede esconder en una presentación o darte de premio.",8,"capsula_legendaria"],
   ["Subir 0,5 en un entregable",550,1,"⚔️ ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. 🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — estarías tirando 550 créditos a la basura. Comprueba tu nota primero. Con esos créditos cierras media docena de sobres o te llevas nueve héroes.",15,"nota"],
   ["Subir 1 punto en un entregable",850,1,"⚔️ ARSENAL DE BATALLA · Un punto entero en una actividad ya entregada y corregida. 🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, no te sube nada y pierdes los 850 créditos. Es la recompensa más cara del catálogo a propósito: elegirla significa renunciar a casi todo lo demás.",15,"nota"],
   ["Recalificar un trabajo entregado fuera de plazo",700,1,"⚔️ ARSENAL DE BATALLA · Que se te corrija un trabajo que entregaste tarde. No es un aprobado automático: es que se mire y se puntúe como si hubiera llegado a tiempo.",15,"nota"],
@@ -365,9 +370,15 @@ var RECOMPENSAS_INICIALES = [
 // participación, máx por persona, desde semana (venta), semana del sorteo, imagen]. Lo REGENERA
 // _build_site.py desde SORTEOS de _site_data.py — no editar a mano. Solo lo usa el motor nuevo.
 var SORTEOS = [
-  ["sorteo1","Licencia de Genially (un año completo)","Se sortean dos licencias de Genially de un año completo entre toda la tripulación. Cada participación es una papeleta: cuantas más tengas, más posibilidades. Nadie gana dos, y el sorteo lo hace el servidor en clase, a la vista de todos.",2,20,0,6,15,"sorteo.jpg"]
+  ["sorteo1","Licencia de Genially (un año completo)","Se sortean dos licencias de Genially de un año completo entre toda la tripulación. Cada participación es una papeleta: cuantas más tengas, más posibilidades. Como en una lotería, lo que pagas no se devuelve: si te toca, enhorabuena. Se sortea SOLO en la semana 16 (la del canje); ese día, al entrar en tu Nave, verás el resultado. Nadie gana dos.",2,20,0,6,16,"sorteo.jpg"]
 ];
 // SORTEOS-FIN
+
+// COFRES-INICIO · Los sobres y las cápsulas (14-sep): cuántas piezas trae cada tipo y cuánto pesa
+// cada rareza (× sobre el peso del catálogo; 0 = no sale). Lo REGENERA _build_site.py desde COFRES de
+// _site_data.py — no editar a mano. Solo lo usa el motor nuevo (motor/paquete.js).
+var COFRES = {"cromo": {"piezas": "cromos", "usos": 3}, "sobre_grande": {"piezas": "cromos", "usos": 5}, "sobre_raro": {"piezas": "cromos", "usos": 3, "pesos": {"común": 0.25, "rara": 2, "épica": 2, "legendaria": 1.5}}, "sobre_epico": {"piezas": "cromos", "usos": 3, "pesos": {"común": 0, "rara": 1, "épica": 3, "legendaria": 3}}, "heroe": {"piezas": "heroes", "usos": 1}, "capsula_elite": {"piezas": "heroes", "usos": 1, "pesos": {"rara": 0, "épica": 1, "legendaria": 2}}, "capsula_legendaria": {"piezas": "heroes", "usos": 1, "pesos": {"rara": 0, "épica": 0, "legendaria": 1}}};
+// COFRES-FIN
 
 // La imagen que enseña el formulario de canje ANTES de confirmar cada recompensa: se ve lo que te
 // llevas por tus créditos. Se empareja por NOMBRE con el catálogo y lo REGENERA _build_site.py desde
@@ -379,7 +390,12 @@ var IMG_RECOMPENSA = {
   "Título de recluta": "titulo.jpg",
   "Fondo de ficha: tu planeta": "planeta.jpg",
   "Marco dorado del avatar": "marco.jpg",
-  "Héroe de la Rebelión": "heroe.jpg",
+  "Cápsula de rescate": "capsula_rescate.jpg",
+  "Sobre grande": "sobre_grande.jpg",
+  "Sobre de raras": "sobre_raro.jpg",
+  "Sobre épico": "sobre_epico.jpg",
+  "Cápsula de élite": "capsula_elite.jpg",
+  "Cápsula legendaria": "capsula_legendaria.jpg",
   "Subir 0,5 en un entregable": "nota_05.jpg",
   "Subir 1 punto en un entregable": "nota_1punto.jpg",
   "Recalificar un trabajo entregado fuera de plazo": "nota_plazo.jpg",

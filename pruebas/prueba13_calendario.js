@@ -101,7 +101,7 @@ const cat = {};
 G2.RECOMPENSAS_INICIALES.forEach(x => { cat[x[0]] = x[4]; });
 // v3.16 · las tres recompensas de avatar se retiraron; el vestuario de héroes las sustituye
 // 13-sep · la Nave por capítulos: los héroes tienen su semana (la 3), después del Mercado (la 2)
-igual(cat["Héroe de la Rebelión"], 3, "«Héroe de la Rebelión» se abre en la semana 3, un capítulo después del sobre");
+igual(cat["Cápsula de rescate"], 3, "«Cápsula de rescate» (los héroes) se abre en la semana 3, un capítulo después del sobre");
 igual(cat["Cambio de avatar"], undefined, "«Cambio de avatar» ya no está en el catálogo");
 igual(cat["Avatar personal (tu propia imagen)"], undefined, "ni «Avatar personal»");
 igual(cat["Personaje exclusivo"], undefined, "ni «Personaje exclusivo»: los 5-7 son de todos");

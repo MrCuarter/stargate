@@ -30,7 +30,7 @@ const REG = {};   // cifras que se apuntan para el informe
   const nueva = async n => { const p = await persona(n); vivas.push(p); return p; };
   // 13-sep · los capítulos de NEBULA, ya vistos (para las secciones que no van de eso: si no, a mitad
   // de una prueba sale NEBULA contando el Mercado)
-  const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6','c7'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
+  const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6','c7','c8'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
   // alistarse de verdad, por la pantalla (lo usan la clase entera y el héroe por enlace)
   const alistar = async (p, correo, nombre, alias, cmd) => {
     await p.ir("alistarse.html?per=lab-clase&codigo=" + CODIGO);
@@ -48,9 +48,10 @@ const REG = {};   // cifras que se apuntan para el informe
       const casos = [
         // 13-sep · +1: «El Zoco» (el registro de trueques y «Deshacer»), para todo el profesorado;
         // y +1 para quien lleva el grupo: «Calendario» (congelar semanas, abrir capítulos antes)
-        ["rita@lab.test", "Rita Referente", 10, "referente que imparte"],
+        // 14-sep · y +1 para quien lleva el grupo: «Ofertas» (la oferta de la semana y las suyas)
+        ["rita@lab.test", "Rita Referente", 11, "referente que imparte"],
         ["dani@lab.test", "Dani Docente", 4, "docente raso"],
-        ["sol@lab.test", "Sol Coordina", 10, "referente que NO imparte"],
+        ["sol@lab.test", "Sol Coordina", 11, "referente que NO imparte"],
       ];
       for (const [correo, nombre, pestanas, quien] of casos) {
         const p = await nueva(quien);
@@ -780,7 +781,7 @@ const REG = {};   // cifras que se apuntan para el informe
         return {n:o.querySelector('.tour-step').textContent, t:o.querySelector('h3').textContent, x:o.querySelector('p').textContent, foco:f?f.className:''};})()`);
       const p0 = await paso();
       c("🔴 bienvenida · a la alumna recién alistada le sale NEBULA en su primera visita, ya dentro", sale && p0 && /1 \/ 6/.test(p0.n), JSON.stringify(p0));
-      c("🔴 capítulos · llega en la semana 10: le tocan los capítulos 1 a 6, EN ORDEN («Capítulo 1 de 6»)", p0 && /Capítulo 1 de 6/.test(p0.n), p0 && p0.n);
+      c("🔴 capítulos · llega en la semana 10: le tocan los capítulos 1 a 7, EN ORDEN («Capítulo 1 de 7»)", p0 && /Capítulo 1 de 7/.test(p0.n), p0 && p0.n);
       c("bienvenida · y NO le pide «escribe tu correo» (esa puerta ya no existe)", p0 && !/correo/i.test(p0.x), p0 && p0.x.slice(0, 120));
       const focos = [p0 && p0.foco];
       for (let k = 0; k < 5; k++) { await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700); const pk = await paso(); focos.push(pk ? pk.foco : "—"); }
@@ -795,14 +796,14 @@ const REG = {};   // cifras que se apuntan para el informe
         if (titulos.indexOf(pk.n.split(" · ").slice(0, 2).join(" · ")) < 0) titulos.push(pk.n.split(" · ").slice(0, 2).join(" · "));
         await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700);
       }
-      c("🔴 capítulos · detrás del 1 vienen el Mercado, la Rebelión, los adornos, el Zoco y el Gran Sorteo, uno tras otro",
-        titulos.length === 5 && /2 de 6/.test(titulos[0]) && /Mercado/.test(titulos[0]) && /Rebeli/.test(titulos[1]) && /insignia de mando/i.test(titulos[2]) && /Zoco/.test(titulos[3]) && /Sorteo/.test(titulos[4]), JSON.stringify(titulos));
+      c("🔴 capítulos · detrás del 1 vienen el Mercado, la Rebelión, los adornos, el Zoco, el Gran Sorteo y el Hangar de las Leyendas, uno tras otro",
+        titulos.length === 6 && /2 de 7/.test(titulos[0]) && /Mercado/.test(titulos[0]) && /Rebeli/.test(titulos[1]) && /insignia de mando/i.test(titulos[2]) && /Zoco/.test(titulos[3]) && /Sorteo/.test(titulos[4]) && /Hangar/.test(titulos[5]), JSON.stringify(titulos));
       c("bienvenida · al terminar se cierra", !(await paso()));
       await dormir(1500);
       const fLeo = await fichaDe("leo@lab.test", "lab-clase");
       const caps = fLeo.stargateCapitulos || {};
-      c("🔴 capítulos · quedan apuntados EN SU FICHA (no solo en el navegador): c1 a c6 «hecho»",
-        ["c1", "c2", "c3", "c4", "c5", "c6"].every(k => caps[k] && caps[k].estado === "hecho"), JSON.stringify(caps));
+      c("🔴 capítulos · quedan apuntados EN SU FICHA (no solo en el navegador): c1 a c6 y el Hangar (c8) «hecho»",
+        ["c1", "c2", "c3", "c4", "c5", "c6", "c8"].every(k => caps[k] && caps[k].estado === "hecho"), JSON.stringify(caps));
       await leo.ir("recluta.html?per=lab-clase"); await leo.hasta("/Lyra Nueva/.test(document.body.innerText)", 25); await dormir(2500);
       c("bienvenida · y en la segunda visita ya no sale", !(await paso()));
       // en otro navegador (sin nada guardado), tampoco: manda su ficha
@@ -812,7 +813,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 capítulos · en otro ordenador tampoco vuelve a salir (lo sabe su ficha)", !(await leo2.js("!!document.querySelector('#nave-onboard.open')")));
       await leo.js("document.getElementById('btn-onboard') && document.getElementById('btn-onboard').click(); 1"); await dormir(400);
       const menu = await leo.js("[].slice.call(document.querySelectorAll('#rep-menu [data-cap]')).map(function(b){return b.textContent})");
-      c("capítulos · «Repetir bienvenida» ofrece los capítulos abiertos (los 6 de la semana 10)", (menu || []).length === 6 && /Canal abierto/.test(menu[0]) && /Sorteo/.test(menu[5]), JSON.stringify(menu));
+      c("capítulos · «Repetir bienvenida» ofrece los capítulos abiertos (los 7 de la semana 10)", (menu || []).length === 7 && /Canal abierto/.test(menu[0]) && /Sorteo/.test(menu[5]) && /Hangar/.test(menu[6]), JSON.stringify(menu));
       await leo.js("document.querySelector('#rep-menu [data-cap=c1]').click(); 1"); await dormir(700);
       const rep = await paso();
       c("bienvenida · y el 1 se vuelve a poner desde el principio", rep && /1 \/ 6/.test(rep.n), JSON.stringify(rep));
@@ -866,7 +867,7 @@ const REG = {};   // cifras que se apuntan para el informe
           const hay = await p.js("(function(){var b=document.querySelector('.tour.open .tour-next'); if(!b) return 0; b.click(); return 1;})()");
           if (!hay) break; await dormir(700); const v = await vista(); if (!v) break; loc.push(v);
         }
-        const nTabs = ref ? 10 : 4;   // 13-sep · +1: «El Zoco» (todos); referente, +«Calendario» y (14-sep) +«Sorteos»
+        const nTabs = ref ? 11 : 4;   // 13-sep · +1: «El Zoco» (todos); referente, +«Calendario», (14-sep) +«Sorteos» y +«Ofertas»
         c("capitán · la visita del grupo tiene " + (nTabs + 2) + " pasos, uno por pestaña que " + nombre + " ve",
           loc.length === nTabs + 2 && loc.slice(1, nTabs + 1).every(v => /\bpest\b/.test(v.diana)), JSON.stringify(loc.map(v => v.t + "→" + v.diana)));
       }
@@ -1230,8 +1231,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await nora3.js("document.querySelector('.nb-t[data-tab=\"mercado\"]').click(); 1"); await dormir(1500);
       const merc = await nora3.js("[].slice.call(document.querySelectorAll('.nave-rec .rec-card h3')).map(function(h){return h.textContent})");
       const prox = await nora3.js("(document.querySelector('.rec-prox')||{}).textContent||''");
-      c("🔴 semana 3 · el Mercado enseña sobre, cambio de repetidas y héroe; nada «clasificado»",
-        merc.length === 3 && merc.some(x => /Héroe/.test(x)) && !merc.some(x => /clasificada/i.test(x)), JSON.stringify(merc));
+      c("🔴 semana 3 · el Mercado enseña sobre, cambio de repetidas y la cápsula de rescate; nada «clasificado»",
+        merc.length === 3 && merc.some(x => /Cápsula de rescate/.test(x)) && !merc.some(x => /clasificada/i.test(x)), JSON.stringify(merc));
       c("semana 3 · y una línea con lo que llega: adornos (semana 4) y el Arsenal (semana 15)", /insignia de mando.*semana 4/.test(prox) && /Arsenal.*semana 15/.test(prox), prox);
       await nora3.foto(FOTOS + "/19-semana3-mercado.png");
       // lo apunta en segundo plano: se espera a que llegue (como mucho, diez segundos)
@@ -1253,7 +1254,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('td.bienv')", 25);
       const celda = await rita.js("[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(t){return /Nora Nébula/.test(t.textContent)}).map(function(t){return t.querySelector('td.bienv').textContent})[0]||''");
-      c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 6 abiertos, 1 saltado)", /3\/6/.test(celda) && /1 saltado/.test(celda), celda);
+      c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 7 abiertos en la semana 10, 1 saltado)", /3\/7/.test(celda) && /1 saltado/.test(celda), celda);
     }
 
     // ============================================================ 20 · LA NAVE DEL COMANDANTE (simulacro)
@@ -2028,7 +2029,8 @@ const REG = {};   // cifras que se apuntan para el informe
       const foto = async () => {
         const pr = (await pref.get()).data().stargate;
         const rw = {}, cp = {};
-        (await fs.collection("rewards").where("projectId", "==", P).get()).docs.forEach(d => { if (d.data().inStore !== false && d.data().availableFrom != null) rw[d.id] = [d.data().availableFrom, d.data().availableUntil, d.data().stargateTipo]; });
+        // (las ofertas de la semana no son del catálogo: tienen su propia ventana y el servidor crea la de cada semana al entrar alguien)
+        (await fs.collection("rewards").where("projectId", "==", P).get()).docs.forEach(d => { if (d.data().inStore !== false && d.data().availableFrom != null && d.data().stargateTipo !== "oferta") rw[d.id] = [d.data().availableFrom, d.data().availableUntil, d.data().stargateTipo]; });
         (await fs.collection("campaigns").where("projectId", "==", P).get()).docs.forEach(d => { if (d.data().visibleFromTimestamp != null) cp[d.id] = d.data().visibleFromTimestamp; });
         return { S: pr, rw, cp };
       };
@@ -2424,7 +2426,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("sorteo · y en Mi botín: «Lo que has ganado en el Gran Sorteo: Licencia de Genially…»", await g1.hasta("/Lo que has ganado en el Gran Sorteo/.test(document.body.innerText) && /Licencia de Genially/.test(document.body.innerText)", 15));
       await g1.cerrar();
       const n1 = await naveDe(kN, "no ha ganado", "mercado");
-      c("sorteo · quien no gana lo sabe también («ya se ha hecho… para X y Y»)", /ya se ha hecho/i.test(await n1.js("(document.querySelector('.sorteo-aviso')||{}).innerText||''")));
+      c("sorteo · quien no gana lo sabe también («ya tiene ganadores… para X y Y», con «Ver resultado del sorteo»)", /ya tiene ganadores/i.test(await n1.js("(document.querySelector('.sorteo-aviso')||{}).innerText||''")) && await n1.js("!!document.querySelector('.sorteo-aviso [data-sorteo-ver]')"));
       c("sorteo · y en el Mercado la tarjeta dice quién ganó, sin botón de comprar", /Ya se ha sorteado/.test(await n1.js("(document.querySelector('.rec-card.sorteo')||{}).innerText||''")) && !(await n1.js("!!document.querySelector('.rec-card.sorteo [data-canje]')")));
       await n1.js("document.querySelector('.sorteo-aviso [data-sorteo-visto]:not([data-tab])').click(); 1"); await dormir(400);
       c("sorteo · el aviso se cierra con ✕ y no vuelve a salir en ese navegador", !(await n1.js("!!document.querySelector('.sorteo-aviso')")));
@@ -2531,6 +2533,374 @@ const REG = {};   // cifras que se apuntan para el informe
       c("embed · sin errores dentro del iframe", !p.errores.filter(e => !/Failed to load resource/.test(e)).length, p.errores[0] || "");
       await p.cerrar();
       await fs.collection("projects").doc(P2).delete();
+    }
+    // ============================================================ 27 · CONGELAR, DAR DE BAJA… Y EL LEGENDARIO EN EL ZOCO
+    /**
+     * Norberto (14-sep): «los legendarios deben poder venderse en el Zoco» y «el referente tiene poder
+     * de eliminar o congelar (puede acceder, pero no puede hacer nada, bloqueado)».
+     */
+    if (hacer(27)) {
+      const A = admin(), fs = A.firestore(), P = "lab-clase";
+      const GENTE = { gelida: ["gelida@lab.test", "Gélida Prueba", "Gélida"], brasa: ["brasa@lab.test", "Brasa Prueba", "Brasa"] };
+      for (const k of Object.keys(GENTE)) {
+        const [correo, nombre, alias] = GENTE[k];
+        for (let i = 0; i < 2 && !(await fichaDe(correo, P)); i++) { const a = await nueva("Alta " + nombre); await alistar(a, correo, nombre, alias, 0); await a.cerrar(); }
+      }
+      const F = {}; for (const k of Object.keys(GENTE)) F[k] = await fichaDe(GENTE[k][0], P);
+      const LEY = P + "__heroe_H25_desertor", CB = P + "__cromo_P1_bran";
+      await fs.collection("student_profiles").doc(F.gelida._id).update({ coins: 300, inventory: [LEY, CB] });
+      await fs.collection("student_profiles").doc(F.brasa._id).update({ coins: 300, inventory: [CB] });
+      const naveDe = async (k, nota) => {
+        const [correo, nombre] = GENTE[k], q = await nueva(nombre.split(" ")[0] + " · " + nota);
+        await q.ir("entrar.html"); await q.entrarComo(correo, nombre); await sinBienvenidas(q);
+        await q.ir("recluta.html?per=" + P); await q.hasta("!!document.querySelector('.nb-t[data-tab=\"mercado\"]')", 30);
+        return q;
+      };
+      const llama = (q, fn, args) => q.js(`window.SG.MOTOR.${fn}(${args.map(x => JSON.stringify(x)).join(",")}).then(function(r){return JSON.stringify(r)||'OK'},function(e){return "ERROR " + e.message})`, 60000);
+      const ficha = async k => (await fs.collection("student_profiles").doc(F[k]._id).get()).data();
+
+      // 1 · el legendario, en el Zoco: su ÚNICA copia, y se vende
+      const g1 = await naveDe("gelida", "vende su legendario");
+      const puesto = JSON.parse((await llama(g1, "zocoPoner", [P, [LEY]])).replace(/^ERROR.*/, "{}"));
+      c("🔴 legendario · Gélida pone en el Zoco su único legendario (El Desertor de la Estática)", !!(puesto.anuncios && puesto.anuncios[0]), JSON.stringify(puesto));
+      await g1.cerrar();
+      const b1 = await naveDe("brasa", "compra el legendario");
+      c("legendario · por un héroe, como mucho 180 ◈ (también por un legendario)", /como mucho 180/i.test(await llama(b1, "zocoOfertar", [puesto.anuncios[0], { creditos: 181, piezas: [] }, ""])));
+      await llama(b1, "zocoOfertar", [puesto.anuncios[0], { creditos: 150, piezas: [] }, "¡Lo quiero!"]); await b1.cerrar();
+      const tLey = (await consultar("stargate_tratos", "projectId", P)).filter(t => t.anuncio === puesto.anuncios[0] && t.estado === "abierto")[0];
+      const g2 = await naveDe("gelida", "acepta");
+      const acep = await llama(g2, "zocoResponder", [tLey._id, "aceptar", {}]); await g2.cerrar();
+      const [fg, fb] = [await ficha("gelida"), await ficha("brasa")];
+      c("🔴 legendario · trato hecho: el Desertor pasa a Brasa y los 150 ◈ a Gélida", /aceptado/.test(acep) && fb.inventory.includes(LEY) && !fg.inventory.includes(LEY) && fg.coins === 450 && fb.coins === 150,
+        acep + " · " + JSON.stringify([fg.inventory, fb.inventory, fg.coins, fb.coins]));
+
+      // 2 · algo abierto en el Zoco antes de congelar: su anuncio (con una oferta de Brasa) y una oferta suya
+      const g3 = await naveDe("gelida", "pone y oferta");
+      const puesto2 = JSON.parse(await llama(g3, "zocoPoner", [P, [CB]])).anuncios[0];
+      await g3.cerrar();
+      const b2 = await naveDe("brasa", "pone y oferta");
+      const puestoB = JSON.parse(await llama(b2, "zocoPoner", [P, [CB]])).anuncios[0];
+      await llama(b2, "zocoOfertar", [puesto2, { creditos: 20, piezas: [] }, ""]); await b2.cerrar();
+      const g4 = await naveDe("gelida", "oferta a Brasa");
+      await llama(g4, "zocoOfertar", [puestoB, { creditos: 30, piezas: [] }, ""]); await g4.cerrar();
+      const antesG = (await ficha("gelida")).coins, antesB = (await ficha("brasa")).coins;
+
+      // 3 · Rita congela a Gélida desde su consola
+      const rita = await nueva("Rita congela");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"alumnado\"]')", 25);
+      await rita.js("document.querySelector('.pest[data-tab=\"alumnado\"]').click(); 1"); await rita.hasta("document.querySelectorAll('[data-r]').length>0", 20);
+      const abreFicha = async (q, alias) => { await q.js(`(function(){ var f=[].slice.call(document.querySelectorAll('[data-r]')).filter(function(x){return x.querySelector('td:nth-child(2) b') && x.querySelector('td:nth-child(2) b').textContent===${JSON.stringify(alias)}})[0]; if(f) f.click(); return !!f; })()`); return q.hasta("!!document.querySelector('#c-ficha .card')", 10); };
+      await abreFicha(rita, "Gélida");
+      c("🔴 congelar · en la ficha, «Solo el referente»: 🧊 Congelar y Dar de baja", await rita.hasta("!!document.getElementById('c-congelar') && !!document.getElementById('c-baja')", 10));
+      await rita.foto(FOTOS + "/27-ficha-referente.png");
+      await rita.js("window.confirm=function(){return true}; document.getElementById('c-congelar').click(); 1");
+      c("congelar · «🧊 Gélida está congelado: mira, pero no toca»", await rita.hasta("/está congelad/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25), await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
+      const fgc = await ficha("gelida");
+      c("🔴 congelar · la ficha lleva el candado (quién y cuándo)", !!(fgc.stargateCongelado && fgc.stargateCongelado.por === "rita@lab.test"), JSON.stringify(fgc.stargateCongelado));
+      c("congelar · en Mi gente sale «🧊 congelado» a su lado", await rita.hasta("[].slice.call(document.querySelectorAll('[data-r]')).some(function(x){return /Gélida/.test(x.innerText)&&/congelado/i.test(x.innerText)})", 15));
+      const tratos = await consultar("stargate_tratos", "projectId", P), zoco = await consultar("stargate_zoco", "projectId", P);
+      c("🔴 congelar · lo suyo sale del Zoco y cada oferta se anula devolviendo lo apartado (a Brasa sus 20, a Gélida sus 30)",
+        zoco.filter(a => a._id === puesto2)[0].estado === "retirado" && tratos.filter(t => t.anuncio === puesto2)[0].estado === "anulado" && tratos.filter(t => t.anuncio === puestoB)[0].estado === "anulado"
+        && (await ficha("brasa")).coins === antesB + 20 && (await ficha("gelida")).coins === antesG + 30,
+        JSON.stringify([(await ficha("brasa")).coins, antesB, (await ficha("gelida")).coins, antesG]));
+
+      // 4 · Gélida entra: mira, pero no toca
+      const g5 = await naveDe("gelida", "congelada");
+      c("🔴 congelada · al entrar: «🧊 Tu referente ha congelado tu cuenta»", await g5.hasta("/ha congelado tu cuenta/.test((document.querySelector('.congelado-aviso')||{}).innerText||'')", 15));
+      await g5.foto(FOTOS + "/27-nave-congelada.png");
+      const sobre = (await consultar("rewards", "projectId", P)).filter(r => r.stargateTipo === "cromo" && r.consumeEffects && r.consumeEffects.lootBox)[0];
+      c("🔴 congelada · no puede comprar (el servidor: «ha congelado tu cuenta»)", /congelado tu cuenta/.test(await g5.js(`window.SG.MOTOR.llamar('purchaseReward',{projectId:'${P}',rewardId:'${sobre._id}',studentProfileId:'${F.gelida._id}'}).then(function(){return 'COMPRÓ'},function(e){return e.message})`, 60000)));
+      c("🔴 congelada · ni poner nada en el Zoco", /congelado tu cuenta/.test(await llama(g5, "zocoPoner", [P, [CB]])));
+      c("🔴 congelada · ni tocar su ficha desde la consola del navegador", !/ESCRIBIÓ/.test(await g5.js(`window.SG.MOTOR.updateDoc(window.SG.MOTOR.doc(window.SG.MOTOR.db,'student_profiles','${F.gelida._id}'),{stargateTitulo:'Hielo'}).then(function(){return 'ESCRIBIÓ'},function(e){return e.code||e.message})`)));
+      c("🔴 congelada · ni quitarse el candado", !/ESCRIBIÓ/.test(await g5.js(`window.SG.MOTOR.updateDoc(window.SG.MOTOR.doc(window.SG.MOTOR.db,'student_profiles','${F.gelida._id}'),{stargateCongelado:null}).then(function(){return 'ESCRIBIÓ'},function(e){return e.code||e.message})`)));
+      await g5.cerrar();
+
+      // 5 · un docente raso no puede
+      const dani = await nueva("Dani mira la ficha");
+      await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente");
+      await dani.ir("consola.html?per=" + P); await dani.hasta("!!document.querySelector('.pest[data-tab=\"alumnado\"]')", 25);
+      await dani.js("document.querySelector('.pest[data-tab=\"alumnado\"]').click(); 1"); await dani.hasta("document.querySelectorAll('[data-r]').length>0", 20);
+      const hayG = await abreFicha(dani, "Gélida");
+      c("🔴 congelar · un docente raso no ve ni «Congelar» ni «Dar de baja»", !hayG || !(await dani.js("!!document.getElementById('c-congelar') || !!document.getElementById('c-baja')")));
+      c("🔴 congelar · y si lo intenta por la consola del navegador, el servidor dice que no", /Solo el referente/.test(await llama(dani, "alumno", [P, F.gelida._id, "descongelar"])));
+      await dani.cerrar();
+
+      // 6 · Rita la descongela, y vuelve a poder
+      await abreFicha(rita, "Gélida");
+      await rita.js("document.getElementById('c-congelar').click(); 1");
+      c("congelar · «▶️ Descongelar»: vuelve a poder hacer de todo", await rita.hasta("/ya puede volver/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25) && !(await ficha("gelida")).stargateCongelado);
+      const g6 = await naveDe("gelida", "descongelada");
+      c("descongelada · sin el aviso, y compra otra vez", !(await g6.js("!!document.querySelector('.congelado-aviso')")) && /COMPRÓ/.test(await g6.js(`window.SG.MOTOR.llamar('purchaseReward',{projectId:'${P}',rewardId:'${sobre._id}',studentProfileId:'${F.gelida._id}'}).then(function(){return 'COMPRÓ'},function(e){return e.message})`, 60000)));
+      await g6.cerrar();
+
+      // 7 · dar de baja (lo hace el servidor: Rita no es la dueña del grupo y antes le daba «permiso denegado»)
+      await abreFicha(rita, "Brasa");
+      await rita.js("window.confirm=function(){return true}; window.prompt=function(){return 'Brasa'}; document.getElementById('c-baja').click(); 1");
+      c("🔴 baja · Rita da de baja a Brasa (sin ser la dueña del grupo)", await rita.hasta("/ya no está en el grupo/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25), await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
+      const alias = await leerDoc("stargate_alias/" + P + "__brasa");
+      c("🔴 baja · su ficha, sus datos y su alias ya no están (el alias queda libre)", !(await fs.collection("student_profiles").doc(F.brasa._id).get()).exists && !(await leerDoc("student_profiles/" + F.brasa._id + "/privado/datos")) && !alias);
+      c("baja · y lo suyo del Zoco, retirado", (await consultar("stargate_zoco", "projectId", P)).filter(a => a._id === puestoB)[0].estado === "retirado");
+      c("congelar · sin errores en la consola", !rita.errores.filter(e => !/Failed to load resource/.test(e)).length, rita.errores[0] || "");
+      await rita.cerrar();
+    }
+    // ============================================================ 28 · SOBRES Y CÁPSULAS (COMO LOS COFRES DEL CLASH ROYALE)
+    /**
+     * Norberto (14-sep): «diferentes tipos de sobres… sobres con mayor probabilidad de mejores cartas…
+     * para la 10 todo descubierto»; y para los héroes, «un cofre legendario donde siempre toca un avatar
+     * legendario… quiero poder ocultarlos en Genially o darlos de recompensa».
+     */
+    if (hacer(28)) {
+      const A = admin(), fs = A.firestore(), P = "lab-clase";
+      const G = ["cofre@lab.test", "Cofre Prueba", "Cofrecillo"];
+      for (let i = 0; i < 2 && !(await fichaDe(G[0], P)); i++) { const a = await nueva("Alta Cofre"); await alistar(a, G[0], G[1], G[2], 0); await a.cerrar(); }
+      const FC = await fichaDe(G[0], P);
+      await fs.collection("student_profiles").doc(FC._id).update({ coins: 2000, inventory: [] });
+      const recs = await consultar("rewards", "projectId", P);
+      const R = t => recs.filter(r => r.stargateTipo === t && r.inStore !== false)[0];
+      const cat = JSON.parse(require("fs").readFileSync(require("path").join(L.RAIZ, "motor", "catalogo.json"), "utf8"));
+      const rz = id => { const k = String(id).split("__").pop(); const x = /^cromo_/.test(k) ? cat.cromos.filter(c => "cromo_" + c.clave === k)[0] : cat.heroes.filter(h => "heroe_" + h.clave === k)[0]; return String((x || {}).rareza || "").toLowerCase(); };
+      c("🔴 cofres · el grupo nace con los siete: sobre (3), grande (5), de raras, épico y las cápsulas de rescate, élite y legendaria",
+        ["cromo", "sobre_grande", "sobre_raro", "sobre_epico", "heroe", "capsula_elite", "capsula_legendaria"].every(t => R(t) && R(t).consumeEffects && R(t).consumeEffects.lootBox)
+        && R("sobre_grande").maxUses === 5 && R("sobre_epico").maxUses === 3 && R("capsula_legendaria").maxUses === 1,
+        JSON.stringify(["cromo", "sobre_grande", "sobre_raro", "sobre_epico", "heroe", "capsula_elite", "capsula_legendaria"].map(t => [t, !!R(t), R(t) && R(t).maxUses])));
+      const itemsDe = t => R(t).consumeEffects.lootBox.items.map(i => i.rewardId);
+      c("🔴 cofres · el sobre épico no lleva ni una común, y la cápsula legendaria solo Mitos", itemsDe("sobre_epico").every(id => rz(id) !== "común")
+        && itemsDe("capsula_legendaria").length === 4 && itemsDe("capsula_legendaria").every(id => rz(id) === "legendaria"),
+        JSON.stringify(itemsDe("capsula_legendaria")));
+      c("cofres · en el sobre de raras las comunes pesan 4 veces menos que en el de siempre",
+        (() => { const w = (t, k) => R(t).consumeEffects.lootBox.items.filter(i => rz(i.rewardId) === k).reduce((a, i) => a + i.probability, 0); return Math.abs(w("sobre_raro", "común") * 4 - w("cromo", "común")) < 0.01; })());
+      const q = await nueva("Cofrecillo compra");
+      await q.ir("entrar.html"); await q.entrarComo(G[0], G[1]); await sinBienvenidas(q);
+      await q.ir("recluta.html?per=" + P); await q.hasta("!!document.querySelector('.nb-t[data-tab=\"mercado\"]')", 30);
+      await q.js("document.querySelector('.nb-t[data-tab=\"mercado\"]').click(); 1"); await dormir(1200);
+      c("🔴 cofres · en el Mercado de la semana 10, las siete tarjetas con su imagen (la legendaria incluida)",
+        await q.hasta("['sobre_grande','sobre_raro','sobre_epico','capsula_rescate','capsula_elite','capsula_legendaria'].every(function(i){ return !!document.querySelector('.rec-card img[src*=\"'+i+'.jpg\"]'); })", 15));
+      await q.js("var c=[].slice.call(document.querySelectorAll('.rec-card')).filter(function(x){return /Cápsula legendaria/.test(x.innerText)})[0]; if(c) c.scrollIntoView({block:'center'}); 1"); await dormir(700);
+      await q.foto(FOTOS + "/28-mercado-cofres.png");
+      // el sobre grande, por la pantalla: cinco cartas carta a carta
+      const antes = (await fichaDe(G[0], P)).inventory || [];
+      await q.js("document.querySelector('[data-canje][data-tipo=\"sobre_grande\"]').click(); 1");
+      await q.hasta("!!document.querySelector('.neb-capa [data-si]')", 10); await q.js("document.querySelector('.neb-capa [data-si]').click(); 1");
+      c("🔴 cofres · el sobre grande se abre carta a carta: CINCO cartas", await q.hasta("!!document.querySelector('.sb-capa')", 30));
+      await q.js("var s=document.querySelector('.sb-saltar'); if(s) s.click(); 1"); await dormir(900);
+      await q.foto(FOTOS + "/28-sobre-grande.png");
+      await q.js("var x=document.querySelector('.sb-fin'); if(x) x.click(); 1"); await dormir(1500);
+      const tras = (await fichaDe(G[0], P)).inventory || [];
+      c("cofres · …y las cinco están en su álbum (y le han cobrado 25 ◈)", tras.filter(x => /__cromo_/.test(x)).length - antes.filter(x => /__cromo_/.test(x)).length === 5 && (await fichaDe(G[0], P)).coins === 1975,
+        (tras.length - antes.length) + " · " + (await fichaDe(G[0], P)).coins);
+      // el épico y la legendaria, por la misma puerta que usa la Nave
+      const canje = (t, usos) => q.js(`new Promise(function(ok){ window.SG.FUENTE.accion({accion:'canje',per:'${P}',recompensa:'${R(t)._id}',abrir:true,usos:${usos},tipo:'${t}'}).then(function(d){ ok(JSON.stringify(d)); },function(e){ ok('ERROR '+e.message); }); })`, 90000);
+      const epico = JSON.parse(await canje("sobre_epico", 3));
+      c("🔴 cofres · el sobre épico: tres cartas y ninguna común", (epico.botines || []).length === 3 && epico.botines.every(b => rz(b.id || b.rewardId || b) !== "común"), JSON.stringify(epico.botines && epico.botines.map(b => b.id || b)));
+      const leg = JSON.parse(await canje("capsula_legendaria", 1));
+      const idLeg = leg.botines && leg.botines[0] && (leg.botines[0].id || leg.botines[0]);
+      c("🔴 cofres · la cápsula legendaria trae SIEMPRE un Mito", rz(idLeg) === "legendaria" && ((await fichaDe(G[0], P)).inventory || []).includes(idLeg), String(idLeg));
+      c("cofres · y cuesta lo que dice (2000 − 25 − 60 − 320)", (await fichaDe(G[0], P)).coins === 1595, String((await fichaDe(G[0], P)).coins));
+      await q.cerrar();
+      // de premio en clase, y escondida en un enlace
+      const rita = await nueva("Rita regala una cápsula legendaria");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("aula.html?per=" + P); await rita.hasta("!!(window.SG&&window.SG.MOTOR)", 20); await dormir(2500);
+      await rita.js("var b=[].slice.call(document.querySelectorAll('[data-au]')).filter(function(x){return x.getAttribute('data-au')==='premios'})[0]; if(b) b.click(); 1");
+      c("cofres · en el aula, «Premiar» ofrece las cápsulas y los sobres nuevos", await rita.hasta("!!document.querySelector('.au-pr[data-k=\"capsula_legendaria\"]')", 15));
+      const antesR = ((await fichaDe(G[0], P)).inventory || []).length;
+      const reg = await rita.js(`window.SG.MOTOR.regalarEnClase('${P}',['${FC._id}'],{tipo:'cofre',cual:'capsula_legendaria'}).then(function(r){return JSON.stringify(r)},function(e){return 'ERROR '+e.message})`, 60000);
+      const nuevaR = ((await fichaDe(G[0], P)).inventory || []).slice(antesR);
+      c("🔴 cofres · la docente le regala una cápsula legendaria: un Mito a su vestuario", nuevaR.length === 1 && rz(nuevaR[0]) === "legendaria", reg);
+      const huevos = JSON.parse(await rita.js(`window.SG.MOTOR.huevosDe('${P}').then(function(h){return JSON.stringify(h)})`) || "[]");
+      await rita.js(`window.SG.MOTOR.guardarHuevos('${P}', ${JSON.stringify(huevos.concat([{ id: "leyenda-lab", nombre: "Una leyenda escondida", premio: "capsula_legendaria", activo: true, limite: 0, porEscuadron: 0 }]))}).then(function(){return 'OK'})`, 60000);
+      const hv = await leerDoc("rewards/" + P + "__huevo_leyenda-lab");
+      c("cofres · el referente la esconde en un enlace («Premios por enlace» → 🟨 cápsula legendaria)", hv && hv.stargateHuevo.premio === "capsula_legendaria" && hv.consumeEffects.lootBox.items.length === 4, JSON.stringify(hv && hv.stargateHuevo));
+      await rita.cerrar();
+      const h1 = await nueva("Cofrecillo encuentra la leyenda");
+      await h1.ir("huevo.html?h=leyenda-lab&per=" + P); await h1.entrarComo(G[0], G[1]);
+      await h1.ir("huevo.html?h=leyenda-lab&per=" + P); await h1.hasta("!!document.getElementById('hv-abrir')", 25);
+      const antesH = ((await fichaDe(G[0], P)).inventory || []).length;
+      await h1.js("document.getElementById('hv-abrir').click(); 1");
+      c("🔴 cofres · abre el enlace y le sale su Mito, con la carta en grande", await h1.hasta("!!document.querySelector('.sb-capa')", 30));
+      await dormir(1500); await h1.foto(FOTOS + "/28-enlace-legendario.png");
+      const nuevaH = ((await fichaDe(G[0], P)).inventory || []).slice(antesH);
+      c("cofres · …y es legendario de verdad", nuevaH.length === 1 && rz(nuevaH[0]) === "legendaria", JSON.stringify(nuevaH));
+      await h1.cerrar();
+      // la sesión de la semana 8 presenta el Hangar
+      const ses = await nueva("Rita proyecta la semana 8");
+      await ses.ir("entrar.html"); await ses.entrarComo("rita@lab.test", "Rita Referente");
+      await ses.ir("sesion.html?per=" + P + "&sem=8"); await ses.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
+      const loN = await ses.js("(function(){ var t=''; [].slice.call(document.querySelectorAll('.barra-pasos .p')).forEach(function(b){ if(b.getAttribute('title')==='Lo nuevo'){ b.click(); var d=document.querySelector('.lienzo .dia.nuevo-nave'); t+=(d?d.textContent:'')+' | '; } }); return t; })()");
+      c("cofres · la sesión de la semana 8 presenta «El Hangar de las Leyendas»", /Hangar de las Leyendas/.test(loN), loN.slice(0, 160));
+      await ses.cerrar();
+    }
+    // ============================================================ 29 · LA OFERTA DE LA SEMANA
+    /**
+     * Norberto (14-sep): «ofertas temporales: un ítem que aparece aleatoriamente… rebajado… stock
+     * limitado en tiempo (una semana) y en unidades, proporcional a los inscritos y a la rareza… el
+     * referente tiene el poder siempre de extender el tiempo, cancelar, editar unidades o elegir y
+     * configurar lo que se vende».
+     */
+    if (hacer(29)) {
+      const A = admin(), fs = A.firestore(), P = "lab-clase";
+      const G = ["ofer@lab.test", "Ofer Prueba", "Oferton"];
+      for (let i = 0; i < 2 && !(await fichaDe(G[0], P)); i++) { const a = await nueva("Alta Ofer"); await alistar(a, G[0], G[1], G[2], 0); await a.cerrar(); }
+      const FO = await fichaDe(G[0], P);
+      await fs.collection("student_profiles").doc(FO._id).update({ coins: 1000, stargateOfertas: {} });
+      for (const d of (await fs.collection("rewards").where("projectId", "==", P).where("stargateTipo", "==", "oferta").get()).docs) await d.ref.delete();
+      const nave = async nota => { const q = await nueva("Oferton · " + nota); await q.ir("entrar.html"); await q.entrarComo(G[0], G[1]); await sinBienvenidas(q);
+        await q.ir("recluta.html?per=" + P); await q.hasta("!!document.querySelector('.nb-t[data-tab=\"mercado\"]')", 30); return q; };
+      // 1 · al entrar, la oferta de la semana sale sola
+      const q1 = await nave("entra");
+      c("🔴 ofertas · al entrar alguien, el servidor crea la oferta de la semana 10 (sola, sin tareas programadas)", await (async () => { for (let i = 0; i < 20; i++) { if (await leerDoc("rewards/" + P + "__oferta_s10")) return true; await dormir(700); } return false; })());
+      const auto = await leerDoc("rewards/" + P + "__oferta_s10");
+      const inscritos = (await consultar("student_profiles", "projectId", P)).filter(x => !x.graduatedAt && x.isTeacherPreview !== true).length;
+      const F = { "común": null, "rara": 0.5, "épica": 0.25, "legendaria": 0.1 }, FH = { "rara": null, "épica": 0.3, "legendaria": 0.1 };
+      const so = auto.stargateOferta, fac = so.que.tipo === "heroe" ? FH[so.rareza] : F[so.rareza];
+      const esperadas = fac == null ? null : Math.max(1, Math.ceil(inscritos * fac));
+      c("🔴 ofertas · rebajada un 20-40 %, dura la semana y con unidades según los inscritos y la rareza",
+        auto.flashOffer.discountPercent >= 20 && auto.flashOffer.discountPercent <= 40 && so.semana === 10 && so.unidades === esperadas
+        && auto.flashOffer.endsAt - so.desde > 6.9 * 864e5 && auto.flashOffer.endsAt - so.desde < 7.1 * 864e5,
+        JSON.stringify({ que: so.que, rz: so.rareza, uds: so.unidades, esperadas, inscritos, pct: auto.flashOffer.discountPercent }));
+      await q1.js("document.querySelector('.nb-t[data-tab=\"mercado\"]').click(); 1");
+      c("🔴 ofertas · y en el Mercado, arriba: «⚡ Oferta de la semana» con el precio tachado y cuándo termina",
+        await q1.hasta("!!document.querySelector('.oferta-card') && /Oferta de la semana/i.test(document.querySelector('.oferta-card').innerText) && /Termina en/.test(document.querySelector('.oferta-card').innerText)", 25),
+        await q1.js("(document.querySelector('.oferta-card')||{}).innerText||''"));
+      await q1.cerrar();
+      // 2 · el referente crea una a mano: una cápsula legendaria al 30 %, con las unidades que tocan
+      const rita = await nueva("Rita y las ofertas");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"ofertas\"]')", 25);
+      await rita.js("document.querySelector('.pest[data-tab=\"ofertas\"]').click(); 1"); await rita.hasta("!!document.getElementById('of-nueva')", 15);
+      c("ofertas · la consola del referente tiene su pestaña «Ofertas», con la de la semana", await rita.hasta("document.querySelectorAll('[data-of]').length>=1", 10));
+      await rita.js("document.getElementById('of-nueva').click(); 1"); await rita.hasta("!!document.getElementById('of-que')", 10);
+      await rita.js("var s=document.getElementById('of-que'); s.value='cofre:capsula_legendaria'; document.getElementById('of-pct').value='30'; document.getElementById('of-dias').value='3'; document.getElementById('of-crear').click(); 1");
+      c("ofertas · «+ Crear una oferta» → «Oferta creada»", await rita.hasta("/Oferta creada/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25));
+      const manual = (await consultar("rewards", "projectId", P)).filter(r => r.stargateTipo === "oferta" && !r.stargateOferta.auto)[0];
+      const udsLeg = Math.max(1, Math.ceil(inscritos * 0.1));
+      c("🔴 ofertas · la cápsula legendaria: 320 ◈ con el 30 % (224 ◈) y el 10 % de los inscritos en unidades", manual && manual.cost === 320 && manual.flashOffer.discountPercent === 30
+        && manual.stargateOferta.unidades === udsLeg && manual.globalStock === udsLeg, JSON.stringify(manual && { c: manual.cost, u: manual.stargateOferta.unidades, g: manual.globalStock, udsLeg }));
+      await rita.foto(FOTOS + "/29-consola-ofertas.png");
+      // 2b · y en la sesión que se proyecta, su diapositiva: la misma oferta que hay en la Nave
+      const ses = await nueva("Rita proyecta la oferta");
+      await ses.ir("entrar.html"); await ses.entrarComo("rita@lab.test", "Rita Referente");
+      await ses.ir("sesion.html?per=" + P);
+      const hayDia = await ses.hasta("[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='La oferta'})", 30);
+      if (hayDia) { await ses.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='La oferta'})[0].click(); 1"); await dormir(1500); }
+      const txtOf = hayDia ? await ses.js("(function(){ var d=document.querySelector('.lienzo .dia.oferta-dia'); return d?d.innerText:''; })()") : "";
+      const dbgOf = await ses.js("(function(){ var t=document.querySelector('.lienzo .of-dia-txt'); if(!t) return 'sin .of-dia-txt · '+((document.querySelector('.lienzo')||{}).innerHTML||'').slice(0,400); var c=getComputedStyle(t), r=t.getBoundingClientRect(); return JSON.stringify({d:c.display,v:c.visibility,o:c.opacity,a:c.animationName,w:r.width,h:r.height,x:r.x,y:r.y,html:t.outerHTML.slice(0,160)}); })()");
+      c("ofertas · la sesión proyectada tiene «⚡ La oferta de la semana»: imagen, precio tachado, unidades y hasta cuándo",
+        /oferta de la semana/i.test(txtOf) && /◈/.test(txtOf) && /una por persona/.test(txtOf) && /hasta el (lunes|martes|miércoles|jueves|viernes|sábado|domingo)/.test(txtOf)
+        && await ses.js("(function(){var i=document.querySelector('.lienzo .of-dia-img img'); return !!(i&&i.complete&&i.naturalWidth>0);})()"), txtOf.slice(0, 200) + " · " + dbgOf);
+      c("ofertas · y en la diapositiva no hay letra por debajo de 12 px", await ses.js("[].slice.call(document.querySelectorAll('.lienzo .dia.oferta-dia *')).filter(function(e){return e.children.length===0&&e.textContent.trim()&&parseFloat(getComputedStyle(e).fontSize)<12}).length===0"));
+      await ses.foto(FOTOS + "/29-sesion-oferta.png");
+      await ses.cerrar();
+      // 3 · Oferton la compra por la pantalla
+      const q2 = await nave("compra la legendaria");
+      await q2.js("document.querySelector('.nb-t[data-tab=\"mercado\"]').click(); 1");
+      await q2.hasta(`!!document.querySelector('[data-canje="${manual._id}"]')`, 20);
+      await q2.foto(FOTOS + "/29-mercado-oferta.png");
+      await q2.js(`document.querySelector('[data-canje="${manual._id}"]').click(); 1`);
+      await q2.hasta("!!document.querySelector('.neb-capa [data-si]')", 10); await q2.js("document.querySelector('.neb-capa [data-si]').click(); 1");
+      c("🔴 ofertas · la compra se abre como una cápsula: su Mito, en grande", await q2.hasta("!!document.querySelector('.sb-capa')", 30));
+      await dormir(1200); await q2.js("var x=document.querySelector('.sb-fin'); if(x) x.click(); 1"); await dormir(1200);
+      const fo = await fichaDe(G[0], P), trasM = await leerDoc("rewards/" + manual._id);
+      const leg = (fo.inventory || []).filter(x => /__heroe_H(25|26|29|30)_/.test(x));
+      c("🔴 ofertas · pagó 224 ◈, tiene su legendario, y queda una unidad menos", fo.coins === 776 && leg.length === 1 && trasM.flashOffer.unitsSold === 1 && trasM.globalStock === udsLeg - 1,
+        JSON.stringify([fo.coins, leg, trasM.flashOffer.unitsSold, trasM.globalStock]));
+      const otra = await q2.js(`window.SG.MOTOR.oferta('${P}','comprar',{ofertaId:'${manual._id}'}).then(function(){return 'COMPRÓ'},function(e){return e.message})`, 60000);
+      c("🔴 ofertas · una por persona: la segunda, no", /una por persona/.test(otra), otra);
+      const porGP = await q2.js(`window.SG.MOTOR.llamar('purchaseReward',{projectId:'${P}',rewardId:'${manual._id}',studentProfileId:'${FO._id}'}).then(function(){return 'COMPRÓ'},function(e){return e.message})`, 60000);
+      c("🔴 ofertas · y la tienda de GamificaPro no se la vende por detrás", !/COMPRÓ/.test(porGP), porGP);
+      c("ofertas · un estudiante no puede crear ofertas", /Solo el referente/.test(await q2.js(`window.SG.MOTOR.oferta('${P}','crear',{que:{tipo:'cofre',cual:'cromo'},pct:90}).then(function(){return 'CREÓ'},function(e){return e.message})`)));
+      await q2.cerrar();
+      // 4 · el referente alarga, cambia unidades y cancela
+      await rita.js("document.querySelector('.pest[data-tab=\"ofertas\"]').click(); 1"); await rita.hasta("document.querySelectorAll('[data-of]').length>=2", 15);
+      const finAntes = (await leerDoc("rewards/" + manual._id)).flashOffer.endsAt;
+      await rita.js(`document.querySelector('[data-of="${manual._id}"] [data-of-mas="1"]').click(); 1`);
+      await rita.hasta("/Oferta alargada/.test((document.getElementById('c-aviso')||{}).innerText||'')", 20);
+      const finDespues = (await leerDoc("rewards/" + manual._id)).flashOffer.endsAt;
+      c("🔴 ofertas · «+1 día» la alarga un día", Math.abs(finDespues - finAntes - 864e5) < 5000, (finDespues - finAntes) + "");
+      await rita.js(`window.prompt=function(){return '1'}; document.querySelector('[data-of="${manual._id}"] [data-of-uds]').click(); 1`);
+      await rita.hasta("/Unidades cambiadas/.test((document.getElementById('c-aviso')||{}).innerText||'')", 20);
+      const tras1 = await leerDoc("rewards/" + manual._id);
+      c("ofertas · «Unidades…» → 1: vendida la única, se agota", tras1.stargateOferta.unidades === 1 && tras1.globalStock === 0, JSON.stringify([tras1.stargateOferta.unidades, tras1.globalStock]));
+      // una errata no deja la oferta agotada: ni la consola la manda, ni el servidor la acepta
+      await rita.js("document.getElementById('c-aviso') && (document.getElementById('c-aviso').innerText=''); 1");
+      await rita.js(`window.prompt=function(){return 'cinco'}; document.querySelector('[data-of="${P}__oferta_s10"] [data-of-uds]').click(); 1`);
+      c("ofertas · «Unidades…» con una errata («cinco»): la consola pide un número y no toca nada",
+        await rita.hasta("/Escribe un número de unidades/.test((document.getElementById('c-aviso')||{}).innerText||'')", 10)
+        && (await leerDoc("rewards/" + P + "__oferta_s10")).stargateOferta.unidades === so.unidades);
+      const errata = await rita.js(`window.SG.MOTOR.oferta('${P}','unidades',{ofertaId:'${P}__oferta_s10',unidades:'cinco'}).then(function(){return 'CAMBIÓ'},function(e){return e.message})`, 60000);
+      c("🔴 ofertas · y el servidor tampoco la acepta si le llega por otro camino", /Escribe un número/.test(errata) && (await leerDoc("rewards/" + P + "__oferta_s10")).stargateOferta.unidades === so.unidades, errata);
+      await rita.js(`window.confirm=function(){return true}; document.querySelector('[data-of="${P}__oferta_s10"] [data-of-cancelar]').click(); 1`);
+      await rita.hasta("/cancelada/.test((document.getElementById('c-aviso')||{}).innerText||'')", 20);
+      c("ofertas · «Cancelar» la de la semana: fuera del Mercado ya", (await leerDoc("rewards/" + P + "__oferta_s10")).stargateOferta.cancelada === true);
+      const q3 = await nave("tras cancelar");
+      await q3.js("document.querySelector('.nb-t[data-tab=\"mercado\"]').click(); 1"); await dormir(2000);
+      c("🔴 ofertas · y en el Mercado ya no sale ninguna (una cancelada, la otra agotada)", !(await q3.js("!!document.querySelector('.oferta-card')")));
+      await q3.cerrar();
+      await rita.js("var a=document.getElementById('of-auto'); a.checked=false; a.dispatchEvent(new Event('change')); 1");
+      c("ofertas · y se pueden apagar las automáticas", await rita.hasta("/apagadas/.test((document.getElementById('c-aviso')||{}).innerText||'')", 20) && (await leerDoc("projects/" + P)).stargate.ofertasAuto === false);
+      await fs.collection("projects").doc(P).update({ "stargate.ofertasAuto": true });
+      c("ofertas · sin errores en la consola", !rita.errores.filter(e => !/Failed to load resource/.test(e)).length, rita.errores[0] || "");
+      await rita.cerrar();
+    }
+
+    // ============================================================ 30 · EL SORTEO SE RESUELVE SOLO (SEMANA 16)
+    /**
+     * Norberto (14-sep): «el dinero no se devuelve: es como una lotería… se resuelve la semana 16,
+     * automáticamente. Los estudiantes cuando entran esa semana les aparecerá "ver resultado del
+     * sorteo" y aparecen los ganadores. Importante guardar estos datos para dar las licencias».
+     */
+    if (hacer(30)) {
+      const A = admin(), fs = A.firestore(), P = "lab-clase", T = P + "__sorteoauto", PR = P + "__premio_sorteoauto", T0 = P + "__sorteovacio", PR0 = P + "__premio_sorteovacio";
+      const GENTE = { gana: ["gana@lab.test", "Gana Prueba", "Fortuna"], pierde: ["pierde@lab.test", "Pierde Prueba", "Revés"] };
+      for (const k of Object.keys(GENTE)) { const [correo, nombre, alias] = GENTE[k];
+        for (let i = 0; i < 2 && !(await fichaDe(correo, P)); i++) { const a = await nueva("Alta " + nombre); await alistar(a, correo, nombre, alias, 0); await a.cerrar(); } }
+      const F = {}; for (const k of Object.keys(GENTE)) F[k] = await fichaDe(GENTE[k][0], P);
+      const ayer = Date.now() - 3600e3, sem6 = Date.now() - 60 * 864e5;
+      const premio = (id, t) => ({ projectId: P, title: t, description: "", cost: 0, inStore: false, type: "item", stargateTipo: "premio_sorteo", isLimitedStock: true, globalStock: 1, globalStockInitial: 1, requiresDelivery: true });
+      const ticket = (id, pr, t) => ({ projectId: P, title: "Participación · " + t, description: "", cost: 20, type: "digital", enabled: true, inStore: true, systemEffect: "lottery_ticket",
+        linkedItemId: pr, ticketDeadline: ayer, availableFrom: sem6, availableUntil: ayer, stargateTipo: "sorteo", stargateSemana: 6,
+        stargateSorteo: { premio: t, ganadores: 1, fecha: ayer, desde: sem6, fijo: true, imagen: "sorteo.jpg" } });
+      await fs.collection("rewards").doc(PR).set(premio(PR, "Una licencia de prueba"));
+      await fs.collection("rewards").doc(T).set(ticket(T, PR, "Una licencia de prueba"));
+      await fs.collection("rewards").doc(PR0).set(premio(PR0, "Un sorteo sin nadie"));
+      await fs.collection("rewards").doc(T0).set(ticket(T0, PR0, "Un sorteo sin nadie"));
+      // una sola papeleta en el bombo: gana Fortuna seguro (así se comprueba lo que ve quien gana y quien no)
+      await fs.collection("student_profiles").doc(F.gana._id).update({ ["lotteryEntries." + T]: 3 });
+      const n1 = await nueva("Revés entra en la semana 16");
+      // (el Gran Sorteo de Genially —si ya se sorteó en la 25— y el vacío, ya vistos: así el aviso es el de este)
+      const vistosOtros = q => q.js(`['${P}__sorteo1','${T0}'].forEach(function(d){ localStorage.setItem('sgSorteoVisto_${P}_'+d,'1'); }); 1`);
+      await n1.ir("entrar.html"); await n1.entrarComo(GENTE.pierde[0], GENTE.pierde[1]); await sinBienvenidas(n1); await vistosOtros(n1);
+      await n1.ir("recluta.html?per=" + P);
+      c("🔴 sorteo auto · al entrar alguien, el sorteo vencido se resuelve SOLO en el servidor", await (async () => { for (let i = 0; i < 30; i++) { const t = await leerDoc("rewards/" + T); if (t && t.isRaffleCompleted) return true; await dormir(700); } return false; })());
+      const tk = await leerDoc("rewards/" + T), arch = await leerDoc("projects/" + P + "/lottery_archives/" + T);
+      c("🔴 sorteo auto · gana quien tenía papeletas, lo marca como automático y guarda su contacto (para dar la licencia a mano)",
+        tk.raffleWinnerIds[0] === F.gana._id && tk.raffleResolvedBy === "auto" && arch && arch.automatico === true && arch.ganadoresContacto[0].correo === "gana@lab.test" && /Gana/.test(arch.ganadoresContacto[0].nombre),
+        JSON.stringify(arch && arch.ganadoresContacto));
+      c("sorteo auto · y el que no tenía a nadie se cierra sin ganadores", (await leerDoc("rewards/" + T0)).isRaffleCompleted === true && (await leerDoc("rewards/" + T0)).raffleWinnerIds.length === 0);
+      c("🔴 sorteo auto · quien no ha ganado lo ve al entrar: «Ver resultado del sorteo»", await n1.hasta("!!document.querySelector('[data-sorteo-ver]')", 25), await n1.js("(document.querySelector('.sorteo-aviso')||{}).innerText||''"));
+      await n1.js("document.querySelector('[data-sorteo-ver]').click(); 1");
+      c("sorteo auto · NEBULA enseña el resultado: el ganador con su cara, y «esta vez no te ha tocado… lo jugado no se devuelve»",
+        await n1.hasta("!!document.querySelector('.sorteo-resultado') && /Fortuna/.test(document.querySelector('.sorteo-resultado').innerText) && /no se devuelve/.test(document.querySelector('.sorteo-resultado').innerText)", 15));
+      await dormir(1800); await n1.foto(FOTOS + "/30-resultado-no-gana.png");
+      await n1.cerrar();
+      const g1 = await nueva("Fortuna entra");
+      await g1.ir("entrar.html"); await g1.entrarComo(GENTE.gana[0], GENTE.gana[1]); await sinBienvenidas(g1); await vistosOtros(g1);
+      await g1.ir("recluta.html?per=" + P); await g1.hasta("!!document.querySelector('[data-sorteo-ver]')", 25);
+      await g1.js("document.querySelector('[data-sorteo-ver]').click(); 1");
+      c("🔴 sorteo auto · y quien gana: «🏆 ¡Eres tú!»", await g1.hasta("/Eres tú/.test((document.querySelector('.sorteo-resultado')||{}).innerText||'')", 15));
+      await dormir(1800); await g1.foto(FOTOS + "/30-resultado-gana.png");
+      await g1.cerrar();
+      const rita = await nueva("Rita copia los ganadores");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"sorteos\"]')", 25);
+      await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1"); await rita.hasta(`!!document.querySelector('[data-copiar-gan="${T}"]')`, 20);
+      await rita.js("window.__copiado=''; navigator.clipboard.writeText=function(t){ window.__copiado=t; return Promise.resolve(); }; document.querySelector('[data-copiar-gan=\"" + T + "\"]').click(); 1");
+      c("🔴 sorteo auto · en la consola, «se resolvió solo» y «📋 Copiar ganadores» copia alias, nombre y correo",
+        await rita.hasta("/gana@lab\\.test/.test(window.__copiado||'') && /Fortuna/.test(window.__copiado)", 15) && /se resolvió solo/.test(await rita.texto()),
+        await rita.js("window.__copiado||''"));
+      await rita.foto(FOTOS + "/30-consola-ganadores.png");
+      await rita.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

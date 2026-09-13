@@ -25,7 +25,7 @@ c(titulos().indexOf(G.TIT_FONDO) >= 0, "y por el planeta de fondo");
 
 // las recompensas ofrecidas son las del catálogo, con el héroe dentro
 const opc = canje.getItems().filter(i => i.getTitle() === "Recompensa")[0].getChoices().map(o => o.getValue());
-c(opc.some(x => x.indexOf("Héroe de la Rebelión") === 0), "«Héroe de la Rebelión» se puede pedir");
+c(opc.some(x => x.indexOf("Cápsula de rescate") === 0), "«Cápsula de rescate» (el héroe al azar) se puede pedir");
 c(!opc.some(x => x.indexOf("Cambio de avatar") === 0), "🔴 y «Cambio de avatar» ya no aparece en la lista");
 
 // ---------------------------------------------------------------- b) idempotente

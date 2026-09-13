@@ -406,6 +406,21 @@ def envolver(d, texto, ancho, px, fnt, color):
     return [(l, f, px, color) for l in lineas]
 
 
+def cofres():
+    """14-sep · los sobres y las cápsulas nuevos (arte de Magnific, cuenta mutecdgami), con su rótulo.
+    Los porcentajes salen de COFRES (_site_data.py): el mismo dato que usa el motor."""
+    from _site_data import _pct_cofre
+    h, r, e = _pct_cofre("heroe"), _pct_cofre("sobre_raro"), _pct_cofre("sobre_epico")
+    el = _pct_cofre("capsula_elite")
+    arte("capsula_rescate", "Una cápsula de rescate",
+         "Un héroe al azar · Resistencia %d %% · Vanguardia %d %% · MITO %d %%" % (h["rara"], h["épica"], h["legendaria"]), "capsula_rescate.jpg")
+    arte("sobre_grande", "Un sobre grande", "CINCO cartas al azar · más cartas por cada crédito", "sobre_grande.jpg")
+    arte("sobre_raro", "Un sobre de raras", "Rara %d %% · épica %d %% · legendaria %d %% · común solo %d %%" % (r["rara"], r["épica"], r["legendaria"], r["común"]), "sobre_raro.jpg")
+    arte("sobre_epico", "Un sobre épico", "Ninguna común · épica %d %% · LEGENDARIA %d %%" % (e["épica"], e["legendaria"]), "sobre_epico.jpg")
+    arte("capsula_elite", "Una cápsula de élite", "Sin la Resistencia · Vanguardia %d %% · MITO %d %%" % (el["épica"], el["legendaria"]), "capsula_elite.jpg")
+    arte("capsula_legendaria", "Una cápsula legendaria", "Un MITO seguro · el héroe más raro de la Rebelión", "capsula_legendaria.jpg")
+
+
 if __name__ == "__main__":
     import sys
     # `python3 _build_img_formularios.py sorteo` → solo esa (sin tocar las demás)
@@ -425,6 +440,7 @@ if __name__ == "__main__":
 
     print("\n· CANJE · arte de Magnific, rotulado aquí")
     arte("sobre", "Un sobre de cromos", "Tres cartas al azar de las 26 · se abre solo en tu Nave", "sobre.jpg")
+    cofres()
     arte("nota_05", "Media décima más", "Sube 0,5 en el entregable que tú elijas", "nota_05.jpg")
     arte("nota_1punto", "Un punto entero", "Sube 1 punto en el entregable que tú elijas", "nota_1punto.jpg")
     arte("nota_plazo", "El plazo se reabre", "Se recalifica un trabajo que entregaste tarde", "nota_plazo.jpg")

@@ -28,7 +28,7 @@ const antesCred = ficha().creditos;
 const antesHer  = ficha().n_heroes;
 
 // ---------------------------------------------------------------- a) se canjea de verdad
-const r0 = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: "Héroe de la Rebelión — 60 créditos" });
+const r0 = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: "Cápsula de rescate — 60 créditos" });
 contiene(r0.estado, "Concedido", "el canje se concede");
 const conCred = ficha().creditos;
 c(conCred < antesCred, "y le ha costado dinero (" + antesCred + " → " + conCred + ")");
@@ -67,7 +67,7 @@ const traza = G.hoja_(G.H.AJ).getDataRange().getValues().slice(1)
   .filter(v => String(v[4]) === "canje_revertido");
 igual(traza.length, 1, "🔬 la reversión deja UNA fila en AJUSTES");
 igual(String(traza[0][2]), "rico@alumno.es", "con el correo de quien lo tenía");
-contiene(String(traza[0][5]), "Héroe", "y qué se le quitó");
+contiene(String(traza[0][5]), "Cápsula de rescate", "y qué se le quitó");
 igual(String(traza[0][6]), "Mr Cuarter", "y quién lo hizo");
 
 // ---------------------------------------------------------------- g) filas imposibles
@@ -84,7 +84,7 @@ c(!!r9.error, "ni una fila que no existe");
 contiene(String(r9.error), "recarga", "y le dice al docente que recargue");
 
 // ---------------------------------------------------------------- h) se puede volver a canjear
-const r3 = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: "Héroe de la Rebelión — 60 créditos" });
+const r3 = E.enviarCanje(G, PER, { email: "rico@alumno.es", recompensa: "Cápsula de rescate — 60 créditos" });
 contiene(r3.estado, "Concedido", "🔴 tras revertir, puede volver a canjearlo (no se queda bloqueado)");
 
 // ---------------------------------------------------------------- i) LOS SORTEOS NO SE REVIERTEN

@@ -292,6 +292,30 @@
       }).join('')+'</ol></div>'};
   }
 
+  // ── 7b · los coleccionistas: reconocer a los que van más avanzados con cromos, héroes e insignias
+  // (Norberto: «es importante también dar reconocimiento a los que van más avanzados con los cromos,
+  // avatares…»). Cada columna se calla si nadie tiene nada; y abajo, quien tiene algo LEGENDARIO.
+  function diaColeccion(){
+    var R=vivos(), col=function(tit, ico, val, tot){
+      var r=R.filter(function(p){ return val(p)>0; }).sort(function(a,b){ return val(b)-val(a); }).slice(0,3);
+      if(!r.length) return '';
+      return '<div class="col-c"><h3>'+ico+' '+tit+'</h3><ol>'+r.map(function(p,i){
+        return '<li style="--i:'+i+'"><span class="col-pos">'+(i+1)+'</span>'+cara(p)+'<b>'+esc(p.alias)+'</b><span class="col-n">'+val(p)+(tot?'<em>/'+tot(p)+'</em>':'')+'</span></li>'; }).join('')+'</ol></div>';
+    };
+    var c=function(p,k){ return ((p.coleccion||{})[k]||{}); };
+    var cols=[col('Álbum de cromos','🃏', function(p){ return c(p,'cromos').tengo||0; }, function(p){ return c(p,'cromos').total||26; }),
+              col('Héroes','🛡️', function(p){ return c(p,'heroes').tengo||0; }, function(p){ return c(p,'heroes').total||''; }),
+              col('Insignias','🏅', function(p){ return p.n||0; }, function(){ return 24; })].filter(Boolean);
+    var ley=R.filter(function(p){ return (p.leyendas||[]).length; });
+    if(!cols.length) return null;
+    return {k:'coleccion', rot:'Coleccionistas', html:
+      '<div class="dia coleccion"><div class="kicker">🃏 Los coleccionistas</div><h2>Los que más han reunido</h2>'
+      +'<div class="col-grid">'+cols.join('')+'</div>'
+      +(ley.length?'<div class="col-ley"><span class="col-ley-t">👑 Tienen algo legendario</span>'+ley.slice(0,8).map(function(p){
+          return '<span class="col-ley-u">'+cara(p)+'<b>'+esc(p.alias)+'</b><em>'+esc(p.leyendas[0])+(p.leyendas.length>1?' y '+(p.leyendas.length-1)+' más':'')+'</em></span>'; }).join('')+'</div>':'')
+      +'</div>'};
+  }
+
   // ── 8 · escuadrones, por MEDIA (si fuera por suma ganaría siempre el más numeroso)
   function diaEscuadrones(){
     var por={}; vivos().forEach(function(p){ var e=p.profe||''; if(e) (por[e]=por[e]||[]).push(p.xp||0); });
@@ -348,6 +372,24 @@
       .then(function(d){ TK={per:st.per, lista:(d&&d.tickets)||[]}; pinta(TK.lista); })
       .catch(function(){ if(vivo) caja.innerHTML='<p class="sub">No he podido leer el ticket ahora mismo.</p>'; });
     return function(){ vivo=false; };
+  }
+
+  // ── 9b · la oferta de la semana, la misma que hay en su Nave: se habla de ella en clase
+  function diaOferta(){
+    var t=Date.now(), R=(st.d&&st.d.recompensas)||[];
+    var x=R.filter(function(r){ var o=r.oferta; return r.tipo==='oferta'&&o&&!o.cancelada&&t>=(o.desde||0)&&t<(o.fin||0)&&(o.quedan==null||o.quedan>0); })[0];
+    if(!x) return null;
+    var o=x.oferta, q=o.que||{}, img;
+    if(q.tipo==='heroe') img='assets/img/heroes/'+q.clave+'.jpg';
+    else if(q.tipo==='carta') img='assets/img/tarjetas/'+q.clave+'_carta.png';
+    else { var tienda=R.filter(function(r){ return r.tipo===q.cual; })[0]; img='assets/img/canje/'+(((window.SG_IMG_RECOMPENSA||{})[(tienda||{}).nombre])||'sobre.jpg'); }
+    var fin=new Date(o.fin-60000), dia=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][fin.getDay()];
+    return {k:'oferta', rot:'La oferta', html:
+      '<div class="dia oferta-dia'+(q.tipo==='carta'?' es-carta':'')+'"><div class="of-dia-img"><img src="'+esc(img)+'" alt=""><span class="of-pct">−'+o.pct+' %</span></div>'
+      +'<div class="of-dia-txt"><div class="kicker">⚡ La oferta de la semana</div><h2>'+esc(o.nombre)+'</h2>'
+      +'<p class="odia-precio"><s>'+o.base+' ◈</s> <b>'+o.precio+' ◈</b></p>'
+      +'<p class="odia-meta">'+(o.quedan==null?'Sin límite de unidades':'Solo quedan <b>'+o.quedan+'</b>')+' · una por persona · hasta el '+dia+'</p>'
+      +'<p class="sub">En el Mercado de vuestra Nave. Cuando se acaban, se acaban.</p></div></div>'};
   }
 
   // ── 11 · las misiones de hoy, cada una con su insignia (el plan y el hito, dentro)
@@ -424,7 +466,7 @@
     var d=[diaPortada(s, n)];
     if(st.per) d.push(diaLlamada());
     deTipo('inicio').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 Para empezar')); });
-    [diaAnteriores(s), diaMovido(), diaSemanal(), diaTop(), diaEscuadrones(), diaTicket()]
+    [diaAnteriores(s), diaMovido(), diaSemanal(), diaTop(), diaColeccion(), diaEscuadrones(), diaTicket(), diaOferta()]
       .forEach(function(x){ if(x) d.push(x); });
     d=d.concat(diapositivasNuevas(s));
     deTipo('mision').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 La misión')); });

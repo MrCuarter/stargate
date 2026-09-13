@@ -206,7 +206,7 @@
         st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true;
         if(st.email) localStorage.setItem(KEY_MAIL,st.email);
         st.msgYo='';
-        setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200);
+        setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200); setTimeout(sorteosAlEntrar, 900); setTimeout(ofertaAlEntrar, 1100);
       } else if(d&&d.error){
         st.msgYo='No he podido comprobar tu cuenta: '+esc(d.error);
       } else {
@@ -231,7 +231,7 @@
       if(d&&d.yo){st.yo=d.yo;st.email=email;localStorage.setItem(KEY_MAIL,email);st.msgYo='';
         // 🔴 ACTO 2: aquí, con su ficha ya delante. Se espera un poco a que la nave termine de
         // pintarse — explicar «mira tu personaje» sobre una pantalla en blanco no explica nada.
-        setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200);
+        setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200); setTimeout(sorteosAlEntrar, 900); setTimeout(ofertaAlEntrar, 1100);
       }
       else if(d&&d.yo===null){st.yo=null;st.msgYo='No encuentro a nadie con ese correo en este grupo. Tiene que ser el <b>mismo correo de Google</b> con el que '+(motorNuevo()?'te alistaste':'rellenaste la Bitácora de mando')+'. ¿Todavía no te has alistado? Ese es el primer paso — el botón de abajo.';}
       else{st.yo=null;st.msgYo='La identificación aún no está activa (el mando tiene que actualizar el sistema). El resto de la nave funciona; vuelve a intentarlo más adelante.';}
@@ -948,7 +948,7 @@
     return '<section id="vestuario"><div class="eyebrow amber">Tu vestuario</div>'
       +'<h2>Ponte lo que quieras</h2>'
       +'<p class="lead">Las <b>skins</b> de tu personaje se desbloquean al subir de nivel, y los '
-      +'<b>héroes</b> salen al azar al canjear «Héroe de la Rebelión». Todo lo que tengas te lo pones '
+      +'<b>héroes</b> llegan en las <b>cápsulas</b> del Mercado (de rescate, de élite y la legendaria). Todo lo que tengas te lo pones '
       +'y te lo quitas cuando quieras, <b>gratis</b>.</p>'
       +'<h3 style="margin-top:1em">Tus skins <span class="small muted">'+skins.length+' de 5</span></h3>'
       +'<div class="vest-grid">'+sk+'</div>'
@@ -973,9 +973,20 @@
    * Llega EN DIRECTO (una conexión a la escucha, no preguntar cada diez segundos: con 200 alumnos
    * eso serían 1.200 lecturas por minuto para enterarse tarde).
    */
+  /**
+   * 14-sep · LA CUENTA CONGELADA por su referente: entra y mira, pero no hace nada. El candado está
+   * en el servidor; aquí solo se dice, arriba y sin que se pueda cerrar, para que nadie pulse cosas
+   * pensando que la web está rota.
+   */
+  function avisoCongelado(){
+    if(!st.yo||!st.yo.congelado||SIMULACRO) return '';
+    return '<div class="card congelado-aviso" role="status"><p>🧊 <b>Tu referente ha congelado tu cuenta.</b> '
+      +'Puedes mirar tu Nave, pero no registrar retos, comprar, fichar ni usar el Zoco hasta que la descongele. '
+      +'Si crees que es un error, habla con tu Comandante.</p></div>';
+  }
   function avisoPase(){
     var L=st.llamada;
-    if(!L||!st.yo) return '';
+    if(!L||!st.yo||st.yo.congelado) return '';
     /**
      * 🔴 12-sep · UNA LLAMADA DE OTRO ESCUADRÓN NO ES ASUNTO TUYO. Cada Comandante toca llamada para
      * SU escuadrón, y la Nave se la enseñaba a todo el grupo: el laboratorio simuló una clase y a
@@ -1598,6 +1609,12 @@
     cromo:      ["🃏","Carta del álbum","Se abre sola y se queda en tu álbum.","Ver mi álbum","botin"],
     cromo_repes:["🔁","Cambio de repetidos","Tus repetidas se convierten en un sobre nuevo.","Ver mi álbum","botin"],
     heroe:      ["🛡️","Héroe de la Rebelión","Lo tendrás en el vestuario: puedes vestirlo cuando quieras.","Ir al vestuario","botin"],
+    // 14-sep · los sobres y las cápsulas nuevos
+    sobre_grande:["🃏","Cartas del álbum","Cinco cartas que se abren solas y se quedan en tu álbum.","Ver mi álbum","botin"],
+    sobre_raro: ["💎","Cartas del álbum","Tres cartas con muchas más raras y épicas. Se quedan en tu álbum.","Ver mi álbum","botin"],
+    sobre_epico:["✨","Cartas del álbum","Tres cartas sin comunes. Se quedan en tu álbum.","Ver mi álbum","botin"],
+    capsula_elite:["🟪","Héroe de la Rebelión","Un héroe de la Vanguardia o un Mito, a tu vestuario.","Ir al vestuario","botin"],
+    capsula_legendaria:["🟨","Héroe legendario","Un Mito seguro, a tu vestuario.","Ir al vestuario","botin"],
     heroe_repes:["🔁","Cambio de héroes repetidos","Dos repetidos se convierten en un héroe nuevo al azar.","Ir al vestuario","botin"],
     marco:      ["🖼️","Adorno de tu ficha","Enmarca tu avatar. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
     fondo:      ["🌌","Adorno de tu ficha","Cambia el fondo de tu ficha. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
@@ -1643,6 +1660,49 @@
       +'</div><div class="rec-pie">'+afford+boton+'</div></div>';
   }
   function queEs(tipo){ return QUE_ES[tipo] || ["🎁","Recompensa","",'',""]; }
+  /**
+   * 14-sep · LA OFERTA DE LA SEMANA (Norberto: «un ítem que aparece aleatoriamente de forma temporal en
+   * el mercado… rebajado, con stock limitado en tiempo y en unidades»). Arriba del Mercado, en grande:
+   * qué es, el precio tachado y el rebajado, cuántas quedan y cuánto le queda. Una por persona.
+   */
+  function vivaOferta(o){ var t=Date.now(); return !!o && !o.cancelada && t>=(o.desde||0) && t<(o.fin||0) && (o.quedan==null || o.quedan>0); }
+  function imgOferta(o){
+    var q=(o&&o.que)||{};
+    if(q.tipo==='heroe') return 'assets/img/heroes/'+q.clave+'.jpg';
+    if(q.tipo==='carta') return 'assets/img/tarjetas/'+q.clave+'_carta.png'+CARDV;
+    var t=((st.d&&st.d.recompensas)||[]).filter(function(r){ return r.tipo===q.cual; })[0], im=t&&(window.SG_IMG_RECOMPENSA||{})[t.nombre];
+    return 'assets/img/canje/'+(im||'sobre.jpg');
+  }
+  function quedaTiempo(fin){ var s=Math.max(0,Math.round((fin-Date.now())/1000)), d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60);
+    return d?d+' d '+h+' h':h?h+' h '+m+' min':m+' min'; }
+  function tarjetaOferta(x){
+    var o=x.oferta, r=st.yo, mis=r?(r.creditos!=null?r.creditos:0):0, ya=!!(r&&r.ofertas&&r.ofertas[x.doc]), q=o.que||{};
+    var rz=String(o.rareza||'común').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    var boton=!r||!motorNuevo()?'':ya?'<span class="chip done">✅ Ya la tienes (una por persona)</span>'
+      :mis<o.precio?'<span class="chip wip">Te faltan '+(o.precio-mis)+' ◈</span>'
+      :'<button class="btn primary grande" type="button" data-canje="'+esc(x.doc)+'" data-nombre="'+esc(o.nombre)+'" data-coste="'+o.precio+'" data-tipo="oferta_'+esc(o.abre||'sobre')+'" data-abrir="1" data-usos="'+(x.usos||1)+'">⚡ Comprar por '+o.precio+' ◈</button>';
+    return '<div class="card oferta-card rz-'+rz+(q.tipo==='carta'?' es-carta':'')+'">'
+      +'<div class="of-foto"><img src="'+esc(imgOferta(o))+'" alt="" loading="lazy"><span class="of-pct">−'+o.pct+' %</span></div>'
+      +'<div class="of-cuerpo"><div class="of-kicker">⚡ '+(o.auto?'Oferta de la semana':'Oferta especial')+(o.rareza?' · '+esc(o.rareza):'')+'</div>'
+      +'<h3>'+esc(o.nombre)+'</h3>'
+      +'<p class="of-precio"><s>'+o.base+' ◈</s> <b>'+o.precio+' ◈</b></p>'
+      +'<p class="of-meta">'+(o.quedan==null?'<span>Sin límite de unidades</span>':'<span>Quedan <b>'+o.quedan+'</b> de '+(o.total||o.quedan)+'</span>')
+      +'<span>Una por persona</span><span>⏳ Termina en <b>'+quedaTiempo(o.fin)+'</b></span></p>'
+      +boton+'</div></div>';
+  }
+  /** 14-sep · al entrar: si esta semana aún no tiene su oferta, el servidor la crea (una vez) */
+  var ofertaPedida=false;
+  function ofertaAlEntrar(){
+    if(ofertaPedida||!st.yo||SIMULACRO||!motorNuevo()||st.estado!=='curso'||(st.actual||0)<3) return;
+    var M=window.SG&&window.SG.MOTOR; if(!M||!M.oferta) return;
+    if(((st.d&&st.d.recompensas)||[]).some(function(x){ return x.tipo==='oferta'&&x.oferta&&x.oferta.auto&&x.oferta.semana===st.actual; })) return;
+    ofertaPedida=true;
+    M.oferta(per,'semana').then(function(r){
+      if(r&&r.nueva) return SG.FUENTE.tablero(per,true).then(function(d){ if(d&&!d.error){ st.d=d; render(); } });
+    }).catch(function(){});
+  }
+  /** 14-sep · lo que se abre al comprarlo: el sobre de siempre, los sobres nuevos y las cápsulas. */
+  function esCofre(t){ return /^(cromo|heroe|sobre_[a-z]+|capsula_[a-z]+)$/.test(String(t||'')); }
 
   function recompensas(){
     var d=st.d; var cat=d.recompensas||[]; var n=st.semanas.length; var r=st.yo;
@@ -1667,7 +1727,8 @@
     var yaAbierto=function(t){ var ex=d.capitulosAbiertos||{}; return CAPS.some(function(c){ return ex[c.clave]&&(c.mercado||[]).indexOf(t)>=0; }); };
     var desdeDe=function(x){ if(motorNuevo()&&yaAbierto(x.tipo)) return 1;
       return motorNuevo() ? (Number(x.desde)||14) : window.SGCAL.desdeEfectiva(x.desde||14,d.tipo,n); };
-    cat = cat.slice().sort(function(a,b){
+    var ofertas=cat.filter(function(x){ return x.tipo==='oferta'&&x.oferta&&vivaOferta(x.oferta); });
+    cat = cat.filter(function(x){ return x.tipo!=='oferta'; }).sort(function(a,b){
       var aa=st.estado!=='antes'&&st.actual>=desdeDe(a);
       var bb=st.estado!=='antes'&&st.actual>=desdeDe(b);
       if(aa!==bb) return aa?-1:1;          // primero lo que se puede comprar hoy
@@ -1707,7 +1768,7 @@
       var boton = (motorNuevo() && r && !tope && !faltanRepes && mis>=x.coste && x.id)
         ? '<button class="btn primary" type="button" data-canje="'+esc(x.doc||x.id)+'" '
           +'data-nombre="'+esc(x.nombre)+'" data-coste="'+x.coste+'" data-tipo="'+esc(x.tipo||'')+'"'
-          +' data-abrir="'+((x.tipo==='cromo'||x.tipo==='heroe')?'1':'0')+'"'
+          +' data-abrir="'+(esCofre(x.tipo)?'1':'0')+'"'
           // 🔴 Cuántas cartas trae: un sobre son TRES, un héroe uno. El dato viaja con el botón
           // porque el número lo decide el catálogo (`maxUses`), no la Nave.
           // 🔴 12-sep · era «3» a fuego, y los grupos creados antes de pasar a tres cartas traen
@@ -1740,6 +1801,8 @@
         ? '<p class="small" style="color:var(--amber)"><b>Ojo al calendario:</b> las misiones se registran hasta el <b>'+fecha(d.cierre_misiones)+'</b>, pero el canje sigue abierto <b>una semana más</b>, hasta el <b>'+fecha(d.cierre_canje)+'</b>. Esa última semana ya no se gana nada: solo se gasta lo ganado.</p>'
         : (d.cierre_canje?'<p class="small muted">El canje cierra el <b>'+fecha(d.cierre_canje)+'</b>.</p>':''))
       // filas llenas: de tres en tres si cuadra, si no de dos en dos (con 2, 4 o 10 tarjetas)
+      // 14-sep · la oferta de la semana (y las del referente), arriba y en grande
+      +(ofertas.length?'<div class="ofertas">'+ofertas.map(tarjetaOferta).join('')+'</div>':'')
       +'<div class="grid '+((abiertas%3===0||abiertas<2)?'cols-3':(abiertas%2===0?'cols-2':'cols-3'))+' nave-rec">'+cards+'</div>'
       +(porCapitulos()?(function(){
           var ab=capsAbiertos(), vienen=CAPS.filter(function(c){ return ab.indexOf(c)<0 && (c.mercado||[]).length; });
@@ -2102,12 +2165,54 @@
   }
   function avisoSorteo(){
     var l=sorteosHechosSinVer(); if(!l.length) return '';
-    var x=l[0], S=x.sorteo, gane=(S.ganadoresFichas||[]).indexOf(st.yo.fid)>=0;
+    var x=l[0], S=x.sorteo, gane=(S.ganadoresFichas||[]).indexOf(st.yo.fid)>=0, nadie=!(S.ganadoresAlias||[]).length;
     return '<div class="card sorteo-aviso'+(gane?' gane':'')+'" role="status"><p>'+(gane
         ? '🏆 <b>¡Has ganado el Gran Sorteo!</b> Te llevas: <b>'+esc(S.premio)+'</b>. Tu docente te dirá cómo recibirlo.'
-        : '🎟️ <b>El Gran Sorteo ya se ha hecho:</b> '+esc(S.premio)+' para <b>'+(S.ganadoresAlias||[]).map(esc).join('</b> y <b>')+'</b>.')
-      +'</p><span><button type="button" class="btn primary" data-sorteo-visto="'+esc(x.doc)+'" data-tab="mercado">Ver el sorteo</button>'
+        : nadie ? '🎟️ <b>El Gran Sorteo se ha resuelto:</b> esta vez nadie tenía participaciones.'
+        : '🎟️ <b>El Gran Sorteo ya tiene ganadores:</b> '+esc(S.premio)+' para <b>'+(S.ganadoresAlias||[]).map(esc).join('</b> y <b>')+'</b>.')
+      +'</p><span><button type="button" class="btn primary" data-sorteo-ver="'+esc(x.doc)+'">🎟️ Ver resultado del sorteo</button>'
       +'<button type="button" class="btn" data-sorteo-visto="'+esc(x.doc)+'" aria-label="Cerrar el aviso">✕</button></span></div>';
+  }
+  /**
+   * 14-sep · «VER RESULTADO DEL SORTEO» (Norberto: «se resuelve la semana 16, automáticamente; los
+   * estudiantes cuando entran esa semana les aparecerá "ver resultado del sorteo" y los ganadores»).
+   * NEBULA lo cuenta: el premio, los ganadores con su cara (uno a uno) y qué te ha pasado a ti. Como
+   * en una lotería, lo jugado no se devuelve.
+   */
+  function verResultadoSorteo(x){
+    var S=x.sorteo||{}, R=(st.d&&st.d.reclutas)||[], gane=(S.ganadoresFichas||[]).indexOf(st.yo&&st.yo.fid)>=0;
+    var gente=(S.ganadoresFichas||[]).map(function(f,i){ return R.filter(function(r){ return r.fid===f; })[0] || { alias:(S.ganadoresAlias||[])[i]||'', avatar:null, xp:0 }; });
+    var capa=document.createElement('div'); capa.className='neb-capa';
+    capa.innerHTML='<div class="neb-caja gana sorteo-resultado" role="dialog" aria-modal="true" aria-labelledby="sres-t">'
+      +'<div class="neb-cara"><img src="assets/img/personajes/nebula.png" alt="NEBULA"></div><div class="neb-quien">NEBULA</div>'
+      +'<h3 id="sres-t">🎟️ El resultado del Gran Sorteo</h3>'
+      +'<div class="neb-arte"><img src="assets/img/canje/'+esc(S.imagen||'sorteo_generico.jpg')+'" alt=""></div>'
+      +'<p class="neb-nota">'+esc(S.premio||'')+(S.fecha?' · sorteado el <b>'+fechaLarga(S.fecha)+'</b>':'')+'</p>'
+      +(gente.length?'<div class="sres-gan">'+gente.map(function(p,i){
+          return '<figure style="--i:'+i+'">'+(SG.avatarImg?SG.avatarImg(p.avatar,p.alias,'',p.xp,(st.d||{}).tipo):'')+'<figcaption>'+esc(p.alias)+'</figcaption></figure>'; }).join('')+'</div>'
+        :'<p class="neb-nota">Nadie tenía participaciones: esta vez no hubo ganadores.</p>')
+      +'<p class="neb-nota sres-tu">'+(gane?'🏆 <b>¡Eres tú!</b> Tu docente te dirá cómo recibir tu premio.'
+        :'Esta vez no te ha tocado. Como en toda lotería, lo jugado no se devuelve… ¡suerte en la próxima!')+'</p>'
+      +'<div class="neb-botones"><button type="button" class="btn primary" data-cerrar>Seguir</button></div></div>';
+    document.body.appendChild(capa);
+    var fuera=function(){ document.removeEventListener('keydown',tecla,true); if(capa.parentNode) capa.parentNode.removeChild(capa); render(); };
+    var tecla=function(e){ if(e.key==='Escape'){ e.preventDefault(); fuera(); } };
+    document.addEventListener('keydown',tecla,true);
+    capa.querySelector('[data-cerrar]').onclick=fuera; capa.onclick=function(ev){ if(ev.target===capa) fuera(); };
+    if(gane&&window.SG&&SG.FIESTA) setTimeout(function(){ SG.FIESTA.sonar('insignia'); var a=capa.querySelector('.neb-arte'); if(a){ var r=a.getBoundingClientRect(); SG.FIESTA.chispas(r.left+r.width/2, r.top+r.height/2, ['#ffd166','#37e0ec','#ffffff']); } }, 900);
+  }
+  /** 14-sep · al entrar: si un sorteo ha pasado su fecha y no se ha hecho, se le pide al servidor (una vez) */
+  var sorteosPedidos=false;
+  function sorteosAlEntrar(){
+    if(sorteosPedidos||!st.yo||SIMULACRO||!motorNuevo()) return;
+    var ahora=Date.now(), M=window.SG&&window.SG.MOTOR;
+    var vencidos=((st.d&&st.d.recompensas)||[]).filter(function(x){ return x.tipo==='sorteo'&&x.sorteo&&!x.sorteo.hecho&&x.sorteo.fecha&&x.sorteo.fecha<=ahora; });
+    if(!vencidos.length||!M||!M.sorteosPendientes) return;
+    sorteosPedidos=true;
+    M.sorteosPendientes(per).then(function(r){
+      if(!r||!(r.resueltos||[]).length) return;
+      return SG.FUENTE.tablero(per, true).then(function(d){ if(d&&!d.error){ st.d=d; } quien(null,function(d2){ if(d2&&d2.yo) st.yo=d2.yo; render(); }); });
+    }).catch(function(){});
   }
   function zocoAlEntrar(){
     if(!abierto('zoco')||!st.yo) return;
@@ -2185,11 +2290,11 @@
         {t:'Y los rankings',foco:'.nb-t[data-tab="rankings"]',
          x:'Tu clase de <b>ocho maneras</b>: por xp, por la semana, por colección, por constancia… Si no destacas en una, destacas en otra. Y en Mi nave, tu <b>duelo</b> con quien va justo delante y justo detrás.'}],
     c3:[{t:'Llegan los Héroes de la Rebelión',foco:'.nb-t[data-tab="mercado"]',
-         x:'En el Mercado ya puedes conseguir un <b>héroe al azar</b> de los 30 por 60 ◈. Tres rangos: la Resistencia, la Vanguardia y los <b>MITOS</b>, que casi nadie llega a ver.'},
+         x:'En el Mercado ya está la <b>cápsula de rescate</b>: llega a tu Nave con un <b>héroe al azar</b> de los 30 dentro, por 60 ◈. Tres rangos: la Resistencia, la Vanguardia y los <b>MITOS</b>, que casi nadie llega a ver.'},
         {t:'Tu vestuario',foco:'.nb-t[data-tab="botin"]',
          x:'Tus héroes viven en <b>Mi botín → Personajes y héroes</b>. Te los pones y te los quitas gratis, cuando quieras. ¿Repetido? Con <b>2 repetidos</b>, uno nuevo al azar.'}],
     c4:[{t:'Tu ficha, a tu gusto',foco:'.nb-t[data-tab="mercado"]',
-         x:'Tres adornos nuevos en el Mercado: un <b>título</b> bajo tu alias, el <b>fondo</b> de tu ficha con el planeta que elijas y el <b>marco dorado</b> de tu avatar.'},
+         x:'Tres adornos nuevos en el Mercado: un <b>título</b> bajo tu alias, el <b>fondo</b> de tu ficha con el planeta que elijas y el <b>marco dorado</b> de tu avatar. Y el <b>sobre grande</b>: cinco cartas en vez de tres.'},
         {t:'Dónde se ven',foco:'.nb-t[data-tab="botin"]',
          x:'Se ponen desde <b>Mi botín</b>, y se ven en tu ficha y en el <b>tablero de toda la clase</b>.'}],
     c5:[{t:'Se abre El Zoco Estelar',foco:'.nb-t[data-tab="zoco"]',
@@ -2207,9 +2312,14 @@
                x:'Se sortea'+(n>1?'n <b>'+n+'</b> × ':' ')+premio+' entre toda la tripulación. Cada <b>participación</b> es una papeleta: cuantas más tengas, más posibilidades.'},
               {t:'Cómo se consiguen',foco:'.nb-t[data-tab="mercado"]',
                x:'Se compran en el <b>Mercado</b> con créditos'+(s?' ('+s.coste+' ◈ cada una'+(s.max&&s.max<99?', como mucho '+s.max:'')+')':'')+'. Tu docente también las <b>regala</b> en clase, o las esconde en un enlace. '
-                 +(S.fecha?'Se sortea el <b>'+fechaLarga(S.fecha)+'</b>, en clase y a la vista de todos, ':'Se sortea en clase, a la vista de todos, ')+'y <b>nadie gana dos</b>. '
+                 +(S.fecha?'Se sortea <b>solo</b> el <b>'+fechaLarga(S.fecha)+'</b>: ese día, al entrar en tu Nave, verás el resultado. ':'Se sortea solo, y al entrar en tu Nave verás el resultado. ')+'Como en una lotería, lo jugado no se devuelve, y <b>nadie gana dos</b>. '
                  +'¿Te ofrecen buen precio? Se <b>revenden en el Zoco</b>, como un cromo.'}];
     },
+    // 14-sep · el Hangar de las Leyendas (semana 8): las cápsulas de élite y legendaria, y el sobre épico
+    c8:[{t:'El Hangar de las Leyendas',foco:'.nb-t[data-tab="mercado"]',
+         x:'Tres cosas nuevas en el Mercado. La <b>cápsula de élite</b>: sin la Resistencia, un héroe de la Vanguardia o un Mito. El <b>sobre épico</b>: tres cartas y ninguna común.'},
+        {t:'La cápsula legendaria',foco:'.nb-t[data-tab="mercado"]',
+         x:'Y la joya del hangar: la <b>cápsula legendaria</b>, que trae <b>siempre un Mito</b>. Es la más cara, así que piénsatelo… o estate atento: tu docente puede esconder una en una presentación, o dártela de premio.'}],
     c7:[{t:'Se abre el Arsenal de batalla',foco:'.nb-t[data-tab="mercado"]',
          x:'Los créditos que has ahorrado ya se pueden cambiar por <b>nota</b>: subir 0,5 o 1 punto en un entregable, o que se recalifique un trabajo.'},
         {t:'Antes de comprar, lee esto',foco:'.nb-t[data-tab="mercado"]',
@@ -2283,7 +2393,7 @@
     ov.classList.add('open');
     if(i>=P.length){ov.classList.remove('open');ov.innerHTML='';if(A.clave)localStorage.setItem(A.clave+per,'1');
       Array.prototype.forEach.call(document.querySelectorAll('.tour-foco'),function(el){el.classList.remove('tour-foco');});
-      onboarding._P=null; onboarding._op=null;
+      onboarding._P=null; onboarding._op=null; onboarding._foco=null;
       if(op.alTerminar) op.alTerminar(onboarding._salir?'saltado':'hecho');
       onboarding._salir=false;
       return;}
@@ -2304,6 +2414,7 @@
     // 🔴 Resaltar y DESPLAZAR: explicar «esto de aquí» sin que se vea el «aquí» no explica nada. Se
     // limpia siempre antes, para que no se queden dos cosas encendidas si alguien va y viene.
     Array.prototype.forEach.call(document.querySelectorAll('.tour-foco'),function(el){el.classList.remove('tour-foco');});
+    onboarding._foco=s.foco||null;
     if(s.foco){ try{
       var diana=document.querySelector(s.foco);
       if(diana){ diana.classList.add('tour-foco'); llevarA(diana, ov); }
@@ -2553,7 +2664,7 @@
       st.cargandoYo=false;
       if(d&&d.yo){ st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true;
         if(st.email) localStorage.setItem(KEY_MAIL,st.email);
-        setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200);
+        setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200); setTimeout(sorteosAlEntrar, 900); setTimeout(ofertaAlEntrar, 1100);
       } else if(d&&d.sinSesion&&!DEMO&&window.top===window.self&&q.get('embed')!=='1'){
         /**
          * 🔴 13-sep · SIN SESIÓN, A LA PUERTA ÚNICA. La Nave tenía su propia caja «Identifícate,
@@ -2969,10 +3080,12 @@
         var capaN = document.querySelector('.neb-capa'); if (capaN && capaN.parentNode) capaN.parentNode.removeChild(capaN);
         var tenidas = inventarioDe(antes);
         SG.SOBRE.revelar(varias.map(function(c){ return marcaRepetida(c, tenidas); }),
-          { titulo: tipo === 'heroe' ? 'Tu héroe de la Rebelión' : tipo === 'heroe_repes' ? 'Tu héroe nuevo (por 2 repetidos)' : 'Tu sobre de cromos',
+          { titulo: /^oferta_/.test(tipo || '') ? '⚡ Lo que traía tu oferta' : tipo === 'heroe' ? 'Lo que traía la cápsula de rescate' : tipo === 'capsula_elite' ? 'Lo que traía la cápsula de élite'
+                  : tipo === 'capsula_legendaria' ? '¡Un Mito de la cápsula legendaria!' : tipo === 'heroe_repes' ? 'Tu héroe nuevo (por 2 repetidos)'
+                  : tipo === 'sobre_grande' ? 'Tu sobre grande' : tipo === 'sobre_raro' ? 'Tu sobre de raras' : tipo === 'sobre_epico' ? 'Tu sobre épico' : 'Tu sobre de cromos',
             alAlbum: function(){ irA('botin'); } })
           .then(function(){
-            aviso(/^heroe/.test(tipo || '') ? '🛡️ <b>Un héroe</b> a tu vestuario' + (coste ? ' · −' + coste + ' ◈' : '') + '.'
+            aviso(/^(heroe|capsula|oferta_heroe)/.test(tipo || '') ? '🛡️ <b>Un héroe</b> a tu vestuario' + (coste ? ' · −' + coste + ' ◈' : '') + '.'
               : '🃏 <b>' + varias.length + (varias.length === 1 ? ' carta' : ' cartas') + '</b> a tu álbum'
               + (coste ? ' · −' + coste + ' ◈' : '') + '.');
           });
@@ -3107,7 +3220,14 @@
       if(x){ try{ x.focus({preventScroll:true}); if(e.ini!=null) x.setSelectionRange(e.ini,e.fin); }catch(_){} } }
     if(Math.abs((window.pageYOffset||0)-e.y)>2){ try{ window.scrollTo(0,e.y); }catch(_){} }
   }
-  function render(){ var e=recordarEstado(); pintarNave(); restaurarEstado(e); }
+  function render(){ var e=recordarEstado(); pintarNave(); restaurarEstado(e); reencenderFoco(); }
+  // 14-sep · si la Nave se repinta con NEBULA a medio contar (llegan datos frescos), lo que estaba
+  // iluminado se sustituye y se apaga: el paso decía «esto de aquí» sin «aquí». Se vuelve a encender.
+  function reencenderFoco(){
+    var ov=document.getElementById('nave-onboard'), sel=onboarding._foco;
+    if(!ov||!ov.classList.contains('open')||!sel||document.querySelector('.tour-foco')) return;
+    try{ var d=document.querySelector(sel); if(d) d.classList.add('tour-foco'); }catch(_){}
+  }
   /**
    * 🛰️ LA BARRA DEL SIMULACRO. Lo que el docente necesita para enseñar la Nave delante de la clase:
    * en qué semana está (se ve lo abierto hasta entonces), su personaje, una llamada a filas de
@@ -3205,7 +3325,7 @@
         + '<a class="btn ghost" href="index.html">Volver a la presentación</a></p></div>'
       : '';
     root.innerHTML = avisoDemo + (dentro
-      ? barraSimulacro()+login()+pestanas()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
+      ? barraSimulacro()+login()+pestanas()+avisoCongelado()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
         +'<div id="nave-panel" role="tabpanel" aria-labelledby="nb-t-'+st.tab+'">'+contenido()+'</div>'
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
     verTablero(dentro && st.tab==='rankings');
@@ -3235,6 +3355,9 @@
     }
     cablearSimulacro();
     cablearZoco();
+    Array.prototype.forEach.call(root.querySelectorAll('[data-sorteo-ver]'),function(b){
+      b.onclick=function(){ var d=b.getAttribute('data-sorteo-ver'); try{ localStorage.setItem('sgSorteoVisto_'+per+'_'+d,'1'); }catch(x){}
+        var x=((st.d&&st.d.recompensas)||[]).filter(function(r){ return r.doc===d; })[0]; if(x) verResultadoSorteo(x); }; });
     Array.prototype.forEach.call(root.querySelectorAll('[data-sorteo-visto]'),function(b){
       var ir=b.onclick;   // el de «Ver el sorteo» ya cambia de pestaña (data-tab)
       b.onclick=function(e){ try{ localStorage.setItem('sgSorteoVisto_'+per+'_'+b.getAttribute('data-sorteo-visto'),'1'); }catch(x){}

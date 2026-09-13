@@ -585,15 +585,16 @@ CAPITULOS = [
     {"n": 3, "clave": "c3", "titulo": "La Rebelión", "icono": "🛡️", "semana": 3,
      "abre": ["heroes"], "mercado": ["heroe"],
      "cabecera": "Llegan los Héroes de la Rebelión",
-     "puedes": ["Conseguir héroes en el Mercado: uno al azar de 30 por 60 ◈",
+     "puedes": ["La cápsula de rescate del Mercado: un héroe al azar de 30 por 60 ◈",
                 "Ponértelos (y quitártelos) gratis en tu vestuario",
                 "Cambiar 2 héroes repetidos por uno nuevo al azar"],
-     "imagen": "assets/img/canje/heroe.jpg"},
+     "imagen": "assets/img/canje/capsula_rescate.jpg"},
     {"n": 4, "clave": "c4", "titulo": "Tu insignia de mando", "icono": "🖼️", "semana": 4,
-     "abre": ["adornos"], "mercado": ["titulo", "fondo", "marco"],
+     "abre": ["adornos"], "mercado": ["titulo", "fondo", "marco", "sobre_grande"],
      "cabecera": "Tu ficha, a tu gusto",
      "puedes": ["Un título bajo tu alias", "El fondo de tu ficha: el planeta que elijas",
-                "El marco dorado de tu avatar", "Se ven en tu ficha y en el tablero de la clase"],
+                "El marco dorado de tu avatar", "Se ven en tu ficha y en el tablero de la clase",
+                "Y en el Mercado, el sobre grande: cinco cartas en vez de tres"],
      "imagen": "assets/img/canje/marco.jpg"},
     {"n": 5, "clave": "c5", "titulo": "El Zoco Estelar", "icono": "🔄", "semana": 5,
      "abre": ["zoco"], "mercado": [],
@@ -604,15 +605,27 @@ CAPITULOS = [
                 "Lo que ofreces queda apartado hasta que te respondan"],
      "imagen": "assets/img/canje/heroe.jpg"},
     {"n": 6, "clave": "c6", "titulo": "El Gran Sorteo", "icono": "🎟️", "semana": 6,
-     "abre": ["sorteo"], "mercado": ["sorteo"],
+     "abre": ["sorteo"], "mercado": ["sorteo", "sobre_raro"],
      "cabecera": "El Gran Sorteo de la tripulación",
      "puedes": ["Se sortean dos licencias de Genially de un año completo",
                 "Cada participación es una papeleta: cuantas más tengas, más posibilidades",
                 "Se compran en el Mercado, y tu docente también las regala (o las esconde en un enlace)",
                 "¿Te ofrecen buen precio? Se revenden en el Zoco, como un cromo",
-                "Nadie gana dos: el sorteo lo hace el servidor, delante de toda la clase"],
+                "Se sortea solo en la semana 16: ese día, al entrar en tu Nave, verás el resultado",
+                "Como en una lotería, lo que pagas no se devuelve… y nadie gana dos",
+                "Y en el Mercado, el sobre de raras: casi sin comunes, para cerrar las series difíciles"],
      "imagen": "assets/img/canje/sorteo.jpg"},
-    {"n": 7, "clave": "c7", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
+    # 14-sep · EL HANGAR (Norberto: «que hubiera un cofre legendario, donde siempre toca un avatar
+    # legendario; obviamente caro… y para la 10 debería estar todo descubierto»)
+    {"n": 7, "clave": "c8", "titulo": "El Hangar de las Leyendas", "icono": "🟨", "semana": 8,
+     "abre": [], "mercado": ["sobre_epico", "capsula_elite", "capsula_legendaria"],
+     "cabecera": "Las cápsulas de élite, la legendaria y el sobre épico",
+     "puedes": ["La cápsula de élite: un héroe de la Vanguardia o un Mito, sin la Resistencia",
+                "La cápsula legendaria: un Mito seguro. La más cara del hangar",
+                "El sobre épico: tres cartas sin comunes, con muchas más legendarias",
+                "Tu docente también puede esconder una cápsula legendaria en una presentación… o dártela de premio"],
+     "imagen": "assets/img/canje/capsula_legendaria.jpg"},
+    {"n": 8, "clave": "c7", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
      "abre": ["arsenal"], "mercado": ["nota"],
      "cabecera": "El Arsenal: créditos por nota",
      "puedes": ["Subir 0,5 o 1 punto en un entregable, o que se recalifique un trabajo",
@@ -637,9 +650,12 @@ assert all(CAPITULOS[i]["semana"] <= CAPITULOS[i + 1]["semana"] for i in range(l
 SORTEOS = [
     ("sorteo1", "Licencia de Genially (un año completo)",
      "Se sortean dos licencias de Genially de un año completo entre toda la tripulación. Cada "
-     "participación es una papeleta: cuantas más tengas, más posibilidades. Nadie gana dos, y el "
-     "sorteo lo hace el servidor en clase, a la vista de todos.",
-     2, 20, 0, 6, 15, "sorteo.jpg"),   # 0 = sin tope por persona (Norberto, 14-sep: «igual alguien apuesta todo su dinero»)
+     "participación es una papeleta: cuantas más tengas, más posibilidades. Como en una lotería, lo "
+     "que pagas no se devuelve: si te toca, enhorabuena. Se sortea SOLO en la semana 16 (la del "
+     "canje); ese día, al entrar en tu Nave, verás el resultado. Nadie gana dos.",
+     # 0 = sin tope por persona (Norberto, 14-sep: «igual alguien apuesta todo su dinero»); a la venta
+     # desde la 6 y se resuelve SOLO en la 16 (Norberto: «es como una lotería… se resuelve la semana 16»)
+     2, 20, 0, 6, 16, "sorteo.jpg"),
 ]
 
 SEMANAS_CANJE_EXTRA = 1                    # semanas de propina para reclamar recompensas
@@ -653,13 +669,44 @@ DIAS_APERTURA_ANTES = 0                    # los formularios abren el primer dí
 # comprueba que las dos listas coinciden — si alguien renombra una recompensa y se olvida de esto, el
 # build falla en vez de dejar la recompensa muda.
 # Las montadas con arte propio y las generadas en Magnific salen de _build_img_formularios.py.
+# ─────────────────────────── SOBRES Y CÁPSULAS (14-sep) ───────────────────────────
+# Norberto: «para dar más vida a los cromos, ¿diferentes tipos de sobres? como los cofres del Clash
+# Royale… jugando con los precios y la semana de desbloqueo (para la 10 debería estar todo
+# descubierto)». Y para los héroes, un concepto distinto de «sobre» —«un avatar es una persona»—:
+# la CÁPSULA DE RESCATE (llega a la Nave con alguien dentro), con una LEGENDARIA que siempre trae un
+# Mito. Cada tipo: cuántas piezas trae (`usos`) y cuánto pesa cada rareza (×; 0 = no sale). Lo usan
+# el motor (motor/paquete.js, cofres de GamificaPro) y las descripciones del Mercado (porcentajes).
+COFRES = {
+    "cromo":              {"piezas": "cromos", "usos": 3},
+    "sobre_grande":       {"piezas": "cromos", "usos": 5},
+    "sobre_raro":         {"piezas": "cromos", "usos": 3, "pesos": {"común": 0.25, "rara": 2, "épica": 2, "legendaria": 1.5}},
+    "sobre_epico":        {"piezas": "cromos", "usos": 3, "pesos": {"común": 0, "rara": 1, "épica": 3, "legendaria": 3}},
+    "heroe":              {"piezas": "heroes", "usos": 1},
+    "capsula_elite":      {"piezas": "heroes", "usos": 1, "pesos": {"rara": 0, "épica": 1, "legendaria": 2}},
+    "capsula_legendaria": {"piezas": "heroes", "usos": 1, "pesos": {"rara": 0, "épica": 0, "legendaria": 1}},
+}
+def _pct_cofre(tipo):
+    """El porcentaje de cada rareza en una tirada de ese cofre, con los pesos reales del catálogo."""
+    c = COFRES[tipo]; f = c.get("pesos", {})
+    filas = [(x[3], x[4]) for x in CROMOS] if c["piezas"] == "cromos" else [(x[2], x[3]) for x in HEROES]
+    w = {}
+    for rz, peso in filas:
+        k = rz.lower(); w[k] = w.get(k, 0) + peso * f.get(k, 1)
+    t = sum(w.values()) or 1
+    return {k: round(100 * v / t) for k, v in w.items() if v > 0}
+
 IMG_RECOMPENSA = {
  "Sobre de cromos":                                "sobre.jpg",
  "Cambiar 3 repetidos por un sobre":               "repetidos.jpg",
  "Título de recluta":                              "titulo.jpg",
  "Fondo de ficha: tu planeta":                     "planeta.jpg",
  "Marco dorado del avatar":                        "marco.jpg",
- "Héroe de la Rebelión":                           "heroe.jpg",
+ "Cápsula de rescate":                             "capsula_rescate.jpg",
+ "Sobre grande":                                   "sobre_grande.jpg",
+ "Sobre de raras":                                 "sobre_raro.jpg",
+ "Sobre épico":                                    "sobre_epico.jpg",
+ "Cápsula de élite":                               "capsula_elite.jpg",
+ "Cápsula legendaria":                             "capsula_legendaria.jpg",
  "Subir 0,5 en un entregable":                     "nota_05.jpg",
  "Subir 1 punto en un entregable":                 "nota_1punto.jpg",
  "Recalificar un trabajo entregado fuera de plazo": "nota_plazo.jpg",
@@ -677,8 +724,18 @@ RECOMPENSAS = [
   "Tu ficha de la Nave con el planeta que elijas de fondo. Eliges cuál de los ocho en Mi botín.", 4, "fondo"),
  ("Marco dorado del avatar", 60, 1,
   "Tu avatar con marco y brillo dorados en el ranking y la Nave. Te lo pones (y te lo quitas) en Mi botín.", 4, "marco"),
- ("Héroe de la Rebelión", 60, 99,
-  "Un héroe AL AZAR del vestuario: 30 figuras de la Rebelión en tres rangos. ⚔️ La Resistencia (56% del sobre): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar.", 3, "heroe"),
+ ("Cápsula de rescate", 60, 99,
+  "Una cápsula de rescate llega a tu Nave con UN héroe de la Rebelión dentro, al azar: 30 figuras en tres rangos. ⚔️ La Resistencia (%d%%): el grueso del ejército. 🔥 La Vanguardia (%d%%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (%d%%, ni uno de cada doce): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar." % (_pct_cofre("heroe")["rara"], _pct_cofre("heroe")["épica"], _pct_cofre("heroe")["legendaria"]), 3, "heroe"),
+ ("Sobre grande", 25, 99,
+  "CINCO cartas al azar del álbum (en vez de tres), con las mismas probabilidades que el sobre de siempre: más cartas por cada crédito.", 4, "sobre_grande"),
+ ("Sobre de raras", 35, 99,
+  "TRES cartas donde las comunes casi desaparecen: rara %d%%, épica %d%%, legendaria %d%% (y común solo %d%%). Para cerrar las series difíciles." % (_pct_cofre("sobre_raro")["rara"], _pct_cofre("sobre_raro")["épica"], _pct_cofre("sobre_raro")["legendaria"], _pct_cofre("sobre_raro")["común"]), 6, "sobre_raro"),
+ ("Sobre épico", 60, 99,
+  "TRES cartas y ninguna común: rara %d%%, épica %d%% y LEGENDARIA %d%% en cada carta, cuatro veces más que en el sobre de siempre." % (_pct_cofre("sobre_epico")["rara"], _pct_cofre("sobre_epico")["épica"], _pct_cofre("sobre_epico")["legendaria"]), 8, "sobre_epico"),
+ ("Cápsula de élite", 140, 99,
+  "En esta cápsula no viaja la Resistencia: un héroe de la Vanguardia (%d%%) o un MITO (%d%%, casi cuatro veces más que en la de rescate)." % (_pct_cofre("capsula_elite")["épica"], _pct_cofre("capsula_elite")["legendaria"]), 8, "capsula_elite"),
+ ("Cápsula legendaria", 320, 99,
+  "Un MITO seguro: uno de los héroes legendarios de la Rebelión, siempre. La cápsula más cara del hangar, y también la que tu docente puede esconder en una presentación o darte de premio.", 8, "capsula_legendaria"),
  ("Subir 0,5 en un entregable", 550, 1,
   "⚔️ ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. "
   "🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — "

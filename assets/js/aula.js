@@ -304,7 +304,19 @@
     return [1, 2, 3].map(function (n) {
       return { g: "Sorteo", k: "part" + n, t: "🎟️ " + n + " participaci" + (n === 1 ? "ón" : "ones"), regalo: { tipo: "participacion", sorteo: s.doc, n: n }, clase: "sorteo" }; });
   }
-  function todosLosRegalos() { return REGALOS.concat(regalosSorteo()); }
+  /**
+   * 14-sep · LAS CÁPSULAS Y LOS SOBRES NUEVOS, de premio (Norberto: «un cofre legendario, donde siempre
+   * toca un avatar legendario… quiero poder ocultarlos en Genially o darlos de recompensa»). Solo los
+   * que tenga la tienda del grupo; los reparte el servidor con SU cofre.
+   */
+  var COFRES_REGALO = [["capsula_legendaria", "🟨 Cápsula legendaria", "heroe"], ["capsula_elite", "🟪 Cápsula de élite", "heroe"],
+                       ["sobre_epico", "✨ Sobre épico", "carta"], ["sobre_raro", "💎 Sobre de raras", "carta"], ["sobre_grande", "🃏 Sobre grande (5)", "carta"]];
+  function regalosCofres() {
+    var hay = {}; ((D && D.recompensas) || []).forEach(function (x) { hay[x.tipo] = true; });
+    return COFRES_REGALO.filter(function (c) { return hay[c[0]]; }).map(function (c) {
+      return { g: "Cápsulas y sobres", k: c[0], t: c[1], regalo: { tipo: "cofre", cual: c[0] }, clase: c[2] }; });
+  }
+  function todosLosRegalos() { return REGALOS.concat(regalosCofres()).concat(regalosSorteo()); }
   function caraDe(x) {
     try { return (window.SG && SG.avatarSrc) ? SG.avatarSrc(x.avatar, x.alias, x.xp, D && D.tipo).src : ""; }
     catch (e) { return ""; }
@@ -353,7 +365,8 @@
       + '</div>'
       + '<div class="au-tarjeta"><div class="au-cab2"><h3>¿Qué le das?</h3><span class="au-para" id="au-para">' + esc(textoElegidos()) + '</span></div>'
       // tres filas con su nombre —puntos, colección, adornos— en una rejilla que no deja filas cojas
-      +   ["Puntos", "Colección", "Adornos", "Sorteo"].filter(function (grupo) { return grupo !== "Sorteo" || regalosSorteo().length; }).map(function (grupo) {
+      +   ["Puntos", "Colección", "Cápsulas y sobres", "Adornos", "Sorteo"].filter(function (grupo) {
+            return (grupo !== "Sorteo" || regalosSorteo().length) && (grupo !== "Cápsulas y sobres" || regalosCofres().length); }).map(function (grupo) {
             var suyos = todosLosRegalos().filter(function (r) { return r.g === grupo; });
             return '<div class="au-grupo-pr' + (suyos.length === 3 ? ' tres' : '') + '" style="--n:' + suyos.length + '"><span class="au-gt">' + grupo + '</span><div class="au-premios">'
               + suyos.map(function (r) {

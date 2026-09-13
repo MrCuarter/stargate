@@ -89,6 +89,8 @@ function catalogo() {
     // 14-sep · el Gran Sorteo (lo crea motor/paquete.js en cada grupo nuevo)
     sorteos: (D.SORTEOS || []).map(s => ({ id: s[0], premio: s[1], descripcion: s[2], ganadores: s[3], coste: s[4],
                                           maximo: s[5], desdeSemana: s[6], semanaSorteo: s[7], imagen: s[8] })),
+    // 14-sep · los sobres y las cápsulas: piezas que trae cada tipo y peso de cada rareza
+    cofres: D.COFRES || {},
     cromos: D.CROMOS.map(cromo),
     heroes: D.HEROES.map(heroe),
     series: D.SERIES_ALBUM.map(s => ({ clave: s[0], serie: s[1], nombre: s[2] })),

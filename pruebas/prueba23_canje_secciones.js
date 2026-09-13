@@ -1,6 +1,6 @@
 'use strict';
 // 23 · EL CANJE, POR SECCIONES
-// Visto en vivo: en una sola página se podía pedir un «Héroe de la Rebelión» y de paso marcar un
+// Visto en vivo: en una sola página se podía pedir un «Cápsula de rescate» y de paso marcar un
 // título y un planeta. Cosas incompatibles en el mismo envío, y el alumno creyendo que se lleva
 // tres. Ahora la recompensa elegida MANDA a la sección que necesita —o directa a enviar— y cada
 // sección termina enviando, así que nadie cae en la de al lado.
@@ -50,7 +50,7 @@ const salidaDe = nombre => {
                   .filter(p => p.getTitle() === G.etiquetaRecompensa_(x))[0];
   return pb.getGoToPage() ? pb.getGoToPage().getTitle() : pb.getPageNavigationType();
 };
-igual(salidaDe("Héroe de la Rebelión"), SUBMIT, "🔴 el héroe no pregunta nada más: de su página, a enviar");
+igual(salidaDe("Cápsula de rescate"), SUBMIT, "🔴 el héroe no pregunta nada más: de su página, a enviar");
 igual(salidaDe("Sobre de cromos"), SUBMIT, "el sobre de cromos, igual");
 igual(salidaDe("Marco dorado del avatar"), SUBMIT, "y el marco dorado");
 igual(salidaDe("Título de recluta"), G.SEC_TITULO, "🔴 el título SÍ pasa por su sección");

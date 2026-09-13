@@ -353,7 +353,12 @@ var RECOMPENSAS_INICIALES = [
   ["T\u00edtulo de recluta",40,3,"Un t\u00edtulo narrativo bajo tu alias en el tablero y la Nave. Lo eliges t\u00fa en Mi bot\u00edn.",4,"titulo"],
   ["Fondo de ficha: tu planeta",35,1,"Tu ficha de la Nave con el planeta que elijas de fondo. Eliges cu\u00e1l de los ocho en Mi bot\u00edn.",4,"fondo"],
   ["Marco dorado del avatar",60,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Te lo pones (y te lo quitas) en Mi bot\u00edn.",4,"marco"],
-  ["H\u00e9roe de la Rebeli\u00f3n",60,99,"Un h\u00e9roe AL AZAR del vestuario: 30 figuras de la Rebeli\u00f3n en tres rangos. \u2694\ufe0f La Resistencia (56% del sobre): el grueso del ej\u00e9rcito. \ud83d\udd25 La Vanguardia (36%): van por delante, cuesta alcanzarlas. \ud83c\udf1f Los MITOS (8%, ni uno de cada doce sobres): ni siquiera se dejan ver hasta que caen. Se acumulan \u2014cuantos m\u00e1s tengas, m\u00e1s donde elegir\u2014 y te los pones gratis desde tu Nave. \u00bfRepetido? Con 2 repetidos, uno nuevo al azar.",3,"heroe"],
+  ["C\u00e1psula de rescate",60,99,"Una c\u00e1psula de rescate llega a tu Nave con UN h\u00e9roe de la Rebeli\u00f3n dentro, al azar: 30 figuras en tres rangos. \u2694\ufe0f La Resistencia (56%): el grueso del ej\u00e9rcito. \ud83d\udd25 La Vanguardia (36%): van por delante, cuesta alcanzarlas. \ud83c\udf1f Los MITOS (8%, ni uno de cada doce): ni siquiera se dejan ver hasta que caen. Se acumulan \u2014cuantos m\u00e1s tengas, m\u00e1s donde elegir\u2014 y te los pones gratis desde tu Nave. \u00bfRepetido? Con 2 repetidos, uno nuevo al azar.",3,"heroe"],
+  ["Sobre grande",25,99,"CINCO cartas al azar del \u00e1lbum (en vez de tres), con las mismas probabilidades que el sobre de siempre: m\u00e1s cartas por cada cr\u00e9dito.",4,"sobre_grande"],
+  ["Sobre de raras",35,99,"TRES cartas donde las comunes casi desaparecen: rara 64%, \u00e9pica 18%, legendaria 6% (y com\u00fan solo 12%). Para cerrar las series dif\u00edciles.",6,"sobre_raro"],
+  ["Sobre \u00e9pico",60,99,"TRES cartas y ninguna com\u00fan: rara 45%, \u00e9pica 39% y LEGENDARIA 16% en cada carta, cuatro veces m\u00e1s que en el sobre de siempre.",8,"sobre_epico"],
+  ["C\u00e1psula de \u00e9lite",140,99,"En esta c\u00e1psula no viaja la Resistencia: un h\u00e9roe de la Vanguardia (69%) o un MITO (31%, casi cuatro veces m\u00e1s que en la de rescate).",8,"capsula_elite"],
+  ["C\u00e1psula legendaria",320,99,"Un MITO seguro: uno de los h\u00e9roes legendarios de la Rebeli\u00f3n, siempre. La c\u00e1psula m\u00e1s cara del hangar, y tambi\u00e9n la que tu docente puede esconder en una presentaci\u00f3n o darte de premio.",8,"capsula_legendaria"],
   ["Subir 0,5 en un entregable",550,1,"\u2694\ufe0f ARSENAL DE BATALLA \u00b7 Medio punto m\u00e1s en una actividad ya entregada y corregida. \ud83d\udd34 LEE ESTO ANTES: si ya tienes la nota m\u00e1xima de evaluaci\u00f3n continua, esto NO te sube nada \u2014 estar\u00edas tirando 550 cr\u00e9ditos a la basura. Comprueba tu nota primero. Con esos cr\u00e9ditos cierras media docena de sobres o te llevas nueve h\u00e9roes.",15,"nota"],
   ["Subir 1 punto en un entregable",850,1,"\u2694\ufe0f ARSENAL DE BATALLA \u00b7 Un punto entero en una actividad ya entregada y corregida. \ud83d\udd34 LEE ESTO ANTES: si ya tienes la nota m\u00e1xima de evaluaci\u00f3n continua, no te sube nada y pierdes los 850 cr\u00e9ditos. Es la recompensa m\u00e1s cara del cat\u00e1logo a prop\u00f3sito: elegirla significa renunciar a casi todo lo dem\u00e1s.",15,"nota"],
   ["Recalificar un trabajo entregado fuera de plazo",700,1,"\u2694\ufe0f ARSENAL DE BATALLA \u00b7 Que se te corrija un trabajo que entregaste tarde. No es un aprobado autom\u00e1tico: es que se mire y se punt\u00fae como si hubiera llegado a tiempo.",15,"nota"],
@@ -365,9 +370,15 @@ var RECOMPENSAS_INICIALES = [
 // participacion, max por persona, desde semana (venta), semana del sorteo, imagen]. Lo REGENERA
 // _build_site.py desde SORTEOS de _site_data.py - no editar a mano. Solo lo usa el motor nuevo.
 var SORTEOS = [
-  ["sorteo1","Licencia de Genially (un a\u00f1o completo)","Se sortean dos licencias de Genially de un a\u00f1o completo entre toda la tripulaci\u00f3n. Cada participaci\u00f3n es una papeleta: cuantas m\u00e1s tengas, m\u00e1s posibilidades. Nadie gana dos, y el sorteo lo hace el servidor en clase, a la vista de todos.",2,20,0,6,15,"sorteo.jpg"]
+  ["sorteo1","Licencia de Genially (un a\u00f1o completo)","Se sortean dos licencias de Genially de un a\u00f1o completo entre toda la tripulaci\u00f3n. Cada participaci\u00f3n es una papeleta: cuantas m\u00e1s tengas, m\u00e1s posibilidades. Como en una loter\u00eda, lo que pagas no se devuelve: si te toca, enhorabuena. Se sortea SOLO en la semana 16 (la del canje); ese d\u00eda, al entrar en tu Nave, ver\u00e1s el resultado. Nadie gana dos.",2,20,0,6,16,"sorteo.jpg"]
 ];
 // SORTEOS-FIN
+
+// COFRES-INICIO - Los sobres y las capsulas (14-sep): cuantas piezas trae cada tipo y cuanto pesa
+// cada rareza (x sobre el peso del catalogo; 0 = no sale). Lo REGENERA _build_site.py desde COFRES de
+// _site_data.py - no editar a mano. Solo lo usa el motor nuevo (motor/paquete.js).
+var COFRES = {"cromo": {"piezas": "cromos", "usos": 3}, "sobre_grande": {"piezas": "cromos", "usos": 5}, "sobre_raro": {"piezas": "cromos", "usos": 3, "pesos": {"com\u00fan": 0.25, "rara": 2, "\u00e9pica": 2, "legendaria": 1.5}}, "sobre_epico": {"piezas": "cromos", "usos": 3, "pesos": {"com\u00fan": 0, "rara": 1, "\u00e9pica": 3, "legendaria": 3}}, "heroe": {"piezas": "heroes", "usos": 1}, "capsula_elite": {"piezas": "heroes", "usos": 1, "pesos": {"rara": 0, "\u00e9pica": 1, "legendaria": 2}}, "capsula_legendaria": {"piezas": "heroes", "usos": 1, "pesos": {"rara": 0, "\u00e9pica": 0, "legendaria": 1}}};
+// COFRES-FIN
 
 // La imagen que ensena el formulario de canje ANTES de confirmar cada recompensa: se ve lo que te
 // llevas por tus creditos. Se empareja por NOMBRE con el catalogo y lo REGENERA _build_site.py desde
@@ -379,7 +390,12 @@ var IMG_RECOMPENSA = {
   "T\u00edtulo de recluta": "titulo.jpg",
   "Fondo de ficha: tu planeta": "planeta.jpg",
   "Marco dorado del avatar": "marco.jpg",
-  "H\u00e9roe de la Rebeli\u00f3n": "heroe.jpg",
+  "C\u00e1psula de rescate": "capsula_rescate.jpg",
+  "Sobre grande": "sobre_grande.jpg",
+  "Sobre de raras": "sobre_raro.jpg",
+  "Sobre \u00e9pico": "sobre_epico.jpg",
+  "C\u00e1psula de \u00e9lite": "capsula_elite.jpg",
+  "C\u00e1psula legendaria": "capsula_legendaria.jpg",
   "Subir 0,5 en un entregable": "nota_05.jpg",
   "Subir 1 punto en un entregable": "nota_1punto.jpg",
   "Recalificar un trabajo entregado fuera de plazo": "nota_plazo.jpg",
