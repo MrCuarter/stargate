@@ -1054,7 +1054,7 @@
           return '<li><b>' + esc((x.raffleWinnerNames || [])[i] || "") + '</b> · ' + esc(((pr.firstName || "") + " " + (pr.lastName || "")).trim() || "—") +
             (pr.email ? ' · <a href="mailto:' + esc(pr.email) + '">' + esc(pr.email) + '</a>' : "") + '</li>'; }).join("");
         return '<div class="card sr-caja ' + e[0] + '" data-doc="' + esc(x.docId) + '">' +
-          '<div class="sr-cab"><img src="assets/img/canje/' + esc(S.imagen || "sorteo.jpg") + '" alt="">' +
+          '<div class="sr-cab"><img src="assets/img/canje/' + esc(S.imagen || "sorteo_generico.jpg") + '" alt="">' +
           '<div><h3>' + esc(S.premio || P.title || x.title) + '</h3><span class="chip' + (e[0] === "hecho" ? " ok" : e[0] === "venta" ? " wip" : "") + '">' + e[1] + '</span>' +
           '<p class="small">' + gan + ' ganador' + (gan === 1 ? '' : 'es') + ' · ' + x.cost + ' ◈ la participación' + (x.maxPerUser ? ' · máx. ' + x.maxPerUser + ' por persona' : '') +
           ' · a la venta del ' + diaDe(x.availableFrom) + ' al ' + diaDe(x.ticketDeadline) + '</p></div></div>' +

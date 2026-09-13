@@ -1611,7 +1611,7 @@
   function fechaLarga(ms){ if(!ms) return ''; var f=new Date(Number(ms)); return f.getDate()+' de '+MESES_L[f.getMonth()]; }
   function tarjetaSorteo(x, r, mis){
     var S=x.sorteo||{}, mias=Number(((r&&r.participaciones)||{})[x.doc]||0), max=(x.max&&x.max<99)?x.max:0;
-    var img='assets/img/canje/'+esc(S.imagen||'sorteo.jpg');
+    var img='assets/img/canje/'+esc(S.imagen||'sorteo_generico.jpg');
     var cab='<div class="rec-foto"><img loading="lazy" src="'+img+'" alt=""></div><div class="rec-cuerpo">'
       +'<div class="rec-quees">🎟️ El Gran Sorteo</div><h3>'+esc(S.premio||x.nombre)+'</h3>';
     if(S.hecho){

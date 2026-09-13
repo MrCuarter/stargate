@@ -405,7 +405,7 @@
             out.sorteo = { premio: pr.title || SS.premio || "", ganadores: Number(pr.globalStockInitial || SS.ganadores || 1),
                            fecha: Number(r.ticketDeadline || SS.fecha || 0), desde: Number(r.availableFrom || 0),
                            hecho: r.isRaffleCompleted === true, ganadoresAlias: r.raffleWinnerNames || [],
-                           ganadoresFichas: r.raffleWinnerIds || [], imagen: SS.imagen || "sorteo.jpg" };
+                           ganadoresFichas: r.raffleWinnerIds || [], imagen: SS.imagen || "sorteo_generico.jpg" };
           }
           return out;
         }),

@@ -207,8 +207,9 @@ def heroe():
 
 
 # ─────────────────────────── El Gran Sorteo (14-sep) ───────────────────────────
-def sorteo():
-    """Dos boletos dorados (dos premios) y NEBULA: montaje con lo que ya hay, sin generar nada."""
+def sorteo(premio="Dos licencias de Genially de un año completo", salida="sorteo.jpg"):
+    """Dos boletos dorados y NEBULA: montaje con lo que ya hay, sin generar nada. Sin `premio`, la
+    versión para los sorteos que crea el referente (no puede prometer un premio que no es el suyo)."""
     base = fondo().convert("RGBA")
     capa = Image.new("RGBA", base.size, (0, 0, 0, 0))
     resplandor(capa, (330, 80, 950, 460), AMBAR, 60, 90)
@@ -253,10 +254,15 @@ def sorteo():
     def centrado(texto, y, f, color, cx=455):
         an = d.textbbox((0, 0), texto, font=f)[2]
         d.text((cx - an // 2, y), texto, font=f, fill=color)
-    centrado("El Gran Sorteo", 488, fuente("Unbounded.ttf", 52), BLANCO)
-    centrado("Dos licencias de Genially de un año completo", 566, fuente("DMSans.ttf", 27), AMBAR)
-    centrado("Cada participación es una papeleta · nadie gana dos", 612, fuente("DMSans.ttf", 25), (150, 170, 185))
-    guardar(base, "sorteo.jpg")
+    centrado("El Gran Sorteo", 488 if premio else 510, fuente("Unbounded.ttf", 52), BLANCO)
+    if premio:
+        centrado(premio, 566, fuente("DMSans.ttf", 27), AMBAR)
+    centrado("Cada participación es una papeleta · nadie gana dos", 612 if premio else 592, fuente("DMSans.ttf", 25), (150, 170, 185))
+    guardar(base, salida)
+
+
+def sorteo_generico():
+    sorteo(None, "sorteo_generico.jpg")
 
 
 # ─────────────────────────── 2 · Cambiar 3 repetidos ───────────────────────────
@@ -406,6 +412,7 @@ if __name__ == "__main__":
     planeta()
     marco()
     sorteo()
+    sorteo_generico()
 
     print("\n· CANJE · arte de Magnific, rotulado aquí")
     arte("sobre", "Un sobre de cromos", "Tres cartas al azar de las 26 · se abre solo en tu Nave", "sobre.jpg")

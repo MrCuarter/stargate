@@ -438,7 +438,8 @@
                    ticketDeadline: fecha, availableFrom: desde, availableUntil: fecha,
                    stargateTipo: "sorteo", stargateSemana: semDesde,
                    stargateSorteo: { premio: premio.title, ganadores: ganadores, fecha: fecha, desde: desde, fijo: fijo,
-                                     semanaSorteo: fijo ? null : semSorteo, imagen: String(s.imagen || "sorteo.jpg") },
+                                     // la imagen del catálogo nombra su premio; la de los que crea el referente, no
+                                     semanaSorteo: fijo ? null : semSorteo, imagen: String(s.imagen || "sorteo_generico.jpg") },
                    icon: "ticket" };
     return [premio, ticket];
   }
