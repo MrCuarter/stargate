@@ -162,6 +162,9 @@ CRONO = [
 PLANTILLA_EPORTFOLIO = "https://view.genially.com/695f825d05cc22f3f7fac45b"
 
 # ---------- Geniallys (rellenar cuando haya enlaces) ----------
+# 15-sep · el paquete del equipo en Drive (mutecdgami): se comparte SOLO LECTURA con cada docente que se añade a un
+# grupo (lo hace el Mando cada día: mando/buzon.cjs compartir-drive). Hasta entonces, «pídesela a tu referente».
+DRIVE_EQUIPO = "https://drive.google.com/drive/folders/1Dp0il1ZQq8Cw8St0Pue_cwlabLAot6e7"
 GENIALLY_CARPETA = ("https://app.genially.com/teams/6567099bd7d7460014e6ec9c/spaces/"
                     "65e1bbeb0eea250014729589/folder/6a8abdcd38a70c07f841fe70")
 # Por tema: view = enlace público (view.genially.com/...) cuando exista; None = pendiente

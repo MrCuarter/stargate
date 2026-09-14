@@ -90,7 +90,8 @@
         return '<p><a class="btn" href="recursos.html">📦 Recursos audiovisuales</a> <a class="btn min" href="cronologia.html">🗓️ Qué vídeo toca cada semana</a></p>'
           + '<p>En Recursos están los 17 vídeos de la serie, las 24 insignias, los cromos y las láminas: para proyectar, para el aula virtual o para tus materiales. '
           + 'Para montar Geniallys (fondos por planeta, clips, personajes recortados, HUD, iconos, insignias y cartas) está el paquete del equipo en Drive, '
-          + '<b>DRIVE_EQUIPO_STARGATE</b>: si no lo tienes, pídeselo a tu referente.</p>';
+          + '<b>DRIVE_EQUIPO_STARGATE</b>' + (window.SG_DRIVE_EQUIPO ? ': <a href="' + esc(window.SG_DRIVE_EQUIPO) + '" target="_blank" rel="noopener">ábrelo ↗</a>' : '')
+          + '. Se comparte en solo lectura con cada docente del equipo (en un día, como mucho); si te pide acceso, pídeselo a tu referente.</p>';
       } },
     { id: "insertar", t: "Poner la sesión, el aula o la llamada dentro de tu Genially",
       claves: ["insertar", "incrustar", "embed", "iframe", "poner la sesion", "pongo la sesion", "meter la sesion", "sesion en genially", "sesion dentro", "dentro de mi genially", "dentro del genially", "en mi genially", "codigo para genially", "codigo de genially", "poner el aula", "pongo el aula", "poner la llamada", "pongo la llamada"],

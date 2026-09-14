@@ -12,7 +12,7 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EVIDENCIA_RETOS, TOPE_RETOS_DIA, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
-                        PASOS, ESCUADRONES, TICKET_URL, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO,
+                        PASOS, ESCUADRONES, TICKET_URL, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, DRIVE_EQUIPO,
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES)
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
@@ -942,7 +942,7 @@ El resto de documentos oficiales están en <a href="actividades.html#docs">Activ
 <section><div class="wrap">
 <div class="eyebrow">Materiales</div><h2>Dónde está el material gráfico</h2>
 <div class="grid cols-2">
-<div class="card"><h3>Para montar Geniallys</h3><p>Fondos por planeta, clips de ambiente, personajes recortados, HUD, botones e iconos ya recortados, insignias y cartas: todo está en el paquete del equipo en Drive (carpeta <b>DRIVE_EQUIPO_STARGATE</b>, clasificado por tipo, con el documento «Qué va en cada Genially»). Novedades del paquete: los <b>planetas girando</b> en GIF/WebP sin fondo, sus <b>auras para el efecto latido</b>, el <b>fondo de universo en bucle</b> y un <b>pack de audio</b> (música ambiental + efectos de interfaz).</p></div>
+<div class="card"><h3>Para montar Geniallys</h3><p>Fondos por planeta, clips de ambiente, personajes recortados, HUD, botones e iconos ya recortados, insignias y cartas: todo está en el paquete del equipo en Drive (carpeta <a href="{DRIVE_EQUIPO}" target="_blank" rel="noopener"><b>DRIVE_EQUIPO_STARGATE</b> ↗</a>, clasificado por tipo, con el documento «Qué va en cada Genially»). Novedades del paquete: los <b>planetas girando</b> en GIF/WebP sin fondo, sus <b>auras para el efecto latido</b>, el <b>fondo de universo en bucle</b> y un <b>pack de audio</b> (música ambiental + efectos de interfaz).</p></div>
 <div class="card"><h3>Vídeos</h3><p>Los 33 vídeos de la serie en la playlist de YouTube: <a href="{PLAYLIST}" target="_blank" rel="noopener">STARGATE · La Bitácora Estelar ↗</a>. Cuándo usar cada uno: <a href="cronologia.html">cronología</a>.</p></div>
 </div>
 </div></section>
@@ -1080,7 +1080,7 @@ GENPAGE = head("STARGATE · Los Geniallys",
 <div class="eyebrow amber">Para el equipo que los monta</div><h2>Qué lleva cada Genially</h2>
 <div class="grid cols-2">
 <div class="card"><h3>Estructura sugerida</h3><p>Portada con el fondo de espacio y el planeta-halo → <b>intro</b> (vídeo de llegada) → contenido del tema sobre los fondos de superficie → los <b>2 retos</b> → <b>cierre</b> (vídeo) → recompensa: el <b>fragmento</b> del tripulante + su insignia y carta.</p></div>
-<div class="card"><h3>Material</h3><p>Todo está en el paquete <b>DRIVE_EQUIPO_STARGATE</b> (Drive): una carpeta por tema con fondos, clips, insignias, carta, retos y enlaces, más el documento «Qué va en cada Genially» con la miniatura de cada recurso. Los vídeos se insertan desde YouTube con el enlace de la <a href="cronologia.html">cronología</a>.</p></div>
+<div class="card"><h3>Material</h3><p>Todo está en el paquete <a href="{DRIVE_EQUIPO}" target="_blank" rel="noopener"><b>DRIVE_EQUIPO_STARGATE</b> ↗</a> (Drive): una carpeta por tema con fondos, clips, insignias, carta, retos y enlaces, más el documento «Qué va en cada Genially» con la miniatura de cada recurso. Los vídeos se insertan desde YouTube con el enlace de la <a href="cronologia.html">cronología</a>.</p></div>
 </div>
 </div></section>
 ''' + FOOT
@@ -3030,7 +3030,7 @@ _html = head("STARGATE · Frecuencia de mando",
              "Escribe al equipo de STARGATE: un problema, una duda o una idea. Te respondemos aquí.",
              "grp").replace("</head>", _cabeza_motor()
                + '<script>window.SG_AVERIAS=' + json.dumps(AVERIAS, ensure_ascii=False) + ';window.SG_FAQ=' + json.dumps(FAQ, ensure_ascii=False)
-               + ';window.SG_GENIALLY_CARPETA=' + json.dumps(GENIALLY_CARPETA) + ';</script>'
+               + ';window.SG_GENIALLY_CARPETA=' + json.dumps(GENIALLY_CARPETA) + ';window.SG_DRIVE_EQUIPO=' + json.dumps(DRIVE_EQUIPO) + ';</script>'
                + "\n</head>") + '''
 <header class="hero corto"><div class="bz-cab"><img class="bz-cap-grande" src="assets/img/capitan/saluda.png" alt="">
 <div><div class="kicker">📡 Frecuencia de mando</div><h1>¿Qué necesitas, Comandante?</h1>
