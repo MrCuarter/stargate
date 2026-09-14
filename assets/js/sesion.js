@@ -502,7 +502,8 @@
     return '<div class="prep">'
       +'<div class="prep-cab"><div><div class="eyebrow violet">Solo para ti · no se proyecta</div>'
       +'<h3>Antes de empezar</h3></div>'
-      +'<button type="button" class="btn primary" id="proyectar">▶ Proyectar la sesión</button></div>'
+      +'<div class="prep-b"><a class="btn min bz-acceso" href="buzon.html?desde=sesion&per='+encodeURIComponent(st.per||'')+'" target="_blank" rel="noopener">📡 ¿Algo falla?</a> '
+      +'<button type="button" class="btn primary" id="proyectar">▶ Proyectar la sesión</button></div></div>'
       +(s.consejo?'<div class="card consejo"><b>El consejo del Capitán.</b> '+esc(s.consejo)+'</div>':'')
       +(s.clases?'<p class="small muted">'+esc(s.clases)+'</p>':'')
       +(s.foro?'<details class="foro-det"><summary>El mensaje de esta semana para el foro de la plataforma de UNIR (para copiar)</summary>'

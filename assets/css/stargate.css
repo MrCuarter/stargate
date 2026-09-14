@@ -3299,3 +3299,73 @@ body.fragmento{background:var(--bg)}
   .fr-carta{max-width:300px;margin:0 auto}
 }
 @media (prefers-reduced-motion:reduce){.fr-panel,.fr-vaeon,.fr-carta img{animation:none}.fr-int{transition:none}}
+
+/* ════════ 15-sep · EL BUZÓN DEL MANDO · buzon.html («📡 Frecuencia de mando») ════════ */
+.bz-cab{display:flex;gap:22px;align-items:center}
+.bz-cab .bz-cap-grande{width:clamp(96px,14vw,150px);height:auto;flex:0 0 auto;filter:drop-shadow(0 0 28px rgba(245,176,67,.3))}
+.bz-cab h1{margin:.1em 0 .25em}
+.bz-cab p{margin:0;max-width:70ch;color:#d7e3ec}
+.bz-puerta{max-width:620px}
+.bz-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:start}
+.bz-nueva{display:flex;flex-direction:column;gap:12px;margin:0}
+.bz-nueva h2,.bz-lista h2,.bz-mando h2{margin:0;font-size:clamp(1.15rem,2.2vw,1.45rem)}
+.bz-chips,.bz-filtros{display:flex;flex-wrap:wrap;gap:8px}
+.bz-chip{font:inherit;font-size:.9rem;font-weight:700;padding:8px 13px;border-radius:999px;border:1px solid #2a4656;background:rgba(8,12,20,.6);color:#dbe8f0;cursor:pointer}
+.bz-chip:hover{border-color:var(--teal)}
+.bz-chip.on{background:rgba(55,224,236,.16);border-color:var(--teal);color:#eafcff}
+.bz-chip b{color:var(--amber);margin-left:2px}
+.bz-tipos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bz-tipo{font:inherit;font-weight:700;font-size:.95rem;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:14px;border:1px solid #2a4656;background:rgba(16,26,40,.8);color:#dbe8f0;cursor:pointer}
+.bz-tipo span{font-size:1.5rem}
+.bz-tipo.on{border-color:var(--amber);background:rgba(245,176,67,.12);color:#fff;box-shadow:0 0 18px rgba(245,176,67,.18)}
+.bz-chip:focus-visible,.bz-tipo:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.bz-campo{display:flex;flex-direction:column;gap:6px;font-weight:700;position:relative}
+.bz-campo textarea,.bz-campo select,.bz-contesta textarea,.bz-contesta select{font:inherit;font-weight:400;font-size:1rem;color:var(--ink);background:rgba(8,12,20,.85);border:1px solid #2a4656;border-radius:12px;padding:11px 13px;width:100%}
+.bz-campo textarea{resize:vertical;min-height:130px}
+.bz-campo textarea:focus,.bz-contesta textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(55,224,236,.2)}
+.bz-cuenta{align-self:flex-end;font-weight:400;font-size:.78rem;color:var(--mut)}
+.bz-urg{display:flex;gap:10px;align-items:center;font-weight:700;color:#ffc2b8}
+.bz-urg input{width:20px;height:20px;accent-color:#ff7a6b}
+.bz-acciones{margin:0}
+.bz-sugiere{display:flex;flex-direction:column;gap:12px;position:sticky;top:84px}
+.bz-cap{display:grid;grid-template-columns:84px 1fr;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;background:rgba(245,176,67,.07);border:1px solid rgba(245,176,67,.3)}
+.bz-cap img{width:84px;height:auto}
+.bz-cap p{margin:0;font-size:1rem;line-height:1.5}
+.bz-cap p b{display:block;color:var(--amber);font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;margin-bottom:2px}
+.bz-sol{padding:14px 16px;border-radius:14px;background:rgba(55,224,236,.07);border:1px solid rgba(55,224,236,.3)}
+.bz-sol h3{margin:0 0 6px;font-size:1.02rem}
+.bz-sol div{font-size:.97rem;line-height:1.55;color:#dbe8f0}
+.bz-sol-botones{margin:0}
+.bz-ok-cap{width:46px;height:auto;vertical-align:middle;margin-right:6px}
+.bz-lista,.bz-mando{margin-top:22px;display:flex;flex-direction:column;gap:12px}
+.bz-mando{padding-top:18px;border-top:1px solid var(--line)}
+.bz-msg{padding:14px 16px;border-radius:16px;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.bz-msg.urgente{border-color:rgba(255,122,107,.6)}
+.bz-msg.fresco{border-color:var(--teal);box-shadow:0 0 22px rgba(55,224,236,.18)}
+.bz-msg.resuelto{opacity:.82}
+.bz-msg header{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.bz-tipo-et{font-weight:800}
+.bz-msg header time,.bz-quien{font-size:.85rem;color:var(--mut)}
+.chip.bz-urgente{background:rgba(255,122,107,.16);color:#ffc2b8;border-color:rgba(255,122,107,.5)}
+.chip.bz-nueva-r{background:rgba(55,224,236,.16);color:#bff6fb;border-color:var(--teal)}
+.bz-texto{margin:0;white-space:pre-wrap;font-size:1rem;line-height:1.55}
+.bz-cx{margin:0;font-size:.82rem;color:var(--mut);font-family:ui-monospace,Menlo,monospace}
+.bz-hilo{display:flex;flex-direction:column;gap:8px;padding-left:12px;border-left:2px solid var(--line)}
+.bz-r{padding:10px 12px;border-radius:12px;background:rgba(16,26,40,.75)}
+.bz-r.mando{background:rgba(55,224,236,.08);border:1px solid rgba(55,224,236,.25)}
+.bz-r b{font-size:.85rem;color:var(--teal2)}
+.bz-r.docente b{color:var(--amber)}
+.bz-r p{margin:4px 0;white-space:pre-wrap}
+.bz-r time{font-size:.78rem;color:var(--mut)}
+.bz-contesta{display:flex;flex-direction:column;gap:8px}
+.bz-contesta-b{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bz-contesta-b select{width:auto}
+/* el acceso desde la consola, la sesión, el aula y la llamada */
+.bz-acceso{white-space:nowrap}
+.bz-acceso .bz-n{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--teal);color:#05222a;font-size:.75rem;font-weight:900;margin-left:4px}
+.bz-flotante{position:fixed;right:14px;bottom:14px;z-index:40;font-size:.85rem;padding:8px 12px;border-radius:999px;background:rgba(10,15,24,.9);border:1px solid #2a4656;color:#dbe8f0;text-decoration:none;opacity:.8}
+.bz-flotante:hover,.bz-flotante:focus-visible{opacity:1;border-color:var(--teal)}
+@media (max-width:820px){.bz-grid{grid-template-columns:1fr}.bz-sugiere{position:static}.bz-cab{flex-direction:column;align-items:flex-start}}
+@media (max-width:520px){.bz-tipos{grid-template-columns:1fr}.bz-tipo{flex-direction:row;justify-content:flex-start;padding:10px 12px}}
+.gp-cab-b{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.prep-b{display:flex;gap:8px;align-items:center;flex-wrap:wrap}

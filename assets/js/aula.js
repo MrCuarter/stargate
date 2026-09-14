@@ -148,7 +148,8 @@
           ? '<select class="au-grupo" id="au-grupo">' + GRUPOS.map(function (x) {
               return '<option value="' + esc(x.id) + '"' + (x.id === PER ? " selected" : "") + ">"
                 + esc(x.nombre || x.id) + esc(coletilla(x)) + "</option>"; }).join("") + "</select>"
-          : '<span class="small muted">' + esc(g.nombre || PER) + esc(coletilla(g)) + "</span>") + "</div>"
+          : '<span class="small muted">' + esc(g.nombre || PER) + esc(coletilla(g)) + "</span>")
+      + ' <a class="btn min bz-acceso" href="buzon.html?desde=aula&per=' + encodeURIComponent(PER || "") + '" target="_blank" rel="noopener">📡 ¿Algo falla?</a>' + "</div>"
       + '<div class="au-tabs">' + TABS.map(function (t) {
           return '<button type="button" class="au-t' + (TAB === t[0] ? " on" : "") + '" data-au="' + t[0] + '">'
             + '<span class="i">' + t[1] + "</span><b>" + t[2] + "</b></button>"; }).join("") + "</div></div>";

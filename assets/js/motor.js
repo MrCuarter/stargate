@@ -883,6 +883,56 @@ async function cambiarAlias(perId, fichaId, nuevo, extra) {
 
 /** Cambiar el código de acceso del grupo. Se usa cuando se ha corrido más de la cuenta. */
 /**
+ * ════════════ EL BUZÓN DEL MANDO (15-sep) · «📡 Frecuencia de mando», buzon.html ════════════
+ *
+ * Norberto: «que los docentes tengan una página sencilla donde poner recomendaciones o problemas, y
+ * que lo resuelvas sin que yo intervenga». El profesorado escribe (problema, duda o idea); cada cual
+ * ve lo suyo y las respuestas; el Mando (los vitalicios) lo ve todo. Lo resuelve un asistente que
+ * trabaja desde el servidor: aquí solo se escribe y se lee. Las reglas: `stargate_buzon`.
+ */
+const BUZON = "stargate_buzon";
+async function buzonEnviar(m) {
+  const yo = await sesion();
+  if (!yo) throw new Error("Entra con tu cuenta para escribir al Mando.");
+  const ahora = Date.now();
+  const ref = await addDoc(collection(db, BUZON), {
+    uid: yo.uid, correo: yo.correo, nombre: yo.nombre || yo.correo, projectId: m.projectId || "", grupo: m.grupo || "",
+    tipo: m.tipo, urgente: !!m.urgente, texto: String(m.texto || "").trim().slice(0, 2000), contexto: m.contexto || {},
+    estado: "nuevo", respuestas: [], creado: ahora, actualizado: ahora, visto: true, autoayuda: m.autoayuda || []
+  });
+  return ref.id;
+}
+/** Lo mío, lo último arriba (sin índices compuestos: se ordena aquí). */
+async function buzonMios() {
+  const yo = await sesion();
+  if (!yo) return [];
+  const r = await getDocs(query(collection(db, BUZON), where("uid", "==", yo.uid)));
+  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.actualizado || 0) - (a.actualizado || 0));
+}
+/** Todo (solo el Mando: las reglas no dejan a nadie más). */
+async function buzonTodos() {
+  const r = await getDocs(collection(db, BUZON));
+  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.actualizado || 0) - (a.actualizado || 0));
+}
+/**
+ * Contestar en un hilo. El docente añade una respuesta suya (y el mensaje vuelve a «nuevo»: el Mando
+ * lo verá); el Mando responde como «mando» y le pone el estado que toque. Nada de lo anterior se toca.
+ */
+async function buzonResponder(id, texto, opciones) {
+  const o = opciones || {}, ref = doc(db, BUZON, id);
+  const d = await getDoc(ref);
+  if (!d.exists()) throw new Error("Ese mensaje ya no existe.");
+  const t = String(texto || "").trim().slice(0, 2000);
+  const cambios = { actualizado: Date.now() };
+  if (t) cambios.respuestas = (d.data().respuestas || []).concat([{ de: o.comoMando ? "mando" : "docente", texto: t, fecha: Date.now() }]);
+  if (o.comoMando) { cambios.estado = o.estado || d.data().estado; if (t) cambios.visto = false; }
+  else cambios.estado = o.estado === "resuelto" ? "resuelto" : "nuevo";
+  await updateDoc(ref, cambios);
+}
+/** «Ya lo he leído»: se apaga el aviso de respuesta nueva. */
+async function buzonVisto(id) { try { await updateDoc(doc(db, BUZON, id), { visto: true }); } catch (e) {} }
+
+/**
  * ════════════ AÑADIR A ALGUIEN AL EQUIPO DOCENTE ════════════
  *
  * 🔴 Faltaba, y se iba a notar en la primera semana: el equipo se fijaba al CREAR el grupo y no
@@ -1457,5 +1507,6 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     anadirDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta,
+                    buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

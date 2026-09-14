@@ -189,6 +189,7 @@
   async function elegirGrupo() {
     cargando("Buscando tus grupos…");
     PERS = await MOTOR.misPERs(YO.correo);
+    contarBuzon();   // (15-sep · el contador del buzón: si llega antes de pintar, sale ya en el botón; si no, se añade)
     if (!PERS.length) {
       var puedeCrear = false;
       app.innerHTML = avisoBorrado() + '<div class="card"><h3>Todavía no tienes grupos</h3>' +
@@ -215,7 +216,7 @@
     app.innerHTML = avisoBorrado() +
       '<div class="gp-cab"><div><h2>Tus grupos</h2>' +
         '<p class="small muted">Todo lo de clase está aquí mismo. Entra en un grupo para su gente y sus enlaces.</p></div>' +
-        (soyRef ? '<a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
+        '<div class="gp-cab-b">' + botonBuzon("consola") + (soyRef ? ' <a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div></div>' +
       // 🔴 13-sep · con UN solo grupo, la tarjeta se tumba en horizontal y ocupa la fila: estrecha y
       // sola dejaba media pantalla vacía a su derecha. Con varios, rejilla de siempre.
       // y con 2 o 4, en dos columnas: con tres por fila, cuatro grupos dejaban uno solo abajo
@@ -291,12 +292,31 @@
     return TABS.filter(function (x) { return !x[2] || ref; });
   }
 
+  /**
+   * 15-sep · «📡 ¿Algo falla?»: la puerta al buzón del Mando (buzon.html). Lleva desde dónde se
+   * escribe y el grupo, y un contador si el Mando ha respondido algo que aún no has leído.
+   */
+  var BZ_N = null;
+  function botonBuzon(desde, per) {
+    return '<a class="btn min bz-acceso" data-bz href="buzon.html?desde=' + desde + (per ? '&per=' + encodeURIComponent(per) : '') + '">📡 ¿Algo falla?'
+      + (BZ_N ? '<span class="bz-n" title="Respuestas del Mando sin leer">' + BZ_N + '</span>' : '') + '</a>';
+  }
+  function contarBuzon() {
+    if (BZ_N !== null || !MOTOR || !MOTOR.buzonMios) return;
+    BZ_N = 0;
+    MOTOR.buzonMios().then(function (L) {
+      BZ_N = (L || []).filter(function (m) { return m.visto === false; }).length;
+      if (BZ_N) Array.prototype.forEach.call(document.querySelectorAll("[data-bz]"), function (a) {
+        if (!a.querySelector(".bz-n")) a.insertAdjacentHTML("beforeend", '<span class="bz-n" title="Respuestas del Mando sin leer">' + BZ_N + '</span>'); });
+    }).catch(function () {});
+  }
+
   function pintar() {
     var t = window.SG.TABLERO.tablero(DATOS, true);
     app.innerHTML =
       '<div class="card cuenta"><p><b>' + esc(t.nombre) + '</b> · ' + esc(t.tipo) +
         ' · ' + semanaTexto(t) + ' · ' + t.reclutas.length + ' reclutas' +
-        ' <button class="btn min" id="c-cambiar">← Mis grupos</button>' +
+        ' <button class="btn min" id="c-cambiar">← Mis grupos</button> ' + botonBuzon("consola", PER) +
         ' <button class="btn min" id="c-salir">Salir</button></p></div>' +
       '<div class="pestanas">' + misTabs().map(function (x) {
         return '<button class="pest' + (TAB === x[0] ? " activa" : "") + '" data-tab="' + x[0] + '">' + x[1] + "</button>";
@@ -316,6 +336,7 @@
     ({ alumnado: verAlumnado, canjes: verCanjes, zoco: verZoco, mios: verMios, equipo: verEquipo,
        escuadrones: verEscuadrones, huevos: verHuevos, sorteos: verSorteos, ofertas: verOfertas, calendario: verCalendario, ajustes: verAjustes })[TAB](t);
     ofrecerVisitaDelGrupo();
+    contarBuzon();
     document.body.classList.add("consola-dentro");   // dentro de un grupo, el titular grande sobra
   }
 

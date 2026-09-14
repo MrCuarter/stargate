@@ -454,6 +454,62 @@ FAQ = [
 ]
 faq_html="\n".join(f'<details class="faq"><summary>{q}</summary><div>{a}</div></details>' for q,a in FAQ)
 
+# ---------------------------------------------------------------- 15-sep · LAS AVERÍAS CONOCIDAS
+# El buzón del Mando (buzon.html) responde AL INSTANTE mientras el docente escribe: busca entre estas
+# y las preguntas frecuentes de arriba. Son lo que más va a pasar, dicho con los botones de verdad.
+# [id, título, claves (sin tildes, en minúsculas), respuesta]. Si la web cambia un botón de sitio,
+# se cambia aquí: la batería 75 comprueba que cada una tiene claves, texto y enlaces que existen.
+AVERIAS = [
+ ("lista", "No puedo pasar lista, o el alumnado no ve «✋ Presente»",
+  ["pasar lista", "llamada", "presente", "fichar", "asistencia", "lista"],
+  "La llamada se toca desde <a href='consola.html'>Mis grupos</a> → tu grupo → <b>«🔔 Llamada a filas»</b> (o en la diapositiva 2 de "
+  "la sesión). Es para <b>tu escuadrón</b>: quien es de otro Comandante no la ve. Si alguien no ve «✋ Presente»: 1) que recargue su Nave; "
+  "2) mira en <b>Mi gente</b> que es de tu escuadrón; 3) la llamada no ha caducado (sale la cuenta atrás); 4) cada estudiante ficha "
+  "<b>una vez al día</b>. Si tu llamada no se abre, recarga la página y vuelve a tocarla."),
+ ("genially", "He cambiado el Genially y sigue saliendo el viejo",
+  ["genially", "panel", "viejo", "antiguo", "no se actualiza", "no cambia", "sigue saliendo", "presentacion", "cambiado"],
+  "Depende de qué hayas cambiado. <b>Otro Genially (enlace nuevo)</b>: ponlo en <b>Mis enlaces</b> (tu panel) o, si es el del grupo, en "
+  "<b>Ajustes del grupo → Panel de control</b>; manda el tuyo, luego el del grupo y, si no hay ninguno, el maestro. <b>El mismo Genially, "
+  "editado</b>: lo sirve Genially; recarga la presentación. <b>Lo ves viejo en la sesión o en la Nave</b>: recarga la página con "
+  "<b>Ctrl + Mayús + R</b> (<b>⌘ + Mayús + R</b> en Mac), porque el navegador guarda una copia unas horas."),
+ ("entrar", "Un estudiante no puede entrar o no aparece en Mi gente",
+  ["no puede entrar", "no entra", "no aparece", "no le deja", "alistar", "alistarse", "cuenta", "codigo"],
+  "Casi siempre es la cuenta: tiene que entrar con la <b>misma cuenta de Google</b> con la que se alistó (en un ordenador compartido, "
+  "«¿Eres tú?» le deja cambiar). Si nunca se alistó, que use la invitación o el <b>código de clase</b> de tu grupo. Si en <b>Mi gente</b> "
+  "sale con 🧊, su referente le ha congelado la cuenta: puede mirar, pero no hacer nada."),
+ ("retos", "A un estudiante no le suman los retos o los créditos",
+  ["no suma", "no le suma", "creditos", "xp", "no cuenta", "lo he hecho", "no registra", "no se registra", "reto"],
+  "Tres cosas lo explican casi siempre: 1) como mucho <b>3 retos al día</b>; 2) los retos con entrega (los B, las Actividades y el A4) "
+  "<b>piden el enlace</b>, y sin él no se registran; 3) lo que toca la nota espera en <b>Cola de nota</b> hasta que lo apruebas. Si aun "
+  "así falta algo que viste en clase, puedes <b>otorgarlo a mano</b>: Mi gente → pulsa su fila → otorgar el reto."),
+ ("embed", "La sesión (o la llamada) no se ve dentro del Genially",
+  ["embed", "incrustar", "insertar", "iframe", "dentro del genially", "no se ve", "codigo"],
+  "En Genially se inserta el <b>código</b>, no la dirección: <a href='consola.html'>Mis grupos</a> → <b>«📋 Embed para Genially»</b> "
+  "(o Ajustes del grupo → «Para los Geniallys») → en Genially, <b>Insertar → Otros → Código</b>, y pegar. Dentro pedirá tu cuenta de "
+  "Google y, si llevas varios grupos, «¿En qué grupo estamos?». Si la ventana de Google no aparece, permite las ventanas emergentes."),
+ ("vieja", "La sesión o el ranking enseñan datos viejos",
+  ["datos viejos", "no se actualiza el ranking", "ranking", "no sale", "no aparece en la sesion", "desactualizado"],
+  "La sesión pide los datos frescos al abrirse; lo que acaba de pasar (alguien que se alista o ficha) puede tardar <b>unos 30 segundos</b> "
+  "en llegar. Recarga la página con <b>Ctrl + Mayús + R</b> (<b>⌘ + Mayús + R</b> en Mac)."),
+ ("premiar", "Quiero dar un premio en clase",
+  ["premio", "premiar", "regalar", "sobre", "recompensa", "dar puntos"],
+  "En directo, <b>El aula → Premiar</b>: tocas una o varias caras y eliges (xp, créditos, un sobre, un héroe, participaciones del sorteo…). "
+  "Para esconder un premio en una presentación, <b>Premios por enlace</b> (lo lleva el referente)."),
+ ("congelar", "Un estudiante hace trampas o hay que darle de baja",
+  ["trampa", "trampas", "tramposo", "congelar", "bloquear", "dar de baja", "baja", "eliminar"],
+  "Si ha marcado retos que no ha hecho, <b>Mi gente → su fila → anular</b> el reto (se le descuenta lo que dio). Para bloquear la cuenta "
+  "o darle de baja: <b>Mi gente → su ficha → «Solo el referente»</b>: 🧊 Congelar (mira, pero no hace nada) o Dar de baja. Lo hace el referente."),
+ ("equipo", "Quiero añadir a un docente al grupo",
+  ["anadir docente", "nuevo docente", "equipo docente", "companero", "profesor nuevo", "referente"],
+  "Lo hace el referente: dentro del grupo, <b>Equipo docente</b> → nombre, <b>su correo de Google</b> (el de la cuenta con la que entrará) y "
+  "el rol → «Añadir a este grupo». Tiene que entrar con esa misma cuenta de Google."),
+ ("calendario", "Hay una semana de vacaciones y el calendario sigue",
+  ["vacaciones", "navidad", "semana santa", "festivo", "calendario", "congelar semana", "retrasar"],
+  "El referente la congela en <b>Calendario</b>: ⏸️ Congelar en la semana (solo semanas futuras) y «Guardar el calendario». Las semanas de "
+  "detrás, los planetas y el Mercado se mueven solos."),
+]
+
+
 GUIA = head("STARGATE · Guía para el profesorado",
   "La gamificación STARGATE: narrativa, personajes, retos e insignias, la Bitácora y cómo dinamizarla en clase.","guia", puerta=True) + f'''
 <header class="hero"><div class="kicker">Guía para el profesorado</div>
@@ -2965,6 +3021,27 @@ _html = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 '''
 open(os.path.join(HERE, "fragmento.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: fragmento.html  (el enigma del reto secreto S7)")
+
+# ---------------------------------------------------------------- 15-sep · EL BUZÓN DEL MANDO
+# «📡 Frecuencia de mando»: el profesorado escribe problemas, dudas e ideas; mientras escribe, el
+# Capitán le ofrece la solución si ya existe (AVERIAS + FAQ, de arriba); si lo envía, las respuestas
+# llegan aquí. Lo resuelve el asistente del proyecto; lo que no, lo decide el coordinador.
+_html = head("STARGATE · Frecuencia de mando",
+             "Escribe al equipo de STARGATE: un problema, una duda o una idea. Te respondemos aquí.",
+             "grp").replace("</head>", _cabeza_motor()
+               + '<script>window.SG_AVERIAS=' + json.dumps(AVERIAS, ensure_ascii=False) + ';window.SG_FAQ=' + json.dumps(FAQ, ensure_ascii=False) + ';</script>'
+               + "\n</head>") + '''
+<header class="hero corto"><div class="bz-cab"><img class="bz-cap-grande" src="assets/img/capitan/saluda.png" alt="">
+<div><div class="kicker">📡 Frecuencia de mando</div><h1>¿Algo no va como debería, Comandante?</h1>
+<p>Cuéntanoslo aquí: un problema, una duda o una idea. Lo lee el equipo del proyecto, con la ayuda de un asistente de IA
+que resuelve lo que puede cada día; lo demás lo decide el coordinador. Las respuestas te llegan en esta misma página.</p></div></div></header>
+<section id="buzon"><div class="wrap">
+<div id="bz-app"><p class="muted">Cargando…</p></div>
+''' + '<script src="' + _v("assets/js/buzon.js") + '" defer></script>' + '''
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "buzon.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: buzon.html  (el buzón del Mando)")
 
 # ---------------------------------------------------------------- la llamada a filas (embed Genially)
 # Pública a propósito: vive dentro del Genially que el docente PROYECTA, así que la ve la clase

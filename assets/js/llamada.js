@@ -121,7 +121,8 @@
       + '<span>Regalar un <b>sobre de cromos</b> a quien fiche</span></label>'
       + '<p class="ll-nota">Tres cartas al azar. No toca ni los xp ni el ranking: es colección.</p>'
       + '<button class="ll-btn grande" id="ll-tocar">🔔 Tocar llamada</button>'
-      + '<p class="ll-pie" id="ll-msg"></p></div>');
+      + '<p class="ll-pie" id="ll-msg"></p>'
+      + '<p class="ll-pie"><a href="buzon.html?desde=llamada&per=' + encodeURIComponent(PER || "") + '" target="_blank" rel="noopener">📡 ¿Algo falla? Escribe al Mando</a></p></div>');
 
     var min = 60;
     Array.prototype.forEach.call(app.querySelectorAll(".ll-m"), function (b) {

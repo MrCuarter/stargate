@@ -3035,6 +3035,88 @@ const REG = {};   // cifras que se apuntan para el informe
       c("equipo · lo de siempre lo sigue pudiendo: su panel en «Mis enlaces»", a4 === "ESCRIBIÓ", a4);
       await dani.cerrar();
     }
+    // ============================================================ 33 · EL BUZÓN DEL MANDO («📡 Frecuencia de mando»)
+    /**
+     * Norberto (15-sep): «una página sencilla donde los docentes pongan problemas o recomendaciones, y
+     * que lo resuelvas casi todo sin que yo intervenga». Dani (docente raso) escribe desde la llamada;
+     * el Capitán le ofrece la solución al instante; envía; el Mando responde; Dani lo ve, contesta y
+     * lo cierra. Rita no ve lo de Dani. Y una idea («interfaz rosa») no recibe soluciones inventadas.
+     */
+    if (hacer(33)) {
+      const P = "lab-clase";
+      const dani = await nueva("Dani escribe al Mando");
+      await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente");
+      await dani.ir("buzon.html?desde=llamada&per=" + P);
+      c("buzón · la «Frecuencia de mando» se abre con la cuenta del docente, y lo más habitual a un clic",
+        await dani.hasta("!!document.getElementById('bz-texto') && document.querySelectorAll('[data-chip]').length>=5", 30));
+      await dani.js("document.querySelector('[data-chip=\"lista\"]').click(); 1"); await dormir(500);
+      c("🔴 buzón · «No puedo pasar lista» → el Capitán da la solución conocida al instante (sin enviar nada)",
+        await dani.hasta("[].slice.call(document.querySelectorAll('.bz-sol h3')).some(function(h){return /pasar lista/.test(h.textContent)})", 10));
+      await dani.foto(FOTOS + "/33-buzon-capitan.png");
+      await dani.js("var t=document.getElementById('bz-texto'); t.value='He cambiado el Genially del panel y sigue saliendo el viejo'; t.dispatchEvent(new Event('input')); 1"); await dormir(900);
+      c("buzón · y mientras escribe, busca: «el Genially sigue saliendo el viejo» → su solución",
+        await dani.js("[].slice.call(document.querySelectorAll('.bz-sol h3')).some(function(h){return /Genially/.test(h.textContent)})"));
+      await dani.js("var t=document.getElementById('bz-texto'); t.value='No puedo pasar lista: los alumnos de mi escuadrón no ven el botón de Presente aunque la llamada está abierta'; t.dispatchEvent(new Event('input')); document.getElementById('bz-urgente').checked=true; document.getElementById('bz-urgente').dispatchEvent(new Event('change')); document.getElementById('bz-enviar').click(); 1");
+      c("buzón · «📡 Transmitir al Mando» → «Transmisión recibida»", await dani.hasta("/Transmisión recibida/.test((document.getElementById('bz-aviso')||{}).innerText||'')", 25));
+      const m1 = (await consultar("stargate_buzon", "correo", "dani@lab.test")).filter(m => /Presente/.test(m.texto))[0];
+      c("🔴 buzón · llega con su contexto: grupo, desde la llamada, urgente, y lo que el Capitán le ofreció",
+        m1 && m1.projectId === P && m1.contexto && m1.contexto.desde === "llamada" && m1.urgente === true && m1.estado === "nuevo" && (m1.autoayuda || []).length >= 1,
+        JSON.stringify(m1 && { p: m1.projectId, d: m1.contexto && m1.contexto.desde, u: m1.urgente, a: m1.autoayuda }));
+      await dani.js("document.querySelector('[data-tipo=\"idea\"]').click(); 1"); await dormir(300);
+      await dani.js("var t=document.getElementById('bz-texto'); t.value='Quiero la interfaz rosa'; t.dispatchEvent(new Event('input')); 1"); await dormir(700);
+      c("buzón · una idea («quiero la interfaz rosa»): ninguna solución inventada; se envía como idea",
+        !(await dani.js("document.querySelectorAll('.bz-sol').length")));
+      await dani.js("document.getElementById('bz-enviar').click(); 1"); await dani.hasta("/Transmisión recibida/.test((document.getElementById('bz-aviso')||{}).innerText||'')", 25);
+      c("buzón · y en «Tus transmisiones», las dos", (await dani.js("document.querySelectorAll('.bz-lista .bz-msg').length")) === 2);
+      await dani.cerrar();
+      // Rita no ve lo de Dani (ni por la página ni a pelo)
+      const rita = await nueva("Rita no ve lo de Dani");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("buzon.html?per=" + P); await rita.hasta("!!document.getElementById('bz-texto')", 30); await dormir(1200);
+      const aPelo = await rita.js("(function(){ var M=window.SG.MOTOR; return M.getDocs(M.collection(M.db,'stargate_buzon')).then(function(r){return 'LEYÓ '+r.size},function(e){return String(e.code||e.message)}); })()", 30000);
+      c("🔴 buzón · Rita no ve las transmisiones de Dani (ni en su página ni pidiendo toda la colección)",
+        (await rita.js("document.querySelectorAll('.bz-lista .bz-msg').length")) === 0 && !(await rita.js("!!document.querySelector('.bz-mando')")) && /permission/i.test(aPelo), aPelo);
+      await rita.cerrar();
+      // el Mando lo ve todo y responde
+      const nor = await nueva("El Mando responde");
+      await nor.ir("entrar.html"); await nor.entrarComo("n.cuartero.10@gmail.com", "Norberto Cuartero");
+      await nor.ir("buzon.html"); await nor.hasta("!!document.querySelector('.bz-mando')", 30); await dormir(800);
+      c("buzón · el Mando ve «Todas las transmisiones», con la urgente arriba y su contexto",
+        await nor.js(`(function(){ var a=document.querySelector('.bz-mando .bz-msg[data-m="${m1 && m1._id}"]'); return !!a && a.classList.contains('urgente') && /desde llamada/.test(a.innerText) && document.querySelector('.bz-mando .bz-msg') === a; })()`));
+      c("buzón · y a la idea, el Mando le propone «Anotado» (no «Resuelto»)",
+        await nor.js("(function(){ var i=[].filter.call(document.querySelectorAll('.bz-mando .bz-msg'), function(a){ return /interfaz rosa/.test(a.innerText); })[0]; return !!i && i.querySelector('select').value === 'anotado'; })()"));
+      await nor.js("window.scrollTo({ top: document.querySelector('.bz-mando').getBoundingClientRect().top + scrollY - 70, behavior: 'instant' }); 1"); await dormir(600);
+      await nor.foto(FOTOS + "/33-buzon-mando.png");
+      await nor.js(`(function(){ var a=document.querySelector('.bz-mando .bz-msg[data-m="${m1 && m1._id}"]'); a.querySelector('textarea').value='Arreglado: ya cada Comandante ve su propia llamada. Pide que recarguen la Nave.'; a.querySelector('select').value='resuelto'; a.querySelector('[data-responder]').click(); return 1; })()`);
+      await nor.hasta("/Respondido/.test((document.getElementById('bz-aviso')||{}).innerText||'')", 20);
+      const m1b = await leerDoc("stargate_buzon/" + m1._id);
+      c("🔴 buzón · la respuesta del Mando queda en el hilo, «resuelto» y marcada como no leída para Dani",
+        m1b && m1b.estado === "resuelto" && m1b.visto === false && (m1b.respuestas || []).slice(-1)[0].de === "mando", JSON.stringify(m1b && { e: m1b.estado, v: m1b.visto }));
+      await nor.cerrar();
+      // Dani ve el aviso en su consola, lee, contesta y lo cierra
+      const dani2 = await nueva("Dani lee la respuesta");
+      await dani2.ir("entrar.html"); await dani2.entrarComo("dani@lab.test", "Dani Docente");
+      await dani2.ir("consola.html"); await dani2.hasta("!!document.querySelector('[data-bz]')", 30); await dormir(2500);
+      c("buzón · en su consola, «📡 ¿Algo falla?» avisa de la respuesta sin leer (1)",
+        await dani2.hasta("!!document.querySelector('[data-bz] .bz-n') && document.querySelector('[data-bz] .bz-n').textContent==='1'", 15));
+      await dani2.foto(FOTOS + "/33-consola-aviso.png");
+      await dani2.js("document.querySelector('[data-bz]').click(); 1"); await dani2.hasta("!!document.querySelector('.bz-msg.fresco')", 30);
+      c("buzón · y en el buzón, la respuesta nueva resaltada", /respuesta nueva/i.test(await dani2.js(`document.querySelector('.bz-msg[data-m="${m1._id}"]').innerText`)));
+      await dani2.js(`(function(){ var a=document.querySelector('.bz-msg[data-m="${m1._id}"]'); window.scrollTo({ top: a.getBoundingClientRect().top + scrollY - 70, behavior: 'instant' }); return 1; })()`); await dormir(600);
+      await dani2.foto(FOTOS + "/33-buzon-respuesta.png");
+      await dormir(1500);
+      c("buzón · al verla, deja de estar «sin leer»", (await leerDoc("stargate_buzon/" + m1._id)).visto === true);
+      await dani2.js(`(function(){ var a=document.querySelector('.bz-lista .bz-msg[data-m="${m1._id}"]'); a.querySelector('textarea').value='Funciona, gracias'; a.querySelector('[data-responder]').click(); return 1; })()`);
+      await dani2.hasta("/Enviado al Mando/.test((document.getElementById('bz-aviso')||{}).innerText||'')", 20);
+      const m1c = await leerDoc("stargate_buzon/" + m1._id);
+      c("buzón · Dani contesta: su respuesta, en el hilo, y el mensaje vuelve a «nuevo» (el Mando lo verá)",
+        m1c.estado === "nuevo" && m1c.respuestas.length === 2 && m1c.respuestas[1].de === "docente");
+      await dani2.js(`document.querySelector('.bz-lista .bz-msg[data-m="${m1._id}"] [data-cerrar]').click(); 1`);
+      await dani2.hasta("/Cerrado/.test((document.getElementById('bz-aviso')||{}).innerText||'')", 20);
+      c("buzón · y lo da por resuelto él mismo", (await leerDoc("stargate_buzon/" + m1._id)).estado === "resuelto");
+      c("buzón · sin errores en la página", !dani2.errores.filter(e => !/Failed to load resource/.test(e)).length, dani2.errores[0] || "");
+      await dani2.cerrar();
+    }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
   } finally {
