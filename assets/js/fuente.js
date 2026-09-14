@@ -437,9 +437,12 @@
                   });
                   if (hoyN >= TOPE) return { error: "Hoy ya has registrado " + TOPE + " retos. Vuelve mañana." };
                 }
-                if (EV[cuerpo.reto] === "obligatoria" &&
-                    !/^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(cuerpo.evidencia || "").trim()))
+                // 15-sep · uno o dos enlaces (el segundo, el del «+»), separados por un espacio
+                var trozos = String(cuerpo.evidencia || "").trim().split(/\s+/).filter(Boolean);
+                var bienEv = trozos.length <= 2 && trozos.every(function (u) { return /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(u); });
+                if (EV[cuerpo.reto] === "obligatoria" && (!trozos.length || !bienEv))
                   return { error: "Este reto necesita el enlace de lo que has hecho." };
+                if (trozos.length && !bienEv) return { error: "Eso no parece un enlace (o son más de dos)." };
                 return M.getDocs(M.query(M.collection(M.db, "missions"),
                   M.where("projectId", "==", cuerpo.per), M.where("stargateId", "==", cuerpo.reto)))
                   .then(function (r) {

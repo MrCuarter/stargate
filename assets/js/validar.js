@@ -122,14 +122,19 @@
         'el juego…—. Así tu Comandante puede verlo, y enseñarlo en clase si es bueno.'
         : 'Si tienes <b>el enlace</b> de lo que has hecho, pégalo: tu Comandante lo verá.') + '</p>' +
       (aviso ? '<p class="malo">' + aviso + '</p>' : '') +
-      '<p><input id="v-enlace" type="url" inputmode="url" autocomplete="off" class="v-enlace" placeholder="https://…"></p>' +
+      '<p class="ev-par"><input id="v-enlace" type="url" inputmode="url" autocomplete="off" class="v-enlace" placeholder="https://…">' +
+      // 15-sep · el «+» para un segundo enlace, como en la Nave
+      '<button type="button" class="ev-mas" id="v-mas" title="Añadir un segundo enlace" aria-label="Añadir un segundo enlace">+</button>' +
+      '<input id="v-enlace2" type="url" inputmode="url" autocomplete="off" class="v-enlace ev2" placeholder="Otro enlace (opcional)" hidden></p>' +
       '<p><button class="btn primary grande" id="v-ok">✅ Registrar el reto</button></p>');
-    var i = document.querySelector("#v-enlace"), b = document.querySelector("#v-ok");
+    var i = document.querySelector("#v-enlace"), i2 = document.querySelector("#v-enlace2"), b = document.querySelector("#v-ok");
+    document.querySelector("#v-mas").onclick = function () { i2.hidden = false; this.hidden = true; i2.focus(); };
     b.onclick = function () {
-      var v = i.value.trim();
+      var v = i.value.trim(), v2 = i2.value.trim();
       if (obligatorio && !enlaceValido(v)) { i.classList.add("falta"); i.focus(); return; }
       if (v && !enlaceValido(v)) return pedirEnlace(g, m, obligatorio, "Eso no parece un enlace: debería tener un dominio, como padlet.com/…");
-      registrar(g, v || "", true);
+      if (v2 && !enlaceValido(v2)) { i2.classList.add("falta"); i2.focus(); return; }
+      registrar(g, [v, v2].filter(Boolean).join(" "), true);
     };
     i.focus();
   }

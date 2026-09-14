@@ -116,7 +116,7 @@
 
   // ---------------------------------------------------------------- pestañas
   var TABS = [["clase", "🔔", "La clase"], ["gente", "👏", "Mi gente"], ["ranking", "🏆", "Ranking"],
-              ["premios", "🎁", "Premiar"]];
+              ["premios", "🎁", "Premiar"], ["tiempo", "⏱️", "Tiempo"]];
   /**
    * 🔴 Con más de un grupo hace falta poder cambiar. Un docente del máster puede llevar hasta seis,
    * y sin selector el aula enseñaba siempre el primero que devolviera el servidor — sin decirlo,
@@ -149,7 +149,10 @@
               return '<option value="' + esc(x.id) + '"' + (x.id === PER ? " selected" : "") + ">"
                 + esc(x.nombre || x.id) + esc(coletilla(x)) + "</option>"; }).join("") + "</select>"
           : '<span class="small muted">' + esc(g.nombre || PER) + esc(coletilla(g)) + "</span>")
-      + ' <a class="btn min bz-acceso" href="buzon.html?desde=aula&per=' + encodeURIComponent(PER || "") + '" target="_blank" rel="noopener">📡 ¿Algo falla?</a>' + "</div>"
+      + ' <a class="btn min bz-acceso" href="buzon.html?desde=aula&per=' + encodeURIComponent(PER || "") + '" target="_blank" rel="noopener">📡 ¿Dudas? ¿Algo falla?</a>'
+      + (TAB !== "tiempo" && (TMP.corre || (TMP.quedan > 0 && TMP.quedan < TMP.total))
+          ? ' <button type="button" class="au-mini-reloj' + (TMP.corre ? " corre" : "") + '" data-au="tiempo" title="El temporizador">⏱️ <span id="au-reloj-mini">' + mmss(quedanTmp()) + '</span></button>' : '')
+      + "</div>"
       + '<div class="au-tabs">' + TABS.map(function (t) {
           return '<button type="button" class="au-t' + (TAB === t[0] ? " on" : "") + '" data-au="' + t[0] + '">'
             + '<span class="i">' + t[1] + "</span><b>" + t[2] + "</b></button>"; }).join("") + "</div></div>";
@@ -383,11 +386,74 @@
       +   '<div class="ll-pie au-res" id="au-pmsg" aria-live="polite"></div></div>';
   }
 
+  // ---------------------------------------------------------------- 5 · el tiempo
+  /**
+   * 15-sep · EL TEMPORIZADOR. Norberto: «incluso la opción de poner algún timer para gestionar los tiempos».
+   * En grande para proyectarlo (y a pantalla completa), con aviso al terminar. Sigue contando aunque se
+   * cambie de pestaña o de grupo: el reloj va por la hora de fin, no por los ticks, y lleva un mini
+   * contador en la barra para no perderlo de vista.
+   */
+  var TMP = { total: 300, quedan: 300, fin: 0, corre: false, iv: null, fin_ok: false };
+  function mmss(s) { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+  function quedanTmp() { return TMP.corre ? Math.max(0, (TMP.fin - Date.now()) / 1000) : TMP.quedan; }
+  function vistaTiempo() {
+    var q = quedanTmp(), pct = TMP.total ? Math.round(q * 100 / TMP.total) : 0;
+    return '<div class="au-tiempo' + (TMP.fin_ok && q <= 0 ? " fin" : q <= 10 && TMP.corre ? " ultimos" : "") + '" id="au-tiempo">'
+      + '<div class="au-reloj" id="au-reloj">' + mmss(q) + '</div>'
+      + '<div class="au-t-barra"><i id="au-t-barra" style="width:' + pct + '%"></i></div>'
+      + '<div class="au-t-pre">' + [1, 3, 5, 10, 15].map(function (m) {
+          return '<button type="button" class="btn' + (TMP.total === m * 60 ? " on" : "") + '" data-min="' + m + '">' + m + ' min</button>'; }).join("")
+      + '<label class="au-t-otro">Otro <input type="number" id="au-t-min" min="1" max="180" inputmode="numeric" placeholder="min"></label></div>'
+      + '<div class="au-t-ctl"><button type="button" class="btn primary grande" id="au-t-go">'
+      + (TMP.corre ? "⏸ Pausa" : (TMP.quedan > 0 && TMP.quedan < TMP.total ? "▶ Seguir" : "▶ Empezar")) + '</button>'
+      + '<button type="button" class="btn" id="au-t-reset">↺ Reiniciar</button>'
+      + '<button type="button" class="btn" id="au-t-grande">⛶ Pantalla completa</button></div>'
+      + '<p class="small muted">Suena un aviso al terminar. Sigue contando aunque cambies de pestaña.</p></div>';
+  }
+  function poner(seg) { TMP.total = seg; TMP.quedan = seg; TMP.corre = false; TMP.fin_ok = false; clearInterval(TMP.iv); TMP.iv = null; render(); }
+  function cablearTiempo() {
+    Array.prototype.forEach.call(app.querySelectorAll("[data-min]"), function (b) { b.onclick = function () { poner(Number(b.getAttribute("data-min")) * 60); }; });
+    var otro = document.getElementById("au-t-min");
+    if (otro) otro.onchange = function () { var m = Math.round(Number(otro.value)); if (m >= 1 && m <= 180) poner(m * 60); };
+    document.getElementById("au-t-go").onclick = function () {
+      if (TMP.corre) { TMP.quedan = quedanTmp(); TMP.corre = false; clearInterval(TMP.iv); TMP.iv = null; }
+      else { if (TMP.quedan <= 0) TMP.quedan = TMP.total; TMP.fin = Date.now() + TMP.quedan * 1000; TMP.corre = true; TMP.fin_ok = false;
+             clearInterval(TMP.iv); TMP.iv = setInterval(tic, 250); }
+      render();
+    };
+    document.getElementById("au-t-reset").onclick = function () { poner(TMP.total); };
+    document.getElementById("au-t-grande").onclick = function () {
+      var t = document.getElementById("au-tiempo"); if (t && t.requestFullscreen) t.requestFullscreen().catch(function () {});
+    };
+  }
+  function tic() {
+    var q = quedanTmp(), r = document.getElementById("au-reloj"), m = document.getElementById("au-reloj-mini"), b = document.getElementById("au-t-barra");
+    if (r) r.textContent = mmss(q);
+    if (m) m.textContent = mmss(q);
+    if (b) b.style.width = (TMP.total ? Math.round(q * 100 / TMP.total) : 0) + "%";
+    var caja = document.getElementById("au-tiempo"); if (caja) caja.classList.toggle("ultimos", TMP.corre && q <= 10 && q > 0);
+    if (TMP.corre && q <= 0) {
+      TMP.corre = false; TMP.quedan = 0; TMP.fin_ok = true; clearInterval(TMP.iv); TMP.iv = null; campana();
+      if (TAB === "tiempo") render(); else { var mm = document.querySelector(".au-mini-reloj"); if (mm) { mm.classList.remove("corre"); mm.classList.add("fin"); } }
+    }
+  }
+  function campana() {
+    try {
+      var C = new (window.AudioContext || window.webkitAudioContext)();
+      [0, .35, .7].forEach(function (t) {
+        var o = C.createOscillator(), g = C.createGain(); o.type = "sine"; o.frequency.value = t === .7 ? 1175 : 880;
+        g.gain.setValueAtTime(.0001, C.currentTime + t); g.gain.exponentialRampToValueAtTime(.45, C.currentTime + t + .02);
+        g.gain.exponentialRampToValueAtTime(.0001, C.currentTime + t + .32); o.connect(g); g.connect(C.destination);
+        o.start(C.currentTime + t); o.stop(C.currentTime + t + .34);
+      });
+    } catch (e) {}
+  }
+
   // ---------------------------------------------------------------- pintar
   function render() {
     pinta(barra() + '<div class="au-cuerpo">'
       + (TAB === "clase" ? vistaClase() : TAB === "gente" ? vistaGente()
-        : TAB === "ranking" ? vistaRanking() : vistaPremios()) + "</div>");
+        : TAB === "ranking" ? vistaRanking() : TAB === "tiempo" ? vistaTiempo() : vistaPremios()) + "</div>");
     Array.prototype.forEach.call(app.querySelectorAll("[data-au]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-au"); render(); };
     });
@@ -404,6 +470,7 @@
     };
     if (TAB === "clase") cablearClase();
     if (TAB === "premios") cablearPremios();
+    if (TAB === "tiempo") cablearTiempo();
     if (SESION) pintaPresentes();
   }
 

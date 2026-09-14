@@ -16,6 +16,7 @@
   if (!app) return;
   var MOTOR = null, YO = null, PERS = [], PER = null, DATOS = null, TAB = "alumnado";
   var url = new URLSearchParams(location.search);
+  if (/^[a-z_]+$/.test(url.get("tab") || "")) TAB = url.get("tab");   // 15-sep · el Capitán enlaza a una pestaña (p. ej. «Mis enlaces»)
 
   // 🔴 Mientras el motor por defecto siga siendo el viejo, un enlace a un grupo nuevo SIN el
   // interruptor lleva a «PER no encontrado». Y ese enlace es el que el profesorado copia y pega a
@@ -96,13 +97,8 @@
    * entrar. Entrar al grupo es para lo demás: la gente, la cola de nota, los enlaces.
    */
   /** El mensaje que pega el docente en el foro o en el chat de clase. */
-  function invitacion(p) {
-    var enlace = location.origin + "/alistarse.html?per=" + encodeURIComponent(p.id) +
-                 "&codigo=" + encodeURIComponent(p.codigo);
-    return "🚀 Te esperamos en STARGATE, el proyecto gamificado de la asignatura.\n" +
-           "Entra aquí con tu cuenta de Google y alístate: " + enlace + "\n" +
-           "Si te pide un código de clase, es " + p.codigo + ".";
-  }
+  // (15-sep · el texto vive en el motor: el Capitán del buzón da la misma invitación)
+  function invitacion(p) { return MOTOR.invitacion(p); }
 
   function tarjetaGrupo(p) {
     var S = p.stargate || {};
@@ -159,27 +155,23 @@
        * Norberto: «un botón para copiar el enlace de invitación, no hace falta que aparezca el enlace».
        * En un curso terminado no sale: ya no se alista nadie.
        */
+      // 15-sep · tapado hasta que se pulsa (Norberto: «el código de clase mantenlo oculto, obliga a clicar
+      // para mostrar»): esta pantalla se proyecta y se comparte; la invitación se copia sin destaparlo.
       (p.codigo && p.estado !== "pasado"
-        ? '<div class="gp-invita"><div><span>Código de clase</span><b>' + esc(p.codigo) + '</b></div>' +
+        ? '<div class="gp-invita"><div><span>Código de clase</span><button type="button" class="gp-cod" data-cod="' + esc(p.codigo) + '" ' +
+            'title="Pulsa para verlo (y otra vez para taparlo)" aria-label="Mostrar el código de clase">•••••• <em>👁 Mostrar</em></button></div>' +
           '<button class="btn min" data-copiado="✓ Invitación copiada" data-copiar="' + esc(invitacion(p)) + '" ' +
             'title="Copia un mensaje listo para pegar en el foro de la plataforma de UNIR o en un chat">' +
             '📋 Copiar invitación</button></div>'
         : '') +
       '<div class="gp-pie">' +
         '<button class="gp-abrir" data-per="' + esc(p.id) + '">Ver mi gente y los ajustes →</button>' +
-        // 14-sep · el CÓDIGO para insertar, no la dirección: Genially no incrusta una dirección suelta de
-        // una web que no conoce (Norberto: «esto no se embebe… ¡debe poderse embeber!»)
-        '<button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially("sesion.html?embed=1", "STARGATE · La sesión de la semana")) + '" ' +
-          'title="Para Genially: Insertar → Otros → Código. El mismo vale para todos tus grupos: pide la cuenta y pregunta el grupo">📋 Embed para Genially</button>' +
       '</div></article>';
   }
 
 
   /** El código para insertar en Genially (Insertar → Otros → Código): llena la caja que le des. */
-  function codigoGenially(ruta, titulo) {
-    return '<iframe src="' + location.origin + '/' + ruta + '" width="1200" height="675" style="border:0;width:100%;height:100%" ' +
-      'allow="fullscreen; clipboard-write; autoplay; encrypted-media" allowfullscreen title="' + titulo + '"></iframe>';
-  }
+  function codigoGenially(ruta, titulo) { return MOTOR.codigoGenially(ruta, titulo); }
 
   // tras «Borrar este grupo»: que se vea que se ha hecho
   function avisoBorrado() {
@@ -223,6 +215,19 @@
       (vivos.length ? '<div class="gp-grid' + (vivos.length === 1 ? ' uno' : (vivos.length === 2 || vivos.length === 4) ? ' par' : '') + '">' + vivos.map(tarjetaGrupo).join("") + '</div>'
                     : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
       /**
+       * 🔴 15-sep · LOS EMBEDS, UNA SOLA VEZ. Norberto: «en todas las fichas de cada grupo aparece Embed para
+       * Genially, pero entiendo que es el mismo para todos: déjalo en algún lugar especificando que es el
+       * mismo para todos los grupos». Lo es: ninguno lleva el grupo dentro (piden la cuenta y preguntan).
+       */
+      '<section class="gp-gen"><div class="gp-gen-txt"><h3>🧩 Para tus Geniallys</h3>' +
+        '<p class="small muted">Los <b>mismos para todos tus grupos</b> y para los cursos que vengan: piden tu cuenta y, si llevas varios grupos, ' +
+        'preguntan en cuál estáis. Se copia el código y, en Genially, <b>Insertar → Otros → Código</b>.</p></div>' +
+        '<div class="gp-gen-b">' +
+        [["sesion", "📽️ La sesión de la semana", "sesion.html?embed=1"], ["aula", "🛰️ El aula · la clase en directo", "aula.html?embed=1"],
+         ["llamada", "🔔 La llamada a filas", "llamada.html?embed=1"]].map(function (x) {
+          return '<button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + x[1].replace(/^\S+\s/, ""))) + '">' + x[1] + '</button>';
+        }).join("") + '</div></section>' +
+      /**
        * 🔴 LO DEL REFERENTE, EN UNA FRANJA APARTE. Norberto: «el referente básicamente debe tener
        * un menú extra». Y «extra» es la palabra: su día a día es EXACTAMENTE el del docente —sus
        * grupos, su gente, proyectar— y solo se le añade lo de gobernar. Hacerle otra pantalla
@@ -259,6 +264,14 @@
 
     Array.prototype.forEach.call(app.querySelectorAll("[data-per]"), function (b) {
       b.onclick = function () { abrir(b.getAttribute("data-per")); };
+    });
+    Array.prototype.forEach.call(app.querySelectorAll(".gp-cod"), function (b) {
+      b.onclick = function () {
+        var ver = !b.classList.contains("visto");
+        b.classList.toggle("visto", ver);
+        b.innerHTML = ver ? esc(b.getAttribute("data-cod")) + ' <em>Tapar</em>' : '•••••• <em>👁 Mostrar</em>';
+        b.setAttribute("aria-label", ver ? "Tapar el código de clase" : "Mostrar el código de clase");
+      };
     });
     cablearCopiar(app);
     // el titular «Mi puesto de mando» sobra encima de «Tus grupos»: dos titulares enormes seguidos
@@ -298,7 +311,7 @@
    */
   var BZ_N = null;
   function botonBuzon(desde, per) {
-    return '<a class="btn min bz-acceso" data-bz href="buzon.html?desde=' + desde + (per ? '&per=' + encodeURIComponent(per) : '') + '">📡 ¿Algo falla?'
+    return '<a class="btn min bz-acceso" data-bz href="buzon.html?desde=' + desde + (per ? '&per=' + encodeURIComponent(per) : '') + '">📡 ¿Dudas? ¿Algo falla?'
       + (BZ_N ? '<span class="bz-n" title="Respuestas del Mando sin leer">' + BZ_N + '</span>' : '') + '</a>';
   }
   function contarBuzon() {
@@ -465,9 +478,11 @@
     if (!EVID) return '<p class="small muted">Buscando sus enlaces…</p>';
     return '<ul class="evid-lista">' + ids.map(function (id) {
       var e = mias[id], ob = EVR[id] === "obligatoria";
-      var url = e ? (/^https?:\/\//i.test(e) ? e : "https://" + e) : "";
+      // (15-sep · pueden ser dos, separados por un espacio: el segundo es el del «+»)
       return '<li><b>' + esc(id) + '</b> ' + (e
-        ? '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">🔗 ' + esc(e.replace(/^https?:\/\//i, "").slice(0, 60)) + '</a>'
+        ? String(e).trim().split(/\s+/).map(function (u) {
+            var url = /^https?:\/\//i.test(u) ? u : "https://" + u;
+            return '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">🔗 ' + esc(u.replace(/^https?:\/\//i, "").slice(0, 60)) + '</a>'; }).join(" ")
         : (ob ? '<span class="sin-evid">⚠️ sin enlace, y este reto lo pide</span>' : '<span class="small muted">sin enlace</span>')) + '</li>';
     }).join("") + '</ul>';
   }

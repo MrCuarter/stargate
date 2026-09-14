@@ -1497,6 +1497,23 @@ async function fichajesDe(sesionId) {
                   - (b.registeredAt?.toDate ? b.registeredAt.toDate() : new Date(b.registeredAt)));
 }
 
+/**
+ * 15-sep · LA INVITACIÓN Y EL CÓDIGO PARA GENIALLY, EN UN SOLO SITIO. Los usa la consola (sus botones) y el
+ * Capitán del buzón (que los da al instante cuando alguien pregunta «¿cuál es el código de invitación?»):
+ * si cada uno tuviera su copia del texto, un día dirían cosas distintas.
+ */
+function invitacion(p) {
+  const enlace = location.origin + "/alistarse.html?per=" + encodeURIComponent(p.id) + "&codigo=" + encodeURIComponent(p.codigo);
+  return "🚀 Te esperamos en STARGATE, el proyecto gamificado de la asignatura.\n" +
+         "Entra aquí con tu cuenta de Google y alístate: " + enlace + "\n" +
+         "Si te pide un código de clase, es " + p.codigo + ".";
+}
+/** El código para insertar en Genially (Insertar → Otros → Código): llena la caja que le des. */
+function codigoGenially(ruta, titulo) {
+  return '<iframe src="' + location.origin + '/' + ruta + '" width="1200" height="675" style="border:0;width:100%;height:100%" ' +
+    'allow="fullscreen; clipboard-write; autoplay; encrypted-media" allowfullscreen title="' + titulo + '"></iframe>';
+}
+
 window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
@@ -1507,6 +1524,6 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     anadirDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta,
-                    buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto,
+                    buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto, invitacion, codigoGenially,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

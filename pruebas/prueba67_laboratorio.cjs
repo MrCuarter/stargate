@@ -906,7 +906,10 @@ const REG = {};   // cifras que se apuntan para el informe
         c("vitalicio · y con sus retos sembrados", misiones.length >= 20, misiones.length + " misiones");
         await v.ir("consola.html");
         const ve = await v.hasta("document.body.innerText.indexOf(" + JSON.stringify(grupo.toUpperCase()) + ")>=0 || document.body.innerText.indexOf(" + JSON.stringify(grupo) + ")>=0", 25);
-        c("vitalicio · el grupo nuevo aparece en Mis grupos con su código a la vista", ve && (await v.texto()).indexOf(codigo) >= 0,
+        // 15-sep · el código va TAPADO en la tarjeta (Norberto: «mantenlo oculto, obliga a clicar para mostrar»)
+        const tapado = await v.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.gp-cod')).filter(function(x){return x.getAttribute('data-cod')===${JSON.stringify(codigo)}})[0];
+          if(!b||b.textContent.indexOf(${JSON.stringify(codigo)})>=0) return false; b.click(); return b.textContent.indexOf(${JSON.stringify(codigo)})>=0; })()`);
+        c("vitalicio · el grupo nuevo aparece en Mis grupos con su código tapado, que se destapa al pulsar", ve && tapado,
           (await v.texto()).slice(0, 240));
         // y alguien se alista con ese código
         const nuevo = await nueva("alumno de " + grupo);
@@ -2460,9 +2463,14 @@ const REG = {};   // cifras que se apuntan para el informe
       const rita = await nueva("Rita copia el embed");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       await rita.ir("consola.html"); await rita.hasta("!!document.querySelector('.gp')", 25);
-      const cod = await rita.js("([].slice.call(document.querySelectorAll('[data-copiar]')).filter(function(b){return /Embed para Genially/.test(b.textContent)})[0]||{getAttribute:function(){return ''}}).getAttribute('data-copiar')");
-      c("🔴 embed · «📋 Embed para Genially» copia el CÓDIGO para insertar (un iframe), no una dirección suelta",
+      // 15-sep · el embed va UNA vez, en «Para tus Geniallys» (el mismo para todos los grupos), no en cada tarjeta
+      const cod = await rita.js("(document.querySelector('.gp-gen [data-embed=\"sesion\"]')||{getAttribute:function(){return ''}}).getAttribute('data-copiar')");
+      c("🔴 embed · «Para tus Geniallys» copia el CÓDIGO para insertar la sesión (un iframe), no una dirección suelta",
         /^<iframe src="http:\/\/[^"]+\/sesion\.html\?embed=1"/.test(cod) && /allowfullscreen/.test(cod), cod.slice(0, 120));
+      c("embed · y va una sola vez para todos los grupos, no repetido en cada tarjeta",
+        await rita.js("document.querySelectorAll('.gp [data-embed]').length===0 && document.querySelectorAll('.gp-gen [data-embed]').length===3"));
+      c("código · el de clase sale tapado y se destapa al pulsar",
+        await rita.js("(function(){ var b=document.querySelector('.gp-cod'); if(!b||/[A-Z0-9]{6}/.test(b.textContent)) return false; b.click(); return /[A-Z0-9]{6}/.test(b.textContent); })()"));
       await rita.cerrar();
       const p = await nueva("La sesión dentro del Genially");
       await p.ir("http://127.0.0.1:" + L.P_WEB2 + "/genially.html?que=" + encodeURIComponent("sesion.html?embed=1"));
@@ -2487,8 +2495,9 @@ const REG = {};   // cifras que se apuntan para el informe
       await p.foto(FOTOS + "/26-embed-sesion.png");
       // la sesión rehecha (14-sep): el orden que eligió Norberto y nada que le hable al docente
       const rots = JSON.parse(await f2.js("JSON.stringify([].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')}))"));
-      c("🔴 sesión · empieza por la portada y la llamada a filas, y el vídeo de cierre va lo último (semana 10)",
-        rots[0] === "Portada" && rots[1] === "Llamada a filas" && rots[2] === "Vídeo" && rots[rots.length - 1] === "Vídeo" && rots.indexOf("Tu ejemplo") === rots.length - 3, JSON.stringify(rots));
+      // (15-sep · entre la llamada y el vídeo, «El mensaje»: el del foro, como apertura de saga)
+      c("🔴 sesión · empieza por la portada, la llamada a filas y el mensaje; luego el vídeo; y el de cierre va lo último (semana 10)",
+        rots[0] === "Portada" && rots[1] === "Llamada a filas" && rots[2] === "El mensaje" && rots[3] === "Vídeo" && rots[rots.length - 1] === "Vídeo" && rots.indexOf("Tu ejemplo") === rots.length - 3, JSON.stringify(rots));
       const ir_ = async t => f2.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return x.getAttribute('title')===${JSON.stringify(t)}})[0]; if(b){ b.click(); return 1; } return 0; })()`);
       // la llamada a filas, tocada DESDE la sesión, y la gente entrando con su cara
       for (const d of (await fs.collection("attendance_sessions").where("projectId", "==", P).where("active", "==", true).get()).docs) await d.ref.update({ active: false });
@@ -3116,6 +3125,136 @@ const REG = {};   // cifras que se apuntan para el informe
       c("buzón · y lo da por resuelto él mismo", (await leerDoc("stargate_buzon/" + m1._id)).estado === "resuelto");
       c("buzón · sin errores en la página", !dani2.errores.filter(e => !/Failed to load resource/.test(e)).length, dani2.errores[0] || "");
       await dani2.cerrar();
+    }
+
+    // ============================================================ 34 · LA CLASE DEL 15-SEP: MENSAJE, FICHAS, ENTREGAS, SIMULACRO…
+    /**
+     * Lo que Norberto pidió probando la sesión dentro de su Genially: el mensaje del foro como apertura de
+     * saga antes del vídeo; la ficha de cada recluta al pulsar su cara (sin datos personales); sus enlaces
+     * debajo del avatar; el simulacro en todas las semanas con selector; cerrar sesión en el embed; que un
+     * estudiante que entre por ahí vaya a su Nave (y quien no es nadie, a «ningún comandante»). Y de paso:
+     * el temporizador del aula, las dudas del Capitán, las insignias por temas y el «+» del segundo enlace.
+     */
+    if (hacer(34)) {
+      const P = "lab-clase", A = admin(), fs = A.firestore();
+      const dani = await nueva("Dani proyecta la sesión");
+      await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente");
+      // una semana cuya anterior tenga misiones hechas (para las caras y sus entregas)
+      let sem = 0;
+      for (const k of [3, 4, 5, 6, 7, 8, 9, 10]) {
+        await dani.ir("sesion.html?per=" + P + "&sem=" + k);
+        if (!(await dani.hasta("!!document.querySelector('.barra-pasos .p')", 30))) continue;
+        if (await dani.js("!![].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return /^Misiones de la semana/.test(b.title)})[0]")) { sem = k; break; }
+      }
+      const titulos = await dani.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title})");
+      const iLl = titulos.indexOf("Llamada a filas"), iMs = titulos.indexOf("El mensaje");
+      c("🔴 sesión · el mensaje de la semana va justo después de la llamada a filas (antes del vídeo)", iMs > 0 && iMs === iLl + 1, JSON.stringify(titulos.slice(0, 5)));
+      const irA = async (re) => dani.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return ${re}.test(x.title)})[0]; if(b){ b.click(); return true; } return false; })()`);
+      await irA("/^El mensaje$/"); await dormir(900);
+      c("sesión · el mensaje, como la apertura de una saga: «Hace muy poco…», el logo y el texto subiendo",
+        await dani.hasta("!!document.querySelector('.foro-crawl.f1') && /Hace muy poco/.test(document.querySelector('.fc-intro').textContent)", 8));
+      c("sesión · sin enlaces ni la marca del grupo (en una proyección no se pulsan)",
+        await dani.js("(function(){ var t=document.querySelector('.fc-texto').textContent; return t.length>80 && !/https?:|id-del-PER|\\{/.test(t) && /Semana/.test(t); })()"));
+      c("sesión · con su botón de música", await dani.js("!!document.querySelector('.fc-son')"));
+      await dormir(5600);
+      c("sesión · y a los 6 s el texto ya sube", await dani.js("document.querySelector('.foro-crawl').classList.contains('f3')"));
+      await dani.foto(FOTOS + "/34-crawl.png");
+      // las misiones de la semana pasada: sus entregas, a un clic
+      if (sem) {
+        await irA("/^Misiones de la semana/"); await dormir(800);
+        const fig = await dani.js("(function(){ var f=document.querySelector('.anteriores figure[data-ficha][data-reto]'); return f?{ficha:f.getAttribute('data-ficha'), reto:f.getAttribute('data-reto')}:null; })()");
+        c("sesión · cada cara de «¿Quién las ha superado?» sabe su ficha y su reto", !!(fig && fig.ficha && fig.reto), JSON.stringify(fig));
+        if (fig && fig.ficha) {
+          await fs.collection("mission_deliveries").doc("lab34__" + fig.ficha).set({ projectId: P, missionId: "lab34__" + fig.reto, studentProfileId: fig.ficha,
+            userId: "lab34", stargateReto: fig.reto, enlace: "padlet.com/lab/primera https://lab.test/segunda", createdAt: Date.now() });
+          await dani.ir("sesion.html?per=" + P + "&sem=" + sem); await dani.hasta("!!document.querySelector('.barra-pasos .p')", 30);
+          await irA("/^Misiones de la semana/");
+          c("🔴 sesión · debajo de su cara, «🔗 Ver» y «🔗 Ver 2»: sus dos enlaces, en otra pestaña",
+            await dani.hasta(`(function(){ var f=document.querySelector('.anteriores figure[data-ficha="${fig.ficha}"][data-reto="${fig.reto}"]'); if(!f) return false;
+              var a=f.querySelectorAll('.ev-ver'); return a.length===2 && a[0].href==='https://padlet.com/lab/primera' && a[1].target==='_blank'; })()`, 15));
+          await dormir(1500); await dani.foto(FOTOS + "/34-entregas.png");
+        }
+        // la ficha del recluta al pulsar su cara
+        await dani.js("document.querySelector('.anteriores .cara[data-quien]').click(); 1"); await dormir(500);
+        const ficha = await dani.js("(function(){ var o=document.querySelector('#mazo .ses-ficha'); return o?o.innerText:''; })()");
+        c("🔴 sesión · al pulsar una cara se abre su ficha (dentro del mazo): nivel, insignias y retos conseguidos",
+          /Nivel \d+/.test(ficha) && /retos conseguidos/i.test(ficha), ficha.slice(0, 160));
+        c("sesión · sin datos personales: ni correos ni créditos", !/@|◈|créditos/i.test(ficha), ficha.slice(0, 200));
+        await dani.foto(FOTOS + "/34-ficha.png");
+        await dani.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1"); await dormir(300);
+        c("sesión · Escape la cierra (y no pasa de diapositiva)", await dani.js("!document.querySelector('.ses-ficha')"));
+      }
+      // el simulacro, en todas las semanas y con selector
+      await irA("/^(La Nave|Enséñalo)$/"); await dormir(800);
+      const nSem = await dani.js("(document.querySelectorAll('.sim-sem option')||[]).length");
+      c("🔴 sesión · el simulacro sale esta semana también, con el selector de las 15 semanas", nSem === 15, "opciones: " + nSem);
+      await dani.js("var s=document.querySelector('.sim-sem'); s.value='2'; s.dispatchEvent(new Event('change')); 1"); await dormir(400);
+      c("sesión · al elegir la semana 2, la Nave simulada salta a esa semana (y NEBULA enseña el Mercado)",
+        await dani.js("(function(){ var f=document.querySelector('.dia.simulacro iframe'); return !!f && /semana=2/.test(f.src) && /nebula=1/.test(f.src) && /simulacro=1/.test(f.src); })()"));
+      await dani.cerrar();
+
+      // el embed: salir, y quién entra por ahí
+      const dani3 = await nueva("Dani sale del embed");
+      await dani3.ir("entrar.html"); await dani3.entrarComo("dani@lab.test", "Dani Docente");
+      await dani3.ir("sesion.html?embed=1");
+      c("embed · con la sesión dentro del Genially, «⏻» para cerrar sesión (o «⏻ Cerrar sesión» al elegir grupo)",
+        await dani3.hasta("!!document.querySelector('#ses-salir-b, #ses-salir')", 30));
+      await dani3.js("(document.querySelector('#ses-salir-b')||document.querySelector('#ses-salir')).click(); 1"); await dormir(300);
+      await dani3.js("var b=document.querySelector('#ses-salir-b'); if(b) b.click(); 1");
+      c("🔴 embed · y sale: vuelve la puerta de Google", await dani3.hasta("/Entra con tu cuenta de docente/.test(document.body.innerText)", 20));
+      await dani3.cerrar();
+      const ana = await nueva("Ana entra por la sesión");
+      await ana.ir("entrar.html"); await ana.entrarComo("ana@lab.test", "Ana Nueva");
+      await ana.ir("sesion.html?embed=1");
+      c("🔴 embed · una estudiante que entra por la sesión va directa a SU Nave (sin la cabecera)",
+        await ana.hasta("location.pathname.indexOf('recluta.html')>=0 && /per=lab-clase/.test(location.search) && /embed=1/.test(location.search)", 30), await ana.js("location.href"));
+      // su Nave: insignias por temas y el «+» del segundo enlace
+      await ana.hasta("!!document.querySelector('.nb-t[data-tab=\"botin\"]')", 30);
+      await ana.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
+      c("🔴 Nave · las insignias, por temas: 8 planetas + la historia + los hitos, las 24 casillas",
+        await ana.hasta("document.querySelectorAll('.ins-tema').length===10 && document.querySelectorAll('.ins-temas .badge-col .b[data-key]').length===24", 15),
+        await ana.js("document.querySelectorAll('.ins-tema').length+' temas · '+document.querySelectorAll('.ins-temas .b').length"));
+      await ana.foto(FOTOS + "/34-insignias-temas.png");
+      await ana.js("var t=document.querySelector('.nb-t[data-tab=\"retos\"]'); if(t) t.click(); 1"); await dormir(700);
+      const mas = await ana.js("(function(){ var b=document.querySelector('[data-evmas]'); if(!b) return 'sin +'; b.click(); var i=b.parentNode.querySelector('[data-ev2]'); return i&&!i.hidden&&b.hidden?'ok':'no'; })()");
+      c("Nave · el «+» abre un segundo enlace (opcional)", mas === "ok", mas);
+      await ana.cerrar();
+      const nadie = await nueva("Nadie entra por la sesión");
+      await nadie.ir("entrar.html"); await nadie.entrarComo("nadie34@lab.test", "Nadie");
+      await nadie.ir("sesion.html?embed=1");
+      c("🔴 embed · quien no es ni docente ni recluta: «esas credenciales no coinciden con las de ningún comandante» y otra cuenta",
+        await nadie.hasta("/ningún comandante/.test(document.body.innerText) && !!document.getElementById('ses-otra')", 30), (await nadie.texto()).slice(0, 160));
+      await nadie.cerrar();
+
+      // el temporizador del aula
+      const au = await nueva("Dani pone el temporizador");
+      await au.ir("entrar.html"); await au.entrarComo("dani@lab.test", "Dani Docente");
+      await au.ir("aula.html?embed=1&per=" + P);
+      await au.hasta("!!document.querySelector('[data-au=\"tiempo\"]')", 30);
+      await au.js("document.querySelector('[data-au=\"tiempo\"]').click(); 1"); await dormir(300);
+      await au.js("document.querySelector('[data-min=\"1\"]').click(); 1"); await dormir(200);
+      await au.js("document.getElementById('au-t-go').click(); 1"); await dormir(2300);
+      c("🔴 aula · ⏱️ Tiempo: 1 minuto, en marcha", /^0:5\d$/.test(await au.js("document.getElementById('au-reloj').textContent")), await au.js("document.getElementById('au-reloj').textContent"));
+      await au.foto(FOTOS + "/34-temporizador.png");
+      await au.js("document.querySelector('[data-au=\"clase\"]').click(); 1"); await dormir(700);
+      c("aula · y sigue contando en la barra al cambiar de pestaña", await au.js("!!document.querySelector('.au-mini-reloj.corre')"));
+      await au.cerrar();
+
+      // el Capitán contesta las dudas al momento, con los datos del grupo
+      const bz = await nueva("Dani pregunta al Capitán");
+      await bz.ir("entrar.html"); await bz.entrarComo("dani@lab.test", "Dani Docente");
+      await bz.ir("buzon.html?per=" + P);
+      await bz.hasta("!!document.querySelector('[data-duda=\"invitacion\"]')", 30);
+      await bz.js("document.querySelector('[data-duda=\"invitacion\"]').click(); 1"); await dormir(500);
+      const cod = ((await leerDoc("projects/" + P)) || {}).joinCode || "";
+      c("🔴 buzón · «¿Cuál es el código de invitación?» → el Capitán da SU código y el botón de copiar la invitación",
+        !!cod && await bz.js(`(function(){ var s=document.querySelector('.bz-sol'); return !!s && s.innerText.indexOf(${JSON.stringify(cod)})>=0 && /Copiar invitación/.test(s.innerText); })()`), cod);
+      await bz.foto(FOTOS + "/34-capitan-codigo.png");
+      await bz.js("var t=document.getElementById('bz-texto'); t.value='¿Cómo cambio los enlaces de Genially?'; t.dispatchEvent(new Event('input')); 1"); await dormir(700);
+      c("buzón · «¿Cómo cambio los enlaces de Genially?» → a sus «Mis enlaces», directo",
+        await bz.js("!!document.querySelector('.bz-sol a[href*=\"tab=mios\"]')"));
+      c("buzón · sin errores en la página", !bz.errores.filter(e => !/Failed to load resource/.test(e)).length, bz.errores[0] || "");
+      await bz.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

@@ -2327,7 +2327,7 @@ Pasa con las flechas <b>←</b> y <b>→</b>.</p>
 <p class="small muted">El <b>consejo del Capitán</b> y el mensaje del foro están arriba, fuera del mazo:
 al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></header>
 <section><div class="wrap"><div id="sesion-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>
 </div></section>
@@ -3029,12 +3029,14 @@ print("escrito: fragmento.html  (el enigma del reto secreto S7)")
 _html = head("STARGATE · Frecuencia de mando",
              "Escribe al equipo de STARGATE: un problema, una duda o una idea. Te respondemos aquí.",
              "grp").replace("</head>", _cabeza_motor()
-               + '<script>window.SG_AVERIAS=' + json.dumps(AVERIAS, ensure_ascii=False) + ';window.SG_FAQ=' + json.dumps(FAQ, ensure_ascii=False) + ';</script>'
+               + '<script>window.SG_AVERIAS=' + json.dumps(AVERIAS, ensure_ascii=False) + ';window.SG_FAQ=' + json.dumps(FAQ, ensure_ascii=False)
+               + ';window.SG_GENIALLY_CARPETA=' + json.dumps(GENIALLY_CARPETA) + ';</script>'
                + "\n</head>") + '''
 <header class="hero corto"><div class="bz-cab"><img class="bz-cap-grande" src="assets/img/capitan/saluda.png" alt="">
-<div><div class="kicker">📡 Frecuencia de mando</div><h1>¿Algo no va como debería, Comandante?</h1>
-<p>Cuéntanoslo aquí: un problema, una duda o una idea. Lo lee el equipo del proyecto, con la ayuda de un asistente de IA
-que resuelve lo que puede cada día; lo demás lo decide el coordinador. Las respuestas te llegan en esta misma página.</p></div></div></header>
+<div><div class="kicker">📡 Frecuencia de mando</div><h1>¿Qué necesitas, Comandante?</h1>
+<p>Pregunta tu duda y el Capitán te contesta al momento, con los datos de tus grupos. Si es un problema o una idea, transmítela:
+la lee el equipo del proyecto, con la ayuda de un asistente de IA que resuelve lo que puede cada día; lo demás lo decide el
+coordinador. Las respuestas te llegan aquí y te avisamos por correo.</p></div></div></header>
 <section id="buzon"><div class="wrap">
 <div id="bz-app"><p class="muted">Cargando…</p></div>
 ''' + '<script src="' + _v("assets/js/buzon.js") + '" defer></script>' + '''

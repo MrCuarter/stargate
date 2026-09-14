@@ -66,7 +66,7 @@ Promise.all(casos.map(([t]) => SX.comprobar("S7", t))).then(rs => {
   const NAVE = leer("assets/js/recluta.js"), VAL = leer("assets/js/validar.js"), FR = leer("fragmento.html");
   c(/SG_SECRETO&&SG_SECRETO\.esSecreto\(id\)&&!marcarReto\._palabraOk/.test(NAVE), "🔴 la Nave pide la palabra antes de registrar S7");
   c(/placeholder="La palabra que borró Vaeon"/.test(NAVE), "y su casilla dice qué pide (no un enlace)");
-  c(/evidencia:ev&&!secreto\?/.test(NAVE), "y la palabra no se guarda como evidencia");
+  c(/var evidencia=secreto\?'':/.test(NAVE), "y la palabra no se guarda como evidencia");
   c(/esSecreto\(RETO\) && !g\.palabraOk\) return pedirPalabra/.test(VAL), "🔴 validar.html también la pide (el enlace universal ya no regala S7)");
   c(/SG_SECRETO\.olvidar\(RETO\)/.test(VAL), "y la olvida al registrar (el ordenador puede ser compartido)");
   c(/<meta name="robots" content="noindex,nofollow">/.test(FR) && !/class="nav"/.test(FR), "fragmento.html: noindex y sin menú");

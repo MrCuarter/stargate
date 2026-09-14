@@ -504,8 +504,28 @@
    */
   function botin(){
     var r=st.yo, d=st.d; if(!r) return '';
-    var col=badgesCronologicos().map(function(kk){var tiene=(r.insignias||[]).indexOf(kk)>=0;
-      return '<div class="b'+(tiene?'':' no')+'" data-key="'+kk+'" role="button" tabindex="0" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+' — pulsa para ver cómo se gana"><img loading="lazy" src="assets/img/insignias/'+kk+'.png" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';}).join('');
+    var tieneIns=function(kk){ return (r.insignias||[]).indexOf(kk)>=0; };
+    var celdaIns=function(kk){var tiene=tieneIns(kk);
+      return '<div class="b'+(tiene?'':' no')+'" data-key="'+kk+'" role="button" tabindex="0" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+' — pulsa para ver cómo se gana"><img loading="lazy" src="assets/img/insignias/'+kk+'.png" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';};
+    /**
+     * 15-sep · LAS INSIGNIAS, POR TEMAS. Norberto: «¿qué opinas de organizarlas por temas? ¿es posible?».
+     * Sí, y encaja con el viaje: cada planeta trae su tripulante (P) y su reto (R), así que de un vistazo
+     * se ve qué planeta tienes a medias. Detrás, las de la historia (NEBULA, el Capitán, Vaeon) y los hitos,
+     * que no son de ningún tema. Cada casilla es la de siempre: se pulsa y dice cómo se gana.
+     */
+    var deIns=function(pre){ return BADGES.filter(function(k){ return k.indexOf(pre)===0; }); };
+    var grupoIns=function(tit, sub, ks, img){
+      if(!ks.length) return '';
+      var n=ks.filter(tieneIns).length;
+      return '<div class="ins-tema'+(n===ks.length?' completo':'')+'"><div class="ins-tema-cab">'+(img?'<img src="'+esc(img)+'" alt="">':'')
+        +'<div class="ins-tema-t"><b>'+esc(tit)+'</b>'+(sub?'<span>'+esc(sub)+'</span>':'')+'</div><em>'+(n===ks.length?'✓ ':'')+n+' / '+ks.length+'</em></div>'
+        +'<div class="badge-col">'+ks.map(celdaIns).join('')+'</div></div>';
+    };
+    var temasIns=''; for(var tt=1;tt<=8;tt++){ var pl=PLAN[tt-1]||[];
+      temasIns+=grupoIns('Tema '+tt+(pl[1]?' · '+pl[1]:''), '', deIns('P'+tt+'_').concat(deIns('R'+tt+'_')), pl[0]?'assets/img/planetas/'+pl[0]+'.png'+(window.SG_IMGV||''):''); }
+    var col='<div class="ins-temas">'+temasIns
+      +grupoIns('La historia', 'NEBULA, el Capitán y Vaeon', deIns('E'), '')
+      +grupoIns('Hitos del viaje', 'Llegan solos con lo que haces', badgesCronologicos().filter(function(k){ return /^H/.test(k); }), '')+'</div>';
     // álbum de cromos (catálogo inyectado por _build_site.py desde _site_data.CROMOS)
     var tengo=r.cromos||{}; var nCromos=CROMOS.filter(function(c){return tengo[c[0]];}).length;
     var repes=0; CROMOS.forEach(function(c){var n=tengo[c[0]]||0; if(n>1) repes+=n-1;});
@@ -546,9 +566,9 @@
       +((r.premios||[]).length?'<div class="card botin-premios"><p>🏆 <b>Lo que has ganado en el Gran Sorteo:</b> '+r.premios.map(esc).join(' · ')
         +'</p><p class="small muted">Tu docente te dirá cómo recibirlo.</p></div>':'')
       +'<details class="cajon" open><summary><b>🏅 Insignias</b> <span class="cnt">'+nIns+' / '+BADGES.length+'</span></summary>'
-      +'<p class="small muted">En el orden en que se ganan, de la primera semana a la última. '
+      +'<p class="small muted">Por planetas: cada tema tiene su tripulante y su reto. '
       +'Las apagadas están por conseguir: púlsalas para ver qué piden.</p>'
-      +'<div class="badge-col">'+col+'</div></details>'
+      +col+'</details>'
       +album
       // 🔴 13-sep · el cambio de héroes repetidos vive dentro del cajón plegado: se anuncia en la tapa
       +'<details class="cajon"><summary><b>🎭 Personajes y héroes</b> <span class="cnt">tu vestuario</span>'
@@ -731,11 +751,12 @@
   function accionesDeHecho(id){
     if(!motorNuevo()) return '';
     // el enlace que ya entregó, a la vista y listo para cambiarlo (antes salía vacío: parecía perdido)
-    var ya=((st.yo&&st.yo.evidencias)||{})[id]||'';
+    var ya=((st.yo&&st.yo.evidencias)||{})[id]||'', los=enlacesDe(ya);
     return '<div class="rh">'
-      +(ya?'<p class="rh-ya">🔗 Tu enlace: <a href="'+esc(ya)+'" target="_blank" rel="noopener">'+esc(ya.replace(/^https?:\/\//,'').slice(0,60))+'</a></p>':'')
-      +'<div class="rh-ev"><input class="rh-in" data-evid="'+esc(id)+'" type="url" value="'+esc(ya)+'" '
-        +'placeholder="Enlace de tu evidencia (pégalo aquí)" autocomplete="off">'
+      +(los.length?'<p class="rh-ya">🔗 '+(los.length>1?'Tus enlaces: ':'Tu enlace: ')+los.map(function(u){
+          return '<a href="'+esc(/^https?:\/\//i.test(u)?u:'https://'+u)+'" target="_blank" rel="noopener">'+esc(u.replace(/^https?:\/\//,'').slice(0,60))+'</a>'; }).join(' · ')+'</p>':'')
+      +'<div class="rh-ev"><input class="rh-in" data-evid="'+esc(id)+'" type="text" inputmode="url" value="'+esc(ya)+'" '
+        +'placeholder="Enlace de tu evidencia (si son dos, sepáralos con un espacio)" autocomplete="off">'
       +'<button class="btn min" type="button" data-guardaev="'+esc(id)+'">'+(ya?'Cambiar enlace':'Guardar enlace')+'</button></div>'
       +'<button class="btn min rh-desHacer" type="button" data-deshacer="'+esc(id)+'">'
       +'↩︎ No lo he hecho todavía</button>'
@@ -2750,8 +2771,9 @@
   /** Pegar el enlace que se olvidó, sin tocar el reto ni los puntos. */
   function guardarEvidencia(id, boton){
     var caja=document.querySelector('[data-evid="'+id+'"]');
-    var v=caja?caja.value.trim():'';
+    var v=caja?caja.value.trim().split(/\s+/).filter(Boolean).join(' '):'';
     if(!v) return aviso('Pega primero el enlace.', true);
+    if(!enlacesValidos(v)) return aviso('🔗 Eso no parece un enlace (o son más de dos): cada uno con su dominio, como padlet.com/…, separados por un espacio.', true);
     boton.disabled=true; boton.textContent='Guardando…';
     post({accion:'evidencia',per:per,reto:id,evidencia:v},function(){
       if(st.yo){ st.yo.evidencias=st.yo.evidencias||{}; st.yo.evidencias[id]=v; }
@@ -2823,11 +2845,23 @@
     var ph = e==='obligatoria' ? 'Enlace de lo que has hecho (obligatorio)'
            : e==='recomendada' ? 'Enlace de lo que has hecho (recomendado)'
            : 'Enlace de lo que has hecho (opcional)';
-    return '<input class="'+clase+(e==='obligatoria'?' obligatoria':'')+'" data-ev="'+esc(id)+'" type="url" inputmode="url" '
-      +'placeholder="'+ph+'" autocomplete="off"'+(e==='obligatoria'?' required aria-required="true"':'')+'>';
+    // 15-sep · y un «+» para un segundo enlace (Norberto: «añade un botón "+" por si alguien necesita
+    // compartir dos URL»): se guardan juntos, separados por un espacio, en el mismo sitio de siempre.
+    return '<span class="ev-par"><input class="'+clase+(e==='obligatoria'?' obligatoria':'')+'" data-ev="'+esc(id)+'" type="url" inputmode="url" '
+      +'placeholder="'+ph+'" autocomplete="off"'+(e==='obligatoria'?' required aria-required="true"':'')+'>'
+      +'<button type="button" class="ev-mas" data-evmas="'+esc(id)+'" title="Añadir un segundo enlace" aria-label="Añadir un segundo enlace">+</button>'
+      +'<input class="'+clase+' ev2" data-ev2="'+esc(id)+'" type="url" inputmode="url" placeholder="Otro enlace (opcional)" autocomplete="off" hidden></span>';
   }
+  document.addEventListener('click',function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('[data-evmas]'); if(!b) return;
+    var par=b.closest('.ev-par'), i2=par&&par.querySelector('[data-ev2]'); if(!i2) return;
+    i2.hidden=false; b.hidden=true; i2.focus();
+  });
   /** Un enlace creíble: con dominio y sin espacios. «www.algo.com» vale; «lo subí al foro» no. */
   function enlaceValido(v){ return /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(v||'').trim()); }
+  /** Uno o dos enlaces, separados por espacios (15-sep · el segundo del «+»). */
+  function enlacesValidos(v){ var t=String(v||'').trim().split(/\s+/).filter(Boolean); return t.length>=1&&t.length<=2&&t.every(enlaceValido); }
+  function enlacesDe(v){ return String(v||'').trim().split(/\s+/).filter(Boolean); }
   function registrosDeHoy(){
     var hoy=new Date(); hoy.setHours(0,0,0,0);
     var f=(st.yo&&st.yo.retos_fecha)||{};
@@ -2878,6 +2912,14 @@
         return;
       }
     }
+    // el segundo enlace (el del «+»), si se ha escrito, también tiene que ser un enlace
+    var ev2s=[].slice.call(document.querySelectorAll('[data-ev2="'+id+'"]'));
+    var ev2=ev2s.filter(function(x){return x.value&&x.value.trim();})[0]||null;
+    if(ev2&&!enlaceValido(ev2.value)){
+      ev2.classList.add('falta'); ev2.focus();
+      aviso('🔗 <b>El segundo enlace no parece un enlace</b>: debería tener un dominio, como padlet.com/…', true);
+      return;
+    }
     if(boton){ boton.disabled=true; boton.textContent='Registrando…'; }
     // El mismo reto puede tener casilla de evidencia en dos sitios (la tarjeta de la semana y la
     // pestaña de retos). Se coge la que esté escrita, no la primera que aparezca.
@@ -2889,7 +2931,8 @@
     var donde=puntoDe(boton);
     // (la palabra de un reto secreto no es una evidencia: no se guarda donde el docente lee los enlaces)
     var secreto=!!(window.SG_SECRETO&&SG_SECRETO.esSecreto(id));
-    post({accion:'registrar',per:per,reto:id,evidencia:ev&&!secreto?ev.value.trim():''},function(){
+    var evidencia=secreto?'':[ev?ev.value.trim():'', ev2?ev2.value.trim():''].filter(Boolean).join(' ');
+    post({accion:'registrar',per:per,reto:id,evidencia:evidencia},function(){
       // Quien haya pedido apartarse (la ficha de la insignia) lo hace AHORA: si la celebración
       // ocurre debajo de un modal, se pierde la mitad de la recompensa.
       if(alEmpezar) try{ alEmpezar(); }catch(e){}
@@ -3255,6 +3298,7 @@
     var e={tab:vista, abiertos:[], valores:{}, foco:null, ini:null, fin:null, y:window.pageYOffset||0};
     [].slice.call(root.querySelectorAll('details')).forEach(function(d,i){ if(d.open) e.abiertos.push(claveDetalle(d,i)); });
     [].slice.call(root.querySelectorAll('input[data-ev]')).forEach(function(x){ if(x.value) e.valores[x.getAttribute('data-ev')+'|'+x.className.split(' ')[0]]=x.value; });
+    e.segundos={}; [].slice.call(root.querySelectorAll('input[data-ev2]')).forEach(function(x){ if(!x.hidden) e.segundos[x.getAttribute('data-ev2')+'|'+x.className.split(' ')[0]]=x.value; });
     var a=document.activeElement;
     if(a && root.contains(a) && a.getAttribute && a.getAttribute('data-ev')){
       e.foco=a.getAttribute('data-ev')+'|'+a.className.split(' ')[0]; try{ e.ini=a.selectionStart; e.fin=a.selectionEnd; }catch(_){}
@@ -3265,6 +3309,8 @@
     if(!e||!root||e.tab!==st.tab) return;
     if(e.abiertos.length) [].slice.call(root.querySelectorAll('details')).forEach(function(d,i){ if(e.abiertos.indexOf(claveDetalle(d,i))>=0) d.open=true; });
     Object.keys(e.valores).forEach(function(k){ var p=k.split('|'), x=root.querySelector('input[data-ev="'+p[0]+'"].'+p[1]); if(x&&!x.value) x.value=e.valores[k]; });
+    Object.keys(e.segundos||{}).forEach(function(k){ var p=k.split('|'), x=root.querySelector('input[data-ev2="'+p[0]+'"].'+p[1]);
+      if(x){ x.hidden=false; if(!x.value) x.value=e.segundos[k]; var b=x.parentNode&&x.parentNode.querySelector('[data-evmas]'); if(b) b.hidden=true; } });
     if(e.foco){ var p=e.foco.split('|'), x=root.querySelector('input[data-ev="'+p[0]+'"].'+p[1]);
       if(x){ try{ x.focus({preventScroll:true}); if(e.ini!=null) x.setSelectionRange(e.ini,e.fin); }catch(_){} } }
     if(Math.abs((window.pageYOffset||0)-e.y)>2){ try{ window.scrollTo(0,e.y); }catch(_){} }

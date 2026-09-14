@@ -122,14 +122,58 @@
   }
   function cara(p, cls){
     var src=''; try{ src=(window.SG&&SG.avatarSrc)?SG.avatarSrc(p.avatar,p.alias,p.xp,st.tipo).src:''; }catch(e){}
-    return '<span class="cara'+(cls?' '+cls:'')+'">'+(src?'<img src="'+esc(src)+'" alt="" loading="lazy">'
+    return '<span class="cara'+(cls?' '+cls:'')+'" data-quien="'+esc(p.fid||p.ficha||p.alias||'')+'" title="Ver la ficha de '+esc(p.alias||'')+'">'+(src?'<img src="'+esc(src)+'" alt="" loading="lazy">'
       :'<b>'+esc(String(p.alias||'?').charAt(0).toUpperCase())+'</b>')+'</span>';
   }
+  /**
+   * 15-sep · LA FICHA DE CADA RECLUTA, AL PULSAR SU CARA. Norberto: «en el embed de clase, si pulso sobre
+   * un estudiante debería abrirse su ficha (sin datos personales) para mostrar las insignias, cromos,
+   * etc., así como los retos conseguidos». Las mismas reglas que la ficha del tablero, que también se
+   * proyecta: su alias, su personaje, nivel y xp, insignias, cartas y retos. Ni créditos, ni correo, ni
+   * nombre. Se abre DENTRO del mazo: en pantalla completa lo que queda fuera no se ve.
+   */
+  function quienEs(k){ return vivos().filter(function(p){ return (p.fid||p.ficha||p.alias||'')===k; })[0]||null; }
+  function cerrarFicha(){ var o=root.querySelector('.ses-ficha'); if(o) o.remove(); }
+  function abrirFicha(p){
+    var mazo=root.querySelector('#mazo'); if(!mazo||!p) return;
+    cerrarFicha();
+    var av={src:'',rango:''}; try{ av=SG.avatarSrc(p.avatar,p.alias,p.xp,st.tipo)||av; }catch(e){}
+    var pos=vivos().slice().sort(function(a,b){ return (b.xp||0)-(a.xp||0); }).indexOf(p)+1;
+    var CR=window.SG_CROMOS||[], cat=(RET[st.tipo==='PUA'?'PUA':'REGULAR']||RET.REGULAR||[]), col=p.coleccion||{};
+    var ins=(p.insignias||[]).map(function(k){ var b=badge(k);
+      return '<span class="fr-ins"><img src="assets/img/insignias/'+esc(k)+'.png" alt=""><em>'+esc((b&&b.nombre)||(window.SG_BADGE_NAMES||{})[k]||k)+'</em></span>'; }).join('');
+    var cro=Object.keys(p.cromos||{}).map(function(k){ var c=CR.filter(function(x){ return x[0]===k; })[0], n=(p.cromos||{})[k]||1;
+      return '<span class="fr-cro"><img src="assets/img/tarjetas/'+esc(k)+'_carta.png'+(window.SG_CARDV||'')+'" alt=""><em>'+esc(c?c[1]:k)+(n>1?' ×'+n:'')+'</em></span>'; }).join('');
+    var retos=(p.hechos||[]).map(function(id){ var r=cat.filter(function(x){ return x[0]===id; })[0];
+      return r?'<li><span class="ant-et">'+etiquetaReto(r[1])+'</span> «'+esc(tituloReto(r[1]))+'»</li>':''; }).join('');
+    mazo.insertAdjacentHTML('beforeend','<div class="ses-ficha" role="dialog" aria-label="Ficha de '+esc(p.alias)+'"><div class="ses-ficha-fondo"></div>'
+      +'<div class="fr-caja"><button type="button" class="ses-ficha-x" aria-label="Cerrar">×</button>'
+      +'<div class="fr-cab">'+(av.src?'<img class="fr-av" src="'+esc(av.src)+'" alt="">':'')
+      +'<div><div class="eyebrow amber">'+esc(av.rango||p.rango_nombre||'')+(pos>0?' · puesto '+pos:'')+'</div><h3>'+(p.corona?'👑 ':'')+esc(p.alias)+'</h3>'
+      +(p.titulo?'<div class="titulo-recluta">«'+esc(p.titulo)+'»</div>':'')
+      +'<div class="small muted">Nivel '+(SG.nivel?SG.nivel(p.xp,st.tipo):(p.nivel||1))+' · '+(p.xp||0)+' xp'+(p.planeta?' · planeta '+esc(p.planeta):'')+(p.racha>=3?' · 🔥 '+p.racha+' semanas seguidas':'')+'</div></div></div>'
+      +(p.bio?'<p class="fr-bio">«'+esc(p.bio)+'»</p>':'')
+      +'<div class="fr-kpis"><div><b>'+(p.n||0)+'</b><span>de 24 insignias</span></div>'
+      +'<div><b>'+(col.cromos?col.cromos.tengo:0)+'</b><span>de '+(col.cromos?col.cromos.total:26)+' cartas</span></div>'
+      +'<div><b>'+(p.hechos||[]).length+'</b><span>retos conseguidos</span></div></div>'
+      +(retos?'<h4>Retos conseguidos</h4><ul class="ses-ficha-retos">'+retos+'</ul>':'')
+      +(ins?'<h4>Insignias</h4><div class="fr-lista">'+ins+'</div>':'')
+      +(cro?'<h4>Cartas del álbum</h4><div class="fr-lista">'+cro+'</div>':'')
+      +'</div></div>');
+    var o=mazo.querySelector('.ses-ficha');
+    o.querySelector('.ses-ficha-fondo').onclick=cerrarFicha; o.querySelector('.ses-ficha-x').onclick=cerrarFicha;
+  }
+  root.addEventListener('click',function(e){
+    var t=e.target; if(!t||!t.closest||t.closest('a,.ses-ficha')) return;
+    var c=t.closest('.cara[data-quien]'); if(!c) return;
+    var p=quienEs(c.getAttribute('data-quien')); if(p){ e.stopPropagation(); abrirFicha(p); }
+  });
+
   /** Una rejilla de caras con su alias (y lo que se quiera debajo). Si no caben, «y N más». */
-  function caras(lista, max, pie){
+  function caras(lista, max, pie, attr){
     var vis=lista.slice(0,max), resto=lista.length-vis.length;
     return '<div class="ses-caras">'+vis.map(function(p,i){
-      return '<figure style="--i:'+i+'">'+cara(p)+'<figcaption>'+esc(p.alias)+(pie?pie(p):'')+'</figcaption></figure>';
+      return '<figure style="--i:'+i+'"'+(attr?attr(p):'')+'>'+cara(p)+'<figcaption>'+esc(p.alias)+(pie?pie(p):'')+'</figcaption></figure>';
     }).join('')+(resto>0?'<figure class="mas" style="--i:'+vis.length+'"><span class="cara"><b>+'+resto+'</b></span><figcaption>y '+resto+' más</figcaption></figure>':'')+'</div>';
   }
   /** La insignia de una misión: el Reto A del tema N da la del personaje (P N), el B la del reto (R N). */
@@ -234,6 +278,88 @@
     return function(){ vivo=false; if(reloj) clearInterval(reloj); };
   }
 
+  /**
+   * ── 2b · EL MENSAJE DE LA SEMANA, COMO LA APERTURA DE UNA SAGA. Norberto, con la sesión ya dentro de su
+   * Genially: «falta añadir justo antes del vídeo el mensaje del foro… con música épica detrás y un
+   * efecto rollo Star Wars, como las intros de las pelis». Es el mismo mensaje que el docente copia
+   * para el foro (la tira de arriba), sin enlaces —en una proyección no se pulsan— ni la marca del
+   * grupo. La música es la épica de la miniserie de STARGATE (nuestra), 80 s: suena al llegar y se
+   * apaga sola al pasar de diapositiva. Con «menos movimiento» en el sistema, el texto sale quieto.
+   */
+  function foroParrafos(t){
+    return String(t||'').split('{id-del-PER}').join('')
+      .replace(/:?[ \t]*https?:\/\/\S+/g,'§')
+      .split(/\n\s*\n/).map(function(x){
+        return x.replace(/\s*\n\s*/g,' ').replace(/\s*§\s*$/,'.').replace(/\s*§\s*/g,' ')
+          .replace(/\s*·?\s*\(Clase\s*\d+\)\s*$/i,'').replace(/\s+([.,;:])/g,'$1').trim();
+      }).filter(function(x){ return x && x!=='.'; });
+  }
+  function diaForo(s){
+    var ps=foroParrafos(s.foro); if(!ps.length) return null;
+    var pl=planeta(s.tema_n), titulo=(pl?pl[1]:s.tema)||'';
+    return {k:'foro', rot:'El mensaje', html:
+      '<div class="dia foro-crawl"><canvas class="fc-cielo" aria-hidden="true"></canvas>'
+      +'<p class="fc-intro">Hace muy poco, en una galaxia que la Estática iba apagando…</p>'
+      +'<div class="fc-logo" aria-hidden="true">STARGATE</div>'
+      +'<div class="fc-marco"><div class="fc-texto"><p class="fc-ep">Semana '+s.sem+'</p>'
+      +(titulo?'<h2 class="fc-tit">'+esc(titulo)+'</h2>':'')
+      +ps.map(function(x){ return '<p'+(/^—/.test(x)?' class="fc-firma"':'')+'>'+esc(x)+'</p>'; }).join('')
+      +'</div></div><button type="button" class="fc-son" title="La música">🔊</button></div>', montar: montarForo};
+  }
+  function cielo(cv){
+    if(!cv||!cv.getContext) return;
+    var r=cv.getBoundingClientRect(), dpr=Math.min(2, window.devicePixelRatio||1), c=cv.getContext('2d');
+    cv.width=Math.max(1,Math.round(r.width*dpr)); cv.height=Math.max(1,Math.round(r.height*dpr)); if(!c) return;
+    for(var i=0, n=Math.round(r.width*r.height/2400); i<n; i++){
+      c.fillStyle='rgba(255,255,255,'+(Math.random()*.75+.2).toFixed(2)+')';
+      c.beginPath(); c.arc(Math.random()*cv.width, Math.random()*cv.height, (Math.random()<.07?1.7:.85)*dpr, 0, 6.2832); c.fill();
+    }
+  }
+  var MUSICA='assets/audio/crawl_epica.mp3';
+  function montarForo(el){
+    var dia=el.querySelector('.foro-crawl'); if(!dia) return null;
+    var timers=[], audio=null, btn=dia.querySelector('.fc-son'), vivo=true;
+    var quieto=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var marco=dia.querySelector('.fc-marco'), tx=dia.querySelector('.fc-texto');
+    var medir=function(){
+      cielo(dia.querySelector('.fc-cielo'));
+      var H=marco.offsetHeight||dia.offsetHeight||600, h=tx.offsetHeight||800;
+      tx.style.setProperty('--desde', H+'px'); tx.style.setProperty('--hasta', (-h-60)+'px');
+      // unos 34 px por segundo: se lee sin prisa, y nunca más largo que la música
+      tx.style.setProperty('--dur', Math.max(38, Math.min(72, Math.round((H+h)/34)))+'s');
+    };
+    medir(); window.addEventListener('resize', medir);
+    var volumen=function(hasta, ms, fin){
+      if(!audio) return; var desde=audio.volume, t0=Date.now();
+      var iv=setInterval(function(){ var k=Math.min(1,(Date.now()-t0)/ms);
+        try{ audio.volume=Math.max(0,Math.min(1,desde+(hasta-desde)*k)); }catch(e){}
+        if(k>=1){ clearInterval(iv); if(fin) fin(); } }, 50);
+    };
+    var sonar=function(){
+      if(!vivo||audio) return;
+      audio=new Audio(MUSICA+(window.SG_IMGV||'')); audio.volume=0;
+      var pr=audio.play();
+      if(pr&&pr.then) pr.then(function(){ volumen(.85, 1200); btn.textContent='🔊'; })
+        .catch(function(){ audio=null; btn.textContent='🔈 Música'; btn.classList.add('pide'); });
+      else volumen(.85, 1200);
+    };
+    btn.onclick=function(ev){
+      ev.stopPropagation();
+      if(!audio){ btn.classList.remove('pide'); return sonar(); }
+      audio.muted=!audio.muted; btn.textContent=audio.muted?'🔇':'🔊';
+    };
+    if(quieto){ dia.classList.add('quieto'); sonar(); }
+    else {
+      timers.push(setTimeout(function(){ dia.classList.add('f1'); }, 60));      // «Hace muy poco…»
+      timers.push(setTimeout(function(){ dia.classList.add('f2'); sonar(); }, 4300));   // el logo, y la música
+      timers.push(setTimeout(function(){ dia.classList.add('f3'); }, 5800));   // el mensaje, subiendo
+    }
+    return function(){
+      vivo=false; timers.forEach(clearTimeout); window.removeEventListener('resize', medir);
+      if(audio){ var a=audio; volumen(0, 700, function(){ try{ a.pause(); }catch(e){} }); }
+    };
+  }
+
   // ── 4 · las misiones de la semana pasada, y quién las ha superado
   function diaAnteriores(s){
     var lista=semanas(), prev=null;
@@ -250,8 +376,44 @@
           +(f.ins?'<img class="ant-ins" src="assets/img/insignias/'+esc(f.ins)+'.png" alt="">':'<span class="ant-ins vacia">🗝️</span>')
           +'<div class="ant-txt"><div class="ant-cab"><span class="ant-et">'+etiquetaReto(f.txt)+'</span><b>«'+esc(tituloReto(f.txt))+'»</b>'
           +'<span class="ant-n"><b>'+f.hechos.length+'</b> de '+gente.length+'</span></div>'
-          +(f.hechos.length?caras(f.hechos, 12):'<p class="sub">¿Quién será el primero?</p>')+'</div></div>';
-      }).join('')+'</div></div>'};
+          +(f.hechos.length?caras(f.hechos, 12, null, function(p){ return ' data-ficha="'+esc(p.fid||p.ficha||'')+'" data-reto="'+esc(f.id)+'"'; })
+                          :'<p class="sub">¿Quién será el primero?</p>')+'</div></div>';
+      }).join('')+'</div></div>', montar: montarEvidencias};
+  }
+  /**
+   * 15-sep · SUS ENTREGAS, A UN CLIC. Norberto: «en los estudiantes que han completado los retos
+   * anteriores, si han añadido un enlace, coloca un icono debajo de su avatar que apunte al enlace.
+   * Así podemos ver uno en directo». Los enlaces viven en `mission_deliveries` y el docente del grupo
+   * los puede leer (es la misma consulta que «Mi gente»): una lectura por grupo, guardada mientras dure
+   * la sesión. Solo enlaces web de verdad, y en otra pestaña.
+   */
+  var EVIDS=null;
+  function enlaceDe(u){
+    u=String(u||'').trim(); if(!u) return '';
+    if(!/^https?:\/\//i.test(u)) u='https://'+u;
+    return /^https?:\/\/[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(u)?u:'';
+  }
+  function montarEvidencias(el){
+    var vivo=true, M=window.SG&&window.SG.MOTOR, per=st.per;
+    var pinta=function(mapa){
+      if(!vivo) return;
+      Array.prototype.forEach.call(el.querySelectorAll('figure[data-ficha][data-reto]'),function(fg){
+        if(fg.querySelector('.ev-ver')) return;
+        var us=String(((mapa||{})[fg.getAttribute('data-ficha')]||{})[fg.getAttribute('data-reto')]||'').trim().split(/\s+/).map(enlaceDe).filter(Boolean);
+        if(!us.length) return;
+        fg.insertAdjacentHTML('beforeend','<span class="ev-vers">'+us.map(function(u,k){
+          return '<a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer" title="Ver lo que entregó">🔗 '+(k?'Ver 2':'Ver')+'</a>'; }).join('')+'</span>');
+      });
+    };
+    if(EVIDS&&EVIDS.per===per){ pinta(EVIDS.mapa); return function(){ vivo=false; }; }
+    if(!M||!M.getDocs||!per) return null;
+    M.getDocs(M.query(M.collection(M.db,'mission_deliveries'), M.where('projectId','==',per))).then(function(r){
+      var mapa={};
+      r.docs.forEach(function(d){ var x=d.data(), k=x.stargateReto||String(x.missionId||'').split('__').pop();
+        if(x.studentProfileId&&x.enlace) (mapa[x.studentProfileId]=mapa[x.studentProfileId]||{})[k]=x.enlace; });
+      EVIDS={per:per, mapa:mapa}; pinta(mapa);
+    }).catch(function(){});
+    return function(){ vivo=false; };
   }
 
   // ── 5 · han movido ficha (con su cara)
@@ -448,24 +610,45 @@
    * NEBULA arranca sola con el MISMO capítulo que verá el alumnado.
    */
   function diapositivasNuevas(s){
-    var out=[];
-    capitulosDe(s.sem).forEach(function(c){
+    var out=[], caps=capitulosDe(s.sem);
+    caps.forEach(function(c){
       out.push({k:'nuevo', rot:'Lo nuevo', html:
         '<div class="dia nuevo-nave"><div class="nn-txt"><div class="kicker">🔓 Se abre esta semana en STARGATE</div>'
         +'<h2>'+c.icono+' '+esc(c.titulo)+'</h2><p class="sub">'+esc(c.cabecera||'')+'</p>'
         +'<ul class="nn-lista">'+(c.puedes||[]).map(function(x,i){ return '<li style="--i:'+i+'">'+esc(x)+'</li>'; }).join('')+'</ul></div>'
         +(c.imagen?'<img class="nn-img" src="'+esc(c.imagen)+'" alt="">':'')+'</div>'});
-      var url='recluta.html?simulacro=1&embed=1&nebula=1&per='+encodeURIComponent(st.per||'demo-motor')+'&semana='+s.sem;
-      out.push({k:'simulacro', rot:'Enséñalo', html:
-        '<div class="dia simulacro"><iframe src="'+esc(url)+'" title="La Nave de tu Comandante: '+esc(c.titulo)+'" loading="lazy"></iframe></div>'});
     });
+    out.push(diaSimulacro(s, caps));
     return out;
+  }
+  /**
+   * 15-sep · EL SIMULACRO, CADA SEMANA Y EN LA SEMANA QUE QUIERAS. Norberto: «lo que se desbloquea esa
+   * semana (mercado, zoco…) y justo después el simulacro, donde el docente escoge la semana y puede navegar
+   * por una Nave de recluta simulada». Uno solo (antes, uno por capítulo), detrás de «Lo nuevo» si esa
+   * semana abre algo; y con el selector de semana arriba. NEBULA arranca sola si la semana elegida abre un
+   * capítulo (enseña ese); si no, la Nave sale tal cual. Nada de lo que se toque ahí se guarda.
+   */
+  function diaSimulacro(s, caps){
+    var n=semanas().length, url=function(sem){
+      return 'recluta.html?simulacro=1&embed=1'+(capitulosDe(Number(sem)).length?'&nebula=1':'')+'&per='+encodeURIComponent(st.per||'demo-motor')+'&semana='+sem; };
+    var opciones=''; for(var k=1;k<=n;k++) opciones+='<option value="'+k+'"'+(k===s.sem?' selected':'')+'>'+k+(k===s.sem?' · esta':'')+'</option>';
+    return {k:'simulacro', rot:caps.length?'Enséñalo':'La Nave', html:
+      '<div class="dia simulacro"><div class="sim-barra"><span class="sim-t">🛰️ '+(caps.length?'Enséñalo: ':'')+'la Nave de un recluta, en simulacro</span>'
+      +'<label class="sim-sel">Semana <select class="sim-sem" aria-label="Semana de la Nave simulada">'+opciones+'</select></label>'
+      +'<span class="sim-nota">Nada de lo que toques aquí cuenta</span></div>'
+      +'<iframe src="'+esc(url(s.sem))+'" title="La Nave de tu Comandante, en simulacro" loading="lazy"></iframe></div>',
+      montar: function(el){
+        var sel=el.querySelector('.sim-sem'), fr=el.querySelector('.dia.simulacro iframe');
+        if(sel&&fr) sel.onchange=function(){ fr.src=url(sel.value); };
+        return null;
+      }};
   }
 
   function construir(s, n){
     var vids=s.videos||[], deTipo=function(t){ return vids.filter(function(v){ return tipoVideo(v)===t; }); };
     var d=[diaPortada(s, n)];
     if(st.per) d.push(diaLlamada());
+    var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
     deTipo('inicio').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 Para empezar')); });
     [diaAnteriores(s), diaMovido(), diaSemanal(), diaTop(), diaColeccion(), diaEscuadrones(), diaTicket(), diaOferta()]
       .forEach(function(x){ if(x) d.push(x); });
@@ -502,7 +685,7 @@
     return '<div class="prep">'
       +'<div class="prep-cab"><div><div class="eyebrow violet">Solo para ti · no se proyecta</div>'
       +'<h3>Antes de empezar</h3></div>'
-      +'<div class="prep-b"><a class="btn min bz-acceso" href="buzon.html?desde=sesion&per='+encodeURIComponent(st.per||'')+'" target="_blank" rel="noopener">📡 ¿Algo falla?</a> '
+      +'<div class="prep-b"><a class="btn min bz-acceso" href="buzon.html?desde=sesion&per='+encodeURIComponent(st.per||'')+'" target="_blank" rel="noopener">📡 ¿Dudas? ¿Algo falla?</a> '
       +'<button type="button" class="btn primary" id="proyectar">▶ Proyectar la sesión</button></div></div>'
       +(s.consejo?'<div class="card consejo"><b>El consejo del Capitán.</b> '+esc(s.consejo)+'</div>':'')
       +(s.clases?'<p class="small muted">'+esc(s.clases)+'</p>':'')
@@ -528,7 +711,8 @@
       +'<button type="button" class="nav ant" id="ant" aria-label="Anterior">‹</button>'
       +'<button type="button" class="nav sig" id="sig" aria-label="Siguiente">›</button>'
       // con varios grupos: cambiar de grupo sin salir del Genially (abajo, en la barra: arriba tapaba títulos)
-      +'<div class="barra-pasos">'+(st.grupos && st.grupos.length > 1 ? '<button type="button" class="ses-cambiar" id="ses-cambiar" title="Cambiar de grupo">⇄ '+esc(st.nombre||'Grupo')+'</button>' : '')+st.slides.map(function(d,i){
+      +'<div class="barra-pasos">'+(EMBED && st.yo ? '<button type="button" class="ses-salir-b" id="ses-salir-b" title="Cerrar sesión ('+esc(st.yo.correo||'')+')">⏻</button>' : '')
+      +(st.grupos && st.grupos.length > 1 ? '<button type="button" class="ses-cambiar" id="ses-cambiar" title="Cambiar de grupo">⇄ '+esc(st.nombre||'Grupo')+'</button>' : '')+st.slides.map(function(d,i){
           return '<button type="button" class="p'+(i===st.i?' on':'')+(i<st.i?' past':'')+'" data-i="'+i+'" title="'+esc(d.rot)+'"><span>'+esc(d.rot)+'</span></button>';
         }).join('')+'</div>'
       +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div>'
@@ -569,6 +753,7 @@
     // al volver atrás a un podio, se ve entero; al llegar de frente, se destapa de uno en uno
     st.f=hacia_atras&&st.slides[i].frag?st.slides[i].frag:0;
     if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }
+    cerrarFicha();
     var lienzo=root.querySelector('.lienzo');
     if(lienzo){
       lienzo.innerHTML=st.slides[i].html;
@@ -600,6 +785,12 @@
     });
     var cg=root.querySelector('#ses-cambiar');
     if(cg) cg.onclick=function(){ elegirGrupo(st.grupos); };
+    var sb=root.querySelector('#ses-salir-b'), sbT=null;
+    if(sb) sb.onclick=function(){
+      if(!sb.classList.contains('seguro')){ sb.classList.add('seguro'); sb.textContent='⏻ ¿Salir?';
+        clearTimeout(sbT); sbT=setTimeout(function(){ sb.classList.remove('seguro'); sb.textContent='⏻'; }, 3500); return; }
+      salir();
+    };
     var pr=root.querySelector('#proyectar');
     if(pr) pr.onclick=function(){
       // pantalla completa sobre el MAZO: así la tira de preparación (el consejo) queda fuera.
@@ -623,6 +814,7 @@
     // (15-sep · con el selector de grupo o la puerta en pantalla no hay diapositivas que pasar: el mando
     // redibujaba el grupo de antes y el selector desaparecía)
     if(!st.slides.length || !root.querySelector('.lienzo')) return;
+    if(root.querySelector('.ses-ficha')){ if(/^(Escape|ArrowRight|ArrowLeft|PageDown|PageUp| )$/.test(e.key)){ e.preventDefault(); cerrarFicha(); } return; }
     if(/^(INPUT|SELECT|TEXTAREA)$/.test((e.target&&e.target.tagName)||'')) return;
     // la barra espaciadora sobre un botón lo pulsa (no pasa de diapositiva); las flechas y el mando, siempre
     if(e.key===' ' && e.target && e.target.closest && e.target.closest('button,a,[role=button]')) return;
@@ -675,10 +867,11 @@
     root.innerHTML=cargando('Buscando tus grupos…','');
     M.sesion().then(function(yo){
       if (!yo) return puertaSesion();
+      st.yo = yo;
       return M.misPERs(yo.correo).then(function(ps){
         var vivos = (ps||[]).filter(function(x){ return x.estado === 'en marcha'; });
         var lista = vivos.length ? vivos : (ps||[]);
-        if (!lista.length) return sinGrupos(yo);
+        if (!lista.length) return comoRecluta(yo);
         st.grupos = lista;
         if (lista.length === 1) { st.per = lista[0].id; return cargarYArrancar(); }
         elegirGrupo(lista);
@@ -704,12 +897,47 @@
         .catch(function(e){ puertaSesion('No he podido entrar: '+(e&&e.message||e)); });
     };
   }
-  function sinGrupos(yo){
-    caja('<h2>Esta cuenta no lleva ningún grupo</h2>'
-      +'<p class="sub">Has entrado como <b>'+esc(yo.correo||'')+'</b>. Si das clase en STARGATE, entra con la cuenta que te dio de alta tu referente.</p>'
-      +'<button class="btn" id="ses-otra">Entrar con otra cuenta</button>');
-    document.getElementById('ses-otra').onclick=function(){ window.SG.MOTOR.salir().then(function(){ puertaSesion(); }); };
+  /**
+   * 15-sep · SI QUIEN ENTRA ES UN ESTUDIANTE. Norberto: «¿qué ocurre si un estudiante intenta entrar
+   * desde aquí? ¿podríamos hacer que le llevara directamente a su Nave del recluta?». Sí: la misma
+   * pregunta que hace la portada. De un grupo → su Nave, aquí mismo (sin la cabecera si va dentro de
+   * un Genially); de varios → elige; de ninguno → sus palabras: que esas credenciales no son de
+   * ningún Comandante, y otra cuenta.
+   */
+  function comoRecluta(yo){
+    var M=window.SG&&window.SG.MOTOR;
+    if(!M||!M.misGruposDeAlumno) return sinGrupos(yo);
+    root.innerHTML=cargando('Buscando tu Nave…','');
+    return M.misGruposDeAlumno(yo.uid).then(function(gs){
+      gs=gs||[];
+      var nave=function(per){ return 'recluta.html?per='+encodeURIComponent(per)+(EMBED?'&embed=1':''); };
+      if(gs.length===1){ location.replace(nave(gs[0].per)); return; }
+      if(!gs.length) return sinGrupos(yo);
+      caja('<h2>Tu Nave te espera</h2><p class="sub">Esta presentación es del profesorado. Estás alistado en más de un grupo: ¿a qué Nave vas?</p>'
+        +'<div class="ses-grupos">'+gs.map(function(g){
+          return '<a class="ses-grupo" href="'+esc(nave(g.per))+'"><b>🚀 '+esc(g.nombreGrupo||g.per)+'</b><span>Ir a mi Nave</span></a>'; }).join('')+'</div>'
+        +quienSoy(yo));
+      cablearSalir();
+    }).catch(function(){ sinGrupos(yo); });
   }
+  function sinGrupos(yo){
+    caja('<h2 class="ses-h-larga">Lo siento, esas credenciales no coinciden con las de ningún comandante.</h2>'
+      +'<p class="sub">Has entrado como <b>'+esc(yo.correo||'')+'</b>. ¿Quieres intentarlo con otra cuenta?</p>'
+      +'<button class="btn primary grande" id="ses-otra">Entrar con otra cuenta</button>'
+      +'<p class="small muted">¿Eres recluta y aún no te has alistado? Hazlo en stargate.mistercuarter.es con el código de tu clase.</p>');
+    document.getElementById('ses-otra').onclick=function(){ salir(); };
+  }
+  /** Quién ha entrado, y el botón para salir (15-sep · Norberto: «aquí necesito también un botón para cerrar sesión de Google»). */
+  function quienSoy(yo){
+    return '<p class="ses-quien">Has entrado como <b>'+esc((yo&&yo.correo)||'')+'</b> '
+      +'<button type="button" class="btn min" id="ses-salir">⏻ Cerrar sesión</button></p>';
+  }
+  function salir(){
+    if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }
+    var M=window.SG&&window.SG.MOTOR, fin=function(){ st.yo=null; st.grupos=null; st.slides=[]; if(!q.get('per')) st.per=''; puertaSesion(); };
+    if(M&&M.salir) M.salir().then(fin, fin); else fin();
+  }
+  function cablearSalir(){ var b=document.getElementById('ses-salir'); if(b) b.onclick=function(){ b.disabled=true; salir(); }; }
   function elegirGrupo(lista){
     // lo que estuviera vivo en la diapositiva (la llamada pregunta cada 4 s), fuera antes de cambiar
     if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }
@@ -717,7 +945,8 @@
       +'<div class="ses-grupos">'+lista.map(function(g){
         return '<button type="button" class="ses-grupo" data-per="'+esc(g.id)+'"><b>'+esc(g.nombre||g.id)+'</b>'
           +'<span>'+(g.estado==='en marcha'?'Semana '+g.semana+' de '+g.total:esc(g.estado))+(g.stargate&&g.stargate.tipo==='PUA'?' · PUA':'')+'</span></button>';
-      }).join('')+'</div>');
+      }).join('')+'</div>'+(st.yo?quienSoy(st.yo):''));
+    cablearSalir();
     Array.prototype.forEach.call(root.querySelectorAll('.ses-grupo'),function(b){
       b.onclick=function(){ st.per=b.getAttribute('data-per'); st.i=0; st.sem=0; cargarYArrancar(); };
     });

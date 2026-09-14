@@ -33,21 +33,127 @@
    "tiene tengo hace hacer algo nada todo cosa pasa esta estan ser son fue muy sus mis tus les nos ahora ayer hoy solo " +
    "alguien alguno alguna donde cual quien qué cómo puedo puede quiero").split(" ").forEach(function (w) { VACIAS[w] = true; });
   function palabras(t) { return norm(t).split(/[^a-z0-9ñ]+/).filter(function (w) { return w.length > 2 && !VACIAS[w]; }); }
+
+  /**
+   * ── 15-sep · LAS DUDAS DE SIEMPRE, CONTESTADAS AL MOMENTO Y CON TUS DATOS. Norberto: «¿hay alguna forma
+   * de automatizar las dudas más habituales? ¿que les conteste el Comandante en la misma ventana? ¿cuál es
+   * el código o enlace de invitación?, ¿cómo cambio los enlaces de Genially?, ¿cuál es la carpeta de
+   * Genially?, ¿dónde están los recursos?…». Estas no son texto fijo: se escriben con los grupos de quien
+   * pregunta (su código, su semana, sus enlaces) y traen el botón de copiar. Van por delante de las averías
+   * y de la FAQ. Si una duda llega dos veces al Mando, se añade aquí (o a AVERIAS): que la tercera no llegue.
+   */
+  var GRUPOS_V = function () { return (typeof GRUPOS !== "undefined" && GRUPOS) || []; };
+  var MOT = function () { return (window.SG && window.SG.MOTOR) || {}; };
+  function copiar(txt, etiqueta, hecho) {
+    return '<button type="button" class="btn min" data-copiar="' + esc(txt) + '" data-copiado="' + esc(hecho || "✓ Copiado") + '">' + etiqueta + '</button>';
+  }
+  function porGrupo(fila, vacio) {
+    var gs = GRUPOS_V().filter(function (g) { return g.estado !== "pasado"; });
+    return gs.length ? gs.map(fila).join("") : vacio;
+  }
+  function iframe(ruta, tit) {
+    return MOT().codigoGenially ? MOT().codigoGenially(ruta, tit)
+      : '<iframe src="' + (location.origin || "https://stargate.mistercuarter.es") + '/' + ruta + '" width="1200" height="675" style="border:0;width:100%;height:100%" allow="fullscreen; clipboard-write; autoplay; encrypted-media" allowfullscreen title="' + tit + '"></iframe>';
+  }
+  var VIVAS = [
+    { id: "invitacion", t: "El código y la invitación de tu clase",
+      claves: ["codigo", "invitacion", "invitar", "enlace de invitacion", "se unan", "unirse", "unan", "apuntarse", "inscrib", "codigo de clase", "enlace para los alumnos", "enlace para el alumnado", "enlace para mis alumnos", "enlace para los estudiantes"],
+      x: function () {
+        return porGrupo(function (g) {
+          return '<div class="bz-dato"><div><b>' + esc(g.nombre || g.id) + '</b><span class="bz-codigo">' + esc(g.codigo || "—") + '</span></div>'
+            + (g.codigo && MOT().invitacion ? copiar(MOT().invitacion(g), "📋 Copiar invitación", "✓ Invitación copiada") : '') + '</div>';
+        }, '<p>Entra con la cuenta de tu grupo y te lo doy aquí mismo.</p>')
+          + '<p class="small">La invitación es un mensaje listo para el foro de la plataforma de UNIR, con el enlace directo: tu alumnado entra con Google, '
+          + 'escribe el código y se alista solo. También está en <a href="consola.html">Mis grupos</a> (el código sale tapado: pulsa «👁 Mostrar»).</p>';
+      } },
+    { id: "mi-genially", t: "Cambiar los enlaces de tu Genially",
+      claves: ["cambiar el genially", "cambio el genially", "cambiar mi genially", "cambio los enlaces", "cambiar los enlaces", "cambiar el enlace", "cambio el enlace", "enlaces de genially", "enlace del genially", "mi genially", "mi propio genially", "otro genially", "poner mi genially", "duplicar", "mi panel", "mis enlaces"],
+      x: function () {
+        return '<p>Tu Genially es el que abre <b>tu</b> alumnado desde su Nave. Se pone en tu grupo → pestaña <b>Mis enlaces</b> → «Tu Genially» (si lo dejas vacío, usan el oficial del grupo):</p>'
+          + porGrupo(function (g) {
+            return '<div class="bz-dato"><b>' + esc(g.nombre || g.id) + '</b><a class="btn min" href="consola.html?per=' + encodeURIComponent(g.id) + '&tab=mios">🔗 Abrir sus enlaces</a></div>'
+              + (g.soyReferente ? '<p class="small">Como llevas este grupo, el panel <b>oficial</b> (el de todos) está en su pestaña <b>Ajustes</b> → «Panel de control (ver)».</p>' : '');
+          }, '')
+          + '<p class="small">¿Ya lo has cambiado y sigue saliendo el viejo? Recarga con <b>Ctrl + Mayús + R</b> (<b>⌘ + Mayús + R</b> en Mac).</p>';
+      } },
+    { id: "carpeta", t: "La carpeta de Geniallys",
+      claves: ["carpeta de genially", "carpeta de los genially", "carpeta genially", "geniallys", "plantilla", "plantillas", "donde estan los genially", "genially de los planetas", "genially de cada planeta"],
+      x: function () {
+        var u = window.SG_GENIALLY_CARPETA || "";
+        return (u ? '<p><a class="btn" href="' + esc(u) + '" target="_blank" rel="noopener">🪐 Abrir la carpeta de Geniallys ↗</a></p>' : '')
+          + '<p>Los Geniallys de los ocho planetas y el panel de control. Usa los estándar tal cual; si quieres el tuyo, duplica uno y pégalo en tu grupo → <b>Mis enlaces</b>. '
+          + 'Si te pide permiso, pídeselo a tu referente: es una carpeta del equipo docente.</p>';
+      } },
+    { id: "material", t: "El material audiovisual: vídeos, insignias, cromos y láminas",
+      claves: ["material audiovisual", "audiovisual", "recursos", "material", "videos de la serie", "insignias", "cromos", "laminas", "fondos", "imagenes", "personajes", "kit", "paquete", "drive"],
+      x: function () {
+        return '<p><a class="btn" href="recursos.html">📦 Recursos audiovisuales</a> <a class="btn min" href="cronologia.html">🗓️ Qué vídeo toca cada semana</a></p>'
+          + '<p>En Recursos están los 17 vídeos de la serie, las 24 insignias, los cromos y las láminas: para proyectar, para el aula virtual o para tus materiales. '
+          + 'Para montar Geniallys (fondos por planeta, clips, personajes recortados, HUD, iconos, insignias y cartas) está el paquete del equipo en Drive, '
+          + '<b>DRIVE_EQUIPO_STARGATE</b>: si no lo tienes, pídeselo a tu referente.</p>';
+      } },
+    { id: "insertar", t: "Poner la sesión, el aula o la llamada dentro de tu Genially",
+      claves: ["insertar", "incrustar", "embed", "iframe", "poner la sesion", "pongo la sesion", "meter la sesion", "sesion en genially", "sesion dentro", "dentro de mi genially", "dentro del genially", "en mi genially", "codigo para genially", "codigo de genially", "poner el aula", "pongo el aula", "poner la llamada", "pongo la llamada"],
+      x: function () {
+        return '<p>El <b>mismo código para todos tus grupos</b>: al abrirlo pide tu cuenta y, si llevas varios, pregunta en cuál estáis. '
+          + 'En Genially: <b>Insertar → Otros → Código</b>, y pegar.</p><div class="bz-botones">'
+          + copiar(iframe("sesion.html?embed=1", "STARGATE · La sesión de la semana"), "📽️ La sesión de la semana", "✓ Código copiado")
+          + copiar(iframe("aula.html?embed=1", "STARGATE · El aula"), "🛰️ El aula · la clase en directo", "✓ Código copiado")
+          + copiar(iframe("llamada.html?embed=1", "STARGATE · La llamada a filas"), "🔔 La llamada a filas", "✓ Código copiado") + '</div>';
+      } },
+    { id: "enlaces", t: "Los enlaces de tu grupo: la Nave, el tablero y la sesión",
+      claves: ["enlace de la nave", "nave del alumnado", "nave de los alumnos", "enlace del tablero", "tablero", "ranking", "padlet", "enlaces del grupo", "enlace de la sesion", "donde esta la nave"],
+      x: function () {
+        return porGrupo(function (g) {
+          var S = g.stargate || {}, o = location.origin + "/";
+          return '<div class="bz-dato bz-enl"><b>' + esc(g.nombre || g.id) + '</b><div class="bz-botones">'
+            + copiar(o + "recluta.html?per=" + encodeURIComponent(g.id), "🚀 La Nave")
+            + copiar(o + "registro.html?per=" + encodeURIComponent(g.id) + "&solo=1", "🏅 El tablero")
+            + copiar(o + "sesion.html?per=" + encodeURIComponent(g.id), "📽️ La sesión")
+            + (S.padlet ? copiar(S.padlet, "🧱 El padlet") : '') + '</div></div>';
+        }, '<p>Entra con la cuenta de tu grupo y te los doy aquí mismo.</p>') + '<p class="small">Cada botón copia el enlace, listo para pegar.</p>';
+      } },
+    { id: "semana", t: "En qué semana va tu grupo y qué toca",
+      claves: ["que semana", "en que semana", "semana estamos", "semana vamos", "que toca", "toca hoy", "toca esta semana", "cronologia", "planificacion"],
+      x: function () {
+        return porGrupo(function (g) {
+          return '<div class="bz-dato"><div><b>' + esc(g.nombre || g.id) + '</b><span>' + (g.estado === "en marcha" ? "Semana " + g.semana + " de " + g.total : esc(g.estado || "")) + '</span></div>'
+            + '<a class="btn min" href="sesion.html?per=' + encodeURIComponent(g.id) + '" target="_blank" rel="noopener">📽️ La sesión de hoy</a></div>';
+        }, '') + '<p class="small">La sesión trae la semana montada: el mensaje, los vídeos, quién ha hecho qué y las misiones. Semana a semana, en la <a href="cronologia.html">cronología</a>.</p>';
+      } },
+    { id: "foro", t: "El mensaje de esta semana para el foro",
+      claves: ["mensaje del foro", "mensaje para el foro", "foro", "mensaje de la semana", "publicar en el foro", "anuncio"],
+      x: function () {
+        return '<p>Está escrito, semana a semana: en <b>la sesión</b> (arriba, «Antes de empezar» → «El mensaje de esta semana para el foro», con su botón de copiar) '
+          + 'y en la <a href="cronologia.html">cronología</a>. Y en la sesión proyectada sale como la apertura de una saga, antes del vídeo.</p>';
+      } },
+    { id: "tiempo", t: "Un temporizador para la clase",
+      claves: ["temporizador", "cronometro", "timer", "cuenta atras", "controlar el tiempo", "tiempos"],
+      x: function () {
+        return '<p>En <b>El aula</b> → pestaña <b>⏱️ Tiempo</b>: 1, 3, 5, 10 o 15 minutos (o los que pongas), en grande para proyectar, con aviso al terminar. '
+          + 'El aula va dentro de tu Genially con el código de «🛰️ El aula» (pregúntame «¿cómo pongo el aula en Genially?»).</p>';
+      } }
+  ];
   function buscar(texto) {
     var n = norm(texto), tk = palabras(texto);
     if (!tk.length) return [];
-    return KB.map(function (e) {
-      var p = 0, tt = palabras(e.t);
-      e.claves.forEach(function (c) { if (n.indexOf(c) >= 0) p += 3; });
+    return VIVAS.map(function (e, i) { return { e: e, viva: 1, i: i }; }).concat(KB.map(function (e, i) { return { e: e, viva: 0, i: i }; })).map(function (x) {
+      var p = 0, tt = palabras(x.e.t);
+      x.e.claves.forEach(function (c) { if (n.indexOf(c) >= 0) p += 3; });
       tk.forEach(function (w) { if (tt.indexOf(w) >= 0) p += 1; });
-      return { e: e, p: p };
-    }).filter(function (x) { return x.p >= 2; }).sort(function (a, b) { return b.p - a.p; }).slice(0, 2).map(function (x) { return x.e; });
+      x.p = p; return x;
+    }).filter(function (x) { return x.p >= 2; })
+      .sort(function (a, b) { return (b.p - a.p) || (b.viva - a.viva) || (a.i - b.i); }).slice(0, 2).map(function (x) { return x.e; });
   }
   // (la batería 75 prueba el buscador sin página: por eso se expone antes de mirar si hay #bz-app)
-  window.SG_BUZON = { buscar: buscar, kb: KB };
+  window.SG_BUZON = { buscar: buscar, kb: KB, vivas: VIVAS };
   if (!app) return;
   var CHIPS = [["lista", "🔔 No puedo pasar lista"], ["genially", "🖼️ El Genially no se actualiza"], ["entrar", "🚪 Un alumno no puede entrar"],
                ["retos", "🎯 No le suman los retos"], ["embed", "📽️ La sesión no se ve en Genially"]];
+  // 15-sep · y las dudas de siempre, que el Capitán contesta con tus datos
+  var DUDAS = [["invitacion", "🔑 ¿Cuál es el código de invitación?"], ["mi-genially", "🔗 ¿Cómo cambio los enlaces de Genially?"],
+               ["carpeta", "🪐 ¿Dónde está la carpeta de Geniallys?"], ["material", "📦 ¿Dónde está el material audiovisual?"],
+               ["insertar", "📽️ ¿Cómo pongo la sesión en Genially?"], ["semana", "🗓️ ¿En qué semana vamos?"]];
   var TIPOS = [["problema", "🛠️", "Un problema", "Qué ha pasado, dónde y con quién. Si puedes, qué esperabas que pasara."],
                ["duda", "❓", "Una duda", "Qué quieres hacer. Te respondemos con los pasos."],
                ["idea", "💡", "Una idea", "Qué mejorarías y para qué. Las ideas se reúnen y las decide el coordinador."]];
@@ -82,16 +188,29 @@
     var caja = document.getElementById("bz-sugiere"); if (!caja) return;
     var L = ST.sugeridas;
     caja.innerHTML = L.length
-      ? '<div class="bz-cap"><img src="assets/img/capitan/senala.png" alt=""><p><b>El Capitán</b>Esto ya tiene solución conocida. Mira si te sirve antes de enviarlo:</p></div>'
-        + L.map(function (e) { return '<article class="bz-sol"><h3>' + esc(e.t) + '</h3><div>' + e.x + '</div></article>'; }).join("")
+      ? '<div class="bz-cap"><img src="assets/img/capitan/senala.png" alt=""><p><b>El Capitán</b>' + (L[0] && typeof L[0].x === "function"
+          ? 'Te lo digo ahora mismo, Comandante:' : 'Esto ya tiene solución conocida. Mira si te sirve antes de enviarlo:') + '</p></div>'
+        + L.map(function (e) { return '<article class="bz-sol"><h3>' + esc(e.t) + '</h3><div>' + (typeof e.x === "function" ? e.x() : e.x) + '</div></article>'; }).join("")
         + '<p class="bz-sol-botones"><button class="btn" id="bz-resuelto" type="button">✅ Esto lo resuelve</button></p>'
       : '<div class="bz-cap"><img src="assets/img/capitan/pensativo.png" alt=""><p><b>El Capitán</b>Mientras escribes, busco si esto ya tiene solución. '
         + 'Si no la tiene, transmítelo: el Mando lo revisa cada día y te responde aquí mismo.</p></div>';
+    cablearCopiar(caja);
     var r = document.getElementById("bz-resuelto");
     if (r) r.onclick = function () {
       ST.texto = ""; ST.sugeridas = []; pintar();
       aviso("✅ ¡Perfecto, Comandante! Si vuelve a pasar, aquí estamos.", true);
     };
+  }
+  /** Copiar al portapapeles (con plan B para navegadores que no dejan: un textarea y copiar). */
+  function cablearCopiar(raiz) {
+    Array.prototype.forEach.call((raiz || document).querySelectorAll("[data-copiar]"), function (b) {
+      b.onclick = function () {
+        var t = b.getAttribute("data-copiar"), ok = function () { var antes = b.textContent; b.textContent = b.getAttribute("data-copiado") || "✓ Copiado"; setTimeout(function () { b.textContent = antes; }, 1800); };
+        var planB = function () { var ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select();
+          try { document.execCommand("copy"); ok(); } catch (e) {} ta.remove(); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, planB); else planB();
+      };
+    });
   }
   function nueva() {
     var tipo = TIPOS.filter(function (t) { return t[0] === ST.tipo; })[0];
@@ -100,7 +219,11 @@
           return '<option value="' + esc(g.id) + '"' + (g.id === ST.grupo ? " selected" : "") + '>' + esc(g.nombre || g.id) + '</option>'; }).join("") + '</select></label>'
       : '';
     return '<div class="bz-grid"><section class="card bz-nueva"><h2>Nueva transmisión</h2>'
-      + '<div class="bz-chips" role="group" aria-label="Lo más habitual">' + CHIPS.map(function (c) {
+      + '<p class="bz-chips-t">Dudas rápidas · te contesto al momento</p>'
+      + '<div class="bz-chips" role="group" aria-label="Dudas rápidas">' + DUDAS.map(function (c) {
+          return '<button type="button" class="bz-chip duda" data-duda="' + c[0] + '">' + c[1] + '</button>'; }).join("") + '</div>'
+      + '<p class="bz-chips-t">Averías conocidas</p>'
+      + '<div class="bz-chips" role="group" aria-label="Averías conocidas">' + CHIPS.map(function (c) {
           return '<button type="button" class="bz-chip" data-chip="' + c[0] + '">' + c[1] + '</button>'; }).join("") + '</div>'
       + '<div class="bz-tipos" role="radiogroup" aria-label="Qué es">' + TIPOS.map(function (t) {
           return '<button type="button" role="radio" aria-checked="' + (t[0] === ST.tipo) + '" class="bz-tipo' + (t[0] === ST.tipo ? " on" : "") + '" data-tipo="' + t[0] + '">'
@@ -121,6 +244,13 @@
     };
     Array.prototype.forEach.call(app.querySelectorAll("[data-tipo]"), function (b) {
       b.onclick = function () { ST.tipo = b.getAttribute("data-tipo"); if (ST.tipo !== "problema") ST.urgente = false; pintar(); var t = document.getElementById("bz-texto"); if (t) t.focus(); };
+    });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-duda]"), function (b) {
+      b.onclick = function () {
+        var e = VIVAS.filter(function (x) { return x.id === b.getAttribute("data-duda"); })[0];
+        ST.tipo = "duda"; ST.urgente = false; ST.sugeridas = e ? [e] : []; ST.texto = b.textContent.replace(/^\S+\s/, "");
+        pintar(); var s = document.getElementById("bz-sugiere"); if (s && s.scrollIntoView && window.innerWidth < 900) s.scrollIntoView({ behavior: "smooth", block: "start" });
+      };
     });
     Array.prototype.forEach.call(app.querySelectorAll("[data-chip]"), function (b) {
       b.onclick = function () {
@@ -150,7 +280,7 @@
       return cargar().then(function () {
         pintar();
         aviso('<img class="bz-ok-cap" src="assets/img/capitan/pulgar.png" alt=""> <b>Transmisión recibida, Comandante.</b> El Mando la revisa cada día' +
-          ' y te responde aquí mismo; lo urgente, lo primero.', true);
+          ' y te responde aquí mismo (y te avisa por correo); lo urgente, lo primero.', true);
       });
     }).catch(function (e) {
       b.disabled = false; b.textContent = "📡 Transmitir al Mando";

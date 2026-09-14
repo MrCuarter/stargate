@@ -68,6 +68,9 @@ c(/function botin\(\)/.test(NAVE), "«Mi botín» existe");
   c(NAVE.indexOf(t) >= 0, "   y recoge «" + t + "»");
 });
 c(/function badgesCronologicos\(\)/.test(NAVE), "las insignias van en el orden en que se ganan");
+// 15-sep · y agrupadas por temas (Norberto): cada planeta con su tripulante y su reto; luego la historia y los hitos
+c(/LAS INSIGNIAS, POR TEMAS/.test(NAVE) && /deIns\('P'\+tt\+'_'\)\.concat\(deIns\('R'\+tt\+'_'\)\)/.test(NAVE) && /class="badge-col"/.test(NAVE),
+  "las insignias de «Mi botín» van por temas (P y R de cada planeta) y cada casilla sigue abriéndose como siempre");
 c(/\(st\.semanas \|\| SEM \|\| \[\]\)\.forEach/.test(NAVE),
   "🔴 y ese orden sale del CALENDARIO, no de una lista aparte: mover un reto de semana reordena la colección sola");
 

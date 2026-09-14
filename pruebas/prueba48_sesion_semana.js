@@ -63,7 +63,13 @@ const construir = S.slice(S.indexOf("function construir("), S.indexOf("// ------
 // semanal, que es lo contrario: algo que el alumnado puede hacer hoy. Buscar la palabra suelta
 // confundía las dos y saltaba con un cambio legítimo.
 c(MAZO.indexOf("s.consejo") < 0, "🔴 el consejo del Capitán NO entra en ninguna diapositiva del mazo");
-c(MAZO.indexOf(".foro") < 0, "🔴 el mensaje del foro tampoco: eso lo copia el docente, no se proyecta");
+// 🔴 15-sep · el mensaje del foro SÍ se proyecta desde hoy (Norberto: «justo antes del vídeo, con música épica
+// y un efecto rollo Star Wars»), pero SOLO en su diapositiva, limpio: sin enlaces (en una proyección no se pulsan)
+// ni la marca del grupo. En cualquier otra diapositiva, no.
+const FORO = S.slice(S.indexOf("function foroParrafos("), S.indexOf("function cielo("));
+c(FORO.length > 200 && /https\?:/.test(FORO) && /id-del-PER/.test(FORO), "🔴 el mensaje del foro se proyecta solo en su apertura de saga, sin enlaces ni la marca del grupo");
+c(MAZO.split("s.foro").length === 2 && /diaForo\(s\)/.test(construir) && construir.indexOf("diaForo(s)") < construir.indexOf("deTipo('inicio')"),
+  "   y justo antes del vídeo de inicio (ninguna otra diapositiva lo usa)");
 // 🔴 14-sep · Norberto: «"Nómbralos en voz alta. Los puntos los da el sistema; la ceremonia la haces tú"
 // rompe la magia: esto se proyecta». Nada de lo proyectado le habla al docente.
 ["Nómbralos", "la ceremonia la haces tú", "Los xp no bajan nunca", "Por MEDIA, no por suma", "Aquí es donde entras tú"].forEach(function (t) {

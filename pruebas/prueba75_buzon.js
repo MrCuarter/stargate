@@ -18,7 +18,7 @@ const leer = f => fs.readFileSync(path.join(RAIZ, f), "utf8");
 
 const H = leer("buzon.html");
 const sacar = (re) => { const m = re.exec(H); return m ? JSON.parse(m[1]) : null; };
-const AVERIAS = sacar(/window\.SG_AVERIAS=(\[[\s\S]*?\]);window\.SG_FAQ=/), FAQ = sacar(/window\.SG_FAQ=(\[[\s\S]*?\]);<\/script>/);
+const AVERIAS = sacar(/window\.SG_AVERIAS=(\[[\s\S]*?\]);window\.SG_FAQ=/), FAQ = sacar(/window\.SG_FAQ=(\[[\s\S]*?\]);(?:window\.|<\/script>)/);
 
 // 1 · la página
 c(!!AVERIAS && AVERIAS.length >= 8, "buzon.html lleva las averías conocidas", AVERIAS && AVERIAS.length);
@@ -54,6 +54,27 @@ if (B) acierta.forEach(([frase, id]) => {
   const r = B.buscar(frase).map(e => e.id);
   c(r.indexOf(id) >= 0, "🔴 «" + frase + "» → el Capitán ofrece «" + id + "»", JSON.stringify(r));
 });
+// 15-sep · las dudas de siempre: el Capitán las contesta al momento, con los datos de tus grupos
+const dudas = [["¿Cuál es el código o enlace de invitación para que los estudiantes se unan a clase?", "invitacion"],
+               ["¿Cómo cambio los enlaces de Genially?", "mi-genially"],
+               ["¿Cuál es la dirección de la carpeta de Genially?", "carpeta"],
+               ["¿Dónde están los recursos?", "material"],
+               ["¿Cuál es la carpeta con el material audiovisual?", "material"],
+               ["¿Cómo pongo la sesión dentro de mi Genially?", "insertar"],
+               ["¿En qué semana estamos?", "semana"],
+               ["¿Dónde está el mensaje del foro de esta semana?", "foro"],
+               ["¿Hay un temporizador para la clase?", "tiempo"]];
+if (B) dudas.forEach(([frase, id]) => {
+  const r = B.buscar(frase).map(e => e.id);
+  c(r[0] === id, "🔴 «" + frase + "» → el Capitán contesta primero «" + id + "»", JSON.stringify(r));
+});
+if (B) (B.vivas || []).forEach(e => {
+  let h = ""; try { h = e.x(); } catch (err) { h = "ERROR " + err.message; }
+  c(typeof h === "string" && h.length > 60 && !/ERROR|undefined/.test(h), "la respuesta «" + e.id + "» se escribe aunque aún no haya grupos", h.slice(0, 80));
+  (h.match(/href='([^']+)'|href="([^"]+)"/g) || []).forEach(x => { const f = x.replace(/^href=["']|["']$/g, "").split(/[?#]/)[0];
+    if (!/^https?:/.test(f) && f) c(fs.existsSync(path.join(RAIZ, f)), "respuesta «" + e.id + "»: el enlace «" + f + "» existe"); });
+});
+c(/window\.SG_GENIALLY_CARPETA="https:\/\/app\.genially\.com\//.test(H), "buzon.html lleva la carpeta de Geniallys (para contestarla al momento)");
 if (B) c(B.buscar("Quiero la interfaz rosa").length === 0, "«Quiero la interfaz rosa» → no se inventa ninguna solución (es una idea: va al coordinador)",
   JSON.stringify(B.buscar("Quiero la interfaz rosa").map(e => e.id)));
 
