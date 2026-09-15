@@ -1,7 +1,7 @@
 // STARGATE — foro dinámico semanal. foro.html?per=<id> | ?inicio=YYYY-MM-DD[&tipo=PUA][&embed=1][&semana=N] | ?todos=1[&tipo=PUA]
 (function(){
   var API=(window.SG_TABLERO_API||"").trim(), SEM=window.SG_SEMANAS||[], root=document.getElementById('foro-app'); if(!root) return;
-  var q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
+  var q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed','embed-caja');  // 15-sep · caja suelta: sin fondo
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   // resuelve el placeholder del tablero: con PER conocido pone su id; sin PER deja el enlace genérico
   function resolverTablero(txt,perId){txt=String(txt==null?'':txt);

@@ -128,6 +128,9 @@
           (mio ? '<p class="gp-esc">' + esc(mio.name) + '</p>' : '') + '</div>' +
         (p.soyReferente ? '<span class="gp-ref" title="Llevas este grupo">★</span>' : '') +
       '</header>' +
+      // 15-sep · Norberto: «la Cola de nota debería aparecer solo si hay algo que hacer… que brille o un globo con aviso»
+      (p.cola ? '<button type="button" class="gp-cola" data-per="' + esc(p.id) + '" data-ir="canjes">🔔 <b>' + p.cola + '</b> ' +
+        (p.cola === 1 ? "subida de nota espera" : "subidas de nota esperan") + ' tu visto bueno <span>Revisar →</span></button>' : '') +
       // Las dos cifras que se miran de un vistazo: cuánta gente hay y por dónde vamos.
       '<div class="gp-cifras">' +
         '<div><b>' + (p.reclutas == null ? "—" : p.reclutas) + '</b><span>alistados</span></div>' +
@@ -164,8 +167,14 @@
             'title="Copia un mensaje listo para pegar en el foro de la plataforma de UNIR o en un chat">' +
             '📋 Copiar invitación</button></div>'
         : '') +
+      // 15-sep · Norberto: «un botón llamativo para entrar en ese grupo», como el de «Entrar en mi Nave» al alistarse.
+      // Era un enlace gris («Ver mi gente y los ajustes →») y no se veía. Debajo, las pestañas que hay dentro.
       '<div class="gp-pie">' +
-        '<button class="gp-abrir" data-per="' + esc(p.id) + '">Ver mi gente y los ajustes →</button>' +
+        (p.estado === "pasado"
+          ? '<button class="btn gp-abrir" data-per="' + esc(p.id) + '">Entrar en el grupo →</button>'
+          : '<button class="btn epico gp-abrir" data-per="' + esc(p.id) + '">' +
+              '<span class="ep-luz"></span><span class="ep-txt">🚀 Entrar en el grupo</span></button>') +
+        '<p class="gp-dentro">' + (refDe(p) ? "Mi gente · Escuadrones · Calendario · Ajustes" : "Mi gente · El Zoco · Mis enlaces · Calendario") + '</p>' +
       '</div></article>';
   }
 
@@ -283,7 +292,7 @@
         : '');
 
     Array.prototype.forEach.call(app.querySelectorAll("[data-per]"), function (b) {
-      b.onclick = function () { abrir(b.getAttribute("data-per")); };
+      b.onclick = function () { if (b.getAttribute("data-ir")) TAB = b.getAttribute("data-ir"); abrir(b.getAttribute("data-per")); };
     });
     Array.prototype.forEach.call(app.querySelectorAll(".gp-cod"), function (b) {
       b.onclick = function () {
@@ -317,13 +326,24 @@
    *
    * La cuarta columna marca las que solo salen si llevas el grupo.
    */
-  var TABS = [["alumnado", "Mi gente"], ["canjes", "Cola de nota"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"],
+  /**
+   * 15-sep · Norberto: «Cola de nota debería aparecer solo si hay algo que hacer; si no, ocúltalo. Como es al final,
+   * muévelo a la última opción, y que brille cuando hay algo pendiente». Y el calendario, a la vista de todo el
+   * equipo («la versión vista, sin edición, la debería poder ver el docente raso»): editar sigue siendo del referente.
+   */
+  var TABS = [["alumnado", "Mi gente"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
               ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1],
-              ["huevos", "Premios por enlace", 1], ["sorteos", "Sorteos", 1], ["ofertas", "Ofertas", 1], ["calendario", "Calendario", 1], ["ajustes", "Ajustes del grupo", 1]];
-  function misTabs() {
-    var ref = refDe(PERS.filter(function (p) { return p.id === PER; })[0]);
-    return TABS.filter(function (x) { return !x[2] || ref; });
+              ["huevos", "Premios por enlace", 1], ["sorteos", "Sorteos", 1], ["ofertas", "Ofertas", 1], ["ajustes", "Ajustes del grupo", 1],
+              ["canjes", "Cola de nota"]];
+  function pendientesCola() {
+    return ((DATOS && DATOS.vales) || []).filter(function (v) { return (v.status || "pending") === "pending"; }).length;
   }
+  function misTabs() {
+    var ref = refDe(PERS.filter(function (p) { return p.id === PER; })[0]), cola = pendientesCola();
+    return TABS.filter(function (x) { return (!x[2] || ref) && (x[0] !== "canjes" || cola > 0); });
+  }
+  function soyRefAqui() { return refDe(PERS.filter(function (p) { return p.id === PER; })[0]); }
+  function miNombreAqui() { var p = PERS.filter(function (x) { return x.id === PER; })[0]; return (p && p.miNombre) || ""; }
 
   /**
    * 15-sep · «📡 ¿Algo falla?»: la puerta al buzón del Mando (buzon.html). Lleva desde dónde se
@@ -346,13 +366,20 @@
 
   function pintar() {
     var t = window.SG.TABLERO.tablero(DATOS, true);
+    // 🔴 Y si el TAB recordado ya no le corresponde —dejó de ser referente, llega por un enlace con #ajustes o
+    // (15-sep) acaba de resolver la última subida de nota y la Cola se esconde— se cae al primero, ANTES de pintar
+    // las pestañas para que la encendida sea la que se ve.
+    if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
     app.innerHTML =
       '<div class="card cuenta"><p><b>' + esc(t.nombre) + '</b> · ' + esc(t.tipo) +
         ' · ' + semanaTexto(t) + ' · ' + t.reclutas.length + ' reclutas' +
         ' <button class="btn min" id="c-cambiar">← Mis grupos</button> ' + botonBuzon("consola", PER) +
         ' <button class="btn min" id="c-salir">Salir</button></p></div>' +
       '<div class="pestanas">' + misTabs().map(function (x) {
-        return '<button class="pest' + (TAB === x[0] ? " activa" : "") + '" data-tab="' + x[0] + '">' + x[1] + "</button>";
+        var cola = x[0] === "canjes" ? pendientesCola() : 0;
+        return '<button class="pest' + (TAB === x[0] ? " activa" : "") + (cola ? " pest-aviso" : "") + '" data-tab="' + x[0] + '"' +
+          (cola ? ' title="' + cola + (cola === 1 ? " subida de nota espera" : " subidas de nota esperan") + ' tu visto bueno"' : "") + '>' + x[1] +
+          (cola ? '<span class="pest-n" aria-label="' + cola + ' pendientes">' + cola + "</span>" : "") + "</button>";
       }).join("") + "</div>" +
       '<div id="c-aviso" class="aviso" hidden></div>' +
       '<div id="c-cuerpo"></div>';
@@ -363,9 +390,6 @@
     cablearCopiar(app);
     if ($("#c-cambiar")) $("#c-cambiar").onclick = function () { url.delete("per"); elegirGrupo(); };
     $("#c-salir").onclick = function () { MOTOR.salir(); };
-    // 🔴 Y si el TAB recordado ya no le corresponde —dejó de ser referente, o llega por un enlace
-    // con #ajustes— se cae al primero en vez de pintar una pantalla que no debería ver.
-    if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
     ({ alumnado: verAlumnado, canjes: verCanjes, zoco: verZoco, mios: verMios, equipo: verEquipo,
        escuadrones: verEscuadrones, huevos: verHuevos, sorteos: verSorteos, ofertas: verOfertas, calendario: verCalendario, ajustes: verAjustes })[TAB](t);
     ofrecerVisitaDelGrupo();
@@ -381,7 +405,7 @@
    */
   var PASOS_GRUPO = {
     alumnado: ["Mi gente", "Tu alumnado con sus xp, créditos e insignias. <b>Pulsa una fila</b>: ves su ficha, los <b>enlaces de sus evidencias</b> y puedes otorgar o anular un reto. El aviso <b>«⚠️ sin enlace»</b> marca los retos registrados sin evidencia."],
-    canjes: ["Cola de nota", "Las recompensas que tocan la <b>nota</b> no se aplican solas: esperan aquí a que las apruebes. Los créditos no se mueven hasta entonces."],
+    canjes: ["Cola de nota", "Solo aparece cuando alguien pide una subida de <b>nota</b>, y brilla hasta que la resuelves: ninguna se aplica sola. Los créditos no se mueven hasta entonces."],
     zoco: ["El Zoco", "Los trueques entre tu alumnado (se abren en la semana 5): quién cambia qué con quién y los mensajes que se dejan. Si uno no te cuadra, <b>Deshacer</b> devuelve cada cosa a su dueño."],
     mios: ["Mis enlaces", "Tu panel de Genially, si has hecho una copia propia, y los enlaces del grupo para repartir en clase: la Nave, el tablero para proyectar, la sesión y el padlet."],
     equipo: ["Equipo docente", "Quién imparte y quién lleva el grupo, <b>por su correo de Google</b>. Añadir a alguien aquí es darle entrada; quitarlo, quitársela. No hay PIN."],
@@ -389,7 +413,7 @@
     huevos: ["Premios por enlace", "Crea un premio —xp, créditos, un sobre de cromos, un héroe— con sus topes (en total, por escuadrón o por persona) y pega su enlace donde quieras. Por ejemplo: «los 5 primeros de cada escuadrón, un sobre»."],
     sorteos: ["Sorteos", "El <b>Gran Sorteo</b> y los que crees tú: tu alumnado compra participaciones, tú las regalas o las escondes en un enlace, y el día señalado lo <b>proyectas</b>. Lo sortea el servidor: una papeleta por participación y nadie gana dos."],
     ofertas: ["Ofertas", "La <b>oferta de la semana</b> sale sola en el Mercado desde la semana 3: un sobre, una cápsula, un héroe o una carta concretos, rebajados y con unidades según los inscritos y la rareza. Aquí la <b>alargas, la cancelas, cambias sus unidades</b> o creas una tú."],
-    calendario: ["Calendario", "Las semanas del curso y lo que abre cada una. <b>Congela</b> una semana (Navidad, Semana Santa) y todo lo de detrás se corre; o <b>abre un capítulo antes</b> de su semana. La fecha de la semana 1 también está aquí."],
+    calendario: ["Calendario", "El curso entero en un calendario: cada semana con su número, las <b>no lectivas</b> (Navidad, Semana Santa) y lo que se abre cada una. Si llevas el grupo, pulsa una semana para marcarla como no lectiva y todo lo de detrás se corre solo."],
     ajustes: ["Ajustes del grupo", "El nombre, el código de clase, el padlet, el panel oficial y los enlaces para montar una vez en los Geniallys."]
   };
   function ofrecerVisitaDelGrupo() {
@@ -440,25 +464,61 @@
         var x = v[c.clave]; return c.n + " · " + c.titulo + ": " + (x ? (x.estado === "saltado" ? "saltado" : "visto") : "pendiente"); }).join("\n")) + '">'
       + hechos + "/" + n + (todo && !saltados ? " ✓" : "") + (saltados ? '<span class="small muted"> · ' + saltados + " saltado" + (saltados > 1 ? "s" : "") + "</span>" : "") + "</td>";
   }
+  /**
+   * 15-sep · MI GENTE, POR ESCUADRONES. Norberto: el referente que además imparte, «además de ver su escuadrón,
+   * necesita ver el resto para resolver problemas». Arriba, un filtro: su escuadrón (si imparte aquí, que es lo
+   * que dice «Mi gente») o todos, y cualquiera de los demás. Y la ficha se abre EN UNA VENTANA encima: «hago clic en
+   * el estudiante y no se abre nada» — se pintaba debajo de la tabla, a veinte filas de distancia, fuera de la vista.
+   */
+  var FILTRO = {};   // por grupo: "" = todos, o el nombre del Comandante
+  function filtroDe(t) {
+    var escs = t.escuadrones || [], f = FILTRO[PER];
+    if (f == null) { var mio = miNombreAqui(); f = escs.some(function (e) { return e.comandante === mio; }) ? mio : ""; }
+    return f && escs.some(function (e) { return e.comandante === f; }) ? f : "";
+  }
+  function retosOrdenados() { return DATOS.misiones.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); }
+  /** Las filas del alumnado (Mi gente y el detalle de un escuadrón): `lista` = [[recluta, índice en t.reclutas]…]. */
+  function tablaGente(lista, caps, conComandante) {
+    return '<div class="tabla-envoltura"><table class="tabla gente-tabla"><thead><tr><th>#</th><th>Alias</th><th>Nombre</th>' +
+      (conComandante ? '<th>Comandante</th>' : '') +
+      '<th>xp</th><th>◈</th><th>Insignias</th><th title="Capítulos de NEBULA vistos (de los ya abiertos)">Bienvenida</th></tr></thead><tbody>' +
+      lista.map(function (x) {
+        var r = x[0], i = x[1];
+        return '<tr data-r="' + i + '" tabindex="0"' + (r.congelado ? ' class="congelado"' : '') + '><td>' + r.pos + '</td><td><b>' + esc(r.alias) + '</b>' +
+          (r.corona ? " 👑" : "") + (r.congelado ? ' <span class="chip" title="Cuenta congelada por el referente">🧊 congelado</span>' : '') + '</td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
+          esc(r.email || "") + '</span></td>' + (conComandante ? '<td>' + esc(r.profe || "—") + '</td>' : '') + '<td>' + r.xp +
+          '</td><td>' + r.creditos + '</td><td>' + r.n + "/24</td>" + celdaBienvenida(r, caps) + "</tr>";
+      }).join("") + "</tbody></table></div>";
+  }
+  /** Una fila pulsada (o con Intro) abre su ficha. */
+  function cablearFilas(donde, t) {
+    Array.prototype.forEach.call(donde.querySelectorAll("[data-r]"), function (fila) {
+      var abre = function () { verFicha(t.reclutas[Number(fila.getAttribute("data-r"))]); };
+      fila.onclick = abre;
+      fila.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abre(); } };
+    });
+  }
   function verAlumnado(t) {
-    var retos = DATOS.misiones.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
-    var caps = capsDelGrupo(t);
+    var caps = capsDelGrupo(t), escs = t.escuadrones || [], filtro = filtroDe(t), mio = miNombreAqui();
+    var chips = escs.length > 1 ? '<div class="gente-filtro" role="group" aria-label="De qué escuadrón">' +
+      '<button type="button" class="gf' + (!filtro ? " on" : "") + '" data-gf="" aria-pressed="' + !filtro + '">Todos <span>' + t.reclutas.length + '</span></button>' +
+      escs.map(function (e) {
+        var n = t.reclutas.filter(function (r) { return r.profe === e.comandante; }).length, on = filtro === e.comandante;
+        return '<button type="button" class="gf' + (on ? " on" : "") + '" data-gf="' + esc(e.comandante) + '" aria-pressed="' + on + '">' +
+          (e.emblema ? '<img src="' + esc(e.emblema) + '" alt="" width="22" height="22" loading="lazy">' : '') + esc(e.nombre) +
+          '<em>' + (e.comandante === mio ? "el tuyo" : esc(e.comandante)) + '</em><span>' + n + '</span></button>';
+      }).join("") + '</div>' : '';
+    var lista = t.reclutas.map(function (r, i) { return [r, i]; }).filter(function (x) { return !filtro || x[0].profe === filtro; });
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>Alumnado</h3>' +
       '<p class="small muted">El nombre y el correo solo los ves tú y el resto del equipo docente. ' +
-      'Pulsa una fila para otorgar o anular un reto.</p>' +
-      '<table class="tabla"><thead><tr><th>#</th><th>Alias</th><th>Nombre</th><th>Comandante</th>' +
-      '<th>xp</th><th>◈</th><th>Insignias</th><th title="Capítulos de NEBULA vistos (de los ya abiertos)">Bienvenida</th></tr></thead><tbody>' +
-      t.reclutas.map(function (r, i) {
-        return '<tr data-r="' + i + '"' + (r.congelado ? ' class="congelado"' : '') + '><td>' + r.pos + '</td><td><b>' + esc(r.alias) + '</b>' +
-          (r.corona ? " 👑" : "") + (r.congelado ? ' <span class="chip" title="Cuenta congelada por el referente">🧊 congelado</span>' : '') + '</td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
-          esc(r.email || "") + '</span></td><td>' + esc(r.profe || "—") + '</td><td>' + r.xp +
-          '</td><td>' + r.creditos + '</td><td>' + r.n + "/24</td>" + celdaBienvenida(r, caps) + "</tr>";
-      }).join("") + "</tbody></table>" +
+      '<b>Pulsa una fila</b> y se abre su ficha: sus retos, los enlaces de lo que ha entregado y lo que puedes hacer.</p>' + chips +
+      (lista.length ? tablaGente(lista, caps, !filtro) : '<p class="muted">Todavía no hay nadie en este escuadrón.</p>') +
       (t.sin_docente ? '<p class="aviso">⚠️ ' + t.sin_docente + ' recluta(s) sin Comandante asignado.</p>' : "") +
-      "</div><div id='c-ficha'></div>";
-    Array.prototype.forEach.call(app.querySelectorAll("[data-r]"), function (fila) {
-      fila.onclick = function () { verFicha(t.reclutas[Number(fila.getAttribute("data-r"))], retos); };
+      "</div>";
+    Array.prototype.forEach.call(app.querySelectorAll("[data-gf]"), function (b) {
+      b.onclick = function () { FILTRO[PER] = b.getAttribute("data-gf"); verAlumnado(t); };
     });
+    cablearFilas(app, t);
     /**
      * 🔴 13-sep · LOS ENLACES DE EVIDENCIA, POR FIN A LA VISTA. El alumnado los guardaba en
      * `mission_deliveries` y NADA de la consola los leía: se pedían enlaces que caían en un pozo. Y
@@ -469,25 +529,33 @@
      */
     // 🔴 Un turno por pintada: la lista se repinta (al refrescar, al volver de una ficha) y cada
     // consulta en vuelo añadía SU aviso a las filas nuevas — salían «⚠️ 8 sin enlace» dos veces.
+    cargarEvid(t);
+  }
+  function cargarEvid(t) {
     var turno = ++TURNO_EVID;
-    EVID = null;
+    EVID = null; EVID_PER = PER;
     EVID_LISTO = MOTOR.getDocs(MOTOR.query(MOTOR.collection(MOTOR.db, "mission_deliveries"), MOTOR.where("projectId", "==", PER)))
       .then(function (r) {
         if (turno !== TURNO_EVID) return;
         EVID = {};
         r.docs.forEach(function (d) { var x = d.data(); (EVID[x.studentProfileId] = EVID[x.studentProfileId] || {})[x.stargateReto || String(x.missionId).split("__").pop()] = x.enlace || ""; });
-        var EVR = window.SG_EVIDENCIA || {};
-        t.reclutas.forEach(function (rc, i) {
-          var mias = EVID[rc.ficha] || {};
-          var faltan = Object.keys(rc.retos || {}).filter(function (id) { return EVR[id] === "obligatoria" && !mias[id]; });
-          if (!faltan.length) return;
-          var celda = app.querySelector('[data-r="' + i + '"] td:nth-child(2)');
-          if (celda && !celda.querySelector(".sin-evid")) celda.insertAdjacentHTML("beforeend", ' <span class="sin-evid" title="Retos que piden enlace y no lo tienen: ' +
-            esc(faltan.join(", ")) + '">⚠️ ' + faltan.length + ' sin enlace</span>');
-        });
+        marcarSinEnlace(t);
       }).catch(function () { EVID = {}; });
   }
-  var EVID = null, EVID_LISTO = null, TURNO_EVID = 0;
+  /** Al lado del alias, cuántos retos que piden enlace no lo tienen (en la tabla que esté a la vista). */
+  function marcarSinEnlace(t) {
+    if (!EVID) return;
+    var EVR = window.SG_EVIDENCIA || {};
+    t.reclutas.forEach(function (rc, i) {
+      var mias = EVID[rc.ficha] || {};
+      var faltan = Object.keys(rc.retos || {}).filter(function (id) { return EVR[id] === "obligatoria" && !mias[id]; });
+      if (!faltan.length) return;
+      var celda = app.querySelector('[data-r="' + i + '"] td:nth-child(2)');
+      if (celda && !celda.querySelector(".sin-evid")) celda.insertAdjacentHTML("beforeend", ' <span class="sin-evid" title="Retos que piden enlace y no lo tienen: ' +
+        esc(faltan.join(", ")) + '">⚠️ ' + faltan.length + ' sin enlace</span>');
+    });
+  }
+  var EVID = null, EVID_LISTO = null, TURNO_EVID = 0, EVID_PER = null;
 
   /** Sus retos registrados, cada uno con su enlace (o el aviso si le falta uno obligatorio). */
   function evidenciasDe(r) {
@@ -507,37 +575,74 @@
     }).join("") + '</ul>';
   }
 
-  function verFicha(r, retos) {
-    var ficha = r.ficha;
-    var esRef = refDe(PERS.filter(function (p) { return p.id === PER; })[0]);
-    $("#c-ficha").innerHTML = '<div class="card"><h3>' + esc(r.alias) + ' · ' + esc(r.nombre || "") + "</h3>" +
-      '<p class="small">' + r.xp + ' xp · ' + r.creditos + ' ◈ · nivel ' + r.nivel + " " + esc(r.rango_nombre) +
-      ' · racha ' + r.racha + " semanas</p>" +
-      '<div class="retos-ficha">' + retos.map(function (m) {
-        var tiene = !!(r.retos || {})[m.id];
-        return '<button class="reto' + (tiene ? " hecho" : "") + '" data-reto="' + esc(m.id) + '" ' +
-               'data-ficha="' + esc(ficha) + '" data-tiene="' + (tiene ? 1 : 0) + '" title="' +
-               esc(m.title) + '">' + esc(m.id) + (tiene ? " ✓" : "") + "</button>";
+  /**
+   * 15-sep · LA FICHA, EN UNA VENTANA ENCIMA (se cierra con ✕, Escape o pulsando fuera). Sirve igual desde Mi gente
+   * que desde el detalle de un escuadrón. Tras otorgar, anular o congelar se vuelve a abrir con los datos nuevos: antes
+   * se repintaba la lista y la ficha desaparecía, y había que buscarla otra vez.
+   */
+  function modalFicha(html) {
+    var m = document.getElementById("c-modal");
+    if (!m) {
+      m = document.createElement("div"); m.id = "c-modal"; m.className = "c-modal";
+      m.setAttribute("role", "dialog"); m.setAttribute("aria-modal", "true"); m.setAttribute("aria-label", "Ficha del recluta");
+      document.body.appendChild(m);
+      m.addEventListener("click", function (e) { if (e.target === m || (e.target.closest && e.target.closest("[data-cerrar-ficha]"))) cerrarFicha(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape" && m.classList.contains("abierto")) cerrarFicha(); });
+    }
+    m.innerHTML = '<div class="c-modal-caja" tabindex="-1">' + html + "</div>";
+    m.classList.add("abierto"); document.body.classList.add("con-modal");
+    var caja = m.querySelector(".c-modal-caja"); if (caja) caja.focus({ preventScroll: true });
+    return m;
+  }
+  function cerrarFicha() {
+    var m = document.getElementById("c-modal");
+    if (m) { m.classList.remove("abierto"); m.innerHTML = ""; }
+    document.body.classList.remove("con-modal");
+  }
+  function avisoFicha(txt, bien) {
+    var a = document.querySelector("#c-modal .c-modal-aviso"); if (!a) return aviso(txt, bien);
+    a.textContent = txt; a.className = "c-modal-aviso aviso " + (bien ? "" : "malo"); a.hidden = !txt;
+  }
+  /** Tras cambiar algo: el grupo releído y la misma ficha, abierta otra vez, con el aviso de lo hecho. */
+  function reabrirFicha(fichaId, txt, bien) {
+    var t = window.SG.TABLERO.tablero(DATOS, true);
+    var r = t.reclutas.filter(function (x) { return x.ficha === fichaId; })[0];
+    if (!r) { cerrarFicha(); aviso(txt, bien); return; }
+    verFicha(r); avisoFicha(txt, bien);
+  }
+  function verFicha(r) {
+    var retos = retosOrdenados(), ficha = r.ficha, esRef = soyRefAqui();
+    var f = ((DATOS.proyecto && DATOS.proyecto.factions) || []).filter(function (x) { return x.teacherName === r.profe; })[0];
+    var m = modalFicha(
+      '<button type="button" class="c-modal-x" data-cerrar-ficha aria-label="Cerrar la ficha">✕</button>' +
+      '<div class="fi-cab">' + (f && f.imageUrl ? '<img class="fi-emb" src="' + esc(f.imageUrl) + '" alt="" width="56" height="56">' : '') +
+        '<div><div class="fi-esc">' + (f ? esc(f.name) + " · " : "") + "Comandante " + esc(r.profe || "—") + "</div>" +
+        "<h3>" + esc(r.alias) + (r.corona ? " 👑" : "") + (r.nombre ? ' <span>· ' + esc(r.nombre) + "</span>" : "") + "</h3>" +
+        (r.email ? '<p class="small muted">' + esc(r.email) + "</p>" : "") + "</div></div>" +
+      '<div class="fi-cifras"><div><b>' + r.xp + '</b><span>xp</span></div><div><b>' + r.creditos + '</b><span>◈ créditos</span></div>' +
+        '<div><b>' + r.nivel + '</b><span>nivel · ' + esc(r.rango_nombre || "") + '</span></div><div><b>' + r.n + '/24</b><span>insignias</span></div>' +
+        '<div><b>' + (r.racha || 0) + '</b><span>semanas de racha</span></div></div>' +
+      (r.congelado ? '<p class="aviso">🧊 <b>Cuenta congelada</b>' + (r.congelado.fecha ? " desde el " + diaDe(r.congelado.fecha) : "") + ": entra y mira su Nave, pero no puede hacer nada.</p>" : "") +
+      '<div class="c-modal-aviso aviso" hidden></div>' +
+      "<h4>Sus retos</h4>" +
+      '<div class="retos-ficha">' + retos.map(function (mi) {
+        var tiene = !!(r.retos || {})[mi.id];
+        return '<button type="button" class="reto' + (tiene ? " hecho" : "") + '" data-reto="' + esc(mi.id) + '" data-tiene="' + (tiene ? 1 : 0) + '" title="' +
+               esc(mi.title) + '">' + esc(mi.id) + (tiene ? " ✓" : "") + "</button>";
       }).join("") + "</div>" +
-      '<p class="small muted">Verde = registrado. Púlsalo para otorgar o anular. Todo queda anotado ' +
-      'en el libro de experiencia, con quién y cuándo.</p>' +
-      '<div class="evid-ficha"><h4>Lo que ha entregado</h4><div id="c-evid">' + evidenciasDe(r) + '</div></div>' +
-      // 🔴 DAR DE BAJA. Hace falta y no es capricho: alguien se alista en el grupo equivocado,
-      // alguien entra con la cuenta que no era y deja una ficha huérfana, o se cuela quien no debía.
-      // Sin esto, la única salida era dejarlo ahí para siempre ensuciando el ranking.
-      // 14-sep · Y CONGELAR. Las dos, solo el referente (Norberto: «el referente tiene poder de
-      // eliminar o congelar: puede acceder, pero no puede hacer nada, bloqueado»).
+      '<p class="small muted">Verde = registrado. Púlsalo para otorgar o anular. Todo queda anotado en el libro de experiencia, con quién y cuándo.</p>' +
+      '<div class="evid-ficha"><h4>Lo que ha entregado</h4><div id="c-evid">' + evidenciasDe(r) + "</div></div>" +
+      // 🔴 DAR DE BAJA y CONGELAR (14-sep): solo el referente (Norberto: «el referente tiene poder de eliminar o
+      // congelar: puede acceder, pero no puede hacer nada, bloqueado»). La baja hace falta de verdad: alguien que se
+      // alista en el grupo equivocado o con la cuenta que no era deja una ficha huérfana en el ranking.
       (esRef ? '<div class="ficha-ref"><h4>Solo el referente</h4>' +
-        (r.congelado ? '<p class="small"><b>🧊 Cuenta congelada</b>' + (r.congelado.fecha ? ' desde el ' + diaDe(r.congelado.fecha) : '') +
-          ': entra y mira su Nave, pero no puede hacer nada.</p>' : '') +
-        '<p><button class="btn min" id="c-congelar">' + (r.congelado ? '▶️ Descongelar a ' : '🧊 Congelar a ') + esc(r.alias) + '</button> ' +
-        '<span class="small muted">' + (r.congelado ? 'vuelve a poder hacer de todo.' : 'podrá entrar y mirar, pero no registrar retos, comprar, fichar ni usar el Zoco.') + '</span></p>' +
-        '<p><button class="btn min peligro" id="c-baja">Dar de baja a ' + esc(r.alias) + '</button> ' +
-        '<span class="small muted">borra su ficha del grupo. Podrá alistarse otra vez, aquí o en otro, ' +
-        'empezando de cero.</span></p></div>' : '') + '</div>';
+        '<p><button type="button" class="btn min" id="c-congelar">' + (r.congelado ? "▶️ Descongelar a " : "🧊 Congelar a ") + esc(r.alias) + "</button> " +
+        '<span class="small muted">' + (r.congelado ? "vuelve a poder hacer de todo." : "podrá entrar y mirar, pero no registrar retos, comprar, fichar ni usar el Zoco.") + "</span></p>" +
+        '<p><button type="button" class="btn min peligro" id="c-baja">Dar de baja a ' + esc(r.alias) + "</button> " +
+        '<span class="small muted">borra su ficha del grupo. Podrá alistarse otra vez, aquí o en otro, empezando de cero.</span></p></div>' : ""));
     // si la ficha se abrió antes de que llegaran los enlaces, se rellena en cuanto lleguen
-    if (!EVID && EVID_LISTO) EVID_LISTO.then(function () { var h = $("#c-evid"); if (h) h.innerHTML = evidenciasDe(r); });
-    var cong = $("#c-congelar");
+    if (!EVID && EVID_LISTO) EVID_LISTO.then(function () { var h = document.getElementById("c-evid"); if (h) h.innerHTML = evidenciasDe(r); });
+    var cong = m.querySelector("#c-congelar");
     if (cong) cong.onclick = async function () {
       var ya = !!r.congelado;
       if (!ya && !confirm("¿Congelar la cuenta de «" + r.alias + "»?\n\nPodrá entrar y mirar su Nave, pero no hacer nada: ni registrar " +
@@ -545,15 +650,15 @@
                           "Se descongela con un clic, cuando quieras.")) return;
       cong.disabled = true;
       try {
-        await MOTOR.alumno(PER, ficha, ya ? "descongelar" : "congelar"); await refrescar(); $("#c-ficha").innerHTML = "";
-        aviso(ya ? "▶️ " + r.alias + " ya puede volver a hacer de todo." : "🧊 " + r.alias + " está congelado: mira, pero no toca.", true);
+        await MOTOR.alumno(PER, ficha, ya ? "descongelar" : "congelar"); await refrescar();
+        reabrirFicha(ficha, ya ? "▶️ " + r.alias + " ya puede volver a hacer de todo." : "🧊 " + r.alias + " está congelado: mira, pero no toca.", true);
       } catch (e) {
         cong.disabled = false;
-        aviso(/not-found|internal/.test(String(e && e.code)) && !/[áéíóú]/.test(String(e && e.message))
+        avisoFicha(/not-found|internal/.test(String(e && e.code)) && !/[áéíóú]/.test(String(e && e.message))
           ? "Falta desplegar en el servidor la función «stargateAlumno» (el comando está en el traspaso)." : e.message);
       }
     };
-    var baja = $("#c-baja");
+    var baja = m.querySelector("#c-baja");
     if (baja) baja.onclick = async function () {
       // Dos confirmaciones a propósito: esto borra de verdad y no hay deshacer. La segunda pide
       // escribir el alias, que es lo único que impide un clic distraído sobre la persona equivocada.
@@ -562,20 +667,19 @@
                    "que se le dio y se le quitó SÍ se conserva en el libro de experiencia.\n\n" +
                    "No hay deshacer. ¿Seguimos?")) return;
       var escrito = prompt("Para confirmar, escribe su alias exactamente:\n\n" + r.alias);
-      if (String(escrito || "").trim() !== r.alias) { aviso("No coincide: no se ha dado de baja a nadie."); return; }
+      if (String(escrito || "").trim() !== r.alias) { avisoFicha("No coincide: no se ha dado de baja a nadie."); return; }
       baja.disabled = true;
-      try { await MOTOR.darDeBaja(PER, ficha); await refrescar(); $("#c-ficha").innerHTML = "";
-            aviso(r.alias + " ya no está en el grupo.", true); }
-      catch (e) { baja.disabled = false; aviso(e.message); }
+      try { await MOTOR.darDeBaja(PER, ficha); await refrescar(); cerrarFicha(); aviso(r.alias + " ya no está en el grupo.", true); }
+      catch (e) { baja.disabled = false; avisoFicha(e.message); }
     };
-    Array.prototype.forEach.call(app.querySelectorAll("[data-reto]"), function (b) {
+    Array.prototype.forEach.call(m.querySelectorAll("[data-reto]"), function (b) {
       b.onclick = async function () {
-        var id = b.getAttribute("data-reto"), f = b.getAttribute("data-ficha"), tiene = b.getAttribute("data-tiene") === "1";
+        var id = b.getAttribute("data-reto"), tiene = b.getAttribute("data-tiene") === "1";
         if (tiene && !confirm("¿Anular el reto " + id + " a " + r.alias + "?\n\nSe le descontarán los xp y los créditos que dio.")) return;
         b.disabled = true;
         try {
-          var res = tiene ? await MOTOR.anularReto(PER, f, id, "desde la consola")
-                          : await MOTOR.otorgarReto(PER, f, id);
+          var res = tiene ? await MOTOR.anularReto(PER, ficha, id, "desde la consola")
+                          : await MOTOR.otorgarReto(PER, ficha, id);
           await refrescar();
           /**
            * 🔴 Si ya se había gastado lo que le dio el reto, se le dice al docente, con la cifra. El
@@ -585,9 +689,9 @@
            * nota nunca estuvo en juego: las subidas de nota esperan tu visto bueno en la cola.
            */
           var falta = res && Number(res.noRetirados || 0);
-          aviso((tiene ? "Anulado " : "Otorgado ") + id + " a " + r.alias +
+          reabrirFicha(ficha, (tiene ? "Anulado " : "Otorgado ") + id + " a " + r.alias +
                 (falta ? " · ya se había gastado " + falta + " ◈ de este reto: no se le han podido retirar." : ""), !falta);
-        } catch (e) { b.disabled = false; aviso(e.message); }
+        } catch (e) { b.disabled = false; avisoFicha(e.message); }
       };
     });
   }
@@ -914,6 +1018,23 @@
    */
   var NOM_ESTADO = { abierto: "⏳ En marcha", aceptado: "✅ Cambiado", rechazado: "✖️ Rechazado", retirado: "↩️ Retirado",
     caducado: "⌛ Caducado", anulado: "🚫 Anulado", vendido: "💰 Se lo quedó otro", deshecho: "↺ Deshecho" };
+  /**
+   * 15-sep · CUÁNDO SE ABRE EL ZOCO, CON SU FECHA (Norberto: «indica en el Zoco la fecha exacta que se abre»). Es el
+   * capítulo 5 (c5): su semana del curso, con las no lectivas saltadas, y si el referente lo abrió antes, se dice.
+   */
+  var MESES_L = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  var DIAS_L = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  function diaLargo(iso) { var d = window.SGSEMANAS.fecha(iso); return DIAS_L[d.getDay()] + " " + d.getDate() + " de " + MESES_L[d.getMonth()]; }
+  function zocoCuando() {
+    var S = DATOS.proyecto.stargate || {}, SS = window.SGSEMANAS, tipo = S.tipo === "PUA" ? "PUA" : "REGULAR";
+    var c5 = (window.SG_CAPITULOS || []).filter(function (c) { return c.clave === "c5"; })[0];
+    var sem = (c5 && (c5.semanas || {})[tipo]) || 5;
+    if (!S.inicio || !SS) return "🗓️ Se abre en la <b>semana " + sem + "</b>.";
+    var dia = SS.inicioDeSemana(S.inicio, sem, S.pausas), hoy = SS.iso(new Date());
+    if ((S.capitulosAbiertos || {}).c5 && dia > hoy) return "🔓 <b>Abierto antes de tiempo</b>: su fecha era el " + diaLargo(dia) + " (semana " + sem + ").";
+    return dia <= hoy ? "✅ Abierto desde el <b>" + diaLargo(dia) + "</b> (semana " + sem + ")."
+                      : "🗓️ Se abre el <b>" + diaLargo(dia) + "</b> (semana " + sem + ").";
+  }
   function verZoco(t) {
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>El Zoco Estelar</h3><p class="muted">Cargando los trueques…</p></div>';
     MOTOR.zocoTratosGrupo(PER).then(function (lista) {
@@ -933,8 +1054,9 @@
       var pq = function (q) { if (!q) return "—"; var o = []; if (q.creditos) o.push(q.creditos + " ◈"); (q.piezas || []).forEach(function (id) { o.push(pieza(id)); }); return o.join(" + ") || "nada"; };
       var cerrados = lista.filter(function (x) { return x.estado === "aceptado"; }).length;
       $("#c-cuerpo").innerHTML = '<div class="card"><h3>El Zoco Estelar</h3>' +
+        '<p class="zoco-abre">' + zocoCuando() + '</p>' +
         '<p class="small muted">Los trueques entre tu alumnado: ' + lista.length + ' tratos, ' + cerrados + ' cerrados. ' +
-        'Se abre en la <b>semana 5</b>. Lo que se ofrece queda apartado hasta que responden; cada trato, 3 pasos como mucho.</p>' +
+        'Lo que se ofrece queda apartado hasta que responden; cada trato, 3 pasos como mucho.</p>' +
         (lista.length ? '<div class="tabla-envoltura"><table class="tabla zoco-tabla"><thead><tr><th>Estado</th><th>Vende</th><th>Qué</th><th>Compra</th><th>Ofrece / paga</th><th>Mensajes</th><th></th></tr></thead><tbody>' +
           lista.map(function (x) {
             var pago = x.estado === "aceptado" ? (x.pagado || x.ofrece) : (x.pide || x.ofrece);
@@ -967,49 +1089,126 @@
   }
 
   // ---------------------------------------------------------------- equipo docente
+  /**
+   * 15-sep · EL EQUIPO, PERSONA A PERSONA. Norberto: «no sé o no es intuitivo cómo cambiar el equipo docente, cómo
+   * ver sus grupos…». Era una tabla de solo lectura con dos formularios debajo. Ahora cada persona es una tarjeta con
+   * lo que se le puede hacer AHÍ: hacerla referente o docente, pasar su alumnado a otro, quitarla del equipo (en el
+   * servidor: `stargateEquipo` con `quitar`), ir a su escuadrón, y en qué otros de tus grupos está.
+   */
+  var ABRIR_ESC = "", IR_ESC = false;   // el escuadrón abierto (y si hay que llevar la vista hasta él: «Ver su escuadrón»)
   function verEquipo(t) {
-    var docs = t.docentes_full || [];
+    var docs = t.docentes_full || [], yo = String((YO && (YO.correo || YO.email)) || "").toLowerCase();
+    var facc = DATOS.proyecto.factions || [];
+    var refs = docs.filter(function (d) { return d.rol === "referente"; }).length;
+    var conEsc = function (nombre) { return facc.filter(function (x) { return x.teacherName === nombre; })[0]; };
+    var enOtros = function (correo) {
+      if (!correo) return [];
+      return (PERS || []).filter(function (p) { return p.id !== PER && (p.equipo || []).some(function (d) { return d.correo === correo; }); })
+        .map(function (p) { var d = p.equipo.filter(function (x) { return x.correo === correo; })[0]; return { id: p.id, nombre: p.nombre, rol: d.rol }; });
+    };
+    var tarjeta = function (d, i) {
+      var correo = String(d.correo || "").toLowerCase(), f = conEsc(d.nombre);
+      var n = t.reclutas.filter(function (r) { return r.profe === d.nombre; }).length, soyYo = !!correo && correo === yo;
+      var vital = VITALICIOS_WEB.indexOf(correo) >= 0, esRef = d.rol === "referente", otros = enOtros(correo);
+      var destinos = docs.filter(function (x) { return x.nombre !== d.nombre && conEsc(x.nombre); });
+      return '<article class="eq-p' + (esRef ? " ref" : "") + '">' +
+        '<div class="eq-cab">' + (f && f.imageUrl ? '<img src="' + esc(f.imageUrl) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="eq-sin" aria-hidden="true">👤</span>') +
+          '<div class="eq-quien"><h4>' + esc(d.nombre || correo) + (soyYo ? ' <span class="chip">tú</span>' : "") + "</h4>" +
+          '<p class="small muted">' + esc(correo || "sin correo") + "</p></div>" +
+          '<span class="eq-rol' + (esRef ? " ref" : "") + '"' + (vital ? ' title="Referente vitalicio: manda en todos los grupos"' : "") + '>' + (vital ? "⭐ Vitalicio" : esRef ? "⭐ Referente" : "Docente") + "</span></div>" +
+        '<p class="eq-esc">' + (f ? "🛡️ <b>" + esc(f.name) + "</b> · " + n + " recluta" + (n === 1 ? "" : "s") +
+            ' <button type="button" class="eq-lnk" data-ver-esc="' + esc(d.nombre) + '">Ver su escuadrón →</button>'
+          : '<span class="muted">Sin escuadrón (coordina, o se incorporó después)</span>' + (n ? " · " + n + " reclutas a su nombre" : "")) + "</p>" +
+        (otros.length ? '<p class="small eq-otros">También en ' + otros.map(function (g) {
+            return '<a href="consola.html?per=' + encodeURIComponent(g.id) + '&tab=equipo">' + esc(g.nombre) + "</a>" + (g.rol === "referente" ? " ⭐" : ""); }).join(" · ") + "</p>" : "") +
+        (n && destinos.length ? '<div class="eq-pasar"><span>Pasar su alumnado a</span><select data-dest="' + i + '" aria-label="A quién pasa su alumnado">' +
+            destinos.map(function (x) { return "<option>" + esc(x.nombre) + "</option>"; }).join("") + "</select>" +
+            '<button type="button" class="btn min" data-pasar="' + i + '">Pasar</button></div>' : "") +
+        '<div class="eq-acc">' +
+          (vital ? "" : '<button type="button" class="btn min" data-rol="' + i + '">' + (esRef ? "Pasar a docente" : "⭐ Hacer referente") + "</button>") +
+          (vital || soyYo ? "" : '<button type="button" class="btn min peligro" data-quitar="' + i + '">Quitar del equipo</button>') +
+        "</div></article>";
+    };
+    // los reclutas de alguien que ya no está en el equipo (su nombre no casa con nadie)
+    var huerfanos = {}; t.reclutas.forEach(function (r) {
+      if (r.profe && !docs.some(function (d) { return d.nombre === r.profe; })) huerfanos[r.profe] = (huerfanos[r.profe] || 0) + 1; });
+    var nomsH = Object.keys(huerfanos), conDestino = docs.filter(function (x) { return conEsc(x.nombre); });
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>Equipo docente</h3>' +
-      '<table class="tabla"><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Escuadrón</th><th>Reclutas</th></tr></thead><tbody>' +
-      docs.map(function (d) {
-        var esc_ = (DATOS.proyecto.factions || []).filter(function (f) { return f.teacherName === d.nombre; })[0];
-        var n = t.reclutas.filter(function (r) { return r.profe === d.nombre; }).length;
-        var emb = esc_ && esc_.imageUrl
-          ? '<img class="emb-mini" src="' + esc(esc_.imageUrl) + '" alt="" width="28" height="28"> ' : "";
-        return "<tr><td><b>" + esc(d.nombre) + "</b></td><td>" + esc(d.correo || "—") + "</td><td>" +
-          esc(d.rol || "docente") + '</td><td class="celda-esc">' + emb + esc(esc_ ? esc_.name : "—") +
-          "</td><td>" + n + "</td></tr>";
-      }).join("") + "</tbody></table></div>" +
-      '<div class="card"><h3>Pasar el alumnado de un docente a otro</h3>' +
-      // Pasa de verdad: alguien se va a mitad de curso y sus doscientos reclutas se quedan sin
-      // Comandante. A mano son doscientas fichas.
-      '<p class="small muted">Se cambia el Comandante y el escuadrón de todo su alumnado de una vez.</p>' +
-      '<label>De<select id="t-de">' + docs.map(function (d) { return "<option>" + esc(d.nombre) + "</option>"; }).join("") + "</select></label>" +
-      '<label>A<select id="t-a">' + docs.map(function (d) { return "<option>" + esc(d.nombre) + "</option>"; }).join("") + "</select></label>" +
-      '<p><button class="btn" id="t-ir">Pasar el alumnado</button></p></div>' +
+      '<p class="small muted">Cada persona, con lo que se le puede hacer. Entran con <b>su cuenta de Google</b>: añadirla es darle entrada al grupo; quitarla, quitársela.' +
+      (VITALICIOS_WEB.indexOf(yo) >= 0 ? ' Todo el profesorado de todos los grupos está en <a href="profesores.html">👥 Profesores</a>.' : "") + "</p>" +
+      '<div class="eq-lista">' + docs.map(tarjeta).join("") + "</div></div>" +
+      (nomsH.length && conDestino.length ? '<div class="card"><h3>⚠️ Alumnado sin Comandante</h3>' +
+        '<p class="small muted">Su Comandante ya no está en el equipo. Pásalo a alguien que sí esté (y entra en su escuadrón).</p>' +
+        '<p class="eq-pasar"><label>De<select id="t-de">' + nomsH.map(function (x) { return "<option>" + esc(x) + "</option>"; }).join("") + "</select></label>" +
+        '<label>A<select id="t-a">' + conDestino.map(function (d) { return "<option>" + esc(d.nombre) + "</option>"; }).join("") + "</select></label>" +
+        '<button type="button" class="btn" id="t-ir">Pasar el alumnado</button></p></div>' : "") +
       /**
-       * 🔴 AÑADIR A ALGUIEN, que hasta hoy no se podía. El equipo se fijaba al CREAR el grupo y
-       * después era de solo lectura: un docente que se incorpora a mitad de curso o un co-referente
-       * obligaban a volver a sembrar el grupo entero.
+       * 🔴 AÑADIR A ALGUIEN, que hasta el 13-sep no se podía. El equipo se fijaba al CREAR el grupo y después era de
+       * solo lectura: un docente que se incorpora a mitad de curso o un co-referente obligaban a sembrar otra vez.
        */
-      '<div class="card"><h3>Añadir a alguien al equipo</h3>' +
-      '<p class="small muted">El correo tiene que ser <b>el de su cuenta de Google</b>: es con el que ' +
-      'entrará, y es lo que el servidor mira para dejarle pasar.</p>' +
-      '<label>Nombre<input id="e-nom" placeholder="Cómo aparece ante su clase" autocomplete="off"></label>' +
+      '<div class="card"><h3>➕ Añadir a alguien al equipo</h3>' +
+      '<p class="small muted">El correo tiene que ser <b>el de su cuenta de Google</b>: es con el que entrará, y es lo que el servidor mira para dejarle pasar.</p>' +
+      '<div class="eq-form"><label>Nombre<input id="e-nom" placeholder="Cómo aparece ante su clase" autocomplete="off"></label>' +
       '<label>Correo<input id="e-mail" type="email" placeholder="nombre@ejemplo.com" autocomplete="off"></label>' +
-      '<label>Rol<select id="e-rol"><option value="docente">Docente (imparte)</option>' +
-        '<option value="referente">Referente (lleva el grupo)</option></select></label>' +
-      '<p><button class="btn" id="e-add">Añadir a este grupo</button> ' +
-      '<button class="btn min" id="e-todos">Hacerle referente de TODOS mis grupos</button></p>' +
-      '<p class="small muted">Añadirle aquí no le da escuadrón ni alumnado: eso se reparte arriba, ' +
-      'con «pasar el alumnado».</p></div>';
+      '<label>Rol<select id="e-rol"><option value="docente">Docente (imparte)</option><option value="referente">Referente (lleva el grupo)</option></select></label></div>' +
+      '<p><button type="button" class="btn primary" id="e-add">Añadir a este grupo</button> ' +
+      '<button type="button" class="btn min" id="e-todos">Hacerle referente de TODOS mis grupos</button></p>' +
+      '<p class="small muted">Añadirle no le da escuadrón ni alumnado: si va a impartir, pásale después el alumnado de alguien desde su tarjeta.</p></div>';
 
+    var hecho = async function (b, fn, txt) {
+      b.disabled = true;
+      try { await fn(); await refrescar(); TAB = "equipo"; pintar(); aviso(txt, true); }
+      catch (e) { b.disabled = false; aviso(e.message); }
+    };
+    Array.prototype.forEach.call(app.querySelectorAll("[data-rol]"), function (b) {
+      b.onclick = function () {
+        var d = docs[Number(b.getAttribute("data-rol"))], esRef = d.rol === "referente", soyYo = String(d.correo || "").toLowerCase() === yo;
+        if (esRef && refs <= 1) return aviso("Es la única persona referente de este grupo: nombra antes a otra.");
+        if (esRef && soyYo && !confirm("Vas a dejar de ser referente de este grupo: ya no verás sus ajustes ni su equipo. ¿Seguimos?")) return;
+        if (!esRef && !confirm("¿Hacer a " + (d.nombre || d.correo) + " referente de este grupo?\n\nVerá el alumnado, los correos del equipo y los ajustes.")) return;
+        hecho(b, function () { return MOTOR.anadirDocente(PER, { nombre: d.nombre, correo: d.correo, rol: esRef ? "docente" : "referente" }); },
+              (d.nombre || d.correo) + (esRef ? " ya es docente (sin lo de referente)." : " ya es referente de este grupo."));
+      };
+    });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-pasar]"), function (b) {
+      b.onclick = function () {
+        var i = Number(b.getAttribute("data-pasar")), d = docs[i], a = app.querySelector('[data-dest="' + i + '"]').value;
+        if (!confirm("¿Pasar todo el alumnado de " + d.nombre + " a " + a + "?\n\nCambian de Comandante y de escuadrón de una vez.")) return;
+        b.disabled = true;
+        MOTOR.traspasar(PER, d.nombre, a).then(function (n) { return refrescar().then(function () { TAB = "equipo"; pintar(); aviso(n + " reclutas pasados a " + a + ".", true); }); })
+          .catch(function (e) { b.disabled = false; aviso(e.message); });
+      };
+    });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-quitar]"), function (b) {
+      b.onclick = async function () {
+        var i = Number(b.getAttribute("data-quitar")), d = docs[i], n = t.reclutas.filter(function (r) { return r.profe === d.nombre; }).length;
+        if (d.rol === "referente" && refs <= 1) return aviso("Es la única persona referente de este grupo: nombra antes a otra.");
+        var sel = app.querySelector('[data-dest="' + i + '"]');
+        if (n && !sel) return aviso(d.nombre + " tiene " + n + " reclutas y no hay otro docente con escuadrón a quien pasarlos.");
+        if (!confirm("¿Quitar a " + (d.nombre || d.correo) + " del equipo de este grupo?\n\n" +
+                     (n ? "Antes, sus " + n + " reclutas pasan a " + sel.value + ".\n" : "") + "Dejará de ver el grupo. Se le puede volver a añadir cuando quieras.")) return;
+        b.disabled = true;
+        try {
+          if (n) await MOTOR.traspasar(PER, d.nombre, sel.value);
+          await MOTOR.quitarDocente(PER, d.correo);
+          await refrescar(); TAB = "equipo"; pintar();
+          aviso((d.nombre || d.correo) + " ya no está en el equipo" + (n ? "; su alumnado es ahora de " + sel.value : "") + ".", true);
+        } catch (e) {
+          b.disabled = false;
+          aviso(/not-found|internal/.test(String(e && e.code)) && !/[áéíóú]/.test(String(e && e.message))
+            ? "Falta desplegar en el servidor «stargateEquipo» con la opción de quitar." : e.message);
+        }
+      };
+    });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-ver-esc]"), function (b) {
+      b.onclick = function () { ABRIR_ESC = b.getAttribute("data-ver-esc"); IR_ESC = true; TAB = "escuadrones"; pintar(); };
+    });
     // --- añadir a este grupo
     $("#e-add").onclick = async function () {
       var persona = { nombre: $("#e-nom").value, correo: $("#e-mail").value, rol: $("#e-rol").value };
       if (!persona.correo.trim()) return aviso("Escribe su correo.");
       $("#e-add").disabled = true;
-      try { var r = await MOTOR.anadirDocente(PER, persona); await refrescar();
+      try { var r = await MOTOR.anadirDocente(PER, persona); await refrescar(); TAB = "equipo"; pintar();
             aviso(r.nombre + " ya está en el equipo como " + r.rol + ".", true); }
       catch (e) { $("#e-add").disabled = false; aviso(e.message); }
     };
@@ -1026,22 +1225,19 @@
       $("#e-todos").disabled = true;
       try {
         var r = await MOTOR.referenteEnTodos(persona, ids);
-        await refrescar();
+        await refrescar(); TAB = "equipo"; pintar();
         // Se dice en cuántos ha entrado Y en cuántos no: creer que alguien tiene acceso a ocho
         // grupos cuando lo tiene a seis es peor que el fallo original.
         aviso(r.fallos.length
           ? "Añadido en " + r.hechos.length + " grupo(s). NO se ha podido en " + r.fallos.length +
             ": " + r.fallos.map(function (f) { return f.per; }).join(", ")
           : "Ya es referente de tus " + r.hechos.length + " grupo(s).", !r.fallos.length);
-      } catch (e) { aviso(e.message); }
-      $("#e-todos").disabled = false;
+      } catch (e) { aviso(e.message); $("#e-todos").disabled = false; }
     };
-
-    $("#t-ir").onclick = async function () {
+    if ($("#t-ir")) $("#t-ir").onclick = async function () {
       var de = $("#t-de").value, a = $("#t-a").value;
-      if (de === a) return aviso("Son el mismo docente.");
       if (!confirm("¿Pasar todo el alumnado de " + de + " a " + a + "?")) return;
-      try { var n = await MOTOR.traspasar(PER, de, a); await refrescar(); aviso(n + " reclutas pasados a " + a, true); }
+      try { var n = await MOTOR.traspasar(PER, de, a); await refrescar(); TAB = "equipo"; pintar(); aviso(n + " reclutas pasados a " + a, true); }
       catch (e) { aviso(e.message); }
     };
   }
@@ -1056,6 +1252,10 @@
    * El nombre y el emblema salen del catálogo y se reparten al sembrar: no se tocan desde aquí a
    * propósito. Cambiar el nombre de un escuadrón a mitad de curso le quita a su gente la cosa a la
    * que pertenecen, que es justo lo contrario de lo que hace un escuadrón.
+   *
+   * 15-sep · Y SE ABREN. Norberto: «el referente debe poder clicar en el escuadrón y ver toda la info: docente,
+   * estudiantes, fichas de estudiante… además de ver su escuadrón, necesita ver el resto para resolver problemas».
+   * Cada escuadrón se despliega con su Comandante, sus cifras y su gente; cada fila abre la ficha, como en Mi gente.
    */
   function verEscuadrones(t) {
     var esc7 = (t.escuadrones || []);
@@ -1065,27 +1265,40 @@
         'uno por docente del equipo.</p></div>';
       return;
     }
+    var caps = capsDelGrupo(t), mio = miNombreAqui();
     var conGente = esc7.map(function (e) {
       var suyos = (t.reclutas || []).filter(function (r) { return r.profe === e.comandante; });
       var media = suyos.length ? Math.round(suyos.reduce(function (a, r) { return a + r.xp; }, 0) / suyos.length) : 0;
-      return { e: e, suyos: suyos, media: media };
+      var ins = suyos.length ? Math.round(10 * suyos.reduce(function (a, r) { return a + r.n; }, 0) / suyos.length) / 10 : 0;
+      return { e: e, suyos: suyos, media: media, ins: ins };
     }).sort(function (a, b) { return b.media - a.media; });
     var huerfanos = (t.reclutas || []).filter(function (r) {
       return !esc7.some(function (e) { return e.comandante === r.profe; });
     });
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>Escuadrones</h3>' +
       '<p class="small muted">Uno por docente. El alumnado entra en el de su Comandante al alistarse. ' +
-      'Se comparan por <b>media de xp</b>: sumando ganaría siempre el más numeroso.</p>' +
+      'Se comparan por <b>media de xp</b>: sumando ganaría siempre el más numeroso. <b>Pulsa un escuadrón</b> para ver su gente, y a alguien para abrir su ficha.</p>' +
       conGente.map(function (x, i) {
-        return '<div class="esc-card' + (i === 0 && x.suyos.length ? " lider" : "") + '">' +
+        var d = (t.docentes_full || []).filter(function (y) { return y.nombre === x.e.comandante; })[0] || {};
+        return '<details class="esc-det"' + (ABRIR_ESC === x.e.comandante ? " open" : "") + ' data-esc="' + esc(x.e.comandante) + '">' +
+          '<summary class="esc-card' + (i === 0 && x.suyos.length ? " lider" : "") + '">' +
           '<div class="esc-pos">' + (i + 1) + "</div>" +
           (x.e.emblema ? '<img class="esc-emb" loading="lazy" src="' + esc(x.e.emblema) + '" alt="">' : "") +
-          '<div class="esc-txt"><b>' + esc(x.e.nombre) + "</b>" +
+          '<div class="esc-txt"><b>' + esc(x.e.nombre) + (x.e.comandante === mio ? ' <span class="chip">el tuyo</span>' : "") + "</b>" +
           (x.e.lema ? "<em>«" + esc(x.e.lema) + "»</em>" : "") +
           '<span class="small muted">' + esc(x.e.comandante) + " · " + x.suyos.length +
           " recluta" + (x.suyos.length === 1 ? "" : "s") +
           (x.e.origen ? " · " + esc(x.e.origen) : "") + "</span></div>" +
-          '<div class="esc-val">' + x.media + " xp</div></div>";
+          '<div class="esc-val">' + x.media + ' xp<span class="esc-ver">Ver su gente</span></div></summary>' +
+          '<div class="esc-cuerpo"><div class="esc-datos">' +
+            '<div><span>Comandante</span><b>' + esc(x.e.comandante) + "</b>" + (d.correo ? "<em>" + esc(d.correo) + "</em>" : "") +
+              (d.rol === "referente" ? "<em>⭐ referente</em>" : "") + "</div>" +
+            "<div><span>Reclutas</span><b>" + x.suyos.length + "</b></div>" +
+            "<div><span>Media de xp</span><b>" + x.media + "</b></div>" +
+            "<div><span>Insignias de media</span><b>" + String(x.ins).replace(".", ",") + "</b></div></div>" +
+            (x.suyos.length ? tablaGente(x.suyos.map(function (r) { return [r, t.reclutas.indexOf(r)]; }), caps, false)
+                            : '<p class="small muted">Todavía no se ha alistado nadie en este escuadrón.</p>') +
+          "</div></details>";
       }).join("") +
       (huerfanos.length
         ? '<p class="small" style="margin-top:14px;color:var(--amber)">⚠️ <b>' + huerfanos.length +
@@ -1093,6 +1306,13 @@
           "está en el equipo. Pásalos a otro docente desde la pestaña <b>Equipo docente</b>.</p>"
         : "") +
       "</div>";
+    Array.prototype.forEach.call(app.querySelectorAll(".esc-det"), function (dt) {
+      dt.addEventListener("toggle", function () { if (dt.open) ABRIR_ESC = dt.getAttribute("data-esc"); else if (ABRIR_ESC === dt.getAttribute("data-esc")) ABRIR_ESC = ""; });
+    });
+    cablearFilas(app, t);
+    if (EVID && EVID_PER === PER) marcarSinEnlace(t); else cargarEvid(t);
+    var abierto = app.querySelector(".esc-det[open]");
+    if (abierto && IR_ESC) { IR_ESC = false; try { abierto.scrollIntoView({ block: "start", behavior: "instant" }); } catch (e) {} }
   }
 
   // ---------------------------------------------------------------- 🎟️ los sorteos
@@ -1445,96 +1665,169 @@
                                         pausas: c.pausas, docentes: [] }, window.SG_CATALOGO);
   }
   function capsDelCalendario() { return (window.SG_CAPITULOS || []).filter(function (c) { return c.listo !== false && c.clave !== "c1"; }); }
+  /**
+   * 15-sep · EL CALENDARIO, COMO UN CALENDARIO. Norberto: «congelar es confuso, porque tampoco cambia la fecha de la
+   * siguiente. ¿No sería más fácil verlo como un calendario? Sería mucho más visual… tan sencillo como poner el número
+   * total de semanas y marcar las que NO son lectivas. La versión vista, sin edición, la debería poder ver el docente raso».
+   *
+   * Una fila por semana, con sus siete días: a la izquierda su número (S5), o 🎄 si es festiva de la UNIR, ⏸ si es no
+   * lectiva y 🛒 la de canje; a la derecha, lo que se abre. El referente pulsa una semana futura para marcarla como no
+   * lectiva (o devolverla): las de detrás se renumeran en el acto y «Al guardar» dice qué semanas se mueven y a qué día.
+   * Nada se escribe hasta «Guardar». El número de semanas lectivas lo fija el tipo de curso (15 el regular, 8 el PUA):
+   * sobre ellas están repartidos los planetas, los retos y el Mercado.
+   */
+  var INICIALES = ["D", "L", "M", "X", "J", "V", "S"];
   function verCalendario(t) {
     var S = DATOS.proyecto.stargate || {}, SS = window.SGSEMANAS, cat = window.SG_CATALOGO || {};
-    if (!CAL || CAL.per !== PER) CAL = calDelGrupo();
-    if (!CAL.inicio) { $("#c-cuerpo").innerHTML = '<div class="card"><h3>Calendario</h3><p>Este grupo no tiene fecha de semana 1. Ponla en «Ajustes del grupo».</p></div>'; return; }
+    var edita = soyRefAqui();
+    if (!edita || !CAL || CAL.per !== PER) CAL = calDelGrupo();
     var tipo = S.tipo === "PUA" ? "PUA" : "REGULAR", total = (cat.semanas || {})[tipo] || 15, extra = cat.semanasCanjeExtra || 1;
+    var re = function () { verCalendario(t); };
+    if (!CAL.inicio) {
+      $("#c-cuerpo").innerHTML = '<div class="card cal-caja"><h3>📅 El calendario del grupo</h3>' + (edita
+        ? '<p>Este grupo aún no tiene fecha de semana 1. Ponla y verás el curso entero (con las semanas festivas de la UNIR ya marcadas).</p>' +
+          '<div class="cal-cab"><label>Primer día de la semana 1 <input type="date" id="cal-inicio"></label></div>'
+        : '<p class="muted">Tu referente aún no ha puesto la fecha de la semana 1.</p>') + "</div>";
+      if ($("#cal-inicio")) $("#cal-inicio").onchange = function () {
+        if (!/^\d{4}-\d\d-\d\d$/.test(this.value)) return;
+        CAL.inicio = this.value; CAL.pausas = SS.festivosUNIR ? SS.festivosUNIR(this.value, total, extra) : []; re();
+      };
+      return;
+    }
     var hoy = SS.iso(new Date()), semHoy = SS.semanaDelCurso(CAL.inicio, CAL.pausas);
     var filas = SS.calendario(CAL.inicio, CAL.pausas, total, extra);
     var caps = capsDelCalendario(), semCap = function (c) { return (c.semanas || {})[tipo] || 99; };
     var planetas = (cat.temas || []).map(function (x) {
       return { n: x.n, nombre: x.planeta, sem: window.SG.PAQUETE.semanaEnTipo((cat.semanaDelTema || {})[String(x.n)] || x.n, tipo, cat) };
     });
-    var nuevo = fechasDe(CAL).proyecto.stargate, viejo = fechasDe(calDelGrupo()).proyecto.stargate;
-    // 15-sep · las semanas festivas de la UNIR (Navidad y Semana Santa): con su nombre, para que nadie las tome por un error
+    // las semanas festivas de la UNIR (Navidad y Semana Santa): con su nombre, para que nadie las tome por un error
     var festivas = SS.festivosUNIR ? SS.festivosUNIR(CAL.inicio, total, extra) : [];
-    var fila = function (f) {
+    var fiesta = function (ini) { var m = ini.slice(5, 7); return m === "12" || m === "01" ? "Navidad" : "Semana Santa"; };
+    var nuevo = fechasDe(CAL).proyecto.stargate;
+    var dia0 = SS.fecha(CAL.inicio).getDay(), cabDias = "";
+    for (var k = 0; k < 7; k++) cabDias += "<span>" + INICIALES[(dia0 + k) % 7] + "</span>";
+    var noLect = filas.filter(function (f) { return f.congelada; }).length;
+
+    var fila = function (f, idx) {
       var pasada = f.fin < hoy, actual = f.inicio <= hoy && hoy <= f.fin, futura = f.inicio > hoy;
-      var festiva = festivas.indexOf(f.inicio) >= 0;
-      var abre = [];
-      if (f.semana) {
-        planetas.filter(function (p) { return p.sem === f.semana; }).forEach(function (p) { abre.push("🪐 Planeta " + p.n + " · " + esc(p.nombre)); });
+      var festiva = f.congelada && festivas.indexOf(f.inicio) >= 0;
+      var clase = f.congelada ? (festiva ? "festivo" : "nolectiva") : f.canje ? "canje" : "lectiva";
+      var et = f.congelada ? (festiva ? "🎄" : "⏸") : f.canje ? "🛒" : "S" + f.semana;
+      var que = [];
+      if (f.congelada) que.push(festiva ? "<b>" + fiesta(f.inicio) + "</b> en la UNIR: no hay clase" : "<b>No lectiva</b>: el curso no avanza esta semana");
+      else {
+        planetas.filter(function (p) { return p.sem === f.semana; }).forEach(function (p) { que.push("🪐 Planeta " + p.n + " · " + esc(p.nombre)); });
         caps.filter(function (c) { return semCap(c) === f.semana; }).forEach(function (c) {
-          abre.push(c.icono + " " + esc(c.titulo) + (CAL.abiertos[c.clave] ? ' <span class="chip ok">ya abierto</span>' : "")); });
-        if (f.semana === total) abre.push("🏁 Último día para registrar retos: <b>" + diaCorto(f.fin) + "</b>");
-        if (f.semana === total + extra) abre.push("🛒 Último día para canjear: <b>" + diaCorto(f.fin) + "</b>");
+          que.push(c.icono + " " + esc(c.titulo) + (CAL.abiertos[c.clave] ? ' <span class="chip ok">ya abierto</span>' : "")); });
+        if (f.semana === total) que.push("🏁 Último día para registrar retos: <b>" + diaCorto(f.fin) + "</b>");
+        if (f.semana === total + extra) que.push("🛒 Último día para canjear: <b>" + diaCorto(f.fin) + "</b>");
+        if (f.canje && !que.length) que.push('<span class="muted">Semana de canje: sin retos nuevos</span>');
       }
-      var nom = f.congelada ? (festiva ? "🎄 Festivo UNIR" : "⏸️ Congelada") : f.canje ? "Canje" : "Semana " + f.semana;
-      var boton = !futura ? "" : f.congelada
-        ? '<button class="btn min" data-cal-sigue="' + f.inicio + '">▶️ Descongelar</button>'
-        : (f.semana ? '<button class="btn min" data-cal-pausa="' + f.inicio + '">⏸️ Congelar</button>' : "");
-      return '<tr class="' + (f.congelada ? "cal-pausa" : "") + (actual ? " cal-hoy" : "") + (pasada ? " cal-pasada" : "") + '">' +
-        '<td class="cal-fechas">' + diaCorto(f.inicio) + " – " + diaCorto(f.fin) + "</td>" +
-        '<td class="cal-sem"><b>' + nom + "</b>" + (actual ? ' <span class="chip wip">hoy</span>' : "") + "</td>" +
-        '<td class="cal-abre">' + (f.congelada ? '<span class="muted">' + (festiva ? (f.inicio.slice(5, 7) === "12" || f.inicio.slice(5, 7) === "01" ? "Navidad" : "Semana Santa") + ' en la UNIR: no hay clase. ' : '')
-                                                  + 'No corre: el curso sigue en la semana de antes y lo de detrás se mueve una semana.</span>'
-                                                : f.canje && !abre.length ? '<span class="muted">Sin retos nuevos: se canjea lo ganado.</span>' : abre.join("<br>")) + "</td>" +
-        "<td>" + boton + "</td></tr>";
+      var dias = "";
+      for (var d = 0; d < 7; d++) {
+        var iso = SS.masDias(f.inicio, d), dt = SS.fecha(iso), mes = dt.getDate() === 1 || (idx === 0 && d === 0);
+        dias += '<span class="cal-d' + (iso === hoy ? " hoy" : "") + (mes ? " mes" : "") + '">' + dt.getDate() + (mes ? "<small>" + MES[dt.getMonth()] + "</small>" : "") + "</span>";
+      }
+      var toca = edita && futura;
+      return '<div class="cal-fila ' + clase + (actual ? " actual" : "") + (pasada ? " pasada" : "") + (toca ? " toca" : "") + '"' +
+        (toca ? ' data-cal-tg="' + f.inicio + '" role="button" tabindex="0" aria-pressed="' + !!f.congelada + '" title="' +
+          (f.congelada ? "Pulsa para que vuelva a ser lectiva" : "Pulsa para marcarla como no lectiva") + '"' : "") + ">" +
+        '<span class="cal-et">' + et + "</span><span class=\"cal-7\">" + dias + "</span>" +
+        '<span class="cal-que">' + (que.join("<br>") || "") + (actual ? ' <span class="chip wip">hoy</span>' : "") + "</span>" +
+        (toca ? '<span class="cal-tg">' + (f.congelada ? "↩︎ Que sea lectiva" : "Marcar no lectiva") + "</span>" : "") + "</div>";
     };
-    // lo que cambia al guardar
-    var cambios = [];
-    var S0 = calDelGrupo();
-    var mas = CAL.pausas.filter(function (p) { return S0.pausas.indexOf(p) < 0; }), menos = S0.pausas.filter(function (p) { return CAL.pausas.indexOf(p) < 0; });
-    if (CAL.inicio !== S0.inicio) cambios.push("La semana 1 empieza el <b>" + diaCorto(CAL.inicio) + "</b> (antes, el " + diaCorto(S0.inicio) + ").");
-    mas.forEach(function (p) { cambios.push("Se congela la semana del <b>" + diaCorto(p) + "</b>."); });
-    menos.forEach(function (p) { cambios.push("Vuelve a correr la semana del <b>" + diaCorto(p) + "</b>."); });
-    caps.forEach(function (c) {
-      if (!!CAL.abiertos[c.clave] !== !!S0.abiertos[c.clave])
-        cambios.push(CAL.abiertos[c.clave] ? "Se abre YA " + c.icono + " <b>" + esc(c.titulo) + "</b> (su semana era la " + semCap(c) + ")."
-                                            : c.icono + " <b>" + esc(c.titulo) + "</b> vuelve a abrirse en su semana (" + semCap(c) + ").");
-    });
-    if (nuevo.cierre !== viejo.cierre) cambios.push("Registrar retos: hasta el <b>" + diaCorto(nuevo.cierre) + "</b> (antes, " + diaCorto(viejo.cierre) + ").");
-    if (nuevo.cierreCanje !== viejo.cierreCanje) cambios.push("Canjear: hasta el <b>" + diaCorto(nuevo.cierreCanje) + "</b> (antes, " + diaCorto(viejo.cierreCanje) + ").");
-    var semAntes = SS.semanaDelCurso(S0.inicio, S0.pausas);
-    if (semAntes !== semHoy) cambios.push("⚠️ <b>Hoy el grupo pasa de la semana " + semAntes + " a la " + semHoy + ".</b>");
+
+    var hoyTxt = semHoy < 1 ? "aún no ha empezado" : semHoy > total + extra ? "curso terminado" : SS.pausaDe(CAL.inicio, CAL.pausas) ? "semana no lectiva"
+               : semHoy > total ? "semana de canje" : "semana " + semHoy + " de " + total;
+    // lo que cambia al guardar (solo el referente tiene borrador)
+    var cambios = [], S0 = calDelGrupo();
+    if (edita) {
+      var mas = CAL.pausas.filter(function (p) { return S0.pausas.indexOf(p) < 0; }), menos = S0.pausas.filter(function (p) { return CAL.pausas.indexOf(p) < 0; });
+      if (CAL.inicio !== S0.inicio) cambios.push("La semana 1 empieza el <b>" + diaCorto(CAL.inicio) + "</b>" + (S0.inicio ? " (antes, el " + diaCorto(S0.inicio) + ")" : "") + ".");
+      mas.forEach(function (p) { cambios.push("La semana del <b>" + diaCorto(p) + "</b> pasa a ser <b>no lectiva</b>."); });
+      menos.forEach(function (p) { cambios.push("La semana del <b>" + diaCorto(p) + "</b> vuelve a ser <b>lectiva</b>."); });
+      // 🔴 lo que Norberto echaba en falta: que se vea que las de detrás CAMBIAN DE FECHA
+      if (S0.inicio) {
+        var tramos = [], prev = null;
+        for (var n = 1; n <= total + extra; n++) {
+          var a0 = SS.inicioDeSemana(S0.inicio, n, S0.pausas), a1 = SS.inicioDeSemana(CAL.inicio, n, CAL.pausas), dd = Math.round(SS.dias(a0, a1) / 7);
+          if (dd && prev && prev.dd === dd && prev.hasta === n - 1) prev.hasta = n;
+          else if (dd) { prev = { desde: n, hasta: n, dd: dd, dia: a1 }; tramos.push(prev); }
+          else prev = null;
+        }
+        tramos.forEach(function (x) {
+          var cuanto = Math.abs(x.dd) + (Math.abs(x.dd) === 1 ? " semana" : " semanas") + (x.dd > 0 ? " más tarde" : " antes");
+          cambios.push((x.desde === x.hasta ? "La semana " + x.desde + " va " : "Las semanas " + x.desde + " a " + (x.hasta > total ? total + " y la de canje" : x.hasta) + " van ") +
+                       "<b>" + cuanto + "</b>: la " + x.desde + " empieza el <b>" + diaCorto(x.dia) + "</b>.");
+        });
+      }
+      caps.forEach(function (c) {
+        if (!!CAL.abiertos[c.clave] !== !!S0.abiertos[c.clave])
+          cambios.push(CAL.abiertos[c.clave] ? "Se abre YA " + c.icono + " <b>" + esc(c.titulo) + "</b> (su semana era la " + semCap(c) + ")."
+                                              : c.icono + " <b>" + esc(c.titulo) + "</b> vuelve a abrirse en su semana (" + semCap(c) + ").");
+      });
+      if (S0.inicio) {
+        var viejo = fechasDe(S0).proyecto.stargate;
+        if (nuevo.cierre !== viejo.cierre) cambios.push("Registrar retos: hasta el <b>" + diaCorto(nuevo.cierre) + "</b> (antes, " + diaCorto(viejo.cierre) + ").");
+        if (nuevo.cierreCanje !== viejo.cierreCanje) cambios.push("Canjear: hasta el <b>" + diaCorto(nuevo.cierreCanje) + "</b> (antes, " + diaCorto(viejo.cierreCanje) + ").");
+        var semAntes = SS.semanaDelCurso(S0.inicio, S0.pausas);
+        if (semAntes !== semHoy) cambios.push("⚠️ <b>Hoy el grupo pasa de la semana " + semAntes + " a la " + semHoy + ".</b>");
+      }
+    }
+
     $("#c-cuerpo").innerHTML =
       '<div class="card cal-caja"><h3>📅 El calendario del grupo</h3>' +
-      '<p class="small">Cada fila es una semana: lo que se abre y cuándo acaba todo. <b>Congela</b> una semana (Navidad, Semana Santa) ' +
-      'y todo lo de detrás se corre una; o <b>abre un capítulo antes</b> de su semana. Nada cambia hasta que pulses <b>Guardar</b>.</p>' +
-      '<div class="cal-cab"><label>Primer día de la semana 1 <input type="date" id="cal-inicio" value="' + esc(CAL.inicio) + '"></label>' +
-      '<span class="small">Hoy: <b>' + (semHoy < 1 ? "aún no ha empezado" : semHoy > total + extra ? "curso terminado" : "semana " + Math.min(semHoy, total) + " de " + total) + "</b>" +
-      (SS.pausaDe(CAL.inicio, CAL.pausas) ? " · ⏸️ semana congelada" : "") + "</span></div>" +
-      '<div class="tabla-envoltura"><table class="tabla cal-tabla"><thead><tr><th>Fechas</th><th>Semana</th><th>Qué pasa</th><th></th></tr></thead><tbody>' +
-      filas.map(fila).join("") + "</tbody></table></div></div>" +
-      '<div class="card"><h3>Capítulos de la Nave</h3><p class="small muted">Cada capítulo abre algo nuevo en la Nave del alumnado (y NEBULA lo cuenta). ' +
-      'Si tu clase va adelantada, ábrelo ya; lo del Mercado que traiga se puede comprar desde hoy.</p><div class="cal-caps">' +
-      caps.map(function (c) {
-        var porFecha = semHoy >= semCap(c), antes = !!CAL.abiertos[c.clave];
-        var cuando = SS.inicioDeSemana(CAL.inicio, semCap(c), CAL.pausas);
-        return '<div class="cal-cap' + (porFecha || antes ? " on" : "") + '"><b>' + c.icono + " " + esc(c.titulo) + "</b>" +
-          '<span class="small">' + (porFecha ? "Abierto (semana " + semCap(c) + ")" : antes ? "Abierto antes de tiempo · su semana era la " + semCap(c)
-                                    : "Se abre la semana " + semCap(c) + " · " + diaCorto(cuando)) + "</span>" +
-          (porFecha ? "" : antes ? '<button class="btn min" data-cal-cierra="' + c.clave + '">↩️ Volver a su semana</button>'
-                                 : '<button class="btn min" data-cal-abre="' + c.clave + '">🔓 Abrir ya</button>') + "</div>";
-      }).join("") + "</div></div>" +
-      '<div class="card cal-guardar"><h3>Al guardar</h3>' +
-      (cambios.length ? "<ul>" + cambios.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul>" +
-        '<p class="small muted">Se recalculan solas las fechas de los planetas y del Mercado. El alumnado lo ve la próxima vez que abra su Nave.</p>' +
-        '<p><button class="btn primary" id="cal-guardar">Guardar el calendario</button> <button class="btn" id="cal-deshacer">Deshacer los cambios</button></p>'
-        : '<p class="small muted">Sin cambios. Congela una semana o abre un capítulo y aquí verás lo que se moverá.</p>') + "</div>";
-    var re = function () { verCalendario(t); };
+      '<div class="cal-resumen">' +
+        "<span><b>" + total + "</b> semanas lectivas <em>(" + (tipo === "PUA" ? "PUA" : "curso regular") + ")</em></span>" +
+        "<span><b>" + noLect + "</b> no lectiva" + (noLect === 1 ? "" : "s") + "</span>" +
+        "<span><b>" + extra + "</b> de canje</span>" +
+        "<span>Retos hasta el <b>" + diaCorto(nuevo.cierre) + "</b></span>" +
+        "<span>Canje hasta el <b>" + diaCorto(nuevo.cierreCanje) + "</b></span>" +
+        '<span class="cal-hoy-txt">Hoy: <b>' + hoyTxt + "</b></span></div>" +
+      (edita
+        ? '<div class="cal-cab"><label>Primer día de la semana 1 <input type="date" id="cal-inicio" value="' + esc(CAL.inicio) + '"></label>' +
+          '<p class="small">👆 <b>Pulsa una semana</b> que aún no haya llegado para marcarla como <b>no lectiva</b> (o para que vuelva a serlo). ' +
+          "Las de detrás se renumeran solas y abajo verás a qué día se mueve cada una. Nada cambia hasta <b>Guardar</b>.</p></div>"
+        : '<p class="small muted">Lo lleva tu referente. Aquí ves cada semana del curso, las que no son lectivas y lo que se abre en cada una.</p>') +
+      '<div class="cal-ley"><span class="l lectiva">S1 · lectiva</span><span class="l nolectiva">⏸ no lectiva</span>' +
+        '<span class="l festivo">🎄 festiva UNIR</span><span class="l canje">🛒 canje</span><span class="l hoy">hoy</span></div>' +
+      '<div class="cal-vis" role="list"><div class="cal-fila cal-cabeza" aria-hidden="true"><span class="cal-et"></span><span class="cal-7">' + cabDias +
+        '</span><span class="cal-que">Qué pasa</span></div>' + filas.map(fila).join("") + "</div></div>" +
+      (edita
+        ? '<div class="card cal-guardar"><h3>Al guardar</h3>' +
+          (cambios.length ? "<ul>" + cambios.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul>" +
+            '<p class="small muted">Se recalculan solas las fechas de los planetas y del Mercado. El alumnado lo ve la próxima vez que abra su Nave.</p>' +
+            '<p><button type="button" class="btn primary" id="cal-guardar">Guardar el calendario</button> <button type="button" class="btn" id="cal-deshacer">Deshacer los cambios</button></p>'
+            : '<p class="small muted">Sin cambios. Marca una semana como no lectiva o abre un capítulo y aquí verás lo que se moverá.</p>') + "</div>" +
+          '<div class="card"><h3>Capítulos de la Nave</h3><p class="small muted">Cada capítulo abre algo nuevo en la Nave del alumnado (y NEBULA lo cuenta). ' +
+          'Si tu clase va adelantada, ábrelo ya; lo del Mercado que traiga se puede comprar desde hoy.</p><div class="cal-caps">' +
+          caps.map(function (c) {
+            var porFecha = semHoy >= semCap(c), antes = !!CAL.abiertos[c.clave];
+            var cuando = SS.inicioDeSemana(CAL.inicio, semCap(c), CAL.pausas);
+            return '<div class="cal-cap' + (porFecha || antes ? " on" : "") + '"><b>' + c.icono + " " + esc(c.titulo) + "</b>" +
+              '<span class="small">' + (porFecha ? "Abierto (semana " + semCap(c) + ")" : antes ? "Abierto antes de tiempo · su semana era la " + semCap(c)
+                                        : "Se abre la semana " + semCap(c) + " · " + diaCorto(cuando)) + "</span>" +
+              (porFecha ? "" : antes ? '<button type="button" class="btn min" data-cal-cierra="' + c.clave + '">↩️ Volver a su semana</button>'
+                                     : '<button type="button" class="btn min" data-cal-abre="' + c.clave + '">🔓 Abrir ya</button>') + "</div>";
+          }).join("") + "</div></div>"
+        : "");
+    if (!edita) return;
     $("#cal-inicio").onchange = function () {
       var nuevoIni = this.value; if (!/^\d{4}-\d\d-\d\d$/.test(nuevoIni)) return;
-      // las pausas se quedan en las mismas semanas del calendario (recolocadas sobre la rejilla nueva)
+      // las no lectivas se quedan en las mismas semanas del calendario (recolocadas sobre la rejilla nueva)
       CAL.pausas = SS.limpias(nuevoIni, CAL.pausas.map(function (p) {
         var d = SS.dias(nuevoIni, p); return d < 0 ? "" : SS.masDias(nuevoIni, Math.floor(d / 7) * 7); }));
       CAL.inicio = nuevoIni; re();
     };
-    Array.prototype.forEach.call(app.querySelectorAll("[data-cal-pausa]"), function (b) {
-      b.onclick = function () { CAL.pausas = SS.limpias(CAL.inicio, CAL.pausas.concat([b.getAttribute("data-cal-pausa")])); re(); }; });
-    Array.prototype.forEach.call(app.querySelectorAll("[data-cal-sigue]"), function (b) {
-      b.onclick = function () { var p = b.getAttribute("data-cal-sigue"); CAL.pausas = CAL.pausas.filter(function (x) { return x !== p; }); re(); }; });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-cal-tg]"), function (b) {
+      var cambia = function () {
+        var p = b.getAttribute("data-cal-tg");
+        CAL.pausas = CAL.pausas.indexOf(p) >= 0 ? CAL.pausas.filter(function (x) { return x !== p; }) : SS.limpias(CAL.inicio, CAL.pausas.concat([p]));
+        re();
+      };
+      b.onclick = cambia;
+      b.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cambia(); } };
+    });
     Array.prototype.forEach.call(app.querySelectorAll("[data-cal-abre]"), function (b) {
       // se guarda la SEMANA en que se abre (no un «sí»): la sesión proyectada lo presenta esa semana
       b.onclick = function () { CAL.abiertos[b.getAttribute("data-cal-abre")] = Math.max(1, semHoy || 1); re(); }; });

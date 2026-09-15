@@ -124,7 +124,9 @@ c(JSON.stringify(tb.pausas) === '["2026-09-14"]' && tb.capitulosAbiertos.c5 === 
 
 // 6 · la consola: el calendario, solo para quien lleva el grupo; y Ajustes ya no mueve la fecha a medias
 const K = leer("assets/js/consola.js");
-c(/\["calendario", "Calendario", 1\]/.test(K), "la consola tiene la pestaña «Calendario» (solo referente)");
+// 15-sep · a la vista de todo el equipo («la versión vista, sin edición, la debería poder ver el docente raso»); editar, el referente
+c(/\["calendario", "Calendario"\]/.test(K) && /var edita = soyRefAqui\(\);/.test(K) && /if \(!edita\) return;/.test(K),
+  "la consola tiene la pestaña «Calendario» (la ve todo el equipo; la edita el referente)");
 c(/function verCalendario\(t\)/.test(K) && /MOTOR\.guardarCalendario\(/.test(K), "   que guarda con guardarCalendario (todo en una escritura)");
 const aj = K.slice(K.indexOf("function verAjustes"), K.indexOf("function verAjustes") + 6000);
 c(!/"stargate\.inicio"/.test(aj), "🔴 «Ajustes» ya no cambia la semana 1 sin mover el Mercado ni los planetas");

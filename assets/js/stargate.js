@@ -75,7 +75,7 @@
     if(window.SG_BADGE_WIRE) window.SG_BADGE_WIRE(key, back, close);}
   function openCard(key){
     back.innerHTML='<div class="modal-card"><button class="modal-close" aria-label="Cerrar">✕</button>'
-      +'<img src="assets/img/tarjetas/'+key+'_carta.png?v=c6d59b8bf3" alt="Carta de '+esc(CARDT[key]||key)+'"></div>';
+      +'<img src="assets/img/tarjetas/'+key+'_carta.png?v=cc81351127" alt="Carta de '+esc(CARDT[key]||key)+'"></div>';
     afterOpen();}
   back.addEventListener('click',function(e){if(e.target===back) close();});
   document.addEventListener('keydown',function(e){if(e.key==='Escape') close();});

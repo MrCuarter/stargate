@@ -72,7 +72,7 @@ c(/async function referenteEnTodos/.test(motor),
   "y existe el «de forma general»: referente de todos sus grupos");
 c(/hechos, fallos/.test(motor) || /fallos: fallos/.test(motor) || /return \{ hechos, fallos \}/.test(motor),
   "🔴 que informa de en cuáles NO ha podido: creer que alguien tiene acceso a ocho grupos teniéndolo a seis es peor que el fallo");
-c(/anadirDocente, referenteEnTodos/.test(motor), "las dos salen del motor");
+c(/anadirDocente, (quitarDocente, )?referenteEnTodos/.test(motor), "las dos salen del motor");
 
 // ---------------------------------------------------------------- e) y se pueden usar
 const con = raiz("assets/js/consola.js");

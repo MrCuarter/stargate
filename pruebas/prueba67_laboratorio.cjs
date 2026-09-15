@@ -49,9 +49,11 @@ const REG = {};   // cifras que se apuntan para el informe
         // 13-sep · +1: «El Zoco» (el registro de trueques y «Deshacer»), para todo el profesorado;
         // y +1 para quien lleva el grupo: «Calendario» (congelar semanas, abrir capítulos antes)
         // 14-sep · y +1 para quien lleva el grupo: «Ofertas» (la oferta de la semana y las suyas)
-        ["rita@lab.test", "Rita Referente", 11, "referente que imparte"],
+        // 15-sep · la Cola de nota solo sale si hay algo pendiente (y entonces es +1); el Calendario lo ve todo el
+        // equipo: el docente raso ve Mi gente, El Zoco, Mis enlaces y Calendario
+        ["rita@lab.test", "Rita Referente", 10, "referente que imparte"],
         ["dani@lab.test", "Dani Docente", 4, "docente raso"],
-        ["sol@lab.test", "Sol Coordina", 11, "referente que NO imparte"],
+        ["sol@lab.test", "Sol Coordina", 10, "referente que NO imparte"],
       ];
       for (const [correo, nombre, pestanas, quien] of casos) {
         const p = await nueva(quien);
@@ -64,11 +66,19 @@ const REG = {};   // cifras que se apuntan para el informe
         const t = await p.texto();
         c("docentes · la tarjeta dice cuántos se han alistado (" + quien + ")", /20\s*alistad/i.test(t), (t.match(/\d+\s*alistad\w*/i) || ["—"])[0]);
         c("docentes · y en qué semana va (" + quien + ")", /10\s*de 15 semanas/i.test(t), (t.match(/\d+\s*de \d+ semanas/) || ["—"])[0]);
-        // entrar al grupo
-        const r = await p.js(`(function(){ var b=[].slice.call(document.querySelectorAll('a,button')).filter(function(x){return /Ver mi gente/i.test(x.textContent)&&x.offsetParent})[0]; if(!b) return 'no hay'; b.click(); return b.textContent.trim(); })()`);
+        // 15-sep · entrar al grupo con el botón épico «🚀 Entrar en el grupo» (antes, un enlace gris)
+        c("docentes · la tarjeta tiene el botón épico «Entrar en el grupo» (" + quien + ")",
+          await p.js("(function(){var b=document.querySelector('.gp .gp-abrir'); return !!b && b.classList.contains('epico') && b.offsetHeight>=44;})()"));
+        await p.js("(function(){var b=document.querySelector('.gp .gp-abrir'); if(b) b.scrollIntoView({block:'center',behavior:'instant'}); return 1;})()");
+        await p.foto(FOTOS + "/1-" + quien.replace(/\W+/g, "-") + "-tarjeta.png");
+        const r = await p.js(`(function(){ var b=[].slice.call(document.querySelectorAll('a,button')).filter(function(x){return /Entrar en el grupo/i.test(x.textContent)&&x.offsetParent})[0]; if(!b) return 'no hay'; b.click(); return b.textContent.trim(); })()`);
         await p.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
         const tabs = await p.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).map(function(b){return b.textContent.trim()})");
-        c("docentes · el " + quien + " ve " + pestanas + " pestañas", (tabs || []).length === pestanas, "botón «" + r + "» · vio [" + tabs + "]");
+        const conCola = (tabs || []).some(x => /^Cola de nota/.test(x));
+        c("docentes · el " + quien + " ve " + pestanas + " pestañas" + (conCola ? " (+ la Cola de nota, que tiene algo)" : ""),
+          (tabs || []).length === pestanas + (conCola ? 1 : 0), "botón «" + r + "» · vio [" + tabs + "]");
+        c("docentes · la Cola de nota, si sale, es la última y lleva su número (" + quien + ")",
+          !conCola || /^Cola de nota\d+$/.test(tabs[tabs.length - 1]), tabs && tabs[tabs.length - 1]);
         await dormir(800);
         const gente = await p.texto();
         const n = (gente.match(/reclutas?/gi) || []).length;
@@ -636,6 +646,9 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       await rita.ir("consola.html?per=lab-clase");
       await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
+      // 15-sep · «Mi gente» abre en su escuadrón: aquí se miran todos
+      await rita.hasta("!!document.querySelector('.gf[data-gf=\"\"]') || !!document.querySelector('tr[data-r]')", 12);
+      await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1");
       const aviso = await rita.hasta("!!document.querySelector('.sin-evid')", 12);
       c("🔴 evidencia · en «Mi gente», un aviso junto a quien tiene retos obligatorios sin enlace", aviso,
         await rita.js("[].slice.call(document.querySelectorAll('.sin-evid')).map(function(x){return x.closest('tr').querySelector('b').textContent+': '+x.textContent}).join(' | ')"));
@@ -688,7 +701,10 @@ const REG = {};   // cifras que se apuntan para el informe
         await p.ir("http://127.0.0.1:" + L.P_WEB2 + "/genially.html?que=" + encodeURIComponent("huevo.html?h=" + h + "&embed=1"));
         const f = await p.marco("huevo.html");
         if (!f) return { error: "no encuentro el iframe" };
-        const puerta = await f.hasta("!!document.getElementById('hv-entrar')", 15);
+        // 15-sep · primero la misma portada que la vista previa («🥚 Abrirlo»); al pulsarla, la puerta de Google
+        const portada = await f.hasta("!!document.getElementById('hv-abrir0')", 15);
+        if (portada) await f.js("document.getElementById('hv-abrir0').click(); 1");
+        const puerta = portada && await f.hasta("!!document.getElementById('hv-entrar')", 15);
         const sinCabecera = await f.js("!document.querySelector('nav.nav') || getComputedStyle(document.querySelector('nav.nav')).display==='none'");
         await f.entrarComo(correo, nombre);
         await f.recargar(); await dormir(2500);
@@ -707,7 +723,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const b0 = await fichaDe("beto@lab.test", "lab-clase");
       const rb1 = await cobrar("beto@lab.test", "Beto", ids.a);
       const b1 = await fichaDe("beto@lab.test", "lab-clase");
-      c("🔴 embebido · dentro de la presentación, sin sesión, sale la puerta de Google AHÍ MISMO", rb1.puerta, rb1.error || "");
+      c("🔴 embebido · dentro de la presentación, sin sesión: la portada con «Abrirlo» y, al pulsarla, la puerta de Google AHÍ MISMO", rb1.puerta, rb1.error || "");
       c("embebido · y sin la cabecera de la web", rb1.sinCabecera);
       c("🔴 embebido · Beto entra desde el iframe, abre el sobre carta a carta y se lleva 3 cartas", rb1.sobre &&
         (b1.inventory || []).filter(x => /__cromo_/.test(x)).length - (b0.inventory || []).filter(x => /__cromo_/.test(x)).length === 3,
@@ -866,8 +882,16 @@ const REG = {};   // cifras que se apuntan para el informe
         for (let k = 0; k < 12; k++) {
           const hay = await p.js("(function(){var b=document.querySelector('.tour.open .tour-next'); if(!b) return 0; b.click(); return 1;})()");
           if (!hay) break; await dormir(700); const v = await vista(); if (!v) break; loc.push(v);
+          if (k === 0) {   // 15-sep · el halo de la pestaña, por ENCIMA de sus vecinas (antes quedaba debajo)
+            const encima = await p.js("(function(){var t=document.querySelector('.pest.tour-target'); if(!t) return 'sin diana'; var r=t.getBoundingClientRect(); var e=document.elementFromPoint(r.left+r.width/2, r.bottom-2); return getComputedStyle(t).zIndex+'|'+(e===t||t.contains(e));})()");
+            c("capitán · el halo de la pestaña queda por encima de las demás (" + nombre + ")", /^4\|true$/.test(String(encima)), encima);
+            await p.foto(FOTOS + "/14-visita-pestana-" + (ref ? "ref" : "doc") + ".png");
+          }
         }
-        const nTabs = ref ? 11 : 4;   // 13-sep · +1: «El Zoco» (todos); referente, +«Calendario», (14-sep) +«Sorteos» y +«Ofertas»
+        // 13-sep · +1: «El Zoco» (todos); referente, +«Calendario», (14-sep) +«Sorteos» y +«Ofertas»; (15-sep) el Calendario
+        // para todos y la Cola de nota solo si hay algo pendiente
+        const hayCola = await p.js("!!document.querySelector('.pest[data-tab=\"canjes\"]')");
+        const nTabs = (ref ? 10 : 4) + (hayCola ? 1 : 0);
         c("capitán · la visita del grupo tiene " + (nTabs + 2) + " pasos, uno por pestaña que " + nombre + " ve",
           loc.length === nTabs + 2 && loc.slice(1, nTabs + 1).every(v => /\bpest\b/.test(v.diana)), JSON.stringify(loc.map(v => v.t + "→" + v.diana)));
       }
@@ -1256,6 +1280,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const rita = await nueva("Rita mira las bienvenidas");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('td.bienv')", 25);
+      await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1");   // 15-sep · todos los escuadrones
       const celda = await rita.js("[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(t){return /Nora Nébula/.test(t.textContent)}).map(function(t){return t.querySelector('td.bienv').textContent})[0]||''");
       c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 7 abiertos en la semana 10, 1 saltado)", /3\/7/.test(celda) && /1 saltado/.test(celda), celda);
     }
@@ -2044,24 +2069,26 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"calendario\"]')", 25);
       await rita.js("var x=document.querySelector('.tour-invite .tour-x, .tour-invite [data-cerrar]'); if(x) x.click(); document.querySelector('.pest[data-tab=\"calendario\"]').click(); 1");
-      await rita.hasta("!!document.querySelector('.cal-tabla')", 20);
-      const filas = await rita.js("document.querySelectorAll('.cal-tabla tbody tr').length");
-      c("calendario · Rita ve las semanas del curso, una por fila (15 + la de canje)", filas === 16, String(filas));
-      const filaHoy = await rita.js("(document.querySelector('.cal-tabla tr.cal-hoy')||{}).innerText||''");
-      c("calendario · marca la de hoy («hoy»), que es la semana en la que va el grupo", new RegExp("Semana " + semHoy + "\\b").test(filaHoy) && /hoy/i.test(filaHoy), filaHoy);
+      // 15-sep · el calendario como un calendario: una fila por semana (.cal-fila) con sus 7 días
+      await rita.hasta("!!document.querySelector('.cal-vis')", 20);
+      const filas = await rita.js("document.querySelectorAll('.cal-vis .cal-fila:not(.cal-cabeza)').length");
+      const noLect0 = (S0.pausas || []).length;
+      c("calendario · Rita ve las semanas del curso, una por fila (15 + la de canje + las no lectivas)", filas === 16 + noLect0, String(filas));
+      const filaHoy = await rita.js("(function(){var f=document.querySelector('.cal-fila.actual'); return f ? f.querySelector('.cal-et').textContent+' | '+f.innerText : '';})()");
+      c("calendario · marca la de hoy («hoy»), que es la semana en la que va el grupo", new RegExp("^S" + semHoy + " ").test(filaHoy) && /hoy/i.test(filaHoy), filaHoy);
       c("calendario · y dice qué se abre cada semana (planetas, capítulos, último día de retos y de canje)",
         /Planeta/.test(await rita.texto()) && /Último día para registrar retos/.test(await rita.texto()) && /Último día para canjear/.test(await rita.texto()));
-      c("calendario · lo pasado no se toca: ni la semana de hoy ni las de antes tienen «Congelar»",
-        await rita.js("[].slice.call(document.querySelectorAll('.cal-tabla tr.cal-pasada, .cal-tabla tr.cal-hoy')).every(function(t){return !t.querySelector('[data-cal-pausa]')})"));
+      c("calendario · lo pasado no se toca: ni la semana de hoy ni las de antes se pueden marcar",
+        await rita.js("[].slice.call(document.querySelectorAll('.cal-fila.pasada, .cal-fila.actual')).every(function(t){return !t.hasAttribute('data-cal-tg')})"));
       await rita.foto(FOTOS + "/23-calendario.png");
       // congelar la semana de dentro de dos
-      c("calendario · la semana del " + futura + " tiene su botón «⏸️ Congelar»", await rita.js(`!!document.querySelector('[data-cal-pausa="${futura}"]')`));
-      await rita.js(`document.querySelector('[data-cal-pausa="${futura}"]').click(); 1`);
+      c("calendario · la semana del " + futura + " se puede marcar como no lectiva", await rita.js(`!!document.querySelector('.cal-fila.lectiva[data-cal-tg="${futura}"]')`));
+      await rita.js(`document.querySelector('[data-cal-tg="${futura}"]').click(); 1`);
       await rita.hasta("!!document.getElementById('cal-guardar')", 10);
       const resumen = await rita.js("document.querySelector('.cal-guardar').innerText");
-      c("🔴 calendario · antes de guardar, dice lo que cambia: se congela esa semana y los cierres se retrasan una semana",
-        /Se congela la semana/.test(resumen) && /Registrar retos: hasta el/.test(resumen) && /Canjear: hasta el/.test(resumen), resumen);
-      c("calendario · y la fila sale como «⏸️ Congelada», con las de detrás renumeradas", await rita.js(`(function(){ var b=document.querySelector('[data-cal-sigue="${futura}"]'); return !!b && /Congelada/.test(b.closest('tr').innerText); })()`));
+      c("🔴 calendario · antes de guardar, dice lo que cambia: esa semana no lectiva, las de detrás una semana más tarde y los cierres también",
+        /pasa a ser no lectiva/.test(resumen) && /1 semana más tarde/.test(resumen) && /Registrar retos: hasta el/.test(resumen) && /Canjear: hasta el/.test(resumen), resumen);
+      c("calendario · y la fila sale como no lectiva (⏸), con las de detrás renumeradas", await rita.js(`(function(){ var f=document.querySelector('[data-cal-tg="${futura}"]'); if(!f||!f.classList.contains('nolectiva')) return false; var n=f.nextElementSibling; return !!n && n.querySelector('.cal-et').textContent==='S${semHoy + 2}'; })()`));
       await rita.foto(FOTOS + "/23-calendario-congelada.png");
       c("calendario · sin pulsar «Guardar» no se ha tocado nada", JSON.stringify((await pref.get()).data().stargate.pausas || []) === JSON.stringify(S0.pausas || []));
       // y abrir antes el Arsenal (capítulo 6, semana 15)
@@ -2123,8 +2150,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await ana2.cerrar();
       await pref.update({ "stargate.pausas": S1.pausas });
       // deshacerlo todo desde el calendario: descongelar y devolver el Arsenal a su semana
-      await rita.js("document.querySelector('.pest[data-tab=\"calendario\"]').click(); 1"); await rita.hasta("!!document.querySelector('.cal-tabla')", 20);
-      await rita.js(`document.querySelector('[data-cal-sigue="${futura}"]').click(); 1`); await dormir(300);
+      await rita.js("document.querySelector('.pest[data-tab=\"calendario\"]').click(); 1"); await rita.hasta("!!document.querySelector('.cal-vis')", 20);
+      await rita.js(`document.querySelector('[data-cal-tg="${futura}"]').click(); 1`); await dormir(300);
       await rita.js("var b=document.querySelector('[data-cal-cierra=\"c7\"]'); if(b) b.click(); 1"); await dormir(300);
       await rita.js("document.getElementById('cal-guardar').click(); 1");
       await rita.hasta("/Calendario guardado/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25);
@@ -2137,14 +2164,15 @@ const REG = {};   // cifras que se apuntan para el informe
       c("calendario · en «Ajustes» ya no se cambia la semana 1 (solo se ve) y un botón lleva al calendario",
         !(await rita.js("!!document.getElementById('s-inicio')")) && await rita.js("!!document.querySelector('#c-cuerpo [data-tab=\"calendario\"]')"));
       await rita.js("document.querySelector('#c-cuerpo [data-tab=\"calendario\"]').click(); 1");
-      c("calendario · …y lleva", await rita.hasta("!!document.querySelector('.cal-tabla')", 10));
+      c("calendario · …y lleva", await rita.hasta("!!document.querySelector('.cal-vis')", 10));
       c("calendario · sin errores en la consola", !rita.errores.filter(e => !/Failed to load resource/.test(e)).length, rita.errores[0] || "");
       await rita.cerrar();
       // quien solo imparte no ve el calendario
       const dani = await nueva("Dani sin calendario");
       await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente");
       await dani.ir("consola.html?per=" + P); await dani.hasta("document.querySelectorAll('.pestanas .pest').length>0", 25);
-      c("calendario · un docente que solo imparte no tiene la pestaña «Calendario»", !(await dani.js("!!document.querySelector('.pest[data-tab=\"calendario\"]')")));
+      // 15-sep · el calendario lo ve todo el equipo («la versión vista, sin edición, la debería poder ver el docente raso»)
+      c("calendario · un docente que solo imparte ve el «Calendario», pero no lo toca", await dani.js("!!document.querySelector('.pest[data-tab=\"calendario\"]')"));
       await dani.cerrar();
     }
     // ============================================================ 24 · EMPEZAR DE CERO: BORRAR UN GRUPO DE PRUEBA
@@ -2605,7 +2633,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 congelar · en la ficha, «Solo el referente»: 🧊 Congelar y Dar de baja", await rita.hasta("!!document.getElementById('c-congelar') && !!document.getElementById('c-baja')", 10));
       await rita.foto(FOTOS + "/27-ficha-referente.png");
       await rita.js("window.confirm=function(){return true}; document.getElementById('c-congelar').click(); 1");
-      c("congelar · «🧊 Gélida está congelado: mira, pero no toca»", await rita.hasta("/está congelad/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25), await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
+      c("congelar · «🧊 Gélida está congelado: mira, pero no toca»", await rita.hasta("/está congelad/.test((((document.querySelector('#c-modal .c-modal-aviso')||{}).innerText||'')+' '+((document.getElementById('c-aviso')||{}).innerText||'')))", 25), await rita.js("(((document.querySelector('#c-modal .c-modal-aviso')||{}).innerText||'')+' '+((document.getElementById('c-aviso')||{}).innerText||''))"));
       const fgc = await ficha("gelida");
       c("🔴 congelar · la ficha lleva el candado (quién y cuándo)", !!(fgc.stargateCongelado && fgc.stargateCongelado.por === "rita@lab.test"), JSON.stringify(fgc.stargateCongelado));
       c("congelar · en Mi gente sale «🧊 congelado» a su lado", await rita.hasta("[].slice.call(document.querySelectorAll('[data-r]')).some(function(x){return /Gélida/.test(x.innerText)&&/congelado/i.test(x.innerText)})", 15));
@@ -2639,7 +2667,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // 6 · Rita la descongela, y vuelve a poder
       await abreFicha(rita, "Gélida");
       await rita.js("document.getElementById('c-congelar').click(); 1");
-      c("congelar · «▶️ Descongelar»: vuelve a poder hacer de todo", await rita.hasta("/ya puede volver/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25) && !(await ficha("gelida")).stargateCongelado);
+      c("congelar · «▶️ Descongelar»: vuelve a poder hacer de todo", await rita.hasta("/ya puede volver/.test((((document.querySelector('#c-modal .c-modal-aviso')||{}).innerText||'')+' '+((document.getElementById('c-aviso')||{}).innerText||'')))", 25) && !(await ficha("gelida")).stargateCongelado);
       const g6 = await naveDe("gelida", "descongelada");
       c("descongelada · sin el aviso, y compra otra vez", !(await g6.js("!!document.querySelector('.congelado-aviso')")) && /COMPRÓ/.test(await g6.js(`window.SG.MOTOR.llamar('purchaseReward',{projectId:'${P}',rewardId:'${sobre._id}',studentProfileId:'${F.gelida._id}'}).then(function(){return 'COMPRÓ'},function(e){return e.message})`, 60000)));
       await g6.cerrar();
@@ -3342,6 +3370,133 @@ const REG = {};   // cifras que se apuntan para el informe
       c("modo · y vuelve con «★ Modo referente»", (await ri.js("document.querySelectorAll('.pest').length")) === antes);
       c("profes · sin errores en las páginas", !ri.errores.filter(e => !/Failed to load resource/.test(e)).length, ri.errores[0] || "");
       await ri.cerrar();
+    }
+    // ============================================================ 36 · LA CONSOLA DEL GRUPO, REPENSADA (15-sep, tarde)
+    /**
+     * Norberto: la Cola de nota solo si hay algo, la fecha del Zoco, el equipo docente persona a persona, los
+     * escuadrones que se abren, la ficha que SÍ se abre, el calendario como un calendario (y visible para el docente
+     * raso) y el premio por enlace con su botón de Google. Aquí, de verdad, con el motor y las fotos para mirarlo.
+     */
+    if (hacer(36)) {
+      const P = "lab-clase";
+      const A = admin(), fs = A.firestore();
+      const rita = await nueva("Rita, la consola nueva");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      // la Cola de nota con algo dentro: brilla en la tarjeta y sale la última, con su número
+      const vale = await fs.collection("purchased_vouchers").add({ projectId: P, status: "pending", studentId: "lab-nadie", rewardTitle: "Subida de nota (laboratorio)", cost: 0, createdAt: Date.now() });
+      await rita.ir("consola.html");
+      const brilla = await rita.hasta("!!document.querySelector('.gp-cola')", 30);
+      c("🔴 cola · con una subida de nota pendiente, la tarjeta del grupo lo avisa (y brilla)", brilla && /1/.test(await rita.js("document.querySelector('.gp-cola').textContent")),
+        brilla ? await rita.js("document.querySelector('.gp-cola').textContent") : (await rita.texto()).slice(0, 200));
+      await rita.foto(FOTOS + "/36-tarjeta-cola.png");
+      if (brilla) {
+        await rita.js("document.querySelector('.gp-cola').click(); 1");
+        await rita.hasta("!!document.querySelector('.pest[data-tab=\"canjes\"]')", 20);
+        const cola = await rita.js("(function(){var t=[].slice.call(document.querySelectorAll('.pestanas .pest')); var u=t[t.length-1]; return {ultima:u.getAttribute('data-tab'), activa:u.classList.contains('activa'), brillo:u.classList.contains('pest-aviso'), n:(u.querySelector('.pest-n')||{}).textContent};})()");
+        c("cola · y lleva directo a la Cola de nota: la última pestaña, encendida, brillando y con su número", cola && cola.ultima === "canjes" && cola.activa && cola.brillo && cola.n === "1", JSON.stringify(cola));
+        await rita.foto(FOTOS + "/36-cola.png");
+      }
+      await fs.collection("purchased_vouchers").doc(vale.id).delete();
+      await rita.ir("consola.html?per=" + P); await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0 && !!document.querySelector('tr[data-r]')", 30);
+      c("cola · sin nada pendiente, la pestaña ni sale", await rita.js("!document.querySelector('.pest[data-tab=\"canjes\"]')"));
+      // Mi gente: el filtro por escuadrón, en el suyo
+      const chips = await rita.js("[].slice.call(document.querySelectorAll('.gf')).map(function(b){return b.textContent.replace(/\\s+/g,' ').trim()+(b.classList.contains('on')?' [on]':'')})");
+      c("consola · Mi gente: un botón por escuadrón y «Todos»; empieza en el de Rita", (chips || []).length >= 3 && /el tuyo.*\[on\]/.test((chips || []).join(" | ")), JSON.stringify(chips));
+      const filasSuyas = await rita.js("document.querySelectorAll('tr[data-r]').length");
+      await rita.js("document.querySelector('.gf[data-gf=\"\"]').click(); 1"); await dormir(400);
+      const filasTodas = await rita.js("document.querySelectorAll('tr[data-r]').length");
+      c("consola · «Todos» enseña a todo el grupo", filasTodas > filasSuyas && filasSuyas > 0, filasSuyas + " → " + filasTodas);
+      // la ficha, en una ventana
+      await rita.js("document.querySelector('tr[data-r]').click(); 1");
+      const abre = await rita.hasta("!!document.querySelector('#c-modal.abierto .fi-cab')", 10);
+      c("🔴 consola · pulsar una fila ABRE su ficha, en una ventana encima", abre);
+      const vis = await rita.js("(function(){var r=document.querySelector('#c-modal.abierto .c-modal-caja').getBoundingClientRect();return r.top>=0&&r.top<innerHeight*0.5&&r.width>300})()");
+      c("consola · y se ve sin bajar: la ventana está arriba, a la vista", vis);
+      await rita.foto(FOTOS + "/36-ficha.png");
+      // otorgar un reto que no tenga desde la ficha: se reabre con el aviso
+      const reto = await rita.js("(function(){var b=document.querySelector('#c-modal [data-reto][data-tiene=\"0\"]'); if(!b) return ''; b.click(); return b.getAttribute('data-reto');})()");
+      const otorgado = reto ? await rita.hasta("/Otorgado " + reto + "/.test((document.querySelector('#c-modal .c-modal-aviso')||{}).textContent||'')", 30) : false;
+      c("consola · otorgar desde la ficha: se reabre con los datos nuevos y dice qué ha hecho", otorgado, reto + " · " + await rita.js("(document.querySelector('#c-modal .c-modal-aviso')||{}).textContent||''"));
+      const ya = reto ? await rita.js("!!document.querySelector('#c-modal [data-reto=\"" + reto + "\"][data-tiene=\"1\"]')") : false;
+      c("consola · y el reto sale ya en verde", ya);
+      if (reto) { await rita.js("window.confirm=function(){return true}; document.querySelector('#c-modal [data-reto=\"" + reto + "\"]').click(); 1");
+                  await rita.hasta("/Anulado " + reto + "/.test((document.querySelector('#c-modal .c-modal-aviso')||{}).textContent||'')", 30); }
+      await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1"); await dormir(300);
+      c("consola · Escape la cierra", await rita.js("!document.querySelector('#c-modal.abierto')"));
+      // la Cola de nota: solo si hay algo
+      const hayVale = await rita.js("!!document.querySelector('.pest[data-tab=\"canjes\"]')");
+      const ultima = await rita.js("(function(){var t=document.querySelectorAll('.pestanas .pest'); return t[t.length-1].getAttribute('data-tab');})()");
+      c("consola · la Cola de nota: si sale, la última y brillando; si no hay nada, no sale", hayVale ? ultima === "canjes" && await rita.js("!!document.querySelector('.pest.pest-aviso .pest-n')") : ultima !== "canjes", hayVale + " · " + ultima);
+      // el Zoco con su fecha
+      await rita.js("document.querySelector('.pest[data-tab=\"zoco\"]').click(); 1");
+      const zoco = await rita.hasta("!!document.querySelector('.zoco-abre')", 20) ? await rita.js("document.querySelector('.zoco-abre').textContent") : "";
+      c("consola · el Zoco dice el día exacto en que se abre", /(lunes|martes|miércoles|jueves|viernes|sábado|domingo) \d{1,2} de [a-z]+/.test(zoco) && /semana 5/.test(zoco), zoco);
+      // los escuadrones se abren
+      await rita.js("document.querySelector('.pest[data-tab=\"escuadrones\"]').click(); 1"); await rita.hasta("!!document.querySelector('.esc-det')", 15);
+      await rita.js("document.querySelector('.esc-det summary').click(); 1"); await dormir(400);
+      c("🔴 consola · un escuadrón se abre con su Comandante y su gente", await rita.js("!!document.querySelector('.esc-det[open] .esc-datos') && document.querySelectorAll('.esc-det[open] tr[data-r]').length>0"));
+      await rita.foto(FOTOS + "/36-escuadron.png");
+      await rita.js("document.querySelector('.esc-det[open] tr[data-r]').click(); 1");
+      c("consola · y su gente abre la ficha, como en Mi gente", await rita.hasta("!!document.querySelector('#c-modal.abierto .fi-cab')", 10));
+      await rita.js("document.querySelector('#c-modal [data-cerrar-ficha]').click(); 1");
+      // el equipo docente, persona a persona: añadir, hacer referente, quitar
+      await rita.js("document.querySelector('.pest[data-tab=\"equipo\"]').click(); 1"); await rita.hasta("!!document.querySelector('.eq-p')", 15);
+      c("consola · Equipo docente: una tarjeta por persona, con sus botones", await rita.js("document.querySelectorAll('.eq-p').length>=2 && !!document.querySelector('.eq-p [data-rol]') && !!document.querySelector('.eq-p .eq-lnk')"));
+      await rita.foto(FOTOS + "/36-equipo.png");
+      await rita.js("document.getElementById('e-nom').value='Quique Temporal'; document.getElementById('e-mail').value='quique@lab.test'; document.getElementById('e-rol').value='docente'; document.getElementById('e-add').click(); 1");
+      await rita.hasta("/ya está en el equipo/.test((document.getElementById('c-aviso')||{}).innerText||'')", 30);
+      const idxQ = await rita.js("(function(){var l=[].slice.call(document.querySelectorAll('.eq-p')); for(var i=0;i<l.length;i++) if(/quique@lab\\.test/.test(l[i].textContent)) return i; return -1;})()");
+      c("consola · Quique entra en el equipo y sale su tarjeta", idxQ >= 0, idxQ);
+      await rita.js("window.confirm=function(){return true}; (function(){var l=[].slice.call(document.querySelectorAll('.eq-p')); var q=l.filter(function(x){return /quique@lab\\.test/.test(x.textContent)})[0]; q.querySelector('[data-rol]').click();})(); 1");
+      await rita.hasta("/ya es referente/.test((document.getElementById('c-aviso')||{}).innerText||'')", 30);
+      const pvR = await leerDoc("projects/" + P + "/privado/stargate");
+      c("consola · «⭐ Hacer referente» lo hace el servidor", (pvR.docentes || []).some(d => d.correo === "quique@lab.test" && d.rol === "referente"), JSON.stringify((pvR.docentes || []).filter(d => /quique/.test(d.correo))));
+      await rita.js("window.confirm=function(){return true}; (function(){var l=[].slice.call(document.querySelectorAll('.eq-p')); var q=l.filter(function(x){return /quique@lab\\.test/.test(x.textContent)})[0]; q.querySelector('[data-quitar]').click();})(); 1");
+      const quitado = await rita.hasta("/ya no está en el equipo/.test((document.getElementById('c-aviso')||{}).innerText||'') || /Falta desplegar|no está|no puedes/i.test((document.getElementById('c-aviso')||{}).innerText||'')", 40);
+      const prQ = await leerDoc("projects/" + P), pvQ = await leerDoc("projects/" + P + "/privado/stargate");
+      c("🔴 consola · «Quitar del equipo»: fuera de la lista y sin entrada al grupo (por el servidor)",
+        quitado && (prQ.coTeacherEmails || []).indexOf("quique@lab.test") < 0 && !(pvQ.docentes || []).some(d => d.correo === "quique@lab.test"),
+        await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
+      const yoMismo = await rita.js("(function(){var l=[].slice.call(document.querySelectorAll('.eq-p')); var r=l.filter(function(x){return /rita@lab\\.test/.test(x.textContent)})[0]; return r ? !r.querySelector('[data-quitar]') : null;})()");
+      c("consola · nadie se quita a sí mismo (Rita no tiene «Quitar» en su tarjeta)", yoMismo === true, yoMismo);
+      // el calendario del referente
+      await rita.js("document.querySelector('.pest[data-tab=\"calendario\"]').click(); 1"); await rita.hasta("!!document.querySelector('.cal-vis')", 20);
+      const cal = await rita.js("({filas:document.querySelectorAll('.cal-vis .cal-fila:not(.cal-cabeza)').length, dias:document.querySelectorAll('.cal-vis .cal-fila:not(.cal-cabeza)')[0].querySelectorAll('.cal-d').length, toca:document.querySelectorAll('.cal-fila.toca').length, s1:(document.querySelector('.cal-fila.lectiva .cal-et')||{}).textContent})");
+      c("🔴 calendario · como un calendario: una fila por semana con sus 7 días, empezando en S1", cal && cal.filas >= 16 && cal.dias === 7 && cal.s1 === "S1", JSON.stringify(cal));
+      c("calendario · la referente puede marcar las semanas que aún no han llegado", cal && cal.toca > 0, JSON.stringify(cal));
+      await rita.foto(FOTOS + "/36-calendario-ref.png");
+      await rita.js("(function(){var f=[].slice.call(document.querySelectorAll('.cal-fila.toca.lectiva'))[0]; f.click();})(); 1"); await dormir(500);
+      const al = await rita.js("(document.querySelector('.cal-guardar')||{}).innerText||''");
+      c("🔴 calendario · al marcar una no lectiva, «Al guardar» dice que las de detrás van 1 semana más tarde y a qué día", /no lectiva/.test(al) && /1 semana más tarde/.test(al) && /empieza el/.test(al), al.slice(0, 300));
+      await rita.foto(FOTOS + "/36-calendario-cambio.png");
+      await rita.js("document.getElementById('cal-deshacer').click(); 1"); await dormir(300);
+      c("calendario · «Deshacer los cambios» lo deja como estaba (sin guardar nada)", /Sin cambios/.test(await rita.js("(document.querySelector('.cal-guardar')||{}).innerText||''")));
+      c("consola · sin errores en la página", !rita.errores.filter(e => !/Failed to load resource/.test(e)).length, rita.errores[0] || "");
+      await rita.cerrar();
+      // el docente raso ve el calendario, sin tocarlo
+      const dani = await nueva("Dani mira el calendario");
+      await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente");
+      await dani.ir("consola.html?per=" + P + "&tab=calendario"); await dani.hasta("!!document.querySelector('.cal-vis')", 30);
+      c("🔴 calendario · el docente raso lo ve…", await dani.js("document.querySelectorAll('.cal-vis .cal-fila').length>10"));
+      c("calendario · …pero sin tocar nada (ni semanas, ni fecha, ni guardar)", await dani.js("!document.querySelector('.cal-fila.toca') && !document.getElementById('cal-inicio') && !document.getElementById('cal-guardar')"));
+      await dani.foto(FOTOS + "/36-calendario-docente.png");
+      await dani.cerrar();
+      // el premio por enlace: sin sesión, la portada de siempre; con una cuenta sin grupo, entrar con otra
+      const h0 = await nueva("Alguien sin sesión encuentra un premio");
+      await h0.ir("huevo.html?h=labhuevo&embed=1");
+      c("🔴 premio · sin sesión, la misma portada que la vista previa, con «🥚 Abrirlo»", await h0.hasta("!!document.getElementById('hv-abrir0')", 20), (await h0.texto()).slice(0, 160));
+      c("premio · incrustado, sin fondo (se ve el Genially detrás)", await h0.js("getComputedStyle(document.body).backgroundColor==='rgba(0, 0, 0, 0)' && getComputedStyle(document.body).backgroundImage==='none'"),
+        await h0.js("getComputedStyle(document.body).background"));
+      await h0.foto(FOTOS + "/36-premio-sin-sesion.png");
+      await h0.js("document.getElementById('hv-abrir0').click(); 1");
+      c("premio · «Abrirlo» sin sesión lleva al botón de Google", await h0.hasta("!!document.getElementById('hv-entrar') && !!document.querySelector('#hv-entrar .ep-g')", 10));
+      await h0.cerrar();
+      const h1 = await nueva("Una docente abre el premio de su alumnado");
+      await h1.ir("entrar.html"); await h1.entrarComo("sol@lab.test", "Sol Coordina");   // (Dani también es alumna desde la sección 4)
+      await h1.ir("huevo.html?h=labhuevo&embed=1");
+      c("🔴 premio · con una cuenta sin ficha: dice con qué cuenta está y ofrece entrar con otra", await h1.hasta("!!document.getElementById('hv-otra-cuenta') && /sol@lab\\.test/.test(document.body.innerText)", 25), (await h1.texto()).slice(0, 200));
+      await h1.foto(FOTOS + "/36-premio-otra-cuenta.png");
+      await h1.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

@@ -146,7 +146,10 @@ const REFERENTES_VITALICIOS = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"
 /** La misma cuenta que hace la sala del docente (clase.js `estadoPer`), en un solo sitio. */
 function estadoDelPER(S) {
   S = S || {};
-  const total = (S.tipo === "PUA") ? 10 : 15;
+  // 15-sep · del catálogo (PUA 8, regular 15): aquí ponía 10 para el PUA, y un PUA salía «de 10 semanas» y seguía
+  // «en marcha» dos semanas después de acabar
+  const sem = ((window.SG_CATALOGO || {}).semanas) || {};
+  const total = (S.tipo === "PUA") ? (sem.PUA || 8) : (sem.REGULAR || 15);
   let semana = null;
   // con las semanas congeladas del calendario del referente (motor/semanas.js)
   if (S.inicio) semana = window.SGSEMANAS.semanaDelCurso(S.inicio, S.pausas);
@@ -200,6 +203,8 @@ async function misPERs(correo) {
       const eq = (pv.exists() ? pv.data().docentes : null) || x.stargate.docentes || [];
       const yo = eq.filter(d => String(d.correo || "").toLowerCase() === correo)[0];
       x.soyReferente = vitalicio || !!(yo && yo.rol === "referente");
+      // 15-sep · el equipo de cada grupo (quién y con qué rol): «Equipo docente» dice en qué otros grupos está cada uno
+      x.equipo = eq.map(d => ({ nombre: d.nombre || "", correo: String(d.correo || "").toLowerCase(), rol: d.rol || "docente" }));
       // 14-sep · cómo se llama en ESTE grupo (el nombre que llevan las fichas de su escuadrón en «profe»):
       // la sesión proyectada lo usa para enseñar SU escuadrón y SUS tickets de salida
       x.miNombre = (yo && yo.nombre) || "";
@@ -220,6 +225,12 @@ async function misPERs(correo) {
                                                where("projectId", "==", x.id)));
       x.reclutas = c.data().count;
     } catch (e) { x.reclutas = null; }   // sin dato es mejor que un cero que parece verdad
+    // 15-sep · y las subidas de nota que esperan (Norberto: «que brille cuando hay algo pendiente»)
+    try {
+      const v = await getCountFromServer(query(collection(db, "purchased_vouchers"),
+                                               where("projectId", "==", x.id), where("status", "==", "pending")));
+      x.cola = v.data().count;
+    } catch (e) { x.cola = 0; }
   }));
 
   try { if (mios.length) localStorage.setItem("sgEsDocente", "1"); } catch (e) {}
@@ -987,6 +998,16 @@ async function anadirDocente(perId, persona) {
 }
 
 /**
+ * 15-sep · QUITAR A ALGUIEN DEL EQUIPO. Solo por el servidor (`stargateEquipo` con `quitar`): las reglas no dejan
+ * tocar `coTeacherEmails` desde el navegador. El servidor no deja quitar a un vitalicio, ni a uno mismo, ni al último
+ * referente, ni a quien aún tenga alumnado a su nombre (la consola lo pasa antes a otro docente).
+ */
+async function quitarDocente(perId, correo) {
+  const r = await llamar("stargateEquipo", { projectId: perId, persona: { correo: String(correo || "").toLowerCase() }, quitar: true });
+  return r;
+}
+
+/**
  * ════════════ CO-REFERENTE DE TODO ════════════
  *
  * 🔴 «De forma general» no puede ser una casilla en un ajuste suelto, y la razón es la misma que la
@@ -1607,7 +1628,7 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, alumno, nuevoCodigo,
                     huevosDe, guardarHuevos, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
-                    anadirDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
+                    anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta,
                     buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto, invitacion, codigoGenially,

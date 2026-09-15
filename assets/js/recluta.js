@@ -764,6 +764,46 @@
       +'gastado, tu saldo puede quedarse a cero.</p></div>';
   }
 
+  /**
+   * 🔴 15-sep · LA TARJETA DE UN RETO, UNA SOLA. Norberto, de «Qué hay que hacer, explicado»: «esta visión de los retos es
+   * muy fea, no hay imágenes, no se ve la insignia… debería ser exactamente lo mismo que lo que aparece en "Lo que puedes
+   * conseguir esta semana"». Ahora las dos vistas pintan esta misma tarjeta: el premio y la insignia a la vista, «Cómo se
+   * hace» al desplegarla y el botón de marcarlo dentro.
+   *
+   * Y «💡 Ver un ejemplo» (Norberto: «es lo que más les ayuda»), SOLO en los retos que tengan uno (SG_EJEMPLOS, de
+   * _site_data.py → EJEMPLOS_RETOS): un enlace sale como botón en la tarjeta; un texto, dentro, con los pasos.
+   */
+  function tarjetaReto(t, mios){
+    var r=st.yo||{}, d=st.d||{}, AY=window.SG_AYUDA_RETOS||{};
+    var ya=!!mios[t[0]], pasos=pasosDeReto(AY[t[0]]);
+    var cuando=ya&&r.retos_fecha&&r.retos_fecha[t[0]]?' · '+fecha(r.retos_fecha[t[0]]):'';
+    var gancho=(window.SG_GANCHO_RETOS||{})[t[0]]||'';
+    var ej=(window.SG_EJEMPLOS||{})[t[0]]||null, ejUrl=ej&&ej.enlace?(/^https?:\/\//i.test(ej.enlace)?ej.enlace:'https://'+ej.enlace):'';
+    return '<details class="reto-sem'+(ya?' hecho':'')+'">'
+      +'<summary><div class="rs-cab"><span class="chip '+(ya?'ok':'pend')+'">'
+        +(ya?'✓ Registrado'+cuando:'Pendiente')+'</span>'
+        +cuantosLoLlevan(t[0])
+        +'<span class="small muted">'+esc(t[0])+'</span></div>'
+      +'<div class="rs-cols"><div class="rs-izq">'
+        +'<b class="rs-tit">'+esc(t[1])+'</b>'
+        +(gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')
+        +'<div class="rs-premio"><span class="p xp">+'+t[3]+' xp</span>'
+          +'<span class="p cr">+'+creditosDeReto(t[0])+' ◈</span>'
+          +(ejUrl?'<a class="rs-ej" href="'+esc(ejUrl)+'" target="_blank" rel="noopener">💡 Ver un ejemplo ↗</a>':'')+'</div>'
+        +'<div class="rs-abrir">▾ '+(ya?'Ver lo que pedía':'Cómo se hace, paso a paso')+'</div>'
+      +'</div><div class="rs-der">'+premioDeReto(t[2])+'</div></div></summary>'
+      +'<div class="rs-detalle">'
+      +(pasos.length?'<ol class="rs-pasos">'+pasos.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>'
+                    :'<p class="small muted">Sin explicación todavía: pregunta a tu docente.</p>')
+      +(ej&&ej.texto?'<p class="rs-ej-txt">💡 <b>Un ejemplo:</b> '+esc(ej.texto)+(ejUrl?' <a href="'+esc(ejUrl)+'" target="_blank" rel="noopener">Verlo ↗</a>':'')+'</p>':'')
+      +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado.</p>'+accionesDeHecho(t[0])
+          :(motorNuevo()
+            ? '<div class="rs-marcar">'+campoEvidencia(t[0],'rs-ev')
+              +'<button class="btn primary" type="button" data-hecho="'+esc(t[0])+'">✅ Lo he hecho</button></div>'
+            : (d.formBitacora?'<p style="margin-top:12px"><a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">Marcarlo en la Bitácora →</a></p>':'')))
+      +'</div></details>';
+  }
+
   function retosDeLaSemana(){
     var r=st.yo, d=st.d; if(!r||st.estado==='antes') return '';
     var RET=(window.SG_RETOS||{})[(d&&d.tipo)||'REGULAR']||[];
@@ -780,32 +820,7 @@
     if(!suyos.length) suyos=RET.filter(function(t){ return t[4]===sm.tema_n; });
     if(!suyos.length) return '';
 
-    var tarjetas=suyos.map(function(t){
-      var ya=!!mios[t[0]], pasos=pasosDeReto(AY[t[0]]);
-      var cuando=ya&&r.retos_fecha&&r.retos_fecha[t[0]]?' · '+fecha(r.retos_fecha[t[0]]):'';
-      var gancho=(window.SG_GANCHO_RETOS||{})[t[0]]||'';
-      return '<details class="reto-sem'+(ya?' hecho':'')+'">'
-        +'<summary><div class="rs-cab"><span class="chip '+(ya?'ok':'pend')+'">'
-          +(ya?'✓ Registrado'+cuando:'Pendiente')+'</span>'
-          +cuantosLoLlevan(t[0])
-          +'<span class="small muted">'+esc(t[0])+'</span></div>'
-        +'<div class="rs-cols"><div class="rs-izq">'
-          +'<b class="rs-tit">'+esc(t[1])+'</b>'
-          +(gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')
-          +'<div class="rs-premio"><span class="p xp">+'+t[3]+' xp</span>'
-            +'<span class="p cr">+'+creditosDeReto(t[0])+' ◈</span></div>'
-          +'<div class="rs-abrir">▾ '+(ya?'Ver lo que pedía':'Cómo se hace, paso a paso')+'</div>'
-        +'</div><div class="rs-der">'+premioDeReto(t[2])+'</div></div></summary>'
-        +'<div class="rs-detalle">'
-        +(pasos.length?'<ol class="rs-pasos">'+pasos.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>'
-                      :'<p class="small muted">Sin explicación todavía: pregunta a tu docente.</p>')
-        +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado.</p>'+accionesDeHecho(t[0])
-            :(motorNuevo()
-              ? '<div class="rs-marcar">'+campoEvidencia(t[0],'rs-ev')
-                +'<button class="btn primary" type="button" data-hecho="'+esc(t[0])+'">✅ Lo he hecho</button></div>'
-              : (d.formBitacora?'<p style="margin-top:12px"><a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">Marcarlo en la Bitácora →</a></p>':'')))
-        +'</div></details>';
-    }).join('');
+    var tarjetas=suyos.map(function(t){ return tarjetaReto(t, mios); }).join('');
 
     // Los atrasados: lo abierto que todavía no ha registrado, sin contar los de esta semana.
     var deEstaSemana={}; suyos.forEach(function(t){ deEstaSemana[t[0]]=true; });
@@ -1549,25 +1564,8 @@
       abiertos+=suyos.length;
       var hechosAqui=suyos.filter(function(r){return mios[r[0]];}).length;
       hechos+=hechosAqui;
-      var fichas=suyos.map(function(r){
-        var ya=!!mios[r[0]];
-        var texto=AY[r[0]]||'';
-        return '<article class="reto'+(ya?' ok':'')+'">'
-          +'<header><span class="reto-id">'+esc(r[0])+'</span><h4>'+esc(r[1])+'</h4>'
-          +'<span class="reto-xp">'+r[3]+' xp</span>'
-          +(ya?'<span class="reto-ya">✅ ya lo tienes</span>':'')+'</header>'
-          +(texto?'<p>'+esc(texto)+'</p>':'<p class="small muted">Sin descripción todavía: pregunta a tu docente.</p>')
-          // 🔴 Con el motor nuevo el reto se marca AQUÍ. Era el último motivo por el que seguía
-          // haciendo falta un formulario de Google: ir a otra pestaña, buscar tu reto entre veinte
-          // casillas y enviarlo. Ahora está donde se lee lo que hay que hacer, que es donde tiene
-          // que estar.
-          +(ya?accionesDeHecho(r[0]):(motorNuevo()
-             ? '<div class="reto-marcar">'
-               +campoEvidencia(r[0],'reto-ev')
-               +'<button class="btn primary" type="button" data-hecho="'+esc(r[0])+'">✅ Lo he hecho</button></div>'
-             : '<p class="small muted">Cuando lo termines, márcalo en tu Bitácora de mando y pega ahí el enlace de lo que has hecho.</p>'))
-          +'</article>';
-      }).join('');
+      // 15-sep · la misma tarjeta que «Lo que puedes conseguir esta semana» (tarjetaReto), en su rejilla
+      var fichas='<div class="rs-grid rs-grid-pl">'+suyos.map(function(r){ return tarjetaReto(r, mios); }).join('')+'</div>';
       var actual=sems.some(function(s){return s.sem===st.actual;});
       bloques+='<details class="reto-pl'+(actual?' actual':'')+'"'+(actual?' open':'')+'>'
         +'<summary><span class="pl-n">Planeta '+t+'</span><b>'+esc(p[1])+'</b>'

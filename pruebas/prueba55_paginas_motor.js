@@ -84,7 +84,7 @@ c(/MOTOR\.misPERs\(YO\.correo\)/.test(CONSOLA),
 // ---------------------------------------------------------------- g) a quién se le edita
 // Emparejar por alias era una bomba: dos reclutas con el mismo alias y le otorgas el reto al que no
 // es, sin enterarte. El identificador de la ficha viaja con ella.
-c(/var ficha = r\.ficha;/.test(CONSOLA), "🔴 la consola edita por id de ficha, no por alias");
+c(/ficha = r\.ficha[,;]/.test(CONSOLA) && /MOTOR\.otorgarReto\(PER, ficha, id\)/.test(CONSOLA), "🔴 la consola edita por id de ficha, no por alias");
 c(CONSOLA.indexOf("displayName === r.alias") < 0, "   y ya no empareja por alias en ningún sitio");
 const TAB = fs.readFileSync(path.join(__dirname, "..", "motor", "tablero.js"), "utf8");
 const priv = TAB.slice(TAB.indexOf("if (conPrivados) {"), TAB.indexOf("return out;"));

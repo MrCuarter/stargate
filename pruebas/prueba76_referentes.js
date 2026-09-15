@@ -56,7 +56,7 @@ c(/window\.SG_MODO_DOCENTE = modoDocente/.test(T) && /sgModoDocente/.test(T) && 
 c(/a\.hidden = !ref \|\| md/.test(T), "   y en modo docente se apaga «Crear grupo» del menú");
 const CON = leer("assets/js/consola.js");
 c(/function refDe\(p\) \{ return !!\(p && p\.soyReferente\) && !modoDoc\(\); \}/.test(CON), "la consola: lo de referente, solo fuera del modo docente");
-c(/var ref = refDe\(/.test(CON) && /var esRef = refDe\(/.test(CON) && /&& !modoDoc\(\);/.test(CON), "   en las pestañas, la ficha y la franja de referente");
+c(/var ref = refDe\(/.test(CON) && /function soyRefAqui\(\) \{ return refDe\(/.test(CON) && /esRef = soyRefAqui\(\)/.test(CON) && /&& !modoDoc\(\);/.test(CON), "   en las pestañas, la ficha y la franja de referente");
 c(/document\.addEventListener\("sg:modo"/.test(CON), "   y se repinta al cambiar de modo");
 c(/href="profesores\.html"/.test(CON) && /VITALICIOS_WEB\.indexOf/.test(CON.slice(CON.indexOf('href="profesores.html"') - 400, CON.indexOf('href="profesores.html"'))),
   "la consola enlaza Profesores, solo para los vitalicios");

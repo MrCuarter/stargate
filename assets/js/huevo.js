@@ -17,14 +17,18 @@
 (function () {
   var app = document.getElementById("huevo-app");
   if (!app) return;
-  // La misma razón que en el aula y la llamada: incrustado, fuera cabecera y pie.
-  if (new URLSearchParams(location.search).get("embed") === "1") document.body.classList.add("embed");
+  // La misma razón que en el aula y la llamada: incrustado, fuera cabecera y pie. Y (15-sep) sin fondo: es una caja
+  // suelta dentro del Genially, que se vea la diapositiva detrás (Norberto: «solo el fondo, no la caja»).
+  if (new URLSearchParams(location.search).get("embed") === "1") document.body.classList.add("embed", "embed-caja");
 
   var url = new URLSearchParams(location.search);
   var HUEVO = (url.get("h") || url.get("huevo") || "").trim();
   // «👁 Ver cómo se ve» desde la consola: la misma página, sin reclamar nada
   var VISTA = url.get("vista") === "1", PER_VISTA = (url.get("per") || "").trim();
   var MOTOR = null, YO = null, PER = "", FICHA = "", EST = null, RELOJ = 0;
+  // 15-sep · pulsó «Abrirlo» sin sesión: en cuanto entre con Google, se reclama solo (Norberto: «una vez iniciada, el
+  // mensaje de lo que ha ganado»)
+  var QUIERE = false;
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
@@ -175,7 +179,18 @@
    * Genially, probablemente proyectado o en el móvil: sacarle a otra pestaña a identificarse y que
    * vuelva —si vuelve— es perder a la mitad justo en el momento de más ilusión.
    */
+  /**
+   * 15-sep · SIEMPRE LA MISMA PORTADA. Norberto: «lo ideal sería que se viera SIEMPRE igual que en la previsualización.
+   * Al pulsar Abrirlo, si ha iniciado sesión, se reclama solo; si no, aparece lo del botón de Google, y una vez iniciada,
+   * el mensaje de lo que ha ganado». Sin sesión no se sabe su grupo (ni, por tanto, qué premio es): se enseña el
+   * escondite con su botón, y el botón pide la cuenta.
+   */
   function puerta() {
+    pinta(portada('Hay algo aquí para ti. Púlsalo y es tuyo — <b>solo se puede una vez</b>.',
+      '<button class="btn epico" id="hv-abrir0"><span class="ep-luz"></span><span class="ep-txt">🥚 Abrirlo</span></button>'));
+    document.getElementById("hv-abrir0").onclick = puertaGoogle;
+  }
+  function puertaGoogle() {
     pinta(portada(
       'Para quedártelo tengo que saber quién eres. Entra con <b>la misma cuenta</b> con la que te alistaste.',
       /**
@@ -189,8 +204,37 @@
       + '<span class="ep-g">' + ((window.SG && window.SG.LOGO_G) || '') + '</span>'
       + '<span class="ep-txt">Entrar con Google</span></button>'));
     document.getElementById("hv-entrar").onclick = function () {
+      QUIERE = true; mirar._v = undefined;
       cargando("Abriendo…");
-      MOTOR.entrar().then(mirar).catch(function (e) { fallo(e.message); });
+      MOTOR.entrar().then(mirar).catch(function (e) {
+        QUIERE = false;
+        // cerró la ventana de Google sin elegir cuenta: vuelve a la puerta, sin drama
+        if (/popup-closed|cancelled-popup/.test(String(e && e.code))) return puertaGoogle();
+        fallo(e.message);
+      });
+    };
+  }
+  /**
+   * 15-sep · CON UNA CUENTA QUE NO ESTÁ EN NINGÚN GRUPO (la del trabajo, la de un docente…): se dice con qué cuenta
+   * está y se ofrece entrar con otra ahí mismo. Antes solo decía «no he podido dártelo» y no había por dónde seguir.
+   */
+  function otraCuenta() {
+    var correo = String((YO && (YO.correo || YO.email)) || ""), docente = false;
+    try { docente = localStorage.getItem("sgEsDocente") === "1" || (MOTOR.VITALICIOS || []).indexOf(correo.toLowerCase()) >= 0; } catch (e) {}
+    pinta('<div class="hv"><div class="hv-caja mal"><div class="hv-icono">🥚</div>'
+      + '<h2>' + (docente ? "Esta cuenta es de docente" : "Esta cuenta no está en ningún grupo") + '</h2>'
+      + '<p class="hv-sub">' + (docente
+          ? 'Estás con <b>' + esc(correo) + '</b>. Los premios son para tu alumnado; para ver cómo se ve, usa «👁 Ver cómo se ve» en Premios por enlace.'
+          : 'Estás con <b>' + esc(correo) + '</b>, y no la encuentro alistada. Entra con <b>la cuenta con la que te alistaste</b> en STARGATE.') + '</p>'
+      + '<button class="btn epico" id="hv-otra-cuenta"><span class="ep-luz"></span>'
+      + '<span class="ep-g">' + ((window.SG && window.SG.LOGO_G) || '') + '</span>'
+      + '<span class="ep-txt">Entrar con otra cuenta</span></button>'
+      + '<p class="hv-nota-vista">¿Aún no te has alistado? Entra en STARGATE con Google y escribe el código de clase que te dio tu docente.</p></div></div>');
+    document.getElementById("hv-otra-cuenta").onclick = function () {
+      QUIERE = true; mirar._v = undefined;
+      cargando("Abriendo…");
+      // la ventana de Google pregunta qué cuenta (select_account): la nueva sustituye a la de ahora
+      MOTOR.entrar().then(mirar).catch(function (e) { QUIERE = false; if (/popup-closed|cancelled-popup/.test(String(e && e.code))) return otraCuenta(); fallo(e.message); });
     };
   }
 
@@ -313,7 +357,7 @@
      * a uno; si por lo que sea estuviera en dos, se coge el que tenga este escondite configurado.
      */
     MOTOR.misGruposDeAlumno(YO.uid).then(function (fichas) {
-      if (!fichas.length) return fallo("No estás alistado en ningún grupo todavía. Entra en STARGATE con Google y escribe el código de clase que te dio tu docente.");
+      if (!fichas.length) return otraCuenta();
       /**
        * 🔴 12-sep · EL GRUPO QUE TIENE ESTE ESCONDITE, no el primero. El comentario de arriba ya lo
        * prometía y el código cogía `fichas[0]`: alguien alistado en dos grupos (un repetidor, un
@@ -330,7 +374,13 @@
     }).then(function (elegido) {
       if (!elegido || !elegido.per) return;
       PER = elegido.per; FICHA = elegido.ficha;
-      return MOTOR.estadoHuevo(PER, HUEVO, FICHA).then(function (e) { EST = e; pintarEstado(); });
+      return MOTOR.estadoHuevo(PER, HUEVO, FICHA).then(function (e) {
+        EST = e;
+        // ya había pulsado «Abrirlo»: si está abierto y no lo tenía, se reclama sin volver a pedirle nada
+        var auto = QUIERE; QUIERE = false;
+        if (auto && e.estado === "abierto" && !e.yaEra) return reclamar();
+        pintarEstado();
+      });
     }).catch(function (e) { fallo(e.message || e); });
   }
 

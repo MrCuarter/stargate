@@ -24,7 +24,7 @@
   // 🔴 La clase va en el BODY, no en el html: así está escrita la hoja de estilos desde el principio
   // (`body.embed .nav{display:none}`). Ponerla en el otro sitio no da error, simplemente no hace nada.
   if (new URLSearchParams(location.search).get("embed") === "1")
-    document.body.classList.add("embed");
+    document.body.classList.add("embed", "embed-caja");   // 15-sep · caja suelta en el Genially: sin fondo
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }

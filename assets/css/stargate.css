@@ -354,7 +354,13 @@ details.foro summary::-webkit-details-marker{display:none}
 .tour-btns button.primary{background:var(--teal);color:#05222a;border-color:var(--teal)}
 .tour-btns button:disabled{opacity:.4;cursor:default}
 .tour-btns .tour-exit{margin-left:auto;color:var(--mut)}
-.tour-target{outline:3px solid var(--teal);outline-offset:10px;border-radius:14px;box-shadow:0 0 0 6px rgba(55,224,236,.18),0 0 60px rgba(55,224,236,.35);animation:tourpulse 1.6s ease-in-out infinite}
+/* 15-sep · el halo quedaba DEBAJO de los vecinos (Norberto, en las pestañas: «parece un problema de capas y de
+   botones que se superponen»): el contorno se pinta con el elemento, y los hermanos que vienen detrás lo tapaban.
+   `position:relative` + z-index lo sube por encima (ningún objetivo del tour es absolute/fixed/sticky). */
+.tour-target{position:relative;z-index:4;outline:3px solid var(--teal);outline-offset:10px;border-radius:14px;box-shadow:0 0 0 6px rgba(55,224,236,.18),0 0 60px rgba(55,224,236,.35);animation:tourpulse 1.6s ease-in-out infinite}
+/* lo pequeño y apretado (una pestaña, un botón en una línea): el halo se ciñe y no invade la fila de al lado */
+.pest.tour-target{outline-offset:4px;border-radius:10px;box-shadow:0 0 0 4px rgba(55,224,236,.18),0 0 30px rgba(55,224,236,.35)}
+#c-cambiar.tour-target{outline-offset:5px}
 @keyframes tourpulse{0%,100%{outline-color:var(--teal)}50%{outline-color:var(--amber)}}
 @media(max-width:640px){.tour-cap{width:120px;margin-right:-18px}.tour-panel{padding-left:30px}}
 .tour-invite{position:fixed;left:18px;bottom:18px;z-index:50;display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,#101a28,#0b1119);border:1px solid #2a5a66;border-radius:16px;padding:10px 14px 10px 10px;box-shadow:0 18px 50px rgba(0,0,0,.55);font-size:.88rem;max-width:min(440px,92vw)}
@@ -1549,10 +1555,13 @@ body.embed .nave-barra-u{top:0}
 .card.bien{border-color:#3a7;box-shadow:0 0 0 1px #3a7 inset}
 @media(max-width:700px){#crear .docente{grid-template-columns:1fr;gap:6px}}
 /* ---------- la consola ---------- */
-.pestanas{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
-.pest{padding:9px 16px;border-radius:9px 9px 0 0;border:1px solid #24304a;border-bottom:none;
-  background:#0d1420;color:#9fb0ce;cursor:pointer;font:inherit;font-weight:600}
-.pest.activa{background:#14243c;color:#e8eefc;border-color:#4da3ff}
+/* 15-sep · pestañas en pastilla: con once, en dos filas, las «de carpeta» (sin borde abajo) parecían
+   montadas unas encima de otras. */
+.pestanas{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.pest{padding:9px 16px;border-radius:10px;border:1px solid #24304a;
+  background:#0d1420;color:#9fb0ce;cursor:pointer;font:inherit;font-weight:600;transition:border-color .15s,color .15s}
+.pest:hover{border-color:#3a5578;color:#e8eefc}
+.pest.activa{background:#14243c;color:#e8eefc;border-color:#4da3ff;box-shadow:inset 0 0 0 1px #4da3ff}
 #consola .tabla{width:100%;border-collapse:collapse;margin-top:10px;font-size:.93rem}
 #consola .tabla th{text-align:left;padding:8px 9px;border-bottom:1px solid #24304a;color:#9fb0ce;font-size:.85rem}
 #consola .tabla td{padding:8px 9px;border-bottom:1px solid #182238;vertical-align:top}
@@ -1997,9 +2006,12 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 .gp-cifras b{display:block;font-family:'Unbounded',sans-serif;font-size:1.5rem;line-height:1;
   color:var(--ink);font-variant-numeric:tabular-nums}
 .gp-cifras span{font-size:.76rem;color:var(--mut)}
-.gp-pie{margin-top:auto;border-top:1px solid var(--line);padding-top:11px;display:flex;
-  align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.gp-pie .gp-abrir{border:0;padding:0;margin:0}
+/* 15-sep · «🚀 Entrar en el grupo», el botón épico de «Entrar en mi Nave» (Norberto: «un botón llamativo para
+   entrar en ese grupo»); debajo, las pestañas que hay dentro. En los cursos terminados, un botón normal. */
+.gp-pie{margin-top:auto;display:flex;flex-direction:column;align-items:stretch;gap:7px}
+.gp-pie .gp-abrir{display:flex;justify-content:center;width:100%;margin:0}
+.gp-pie .btn.epico.gp-abrir{font-size:1.02rem;padding:15px 22px}
+.gp-dentro{margin:0;text-align:center;font-size:.8rem;color:var(--mut)}
 .gp h3{margin:2px 0 3px;font-size:1.18rem;line-height:1.25;text-wrap:balance}
 .gp-est{font-size:.75rem;letter-spacing:.16em;font-weight:700;color:var(--teal,#37e0ec)}
 .gp.off .gp-est{color:var(--mut)}
@@ -2016,9 +2028,6 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 .gp-b.principal{grid-column:1/-1;background:linear-gradient(135deg,rgba(55,224,236,.16),rgba(55,224,236,.06));
   border-color:#2a5a66;font-size:.95rem}
 .gp-b.principal b{font-weight:700}
-.gp-abrir{background:none;border:0;padding:0;
-  color:var(--mut);font:inherit;font-size:.86rem;cursor:pointer;text-align:left;transition:color .15s}
-.gp-abrir:hover{color:var(--teal)}
 .gp-viejos{margin-top:22px}
 .gp-viejos .gp-grid{margin-top:12px}
 @media(max-width:520px){.gp-hacer{grid-template-columns:1fr}}
@@ -2524,6 +2533,7 @@ body.embed .nota-docente{display:none}
   .pestanas{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
   .pestanas::-webkit-scrollbar{display:none}
   .pestanas .pest{flex:none}
+  .pestanas:has(.tour-target){padding:9px 8px}   /* en la fila deslizante, sitio para el halo de la visita */
 }
 /* la portada: diez baldosas en DOS filas llenas (con cuatro por fila quedaba una fila coja de dos) */
 @media(min-width:1100px){#secciones .tiles{grid-template-columns:repeat(5,1fr);gap:14px}
@@ -3558,3 +3568,196 @@ body.fragmento{background:var(--bg)}
 .pe-ver{margin:6px 0 0 28px;color:var(--muted);font-size:.95rem}
 .pe-paso.hecho{opacity:.62}
 .pe-paso.hecho .pe-qq{text-decoration:line-through;text-decoration-color:rgba(55,224,236,.6)}
+
+/* ================================================================== 15-sep (tarde) · LA CONSOLA DEL GRUPO, REPENSADA
+   Norberto: la Cola de nota solo cuando hay algo (y brillando), la fecha del Zoco, el equipo docente persona a persona,
+   los escuadrones que se abren, la ficha que SÍ se abre y el calendario como un calendario. */
+@keyframes colaBrilla{0%,100%{box-shadow:0 0 0 0 rgba(245,176,67,0)}50%{box-shadow:0 0 16px 2px rgba(245,176,67,.45)}}
+.pest.pest-aviso{border-color:var(--amber);color:#ffe3a1;animation:colaBrilla 2.2s ease-in-out infinite}
+.pest-n{display:inline-grid;place-items:center;min-width:22px;height:22px;margin-left:8px;padding:0 6px;border-radius:99px;
+  background:var(--amber);color:#1a1204;font-size:.8rem;font-weight:800;font-variant-numeric:tabular-nums;vertical-align:1px}
+.gp-cola{display:flex;align-items:center;gap:8px;width:100%;padding:10px 13px;border-radius:11px;border:1px solid var(--amber);
+  background:rgba(245,176,67,.1);color:#ffe3a1;font:inherit;font-size:.9rem;text-align:left;cursor:pointer;animation:colaBrilla 2.2s ease-in-out infinite}
+.gp-cola b{font-variant-numeric:tabular-nums}
+.gp-cola span{margin-left:auto;font-weight:700;color:var(--amber);white-space:nowrap}
+.gp-grid.uno .gp-cola{grid-column:1/-1}
+@media (prefers-reduced-motion:reduce){.pest.pest-aviso,.gp-cola{animation:none;box-shadow:0 0 12px rgba(245,176,67,.35)}}
+
+/* Mi gente: de qué escuadrón */
+.gente-filtro{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.gf{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;border:1px solid #24304a;background:#0d1420;
+  color:#c9d6e6;font:inherit;font-weight:600;font-size:.88rem;cursor:pointer;transition:border-color .15s}
+.gf img{width:22px;height:22px;object-fit:contain}
+.gf em{font-style:normal;font-weight:500;color:var(--mut);font-size:.8rem}
+.gf span{font-variant-numeric:tabular-nums;font-weight:700;color:var(--mut);background:rgba(255,255,255,.06);border-radius:99px;padding:0 7px}
+.gf:hover{border-color:#3a5578}
+.gf.on{border-color:var(--teal);background:rgba(55,224,236,.1);color:#eafcff}
+.gf.on span{color:var(--teal)}
+#consola .tabla tbody tr[data-r]:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
+
+/* la ficha, en una ventana encima */
+body.con-modal{overflow:hidden}
+.c-modal{position:fixed;inset:0;z-index:1005;display:none;align-items:flex-start;justify-content:center;padding:4vh 16px;
+  background:rgba(4,7,12,.72);backdrop-filter:blur(3px);overflow-y:auto}
+.c-modal.abierto{display:flex}
+.c-modal-caja{position:relative;width:min(760px,100%);background:linear-gradient(180deg,#101a28,#0b1119);border:1px solid #2a5a66;
+  border-radius:18px;padding:22px 24px 20px;box-shadow:0 30px 90px rgba(0,0,0,.6);outline:none}
+.c-modal-x{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;border:1px solid #2a4656;background:#0d1420;
+  color:var(--ink);font-size:1rem;cursor:pointer}
+.c-modal-x:hover,.c-modal-x:focus-visible{border-color:var(--teal)}
+.fi-cab{display:flex;align-items:center;gap:14px;padding-right:44px}
+.fi-emb{width:56px;height:56px;object-fit:contain;flex:none}
+.fi-esc{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--teal)}
+.fi-cab h3{margin:2px 0 0;font-size:1.3rem;text-wrap:balance}
+.fi-cab h3 span{font-family:'DMSans',system-ui,sans-serif;font-weight:500;font-size:1rem;color:var(--mut)}
+.fi-cab p{margin:2px 0 0}
+.fi-cifras{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px;margin:14px 0 10px}
+.fi-cifras div{padding:9px 12px;border-radius:11px;background:rgba(0,0,0,.28);border:1px solid var(--line)}
+.fi-cifras b{display:block;font-family:'Unbounded',sans-serif;font-size:1.15rem;font-variant-numeric:tabular-nums}
+.fi-cifras span{font-size:.78rem;color:var(--mut)}
+.c-modal-caja h4{margin:14px 0 4px;font-size:.95rem}
+.c-modal-aviso{margin:10px 0 0}
+
+/* el Zoco: cuándo se abre */
+.zoco-abre{margin:4px 0 10px;padding:9px 13px;border-radius:10px;background:rgba(55,224,236,.07);border:1px solid #1f4a52;font-size:.95rem}
+
+/* el equipo docente, persona a persona */
+.eq-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;margin-top:12px}
+.eq-p{display:flex;flex-direction:column;gap:9px;padding:14px 16px;border-radius:14px;background:#0d1420;border:1px solid #24304a}
+.eq-p.ref{border-color:#4a3a1e}
+.eq-cab{display:flex;align-items:center;gap:12px}
+.eq-cab img{width:52px;height:52px;object-fit:contain;flex:none}
+.eq-sin{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.05);font-size:1.4rem;flex:none}
+.eq-quien{min-width:0;flex:1}
+.eq-quien h4{margin:0;font-size:1.02rem}
+.eq-quien p{margin:0;overflow-wrap:anywhere}
+.eq-rol{flex:none;font-size:.78rem;font-weight:700;padding:4px 10px;border-radius:99px;border:1px solid #24304a;color:var(--mut);white-space:nowrap}
+.eq-rol.ref{color:var(--amber);border-color:#4a3a1e;background:rgba(245,176,67,.08)}
+.eq-esc{margin:0;font-size:.92rem}
+.eq-lnk{background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--teal);cursor:pointer}
+.eq-lnk:hover{text-decoration:underline}
+.eq-otros{margin:0;color:var(--mut)}
+.eq-otros a{color:var(--teal)}
+.eq-acc{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:2px}
+.eq-acc:empty{display:none}
+#consola .eq-p .btn.min{padding:7px 12px;font-size:.84rem}
+.eq-quien h4 .chip{font-size:.75rem;padding:1px 7px;vertical-align:2px;letter-spacing:.06em;border:1px solid #2a4656;color:var(--teal)}
+.eq-pasar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.88rem;color:var(--mut)}
+.eq-p .eq-pasar{margin-top:auto}
+.eq-p .eq-pasar + .eq-acc{margin-top:0}
+#consola .eq-pasar select{display:inline-block;width:auto;max-width:200px;margin:0;padding:7px 10px}
+#consola .eq-pasar label{display:inline-flex;align-items:center;gap:6px;margin:0}
+.eq-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 12px}
+
+/* los escuadrones, que se abren */
+.esc-det{margin:10px 0}
+.esc-det>summary{list-style:none;cursor:pointer;transition:border-color .15s}
+.esc-det>summary::-webkit-details-marker{display:none}
+.esc-det>summary:hover{border-color:#3a5578}
+.esc-det>summary:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.esc-det .esc-val{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.esc-ver{font-size:.78rem;font-weight:700;color:var(--mut)}
+.esc-ver::after{content:" ▾"}
+.esc-det[open] .esc-ver::after{content:" ▴"}
+.esc-det[open]>summary{border-color:var(--teal);border-bottom-left-radius:0;border-bottom-right-radius:0}
+.esc-cuerpo{border:1px solid var(--teal);border-top:0;border-radius:0 0 13px 13px;padding:12px 16px 14px;background:#0b1119}
+.esc-datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:6px}
+.esc-datos div{display:flex;flex-direction:column;padding:9px 12px;border-radius:10px;background:rgba(0,0,0,.25);border:1px solid var(--line)}
+.esc-datos span{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.esc-datos b{font-size:1.05rem;font-variant-numeric:tabular-nums}
+.esc-datos em{font-style:normal;font-size:.82rem;color:var(--mut);word-break:break-all}
+@media(max-width:560px){.esc-det .esc-val{align-items:flex-start}}
+
+/* el calendario, como un calendario: una fila por semana con sus siete días */
+.cal-resumen{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}
+.cal-resumen span{padding:6px 11px;border-radius:10px;background:#0b1119;border:1px solid var(--line);font-size:.88rem;color:var(--mut)}
+.cal-resumen b{color:var(--ink);font-variant-numeric:tabular-nums}
+.cal-resumen em{font-style:normal}
+.cal-resumen .cal-hoy-txt{border-color:#4a3a1e;color:#e8d6b0}
+.cal-cab p{margin:0;flex:1 1 320px}
+.cal-ley{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px;font-size:.8rem}
+.cal-ley .l{padding:4px 10px;border-radius:8px;border:1px solid var(--line);color:var(--mut)}
+.cal-ley .l.lectiva{color:var(--teal);background:rgba(55,224,236,.08)}
+.cal-ley .l.nolectiva{background:repeating-linear-gradient(135deg,rgba(159,178,194,.14) 0 6px,transparent 6px 12px)}
+.cal-ley .l.festivo{color:#e8d6b0;background:repeating-linear-gradient(135deg,rgba(245,176,67,.16) 0 6px,transparent 6px 12px)}
+.cal-ley .l.canje{color:var(--amber);background:rgba(245,176,67,.08)}
+.cal-ley .l.hoy{border-color:var(--amber);color:#e8d6b0}
+.cal-vis{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.cal-fila{display:grid;grid-template-columns:58px minmax(250px,330px) minmax(0,1fr) auto;align-items:center;gap:12px;
+  padding:6px 10px;border-radius:11px;border:1px solid transparent;background:#0b1119}
+.cal-fila.cal-cabeza{background:none;padding-top:0;padding-bottom:0;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.cal-7{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-cabeza .cal-7 span{text-align:center}
+.cal-d{display:flex;flex-direction:column;align-items:center;justify-content:center;height:40px;border-radius:8px;
+  font-variant-numeric:tabular-nums;font-weight:600;font-size:.92rem;color:var(--ink);background:rgba(255,255,255,.03);line-height:1.05}
+.cal-d small{font-size:.75rem;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em}
+.cal-d.hoy{box-shadow:inset 0 0 0 2px var(--amber);color:#fff}
+.cal-et{font-family:'Unbounded',sans-serif;font-weight:700;font-size:.95rem;text-align:center;padding:7px 0;border-radius:9px;color:var(--mut)}
+.cal-fila.lectiva .cal-et{color:var(--teal);background:rgba(55,224,236,.1)}
+.cal-fila.lectiva .cal-d{background:rgba(55,224,236,.07)}
+.cal-fila.nolectiva{background:repeating-linear-gradient(135deg,rgba(159,178,194,.08) 0 10px,transparent 10px 20px),#0b1119}
+.cal-fila.nolectiva .cal-d{color:var(--mut);background:transparent}
+.cal-fila.festivo{background:repeating-linear-gradient(135deg,rgba(245,176,67,.1) 0 10px,transparent 10px 20px),#0b1119}
+.cal-fila.festivo .cal-d{color:#e8d6b0;background:transparent}
+.cal-fila.canje .cal-et{color:var(--amber);background:rgba(245,176,67,.12)}
+.cal-fila.canje .cal-d{background:rgba(245,176,67,.07)}
+.cal-fila.actual{border-color:var(--amber);box-shadow:0 0 18px rgba(245,176,67,.14)}
+.cal-fila.pasada{opacity:.55}
+.cal-fila.toca{cursor:pointer;transition:border-color .15s}
+.cal-fila.toca:hover{border-color:#3a5578}
+.cal-fila.toca:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.cal-que{font-size:.88rem;line-height:1.5;color:#d7e4ec;min-width:0}
+.cal-tg{font-size:.78rem;font-weight:700;color:var(--mut);border:1px solid #2a3a52;border-radius:99px;padding:4px 10px;white-space:nowrap;
+  opacity:0;transition:opacity .15s}
+.cal-fila.toca:hover .cal-tg,.cal-fila.toca:focus-visible .cal-tg,.cal-fila.nolectiva.toca .cal-tg,.cal-fila.festivo.toca .cal-tg{opacity:1}
+.cal-fila.nolectiva.toca .cal-tg,.cal-fila.festivo.toca .cal-tg{color:#e8d6b0;border-color:#5a4a2a}
+@media (hover:none){.cal-tg{opacity:1}}
+@media(max-width:760px){
+  .cal-fila{grid-template-columns:46px minmax(0,1fr);grid-template-areas:"et dias" "que que" "tg tg";gap:6px 8px}
+  .cal-et{grid-area:et}.cal-7{grid-area:dias}.cal-que{grid-area:que}.cal-tg{grid-area:tg;justify-self:start;opacity:1}
+  .cal-cabeza .cal-que,.cal-fila .cal-que:empty{display:none}
+  .cal-d{height:36px;font-size:.88rem}
+}
+
+/* ================================================================== 15-sep · LA NAVE: SIMETRÍA
+   Los contadores de cada planeta, en el MISMO eje (Norberto: «0/4, 0/2… deben estar en el mismo eje vertical»): el
+   contador y la flecha compartían el hueco sobrante y cada contador caía donde le dejaba su título. */
+.reto-pl .reto-cuenta{margin-left:auto;min-width:3.2em;text-align:right;font-variant-numeric:tabular-nums}
+.reto-pl>summary::after{margin-left:14px}
+.reto-pl>summary:not(:has(.reto-cuenta))::after{margin-left:auto}
+/* Los dos retos de la semana, a la MISMA altura («es importante la simetría y la estética»), con el premio y «Cómo se
+   hace» al pie de cada uno. Si abres uno, el de al lado no se estira vacío. */
+.rs-grid{align-items:stretch}
+.rs-grid:has(.reto-sem[open]){align-items:start}
+.reto-sem:not([open])>summary{height:100%;box-sizing:border-box;display:flex;flex-direction:column}
+.reto-sem:not([open]) .rs-cols{flex:1;align-items:stretch}
+.reto-sem:not([open]) .rs-izq{display:flex;flex-direction:column}
+.reto-sem:not([open]) .rs-premio{margin-top:auto}
+.reto-sem:not([open]) .rs-der{justify-content:center}
+
+/* ================================================================== 15-sep · LAS CAJAS INCRUSTADAS, SIN FONDO
+   Norberto: «en los embeds que son ventanas o cajas sueltas (recompensas…), fondo transparente, solo el fondo, no la
+   caja». El premio por enlace, validar un reto y el foro de la semana: se ve el Genially detrás. La sesión, el aula, la
+   llamada y el tablero se quedan con su fondo (ocupan todo el lienzo). `color-scheme:normal` porque si el iframe
+   declarase otro esquema que la página que lo incrusta, el navegador le pintaría un fondo opaco igualmente. */
+html:has(body.embed.embed-caja){background:transparent;color-scheme:normal}
+body.embed.embed-caja{background:transparent}
+body.embed.embed-caja section,body.embed.embed-caja .wrap{background:transparent}
+body.embed.embed-caja .hv{min-height:0;padding:8px 0}
+
+/* ================================================================== 15-sep · «QUÉ HAY QUE HACER, EXPLICADO» CON LA TARJETA DE
+   LA SEMANA (Norberto: «muy fea, no hay imágenes, no se ve la insignia… y compacta un poco más la tarjeta»). */
+.reto-pl > .rs-grid-pl{margin:12px 14px 14px;gap:10px}
+.reto-sem > summary{padding:12px 14px}
+.rs-cols{grid-template-columns:1fr 112px;gap:12px}
+.rs-trofeo img{max-width:96px}
+.rs-tit{margin-bottom:6px}
+.rs-gancho{margin:-2px 0 8px}
+.rs-abrir{margin-top:8px}
+/* el ejemplo, solo donde lo hay */
+.rs-ej{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:.84rem;font-weight:700;
+  color:var(--amber);text-decoration:none;border:1px solid #4a3a1e;background:rgba(245,176,67,.08)}
+.rs-ej:hover,.rs-ej:focus-visible{background:rgba(245,176,67,.18)}
+.rs-ej-txt{margin:8px 0 0;padding:9px 12px;border-radius:10px;background:rgba(245,176,67,.07);border:1px solid #4a3a1e;font-size:.92rem}
+.rs-ej-txt a{color:var(--amber);font-weight:700}
+@media(max-width:560px){.rs-cols{grid-template-columns:1fr 88px;gap:10px}}

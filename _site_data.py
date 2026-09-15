@@ -506,6 +506,10 @@ EVIDENCIA_RETOS = {
 # día sin dejar que nadie suba diez niveles en una tarde. Deshacer uno libera su hueco.
 TOPE_RETOS_DIA = 3
 
+# 15-sep · UN EJEMPLO POR RETO (Norberto: «es lo que más les ayuda»). Solo los que él da: {"A3": {"texto": "…",
+# "enlace": "https://…"}}. En la Nave, un enlace sale como «💡 Ver un ejemplo ↗» en la tarjeta del reto; un texto, dentro.
+EJEMPLOS_RETOS = {}
+
 GANCHO_RETOS = {
  "A0": "Un vídeo de 60 s presentándote, al padlet de la clase.",
  "A1": "Enseña un borrador sin pulir en el foro de la plataforma de UNIR y di qué te daba reparo.",
@@ -995,7 +999,7 @@ PASOS = [
         "foro, ya escrito. Lo copias, lo pegas en el foro de la plataforma de UNIR y sigues con tu vida."),
 
    dict(cod="D3", t="Dos: tu gente", pose="tablet", img="d3_sala.png",
-    hacer="<b>Mis grupos</b> → <b>Ver mi gente y los ajustes</b> → <b>Mi gente</b> → pulsa cualquier fila.",
+    hacer="<b>Mis grupos</b> → <b>Entrar en el grupo</b> → <b>Mi gente</b> → pulsa cualquier fila.",
     voz="Esta es tu gente, y entras con tu cuenta de Google: ni PIN, ni escribir tu correo, ni elegir "
         "tu nombre de una lista. Si pulsas a cualquiera se abre su ficha: lo que lleva hecho, sus "
         "insignias, sus créditos, su correo y el enlace de cada evidencia. El aviso sin enlace te dice "
