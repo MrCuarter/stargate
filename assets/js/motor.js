@@ -1027,6 +1027,21 @@ async function borrarReflexion(perId, reto, fichaId) {
 }
 
 /**
+ * ════════════ LOS LOGROS DE A BORDO (15-sep, noche) ════════════
+ *
+ * Los decide el servidor (`stargateHitos`): mira los datos, apunta el día, los hitos nuevos y el premio
+ * de cada cubierta completa, y con las cinco da el Contramaestre. Aquí solo se pregunta, con la zona
+ * horaria de quien pregunta (el servidor la apunta la primera vez y ya no la cambia). Devuelve lo que
+ * hay y lo que es nuevo, para que la Nave lo celebre. Si el grupo aún no tiene la función, `null`.
+ */
+async function hitos(perId) {
+  let tz = "";
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+  try { return await llamar("stargateHitos", { projectId: perId, tz }); }
+  catch (e) { if (/not-found|NOT_FOUND|internal/i.test(String(e && (e.code || e.message)))) return null; throw e; }
+}
+
+/**
  * ════════════ AÑADIR A ALGUIEN AL EQUIPO DOCENTE ════════════
  *
  * 🔴 Faltaba, y se iba a notar en la primera semana: el equipo se fijaba al CREAR el grupo y no
@@ -1712,7 +1727,7 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta,
                     buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto, invitacion, codigoGenially,
                     guardarReflexion, enlaceDeReflexion, reflexionesDe, misReflexiones, comentariosDe, comentar, borrarComentario,
-                    borrarReflexion, idReflexion,
+                    borrarReflexion, idReflexion, hitos,
                     referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
                     profes, anotarConexion, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };

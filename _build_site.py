@@ -13,7 +13,16 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, REFLEXION_RETOS, TOPE_RETOS_DIA, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
                         PASOS, ESCUADRONES, TICKET_URL, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, DRIVE_EQUIPO,
-                        ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES)
+                        ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES,
+                        HITOS_A_BORDO, CUBIERTAS_A_BORDO, HEROES_A_BORDO, CARTA_A_BORDO)
+# Los logros de a bordo, tal y como los lee el navegador (un dato, un sitio: _site_data.py)
+_A_BORDO = {
+    "cubiertas": [{"clave": c[0], "nombre": c[1], "sub": c[2], "premio": c[3]} for c in CUBIERTAS_A_BORDO],
+    "hitos": [{"clave": h[0], "cubierta": h[1], "icono": h[2], "titulo": h[3], "que": h[4], "donde": h[5]} for h in HITOS_A_BORDO],
+    "heroes": [h[0] for h in HEROES_A_BORDO],
+    "carta": {"clave": CARTA_A_BORDO[0], "nombre": CARTA_A_BORDO[1]},
+}
+
 
 # Un dato, un sitio: las semanas de desbloqueo que se citan en el texto salen del catálogo,
 # no se escriben a mano (si no, cambiarlas en _site_data.py dejaría la web mintiendo).
@@ -484,10 +493,18 @@ AVERIAS = [
   "sale con 🧊, su referente le ha congelado la cuenta: puede mirar, pero no hacer nada."),
  ("retos", "A un estudiante no le suman los retos o los créditos",
   ["no suma", "no le suma", "creditos", "xp", "no cuenta", "lo he hecho", "no registra", "no se registra", "reto"],
-  "Tres cosas lo explican casi siempre: 1) como mucho <b>3 retos al día</b>; 2) <b>todos los retos piden el enlace</b> de lo que se ha hecho "
-  "(salvo el secreto, que se registra al salir del Escape UNI), y sin él no se registran; 3) lo que toca la nota espera en la <b>Cola de nota</b> "
+  "Tres cosas lo explican casi siempre: 1) como mucho <b>3 retos al día</b>; 2) casi todos piden el <b>enlace</b> de lo que se ha hecho "
+  "(A1 y A6 se responden con su reflexión, en el propio reto, y el secreto se registra al salir del Escape UNI), y los retos con reflexión "
+  "piden además <b>un mínimo de letras</b>: sin lo que piden, no se registran; 3) lo que toca la nota espera en la <b>Cola de nota</b> "
   "(la pestaña que aparece, brillando, cuando hay algo) hasta que lo apruebas. Si aun así falta algo que viste en clase, puedes "
   "<b>otorgarlo a mano</b>: Mi gente → pulsa su fila → en su ficha, pulsa el reto."),
+ ("logros", "A un estudiante no le sale un logro de a bordo (o su premio)",
+  ["logro", "logros", "a bordo", "cubierta", "contramaestre", "dias seguidos", "racha de dias", "premio de la cubierta"],
+  "Los <b>logros de a bordo</b> se presentan en la <b>semana 7</b> (capítulo de NEBULA): antes se apuntan en silencio y ninguna cubierta se paga; "
+  "ese día llega todo junto. Se apuntan al <b>entrar en la Nave</b> y al hacer algo (registrar, comprar, comentar, vestirse, el Zoco): si falta "
+  "uno, que recargue su Nave. Tres detalles: «Otra cara» pide ponerse un héroe <b>suyo</b>; los días cuentan <b>una visita al día</b>, en su zona "
+  "horaria; y una compra hecha antes del 16-sep que ya abrió no deja rastro: cuenta la próxima. Los ves en su ficha (Mi gente → su fila). "
+  "Nadie los apunta a mano, ni el profesorado: son del servidor."),
  ("embed", "La sesión (o la llamada) no se ve dentro del Genially",
   ["embed", "incrustar", "insertar", "iframe", "dentro del genially", "no se ve", "codigo"],
   "En Genially se inserta el <b>código</b>, no la dirección: <a href='consola.html'>Mis grupos</a> → <b>«📋 Embed para Genially»</b> "
@@ -2342,7 +2359,7 @@ el equipo docente. No hay PIN que recordar ni correo que escribir — el servido
 enseña solo <b>tus grupos y tu alumnado</b>.<br>
 </p></header>
 <section><div class="wrap"><div id="clase-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_SEMANAS={SEMANAS_JSON};window.SG_TOUR_LOCAL={json.dumps(TOUR_CLASE, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_SEMANAS={SEMANAS_JSON};window.SG_TOUR_LOCAL={json.dumps(TOUR_CLASE, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};</script>
 <script src="assets/js/clase.js" defer></script>
 </div></section>
 ''' + FOOT
@@ -2365,7 +2382,7 @@ Pasa con las flechas <b>←</b> y <b>→</b>.</p>
 <p class="small muted">El <b>consejo del Capitán</b> y el mensaje del foro están arriba, fuera del mazo:
 al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></header>
 <section><div class="wrap"><div id="sesion-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>
 </div></section>
@@ -2439,7 +2456,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS, ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(EJEMPLOS_RETOS, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_DIA={TOPE_RETOS_DIA};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(EJEMPLOS_RETOS, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_DIA={TOPE_RETOS_DIA};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};</script>
 <script src="assets/js/secreto.js" defer></script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sobre.js" defer></script>
@@ -2726,7 +2743,7 @@ print("apps-script: CROMOS (%d cartas) + HEROES (%d) + NIVELES (%d) + RECOMPENSA
 # ve nadie leyendo el código, porque la ruta se arma concatenando. Así que aquí se arma igual:
 # se sacan del JS los trozos literales que rodean a la clave y se mira si el archivo está en disco.
 _RUTA = _re.compile(r"assets/img/(heroes|tarjetas)/'\s*\+\s*[A-Za-z0-9_.\[\]]+\s*\+\s*'([^']*?\.(?:jpg|png))")
-_CATALOGO = {"heroes": [h[0] for h in HEROES], "tarjetas": [c[0] for c in CROMOS]}
+_CATALOGO = {"heroes": [h[0] for h in HEROES + HEROES_A_BORDO], "tarjetas": [c[0] for c in CROMOS]}
 _rotas = []
 for _js in sorted(_glob.glob(os.path.join(HERE, "assets", "js", "*.js"))):
     for _carpeta, _cola in set(_RUTA.findall(open(_js, encoding="utf-8").read())):
@@ -2751,10 +2768,12 @@ for _k in NAVE_BADGES:
 for _c in CROMOS:
     if not os.path.exists(os.path.join(HERE, "assets", "img", "tarjetas", _c[0] + "_carta.png")):
         _falta_ficha.append("carta " + _c[0])
-for _h in HEROES:
+for _h in HEROES + HEROES_A_BORDO:
     for _suf in ("", "_bloqueado"):
         if not os.path.exists(os.path.join(HERE, "assets", "img", "heroes", _h[0] + _suf + ".jpg")):
             _falta_ficha.append("heroe " + _h[0] + _suf)
+if not os.path.exists(os.path.join(HERE, "assets", "img", "tarjetas", CARTA_A_BORDO[0] + "_carta.png")):
+    _falta_ficha.append("carta de a bordo " + CARTA_A_BORDO[0])
 if _falta_ficha:
     raise SystemExit("\n🔴 A la ficha del alumno le faltan imágenes:\n   " + "\n   ".join(_falta_ficha))
 print("ficha del alumno: las %d imágenes del catálogo completo existen todas"
@@ -2959,7 +2978,9 @@ def _cabeza_motor():
         'window.SG_ALIAS=' + _json.dumps(ALIAS_SUGERIDOS) + ';'
         # la regla de evidencia de cada reto: la consola marca a quien le falten enlaces obligatorios
         'window.SG_EVIDENCIA=' + _json.dumps(EVIDENCIA_RETOS) + ';window.SG_REFLEXION=' + _json.dumps(REFLEXION_RETOS, ensure_ascii=False) + ';window.SG_TOPE_DIA=' + str(TOPE_RETOS_DIA) + ';'
-        'window.SG_CAPITULOS=' + CAPITULOS_JSON + ';window.SG_SECRETOS=' + _json.dumps(SECRETOS) + ';</script>'
+        'window.SG_CAPITULOS=' + CAPITULOS_JSON + ';window.SG_SECRETOS=' + _json.dumps(SECRETOS) + ';'
+        # 15-sep (noche) · los logros de a bordo: la Nave los enseña, la consola y la sala del docente los cuentan
+        'window.SG_A_BORDO=' + _json.dumps(_A_BORDO, ensure_ascii=False) + ';</script>'
         '<script src="' + _v("assets/js/secreto.js") + '" defer></script>'
         '<script src="' + _v("motor/paquete.js") + '" defer></script>'
         '<script src="' + _v("motor/tablero.js") + '" defer></script>'
@@ -3138,6 +3159,8 @@ _PE = [
    ("Pasa a la diapositiva «El mensaje».", "El mensaje de la semana como la apertura de una saga, con música épica (si no suena, «🔈 Música»)."),
    ("En «¿Quién las ha superado?», pulsa la cara de un recluta.", "Su ficha: nivel, insignias, cartas y retos. Y bajo quien entregó enlace, «🔗 Ver»: se abre su trabajo."),
    ("Llega a «La Nave» y cambia la semana del selector.", "La Nave de un estudiante simulada, en la semana que elijas: para enseñar en clase lo que se abre (el Mercado, el Zoco…)."),
+   ("Arriba, elige la <b>semana 7</b> y pasa a «Lo nuevo».", "Se presentan «🎖️ <b>Los logros de a bordo</b>»: 16 primeras veces en la Nave, 5 cubiertas con premio y el <b>Contramaestre de la Nave</b>. En «Enséñalo», NEBULA lo cuenta en la Nave simulada."),
+   ("Elige la <b>semana 12</b> y busca «Lo que dijisteis».", "Las reflexiones que el alumnado escribió en los retos de hace dos semanas, primero las de tu escuadrón, con su enlace. «Ocultar» quita una de la diapositiva."),
    ("Si tienes un Genially: inserta el código de «La sesión» (Insertar → Otros → Código).", "Dentro pide tu cuenta y el grupo. Abajo, «⏻» para cerrar sesión. Si entra un estudiante, va a su Nave."),
  ]),
  ("4 · El aula (la clase en directo)", [
@@ -3147,7 +3170,7 @@ _PE = [
  ]),
  ("5 · Dentro del grupo", [
    ("«🚀 Entrar en el grupo» → <b>Mi gente</b>.", "Arriba, un botón por escuadrón (empieza en el tuyo) y «Todos»."),
-   ("Pulsa una fila.", "Su ficha se abre en una ventana: retos, enlaces de lo que entregó y lo que el profe puede hacer (otorgar o anular un reto; congelar o dar de baja, si llevas el grupo). Se cierra con ✕ o Escape."),
+   ("Pulsa una fila.", "Su ficha se abre en una ventana: retos, enlaces y <b>reflexiones</b> de lo que entregó (con «Quitar», para moderar), sus <b>logros de a bordo</b> por cubiertas y lo que el profe puede hacer (otorgar o anular un reto; congelar o dar de baja, si llevas el grupo). Se cierra con ✕ o Escape."),
    ("<b>Escuadrones</b>: pulsa uno.", "Se despliega con su Comandante, sus cifras y su gente; cada fila abre también la ficha."),
    ("<b>Equipo docente</b>.", "Una tarjeta por persona: hacerla referente o docente, pasar su alumnado a otro, quitarla del equipo, ver su escuadrón y en qué otros grupos está. Abajo, «➕ Añadir a alguien» por su correo de Google."),
    ("<b>El Zoco</b> y el resto de pestañas (Premios por enlace, Sorteos, Ofertas, Ajustes).", "El Zoco dice el día exacto en que se abre. La <b>Cola de nota</b> solo aparece, la última y brillando, cuando alguien pide subir nota."),
@@ -3159,8 +3182,10 @@ _PE = [
  ]),
  ("7 · Como estudiante (con tu otra cuenta)", [
    ("En otra ventana, con la otra cuenta, entra por la <a href='index.html'>portada</a> y escribe el código de tu grupo.", "Te alistas en un minuto (alias y Comandante) y NEBULA te enseña la Nave."),
-   ("«Mis retos»: despliega un reto y márcalo.", "La misma tarjeta que la de la semana, con su insignia. <b>Todos piden el enlace</b> (hay un «+» para un segundo); sin él, no se registra. Algunos traen «💡 Ver un ejemplo»."),
+   ("«Mis retos»: despliega un reto y márcalo.", "La misma tarjeta que la de la semana, con su insignia. Casi todos piden el <b>enlace</b> (hay un «+» para un segundo); sin él, no se registra. Algunos traen «💡 Ver un ejemplo»."),
+   ("Busca un reto <b>con reflexión</b> (A1, A6…).", "Se responde en una <b>caja grande</b> en el propio reto (con un mínimo de letras). Hecho, «💬 Lo que ha escrito tu tripulación»: las de los demás, con su enlace, y se pueden comentar."),
    ("«Mi botín».", "Tus insignias, por planetas: el tripulante y el reto de cada tema."),
+   ("«Mi botín» → «🎖️ <b>Logros de a bordo</b>» (en el grupo de prueba ya están; en uno nuevo, desde la semana 7).", "Lo que ya has hecho, con su fecha, y lo que falta con «Ir». Registra un reto o compra un sobre: NEBULA lo celebra al momento. Al completar una cubierta llega su premio, y con las cinco, el <b>Contramaestre</b>: un héroe legendario y una carta con tu alias."),
  ]),
 ]
 def _pe_html():

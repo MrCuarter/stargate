@@ -510,7 +510,16 @@
   // ── 7b · los coleccionistas: reconocer a los que van más avanzados con cromos, héroes e insignias
   // (Norberto: «es importante también dar reconocimiento a los que van más avanzados con los cromos,
   // avatares…»). Cada columna se calla si nadie tiene nada; y abajo, quien tiene algo LEGENDARIO.
-  function diaColeccion(){
+  /** 15-sep (noche) · ¿se han presentado ya los logros de a bordo en la semana que se proyecta? (capítulo c9) */
+  function logrosPresentados(sem){
+    var t=st.tipo==='PUA'?'PUA':'REGULAR', ab=(st.d&&st.d.capitulosAbiertos)||{};
+    var c=(window.SG_CAPITULOS||[]).filter(function(x){ return x.clave==='c9'; })[0]; if(!c) return false;
+    var suya=(c.semanas||{})[t]||99, antes=ab.c9===true?1:Number(ab.c9)||0;
+    return Number(sem)>=(antes&&antes<suya?antes:suya);
+  }
+  function diaColeccion(s){
+    var AB=window.SG_A_BORDO||{hitos:[]}, conLogros=AB.hitos.length&&s&&logrosPresentados(s.sem);
+    var nLog=function(p){ var h=p.hitos||{}; return AB.hitos.filter(function(x){ return h[x.clave]; }).length; };
     var R=vivos(), col=function(tit, ico, val, tot){
       var r=R.filter(function(p){ return val(p)>0; }).sort(function(a,b){ return val(b)-val(a); }).slice(0,3);
       if(!r.length) return '';
@@ -520,14 +529,19 @@
     var c=function(p,k){ return ((p.coleccion||{})[k]||{}); };
     var cols=[col('Álbum de cromos','🃏', function(p){ return c(p,'cromos').tengo||0; }, function(p){ return c(p,'cromos').total||26; }),
               col('Héroes','🛡️', function(p){ return c(p,'heroes').tengo||0; }, function(p){ return c(p,'heroes').total||''; }),
-              col('Insignias','🏅', function(p){ return p.n||0; }, function(){ return 24; })].filter(Boolean);
+              col('Insignias','🏅', function(p){ return p.n||0; }, function(){ return 24; }),
+              // 15-sep (noche) · y los logros de a bordo, desde la semana en que NEBULA los presenta
+              conLogros?col('Logros de a bordo','🎖️', nLog, function(){ return AB.hitos.length; }):''].filter(Boolean);
     var ley=R.filter(function(p){ return (p.leyendas||[]).length; });
+    var cm=conLogros?R.filter(function(p){ return (p.cubiertas||{}).todo; }):[];
     if(!cols.length) return null;
     return {k:'coleccion', rot:'Coleccionistas', html:
       '<div class="dia coleccion"><div class="kicker">🃏 Los coleccionistas</div><h2>Los que más han reunido</h2>'
       +'<div class="col-grid">'+cols.join('')+'</div>'
       +(ley.length?'<div class="col-ley"><span class="col-ley-t">👑 Tienen algo legendario</span>'+ley.slice(0,8).map(function(p){
           return '<span class="col-ley-u">'+cara(p)+'<b>'+esc(p.alias)+'</b><em>'+esc(p.leyendas[0])+(p.leyendas.length>1?' y '+(p.leyendas.length-1)+' más':'')+'</em></span>'; }).join('')+'</div>':'')
+      +(cm.length?'<div class="col-ley"><span class="col-ley-t">🌟 Contramaestres de la Nave</span>'+cm.slice(0,8).map(function(p){
+          return '<span class="col-ley-u">'+cara(p)+'<b>'+esc(p.alias)+'</b><em>los 16 logros de a bordo</em></span>'; }).join('')+'</div>':'')
       +'</div>'};
   }
 
@@ -702,7 +716,7 @@
     if(st.per) d.push(diaLlamada());
     var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
     deTipo('inicio').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 Para empezar')); });
-    [diaAnteriores(s)].concat(diasReflexion(s), [diaMovido(), diaSemanal(), diaTop(), diaColeccion(), diaEscuadrones(), diaTicket(), diaOferta()])
+    [diaAnteriores(s)].concat(diasReflexion(s), [diaMovido(), diaSemanal(), diaTop(), diaColeccion(s), diaEscuadrones(), diaTicket(), diaOferta()])
       .forEach(function(x){ if(x) d.push(x); });
     d=d.concat(diapositivasNuevas(s));
     deTipo('mision').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 La misión')); });

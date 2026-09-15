@@ -7,7 +7,9 @@
       SEM=window.SG_SEMANAS||[], NOMBRES=window.SG_BADGE_NAMES||{},
       BADGES=window.SG_BADGES||[], PLAN=window.SG_PLANETAS||[], root=document.getElementById('nave-app'),
       CROMOS=window.SG_CROMOS||[], SERIES=window.SG_CROMO_SERIES||[], CARDV=window.SG_CARDV||'',
-      SELLOS=window.SG_SERIES_ALBUM||[];
+      SELLOS=window.SG_SERIES_ALBUM||[],
+      // 15-sep (noche) · los logros de a bordo: 16 hitos, 5 cubiertas y el Contramaestre (_site_data.py)
+      AB=window.SG_A_BORDO||{hitos:[],cubiertas:[],heroes:[],carta:null};
   if(!root) return;
   var q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
   // 🔴 13-sep · LA NAVE DEL COMANDANTE: el simulacro que maneja el docente en clase (ver fuente.js → simulacro)
@@ -135,7 +137,9 @@
     pase: 'te daría los créditos de la asistencia',
     reflexion: 'guardaría tu reflexión, y la vería tu tripulación',
     comentar: 'dejaría tu comentario a esa persona de tu tripulación',
-    borrarComentario: 'quitaría tu comentario'
+    borrarComentario: 'quitaría tu comentario',
+    hitos: 'apuntaría tus logros de a bordo',
+    abrir: 'abriría lo que tienes sin abrir'
   };
   function enDemo(){ return DEMO && !st.email && demoPermitido(); }
   function post(cuerpo,cb,err){
@@ -176,7 +180,9 @@
       return;
     }
     SG.FUENTE.accion(cuerpo)
-      .then(function(d){ if(d&&d.error){ if(err)err(d.error); else alert(d.error); return; } cb(d); })
+      .then(function(d){ if(d&&d.error){ if(err)err(d.error); else alert(d.error); return; } cb(d);
+        // 15-sep (noche) · y si lo hecho puede ser un logro de a bordo, se pregunta al servidor (sin prisa)
+        if(HITOS_TRAS[cuerpo.accion]) hitosLuego(); })
       .catch(function(e){ if(err)err('Error de red'); });
   }
   // Un cartel breve abajo del todo. No usa alert() a propósito: alert() BLOQUEA la página y hay que
@@ -566,12 +572,14 @@
       +'<p class="lead">Tus insignias, tus cartas y tus personajes. Lo que has conseguido tú, no lo '
       +'que se puede comprar — eso está en el <button class="btn small" type="button" data-tab="mercado">Mercado Estelar</button>.</p>'
       // 14-sep · lo ganado en un sorteo, lo primero: es lo que más ilusión hace
+      +sinAbrirHtml(r)
       +((r.premios||[]).length?'<div class="card botin-premios"><p>🏆 <b>Lo que has ganado en el Gran Sorteo:</b> '+r.premios.map(esc).join(' · ')
         +'</p><p class="small muted">Tu docente te dirá cómo recibirlo.</p></div>':'')
       +'<details class="cajon" open><summary><b>🏅 Insignias</b> <span class="cnt">'+nIns+' / '+BADGES.length+'</span></summary>'
       +'<p class="small muted">Por planetas: cada tema tiene su tripulante y su reto. '
       +'Las apagadas están por conseguir: púlsalas para ver qué piden.</p>'
       +col+'</details>'
+      +aBordo()
       +album
       // 🔴 13-sep · el cambio de héroes repetidos vive dentro del cajón plegado: se anuncia en la tapa
       +'<details class="cajon"><summary><b>🎭 Personajes y héroes</b> <span class="cnt">tu vestuario</span>'
@@ -579,6 +587,23 @@
       +vestuario()+'</details>'
       +adornos()
       +'</section>';
+  }
+
+  /**
+   * 15-sep (noche) · LO QUE SE QUEDÓ SIN ABRIR. Si un sobre o una cápsula no se llegó a abrir (un corte al abrir el regalo de
+   * la llamada, el premio de una cubierta…), se quedaba en el inventario sin forma de abrirlo, aunque la Nave decía «ábrela
+   * desde tu álbum». Ahora sale arriba del botín, con su botón.
+   */
+  function sinAbrir(r){
+    var R=(st.d&&st.d.recompensas)||[];
+    return ((r&&r.sinAbrir)||[]).map(function(x){ var rc=R.filter(function(y){ return y.doc===x.id; })[0];
+      return rc&&(esCofre(rc.tipo)||/^oferta/.test(rc.tipo||''))?{id:x.id, usos:x.usos, nombre:rc.nombre}:null; }).filter(Boolean);
+  }
+  function sinAbrirHtml(r){
+    var l=sinAbrir(r); if(!l.length||!motorNuevo()) return '';
+    return '<div class="card botin-sinabrir"><p>🎁 <b>Tienes '+(l.length===1?'algo':'cosas')+' sin abrir</b></p><div class="sa-lista">'
+      +l.map(function(x){ return '<button type="button" class="btn primary" data-abrirpend="'+esc(x.id)+'" data-usos="'+x.usos+'">Abrir: '+esc(x.nombre)+'</button>'; }).join('')
+      +'</div></div>';
   }
 
   /**
@@ -633,6 +658,61 @@
     return '<details class="cajon" open><summary><b>✨ Tus adornos</b> '
       +'<span class="cnt">lo que has comprado</span></summary>'
       +'<div class="ad-grid">'+partes+'</div></details>';
+  }
+
+  /**
+   * 15-sep (noche) · LOS LOGROS DE A BORDO. Norberto: «algo que implique ver un progreso por parte del
+   * estudiante» y, de premio a todos, «un avatar y una carta personalizada, especial, legendaria».
+   * Cinco cubiertas de la Nave con sus hitos (la PRIMERA vez que se hace cada cosa); cada cubierta, su
+   * premio; las cinco, el Contramaestre. Lo apunta el servidor (`stargateHitos`) mirando los datos: aquí
+   * solo se enseña, y lo que falta dice qué hacer y lleva adonde se hace.
+   */
+  function hitosDe(r){ return (r&&r.hitos)||{}; }
+  function nHitos(r){ var h=hitosDe(r); return AB.hitos.filter(function(x){ return h[x.clave]; }).length; }
+  function esContramaestre(r){ return !!((r&&r.cubiertas)||{}).todo; }
+  function premioTexto(p){ p=p||{}; return p.tipo==='sobre'?'un sobre de cromos':p.tipo==='capsula'?'una cápsula de rescate (un héroe al azar)':(p.n||0)+' ◈'; }
+  function fechaCorta(ms){ if(!ms) return ''; var f=new Date(Number(ms)); return f.getDate()+'/'+(f.getMonth()+1); }
+  /** La carta del Contramaestre con TU alias escrito en el hueco del nombre (misma letra y sitio que las demás). */
+  function cartaABordo(alias, cls){
+    var c=AB.carta||{}, n=String(alias||'').toUpperCase();
+    return '<div class="ab-carta'+(cls?' '+cls:'')+'"><img src="assets/img/tarjetas/'+esc(c.clave)+'_carta.png'+CARDV+'" alt="'+esc((c.nombre||'')+(n?' · '+n:''))+'">'
+      +'<span class="ab-nombre" style="--ab-l:'+Math.max(5,n.length)+'">'+esc(n)+'</span></div>';
+  }
+  function aBordo(){
+    // (se presentan en la semana 7, capítulo c9: antes se apuntan en silencio y aquí no sale nada)
+    var r=st.yo; if(!r||!motorNuevo()||!AB.hitos.length||!abierto('logros')) return '';
+    var h=hitosDe(r), cub=r.cubiertas||{}, dias=r.dias||{}, n=nHitos(r), ley=esContramaestre(r);
+    var cubs=AB.cubiertas.map(function(c){
+      var suyos=AB.hitos.filter(function(x){ return x.cubierta===c.clave; });
+      var hechos=suyos.filter(function(x){ return h[x.clave]; }).length, llena=hechos===suyos.length;
+      return '<div class="ab-cub'+(llena?' llena':'')+'"><div class="ab-cab"><b>'+esc(c.nombre)+'</b><span>'+esc(c.sub)+'</span>'
+        +'<em>'+(llena?'✓ ':'')+hechos+' / '+suyos.length+'</em></div>'
+        +'<ul class="ab-hitos">'+suyos.map(function(x){
+          var ya=h[x.clave];
+          return '<li class="ab-h'+(ya?' hecho':'')+'"><span class="ab-i" aria-hidden="true">'+x.icono+'</span>'
+            +'<div class="ab-t"><b>'+esc(x.titulo)+'</b><span>'+esc(x.que)+'</span></div>'
+            +(ya?'<em class="ab-ok" title="Conseguido el '+fechaCorta(ya)+'">✓ '+fechaCorta(ya)+'</em>'
+                :(x.donde&&tabVisible(x.donde)?'<button type="button" class="btn min" data-tab="'+esc(x.donde)+'">Ir</button>':''))+'</li>';
+        }).join('')+'</ul>'
+        +'<p class="ab-premio">🎁 '+(cub[c.clave]?'<b>Premio recibido:</b> '+esc(premioTexto(c.premio)):'Al completarla: <b>'+esc(premioTexto(c.premio))+'</b>')+'</p></div>';
+    }).join('');
+    var HN={}; (window.SG_HEROES||[]).forEach(function(x){ HN[x[0]]=x[1]; });
+    var heroes=(AB.heroes||[]).map(function(k){
+      return '<img src="assets/img/heroes/'+esc(k)+(ley?'':'_bloqueado')+'.jpg" alt="'+esc(ley?(HN[k]||''):'Sin descubrir')+'">'; }).join('');
+    var leyenda='<div class="ab-leyenda'+(ley?' ganada':'')+'">'
+      +(ley?'<button type="button" class="ab-carta-btn" id="ab-carta" aria-label="Ver tu carta en grande">'+cartaABordo(r.alias)+'</button>'
+           :'<div class="ab-carta oculta" aria-hidden="true"><img src="assets/img/tarjetas/'+esc((AB.carta||{}).clave)+'_carta.png'+CARDV+'" alt=""><span class="ab-q">?</span></div>')
+      +'<div class="ab-ley-t"><div class="eyebrow amber">'+(ley?'Ya es tuyo':'El premio de las cinco cubiertas')+'</div><h3>Contramaestre de la Nave</h3>'
+      +(ley?'<p>NEBULA te ha nombrado <b>Contramaestre</b>: conoces cada rincón de la Nave. El héroe legendario, en sus dos versiones, ya está en tu vestuario —ponte el que quieras— y esta carta lleva tu nombre.</p>'
+           :'<p>Completa las cinco y NEBULA te nombra <b>Contramaestre</b>: un <b>héroe legendario</b> —en dos versiones, él y ella, y eliges cuál llevar— que no sale en ninguna cápsula, y una <b>carta legendaria con tu alias</b>. No se compra, no se regala y no se cambia en el Zoco.</p>')
+      +'<div class="ab-heroes">'+heroes+'</div></div></div>';
+    var diasTxt=dias.total?'<p class="ab-dias">🔥 Llevas <b>'+(dias.racha||0)+'</b> día'+(dias.racha===1?'':'s')+' seguido'+(dias.racha===1?'':'s')+' a bordo'
+      +((dias.mejor||0)>(dias.racha||0)?' (tu mejor racha: '+dias.mejor+')':'')+' y <b>'+dias.total+'</b> en total. Cuenta una visita al día.</p>':'';
+    return '<details class="cajon a-bordo" id="a-bordo"><summary><b>🎖️ Logros de a bordo</b> <span class="cnt">'+n+' / '+AB.hitos.length+'</span>'
+      +(ley?' <span class="chip ok">🌟 Contramaestre</span>':'')+'</summary>'
+      +'<p class="small muted">La <b>primera vez</b> que haces cada cosa en la Nave. Se apuntan solos. Cada cubierta completa trae su premio, y las cinco, el <b>Contramaestre de la Nave</b>.</p>'
+      // (el Contramaestre, como sexta casilla: ocupa el hueco que dejan cinco cubiertas en tres columnas)
+      +diasTxt+'<div class="ab-cubiertas">'+cubs+leyenda+'</div></details>';
   }
 
   /**
@@ -893,6 +973,9 @@
       +c('botin',(r.insignias||[]).length,BADGES.length,'insignias','Ver tus insignias')
       +(CROMOS.length?c('botin',nCr,CROMOS.length,'cromos','Ver tu álbum de cromos'):'')
       +c('rankings',r.pos||'—','','puesto','Ver el tablero')
+      // 15-sep (noche) · y los logros de a bordo: lleva a su cajón de «Mi botín», ya abierto
+      +(AB.hitos.length&&motorNuevo()&&abierto('logros')?'<button type="button" class="nc" id="nc-ab" title="Ver tus logros de a bordo"><b>'+nHitos(r)
+        +'<small>/'+AB.hitos.length+'</small></b><span>'+(esContramaestre(r)?'🌟 logros':'logros')+'</span></button>':'')
       +'</div>';
   }
 
@@ -991,14 +1074,18 @@
     var RANGO_HEROE={'rara':'⚔️ Resistencia','épica':'🔥 Vanguardia','epica':'🔥 Vanguardia','LEGENDARIA':'🌟 MITO'};
     var copias=yo.heroes_n||{};
     var verHeroes=abierto('heroes')||(yo.heroes||[]).length>0;
+    // (el Contramaestre no se enseña, ni en sombra, hasta que NEBULA presenta los logros de a bordo)
+    HER=HER.filter(function(h){ return (AB.heroes||[]).indexOf(h[0])<0 || abierto('logros') || mios[h[0]]; });
     var he=!verHeroes?'':HER.map(function(h){
       var tengo=!!mios[h[0]], nx=Number(copias[h[0]])||0;
+      // 15-sep (noche) · el Contramaestre: solo se gana con los logros de a bordo (y no va al Zoco)
+      var deABordo=(AB.heroes||[]).indexOf(h[0])>=0;
       var cel=celda('heroe:'+h[0], 'assets/img/heroes/'+h[0]+(tengo?'':'_bloqueado')+'.jpg',
-        h[1], tengo?(RANGO_HEROE[h[3]]||h[3]):'sin descubrir', puesto==='heroe:'+h[0], tengo)
+        h[1], tengo?(deABordo?'🎖️ De a bordo':(RANGO_HEROE[h[3]]||h[3])):(deABordo?'logros de a bordo':'sin descubrir'), puesto==='heroe:'+h[0], tengo)
         // la burbuja con las copias, como las cartas del álbum
         .replace('</button>', nx>1?'<span class="nx" title="Tienes '+nx+'">×'+nx+'</span></button>':'</button>');
       // 13-sep · y un botón para ponerlo en el Zoco (pulsar el héroe sigue siendo ponérselo)
-      return tengo&&abierto('zoco')&&motorNuevo()
+      return tengo&&!deABordo&&abierto('zoco')&&motorNuevo()
         ? '<div class="vest-caja">'+cel+'<button type="button" class="vest-zoco" data-zoco-poner="'+esc(per+'__heroe_'+h[0])+'" title="Poner en el Zoco" aria-label="Poner '+esc(h[1])+' en el Zoco">🔄</button></div>'
         : cel;
     }).join('');
@@ -1010,7 +1097,7 @@
     return '<section id="vestuario"><div class="eyebrow amber">Tu vestuario</div>'
       +'<h2>Ponte lo que quieras</h2>'
       +'<p class="lead">Las <b>skins</b> de tu personaje se desbloquean al subir de nivel, y los '
-      +'<b>héroes</b> llegan en las <b>cápsulas</b> del Mercado (de rescate, de élite y la legendaria). Todo lo que tengas te lo pones '
+      +'<b>héroes</b> llegan en las <b>cápsulas</b> del Mercado (de rescate, de élite y la legendaria); el <b>Contramaestre</b>, solo con los logros de a bordo. Todo lo que tengas te lo pones '
       +'y te lo quitas cuando quieras, <b>gratis</b>.</p>'
       +'<h3 style="margin-top:1em">Tus skins <span class="small muted">'+skins.length+' de 5</span></h3>'
       +'<div class="vest-grid">'+sk+'</div>'
@@ -1950,7 +2037,8 @@
    */
   function piezasDe(r, conParticipaciones){
     var out=[];
-    Object.keys((r&&r.heroes_n)||{}).forEach(function(k){ out.push({id:per+'__heroe_'+k, tipo:'heroe', clave:k, n:r.heroes_n[k]}); });
+    // (el Contramaestre no: es de quien completa los logros de a bordo, y el servidor lo rechaza)
+    Object.keys((r&&r.heroes_n)||{}).forEach(function(k){ if((AB.heroes||[]).indexOf(k)<0) out.push({id:per+'__heroe_'+k, tipo:'heroe', clave:k, n:r.heroes_n[k]}); });
     Object.keys((r&&r.cromos)||{}).forEach(function(k){ if(r.cromos[k]>0) out.push({id:per+'__cromo_'+k, tipo:'cromo', clave:k, n:r.cromos[k]}); });
     if(conParticipaciones) Object.keys((r&&r.participaciones)||{}).forEach(function(id){
       var s=sorteoDePieza(id), n=Number(r.participaciones[id])||0;
@@ -2089,6 +2177,7 @@
   function tras(promesa, ok){
     zocoEspera();
     return promesa.then(function(r){
+      hitosLuego(2500);      // 15-sep · poner algo o cerrar un trato puede ser un logro de a bordo
       return cargarZoco().then(function(){ if(st.tab==='zoco') marcaZocoVisto(); quien(null,function(d){ if(d&&d.yo) st.yo=d.yo; render();
         var m=ok?ok(r):'';
         if(m&&typeof m==='object') return zocoFin(m);
@@ -2375,6 +2464,16 @@
                  +(S.fecha?'Se sortea <b>solo</b> el <b>'+fechaLarga(S.fecha)+'</b>: ese día, al entrar en tu Nave, verás el resultado. ':'Se sortea solo, y al entrar en tu Nave verás el resultado. ')+'Como en una lotería, lo jugado no se devuelve, y <b>nadie gana dos</b>. '
                  +'¿Te ofrecen buen precio? Se <b>revenden en el Zoco</b>, como un cromo.'}];
     },
+    // 15-sep (noche) · los logros de a bordo (semana 7): con lo que ya lleva, que se apuntaba desde el primer día
+    c9:function(){
+      var n=nHitos(st.yo), tot=AB.hitos.length;
+      return [{t:'Los logros de a bordo',foco:'.nb-t[data-tab="botin"]',
+               x:'Desde el primer día, la Nave ha ido apuntando la <b>primera vez</b> que haces cada cosa: tu primer reto, tu primera reflexión, tu primera compra, tu primer trato en el Zoco… Son <b>'+tot+' logros de a bordo</b>'+(n?', y ya llevas <b>'+n+'</b>':'')+'. Los tienes en <b>Mi botín</b>.'},
+              {t:'Cinco cubiertas, cinco premios',foco:'.nb-t[data-tab="botin"]',
+               x:'Van en cinco cubiertas: <b>el puente, el Mercado, el camarote, el Zoco y la constancia</b> —tus días a bordo: tres seguidos, siete seguidos y veinte en total—. Cada cubierta completa trae su premio: un <b>sobre</b>, <b>créditos</b> o una <b>cápsula de rescate</b>. Si ya tenías alguna, el premio te llega ahora.'},
+              {t:'Y el Contramaestre',foco:'.nb-t[data-tab="botin"]',
+               x:'Con las cinco, te nombro <b>Contramaestre de la Nave</b>: un héroe legendario —él y ella, y eliges cuál llevar— que no sale en ninguna cápsula, y una <b>carta legendaria con tu alias</b>. No se compra, no se regala y no se cambia: solo se gana.'}];
+    },
     // 14-sep · el Hangar de las Leyendas (semana 8): las cápsulas de élite y legendaria, y el sobre épico
     c8:[{t:'El Hangar de las Leyendas',foco:'.nb-t[data-tab="mercado"]',
          x:'Tres cosas nuevas en el Mercado. La <b>cápsula de élite</b>: sin la Resistencia, un héroe de la Vanguardia o un Mito. El <b>sobre épico</b>: tres cartas y ninguna común.'},
@@ -2580,15 +2679,18 @@
     if(L.length>MAX_CARTELES){ extra=L.slice(0,L.length-MAX_CARTELES); L=L.slice(L.length-MAX_CARTELES); }
     cartel(L,0,extra);
   }
+  var cartelFin=null;          // 15-sep · lo que toca cuando se cierra la tanda de carteles (el sobre de un premio)
   function cerrarCartel(){
     var ov=document.getElementById('nave-logro'); if(!ov) return;
     ov.classList.remove('open'); ov.innerHTML=''; document.removeEventListener('keydown',teclaCartel);
+    var f=cartelFin; cartelFin=null; if(f) setTimeout(f, 140);
   }
   function teclaCartel(e){
     if(e.key==='Escape'){e.preventDefault();cerrarCartel();}
     else if(e.key==='Enter'||e.key===' '){var b=document.querySelector('#nave-logro .logro-ok');if(b){e.preventDefault();b.click();}}
   }
-  function cartel(L,i,extra){
+  function cartel(L,i,extra,fin){
+    if(fin!==undefined) cartelFin=fin;
     if(i>=L.length){ cerrarCartel(); return; }
     var x=L[i], ultimo=(i===L.length-1);
     var ov=document.getElementById('nave-logro');
@@ -2598,7 +2700,7 @@
     ov.innerHTML='<div class="logro-fondo"></div><div class="logro-caja '+x.clase+'" role="dialog" aria-modal="true">'
       +'<div class="logro-chispas"></div>'
       +'<div class="logro-eyebrow">'+esc(x.eyebrow)+'</div>'
-      +(x.img?'<img class="logro-img" src="'+x.img+'" alt="">':'')
+      +(x.html?x.html:x.img?'<img class="logro-img" src="'+x.img+'" alt="">':'')
       +'<h3>'+esc(x.titulo)+'</h3>'+(x.sub?'<p class="logro-sub">'+esc(x.sub)+'</p>':'')
       +masCosas
       +(L.length>1?'<div class="logro-cuenta">'+(i+1)+' de '+L.length+'</div>':'')
@@ -2610,6 +2712,81 @@
     document.removeEventListener('keydown',teclaCartel);
     document.addEventListener('keydown',teclaCartel);
     ov.querySelector('.logro-ok').focus();
+  }
+
+  /**
+   * 15-sep (noche) · LOS LOGROS DE A BORDO, AL MOMENTO. Al entrar y después de hacer algo que pueda ser un
+   * hito (registrar, escribir, comentar, comprar, vestirse, el Zoco) se pregunta al servidor. Si hay algo
+   * nuevo, NEBULA lo celebra —cuando no haya otra ventana encima: un logro no pisa un sobre abierto—, luego
+   * se abre el premio de la cubierta (si es un sobre o una cápsula) y la ficha se pone al día.
+   */
+  var hitosEnCurso=false, hitosOtraVez=false, hitosT=null;
+  var HITOS_TRAS={registrar:1, reflexion:1, comentar:1, canje:1, vestir:1, adorno:1, abrir:1};
+  function hitosLuego(ms){ clearTimeout(hitosT); hitosT=setTimeout(comprobarHitos, ms||1500); }
+  function hayCapa(){ return !!document.querySelector('#nave-logro.open, .neb-capa, .sb-capa, #cromo-lupa.open, .zoco-capa, .tour.open'); }
+  function cuandoLibre(fn, t0){ t0=t0||Date.now(); if(!hayCapa()||Date.now()-t0>120000) return fn(); setTimeout(function(){ cuandoLibre(fn,t0); }, 700); }
+  function comprobarHitos(){
+    if(!motorNuevo()||SIMULACRO||enDemo()||!st.yo||st.yo.congelado||!AB.hitos.length) return;
+    if(hitosEnCurso){ hitosOtraVez=true; return; }
+    hitosEnCurso=true;
+    post({accion:'hitos',per:per}, function(d){
+      hitosEnCurso=false;
+      if(d&&d.hitos&&st.yo){ st.yo.hitos=d.hitos; st.yo.cubiertas=d.cubiertas||{}; st.yo.dias=d.dias||st.yo.dias; }
+      // (antes de la semana 7 se apuntan en silencio: NEBULA los presenta en su capítulo y entonces se celebran)
+      if(abierto('logros')&&d&&((d.nuevos||[]).length||(d.premios||[]).length||d.legendario)) cuandoLibre(function(){ celebrarHitos(d); });
+      else if(d&&d.hitos&&(st.tab==='botin'||st.tab==='nave')&&!hayCapa()) render();      // el contador de días, al día
+      if(hitosOtraVez){ hitosOtraVez=false; hitosLuego(600); }
+    }, function(){ hitosEnCurso=false; });
+  }
+  function celebrarHitos(d){
+    var HB={}, CB={}; AB.hitos.forEach(function(x){ HB[x.clave]=x; }); AB.cubiertas.forEach(function(x){ CB[x.clave]=x; });
+    var n=Object.keys(d.hitos||{}).filter(function(k){ return HB[k]; }).length, L=[];
+    var nuevos=(d.nuevos||[]).filter(function(k){ return HB[k]; });
+    if(nuevos.length>3){
+      // quien ya lo había hecho antes de que existieran (o todo de golpe): un cartel, no un muro de clics
+      L.push({eyebrow:'LOGROS DE A BORDO · '+n+' DE '+AB.hitos.length, titulo:'🎖️ '+nuevos.length+' logros de golpe',
+        sub:nuevos.map(function(k){ return HB[k].icono+' '+HB[k].titulo; }).join(' · '), img:'', clase:'texto'});
+    } else nuevos.forEach(function(k){ var x=HB[k], cb=CB[x.cubierta]||{};
+      // lo que dice: en qué cubierta está, cuánto le queda y qué premio espera al completarla
+      var suyos=AB.hitos.filter(function(y){ return y.cubierta===x.cubierta; }), ya=suyos.filter(function(y){ return (d.hitos||{})[y.clave]; }).length;
+      L.push({eyebrow:'LOGRO DE A BORDO · '+n+' DE '+AB.hitos.length, titulo:x.icono+' '+x.titulo,
+        sub:(cb.nombre||'')+' · '+ya+' de '+suyos.length+(ya<suyos.length&&cb.premio?' · al completarla, '+premioTexto(cb.premio):''), img:'', clase:'texto'}); });
+    (d.premios||[]).forEach(function(p){ var c=CB[p.cubierta]||{nombre:p.cubierta};
+      L.push({eyebrow:'CUBIERTA COMPLETA', titulo:'🎁 '+c.nombre, sub:'Tu premio: '+(p.tipo==='creditos'?p.creditos+' ◈, ya en tu ficha.'
+        :p.tipo==='capsula'?'una cápsula de rescate. Se abre al cerrar esto.':'un sobre de cromos. Se abre al cerrar esto.'), img:'', clase:'texto'}); });
+    if(d.legendario) L.push({eyebrow:'LEGENDARIO DE A BORDO', titulo:'Contramaestre de la Nave',
+      sub:'Has completado las cinco cubiertas. El héroe legendario (él y ella) ya está en tu vestuario, y esta carta lleva tu nombre.',
+      html:cartaABordo(st.yo&&st.yo.alias,'en-logro'), clase:'carta leg'});
+    var botines=d.botines||[];
+    var despues=function(){
+      var fin=function(){ refrescarYo(); };
+      if(botines.length&&window.SG&&SG.SOBRE){
+        var tenidas=inventarioDe(st.yo||{});
+        SG.SOBRE.revelar(botines.map(function(c){ return marcaRepetida(c, tenidas); }),
+          { titulo:'El premio de tu cubierta', alAlbum:function(){ irA('botin'); } }).then(fin, fin);
+      } else fin();
+    };
+    if(window.SG&&SG.FIESTA) try{ SG.FIESTA.sonar(d.legendario?'insignia':'xp'); }catch(e){}
+    if(!L.length) return despues();
+    cartel(L,0,[],despues);
+  }
+  /** La carta del Contramaestre, en grande (con tu alias). No es del álbum: no tiene anterior ni siguiente. */
+  function lupaABordo(){
+    var r=st.yo; if(!r||!esContramaestre(r)) return;
+    var ov=document.getElementById('cromo-lupa');
+    if(!ov){ov=document.createElement('div');ov.id='cromo-lupa';ov.className='lupa';document.body.appendChild(ov);}
+    ov.setAttribute('data-modo','abordo');
+    ov.innerHTML='<div class="lupa-fondo"></div><div class="lupa-caja" role="dialog" aria-modal="true" aria-label="Tu carta de Contramaestre">'
+      +'<button type="button" class="lupa-x" aria-label="Cerrar">×</button>'
+      +cartaABordo(r.alias,'en-lupa')
+      +'<div class="lupa-pie"><h4>Contramaestre de la Nave</h4>'
+      +'<p class="small muted">Logros de a bordo'+((r.cubiertas||{}).todo?' · desde el '+fechaCorta(r.cubiertas.todo):'')+' · no está en el álbum ni sale en ningún sobre</p></div></div>';
+    ov.classList.add('open');
+    ov.querySelector('.lupa-fondo').onclick=cerrarLupa;
+    ov.querySelector('.lupa-x').onclick=cerrarLupa;
+    document.removeEventListener('keydown',teclaLupa);
+    document.addEventListener('keydown',teclaLupa);
+    ov.querySelector('.lupa-x').focus();
   }
 
   // ---------- la lupa del álbum ----------
@@ -2649,7 +2826,7 @@
   function teclaLupa(e){
     if(e.key==='Escape'){e.preventDefault();cerrarLupa();return;}
     var ov=document.getElementById('cromo-lupa'); if(!ov||!ov.classList.contains('open')) return;
-    if(ov.getAttribute('data-modo')==='avatar') return;      // el personaje es uno: no hay anterior ni siguiente
+    if(ov.getAttribute('data-modo')) return;      // el personaje (o la carta de a bordo) es uno: no hay anterior ni siguiente
     if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();
       var mias=cromosMios(), i=Number(ov.getAttribute('data-i'))||0;
       if(mias.length<2) return;
@@ -2725,6 +2902,7 @@
       if(d&&d.yo){ st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true;
         if(st.email) localStorage.setItem(KEY_MAIL,st.email);
         setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200); setTimeout(sorteosAlEntrar, 900); setTimeout(ofertaAlEntrar, 1100);
+        setTimeout(comprobarHitos, 1800);   // 15-sep · el día a bordo y los logros que ya se vean en los datos
       } else if(d&&d.sinSesion&&!DEMO&&window.top===window.self&&q.get('embed')!=='1'){
         /**
          * 🔴 13-sep · SIN SESIÓN, A LA PUERTA ÚNICA. La Nave tenía su propia caja «Identifícate,
@@ -3361,7 +3539,7 @@
           ? varias.map(nombreDeCarta).join(' · ')
           : (botin ? nombreDeCarta(botin) : nombre),
         donde: (d && d.sinAbrir)
-          ? 'La tienes, pero no he podido abrirla ahora. Ábrela desde tu álbum cuando quieras.'
+          ? 'La tienes, pero no he podido abrirla ahora. Ábrela desde «Mi botín» cuando quieras: está arriba del todo.'
           : null
       });
       // El refresco sigue pasando por detrás: la ficha, la barra y el álbum quedan al día para
@@ -3640,6 +3818,20 @@
         if(ir) ir.call(b,e); else render(); }; });
     Array.prototype.forEach.call(root.querySelectorAll('[data-zoco-poner]'),function(b){
       b.onclick=function(e){ e.stopPropagation(); zocoPonerVentana(b.getAttribute('data-zoco-poner')); }; });
+    // 15-sep (noche) · los logros de a bordo: la cifra de la ficha lleva a su cajón (abierto) y la carta se amplía
+    var ncab=root.querySelector('#nc-ab');
+    if(ncab) ncab.onclick=function(){ irA('botin'); setTimeout(function(){ var dab=document.getElementById('a-bordo');
+      if(dab){ dab.open=true; dab.scrollIntoView({behavior:'smooth',block:'start'}); } }, 80); };
+    var abc=root.querySelector('#ab-carta'); if(abc) abc.onclick=lupaABordo;
+    Array.prototype.forEach.call(root.querySelectorAll('[data-abrirpend]'),function(b){
+      b.onclick=function(){ b.disabled=true; b.textContent='Abriendo…';
+        var antes=st.yo?JSON.parse(JSON.stringify(st.yo)):{};
+        post({accion:'abrir',per:per,recompensa:b.getAttribute('data-abrirpend'),usos:Number(b.getAttribute('data-usos'))||1},function(d){
+          var bs=(d&&d.botines)||[];
+          if(bs.length&&window.SG&&SG.SOBRE){ var ten=inventarioDe(antes);
+            SG.SOBRE.revelar(bs.map(function(c){ return marcaRepetida(c, ten); }),{titulo:'Lo que tenías sin abrir', alAlbum:function(){ irA('botin'); }}).then(refrescarYo, refrescarYo); }
+          else refrescarYo();
+        },function(e){ b.disabled=false; b.textContent='Abrir'; aviso('⚠️ No se ha podido abrir: '+esc(String(e)), true); }); }; });
     var salir=document.getElementById('nb-salir');
     if(salir) salir.onclick=function(e){ e.preventDefault(); olvidar(); };
     cablearTeclado();

@@ -337,6 +337,8 @@
         planeta: planetaDe(retos, datos.misiones, cat), tema: temaDe(retos, datos.misiones),
         insignias: Object.keys(ins), n: Object.keys(ins).length,
         titulo: p.stargateTitulo || "", marco: p.stargateMarco || "", fondo: p.stargateFondo || "",
+        // 15-sep (noche) · los logros de a bordo (los apunta el servidor; el tablero público no los trae)
+        hitos: p.stargateHitos || {}, cubiertas: p.stargateCubiertas || {}, dias: p.stargateDias || {},
         cromos: cromos, xp7: xp7, bio: priv.bio || p.stargateBio || "",
         // 14-sep · qué misiones ha superado (sus ids de STARGATE): la sesión proyectada enseña quién
         // hizo cada misión de la semana pasada. No destapa nada que el ranking no enseñe ya.

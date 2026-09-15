@@ -421,6 +421,13 @@ def cofres():
     arte("capsula_legendaria", "Una cápsula legendaria", "Un MITO seguro · el héroe más raro de la Rebelión", "capsula_legendaria.jpg")
 
 
+def a_bordo():
+    """15-sep (noche) · el capítulo de los logros de a bordo (semana 7): NEBULA le pone la insignia al Recluta en el
+    puente, con las cinco cubiertas encendidas en la ventana. Arte de la carta del Contramaestre (Magnific, Seedream
+    5 Pro) ampliado a 16:9 (Magnific, expand)."""
+    arte("logros_a_bordo", "Los logros de a bordo", "16 primeras veces · 5 cubiertas con premio · y el Contramaestre de la Nave", "logros.jpg")
+
+
 if __name__ == "__main__":
     import sys
     # `python3 _build_img_formularios.py sorteo` → solo esa (sin tocar las demás)

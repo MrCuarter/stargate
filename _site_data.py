@@ -333,6 +333,60 @@ assert sum(h[3] for h in HEROES) == 100, "los pesos de HEROES deben sumar 100"
 # (assets/img/heroes/<clave>_bloqueado.jpg). Querer algo que no sabes cómo es tira más que verlo.
 HEROES_OCULTOS = [h[0] for h in HEROES if h[2] == "LEGENDARIA"]
 
+# ─────────────────────────── LOS LOGROS DE A BORDO (15-sep, noche) ───────────────────────────
+# Norberto: «un tipo de insignia, reconocimiento o premio a medida que vayan usando la plataforma: la
+# primera vez que compran algo en el mercado, cuando colocan algo en el zoco, su primera venta, su primer
+# avatar, los primeros retos…», «un avatar y una carta personalizada, especial, legendaria, que se consigue
+# solo al completar todos» y «piensa también en entrar días consecutivos… si puede haber varias
+# recompensas relacionadas con conjuntos de hitos concretos, hazlo».
+# 16 hitos (la PRIMERA vez que se hace algo) en 5 cubiertas de la Nave; cada cubierta completa trae su
+# premio, y las cinco, el CONTRAMAESTRE DE LA NAVE (héroe legendario, él y ella, y una carta legendaria
+# con tu alias). Ninguno da xp: la xp ordena lo aprendido, no lo usado.
+# 🔴 Lo decide el servidor (GamificaPro, functions/stargateABordo.js + stargateHitos.js): claves,
+# cubiertas y premios tienen que decir lo MISMO allí y aquí — la batería 79 los compara.
+# 🔴 El «tiempo conectado» NO está, a propósito: una pestaña olvidada contaría igual que una tarde de
+# trabajo, y medir cuánto rato pasa cada persona conectada es vigilar. Los días a bordo sí: se cuenta
+# UNA visita por día, en la zona horaria de cada cual (hay alumnado a los dos lados del Atlántico).
+#   cubierta: (clave, nombre, de qué va, premio {tipo: sobre | capsula | creditos, n})
+CUBIERTAS_A_BORDO = [
+ ("puente",     "El puente",         "Los retos y tu tripulación",     {"tipo": "sobre"}),
+ ("mercado",    "El Mercado",        "Tu colección",                   {"tipo": "creditos", "n": 25}),
+ ("camarote",   "El camarote",       "Tu imagen",                      {"tipo": "sobre"}),
+ ("zoco",       "El Zoco",           "El trueque",                     {"tipo": "capsula"}),
+ ("constancia", "La constancia",     "Los días a bordo",               {"tipo": "creditos", "n": 30}),
+]
+#   hito: (clave, cubierta, icono, título, qué hay que hacer, pestaña de la Nave donde se hace)
+HITOS_A_BORDO = [
+ ("reto",       "puente",     "🚀", "Primer salto",          "Registra tu primer reto.",                                   "retos"),
+ ("reflexion",  "puente",     "✍️", "Tu voz",                "Escribe tu primera reflexión en un reto.",                   "retos"),
+ ("comentario", "puente",     "💬", "Eco de la tripulación", "Comenta la reflexión de alguien de tu tripulación.",         "retos"),
+ ("compra",     "mercado",    "🛒", "Primera compra",        "Compra algo en el Mercado Estelar.",                         "mercado"),
+ ("carta",      "mercado",    "🃏", "Primera carta",         "Consigue tu primera carta del álbum.",                       "mercado"),
+ ("heroe",      "mercado",    "🛡️", "Un héroe a tu lado",    "Consigue tu primer héroe de la Rebelión.",                   "mercado"),
+ ("sorteo",     "mercado",    "🎟️", "Boleto dorado",         "Consigue una participación del Gran Sorteo.",                "mercado"),
+ ("viste",      "camarote",   "🎭", "Otra cara",             "Ponte uno de tus héroes como avatar.",                       "botin"),
+ ("skin",       "camarote",   "🧬", "Has evolucionado",      "Ponte una skin que hayas desbloqueado al subir de nivel.",   "botin"),
+ ("adorno",     "camarote",   "✨", "Con estilo",            "Ponte un título, un marco o un fondo.",                      "botin"),
+ ("cambio",     "zoco",       "🔁", "Nada se tira",          "Cambia tus repetidos por un sobre o por un héroe nuevo.",    "botin"),
+ ("zoco",       "zoco",       "🏪", "Tu puesto",             "Pon una pieza en el Zoco Estelar.",                          "zoco"),
+ ("trato",      "zoco",       "🤝", "Trato hecho",           "Cierra un trato en el Zoco, comprando o vendiendo.",         "zoco"),
+ ("dias3",      "constancia", "🔥", "Tres días seguidos",    "Entra en tu Nave tres días seguidos.",                       ""),
+ ("dias7",      "constancia", "☄️", "Una semana entera",     "Entra en tu Nave siete días seguidos.",                      ""),
+ ("dias20",     "constancia", "🌌", "Veinte días a bordo",   "Entra en tu Nave veinte días distintos.",                    ""),
+]
+assert {h[1] for h in HITOS_A_BORDO} == {c[0] for c in CUBIERTAS_A_BORDO}, "cada hito, en una cubierta que exista"
+# El premio de las cinco: el Contramaestre de la Nave. Van FUERA de HEROES a propósito: HEROES es lo que
+# sale en las cápsulas (el catálogo de Datos.gs, los porcentajes del Mercado, lo que se regala en clase y
+# lo que se esconde en un enlace). Estos dos solo se ganan. La Nave, el tablero y la sala del docente los
+# pintan igual que a los demás (SG_HEROES los lleva al final) y sin descubrir salen en sombra.
+HEROES_A_BORDO = [
+ ("H31_contramaestre", "El Contramaestre de la Nave", "LEGENDARIA", 0),
+ ("H32_contramaestra", "La Contramaestre de la Nave", "LEGENDARIA", 0),
+]
+# La carta legendaria: no está en el álbum ni sale en ningún sobre. El NOMBRE va en blanco en la imagen y
+# la Nave escribe encima el alias de quien la ha ganado (Retos e Insignias/_work/cartas.py → CARTA_A_BORDO).
+CARTA_A_BORDO = ("Z1_contramaestre", "Contramaestre de la Nave")
+
 # ---------- niveles, rangos y economía (v3.7) ----------
 # DOS MONEDAS, a propósito (y es la lección de gamificación de la asignatura):
 #   · XP  = progreso del viaje. SOLO SUBEN. Determinan el NIVEL y la evolución del avatar.
@@ -662,9 +716,24 @@ CAPITULOS = [
                 "Como en una lotería, lo que pagas no se devuelve… y nadie gana dos",
                 "Y en el Mercado, el sobre de raras: casi sin comunes, para cerrar las series difíciles"],
      "imagen": "assets/img/canje/sorteo.jpg"},
+    # 15-sep (noche) · LOS LOGROS DE A BORDO. Norberto: «organiza lo que desbloqueamos cada semana para no
+    # saturar». Van en la 7: la única semana libre entre el Sorteo (6) y el Hangar (8), y la primera en la que
+    # ya está abierto TODO lo que piden (el Zoco abre en la 5 y el Sorteo en la 6). Hasta entonces la Nave los
+    # apunta en silencio (y los días a bordo cuentan desde el primero): ese día NEBULA los presenta con lo que
+    # cada cual ya lleva, y el servidor paga entonces las cubiertas que ya estuvieran completas.
+    # (en PUA, en la 7 y no en la 6: la 6 ya abre el Sorteo y el Hangar; tres capítulos juntos serían saturar)
+    {"n": 7, "clave": "c9", "titulo": "Los logros de a bordo", "icono": "🎖️", "semana": 7, "semana_pua": 7,
+     "abre": ["logros"], "mercado": [],
+     "cabecera": "Lo que ya sabes hacer en la Nave, con premio",
+     "puedes": ["16 logros: la primera vez que haces cada cosa en la Nave. Se apuntan solos, y los que ya hiciste también cuentan",
+                "5 cubiertas: el puente, el Mercado, el camarote, el Zoco y la constancia. Cada una completa trae su premio",
+                "La constancia son tus días a bordo: tres seguidos, siete seguidos y veinte en total",
+                "Las cinco: el Contramaestre de la Nave, un héroe legendario (él y ella) y una carta con tu alias",
+                "No se compra, no se regala y no se cambia en el Zoco: solo se gana"],
+     "imagen": "assets/img/canje/logros.jpg"},
     # 14-sep · EL HANGAR (Norberto: «que hubiera un cofre legendario, donde siempre toca un avatar
     # legendario; obviamente caro… y para la 10 debería estar todo descubierto»)
-    {"n": 7, "clave": "c8", "titulo": "El Hangar de las Leyendas", "icono": "🟨", "semana": 8,
+    {"n": 8, "clave": "c8", "titulo": "El Hangar de las Leyendas", "icono": "🟨", "semana": 8,
      "abre": [], "mercado": ["sobre_epico", "capsula_elite", "capsula_legendaria"],
      "cabecera": "Las cápsulas de élite, la legendaria y el sobre épico",
      "puedes": ["La cápsula de élite: un héroe de la Vanguardia o un Mito, sin la Resistencia",
@@ -672,7 +741,7 @@ CAPITULOS = [
                 "El sobre épico: tres cartas sin comunes, con muchas más legendarias",
                 "Tu docente también puede esconder una cápsula legendaria en una presentación… o dártela de premio"],
      "imagen": "assets/img/canje/capsula_legendaria.jpg"},
-    {"n": 8, "clave": "c7", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
+    {"n": 9, "clave": "c7", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
      "abre": ["arsenal"], "mercado": ["nota"],
      "cabecera": "El Arsenal: créditos por nota",
      "puedes": ["Subir 0,5 o 1 punto en un entregable, o que se recalifique un trabajo",
@@ -681,7 +750,7 @@ CAPITULOS = [
      "imagen": "assets/img/canje/nota_1punto.jpg"},
 ]
 for _c in CAPITULOS:
-    _c["semanas"] = {"REGULAR": _c["semana"], "PUA": semana_capitulo(_c["semana"], "PUA")}
+    _c["semanas"] = {"REGULAR": _c["semana"], "PUA": _c.get("semana_pua") or semana_capitulo(_c["semana"], "PUA")}
 assert [c["n"] for c in CAPITULOS] == list(range(1, len(CAPITULOS) + 1)), "los capítulos van en orden"
 assert all(CAPITULOS[i]["semana"] <= CAPITULOS[i + 1]["semana"] for i in range(len(CAPITULOS) - 1)), \
     "un capítulo no puede abrirse antes que el anterior"

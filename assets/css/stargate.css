@@ -3849,3 +3849,54 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 .rfx-mas{margin-top:10px}
 @media (max-width:720px){ .rfx-lista{grid-template-columns:minmax(0,1fr)} }
 @media (prefers-reduced-motion:reduce){ .rfx{animation:none} }
+
+/* ─────────── LOS LOGROS DE A BORDO (15-sep, noche) · Mi botín, la ficha, el cartel y la consola ───────────
+   Cinco cubiertas con sus hitos; lo hecho, en color y con su fecha; lo que falta, gris y con «Ir». Abajo, el
+   Contramaestre: su carta (con el alias escrito en el hueco del nombre) y sus dos héroes. Nada por debajo de 12 px. */
+.nave-cifras{grid-template-columns:repeat(auto-fit,minmax(92px,1fr))}
+.a-bordo .ab-dias{margin:0 0 12px;padding:9px 12px;border-radius:10px;background:rgba(245,176,67,.07);border:1px solid #4a3a1e;font-size:.9rem;color:#f3dcb4}
+.ab-cubiertas{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:10px}
+.ab-cub{border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.ab-cub.llena{border-color:#6b5320;background:linear-gradient(180deg,rgba(245,176,67,.09),rgba(245,176,67,.02))}
+.ab-cab{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.ab-cab b{font-family:'Unbounded',sans-serif;font-size:.92rem;color:#eafcff}
+.ab-cab span{font-size:.8rem;color:var(--mut)}
+.ab-cab em{margin-left:auto;font-style:normal;font-weight:700;font-size:.8rem;color:var(--mut)}
+.ab-cub.llena .ab-cab em{color:var(--amber)}
+.ab-hitos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.ab-h{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:8px;padding:6px 8px;border-radius:9px;background:rgba(255,255,255,.02);border:1px solid transparent}
+.ab-h .ab-i{font-size:1.15rem;text-align:center;filter:grayscale(1);opacity:.55}
+.ab-h.hecho{background:rgba(55,224,236,.07);border-color:#1f4a52}
+.ab-h.hecho .ab-i{filter:none;opacity:1}
+.ab-t b{display:block;font-size:.88rem;line-height:1.25;color:#dfe9f2}
+.ab-t span{display:block;font-size:.78rem;line-height:1.3;color:var(--mut)}
+.ab-h:not(.hecho) .ab-t b{color:#b9c7d4}
+.ab-ok{font-style:normal;font-size:.78rem;font-weight:700;color:var(--teal);white-space:nowrap}
+.ab-h .btn.min{font-size:.78rem;padding:4px 10px}
+.ab-premio{margin:2px 0 0;font-size:.8rem;color:#e7c88f}
+.ab-leyenda{display:grid;grid-template-columns:118px 1fr;gap:12px;align-items:start;padding:10px 12px;border-radius:12px;
+  border:1px solid #4a3a1e;background:radial-gradient(420px 220px at 12% 40%,rgba(245,176,67,.12),transparent 70%),rgba(255,255,255,.02)}
+.ab-leyenda.ganada{border-color:#8a6a24;box-shadow:0 0 0 1px rgba(245,176,67,.18) inset}
+.ab-ley-t h3{margin:2px 0 6px;font-size:1.02rem}
+.ab-ley-t p{margin:0 0 8px;font-size:.84rem;line-height:1.42;color:#c9d6e2}
+.ab-heroes{display:flex;gap:8px}
+.ab-heroes img{width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #6b5320}
+.ab-carta{position:relative;display:block;width:100%;container-type:inline-size;border-radius:10px;overflow:hidden}
+.ab-carta img{display:block;width:100%;height:auto}
+/* el alias, en el hueco del nombre de la carta (mismo sitio y misma letra que el nombre de las demás) */
+.ab-nombre{position:absolute;left:4%;right:4%;top:48.4%;text-align:center;font-family:'Unbounded',sans-serif;font-weight:800;line-height:1;
+  color:#f5faff;white-space:nowrap;overflow:hidden;text-shadow:0 .35cqw 0 #000,0 0 2.4cqw rgba(0,0,0,.7);
+  font-size:min(6.2cqw,calc(90cqw / (var(--ab-l,5) * .8)))}
+.ab-carta.oculta img{filter:brightness(.28) saturate(.4) blur(2px)}
+.ab-q{position:absolute;inset:0;display:grid;place-items:center;font-family:'Unbounded',sans-serif;font-size:3rem;color:rgba(245,176,67,.85)}
+.ab-carta-btn{padding:0;border:0;background:none;cursor:zoom-in;display:block;width:100%;border-radius:10px}
+.ab-carta-btn:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+.logro-caja .ab-carta.en-logro{width:min(230px,58vw);margin:6px auto 10px;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+.lupa-caja .ab-carta.en-lupa{width:min(440px,86vw,calc((76vh) * .595));border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.75);border-radius:14px}
+@media(max-width:640px){.ab-leyenda{grid-template-columns:104px 1fr}.ab-heroes img{width:44px;height:44px}}
+/* la consola: la línea de logros de a bordo en la ficha del recluta */
+.fi-abordo{margin:8px 0 0;font-size:.84rem;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fi-ab{display:inline-block;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--mut);font-size:.78rem}
+.fi-ab.ok{border-color:#6b5320;color:var(--amber)}
+/* 15-sep (noche) · lo que se quedó sin abrir, arriba del botín */
+.botin-sinabrir{border-color:#6b5320}.botin-sinabrir p{margin:0 0 8px}.botin-sinabrir .sa-lista{display:flex;flex-wrap:wrap;gap:8px}

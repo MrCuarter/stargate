@@ -377,6 +377,12 @@
                 if (yo_) yo_.congelado = !!f.stargateCongelado;
                 // 14-sep · las ofertas que ya ha comprado (una por persona)
                 if (yo_) yo_.ofertas = f.stargateOfertas || {};
+                // 15-sep (noche) · sus logros de a bordo, las cubiertas cobradas y los días a bordo (los apunta el servidor)
+                if (yo_) { yo_.hitos = f.stargateHitos || {}; yo_.cubiertas = f.stargateCubiertas || {}; yo_.dias = f.stargateDias || {}; }
+                // 15-sep (noche) · lo que tiene SIN ABRIR (un sobre o una cápsula que no se llegó a abrir): la Nave ofrece abrirlo
+                if (yo_) yo_.sinAbrir = Object.keys(f.consumableUses || {}).filter(function (id) {
+                  return (f.inventory || []).indexOf(id) >= 0 && Number(f.consumableUses[id]) > 0; })
+                  .map(function (id) { return { id: id, usos: Number(f.consumableUses[id]) }; });
                 /**
                  * 🔴 13-sep · Y SUS ENLACES. El estudiante entregaba un enlace con «Lo he hecho» y
                  * después, en «Mis retos», el campo le salía VACÍO («pégalo aquí»): parecía perdido y
@@ -568,6 +574,38 @@
               }
               if (cuerpo.accion === "borrarComentario")
                 return M.borrarComentario(cuerpo.id).then(function () { return { ok: true }; });
+
+              /**
+               * 15-sep (noche) · LOS LOGROS DE A BORDO. Los decide el servidor (`stargateHitos`); si una cubierta
+               * completa trae un sobre o una cápsula, se abre aquí mismo, pieza a pieza y EN SERIE, igual que uno
+               * comprado (lo que no se abra se queda en el inventario). Nunca rompe nada: si falla, «nada».
+               */
+              /** 15-sep (noche) · ABRIR lo que se quedó sin abrir (pieza a pieza y en serie, como al comprarlo). */
+              if (cuerpo.accion === "abrir") {
+                var nA = Math.max(1, Math.min(10, Number(cuerpo.usos) || 1)), sacA = [];
+                var unaA = function (k) {
+                  if (k <= 0) return Promise.resolve();
+                  return M.llamar("consumeItem", { projectId: cuerpo.per, rewardId: cuerpo.recompensa, studentProfileId: ficha.id })
+                    .then(function (c) { var b = c && (c.botin || c.obtenido); if (b) sacA.push(b); return unaA(k - 1); });
+                };
+                return unaA(nA).then(function () { return { ok: true, botines: sacA }; },
+                  function (e) { return sacA.length ? { ok: true, botines: sacA } : { error: e.message }; });
+              }
+              if (cuerpo.accion === "hitos") {
+                if (!M.hitos) return { ok: true, nada: true };
+                return M.hitos(cuerpo.per).then(function (r) {
+                  if (!r) return { ok: true, nada: true };
+                  var botines = [], cola = (r.premios || []).filter(function (x) { return x.rewardId; });
+                  var abrir = function (i, n) {
+                    if (i >= cola.length) return Promise.resolve();
+                    if (n <= 0) return abrir(i + 1, cola[i + 1] ? Number(cola[i + 1].usos || 1) : 0);
+                    return M.llamar("consumeItem", { projectId: cuerpo.per, rewardId: cola[i].rewardId, studentProfileId: ficha.id })
+                      .then(function (c) { var b = c && (c.botin || c.obtenido); if (b) botines.push(b); return abrir(i, n - 1); });
+                  };
+                  return abrir(0, cola.length ? Number(cola[0].usos || 1) : 0).catch(function () {})
+                    .then(function () { return Object.assign({ ok: true, botines: botines }, r); });
+                }).catch(function () { return { ok: true, nada: true }; });
+              }
 
               /**
                * PONERSE UN ADORNO COMPRADO (título, marco, fondo de planeta).
@@ -804,8 +842,30 @@
         var fe = {}; Object.keys(perfil.missionTimestamps).forEach(function (k) { fe[porDoc[k] || k] = perfil.missionTimestamps[k][0]; });
         yo.retos_fecha = fe;
         yo.participaciones = Object.assign({}, perfil.lotteryEntries || {});
-        yo.ofertas = Object.assign({}, perfil.stargateOfertas || {}); }
+        yo.ofertas = Object.assign({}, perfil.stargateOfertas || {});
+        // 15-sep (noche) · los logros de a bordo, de mentira: se ven encenderse, pero no se cobra ningún premio
+        var h = hitosSim(); yo.hitos = h; yo.dias = { racha: 1, mejor: 1, total: 1 }; yo.cubiertas = {};
+        var AB = window.SG_A_BORDO || { hitos: [], cubiertas: [] };
+        AB.cubiertas.forEach(function (c) {
+          var suyos = AB.hitos.filter(function (x) { return x.cubierta === c.clave; });
+          if (suyos.length && suyos.every(function (x) { return h[x.clave]; })) yo.cubiertas[c.clave] = Date.now(); }); }
       return yo;
+    };
+    /** Lo que en la Nave de verdad miraría el servidor (stargateHitos), sobre la ficha en memoria del Comandante. */
+    var hitosSim = function () {
+      var P = perfil, inv = P.inventory || [], v = String(P.stargateViste || ""), t = Date.now(), h = {};
+      var si = function (k, cierto) { if (cierto) h[k] = t; };
+      si("reto", (P.completedMissionIds || []).length > 0);
+      si("reflexion", Object.keys(refl).length > 0);
+      si("compra", !!P._compra);
+      si("carta", inv.some(function (x) { return /__cromo_[A-Z]\d+_/.test(x); }));
+      si("heroe", inv.some(function (x) { return /__heroe_H\d+_/.test(x) && !/__heroe_H3[12]_/.test(x); }));
+      si("sorteo", Object.keys(P.lotteryEntries || {}).some(function (k) { return P.lotteryEntries[k] > 0; }));
+      si("viste", /^heroe:/.test(v) && inv.indexOf(per + "__heroe_" + v.slice(6)) >= 0);
+      si("skin", /^skin:[2-5]$/.test(v));
+      si("adorno", !!(P.stargateTitulo || P.stargateMarco || P.stargateFondo));
+      si("cambio", !!P._cambio); si("zoco", !!P._zoco); si("trato", !!P._trato);
+      return h;
     };
     var mision = function (id) { return (crudo.misiones || []).filter(function (m) { return m.id === id || m.docId === id; })[0]; };
     var premio = function (id) { return (crudo.recompensas || []).filter(function (r) { return r.docId === id || r.id === id; })[0]; };
@@ -855,7 +915,7 @@
         else { var i = perfil.inventory.indexOf(t.pieza.id); if (i >= 0) perfil.inventory.splice(i, 1); }
         perfil.coins += Number(pago.creditos) || 0; perfil.inventory = perfil.inventory.concat(pago.piezas || []);
       }
-      t.estado = "aceptado"; t.pagado = pago; t.actualizado = Date.now();
+      t.estado = "aceptado"; t.pagado = pago; t.actualizado = Date.now(); perfil._trato = true;
       if (an) an.estado = "cerrado";
     };
     var api = {
@@ -897,7 +957,7 @@
             if (!quitaRepes(esH ? /__heroe_/ : /__cromo_/, esH ? 2 : 3))
               throw new Error(esH ? "Necesitas 2 héroes repetidos." : "Necesitas 3 cartas repetidas.");
             var nuevas = esH ? [heroe()] : [carta(), carta(), carta()];
-            P.inventory = P.inventory.concat(nuevas);
+            P.inventory = P.inventory.concat(nuevas); P._cambio = true;
             return { ok: true, botin: nuevas[0], botines: nuevas };
           }
           if (c.accion === "canje") {
@@ -912,7 +972,7 @@
               var pctO = Math.min(90, Math.max(1, Math.floor(Number(fo.discountPercent) || 0)));
               var precioO = Math.max(0, Math.floor((Number(r.cost) || 0) * (100 - pctO) / 100));
               if (P.coins < precioO) throw new Error("No tienes suficientes créditos (te faltan " + (precioO - P.coins) + " ◈).");
-              P.coins -= precioO; perfil.stargateOfertas[ko] = Date.now();
+              P.coins -= precioO; perfil.stargateOfertas[ko] = Date.now(); P._compra = true;   // el logro «primera compra» (en la de verdad lo apunta la tienda)
               var sacO = [], nO = Math.max(1, Number(r.maxUses) || 1);
               for (var jo = 0; jo < nO; jo++) sacO.push(delCofre(r));
               P.inventory = P.inventory.concat(sacO);
@@ -925,10 +985,10 @@
               var k = r.docId || r.id; P.lotteryEntries = P.lotteryEntries || {};
               if (r.maxPerUser && (P.lotteryEntries[k] || 0) >= r.maxPerUser) throw new Error("Ya tienes las " + r.maxPerUser + " participaciones que se permiten.");
               if (r.isRaffleCompleted) throw new Error("Este sorteo ya se ha hecho.");
-              P.coins -= coste; P.lotteryEntries[k] = (P.lotteryEntries[k] || 0) + 1;
+              P.coins -= coste; P.lotteryEntries[k] = (P.lotteryEntries[k] || 0) + 1; P._compra = true;
               return { ok: true };
             }
-            P.coins -= coste;
+            P.coins -= coste; P._compra = true;
             if (c.abrir && (r.stargateTipo === "cromo" || r.stargateTipo === "heroe" || /^(sobre|capsula)_/.test(r.stargateTipo || ""))) {
               var nuevo = /^(sobre|capsula)_/.test(r.stargateTipo || "");
               var n = nuevo ? Math.max(1, Number(r.maxUses) || Number(c.usos) || 1) : r.stargateTipo === "cromo" ? Math.max(1, Number(c.usos) || 3) : 1, sac = [];
@@ -969,7 +1029,7 @@
       zocoDatos: function () { return cargar().then(function () { zocoIni(); return { uid: "simulacro", anuncios: zoco.anuncios.filter(function (a) { return a.estado === "abierto"; }), tratos: zoco.tratos.slice() }; }); },
       zocoPoner: function (p, piezas) { return cargar().then(function () { zocoIni();
         piezas.forEach(function (id) {
-          var an = { id: "sa" + (++zoco.n), projectId: per, estado: "abierto", vende: yoZ(), pieza: piezaDe(id), creado: Date.now() };
+          var an = { id: "sa" + (++zoco.n), projectId: per, estado: "abierto", vende: yoZ(), pieza: piezaDe(id), creado: Date.now() }; perfil._zoco = true;
           zoco.anuncios.unshift(an);
           // alguien de la clase se interesa
           setTimeout(function () { if (an.estado !== "abierto") return;

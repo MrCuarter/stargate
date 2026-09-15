@@ -30,7 +30,7 @@ const REG = {};   // cifras que se apuntan para el informe
   const nueva = async n => { const p = await persona(n); vivas.push(p); return p; };
   // 13-sep · los capítulos de NEBULA, ya vistos (para las secciones que no van de eso: si no, a mitad
   // de una prueba sale NEBULA contando el Mercado)
-  const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6','c7','c8'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
+  const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6','c7','c8','c9'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
   // alistarse de verdad, por la pantalla (lo usan la clase entera y el héroe por enlace)
   const alistar = async (p, correo, nombre, alias, cmd) => {
     await p.ir("alistarse.html?per=lab-clase&codigo=" + CODIGO);
@@ -807,7 +807,7 @@ const REG = {};   // cifras que se apuntan para el informe
         return {n:o.querySelector('.tour-step').textContent, t:o.querySelector('h3').textContent, x:o.querySelector('p').textContent, foco:f?f.className:''};})()`);
       const p0 = await paso();
       c("🔴 bienvenida · a la alumna recién alistada le sale NEBULA en su primera visita, ya dentro", sale && p0 && /1 \/ 6/.test(p0.n), JSON.stringify(p0));
-      c("🔴 capítulos · llega en la semana 10: le tocan los capítulos 1 a 7, EN ORDEN («Capítulo 1 de 7»)", p0 && /Capítulo 1 de 7/.test(p0.n), p0 && p0.n);
+      c("🔴 capítulos · llega en la semana 10: le tocan los capítulos 1 a 8, EN ORDEN («Capítulo 1 de 8»)", p0 && /Capítulo 1 de 8/.test(p0.n), p0 && p0.n);
       c("bienvenida · y NO le pide «escribe tu correo» (esa puerta ya no existe)", p0 && !/correo/i.test(p0.x), p0 && p0.x.slice(0, 120));
       const focos = [p0 && p0.foco];
       for (let k = 0; k < 5; k++) { await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700); const pk = await paso(); focos.push(pk ? pk.foco : "—"); }
@@ -822,14 +822,14 @@ const REG = {};   // cifras que se apuntan para el informe
         if (titulos.indexOf(pk.n.split(" · ").slice(0, 2).join(" · ")) < 0) titulos.push(pk.n.split(" · ").slice(0, 2).join(" · "));
         await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700);
       }
-      c("🔴 capítulos · detrás del 1 vienen el Mercado, la Rebelión, los adornos, el Zoco, el Gran Sorteo y el Hangar de las Leyendas, uno tras otro",
-        titulos.length === 6 && /2 de 7/.test(titulos[0]) && /Mercado/.test(titulos[0]) && /Rebeli/.test(titulos[1]) && /insignia de mando/i.test(titulos[2]) && /Zoco/.test(titulos[3]) && /Sorteo/.test(titulos[4]) && /Hangar/.test(titulos[5]), JSON.stringify(titulos));
+      c("🔴 capítulos · detrás del 1 vienen el Mercado, la Rebelión, los adornos, el Zoco, el Gran Sorteo, los logros de a bordo y el Hangar, uno tras otro",
+        titulos.length === 7 && /2 de 8/.test(titulos[0]) && /Mercado/.test(titulos[0]) && /Rebeli/.test(titulos[1]) && /insignia de mando/i.test(titulos[2]) && /Zoco/.test(titulos[3]) && /Sorteo/.test(titulos[4]) && /logros de a bordo/.test(titulos[5]) && /Hangar/.test(titulos[6]), JSON.stringify(titulos));
       c("bienvenida · al terminar se cierra", !(await paso()));
       await dormir(1500);
       const fLeo = await fichaDe("leo@lab.test", "lab-clase");
       const caps = fLeo.stargateCapitulos || {};
-      c("🔴 capítulos · quedan apuntados EN SU FICHA (no solo en el navegador): c1 a c6 y el Hangar (c8) «hecho»",
-        ["c1", "c2", "c3", "c4", "c5", "c6", "c8"].every(k => caps[k] && caps[k].estado === "hecho"), JSON.stringify(caps));
+      c("🔴 capítulos · quedan apuntados EN SU FICHA (no solo en el navegador): c1 a c6, los logros (c9) y el Hangar (c8) «hecho»",
+        ["c1", "c2", "c3", "c4", "c5", "c6", "c9", "c8"].every(k => caps[k] && caps[k].estado === "hecho"), JSON.stringify(caps));
       await leo.ir("recluta.html?per=lab-clase"); await leo.hasta("/Lyra Nueva/.test(document.body.innerText)", 25); await dormir(2500);
       c("bienvenida · y en la segunda visita ya no sale", !(await paso()));
       // en otro navegador (sin nada guardado), tampoco: manda su ficha
@@ -839,7 +839,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 capítulos · en otro ordenador tampoco vuelve a salir (lo sabe su ficha)", !(await leo2.js("!!document.querySelector('#nave-onboard.open')")));
       await leo.js("document.getElementById('btn-onboard') && document.getElementById('btn-onboard').click(); 1"); await dormir(400);
       const menu = await leo.js("[].slice.call(document.querySelectorAll('#rep-menu [data-cap]')).map(function(b){return b.textContent})");
-      c("capítulos · «Repetir bienvenida» ofrece los capítulos abiertos (los 7 de la semana 10)", (menu || []).length === 7 && /Canal abierto/.test(menu[0]) && /Sorteo/.test(menu[5]) && /Hangar/.test(menu[6]), JSON.stringify(menu));
+      c("capítulos · «Repetir bienvenida» ofrece los capítulos abiertos (los 8 de la semana 10)", (menu || []).length === 8 && /Canal abierto/.test(menu[0]) && /Sorteo/.test(menu[5]) && /logros de a bordo/.test(menu[6]) && /Hangar/.test(menu[7]), JSON.stringify(menu));
       await leo.js("document.querySelector('#rep-menu [data-cap=c1]').click(); 1"); await dormir(700);
       const rep = await paso();
       c("bienvenida · y el 1 se vuelve a poner desde el principio", rep && /1 \/ 6/.test(rep.n), JSON.stringify(rep));
@@ -1294,7 +1294,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('td.bienv')", 25);
       await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1");   // 15-sep · todos los escuadrones
       const celda = await rita.js("[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(t){return /Nora Nébula/.test(t.textContent)}).map(function(t){return t.querySelector('td.bienv').textContent})[0]||''");
-      c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 7 abiertos en la semana 10, 1 saltado)", /3\/7/.test(celda) && /1 saltado/.test(celda), celda);
+      c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 8 abiertos en la semana 10, 1 saltado)", /3\/8/.test(celda) && /1 saltado/.test(celda), celda);
     }
 
     // ============================================================ 20 · LA NAVE DEL COMANDANTE (simulacro)
@@ -1386,10 +1386,10 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 sesión · y NEBULA arranca sola con el capítulo de la semana (el mismo onboarding que ve el alumnado)",
         await rita.hasta("(function(){ var f=document.querySelector('.dia.simulacro iframe'); var d=f&&f.contentDocument; var t=d&&d.querySelector('.tour.open'); return !!t && /Mercado/i.test(t.textContent); })()", 20));
       await dormir(1500); await rita.foto(FOTOS + "/21-sesion-ensenalo.png");
-      // (14-sep · la 6 ya abre el Gran Sorteo: la que no abre nada es la 7)
-      await rita.ir("sesion.html?per=lab-clase&sem=7"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
+      // (14-sep · la 6 ya abre el Gran Sorteo; 15-sep · y la 7, los logros de a bordo: la que no abre nada es la 9)
+      await rita.ir("sesion.html?per=lab-clase&sem=9"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
       const rot6 = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
-      c("sesión · una semana que no abre nada no lleva esas diapositivas (la 7)", rot6.indexOf("Lo nuevo") < 0, JSON.stringify(rot6));
+      c("sesión · una semana que no abre nada no lleva esas diapositivas (la 9)", rot6.indexOf("Lo nuevo") < 0, JSON.stringify(rot6));
     }
 
     // ============================================================ 22 · EL ZOCO ESTELAR, TODAS LAS COMBINACIONES
@@ -3627,6 +3627,201 @@ const REG = {};   // cifras que se apuntan para el informe
       await teo.hasta("/pendiente/.test((document.getElementById('nave-aviso')||{}).textContent||'')", 20); await dormir(1200);
       c("reflexiones · deshacer el reto se lleva su reflexión", !(await leerDoc("stargate_reflexiones/" + P + "__A6__" + fT._id)));
       for (const p of [rosa, teo, rita]) await p.cerrar();
+    }
+
+    // ============================================================ 38 · LOS LOGROS DE A BORDO Y EL CONTRAMAESTRE
+    /**
+     * Norberto (15-sep, noche): «insignias, reconocimientos o premios a medida que vayan usando la plataforma», «un avatar
+     * y una carta personalizada, especial, legendaria, que se consigue solo al completar todos» y «días consecutivos… y
+     * varias recompensas por conjuntos de hitos». Lara entra (cuenta su día), registra A1 con su reflexión y compra un
+     * sobre: NEBULA celebra cada logro. Después se le deja todo a un paso (con la consola de Firebase, como haría el
+     * tiempo) y al volver completa las cinco cubiertas: cobra sus premios, UNA vez, y es Contramaestre (sus dos héroes y
+     * la carta con su alias). El Contramaestre no entra en el Zoco; su referente lo ve en la ficha.
+     */
+    if (hacer(38)) {
+      const A = admin(), fs = A.firestore(), P = "lab-clase";
+      const LARA = ["lara@lab.test", "Lara Prueba", "Lara Lumen", 0];
+      for (let i = 0; i < 2 && !(await fichaDe(LARA[0], P)); i++) { const a = await nueva("Alta Lara"); await alistar(a, LARA[0], LARA[1], LARA[2], LARA[3]); await a.cerrar(); }
+      const f0 = await fichaDe(LARA[0], P);
+      await fs.collection("student_profiles").doc(f0._id).update({ coins: 200 });
+      const lara = await nueva("Lara y sus logros de a bordo");
+      await lara.ir("entrar.html"); await lara.entrarComo(LARA[0], LARA[1]); await sinBienvenidas(lara);
+      await lara.ir("recluta.html?per=" + P); await lara.hasta("!!document.querySelector('#nc-ab')", 30);
+      await dormir(3500);
+      const fd = await fichaDe(LARA[0], P);
+      c("🔴 a bordo · al entrar cuenta su día (una visita, en su zona horaria)", ((fd.stargateDias || {}).total === 1) && !!(fd.stargateDias || {}).tz, JSON.stringify(fd.stargateDias));
+      c("a bordo · la ficha lleva la cifra de sus logros de a bordo (0/16)", /0\s*\/\s*16/.test(await lara.js("document.querySelector('#nc-ab').textContent")), await lara.js("document.querySelector('#nc-ab').textContent"));
+      // 🔴 las reglas: el alumno no se apunta nada
+      const trampa = await lara.js(`(async function(){ try { var M=window.SG.MOTOR; await M.updateDoc(M.doc(M.db,'student_profiles','${f0._id}'), {'stargateHitos.trato': 1, 'stargateCubiertas.todo': 1}); return 'escrito'; } catch(e){ return String(e.code||e.message); } })()`);
+      c("🔴 a bordo · el alumno NO puede apuntarse un hito ni el Contramaestre desde la consola del navegador", /permission/i.test(trampa), trampa);
+      // A1 con su reflexión → «Primer salto» y «Tu voz», celebrados
+      await lara.ir("recluta.html?per=" + P + "#retos"); await lara.hasta("!!document.querySelector('button[data-hecho=\"A1\"]')", 30);
+      await lara.js(`(function(){ var b=document.querySelector('button[data-hecho="A1"]'); var d=b.closest('details'); if(d) d.open=true;
+        var t=document.querySelector('textarea[data-rf="A1"]'); t.value='Tengo a medias un proyecto de ciencias con experimentos grabados por el alumnado; se quedó parado porque no sabía cómo compartir los vídeos sin líos de permisos.'; t.dispatchEvent(new Event('input',{bubbles:true})); b.click(); return 1; })()`);
+      const cel1 = await lara.hasta("!!document.querySelector('#nave-logro.open') && /LOGRO DE A BORDO/.test(document.querySelector('#nave-logro').textContent)", 30);
+      const t1 = cel1 ? await lara.js("document.querySelector('#nave-logro').textContent") : "";
+      c("🔴 a bordo · registrar A1 con su reflexión: NEBULA celebra «Primer salto»", cel1 && /Primer salto/.test(t1), t1.slice(0, 160));
+      await lara.foto(FOTOS + "/38-logro.png");
+      // (la reflexión se guarda justo después del reto: si la primera pregunta llegó en medio, «Tu voz» sale en la siguiente)
+      let vistos = t1;
+      for (let k = 0; k < 40 && !/Tu voz/.test(vistos); k++) {
+        if (await lara.js("!!document.querySelector('#nave-logro.open')")) {
+          vistos += await lara.js("document.querySelector('#nave-logro').textContent"); await lara.js("document.querySelector('#nave-logro .logro-ok').click(); 1");
+        }
+        await dormir(500);
+      }
+      for (let k = 0; k < 4 && await lara.js("!!document.querySelector('#nave-logro.open')"); k++) { await lara.js("document.querySelector('#nave-logro .logro-ok').click(); 1"); await dormir(400); }
+      c("a bordo · y después «Tu voz» (su primera reflexión)", /Tu voz/.test(vistos), vistos.slice(0, 200));
+      const f1 = await fichaDe(LARA[0], P);
+      c("🔴 a bordo · quedan apuntados en su ficha, con su fecha", !!(f1.stargateHitos || {}).reto && !!(f1.stargateHitos || {}).reflexion, JSON.stringify(f1.stargateHitos));
+      // un sobre en el Mercado → «Primera compra» (la marca la tienda) y «Primera carta»
+      await lara.ir("recluta.html?per=" + P + "#mercado"); await lara.hasta("!!document.querySelector('button[data-canje]')", 25);
+      await lara.js(`(function(){ var b=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(x){return /Sobre de cromos/.test(x.getAttribute('data-nombre')||'') && !/^oferta/.test(x.getAttribute('data-tipo')||'')})[0]; b.click(); return 1; })()`);
+      await lara.hasta("!!document.querySelector('.neb-capa')", 8);
+      await lara.js("var c=document.querySelector('.neb-capa'); [].slice.call(c.querySelectorAll('button')).filter(function(x){return /canjear/i.test(x.textContent)})[0].click(); 1");
+      await lara.hasta("!!document.querySelector('.sb-capa .sb-carta')", 25);
+      await dormir(2500);
+      c("🔴 a bordo · con el sobre abierto en pantalla, el logro ESPERA (no lo pisa)", !(await lara.js("!!document.querySelector('#nave-logro.open')")));
+      for (let k = 0; k < 3; k++) { await lara.js("document.querySelector('.sb-sig').click(); 1"); await dormir(700); await lara.js("document.querySelector('.sb-sig').click(); 1"); await dormir(500); }
+      await lara.js("var f=document.querySelector('.sb-fin'); if(f) f.click(); 1");
+      const cel2 = await lara.hasta("!!document.querySelector('#nave-logro.open') && /Primera compra|Primera carta/.test(document.querySelector('#nave-logro').textContent)", 25);
+      c("🔴 a bordo · cerrado el sobre: «Primera compra» y «Primera carta»", cel2, await lara.js("(document.querySelector('#nave-logro')||{}).textContent||''"));
+      for (let k = 0; k < 4 && await lara.js("!!document.querySelector('#nave-logro.open')"); k++) { await lara.js("document.querySelector('#nave-logro .logro-ok').click(); 1"); await dormir(400); }
+      const f2 = await fichaDe(LARA[0], P);
+      c("🔴 a bordo · la compra la apunta la tienda (purchaseReward), y la carta, el servidor al mirar su inventario",
+        !!(f2.stargateHitos || {}).compra && !!(f2.stargateHitos || {}).carta, JSON.stringify(f2.stargateHitos));
+      // el Mi botín: su cajón, con lo hecho y lo que falta
+      await lara.ir("recluta.html?per=" + P + "#botin"); await lara.hasta("!!document.getElementById('a-bordo')", 25);
+      await lara.js("var d=document.getElementById('a-bordo'); d.open=true; d.scrollIntoView({block:'start',behavior:'instant'}); window.scrollBy(0,-80); 1"); await dormir(600);
+      c("a bordo · «Mi botín» enseña sus logros: 4/16, lo hecho con fecha y lo que falta con «Ir»",
+        /4\s*\/\s*16/.test(await lara.js("document.querySelector('#a-bordo summary').textContent"))
+        && (await lara.js("document.querySelectorAll('#a-bordo .ab-h.hecho').length")) === 4 && await lara.js("!!document.querySelector('#a-bordo .ab-h:not(.hecho) [data-tab]')"),
+        await lara.js("document.querySelector('#a-bordo summary').textContent"));
+      c("a bordo · y el Contramaestre, en sombra, con lo que es y cómo se gana", await lara.js("!!document.querySelector('#a-bordo .ab-carta.oculta') && /cinco/.test(document.querySelector('#a-bordo .ab-leyenda').textContent)"));
+      await lara.foto(FOTOS + "/38-botin-logros.png");
+      // se le deja a un paso de todo (como haría el tiempo): once hitos más apuntados, ayer su sexto día seguido (19 en total),
+      // y la reflexión de alguien de su tripulación comentada por ella
+      const ayer = new Date(Date.now() - 864e5).toLocaleDateString("en-CA", { timeZone: (f1.stargateDias || {}).tz || "Europe/Madrid" });
+      const hechos = Object.assign({}, f2.stargateHitos); ["heroe", "sorteo", "viste", "skin", "adorno", "cambio", "zoco", "trato"].forEach(k => { hechos[k] = Date.now() - 36e5; });
+      await fs.collection("student_profiles").doc(f0._id).update({ stargateHitos: hechos,
+        stargateDias: { tz: (f1.stargateDias || {}).tz || "Europe/Madrid", ultimo: ayer, racha: 6, mejor: 6, total: 19 } });
+      const otra = (await consultar("student_profiles", "projectId", P)).filter(x => x._id !== f0._id && x.displayName)[0];
+      await fs.collection("stargate_reflexiones").doc(P + "__A6__" + otra._id).set({ projectId: P, reto: "A6", fichaId: otra._id, uid: otra.userId || "x", texto: "Mi juego de fracciones con naves.", creado: Date.now() });
+      await fs.collection("stargate_comentarios").doc().set({ projectId: P, reflexion: P + "__A6__" + otra._id, reto: "A6", fichaId: f0._id, uid: "lara", texto: "¡Qué buena idea!", creado: Date.now() });
+      const antes = await fichaDe(LARA[0], P);
+      await lara.ir("recluta.html?per=" + P); await lara.hasta("!!document.querySelector('#nc-ab')", 30);
+      const cel3 = await lara.hasta("!!document.querySelector('#nave-logro.open')", 30);
+      let todo = cel3 ? await lara.js("document.querySelector('#nave-logro').textContent") : "";
+      c("🔴 a bordo · al volver: los que faltaban, de golpe y en un solo cartel (no un muro de clics)", cel3 && /4 logros de golpe/.test(todo) && /Eco de la tripulación/.test(todo) && /Veinte días/.test(todo), todo.slice(0, 220));
+      let leg = false;
+      for (let k = 0; k < 10 && await lara.js("!!document.querySelector('#nave-logro.open')"); k++) {
+        const tx = await lara.js("document.querySelector('#nave-logro').textContent"); todo += " | " + tx;
+        if (/LEGENDARIO DE A BORDO/.test(tx)) { leg = true; await dormir(700); await lara.foto(FOTOS + "/38-contramaestre.png");
+          c("🔴 a bordo · el cartel del Contramaestre enseña SU carta con SU alias escrito en el hueco del nombre",
+            await lara.js("(function(){ var n=document.querySelector('#nave-logro .ab-carta .ab-nombre'), i=document.querySelector('#nave-logro .ab-carta img'); return !!n && n.textContent==='LARA LUMEN' && i.complete && i.naturalWidth>0; })()")); }
+        await lara.js("document.querySelector('#nave-logro .logro-ok').click(); 1"); await dormir(500);
+      }
+      c("🔴 a bordo · las cinco cubiertas, cada una con su premio, y al final el Contramaestre", leg && (todo.match(/CUBIERTA COMPLETA/g) || []).length === 5, todo.slice(0, 300));
+      // los premios que son sobre o cápsula se abren después, pieza a pieza
+      const abre = await lara.hasta("!!document.querySelector('.sb-capa')", 20);
+      c("a bordo · después se abren los premios (dos sobres y una cápsula), pieza a pieza", abre && (await lara.js("document.querySelectorAll('.sb-puntos i').length")) === 7,
+        String(await lara.js("document.querySelectorAll('.sb-puntos i').length")));
+      for (let k = 0; k < 16 && await lara.js("!!document.querySelector('.sb-capa')"); k++) {
+        await lara.js("var f=document.querySelector('.sb-fin'); if(f) f.click(); else { var s=document.querySelector('.sb-sig'); if(s) s.click(); } 1"); await dormir(450);
+      }
+      await dormir(2000);
+      const f3 = await fichaDe(LARA[0], P);
+      const inv3 = f3.inventory || [];
+      c("🔴 a bordo · en su ficha: 16 hitos, las cinco cubiertas cobradas y el Contramaestre (sus DOS héroes)",
+        Object.keys(f3.stargateHitos || {}).length === 16 && !!(f3.stargateCubiertas || {}).todo
+        && inv3.indexOf(P + "__heroe_H31_contramaestre") >= 0 && inv3.indexOf(P + "__heroe_H32_contramaestra") >= 0, JSON.stringify(f3.stargateCubiertas));
+      c("🔴 a bordo · los créditos: 25 (el Mercado) + 30 (la constancia), ni uno más", f3.coins - antes.coins === 55, antes.coins + " → " + f3.coins);
+      c("a bordo · los días: hoy es el séptimo seguido y el vigésimo en total", (f3.stargateDias || {}).racha === 7 && (f3.stargateDias || {}).total === 20, JSON.stringify(f3.stargateDias));
+      c("a bordo · los sobres y la cápsula del premio, abiertos (no se quedan en el inventario)", !inv3.some(x => !/__(cromo|heroe)_/.test(x)), JSON.stringify(inv3.filter(x => !/__(cromo|heroe)_/.test(x))));
+      // otra vez: nada nuevo, nada pagado
+      const otraVez = await lara.js("(async function(){ var r=await window.SG.MOTOR.hitos('" + P + "'); return JSON.stringify({n:(r.nuevos||[]).length, p:(r.premios||[]).length, l:r.legendario}); })()");
+      const f4 = await fichaDe(LARA[0], P);
+      c("🔴 a bordo · volver a preguntar no paga dos veces (ni cubiertas ni Contramaestre)", otraVez === JSON.stringify({ n: 0, p: 0, l: false }) && f4.coins === f3.coins
+        && (f4.inventory || []).filter(x => /H3[12]_contramaestr/.test(x)).length === 2, otraVez);
+      // su botín y su vestuario
+      await lara.ir("recluta.html?per=" + P + "#botin"); await lara.hasta("!!document.getElementById('a-bordo')", 25);
+      await lara.js("var d=document.getElementById('a-bordo'); d.open=true; document.querySelector('#a-bordo .ab-leyenda').scrollIntoView({block:'center',behavior:'instant'}); 1"); await dormir(700);
+      c("a bordo · «Mi botín»: 16/16, «🌟 Contramaestre» y su carta con su alias (se abre en grande)",
+        /16\s*\/\s*16/.test(await lara.js("document.querySelector('#a-bordo summary').textContent")) && /Contramaestre/.test(await lara.js("document.querySelector('#a-bordo summary').textContent"))
+        && (await lara.js("(document.querySelector('#ab-carta .ab-nombre')||{}).textContent||''")) === "LARA LUMEN");
+      await lara.foto(FOTOS + "/38-botin-contramaestre.png");
+      await lara.js("document.getElementById('ab-carta').click(); 1"); await dormir(900);
+      c("a bordo · la carta, en grande, con su alias", await lara.js("!!document.querySelector('#cromo-lupa.open .ab-carta.en-lupa .ab-nombre')"));
+      await lara.foto(FOTOS + "/38-carta-lupa.png");
+      await lara.js("document.querySelector('#cromo-lupa .lupa-x').click(); 1");
+      await lara.js("(function(){ var v=document.querySelector('#vestuario'); var d=v&&v.closest('details'); if(d) d.open=true; return 1; })()"); await dormir(400);
+      c("a bordo · en el vestuario, los dos Contramaestres, suyos y sin botón de Zoco",
+        await lara.js("(function(){ var a=document.querySelector('button.vest[data-viste=\"heroe:H31_contramaestre\"]'), b=document.querySelector('button.vest[data-viste=\"heroe:H32_contramaestra\"]'); return !!a && !!b && !a.classList.contains('no') && !b.classList.contains('no') && !document.querySelector('[data-zoco-poner$=\"H31_contramaestre\"]'); })()"));
+      await lara.js("document.querySelector('button.vest[data-viste=\"heroe:H32_contramaestra\"]').click(); 1");
+      await lara.hasta("/Ya llevas puesto/.test((document.getElementById('nave-aviso')||{}).textContent||'')", 15);
+      c("a bordo · y se lo pone (la Contramaestre)", (await fichaDe(LARA[0], P)).stargateViste === "heroe:H32_contramaestra");
+      const zoco = await lara.js("(async function(){ try { await window.SG.MOTOR.zocoPoner('" + P + "', ['" + P + "__heroe_H31_contramaestre']); return 'puesto'; } catch(e){ return String(e.message); } })()");
+      c("🔴 a bordo · el Contramaestre NO entra en el Zoco (lo dice el servidor)", /Contramaestre no se cambia/.test(zoco), zoco);
+      // su referente lo ve en la ficha
+      const rita = await nueva("Rita ve los logros de Lara");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('tr[data-r]')", 30);
+      await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1"); await dormir(600);
+      await rita.js("window.scrollTo(0,0); var f=[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(x){return /Lara Lumen/.test(x.textContent)})[0]; if(f) f.click(); 1");
+      const enFicha = await rita.hasta("!!document.querySelector('#c-modal .fi-abordo')", 20);
+      c("🔴 consola · la ficha de Lara: 16/16 logros de a bordo y «Contramaestre de la Nave»", enFicha
+        && /16\/16 logros de a bordo/.test(await rita.js("document.querySelector('#c-modal .fi-abordo').textContent")) && /Contramaestre/.test(await rita.js("document.querySelector('#c-modal .fi-abordo').textContent")),
+        enFicha ? await rita.js("document.querySelector('#c-modal .fi-abordo').textContent") : "");
+      await rita.foto(FOTOS + "/38-consola-ficha.png");
+      await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1");
+      // «organiza lo que desbloqueamos cada semana»: la sesión de la semana 7 los presenta, y el simulacro, con NEBULA
+      await rita.ir("sesion.html?per=" + P + "&sem=7"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);
+      const nuevo = await rita.js("!!document.querySelector('.barra-pasos .p[title=\"Lo nuevo\"]')");
+      if (nuevo) { await rita.js("document.querySelector('.barra-pasos .p[title=\"Lo nuevo\"]').click(); 1"); await dormir(1200); }
+      c("🔴 sesión · la semana 7 presenta «Los logros de a bordo» en «Lo nuevo», con su imagen", nuevo
+        && /Los logros de a bordo/.test(await rita.js("(document.querySelector('.dia.nuevo-nave')||{}).textContent||''"))
+        && await rita.js("!!document.querySelector('.dia.nuevo-nave img.nn-img[src*=\"logros\"]')"));
+      await rita.foto(FOTOS + "/38-sesion-nuevo.png");
+      // y en la semana 10, «Coleccionistas» reconoce los logros (Lara, la primera) y a los Contramaestres
+      await rita.ir("sesion.html?per=" + P + "&sem=10"); await rita.hasta("!!document.querySelector('.barra-pasos .p[title=\"Coleccionistas\"]')", 40);
+      await rita.js("document.querySelector('.barra-pasos .p[title=\"Coleccionistas\"]').click(); 1"); await dormir(1200);
+      const colTxt = await rita.js("(document.querySelector('.dia.coleccion')||{}).textContent||''");
+      c("🔴 sesión · «Coleccionistas» reconoce los logros de a bordo (Lara, 16) y a los Contramaestres de la Nave",
+        /Logros de a bordo/.test(colTxt) && /Contramaestres de la Nave/.test(colTxt) && /Lara Lumen/.test(colTxt), colTxt.slice(0, 300));
+      await rita.foto(FOTOS + "/38-sesion-coleccion.png");
+      const sim = await nueva("Rita enseña la Nave de la semana 7");
+      await sim.ir("entrar.html"); await sim.entrarComo("rita@lab.test", "Rita Referente");
+      await sim.ir("recluta.html?simulacro=1&embed=1&nebula=1&per=" + P + "&semana=7");
+      const capN = await sim.hasta("/Los logros de a bordo/.test((document.querySelector('#nave-onboard .tour-step')||{}).textContent||'')", 30);
+      c("🔴 simulacro · en la semana 7 NEBULA presenta los logros de a bordo, con los que ya lleva el Comandante",
+        capN && /ya llevas/.test(await sim.js("document.querySelector('#nave-onboard').textContent")), capN ? (await sim.js("document.querySelector('#nave-onboard').textContent")).slice(0, 160) : "");
+      await sim.foto(FOTOS + "/38-simulacro-nebula.png");
+      for (let k = 0; k < 4 && await sim.js("!!document.querySelector('#nave-onboard.open')"); k++) { await sim.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(450); }
+      await sim.js("var t=document.querySelector('.nb-t[data-tab=\"botin\"]'); if(t) t.click(); 1");
+      c("simulacro · y en «Mi botín» su cajón, encendido en memoria (sin premios de verdad)",
+        await sim.hasta("!!document.getElementById('a-bordo') && document.querySelectorAll('#a-bordo .ab-h.hecho').length>0", 15));
+      await sim.cerrar();
+      // lo que se queda sin abrir (un corte al abrir un premio): «Mi botín» lo ofrece arriba, con su botón
+      const sobreR = (await consultar("rewards", "projectId", P)).filter(r => r.stargateTipo === "cromo" && r.inStore !== false && r.consumeEffects && r.consumeEffects.lootBox)[0];
+      const fS = await fichaDe(LARA[0], P); const usosS = Object.assign({}, fS.consumableUses || {}); usosS[sobreR._id] = 3;
+      await fs.collection("student_profiles").doc(f0._id).update({ inventory: (fS.inventory || []).concat([sobreR._id]), consumableUses: usosS });
+      // (con otra dirección: a la misma, con solo el #, el navegador no recarga y la Nave seguiría con la ficha de antes)
+      await lara.ir("recluta.html?per=" + P + "&otra=1#botin"); const hayPend = await lara.hasta("!!document.querySelector('[data-abrirpend]')", 25);
+      c("🔴 sin abrir · un sobre que no se llegó a abrir sale arriba de «Mi botín», con «Abrir»", hayPend,
+        hayPend ? "" : sobreR._id + " · " + await lara.js("window.SG.FUENTE.quien('" + P + "').then(function(d){ return JSON.stringify((d.yo||{}).sinAbrir); })")
+          );
+      if (hayPend) {
+        await lara.js("document.querySelector('[data-abrirpend]').click(); 1");
+        const rev = await lara.hasta("!!document.querySelector('.sb-capa') && document.querySelectorAll('.sb-puntos i').length===3", 25);
+        for (let k = 0; k < 8 && await lara.js("!!document.querySelector('.sb-capa')"); k++) { await lara.js("var f=document.querySelector('.sb-fin'); if(f) f.click(); else { var s=document.querySelector('.sb-sig'); if(s) s.click(); } 1"); await dormir(450); }
+        await dormir(1500);
+        const fA = await fichaDe(LARA[0], P);
+        c("🔴 sin abrir · se abre carta a carta y deja de estar en el inventario", rev && (fA.inventory || []).indexOf(sobreR._id) < 0 && !(fA.consumableUses || {})[sobreR._id],
+          JSON.stringify((fA.inventory || []).filter(x => !/__(cromo|heroe)_/.test(x))));
+      }
+      c("a bordo · sin errores en las páginas", ![lara, rita].some(p => p.errores.filter(e => !/Failed to load resource/.test(e)).length),
+        [lara, rita].map(p => p.errores.filter(e => !/Failed to load resource/.test(e))[0]).filter(Boolean).join(" | "));
+      for (const p of [lara, rita]) await p.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

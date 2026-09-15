@@ -596,6 +596,24 @@
     avisoFicha(b.hasAttribute("data-rfquitarcom") ? "Comentario quitado." : "Reflexión quitada.", true);
   });
 
+  /**
+   * 15-sep (noche) · LOS LOGROS DE A BORDO en su ficha: cuántos lleva, qué cubiertas tiene completas y sus días a
+   * bordo. Los apunta el servidor; aquí solo se enseñan (sirve para animar: «te falta el Zoco para el Contramaestre»).
+   */
+  var AB = window.SG_A_BORDO || { hitos: [], cubiertas: [], heroes: [] };
+  function nHitos(r) { var h = (r && r.hitos) || {}; return AB.hitos.filter(function (x) { return h[x.clave]; }).length; }
+  function lineaABordo(r) {
+    if (!AB.hitos.length) return "";
+    var h = r.hitos || {}, cub = r.cubiertas || {}, d = r.dias || {};
+    var partes = AB.cubiertas.map(function (c) {
+      var suyos = AB.hitos.filter(function (x) { return x.cubierta === c.clave; }), n = suyos.filter(function (x) { return h[x.clave]; }).length;
+      return '<span class="fi-ab' + (cub[c.clave] ? " ok" : "") + '" title="' + esc(suyos.filter(function (x) { return !h[x.clave]; }).map(function (x) { return "Le falta: " + x.titulo; }).join(" · ") || "Completa") + '">' +
+        (cub[c.clave] ? "✓ " : "") + esc(c.nombre) + " " + n + "/" + suyos.length + "</span>";
+    }).join(" ");
+    return '<p class="fi-abordo"><b>🎖️ ' + nHitos(r) + '/' + AB.hitos.length + ' logros de a bordo</b>' + (cub.todo ? " · <b>🌟 Contramaestre de la Nave</b>" : "") + " · " + partes +
+      (d.total ? ' <span class="small muted">· 🔥 ' + (d.racha || 0) + " días seguidos, " + d.total + " en total</span>" : "") + "</p>";
+  }
+
   /** Sus retos registrados, cada uno con su enlace (o el aviso si le falta uno obligatorio). */
   function evidenciasDe(r) {
     var mias = (EVID && EVID[r.ficha]) || {}, EVR = window.SG_EVIDENCIA || {};
@@ -674,6 +692,7 @@
       '<div class="fi-cifras"><div><b>' + r.xp + '</b><span>xp</span></div><div><b>' + r.creditos + '</b><span>◈ créditos</span></div>' +
         '<div><b>' + r.nivel + '</b><span>nivel · ' + esc(r.rango_nombre || "") + '</span></div><div><b>' + r.n + '/24</b><span>insignias</span></div>' +
         '<div><b>' + (r.racha || 0) + '</b><span>semanas de racha</span></div></div>' +
+      lineaABordo(r) +
       (r.congelado ? '<p class="aviso">🧊 <b>Cuenta congelada</b>' + (r.congelado.fecha ? " desde el " + diaDe(r.congelado.fecha) : "") + ": entra y mira su Nave, pero no puede hacer nada.</p>" : "") +
       '<div class="c-modal-aviso aviso" hidden></div>' +
       "<h4>Sus retos</h4>" +
