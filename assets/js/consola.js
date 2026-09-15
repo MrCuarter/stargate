@@ -1437,8 +1437,11 @@
       return { n: x.n, nombre: x.planeta, sem: window.SG.PAQUETE.semanaEnTipo((cat.semanaDelTema || {})[String(x.n)] || x.n, tipo, cat) };
     });
     var nuevo = fechasDe(CAL).proyecto.stargate, viejo = fechasDe(calDelGrupo()).proyecto.stargate;
+    // 15-sep · las semanas festivas de la UNIR (Navidad y Semana Santa): con su nombre, para que nadie las tome por un error
+    var festivas = SS.festivosUNIR ? SS.festivosUNIR(CAL.inicio, total, extra) : [];
     var fila = function (f) {
       var pasada = f.fin < hoy, actual = f.inicio <= hoy && hoy <= f.fin, futura = f.inicio > hoy;
+      var festiva = festivas.indexOf(f.inicio) >= 0;
       var abre = [];
       if (f.semana) {
         planetas.filter(function (p) { return p.sem === f.semana; }).forEach(function (p) { abre.push("🪐 Planeta " + p.n + " · " + esc(p.nombre)); });
@@ -1447,14 +1450,15 @@
         if (f.semana === total) abre.push("🏁 Último día para registrar retos: <b>" + diaCorto(f.fin) + "</b>");
         if (f.semana === total + extra) abre.push("🛒 Último día para canjear: <b>" + diaCorto(f.fin) + "</b>");
       }
-      var nom = f.congelada ? "⏸️ Congelada" : f.canje ? "Canje" : "Semana " + f.semana;
+      var nom = f.congelada ? (festiva ? "🎄 Festivo UNIR" : "⏸️ Congelada") : f.canje ? "Canje" : "Semana " + f.semana;
       var boton = !futura ? "" : f.congelada
         ? '<button class="btn min" data-cal-sigue="' + f.inicio + '">▶️ Descongelar</button>'
         : (f.semana ? '<button class="btn min" data-cal-pausa="' + f.inicio + '">⏸️ Congelar</button>' : "");
       return '<tr class="' + (f.congelada ? "cal-pausa" : "") + (actual ? " cal-hoy" : "") + (pasada ? " cal-pasada" : "") + '">' +
         '<td class="cal-fechas">' + diaCorto(f.inicio) + " – " + diaCorto(f.fin) + "</td>" +
         '<td class="cal-sem"><b>' + nom + "</b>" + (actual ? ' <span class="chip wip">hoy</span>' : "") + "</td>" +
-        '<td class="cal-abre">' + (f.congelada ? '<span class="muted">No corre: el curso sigue en la semana de antes y lo de detrás se mueve una semana.</span>'
+        '<td class="cal-abre">' + (f.congelada ? '<span class="muted">' + (festiva ? (f.inicio.slice(5, 7) === "12" || f.inicio.slice(5, 7) === "01" ? "Navidad" : "Semana Santa") + ' en la UNIR: no hay clase. ' : '')
+                                                  + 'No corre: el curso sigue en la semana de antes y lo de detrás se mueve una semana.</span>'
                                                 : f.canje && !abre.length ? '<span class="muted">Sin retos nuevos: se canjea lo ganado.</span>' : abre.join("<br>")) + "</td>" +
         "<td>" + boton + "</td></tr>";
     };

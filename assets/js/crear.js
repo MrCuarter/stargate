@@ -186,6 +186,8 @@
 
   // El resumen no es decoración: es la última oportunidad de ver una fecha mal puesta antes de que
   // se siembre un grupo entero. Enseña el calendario COMPLETO que se deduce de la semana 1.
+  function corta(iso) { var M = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+    return Number(iso.slice(8, 10)) + "-" + M[Number(iso.slice(5, 7)) - 1] + "-" + iso.slice(2, 4); }
   function repintar() {
     var d = datos();
     $("#f-id").textContent = d.id ? "Se guardará como: " + d.id : "Se guardará como: —";
@@ -200,6 +202,10 @@
       "<li><b>" + esc(d.nombre) + "</b> · " + S.tipo + " · " + S.semanas + " semanas</li>" +
       "<li>Semana 1: <b>" + S.inicio + "</b> — última semana acaba el <b>" + S.cierre + "</b></li>" +
       "<li>El canje sigue abierto hasta el <b>" + S.cierreCanje + "</b></li>" +
+      // 15-sep · las semanas festivas de la UNIR, ya saltadas (Navidad: la del 24 y la siguiente; Semana Santa)
+      ((S.pausas || []).length ? "<li>🎄 Se saltan las semanas festivas de la UNIR: <b>" + S.pausas.map(function (p) {
+          var f = window.SGSEMANAS.masDias(p, 6); return corta(p) + " – " + corta(f); }).join("</b>, <b>") +
+        "</b>. Se pueden cambiar después en <b>Calendario</b>.</li>" : "") +
       "<li>El Arsenal de Batalla se abre en la semana " + arsenal.stargateSemana + "</li>" +
       "<li>" + paq.misiones.length + " retos · " + paq.campanas.length + " campañas · " +
         paq.recompensas.filter(function (r) { return r.inStore !== false; }).length + " recompensas en la tienda</li>" +

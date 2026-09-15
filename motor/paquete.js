@@ -108,9 +108,11 @@
     var tipo = per.tipo === "PUA" ? "PUA" : "REGULAR";
     var inicio = String(per.inicio || "").slice(0, 10);
     if (!inicio) throw new Error("Falta la fecha de la semana 1");
-    // 13-sep · las semanas congeladas del calendario del referente (todo lo de detrás se corre)
-    var pausas = SEM().limpias(inicio, per.pausas);
     var semanas = cat.semanas[tipo];
+    // 13-sep · las semanas congeladas del calendario del referente (todo lo de detrás se corre).
+    // 15-sep · y un grupo NUEVO (sin pausas todavía) nace con las semanas festivas de la UNIR ya congeladas:
+    // las dos de Navidad y la de Semana Santa (Norberto). El referente puede cambiarlas luego en Calendario.
+    var pausas = SEM().limpias(inicio, per.pausas == null ? SEM().festivosUNIR(inicio, semanas, cat.semanasCanjeExtra || 1) : per.pausas);
     var retos = cat.retos[tipo];
     // El último día de la semana n, y el canje una semana entera por detrás. Calculados los dos
     // desde el inicio —no el segundo desde el primero— para que sea imposible que se desincronicen.

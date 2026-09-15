@@ -73,7 +73,8 @@ fs.readdirSync(RAIZ).filter(f => /\.html$/.test(f)).forEach(f => {
 
 // 4 · el paquete: lo que se mueve al congelar
 const per = { id: "g", nombre: "g", tipo: "REGULAR", inicio: INI, docentes: [] };
-const sin = P.paquete(per, cat), con = P.paquete(Object.assign({}, per, { pausas: ["2026-10-12"] }), cat);
+// (15-sep · «sin» pausas se dice con una lista vacía: un grupo NUEVO sin el campo nace con los festivos de la UNIR)
+const sin = P.paquete(Object.assign({}, per, { pausas: [] }), cat), con = P.paquete(Object.assign({}, per, { pausas: ["2026-10-12"] }), cat);
 const ms = d => new Date(d + "T00:00:00").getTime();
 c(con.proyecto.stargate.cierre === S.masDias(sin.proyecto.stargate.cierre, 7), "🔴 una pausa a mitad de curso retrasa una semana el cierre de retos",
   sin.proyecto.stargate.cierre + " → " + con.proyecto.stargate.cierre);
@@ -92,6 +93,27 @@ c(con.campanas.filter(x => x.visibleFromTimestamp).every(x => {
 const tras = P.paquete(Object.assign({}, per, { pausas: ["2026-12-21"] }), cat);
 c(tras.proyecto.stargate.cierre === sin.proyecto.stargate.cierre && tras.proyecto.stargate.cierreCanje === S.masDias(sin.proyecto.stargate.cierreCanje, 7),
   "una pausa en la semana de canje solo alarga el canje");
+
+// 5 · 15-sep · LAS SEMANAS FESTIVAS DE LA UNIR (Norberto): las dos de Navidad (la del 24 de diciembre y la
+// siguiente) y la de Semana Santa (la del Jueves y el Viernes Santo). Un grupo nuevo nace con ellas congeladas.
+c(S.pascua(2026) === "2026-04-05" && S.pascua(2027) === "2027-03-28" && S.pascua(2028) === "2028-04-16" && S.pascua(2030) === "2030-04-21",
+  "la Pascua, bien calculada (2026, 2027, 2028, 2030)");
+c(JSON.stringify(S.festivosUNIR("2026-09-21", 15, 1)) === JSON.stringify(["2026-12-21", "2026-12-28"]),
+  "🔴 curso del 21-sep-2026: se saltan las dos semanas de Navidad (21-dic y 28-dic)", JSON.stringify(S.festivosUNIR("2026-09-21", 15, 1)));
+c(JSON.stringify(S.festivosUNIR("2027-02-01", 15, 1)) === JSON.stringify(["2027-03-22"]),
+  "🔴 curso del 1-feb-2027: se salta la de Semana Santa (jueves 25 y viernes 26 de marzo)", JSON.stringify(S.festivosUNIR("2027-02-01", 15, 1)));
+c(JSON.stringify(S.festivosUNIR("2026-10-14", 15, 1)) === JSON.stringify(["2026-12-23", "2026-12-30"]),
+  "un curso que empieza en miércoles: sobre su propia rejilla (la semana del 24 y la del 31)");
+c(JSON.stringify(S.festivosUNIR("2026-11-30", 15, 1)) === JSON.stringify(["2026-12-21", "2026-12-28", "2027-03-22"]),
+  "al saltar la Navidad el curso se alarga y alcanza también la Semana Santa: las tres");
+c(S.festivosUNIR("2027-04-05", 12, 1).length === 0, "un curso de abril a junio no tiene ninguna");
+const nuevo = P.paquete({ id: "n", nombre: "n", tipo: "REGULAR", inicio: "2026-09-21", docentes: [] }, cat);
+c(JSON.stringify(nuevo.proyecto.stargate.pausas) === JSON.stringify(["2026-12-21", "2026-12-28"]),
+  "🔴 un grupo NUEVO nace con esas semanas congeladas", JSON.stringify(nuevo.proyecto.stargate.pausas));
+c(S.inicioDeSemana("2026-09-21", 14, nuevo.proyecto.stargate.pausas) === "2027-01-04",
+  "   y su semana 14 empieza el 4 de enero (la 13 es la de antes de Navidad)");
+c(JSON.stringify(P.paquete({ id: "n", nombre: "n", tipo: "REGULAR", inicio: "2026-09-21", docentes: [], pausas: [] }, cat).proyecto.stargate.pausas) === "[]",
+  "si el referente las quita (pausas vacías), se respeta: no vuelven solas");
 
 // 5 · el tablero lleva las pausas y los capítulos abiertos a todas las pantallas
 const datos = { proyecto: { id: "g", name: "g", stargate: { version: 1, tipo: "REGULAR", inicio: INI, pausas: ["2026-09-14"], capitulosAbiertos: { c5: true } } },
