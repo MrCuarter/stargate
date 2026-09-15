@@ -206,7 +206,7 @@
       ((S.pausas || []).length ? "<li>🎄 Se saltan las semanas festivas de la UNIR: <b>" + S.pausas.map(function (p) {
           var f = window.SGSEMANAS.masDias(p, 6); return corta(p) + " – " + corta(f); }).join("</b>, <b>") +
         "</b>. Se pueden cambiar después en <b>Calendario</b>.</li>" : "") +
-      "<li>El Arsenal de Batalla se abre en la semana " + arsenal.stargateSemana + "</li>" +
+      "<li>El Arsenal de batalla se abre en la semana " + arsenal.stargateSemana + "</li>" +
       "<li>" + paq.misiones.length + " retos · " + paq.campanas.length + " campañas · " +
         paq.recompensas.filter(function (r) { return r.inStore !== false; }).length + " recompensas en la tienda</li>" +
       "<li>" + (d.docentes.length || "ningún") + " docente" + (d.docentes.length === 1 ? "" : "s") +

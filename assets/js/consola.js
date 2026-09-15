@@ -371,10 +371,11 @@
     // las pestañas para que la encendida sea la que se ve.
     if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
     app.innerHTML =
-      '<div class="card cuenta"><p><b>' + esc(t.nombre) + '</b> · ' + esc(t.tipo) +
-        ' · ' + semanaTexto(t) + ' · ' + t.reclutas.length + ' reclutas' +
-        ' <button class="btn min" id="c-cambiar">← Mis grupos</button> ' + botonBuzon("consola", PER) +
-        ' <button class="btn min" id="c-salir">Salir</button></p></div>' +
+      // 15-sep · el nombre a un lado y los botones al otro (antes iban en la misma línea y «Salir» caía solo a otra fila)
+      '<div class="card cuenta c-cab"><div class="c-cab-t"><b>' + esc(t.nombre) + '</b><span>' + esc(t.tipo) +
+        ' · ' + semanaTexto(t) + ' · ' + t.reclutas.length + ' reclutas</span></div>' +
+        '<div class="c-cab-b"><button class="btn min" id="c-cambiar">← Mis grupos</button> ' + botonBuzon("consola", PER) +
+        ' <button class="btn min" id="c-salir">Salir</button></div></div>' +
       '<div class="pestanas">' + misTabs().map(function (x) {
         var cola = x[0] === "canjes" ? pendientesCola() : 0;
         return '<button class="pest' + (TAB === x[0] ? " activa" : "") + (cola ? " pest-aviso" : "") + '" data-tab="' + x[0] + '"' +

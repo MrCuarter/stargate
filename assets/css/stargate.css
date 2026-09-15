@@ -1126,8 +1126,10 @@ ol.pasos-num li b{color:var(--ink)}
 .mazo .nav:hover{opacity:1;border-color:var(--teal)}
 .mazo .nav.ant{left:10px}.mazo .nav.sig{right:10px}
 .mazo .cuenta{position:absolute;right:14px;top:12px;font-size:.78rem;color:var(--muted);z-index:5}
-.barra-pasos{display:flex;gap:4px;padding:10px 14px;border-top:1px solid var(--line);background:rgba(4,8,14,.5)}
-.barra-pasos .p{flex:1;border:0;background:rgba(255,255,255,.10);height:auto;padding:6px 4px;border-radius:8px;
+/* 15-sep · con 18 diapositivas los nombres salían cortados («Llama…», «Ranki…»): ahora cada botón mide lo que su nombre
+   y, si no caben en una fila, pasan a dos */
+.barra-pasos{display:flex;flex-wrap:wrap;gap:4px;padding:10px 14px;border-top:1px solid var(--line);background:rgba(4,8,14,.5)}
+.barra-pasos .p{flex:1 1 auto;border:0;background:rgba(255,255,255,.10);height:auto;padding:6px 8px;border-radius:8px;
   cursor:pointer;color:var(--muted);font-size:.75rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;transition:.15s}
 .barra-pasos .p:hover{background:rgba(255,255,255,.18);color:#fff}
 .barra-pasos .p.past{background:rgba(55,224,236,.25);color:#cfefF3}
@@ -1136,8 +1138,9 @@ ol.pasos-num li b{color:var(--ink)}
   .dia{padding:26px 20px}
   .dia.portada.con-planeta{padding-right:20px}
   .dia.portada .planeta{position:static;transform:none;width:46%;display:block;margin:0 auto 10px}
+  .barra-pasos{flex-wrap:nowrap}
   .barra-pasos .p span{display:none}
-  .barra-pasos .p{min-height:10px;padding:5px 0}
+  .barra-pasos .p{flex:1;min-height:10px;padding:5px 0}
 }
 
 /* ---- v3.65 · «Entrar con Google» en la Nave ----
@@ -1576,6 +1579,7 @@ body.embed .nave-barra-u{top:0}
 .vale .si{border-color:#3a7;color:#8fe3b0}
 .vale .no{border-color:#a55;color:#e3a0a0}
 #consola label{display:block;margin:12px 0;font-weight:600}
+#consola label[hidden],#alistarse label[hidden],#crear label[hidden]{display:none!important}   /* 15-sep · el display:block de arriba le ganaba al hidden */
 #consola input,#consola select{display:block;width:100%;margin-top:5px;padding:11px 13px;border-radius:9px;
   border:1px solid #24304a;background:#0d1420;color:#e8eefc;font:inherit;font-weight:400}
 #consola code{display:inline-block;padding:4px 8px;background:#0d1420;border-radius:6px;word-break:break-all}
@@ -2632,7 +2636,8 @@ body.alistado header.hero{display:none}
 .hv-l1{grid-template-columns:118px minmax(160px,1fr) minmax(220px,1.1fr) minmax(260px,1.4fr) auto}
 .hv-f .h-extra{min-width:0;display:flex;align-items:flex-end}
 .hv-f .h-extra>*{flex:1;min-width:0}
-.hv-f .h-cant[hidden],.hv-f .h-c-heroe[hidden],.hv-f .h-nota[hidden]{display:none!important;visibility:hidden}
+/* 15-sep · + el «Del sorteo»: «#consola label{display:block}» le ganaba al hidden y salía en todos los premios, cortado */
+.hv-f .h-cant[hidden],.hv-f .h-c-heroe[hidden],.hv-f .h-nota[hidden],.hv-f .h-c-sorteo[hidden]{display:none!important;visibility:hidden}
 .hv-f .h-nota{margin:0;padding:10px 12px;border-radius:9px;background:rgba(55,224,236,.06);border:1px dashed #2c3a56;
   color:#bcd6e6;font-size:.86rem;line-height:1.35}
 .hv-f .h-c-heroe{display:flex;align-items:flex-end;gap:10px}
@@ -3209,8 +3214,9 @@ tr.congelado td{opacity:.75}
 .of-fila{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
 .of-fila.fin,.of-fila.cancelada{opacity:.7}
 .of-botones{margin:0;display:flex;gap:6px;flex-wrap:wrap}
-.of-auto{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin:6px 0;cursor:pointer;width:auto}
-.of-auto input{width:20px;height:20px;flex:0 0 auto;margin:0;accent-color:var(--teal)}
+/* 15-sep · con #consola delante: «#consola label{display:block}» ganaba y la casilla salía sola, centrada encima del texto */
+.of-auto,#consola .of-auto{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin:6px 0;cursor:pointer;width:auto}
+.of-auto input,#consola .of-auto input{width:20px;height:20px;flex:0 0 auto;margin:0;accent-color:var(--teal)}
 .of-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:8px}
 .of-form select{max-width:340px}
 
@@ -3625,13 +3631,13 @@ body.con-modal{overflow:hidden}
 .eq-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;margin-top:12px}
 .eq-p{display:flex;flex-direction:column;gap:9px;padding:14px 16px;border-radius:14px;background:#0d1420;border:1px solid #24304a}
 .eq-p.ref{border-color:#4a3a1e}
-.eq-cab{display:flex;align-items:center;gap:12px}
+.eq-cab{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap}   /* 15-sep · si no cabe, la etiqueta baja: el correo ya no se parte a trozos */
 .eq-cab img{width:52px;height:52px;object-fit:contain;flex:none}
 .eq-sin{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.05);font-size:1.4rem;flex:none}
-.eq-quien{min-width:0;flex:1}
+.eq-quien{min-width:0;flex:1 1 170px}
 .eq-quien h4{margin:0;font-size:1.02rem}
 .eq-quien p{margin:0;overflow-wrap:anywhere}
-.eq-rol{flex:none;font-size:.78rem;font-weight:700;padding:4px 10px;border-radius:99px;border:1px solid #24304a;color:var(--mut);white-space:nowrap}
+.eq-rol{flex:none;margin-left:auto;font-size:.78rem;font-weight:700;padding:4px 10px;border-radius:99px;border:1px solid #24304a;color:var(--mut);white-space:nowrap}
 .eq-rol.ref{color:var(--amber);border-color:#4a3a1e;background:rgba(245,176,67,.08)}
 .eq-esc{margin:0;font-size:.92rem}
 .eq-lnk{background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--teal);cursor:pointer}
@@ -3773,3 +3779,10 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 .cal-aviso{color:#ffe3a1;font-weight:700}
 .cal-aviso-caja{margin:4px 0 12px;padding:9px 13px;border-radius:10px;background:rgba(245,176,67,.1);border:1px solid #6a5022;color:#ffe3a1}
 .cal-aviso-caja .btn{margin-left:6px}
+
+/* 15-sep · la cabecera del grupo en la consola: nombre y datos a la izquierda, botones a la derecha */
+#consola .c-cab{display:flex;align-items:center;justify-content:space-between;gap:10px 18px;flex-wrap:wrap;padding:14px 18px}
+#consola .c-cab-t{display:flex;flex-direction:column;gap:2px;min-width:0}
+#consola .c-cab-t b{font-size:1.08rem;line-height:1.25}
+#consola .c-cab-t span{color:var(--muted);font-size:.92rem}
+#consola .c-cab-b{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
