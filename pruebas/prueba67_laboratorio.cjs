@@ -30,7 +30,7 @@ const REG = {};   // cifras que se apuntan para el informe
   const nueva = async n => { const p = await persona(n); vivas.push(p); return p; };
   // 13-sep · los capítulos de NEBULA, ya vistos (para las secciones que no van de eso: si no, a mitad
   // de una prueba sale NEBULA contando el Mercado)
-  const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6','c7','c8','c9'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
+  const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
   // alistarse de verdad, por la pantalla (lo usan la clase entera y el héroe por enlace)
   const alistar = async (p, correo, nombre, alias, cmd) => {
     await p.ir("alistarse.html?per=lab-clase&codigo=" + CODIGO);
@@ -807,7 +807,7 @@ const REG = {};   // cifras que se apuntan para el informe
         return {n:o.querySelector('.tour-step').textContent, t:o.querySelector('h3').textContent, x:o.querySelector('p').textContent, foco:f?f.className:''};})()`);
       const p0 = await paso();
       c("🔴 bienvenida · a la alumna recién alistada le sale NEBULA en su primera visita, ya dentro", sale && p0 && /1 \/ 6/.test(p0.n), JSON.stringify(p0));
-      c("🔴 capítulos · llega en la semana 10: le tocan los capítulos 1 a 8, EN ORDEN («Capítulo 1 de 8»)", p0 && /Capítulo 1 de 8/.test(p0.n), p0 && p0.n);
+      c("🔴 capítulos · llega en la semana 10: le tocan los capítulos 1 a 9, EN ORDEN («Capítulo 1 de 9»)", p0 && /Capítulo 1 de 9/.test(p0.n), p0 && p0.n);
       c("bienvenida · y NO le pide «escribe tu correo» (esa puerta ya no existe)", p0 && !/correo/i.test(p0.x), p0 && p0.x.slice(0, 120));
       const focos = [p0 && p0.foco];
       for (let k = 0; k < 5; k++) { await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700); const pk = await paso(); focos.push(pk ? pk.foco : "—"); }
@@ -822,14 +822,15 @@ const REG = {};   // cifras que se apuntan para el informe
         if (titulos.indexOf(pk.n.split(" · ").slice(0, 2).join(" · ")) < 0) titulos.push(pk.n.split(" · ").slice(0, 2).join(" · "));
         await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700);
       }
-      c("🔴 capítulos · detrás del 1 vienen el Mercado, la Rebelión, los adornos, el Zoco, el Gran Sorteo, los logros de a bordo y el Hangar, uno tras otro",
-        titulos.length === 7 && /2 de 8/.test(titulos[0]) && /Mercado/.test(titulos[0]) && /Rebeli/.test(titulos[1]) && /insignia de mando/i.test(titulos[2]) && /Zoco/.test(titulos[3]) && /Sorteo/.test(titulos[4]) && /logros de a bordo/.test(titulos[5]) && /Hangar/.test(titulos[6]), JSON.stringify(titulos));
+      c("🔴 capítulos · de menos a más: el Mercado, la Rebelión, los adornos, la oferta, el Sorteo, el Hangar, el Zoco y los logros, uno tras otro",
+        titulos.length === 8 && /2 de 9/.test(titulos[0]) && /Mercado/.test(titulos[0]) && /Rebeli/.test(titulos[1]) && /insignia de mando/i.test(titulos[2]) && /oferta de la semana/.test(titulos[3])
+        && /Sorteo/.test(titulos[4]) && /Hangar/.test(titulos[5]) && /Zoco/.test(titulos[6]) && /logros de a bordo/.test(titulos[7]), JSON.stringify(titulos));
       c("bienvenida · al terminar se cierra", !(await paso()));
       await dormir(1500);
       const fLeo = await fichaDe("leo@lab.test", "lab-clase");
       const caps = fLeo.stargateCapitulos || {};
-      c("🔴 capítulos · quedan apuntados EN SU FICHA (no solo en el navegador): c1 a c6, los logros (c9) y el Hangar (c8) «hecho»",
-        ["c1", "c2", "c3", "c4", "c5", "c6", "c9", "c8"].every(k => caps[k] && caps[k].estado === "hecho"), JSON.stringify(caps));
+      c("🔴 capítulos · quedan apuntados EN SU FICHA (no solo en el navegador): los nueve abiertos, «hecho»",
+        ["c1", "c2", "c3", "c4", "c10", "c6", "c8", "c5", "c9"].every(k => caps[k] && caps[k].estado === "hecho"), JSON.stringify(caps));
       await leo.ir("recluta.html?per=lab-clase"); await leo.hasta("/Lyra Nueva/.test(document.body.innerText)", 25); await dormir(2500);
       c("bienvenida · y en la segunda visita ya no sale", !(await paso()));
       // en otro navegador (sin nada guardado), tampoco: manda su ficha
@@ -839,7 +840,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 capítulos · en otro ordenador tampoco vuelve a salir (lo sabe su ficha)", !(await leo2.js("!!document.querySelector('#nave-onboard.open')")));
       await leo.js("document.getElementById('btn-onboard') && document.getElementById('btn-onboard').click(); 1"); await dormir(400);
       const menu = await leo.js("[].slice.call(document.querySelectorAll('#rep-menu [data-cap]')).map(function(b){return b.textContent})");
-      c("capítulos · «Repetir bienvenida» ofrece los capítulos abiertos (los 8 de la semana 10)", (menu || []).length === 8 && /Canal abierto/.test(menu[0]) && /Sorteo/.test(menu[5]) && /logros de a bordo/.test(menu[6]) && /Hangar/.test(menu[7]), JSON.stringify(menu));
+      c("capítulos · «Repetir bienvenida» ofrece los capítulos abiertos (los 9 de la semana 10)", (menu || []).length === 9 && /Canal abierto/.test(menu[0]) && /oferta/.test(menu[4]) && /Sorteo/.test(menu[5]) && /Hangar/.test(menu[6]) && /Zoco/.test(menu[7]) && /logros de a bordo/.test(menu[8]), JSON.stringify(menu));
       await leo.js("document.querySelector('#rep-menu [data-cap=c1]').click(); 1"); await dormir(700);
       const rep = await paso();
       c("bienvenida · y el 1 se vuelve a poner desde el principio", rep && /1 \/ 6/.test(rep.n), JSON.stringify(rep));
@@ -1294,7 +1295,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('td.bienv')", 25);
       await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1");   // 15-sep · todos los escuadrones
       const celda = await rita.js("[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(t){return /Nora Nébula/.test(t.textContent)}).map(function(t){return t.querySelector('td.bienv').textContent})[0]||''");
-      c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 8 abiertos en la semana 10, 1 saltado)", /3\/8/.test(celda) && /1 saltado/.test(celda), celda);
+      c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 9 abiertos en la semana 10, 1 saltado)", /3\/9/.test(celda) && /1 saltado/.test(celda), celda);
     }
 
     // ============================================================ 20 · LA NAVE DEL COMANDANTE (simulacro)
@@ -1386,10 +1387,10 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 sesión · y NEBULA arranca sola con el capítulo de la semana (el mismo onboarding que ve el alumnado)",
         await rita.hasta("(function(){ var f=document.querySelector('.dia.simulacro iframe'); var d=f&&f.contentDocument; var t=d&&d.querySelector('.tour.open'); return !!t && /Mercado/i.test(t.textContent); })()", 20));
       await dormir(1500); await rita.foto(FOTOS + "/21-sesion-ensenalo.png");
-      // (14-sep · la 6 ya abre el Gran Sorteo; 15-sep · y la 7, los logros de a bordo: la que no abre nada es la 9)
-      await rita.ir("sesion.html?per=lab-clase&sem=9"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
+      // (16-sep · de la 1 a la 9 cada semana abre algo: la que no abre nada es la 10)
+      await rita.ir("sesion.html?per=lab-clase&sem=10"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
       const rot6 = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
-      c("sesión · una semana que no abre nada no lleva esas diapositivas (la 9)", rot6.indexOf("Lo nuevo") < 0, JSON.stringify(rot6));
+      c("sesión · una semana que no abre nada no lleva esas diapositivas (la 10)", rot6.indexOf("Lo nuevo") < 0, JSON.stringify(rot6));
     }
 
     // ============================================================ 22 · EL ZOCO ESTELAR, TODAS LAS COMBINACIONES
@@ -2010,9 +2011,9 @@ const REG = {};   // cifras que se apuntan para el informe
       const docs0 = (await anuncios()).length + (await tratos()).length;
       const cm = await nueva("Rita en la Nave del Comandante");
       await cm.ir("entrar.html"); await cm.entrarComo("rita@lab.test", "Rita Referente");
-      await cm.ir("recluta.html?simulacro=1&per=" + P + "&semana=6");
+      await cm.ir("recluta.html?simulacro=1&per=" + P + "&semana=8");   // (16-sep · el Zoco abre en la 8)
       await cm.hasta("!!document.querySelector('.nb-t[data-tab=\"zoco\"]')", 30);
-      await cm.js("['c1','c2','c3','c4','c5','c6','c7'].forEach(function(k){localStorage.setItem('sgCap_" + P + "_'+k,'hecho')}); var c=document.querySelector('.neb-capa'); if(c) c.remove(); 1");
+      await cm.js("['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'].forEach(function(k){localStorage.setItem('sgCap_" + P + "_'+k,'hecho')}); var c=document.querySelector('.neb-capa'); if(c) c.remove(); 1");
       await alZoco(cm);
       c("zoco · 21 · en la Nave del Comandante (semana 6) el Zoco sale con cosas de «otros reclutas»", await cm.hasta("document.querySelectorAll('[data-zofertar]').length>0", 15));
       const hayMio = await cm.js("document.getElementById('z-poner').click(); !!document.querySelector('.zoco-capa .zm-p:not([disabled])')");
@@ -2042,7 +2043,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const o22 = await nueva("Olga en la semana 3");
       await o22.ir("entrar.html"); await o22.entrarComo("olga@lab.test", "Olga Prueba"); await sinBienvenidas(o22);
       await o22.ir("recluta.html?per=" + P); await o22.hasta("!!document.querySelector('.nb-t')", 30); await dormir(1500);
-      c("zoco · 22 · en la semana 3 el servidor no deja poner nada («se abre en la semana 5»)", /semana 5/i.test(await llama(o22, "zocoPoner", [P, [CT]])));
+      c("zoco · 22 · en la semana 3 el servidor no deja poner nada («se abre en la semana 8»)", /semana 8/i.test(await llama(o22, "zocoPoner", [P, [CT]])));
       c("zoco · 22 · y la Nave no enseña la pestaña del Zoco", !(await o22.js("!!document.querySelector('.nb-t[data-tab=\"zoco\"]')")));
       await pref.update({ "stargate.capitulosAbiertos": { c5: true } });
       const r22 = await nueva("Rut en la semana 3");
@@ -2773,12 +2774,12 @@ const REG = {};   // cifras que se apuntan para el informe
       const nuevaH = ((await fichaDe(G[0], P)).inventory || []).slice(antesH);
       c("cofres · …y es legendario de verdad", nuevaH.length === 1 && rz(nuevaH[0]) === "legendaria", JSON.stringify(nuevaH));
       await h1.cerrar();
-      // la sesión de la semana 8 presenta el Hangar
-      const ses = await nueva("Rita proyecta la semana 8");
+      // la sesión de la semana 7 presenta el Hangar (16-sep · antes, la 8)
+      const ses = await nueva("Rita proyecta la semana 7");
       await ses.ir("entrar.html"); await ses.entrarComo("rita@lab.test", "Rita Referente");
-      await ses.ir("sesion.html?per=" + P + "&sem=8"); await ses.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
+      await ses.ir("sesion.html?per=" + P + "&sem=7"); await ses.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
       const loN = await ses.js("(function(){ var t=''; [].slice.call(document.querySelectorAll('.barra-pasos .p')).forEach(function(b){ if(b.getAttribute('title')==='Lo nuevo'){ b.click(); var d=document.querySelector('.lienzo .dia.nuevo-nave'); t+=(d?d.textContent:'')+' | '; } }); return t; })()");
-      c("cofres · la sesión de la semana 8 presenta «El Hangar de las Leyendas»", /Hangar de las Leyendas/.test(loN), loN.slice(0, 160));
+      c("cofres · la sesión de la semana 7 presenta «El Hangar de las Leyendas»", /Hangar de las Leyendas/.test(loN), loN.slice(0, 160));
       await ses.cerrar();
     }
     // ============================================================ 29 · LA OFERTA DE LA SEMANA
@@ -3423,7 +3424,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // el Zoco con su fecha
       await rita.js("document.querySelector('.pest[data-tab=\"zoco\"]').click(); 1");
       const zoco = await rita.hasta("!!document.querySelector('.zoco-abre')", 20) ? await rita.js("document.querySelector('.zoco-abre').textContent") : "";
-      c("consola · el Zoco dice el día exacto en que se abre", /(lunes|martes|miércoles|jueves|viernes|sábado|domingo) \d{1,2} de [a-z]+/.test(zoco) && /semana 5/.test(zoco), zoco);
+      c("consola · el Zoco dice el día exacto en que se abre", /(lunes|martes|miércoles|jueves|viernes|sábado|domingo) \d{1,2} de [a-z]+/.test(zoco) && /semana 8/.test(zoco), zoco);
       // los escuadrones se abren
       await rita.js("document.querySelector('.pest[data-tab=\"escuadrones\"]').click(); 1"); await rita.hasta("!!document.querySelector('.esc-det')", 15);
       await rita.js("document.querySelector('.esc-det summary').click(); 1"); await dormir(400);
@@ -3775,10 +3776,10 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.foto(FOTOS + "/38-consola-ficha.png");
       await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1");
       // «organiza lo que desbloqueamos cada semana»: la sesión de la semana 7 los presenta, y el simulacro, con NEBULA
-      await rita.ir("sesion.html?per=" + P + "&sem=7"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);
+      await rita.ir("sesion.html?per=" + P + "&sem=9"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);
       const nuevo = await rita.js("!!document.querySelector('.barra-pasos .p[title=\"Lo nuevo\"]')");
       if (nuevo) { await rita.js("document.querySelector('.barra-pasos .p[title=\"Lo nuevo\"]').click(); 1"); await dormir(1200); }
-      c("🔴 sesión · la semana 7 presenta «Los logros de a bordo» en «Lo nuevo», con su imagen", nuevo
+      c("🔴 sesión · la semana 9 presenta «Los logros de a bordo» en «Lo nuevo», con su imagen", nuevo
         && /Los logros de a bordo/.test(await rita.js("(document.querySelector('.dia.nuevo-nave')||{}).textContent||''"))
         && await rita.js("!!document.querySelector('.dia.nuevo-nave img.nn-img[src*=\"logros\"]')"));
       await rita.foto(FOTOS + "/38-sesion-nuevo.png");
@@ -3789,11 +3790,11 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 sesión · «Coleccionistas» reconoce los logros de a bordo (Lara, 16) y a los Contramaestres de la Nave",
         /Logros de a bordo/.test(colTxt) && /Contramaestres de la Nave/.test(colTxt) && /Lara Lumen/.test(colTxt), colTxt.slice(0, 300));
       await rita.foto(FOTOS + "/38-sesion-coleccion.png");
-      const sim = await nueva("Rita enseña la Nave de la semana 7");
+      const sim = await nueva("Rita enseña la Nave de la semana 9");
       await sim.ir("entrar.html"); await sim.entrarComo("rita@lab.test", "Rita Referente");
-      await sim.ir("recluta.html?simulacro=1&embed=1&nebula=1&per=" + P + "&semana=7");
+      await sim.ir("recluta.html?simulacro=1&embed=1&nebula=1&per=" + P + "&semana=9");
       const capN = await sim.hasta("/Los logros de a bordo/.test((document.querySelector('#nave-onboard .tour-step')||{}).textContent||'')", 30);
-      c("🔴 simulacro · en la semana 7 NEBULA presenta los logros de a bordo, con los que ya lleva el Comandante",
+      c("🔴 simulacro · en la semana 9 NEBULA presenta los logros de a bordo, con los que ya lleva el Comandante",
         capN && /ya llevas/.test(await sim.js("document.querySelector('#nave-onboard').textContent")), capN ? (await sim.js("document.querySelector('#nave-onboard').textContent")).slice(0, 160) : "");
       await sim.foto(FOTOS + "/38-simulacro-nebula.png");
       for (let k = 0; k < 4 && await sim.js("!!document.querySelector('#nave-onboard.open')"); k++) { await sim.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(450); }

@@ -800,7 +800,7 @@
       "coste": 60,
       "maximo": 99,
       "descripcion": "TRES cartas y ninguna común: rara 45%, épica 39% y LEGENDARIA 16% en cada carta, cuatro veces más que en el sobre de siempre.",
-      "desdeSemana": 8,
+      "desdeSemana": 7,
       "tipo": "sobre_epico"
     },
     {
@@ -808,7 +808,7 @@
       "coste": 140,
       "maximo": 99,
       "descripcion": "En esta cápsula no viaja la Resistencia: un héroe de la Vanguardia (69%) o un MITO (31%, casi cuatro veces más que en la de rescate).",
-      "desdeSemana": 8,
+      "desdeSemana": 7,
       "tipo": "capsula_elite"
     },
     {
@@ -816,7 +816,7 @@
       "coste": 320,
       "maximo": 99,
       "descripcion": "Un MITO seguro: uno de los héroes legendarios de la Rebelión, siempre. La cápsula más cara del hangar, y también la que tu docente puede esconder en una presentación o darte de premio.",
-      "desdeSemana": 8,
+      "desdeSemana": 7,
       "tipo": "capsula_legendaria"
     },
     {

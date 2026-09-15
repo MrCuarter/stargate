@@ -54,15 +54,25 @@ const N = leer("assets/js/recluta.js"), F = leer("assets/js/fuente.js"), M = lee
   c(/projectData\?\.stargate && !\(p\.stargateHitos \|\| \{\}\)\.compra\) updates\['stargateHitos\.compra'\] = ahora/.test(GPI) && /stargateHitos \} from '\.\/stargateHitos\.js'/.test(GPI),
     "   la tienda apunta «primera compra» (solo en STARGATE) y la función se exporta");
 
-  // 3 · el calendario: sin saturar
-  const caps = D.caps, c9w = caps.filter(x => x.clave === "c9")[0];
-  c(!!c9w && c9w.semana === 7 && c9w.abre.indexOf("logros") >= 0 && /logros\.jpg$/.test(c9w.imagen) && fs.existsSync(path.join(RAIZ, c9w.imagen)),
-    "🔴 «Los logros de a bordo» es el capítulo de la semana 7 (la libre entre el Sorteo y el Hangar), con su imagen");
+  // 3 · el calendario: de menos a más complejo (16-sep) y sin saturar
+  const caps = D.caps, c9w = caps.filter(x => x.clave === "c9")[0], de = k => caps.filter(x => x.clave === k)[0] || {};
+  c(JSON.stringify(caps.map(x => x.clave + ":" + x.semana)) === JSON.stringify(["c1:1", "c2:2", "c3:3", "c4:4", "c10:5", "c6:6", "c8:7", "c5:8", "c9:9", "c7:15"]),
+    "🔴 de menos a más: Nave · Mercado · héroes · adornos · ofertas · Sorteo · Hangar · Zoco · logros · Arsenal", caps.map(x => x.clave + ":" + x.semana).join(" "));
+  c(!!c9w && c9w.abre.indexOf("logros") >= 0 && /logros\.jpg$/.test(c9w.imagen) && fs.existsSync(path.join(RAIZ, c9w.imagen))
+    && /oferta\.jpg$/.test(de("c10").imagen || "") && fs.existsSync(path.join(RAIZ, de("c10").imagen || "x")), "   los logros y las ofertas, con su imagen");
   const porSemana = t => caps.reduce((a, x) => { a[x.semanas[t]] = (a[x.semanas[t]] || 0) + 1; return a; }, {});
   c(Object.values(porSemana("REGULAR")).every(n => n <= 1), "   en REGULAR, un capítulo por semana como mucho", JSON.stringify(porSemana("REGULAR")));
-  c(c9w && porSemana("PUA")[c9w.semanas.PUA] === 1, "   y en PUA no se junta con el Sorteo y el Hangar (su semana es solo suya)", JSON.stringify(porSemana("PUA")));
-  const zoco = caps.filter(x => x.abre.indexOf("zoco") >= 0)[0], sorteo = caps.filter(x => x.abre.indexOf("sorteo") >= 0)[0];
-  c(zoco && sorteo && c9w && zoco.semana < c9w.semana && sorteo.semana < c9w.semana, "   y llega cuando ya está abierto TODO lo que piden (el Zoco y el Sorteo)");
+  c(Object.values(porSemana("PUA")).every(n => n <= 2) && JSON.stringify([de("c6"), de("c8"), de("c5"), de("c9"), de("c7")].map(x => x.semanas.PUA)) === "[6,6,7,7,8]",
+    "   y en PUA (8 semanas), como mucho dos a la vez: 6 Sorteo y Hangar, 7 Zoco y logros, 8 Arsenal", JSON.stringify(porSemana("PUA")));
+  const zoco = de("c5"), sorteo = de("c6");
+  c(zoco.semana < c9w.semana && sorteo.semana < c9w.semana && zoco.semanas.PUA <= c9w.semanas.PUA, "   los logros llegan cuando ya está abierto TODO lo que piden (el Zoco y el Sorteo)");
+  // el servidor abre el Zoco y saca las ofertas en las MISMAS semanas (un dato, dos sitios que se vigilan)
+  const txtZ = fs.existsSync(path.join(GP, "stargateZoco.js")) ? fs.readFileSync(path.join(GP, "stargateZoco.js"), "utf8") : "";
+  const txtO = fs.existsSync(path.join(GP, "stargateOfertas.js")) ? fs.readFileSync(path.join(GP, "stargateOfertas.js"), "utf8") : "";
+  const mZ = txtZ.match(/SEMANA: \{ REGULAR: (\d+), PUA: (\d+) \}/), mO = txtO.match(/SEMANA_MIN: (\d+)/);
+  c(!!mZ && Number(mZ[1]) === zoco.semanas.REGULAR && Number(mZ[2]) === zoco.semanas.PUA, "🔴 el servidor abre el Zoco la misma semana que su capítulo (regular y PUA)", mZ && mZ.slice(1).join("/"));
+  c(!!mO && Number(mO[1]) === de("c10").semana && de("c10").semanas.PUA === de("c10").semana, "🔴 y saca la primera oferta la semana de su capítulo", mO && mO[1]);
+  c(/yaALaVenta\(premios, semana\)/.test(txtO), "   y solo con lo que ya está a la venta esa semana (nada del Hangar antes de su capítulo)");
 
   // 4 · el motor y la puerta de las escrituras
   c(/async function hitos\(perId\)/.test(M) && /llamar\("stargateHitos", \{ projectId: perId, tz \}\)/.test(M) && /borrarReflexion, idReflexion, hitos,/.test(M),

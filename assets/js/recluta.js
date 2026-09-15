@@ -679,7 +679,7 @@
       +'<span class="ab-nombre" style="--ab-l:'+Math.max(5,n.length)+'">'+esc(n)+'</span></div>';
   }
   function aBordo(){
-    // (se presentan en la semana 7, capítulo c9: antes se apuntan en silencio y aquí no sale nada)
+    // (se presentan en la semana 9 —en PUA, la 7—, capítulo c9: antes se apuntan en silencio y aquí no sale nada)
     var r=st.yo; if(!r||!motorNuevo()||!AB.hitos.length||!abierto('logros')) return '';
     var h=hitosDe(r), cub=r.cubiertas||{}, dias=r.dias||{}, n=nHitos(r), ley=esContramaestre(r);
     var cubs=AB.cubiertas.map(function(c){
@@ -2451,7 +2451,12 @@
         {t:'Cómo se hace un trato',foco:'.nb-t[data-tab="zoco"]',
          x:'Ofreces algo y queda <b>apartado</b> hasta que te respondan. Quien vende acepta, rechaza con un mensaje o te hace una <b>contraoferta</b> mirando lo que tienes. Tú tienes la última palabra: <b>3 pasos</b> y trato cerrado.'},
         {t:'Poner lo tuyo',foco:'.nb-t[data-tab="botin"]',
-         x:'Desde tu álbum (abre una carta en grande) o desde tu vestuario (el 🔄 de cada héroe): «Poner en el Zoco». Sigue siendo tuyo hasta que aceptes una oferta.'}],
+         x:'Desde tu álbum (abre una carta en grande) o desde tu vestuario (el 🔄 de cada héroe): «Poner en el Zoco». Sigue siendo tuyo hasta que aceptes una oferta. Y las <b>participaciones del Gran Sorteo</b> también se revenden aquí.'}],
+    // 16-sep · LA OFERTA DE LA SEMANA (semana 5): empezaba en la 3 sin que nadie la explicara; ahora tiene su capítulo
+    c10:[{t:'La oferta de la semana',foco:'.nb-t[data-tab="mercado"]',
+          x:'Desde hoy, cada semana sale <b>una oferta</b> en el Mercado: un sobre, una cápsula, un héroe o una carta concretos, <b>rebajados entre un 20 y un 40 %</b>. Arriba del todo, con su cuenta atrás.'},
+         {t:'Poco tiempo y pocas unidades',foco:'.nb-t[data-tab="mercado"]',
+          x:'Dura lo que dura la semana y, si es algo raro, hay pocas unidades para todo el grupo: cuando se acaban, se acabó. <b>Una por persona</b>. Tu docente también puede preparar las suyas.'}],
     // 14-sep · el Gran Sorteo: lo cuenta con el premio y los ganadores de SU grupo (el referente
     // puede cambiarlos), por eso se arma al momento
     c6:function(){
@@ -2462,9 +2467,9 @@
               {t:'Cómo se consiguen',foco:'.nb-t[data-tab="mercado"]',
                x:'Se compran en el <b>Mercado</b> con créditos'+(s?' ('+s.coste+' ◈ cada una'+(s.max&&s.max<99?', como mucho '+s.max:'')+')':'')+'. Tu docente también las <b>regala</b> en clase, o las esconde en un enlace. '
                  +(S.fecha?'Se sortea <b>solo</b> el <b>'+fechaLarga(S.fecha)+'</b>: ese día, al entrar en tu Nave, verás el resultado. ':'Se sortea solo, y al entrar en tu Nave verás el resultado. ')+'Como en una lotería, lo jugado no se devuelve, y <b>nadie gana dos</b>. '
-                 +'¿Te ofrecen buen precio? Se <b>revenden en el Zoco</b>, como un cromo.'}];
+                 +'Guárdalas bien: más adelante, en el Zoco, también se podrán revender.'}];
     },
-    // 15-sep (noche) · los logros de a bordo (semana 7): con lo que ya lleva, que se apuntaba desde el primer día
+    // 15-sep (noche) · los logros de a bordo (semana 9; en PUA, la 7): con lo que ya lleva, que se apuntaba desde el primer día
     c9:function(){
       var n=nHitos(st.yo), tot=AB.hitos.length;
       return [{t:'Los logros de a bordo',foco:'.nb-t[data-tab="botin"]',
@@ -2474,7 +2479,7 @@
               {t:'Y el Contramaestre',foco:'.nb-t[data-tab="botin"]',
                x:'Con las cinco, te nombro <b>Contramaestre de la Nave</b>: un héroe legendario —él y ella, y eliges cuál llevar— que no sale en ninguna cápsula, y una <b>carta legendaria con tu alias</b>. No se compra, no se regala y no se cambia: solo se gana.'}];
     },
-    // 14-sep · el Hangar de las Leyendas (semana 8): las cápsulas de élite y legendaria, y el sobre épico
+    // 14-sep · el Hangar de las Leyendas (semana 7 desde el 16-sep): las cápsulas de élite y legendaria, y el sobre épico
     c8:[{t:'El Hangar de las Leyendas',foco:'.nb-t[data-tab="mercado"]',
          x:'Tres cosas nuevas en el Mercado. La <b>cápsula de élite</b>: sin la Resistencia, un héroe de la Vanguardia o un Mito. El <b>sobre épico</b>: tres cartas y ninguna común.'},
         {t:'La cápsula legendaria',foco:'.nb-t[data-tab="mercado"]',
@@ -2732,7 +2737,7 @@
     post({accion:'hitos',per:per}, function(d){
       hitosEnCurso=false;
       if(d&&d.hitos&&st.yo){ st.yo.hitos=d.hitos; st.yo.cubiertas=d.cubiertas||{}; st.yo.dias=d.dias||st.yo.dias; }
-      // (antes de la semana 7 se apuntan en silencio: NEBULA los presenta en su capítulo y entonces se celebran)
+      // (antes de su capítulo —semana 9— se apuntan en silencio: NEBULA los presenta y entonces se celebran)
       if(abierto('logros')&&d&&((d.nuevos||[]).length||(d.premios||[]).length||d.legendario)) cuandoLibre(function(){ celebrarHitos(d); });
       else if(d&&d.hitos&&(st.tab==='botin'||st.tab==='nave')&&!hayCapa()) render();      // el contador de días, al día
       if(hitosOtraVez){ hitosOtraVez=false; hitosLuego(600); }

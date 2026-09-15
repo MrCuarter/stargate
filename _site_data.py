@@ -697,32 +697,59 @@ CAPITULOS = [
                 "El marco dorado de tu avatar", "Se ven en tu ficha y en el tablero de la clase",
                 "Y en el Mercado, el sobre grande: cinco cartas en vez de tres"],
      "imagen": "assets/img/canje/marco.jpg"},
-    {"n": 5, "clave": "c5", "titulo": "El Zoco Estelar", "icono": "🔄", "semana": 5,
-     "abre": ["zoco"], "mercado": [],
-     "cabecera": "El trueque entre reclutas",
-     "puedes": ["Poner tus héroes y cromos en el Zoco (repetidos o no)",
-                "Ofrecer lo tuyo por lo de otro recluta: créditos, cartas o héroes",
-                "Aceptar, rechazar con un mensaje o contraofertar: 3 pasos y trato cerrado",
-                "Lo que ofreces queda apartado hasta que te respondan"],
-     "imagen": "assets/img/canje/heroe.jpg"},
+    # 16-sep · DE MENOS A MÁS COMPLEJO. Norberto: «revisa lo que se presenta cada semana… debería ir de menos complejo a
+    # más complejo». Eligió mi propuesta: comprar (2) → comprar y vestirse (3) → personalizar (4) → comprar con prisa (5,
+    # las ofertas) → apostar (6, el Sorteo) → ahorrar para lo caro (7, el Hangar) → negociar con personas (8, el Zoco) →
+    # dominarlo todo (9, los logros) → la nota (15). En PUA (8 semanas, 10 capítulos) se juntan: 6 Sorteo y Hangar,
+    # 7 Zoco y logros, 8 Arsenal. El servidor abre el Zoco (ZOCO.SEMANA), las ofertas (OFERTAS.SEMANA_MIN) y paga los
+    # logros (CAPITULO) en estas mismas semanas: la batería 79 lo compara.
+    #
+    # LA OFERTA DE LA SEMANA: empezaba en la 3, a la vez que los héroes y sin que nadie la explicara. Ahora tiene su capítulo.
+    {"n": 5, "clave": "c10", "titulo": "La oferta de la semana", "icono": "⚡", "semana": 5,
+     "abre": ["ofertas"], "mercado": [],
+     "cabecera": "Cada semana, algo rebajado… por poco tiempo",
+     "puedes": ["Cada semana sale una oferta en el Mercado: un sobre, una cápsula, un héroe o una carta concretos",
+                "Rebajada entre un 20 y un 40 %, y solo hasta que acaba la semana: verás la cuenta atrás",
+                "Si es algo raro, hay pocas unidades: cuando se acaban, se acabó",
+                "Una por persona. Y tu docente también puede preparar las suyas"],
+     "imagen": "assets/img/canje/oferta.jpg"},
     {"n": 6, "clave": "c6", "titulo": "El Gran Sorteo", "icono": "🎟️", "semana": 6,
      "abre": ["sorteo"], "mercado": ["sorteo", "sobre_raro"],
      "cabecera": "El Gran Sorteo de la tripulación",
      "puedes": ["Se sortean dos licencias de Genially de un año completo",
                 "Cada participación es una papeleta: cuantas más tengas, más posibilidades",
                 "Se compran en el Mercado, y tu docente también las regala (o las esconde en un enlace)",
-                "¿Te ofrecen buen precio? Se revenden en el Zoco, como un cromo",
                 "Se sortea solo en la semana 16: ese día, al entrar en tu Nave, verás el resultado",
                 "Como en una lotería, lo que pagas no se devuelve… y nadie gana dos",
                 "Y en el Mercado, el sobre de raras: casi sin comunes, para cerrar las series difíciles"],
      "imagen": "assets/img/canje/sorteo.jpg"},
-    # 15-sep (noche) · LOS LOGROS DE A BORDO. Norberto: «organiza lo que desbloqueamos cada semana para no
-    # saturar». Van en la 7: la única semana libre entre el Sorteo (6) y el Hangar (8), y la primera en la que
-    # ya está abierto TODO lo que piden (el Zoco abre en la 5 y el Sorteo en la 6). Hasta entonces la Nave los
-    # apunta en silencio (y los días a bordo cuentan desde el primero): ese día NEBULA los presenta con lo que
-    # cada cual ya lleva, y el servidor paga entonces las cubiertas que ya estuvieran completas.
-    # (en PUA, en la 7 y no en la 6: la 6 ya abre el Sorteo y el Hangar; tres capítulos juntos serían saturar)
-    {"n": 7, "clave": "c9", "titulo": "Los logros de a bordo", "icono": "🎖️", "semana": 7, "semana_pua": 7,
+    # 14-sep · EL HANGAR (Norberto: «que hubiera un cofre legendario, donde siempre toca un avatar
+    # legendario; obviamente caro… y para la 10 debería estar todo descubierto»). 16-sep: de la 8 a la 7, antes que el
+    # Zoco: al llegar a él ya se sabe lo que vale cada pieza (y hay legendarias que cambiar).
+    {"n": 7, "clave": "c8", "titulo": "El Hangar de las Leyendas", "icono": "🟨", "semana": 7,
+     "abre": [], "mercado": ["sobre_epico", "capsula_elite", "capsula_legendaria"],
+     "cabecera": "Las cápsulas de élite, la legendaria y el sobre épico",
+     "puedes": ["La cápsula de élite: un héroe de la Vanguardia o un Mito, sin la Resistencia",
+                "La cápsula legendaria: un Mito seguro. La más cara del hangar",
+                "El sobre épico: tres cartas sin comunes, con muchas más legendarias",
+                "Tu docente también puede esconder una cápsula legendaria en una presentación… o dártela de premio"],
+     "imagen": "assets/img/canje/capsula_legendaria.jpg"},
+    # 16-sep · EL ZOCO, de la 5 a la 8 (en PUA, la 7): lo más complejo de la Nave —negociar con otras personas en 3 pasos,
+    # con lo ofrecido apartado, topes y caducidad—, cuando ya hay repetidas (y legendarias) que cambiar.
+    {"n": 8, "clave": "c5", "titulo": "El Zoco Estelar", "icono": "🔄", "semana": 8, "semana_pua": 7,
+     "abre": ["zoco"], "mercado": [],
+     "cabecera": "El trueque entre reclutas",
+     "puedes": ["Poner tus héroes y cromos en el Zoco (repetidos o no)",
+                "Ofrecer lo tuyo por lo de otro recluta: créditos, cartas o héroes",
+                "Aceptar, rechazar con un mensaje o contraofertar: 3 pasos y trato cerrado",
+                "Lo que ofreces queda apartado hasta que te respondan",
+                "Y las participaciones del Gran Sorteo: si te ofrecen buen precio, se revenden aquí"],
+     "imagen": "assets/img/canje/heroe.jpg"},
+    # 15-sep (noche) · LOS LOGROS DE A BORDO. Hasta que se presentan, la Nave los apunta en silencio (y los días a bordo
+    # cuentan desde el primero): ese día NEBULA los presenta con lo que cada cual ya lleva, y el servidor paga entonces las
+    # cubiertas que ya estuvieran completas. 16-sep: los últimos, en la 9 (en PUA, la 7, con el Zoco): piden haberlo
+    # usado todo, y así todo lo que piden ya está abierto.
+    {"n": 9, "clave": "c9", "titulo": "Los logros de a bordo", "icono": "🎖️", "semana": 9, "semana_pua": 7,
      "abre": ["logros"], "mercado": [],
      "cabecera": "Lo que ya sabes hacer en la Nave, con premio",
      "puedes": ["16 logros: la primera vez que haces cada cosa en la Nave. Se apuntan solos, y los que ya hiciste también cuentan",
@@ -731,17 +758,7 @@ CAPITULOS = [
                 "Las cinco: el Contramaestre de la Nave, un héroe legendario (él y ella) y una carta con tu alias",
                 "No se compra, no se regala y no se cambia en el Zoco: solo se gana"],
      "imagen": "assets/img/canje/logros.jpg"},
-    # 14-sep · EL HANGAR (Norberto: «que hubiera un cofre legendario, donde siempre toca un avatar
-    # legendario; obviamente caro… y para la 10 debería estar todo descubierto»)
-    {"n": 8, "clave": "c8", "titulo": "El Hangar de las Leyendas", "icono": "🟨", "semana": 8,
-     "abre": [], "mercado": ["sobre_epico", "capsula_elite", "capsula_legendaria"],
-     "cabecera": "Las cápsulas de élite, la legendaria y el sobre épico",
-     "puedes": ["La cápsula de élite: un héroe de la Vanguardia o un Mito, sin la Resistencia",
-                "La cápsula legendaria: un Mito seguro. La más cara del hangar",
-                "El sobre épico: tres cartas sin comunes, con muchas más legendarias",
-                "Tu docente también puede esconder una cápsula legendaria en una presentación… o dártela de premio"],
-     "imagen": "assets/img/canje/capsula_legendaria.jpg"},
-    {"n": 9, "clave": "c7", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
+    {"n": 10, "clave": "c7", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
      "abre": ["arsenal"], "mercado": ["nota"],
      "cabecera": "El Arsenal: créditos por nota",
      "puedes": ["Subir 0,5 o 1 punto en un entregable, o que se recalifique un trabajo",
@@ -847,11 +864,11 @@ RECOMPENSAS = [
  ("Sobre de raras", 35, 99,
   "TRES cartas donde las comunes casi desaparecen: rara %d%%, épica %d%%, legendaria %d%% (y común solo %d%%). Para cerrar las series difíciles." % (_pct_cofre("sobre_raro")["rara"], _pct_cofre("sobre_raro")["épica"], _pct_cofre("sobre_raro")["legendaria"], _pct_cofre("sobre_raro")["común"]), 6, "sobre_raro"),
  ("Sobre épico", 60, 99,
-  "TRES cartas y ninguna común: rara %d%%, épica %d%% y LEGENDARIA %d%% en cada carta, cuatro veces más que en el sobre de siempre." % (_pct_cofre("sobre_epico")["rara"], _pct_cofre("sobre_epico")["épica"], _pct_cofre("sobre_epico")["legendaria"]), 8, "sobre_epico"),
+  "TRES cartas y ninguna común: rara %d%%, épica %d%% y LEGENDARIA %d%% en cada carta, cuatro veces más que en el sobre de siempre." % (_pct_cofre("sobre_epico")["rara"], _pct_cofre("sobre_epico")["épica"], _pct_cofre("sobre_epico")["legendaria"]), 7, "sobre_epico"),
  ("Cápsula de élite", 140, 99,
-  "En esta cápsula no viaja la Resistencia: un héroe de la Vanguardia (%d%%) o un MITO (%d%%, casi cuatro veces más que en la de rescate)." % (_pct_cofre("capsula_elite")["épica"], _pct_cofre("capsula_elite")["legendaria"]), 8, "capsula_elite"),
+  "En esta cápsula no viaja la Resistencia: un héroe de la Vanguardia (%d%%) o un MITO (%d%%, casi cuatro veces más que en la de rescate)." % (_pct_cofre("capsula_elite")["épica"], _pct_cofre("capsula_elite")["legendaria"]), 7, "capsula_elite"),
  ("Cápsula legendaria", 320, 99,
-  "Un MITO seguro: uno de los héroes legendarios de la Rebelión, siempre. La cápsula más cara del hangar, y también la que tu docente puede esconder en una presentación o darte de premio.", 8, "capsula_legendaria"),
+  "Un MITO seguro: uno de los héroes legendarios de la Rebelión, siempre. La cápsula más cara del hangar, y también la que tu docente puede esconder en una presentación o darte de premio.", 7, "capsula_legendaria"),
  ("Subir 0,5 en un entregable", 550, 1,
   "⚔️ ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. "
   "🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — "

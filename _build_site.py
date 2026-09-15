@@ -500,7 +500,7 @@ AVERIAS = [
   "<b>otorgarlo a mano</b>: Mi gente → pulsa su fila → en su ficha, pulsa el reto."),
  ("logros", "A un estudiante no le sale un logro de a bordo (o su premio)",
   ["logro", "logros", "a bordo", "cubierta", "contramaestre", "dias seguidos", "racha de dias", "premio de la cubierta"],
-  "Los <b>logros de a bordo</b> se presentan en la <b>semana 7</b> (capítulo de NEBULA): antes se apuntan en silencio y ninguna cubierta se paga; "
+  "Los <b>logros de a bordo</b> se presentan en la <b>semana 9</b> (en PUA, la 7; capítulo de NEBULA): antes se apuntan en silencio y ninguna cubierta se paga; "
   "ese día llega todo junto. Se apuntan al <b>entrar en la Nave</b> y al hacer algo (registrar, comprar, comentar, vestirse, el Zoco): si falta "
   "uno, que recargue su Nave. Tres detalles: «Otra cara» pide ponerse un héroe <b>suyo</b>; los días cuentan <b>una visita al día</b>, en su zona "
   "horaria; y una compra hecha antes del 16-sep que ya abrió no deja rastro: cuenta la próxima. Los ves en su ficha (Mi gente → su fila). "
@@ -3159,7 +3159,7 @@ _PE = [
    ("Pasa a la diapositiva «El mensaje».", "El mensaje de la semana como la apertura de una saga, con música épica (si no suena, «🔈 Música»)."),
    ("En «¿Quién las ha superado?», pulsa la cara de un recluta.", "Su ficha: nivel, insignias, cartas y retos. Y bajo quien entregó enlace, «🔗 Ver»: se abre su trabajo."),
    ("Llega a «La Nave» y cambia la semana del selector.", "La Nave de un estudiante simulada, en la semana que elijas: para enseñar en clase lo que se abre (el Mercado, el Zoco…)."),
-   ("Arriba, elige la <b>semana 7</b> y pasa a «Lo nuevo».", "Se presentan «🎖️ <b>Los logros de a bordo</b>»: 16 primeras veces en la Nave, 5 cubiertas con premio y el <b>Contramaestre de la Nave</b>. En «Enséñalo», NEBULA lo cuenta en la Nave simulada."),
+   ("Arriba, elige la <b>semana 9</b> y pasa a «Lo nuevo».", "Se presentan «🎖️ <b>Los logros de a bordo</b>»: 16 primeras veces en la Nave, 5 cubiertas con premio y el <b>Contramaestre de la Nave</b>. En «Enséñalo», NEBULA lo cuenta en la Nave simulada."),
    ("Elige la <b>semana 12</b> y busca «Lo que dijisteis».", "Las reflexiones que el alumnado escribió en los retos de hace dos semanas, primero las de tu escuadrón, con su enlace. «Ocultar» quita una de la diapositiva."),
    ("Si tienes un Genially: inserta el código de «La sesión» (Insertar → Otros → Código).", "Dentro pide tu cuenta y el grupo. Abajo, «⏻» para cerrar sesión. Si entra un estudiante, va a su Nave."),
  ]),
@@ -3185,7 +3185,7 @@ _PE = [
    ("«Mis retos»: despliega un reto y márcalo.", "La misma tarjeta que la de la semana, con su insignia. Casi todos piden el <b>enlace</b> (hay un «+» para un segundo); sin él, no se registra. Algunos traen «💡 Ver un ejemplo»."),
    ("Busca un reto <b>con reflexión</b> (A1, A6…).", "Se responde en una <b>caja grande</b> en el propio reto (con un mínimo de letras). Hecho, «💬 Lo que ha escrito tu tripulación»: las de los demás, con su enlace, y se pueden comentar."),
    ("«Mi botín».", "Tus insignias, por planetas: el tripulante y el reto de cada tema."),
-   ("«Mi botín» → «🎖️ <b>Logros de a bordo</b>» (en el grupo de prueba ya están; en uno nuevo, desde la semana 7).", "Lo que ya has hecho, con su fecha, y lo que falta con «Ir». Registra un reto o compra un sobre: NEBULA lo celebra al momento. Al completar una cubierta llega su premio, y con las cinco, el <b>Contramaestre</b>: un héroe legendario y una carta con tu alias."),
+   ("«Mi botín» → «🎖️ <b>Logros de a bordo</b>» (en el grupo de prueba ya están; en uno nuevo, desde la semana 9).", "Lo que ya has hecho, con su fecha, y lo que falta con «Ir». Registra un reto o compra un sobre: NEBULA lo celebra al momento. Al completar una cubierta llega su premio, y con las cinco, el <b>Contramaestre</b>: un héroe legendario y una carta con tu alias."),
  ]),
 ]
 def _pe_html():

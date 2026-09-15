@@ -421,6 +421,12 @@ def cofres():
     arte("capsula_legendaria", "Una cápsula legendaria", "Un MITO seguro · el héroe más raro de la Rebelión", "capsula_legendaria.jpg")
 
 
+def oferta():
+    """16-sep · el capítulo de la oferta de la semana (semana 5): la cápsula en su pedestal, con el anillo de la cuenta
+    atrás a medio gastar y el rayo de la oferta relámpago (Magnific, Seedream 5 Pro, estilo del sobre y la cápsula)."""
+    arte("oferta", "La oferta de la semana", "Rebajada · solo esta semana · una por persona", "oferta.jpg")
+
+
 def a_bordo():
     """15-sep (noche) · el capítulo de los logros de a bordo (semana 7): NEBULA le pone la insignia al Recluta en el
     puente, con las cinco cubiertas encendidas en la ventana. Arte de la carta del Contramaestre (Magnific, Seedream
