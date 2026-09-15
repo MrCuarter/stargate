@@ -533,30 +533,68 @@
     cargarEvid(t);
   }
   function cargarEvid(t) {
-    var turno = ++TURNO_EVID;
+    var turno = ++TURNO_EVID; ULTIMO_T = t;
     EVID = null; EVID_PER = PER;
-    EVID_LISTO = MOTOR.getDocs(MOTOR.query(MOTOR.collection(MOTOR.db, "mission_deliveries"), MOTOR.where("projectId", "==", PER)))
-      .then(function (r) {
+    // 15-sep (noche) · y las reflexiones (los retos que se responden en el propio reto) con sus comentarios
+    var soloVacio = function () { return []; };
+    EVID_LISTO = Promise.all([
+      MOTOR.getDocs(MOTOR.query(MOTOR.collection(MOTOR.db, "mission_deliveries"), MOTOR.where("projectId", "==", PER))),
+      MOTOR.reflexionesDe ? MOTOR.reflexionesDe(PER).catch(soloVacio) : Promise.resolve([]),
+      MOTOR.comentariosDe ? MOTOR.comentariosDe(PER).catch(soloVacio) : Promise.resolve([])
+    ]).then(function (x) {
         if (turno !== TURNO_EVID) return;
-        EVID = {};
-        r.docs.forEach(function (d) { var x = d.data(); (EVID[x.studentProfileId] = EVID[x.studentProfileId] || {})[x.stargateReto || String(x.missionId).split("__").pop()] = x.enlace || ""; });
+        EVID = {}; EVRF = {}; COMS = {};
+        x[0].docs.forEach(function (d) { var e = d.data(); (EVID[e.studentProfileId] = EVID[e.studentProfileId] || {})[e.stargateReto || String(e.missionId).split("__").pop()] = e.enlace || ""; });
+        (x[1] || []).forEach(function (f) { (EVRF[f.fichaId] = EVRF[f.fichaId] || {})[f.reto] = f; });
+        (x[2] || []).forEach(function (c) { (COMS[c.reflexion] = COMS[c.reflexion] || []).push(c); });
         marcarSinEnlace(t);
-      }).catch(function () { EVID = {}; });
+      }).catch(function () { EVID = {}; EVRF = {}; COMS = {}; });
   }
   /** Al lado del alias, cuántos retos que piden enlace no lo tienen (en la tabla que esté a la vista). */
   function marcarSinEnlace(t) {
     if (!EVID) return;
-    var EVR = window.SG_EVIDENCIA || {};
+    var EVR = window.SG_EVIDENCIA || {}, RFX = window.SG_REFLEXION || {};
     t.reclutas.forEach(function (rc, i) {
-      var mias = EVID[rc.ficha] || {};
-      var faltan = Object.keys(rc.retos || {}).filter(function (id) { return EVR[id] === "obligatoria" && !mias[id]; });
-      if (!faltan.length) return;
+      var mias = EVID[rc.ficha] || {}, rfs = (EVRF && EVRF[rc.ficha]) || {};
+      var hechos = Object.keys(rc.retos || {});
+      var faltan = hechos.filter(function (id) { return EVR[id] === "obligatoria" && !mias[id]; });
+      // 15-sep (noche) · y los que se responden en el propio reto y no tienen su reflexión (otorgados a mano, por ejemplo;
+      // lo registrado antes de que existiera la caja no cuenta: no es culpa de nadie)
+      var sinRF = hechos.filter(function (id) { return RFX[id] && !rfs[id] && pideReflexion(rc.retos[id]); });
+      if (!faltan.length && !sinRF.length) return;
       var celda = app.querySelector('[data-r="' + i + '"] td:nth-child(2)');
-      if (celda && !celda.querySelector(".sin-evid")) celda.insertAdjacentHTML("beforeend", ' <span class="sin-evid" title="Retos que piden enlace y no lo tienen: ' +
-        esc(faltan.join(", ")) + '">⚠️ ' + faltan.length + ' sin enlace</span>');
+      var txt = [faltan.length ? faltan.length + " sin enlace" : "", sinRF.length ? sinRF.length + " sin reflexión" : ""].filter(Boolean).join(" · ");
+      if (celda && !celda.querySelector(".sin-evid")) celda.insertAdjacentHTML("beforeend", ' <span class="sin-evid" title="' +
+        esc([faltan.length ? "Piden enlace y no lo tienen: " + faltan.join(", ") : "", sinRF.length ? "Piden reflexión y no la tienen: " + sinRF.join(", ") : ""].filter(Boolean).join(" · ")) +
+        '">⚠️ ' + txt + '</span>');
     });
   }
-  var EVID = null, EVID_LISTO = null, TURNO_EVID = 0, EVID_PER = null;
+  var EVID = null, EVID_LISTO = null, TURNO_EVID = 0, EVID_PER = null, EVRF = {}, COMS = {}, FICHA_RF = null, ULTIMO_T = null;
+  /** Las reflexiones existen desde el 16-sep-2026: lo registrado antes no se marca como «sin reflexión». */
+  var REFLEXION_DESDE = Date.parse("2026-09-16T00:00:00");
+  function pideReflexion(reg) { var f = reg && reg.fecha ? Date.parse(reg.fecha) : NaN; return !isNaN(f) && f >= REFLEXION_DESDE; }
+  /**
+   * 15-sep (noche) · MODERAR LAS REFLEXIONES desde la ficha: quitar un comentario o la reflexión entera (con sus
+   * comentarios). El reto sigue registrado; lo que se quita deja de verse en la Nave y en la sesión.
+   */
+  document.addEventListener("click", async function (ev) {
+    var b = ev.target && ev.target.closest && ev.target.closest("#c-modal [data-rfquitar], #c-modal [data-rfquitarcom]");
+    if (!b || !FICHA_RF) return;
+    var r = FICHA_RF;
+    if (b.hasAttribute("data-rfquitarcom")) {
+      if (!confirm("¿Quitar este comentario? Ya no lo verá nadie.")) return;
+      b.disabled = true;
+      try { await MOTOR.borrarComentario(b.getAttribute("data-rfquitarcom")); } catch (e) { b.disabled = false; return avisoFicha(e.message); }
+    } else {
+      var reto = b.getAttribute("data-rfquitar");
+      if (!confirm("¿Quitar la reflexión de «" + r.alias + "» en " + reto + "?\n\nDeja de verse en la Nave y en la sesión, con sus comentarios. El reto sigue registrado.")) return;
+      b.disabled = true;
+      try { await MOTOR.borrarReflexion(PER, reto, r.ficha); } catch (e) { b.disabled = false; return avisoFicha(e.message); }
+    }
+    if (ULTIMO_T) cargarEvid(ULTIMO_T);
+    if (EVID_LISTO) EVID_LISTO.then(function () { var h = document.getElementById("c-evid"); if (h && FICHA_RF === r) h.innerHTML = evidenciasDe(r); });
+    avisoFicha(b.hasAttribute("data-rfquitarcom") ? "Comentario quitado." : "Reflexión quitada.", true);
+  });
 
   /** Sus retos registrados, cada uno con su enlace (o el aviso si le falta uno obligatorio). */
   function evidenciasDe(r) {
@@ -565,14 +603,26 @@
     var ids = Object.keys(r.retos || {}).filter(function (id) { return /^[ABXS]\d/.test(id); }).sort();
     if (!ids.length) return '<p class="small muted">Todavía no ha registrado ningún reto.</p>';
     if (!EVID) return '<p class="small muted">Buscando sus enlaces…</p>';
+    var RFX = window.SG_REFLEXION || {}, rfs = (EVRF && EVRF[r.ficha]) || {};
     return '<ul class="evid-lista">' + ids.map(function (id) {
-      var e = mias[id], ob = EVR[id] === "obligatoria";
+      var e = mias[id], ob = EVR[id] === "obligatoria", rf = rfs[id];
       // (15-sep · pueden ser dos, separados por un espacio: el segundo es el del «+»)
-      return '<li><b>' + esc(id) + '</b> ' + (e
+      var enlace = e
         ? String(e).trim().split(/\s+/).map(function (u) {
             var url = /^https?:\/\//i.test(u) ? u : "https://" + u;
             return '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">🔗 ' + esc(u.replace(/^https?:\/\//i, "").slice(0, 60)) + '</a>'; }).join(" ")
-        : (ob ? '<span class="sin-evid">⚠️ sin enlace, y este reto lo pide</span>' : '<span class="small muted">sin enlace</span>')) + '</li>';
+        : (ob ? '<span class="sin-evid">⚠️ sin enlace, y este reto lo pide</span>' : (RFX[id] ? "" : '<span class="small muted">sin enlace</span>'));
+      // 15-sep (noche) · su reflexión (la ve su tripulación), con sus comentarios; el profesorado puede quitar lo que no deba estar
+      var coms = rf ? (COMS[rf.id] || []) : [];
+      var refl = !RFX[id] ? "" : rf
+        ? '<div class="evid-rf"><p class="evid-rf-t">✍️ ' + esc(rf.texto || "").replace(/\n+/g, "<br>") + "</p>" +
+          (coms.length ? '<details class="evid-rf-coms"><summary>💬 ' + coms.length + (coms.length === 1 ? " comentario" : " comentarios") + " de su tripulación</summary>" +
+            coms.map(function (c) { var q = (DATOS.perfiles || []).filter(function (p) { return p.id === c.fichaId; })[0];
+              return '<p class="evid-com"><b>' + esc((q && q.displayName) || "Un recluta") + "</b> " + esc(c.texto || "") +
+                ' <button type="button" class="btn min" data-rfquitarcom="' + esc(c.id) + '" title="Quitar este comentario">Quitar</button></p>'; }).join("") + "</details>" : "") +
+          '<p><button type="button" class="btn min" data-rfquitar="' + esc(id) + '" title="La reflexión deja de verse (el reto sigue registrado)">Quitar la reflexión</button></p></div>'
+        : (pideReflexion((r.retos || {})[id]) ? '<span class="sin-evid">⚠️ sin reflexión, y este reto la pide</span>' : "");
+      return '<li><b>' + esc(id) + '</b> ' + enlace + refl + '</li>';
     }).join("") + '</ul>';
   }
 
@@ -613,6 +663,7 @@
   }
   function verFicha(r) {
     var retos = retosOrdenados(), ficha = r.ficha, esRef = soyRefAqui();
+    FICHA_RF = r;   // (para quitar una reflexión o un comentario desde su ficha)
     var f = ((DATOS.proyecto && DATOS.proyecto.factions) || []).filter(function (x) { return x.teacherName === r.profe; })[0];
     var m = modalFicha(
       '<button type="button" class="c-modal-x" data-cerrar-ficha aria-label="Cerrar la ficha">✕</button>' +

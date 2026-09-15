@@ -389,7 +389,12 @@
                   .then(function (r) {
                     var ev = {}; r.forEach(function (d) { var x = d.data(); if (x.stargateReto && x.enlace) ev[x.stargateReto] = x.enlace; });
                     yo_.evidencias = ev;
-                    return { yo: yo_, correo: yo.correo, verificado: true };
+                    // 15-sep (noche) · y sus reflexiones (los retos que se responden en el propio reto)
+                    return (M.misReflexiones ? M.misReflexiones(per) : Promise.resolve([])).then(function (l) {
+                      var rf = {}; (l || []).forEach(function (x) { if (x.reto) rf[x.reto] = x.texto || ""; });
+                      yo_.reflexiones = rf;
+                      return { yo: yo_, correo: yo.correo, verificado: true };
+                    }, function () { yo_.reflexiones = {}; return { yo: yo_, correo: yo.correo, verificado: true }; });
                   })
                   .catch(function () { return { yo: yo_, correo: yo.correo, verificado: true }; });
               });
@@ -443,6 +448,10 @@
                 if (EV[cuerpo.reto] === "obligatoria" && (!trozos.length || !bienEv))
                   return { error: "Este reto necesita el enlace de lo que has hecho." };
                 if (trozos.length && !bienEv) return { error: "Eso no parece un enlace (o son más de dos)." };
+                // 15-sep (noche) · los retos que se responden en el propio reto: la reflexión, con su mínimo
+                var RF = (window.SG_REFLEXION || {})[cuerpo.reto], textoRF = String(cuerpo.reflexion || "").trim();
+                if (RF && textoRF.length < (RF.min || 1))
+                  return { error: "Tu reflexión es muy corta: escribe al menos " + (RF.min || 1) + " letras (llevas " + textoRF.length + ")." };
                 return M.getDocs(M.query(M.collection(M.db, "missions"),
                   M.where("projectId", "==", cuerpo.per), M.where("stargateId", "==", cuerpo.reto)))
                   .then(function (r) {
@@ -457,14 +466,20 @@
                       { projectId: cuerpo.per, missionId: mid, studentProfileId: ficha.id })
                       .then(function () {
                         var ev = String(cuerpo.evidencia || "").trim();
-                        if (!ev) return { ok: true };
                         // Si la evidencia falla, el reto YA está registrado y así se queda: perder
                         // el enlace es molesto, perder el reto es injusto.
-                        return M.setDoc(M.doc(M.db, "mission_deliveries", mid + "__" + ficha.id), {
+                        var enlace = !ev ? Promise.resolve({ ok: true }) : M.setDoc(M.doc(M.db, "mission_deliveries", mid + "__" + ficha.id), {
                           projectId: cuerpo.per, missionId: mid, studentProfileId: ficha.id,
                           userId: yo.uid, stargateReto: cuerpo.reto, enlace: ev, createdAt: Date.now()
                         }).then(function () { return { ok: true }; })
                          .catch(function () { return { ok: true, avisoEvidencia: true }; });
+                        return enlace.then(function (res) {
+                          if (!RF || !textoRF || !M.guardarReflexion) return res;
+                          // (lo mismo con la reflexión: el reto se queda; si no se pudo guardar, se dice y se reintenta
+                          // con «Guardar mi reflexión», que está en la misma tarjeta)
+                          return M.guardarReflexion(cuerpo.per, cuerpo.reto, ficha.id, textoRF, ev)
+                            .then(function () { return res; }, function () { return Object.assign({}, res, { avisoReflexion: true }); });
+                        });
                       });
                   });
               }
@@ -496,7 +511,10 @@
                       M.where("projectId", "==", cuerpo.per), M.where("stargateId", "==", cuerpo.reto)))
                       .then(function (r) {
                         if (r.empty) return { ok: true };
-                        return M.deleteDoc(M.doc(M.db, "mission_deliveries", r.docs[0].id + "__" + ficha.id))
+                        // 15-sep (noche) · y su reflexión (con sus comentarios), si la tenía
+                        var fueraRF = (window.SG_REFLEXION || {})[cuerpo.reto] && M.borrarReflexion
+                          ? M.borrarReflexion(cuerpo.per, cuerpo.reto, ficha.id).catch(function () {}) : Promise.resolve();
+                        return fueraRF.then(function () { return M.deleteDoc(M.doc(M.db, "mission_deliveries", r.docs[0].id + "__" + ficha.id)); })
                           .then(function () { return { ok: true }; })
                           .catch(function () { return { ok: true }; });
                       });
@@ -519,8 +537,37 @@
                       projectId: cuerpo.per, missionId: mid, studentProfileId: ficha.id,
                       userId: yo.uid, stargateReto: cuerpo.reto,
                       enlace: String(cuerpo.evidencia || "").trim(), createdAt: Date.now()
-                    }, { merge: true }).then(function () { return { ok: true }; });
+                    }, { merge: true }).then(function () {
+                      // (la reflexión lleva una copia del enlace para que la vea su tripulación: se pone al día aquí,
+                      // en el mismo sitio en que cambia, para que las dos no digan cosas distintas)
+                      if ((window.SG_REFLEXION || {})[cuerpo.reto] && M.enlaceDeReflexion)
+                        return M.enlaceDeReflexion(cuerpo.per, cuerpo.reto, ficha.id, cuerpo.evidencia).then(function () { return { ok: true }; });
+                      return { ok: true };
+                    });
                   });
+
+              /**
+               * 15-sep (noche) · CAMBIAR MI REFLEXIÓN (o guardarla si al registrar no se pudo). Solo en los retos que
+               * la llevan y con su mínimo; el enlace que acompaña es el que ya entregó.
+               */
+              if (cuerpo.accion === "reflexion") {
+                var RF2 = (window.SG_REFLEXION || {})[cuerpo.reto], t2 = String(cuerpo.texto || "").trim();
+                if (!RF2) return { error: "Este reto no lleva reflexión." };
+                if (t2.length < (RF2.min || 1)) return { error: "Tu reflexión es muy corta: escribe al menos " + (RF2.min || 1) + " letras (llevas " + t2.length + ")." };
+                return M.getDocs(M.query(M.collection(M.db, "mission_deliveries"),
+                  M.where("userId", "==", yo.uid), M.where("projectId", "==", cuerpo.per), M.where("stargateReto", "==", cuerpo.reto)))
+                  .then(function (r) { var e = ""; r.forEach(function (d) { e = d.data().enlace || e; }); return e; }, function () { return ""; })
+                  .then(function (e) { return M.guardarReflexion(cuerpo.per, cuerpo.reto, ficha.id, t2, e); })
+                  .then(function () { return { ok: true }; });
+              }
+              /** 15-sep (noche) · COMENTAR la reflexión de alguien de tu tripulación (y quitar un comentario tuyo). */
+              if (cuerpo.accion === "comentar") {
+                var t3 = String(cuerpo.texto || "").trim();
+                if (!t3) return { error: "Escribe algo antes de enviarlo." };
+                return M.comentar(cuerpo.per, cuerpo.reflexion, cuerpo.reto, ficha.id, t3).then(function (id) { return { ok: true, id: id }; });
+              }
+              if (cuerpo.accion === "borrarComentario")
+                return M.borrarComentario(cuerpo.id).then(function () { return { ok: true }; });
 
               /**
                * PONERSE UN ADORNO COMPRADO (título, marco, fondo de planeta).
@@ -665,7 +712,7 @@
    */
   function simulacro() {
     var per = q.get("per") || "", FID = "simulacro-comandante";
-    var crudo = null, perfil = null, listo = null, nombre = "", evid = {};
+    var crudo = null, perfil = null, listo = null, nombre = "", evid = {}, refl = {};
     var cat = function () { return window.SG_CATALOGO || {}; };
     var avatar = function () {
       try { var a = JSON.parse(localStorage.getItem("sgComandante") || "null"); if (a && a.n) return a; } catch (e) {}
@@ -724,7 +771,7 @@
         completedCampaignIds: [], earnedBadges: [], inventory: inv, consumableUses: {},
         stargateAvatar: { tipo: "evo", n: a.n, v: a.v, url: "" }, stargateProfe: esc_ ? esc_.teacherName : nombre,
         squadId: esc_ ? esc_.id : null, factionId: esc_ ? esc_.id : null, stargateViste: "", stargateCapitulos: {} };
-      evid = {};
+      evid = {}; refl = {};
     };
     var traducir = function () {
       var d = Object.assign({}, crudo, { perfiles: (crudo.perfiles || []).filter(function (p) { return p.id !== FID; }).concat([perfil]),
@@ -750,7 +797,7 @@
     };
     var yoDe = function (t) {
       var yo = (t.reclutas || []).filter(function (x) { return x.fid === FID; })[0] || null;
-      if (yo) { yo.ficha = FID; yo.evidencias = Object.assign({}, evid); yo.capitulos = {};
+      if (yo) { yo.ficha = FID; yo.evidencias = Object.assign({}, evid); yo.reflexiones = Object.assign({}, refl); yo.capitulos = {};
         // los retos con su fecha (el tablero público no los trae de nadie; del Comandante, sí)
         var porDoc = {}; (crudo.misiones || []).forEach(function (m) { porDoc[m.docId] = m.id; });
         yo.retos = perfil.completedMissionIds.map(function (x) { return porDoc[x] || x; });
@@ -826,6 +873,7 @@
             P.completedMissionIds.push(k); P.missionTimestamps[k] = [new Date().toISOString().slice(0, 10)];
             P.totalPoints += Number(m.pointsReward) || Number(m.points) || 0; P.coins += Number(m.coinsReward) || 0;
             if (c.evidencia) evid[m.id] = c.evidencia;
+            if (c.reflexion) refl[c.reto] = String(c.reflexion);
             return { ok: true };
           }
           if (c.accion === "cancelar") {
@@ -837,6 +885,7 @@
             return { ok: true };
           }
           if (c.accion === "evidencia") { evid[c.reto] = String(c.evidencia || ""); return { ok: true }; }
+          if (c.accion === "reflexion") { refl[c.reto] = String(c.texto || ""); return { ok: true }; }
           if (c.accion === "vestir") { P.stargateViste = c.viste || ""; return { ok: true }; }
           if (c.accion === "adorno") {
             var campo = { titulo: "stargateTitulo", marco: "stargateMarco", fondo: "stargateFondo" }[c.campo];

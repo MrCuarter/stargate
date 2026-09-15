@@ -416,6 +416,58 @@
     return function(){ vivo=false; };
   }
 
+  /**
+   * 15-sep (noche) · «LO QUE DIJISTEIS». Norberto: «más adelante, dos semanas después, en la presentación de clase
+   * podrían aparecer las respuestas, priorizando siempre las del escuadrón del profesor activo y si no, las del resto
+   * de escuadrones». Los retos que se responden en el propio reto (SG_REFLEXION) y que se lanzaron hace DOS semanas: una
+   * diapositiva por reto con hasta cuatro respuestas, primero las de la gente de quien da la clase. «Ocultar» quita una
+   * (se recuerda en este navegador) y sale otra. Se leen al arrancar (una consulta por grupo), así la diapositiva sale
+   * o no sale desde el principio; el orden cambia cada día, pero no al pasar de diapositiva.
+   */
+  var REFLEX=null;
+  function precargarReflexiones(){
+    var M=window.SG&&window.SG.MOTOR, per=st.per;
+    if(!M||!M.reflexionesDe||!per) return Promise.resolve();
+    return M.reflexionesDe(per).then(function(l){ REFLEX={per:per, lista:l||[]}; }, function(){ REFLEX={per:per, lista:[]}; });
+  }
+  function ocultasRF(){ try{ return JSON.parse(localStorage.getItem('sgRefOcultas_'+st.per)||'{}')||{}; }catch(e){ return {}; } }
+  function hashRF(t){ var h=0; t=String(t||''); for(var i=0;i<t.length;i++){ h=(h*31+t.charCodeAt(i))|0; } return h; }
+  function diasReflexion(s){
+    var RF=window.SG_REFLEXION||{};
+    if(!REFLEX||REFLEX.per!==st.per||!REFLEX.lista.length) return [];
+    var w=semanas()[s.sem-3];   // la semana de hace dos (la lista empieza en la 1)
+    if(!w||!(w.lanza||[]).length) return [];
+    var ocultas=ocultasRF(), dia=new Date().toISOString().slice(0,10), mios={};
+    miGente().forEach(function(p){ mios[p.fid||p.ficha||'']=true; });
+    var orden=function(a){ return a.slice().sort(function(x,y){ return hashRF(x.id+dia)-hashRF(y.id+dia); }); };
+    return w.lanza.map(function(txt){ return {txt:txt, id:idDeReto(txt)}; }).filter(function(r){ return r.id&&RF[r.id]; }).map(function(r){
+      var todas=REFLEX.lista.filter(function(x){ return x.reto===r.id && !ocultas[x.id] && quienEs(x.fichaId); });
+      if(!todas.length) return null;
+      var elegidas=orden(todas.filter(function(x){ return mios[x.fichaId]; })).concat(orden(todas.filter(function(x){ return !mios[x.fichaId]; }))).slice(0,4);
+      return {k:'reflexion', rot:'Lo que dijisteis', html:
+        '<div class="dia reflex"><div class="kicker">💬 Lo que dijisteis · '+etiquetaReto(r.txt)+' «'+esc(tituloReto(r.txt))+'»</div>'
+        +'<h2>'+esc(RF[r.id].titulo||'Lo que dijisteis')+'</h2>'
+        +'<div class="rfx-lista n'+elegidas.length+'">'+elegidas.map(function(x,i){
+          var p=quienEs(x.fichaId), t=String(x.texto||''), corto=t.length>380?t.slice(0,370).replace(/\s+\S*$/,'')+'…':t;
+          var u=enlaceDe(String(x.enlace||'').split(/\s+/)[0]);
+          return '<figure class="rfx" style="--i:'+i+'">'
+            +'<button type="button" class="rfx-ocultar" data-rfocultar="'+esc(x.id)+'" title="No enseñar esta respuesta">Ocultar</button>'
+            +'<div class="rfx-quien">'+cara(p)+'<b>'+esc(p.alias)+'</b></div>'
+            +'<blockquote>'+esc(corto)+'</blockquote>'
+            +(u?'<a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">🔗 Ver lo que hizo</a>':'')
+            +'</figure>'; }).join('')+'</div>'
+        +(todas.length>elegidas.length?'<p class="sub rfx-mas">y '+(todas.length-elegidas.length)+' más en la Nave, en el propio reto</p>':'')
+        +'</div>'};
+    }).filter(Boolean);
+  }
+  root.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest&&e.target.closest('[data-rfocultar]'); if(!b) return;
+    e.stopPropagation();
+    var o=ocultasRF(); o[b.getAttribute('data-rfocultar')]=1;
+    try{ localStorage.setItem('sgRefOcultas_'+st.per, JSON.stringify(o)); }catch(x){}
+    pintar();
+  });
+
   // ── 5 · han movido ficha (con su cara)
   function diaMovido(){
     var r=miGente().filter(function(p){ return (p.xp7||0)>0; }).sort(function(a,b){ return (b.xp7||0)-(a.xp7||0); });
@@ -650,7 +702,7 @@
     if(st.per) d.push(diaLlamada());
     var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
     deTipo('inicio').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 Para empezar')); });
-    [diaAnteriores(s), diaMovido(), diaSemanal(), diaTop(), diaColeccion(), diaEscuadrones(), diaTicket(), diaOferta()]
+    [diaAnteriores(s)].concat(diasReflexion(s), [diaMovido(), diaSemanal(), diaTop(), diaColeccion(), diaEscuadrones(), diaTicket(), diaOferta()])
       .forEach(function(x){ if(x) d.push(x); });
     d=d.concat(diapositivasNuevas(s));
     deTipo('mision').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 La misión')); });
@@ -837,7 +889,11 @@
       var hoy=window.SGCAL.semanaActual(st.inicio, st.pausas);
       st.sem=hoy&&hoy>0?hoy:1;
     }
-    pintar();
+    // 15-sep (noche) · las reflexiones del grupo, antes de pintar (como mucho 2,5 s): «Lo que dijisteis» sale o no sale
+    // desde el principio y no mueve de sitio la diapositiva que se está viendo
+    var hecho=false, seguir=function(){ if(hecho) return; hecho=true; pintar(); };
+    setTimeout(seguir, 2500);
+    precargarReflexiones().then(seguir, seguir);
   }
 
   /**

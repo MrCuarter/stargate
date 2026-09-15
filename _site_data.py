@@ -502,8 +502,37 @@ EVIDENCIA_RETOS = {
  "X1": "obligatoria", "X2": "obligatoria",
  "B1": "obligatoria", "B2": "obligatoria", "B3": "obligatoria", "B4": "obligatoria",
  "B5": "obligatoria", "B6": "obligatoria", "B7": "obligatoria", "B8": "obligatoria",
- "A0": "obligatoria", "A1": "obligatoria", "A2": "obligatoria", "A3": "obligatoria", "A4": "obligatoria",
- "A5": "obligatoria", "A6": "obligatoria", "A7": "obligatoria", "A8": "obligatoria",
+ "A0": "obligatoria", "A2": "obligatoria", "A3": "obligatoria", "A4": "obligatoria",
+ "A5": "obligatoria", "A7": "obligatoria", "A8": "obligatoria",
+ # 15-sep (noche) · A1 y A6 se RESPONDEN en el reto (REFLEXION_RETOS): el enlace pasa a opcional
+ "A1": "", "A6": "",
+}
+# 15-sep (noche) · LOS RETOS QUE SE RESPONDEN EN EL PROPIO RETO. Norberto: «en los retos en los que tienen que compartir
+# una breve reflexión o escribir algo concreto, en vez de ponerlo en el foro, que lo respondan directamente sobre el reto…
+# una caja de texto más grande… y dos semanas después, en la presentación de clase, podrían aparecer las respuestas,
+# priorizando las del escuadrón del profesor activo». Y: «que pudieran ver el del resto de sus compañeros así como el
+# enlace (servirá de ejemplo) y responderse/comentar». La reflexión vive en `stargate_reflexiones` (la ve el grupo por su
+# alias) y sus comentarios en `stargate_comentarios` (reglas de GamificaPro). En la Nave, la caja grande con su pregunta y
+# «Lo que ha escrito tu tripulación»; en la sesión, «Lo que dijisteis» dos semanas después de lanzarse el reto.
+#   modo "texto": se responde en la caja y el enlace es opcional (EVIDENCIA_RETOS lo dice)
+#   modo "ambos": el enlace a lo creado sigue siendo obligatorio y la reflexión va en la caja
+REFLEXION_RETOS = {
+ "A1": {"modo": "texto", "min": 120, "titulo": "Lo que nos frena",
+        "pide": "¿Qué tienes a medias, en qué punto se quedó y qué te frenó para terminarlo?"},
+ "B2": {"modo": "ambos", "min": 150, "titulo": "Lo que aprendimos grabando",
+        "pide": "Tu reflexión: qué objetivo didáctico cubre tu videotutorial y qué aprendiste al hacerlo."},
+ "B4": {"modo": "ambos", "min": 150, "titulo": "Aulas que viajan en el bolsillo",
+        "pide": "Tu reflexión: cómo llega tu contenido al móvil del alumno y cómo mantienes viva la conversación."},
+ "A6": {"modo": "texto", "min": 200, "titulo": "Lo que convertimos en juego",
+        "pide": "¿Qué les cuesta a tus alumnos, a qué se juega y qué aprenden jugando?"},
+ "B6": {"modo": "ambos", "min": 150, "titulo": "Juegos con niveles",
+        "pide": "Tu reflexión: qué objetivo cubre tu juego, qué cambia de un nivel a otro y cómo lo evalúas."},
+ "A7": {"modo": "ambos", "min": 120, "titulo": "Insignias con sentido",
+        "pide": "El porqué de tu insignia: cómo se llama, qué acto reconoce y qué historia convierte esa tarea en una causa."},
+ "B7": {"modo": "ambos", "min": 150, "titulo": "Tareas convertidas en causa",
+        "pide": "Tu reflexión: qué conducta refuerza tu microgamificación, qué historia la envuelve y por qué."},
+ "A8": {"modo": "ambos", "min": 200, "titulo": "Capas que ya existen",
+        "pide": "¿Cómo usarías ese recurso en una clase concreta? Qué vería tu alumnado, qué haría y qué añade esa capa."},
 }
 # Tres al día: el ritmo normal es de 2 retos por semana, así que tres cubren un día de ponerse al
 # día sin dejar que nadie suba diez niveles en una tarde. Deshacer uno libera su hueco.
@@ -523,7 +552,7 @@ ESCAPE_UNI = "https://view.genially.com/6a461360d187e3f8869ca453"
 
 GANCHO_RETOS = {
  "A0": "Un vídeo de 60 s presentándote, al padlet de la clase, y el enlace de tu publicación.",
- "A1": "Comparte algo que tengas (o dejaste) a medias, tal cual, y cuenta qué te frenó.",
+ "A1": "Cuenta aquí algo que tengas (o dejaste) a medias y qué te frenó. Y lee a tu tripulación.",
  "B1": "Una imagen didáctica con IA, con el prompt y tus criterios documentados.",
  "X1": "Pulsa «Lo he hecho» cuando hayas ENVIADO la Actividad 1, con su enlace (obligatorio).",
  "A2": "Un clip de 60 s explicando un concepto a quien faltó a clase.",
@@ -535,12 +564,12 @@ GANCHO_RETOS = {
  "B4": "Tu aula virtual con una tarea o un material publicado, en un doc con 2 capturas.",
  "A5": "Una rúbrica de 3-4 criterios para evaluar un objetivo, lista para que la use cualquiera.",
  "B5": "El centro de recursos de tu alumnado: una web (Sites o Genially) con tu rúbrica a la vista.",
- "A6": "Convierte en juego (digital o analógico) algo que a tus alumnos les cuesta.",
+ "A6": "Convierte en juego algo que a tus alumnos les cuesta y cuéntalo aquí mismo.",
  "B6": "Un juego digital con niveles o varias formas de jugar, al servicio de un objetivo.",
  "A7": "Crea una insignia con sentido para una tarea rutinaria, y cuenta su porqué.",
  "B7": "Un toque de juego sobre una tarea, envuelto en una historia.",
  "S7": "Escápate del Escape UNI: el botón del final registra el reto.",
- "A8": "Busca una experiencia AR/VR que ya exista y cuenta cómo la usarías.",
+ "A8": "Una experiencia AR/VR que ya exista: su enlace, y aquí cómo la usarías.",
  "B8": "Una experiencia AR/VR (de un QR a una escena VR) y la Bitácora publicada.",
 }
 

@@ -127,7 +127,13 @@
     return n;
   }
   function pedirEnlace(g, m, obligatorio, aviso) {
+    // 15-sep (noche) · los retos que se responden en el propio reto: su reflexión, aquí también (con su mínimo)
+    var RF = (window.SG_REFLEXION || {})[RETO] || null, antesRF = (document.querySelector("#v-rf") || {}).value || "";
     tarjeta('<h3>' + esc(m.title) + '</h3>' +
+      (RF ? '<p class="rf-caja"><label class="rf-et" for="v-rf">✍️ ' + esc(RF.pide) + '</label>' +
+        '<textarea id="v-rf" class="rf-txt" rows="5" maxlength="2000" placeholder="Escríbelo aquí mismo: al menos ' + RF.min + ' letras.">' + esc(antesRF) + '</textarea>' +
+        '<span class="rf-pie"><span class="rf-n" data-rfn-min="' + RF.min + '">' + antesRF.trim().length + ' / ' + RF.min + '</span>' +
+        '<span class="rf-aviso">👀 La leerá tu tripulación en este reto y puede salir en clase con tu alias, nunca con tu nombre.</span></span></p>' : '') +
       '<p>' + (obligatorio ? 'Este reto necesita <b>el enlace</b> de lo que has hecho —tu Bitácora, el vídeo, ' +
         'el juego…—. Así tu Comandante puede verlo, y enseñarlo en clase si es bueno.'
         : 'Si tienes <b>el enlace</b> de lo que has hecho, pégalo: tu Comandante lo verá.') + '</p>' +
@@ -137,16 +143,19 @@
       '<button type="button" class="ev-mas" id="v-mas" title="Añadir un segundo enlace" aria-label="Añadir un segundo enlace">+</button>' +
       '<input id="v-enlace2" type="url" inputmode="url" autocomplete="off" class="v-enlace ev2" placeholder="Otro enlace (opcional)" hidden></p>' +
       '<p><button class="btn primary grande" id="v-ok">✅ Registrar el reto</button></p>');
-    var i = document.querySelector("#v-enlace"), i2 = document.querySelector("#v-enlace2"), b = document.querySelector("#v-ok");
+    var i = document.querySelector("#v-enlace"), i2 = document.querySelector("#v-enlace2"), b = document.querySelector("#v-ok"), tr = document.querySelector("#v-rf");
     document.querySelector("#v-mas").onclick = function () { i2.hidden = false; this.hidden = true; i2.focus(); };
+    if (tr) tr.oninput = function () { var n = tr.parentNode.querySelector(".rf-n"), l = tr.value.trim().length;
+      tr.classList.remove("falta"); if (n) { n.textContent = l + " / " + RF.min; n.classList.toggle("ok", l >= RF.min); } };
     b.onclick = function () {
       var v = i.value.trim(), v2 = i2.value.trim();
+      if (RF && tr.value.trim().length < RF.min) { tr.classList.add("falta"); tr.focus(); return; }
       if (obligatorio && !enlaceValido(v)) { i.classList.add("falta"); i.focus(); return; }
       if (v && !enlaceValido(v)) return pedirEnlace(g, m, obligatorio, "Eso no parece un enlace: debería tener un dominio, como padlet.com/…");
       if (v2 && !enlaceValido(v2)) { i2.classList.add("falta"); i2.focus(); return; }
-      registrar(g, [v, v2].filter(Boolean).join(" "), true);
+      registrar(g, [v, v2].filter(Boolean).join(" "), true, tr ? tr.value.trim() : "");
     };
-    i.focus();
+    (tr || i).focus();
   }
 
   /**
@@ -180,7 +189,7 @@
     i.focus();
   }
 
-  async function registrar(g, enlace, yaPedido) {
+  async function registrar(g, enlace, yaPedido, reflexion) {
     tarjeta("<h3>Registrando…</h3><p>" + esc(g.nombre) + "</p>");
     var M = MOTOR;
     // 🔴 Aquí está el truco entero: la misión se busca por su identificador de STARGATE dentro del
@@ -197,7 +206,8 @@
     if (TOPE && deHoy(g.ficha) >= TOPE)
       return fallo("Hoy ya has registrado " + TOPE + " retos. Vuelve mañana: así cada reto cuenta de verdad.");
     if (window.SG_SECRETO && window.SG_SECRETO.esSecreto(RETO) && !g.palabraOk) return pedirPalabra(g, m);
-    if (!yaPedido && (EV === "obligatoria" || EV === "recomendada")) return pedirEnlace(g, m, EV === "obligatoria");
+    var RF = (window.SG_REFLEXION || {})[RETO];
+    if (!yaPedido && (EV === "obligatoria" || EV === "recomendada" || RF)) return pedirEnlace(g, m, EV === "obligatoria");
     try {
       await M.llamar("completeMission", { projectId: g.id, missionId: mision.id, studentProfileId: g.ficha.id });
       if (window.SG_SECRETO) window.SG_SECRETO.olvidar(RETO);   // la palabra traída, fuera (el ordenador puede ser compartido)
@@ -209,8 +219,14 @@
             stargateReto: RETO, enlace: enlace, createdAt: Date.now() });
         } catch (e) { /* el reto ya está: perder el enlace es molesto, perder el reto sería injusto */ }
       }
+      // 15-sep (noche) · y su reflexión, donde la ve su tripulación (si falla, se retoma desde la Nave)
+      var sinRF = false;
+      if (RF && reflexion && M.guardarReflexion) {
+        try { await M.guardarReflexion(g.id, RETO, g.ficha.id, reflexion, enlace || ""); } catch (e) { sinRF = true; }
+      }
       tarjeta('<h3>✅ Registrado</h3><p><b>' + esc(m.title) + '</b></p>' +
         '<p>+' + (m.points || 0) + ' xp · +' + (m.coinsReward || 0) + ' créditos</p>' +
+        (sinRF ? '<p class="malo">Tu reflexión no se ha guardado: ábrela en tu Nave (en el propio reto) y pulsa «Guardar mi reflexión».</p>' : '') +
         '<p><a class="btn grande" href="recluta.html?per=' + esc(g.id) + '">Ver mi Nave</a></p>');
     } catch (e) {
       fallo(e.message || "El servidor no ha aceptado el registro.");

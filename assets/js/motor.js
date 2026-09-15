@@ -948,6 +948,85 @@ async function buzonResponder(id, texto, opciones) {
 async function buzonVisto(id) { try { await updateDoc(doc(db, BUZON, id), { visto: true }); } catch (e) {} }
 
 /**
+ * ════════════ LAS REFLEXIONES DE LOS RETOS Y SUS COMENTARIOS (15-sep, noche) ════════════
+ *
+ * Norberto: «en los retos en los que tienen que compartir una breve reflexión… que lo respondan directamente
+ * sobre el reto… y que puedan ver el del resto de sus compañeros así como el enlace (servirá de ejemplo) y
+ * responderse/comentar». Una reflexión por recluta y reto (`stargate_reflexiones/{grupo__reto__ficha}`): la escribe
+ * su dueño, la ve el grupo por su alias (aquí no hay nombres ni correos) y la quita su dueño o el profesorado. Los
+ * comentarios (`stargate_comentarios`), cortos: los quita su autor, el dueño de la reflexión o el profesorado. Las
+ * reglas viven en GamificaPro (firestore.rules); qué retos la llevan, en `_site_data.py → REFLEXION_RETOS`.
+ */
+const REFLEX = "stargate_reflexiones", COMENT = "stargate_comentarios";
+const TOPE_REFLEXION = 2000, TOPE_COMENTARIO = 400;
+function idReflexion(perId, reto, fichaId) { return perId + "__" + reto + "__" + fichaId; }
+async function guardarReflexion(perId, reto, fichaId, texto, enlace) {
+  const yo = await sesion();
+  if (!yo) throw new Error("Entra con tu cuenta para guardar tu reflexión.");
+  const t = String(texto || "").trim().slice(0, TOPE_REFLEXION);
+  if (!t) throw new Error("La reflexión está vacía.");
+  const ref = doc(db, REFLEX, idReflexion(perId, reto, fichaId));
+  let creado = Date.now();
+  try { const a = await getDoc(ref); if (a.exists()) creado = a.data().creado || creado; } catch (e) {}
+  const d = { projectId: perId, reto: reto, fichaId: fichaId, uid: yo.uid, texto: t, creado: creado, editado: Date.now() };
+  const e = String(enlace || "").trim().slice(0, 500);
+  if (e) d.enlace = e;
+  await setDoc(ref, d);
+  return ref.id;
+}
+/** El enlace de una reflexión que ya existe, al día (se cambió desde «Cambiar enlace»). Si no hay reflexión, nada. */
+async function enlaceDeReflexion(perId, reto, fichaId, enlace) {
+  const ref = doc(db, REFLEX, idReflexion(perId, reto, fichaId));
+  try {
+    const a = await getDoc(ref);
+    if (!a.exists()) return;
+    await setDoc(ref, Object.assign({}, a.data(), { enlace: String(enlace || "").trim().slice(0, 500), editado: Date.now() }));
+  } catch (e) {}
+}
+/** Todas las de un reto del grupo (o todas las del grupo), las más nuevas arriba (sin índices: se ordena aquí). */
+async function reflexionesDe(perId, reto) {
+  const q = reto ? query(collection(db, REFLEX), where("projectId", "==", perId), where("reto", "==", reto))
+                 : query(collection(db, REFLEX), where("projectId", "==", perId));
+  const r = await getDocs(q);
+  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.creado || 0) - (a.creado || 0));
+}
+async function misReflexiones(perId) {
+  const yo = await sesion();
+  if (!yo) return [];
+  const r = await getDocs(query(collection(db, REFLEX), where("projectId", "==", perId), where("uid", "==", yo.uid)));
+  return r.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+/** Los comentarios de un reto del grupo, del más viejo al más nuevo (una conversación se lee así). */
+async function comentariosDe(perId, reto) {
+  const q = reto ? query(collection(db, COMENT), where("projectId", "==", perId), where("reto", "==", reto))
+                 : query(collection(db, COMENT), where("projectId", "==", perId));
+  const r = await getDocs(q);
+  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.creado || 0) - (b.creado || 0));
+}
+async function comentar(perId, reflexionId, reto, fichaId, texto) {
+  const yo = await sesion();
+  if (!yo) throw new Error("Entra con tu cuenta para comentar.");
+  const t = String(texto || "").trim().slice(0, TOPE_COMENTARIO);
+  if (!t) throw new Error("El comentario está vacío.");
+  const ref = await addDoc(collection(db, COMENT), { projectId: perId, reflexion: reflexionId, reto: reto,
+    fichaId: fichaId, uid: yo.uid, texto: t, creado: Date.now() });
+  return ref.id;
+}
+async function borrarComentario(id) { await deleteDoc(doc(db, COMENT, id)); }
+/**
+ * Quitar una reflexión: primero sus comentarios (si no, se quedarían colgando de nada) y luego ella. Lo hace su dueño
+ * (al deshacer el reto) o el profesorado (para moderar). Un comentario que no se pueda quitar no para lo demás.
+ */
+async function borrarReflexion(perId, reto, fichaId) {
+  const id = idReflexion(perId, reto, fichaId);
+  try {
+    const r = await getDocs(query(collection(db, COMENT), where("projectId", "==", perId), where("reflexion", "==", id)));
+    for (const d of r.docs) { try { await deleteDoc(d.ref); } catch (e) {} }
+  } catch (e) {}
+  await deleteDoc(doc(db, REFLEX, id));
+}
+
+/**
  * ════════════ AÑADIR A ALGUIEN AL EQUIPO DOCENTE ════════════
  *
  * 🔴 Faltaba, y se iba a notar en la primera semana: el equipo se fijaba al CREAR el grupo y no
@@ -1632,6 +1711,8 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta,
                     buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto, invitacion, codigoGenially,
+                    guardarReflexion, enlaceDeReflexion, reflexionesDe, misReflexiones, comentariosDe, comentar, borrarComentario,
+                    borrarReflexion, idReflexion,
                     referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
                     profes, anotarConexion, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };

@@ -3786,3 +3786,66 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 #consola .c-cab-t b{font-size:1.08rem;line-height:1.25}
 #consola .c-cab-t span{color:var(--muted);font-size:.92rem}
 #consola .c-cab-b{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ================================================================== LAS REFLEXIONES DE LOS RETOS (15-sep, noche)
+   Norberto: «que lo respondan directamente sobre el reto… una caja de texto más grande» y «que puedan ver el del resto de
+   sus compañeros así como el enlace… y responderse/comentar». La caja en la tarjeta del reto, «Lo que ha escrito tu
+   tripulación» debajo, la reflexión en la ficha del docente y «Lo que dijisteis» en la sesión. */
+.rf-caja{flex:1 1 100%;display:flex;flex-direction:column;gap:6px;margin:2px 0 4px}
+.rf-et{font-weight:700;font-size:.95rem;color:#e8eefc;line-height:1.35}
+#consola .rf-et,.rf-et{margin:0}
+.rf-preg{display:block;font-weight:500;font-size:.88rem;color:var(--muted);margin-top:2px}
+.rf-txt{width:100%;min-height:130px;padding:11px 13px;border-radius:10px;border:1px solid #2c3a56;background:#0b1119;color:#e8eefc;
+  font:inherit;font-size:.95rem;line-height:1.5;resize:vertical}
+.rf-txt:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(55,224,236,.15)}
+.rf-txt.falta{border-color:#e06a5a;box-shadow:0 0 0 3px rgba(224,106,90,.18)}
+.rf-pie{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;font-size:.84rem;color:var(--muted)}
+.rf-n{font-variant-numeric:tabular-nums;font-weight:700;padding:2px 9px;border-radius:99px;border:1px solid #2c3a56;white-space:nowrap}
+.rf-n.ok{color:#4fd18b;border-color:rgba(79,209,139,.45)}
+.rf-aviso{flex:1 1 220px;line-height:1.35}
+.rf-mia .rf-pie{justify-content:space-between}
+.rf-tripu{margin-top:14px;padding-top:12px;border-top:1px dashed #2c3a56}
+.rf-ver{font-weight:700}
+.rf-lista{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.rf-cuantos,.rf-vacio{margin:0;font-size:.88rem;color:var(--muted)}
+.rf-item{padding:12px 14px;border-radius:12px;background:#0d1420;border:1px solid #24304a;display:flex;flex-direction:column;gap:8px}
+.rf-item.mia{border-color:rgba(55,224,236,.45)}
+.rf-quien{display:flex;align-items:center;gap:10px;font-size:.95rem}
+.rf-quien .chip{font-size:.75rem}
+.rf-cara{width:38px;height:38px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid rgba(55,224,236,.5);flex:none;background:#101a2a}
+.rf-ini{display:grid;place-items:center;font-weight:800;color:var(--teal)}
+.rf-texto{margin:0;font-size:.95rem;line-height:1.55;color:#dfe8f6;white-space:normal;overflow-wrap:anywhere}
+.rf-enlaces{margin:0;display:flex;gap:8px;flex-wrap:wrap}
+.rf-enlace{font-weight:700;font-size:.88rem;color:var(--teal);text-decoration:none;padding:4px 10px;border-radius:99px;border:1px solid rgba(55,224,236,.35)}
+.rf-enlace:hover{background:rgba(55,224,236,.08)}
+.rf-coms{display:flex;flex-direction:column;gap:5px}
+.rf-coms:empty{display:none}
+.rf-com{margin:0;padding:7px 10px;border-radius:9px;background:#0b1119;font-size:.9rem;line-height:1.45;overflow-wrap:anywhere}
+.rf-com b{color:var(--amber);margin-right:4px}
+.rf-borrar{border:0;background:none;color:var(--muted);cursor:pointer;font-size:.85rem;padding:0 4px}
+.rf-borrar:hover{color:#e06a5a}
+.rf-comentar{display:flex;gap:8px;flex-wrap:wrap}
+.rf-comentar input{flex:1 1 200px;min-width:0;padding:8px 11px;border-radius:9px;border:1px solid #2c3a56;background:#0b1119;color:#e8eefc;font:inherit;font-size:.9rem}
+.rf-comentar input:focus{outline:none;border-color:var(--teal)}
+/* la ficha del docente */
+.evid-rf{margin:6px 0 4px;padding:9px 12px;border-left:3px solid var(--teal);background:rgba(55,224,236,.05);border-radius:0 10px 10px 0}
+.evid-rf-t{margin:0 0 6px;font-size:.92rem;line-height:1.5;overflow-wrap:anywhere}
+.evid-rf-coms summary{cursor:pointer;font-size:.88rem;color:var(--muted);font-weight:600}
+.evid-com{margin:6px 0 0;font-size:.88rem;line-height:1.45}
+.evid-rf p:last-child{margin-bottom:0}
+/* la sesión: «Lo que dijisteis» */
+.dia.reflex h2{margin-bottom:.35em}
+.rfx-lista{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch}
+.rfx-lista.n1{grid-template-columns:minmax(0,1fr)}
+.rfx{position:relative;margin:0;padding:16px 18px;border-radius:16px;background:rgba(13,20,32,.85);border:1px solid rgba(55,224,236,.28);
+  display:flex;flex-direction:column;gap:10px;animation:ses-pop .45s ease-out both;animation-delay:calc(var(--i,0)*80ms)}
+.rfx-quien{display:flex;align-items:center;gap:12px;font-size:1.1rem}
+.rfx-quien .cara{--t:58px}
+.rfx blockquote{margin:0;font-size:1.08rem;line-height:1.5;color:#e8eefc;overflow-wrap:anywhere}
+.rfx .ev-ver{align-self:flex-start}
+.rfx-ocultar{position:absolute;top:10px;right:12px;border:1px solid #2c3a56;background:rgba(8,12,20,.6);color:var(--muted);
+  border-radius:99px;padding:3px 10px;font:inherit;font-size:.78rem;cursor:pointer;opacity:.55;transition:.15s}
+.rfx-ocultar:hover,.rfx-ocultar:focus-visible{opacity:1;color:#fff}
+.rfx-mas{margin-top:10px}
+@media (max-width:720px){ .rfx-lista{grid-template-columns:minmax(0,1fr)} }
+@media (prefers-reduced-motion:reduce){ .rfx{animation:none} }

@@ -132,7 +132,10 @@
     canje: 'cobraría los créditos y te daría la recompensa',
     vestir: 'te cambiaría el personaje',
     adorno: 'te pondría el adorno en la ficha y en el tablero',
-    pase: 'te daría los créditos de la asistencia'
+    pase: 'te daría los créditos de la asistencia',
+    reflexion: 'guardaría tu reflexión, y la vería tu tripulación',
+    comentar: 'dejaría tu comentario a esa persona de tu tripulación',
+    borrarComentario: 'quitaría tu comentario'
   };
   function enDemo(){ return DEMO && !st.email && demoPermitido(); }
   function post(cuerpo,cb,err){
@@ -752,7 +755,12 @@
     if(!motorNuevo()) return '';
     // el enlace que ya entregó, a la vista y listo para cambiarlo (antes salía vacío: parecía perdido)
     var ya=((st.yo&&st.yo.evidencias)||{})[id]||'', los=enlacesDe(ya);
+    var R=reflexionDe(id), mia=((st.yo&&st.yo.reflexiones)||{})[id]||'';
     return '<div class="rh">'
+      +(R?'<div class="rf-caja rf-mia"><label class="rf-et" for="rfh-'+esc(id)+'">✍️ Tu reflexión <span class="rf-preg">'+esc(R.pide)+'</span></label>'
+        +'<textarea class="rh-rf rf-txt" id="rfh-'+esc(id)+'" data-rfh="'+esc(id)+'" rows="5" maxlength="2000" placeholder="Escríbela aquí: al menos '+R.min+' letras">'+esc(mia)+'</textarea>'
+        +'<div class="rf-pie"><span class="rf-n'+(mia.length>=R.min?' ok':'')+'" data-rfn-min="'+R.min+'">'+mia.length+' / '+R.min+'</span>'
+        +'<button class="btn min" type="button" data-guardarf="'+esc(id)+'">'+(mia?'Guardar cambios':'Guardar mi reflexión')+'</button></div></div>':'')
       +(los.length?'<p class="rh-ya">🔗 '+(los.length>1?'Tus enlaces: ':'Tu enlace: ')+los.map(function(u){
           return '<a href="'+esc(/^https?:\/\//i.test(u)?u:'https://'+u)+'" target="_blank" rel="noopener">'+esc(u.replace(/^https?:\/\//,'').slice(0,60))+'</a>'; }).join(' · ')+'</p>':'')
       +'<div class="rh-ev"><input class="rh-in" data-evid="'+esc(id)+'" type="text" inputmode="url" value="'+esc(ya)+'" '
@@ -815,9 +823,10 @@
             ? '<div class="rs-marcar rs-escape"><a class="btn epico" href="'+esc(window.SG_ESCAPE_UNI)+'" target="_blank" rel="noopener"><span class="ep-luz"></span><span class="ep-txt">🗝️ Entrar en el Escape UNI</span></a>'
               +'<p class="small muted">Se registra solo, con el botón del final del escape.</p></div>'
           :(motorNuevo()
-            ? '<div class="rs-marcar">'+campoEvidencia(t[0],'rs-ev')
+            ? '<div class="rs-marcar">'+campoReflexion(t[0],'rs-rf')+campoEvidencia(t[0],'rs-ev')
               +'<button class="btn primary" type="button" data-hecho="'+esc(t[0])+'">✅ Lo he hecho</button></div>'
             : (d.formBitacora?'<p style="margin-top:12px"><a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">Marcarlo en la Bitácora →</a></p>':'')))
+      +panelTripulacion(t[0])
       +'</div></details>';
   }
 
@@ -2851,6 +2860,135 @@
    * mandar nada. Lo mismo comprueba `fuente.js` en la puerta por la que salen los registros.
    */
   function evidenciaDe(id){ return (window.SG_EVIDENCIA||{})[id]||''; }
+  /**
+   * 15-sep (noche) · LOS RETOS QUE SE RESPONDEN EN EL PROPIO RETO. Norberto: «en vez de ponerlo en el foro, que lo
+   * respondan directamente sobre el reto… una caja de texto más grande». La regla (qué retos, qué pregunta, cuánto
+   * mínimo) viene de `_site_data.py → REFLEXION_RETOS` como SG_REFLEXION; la guarda `fuente.js` en
+   * `stargate_reflexiones` y la ve su tripulación («Lo que ha escrito tu tripulación», abajo).
+   */
+  function reflexionDe(id){ return (window.SG_REFLEXION||{})[id]||null; }
+  function campoReflexion(id, clase){
+    var R=reflexionDe(id); if(!R) return '';
+    var ide='rf-'+clase+'-'+id;
+    return '<div class="rf-caja"><label class="rf-et" for="'+esc(ide)+'">✍️ '+esc(R.pide)+'</label>'
+      +'<textarea class="'+clase+' rf-txt" id="'+esc(ide)+'" data-rf="'+esc(id)+'" rows="6" maxlength="2000" placeholder="Escríbelo aquí mismo: al menos '+R.min+' letras."></textarea>'
+      +'<div class="rf-pie"><span class="rf-n" data-rfn-min="'+R.min+'">0 / '+R.min+'</span>'
+      +'<span class="rf-aviso">👀 La leerá tu tripulación en este reto y puede salir en clase con tu alias, nunca con tu nombre.</span></div></div>';
+  }
+  // el contador de letras, al escribir (en verde al llegar al mínimo)
+  document.addEventListener('input',function(ev){
+    var x=ev.target; if(!x||!x.classList||!x.classList.contains('rf-txt')) return;
+    x.classList.remove('falta');
+    var n=x.parentNode&&x.parentNode.querySelector('.rf-n'); if(!n) return;
+    var min=Number(n.getAttribute('data-rfn-min')||0), l=x.value.trim().length;
+    n.textContent=l+' / '+min; n.classList.toggle('ok', l>=min);
+  });
+  function guardarReflexionMia(id, boton){
+    var R=reflexionDe(id), caja=document.querySelector('[data-rfh="'+id+'"]'), t=caja?caja.value.trim():'';
+    if(!R) return;
+    if(t.length<R.min){ if(caja){ caja.classList.add('falta'); caja.focus(); }
+      return aviso('✍️ <b>Tu reflexión es muy corta</b>: escribe al menos '+R.min+' letras (llevas '+t.length+').', true); }
+    boton.disabled=true; boton.textContent='Guardando…';
+    post({accion:'reflexion',per:per,reto:id,texto:t},function(){
+      if(st.yo){ st.yo.reflexiones=st.yo.reflexiones||{}; st.yo.reflexiones[id]=t; }
+      delete (st.rf||{})[id];   // la tripulación la verá al día
+      boton.textContent='✓ Guardada'; setTimeout(function(){ boton.disabled=false; boton.textContent='Guardar cambios'; },1600);
+      aviso('✍️ Reflexión guardada en <b>'+esc(id)+'</b>.');
+    },function(e){ boton.disabled=false; boton.textContent='Guardar mi reflexión'; aviso('No he podido guardarla: '+esc(e), true); });
+  }
+  /**
+   * «💬 LO QUE HA ESCRITO TU TRIPULACIÓN». Norberto: «que pudieran ver el del resto de sus compañeros así como el
+   * enlace (servirá de ejemplo también)… responderse/comentar». Se lee al abrirlo (una consulta por reto, guardada un
+   * minuto); se ve por alias y personaje, nunca por nombre. Comentar pasa por `post`, así que en la demostración y en
+   * la Nave del Comandante no se escribe nada (y se dice).
+   */
+  function panelTripulacion(id){
+    if(!reflexionDe(id)||!motorNuevo()||enDemo()) return '';
+    return '<div class="rf-tripu" data-rftripu="'+esc(id)+'"><button type="button" class="btn min rf-ver" data-rfver="'+esc(id)+'" aria-expanded="false">💬 Lo que ha escrito tu tripulación</button>'
+      +'<div class="rf-lista" hidden></div></div>';
+  }
+  function recluDeFicha(fid){
+    var l=(st.d&&st.d.reclutas)||((window.SG_TABLERO_DATA||{}).reclutas)||[];
+    return l.filter(function(r){ return r.fid===fid; })[0]||null;
+  }
+  function caraRF(r){
+    var src=''; try{ src=(r&&SG.avatarSrc)?SG.avatarSrc(r.avatar,r.alias,r.xp||0,(st.d&&st.d.tipo)||'REGULAR').src:''; }catch(e){}
+    return src?'<img class="rf-cara" src="'+esc(src)+'" alt="" loading="lazy">':'<span class="rf-cara rf-ini">'+esc(String((r&&r.alias)||'?').charAt(0).toUpperCase())+'</span>';
+  }
+  function cargarTripulacion(id, forzar){
+    st.rf=st.rf||{};
+    var c=st.rf[id];
+    if(c&&!forzar&&Date.now()-c.t<60000) return Promise.resolve(c);
+    var M=window.SG&&SG.MOTOR;
+    if(!M||!M.reflexionesDe) return Promise.reject(new Error('sin motor'));
+    return Promise.all([M.reflexionesDe(per,id), M.comentariosDe(per,id).catch(function(){ return []; })]).then(function(x){
+      st.rf[id]={t:Date.now(), items:x[0]||[], coms:x[1]||[]}; return st.rf[id];
+    });
+  }
+  function pintarTripulacion(id, caja){
+    var c=(st.rf||{})[id]; if(!c||!caja) return;
+    var mioF=(st.yo&&(st.yo.ficha||st.yo.fid))||'';
+    var items=c.items.slice().sort(function(a,b){ return (a.fichaId===mioF?-1:0)-(b.fichaId===mioF?-1:0); });
+    // lo que alguien estaba escribiendo en un comentario no se borra al repintar la lista
+    var escritos={}; [].slice.call(caja.querySelectorAll('[data-rfform] input')).forEach(function(i){ if(i.value) escritos[i.parentNode.getAttribute('data-rfform')]=i.value; });
+    if(!items.length){ caja.innerHTML='<p class="rf-vacio">Todavía no ha escrito nadie. ¡Sé la primera persona de tu tripulación!</p>'; return; }
+    caja.innerHTML='<p class="small muted rf-cuantos">'+items.length+(items.length===1?' reflexión':' reflexiones')+' de tu tripulación. Las ves por su alias; tú sales igual.</p>'
+      +items.map(function(x){
+        var r=recluDeFicha(x.fichaId), alias=(r&&r.alias)||'Un recluta', mia=x.fichaId===mioF;
+        var us=enlacesDe(x.enlace||'').map(function(u,k){ var h=/^https?:\/\//i.test(u)?u:'https://'+u;
+          return '<a class="rf-enlace" href="'+esc(h)+'" target="_blank" rel="noopener noreferrer">🔗 '+(k?'Otro enlace':'Ver lo que hizo')+'</a>'; }).join(' ');
+        var coms=c.coms.filter(function(m){ return m.reflexion===x.id; });
+        return '<article class="rf-item'+(mia?' mia':'')+'">'
+          +'<div class="rf-quien">'+caraRF(r)+'<b>'+esc(alias)+'</b>'+(mia?'<span class="chip ok">la tuya</span>':'')+'</div>'
+          +'<p class="rf-texto">'+esc(x.texto||'').replace(/\n+/g,'<br>')+'</p>'
+          +(us?'<p class="rf-enlaces">'+us+'</p>':'')
+          +'<div class="rf-coms">'+coms.map(function(m){
+              var ra=recluDeFicha(m.fichaId), suyo=m.fichaId===mioF;
+              return '<p class="rf-com"><b>'+esc((ra&&ra.alias)||'Un recluta')+'</b> '+esc(m.texto||'')
+                +(suyo?' <button type="button" class="rf-borrar" data-rfborrar="'+esc(m.id)+'" data-rfreto="'+esc(id)+'" title="Quitar mi comentario" aria-label="Quitar mi comentario">✕</button>':'')+'</p>'; }).join('')+'</div>'
+          +(SIMULACRO?'<p class="small muted">En la Nave de Comandante no se comenta: aquí no se guarda nada.</p>'
+            :'<form class="rf-comentar" data-rfform="'+esc(x.id)+'" data-rfreto="'+esc(id)+'"><input maxlength="400" placeholder="'+(mia?'Contesta a tu tripulación…':'Comenta algo a '+esc(alias)+'…')+'" aria-label="Tu comentario">'
+            +'<button type="submit" class="btn min">Enviar</button></form>')
+          +'</article>';
+      }).join('');
+    Object.keys(escritos).forEach(function(k){ var i=caja.querySelector('[data-rfform="'+k+'"] input'); if(i) i.value=escritos[k]; });
+  }
+  function abrirTripulacion(id, boton, forzar){
+    var caja=boton&&boton.parentNode&&boton.parentNode.querySelector('.rf-lista'); if(!caja) return;
+    st.rfAbierto=st.rfAbierto||{}; st.rfAbierto[id]=true;
+    caja.hidden=false; boton.setAttribute('aria-expanded','true'); boton.textContent='💬 Lo que ha escrito tu tripulación ▴';
+    var c=(st.rf||{})[id];
+    if(!c) caja.innerHTML='<p class="small muted">Cargando…</p>';
+    else pintarTripulacion(id, caja);
+    if(c&&!forzar&&Date.now()-c.t<60000) return;   // fresco: ya está pintado
+    cargarTripulacion(id, forzar).then(function(){ pintarTripulacion(id, caja); },
+      function(){ caja.innerHTML='<p class="small muted">No he podido traer lo de tu tripulación. Vuelve a probar en un momento.</p>'; });
+  }
+  document.addEventListener('click',function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('[data-rfver]');
+    if(b){ var id=b.getAttribute('data-rfver'), caja=b.parentNode.querySelector('.rf-lista');
+      if(caja&&!caja.hidden){ caja.hidden=true; b.setAttribute('aria-expanded','false'); b.textContent='💬 Lo que ha escrito tu tripulación'; if(st.rfAbierto) delete st.rfAbierto[id]; return; }
+      return abrirTripulacion(id, b); }
+    var x=ev.target&&ev.target.closest&&ev.target.closest('[data-rfborrar]');
+    if(x){ var reto=x.getAttribute('data-rfreto'); x.disabled=true;
+      post({accion:'borrarComentario',per:per,id:x.getAttribute('data-rfborrar')},function(){
+        var bb=document.querySelector('[data-rfver="'+reto+'"]'); if(bb) abrirTripulacion(reto, bb, true);
+      },function(e){ x.disabled=false; aviso('No he podido quitarlo: '+esc(e), true); }); }
+    var g=ev.target&&ev.target.closest&&ev.target.closest('[data-guardarf]');
+    if(g) guardarReflexionMia(g.getAttribute('data-guardarf'), g);
+  });
+  document.addEventListener('submit',function(ev){
+    var f=ev.target&&ev.target.closest&&ev.target.closest('[data-rfform]'); if(!f) return;
+    ev.preventDefault();
+    var i=f.querySelector('input'), t=i?i.value.trim():'', reto=f.getAttribute('data-rfreto'), bt=f.querySelector('button');
+    if(!t) return;
+    if(bt){ bt.disabled=true; bt.textContent='Enviando…'; }
+    post({accion:'comentar',per:per,reflexion:f.getAttribute('data-rfform'),reto:reto,texto:t},function(){
+      // enviado: la casilla se vacía ANTES de repintar (si no, «lo que estabas escribiendo» lo volvía a poner)
+      if(i) i.value='';
+      var bb=document.querySelector('[data-rfver="'+reto+'"]'); if(bb) abrirTripulacion(reto, bb, true);
+    },function(e){ if(bt){ bt.disabled=false; bt.textContent='Enviar'; } aviso('No he podido enviarlo: '+esc(e), true); });
+  });
   function campoEvidencia(id, clase){
     // 15-sep · un reto secreto (S7) no pide un enlace: pide la PALABRA que se trae del enigma
     if(window.SG_SECRETO&&SG_SECRETO.esSecreto(id))
@@ -2916,6 +3054,18 @@
       });
       return;
     }
+    // 15-sep (noche) · los retos que se responden en el propio reto: su reflexión, con su mínimo
+    var RF=reflexionDe(id), textoRF='';
+    if(RF){
+      var cajasR=[].slice.call(document.querySelectorAll('[data-rf="'+id+'"]'));
+      var conRF=cajasR.filter(function(x){return x.value&&x.value.trim();})[0]||null;
+      textoRF=conRF?conRF.value.trim():'';
+      if(textoRF.length<RF.min){
+        cajasR.forEach(function(x){ x.classList.add('falta'); }); if(conRF||cajasR[0]) (conRF||cajasR[0]).focus();
+        aviso('✍️ <b>Este reto se responde aquí mismo</b>: escribe al menos '+RF.min+' letras (llevas '+textoRF.length+').', true);
+        return;
+      }
+    }
     if(evidenciaDe(id)==='obligatoria'){
       var cajas=[].slice.call(document.querySelectorAll('[data-ev="'+id+'"]'));
       var buena=cajas.filter(function(x){return enlaceValido(x.value);})[0];
@@ -2947,11 +3097,13 @@
     // (la palabra de un reto secreto no es una evidencia: no se guarda donde el docente lee los enlaces)
     var secreto=!!(window.SG_SECRETO&&SG_SECRETO.esSecreto(id));
     var evidencia=secreto?'':[ev?ev.value.trim():'', ev2?ev2.value.trim():''].filter(Boolean).join(' ');
-    post({accion:'registrar',per:per,reto:id,evidencia:evidencia},function(){
+    post({accion:'registrar',per:per,reto:id,evidencia:evidencia,reflexion:textoRF},function(res){
       // Quien haya pedido apartarse (la ficha de la insignia) lo hace AHORA: si la celebración
       // ocurre debajo de un modal, se pierde la mitad de la recompensa.
       if(alEmpezar) try{ alEmpezar(); }catch(e){}
-      aviso('✅ Reto <b>'+esc(id)+'</b> registrado. ¡Buen trabajo!');
+      if(RF) delete (st.rf||{})[id];
+      if(res&&res.avisoReflexion) aviso('✅ Reto <b>'+esc(id)+'</b> registrado, pero tu reflexión no se ha guardado: ábrelo y pulsa «Guardar mi reflexión».', true);
+      else aviso('✅ Reto <b>'+esc(id)+'</b> registrado. ¡Buen trabajo!');
       refrescarYCelebrar(antes, donde, 'reto');
     },function(e){
       if(boton){ boton.disabled=false; boton.textContent='✅ Lo he hecho'; }
@@ -3290,7 +3442,8 @@
     // 15-sep · y la casilla del enlace aquí también: ahora TODOS los retos A, B y X lo piden (sin ella, «Lo he hecho»
     // desde la ficha de la insignia se quedaba en «falta el enlace» sin sitio donde ponerlo)
     return '<div class="mi-hacer"><p class="small muted">Se gana con <b>'+esc(t[1])+'</b> · +'+t[3]+' xp</p>'
-      +((window.SG_SECRETO&&SG_SECRETO.esSecreto(t[0]))||evidenciaDe(t[0])?campoEvidencia(t[0],'mi-ev'):'')
+      +campoReflexion(t[0],'mi-rf')
+      +((window.SG_SECRETO&&SG_SECRETO.esSecreto(t[0]))||evidenciaDe(t[0])||reflexionDe(t[0])?campoEvidencia(t[0],'mi-ev'):'')
       +'<button class="btn primary" type="button" id="mi-hecho" data-reto="'+esc(t[0])+'">✅ Lo he hecho</button></div>';
   };
   window.SG_BADGE_WIRE = function(clave, caja, cerrar){
@@ -3321,6 +3474,9 @@
     [].slice.call(root.querySelectorAll('details')).forEach(function(d,i){ if(d.open) e.abiertos.push(claveDetalle(d,i)); });
     [].slice.call(root.querySelectorAll('input[data-ev]')).forEach(function(x){ if(x.value) e.valores[x.getAttribute('data-ev')+'|'+x.className.split(' ')[0]]=x.value; });
     e.segundos={}; [].slice.call(root.querySelectorAll('input[data-ev2]')).forEach(function(x){ if(!x.hidden) e.segundos[x.getAttribute('data-ev2')+'|'+x.className.split(' ')[0]]=x.value; });
+    // 15-sep (noche) · y lo que va escrito en una reflexión (o en un comentario) no se pierde al repintar
+    e.textos={}; [].slice.call(root.querySelectorAll('textarea[data-rf],textarea[data-rfh]')).forEach(function(x){ e.textos[x.id]=x.value; });
+    e.coms={}; [].slice.call(root.querySelectorAll('[data-rfform] input')).forEach(function(x){ if(x.value) e.coms[x.parentNode.getAttribute('data-rfform')]=x.value; });
     var a=document.activeElement;
     if(a && root.contains(a) && a.getAttribute && a.getAttribute('data-ev')){
       e.foco=a.getAttribute('data-ev')+'|'+a.className.split(' ')[0]; try{ e.ini=a.selectionStart; e.fin=a.selectionEnd; }catch(_){}
@@ -3331,6 +3487,9 @@
     if(!e||!root||e.tab!==st.tab) return;
     if(e.abiertos.length) [].slice.call(root.querySelectorAll('details')).forEach(function(d,i){ if(e.abiertos.indexOf(claveDetalle(d,i))>=0) d.open=true; });
     Object.keys(e.valores).forEach(function(k){ var p=k.split('|'), x=root.querySelector('input[data-ev="'+p[0]+'"].'+p[1]); if(x&&!x.value) x.value=e.valores[k]; });
+    Object.keys(e.textos||{}).forEach(function(k){ var x=document.getElementById(k); if(x&&root.contains(x)){ x.value=e.textos[k]; try{ x.dispatchEvent(new Event('input',{bubbles:true})); }catch(_){} } });
+    Object.keys(st.rfAbierto||{}).forEach(function(id){ var b=root.querySelector('[data-rfver="'+id+'"]'); if(b) abrirTripulacion(id, b); });
+    Object.keys(e.coms||{}).forEach(function(k){ var f=root.querySelector('[data-rfform="'+k+'"] input'); if(f) f.value=e.coms[k]; });
     Object.keys(e.segundos||{}).forEach(function(k){ var p=k.split('|'), x=root.querySelector('input[data-ev2="'+p[0]+'"].'+p[1]);
       if(x){ x.hidden=false; if(!x.value) x.value=e.segundos[k]; var b=x.parentNode&&x.parentNode.querySelector('[data-evmas]'); if(b) b.hidden=true; } });
     if(e.foco){ var p=e.foco.split('|'), x=root.querySelector('input[data-ev="'+p[0]+'"].'+p[1]);
