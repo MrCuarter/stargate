@@ -1034,6 +1034,13 @@ async function borrarReflexion(perId, reto, fichaId) {
  * horaria de quien pregunta (el servidor la apunta la primera vez y ya no la cambia). Devuelve lo que
  * hay y lo que es nuevo, para que la Nave lo celebre. Si el grupo aún no tiene la función, `null`.
  */
+/**
+ * LA BATALLA CONTRA EL SIMULADOR DE JORAN (16-sep). Todo lo decide el servidor: aquí solo se le pasa qué quiere hacer
+ * el estudiante (empezar, responder, actuar, rendirse) y se devuelve lo que contesta. Ni una respuesta viaja antes de
+ * tiempo, y el reloj del rival lo lleva él: cerrar la pestaña no lo para.
+ */
+const batalla = (accion, datos) => llamar("stargateBatalla", Object.assign({ accion }, datos || {}));
+
 async function hitos(perId) {
   let tz = "";
   try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
@@ -1727,7 +1734,7 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta,
                     buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto, invitacion, codigoGenially,
                     guardarReflexion, enlaceDeReflexion, reflexionesDe, misReflexiones, comentariosDe, comentar, borrarComentario,
-                    borrarReflexion, idReflexion, hitos,
+                    borrarReflexion, idReflexion, hitos, batalla,
                     referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
                     profes, anotarConexion, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };

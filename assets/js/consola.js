@@ -250,7 +250,7 @@
         'preguntan en cuál estáis. Se copia el código y, en Genially, <b>Insertar → Otros → Código</b>.</p></div>' +
         '<div class="gp-gen-b">' +
         [["sesion", "📽️ La sesión de la semana", "sesion.html?embed=1"], ["aula", "🛰️ El aula · la clase en directo", "aula.html?embed=1"],
-         ["llamada", "🔔 La llamada a filas", "llamada.html?embed=1"]].map(function (x) {
+         ["llamada", "🔔 La llamada a filas", "llamada.html?embed=1"], ["batalla", "⚔️ El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
           return '<button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + x[1].replace(/^\S+\s/, ""))) + '">' + x[1] + '</button>';
         }).join("") + '</div></section>' +
       /**
@@ -611,7 +611,24 @@
         (cub[c.clave] ? "✓ " : "") + esc(c.nombre) + " " + n + "/" + suyos.length + "</span>";
     }).join(" ");
     return '<p class="fi-abordo"><b>🎖️ ' + nHitos(r) + '/' + AB.hitos.length + ' logros de a bordo</b>' + (cub.todo ? " · <b>🌟 Contramaestre de la Nave</b>" : "") + " · " + partes +
-      (d.total ? ' <span class="small muted">· 🔥 ' + (d.racha || 0) + " días seguidos, " + d.total + " en total</span>" : "") + "</p>";
+      (d.total ? ' <span class="small muted">· 🔥 ' + (d.racha || 0) + " días seguidos, " + d.total + " en total</span>" : "") + "</p>" +
+      lineaSimulador(r);
+  }
+  /**
+   * 16-sep · EL SIMULADOR DE JORAN en su ficha: si le ganó (el reto A6), sus mejores marcas y lo que lleva entrenado.
+   * Sirve para lo mismo que los logros: saber a quién animar («te falta ganarle una vez») sin preguntar en clase.
+   */
+  var BT = window.SG_BATALLA || {};
+  function lineaSimulador(r) {
+    var S = (r && r.simulador) || {};
+    if (!S[BT.clave || "joran"] && !S.total) return "";
+    var m = S.marcas || {}, mejores = Object.keys(m).sort(function (a, b) { return (m[b].p || 0) - (m[a].p || 0); }).slice(0, 3);
+    var T = S.total || {};
+    return '<p class="fi-abordo"><b>🎮 ' + (S[BT.clave || "joran"] ? "Venció a " + esc(BT.rival || "RUTA AZUL") : "Todavía no ha ganado al simulador") + "</b>" +
+      (mejores.length ? " · " + mejores.map(function (k) {
+        return '<span class="fi-ab ok">' + esc(k === "todas" ? "Todas" : "T" + k.slice(1)) + " " + (m[k].p || 0) + "</span>"; }).join(" ") : "") +
+      (T.batallas ? ' <span class="small muted">· ' + T.batallas + " batallas, " + (T.aciertos || 0) + " aciertos" +
+        (T.aciertos ? " (" + (Math.round((T.ms / 1000) / T.aciertos * 10) / 10) + " s cada uno)" : "") + "</span>" : "") + "</p>";
   }
 
   /** Sus retos registrados, cada uno con su enlace (o el aviso si le falta uno obligatorio). */
@@ -2022,7 +2039,9 @@
       '<p class="small muted">Ninguno lleva el grupo dentro: piden la cuenta de quien los abre y, si lleva varios grupos, le preguntan cuál. ' +
       'Valen en todos los grupos y todas las convocatorias. En Genially: <b>Insertar → Otros → Código</b> y pegar.</p>' +
       [["📽️ La sesión de la semana", "sesion.html?embed=1"], ["🔔 Llamada a filas (solo la toca el Comandante)", "llamada.html?embed=1"],
-       ["🛰️ El aula (el puesto de mando del docente)", "aula.html?embed=1"], ["🎯 Validar un reto", "validar.html?reto=S7&embed=1"]].map(function (x) {
+       ["🛰️ El aula (el puesto de mando del docente)", "aula.html?embed=1"], ["🎯 Validar un reto", "validar.html?reto=S7&embed=1"],
+       // 16-sep · la batalla del reto A6: se pone en el Genially del tema 6 y se juega en clase, cada cual en su dispositivo
+       ["⚔️ El Simulador de Joran (el reto A6)", "batalla.html?embed=1"]].map(function (x) {
         return '<p class="small">' + x[0] + ' <button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[1], "STARGATE · " + x[0].replace(/^\S+\s/, ""))) + '">&lt;/&gt; Copiar para insertar</button></p>';
       }).join("") +
       // 15-sep (tarde) · el reto secreto (S7) es el Escape UNI; el enlace escondido de Vínculo lleva a su puerta

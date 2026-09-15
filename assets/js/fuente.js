@@ -379,6 +379,8 @@
                 if (yo_) yo_.ofertas = f.stargateOfertas || {};
                 // 15-sep (noche) · sus logros de a bordo, las cubiertas cobradas y los días a bordo (los apunta el servidor)
                 if (yo_) { yo_.hitos = f.stargateHitos || {}; yo_.cubiertas = f.stargateCubiertas || {}; yo_.dias = f.stargateDias || {}; }
+                // 16-sep · el Simulador de Joran: si le ganó (reto A6) y sus mejores marcas por tema
+                if (yo_) yo_.simulador = f.stargateSimulador || {};
                 // 15-sep (noche) · lo que tiene SIN ABRIR (un sobre o una cápsula que no se llegó a abrir): la Nave ofrece abrirlo
                 if (yo_) yo_.sinAbrir = Object.keys(f.consumableUses || {}).filter(function (id) {
                   return (f.inventory || []).indexOf(id) >= 0 && Number(f.consumableUses[id]) > 0; })

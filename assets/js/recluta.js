@@ -899,6 +899,10 @@
       +extraReto(t[0], d)
       +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado.</p>'+accionesDeHecho(t[0])
           // 15-sep · S7 es el Escape UNI: su puerta, y se registra solo con el botón del final del escape
+          // 16-sep · el reto A6 no se marca: se GANA al Simulador de Joran (batalla.html)
+          :(t[0]===(BT.reto||'A6')&&motorNuevo())
+            ? '<div class="rs-marcar rs-batalla"><a class="btn epico" href="batalla.html?per='+esc(per)+'"><span class="ep-luz"></span><span class="ep-txt">⚔️ Enfréntate al Simulador de Joran</span></a>'
+              +'<p class="small muted">No hay nada que entregar: se registra solo si le ganas. Y si pierdes, cada derrota lo cansa.</p></div>'
           :(t[0]==='S7'&&window.SG_ESCAPE_UNI)
             ? '<div class="rs-marcar rs-escape"><a class="btn epico" href="'+esc(window.SG_ESCAPE_UNI)+'" target="_blank" rel="noopener"><span class="ep-luz"></span><span class="ep-txt">🗝️ Entrar en el Escape UNI</span></a>'
               +'<p class="small muted">Se registra solo, con el botón del final del escape.</p></div>'
@@ -1042,8 +1046,55 @@
       //   4 · el duelo                     (una frase que empuja)
       // Lo que es colección se ha ido entero a «Mi botín».
       +retosDeLaSemana()
+      +simuladorCaja()
       +panelEmbebido()
       +duelo();
+  }
+
+  // ================= EL SIMULADOR DE JORAN (16-sep) =================
+  // Norberto: «si el usuario gana desbloquea algo nuevo en su nave: el Simulador de Joran. Puede usarlo para repasar
+  // los diferentes temas… habrá un ranking de cada tema y un modo en que entren todas las preguntas».
+  // La batalla vive en su propia página (batalla.html), que también se embebe en los Geniallys; aquí está la puerta:
+  // cerrada hasta que le gana (o hasta que NEBULA lo presenta, capítulo c11), abierta y con sus marcas después.
+  var BT = window.SG_BATALLA || {};
+  function ganoAJoran(){ return !!((st.yo && st.yo.simulador || {})[BT.clave || 'joran']); }
+  function simuladorCaja(){
+    if(!motorNuevo() || !st.yo) return '';
+    var gano = ganoAJoran(), presentado = abierto('simulador');
+    if(!gano && !presentado) return '';
+    var S = st.yo.simulador || {}, marcas = S.marcas || {}, T = S.total || null;
+    var mejores = Object.keys(marcas).sort(function(a, b){ return (marcas[b].p||0) - (marcas[a].p||0); }).slice(0, 3);
+    return '<div class="card sim-caja' + (gano ? '' : ' cerrada') + '">'
+      + '<img class="sim-em" src="assets/img/batalla/emblema.webp" alt="" width="84" height="84" loading="lazy">'
+      + '<div class="sim-txt"><div class="eyebrow amber">' + (gano ? 'Desbloqueado' : 'Bloqueado') + '</div>'
+      + '<h3>🎮 El Simulador de Joran</h3>'
+      + '<p class="small">' + (gano
+          ? 'Repasa tema a tema o con todas las preguntas del viaje, y mide tu marca contra la de tu tripulación.'
+          : 'Gánale a <b>' + esc(BT.rival || 'RUTA AZUL') + '</b> en el reto ' + esc(BT.reto || 'A6') + ' y se queda en tu Nave para siempre.') + '</p>'
+      + (gano && mejores.length ? '<p class="sim-marcas">' + mejores.map(function(m){
+          return '<span>' + esc(m === 'todas' ? 'Todas' : 'T' + m.slice(1)) + ' <b>' + (marcas[m].p || 0) + '</b></span>'; }).join('') + '</p>' : '')
+      + (gano && T ? '<p class="small muted">' + (T.batallas || 0) + ' batallas · ' + (T.aciertos || 0) + ' aciertos'
+          + (T.aciertos ? ' · ' + (Math.round((T.ms / 1000) / T.aciertos * 10) / 10) + ' s por acierto' : '') + '</p>' : '')
+      + '<p><a class="btn ' + (gano ? 'primary' : 'epico') + '" href="batalla.html?per=' + esc(per) + '">'
+      + (gano ? '🎮 Entrenar' : '<span class="ep-luz"></span><span class="ep-txt">⚔️ Enfrentarte al simulador</span>') + '</a></p>'
+      + '</div></div>';
+  }
+  /**
+   * 🔴 EL RETO A6 SE REGISTRA SOLO. Si ganó en la página de la batalla y el reto no quedó registrado (cerró la
+   * pestaña, se fue la wifi, o ya llevaba sus tres retos del día), la Nave lo registra al entrar. El servidor ya
+   * sabe que le ganó —`completeMission` lo comprueba—, así que esto no regala nada: solo evita el «gané y no consta».
+   */
+  function comprobarBatalla(){
+    if(!motorNuevo() || SIMULACRO || enDemo() || !st.yo || st.yo.congelado) return;
+    var id = BT.reto || 'A6';
+    if(!ganoAJoran() || ((st.yo.retos) || []).indexOf(id) >= 0) return;
+    var tope = Number(window.SG_TOPE_DIA || 0);
+    if(tope && registrosDeHoy() >= tope) return;
+    var antes = JSON.parse(JSON.stringify(st.yo));
+    post({accion:'registrar', per:per, reto:id, evidencia:'', reflexion:''}, function(){
+      aviso('🏅 <b>Reto ' + esc(id) + ' registrado</b>: le ganaste al Simulador de Joran.');
+      refrescarYCelebrar(antes, null, 'reto');
+    }, function(){ /* si no se puede hoy (tope, red), se reintenta la próxima vez que entre */ });
   }
   // v3.16 · EL VESTUARIO. Las cinco versiones de arte del personaje ya no se imponen al subir de
   // nivel: se desbloquean y se ELIGEN. Y encima están los héroes, que salen al azar y se acumulan.
@@ -2457,6 +2508,11 @@
           x:'Desde hoy, cada semana sale <b>una oferta</b> en el Mercado: un sobre, una cápsula, un héroe o una carta concretos, <b>rebajados entre un 20 y un 40 %</b>. Arriba del todo, con su cuenta atrás.'},
          {t:'Poco tiempo y pocas unidades',foco:'.nb-t[data-tab="mercado"]',
           x:'Dura lo que dura la semana y, si es algo raro, hay pocas unidades para todo el grupo: cuando se acaban, se acabó. <b>Una por persona</b>. Tu docente también puede preparar las suyas.'}],
+    // 16-sep · EL SIMULADOR DE JORAN (semana 11): la semana pasada se peleó en clase; hoy se enseña a todos
+    c11:[{t:'El Simulador de Joran',foco:'.nb-t[data-tab="nave"]',
+          x:'Joran dejó encendido su simulador de entrenamiento, <b>RUTA AZUL</b>: un rival hecho de luz que pregunta por el temario. Quien le ganó en el reto ya lo tiene en su Nave; quien no, puede volver a intentarlo — <b>cada derrota lo cansa</b>.'},
+         {t:'Repasar jugando',foco:'.nb-t[data-tab="nave"]',
+          x:'Dentro se entrena <b>tema a tema</b> o con <b>todas</b> las preguntas del viaje, y se elige la dificultad. Cada modo tiene su <b>ranking</b> del grupo, y hay reconocimientos al más rápido, al más certero y a quien más sabe.'}],
     // 14-sep · el Gran Sorteo: lo cuenta con el premio y los ganadores de SU grupo (el referente
     // puede cambiarlos), por eso se arma al momento
     c6:function(){
@@ -2908,6 +2964,7 @@
         if(st.email) localStorage.setItem(KEY_MAIL,st.email);
         setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200); setTimeout(sorteosAlEntrar, 900); setTimeout(ofertaAlEntrar, 1100);
         setTimeout(comprobarHitos, 1800);   // 15-sep · el día a bordo y los logros que ya se vean en los datos
+        setTimeout(comprobarBatalla, 2400);  // 16-sep · y el reto A6, si ganó al simulador y no llegó a registrarse
       } else if(d&&d.sinSesion&&!DEMO&&window.top===window.self&&q.get('embed')!=='1'){
         /**
          * 🔴 13-sep · SIN SESIÓN, A LA PUERTA ÚNICA. La Nave tenía su propia caja «Identifícate,
@@ -3617,6 +3674,11 @@
     var t = retoDeInsignia(clave); if(!t) return '';
     var ya = ((st.yo.retos)||[]).indexOf(t[0])>=0;
     if(ya) return '<p class="mi-ya">✓ Ya la tienes. La ganaste con este reto.</p>';
+    // 16-sep · el reto A6 se gana en el simulador
+    if(t[0]===(BT.reto||'A6'))
+      return '<div class="mi-hacer"><p class="small muted">Se gana con <b>'+esc(t[1])+'</b> · +'+t[3]+' xp</p>'
+        +'<p><a class="btn epico" href="batalla.html?per='+esc(per)+'"><span class="ep-luz"></span><span class="ep-txt">⚔️ Enfréntate al Simulador de Joran</span></a></p>'
+        +'<p class="small muted">Se registra solo al ganarle.</p></div>';
     // 15-sep · S7 es el Escape UNI: su puerta (se registra solo al final del escape)
     if(t[0]==='S7'&&window.SG_ESCAPE_UNI)
       return '<div class="mi-hacer"><p class="small muted">Se gana con <b>'+esc(t[1])+'</b> · +'+t[3]+' xp</p>'

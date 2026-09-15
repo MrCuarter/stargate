@@ -118,7 +118,7 @@ CRONO = [
       capitulo="Aprender jugando",
       videos=[("t6i","Al abrir el Tema 6"),
               ("t6c","Al cerrar el bloque"),("f6","Tras el cierre")],
-      lanza=["Reto A «Ensaya jugando» (Joran)", "Reto B «El juego» (juego digital educativo)"],
+      lanza=["Reto A «El Simulador de Joran» (batalla de preguntas, Joran)", "Reto B «El juego» (juego digital educativo)"],
       insignias=["P6_joran","R6_el-juego"],
       hito="Test del Tema 6 · Bitácora: un juego digital", clases="Clases 13–14",
       consejo="En Ludo SE JUEGA: el juego es la actividad. Fija ya la diferencia con lo que viene en Vínculo."),
@@ -558,7 +558,8 @@ EVIDENCIA_RETOS = {
  "B5": "obligatoria", "B6": "obligatoria", "B7": "obligatoria", "B8": "obligatoria",
  "A0": "obligatoria", "A2": "obligatoria", "A3": "obligatoria", "A4": "obligatoria",
  "A5": "obligatoria", "A7": "obligatoria", "A8": "obligatoria",
- # 15-sep (noche) · A1 y A6 se RESPONDEN en el reto (REFLEXION_RETOS): el enlace pasa a opcional
+ # 15-sep (noche) · A1 se RESPONDE en el reto (REFLEXION_RETOS): el enlace pasa a opcional
+ # 16-sep · A6 no pide nada: se gana al Simulador de Joran (batalla.html) y se registra solo
  "A1": "", "A6": "",
 }
 # 15-sep (noche) · LOS RETOS QUE SE RESPONDEN EN EL PROPIO RETO. Norberto: «en los retos en los que tienen que compartir
@@ -577,8 +578,6 @@ REFLEXION_RETOS = {
         "pide": "Tu reflexión: qué objetivo didáctico cubre tu videotutorial y qué aprendiste al hacerlo."},
  "B4": {"modo": "ambos", "min": 150, "titulo": "Aulas que viajan en el bolsillo",
         "pide": "Tu reflexión: cómo llega tu contenido al móvil del alumno y cómo mantienes viva la conversación."},
- "A6": {"modo": "texto", "min": 200, "titulo": "Lo que convertimos en juego",
-        "pide": "¿Qué les cuesta a tus alumnos, a qué se juega y qué aprenden jugando?"},
  "B6": {"modo": "ambos", "min": 150, "titulo": "Juegos con niveles",
         "pide": "Tu reflexión: qué objetivo cubre tu juego, qué cambia de un nivel a otro y cómo lo evalúas."},
  "A7": {"modo": "ambos", "min": 120, "titulo": "Insignias con sentido",
@@ -618,7 +617,7 @@ GANCHO_RETOS = {
  "B4": "Tu aula virtual con una tarea o un material publicado, en un doc con 2 capturas.",
  "A5": "Una rúbrica de 3-4 criterios para evaluar un objetivo, lista para que la use cualquiera.",
  "B5": "El centro de recursos de tu alumnado: una web (Sites o Genially) con tu rúbrica a la vista.",
- "A6": "Convierte en juego algo que a tus alumnos les cuesta y cuéntalo aquí mismo.",
+ "A6": "Joran te reta: gánale a su simulador con lo que llevas aprendido.",
  "B6": "Un juego digital con niveles o varias formas de jugar, al servicio de un objetivo.",
  "A7": "Crea una insignia con sentido para una tarea rutinaria, y cuenta su porqué.",
  "B7": "Un toque de juego sobre una tarea, envuelto en una historia.",
@@ -758,7 +757,20 @@ CAPITULOS = [
                 "Las cinco: el Contramaestre de la Nave, un héroe legendario (él y ella) y una carta con tu alias",
                 "No se compra, no se regala y no se cambia en el Zoco: solo se gana"],
      "imagen": "assets/img/canje/logros.jpg"},
-    {"n": 10, "clave": "c7", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
+    # 16-sep · EL SIMULADOR DE JORAN (el reto A6). Norberto: «la misma semana 10 les puedo dejar hacer la actividad en
+    # clase y la semana siguiente mostramos el emulador desbloqueado (aunque algunos ya lo tendrán desbloqueado)». La
+    # batalla se abre con el planeta Ludo (tema 6, semana 10); este capítulo la presenta a la clase entera la semana
+    # siguiente. En PUA el tema 6 cae en la 5, así que el capítulo va con el Arsenal, en la 8.
+    {"n": 10, "clave": "c11", "titulo": "El Simulador de Joran", "icono": "🎮", "semana": 11, "semana_pua": 8,
+     "abre": ["simulador"], "mercado": [],
+     "cabecera": "El simulador que dejó encendido Joran",
+     "puedes": ["Si le ganaste a RUTA AZUL en el reto A6, el simulador ya está en tu Nave",
+                "Y si no, vuelve a intentarlo: cada derrota lo cansa y ataca más despacio",
+                "Entrena tema a tema, o con todas las preguntas del viaje a la vez",
+                "Cada modo tiene su ranking: ganar vale, ganar entero vale más y ganar sin fallar, lo máximo",
+                "Es repaso de verdad: las preguntas salen del temario, y la batalla final es el examen"],
+     "imagen": "assets/img/canje/simulador.jpg"},
+    {"n": 11, "clave": "c7", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
      "abre": ["arsenal"], "mercado": ["nota"],
      "cabecera": "El Arsenal: créditos por nota",
      "puedes": ["Subir 0,5 o 1 punto en un entregable, o que se recalifique un trabajo",
@@ -771,6 +783,36 @@ for _c in CAPITULOS:
 assert [c["n"] for c in CAPITULOS] == list(range(1, len(CAPITULOS) + 1)), "los capítulos van en orden"
 assert all(CAPITULOS[i]["semana"] <= CAPITULOS[i + 1]["semana"] for i in range(len(CAPITULOS) - 1)), \
     "un capítulo no puede abrirse antes que el anterior"
+
+# ─────────────────── EL SIMULADOR DE JORAN · la batalla del reto A6 (16-sep) ───────────────────
+# Norberto: «Reto A6: vamos a hacer algo más épico… se van a enfrentar a un juego de preguntas contra Joran… GamificaPro
+# tiene un motor de peleas, revísalo y lo usamos… si el usuario gana desbloquea algo nuevo en su nave: el Simulador de
+# Joran… habrá un ranking de cada tema y un modo en que entren todas las preguntas».
+#
+# 🔴 LAS PREGUNTAS NO ESTÁN AQUÍ. El banco (con sus respuestas) vive en GamificaPro —repositorio privado—, en
+# `functions/stargateBanco.js`, y solo sale de allí pregunta a pregunta. Esta web es PÚBLICA: lo que hay aquí son los
+# números que se le enseñan al alumnado, y tienen que ser los mismos que en `functions/stargateBatalla.js → BATALLA`
+# (la batería 80 los compara).
+BATALLA = {
+    "reto": "A6", "clave": "joran", "rival": "RUTA AZUL", "creador": "Joran Pike", "capitulo": "c11",
+    "tema_reto": 6, "temas_reto": [1, 2, 3, 4, 5],
+    "vida": 100, "vida_rival": 180, "golpe": 20, "golpe_rival": 10,
+    "cadencia": 25, "preguntas": 14, "cura": 35, "lentitud": 12,
+    # 16-sep · Norberto: «sería fantástico poder escoger el nivel de dificultad en el juego». El nivel cambia las
+    # preguntas que salen, lo que aguanta el rival, cada cuánto pega y lo que vale la marca. El reto A6 va siempre en
+    # media: la insignia de Joran cuesta lo mismo para todo el mundo.
+    "nivel_reto": "media",
+    "niveles": [["facil", "Fácil", "Sobre todo preguntas fáciles. Aguanta menos y pega más despacio.", "×0,85"],
+                ["media", "Media", "El equilibrio del reto de Joran.", "×1"],
+                ["dificil", "Difícil", "Medias y difíciles, aguanta más, pega antes y sin pistas.", "×1,35"]],
+    # y los reconocimientos del grupo, que salen del historial de cada recluta
+    "medallas": [["rapido", "⚡", "El más rápido", "menos segundos por acierto"],
+                 ["certero", "🎯", "El más certero", "más aciertos por respuesta"],
+                 ["sabio", "📚", "Quien más sabe", "más respuestas correctas en total"]],
+    "objetos": [["cura", "🔧", "Reparación", "Recupera 35 de escudo"],
+                ["furia", "⚡", "Sobrecarga", "Tu próximo golpe hace el doble"],
+                ["lentitud", "📡", "Interferencia", "Retrasa su ataque 12 segundos"]],
+}
 
 # ─────────────────────────── EL GRAN SORTEO (14-sep) ───────────────────────────
 # Norberto: «el sorteo de dos licencias de Genially de año completo, a partir de la semana 6: que los

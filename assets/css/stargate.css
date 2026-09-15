@@ -3906,3 +3906,15 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 .fi-ab.ok{border-color:#6b5320;color:var(--amber)}
 /* 15-sep (noche) · lo que se quedó sin abrir, arriba del botín */
 .botin-sinabrir{border-color:#6b5320}.botin-sinabrir p{margin:0 0 8px}.botin-sinabrir .sa-lista{display:flex;flex-wrap:wrap;gap:8px}
+
+/* ── EL SIMULADOR DE JORAN (16-sep) · la puerta, en «Mi nave» ───────────────────────────── */
+.sim-caja{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.sim-caja.cerrada{border-color:rgba(255,209,102,.4)}
+.sim-em{flex:none;filter:drop-shadow(0 4px 12px rgba(55,224,236,.35))}
+.sim-caja.cerrada .sim-em{filter:grayscale(.7) opacity(.75)}
+.sim-txt{flex:1;min-width:230px}
+.sim-txt h3{margin:2px 0 6px}
+.sim-marcas{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}
+.sim-marcas span{background:rgba(13,24,36,.8);border:1px solid #1d3448;border-radius:999px;padding:3px 11px;font-size:13px}
+.sim-marcas b{color:var(--amber,#ffd166)}
+.rs-batalla{margin-top:12px}

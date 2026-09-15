@@ -30,7 +30,7 @@ const REG = {};   // cifras que se apuntan para el informe
   const nueva = async n => { const p = await persona(n); vivas.push(p); return p; };
   // 13-sep · los capítulos de NEBULA, ya vistos (para las secciones que no van de eso: si no, a mitad
   // de una prueba sale NEBULA contando el Mercado)
-  const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
+  const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10','c11'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
   // alistarse de verdad, por la pantalla (lo usan la clase entera y el héroe por enlace)
   const alistar = async (p, correo, nombre, alias, cmd) => {
     await p.ir("alistarse.html?per=lab-clase&codigo=" + CODIGO);
@@ -2013,7 +2013,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await cm.ir("entrar.html"); await cm.entrarComo("rita@lab.test", "Rita Referente");
       await cm.ir("recluta.html?simulacro=1&per=" + P + "&semana=8");   // (16-sep · el Zoco abre en la 8)
       await cm.hasta("!!document.querySelector('.nb-t[data-tab=\"zoco\"]')", 30);
-      await cm.js("['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'].forEach(function(k){localStorage.setItem('sgCap_" + P + "_'+k,'hecho')}); var c=document.querySelector('.neb-capa'); if(c) c.remove(); 1");
+      await cm.js("['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10','c11'].forEach(function(k){localStorage.setItem('sgCap_" + P + "_'+k,'hecho')}); var c=document.querySelector('.neb-capa'); if(c) c.remove(); 1");
       await alZoco(cm);
       c("zoco · 21 · en la Nave del Comandante (semana 6) el Zoco sale con cosas de «otros reclutas»", await cm.hasta("document.querySelectorAll('[data-zofertar]').length>0", 15));
       const hayMio = await cm.js("document.getElementById('z-poner').click(); !!document.querySelector('.zoco-capa .zm-p:not([disabled])')");
@@ -3823,6 +3823,152 @@ const REG = {};   // cifras que se apuntan para el informe
       c("a bordo · sin errores en las páginas", ![lara, rita].some(p => p.errores.filter(e => !/Failed to load resource/.test(e)).length),
         [lara, rita].map(p => p.errores.filter(e => !/Failed to load resource/.test(e))[0]).filter(Boolean).join(" | "));
       for (const p of [lara, rita]) await p.cerrar();
+    }
+
+    // ============================================================ 39 · EL SIMULADOR DE JORAN (el reto A6)
+    /**
+     * Norberto (16-sep): «Reto A6: vamos a hacer algo más épico… se van a enfrentar a un juego de preguntas contra
+     * Joran… si lo superamos obtendremos su insignia… si el usuario gana desbloquea algo nuevo en su nave: el Simulador
+     * de Joran… habrá un ranking de cada tema… debe existir la posibilidad de embeber el juego».
+     *
+     * Aquí se juega DE VERDAD contra el motor del servidor: Nova abre el reto desde su Nave, pelea con RUTA AZUL
+     * (respondiendo como respondería quien se sabe el tema: el banco vive en GamificaPro y esta prueba lo lee de ahí,
+     * igual que la batería 79 lee el catálogo), gana, y se comprueba lo que importa: que el reto A6 queda registrado
+     * con la insignia de Joran, que el simulador se le abre en la Nave, que su marca entra en el ranking… y que en
+     * ningún momento la página ha recibido la respuesta correcta antes de responder. Quim, en cambio, se rinde: su
+     * derrota cansa al rival para la próxima.
+     */
+    if (hacer(39)) {
+      const P = "lab-clase";
+      const { BANCO } = await import("file:///Users/nor/Claude/vibewebs/gamificapro/functions/stargateBanco.js");
+      const PREG = new Map(BANCO.map(q => [q.id, q]));
+      const NOVA = ["nova@lab.test", "Nova Prueba", "Nova Batalla", 0];
+      for (let i = 0; i < 2 && !(await fichaDe(NOVA[0], P)); i++) { const a = await nueva("Alta Nova"); await alistar(a, NOVA[0], NOVA[1], NOVA[2], NOVA[3]); await a.cerrar(); }
+      const nova = await nueva("Nova y el Simulador de Joran");
+      await nova.ir("entrar.html"); await nova.entrarComo(NOVA[0], NOVA[1]); await sinBienvenidas(nova);
+
+      // 1 · en su Nave, el reto A6 lleva a la batalla (y no tiene «Lo he hecho»)
+      await nova.ir("recluta.html?per=" + P + "#retos");
+      await nova.hasta("!!document.querySelector('.reto-sem')", 30);
+      const tieneA6 = await nova.js(`(function(){ var d=[].slice.call(document.querySelectorAll('.reto-sem')).filter(function(x){return /A6/.test(x.textContent)})[0];
+        if(!d) return ''; d.open=true; return d.innerHTML; })()`);
+      c("🔴 batalla · el reto A6 no se marca: su tarjeta lleva al Simulador de Joran", /batalla\.html\?per=/.test(tieneA6) && !/data-hecho="A6"/.test(tieneA6),
+        tieneA6 ? tieneA6.slice(0, 120) : "sin tarjeta A6");
+
+      // 2 · la batalla: la puerta, las reglas y a pelear
+      await nova.ir("batalla.html?per=" + P);
+      const hayReto = await nova.hasta("!!document.querySelector('[data-empezar=\"reto\"]')", 35);
+      c("batalla · la página enseña el reto con sus reglas y el rival", hayReto && await nova.js("!!document.querySelector('.bt-rival-foto img') && /RUTA AZUL/.test(document.body.textContent)"));
+      await nova.foto(FOTOS + "/39-reto.png");
+      await nova.js("document.querySelector('[data-empezar=\"reto\"]').click(); 1");
+      const arena = await nova.hasta("!!document.querySelector('.bt-q') && !!document.querySelector('#bt-arena')", 35);
+      c("batalla · empieza: arena, marcadores y la primera pregunta", arena);
+      await nova.foto(FOTOS + "/39-arena.png");
+
+      // 🔴 la respuesta NO viaja: ni la corrección de la pregunta que tiene delante está en la página
+      const idQ = await nova.js("(document.querySelector('.bt-q')||{}).dataset ? document.querySelector('.bt-q').dataset.q : ''");
+      const q0 = PREG.get(idQ);
+      const limpia = q0 ? await nova.js(`(function(){ var t=document.documentElement.innerHTML + JSON.stringify(window.SG_BATALLA||{});
+        return t.indexOf(${JSON.stringify((q0.correccion || "").slice(0, 40))}) < 0; })()`) : false;
+      c("🔴 batalla · la página NO tiene la respuesta ni la corrección antes de responder", !!q0 && limpia === true, idQ);
+      const leer = await nova.js(`(async function(){ try { var M=window.SG.MOTOR; var r=await M.getDocs(M.query(M.collection(M.db,'stargate_batallas'))); return 'leidas:'+r.size; } catch(e){ return String(e.code||e.message); } })()`);
+      c("🔴 batalla · y las batallas no se pueden leer desde el navegador (dentro está el mazo)", /permission/i.test(leer), leer);
+
+      // 3 · jugar: se responde lo correcto (el banco lo sabe esta prueba, no la web) y se golpea
+      let vueltas = 0, gano = false;
+      while (vueltas < 40) {
+        vueltas += 1;
+        if (await nova.js("!!document.querySelector('.bt-final')")) break;
+        const datos = await nova.js(`(function(){ var q=document.querySelector('.bt-q'); if(!q) return '';
+          return JSON.stringify({ id:q.dataset.q, tipo:q.dataset.tipo, ops:[].slice.call(q.querySelectorAll('.bt-op')).map(function(b){return b.textContent}) }); })()`);
+        if (!datos) { await dormir(600); continue; }
+        const { id, ops } = JSON.parse(datos), q = PREG.get(id);
+        if (!q) { c("batalla · la pregunta está en el banco", false, id); break; }
+        const buenas = q.correctas.map(i => q.opciones[i]);
+        await nova.js(`(function(){ var ops=[].slice.call(document.querySelectorAll('.bt-op')), t=${JSON.stringify(buenas)};
+          t.forEach(function(x){ var b=ops.filter(function(o){return o.textContent===x && !o.disabled})[0]; if(b) b.click(); });
+          var ok=document.querySelector('#bt-ok'); if(ok && !ok.disabled) ok.click(); return 1; })()`);
+        await nova.hasta("!!document.querySelector('[data-acc=\"golpe\"]') || !!document.querySelector('.bt-final')", 12);
+        if (await nova.js("!!document.querySelector('[data-acc=\"golpe\"]')")) {
+          await nova.js("document.querySelector('[data-acc=\"golpe\"]').click(); 1");
+          await dormir(400);
+        }
+      }
+      gano = await nova.hasta("!!document.querySelector('.bt-final.gana')", 20);
+      const finTxt = String(await nova.js("(document.querySelector('.bt-final')||{}).textContent||''") || "");
+      c("🔴 batalla · respondiendo bien se le gana a RUTA AZUL", gano, finTxt.slice(0, 120));
+      await nova.foto(FOTOS + "/39-victoria.png");
+      const marca = Number(await nova.js("Number((document.querySelector('.bt-marca b')||{}).textContent||0)"));
+      c("batalla · la victoria da su marca (ganar vale 1.000, y el escudo y la puntería suman)", marca >= 1000, String(marca));
+      await nova.hasta("/Reto A6 registrado|Ya lo tenías/.test(document.body.textContent)", 25);
+      const fN = await fichaDe(NOVA[0], P);
+      c("🔴 batalla · el reto A6 queda registrado con la insignia de Joran",
+        (fN.earnedBadges || []).indexOf("P6_joran") >= 0 && Object.keys(fN.missionTimestamps || {}).some(k => /A6$/.test(k)),
+        JSON.stringify((fN.earnedBadges || []).slice(-3)));
+      c("🔴 batalla · y el servidor apunta que le ganó (es lo que abre el simulador)", !!(fN.stargateSimulador || {}).joran, JSON.stringify(fN.stargateSimulador || {}));
+
+      // 4 · el simulador, desbloqueado: entrenamiento por temas, niveles y ranking
+      await nova.ir("batalla.html?per=" + P);
+      const menu = await nova.hasta("!!document.querySelector('.bt-modos')", 30);
+      c("🔴 batalla · al ganar se abre el Simulador: entrenar por temas y con todas", menu && await nova.js("document.querySelectorAll('.bt-modo').length >= 3"),
+        String(await nova.js("document.querySelectorAll('.bt-modo').length")));
+      c("batalla · y se puede escoger la dificultad", await nova.js("document.querySelectorAll('.bt-nivel').length === 3"));
+      const rk = await nova.hasta("!!document.querySelector('.bt-medallas') || !!document.querySelector('.bt-rk')", 20);
+      c("batalla · el ranking del grupo y los tres reconocimientos", rk);
+      await nova.foto(FOTOS + "/39-simulador.png");
+      // en la Nave, su puerta
+      await nova.ir("recluta.html?per=" + P);
+      await nova.hasta("!!document.querySelector('.sim-caja')", 30);
+      c("batalla · en «Mi nave» aparece el Simulador de Joran, desbloqueado",
+        await nova.js("!!document.querySelector('.sim-caja') && !document.querySelector('.sim-caja').classList.contains('cerrada')"));
+
+      // 5 · Quim se rinde: cuenta como derrota y el rival se cansa para la próxima
+      const QUIM = ["quim@lab.test", "Quim Prueba", "Quim Batalla", 1];
+      for (let i = 0; i < 2 && !(await fichaDe(QUIM[0], P)); i++) { const a = await nueva("Alta Quim"); await alistar(a, QUIM[0], QUIM[1], QUIM[2], QUIM[3]); await a.cerrar(); }
+      const quim = await nueva("Quim se rinde");
+      await quim.ir("entrar.html"); await quim.entrarComo(QUIM[0], QUIM[1]); await sinBienvenidas(quim);
+      await quim.ir("batalla.html?per=" + P);
+      await quim.hasta("!!document.querySelector('[data-empezar=\"reto\"]')", 35);
+      await quim.js("document.querySelector('[data-empezar=\"reto\"]').click(); 1");
+      await quim.hasta("!!document.querySelector('.bt-q')", 35);
+      // responde tres BIEN (una derrota solo cansa al rival si de verdad se ha jugado: tres respuestas)
+      for (let k = 0; k < 3; k++) {
+        const d = await quim.js(`(function(){ var q=document.querySelector('.bt-q'); if(!q) return '';
+          return JSON.stringify({ id:q.dataset.q, ops:[].slice.call(q.querySelectorAll('.bt-op')).map(function(b){return b.textContent}) }); })()`);
+        if (!d) { await dormir(800); continue; }
+        const qq = PREG.get(JSON.parse(d).id);
+        if (!qq) break;
+        const buenas = qq.correctas.map(i => qq.opciones[i]);
+        await quim.js(`(function(){ var ops=[].slice.call(document.querySelectorAll('.bt-op')), t=${JSON.stringify(buenas)};
+          t.forEach(function(x){ var b=ops.filter(function(o){return o.textContent===x && !o.disabled})[0]; if(b) b.click(); });
+          var ok=document.querySelector('#bt-ok'); if(ok && !ok.disabled) ok.click(); return 1; })()`);
+        await quim.hasta("!!document.querySelector('[data-acc=\"guardia\"]') || !!document.querySelector('.bt-final')", 12);
+        if (await quim.js("!!document.querySelector('[data-acc=\"guardia\"]')")) { await quim.js("document.querySelector('[data-acc=\"guardia\"]').click(); 1"); await dormir(500); }
+      }
+      await quim.js("window.confirm = function(){ return true; }; document.querySelector('#bt-rendir').click(); 1");
+      const perdio = await quim.hasta("!!document.querySelector('.bt-final.pierde')", 25);
+      c("batalla · rendirse cuenta como derrota, y se dice que el rival se cansa", perdio && /cansa/.test(await quim.js("document.querySelector('.bt-final').textContent")));
+      await quim.ir("batalla.html?per=" + P);
+      await quim.hasta("!!document.querySelector('[data-empezar=\"reto\"]')", 30);
+      c("🔴 batalla · la próxima vez atacará más despacio (la válvula de equidad)",
+        /Lo has intentado/.test(await quim.js("document.body.textContent")));
+      const fQ = await fichaDe(QUIM[0], P);
+      c("🔴 batalla · perder NO da el reto A6 ni la insignia", (fQ.earnedBadges || []).indexOf("P6_joran") < 0 && !(fQ.stargateSimulador || {}).joran);
+      const trampa = await quim.js(`(async function(){ try { var M=window.SG.MOTOR; var r=await M.getDocs(M.query(M.collection(M.db,'student_profiles'), M.where('userId','==',(await M.sesion()).uid)));
+        await M.updateDoc(M.doc(M.db,'student_profiles',r.docs[0].id), { stargateSimulador: { joran: { f: Date.now(), p: 2000 } } }); return 'escrito'; } catch(e){ return String(e.code||e.message); } })()`);
+      c("🔴 batalla · y no puede dárselo por ganado desde la consola del navegador", /permission/i.test(trampa), trampa);
+
+      // 6 · el docente puede ensayarlo en clase (sin ficha, sin marcas)
+      const dani = await nueva("Dani ensaya el simulador");
+      await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente"); await sinBienvenidas(dani);
+      await dani.ir("batalla.html?per=" + P);
+      const ens = await dani.hasta("/ensayo/i.test(document.body.textContent)", 30);
+      c("batalla · el docente lo abre en modo ensayo (para enseñarlo en clase)", ens && await dani.js("document.querySelectorAll('.bt-modo').length >= 8"),
+        String(await dani.js("document.querySelectorAll('.bt-modo').length")));
+
+      c("batalla · sin errores en las páginas", ![nova, quim, dani].some(p => p.errores.filter(e => !/Failed to load resource/.test(e)).length),
+        [nova, quim, dani].map(p => p.errores.filter(e => !/Failed to load resource/.test(e))[0]).filter(Boolean).join(" | "));
+      for (const p of [nova, quim, dani]) await p.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

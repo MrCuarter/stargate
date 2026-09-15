@@ -123,7 +123,7 @@
       },
       {
         "id": "A6",
-        "titulo": "Reto A «Ensaya jugando» (recupera a Joran)",
+        "titulo": "Reto A «El Simulador de Joran» (recupera a Joran)",
         "insignias": [
           "P6_joran"
         ],
@@ -374,9 +374,9 @@
     "P6_joran": {
       "nombre": "Joran Pike · El Ingeniero-jugador",
       "tipo": "Insignia de personaje",
-      "como": "Completando el Reto A del Tema 6: «Ensaya jugando».",
+      "como": "Ganando al Simulador de Joran (RUTA AZUL) en el Reto A del Tema 6.",
       "cuando": "Tema 6 · Planeta Ludo",
-      "tarea": "Coge algo que tus alumnos temen o les cuesta y conviértelo en un pequeño ensayo jugable, digital o analógico (una mecánica: puntos, rutas, unas cartas, un enigma en cada paso…). Cuéntalo aquí mismo, en la caja del reto, en 4–6 líneas: qué les cuesta, a qué se juega y qué aprenden jugando. Si es digital (o tienes una foto), añade el enlace. Criterio: que el juego sirva a un objetivo, no que sea juego por juego.",
+      "tarea": "Joran dejó encendido su simulador de entrenamiento: RUTA AZUL, un rival hecho de luz que pregunta por todo lo que llevas recorrido (temas 1 al 5). Entra desde el botón del reto en tu Nave y gánale: no hay nada que entregar, se registra solo al vencerlo. Cómo se pelea: aciertas y eliges golpear o cubrirte; fallas y no pierdes escudo, pierdes tiempo (y esa pregunta vuelve). El rival ataca cada 25 segundos, así que responde sin dormirte. Llevas un kit de un uso: reparar el escudo, sobrecargar tu golpe e interferir su ataque. Cuando esté al 20 % llega el Remate: sin fallos cae de un golpe; con fallos, vuelven en cadena y hay que redimirlas. Si pierdes, vuelve a intentarlo: cada derrota lo cansa y ataca más despacio. Al ganar te llevas la insignia de Joran y el Simulador se queda en tu Nave para repasar tema a tema, con su ranking.",
       "cita": "Esta ya la hemos ganado cien veces. Ruta azul."
     },
     "P7_mara": {

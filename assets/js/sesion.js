@@ -545,6 +545,45 @@
       +'</div>'};
   }
 
+  /**
+   * 16-sep · EL SIMULADOR DE JORAN, proyectado. Norberto: «la semana siguiente mostramos el emulador desbloqueado
+   * (aunque algunos ya lo tendrán desbloqueado)». Se enseña desde la semana de su capítulo: quién le ha ganado ya, las
+   * mejores marcas y los tres reconocimientos (el más rápido, el más certero y quien más sabe). Sale de lo que ya trae
+   * el tablero: cero peticiones nuevas.
+   */
+  function capituloEn(clave, sem){
+    var t=st.tipo==='PUA'?'PUA':'REGULAR', ab=(st.d&&st.d.capitulosAbiertos)||{};
+    var c=(window.SG_CAPITULOS||[]).filter(function(x){ return x.clave===clave; })[0]; if(!c) return false;
+    var suya=(c.semanas||{})[t]||99, antes=ab[clave]===true?1:Number(ab[clave])||0;
+    return Number(sem)>=(antes&&antes<suya?antes:suya);
+  }
+  function diaSimulador(s){
+    var BT=window.SG_BATALLA||{};
+    if(!BT.reto || !s || !capituloEn(BT.capitulo||'c11', s.sem)) return null;
+    var R=vivos(), sim=function(p){ return p.simulador||{}; };
+    var ganaron=R.filter(function(p){ return sim(p)[BT.clave||'joran']; });
+    var marcas=R.map(function(p){ var m=(sim(p).marcas)||{}; var mejor=Object.keys(m).reduce(function(a,k){ return Math.max(a, Number(m[k].p)||0); }, 0);
+        return {p:p, n:mejor}; }).filter(function(x){ return x.n>0; }).sort(function(a,b){ return b.n-a.n; }).slice(0,3);
+    var con=function(f){ return R.map(function(p){ return {p:p, t:(sim(p).total)||null}; }).filter(function(x){ return x.t && x.t.aciertos>0; }).sort(f)[0]; };
+    var rapido=con(function(a,b){ return (a.t.ms/a.t.aciertos)-(b.t.ms/b.t.aciertos); });
+    var certero=con(function(a,b){ return (b.t.aciertos/b.t.respondidas)-(a.t.aciertos/a.t.respondidas); });
+    var sabio=con(function(a,b){ return b.t.aciertos-a.t.aciertos; });
+    if(!ganaron.length && !marcas.length) return null;
+    var med=function(ico, tit, x, val){ return x?'<span class="col-ley-u">'+cara(x.p)+'<b>'+esc(x.p.alias)+'</b><em>'+ico+' '+tit+' · '+val(x.t)+'</em></span>':''; };
+    return {k:'simulador', rot:'El Simulador de Joran', html:
+      '<div class="dia simulador"><div class="kicker">🎮 Entrenamiento</div><h2>El Simulador de Joran</h2>'
+      +'<p class="ses-sub">Quien le ganó a <b>'+esc(BT.rival||'RUTA AZUL')+'</b> lo tiene en su Nave para repasar tema a tema… y quien no, puede volver a intentarlo: cada derrota lo cansa.</p>'
+      +(ganaron.length?'<div class="col-ley"><span class="col-ley-t">⚔️ Le han ganado ('+ganaron.length+')</span>'+ganaron.slice(0,10).map(function(p){
+          return '<span class="col-ley-u">'+cara(p)+'<b>'+esc(p.alias)+'</b></span>'; }).join('')+'</div>':'')
+      +(marcas.length?'<div class="col-grid"><div class="col-c"><h3>🏆 Mejores marcas</h3><ol>'+marcas.map(function(x,i){
+          return '<li style="--i:'+i+'"><span class="col-pos">'+(i+1)+'</span>'+cara(x.p)+'<b>'+esc(x.p.alias)+'</b><span class="col-n">'+x.n+'</span></li>'; }).join('')+'</ol></div></div>':'')
+      +((rapido||certero||sabio)?'<div class="col-ley"><span class="col-ley-t">🏅 Reconocimientos</span>'
+          +med('⚡','el más rápido',rapido,function(t){ return (Math.round((t.ms/1000)/t.aciertos*10)/10)+' s por acierto'; })
+          +med('🎯','el más certero',certero,function(t){ return Math.round(t.aciertos*100/t.respondidas)+' % de aciertos'; })
+          +med('📚','quien más sabe',sabio,function(t){ return t.aciertos+' aciertos'; })+'</div>':'')
+      +'</div>'};
+  }
+
   // ── 8 · escuadrones, por MEDIA (si fuera por suma ganaría siempre el más numeroso)
   function diaEscuadrones(){
     var por={}; vivos().forEach(function(p){ var e=p.profe||''; if(e) (por[e]=por[e]||[]).push(p.xp||0); });
@@ -716,7 +755,7 @@
     if(st.per) d.push(diaLlamada());
     var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
     deTipo('inicio').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 Para empezar')); });
-    [diaAnteriores(s)].concat(diasReflexion(s), [diaMovido(), diaSemanal(), diaTop(), diaColeccion(s), diaEscuadrones(), diaTicket(), diaOferta()])
+    [diaAnteriores(s)].concat(diasReflexion(s), [diaMovido(), diaSemanal(), diaTop(), diaColeccion(s), diaSimulador(s), diaEscuadrones(), diaTicket(), diaOferta()])
       .forEach(function(x){ if(x) d.push(x); });
     d=d.concat(diapositivasNuevas(s));
     deTipo('mision').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 La misión')); });
