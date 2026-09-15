@@ -1707,6 +1707,8 @@
     var dia0 = SS.fecha(CAL.inicio).getDay(), cabDias = "";
     for (var k = 0; k < 7; k++) cabDias += "<span>" + INICIALES[(dia0 + k) % 7] + "</span>";
     var noLect = filas.filter(function (f) { return f.congelada; }).length;
+    // las festivas de la UNIR que aún cuentan como lectivas (y no han pasado): un grupo creado antes de la regla
+    var sinSaltar = festivas.filter(function (x) { return CAL.pausas.indexOf(x) < 0 && x > SS.iso(new Date()); });
 
     var fila = function (f, idx) {
       var pasada = f.fin < hoy, actual = f.inicio <= hoy && hoy <= f.fin, futura = f.inicio > hoy;
@@ -1714,6 +1716,9 @@
       var clase = f.congelada ? (festiva ? "festivo" : "nolectiva") : f.canje ? "canje" : "lectiva";
       var et = f.congelada ? (festiva ? "🎄" : "⏸") : f.canje ? "🛒" : "S" + f.semana;
       var que = [];
+      // 15-sep · Norberto: «hay que saltarse SIEMPRE la semana del 24 de diciembre, la siguiente y la de Jueves Santo». Los grupos
+      // nuevos nacen así; en uno de antes, una festiva que aún cuenta como lectiva se señala (y abajo se saltan todas de un clic).
+      if (!f.congelada && festivas.indexOf(f.inicio) >= 0) que.push('<span class="cal-aviso">🎄 ' + fiesta(f.inicio) + ' en la UNIR: debería ser no lectiva</span>');
       if (f.congelada) que.push(festiva ? "<b>" + fiesta(f.inicio) + "</b> en la UNIR: no hay clase" : "<b>No lectiva</b>: el curso no avanza esta semana");
       else {
         planetas.filter(function (p) { return p.sem === f.semana; }).forEach(function (p) { que.push("🪐 Planeta " + p.n + " · " + esc(p.nombre)); });
@@ -1784,6 +1789,9 @@
         "<span>Retos hasta el <b>" + diaCorto(nuevo.cierre) + "</b></span>" +
         "<span>Canje hasta el <b>" + diaCorto(nuevo.cierreCanje) + "</b></span>" +
         '<span class="cal-hoy-txt">Hoy: <b>' + hoyTxt + "</b></span></div>" +
+      (sinSaltar.length ? '<p class="cal-aviso-caja">🎄 <b>' + sinSaltar.length + (sinSaltar.length === 1 ? " semana festiva" : " semanas festivas") +
+        " de la UNIR</b> (Navidad o Semana Santa) " + (sinSaltar.length === 1 ? "cuenta" : "cuentan") + " aún como lectiva" + (sinSaltar.length === 1 ? "" : "s") + " en este grupo." +
+        (edita ? ' <button type="button" class="btn min" id="cal-festivos">Saltarlas</button>' : " Díselo a tu referente.") + "</p>" : "") +
       (edita
         ? '<div class="cal-cab"><label>Primer día de la semana 1 <input type="date" id="cal-inicio" value="' + esc(CAL.inicio) + '"></label>' +
           '<p class="small">👆 <b>Pulsa una semana</b> que aún no haya llegado para marcarla como <b>no lectiva</b> (o para que vuelva a serlo). ' +
@@ -1819,6 +1827,7 @@
         var d = SS.dias(nuevoIni, p); return d < 0 ? "" : SS.masDias(nuevoIni, Math.floor(d / 7) * 7); }));
       CAL.inicio = nuevoIni; re();
     };
+    if ($("#cal-festivos")) $("#cal-festivos").onclick = function () { CAL.pausas = SS.limpias(CAL.inicio, CAL.pausas.concat(sinSaltar)); re(); };
     Array.prototype.forEach.call(app.querySelectorAll("[data-cal-tg]"), function (b) {
       var cambia = function () {
         var p = b.getAttribute("data-cal-tg");

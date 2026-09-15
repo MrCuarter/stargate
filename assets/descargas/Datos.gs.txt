@@ -51,16 +51,16 @@ var RETOS_REGULAR = [
   ["B3","Reto B «La matriz» (matriz 8×6)",["R3_la-matriz"],250,3],
   ["X2","Actividad 2 entregada (paisaje de aprendizaje)",["H3_cartografo"],500,3],
   ["A4","Reto A «Abre el canal» (recupera a Amara)",["P4_amara"],100,4],
-  ["B4","Reto B «El entorno de aula»",["R4_entorno-de-aula"],250,4],
+  ["B4","Reto B «El entorno de aula» (aula virtual)",["R4_entorno-de-aula"],250,4],
   ["A5","Reto A «Mide con método» (recupera a Vera)",["P5_vera"],100,5],
-  ["B5","Reto B «La Bitácora medida» (rúbrica + ePortfolio)",["R5_bitacora-medida"],250,5],
+  ["B5","Reto B «La Bitácora medida» (web de recursos + rúbrica)",["R5_bitacora-medida"],250,5],
   ["A6","Reto A «Ensaya jugando» (recupera a Joran)",["P6_joran"],100,6],
   ["B6","Reto B «El juego» (juego digital)",["R6_el-juego"],250,6],
   ["A7","Reto A «Un porqué» (recupera a Mara)",["P7_mara"],100,7],
   ["B7","Reto B «La microgamificación»",["R7_microgamificacion"],250,7],
   // v3.41 · el huevo de Pascua: un enlace oculto en la presentación de Vínculo lleva a un
   // enigma; la palabra secreta del final es la evidencia (el formulario la valida solo).
-  ["S7","Reto secreto «El Fragmento Prohibido» (huevo de Pascua)",["E3_vaeon"],150,7],
+  ["S7","Reto secreto «El Escape UNI»",["E3_vaeon"],150,7],
   ["A8","Reto A «La capa posible» (recupera a Noa)",["P8_noa"],100,8],
   ["B8","Reto B «El último umbral» (RA/RV + Bitácora publicada)",["R8_ultimo-umbral"],250,8]
 ];
@@ -78,7 +78,7 @@ var RETOS_PUA = [
   ["B7","La microgamificación (recupera a Mara)",["P7_mara","R7_microgamificacion"],300,7],
   // v3.41 · el huevo de Pascua: un enlace oculto en la presentación de Vínculo lleva a un
   // enigma; la palabra secreta del final es la evidencia (el formulario la valida solo).
-  ["S7","Reto secreto «El Fragmento Prohibido» (huevo de Pascua)",["E3_vaeon"],150,7],
+  ["S7","Reto secreto «El Escape UNI»",["E3_vaeon"],150,7],
   ["B8","El último umbral: RA/RV + Bitácora publicada (recupera a Noa)",["P8_noa","R8_ultimo-umbral"],300,8]
 ];
 // BONUS-INICIO · Los genera _build_site.py desde _site_data.py: NO editar a mano.
@@ -141,8 +141,8 @@ var AYUDA_RETOS = {
  "B1": "Genera con una IA una imagen con finalidad didáctica (ilustración, organizador gráfico o infografía) para un nivel y tema que elijas. Requisitos mínimos: (1) prompt estructurado siguiendo un modelo tipo CRAFT/RITA (contexto educativo + tipo de imagen + finalidad); (2) al menos una iteración del prompt; (3) selección final con criterio docente justificada en 2–3 líneas; (4) evidencia del proceso (enlace al chat o capturas) y cita de la herramienta. El enlace puede ser un Google Doc con permiso de lectura para todos o una entrada de tu ePortfolio con la imagen, el prompt y tus criterios. Es la tabla técnica de la Actividad 1: guárdala, ya tienes hecho su núcleo.",
  "B2": "Crea un videotutorial de calidad (guion + grabación de pantalla + edición) sobre un procedimiento de tu área, y enriquécelo con 2–3 preguntas insertadas (videoquiz) para comprobar comprensión. Piénsalo para aula invertida. Súbelo a la Bitácora con una reflexión breve: qué objetivo didáctico cubre y qué aprendiste al hacerlo.",
  "B3": "Construye la matriz de programación de un paisaje de aprendizaje: una tabla de doble entrada que cruza las 8 inteligencias múltiples × 6 niveles de Bloom (48 casillas). Contextualiza una unidad didáctica real (nivel, área, objetivos) y rellena al menos 6 cruces variados en complejidad y en talento, con una actividad en cada uno (objetivo, tarea del alumno, recurso, evaluación, tiempo, tipo: obligatoria/optativa/voluntaria). Es el corazón de planificación de la Actividad 2.",
- "B4": "Monta tu clase digital (Google Classroom, Moodle, Teams…): crea el aula, organiza un par de materiales de ejemplo y deja funcionando el canal de feedback y comunicación (tablón, comentarios, anuncios). Comparte un Google Doc con permiso de lectura con al menos 2 capturas de pantalla de tu aula y una reflexión breve: cómo llega tu contenido al móvil del alumno y cómo mantienes la conversación viva. Pega su enlace. (La web de materiales, si la haces, va en tu ePortfolio: aquí montas el AULA.)",
- "B5": "Da vida a tu ePortfolio: ponlo al día con una entrada por cada reto B que llevas (La chispa, El eco que enseña, La matriz, El entorno de aula), cada una con el patrón evidencia → contexto → reflexión. Y en cada entrada, mídete: elige un indicador de la rúbrica de la asignatura, di en qué nivel crees que estás y qué te falta para subir uno. Pega el enlace a tu ePortfolio. Criterio: que alguien que no te conoce entienda qué has hecho, por qué y cómo lo has evaluado. Esta semana además cierras la Actividad 1 dentro de la Bitácora.",
+ "B4": "Monta tu aula virtual (Google Classroom, Moodle, Teams…): crea el aula, publica al menos una tarea o un material para tu alumnado y deja funcionando el canal de feedback y comunicación (tablón, comentarios, anuncios). Comparte un Google Doc con permiso de lectura con al menos 2 capturas de pantalla de tu aula y una reflexión breve: cómo llega tu contenido al móvil del alumno y cómo mantienes la conversación viva. Pega su enlace. (La web de recursos es el reto del tema 5: aquí montas el AULA.)",
+ "B5": "Monta el centro de recursos de tu alumnado: una web (Google Sites o un Genially) con al menos 3 recursos organizados con criterio (por unidad o por tipo), navegación clara y una página de cómo se evalúa, con tu rúbrica del reto anterior a la vista. Es el ESCAPARATE, distinto del aula virtual del tema 4: aquí el estudiante encuentra todo sin tener que pedirlo. Pega su enlace y enlázala desde tu ePortfolio (una entrada con evidencia → contexto → reflexión). Esta semana además cierras la Actividad 1 dentro de la Bitácora.",
  "B6": "Adapta un juego existente o crea uno digital a medida para un objetivo concreto de tu aula, algo más elaborado que un quiz suelto: con varios niveles de dificultad o varias formas de jugarlo (ruleta + preguntas, un escape por fases, un tablero con caminos…). En ABJ el juego ES la actividad: cada mecánica debe servir a un aprendizaje. Pega el enlace al juego y súbelo a la Bitácora con una reflexión: qué objetivo cubre, qué cambia de un nivel a otro y cómo lo evalúas.",
  "B7": "Diseña una microgamificación de calidad: un toque de juego sobre una tarea que no es un juego y, sobre todo, la capa narrativa que la envuelve: quién es el alumnado en esa historia, qué misión tiene y por qué importa (una insignia, una barra de progreso o un tablero, pero dentro de un relato). Distíngue bien de ABJ: aquí no se juega, se toman elementos del juego para enganchar. Pega el enlace al recurso y súbelo a la Bitácora con una reflexión: qué conducta refuerza, qué historia la envuelve y por qué.",
  "B8": "(1) Crea una experiencia de Realidad Aumentada o Virtual para tu materia: puede ser tan sencilla como un código QR que abre un modelo 3D o un vídeo sobre una lámina, o tan elaborada como una escena VR para practicar sin riesgo. Puede ser tu reto libre del ePortfolio. (2) Termina y publica la Bitácora: convierte tu paisaje de aprendizaje (Act 2) en una imagen interactiva publicada, revisa que las 5 páginas estén completas (Act 1, Act 2, videotutorial, microgamificación, reto libre) y pega el enlace único.",

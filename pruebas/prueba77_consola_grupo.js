@@ -62,7 +62,7 @@ if (fs.existsSync(SRV)) {
 }
 
 // 6 · el calendario
-const C = trozo(K, "function verCalendario", 12000);
+const C = trozo(K, "function verCalendario", 16000);
 c(/\["calendario", "Calendario"\]/.test(K), "🔴 el calendario lo ve todo el equipo");
 c(/var edita = soyRefAqui\(\);/.test(C) && /var toca = edita && futura;/.test(C) && /if \(!edita\) return;/.test(C), "   pero solo el referente lo cambia (y solo semanas futuras)");
 c(/class="cal-7"/.test(C) && /cal-d/.test(C) && /INICIALES\[\(dia0 \+ k\) % 7\]/.test(C), "   como un calendario: una fila por semana con sus siete días");
@@ -72,6 +72,8 @@ c(/tramos/.test(C) && /empieza el <b>/.test(C), "🔴 y «Al guardar» dice a qu
 c(/semanas lectivas/.test(C) && /no lectiva/.test(C), "   con el resumen arriba: semanas lectivas, no lectivas y canje");
 c(/\.cal-fila\{display:grid/.test(CSS) && /@media\(max-width:760px\)\{\s*\.cal-fila\{/.test(CSS), "   y en el móvil se recoloca");
 c(/const total = \(S\.tipo === "PUA"\) \? \(sem\.PUA \|\| 8\)/.test(M), "🔴 un PUA dura lo que dice el catálogo (8), no 10");
+c(/var sinSaltar = festivas\.filter/.test(C) && /id="cal-festivos"/.test(C) && /debería ser no lectiva/.test(C),
+  "🔴 un grupo de antes de la regla: las festivas de la UNIR que aún cuentan como lectivas se señalan y se saltan de un clic");
 
 // 7 · el premio por enlace
 const H = leer("assets/js/huevo.js");

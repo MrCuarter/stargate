@@ -3480,6 +3480,20 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 premio · con una cuenta sin ficha: dice con qué cuenta está y ofrece entrar con otra", await h1.hasta("!!document.getElementById('hv-otra-cuenta') && /sol@lab\\.test/.test(document.body.innerText)", 25), (await h1.texto()).slice(0, 200));
       await h1.foto(FOTOS + "/36-premio-otra-cuenta.png");
       await h1.cerrar();
+      // la Nave: «Qué hay que hacer, explicado» con la tarjeta de la semana (su insignia) y el ejemplo, solo donde lo hay
+      const GN = ["nadia@lab.test", "Nadia Nave", "Nadir"];
+      for (let i = 0; i < 2 && !(await fichaDe(GN[0], P)); i++) { const a = await nueva("Alta Nadia"); await alistar(a, GN[0], GN[1], GN[2], 0); await a.cerrar(); }
+      const nv = await nueva("Nadia mira sus retos");
+      await nv.ir("entrar.html"); await nv.entrarComo(GN[0], GN[1]); await sinBienvenidas(nv);
+      await nv.ir("recluta.html?per=" + P + "#retos"); await nv.hasta("!!document.querySelector('details.reto-pl')", 30); await dormir(1200);
+      await nv.js("(function(){ var d=[].slice.call(document.querySelectorAll('details.reto-pl')); d.forEach(function(x){ x.open=false; }); var t3=d.filter(function(x){ return /Sendara/.test(x.textContent); })[0]; if(t3){ t3.open=true; t3.scrollIntoView({block:'start',behavior:'instant'}); } return 1; })()");
+      await dormir(900);
+      c("🔴 nave · «Qué hay que hacer, explicado» con la tarjeta de la semana: su insignia a la vista",
+        await nv.js("!!document.querySelector('details.reto-pl[open] .reto-sem .rs-trofeo img')"));
+      c("nave · y «💡 Ver un ejemplo» en el reto que tiene uno (A3), no en los demás",
+        await nv.js("(function(){ var ej=[].slice.call(document.querySelectorAll('details.reto-pl[open] .reto-sem')).map(function(r){ return !!r.querySelector('.rs-ej'); }); return ej.indexOf(true)>=0 && ej.indexOf(false)>=0; })()"));
+      await nv.foto(FOTOS + "/36-nave-retos.png");
+      await nv.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

@@ -119,12 +119,12 @@ PERS=[("P1_bran","Bran Okafor","Reto A · T1 · Fôrge","Lo imperfecto compartid
 ("P8_noa","Noa Lieth","Reto A · T8 · Liminar","Enseñar futuros")]
 ESP=[("E1_nebula","NEBULA","Preséntate a tu tripulación","La Bitácora viva que narra el viaje"),
 ("E2_capitan","El Capitán","Presentar la Act. 1","El mando de la misión: tú, docente"),
-("E3_vaeon","General Vaeon","El Fragmento Prohibido (huevo de Pascua)","Señor de la Estática (villano)")]
+("E3_vaeon","General Vaeon","El Escape UNI (reto secreto S7)","Señor de la Estática (villano)")]
 RETO=[("R1_la-chispa","La chispa","Reto B · T1","Imagen didáctica con IA (Act 1)"),
 ("R2_el-eco-que-ensena","El eco que enseña","Reto B · T2","Videotutorial + videoquiz"),
 ("R3_la-matriz","La matriz","Reto B · T3","Matriz 8×6 del paisaje (Act 2)"),
-("R4_entorno-de-aula","El entorno de aula","Reto B · T4","Espacio digital de aula (m-learning)"),
-("R5_bitacora-medida","La Bitácora medida","Reto B · T5","Rúbrica + estructura del ePortfolio"),
+("R4_entorno-de-aula","El entorno de aula","Reto B · T4","Aula virtual con una tarea o material publicado"),
+("R5_bitacora-medida","La Bitácora medida","Reto B · T5","Web de recursos con la rúbrica a la vista"),
 ("R6_el-juego","El juego","Reto B · T6","Juego digital educativo (ABJ)"),
 ("R7_microgamificacion","La microgamificación","Reto B · T7","Microgamificación"),
 ("R8_ultimo-umbral","El último umbral","Reto B · T8","Experiencia RA/RV + publicar Bitácora")]
@@ -484,9 +484,10 @@ AVERIAS = [
   "sale con 🧊, su referente le ha congelado la cuenta: puede mirar, pero no hacer nada."),
  ("retos", "A un estudiante no le suman los retos o los créditos",
   ["no suma", "no le suma", "creditos", "xp", "no cuenta", "lo he hecho", "no registra", "no se registra", "reto"],
-  "Tres cosas lo explican casi siempre: 1) como mucho <b>3 retos al día</b>; 2) los retos con entrega (los B, las Actividades y el A4) "
-  "<b>piden el enlace</b>, y sin él no se registran; 3) lo que toca la nota espera en <b>Cola de nota</b> hasta que lo apruebas. Si aun "
-  "así falta algo que viste en clase, puedes <b>otorgarlo a mano</b>: Mi gente → pulsa su fila → otorgar el reto."),
+  "Tres cosas lo explican casi siempre: 1) como mucho <b>3 retos al día</b>; 2) <b>todos los retos piden el enlace</b> de lo que se ha hecho "
+  "(salvo el secreto, que se registra al salir del Escape UNI), y sin él no se registran; 3) lo que toca la nota espera en la <b>Cola de nota</b> "
+  "(la pestaña que aparece, brillando, cuando hay algo) hasta que lo apruebas. Si aun así falta algo que viste en clase, puedes "
+  "<b>otorgarlo a mano</b>: Mi gente → pulsa su fila → en su ficha, pulsa el reto."),
  ("embed", "La sesión (o la llamada) no se ve dentro del Genially",
   ["embed", "incrustar", "insertar", "iframe", "dentro del genially", "no se ve", "codigo"],
   "En Genially se inserta el <b>código</b>, no la dirección: <a href='consola.html'>Mis grupos</a> → <b>«📋 Embed para Genially»</b> "
@@ -580,7 +581,7 @@ desbloquea su fragmento-vídeo y su <b>insignia de personaje</b>. Pulsa cada ins
 diseño educativo</b> —contenido que no se entiende, recursos que no llegan, aprendizaje sin evaluación, saber
 acaparado—. Su debilidad, y la lección del curso: <b>una Bitácora abierta, documentada y compartida no se puede
 silenciar</b>. Es un villano con motivo: fue archivista y perdió su mundo; hoy cree que olvidar es misericordia.
-Aparece en el <b>Tema 5</b> y tiene su propio epílogo (el Fragmento Prohibido).</p></div>
+Aparece en el <b>Tema 5</b> y guarda el reto secreto del tema 7: el <b>Escape UNI</b>.</p></div>
 <div class="trio"><img src="assets/img/personajes/vaeon.png" alt="General Vaeon"></div></div></div>
 <h3 id="ecos" style="margin-top:1.8em">Los Ecos — seis vidas que la Cero cambió</h3>
 <p class="lead">La Tripulación Cero no salvó mundos en abstracto: cambió a <b>personas concretas</b>. Los
@@ -686,8 +687,8 @@ El viaje completo da <b>{CRED_VIAJE['REGULAR']} ◈</b> y todo lo cosmético cue
 <tr><td>T1 Fôrge</td><td>La imagen con IA + tabla técnica del prompt</td><td><b>Actividad 1</b></td></tr>
 <tr><td>T2 Ecos</td><td>Un videotutorial + videoquiz</td><td>Bitácora (reto videotutorial)</td></tr>
 <tr><td>T3 Sendara</td><td>La matriz 8×6 con ≥6 cruces</td><td><b>Actividad 2</b></td></tr>
-<tr><td>T4 Reliae</td><td>El entorno digital de aula</td><td>Bitácora (evidencia)</td></tr>
-<tr><td>T5 Umbral</td><td>Rúbrica + estructura del ePortfolio (+ cierre Act 1)</td><td><b>Consolida la Bitácora</b></td></tr>
+<tr><td>T4 Reliae</td><td>Un aula virtual con una tarea o material publicado</td><td>Bitácora (evidencia)</td></tr>
+<tr><td>T5 Umbral</td><td>Una web de recursos con la rúbrica a la vista (+ cierre Act 1)</td><td><b>Consolida la Bitácora</b></td></tr>
 <tr><td>T6 Ludo</td><td>Un juego digital educativo</td><td>Bitácora (reto juego)</td></tr>
 <tr><td>T7 Vínculo</td><td>Una microgamificación</td><td>Bitácora (reto microgamificación)</td></tr>
 <tr><td>T8 Liminar</td><td>Experiencia RA/RV + <b>publicar la Bitácora</b> (+ cierre Act 2)</td><td><b>Cierra la Bitácora</b></td></tr>
@@ -1226,7 +1227,7 @@ BADGE_INFO = {
  # Especiales
  "E1_nebula":{"nombre":"NEBULA · La Bitácora viva","tipo":"Insignia de personaje (especial)","como":"Completando el reto «Preséntate a tu tripulación»: un vídeo de 60 segundos en el padlet de la clase.","cuando":"Semana 1","tarea":"NEBULA es la IA de la nave y tu narradora constante. Te da su insignia cuando compartes tu cara con la tripulación: preséntate en un vídeo de un minuto y publícalo en el padlet. Lo que se comparte no se apaga."},
  "E2_capitan":{"nombre":"El Capitán · El Mando de la misión","tipo":"Insignia de personaje (especial)","como":"Se obtiene al presentar la Actividad 1.","cuando":"Temas 1–2","tarea":"El Capitán es el mando de la misión (tu profesor o profesora). Su insignia reconoce que has asumido tu primera misión mayor: la actividad didáctica con imagen de IA."},
- "E3_vaeon":{"nombre":"General Vaeon · Señor de la Estática","tipo":"Insignia de villano","como":"Resolviendo el huevo de Pascua «El Fragmento Prohibido»: un enlace oculto en la presentación del planeta Vínculo lleva a un enigma, y el enigma a la palabra que Vaeon borró.","cuando":"Tema 7 · Vínculo (si sabes mirar)","tarea":"Vaeon es el antagonista: personifica los errores del diseño educativo (contenido que no se entiende, recursos que no llegan, saber no compartido). Su insignia no se anuncia: se encuentra. Coleccionar su carta es el trofeo de haber entendido al enemigo."},
+ "E3_vaeon":{"nombre":"General Vaeon · Señor de la Estática","tipo":"Insignia de villano","como":"Saliendo del Escape UNI, el reto secreto (S7): el botón del final del escape registra el reto. Su puerta está en la Nave, y también escondida en la presentación del planeta Vínculo.","cuando":"Tema 7 · Vínculo","tarea":"Vaeon es el antagonista: personifica los errores del diseño educativo (contenido que no se entiende, recursos que no llegan, saber no compartido). Su insignia no se anuncia: se encuentra. Coleccionar su carta es el trofeo de haber entendido al enemigo."},
  # Retos (Reto B)
  "R1_la-chispa":{"nombre":"La chispa","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 1.","cuando":"Tema 1 · Fôrge","tarea":"Genera con una IA una imagen con finalidad didáctica: prompt estructurado (contexto + tipo de imagen + finalidad), al menos una iteración, selección final con tu criterio docente y evidencia del proceso. Es el núcleo de la Actividad 1."},
  "R2_el-eco-que-ensena":{"nombre":"El eco que enseña","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 2.","cuando":"Tema 2 · Ecos","tarea":"Crea un videotutorial de calidad (guion + grabación de pantalla + edición) y enriquécelo con 2–3 preguntas insertadas (videoquiz). Piénsalo para aula invertida y súbelo a la Bitácora con una reflexión breve."},
@@ -1274,8 +1275,8 @@ LINKS = {
  "R1_la-chispa":{"text":"Actividad 1 — imagen con IA","href":"actividades.html#act1"},
  "R2_el-eco-que-ensena":{"text":"el ePortfolio (reto videotutorial)","href":"actividades.html#eportfolio"},
  "R3_la-matriz":{"text":"Actividad 2 — paisaje de aprendizaje","href":"actividades.html#act2"},
- "R4_entorno-de-aula":{"text":"el ePortfolio (entorno de aula)","href":"actividades.html#eportfolio"},
- "R5_bitacora-medida":{"text":"el ePortfolio y la Actividad 1","href":"actividades.html#eportfolio"},
+ "R4_entorno-de-aula":{"text":"el ePortfolio (tu aula virtual)","href":"actividades.html#eportfolio"},
+ "R5_bitacora-medida":{"text":"el ePortfolio (tu web de recursos) y la Actividad 1","href":"actividades.html#eportfolio"},
  "R6_el-juego":{"text":"el ePortfolio (reto juego digital)","href":"actividades.html#eportfolio"},
  "R7_microgamificacion":{"text":"el ePortfolio (reto microgamificación)","href":"actividades.html#eportfolio"},
  "R8_ultimo-umbral":{"text":"la Actividad 2 y la Bitácora","href":"actividades.html#act2"},
@@ -2192,7 +2193,7 @@ _AYUDA_NAVE = json.loads(_datos_src[_a0 + len("var AYUDA_RETOS = "):_b0])
 # 19 = A1-A8 + B1-B8 + X1 + X2 + XF (los PUA reutilizan los mismos ids)
 assert len(_AYUDA_NAVE) >= 19, "AYUDA_RETOS de Datos.gs se ha quedado corta (%d)" % len(_AYUDA_NAVE)
 
-RETOS_REGULAR=[("A0","Reto «Preséntate a tu tripulación»"),("A1","Reto A «El boceto sin quemar» (Bran)"),("B1","Reto B «La chispa»"),("X1","Actividad 1 entregada"),("A2","Reto A «Un mensaje para quien faltó» (Tomás)"),("B2","Reto B «El eco que enseña»"),("A3","Reto A «Dos senderos» (Sylla)"),("B3","Reto B «La matriz»"),("X2","Actividad 2 entregada"),("A4","Reto A «Abre el canal» (Amara)"),("B4","Reto B «El entorno de aula»"),("A5","Reto A «Mide con método» (Vera)"),("B5","Reto B «La Bitácora medida»"),("A6","Reto A «Ensaya jugando» (Joran)"),("B6","Reto B «El juego»"),("A7","Reto A «Un porqué» (Mara)"),("B7","Reto B «La microgamificación»"),("A8","Reto A «La capa posible» (Noa)"),("B8","Reto B «El último umbral»"),("S7","Reto secreto «El Fragmento Prohibido»")]
+RETOS_REGULAR=[("A0","Reto «Preséntate a tu tripulación»"),("A1","Reto A «El boceto sin quemar» (Bran)"),("B1","Reto B «La chispa»"),("X1","Actividad 1 entregada"),("A2","Reto A «Un mensaje para quien faltó» (Tomás)"),("B2","Reto B «El eco que enseña»"),("A3","Reto A «Dos senderos» (Sylla)"),("B3","Reto B «La matriz»"),("X2","Actividad 2 entregada"),("A4","Reto A «Abre el canal» (Amara)"),("B4","Reto B «El entorno de aula»"),("A5","Reto A «Mide con método» (Vera)"),("B5","Reto B «La Bitácora medida»"),("A6","Reto A «Ensaya jugando» (Joran)"),("B6","Reto B «El juego»"),("A7","Reto A «Un porqué» (Mara)"),("B7","Reto B «La microgamificación»"),("A8","Reto A «La capa posible» (Noa)"),("B8","Reto B «El último umbral»"),("S7","Reto secreto «El Escape UNI»")]
 RETOS_PUA=[("A0","Reto «Preséntate a tu tripulación»"),("B1","La chispa (Bran)"),("X1","Actividad 1 entregada"),("B2","El eco que enseña (Tomás)"),("B3","La matriz (Sylla)"),("X2","Actividad 2 entregada"),("B4","El entorno de aula (Amara)"),("B5","La Bitácora medida (Vera)"),("B6","El juego (Joran)"),("B7","La microgamificación (Mara)"),("B8","El último umbral (Noa)")]
 SEMANAS_JSON = json.dumps([{
   "sem": s["sem"], "tema": s["tema"], "sub": s["sub"], "capitulo": s.get("capitulo"),
@@ -3117,18 +3118,20 @@ _PE = [
  ]),
  ("1 · Mis grupos (el puesto de mando)", [
    ("Entra en <a href='consola.html'>Mis grupos</a>.",
-    "La tarjeta de cada grupo: alistados, semana, «Proyectar la clase», «El aula» y «Llamada a filas». El <b>código de clase</b> sale tapado: pulsa «👁 Mostrar»."),
+    "La tarjeta de cada grupo: alistados, semana, «Proyectar la clase», «El aula», «Llamada a filas» y el botón grande <b>«🚀 Entrar en el grupo»</b>. El <b>código de clase</b> sale tapado: pulsa «👁 Mostrar». Si alguien ha pedido subir nota, un aviso 🔔 brilla en la tarjeta."),
    ("Pulsa «📋 Copiar invitación» y pégala en un documento.",
     "Un mensaje listo para el foro de la plataforma de UNIR, con el enlace directo y el código."),
    ("Mira la franja «🧩 Para tus Geniallys».",
     "Tres códigos para insertar en Genially (la sesión, el aula y la llamada): los mismos para todos tus grupos."),
    ("Arriba del todo, pulsa «👤 Modo docente».",
-    "Desaparece todo lo de referente (crear grupos, equipo, calendario…): lo que ve un profe en clase. Vuelve con «★ Modo referente»."),
+    "Desaparece todo lo de referente (crear grupos, equipo, escuadrones, ajustes…): lo que ve un profe en clase. El calendario lo sigue viendo, sin poder tocarlo. Vuelve con «★ Modo referente»."),
  ]),
  ("2 · Crear un grupo", [
    ("<a href='crear.html'>Crear grupo</a>: un nombre de prueba, REGULAR y como semana 1 un lunes de septiembre u octubre.",
     "El resumen dice cuándo acaba y <b>salta solo las semanas festivas de la UNIR</b>: las dos de Navidad y la de Semana Santa."),
-   ("Créalo.", "En un minuto, el grupo sembrado entero y su código. En su pestaña <b>Calendario</b>, esas semanas salen como «🎄 Festivo UNIR»."),
+   ("Créalo.", "En un minuto, el grupo sembrado entero y su código."),
+   ("Entra en el grupo → <b>Calendario</b>.", "Un calendario de verdad: una fila por semana con sus 7 días (S1, S2…), las festivas de la UNIR con 🎄 y lo que se abre cada semana."),
+   ("Pulsa una semana que aún no haya llegado.", "Pasa a <b>no lectiva</b> y las de detrás se renumeran; abajo, «Al guardar» dice a qué día se mueve cada una. «Deshacer los cambios» lo deja como estaba."),
  ]),
  ("3 · La sesión de la semana (lo que se proyecta)", [
    ("En la tarjeta del grupo, «📽️ Proyectar la clase».", "Arriba, solo para ti: el consejo del Capitán y el mensaje del foro para copiar. Abajo, el mazo que se proyecta."),
@@ -3143,8 +3146,11 @@ _PE = [
    ("«🎲 ¿A quién pregunto?» y la pestaña «⏱️ Tiempo» (3 min → Empezar).", "Una cuenta atrás grande, a pantalla completa, con aviso al terminar."),
  ]),
  ("5 · Dentro del grupo", [
-   ("«Entrar en el grupo» → <b>Mi gente</b> → pulsa una fila.", "Su ficha: retos, enlaces de lo que entregó y lo que el profe puede hacer (anular un reto, premiar…)."),
-   ("Recorre las pestañas de referente: Equipo docente, Calendario, Premios por enlace, Sorteos, Ofertas y Ajustes.", "Todo lo que gobierna el grupo. En Equipo docente se añade a un compañero por su correo."),
+   ("«🚀 Entrar en el grupo» → <b>Mi gente</b>.", "Arriba, un botón por escuadrón (empieza en el tuyo) y «Todos»."),
+   ("Pulsa una fila.", "Su ficha se abre en una ventana: retos, enlaces de lo que entregó y lo que el profe puede hacer (otorgar o anular un reto; congelar o dar de baja, si llevas el grupo). Se cierra con ✕ o Escape."),
+   ("<b>Escuadrones</b>: pulsa uno.", "Se despliega con su Comandante, sus cifras y su gente; cada fila abre también la ficha."),
+   ("<b>Equipo docente</b>.", "Una tarjeta por persona: hacerla referente o docente, pasar su alumnado a otro, quitarla del equipo, ver su escuadrón y en qué otros grupos está. Abajo, «➕ Añadir a alguien» por su correo de Google."),
+   ("<b>El Zoco</b> y el resto de pestañas (Premios por enlace, Sorteos, Ofertas, Ajustes).", "El Zoco dice el día exacto en que se abre. La <b>Cola de nota</b> solo aparece, la última y brillando, cuando alguien pide subir nota."),
  ]),
  ("6 · ¿Dudas? El buzón", [
    ("Pulsa «📡 ¿Dudas? ¿Algo falla?» y toca «🔑 ¿Cuál es el código de invitación?».", "El Capitán contesta al momento, con los datos de tus grupos."),
@@ -3153,7 +3159,7 @@ _PE = [
  ]),
  ("7 · Como estudiante (con tu otra cuenta)", [
    ("En otra ventana, con la otra cuenta, entra por la <a href='index.html'>portada</a> y escribe el código de tu grupo.", "Te alistas en un minuto (alias y Comandante) y NEBULA te enseña la Nave."),
-   ("«Mis retos»: marca uno con enlace.", "Pide el enlace (y hay un «+» para un segundo). Sin enlace, no se registra."),
+   ("«Mis retos»: despliega un reto y márcalo.", "La misma tarjeta que la de la semana, con su insignia. <b>Todos piden el enlace</b> (hay un «+» para un segundo); sin él, no se registra. Algunos traen «💡 Ver un ejemplo»."),
    ("«Mi botín».", "Tus insignias, por planetas: el tripulante y el reto de cada tema."),
  ]),
 ]

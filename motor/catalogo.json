@@ -96,7 +96,7 @@
       },
       {
         "id": "B4",
-        "titulo": "Reto B «El entorno de aula»",
+        "titulo": "Reto B «El entorno de aula» (aula virtual)",
         "insignias": [
           "R4_entorno-de-aula"
         ],
@@ -114,7 +114,7 @@
       },
       {
         "id": "B5",
-        "titulo": "Reto B «La Bitácora medida» (rúbrica + ePortfolio)",
+        "titulo": "Reto B «La Bitácora medida» (web de recursos + rúbrica)",
         "insignias": [
           "R5_bitacora-medida"
         ],
@@ -159,7 +159,7 @@
       },
       {
         "id": "S7",
-        "titulo": "Reto secreto «El Fragmento Prohibido» (huevo de Pascua)",
+        "titulo": "Reto secreto «El Escape UNI»",
         "insignias": [
           "E3_vaeon"
         ],
@@ -286,7 +286,7 @@
       },
       {
         "id": "S7",
-        "titulo": "Reto secreto «El Fragmento Prohibido» (huevo de Pascua)",
+        "titulo": "Reto secreto «El Escape UNI»",
         "insignias": [
           "E3_vaeon"
         ],
@@ -414,8 +414,8 @@
     "E3_vaeon": {
       "nombre": "General Vaeon · Señor de la Estática",
       "tipo": "Insignia de villano",
-      "como": "Resolviendo el huevo de Pascua «El Fragmento Prohibido»: un enlace oculto en la presentación del planeta Vínculo lleva a un enigma, y el enigma a la palabra que Vaeon borró.",
-      "cuando": "Tema 7 · Vínculo (si sabes mirar)",
+      "como": "Saliendo del Escape UNI, el reto secreto (S7): el botón del final del escape registra el reto. Su puerta está en la Nave, y también escondida en la presentación del planeta Vínculo.",
+      "cuando": "Tema 7 · Vínculo",
       "tarea": "Vaeon es el antagonista: personifica los errores del diseño educativo (contenido que no se entiende, recursos que no llegan, saber no compartido). Su insignia no se anuncia: se encuentra. Coleccionar su carta es el trofeo de haber entendido al enemigo.",
       "cita": "Si recordar duele, olvidar es misericordia."
     },
@@ -457,9 +457,9 @@
       "tipo": "Insignia de reto",
       "como": "Completando el Reto B del Tema 4.",
       "cuando": "Tema 4 · Reliae",
-      "tarea": "Monta tu clase digital (Google Classroom, Moodle, Teams…): crea el aula, organiza un par de materiales de ejemplo y deja funcionando el canal de feedback y comunicación (tablón, comentarios, anuncios). Comparte un Google Doc con permiso de lectura con al menos 2 capturas de pantalla de tu aula y una reflexión breve: cómo llega tu contenido al móvil del alumno y cómo mantienes la conversación viva. Pega su enlace. (La web de materiales, si la haces, va en tu ePortfolio: aquí montas el AULA.)",
+      "tarea": "Monta tu aula virtual (Google Classroom, Moodle, Teams…): crea el aula, publica al menos una tarea o un material para tu alumnado y deja funcionando el canal de feedback y comunicación (tablón, comentarios, anuncios). Comparte un Google Doc con permiso de lectura con al menos 2 capturas de pantalla de tu aula y una reflexión breve: cómo llega tu contenido al móvil del alumno y cómo mantienes la conversación viva. Pega su enlace. (La web de recursos es el reto del tema 5: aquí montas el AULA.)",
       "link": {
-        "text": "el ePortfolio (entorno de aula)",
+        "text": "el ePortfolio (tu aula virtual)",
         "href": "actividades.html#eportfolio"
       }
     },
@@ -468,9 +468,9 @@
       "tipo": "Insignia de reto",
       "como": "Completando el Reto B del Tema 5.",
       "cuando": "Tema 5 · Umbral",
-      "tarea": "Da vida a tu ePortfolio: ponlo al día con una entrada por cada reto B que llevas (La chispa, El eco que enseña, La matriz, El entorno de aula), cada una con el patrón evidencia → contexto → reflexión. Y en cada entrada, mídete: elige un indicador de la rúbrica de la asignatura, di en qué nivel crees que estás y qué te falta para subir uno. Pega el enlace a tu ePortfolio. Criterio: que alguien que no te conoce entienda qué has hecho, por qué y cómo lo has evaluado. Esta semana además cierras la Actividad 1 dentro de la Bitácora.",
+      "tarea": "Monta el centro de recursos de tu alumnado: una web (Google Sites o un Genially) con al menos 3 recursos organizados con criterio (por unidad o por tipo), navegación clara y una página de cómo se evalúa, con tu rúbrica del reto anterior a la vista. Es el ESCAPARATE, distinto del aula virtual del tema 4: aquí el estudiante encuentra todo sin tener que pedirlo. Pega su enlace y enlázala desde tu ePortfolio (una entrada con evidencia → contexto → reflexión). Esta semana además cierras la Actividad 1 dentro de la Bitácora.",
       "link": {
-        "text": "el ePortfolio y la Actividad 1",
+        "text": "el ePortfolio (tu web de recursos) y la Actividad 1",
         "href": "actividades.html#eportfolio"
       }
     },
