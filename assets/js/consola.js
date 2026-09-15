@@ -1945,10 +1945,10 @@
        ["🛰️ El aula (el puesto de mando del docente)", "aula.html?embed=1"], ["🎯 Validar un reto", "validar.html?reto=S7&embed=1"]].map(function (x) {
         return '<p class="small">' + x[0] + ' <button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[1], "STARGATE · " + x[0].replace(/^\S+\s/, ""))) + '">&lt;/&gt; Copiar para insertar</button></p>';
       }).join("") +
-      // 15-sep · el reto secreto (S7): el enlace que «no debería estar» en la presentación de Vínculo
-      '<p class="small">🕳️ <b>El enlace escondido del reto secreto (S7)</b>: en la presentación del planeta <b>Vínculo</b>, ponlo en algo ' +
-      'que no parezca un botón (una estrella, un rincón de la imagen). Lleva al enigma «El Fragmento Prohibido», y el enigma a la palabra ' +
-      'que borró Vaeon y al registro del reto. <button class="btn min" data-copiado="✓ Enlace copiado" data-copiar="' + esc(location.origin + "/fragmento.html") + '">🔗 Copiar el enlace</button></p>' +
+      // 15-sep (tarde) · el reto secreto (S7) es el Escape UNI; el enlace escondido de Vínculo lleva a su puerta
+      '<p class="small">🗝️ <b>El reto secreto (S7) es el Escape UNI</b>. Se registra solo con el botón del final del escape (ese enlace ' +
+      'lo tiene Norberto). Si quieres esconder su puerta en la presentación de <b>Vínculo</b>, ponla en algo que no parezca un botón ' +
+      '(una estrella, un rincón de la imagen). <button class="btn min" data-copiado="✓ Enlace copiado" data-copiar="' + esc(location.origin + "/fragmento.html") + '">🔗 Copiar la puerta escondida</button></p>' +
       '</div>' +
       tarjetaBorrar();
     cablearBorrar();

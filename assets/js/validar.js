@@ -18,6 +18,16 @@
   var app = document.querySelector("#validar-app");
   if (!app) return;
   var RETO = new URLSearchParams(location.search).get("reto") || "";
+  /**
+   * 15-sep · LA LLAVE DEL ESCAPE UNI (S7). El botón del final del escape trae `&llave=…`: se deja en el navegador como si
+   * se hubiera escrito (secreto.js compara solo su huella) y se quita de la barra de direcciones, que no se comparta.
+   */
+  var LLAVE = new URLSearchParams(location.search).get("llave") || "";
+  if (LLAVE) {
+    try { localStorage.setItem("sgSecreto:" + RETO, JSON.stringify({ t: LLAVE, f: Date.now() })); } catch (e) {}
+    try { history.replaceState(null, "", location.pathname + "?reto=" + encodeURIComponent(RETO) +
+                               (new URLSearchParams(location.search).get("embed") === "1" ? "&embed=1" : "")); } catch (e) {}
+  }
   var MOTOR = null;
   // `?embed=1` para meterlo dentro del propio Genially en vez de enlazar fuera: quita cabecera,
   // menú y pie, y deja solo el botón. Lo mismo que ya hacen tickets.html y embed.html.
@@ -149,14 +159,13 @@
       tarjeta("<h3>Un momento…</h3><p>Comprobando la palabra.</p>");
       return window.SG_SECRETO.comprobar(RETO, traida).then(function (ok) {
         if (ok) { g.palabraOk = true; return registrar(g); }
-        pedirPalabra(g, m, "Esa no es la palabra que borró Vaeon.");
+        pedirPalabra(g, m, "Esa llave no abre este reto.");
       });
     }
     tarjeta('<h3>' + esc(m.title) + '</h3>' +
-      '<p>Este reto se registra con <b>la palabra que borró Vaeon</b>. Está al final de un enlace que no debería ' +
-      'estar en la presentación del planeta Vínculo.</p>' +
+      '<p>Este reto se registra al terminar el <b>Escape UNI</b>, con el botón del final. Si te han dado una llave, escríbela aquí.</p>' +
       (aviso ? '<p class="malo">' + esc(aviso) + '</p>' : '') +
-      '<p><input id="v-palabra" type="text" autocomplete="off" spellcheck="false" class="v-enlace" placeholder="La palabra"></p>' +
+      '<p><input id="v-palabra" type="text" autocomplete="off" spellcheck="false" class="v-enlace" placeholder="La llave"></p>' +
       '<p><button class="btn primary grande" id="v-ok">✅ Registrar el reto</button></p>');
     var i = document.querySelector("#v-palabra"), b = document.querySelector("#v-ok");
     i.onkeydown = function (e) { if (e.key === "Enter") b.click(); };
@@ -165,7 +174,7 @@
       b.disabled = true;
       window.SG_SECRETO.comprobar(RETO, v).then(function (ok) {
         if (ok) { g.palabraOk = true; return registrar(g); }
-        pedirPalabra(g, m, "Esa no es la palabra que borró Vaeon. Busca el enlace escondido y resuelve el enigma.");
+        pedirPalabra(g, m, "Esa llave no abre este reto. Termina el Escape UNI: el botón del final lo registra solo.");
       });
     };
     i.focus();

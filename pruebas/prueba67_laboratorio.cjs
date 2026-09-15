@@ -431,7 +431,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await ana.ir("recluta.html?per=lab-clase#retos");
       await ana.hasta("[].slice.call(document.querySelectorAll('button')).some(function(b){return /Lo he hecho/.test(b.textContent)})", 25);
       const antes = await fichaDe("ana@lab.test", "lab-clase");
-      await ana.js("[].slice.call(document.querySelectorAll('button')).filter(function(b){return /Lo he hecho/.test(b.textContent)&&!b.disabled})[0].click(); 1");
+      // 15-sep · todos los retos piden su enlace: se pega uno antes de pulsar
+      await ana.js("(function(){ var b=[].slice.call(document.querySelectorAll('button')).filter(function(b){return /Lo he hecho/.test(b.textContent)&&!b.disabled})[0]; var id=b.getAttribute('data-hecho'); [].slice.call(document.querySelectorAll('[data-ev=\\\"'+id+'\\\"]')).forEach(function(i){ i.value='https://padlet.com/ana/prueba-deshacer'; }); b.click(); })(); 1");
       await dormir(7000);
       const tras = await fichaDe("ana@lab.test", "lab-clase");
       c("deshacer · «Lo he hecho» registra el reto (completeMission de verdad)", tras.totalPoints > antes.totalPoints,
@@ -624,7 +625,8 @@ const REG = {};   // cifras que se apuntan para el informe
       const ph = await carla.js("(document.querySelector('[data-ev=\"B1\"]')||{}).placeholder||''");
       c("evidencia · el campo de B1 dice que es OBLIGATORIO antes de pulsar", /obligatorio/.test(ph), ph);
       const ph0 = await carla.js("(document.querySelector('[data-ev=\"A0\"]')||{}).placeholder||''");
-      c("evidencia · y el de A0 (lo primero en clase) solo lo recomienda", /recomendado/.test(ph0), ph0);
+      // 15-sep · Norberto: todos los A, B y X piden su enlace (A0, el de su publicación en el padlet)
+      c("evidencia · y el de A0 también lo pide (el de su publicación en el padlet)", /obligatorio/.test(ph0), ph0);
       const antes = await fichaDe("carla@lab.test", "lab-clase");
       await carla.js("document.querySelector('button[data-hecho=\"B1\"]').click(); 1");
       await dormir(2500);
@@ -2919,7 +2921,9 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 sorteo auto · gana quien tenía papeletas, lo marca como automático y guarda su contacto (para dar la licencia a mano)",
         tk.raffleWinnerIds[0] === F.gana._id && tk.raffleResolvedBy === "auto" && arch && arch.automatico === true && arch.ganadoresContacto[0].correo === "gana@lab.test" && /Gana/.test(arch.ganadoresContacto[0].nombre),
         JSON.stringify(arch && arch.ganadoresContacto));
-      c("sorteo auto · y el que no tenía a nadie se cierra sin ganadores", (await leerDoc("rewards/" + T0)).isRaffleCompleted === true && (await leerDoc("rewards/" + T0)).raffleWinnerIds.length === 0);
+      // (el servidor los resuelve uno detrás de otro: se espera al segundo como al primero, no se lee de golpe)
+      c("sorteo auto · y el que no tenía a nadie se cierra sin ganadores", await (async () => { for (let i = 0; i < 30; i++) { const t0 = await leerDoc("rewards/" + T0);
+        if (t0 && t0.isRaffleCompleted) return (t0.raffleWinnerIds || []).length === 0; await dormir(700); } return false; })());
       c("🔴 sorteo auto · quien no ha ganado lo ve al entrar: «Ver resultado del sorteo»", await n1.hasta("!!document.querySelector('[data-sorteo-ver]')", 25), await n1.js("(document.querySelector('.sorteo-aviso')||{}).innerText||''"));
       await n1.js("document.querySelector('[data-sorteo-ver]').click(); 1");
       c("sorteo auto · NEBULA enseña el resultado: el ganador con su cara, y «esta vez no te ha tocado… lo jugado no se devuelve»",
@@ -2944,87 +2948,66 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.foto(FOTOS + "/30-consola-ganadores.png");
       await rita.cerrar();
     }
-    // ============================================================ 31 · EL RETO SECRETO S7 (EL FRAGMENTO PROHIBIDO)
+    // ============================================================ 31 · EL RETO SECRETO S7 → EL ESCAPE UNI (15-sep, tarde)
     /**
-     * «En la presentación del planeta Vínculo hay un enlace que no debería estar ahí. Encuéntralo,
-     * resuelve el enigma que esconde y trae la PALABRA que Vaeon borró.» En el motor nuevo nadie la
-     * pedía: S7 se regalaba con un clic. Tres puertas, tres personas: la Nave, el enigma y el enlace
-     * universal de validar suelto. Y en ninguna se regala.
+     * Norberto: «es el enlace de Escape UNI… se valida pulsando el enlace al final del escape (me lo tienes que dar)».
+     * El botón del final lleva a validar.html?reto=S7&llave=… (la llave, fuera del repositorio). La palabra de antes
+     * (la del Fragmento, que ya salía en las cartas) ya NO vale; y el enlace suelto sin llave tampoco regala S7.
      */
     if (hacer(31)) {
       const P = "lab-clase";
       const S7 = (await consultar("missions", "projectId", P)).filter(m => m.stargateId === "S7")[0];
       c("secreto · el grupo tiene su reto S7", !!S7);
       const tiene = async (correo) => { const f = await fichaDe(correo, P); return !!f && (f.completedMissionIds || []).indexOf(S7._id) >= 0; };
-      const PAL = "Ander";   // (la del enigma de Datos.gs; si cambia, esta sección lo dirá)
-      // 1 · por la Nave: la ficha de la insignia pide la palabra
+      const LLF = require("path").join(require("os").homedir(), ".config", "stargate-mando", "llave_s7.txt");
+      const LLAVE = require("fs").existsSync(LLF) ? require("fs").readFileSync(LLF, "utf8").trim() : "";
+      c("secreto · hay llave privada para el laboratorio", !!LLAVE);
+      // 1 · en la Nave, S7 es la puerta del Escape UNI (sin casilla ni «Lo he hecho»)
       const G1 = ["sira@lab.test", "Sira Secreta", "Sirena"];
       for (let i = 0; i < 2 && !(await fichaDe(G1[0], P)); i++) { const a = await nueva("Alta Sira"); await alistar(a, G1[0], G1[1], G1[2], 0); await a.cerrar(); }
       const q1 = await nueva("Sira, por la Nave");
       await q1.ir("entrar.html"); await q1.entrarComo(G1[0], G1[1]); await sinBienvenidas(q1);
       await q1.ir("recluta.html?per=" + P); await q1.hasta("!!window.SG_OPEN_BADGE && !!document.querySelector('.nb-t')", 30); await dormir(1500);
       await q1.js("window.SG_OPEN_BADGE('E3_vaeon'); 1");
-      c("secreto · en la ficha de la insignia de Vaeon, la casilla pide «La palabra que borró Vaeon»",
-        await q1.hasta("!!document.querySelector('input.mi-ev.secreto') && /La palabra que borró Vaeon/.test(document.querySelector('input.mi-ev.secreto').placeholder)", 15));
-      await q1.js("document.getElementById('mi-hecho').click(); 1"); await dormir(800);
-      c("🔴 secreto · «Lo he hecho» sin la palabra: no se registra y dice qué pide",
-        /pide una palabra/.test(await q1.texto()) && !(await tiene(G1[0])));
-      await q1.js("document.querySelector('input.mi-ev.secreto').value='Vaeon'; document.getElementById('mi-hecho').click(); 1"); await dormir(1500);
-      c("🔴 secreto · con otra palabra («Vaeon»): «Esa no es» y tampoco", /Esa no es la palabra/.test(await q1.texto()) && !(await tiene(G1[0])));
-      await q1.js("document.querySelector('input.mi-ev.secreto').value='" + PAL.toLowerCase() + " vaeon'; document.getElementById('mi-hecho').click(); 1");
-      c("🔴 secreto · con la palabra (en minúsculas y con su apellido), S7 queda registrado",
-        await (async () => { for (let i = 0; i < 30; i++) { if (await tiene(G1[0])) return true; await dormir(600); } return false; })());
-      const fS = await fichaDe(G1[0], P);
-      c("secreto · y la palabra no queda guardada como «evidencia» (no es un enlace)",
-        !(await consultar("mission_deliveries", "projectId", P)).filter(d => d.missionId === S7._id && d.studentProfileId === fS._id && d.enlace).length);
+      c("🔴 secreto · en la ficha de la insignia de Vaeon, la puerta del Escape UNI (y ningún «Lo he hecho»)",
+        await q1.hasta("[].slice.call(document.querySelectorAll('.mi-hacer a')).some(function(a){return /Escape UNI/.test(a.textContent) && a.href===window.SG_ESCAPE_UNI})", 15)
+        && await q1.js("!document.getElementById('mi-hecho')"));
+      await q1.foto(FOTOS + "/31-nave-escape.png");
       await q1.cerrar();
-      // 2 · por el enigma: el telar, el sello y la revelación, y de ahí a validar
-      const G2 = ["iker@lab.test", "Íker Enigma", "Íkaro"];
-      for (let i = 0; i < 2 && !(await fichaDe(G2[0], P)); i++) { const a = await nueva("Alta Íker"); await alistar(a, G2[0], G2[1], G2[2], 0); await a.cerrar(); }
-      const q2 = await nueva("Íker resuelve el enigma");
-      await q2.ir("entrar.html"); await q2.entrarComo(G2[0], G2[1]);
-      await q2.ir("fragmento.html"); await q2.hasta("!!document.getElementById('fr-app')", 20);
-      await q2.js("localStorage.removeItem('sgFragmento'); location.reload(); 1"); await q2.hasta("!!document.getElementById('fr-seguir')", 20);
-      c("secreto · el enigma abre con «El Fragmento Prohibido», fuera de los buscadores", /El Fragmento Prohibido/.test(await q2.texto())
-        && await q2.js("(document.querySelector('meta[name=robots]')||{}).content==='noindex,nofollow'"));
-      await q2.foto(FOTOS + "/31-portada.png");
-      await q2.js("document.getElementById('fr-seguir').click(); 1"); await dormir(700);
-      await q2.js("[['0','competidor'],['1','triunfador'],['2','explorador'],['3','socializador']].forEach(function(x){ document.querySelector('.fr-op[data-h=\"'+x[0]+'\"][data-t=\"'+x[1]+'\"]').click(); }); document.getElementById('fr-tensar').click(); 1"); await dormir(400);
-      c("secreto · el telar con dos hilos cruzados se destensa (y no deja pasar)", /2 hilos cruzados/.test(await q2.js("document.getElementById('fr-msg').textContent")) && !(await q2.js("!!document.querySelector('.fr-revela')")));
-      await q2.js("document.querySelector('.fr-op[data-h=\"2\"][data-t=\"socializador\"]').click(); document.querySelector('.fr-op[data-h=\"3\"][data-t=\"explorador\"]').click(); document.getElementById('fr-tensar').click(); 1"); await dormir(500);
-      c("secreto · bien tensado, escribe la pista: «tantas veces como planetas has pisado»", /tantas veces como planetas/.test(await q2.texto()));
-      await q2.foto(FOTOS + "/31-telar.png");
-      await q2.js("document.getElementById('fr-seguir').click(); 1"); await dormir(700);
-      for (let i = 0; i < 7; i++) { await q2.js("document.getElementById('fr-atras').click(); 1"); await dormir(100); }
-      await dormir(500);
-      c("🔴 secreto · siete giros atrás (Vínculo es el séptimo planeta) y el sello dice la palabra",
-        (await q2.js("document.querySelector('.fr-lee').textContent")) === PAL.toUpperCase(), await q2.js("document.querySelector('.fr-lee').textContent"));
-      await q2.js("document.getElementById('fr-palabra').value='Vaeon'; document.getElementById('fr-romper').click(); 1"); await dormir(900);
-      c("secreto · con otra palabra, Vaeon se ríe y el sello no se rompe", !!(await q2.js("!!document.querySelector('.fr-vaeon')")) && !(await q2.js("!!document.querySelector('.fr-nombre')")));
-      await q2.foto(FOTOS + "/31-sello.png");
-      await q2.js("document.getElementById('fr-palabra').value='" + PAL + "'; document.getElementById('fr-romper').click(); 1"); await dormir(1500);
-      c("🔴 secreto · con la palabra, la revelación: el nombre y su carta", (await q2.js("(document.querySelector('.fr-nombre')||{}).textContent")) === PAL.toUpperCase()
-        && await q2.js("(function(){var i=document.getElementById('fr-carta'); return !!(i&&i.complete&&i.naturalWidth>0);})()"));
-      await q2.foto(FOTOS + "/31-revelacion.png");
-      await q2.js("document.getElementById('fr-registrar').click(); 1");
-      c("🔴 secreto · «Registrar el reto secreto» → validar.html lo registra solo (la palabra viene del enigma)",
-        await q2.hasta("/Registrado/.test(document.body.innerText)", 40) && await tiene(G2[0]), (await q2.texto()).slice(0, 160));
-      c("secreto · y la palabra traída se borra del navegador", !(await q2.js("localStorage.getItem('sgSecreto:S7')")));
-      c("secreto · el enigma, sin errores", !q2.errores.filter(e => !/Failed to load resource/.test(e)).length, q2.errores[0] || "");
-      await q2.cerrar();
-      // 3 · el enlace universal, suelto: ya no regala S7
+      // 2 · la palabra de antes (la de las cartas) ya no abre S7, ni el enlace suelto lo regala
       const G3 = ["otto@lab.test", "Otto Atajo", "Otilio"];
       for (let i = 0; i < 2 && !(await fichaDe(G3[0], P)); i++) { const a = await nueva("Alta Otto"); await alistar(a, G3[0], G3[1], G3[2], 0); await a.cerrar(); }
       const q3 = await nueva("Otto va directo a validar");
       await q3.ir("entrar.html"); await q3.entrarComo(G3[0], G3[1]);
       await q3.ir("validar.html?reto=S7");
-      c("🔴 secreto · validar.html?reto=S7 sin haber resuelto nada: pide la palabra (antes lo regalaba)",
-        await q3.hasta("!!document.getElementById('v-palabra')", 30) && !(await tiene(G3[0])));
-      await q3.js("document.getElementById('v-palabra').value='nebula'; document.getElementById('v-ok').click(); 1"); await dormir(1200);
-      c("secreto · con otra palabra: «Esa no es» y no se registra", /Esa no es la palabra/.test(await q3.texto()) && !(await tiene(G3[0])));
-      await q3.js("document.getElementById('v-palabra').value='" + PAL + "'; document.getElementById('v-ok').click(); 1");
-      c("secreto · con la palabra, sí", await q3.hasta("/Registrado/.test(document.body.innerText)", 40) && await tiene(G3[0]));
+      c("🔴 secreto · validar.html?reto=S7 sin llave: la pide (no lo regala)", await q3.hasta("!!document.getElementById('v-palabra')", 30) && !(await tiene(G3[0])));
+      await q3.js("document.getElementById('v-palabra').value='Ander'; document.getElementById('v-ok').click(); 1"); await dormir(1500);
+      c("🔴 secreto · la palabra del Fragmento («Ander», la de las cartas) ya NO vale", /Esa llave no abre/.test(await q3.texto()) && !(await tiene(G3[0])), (await q3.texto()).slice(0, 160));
       await q3.cerrar();
+      // 3 · el botón del final del Escape UNI: validar.html?reto=S7&llave=… lo registra solo
+      const G2 = ["iker@lab.test", "Íker Escapista", "Íkaro"];
+      for (let i = 0; i < 2 && !(await fichaDe(G2[0], P)); i++) { const a = await nueva("Alta Íker"); await alistar(a, G2[0], G2[1], G2[2], 0); await a.cerrar(); }
+      const q2 = await nueva("Íker sale del Escape UNI");
+      await q2.ir("entrar.html"); await q2.entrarComo(G2[0], G2[1]);
+      await q2.ir("validar.html?reto=S7&llave=" + encodeURIComponent(LLAVE.toLowerCase()));
+      c("🔴 secreto · con el botón del final del escape (llave en el enlace), S7 queda registrado", await q2.hasta("/Registrado/.test(document.body.innerText)", 40) && await tiene(G2[0]),
+        (await q2.texto()).slice(0, 160));
+      c("secreto · y la llave desaparece de la barra de direcciones", !(await q2.js("/llave=/.test(location.search)")));
+      c("secreto · y del navegador", !(await q2.js("localStorage.getItem('sgSecreto:S7')")));
+      const fS = await fichaDe(G2[0], P);
+      c("secreto · y la llave no queda guardada como «evidencia»",
+        !(await consultar("mission_deliveries", "projectId", P)).filter(d => d.missionId === S7._id && d.studentProfileId === fS._id && d.enlace).length);
+      await q2.foto(FOTOS + "/31-registrado.png");
+      await q2.cerrar();
+      // 3b · la puerta escondida de Vínculo (fragmento.html) lleva al Escape UNI
+      const q4 = await nueva("Alguien encuentra la puerta escondida");
+      await q4.ir("fragmento.html");
+      c("secreto · fragmento.html es la puerta del Escape UNI, fuera de los buscadores",
+        await q4.hasta("[].slice.call(document.querySelectorAll('a')).some(function(a){return /Escape UNI/.test(a.textContent) && /view\\.genially\\.com/.test(a.href)})", 15)
+        && await q4.js("(document.querySelector('meta[name=robots]')||{}).content==='noindex,nofollow'"));
+      c("secreto · la puerta, sin errores", !q4.errores.filter(e => !/Failed to load resource/.test(e)).length, q4.errores[0] || "");
+      await q4.foto(FOTOS + "/31-puerta.png");
+      await q4.cerrar();
       // 4 · la consola da el enlace para esconderlo
       const rita = await nueva("Rita copia el enlace escondido");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");

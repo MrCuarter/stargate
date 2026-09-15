@@ -773,6 +773,18 @@
    * Y «💡 Ver un ejemplo» (Norberto: «es lo que más les ayuda»), SOLO en los retos que tengan uno (SG_EJEMPLOS, de
    * _site_data.py → EJEMPLOS_RETOS): un enlace sale como botón en la tarjeta; un texto, dentro, con los pasos.
    */
+  /**
+   * 15-sep · LO QUE AYUDA A HACERLO, donde se hace. Norberto, de A0: «mete el gif de cómo compartir la publicación en
+   * padlet, y añade el enlace al Padlet que se genera al crear el grupo». A3 (un Genially), el de compartir un Genially.
+   */
+  var GIF_RETOS = { A0: ["compartir-padlet.gif", "¿Cómo copio el enlace de mi publicación en Padlet?"],
+                    A3: ["compartir-genially.gif", "¿Cómo comparto mi Genially?"] };
+  function extraReto(id, d){
+    var out='', g=GIF_RETOS[id];
+    if(id==='A0' && d.padlet) out+='<p class="rs-extra"><a class="btn min" href="'+esc(d.padlet)+'" target="_blank" rel="noopener">🧱 Abrir el padlet de tu clase ↗</a></p>';
+    if(g) out+='<details class="rs-gif"><summary>'+esc(g[1])+'</summary><img src="assets/img/ayuda/'+g[0]+'" alt="'+esc(g[1])+'" loading="lazy"></details>';
+    return out;
+  }
   function tarjetaReto(t, mios){
     var r=st.yo||{}, d=st.d||{}, AY=window.SG_AYUDA_RETOS||{};
     var ya=!!mios[t[0]], pasos=pasosDeReto(AY[t[0]]);
@@ -796,7 +808,12 @@
       +(pasos.length?'<ol class="rs-pasos">'+pasos.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>'
                     :'<p class="small muted">Sin explicación todavía: pregunta a tu docente.</p>')
       +(ej&&ej.texto?'<p class="rs-ej-txt">💡 <b>Un ejemplo:</b> '+esc(ej.texto)+(ejUrl?' <a href="'+esc(ejUrl)+'" target="_blank" rel="noopener">Verlo ↗</a>':'')+'</p>':'')
+      +extraReto(t[0], d)
       +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado.</p>'+accionesDeHecho(t[0])
+          // 15-sep · S7 es el Escape UNI: su puerta, y se registra solo con el botón del final del escape
+          :(t[0]==='S7'&&window.SG_ESCAPE_UNI)
+            ? '<div class="rs-marcar rs-escape"><a class="btn epico" href="'+esc(window.SG_ESCAPE_UNI)+'" target="_blank" rel="noopener"><span class="ep-luz"></span><span class="ep-txt">🗝️ Entrar en el Escape UNI</span></a>'
+              +'<p class="small muted">Se registra solo, con el botón del final del escape.</p></div>'
           :(motorNuevo()
             ? '<div class="rs-marcar">'+campoEvidencia(t[0],'rs-ev')
               +'<button class="btn primary" type="button" data-hecho="'+esc(t[0])+'">✅ Lo he hecho</button></div>'
@@ -3265,8 +3282,15 @@
     var t = retoDeInsignia(clave); if(!t) return '';
     var ya = ((st.yo.retos)||[]).indexOf(t[0])>=0;
     if(ya) return '<p class="mi-ya">✓ Ya la tienes. La ganaste con este reto.</p>';
+    // 15-sep · S7 es el Escape UNI: su puerta (se registra solo al final del escape)
+    if(t[0]==='S7'&&window.SG_ESCAPE_UNI)
+      return '<div class="mi-hacer"><p class="small muted">Se gana con <b>'+esc(t[1])+'</b> · +'+t[3]+' xp</p>'
+        +'<p><a class="btn epico" href="'+esc(window.SG_ESCAPE_UNI)+'" target="_blank" rel="noopener"><span class="ep-luz"></span><span class="ep-txt">🗝️ Entrar en el Escape UNI</span></a></p>'
+        +'<p class="small muted">Se registra solo, con el botón del final del escape.</p></div>';
+    // 15-sep · y la casilla del enlace aquí también: ahora TODOS los retos A, B y X lo piden (sin ella, «Lo he hecho»
+    // desde la ficha de la insignia se quedaba en «falta el enlace» sin sitio donde ponerlo)
     return '<div class="mi-hacer"><p class="small muted">Se gana con <b>'+esc(t[1])+'</b> · +'+t[3]+' xp</p>'
-      +(window.SG_SECRETO&&SG_SECRETO.esSecreto(t[0])?campoEvidencia(t[0],'mi-ev'):'')
+      +((window.SG_SECRETO&&SG_SECRETO.esSecreto(t[0]))||evidenciaDe(t[0])?campoEvidencia(t[0],'mi-ev'):'')
       +'<button class="btn primary" type="button" id="mi-hecho" data-reto="'+esc(t[0])+'">✅ Lo he hecho</button></div>';
   };
   window.SG_BADGE_WIRE = function(clave, caja, cerrar){

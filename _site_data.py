@@ -460,12 +460,14 @@ AYUDA_RETOS = {
        "sección 📹 «Preséntate» del padlet de la clase (título = tu alias; primera línea = «Capitán: tu profe»). No hace falta guion de cine — si te da apuro, "
        "responde a tres o cuatro de estas: ¿quién eres y a qué te dedicas? ¿desde dónde te conectas? "
        "¿por qué educación? ¿una herramienta que ames y una que sufras? ¿un dato curioso que nadie "
-       "adivinaría? Grábalo del tirón con el móvil: natural gana a perfecto. Sirve para ponernos cara "
+       "adivinaría? Grábalo del tirón con el móvil: natural gana a perfecto. Después copia el enlace de TU "
+       "publicación (los tres puntos ⋮ → «Copiar el enlace a la publicación») y pégalo aquí. Sirve para ponernos cara "
        "desde el primer día — y NEBULA te da su insignia: lo que se comparte no se apaga.",
-  "X1": "La Actividad 1 entregada donde te la pide tu profesor. Pulsa «Lo he hecho» cuando la hayas ENVIADO, no cuando la empieces, y pega el enlace (es obligatorio).",
-  "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al enviarla.",
-  "S7": "🕳️ En la presentación del planeta Vínculo hay un enlace que no debería estar ahí. Encuéntralo, "
-        "resuelve el enigma que esconde y trae la PALABRA que Vaeon borró. Nadie va a decirte dónde mirar: "
+  "X1": "La Actividad 1 entregada donde te la pide tu profesor. Pulsa «Lo he hecho» cuando la hayas ENVIADO, no cuando la empieces, y pega el enlace o los enlaces que compartiste en tu actividad (es obligatorio; el «+» añade un segundo).",
+  "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al ENVIARLA, y pega el enlace o los enlaces que compartiste en tu actividad (es obligatorio; el «+» añade un segundo).",
+  # 15-sep · el reto secreto es el Escape UNI (Norberto): se registra solo, con el botón del final del escape
+  "S7": "🗝️ Hay una sala de la que no se sale sin pensar: el Escape UNI. Entra, resuelve sus enigmas y, al final, "
+        "pulsa el botón que te espera: el reto se registra solo en tu Nave. Nadie va a darte las respuestas: "
         "los secretos de la gamificación se encuentran jugando.",
 }
 # ---------------------------------------------------------------- el gancho de cada reto
@@ -496,11 +498,12 @@ AYUDA_RETOS = {
 #                  frenar la entrada.
 #   (no está)    → sin enlace: reflexiones escritas (A3, A5, A8) y el secreto (S7).
 EVIDENCIA_RETOS = {
+ # 15-sep · Norberto, reto a reto: TODOS los A, B y X piden su enlace (A0 el de su publicación del padlet)
  "X1": "obligatoria", "X2": "obligatoria",
  "B1": "obligatoria", "B2": "obligatoria", "B3": "obligatoria", "B4": "obligatoria",
  "B5": "obligatoria", "B6": "obligatoria", "B7": "obligatoria", "B8": "obligatoria",
- "A4": "obligatoria",
- "A0": "recomendada", "A1": "recomendada", "A2": "recomendada", "A6": "recomendada", "A7": "recomendada",
+ "A0": "obligatoria", "A1": "obligatoria", "A2": "obligatoria", "A3": "obligatoria", "A4": "obligatoria",
+ "A5": "obligatoria", "A6": "obligatoria", "A7": "obligatoria", "A8": "obligatoria",
 }
 # Tres al día: el ritmo normal es de 2 retos por semana, así que tres cubren un día de ponerse al
 # día sin dejar que nadie suba diez niveles en una tarde. Deshacer uno libera su hueco.
@@ -508,29 +511,37 @@ TOPE_RETOS_DIA = 3
 
 # 15-sep · UN EJEMPLO POR RETO (Norberto: «es lo que más les ayuda»). Solo los que él da: {"A3": {"texto": "…",
 # "enlace": "https://…"}}. En la Nave, un enlace sale como «💡 Ver un ejemplo ↗» en la tarjeta del reto; un texto, dentro.
-EJEMPLOS_RETOS = {}
+EJEMPLOS_RETOS = {
+ "A2": {"enlace": "https://youtu.be/ZE_JdQUmepk"},
+ "A3": {"enlace": "https://view.genially.com/673a886db3cebc087dcc971a"},
+ "B2": {"enlace": "https://edpuzzle.com/media/68ff9e1a400997c66a1f3eea"},
+ "B3": {"enlace": "https://view.genially.com/5d3ebe3d5890ce0f65730f81"},
+}
+# 15-sep · EL RETO SECRETO (S7) ES EL ESCAPE UNI (Norberto). En la Nave, su botón de entrada; al final del escape, el
+# botón lleva a validar.html?reto=S7&llave=… (la llave, PALABRA_HUEVO de Datos.gs; la web solo lleva su huella).
+ESCAPE_UNI = "https://view.genially.com/6a461360d187e3f8869ca453"
 
 GANCHO_RETOS = {
- "A0": "Un vídeo de 60 s presentándote, al padlet de la clase.",
- "A1": "Enseña un borrador sin pulir en el foro de la plataforma de UNIR y di qué te daba reparo.",
+ "A0": "Un vídeo de 60 s presentándote, al padlet de la clase, y el enlace de tu publicación.",
+ "A1": "Comparte algo que tengas (o dejaste) a medias, tal cual, y cuenta qué te frenó.",
  "B1": "Una imagen didáctica con IA, con el prompt y tus criterios documentados.",
  "X1": "Pulsa «Lo he hecho» cuando hayas ENVIADO la Actividad 1, con su enlace (obligatorio).",
  "A2": "Un clip de 60 s explicando un concepto a quien faltó a clase.",
  "B2": "Un videotutorial con dos o tres preguntas insertadas dentro.",
- "A3": "Un mismo objetivo, dos rutas distintas para dos alumnos distintos.",
+ "A3": "Un Genially con una bifurcación: 2 o 3 actividades para un mismo objetivo, y cada cual elige.",
  "B3": "La matriz 8×6: inteligencias múltiples por niveles de Bloom.",
  "X2": "Pulsa «Lo he hecho» cuando hayas ENVIADO la Actividad 2, con su enlace (obligatorio).",
  "A4": "Comparte algo del curso en abierto con #mutecdstargate.",
- "B4": "Monta tu aula digital y deja funcionando el canal de feedback.",
- "A5": "Un solo objetivo, evaluado de dos o tres formas distintas.",
- "B5": "Tu web de materiales y la estructura de tu ePortfolio.",
- "A6": "Convierte en juego algo que a tus alumnos les cuesta.",
- "B6": "Un juego digital donde cada mecánica sirva a un objetivo.",
- "A7": "El porqué de una tarea rutinaria, y una insignia con sentido.",
- "B7": "Un toque de juego sobre una tarea que no es un juego.",
- "S7": "Hay un enlace donde no debería. Encuéntralo y trae la palabra.",
+ "B4": "Monta tu aula digital y compártela en un doc con 2 capturas.",
+ "A5": "Una rúbrica de 3-4 criterios para evaluar un objetivo, lista para que la use cualquiera.",
+ "B5": "Da vida a tu ePortfolio: tus retos B al día, y mídete con la rúbrica.",
+ "A6": "Convierte en juego (digital o analógico) algo que a tus alumnos les cuesta.",
+ "B6": "Un juego digital con niveles o varias formas de jugar, al servicio de un objetivo.",
+ "A7": "Crea una insignia con sentido para una tarea rutinaria, y cuenta su porqué.",
+ "B7": "Un toque de juego sobre una tarea, envuelto en una historia.",
+ "S7": "Escápate del Escape UNI: el botón del final registra el reto.",
  "A8": "Busca una experiencia AR/VR que ya exista y cuenta cómo la usarías.",
- "B8": "Crea tu experiencia AR/VR y publica la Bitácora.",
+ "B8": "Una experiencia AR/VR (de un QR a una escena VR) y la Bitácora publicada.",
 }
 
 CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55,

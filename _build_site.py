@@ -10,7 +10,7 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
-                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, EVIDENCIA_RETOS, TOPE_RETOS_DIA, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
+                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, TOPE_RETOS_DIA, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
                         PASOS, ESCUADRONES, TICKET_URL, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, DRIVE_EQUIPO,
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES)
@@ -171,11 +171,16 @@ import unicodedata as _ud, re as _reS
 def _palabra_limpia(p):
     p = "".join(c for c in _ud.normalize("NFD", p) if _ud.category(c) != "Mn").upper()
     return _reS.sub(r"[^A-Z]", "", p)
-_mS = _reS.search(r'var PALABRA_HUEVO\s*=\s*"([^"]+)"', open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "apps-script", "Datos.gs"), encoding="utf-8").read())
-_PALABRA_S7 = _palabra_limpia(_mS.group(1)) if _mS else ""
+# 🔴 15-sep (tarde) · S7 ES EL ESCAPE UNI (Norberto) y se registra con la LLAVE que lleva el botón del final del escape
+# (validar.html?reto=S7&llave=…). La llave vive FUERA del repositorio —que es PÚBLICO en GitHub, y además
+# assets/descargas/ publica una copia de Datos.gs—: en ~/.config/stargate-mando/llave_s7.txt, con las demás claves.
+# A la web solo viaja su huella. (La palabra de antes, la del Fragmento, ya salía en las cartas de la caída de Vaeon.)
+_LLAVE_S7_F = os.path.expanduser("~/.config/stargate-mando/llave_s7.txt")
+if not os.path.exists(_LLAVE_S7_F):
+    raise SystemExit("🔴 Falta la llave del reto secreto S7 (" + _LLAVE_S7_F + "): sin ella S7 no se podría registrar.")
+_PALABRA_S7 = _palabra_limpia(open(_LLAVE_S7_F, encoding="utf-8").read())
 SECRETOS = {"S7": hashlib.sha256(_PALABRA_S7.encode()).hexdigest()} if _PALABRA_S7 else {}
 PASO_S7 = [k for k, *_ in PLANETAS].index("p7_vinculo") + 1
-INSCRIPCION_S7 = "".join(chr((ord(c) - 65 + PASO_S7) % 26 + 65) for c in _PALABRA_S7)
 
 def badge(key,title,tag,sub,sm=False):
     c=" sm" if sm else ""
@@ -1238,6 +1243,18 @@ BADGE_INFO = {
  "H4_tripulacion-cero":{"nombre":"Tripulación Cero","tipo":"Insignia de hito","como":"Se otorga sola al desbloquear a los 8 personajes de la Cero.","cuando":"A lo largo del viaje","tarea":"Recuperas a Bran, Tomás, Sylla, Amara, Vera, Joran, Mara y Noa. NEBULA vuelve a estar completa."},
  "H5_la-liberacion":{"nombre":"La Liberación","tipo":"Insignia de hito","como":"Se otorga sola al completar y publicar la Bitácora.","cuando":"Repaso final","tarea":"Una Bitácora abierta, copiada y compartida no se puede apagar: la Estática retrocede y la puerta a la Tierra se abre. Tu ePortfolio es el camino a casa."},
 }
+# 🔴 15-sep · «QUÉ HAY QUE HACER» DE LAS INSIGNIAS DE RETO = EL ENUNCIADO DEL RETO. Estaba escrito a mano aquí, una
+# segunda copia de cada reto, y ya discrepaba (la de Vera pedía «un indicador observable» cuando el reto pedía otra cosa).
+# Ahora sale del documento maestro (o de AYUDA_RETOS para los que no están en él): un dato, un sitio.
+try:
+    _catB = json.load(open(os.path.join(HERE, "motor", "catalogo.json"), encoding="utf-8"))
+    for _rB in _catB.get("retos", {}).get("REGULAR", []):
+        _mB = _reS.search(r"«([^»]+)»", _rB.get("titulo", ""))
+        _tB = AYUDA_RETOS.get(_rB["id"]) or (_AYUDA_DOC.get(_mB.group(1)) if _mB else "")
+        for _kB in _rB.get("insignias", []):
+            if _tB and _kB in BADGE_INFO and _kB[0] in "PR": BADGE_INFO[_kB]["tarea"] = _tB
+except Exception as _eB:
+    print("🔴 las fichas de insignia no se han podido poner al día:", _eB)
 # Frase del personaje (se muestra en el modal de las insignias de personaje)
 CITAS = {
  "P1_bran":"Copiadlo. Copiadlo todos.",
@@ -2421,7 +2438,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS, ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(EJEMPLOS_RETOS, ensure_ascii=False)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_TOPE_DIA={TOPE_RETOS_DIA};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS, ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(EJEMPLOS_RETOS, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_TOPE_DIA={TOPE_RETOS_DIA};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};</script>
 <script src="assets/js/secreto.js" defer></script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sobre.js" defer></script>
@@ -3013,34 +3030,30 @@ pulsa, porque se le busca por su cuenta. Móntalo una vez en tu presentación y 
 open(os.path.join(HERE, "validar.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: validar.html  (enlaces universales para Genially)")
 
-# ---------------------------------------------------------------- 15-sep · EL FRAGMENTO PROHIBIDO (S7)
-# El enigma del reto secreto: el enlace escondido en la presentación del planeta Vínculo lleva aquí.
-# Sin menú, sin Capitán y fuera de los buscadores: es un secreto. La inscripción y el paso los pone
-# este build (ver SECRETOS); el registro lo hace validar.html con la palabra que se trae de aquí.
-try:
-    _catS = json.load(open(os.path.join(HERE, "motor", "catalogo.json"), encoding="utf-8"))
-    _xpS7 = [r for r in (_catS.get("retos", {}).get("REGULAR", []) or []) if r.get("id") == "S7"][0].get("xp", 150)
-except Exception:
-    _xpS7 = 150
-_FRAG = {"inscripcion": INSCRIPCION_S7, "paso": PASO_S7, "xp": _xpS7,
-         "insignia": BADGE_NAME.get("E3_vaeon", "General Vaeon"), "insigniaClave": "E3_vaeon"}
+# ---------------------------------------------------------------- 15-sep · EL FRAGMENTO PROHIBIDO (S7) → EL ESCAPE UNI
+# El enlace escondido en la presentación del planeta Vínculo llevaba aquí, a un enigma. 15-sep (tarde): el reto secreto
+# es el Escape UNI (Norberto), así que esta página es ya su PUERTA: quien encuentre el enlace de Vínculo entra en el
+# escape. Nada de inscripciones: cifrarían la llave. Sin menú y fuera de los buscadores: sigue siendo un secreto.
 _html = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>STARGATE · El Fragmento Prohibido</title>
+<title>STARGATE · Un archivo que no debería existir</title>
 <meta name="robots" content="noindex,nofollow">
 <meta name="description" content="Un archivo que no debería existir.">
 <meta name="theme-color" content="#080c14">
 <link rel="icon" href="{FAV}">
 <link rel="stylesheet" href="assets/css/stargate.css">
-<script>window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTO={json.dumps(_FRAG, ensure_ascii=False)};</script>
-<script src="{_v("assets/js/secreto.js")}" defer></script>
-<script src="{_v("assets/js/fragmento.js")}" defer></script>
 </head><body class="fragmento">
-<main id="fr-app" class="fr"><noscript><p style="padding:24px">Este archivo necesita JavaScript.</p></noscript></main>
+<main id="fr-app" class="fr"><div class="fr-escena"><div class="fr-caja">
+<div class="eyebrow amber">Archivo sellado · Vínculo</div>
+<h1>Un archivo que no debería existir</h1>
+<p class="fr-neb"><b>NEBULA:</b> «Vaeon selló aquí algo que no quería que nadie encontrara. La puerta está detrás.
+Entra, resuelve lo que te pida y, al final, pulsa el botón que te espera: tu Nave lo sabrá.»</p>
+<p><a class="btn epico" href="{ESCAPE_UNI}" rel="noopener"><span class="ep-luz"></span><span class="ep-txt">🗝️ Entrar en el Escape UNI</span></a></p>
+</div></div></main>
 </body></html>
 '''
 open(os.path.join(HERE, "fragmento.html"), "w", encoding="utf-8").write(_ver_assets(_html))
-print("escrito: fragmento.html  (el enigma del reto secreto S7)")
+print("escrito: fragmento.html  (la puerta al Escape UNI, el reto secreto S7)")
 
 # ---------------------------------------------------------------- 15-sep · EL BUZÓN DEL MANDO
 # «📡 Frecuencia de mando»: el profesorado escribe problemas, dudas e ideas; mientras escribe, el
