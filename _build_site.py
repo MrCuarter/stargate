@@ -1294,10 +1294,30 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
    * el aviso, el referente no veía el botón hasta recargar — y nadie recarga para ver si aparece
    * algo que no sabe que existe.
    */
+  /**
+   * 15-sep · EL «MODO DOCENTE» DEL REFERENTE. Norberto: «que cuando un profe referente inicie sesión tenga la opción
+   * de simplificar su panel a modo profe raso: un botón en la parte superior que le oculte las opciones propias de
+   * referente (así evitamos distractores, o cuando está en clase en directo ve lo mismo que un profe)». Se guarda en
+   * este navegador (sgModoDocente) y avisa con `sg:modo` a quien pinte cosas de referente (la consola).
+   */
+  function modoDocente(){ try{ return localStorage.getItem('sgModoDocente')==='1'; }catch(e){ return false; } }
+  window.SG_MODO_DOCENTE = modoDocente;
   function encenderSegunRol(){
     var ref=false; try{ ref = localStorage.getItem('sgEsReferente')==='1'; }catch(e){}
-    if(!ref) return;
-    Array.prototype.forEach.call(document.querySelectorAll('.lnk.solo-referente'),function(a){ a.hidden=false; });
+    var md = ref && modoDocente();
+    Array.prototype.forEach.call(document.querySelectorAll('.lnk.solo-referente'),function(a){ a.hidden = !ref || md; });
+    var b = document.getElementById('sg-modo'), wrap = document.querySelector('.nav .wrap');
+    if(!ref || !wrap || (document.body && document.body.classList.contains('embed'))){ if(b) b.remove(); return; }
+    if(!b){
+      b=document.createElement('button'); b.id='sg-modo'; b.type='button'; b.className='sg-modo';
+      b.onclick=function(){ try{ localStorage.setItem('sgModoDocente', modoDocente()?'0':'1'); }catch(e){}
+        encenderSegunRol(); try{ document.dispatchEvent(new CustomEvent('sg:modo')); }catch(e){} };
+      wrap.insertBefore(b, wrap.querySelector('.tour-start'));
+    }
+    b.textContent = md ? '★ Modo referente' : '👤 Modo docente';
+    b.title = md ? 'Volver a ver todo lo de referente' : 'Ocultar lo de referente (para clase): ves lo mismo que un profe';
+    b.setAttribute('aria-pressed', md ? 'true' : 'false');
+    b.classList.toggle('on', md);
   }
   encenderSegunRol();
   document.addEventListener('sg:rol', encenderSegunRol);
@@ -3044,6 +3064,116 @@ coordinador. Las respuestas te llegan aquí y te avisamos por correo.</p></div><
 ''' + FOOT
 open(os.path.join(HERE, "buzon.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: buzon.html  (el buzón del Mando)")
+
+# ---------------------------------------------------------------- 15-sep · LA INVITACIÓN DE REFERENTE
+# Un enlace de un solo uso que crea el Mando en Profesores: quien lo abre entra con Google y esa cuenta queda
+# como profe referente (no hace falta saber su correo: por el nombre no se puede, cualquiera se lo pone).
+_html = head("STARGATE · Invitación", "Tu invitación para entrar en STARGATE como profe referente.", "grp").replace(
+    "</head>", _cabeza_motor() + '<meta name="robots" content="noindex,nofollow">\n</head>') + '''
+<section id="invitacion"><div class="wrap"><div id="inv-app"><p class="muted">Cargando…</p></div>
+''' + '<script src="' + _v("assets/js/invitacion.js") + '" defer></script>' + '''
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "invitacion.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: invitacion.html  (la invitación de referente)")
+
+# ---------------------------------------------------------------- 15-sep · PROFESORES (solo el Mando)
+_html = head("STARGATE · Profesores", "El profesorado de STARGATE: referentes, grupos, conexiones e invitaciones.", "grp").replace(
+    "</head>", _cabeza_motor() + '<meta name="robots" content="noindex,nofollow">\n</head>') + '''
+<header class="hero corto"><div class="kicker">★ Solo el Mando</div><h1>Profesores</h1>
+<p>Todos los profes que son o han sido: sus grupos, sus conexiones y sus números. Aquí se invita a un referente,
+se hace o se quita, y se añade a alguien a un grupo.</p></header>
+<section id="profesores"><div class="wrap"><div id="pr-app"><p class="muted">Cargando…</p></div>
+''' + '<script src="' + _v("assets/js/profesores.js") + '" defer></script>' + '''
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "profesores.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: profesores.html  (solo el Mando)")
+
+# ---------------------------------------------------------------- 15-sep · LA PRUEBA MANUAL, PARA EL EQUIPO
+# Norberto: «haz una versión general de prueba manual publicada en la web para que la prueben Caridad y Anita».
+# Temporal y sin indexar. Sin correos de nadie ni comandos internos (esos solo están en su guía privada).
+_PE = [
+ ("Antes de empezar", [
+   ("Abre el <b>enlace de invitación</b> que te ha mandado Norberto y entra con la cuenta de Google que vayas a usar en STARGATE.",
+    "«¡Bienvenida al puente, Comandante!»: esa cuenta ya es <b>profe referente</b>. (Si Norberto te ha hecho referente con tu correo, entra sin más por la portada.)"),
+   ("Ten a mano, si puedes, <b>otra cuenta de Google</b> (una personal) para hacer de estudiante al final.",
+    "No hace falta para casi nada; solo para ver la Nave del alumnado por dentro."),
+   ("Pide a Norberto que te añada al grupo de prueba con alumnado (<b>PRUEBA HUMANA · 20 reclutas</b>).",
+    "Así verás rankings, fichas y entregas de verdad. Mientras, puedes crear tu propio grupo (paso 2)."),
+ ]),
+ ("1 · Mis grupos (el puesto de mando)", [
+   ("Entra en <a href='consola.html'>Mis grupos</a>.",
+    "La tarjeta de cada grupo: alistados, semana, «Proyectar la clase», «El aula» y «Llamada a filas». El <b>código de clase</b> sale tapado: pulsa «👁 Mostrar»."),
+   ("Pulsa «📋 Copiar invitación» y pégala en un documento.",
+    "Un mensaje listo para el foro de la plataforma de UNIR, con el enlace directo y el código."),
+   ("Mira la franja «🧩 Para tus Geniallys».",
+    "Tres códigos para insertar en Genially (la sesión, el aula y la llamada): los mismos para todos tus grupos."),
+   ("Arriba del todo, pulsa «👤 Modo docente».",
+    "Desaparece todo lo de referente (crear grupos, equipo, calendario…): lo que ve un profe en clase. Vuelve con «★ Modo referente»."),
+ ]),
+ ("2 · Crear un grupo", [
+   ("<a href='crear.html'>Crear grupo</a>: un nombre de prueba, REGULAR y como semana 1 un lunes de septiembre u octubre.",
+    "El resumen dice cuándo acaba y <b>salta solo las semanas festivas de la UNIR</b>: las dos de Navidad y la de Semana Santa."),
+   ("Créalo.", "En un minuto, el grupo sembrado entero y su código. En su pestaña <b>Calendario</b>, esas semanas salen como «🎄 Festivo UNIR»."),
+ ]),
+ ("3 · La sesión de la semana (lo que se proyecta)", [
+   ("En la tarjeta del grupo, «📽️ Proyectar la clase».", "Arriba, solo para ti: el consejo del Capitán y el mensaje del foro para copiar. Abajo, el mazo que se proyecta."),
+   ("Pasa a la diapositiva «El mensaje».", "El mensaje de la semana como la apertura de una saga, con música épica (si no suena, «🔈 Música»)."),
+   ("En «¿Quién las ha superado?», pulsa la cara de un recluta.", "Su ficha: nivel, insignias, cartas y retos. Y bajo quien entregó enlace, «🔗 Ver»: se abre su trabajo."),
+   ("Llega a «La Nave» y cambia la semana del selector.", "La Nave de un estudiante simulada, en la semana que elijas: para enseñar en clase lo que se abre (el Mercado, el Zoco…)."),
+   ("Si tienes un Genially: inserta el código de «La sesión» (Insertar → Otros → Código).", "Dentro pide tu cuenta y el grupo. Abajo, «⏻» para cerrar sesión. Si entra un estudiante, va a su Nave."),
+ ]),
+ ("4 · El aula (la clase en directo)", [
+   ("«🎛️ El aula» → «🔔 Llamada a filas».", "El alumnado pulsa «✋ Presente» en su Nave y aquí se ve entrar a cada uno."),
+   ("«🎁 Premiar»: elige a alguien y dale un sobre o un cofre.", "Le llega al momento a su Nave."),
+   ("«🎲 ¿A quién pregunto?» y la pestaña «⏱️ Tiempo» (3 min → Empezar).", "Una cuenta atrás grande, a pantalla completa, con aviso al terminar."),
+ ]),
+ ("5 · Dentro del grupo", [
+   ("«Ver mi gente y los ajustes» → <b>Mi gente</b> → pulsa una fila.", "Su ficha: retos, enlaces de lo que entregó y lo que el profe puede hacer (anular un reto, premiar…)."),
+   ("Recorre las pestañas de referente: Equipo docente, Calendario, Premios por enlace, Sorteos, Ofertas y Ajustes.", "Todo lo que gobierna el grupo. En Equipo docente se añade a un compañero por su correo."),
+ ]),
+ ("6 · ¿Dudas? El buzón", [
+   ("Pulsa «📡 ¿Dudas? ¿Algo falla?» y toca «🔑 ¿Cuál es el código de invitación?».", "El Capitán contesta al momento, con los datos de tus grupos."),
+   ("Escribe ahí todo lo que te llame la atención de esta prueba (un fallo, algo que no se entiende, una idea).",
+    "Llega a Norberto con su contexto y se responde en la misma página (y te avisa por correo)."),
+ ]),
+ ("7 · Como estudiante (con tu otra cuenta)", [
+   ("En otra ventana, con la otra cuenta, entra por la <a href='index.html'>portada</a> y escribe el código de tu grupo.", "Te alistas en un minuto (alias y Comandante) y NEBULA te enseña la Nave."),
+   ("«Mis retos»: marca uno con enlace.", "Pide el enlace (y hay un «+» para un segundo). Sin enlace, no se registra."),
+   ("«Mi botín».", "Tus insignias, por planetas: el tripulante y el reto de cada tema."),
+ ]),
+]
+def _pe_html():
+    n = 0; out = []
+    for tit, pasos in _PE:
+        out.append('<section class="pe-bloque"><h2>' + tit + '</h2><ol class="pe-pasos">')
+        for qq, ver in pasos:
+            n += 1
+            out.append('<li class="pe-paso"><label><input type="checkbox" class="pe-tick" data-n="' + str(n) + '"><span class="pe-qq">' + qq
+                       + '</span></label><p class="pe-ver">' + ver + '</p></li>')
+        out.append('</ol></section>')
+    return "\n".join(out), n
+_pe_cuerpo, _pe_n = _pe_html()
+_html = head("STARGATE · Prueba manual", "La prueba manual de STARGATE para el equipo docente.", "grp").replace(
+    "</head>", '<meta name="robots" content="noindex,nofollow">\n</head>') + '''
+<header class="hero corto"><div class="kicker">🧭 Prueba manual · para el equipo</div><h1>Prueba STARGATE, paso a paso</h1>
+<p>Una ronda por todo lo que usarás en el curso, en el orden en que te lo encontrarás. Marca cada paso al hacerlo
+(se guarda en este navegador) y cuéntanos lo que veas desde el buzón: «📡 ¿Dudas? ¿Algo falla?».
+<span class="pe-cuenta" id="pe-cuenta">0 / ''' + str(_pe_n) + '''</span></p></header>
+<section id="prueba-equipo"><div class="wrap pe-wrap">
+''' + _pe_cuerpo + '''
+<p class="small muted">Página temporal, para la prueba del equipo: desaparecerá cuando termine.</p>
+<script>(function(){ var K="sgPruebaEquipo", v={}; try{ v=JSON.parse(localStorage.getItem(K)||"{}"); }catch(e){}
+  var ts=[].slice.call(document.querySelectorAll(".pe-tick")), c=document.getElementById("pe-cuenta");
+  function cuenta(){ c.textContent=ts.filter(function(t){return t.checked;}).length+" / "+ts.length; }
+  ts.forEach(function(t){ var n=t.getAttribute("data-n"); t.checked=!!v[n]; t.closest(".pe-paso").classList.toggle("hecho", t.checked);
+    t.onchange=function(){ v[n]=t.checked; t.closest(".pe-paso").classList.toggle("hecho", t.checked); try{ localStorage.setItem(K, JSON.stringify(v)); }catch(e){} cuenta(); }; });
+  cuenta(); })();</script>
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "prueba-equipo.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: prueba-equipo.html  (la prueba manual del equipo · temporal)")
 
 # ---------------------------------------------------------------- la llamada a filas (embed Genially)
 # Pública a propósito: vive dentro del Genially que el docente PROYECTA, así que la ve la clase

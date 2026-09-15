@@ -21,10 +21,30 @@
    * el aviso, el referente no veía el botón hasta recargar — y nadie recarga para ver si aparece
    * algo que no sabe que existe.
    */
+  /**
+   * 15-sep · EL «MODO DOCENTE» DEL REFERENTE. Norberto: «que cuando un profe referente inicie sesión tenga la opción
+   * de simplificar su panel a modo profe raso: un botón en la parte superior que le oculte las opciones propias de
+   * referente (así evitamos distractores, o cuando está en clase en directo ve lo mismo que un profe)». Se guarda en
+   * este navegador (sgModoDocente) y avisa con `sg:modo` a quien pinte cosas de referente (la consola).
+   */
+  function modoDocente(){ try{ return localStorage.getItem('sgModoDocente')==='1'; }catch(e){ return false; } }
+  window.SG_MODO_DOCENTE = modoDocente;
   function encenderSegunRol(){
     var ref=false; try{ ref = localStorage.getItem('sgEsReferente')==='1'; }catch(e){}
-    if(!ref) return;
-    Array.prototype.forEach.call(document.querySelectorAll('.lnk.solo-referente'),function(a){ a.hidden=false; });
+    var md = ref && modoDocente();
+    Array.prototype.forEach.call(document.querySelectorAll('.lnk.solo-referente'),function(a){ a.hidden = !ref || md; });
+    var b = document.getElementById('sg-modo'), wrap = document.querySelector('.nav .wrap');
+    if(!ref || !wrap || (document.body && document.body.classList.contains('embed'))){ if(b) b.remove(); return; }
+    if(!b){
+      b=document.createElement('button'); b.id='sg-modo'; b.type='button'; b.className='sg-modo';
+      b.onclick=function(){ try{ localStorage.setItem('sgModoDocente', modoDocente()?'0':'1'); }catch(e){}
+        encenderSegunRol(); try{ document.dispatchEvent(new CustomEvent('sg:modo')); }catch(e){} };
+      wrap.insertBefore(b, wrap.querySelector('.tour-start'));
+    }
+    b.textContent = md ? '★ Modo referente' : '👤 Modo docente';
+    b.title = md ? 'Volver a ver todo lo de referente' : 'Ocultar lo de referente (para clase): ves lo mismo que un profe';
+    b.setAttribute('aria-pressed', md ? 'true' : 'false');
+    b.classList.toggle('on', md);
   }
   encenderSegunRol();
   document.addEventListener('sg:rol', encenderSegunRol);

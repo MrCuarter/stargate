@@ -309,8 +309,8 @@
   function pintarSinPermiso(ps) {
     app.innerHTML = '<div class="card"><h3>Esto lo hace tu profe referente</h3>' +
       '<p class="lead">Crear un grupo —con su calendario, sus retos y su código— es cosa de quien ' +
-      'coordina la asignatura. Tú ya tienes ' + (ps.length === 1 ? 'tu grupo' : 'tus ' + ps.length + ' grupos') +
-      ' en el puesto de mando.</p>' +
+      'coordina la asignatura. ' + (ps.length ? 'Tú ya tienes ' + (ps.length === 1 ? 'tu grupo' : 'tus ' + ps.length + ' grupos') +
+      ' en el puesto de mando.' : 'Con la cuenta <b>' + esc((YO && YO.correo) || '') + '</b> aún no eres profe referente: si deberías serlo, pide a Norberto tu invitación.') + '</p>' +
       '<p class="small muted">Si necesitas un grupo nuevo, pídeselo: lo crea en un minuto y te añade ' +
       'al equipo con este mismo correo.</p>' +
       '<p><a class="btn primary" href="consola.html">🎛️ Ir a mis grupos</a></p></div>';
@@ -344,9 +344,12 @@
       vista = quien_;
       YO = u;
       if (!YO) return pintarPuerta();
+      // 15-sep · crea grupos quien es referente de alguno o está en el registro de referentes (por invitación de
+      // Norberto; los vitalicios, siempre). Antes pasaba cualquiera que aún no tuviera grupos: el arranque del sistema,
+      // que ya no hace falta y dejaba a cualquier cuenta de Google sembrar grupos.
       MOTOR.misPERs(YO.correo).then(function (ps) {
-        if (!ps.length || ps.some(function (p) { return p.soyReferente; })) return pintar();
-        pintarSinPermiso(ps);
+        if (ps.some(function (p) { return p.soyReferente; })) return pintar();
+        return MOTOR.referenteGlobal(YO.correo).then(function (ok) { if (ok) pintar(); else pintarSinPermiso(ps); });
       }).catch(function () { pintar(); });   // si no se puede comprobar, que no se quede bloqueado
     };
     MOTOR.sesion().then(mirar);

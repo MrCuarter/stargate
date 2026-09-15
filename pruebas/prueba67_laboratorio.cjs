@@ -3256,6 +3256,93 @@ const REG = {};   // cifras que se apuntan para el informe
       c("buzón · sin errores en la página", !bz.errores.filter(e => !/Failed to load resource/.test(e)).length, bz.errores[0] || "");
       await bz.cerrar();
     }
+
+    // ============================================================ 35 · LOS PROFES REFERENTES: INVITACIÓN, PROFESORES Y MODO DOCENTE
+    if (hacer(35)) {
+      const P = "lab-clase";
+      // el Mando invita a Anita (sin saber su correo)
+      const nor = await nueva("El Mando invita");
+      await nor.ir("entrar.html"); await nor.entrarComo("n.cuartero.10@gmail.com", "Norberto Cuartero");
+      await nor.ir("profesores.html");
+      c("profes · Profesores se abre para el Mando, con su lista y el formulario de invitar",
+        await nor.hasta("!!document.getElementById('pr-inv-crear') && document.querySelectorAll('.pr-profe').length>0", 40));
+      await nor.js("document.getElementById('pr-inv-nombre').value='Anita Feridouni'; document.getElementById('pr-inv-crear').click(); 1");
+      const enlace = await nor.hasta("!!document.querySelector('.pr-enlace code')", 20) ? await nor.js("document.querySelector('.pr-enlace code').textContent") : "";
+      c("🔴 profes · la invitación sale con su enlace de un solo uso (invitacion.html?t=… de 24 caracteres)", /invitacion\.html\?t=[A-Za-z0-9]{24}$/.test(enlace), enlace);
+      await nor.foto(FOTOS + "/35-profesores.png");
+      const t = enlace.split("t=")[1] || "";
+      // el Mando la abre para probarla: no la gasta
+      await nor.ir("invitacion.html?t=" + t);
+      c("profes · el Mando abre el enlace para probarlo y NO lo gasta", await nor.hasta("/es para otra persona/.test(document.body.innerText) && /sin usar/.test(document.body.innerText)", 25));
+      await nor.cerrar();
+      // Anita la acepta con su cuenta
+      const an = await nueva("Anita acepta");
+      await an.ir("entrar.html"); await an.entrarComo("anita@lab.test", "Anita Feridouni");
+      await an.ir("crear.html");
+      c("🔴 profes · antes de aceptar, Anita (sin grupos) NO puede crear grupos", await an.hasta("/Esto lo hace tu profe referente/.test(document.body.innerText)", 25), (await an.texto()).slice(0, 200));
+      await an.ir("invitacion.html?t=" + t);
+      c("🔴 profes · Anita abre su invitación y queda como referente, con la cuenta con la que ha entrado",
+        await an.hasta("/Bienvenida al puente/.test(document.body.innerText) && /anita@lab\.test/.test(document.body.innerText)", 25), (await an.texto()).slice(0, 200));
+      const reg = await leerDoc("stargate_referentes/anita@lab.test");
+      c("profes · y queda apuntada en el registro (activo, por invitación)", !!reg && reg.activo === true && reg.por === "invitacion" && reg.invitacion === t, JSON.stringify(reg));
+      await an.foto(FOTOS + "/35-invitacion.png");
+      await an.ir("crear.html");
+      c("🔴 profes · ahora sí puede crear grupos", await an.hasta("!!document.getElementById('btn-crear')", 25));
+      await an.ir("consola.html");
+      c("profes · y Mis grupos le da la bienvenida (aún sin grupos), con «Crear mi primer grupo»", await an.hasta("/Bienvenida al puente/.test(document.body.innerText) && /Crear mi primer grupo/.test(document.body.innerText)", 25));
+      await an.cerrar();
+      // María prueba el mismo enlace
+      const ma = await nueva("María prueba el mismo enlace");
+      await ma.ir("entrar.html"); await ma.entrarComo("maria35@lab.test", "María Prueba");
+      await ma.ir("invitacion.html?t=" + t);
+      c("🔴 profes · el mismo enlace ya no le sirve a otra cuenta", await ma.hasta("/ya se ha usado con otra cuenta/.test(document.body.innerText)", 25));
+      c("profes · y María no está en el registro", !(await leerDoc("stargate_referentes/maria35@lab.test")));
+      await ma.cerrar();
+      // el Mando la ve, la añade a un grupo y le quita lo de referente
+      const n2 = await nueva("El Mando administra");
+      await n2.ir("entrar.html"); await n2.entrarComo("n.cuartero.10@gmail.com", "Norberto Cuartero");
+      await n2.ir("profesores.html");
+      await n2.hasta("!!document.querySelector('.pr-profe[data-correo=\"anita@lab.test\"]')", 40);
+      c("profes · Anita sale en Profesores como referente, con su conexión",
+        await n2.js("(function(){ var a=document.querySelector('.pr-profe[data-correo=\"anita@lab.test\"]'); return !!a && /★ Referente/.test(a.innerText) && !/nunca/.test(a.querySelector('.pr-cuando').textContent); })()"));
+      await n2.js("(function(){ var a=document.querySelector('.pr-profe[data-correo=\"anita@lab.test\"]'); var s=a.querySelector('select'); s.value='lab-clase'; a.querySelector('[data-anadir]').click(); return 1; })()");
+      c("🔴 profes · el Mando la añade a un grupo (como docente) desde Profesores", await n2.hasta("/ya está en ese grupo/.test((document.getElementById('pr-aviso')||{}).innerText||'')", 30));
+      await n2.hasta("!!document.querySelector('.pr-profe[data-correo=\"anita@lab.test\"] [data-quitar]')", 20);
+      await n2.js("document.querySelector('.pr-profe[data-correo=\"anita@lab.test\"] [data-quitar]').click(); 1"); await dormir(200);
+      await n2.js("document.querySelector('.pr-profe[data-correo=\"anita@lab.test\"] [data-quitar]').click(); 1");
+      c("profes · y le quita lo de referente (con confirmación)", await n2.hasta("/ya no es referente/.test((document.getElementById('pr-aviso')||{}).innerText||'')", 20));
+      c("profes · en el registro, activo: false (no se borra nada)", (await leerDoc("stargate_referentes/anita@lab.test")).activo === false);
+      await n2.cerrar();
+      const an2 = await nueva("Anita, ya sin ser referente");
+      await an2.ir("entrar.html"); await an2.entrarComo("anita@lab.test", "Anita Feridouni");
+      await an2.ir("consola.html");
+      c("profes · Anita ve el grupo al que la han añadido", await an2.hasta("/LAB · CLASE DE PRUEBA/i.test(document.body.innerText)", 30));
+      await an2.ir("crear.html");
+      c("🔴 profes · y sin ser referente ya no crea grupos", await an2.hasta("/Esto lo hace tu profe referente/.test(document.body.innerText)", 25));
+      await an2.cerrar();
+      // alguien que no es nadie no crea grupos (antes, sin grupos, pasaba)
+      const nd = await nueva("Nadie intenta crear");
+      await nd.ir("entrar.html"); await nd.entrarComo("nadie35@lab.test", "Nadie");
+      await nd.ir("crear.html");
+      c("🔴 profes · una cuenta cualquiera, sin grupos, ya NO puede sembrar grupos", await nd.hasta("/Esto lo hace tu profe referente/.test(document.body.innerText)", 25));
+      await nd.cerrar();
+      // el modo docente de una referente
+      const ri = await nueva("Rita en modo docente");
+      await ri.ir("entrar.html"); await ri.entrarComo("rita@lab.test", "Rita Referente");
+      await ri.ir("consola.html?per=" + P);
+      await ri.hasta("!!document.getElementById('sg-modo') && document.querySelectorAll('.pest').length>0", 30);
+      const antes = await ri.js("document.querySelectorAll('.pest').length");
+      await ri.js("document.getElementById('sg-modo').click(); 1"); await dormir(1500);
+      const despues = await ri.js("document.querySelectorAll('.pest').length");
+      c("🔴 modo · «👤 Modo docente» esconde las pestañas de referente (y el botón pasa a «★ Modo referente»)",
+        despues < antes && /Modo referente/.test(await ri.js("document.getElementById('sg-modo').textContent")), antes + " → " + despues);
+      c("modo · y «Crear grupo» desaparece del menú", await ri.js("[].slice.call(document.querySelectorAll('.lnk.solo-referente')).every(function(a){return a.hidden})"));
+      await ri.foto(FOTOS + "/35-modo-docente.png");
+      await ri.js("document.getElementById('sg-modo').click(); 1"); await dormir(1500);
+      c("modo · y vuelve con «★ Modo referente»", (await ri.js("document.querySelectorAll('.pest').length")) === antes);
+      c("profes · sin errores en las páginas", !ri.errores.filter(e => !/Failed to load resource/.test(e)).length, ri.errores[0] || "");
+      await ri.cerrar();
+    }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
   } finally {

@@ -178,17 +178,34 @@
     var b = url.get("borrado");
     return b ? '<div class="card borrado-ok"><p>🗑️ <b>«' + esc(b) + '»</b> borrado, con todo lo suyo.</p></div>' : "";
   }
+  /**
+   * 15-sep · EL «MODO DOCENTE» (Norberto): el referente oculta lo suyo con el botón de arriba (stargate.js) y ve lo
+   * mismo que un profe. Y «referente» ya no es solo serlo de un grupo: también quien está en el registro (por
+   * invitación o hecho por el Mando en Profesores), aunque aún no lleve ninguno.
+   */
+  function modoDoc() { return !!(window.SG_MODO_DOCENTE && window.SG_MODO_DOCENTE()); }
+  function refGlobal() { try { return localStorage.getItem("sgEsReferente") === "1"; } catch (e) { return false; } }
+  function refDe(p) { return !!(p && p.soyReferente) && !modoDoc(); }
+  document.addEventListener("sg:modo", function () { if (!YO) return; if (PER && DATOS) pintar(); else elegirGrupo(); });
   async function elegirGrupo() {
     cargando("Buscando tus grupos…");
     PERS = await MOTOR.misPERs(YO.correo);
     contarBuzon();   // (15-sep · el contador del buzón: si llega antes de pintar, sale ya en el botón; si no, se añade)
     if (!PERS.length) {
-      var puedeCrear = false;
+      // 15-sep · un referente nuevo (por invitación) aún no tiene grupos: se le da la bienvenida, no un «no figuras»
+      if (refGlobal() && !modoDoc()) {
+        app.innerHTML = avisoBorrado() + '<div class="card"><h3>¡Bienvenida al puente, Comandante!</h3>' +
+          '<p>Eres <b>profe referente</b> con <b>' + esc(YO.correo) + '</b>, pero aún no llevas ningún grupo. Crea el primero (en un minuto, con su calendario y su código) ' +
+          'o pide a Norberto que te añada a uno que ya exista.</p>' +
+          '<p><a class="btn primary grande" href="crear.html">✨ Crear mi primer grupo</a> <a class="btn" href="prueba-equipo.html">🧭 La guía de prueba</a> ' + botonBuzon("consola") + '</p></div>';
+        document.body.classList.add("consola-dentro");
+        return;
+      }
       app.innerHTML = avisoBorrado() + '<div class="card"><h3>Todavía no tienes grupos</h3>' +
         '<p>No figuras como docente en ningún grupo de STARGATE con el correo <b>' + esc(YO.correo) + '</b>.</p>' +
         '<p class="small muted">Si deberías estar en uno, pídele a tu referente que te añada con ' +
         '<b>este mismo correo</b>. Y comprueba con qué cuenta de Google has entrado: es el despiste más común.</p>' +
-        '<p><a class="btn grande" href="crear.html">Crear el primero</a></p></div>';
+        (refGlobal() ? '<p><a class="btn grande" href="crear.html">Crear el primero</a></p>' : '') + '</div>';
       return;
     }
     // el mismo filtro que en `entrar.js`: nada de barras ni de dos puntos, o sería un trampolín
@@ -203,7 +220,7 @@
     // esta pantalla existía. Con un grupo, la tarjeta ocupa la pantalla entera y se entiende sola.
     var vivos = PERS.filter(function (p) { return p.estado !== "pasado"; });
     var pasados = PERS.filter(function (p) { return p.estado === "pasado"; });
-    var soyRef = PERS.some(function (p) { return p.soyReferente; });
+    var soyRef = (PERS.some(function (p) { return p.soyReferente; }) || refGlobal()) && !modoDoc();
 
     app.innerHTML = avisoBorrado() +
       '<div class="gp-cab"><div><h2>Tus grupos</h2>' +
@@ -250,6 +267,9 @@
               '<em>La ceremonia, el ranking y los dos marcadores.</em></a>' +
             '<a class="ref-b" href="pasos.html"><span>🧭</span><b>Montarlo paso a paso</b>' +
               '<em>El recorrido completo, con capturas.</em></a>' +
+            // 15-sep · la página de Profesores, solo para el Mando (los vitalicios)
+            (VITALICIOS_WEB.indexOf(String(YO.correo || "").toLowerCase()) >= 0
+              ? '<a class="ref-b" href="profesores.html"><span>👥</span><b>Profesores</b><em>Referentes, invitaciones, sus grupos y sus conexiones.</em></a>' : '') +
           '</div>' +
           '<p class="small muted" style="margin-top:12px">Dentro de cada grupo tienes además ' +
           '<b>Equipo docente</b>, <b>Escuadrones</b> y <b>Ajustes</b>: esas tres solo las ve quien ' +
@@ -301,7 +321,7 @@
               ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1],
               ["huevos", "Premios por enlace", 1], ["sorteos", "Sorteos", 1], ["ofertas", "Ofertas", 1], ["calendario", "Calendario", 1], ["ajustes", "Ajustes del grupo", 1]];
   function misTabs() {
-    var ref = !!(PERS.filter(function (p) { return p.id === PER; })[0] || {}).soyReferente;
+    var ref = refDe(PERS.filter(function (p) { return p.id === PER; })[0]);
     return TABS.filter(function (x) { return !x[2] || ref; });
   }
 
@@ -489,7 +509,7 @@
 
   function verFicha(r, retos) {
     var ficha = r.ficha;
-    var esRef = !!(PERS.filter(function (p) { return p.id === PER; })[0] || {}).soyReferente;
+    var esRef = refDe(PERS.filter(function (p) { return p.id === PER; })[0]);
     $("#c-ficha").innerHTML = '<div class="card"><h3>' + esc(r.alias) + ' · ' + esc(r.nombre || "") + "</h3>" +
       '<p class="small">' + r.xp + ' xp · ' + r.creditos + ' ◈ · nivel ' + r.nivel + " " + esc(r.rango_nombre) +
       ' · racha ' + r.racha + " semanas</p>" +

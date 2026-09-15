@@ -225,7 +225,11 @@ async function misPERs(correo) {
   try { if (mios.length) localStorage.setItem("sgEsDocente", "1"); } catch (e) {}
   // 🔴 Y la que enciende «Crear grupo» en el menú. Se escribe SIEMPRE —también a "0"— para que
   // quien deje de ser referente no arrastre el botón de la sesión anterior.
-  try { localStorage.setItem("sgEsReferente", mios.some(x => x.soyReferente) ? "1" : "0"); } catch (e) {}
+  // (15-sep · también quien está en el registro de referentes, aunque aún no lleve ningún grupo)
+  const refGlobal = mios.some(x => x.soyReferente) || await referenteGlobal(correo);
+  try { localStorage.setItem("sgEsReferente", refGlobal ? "1" : "0"); } catch (e) {}
+  // 15-sep · y su conexión, para la página de Profesores del Mando (una vez por sesión del navegador)
+  if (mios.length || refGlobal) anotarConexion().catch(() => {});
   // 🔴 Y se AVISA. El menú se pinta con el HTML, mucho antes de que el servidor diga quién eres, así
   // que sin este aviso el referente no veía «Crear grupo» hasta recargar la página — y nadie recarga
   // para ver si aparece un botón que no sabe que existe.
@@ -1498,6 +1502,88 @@ async function fichajesDe(sesionId) {
 }
 
 /**
+ * ════════ 15-sep · LOS PROFES REFERENTES, SUS INVITACIONES Y LAS CONEXIONES DEL PROFESORADO ════════
+ * Norberto: «no sé con qué email iniciarán sesión, ¿podrías autodetectarlo y convertirlas en referentes?» y
+ * «una página de profesores: veo todos los profes que son o han sido, los convierto (o quito) de referente…».
+ * Por nombre NO se puede (cualquiera se pone ese nombre en Google): el Mando crea una INVITACIÓN de un solo
+ * uso, y quien la abre con su cuenta queda como referente (las reglas lo atan en una sola escritura).
+ * Referente = puede crear grupos y ve lo de referente. Los vitalicios lo son siempre.
+ */
+async function referenteGlobal(correo) {
+  correo = String(correo || "").toLowerCase();
+  if (REFERENTES_VITALICIOS.indexOf(correo) >= 0) return true;
+  try { const d = await getDoc(doc(db, "stargate_referentes", correo)); return d.exists() && d.data().activo === true; }
+  catch (e) { return false; }
+}
+function aleatorio(n) {
+  const a = new Uint8Array(n), L = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  crypto.getRandomValues(a); return Array.prototype.map.call(a, x => L[x % L.length]).join("");
+}
+async function crearInvitacion(nombre) {
+  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta.");
+  const t = aleatorio(24), ahora = Date.now();
+  await setDoc(doc(db, "stargate_invitaciones", t), { nombre: String(nombre || "").trim().slice(0, 80), rol: "referente",
+    creado: ahora, caduca: ahora + 14 * 864e5, por: yo.correo, usadoPor: null, usadoCorreo: null, usadoEn: null });
+  return { token: t, enlace: location.origin + "/invitacion.html?t=" + t, caduca: ahora + 14 * 864e5 };
+}
+async function leerInvitacion(t) {
+  const d = await getDoc(doc(db, "stargate_invitaciones", String(t || ""))); return d.exists() ? { id: d.id, ...d.data() } : null;
+}
+async function canjearInvitacion(t) {
+  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta de Google.");
+  const inv = await leerInvitacion(t);
+  if (!inv) return { error: "no-existe" };
+  if (inv.usadoPor) return inv.usadoPor === yo.uid ? { ok: true, ya: true, nombre: inv.nombre } : { error: "usada" };
+  if (Number(inv.caduca) < Date.now()) return { error: "caducada" };
+  const b = writeBatch(db), ahora = Date.now();
+  b.set(doc(db, "stargate_referentes", yo.correo), { correo: yo.correo, nombre: yo.nombre || inv.nombre || yo.correo, activo: true,
+    desde: ahora, por: "invitacion", invitacion: t, actualizado: ahora });
+  b.update(doc(db, "stargate_invitaciones", t), { usadoPor: yo.uid, usadoCorreo: yo.correo, usadoEn: ahora });
+  await b.commit();
+  try { localStorage.setItem("sgEsReferente", "1"); localStorage.setItem("sgEsDocente", "1"); document.dispatchEvent(new CustomEvent("sg:rol")); } catch (e) {}
+  anotarConexion().catch(() => {});
+  return { ok: true, nombre: inv.nombre };
+}
+/** Solo el Mando: la lista de invitaciones, la de referentes, poner o quitar uno, y las conexiones. */
+async function invitaciones() {
+  return (await getDocs(collection(db, "stargate_invitaciones"))).docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.creado || 0) - (a.creado || 0));
+}
+async function referentes() {
+  return (await getDocs(collection(db, "stargate_referentes"))).docs.map(d => ({ id: d.id, ...d.data() }));
+}
+async function ponerReferente(correo, activo, nombre) {
+  const yo = await sesion(); correo = String(correo || "").trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(correo)) throw new Error("Ese correo no parece un correo.");
+  const ref = doc(db, "stargate_referentes", correo), d = await getDoc(ref), x = d.exists() ? d.data() : {};
+  await setDoc(ref, { correo, nombre: String(nombre || x.nombre || correo), activo: !!activo, desde: x.desde || Date.now(),
+    por: (yo && yo.correo) || "", actualizado: Date.now() });
+}
+async function profes() {
+  return (await getDocs(collection(db, "stargate_profes"))).docs.map(d => ({ id: d.id, ...d.data() }));
+}
+async function anotarConexion() {
+  const yo = await sesion(); if (!yo) return;
+  const k = "sgConexion:" + yo.uid;
+  try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, "1"); } catch (e) {}
+  const ref = doc(db, "stargate_profes", yo.uid), d = await getDoc(ref), x = d.exists() ? d.data() : {}, ahora = Date.now();
+  await setDoc(ref, { uid: yo.uid, correo: yo.correo, nombre: yo.nombre || x.nombre || "", foto: yo.foto || x.foto || "",
+    primera: x.primera || ahora, ultima: ahora, n: (x.n || 0) + 1, ultimas: (x.ultimas || []).concat(ahora).slice(-20) });
+}
+/** Solo el Mando: TODOS los grupos de STARGATE (con su equipo, si se deja leer) y cuántos alistados tiene cada uno. */
+async function todosLosGrupos() {
+  const r = await getDocs(collection(db, "projects"));
+  const gs = r.docs.map(d => ({ id: d.id, nombre: d.data().name, stargate: d.data().stargate || {}, coTeacherEmails: d.data().coTeacherEmails || [] }))
+    .filter(x => x.stargate.version).map(x => Object.assign(x, estadoDelPER(x.stargate)));
+  await Promise.all(gs.map(async x => {
+    try { const pv = await getDoc(doc(db, "projects", x.id, "privado", "stargate")); x.equipo = (pv.exists() ? pv.data().docentes : null) || x.stargate.docentes || []; }
+    catch (e) { x.equipo = x.stargate.docentes || []; }
+    try { x.reclutas = (await getCountFromServer(query(collection(db, "student_profiles"), where("projectId", "==", x.id)))).data().count; }
+    catch (e) { x.reclutas = null; }
+  }));
+  return gs;
+}
+
+/**
  * 15-sep · LA INVITACIÓN Y EL CÓDIGO PARA GENIALLY, EN UN SOLO SITIO. Los usa la consola (sus botones) y el
  * Capitán del buzón (que los da al instante cuando alguien pregunta «¿cuál es el código de invitación?»):
  * si cada uno tuviera su copia del texto, un día dirían cosas distintas.
@@ -1525,5 +1611,7 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta,
                     buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto, invitacion, codigoGenially,
+                    referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
+                    profes, anotarConexion, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));
