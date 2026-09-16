@@ -3154,7 +3154,7 @@ _PE = [
    ("Mira la franja «🧩 Para tus Geniallys».",
     "Seis códigos para insertar en Genially, los mismos para todos tus grupos: la sesión <b>partida en dos</b> (1 · apertura y 3 · cierre), la sesión entera, el aula, la llamada a filas y el Simulador de Joran."),
    ("Arriba del todo, pulsa «👤 Modo docente».",
-    "Desaparece todo lo de referente (crear grupos, equipo, escuadrones, ajustes…): lo que ve un profe en clase. El calendario lo sigue viendo, sin poder tocarlo. Vuelve con «★ Modo referente»."),
+    "Desaparece todo lo de referente (crear grupos, equipo, escuadrones, ajustes…): lo que ve un profe en clase. En <b>Mi gente</b> solo sale <b>tu escuadrón</b>, sin los botones de los demás. El calendario lo sigue viendo, sin poder tocarlo. Vuelve con «★ Modo referente»."),
  ]),
  ("2 · Crear un grupo", [
    ("<a href='crear.html'>Crear grupo</a>: un nombre de prueba, REGULAR y como semana 1 un lunes de septiembre u octubre.",
@@ -3184,7 +3184,8 @@ _PE = [
  ]),
  ("5 · Dentro del grupo", [
    ("«🚀 Entrar en el grupo» → <b>Mi gente</b>.", "Arriba, un botón por escuadrón (empieza en el tuyo) y «Todos»."),
-   ("Pulsa una fila.", "Su ficha se abre en una ventana: retos, enlaces y <b>reflexiones</b> de lo que entregó (con «Quitar», para moderar), sus <b>logros de a bordo</b> por cubiertas y lo que el profe puede hacer (otorgar o anular un reto; congelar o dar de baja, si llevas el grupo). Se cierra con ✕ o Escape."),
+   ("Pulsa una fila.", "Su ficha se abre en una ventana: sus <b>retos e insignias por temas</b> (encendidas las ganadas), lo que entregó en una línea por reto con sus <b>reflexiones</b> (con «Quitar», para moderar), sus <b>logros de a bordo</b> y lo que el profe puede hacer (otorgar o anular un reto; y si llevas el grupo, <b>cambiar de Comandante</b>, congelar o dar de baja). Se cierra con ✕ o Escape."),
+   ("Pestaña <b>🏆 Rankings</b>.", "Los mismos rankings que ve el alumnado en su Nave, del <b>grupo entero o de un escuadrón</b>, con el emblema de cada escuadrón en la tabla. Trece formas de medir (xp, esta semana, colección, constancia, relámpago, logros, el Simulador de Joran…): para ensalzar en clase a quien destaca en cada cosa."),
    ("<b>Escuadrones</b>: pulsa uno.", "Se despliega con su Comandante, sus cifras y su gente; cada fila abre también la ficha."),
    ("<b>Equipo docente</b>.", "Una tarjeta por persona: hacerla referente o docente, pasar su alumnado a otro, quitarla del equipo, ver su escuadrón y en qué otros grupos está. Abajo, «➕ Añadir a alguien» por su correo de Google."),
    ("<b>El Zoco</b> y el resto de pestañas (Premios por enlace, Sorteos, Ofertas, Ajustes).", "El Zoco dice el día exacto en que se abre. La <b>Cola de nota</b> solo aparece, la última y brillando, cuando alguien pide subir nota."),
