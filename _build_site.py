@@ -3143,7 +3143,7 @@ _PE = [
     "«¡Bienvenida al puente, Comandante!»: esa cuenta ya es <b>profe referente</b>. (Si Norberto te ha hecho referente con tu correo, entra sin más por la portada.)"),
    ("Ten a mano, si puedes, <b>otra cuenta de Google</b> (una personal) para hacer de estudiante al final.",
     "No hace falta para casi nada; solo para ver la Nave del alumnado por dentro."),
-   ("Pide a Norberto que te añada al grupo de prueba con alumnado (<b>PRUEBA HUMANA · 20 reclutas</b>).",
+   ("Pide a Norberto que te añada a los grupos de prueba con alumnado: <b>PRUEBA · SEMANA 16</b> (el viaje terminado) y <b>PRUEBA · SEMANA 8</b> (a mitad).",
     "Así verás rankings, fichas y entregas de verdad. Mientras, puedes crear tu propio grupo (paso 2)."),
  ]),
  ("1 · Mis grupos (el puesto de mando)", [

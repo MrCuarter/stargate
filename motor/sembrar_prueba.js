@@ -9,6 +9,11 @@
  * 🔴 Escribe en el Firestore de VERDAD. Solo crea documentos bajo su propio grupo; no toca nada más.
  *   node motor/sembrar_prueba.js            → la clase de prueba de Norberto (prueba-humana)
  *   node motor/sembrar_prueba.js --demo     → el grupo del botón DEMO de la portada (demo-stargate)
+ *   node motor/sembrar_prueba.js --id=prueba-semana-16 --nombre="…" --semana=16 [--real=correo@gmail.com]
+ *        → 16-sep · un grupo de prueba EN LA SEMANA QUE SE PIDA, con los 20 reclutas repartidos sobre los retos que
+ *          ya están abiertos esa semana (catálogo de hoy: relámpago y simulacro incluidos), colección, logros de a bordo
+ *          y el Simulador. Con `--real`, el primero es esa cuenta DE VERDAD (su uid de Firebase Auth) con casi todo hecho,
+ *          para entrar con ella. No pisa un grupo que ya exista.
  *
  * LA DEMO ES OTRO GRUPO, Y A PROPÓSITO. La clase de prueba es para tocarla: Norberto se aliste en
  * ella, completa retos, abre llamadas. El escaparate público no puede cambiar cada vez que alguien
@@ -32,16 +37,24 @@ if (LAB && !process.env.FIRESTORE_EMULATOR_HOST) {
   console.error("✗ --lab solo siembra en el emulador. Falta FIRESTORE_EMULATOR_HOST. No se ha tocado nada.");
   process.exit(2);
 }
-if (LAB) admin.initializeApp({ projectId: "demo-stargate" });
+// (16-sep · y cualquier otro modo, si se lanza contra el emulador: así se ensaya un grupo a medida antes de producción)
+if (LAB || process.env.FIRESTORE_EMULATOR_HOST) admin.initializeApp({ projectId: "demo-stargate" });
 else admin.initializeApp({ credential: admin.credential.cert(require(path.join(GP, "service-account.json"))) });
 const db = admin.firestore();
 
 const DEMO = process.argv.includes("--demo");
-const ID = LAB ? "lab-clase" : DEMO ? "demo-stargate" : "prueba-humana";
+const arg = k => { const a = process.argv.find(x => x.indexOf("--" + k + "=") === 0); return a ? a.slice(k.length + 3) : null; };
+const A_ID = !LAB && !DEMO ? arg("id") : null, A_SEMANA = Number(arg("semana") || 0), A_REAL = arg("real");
+const CUSTOM = !!A_ID;
+if (CUSTOM && !/^[a-z0-9-]{3,40}$/.test(A_ID)) { console.error("✗ --id: minúsculas, números y guiones"); process.exit(2); }
+if (CUSTOM && !(A_SEMANA >= 1 && A_SEMANA <= 16)) { console.error("✗ --semana: de 1 a 16"); process.exit(2); }
+const ID = LAB ? "lab-clase" : DEMO ? "demo-stargate" : CUSTOM ? A_ID : "prueba-humana";
 // 🔴 El nombre de la demo tiene que llevar «DEMO»: es la llave de `demoPermitido()` en la Nave.
-const NOMBRE = LAB ? "LAB · CLASE DE PRUEBA" : DEMO ? "STARGATE · DEMO" : "PRUEBA HUMANA · 20 reclutas";
-// Semana 10 hoy: la semana 1 empezó hace 9 semanas justas.
-const INICIO = new Date(Date.now() - 9 * 7 * 864e5).toISOString().slice(0, 10);
+const NOMBRE = LAB ? "LAB · CLASE DE PRUEBA" : DEMO ? "STARGATE · DEMO" : CUSTOM ? (arg("nombre") || A_ID) : "PRUEBA HUMANA · 20 reclutas";
+// Semana 10 hoy: la semana 1 empezó hace 9 semanas justas. Con --semana=N, la semana 1 es el lunes de hace N-1 semanas.
+const LUNES = (() => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getTime(); })();
+const INICIO = CUSTOM ? new Date(LUNES - (A_SEMANA - 1) * 7 * 864e5).toISOString().slice(0, 10)
+                      : new Date(Date.now() - 9 * 7 * 864e5).toISOString().slice(0, 10);
 
 /**
  * 🔴 Norberto figura DOS VECES en espíritu: `rol: referente` **e** `imparte: true`. Es el caso que
@@ -84,6 +97,16 @@ const CUANTOS = [13,12,11,10,10,9,9,8,8,7,7,6,6,5,5,4,3,2,0,0];
 const ORDEN = ["A0","A1","B1","X1","A2","B2","A3","B3","X2","A4","B4","A5","B5"];
 
 async function main() {
+  if (CUSTOM && (await db.collection("projects").doc(ID).get()).exists) {
+    console.error("✗ ya existe un grupo «" + ID + "». No se toca: bórralo antes o elige otro --id."); process.exit(2);
+  }
+  // la cuenta de verdad (si la hay): su uid de Firebase Auth, para que al entrar con Google se vea en su ficha
+  const REAL = CUSTOM && A_REAL ? await admin.auth().getUserByEmail(A_REAL).catch(() => null) : null;
+  if (CUSTOM && A_REAL && !REAL) { console.error("✗ " + A_REAL + " no ha entrado nunca en la plataforma: no tiene uid."); process.exit(2); }
+  // lo que la Nave necesita saber de los capítulos y de los logros de a bordo (un dato, un sitio: _site_data.py)
+  const DATOS_WEB = CUSTOM ? JSON.parse(require("child_process").execFileSync("python3", ["-c",
+    "import json,_site_data as D;print(json.dumps({'caps':[[c['clave'],c['semana']] for c in D.CAPITULOS],'hitos':[(h['clave'] if isinstance(h,dict) else h[0]) for h in D.HITOS_A_BORDO]}))"],
+    { cwd: path.join(__dirname, ".."), encoding: "utf8" })) : null;
   const cat = catalogo();
   const paq = paquete({ id: ID, nombre: NOMBRE, tipo: "REGULAR", inicio: INICIO,
                         docentes: DOCENTES, referente: DOCENTES[0].correo }, cat);
@@ -120,17 +143,33 @@ async function main() {
   }
 
   const ini = new Date(INICIO + "T09:00:00").getTime();
+  // 16-sep · en un grupo a medida, los retos que ya están abiertos esa semana, en el orden del catálogo
+  const DISPONIBLES = paq.misiones.filter(m => m.id !== "H1" && Number(m.stargateSemana || 1) <= (A_SEMANA || 99))
+    .sort((a, b) => (a.order || 0) - (b.order || 0)).map(m => m.id);
+  const FRACCION = [1, .95, .9, .85, .8, .75, .7, .65, .6, .55, .5, .45, .4, .35, .3, .25, .2, .1, 0, 0];
   for (let k = 0; k < ALIAS.length; k++) {
-    const [alias, nom, ape] = ALIAS[k];
-    const retos = ORDEN.slice(0, CUANTOS[k]);
+    const esReal = !!(REAL && k === 0);
+    const [alias, nom, ape] = esReal ? ["Mr Cuarter", "Norberto", "Cuartero"] : ALIAS[k];
+    const retos = !CUSTOM ? ORDEN.slice(0, CUANTOS[k])
+      : DISPONIBLES.slice(0, esReal ? Math.max(0, DISPONIBLES.length - 3) : Math.round(FRACCION[k] * DISPONIBLES.length));
     const hechas = retos.map(x => ID + "__" + x);
     const sellos = {}; let xp = 0, cred = 0;
     hechas.forEach((rid, j) => {
-      // Repartidas por el curso, y las últimas DENTRO de los siete últimos días para que el xp de
-      // la semana y la corona no salgan a cero en todo el grupo.
-      const dias = j < hechas.length - 2 ? j * 4 : 60 + j;
-      sellos[rid] = [new Date(Math.min(Date.now() - 864e5, ini + dias * 864e5)).toISOString()];
       const m = porId[rid.split("__").pop()];
+      let t;
+      if (CUSTOM) {
+        // en su semana (con unos días de desfase para que no coincidan todos), y las dos últimas en los siete últimos días
+        const sem = Number((m && m.stargateSemana) || 1);
+        t = j >= hechas.length - 2 ? Date.now() - (hechas.length - j) * 864e5 - k * 3600e3
+                                   : ini + ((sem - 1) * 7 + ((j + k) % 5)) * 864e5 + k * 3600e3;
+        t = Math.min(Date.now() - 3600e3, t);
+      } else {
+        // Repartidas por el curso, y las últimas DENTRO de los siete últimos días para que el xp de
+        // la semana y la corona no salgan a cero en todo el grupo.
+        const dias = j < hechas.length - 2 ? j * 4 : 60 + j;
+        t = Math.min(Date.now() - 864e5, ini + dias * 864e5);
+      }
+      sellos[rid] = [new Date(t).toISOString()];
       if (m) { xp += m.points || 0; cred += m.coinsReward || 0; }
     });
     // El escuadrón se reparte entre los dos que imparten.
@@ -141,14 +180,35 @@ async function main() {
     // Cada recluta lleva cartas en proporción a lo que ha hecho —con alguna repetida, que es lo que
     // da sentido al cambio de tres repetidas por un sobre— y los que van arriba, un héroe ganado.
     const inventario = [];
-    if (DEMO) {
+    if (DEMO || CUSTOM) {
       const cromos = paq.recompensas.filter(r => r.stargateTipo === "cromo" && /^cromo_/.test(r.id)).map(r => r.id);
       const heroes = paq.recompensas.filter(r => r.stargateTipo === "heroe" && /^heroe_/.test(r.id)).map(r => r.id);
       const cuantas = Math.round(retos.length * 1.6);
       for (let c = 0; c < cuantas; c++) inventario.push(ID + "__" + cromos[(k * 7 + c * 3) % Math.min(20, cromos.length)]);
       if (retos.length >= 9) inventario.push(ID + "__" + heroes[k % heroes.length]);
     }
-    const uidFalso = (DEMO ? "demo_" : "prueba_") + alias.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "");
+    const uidFalso = esReal ? REAL.uid : (DEMO ? "demo_" : "prueba_") + alias.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "");
+    // 16-sep · lo que da vida a la ficha en un grupo a medida: logros de a bordo en proporción a lo hecho, los capítulos de
+    // NEBULA ya vistos (la cuenta real no se come once bienvenidas seguidas) y, a quien venció a Joran, sus marcas.
+    const extra = {};
+    if (CUSTOM) {
+      const prop = DISPONIBLES.length ? retos.length / DISPONIBLES.length : 0;
+      const hitos = {}; DATOS_WEB.hitos.slice(0, Math.round(prop * DATOS_WEB.hitos.length)).forEach((h, i) => { hitos[h] = Date.now() - (i + 2) * 3 * 864e5; });
+      extra.stargateHitos = hitos;
+      const caps = {}; DATOS_WEB.caps.filter(c => c[1] <= A_SEMANA && (esReal || prop >= 0.3)).forEach(c => {
+        caps[c[0]] = { v: 1, estado: "hecho", fecha: ini + (c[1] - 1) * 7 * 864e5 }; });
+      extra.stargateCapitulos = caps;
+      extra.stargateDias = { tz: "Europe/Madrid", ultimo: new Date(Date.now() - 864e5).toISOString().slice(0, 10),
+                             racha: Math.round(prop * 6), mejor: Math.round(prop * 9), total: Math.round(prop * 40) };
+      if (retos.indexOf("A6") >= 0) {
+        const aciertos = 20 + ((k * 13) % 60) + (esReal ? 40 : 0), respondidas = aciertos + 8 + (k % 7) * 3;
+        extra.stargateSimulador = {
+          joran: { f: ini + 9 * 7 * 864e5, p: 900 + ((k * 37) % 400) },
+          marcas: { t1: { p: 400 + k * 11, f: ini + 10 * 7 * 864e5 }, todas: { p: 700 + ((k * 53) % 500), f: ini + 11 * 7 * 864e5 } },
+          total: { batallas: 3 + (k % 6), aciertos: aciertos, respondidas: respondidas, ms: aciertos * (4200 + ((k * 331) % 5200)) }
+        };
+      }
+    }
     // 13-sep · su alias, reservado como lo reserva la web (las reglas lo exigen a quien se aliste después)
     const clave = alias.replace(/[A-Z]+/g, m => m.toLowerCase()).trim().replace(/[áàäâãÁÀÄÂÃ]/g, "a").replace(/[éèëêÉÈËÊ]/g, "e").replace(/[íìïîÍÌÏÎ]/g, "i")
       .replace(/[óòöôõÓÒÖÔÕ]/g, "o").replace(/[úùüûÚÙÜÛ]/g, "u").replace(/[ñÑ]/g, "n").replace(/[çÇ]/g, "c").replace(/\//g, "-").replace(/ +/g, " ");
@@ -162,11 +222,12 @@ async function main() {
       squadId: esc ? esc.id : null, factionId: esc ? esc.id : null,
       stargateProfe: profe,
       stargateAvatar: { tipo: "evo", n: (k % 7) + 1, v: k % 2 ? "m" : "f", url: "" },
-      stargateBio: ""
+      stargateBio: "",
+      ...extra
     });
     await ficha.collection("privado").doc("datos").set({
       firstName: nom, lastName: ape,
-      email: alias.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "") + "@prueba.es",
+      email: esReal ? A_REAL : alias.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "") + "@prueba.es",
       bitacora: "", bio: ""
     });
   }
@@ -193,7 +254,8 @@ async function main() {
   }
 
   console.log("✓ sembrado:", ID);
-  console.log("  semana 1:", INICIO, DEMO ? "· congelada en la semana 10 para siempre" : "· hoy debería ser la semana 10");
+  console.log("  semana 1:", INICIO, DEMO ? "· congelada en la semana 10 para siempre" : "· hoy debería ser la semana " + (A_SEMANA || 10));
+  if (CUSTOM) console.log("  retos abiertos esa semana:", DISPONIBLES.length, REAL ? "· " + A_REAL + " (uid " + REAL.uid + ") con " + Math.max(0, DISPONIBLES.length - 3) : "");
   console.log("  reclutas:", ALIAS.length, "· escondites:", huevos.length);
   console.log("  código de acceso:", paq.proyecto.joinCode);
 }
