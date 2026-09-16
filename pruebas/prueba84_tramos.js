@@ -51,6 +51,20 @@ c(/pointer-events:none/.test(CSS.split(".ses-tramos")[1] || ""), "🔴 es un ró
 c(/\.ses-tramos \.tr\{[^}]*font-size:12px/.test(CSS), "   con letra de 12px, que es el mínimo de la casa");
 c(/\.dia\.puente/.test(CSS) && /\.pu-pasos/.test(CSS), "   y la tarjeta puente tiene su estilo");
 
+// 5 · la revisión de la sesión semana a semana (16-sep · Norberto: «revisa la sesión de la semana, que funcione todo»).
+//     Barrido en el laboratorio: las 16 semanas REGULAR y las 9 PUA, cada diapositiva, sin errores ni imágenes rotas.
+c(/var semResuelve=function\(v\)/.test(S) && /return r \? r===sem :/.test(S),
+  "🔴 una votación resuelta sale SOLO en la semana en que se resuelve (antes salía en todas las siguientes)");
+c(/return desde\|\|semResuelve\(v\) \? \(sem>=desde && sem<=hasta\)/.test(S), "   y la abierta, desde que se publica hasta que se resuelve");
+c(/st\.semHoy=hoy&&hoy>0\?hoy:1;/.test(S), "   (la sesión sabe qué semana es hoy aunque se proyecte otra)");
+c(/function precargarTickets\(\)/.test(S) && /no\(new Error\('tarda demasiado'\)\); \}, 12000\)/.test(S),
+  "🔴 el ticket de salida se pide al abrir la sesión y no se queda en «Leyendo…»: 12 s como mucho, y si no, lo dice");
+c(/function cronoRelampago\(min\)/.test(S) && /montar:rel\?montarCrono:null/.test(S) && /\(\\d\+\)\\s\*min/.test(S),
+  "🔴 la diapositiva de un relámpago lleva su cronómetro, con los minutos del calendario");
+c(/e\.stopPropagation\(\);/.test(S.split("function montarCrono")[1] || ""), "   y pulsar sus botones no pasa de diapositiva");
+c(/\.rel-crono\.fin \.rc-reloj/.test(CSS) && /prefers-reduced-motion:reduce\)\{\.rel-crono\.fin/.test(CSS), "   (con aviso al acabar, y sin parpadeo para quien no quiere movimiento)");
+c(/else if\(st\.i===0\) pintar\(\);/.test(S), "🔴 si las reflexiones o las votaciones llegan tarde, se suman al mazo mientras se está en la portada");
+
 console.log("\n  Batería 84 · los tres tiempos de la clase");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
 fallos.forEach(f => console.log("   ✗ " + f));

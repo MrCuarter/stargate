@@ -4062,3 +4062,20 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 #consola .gente-tabla .gq > span{min-width:0;line-height:1.3}
 .m-fila .btn.min{white-space:nowrap}
 @media(max-width:640px){.m-fila{flex-wrap:wrap}.m-fila b{flex-basis:100%}}
+
+/* 16-sep · EL RELÁMPAGO, CON SU RELOJ, en la diapositiva de la misión (se proyecta: grande y legible desde el fondo) */
+.dia.mision .rel-crono{margin-top:18px;padding:14px 18px;border-radius:16px;border:1px solid #4b3a66;
+  background:linear-gradient(135deg,rgba(199,155,230,.14),rgba(55,224,236,.06));display:grid;grid-template-columns:auto 1fr;
+  grid-template-areas:"eye eye" "reloj botones";align-items:center;gap:6px 22px}
+.rel-crono .rc-eyebrow{grid-area:eye;font-size:.95rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#dcc6f2}
+.rel-crono .rc-reloj{grid-area:reloj;font-family:'Unbounded',sans-serif;font-weight:800;font-size:clamp(2.6rem,6vw,4.4rem);line-height:1;
+  font-variant-numeric:tabular-nums;color:#e8eefc}
+.rel-crono .rc-botones{grid-area:botones;display:flex;gap:8px;flex-wrap:wrap}
+.rel-crono .rc-botones .btn{font-size:1rem;padding:9px 16px}
+.rel-crono.corre .rc-reloj{color:#37e0ec}
+.rel-crono.ultimo .rc-reloj{color:#f5b043}
+.rel-crono.fin{border-color:#ff9f7a}
+.rel-crono.fin .rc-reloj{color:#ff9f7a;animation:rc-latido 1s ease-in-out infinite}
+@keyframes rc-latido{50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.rel-crono.fin .rc-reloj{animation:none}}
+@media(max-width:720px){.dia.mision .rel-crono{grid-template-columns:1fr;grid-template-areas:"eye" "reloj" "botones"}}

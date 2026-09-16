@@ -200,7 +200,7 @@
     return '';
   }
   function tituloReto(txt){ var m=String(txt||'').match(/«([^»]+)»/); return m?m[1]:String(txt||''); }
-  function etiquetaReto(txt){ var t=String(txt||''); return /^Reto A/.test(t)?'Reto A':/^Reto B/.test(t)?'Reto B':/^Actividad/.test(t)?'Actividad':/^Reto/.test(t)?'Reto':'Misión'; }
+  function etiquetaReto(txt){ var t=String(txt||''); return /^Reto A/.test(t)?'Reto A':/^Reto B/.test(t)?'Reto B':/^Reto ⚡/.test(t)?'Reto relámpago':/^Actividad/.test(t)?'Actividad':/^Reto/.test(t)?'Reto':'Misión'; }
   /**
    * LOS VÍDEOS, CADA UNO EN SU SITIO. Norberto: «no pongas el vídeo de intro y el de cierre a
    * continuación… vídeo intro al principio, vídeo final siempre lo último». Con un tema de dos
@@ -463,8 +463,24 @@
   function diaVotacion(s){
     if(!VOTOS||VOTOS.per!==st.per||!VOTOS.lista.length) return null;
     var mias=VOTOS.lista.filter(function(v){ return !v.eligibleFactionId || !st.miNombre || nombreDeFaccion(v.eligibleFactionId)===st.miNombre; });
-    var abierta=mias.filter(function(v){ return v.isActive; })[0]||null;
-    var resuelta=mias.filter(function(v){ return !v.isActive && (!v.stargateResuelve || Number(v.stargateResuelve)<=Number(s.sem)); })[0]||null;
+    /**
+     * 🔴 16-sep · CADA VOTACIÓN, EN SU SEMANA. Revisando la sesión semana a semana, una votación ya resuelta salía en
+     * TODAS las semanas siguientes («Habéis decidido»… en la 12, de algo que se decidió en la 5), y una abierta hoy
+     * salía también al proyectar semanas pasadas. Ahora: la abierta, desde la semana en que se publicó hasta la que se
+     * resuelve; la resuelta, solo en la semana en que se resuelve. Sin semanas apuntadas (una vieja), la de esta semana.
+     */
+    var sem=Number(s.sem), orden=function(a,b){ return Number(b.cerrada||b.creado||0)-Number(a.cerrada||a.creado||0); };
+    var semResuelve=function(v){ return Number(v.stargateResuelve)||(Number(v.stargateSemana)?Number(v.stargateSemana)+1:0); };
+    var abierta=mias.filter(function(v){
+      if(!v.isActive) return false;
+      var desde=Number(v.stargateSemana)||0, hasta=semResuelve(v)||99;
+      return desde||semResuelve(v) ? (sem>=desde && sem<=hasta) : sem===Number(st.semHoy);
+    }).sort(orden)[0]||null;
+    var resuelta=mias.filter(function(v){
+      if(v.isActive) return false;
+      var r=semResuelve(v);
+      return r ? r===sem : (sem===Number(st.semHoy) && Date.now()-Number(v.cerrada||0) < 8*864e5);
+    }).sort(orden)[0]||null;
     if(!abierta&&!resuelta) return null;
     var pintaResuelta=function(v){
       var total=(v.options||[]).reduce(function(n,o){ return n+votosDeOpcion(v,o); },0);
@@ -674,7 +690,20 @@
       +'<div class="tk-cuerpo"><div class="kicker">💬 El ticket de salida</div><h2>Lo que dijisteis al salir</h2>'
       +'<div id="ses-tk"><p class="sub">Leyendo vuestras respuestas…</p></div></div></div>', montar: montarTicket};
   }
-  var TK=null;
+  var TK=null, TK_PROMESA=null;
+  /**
+   * 16-sep · El ticket se lee de una hoja de Google a través de Apps Script (fuera de la plataforma). Si Google tarda o
+   * la red del centro no deja llegar, la diapositiva no puede quedarse en «Leyendo…» delante de la clase: se espera como
+   * mucho 12 segundos y, si no, lo dice.
+   */
+  function precargarTickets(){
+    if(TK_PROMESA||!window.SG_TICKETS_API||!st.per) return TK_PROMESA;
+    var per=st.per, tope=new Promise(function(_,no){ setTimeout(function(){ no(new Error('tarda demasiado')); }, 12000); });
+    TK_PROMESA=Promise.race([fetch(String(window.SG_TICKETS_API),{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({accion:'tickets',per:per})})
+      .then(function(r){ return r.json(); }), tope])
+      .then(function(d){ TK={per:per, lista:(d&&d.tickets)||[]}; return TK; }, function(e){ TK={per:per, lista:[], error:true}; return TK; });
+    return TK_PROMESA;
+  }
   function montarTicket(el){
     var caja=el.querySelector('#ses-tk'), vivo=true;
     var pinta=function(lista){
@@ -697,11 +726,11 @@
         +(textos.length?'<div class="tk-ecos">'+textos.slice(0,4).map(function(x,i){ return '<blockquote style="--i:'+i+'">'+esc(x.length>220?x.slice(0,217)+'…':x)+'</blockquote>'; }).join('')+'</div>'
           :'<p class="sub">Sin dudas escritas: todo claro.</p>');
     };
-    if(TK&&TK.per===st.per){ pinta(TK.lista); }
-    else fetch(String(window.SG_TICKETS_API),{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({accion:'tickets',per:st.per})})
-      .then(function(r){ return r.json(); })
-      .then(function(d){ TK={per:st.per, lista:(d&&d.tickets)||[]}; pinta(TK.lista); })
-      .catch(function(){ if(vivo) caja.innerHTML='<p class="sub">No he podido leer el ticket ahora mismo.</p>'; });
+    var fallo=function(){ if(vivo) caja.innerHTML='<p class="sub">No he podido leer las respuestas del ticket ahora mismo. Pasa a la siguiente: no hace falta esperar.</p>'; };
+    if(TK&&TK.per===st.per&&!TK.error){ pinta(TK.lista); }
+    else { if(TK&&TK.error){ TK=null; TK_PROMESA=null; }
+      var pr=precargarTickets(); if(!pr) return fallo();
+      pr.then(function(x){ if(x.error) fallo(); else pinta(x.lista); }); }
     return function(){ vivo=false; };
   }
 
@@ -724,11 +753,40 @@
   }
 
   // ── 11 · las misiones de hoy, cada una con su insignia (el plan y el hito, dentro)
+  /**
+   * 🔴 16-sep · EL RELÁMPAGO, CON SU RELOJ. Norberto: «me gusta mucho que los relámpago se animen a hacer en clase: así
+   * los que vienen se lo llevan hecho; hagamos hincapié en esto». En la diapositiva de la misión, si es un relámpago,
+   * va un cronómetro grande con sus minutos (los del calendario: «— en clase, 15 min») para lanzarlo ahí mismo.
+   */
+  function cronoRelampago(min){
+    return '<div class="rel-crono" data-min="'+min+'"><div class="rc-eyebrow">⚡ Se hace ahora, en clase</div>'
+      +'<div class="rc-reloj" aria-live="polite">'+(min<10?'0':'')+min+':00</div>'
+      +'<div class="rc-botones"><button type="button" class="btn primary" data-rc="go">▶ Empezar</button>'
+      +'<button type="button" class="btn" data-rc="pausa">⏸ Pausa</button><button type="button" class="btn" data-rc="reset">↺</button></div></div>';
+  }
+  function montarCrono(el){
+    var c=el.querySelector('.rel-crono'); if(!c) return null;
+    var total=Number(c.getAttribute('data-min')||10)*60, queda=total, tic=null, reloj=c.querySelector('.rc-reloj');
+    var pinta=function(){ var m=Math.floor(queda/60), s=queda%60; reloj.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+      c.classList.toggle('fin', queda<=0); c.classList.toggle('ultimo', queda>0&&queda<=60); };
+    var para=function(){ if(tic){ clearInterval(tic); tic=null; } c.classList.remove('corre'); };
+    c.addEventListener('click', function(e){
+      var b=e.target.closest&&e.target.closest('[data-rc]'); if(!b) return;
+      e.stopPropagation();
+      var a=b.getAttribute('data-rc');
+      if(a==='go'&&!tic&&queda>0){ c.classList.add('corre'); tic=setInterval(function(){ queda--; pinta(); if(queda<=0) para(); }, 1000); }
+      else if(a==='pausa') para();
+      else if(a==='reset'){ para(); queda=total; pinta(); }
+    });
+    pinta();
+    return para;
+  }
   function diasMisiones(s){
     var out=[], ls=s.lanza||[];
     ls.forEach(function(txt,i){
       var id=idDeReto(txt), pide=id?AYU[id]:'', ins=insigniaDe(id), b=ins?badge(ins):null;
-      out.push({k:'reto', rot:'Misión '+(i+1), html:
+      var rel=/^L\d$/.test(id), mins=rel?Number((String(txt).match(/(\d+)\s*min/)||[])[1]||10):0;
+      out.push({k:'reto', rot:rel?'⚡ Relámpago':'Misión '+(i+1), montar:rel?montarCrono:null, html:
         // (clase «mision», no «reto»: `.reto` es el botón de reto de otra página y la dejaba apagada)
         '<div class="dia mision'+(ins?' con-ins':'')+'">'
         +(ins?'<figure class="reto-ins"><img src="assets/img/insignias/'+esc(ins)+'.png" alt=""><figcaption>'+esc(b?b.nombre:'')+'</figcaption></figure>':'')
@@ -737,6 +795,7 @@
         +(pide?'<div class="pide"><div class="et">Qué hay que hacer</div><p>'+esc(pide)+'</p></div>'
               :'<p class="sub">El enunciado completo está en tu Nave, en «Mis retos».</p>')
         +(i===ls.length-1&&s.hito?'<p class="reto-hito">🎯 <b>Esta semana se entrega:</b> '+esc(s.hito)+'</p>':'')
+        +(rel?cronoRelampago(mins):'')
         +'</div></div>'});
     });
     if(!ls.length&&s.hito) out.push({k:'hito', rot:'Entrega', html:
@@ -1052,16 +1111,20 @@
       st.d = d;
     }
     var forzada=parseInt(q.get('sem')||'0',10);
-    if(forzada) st.sem=forzada;
-    else {
-      var hoy=window.SGCAL.semanaActual(st.inicio, st.pausas);
-      st.sem=hoy&&hoy>0?hoy:1;
-    }
+    var hoy=window.SGCAL.semanaActual(st.inicio, st.pausas);
+    st.semHoy=hoy&&hoy>0?hoy:1;
+    st.sem=forzada||st.semHoy;
+    // 16-sep · el ticket de salida se pide YA, en paralelo: Apps Script tarda unos segundos en despertar, y así
+    // cuando el docente llega a esa diapositiva las respuestas ya están (o ya se sabe que no van a llegar)
+    precargarTickets();
     // 15-sep (noche) · las reflexiones del grupo, antes de pintar (como mucho 2,5 s): «Lo que dijisteis» sale o no sale
     // desde el principio y no mueve de sitio la diapositiva que se está viendo
-    var hecho=false, seguir=function(){ if(hecho) return; hecho=true; pintar(); };
-    setTimeout(seguir, 2500);
-    Promise.all([precargarReflexiones(), precargarVotaciones()]).then(seguir, seguir);
+    // 16-sep · y si llegan DESPUÉS de esos 2,5 s (red lenta), no se pierden: si el docente sigue en la portada, el mazo
+    // se vuelve a montar con ellas. En cualquier otra diapositiva no se toca nada: no se mueve lo que se está viendo.
+    var pintado=false;
+    setTimeout(function(){ if(!pintado){ pintado=true; pintar(); } }, 2500);
+    var llegan=function(){ if(!pintado){ pintado=true; pintar(); } else if(st.i===0) pintar(); };
+    Promise.all([precargarReflexiones(), precargarVotaciones()]).then(llegan, llegan);
   }
 
   /**
