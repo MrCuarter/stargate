@@ -3152,7 +3152,7 @@ _PE = [
    ("Pulsa «📋 Copiar invitación» y pégala en un documento.",
     "Un mensaje listo para el foro de la plataforma de UNIR, con el enlace directo y el código."),
    ("Mira la franja «🧩 Para tus Geniallys».",
-    "Seis códigos para insertar en Genially, los mismos para todos tus grupos: la sesión <b>partida en dos</b> (1 · apertura y 3 · cierre), la sesión entera, el aula, la llamada a filas y el Simulador de Joran."),
+    "Seis códigos para insertar en Genially, los mismos para todos tus grupos: la sesión <b>partida en dos</b> (1 · apertura y 3 · cierre), la sesión entera, el aula, la llamada a filas y el Simulador de Joran. Y al lado de cada uno, <b>⧉</b>: lo abre <b>en su propia ventana</b>, solo con ese contenido (también en las acciones de clase de cada grupo)."),
    ("Arriba del todo, pulsa «👤 Modo docente».",
     "Desaparece todo lo de referente (crear grupos, equipo, escuadrones, ajustes…): lo que ve un profe en clase. En <b>Mi gente</b> solo sale <b>tu escuadrón</b>, sin los botones de los demás. El calendario lo sigue viendo, sin poder tocarlo. Vuelve con «★ Modo referente»."),
  ]),

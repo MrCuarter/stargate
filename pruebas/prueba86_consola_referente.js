@@ -71,6 +71,17 @@ c(!!mg && Number(mg[1]) === MIN.aciertos && Number(mg[2]) === MIN.respondidas,
   "🔴 los mínimos de «rápido» y «certero» son los mismos que las medallas de la batalla", JSON.stringify(MIN));
 c(/MIN=BAT\.medallas_min/.test(T), "   y el ranking los lee de ahí, no de un número suelto");
 
+// 7 · cada embed, en su ventana (16-sep · Norberto: «que puedan abrirse en una ventana emergente dedicada, que solo
+//     aparezca ese contenido»). El laboratorio abrió las nueve y en todas la cabecera, el menú y el pie estaban ocultos.
+c(/function abrirVentana\(ruta, clave\)/.test(K) && /u\.searchParams\.set\("embed", "1"\)/.test(K),
+  "🔴 ⧉ abre la dirección del embed (con embed=1: sin cabecera, menú ni pie) en una ventana aparte");
+c(/"popup=yes,width=/.test(K), "   una ventana emergente de verdad, sin las barras del navegador");
+c(/"sg_" \+ String\(clave/.test(K), "   y siempre la misma para cada embed: pulsar dos veces no abre dos");
+c(/bloqueado la ventana/.test(K), "   y si el navegador la bloquea, lo dice y explica cómo permitirla");
+c(/botonVentana\(x\[2\], x\[0\]/.test(K), "   en los seis códigos de «Para tus Geniallys»");
+c((K.match(/botonVentana\("(sesion|aula|llamada)\.html\?per=" \+ p\.id/g) || []).length === 3, "   en las tres acciones de clase de cada grupo (con su grupo)");
+c(/"tablero_" \+ PER/.test(K) && /"sesion_" \+ PER/.test(K), "   y en Mis enlaces: el tablero para proyectar y la sesión");
+
 console.log("\n  Batería 86 · la consola: lo del referente, la ficha y los rankings");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
 fallos.forEach(f => console.log("   ✗ " + f));

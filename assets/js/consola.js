@@ -140,12 +140,12 @@
       // 🔴 Lo de clase, en la tarjeta. Se busca con los alumnos ya sentados: cada clic de más ahí
       // es medio minuto de aula mirando una pantalla de carga.
       '<div class="gp-hacer">' +
-        '<a class="gp-b principal" href="sesion.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<span>📽️</span><b>Proyectar la clase</b></a>' +
-        '<a class="gp-b" href="aula.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<span>🎛️</span><b>El aula</b></a>' +
-        '<a class="gp-b" href="llamada.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<span>🔔</span><b>Llamada a filas</b></a>' +
+        '<div class="gp-celda principal"><a class="gp-b principal" href="sesion.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
+          '<span>📽️</span><b>Proyectar la clase</b></a>' + botonVentana("sesion.html?per=" + p.id, "sesion_" + p.id, "la sesión") + '</div>' +
+        '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
+          '<span>🎛️</span><b>El aula</b></a>' + botonVentana("aula.html?per=" + p.id, "aula_" + p.id, "el aula") + '</div>' +
+        '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
+          '<span>🔔</span><b>Llamada a filas</b></a>' + botonVentana("llamada.html?per=" + p.id, "llamada_" + p.id, "la llamada a filas") + '</div>' +
       '</div>' +
       /**
        * 🔴 EL CÓDIGO DE CLASE, A LA VISTA DE TODO EL EQUIPO. Con la puerta única el alumnado entra
@@ -181,6 +181,34 @@
 
   /** El código para insertar en Genially (Insertar → Otros → Código): llena la caja que le des. */
   function codigoGenially(ruta, titulo) { return MOTOR.codigoGenially(ruta, titulo); }
+
+  /**
+   * 🔴 16-sep · CADA EMBED, EN SU PROPIA VENTANA. Norberto: «haz que esos embeds puedan abrirse en una ventana emergente
+   * dedicada, que solo aparezca ese contenido». Es la misma dirección que va dentro del Genially —con `embed=1`, que ya
+   * esconde la cabecera, el menú y el pie—, abierta en una ventana sin barras del navegador, centrada y grande. Cada
+   * embed usa SIEMPRE la misma ventana (su nombre): pulsar otra vez no abre una segunda, trae delante la que ya está.
+   */
+  function botonVentana(ruta, clave, que) {
+    return '<button type="button" class="gp-vent" data-ventana="' + esc(ruta) + '" data-vclave="' + esc(clave) + '" ' +
+      'title="Abrir ' + esc(que || "") + ' en una ventana aparte, solo con su contenido" aria-label="Abrir ' + esc(que || "") + ' en una ventana aparte">⧉</button>';
+  }
+  function abrirVentana(ruta, clave) {
+    var W = (window.screen && screen.availWidth) || 1440, H = (window.screen && screen.availHeight) || 900;
+    var w = Math.min(1440, W - 40), h = Math.min(920, H - 60);
+    var x = Math.max(0, Math.round((W - w) / 2)), y = Math.max(0, Math.round((H - h) / 2));
+    var u = new URL(ruta, location.href);
+    if (!u.searchParams.has("embed")) u.searchParams.set("embed", "1");
+    var v = window.open(u.href, "sg_" + String(clave || "embed").replace(/[^\w-]/g, "_"),
+      "popup=yes,width=" + w + ",height=" + h + ",left=" + x + ",top=" + y);
+    if (v) { try { v.focus(); } catch (e) {} }
+    else aviso("Tu navegador ha bloqueado la ventana. Permite las ventanas emergentes de esta web (el icono de la barra de direcciones) y vuelve a pulsar ⧉.", false);
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target && e.target.closest && e.target.closest("[data-ventana]");
+    if (!b) return;
+    e.preventDefault();
+    abrirVentana(b.getAttribute("data-ventana"), b.getAttribute("data-vclave"));
+  });
 
   // tras «Borrar este grupo»: que se vea que se ha hecho
   function avisoBorrado() {
@@ -247,7 +275,8 @@
        */
       '<section class="gp-gen"><div class="gp-gen-txt"><h3>🧩 Para tus Geniallys</h3>' +
         '<p class="small muted">Los <b>mismos para todos tus grupos</b> y para los cursos que vengan: piden tu cuenta y, si llevas varios grupos, ' +
-        'preguntan en cuál estáis. Se copia el código y, en Genially, <b>Insertar → Otros → Código</b>.</p></div>' +
+        'preguntan en cuál estáis. Se copia el código y, en Genially, <b>Insertar → Otros → Código</b>. ' +
+        'O pulsa <b>⧉</b> y se abre <b>en su propia ventana</b>, sin nada más alrededor: para proyectarla o tenerla a mano durante la clase.</p></div>' +
         '<div class="gp-gen-b">' +
         // 16-sep · la sesión se pega DOS VECES en el Genially: la apertura antes de la teoría y el
         // cierre después. Así no hay que navegar por dentro del panel delante de la clase.
@@ -255,7 +284,8 @@
          ["sesion-ci", "📽️ La sesión · 3 · cierre", "sesion.html?embed=1&tramo=cierre"],
          ["sesion", "📽️ La sesión entera (sin partir)", "sesion.html?embed=1"], ["aula", "🛰️ El aula · la clase en directo", "aula.html?embed=1"],
          ["llamada", "🔔 La llamada a filas", "llamada.html?embed=1"], ["batalla", "⚔️ El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
-          return '<button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + x[1].replace(/^\S+\s/, ""))) + '">' + x[1] + '</button>';
+          return '<span class="gp-gen-par"><button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + x[1].replace(/^\S+\s/, ""))) + '">' + x[1] + '</button>' +
+            botonVentana(x[2], x[0], x[1].replace(/^\S+\s/, "")) + '</span>';
         }).join("") + '</div></section>' +
       /**
        * 🔴 LO DEL REFERENTE, EN UNA FRANJA APARTE. Norberto: «el referente básicamente debe tener
@@ -1002,8 +1032,8 @@
       '<div class="m-enlaces">' +
         enlaceFila("🧭", "Alistarse (con el código)", t.alta || "") +
         enlaceFila("🚀", "La Nave del alumnado", "recluta.html?per=" + encodeURIComponent(PER)) +
-        enlaceFila("🏅", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1") +
-        enlaceFila("📽️", "La sesión de esta semana", "sesion.html?per=" + encodeURIComponent(PER)) +
+        enlaceFila("🏅", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1", "tablero_" + PER) +
+        enlaceFila("📽️", "La sesión de esta semana", "sesion.html?per=" + encodeURIComponent(PER), "sesion_" + PER) +
         // 13-sep · la Nave con tu Comandante de recluta, para ensayar (o enseñarla fuera de la sesión): no guarda nada
         enlaceFila("🛰️", "Tu Nave de Comandante (simulacro)", "recluta.html?simulacro=1&per=" + encodeURIComponent(PER)) +
         enlaceFila("🧱", "Padlet de la clase", t.padlet || "") +
@@ -1022,11 +1052,12 @@
       catch (e) { aviso(e.message); }
     };
   }
-  function enlaceFila(ico, tit, url) {
+  function enlaceFila(ico, tit, url, ventana) {
     if (!url) return '<div class="m-fila vacia"><span>' + ico + '</span><b>' + esc(tit) + '</b>' +
                      '<em>sin configurar</em></div>';
     return '<div class="m-fila"><span>' + ico + '</span><b>' + esc(tit) + '</b>' +
       '<a href="' + esc(url) + '" target="_blank" rel="noopener">Abrir ↗</a>' +
+      (ventana ? botonVentana(url, ventana, tit) : "") +
       '<button class="btn min" data-copiar="' + esc(url) + '">Copiar</button></div>';
   }
 

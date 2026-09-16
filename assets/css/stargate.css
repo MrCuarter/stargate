@@ -4042,3 +4042,15 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 .ficha-ref h4{margin:0 0 6px}
 .ficha-ref p{margin:0 0 6px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .ficha-ref .btn.min{padding:6px 12px}
+
+/* 16-sep · CADA EMBED, EN SU VENTANA: el botón ⧉ al lado de cada acción de clase y de cada código de Genially */
+.gp-celda{position:relative;display:flex;min-width:0}
+.gp-celda.principal{grid-column:1/-1}
+.gp-celda .gp-b{flex:1;padding-right:42px;min-width:0}
+.gp-vent{font:inherit;font-size:1rem;line-height:1;width:32px;height:32px;border-radius:9px;border:1px solid #2a4656;background:#0b1119;
+  color:#9fd8e0;cursor:pointer;display:inline-grid;place-items:center;flex:none;transition:border-color .15s,color .15s,background .15s}
+.gp-vent:hover{border-color:var(--teal,#37e0ec);color:#e8eefc;background:rgba(55,224,236,.10)}
+.gp-vent:focus-visible{outline:2px solid var(--teal,#37e0ec);outline-offset:2px}
+.gp-celda .gp-vent{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:28px;height:28px;font-size:.92rem}
+.gp-gen-par{display:inline-flex;align-items:center;gap:4px}
+.m-fila .gp-vent{width:30px;height:30px}
