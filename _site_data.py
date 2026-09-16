@@ -707,6 +707,8 @@ CAPITULOS = [
      "cabecera": "Tu Nave, ya en marcha",
      "puedes": ["Tu personaje, tu nivel y tus créditos, siempre a la vista",
                 "Los retos de la semana: se hacen y se marcan con «Lo he hecho» (con el enlace de tu evidencia)",
+  "📓 Tu Bitácora, desde hoy: el viaje entero termina en ella, y el primer reto B es abrirla",
+  "⚡ Los retos relámpago: diez o quince minutos, y se hacen EN CLASE — quien viene, sale con el reto hecho",
                 "✋ Presente en la llamada a filas: créditos y un sobre de regalo",
                 "Mi botín: tus insignias y tu álbum de cromos"],
      "imagen": "assets/img/canje/sobre.jpg"},

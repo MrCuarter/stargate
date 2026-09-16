@@ -458,7 +458,7 @@ FAQ = [
  ("¿Cómo y cuándo entrego las insignias?", "En público y con ceremonia: celébralo en clase o en el foro de la plataforma de UNIR y nombra el logro con la frase del personaje. No hay que anotar nada: la registra el propio estudiante desde su Nave y tú la ves en <b>Mi gente</b>. Qué insignia toca cada semana está en la <a href='cronologia.html'>cronología</a>."),
  ("¿Dónde están los enunciados y rúbricas oficiales?", "En <a href='actividades.html#docs'>Actividades → Documentos oficiales</a> (enunciados de la Act. 1 y 2, pautas del ePortfolio, instrucciones de uso de IA, rúbricas y planificación semanal)."),
  ("¿Qué pasa con el temario (PDF de los temas)?", "Los PDF de temas disponibles son de la programación anterior y con nombres cambiados; <b>no se publican aquí</b> hasta recibir el temario actualizado. Los vídeos de la serie ya siguen el orden nuevo (T6 ABJ → T7 Gamificación)."),
- ("Mi grupo es PUA (condensado). ¿Cómo lo adapto?", "Agrupa los mensajes para el foro de la plataforma de UNIR por bloque (dos semanas en un mensaje) y lanza los dos retos del tema juntos. La cronología sirve igual: son 15 semanas de contenido que tú compactas."),
+ ("Mi grupo es PUA (condensado). ¿Cómo lo adapto?", "Agrupa los mensajes para el foro de la plataforma de UNIR por bloque (dos semanas en un mensaje) y lanza los retos del tema juntos (el A, el B y el relámpago). La cronología sirve igual: son 15 semanas de contenido que tú compactas."),
  ("¿Cuál es la diferencia entre Ludo (T6) y Vínculo (T7)?", "En <b>Ludo se juega</b>: el juego ES la actividad (ABJ). En <b>Vínculo no se juega</b>: se toman elementos del juego (puntos, insignias, niveles, narrativa) y se ponen sobre una tarea que no es un juego (gamificación). Es el error conceptual más común: apóyate en Joran y Mara."),
  ("¿Cómo funciona el examen dentro de la historia?", "La batalla final ES el examen. En la semana 15 el vídeo <b>Plan de Ataque</b> lo presenta (caso, plataforma en directo, tablero de retos, reglas). Los tests de cada tema son el entrenamiento; la última semana hay repaso y simulacro."),
  ("¿Puedo mencionar Genially o la asignatura en público?", "En comunicación pública (redes, web abierta) el proyecto se nombra siempre «Proyecto Gamificado del Máster en Tecnología Educativa de la UNIR», sin la asignatura y sin citar herramientas. Dentro del aula y en este puesto de mando, sin problema."),
@@ -757,7 +757,7 @@ guarda nada.</p></div>
 <div class="tips">
 <div class="tip"><b>Empieza con el gancho, no con el temario.</b> Primera sesión: vídeo de sinopsis, preséntate como <b>Capitán</b>, reparte la insignia de <b>Reclutamiento</b> y deja una pregunta en el aire.</div>
 <div class="tip"><b>Un mensaje por semana para el foro de la plataforma de UNIR</b> (ya redactados, en la <a href="cronologia.html">cronología</a>): introducen el tema con la narrativa y cierran con la "Bitácora de esta semana". Solo pon tu nombre y el enlace de la herramienta del momento.</div>
-<div class="tip"><b>Separa los dos retos en tu discurso.</b> El Reto A como <i>invitación</i> ("recupera a Bran"); el Reto B como <i>encargo</i> con criterios.</div>
+<div class="tip"><b>Separa los tres retos en tu discurso.</b> El Reto A como <i>invitación</i> ("recupera a Bran"); el Reto B como <i>encargo</i> con criterios; y el <b>⚡ relámpago</b> como lo que es: <i>diez minutos, aquí y ahora, en clase</i> — quien viene, sale con él hecho.</div>
 <div class="tip"><b>Entrega las insignias en público.</b> El refuerzo funciona cuando se ve: publica el medallón y nombra el logro con la frase del personaje. Un tablero con las 24 hace visible el avance.</div>
 <div class="tip"><b>Vincula siempre reto → Bitácora.</b> Cada Reto B <i>ya es</i> una página del ePortfolio (y a veces media actividad grande resuelta). Así no acumulan tareas: construyen.</div>
 <div class="tip"><b>Usa la distinción Ludo/Vínculo como momento estrella.</b> En T6 <b>se juega</b> (el juego ES la actividad); en T7 <b>no</b> (se toman elementos del juego). Apóyate en Joran y Mara.</div>
@@ -1105,7 +1105,7 @@ GENPAGE = head("STARGATE · Los Geniallys",
 <section><div class="wrap">
 <div class="eyebrow amber">Para el equipo que los monta</div><h2>Qué lleva cada Genially</h2>
 <div class="grid cols-2">
-<div class="card"><h3>Estructura sugerida</h3><p>Portada con el fondo de espacio y el planeta-halo → <b>intro</b> (vídeo de llegada) → contenido del tema sobre los fondos de superficie → los <b>2 retos</b> → <b>cierre</b> (vídeo) → recompensa: el <b>fragmento</b> del tripulante + su insignia y carta.</p></div>
+<div class="card"><h3>Estructura sugerida</h3><p>Portada con el fondo de espacio y el planeta-halo → <b>intro</b> (vídeo de llegada) → contenido del tema sobre los fondos de superficie → los <b>retos</b> (A, B y el ⚡ relámpago de la semana de continuación) → <b>cierre</b> (vídeo) → recompensa: el <b>fragmento</b> del tripulante + su insignia y carta.</p></div>
 <div class="card"><h3>Material</h3><p>Todo está en el paquete <a href="{DRIVE_EQUIPO}" target="_blank" rel="noopener"><b>DRIVE_EQUIPO_STARGATE</b> ↗</a> (Drive): una carpeta por tema con fondos, clips, insignias, carta, retos y enlaces, más el documento «Qué va en cada Genially» con la miniatura de cada recurso. Los vídeos se insertan desde YouTube con el enlace de la <a href="cronologia.html">cronología</a>.</p></div>
 </div>
 </div></section>
@@ -3152,7 +3152,7 @@ _PE = [
    ("Pulsa «📋 Copiar invitación» y pégala en un documento.",
     "Un mensaje listo para el foro de la plataforma de UNIR, con el enlace directo y el código."),
    ("Mira la franja «🧩 Para tus Geniallys».",
-    "Tres códigos para insertar en Genially (la sesión, el aula y la llamada): los mismos para todos tus grupos."),
+    "Seis códigos para insertar en Genially, los mismos para todos tus grupos: la sesión <b>partida en dos</b> (1 · apertura y 3 · cierre), la sesión entera, el aula, la llamada a filas y el Simulador de Joran."),
    ("Arriba del todo, pulsa «👤 Modo docente».",
     "Desaparece todo lo de referente (crear grupos, equipo, escuadrones, ajustes…): lo que ve un profe en clase. El calendario lo sigue viendo, sin poder tocarlo. Vuelve con «★ Modo referente»."),
  ]),
@@ -3170,7 +3170,10 @@ _PE = [
    ("Llega a «La Nave» y cambia la semana del selector.", "La Nave de un estudiante simulada, en la semana que elijas: para enseñar en clase lo que se abre (el Mercado, el Zoco…)."),
    ("Arriba, elige la <b>semana 9</b> y pasa a «Lo nuevo».", "Se presentan «🎖️ <b>Los logros de a bordo</b>»: 16 primeras veces en la Nave, 5 cubiertas con premio y el <b>Contramaestre de la Nave</b>. En «Enséñalo», NEBULA lo cuenta en la Nave simulada."),
    ("Elige la <b>semana 12</b> y busca «Lo que dijisteis».", "Las reflexiones que el alumnado escribió en los retos de hace dos semanas, primero las de tu escuadrón, con su enlace. «Ocultar» quita una de la diapositiva."),
-   ("Si tienes un Genially: inserta el código de «La sesión» (Insertar → Otros → Código).", "Dentro pide tu cuenta y el grupo. Abajo, «⏻» para cerrar sesión. Si entra un estudiante, va a su Nave."),
+   ("Mira el <b>rótulo de arriba</b> del mazo: 1 · Apertura → 2 · Presentación → 3 · Cierre.",
+    "Una clase no es un continuo: primero se repasa (portada, llamada a filas, el parte de vuelo, el ticket de la semana pasada), después va <b>tu</b> presentación con la teoría, y al final se lanzan los retos de la semana —con el ⚡ relámpago— y el vídeo de cierre."),
+   ("Si tienes un Genially: inserta el código de «La sesión · 1 · apertura» en tu diapositiva de arranque y el de «3 · cierre» después de tu teoría (Insertar → Otros → Código).",
+    "Cada uno abre directo en su tiempo, así no navegas por dentro del panel delante de la clase. Dentro pide tu cuenta y el grupo. Abajo, «⏻» para cerrar sesión. Si entra un estudiante, va a su Nave. (Si prefieres proyectar desde la web, usa «La sesión entera»: ahí tu Genially va embebido en medio.)"),
  ]),
  ("4 · El aula (la clase en directo)", [
    ("«🎛️ El aula» → «🔔 Llamada a filas».", "El alumnado pulsa «✋ Presente» en su Nave y aquí se ve entrar a cada uno."),
@@ -3193,6 +3196,10 @@ _PE = [
  ]),
  ("7 · Como estudiante (con tu otra cuenta)", [
    ("En otra ventana, con la otra cuenta, entra por la <a href='index.html'>portada</a> y escribe el código de tu grupo.", "Te alistas en un minuto (alias y Comandante) y NEBULA te enseña la Nave."),
+   ("«Mis retos»: busca el <b>Reto B de la semana 1</b>, «La Bitácora en marcha».",
+    "El curso entero termina en un ePortfolio y se empieza por él: crearlo, publicar su <b>primera entrada</b> (la presentación) y pegar el enlace <b>aquí y en tu BIO</b>. No hace falta enseñar la plataforma en clase: el alumnado ya trae el curso de competencia digital A1-A2."),
+   ("Busca un reto con el sello <b>«⚡ En clase · 10-15 min»</b>.",
+    "Son los <b>relámpago</b>: ocho píldoras de diez o quince minutos pensadas para hacerse <b>en clase</b>, con el cronómetro del aula proyectado — quien viene, sale con el reto hecho (y quien no pudo venir lo tiene abierto igual). Cada uno entrena un gesto que el examen da por sabido: el logo con la palabra clave, repartir una sesión en dos módulos, explicar un concepto en cinco líneas, comprobar el enlace en incógnito… Con cinco de los ocho se gana la insignia «Mano rápida»."),
    ("«Mis retos»: despliega un reto y márcalo.", "La misma tarjeta que la de la semana, con su insignia. Casi todos piden el <b>enlace</b> (hay un «+» para un segundo); sin él, no se registra. Algunos traen «💡 Ver un ejemplo»."),
    ("Busca un reto <b>con reflexión</b> (A1, B6…).", "Se responde en una <b>caja grande</b> en el propio reto (con un mínimo de letras). Hecho, «💬 Lo que ha escrito tu tripulación»: las de los demás, con su enlace, y se pueden comentar."),
    ("«Mi botín».", "Tus insignias, por planetas: el tripulante y el reto de cada tema."),

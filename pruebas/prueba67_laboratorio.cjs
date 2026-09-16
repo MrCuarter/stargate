@@ -2515,8 +2515,9 @@ const REG = {};   // cifras que se apuntan para el informe
       const cod = await rita.js("(document.querySelector('.gp-gen [data-embed=\"sesion\"]')||{getAttribute:function(){return ''}}).getAttribute('data-copiar')");
       c("🔴 embed · «Para tus Geniallys» copia el CÓDIGO para insertar la sesión (un iframe), no una dirección suelta",
         /^<iframe src="http:\/\/[^"]+\/sesion\.html\?embed=1"/.test(cod) && /allowfullscreen/.test(cod), cod.slice(0, 120));
+      // 16-sep · son SEIS: la sesión partida en dos (apertura y cierre), la sesión entera, el aula, la llamada y la batalla
       c("embed · y va una sola vez para todos los grupos, no repetido en cada tarjeta",
-        await rita.js("document.querySelectorAll('.gp [data-embed]').length===0 && document.querySelectorAll('.gp-gen [data-embed]').length===4"));
+        await rita.js("document.querySelectorAll('.gp [data-embed]').length===0 && document.querySelectorAll('.gp-gen [data-embed]').length===6"));
       c("código · el de clase sale tapado y se destapa al pulsar",
         await rita.js("(function(){ var b=document.querySelector('.gp-cod'); if(!b||/[A-Z0-9]{6}/.test(b.textContent)) return false; b.click(); return /[A-Z0-9]{6}/.test(b.textContent); })()"));
       await rita.cerrar();
@@ -3240,8 +3241,9 @@ const REG = {};   // cifras que se apuntan para el informe
       // su Nave: insignias por temas y el «+» del segundo enlace
       await ana.hasta("!!document.querySelector('.nb-t[data-tab=\"botin\"]')", 30);
       await ana.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
-      c("🔴 Nave · las insignias, por temas: 8 planetas + la historia + los hitos, las 24 casillas",
-        await ana.hasta("document.querySelectorAll('.ins-tema').length===10 && document.querySelectorAll('.ins-temas .badge-col .b[data-key]').length===24", 15),
+      // 16-sep · 27 casillas: 24 de siempre + la Bitácora en marcha, Mano rápida y Listo para la batalla
+      c("🔴 Nave · las insignias, por temas: 8 planetas + la historia + los hitos, las 27 casillas",
+        await ana.hasta("document.querySelectorAll('.ins-tema').length===10 && document.querySelectorAll('.ins-temas .badge-col .b[data-key]').length===27", 15),
         await ana.js("document.querySelectorAll('.ins-tema').length+' temas · '+document.querySelectorAll('.ins-temas .b').length"));
       await ana.foto(FOTOS + "/34-insignias-temas.png");
       await ana.js("var t=document.querySelector('.nb-t[data-tab=\"retos\"]'); if(t) t.click(); 1"); await dormir(700);
