@@ -981,8 +981,11 @@ const REG = {};   // cifras que se apuntan para el informe
       await ana.ir("recluta.html?per=lab-clase");
       await ana.hasta("!!document.querySelector('.retos-semana details.reto-sem:not(.hecho)')", 25); await dormir(2500);
       const escrito = "https://ejemplo.org/mi-trabajo-a-medias";
-      const ok0 = await ana.js(`(function(){ var d=document.querySelector('.retos-semana details.reto-sem:not(.hecho)'); if(!d) return false; d.open=true;
-        var i=d.querySelector('input[data-ev]'); if(!i) return false; i.focus(); i.value=${JSON.stringify(escrito)}; return true; })()`);
+      // 16-sep · el reto A6 es la batalla y no tiene casilla de enlace: se busca uno que sí la tenga
+      const ok0 = await ana.js(`(function(){ var ds=[].slice.call(document.querySelectorAll('.retos-semana details.reto-sem:not(.hecho)'));
+        for (var k=0;k<ds.length;k++){ ds[k].open=true; var i=ds[k].querySelector('input[data-ev]');
+          if(i){ i.focus(); i.value=${JSON.stringify(escrito)}; return true; } ds[k].open=false; }
+        return false; })()`);
       c("a medias · la alumna abre un reto y pega su enlace", ok0);
       await rita.js("document.getElementById('ll-tocar').click(); 1");
       const llega = await ana.hasta("!!document.getElementById('pase-ok')", 25);
@@ -1004,7 +1007,9 @@ const REG = {};   // cifras que se apuntan para el informe
       await leo.ir("recluta.html?per=lab-clase");
       await leo.hasta("!!document.querySelector('.retos-semana details.reto-sem:not(.hecho)')", 25); await dormir(1500);
       const url = "https://ejemplo.org/leo-entrega-" + Date.now();
-      const reto = await leo.js(`(function(){ var d=document.querySelector('.retos-semana details.reto-sem:not(.hecho)'); d.open=true;
+      const reto = await leo.js(`(function(){ var ds=[].slice.call(document.querySelectorAll('.retos-semana details.reto-sem:not(.hecho)'));
+        var d=null; for (var k=0;k<ds.length;k++){ if(ds[k].querySelector('input[data-ev]')){ d=ds[k]; break; } }
+        if(!d) return ''; d.open=true;
         var i=d.querySelector('input[data-ev]'); i.value=${JSON.stringify(url)};
         var t=d.querySelector('textarea[data-rf]'); if(t){ t.value='Mis alumnos temen las ecuaciones: las he convertido en un escape por fases donde cada candado es una ecuación, y quien la resuelve abre la siguiente puerta del laboratorio. Aprenden a despejar sin darse cuenta y se ayudan entre ellos.'; t.dispatchEvent(new Event('input',{bubbles:true})); }
         var b=d.querySelector('[data-hecho]'); b.click(); return b.getAttribute('data-hecho'); })()`);
@@ -2509,7 +2514,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 embed · «Para tus Geniallys» copia el CÓDIGO para insertar la sesión (un iframe), no una dirección suelta",
         /^<iframe src="http:\/\/[^"]+\/sesion\.html\?embed=1"/.test(cod) && /allowfullscreen/.test(cod), cod.slice(0, 120));
       c("embed · y va una sola vez para todos los grupos, no repetido en cada tarjeta",
-        await rita.js("document.querySelectorAll('.gp [data-embed]').length===0 && document.querySelectorAll('.gp-gen [data-embed]').length===3"));
+        await rita.js("document.querySelectorAll('.gp [data-embed]').length===0 && document.querySelectorAll('.gp-gen [data-embed]').length===4"));
       c("código · el de clase sale tapado y se destapa al pulsar",
         await rita.js("(function(){ var b=document.querySelector('.gp-cod'); if(!b||/[A-Z0-9]{6}/.test(b.textContent)) return false; b.click(); return /[A-Z0-9]{6}/.test(b.textContent); })()"));
       await rita.cerrar();
@@ -3512,8 +3517,8 @@ const REG = {};   // cifras que se apuntan para el informe
      * Norberto (15-sep, noche): «que lo respondan directamente sobre el reto… una caja más grande… dos semanas después, en
      * la presentación de clase, las respuestas, priorizando el escuadrón del profesor activo» y «que pudieran ver el del
      * resto de sus compañeros así como el enlace… y responderse/comentar». Dos reclutas de dos escuadrones escriben su
-     * reflexión de A6 (la de la semana 10), se leen y se comentan; la referente modera desde la ficha y la sesión de la
-     * semana 12 la proyecta, primero la de su escuadrón.
+     * reflexión de A1, se leen y se comentan; la referente modera desde la ficha y la sesión de dos
+     * semanas después la proyecta, primero la de su escuadrón.
      */
     if (hacer(37)) {
       const P = "lab-clase";
@@ -3524,56 +3529,56 @@ const REG = {};   // cifras que se apuntan para el informe
         "una fracción que hay que simplificar para avanzar, y quien se equivoca pide ayuda a su escuadrón. Aprenden a comparar fracciones jugando.";
       const LARGO_T = "A mi grupo le cuesta memorizar los verbos irregulares. He montado una partida de cartas: cada carta es un verbo y hay " +
         "que hacer parejas con su pasado; quien completa tres parejas roba un comodín. Así repasan sin darse cuenta y se ríen muchísimo.";
-      // Rosa: sin llegar al mínimo, no se registra; con él, sí (y el enlace, opcional en A6)
+      // Rosa: sin llegar al mínimo, no se registra; con él, sí (y el enlace, opcional en A1)
       const rosa = await nueva("Rosa escribe su reflexión");
       await rosa.ir("entrar.html"); await rosa.entrarComo(ROSA[0], ROSA[1]); await sinBienvenidas(rosa);
-      await rosa.ir("recluta.html?per=" + P + "#retos"); await rosa.hasta("!!document.querySelector('button[data-hecho=\"A6\"]')", 30);
-      c("🔴 reflexión · A6 trae su caja grande con la pregunta y el aviso de que la leerá su tripulación",
-        await rosa.js("(function(){ var t=document.querySelector('textarea[data-rf=\"A6\"]'); return !!t && t.rows>=6 && /tripulación/.test(t.closest('.rf-caja').textContent) && /alias/.test(t.closest('.rf-caja').textContent); })()"));
-      await rosa.js("(function(){ var b=document.querySelector('button[data-hecho=\"A6\"]'); var d=b.closest('details'); if(d) d.open=true; var t=document.querySelector('textarea[data-rf=\"A6\"]'); t.value='Muy corto'; t.dispatchEvent(new Event('input',{bubbles:true})); b.click(); return 1; })()");
+      await rosa.ir("recluta.html?per=" + P + "#retos"); await rosa.hasta("!!document.querySelector('button[data-hecho=\"A1\"]')", 30);
+      c("🔴 reflexión · A1 trae su caja grande con la pregunta y el aviso de que la leerá su tripulación",
+        await rosa.js("(function(){ var t=document.querySelector('textarea[data-rf=\"A1\"]'); return !!t && t.rows>=6 && /tripulación/.test(t.closest('.rf-caja').textContent) && /alias/.test(t.closest('.rf-caja').textContent); })()"));
+      await rosa.js("(function(){ var b=document.querySelector('button[data-hecho=\"A1\"]'); var d=b.closest('details'); if(d) d.open=true; var t=document.querySelector('textarea[data-rf=\"A1\"]'); t.value='Muy corto'; t.dispatchEvent(new Event('input',{bubbles:true})); b.click(); return 1; })()");
       await dormir(1800);
       const f0 = await fichaDe(ROSA[0], P);
-      c("🔴 reflexión · por debajo del mínimo NO se registra, y lo dice", !(f0.completedMissionIds || []).some(x => /__A6$/.test(x))
+      c("🔴 reflexión · por debajo del mínimo NO se registra, y lo dice", !(f0.completedMissionIds || []).some(x => /__A1$/.test(x))
         && /se responde aquí mismo/.test(await rosa.js("(document.getElementById('nave-aviso')||{}).textContent||''")), await rosa.js("(document.getElementById('nave-aviso')||{}).textContent||''"));
-      await rosa.js(`(function(){ var t=document.querySelector('textarea[data-rf="A6"]'); t.value=${JSON.stringify(LARGO_R)}; t.dispatchEvent(new Event('input',{bubbles:true}));
-        document.querySelector('button[data-hecho="A6"]').click(); return 1; })()`);
+      await rosa.js(`(function(){ var t=document.querySelector('textarea[data-rf="A1"]'); t.value=${JSON.stringify(LARGO_R)}; t.dispatchEvent(new Event('input',{bubbles:true}));
+        document.querySelector('button[data-hecho="A1"]').click(); return 1; })()`);
       const hecha = await rosa.hasta("/registrado/.test((document.getElementById('nave-aviso')||{}).textContent||'')", 30);
       const f1 = await fichaDe(ROSA[0], P);
-      const rfRosa = await leerDoc("stargate_reflexiones/" + P + "__A6__" + f1._id);
-      c("🔴 reflexión · con el mínimo se registra (sin enlace: en A6 es opcional) y se guarda su reflexión", hecha && (f1.completedMissionIds || []).some(x => /__A6$/.test(x))
+      const rfRosa = await leerDoc("stargate_reflexiones/" + P + "__A1__" + f1._id);
+      c("🔴 reflexión · con el mínimo se registra (sin enlace: en A1 es opcional) y se guarda su reflexión", hecha && (f1.completedMissionIds || []).some(x => /__A1$/.test(x))
         && !!rfRosa && rfRosa.texto === LARGO_R && !rfRosa.enlace, JSON.stringify(rfRosa).slice(0, 160));
-      await rosa.ir("recluta.html?per=" + P + "#retos"); await rosa.hasta("!!document.querySelector('[data-rfh=\"A6\"]')", 30);
-      c("reflexión · hecho el reto, su reflexión sale en la tarjeta, lista para cambiarla", await rosa.js("document.querySelector('[data-rfh=\"A6\"]').value.indexOf('fracciones')>=0 && !!document.querySelector('[data-guardarf=\"A6\"]')"));
+      await rosa.ir("recluta.html?per=" + P + "#retos"); await rosa.hasta("!!document.querySelector('[data-rfh=\"A1\"]')", 30);
+      c("reflexión · hecho el reto, su reflexión sale en la tarjeta, lista para cambiarla", await rosa.js("document.querySelector('[data-rfh=\"A1\"]').value.indexOf('fracciones')>=0 && !!document.querySelector('[data-guardarf=\"A1\"]')"));
       // Teo (del otro escuadrón), con enlace: ve la de Rosa en el propio reto y la comenta
       const teo = await nueva("Teo lee a su tripulación");
       await teo.ir("entrar.html"); await teo.entrarComo(TEO[0], TEO[1]); await sinBienvenidas(teo);
-      await teo.ir("recluta.html?per=" + P + "#retos"); await teo.hasta("!!document.querySelector('button[data-hecho=\"A6\"]')", 30);
-      await teo.js(`(function(){ var b=document.querySelector('button[data-hecho="A6"]'); var d=b.closest('details'); if(d) d.open=true;
-        var t=document.querySelector('textarea[data-rf="A6"]'); t.value=${JSON.stringify(LARGO_T)}; t.dispatchEvent(new Event('input',{bubbles:true}));
-        document.querySelector('[data-ev="A6"]').value='https://view.genially.com/cartas-de-verbos'; b.click(); return 1; })()`);
+      await teo.ir("recluta.html?per=" + P + "#retos"); await teo.hasta("!!document.querySelector('button[data-hecho=\"A1\"]')", 30);
+      await teo.js(`(function(){ var b=document.querySelector('button[data-hecho="A1"]'); var d=b.closest('details'); if(d) d.open=true;
+        var t=document.querySelector('textarea[data-rf="A1"]'); t.value=${JSON.stringify(LARGO_T)}; t.dispatchEvent(new Event('input',{bubbles:true}));
+        document.querySelector('[data-ev="A1"]').value='https://view.genially.com/cartas-de-verbos'; b.click(); return 1; })()`);
       await teo.hasta("/registrado/.test((document.getElementById('nave-aviso')||{}).textContent||'')", 30);
       const fT = await fichaDe(TEO[0], P);
       c("reflexión · Teo, con su enlace: se guarda también en la reflexión (para que lo vea su tripulación)",
-        ((await leerDoc("stargate_reflexiones/" + P + "__A6__" + fT._id)) || {}).enlace === "https://view.genially.com/cartas-de-verbos");
-      await teo.ir("recluta.html?per=" + P + "#retos"); await teo.hasta("!!document.querySelector('[data-rfver=\"A6\"]')", 30);
-      await teo.js("(function(){ var b=document.querySelector('[data-rfver=\"A6\"]'); var d=b.closest('details'); if(d) d.open=true; b.click(); return 1; })()");
-      const ve = await teo.hasta("/Rosa Rumbo/.test((document.querySelector('[data-rftripu=\"A6\"] .rf-lista')||{}).textContent||'') && /fracciones/.test((document.querySelector('[data-rftripu=\"A6\"] .rf-lista')||{}).textContent||'')", 20);
+        ((await leerDoc("stargate_reflexiones/" + P + "__A1__" + fT._id)) || {}).enlace === "https://view.genially.com/cartas-de-verbos");
+      await teo.ir("recluta.html?per=" + P + "#retos"); await teo.hasta("!!document.querySelector('[data-rfver=\"A1\"]')", 30);
+      await teo.js("(function(){ var b=document.querySelector('[data-rfver=\"A1\"]'); var d=b.closest('details'); if(d) d.open=true; b.click(); return 1; })()");
+      const ve = await teo.hasta("/Rosa Rumbo/.test((document.querySelector('[data-rftripu=\"A1\"] .rf-lista')||{}).textContent||'') && /fracciones/.test((document.querySelector('[data-rftripu=\"A1\"] .rf-lista')||{}).textContent||'')", 20);
       c("🔴 tripulación · Teo ve la reflexión de Rosa en el propio reto, por su alias (y la suya, marcada)", ve
-        && await teo.js("!!document.querySelector('[data-rftripu=\"A6\"] .rf-item.mia') && !/Rosa Prueba|rosa@lab/.test(document.querySelector('[data-rftripu=\"A6\"]').textContent)"),
-        (await teo.js("(document.querySelector('[data-rftripu=\"A6\"]')||{}).textContent||''")).slice(0, 200));
-      await teo.js(`(function(){ var it=[].slice.call(document.querySelectorAll('[data-rftripu="A6"] .rf-item')).filter(function(x){ return /Rosa Rumbo/.test(x.textContent); })[0];
+        && await teo.js("!!document.querySelector('[data-rftripu=\"A1\"] .rf-item.mia') && !/Rosa Prueba|rosa@lab/.test(document.querySelector('[data-rftripu=\"A1\"]').textContent)"),
+        (await teo.js("(document.querySelector('[data-rftripu=\"A1\"]')||{}).textContent||''")).slice(0, 200));
+      await teo.js(`(function(){ var it=[].slice.call(document.querySelectorAll('[data-rftripu="A1"] .rf-item')).filter(function(x){ return /Rosa Rumbo/.test(x.textContent); })[0];
         var i=it.querySelector('[data-rfform] input'); i.value='¡Me encanta lo de pedir ayuda al escuadrón! Lo voy a probar.'; it.querySelector('[data-rfform] button').click(); return 1; })()`);
-      const comentado = await teo.hasta("/Lo voy a probar/.test((document.querySelector('[data-rftripu=\"A6\"]')||{}).textContent||'')", 20);
+      const comentado = await teo.hasta("/Lo voy a probar/.test((document.querySelector('[data-rftripu=\"A1\"]')||{}).textContent||'')", 20);
       const coms = await consultar("stargate_comentarios", "projectId", P);
-      c("🔴 comentarios · Teo comenta la reflexión de Rosa y queda guardado a su nombre", comentado && coms.some(x => x.reflexion === P + "__A6__" + f1._id && x.fichaId === fT._id), JSON.stringify(coms).slice(0, 200));
+      c("🔴 comentarios · Teo comenta la reflexión de Rosa y queda guardado a su nombre", comentado && coms.some(x => x.reflexion === P + "__A1__" + f1._id && x.fichaId === fT._id), JSON.stringify(coms).slice(0, 200));
       c("comentarios · y la casilla se vacía al enviarlo (no se queda el texto escrito)",
-        await teo.js("[].slice.call(document.querySelectorAll('[data-rftripu=\"A6\"] [data-rfform] input')).every(function(i){ return !i.value; })"));
-      await teo.js("(function(){ var it=[].slice.call(document.querySelectorAll('[data-rftripu=\"A6\"] .rf-item')).filter(function(x){ return /Rosa Rumbo/.test(x.textContent); })[0]; if(it) it.scrollIntoView({block:'center',behavior:'instant'}); return 1; })()");
+        await teo.js("[].slice.call(document.querySelectorAll('[data-rftripu=\"A1\"] [data-rfform] input')).every(function(i){ return !i.value; })"));
+      await teo.js("(function(){ var it=[].slice.call(document.querySelectorAll('[data-rftripu=\"A1\"] .rf-item')).filter(function(x){ return /Rosa Rumbo/.test(x.textContent); })[0]; if(it) it.scrollIntoView({block:'center',behavior:'instant'}); return 1; })()");
       await dormir(500); await teo.foto(FOTOS + "/37-tripulacion.png");
-      await rosa.ir("recluta.html?per=" + P + "#retos"); await rosa.hasta("!!document.querySelector('[data-rfver=\"A6\"]')", 30);
-      await rosa.js("(function(){ var b=document.querySelector('[data-rfver=\"A6\"]'); var d=b.closest('details'); if(d) d.open=true; b.click(); return 1; })()");
-      c("comentarios · y Rosa lo lee en su reflexión, con el alias de Teo", await rosa.hasta("/Teo Tránsito/.test((document.querySelector('[data-rftripu=\"A6\"]')||{}).textContent||'') && /Lo voy a probar/.test((document.querySelector('[data-rftripu=\"A6\"]')||{}).textContent||'')", 20));
-      await rosa.js("(function(){ var t=document.querySelector('[data-rfh=\"A6\"]'); if(t) t.scrollIntoView({block:'start',behavior:'instant'}); window.scrollBy(0,-90); return 1; })()");
+      await rosa.ir("recluta.html?per=" + P + "#retos"); await rosa.hasta("!!document.querySelector('[data-rfver=\"A1\"]')", 30);
+      await rosa.js("(function(){ var b=document.querySelector('[data-rfver=\"A1\"]'); var d=b.closest('details'); if(d) d.open=true; b.click(); return 1; })()");
+      c("comentarios · y Rosa lo lee en su reflexión, con el alias de Teo", await rosa.hasta("/Teo Tránsito/.test((document.querySelector('[data-rftripu=\"A1\"]')||{}).textContent||'') && /Lo voy a probar/.test((document.querySelector('[data-rftripu=\"A1\"]')||{}).textContent||'')", 20));
+      await rosa.js("(function(){ var t=document.querySelector('[data-rfh=\"A1\"]'); if(t) t.scrollIntoView({block:'start',behavior:'instant'}); window.scrollBy(0,-90); return 1; })()");
       await dormir(500); await rosa.foto(FOTOS + "/37-reto-reflexion.png");
       // A1 (modo texto, sin enlace) tampoco deja «sin enlace» en la consola
       await rosa.js(`(function(){ var b=document.querySelector('button[data-hecho="A1"]'); if(!b) return 0; var d=b.closest('details'); if(d) d.open=true;
@@ -3588,24 +3593,25 @@ const REG = {};   // cifras que se apuntan para el informe
       c("consola · A1 sin enlace (en A1 es opcional) no sale como «sin enlace» en Mi gente",
         await rita.js("(function(){ var f=[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(x){return /Rosa Rumbo/.test(x.textContent)})[0]; return !!f && !f.querySelector('.sin-evid'); })()"));
       await rita.js("window.scrollTo(0,0); [].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(f){return /Rosa Rumbo/.test(f.textContent)})[0].click(); 1");
-      // (Rosa tiene dos: la de A1 y la de A6; la del comentario es la de A6)
-      const rfA6 = "[].slice.call(document.querySelectorAll('#c-modal .evid-rf')).filter(function(x){ return /fracciones/.test(x.textContent); })[0]";
-      const enFicha = await rita.hasta("!!" + rfA6, 20);
-      c("🔴 consola · la ficha de Rosa enseña su reflexión, con su comentario", enFicha && /1 comentario/.test(await rita.js("(" + rfA6 + "||{}).textContent||''")),
+      // (la del comentario es la de A1: se reconoce por su texto)
+      const rfA1 = "[].slice.call(document.querySelectorAll('#c-modal .evid-rf')).filter(function(x){ return /fracciones/.test(x.textContent); })[0]";
+      const enFicha = await rita.hasta("!!" + rfA1, 20);
+      c("🔴 consola · la ficha de Rosa enseña su reflexión, con su comentario", enFicha && /1 comentario/.test(await rita.js("(" + rfA1 + "||{}).textContent||''")),
         await rita.js("[].slice.call(document.querySelectorAll('#c-modal .evid-rf')).map(function(x){return x.textContent.slice(0,80)}).join(' | ')"));
       await rita.foto(FOTOS + "/37-ficha-reflexion.png");
-      await rita.js("window.confirm=function(){return true}; (function(){ var r=" + rfA6 + "; var d=r.querySelector('.evid-rf-coms'); if(d) d.open=true; r.querySelector('[data-rfquitarcom]').click(); })(); 1");
+      await rita.js("window.confirm=function(){return true}; (function(){ var r=" + rfA1 + "; var d=r.querySelector('.evid-rf-coms'); if(d) d.open=true; r.querySelector('[data-rfquitarcom]').click(); })(); 1");
       await dormir(2500);
-      c("🔴 consola · la referente quita el comentario (moderar) y deja de existir", !(await consultar("stargate_comentarios", "projectId", P)).some(x => x.reflexion === P + "__A6__" + f1._id));
+      c("🔴 consola · la referente quita el comentario (moderar) y deja de existir", !(await consultar("stargate_comentarios", "projectId", P)).some(x => x.reflexion === P + "__A1__" + f1._id));
       await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1");
       // la sesión de la semana 12: «Lo que dijisteis», primero la de su escuadrón (Rosa es de Rita; Teo, de Dani)
-      await rita.ir("sesion.html?per=" + P + "&sem=12"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);
+      // (A1 se lanza en la semana 1: sus reflexiones se proyectan dos semanas después, en la 3)
+      await rita.ir("sesion.html?per=" + P + "&sem=3"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);
       const hay = await rita.js("!!document.querySelector('.barra-pasos .p[title=\"Lo que dijisteis\"]')");
-      c("🔴 sesión · en la semana 12 sale «Lo que dijisteis» (las reflexiones de A6, lanzado en la 10)", hay);
+      c("🔴 sesión · dos semanas después del reto sale «Lo que dijisteis» (las reflexiones de A1, lanzado en la 1)", hay);
       if (hay) {
         await rita.js("document.querySelector('.barra-pasos .p[title=\"Lo que dijisteis\"]').click(); 1"); await dormir(1200);
         const orden = await rita.js("[].slice.call(document.querySelectorAll('.dia.reflex .rfx-quien b')).map(function(b){return b.textContent})");
-        // (en la pasada completa hay más gente de Rita con reflexión en A6: lo que importa es que TODAS las suyas van antes)
+        // (en la pasada completa hay más gente de Rita con reflexión: lo que importa es que TODAS las suyas van antes)
         const deQuien = {};
         for (const al of orden) { const pf = (await consultar("student_profiles", "displayName", al)).filter(x => x.projectId === P)[0]; deQuien[al] = pf && pf.stargateProfe; }
         const iTeo = orden.indexOf("Teo Tránsito");
@@ -3622,11 +3628,11 @@ const REG = {};   // cifras que se apuntan para el informe
       c("reflexiones · sin errores en las páginas", ![rosa, teo, rita].some(p => p.errores.filter(e => !/Failed to load resource/.test(e)).length),
         [rosa, teo, rita].map(p => p.errores.filter(e => !/Failed to load resource/.test(e))[0]).filter(Boolean).join(" | "));
       // deshacer el reto se lleva la reflexión (y sus comentarios)
-      await teo.ir("recluta.html?per=" + P + "#retos"); await teo.hasta("!!document.querySelector('[data-deshacer=\"A6\"]')", 30);
-      await teo.js("(function(){ var b=document.querySelector('[data-deshacer=\"A6\"]'); var d=b.closest('details'); if(d) d.open=true; b.click(); return 1; })()");
+      await teo.ir("recluta.html?per=" + P + "#retos"); await teo.hasta("!!document.querySelector('[data-deshacer=\"A1\"]')", 30);
+      await teo.js("(function(){ var b=document.querySelector('[data-deshacer=\"A1\"]'); var d=b.closest('details'); if(d) d.open=true; b.click(); return 1; })()");
       await teo.hasta("!!document.querySelector('.neb-capa [data-si]')", 10); await teo.js("document.querySelector('.neb-capa [data-si]').click(); 1");
       await teo.hasta("/pendiente/.test((document.getElementById('nave-aviso')||{}).textContent||'')", 20); await dormir(1200);
-      c("reflexiones · deshacer el reto se lleva su reflexión", !(await leerDoc("stargate_reflexiones/" + P + "__A6__" + fT._id)));
+      c("reflexiones · deshacer el reto se lleva su reflexión", !(await leerDoc("stargate_reflexiones/" + P + "__A1__" + fT._id)));
       for (const p of [rosa, teo, rita]) await p.cerrar();
     }
 
@@ -3707,8 +3713,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await fs.collection("student_profiles").doc(f0._id).update({ stargateHitos: hechos,
         stargateDias: { tz: (f1.stargateDias || {}).tz || "Europe/Madrid", ultimo: ayer, racha: 6, mejor: 6, total: 19 } });
       const otra = (await consultar("student_profiles", "projectId", P)).filter(x => x._id !== f0._id && x.displayName)[0];
-      await fs.collection("stargate_reflexiones").doc(P + "__A6__" + otra._id).set({ projectId: P, reto: "A6", fichaId: otra._id, uid: otra.userId || "x", texto: "Mi juego de fracciones con naves.", creado: Date.now() });
-      await fs.collection("stargate_comentarios").doc().set({ projectId: P, reflexion: P + "__A6__" + otra._id, reto: "A6", fichaId: f0._id, uid: "lara", texto: "¡Qué buena idea!", creado: Date.now() });
+      await fs.collection("stargate_reflexiones").doc(P + "__B6__" + otra._id).set({ projectId: P, reto: "B6", fichaId: otra._id, uid: otra.userId || "x", texto: "Mi juego de fracciones con naves.", creado: Date.now() });
+      await fs.collection("stargate_comentarios").doc().set({ projectId: P, reflexion: P + "__B6__" + otra._id, reto: "B6", fichaId: f0._id, uid: "lara", texto: "¡Qué buena idea!", creado: Date.now() });
       const antes = await fichaDe(LARA[0], P);
       await lara.ir("recluta.html?per=" + P); await lara.hasta("!!document.querySelector('#nc-ab')", 30);
       const cel3 = await lara.hasta("!!document.querySelector('#nave-logro.open')", 30);

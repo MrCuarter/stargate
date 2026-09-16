@@ -329,6 +329,9 @@ var SERIES_ALBUM = [
   ["A5_caida","Serie V · La caída de Vaeon","La caída de Vaeon al completo"]
 ];
 // NIVELES-FIN
+// 16-sep · LO QUE UN GRUPO PUA NO TIENE (lo genera _build_site.py desde _site_data.py: NO editar a mano).
+var SIN_PUA = {"capitulos": ["c6", "c8", "c5"], "tienda": ["capsula_elite", "capsula_legendaria", "sobre_epico", "sobre_raro", "sorteo"], "sorteo": true, "cubiertas": ["zoco"], "hitos": ["cambio", "sorteo", "trato", "zoco"]};
+// SINPUA-FIN
 // ESCUADRONES-INICIO · [clave, nombre, lema, de quién sale]. Un escuadrón por docente. El
 // estudiante NO elige escuadrón: elige COMANDANTE, que es lo único que conoce el primer día.
 // Lo genera web-stargate/_build_site.py desde _site_data.py: NO editar a mano.

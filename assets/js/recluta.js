@@ -9,7 +9,14 @@
       CROMOS=window.SG_CROMOS||[], SERIES=window.SG_CROMO_SERIES||[], CARDV=window.SG_CARDV||'',
       SELLOS=window.SG_SERIES_ALBUM||[],
       // 15-sep (noche) · los logros de a bordo: 16 hitos, 5 cubiertas y el Contramaestre (_site_data.py)
-      AB=window.SG_A_BORDO||{hitos:[],cubiertas:[],heroes:[],carta:null};
+      AB_TODO=window.SG_A_BORDO||{hitos:[],cubiertas:[],heroes:[],carta:null},
+      SINPUA=window.SG_SIN_PUA||{hitos:[],cubiertas:[]};
+  // 🔴 16-sep · en un PUA no hay Zoco ni sorteo, así que sus cuatro logros tampoco: son 12 en 4 cubiertas y el
+  // Contramaestre llega al completar esas cuatro. Se lee por tipo de grupo, para que el mismo fichero valga para los dos.
+  function esPUA(){ return (st&&st.d&&st.d.tipo)==='PUA'; }
+  var AB = { heroes: AB_TODO.heroes, carta: AB_TODO.carta,
+    get hitos(){ return esPUA() ? AB_TODO.hitos.filter(function(x){ return (SINPUA.hitos||[]).indexOf(x.clave)<0; }) : AB_TODO.hitos; },
+    get cubiertas(){ return esPUA() ? AB_TODO.cubiertas.filter(function(c){ return (SINPUA.cubiertas||[]).indexOf(c.clave)<0; }) : AB_TODO.cubiertas; } };
   if(!root) return;
   var q=new URLSearchParams(location.search); if(q.get('embed')==='1') document.body.classList.add('embed');
   // 🔴 13-sep · LA NAVE DEL COMANDANTE: el simulacro que maneja el docente en clase (ver fuente.js → simulacro)
@@ -279,7 +286,7 @@
     var ab=porCapitulos()?capsAbiertos().filter(function(c){ return c.clave==='c1'||PASOS_CAP[c.clave]; }):[];
     // 🔴 13-sep · Norberto: «la posibilidad de ver onboardings pasados». El menú enseña TODOS los
     // capítulos: los abiertos, con si ya los viste, se vuelven a ver; los que vienen, con su semana.
-    var vistos=porCapitulos()?capsVistos():{}, vienen=porCapitulos()?CAPS.filter(function(c){ return ab.indexOf(c)<0; }):[];
+    var vistos=porCapitulos()?capsVistos():{}, vienen=porCapitulos()?capsTipo().filter(function(c){ return ab.indexOf(c)<0; }):[];
     return '<div class="tab-head"><div><div class="eyebrow teal">La Nave del Recluta · '+esc(d.nombre)+(d.tipo==='PUA'?' · PUA':'')+'</div><h3>'+pos+'</h3>'+(st.tab==='retos'?plazos():'')
       // 🔴 13-sep · lo que llega después, en UNA línea (lo cerrado no se enseña: agobia)
       +(prox&&st.estado!=='fin'?'<p class="prox-cap">🔓 '+(sp===st.actual+1?'La semana que viene':'En la semana '+sp)+': <b>'+prox.icono+' '+esc(prox.titulo)+'</b></p>':'')
@@ -1418,20 +1425,24 @@
   // —ni con candado—: una línea dice qué llega después. Lo que ya TIENES se ve siempre (un héroe
   // regalado en clase antes de la semana de los héroes sigue en tu vestuario). Con el motor viejo,
   // todo abierto como siempre.
-  var CAPS=(window.SG_CAPITULOS||[]).filter(function(c){ return c.listo!==false; });
-  function semanaCap(c){ return (c.semanas&&c.semanas[(st.d&&st.d.tipo)==='PUA'?'PUA':'REGULAR'])||99; }
-  function porCapitulos(){ return motorNuevo() && CAPS.length>0 && !!st.d; }
+  var CAPS_TODOS=(window.SG_CAPITULOS||[]).filter(function(c){ return c.listo!==false; });
+  // 🔴 16-sep · UN PUA NO TIENE EL GRAN SORTEO, EL ZOCO NI EL HANGAR (Norberto: «en PUA podríamos capar ciertas
+  // opciones: nooo hay sorteo, podemos quitar zoco»). Sus capítulos no existen para ese grupo: ni se abren, ni se
+  // cuentan, ni salen en «lo que viene». La marca vive en el capítulo (`semanas.PUA` = null, desde _site_data.py).
+  function capsTipo(){ var t=esPUA()?'PUA':'REGULAR'; return CAPS_TODOS.filter(function(c){ return (c.semanas||{})[t]!=null; }); }
+  function semanaCap(c){ return (c.semanas&&c.semanas[esPUA()?'PUA':'REGULAR'])||99; }
+  function porCapitulos(){ return motorNuevo() && capsTipo().length>0 && !!st.d; }
   function capsAbiertos(){
-    if(!porCapitulos()) return CAPS;
+    if(!porCapitulos()) return capsTipo();
     var sem = st.estado==='antes' ? 0 : st.estado==='fin' ? 999 : (st.actual||1);
     var extra=(st.d&&st.d.capitulosAbiertos)||{};
-    return CAPS.filter(function(c,i){ return i===0 || semanaCap(c)<=sem || extra[c.clave]; });
+    return capsTipo().filter(function(c,i){ return i===0 || semanaCap(c)<=sem || extra[c.clave]; });
   }
   function abierto(pieza){
     if(!porCapitulos()) return true;
     return capsAbiertos().some(function(c){ return (c.abre||[]).indexOf(pieza)>=0; });
   }
-  function proximoCap(){ var ab=capsAbiertos(); return CAPS.filter(function(c){ return ab.indexOf(c)<0; })[0]||null; }
+  function proximoCap(){ var ab=capsAbiertos(); return capsTipo().filter(function(c){ return ab.indexOf(c)<0; })[0]||null; }
   function tabVisible(k){ return k==='nave'||k==='retos'||k==='botin'||abierto(k); }
   function tabsVisibles(){ return TABS.filter(function(x){ return tabVisible(x[0]); }); }
   function tabValida(k){
@@ -1914,7 +1925,7 @@
      * pulsarlo el servidor decía que no. Lo encontró la revisión del calendario.
      */
     // 13-sep · y lo de un capítulo que el referente ha abierto antes de tiempo, a la venta desde ya
-    var yaAbierto=function(t){ var ex=d.capitulosAbiertos||{}; return CAPS.some(function(c){ return ex[c.clave]&&(c.mercado||[]).indexOf(t)>=0; }); };
+    var yaAbierto=function(t){ var ex=d.capitulosAbiertos||{}; return capsTipo().some(function(c){ return ex[c.clave]&&(c.mercado||[]).indexOf(t)>=0; }); };
     var desdeDe=function(x){ if(motorNuevo()&&yaAbierto(x.tipo)) return 1;
       return motorNuevo() ? (Number(x.desde)||14) : window.SGCAL.desdeEfectiva(x.desde||14,d.tipo,n); };
     var ofertas=cat.filter(function(x){ return x.tipo==='oferta'&&x.oferta&&vivaOferta(x.oferta); });
@@ -1995,7 +2006,7 @@
       +(ofertas.length?'<div class="ofertas">'+ofertas.map(tarjetaOferta).join('')+'</div>':'')
       +'<div class="grid '+((abiertas%3===0||abiertas<2)?'cols-3':(abiertas%2===0?'cols-2':'cols-3'))+' nave-rec">'+cards+'</div>'
       +(porCapitulos()?(function(){
-          var ab=capsAbiertos(), vienen=CAPS.filter(function(c){ return ab.indexOf(c)<0 && (c.mercado||[]).length; });
+          var ab=capsAbiertos(), vienen=capsTipo().filter(function(c){ return ab.indexOf(c)<0 && (c.mercado||[]).length; });
           return vienen.length?'<p class="rec-prox">🔓 <b>Próximamente en el Mercado:</b> '+vienen.map(function(c){
             return c.icono+' '+esc(c.titulo)+' <span>(semana '+semanaCap(c)+')</span>'; }).join(' · ')+'</p>':'';
         })():'')
@@ -2549,7 +2560,7 @@
   /** Lo visto: su ficha manda; el navegador es copia (y la bienvenida de antes cuenta como el capítulo 1). */
   function capsVistos(){
     var v=Object.assign({}, (st.yo&&st.yo.capitulos)||{});
-    CAPS.forEach(function(c){ var l=localStorage.getItem('sgCap_'+per+'_'+c.clave); if(l&&!v[c.clave]) v[c.clave]={estado:l}; });
+    capsTipo().forEach(function(c){ var l=localStorage.getItem('sgCap_'+per+'_'+c.clave); if(l&&!v[c.clave]) v[c.clave]={estado:l}; });
     if(!v.c1&&localStorage.getItem('sgNaveOnboard_'+per)) v.c1={estado:'hecho'};
     return v;
   }
@@ -3805,7 +3816,7 @@
       },1000);
     };
     var cp=document.getElementById('sim-cap');
-    if(cp) cp.onclick=function(){ var c=CAPS.filter(function(x){ return x.clave===cp.getAttribute('data-cap'); })[0]; if(c) onboarding(0,c.clave,{cap:c}); };
+    if(cp) cp.onclick=function(){ var c=capsTipo().filter(function(x){ return x.clave===cp.getAttribute('data-cap'); })[0]; if(c) onboarding(0,c.clave,{cap:c}); };
     // 14-sep · desde la sesión proyectada (&nebula=1): NEBULA arranca sola con el capítulo de la semana,
     // el MISMO que verá el alumnado, y el docente lo sigue en directo (Norberto: «el onboarding sirve
     // también para ellos… que quede grabado en la clase y sepan cómo hacer las cosas»)
@@ -4012,11 +4023,11 @@
     var ob=root.querySelector('#btn-onboard'), rm=root.querySelector('#rep-menu');
     if(ob)ob.onclick=function(){
       if(rm){ rm.hidden=!rm.hidden; return; }
-      if(porCapitulos()&&st.yo) return onboarding(0,'c1',{cap:CAPS[0]});
+      if(porCapitulos()&&st.yo) return onboarding(0,'c1',{cap:capsTipo()[0]});
       onboarding(0, (st.yo||motorNuevo())?'nave':'puerta');
     };
     if(rm) Array.prototype.forEach.call(rm.querySelectorAll('[data-cap]'),function(b){
-      b.onclick=function(){ rm.hidden=true; var c=CAPS.filter(function(x){return x.clave===b.getAttribute('data-cap');})[0];
+      b.onclick=function(){ rm.hidden=true; var c=capsTipo().filter(function(x){return x.clave===b.getAttribute('data-cap');})[0];
         if(!c) return;
         var v=capsVistos()[c.clave];
         // si lo termina y no estaba visto (o se lo había saltado), queda apuntado como visto

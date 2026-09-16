@@ -48,9 +48,9 @@ vm.runInContext(leer("motor/paquete.js"), caja);
 const P = caja.window.SG && caja.window.SG.PAQUETE || caja.module && caja.module.exports;
 const semanaTienda = P && P.semanaTienda;
 c(typeof semanaTienda === "function", "motor/paquete.js expone semanaTienda");
-// (solo los capítulos que abren algo en la tienda: «Los logros de a bordo» no vende nada y en PUA va en su semana,
-//  la 7, para no juntar tres capítulos en la 6 — 15-sep, noche)
-if (semanaTienda) CAPS.filter(ca => (ca.mercado || []).length).forEach(ca =>
+// (solo los capítulos que abren algo en la tienda y que EXISTEN en PUA: el Sorteo, el Hangar y el Zoco no están
+//  en un PUA desde el 16-sep, y «Los logros de a bordo» no vende nada)
+if (semanaTienda) CAPS.filter(ca => (ca.mercado || []).length && ca.semanas.PUA != null).forEach(ca =>
   c(semanaTienda(ca.semana, "PUA", cat) === ca.semanas.PUA, "🔴 PUA · el capítulo «" + ca.titulo + "» y la tienda caen la misma semana",
     "tienda " + semanaTienda(ca.semana, "PUA", cat) + " · capítulo " + ca.semanas.PUA));
 

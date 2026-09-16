@@ -600,7 +600,13 @@
    * 15-sep (noche) · LOS LOGROS DE A BORDO en su ficha: cuántos lleva, qué cubiertas tiene completas y sus días a
    * bordo. Los apunta el servidor; aquí solo se enseñan (sirve para animar: «te falta el Zoco para el Contramaestre»).
    */
-  var AB = window.SG_A_BORDO || { hitos: [], cubiertas: [], heroes: [] };
+  var AB_TODO = window.SG_A_BORDO || { hitos: [], cubiertas: [], heroes: [] };
+  var SINPUA = window.SG_SIN_PUA || { hitos: [], cubiertas: [] };
+  // 16-sep · en un PUA no hay Zoco ni sorteo: sus logros son 12 en 4 cubiertas (lo mismo que ve la Nave)
+  function esPUA() { try { return (DATOS.proyecto.stargate || {}).tipo === "PUA"; } catch (e) { return false; } }
+  var AB = { heroes: AB_TODO.heroes,
+    get hitos() { return esPUA() ? AB_TODO.hitos.filter(function (x) { return (SINPUA.hitos || []).indexOf(x.clave) < 0; }) : AB_TODO.hitos; },
+    get cubiertas() { return esPUA() ? AB_TODO.cubiertas.filter(function (c) { return (SINPUA.cubiertas || []).indexOf(c.clave) < 0; }) : AB_TODO.cubiertas; } };
   function nHitos(r) { var h = (r && r.hitos) || {}; return AB.hitos.filter(function (x) { return h[x.clave]; }).length; }
   function lineaABordo(r) {
     if (!AB.hitos.length) return "";

@@ -22,7 +22,7 @@ const N = leer("assets/js/recluta.js"), F = leer("assets/js/fuente.js"), M = lee
   // 1 · los datos (un dato, un sitio: _site_data.py)
   const D = JSON.parse(execFileSync("python3", ["-c",
     "import json,_site_data as D;print(json.dumps({'H':D.HITOS_A_BORDO,'C':D.CUBIERTAS_A_BORDO,'HB':D.HEROES_A_BORDO,'CA':D.CARTA_A_BORDO," +
-    "'HE':[h[0] for h in D.HEROES],'caps':[{k:c[k] for k in ('n','clave','semana','semanas','abre','imagen')} for c in D.CAPITULOS]}))"], { cwd: RAIZ, encoding: "utf8" }));
+    "'HE':[h[0] for h in D.HEROES],'caps':[{**{k:c[k] for k in ('n','clave','semana','semanas','abre','imagen')}, 'sin_pua': c.get('sin_pua', False)} for c in D.CAPITULOS]}))"], { cwd: RAIZ, encoding: "utf8" }));
   const claves = D.H.map(h => h[0]), cubs = D.C.map(x => x[0]);
   c(claves.length === 16 && new Set(claves).size === 16, "🔴 16 logros de a bordo, sin claves repetidas", claves.join(","));
   c(JSON.stringify(cubs) === JSON.stringify(["puente", "mercado", "camarote", "zoco", "constancia"]), "   en 5 cubiertas: el puente, el Mercado, el camarote, el Zoco y la constancia", cubs.join(","));
@@ -62,15 +62,19 @@ const N = leer("assets/js/recluta.js"), F = leer("assets/js/fuente.js"), M = lee
     && /oferta\.jpg$/.test(de("c10").imagen || "") && fs.existsSync(path.join(RAIZ, de("c10").imagen || "x")), "   los logros y las ofertas, con su imagen");
   const porSemana = t => caps.reduce((a, x) => { a[x.semanas[t]] = (a[x.semanas[t]] || 0) + 1; return a; }, {});
   c(Object.values(porSemana("REGULAR")).every(n => n <= 1), "   en REGULAR, un capítulo por semana como mucho", JSON.stringify(porSemana("REGULAR")));
-  c(Object.values(porSemana("PUA")).every(n => n <= 2) && JSON.stringify([de("c6"), de("c8"), de("c5"), de("c9"), de("c7")].map(x => x.semanas.PUA)) === "[6,6,7,7,8]",
-    "   y en PUA (8 semanas), como mucho dos a la vez: 6 Sorteo y Hangar, 7 Zoco y logros, 8 Arsenal", JSON.stringify(porSemana("PUA")));
+  // 16-sep · en PUA no hay Gran Sorteo, ni Zoco, ni Hangar (Norberto): quedan ocho capítulos, uno por semana
+  const pua = caps.filter(x => x.semanas.PUA != null);
+  c(pua.length === 8 && JSON.stringify(pua.map(x => x.clave + ":" + x.semanas.PUA)) === JSON.stringify(["c1:1", "c2:2", "c3:3", "c4:4", "c10:5", "c9:6", "c11:7", "c7:8"]),
+    "🔴 en PUA (8 semanas): uno por semana, sin Sorteo, sin Hangar y sin Zoco", pua.map(x => x.clave + ":" + x.semanas.PUA).join(" "));
+  c([de("c6"), de("c8"), de("c5")].every(x => x.semanas.PUA === null && x.sin_pua === true), "   y esos tres están marcados como «sin_pua», no escondidos a mano");
   const zoco = de("c5"), sorteo = de("c6");
-  c(zoco.semana < c9w.semana && sorteo.semana < c9w.semana && zoco.semanas.PUA <= c9w.semanas.PUA, "   los logros llegan cuando ya está abierto TODO lo que piden (el Zoco y el Sorteo)");
+  c(zoco.semana < c9w.semana && sorteo.semana < c9w.semana, "   en REGULAR los logros llegan cuando ya está abierto TODO lo que piden (el Zoco y el Sorteo)");
   // el servidor abre el Zoco y saca las ofertas en las MISMAS semanas (un dato, dos sitios que se vigilan)
   const txtZ = fs.existsSync(path.join(GP, "stargateZoco.js")) ? fs.readFileSync(path.join(GP, "stargateZoco.js"), "utf8") : "";
   const txtO = fs.existsSync(path.join(GP, "stargateOfertas.js")) ? fs.readFileSync(path.join(GP, "stargateOfertas.js"), "utf8") : "";
-  const mZ = txtZ.match(/SEMANA: \{ REGULAR: (\d+), PUA: (\d+) \}/), mO = txtO.match(/SEMANA_MIN: (\d+)/);
-  c(!!mZ && Number(mZ[1]) === zoco.semanas.REGULAR && Number(mZ[2]) === zoco.semanas.PUA, "🔴 el servidor abre el Zoco la misma semana que su capítulo (regular y PUA)", mZ && mZ.slice(1).join("/"));
+  const mZ = txtZ.match(/SEMANA: \{ REGULAR: (\d+), PUA: (null|\d+) \}/), mO = txtO.match(/SEMANA_MIN: (\d+)/);
+  c(!!mZ && Number(mZ[1]) === zoco.semanas.REGULAR && mZ[2] === "null" && zoco.semanas.PUA === null,
+    "🔴 el servidor abre el Zoco la misma semana que su capítulo, y en PUA no lo abre nunca", mZ && mZ.slice(1).join("/"));
   c(!!mO && Number(mO[1]) === de("c10").semana && de("c10").semanas.PUA === de("c10").semana, "🔴 y saca la primera oferta la semana de su capítulo", mO && mO[1]);
   c(/yaALaVenta\(premios, semana\)/.test(txtO), "   y solo con lo que ya está a la venta esa semana (nada del Hangar antes de su capítulo)");
 

@@ -518,7 +518,10 @@
     return Number(sem)>=(antes&&antes<suya?antes:suya);
   }
   function diaColeccion(s){
-    var AB=window.SG_A_BORDO||{hitos:[]}, conLogros=AB.hitos.length&&s&&logrosPresentados(s.sem);
+    // 16-sep · en PUA, 12 logros en 4 cubiertas (no hay Zoco ni sorteo)
+    var SP=window.SG_SIN_PUA||{hitos:[]}, T=window.SG_A_BORDO||{hitos:[]};
+    var AB={hitos: st.tipo==='PUA' ? T.hitos.filter(function(x){ return (SP.hitos||[]).indexOf(x.clave)<0; }) : T.hitos};
+    var conLogros=AB.hitos.length&&s&&logrosPresentados(s.sem);
     var nLog=function(p){ var h=p.hitos||{}; return AB.hitos.filter(function(x){ return h[x.clave]; }).length; };
     var R=vivos(), col=function(tit, ico, val, tot){
       var r=R.filter(function(p){ return val(p)>0; }).sort(function(a,b){ return val(b)-val(a); }).slice(0,3);

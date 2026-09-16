@@ -82,6 +82,8 @@ function catalogo() {
     semanas: D.SEMANAS_PER,
     semanaDelTema: D.SEMANA_DEL_TEMA,
     semanaArsenal: D.SEMANA_ARSENAL,
+    // 16-sep · lo que un PUA no tiene (capítulos, tienda, sorteo, logros): lo mira motor/paquete.js
+    sinPua: D.SIN_PUA || {},
     bonus: { planeta: D.BONUS_PLANETA, racha: D.BONUS_RACHA, album: D.BONUS_ALBUM,
              serie: D.BONUS_SERIE, tutorial: D.BONUS_TUTORIAL },
     semanasCanjeExtra: D.SEMANAS_CANJE_EXTRA,

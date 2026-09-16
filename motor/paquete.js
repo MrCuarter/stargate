@@ -326,7 +326,17 @@
     });
 
     // ---------------------------------------------------------------- la tienda
+    /**
+     * 🔴 16-sep · LO QUE UN PUA NO TIENE. Norberto: «en PUA podríamos capar ciertas opciones: nooo hay sorteo, podemos
+     * quitar zoco…». Un PUA dura 8 semanas: se queda con aprender a jugar (comprar, vestirse, personalizar, las ofertas,
+     * los logros, el simulador y el Arsenal) y se le quitan el Gran Sorteo, el Zoco y el Hangar. La lista sale del
+     * catálogo (`sinPua`, desde `_site_data.py → SIN_PUA`), no de aquí: un dato, un sitio.
+     * Los ids de las recompensas NO se renumeran: `rec7` sigue siendo `rec7` en los dos tipos, porque el índice de la
+     * lista es lo que enlaza cofres, ofertas y regalos. Lo que hace un PUA es no tenerlas.
+     */
+    var fuera = (tipo === "PUA" ? ((cat.sinPua || {}).tienda || []) : []);
     var tienda = cat.recompensas.map(function (r, i) {
+      if (fuera.indexOf(r.tipo) >= 0) return null;
       var semana = semanaTienda(r.desdeSemana, tipo, cat);
       return {
         id: "rec" + (i + 1),
@@ -348,7 +358,7 @@
         stargateSemana: semana,
         icon: "gift"
       };
-    });
+    }).filter(Boolean);
 
     // ---------------------------------------------------------------- el álbum y el vestuario
     // Cada carta y cada héroe es una recompensa que NO está en la tienda: no se compran sueltos,
@@ -404,7 +414,8 @@
 
     // ---------------------------------------------------------------- el Gran Sorteo (14-sep)
     var sorteos = [];
-    (cat.sorteos || []).forEach(function (s) {
+    // en PUA no hay Gran Sorteo: ni el premio, ni las participaciones, ni la papeleta
+    (tipo === "PUA" && (cat.sinPua || {}).sorteo ? [] : (cat.sorteos || [])).forEach(function (s) {
       sorteos = sorteos.concat(docsDeSorteo(s, { inicio: inicio, pausas: pausas, tipo: tipo, cat: cat }));
     });
 

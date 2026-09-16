@@ -712,7 +712,8 @@ CAPITULOS = [
                 "Si es algo raro, hay pocas unidades: cuando se acaban, se acabó",
                 "Una por persona. Y tu docente también puede preparar las suyas"],
      "imagen": "assets/img/canje/oferta.jpg"},
-    {"n": 6, "clave": "c6", "titulo": "El Gran Sorteo", "icono": "🎟️", "semana": 6,
+    # 16-sep · en PUA NO hay Gran Sorteo (Norberto: «nooo hay sorteo»): son 8 semanas y el premio es de la convocatoria larga.
+    {"n": 6, "clave": "c6", "titulo": "El Gran Sorteo", "icono": "🎟️", "semana": 6, "sin_pua": True,
      "abre": ["sorteo"], "mercado": ["sorteo", "sobre_raro"],
      "cabecera": "El Gran Sorteo de la tripulación",
      "puedes": ["Se sortean dos licencias de Genially de un año completo",
@@ -725,7 +726,8 @@ CAPITULOS = [
     # 14-sep · EL HANGAR (Norberto: «que hubiera un cofre legendario, donde siempre toca un avatar
     # legendario; obviamente caro… y para la 10 debería estar todo descubierto»). 16-sep: de la 8 a la 7, antes que el
     # Zoco: al llegar a él ya se sabe lo que vale cada pieza (y hay legendarias que cambiar).
-    {"n": 7, "clave": "c8", "titulo": "El Hangar de las Leyendas", "icono": "🟨", "semana": 7,
+    # 16-sep · tampoco el Hangar: con 4.350 xp y menos créditos, la cápsula legendaria (320 ◈) es un escaparate que nadie alcanza.
+    {"n": 7, "clave": "c8", "titulo": "El Hangar de las Leyendas", "icono": "🟨", "semana": 7, "sin_pua": True,
      "abre": [], "mercado": ["sobre_epico", "capsula_elite", "capsula_legendaria"],
      "cabecera": "Las cápsulas de élite, la legendaria y el sobre épico",
      "puedes": ["La cápsula de élite: un héroe de la Vanguardia o un Mito, sin la Resistencia",
@@ -735,7 +737,8 @@ CAPITULOS = [
      "imagen": "assets/img/canje/capsula_legendaria.jpg"},
     # 16-sep · EL ZOCO, de la 5 a la 8 (en PUA, la 7): lo más complejo de la Nave —negociar con otras personas en 3 pasos,
     # con lo ofrecido apartado, topes y caducidad—, cuando ya hay repetidas (y legendarias) que cambiar.
-    {"n": 8, "clave": "c5", "titulo": "El Zoco Estelar", "icono": "🔄", "semana": 8, "semana_pua": 7,
+    # 16-sep · y el Zoco se queda fuera de PUA: negociar en tres pasos, con lo apartado y 7 días de caducidad, no cabe en 8 semanas.
+    {"n": 8, "clave": "c5", "titulo": "El Zoco Estelar", "icono": "🔄", "semana": 8, "sin_pua": True,
      "abre": ["zoco"], "mercado": [],
      "cabecera": "El trueque entre reclutas",
      "puedes": ["Poner tus héroes y cromos en el Zoco (repetidos o no)",
@@ -748,7 +751,7 @@ CAPITULOS = [
     # cuentan desde el primero): ese día NEBULA los presenta con lo que cada cual ya lleva, y el servidor paga entonces las
     # cubiertas que ya estuvieran completas. 16-sep: los últimos, en la 9 (en PUA, la 7, con el Zoco): piden haberlo
     # usado todo, y así todo lo que piden ya está abierto.
-    {"n": 9, "clave": "c9", "titulo": "Los logros de a bordo", "icono": "🎖️", "semana": 9, "semana_pua": 7,
+    {"n": 9, "clave": "c9", "titulo": "Los logros de a bordo", "icono": "🎖️", "semana": 9, "semana_pua": 6,
      "abre": ["logros"], "mercado": [],
      "cabecera": "Lo que ya sabes hacer en la Nave, con premio",
      "puedes": ["16 logros: la primera vez que haces cada cosa en la Nave. Se apuntan solos, y los que ya hiciste también cuentan",
@@ -761,7 +764,7 @@ CAPITULOS = [
     # clase y la semana siguiente mostramos el emulador desbloqueado (aunque algunos ya lo tendrán desbloqueado)». La
     # batalla se abre con el planeta Ludo (tema 6, semana 10); este capítulo la presenta a la clase entera la semana
     # siguiente. En PUA el tema 6 cae en la 5, así que el capítulo va con el Arsenal, en la 8.
-    {"n": 10, "clave": "c11", "titulo": "El Simulador de Joran", "icono": "🎮", "semana": 11, "semana_pua": 8,
+    {"n": 10, "clave": "c11", "titulo": "El Simulador de Joran", "icono": "🎮", "semana": 11, "semana_pua": 7,
      "abre": ["simulador"], "mercado": [],
      "cabecera": "El simulador que dejó encendido Joran",
      "puedes": ["Si le ganaste a RUTA AZUL en el reto A6, el simulador ya está en tu Nave",
@@ -780,6 +783,27 @@ CAPITULOS = [
 ]
 for _c in CAPITULOS:
     _c["semanas"] = {"REGULAR": _c["semana"], "PUA": _c.get("semana_pua") or semana_capitulo(_c["semana"], "PUA")}
+    # 16-sep · lo que un PUA no tiene (decidido por Norberto): el Gran Sorteo, el Zoco y el Hangar. En 8 semanas hay
+    # que aprender a jugar, no a hacerlo todo: se quedan comprar, vestirse, personalizar, las ofertas, los logros, el
+    # simulador y el Arsenal. La web, el servidor y el paquete del grupo miran esta misma marca.
+    if _c.get("sin_pua"): _c["semanas"]["PUA"] = None
+CAPITULOS_PUA = [c for c in CAPITULOS if not c.get("sin_pua")]
+
+# 🔴 LO QUE UN GRUPO PUA NO TIENE (16-sep). Norberto: «en PUA podríamos capar ciertas opciones: nooo hay sorteo,
+# podemos quitar zoco…». Sale de los capítulos marcados `sin_pua`, para que no haya una segunda lista que mantener:
+#   · la tienda: lo que vendían esos capítulos (participaciones del sorteo, sobre de raras y el Hangar entero);
+#   · el sorteo: no se crea con el grupo;
+#   · los logros de a bordo: los cuatro que piden Zoco o sorteo, y con ellos su cubierta. En PUA son 12 en 4 cubiertas,
+#     y el Contramaestre llega al completar las cuatro (el premio es el mismo: nadie se queda sin poder ganarlo).
+# Lo miran igual la web (la Nave, la consola, la sesión), el paquete del grupo (motor/paquete.js) y el servidor
+# (GamificaPro: stargateABordo.js y stargateZoco.js). La batería 81 los compara.
+SIN_PUA = {
+    "capitulos": [c["clave"] for c in CAPITULOS if c.get("sin_pua")],
+    "tienda": sorted({t for c in CAPITULOS if c.get("sin_pua") for t in c["mercado"]}),
+    "sorteo": True,
+    "cubiertas": ["zoco"],
+    "hitos": sorted({h[0] for h in HITOS_A_BORDO if h[1] == "zoco"} | {"sorteo"}),
+}
 assert [c["n"] for c in CAPITULOS] == list(range(1, len(CAPITULOS) + 1)), "los capítulos van en orden"
 assert all(CAPITULOS[i]["semana"] <= CAPITULOS[i + 1]["semana"] for i in range(len(CAPITULOS) - 1)), \
     "un capítulo no puede abrirse antes que el anterior"

@@ -35,8 +35,8 @@ const B = leer("assets/js/batalla.js"), N = leer("assets/js/recluta.js"), M = le
   c(W.reto === "A6" && W.clave === "joran" && W.rival === "RUTA AZUL", "el reto A6 es la batalla contra RUTA AZUL", JSON.stringify([W.reto, W.clave, W.rival]));
   c(JSON.stringify(W.temas_reto) === JSON.stringify([1, 2, 3, 4, 5]) && W.tema_reto === 6,
     "   pregunta por lo ya recorrido (temas 1 al 5) y se abre con el planeta Ludo", JSON.stringify(W.temas_reto));
-  c(!!cap && cap.semanas.REGULAR === 11 && cap.semanas.PUA === 8 && cap.abre.indexOf("simulador") >= 0,
-    "🔴 el capítulo del simulador va la semana siguiente a la batalla (11; en PUA, la 8)", JSON.stringify(cap && cap.semanas));
+  c(!!cap && cap.semanas.REGULAR === 11 && cap.semanas.PUA === 7 && cap.abre.indexOf("simulador") >= 0,
+    "🔴 el capítulo del simulador va la semana siguiente a la batalla (11; en PUA, la 7)", JSON.stringify(cap && cap.semanas));
   c(!!cap && hay(cap.imagen), "   con su imagen", cap && cap.imagen);
   c(W.niveles.length === 3 && W.niveles.map(x => x[0]).join(",") === "facil,media,dificil" && W.nivel_reto === "media",
     "   tres niveles de dificultad, y el reto siempre en media (la insignia cuesta lo mismo para todos)");
