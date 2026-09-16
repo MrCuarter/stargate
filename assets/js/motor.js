@@ -1035,6 +1035,57 @@ async function borrarReflexion(perId, reto, fichaId) {
  * hay y lo que es nuevo, para que la Nave lo celebre. Si el grupo aún no tiene la función, `null`.
  */
 /**
+ * ════════════ LAS VOTACIONES DEL AULA (16-sep) ════════════
+ *
+ * Norberto: «las votaciones en vivo deberían vivir en el mismo sitio que los cronómetros, es gestión de aula… cada
+ * docente puede publicar una votación y la próxima semana se resuelve… y GamificaPro tiene algo divertido: comprar voto
+ * extra». No hace falta función nueva: el motor trae `castVote` (voto gratis y voto de PAGO, que es el voto extra) y las
+ * reglas dejan crear y cerrar la votación a cualquier docente del grupo. Aquí solo se le da forma de STARGATE.
+ *
+ * Cada votación vive en `projects/{grupo}/voting_events/{id}` con la forma que espera el motor (`options`, `isActive`,
+ * `votesPerPerson`, `costPerVote`, `maxPaidVotesPerPerson`, `eligibleFactionId`) y tres campos nuestros: la semana en que
+ * se lanzó, la semana en que se resuelve y quién la puso.
+ */
+const refVotaciones = (perId) => collection(db, "projects", perId, "voting_events");
+async function votaciones(perId) {
+  const r = await getDocs(refVotaciones(perId));
+  return r.docs.map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => Number(b.creado || 0) - Number(a.creado || 0));
+}
+/** Crear una votación. `opciones` son textos; el id de cada una es su posición, que no cambia nunca. */
+async function crearVotacion(perId, v) {
+  const yo = await sesion();
+  const opciones = (v.opciones || []).map(String).map(s => s.trim()).filter(Boolean)
+    .map((titulo, i) => ({ id: "o" + (i + 1), title: titulo, totalFreeVotes: 0, totalCoinsInvested: 0 }));
+  if (opciones.length < 2) throw new Error("Una votación necesita al menos dos opciones.");
+  const doc_ = doc(refVotaciones(perId));
+  await setDoc(doc_, {
+    title: String(v.pregunta || "").trim(), description: "",
+    options: opciones, isActive: true,
+    votesPerPerson: 1,
+    costPerVote: Math.max(0, Math.floor(Number(v.extra) || 0)),
+    maxPaidVotesPerPerson: Math.max(0, Math.floor(Number(v.maxExtra) || 0)),
+    // 🔴 si la pone para SU escuadrón, el motor no deja votar a los demás (eligibleFactionId)
+    eligibleFactionId: v.escuadron || "",
+    factionVoteTotals: {},
+    creado: Date.now(), stargateSemana: Number(v.semana) || null,
+    stargateResuelve: Number(v.resuelve) || null, stargateProfe: String(v.profe || ""),
+    creadoPor: yo ? yo.uid : null,
+  });
+  return doc_.id;
+}
+const cerrarVotacion = (perId, id) => updateDoc(doc(db, "projects", perId, "voting_events", id), { isActive: false, cerrada: Date.now() });
+const borrarVotacion = (perId, id) => deleteDoc(doc(db, "projects", perId, "voting_events", id));
+/** Votar: gratis o pagando el voto extra. Lo cobra y lo cuenta el servidor. */
+const votar = (perId, id, opcionId, tipo) => llamar("castVote", { projectId: perId, eventId: id, optionId: opcionId, voteType: tipo || "free" });
+/** Lo que ya ha votado esta persona en esa votación (papeleta por ficha). */
+async function miPapeleta(perId, id, fichaId) {
+  if (!fichaId) return {};
+  const d = await getDoc(doc(db, "projects", perId, "voting_events", id, "votes", fichaId));
+  return d.exists() ? (d.data().byOption || {}) : {};
+}
+
+/**
  * LA BATALLA CONTRA EL SIMULADOR DE JORAN (16-sep). Todo lo decide el servidor: aquí solo se le pasa qué quiere hacer
  * el estudiante (empezar, responder, actuar, rendirse) y se devuelve lo que contesta. Ni una respuesta viaja antes de
  * tiempo, y el reloj del rival lo lleva él: cerrar la pestaña no lo para.
@@ -1735,6 +1786,7 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto, invitacion, codigoGenially,
                     guardarReflexion, enlaceDeReflexion, reflexionesDe, misReflexiones, comentariosDe, comentar, borrarComentario,
                     borrarReflexion, idReflexion, hitos, batalla,
+                    votaciones, crearVotacion, cerrarVotacion, borrarVotacion, votar, miPapeleta,
                     referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
                     profes, anotarConexion, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };

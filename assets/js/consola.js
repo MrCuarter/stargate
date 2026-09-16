@@ -478,6 +478,47 @@
     return f && escs.some(function (e) { return e.comandante === f; }) ? f : "";
   }
   function retosOrdenados() { return DATOS.misiones.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); }
+  /**
+   * 16-sep · EXPORTAR A CSV. Norberto lo eligió de lo que trae el motor: para evaluar con datos y para justificar una
+   * nota hace falta sacar el curso de la pantalla. Se genera aquí mismo (nada sale del navegador) con lo que ya está
+   * cargado, respetando el filtro de escuadrón que tenga puesto. Punto y coma y BOM: así Excel en español lo abre bien
+   * a la primera, que es lo único que importa a las 23:00 de un domingo.
+   */
+  function descargarCSV(t, lista, filtro) {
+    var AB = (window.SG_A_BORDO || { hitos: [] }), BT = window.SG_BATALLA || {};
+    var cab = ["Alias", "Nombre", "Apellidos", "Correo", "Escuadrón", "Comandante", "Nivel", "XP", "Créditos",
+               "Retos hechos", "Retos (ids)", "Insignias", "Cartas", "Héroes", "Logros de a bordo", "Días a bordo",
+               "Simulador (ganó)", "Mejor marca", "Enlaces entregados", "Último movimiento"];
+    var filas = lista.map(function (x) {
+      var r = x[0], ev = (EVID && EVID[r.ficha]) || {}, sim = r.simulador || {};
+      // (el nivel se deduce de la xp, como en toda la web)
+      var niv = (window.SG && SG.nivel) ? SG.nivel(r.xp, (DATOS.proyecto.stargate || {}).tipo) : (r.nivel || "");
+      var marcas = Object.keys((sim.marcas) || {}).map(function (k) { return Number(sim.marcas[k].p) || 0; });
+      var hitos = AB.hitos.filter(function (h) { return (r.hitos || {})[h.clave]; }).length;
+      var esc7 = ((t.escuadrones || []).filter(function (e) { return e.comandante === r.profe; })[0] || {}).nombre || "";
+      return [r.alias || "", r.nombre_pila || "", r.apellidos || "", r.email || "",
+              esc7, r.profe || "",
+              niv, r.xp || 0, r.creditos != null ? r.creditos : "",
+              (r.hechos || []).length, (r.hechos || []).join(" "),
+              (r.insignias || []).length, ((r.coleccion || {}).cromos || {}).tengo || 0,
+              ((r.coleccion || {}).heroes || {}).tengo || 0,
+              hitos + "/" + AB.hitos.length, ((r.dias || {}).total) || 0,
+              sim[BT.clave || "joran"] ? "sí" : "no", marcas.length ? Math.max.apply(null, marcas) : "",
+              Object.keys(ev).map(function (k) { return k + ": " + ev[k]; }).join(" | "),
+              r.ultima ? String(r.ultima).slice(0, 10) : ""];
+    });
+    var celda = function (v) {
+      var s = String(v == null ? "" : v);
+      return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    var csv = "\uFEFF" + [cab].concat(filas).map(function (f) { return f.map(celda).join(";"); }).join("\r\n");
+    var nombre = "STARGATE_" + (PER || "grupo") + (filtro ? "_" + filtro.replace(/\s+/g, "-") : "") + "_" + new Date().toISOString().slice(0, 10) + ".csv";
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    a.download = nombre; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+
   /** Las filas del alumnado (Mi gente y el detalle de un escuadrón): `lista` = [[recluta, índice en t.reclutas]…]. */
   function tablaGente(lista, caps, conComandante) {
     return '<div class="tabla-envoltura"><table class="tabla gente-tabla"><thead><tr><th>#</th><th>Alias</th><th>Nombre</th>' +
@@ -515,10 +556,16 @@
       '<b>Pulsa una fila</b> y se abre su ficha: sus retos, los enlaces de lo que ha entregado y lo que puedes hacer.</p>' + chips +
       (lista.length ? tablaGente(lista, caps, !filtro) : '<p class="muted">Todavía no hay nadie en este escuadrón.</p>') +
       (t.sin_docente ? '<p class="aviso">⚠️ ' + t.sin_docente + ' recluta(s) sin Comandante asignado.</p>' : "") +
+      // 16-sep · la hoja de cálculo para evaluar: lo que hay en pantalla, tal cual, en un CSV
+      (lista.length ? '<p class="gp-csv"><button type="button" class="btn min" id="c-csv">📊 Descargar CSV</button>' +
+        '<span class="small muted">Lo de esta vista (' + lista.length + ' reclutas) para tu hoja de cálculo: xp, créditos, retos, insignias, ' +
+        'cartas, héroes, logros, el Simulador y los enlaces que ha entregado cada cual.</span></p>' : "") +
       "</div>";
     Array.prototype.forEach.call(app.querySelectorAll("[data-gf]"), function (b) {
       b.onclick = function () { FILTRO[PER] = b.getAttribute("data-gf"); verAlumnado(t); };
     });
+    var bcsv = document.getElementById("c-csv");
+    if (bcsv) bcsv.onclick = function () { descargarCSV(t, lista, filtro); };
     cablearFilas(app, t);
     /**
      * 🔴 13-sep · LOS ENLACES DE EVIDENCIA, POR FIN A LA VISTA. El alumnado los guardaba en

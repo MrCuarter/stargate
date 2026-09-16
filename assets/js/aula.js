@@ -116,7 +116,7 @@
 
   // ---------------------------------------------------------------- pestañas
   var TABS = [["clase", "🔔", "La clase"], ["gente", "👏", "Mi gente"], ["ranking", "🏆", "Ranking"],
-              ["premios", "🎁", "Premiar"], ["tiempo", "⏱️", "Tiempo"]];
+              ["premios", "🎁", "Premiar"], ["tiempo", "⏱️", "Tiempo"], ["voto", "🗳️", "Votación"]];
   /**
    * 🔴 Con más de un grupo hace falta poder cambiar. Un docente del máster puede llevar hasta seis,
    * y sin selector el aula enseñaba siempre el primero que devolviera el servidor — sin decirlo,
@@ -449,11 +449,142 @@
     } catch (e) {}
   }
 
+  // ---------------------------------------------------------------- 6 · la votación (16-sep)
+  /**
+   * Norberto: «las votaciones en vivo deberían vivir también en el mismo sitio que los cronómetros, es gestión de aula.
+   * También cada docente puede publicar una votación para que respondan, la próxima semana se resuelve. Ejemplo: ¿qué
+   * herramienta prefieres que aprendamos la próxima semana? GamificaPro tiene algo divertido, compra voto extra».
+   *
+   * La pone quien da la clase, para SU escuadrón o para todo el grupo; el alumnado vota desde su Nave (o aquí mismo, si
+   * se proyecta); y se resuelve la semana siguiente. Lo cuenta el servidor (`castVote`), también el VOTO EXTRA de pago:
+   * el precio va en la votación, no en el navegador.
+   */
+  var VOT = { lista: null, cargando: false, error: "" };
+  var CFGV = window.SG_VOTACION || { min_opciones: 2, max_opciones: 5, voto_extra: 15, max_extra: 2, ejemplos: [] };
+  function cargarVotaciones(forzar) {
+    if (VOT.cargando || (VOT.lista && !forzar)) return;
+    VOT.cargando = true;
+    MOTOR.votaciones(PER).then(function (l) { VOT.lista = l; VOT.cargando = false; if (TAB === "voto") render(); })
+      .catch(function (e) { VOT.cargando = false; VOT.error = e.message || String(e); if (TAB === "voto") render(); });
+  }
+  function miEscuadron() {
+    var yo = nombreDocente();
+    return ((D && D.escuadrones) || []).filter(function (e) { return String(e.comandante || "") === yo; })[0] || null;
+  }
+  function votosDe(v) {
+    return (v.options || []).reduce(function (n, o) { return n + Number(o.totalFreeVotes || 0) + (Number(v.costPerVote || 0) ? Math.round(Number(o.totalCoinsInvested || 0) / Number(v.costPerVote)) : 0); }, 0);
+  }
+  function conteo(v, o) {
+    var pagados = Number(v.costPerVote || 0) ? Math.round(Number(o.totalCoinsInvested || 0) / Number(v.costPerVote)) : 0;
+    return { total: Number(o.totalFreeVotes || 0) + pagados, pagados: pagados };
+  }
+  function barraVoto(v, o, total) {
+    var c = conteo(v, o), pct = total ? Math.round(c.total * 100 / total) : 0;
+    return '<li class="au-vt-op"><div class="au-vt-t"><b>' + esc(o.title) + '</b><span>' + c.total
+      + (c.pagados ? ' <em title="votos extra pagados">(+' + c.pagados + ' ◈)</em>' : '') + '</span></div>'
+      + '<div class="au-vt-barra"><i style="width:' + pct + '%"></i></div></li>';
+  }
+  function vistaVoto() {
+    if (VOT.lista === null) { cargarVotaciones(); return '<div class="au-caja"><p class="ll-esperando">Cargando las votaciones…</p></div>'; }
+    var mias = VOT.lista, viva = mias.filter(function (v) { return v.isActive; })[0] || null;
+    var cerradas = mias.filter(function (v) { return !v.isActive; }).slice(0, 3);
+    var esc7 = miEscuadron();
+    var sem = (D && D.semana) || 0;
+    var html = '<div class="au-caja">';
+    if (VOT.error) html += '<p class="au-nota malo">No he podido leer las votaciones: ' + esc(VOT.error) + '</p>';
+    if (viva) {
+      var total = votosDe(viva);
+      html += '<div class="au-tarjeta au-vt-viva"><div class="eyebrow amber">Votación abierta'
+        + (viva.eligibleFactionId ? ' · solo ' + esc(nombreEscuadron(viva.eligibleFactionId)) : ' · todo el grupo') + '</div>'
+        + '<h3>' + esc(viva.title) + '</h3>'
+        + '<ul class="au-vt-lista">' + (viva.options || []).map(function (o) { return barraVoto(viva, o, total); }).join("") + '</ul>'
+        + '<p class="small muted">' + total + (total === 1 ? ' voto' : ' votos')
+        + (Number(viva.costPerVote || 0) ? ' · voto extra a ' + viva.costPerVote + ' ◈ (hasta ' + (viva.maxPaidVotesPerPerson || 0) + ' por persona)' : ' · sin voto extra')
+        + (viva.stargateResuelve ? ' · se resuelve en la semana ' + viva.stargateResuelve : '') + '</p>'
+        + '<p class="small muted">Tu alumnado la ve en su Nave nada más entrar. Se cierra cuando tú quieras.</p>'
+        + '<div class="au-vt-botones"><button class="btn primary" id="au-vt-cerrar">Cerrar y resolver</button>'
+        + '<button class="btn min" id="au-vt-borrar">Borrar</button></div></div>';
+    } else {
+      html += '<div class="au-tarjeta"><div class="eyebrow verde">Nueva votación</div>'
+        + '<h3>🗳️ Pregunta a tu clase</h3>'
+        + '<p class="small muted">La responden desde su Nave durante la semana y la resuelves en la siguiente clase. '
+        + 'Ejemplo: «' + esc((CFGV.ejemplos || [])[0] || "¿Qué herramienta prefieres que veamos la semana que viene?") + '»</p>'
+        + '<label class="au-et">La pregunta</label>'
+        + '<input id="au-vt-preg" class="au-inp" maxlength="' + (CFGV.pregunta_max || 120) + '" placeholder="' + esc((CFGV.ejemplos || [])[0] || "") + '">'
+        + '<label class="au-et">Las opciones</label><div id="au-vt-ops">'
+        + [0, 1].map(function (i) { return '<input class="au-inp au-vt-op-inp" maxlength="' + (CFGV.opcion_max || 60) + '" placeholder="Opción ' + (i + 1) + '">'; }).join("")
+        + '</div><button class="btn min" id="au-vt-mas">+ Añadir opción</button>'
+        + '<div class="au-vt-ajustes">'
+        + '<label class="au-check"><input type="checkbox" id="au-vt-extra" checked> Dejar <b>comprar voto extra</b> por ' + (CFGV.voto_extra || 15) + ' ◈ (hasta ' + (CFGV.max_extra || 2) + ')</label>'
+        + (esc7 ? '<label class="au-check"><input type="checkbox" id="au-vt-mio" checked> Solo para <b>' + esc(esc7.nombre) + '</b> (tu escuadrón)</label>' : '')
+        + '</div>'
+        + '<p class="small muted">Se resolverá en la <b>semana ' + (sem + 1) + '</b>.</p>'
+        + '<button class="btn primary" id="au-vt-crear">🗳️ Publicar la votación</button>'
+        + '<p class="ll-pie" id="au-vt-msg"></p></div>';
+    }
+    if (cerradas.length) {
+      html += '<div class="au-tarjeta"><h3>Resueltas</h3>' + cerradas.map(function (v) {
+        var total = votosDe(v);
+        var gana = (v.options || []).slice().sort(function (a, b) { return conteo(v, b).total - conteo(v, a).total; })[0];
+        return '<p class="au-vt-vieja"><b>' + esc(v.title) + '</b><br><span class="small muted">Ganó «' + esc((gana || {}).title || "—")
+          + '» con ' + (gana ? conteo(v, gana).total : 0) + ' de ' + total + ' votos</span></p>';
+      }).join("") + '</div>';
+    }
+    return html + '</div>';
+  }
+  function cablearVoto() {
+    var cerrar = document.getElementById("au-vt-cerrar");
+    if (cerrar) cerrar.onclick = function () {
+      var viva = (VOT.lista || []).filter(function (v) { return v.isActive; })[0]; if (!viva) return;
+      cerrar.disabled = true; cerrar.textContent = "Cerrando…";
+      MOTOR.cerrarVotacion(PER, viva.id).then(function () { cargarVotaciones(true); })
+        .catch(function (e) { cerrar.disabled = false; cerrar.textContent = "Cerrar y resolver"; alert("No he podido cerrarla: " + e.message); });
+    };
+    var borrar = document.getElementById("au-vt-borrar");
+    if (borrar) borrar.onclick = function () {
+      var viva = (VOT.lista || []).filter(function (v) { return v.isActive; })[0]; if (!viva) return;
+      if (!confirm("¿Borrar la votación? Se pierde lo votado.")) return;
+      MOTOR.borrarVotacion(PER, viva.id).then(function () { cargarVotaciones(true); })
+        .catch(function (e) { alert("No he podido borrarla: " + e.message); });
+    };
+    var mas = document.getElementById("au-vt-mas");
+    if (mas) mas.onclick = function () {
+      var caja = document.getElementById("au-vt-ops");
+      if (caja.querySelectorAll("input").length >= (CFGV.max_opciones || 5)) { mas.disabled = true; return; }
+      var i = document.createElement("input");
+      i.className = "au-inp au-vt-op-inp"; i.maxLength = CFGV.opcion_max || 60;
+      i.placeholder = "Opción " + (caja.querySelectorAll("input").length + 1);
+      caja.appendChild(i); i.focus();
+      if (caja.querySelectorAll("input").length >= (CFGV.max_opciones || 5)) mas.disabled = true;
+    };
+    var crear = document.getElementById("au-vt-crear");
+    if (crear) crear.onclick = function () {
+      var preg = (document.getElementById("au-vt-preg").value || "").trim();
+      var ops = [].slice.call(app.querySelectorAll(".au-vt-op-inp")).map(function (x) { return x.value.trim(); }).filter(Boolean);
+      var msg = document.getElementById("au-vt-msg");
+      if (preg.length < 5 || ops.length < (CFGV.min_opciones || 2)) {
+        msg.textContent = "Escribe la pregunta y al menos dos opciones."; msg.className = "ll-pie malo"; return;
+      }
+      var extra = document.getElementById("au-vt-extra").checked;
+      var mio = document.getElementById("au-vt-mio");
+      var esc7 = miEscuadron();
+      crear.disabled = true; msg.className = "ll-pie"; msg.textContent = "Publicando…";
+      MOTOR.crearVotacion(PER, {
+        pregunta: preg, opciones: ops,
+        extra: extra ? (CFGV.voto_extra || 15) : 0, maxExtra: extra ? (CFGV.max_extra || 2) : 0,
+        escuadron: (mio && mio.checked && esc7) ? esc7.id : "",
+        semana: (D && D.semana) || null, resuelve: ((D && D.semana) || 0) + 1, profe: nombreDocente(),
+      }).then(function () { cargarVotaciones(true); })
+        .catch(function (e) { crear.disabled = false; msg.textContent = "No he podido publicarla: " + e.message; msg.className = "ll-pie malo"; });
+    };
+  }
+
   // ---------------------------------------------------------------- pintar
   function render() {
     pinta(barra() + '<div class="au-cuerpo">'
       + (TAB === "clase" ? vistaClase() : TAB === "gente" ? vistaGente()
-        : TAB === "ranking" ? vistaRanking() : TAB === "tiempo" ? vistaTiempo() : vistaPremios()) + "</div>");
+        : TAB === "ranking" ? vistaRanking() : TAB === "tiempo" ? vistaTiempo()
+        : TAB === "voto" ? vistaVoto() : vistaPremios()) + "</div>");
     Array.prototype.forEach.call(app.querySelectorAll("[data-au]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-au"); render(); };
     });
@@ -471,6 +602,7 @@
     if (TAB === "clase") cablearClase();
     if (TAB === "premios") cablearPremios();
     if (TAB === "tiempo") cablearTiempo();
+    if (TAB === "voto") cablearVoto();
     if (SESION) pintaPresentes();
   }
 

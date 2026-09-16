@@ -1016,8 +1016,10 @@ const REG = {};   // cifras que se apuntan para el informe
       const hecho = await leo.hasta("/registrado/i.test(document.body.innerText)", 25);
       c("entregado · Leo registra " + reto + " con su enlace", hecho);
       await leo.js("window.scrollTo(0, document.body.scrollHeight); 1"); await dormir(400);
-      await leo.js("document.querySelector('.nb-t[data-tab=\"retos\"]').click(); 1"); await dormir(1500);
-      c("entregado · al cambiar de pestaña la página sube al principio", (await leo.js("window.pageYOffset")) < 60, String(await leo.js("window.pageYOffset")));
+      await leo.js("document.querySelector('.nb-t[data-tab=\"retos\"]').click(); 1");
+      // (el desplazamiento es SUAVE: desde el pie de una página larga tarda un segundo largo, así que se espera a que llegue)
+      const arriba = await leo.hasta("(window.pageYOffset||0) < 60", 8);
+      c("entregado · al cambiar de pestaña la página sube al principio", arriba, String(await leo.js("window.pageYOffset")));
       await leo.hasta("!!document.querySelector('.rh-ya')", 15);
       const ya = await leo.js("[].slice.call(document.querySelectorAll('.rh-ya a')).map(function(a){return a.getAttribute('href')})");
       c("🔴 entregado · en «Mis retos» ve SU enlace (no un campo vacío que invita a pegarlo otra vez)", (ya || []).indexOf(url) >= 0, JSON.stringify(ya));
@@ -3967,7 +3969,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // 6 · el docente puede ensayarlo en clase (sin ficha, sin marcas)
       const dani = await nueva("Dani ensaya el simulador");
       await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente"); await sinBienvenidas(dani);
-      await dani.ir("batalla.html?per=" + P);
+      await dani.ir("batalla.html?per=" + P + "&ensayo=1");   // (un docente alistado juega como recluta; el ensayo se pide)
       const ens = await dani.hasta("/ensayo/i.test(document.body.textContent)", 30);
       c("batalla · el docente lo abre en modo ensayo (para enseñarlo en clase)", ens && await dani.js("document.querySelectorAll('.bt-modo').length >= 8"),
         String(await dani.js("document.querySelectorAll('.bt-modo').length")));
@@ -3975,6 +3977,148 @@ const REG = {};   // cifras que se apuntan para el informe
       c("batalla · sin errores en las páginas", ![nova, quim, dani].some(p => p.errores.filter(e => !/Failed to load resource/.test(e)).length),
         [nova, quim, dani].map(p => p.errores.filter(e => !/Failed to load resource/.test(e))[0]).filter(Boolean).join(" | "));
       for (const p of [nova, quim, dani]) await p.cerrar();
+    }
+
+    // ============================================================ 40 · LAS VOTACIONES DEL AULA
+    /**
+     * Norberto (16-sep): «las votaciones en vivo deberían vivir también en el mismo sitio que has puesto los cronómetros,
+     * es gestión de aula. También cada docente puede publicar una votación para que respondan, la próxima semana se
+     * resuelve… GamificaPro tiene algo divertido, compra voto extra: impleméntalo también».
+     *
+     * Rita publica la votación desde el aula, Vera vota desde su Nave, compra un voto extra (y se le cobran los créditos
+     * de verdad), no puede comprar más de los que se permiten, y al cerrarla la sesión proyecta la ganadora. Y lo que no
+     * puede pasar: que un recluta se invente una votación o se cuente votos desde la consola del navegador.
+     */
+    if (hacer(40)) {
+      const P = "lab-clase", A = admin(), fs = A.firestore();
+      const VERA = ["vera@lab.test", "Vera Prueba", "Vera Voto", 0];
+      for (let i = 0; i < 2 && !(await fichaDe(VERA[0], P)); i++) { const a = await nueva("Alta Vera"); await alistar(a, VERA[0], VERA[1], VERA[2], VERA[3]); await a.cerrar(); }
+      const fV0 = await fichaDe(VERA[0], P);
+      await fs.collection("student_profiles").doc(fV0._id).update({ coins: 100 });
+
+      // 1 · Rita la publica desde el aula, en la pestaña de al lado del temporizador
+      const rita = await nueva("Rita publica la votación");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente"); await sinBienvenidas(rita);
+      await rita.ir("aula.html?per=" + P); await rita.hasta("!!document.querySelector('.au-tabs')", 30);
+      c("votación · el aula tiene su pestaña, junto al temporizador",
+        await rita.js("[].slice.call(document.querySelectorAll('.au-tabs [data-au]')).map(function(b){return b.getAttribute('data-au')}).join(',').indexOf('tiempo,voto')>=0"),
+        await rita.js("[].slice.call(document.querySelectorAll('.au-tabs [data-au]')).map(function(b){return b.getAttribute('data-au')}).join(',')"));
+      await rita.js("document.querySelector('.au-tabs [data-au=\"voto\"]').click(); 1");
+      await rita.hasta("!!document.querySelector('#au-vt-crear')", 25);
+      await rita.js(`(function(){ document.querySelector('#au-vt-preg').value='¿Qué herramienta prefieres que veamos la semana que viene?';
+        var o=[].slice.call(document.querySelectorAll('.au-vt-op-inp')); o[0].value='Genially'; o[1].value='Canva';
+        document.querySelector('#au-vt-mas').click(); return 1; })()`);
+      await dormir(300);
+      await rita.js(`(function(){ var o=[].slice.call(document.querySelectorAll('.au-vt-op-inp')); o[2].value='Kahoot';
+        var mio=document.querySelector('#au-vt-mio'); if(mio) mio.checked=false;   // para todo el grupo
+        document.querySelector('#au-vt-crear').click(); return 1; })()`);
+      const publicada = await rita.hasta("!!document.querySelector('.au-vt-viva')", 25);
+      c("🔴 votación · Rita la publica desde el aula, con sus tres opciones", publicada,
+        (await rita.js("(document.querySelector('.au-vt-viva')||{}).textContent||''")).slice(0, 80));
+      const votacionesDe = async (activa) => {
+        const s = await fs.collection("projects").doc(P).collection("voting_events").get();
+        return s.docs.map(d => Object.assign({ _id: d.id }, d.data())).filter(v => v.isActive === activa);
+      };
+      const V = (await votacionesDe(true))[0] || {};
+      c("🔴 votación · queda abierta, con el voto extra y la semana en que se resuelve",
+        !!V.title && V.isActive === true && Number(V.costPerVote) > 0 && Number(V.maxPaidVotesPerPerson) > 0 && Number(V.stargateResuelve) > 0,
+        JSON.stringify({ c: V.costPerVote, m: V.maxPaidVotesPerPerson, r: V.stargateResuelve }));
+      await rita.foto(FOTOS + "/40-aula.png");
+
+      // 2 · Vera vota desde su Nave
+      const vera = await nueva("Vera vota");
+      await vera.ir("entrar.html"); await vera.entrarComo(VERA[0], VERA[1]); await sinBienvenidas(vera);
+      await vera.ir("recluta.html?per=" + P);
+      const hayVoto = await vera.hasta("!!document.querySelector('.voto-caja [data-voto]')", 35);
+      c("votación · en la Nave sale la votación, con sus opciones", hayVoto,
+        (await vera.js("(document.querySelector('.voto-caja')||{}).textContent||''")).slice(0, 90));
+      c("🔴 votación · y NO enseña los resultados mientras está abierta",
+        !/\b[0-9]+\s*votos?\b/.test(await vera.js("(document.querySelector('.voto-caja')||{}).textContent||''")));
+      await vera.js("(function(){ var b=[].slice.call(document.querySelectorAll('.voto-caja [data-voto]'))[1]; b.click(); return 1; })()");
+      await vera.hasta("/Voto contado/.test((document.getElementById('nave-aviso')||{}).textContent||'')", 25);
+      await dormir(1500);
+      const pap = await fs.collection("projects").doc(P).collection("voting_events").doc(V._id).collection("votes").doc(fV0._id).get();
+      const papeleta = pap.exists ? pap.data() : null;
+      c("🔴 votación · el voto lo cuenta el servidor en su papeleta", !!papeleta && Object.keys(papeleta.byOption || {}).length === 1, JSON.stringify(papeleta));
+      const fV1 = await fichaDe(VERA[0], P);
+      c("   y el primero es gratis: no le cuesta créditos", Number(fV1.coins) === 100, String(fV1.coins));
+
+      // 3 · el voto extra, que se paga
+      await vera.ir("recluta.html?per=" + P + "&otra=1");
+      await vera.hasta("!!document.querySelector('.voto-caja .voto-extra')", 30);
+      c("votación · con el voto ya usado, se ofrece el VOTO EXTRA por créditos",
+        /Voto extra/.test(await vera.js("(document.querySelector('.voto-caja')||{}).textContent||''")));
+      await vera.js("(function(){ var b=[].slice.call(document.querySelectorAll('.voto-caja [data-voto]'))[1]; b.click(); return 1; })()");
+      await vera.hasta("/Voto extra contado/.test((document.getElementById('nave-aviso')||{}).textContent||'')", 25);
+      await dormir(1500);
+      const fV2 = await fichaDe(VERA[0], P);
+      c("🔴 votación · el voto extra se cobra en el servidor, al precio de la votación", Number(fV2.coins) === 100 - Number(V.costPerVote),
+        fV2.coins + " (antes 100, extra " + V.costPerVote + ")");
+      const trampa = await vera.js(`(async function(){ try { var M=window.SG.MOTOR;
+        await M.setDoc(M.doc(M.db,'projects','${P}','voting_events','mia'), { title:'La mía', options:[], isActive:true }); return 'escrito'; }
+        catch(e){ return String(e.code||e.message); } })()`);
+      c("🔴 votación · un recluta no puede crear ni tocar una votación desde la consola", /permission/i.test(trampa), trampa);
+
+      // 4 · Rita la cierra y la sesión la proyecta
+      await rita.ir("aula.html?per=" + P); await rita.hasta("!!document.querySelector('.au-tabs')", 25);
+      await rita.js("document.querySelector('.au-tabs [data-au=\"voto\"]').click(); 1");
+      await rita.hasta("!!document.querySelector('#au-vt-cerrar')", 25);
+      c("votación · el docente ve el recuento en vivo (él sí)",
+        /Genially|Canva|Kahoot/.test(await rita.js("(document.querySelector('.au-vt-viva')||{}).textContent||''")));
+      await rita.js("document.querySelector('#au-vt-cerrar').click(); 1");
+      await rita.hasta("!!document.querySelector('#au-vt-crear')", 25);
+      const cerrada = (await votacionesDe(false))[0];
+      c("🔴 votación · al cerrarla deja de estar abierta y queda el resultado", !!cerrada && cerrada.isActive === false, JSON.stringify((cerrada || {}).title));
+      await rita.ir("sesion.html?per=" + P + "&sem=" + (Number(V.stargateResuelve) || 11));
+      await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);
+      const enSesion = await rita.js("!!document.querySelector('.barra-pasos .p[title=\"La votación\"]')");
+      c("🔴 votación · y la sesión de la semana siguiente la proyecta con su ganadora", enSesion);
+      if (enSesion) {
+        await rita.js("document.querySelector('.barra-pasos .p[title=\"La votación\"]').click(); 1"); await dormir(1200);
+        c("   con las barras y el 🏆 en la más votada", await rita.js("!!document.querySelector('.dia.votacion .vt-lista li.gana')"));
+        await rita.foto(FOTOS + "/40-sesion.png");
+      }
+      c("votación · sin errores en las páginas", ![rita, vera].some(p => p.errores.filter(e => !/Failed to load resource/.test(e)).length),
+        [rita, vera].map(p => p.errores.filter(e => !/Failed to load resource/.test(e))[0]).filter(Boolean).join(" | "));
+      for (const p of [rita, vera]) await p.cerrar();
+    }
+
+    // ============================================================ 41 · EL DIPLOMA DE LA TRIPULACIÓN
+    /**
+     * Norberto (16-sep): «al finalizar la gamificación, un diploma con el alias del jugador, su nombre real, insignias
+     * completadas, porcentajes… un mensaje final del comandante y NEBULA. Puede ser el broche de oro». Decidió que se
+     * descargue desde su Nave, con nombre real y la firma de su Capitán.
+     *
+     * Aquí se comprueba lo que de verdad importa: que el diploma se dibuja con SUS datos, que lo que se ve es lo que se
+     * descarga (el mismo lienzo), que el nombre real sale de su ficha privada… y que en la Nave no aparece hasta que el
+     * viaje se acaba (el grupo del laboratorio va por la semana 10: no debe verse).
+     */
+    if (hacer(41)) {
+      const P = "lab-clase";
+      const DIP = ["dina@lab.test", "Dina Prueba", "Dina Diploma", 0];
+      for (let i = 0; i < 2 && !(await fichaDe(DIP[0], P)); i++) { const a = await nueva("Alta Dina"); await alistar(a, DIP[0], DIP[1], DIP[2], DIP[3]); await a.cerrar(); }
+      const dina = await nueva("Dina y su diploma");
+      await dina.ir("entrar.html"); await dina.entrarComo(DIP[0], DIP[1]); await sinBienvenidas(dina);
+      await dina.ir("recluta.html?per=" + P); await dina.hasta("!!document.querySelector('.nb-t')", 30);
+      c("🔴 diploma · en mitad del curso la Nave NO lo ofrece (es el cierre)", !(await dina.js("!!document.querySelector('.dip-caja')")));
+      await dina.ir("diploma.html?per=" + P);
+      const hay = await dina.hasta("!!document.querySelector('.dp-canvas')", 40);
+      c("diploma · se dibuja al entrar con su cuenta", hay);
+      if (hay) {
+        const info = JSON.parse(await dina.js(`(function(){ var c=document.querySelector('.dp-canvas');
+          var d=c.toDataURL('image/png');
+          return JSON.stringify({ w:c.width, h:c.height, peso:d.length, alt:c.getAttribute('aria-label')||'',
+            titulo:(document.querySelector('.dp-cab h1')||{}).textContent||'' }); })()`));
+        c("🔴 diploma · es un lienzo a tamaño de imprimir, y ESE es el que se descarga", info.w === 2000 && info.h === 1414 && info.peso > 100000,
+          JSON.stringify({ w: info.w, h: info.h, kb: Math.round(info.peso / 1024) }));
+        c("diploma · lleva su alias y su rango (también para un lector de pantalla)", /Dina Diploma/.test(info.alt) && /Dina Diploma/.test(info.titulo),
+          info.alt.slice(0, 80));
+        c("diploma · y los dos botones: descargar e imprimir", await dina.js("!!document.querySelector('#dp-png') && !!document.querySelector('#dp-print')"));
+        await dina.foto(FOTOS + "/41-diploma.png");
+      }
+      c("diploma · sin errores en la página", !dina.errores.filter(e => !/Failed to load resource/.test(e)).length,
+        (dina.errores.filter(e => !/Failed to load resource/.test(e))[0] || ""));
+      await dina.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

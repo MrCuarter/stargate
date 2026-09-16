@@ -17,6 +17,8 @@
   if (!app) return;
   var U = new URLSearchParams(location.search);
   var PER = (U.get('per') || '').trim(), MODO_URL = (U.get('modo') || '').trim();
+  // 16-sep · el docente puede estar alistado en su propio grupo: el modo ensayo se pide a propósito
+  var ENSAYO = U.get('ensayo') === '1';
   if (U.get('embed') === '1') document.body.classList.add('embed');
 
   var CFG = window.SG_BATALLA || {};
@@ -129,6 +131,10 @@
           : gan ? 'Le ganaste el ' + esc(fechaCorta(gan.f)) + '. El simulador es tuyo: entrena cuando quieras.'
                 : 'El reto A6 de la tripulación.') + '</p></div></header>';
     var cuerpo = '';
+    // un docente alistado en su propio grupo juega como recluta; para enseñarlo en clase, el ensayo
+    if (EST.puedeEnsayar && !EST.docente)
+      cuerpo += '<p class="bt-ganado">👩‍🏫 <b>Eres docente de este grupo.</b> Aquí juegas como recluta, con tu ficha. '
+        + '<a class="btn min" href="batalla.html?per=' + esc(PER) + '&ensayo=1">Enseñarlo en clase (modo ensayo)</a></p>';
     if ((EST.modos || []).indexOf('reto') >= 0 && !gan) cuerpo += tarjetaReto();
     else if (gan && !EST.docente) cuerpo += '<p class="bt-ganado">🏅 <b>Insignia de Joran conseguida.</b> '
       + '<button class="btn min" data-empezar="reto">Volver a pelear con él</button></p>';
@@ -453,7 +459,7 @@
 
   function empezar(modo) {
     cargando(modo === 'reto' ? 'Encendiendo el simulador…' : 'Cargando el entrenamiento…');
-    M.batalla('empezar', { projectId: PER, modo: modo, nivel: NIVEL }).then(function (r) {
+    M.batalla('empezar', { projectId: PER, modo: modo, nivel: NIVEL, ensayo: ENSAYO }).then(function (r) {
       B = r.batalla; pintarArena(); refrescarHud(); pintarPregunta(); pintarAcciones(); programarReloj();
       dice('Ahí está. Responde rápido: cada ' + Math.round((B.cadencia || 25000) / 1000) + ' segundos te pega.');
     }).catch(function (e) { fallo(e && e.message ? e.message : e, true); });
@@ -519,7 +525,7 @@
   // ──────────────────────────────────────────────────────────── arranque
   function cargarEstado() {
     cargando('Buscando tu ficha…');
-    M.batalla('estado', { projectId: PER }).then(function (r) {
+    M.batalla('estado', { projectId: PER, ensayo: ENSAYO }).then(function (r) {
       EST = r;
       var luego = function () {
         if (EST.viva) { B = EST.viva; pintarArena(); refrescarHud(); pintarPregunta(); pintarAcciones(); programarReloj();

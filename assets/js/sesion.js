@@ -430,6 +430,50 @@
     if(!M||!M.reflexionesDe||!per) return Promise.resolve();
     return M.reflexionesDe(per).then(function(l){ REFLEX={per:per, lista:l||[]}; }, function(){ REFLEX={per:per, lista:[]}; });
   }
+  /**
+   * 16-sep · LAS VOTACIONES DEL AULA, para proyectarlas. La abierta se enseña para que voten desde su Nave ahí mismo
+   * (sin resultados: verlos antes de tiempo arrastra el voto), y la que se resuelve esta semana, con su ganadora.
+   */
+  var VOTOS=null;
+  function precargarVotaciones(){
+    var M=window.SG&&window.SG.MOTOR, per=st.per;
+    if(!M||!M.votaciones||!per) return Promise.resolve();
+    return M.votaciones(per).then(function(l){ VOTOS={per:per, lista:l||[]}; }, function(){ VOTOS={per:per, lista:[]}; });
+  }
+  function votosDeOpcion(v,o){
+    var pag=Number(v.costPerVote||0)?Math.round(Number(o.totalCoinsInvested||0)/Number(v.costPerVote)):0;
+    return Number(o.totalFreeVotes||0)+pag;
+  }
+  function diaVotacion(s){
+    if(!VOTOS||VOTOS.per!==st.per||!VOTOS.lista.length) return null;
+    var mias=VOTOS.lista.filter(function(v){ return !v.eligibleFactionId || !st.miNombre || nombreDeFaccion(v.eligibleFactionId)===st.miNombre; });
+    var abierta=mias.filter(function(v){ return v.isActive; })[0]||null;
+    var resuelta=mias.filter(function(v){ return !v.isActive && (!v.stargateResuelve || Number(v.stargateResuelve)<=Number(s.sem)); })[0]||null;
+    if(!abierta&&!resuelta) return null;
+    var pintaResuelta=function(v){
+      var total=(v.options||[]).reduce(function(n,o){ return n+votosDeOpcion(v,o); },0);
+      var ord=(v.options||[]).slice().sort(function(a,b){ return votosDeOpcion(v,b)-votosDeOpcion(v,a); });
+      return '<div class="vt-res"><h3>'+esc(v.title)+'</h3><ol class="vt-lista">'+ord.map(function(o,i){
+        var n=votosDeOpcion(v,o), pct=total?Math.round(n*100/total):0;
+        return '<li style="--i:'+i+'"'+(i===0?' class="gana"':'')+'><span class="vt-t">'+(i===0?'🏆 ':'')+esc(o.title)+'</span>'
+          +'<span class="vt-b"><i style="width:'+pct+'%"></i></span><span class="vt-n">'+n+'</span></li>'; }).join('')
+        +'</ol><p class="ses-sub">'+total+(total===1?' voto':' votos')+' de la tripulación</p></div>';
+    };
+    return {k:'votacion', rot:'La votación', html:
+      '<div class="dia votacion"><div class="kicker">🗳️ La voz de la tripulación</div>'
+      +(resuelta?'<h2>Habéis decidido</h2>'+pintaResuelta(resuelta)
+                :'<h2>'+esc(abierta.title)+'</h2>')
+      +(abierta?'<div class="vt-abierta"><div class="eyebrow amber">'+(resuelta?'Y ahora, la siguiente':'Votad desde vuestra Nave')+'</div>'
+         +(resuelta?'<h3>'+esc(abierta.title)+'</h3>':'')
+         +'<ul class="vt-ops">'+(abierta.options||[]).map(function(o){ return '<li>'+esc(o.title)+'</li>'; }).join('')+'</ul>'
+         +'<p class="ses-sub">Entrad en vuestra Nave y votad: se resuelve'+(abierta.stargateResuelve?' en la semana '+abierta.stargateResuelve:' la semana que viene')
+         +(Number(abierta.costPerVote||0)?'. Y quien lo tenga claro puede comprar un voto extra por '+abierta.costPerVote+' ◈':'')+'.</p></div>':'')
+      +'</div>'};
+  }
+  function nombreDeFaccion(id){
+    var e=(((st.d||{}).escuadrones)||[]).filter(function(x){ return x.id===id; })[0];
+    return e?String(e.comandante||''):'';
+  }
   function ocultasRF(){ try{ return JSON.parse(localStorage.getItem('sgRefOcultas_'+st.per)||'{}')||{}; }catch(e){ return {}; } }
   function hashRF(t){ var h=0; t=String(t||''); for(var i=0;i<t.length;i++){ h=(h*31+t.charCodeAt(i))|0; } return h; }
   function diasReflexion(s){
@@ -758,7 +802,7 @@
     if(st.per) d.push(diaLlamada());
     var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
     deTipo('inicio').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 Para empezar')); });
-    [diaAnteriores(s)].concat(diasReflexion(s), [diaMovido(), diaSemanal(), diaTop(), diaColeccion(s), diaSimulador(s), diaEscuadrones(), diaTicket(), diaOferta()])
+    [diaAnteriores(s)].concat(diasReflexion(s), [diaMovido(), diaSemanal(), diaTop(), diaColeccion(s), diaSimulador(s), diaVotacion(s), diaEscuadrones(), diaTicket(), diaOferta()])
       .forEach(function(x){ if(x) d.push(x); });
     d=d.concat(diapositivasNuevas(s));
     deTipo('mision').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 La misión')); });
@@ -949,7 +993,7 @@
     // desde el principio y no mueve de sitio la diapositiva que se está viendo
     var hecho=false, seguir=function(){ if(hecho) return; hecho=true; pintar(); };
     setTimeout(seguir, 2500);
-    precargarReflexiones().then(seguir, seguir);
+    Promise.all([precargarReflexiones(), precargarVotaciones()]).then(seguir, seguir);
   }
 
   /**

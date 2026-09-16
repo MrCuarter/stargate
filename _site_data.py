@@ -838,6 +838,24 @@ BATALLA = {
                 ["lentitud", "📡", "Interferencia", "Retrasa su ataque 12 segundos"]],
 }
 
+# ─────────────────── LAS VOTACIONES DEL AULA (16-sep) ───────────────────
+# Norberto: «las votaciones en vivo deberían vivir también en el mismo sitio que has puesto los cronómetros, es gestión de
+# aula. También cada docente puede publicar una votación para que respondan, la próxima semana se resuelve. Ejemplo:
+# ¿qué herramienta prefieres que aprendamos la próxima semana? GamificaPro tiene algo divertido, compra voto extra:
+# impleméntalo también».
+#
+# 🔴 No hace falta servidor nuevo: el motor ya trae `castVote` (con voto gratis y voto de PAGO, que es el «voto extra») y
+# las reglas ya dejan a cada docente del grupo crear y cerrar sus votaciones. Aquí solo están los números.
+VOTACION = {
+    "min_opciones": 2, "max_opciones": 5,
+    "voto_extra": 15,        # ◈ por cada voto de más (el servidor los cobra al votar)
+    "max_extra": 2,          # cuántos votos de pago como mucho por persona
+    "pregunta_max": 120, "opcion_max": 60,
+    "ejemplos": ["¿Qué herramienta prefieres que veamos la semana que viene?",
+                 "¿Qué reto B enseñamos en clase?",
+                 "¿Con qué planeta empezamos el repaso?"],
+}
+
 # ─────────────────────────── EL GRAN SORTEO (14-sep) ───────────────────────────
 # Norberto: «el sorteo de dos licencias de Genially de año completo, a partir de la semana 6: que los
 # estudiantes puedan comprar participaciones y el profe regalarlas, o que el referente embeba

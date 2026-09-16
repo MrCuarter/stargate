@@ -3918,3 +3918,49 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 .sim-marcas span{background:rgba(13,24,36,.8);border:1px solid #1d3448;border-radius:999px;padding:3px 11px;font-size:13px}
 .sim-marcas b{color:var(--amber,#ffd166)}
 .rs-batalla{margin-top:12px}
+
+/* ── LA VOTACIÓN DEL AULA (16-sep) ────────────────────────────────────────────── */
+.voto-caja{border-color:rgba(255,209,102,.45)}
+.voto-caja h3{margin:2px 0 8px}
+.voto-ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:10px 0}
+.voto-op{padding:11px 14px;border-radius:12px;border:1px solid #22374c;background:rgba(13,24,36,.85);color:#e8f2f8;
+  font:inherit;font-size:15px;text-align:left;cursor:pointer;transition:border-color .12s,transform .12s}
+.voto-op:hover:not(:disabled){border-color:var(--teal,#37e0ec);transform:translateY(-1px)}
+.voto-op.mio{border-color:var(--amber,#ffd166);background:rgba(255,209,102,.14)}
+.voto-op:disabled{opacity:.5;cursor:default}
+.voto-op em{font-style:normal;color:var(--amber,#ffd166)}
+.voto-extra{color:var(--amber,#ffd166)}
+.voto-pie{margin:6px 0 0}
+/* el aula */
+.au-vt-lista{list-style:none;margin:10px 0;padding:0;display:grid;gap:8px}
+.au-vt-op{display:grid;gap:4px}
+.au-vt-t{display:flex;justify-content:space-between;gap:10px;font-size:15px}
+.au-vt-t span{font-variant-numeric:tabular-nums;color:var(--tenue,#9fb2c4)}
+.au-vt-t em{font-style:normal;color:var(--amber,#ffd166);font-size:12.5px}
+.au-vt-barra{height:8px;border-radius:6px;background:#12202e;overflow:hidden}
+.au-vt-barra i{display:block;height:100%;background:linear-gradient(90deg,#37e0ec,#7ef0c8);transition:width .4s ease}
+.au-vt-botones{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.au-vt-ajustes{display:grid;gap:6px;margin:10px 0}
+.au-check{display:flex;gap:8px;align-items:center;font-size:14.5px}
+.au-et{display:block;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tenue,#9fb2c4);margin:10px 0 4px}
+.au-inp{width:100%;padding:9px 12px;border-radius:10px;border:1px solid #22374c;background:rgba(8,14,22,.6);color:inherit;font:inherit;margin-bottom:6px}
+.au-vt-vieja{margin:0 0 10px}
+
+/* la votación, proyectada */
+.dia.votacion .vt-res{margin-top:10px}
+.vt-lista{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:10px}
+.vt-lista li{display:grid;grid-template-columns:1fr 2fr auto;gap:12px;align-items:center;font-size:clamp(16px,2.2vw,22px)}
+.vt-lista li.gana{font-weight:700;color:var(--amber,#ffd166)}
+.vt-b{display:block;height:12px;border-radius:8px;background:rgba(255,255,255,.08);overflow:hidden}
+.vt-b i{display:block;height:100%;background:linear-gradient(90deg,#37e0ec,#7ef0c8)}
+.vt-lista li.gana .vt-b i{background:linear-gradient(90deg,#ffd166,#ffe9b0)}
+.vt-n{font-variant-numeric:tabular-nums}
+.vt-abierta{margin-top:18px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px}
+.vt-ops{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px}
+.vt-ops li{background:rgba(13,24,36,.7);border:1px solid #1d3448;border-radius:999px;padding:6px 16px;font-size:clamp(14px,1.8vw,19px)}
+
+.gp-csv{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:14px 0 0}
+.gp-csv .small{flex:1 1 260px}
+
+.dip-caja{border-color:rgba(255,209,102,.45)}
+.dip-caja h3{margin:2px 0 8px}

@@ -88,7 +88,7 @@ c(/data-rfquitarcom=/.test(K) && /data-rfquitar=/.test(K) && /MOTOR\.borrarRefle
 c(/function diasReflexion\(s\)/.test(S) && /semanas\(\)\[s\.sem-3\]/.test(S), "🔴 la sesión enseña las reflexiones de los retos de hace DOS semanas");
 c(/mios\[x\.fichaId\][\s\S]{0,120}!mios\[x\.fichaId\]/.test(S) && /\.slice\(0,4\)/.test(S), "   hasta cuatro, primero las de la gente de quien da la clase");
 c(/data-rfocultar=/.test(S) && /sgRefOcultas_/.test(S), "   con «Ocultar» por si alguna no se proyecta");
-c(/precargarReflexiones\(\)\.then\(seguir, seguir\)/.test(S), "   y se leen antes de pintar: la diapositiva no se mueve de sitio");
+c(/precargarReflexiones\(\)/.test(S) && /\.then\(seguir, seguir\)/.test(S), "   y se leen antes de pintar (con las votaciones): la diapositiva no se mueve de sitio");
 c(/hashRF\(x\.id\+dia\)/.test(S), "   el orden cambia cada día pero no al pasar de diapositiva");
 
 // 9 · el diseño

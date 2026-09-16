@@ -1052,10 +1052,78 @@
       //   3 · los planetas, embebido       (a dónde ir a por el material)
       //   4 · el duelo                     (una frase que empuja)
       // Lo que es colección se ha ido entero a «Mi botín».
+      +diplomaCaja()
+      +votacionCaja()
       +retosDeLaSemana()
       +simuladorCaja()
       +panelEmbebido()
       +duelo();
+  }
+
+  // ================= EL DIPLOMA (16-sep) =================
+  // Norberto: «al finalizar la gamificación… un diploma con el alias del jugador, su nombre real, insignias completadas,
+  // porcentajes… un mensaje final del comandante y NEBULA. Puede ser el broche de oro». Sale cuando el viaje se acaba
+  // (la semana de canje): antes no significaría nada. Se dibuja y se descarga en `diploma.html`.
+  function diplomaCaja(){
+    if(!motorNuevo()||!st.yo||st.estado!=='fin') return '';
+    return '<div class="card dip-caja">'
+      +'<div class="eyebrow amber">Fin del viaje</div>'
+      +'<h3>📜 Tu diploma de la Tripulación Cero</h3>'
+      +'<p class="small">Tu alias y tu nombre, tus insignias, tus cartas, tus héroes y todo lo que has recorrido, '
+      +'firmado por tu Capitán. Se descarga como imagen y se puede imprimir.</p>'
+      +'<p><a class="btn epico" href="diploma.html?per='+esc(per)+'"><span class="ep-luz"></span>'
+      +'<span class="ep-txt">📜 Ver mi diploma</span></a></p></div>';
+  }
+
+  // ================= LA VOTACIÓN DEL AULA (16-sep) =================
+  // Norberto: «cada docente puede publicar una votación para que respondan, la próxima semana se resuelve… y GamificaPro
+  // tiene algo divertido: comprar voto extra». Aquí se vota; el recuento y el cobro del voto extra los hace el servidor
+  // (`castVote`). Mientras está abierta NO se enseñan los resultados: si se ven, la gente vota a lo que va ganando.
+  var VOTO = { v: null, mia: {}, cargada: false, pidiendo: false };
+  var CFGV = window.SG_VOTACION || { voto_extra: 15, max_extra: 2 };
+  function miFaccion(){
+    var d=st.d||{}, yo=st.yo||{};
+    var e=((d.escuadrones)||[]).filter(function(x){ return String(x.comandante||'')===String(yo.profe||''); })[0];
+    return e ? e.id : '';
+  }
+  function cargarVotacion(){
+    if(VOTO.cargada || VOTO.pidiendo || !motorNuevo() || SIMULACRO || enDemo() || !st.yo) return;
+    var M=window.SG&&window.SG.MOTOR; if(!M||!M.votaciones) return;
+    VOTO.pidiendo=true;
+    M.votaciones(per).then(function(l){
+      var mi=miFaccion();
+      VOTO.v=(l||[]).filter(function(v){ return v.isActive && (!v.eligibleFactionId || v.eligibleFactionId===mi); })[0]||null;
+      VOTO.cargada=true; VOTO.pidiendo=false;
+      if(!VOTO.v) return render();
+      return M.miPapeleta(per, VOTO.v.id, st.yo.ficha).then(function(p){ VOTO.mia=p||{}; render(); });
+    }).catch(function(){ VOTO.cargada=true; VOTO.pidiendo=false; });
+  }
+  function votacionCaja(){
+    if(!motorNuevo()||!st.yo) return '';
+    if(!VOTO.cargada){ setTimeout(cargarVotacion, 300); return ''; }
+    var v=VOTO.v; if(!v) return '';
+    var dados=Object.keys(VOTO.mia).reduce(function(n,k){ return n+Number(VOTO.mia[k]||0); },0);
+    var gratis=Number(v.votesPerPerson||1), extra=Number(v.costPerVote||0), tope=Number(v.maxPaidVotesPerPerson||0);
+    var pagados=Math.max(0, dados-gratis), puedePagar=extra>0 && pagados<tope;
+    var creditos=Number((st.yo.creditos!=null?st.yo.creditos:st.yo.xp_disponibles)||0);
+    var mio=Object.keys(VOTO.mia).filter(function(k){ return VOTO.mia[k]>0; });
+    return '<div class="card voto-caja">'
+      +'<div class="eyebrow amber">La voz de la tripulación'+(v.stargateProfe?' · '+esc(v.stargateProfe):'')+'</div>'
+      +'<h3>🗳️ '+esc(v.title)+'</h3>'
+      +(dados
+         ? '<p class="small">Ya has votado'+(mio.length?': <b>'+esc(((v.options||[]).filter(function(o){return o.id===mio[0];})[0]||{}).title||'')+'</b>':'')
+           +'. '+(v.stargateResuelve?'Se resuelve en la semana '+v.stargateResuelve+'.':'Se resuelve la semana que viene.')+'</p>'
+         : '<p class="small muted">Vota una opción. '+(v.stargateResuelve?'Se resuelve en la semana '+v.stargateResuelve+'.':'Se resuelve la semana que viene.')+'</p>')
+      +'<div class="voto-ops">'+(v.options||[]).map(function(o){
+          var mia=Number(VOTO.mia[o.id]||0);
+          return '<button type="button" class="voto-op'+(mia?' mio':'')+'" data-voto="'+esc(o.id)+'"'
+            +((dados>=gratis && !puedePagar)?' disabled':'')+'>'+esc(o.title)+(mia>1?' <em>×'+mia+'</em>':'')+'</button>'; }).join('')
+      +'</div>'
+      +(dados>=gratis && puedePagar
+         ? '<p class="small voto-extra">⚡ <b>Voto extra</b>: puedes votar otra vez por <b>'+extra+' ◈</b> ('
+           +(tope-pagados)+' más como mucho'+(creditos<extra?'; te faltan créditos':'')+'). Pulsa la opción que quieras.</p>'
+         : '')
+      +'<p class="small muted voto-pie">Los resultados se enseñan en clase cuando se resuelva.</p></div>';
   }
 
   // ================= EL SIMULADOR DE JORAN (16-sep) =================
@@ -3273,6 +3341,28 @@
     // —el de Reclutamiento, al alistarse— y contarlos le quitaba un hueco el primer día
     return Object.keys(f).filter(function(k){ return /^[ABXS]\d/.test(k) && new Date(f[k])>=hoy; }).length;
   }
+  document.addEventListener('click', function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('[data-voto]'); if(!b||b.disabled) return;
+    var v=VOTO.v; if(!v) return;
+    var dados=Object.keys(VOTO.mia).reduce(function(n,k){ return n+Number(VOTO.mia[k]||0); },0);
+    var tipo=dados>=Number(v.votesPerPerson||1)?'paid':'free';
+    var M=window.SG&&window.SG.MOTOR; if(!M) return;
+    b.disabled=true;
+    M.votar(per, v.id, b.getAttribute('data-voto'), tipo).then(function(){
+      aviso(tipo==='paid'?'⚡ <b>Voto extra contado.</b> Gracias por mojarte.':'🗳️ <b>Voto contado.</b> Se resuelve en clase.');
+      VOTO.cargada=false; VOTO.mia={};
+      quien(null,function(d){ if(d&&d.yo) st.yo=d.yo; cargarVotacion(); });
+    }).catch(function(e){
+      b.disabled=false;
+      var m=String((e&&e.message)||e);
+      aviso(/INSUFFICIENT_COINS/.test(m)?'No te llegan los créditos para el voto extra.'
+        :/NO_FREE_VOTES_LEFT/.test(m)?'Ya has usado tu voto. Puedes comprar uno extra si tu docente lo permite.'
+        :/MAX_PAID_VOTES/.test(m)?'Ya has comprado todos los votos extra que se pueden.'
+        :/FACTION_NOT_ELIGIBLE/.test(m)?'Esta votación es de otro escuadrón.'
+        :'No he podido contar tu voto: '+esc(m), true);
+    });
+  });
+
   function marcarReto(id, boton, alEmpezar){
     var tope=Number(window.SG_TOPE_DIA||0);
     if(tope && registrosDeHoy()>=tope){
