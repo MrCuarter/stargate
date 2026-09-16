@@ -886,9 +886,17 @@
     var cuando=ya&&r.retos_fecha&&r.retos_fecha[t[0]]?' · '+fecha(r.retos_fecha[t[0]]):'';
     var gancho=(window.SG_GANCHO_RETOS||{})[t[0]]||'';
     var ej=(window.SG_EJEMPLOS||{})[t[0]]||null, ejUrl=ej&&ej.enlace?(/^https?:\/\//i.test(ej.enlace)?ej.enlace:'https://'+ej.enlace):'';
-    return '<details class="reto-sem'+(ya?' hecho':'')+'">'
+    /**
+     * 🔴 16-sep · LOS RELÁMPAGO (L*) SE VEN DISTINTOS, y lo importante no es el rayo: es la frase
+     * «se hace en clase». Norberto: «me gusta mucho que los relámpago se animen a hacer en clase, así
+     * los que vienen se lo llevan hecho; hagamos hincapié en esto». El que no pueda venir lo tiene
+     * abierto igual — no se castiga a quien esa noche trabajaba—, pero quien viene sale con él hecho.
+     */
+    var rel = t[0].charAt(0) === 'L';
+    return '<details class="reto-sem'+(ya?' hecho':'')+(rel?' relampago':'')+'">'
       +'<summary><div class="rs-cab"><span class="chip '+(ya?'ok':'pend')+'">'
         +(ya?'✓ Registrado'+cuando:'Pendiente')+'</span>'
+        +(rel?'<span class="chip rel">⚡ En clase · 10-15 min</span>':'')
         +cuantosLoLlevan(t[0])
         +'<span class="small muted">'+esc(t[0])+'</span></div>'
       +'<div class="rs-cols"><div class="rs-izq">'

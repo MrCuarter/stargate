@@ -37,49 +37,77 @@ var PUESTA_EN_ESCENA = [
 ];
 
 // ================= CATÁLOGO =================
-// [id, etiqueta de la casilla, insignias, xp, tema]
+// [id, etiqueta de la casilla, insignias, xp, tema, semana?]
+// `semana` solo se escribe cuando el reto NO se abre con su tema: es el caso de los relámpago (L*),
+// que caen en la semana de continuación —la que no lanza reto nuevo— para no competir con una entrega.
 var RETOS_REGULAR = [
   // v3.39 · el clásico que faltaba (30-ago): presentarse a la tripulación. Da la insignia de NEBULA,
   // que hasta hoy se regalaba al alistarse — ahora se GANA compartiendo tu cara con la clase.
   ["A0","Reto «Preséntate a tu tripulación» (vídeo de 60 s)",["E1_nebula"],100,1],
   ["A1","Reto A «El boceto sin quemar» (recupera a Bran)",["P1_bran"],100,1],
-  ["B1","Reto B «La chispa» (imagen con IA)",["R1_la-chispa"],250,1],
+  // 16-sep · B1 deja de ser la imagen con IA y pasa a ser la BITÁCORA. El ePortfolio vale el 20 % de
+  // cada Actividad y la primera se entrega en la semana 4: estrenarlo en la 9 (con B5) llegaba tarde.
+  // La imagen con IA no se pierde: baja a relámpago (L1) y la Actividad 1 la sigue recogiendo entera.
+  ["B1","Reto B «La Bitácora en marcha» (tu ePortfolio)",["R0_bitacora-en-marcha"],250,1],
+  // 🔴 LOS RELÁMPAGO (L*): diez o quince minutos, EN CLASE, con el cronómetro del aula proyectado.
+  // Cada uno entrena un gesto que el examen da por sabido y que ningún otro reto practica. Quien
+  // viene a clase sale con el reto hecho; quien esa noche trabajaba lo tiene abierto 48 horas.
+  ["L1","Reto ⚡ «La chispa y la marca» (imagen con IA + logo)",["R1_la-chispa"],60,1,2],
   ["X1","Actividad 1 entregada (imagen con IA)",["H2_primera-forja","E2_capitan"],500,1],
   ["A2","Reto A «Un mensaje para quien faltó» (recupera a Tomás)",["P2_tomas"],100,2],
   ["B2","Reto B «El eco que enseña» (videotutorial + videoquiz)",["R2_el-eco-que-ensena"],250,2],
+  ["L2","Reto ⚡ «Módulo 1 y módulo 2» (antes y durante la clase)",[],60,2,4],
   ["A3","Reto A «Dos senderos» (recupera a Sylla)",["P3_sylla"],100,3],
   ["B3","Reto B «La matriz» (matriz 8×6)",["R3_la-matriz"],250,3],
+  ["L3","Reto ⚡ «Cinco líneas que explican» (itinerario y paisaje)",[],60,3,6],
   ["X2","Actividad 2 entregada (paisaje de aprendizaje)",["H3_cartografo"],500,3],
   ["A4","Reto A «Abre el canal» (recupera a Amara)",["P4_amara"],100,4],
-  ["B4","Reto B «El entorno de aula» (aula virtual)",["R4_entorno-de-aula"],250,4],
+  ["B4","Reto B «El entorno de aula» (aula virtual + tres recursos que ya existen)",["R4_entorno-de-aula"],250,4],
+  ["L4","Reto ⚡ «Enlace en incógnito» (que se vea sin tu cuenta)",[],60,4,8],
   ["A5","Reto A «Mide con método» (recupera a Vera)",["P5_vera"],100,5],
   ["B5","Reto B «La Bitácora medida» (web de recursos + rúbrica)",["R5_bitacora-medida"],250,5],
+  ["L5","Reto ⚡ «Tres preguntas» (autoevaluación)",[],60,5,9],
   ["A6","Reto A «El Simulador de Joran» (recupera a Joran)",["P6_joran"],100,6],
   ["B6","Reto B «El juego» (juego digital)",["R6_el-juego"],250,6],
+  ["L6","Reto ⚡ «Las diez líneas» (justifica un recurso)",[],60,6,11],
   ["A7","Reto A «Un porqué» (recupera a Mara)",["P7_mara"],100,7],
   ["B7","Reto B «La microgamificación»",["R7_microgamificacion"],250,7],
   // v3.41 · el huevo de Pascua: un enlace oculto en la presentación de Vínculo lleva a un
   // enigma; la palabra secreta del final es la evidencia (el formulario la valida solo).
   ["S7","Reto secreto «El Escape UNI»",["E3_vaeon"],150,7],
+  ["L7","Reto ⚡ «El marcador» (tabla de clasificación)",[],60,7,12],
   ["A8","Reto A «La capa posible» (recupera a Noa)",["P8_noa"],100,8],
-  ["B8","Reto B «El último umbral» (RA/RV + Bitácora publicada)",["R8_ultimo-umbral"],250,8]
+  ["B8","Reto B «El último umbral» (RA/RV + Bitácora publicada)",["R8_ultimo-umbral"],250,8],
+  ["L8","Reto ⚡ «El QR» (un QR dentro de una lámina)",[],60,8,14],
+  // 16-sep · el simulacro. No lo inventamos nosotros: la clase 20 de la semana 15 ya se llama
+  // «Simulacro del examen» en la programación oficial de la asignatura. Aquí solo se le pone premio.
+  ["XS","Reto «El simulacro del examen» (90 minutos de reloj)",["H7_listo-para-la-batalla"],300,8,15]
 ];
 // PUA: una insignia por tema (el personaje), ganada con la pieza productiva del tema
 var RETOS_PUA = [
   ["A0","Reto «Preséntate a tu tripulación» (vídeo de 60 s)",["E1_nebula"],100,1],
-  ["B1","La chispa: imagen con IA (recupera a Bran)",["P1_bran","R1_la-chispa"],300,1],
+  ["B1","La Bitácora en marcha: tu ePortfolio (recupera a Bran)",["P1_bran","R0_bitacora-en-marcha"],300,1],
+  ["L1","Reto ⚡ «La chispa y la marca» (imagen con IA + logo)",["R1_la-chispa"],60,1,2],
   ["X1","Actividad 1 entregada",["H2_primera-forja","E2_capitan"],500,1],
   ["B2","El eco que enseña: videotutorial (recupera a Tomás)",["P2_tomas","R2_el-eco-que-ensena"],300,2],
+  ["L2","Reto ⚡ «Módulo 1 y módulo 2» (antes y durante la clase)",[],60,2,4],
   ["B3","La matriz 8×6 (recupera a Sylla)",["P3_sylla","R3_la-matriz"],300,3],
+  ["L3","Reto ⚡ «Cinco líneas que explican» (itinerario y paisaje)",[],60,3,6],
   ["X2","Actividad 2 entregada",["H3_cartografo"],500,3],
-  ["B4","El entorno de aula (recupera a Amara)",["P4_amara","R4_entorno-de-aula"],300,4],
+  ["B4","El entorno de aula + tres recursos que ya existen (recupera a Amara)",["P4_amara","R4_entorno-de-aula"],300,4],
+  ["L4","Reto ⚡ «Enlace en incógnito» (que se vea sin tu cuenta)",[],60,4,8],
   ["B5","La Bitácora medida (recupera a Vera)",["P5_vera","R5_bitacora-medida"],300,5],
+  ["L5","Reto ⚡ «Tres preguntas» (autoevaluación)",[],60,5,9],
   ["B6","El juego digital (recupera a Joran)",["P6_joran","R6_el-juego"],300,6],
+  ["L6","Reto ⚡ «Las diez líneas» (justifica un recurso)",[],60,6,11],
   ["B7","La microgamificación (recupera a Mara)",["P7_mara","R7_microgamificacion"],300,7],
   // v3.41 · el huevo de Pascua: un enlace oculto en la presentación de Vínculo lleva a un
   // enigma; la palabra secreta del final es la evidencia (el formulario la valida solo).
   ["S7","Reto secreto «El Escape UNI»",["E3_vaeon"],150,7],
-  ["B8","El último umbral: RA/RV + Bitácora publicada (recupera a Noa)",["P8_noa","R8_ultimo-umbral"],300,8]
+  ["L7","Reto ⚡ «El marcador» (tabla de clasificación)",[],60,7,12],
+  ["B8","El último umbral: RA/RV + Bitácora publicada (recupera a Noa)",["P8_noa","R8_ultimo-umbral"],300,8],
+  ["L8","Reto ⚡ «El QR» (un QR dentro de una lámina)",[],60,8,14],
+  ["XS","Reto «El simulacro del examen» (90 minutos de reloj)",["H7_listo-para-la-batalla"],300,8,15]
 ];
 // BONUS-INICIO · Los genera _build_site.py desde _site_data.py: NO editar a mano.
 var BONUS_PLANETA = {"xp": 150, "creditos": 40};
@@ -94,10 +122,14 @@ var BONUS_PASE = {"creditos": 5, "minutos": 50};
 // 🔴 Los bonus se conceden UNA VEZ y quedan escritos en AJUSTES. No se recalculan: la racha BAJA al
 // fallar una semana, y si el bonus se recalculara, quien llego a 6 y luego fallo perderia creditos
 // que ya se ha gastado. Lo ganado, ganado.
+// 16-sep · el planeta se cierra con los retos OBLIGATORIOS de su tema. Ni el secreto (S*) ni los
+// relámpago (L*) ni el simulacro (XS) cuentan: son voluntarios, y si contaran, faltar a una clase
+// dejaría el planeta abierto para siempre.
+function opcional_(id) { var c = String(id).charAt(0); return c === "S" || c === "L" || id === "XS"; }
 function planetasCompletos_(retos, tipo) {
   var out = [];
   for (var t = 1; t <= 8; t++) {
-    var suyos = retosDe_(tipo).filter(function(r){ return r[4] === t; });
+    var suyos = retosDe_(tipo).filter(function(r){ return r[4] === t && !opcional_(r[0]); });
     if (suyos.length && suyos.every(function(r){ return retos[r[0]]; })) out.push(t);
   }
   return out;
@@ -132,23 +164,32 @@ var AYUDA_RETOS = {
  "A0": "Graba un vídeo de MÁXIMO 60 segundos presentándote al resto de la tripulación y publícalo en la sección 📹 «Preséntate» del padlet de la clase (título = tu alias; primera línea = «Capitán: tu profe»). No hace falta guion de cine — si te da apuro, responde a tres o cuatro de estas: ¿quién eres y a qué te dedicas? ¿desde dónde te conectas? ¿por qué educación? ¿una herramienta que ames y una que sufras? ¿un dato curioso que nadie adivinaría? Grábalo del tirón con el móvil: natural gana a perfecto. Después copia el enlace de TU publicación (los tres puntos ⋮ → «Copiar el enlace a la publicación») y pégalo aquí. Sirve para ponernos cara desde el primer día — y NEBULA te da su insignia: lo que se comparte no se apaga.",
  "A1": "Saca del cajón algo que tengas a medias —o que dejaste a medias— tal como está: un recurso, una unidad, una idea que se quedó ahí. Escríbelo aquí mismo, en la caja del reto: qué es, en qué punto se quedó y qué te frenó para terminarlo. Si puedes, añade el enlace al propio archivo (con permiso de lectura). Tu tripulación leerá lo que escribas —y tú lo suyo—: no se corrige ni se puntúa; el único criterio es sacarlo del cajón y compartirlo sin terminar.",
  "A2": "Graba un clip corto (máx. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no pudo venir a clase. Súbelo donde quieras (YouTube en oculto, Drive con permiso de lectura, el padlet de la clase…) y pega su enlace. Criterio único: que funcione sin ti delante (se entiende solo).",
- "A3": "Crea un artefacto interactivo (un Genially o similar) con una bifurcación: un objetivo de aprendizaje y dos o tres actividades distintas para alcanzarlo, y que cada estudiante elija su sendero al empezar (p. ej. uno que aprende haciendo, otro leyendo, otro escuchando). Pega su enlace. Criterio: que cada sendero sea una actividad de verdad —no la misma con otro nombre— y que todos lleguen a la misma cima.",
+ "A3": "(Este cuesta cerca de una hora: no es una píldora de quince minutos. Si esta semana no tienes ese hueco, vale un boceto a mano de los dos caminos, fotografiado.) Crea un artefacto interactivo (un Genially o similar) con una bifurcación: un objetivo de aprendizaje y dos o tres actividades distintas para alcanzarlo, y que cada estudiante elija su sendero al empezar (p. ej. uno que aprende haciendo, otro leyendo, otro escuchando). Pega su enlace. Criterio: que cada sendero sea una actividad de verdad —no la misma con otro nombre— y que todos lleguen a la misma cima.",
  "A4": "Publica en tus redes (X, LinkedIn, Instagram…) una reflexión breve o un recurso del curso con el hashtag #mutecdstargate, en abierto. Vale un hilo corto, una imagen con dos líneas o el enlace a algo que hayas creado. Y guárdate el truco: una reflexión publicada con ese hashtag es evidencia válida también en otros retos de este viaje. Criterio: a tiempo por encima de perfecto — se publica hoy, se pule mañana.",
  "A5": "Elige un objetivo de aprendizaje que ya trabajes y crea una rúbrica para evaluarlo: 3 o 4 criterios, 3 o 4 niveles de logro y, en cada casilla, una descripción observable (qué hace el alumno, no un adjetivo). Compártela en un documento con permiso de lectura (Google Docs, Sheets, CoRubric…) y pega su enlace. Criterio: que otra persona pudiera usarla sin preguntarte — medir para cuidar, no para etiquetar.",
  "A6": "Joran dejó encendido su simulador de entrenamiento: RUTA AZUL, un rival hecho de luz que pregunta por todo lo que llevas recorrido (temas 1 al 5). Entra desde el botón del reto en tu Nave y gánale: no hay nada que entregar, se registra solo al vencerlo. Cómo se pelea: aciertas y eliges golpear o cubrirte; fallas y no pierdes escudo, pierdes tiempo (y esa pregunta vuelve). El rival ataca cada 25 segundos, así que responde sin dormirte. Llevas un kit de un uso: reparar el escudo, sobrecargar tu golpe e interferir su ataque. Cuando esté al 20 % llega el Remate: sin fallos cae de un golpe; con fallos, vuelven en cadena y hay que redimirlas. Si pierdes, vuelve a intentarlo: cada derrota lo cansa y ataca más despacio. Al ganar te llevas la insignia de Joran y el Simulador se queda en tu Nave para repasar tema a tema, con su ranking.",
  "A7": "Toma una tarea rutinaria de tu aula y crea la insignia que la reconoce: diséñala (con Genially, Canva, una IA o a mano) y pega su enlace. Y aquí mismo, en la caja del reto, escribe su «porqué» en 2–4 líneas: cómo se llama, qué acto significativo reconoce y la narrativa que convierte esa tarea en una causa —no un premio por obedecer, sino memoria de algo que importa.",
  "A8": "Busca un recurso de realidad aumentada o virtual QUE YA EXISTA (una app, una experiencia AR, un modelo 3D, un tour virtual…) y pega su enlace. Después, aquí mismo, en la caja del reto, cuenta en 3–4 líneas cómo lo usarías en una clase concreta: qué vería el alumnado, qué haría y qué añade esa «capa» que no da el libro. Aquí no se construye nada: se elige bien — no toda capa se levanta; algunas ya existen y solo esperan a que alguien las traiga al aula.",
- "B1": "Genera con una IA una imagen con finalidad didáctica (ilustración, organizador gráfico o infografía) para un nivel y tema que elijas. Requisitos mínimos: (1) prompt estructurado siguiendo un modelo tipo CRAFT/RITA (contexto educativo + tipo de imagen + finalidad); (2) al menos una iteración del prompt; (3) selección final con criterio docente justificada en 2–3 líneas; (4) evidencia del proceso (enlace al chat o capturas) y cita de la herramienta. El enlace puede ser un Google Doc con permiso de lectura para todos o una entrada de tu ePortfolio con la imagen, el prompt y tus criterios. Es la tabla técnica de la Actividad 1: guárdala, ya tienes hecho su núcleo.",
+ "B1": "El curso entero termina en un ePortfolio, así que se empieza por él. (1) Crea tu Bitácora en la plataforma que quieras —Google Sites, Genially, Wix, un blog…— o pon a punto la que ya tengas; hay una plantilla oficial en Genially por si quieres atajar. (2) Personalízala: color, tipografía, una imagen tuya. (3) Publica su primera entrada: tu presentación — quién eres, qué y dónde enseñas, y qué esperas de este viaje. (4) Comprueba que el enlace es público (ábrelo en una ventana de incógnito) y pégalo aquí y en tu BIO de la Nave, para que tu tripulación pueda visitarla. No hace falta que esté llena: hace falta que exista y se pueda visitar. Lo demás lo irán llenando los retos, semana a semana, hasta la Actividad 1.",
  "B2": "Crea un videotutorial de calidad (guion + grabación de pantalla + edición) sobre un procedimiento de tu área, y enriquécelo con 2–3 preguntas insertadas (videoquiz) para comprobar comprensión. Piénsalo para aula invertida. Pega su enlace y escribe aquí mismo, en la caja del reto, una reflexión breve: qué objetivo didáctico cubre y qué aprendiste al hacerlo (llévala también a tu Bitácora).",
  "B3": "Construye la matriz de programación de un paisaje de aprendizaje: una tabla de doble entrada que cruza las 8 inteligencias múltiples × 6 niveles de Bloom (48 casillas). Contextualiza una unidad didáctica real (nivel, área, objetivos) y rellena al menos 6 cruces variados en complejidad y en talento, con una actividad en cada uno (objetivo, tarea del alumno, recurso, evaluación, tiempo, tipo: obligatoria/optativa/voluntaria). Es el corazón de planificación de la Actividad 2.",
- "B4": "Monta tu aula virtual (Google Classroom, Moodle, Teams…): crea el aula, publica al menos una tarea o un material para tu alumnado y deja funcionando el canal de feedback y comunicación (tablón, comentarios, anuncios). Comparte un Google Doc con permiso de lectura con al menos 2 capturas de pantalla de tu aula y pega su enlace. Y aquí mismo, en la caja del reto, tu reflexión breve: cómo llega tu contenido al móvil del alumno y cómo mantienes la conversación viva. (La web de recursos es el reto del tema 5: aquí montas el AULA.)",
+ "B4": "Monta tu aula virtual (Google Classroom, Moodle, Teams…): crea el aula, publica al menos una tarea o un material para tu alumnado y deja funcionando el canal de feedback y comunicación (tablón, comentarios, anuncios). Y ahora la otra mitad del oficio, la que casi nadie practica: publica en esa aula tres recursos que YA EXISTAN —un juego, un vídeo y una actividad interactiva que haya hecho otra persona—, cada uno con dos líneas de por qué ese y no otro y con su fuente o licencia citada. Crear está bien; encontrar rápido lo que ya está hecho, y saber si vale, es la mitad del trabajo de un docente… y el día del examen, media hora ganada. Comparte un Google Doc con permiso de lectura con al menos 2 capturas de pantalla de tu aula y pega su enlace. Y aquí mismo, en la caja del reto, tu reflexión breve: cómo llega tu contenido al móvil del alumno y cómo mantienes la conversación viva. (La web de recursos es el reto del tema 5: aquí montas el AULA.)",
  "B5": "Monta el centro de recursos de tu alumnado: una web (Google Sites o un Genially) con al menos 3 recursos organizados con criterio (por unidad o por tipo), navegación clara y una página de cómo se evalúa, con tu rúbrica del reto anterior a la vista. Es el ESCAPARATE, distinto del aula virtual del tema 4: aquí el estudiante encuentra todo sin tener que pedirlo. Pega su enlace y enlázala desde tu ePortfolio (una entrada con evidencia → contexto → reflexión). Esta semana además cierras la Actividad 1 dentro de la Bitácora.",
  "B6": "Adapta un juego existente o crea uno digital a medida para un objetivo concreto de tu aula, algo más elaborado que un quiz suelto: con varios niveles de dificultad o varias formas de jugarlo (ruleta + preguntas, un escape por fases, un tablero con caminos…). En ABJ el juego ES la actividad: cada mecánica debe servir a un aprendizaje. Pega el enlace al juego y escribe aquí mismo, en la caja del reto, tu reflexión: qué objetivo cubre, qué cambia de un nivel a otro y cómo lo evalúas (y súbelo a tu Bitácora).",
  "B7": "Diseña una microgamificación de calidad: un toque de juego sobre una tarea que no es un juego y, sobre todo, la capa narrativa que la envuelve: quién es el alumnado en esa historia, qué misión tiene y por qué importa (una insignia, una barra de progreso o un tablero, pero dentro de un relato). Distíngue bien de ABJ: aquí no se juega, se toman elementos del juego para enganchar. Pega el enlace al recurso y escribe aquí mismo, en la caja del reto, tu reflexión: qué conducta refuerza, qué historia la envuelve y por qué (y súbelo a tu Bitácora).",
  "B8": "(1) Crea una experiencia de Realidad Aumentada o Virtual para tu materia: puede ser tan sencilla como un código QR que abre un modelo 3D o un vídeo sobre una lámina, o tan elaborada como una escena VR para practicar sin riesgo. Puede ser tu reto libre del ePortfolio. (2) Termina y publica la Bitácora: convierte tu paisaje de aprendizaje (Act 2) en una imagen interactiva publicada, revisa que las 5 páginas estén completas (Act 1, Act 2, videotutorial, microgamificación, reto libre) y pega el enlace único.",
+ "L1": "Diez o quince minutos, en clase. (1) Genera con una IA una imagen con finalidad didáctica (ilustración, organizador gráfico o infografía): prompt estructurado siguiendo un modelo tipo CRAFT/RITA (contexto educativo + tipo de imagen + finalidad), al menos una iteración y la elección final con tu criterio docente dicho en dos líneas. (2) Y de paso, un logo que lleve una palabra clave dentro (la que tú quieras: será tu marca). Los dos van a la portada de tu Bitácora. Pega aquí el enlace o una captura. Es la tabla técnica de la Actividad 1: guárdala, ya tienes hecho su núcleo — y el logo con palabra clave es exactamente lo que te van a pedir el día del examen.",
+ "L2": "Diez o quince minutos, en clase. Coge una sesión tuya —la que vas a dar la semana que viene vale— y repártela en dos listas: qué hace tu alumnado antes de clase (lo que ve, lee o practica por su cuenta) y qué hacéis durante la clase (lo que solo tiene sentido con todos delante). Nada más: dos listas, escritas aquí mismo, en la caja del reto. Es el esqueleto del aula invertida… y el esqueleto de la respuesta del examen, que siempre pide dos módulos.",
+ "L3": "Diez o quince minutos, en clase. Escribe con tus palabras —sin copiar de ningún sitio— qué es un itinerario de aprendizaje y en qué se diferencia de un paisaje. Cinco líneas, ni una más, escritas aquí mismo, en la caja del reto: de ahí van a la portada de tu Bitácora, donde se explica de qué va todo esto. Parece poca cosa: es justo lo que se pide en la portada del examen, y ahí vale punto y medio.",
+ "L4": "Diez minutos, en clase. Coge un recurso tuyo de los que ya has hecho, compártelo, ábrelo en una ventana de incógnito (sin tu cuenta) y sube la captura de que se ve. Si no se ve, arregla los permisos y repite. Pega aquí la captura. Es el reto más corto del viaje y probablemente el que más nota salva: en el examen, un enlace que no es público anula la actividad, y si es el de la web, suspende la prueba entera.",
+ "L5": "Diez o quince minutos, en clase. Monta un cuestionario de autoevaluación de tres preguntas sobre algo que ya hayas enseñado (Forms, Kahoot, Quizizz, H5P… lo que uses), y enlázalo o embébelo en tu Bitácora. Tres preguntas bien alineadas con lo que querías que aprendieran valen más que veinte al azar. Pega aquí el enlace. En el examen te lo van a pedir con estas mismas palabras: «un cuestionario digital de autoevaluación, con tres preguntas alineadas al contenido».",
+ "L6": "Diez o quince minutos, en clase. Coge un recurso que ya hayas creado en este viaje y justifícalo según una metodología concreta (ABJ, aula invertida, ABP, aprendizaje colaborativo…): qué aporta al aprendizaje, en qué momento se usa y por qué ese recurso y no otro. Diez líneas exactas, ni una más — la limitación es parte del ejercicio. Escríbelo aquí mismo, en la caja del reto. En el examen esa justificación vale entre dos y tres puntos, y tiene ese mismo límite de diez líneas.",
+ "L7": "Diez minutos, en clase. Monta una tabla de clasificación sencilla para una dinámica de tu aula: una hoja de cálculo, un Genially, lo que sea. Con cinco filas basta. Piensa qué mides (no tiene por qué ser quién va primero: puede ser quién ha ayudado más, o qué equipo ha mejorado). Pega aquí el enlace o la captura. Es la L de «PBL: points, badges, leaderboards» — lo único del trío que no fabricas en ningún otro reto, y que el examen pide crear.",
+ "L8": "Diez minutos, en clase. Genera un código QR que abra un recurso tuyo (tu juego, tu Bitácora, tu vídeo), mételo dentro de una lámina o una presentación y haz la captura donde se vea todo: la lámina, el QR y adónde lleva. Pega aquí la captura. Un modelo de examen lo pide con estas palabras: «un código QR creado durante el examen de acceso a un juego digital educativo». Vale un punto y se hace en diez minutos… si lo has hecho antes una vez.",
  "S7": "🗝️ Hay una sala de la que no se sale sin pensar: el Escape UNI. Entra, resuelve sus enigmas y, al final, pulsa el botón que te espera: el reto se registra solo en tu Nave. Nadie va a darte las respuestas: los secretos de la gamificación se encuentran jugando.",
  "X1": "La Actividad 1 entregada donde te la pide tu profesor. Pulsa «Lo he hecho» cuando la hayas ENVIADO, no cuando la empieces, y pega el enlace o los enlaces que compartiste en tu actividad (es obligatorio; el «+» añade un segundo).",
- "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al ENVIARLA, y pega el enlace o los enlaces que compartiste en tu actividad (es obligatorio; el «+» añade un segundo)."
+ "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al ENVIARLA, y pega el enlace o los enlaces que compartiste en tu actividad (es obligatorio; el «+» añade un segundo).",
+ "XS": "El ensayo general, con el reloj de verdad: 90 minutos para resolver un caso como el del examen. Se hace en la clase de repaso (semana 15). Se te dará un planteamiento y tendrás que montar, EN ESE RATO, una plataforma digital (web o Genially) con su portada, su logo con la palabra clave, dos módulos y tres productos digitales —algunos puedes reutilizarlos de los que ya has hecho en el viaje: para eso está tu Arsenal—. Al terminar, pega aquí el enlace público y sube tus capturas. No lleva nota: lleva una lista de comprobación que repasas tú mismo delante de todos (¿el logo lleva la palabra?, ¿se abre en incógnito?, ¿hay dos módulos?, ¿tres productos?, ¿la justificación cabe en diez líneas?). Nadie sabe lo que son noventa minutos hasta que los vive."
 };
 // AYUDA-FIN
 // v3.19 · QUE HAY QUE HACER, DENTRO DEL FORMULARIO. Un alumno que no sabe que se le pide escribe un
@@ -208,7 +249,11 @@ function ayudaReto_(r) {
 var PALABRA_HUEVO = "ANDER";
 var EVIDENCIA_TIPO = { A0:"padlet", A1:"foro", A2:"foro", A3:"texto", A4:"redes", A5:"texto", A6:"padlet",
   A7:"padlet", A8:"texto", B1:"padlet", B2:"enlace", B3:"documento", B4:"enlace", B5:"bitacora",
-  B6:"enlace", B7:"enlace", B8:"enlace", X1:"actividad", X2:"actividad", S7:"secreto" };
+  B6:"enlace", B7:"enlace", B8:"enlace", X1:"actividad", X2:"actividad", S7:"secreto",
+  // 16-sep · los relámpago. Los de escribir (L2, L3, L6) se responden en la caja del reto, así que su
+  // evidencia es la de un reto de texto; los demás piden la captura o el enlace de lo que acaban de hacer.
+  L1:"padlet", L2:"texto", L3:"texto", L4:"enlace", L5:"enlace", L6:"texto", L7:"enlace", L8:"enlace",
+  XS:"actividad" };
 var EVIDENCIA_TEXTOS = {
   foro: "Tu reto vive en el foro de UNIR: lo más fácil es pegar aquí el ENLACE DIRECTO a tu mensaje " +
     "(ábrelo en el foro y copia la URL de la barra). ¿El foro no te da enlace? Vale una captura subida " +
@@ -275,9 +320,14 @@ function evidenciaDe_(r) {
   return out;
 }
 var XP_RECLUTAMIENTO = 100;
-var DERIVADAS = [   // [insignia, xp, requisitos] · los créditos salen de CREDITOS.derivada
+var DERIVADAS = [   // [insignia, xp, requisitos, mínimo?] · los créditos salen de CREDITOS.derivada
+  // Los requisitos son insignias; con "#" delante, el id de un reto (los relámpago no dan insignia).
+  // El cuarto campo es CUÁNTOS hacen falta: sin él, todos.
   ["H4_tripulacion-cero",300,["P1_bran","P2_tomas","P3_sylla","P4_amara","P5_vera","P6_joran","P7_mara","P8_noa"]],
-  ["H5_la-liberacion",300,["R8_ultimo-umbral","H2_primera-forja","H3_cartografo"]]
+  ["H5_la-liberacion",300,["R8_ultimo-umbral","H2_primera-forja","H3_cartografo"]],
+  // 16-sep · cinco de los ocho relámpago. Cinco y no ocho a propósito: se juegan en clase, y quien
+  // trabaja a turnos va a faltar alguna noche. Que faltar no cierre la puerta.
+  ["H6_mano-rapida",150,["#L1","#L2","#L3","#L4","#L5","#L6","#L7","#L8"],5]
 ];
 var TEMAS = [null,
   ["Fôrge","Creación de contenido multimedia","p1_forge"],["Ecos","El vídeo como recurso","p2_ecos"],
@@ -308,8 +358,8 @@ var NIVELES = [   // [nivel, xp REGULAR, rango de arte 1-5, titulo]
   [9,4150,4,"Comandante de flota"],
   [10,5000,5,"Leyenda de la Cero"]
 ];
-var XP_VIAJE = {"REGULAR": 4750, "PUA": 4350};
-var CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55, "actividad": 100, "final": 100, "derivada": 60};
+var XP_VIAJE = {"REGULAR": 5680, "PUA": 5280};
+var CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55, "actividad": 100, "final": 100, "derivada": 60, "relampago": 10, "simulacro": 60};
 // Calendario del PER: los formularios abren el primer dia de la semana 1, el registro
 // de misiones cierra al acabar la ultima semana y el canje aguanta una semana mas.
 // Generado desde _site_data.py: no editar a mano.
@@ -421,6 +471,8 @@ function creditosDe_(id, tipo) {
   if (id === "H1") return CREDITOS.reclutamiento || 0;
   var c = String(id).charAt(0);
   if (id === "XF") return CREDITOS.final || 0;
+  if (id === "XS") return CREDITOS.simulacro || 0;
+  if (c === "L") return CREDITOS.relampago || 0;
   if (c === "X") return CREDITOS.actividad || 0;
   if (c === "A" || c === "S") return CREDITOS.retoA || 0;
   if (c === "B") return (tipo === "PUA" ? CREDITOS.retoB_pua : CREDITOS.retoB) || 0;

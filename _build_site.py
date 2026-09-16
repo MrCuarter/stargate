@@ -129,7 +129,8 @@ PERS=[("P1_bran","Bran Okafor","Reto A · T1 · Fôrge","Lo imperfecto compartid
 ESP=[("E1_nebula","NEBULA","Preséntate a tu tripulación","La Bitácora viva que narra el viaje"),
 ("E2_capitan","El Capitán","Presentar la Act. 1","El mando de la misión: tú, docente"),
 ("E3_vaeon","General Vaeon","El Escape UNI (reto secreto S7)","Señor de la Estática (villano)")]
-RETO=[("R1_la-chispa","La chispa","Reto B · T1","Imagen didáctica con IA (Act 1)"),
+RETO=[("R0_bitacora-en-marcha","La Bitácora en marcha","Reto B · T1","Tu ePortfolio abierto y su primera entrada"),
+("R1_la-chispa","La chispa","Reto ⚡ · T1","Imagen didáctica con IA y tu logo (Act 1)"),
 ("R2_el-eco-que-ensena","El eco que enseña","Reto B · T2","Videotutorial + videoquiz"),
 ("R3_la-matriz","La matriz","Reto B · T3","Matriz 8×6 del paisaje (Act 2)"),
 ("R4_entorno-de-aula","El entorno de aula","Reto B · T4","Aula virtual con una tarea o material publicado"),
@@ -141,7 +142,9 @@ HITO=[("H1_reclutamiento","Reclutamiento","Aceptas la misión (Sem. 1)"),
 ("H2_primera-forja","Primera Forja","Entregas la Actividad 1"),
 ("H3_cartografo","Cartógrafo","Entregas la Actividad 2"),
 ("H4_tripulacion-cero","Tripulación Cero","Recuperas a los 8 personajes"),
-("H5_la-liberacion","La Liberación","Completas y publicas la Bitácora")]
+("H5_la-liberacion","La Liberación","Completas y publicas la Bitácora"),
+("H6_mano-rapida","Mano rápida","Cinco de los ocho retos relámpago"),
+("H7_listo-para-la-batalla","Listo para la batalla","Superas el simulacro del examen")]
 CARDS=[c[0] for c in CROMOS]                       # el álbum manda: 26 cartas en 5 series
 SERIE_DE={c[0]:c[2] for c in CROMOS}
 NOMBRE_CROMO={c[0]:c[1] for c in CROMOS}
@@ -2202,16 +2205,18 @@ _datos_src = open(os.path.join(HERE, "apps-script", "Datos.gs"), encoding="utf-8
 def _catalogo_retos(nombre):
     _a = _datos_src.index("var %s = [" % nombre); _b = _datos_src.index("\n];", _a)
     filas = [json.loads(m) for m in _re.findall(r'^\s*(\[.*\]),?$', _datos_src[_a:_b], _re.M)]
-    assert filas and all(len(f) == 5 for f in filas), "el catálogo %s de Datos.gs no tiene la forma esperada" % nombre
-    return filas
+    # 16-sep · la fila puede traer una SEXTA casilla (la semana propia del reto: los relámpago no se
+    # abren con su tema). La Nave solo necesita las cinco primeras, así que se recorta aquí.
+    assert filas and all(5 <= len(f) <= 6 for f in filas), "el catálogo %s de Datos.gs no tiene la forma esperada" % nombre
+    return [f[:5] for f in filas]
 _RETOS_NAVE = {"REGULAR": _catalogo_retos("RETOS_REGULAR"), "PUA": _catalogo_retos("RETOS_PUA")}
 _a0 = _datos_src.index("var AYUDA_RETOS = "); _b0 = _datos_src.index(";\n// AYUDA-FIN", _a0)
 _AYUDA_NAVE = json.loads(_datos_src[_a0 + len("var AYUDA_RETOS = "):_b0])
 # 19 = A1-A8 + B1-B8 + X1 + X2 + XF (los PUA reutilizan los mismos ids)
 assert len(_AYUDA_NAVE) >= 19, "AYUDA_RETOS de Datos.gs se ha quedado corta (%d)" % len(_AYUDA_NAVE)
 
-RETOS_REGULAR=[("A0","Reto «Preséntate a tu tripulación»"),("A1","Reto A «El boceto sin quemar» (Bran)"),("B1","Reto B «La chispa»"),("X1","Actividad 1 entregada"),("A2","Reto A «Un mensaje para quien faltó» (Tomás)"),("B2","Reto B «El eco que enseña»"),("A3","Reto A «Dos senderos» (Sylla)"),("B3","Reto B «La matriz»"),("X2","Actividad 2 entregada"),("A4","Reto A «Abre el canal» (Amara)"),("B4","Reto B «El entorno de aula»"),("A5","Reto A «Mide con método» (Vera)"),("B5","Reto B «La Bitácora medida»"),("A6","Reto A «El Simulador de Joran» (Joran)"),("B6","Reto B «El juego»"),("A7","Reto A «Un porqué» (Mara)"),("B7","Reto B «La microgamificación»"),("A8","Reto A «La capa posible» (Noa)"),("B8","Reto B «El último umbral»"),("S7","Reto secreto «El Escape UNI»")]
-RETOS_PUA=[("A0","Reto «Preséntate a tu tripulación»"),("B1","La chispa (Bran)"),("X1","Actividad 1 entregada"),("B2","El eco que enseña (Tomás)"),("B3","La matriz (Sylla)"),("X2","Actividad 2 entregada"),("B4","El entorno de aula (Amara)"),("B5","La Bitácora medida (Vera)"),("B6","El juego (Joran)"),("B7","La microgamificación (Mara)"),("B8","El último umbral (Noa)")]
+RETOS_REGULAR=[("A0","Reto «Preséntate a tu tripulación»"),("A1","Reto A «El boceto sin quemar» (Bran)"),("B1","Reto B «La Bitácora en marcha»"),("X1","Actividad 1 entregada"),("A2","Reto A «Un mensaje para quien faltó» (Tomás)"),("B2","Reto B «El eco que enseña»"),("A3","Reto A «Dos senderos» (Sylla)"),("B3","Reto B «La matriz»"),("X2","Actividad 2 entregada"),("A4","Reto A «Abre el canal» (Amara)"),("B4","Reto B «El entorno de aula»"),("A5","Reto A «Mide con método» (Vera)"),("B5","Reto B «La Bitácora medida»"),("A6","Reto A «El Simulador de Joran» (Joran)"),("B6","Reto B «El juego»"),("A7","Reto A «Un porqué» (Mara)"),("B7","Reto B «La microgamificación»"),("A8","Reto A «La capa posible» (Noa)"),("B8","Reto B «El último umbral»"),("S7","Reto secreto «El Escape UNI»"),("L1","Reto ⚡ «La chispa y la marca»"),("L2","Reto ⚡ «Módulo 1 y módulo 2»"),("L3","Reto ⚡ «Cinco líneas que explican»"),("L4","Reto ⚡ «Enlace en incógnito»"),("L5","Reto ⚡ «Tres preguntas»"),("L6","Reto ⚡ «Las diez líneas»"),("L7","Reto ⚡ «El marcador»"),("L8","Reto ⚡ «El QR»"),("XS","Reto «El simulacro del examen»")]
+RETOS_PUA=[("A0","Reto «Preséntate a tu tripulación»"),("B1","La Bitácora en marcha (Bran)"),("X1","Actividad 1 entregada"),("B2","El eco que enseña (Tomás)"),("B3","La matriz (Sylla)"),("X2","Actividad 2 entregada"),("B4","El entorno de aula (Amara)"),("B5","La Bitácora medida (Vera)"),("B6","El juego (Joran)"),("B7","La microgamificación (Mara)"),("B8","El último umbral (Noa)")]
 SEMANAS_JSON = json.dumps([{
   "sem": s["sem"], "tema": s["tema"], "sub": s["sub"], "capitulo": s.get("capitulo"),
   "tema_n": int(__import__("re").search(r"Tema (\d)", s["tema"]).group(1)) if "Tema " in s["tema"] else 0,

@@ -2096,6 +2096,12 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 
 /* Y el final: abrir el fichaje y lanzar el Genially. */
 .dia.accion .cta-row{margin-top:26px;gap:12px;flex-wrap:wrap}
+/* 🔴 16-sep · LOS RETOS RELÁMPAGO. Diez o quince minutos, en clase: el borde violeta y el sello los
+   separan de un vistazo de una entrega de dos horas, que es justo lo que hay que distinguir. */
+.reto-sem.relampago{border-color:#4b3a66}
+.reto-sem.relampago > summary{background:linear-gradient(90deg,rgba(199,155,230,.10),transparent 60%)}
+.chip.rel{background:rgba(199,155,230,.14);border:1px solid #4b3a66;color:#dcc6f2;font-weight:700;white-space:nowrap}
+
 /* 🔴 16-sep · LOS TRES TIEMPOS DE LA CLASE. El rótulo de tramos (apertura · presentación · cierre) y la
    tarjeta puente que manda al Genially. El rótulo va dentro del mazo, arriba, y no se navega desde él. */
 .ses-tramos{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:4;display:flex;gap:6px;

@@ -53,7 +53,7 @@ CRONO = [
       videos=[("sinopsis","Primera sesión: el gancho de arranque"),
               ("bitacora","Tras la sinopsis: presenta la Bitácora (ePortfolio)"),
               ("t1i","Al abrir el Tema 1")],
-      lanza=["Reto «Preséntate a tu tripulación» (vídeo 60 s)", "Reto A «El boceto sin quemar» (Bran)", "Reto B «La chispa» (imagen con IA)"],
+      lanza=["Reto «Preséntate a tu tripulación» (vídeo 60 s)", "Reto A «El boceto sin quemar» (Bran)", "Reto B «La Bitácora en marcha» (tu ePortfolio)"],
       insignias=["E1_nebula","H1_reclutamiento"],
       hito="Presentación ante el mando · Bitácora de la semana: un recurso multimedia con IA",
       clases="Clases 01–02",
@@ -63,7 +63,7 @@ CRONO = [
       videos=[("act1","Al lanzar la Actividad 1"),
               ("t1c","Al cerrar el trabajo del planeta"),
               ("f1","Justo tras el cierre: la recompensa del bloque")],
-      lanza=["Actividad 1 — actividad didáctica a partir de una imagen con IA"],
+      lanza=["Actividad 1 — actividad didáctica a partir de una imagen con IA", "Reto ⚡ «La chispa y la marca» (imagen con IA + logo) — en clase, 15 min"],
       insignias=["P1_bran","R1_la-chispa","E2_capitan","H2_primera-forja"],
       hito="Presenta la Act. 1 · Test del Tema 1",
       clases="Clases 03–04",
@@ -77,7 +77,7 @@ CRONO = [
  dict(sem=4, tema="Tema 2 (cont.) · Ecos", sub="El vídeo que pregunta",
       capitulo=None,
       videos=[("t2c","Al cerrar el bloque"),("f2","Tras el cierre")],
-      lanza=[], insignias=["P2_tomas","R2_el-eco-que-ensena"],
+      lanza=["Reto ⚡ «Módulo 1 y módulo 2» (antes y durante) — en clase, 15 min"], insignias=["P2_tomas","R2_el-eco-que-ensena"],
       hito="Test del Tema 2 · Bitácora: videotutorial enriquecido", clases="Clase 06",
       consejo="El fragmento de Tomás (su hija Lena) es el momento emocional del bloque: dale su espacio."),
  dict(sem=5, tema="Tema 3 · Sendara", sub="Contenidos interactivos",
@@ -90,7 +90,7 @@ CRONO = [
       capitulo=None,
       videos=[("act2","Al lanzar la Actividad 2"),
               ("t3c","Al cerrar el bloque"),("f3","Tras el cierre")],
-      lanza=["Actividad 2 — planifica y crea un paisaje de aprendizaje"],
+      lanza=["Actividad 2 — planifica y crea un paisaje de aprendizaje", "Reto ⚡ «Cinco líneas que explican» (itinerario y paisaje) — en clase, 15 min"],
       insignias=["P3_sylla","R3_la-matriz"],
       hito="Presenta la Act. 2 · Test del Tema 3 · Bitácora: itinerario o paisaje", clases="Clases 08–09",
       consejo="La Act. 2 se presenta ahora y se resuelve en la semana 13: recuérdalo para que no la dejen morir."),
@@ -103,14 +103,14 @@ CRONO = [
  dict(sem=8, tema="Tema 4 (cont.) · Reliae", sub="El entorno digital de aula",
       capitulo=None,
       videos=[("t4c","Al cerrar el bloque"),("f4","Tras el cierre")],
-      lanza=[], insignias=["P4_amara","R4_entorno-de-aula"],
+      lanza=["Reto ⚡ «Enlace en incógnito» — en clase, 10 min"], insignias=["P4_amara","R4_entorno-de-aula"],
       hito="Test del Tema 4 · Bitácora: tu entorno de aula", clases="Clase 11",
       consejo="La lección de Amara (compartir a tiempo, pulir después) es oro contra el perfeccionismo del alumnado."),
  dict(sem=9, tema="Tema 5 · Umbral", sub="Evaluación y ePortfolio — aparece la Estática",
       capitulo="Evaluando la situación",
       videos=[("t5i","Al abrir el Tema 5 (¡aparece Vaeon!)"),
               ("t5c","Al cerrar el bloque"),("f5","Tras el cierre")],
-      lanza=["Reto A «Mide con método» (Vera)", "Reto B «La Bitácora medida» (web de recursos + rúbrica)"],
+      lanza=["Reto A «Mide con método» (Vera)", "Reto B «La Bitácora medida» (web de recursos + rúbrica)", "Reto ⚡ «Tres preguntas» (autoevaluación) — en clase, 15 min"],
       insignias=["P5_vera","R5_bitacora-medida"],
       hito="Resolución de la Act. 1 · Test del Tema 5", clases="Clase 12",
       consejo="El momento dramático del curso: justo cuando saben medir, aparece el enemigo que silencia. Y se resuelve la Act. 1."),
@@ -125,13 +125,13 @@ CRONO = [
  dict(sem=11, tema="Tema 7 · Vínculo", sub="Gamificación",
       capitulo="El arte de motivar",
       videos=[("t7i","Al abrir el Tema 7")],
-      lanza=["Reto A «Un porqué» (Mara)", "Reto B «La microgamificación»"],
+      lanza=["Reto A «Un porqué» (Mara)", "Reto B «La microgamificación»", "Reto ⚡ «Las diez líneas» (justifica un recurso) — en clase, 15 min"],
       insignias=[], hito="Microgamificación en marcha", clases="Clase 15",
       consejo="Aquí NO se juega: se toman elementos del juego. Es el error conceptual más común del curso — apóyate en Joran y Mara."),
  dict(sem=12, tema="Tema 7 (cont.) · Vínculo", sub="Gamificación profunda",
       capitulo=None,
       videos=[("t7c","Al cerrar el bloque"),("f7","Tras el cierre")],
-      lanza=[], insignias=["P7_mara","R7_microgamificacion","E3_vaeon"],
+      lanza=["Reto ⚡ «El marcador» (tabla de clasificación) — en clase, 10 min"], insignias=["P7_mara","R7_microgamificacion","E3_vaeon"],
       hito="Test del Tema 7 · Bitácora: tu microgamificación", clases="Clase 16",
       consejo="Momento meta: STARGATE es una gamificación profunda funcionando delante de sus ojos. Díselo."),
  dict(sem=13, tema="Tema 8 · Liminar", sub="Realidad Aumentada",
@@ -144,7 +144,7 @@ CRONO = [
  dict(sem=14, tema="Tema 8 (cont.) · Liminar", sub="Realidad Virtual — NEBULA casi completa",
       capitulo=None,
       videos=[("f8","NEBULA recuerda por qué la Cero se quedó: el fragmento de Noa cae aquí")],
-      lanza=[], insignias=["P8_noa","R8_ultimo-umbral","H4_tripulacion-cero"],
+      lanza=["Reto ⚡ «El QR» (dentro de una lámina) — en clase, 10 min"], insignias=["P8_noa","R8_ultimo-umbral","H4_tripulacion-cero"],
       hito="Test del Tema 8 · la Tripulación Cero queda completa", clases="Clase 18",
       consejo="Con Noa se completa la Cero (insignia de hito Tripulación Cero). Deja el finale para la última semana."),
  dict(sem=15, tema="Repaso · La liberación", sub="Simulacro y salto final",
@@ -152,7 +152,7 @@ CRONO = [
       videos=[("finale","La revelación: la verdad de la Cero (sin resolución)"),
               ("plan","El Capitán presenta el examen: la batalla ES el examen"),
               ("f9","Tras el examen/el cierre: el epílogo de Vaeon")],
-      lanza=[], insignias=["H5_la-liberacion"],
+      lanza=["Reto «El simulacro del examen» (90 minutos de reloj, en la clase de repaso)"], insignias=["H5_la-liberacion"],
       hito="Repaso + simulacro del examen · Bitácoras publicadas", clases="Clases 19–20",
       consejo="Celebra las Bitácoras publicadas: son el producto real del curso. El Fragmento Prohibido es el regalo final."),
 ]
@@ -412,7 +412,7 @@ NIVELES = [
 ]
 # v3.41 · fuera la Batalla final (500), dentro el huevo de Pascua S7 (150) — también en PUA.
 # El nivel 10 (5.000) exige ahora los bonus de planeta: Leyenda = completarlo de verdad.
-XP_VIAJE = {"REGULAR": 4750, "PUA": 4350}
+XP_VIAJE = {"REGULAR": 5680, "PUA": 5280}   # 16-sep: +480 (ocho relámpago) +300 (simulacro) +150 (Mano rápida)
 # ◈ que da cada tipo de logro (el xp lo sigue fijando la tabla de retos del Apps Script)
 # 26-ago · SUBE LO QUE SE GANA. Con el vestuario de héroes hay mucho más donde gastar, y con la
 # economía vieja (590 ◈ el viaje entero) elegir una recompensa de nota significaba renunciar a
@@ -519,6 +519,15 @@ AYUDA_RETOS = {
        "desde el primer día — y NEBULA te da su insignia: lo que se comparte no se apaga.",
   "X1": "La Actividad 1 entregada donde te la pide tu profesor. Pulsa «Lo he hecho» cuando la hayas ENVIADO, no cuando la empieces, y pega el enlace o los enlaces que compartiste en tu actividad (es obligatorio; el «+» añade un segundo).",
   "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al ENVIARLA, y pega el enlace o los enlaces que compartiste en tu actividad (es obligatorio; el «+» añade un segundo).",
+  # 16-sep · el simulacro de la semana 15. La clase 20 ya se llama «Simulacro del examen» en la
+  # programación oficial de la asignatura: esto solo le pone premio y una lista de comprobación.
+  "XS": "El ensayo general, con el reloj de verdad: 90 minutos para resolver un caso como el del examen. Se hace en la "
+        "clase de repaso (semana 15). Se te dará un planteamiento y tendrás que montar, EN ESE RATO, una plataforma "
+        "digital (web o Genially) con su portada, su logo con la palabra clave, dos módulos y tres productos digitales "
+        "—algunos puedes reutilizarlos de los que ya has hecho en el viaje: para eso está tu Arsenal—. Al terminar, pega "
+        "aquí el enlace público y sube tus capturas. No lleva nota: lleva una lista de comprobación que repasas tú "
+        "mismo delante de todos (¿el logo lleva la palabra?, ¿se abre en incógnito?, ¿hay dos módulos?, ¿tres "
+        "productos?, ¿la justificación cabe en diez líneas?). Nadie sabe lo que son noventa minutos hasta que los vive.",
   # 15-sep · el reto secreto es el Escape UNI (Norberto): se registra solo, con el botón del final del escape
   "S7": "🗝️ Hay una sala de la que no se sale sin pensar: el Escape UNI. Entra, resuelve sus enigmas y, al final, "
         "pulsa el botón que te espera: el reto se registra solo en tu Nave. Nadie va a darte las respuestas: "
@@ -561,6 +570,11 @@ EVIDENCIA_RETOS = {
  # 15-sep (noche) · A1 se RESPONDE en el reto (REFLEXION_RETOS): el enlace pasa a opcional
  # 16-sep · A6 no pide nada: se gana al Simulador de Joran (batalla.html) y se registra solo
  "A1": "", "A6": "",
+ # 16-sep · LOS RELÁMPAGO. Piden lo mínimo que demuestra que se ha hecho: una captura o un enlace.
+ # Los tres que son de escribir (L2, L3 y L6) se responden en la caja y el enlace es opcional.
+ "L1": "obligatoria", "L4": "obligatoria", "L5": "obligatoria", "L7": "obligatoria", "L8": "obligatoria",
+ "L2": "", "L3": "", "L6": "",
+ "XS": "obligatoria",
 }
 # 15-sep (noche) · LOS RETOS QUE SE RESPONDEN EN EL PROPIO RETO. Norberto: «en los retos en los que tienen que compartir
 # una breve reflexión o escribir algo concreto, en vez de ponerlo en el foro, que lo respondan directamente sobre el reto…
@@ -586,6 +600,14 @@ REFLEXION_RETOS = {
         "pide": "Tu reflexión: qué conducta refuerza tu microgamificación, qué historia la envuelve y por qué."},
  "A8": {"modo": "ambos", "min": 200, "titulo": "Capas que ya existen",
         "pide": "¿Cómo usarías ese recurso en una clase concreta? Qué vería tu alumnado, qué haría y qué añade esa capa."},
+ # 16-sep · los relámpago de escribir. Son cortos a propósito: se hacen en clase, en diez minutos, y
+ # entrenan justo lo que el examen puntúa — repartir una sesión, explicar un concepto y justificar.
+ "L2": {"modo": "texto", "min": 120, "titulo": "Antes y durante",
+        "pide": "Tu sesión, en dos listas: qué hace tu alumnado ANTES de clase y qué hacéis DURANTE."},
+ "L3": {"modo": "texto", "min": 150, "titulo": "Itinerario y paisaje, en cinco líneas",
+        "pide": "Con tus palabras: qué es un itinerario de aprendizaje y en qué se diferencia de un paisaje. Cinco líneas."},
+ "L6": {"modo": "texto", "min": 250, "titulo": "Las diez líneas",
+        "pide": "Justifica un recurso tuyo según una metodología concreta: qué aporta, cuándo se usa y por qué ese. Diez líneas."},
 }
 # Tres al día: el ritmo normal es de 2 retos por semana, así que tres cubren un día de ponerse al
 # día sin dejar que nadie suba diez niveles en una tarde. Deshacer uno libera su hueco.
@@ -606,7 +628,17 @@ ESCAPE_UNI = "https://view.genially.com/6a461360d187e3f8869ca453"
 GANCHO_RETOS = {
  "A0": "Un vídeo de 60 s presentándote, al padlet de la clase, y el enlace de tu publicación.",
  "A1": "Cuenta aquí algo que tengas (o dejaste) a medias y qué te frenó. Y lee a tu tripulación.",
- "B1": "Una imagen didáctica con IA, con el prompt y tus criterios documentados.",
+ "B1": "Abre tu ePortfolio y publica su primera entrada: tu presentación. El enlace, aquí y en tu BIO.",
+ # 16-sep · los relámpago: diez o quince minutos, en clase. La línea dice el gesto, no la teoría.
+ "L1": "Una imagen didáctica con IA (prompt + una iteración) y un logo con tu palabra clave.",
+ "L2": "Tu sesión en dos listas: qué hacen antes de clase y qué durante.",
+ "L3": "Cinco líneas tuyas: qué es un itinerario y en qué se diferencia de un paisaje.",
+ "L4": "Abre un recurso tuyo en incógnito y sube la captura de que se ve sin tu cuenta.",
+ "L5": "Un cuestionario de autoevaluación de tres preguntas, enlazado en tu Bitácora.",
+ "L6": "Justifica un recurso tuyo según una metodología. Diez líneas exactas.",
+ "L7": "Una tabla de clasificación sencilla para una dinámica de tu aula.",
+ "L8": "Un QR que abra un recurso tuyo, dentro de una lámina, con su captura.",
+ "XS": "El ensayo general: 90 minutos de reloj para resolver un caso como el del examen.",
  "X1": "Pulsa «Lo he hecho» cuando hayas ENVIADO la Actividad 1, con su enlace (obligatorio).",
  "A2": "Un clip de 60 s explicando un concepto a quien faltó a clase.",
  "B2": "Un videotutorial con dos o tres preguntas insertadas dentro.",
@@ -627,7 +659,10 @@ GANCHO_RETOS = {
 }
 
 CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55,
-            "actividad": 100, "final": 100, "derivada": 60}
+            "actividad": 100, "final": 100, "derivada": 60,
+ # 16-sep · el relámpago paga poco a propósito: son 10 o 15 minutos en clase, y si pagara como un
+ # reto B desinflaría el Arsenal (el medio punto cuesta 550 ◈). El simulacro sí paga: son 90 minutos.
+ "relampago": 10, "simulacro": 60,}
 # ---------- calendario del PER (v3.14) ----------
 # Decisión del usuario (25-ago): los formularios NO se abren y cierran a ojo. Por defecto:
 #   · abren UNA SEMANA ANTES de la semana 1 (para que el alumnado se aliste con margen),

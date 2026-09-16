@@ -3337,9 +3337,14 @@ function tableroCalcular_(perId, conPrivados) {
     });
     if (Object.keys(a.retos).length) { ins["H1_reclutamiento"] = true; }
     // una insignia derivada se gana cuando cae la ULTIMA de las suyas: esa es su fecha
-    DERIVADAS.forEach(function(d){ if (d[2].every(function(k){ return ins[k]; })) { ins[d[0]] = true; xp += d[1]; cred += CREDITOS.derivada || 0;
-      var ult = 0; d[2].forEach(function(k){ if ((cuando[k] || 0) > ult) ult = cuando[k] || 0; });
-      if (ult >= hace7) xp7 += d[1]; } });
+    // 16-sep · un requisito es una insignia; con "#" delante, el id de un reto (los relámpago no dan
+    // insignia propia). Y el cuarto campo dice CUÁNTOS hacen falta: sin él, todos.
+    DERIVADAS.forEach(function(d){
+      var tiene = d[2].filter(function(k){ return k.charAt(0) === "#" ? !!a.retos[k.substring(1)] : !!ins[k]; });
+      if (tiene.length < (d[3] || d[2].length)) return;
+      ins[d[0]] = true; xp += d[1]; cred += CREDITOS.derivada || 0;
+      var ult = 0; tiene.forEach(function(k){ var c = k.charAt(0) === "#" ? ts_((a.retos[k.substring(1)] || {}).fecha) : (cuando[k] || 0); if (c > ult) ult = c; });
+      if (ult >= hace7) xp7 += d[1]; });
     var gast = canjes[m] ? canjes[m].gastado : 0;   // gastado SIEMPRE en créditos: los xp no se tocan
     // avatar: canje concedido > elección congelada al alistarse > valor actual del formulario (respuestas antiguas)
     var avatar = a._avCanje ? parseAvatar_(a._avCanje) : a._avBase ? parseAvatar_(a._avBase) : (a.avatar || {tipo:null,n:null,url:""});

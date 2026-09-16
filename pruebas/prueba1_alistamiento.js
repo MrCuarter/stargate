@@ -76,8 +76,10 @@ const RP = G2.retosDe_("PUA");
 E.enviarBitacora(G2, "pua-banco", { email: "pua@alumno.es",
   marcados: E.marcar(G2, RP.filter(r => r[4] === 1)) }, 2);
 const tp = G2.tablero_("pua-banco", true).reclutas[0];
-igual(tp.xp, 100 + 100 + 300 + 500 + G2.BONUS_PLANETA.xp, "PUA: reclutamiento + A0 + B1 + X1 + planeta completo");
-igual(tp.creditos_ganados, 20 + 20 + 55 + 100 + G2.BONUS_PLANETA.creditos, "PUA: el reto B vale 55 créditos, más A0 y el bonus");
+// 16-sep · el tema 1 de PUA trae también el relámpago L1 (60 xp, 10 ◈). El planeta se cierra sin él
+// —es voluntario—, pero aquí se marcan TODOS los del tema, así que suma.
+igual(tp.xp, 100 + 100 + 300 + 60 + 500 + G2.BONUS_PLANETA.xp, "PUA: reclutamiento + A0 + B1 + L1 + X1 + planeta completo");
+igual(tp.creditos_ganados, 20 + 20 + 55 + 10 + 100 + G2.BONUS_PLANETA.creditos, "PUA: el reto B vale 55 créditos, el relámpago 10, más A0 y el bonus");
 igual(G2.nivelDe_(900, "PUA"), G.nivelDe_(900 * 5000 / 4100, "REGULAR"), "los umbrales de PUA están escalados por el total del viaje");
 igual(G2.desdeEfectiva_(15, "PUA"), 8, "una recompensa de la semana 15 en REGULAR abre en la 8 en PUA");
 

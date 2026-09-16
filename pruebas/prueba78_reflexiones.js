@@ -22,7 +22,9 @@ const trozo = (s, desde, n) => { const i = s.indexOf(desde); return i < 0 ? "" :
 const D = JSON.parse(execFileSync("python3", ["-c",
   "import json,_site_data as D;print(json.dumps({'R':D.REFLEXION_RETOS,'E':D.EVIDENCIA_RETOS}))"], { cwd: RAIZ, encoding: "utf8" }));
 const ids = Object.keys(D.R).sort();
-c(JSON.stringify(ids) === JSON.stringify(["A1", "A7", "A8", "B2", "B4", "B6", "B7"]), "🔴 los retos con reflexión son los acordados: A1, A7, A8, B2, B4, B6 y B7 (A6 es la batalla)", ids.join(","));
+// 16-sep · entran los tres relámpago de escribir: L2 (antes y durante), L3 (cinco líneas) y L6 (las diez líneas).
+c(JSON.stringify(ids) === JSON.stringify(["A1", "A7", "A8", "B2", "B4", "B6", "B7", "L2", "L3", "L6"]),
+  "🔴 los retos con reflexión son los acordados: A1, A7, A8, B2, B4, B6, B7 y los tres relámpago de escribir", ids.join(","));
 c(ids.every(id => D.R[id].pide && D.R[id].titulo && D.R[id].min >= 100 && /^(texto|ambos)$/.test(D.R[id].modo)),
   "   cada uno con su pregunta, su título para la sesión, su mínimo (≥ 100 letras) y su modo");
 c(ids.every(id => D.R[id].modo === "texto" ? D.E[id] !== "obligatoria" : D.E[id] === "obligatoria"),

@@ -91,7 +91,9 @@
   function creditosDe(reto, tipo, cat) {
     var c = cat.creditos;
     if (reto.id === "H1") return c.reclutamiento;
+    if (reto.id === "XS") return c.simulacro;
     if (reto.id.charAt(0) === "X") return c.actividad;
+    if (reto.id.charAt(0) === "L") return c.relampago;
     if (reto.id.charAt(0) === "A") return c.retoA;
     if (reto.id.charAt(0) === "S") return c.retoA;
     if (reto.id.charAt(0) === "B") return tipo === "PUA" ? c.retoB_pua : c.retoB;
@@ -256,7 +258,8 @@
     var conAlta = [{ id: "H1", titulo: "Alistamiento: te unes a la tripulación",
                      insignias: ["H1_reclutamiento"], xp: cat.xpReclutamiento, tema: 0 }].concat(retos);
     var misiones = conAlta.map(function (r, i) {
-      var semana = cat.semanaDelTema[String(r.tema)] || r.tema;
+      // Casi todos los retos se abren con su tema; los relámpago traen SU semana (la de continuación).
+      var semana = r.semana || cat.semanaDelTema[String(r.tema)] || r.tema;
       return {
         id: r.id,
         order: i,
@@ -275,7 +278,7 @@
         completionMethod: { type: "manual" },
         requiresTeacherValidation: false,
         enabled: true,
-        isMandatory: r.id.charAt(0) !== "S"
+        isMandatory: r.id.charAt(0) !== "S" && r.id.charAt(0) !== "L"
       };
     });
 
@@ -309,11 +312,14 @@
     // Las insignias derivadas (Tripulación Cero, La Liberación) también son campañas: un conjunto
     // de misiones que, al completarse, da xp y una insignia. Mismo mecanismo, otro conjunto.
     cat.derivadas.forEach(function (d, i) {
+      // Un requisito es una insignia; con "#" delante, el id de un reto. Lo segundo existe por los
+      // relámpago, que no dan insignia propia: «Mano rápida» se gana con CINCO de los ocho.
       var necesita = misiones.filter(function (m) {
-        return m.stargateBadges.some(function (b) { return d.requiere.indexOf(b) >= 0; });
+        return d.requiere.indexOf("#" + m.id) >= 0 ||
+               m.stargateBadges.some(function (b) { return d.requiere.indexOf(b) >= 0; });
       }).map(function (m) { return m.id; });
       if (!necesita.length) return;
-      campanas.push({
+      var camp = {
         id: "derivada" + (i + 1),
         order: 100 + i,
         title: (cat.insignias[d.insignia] || {}).nombre || d.insignia,
@@ -322,7 +328,10 @@
         rewards: [{ type: "xp_extra", value: d.xp }, { type: "coins", value: cat.creditos.derivada }],
         enabled: true,
         stargateInsignia: d.insignia
-      });
+      };
+      // Sin mínimo, hacen falta todas. Con mínimo, bastan esas (y nunca más de las que hay).
+      if (d.min) camp.minMissionsToComplete = Math.min(d.min, necesita.length);
+      campanas.push(camp);
     });
 
     // ---------------------------------------------------------------- la tienda

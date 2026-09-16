@@ -10,7 +10,8 @@
           "E1_nebula"
         ],
         "xp": 100,
-        "tema": 1
+        "tema": 1,
+        "semana": 0
       },
       {
         "id": "A1",
@@ -19,16 +20,28 @@
           "P1_bran"
         ],
         "xp": 100,
-        "tema": 1
+        "tema": 1,
+        "semana": 0
       },
       {
         "id": "B1",
-        "titulo": "Reto B «La chispa» (imagen con IA)",
+        "titulo": "Reto B «La Bitácora en marcha» (tu ePortfolio)",
+        "insignias": [
+          "R0_bitacora-en-marcha"
+        ],
+        "xp": 250,
+        "tema": 1,
+        "semana": 0
+      },
+      {
+        "id": "L1",
+        "titulo": "Reto ⚡ «La chispa y la marca» (imagen con IA + logo)",
         "insignias": [
           "R1_la-chispa"
         ],
-        "xp": 250,
-        "tema": 1
+        "xp": 60,
+        "tema": 1,
+        "semana": 2
       },
       {
         "id": "X1",
@@ -38,7 +51,8 @@
           "E2_capitan"
         ],
         "xp": 500,
-        "tema": 1
+        "tema": 1,
+        "semana": 0
       },
       {
         "id": "A2",
@@ -47,7 +61,8 @@
           "P2_tomas"
         ],
         "xp": 100,
-        "tema": 2
+        "tema": 2,
+        "semana": 0
       },
       {
         "id": "B2",
@@ -56,7 +71,16 @@
           "R2_el-eco-que-ensena"
         ],
         "xp": 250,
-        "tema": 2
+        "tema": 2,
+        "semana": 0
+      },
+      {
+        "id": "L2",
+        "titulo": "Reto ⚡ «Módulo 1 y módulo 2» (antes y durante la clase)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 2,
+        "semana": 4
       },
       {
         "id": "A3",
@@ -65,7 +89,8 @@
           "P3_sylla"
         ],
         "xp": 100,
-        "tema": 3
+        "tema": 3,
+        "semana": 0
       },
       {
         "id": "B3",
@@ -74,7 +99,16 @@
           "R3_la-matriz"
         ],
         "xp": 250,
-        "tema": 3
+        "tema": 3,
+        "semana": 0
+      },
+      {
+        "id": "L3",
+        "titulo": "Reto ⚡ «Cinco líneas que explican» (itinerario y paisaje)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 3,
+        "semana": 6
       },
       {
         "id": "X2",
@@ -83,7 +117,8 @@
           "H3_cartografo"
         ],
         "xp": 500,
-        "tema": 3
+        "tema": 3,
+        "semana": 0
       },
       {
         "id": "A4",
@@ -92,16 +127,26 @@
           "P4_amara"
         ],
         "xp": 100,
-        "tema": 4
+        "tema": 4,
+        "semana": 0
       },
       {
         "id": "B4",
-        "titulo": "Reto B «El entorno de aula» (aula virtual)",
+        "titulo": "Reto B «El entorno de aula» (aula virtual + tres recursos que ya existen)",
         "insignias": [
           "R4_entorno-de-aula"
         ],
         "xp": 250,
-        "tema": 4
+        "tema": 4,
+        "semana": 0
+      },
+      {
+        "id": "L4",
+        "titulo": "Reto ⚡ «Enlace en incógnito» (que se vea sin tu cuenta)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 4,
+        "semana": 8
       },
       {
         "id": "A5",
@@ -110,7 +155,8 @@
           "P5_vera"
         ],
         "xp": 100,
-        "tema": 5
+        "tema": 5,
+        "semana": 0
       },
       {
         "id": "B5",
@@ -119,7 +165,16 @@
           "R5_bitacora-medida"
         ],
         "xp": 250,
-        "tema": 5
+        "tema": 5,
+        "semana": 0
+      },
+      {
+        "id": "L5",
+        "titulo": "Reto ⚡ «Tres preguntas» (autoevaluación)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 5,
+        "semana": 9
       },
       {
         "id": "A6",
@@ -128,7 +183,8 @@
           "P6_joran"
         ],
         "xp": 100,
-        "tema": 6
+        "tema": 6,
+        "semana": 0
       },
       {
         "id": "B6",
@@ -137,7 +193,16 @@
           "R6_el-juego"
         ],
         "xp": 250,
-        "tema": 6
+        "tema": 6,
+        "semana": 0
+      },
+      {
+        "id": "L6",
+        "titulo": "Reto ⚡ «Las diez líneas» (justifica un recurso)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 6,
+        "semana": 11
       },
       {
         "id": "A7",
@@ -146,7 +211,8 @@
           "P7_mara"
         ],
         "xp": 100,
-        "tema": 7
+        "tema": 7,
+        "semana": 0
       },
       {
         "id": "B7",
@@ -155,7 +221,8 @@
           "R7_microgamificacion"
         ],
         "xp": 250,
-        "tema": 7
+        "tema": 7,
+        "semana": 0
       },
       {
         "id": "S7",
@@ -164,7 +231,16 @@
           "E3_vaeon"
         ],
         "xp": 150,
-        "tema": 7
+        "tema": 7,
+        "semana": 0
+      },
+      {
+        "id": "L7",
+        "titulo": "Reto ⚡ «El marcador» (tabla de clasificación)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 7,
+        "semana": 12
       },
       {
         "id": "A8",
@@ -173,7 +249,8 @@
           "P8_noa"
         ],
         "xp": 100,
-        "tema": 8
+        "tema": 8,
+        "semana": 0
       },
       {
         "id": "B8",
@@ -182,7 +259,26 @@
           "R8_ultimo-umbral"
         ],
         "xp": 250,
-        "tema": 8
+        "tema": 8,
+        "semana": 0
+      },
+      {
+        "id": "L8",
+        "titulo": "Reto ⚡ «El QR» (un QR dentro de una lámina)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 8,
+        "semana": 14
+      },
+      {
+        "id": "XS",
+        "titulo": "Reto «El simulacro del examen» (90 minutos de reloj)",
+        "insignias": [
+          "H7_listo-para-la-batalla"
+        ],
+        "xp": 300,
+        "tema": 8,
+        "semana": 15
       }
     ],
     "PUA": [
@@ -193,17 +289,29 @@
           "E1_nebula"
         ],
         "xp": 100,
-        "tema": 1
+        "tema": 1,
+        "semana": 0
       },
       {
         "id": "B1",
-        "titulo": "La chispa: imagen con IA (recupera a Bran)",
+        "titulo": "La Bitácora en marcha: tu ePortfolio (recupera a Bran)",
         "insignias": [
           "P1_bran",
-          "R1_la-chispa"
+          "R0_bitacora-en-marcha"
         ],
         "xp": 300,
-        "tema": 1
+        "tema": 1,
+        "semana": 0
+      },
+      {
+        "id": "L1",
+        "titulo": "Reto ⚡ «La chispa y la marca» (imagen con IA + logo)",
+        "insignias": [
+          "R1_la-chispa"
+        ],
+        "xp": 60,
+        "tema": 1,
+        "semana": 2
       },
       {
         "id": "X1",
@@ -213,7 +321,8 @@
           "E2_capitan"
         ],
         "xp": 500,
-        "tema": 1
+        "tema": 1,
+        "semana": 0
       },
       {
         "id": "B2",
@@ -223,7 +332,16 @@
           "R2_el-eco-que-ensena"
         ],
         "xp": 300,
-        "tema": 2
+        "tema": 2,
+        "semana": 0
+      },
+      {
+        "id": "L2",
+        "titulo": "Reto ⚡ «Módulo 1 y módulo 2» (antes y durante la clase)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 2,
+        "semana": 4
       },
       {
         "id": "B3",
@@ -233,7 +351,16 @@
           "R3_la-matriz"
         ],
         "xp": 300,
-        "tema": 3
+        "tema": 3,
+        "semana": 0
+      },
+      {
+        "id": "L3",
+        "titulo": "Reto ⚡ «Cinco líneas que explican» (itinerario y paisaje)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 3,
+        "semana": 6
       },
       {
         "id": "X2",
@@ -242,17 +369,27 @@
           "H3_cartografo"
         ],
         "xp": 500,
-        "tema": 3
+        "tema": 3,
+        "semana": 0
       },
       {
         "id": "B4",
-        "titulo": "El entorno de aula (recupera a Amara)",
+        "titulo": "El entorno de aula + tres recursos que ya existen (recupera a Amara)",
         "insignias": [
           "P4_amara",
           "R4_entorno-de-aula"
         ],
         "xp": 300,
-        "tema": 4
+        "tema": 4,
+        "semana": 0
+      },
+      {
+        "id": "L4",
+        "titulo": "Reto ⚡ «Enlace en incógnito» (que se vea sin tu cuenta)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 4,
+        "semana": 8
       },
       {
         "id": "B5",
@@ -262,7 +399,16 @@
           "R5_bitacora-medida"
         ],
         "xp": 300,
-        "tema": 5
+        "tema": 5,
+        "semana": 0
+      },
+      {
+        "id": "L5",
+        "titulo": "Reto ⚡ «Tres preguntas» (autoevaluación)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 5,
+        "semana": 9
       },
       {
         "id": "B6",
@@ -272,7 +418,16 @@
           "R6_el-juego"
         ],
         "xp": 300,
-        "tema": 6
+        "tema": 6,
+        "semana": 0
+      },
+      {
+        "id": "L6",
+        "titulo": "Reto ⚡ «Las diez líneas» (justifica un recurso)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 6,
+        "semana": 11
       },
       {
         "id": "B7",
@@ -282,7 +437,8 @@
           "R7_microgamificacion"
         ],
         "xp": 300,
-        "tema": 7
+        "tema": 7,
+        "semana": 0
       },
       {
         "id": "S7",
@@ -291,7 +447,16 @@
           "E3_vaeon"
         ],
         "xp": 150,
-        "tema": 7
+        "tema": 7,
+        "semana": 0
+      },
+      {
+        "id": "L7",
+        "titulo": "Reto ⚡ «El marcador» (tabla de clasificación)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 7,
+        "semana": 12
       },
       {
         "id": "B8",
@@ -301,7 +466,26 @@
           "R8_ultimo-umbral"
         ],
         "xp": 300,
-        "tema": 8
+        "tema": 8,
+        "semana": 0
+      },
+      {
+        "id": "L8",
+        "titulo": "Reto ⚡ «El QR» (un QR dentro de una lámina)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 8,
+        "semana": 14
+      },
+      {
+        "id": "XS",
+        "titulo": "Reto «El simulacro del examen» (90 minutos de reloj)",
+        "insignias": [
+          "H7_listo-para-la-batalla"
+        ],
+        "xp": 300,
+        "tema": 8,
+        "semana": 15
       }
     ]
   },
@@ -318,7 +502,8 @@
         "P6_joran",
         "P7_mara",
         "P8_noa"
-      ]
+      ],
+      "min": 0
     },
     {
       "insignia": "H5_la-liberacion",
@@ -327,7 +512,23 @@
         "R8_ultimo-umbral",
         "H2_primera-forja",
         "H3_cartografo"
-      ]
+      ],
+      "min": 0
+    },
+    {
+      "insignia": "H6_mano-rapida",
+      "xp": 150,
+      "requiere": [
+        "#L1",
+        "#L2",
+        "#L3",
+        "#L4",
+        "#L5",
+        "#L6",
+        "#L7",
+        "#L8"
+      ],
+      "min": 5
     }
   ],
   "insignias": {
@@ -352,7 +553,7 @@
       "tipo": "Insignia de personaje",
       "como": "Completando el Reto A del Tema 3: «Dos senderos».",
       "cuando": "Tema 3 · Planeta Sendara",
-      "tarea": "Crea un artefacto interactivo (un Genially o similar) con una bifurcación: un objetivo de aprendizaje y dos o tres actividades distintas para alcanzarlo, y que cada estudiante elija su sendero al empezar (p. ej. uno que aprende haciendo, otro leyendo, otro escuchando). Pega su enlace. Criterio: que cada sendero sea una actividad de verdad —no la misma con otro nombre— y que todos lleguen a la misma cima.",
+      "tarea": "(Este cuesta cerca de una hora: no es una píldora de quince minutos. Si esta semana no tienes ese hueco, vale un boceto a mano de los dos caminos, fotografiado.) Crea un artefacto interactivo (un Genially o similar) con una bifurcación: un objetivo de aprendizaje y dos o tres actividades distintas para alcanzarlo, y que cada estudiante elija su sendero al empezar (p. ej. uno que aprende haciendo, otro leyendo, otro escuchando). Pega su enlace. Criterio: que cada sendero sea una actividad de verdad —no la misma con otro nombre— y que todos lleguen a la misma cima.",
       "cita": "Mi hermano no se perdió. Lo perdió el mapa."
     },
     "P4_amara": {
@@ -424,7 +625,7 @@
       "tipo": "Insignia de reto",
       "como": "Completando el Reto B del Tema 1.",
       "cuando": "Tema 1 · Fôrge",
-      "tarea": "Genera con una IA una imagen con finalidad didáctica (ilustración, organizador gráfico o infografía) para un nivel y tema que elijas. Requisitos mínimos: (1) prompt estructurado siguiendo un modelo tipo CRAFT/RITA (contexto educativo + tipo de imagen + finalidad); (2) al menos una iteración del prompt; (3) selección final con criterio docente justificada en 2–3 líneas; (4) evidencia del proceso (enlace al chat o capturas) y cita de la herramienta. El enlace puede ser un Google Doc con permiso de lectura para todos o una entrada de tu ePortfolio con la imagen, el prompt y tus criterios. Es la tabla técnica de la Actividad 1: guárdala, ya tienes hecho su núcleo.",
+      "tarea": "Diez o quince minutos, en clase. (1) Genera con una IA una imagen con finalidad didáctica (ilustración, organizador gráfico o infografía): prompt estructurado siguiendo un modelo tipo CRAFT/RITA (contexto educativo + tipo de imagen + finalidad), al menos una iteración y la elección final con tu criterio docente dicho en dos líneas. (2) Y de paso, un logo que lleve una palabra clave dentro (la que tú quieras: será tu marca). Los dos van a la portada de tu Bitácora. Pega aquí el enlace o una captura. Es la tabla técnica de la Actividad 1: guárdala, ya tienes hecho su núcleo — y el logo con palabra clave es exactamente lo que te van a pedir el día del examen.",
       "link": {
         "text": "Actividad 1 — imagen con IA",
         "href": "actividades.html#act1"
@@ -457,7 +658,7 @@
       "tipo": "Insignia de reto",
       "como": "Completando el Reto B del Tema 4.",
       "cuando": "Tema 4 · Reliae",
-      "tarea": "Monta tu aula virtual (Google Classroom, Moodle, Teams…): crea el aula, publica al menos una tarea o un material para tu alumnado y deja funcionando el canal de feedback y comunicación (tablón, comentarios, anuncios). Comparte un Google Doc con permiso de lectura con al menos 2 capturas de pantalla de tu aula y pega su enlace. Y aquí mismo, en la caja del reto, tu reflexión breve: cómo llega tu contenido al móvil del alumno y cómo mantienes la conversación viva. (La web de recursos es el reto del tema 5: aquí montas el AULA.)",
+      "tarea": "Monta tu aula virtual (Google Classroom, Moodle, Teams…): crea el aula, publica al menos una tarea o un material para tu alumnado y deja funcionando el canal de feedback y comunicación (tablón, comentarios, anuncios). Y ahora la otra mitad del oficio, la que casi nadie practica: publica en esa aula tres recursos que YA EXISTAN —un juego, un vídeo y una actividad interactiva que haya hecho otra persona—, cada uno con dos líneas de por qué ese y no otro y con su fuente o licencia citada. Crear está bien; encontrar rápido lo que ya está hecho, y saber si vale, es la mitad del trabajo de un docente… y el día del examen, media hora ganada. Comparte un Google Doc con permiso de lectura con al menos 2 capturas de pantalla de tu aula y pega su enlace. Y aquí mismo, en la caja del reto, tu reflexión breve: cómo llega tu contenido al móvil del alumno y cómo mantienes la conversación viva. (La web de recursos es el reto del tema 5: aquí montas el AULA.)",
       "link": {
         "text": "el ePortfolio (tu aula virtual)",
         "href": "actividades.html#eportfolio"
@@ -677,12 +878,14 @@
     "retoB_pua": 55,
     "actividad": 100,
     "final": 100,
-    "derivada": 60
+    "derivada": 60,
+    "relampago": 10,
+    "simulacro": 60
   },
   "xpReclutamiento": 100,
   "xpViaje": {
-    "REGULAR": 4750,
-    "PUA": 4350
+    "REGULAR": 5680,
+    "PUA": 5280
   },
   "semanas": {
     "REGULAR": 15,

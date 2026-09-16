@@ -60,7 +60,7 @@ function leerInsignias() {
  */
 function catalogo() {
   const D = leerDatos();
-  const reto = r => ({ id: r[0], titulo: r[1], insignias: r[2], xp: r[3], tema: r[4] });
+  const reto = r => ({ id: r[0], titulo: r[1], insignias: r[2], xp: r[3], tema: r[4], semana: r[5] || 0 });
   const cromo = c => ({ clave: c[0], nombre: c[1], peso: c[2], rareza: c[3], serie: c[4] });
   const heroe = h => ({ clave: h[0], nombre: h[1], peso: h[2], rareza: h[3] });
   const recompensa = r => ({ nombre: r[0], coste: r[1], maximo: r[2], descripcion: r[3], desdeSemana: r[4], tipo: r[5] });
@@ -71,7 +71,7 @@ function catalogo() {
     version: 1,
     fuente: "stargate",
     retos: { REGULAR: D.RETOS_REGULAR.map(reto), PUA: D.RETOS_PUA.map(reto) },
-    derivadas: D.DERIVADAS.map(d => ({ insignia: d[0], xp: d[1], requiere: d[2] })),
+    derivadas: D.DERIVADAS.map(d => ({ insignia: d[0], xp: d[1], requiere: d[2], min: d[3] || 0 })),
     insignias: leerInsignias(),
     temas: D.TEMAS.map(tema).filter(Boolean),
     rangos: D.RANGOS,

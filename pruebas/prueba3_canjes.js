@@ -22,8 +22,9 @@ let rico = G.tablero_(PER, true).reclutas[0];
 // bonus de racha. Eso es correcto: la constancia exige semanas de verdad, no una sentada.
 const bonoXP = G.BONUS_PLANETA.xp * 8;
 const bonoCR = G.BONUS_PLANETA.creditos * 8;
-// 940 ◈ de base (v3.41): 1.020 − 100 de la Batalla final (fuera) + 20 del huevo de Pascua S7
-igual(rico.creditos_ganados, 940 + bonoCR, "el viaje completo da los 940 ◈ de base más los bonus");
+// 1.140 ◈ de base (16-sep): los 940 de v3.41 + 80 de los ocho relámpago (10 cada uno) + 60 del
+// simulacro + 60 de «Mano rápida», que es una insignia derivada más y paga como las otras.
+igual(rico.creditos_ganados, 1140 + bonoCR, "el viaje completo da los 1.140 ◈ de base más los bonus");
 igual(rico.xp, G.XP_VIAJE.REGULAR + bonoXP, "y los xp del viaje más el bonus de los 8 planetas");
 igual(rico.nivel, 10, "🔴 y sigue siendo nivel 10: los bonus no se saltan el techo");
 igual(rico.nivel, 10, "nivel 10");

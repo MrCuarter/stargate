@@ -249,7 +249,11 @@
         '<p class="small muted">Los <b>mismos para todos tus grupos</b> y para los cursos que vengan: piden tu cuenta y, si llevas varios grupos, ' +
         'preguntan en cuál estáis. Se copia el código y, en Genially, <b>Insertar → Otros → Código</b>.</p></div>' +
         '<div class="gp-gen-b">' +
-        [["sesion", "📽️ La sesión de la semana", "sesion.html?embed=1"], ["aula", "🛰️ El aula · la clase en directo", "aula.html?embed=1"],
+        // 16-sep · la sesión se pega DOS VECES en el Genially: la apertura antes de la teoría y el
+        // cierre después. Así no hay que navegar por dentro del panel delante de la clase.
+        [["sesion-ap", "📽️ La sesión · 1 · apertura", "sesion.html?embed=1&tramo=apertura"],
+         ["sesion-ci", "📽️ La sesión · 3 · cierre", "sesion.html?embed=1&tramo=cierre"],
+         ["sesion", "📽️ La sesión entera (sin partir)", "sesion.html?embed=1"], ["aula", "🛰️ El aula · la clase en directo", "aula.html?embed=1"],
          ["llamada", "🔔 La llamada a filas", "llamada.html?embed=1"], ["batalla", "⚔️ El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
           return '<button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + x[1].replace(/^\S+\s/, ""))) + '">' + x[1] + '</button>';
         }).join("") + '</div></section>' +
