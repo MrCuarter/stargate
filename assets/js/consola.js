@@ -574,8 +574,11 @@
       '<th>xp</th><th>◈</th><th>Insignias</th><th title="Capítulos de NEBULA vistos (de los ya abiertos)">Bienvenida</th></tr></thead><tbody>' +
       lista.map(function (x) {
         var r = x[0], i = x[1];
-        return '<tr data-r="' + i + '" tabindex="0"' + (r.congelado ? ' class="congelado"' : '') + '><td>' + r.pos + '</td><td><b>' + esc(r.alias) + '</b>' +
-          (r.corona ? " 👑" : "") + (r.congelado ? ' <span class="chip" title="Cuenta congelada por el referente">🧊 congelado</span>' : '') + '</td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
+        // 16-sep · con su avatar (Norberto: «en Mi gente quiero ver el avatar de los estudiantes»): el que lleva puesto
+        var tipoG = ((DATOS.proyecto || {}).stargate || {}).tipo || "REGULAR";
+        var cara = window.SG && SG.avatarImg ? SG.avatarImg(r.avatar, r.alias, "gente-av" + (r.marco === "oro" ? " marco-oro" : ""), r.xp, tipoG) : "";
+        return '<tr data-r="' + i + '" tabindex="0"' + (r.congelado ? ' class="congelado"' : '') + '><td>' + r.pos + '</td><td class="gente-quien"><div class="gq">' + cara + '<span><b>' + esc(r.alias) + '</b>' +
+          (r.corona ? " 👑" : "") + (r.congelado ? ' <span class="chip" title="Cuenta congelada por el referente">🧊 congelado</span>' : '') + '</span></div></td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
           esc(r.email || "") + '</span></td>' + (conComandante ? '<td>' + esc(r.profe || "—") + '</td>' : '') + '<td>' + r.xp +
           '</td><td>' + r.creditos + '</td><td>' + r.n + "/" + NBADGES() + "</td>" + celdaBienvenida(r, caps) + "</tr>";
       }).join("") + "</tbody></table></div>";
@@ -1031,12 +1034,14 @@
       '<div class="card"><h3>Los enlaces de este grupo</h3>' +
       '<p class="small muted">Para repartir en clase. Cambiarlos es cosa del profe referente.</p>' +
       '<div class="m-enlaces">' +
-        enlaceFila("🧭", "Alistarse (con el código)", t.alta || "") +
-        enlaceFila("🚀", "La Nave del alumnado", "recluta.html?per=" + encodeURIComponent(PER)) +
-        enlaceFila("🏅", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1", "tablero_" + PER) +
-        enlaceFila("📽️", "La sesión de esta semana", "sesion.html?per=" + encodeURIComponent(PER), "sesion_" + PER) +
+        // 16-sep · el alistamiento sale del código del grupo (el mismo enlace que «Copiar invitación»): salía «sin configurar»
+        enlaceFila("🧭", "Alistarse (con el código)", t.alta || (DATOS.proyecto && DATOS.proyecto.joinCode
+          ? "alistarse.html?per=" + encodeURIComponent(PER) + "&codigo=" + encodeURIComponent(DATOS.proyecto.joinCode) : "")) +
+        enlaceFila("🚀", "La Nave del alumnado", "recluta.html?per=" + encodeURIComponent(PER), "", true) +
+        enlaceFila("🏅", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1", "tablero_" + PER, true) +
+        enlaceFila("📽️", "La sesión de esta semana", "sesion.html?per=" + encodeURIComponent(PER), "sesion_" + PER, true) +
         // 13-sep · la Nave con tu Comandante de recluta, para ensayar (o enseñarla fuera de la sesión): no guarda nada
-        enlaceFila("🛰️", "Tu Nave de Comandante (simulacro)", "recluta.html?simulacro=1&per=" + encodeURIComponent(PER)) +
+        enlaceFila("🛰️", "Tu Nave de Comandante (simulacro)", "recluta.html?simulacro=1&per=" + encodeURIComponent(PER), "", true) +
         enlaceFila("🧱", "Padlet de la clase", t.padlet || "") +
       '</div></div>';
 
@@ -1053,13 +1058,25 @@
       catch (e) { aviso(e.message); }
     };
   }
-  function enlaceFila(ico, tit, url, ventana) {
+  /**
+   * 🔴 16-sep · DOS FORMAS DE COPIAR. Norberto: «necesito dos botones, copiar enlace o copiar </>. Ahora copia esto:
+   * sesion.html?per=prueba-semana-8. Con eso no puedo meterlo al Genially». Copiaba la dirección RELATIVA, que fuera de
+   * la web no lleva a ninguna parte. Ahora: «🔗 Enlace» copia la dirección completa (para el foro, un botón, un QR) y
+   * «</> Código» copia el embed listo para Genially (Insertar → Otros → Código), con embed=1 para que salga sin la
+   * cabecera ni el menú. El código solo en lo que tiene sentido incrustar; un enlace externo como el padlet, no.
+   */
+  function absoluta(url) { return /^https?:\/\//i.test(url) ? url : location.origin + "/" + String(url).replace(/^\/+/, ""); }
+  function conEmbed(url) { return url + (url.indexOf("?") >= 0 ? "&" : "?") + "embed=1"; }
+  function enlaceFila(ico, tit, url, ventana, incrustable) {
     if (!url) return '<div class="m-fila vacia"><span>' + ico + '</span><b>' + esc(tit) + '</b>' +
                      '<em>sin configurar</em></div>';
     return '<div class="m-fila"><span>' + ico + '</span><b>' + esc(tit) + '</b>' +
       '<a href="' + esc(url) + '" target="_blank" rel="noopener">Abrir ↗</a>' +
       (ventana ? botonVentana(url, ventana, tit) : "") +
-      '<button class="btn min" data-copiar="' + esc(url) + '">Copiar</button></div>';
+      '<button class="btn min" data-copiar="' + esc(absoluta(url)) + '" data-copiado="✓ Enlace copiado" title="Copia la dirección completa">🔗 Enlace</button>' +
+      (incrustable ? '<button class="btn min" data-copiar="' + esc(codigoGenially(conEmbed(url), "STARGATE · " + tit)) + '" data-copiado="✓ Código copiado" ' +
+        'title="Copia el código para Genially: Insertar → Otros → Código">&lt;/&gt; Código</button>' : "") +
+      '</div>';
   }
 
   // ---------------------------------------------------------------- escondites

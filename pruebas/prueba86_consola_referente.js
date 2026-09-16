@@ -82,6 +82,19 @@ c(/botonVentana\(x\[2\], x\[0\]/.test(K), "   en los seis códigos de «Para tus
 c((K.match(/botonVentana\("(sesion|aula|llamada)\.html\?per=" \+ p\.id/g) || []).length === 3, "   en las tres acciones de clase de cada grupo (con su grupo)");
 c(/"tablero_" \+ PER/.test(K) && /"sesion_" \+ PER/.test(K), "   y en Mis enlaces: el tablero para proyectar y la sesión");
 
+// 8 · los enlaces del grupo y Mi gente (16-sep · Norberto: «necesito dos botones, copiar enlace o copiar </>; ahora
+//     copia sesion.html?per=… y con eso no puedo meterlo al Genially. En Mi gente quiero ver el avatar»)
+c(/function absoluta\(url\)/.test(K) && /data-copiar="' \+ esc\(absoluta\(url\)\)/.test(K),
+  "🔴 «🔗 Enlace» copia la dirección COMPLETA, no la relativa que no sirve fuera de la web");
+c(/codigoGenially\(conEmbed\(url\), "STARGATE · " \+ tit\)/.test(K) && /&lt;\/&gt; Código/.test(K),
+  "🔴 «</> Código» copia el código para Genially, con embed=1 (sin cabecera ni menú)");
+c((K.match(/"(sesion|tablero)_" \+ PER, true\)/g) || []).length === 2 && (K.match(/, "", true\)/g) || []).length === 2,
+  "   en la Nave, el tablero, la sesión y la Nave de Comandante (el padlet, no: es externo)");
+c(/"alistarse\.html\?per=" \+ encodeURIComponent\(PER\) \+ "&codigo="/.test(K), "   y el alistamiento ya no sale «sin configurar»: se arma con el código del grupo");
+c(/SG\.avatarImg\(r\.avatar, r\.alias, "gente-av"/.test(K) && /\.gente-tabla \.gente-quien \.av\.gente-av/.test(CSS),
+  "🔴 Mi gente enseña el avatar que lleva puesto cada recluta");
+c(!/td\.gente-quien\{display:flex/.test(CSS), "   sin romper la tabla (el flex va dentro de la celda, no en la celda)");
+
 console.log("\n  Batería 86 · la consola: lo del referente, la ficha y los rankings");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
 fallos.forEach(f => console.log("   ✗ " + f));
