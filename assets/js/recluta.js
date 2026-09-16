@@ -983,7 +983,7 @@
    */
   function cifrasDeBitacora(r){
     var tengo=r.cromos||{}, nCr=CROMOS.filter(function(c){return tengo[c[0]];}).length;
-    var nRet=((r.retos||[]).filter(function(k){return /^[ABXS]\d/.test(k);})).length;
+    var nRet=((r.retos||[]).filter(function(k){return /^(?:[ABXSL]\d|XS$)/.test(k);})).length;   // 16-sep · con relámpago y simulacro
     function c(tab,num,de,que,tit){
       return '<button type="button" class="nc" data-tab="'+tab+'" title="'+tit+'"><b>'+num+(de?'<small>/'+de+'</small>':'')+'</b><span>'+que+'</span></button>';
     }
@@ -3346,7 +3346,9 @@
     var hoy=new Date(); hoy.setHours(0,0,0,0);
     var f=(st.yo&&st.yo.retos_fecha)||{};
     // solo los retos que registra el propio recluta (A, B, X, S): los hitos (H1…) se completan solos
-    // —el de Reclutamiento, al alistarse— y contarlos le quitaba un hueco el primer día
+    // —el de Reclutamiento, al alistarse— y contarlos le quitaba un hueco el primer día.
+    // 16-sep · los relámpago (L…) tampoco cuentan, A PROPÓSITO: se hacen en clase en diez minutos, y no pueden
+    // quitarle a nadie el hueco de registrar ese mismo día un reto de dos horas. (El cerrojo de fuente.js, igual.)
     return Object.keys(f).filter(function(k){ return /^[ABXS]\d/.test(k) && new Date(f[k])>=hoy; }).length;
   }
   document.addEventListener('click', function(ev){

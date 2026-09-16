@@ -3346,7 +3346,7 @@ _html = head("STARGATE · Tu diploma",
 '''
 <section id="diploma"><div class="wrap">
 <div id="dp-app"><p class="muted">Cargando…</p></div>
-''' + '<script src="' + _v("assets/js/diploma.js") + '" defer></script>' + '''
+''' + '<script>window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';</script>' + '<script src="' + _v("assets/js/diploma.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "diploma.html"), "w", encoding="utf-8").write(_ver_assets(_html))

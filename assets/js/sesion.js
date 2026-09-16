@@ -191,6 +191,9 @@
   }
   /** La insignia de una misión: el Reto A del tema N da la del personaje (P N), el B la del reto (R N). */
   function insigniaDe(id){
+    // 16-sep · primero el catálogo (L1 lleva «La chispa»; XS, «Listo para la batalla»); si no, la regla de siempre
+    var fila=(((window.SG_CATALOGO||{}).retos||{}).REGULAR||[]).filter(function(r){ return r.id===id; })[0];
+    if(fila&&Array.isArray(fila.insignias)&&fila.insignias.length) return fila.insignias[0];
     var m=String(id||'').match(/^([AB])(\d)$/); if(!m) return '';
     var pre=(m[1]==='A'?'P':'R')+m[2]+'_', ks=Object.keys((window.SG&&SG.BADGE)||{});
     for(var i=0;i<ks.length;i++) if(ks[i].indexOf(pre)===0) return ks[i];

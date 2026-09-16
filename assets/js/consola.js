@@ -752,7 +752,8 @@
   function evidenciasDe(r) {
     var mias = (EVID && EVID[r.ficha]) || {}, EVR = window.SG_EVIDENCIA || {};
     // solo lo que entrega el recluta (A, B, X, S): los hitos (H…) se completan solos y no son entregas
-    var ids = Object.keys(r.retos || {}).filter(function (id) { return /^[ABXS]\d/.test(id); }).sort();
+    // (16-sep · también los relámpago, L1–L8, y el simulacro, XS: son entregas del recluta como las demás)
+    var ids = Object.keys(r.retos || {}).filter(function (id) { return /^(?:[ABXSL]\d|XS$)/.test(id); }).sort();
     if (!ids.length) return '<p class="small muted">Todavía no ha registrado ningún reto.</p>';
     if (!EVID) return '<p class="small muted">Buscando sus enlaces…</p>';
     var RFX = window.SG_REFLEXION || {}, rfs = (EVRF && EVRF[r.ficha]) || {};

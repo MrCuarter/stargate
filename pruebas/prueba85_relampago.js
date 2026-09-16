@@ -88,6 +88,21 @@ const suma = a => a.reduce((x, r) => x + r[3], 0) + D.XP_RECLUTAMIENTO + D.DERIV
 c(XPV.REGULAR === suma(REG), "🔴 el xp del viaje entero cuadra con el catálogo", XPV.REGULAR + " vs " + suma(REG));
 c(XPV.PUA === suma(PUA), "   y el de PUA también", XPV.PUA + " vs " + suma(PUA));
 
+// 9 · los sitios que contaban retos solo con A, B, X y S (16-sep, repaso antes del feedback de Norberto)
+const GP = "/Users/nor/Claude/vibewebs/gamificapro";
+const REGLAS = fs.existsSync(path.join(GP, "firestore.rules")) ? fs.readFileSync(path.join(GP, "firestore.rules"), "utf8") : "";
+c(/reto\.matches\('\^\(\[AB\]\[1-8\]\|L\[1-8\]\)\$'\)/.test(REGLAS),
+  "🔴 las reglas del servidor dejan guardar la reflexión de un relámpago (L2, L3 y L6 se responden en la caja)");
+c(/\/\^\(\?:\[ABXSL\]\\d\|XS\$\)\/\.test\(id\)/.test(leer("assets/js/consola.js")),
+  "🔴 en la ficha del docente, «Lo que ha entregado» enseña también los relámpago y el simulacro");
+c(/\/\^\(\?:\[ABXSL\]\\d\|XS\$\)\/\.test\(k\)/.test(N), "   y la cifra de retos de la Nave los cuenta");
+c(/los relámpago \(L…\) tampoco cuentan, A PROPÓSITO/.test(N), "   (el tope de tres al día no los cuenta, a propósito: se hacen en clase)");
+const DIP = leer("assets/js/diploma.js");
+c(/MISIONES\.filter\(function \(m\) \{ return m\.stargateId !== "H1"; \}\)/.test(DIP) && /CAMPANAS\.forEach/.test(DIP) && !/p\.earnedBadges \|\| \[\]\)\.length/.test(DIP),
+  "🔴 el diploma cuenta retos e insignias como el tablero (de las misiones y campañas del grupo), no de earnedBadges");
+c(/window\.SG_BADGES=/.test(leer("diploma.html")), "   con el catálogo de insignias en su página");
+c(/SG_CATALOGO\|\|\{\}\)\.retos/.test(leer("assets/js/sesion.js")), "   y la sesión saca la insignia de cada misión del catálogo (el relámpago L1 y el simulacro tienen la suya)");
+
 console.log("\n  Batería 85 · la Bitácora y los ocho relámpago");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
 fallos.forEach(f => console.log("   ✗ " + f));

@@ -443,7 +443,8 @@
                   var hoy0 = new Date(); hoy0.setHours(0, 0, 0, 0);
                   var sellos = (ficha.missionTimestamps || {}), hoyN = 0;
                   Object.keys(sellos).forEach(function (k) {
-                    // solo retos del propio recluta (A, B, X, S); los hitos (H…) se completan solos
+                    // solo retos del propio recluta (A, B, X, S); los hitos (H…) se completan solos, y los relámpago
+                    // (L…) no cuentan a propósito: se hacen en clase y no pueden quitar el hueco de un reto de verdad
                     if (!/^[ABXS]\d/.test(String(k).split("__").pop())) return;
                     var l = sellos[k]; var u = Array.isArray(l) ? l[l.length - 1] : l;
                     if (u && new Date(u) >= hoy0) hoyN++;

@@ -17,7 +17,7 @@
   var PER = (U.get("per") || "").trim();
   if (U.get("embed") === "1") document.body.classList.add("embed");
 
-  var M = null, YO = null, D = null, FICHA = null, PRIV = {}, TIPO = "REGULAR", LIENZO = null;
+  var M = null, YO = null, D = null, FICHA = null, PRIV = {}, TIPO = "REGULAR", LIENZO = null, MISIONES = [], CAMPANAS = [];
   var AB = window.SG_A_BORDO || { hitos: [] }, BT = window.SG_BATALLA || {}, SP = window.SG_SIN_PUA || { hitos: [] };
   var W = 2000, H = 1414;   // A4 apaisado a 170 ppp: se imprime sin pixelar y pesa poco
 
@@ -58,8 +58,22 @@
     var p = FICHA || {}, d = D || {};
     var xp = Number(p.totalPoints || 0);
     var ni = (window.SG && SG.nivelInfo) ? SG.nivelInfo(xp, TIPO) : { nivel: 1, rangoNombre: "Recluta", titulo: "" };
-    var retosTotal = ((window.SG_RETOS || {})[TIPO] || []).length || 20;
-    var hechos = (p.completedMissionIds || []).filter(function (id) { return /__[ABXS]\d/.test(String(id)); }).length;
+    /**
+     * 🔴 16-sep · RETOS E INSIGNIAS, COMO LOS CUENTA EL TABLERO. Antes: los retos contra una lista de 20 que ya no existe y
+     * las insignias de `earnedBadges`, donde el servidor solo apunta la PRIMERA de cada reto (la Actividad 1 da dos) y
+     * ninguna derivada. Ahora salen de las misiones y campañas del grupo, igual que en «Mi botín».
+     */
+    var misiones = MISIONES.filter(function (m) { return m.stargateId !== "H1"; });
+    var retosTotal = misiones.length || 29;
+    var suyas = p.completedMissionIds || [], campSuyas = p.completedCampaignIds || [];
+    var hechos = misiones.filter(function (m) { return suyas.indexOf(m.__id) >= 0; }).length;
+    var ins = {};
+    misiones.forEach(function (m) { if (suyas.indexOf(m.__id) >= 0) (m.stargateBadges || (m.badge ? [m.badge] : [])).forEach(function (b) { ins[b] = 1; }); });
+    if (suyas.length) ins.H1_reclutamiento = 1;
+    CAMPANAS.forEach(function (c) { if (c.stargateInsignia && campSuyas.indexOf(c.__id) >= 0) ins[c.stargateInsignia] = 1; });
+    (p.earnedBadges || []).forEach(function (b) { ins[b] = 1; });
+    var orden = window.SG_BADGES || Object.keys(ins);
+    var insLista = orden.filter(function (k) { return ins[k]; });
     var H2 = hitosDelTipo();
     var sim = p.stargateSimulador || {};
     var marcas = Object.keys((sim.marcas) || {}).map(function (k) { return Number(sim.marcas[k].p) || 0; });
@@ -69,14 +83,14 @@
       grupo: d.nombre || PER, comandante: p.stargateProfe || "", escuadron: esc7.nombre || "",
       nivel: ni.nivel, rango: ni.rangoNombre, titulo: ni.titulo, xp: xp,
       retos: hechos, retosTotal: retosTotal,
-      insignias: (p.earnedBadges || []).length, insigniasTotal: (window.SG_BADGES || []).length || 24,
+      insignias: insLista.length, insigniasTotal: (window.SG_BADGES || []).length || 27,
       cartas: unicos(p.inventory, "__cromo_"), cartasTotal: (window.SG_CROMOS || []).length || 26,
       heroes: unicos(p.inventory, "__heroe_"), heroesTotal: (window.SG_HEROES || []).length || 30,
       logros: H2.filter(function (h) { return (p.stargateHitos || {})[h.clave]; }).length, logrosTotal: H2.length,
       contramaestre: !!(p.stargateCubiertas || {}).todo,
       dias: Number((p.stargateDias || {}).total || 0),
       joran: !!sim[BT.clave || "joran"], marca: marcas.length ? Math.max.apply(null, marcas) : 0,
-      insigniasLista: (p.earnedBadges || []).slice(0, 24),
+      insigniasLista: insLista.slice(0, 27),
       avatar: (function () {
         var av = Object.assign({}, p.stargateAvatar || {}), v = String(p.stargateViste || "");
         if (v.indexOf("heroe:") === 0) av.heroe = v.slice(6);
@@ -247,7 +261,9 @@
     document.getElementById("dp-lienzo").appendChild(LIENZO);
     LIENZO.className = "dp-canvas";
     LIENZO.setAttribute("role", "img");
-    LIENZO.setAttribute("aria-label", "Diploma de " + d.alias + ", " + d.rango + ", nivel " + d.nivel);
+    // (las cifras también, para quien lo escucha con un lector de pantalla)
+    LIENZO.setAttribute("aria-label", "Diploma de " + d.alias + ", " + d.rango + ", nivel " + d.nivel + ": " +
+      d.retos + " de " + d.retosTotal + " retos y " + d.insignias + " de " + d.insigniasTotal + " insignias");
     document.getElementById("dp-png").onclick = function () {
       var a = document.createElement("a");
       a.href = LIENZO.toDataURL("image/png");
@@ -271,6 +287,11 @@
             TIPO = ((x.stargate || {}).tipo === "PUA") ? "PUA" : "REGULAR";
             D = { nombre: x.name || PER, escuadrones: (x.factions || []).map(function (f) { return { id: f.id, nombre: f.name, comandante: f.teacherName }; }) };
           }, function () { D = { nombre: PER, escuadrones: [] }; }),
+          // 16-sep · las misiones y campañas del grupo: de ahí salen los retos y las insignias, como en el tablero
+          M.getDocs(M.query(M.collection(M.db, "missions"), M.where("projectId", "==", PER))).then(function (q) {
+            MISIONES = q.docs.map(function (d) { return Object.assign({ __id: d.id }, d.data()); }); }, function () { MISIONES = []; }),
+          M.getDocs(M.query(M.collection(M.db, "campaigns"), M.where("projectId", "==", PER))).then(function (q) {
+            CAMPANAS = q.docs.map(function (d) { return Object.assign({ __id: d.id }, d.data()); }); }, function () { CAMPANAS = []; }),
         ]);
       }).then(ver);
   }
