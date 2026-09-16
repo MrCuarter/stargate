@@ -3397,7 +3397,7 @@ _html = head("STARGATE · Consola",
 <header class="hero corto"><h1>Mi puesto de mando</h1></header>
 <section id="consola"><div class="wrap">
 <div id="consola-app"><p class="muted">Cargando…</p></div>
-''' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '''
+''' + '<script>window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "consola.html"), "w", encoding="utf-8").write(_ver_assets(_html))

@@ -566,6 +566,21 @@ async function traspasar(perId, deNombre, aNombre) {
 }
 
 /**
+ * 16-sep · CAMBIAR DE COMANDANTE A UNA SOLA PERSONA. Lo mismo que `traspasar`, pero de uno en uno: alguien que eligió
+ * al docente equivocado al alistarse, o un reparto de grupos. Cambia Comandante y escuadrón de una vez, y todo lo suyo
+ * (retos, créditos, colección) va con la persona, no con el escuadrón.
+ */
+async function cambiarComandante(perId, fichaId, aNombre) {
+  const p = await getDoc(doc(db, "projects", perId));
+  const destino = ((p.data() || {}).factions || []).filter(f => f.teacherName === aNombre)[0] || null;
+  if (!destino) throw new Error("Ese Comandante no tiene escuadrón en este grupo");
+  const ficha = await getDoc(doc(db, "student_profiles", fichaId));
+  if (!ficha.exists() || ficha.data().projectId !== perId) throw new Error("Esa ficha no es de este grupo");
+  await updateDoc(ficha.ref, { stargateProfe: aNombre, squadId: destino.id, factionId: destino.id });
+  return { ok: true };
+}
+
+/**
  * Resolver un vale de la cola de nota.
  *
  * 🔴 Ojo a una diferencia con el sistema viejo, y es a mejor: aquí los créditos se cobran AL PEDIR
@@ -1776,7 +1791,7 @@ function codigoGenially(ruta, titulo) {
 window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
-                    guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, resolverVale,
+                    guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, alumno, nuevoCodigo,
                     huevosDe, guardarHuevos, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,

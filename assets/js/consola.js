@@ -335,7 +335,7 @@
    * muévelo a la última opción, y que brille cuando hay algo pendiente». Y el calendario, a la vista de todo el
    * equipo («la versión vista, sin edición, la debería poder ver el docente raso»): editar sigue siendo del referente.
    */
-  var TABS = [["alumnado", "Mi gente"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
+  var TABS = [["alumnado", "Mi gente"], ["rankings", "🏆 Rankings"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
               ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1],
               ["huevos", "Premios por enlace", 1], ["sorteos", "Sorteos", 1], ["ofertas", "Ofertas", 1], ["ajustes", "Ajustes del grupo", 1],
               ["canjes", "Cola de nota"]];
@@ -395,7 +395,7 @@
     cablearCopiar(app);
     if ($("#c-cambiar")) $("#c-cambiar").onclick = function () { url.delete("per"); elegirGrupo(); };
     $("#c-salir").onclick = function () { MOTOR.salir(); };
-    ({ alumnado: verAlumnado, canjes: verCanjes, zoco: verZoco, mios: verMios, equipo: verEquipo,
+    ({ alumnado: verAlumnado, rankings: verRankings, canjes: verCanjes, zoco: verZoco, mios: verMios, equipo: verEquipo,
        escuadrones: verEscuadrones, huevos: verHuevos, sorteos: verSorteos, ofertas: verOfertas, calendario: verCalendario, ajustes: verAjustes })[TAB](t);
     ofrecerVisitaDelGrupo();
     contarBuzon();
@@ -410,6 +410,7 @@
    */
   var PASOS_GRUPO = {
     alumnado: ["Mi gente", "Tu alumnado con sus xp, créditos e insignias. <b>Pulsa una fila</b>: ves su ficha, los <b>enlaces de sus evidencias</b> y puedes otorgar o anular un reto. El aviso <b>«⚠️ sin enlace»</b> marca los retos registrados sin evidencia."],
+    rankings: ["Rankings", "Todos los rankings del grupo —xp, esta semana, colección, constancia, relámpago, logros, el Simulador de Joran y los escuadrones—, del <b>grupo entero o de un escuadrón</b>. Son los mismos que ve tu alumnado en su Nave: para <b>ensalzar</b> en clase a quien destaca en cada cosa."],
     canjes: ["Cola de nota", "Solo aparece cuando alguien pide una subida de <b>nota</b>, y brilla hasta que la resuelves: ninguna se aplica sola. Los créditos no se mueven hasta entonces."],
     zoco: ["El Zoco", "Los trueques entre tu alumnado (se abren en la semana 8; en PUA, la 7): quién cambia qué con quién y los mensajes que se dejan. Si uno no te cuadra, <b>Deshacer</b> devuelve cada cosa a su dueño."],
     mios: ["Mis enlaces", "Tu panel de Genially, si has hecho una copia propia, y los enlaces del grupo para repartir en clase: la Nave, el tablero para proyectar, la sesión y el padlet."],
@@ -477,10 +478,23 @@
    */
   var FILTRO = {};   // por grupo: "" = todos, o el nombre del Comandante
   function filtroDe(t) {
-    var escs = t.escuadrones || [], f = FILTRO[PER];
-    if (f == null) { var mio = miNombreAqui(); f = escs.some(function (e) { return e.comandante === mio; }) ? mio : ""; }
+    var escs = t.escuadrones || [], f = FILTRO[PER], mio = miNombreAqui();
+    var tengoEsc = escs.some(function (e) { return e.comandante === mio; });
+    /**
+     * 🔴 16-sep · EN MODO DOCENTE, SOLO LO TUYO. Norberto: «si activo el modo docente no debo ver nada del referente;
+     * ahora mismo en modo docente puedo ver la info de otros escuadrones, no quiero, solo en modo referente». Ver a toda
+     * la gente del grupo es para revisar y resolver problemas: eso es del referente. El docente ve su escuadrón y punto.
+     */
+    if (!soyRefAqui()) return tengoEsc ? mio : "";
+    if (f == null) f = tengoEsc ? mio : "";
     return f && escs.some(function (e) { return e.comandante === f; }) ? f : "";
   }
+  /** El docente sin escuadrón en este grupo (y sin ser referente) no tiene alumnado que ver. */
+  function sinGenteQueVer(t) {
+    var mio = miNombreAqui();
+    return !soyRefAqui() && !(t.escuadrones || []).some(function (e) { return e.comandante === mio; });
+  }
+  function NBADGES() { return (window.SG_BADGES && window.SG_BADGES.length) || 27; }
   function retosOrdenados() { return DATOS.misiones.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); }
   /**
    * 16-sep · EXPORTAR A CSV. Norberto lo eligió de lo que trae el motor: para evaluar con datos y para justificar una
@@ -533,7 +547,7 @@
         return '<tr data-r="' + i + '" tabindex="0"' + (r.congelado ? ' class="congelado"' : '') + '><td>' + r.pos + '</td><td><b>' + esc(r.alias) + '</b>' +
           (r.corona ? " 👑" : "") + (r.congelado ? ' <span class="chip" title="Cuenta congelada por el referente">🧊 congelado</span>' : '') + '</td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
           esc(r.email || "") + '</span></td>' + (conComandante ? '<td>' + esc(r.profe || "—") + '</td>' : '') + '<td>' + r.xp +
-          '</td><td>' + r.creditos + '</td><td>' + r.n + "/24</td>" + celdaBienvenida(r, caps) + "</tr>";
+          '</td><td>' + r.creditos + '</td><td>' + r.n + "/" + NBADGES() + "</td>" + celdaBienvenida(r, caps) + "</tr>";
       }).join("") + "</tbody></table></div>";
   }
   /** Una fila pulsada (o con Intro) abre su ficha. */
@@ -544,9 +558,25 @@
       fila.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abre(); } };
     });
   }
+  /**
+   * 🔴 16-sep · LOS RANKINGS, EN LA CONSOLA Y PARA TODOS. Son exactamente los de la Nave del alumnado (assets/js/tablero.js):
+   * se montan aquí con los datos que la consola ya tiene, sin pedir nada más. El docente abre con su escuadrón y el
+   * referente con el grupo entero; los dos pueden cambiar, porque un ranking no es información del referente: lo ve
+   * toda la clase.
+   */
+  function verRankings(t) {
+    var mio = miNombreAqui(), tengoEsc = (t.escuadrones || []).some(function (e) { return e.comandante === mio; });
+    $("#c-cuerpo").innerHTML = '<div class="card c-rankings"><h3>🏆 Rankings</h3>' +
+      '<p class="small muted">Los mismos que ve tu alumnado en su Nave, del <b>grupo entero o de un escuadrón</b>. Cada uno mide una cosa distinta, ' +
+      'para que brille más gente: proyéctalos en clase y ensalza a quien destaca. Pulsa a alguien para ver su ficha pública.</p>' +
+      '<div id="c-rank" class="c-rank"></div></div>';
+    if (!window.SG_RANKING_MONTAR) { $("#c-rank").innerHTML = '<p class="muted">No se ha podido cargar el ranking. Recarga la página.</p>'; return; }
+    window.SG_RANKING_MONTAR($("#c-rank"), PER, { datos: t, ambito: !soyRefAqui() && tengoEsc ? mio : "" });
+  }
   function verAlumnado(t) {
-    var caps = capsDelGrupo(t), escs = t.escuadrones || [], filtro = filtroDe(t), mio = miNombreAqui();
-    var chips = escs.length > 1 ? '<div class="gente-filtro" role="group" aria-label="De qué escuadrón">' +
+    var caps = capsDelGrupo(t), escs = t.escuadrones || [], filtro = filtroDe(t), mio = miNombreAqui(), ref = soyRefAqui();
+    // los chips de escuadrón (y «Todos») son del referente: el docente ve su escuadrón sin elegir
+    var chips = ref && escs.length > 1 ? '<div class="gente-filtro" role="group" aria-label="De qué escuadrón">' +
       '<button type="button" class="gf' + (!filtro ? " on" : "") + '" data-gf="" aria-pressed="' + !filtro + '">Todos <span>' + t.reclutas.length + '</span></button>' +
       escs.map(function (e) {
         var n = t.reclutas.filter(function (r) { return r.profe === e.comandante; }).length, on = filtro === e.comandante;
@@ -554,12 +584,12 @@
           (e.emblema ? '<img src="' + esc(e.emblema) + '" alt="" width="22" height="22" loading="lazy">' : '') + esc(e.nombre) +
           '<em>' + (e.comandante === mio ? "el tuyo" : esc(e.comandante)) + '</em><span>' + n + '</span></button>';
       }).join("") + '</div>' : '';
-    var lista = t.reclutas.map(function (r, i) { return [r, i]; }).filter(function (x) { return !filtro || x[0].profe === filtro; });
+    var lista = sinGenteQueVer(t) ? [] : t.reclutas.map(function (r, i) { return [r, i]; }).filter(function (x) { return !filtro || x[0].profe === filtro; });
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>Alumnado</h3>' +
       '<p class="small muted">El nombre y el correo solo los ves tú y el resto del equipo docente. ' +
       '<b>Pulsa una fila</b> y se abre su ficha: sus retos, los enlaces de lo que ha entregado y lo que puedes hacer.</p>' + chips +
-      (lista.length ? tablaGente(lista, caps, !filtro) : '<p class="muted">Todavía no hay nadie en este escuadrón.</p>') +
-      (t.sin_docente ? '<p class="aviso">⚠️ ' + t.sin_docente + ' recluta(s) sin Comandante asignado.</p>' : "") +
+      (lista.length ? tablaGente(lista, caps, !filtro) : '<p class="muted">' + (sinGenteQueVer(t) ? 'No tienes escuadrón en este grupo, así que aquí no hay alumnado a tu nombre.' : 'Todavía no hay nadie en este escuadrón.') + '</p>') +
+      (ref && t.sin_docente ? '<p class="aviso">⚠️ ' + t.sin_docente + ' recluta(s) sin Comandante asignado.</p>' : "") +
       // 16-sep · la hoja de cálculo para evaluar: lo que hay en pantalla, tal cual, en un CSV
       (lista.length ? '<p class="gp-csv"><button type="button" class="btn min" id="c-csv">📊 Descargar CSV</button>' +
         '<span class="small muted">Lo de esta vista (' + lista.length + ' reclutas) para tu hoja de cálculo: xp, créditos, retos, insignias, ' +
@@ -753,6 +783,56 @@
     if (!r) { cerrarFicha(); aviso(txt, bien); return; }
     verFicha(r); avisoFicha(txt, bien);
   }
+  /**
+   * 🔴 16-sep · LA FICHA, CON SUS INSIGNIAS Y POR TEMAS. Norberto: «me gusta la idea, está bien clasificado, pero querría
+   * ver las insignias (iluminadas las que tienen), manteniendo la clasificación por temas». Cada tema en una fila: sus
+   * insignias (encendidas las ganadas) y sus retos (en verde los registrados, que se pulsan para otorgar o anular). Las
+   * insignias que no son de ningún reto —los hitos que se ganan solos— van al final, en «Hitos del viaje».
+   */
+  function temasDeLaFicha(r, retos) {
+    var suyas = r.insignias || [], N = window.SG_BADGE_NAMES || {}, cat = window.SG_CATALOGO || {}, vistas = {};
+    var chip = function (mi) {
+      var tiene = !!(r.retos || {})[mi.id];
+      return '<button type="button" class="reto' + (tiene ? " hecho" : "") + (/^L\d/.test(mi.id) ? " rel" : "") + '" data-reto="' + esc(mi.id) + '" data-tiene="' + (tiene ? 1 : 0) +
+        '" title="' + esc(mi.title) + '">' + esc(mi.id) + (tiene ? " ✓" : "") + "</button>";
+    };
+    var ins = function (k) {
+      vistas[k] = 1; var on = suyas.indexOf(k) >= 0;
+      return '<img class="fi-in' + (on ? "" : " no") + '" src="assets/img/insignias/' + esc(k) + '.png" alt="' + esc(N[k] || k) + '" title="' + esc(N[k] || k) + (on ? "" : " · pendiente") + '" loading="lazy" width="44" height="44">';
+    };
+    var fila = function (tit, sub, ks, mis) {
+      var hechos = mis.filter(function (mi) { return (r.retos || {})[mi.id]; }).length;
+      return '<div class="fi-tema' + (mis.length && hechos === mis.length ? " completo" : "") + '"><div class="fi-tema-cab"><b>' + esc(tit) + "</b>" +
+        (sub ? "<span>" + esc(sub) + "</span>" : "") + (mis.length ? "<em>" + hechos + "/" + mis.length + "</em>" : "") + "</div>" +
+        '<div class="fi-tema-ins">' + ks.map(ins).join("") + "</div>" +
+        (mis.length ? '<div class="retos-ficha">' + mis.map(chip).join("") + "</div>" : "") + "</div>";
+    };
+    var html = "";
+    for (var tt = 1; tt <= 8; tt++) {
+      var mis = retos.filter(function (mi) { return Number(mi.stargateTema) === tt; });
+      var ks = []; mis.forEach(function (mi) { (mi.stargateBadges || []).forEach(function (k) { if (ks.indexOf(k) < 0) ks.push(k); }); });
+      var pl = (cat.temas || []).filter(function (x) { return x && Number(x.n) === tt; })[0];
+      html += fila("Tema " + tt, pl ? pl.planeta : "", ks, mis);
+    }
+    var resto = (window.SG_BADGES || []).filter(function (k) { return !vistas[k]; });
+    // (el alistamiento, H1, no se otorga ni se anula: llega al alistarse. Sin su botón, la fila no dice «0/1»)
+    var sueltos = retos.filter(function (mi) { return mi.id !== "H1" && !(Number(mi.stargateTema) >= 1 && Number(mi.stargateTema) <= 8); });
+    if (resto.length || sueltos.length) html += fila("Hitos del viaje", "llegan solos", resto, sueltos);
+    return '<div class="fi-temas">' + html + "</div>";
+  }
+  /**
+   * 🔴 16-sep · CAMBIAR DE COMANDANTE DESDE LA FICHA. Norberto: «añade la opción de cambiar de comandante desde aquí,
+   * ayudará mucho». Pasa: alguien elige al docente equivocado al alistarse, o un grupo se reparte. Es del referente,
+   * como mover a toda la gente de un docente a otro, y hace lo mismo que aquello pero con una sola persona.
+   */
+  function cambioDeComandante(r) {
+    var fs = ((DATOS.proyecto && DATOS.proyecto.factions) || []).filter(function (f) { return f.teacherName && f.teacherName !== r.profe; });
+    if (!fs.length) return "";
+    return '<p class="fi-cmd"><label>🔀 Pasar a ' + esc(r.alias) + ' al escuadrón de <select id="c-cmd">' +
+      fs.map(function (f) { return '<option value="' + esc(f.teacherName) + '">' + esc(f.name || f.teacherName) + " · " + esc(f.teacherName) + "</option>"; }).join("") +
+      '</select></label> <button type="button" class="btn min" id="c-cmd-b">Cambiar</button> ' +
+      '<span class="small muted">se lleva todo lo suyo: retos, créditos y colección.</span></p>';
+  }
   function verFicha(r) {
     var retos = retosOrdenados(), ficha = r.ficha, esRef = soyRefAqui();
     FICHA_RF = r;   // (para quitar una reflexión o un comentario desde su ficha)
@@ -764,29 +844,34 @@
         "<h3>" + esc(r.alias) + (r.corona ? " 👑" : "") + (r.nombre ? ' <span>· ' + esc(r.nombre) + "</span>" : "") + "</h3>" +
         (r.email ? '<p class="small muted">' + esc(r.email) + "</p>" : "") + "</div></div>" +
       '<div class="fi-cifras"><div><b>' + r.xp + '</b><span>xp</span></div><div><b>' + r.creditos + '</b><span>◈ créditos</span></div>' +
-        '<div><b>' + r.nivel + '</b><span>nivel · ' + esc(r.rango_nombre || "") + '</span></div><div><b>' + r.n + '/24</b><span>insignias</span></div>' +
+        '<div><b>' + r.nivel + '</b><span>nivel · ' + esc(r.rango_nombre || "") + '</span></div><div><b>' + r.n + '/' + NBADGES() + '</b><span>insignias</span></div>' +
         '<div><b>' + (r.racha || 0) + '</b><span>semanas de racha</span></div></div>' +
       lineaABordo(r) +
       (r.congelado ? '<p class="aviso">🧊 <b>Cuenta congelada</b>' + (r.congelado.fecha ? " desde el " + diaDe(r.congelado.fecha) : "") + ": entra y mira su Nave, pero no puede hacer nada.</p>" : "") +
       '<div class="c-modal-aviso aviso" hidden></div>' +
-      "<h4>Sus retos</h4>" +
-      '<div class="retos-ficha">' + retos.map(function (mi) {
-        var tiene = !!(r.retos || {})[mi.id];
-        return '<button type="button" class="reto' + (tiene ? " hecho" : "") + '" data-reto="' + esc(mi.id) + '" data-tiene="' + (tiene ? 1 : 0) + '" title="' +
-               esc(mi.title) + '">' + esc(mi.id) + (tiene ? " ✓" : "") + "</button>";
-      }).join("") + "</div>" +
-      '<p class="small muted">Verde = registrado. Púlsalo para otorgar o anular. Todo queda anotado en el libro de experiencia, con quién y cuándo.</p>' +
+      "<h4>Sus retos y sus insignias, por temas</h4>" + temasDeLaFicha(r, retos) +
+      '<p class="small muted">Insignia encendida = ganada. Reto en verde = registrado: púlsalo para otorgarlo o anularlo. Todo queda anotado en el libro de experiencia, con quién y cuándo.</p>' +
       '<div class="evid-ficha"><h4>Lo que ha entregado</h4><div id="c-evid">' + evidenciasDe(r) + "</div></div>" +
       // 🔴 DAR DE BAJA y CONGELAR (14-sep): solo el referente (Norberto: «el referente tiene poder de eliminar o
       // congelar: puede acceder, pero no puede hacer nada, bloqueado»). La baja hace falta de verdad: alguien que se
       // alista en el grupo equivocado o con la cuenta que no era deja una ficha huérfana en el ranking.
-      (esRef ? '<div class="ficha-ref"><h4>Solo el referente</h4>' +
+      (esRef ? '<div class="ficha-ref"><h4>Solo el referente</h4>' + cambioDeComandante(r) +
         '<p><button type="button" class="btn min" id="c-congelar">' + (r.congelado ? "▶️ Descongelar a " : "🧊 Congelar a ") + esc(r.alias) + "</button> " +
         '<span class="small muted">' + (r.congelado ? "vuelve a poder hacer de todo." : "podrá entrar y mirar, pero no registrar retos, comprar, fichar ni usar el Zoco.") + "</span></p>" +
         '<p><button type="button" class="btn min peligro" id="c-baja">Dar de baja a ' + esc(r.alias) + "</button> " +
         '<span class="small muted">borra su ficha del grupo. Podrá alistarse otra vez, aquí o en otro, empezando de cero.</span></p></div>' : ""));
     // si la ficha se abrió antes de que llegaran los enlaces, se rellena en cuanto lleguen
     if (!EVID && EVID_LISTO) EVID_LISTO.then(function () { var h = document.getElementById("c-evid"); if (h) h.innerHTML = evidenciasDe(r); });
+    var cmdB = m.querySelector("#c-cmd-b");
+    if (cmdB) cmdB.onclick = async function () {
+      var a = (m.querySelector("#c-cmd") || {}).value; if (!a) return;
+      if (!confirm("¿Pasar a «" + r.alias + "» al escuadrón de " + a + "?\n\nCambia de Comandante y de escuadrón. Se lleva todo lo suyo.")) return;
+      cmdB.disabled = true;
+      try {
+        await MOTOR.cambiarComandante(PER, ficha, a); await refrescar();
+        reabrirFicha(ficha, "🔀 " + r.alias + " ya está en el escuadrón de " + a + ".", true);
+      } catch (e) { cmdB.disabled = false; avisoFicha("No se ha podido cambiar: " + (e.message || e), false); }
+    };
     var cong = m.querySelector("#c-congelar");
     if (cong) cong.onclick = async function () {
       var ya = !!r.congelado;

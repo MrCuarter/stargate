@@ -69,14 +69,16 @@ c(/function botin\(\)/.test(NAVE), "«Mi botín» existe");
 });
 c(/function badgesCronologicos\(\)/.test(NAVE), "las insignias van en el orden en que se ganan");
 // 15-sep · y agrupadas por temas (Norberto): cada planeta con su tripulante y su reto; luego la historia y los hitos
-c(/LAS INSIGNIAS, POR TEMAS/.test(NAVE) && /deIns\('P'\+tt\+'_'\)\.concat\(deIns\('R'\+tt\+'_'\)\)/.test(NAVE) && /class="badge-col"/.test(NAVE),
+// 16-sep · el tema 1 lleva también R0 (la Bitácora en marcha, el reto B de la semana 1)
+c(/LAS INSIGNIAS, POR TEMAS/.test(NAVE) && /deIns\('P'\+tt\+'_'\)\.concat\(tt===1\?deIns\('R0_'\):\[\]\)\.concat\(deIns\('R'\+tt\+'_'\)\)/.test(NAVE) && /class="badge-col"/.test(NAVE),
   "las insignias de «Mi botín» van por temas (P y R de cada planeta) y cada casilla sigue abriéndose como siempre");
 c(/\(st\.semanas \|\| SEM \|\| \[\]\)\.forEach/.test(NAVE),
   "🔴 y ese orden sale del CALENDARIO, no de una lista aparte: mover un reto de semana reordena la colección sola");
 
 // ---------------------------------------------------------------- e) ocho rankings, y el de equipos por media
 const MODOS = (TABLERO.match(/\{k:'[a-z]+'/g) || []).length;
-igual(MODOS, 8, "🔴 ocho rankings: no ocho veces el mismo dato, ocho datos distintos");
+// 16-sep · trece: se sumaron relámpago, logros de a bordo y los tres del Simulador de Joran (sabio, certero y rápido)
+igual(MODOS, 13, "🔴 trece rankings: no trece veces el mismo dato, trece datos distintos");
 c(/porEquipos:true/.test(TABLERO), "uno compara escuadrones");
 c(/Math\.round\(suma\/g\.length\)/.test(TABLERO),
   "🔴 por MEDIA por recluta: sumando ganaría siempre el más numeroso y la tabla mediría cuánta gente hay");

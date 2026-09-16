@@ -3988,3 +3988,57 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 
 .dip-caja{border-color:rgba(255,209,102,.45)}
 .dip-caja h3{margin:2px 0 8px}
+
+/* ═══ 16-sep · LA FICHA POR TEMAS, LO ENTREGADO SIN AIRE Y LOS RANKINGS EN LA CONSOLA ═══════════════════════════ */
+/* Cada tema en una fila compacta: cabecera · sus insignias (encendidas las ganadas) · sus retos. Sin aire: la ficha
+   tiene que caber en una pantalla con los enlaces de lo entregado debajo. */
+.fi-temas{display:grid;gap:6px;margin:8px 0 6px}
+.fi-tema{display:grid;grid-template-columns:128px auto 1fr;gap:10px;align-items:center;padding:6px 10px;
+  border:1px solid #1c2a40;border-radius:10px;background:#0b111c}
+.fi-tema.completo{border-color:#2f6b4a;background:linear-gradient(90deg,rgba(79,209,139,.07),transparent 55%)}
+.fi-tema-cab{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.fi-tema-cab b{font-size:.86rem;color:#e8eefc}
+.fi-tema-cab span{font-size:.78rem;color:#9fb0ce;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi-tema-cab em{font-style:normal;font-size:.75rem;color:#8fe3b0;font-weight:700;font-variant-numeric:tabular-nums}
+.fi-tema-ins{display:flex;gap:4px;flex-wrap:wrap}
+.fi-in{width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(55,224,236,.35))}
+.fi-in.no{filter:grayscale(1) brightness(.45);opacity:.55}
+.fi-tema .retos-ficha{margin:0;gap:5px;justify-content:flex-end}
+.fi-tema .reto{padding:4px 9px;font-size:.8rem}
+.reto.rel{border-style:dashed}
+.reto.rel.hecho{border-style:solid}
+@media(max-width:720px){.fi-tema{grid-template-columns:1fr}.fi-tema .retos-ficha{justify-content:flex-start}}
+
+/* Lo que ha entregado: una línea por reto, el enlace recortado y la reflexión plegada en su sitio */
+.evid-ficha{margin-top:10px;padding-top:8px}
+.evid-ficha h4{margin:0 0 4px}
+.evid-lista{gap:0;border:1px solid #1c2a40;border-radius:10px;overflow:hidden}
+.evid-lista li{gap:8px;padding:5px 10px;font-size:.86rem;line-height:1.35;border-bottom:1px solid #151f31;align-items:center}
+.evid-lista li:last-child{border-bottom:0}
+.evid-lista li:nth-child(odd){background:#0b111c}
+.evid-lista li b{min-width:26px;font-size:.8rem;color:#9fb0ce}
+.evid-lista a{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46ch;display:inline-block;vertical-align:bottom;word-break:normal}
+.evid-lista .evid-rf{flex-basis:100%;margin:2px 0 2px 34px;padding:6px 10px}
+.evid-lista .evid-rf-t{font-size:.86rem;margin:0 0 4px}
+.evid-lista .evid-rf p{margin:0}
+
+/* Cambiar de Comandante */
+.fi-cmd{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px}
+.fi-cmd select{font:inherit;font-size:.86rem;padding:5px 8px;border-radius:8px;border:1px solid #24304a;background:#0d1420;color:#e8eefc;max-width:100%}
+
+/* Rankings: de quién es el ranking (el grupo o un escuadrón) y el emblema de cada fila */
+.rank-ambito{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.rank-ambito .ra{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.85rem;font-weight:600;padding:5px 11px;border-radius:99px;
+  border:1px solid #24304a;background:#0d1420;color:#9fb0ce;cursor:pointer}
+.rank-ambito .ra img{width:20px;height:20px;border-radius:50%;object-fit:cover}
+.rank-ambito .ra span{font-size:.75rem;color:#6d8296;font-variant-numeric:tabular-nums}
+.rank-ambito .ra.on{border-color:#37e0ec;color:#e8eefc;background:#0b1a1e}
+.rank-ambito .ra:focus-visible{outline:2px solid #37e0ec;outline-offset:1px}
+.rank .who .rank-esc{width:26px;height:26px;border-radius:50%;object-fit:cover;margin-right:6px;flex:none;vertical-align:middle;
+  box-shadow:0 0 0 1px rgba(255,255,255,.12)}
+.c-rank .rank-tabs{flex-wrap:wrap}
+/* 16-sep · el bloque del referente, también sin aire */
+.ficha-ref{margin-top:10px;padding-top:8px}
+.ficha-ref h4{margin:0 0 6px}
+.ficha-ref p{margin:0 0 6px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.ficha-ref .btn.min{padding:6px 12px}

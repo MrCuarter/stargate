@@ -4,33 +4,45 @@
 // tarde sigue teniendo algo que ganar) y el coleccionista, que va de gastar créditos y de suerte.
 // El orden lo decide el modo; los datos son siempre los mismos y las tres columnas se ven a la vez.
 (function(){
-  var API=(window.SG_TABLERO_API||"").trim(); var root=document.getElementById('tablero-app'); if(!root) return;
-  var q=new URLSearchParams(location.search), per=q.get('per');
+/**
+ * 🔴 16-sep · EL RANKING, MONTABLE. Norberto: «falta una sección de rankings, visible para todos: deben aparecer todos
+ * los rankings que hemos ido hablando, ensalzar a los estudiantes. De grupo completo o de escuadrón, y en el ranking
+ * total el icono de su escuadrón». Ya existía uno para el alumnado (en la Nave y en los Geniallys): en vez de hacer
+ * otro para la consola —dos rankings que acabarían contando cosas distintas— este mismo se monta allí con los datos
+ * que la consola ya tiene cargados. `OPC.datos` = no se pide nada; `OPC.ambito` = el escuadrón con el que abre.
+ */
+function montar(root, per, OPC){
+  OPC=OPC||{};
+  var enConsola=!!OPC.datos;
+  var API=(window.SG_TABLERO_API||"").trim();
+  var q=new URLSearchParams(location.search);
   // v3.37 · ALOJADO: este mismo ranking vive ahora DENTRO de la Nave del Recluta. Es la única página
   // web que se le da al alumnado, así que el tablero tenía que estar ahí — hasta hoy la Nave
   // enlazaba a registro.html, que es la web del profesorado con la guía de instalación.
   // 🔴 Cuando va alojado NO se tocan las clases del <body>: «solo-ranking» esconde todas las
   // secciones que no llevan el tablero dentro, o sea que dejaría la Nave en blanco.
-  var alojado=!!window.SG_TABLERO_ALOJADO;
-  var embed=q.get('embed')==='1'; if(embed&&!alojado) document.body.classList.add('embed');
+  var alojado=enConsola||!!window.SG_TABLERO_ALOJADO;
+  var embed=!enConsola&&q.get('embed')==='1'; if(embed&&!alojado) document.body.classList.add('embed');
   // v3.20 · &solo=1 · SOLO EL RANKING, para incrustarlo en un Genially sin nada alrededor: fuera los
   // botones de los formularios y fuera la cabecera. Lo que queda es la competición y nada más.
   var solo=alojado||q.get('solo')==='1'; if(solo&&!alojado) document.body.classList.add('solo-ranking');
   var N=window.SG_BADGE_NAMES||{};
-  var ORDEN=["P1_bran","P2_tomas","P3_sylla","P4_amara","P5_vera","P6_joran","P7_mara","P8_noa","R1_la-chispa","R2_el-eco-que-ensena","R3_la-matriz","R4_entorno-de-aula","R5_bitacora-medida","R6_el-juego","R7_microgamificacion","R8_ultimo-umbral","E1_nebula","E2_capitan","E3_vaeon","H1_reclutamiento","H2_primera-forja","H3_cartografo","H4_tripulacion-cero","H5_la-liberacion"];
+  // 16-sep · el orden sale del catálogo (SG_BADGES) cuando la página lo trae: con la Bitácora, Mano rápida y Listo para
+  // la batalla ya no son 24, y escribirlo a mano aquí era la segunda copia de un dato que vive en _build_site.py.
+  var ORDEN=(window.SG_BADGES&&window.SG_BADGES.length)?window.SG_BADGES.slice():["P1_bran","P2_tomas","P3_sylla","P4_amara","P5_vera","P6_joran","P7_mara","P8_noa","R1_la-chispa","R2_el-eco-que-ensena","R3_la-matriz","R4_entorno-de-aula","R5_bitacora-medida","R6_el-juego","R7_microgamificacion","R8_ultimo-umbral","E1_nebula","E2_capitan","E3_vaeon","H1_reclutamiento","H2_primera-forja","H3_cartografo","H4_tripulacion-cero","H5_la-liberacion"];
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function msg(h){root.innerHTML='<div class="wip"><span class="ic">🛰️</span><div>'+h+'</div></div>';}
   var FUENTE=(window.SG&&SG.FUENTE)||null;
-  if(!API&&(!FUENTE||FUENTE.nombre!=='firestore')){msg('<b>Tablero pendiente de conectar.</b> Falta la URL del web app (guía de instalación, abajo).');return;}
+  if(!enConsola&&!API&&(!FUENTE||FUENTE.nombre!=='firestore')){msg('<b>Tablero pendiente de conectar.</b> Falta la URL del web app (guía de instalación, abajo).');return;}
   // 🔴 Este tablero es el que vive DENTRO de los Geniallys del profesorado, donde no hay sesión de
   // nadie. Por eso pide los datos a la fuente y no a Firestore: con el motor nuevo hay una puerta
   // pública de solo lectura montada justo para esto.
   function fallo(e){msg('<b>No se pudo cargar el tablero.</b> '+esc(e&&e.message||e));}
   function lista(cb){ (FUENTE?FUENTE.lista():fetch(API+'?per=all').then(function(r){return r.json();})).then(cb).catch(fallo); }
   function uno(id,cb){ (FUENTE?FUENTE.tablero(id):fetch(API+'?per='+encodeURIComponent(id)).then(function(r){return r.json();})).then(cb).catch(fallo); }
-  if(!per){lista(function(d){if(!d.pers||!d.pers.length){msg('<b>Aún no hay ningún PER.</b>');return;}
+  if(!per&&!enConsola){lista(function(d){if(!d.pers||!d.pers.length){msg('<b>Aún no hay ningún PER.</b>');return;}
     root.innerHTML='<h3>Elige tu PER</h3><div class="pers">'+d.pers.map(function(p){return '<a class="btn" href="?per='+encodeURIComponent(p.id)+(embed?'&embed=1':'')+'">'+esc(p.nombre)+' <small>· '+esc(p.tipo)+' · '+esc(p.estado)+'</small></a>';}).join('')+'</div>';});return;}
-  msg('Cargando el tablero…');
+  if(!enConsola) msg('Cargando el tablero…');
   function dots(p){return ORDEN.map(function(k){var on=p.insignias.indexOf(k)>=0;return '<img class="dot'+(on?'':' off')+'" src="assets/img/insignias/'+k+'.png" title="'+esc(N[k]||k)+(on?'':' (pendiente)')+'" alt="">';}).join('');}
 
   // ---------- la colección ----------
@@ -49,9 +61,19 @@
     return '<span class="'+(c.tengo===c.total?'muted full':'muted')+'" title="'+esc(det)+'">'+pct2(c.pct)+'&nbsp;%</span>'
       +(p.n_album?' <span class="sello-serie mini" title="Series completas">✦'+p.n_album+'</span>':'');}
 
+  // ---------- el Simulador de Joran: sus marcas y sus mínimos (los mismos que las medallas de la batalla) ----------
+  var BAT=window.SG_BATALLA||{}, MIN=BAT.medallas_min||{aciertos:20, respondidas:30};
+  function simT(p){ return (p.simulador&&p.simulador.total)||{}; }
+  function nRelampago(p){ return (p.hechos||[]).filter(function(h){ return /^L\d/.test(h); }).length; }
+  function nLogros(p){ return Object.keys(p.hitos||{}).length; }
+  function medalla(k, porDefecto){
+    var m=(BAT.medallas||[]).filter(function(x){return x[0]===k;})[0];
+    return m?(m[1]+' '+m[2]):porDefecto;
+  }
+
   // ---------- los tres modos ----------
   var MODOS=[
-    {k:'xp', et:'⚡ Más xp', col:'xp',
+    {k:'xp', et:'⭐ Más xp', col:'xp',
      ayuda:'Los xp que has ganado desde que empezaste. <b>Nunca bajan</b>: canjear recompensas no te quita puestos.',
      val:function(p){return p.xp;}, unidad:' xp', vacio:'Todavía nadie ha registrado nada.'},
     {k:'semana', et:'🔥 Esta semana', col:'sem',
@@ -88,6 +110,35 @@
      val:function(p){var v=p.planetas_completos; return Array.isArray(v)?v.length:(v||0);},
      unidad:function(v){return v===1?' planeta':' planetas';}, soloConValor:true,
      vacio:'Nadie ha cerrado un planeta entero todavía. El primero que lo haga sale aquí solo.'},
+    /**
+     * 🔴 16-sep · LOS QUE FALTABAN. Norberto: «todos los rankings que hemos ido hablando». Los tres del Simulador de
+     * Joran con sus mismos nombres y sus mismos mínimos (un dato, un sitio: SG_BATALLA), los logros de a bordo y los
+     * relámpago, que se juegan en clase y por eso premian ESTAR. Cada uno mide una cosa distinta: más gente brilla.
+     */
+    {k:'relampago', et:'🌩️ Relámpago', col:'xp',
+     ayuda:'Retos <b>relámpago</b> hechos: los de diez minutos que se juegan en clase. Premia estar, no correr.',
+     val:function(p){return nRelampago(p)||0;},
+     unidad:function(v){return v===1?' relámpago':' relámpago';}, soloConValor:true,
+     vacio:'Todavía nadie ha hecho un relámpago. Se juegan en clase, desde la semana 2.'},
+    {k:'logros', et:'🎖️ Logros de a bordo', col:'xp',
+     ayuda:'Las <b>primeras veces</b> en la Nave: el primer reto, la primera reflexión, comentar a tu tripulación, tres días seguidos…',
+     val:function(p){return nLogros(p)||0;},
+     unidad:function(v){return v===1?' logro':' logros';}, soloConValor:true,
+     vacio:'Todavía nadie tiene logros de a bordo. Se presentan en la semana 9.'},
+    {k:'sabio', et:medalla('sabio','📚 Quien más sabe'), col:'xp',
+     ayuda:'Respuestas <b>correctas</b> en el Simulador de Joran, sumando todas sus batallas.',
+     val:function(p){return Number(simT(p).aciertos)||0;}, unidad:' aciertos', soloConValor:true,
+     vacio:'Nadie ha peleado todavía contra el Simulador de Joran.'},
+    {k:'certero', et:medalla('certero','🎯 El más certero'), col:'xp', pct:true,
+     ayuda:function(){return 'Porcentaje de <b>aciertos</b> en el Simulador, a partir de '+MIN.respondidas+' respuestas: una buena tarde no vale por un curso.';},
+     val:function(p){var t=simT(p); return Number(t.respondidas)>=MIN.respondidas?(t.aciertos*100)/t.respondidas:0;},
+     unidad:' %', soloConValor:true,
+     vacio:'Nadie llega todavía al mínimo de respuestas en el Simulador.'},
+    {k:'rapido', et:medalla('rapido','⚡ El más rápido'), col:'xp', pct:true, asc:true,
+     ayuda:function(){return 'Segundos por <b>acierto</b> en el Simulador, a partir de '+MIN.aciertos+' aciertos. Aquí gana el número más <b>bajo</b>.';},
+     val:function(p){var t=simT(p); return Number(t.aciertos)>=MIN.aciertos?(t.ms/1000)/t.aciertos:0;},
+     unidad:' s por acierto', soloConValor:true,
+     vacio:'Nadie llega todavía al mínimo de aciertos en el Simulador.'},
     {k:'escuadrones', et:'⚔️ Escuadrones', col:'xp', porEquipos:true,
      ayuda:'Los escuadrones entre sí, por <b>media de xp por recluta</b>. 🔴 Por media y no por total: sumando ganaría siempre el más numeroso, y eso no mediría nada.',
      val:function(p){return p.xp;}, unidad:' xp de media',
@@ -134,7 +185,7 @@
         +(p.racha>=3?' · 🔥 '+p.racha+' semanas seguidas':'')+'</div></div></div>'
       +(p.bio?'<p class="fr-bio">«'+esc(p.bio)+'»</p>':'')
       +'<div class="fr-kpis">'
-        +'<div><b>'+p.n+'</b><span>de 24 insignias</span></div>'
+        +'<div><b>'+p.n+'</b><span>de '+ORDEN.length+' insignias</span></div>'
         +'<div><b>'+(col.cromos?col.cromos.tengo:0)+'</b><span>de '+(col.cromos?col.cromos.total:20)+' cartas</span></div>'
         +'<div><b>'+pct2(p.coleccion?p.coleccion.pct:0)+'&nbsp;%</b><span>del juego</span></div></div>'
       +(ins?'<h4>Insignias</h4><div class="fr-lista">'+ins+'</div>':'')
@@ -149,12 +200,32 @@
   function modoDe(k){for(var i=0;i<MODOS.length;i++) if(MODOS[i].k===k) return MODOS[i]; return MODOS[0];}
   var modo=modoDe(q.get('ranking')||'xp');
 
-  uno(per,function(d){
+  (enConsola?function(x,cb){cb(OPC.datos);}:uno)(per,function(d){
     if(d.error){msg('<b>'+esc(d.error)+'</b>');return;}
     // v3.38 · los datos se comparten con quien viva en la misma página: el «duelo» de la Nave
     // calcula con ellos quién va justo delante y quién pisa los talones, sin pedirlos otra vez.
     try{window.SG_TABLERO_DATA=d;document.dispatchEvent(new CustomEvent('sg:tablero'));}catch(e){}
     var todos=d.reclutas||[];
+    /**
+     * 🔴 16-sep · EL ÁMBITO: todo el grupo o un escuadrón. Norberto: «debe haber de grupo completo o de escuadrón». Se
+     * aplica a todos los rankings de personas (no al de Escuadrones, que ya compara equipos). En el grupo completo, cada
+     * fila lleva el emblema de su escuadrón: así se ve de un vistazo de dónde sale cada cual.
+     */
+    var ESCS=d.escuadrones||[], ambito=OPC.ambito||'';
+    if(ambito&&!ESCS.some(function(e){return e.comandante===ambito;})) ambito='';
+    function gente(){ return ambito?todos.filter(function(p){return String(p.profe||'')===ambito;}):todos; }
+    function escDe(p){ return ESCS.filter(function(e){return e.comandante===p.profe;})[0]||null; }
+    function embRow(p){ if(ambito) return ''; var e=escDe(p); return (e&&e.emblema)?'<img class="rank-esc" src="'+esc(e.emblema)+'" alt="" title="'+esc(e.nombre||'')+'" loading="lazy" width="26" height="26">':''; }
+    function chipsAmbito(){
+      if(ESCS.length<2||modo.porEquipos) return '';
+      return '<div class="rank-ambito" role="group" aria-label="De quién es el ranking">'
+        +'<button type="button" class="ra'+(!ambito?' on':'')+'" data-amb="">🌐 Todo el grupo <span>'+todos.length+'</span></button>'
+        +ESCS.map(function(e){ var n=todos.filter(function(p){return p.profe===e.comandante;}).length, on=ambito===e.comandante;
+          return '<button type="button" class="ra'+(on?' on':'')+'" data-amb="'+esc(e.comandante)+'">'
+            +(e.emblema?'<img src="'+esc(e.emblema)+'" alt="" width="20" height="20" loading="lazy">':'')+esc(e.nombre||e.comandante)+' <span>'+n+'</span></button>'; }).join('')
+        +'</div>';
+    }
+    function ayudaDe(m){ return typeof m.ayuda==='function'?m.ayuda():m.ayuda; }
     var forms='<div class="cta-row" style="justify-content:flex-start">'+(d.formBitacora?'<a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">📓 Mi Bitácora de mando (registrar lo que he hecho)</a>':'')
       +(d.formTicket?'<a class="btn" href="'+esc(d.formTicket)+'" target="_blank" rel="noopener">🎟️ Ticket de salida</a>':'')
       +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🛸 Mercado Estelar</a>':'')+'</div>';
@@ -186,13 +257,13 @@
       var r;
       if(m.porEquipos){ r=porEquipos(m); }
       else {
-        r=todos.slice();
+        r=gente().slice();
         if(m.filtro) r=r.filter(m.filtro);
         if(m.soloConValor) r=r.filter(function(p){return m.val(p)>0;});
       }
       var valor=m.porEquipos?function(p){return p._val;}:m.val;
       // desempate SIEMPRE igual y estable: la métrica, luego xp, luego insignias, luego el alias
-      r.sort(function(a,b){return valor(b)-valor(a) || b.xp-a.xp || b.n-a.n || a.alias.localeCompare(b.alias);});
+      r.sort(function(a,b){return (m.asc?valor(a)-valor(b):valor(b)-valor(a)) || b.xp-a.xp || b.n-a.n || a.alias.localeCompare(b.alias);});
       var pos=0,ant=null;
       r.forEach(function(p,i){var v=valor(p); if(ant===null||v!==ant){pos=i+1;ant=v;} p._pos=pos;});  // empatados, mismo puesto
       return r;
@@ -214,7 +285,7 @@
       var visibles=MODOS.filter(function(m){ return !m.soloSiSeQuienSoy || yoSoy(); });
       var pestanas='<div class="rank-tabs" role="tablist">'+visibles.map(function(m){
           return '<button type="button" class="rank-tab'+(m.k===modo.k?' on':'')+'" data-modo="'+m.k+'" role="tab" aria-selected="'+(m.k===modo.k)+'">'+m.et+'</button>';}).join('')
-        +'</div><p class="small muted rank-ayuda">'+modo.ayuda+'</p>';
+        +'</div><p class="small muted rank-ayuda">'+ayudaDe(modo)+'</p>';
       var cuerpo = r.length
         ? '<div class="esc-grid">'+r.map(function(e,i){
             return '<div class="esc-card'+(i===0?' lider':'')+'">'
@@ -234,7 +305,7 @@
     function cablearPestanas(){
       Array.prototype.forEach.call(root.querySelectorAll('[data-modo]'),function(b){
         b.onclick=function(){ modo=modoDe(b.getAttribute('data-modo'));
-          try{ var u=new URL(location.href); u.searchParams.set('ranking',modo.k); history.replaceState(null,'',u); }catch(e){}
+          if(!enConsola) try{ var u=new URL(location.href); u.searchParams.set('ranking',modo.k); history.replaceState(null,'',u); }catch(e){}
           pintaTodo(); };
       });
     }
@@ -245,7 +316,7 @@
       var visibles=MODOS.filter(function(m){ return !m.soloSiSeQuienSoy || yoSoy(); });
       var pestanas='<div class="rank-tabs" role="tablist">'+visibles.map(function(m){
           return '<button type="button" class="rank-tab'+(m.k===modo.k?' on':'')+'" data-modo="'+m.k+'" role="tab" aria-selected="'+(m.k===modo.k)+'">'+m.et+'</button>';}).join('')
-        +'</div><p class="small muted rank-ayuda">'+modo.ayuda+'</p>';
+        +'</div><p class="small muted rank-ayuda">'+ayudaDe(modo)+'</p>';
       var podio=top.length?'<div class="podium">'+[1,0,2].map(function(i){var p=top[i];if(!p)return '';
         var cls=['gold','silver','bronze'][i],med=['🥇','🥈','🥉'][i];
         return '<div class="pod '+cls+'"><div class="medal">'+med+'</div>'+SG.avatarImg(p.avatar,p.alias,'big'+(p.marco==='oro'?' marco-oro':''),p.xp,d.tipo)
@@ -258,10 +329,10 @@
       var filas=r.map(function(p){
         window.__fichas[p.alias.toLowerCase()]=p;
         return '<tr class="clicable" data-ficha="'+esc(p.alias.toLowerCase())+'" data-alias="'+esc(p.alias.toLowerCase())+'" tabindex="0" title="Ver la ficha de '+esc(p.alias)+'"><td><b>'+p._pos+'</b></td>'
-          +'<td class="who">'+SG.avatarImg(p.avatar,p.alias,p.marco==='oro'?'marco-oro':'')+'<span><b>'+(p.corona?'👑 ':'')+esc(p.alias)+'</b>'
+          +'<td class="who">'+embRow(p)+SG.avatarImg(p.avatar,p.alias,p.marco==='oro'?'marco-oro':'')+'<span><b>'+(p.corona?'👑 ':'')+esc(p.alias)+'</b>'
           +(p.racha>=3?'<span class="chip-racha" title="'+p.racha+' semanas seguidas registrando algo">🔥 '+p.racha+'</span>':'')
           +(p.titulo?'<em class="titulo-recluta">«'+esc(p.titulo)+'»</em>':'')+'</span></td>'
-          +'<td>'+esc(p.planeta)+'</td><td>'+p.n+'/24</td>'
+          +'<td>'+esc(p.planeta)+'</td><td>'+p.n+'/'+ORDEN.length+'</td>'
           +'<td'+td('col','small')+'>'+colTxt(p)+'</td>'
           +'<td class="small"><b>'+(SG.nivel?SG.nivel(p.xp,d.tipo):1)+'</b> <span class="muted">'+esc(SG.avatarSrc(p.avatar,p.alias,p.xp,d.tipo).rango)+'</span></td>'
           +'<td'+td('xp','pts')+'>'+p.xp+'</td>'
@@ -282,7 +353,7 @@
                '<div class="cta-row" style="justify-content:center;margin:0 0 14px">'
               +'<a class="btn primary grande" href="recluta.html?per='+encodeURIComponent(per)
               +'" target="_blank" rel="noopener">🚀 Entrar en mi Nave — registrar y canjear</a></div>')
-            : forms)+pestanas+podio
+            : forms)+chipsAmbito()+pestanas+podio
         +'<div class="buscar"><input id="buscaAlias" type="search" placeholder="Busca tu alias…" autocomplete="off"><span class="small muted">pulsa en cualquier recluta para ver su ficha · «Semana» son los xp de los últimos 7 días</span></div>'
         +(r.length?'<div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Recluta</th><th>Planeta</th><th>Insignias</th>'
             +'<th'+th('col')+' title="Cartas, héroes y versiones de tu personaje">Colección</th><th>Nivel</th>'
@@ -296,17 +367,24 @@
       Array.prototype.forEach.call(root.querySelectorAll('tr[data-ficha]'),function(tr){
         tr.onclick=function(){abrirFicha(tr.getAttribute('data-ficha'));};
         tr.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();abrirFicha(tr.getAttribute('data-ficha'));}};});
+      Array.prototype.forEach.call(root.querySelectorAll('[data-amb]'),function(b){
+        b.onclick=function(){ ambito=b.getAttribute('data-amb')||''; pintaTodo(); };});
       Array.prototype.forEach.call(root.querySelectorAll('.rank-tab'),function(b){
         b.onclick=function(){
           modo=modoDe(b.getAttribute('data-modo'));
           // el modo va en la URL: así se puede enlazar «el ranking de la semana» y sobrevive a un F5
-          try{var u=new URL(location.href); u.searchParams.set('ranking',modo.k); history.replaceState(null,'',u);}catch(e){}
+          if(!enConsola) try{var u=new URL(location.href); u.searchParams.set('ranking',modo.k); history.replaceState(null,'',u);}catch(e){}
           pintaTodo();
         };});
     }
     // 🔴 El ranking se pinta al cargar, y en ese momento la Nave todavía no ha dicho quién eres —
     // por eso «Mi escuadrón» no aparecía. Se deja un tirador para que lo repinte cuando lo sepa.
-    window.SG_RANKING_REPINTA = pintaTodo;
+    if(!enConsola) window.SG_RANKING_REPINTA = pintaTodo;
     pintaTodo();
   });
+}
+window.SG_RANKING_MONTAR = montar;
+// La página de siempre (registro.html, la Nave, los Geniallys): se monta sola si encuentra su hueco.
+var hueco=document.getElementById('tablero-app');
+if(hueco) montar(hueco, new URLSearchParams(location.search).get('per'));
 })();

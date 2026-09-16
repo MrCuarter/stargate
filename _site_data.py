@@ -870,6 +870,9 @@ BATALLA = {
     "medallas": [["rapido", "⚡", "El más rápido", "menos segundos por acierto"],
                  ["certero", "🎯", "El más certero", "más aciertos por respuesta"],
                  ["sabio", "📚", "Quien más sabe", "más respuestas correctas en total"]],
+    # 16-sep · el mínimo para optar a «rápido» y «certero» (el espejo de BATALLA.MEDALLAS en GamificaPro): una buena
+    # tarde no puede valer por un curso. Lo usan también los rankings de la Nave y de la consola.
+    "medallas_min": {"aciertos": 20, "respondidas": 30},
     "objetos": [["cura", "🔧", "Reparación", "Recupera 35 de escudo"],
                 ["furia", "⚡", "Sobrecarga", "Tu próximo golpe hace el doble"],
                 ["lentitud", "📡", "Interferencia", "Retrasa su ataque 12 segundos"]],

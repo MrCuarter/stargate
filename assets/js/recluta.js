@@ -538,7 +538,7 @@
         +'<div class="badge-col">'+ks.map(celdaIns).join('')+'</div></div>';
     };
     var temasIns=''; for(var tt=1;tt<=8;tt++){ var pl=PLAN[tt-1]||[];
-      temasIns+=grupoIns('Tema '+tt+(pl[1]?' · '+pl[1]:''), '', deIns('P'+tt+'_').concat(deIns('R'+tt+'_')), pl[0]?'assets/img/planetas/'+pl[0]+'.png'+(window.SG_IMGV||''):''); }
+      temasIns+=grupoIns('Tema '+tt+(pl[1]?' · '+pl[1]:''), '', deIns('P'+tt+'_').concat(tt===1?deIns('R0_'):[]).concat(deIns('R'+tt+'_')), pl[0]?'assets/img/planetas/'+pl[0]+'.png'+(window.SG_IMGV||''):''); }
     var col='<div class="ins-temas">'+temasIns
       +grupoIns('La historia', 'NEBULA, el Capitán y Vaeon', deIns('E'), '')
       +grupoIns('Hitos del viaje', 'Llegan solos con lo que haces', badgesCronologicos().filter(function(k){ return /^H/.test(k); }), '')+'</div>';
