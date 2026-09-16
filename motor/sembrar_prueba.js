@@ -9,7 +9,7 @@
  * 🔴 Escribe en el Firestore de VERDAD. Solo crea documentos bajo su propio grupo; no toca nada más.
  *   node motor/sembrar_prueba.js            → la clase de prueba de Norberto (prueba-humana)
  *   node motor/sembrar_prueba.js --demo     → el grupo del botón DEMO de la portada (demo-stargate)
- *   node motor/sembrar_prueba.js --id=prueba-semana-16 --nombre="…" --semana=16 [--real=correo@gmail.com]
+ *   node motor/sembrar_prueba.js --id=prueba-semana-16 --nombre="…" --semana=16 [--real=CORREO-DE-LA-CUENTA]
  *        → 16-sep · un grupo de prueba EN LA SEMANA QUE SE PIDA, con los 20 reclutas repartidos sobre los retos que
  *          ya están abiertos esa semana (catálogo de hoy: relámpago y simulacro incluidos), colección, logros de a bordo
  *          y el Simulador. Con `--real`, el primero es esa cuenta DE VERDAD (su uid de Firebase Auth) con casi todo hecho,
