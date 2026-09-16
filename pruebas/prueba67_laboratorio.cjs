@@ -51,9 +51,9 @@ const REG = {};   // cifras que se apuntan para el informe
         // 14-sep · y +1 para quien lleva el grupo: «Ofertas» (la oferta de la semana y las suyas)
         // 15-sep · la Cola de nota solo sale si hay algo pendiente (y entonces es +1); el Calendario lo ve todo el
         // equipo: el docente raso ve Mi gente, El Zoco, Mis enlaces y Calendario
-        ["rita@lab.test", "Rita Referente", 10, "referente que imparte"],
-        ["dani@lab.test", "Dani Docente", 4, "docente raso"],
-        ["sol@lab.test", "Sol Coordina", 10, "referente que NO imparte"],
+        ["rita@lab.test", "Rita Referente", 11, "referente que imparte"],
+        ["dani@lab.test", "Dani Docente", 5, "docente raso"],   // (16-sep · +🏆 Rankings, para todos)
+        ["sol@lab.test", "Sol Coordina", 11, "referente que NO imparte"],
       ];
       for (const [correo, nombre, pestanas, quien] of casos) {
         const p = await nueva(quien);
@@ -653,9 +653,10 @@ const REG = {};   // cifras que se apuntan para el informe
       // 15-sep · «Mi gente» abre en su escuadrón: aquí se miran todos
       await rita.hasta("!!document.querySelector('.gf[data-gf=\"\"]') || !!document.querySelector('tr[data-r]')", 12);
       await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1");
-      const aviso = await rita.hasta("!!document.querySelector('.sin-evid')", 12);
-      c("🔴 evidencia · en «Mi gente», un aviso junto a quien tiene retos obligatorios sin enlace", aviso,
-        await rita.js("[].slice.call(document.querySelectorAll('.sin-evid')).map(function(x){return x.closest('tr').querySelector('b').textContent+': '+x.textContent}).join(' | ')"));
+      await rita.hasta("document.querySelectorAll('tr[data-r]').length>0", 12); await dormir(1500);
+      // 17-sep · Norberto: «no sería necesario este indicador: hemos puesto obligatorio adjuntar un enlace»
+      c("🔴 evidencia · «Mi gente» ya no pone «⚠️ N sin enlace» al lado de nadie (el enlace es obligatorio al registrar)",
+        await rita.js("!document.querySelector('tr[data-r] .sin-evid') && !/sin enlace/.test(document.querySelector('table').innerText)"));
       await rita.foto(FOTOS + "/11-mi-gente-avisos.png");
       await rita.js("[].slice.call(document.querySelectorAll('[data-r]')).filter(function(f){return /Cometa/.test(f.textContent)})[0].click(); 1");
       const enlace = await rita.hasta("((document.querySelector('.evid-ficha')||{}).innerHTML||'').indexOf('padlet.com/carla')>=0", 12);
@@ -902,7 +903,7 @@ const REG = {};   // cifras que se apuntan para el informe
         // 13-sep · +1: «El Zoco» (todos); referente, +«Calendario», (14-sep) +«Sorteos» y +«Ofertas»; (15-sep) el Calendario
         // para todos y la Cola de nota solo si hay algo pendiente
         const hayCola = await p.js("!!document.querySelector('.pest[data-tab=\"canjes\"]')");
-        const nTabs = (ref ? 10 : 4) + (hayCola ? 1 : 0);
+        const nTabs = (ref ? 11 : 5) + (hayCola ? 1 : 0);   // (16-sep · +🏆 Rankings, para todos)
         c("capitán · la visita del grupo tiene " + (nTabs + 2) + " pasos, uno por pestaña que " + nombre + " ve",
           loc.length === nTabs + 2 && loc.slice(1, nTabs + 1).every(v => /\bpest\b/.test(v.diana)), JSON.stringify(loc.map(v => v.t + "→" + v.diana)));
       }
@@ -1989,8 +1990,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.foto(FOTOS + "/22-20-consola-zoco.png");
       // deshacer el trueque del Tejedor (Pau → Quim): los dos conservan lo que recibieron
       const antesP = await ficha("pau"), antesQ = await ficha("quim");
-      await rita.js("window.confirm=function(){return true}; 1");
       await rita.js(`document.querySelector('[data-deshacer-z="${T13q._id}"]').click(); 1`);
+      c("zoco · 20 · «Deshacer» pregunta antes", /Deshacer este trueque/.test(await rita.responder()));
       c("zoco · 20 · «Deshacer» → «Deshecho: cada cosa ha vuelto a su dueño»", await rita.hasta("/Deshecho: cada cosa ha vuelto/i.test((document.getElementById('c-aviso')||{}).innerText||'')", 25),
         await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
       const dP = await ficha("pau"), dQ = await ficha("quim");
@@ -2002,7 +2003,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await cambia("olga", { inventory: (await ficha("olga")).inventory.filter(x => x !== HE) }); await reajusta();
       const antes20 = JSON.stringify([await ficha("olga"), await ficha("quim")].map(f => [f.coins, f.inventory.slice().sort()]));
       await rita.js("document.querySelector('.pest[data-tab=\"zoco\"]').click(); 1"); await rita.hasta("!!document.querySelector('.zoco-tabla')", 25);
-      await rita.js(`document.querySelector('[data-deshacer-z="${T4._id}"]').click(); 1`);
+      await rita.js(`document.querySelector('[data-deshacer-z="${T4._id}"]').click(); 1`); await rita.responder();
       c("🔴 zoco · 20 · si Olga ya cambió el Eco, NO se deshace (si no, habría un Eco de la nada) y lo dice con su nombre",
         await rita.hasta("/No se puede deshacer[\\s\\S]*Olga Órbita ya no tiene «Eco/i.test((document.getElementById('c-aviso')||{}).innerText||'')", 25),
         await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
@@ -2241,7 +2242,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await nor.js(`var i=document.getElementById('s-borrar-nombre'); i.value=${JSON.stringify(NOMBRE)}; i.dispatchEvent(new Event('input')); 1`);
       c("borrar · con el nombre exacto, se enciende", !(await nor.js("document.getElementById('s-borrar').disabled")));
       await nor.foto(FOTOS + "/24-borrar-grupo.png");
-      await nor.js("window.confirm=function(){return true}; document.getElementById('s-borrar').click(); 1");
+      await nor.js("document.getElementById('s-borrar').click(); 1");
+      c("borrar · la última pregunta, en su ventana con la cara de STARGATE", /borrar «/.test(await nor.responder()));
       c("borrar · vuelve a «Mis grupos» diciendo que se ha borrado", await nor.hasta("location.search.indexOf('borrado=')>=0 && /borrado/i.test(document.body.innerText)", 60),
         await nor.js("location.href") + " · " + (await nor.texto()).slice(0, 200));
       await nor.foto(FOTOS + "/24-borrado.png");
@@ -2418,11 +2420,11 @@ const REG = {};   // cifras que se apuntan para el informe
       const antes = {}; for (const k of Object.keys(F)) antes[k] = papeletas(await ficha(k));
       // el sorteo, proyectado
       await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1"); await rita.hasta("!!document.querySelector('.sr-directo')", 20);
-      await rita.js("window.confirm=function(){return true}; document.querySelector('.sr-directo').click(); 1");
+      await rita.js("document.querySelector('.sr-directo').click(); 1");
       c("sorteo · «Sortear en directo» abre el bombo para proyectar (sin nombres reales ni correos)", await rita.hasta("document.querySelectorAll('.sr-proy .sr-chip').length===4", 10)
         && !/@lab\.test/.test(await rita.js("document.querySelector('.sr-proy').innerText")));
       await rita.foto(FOTOS + "/25-bombo.png");
-      await rita.js("document.getElementById('sr-go').click(); 1");
+      await rita.js("document.getElementById('sr-go').click(); 1"); await rita.responder(null, 3);   // (si aún no es el día, lo pregunta)
       c("🔴 sorteo · ¡Sortear! → la ruleta se para en dos ganadores", await rita.hasta("document.querySelectorAll('.sr-chip.gana').length===2 && /Enhorabuena/.test(document.querySelector('.sr-proy').innerText)", 60),
         await rita.js("(document.querySelector('.sr-proy')||{}).innerText||''"));
       await rita.foto(FOTOS + "/25-ganadores.png");
@@ -2653,7 +2655,9 @@ const REG = {};   // cifras que se apuntan para el informe
       await abreFicha(rita, "Gélida");
       c("🔴 congelar · en la ficha, «Solo el referente»: 🧊 Congelar y Dar de baja", await rita.hasta("!!document.getElementById('c-congelar') && !!document.getElementById('c-baja')", 10));
       await rita.foto(FOTOS + "/27-ficha-referente.png");
-      await rita.js("window.confirm=function(){return true}; document.getElementById('c-congelar').click(); 1");
+      await rita.js("document.getElementById('c-congelar').click(); 1");
+      c("🔴 congelar · pregunta desplegada debajo, dentro de la ficha (no el aviso del navegador)",
+        await rita.hasta("!!document.querySelector('#c-modal .ficha-ref .sgp-caja.en-linea') && !document.querySelector('.sgp-capa')", 8) && /Congelar la cuenta/.test(await rita.responder()));
       c("congelar · «🧊 Gélida está congelado: mira, pero no toca»", await rita.hasta("/está congelad/.test((((document.querySelector('#c-modal .c-modal-aviso')||{}).innerText||'')+' '+((document.getElementById('c-aviso')||{}).innerText||'')))", 25), await rita.js("(((document.querySelector('#c-modal .c-modal-aviso')||{}).innerText||'')+' '+((document.getElementById('c-aviso')||{}).innerText||''))"));
       const fgc = await ficha("gelida");
       c("🔴 congelar · la ficha lleva el candado (quién y cuándo)", !!(fgc.stargateCongelado && fgc.stargateCongelado.por === "rita@lab.test"), JSON.stringify(fgc.stargateCongelado));
@@ -2693,9 +2697,39 @@ const REG = {};   // cifras que se apuntan para el informe
       c("descongelada · sin el aviso, y compra otra vez", !(await g6.js("!!document.querySelector('.congelado-aviso')")) && /COMPRÓ/.test(await g6.js(`window.SG.MOTOR.llamar('purchaseReward',{projectId:'${P}',rewardId:'${sobre._id}',studentProfileId:'${F.gelida._id}'}).then(function(){return 'COMPRÓ'},function(e){return e.message})`, 60000)));
       await g6.cerrar();
 
+      // 6 bis · 17-sep · validar y anular con un porqué: el mensaje llega a la Nave. Norberto: «imagina que ha puesto un enlace
+      // incorrecto: se desmarca la misión y se da una razón al estudiante»
+      await abreFicha(rita, "Gélida");
+      const rG = await rita.js("(function(){var b=document.querySelector('#c-modal [data-reto^=\"A\"][data-tiene=\"0\"]'); if(!b) return ''; b.click(); return b.getAttribute('data-reto');})()");
+      await rita.responder("¡Buen trabajo! Te lo valido.");
+      c("mensaje · validar un reto de Gélida con un mensaje", !!rG && await rita.hasta("/Validado " + rG + "[\\s\\S]*le ha llegado tu mensaje/.test((document.querySelector('#c-modal .c-modal-aviso')||{}).textContent||'')", 30),
+        rG + " · " + await rita.js("(document.querySelector('#c-modal .c-modal-aviso')||{}).textContent||''"));
+      await rita.js(`document.querySelector('#c-modal [data-reto="${rG}"]').click(); 1`);
+      await rita.hasta("!!document.querySelector('#c-modal .sgp-rapidos button')", 8);
+      c("mensaje · al anular, motivos rápidos para no escribirlo cada vez", await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('#c-modal .sgp-rapidos button')).filter(function(x){return /No es público/.test(x.textContent)})[0]; if(!b) return false; b.click(); return /no es público/.test(document.querySelector('#c-modal .sgp-caja textarea').value); })()"));
+      await rita.foto(FOTOS + "/27-ficha-anular-con-motivo.png");
+      await rita.responder();
+      c("mensaje · anulado, y le llega", await rita.hasta("/Anulado " + rG + "[\\s\\S]*le ha llegado tu mensaje/.test((document.querySelector('#c-modal .c-modal-aviso')||{}).textContent||'')", 30));
+      const anG = (await consultar("stargate_anulaciones", "projectId", P)).filter(x => x.retoId === rG && x.por === "docente").sort((a, b) => a.fecha - b.fecha).pop();
+      c("mensaje · el porqué queda también en el registro de anulaciones", !!anG && /no es público/.test(anG.motivo || "") && anG.por === "docente", JSON.stringify(anG && anG.motivo));
+      const g7 = await naveDe("gelida", "mensajes");
+      c("🔴 mensaje · Gélida ve arriba de su Nave los dos mensajes de su Comandante", await g7.hasta("document.querySelectorAll('.msg-cmd').length===2", 20)
+        && await g7.js("/Ha anulado tu reto/.test(document.querySelector('.msg-cmd.anulado').innerText) && /no es público/.test(document.querySelector('.msg-cmd.anulado').innerText) && /Ha validado/.test(document.querySelector('.msg-cmd.validado').innerText)"),
+        await g7.js("[].map.call(document.querySelectorAll('.msg-cmd'),function(x){return x.innerText.replace(/\\s+/g,' ')}).join(' | ')"));
+      await g7.foto(FOTOS + "/27-nave-mensaje.png");
+      await g7.js("document.querySelector('.msg-cmd.anulado [data-msg-leido]').click(); 1");
+      await g7.hasta("document.querySelectorAll('.msg-cmd').length===1", 10); await dormir(1500);
+      const leidos = (await consultar("notifications", "projectId", P)).filter(x => x.stargate && x.stargate.reto === rG);
+      c("mensaje · «Entendido» lo quita y queda leído (no vuelve a salir)", await g7.js("document.querySelectorAll('.msg-cmd').length===1")
+        && leidos.filter(x => x.stargate.accion === "anulado")[0].read === true && leidos.filter(x => x.stargate.accion === "validado")[0].read === false, JSON.stringify(leidos.map(x => [x.stargate.accion, x.read])));
+      c("mensaje · sin errores en la Nave", !g7.errores.filter(e => !/Failed to load resource/.test(e)).length, g7.errores[0] || "");
+      await g7.cerrar();
+
       // 7 · dar de baja (lo hace el servidor: Rita no es la dueña del grupo y antes le daba «permiso denegado»)
       await abreFicha(rita, "Brasa");
-      await rita.js("window.confirm=function(){return true}; window.prompt=function(){return 'Brasa'}; document.getElementById('c-baja').click(); 1");
+      await rita.js("document.getElementById('c-baja').click(); 1");
+      c("🔴 baja · no se enciende hasta escribir su alias exacto", /^APAGADO/.test(await rita.responder("Bras")));
+      c("baja · y con el alias exacto, sí", /Dar de baja a «Brasa»/.test(await rita.responder("Brasa")));
       c("🔴 baja · Rita da de baja a Brasa (sin ser la dueña del grupo)", await rita.hasta("/ya no está en el grupo/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25), await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
       const alias = await leerDoc("stargate_alias/" + P + "__brasa");
       c("🔴 baja · su ficha, sus datos y su alias ya no están (el alias queda libre)", !(await fs.collection("student_profiles").doc(F.brasa._id).get()).exists && !(await leerDoc("student_profiles/" + F.brasa._id + "/privado/datos")) && !alias);
@@ -2877,19 +2911,21 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.hasta("/Oferta alargada/.test((document.getElementById('c-aviso')||{}).innerText||'')", 20);
       const finDespues = (await leerDoc("rewards/" + manual._id)).flashOffer.endsAt;
       c("🔴 ofertas · «+1 día» la alarga un día", Math.abs(finDespues - finAntes - 864e5) < 5000, (finDespues - finAntes) + "");
-      await rita.js(`window.prompt=function(){return '1'}; document.querySelector('[data-of="${manual._id}"] [data-of-uds]').click(); 1`);
+      await rita.js(`document.querySelector('[data-of="${manual._id}"] [data-of-uds]').click(); 1`); await rita.responder("1");
       await rita.hasta("/Unidades cambiadas/.test((document.getElementById('c-aviso')||{}).innerText||'')", 20);
       const tras1 = await leerDoc("rewards/" + manual._id);
       c("ofertas · «Unidades…» → 1: vendida la única, se agota", tras1.stargateOferta.unidades === 1 && tras1.globalStock === 0, JSON.stringify([tras1.stargateOferta.unidades, tras1.globalStock]));
       // una errata no deja la oferta agotada: ni la consola la manda, ni el servidor la acepta
       await rita.js("document.getElementById('c-aviso') && (document.getElementById('c-aviso').innerText=''); 1");
-      await rita.js(`window.prompt=function(){return 'cinco'}; document.querySelector('[data-of="${P}__oferta_s10"] [data-of-uds]').click(); 1`);
-      c("ofertas · «Unidades…» con una errata («cinco»): la consola pide un número y no toca nada",
-        await rita.hasta("/Escribe un número de unidades/.test((document.getElementById('c-aviso')||{}).innerText||'')", 10)
-        && (await leerDoc("rewards/" + P + "__oferta_s10")).stargateOferta.unidades === so.unidades);
+      await rita.js(`document.querySelector('[data-of="${P}__oferta_s10"] [data-of-uds]').click(); 1`);
+      const errataUds = await rita.responder("cinco");
+      c("ofertas · «Unidades…» con una errata («cinco»): la pregunta no deja aceptar, pide un número y no toca nada",
+        /^APAGADO/.test(errataUds) && await rita.js("/Un número/.test(document.querySelector('.sgp-caja .sgp-err').textContent)")
+        && (await leerDoc("rewards/" + P + "__oferta_s10")).stargateOferta.unidades === so.unidades, errataUds);
+      await rita.js("document.querySelector('.sgp-caja [data-sgp-no]').click(); 1"); await dormir(300);
       const errata = await rita.js(`window.SG.MOTOR.oferta('${P}','unidades',{ofertaId:'${P}__oferta_s10',unidades:'cinco'}).then(function(){return 'CAMBIÓ'},function(e){return e.message})`, 60000);
       c("🔴 ofertas · y el servidor tampoco la acepta si le llega por otro camino", /Escribe un número/.test(errata) && (await leerDoc("rewards/" + P + "__oferta_s10")).stargateOferta.unidades === so.unidades, errata);
-      await rita.js(`window.confirm=function(){return true}; document.querySelector('[data-of="${P}__oferta_s10"] [data-of-cancelar]').click(); 1`);
+      await rita.js(`document.querySelector('[data-of="${P}__oferta_s10"] [data-of-cancelar]').click(); 1`); await rita.responder();
       await rita.hasta("/cancelada/.test((document.getElementById('c-aviso')||{}).innerText||'')", 20);
       c("ofertas · «Cancelar» la de la semana: fuera del Mercado ya", (await leerDoc("rewards/" + P + "__oferta_s10")).stargateOferta.cancelada === true);
       const q3 = await nave("tras cancelar");
@@ -3418,12 +3454,21 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.foto(FOTOS + "/36-ficha.png");
       // otorgar un reto que no tenga desde la ficha: se reabre con el aviso
       const reto = await rita.js("(function(){var b=document.querySelector('#c-modal [data-reto][data-tiene=\"0\"]'); if(!b) return ''; b.click(); return b.getAttribute('data-reto');})()");
-      const otorgado = reto ? await rita.hasta("/Otorgado " + reto + "/.test((document.querySelector('#c-modal .c-modal-aviso')||{}).textContent||'')", 30) : false;
+      // 17-sep · la pregunta se despliega debajo de su tema, dentro de la ficha (no el confirm del navegador)
+      const desplegada = reto ? await rita.hasta("!!document.querySelector('#c-modal .fi-tema > .sgp-caja.en-linea [data-sgp-si]')", 8) : false;
+      c("🔴 consola · pulsar un reto despliega la pregunta debajo de su tema, dentro de la ficha", desplegada
+        && await rita.js("!document.querySelector('.sgp-capa') && /Validar/.test(document.querySelector('#c-modal .sgp-caja h3').textContent) && !!document.querySelector('#c-modal .reto.sgp-pregunta')"));
+      await rita.foto(FOTOS + "/36-ficha-validar.png");
+      await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})); 1"); await dormir(300);
+      c("consola · Escape pliega la pregunta y la ficha sigue abierta", await rita.js("!document.querySelector('#c-modal .sgp-caja') && !!document.querySelector('#c-modal.abierto') && !document.querySelector('#c-modal .sgp-pregunta')"));
+      if (reto) { await rita.js("document.querySelector('#c-modal [data-reto=\"" + reto + "\"]').click(); 1"); await rita.responder(); }
+      const otorgado = reto ? await rita.hasta("/Validado " + reto + "/.test((document.querySelector('#c-modal .c-modal-aviso')||{}).textContent||'')", 30) : false;
       c("consola · otorgar desde la ficha: se reabre con los datos nuevos y dice qué ha hecho", otorgado, reto + " · " + await rita.js("(document.querySelector('#c-modal .c-modal-aviso')||{}).textContent||''"));
       const ya = reto ? await rita.js("!!document.querySelector('#c-modal [data-reto=\"" + reto + "\"][data-tiene=\"1\"]')") : false;
       c("consola · y el reto sale ya en verde", ya);
-      if (reto) { await rita.js("window.confirm=function(){return true}; document.querySelector('#c-modal [data-reto=\"" + reto + "\"]').click(); 1");
+      if (reto) { await rita.js("document.querySelector('#c-modal [data-reto=\"" + reto + "\"]').click(); 1"); await rita.responder();
                   await rita.hasta("/Anulado " + reto + "/.test((document.querySelector('#c-modal .c-modal-aviso')||{}).textContent||'')", 30); }
+      c("consola · anular sin escribir nada también vale (el mensaje es opcional)", await rita.js("/Anulado/.test((document.querySelector('#c-modal .c-modal-aviso')||{}).textContent||'') && !/mensaje/.test(document.querySelector('#c-modal .c-modal-aviso').textContent)"));
       await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1"); await dormir(300);
       c("consola · Escape la cierra", await rita.js("!document.querySelector('#c-modal.abierto')"));
       // la Cola de nota: solo si hay algo
@@ -3450,11 +3495,13 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.hasta("/ya está en el equipo/.test((document.getElementById('c-aviso')||{}).innerText||'')", 30);
       const idxQ = await rita.js("(function(){var l=[].slice.call(document.querySelectorAll('.eq-p')); for(var i=0;i<l.length;i++) if(/quique@lab\\.test/.test(l[i].textContent)) return i; return -1;})()");
       c("consola · Quique entra en el equipo y sale su tarjeta", idxQ >= 0, idxQ);
-      await rita.js("window.confirm=function(){return true}; (function(){var l=[].slice.call(document.querySelectorAll('.eq-p')); var q=l.filter(function(x){return /quique@lab\\.test/.test(x.textContent)})[0]; q.querySelector('[data-rol]').click();})(); 1");
+      await rita.js("(function(){var l=[].slice.call(document.querySelectorAll('.eq-p')); var q=l.filter(function(x){return /quique@lab\\.test/.test(x.textContent)})[0]; q.querySelector('[data-rol]').click();})(); 1");
+      await rita.responder();
       await rita.hasta("/ya es referente/.test((document.getElementById('c-aviso')||{}).innerText||'')", 30);
       const pvR = await leerDoc("projects/" + P + "/privado/stargate");
       c("consola · «⭐ Hacer referente» lo hace el servidor", (pvR.docentes || []).some(d => d.correo === "quique@lab.test" && d.rol === "referente"), JSON.stringify((pvR.docentes || []).filter(d => /quique/.test(d.correo))));
-      await rita.js("window.confirm=function(){return true}; (function(){var l=[].slice.call(document.querySelectorAll('.eq-p')); var q=l.filter(function(x){return /quique@lab\\.test/.test(x.textContent)})[0]; q.querySelector('[data-quitar]').click();})(); 1");
+      await rita.js("(function(){var l=[].slice.call(document.querySelectorAll('.eq-p')); var q=l.filter(function(x){return /quique@lab\\.test/.test(x.textContent)})[0]; q.querySelector('[data-quitar]').click();})(); 1");
+      await rita.responder();
       const quitado = await rita.hasta("/ya no está en el equipo/.test((document.getElementById('c-aviso')||{}).innerText||'') || /Falta desplegar|no está|no puedes/i.test((document.getElementById('c-aviso')||{}).innerText||'')", 40);
       const prQ = await leerDoc("projects/" + P), pvQ = await leerDoc("projects/" + P + "/privado/stargate");
       c("🔴 consola · «Quitar del equipo»: fuera de la lista y sin entrada al grupo (por el servidor)",
@@ -3593,7 +3640,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('tr[data-r]')", 30);
       await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1"); await dormir(600);
-      await rita.hasta("!!document.querySelector('.sin-evid') || [].slice.call(document.querySelectorAll('tr[data-r]')).some(function(f){return /Rosa Rumbo/.test(f.textContent)})", 15);
+      await rita.hasta("[].slice.call(document.querySelectorAll('tr[data-r]')).some(function(f){return /Rosa Rumbo/.test(f.textContent)})", 15);
       c("consola · A1 sin enlace (en A1 es opcional) no sale como «sin enlace» en Mi gente",
         await rita.js("(function(){ var f=[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(x){return /Rosa Rumbo/.test(x.textContent)})[0]; return !!f && !f.querySelector('.sin-evid'); })()"));
       await rita.js("window.scrollTo(0,0); [].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(f){return /Rosa Rumbo/.test(f.textContent)})[0].click(); 1");
@@ -3603,7 +3650,8 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 consola · la ficha de Rosa enseña su reflexión, con su comentario", enFicha && /1 comentario/.test(await rita.js("(" + rfA1 + "||{}).textContent||''")),
         await rita.js("[].slice.call(document.querySelectorAll('#c-modal .evid-rf')).map(function(x){return x.textContent.slice(0,80)}).join(' | ')"));
       await rita.foto(FOTOS + "/37-ficha-reflexion.png");
-      await rita.js("window.confirm=function(){return true}; (function(){ var r=" + rfA1 + "; var d=r.querySelector('.evid-rf-coms'); if(d) d.open=true; r.querySelector('[data-rfquitarcom]').click(); })(); 1");
+      await rita.js("(function(){ var r=" + rfA1 + "; var d=r.querySelector('.evid-rf-coms'); if(d) d.open=true; r.querySelector('[data-rfquitarcom]').click(); })(); 1");
+      c("consola · quitar un comentario pregunta ahí mismo, desplegado en la ficha", /Quitar este comentario/.test(await rita.responder()));
       await dormir(2500);
       c("🔴 consola · la referente quita el comentario (moderar) y deja de existir", !(await consultar("stargate_comentarios", "projectId", P)).some(x => x.reflexion === P + "__A1__" + f1._id));
       await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1");

@@ -286,7 +286,10 @@
       var a = document.createElement("textarea");
       a.value = txt; a.style.position = "fixed"; a.style.opacity = "0";
       document.body.appendChild(a); a.select(); document.execCommand("copy"); a.remove(); ok();
-    } catch (e) { prompt("Copia este enlace:", txt); }
+    } catch (e) {
+      window.SG.preguntar({ titulo: "Cópialo a mano", texto: "El navegador no me deja copiarlo solo. Ya está seleccionado: pulsa Ctrl+C (⌘+C en Mac).",
+        campo: { valor: txt, soloLectura: true }, si: "Hecho", no: "" });
+    }
   }
 
   // ---------------------------------------------------------------- arranque

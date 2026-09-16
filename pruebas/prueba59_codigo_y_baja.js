@@ -55,7 +55,7 @@ c(/deleteDoc\(doc\(db, "student_profiles", fichaId, "privado", "datos"\)\)/.test
 const baja = MOTOR.slice(MOTOR.indexOf("async function darDeBaja"), MOTOR.indexOf("async function darDeBaja") + 900);
 c(baja.indexOf("xp_ledger") < 0 && baja.indexOf("applyXpDelta") < 0,
   "🔴 y NO toca el libro de experiencia: ahí queda el rastro de lo que se le dio y se le quitó");
-c(/escribe su alias exactamente/.test(CONSOLA),
+c(/escribe su alias:", ayuda: r\.alias, igualA: r\.alias/.test(CONSOLA),
   "🔴 borrar pide escribir el alias: es lo único que impide un clic distraído sobre la persona equivocada");
 c(/No hay deshacer/.test(CONSOLA), "   y se avisa de que no hay vuelta atrás");
 

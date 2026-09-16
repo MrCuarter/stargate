@@ -252,3 +252,114 @@ window.SG.pers = function(cb){
         +'<em>'+esc2(p.tipo||'')+(p.estado?' · '+esc2(p.estado):'')+'</em></a>';}).join('');
   });
 })();
+
+/**
+ * 🔴 17-sep · PREGUNTAR CON LA CARA DE STARGATE, NO CON LA DEL NAVEGADOR. Norberto, anulando un reto en la consola:
+ * «ese aviso no guarda la estética de STARGATE, hay que mejorarlo». El `confirm()` de siempre dice
+ * «stargate.mistercuarter.es dice», congela la página y no deja escribir un porqué. Este sustituye a `confirm`,
+ * `prompt` y `alert` en la web del profesorado.
+ *
+ * Dos sitios donde aparecer:
+ *   · en su VENTANA, encima de todo (lo normal);
+ *   · DESPLEGADO debajo de lo que se ha pulsado (`aqui`), para cuando ya se está dentro de una ventana —la ficha de un
+ *     recluta—: Norberto lo pidió así, «un desplegable debajo de la misión», y se lee mejor que ventana sobre ventana.
+ *
+ *   SG.preguntar({ titulo, texto, html, si, no, peligro, aqui, marca (lo que se resalta mientras pregunta; si no, `aqui`),
+ *                  campo: { etiqueta, ayuda, valor, marcador, max, filas, obligatorio, igualA, validar(v), soloLectura,
+ *                           rapidos: ["texto" o ["botón", "texto que escribe"], …] } })
+ *   → promesa: null si se cancela; { texto } si se acepta (texto = lo escrito, o "").
+ *
+ * Se cancela con «Cancelar», con Escape o pulsando fuera. El primer foco va a lo que NO hace nada (o al campo, si hay
+ * que escribir): un Intro por inercia no borra a nadie.
+ */
+window.SG.preguntar = function (o) {
+  o = o || {};
+  var e = function (t) { return (t == null ? "" : String(t)).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  return new Promise(function (resolve) {
+    var enLinea = !!(o.aqui && o.aqui.parentNode), previo = document.activeElement, F = o.campo || null, marca = o.marca || o.aqui;
+    // Uno desplegado a la vez: abrir otro cierra el anterior (como cancelado)
+    if (enLinea) {
+      var viejo = document.querySelector(".sgp-caja.en-linea");
+      if (viejo && viejo.__cerrar) viejo.__cerrar(null);
+    }
+    var caja = document.createElement("div");
+    caja.className = "sgp-caja" + (o.peligro ? " peligro" : "") + (enLinea ? " en-linea" : "");
+    caja.setAttribute("role", enLinea ? "group" : "dialog");
+    if (!enLinea) caja.setAttribute("aria-modal", "true");
+    var idT = "sgp-t-" + Date.now();
+    caja.setAttribute("aria-labelledby", idT);
+    var parrafos = String(o.texto || "").split(/\n{2,}/).filter(Boolean).map(function (p) { return "<p>" + e(p).replace(/\n/g, "<br>") + "</p>"; }).join("");
+    var campo = "";
+    if (F) {
+      var larga = (F.filas || 1) > 1;
+      campo = '<div class="sgp-campo">' + (F.etiqueta ? '<label for="' + idT + '-c">' + e(F.etiqueta) + (F.ayuda ? " <span>" + e(F.ayuda) + "</span>" : "") + "</label>" : "") +
+        (F.rapidos && F.rapidos.length ? '<div class="sgp-rapidos">' + F.rapidos.map(function (r) { r = [].concat(r); return '<button type="button" data-sgp-rapido="' + e(r[1] || r[0]) + '">' + e(r[0]) + "</button>"; }).join("") + "</div>" : "") +
+        (larga ? '<textarea id="' + idT + '-c" rows="' + F.filas + '"' : '<input id="' + idT + '-c" type="text" autocomplete="off"') +
+        (F.max ? ' maxlength="' + F.max + '"' : "") + (F.marcador ? ' placeholder="' + e(F.marcador) + '"' : "") + (F.soloLectura ? " readonly" : "") +
+        (larga ? ">" + e(F.valor || "") + "</textarea>" : ' value="' + e(F.valor || "") + '">') +
+        '<p class="sgp-err" hidden></p></div>';
+    }
+    caja.innerHTML = '<p class="sgp-quien">' + (o.peligro ? "⚠️ " : "📡 ") + e(o.quien || "Puesto de mando") + "</p>" +
+      '<h3 id="' + idT + '">' + e(o.titulo || "") + "</h3>" +
+      (parrafos || o.html ? '<div class="sgp-txt">' + parrafos + (o.html || "") + "</div>" : "") + campo +
+      '<div class="sgp-bot">' + (o.no === "" ? "" : '<button type="button" class="btn min" data-sgp-no>' + e(o.no || "Cancelar") + "</button>") +
+      '<button type="button" class="btn min ' + (o.peligro ? "peligro" : "primary") + '" data-sgp-si>' + e(o.si || "Aceptar") + "</button></div>";
+    var capa = null;
+    if (enLinea) {
+      o.aqui.parentNode.insertBefore(caja, o.aqui.nextSibling);
+    } else {
+      capa = document.createElement("div"); capa.className = "sgp-capa";
+      capa.appendChild(caja); (document.fullscreenElement || document.body).appendChild(capa);   // (en pantalla completa, dentro: si no, no se ve)
+      capa.addEventListener("mousedown", function (ev) { if (ev.target === capa) cerrar(null); });
+    }
+    var bSi = caja.querySelector("[data-sgp-si]"), bNo = caja.querySelector("[data-sgp-no]"),
+        inp = caja.querySelector("input, textarea"), err = caja.querySelector(".sgp-err");
+    var valido = function () {
+      if (!F || !inp) return "";
+      var v = inp.value.trim();
+      if (F.obligatorio && !v) return " ";
+      if (F.igualA != null && v !== String(F.igualA)) return " ";
+      return typeof F.validar === "function" ? (F.validar(v) || "") : "";
+    };
+    var repasar = function () { var m = valido(); bSi.disabled = !!m; if (err) { err.textContent = m.trim(); err.hidden = !m.trim(); } };
+    if (inp) { inp.addEventListener("input", repasar); repasar(); }
+    Array.prototype.forEach.call(caja.querySelectorAll("[data-sgp-rapido]"), function (r) {
+      r.onclick = function () { inp.value = r.getAttribute("data-sgp-rapido"); repasar(); inp.focus(); };
+    });
+    function tecla(ev) {
+      if (ev.key === "Escape") { ev.preventDefault(); ev.stopImmediatePropagation(); cerrar(null); return; }
+      if (ev.key === "Enter" && inp && inp.tagName === "INPUT" && document.activeElement === inp && !bSi.disabled) { ev.preventDefault(); aceptar(); return; }
+      if (enLinea || ev.key !== "Tab") return;
+      // en su ventana, el foco no se escapa a la página de detrás
+      var fs = [].slice.call(caja.querySelectorAll("button:not([disabled]), input, textarea"));
+      var i = fs.indexOf(document.activeElement); ev.preventDefault();
+      fs[(i + (ev.shiftKey ? -1 : 1) + fs.length) % fs.length].focus();
+    }
+    function cerrar(v) {
+      if (caja.__cerrado) return; caja.__cerrado = true;
+      window.removeEventListener("keydown", tecla, true);
+      var fuera = capa || caja;
+      fuera.classList.add("cerrando");
+      setTimeout(function () { if (fuera.parentNode) fuera.parentNode.removeChild(fuera); }, enLinea ? 0 : 130);
+      if (marca && marca.classList) marca.classList.remove("sgp-pregunta");
+      if (!enLinea && previo && previo.focus) { try { previo.focus({ preventScroll: true }); } catch (x) {} }
+      resolve(v);
+    }
+    function aceptar() { if (valido()) return; cerrar({ texto: inp ? inp.value.trim() : "" }); }
+    caja.__cerrar = cerrar;
+    bSi.onclick = aceptar;
+    if (bNo) bNo.onclick = function () { cerrar(null); };
+    window.addEventListener("keydown", tecla, true);
+    if (enLinea && marca && marca.classList) marca.classList.add("sgp-pregunta");
+    setTimeout(function () {
+      var f = (inp && !F.soloLectura) ? inp : (bNo || bSi);
+      try { f.focus({ preventScroll: true }); } catch (x) {}
+      if (inp && F.soloLectura) inp.select();
+      if (enLinea && caja.scrollIntoView) caja.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }, 30);
+  });
+};
+/** El `alert()` de la casa: un aviso con un solo botón. */
+window.SG.avisar = function (titulo, texto, peligro) {
+  return window.SG.preguntar({ titulo: titulo, texto: texto, si: "Entendido", no: "", peligro: !!peligro });
+};

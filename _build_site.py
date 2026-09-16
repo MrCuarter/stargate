@@ -1563,6 +1563,117 @@ window.SG.pers = function(cb){
         +'<em>'+esc2(p.tipo||'')+(p.estado?' · '+esc2(p.estado):'')+'</em></a>';}).join('');
   });
 })();
+
+/**
+ * 🔴 17-sep · PREGUNTAR CON LA CARA DE STARGATE, NO CON LA DEL NAVEGADOR. Norberto, anulando un reto en la consola:
+ * «ese aviso no guarda la estética de STARGATE, hay que mejorarlo». El `confirm()` de siempre dice
+ * «stargate.mistercuarter.es dice», congela la página y no deja escribir un porqué. Este sustituye a `confirm`,
+ * `prompt` y `alert` en la web del profesorado.
+ *
+ * Dos sitios donde aparecer:
+ *   · en su VENTANA, encima de todo (lo normal);
+ *   · DESPLEGADO debajo de lo que se ha pulsado (`aqui`), para cuando ya se está dentro de una ventana —la ficha de un
+ *     recluta—: Norberto lo pidió así, «un desplegable debajo de la misión», y se lee mejor que ventana sobre ventana.
+ *
+ *   SG.preguntar({ titulo, texto, html, si, no, peligro, aqui, marca (lo que se resalta mientras pregunta; si no, `aqui`),
+ *                  campo: { etiqueta, ayuda, valor, marcador, max, filas, obligatorio, igualA, validar(v), soloLectura,
+ *                           rapidos: ["texto" o ["botón", "texto que escribe"], …] } })
+ *   → promesa: null si se cancela; { texto } si se acepta (texto = lo escrito, o "").
+ *
+ * Se cancela con «Cancelar», con Escape o pulsando fuera. El primer foco va a lo que NO hace nada (o al campo, si hay
+ * que escribir): un Intro por inercia no borra a nadie.
+ */
+window.SG.preguntar = function (o) {
+  o = o || {};
+  var e = function (t) { return (t == null ? "" : String(t)).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  return new Promise(function (resolve) {
+    var enLinea = !!(o.aqui && o.aqui.parentNode), previo = document.activeElement, F = o.campo || null, marca = o.marca || o.aqui;
+    // Uno desplegado a la vez: abrir otro cierra el anterior (como cancelado)
+    if (enLinea) {
+      var viejo = document.querySelector(".sgp-caja.en-linea");
+      if (viejo && viejo.__cerrar) viejo.__cerrar(null);
+    }
+    var caja = document.createElement("div");
+    caja.className = "sgp-caja" + (o.peligro ? " peligro" : "") + (enLinea ? " en-linea" : "");
+    caja.setAttribute("role", enLinea ? "group" : "dialog");
+    if (!enLinea) caja.setAttribute("aria-modal", "true");
+    var idT = "sgp-t-" + Date.now();
+    caja.setAttribute("aria-labelledby", idT);
+    var parrafos = String(o.texto || "").split(/\n{2,}/).filter(Boolean).map(function (p) { return "<p>" + e(p).replace(/\n/g, "<br>") + "</p>"; }).join("");
+    var campo = "";
+    if (F) {
+      var larga = (F.filas || 1) > 1;
+      campo = '<div class="sgp-campo">' + (F.etiqueta ? '<label for="' + idT + '-c">' + e(F.etiqueta) + (F.ayuda ? " <span>" + e(F.ayuda) + "</span>" : "") + "</label>" : "") +
+        (F.rapidos && F.rapidos.length ? '<div class="sgp-rapidos">' + F.rapidos.map(function (r) { r = [].concat(r); return '<button type="button" data-sgp-rapido="' + e(r[1] || r[0]) + '">' + e(r[0]) + "</button>"; }).join("") + "</div>" : "") +
+        (larga ? '<textarea id="' + idT + '-c" rows="' + F.filas + '"' : '<input id="' + idT + '-c" type="text" autocomplete="off"') +
+        (F.max ? ' maxlength="' + F.max + '"' : "") + (F.marcador ? ' placeholder="' + e(F.marcador) + '"' : "") + (F.soloLectura ? " readonly" : "") +
+        (larga ? ">" + e(F.valor || "") + "</textarea>" : ' value="' + e(F.valor || "") + '">') +
+        '<p class="sgp-err" hidden></p></div>';
+    }
+    caja.innerHTML = '<p class="sgp-quien">' + (o.peligro ? "⚠️ " : "📡 ") + e(o.quien || "Puesto de mando") + "</p>" +
+      '<h3 id="' + idT + '">' + e(o.titulo || "") + "</h3>" +
+      (parrafos || o.html ? '<div class="sgp-txt">' + parrafos + (o.html || "") + "</div>" : "") + campo +
+      '<div class="sgp-bot">' + (o.no === "" ? "" : '<button type="button" class="btn min" data-sgp-no>' + e(o.no || "Cancelar") + "</button>") +
+      '<button type="button" class="btn min ' + (o.peligro ? "peligro" : "primary") + '" data-sgp-si>' + e(o.si || "Aceptar") + "</button></div>";
+    var capa = null;
+    if (enLinea) {
+      o.aqui.parentNode.insertBefore(caja, o.aqui.nextSibling);
+    } else {
+      capa = document.createElement("div"); capa.className = "sgp-capa";
+      capa.appendChild(caja); (document.fullscreenElement || document.body).appendChild(capa);   // (en pantalla completa, dentro: si no, no se ve)
+      capa.addEventListener("mousedown", function (ev) { if (ev.target === capa) cerrar(null); });
+    }
+    var bSi = caja.querySelector("[data-sgp-si]"), bNo = caja.querySelector("[data-sgp-no]"),
+        inp = caja.querySelector("input, textarea"), err = caja.querySelector(".sgp-err");
+    var valido = function () {
+      if (!F || !inp) return "";
+      var v = inp.value.trim();
+      if (F.obligatorio && !v) return " ";
+      if (F.igualA != null && v !== String(F.igualA)) return " ";
+      return typeof F.validar === "function" ? (F.validar(v) || "") : "";
+    };
+    var repasar = function () { var m = valido(); bSi.disabled = !!m; if (err) { err.textContent = m.trim(); err.hidden = !m.trim(); } };
+    if (inp) { inp.addEventListener("input", repasar); repasar(); }
+    Array.prototype.forEach.call(caja.querySelectorAll("[data-sgp-rapido]"), function (r) {
+      r.onclick = function () { inp.value = r.getAttribute("data-sgp-rapido"); repasar(); inp.focus(); };
+    });
+    function tecla(ev) {
+      if (ev.key === "Escape") { ev.preventDefault(); ev.stopImmediatePropagation(); cerrar(null); return; }
+      if (ev.key === "Enter" && inp && inp.tagName === "INPUT" && document.activeElement === inp && !bSi.disabled) { ev.preventDefault(); aceptar(); return; }
+      if (enLinea || ev.key !== "Tab") return;
+      // en su ventana, el foco no se escapa a la página de detrás
+      var fs = [].slice.call(caja.querySelectorAll("button:not([disabled]), input, textarea"));
+      var i = fs.indexOf(document.activeElement); ev.preventDefault();
+      fs[(i + (ev.shiftKey ? -1 : 1) + fs.length) % fs.length].focus();
+    }
+    function cerrar(v) {
+      if (caja.__cerrado) return; caja.__cerrado = true;
+      window.removeEventListener("keydown", tecla, true);
+      var fuera = capa || caja;
+      fuera.classList.add("cerrando");
+      setTimeout(function () { if (fuera.parentNode) fuera.parentNode.removeChild(fuera); }, enLinea ? 0 : 130);
+      if (marca && marca.classList) marca.classList.remove("sgp-pregunta");
+      if (!enLinea && previo && previo.focus) { try { previo.focus({ preventScroll: true }); } catch (x) {} }
+      resolve(v);
+    }
+    function aceptar() { if (valido()) return; cerrar({ texto: inp ? inp.value.trim() : "" }); }
+    caja.__cerrar = cerrar;
+    bSi.onclick = aceptar;
+    if (bNo) bNo.onclick = function () { cerrar(null); };
+    window.addEventListener("keydown", tecla, true);
+    if (enLinea && marca && marca.classList) marca.classList.add("sgp-pregunta");
+    setTimeout(function () {
+      var f = (inp && !F.soloLectura) ? inp : (bNo || bSi);
+      try { f.focus({ preventScroll: true }); } catch (x) {}
+      if (inp && F.soloLectura) inp.select();
+      if (enLinea && caja.scrollIntoView) caja.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }, 30);
+  });
+};
+/** El `alert()` de la casa: un aviso con un solo botón. */
+window.SG.avisar = function (titulo, texto, peligro) {
+  return window.SG.preguntar({ titulo: titulo, texto: texto, si: "Entendido", no: "", peligro: !!peligro });
+};
 """
 
 TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _build_site.py: editar TOUR_JS, no este fichero)
@@ -1588,7 +1699,7 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
    {p:'consola.html',sel:'.gp-invita',listo:'.gp',espera:1,si:1,pose:'senala',t:'Lo primero: tu clase',x:'El <b>código de clase</b>, en grande para escribirlo en la pizarra. <b>«Copiar invitación»</b> te da un mensaje listo para pegar en el foro de la plataforma de UNIR, con el enlace dentro. Tu alumnado entra con Google, escribe el código y se alista solo.'},
    {p:'consola.html',sel:'.gp-b.principal',listo:'.gp',espera:1,si:1,pose:'tablet',t:'Cada clase empieza aquí',x:'<b>Proyectar la clase</b>: la sesión de la semana ya montada —el planeta, los vídeos, los retos y las insignias—; pasas con las flechas. Arriba, solo para ti, el consejo del Capitán y el mensaje de la semana para el foro.'},
    {p:'consola.html',sel:'.gp-hacer',listo:'.gp',espera:1,si:1,pose:'brazos',t:'Durante la clase',x:'<b>Llamada a filas</b> es el pase de lista con premio: tu alumnado pulsa «Presente» en su Nave y se lleva créditos y un sobre de cromos. <b>El aula</b> te dice quién ha fichado, a quién felicitar y el ranking, y deja repartir premios a mano. Si tu referente te ha dado el <b>Genially de clase</b>, ya las lleva dentro: al abrirlo entras con tu cuenta y eliges el grupo.'},
-   {p:'consola.html',sel:'.gp-abrir',listo:'.gp',espera:1,si:1,pose:'tablet',t:'Entra en tu grupo',x:'<b>🚀 Entrar en el grupo</b> abre su puesto por dentro. En <b>Mi gente</b>, tu alumnado con sus xp, créditos, insignias y los <b>enlaces de sus evidencias</b>. Pulsa una fila y se abre su ficha para otorgar o anular un reto. Si alguien pide una subida de nota, aparece la pestaña <b>Cola de nota</b>, brillando: ninguna se aplica sin tu visto bueno.'},
+   {p:'consola.html',sel:'.gp-abrir',listo:'.gp',espera:1,si:1,pose:'tablet',t:'Entra en tu grupo',x:'<b>🚀 Entrar en el grupo</b> abre su puesto por dentro. En <b>Mi gente</b>, tu alumnado con sus xp, créditos, insignias y los <b>enlaces de sus evidencias</b>. Pulsa una fila y se abre su ficha para validar o anular un reto, con un mensaje que le llega a su Nave. Si alguien pide una subida de nota, aparece la pestaña <b>Cola de nota</b>, brillando: ninguna se aplica sin tu visto bueno.'},
    {p:'consola.html',sel:'.ref-zona',listo:'.gp',espera:1,si:1,soloRef:1,pose:'senala',t:'Como referente',x:'Lo tuyo como referente: <b>crear un grupo</b> en un minuto, los <b>tickets de salida</b> de todas tus clases y el montaje paso a paso. Dentro de cada grupo verás además <b>Equipo docente</b>, <b>Escuadrones</b>, <b>Premios por enlace</b> y <b>Ajustes</b>.'},
    {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'<b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase.'},
    {p:'guia.html',sel:'#retos',pose:'tablet',t:'Dos retos por tema',x:'El <b>Reto A</b> da la <b>insignia</b> del personaje: no cuenta para nota, aunque da 100 xp y __CRED_A__ ◈. El <b>Reto B</b> produce una evidencia real de la Bitácora (250 xp y __CRED_B__ ◈) y <b>pide su enlace</b>. Los <b>xp</b> suben de nivel y nunca se gastan; los <b>créditos ◈</b> son lo que se canjea. Y nadie registra más de 3 retos al día.'},
@@ -3184,7 +3295,8 @@ _PE = [
  ]),
  ("5 · Dentro del grupo", [
    ("«🚀 Entrar en el grupo» → <b>Mi gente</b>.", "Arriba, un botón por escuadrón (empieza en el tuyo) y «Todos»."),
-   ("Pulsa una fila.", "Su ficha se abre en una ventana: sus <b>retos e insignias por temas</b> (encendidas las ganadas), lo que entregó en una línea por reto con sus <b>reflexiones</b> (con «Quitar», para moderar), sus <b>logros de a bordo</b> y lo que el profe puede hacer (otorgar o anular un reto; y si llevas el grupo, <b>cambiar de Comandante</b>, congelar o dar de baja). Se cierra con ✕ o Escape."),
+   ("Pulsa una fila.", "Su ficha se abre en una ventana: sus <b>retos e insignias por temas</b> (encendidas las ganadas), lo que entregó en una línea por reto con sus <b>reflexiones</b> (con «Quitar», para moderar), sus <b>logros de a bordo</b> y lo que el profe puede hacer (pulsar un reto para validarlo o anularlo con un mensaje que le llega a su Nave; y si llevas el grupo, <b>cambiar de Comandante</b>, congelar o dar de baja). Se cierra con ✕ o Escape."),
+   ("En la ficha, pulsa un reto (verde = registrado).", "Se despliega <b>debajo de su tema</b>: qué se le suma o se le quita, su enlace y un <b>mensaje para el recluta</b> con motivos rápidos («El enlace no abre», «No es público»…). Anula uno con un motivo: al recluta le sale arriba de su Nave hasta que pulsa «Entendido»."),
    ("Pestaña <b>🏆 Rankings</b>.", "Los mismos rankings que ve el alumnado en su Nave, del <b>grupo entero o de un escuadrón</b>, con el emblema de cada escuadrón en la tabla. Trece formas de medir (xp, esta semana, colección, constancia, relámpago, logros, el Simulador de Joran…): para ensalzar en clase a quien destaca en cada cosa."),
    ("<b>Escuadrones</b>: pulsa uno.", "Se despliega con su Comandante, sus cifras y su gente; cada fila abre también la ficha."),
    ("<b>Equipo docente</b>.", "Una tarjeta por persona: hacerla referente o docente, pasar su alumnado a otro, quitarla del equipo, ver su escuadrón y en qué otros grupos está. Abajo, «➕ Añadir a alguien» por su correo de Google."),

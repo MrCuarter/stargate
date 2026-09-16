@@ -236,6 +236,20 @@ async function persona(nombre) {
       await p.js("document.getElementById('e-seguir').click(); 1");
       return true;
     },
+    /**
+     * 17-sep · CONTESTAR A LA PREGUNTA DE LA CASA (`SG.preguntar`), que sustituye a confirm/prompt: espera a que salga, escribe
+     * si hace falta y pulsa su botón de aceptar. Devuelve su título ("" si no salió) para comprobar que se preguntó lo debido.
+     */
+    async responder(texto, seg) {
+      const sale = await p.hasta("!!document.querySelector('.sgp-caja [data-sgp-si]')", seg || 10);
+      if (!sale) return "";
+      return p.js(`(function(){
+        var c = [].slice.call(document.querySelectorAll('.sgp-caja')).pop(), t = c.querySelector('h3').textContent;
+        var i = c.querySelector('input, textarea');
+        ${texto == null ? "" : `if (i) { i.value = ${JSON.stringify(String(texto))}; i.dispatchEvent(new Event('input')); }`}
+        var si = c.querySelector('[data-sgp-si]'); if (si.disabled) return 'APAGADO: ' + t;
+        si.click(); return t; })()`);
+    },
     async pulsar(texto, dentro) {
       return p.js(`(function(){
         var raiz = ${dentro ? `document.querySelector(${JSON.stringify(dentro)})` : "document"}; if(!raiz) return "sin contenedor";

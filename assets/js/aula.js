@@ -538,14 +538,14 @@
       var viva = (VOT.lista || []).filter(function (v) { return v.isActive; })[0]; if (!viva) return;
       cerrar.disabled = true; cerrar.textContent = "Cerrando…";
       MOTOR.cerrarVotacion(PER, viva.id).then(function () { cargarVotaciones(true); })
-        .catch(function (e) { cerrar.disabled = false; cerrar.textContent = "Cerrar y resolver"; alert("No he podido cerrarla: " + e.message); });
+        .catch(function (e) { cerrar.disabled = false; cerrar.textContent = "Cerrar y resolver"; window.SG.avisar("No he podido cerrar la votación", e.message, true); });
     };
     var borrar = document.getElementById("au-vt-borrar");
-    if (borrar) borrar.onclick = function () {
+    if (borrar) borrar.onclick = async function () {
       var viva = (VOT.lista || []).filter(function (v) { return v.isActive; })[0]; if (!viva) return;
-      if (!confirm("¿Borrar la votación? Se pierde lo votado.")) return;
+      if (!(await window.SG.preguntar({ titulo: "¿Borrar la votación?", texto: "Se pierde lo votado.", si: "Borrar la votación", peligro: true }))) return;
       MOTOR.borrarVotacion(PER, viva.id).then(function () { cargarVotaciones(true); })
-        .catch(function (e) { alert("No he podido borrarla: " + e.message); });
+        .catch(function (e) { window.SG.avisar("No he podido borrar la votación", e.message, true); });
     };
     var mas = document.getElementById("au-vt-mas");
     if (mas) mas.onclick = function () {

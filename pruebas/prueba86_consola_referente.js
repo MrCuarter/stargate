@@ -46,7 +46,7 @@ c(/async function cambiarComandante\(perId, fichaId, aNombre\)/.test(M) &&
   /stargateProfe: aNombre, squadId: destino\.id, factionId: destino\.id/.test(M),
   "   y cambia Comandante y escuadrón de una vez, como el traspaso de un docente entero");
 c(/ficha\.data\(\)\.projectId !== perId/.test(M), "   comprobando que la ficha es de ese grupo");
-c(/cambiarComandante, resolverVale/.test(M), "   y el motor lo exporta");
+c(/cambiarComandante, avisarRecluta/.test(M), "   y el motor lo exporta");
 
 // 5 · los rankings, para todos
 c(/\["rankings", "🏆 Rankings"\]/.test(K) && !/\["rankings", "🏆 Rankings", 1\]/.test(K),

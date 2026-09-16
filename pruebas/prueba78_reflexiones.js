@@ -79,9 +79,10 @@ c(/var RF = \(window\.SG_REFLEXION \|\| \{\}\)\[RETO\]/.test(V) && /M\.guardarRe
   "la caja de validar un reto también pide la reflexión y la guarda");
 
 // 7 · la consola
-c(/MOTOR\.reflexionesDe\(PER\)/.test(K) && /sin reflexión, y este reto la pide/.test(K), "🔴 la ficha enseña la reflexión (y avisa si falta)");
-c(/sinRF\.length \? sinRF\.length \+ " sin reflexión"/.test(K), "   y Mi gente cuenta las que faltan junto a los enlaces");
-c(/var REFLEXION_DESDE = Date\.parse\("2026-09-16T00:00:00"\)/.test(K) && /pideReflexion\(rc\.retos\[id\]\)/.test(K) && /pideReflexion\(\(r\.retos \|\| \{\}\)\[id\]\)/.test(K),
+c(/MOTOR\.reflexionesDe\(PER\)/.test(K) && /'<span class="small muted">sin reflexión<\/span>'/.test(K), "🔴 la ficha enseña la reflexión (y dice si falta)");
+// 17-sep · Norberto quitó el «⚠️ N sin enlace · M sin reflexión» de Mi gente: los dos se piden al registrar
+c(!/sinRF\.length \? sinRF\.length \+ " sin reflexión"/.test(K), "   y Mi gente ya no las cuenta al lado de cada uno (se piden al registrar)");
+c(/var REFLEXION_DESDE = Date\.parse\("2026-09-16T00:00:00"\)/.test(K) && /pideReflexion\(\(r\.retos \|\| \{\}\)\[id\]\)/.test(K),
   "   pero solo lo registrado desde que existe la caja (lo de antes no es culpa de nadie)");
 c(/data-rfquitarcom=/.test(K) && /data-rfquitar=/.test(K) && /MOTOR\.borrarReflexion\(PER, reto, r\.ficha\)/.test(K),
   "   el profesorado puede quitar un comentario o la reflexión entera (moderar)");

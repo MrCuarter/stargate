@@ -519,6 +519,37 @@ async function anularReto(perId, fichaId, retoId, motivo) {
     return anularRetoViejo(perId, fichaId, retoId, motivo);
   }
 }
+/**
+ * 🔴 17-sep · UN MENSAJE DEL COMANDANTE AL RECLUTA, al validar o anular un reto desde su ficha. Norberto: «imagina que ha
+ * puesto un enlace incorrecto: se desmarca la misión y se da una razón al estudiante». Sin el porqué, un reto que
+ * desaparece parece un fallo de la web, y acaba en un correo.
+ *
+ * Va a `notifications`, la bandeja que GamificaPro ya tiene (sus reglas: la crea cualquiera con sesión; la lee y la
+ * marca como leída solo su destinatario). Con `stargate` dentro, para que la Nave distinga los suyos de los del motor.
+ */
+async function avisarRecluta(perId, userId, { reto = "", accion = "", texto = "", de = "", titulo = "" } = {}) {
+  if (!userId) throw new Error("No sé a quién mandárselo");
+  const t = String(texto || "").trim().slice(0, 400);
+  const tit = titulo || (accion === "anulado" ? "Tu Comandante ha anulado el reto " + reto
+                                              : accion === "validado" ? "Tu Comandante ha validado el reto " + reto : "Mensaje de tu Comandante");
+  const r = await addDoc(collection(db, "notifications"), {
+    userId, projectId: perId, type: accion === "validado" ? "mission_validated" : "internal_message",
+    title: tit, message: t, read: false, createdAt: Date.now(),
+    stargate: { reto: String(reto || ""), accion: String(accion || ""), de: String(de || "").slice(0, 80) }
+  });
+  return r.id;
+}
+/** La Nave, a la escucha de los mensajes sin leer de su Comandante en este grupo (en directo, como la llamada a filas). */
+function vigilarMensajes(perId, alCambiar) {
+  const u = auth.currentUser;
+  if (!u) { alCambiar([]); return function () {}; }
+  return onSnapshot(query(collection(db, "notifications"), where("userId", "==", u.uid), where("projectId", "==", perId)),
+    r => alCambiar(r.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(x => x.stargate && !x.read).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))),
+    () => alCambiar([]));
+}
+async function mensajeLeido(id) { await updateDoc(doc(db, "notifications", id), { read: true }); }
+
 async function anularRetoViejo(perId, fichaId, retoId, motivo) {
   const [mi, ficha] = await Promise.all([
     getDocs(query(collection(db, "missions"), where("projectId", "==", perId), where("stargateId", "==", retoId))),
@@ -1791,7 +1822,7 @@ function codigoGenially(ruta, titulo) {
 window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
-                    guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, resolverVale,
+                    guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, alumno, nuevoCodigo,
                     huevosDe, guardarHuevos, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,

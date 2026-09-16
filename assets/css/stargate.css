@@ -4079,3 +4079,56 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 @keyframes rc-latido{50%{opacity:.45}}
 @media (prefers-reduced-motion:reduce){.rel-crono.fin .rc-reloj{animation:none}}
 @media(max-width:720px){.dia.mision .rel-crono{grid-template-columns:1fr;grid-template-areas:"eye" "reloj" "botones"}}
+/* ══════════════════ LA PREGUNTA DEL PUESTO DE MANDO (17-sep) ══════════════════
+   🔴 Sustituye a confirm/prompt/alert del navegador en la web del profesorado. En su ventana, o desplegada debajo de lo
+   que se ha pulsado cuando ya se está dentro de otra ventana (la ficha de un recluta). */
+.sgp-capa{position:fixed;inset:0;z-index:9700;display:grid;place-items:center;padding:20px;
+  background:rgba(4,8,14,.78);backdrop-filter:blur(5px);animation:nebIn .16s ease-out}
+.sgp-capa.cerrando{animation:nebOut .13s ease-in forwards}
+.sgp-caja{width:100%;max-width:460px;background:linear-gradient(180deg,#132234,#0d1624);border:1px solid #2c4a6a;
+  border-radius:16px;padding:16px 18px;text-align:left;color:var(--ink);
+  box-shadow:0 26px 70px rgba(0,0,0,.6),0 0 0 1px rgba(55,224,236,.07) inset;animation:nebSube .2s cubic-bezier(.2,.9,.3,1.2)}
+.sgp-caja.peligro{border-color:#7a3a36;background:linear-gradient(180deg,#221a26,#130f18)}
+.sgp-quien{margin:0 0 4px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--teal)}
+.sgp-caja.peligro .sgp-quien{color:#ff9f8f}
+.sgp-caja h3{font-size:1rem;line-height:1.35;margin:0 0 8px;text-wrap:balance}
+.sgp-txt p{margin:0 0 6px;font-size:.9rem;line-height:1.5;color:var(--mut)}
+.sgp-txt p b{color:var(--ink)}
+.sgp-txt a{word-break:break-all}
+.sgp-campo{display:grid;gap:6px;margin-top:8px}
+.sgp-campo label{font-size:.85rem;font-weight:700;color:var(--ink)}
+.sgp-campo label span{font-weight:400;color:var(--mut)}
+.sgp-campo input,.sgp-campo textarea{width:100%;font:inherit;font-size:.92rem;color:var(--ink);background:#08111c;
+  border:1px solid #2c4a6a;border-radius:10px;padding:8px 10px;resize:vertical}
+.sgp-campo input:focus,.sgp-campo textarea:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:transparent}
+.sgp-rapidos{display:flex;flex-wrap:wrap;gap:6px}
+.sgp-rapidos button{font:inherit;font-size:12px;font-weight:600;color:var(--teal2);background:rgba(55,224,236,.08);
+  border:1px solid rgba(55,224,236,.28);border-radius:999px;padding:3px 10px;cursor:pointer}
+.sgp-rapidos button:hover,.sgp-rapidos button:focus-visible{background:rgba(55,224,236,.18);color:#eafcff}
+.sgp-err{margin:0;font-size:12px;color:#ffb3a8}
+.sgp-bot{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:12px}
+.sgp-bot .btn[disabled]{opacity:.45;cursor:not-allowed}
+/* desplegada en su sitio: ocupa el ancho, sin sombra de ventana */
+.sgp-caja.en-linea{max-width:none;margin:8px 0 4px;box-shadow:none;animation:sgpBaja .16s ease-out}
+@keyframes sgpBaja{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.sgp-pregunta{outline:2px solid var(--amber);outline-offset:2px}
+/* en la ficha, debajo de la fila del tema, a todo el ancho */
+.fi-tema>.sgp-caja{grid-column:1/-1;margin:2px 0 4px}
+.fi-tema .reto.sgp-pregunta{outline-offset:1px}
+.sgp-reto{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.sgp-reto b{font-size:.92rem}
+.sgp-cifras{font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){.sgp-capa,.sgp-caja,.sgp-caja.en-linea{animation:none}}
+/* 17-sep · la Nave: el mensaje del Comandante al validar o anular un reto */
+.msg-cmd{margin:0 0 12px;padding:12px 16px;border-color:rgba(55,224,236,.45);background:linear-gradient(180deg,rgba(55,224,236,.10),rgba(55,224,236,.03))}
+.msg-cmd.anulado{border-color:rgba(245,176,67,.55);background:linear-gradient(180deg,rgba(245,176,67,.12),rgba(245,176,67,.03))}
+.msg-cmd.validado{border-color:rgba(79,209,139,.5);background:linear-gradient(180deg,rgba(79,209,139,.11),rgba(79,209,139,.03))}
+.msg-cmd p{margin:0}
+.msg-cmd .mc-cab{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:.9rem}
+.msg-cmd .mc-cuando{font-size:12px;color:var(--mut)}
+.msg-cmd .mc-cab .btn{margin-left:auto;padding:4px 14px}
+.msg-cmd .mc-ico{font-size:1rem}
+.msg-cmd .mc-que{margin-top:4px;font-size:.95rem}
+.msg-cmd .mc-txt{margin-top:6px;padding:8px 12px;border-left:3px solid var(--teal);background:rgba(0,0,0,.22);border-radius:0 10px 10px 0;font-size:.95rem;line-height:1.5;white-space:pre-line}
+.msg-cmd.anulado .mc-txt{border-left-color:var(--amber)}
+.msg-cmd.validado .mc-txt{border-left-color:#4fd18b}

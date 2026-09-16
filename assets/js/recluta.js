@@ -1267,6 +1267,47 @@
       +'Puedes mirar tu Nave, pero no registrar retos, comprar, fichar ni usar el Zoco hasta que la descongele. '
       +'Si crees que es un error, habla con tu Comandante.</p></div>';
   }
+  /**
+   * 🔴 17-sep · EL MENSAJE DE TU COMANDANTE, cuando valida o anula uno de tus retos desde su consola. Norberto: «imagina
+   * que ha puesto un enlace incorrecto: se desmarca la misión y se da una razón al estudiante». Arriba del todo, porque
+   * un reto que desaparece sin explicación parece un fallo de la web; se va al pulsar «Entendido» (y ya no vuelve).
+   */
+  function avisoMensajes(){
+    var L=st.mensajes||[];
+    if(!L.length||!st.yo||SIMULACRO) return '';
+    var RET=(window.SG_RETOS||{})[(st.d&&st.d.tipo)||'REGULAR']||[];
+    return L.slice(0,3).map(function(x){
+      var s=x.stargate||{}, anul=s.accion==='anulado', val=s.accion==='validado';
+      var r=RET.filter(function(f){ return f[0]===s.reto; })[0];
+      var cuando=x.createdAt?new Date(x.createdAt):null;
+      return '<div class="card msg-cmd'+(anul?' anulado':val?' validado':'')+'" role="status">'
+        +'<p class="mc-cab"><span class="mc-ico" aria-hidden="true">'+(anul?'↩️':val?'✅':'📡')+'</span>'
+        +'<b>Mensaje de tu Comandante'+(s.de?' · '+esc(s.de):'')+'</b>'
+        +(cuando?'<span class="mc-cuando">'+esc(cuando.toLocaleDateString('es-ES',{day:'numeric',month:'short'}))+', '+esc(cuando.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}))+'</span>':'')
+        // (el «Entendido», en la misma línea: una fila entera para un botón era aire)
+        +'<button type="button" class="btn min" data-msg-leido="'+esc(x.id)+'">Entendido</button></p>'
+        +(s.reto?'<p class="mc-que">'+(anul?'Ha anulado tu reto ':val?'Ha validado tu reto ':'Sobre tu reto ')+'<b>'+esc(s.reto)+(r?' · '+esc(r[1]):'')+'</b>.'
+          +(anul?' Puedes registrarlo otra vez cuando lo tengas bien.':'')+'</p>':'')
+        +(x.message?'<p class="mc-txt">«'+esc(x.message)+'»</p>':'')+'</div>';
+    }).join('');
+  }
+  function vigilarMensajes(){
+    if(!motorNuevo()||!per||st.paraMensajes||SIMULACRO||enDemo()) return;
+    var M=window.SG&&window.SG.MOTOR; if(!M||!M.vigilarMensajes) return;
+    st.paraMensajes=M.vigilarMensajes(per, function(lista){
+      var antes=(st.mensajes||[]).map(function(x){return x.id;}).join(','), ahora=lista.map(function(x){return x.id;}).join(',');
+      st.mensajes=lista;
+      if(antes!==ahora) render();
+    });
+  }
+  document.addEventListener('click', function(ev){
+    var b=ev.target&&ev.target.closest?ev.target.closest('[data-msg-leido]'):null; if(!b) return;
+    var id=b.getAttribute('data-msg-leido'), M=window.SG&&window.SG.MOTOR;
+    b.disabled=true;
+    // se quita ya de la vista; la marca de leído va detrás (si fallara, volvería a salir la próxima vez: mejor eso que perderlo)
+    st.mensajes=(st.mensajes||[]).filter(function(x){return x.id!==id;}); render();
+    if(M&&M.mensajeLeido) M.mensajeLeido(id).catch(function(){});
+  });
   function avisoPase(){
     var L=st.llamada;
     if(!L||!st.yo||st.yo.congelado) return '';
@@ -3941,7 +3982,7 @@
     // El ranking «Mi escuadrón» necesita saber quién eres. En el tablero proyectado no hay nadie, y
     // por eso ese modo no aparece allí: no se esconde por seguridad, es que no significa nada.
     try{ window.SG_YO_ALIAS = st.yo ? st.yo.alias : ''; }catch(e){}
-    if(st.yo) vigilarLlamada();
+    if(st.yo){ vigilarLlamada(); vigilarMensajes(); }
     /**
      * 🔴 LA DEMO TIENE SALIDA. Es la página del escaparate —la enlaza el botón DEMO de la portada—, y
      * una demo que no dice cómo se entra de verdad deja al visitante mirando algo que no puede usar.
@@ -3957,7 +3998,7 @@
         + '<a class="btn ghost" href="index.html">Volver a la presentación</a></p></div>'
       : '';
     root.innerHTML = avisoDemo + (dentro
-      ? barraSimulacro()+login()+pestanas()+avisoCongelado()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
+      ? barraSimulacro()+login()+pestanas()+avisoCongelado()+avisoMensajes()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
         +'<div id="nave-panel" role="tabpanel" aria-labelledby="nb-t-'+st.tab+'">'+contenido()+'</div>'
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
     verTablero(dentro && st.tab==='rankings');

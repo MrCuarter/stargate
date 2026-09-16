@@ -63,14 +63,19 @@
       if (!b || !app.contains(b)) return;
       ev.preventDefault();
       var txt = b.getAttribute("data-copiar");
+      // si el navegador no deja copiar solo, se ofrece el texto seleccionado para copiarlo con el teclado
+      var copiarAMano = function (x) {
+        window.SG.preguntar({ titulo: "Cópialo a mano", texto: "El navegador no me deja copiarlo solo. Ya está seleccionado: pulsa Ctrl+C (⌘+C en Mac).",
+          campo: { valor: x, soloLectura: true, filas: x.length > 80 ? 4 : 1 }, si: "Hecho", no: "" });
+      };
       var v = b.getAttribute("data-copiado") || "✓ Copiado";
       var ok = function () {
         if (b.__copiando) return; b.__copiando = true;
         var antes = b.innerHTML; b.textContent = v; b.classList.add("ok");
         setTimeout(function () { b.innerHTML = antes; b.classList.remove("ok"); b.__copiando = false; }, 1600); };
       if (navigator.clipboard && navigator.clipboard.writeText)
-        navigator.clipboard.writeText(txt).then(ok).catch(function () { prompt("Copia:", txt); });
-      else prompt("Copia:", txt);
+        navigator.clipboard.writeText(txt).then(ok).catch(function () { copiarAMano(txt); });
+      else copiarAMano(txt);
     });
   }
 
@@ -439,7 +444,7 @@
    * le habla de Ajustes que no tiene.
    */
   var PASOS_GRUPO = {
-    alumnado: ["Mi gente", "Tu alumnado con sus xp, créditos e insignias. <b>Pulsa una fila</b>: ves su ficha, los <b>enlaces de sus evidencias</b> y puedes otorgar o anular un reto. El aviso <b>«⚠️ sin enlace»</b> marca los retos registrados sin evidencia."],
+    alumnado: ["Mi gente", "Tu alumnado con sus xp, créditos e insignias. <b>Pulsa una fila</b>: ves su ficha, los <b>enlaces de sus evidencias</b> y puedes validar o anular un reto con un mensaje que le llega a su Nave."],
     rankings: ["Rankings", "Todos los rankings del grupo —xp, esta semana, colección, constancia, relámpago, logros, el Simulador de Joran y los escuadrones—, del <b>grupo entero o de un escuadrón</b>. Son los mismos que ve tu alumnado en su Nave: para <b>ensalzar</b> en clase a quien destaca en cada cosa."],
     canjes: ["Cola de nota", "Solo aparece cuando alguien pide una subida de <b>nota</b>, y brilla hasta que la resuelves: ninguna se aplica sola. Los créditos no se mueven hasta entonces."],
     zoco: ["El Zoco", "Los trueques entre tu alumnado (se abren en la semana 8; en PUA, la 7): quién cambia qué con quién y los mensajes que se dejan. Si uno no te cuadra, <b>Deshacer</b> devuelve cada cosa a su dueño."],
@@ -638,12 +643,12 @@
      * 🔴 13-sep · LOS ENLACES DE EVIDENCIA, POR FIN A LA VISTA. El alumnado los guardaba en
      * `mission_deliveries` y NADA de la consola los leía: se pedían enlaces que caían en un pozo. Y
      * la razón de pedirlos —Norberto— es que el docente pueda verlos, comprobarlos y «mostrar o
-     * alabar el trabajo de un estudiante en clase». Una consulta por grupo; al lado de quien tenga
-     * retos de evidencia obligatoria SIN enlace, un aviso: así se ve de un vistazo a quien marca
-     * retos sin hacerlos.
+     * alabar el trabajo de un estudiante en clase». Una consulta por grupo; se ven en su ficha.
+     *
+     * 🔴 17-sep · SIN EL «⚠️ N sin enlace» EN LA LISTA. Norberto: «no sería necesario: hemos puesto obligatorio adjuntar un
+     * enlace, esto no nos va a pasar». Lo único que lo encendía eran los retos otorgados a mano (que no traen enlace) y
+     * los de prueba. Si un enlace está mal, se ve en la ficha y se anula el reto con su porqué.
      */
-    // 🔴 Un turno por pintada: la lista se repinta (al refrescar, al volver de una ficha) y cada
-    // consulta en vuelo añadía SU aviso a las filas nuevas — salían «⚠️ 8 sin enlace» dos veces.
     cargarEvid(t);
   }
   function cargarEvid(t) {
@@ -661,27 +666,7 @@
         x[0].docs.forEach(function (d) { var e = d.data(); (EVID[e.studentProfileId] = EVID[e.studentProfileId] || {})[e.stargateReto || String(e.missionId).split("__").pop()] = e.enlace || ""; });
         (x[1] || []).forEach(function (f) { (EVRF[f.fichaId] = EVRF[f.fichaId] || {})[f.reto] = f; });
         (x[2] || []).forEach(function (c) { (COMS[c.reflexion] = COMS[c.reflexion] || []).push(c); });
-        marcarSinEnlace(t);
       }).catch(function () { EVID = {}; EVRF = {}; COMS = {}; });
-  }
-  /** Al lado del alias, cuántos retos que piden enlace no lo tienen (en la tabla que esté a la vista). */
-  function marcarSinEnlace(t) {
-    if (!EVID) return;
-    var EVR = window.SG_EVIDENCIA || {}, RFX = window.SG_REFLEXION || {};
-    t.reclutas.forEach(function (rc, i) {
-      var mias = EVID[rc.ficha] || {}, rfs = (EVRF && EVRF[rc.ficha]) || {};
-      var hechos = Object.keys(rc.retos || {});
-      var faltan = hechos.filter(function (id) { return EVR[id] === "obligatoria" && !mias[id]; });
-      // 15-sep (noche) · y los que se responden en el propio reto y no tienen su reflexión (otorgados a mano, por ejemplo;
-      // lo registrado antes de que existiera la caja no cuenta: no es culpa de nadie)
-      var sinRF = hechos.filter(function (id) { return RFX[id] && !rfs[id] && pideReflexion(rc.retos[id]); });
-      if (!faltan.length && !sinRF.length) return;
-      var celda = app.querySelector('[data-r="' + i + '"] td:nth-child(2)');
-      var txt = [faltan.length ? faltan.length + " sin enlace" : "", sinRF.length ? sinRF.length + " sin reflexión" : ""].filter(Boolean).join(" · ");
-      if (celda && !celda.querySelector(".sin-evid")) celda.insertAdjacentHTML("beforeend", ' <span class="sin-evid" title="' +
-        esc([faltan.length ? "Piden enlace y no lo tienen: " + faltan.join(", ") : "", sinRF.length ? "Piden reflexión y no la tienen: " + sinRF.join(", ") : ""].filter(Boolean).join(" · ")) +
-        '">⚠️ ' + txt + '</span>');
-    });
   }
   var EVID = null, EVID_LISTO = null, TURNO_EVID = 0, EVID_PER = null, EVRF = {}, COMS = {}, FICHA_RF = null, ULTIMO_T = null;
   /** Las reflexiones existen desde el 16-sep-2026: lo registrado antes no se marca como «sin reflexión». */
@@ -696,12 +681,14 @@
     if (!b || !FICHA_RF) return;
     var r = FICHA_RF;
     if (b.hasAttribute("data-rfquitarcom")) {
-      if (!confirm("¿Quitar este comentario? Ya no lo verá nadie.")) return;
+      if (!(await window.SG.preguntar({ aqui: b.closest("p") || b, marca: b, titulo: "¿Quitar este comentario?", texto: "Ya no lo verá nadie.",
+        si: "Quitar", peligro: true }))) return;
       b.disabled = true;
       try { await MOTOR.borrarComentario(b.getAttribute("data-rfquitarcom")); } catch (e) { b.disabled = false; return avisoFicha(e.message); }
     } else {
       var reto = b.getAttribute("data-rfquitar");
-      if (!confirm("¿Quitar la reflexión de «" + r.alias + "» en " + reto + "?\n\nDeja de verse en la Nave y en la sesión, con sus comentarios. El reto sigue registrado.")) return;
+      if (!(await window.SG.preguntar({ aqui: b.closest("p") || b, marca: b, titulo: "¿Quitar la reflexión de «" + r.alias + "» en " + reto + "?",
+        texto: "Deja de verse en la Nave y en la sesión, con sus comentarios. El reto sigue registrado.", si: "Quitar la reflexión", peligro: true }))) return;
       b.disabled = true;
       try { await MOTOR.borrarReflexion(PER, reto, r.ficha); } catch (e) { b.disabled = false; return avisoFicha(e.message); }
     }
@@ -767,7 +754,7 @@
         ? String(e).trim().split(/\s+/).map(function (u) {
             var url = /^https?:\/\//i.test(u) ? u : "https://" + u;
             return '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">🔗 ' + esc(u.replace(/^https?:\/\//i, "").slice(0, 60)) + '</a>'; }).join(" ")
-        : (ob ? '<span class="sin-evid">⚠️ sin enlace, y este reto lo pide</span>' : (RFX[id] ? "" : '<span class="small muted">sin enlace</span>'));
+        : (RFX[id] && !ob ? "" : '<span class="small muted">sin enlace</span>');
       // 15-sep (noche) · su reflexión (la ve su tripulación), con sus comentarios; el profesorado puede quitar lo que no deba estar
       var coms = rf ? (COMS[rf.id] || []) : [];
       var refl = !RFX[id] ? "" : rf
@@ -777,7 +764,7 @@
               return '<p class="evid-com"><b>' + esc((q && q.displayName) || "Un recluta") + "</b> " + esc(c.texto || "") +
                 ' <button type="button" class="btn min" data-rfquitarcom="' + esc(c.id) + '" title="Quitar este comentario">Quitar</button></p>'; }).join("") + "</details>" : "") +
           '<p><button type="button" class="btn min" data-rfquitar="' + esc(id) + '" title="La reflexión deja de verse (el reto sigue registrado)">Quitar la reflexión</button></p></div>'
-        : (pideReflexion((r.retos || {})[id]) ? '<span class="sin-evid">⚠️ sin reflexión, y este reto la pide</span>' : "");
+        : (pideReflexion((r.retos || {})[id]) ? '<span class="small muted">sin reflexión</span>' : "");
       return '<li><b>' + esc(id) + '</b> ' + enlace + refl + '</li>';
     }).join("") + '</ul>';
   }
@@ -884,7 +871,7 @@
       (r.congelado ? '<p class="aviso">🧊 <b>Cuenta congelada</b>' + (r.congelado.fecha ? " desde el " + diaDe(r.congelado.fecha) : "") + ": entra y mira su Nave, pero no puede hacer nada.</p>" : "") +
       '<div class="c-modal-aviso aviso" hidden></div>' +
       "<h4>Sus retos y sus insignias, por temas</h4>" + temasDeLaFicha(r, retos) +
-      '<p class="small muted">Insignia encendida = ganada. Reto en verde = registrado: púlsalo para otorgarlo o anularlo. Todo queda anotado en el libro de experiencia, con quién y cuándo.</p>' +
+      '<p class="small muted">Insignia encendida = ganada. Reto en verde = registrado. Pulsa un reto para validarlo o anularlo, con un mensaje que le llega a su Nave. Todo queda anotado en el libro de experiencia, con quién y cuándo.</p>' +
       '<div class="evid-ficha"><h4>Lo que ha entregado</h4><div id="c-evid">' + evidenciasDe(r) + "</div></div>" +
       // 🔴 DAR DE BAJA y CONGELAR (14-sep): solo el referente (Norberto: «el referente tiene poder de eliminar o
       // congelar: puede acceder, pero no puede hacer nada, bloqueado»). La baja hace falta de verdad: alguien que se
@@ -899,7 +886,8 @@
     var cmdB = m.querySelector("#c-cmd-b");
     if (cmdB) cmdB.onclick = async function () {
       var a = (m.querySelector("#c-cmd") || {}).value; if (!a) return;
-      if (!confirm("¿Pasar a «" + r.alias + "» al escuadrón de " + a + "?\n\nCambia de Comandante y de escuadrón. Se lleva todo lo suyo.")) return;
+      if (!(await window.SG.preguntar({ aqui: cmdB.closest("p") || cmdB, marca: cmdB, titulo: "¿Pasar a «" + r.alias + "» al escuadrón de " + a + "?",
+        texto: "Cambia de Comandante y de escuadrón. Se lleva todo lo suyo: retos, créditos y colección.", si: "🔀 Cambiar de Comandante" }))) return;
       cmdB.disabled = true;
       try {
         await MOTOR.cambiarComandante(PER, ficha, a); await refrescar();
@@ -909,9 +897,10 @@
     var cong = m.querySelector("#c-congelar");
     if (cong) cong.onclick = async function () {
       var ya = !!r.congelado;
-      if (!ya && !confirm("¿Congelar la cuenta de «" + r.alias + "»?\n\nPodrá entrar y mirar su Nave, pero no hacer nada: ni registrar " +
-                          "retos, ni comprar, ni fichar, ni el Zoco. Lo que tenga en el Zoco se retira (y cada oferta devuelve lo suyo).\n\n" +
-                          "Se descongela con un clic, cuando quieras.")) return;
+      if (!ya && !(await window.SG.preguntar({ aqui: cong.closest("p") || cong, marca: cong, titulo: "¿Congelar la cuenta de «" + r.alias + "»?",
+        texto: "Podrá entrar y mirar su Nave, pero no hacer nada: ni registrar retos, ni comprar, ni fichar, ni el Zoco. " +
+               "Lo que tenga en el Zoco se retira (y cada oferta devuelve lo suyo).\n\nSe descongela con un clic, cuando quieras.",
+        si: "🧊 Congelar", peligro: true }))) return;
       cong.disabled = true;
       try {
         await MOTOR.alumno(PER, ficha, ya ? "descongelar" : "congelar"); await refrescar();
@@ -924,26 +913,59 @@
     };
     var baja = m.querySelector("#c-baja");
     if (baja) baja.onclick = async function () {
-      // Dos confirmaciones a propósito: esto borra de verdad y no hay deshacer. La segunda pide
-      // escribir el alias, que es lo único que impide un clic distraído sobre la persona equivocada.
-      if (!confirm("Vas a dar de baja a «" + r.alias + "» de este grupo.\n\n" +
-                   "Se borra su ficha: alias, personaje, retos, insignias y cartas. El rastro de lo " +
-                   "que se le dio y se le quitó SÍ se conserva en el libro de experiencia.\n\n" +
-                   "No hay deshacer. ¿Seguimos?")) return;
-      var escrito = prompt("Para confirmar, escribe su alias exactamente:\n\n" + r.alias);
-      if (String(escrito || "").trim() !== r.alias) { avisoFicha("No coincide: no se ha dado de baja a nadie."); return; }
+      // Esto borra de verdad y no hay deshacer: el botón no se enciende hasta escribir su alias, que es lo único que
+      // impide un clic distraído sobre la persona equivocada.
+      if (!(await window.SG.preguntar({ aqui: baja.closest("p") || baja, marca: baja, titulo: "¿Dar de baja a «" + r.alias + "» de este grupo?",
+        texto: "Se borra su ficha: alias, personaje, retos, insignias y cartas. El rastro de lo que se le dio y se le quitó SÍ se conserva " +
+               "en el libro de experiencia.\n\nNo hay deshacer.",
+        campo: { etiqueta: "Para confirmar, escribe su alias:", ayuda: r.alias, igualA: r.alias }, si: "Dar de baja", peligro: true }))) return;
       baja.disabled = true;
       try { await MOTOR.darDeBaja(PER, ficha); await refrescar(); cerrarFicha(); aviso(r.alias + " ya no está en el grupo.", true); }
       catch (e) { baja.disabled = false; avisoFicha(e.message); }
     };
+    /**
+     * 🔴 17-sep · VALIDAR O ANULAR UN RETO, CON SU PORQUÉ. Norberto: «como la ficha ya es una ventana, que aparezca un
+     * desplegable debajo de la misión preguntando si se quiere validar o desvalidar, junto con la posibilidad de enviar un
+     * mensaje al estudiante. Imagina que ha puesto un enlace incorrecto: se desmarca la misión y se da una razón». Antes
+     * era el `confirm()` del navegador y el recluta veía desaparecer su reto sin saber por qué.
+     */
     Array.prototype.forEach.call(m.querySelectorAll("[data-reto]"), function (b) {
       b.onclick = async function () {
         var id = b.getAttribute("data-reto"), tiene = b.getAttribute("data-tiene") === "1";
-        if (tiene && !confirm("¿Anular el reto " + id + " a " + r.alias + "?\n\nSe le descontarán los xp y los créditos que dio.")) return;
+        var mi = retos.filter(function (x) { return x.id === id; })[0] || {};
+        var xp = Number(mi.points || 0), cr = Number(mi.coinsReward || 0);
+        var entregado = String(((EVID && EVID[ficha]) || {})[id] || "").trim();
+        var enlaces = entregado ? entregado.split(/\s+/).map(function (u) {
+          var url = /^https?:\/\//i.test(u) ? u : "https://" + u;
+          return '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">🔗 ' + esc(u.replace(/^https?:\/\//i, "").slice(0, 70)) + "</a>"; }).join(" ") : "";
+        var resp = await window.SG.preguntar({
+          aqui: b.closest(".retos-ficha") || b, marca: b, peligro: tiene,
+          titulo: (tiene ? "¿Anular " : "¿Validar ") + id + " a " + r.alias + "?",
+          html: '<p class="sgp-reto"><b>' + esc(id) + " · " + esc(mi.title || "") + "</b>" +
+                  (tiene ? (enlaces ? "<span>" + enlaces + "</span>" : '<span class="small muted">sin enlace</span>') : "") + "</p>" +
+                '<p class="sgp-cifras">' + (tiene ? "Se le quitan " : "Se le suman ") + "<b>" + xp + " xp</b>" + (mi.badge ? ", " : " y ") + "<b>" + cr + " ◈</b>" +
+                  (mi.badge ? " y su insignia" : "") + (tiene ? ". Podrá registrarlo otra vez." : ".") + "</p>",
+          campo: { etiqueta: "Mensaje para " + r.alias, ayuda: tiene ? "· lo verá en su Nave" : "· opcional · lo verá en su Nave", filas: 2, max: 400,
+                   marcador: tiene ? "Por qué lo anulas y qué tiene que hacer para registrarlo bien…" : "Un comentario sobre su trabajo…",
+                   rapidos: tiene
+                     ? [["El enlace no abre", "El enlace no abre: revisa que esté bien copiado y vuelve a registrar el reto."],
+                        ["No es público", "El enlace no es público: cambia los permisos para que cualquiera con el enlace pueda verlo y vuelve a registrarlo."],
+                        ["No es lo que pide", "Lo que has entregado no es lo que pide el reto: vuelve a leerlo y regístralo cuando lo tengas."],
+                        ["Falta la reflexión", "Falta la reflexión que pide el reto: añádela al registrarlo otra vez."]]
+                     : [["¡Buen trabajo!", "¡Buen trabajo! Te lo valido."], ["Lo vi en clase", "Lo hiciste en clase: te lo valido yo."]] },
+          si: tiene ? "Anular reto" : "Validar reto", no: "Cancelar"
+        });
+        if (!resp) return;
         b.disabled = true;
         try {
-          var res = tiene ? await MOTOR.anularReto(PER, ficha, id, "desde la consola")
+          var res = tiene ? await MOTOR.anularReto(PER, ficha, id, (resp.texto || "desde la consola").slice(0, 200))
                           : await MOTOR.otorgarReto(PER, ficha, id);
+          // el mensaje, después de hacerlo (si fallara lo otro, no le llega un «te lo he anulado» falso)
+          var avisado = false, perfil = (DATOS.perfiles || []).filter(function (p) { return p.id === ficha; })[0];
+          if (resp.texto && perfil && perfil.userId) {
+            try { await MOTOR.avisarRecluta(PER, perfil.userId, { reto: id, accion: tiene ? "anulado" : "validado", texto: resp.texto, de: miNombreAqui() }); avisado = true; }
+            catch (x) { avisado = false; }
+          }
           await refrescar();
           /**
            * 🔴 Si ya se había gastado lo que le dio el reto, se le dice al docente, con la cifra. El
@@ -953,8 +975,9 @@
            * nota nunca estuvo en juego: las subidas de nota esperan tu visto bueno en la cola.
            */
           var falta = res && Number(res.noRetirados || 0);
-          reabrirFicha(ficha, (tiene ? "Anulado " : "Otorgado ") + id + " a " + r.alias +
-                (falta ? " · ya se había gastado " + falta + " ◈ de este reto: no se le han podido retirar." : ""), !falta);
+          reabrirFicha(ficha, (tiene ? "Anulado " : "Validado ") + id + " a " + r.alias +
+                (resp.texto ? (avisado ? " · le ha llegado tu mensaje a su Nave." : " · pero el mensaje no se ha podido enviar.") : "") +
+                (falta ? " · ya se había gastado " + falta + " ◈ de este reto: no se le han podido retirar." : ""), !falta && (!resp.texto || avisado));
         } catch (e) { b.disabled = false; avisoFicha(e.message); }
       };
     });
@@ -1346,9 +1369,10 @@
               '</td><td>' + (x.estado === "aceptado" && !sorteada(x.pieza.id) ? '<button class="btn min" data-deshacer-z="' + esc(x.id) + '">Deshacer</button>' : "") + '</td></tr>';
           }).join("") + '</tbody></table></div>' : '<p class="small muted">Todavía no ha habido ningún trueque.</p>') + '</div>';
       Array.prototype.forEach.call(app.querySelectorAll("[data-deshacer-z]"), function (b) {
-        b.onclick = function () {
+        b.onclick = async function () {
           // todo o nada: solo se deshace si cada uno conserva lo que recibió (si no, se crearía algo de la nada)
-          if (!confirm("¿Deshacer este trueque? Cada cosa vuelve a su dueño. Solo se puede si los dos conservan lo que recibieron.")) return;
+          if (!(await window.SG.preguntar({ titulo: "¿Deshacer este trueque?", texto: "Cada cosa vuelve a su dueño. Solo se puede si los dos conservan lo que recibieron.",
+            si: "Deshacer el trueque", peligro: true }))) return;
           b.disabled = true;
           MOTOR.zocoDeshacer(b.getAttribute("data-deshacer-z")).then(function () {
             aviso("Deshecho: cada cosa ha vuelto a su dueño.", true);
@@ -1440,19 +1464,22 @@
       catch (e) { b.disabled = false; aviso(e.message); }
     };
     Array.prototype.forEach.call(app.querySelectorAll("[data-rol]"), function (b) {
-      b.onclick = function () {
+      b.onclick = async function () {
         var d = docs[Number(b.getAttribute("data-rol"))], esRef = d.rol === "referente", soyYo = String(d.correo || "").toLowerCase() === yo;
         if (esRef && refs <= 1) return aviso("Es la única persona referente de este grupo: nombra antes a otra.");
-        if (esRef && soyYo && !confirm("Vas a dejar de ser referente de este grupo: ya no verás sus ajustes ni su equipo. ¿Seguimos?")) return;
-        if (!esRef && !confirm("¿Hacer a " + (d.nombre || d.correo) + " referente de este grupo?\n\nVerá el alumnado, los correos del equipo y los ajustes.")) return;
+        if (esRef && soyYo && !(await window.SG.preguntar({ titulo: "¿Dejar de ser referente de este grupo?", texto: "Ya no verás sus ajustes ni su equipo.",
+          si: "Dejar de ser referente", peligro: true }))) return;
+        if (!esRef && !(await window.SG.preguntar({ titulo: "¿Hacer a " + (d.nombre || d.correo) + " referente de este grupo?",
+          texto: "Verá el alumnado, los correos del equipo y los ajustes.", si: "Hacer referente" }))) return;
         hecho(b, function () { return MOTOR.anadirDocente(PER, { nombre: d.nombre, correo: d.correo, rol: esRef ? "docente" : "referente" }); },
               (d.nombre || d.correo) + (esRef ? " ya es docente (sin lo de referente)." : " ya es referente de este grupo."));
       };
     });
     Array.prototype.forEach.call(app.querySelectorAll("[data-pasar]"), function (b) {
-      b.onclick = function () {
+      b.onclick = async function () {
         var i = Number(b.getAttribute("data-pasar")), d = docs[i], a = app.querySelector('[data-dest="' + i + '"]').value;
-        if (!confirm("¿Pasar todo el alumnado de " + d.nombre + " a " + a + "?\n\nCambian de Comandante y de escuadrón de una vez.")) return;
+        if (!(await window.SG.preguntar({ titulo: "¿Pasar todo el alumnado de " + d.nombre + " a " + a + "?",
+          texto: "Cambian de Comandante y de escuadrón de una vez.", si: "Pasar el alumnado" }))) return;
         b.disabled = true;
         MOTOR.traspasar(PER, d.nombre, a).then(function (n) { return refrescar().then(function () { TAB = "equipo"; pintar(); aviso(n + " reclutas pasados a " + a + ".", true); }); })
           .catch(function (e) { b.disabled = false; aviso(e.message); });
@@ -1464,8 +1491,9 @@
         if (d.rol === "referente" && refs <= 1) return aviso("Es la única persona referente de este grupo: nombra antes a otra.");
         var sel = app.querySelector('[data-dest="' + i + '"]');
         if (n && !sel) return aviso(d.nombre + " tiene " + n + " reclutas y no hay otro docente con escuadrón a quien pasarlos.");
-        if (!confirm("¿Quitar a " + (d.nombre || d.correo) + " del equipo de este grupo?\n\n" +
-                     (n ? "Antes, sus " + n + " reclutas pasan a " + sel.value + ".\n" : "") + "Dejará de ver el grupo. Se le puede volver a añadir cuando quieras.")) return;
+        if (!(await window.SG.preguntar({ titulo: "¿Quitar a " + (d.nombre || d.correo) + " del equipo de este grupo?",
+          texto: (n ? "Antes, sus " + n + " reclutas pasan a " + sel.value + ".\n\n" : "") + "Dejará de ver el grupo. Se le puede volver a añadir cuando quieras.",
+          si: "Quitar del equipo", peligro: true }))) return;
         b.disabled = true;
         try {
           if (n) await MOTOR.traspasar(PER, d.nombre, sel.value);
@@ -1499,8 +1527,8 @@
       var persona = { nombre: $("#e-nom").value, correo: $("#e-mail").value, rol: "referente" };
       if (!persona.correo.trim()) return aviso("Escribe su correo.");
       var ids = (PERS || []).map(function (p) { return p.id; });
-      if (!confirm("Vas a hacer a «" + (persona.nombre || persona.correo) + "» referente de tus " +
-                   ids.length + " grupo(s).\n\nVerá el alumnado, los correos y los ajustes de todos.")) return;
+      if (!(await window.SG.preguntar({ titulo: "¿Hacer a «" + (persona.nombre || persona.correo) + "» referente de tus " + ids.length + " grupo(s)?",
+        texto: "Verá el alumnado, los correos y los ajustes de todos.", si: "Hacer referente" }))) return;
       $("#e-todos").disabled = true;
       try {
         var r = await MOTOR.referenteEnTodos(persona, ids);
@@ -1515,7 +1543,8 @@
     };
     if ($("#t-ir")) $("#t-ir").onclick = async function () {
       var de = $("#t-de").value, a = $("#t-a").value;
-      if (!confirm("¿Pasar todo el alumnado de " + de + " a " + a + "?")) return;
+      if (!(await window.SG.preguntar({ titulo: "¿Pasar todo el alumnado de " + de + " a " + a + "?", texto: "Cambian de Comandante y de escuadrón de una vez.",
+        si: "Pasar el alumnado" }))) return;
       try { var n = await MOTOR.traspasar(PER, de, a); await refrescar(); TAB = "equipo"; pintar(); aviso(n + " reclutas pasados a " + a, true); }
       catch (e) { aviso(e.message); }
     };
@@ -1589,7 +1618,7 @@
       dt.addEventListener("toggle", function () { if (dt.open) ABRIR_ESC = dt.getAttribute("data-esc"); else if (ABRIR_ESC === dt.getAttribute("data-esc")) ABRIR_ESC = ""; });
     });
     cablearFilas(app, t);
-    if (EVID && EVID_PER === PER) marcarSinEnlace(t); else cargarEvid(t);
+    if (!(EVID && EVID_PER === PER)) cargarEvid(t);
     var abierto = app.querySelector(".esc-det[open]");
     if (abierto && IR_ESC) { IR_ESC = false; try { abierto.scrollIntoView({ block: "start", behavior: "instant" }); } catch (e) {} }
   }
@@ -1708,14 +1737,19 @@
       Array.prototype.forEach.call(c.querySelectorAll("[data-of-mas]"), function (b) {
         b.onclick = function () { b.disabled = true; pide("extender", { ofertaId: id, dias: Number(b.getAttribute("data-of-mas")) }, "⏳ Oferta alargada.", function () { b.disabled = false; }); }; });
       var u = c.querySelector("[data-of-uds]");
-      if (u) u.onclick = function () {
-        var v = prompt("¿Cuántas unidades en total? (escribe «ilimitado» para quitar el tope)", "");
-        if (v == null || String(v).trim() === "") return;
-        if (!/ilimit/i.test(v) && !/^\s*\d+\s*$/.test(v)) { aviso("Escribe un número de unidades (por ejemplo, 5) o «ilimitado»."); return; }
+      if (u) u.onclick = async function () {
+        var resp = await window.SG.preguntar({ titulo: "¿Cuántas unidades en total?", texto: "Escribe «ilimitado» para quitar el tope.",
+          campo: { etiqueta: "Unidades", marcador: "5 o ilimitado", obligatorio: true,
+                   validar: function (x) { return /ilimit/i.test(x) || /^\d+$/.test(x) ? "" : "Un número (por ejemplo, 5) o «ilimitado»."; } },
+          si: "Cambiar unidades" });
+        if (!resp) return;
+        var v = resp.texto;
         pide("unidades", { ofertaId: id, unidades: /ilimit/i.test(v) ? "ilimitado" : Number(v) }, "Unidades cambiadas.");
       };
       var x = c.querySelector("[data-of-cancelar]");
-      if (x) x.onclick = function () { if (!confirm("¿Cancelar esta oferta? Sale del Mercado ya. Quien la compró la conserva.")) return; pide("cancelar", { ofertaId: id }, "✖️ Oferta cancelada."); };
+      if (x) x.onclick = async function () {
+        if (!(await window.SG.preguntar({ titulo: "¿Cancelar esta oferta?", texto: "Sale del Mercado ya. Quien la compró la conserva.", si: "Cancelar la oferta", no: "Mantenerla", peligro: true }))) return;
+        pide("cancelar", { ofertaId: id }, "✖️ Oferta cancelada."); };
     });
     $("#of-nueva").onclick = function () {
       var op = function (v, t) { return '<option value="' + esc(v) + '">' + esc(t) + '</option>'; };
@@ -1883,7 +1917,8 @@
     capa.querySelector("#sr-go").onclick = async function () {
       var go = this;
       if (Number(x.ticketDeadline) > Date.now() &&
-          !confirm("Todavía no es el día del sorteo (" + diaDe(x.ticketDeadline) + "). Si sorteas ya, se cierra la venta de participaciones. ¿Sortear ahora?")) return;
+          !(await window.SG.preguntar({ titulo: "¿Sortear ahora?", texto: "Todavía no es el día del sorteo (" + diaDe(x.ticketDeadline) + "). Si sorteas ya, se cierra la venta de participaciones.",
+            si: "Sortear ahora" }))) return;
       go.disabled = true; go.querySelector(".ep-txt").textContent = "Sorteando…";
       var res;
       try { res = await MOTOR.sortear(PER, x.docId); }
@@ -2183,7 +2218,8 @@
     inp.oninput = function () { b.disabled = inp.value.trim() !== nombre; };
     b.onclick = async function () {
       if (inp.value.trim() !== nombre) return;
-      if (!confirm("Última pregunta: ¿borrar «" + nombre + "» y todo lo que tiene? No se puede deshacer.")) return;
+      if (!(await window.SG.preguntar({ titulo: "Última pregunta: ¿borrar «" + nombre + "» y todo lo que tiene?", texto: "No se puede deshacer.",
+        si: "Borrar el grupo", peligro: true }))) return;
       b.disabled = true; b.textContent = "Borrando…";
       try {
         await MOTOR.llamar("deleteProject", { projectId: PER });
@@ -2246,8 +2282,8 @@
     if (aCal) aCal.onclick = function () { TAB = "calendario"; pintar(); };
     if ($("#s-codigo")) $("#s-codigo").onclick = async function () {
       if (DATOS.proyecto.joinCode &&
-          !confirm("Se cambiará el código. Quien tenga el enlace viejo ya no podrá alistarse " +
-                   "hasta que le pases el nuevo.\n\n¿Seguimos?")) return;
+          !(await window.SG.preguntar({ titulo: "¿Cambiar el código de clase?", texto: "Quien tenga el enlace viejo ya no podrá alistarse hasta que le pases el nuevo.",
+            si: "Cambiar el código" }))) return;
       try { var c = await MOTOR.nuevoCodigo(PER); await refrescar(); aviso("Código nuevo: " + c, true); }
       catch (e) { aviso(e.message); }
     };

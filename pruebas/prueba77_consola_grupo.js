@@ -47,7 +47,7 @@ c(/Comandante/.test(E) && /Media de xp/.test(E) && /Insignias de media/.test(E),
 c(/EVID_PER === PER/.test(E), "   y los avisos de enlace son los de ESTE grupo (no los del último que se miró)");
 
 // 5 · el equipo docente, persona a persona
-const Q = trozo(K, "function verEquipo", 9000);
+const Q = trozo(K, "function verEquipo", 11000);   // (17-sep · más largo: sus preguntas ya no son confirm() de una línea)
 c(/class="eq-p/.test(Q) && /data-rol=/.test(Q) && /data-pasar=/.test(Q) && /data-quitar=/.test(Q) && /data-ver-esc=/.test(Q),
   "🔴 cada persona del equipo, con sus botones: rol, pasar su alumnado, quitar, ver su escuadrón");
 c(/refs <= 1/.test(Q) && /vital \|\| soyYo \? ""/.test(Q), "   sin dejar el grupo sin referente, ni quitarse uno mismo, ni quitar a un vitalicio");
