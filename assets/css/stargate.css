@@ -2096,6 +2096,24 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 
 /* Y el final: abrir el fichaje y lanzar el Genially. */
 .dia.accion .cta-row{margin-top:26px;gap:12px;flex-wrap:wrap}
+/* 🔴 16-sep · LOS TRES TIEMPOS DE LA CLASE. El rótulo de tramos (apertura · presentación · cierre) y la
+   tarjeta puente que manda al Genially. El rótulo va dentro del mazo, arriba, y no se navega desde él. */
+.ses-tramos{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:4;display:flex;gap:6px;
+  flex-wrap:wrap;justify-content:center;pointer-events:none}
+.ses-tramos .tr{font-size:12px;font-weight:700;letter-spacing:.04em;padding:4px 12px;border-radius:99px;
+  border:1px solid rgba(255,255,255,.14);color:rgba(233,240,246,.55);background:rgba(8,12,20,.55);white-space:nowrap}
+.ses-tramos .tr.on{color:#0a1118;background:var(--teal,#37e0ec);border-color:transparent}
+.ses-tramos .tr.fuera{opacity:.5;font-weight:500}
+@media(max-width:720px){.ses-tramos{display:none}}
+
+.dia.puente{display:grid;place-items:center;text-align:center}
+.dia.puente .pu-caja{max-width:640px}
+.dia.puente .pu-pasos{list-style:none;margin:22px auto 0;padding:0;display:grid;gap:10px;max-width:520px;text-align:left}
+.dia.puente .pu-pasos li{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:center;font-size:18px;
+  border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 14px}
+.dia.puente .pu-pasos li b{display:grid;place-items:center;height:26px;border-radius:8px;font-size:13px;
+  background:rgba(55,224,236,.14);color:var(--teal,#37e0ec)}
+
 .dia.genially{padding:0;display:flex}
 .dia.genially iframe{width:100%;height:100%;min-height:60vh;border:0;border-radius:14px;background:#000}
 .dia.genially .txt{margin:auto;padding:40px}

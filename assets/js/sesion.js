@@ -27,6 +27,19 @@
    */
   if (q.get('embed') === '1') document.body.classList.add('embed');
   var EMBED = q.get('embed') === '1';
+  /**
+   * 🔴 16-sep · ?tramo=apertura | cierre · LA CLASE TIENE TRES TIEMPOS, NO UNO. Norberto: «el embed de
+   * clase es continuo; deberíamos separarlo en dos bloques. Primero animar la gamificación, el vídeo,
+   * revisar el ticket de salida. Después la presentación de Genially con la teoría y la práctica
+   * guiada. Después el reto relámpago de cierre, con el vídeo si toca».
+   *
+   * Se resuelve con el MISMO embed pegado dos veces en el Genially (`?tramo=apertura` en la primera
+   * diapositiva y `?tramo=cierre` después de la teoría), para no tener que navegar por dentro del
+   * panel delante de la clase. Sin el parámetro, el mazo sale entero y con el Genially del grupo
+   * embebido en medio: es el modo de quien proyecta desde la web, sin Genially.
+   */
+  var TRAMO = /^(apertura|ap)$/.test(q.get('tramo') || '') ? 'ap'
+            : /^(cierre|ci)$/.test(q.get('tramo') || '') ? 'ci' : '';
   var st={per:q.get('per')||'', d:null, sem:0, i:0, f:0, slides:[], tipo:'REGULAR', nombre:'', inicio:'', aviso:'', miNombre:'', fuera:null};
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -798,6 +811,8 @@
 
   function construir(s, n){
     var vids=s.videos||[], deTipo=function(t){ return vids.filter(function(v){ return tipoVideo(v)===t; }); };
+    // `t` dice en qué tiempo de la clase va cada diapositiva: 'ap' antes de la presentación,
+    // 'ci' después. Es lo único que hace falta para poder pegar el embed dos veces.
     var d=[diaPortada(s, n)];
     if(st.per) d.push(diaLlamada());
     var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
@@ -805,26 +820,73 @@
     [diaAnteriores(s)].concat(diasReflexion(s), [diaMovido(), diaSemanal(), diaTop(), diaColeccion(s), diaSimulador(s), diaVotacion(s), diaEscuadrones(), diaTicket(), diaOferta()])
       .forEach(function(x){ if(x) d.push(x); });
     d=d.concat(diapositivasNuevas(s));
-    deTipo('mision').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 La misión')); });
-    d=d.concat(diasMisiones(s));
+    d.forEach(function(x){ x.t='ap'; });     // todo lo de arriba es APERTURA
+    var ci=[];
+    deTipo('mision').forEach(function(v,i){ ci.push(diaVideo(v, i, '🎬 La misión')); });
+    ci=ci.concat(diasMisiones(s));
     // 🔴 El Genially del grupo (el panel), EMBEBIDO: es donde empieza la clase de verdad. Si el docente
     // tiene uno propio («Mis enlaces»), el suyo; si no, el oficial del grupo; si no, el Panel de
     // control maestro de STARGATE. Y NUNCA cuando la sesión ya va DENTRO del Genially: sería el
     // panel dentro de sí mismo.
-    if(st.per && !EMBED){
-      var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
-      if(panel) d.push({k:'genially', rot:'El panel', html:
-        '<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});
-    }
-    d.push({k:'tuyo', rot:'Tu ejemplo', html:
+    ci.push({k:'tuyo', rot:'Tu ejemplo', html:
       '<div class="dia tuyo"><img class="tuyo-cap" src="assets/img/capitan/pensativo.png" alt=""><div><div class="kicker">✋ Vuestro turno</div>'
       +'<h2>Un ejemplo de verdad</h2><p class="sub">Un caso real, una pregunta, algo que ya hayáis probado en un aula.</p></div></div>'});
-    deTipo('cierre').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 Para cerrar el planeta')); });
-    deTipo('fragmento').forEach(function(v,i){ d.push(diaVideo(v, i, '🎁 La recompensa del bloque')); });
-    return d;
+    deTipo('cierre').forEach(function(v,i){ ci.push(diaVideo(v, i, '🎬 Para cerrar el planeta')); });
+    deTipo('fragmento').forEach(function(v,i){ ci.push(diaVideo(v, i, '🎁 La recompensa del bloque')); });
+    ci.forEach(function(x){ x.t='ci'; });
+
+    // El tramo del medio. Proyectando desde la web (sin Genially) va el panel del grupo EMBEBIDO, que
+    // es donde está la teoría y la práctica guiada; dentro del Genially no se puede (sería el panel
+    // dentro de sí mismo), así que ahí va una tarjeta que dice dónde seguir.
+    var medio=[];
+    if(st.per && !EMBED){
+      var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
+      if(panel) medio.push({k:'genially', t:'pr', rot:'La presentación', html:
+        '<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});
+    }
+    if(!medio.length) medio.push(diaPuente(TRAMO==='ap'));
+
+    if(TRAMO==='ap') return d.concat([diaPuente(true)]);
+    if(TRAMO==='ci') return ci;
+    return d.concat(medio, ci);
+  }
+
+  /**
+   * El puente entre tramos: la tarjeta que dice en voz alta lo que toca ahora. Al final de la
+   * apertura, «ahora la presentación»; en el mazo entero y dentro del Genially, el mismo aviso.
+   */
+  function diaPuente(fin){
+    return {k:'puente', t:'pr', rot:'La presentación', html:
+      '<div class="dia puente"><div class="pu-caja"><div class="kicker">📽️ Segundo tiempo</div>'
+      +'<h2>Ahora, la presentación</h2>'
+      +'<p class="sub">La teoría y la práctica guiada están en el Genially de la clase. '
+      +(fin?'Sal de este panel y sigue avanzando: el cierre te espera en el siguiente embed.'
+           :'Sigue en el Genially y vuelve aquí para el cierre.')+'</p>'
+      +'<ol class="pu-pasos"><li><b>1</b> Explicas y practicáis en el Genially</li>'
+      +'<li><b>2</b> Vuelves al panel para el <b>reto relámpago</b> y el cierre</li></ol></div></div>'};
   }
 
   // ---------- pintado ----------
+  /**
+   * Los tres tiempos de la clase, a la vista del docente (y de quien mira la pantalla): en cuál
+   * estamos y qué queda. Con `?tramo=` solo se enseña el que toca, marcando que hay más antes o
+   * después. Es un rótulo, no un menú: no se navega desde aquí para no tentar a nadie en directo.
+   */
+  var TRAMOS=[['ap','1 · Apertura'],['pr','2 · Presentación'],['ci','3 · Cierre']];
+  function tramos(){
+    var hay={}; st.slides.forEach(function(x){ hay[x.t||'ap']=true; });
+    return '<div class="ses-tramos" id="ses-tramos">'+TRAMOS.map(function(x){
+      var suyo=hay[x[0]];
+      return '<span class="tr'+(suyo?'':' fuera')+'" data-t="'+x[0]+'">'+esc(x[1])+(suyo?'':' ·  en el Genially')+'</span>';
+    }).join('')+'</div>';
+  }
+  function marcarTramo(){
+    var sl=st.slides[st.i], t=(sl&&sl.t)||'ap';
+    Array.prototype.forEach.call(root.querySelectorAll('#ses-tramos .tr'),function(x){
+      x.classList.toggle('on', x.getAttribute('data-t')===t);
+    });
+  }
+
   function tira(){
     var n=semanas().length;
     var celdas=[]; for(var k=1;k<=n;k++){ celdas.push(k); }
@@ -859,6 +921,7 @@
 
     root.innerHTML=(EMBED ? '' : st.aviso+prep(s)+tira())
       +'<div class="mazo" id="mazo" tabindex="0" aria-live="polite">'
+      +tramos()
       +'<div class="lienzo">'+st.slides[st.i].html+'</div>'
       +'<button type="button" class="nav ant" id="ant" aria-label="Anterior">‹</button>'
       +'<button type="button" class="nav sig" id="sig" aria-label="Siguiente">›</button>'
@@ -871,6 +934,7 @@
       +'</div>';
     wire();
     montar();
+    marcarTramo();
   }
   /**
    * Cada diapositiva puede traer `montar(lienzo)` (la llamada a filas en directo, el ticket que se
@@ -916,6 +980,7 @@
         b.className='p'+(k===i?' on':k<i?' past':'');
       });
       var c=root.querySelector('.cuenta'); if(c) c.textContent=(i+1)+' / '+n;
+      marcarTramo();
     } else pintar();
   }
 
