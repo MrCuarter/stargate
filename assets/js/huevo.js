@@ -226,7 +226,7 @@
           .then(function (d) { return d.exists() && !d.data().stargateBorrado; }).catch(function () { return false; });
       })).then(function (tiene) {
         var g = gs.filter(function (x, i) { return tiene[i]; })[0];
-        if (!g) return fallo("Eres docente, pero este premio no está en ninguno de tus grupos. Revisa el enlace en Premios por enlace.");
+        if (!g) return otraCuenta();   // (no es de sus grupos: con qué cuenta está, y entrar con otra)
         PER = g.id; SIMULA = true;
         return MOTOR.estadoHuevo(PER, HUEVO, null).then(function (e) { EST = e; pintarEstado(); });
       });
@@ -312,7 +312,7 @@
     pinta('<div class="hv">' + escena("Hmm… con esa cuenta no te encuentro.") + '<div class="hv-caja mal"><div class="hv-icono">' + (esRec() ? "🎁" : "🥚") + '</div>'
       + '<h2>' + (docente ? "Esta cuenta es de docente" : "Esta cuenta no está en ningún grupo") + '</h2>'
       + '<p class="hv-sub">' + (docente
-          ? 'Estás con <b>' + esc(correo) + '</b>. Los premios son para tu alumnado; para ver cómo se ve, usa «👁 Ver cómo se ve» en Premios por enlace.'
+          ? 'Estás con <b>' + esc(correo) + '</b> y este premio no está en ninguno de tus grupos. Si es de tu alumnado, ábrelo desde «Premios por enlace» de su grupo (con tu cuenta puedes probarlo como simulación).'
           : 'Estás con <b>' + esc(correo) + '</b>, y no la encuentro alistada. Entra con <b>la cuenta con la que te alistaste</b> en STARGATE.') + '</p>'
       + '<button class="btn epico" id="hv-otra-cuenta"><span class="ep-luz"></span>'
       + '<span class="ep-g">' + ((window.SG && window.SG.LOGO_G) || '') + '</span>'

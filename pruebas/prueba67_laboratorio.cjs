@@ -2704,7 +2704,6 @@ const REG = {};   // cifras que se apuntan para el informe
       c("embed · «⇄ Cambiar de grupo» vuelve a preguntar", vista.cambiar && await f2.hasta("document.querySelectorAll('.ses-grupo').length>=2", 10));
       c("embed · sin errores dentro del iframe", !p.errores.filter(e => !/Failed to load resource/.test(e)).length, p.errores[0] || "");
       await p.cerrar();
-      await fs.collection("projects").doc(P2).delete();
       /**
        * 🌐 17-sep · PARA TODOS TUS GRUPOS. Norberto: «¿los premios por enlace valen para cualquier grupo? Sería maravilloso
        * poder reciclarlos… marcar a qué grupos afecta (con opción TODOS)». Rita lleva dos grupos: crea uno para todos, un
@@ -2745,6 +2744,7 @@ const REG = {};   // cifras que se apuntan para el informe
         }
         await rg.cerrar();
       }
+      await fs.collection("projects").doc(P2).delete();
 
     }
     // ============================================================ 27 · CONGELAR, DAR DE BAJA… Y EL LEGENDARIO EN EL ZOCO
@@ -4361,7 +4361,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const privBase = (await fs.collection("projects").doc(P).collection("privado").doc("stargate").get()).data() || {};
       await fs.collection("projects").doc(P2).collection("privado").doc("stargate").set(Object.assign({}, privBase), { merge: true });
       // la tienda del segundo grupo (las ofertas se hacen con sus sobres y héroes)
-      if (!(await consultar("rewards", "projectId", P2)).length) {
+      if (!(await consultar("rewards", "projectId", P2)).some(x => /^(cromo|heroe|sobre_|capsula_)/.test(x.stargateTipo || "") && x.inStore !== false)) {
         for (const r of (await consultar("rewards", "projectId", P)).filter(x => x.stargateTipo && x.stargateTipo !== "oferta" && x.stargateTipo !== "huevo" && x.systemEffect !== "lottery_ticket")) {
           const { _id, ...resto } = r;
           const cambia = v => JSON.parse(JSON.stringify(v).split(P + "__").join(P2 + "__"));
