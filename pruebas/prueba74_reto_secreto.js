@@ -84,6 +84,16 @@ Promise.all(casos.map(([t]) => SX.comprobar("S7", t))).then(rs => {
   c(/SG_SECRETO\.olvidar\(RETO\)/.test(VAL), "   y la olvida al registrar (el ordenador puede ser compartido)");
   c(/fragmento\.html/.test(leer("assets/js/consola.js")) && /Escape UNI/.test(leer("assets/js/consola.js")), "la consola da la puerta escondida para Vínculo (y dice que S7 es el Escape UNI)");
 
+  // 18-sep · el cerrojo de verdad: la palabra la comprueba el SERVIDOR (functions/stargateSecreto.js) y deja la
+  // marca en la ficha; sin ella, completeMission no registra S7. Antes bastaba con llamarlo a mano.
+  const MOT = leer("assets/js/motor.js");
+  c(/async function traerPalabra\(perId, reto, texto\)/.test(MOT) && /llamar\("stargateSecreto"/.test(MOT) && /traerPalabra,/.test(MOT),
+    "🔴 el motor le lleva la palabra al servidor (stargateSecreto), que es quien decide");
+  c(/M_\.traerPalabra\(per, id, escrita\.value\)/.test(NAVE), "   la Nave no registra el reto hasta que el servidor dice que sí");
+  c(/MOTOR\.traerPalabra\(g\.id, RETO, texto\)/.test(VAL) && /function alServidor\(g, texto, malo\)/.test(VAL),
+    "   y validar.html tampoco, venga la llave del enigma o escrita a mano");
+  c(!/560f3d2f/.test(MOT + NAVE + VAL), "   y la palabra (ni su huella) se escribe a mano en el motor: viene de SG_SECRETOS");
+
   if (require.main === module) {
     console.log("\n  Batería 74 · el reto secreto S7");
     console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");

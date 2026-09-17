@@ -3230,6 +3230,15 @@ const REG = {};   // cifras que se apuntan para el informe
       await q3.ir("entrar.html"); await q3.entrarComo(G3[0], G3[1]);
       await q3.ir("validar.html?reto=S7");
       c("🔴 secreto · validar.html?reto=S7 sin llave: la pide (no lo regala)", await q3.hasta("!!document.getElementById('v-palabra')", 30) && !(await tiene(G3[0])));
+      // 🔴 18-sep · EL TRAMPOSO DEL RETO SECRETO. Hasta hoy la palabra la comprobaba solo la web: llamando al
+      // servidor a mano se llevaba los 150 xp sin pisar el Escape UNI. Ahora el servidor pide su marca
+      // (`stargateSecretos`, que solo pone él al acertar la palabra) y sin ella no registra el reto.
+      const fOtto = await fichaDe(G3[0], P);
+      const aManoS7 = await q3.js(`window.SG.MOTOR.llamar('completeMission',{projectId:${JSON.stringify(P)}, missionId:${JSON.stringify(S7._id)}, studentProfileId:${JSON.stringify(fOtto._id)}}).then(function(){return 'PASÓ'},function(e){return e.message})`);
+      c("🔴 secreto · y si llama al servidor a mano, el SERVIDOR tampoco le da S7 (antes sí)", /secreto/i.test(aManoS7) && !(await tiene(G3[0])), aManoS7);
+      const palMal = await q3.js(`window.SG.MOTOR.llamar('stargateSecreto',{projectId:${JSON.stringify(P)}, reto:'S7', texto:'nebula joran estatica'}).then(function(){return 'PASÓ'},function(e){return e.message})`);
+      c("🔴 secreto · y una palabra inventada no le deja la marca", /no es la palabra/i.test(palMal), palMal);
+      c("secreto · el servidor no dijo cuál era (ni su longitud)", !/[A-ZÁÉÍÓÚÑ]{4,}/.test(String(palMal).replace(/^Esa no es la palabra\.?/, "")), palMal);
       await q3.js("document.getElementById('v-palabra').value='Ander'; document.getElementById('v-ok').click(); 1"); await dormir(1500);
       c("🔴 secreto · la palabra del Fragmento («Ander», la de las cartas) ya NO vale", /Esa llave no abre/.test(await q3.texto()) && !(await tiene(G3[0])), (await q3.texto()).slice(0, 160));
       await q3.cerrar();

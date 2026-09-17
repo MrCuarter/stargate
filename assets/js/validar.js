@@ -169,7 +169,7 @@
     if (traida) {
       tarjeta("<h3>Un momento…</h3><p>Comprobando la palabra.</p>");
       return window.SG_SECRETO.comprobar(RETO, traida).then(function (ok) {
-        if (ok) { g.palabraOk = true; return registrar(g); }
+        if (ok) return alServidor(g, traida, "Esa llave no abre este reto.");
         pedirPalabra(g, m, "Esa llave no abre este reto.");
       });
     }
@@ -184,11 +184,22 @@
       var v = i.value.trim(); if (!v) { i.classList.add("falta"); i.focus(); return; }
       b.disabled = true;
       window.SG_SECRETO.comprobar(RETO, v).then(function (ok) {
-        if (ok) { g.palabraOk = true; return registrar(g); }
+        if (ok) return alServidor(g, v, "Esa llave no abre este reto. Termina el Escape UNI: el botón del final lo registra solo.");
         pedirPalabra(g, m, "Esa llave no abre este reto. Termina el Escape UNI: el botón del final lo registra solo.");
       });
     };
     i.focus();
+
+    /**
+     * 🔴 18-sep · y la comprueba el SERVIDOR, que deja la marca en la ficha: sin ella, completeMission no
+     * registra S7 (antes bastaba con llamarlo a mano y el escape sobraba).
+     */
+    function alServidor(g, texto, malo) {
+      tarjeta("<h3>Un momento…</h3><p>Comprobando la palabra.</p>");
+      return MOTOR.traerPalabra(g.id, RETO, texto).then(function () {
+        g.palabraOk = true; return registrar(g);
+      }, function (e) { pedirPalabra(g, m, String((e && e.message) || malo)); });
+    }
   }
 
   async function registrar(g, enlace, yaPedido, reflexion) {

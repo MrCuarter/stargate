@@ -780,6 +780,18 @@ async function cerrarLlamada(sesionId) {
  * Fichar. Los mismos pasos que hace GamificaPro, en el mismo orden:
  * comprobar facción → mirar que no hayas fichado hoy → dejar el registro → pedir el pago.
  */
+/**
+ * 🔴 18-sep · LA PALABRA DEL RETO SECRETO LA COMPRUEBA EL SERVIDOR (S7, el Escape UNI).
+ * La web la miraba contra la huella pública y luego llamaba a `completeMission` como a cualquier reto: quien
+ * llamara al servidor a mano se llevaba los 150 xp sin pisar el escape. Ahora el servidor la comprueba y deja
+ * la marca en la ficha (`stargateSecretos`), y sin esa marca `completeMission` no deja registrar el reto.
+ * Devuelve true si la palabra vale (o si ya estaba traída); lanza si no.
+ */
+async function traerPalabra(perId, reto, texto) {
+  const r = await llamar("stargateSecreto", { projectId: perId, reto: reto, texto: String(texto || "") });
+  return !!(r && r.ok);
+}
+
 async function ficharLlamada(perId, fichaId) {
   const yo = await sesion();
   if (!yo) throw new Error("Entra con tu cuenta");
@@ -2064,7 +2076,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada, traerPalabra,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, alumno, nuevoCodigo,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,

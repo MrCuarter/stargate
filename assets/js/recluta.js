@@ -3595,8 +3595,17 @@
           aviso('🕳️ <b>Esa no es la palabra que borró Vaeon.</b> Busca el enlace escondido en Vínculo y resuelve el enigma.', true);
           return;
         }
-        marcarReto._palabraOk=true;
-        try{ marcarReto(id, boton, alEmpezar); } finally { marcarReto._palabraOk=false; }
+        // 🔴 18-sep · la palabra la comprueba también el SERVIDOR, que deja la marca en la ficha: sin ella,
+        // completeMission no deja registrar el reto (antes bastaba con llamarlo a mano).
+        var M_=window.SG&&window.SG.MOTOR;
+        var seguir=function(){ marcarReto._palabraOk=true;
+          try{ marcarReto(id, boton, alEmpezar); } finally { marcarReto._palabraOk=false; } };
+        if(!M_||!M_.traerPalabra||SIMULACRO||enDemo()) return seguir();
+        M_.traerPalabra(per, id, escrita.value).then(seguir, function(e){
+          if(boton){ boton.disabled=false; boton.textContent='✓ Lo he hecho'; }
+          escrita.classList.add('falta'); escrita.focus();
+          aviso('🕳️ <b>'+esc(String((e&&e.message)||e))+'</b>', true);
+        });
       });
       return;
     }
