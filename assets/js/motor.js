@@ -527,15 +527,27 @@ async function anularReto(perId, fichaId, retoId, motivo) {
  * Va a `notifications`, la bandeja que GamificaPro ya tiene (sus reglas: la crea cualquiera con sesión; la lee y la
  * marca como leída solo su destinatario). Con `stargate` dentro, para que la Nave distinga los suyos de los del motor.
  */
-async function avisarRecluta(perId, userId, { reto = "", accion = "", texto = "", de = "", titulo = "" } = {}) {
+async function avisarRecluta(perId, userId, { reto = "", accion = "", texto = "", de = "", titulo = "", regalo = null } = {}) {
   if (!userId) throw new Error("No sé a quién mandárselo");
   const t = String(texto || "").trim().slice(0, 400);
   const tit = titulo || (accion === "anulado" ? "Tu Comandante ha anulado el reto " + reto
-                                              : accion === "validado" ? "Tu Comandante ha validado el reto " + reto : "Mensaje de tu Comandante");
+                                              : accion === "validado" ? "Tu Comandante ha validado el reto " + reto
+                                              : accion === "regalo" ? "Un regalo de tu Comandante" : "Mensaje de tu Comandante");
+  const sg = { reto: String(reto || ""), accion: String(accion || ""), de: String(de || "").slice(0, 80) };
+  /**
+   * 17-sep · EL REGALO, EN SU PANTALLA (Norberto: «cuando doy el premio, en la pantalla del estudiante no aparece nada…
+   * debemos hacer que al otorgar la recompensa le salte automáticamente el sobre o lo que haya ganado»). Lo que ha
+   * ganado va aquí mismo, para que la Nave lo abra carta a carta al momento (o al entrar, si no estaba conectado).
+   */
+  if (regalo) sg.regalo = {
+    tipo: String(regalo.tipo || ""), xp: Number(regalo.xp) || 0, creditos: Number(regalo.creditos) || 0,
+    participaciones: Number(regalo.participaciones) || 0,
+    piezas: (regalo.piezas || []).slice(0, 10).map(p => ({ clave: String(p.clave || ""), tipo: String(p.tipo || ""),
+      nombre: String(p.nombre || "").slice(0, 80), rareza: String(p.rareza || "") }))
+  };
   const r = await addDoc(collection(db, "notifications"), {
     userId, projectId: perId, type: accion === "validado" ? "mission_validated" : "internal_message",
-    title: tit, message: t, read: false, createdAt: Date.now(),
-    stargate: { reto: String(reto || ""), accion: String(accion || ""), de: String(de || "").slice(0, 80) }
+    title: tit, message: t, read: false, createdAt: Date.now(), stargate: sg
   });
   return r.id;
 }

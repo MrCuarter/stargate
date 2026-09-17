@@ -321,6 +321,27 @@
       return { g: "Cápsulas y sobres", k: c[0], t: c[1], regalo: { tipo: "cofre", cual: c[0] }, clase: c[2] }; });
   }
   function todosLosRegalos() { return REGALOS.concat(regalosCofres()).concat(regalosSorteo()); }
+  /**
+   * 🔴 17-sep · LO QUE AÚN NO SE HA ABIERTO NO SE REGALA. Norberto: «debes bloquear las recompensas en función de la semana.
+   * Si aún no hemos mostrado el sorteo o hay elementos que debido a la semana aún no se han desbloqueado o explicado, bloquea
+   * también la opción de darlos. Ensombrécelas y escribe la semana en que se desbloquean. Así no confundimos ni al docente
+   * ni al estudiante». Cada regalo mira el capítulo que abre esa pieza en el Mercado (SG_CAPITULOS → `mercado`), la semana
+   * del grupo y lo que el referente haya adelantado (capitulosAbiertos), igual que la Nave.
+   */
+  var PIEZA_DE = { carta: "cromo", sobre: "cromo", heroe: "heroe", heroe_el: "heroe", marco: "marco", fondo: "fondo", titulo: "titulo",
+                   sobre_grande: "sobre_grande", sobre_raro: "sobre_raro", sobre_epico: "sobre_epico", capsula_elite: "capsula_elite",
+                   capsula_legendaria: "capsula_legendaria", part1: "sorteo", part2: "sorteo", part3: "sorteo" };
+  function semanaDeRegalo(k) {
+    var pieza = PIEZA_DE[k]; if (!pieza) return 0;
+    var tipo = (D && D.tipo) === "PUA" ? "PUA" : "REGULAR", ab = (D && D.capitulosAbiertos) || {};
+    var c = (window.SG_CAPITULOS || []).filter(function (x) { return (x.mercado || []).indexOf(pieza) >= 0; })[0];
+    if (!c) return 0;
+    var suya = (c.semanas || {})[tipo]; if (suya == null) return 99;   // en PUA no existe
+    var antes = ab[c.clave] === true ? 1 : Number(ab[c.clave]) || 0;
+    return antes && antes < suya ? antes : suya;
+  }
+  /** 0 si se puede dar; si no, la semana en que se abre (99 = no existe en este tipo de grupo). */
+  function regaloCerrado(k) { var s = semanaDeRegalo(k); return s && Number((D && D.semana) || 0) < s ? s : 0; }
   function caraDe(x) {
     try { return (window.SG && SG.avatarSrc) ? SG.avatarSrc(x.avatar, x.alias, x.xp, D && D.tipo).src : ""; }
     catch (e) { return ""; }
@@ -374,8 +395,11 @@
             var suyos = todosLosRegalos().filter(function (r) { return r.g === grupo; });
             return '<div class="au-grupo-pr' + (suyos.length === 3 ? ' tres' : '') + '" style="--n:' + suyos.length + '"><span class="au-gt">' + grupo + '</span><div class="au-premios">'
               + suyos.map(function (r) {
-                  return '<button type="button" class="au-pr' + (r.clase ? " " + r.clase : "") + '" data-k="' + r.k + '"'
-                    + (r.xp || r.cr ? ' data-xp="' + (r.xp || 0) + '" data-cr="' + (r.cr || 0) + '"' : '') + '>' + r.t + '</button>'; }).join("")
+                  var cerr = regaloCerrado(r.k);
+                  return '<button type="button" class="au-pr' + (r.clase ? " " + r.clase : "") + (cerr ? " cerrado" : "") + '" data-k="' + r.k + '"'
+                    + (cerr ? ' disabled title="' + (cerr === 99 ? "No existe en un grupo PUA" : "Se desbloquea en la semana " + cerr) + '"' : '')
+                    + (r.xp || r.cr ? ' data-xp="' + (r.xp || 0) + '" data-cr="' + (r.cr || 0) + '"' : '') + '>' + r.t
+                    + (cerr ? '<span class="au-sem">' + (cerr === 99 ? "No en PUA" : "Semana " + cerr) + '</span>' : '') + '</button>'; }).join("")
               + '</div></div>'; }).join("")
       +   '<div class="au-heroe-el" id="au-heroe-el" hidden>'
       +     '<img id="au-heroe-img" src="' + (heroes[0] ? 'assets/img/heroes/' + esc(heroes[0].clave) + '.jpg' : '') + '" alt="" width="64" height="64">'
@@ -649,10 +673,16 @@
     document.getElementById("au-nadie").onclick = function () { ELEGIDOS = {}; marcar(); };
     document.getElementById("au-azar").onclick = function () { sortear(marcar); };
 
+    // 17-sep · y a cada uno le salta en su Nave lo que le has dado (al momento, o al entrar si no estaba)
+    var avisar = function (ficha, regalo) {
+      var x = mios().filter(function (y) { return y.ficha === ficha; })[0];
+      if (!x || !x.uid || !MOTOR.avisarRecluta) return;
+      MOTOR.avisarRecluta(PER, x.uid, { accion: "regalo", de: nombreDocente(), regalo: regalo }).catch(function () {});
+    };
     var dar = function (r, boton) {
       var e = elegidos();
       if (!e.length) { msg.textContent = "Elige antes a quién: toca su cara."; return; }
-      var botones = app.querySelectorAll(".au-pr, #au-heroe-dar");
+      var botones = app.querySelectorAll(".au-pr:not(.cerrado), #au-heroe-dar");
       Array.prototype.forEach.call(botones, function (b) { b.disabled = true; });
       msg.innerHTML = "Repartiendo…";
       var fin = function (html) { Array.prototype.forEach.call(botones, function (b) { b.disabled = false; }); msg.innerHTML = html; recargar(); };
@@ -662,7 +692,8 @@
         e.reduce(function (p, x) {
           return p.then(function () {
             return MOTOR.premiar(PER, x.ficha, { xp: r.xp || 0, creditos: r.cr || 0, motivo: "Premio en clase" })
-              .then(function () { hechos.push(x.alias); }, function (er) { fallos.push(x.alias + " (" + (er && er.message || er) + ")"); });
+              .then(function () { hechos.push(x.alias); avisar(x.ficha, { tipo: "puntos", xp: r.xp || 0, creditos: r.cr || 0 }); },
+                    function (er) { fallos.push(x.alias + " (" + (er && er.message || er) + ")"); });
           });
         }, Promise.resolve()).then(function () {
           fin((hechos.length ? "✅ <b>" + esc(hechos.join(", ")) + "</b>: " + (r.xp ? "+" + r.xp + " xp " : "") + (r.cr ? "+" + r.cr + " ◈" : "") : "")
@@ -672,6 +703,11 @@
       }
       MOTOR.regalarEnClase(PER, e.map(function (x) { return x.ficha; }), r.regalo).then(function (res) {
         var alias = {}; e.forEach(function (x) { alias[x.ficha] = x.alias; });
+        res.forEach(function (x) {
+          if (x.error || x.ya) return;
+          if (x.participaciones) return avisar(x.ficha, { tipo: "participacion", participaciones: x.participaciones });
+          if (x.piezas && x.piezas.length) avisar(x.ficha, { tipo: (r.regalo && r.regalo.tipo) || "", piezas: x.piezas });
+        });
         fin(res.map(function (x) {
           var quien = "<b>" + esc(alias[x.ficha] || "?") + "</b>";
           if (x.error) return '<span class="malo">' + quien + ": " + esc(x.error) + "</span>";
@@ -686,6 +722,7 @@
       var r = todosLosRegalos().filter(function (x) { return x.k === b.getAttribute("data-k"); })[0];
       b.onclick = function () {
         if (r.elegir) { var el = document.getElementById("au-heroe-el"); el.hidden = !el.hidden; return; }
+        if (b.classList.contains("cerrado")) return;
         dar(r, b);
       };
     });

@@ -55,7 +55,7 @@ c(/resp\.texto \|\| "desde la consola"/.test(RETO), "   y el porqué también qu
 c(/le ha llegado tu mensaje a su Nave/.test(RETO) && /el mensaje no se ha podido enviar/.test(RETO), "   y la ficha dice si le ha llegado");
 
 // 4 · el motor y la Nave
-c(/async function avisarRecluta\(perId, userId/.test(M) && /collection\(db, "notifications"\)/.test(M) && /stargate: \{ reto:/.test(M),
+c(/async function avisarRecluta\(perId, userId/.test(M) && /collection\(db, "notifications"\)/.test(M) && /const sg = \{ reto:/.test(M) && /stargate: sg/.test(M),
   "🔴 el mensaje va a la bandeja de GamificaPro (notifications), marcado como de STARGATE");
 c(/function vigilarMensajes\(perId, alCambiar\)/.test(M) && /\.filter\(x => x\.stargate && !x\.read\)/.test(M) && /onSnapshot/.test(M.split("function vigilarMensajes")[1] || ""),
   "   la Nave lo escucha en directo, solo los suyos sin leer");

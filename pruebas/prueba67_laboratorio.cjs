@@ -349,6 +349,8 @@ const REG = {};   // cifras que se apuntan para el informe
       c("premiar · tocando su cara, +20 ◈ a Beto", fBeto2.coins - fBeto.coins === 20,
         fBeto.coins + " → " + fBeto2.coins + " · " + await rita.js("(document.getElementById('au-pmsg')||{}).textContent||''"));
       // a varios: Todos → +25 xp
+      // (la Nave de Ana, limpia de lo que le saltara al fichar: lo siguiente tiene que saltarle SOLO)
+      await ana.js("document.querySelectorAll('.sb-capa').forEach(function(x){x.remove()}); var o=document.getElementById('nave-logro'); if(o){o.classList.remove('open');o.innerHTML='';} 1");
       const a0 = await fichaDe("ana@lab.test", "lab-clase"), b0 = await fichaDe("beto@lab.test", "lab-clase");
       await rita.js("document.getElementById('au-todos').click(); 1");
       c("premiar · «Todos» elige a los dos", /Para 2/.test(await rita.js("document.getElementById('au-para').textContent")));
@@ -362,6 +364,17 @@ const REG = {};   // cifras que se apuntan para el informe
       const nHe = f => (f.inventory || []).filter(x => /__heroe_/.test(x)).length;
       c("🔴 premiar · «Un héroe al azar»: uno para cada uno", nHe(a2) - nHe(a1) === 1 && nHe(b2) - nHe(b1) === 1,
         await rita.js("document.getElementById('au-pmsg').innerText"));
+      // 🔴 17-sep · Norberto: «cuando doy el premio, en la pantalla del estudiante no aparece absolutamente nada». Ahora le salta
+      // en su Nave, sin recargar: primero el «+25 xp» y, al cerrarlo, el sobre con su héroe; y el aviso queda como visto
+      const vioXp = await ana.hasta("!!document.querySelector('#nave-logro.open') && /\\+25 xp/.test(document.querySelector('#nave-logro').textContent)", 30);
+      await ana.js("var b=document.querySelector('#nave-logro .logro-ok'); b&&b.click(); 1");
+      const vioHeroe = await ana.hasta("!!document.querySelector('.sb-capa')", 30);
+      await dormir(1500);
+      const avisosAna = (await consultar("notifications", "userId", a2._uid)).filter(n => n.stargate && n.stargate.accion === "regalo");
+      c("🔴 premiar · a Ana le salta en su Nave SIN RECARGAR: el «+25 xp» y, al cerrarlo, el sobre con su héroe",
+        vioXp && vioHeroe && avisosAna.length >= 2, JSON.stringify({ vioXp, vioHeroe, avisos: avisosAna.length }));
+      c("premiar · el aviso del «+25 xp» queda como visto (no vuelve a saltar al entrar)", avisosAna.some(n => n.read === true && n.stargate.regalo && n.stargate.regalo.xp === 25));
+      await ana.js("document.querySelectorAll('.sb-capa').forEach(function(x){x.remove()}); 1");
       // un héroe elegido, solo a Beto
       await rita.js("document.getElementById('au-nadie').click(); 1"); await tocar("Bólido");
       await rita.js("document.querySelector('.au-pr[data-k=heroe_el]').click(); var s=document.getElementById('au-heroe'); s.value='H05_eco'; s.dispatchEvent(new Event('change')); 1");

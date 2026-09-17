@@ -4424,3 +4424,7 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .dia.foro-crawl.fc-v2.f2 > .fc-logo{animation:fc-arriba 1s cubic-bezier(.3,.8,.3,1) both}
 .dia.foro-crawl.fc-v2.f3 > .fc-marco{animation:fc-panel .9s ease-out both}
 @media (prefers-reduced-motion:reduce){.dia.foro-crawl.fc-v2.entra > .fc-fondo{animation:none}}
+
+/* 17-sep · en el aula, lo que aún no se ha abierto: en sombra y con la semana en que se desbloquea */
+.au-pr.cerrado,.au-pr.cerrado:disabled{opacity:.42;filter:grayscale(.85);cursor:not-allowed;transform:none;border-style:dashed}
+.au-pr .au-sem{display:block;margin-top:3px;font-size:.75rem;font-weight:700;letter-spacing:.04em;color:#f5b043;filter:none}

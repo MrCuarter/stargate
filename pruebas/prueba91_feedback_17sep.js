@@ -56,6 +56,19 @@ c(/yaRank=capituloEn\('c2', sem-1\)/.test(SES) && /yaColec=capituloEn\('c3', sem
   /sem>=2\?diaMovido\(\):null, yaRank\?diaSemanal\(\):null, yaRank\?diaTop\(\):null, yaColec\?diaColeccion\(s\):null/.test(SES),
   "🔴 semanas 1 y 2 sin ranking ni coleccionistas: la sesión crece con lo que se va abriendo");
 
+// 9 · (tanda 2) el aula: lo que no se ha abierto no se regala, y lo que se regala le salta en su Nave
+const AULA = leer("assets/js/aula.js"), MOTOR = leer("assets/js/motor.js");
+c(/function semanaDeRegalo\(k\)/.test(AULA) && /\(x\.mercado \|\| \[\]\)\.indexOf\(pieza\)/.test(AULA) && /capitulosAbiertos/.test(AULA.slice(AULA.indexOf("function semanaDeRegalo"))),
+  "🔴 aula · cada regalo mira la semana en que su pieza se abre en el Mercado (SG_CAPITULOS), y lo adelantado por el referente");
+c(/\(cerr \? " cerrado" : ""\)/.test(AULA) && /Se desbloquea en la semana " \+ cerr/.test(AULA) && /au-sem">' \+ \(cerr === 99 \? "No en PUA" : "Semana " \+ cerr\)/.test(AULA),
+  "   lo cerrado sale en sombra, sin poder pulsarse y con «Semana N» (o «No en PUA»)");
+c(/\.au-pr\.cerrado,\.au-pr\.cerrado:disabled\{opacity:\.42;filter:grayscale/.test(CSS), "   y se ve en sombra");
+c(/accion: "regalo", de: nombreDocente\(\), regalo: regalo/.test(AULA) && /avisar\(x\.ficha, \{ tipo: "puntos"/.test(AULA) && /avisar\(x\.ficha, \{ tipo: "participacion"/.test(AULA),
+  "🔴 aula · al dar algo (puntos, piezas o participaciones), le deja el aviso a cada uno");
+c(/if \(regalo\) sg\.regalo = \{/.test(MOTOR), "   con lo ganado dentro (motor.avisarRecluta)");
+c(/function abrirRegalos\(L\)/.test(NAVE) && /SG\.SOBRE\.revelar\(piezas/.test(NAVE) && /M\.mensajeLeido\(x\.id\)/.test(NAVE) && /abrirRegalos\(todos\.filter/.test(NAVE),
+  "🔴 Nave · el regalo se abre solo (sobre o cartel), en directo o al entrar, y queda como visto");
+
 console.log("\n  Batería 91 · el feedback del 17-sep (noche), primera tanda");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
 fallos.forEach(f => console.log("   ✗ " + f));

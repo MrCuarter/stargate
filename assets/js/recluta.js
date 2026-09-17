@@ -1301,11 +1301,52 @@
   function vigilarMensajes(){
     if(!motorNuevo()||!per||st.paraMensajes||SIMULACRO||enDemo()) return;
     var M=window.SG&&window.SG.MOTOR; if(!M||!M.vigilarMensajes) return;
-    st.paraMensajes=M.vigilarMensajes(per, function(lista){
+    st.paraMensajes=M.vigilarMensajes(per, function(todos){
+      // los regalos no son un texto que leer: se ABREN (abajo, abrirRegalos)
+      var lista=todos.filter(function(x){ return !(x.stargate&&x.stargate.accion==='regalo'); });
       var antes=(st.mensajes||[]).map(function(x){return x.id;}).join(','), ahora=lista.map(function(x){return x.id;}).join(',');
       st.mensajes=lista;
       if(antes!==ahora) render();
+      abrirRegalos(todos.filter(function(x){ return x.stargate&&x.stargate.accion==='regalo'; }));
     });
+  }
+  /**
+   * 🔴 17-sep · EL REGALO DEL AULA, EN TU PANTALLA. Norberto: «cuando doy el premio, en la pantalla del estudiante no aparece
+   * absolutamente nada. Al refrescar sí aparecen las cartas, pero no hay ningún tipo de feedback visual. Debemos hacer que al
+   * otorgar la recompensa le salte automáticamente en su pantalla el sobre o lo que haya ganado».
+   * El aula deja un aviso (`notifications`, accion «regalo», con lo ganado dentro); aquí se abre de uno en uno: las cartas y
+   * los héroes con el mismo sobre del Mercado, lo demás con su cartel. Al cerrarlo se marca como visto y se refresca la ficha.
+   * Si no estaba conectado, le salta la próxima vez que entre (el aviso sigue sin leer).
+   */
+  st.regalosVistos=st.regalosVistos||{};
+  function abrirRegalos(L){
+    if(!st.yo||SIMULACRO||enDemo()) return;
+    (L||[]).slice().sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); }).forEach(function(x){
+      if(st.regalosVistos[x.id]) return; st.regalosVistos[x.id]=1; (st.colaRegalos=st.colaRegalos||[]).push(x);
+    });
+    siguienteRegalo();
+  }
+  function siguienteRegalo(){
+    if(st.abriendoRegalo||!(st.colaRegalos||[]).length) return;
+    var x=st.colaRegalos.shift(), g=(x.stargate&&x.stargate.regalo)||{}, de=(x.stargate&&x.stargate.de)||'';
+    var M=window.SG&&window.SG.MOTOR;
+    st.abriendoRegalo=true;
+    var hecho=function(){ st.abriendoRegalo=false; if(M&&M.mensajeLeido) M.mensajeLeido(x.id).catch(function(){}); refrescarYo(); setTimeout(siguienteRegalo, 400); };
+    var tit='El regalo de tu Comandante'+(de?' · '+de:'');
+    var piezas=(g.piezas||[]).filter(function(p){ return p.tipo==='cromo'||p.tipo==='heroe'; });
+    if(piezas.length&&window.SG&&window.SG.SOBRE){
+      var pr=SG.SOBRE.revelar(piezas,{ titulo:tit, alAlbum:function(){ irA('botin'); } });
+      return pr&&pr.then?pr.then(hecho,hecho):hecho();
+    }
+    var carteles=[];
+    if(g.xp||g.creditos) carteles.push({eyebrow:tit, titulo:(g.xp?'+'+g.xp+' xp':'')+(g.xp&&g.creditos?' y ':'')+(g.creditos?'+'+g.creditos+' ◈':''),
+      sub:g.xp?'Suben tu experiencia y tu nivel.':'Créditos para el Mercado Estelar.', img:'', clase:'texto'});
+    if(g.participaciones) carteles.push({eyebrow:tit, titulo:g.participaciones+(g.participaciones===1?' participación':' participaciones')+' para el Gran Sorteo',
+      sub:'Ya están en el bombo, a tu nombre.', img:'assets/img/canje/sorteo_generico.jpg', clase:'figura'});
+    (g.piezas||[]).filter(function(p){ return p.tipo==='adorno'; }).forEach(function(p){
+      carteles.push({eyebrow:tit, titulo:p.nombre||'Un adorno para tu ficha', sub:'Póntelo desde tu vestuario, en Mi nave.', img:'', clase:'texto'}); });
+    if(!carteles.length) return hecho();
+    cartel(carteles, 0, null, hecho);
   }
   document.addEventListener('click', function(ev){
     var b=ev.target&&ev.target.closest?ev.target.closest('[data-msg-leido]'):null; if(!b) return;
