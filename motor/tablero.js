@@ -393,7 +393,8 @@
       referente: PRIV.referente || "", estado: P.active === false ? "cerrado" : "abierto",
       inicio: inicio, reclutas: lista,
       retos_n: retosN, activos: activos,
-      recompensas: (datos.recompensas || []).filter(function (r) { return r.inStore !== false; })
+      // (17-sep · un sorteo RETIRADO de este grupo —lo común que se quitó antes de vender nada— no existe para el alumnado)
+      recompensas: (datos.recompensas || []).filter(function (r) { return r.inStore !== false && !r.stargateRetirado; })
         .map(function (r) {
           // El identificador viaja con la recompensa: sin él, canjear habría que hacerlo POR NOMBRE,
           // y el día que alguien renombre «Sobre de cromos» se rompe en silencio.

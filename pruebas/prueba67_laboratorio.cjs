@@ -4344,6 +4344,104 @@ const REG = {};   // cifras que se apuntan para el informe
         (dina.errores.filter(e => !/Failed to load resource/.test(e))[0] || ""));
       await dina.cerrar();
     }
+
+    // ============================================================ 42 · 🌐 SORTEOS Y OFERTAS PARA VARIOS GRUPOS
+    /**
+     * 17-sep · Norberto: «lo mismo con ofertas y sorteos: comparten la misma página de configuración, pero puedo ajustar
+     * individualmente a qué grupos afecta (todos o unos pocos)». Rita lleva dos grupos. Crea un sorteo y una oferta para los
+     * dos desde «🌐 Para todos tus grupos», los cambia en los dos a la vez y quita el sorteo de uno. Al final se retira todo
+     * (para no alterar lo que prueban las demás secciones).
+     */
+    if (hacer(42)) {
+      const A = admin(), fs = A.firestore(), P = "lab-clase", P2 = "lab-clase-dos";
+      if (!(await fs.collection("projects").doc(P2).get()).exists) {
+        const base = (await fs.collection("projects").doc(P).get()).data();
+        await fs.collection("projects").doc(P2).set(Object.assign({}, base, { name: "LAB · Segundo grupo", joinCode: "SEGUN2" }));
+      }
+      const privBase = (await fs.collection("projects").doc(P).collection("privado").doc("stargate").get()).data() || {};
+      await fs.collection("projects").doc(P2).collection("privado").doc("stargate").set(Object.assign({}, privBase), { merge: true });
+      // la tienda del segundo grupo (las ofertas se hacen con sus sobres y héroes)
+      if (!(await consultar("rewards", "projectId", P2)).length) {
+        for (const r of (await consultar("rewards", "projectId", P)).filter(x => x.stargateTipo && x.stargateTipo !== "oferta" && x.stargateTipo !== "huevo" && x.systemEffect !== "lottery_ticket")) {
+          const { _id, ...resto } = r;
+          const cambia = v => JSON.parse(JSON.stringify(v).split(P + "__").join(P2 + "__"));
+          await fs.collection("rewards").doc(_id.replace(P + "__", P2 + "__")).set(Object.assign(cambia(resto), { projectId: P2 }));
+        }
+      }
+      const rg = await nueva("Rita: sorteos y ofertas en sus dos grupos");
+      await rg.ir("entrar.html"); await rg.entrarComo("rita@lab.test", "Rita Referente");
+      const dia = ms => new Date(ms).toISOString().slice(0, 10);
+      const aviso = () => rg.js("(document.getElementById('c-aviso')||{}).innerText||''");
+
+      // 🎟️ un sorteo para los dos
+      await rg.ir("consola.html?comun=sorteos");
+      c("🌐 sorteos · «Para todos tus grupos» tiene su pestaña de Sorteos", await rg.hasta("!!document.getElementById('sr-nuevo') && !!document.querySelector('.pest.activa[data-comun=\"sorteos\"]')", 25));
+      await rg.js("document.getElementById('sr-nuevo').click(); 1");
+      await rg.hasta("!!document.querySelector('#sr-nuevo-f .sr-premio') && !!document.querySelector('#sr-nuevo-f [data-grupos]')", 10);
+      await rg.js(`(function(){ var f=document.querySelector('#sr-nuevo-f'); f.querySelector('.sr-premio').value='Una chapa de STARGATE';
+        f.querySelector('.sr-desde').value='${dia(Date.now() + 3 * 864e5)}'; f.querySelector('.sr-fecha').value='${dia(Date.now() + 10 * 864e5)}';
+        f.querySelector('.sr-coste').value='10'; f.querySelector('.sr-guardar').click(); return 1; })()`);
+      c("🌐 sorteos · «Crear un sorteo» con «Todos tus grupos»: lo crea en los dos", await rg.hasta("/Sorteo creado en 2 grupos/.test((document.getElementById('c-aviso')||{}).innerText||'')", 40), await aviso());
+      const tick = async per => (await consultar("rewards", "projectId", per)).filter(r => r.systemEffect === "lottery_ticket" && /chapa/i.test(((r.stargateSorteo || {}).premio) || r.title || ""))[0];
+      let s1 = await tick(P), s2 = await tick(P2);
+      c("🔴 🌐 sorteos · el mismo sorteo en cada grupo (mismo identificador; cada uno con su bombo)", !!s1 && !!s2 && s1.stargateId === s2.stargateId && s1._id !== s2._id, JSON.stringify([s1 && s1._id, s2 && s2._id]));
+      await rg.hasta("!!document.querySelector('.sr-caja .sr-editar')", 20);
+      await rg.js("document.querySelector('.sr-caja .sr-editar').click(); 1");
+      await rg.hasta("!!document.querySelector('.sr-editar-f .sr-coste')", 10);
+      await rg.js("var i=document.querySelector('.sr-editar-f .sr-coste'); i.value='12'; document.querySelector('.sr-editar-f .sr-guardar').click(); 1");
+      await rg.hasta("/Sorteo cambiado en 2 grupos/.test((document.getElementById('c-aviso')||{}).innerText||'')", 40);
+      s1 = await tick(P); s2 = await tick(P2);
+      c("🔴 🌐 sorteos · cambiarlo lo cambia en sus dos grupos a la vez", s1.cost === 12 && s2.cost === 12, JSON.stringify([s1.cost, s2.cost]));
+      await rg.hasta("document.querySelectorAll('.sr-caja .sr-ambito input[type=checkbox]').length>=2", 20);
+      await rg.foto(FOTOS + "/42-sorteos-comunes.png");
+      await rg.js(`(function(){ var c=[].slice.call(document.querySelectorAll('.sr-caja .sr-ambito input[type=checkbox]')).filter(function(x){return x.value===${JSON.stringify(P2)}})[0]; c.checked=false; c.dispatchEvent(new Event('change')); return 1; })()`);
+      const q = await rg.responder();
+      c("🌐 sorteos · quitarlo de un grupo lo pregunta antes", /Quitar este sorteo de/.test(q), q);
+      await rg.hasta("/quitado de/.test((document.getElementById('c-aviso')||{}).innerText||'')", 30);
+      s1 = await tick(P); s2 = await tick(P2);
+      c("🔴 🌐 sorteos · …y queda retirado en ese grupo (nadie compró), y en el otro sigue", s2.stargateRetirado === true && !s1.stargateRetirado, JSON.stringify([s1.stargateRetirado, s2.stargateRetirado]));
+      // en un grupo con participaciones no se puede quitar
+      const fAna = await fichaDe("ana@lab.test", P);
+      if (fAna) {
+        await fs.collection("student_profiles").doc(fAna._id).update({ ["lotteryEntries." + s1._id]: 2 });
+        const noQuita = await rg.js(`window.SG.MOTOR.retirarSorteo(${JSON.stringify(P)}, ${JSON.stringify(s1._id)}).then(function(){return "QUITÓ"},function(e){return e.message})`);
+        c("🔴 🌐 sorteos · donde alguien ya tiene participaciones NO se puede quitar", /no se puede quitar/.test(noQuita), noQuita);
+        await fs.collection("student_profiles").doc(fAna._id).update({ ["lotteryEntries." + s1._id]: 0 });
+      }
+      const alumnaVe = await nueva("Ana no ve el sorteo retirado");
+      await alumnaVe.ir("entrar.html"); await alumnaVe.entrarComo("ana@lab.test", "Ana Nueva");
+      await alumnaVe.ir("recluta.html?per=" + P); await alumnaVe.hasta("!!(window.SG && window.SG.TABLERO && window.SG.MOTOR)", 25);
+      await rg.js(`window.SG.MOTOR.retirarSorteo(${JSON.stringify(P)}, ${JSON.stringify(s1._id)}).then(function(){return 1})`);
+      const tab = await alumnaVe.js(`window.SG.MOTOR.leerPER(${JSON.stringify(P)}).then(function(d){ return JSON.stringify(window.SG.TABLERO.tablero(d).recompensas.filter(function(r){return r.tipo==='sorteo' && /chapa/i.test((r.sorteo||{}).premio||'')}).length); })`);
+      c("🌐 sorteos · un sorteo retirado no existe para el alumnado (ni en el Mercado ni en los avisos)", tab === "0", tab);
+      await alumnaVe.cerrar();
+
+      // ⚡ una oferta para los dos
+      await rg.ir("consola.html?comun=ofertas");
+      c("🌐 ofertas · y su pestaña de Ofertas", await rg.hasta("!!document.getElementById('of-nueva')", 30));
+      await rg.js("document.getElementById('of-nueva').click(); 1");
+      await rg.hasta("!!document.getElementById('of-que') && !!document.querySelector('#of-nueva-f [data-grupos]')", 15);
+      c("🌐 ofertas · «Qué se vende» sin desplegable gris, con sus apartados", await rg.js("!document.querySelector('#of-nueva-f select:not(.sgsel-nativo)')"));
+      await rg.js("var s=document.getElementById('of-que'); s.value='cofre:sobre_grande'; document.getElementById('of-pct').value='25'; document.getElementById('of-dias').value='2'; document.getElementById('of-crear').click(); 1");
+      c("🌐 ofertas · crearla para todos: sale en los dos grupos", await rg.hasta("/Oferta creada en 2 grupos/.test((document.getElementById('c-aviso')||{}).innerText||'')", 60), await aviso());
+      const ofs = async per => (await consultar("rewards", "projectId", per)).filter(r => r.stargateTipo === "oferta" && r.stargateComun);
+      let o1 = await ofs(P), o2 = await ofs(P2);
+      c("🔴 🌐 ofertas · una en cada grupo, atadas (mismo «común»)", o1.length === 1 && o2.length === 1 && o1[0].stargateComun === o2[0].stargateComun, JSON.stringify([o1.length, o2.length]));
+      await rg.hasta(`!!document.querySelector('[data-comun="${o1[0] && o1[0].stargateComun}"] [data-of-cancelar]')`, 20);
+      await rg.foto(FOTOS + "/42-ofertas-comunes.png");
+      await rg.js(`document.querySelector('[data-comun="${o1[0].stargateComun}"] [data-of-cancelar]').click(); 1`);
+      await rg.responder();
+      await rg.hasta("/Oferta cancelada/.test((document.getElementById('c-aviso')||{}).innerText||'')", 40);
+      o1 = await ofs(P); o2 = await ofs(P2);
+      c("🔴 🌐 ofertas · cancelarla la cancela en sus dos grupos", o1[0].stargateOferta.cancelada === true && o2[0].stargateOferta.cancelada === true,
+        JSON.stringify([o1[0].stargateOferta.cancelada, o2[0].stargateOferta.cancelada]));
+      // dentro de un grupo, la barra separa lo común y la oferta dice que es de varios
+      await rg.ir("consola.html?per=" + P); await rg.hasta("document.querySelectorAll('.pestanas .pest').length>0", 25);
+      await rg.js("document.querySelector('.pest[data-tab=\"ofertas\"]').click(); 1");
+      c("🌐 ofertas · dentro del grupo, la oferta dice «🌐 varios grupos»", await rg.hasta(`!!document.querySelector('[data-comun="${o1[0].stargateComun}"] .of-comun')`, 20));
+      c("sin errores en las páginas (sorteos y ofertas comunes)", !rg.errores.filter(e => !/Failed to load resource/.test(e)).length, rg.errores[0] || "");
+      await rg.cerrar();
+    }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
   } finally {

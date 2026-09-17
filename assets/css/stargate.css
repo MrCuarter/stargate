@@ -4243,6 +4243,8 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 .sgsel-o.on{background:rgba(55,224,236,.22);color:#eafcff;font-weight:700}
 .sgsel-o.on::before{content:"✓ ";color:var(--teal)}
 .sgsel-o[disabled]{opacity:.45;cursor:default}
+.sgsel-g{padding:8px 12px 3px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal2)}
+.sgsel-g:not(:first-child){margin-top:4px;border-top:1px solid #24304a}
 @media (prefers-reduced-motion:reduce){.sgsel-lista{animation:none}}
 
 /* ══════════════════ LOS PREMIOS POR ENLACE, REHECHOS (17-sep) ══════════════════
@@ -4334,3 +4336,13 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 .gp-comun-b{display:flex;flex-wrap:wrap;gap:8px}
 .gp-comun-b a.btn{text-decoration:none}
 .pest-sep.pest-sep-g{width:auto;background:none;align-self:center;font-size:1rem;margin:0 2px}
+
+/* 🌐 17-sep · sorteos y ofertas para varios grupos */
+.sg-grupos{margin:6px 0 4px;grid-column:1/-1}
+.sg-grupos .pe-radio input,.sg-grupos .pe-chip input,.sr-ambito .pe-chip input{width:16px;height:16px;padding:0;margin:0;accent-color:var(--teal)}
+.sr-ambito-t{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 0}
+.sr-ambito .pe-chip.hecho{opacity:.7}
+.sr-estados,.of-grupos{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0}
+.sr-estados .chip,.of-grupos .chip{text-decoration:none}
+.chip.of-comun{border-color:var(--teal);color:#bff4f8}
+.sr-f-nota{grid-column:1/-1;margin:2px 0}

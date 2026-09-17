@@ -1715,8 +1715,9 @@ window.SG.avisar = function (titulo, texto, peligro) {
   function abrir(sel, b, pintar) {
     cerrar();
     var lista = document.createElement("div"); lista.className = "sgsel-lista"; lista.setAttribute("role", "listbox");
-    Array.prototype.forEach.call(sel.options, function (o, i) {
-      if (o.hidden) return;
+    var opcion = function (o) {
+      var i = Array.prototype.indexOf.call(sel.options, o);
+      if (o.hidden || i < 0) return;
       var x = document.createElement("button"); x.type = "button"; x.className = "sgsel-o" + (i === sel.selectedIndex ? " on" : "");
       x.setAttribute("role", "option"); x.setAttribute("aria-selected", String(i === sel.selectedIndex));
       x.disabled = o.disabled; x.textContent = o.textContent;
@@ -1725,6 +1726,13 @@ window.SG.avisar = function (titulo, texto, peligro) {
         pintar(); cerrar(); b.focus();
       };
       lista.appendChild(x);
+    };
+    // (con sus apartados, si los tiene: «Sobres y cápsulas», «Un héroe concreto»…)
+    Array.prototype.forEach.call(sel.children, function (n) {
+      if (n.tagName === "OPTGROUP") {
+        var g = document.createElement("div"); g.className = "sgsel-g"; g.setAttribute("role", "presentation"); g.textContent = n.label;
+        lista.appendChild(g); Array.prototype.forEach.call(n.children, opcion);
+      } else if (n.tagName === "OPTION") opcion(n);
     });
     (document.fullscreenElement || document.body).appendChild(lista);
     var r = b.getBoundingClientRect(), H = window.innerHeight, abajo = H - r.bottom - 10, arriba = r.top - 10;
