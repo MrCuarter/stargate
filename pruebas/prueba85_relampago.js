@@ -93,8 +93,9 @@ const GP = "/Users/nor/Claude/vibewebs/gamificapro";
 const REGLAS = fs.existsSync(path.join(GP, "firestore.rules")) ? fs.readFileSync(path.join(GP, "firestore.rules"), "utf8") : "";
 c(/reto\.matches\('\^\(\[AB\]\[1-8\]\|L\[1-8\]\)\$'\)/.test(REGLAS),
   "🔴 las reglas del servidor dejan guardar la reflexión de un relámpago (L2, L3 y L6 se responden en la caja)");
-c(/\/\^\(\?:\[ABXSL\]\\d\|XS\$\)\/\.test\(id\)/.test(leer("assets/js/consola.js")),
-  "🔴 en la ficha del docente, «Lo que ha entregado» enseña también los relámpago y el simulacro");
+// (17-sep · «Lo que ha entregado» ya no existe: lo entregado se ve pulsando cada reto, relámpago y simulacro incluidos)
+c(/\(\/\^L\\d\/\.test\(mi\.id\) \? " rel" : ""\)/.test(leer("assets/js/consola.js")),
+  "🔴 en la ficha del docente, los relámpago salen entre sus retos (con su borde) y se pulsan como los demás");
 c(/\/\^\(\?:\[ABXSL\]\\d\|XS\$\)\/\.test\(k\)/.test(N), "   y la cifra de retos de la Nave los cuenta");
 c(/los relámpago \(L…\) tampoco cuentan, A PROPÓSITO/.test(N), "   (el tope de tres al día no los cuenta, a propósito: se hacen en clase)");
 const DIP = leer("assets/js/diploma.js");

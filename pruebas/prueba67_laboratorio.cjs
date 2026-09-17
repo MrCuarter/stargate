@@ -659,10 +659,15 @@ const REG = {};   // cifras que se apuntan para el informe
         await rita.js("!document.querySelector('tr[data-r] .sin-evid') && !/sin enlace/.test(document.querySelector('table').innerText)"));
       await rita.foto(FOTOS + "/11-mi-gente-avisos.png");
       await rita.js("[].slice.call(document.querySelectorAll('[data-r]')).filter(function(f){return /Cometa/.test(f.textContent)})[0].click(); 1");
-      const enlace = await rita.hasta("((document.querySelector('.evid-ficha')||{}).innerHTML||'').indexOf('padlet.com/carla')>=0", 12);
-      c("🔴 evidencia · y en la ficha de Carla, su enlace pulsable junto al reto", enlace,
-        await rita.js("(document.querySelector('.evid-ficha')||{}).innerHTML||''"));
+      // 17-sep · sin «Lo que ha entregado»: el enlace se ve pulsando el reto (Norberto: «bórralo, vamos a simplificar»)
+      await rita.hasta("!!document.querySelector('#c-modal [data-reto=\"B1\"]')", 12);
+      c("evidencia · la ficha ya no tiene «Lo que ha entregado»", await rita.js("!/Lo que ha entregado/.test(document.querySelector('#c-modal').innerText)"));
+      await rita.js("document.querySelector('#c-modal [data-reto=\"B1\"]').click(); 1");
+      const enlace = await rita.hasta("!!document.querySelector('#c-modal .sgp-reto a[href*=\"padlet.com/carla\"]')", 12);
+      c("🔴 evidencia · y pulsando B1 en la ficha de Carla, su enlace pulsable", enlace,
+        await rita.js("((document.querySelector('#c-modal .sgp-caja')||{}).innerText||'no se desplegó').slice(0,200)"));
       await rita.foto(FOTOS + "/11-ficha-evidencias.png");
+      await rita.js("var n=document.querySelector('#c-modal .sgp-caja [data-sgp-no]'); if(n) n.click(); 1");
     }
     // ============================================================ 12 · PREMIOS POR ENLACE, INCRUSTADOS EN OTRA WEB
     /**
@@ -3644,24 +3649,24 @@ const REG = {};   // cifras que se apuntan para el informe
       c("consola · A1 sin enlace (en A1 es opcional) no sale como «sin enlace» en Mi gente",
         await rita.js("(function(){ var f=[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(x){return /Rosa Rumbo/.test(x.textContent)})[0]; return !!f && !f.querySelector('.sin-evid'); })()"));
       await rita.js("window.scrollTo(0,0); [].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(f){return /Rosa Rumbo/.test(f.textContent)})[0].click(); 1");
-      // (la del comentario es la de A1: se reconoce por su texto)
-      const rfA1 = "[].slice.call(document.querySelectorAll('#c-modal .evid-rf')).filter(function(x){ return /fracciones/.test(x.textContent); })[0]";
-      const enFicha = await rita.hasta("!!" + rfA1, 20);
-      c("🔴 consola · la ficha de Rosa enseña su reflexión, con su comentario", enFicha && /1 comentario/.test(await rita.js("(" + rfA1 + "||{}).textContent||''")),
-        await rita.js("[].slice.call(document.querySelectorAll('#c-modal .evid-rf')).map(function(x){return x.textContent.slice(0,80)}).join(' | ')"));
-      await rita.foto(FOTOS + "/37-ficha-reflexion.png");
-      await rita.js("(function(){ var r=" + rfA1 + "; var d=r.querySelector('.evid-rf-coms'); if(d) d.open=true; r.querySelector('[data-rfquitarcom]').click(); })(); 1");
-      c("consola · quitar un comentario pregunta ahí mismo, desplegado en la ficha", /Quitar este comentario/.test(await rita.responder()));
-      await dormir(2500);
-      c("🔴 consola · la referente quita el comentario (moderar) y deja de existir", !(await consultar("stargate_comentarios", "projectId", P)).some(x => x.reflexion === P + "__A1__" + f1._id));
       // 17-sep · LA REFLEXIÓN, A UN CLIC. Norberto: «cuando una tarea tiene reflexión en vez de enlace, si hago clic, ¿puedo
-      // leer la reflexión? Debería». En la ficha (pulsando el reto) y en la sesión («✍️ Leer» bajo su cara).
+      // leer la reflexión? Debería». Y después: «Lo que ha entregado ya se ve al pulsar el propio reto; bórralo». Así que la
+      // reflexión, sus comentarios y moderarlos, en el desplegable del reto (y en la sesión, «✍️ Leer» bajo su cara).
+      await rita.hasta("!!document.querySelector('#c-modal [data-reto=\"A1\"]')", 20);
       await rita.js("document.querySelector('#c-modal [data-reto=\"A1\"]').click(); 1");
-      c("🔴 consola · pulsar A1 en la ficha de Rosa: su reflexión entera en el desplegable (y sin «sin enlace»: A1 se responde en texto)",
-        await rita.hasta("/fracciones/.test((document.querySelector('#c-modal .sgp-rf-txt')||{}).textContent||'')", 10)
+      c("🔴 consola · pulsar A1 en la ficha de Rosa: su reflexión entera, con su comentario (y sin «sin enlace»: A1 se responde en texto)",
+        await rita.hasta("/fracciones/.test((document.querySelector('#c-modal .sgp-rf-txt')||{}).textContent||'') && /1 comentario/.test((document.querySelector('#c-modal .sgp-rf-coms summary')||{}).textContent||'')", 10)
         && await rita.js("!/sin enlace/.test(document.querySelector('#c-modal .sgp-reto').textContent)"),
         await rita.js("((document.querySelector('#c-modal .sgp-caja')||{}).innerText||'no se desplegó').slice(0,200)"));
+      await rita.js("var d=document.querySelector('#c-modal .sgp-rf-coms'); if(d) d.open=true; 1");
       await rita.foto(FOTOS + "/37-ficha-leer-reflexion.png");
+      await rita.js("document.querySelector('#c-modal [data-rfquitarcom]').click(); 1"); await dormir(300);
+      c("consola · «Quitar» un comentario pide confirmarlo en el mismo botón (dentro del desplegable no cabe otra pregunta)",
+        await rita.js("/Pulsa otra vez/.test(document.querySelector('#c-modal [data-rfquitarcom]').textContent)") && !(await consultar("stargate_comentarios", "projectId", P)).every(x => x.reflexion !== P + "__A1__" + f1._id));
+      await rita.js("document.querySelector('#c-modal [data-rfquitarcom]').click(); 1");
+      await dormir(2500);
+      c("🔴 consola · la referente quita el comentario (moderar) y deja de existir", !(await consultar("stargate_comentarios", "projectId", P)).some(x => x.reflexion === P + "__A1__" + f1._id));
+      c("consola · y el desplegable sigue abierto, ya sin el comentario", await rita.js("!!document.querySelector('#c-modal .sgp-rf-txt') && !document.querySelector('#c-modal .sgp-rf-coms')"));
       await rita.js("var n=document.querySelector('#c-modal .sgp-caja [data-sgp-no]'); if(n) n.click(); 1"); await dormir(200);
       await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1");
       await rita.ir("sesion.html?per=" + P + "&sem=2"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);

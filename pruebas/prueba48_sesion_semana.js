@@ -75,7 +75,7 @@ c(MAZO.split("s.foro").length === 2 && /diaForo\(s\)/.test(construir) && constru
 ["Nómbralos", "la ceremonia la haces tú", "Los xp no bajan nunca", "Por MEDIA, no por suma", "Aquí es donde entras tú"].forEach(function (t) {
   c(MAZO.indexOf(t) < 0, "🔴 lo proyectado no le habla al docente: fuera «" + t + "»");
 });
-c(/mazo&&mazo\.requestFullscreen/.test(CODIGO),
+c(/var pide=mazo\.requestFullscreen\|\|mazo\.webkitRequestFullscreen/.test(CODIGO),
   "🔴 la pantalla completa se pide sobre el MAZO, no sobre la página (si no, el consejo se vería)");
 c(!/document\.body\.requestFullscreen/.test(CODIGO),
   "   y nunca sobre document.body");
@@ -100,7 +100,7 @@ const orden = ["diaPortada(", "diaLlamada(", "deTipo('inicio')", "diaAnteriores(
                "diaEscuadrones(", "diaTicket(", "diaOferta(", "diapositivasNuevas(", "deTipo('mision')", "diasMisiones(", "k:'tuyo'", "deTipo('cierre')", "deTipo('fragmento')"];
 const pos = orden.map(x => construir.indexOf(x));
 c(pos.every(x => x >= 0) && pos.every((x, i) => i === 0 || x > pos[i - 1]), "🔴 el mazo va en el orden acordado", JSON.stringify(orden.filter((x, i) => pos[i] < 0)));
-c(/if\(st\.per && !EMBED\)/.test(construir), "🔴 el panel de Genially no entra cuando la sesión ya va DENTRO del Genially");
+c(/if\(st\.per && \(!EMBED \|\| VENTANA\)\)/.test(construir), "🔴 el panel de Genially no entra cuando la sesión ya va DENTRO del Genially");
 // los vídeos: la intro al principio y el cierre al final, NUNCA seguidos (en los temas de una semana iban los tres juntos)
 const tipoVideo = new Function("v", S.slice(S.indexOf("function tipoVideo(v){") + 22, S.indexOf("function diaVideo(")).replace(/}\s*$/, ""));
 const tipos = {};

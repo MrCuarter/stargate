@@ -370,7 +370,7 @@
    * muévelo a la última opción, y que brille cuando hay algo pendiente». Y el calendario, a la vista de todo el
    * equipo («la versión vista, sin edición, la debería poder ver el docente raso»): editar sigue siendo del referente.
    */
-  var TABS = [["alumnado", "Mi gente"], ["rankings", "🏆 Rankings"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
+  var TABS = [["alumnado", "Mi gente"], ["rankings", "Rankings"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
               ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1],
               ["huevos", "Premios por enlace", 1], ["sorteos", "Sorteos", 1], ["ofertas", "Ofertas", 1], ["ajustes", "Ajustes del grupo", 1],
               ["canjes", "Cola de nota"]];
@@ -415,9 +415,11 @@
         ' · ' + semanaTexto(t) + ' · ' + t.reclutas.length + ' reclutas</span></div>' +
         '<div class="c-cab-b"><button class="btn min" id="c-cambiar">← Mis grupos</button> ' + botonBuzon("consola", PER) +
         ' <button class="btn min" id="c-salir">Salir</button></div></div>' +
-      '<div class="pestanas">' + misTabs().map(function (x) {
+      '<div class="pestanas">' + misTabs().map(function (x, i, todas) {
         var cola = x[0] === "canjes" ? pendientesCola() : 0;
-        return '<button class="pest' + (TAB === x[0] ? " activa" : "") + (cola ? " pest-aviso" : "") + '" data-tab="' + x[0] + '"' +
+        // (una raya antes de las del referente; el icono de cada una va en la hoja de estilos)
+        var raya = x[2] && !(todas[i - 1] || [])[2] ? '<span class="pest-sep" aria-hidden="true"></span>' : "";
+        return raya + '<button class="pest' + (TAB === x[0] ? " activa" : "") + (cola ? " pest-aviso" : "") + '" data-tab="' + x[0] + '"' +
           (cola ? ' title="' + cola + (cola === 1 ? " subida de nota espera" : " subidas de nota esperan") + ' tu visto bueno"' : "") + '>' + x[1] +
           (cola ? '<span class="pest-n" aria-label="' + cola + ' pendientes">' + cola + "</span>" : "") + "</button>";
       }).join("") + "</div>" +
@@ -680,21 +682,31 @@
     var b = ev.target && ev.target.closest && ev.target.closest("#c-modal [data-rfquitar], #c-modal [data-rfquitarcom]");
     if (!b || !FICHA_RF) return;
     var r = FICHA_RF;
+    /**
+     * 17-sep · Vive dentro del desplegable del reto (Norberto quitó «Lo que ha entregado»: «esto ya se ve al pulsar el
+     * propio reto; bórralo, vamos a simplificar»). Ahí no cabe otra pregunta desplegada —cerraría la del reto—, así
+     * que se confirma pulsando dos veces: la primera lo pregunta en el propio botón.
+     */
+    if (!b.classList.contains("seguro")) {
+      var antes = b.textContent;
+      b.classList.add("seguro"); b.textContent = "¿Seguro? Pulsa otra vez";
+      setTimeout(function () { if (b.isConnected && !b.disabled) { b.classList.remove("seguro"); b.textContent = antes; } }, 3500);
+      return;
+    }
+    var caja = b.closest(".sgp-caja");
+    b.disabled = true;
     if (b.hasAttribute("data-rfquitarcom")) {
-      if (!(await window.SG.preguntar({ aqui: b.closest("p") || b, marca: b, titulo: "¿Quitar este comentario?", texto: "Ya no lo verá nadie.",
-        si: "Quitar", peligro: true }))) return;
-      b.disabled = true;
       try { await MOTOR.borrarComentario(b.getAttribute("data-rfquitarcom")); } catch (e) { b.disabled = false; return avisoFicha(e.message); }
+      var lista = b.closest(".sgp-rf-coms"), linea = b.closest("p");
+      if (linea) linea.remove();
+      if (lista) { var n = lista.querySelectorAll("p").length, s = lista.querySelector("summary");
+        if (!n) lista.remove(); else if (s) s.textContent = "💬 " + n + (n === 1 ? " comentario" : " comentarios") + " de su tripulación"; }
     } else {
-      var reto = b.getAttribute("data-rfquitar");
-      if (!(await window.SG.preguntar({ aqui: b.closest("p") || b, marca: b, titulo: "¿Quitar la reflexión de «" + r.alias + "» en " + reto + "?",
-        texto: "Deja de verse en la Nave y en la sesión, con sus comentarios. El reto sigue registrado.", si: "Quitar la reflexión", peligro: true }))) return;
-      b.disabled = true;
-      try { await MOTOR.borrarReflexion(PER, reto, r.ficha); } catch (e) { b.disabled = false; return avisoFicha(e.message); }
+      try { await MOTOR.borrarReflexion(PER, b.getAttribute("data-rfquitar"), r.ficha); } catch (e) { b.disabled = false; return avisoFicha(e.message); }
+      if (caja && caja.__cerrar) caja.__cerrar(null);
     }
     if (ULTIMO_T) cargarEvid(ULTIMO_T);
-    if (EVID_LISTO) EVID_LISTO.then(function () { var h = document.getElementById("c-evid"); if (h && FICHA_RF === r) h.innerHTML = evidenciasDe(r); });
-    avisoFicha(b.hasAttribute("data-rfquitarcom") ? "Comentario quitado." : "Reflexión quitada.", true);
+    avisoFicha(b.hasAttribute("data-rfquitarcom") ? "Comentario quitado." : "Reflexión quitada: ya no se ve en la Nave ni en la sesión.", true);
   });
 
   /**
@@ -736,37 +748,6 @@
         return '<span class="fi-ab ok">' + esc(k === "todas" ? "Todas" : "T" + k.slice(1)) + " " + (m[k].p || 0) + "</span>"; }).join(" ") : "") +
       (T.batallas ? ' <span class="small muted">· ' + T.batallas + " batallas, " + (T.aciertos || 0) + " aciertos" +
         (T.aciertos ? " (" + (Math.round((T.ms / 1000) / T.aciertos * 10) / 10) + " s cada uno)" : "") + "</span>" : "") + "</p>";
-  }
-
-  /** Sus retos registrados, cada uno con su enlace (o el aviso si le falta uno obligatorio). */
-  function evidenciasDe(r) {
-    var mias = (EVID && EVID[r.ficha]) || {}, EVR = window.SG_EVIDENCIA || {};
-    // solo lo que entrega el recluta (A, B, X, S): los hitos (H…) se completan solos y no son entregas
-    // (16-sep · también los relámpago, L1–L8, y el simulacro, XS: son entregas del recluta como las demás)
-    var ids = Object.keys(r.retos || {}).filter(function (id) { return /^(?:[ABXSL]\d|XS$)/.test(id); }).sort();
-    if (!ids.length) return '<p class="small muted">Todavía no ha registrado ningún reto.</p>';
-    if (!EVID) return '<p class="small muted">Buscando sus enlaces…</p>';
-    var RFX = window.SG_REFLEXION || {}, rfs = (EVRF && EVRF[r.ficha]) || {};
-    return '<ul class="evid-lista">' + ids.map(function (id) {
-      var e = mias[id], ob = EVR[id] === "obligatoria", rf = rfs[id];
-      // (15-sep · pueden ser dos, separados por un espacio: el segundo es el del «+»)
-      var enlace = e
-        ? String(e).trim().split(/\s+/).map(function (u) {
-            var url = /^https?:\/\//i.test(u) ? u : "https://" + u;
-            return '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">🔗 ' + esc(u.replace(/^https?:\/\//i, "").slice(0, 60)) + '</a>'; }).join(" ")
-        : (RFX[id] && !ob ? "" : '<span class="small muted">sin enlace</span>');
-      // 15-sep (noche) · su reflexión (la ve su tripulación), con sus comentarios; el profesorado puede quitar lo que no deba estar
-      var coms = rf ? (COMS[rf.id] || []) : [];
-      var refl = !RFX[id] ? "" : rf
-        ? '<div class="evid-rf"><p class="evid-rf-t">✍️ ' + esc(rf.texto || "").replace(/\n+/g, "<br>") + "</p>" +
-          (coms.length ? '<details class="evid-rf-coms"><summary>💬 ' + coms.length + (coms.length === 1 ? " comentario" : " comentarios") + " de su tripulación</summary>" +
-            coms.map(function (c) { var q = (DATOS.perfiles || []).filter(function (p) { return p.id === c.fichaId; })[0];
-              return '<p class="evid-com"><b>' + esc((q && q.displayName) || "Un recluta") + "</b> " + esc(c.texto || "") +
-                ' <button type="button" class="btn min" data-rfquitarcom="' + esc(c.id) + '" title="Quitar este comentario">Quitar</button></p>'; }).join("") + "</details>" : "") +
-          '<p><button type="button" class="btn min" data-rfquitar="' + esc(id) + '" title="La reflexión deja de verse (el reto sigue registrado)">Quitar la reflexión</button></p></div>'
-        : (pideReflexion((r.retos || {})[id]) ? '<span class="small muted">sin reflexión</span>' : "");
-      return '<li><b>' + esc(id) + '</b> ' + enlace + refl + '</li>';
-    }).join("") + '</ul>';
   }
 
   /**
@@ -871,8 +852,7 @@
       (r.congelado ? '<p class="aviso">🧊 <b>Cuenta congelada</b>' + (r.congelado.fecha ? " desde el " + diaDe(r.congelado.fecha) : "") + ": entra y mira su Nave, pero no puede hacer nada.</p>" : "") +
       '<div class="c-modal-aviso aviso" hidden></div>' +
       "<h4>Sus retos y sus insignias, por temas</h4>" + temasDeLaFicha(r, retos) +
-      '<p class="small muted">Insignia encendida = ganada. Reto en verde = registrado. Pulsa un reto para validarlo o anularlo, con un mensaje que le llega a su Nave. Todo queda anotado en el libro de experiencia, con quién y cuándo.</p>' +
-      '<div class="evid-ficha"><h4>Lo que ha entregado</h4><div id="c-evid">' + evidenciasDe(r) + "</div></div>" +
+      '<p class="small muted">Insignia encendida = ganada. Reto en verde = registrado. Pulsa un reto: ves su enlace y su reflexión, y lo validas o lo anulas con un mensaje que le llega a su Nave. Todo queda anotado en el libro de experiencia, con quién y cuándo.</p>' +
       // 🔴 DAR DE BAJA y CONGELAR (14-sep): solo el referente (Norberto: «el referente tiene poder de eliminar o
       // congelar: puede acceder, pero no puede hacer nada, bloqueado»). La baja hace falta de verdad: alguien que se
       // alista en el grupo equivocado o con la cuenta que no era deja una ficha huérfana en el ranking.
@@ -881,8 +861,6 @@
         '<span class="small muted">' + (r.congelado ? "vuelve a poder hacer de todo." : "podrá entrar y mirar, pero no registrar retos, comprar, fichar ni usar el Zoco.") + "</span></p>" +
         '<p><button type="button" class="btn min peligro" id="c-baja">Dar de baja a ' + esc(r.alias) + "</button> " +
         '<span class="small muted">borra su ficha del grupo. Podrá alistarse otra vez, aquí o en otro, empezando de cero.</span></p></div>' : ""));
-    // si la ficha se abrió antes de que llegaran los enlaces, se rellena en cuanto lleguen
-    if (!EVID && EVID_LISTO) EVID_LISTO.then(function () { var h = document.getElementById("c-evid"); if (h) h.innerHTML = evidenciasDe(r); });
     var cmdB = m.querySelector("#c-cmd-b");
     if (cmdB) cmdB.onclick = async function () {
       var a = (m.querySelector("#c-cmd") || {}).value; if (!a) return;
@@ -949,10 +927,16 @@
                   (tiene ? (enlaces ? "<span>" + enlaces + "</span>"
                                     : (RFX1 && RFX1.modo === "texto" ? "" : '<span class="small muted">sin enlace</span>')) : "") + "</p>" +
                 (tiene && RFX1 ? (rfx
-                  ? '<div class="sgp-rf"><p class="sgp-rf-cab">✍️ <b>Su reflexión</b> · «' + esc(RFX1.titulo || "") + "»" +
-                      ((COMS[rfx.id] || []).length ? ' <span class="small muted">· 💬 ' + (COMS[rfx.id] || []).length + " de su tripulación</span>" : "") + "</p>" +
-                    '<p class="sgp-rf-txt">' + esc(rfx.texto || "") + "</p></div>"
-                  : '<p class="small muted">✍️ Este reto lleva reflexión y no la tiene.</p>') : "") +
+                  ? '<div class="sgp-rf"><p class="sgp-rf-cab">✍️ <b>Su reflexión</b> · «' + esc(RFX1.titulo || "") + "»</p>" +
+                    '<p class="sgp-rf-txt">' + esc(rfx.texto || "") + "</p>" +
+                    ((COMS[rfx.id] || []).length ? '<details class="sgp-rf-coms"><summary>💬 ' + (COMS[rfx.id] || []).length +
+                      ((COMS[rfx.id] || []).length === 1 ? " comentario" : " comentarios") + " de su tripulación</summary>" +
+                      (COMS[rfx.id] || []).map(function (c) { var q = (DATOS.perfiles || []).filter(function (p) { return p.id === c.fichaId; })[0];
+                        return '<p class="evid-com"><b>' + esc((q && q.displayName) || "Un recluta") + "</b> " + esc(c.texto || "") +
+                          ' <button type="button" class="btn min" data-rfquitarcom="' + esc(c.id) + '">Quitar</button></p>'; }).join("") + "</details>" : "") +
+                    '<p class="sgp-rf-mod"><button type="button" class="btn min" data-rfquitar="' + esc(id) + '">Quitar la reflexión</button> ' +
+                      '<span class="small muted">deja de verse en la Nave y en la sesión; el reto sigue registrado</span></p></div>'
+                  : (pideReflexion((r.retos || {})[id]) ? '<p class="small muted">✍️ Este reto lleva reflexión y no la tiene.</p>' : "")) : "") +
                 '<p class="sgp-cifras">' + (tiene ? "Se le quitan " : "Se le suman ") + "<b>" + xp + " xp</b>" + (mi.badge ? ", " : " y ") + "<b>" + cr + " ◈</b>" +
                   (mi.badge ? " y su insignia" : "") + (tiene ? ". Podrá registrarlo otra vez." : ".") + "</p>",
           campo: { etiqueta: "Mensaje para " + r.alias, ayuda: tiene ? "· lo verá en su Nave" : "· opcional · lo verá en su Nave", filas: 2, max: 400,

@@ -28,6 +28,13 @@
   if (q.get('embed') === '1') document.body.classList.add('embed');
   var EMBED = q.get('embed') === '1';
   /**
+   * 🔴 17-sep · ?ventana=1 · LA SESIÓN EN SU PROPIA VENTANA. Norberto: «¿es posible un botón para que se abra la sesión
+   * en una ventana dedicada, sin barra de navegación o con los mínimos elementos posibles, para dar protagonismo a la
+   * presentación?». Va sin la web alrededor (como el embed), pero NO está dentro de un Genially: el tramo del medio
+   * lleva el Genially del grupo embebido, como proyectando desde la web.
+   */
+  var VENTANA = EMBED && q.get('ventana') === '1';
+  /**
    * 🔴 16-sep · ?tramo=apertura | cierre · LA CLASE TIENE TRES TIEMPOS, NO UNO. Norberto: «el embed de
    * clase es continuo; deberíamos separarlo en dos bloques. Primero animar la gamificación, el vídeo,
    * revisar el ticket de salida. Después la presentación de Genially con la teoría y la práctica
@@ -941,7 +948,7 @@
     // es donde está la teoría y la práctica guiada; dentro del Genially no se puede (sería el panel
     // dentro de sí mismo), así que ahí va una tarjeta que dice dónde seguir.
     var medio=[];
-    if(st.per && !EMBED){
+    if(st.per && (!EMBED || VENTANA)){
       var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
       if(panel) medio.push({k:'genially', t:'pr', rot:'La presentación', html:
         '<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});
@@ -975,12 +982,70 @@
    * después. Es un rótulo, no un menú: no se navega desde aquí para no tentar a nadie en directo.
    */
   var TRAMOS=[['ap','1 · Apertura'],['pr','2 · Presentación'],['ci','3 · Cierre']];
+  /**
+   * 17-sep · Y SE PULSAN. Norberto: «sería fantástico hacer clic e ir directamente a esas sesiones». Cada tiempo lleva a
+   * su primera diapositiva; el que está en el Genially (cuando la sesión va dentro de él) no se pulsa.
+   */
   function tramos(){
     var hay={}; st.slides.forEach(function(x){ hay[x.t||'ap']=true; });
-    return '<div class="ses-tramos" id="ses-tramos">'+TRAMOS.map(function(x){
+    return '<div class="ses-tramos" id="ses-tramos" role="navigation" aria-label="Los tres tiempos de la clase">'+TRAMOS.map(function(x){
       var suyo=hay[x[0]];
-      return '<span class="tr'+(suyo?'':' fuera')+'" data-t="'+x[0]+'">'+esc(x[1])+(suyo?'':' ·  en el Genially')+'</span>';
+      return '<button type="button" class="tr'+(suyo?'':' fuera')+'" data-t="'+x[0]+'"'
+        +(suyo?' title="Ir a '+esc(x[1].replace(/^\d · /,''))+'"':' disabled title="Este tiempo va en tu Genially"')+'>'
+        +esc(x[1])+(suyo?'':' · en el Genially')+'</button>';
     }).join('')+'</div>';
+  }
+  function irATramo(t){
+    for(var k=0;k<st.slides.length;k++){ if((st.slides[k].t||'ap')===t){ if(k!==st.i) ir(k); break; } }
+    var mazo=root.querySelector('#mazo'); if(mazo) try{ mazo.focus({preventScroll:true}); }catch(e){}
+  }
+
+  /**
+   * 17-sep · LOS DOS BOTONES DE PROYECTAR, DENTRO DE LA PRESENTACIÓN: pantalla completa (también con la tecla F) y, desde
+   * la web, abrir la sesión en una ventana aparte. Discretos, arriba a la derecha, junto al contador.
+   */
+  var IC_PANTALLA='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var IC_SALIR='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var IC_VENTANA='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function enPantalla(){ return !!(document.fullscreenElement||document.webkitFullscreenElement)||document.body.classList.contains('proyectando'); }
+  function controles(){
+    var fs=enPantalla();
+    return '<div class="ses-ctl">'
+      +(!EMBED?'<button type="button" class="ses-ic" data-ses-ventana title="Abrir la sesión en una ventana aparte, solo con la presentación" aria-label="Abrir en una ventana aparte">'+IC_VENTANA+'</button>':'')
+      +'<button type="button" class="ses-ic" id="ses-pantalla" title="'+(fs?'Salir de pantalla completa (F)':'Pantalla completa (F)')+'" aria-label="'+(fs?'Salir de pantalla completa':'Pantalla completa')+'">'+(fs?IC_SALIR:IC_PANTALLA)+'</button>'
+      +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div></div>';
+  }
+  function marcarPantalla(){
+    var b=root.querySelector('#ses-pantalla'); if(!b) return;
+    var fs=enPantalla();
+    b.innerHTML=fs?IC_SALIR:IC_PANTALLA;
+    b.title=fs?'Salir de pantalla completa (F)':'Pantalla completa (F)';
+    b.setAttribute('aria-label', fs?'Salir de pantalla completa':'Pantalla completa');
+  }
+  function pantallaCompleta(){
+    var mazo=root.querySelector('#mazo'); if(!mazo) return;
+    if(document.body.classList.contains('proyectando')){ document.body.classList.remove('proyectando'); marcarPantalla(); return; }
+    if(document.fullscreenElement||document.webkitFullscreenElement){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); return; }
+    // pantalla completa sobre el MAZO (la tira de preparación queda fuera). Si el navegador no deja —dentro de un
+    // Genially que no la permite—, el mazo ocupa todo lo que tiene.
+    var falla=function(){ document.body.classList.add('proyectando'); marcarPantalla(); };
+    var pide=mazo.requestFullscreen||mazo.webkitRequestFullscreen;
+    if(!pide) falla();
+    else { try{ var r=pide.call(mazo); if(r&&r.catch) r.catch(falla); }catch(e){ falla(); } }
+    try{ mazo.focus({preventScroll:true}); }catch(e){}
+  }
+  document.addEventListener('fullscreenchange', marcarPantalla);
+  document.addEventListener('webkitfullscreenchange', marcarPantalla);
+  function abrirEnVentana(){
+    var u=new URL(location.href);
+    u.searchParams.set('embed','1'); u.searchParams.set('ventana','1'); u.searchParams.set('sem', st.sem);
+    if(st.per) u.searchParams.set('per', st.per);
+    var W=(window.screen&&screen.availWidth)||1440, H=(window.screen&&screen.availHeight)||900;
+    var w=Math.min(1600,W-40), h=Math.min(1000,H-60), x=Math.max(0,Math.round((W-w)/2)), y=Math.max(0,Math.round((H-h)/2));
+    // (el mismo nombre que el ⧉ de la consola: pulsar dos veces no abre dos)
+    var v=window.open(u.href, 'sg_sesion_'+String(st.per||'').replace(/[^\w-]/g,'_'), 'popup=yes,width='+w+',height='+h+',left='+x+',top='+y);
+    if(v){ try{ v.focus(); }catch(e){} return; }
+    if(window.SG&&SG.avisar) SG.avisar('El navegador ha bloqueado la ventana', 'Permite las ventanas emergentes de esta web (el icono de la barra de direcciones) y vuelve a pulsar el botón.');
   }
   function marcarTramo(){
     var sl=st.slides[st.i], t=(sl&&sl.t)||'ap';
@@ -1002,6 +1067,7 @@
       +'<div class="prep-cab"><div><div class="eyebrow violet">Solo para ti · no se proyecta</div>'
       +'<h3>Antes de empezar</h3></div>'
       +'<div class="prep-b"><a class="btn min bz-acceso" href="buzon.html?desde=sesion&per='+encodeURIComponent(st.per||'')+'" target="_blank" rel="noopener">📡 ¿Dudas? ¿Algo falla?</a> '
+      +'<button type="button" class="btn" data-ses-ventana title="Sin la web alrededor: solo la presentación">⧉ En una ventana aparte</button> '
       +'<button type="button" class="btn primary" id="proyectar">▶ Proyectar la sesión</button></div></div>'
       +(s.consejo?'<div class="card consejo"><b>El consejo del Capitán.</b> '+esc(s.consejo)+'</div>':'')
       +(s.clases?'<p class="small muted">'+esc(s.clases)+'</p>':'')
@@ -1032,7 +1098,7 @@
       +(st.grupos && st.grupos.length > 1 ? '<button type="button" class="ses-cambiar" id="ses-cambiar" title="Cambiar de grupo">⇄ '+esc(st.nombre||'Grupo')+'</button>' : '')+st.slides.map(function(d,i){
           return '<button type="button" class="p'+(i===st.i?' on':'')+(i<st.i?' past':'')+'" data-i="'+i+'" title="'+esc(d.rot)+'"><span>'+esc(d.rot)+'</span></button>';
         }).join('')+'</div>'
-      +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div>'
+      +controles()
       +'</div>';
     wire();
     montar();
@@ -1111,12 +1177,13 @@
       salir();
     };
     var pr=root.querySelector('#proyectar');
-    if(pr) pr.onclick=function(){
-      // pantalla completa sobre el MAZO: así la tira de preparación (el consejo) queda fuera.
-      if(mazo&&mazo.requestFullscreen) mazo.requestFullscreen();
-      else document.body.classList.toggle('proyectando');
-      if(mazo) mazo.focus();
-    };
+    if(pr) pr.onclick=function(){ if(!enPantalla()) pantallaCompleta(); };
+    var pc=root.querySelector('#ses-pantalla');
+    if(pc) pc.onclick=function(){ pantallaCompleta(); };
+    Array.prototype.forEach.call(root.querySelectorAll('[data-ses-ventana]'),function(b){ b.onclick=function(){ abrirEnVentana(); }; });
+    Array.prototype.forEach.call(root.querySelectorAll('#ses-tramos .tr'),function(b){
+      b.onclick=function(){ if(!b.disabled) irATramo(b.getAttribute('data-t')); };
+    });
     var cp=root.querySelector('#copiarForo');
     if(cp) cp.onclick=function(){
       var pre=root.querySelector('.foro-det .foro-msg'); if(!pre) return;
@@ -1137,6 +1204,8 @@
     if(/^(INPUT|SELECT|TEXTAREA)$/.test((e.target&&e.target.tagName)||'')) return;
     // la barra espaciadora sobre un botón lo pulsa (no pasa de diapositiva); las flechas y el mando, siempre
     if(e.key===' ' && e.target && e.target.closest && e.target.closest('button,a,[role=button]')) return;
+    if((e.key==='f'||e.key==='F')&&!e.metaKey&&!e.ctrlKey&&!e.altKey){ e.preventDefault(); pantallaCompleta(); return; }
+    if(e.key==='Escape'&&document.body.classList.contains('proyectando')){ e.preventDefault(); pantallaCompleta(); return; }
     if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){ e.preventDefault(); avanzar(); }
     else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); retroceder(); }
   });

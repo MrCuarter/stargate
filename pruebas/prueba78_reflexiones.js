@@ -79,12 +79,12 @@ c(/var RF = \(window\.SG_REFLEXION \|\| \{\}\)\[RETO\]/.test(V) && /M\.guardarRe
   "la caja de validar un reto también pide la reflexión y la guarda");
 
 // 7 · la consola
-c(/MOTOR\.reflexionesDe\(PER\)/.test(K) && /'<span class="small muted">sin reflexión<\/span>'/.test(K), "🔴 la ficha enseña la reflexión (y dice si falta)");
+c(/MOTOR\.reflexionesDe\(PER\)/.test(K) && /Este reto lleva reflexión y no la tiene/.test(K), "🔴 la ficha enseña la reflexión al pulsar el reto (y dice si falta)");
 // 17-sep · Norberto quitó el «⚠️ N sin enlace · M sin reflexión» de Mi gente: los dos se piden al registrar
 c(!/sinRF\.length \? sinRF\.length \+ " sin reflexión"/.test(K), "   y Mi gente ya no las cuenta al lado de cada uno (se piden al registrar)");
 c(/var REFLEXION_DESDE = Date\.parse\("2026-09-16T00:00:00"\)/.test(K) && /pideReflexion\(\(r\.retos \|\| \{\}\)\[id\]\)/.test(K),
   "   pero solo lo registrado desde que existe la caja (lo de antes no es culpa de nadie)");
-c(/data-rfquitarcom=/.test(K) && /data-rfquitar=/.test(K) && /MOTOR\.borrarReflexion\(PER, reto, r\.ficha\)/.test(K),
+c(/data-rfquitarcom=/.test(K) && /data-rfquitar=/.test(K) && /MOTOR\.borrarReflexion\(PER, b\.getAttribute\("data-rfquitar"\), r\.ficha\)/.test(K),
   "   el profesorado puede quitar un comentario o la reflexión entera (moderar)");
 
 // 8 · la sesión: «Lo que dijisteis», dos semanas después, primero su escuadrón
@@ -97,7 +97,7 @@ c(/else if\(st\.i===0\) pintar\(\);/.test(S), "   si llegan tarde, se suman al m
 c(/hashRF\(x\.id\+dia\)/.test(S), "   el orden cambia cada día pero no al pasar de diapositiva");
 
 // 9 · el diseño
-c(/\.rf-txt\{[^}]*min-height:130px/.test(CSS) && /\.rfx-lista\{/.test(CSS) && /\.evid-rf\{/.test(CSS), "la caja, el panel, la ficha y la diapositiva tienen su estilo");
+c(/\.rf-txt\{[^}]*min-height:130px/.test(CSS) && /\.rfx-lista\{/.test(CSS) && /\.sgp-rf\{/.test(CSS), "la caja, el panel, la ficha y la diapositiva tienen su estilo");
 const peques = (CSS.slice(CSS.indexOf("LAS REFLEXIONES DE LOS RETOS")).match(/font-size:\s*\.(\d+)rem/g) || []).map(x => Number("0." + x.match(/\.(\d+)/)[1]));
 c(peques.every(v => v >= 0.75), "   nada por debajo de 12 px", peques.join(","));
 

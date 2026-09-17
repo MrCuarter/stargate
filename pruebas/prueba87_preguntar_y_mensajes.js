@@ -37,7 +37,7 @@ c(!/font-size:(?:[0-9]|1[01])px/.test(nuevos) && !/font-size:\.(?:[0-6]\d|7[0-4]
   const s = sinComentarios(leer("assets/js/" + f + ".js"));
   c(!/(^|[^.\w])(confirm|prompt|alert)\(/.test(s), "🔴 " + f + ".js ya no usa confirm/prompt/alert del navegador", (s.match(/.{30}(confirm|prompt|alert)\(.{30}/) || [""])[0]);
 });
-c((K.match(/window\.SG\.preguntar\(/g) || []).length >= 17, "   la consola pregunta con la de la casa en todas partes", String((K.match(/window\.SG\.preguntar\(/g) || []).length));
+c((K.match(/window\.SG\.preguntar\(/g) || []).length >= 15, "   la consola pregunta con la de la casa en todas partes", String((K.match(/window\.SG\.preguntar\(/g) || []).length));
 ["cmdB", "cong", "baja"].forEach(b => c(new RegExp("aqui: " + b + "\\.closest\\(\"p\"\\) \\|\\| " + b).test(K), "   en la ficha, «" + b + "» pregunta desplegado ahí mismo"));
 c(/campo: \{ etiqueta: "Para confirmar, escribe su alias:", ayuda: r\.alias, igualA: r\.alias \}/.test(K), "   dar de baja: una sola pregunta que pide escribir su alias");
 
@@ -94,6 +94,15 @@ const EP = fs.existsSync(path.join(RAIZ, "motor/entregas_prueba.js")) ? leer("mo
 c(/\^\(prueba\|demo\)-/.test(EP) && /\^\(prueba\|demo\)_/.test(EP) && /!\(await ref\.get\(\)\)\.exists/.test(EP),
   "🔴 los grupos de prueba, con entregas de verdad: solo grupos prueba-/demo-, solo reclutas de mentira y sin pisar nada");
 c(/parseInt\(reto\.slice\(1\), 10\) \|\| 0/.test(EP), "   (el simulacro, XS, no lleva número: rompía el reparto de enlaces; lo cazó el ensayo en el emulador)");
+
+// 7 · la ficha, más simple (17-sep · Norberto: «Lo que ha entregado ya se ve al pulsar el propio reto; bórralo»)
+c(/data-rfquitarcom="' \+ esc\(c\.id\)/.test(RETO) && /class="sgp-rf-coms"/.test(RETO), "🔴 los comentarios de su tripulación y quitarlos, dentro del desplegable del reto");
+c(/b\.textContent = "¿Seguro\? Pulsa otra vez"/.test(K), "   quitar se confirma pulsando dos veces (otra pregunta desplegada cerraría la del reto)");
+c(/pideReflexion\(\(r\.retos \|\| \{\}\)\[id\]\) \? '<p class="small muted">✍️ Este reto lleva reflexión y no la tiene/.test(K),
+  "   y «no la tiene» solo si se registró cuando ya se pedía");
+c(/\.retos-ficha \.reto:first-of-type\{border-top:1px solid/.test(CSS), "🔴 el primer reto de cada tema no pierde el borde de arriba (la regla de la Nave lo alcanzaba)");
+c(/#consola \.c-cab\{margin:0 0 14px\}/.test(CSS) && /\.pest\.activa\{background:linear-gradient/.test(CSS) && /class="pest-sep"/.test(K),
+  "🔴 pestañas con cuerpo e icono, separadas de la cabecera, y las del referente tras una raya");
 
 console.log("\n  Batería 87 · preguntar con la cara de STARGATE y el porqué de un reto");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");

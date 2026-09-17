@@ -1126,6 +1126,17 @@ ol.pasos-num li b{color:var(--ink)}
 .mazo .nav:hover{opacity:1;border-color:var(--teal)}
 .mazo .nav.ant{left:10px}.mazo .nav.sig{right:10px}
 .mazo .cuenta{position:absolute;right:14px;top:12px;font-size:.78rem;color:var(--muted);z-index:5}
+/* 17-sep · pantalla completa y ventana aparte, dentro de la presentación: discretos hasta que se pasa por encima */
+.mazo .ses-ctl{position:absolute;top:8px;right:10px;z-index:6;display:flex;align-items:center;gap:6px}
+.mazo .ses-ctl .cuenta{position:static;margin-left:2px}
+.ses-ic{width:34px;height:34px;padding:0;display:grid;place-items:center;border-radius:10px;border:1px solid var(--line);
+  background:rgba(8,12,20,.72);color:#e9f0f6;cursor:pointer;opacity:.5;transition:opacity .15s,border-color .15s}
+.ses-ic:hover,.ses-ic:focus-visible{opacity:1;border-color:var(--teal,#37e0ec)}
+.ses-ic:focus-visible{outline:2px solid var(--teal,#37e0ec);outline-offset:2px}
+/* si el navegador no deja pantalla completa (un Genially que no la permite), el mazo ocupa todo lo que tiene */
+body.proyectando{overflow:hidden}
+body.proyectando #mazo{position:fixed;inset:0;z-index:9600;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--bg,#080c14)}
+body.proyectando #mazo .lienzo{flex:1;min-height:0}
 /* 15-sep · con 18 diapositivas los nombres salían cortados («Llama…», «Ranki…»): ahora cada botón mide lo que su nombre
    y, si no caben en una fila, pasan a dos */
 .barra-pasos{display:flex;flex-wrap:wrap;gap:4px;padding:10px 14px;border-top:1px solid var(--line);background:rgba(4,8,14,.5)}
@@ -1560,11 +1571,33 @@ body.embed .nave-barra-u{top:0}
 /* ---------- la consola ---------- */
 /* 15-sep · pestañas en pastilla: con once, en dos filas, las «de carpeta» (sin borde abajo) parecían
    montadas unas encima de otras. */
-.pestanas{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
-.pest{padding:9px 16px;border-radius:10px;border:1px solid #24304a;
-  background:#0d1420;color:#9fb0ce;cursor:pointer;font:inherit;font-weight:600;transition:border-color .15s,color .15s}
-.pest:hover{border-color:#3a5578;color:#e8eefc}
-.pest.activa{background:#14243c;color:#e8eefc;border-color:#4da3ff;box-shadow:inset 0 0 0 1px #4da3ff}
+/* 17-sep · con cuerpo, icono y la encendida en turquesa. Norberto: «se solapan los botones; ¿pueden ser más atractivos?
+   pasan muy desapercibidos». La cabecera del grupo no dejaba margen y las pestañas se le pegaban al borde. Las del
+   referente van tras una raya fina: se ve de un vistazo qué es de todo el equipo y qué solo de quien lleva el grupo. */
+#consola .c-cab{margin:0 0 14px}
+.pestanas{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 16px}
+.pest{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:12px;border:1px solid #2c4a6a;
+  background:linear-gradient(180deg,#16293f,#0e1a2a);color:#dbe7f3;cursor:pointer;font:inherit;font-weight:700;
+  box-shadow:0 2px 0 rgba(0,0,0,.35);transition:border-color .15s,color .15s,transform .15s,box-shadow .15s}
+.pest::before{font-size:1.05em;line-height:1}
+.pest:hover{border-color:var(--teal);color:#fff;transform:translateY(-1px);box-shadow:0 6px 16px rgba(55,224,236,.16)}
+.pest:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.pest.activa{background:linear-gradient(180deg,#37e0ec,#1fb3c4);color:#05222a;border-color:#37e0ec;
+  box-shadow:0 0 0 1px #37e0ec inset,0 6px 22px rgba(55,224,236,.32);transform:none}
+.pest[data-tab="alumnado"]::before{content:"👥"}
+.pest[data-tab="rankings"]::before{content:"🏆"}
+.pest[data-tab="zoco"]::before{content:"🔄"}
+.pest[data-tab="mios"]::before{content:"🔗"}
+.pest[data-tab="calendario"]::before{content:"📅"}
+.pest[data-tab="equipo"]::before{content:"🧑‍🏫"}
+.pest[data-tab="escuadrones"]::before{content:"🛡️"}
+.pest[data-tab="huevos"]::before{content:"🎁"}
+.pest[data-tab="sorteos"]::before{content:"🎟️"}
+.pest[data-tab="ofertas"]::before{content:"⚡"}
+.pest[data-tab="ajustes"]::before{content:"⚙️"}
+.pest[data-tab="canjes"]::before{content:"📝"}
+.pest-sep{align-self:stretch;width:1px;margin:4px 4px;background:#2c4a6a}
+@media(max-width:700px){.pest-sep{display:none}}
 #consola .tabla{width:100%;border-collapse:collapse;margin-top:10px;font-size:.93rem}
 #consola .tabla th{text-align:left;padding:8px 9px;border-bottom:1px solid #24304a;color:#9fb0ce;font-size:.85rem}
 #consola .tabla td{padding:8px 9px;border-bottom:1px solid #182238;vertical-align:top}
@@ -2103,11 +2136,16 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 .chip.rel{background:rgba(199,155,230,.14);border:1px solid #4b3a66;color:#dcc6f2;font-weight:700;white-space:nowrap}
 
 /* 🔴 16-sep · LOS TRES TIEMPOS DE LA CLASE. El rótulo de tramos (apertura · presentación · cierre) y la
-   tarjeta puente que manda al Genially. El rótulo va dentro del mazo, arriba, y no se navega desde él. */
+   tarjeta puente que manda al Genially. El rótulo va dentro del mazo, arriba. 17-sep · y se pulsa: lleva a la primera
+   diapositiva de ese tiempo (la caja deja pasar el clic; solo los botones lo recogen). */
 .ses-tramos{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:4;display:flex;gap:6px;
   flex-wrap:wrap;justify-content:center;pointer-events:none}
-.ses-tramos .tr{font-size:12px;font-weight:700;letter-spacing:.04em;padding:4px 12px;border-radius:99px;
-  border:1px solid rgba(255,255,255,.14);color:rgba(233,240,246,.55);background:rgba(8,12,20,.55);white-space:nowrap}
+.ses-tramos .tr{font-family:inherit;font-size:12px;line-height:1.4;font-weight:700;letter-spacing:.04em;padding:4px 12px;border-radius:99px;
+  border:1px solid rgba(255,255,255,.14);color:rgba(233,240,246,.55);background:rgba(8,12,20,.55);white-space:nowrap;
+  pointer-events:auto;cursor:pointer;transition:color .15s,border-color .15s}
+.ses-tramos .tr:hover:not(.on):not([disabled]){color:#fff;border-color:rgba(55,224,236,.6)}
+.ses-tramos .tr:focus-visible{outline:2px solid var(--teal,#37e0ec);outline-offset:2px}
+.ses-tramos .tr[disabled]{cursor:default}
 .ses-tramos .tr.on{color:#0a1118;background:var(--teal,#37e0ec);border-color:transparent}
 .ses-tramos .tr.fuera{opacity:.5;font-weight:500}
 @media(max-width:720px){.ses-tramos{display:none}}
@@ -3615,6 +3653,7 @@ body.fragmento{background:var(--bg)}
    Norberto: la Cola de nota solo cuando hay algo (y brillando), la fecha del Zoco, el equipo docente persona a persona,
    los escuadrones que se abren, la ficha que SÍ se abre y el calendario como un calendario. */
 @keyframes colaBrilla{0%,100%{box-shadow:0 0 0 0 rgba(245,176,67,0)}50%{box-shadow:0 0 16px 2px rgba(245,176,67,.45)}}
+.pest.activa.pest-aviso{color:#05222a}
 .pest.pest-aviso{border-color:var(--amber);color:#ffe3a1;animation:colaBrilla 2.2s ease-in-out infinite}
 .pest-n{display:inline-grid;place-items:center;min-width:22px;height:22px;margin-left:8px;padding:0 6px;border-radius:99px;
   background:var(--amber);color:#1a1204;font-size:.8rem;font-weight:800;font-variant-numeric:tabular-nums;vertical-align:1px}
@@ -4013,6 +4052,12 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 .fi-tema .reto{padding:4px 9px;font-size:.8rem}
 .reto.rel{border-style:dashed}
 .reto.rel.hecho{border-style:solid}
+/* 17-sep · el primer reto de cada tema perdía el borde de arriba: `.reto:first-of-type{border-top:0}` es de la lista de
+   retos de la Nave y alcanzaba a estos botones (Norberto: «se borra la parte superior de A2, A3, A4 y A5») */
+.retos-ficha .reto:first-of-type{border-top:1px solid #24304a}
+.retos-ficha .reto.hecho:first-of-type{border-top-color:#3a7}
+.retos-ficha .reto.rel:first-of-type{border-top-style:dashed}
+.retos-ficha .reto.rel.hecho:first-of-type{border-top-style:solid}
 @media(max-width:720px){.fi-tema{grid-template-columns:1fr}.fi-tema .retos-ficha{justify-content:flex-start}}
 
 /* Lo que ha entregado: una línea por reto, el enlace recortado y la reflexión plegada en su sitio */
@@ -4127,6 +4172,11 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 .sgp-rf{margin:2px 0 8px;padding:8px 12px;border-left:3px solid var(--teal);background:rgba(0,0,0,.25);border-radius:0 10px 10px 0}
 .sgp-txt .sgp-rf p{margin:0}
 .sgp-rf-cab{font-size:.85rem}
+.sgp-rf-coms{margin-top:6px}
+.sgp-rf-coms summary{cursor:pointer;font-size:.85rem;color:var(--teal2)}
+.sgp-txt .sgp-rf-coms p{margin:4px 0 0;font-size:.85rem;color:var(--ink)}
+.sgp-txt .sgp-rf-mod{margin-top:6px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.sgp-rf .btn.seguro{border-color:#ff7a6b;color:#ffd6cf;background:#3a1a1a}
 .sgp-txt .sgp-rf-txt{margin-top:4px;color:var(--ink);font-size:.92rem;line-height:1.55;white-space:pre-line;overflow-wrap:anywhere;max-height:16em;overflow:auto}
 @media (prefers-reduced-motion:reduce){.sgp-capa,.sgp-caja,.sgp-caja.en-linea{animation:none}}
 /* 17-sep · la Nave: el mensaje del Comandante al validar o anular un reto */

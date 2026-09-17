@@ -38,7 +38,7 @@ c(/ci *= *ci\.concat\(diasMisiones\(s\)\)/.test(S), "   los retos de la semana s
 // 3 · el tramo del medio
 c(/medio\.push\(\{k:'genially', t:'pr'/.test(S),
   "🔴 el Genially del grupo es el tramo del medio (la teoría y la práctica guiada), no una diapositiva suelta");
-c(/if\(st\.per && !EMBED\)/.test(S), "   y solo se embebe proyectando desde la web: dentro del Genially sería él mismo");
+c(/if\(st\.per && \(!EMBED \|\| VENTANA\)\)/.test(S), "   y solo se embebe proyectando desde la web o en su ventana: dentro del Genially sería él mismo");
 c(/function diaPuente\(/.test(S) && /Ahora, la presentación/.test(S),
   "🔴 dentro del Genially, una tarjeta puente dice en voz alta lo que toca ahora");
 c(/reto relámpago/.test(S), "   y recuerda que al volver toca el reto relámpago");
@@ -47,7 +47,11 @@ c(/reto relámpago/.test(S), "   y recuerda que al volver toca el reto relámpag
 c(/var TRAMOS=\[\['ap'/.test(S) && /function tramos\(\)/.test(S) && /function marcarTramo\(\)/.test(S),
   "el docente ve en qué tiempo está: apertura · presentación · cierre");
 c((S.match(/marcarTramo\(\)/g) || []).length >= 3, "   y se actualiza al pasar de diapositiva");
-c(/pointer-events:none/.test(CSS.split(".ses-tramos")[1] || ""), "🔴 es un rótulo, no un menú: no se puede tocar en directo");
+// 17-sep · y se pulsa (Norberto: «sería fantástico hacer clic e ir directamente a esas sesiones»)
+c(/<button type="button" class="tr'/.test(S) && /function irATramo\(t\)/.test(S) && /irATramo\(b\.getAttribute\('data-t'\)\)/.test(S),
+  "🔴 cada tiempo es un botón que lleva a su primera diapositiva");
+c(/' disabled title="Este tiempo va en tu Genially"'/.test(S), "   el que va en el Genially no se pulsa");
+c(/\.ses-tramos \.tr\{[^}]*pointer-events:auto;cursor:pointer/.test(CSS), "   (la caja deja pasar el clic; solo los botones lo recogen)");
 c(/\.ses-tramos \.tr\{[^}]*font-size:12px/.test(CSS), "   con letra de 12px, que es el mínimo de la casa");
 c(/\.dia\.puente/.test(CSS) && /\.pu-pasos/.test(CSS), "   y la tarjeta puente tiene su estilo");
 
@@ -64,6 +68,21 @@ c(/function cronoRelampago\(min\)/.test(S) && /montar:rel\?montarCrono:null/.tes
 c(/e\.stopPropagation\(\);/.test(S.split("function montarCrono")[1] || ""), "   y pulsar sus botones no pasa de diapositiva");
 c(/\.rel-crono\.fin \.rc-reloj/.test(CSS) && /prefers-reduced-motion:reduce\)\{\.rel-crono\.fin/.test(CSS), "   (con aviso al acabar, y sin parpadeo para quien no quiere movimiento)");
 c(/else if\(st\.i===0\) pintar\(\);/.test(S), "🔴 si las reflexiones o las votaciones llegan tarde, se suman al mazo mientras se está en la portada");
+
+// 6 · la sesión, a pantalla completa y en su propia ventana (17-sep · Norberto: «un botón para que se abra la sesión en una
+//     ventana dedicada, sin barra de navegación… y el botón o icono de pantalla completa dentro de la presentación»)
+c(/function controles\(\)/.test(S) && /\+controles\(\)/.test(S) && /id="ses-pantalla"/.test(S), "🔴 dentro de la presentación, el botón de pantalla completa");
+c(/e\.key==='f'\|\|e\.key==='F'/.test(S), "   también con la tecla F");
+c(/document\.body\.classList\.add\('proyectando'\)/.test(S) && /body\.proyectando #mazo\{position:fixed;inset:0/.test(CSS),
+  "   y si el navegador no la deja (un Genially que no la permite), el mazo ocupa todo lo que tiene");
+c(/addEventListener\('fullscreenchange', marcarPantalla\)/.test(S), "   el icono cambia a «salir» mientras está a pantalla completa");
+c(/function abrirEnVentana\(\)/.test(S) && /u\.searchParams\.set\('ventana','1'\)/.test(S) && /'popup=yes,width='/.test(S),
+  "🔴 y el de abrirla en una ventana aparte, sin la web alrededor");
+c(/\(!EMBED\?'<button type="button" class="ses-ic" data-ses-ventana/.test(S) && /data-ses-ventana title="Sin la web alrededor/.test(S),
+  "   en la presentación y junto a «Proyectar la sesión» (dentro de un Genially no sale)");
+c(/var VENTANA = EMBED && q\.get\('ventana'\) === '1'/.test(S) && /if\(st\.per && \(!EMBED \|\| VENTANA\)\)/.test(S),
+  "🔴 en su ventana va el Genially del grupo en medio (no está dentro de un Genially: no hace falta la tarjeta puente)");
+c(/'sg_sesion_'\+String\(st\.per/.test(S), "   y pulsar dos veces no abre dos (el mismo nombre que el ⧉ de la consola)");
 
 console.log("\n  Batería 84 · los tres tiempos de la clase");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");

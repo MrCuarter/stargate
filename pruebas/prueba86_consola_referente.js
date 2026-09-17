@@ -36,8 +36,9 @@ c(/"\/" \+ NBADGES\(\)/.test(K) && !/\/24</.test(K), "   y el total de insignias
 c(/tt===1\?deIns\('R0_'\)/.test(NAVE), "   (y en la Nave la Bitácora en marcha cuenta en el tema 1)");
 
 // 3 · lo entregado, sin aire
-c(/\.evid-lista li\{gap:8px;padding:5px 10px/.test(CSS) && /\.evid-lista a\{white-space:nowrap;overflow:hidden;text-overflow:ellipsis/.test(CSS),
-  "🔴 «Lo que ha entregado» va en una línea por reto, con el enlace recortado");
+// (17-sep · y después, fuera: «esto ya se ve al pulsar el propio reto; bórralo, vamos a simplificar»)
+c(!/<h4>Lo que ha entregado/.test(K) && !/function evidenciasDe/.test(K) && /data-rfquitar="' \+ esc\(id\)/.test(K),
+  "🔴 sin «Lo que ha entregado»: el enlace, la reflexión y moderarla, pulsando el reto");
 
 // 4 · cambiar de Comandante
 c(/function cambioDeComandante\(r\)/.test(K) && /Solo el referente<\/h4>' \+ cambioDeComandante\(r\)/.test(K),
@@ -49,7 +50,7 @@ c(/ficha\.data\(\)\.projectId !== perId/.test(M), "   comprobando que la ficha e
 c(/cambiarComandante, avisarRecluta/.test(M), "   y el motor lo exporta");
 
 // 5 · los rankings, para todos
-c(/\["rankings", "🏆 Rankings"\]/.test(K) && !/\["rankings", "🏆 Rankings", 1\]/.test(K),
+c(/\["rankings", "Rankings"\]/.test(K) && !/\["rankings", "Rankings", 1\]/.test(K) && /\.pest\[data-tab="rankings"\]::before\{content:"🏆"\}/.test(CSS),
   "🔴 la consola tiene pestaña de Rankings, y la ve también el docente (no es cosa del referente)");
 c(/window\.SG_RANKING_MONTAR\(\$\("#c-rank"\), PER, \{ datos: t,/.test(K),
   "🔴 son LOS MISMOS rankings de la Nave (assets/js/tablero.js), montados con los datos que la consola ya tiene");

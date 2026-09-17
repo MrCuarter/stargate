@@ -190,7 +190,11 @@ if (fs.existsSync(PUERTA)) {
     c(PC.indexOf("'" + k + "'") < 0 && PC.indexOf('"' + k + '"') < 0,
       "   ni «" + k + "»");
   });
-  c(/\(p\.data\(\)\.stargate \|\| \{\}\)\.version/.test(PC),
+  // (17-sep · la sesión de DPG1 la abrió también a sus grupos, «ceniza», con la misma exigencia: `esModWeb` de comun.js)
+  const COMUN = fs.existsSync(path.join(path.dirname(PUERTA), "comun.js")) ? fs.readFileSync(path.join(path.dirname(PUERTA), "comun.js"), "utf8") : "";
+  c(/\(p\.data\(\)\.stargate \|\| \{\}\)\.version/.test(PC) ||
+    (/!esModWeb\(p\.data\(\)\)/.test(PC) && /projectData\.stargate && projectData\.stargate\.version\) return 'stargate'/.test(COMUN)
+      && /projectData\.ceniza && projectData\.ceniza\.version\) return 'ceniza'/.test(COMUN)),
     "🔴 y solo contesta a grupos de STARGATE: si no, dejaría leer sin sesión cualquier proyecto de la plataforma");
 } else {
   console.log("   (no encuentro gamificapro/functions/stargate.js: me salto la puerta pública)");
