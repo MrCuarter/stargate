@@ -278,7 +278,8 @@
       // poder reciclarlos… que compartan la misma página de configuración y ajustar a qué grupos afecta»)
       (gestionados().length ? '<section class="gp-comun"><div class="gp-comun-t"><h3>🌐 Para todos tus grupos</h3>' +
         '<p class="small muted">Se configuran <b>una vez</b> y eliges a qué grupos afectan: todos o solo algunos. Dentro de cada grupo ves los que le tocan.</p></div>' +
-        '<div class="gp-comun-b"><a class="btn" href="consola.html?comun=premios">🎁 Premios por enlace</a></div></section>' : '') +
+        '<div class="gp-comun-b"><a class="btn" href="consola.html?comun=premios">🎁 Premios por enlace</a> <a class="btn" href="consola.html?comun=sorteos">🎟️ Sorteos</a> ' +
+        '<a class="btn" href="consola.html?comun=ofertas">⚡ Ofertas</a></div></section>' : '') +
       /**
        * 🔴 15-sep · LOS EMBEDS, UNA SOLA VEZ. Norberto: «en todas las fichas de cada grupo aparece Embed para
        * Genially, pero entiendo que es el mismo para todos: déjalo en algún lugar especificando que es el
@@ -360,12 +361,16 @@
     app.innerHTML = '<div class="card cuenta c-cab"><div class="c-cab-t"><b>🌐 Para todos tus grupos</b><span>' + g.length + (g.length === 1 ? " grupo" : " grupos") +
         ' que llevas · lo que configures aquí vale en los que elijas</span></div>' +
       '<div class="c-cab-b"><button class="btn min" id="c-volver">← Tus grupos</button> ' + botonBuzon("consola") + '</div></div>' +
-      '<div class="pestanas"><button class="pest activa" data-tab="huevos">Premios por enlace</button></div>' +
+      '<div class="pestanas">' + [["premios", "huevos", "Premios por enlace"], ["sorteos", "sorteos", "Sorteos"], ["ofertas", "ofertas", "Ofertas"]].map(function (x) {
+        return '<button class="pest' + (que === x[0] ? " activa" : "") + '" data-tab="' + x[1] + '" data-comun="' + x[0] + '">' + x[2] + "</button>"; }).join("") + '</div>' +
       '<div id="c-aviso" class="aviso" hidden></div><div id="c-cuerpo"></div>';
     $("#c-volver").onclick = function () { url.delete("comun"); history.replaceState(null, "", "consola.html"); elegirGrupo(); };
+    Array.prototype.forEach.call(app.querySelectorAll("[data-comun]"), function (b) { b.onclick = function () { verComunes(b.getAttribute("data-comun")); }; });
     cablearCopiar(app);
     document.body.classList.add("consola-dentro");
-    verPremios(null, $("#c-cuerpo"));
+    if (que === "sorteos") verSorteosComunes($("#c-cuerpo"));
+    else if (que === "ofertas") verOfertasComunes($("#c-cuerpo"));
+    else verPremios(null, $("#c-cuerpo"));
   }
 
   async function abrir(perId) {
@@ -1860,6 +1865,7 @@
   function deFecha(v) { return v ? new Date(v + "T00:00:00").getTime() : 0; }
   function estadoSorteo(t) {
     var ahora = Date.now();
+    if (t.stargateRetirado) return ["retirado", "🚫 Quitado de este grupo"];
     if (t.isRaffleCompleted) return ["hecho", "🏆 Sorteado el " + diaDe(t.raffleResolvedAt)];
     if (Number(t.availableFrom) > ahora) return ["pronto", "⏳ A la venta desde el " + diaDe(t.availableFrom)];
     if (Number(t.ticketDeadline) && Number(t.ticketDeadline) <= ahora) return ["listo", "🎲 Venta cerrada: listo para sortear"];
@@ -1878,57 +1884,154 @@
       '<label class="h-campo h-num">Máx. por persona<input class="sr-max" type="number" min="0" value="' + esc(v.maximo) + '" placeholder="sin tope"></label>' +
       '<label class="h-campo h-fecha">A la venta desde<input class="sr-desde" type="date" value="' + aFecha(v.desde) + '"></label>' +
       '<label class="h-campo h-fecha">Se sortea el<input class="sr-fecha" type="date" value="' + aFecha(v.fecha) + '"></label>' +
+      // 🌐 17-sep · al crearlo, a qué grupos va; al cambiarlo, se cambia en todos los suyos
+      (t ? (gestionados().length > 1 ? '<p class="small muted sr-f-nota">🌐 Se cambia en todos los grupos donde está este sorteo (menos donde ya se haya hecho).</p>' : "")
+         : (gestionados().length > 1 ? selectorGrupos("sr-g-nuevo", PER ? [PER] : "todos") : "")) +
       '<p class="sr-f-pie"><button class="btn primary sr-guardar">' + (t ? "Guardar los cambios" : "Crear el sorteo") + '</button> ' +
       '<button class="btn sr-cancelar">Cancelar</button></p></div>';
   }
+  // ---------------------------------------------------------------- 🌐 «¿para qué grupos?» (sorteos y ofertas)
+  /**
+   * 🌐 17-sep · Norberto: «lo mismo con ofertas y sorteos: comparten la misma página de configuración, pero puedo ajustar
+   * individualmente a qué grupos afecta (todos o unos pocos)». Los premios por enlace lo llevan en su tarjeta; sorteos y
+   * ofertas, en su formulario y en cada uno ya creado.
+   */
+  function selectorGrupos(nombre, sel) {
+    var g = gestionados(), todos = sel === "todos";
+    return '<fieldset class="pe-grupos sg-grupos" data-grupos="' + esc(nombre) + '"><legend>¿Para qué grupos?</legend>' +
+      '<label class="pe-radio"><input type="radio" name="' + esc(nombre) + '" value="todos"' + (todos ? " checked" : "") + "> 🌐 Todos tus grupos (" + g.length + ")</label>" +
+      '<label class="pe-radio"><input type="radio" name="' + esc(nombre) + '" value="elegir"' + (todos ? "" : " checked") + "> Solo estos:</label>" +
+      '<span class="pe-chips">' + g.map(function (id) {
+        var on = todos || (sel || []).indexOf(id) >= 0;
+        return '<label class="pe-chip"><input type="checkbox" value="' + esc(id) + '"' + (on ? " checked" : "") + (todos ? " disabled" : "") + "> " + esc(nombreDeGrupo(id)) + "</label>";
+      }).join("") + "</span></fieldset>";
+  }
+  function cablearSelectorGrupos(caja) {
+    var fs = caja && caja.querySelector("[data-grupos]"); if (!fs) return;
+    Array.prototype.forEach.call(fs.querySelectorAll("input[type=radio]"), function (r) {
+      r.onchange = function () {
+        var todos = r.value === "todos" && r.checked;
+        Array.prototype.forEach.call(fs.querySelectorAll(".pe-chips input"), function (c) { c.disabled = todos; if (todos) c.checked = true; });
+      };
+    });
+  }
+  function gruposElegidos(caja) {
+    var fs = caja && caja.querySelector("[data-grupos]"); if (!fs) return PER ? [PER] : gestionados();
+    if (fs.querySelector("input[type=radio][value=todos]").checked) return gestionados();
+    return [].slice.call(fs.querySelectorAll(".pe-chips input:checked")).map(function (c) { return c.value; });
+  }
+  function nombresDe(pers) { return pers.map(function (p) { return "«" + nombreDeGrupo(p) + "»"; }).join(", "); }
+
   // ---------------------------------------------------------------- las ofertas (14-sep)
   /**
    * 🔴 14-sep · LAS OFERTAS DE LA SEMANA. Norberto: «un ítem que aparece aleatoriamente de forma
    * temporal en el mercado, rebajado, con stock limitado en tiempo y en unidades (proporcional a los
    * inscritos y a la rareza)… el referente tiene el poder siempre de extender el tiempo, cancelar,
    * editar unidades o incluso elegir y configurar lo que se va a vender». Todo lo hace el servidor
-   * (`stargateOferta`); aquí se enseña y se pide.
+   * (`stargateOferta`); aquí se enseña y se pide. 🌐 17-sep · y una oferta puede salir en varios grupos a la vez: la crea
+   * el servidor en cada uno (con las unidades de SUS inscritos) y lo que se haga con ella se hace en todos.
    */
-  function verOfertas(t) {
-    var R = (DATOS && DATOS.recompensas) || [], ahora = Date.now();
-    var L = R.filter(function (r) { return r.stargateTipo === "oferta"; })
-      .sort(function (a, b) { return Number((b.stargateOferta || {}).desde || 0) - Number((a.stargateOferta || {}).desde || 0); });
-    var auto = (DATOS.proyecto.stargate || {}).ofertasAuto !== false;
+  var RZ_OF = { common: "común", rare: "rara", epic: "épica", legendary: "legendaria" };
+  function estadoOferta(r) {
+    var so = r.stargateOferta || {}, fo = r.flashOffer || {}, ahora = Date.now();
+    if (so.cancelada) return ["cancelada", "✖️ Cancelada"];
+    if (ahora < Number(so.desde || 0)) return ["pronto", "⏳ Empieza el " + diaDe(so.desde)];
+    if (ahora >= Number(fo.endsAt || 0)) return ["fin", "⌛ Terminó el " + diaDe(fo.endsAt)];
+    // (15-sep · agotada NO es terminada: le faltan unidades, no tiempo; antes solo ofrecía «Reabrir»)
+    if (r.isLimitedStock === true && Number(r.globalStock || 0) <= 0) return ["agotada", "🔥 Agotada"];
+    return ["viva", "⚡ A la venta hasta el " + diaDe(fo.endsAt)];
+  }
+  function botonesOferta(e) {
+    return e[0] === "viva" || e[0] === "pronto" ? '<p class="of-botones"><button class="btn min" data-of-mas="1">+1 día</button> <button class="btn min" data-of-mas="7">+1 semana</button> ' +
+        '<button class="btn min" data-of-uds>Unidades…</button> <button class="btn min peligro" data-of-cancelar>Cancelar</button></p>'
+      : e[0] === "agotada" ? '<p class="of-botones"><button class="btn min" data-of-uds>Más unidades…</button> <button class="btn min peligro" data-of-cancelar>Cancelar</button></p>'
+      : '<p class="of-botones"><button class="btn min" data-of-mas="7">Reabrir una semana</button></p>';
+  }
+  function filaOferta(r, ambito) {
+    var so = r.stargateOferta || {}, fo = r.flashOffer || {}, e = estadoOferta(r), pct = Number(fo.discountPercent || 0);
+    var precio = Math.max(0, Math.floor(Number(r.cost || 0) * (100 - pct) / 100)), vend = Number(fo.unitsSold || 0);
+    return '<div class="card of-fila ' + e[0] + '" data-of="' + esc(r.docId) + '" data-comun="' + esc(r.stargateComun || "") + '">' +
+      '<div><b>' + esc(so.nombre || r.title) + '</b> <span class="chip">' + esc(so.rareza || "") + '</span> <span class="chip' + (e[0] === "viva" ? " ok" : "") + '">' + e[1] + '</span>' +
+      (r.stargateComun ? ' <span class="chip of-comun">🌐 varios grupos</span>' : "") +
+      '<p class="small">' + (so.auto ? "Automática · semana " + (so.semana || "—") : "Creada por " + esc(so.por || "el referente")) + ' · <s>' + r.cost + ' ◈</s> <b>' + precio + ' ◈</b> (−' + pct + ' %) · ' +
+      (so.unidades == null ? "sin límite de unidades" : vend + " de " + so.unidades + " vendidas") + ' · una por persona</p>' + (ambito || "") + '</div>' +
+      botonesOferta(e) + '</div>';
+  }
+  function formOferta(R, sel) {
     var cofres = R.filter(function (r) { return r.inStore !== false && /^(cromo|heroe|sobre_[a-z]+|capsula_[a-z]+)$/.test(r.stargateTipo || "") && r.consumeEffects && r.consumeEffects.lootBox; });
     var heroes = R.filter(function (r) { return r.inStore === false && r.stargateTipo === "heroe" && /__heroe_/.test(r.docId || ""); });
     var cartas = R.filter(function (r) { return r.inStore === false && r.stargateTipo === "cromo" && /__cromo_/.test(r.docId || ""); });
-    var RZ = { common: "común", rare: "rara", epic: "épica", legendary: "legendaria" };
-    var estado = function (r) {
-      var so = r.stargateOferta || {}, fo = r.flashOffer || {};
-      if (so.cancelada) return ["cancelada", "✖️ Cancelada"];
-      if (ahora < Number(so.desde || 0)) return ["pronto", "⏳ Empieza el " + diaDe(so.desde)];
-      if (ahora >= Number(fo.endsAt || 0)) return ["fin", "⌛ Terminó el " + diaDe(fo.endsAt)];
-      // (15-sep · agotada NO es terminada: le faltan unidades, no tiempo; antes solo ofrecía «Reabrir»)
-      if (r.isLimitedStock === true && Number(r.globalStock || 0) <= 0) return ["agotada", "🔥 Agotada"];
-      return ["viva", "⚡ A la venta hasta el " + diaDe(fo.endsAt)];
-    };
-    var fila = function (r) {
-      var so = r.stargateOferta || {}, fo = r.flashOffer || {}, e = estado(r), pct = Number(fo.discountPercent || 0);
-      var precio = Math.max(0, Math.floor(Number(r.cost || 0) * (100 - pct) / 100)), vend = Number(fo.unitsSold || 0);
-      return '<div class="card of-fila ' + e[0] + '" data-of="' + esc(r.docId) + '">' +
-        '<div><b>' + esc(so.nombre || r.title) + '</b> <span class="chip">' + esc(so.rareza || "") + '</span> <span class="chip' + (e[0] === "viva" ? " ok" : "") + '">' + e[1] + '</span>' +
-        '<p class="small">' + (so.auto ? "Automática · semana " + (so.semana || "—") : "Creada por " + esc(so.por || "el referente")) + ' · <s>' + r.cost + ' ◈</s> <b>' + precio + ' ◈</b> (−' + pct + ' %) · ' +
-        (so.unidades == null ? "sin límite de unidades" : vend + " de " + so.unidades + " vendidas") + ' · una por persona</p></div>' +
-        (e[0] === "viva" || e[0] === "pronto" ? '<p class="of-botones"><button class="btn min" data-of-mas="1">+1 día</button> <button class="btn min" data-of-mas="7">+1 semana</button> ' +
-          '<button class="btn min" data-of-uds>Unidades…</button> <button class="btn min peligro" data-of-cancelar>Cancelar</button></p>'
-          : e[0] === "agotada" ? '<p class="of-botones"><button class="btn min" data-of-uds>Más unidades…</button> <button class="btn min peligro" data-of-cancelar>Cancelar</button></p>'
-          : '<p class="of-botones"><button class="btn min" data-of-mas="7">Reabrir una semana</button></p>') + '</div>';
-    };
+    var op = function (v, t) { return '<option value="' + esc(v) + '">' + esc(t) + '</option>'; };
+    return '<div class="of-form">' +
+      '<label class="h-campo">Qué se vende<select id="of-que">' +
+        '<optgroup label="Sobres y cápsulas">' + cofres.map(function (r) { return op("cofre:" + r.stargateTipo, r.title + " (" + r.cost + " ◈)"); }).join("") + '</optgroup>' +
+        '<optgroup label="Un héroe concreto">' + heroes.map(function (r) { return op("heroe:" + r.docId.split("__heroe_").pop(), r.title + " · " + (RZ_OF[r.rarity] || r.rarity || "")); }).join("") + '</optgroup>' +
+        '<optgroup label="Una carta concreta">' + cartas.map(function (r) { return op("carta:" + r.docId.split("__cromo_").pop(), r.title + " · " + (RZ_OF[r.rarity] || r.rarity || "")); }).join("") + '</optgroup>' +
+      '</select></label>' +
+      '<label class="h-campo h-num">Descuento %<input id="of-pct" type="number" min="1" max="90" value="30"></label>' +
+      '<label class="h-campo h-num">Unidades<input id="of-uds" type="number" min="1" placeholder="según inscritos y rareza"></label>' +
+      '<label class="of-auto"><input type="checkbox" id="of-sin"> Sin límite de unidades</label>' +
+      '<label class="h-campo h-num">Días<input id="of-dias" type="number" min="1" max="28" value="7"></label>' +
+      (gestionados().length > 1 ? selectorGrupos("of-g-nuevo", sel) : "") +
+      '<p><button class="btn primary" id="of-crear">Crear la oferta (empieza ya)</button> <button class="btn" id="of-cancelar-f">Cancelar</button></p></div>';
+  }
+  function datosDeFormOferta() {
+    var q = $("#of-que").value.split(":"), que = q[0] === "cofre" ? { tipo: "cofre", cual: q[1] } : { tipo: q[0], clave: q[1] };
+    var uds = $("#of-sin").checked ? "ilimitado" : (Number($("#of-uds").value) > 0 ? Number($("#of-uds").value) : undefined);
+    return { que: que, pct: Number($("#of-pct").value) || 30, unidades: uds, dias: Number($("#of-dias").value) || 7 };
+  }
+  /** Lo que se hace con una oferta se hace en TODOS sus grupos si es de varios (se buscan en el momento). */
+  function hermanasDe(docId, comun, per) {
+    if (!comun) return Promise.resolve([{ per: per, docId: docId }]);
+    return MOTOR.ofertasDeGrupos(gestionados()).then(function (l) {
+      var o = l.filter(function (x) { return x.id === comun; })[0];
+      return o ? o.grupos.map(function (g) { return { per: g.per, docId: g.oferta.docId }; }) : [{ per: per, docId: docId }];
+    });
+  }
+  function cablearAccionesOferta(raiz, perDe, pide) {
+    Array.prototype.forEach.call(raiz.querySelectorAll("[data-of]"), function (c) {
+      var id = c.getAttribute("data-of"), comun = c.getAttribute("data-comun"), per = perDe(c);
+      var hazlo = function (accion, datos, texto, alFallar) {
+        if (!comun && per === PER) return pide(accion, Object.assign({ ofertaId: id }, datos), texto, alFallar);
+        return hermanasDe(id, comun, per).then(function (docs) { return MOTOR.ofertaEnGrupos(docs, accion, datos).then(function (r) {
+          return pide(null, null, texto + (docs.length > 1 ? " (en " + (docs.length - r.fallos.length) + " grupos)" : "") + (r.fallos.length ? " · no se pudo en " + nombresDe(r.fallos.map(function (f) { return f.per; })) : ""));
+        }); }).catch(function (e) { if (alFallar) try { alFallar(); } catch (x) {} aviso(e.message); });
+      };
+      Array.prototype.forEach.call(c.querySelectorAll("[data-of-mas]"), function (b) {
+        b.onclick = function () { b.disabled = true; hazlo("extender", { dias: Number(b.getAttribute("data-of-mas")) }, "⏳ Oferta alargada.", function () { b.disabled = false; }); }; });
+      var u = c.querySelector("[data-of-uds]");
+      if (u) u.onclick = async function () {
+        var resp = await window.SG.preguntar({ titulo: "¿Cuántas unidades en total?", texto: "Escribe «ilimitado» para quitar el tope." + (comun ? " Se aplica en cada uno de sus grupos." : ""),
+          campo: { etiqueta: "Unidades", marcador: "5 o ilimitado", obligatorio: true,
+                   validar: function (x) { return /ilimit/i.test(x) || /^\d+$/.test(x) ? "" : "Un número (por ejemplo, 5) o «ilimitado»."; } },
+          si: "Cambiar unidades" });
+        if (!resp) return;
+        var v = resp.texto;
+        hazlo("unidades", { unidades: /ilimit/i.test(v) ? "ilimitado" : Number(v) }, "Unidades cambiadas.");
+      };
+      var x = c.querySelector("[data-of-cancelar]");
+      if (x) x.onclick = async function () {
+        if (!(await window.SG.preguntar({ titulo: "¿Cancelar esta oferta?", texto: "Sale del Mercado ya" + (comun ? ", en todos sus grupos" : "") + ". Quien la compró la conserva.", si: "Cancelar la oferta", no: "Mantenerla", peligro: true }))) return;
+        hazlo("cancelar", {}, "✖️ Oferta cancelada."); };
+    });
+  }
+  function verOfertas(t) {
+    var R = (DATOS && DATOS.recompensas) || [];
+    var L = R.filter(function (r) { return r.stargateTipo === "oferta"; })
+      .sort(function (a, b) { return Number((b.stargateOferta || {}).desde || 0) - Number((a.stargateOferta || {}).desde || 0); });
+    var auto = (DATOS.proyecto.stargate || {}).ofertasAuto !== false;
     $("#c-cuerpo").innerHTML =
       '<div class="card"><h3>⚡ Ofertas</h3>' +
       '<p class="small">Cada semana, desde la 5 (con su capítulo de NEBULA), sale <b>sola</b> una oferta en el Mercado: un sobre, una cápsula, un héroe o una carta concretos, ' +
-      'rebajados un 20-40 %, durante esa semana y con <b>unidades según los inscritos y la rareza</b> (común: sin límite; rara: la mitad; épica: una cuarta parte; legendaria: el 10 %). Una por persona.</p>' +
-      '<label class="of-auto"><input type="checkbox" id="of-auto"' + (auto ? " checked" : "") + '> Oferta automática cada semana</label>' +
+      'rebajados un 20-40 %, durante esa semana y con <b>unidades según los inscritos y la rareza</b> (común: sin límite; rara: la mitad; épica: una cuarta parte; legendaria: el 10 %). Una por persona.' +
+      (gestionados().length > 1 ? ' Las que crees tú pueden salir <b>en varios de tus grupos</b> a la vez (<a href="consola.html?comun=ofertas">🌐 ver las de todos</a>).' : "") + '</p>' +
+      '<label class="of-auto"><input type="checkbox" id="of-auto"' + (auto ? " checked" : "") + '> Oferta automática cada semana <span class="small muted">(solo en este grupo)</span></label>' +
       '<p><button class="btn primary" id="of-nueva">+ Crear una oferta</button></p><div id="of-nueva-f"></div></div>' +
-      (L.length ? L.map(fila).join("") : '<div class="card"><p class="small muted">Todavía no ha salido ninguna oferta. La primera sale sola en la semana 3, cuando alguien abre su Nave.</p></div>');
+      (L.length ? L.map(function (r) { return filaOferta(r); }).join("") : '<div class="card"><p class="small muted">Todavía no ha salido ninguna oferta. La primera sale sola en la semana 3, cuando alguien abre su Nave.</p></div>');
     var tras = function (texto) { return refrescar().then(function () { TAB = "ofertas"; pintar(); aviso(texto, true); }); };
     // (15-sep · si falla, el botón pulsado vuelve a estar vivo y la casilla vuelve a como estaba)
     var pide = function (accion, datos, texto, alFallar) {
+      if (!accion) return tras(texto);
       return MOTOR.oferta(PER, accion, datos).then(function () { return tras(texto); }).catch(function (e) {
         if (alFallar) try { alFallar(); } catch (x) {}
         aviso(/not-found|internal/.test(String(e && e.code)) && !/[áéíóú]/.test(String(e && e.message))
@@ -1938,45 +2041,57 @@
     $("#of-auto").onchange = function () { var cb = $("#of-auto"), antes = !cb.checked;
       pide("auto", { on: cb.checked }, cb.checked ? "⚡ Una oferta automática cada semana." : "Ofertas automáticas apagadas: solo las que crees tú.",
         function () { cb.checked = antes; }); };
-    Array.prototype.forEach.call(app.querySelectorAll("[data-of]"), function (c) {
-      var id = c.getAttribute("data-of");
-      Array.prototype.forEach.call(c.querySelectorAll("[data-of-mas]"), function (b) {
-        b.onclick = function () { b.disabled = true; pide("extender", { ofertaId: id, dias: Number(b.getAttribute("data-of-mas")) }, "⏳ Oferta alargada.", function () { b.disabled = false; }); }; });
-      var u = c.querySelector("[data-of-uds]");
-      if (u) u.onclick = async function () {
-        var resp = await window.SG.preguntar({ titulo: "¿Cuántas unidades en total?", texto: "Escribe «ilimitado» para quitar el tope.",
-          campo: { etiqueta: "Unidades", marcador: "5 o ilimitado", obligatorio: true,
-                   validar: function (x) { return /ilimit/i.test(x) || /^\d+$/.test(x) ? "" : "Un número (por ejemplo, 5) o «ilimitado»."; } },
-          si: "Cambiar unidades" });
-        if (!resp) return;
-        var v = resp.texto;
-        pide("unidades", { ofertaId: id, unidades: /ilimit/i.test(v) ? "ilimitado" : Number(v) }, "Unidades cambiadas.");
-      };
-      var x = c.querySelector("[data-of-cancelar]");
-      if (x) x.onclick = async function () {
-        if (!(await window.SG.preguntar({ titulo: "¿Cancelar esta oferta?", texto: "Sale del Mercado ya. Quien la compró la conserva.", si: "Cancelar la oferta", no: "Mantenerla", peligro: true }))) return;
-        pide("cancelar", { ofertaId: id }, "✖️ Oferta cancelada."); };
-    });
+    cablearAccionesOferta(app, function () { return PER; }, pide);
     $("#of-nueva").onclick = function () {
-      var op = function (v, t) { return '<option value="' + esc(v) + '">' + esc(t) + '</option>'; };
-      $("#of-nueva-f").innerHTML = '<div class="of-form">' +
-        '<label class="h-campo">Qué se vende<select id="of-que">' +
-          '<optgroup label="Sobres y cápsulas">' + cofres.map(function (r) { return op("cofre:" + r.stargateTipo, r.title + " (" + r.cost + " ◈)"); }).join("") + '</optgroup>' +
-          '<optgroup label="Un héroe concreto">' + heroes.map(function (r) { return op("heroe:" + r.docId.split("__heroe_").pop(), r.title + " · " + (RZ[r.rarity] || r.rarity || "")); }).join("") + '</optgroup>' +
-          '<optgroup label="Una carta concreta">' + cartas.map(function (r) { return op("carta:" + r.docId.split("__cromo_").pop(), r.title + " · " + (RZ[r.rarity] || r.rarity || "")); }).join("") + '</optgroup>' +
-        '</select></label>' +
-        '<label class="h-campo h-num">Descuento %<input id="of-pct" type="number" min="1" max="90" value="30"></label>' +
-        '<label class="h-campo h-num">Unidades<input id="of-uds" type="number" min="1" placeholder="según inscritos y rareza"></label>' +
-        '<label class="of-auto"><input type="checkbox" id="of-sin"> Sin límite de unidades</label>' +
-        '<label class="h-campo h-num">Días<input id="of-dias" type="number" min="1" max="28" value="7"></label>' +
-        '<p><button class="btn primary" id="of-crear">Crear la oferta (empieza ya)</button> <button class="btn" id="of-cancelar-f">Cancelar</button></p></div>';
+      $("#of-nueva-f").innerHTML = formOferta(R, [PER]);
+      cablearSelectorGrupos($("#of-nueva-f"));
       $("#of-cancelar-f").onclick = function () { $("#of-nueva-f").innerHTML = ""; };
       $("#of-crear").onclick = function () {
-        var q = $("#of-que").value.split(":"), que = q[0] === "cofre" ? { tipo: "cofre", cual: q[1] } : { tipo: q[0], clave: q[1] };
-        var uds = $("#of-sin").checked ? "ilimitado" : (Number($("#of-uds").value) > 0 ? Number($("#of-uds").value) : undefined);
+        var datos = datosDeFormOferta(), destinos = gruposElegidos($("#of-nueva-f"));
+        if (!destinos.length) return aviso("Marca al menos un grupo.");
         $("#of-crear").disabled = true;
-        pide("crear", { que: que, pct: Number($("#of-pct").value) || 30, unidades: uds, dias: Number($("#of-dias").value) || 7 }, "⚡ Oferta creada: ya está en el Mercado de tu alumnado.",
-          function () { var c = $("#of-crear"); if (c) c.disabled = false; });
+        var vuelve = function () { var c = $("#of-crear"); if (c) c.disabled = false; };
+        if (destinos.length === 1 && destinos[0] === PER) return pide("crear", datos, "⚡ Oferta creada: ya está en el Mercado de tu alumnado.", vuelve);
+        MOTOR.crearOfertaEnGrupos(datos, destinos).then(function (r) {
+          return tras("⚡ Oferta creada en " + (destinos.length - r.fallos.length) + " grupos." + (r.fallos.length ? " No se pudo en " + nombresDe(r.fallos.map(function (f) { return f.per; })) + ": " + r.fallos[0].motivo : ""));
+        }).catch(function (e) { vuelve(); aviso(e.message); });
+      };
+    };
+  }
+  /** 🌐 Las ofertas de todos tus grupos: las de varios, juntas; se crean eligiendo grupos. */
+  async function verOfertasComunes(destino) {
+    var g = gestionados();
+    destino.innerHTML = '<div class="card"><p class="muted">Buscando tus ofertas…</p></div>';
+    var datos0 = null, lista = [];
+    try { datos0 = g.length ? await MOTOR.leerPER(g[0], false) : null; } catch (e) {}
+    try { lista = await MOTOR.ofertasDeGrupos(g); } catch (e) {}
+    var R = (datos0 && datos0.recompensas) || [];
+    var fin = function (o) { return Math.max.apply(null, o.grupos.map(function (x) { return Number((x.oferta.flashOffer || {}).endsAt || 0); })); };
+    lista.sort(function (a, b) { return fin(b) - fin(a); });
+    destino.innerHTML = '<div class="card"><h3>⚡ Ofertas</h3><p class="small">Una oferta que crees aquí sale en el Mercado de los grupos que elijas, a la vez. En cada grupo ' +
+      'las unidades salen de <b>sus</b> inscritos. Lo que hagas con ella (alargar, unidades, cancelar) se hace en todos. La oferta automática de cada semana se enciende o apaga dentro de cada grupo.</p>' +
+      '<p><button class="btn primary" id="of-nueva">+ Crear una oferta</button></p><div id="of-nueva-f"></div></div>' +
+      (lista.length ? lista.map(function (o) {
+        var r = o.grupos[0].oferta;
+        var amb = '<p class="small of-grupos">' + (o.grupos.length > 1 || o.comun ? "🌐 " : "") + o.grupos.map(function (x) {
+          return '<a class="chip" href="consola.html?per=' + esc(x.per) + '">' + esc(nombreDeGrupo(x.per)) + " · " + estadoOferta(x.oferta)[1] + "</a>"; }).join(" ") + "</p>";
+        return filaOferta(r, amb).replace('data-of="', 'data-per="' + esc(o.grupos[0].per) + '" data-of="');
+      }).join("") : '<div class="card"><p class="small muted">Ninguno de tus grupos tiene ofertas todavía.</p></div>');
+    var repinta = function (texto) { return verOfertasComunes(destino).then(function () { if (texto) aviso(texto, true); }); };
+    var pide = function (accion, datos, texto) { return repinta(texto); };
+    cablearAccionesOferta(destino, function (c) { return c.getAttribute("data-per"); }, pide);
+    $("#of-nueva").onclick = function () {
+      if (!R.length) return aviso("No he podido leer la tienda de tus grupos.");
+      $("#of-nueva-f").innerHTML = formOferta(R, "todos");
+      cablearSelectorGrupos($("#of-nueva-f"));
+      $("#of-cancelar-f").onclick = function () { $("#of-nueva-f").innerHTML = ""; };
+      $("#of-crear").onclick = function () {
+        var datos = datosDeFormOferta(), destinos = gruposElegidos($("#of-nueva-f"));
+        if (!destinos.length) return aviso("Marca al menos un grupo.");
+        $("#of-crear").disabled = true;
+        MOTOR.crearOfertaEnGrupos(datos, destinos).then(function (r) {
+          return repinta("⚡ Oferta creada en " + (destinos.length - r.fallos.length) + (destinos.length === 1 ? " grupo." : " grupos.") + (r.fallos.length ? " No se pudo en " + nombresDe(r.fallos.map(function (f) { return f.per; })) + ": " + r.fallos[0].motivo : ""));
+        }).catch(function (e) { var c = $("#of-crear"); if (c) c.disabled = false; aviso(e.message); });
       };
     };
   }
@@ -2005,7 +2120,8 @@
           '<div><h3>' + esc(S.premio || P.title || x.title) + '</h3><span class="chip' + (e[0] === "hecho" ? " ok" : e[0] === "venta" ? " wip" : "") + '">' + e[1] + '</span>' +
           '<p class="small">' + gan + ' ganador' + (gan === 1 ? '' : 'es') + ' · ' + x.cost + ' ◈ la participación' + (x.maxPerUser ? ' · máx. ' + x.maxPerUser + ' por persona' : '') +
           ' · a la venta del ' + diaDe(x.availableFrom) + ' al ' + diaDe(x.ticketDeadline) + '</p></div></div>' +
-          (e[0] === "hecho"
+          (e[0] === "retirado" ? '<p class="small muted">Se quitó de este grupo antes de vender ninguna participación. Puedes volver a añadirlo desde sus grupos.</p>'
+          : e[0] === "hecho"
             ? '<div class="sr-ganadores"><p>🏆 <b>Ganadores</b> (entrégales el premio)' + (x.raffleResolvedBy === "auto" ? ' · <span class="small muted">se resolvió solo el ' + diaDe(x.raffleResolvedAt) + '</span>' : '') + ':</p>' +
               ((x.raffleWinnerIds || []).length ? '<ul>' + ganadores + '</ul>' +
                 // 14-sep · Norberto: «importante guardar estos datos para poder dar las licencias de forma manual»
@@ -2017,9 +2133,16 @@
                 '</tbody></table></div></details>' : '') +
               '<p class="sr-botones"><button class="btn primary sr-directo" data-doc="' + esc(x.docId) + '"' + (B.length ? '' : ' disabled title="Nadie tiene participaciones todavía"') + '>🎲 Sortear en directo</button> ' +
               '<button class="btn sr-editar" data-doc="' + esc(x.docId) + '">✏️ Cambiar</button></p><div class="sr-editar-f"></div>') +
+          (gestionados().length > 1 ? '<div class="sr-ambito" data-sid="' + esc(x.stargateId || "") + '"></div>' : "") +
           '</div>';
       }).join("") : '<div class="card"><p class="small muted">Este grupo todavía no tiene ningún sorteo.</p></div>');
     var tras = function (texto) { return refrescar().then(function () { TAB = "sorteos"; pintar(); aviso(texto, true); }); };
+    if (gestionados().length > 1 && L.length) MOTOR.sorteosDeGrupos(gestionados()).then(function (todos) {
+      Array.prototype.forEach.call(app.querySelectorAll(".sr-ambito[data-sid]"), function (el) {
+        var s = todos.filter(function (y) { return y.id === el.getAttribute("data-sid"); })[0];
+        if (s) pintarAmbitoSorteo(el, s, tras);
+      });
+    }).catch(function () {});
     // 14-sep · el sorteo que ya ha pasado su fecha se resuelve solo (aquí también, al abrir la pestaña)
     var vencidos = L.filter(function (x) { return !x.isRaffleCompleted && Number(x.ticketDeadline || 0) > 0 && Number(x.ticketDeadline) <= Date.now(); });
     if (vencidos.length && !SORTEOS_PEDIDOS[PER] && MOTOR.sorteosPendientes) {
@@ -2056,30 +2179,9 @@
         });
       };
     });
-    var leerForm = function (f) {
-      return { premio: $(".sr-premio", f).value.trim(), descripcion: $(".sr-desc", f).value.trim(), ganadores: Number($(".sr-gan", f).value) || 1,
-               coste: Number($(".sr-coste", f).value) || 0, maximo: Number($(".sr-max", f).value) || 0,
-               desde: deFecha($(".sr-desde", f).value), fecha: deFecha($(".sr-fecha", f).value) };
-    };
-    var validar = function (v) {
-      if (!v.premio) return "Di qué se sortea.";
-      if (!v.desde || !v.fecha) return "Pon las dos fechas: desde cuándo se vende y cuándo se sortea.";
-      if (v.fecha <= v.desde) return "El sorteo tiene que ser después de que empiece la venta.";
-      return "";
-    };
     var cablearForm = function (caja, doc_) {
-      var f = $(".sr-form", caja);
-      $(".sr-cancelar", f).onclick = function () { caja.innerHTML = ""; };
-      $(".sr-guardar", f).onclick = async function () {
-        var v = leerForm(f), malo = validar(v); if (malo) return aviso(malo);
-        this.disabled = true;
-        try {
-          if (doc_) await MOTOR.guardarSorteo(PER, doc_, v);
-          else await MOTOR.crearSorteo(PER, { id: "sorteo" + Date.now().toString(36), premio: v.premio, descripcion: v.descripcion,
-            ganadores: v.ganadores, coste: v.coste, maximo: v.maximo, desde: v.desde, fecha: v.fecha });
-          await tras(doc_ ? "Sorteo cambiado." : "Sorteo creado: ya sale en el Mercado de tu alumnado (desde su fecha).");
-        } catch (e) { this.disabled = false; aviso(e.message); }
-      };
+      var x = doc_ ? sorteosDelGrupo().filter(function (y) { return y.docId === doc_; })[0] : null;
+      cablearFormSorteo(caja, x ? x.stargateId : "", tras);
     };
     if ($("#sr-defecto")) $("#sr-defecto").onclick = async function () {
       this.disabled = true;
@@ -2096,6 +2198,109 @@
     Array.prototype.forEach.call(app.querySelectorAll(".sr-directo"), function (b) {
       b.onclick = function () {
         var x = sorteosDelGrupo().filter(function (y) { return y.docId === b.getAttribute("data-doc"); })[0]; if (x) sorteoEnDirecto(x);
+      };
+    });
+  }
+  function leerFormSorteo(f) {
+    return { premio: $(".sr-premio", f).value.trim(), descripcion: $(".sr-desc", f).value.trim(), ganadores: Number($(".sr-gan", f).value) || 1,
+             coste: Number($(".sr-coste", f).value) || 0, maximo: Number($(".sr-max", f).value) || 0,
+             desde: deFecha($(".sr-desde", f).value), fecha: deFecha($(".sr-fecha", f).value) };
+  }
+  function validarSorteo(v) {
+    if (!v.premio) return "Di qué se sortea.";
+    if (!v.desde || !v.fecha) return "Pon las dos fechas: desde cuándo se vende y cuándo se sortea.";
+    if (v.fecha <= v.desde) return "El sorteo tiene que ser después de que empiece la venta.";
+    return "";
+  }
+  /** Los grupos donde está este sorteo (sin los que se quitó), y el del grupo en el que se está, siempre. */
+  async function gruposConSorteo(id) {
+    var l = await MOTOR.sorteosDeGrupos(gestionados().length ? gestionados() : [PER]);
+    var s = l.filter(function (x) { return x.id === id; })[0];
+    var gs = s ? s.grupos.filter(function (g) { return !g.ticket.stargateRetirado; }).map(function (g) { return g.per; }) : [];
+    if (PER && gs.indexOf(PER) < 0) gs.push(PER);
+    return gs;
+  }
+  /** Crear (a los grupos elegidos) o cambiar (en todos los suyos) un sorteo. `id` vacío = crear. */
+  function cablearFormSorteo(caja, id, despues) {
+    var f = $(".sr-form", caja);
+    cablearSelectorGrupos(f);
+    $(".sr-cancelar", f).onclick = function () { caja.innerHTML = ""; };
+    $(".sr-guardar", f).onclick = async function () {
+      var v = leerFormSorteo(f), malo = validarSorteo(v); if (malo) return aviso(malo);
+      var boton = this; boton.disabled = true;
+      try {
+        var nuevo = !id, sid = id || "sorteo" + Date.now().toString(36);
+        var destinos = nuevo ? gruposElegidos(f) : await gruposConSorteo(sid);
+        if (!destinos.length) { boton.disabled = false; return aviso("Marca al menos un grupo."); }
+        var r = await MOTOR.sorteoEnGrupos(Object.assign({ id: sid }, v), destinos);
+        var varios = destinos.length > 1 ? " en " + destinos.length + " grupos" : "";
+        await despues((nuevo ? "Sorteo creado" + varios + ": ya sale en el Mercado de tu alumnado (desde su fecha)." : "Sorteo cambiado" + varios + ".") +
+          (r.hechos.length ? " (En " + nombresDe(r.hechos) + " ya se había hecho: ahí no se toca.)" : ""));
+      } catch (e) { boton.disabled = false; aviso(e.message); }
+    };
+  }
+  function configDeTicket(t) {
+    var S = t.stargateSorteo || {};
+    return { id: t.stargateId, premio: S.premio || String(t.title || "").replace(/^Participación · /, ""), descripcion: t.description || "",
+             ganadores: Number(S.ganadores) || 1, coste: Number(t.cost) || 0, maximo: Number(t.maxPerUser) || 0,
+             desde: Number(t.availableFrom) || 0, fecha: Number(t.ticketDeadline) || 0 };
+  }
+  /** «🌐 En sus grupos»: una casilla por grupo. Marcar lo lleva a ese grupo; desmarcar lo quita (si ahí nadie compró). */
+  function pintarAmbitoSorteo(el, s, despues) {
+    var g = gestionados(), de = {};
+    s.grupos.forEach(function (x) { de[x.per] = x.ticket; });
+    var vivo = s.grupos.filter(function (x) { return !x.ticket.stargateRetirado; })[0] || s.grupos[0];
+    el.innerHTML = '<p class="small sr-ambito-t">🌐 <b>En sus grupos:</b> ' + g.map(function (per) {
+      var t = de[per], on = !!t && !t.stargateRetirado, hecho = !!t && t.isRaffleCompleted && !t.stargateRetirado;
+      return '<label class="pe-chip' + (hecho ? " hecho" : "") + '" title="' + (hecho ? "Ya se hizo aquí" : on ? "Desmárcalo para quitarlo de este grupo" : "Márcalo para llevarlo a este grupo") + '">' +
+        '<input type="checkbox" value="' + esc(per) + '"' + (on ? " checked" : "") + (hecho ? " disabled" : "") + "> " + esc(nombreDeGrupo(per)) + (hecho ? " · 🏆" : "") + "</label>";
+    }).join(" ") + "</p>";
+    Array.prototype.forEach.call(el.querySelectorAll("input[type=checkbox]"), function (c) {
+      c.onchange = async function () {
+        var per = c.value, t = de[per];
+        c.disabled = true;
+        try {
+          if (c.checked) { await MOTOR.sorteoEnGrupos(configDeTicket(vivo.ticket), [per]); await despues("🎟️ Sorteo añadido a «" + nombreDeGrupo(per) + "»."); }
+          else {
+            if (!(await window.SG.preguntar({ titulo: "¿Quitar este sorteo de «" + nombreDeGrupo(per) + "»?", texto: "Solo se puede si allí nadie tiene participaciones. Deja de venderse en ese grupo.", si: "Quitarlo de ese grupo", peligro: true }))) { c.checked = true; c.disabled = false; return; }
+            await MOTOR.retirarSorteo(per, t.docId); await despues("🎟️ Sorteo quitado de «" + nombreDeGrupo(per) + "».");
+          }
+        } catch (e) { c.checked = !c.checked; c.disabled = false; aviso(e.message); }
+      };
+    });
+  }
+  /** 🌐 Los sorteos de todos tus grupos: uno por sorteo, con su estado en cada grupo. El bombo y el directo, dentro del grupo. */
+  async function verSorteosComunes(destino) {
+    destino.innerHTML = '<div class="card"><p class="muted">Buscando tus sorteos…</p></div>';
+    var l = [];
+    try { l = await MOTOR.sorteosDeGrupos(gestionados()); } catch (e) {}
+    var fechaDe = function (s) { return Math.max.apply(null, s.grupos.map(function (x) { return Number(x.ticket.ticketDeadline || 0); })); };
+    l.sort(function (a, b) { return fechaDe(a) - fechaDe(b); });
+    destino.innerHTML = '<div class="card"><h3>🎟️ Sorteos</h3><p class="small">Un sorteo se configura una vez y va a los grupos que elijas. ' +
+      'Cada grupo tiene <b>su bombo</b> y su <b>sorteo en directo</b> (entra en el grupo → Sorteos). Cambiarlo aquí lo cambia en todos sus grupos.</p>' +
+      '<p><button class="btn primary" id="sr-nuevo">+ Crear un sorteo</button></p><div id="sr-nuevo-f"></div></div>' +
+      (l.length ? l.map(function (s) {
+        var vivo = s.grupos.filter(function (x) { return !x.ticket.stargateRetirado; })[0] || s.grupos[0], t = vivo.ticket, S = t.stargateSorteo || {}, cfg = configDeTicket(t);
+        return '<div class="card sr-caja" data-sid="' + esc(s.id) + '">' +
+          '<div class="sr-cab"><img src="assets/img/canje/' + esc(S.imagen || "sorteo_generico.jpg") + '" alt=""><div><h3>' + esc(cfg.premio) + '</h3>' +
+          '<p class="small">' + cfg.ganadores + " ganador" + (cfg.ganadores === 1 ? "" : "es") + " por grupo · " + cfg.coste + " ◈ la participación" + (cfg.maximo ? " · máx. " + cfg.maximo + " por persona" : "") +
+          " · a la venta del " + diaDe(cfg.desde) + " al " + diaDe(cfg.fecha) + "</p>" +
+          '<p class="small sr-estados">' + s.grupos.map(function (x) {
+            return '<a class="chip" href="consola.html?per=' + esc(x.per) + '" title="Entrar en el grupo: su bombo y el sorteo en directo">' + esc(nombreDeGrupo(x.per)) + " · " + estadoSorteo(x.ticket)[1] + "</a>"; }).join(" ") + "</p></div></div>" +
+          '<div class="sr-ambito"></div>' +
+          (s.grupos.some(function (x) { return !x.ticket.isRaffleCompleted; }) ? '<p class="sr-botones"><button class="btn sr-editar">✏️ Cambiar (en todos sus grupos)</button></p><div class="sr-editar-f"></div>' : "") +
+          "</div>";
+      }).join("") : '<div class="card"><p class="small muted">Ninguno de tus grupos tiene sorteos todavía.</p></div>');
+    var repinta = function (texto) { return verSorteosComunes(destino).then(function () { if (texto) aviso(texto, true); }); };
+    $("#sr-nuevo").onclick = function () { var c = $("#sr-nuevo-f"); c.innerHTML = formSorteo(null, {}); cablearFormSorteo(c, "", repinta); };
+    Array.prototype.forEach.call(destino.querySelectorAll(".sr-caja[data-sid]"), function (caja) {
+      var s = l.filter(function (x) { return x.id === caja.getAttribute("data-sid"); })[0]; if (!s) return;
+      pintarAmbitoSorteo($(".sr-ambito", caja), s, repinta);
+      var b = $(".sr-editar", caja);
+      if (b) b.onclick = function () {
+        var vivo = s.grupos.filter(function (x) { return !x.ticket.stargateRetirado && !x.ticket.isRaffleCompleted; })[0] || s.grupos[0];
+        var c = $(".sr-editar-f", caja); c.innerHTML = formSorteo(vivo.ticket, { title: configDeTicket(vivo.ticket).premio, globalStockInitial: configDeTicket(vivo.ticket).ganadores });
+        cablearFormSorteo(c, s.id, repinta);
       };
     });
   }

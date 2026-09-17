@@ -1801,6 +1801,80 @@ async function guardarSorteo(perId, ticketDoc, c) {
     globalStock: ganadores, globalStockInitial: ganadores });
   await lote.commit();
 }
+/**
+ * 🌐 17-sep · SORTEOS PARA VARIOS GRUPOS. Norberto: «lo mismo con ofertas y sorteos: comparten la misma página de
+ * configuración, pero puedo ajustar individualmente a qué grupos afecta (todos o unos pocos)». Un sorteo es el MISMO en
+ * todos sus grupos porque lleva el mismo identificador (`stargateId`): cada grupo tiene su bombo, su venta y su sorteo en
+ * directo (así lo hace el servidor), y la configuración se escribe en todos a la vez.
+ */
+async function sorteosDeGrupos(perIds) {
+  const porId = {};
+  for (const per of perIds || []) {
+    let r; try { r = await getDocs(query(collection(db, "rewards"), where("projectId", "==", per), where("systemEffect", "==", "lottery_ticket"))); } catch (e) { continue; }
+    r.docs.forEach(d => {
+      const x = Object.assign({ docId: d.id }, d.data()), k = x.stargateId || d.id.split("__").pop();
+      (porId[k] = porId[k] || { id: k, grupos: [] }).grupos.push({ per: per, ticket: x });
+    });
+  }
+  return Object.values(porId);
+}
+async function participacionesEn(per, ticketDoc) {
+  const r = await getDocs(query(collection(db, "student_profiles"), where("projectId", "==", per)));
+  return r.docs.reduce((a, d) => a + Number(((d.data().lotteryEntries) || {})[ticketDoc] || 0), 0);
+}
+/** Crear o cambiar un sorteo en estos grupos (en los que ya lo tienen se cambia; en los demás se crea). Los hechos no se tocan. */
+async function sorteoEnGrupos(s, destinos) {
+  const ya = {}; (await sorteosDeGrupos(destinos)).filter(x => x.id === s.id).forEach(x => x.grupos.forEach(g => { ya[g.per] = g.ticket; }));
+  const hechos = [];
+  for (const per of destinos) {
+    const t = ya[per];
+    if (t && t.isRaffleCompleted && !t.stargateRetirado) { hechos.push(per); continue; }
+    if (t && !t.stargateRetirado) await guardarSorteo(per, t.docId, s);
+    else if (t && t.stargateRetirado) { await updateDoc(doc(db, "rewards", t.docId), { isRaffleCompleted: false, stargateRetirado: false, raffleResolvedBy: null, raffleResolvedAt: null }); await guardarSorteo(per, t.docId, s); }
+    else await crearSorteo(per, s);
+  }
+  return { hechos };
+}
+/**
+ * Quitar un sorteo de UN grupo: solo si allí nadie tiene participaciones (si no, habría papeletas pagadas sin sorteo).
+ * Se marca «retirado» (cerrado y sin ganadores): la Nave deja de venderlo y el servidor no lo sortea.
+ */
+async function retirarSorteo(per, ticketDoc) {
+  const n = await participacionesEn(per, ticketDoc);
+  if (n > 0) throw new Error("Ahí ya hay " + n + (n === 1 ? " participación" : " participaciones") + ": no se puede quitar (haz el sorteo o regálalo).");
+  await updateDoc(doc(db, "rewards", ticketDoc), { isRaffleCompleted: true, raffleWinnerIds: [], raffleWinnerNames: [], raffleResolvedAt: Date.now(),
+    raffleResolvedBy: "retirado", stargateRetirado: true, availableUntil: Date.now() });
+}
+/**
+ * 🌐 LAS OFERTAS PARA VARIOS GRUPOS. Las crea el servidor en cada grupo (con sus unidades según SUS inscritos); se atan
+ * con `stargateComun` y lo que se haga con una (alargar, unidades, cancelar) se hace en todas.
+ */
+async function ofertasDeGrupos(perIds) {
+  const porId = {};
+  for (const per of perIds || []) {
+    let r; try { r = await getDocs(query(collection(db, "rewards"), where("projectId", "==", per), where("stargateTipo", "==", "oferta"))); } catch (e) { continue; }
+    r.docs.forEach(d => {
+      const x = Object.assign({ docId: d.id }, d.data()), k = x.stargateComun || d.id;
+      (porId[k] = porId[k] || { id: k, comun: !!x.stargateComun, grupos: [] }).grupos.push({ per: per, oferta: x });
+    });
+  }
+  return Object.values(porId);
+}
+async function crearOfertaEnGrupos(datos, destinos) {
+  const comun = "of" + azar(10), fallos = [];
+  for (const per of destinos) {
+    try {
+      const r = await oferta(per, "crear", datos);
+      if (r && r.oferta && destinos.length > 1) await updateDoc(doc(db, "rewards", r.oferta), { stargateComun: comun });
+    } catch (e) { fallos.push({ per: per, motivo: e.message }); }
+  }
+  return { comun, fallos };
+}
+async function ofertaEnGrupos(docs, accion, datos) {
+  const fallos = [];
+  for (const g of docs) { try { await oferta(g.per, accion, Object.assign({ ofertaId: g.docId }, datos || {})); } catch (e) { fallos.push({ per: g.per, motivo: e.message }); } }
+  return { fallos };
+}
 const sortear = (perId, ticketDoc) => llamar("stargateSortear", { projectId: perId, ticketId: ticketDoc });
 // 14-sep · los sorteos que ya han pasado su fecha se resuelven solos al entrar cualquiera del grupo
 const sorteosPendientes = (perId) => llamar("stargateSorteosPendientes", { projectId: perId });
@@ -1923,7 +1997,8 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
-                    crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta,
+                    crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta, sorteosDeGrupos, sorteoEnGrupos, retirarSorteo, participacionesEn,
+                    ofertasDeGrupos, crearOfertaEnGrupos, ofertaEnGrupos,
                     buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto, invitacion, codigoGenially,
                     guardarReflexion, enlaceDeReflexion, reflexionesDe, misReflexiones, comentariosDe, comentar, borrarComentario,
                     borrarReflexion, idReflexion, hitos, batalla,
