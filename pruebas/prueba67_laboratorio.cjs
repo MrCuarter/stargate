@@ -37,7 +37,17 @@ const REG = {};   // cifras que se apuntan para el informe
   const enlaceDe = (it, embed) => "huevo.html?h=" + it.id + "&c=" + encodeURIComponent(it.codigo) + "&t=" + (it.tipo === "huevo" ? "h" : "r") + (embed ? "&embed=1" : "");
   const tarjeta = (id, js) => `(function(){ var f=document.querySelector('.pe-f[data-pe="${id}"]'); if(!f) return 'SIN TARJETA'; ${js} })()`;
   const aPremiosDe = async (p, per) => {
-    await p.ir("consola.html?per=" + per); await p.hasta("document.querySelectorAll('.pestanas .pest').length>0", 25);
+    const t0 = Date.now();
+    await p.ir("consola.html?per=" + per);
+    // 17-sep · con el emulador, justo después de guardar premios en dos grupos, la consola tardó a veces 25-55 s en
+    // leer los grupos (el canal de escucha del emulador se atasca; fuera del emulador, 0,3 s). Se espera y se anota.
+    const hay = await p.hasta("!!document.querySelector('.pest[data-tab=\"huevos\"]')", 75);
+    if (Date.now() - t0 > 10000) console.log("      ⏱ (emulador lento: la consola de " + per + " tardó " + Math.round((Date.now() - t0) / 1000) + " s)");
+    if (!hay) {
+      p.__pestanas = await p.js("location.search + ' · pestañas: ' + [].slice.call(document.querySelectorAll('.pestanas .pest')).map(function(b){return b.getAttribute('data-tab')}).join(',') + ' · ' + (document.querySelector('main')||document.body).innerText.replace(/\\s+/g,' ').slice(0,300)") + " · errores: " + JSON.stringify((p.errores || []).slice(-6));
+      await p.foto(FOTOS + "/sin-pestana-premios.png");
+      return false;
+    }
     await p.js("document.querySelector('.pest[data-tab=\"huevos\"]').click(); 1");
     return p.hasta("!!document.getElementById('pe-nuevo') && !/Buscando tus premios/.test((document.getElementById('pe-lista')||{}).textContent||'')", 25);
   };
@@ -2737,8 +2747,8 @@ const REG = {};   // cifras que se apuntan para el informe
             JSON.stringify({ en1: s1 && [s1.stargateBorrado, s1.claimLinkEnabled], en2: s2 && [s2.stargateBorrado, s2.claimLinkEnabled], enP, enP2 }));
           await aPremiosDe(rg, P2);
           c("🌐 comunes · dentro del grupo que ya no lo tiene, no aparece", await rg.js(`!document.querySelector('.pe-f[data-pe="${G.id}"]')`));
-          await aPremiosDe(rg, P);
-          c("🌐 comunes · y dentro del que sí, aparece (con su ámbito)", await rg.hasta(tarjeta(G.id, "return /Solo/.test(f.querySelector('.pe-ambito').textContent);"), 15));
+          const dentroP = await aPremiosDe(rg, P);
+          c("🌐 comunes · y dentro del que sí, aparece (con su ámbito)", dentroP && await rg.hasta(tarjeta(G.id, "return /Solo/.test(f.querySelector('.pe-ambito').textContent);"), 15), rg.__pestanas || "");
           c("🌐 comunes · la barra de pestañas separa lo de varios grupos (🌐) de lo exclusivo del grupo",
             await rg.js("!!document.querySelector('.pestanas .pest-sep-g') && document.querySelector('.pestanas .pest-sep-g').nextElementSibling.getAttribute('data-tab')==='huevos'"));
         }
@@ -4397,9 +4407,11 @@ const REG = {};   // cifras que se apuntan para el informe
       await rg.js(`(function(){ var c=[].slice.call(document.querySelectorAll('.sr-caja .sr-ambito input[type=checkbox]')).filter(function(x){return x.value===${JSON.stringify(P2)}})[0]; c.checked=false; c.dispatchEvent(new Event('change')); return 1; })()`);
       const q = await rg.responder();
       c("🌐 sorteos · quitarlo de un grupo lo pregunta antes", /Quitar este sorteo de/.test(q), q);
-      await rg.hasta("/quitado de/.test((document.getElementById('c-aviso')||{}).innerText||'')", 30);
-      s1 = await tick(P); s2 = await tick(P2);
-      c("🔴 🌐 sorteos · …y queda retirado en ese grupo (nadie compró), y en el otro sigue", s2.stargateRetirado === true && !s1.stargateRetirado, JSON.stringify([s1.stargateRetirado, s2.stargateRetirado]));
+      const quitadoAviso = await rg.hasta("/quitado de/.test((document.getElementById('c-aviso')||{}).innerText||'')", 75);
+      for (let i = 0; i < 40; i++) { s2 = await tick(P2); if (s2 && s2.stargateRetirado === true) break; await dormir(500); }
+      s1 = await tick(P);
+      c("🔴 🌐 sorteos · …y queda retirado en ese grupo (nadie compró), y en el otro sigue", s2.stargateRetirado === true && !s1.stargateRetirado,
+        JSON.stringify([s1.stargateRetirado, s2.stargateRetirado]) + " · aviso " + (quitadoAviso ? "sí" : "no") + ": " + (await aviso()).slice(0, 160) + " · errores: " + JSON.stringify(rg.errores.slice(-3)));
       // en un grupo con participaciones no se puede quitar
       const fAna = await fichaDe("ana@lab.test", P);
       if (fAna) {
@@ -4436,11 +4448,85 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 🌐 ofertas · cancelarla la cancela en sus dos grupos", o1[0].stargateOferta.cancelada === true && o2[0].stargateOferta.cancelada === true,
         JSON.stringify([o1[0].stargateOferta.cancelada, o2[0].stargateOferta.cancelada]));
       // dentro de un grupo, la barra separa lo común y la oferta dice que es de varios
-      await rg.ir("consola.html?per=" + P); await rg.hasta("document.querySelectorAll('.pestanas .pest').length>0", 25);
+      await rg.ir("consola.html?per=" + P); await rg.hasta("!!document.querySelector('.pest[data-tab=\"ofertas\"]')", 75);
       await rg.js("document.querySelector('.pest[data-tab=\"ofertas\"]').click(); 1");
       c("🌐 ofertas · dentro del grupo, la oferta dice «🌐 varios grupos»", await rg.hasta(`!!document.querySelector('[data-comun="${o1[0].stargateComun}"] .of-comun')`, 20));
       c("sin errores en las páginas (sorteos y ofertas comunes)", !rg.errores.filter(e => !/Failed to load resource/.test(e)).length, rg.errores[0] || "");
       await rg.cerrar();
+    }
+    // ============================================================ 43 · NI UN CONTROL GRIS NI UNA LETRA DIMINUTA
+    /**
+     * 17-sep · Norberto: «no queremos menús grises en ningún sitio» (y, desde siempre, nada por debajo de 12 px).
+     * Se barría a ojo y se escapó un «Empezar» gris en la invitación a la visita de la consola. Ahora lo mira una
+     * máquina: cada botón, desplegable y campo visible, con su color de fondo y su letra, en las pantallas de
+     * docente (todas las pestañas de la consola, las comunes y las salas) y en la Nave del alumnado.
+     * Los botones blancos de «Iniciar sesión con Google» se quedan blancos: es la marca de Google.
+     */
+    if (hacer(43)) {
+      const SIN_GRISES = `(function(){
+        var out=[];
+        document.querySelectorAll('button, select, input, textarea').forEach(function(el){
+          if (el.type==='hidden'||el.type==='checkbox'||el.type==='radio'||el.type==='range'||el.type==='color') return;
+          var r=el.getBoundingClientRect(); if(r.width<2||r.height<2) return;
+          var cs=getComputedStyle(el); if(cs.visibility==='hidden'||cs.display==='none'||+cs.opacity===0) return;
+          var bg=cs.backgroundColor, m=bg.match(/\\d+(\\.\\d+)?/g)||[], a=m.length>3?+m[3]:1;
+          var claro = a>0.5 && +m[0]>=190 && +m[1]>=190 && +m[2]>=190;
+          var ap=cs.appearance||cs.webkitAppearance||'';
+          var selNativo = el.tagName==='SELECT' && ap!=='none';
+          if (claro || selNativo) {
+            var d=el; var ruta=[]; for(var i=0;i<3&&d&&d!==document.body;i++){ ruta.unshift(d.tagName.toLowerCase()+(d.id?'#'+d.id:'')+(typeof d.className==='string'&&d.className?'.'+d.className.trim().split(/\\s+/).slice(0,2).join('.'):'')); d=d.parentElement; }
+            out.push(ruta.join('>')+' «'+String(el.textContent||el.value||el.placeholder||'').trim().replace(/\\s+/g,' ').slice(0,40)+'» bg='+bg+(selNativo?' SELECT-NATIVO':''));
+          }
+        });
+        var vistos={};
+        var w=document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+        var nd; while((nd=w.nextNode())){
+          if(!nd.nodeValue.trim()) continue; var el=nd.parentElement; if(!el||vistos[el.tagName+el.className]) continue;
+          var cs=getComputedStyle(el); var fs=parseFloat(cs.fontSize); if(fs>=11.5) continue;
+          var r=el.getBoundingClientRect(); if(r.width<1||r.height<1||cs.visibility==='hidden') continue;
+          if(el.closest('svg')) continue;
+          vistos[el.tagName+el.className]=1;
+          out.push('LETRA '+fs.toFixed(1)+'px '+el.tagName.toLowerCase()+(typeof el.className==='string'&&el.className?'.'+el.className.trim().split(/\s+/).slice(0,2).join('.'):'')+' «'+nd.nodeValue.trim().slice(0,30)+'»');
+        }
+        return out;
+      })()`;
+      const GOOGLE = /«Iniciar sesión con Google»/;
+      const hallado = {};
+      const barrer = async (p, donde) => { await dormir(900); ((await p.js(SIN_GRISES)) || []).filter(x => !GOOGLE.test(x)).forEach(x => { (hallado[x] = hallado[x] || []).push(donde); }); };
+      const libre = "!/Buscando|Cargando|Abriendo/.test((document.querySelector('main')||document.body).innerText.slice(0,400))";
+      const rb = await nueva("Rita barre la web");
+      await rb.ir("entrar.html"); await rb.entrarComo("rita@lab.test", "Rita Referente");
+      await rb.ir("consola.html"); await rb.hasta("!!document.querySelector('.gp-comun')", 60); await barrer(rb, "consola (tus grupos)");
+      for (const cm of ["premios", "sorteos", "ofertas"]) { await rb.ir("consola.html?comun=" + cm); await rb.hasta(libre, 40); await barrer(rb, "común " + cm); }
+      await rb.ir("consola.html?per=lab-clase"); await rb.hasta("document.querySelectorAll('.pestanas .pest').length>5", 75);
+      const pests = await rb.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).map(function(b){return b.getAttribute('data-tab')})");
+      for (const t of pests) {
+        await rb.js(`document.querySelector('.pest[data-tab="${t}"]').click(); 1`); await dormir(2000); await barrer(rb, "consola · " + t);
+        if (await rb.js("!!document.getElementById('pe-nuevo')")) { await rb.js("document.getElementById('pe-nuevo').click(); 1"); await barrer(rb, "consola · premios (ventana)"); await rb.js("window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1"); }
+      }
+      await rb.js("document.querySelector('.pest').click(); 1"); await dormir(2000);
+      if (await rb.js("!!document.querySelector('tbody tr')")) { await rb.js("document.querySelector('tbody tr').click(); 1"); await dormir(2500); await barrer(rb, "consola · ficha"); }
+      for (const pg of ["sesion.html?per=lab-clase", "aula.html?per=lab-clase", "llamada.html?per=lab-clase", "clase.html?per=lab-clase", "profes.html", "tickets.html", "crear.html", "buzon.html", "batalla.html?per=lab-clase", "prueba-equipo.html"]) {
+        await rb.ir(pg); await rb.hasta(libre, 30); await barrer(rb, pg.split("?")[0]);
+      }
+      await rb.cerrar();
+      const sb = await nueva("Sara barre su Nave");
+      await sb.ir("entrar.html"); await sb.entrarComo("sara@lab.test", "Sara Prueba");
+      await sb.ir("recluta.html?per=lab-clase"); await sb.hasta(libre, 40); await dormir(2500); await barrer(sb, "nave");
+      const SELN = "[role=tab], .tab, .pest, nav button, .nave-nav button, a[href^='#']";
+      const nn = await sb.js(`document.querySelectorAll(${JSON.stringify(SELN)}).length`);
+      for (let i = 0; i < Math.min(nn, 30); i++) {
+        const tx = await sb.js(`(function(){var b=document.querySelectorAll(${JSON.stringify(SELN)})[${i}]; if(!b||/salir|No soy yo/i.test(b.textContent||'')) return ''; b.click(); return (b.textContent||'').trim().slice(0,24);})()`);
+        if (!tx) continue;
+        await dormir(1200); await sb.js("document.querySelectorAll('details').forEach(function(d){d.open=true}); 1"); await barrer(sb, "nave · " + tx);
+      }
+      for (const pg of ["foro.html?per=lab-clase", "diploma.html?per=lab-clase", "huevo.html?h=noexiste&c=x&t=r"]) { await sb.ir(pg); await sb.hasta(libre, 30); await barrer(sb, pg.split("?")[0]); }
+      await sb.cerrar();
+      const lista = Object.keys(hallado);
+      c("🔴 sin grises · ningún botón, desplegable ni campo con el gris (o el blanco) del navegador", !lista.filter(x => !/^LETRA/.test(x)).length,
+        lista.filter(x => !/^LETRA/.test(x)).slice(0, 6).map(x => x + " ← " + [...new Set(hallado[x])].slice(0, 3).join(", ")).join(" ‖ "));
+      c("🔴 sin letra diminuta · nada por debajo de 12 px", !lista.filter(x => /^LETRA/.test(x)).length,
+        lista.filter(x => /^LETRA/.test(x)).slice(0, 6).map(x => x + " ← " + [...new Set(hallado[x])].slice(0, 3).join(", ")).join(" ‖ "));
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

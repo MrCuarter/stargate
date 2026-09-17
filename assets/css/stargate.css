@@ -182,8 +182,8 @@ footer a{color:var(--teal2)}
 /* ===================== v2 (23-ago-2026): portada, cronología, tour ===================== */
 .nav .wrap{gap:4px}
 .nav a.lnk{font-size:.82rem;padding:6px 9px}
-.tour-start{font-family:'DMSans';font-weight:700;font-size:.78rem;letter-spacing:.04em;background:linear-gradient(180deg,rgba(245,176,67,.22),rgba(245,176,67,.1));border:1px solid #6a5022;color:var(--amber);border-radius:999px;padding:6px 12px;cursor:pointer;margin-left:6px}
-.tour-start:hover{background:rgba(245,176,67,.3);border-color:var(--amber)}
+.tour-start,.tour-aqui{white-space:nowrap;font-family:'DMSans';font-weight:700;font-size:.78rem;letter-spacing:.04em;background:linear-gradient(180deg,rgba(245,176,67,.22),rgba(245,176,67,.1));border:1px solid #6a5022;color:var(--amber);border-radius:999px;padding:6px 12px;cursor:pointer;margin-left:6px}
+.tour-start:hover,.tour-aqui:hover{background:rgba(245,176,67,.3);border-color:var(--amber)}
 .small{font-size:.86rem}.muted{color:#6d8092}
 /* HERO con vídeo */
 .hero-video{padding:0;min-height:78vh;display:flex;align-items:center;justify-content:center;text-align:center}

@@ -120,7 +120,11 @@ async function arrancar(ver) {
   await dormir(600);
   WEB = spawn("python3", ["-m", "http.server", String(P_WEB), "--bind", "127.0.0.1"], { cwd: RAIZ, stdio: "ignore" });
   PERFIL = fs.mkdtempSync(path.join(os.tmpdir(), "sglab-"));
+  // 17-sep · sin frenos para las pestañas «de fondo»: cada persona es una pestaña y solo una está delante. Chrome
+  // espacia los temporizadores de las demás (hasta uno por minuto) y Firestore tardaba casi un minuto en contestar
   const args = ["--disable-gpu", "--no-first-run", "--no-default-browser-check", `--remote-debugging-port=${P_CDP}`,
+                "--disable-background-timer-throttling", "--disable-renderer-backgrounding", "--disable-backgrounding-occluded-windows",
+                "--disable-features=IntensiveWakeUpThrottling,CalculateNativeWinOcclusion",
                 `--user-data-dir=${PERFIL}`, "about:blank"];
   if (!ver) args.unshift("--headless=new");
   CHROME_PROC = spawn(CHROME, args, { stdio: "ignore" });
@@ -207,8 +211,10 @@ async function persona(nombre) {
   await env("Page.addScriptToEvaluateOnNewDocument", { source: INYECCION });
   const p = {
     nombre, errores, rotos, env,
-    async ir(pagina) { await env("Page.navigate", { url: pagina.indexOf("http") === 0 ? pagina : BASE + pagina });
-                       await p.hasta("document.readyState==='complete'", 15); await dormir(250); },
+    // (se marca la página vieja: sin la marca, «readyState complete» lo daba la que se iba y la batería leía el DOM viejo)
+    async ir(pagina) { try { await p.js("window.__sgVieja=1; 1", 3000); } catch (e) {}
+                       await env("Page.navigate", { url: pagina.indexOf("http") === 0 ? pagina : BASE + pagina });
+                       await p.hasta("!window.__sgVieja && document.readyState==='complete'", 15); await dormir(250); },
     async js(expr, ms) {
       const r = await conTope(env("Runtime.evaluate", { expression: expr, returnByValue: true, awaitPromise: true }), ms || 20000, expr.slice(0, 60));
       if (r.exceptionDetails) throw new Error((r.exceptionDetails.exception && r.exceptionDetails.exception.description || r.exceptionDetails.text || "").split("\n")[0] + " ← " + expr.slice(0, 70));
