@@ -910,7 +910,17 @@
       +'<div class="rs-detalle">'
       +(pasos.length?'<ol class="rs-pasos">'+pasos.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>'
                     :'<p class="small muted">Sin explicación todavía: pregunta a tu docente.</p>')
-      +(ej&&ej.texto?'<p class="rs-ej-txt">💡 <b>Un ejemplo:</b> '+esc(ej.texto)+(ejUrl?' <a href="'+esc(ejUrl)+'" target="_blank" rel="noopener">Verlo ↗</a>':'')+'</p>':'')
+      /**
+       * 17-sep · UN EJEMPLO EN CADA RETO (Norberto: «me encantaría que cada reto fuera acompañado de un ejemplo»). Plegado
+       * bajo los pasos: el caso de una docente concreta (qué hizo, con qué y dónde lo dejó), sus puntos clave y, si lo hay,
+       * el ejemplo publicado. Los saltos de línea se respetan: en L3 y L6 las líneas SON el ejemplo.
+       */
+      +(ej&&(ej.texto||ej.detalle)?'<details class="rs-ej-caja"><summary>💡 Ver un ejemplo'+(ej.titulo?': <span>'+esc(ej.titulo)+'</span>':'')+'</summary>'
+        +(ej.texto?'<p class="rs-ej-txt">'+esc(ej.texto)+'</p>':'')
+        +(ej.detalle&&ej.detalle.length?'<ul class="rs-ej-det">'+ej.detalle.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')
+        +(ej.pua&&d.tipo==='PUA'?'<p class="rs-ej-pua">'+esc(ej.pua)+'</p>':'')
+        +(ejUrl?'<p class="rs-ej-ver"><a href="'+esc(ejUrl)+'" target="_blank" rel="noopener">Ver el ejemplo publicado ↗</a></p>':'')
+        +'</details>':'')
       +extraReto(t[0], d)
       +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado.</p>'+accionesDeHecho(t[0])
           // 15-sep · S7 es el Escape UNI: su puerta, y se registra solo con el botón del final del escape

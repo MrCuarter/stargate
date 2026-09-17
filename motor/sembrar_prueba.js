@@ -232,12 +232,10 @@ async function main() {
     });
   }
 
-  // Un escondite por planeta, listos para pegar en los Geniallys. (En la demo no: no hay Geniallys.)
-  const huevos = DEMO ? [] : [1,2,3,4,5,6,7,8].map(n => ({
-    id: "p" + n, nombre: "Presentación del Tema " + n,
-    premio: n % 3 === 0 ? "bolsa" : n % 3 === 1 ? "sobre" : "heroe",
-    limite: 0, activo: true, creditos: 50
-  }));
+  // 🔴 17-sep · SIN PREMIOS DE MUESTRA. Nacían ocho («p1»…«p8», adivinables cambiando el número) y Norberto: «no es
+  // necesario ver todo: se pueden ir añadiendo a medida que los vaya necesitando». Los premios por enlace se crean en la
+  // consola, con su código secreto (motor.js · guardarPremioEnlace).
+  const huevos = [];
   if (huevos.length) {
     await db.collection("projects").doc(ID).update({ "stargate.huevos": huevos });
     // 🔴 Y sus recompensas en el servidor: sin ellas, el escondite existe en la lista y no se puede

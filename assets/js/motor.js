@@ -17,7 +17,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, sig
          connectAuthEmulator }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, getCountFromServer, writeBatch, onSnapshot,
-         connectFirestoreEmulator }
+         deleteField, connectFirestoreEmulator }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { getFunctions, httpsCallable, connectFunctionsEmulator }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
@@ -1330,6 +1330,100 @@ async function huevosDe(perId) {
  */
 const idPremioHuevo = (perId, huevoId) => window.SG.PAQUETE.idPremioHuevo(perId, huevoId);
 
+/**
+ * 🔴 17-sep · LOS PREMIOS POR ENLACE, PARA VARIOS GRUPOS Y CON CÓDIGO SECRETO. Norberto: «¿valen para cualquier grupo?
+ * Sería maravilloso que fueran para cualquier grupo para poder reciclarlos… una opción para marcar a qué grupos afecta
+ * (con opción de TODOS)». Y: «es importante usar direcciones más difíciles: un usuario avispado puede cambiar el 1 por
+ * el 2 y ganar otra recompensa». Y lo que pasó al probarlo: creó uno, no pulsó «Guardar», y desapareció.
+ *
+ * Cómo queda:
+ *   · UN premio, UN enlace para todos sus grupos: `huevo.html?h=<id>&c=<código>`. La página busca en qué grupo está
+ *     quien lo pulsa, como siempre; el premio existe en cada grupo al que se aplica (su recompensa `<grupo>__huevo_<id>`).
+ *   · El CÓDIGO no está en la recompensa (esa la puede leer cualquiera con sesión): va solo su huella
+ *     (`claimLinkHash`), y el servidor la comprueba al reclamar. Sin código, el identificador solo no da nada.
+ *   · El catálogo vive en la parte PRIVADA de cada grupo (`privado/stargate.premiosEnlace`, un mapa por id): solo lo
+ *     lee su equipo docente. Un premio de «todos» está en todos los grupos que lleva quien lo guarda.
+ *   · Se guarda cada premio suyo, al tocarlo. Nada de un «Guardar» para toda la lista que se olvida.
+ */
+const PRIV = (perId) => doc(db, "projects", perId, "privado", "stargate");
+function azar(n, abc) {
+  const A = abc || "abcdefghijkmnpqrstuvwxyz23456789", r = new Uint32Array(n);
+  crypto.getRandomValues(r);
+  return Array.from(r, x => A[x % A.length]).join("");
+}
+async function huellaPremio(id, codigo) {
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(id) + ":" + String(codigo)));
+  return Array.from(new Uint8Array(b), x => x.toString(16).padStart(2, "0")).join("");
+}
+function premioNuevo(datos) {
+  return Object.assign({ id: azar(10), codigo: azar(18, "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"),
+    tipo: "recompensa", nombre: "", premio: "sobre", heroe: "", cantidad: 0, sorteo: "", grupos: "todos",
+    desde: 0, hasta: 0, limite: 0, porEscuadron: 0, activo: true, creado: Date.now() }, datos || {});
+}
+/** El catálogo de premios por enlace de estos grupos (los que pueda leer quien mira), con dónde está cada uno. */
+async function premiosEnlaceDe(perIds) {
+  const porId = {};
+  await Promise.all((perIds || []).map(async per => {
+    let m = {};
+    try { const d = await getDoc(PRIV(per)); m = (d.exists() && d.data().premiosEnlace) || {}; } catch (e) { return; }
+    Object.keys(m).forEach(id => {
+      const x = m[id]; if (!x || !x.id) return;
+      const ya = porId[id];
+      if (!ya || Number(x.actualizado || 0) > Number(ya.actualizado || 0)) porId[id] = Object.assign({}, x, { en: ya ? ya.en : [] });
+      porId[id].en.push(per);
+    });
+  }));
+  return Object.values(porId).sort((a, b) => Number(b.creado || 0) - Number(a.creado || 0));
+}
+/** A qué grupos va: «todos» son todos los que lleva quien guarda; si no, los marcados que lleve. */
+function destinosDe(item, gestionados) {
+  return item.grupos === "todos" ? gestionados.slice() : (item.grupos || []).filter(g => gestionados.indexOf(g) >= 0);
+}
+/**
+ * Guardar UN premio: en la parte privada de cada grupo al que va, su recompensa en cada uno (con la huella del código),
+ * y fuera de los grupos a los que ya no va. Devuelve { en: [grupos donde está], saltados: [{per, motivo}] }.
+ */
+async function guardarPremioEnlace(item, gestionados) {
+  item = Object.assign({}, item, { actualizado: Date.now() });
+  const antes = item.en || [];
+  delete item.en;
+  const destinos = destinosDe(item, gestionados), hash = await huellaPremio(item.id, item.codigo);
+  const saltados = [], en = [];
+  for (const per of destinos) {
+    // el cofre del sobre, del héroe, de las cápsulas: los de la tienda de ESE grupo (mismo sorteo, mismas cartas)
+    const premios = (await getDocs(query(collection(db, "rewards"), where("projectId", "==", per)))).docs.map(d => ({ id: d.id, ...d.data() }));
+    const conCofre = premios.filter(r => r.consumeEffects && r.consumeEffects.lootBox);
+    const sobre = conCofre.find(r => r.stargateTipo === "cromo"), heroe = conCofre.find(r => r.stargateTipo === "heroe");
+    const cofres = {};
+    conCofre.forEach(r => { if (/^(sobre_|capsula_)/.test(r.stargateTipo || "") && r.inStore !== false) cofres[r.stargateTipo] = r; });
+    if (/^(sobre_|capsula_)/.test(item.premio) && !cofres[item.premio]) { saltados.push({ per, motivo: "no tiene ese premio en su tienda" }); continue; }
+    if (item.premio === "participaciones" && !premios.some(r => r.id === item.sorteo)) { saltados.push({ per, motivo: "ese sorteo no es de este grupo" }); continue; }
+    const lote = writeBatch(db);
+    lote.set(doc(db, "rewards", idPremioHuevo(per, item.id)),
+      Object.assign(window.SG.PAQUETE.premioDeHuevo(per, item, sobre, heroe, cofres), { claimLinkHash: hash, stargateBorrado: false }), { merge: true });
+    lote.set(PRIV(per), { premiosEnlace: { [item.id]: item } }, { merge: true });
+    await lote.commit();
+    en.push(per);
+  }
+  for (const per of antes.filter(g => en.indexOf(g) < 0 && gestionados.indexOf(g) >= 0)) await quitarDeGrupo(per, item.id);
+  return { en, saltados };
+}
+async function quitarDeGrupo(per, id) {
+  const lote = writeBatch(db);
+  // cerrado y marcado (borrar la recompensa solo lo puede el dueño principal): quien lo reclamó lo conserva
+  lote.set(doc(db, "rewards", idPremioHuevo(per, id)), { claimLinkEnabled: false, stargateBorrado: true }, { merge: true });
+  lote.update(PRIV(per), { ["premiosEnlace." + id]: deleteField() });
+  await lote.commit();
+}
+async function borrarPremioEnlace(item, gestionados) {
+  for (const per of (item.en || []).filter(g => gestionados.indexOf(g) >= 0)) await quitarDeGrupo(per, item.id);
+}
+/** El enlace de un premio (directo: la página de STARGATE; con `embed`: la caja suelta para el Genially). */
+function enlacePremio(item, embed) {
+  return location.origin + "/huevo.html?h=" + encodeURIComponent(item.id) + "&c=" + encodeURIComponent(item.codigo || "") +
+    (item.tipo === "huevo" ? "&t=h" : "&t=r") + (embed ? "&embed=1" : "");
+}
+
 async function guardarHuevos(perId, lista) {
   // el cofre del sobre y el del héroe se copian de la tienda del grupo: mismo sorteo, mismas cartas
   const premios = await getDocs(query(collection(db, "rewards"), where("projectId", "==", perId)));
@@ -1403,7 +1497,7 @@ function cuandoEs(ms) {
 /**
  * Reclamar un escondite. Devuelve qué ha tocado, o por qué no — con palabras, no con códigos.
  */
-async function reclamarHuevo(perId, huevoId, fichaId) {
+async function reclamarHuevo(perId, huevoId, fichaId, codigo) {
   const yo = await sesion();
   if (!yo) throw new Error("Entra con tu cuenta para reclamarlo");
   const rid = idPremioHuevo(perId, huevoId);
@@ -1421,7 +1515,8 @@ async function reclamarHuevo(perId, huevoId, fichaId) {
 
   let reclamo;
   try {
-    reclamo = await llamar("claimLinkedReward", { rewardId: rid, modo: "item" });
+    // (17-sep · con su código: el servidor comprueba la huella antes de dar nada)
+    reclamo = await llamar("claimLinkedReward", { rewardId: rid, modo: "item", codigo: String(codigo || "") });
   } catch (e) {
     const m = String((e && e.message) || "");
     if (/SOLD_OUT|resource-exhausted/i.test(m + " " + (e && e.code)))
@@ -1825,7 +1920,7 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, alumno, nuevoCodigo,
-                    huevosDe, guardarHuevos, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
+                    huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta,

@@ -28,6 +28,43 @@ const REG = {};   // cifras que se apuntan para el informe
   await L.arrancar(VER);
   const vivas = [];
   const nueva = async n => { const p = await persona(n); vivas.push(p); return p; };
+  /**
+   * 17-sep · LOS PREMIOS POR ENLACE, CON LA PANTALLA NUEVA. Se crean con la ventana visual, se guardan solos y su enlace
+   * lleva el código secreto. Norberto lo probó con la de antes y le dejó reclamar antes de hora un premio que no era:
+   * sus cambios no se habían guardado y la pantalla decía lo contrario. Estos ayudantes hacen lo que haría una persona.
+   */
+  const premiosDe = async per => { const d = await leerDoc("projects/" + per + "/privado/stargate"); return Object.values((d && d.premiosEnlace) || {}); };
+  const enlaceDe = (it, embed) => "huevo.html?h=" + it.id + "&c=" + encodeURIComponent(it.codigo) + "&t=" + (it.tipo === "huevo" ? "h" : "r") + (embed ? "&embed=1" : "");
+  const tarjeta = (id, js) => `(function(){ var f=document.querySelector('.pe-f[data-pe="${id}"]'); if(!f) return 'SIN TARJETA'; ${js} })()`;
+  const aPremiosDe = async (p, per) => {
+    await p.ir("consola.html?per=" + per); await p.hasta("document.querySelectorAll('.pestanas .pest').length>0", 25);
+    await p.js("document.querySelector('.pest[data-tab=\"huevos\"]').click(); 1");
+    return p.hasta("!!document.getElementById('pe-nuevo') && !/Buscando tus premios/.test((document.getElementById('pe-lista')||{}).textContent||'')", 25);
+  };
+  const crearPremioUI = async (p, per, o) => {
+    const antes = (await premiosDe(per)).map(x => x.id);
+    await p.js("document.getElementById('pe-nuevo').click(); 1");
+    await p.hasta(`!!document.querySelector('.pe-ventana [data-v="${o.tipo || "recompensa"}"]')`, 10);
+    await p.js(`document.querySelector('.pe-ventana [data-v="${o.tipo || "recompensa"}"]').click(); 1`);
+    await p.hasta(`!!document.querySelector('.pe-ventana .pe-op[data-v="${o.premio}"]')`, 10);
+    await p.js(`document.querySelector('.pe-ventana .pe-op[data-v="${o.premio}"]').click(); 1`);
+    if (o.heroe) { await p.hasta(`!!document.querySelector('.pe-ventana [data-h="${o.heroe}"]')`, 10); await p.js(`document.querySelector('.pe-ventana [data-h="${o.heroe}"]').click(); 1`); }
+    if (o.cantidad) { await p.hasta("!!document.querySelector('.pe-ventana .pe-n')", 10);
+      await p.js(`(function(){ document.querySelector('.pe-ventana .pe-n').value='${o.cantidad}'; document.querySelector('.pe-ventana [data-ok]').click(); return 1; })()`); }
+    await p.hasta("!document.querySelector('.pe-ventana')", 10);
+    let it = null;
+    for (let i = 0; i < 60 && !it; i++) { it = (await premiosDe(per)).filter(x => antes.indexOf(x.id) < 0)[0] || null; if (!it) await dormir(250); }
+    if (it) await p.hasta(tarjeta(it.id, "return /Creado|Guardado/.test(f.querySelector('.pe-guardado').textContent);"), 15);
+    return it;
+  };
+  /** Tocar campos de una tarjeta como una persona (sin botón de guardar) y esperar a que diga «✓ Guardado». */
+  const ajustarPremio = async (p, id, campos) => {
+    await p.js(tarjeta(id, "var m=f.querySelector('.pe-mas'); if(m.hidden) f.querySelector('[data-pe-mas]').click(); return 1;"));
+    for (const [sel, v] of Object.entries(campos))
+      await p.js(tarjeta(id, `var e=f.querySelector(${JSON.stringify(sel)}); e.value=${JSON.stringify(v)}; e.dispatchEvent(new Event('input')); return 1;`));
+    return p.hasta(tarjeta(id, "return /✓ Guardado/.test(f.querySelector('.pe-guardado').textContent);"), 20);
+  };
+  const reclamarSinCodigo = (q, rid) => q.js(`window.SG.MOTOR.llamar("claimLinkedReward",{rewardId:${JSON.stringify(rid)},modo:"item"}).then(function(){return "PASÓ"},function(e){return e.message})`);
   // 13-sep · los capítulos de NEBULA, ya vistos (para las secciones que no van de eso: si no, a mitad
   // de una prueba sale NEBULA contando el Mercado)
   const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10','c11'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
@@ -361,67 +398,85 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 premiar · un estudiante que llama a mano a «regalar» recibe un no del servidor", /equipo docente/i.test(trampa), trampa);
     }
 
-    // ============================================================ 6 · LOS ESCONDITES, CON SUS TRES TOPES
+    // ============================================================ 6 · LOS PREMIOS POR ENLACE: TOPES Y CÓDIGO SECRETO
+    // 17-sep · con la pantalla nueva: se crean con la ventana visual, se guardan solos y el enlace lleva su código.
     if (hacer(6)) {
-      const rita = await nueva("Rita configura los escondites");
+      const rita = await nueva("Rita configura los premios por enlace");
       await rita.entrarPorLaPuerta("rita@lab.test", "Rita Referente");
       await rita.hasta("location.pathname.indexOf('consola.html')>=0", 20);
-      await rita.ir("consola.html?per=lab-clase");
-      await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
-      await rita.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).filter(function(b){return /Premios por enlace/.test(b.textContent)})[0].click(); 1");
-      await rita.hasta("!!document.getElementById('hv-save')", 15);
-      // p2 → bolsa de 40 con tope TOTAL 1 · p3 → sobre con tope POR ESCUADRÓN 1
-      await rita.js(`(function(){
-        var filas=[].slice.call(document.querySelectorAll('.hv-f'));
-        function pon(f, premio, lim, esc){ var s=f.querySelector('.h-premio'); s.value=premio; s.dispatchEvent(new Event('change'));
-          var l=f.querySelector('.h-lim'); l.value=lim; l.dispatchEvent(new Event('input'));
-          var e=f.querySelector('.h-esc'); e.value=esc; e.dispatchEvent(new Event('input')); }
-        pon(filas[1],'bolsa',1,0); pon(filas[2],'sobre',0,1);
-        document.getElementById('hv-save').click(); return filas.length; })()`);
-      await dormir(4000);
-      const p2 = await leerDoc("rewards/lab-clase__huevo_p2"), p3 = await leerDoc("rewards/lab-clase__huevo_p3");
-      c("escondites · al guardar, cada uno es una recompensa del servidor", !!p2 && !!p3);
-      c("escondites · p2: bolsa con tope total 1", p2 && p2.claimLinkMaxTotal === 1 && p2.stargateHuevo.premio === "bolsa", JSON.stringify(p2 && { t: p2.claimLinkMaxTotal, pr: p2.stargateHuevo }));
-      c("escondites · p3: tope 1 por escuadrón", p3 && p3.claimLinkMaxPerSquad === 1, JSON.stringify(p3 && p3.claimLinkMaxPerSquad));
-      c("escondites · y no salen en el Mercado", p2 && p2.inStore === false);
+      c("premios · la pestaña abre sin premios de muestra (se crean cuando hacen falta)", await aPremiosDe(rita, "lab-clase")
+        && await rita.js("!document.querySelector('.pe-f') && /Todavía no hay ninguno/.test(document.getElementById('pe-lista').textContent)"));
+      c("🔴 premios · no hay botón de «Guardar» que olvidar, ni un solo desplegable gris", await rita.js("!document.getElementById('hv-save') && !document.querySelector('#c-cuerpo select:not(.sgsel-nativo)')"));
+      const A = await crearPremioUI(rita, "lab-clase", { tipo: "huevo", premio: "sobre" });
+      const B = await crearPremioUI(rita, "lab-clase", { tipo: "recompensa", premio: "bolsa", cantidad: 50 });
+      const C = await crearPremioUI(rita, "lab-clase", { tipo: "recompensa", premio: "sobre" });
+      c("premios · Rita crea tres desde la ventana visual (huevo con sobre · recompensa de 50 ◈ · recompensa con sobre)", !!(A && B && C), JSON.stringify([A && A.id, B && B.id, C && C.id]));
+      if (A && B && C) {
+        c("🔴 premios · identificadores y códigos que no se adivinan", [A, B, C].every(x => /^[a-z2-9]{10}$/.test(x.id) && String(x.codigo).length === 18), A.id + " · " + A.codigo);
+        c("premios · ajustar el tope se guarda solo (tope total 1 en la bolsa)", await ajustarPremio(rita, B.id, { ".h-lim": "1" }));
+        c("premios · y el de escuadrón (1 por escuadrón en el sobre)", await ajustarPremio(rita, C.id, { ".h-esc": "1" }));
+        await rita.foto(FOTOS + "/6-premios.png");
+        const RA = await leerDoc("rewards/lab-clase__huevo_" + A.id), RB = await leerDoc("rewards/lab-clase__huevo_" + B.id), RC = await leerDoc("rewards/lab-clase__huevo_" + C.id);
+        c("premios · cada uno es una recompensa del servidor, con la huella de su código", [RA, RB, RC].every(r => r && /^[0-9a-f]{64}$/.test(r.claimLinkHash || "")));
+        c("premios · el tipo viaja con él (huevo · recompensa)", RA.stargateHuevo.tipo === "huevo" && RB.stargateHuevo.tipo === "recompensa");
+        c("premios · la bolsa: 50 ◈ con tope total 1", RB.claimLinkMaxTotal === 1 && RB.stargateHuevo.premio === "bolsa" && RB.consumeEffects.attributes.addCoins === 50, JSON.stringify({ t: RB.claimLinkMaxTotal, e: RB.consumeEffects }));
+        c("premios · el sobre: 1 por escuadrón", RC.claimLinkMaxPerSquad === 1);
+        c("premios · y no salen en el Mercado", RB.inStore === false);
+        c("🔴 premios · la huella NO es el código: en la recompensa (que lee cualquiera con sesión) no está el código", !JSON.stringify(RB).includes(B.codigo));
 
-      const reclamar = async (correo, nombre, h) => {
-        const p = await nueva(nombre + " busca " + h);
-        await p.ir("huevo.html?h=" + h);
-        await p.entrarComo(correo, nombre);
-        await p.ir("huevo.html?h=" + h);
-        // con sesión, el escondite enseña «🥚 Abrirlo» (hv-abrir); sin ella, la puerta (hv-entrar)
-        const ab = await p.hasta("!!document.getElementById('hv-abrir') || /ya lo ten|no existe|cerrado|tarde/i.test(document.body.innerText)", 15);
-        if (ab) await p.js("var b=document.getElementById('hv-abrir'); if(b) b.click(); 1");
-        await dormir(9000);
-        p.__foto = FOTOS + "/6-" + nombre + "-" + h + ".png"; await p.foto(p.__foto);
-        const t = await p.texto();
-        await p.cerrar();
-        return t;
-      };
-      const antes = await fichaDe("ana@lab.test", "lab-clase");
-      const t1 = await reclamar("ana@lab.test", "Ana", "p1");
-      const d1 = await fichaDe("ana@lab.test", "lab-clase");
-      const nuevas = (d1.inventory || []).filter(x => /__cromo_/.test(x)).length - (antes.inventory || []).filter(x => /__cromo_/.test(x)).length;
-      c("🔴 escondites · Ana encuentra p1 (sobre) y se lleva TRES cartas de verdad", nuevas === 3, "cartas nuevas: " + nuevas + " · " + t1.slice(0, 200));
-      const t1b = await reclamar("ana@lab.test", "Ana", "p1");
-      const d1b = await fichaDe("ana@lab.test", "lab-clase");
-      c("escondites · si vuelve al mismo, «ya lo tenías» y no paga", /ya lo ten|ya era|ya lo encontr/i.test(t1b) &&
-        (d1b.inventory || []).length === (d1.inventory || []).length, t1b.slice(0, 160));
-      const t2a = await reclamar("ana@lab.test", "Ana", "p2");
-      const d2a = await fichaDe("ana@lab.test", "lab-clase");
-      c("🔴 escondites · p2 (tope total 1): Ana llega primera y cobra la bolsa (50 ◈)", d2a.coins - d1b.coins === 50, (d1b.coins) + " → " + d2a.coins + " · " + t2a.slice(0, 160));
-      const bAntes = await fichaDe("beto@lab.test", "lab-clase");
-      const t2b = await reclamar("beto@lab.test", "Beto", "p2");
-      const bDesp = await fichaDe("beto@lab.test", "lab-clase");
-      c("🔴 escondites · p2: Beto llega segundo → «llegaste tarde» y no cobra", /tarde/i.test(t2b) && bDesp.coins === bAntes.coins, t2b.slice(0, 200));
-      // p3, uno por escuadrón: Ana y Beto eligieron el mismo Comandante; Carla, el otro
-      const t3a = await reclamar("ana@lab.test", "Ana", "p3");
-      const t3b = await reclamar("beto@lab.test", "Beto", "p3");
-      const t3c = await reclamar("carla@lab.test", "Carla", "p3");
-      c("🔴 escondites · p3 (1 por escuadrón): Ana sí, Beto (su mismo escuadrón) no, Carla (otro) sí",
-        /cartas|toca|sobre|Ver mi Nave/i.test(t3a) && /tarde|agotado/i.test(t3b) && /cartas|toca|sobre|Ver mi Nave/i.test(t3c),
-        "Ana: " + t3a.slice(0, 80) + " | Beto: " + t3b.slice(0, 80) + " | Carla: " + t3c.slice(0, 80));
+        const ana0 = await nueva("Ana curiosea");
+        await ana0.ir("entrar.html"); await ana0.entrarComo("ana@lab.test", "Ana Nueva");
+        const priv = await ana0.js(`window.SG.MOTOR.getDoc(window.SG.MOTOR.doc(window.SG.MOTOR.db,"projects","lab-clase","privado","stargate")).then(function(){return "LEYÓ"},function(e){return e.code||e.message})`);
+        c("🔴 premios · una alumna no puede leer el catálogo (ahí están los códigos)", priv !== "LEYÓ", priv);
+        const sinC = await reclamarSinCodigo(ana0, "lab-clase__huevo_" + B.id);
+        c("🔴 premios · y si llama al servidor con el identificador y SIN código, no le da nada", /no es válido/i.test(sinC), sinC);
+        const conOtro = await ana0.js(`window.SG.MOTOR.llamar("claimLinkedReward",{rewardId:"lab-clase__huevo_${B.id}",modo:"item",codigo:"ABCDEFGHJKLMNPQRST"}).then(function(){return "PASÓ"},function(e){return e.message})`);
+        c("🔴 premios · ni con un código inventado", /no es válido/i.test(conOtro), conOtro);
+        await ana0.ir("huevo.html?h=" + B.id + "&t=r");
+        await ana0.hasta("!!document.getElementById('hv-abrir')", 20);
+        await ana0.js("document.getElementById('hv-abrir').click(); 1");
+        c("premios · un enlace al que le han quitado el código dice que no es válido", await ana0.hasta("/no es válido/i.test(document.body.innerText)", 20), (await ana0.texto()).slice(0, 160));
+        await ana0.cerrar();
+
+        const reclamar = async (correo, nombre, it) => {
+          const p = await nueva(nombre + " busca " + it.id);
+          await p.ir(enlaceDe(it));
+          await p.entrarComo(correo, nombre);
+          await p.ir(enlaceDe(it));
+          const ab = await p.hasta("!!document.getElementById('hv-abrir') || /ya lo ten|ya es tuya|no existe|cerrado|tarde/i.test(document.body.innerText)", 15);
+          if (ab) await p.js("var b=document.getElementById('hv-abrir'); if(b) b.click(); 1");
+          await dormir(9000);
+          await p.foto(FOTOS + "/6-" + nombre + "-" + it.id + ".png");
+          const tx = await p.texto();
+          await p.cerrar();
+          return tx;
+        };
+        const antes = await fichaDe("ana@lab.test", "lab-clase");
+        const t1 = await reclamar("ana@lab.test", "Ana", A);
+        const d1 = await fichaDe("ana@lab.test", "lab-clase");
+        const nuevas = (d1.inventory || []).filter(x => /__cromo_/.test(x)).length - (antes.inventory || []).filter(x => /__cromo_/.test(x)).length;
+        c("🔴 premios · Ana encuentra el huevo (sobre) y se lleva TRES cartas de verdad", nuevas === 3, "cartas nuevas: " + nuevas + " · " + t1.slice(0, 200));
+        const t1b = await reclamar("ana@lab.test", "Ana", A);
+        const d1b = await fichaDe("ana@lab.test", "lab-clase");
+        c("premios · si vuelve al mismo, «ya lo tenías» y no paga", /ya lo ten|ya era|ya lo encontr/i.test(t1b) && (d1b.inventory || []).length === (d1.inventory || []).length, t1b.slice(0, 160));
+        const t2a = await reclamar("ana@lab.test", "Ana", B);
+        const d2a = await fichaDe("ana@lab.test", "lab-clase");
+        c("🔴 premios · la bolsa (tope total 1): Ana llega primera y cobra 50 ◈", d2a.coins - d1b.coins === 50, d1b.coins + " → " + d2a.coins + " · " + t2a.slice(0, 160));
+        c("premios · y como es una recompensa, la página lo dice así («¡Enhorabuena!…», no «escondite»)", /recompensa/i.test(t2a) && !/escondidos por ah/i.test(t2a), t2a.slice(0, 160));
+        const bAntes = await fichaDe("beto@lab.test", "lab-clase");
+        const t2b = await reclamar("beto@lab.test", "Beto", B);
+        const bDesp = await fichaDe("beto@lab.test", "lab-clase");
+        c("🔴 premios · la bolsa: Beto llega segundo → «llegaste tarde» y no cobra", /tarde/i.test(t2b) && bDesp.coins === bAntes.coins, t2b.slice(0, 200));
+        const t3a = await reclamar("ana@lab.test", "Ana", C);
+        const t3b = await reclamar("beto@lab.test", "Beto", C);
+        const t3c = await reclamar("carla@lab.test", "Carla", C);
+        c("🔴 premios · el sobre (1 por escuadrón): Ana sí, Beto (su mismo escuadrón) no, Carla (otro) sí",
+          /cartas|toca|sobre|Ver mi Nave|recompensa/i.test(t3a) && /tarde|agotado/i.test(t3b) && /cartas|toca|sobre|Ver mi Nave|recompensa/i.test(t3c),
+          "Ana: " + t3a.slice(0, 80) + " | Beto: " + t3b.slice(0, 80) + " | Carla: " + t3c.slice(0, 80));
+        await aPremiosDe(rita, "lab-clase");
+        const est = await rita.hasta(tarjeta(B.id, "return /1 lo ha reclamado/.test(f.querySelector('.h-estado').textContent);"), 20);
+        c("premios · la tarjeta cuenta lo que dice el servidor («🙋 1 lo ha reclamado»)", est, await rita.js(tarjeta(B.id, "return f.querySelector('.h-estado').textContent;")));
+      }
     }
 
     // ============================================================ 7 · DESHACER, Y EL TRAMPOSO
@@ -549,10 +604,13 @@ const REG = {};   // cifras que se apuntan para el informe
         if (!hay) break;
         intentos++; await dormir(4500);
         await beto.js("var f=document.querySelector('.sb-fin, .neb-capa [data-cerrar]'); if(f) f.click(); 1");
-        if ((await fichaDe("beto@lab.test", "lab-clase")).completedMissionIds.length >= 3 && intentos >= 4) break;
+        // (17-sep · se sigue hasta chocar con el tope: parar al llegar a 3 dejaba a veces el aviso del último reto, no el del tope)
+        if (/Hoy ya has registrado 3/.test(await beto.js("(document.getElementById('nave-aviso')||{}).textContent||''"))) break;
       }
       const f1 = await fichaDe("beto@lab.test", "lab-clase");
-      const marcados = (f1.completedMissionIds || []).length - (f0.completedMissionIds || []).length;
+      // (los relámpago no cuentan para el tope de 3 al día: se hacen en clase)
+      const sinRel = l => (l || []).filter(x => !/__L\d$/.test(x)).length;
+      const marcados = sinRel(f1.completedMissionIds) - sinRel(f0.completedMissionIds);
       REG.tramposo = { antes: "15 retos, +4.100 xp, +880 ◈ en un minuto (sin tope ni enlace)",
                        marcados, xp: f1.totalPoints - f0.totalPoints, creditos: f1.coins - f0.coins };
       c("🔴 tramposo · con el tope, por mucho que pulse solo registra 3 retos hoy", marcados === 3, JSON.stringify(REG.tramposo));
@@ -679,71 +737,85 @@ const REG = {};   // cifras que se apuntan para el informe
     if (hacer(12)) {
       const rita = await nueva("Rita crea premios");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=lab-clase");
-      await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
-      await rita.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).filter(function(b){return /Premios por enlace/.test(b.textContent)})[0].click(); 1");
-      await rita.hasta("!!document.getElementById('hv-add')", 15);
-      const nFilas = await rita.js("document.querySelectorAll('.hv-f').length");
-      await rita.js("document.getElementById('hv-add').click(); document.getElementById('hv-add').click(); 1");
-      const ids = await rita.js(`(function(){
-        var f=[].slice.call(document.querySelectorAll('.hv-f')); var a=f[f.length-2], b=f[f.length-1];
-        function pon(x, sel, v, ev){ var e=x.querySelector(sel); e.value=v; e.dispatchEvent(new Event(ev||'input')); }
-        pon(a,'.h-nom','Los 5 primeros de cada escuadrón'); pon(a,'.h-premio','sobre','change'); pon(a,'.h-esc','5');
-        pon(b,'.h-nom','Experiencia para todos'); pon(b,'.h-premio','xp','change'); pon(b,'.h-cantidad','100');
-        var visible = !b.querySelector('.h-cant').hidden && a.querySelector('.h-cant').hidden;
-        document.getElementById('hv-save').click();
-        return { a: a.querySelector('.h-id').value, b: b.querySelector('.h-id').value, cantidadSoloDondeToca: visible };
-      })()`);
-      await dormir(4000);
-      c("premios · la referente añade dos premios desde su pantalla", nFilas + 2 === await rita.js("document.querySelectorAll('.hv-f').length"));
-      c("premios · la caja «Cantidad» solo sale para créditos y xp", ids.cantidadSoloDondeToca);
-      c("premios · los nuevos nacen con un identificador que no se adivina", /^e\d+-[a-z0-9]{5}$/.test(ids.a) && /^e\d+-[a-z0-9]{5}$/.test(ids.b), ids.a + " · " + ids.b);
-      const ra = await leerDoc("rewards/lab-clase__huevo_" + ids.a), rb = await leerDoc("rewards/lab-clase__huevo_" + ids.b);
-      c("premios · «5 primeros de cada escuadrón → sobre» queda así en el servidor", ra && ra.claimLinkMaxPerSquad === 5 && ra.stargateHuevo.premio === "sobre",
-        JSON.stringify(ra && { esc: ra.claimLinkMaxPerSquad, p: ra.stargateHuevo }));
-      c("premios · «+100 xp para todos» también", rb && rb.stargateHuevo.premio === "xp" && rb.consumeEffects.attributes.addPoints === 100,
-        JSON.stringify(rb && rb.consumeEffects));
-      await rita.foto(FOTOS + "/12-premios-por-enlace.png");
+      await aPremiosDe(rita, "lab-clase");
+      const nFilas = await rita.js("document.querySelectorAll('.pe-f').length"), nCatalogo = (await premiosDe("lab-clase")).length;
+      // la ventana visual: tarjetas con imagen, y «cuánto» solo para créditos, xp y participaciones
+      await rita.js("document.getElementById('pe-nuevo').click(); 1");
+      await rita.hasta("!!document.querySelector('.pe-ventana [data-v=\"recompensa\"]')", 10);
+      c("🔴 premios · «➕ Nuevo premio» pregunta primero qué es: recompensa de un reto o huevo de Pascua", await rita.js("!!document.querySelector('.pe-ventana [data-v=\"huevo\"]')"));
+      await rita.js("document.querySelector('.pe-ventana [data-v=\"recompensa\"]').click(); 1");
+      await rita.hasta("document.querySelectorAll('.pe-ventana .pe-op').length>=8", 10);
+      c("🔴 premios · y luego el premio, en tarjetas con su imagen y lo que da (nada de desplegables)",
+        await rita.js("document.querySelectorAll('.pe-ventana .pe-op .pe-op-img').length>=8 && !document.querySelector('.pe-ventana select:not(.sgsel-nativo)') && /Tres cartas al azar/.test(document.querySelector('.pe-ventana').textContent)"));
+      await rita.foto(FOTOS + "/12-ventana-premios.png");
+      await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})); 1"); await dormir(300);
+      c("premios · Escape cierra la ventana sin crear nada", await rita.js("!document.querySelector('.pe-ventana')") && (await premiosDe("lab-clase")).length === nCatalogo);
+      const pa = await crearPremioUI(rita, "lab-clase", { tipo: "recompensa", premio: "sobre" });
+      const pb = await crearPremioUI(rita, "lab-clase", { tipo: "recompensa", premio: "xp", cantidad: 100 });
+      c("premios · la referente añade dos premios desde su pantalla", !!(pa && pb) && nFilas + 2 === await rita.js("document.querySelectorAll('.pe-f').length"));
+      if (pa && pb) {
+        await rita.js(tarjeta(pa.id, "var n=f.querySelector('.pe-nom'); n.value='Los 5 primeros de cada escuadrón'; n.dispatchEvent(new Event('input')); return 1;"));
+        await rita.hasta(tarjeta(pa.id, "return /✓ Guardado/.test(f.querySelector('.pe-guardado').textContent);"), 20);
+        c("premios · poner nombre se guarda solo", await ajustarPremio(rita, pa.id, { ".h-esc": "5" }));
+        await rita.js(tarjeta(pb.id, "var n=f.querySelector('.pe-nom'); n.value='Experiencia para todos'; n.dispatchEvent(new Event('input')); return 1;"));
+        await rita.hasta(tarjeta(pb.id, "return /✓ Guardado/.test(f.querySelector('.pe-guardado').textContent);"), 20);
+        c("premios · la caja «Cuánta xp» solo sale para créditos, xp y participaciones", await rita.js(tarjeta(pb.id, "return !!f.querySelector('.h-cantidad');")) && await rita.js(tarjeta(pa.id, "return !f.querySelector('.h-cantidad');")));
+        c("premios · cada tarjeta lleva la imagen de su premio", await rita.js(tarjeta(pa.id, "return !!f.querySelector('.pe-img img');")) && await rita.js(tarjeta(pb.id, "return !!f.querySelector('.pe-img .pe-azulejo');")));
+        c("premios · la dirección no se ve (se copia con sus botones)", await rita.js("!document.querySelector('.pe-f .h-url') && !/huevo\\.html/.test(document.getElementById('pe-lista').innerText)"));
+        const ra = await leerDoc("rewards/lab-clase__huevo_" + pa.id), rb = await leerDoc("rewards/lab-clase__huevo_" + pb.id);
+        c("premios · «5 primeros de cada escuadrón → sobre» queda así en el servidor (con su nombre)", ra && ra.claimLinkMaxPerSquad === 5 && ra.stargateHuevo.premio === "sobre" && ra.title === "Los 5 primeros de cada escuadrón",
+          JSON.stringify(ra && { esc: ra.claimLinkMaxPerSquad, p: ra.stargateHuevo, t: ra.title }));
+        c("premios · «+100 xp para todos» también", rb && rb.stargateHuevo.premio === "xp" && rb.consumeEffects.attributes.addPoints === 100, JSON.stringify(rb && rb.consumeEffects));
+        await rita.foto(FOTOS + "/12-premios-por-enlace.png");
+        const pa2 = (await premiosDe("lab-clase")).filter(x => x.id === pa.id)[0], pb2 = (await premiosDe("lab-clase")).filter(x => x.id === pb.id)[0];
 
-      // cobrarlos desde DENTRO de una página de otro sitio (como una presentación de Genially)
-      const cobrar = async (correo, nombre, h) => {
-        const p = await nueva(nombre + " en la presentación");
-        await p.ir("http://127.0.0.1:" + L.P_WEB2 + "/genially.html?que=" + encodeURIComponent("huevo.html?h=" + h + "&embed=1"));
-        const f = await p.marco("huevo.html");
-        if (!f) return { error: "no encuentro el iframe" };
-        // 15-sep · primero la misma portada que la vista previa («🥚 Abrirlo»); al pulsarla, la puerta de Google
-        const portada = await f.hasta("!!document.getElementById('hv-abrir0')", 15);
-        if (portada) await f.js("document.getElementById('hv-abrir0').click(); 1");
-        const puerta = portada && await f.hasta("!!document.getElementById('hv-entrar')", 15);
-        const sinCabecera = await f.js("!document.querySelector('nav.nav') || getComputedStyle(document.querySelector('nav.nav')).display==='none'");
-        await f.entrarComo(correo, nombre);
-        await f.recargar(); await dormir(2500);
-        const f2 = await p.marco("huevo.html");
-        await f2.hasta("!!document.getElementById('hv-abrir')", 15);
-        await f2.js("var b=document.getElementById('hv-abrir'); if(b) b.click(); 1");
-        await dormir(7000);
-        const sobre = await f2.js("!!document.querySelector('.sb-capa')");
-        if (sobre) { await f2.js("var s=document.querySelector('.sb-saltar'); if(s) s.click(); 1"); await dormir(500);
-                     await f2.js("var x=document.querySelector('.sb-fin'); if(x) x.click(); 1"); await dormir(800); }
-        const t = await f2.texto();
-        await p.foto(FOTOS + "/12-" + nombre + "-" + h + ".png");
-        await p.cerrar();
-        return { puerta, sinCabecera, sobre, texto: t, errores: p.errores };
-      };
-      const b0 = await fichaDe("beto@lab.test", "lab-clase");
-      const rb1 = await cobrar("beto@lab.test", "Beto", ids.a);
-      const b1 = await fichaDe("beto@lab.test", "lab-clase");
-      c("🔴 embebido · dentro de la presentación, sin sesión: la portada con «Abrirlo» y, al pulsarla, la puerta de Google AHÍ MISMO", rb1.puerta, rb1.error || "");
-      c("embebido · y sin la cabecera de la web", rb1.sinCabecera);
-      c("🔴 embebido · Beto entra desde el iframe, abre el sobre carta a carta y se lleva 3 cartas", rb1.sobre &&
-        (b1.inventory || []).filter(x => /__cromo_/.test(x)).length - (b0.inventory || []).filter(x => /__cromo_/.test(x)).length === 3,
-        rb1.texto.slice(0, 160));
-      const c0 = await fichaDe("carla@lab.test", "lab-clase");
-      const rc = await cobrar("carla@lab.test", "Carla", ids.b);
-      const c1 = await fichaDe("carla@lab.test", "lab-clase");
-      c("🔴 embebido · Carla cobra «+100 xp» desde la presentación", c1.totalPoints - c0.totalPoints === 100,
-        c0.totalPoints + " → " + c1.totalPoints + " · " + rc.texto.slice(0, 140));
-      c("embebido · sin errores dentro del iframe", !rb1.errores.length && !rc.errores.length, (rb1.errores[0] || "") + (rc.errores[0] || ""));
+        // cobrarlos desde DENTRO de una página de otro sitio (como una presentación de Genially)
+        const cobrar = async (correo, nombre, it) => {
+          const p = await nueva(nombre + " en la presentación");
+          await p.ir("http://127.0.0.1:" + L.P_WEB2 + "/genially.html?que=" + encodeURIComponent(enlaceDe(it, true)));
+          const f = await p.marco("huevo.html");
+          if (!f) return { error: "no encuentro el iframe", errores: [] , texto: "" };
+          const portada = await f.hasta("!!document.getElementById('hv-abrir0')", 15);
+          if (portada) await f.js("document.getElementById('hv-abrir0').click(); 1");
+          const puerta = portada && await f.hasta("!!document.getElementById('hv-entrar')", 15);
+          const sinCabecera = await f.js("!document.querySelector('nav.nav') || getComputedStyle(document.querySelector('nav.nav')).display==='none'");
+          const sinCapitan = await f.js("!document.querySelector('.hv-escena')");
+          await f.entrarComo(correo, nombre);
+          await f.recargar(); await dormir(2500);
+          const f2 = await p.marco("huevo.html");
+          await f2.hasta("!!document.getElementById('hv-abrir')", 15);
+          await f2.js("var b=document.getElementById('hv-abrir'); if(b) b.click(); 1");
+          await dormir(7000);
+          const sobre = await f2.js("!!document.querySelector('.sb-capa')");
+          if (sobre) { await f2.js("var s=document.querySelector('.sb-saltar'); if(s) s.click(); 1"); await dormir(500);
+                       await f2.js("var x=document.querySelector('.sb-fin'); if(x) x.click(); 1"); await dormir(800); }
+          const tx = await f2.texto();
+          await p.foto(FOTOS + "/12-" + nombre + "-" + it.id + ".png");
+          await p.cerrar();
+          return { puerta, sinCabecera, sinCapitan, sobre, texto: tx, errores: p.errores };
+        };
+        const b0 = await fichaDe("beto@lab.test", "lab-clase");
+        const rb1 = await cobrar("beto@lab.test", "Beto", pa2);
+        const b1 = await fichaDe("beto@lab.test", "lab-clase");
+        c("🔴 embebido · dentro de la presentación, sin sesión: la portada y, al pulsarla, la puerta de Google AHÍ MISMO", rb1.puerta, rb1.error || "");
+        c("embebido · y sin la cabecera de la web ni el Capitán (se funde con la diapositiva)", rb1.sinCabecera && rb1.sinCapitan);
+        c("🔴 embebido · Beto entra desde el iframe, abre el sobre carta a carta y se lleva 3 cartas", rb1.sobre &&
+          (b1.inventory || []).filter(x => /__cromo_/.test(x)).length - (b0.inventory || []).filter(x => /__cromo_/.test(x)).length === 3, rb1.texto.slice(0, 160));
+        const c0 = await fichaDe("carla@lab.test", "lab-clase");
+        const rc = await cobrar("carla@lab.test", "Carla", pb2);
+        const c1 = await fichaDe("carla@lab.test", "lab-clase");
+        c("🔴 embebido · Carla cobra «+100 xp» desde la presentación", c1.totalPoints - c0.totalPoints === 100, c0.totalPoints + " → " + c1.totalPoints + " · " + rc.texto.slice(0, 140));
+        c("embebido · sin errores dentro del iframe", !rb1.errores.length && !rc.errores.length, (rb1.errores[0] || "") + (rc.errores[0] || ""));
+
+        // el enlace DIRECTO: la página propia de STARGATE, con el Capitán
+        const dir = await nueva("Dani abre el enlace directo");
+        await dir.ir(enlaceDe(pb2));
+        c("🔴 premios · el enlace directo abre la página de STARGATE, con fondo y el Capitán (pulgar arriba: es una recompensa)",
+          await dir.hasta("document.body.classList.contains('huevo-directo') && !!document.querySelector('.hv-escena img.hv-cap[src*=\"pulgar\"]')", 20)
+          && /Enhorabuena/.test(await dir.texto()), (await dir.texto()).slice(0, 160));
+        await dir.foto(FOTOS + "/12-enlace-directo.png");
+        await dir.cerrar();
+      }
 
       // validar un reto desde la presentación: B2 pide enlace, y se pega ahí mismo
       const ana = await nueva("Ana valida B2 en la presentación");
@@ -1050,52 +1122,53 @@ const REG = {};   // cifras que se apuntan para el informe
       const local = ms => { const d = new Date(ms); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16); };
       const rita = await nueva("Rita crea un héroe por enlace");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=lab-clase");
-      await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
-      const aPremios = async () => {
-        await rita.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).filter(function(b){return /Premios por enlace/.test(b.textContent)})[0].click(); 1");
-        await rita.hasta("!!document.getElementById('hv-add')", 15); await dormir(1200);
-      };
-      await aPremios();
-      await rita.js("document.getElementById('hv-add').click(); 1");
-      const fila = await rita.js(`(function(){
-        var f=[].slice.call(document.querySelectorAll('.hv-f')).pop();
-        function pon(sel, v, ev){ var e=f.querySelector(sel); e.value=v; e.dispatchEvent(new Event(ev||'input')); }
-        pon('.h-nom','Reto del lunes'); pon('.h-premio','heroe_fijo','change'); pon('.h-heroe',${JSON.stringify(HE)},'change');
-        pon('.h-desde',${JSON.stringify(local(Date.now() + 3600e3))},'change'); pon('.h-lim','4');
-        return { id: f.querySelector('.h-id').value, heroeVisible: !f.querySelector('.h-c-heroe').hidden,
-                 cantidadOculta: f.querySelector('.h-cant').hidden, img: f.querySelector('.h-heroe-img').getAttribute('src'),
-                 estado: f.querySelector('.h-estado').textContent, pendiente: document.getElementById('hv-save').classList.contains('pendiente') };
-      })()`);
-      c("héroe · el editor enseña el selector de héroe con su cara (y esconde «Cantidad»)", fila.heroeVisible && fila.cantidadOculta && fila.img.indexOf(HE) >= 0, JSON.stringify(fila));
-      c("héroe · el estado dice «⏳ Se abre…» antes de guardar, y el botón avisa de cambios", /Se abre/.test(fila.estado) && fila.pendiente, fila.estado);
-      await rita.js("document.getElementById('hv-save').click(); 1"); await dormir(4000);
+      await aPremiosDe(rita, "lab-clase");
+      // la ventana de héroes: TODOS, con su miniatura (Norberto: «debo ver las miniaturas»)
+      await rita.js("document.getElementById('pe-nuevo').click(); 1");
+      await rita.hasta("!!document.querySelector('.pe-ventana [data-v=\"recompensa\"]')", 10);
+      await rita.js("document.querySelector('.pe-ventana [data-v=\"recompensa\"]').click(); 1");
+      await rita.hasta("!!document.querySelector('.pe-ventana .pe-op[data-v=\"heroe_fijo\"]')", 10);
+      await rita.js("document.querySelector('.pe-ventana .pe-op[data-v=\"heroe_fijo\"]').click(); 1");
+      await rita.hasta("document.querySelectorAll('.pe-ventana .pe-heroe').length>0", 10);
+      const nHeroes = await rita.js("document.querySelectorAll('.pe-ventana .pe-heroe img.pe-op-img').length");
+      c("🔴 héroe · «Un héroe que eliges tú» abre la ventana de héroes con sus 30 miniaturas", nHeroes === 30, String(nHeroes));
+      await rita.foto(FOTOS + "/18-ventana-heroes.png");
+      await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})); 1"); await dormir(300);
+      const fila = await crearPremioUI(rita, "lab-clase", { tipo: "recompensa", premio: "heroe_fijo", heroe: HE });
+      c("héroe · creado con ese héroe (y su cara en la tarjeta)", !!fila && fila.heroe === HE && await rita.js(tarjeta(fila && fila.id, "return (f.querySelector('.pe-img img')||{}).getAttribute('src')||'';")).then(s => s.indexOf(HE) >= 0), JSON.stringify(fila));
+      /**
+       * 🔴 EL CASO DE NORBERTO (17-sep): pone «Abierto desde» dentro de una hora… y NO pulsa nada más. Con la pantalla de
+       * antes aquello no se guardaba y la alumna lo reclamaba al momento (y era otro premio). Ahora se guarda solo, y la
+       * tarjeta dice lo que dice el SERVIDOR.
+       */
+      c("🔴 héroe · «Abierto desde» dentro de una hora, nombre y tope 4: se guardan SOLOS, sin botón", await ajustarPremio(rita, fila.id, { ".h-desde": local(Date.now() + 3600e3), ".h-lim": "4" }));
+      await rita.js(tarjeta(fila.id, "var n=f.querySelector('.pe-nom'); n.value='Reto del lunes'; n.dispatchEvent(new Event('input')); return 1;"));
+      await rita.hasta(tarjeta(fila.id, "return /✓ Guardado/.test(f.querySelector('.pe-guardado').textContent);"), 20);
+      c("🔴 héroe · y la tarjeta dice «⏳ Se abre…» porque lo dice el servidor", await rita.hasta(tarjeta(fila.id, "return /Se abre/.test(f.querySelector('.h-estado').textContent);"), 20),
+        await rita.js(tarjeta(fila.id, "return f.querySelector('.h-estado').textContent;")));
       const RID = "lab-clase__huevo_" + fila.id;
       let R = await leerDoc("rewards/" + RID);
       c("🔴 héroe · en el servidor: un cofre de UNA pieza, ese héroe, con tope 4 y fecha de apertura",
         R && R.stargateHuevo.premio === "heroe_fijo" && R.consumeEffects.lootBox.items[0].rewardId === HID && R.claimLinkMaxTotal === 4
-          && R.claimLinkStartsAt > Date.now() + 3000e3, JSON.stringify(R && { p: R.stargateHuevo, lb: R.consumeEffects, t: R.claimLinkMaxTotal, d: R.claimLinkStartsAt }));
+          && R.claimLinkStartsAt > Date.now() + 3000e3 && R.title === "Reto del lunes", JSON.stringify(R && { p: R.stargateHuevo, lb: R.consumeEffects, t: R.claimLinkMaxTotal, d: R.claimLinkStartsAt, n: R.title }));
       await rita.foto(FOTOS + "/18-editor-heroe.png");
+      const it18 = () => premiosDe("lab-clase").then(l => l.filter(x => x.id === fila.id)[0]);
 
       // Eva, alumna nueva, llega antes de hora
       const eva = await nueva("Eva gana el reto");
       c("héroe · Eva se alista", await alistar(eva, "eva@lab.test", "Eva Prueba", "Eva Estelar", 0));
-      await eva.ir("huevo.html?h=" + fila.id);
+      await eva.ir(enlaceDe(await it18()));
       const pronto = await eva.hasta("/se abre/i.test(document.body.innerText) && !!document.querySelector('.hv-fig img')", 20);
-      c("héroe · antes de la hora, Eva VE el héroe y «se abre…», con el botón apagado", pronto && await eva.js("!!document.querySelector('.btn.epico[disabled]') && !document.getElementById('hv-abrir')"),
+      c("🔴 héroe · antes de la hora, Eva VE el héroe y «se abre…», con el botón apagado", pronto && await eva.js("!!document.querySelector('.btn.epico[disabled]') && !document.getElementById('hv-abrir')"),
         (await eva.texto()).slice(0, 200));
       await eva.foto(FOTOS + "/18-eva-pronto.png");
-      const forzado = await eva.js(`window.SG.MOTOR.llamar("claimLinkedReward",{rewardId:${JSON.stringify(RID)},modo:"item"}).then(function(){return "PASÓ"},function(e){return e.message})`);
-      c("🔴 héroe · y si fuerza la llamada, el SERVIDOR dice que aún no está abierto", /aún no está abierto/i.test(forzado), forzado);
+      const forzado = await eva.js(`window.SG.MOTOR.llamar("claimLinkedReward",{rewardId:${JSON.stringify(RID)},modo:"item",codigo:${JSON.stringify(fila.codigo)}}).then(function(){return "PASÓ"},function(e){return e.message})`);
+      c("🔴 héroe · y si fuerza la llamada CON el código, el SERVIDOR dice que aún no está abierto", /aún no está abierto/i.test(forzado), forzado);
 
-      // Rita lo abre desde ya y hasta dentro de una hora
-      await rita.ir("consola.html?per=lab-clase"); await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20); await aPremios();
-      await rita.js(`(function(){ var f=[].slice.call(document.querySelectorAll('.hv-f')).filter(function(x){return x.querySelector('.h-id').value===${JSON.stringify(fila.id)}})[0];
-        function pon(sel, v){ var e=f.querySelector(sel); e.value=v; e.dispatchEvent(new Event('change')); }
-        pon('.h-desde',${JSON.stringify(local(Date.now() - 120e3))}); pon('.h-hasta',${JSON.stringify(local(Date.now() + 3600e3))});
-        document.getElementById('hv-save').click(); return 1; })()`);
-      await dormir(4000);
-      await eva.ir("huevo.html?h=" + fila.id);
+      // Rita lo abre desde ya y hasta dentro de una hora (otra vez, sin botón de guardar)
+      await aPremiosDe(rita, "lab-clase");
+      c("héroe · Rita lo abre ya (desde hace 2 min, hasta dentro de una hora)", await ajustarPremio(rita, fila.id, { ".h-desde": local(Date.now() - 120e3), ".h-hasta": local(Date.now() + 3600e3) }));
+      await eva.ir(enlaceDe(await it18()));
       await eva.hasta("!!document.getElementById('hv-abrir')", 20);
       c("héroe · abierto: «Sumarlo a mi colección»", /Sumarlo a mi colecci/.test(await eva.texto()));
       await eva.foto(FOTOS + "/18-eva-abierto.png");
@@ -1106,8 +1179,45 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 héroe · Eva se lleva EXACTAMENTE ese héroe a su colección", (fe.inventory || []).filter(x => x === HID).length === 1, JSON.stringify(fe.inventory));
       c("héroe · y la pantalla lo celebra como nuevo", /Nuevo en tu colecci/i.test(await eva.texto()), (await eva.texto()).slice(0, 160));
       await eva.foto(FOTOS + "/18-eva-ganado.png");
-      await eva.ir("huevo.html?h=" + fila.id); await eva.hasta("/ya es tuyo|ya est/i.test(document.body.innerText)", 20);
+      await eva.ir(enlaceDe(await it18())); await eva.hasta("/ya es tuyo|ya est/i.test(document.body.innerText)", 20);
       c("héroe · si vuelve, «Ya es tuyo» (sin cobrar otra vez)", (await fichaDe("eva@lab.test", "lab-clase")).inventory.filter(x => x === HID).length === 1);
+
+      /**
+       * 🔴 «ME DICE QUE YA LO TENÍA, Y ES MENTIRA». Era verdad: esa cuenta había reclamado ese enlace antes, cuando daba
+       * otra cosa. Cambiar el premio de uno ya reclamado lo avisa y crea uno NUEVO, con su enlace: el viejo no se toca.
+       */
+      await aPremiosDe(rita, "lab-clase");
+      await rita.hasta(tarjeta(fila.id, "return /1 lo ha reclamado/.test(f.querySelector('.h-estado').textContent);"), 20);
+      const nAntes = (await premiosDe("lab-clase")).length;
+      await rita.js(tarjeta(fila.id, "f.querySelector('[data-pe-elegir]').click(); return 1;"));
+      await rita.hasta("!!document.querySelector('.pe-ventana .pe-op[data-v=\"heroe\"]')", 10);
+      await rita.js("document.querySelector('.pe-ventana .pe-op[data-v=\"heroe\"]').click(); 1");
+      const aviso1 = await rita.responder();
+      c("🔴 héroe · cambiar el premio de uno ya reclamado lo AVISA («ya lo ha reclamado 1 persona»)", /ya lo ha reclamado 1 persona/.test(aviso1), aviso1);
+      await dormir(3000);
+      const tras = await premiosDe("lab-clase"), viejo = tras.filter(x => x.id === fila.id)[0], otro = tras.filter(x => x.id !== fila.id && x.premio === "heroe" && x.creado > fila.creado)[0];
+      c("🔴 héroe · …y crea uno NUEVO con su propio enlace; el que ya se reclamó sigue como estaba", tras.length === nAntes + 1 && viejo.premio === "heroe_fijo" && !!otro,
+        JSON.stringify({ n: nAntes + " → " + tras.length, viejo: viejo && viejo.premio, otro: otro && otro.id }));
+
+      /**
+       * 🔴 LA SIMULACIÓN DE DOCENTE (Norberto: «aunque detecte la cuenta del profesorado, que me permita ver la recompensa y
+       * "reclamarla" para enseñar a los estudiantes cómo se hace, avisando de que es una simulación»).
+       */
+      const sim = await nueva("Rita lo enseña en clase");
+      await sim.ir("entrar.html"); await sim.entrarComo("rita@lab.test", "Rita Referente");
+      const R0 = await leerDoc("rewards/" + RID), fRita = await fichaDe("rita@lab.test", "lab-clase");
+      await sim.ir(enlaceDe(await it18()));
+      const simula = await sim.hasta("/simulación/i.test(document.body.innerText) && !!document.getElementById('hv-simular')", 25);
+      c("🔴 simulación · con cuenta de docente, el enlace se ve igual y avisa de que es una simulación", simula, (await sim.texto()).slice(0, 200));
+      await sim.foto(FOTOS + "/18-simulacion.png");
+      await sim.js("document.getElementById('hv-simular').click(); 1");
+      await sim.hasta("!!document.querySelector('.sb-capa') || /Era una simulación/.test(document.body.innerText)", 25);
+      await cerrarSobre(sim);
+      const R1 = await leerDoc("rewards/" + RID);
+      c("🔴 simulación · «reclamarlo» enseña el premio… y NO se reclama nada (ni cuenta, ni gasta el tope)",
+        /Era una simulación/.test(await sim.texto()) && Number(R1.claimLinkTotalClaimed || 0) === Number(R0.claimLinkTotalClaimed || 0) && !fRita,
+        JSON.stringify({ antes: R0.claimLinkTotalClaimed, despues: R1.claimLinkTotalClaimed }));
+      await sim.cerrar();
 
       // 🔴 un alias que ya lleva otro recluta del grupo no se acepta (el laboratorio siembra un «Halo»)
       const dup = await nueva("Alguien quiere ser Halo");
@@ -1137,7 +1247,7 @@ const REG = {};   // cifras que se apuntan para el informe
         await alistar(p, correo, nombre, alias, 1);
         const f0 = await fichaDe(correo, "lab-clase");
         await admin().firestore().collection("student_profiles").doc(f0._id).update({ inventory: (f0.inventory || []).concat([HID]) });
-        await p.ir("huevo.html?h=" + fila.id);
+        await p.ir(enlaceDe(await it18()));
         await p.hasta("!!document.getElementById('hv-abrir')", 20);
         const burbuja = await p.js("(document.querySelector('.hv-copias')||{}).textContent||''");
         const avisa = /ya lo tienes/i.test(await p.texto());
@@ -1171,35 +1281,31 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 héroe repetido · nadie cobra 40 ◈ por un premio que ya abrió", forzar !== "PASÓ", forzar);
 
       // en pausa, agotado, cerrado
-      await rita.ir("consola.html?per=lab-clase"); await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20); await aPremios();
-      await rita.js(`(function(){ var f=[].slice.call(document.querySelectorAll('.hv-f')).filter(function(x){return x.querySelector('.h-id').value===${JSON.stringify(fila.id)}})[0];
-        var s=f.querySelector('.h-on'); s.checked=false; s.dispatchEvent(new Event('change')); return 1; })()`);
-      await dormir(4000);
+      await aPremiosDe(rita, "lab-clase");
+      await rita.js(tarjeta(fila.id, "var s=f.querySelector('.h-on'); s.checked=false; s.dispatchEvent(new Event('change')); return 1;"));
+      await rita.hasta(tarjeta(fila.id, "return /✓ Guardado/.test(f.querySelector('.pe-guardado').textContent);"), 20);
       R = await leerDoc("rewards/" + RID);
       c("🔴 héroe · el interruptor lo PAUSA al momento (sin pulsar Guardar)", R.claimLinkEnabled === false, String(R.claimLinkEnabled));
+      c("héroe · y la tarjeta lo dice («⏸ En pausa», leído del servidor)", await rita.hasta(tarjeta(fila.id, "return /En pausa/.test(f.querySelector('.h-estado').textContent);"), 15));
       const ivan = await nueva("Iván llega tarde");
       await alistar(ivan, "ivan@lab.test", "Ivan Prueba", "Iván Ión", 0);
-      await ivan.ir("huevo.html?h=" + fila.id);
+      await ivan.ir(enlaceDe(await it18()));
       c("héroe · en pausa, Iván lee «Está en pausa»", await ivan.hasta("/en pausa/i.test(document.body.innerText)", 20), (await ivan.texto()).slice(0, 160));
-      await rita.js(`(function(){ var f=[].slice.call(document.querySelectorAll('.hv-f')).filter(function(x){return x.querySelector('.h-id').value===${JSON.stringify(fila.id)}})[0];
-        var s=f.querySelector('.h-on'); s.checked=true; s.dispatchEvent(new Event('change')); return 1; })()`);
-      await dormir(4000);
-      await ivan.ir("huevo.html?h=" + fila.id);
+      await rita.js(tarjeta(fila.id, "var s=f.querySelector('.h-on'); s.checked=true; s.dispatchEvent(new Event('change')); return 1;"));
+      await rita.hasta(tarjeta(fila.id, "return /✓ Guardado/.test(f.querySelector('.pe-guardado').textContent);"), 20);
+      await ivan.ir(enlaceDe(await it18()));
       c("héroe · activo otra vez, pero con el tope (4) cubierto: «Llegaste tarde»", await ivan.hasta("/llegaste tarde/i.test(document.body.innerText)", 20), (await ivan.texto()).slice(0, 160));
-      const estadoRita = await rita.js(`(function(){ var f=[].slice.call(document.querySelectorAll('.hv-f')).filter(function(x){return x.querySelector('.h-id').value===${JSON.stringify(fila.id)}})[0]; return f.querySelector('.h-estado').textContent; })()`);
-      c("héroe · la referente ve cuántos lo han reclamado", /4 lo han reclamado|Agotado: 4 de 4/.test(estadoRita), estadoRita);
-      await rita.js(`(function(){ var f=[].slice.call(document.querySelectorAll('.hv-f')).filter(function(x){return x.querySelector('.h-id').value===${JSON.stringify(fila.id)}})[0];
-        function pon(sel, v){ var e=f.querySelector(sel); e.value=v; e.dispatchEvent(new Event('change')); }
-        pon('.h-lim',''); pon('.h-desde',${JSON.stringify(local(Date.now() - 7200e3))}); pon('.h-hasta',${JSON.stringify(local(Date.now() - 60e3))});
-        document.getElementById('hv-save').click(); return 1; })()`);
-      await dormir(4000);
-      await ivan.ir("huevo.html?h=" + fila.id);
+      await rita.hasta(tarjeta(fila.id, "return /4 lo han reclamado/.test(f.querySelector('.h-estado').textContent);"), 20);
+      const estadoRita = await rita.js(tarjeta(fila.id, "return f.querySelector('.h-estado').textContent;"));
+      c("héroe · la referente ve cuántos lo han reclamado", /4 lo han reclamado/.test(estadoRita), estadoRita);
+      c("héroe · se cierra solo: «Hasta» en el pasado (sin tope)", await ajustarPremio(rita, fila.id, { ".h-lim": "", ".h-desde": local(Date.now() - 7200e3), ".h-hasta": local(Date.now() - 60e3) }));
+      await ivan.ir(enlaceDe(await it18()));
       c("héroe · pasada la hora de cierre, «Se cerró…»", await ivan.hasta("/se cerr/i.test(document.body.innerText)", 20), (await ivan.texto()).slice(0, 160));
-      const cerrado = await ivan.js(`window.SG.MOTOR.llamar("claimLinkedReward",{rewardId:${JSON.stringify(RID)},modo:"item"}).then(function(){return "PASÓ"},function(e){return e.message})`);
+      const cerrado = await ivan.js(`window.SG.MOTOR.llamar("claimLinkedReward",{rewardId:${JSON.stringify(RID)},modo:"item",codigo:${JSON.stringify(fila.codigo)}}).then(function(){return "PASÓ"},function(e){return e.message})`);
       c("🔴 héroe · y el SERVIDOR también lo da por cerrado", /ya se ha cerrado/i.test(cerrado), cerrado);
 
       // la vista previa de la referente
-      await rita.ir("huevo.html?h=" + fila.id + "&per=lab-clase&vista=1");
+      await rita.ir(enlaceDe(await it18()) + "&per=lab-clase&vista=1");
       const vista = await rita.hasta("/vista previa|así lo verá/i.test(document.body.innerText) || /se cerr/i.test(document.body.innerText)", 20);
       c("héroe · «👁 Ver cómo se ve» enseña la página del alumnado sin reclamar", vista && await rita.js("!document.getElementById('hv-abrir')"), (await rita.texto()).slice(0, 160));
 
@@ -2350,17 +2456,17 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.foto(FOTOS + "/25-aula-regalar.png");
       const regalo = await rita.js(`window.SG.MOTOR.regalarEnClase('${P}',['${F.lola._id}','${F.mateo._id}'],{tipo:'participacion',sorteo:'${T}',n:3}).then(function(r){return JSON.stringify(r)},function(e){return 'ERROR '+e.message})`, 60000);
       c("🔴 sorteo · la docente regala 3 a Lola y 3 a Mateo", papeletas(await ficha("lola")) === 3 && papeletas(await ficha("mateo")) === 3, regalo);
-      const huevos = await rita.js(`window.SG.MOTOR.huevosDe('${P}').then(function(h){return JSON.stringify(h)})`);
-      const lista = JSON.parse(huevos || "[]").concat([{ id: "sorteo-lab", nombre: "Dos papeletas escondidas", premio: "participaciones", sorteo: T, cantidad: 2, activo: true, limite: 0, porEscuadron: 0 }]);
-      await rita.js(`window.SG.MOTOR.guardarHuevos('${P}', ${JSON.stringify(lista)}).then(function(){return 'OK'})`, 60000);
+      // (17-sep · con el catálogo nuevo: un premio de UN grupo, con su código)
+      const itS = JSON.parse(await rita.js(`(async function(){ var M=window.SG.MOTOR; var it=M.premioNuevo({ tipo:"huevo", nombre:"Dos papeletas escondidas", premio:"participaciones", sorteo:${JSON.stringify(T)}, cantidad:2, grupos:[${JSON.stringify(P)}] });
+        var r=await M.guardarPremioEnlace(it, [${JSON.stringify(P)}]); it.en=r.en; return JSON.stringify(it); })()`, 60000));
       const m1 = await nueva("Mateo encuentra el enlace");
-      await m1.ir("huevo.html?h=sorteo-lab&per=" + P); await m1.entrarComo("mateo@lab.test", "Mateo Prueba");
-      await m1.ir("huevo.html?h=sorteo-lab&per=" + P); await m1.hasta("!!document.getElementById('hv-abrir')", 25);
+      await m1.ir(enlaceDe(itS)); await m1.entrarComo("mateo@lab.test", "Mateo Prueba");
+      await m1.ir(enlaceDe(itS)); await m1.hasta("!!document.getElementById('hv-abrir')", 25);
       await m1.js("document.getElementById('hv-abrir').click(); 1");
       c("🔴 sorteo · un enlace de «Premios por enlace» da 2 participaciones («+2 participaciones»)", await m1.hasta("/\\+2 participaciones/.test(document.body.innerText)", 25), (await m1.texto()).slice(0, 200));
       await m1.foto(FOTOS + "/25-enlace-participaciones.png");
       c("sorteo · …y se suman a su ficha (3 + 2 = 5)", papeletas(await ficha("mateo")) === 5);
-      await m1.ir("huevo.html?h=sorteo-lab&per=" + P); await m1.hasta("/ya lo tenías/i.test(document.body.innerText)", 20);
+      await m1.ir(enlaceDe(itS)); await m1.hasta("/ya lo tenías/i.test(document.body.innerText)", 20);
       c("sorteo · el mismo enlace otra vez: «Este ya lo tenías» (y no suma)", papeletas(await ficha("mateo")) === 5);
       await m1.cerrar();
 
@@ -2452,8 +2558,8 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 sorteo · después del sorteo nadie puede comprar (el servidor lo cierra)", /ERROR/.test(await compra(i3, "iker")));
       await i3.cerrar();
       const l0 = await nueva("Lola, el enlace tras el sorteo");
-      await l0.ir("huevo.html?h=sorteo-lab&per=" + P); await l0.entrarComo("lola@lab.test", "Lola Prueba");
-      await l0.ir("huevo.html?h=sorteo-lab&per=" + P); await l0.hasta("!!document.getElementById('hv-abrir')", 25);
+      await l0.ir(enlaceDe(itS)); await l0.entrarComo("lola@lab.test", "Lola Prueba");
+      await l0.ir(enlaceDe(itS)); await l0.hasta("!!document.getElementById('hv-abrir')", 25);
       await l0.js("document.getElementById('hv-abrir').click(); 1");
       c("sorteo · el enlace de participaciones, después del sorteo: «Ese sorteo ya se ha hecho»", await l0.hasta("/ya se ha hecho/i.test(document.body.innerText)", 25), (await l0.texto()).slice(0, 160));
       c("   (y no le suma nada)", papeletas(await ficha("lola")) === 0);
@@ -2599,6 +2705,47 @@ const REG = {};   // cifras que se apuntan para el informe
       c("embed · sin errores dentro del iframe", !p.errores.filter(e => !/Failed to load resource/.test(e)).length, p.errores[0] || "");
       await p.cerrar();
       await fs.collection("projects").doc(P2).delete();
+      /**
+       * 🌐 17-sep · PARA TODOS TUS GRUPOS. Norberto: «¿los premios por enlace valen para cualquier grupo? Sería maravilloso
+       * poder reciclarlos… marcar a qué grupos afecta (con opción TODOS)». Rita lleva dos grupos: crea uno para todos, un
+       * solo enlace sirve en los dos, y al quitarle uno deja de valer allí.
+       */
+      {
+        const privBase = (await fs.collection("projects").doc(P).collection("privado").doc("stargate").get()).data() || {};
+        await fs.collection("projects").doc(P2).collection("privado").doc("stargate").set(Object.assign({}, privBase, { premiosEnlace: {} }));
+        const rg = await nueva("Rita reparte un premio en sus dos grupos");
+        await rg.ir("entrar.html"); await rg.entrarComo("rita@lab.test", "Rita Referente");
+        await rg.ir("consola.html");
+        c("🌐 comunes · en «Tus grupos», la entrada «Para todos tus grupos»", await rg.hasta("!!document.querySelector('.gp-comun a[href*=\"comun=premios\"]')", 25));
+        await rg.js("document.querySelector('.gp-comun a[href*=\"comun=premios\"]').click(); 1");
+        await rg.hasta("!!document.getElementById('pe-nuevo') && !/Buscando tus premios/.test((document.getElementById('pe-lista')||{}).textContent||'')", 25);
+        await rg.foto(FOTOS + "/26-comunes.png");
+        const G = await crearPremioUI(rg, P2, { tipo: "huevo", premio: "bolsa", cantidad: 30 });
+        const r1 = G && await leerDoc("rewards/" + P + "__huevo_" + G.id), r2 = G && await leerDoc("rewards/" + P2 + "__huevo_" + G.id);
+        c("🔴 🌐 comunes · uno nuevo nace para TODOS sus grupos: está en los dos, con la misma huella (un solo enlace)",
+          !!G && G.grupos === "todos" && !!r1 && !!r2 && r1.claimLinkHash === r2.claimLinkHash && !r1.stargateBorrado && !r2.stargateBorrado, JSON.stringify(G && { id: G.id, g: G.grupos }));
+        c("🌐 comunes · y la tarjeta lo dice («🌐 Todos tus grupos (2)»)", !!G && /Todos tus grupos \(2\)/.test(await rg.js(tarjeta(G.id, "return f.querySelector('.pe-ambito').textContent;"))));
+        if (G) {
+          await rg.js(tarjeta(G.id, "var m=f.querySelector('.pe-mas'); if(m.hidden) f.querySelector('[data-pe-mas]').click(); var r=f.querySelector('input[type=radio][value=elegir]'); r.checked=true; r.dispatchEvent(new Event('change')); return 1;"));
+          await dormir(2500);
+          await rg.js(tarjeta(G.id, `var x=[].slice.call(f.querySelectorAll('.pe-chips input')).filter(function(i){return i.value===${JSON.stringify(P2)}})[0]; x.checked=false; x.dispatchEvent(new Event('change')); return 1;`));
+          await rg.hasta(tarjeta(G.id, "return /✓ Guardado/.test(f.querySelector('.pe-guardado').textContent) && /Solo/.test(f.querySelector('.pe-ambito').textContent);"), 20);
+          await dormir(1500);
+          const s1 = await leerDoc("rewards/" + P + "__huevo_" + G.id), s2 = await leerDoc("rewards/" + P2 + "__huevo_" + G.id);
+          const enP2 = (await premiosDe(P2)).some(x => x.id === G.id), enP = (await premiosDe(P)).some(x => x.id === G.id);
+          c("🔴 🌐 comunes · al dejarlo solo en un grupo, en el otro se cierra (y sale de su catálogo)",
+            s1 && !s1.stargateBorrado && s1.claimLinkEnabled !== false && s2 && s2.stargateBorrado === true && s2.claimLinkEnabled === false && enP && !enP2,
+            JSON.stringify({ en1: s1 && [s1.stargateBorrado, s1.claimLinkEnabled], en2: s2 && [s2.stargateBorrado, s2.claimLinkEnabled], enP, enP2 }));
+          await aPremiosDe(rg, P2);
+          c("🌐 comunes · dentro del grupo que ya no lo tiene, no aparece", await rg.js(`!document.querySelector('.pe-f[data-pe="${G.id}"]')`));
+          await aPremiosDe(rg, P);
+          c("🌐 comunes · y dentro del que sí, aparece (con su ámbito)", await rg.hasta(tarjeta(G.id, "return /Solo/.test(f.querySelector('.pe-ambito').textContent);"), 15));
+          c("🌐 comunes · la barra de pestañas separa lo de varios grupos (🌐) de lo exclusivo del grupo",
+            await rg.js("!!document.querySelector('.pestanas .pest-sep-g') && document.querySelector('.pestanas .pest-sep-g').nextElementSibling.getAttribute('data-tab')==='huevos'"));
+        }
+        await rg.cerrar();
+      }
+
     }
     // ============================================================ 27 · CONGELAR, DAR DE BAJA… Y EL LEGENDARIO EN EL ZOCO
     /**
@@ -2806,14 +2953,14 @@ const REG = {};   // cifras que se apuntan para el informe
       const reg = await rita.js(`window.SG.MOTOR.regalarEnClase('${P}',['${FC._id}'],{tipo:'cofre',cual:'capsula_legendaria'}).then(function(r){return JSON.stringify(r)},function(e){return 'ERROR '+e.message})`, 60000);
       const nuevaR = ((await fichaDe(G[0], P)).inventory || []).slice(antesR);
       c("🔴 cofres · la docente le regala una cápsula legendaria: un Mito a su vestuario", nuevaR.length === 1 && rz(nuevaR[0]) === "legendaria", reg);
-      const huevos = JSON.parse(await rita.js(`window.SG.MOTOR.huevosDe('${P}').then(function(h){return JSON.stringify(h)})`) || "[]");
-      await rita.js(`window.SG.MOTOR.guardarHuevos('${P}', ${JSON.stringify(huevos.concat([{ id: "leyenda-lab", nombre: "Una leyenda escondida", premio: "capsula_legendaria", activo: true, limite: 0, porEscuadron: 0 }]))}).then(function(){return 'OK'})`, 60000);
-      const hv = await leerDoc("rewards/" + P + "__huevo_leyenda-lab");
+      const itL = JSON.parse(await rita.js(`(async function(){ var M=window.SG.MOTOR; var it=M.premioNuevo({ tipo:"huevo", nombre:"Una leyenda escondida", premio:"capsula_legendaria", grupos:[${JSON.stringify(P)}] });
+        var r=await M.guardarPremioEnlace(it, [${JSON.stringify(P)}]); it.en=r.en; return JSON.stringify(it); })()`, 60000));
+      const hv = await leerDoc("rewards/" + P + "__huevo_" + itL.id);
       c("cofres · el referente la esconde en un enlace («Premios por enlace» → 🟨 cápsula legendaria)", hv && hv.stargateHuevo.premio === "capsula_legendaria" && hv.consumeEffects.lootBox.items.length === 4, JSON.stringify(hv && hv.stargateHuevo));
       await rita.cerrar();
       const h1 = await nueva("Cofrecillo encuentra la leyenda");
-      await h1.ir("huevo.html?h=leyenda-lab&per=" + P); await h1.entrarComo(G[0], G[1]);
-      await h1.ir("huevo.html?h=leyenda-lab&per=" + P); await h1.hasta("!!document.getElementById('hv-abrir')", 25);
+      await h1.ir(enlaceDe(itL)); await h1.entrarComo(G[0], G[1]);
+      await h1.ir(enlaceDe(itL)); await h1.hasta("!!document.getElementById('hv-abrir')", 25);
       const antesH = ((await fichaDe(G[0], P)).inventory || []).length;
       await h1.js("document.getElementById('hv-abrir').click(); 1");
       c("🔴 cofres · abre el enlace y le sale su Mito, con la carta en grande", await h1.hasta("!!document.querySelector('.sb-capa')", 30));

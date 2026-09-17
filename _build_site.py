@@ -885,7 +885,7 @@ aprendizaje que atiende a la diversidad: no hay una sola ruta. <span class="pill
 autoevaluación</b>, las dos actividades y tres retos (videotutorial, microgamificación y uno libre). Plataforma libre; un único enlace de acceso en cada entrega. Estas son las
 <b>experiencias del portfolio</b> que propone la programación oficial, tema a tema:</p>
 <table><thead><tr><th>Tema</th><th>Experiencia en el portfolio (oficial)</th><th>En STARGATE</th></tr></thead><tbody>
-<tr><td>T1 · Fôrge</td><td>Recursos multimedia didácticos generados con ayuda de la IA</td><td>Reto B «La chispa»</td></tr>
+<tr><td>T1 · Fôrge</td><td>Recursos multimedia didácticos generados con ayuda de la IA</td><td>Relámpago L1 «La chispa»</td></tr>
 <tr><td>T2 · Ecos</td><td>Enriquecer el videotutorial con preguntas (videoquiz)</td><td>Reto B «El eco que enseña»</td></tr>
 <tr><td>T4 · Reliae</td><td>Entorno digital para el aula (p. ej. Site/Classroom)</td><td>Reto B «El entorno de aula»</td></tr>
 <tr><td>T5 · Umbral</td><td>Registrar el progreso (p. ej. formularios) + e-portfolio</td><td>Reto B «La Bitácora medida»</td></tr>
@@ -1249,7 +1249,7 @@ BADGE_INFO = {
  "E2_capitan":{"nombre":"El Capitán · El Mando de la misión","tipo":"Insignia de personaje (especial)","como":"Se obtiene al presentar la Actividad 1.","cuando":"Temas 1–2","tarea":"El Capitán es el mando de la misión (tu profesor o profesora). Su insignia reconoce que has asumido tu primera misión mayor: la actividad didáctica con imagen de IA."},
  "E3_vaeon":{"nombre":"General Vaeon · Señor de la Estática","tipo":"Insignia de villano","como":"Saliendo del Escape UNI, el reto secreto (S7): el botón del final del escape registra el reto. Su puerta está en la Nave, y también escondida en la presentación del planeta Vínculo.","cuando":"Tema 7 · Vínculo","tarea":"Vaeon es el antagonista: personifica los errores del diseño educativo (contenido que no se entiende, recursos que no llegan, saber no compartido). Su insignia no se anuncia: se encuentra. Coleccionar su carta es el trofeo de haber entendido al enemigo."},
  # Retos (Reto B)
- "R1_la-chispa":{"nombre":"La chispa","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 1.","cuando":"Tema 1 · Fôrge","tarea":"Genera con una IA una imagen con finalidad didáctica: prompt estructurado (contexto + tipo de imagen + finalidad), al menos una iteración, selección final con tu criterio docente y evidencia del proceso. Es el núcleo de la Actividad 1."},
+ "R1_la-chispa":{"nombre":"La chispa","tipo":"Insignia de reto","como":"Completando el reto relámpago L1 del Tema 1.","cuando":"Tema 1 · Fôrge","tarea":"Genera con una IA una imagen con finalidad didáctica: prompt estructurado (contexto + tipo de imagen + finalidad), al menos una iteración, selección final con tu criterio docente y evidencia del proceso. Es el núcleo de la Actividad 1."},
  "R2_el-eco-que-ensena":{"nombre":"El eco que enseña","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 2.","cuando":"Tema 2 · Ecos","tarea":"Crea un videotutorial de calidad (guion + grabación de pantalla + edición) y enriquécelo con 2–3 preguntas insertadas (videoquiz). Piénsalo para aula invertida y súbelo a la Bitácora con una reflexión breve."},
  "R3_la-matriz":{"nombre":"La matriz","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 3.","cuando":"Tema 3 · Sendara","tarea":"Construye la matriz de programación 8×6 (8 inteligencias múltiples × 6 niveles de Bloom = 48 casillas) y rellena al menos 6 cruces variados, con una actividad en cada uno. Es el núcleo de planificación de la Actividad 2."},
  "R4_entorno-de-aula":{"nombre":"El entorno de aula","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 4.","cuando":"Tema 4 · Reliae","tarea":"Monta un espacio digital de aula organizado (tipo Classroom, Sites, Moodle…) donde compartas materiales y puedas dar feedback y comunicarte en diferido y en directo. Deja enlace/captura + reflexión en la Bitácora."},
@@ -1674,6 +1674,106 @@ window.SG.preguntar = function (o) {
 window.SG.avisar = function (titulo, texto, peligro) {
   return window.SG.preguntar({ titulo: titulo, texto: texto, si: "Entendido", no: "", peligro: !!peligro });
 };
+
+/**
+ * 🔴 17-sep · NADA DE MENÚS GRISES. Norberto, al abrir la lista de héroes de un premio: «revisa, no queremos menús grises
+ * en ningún sitio». La lista que abre un <select> la pinta el sistema operativo (gris, con su letra) y no se puede
+ * vestir. Así que cada <select> de la web se cambia solo por uno de la casa: el <select> sigue debajo, escondido, y es el
+ * que manda —su valor, su «change»—; esto solo lo enseña y lo elige. Vale para los que ya están y para los que se
+ * pintan después. Uno se queda nativo con `data-nativo`.
+ */
+(function () {
+  var ABIERTA = null;
+  function montar(sel) {
+    if (sel.__sgsel || sel.multiple || sel.size > 1 || sel.hasAttribute("data-nativo") || !sel.parentNode) return;
+    sel.__sgsel = true;
+    // ¿ocupaba todo el ancho? (si no está a la vista, lo dice su sitio: un campo de formulario)
+    var ancho = sel.offsetWidth ? sel.offsetWidth >= (sel.parentElement.clientWidth - 6)
+                                : !!(sel.closest && sel.closest(".h-campo, .campo, fieldset, .form-fila"));
+    var caja = document.createElement("span"); caja.className = "sgsel" + (ancho ? " ancho" : "");
+    var b = document.createElement("button"); b.type = "button"; b.className = "sgsel-b";
+    b.setAttribute("aria-haspopup", "listbox"); b.setAttribute("aria-expanded", "false");
+    var t = document.createElement("span"); t.className = "sgsel-t";
+    var f = document.createElement("span"); f.className = "sgsel-f"; f.setAttribute("aria-hidden", "true"); f.textContent = "▾";
+    b.appendChild(t); b.appendChild(f);
+    sel.parentNode.insertBefore(caja, sel); caja.appendChild(sel); caja.appendChild(b);
+    sel.classList.add("sgsel-nativo"); sel.tabIndex = -1; sel.setAttribute("aria-hidden", "true");
+    var etiqueta = sel.getAttribute("aria-label") || (sel.labels && sel.labels[0] ? sel.labels[0].textContent.trim() : "");
+    var pintar = function () {
+      var o = sel.options[sel.selectedIndex];
+      t.textContent = o ? o.textContent : "";
+      b.disabled = sel.disabled;
+      if (etiqueta) b.setAttribute("aria-label", etiqueta + ": " + t.textContent);
+    };
+    pintar();
+    sel.addEventListener("change", pintar);
+    sel.addEventListener("focus", function () { b.focus(); });
+    new MutationObserver(pintar).observe(sel, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled"] });
+    b.addEventListener("click", function () { if (ABIERTA && ABIERTA.b === b) cerrar(); else abrir(sel, b, pintar); });
+    b.addEventListener("keydown", function (e) { if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); abrir(sel, b, pintar); } });
+  }
+  function abrir(sel, b, pintar) {
+    cerrar();
+    var lista = document.createElement("div"); lista.className = "sgsel-lista"; lista.setAttribute("role", "listbox");
+    Array.prototype.forEach.call(sel.options, function (o, i) {
+      if (o.hidden) return;
+      var x = document.createElement("button"); x.type = "button"; x.className = "sgsel-o" + (i === sel.selectedIndex ? " on" : "");
+      x.setAttribute("role", "option"); x.setAttribute("aria-selected", String(i === sel.selectedIndex));
+      x.disabled = o.disabled; x.textContent = o.textContent;
+      x.onclick = function () {
+        if (sel.selectedIndex !== i) { sel.selectedIndex = i; sel.dispatchEvent(new Event("input", { bubbles: true })); sel.dispatchEvent(new Event("change", { bubbles: true })); }
+        pintar(); cerrar(); b.focus();
+      };
+      lista.appendChild(x);
+    });
+    (document.fullscreenElement || document.body).appendChild(lista);
+    var r = b.getBoundingClientRect(), H = window.innerHeight, abajo = H - r.bottom - 10, arriba = r.top - 10;
+    lista.style.minWidth = Math.max(160, r.width) + "px";
+    lista.style.left = Math.max(8, Math.min(r.left, window.innerWidth - lista.offsetWidth - 8)) + "px";
+    if (abajo >= Math.min(lista.scrollHeight, 220) || abajo >= arriba) { lista.style.top = (r.bottom + 4) + "px"; lista.style.maxHeight = Math.max(140, abajo) + "px"; }
+    else { lista.style.bottom = (H - r.top + 4) + "px"; lista.style.maxHeight = Math.max(140, arriba) + "px"; }
+    b.setAttribute("aria-expanded", "true");
+    ABIERTA = { lista: lista, b: b };
+    var on = lista.querySelector(".sgsel-o.on") || lista.querySelector(".sgsel-o:not([disabled])");
+    if (on) { try { on.focus({ preventScroll: true }); } catch (e) {} on.scrollIntoView({ block: "nearest" }); }
+    lista.addEventListener("keydown", function (e) {
+      var os = [].slice.call(lista.querySelectorAll(".sgsel-o:not([disabled])")), i = os.indexOf(document.activeElement);
+      if (e.key === "ArrowDown") { e.preventDefault(); (os[i + 1] || os[0]).focus(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); (os[i - 1] || os[os.length - 1]).focus(); }
+      else if (e.key === "Home") { e.preventDefault(); os[0].focus(); }
+      else if (e.key === "End") { e.preventDefault(); os[os.length - 1].focus(); }
+      else if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); cerrar(); b.focus(); }
+      else if (e.key === "Tab") { cerrar(); }
+      else if (e.key.length === 1 && /\S/.test(e.key)) {
+        var k = e.key.toLowerCase(), empieza = function (o) { return o.textContent.trim().toLowerCase().indexOf(k) === 0; };
+        var j = -1; for (var n = i + 1; n < os.length; n++) if (empieza(os[n])) { j = n; break; }
+        if (j < 0) for (n = 0; n < os.length; n++) if (empieza(os[n])) { j = n; break; }
+        if (j >= 0) os[j].focus();
+      }
+    });
+  }
+  function cerrar() {
+    if (!ABIERTA) return;
+    ABIERTA.lista.remove(); ABIERTA.b.setAttribute("aria-expanded", "false"); ABIERTA = null;
+  }
+  document.addEventListener("mousedown", function (e) {
+    if (ABIERTA && !ABIERTA.lista.contains(e.target) && !ABIERTA.b.contains(e.target)) cerrar();
+  }, true);
+  window.addEventListener("resize", cerrar);
+  window.addEventListener("scroll", function (e) { if (ABIERTA && !(e.target && e.target.nodeType === 1 && ABIERTA.lista.contains(e.target))) cerrar(); }, true);
+  function barrer(n) {
+    if (n.tagName === "SELECT") montar(n);
+    else if (n.querySelectorAll) Array.prototype.forEach.call(n.querySelectorAll("select"), montar);
+  }
+  function empezar() {
+    barrer(document.body);
+    new MutationObserver(function (ms) {
+      ms.forEach(function (m) { Array.prototype.forEach.call(m.addedNodes, function (n) { if (n.nodeType === 1) barrer(n); }); });
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.body) empezar(); else document.addEventListener("DOMContentLoaded", empezar);
+  window.SG.mejorarSelect = montar;
+})();
 """
 
 TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _build_site.py: editar TOUR_JS, no este fichero)

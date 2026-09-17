@@ -546,9 +546,11 @@
     var desde = Number(h.desde) > 0 ? Number(h.desde) : null;
     var hasta = Number(h.hasta) > 0 ? Number(h.hasta) : null;
     return {
-      projectId: perId, title: h.nombre || ("Escondite " + h.id), description: "Un escondite de la Tripulación Cero.",
+      // 17-sep · recompensa de un reto o huevo de Pascua (Norberto: «la mayoría serán recompensas de actividades»)
+      projectId: perId, title: h.nombre || (h.tipo === "huevo" ? "Escondite " : "Recompensa ") + h.id,
+      description: h.tipo === "huevo" ? "Un escondite de la Tripulación Cero." : "Una recompensa por superar un reto.",
       cost: 0, inStore: false, type: "item", stargateTipo: "huevo", stargateId: "huevo_" + h.id,
-      stargateHuevo: { id: String(h.id), premio: tipo, creditos: cuanto, cantidad: cuanto,
+      stargateHuevo: { id: String(h.id), tipo: h.tipo === "huevo" ? "huevo" : "recompensa", premio: tipo, creditos: cuanto, cantidad: cuanto,
                        heroe: tipo === "heroe_fijo" ? String(h.heroe) : null, desde: desde, hasta: hasta,
                        // 14-sep · participaciones del Gran Sorteo: el servidor las suma a `lotteryEntries`
                        sorteo: tipo === "participaciones" ? String(h.sorteo) : null },

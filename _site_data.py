@@ -559,7 +559,8 @@ AYUDA_RETOS = {
 #                  la plataforma de UNIR, donde sacar el enlace de UNA publicación no siempre es
 #                  cómodo. A0 va aquí a propósito: es lo primero que se hace en clase y frenar ahí es
 #                  frenar la entrada.
-#   (no está)    → sin enlace: reflexiones escritas (A3, A5, A8) y el secreto (S7).
+#   (vacío)      → sin enlace: los que se responden en la caja (A1, L2, L3, L6), A6 (se gana en el Simulador) y el
+#                  secreto (S7). (17-sep: A3, A5 y A8 ya piden enlace; este comentario lo decía al revés)
 EVIDENCIA_RETOS = {
  # 15-sep · Norberto, reto a reto: TODOS los A, B y X piden su enlace (A0 el de su publicación del padlet)
  "X1": "obligatoria", "X2": "obligatoria",
@@ -613,13 +614,221 @@ REFLEXION_RETOS = {
 # día sin dejar que nadie suba diez niveles en una tarde. Deshacer uno libera su hueco.
 TOPE_RETOS_DIA = 3
 
-# 15-sep · UN EJEMPLO POR RETO (Norberto: «es lo que más les ayuda»). Solo los que él da: {"A3": {"texto": "…",
-# "enlace": "https://…"}}. En la Nave, un enlace sale como «💡 Ver un ejemplo ↗» en la tarjeta del reto; un texto, dentro.
+# 15-sep · UN EJEMPLO POR RETO (Norberto: «es lo que más les ayuda»).
+# 17-sep · Y AHORA EN TODOS (Norberto: «me encantaría que cada reto fuera acompañado de un ejemplo: a veces una imagen,
+# una descripción o algo más elaborado»). Cada uno es el caso de una docente o un docente concreto, con la herramienta,
+# lo que hizo y dónde lo dejó; en las reflexiones, una respuesta modelo que supera el mínimo. `titulo` y `texto` siempre;
+# `detalle` (los puntos clave) y `enlace` (un ejemplo público de verdad) cuando los hay. S7 no lleva: es secreto.
+# En la Nave sale dentro del reto, plegado, como «💡 Ver un ejemplo».
 EJEMPLOS_RETOS = {
- "A2": {"enlace": "https://youtu.be/ZE_JdQUmepk"},
- "A3": {"enlace": "https://view.genially.com/673a886db3cebc087dcc971a"},
- "B2": {"enlace": "https://edpuzzle.com/media/68ff9e1a400997c66a1f3eea"},
- "B3": {"enlace": "https://view.genially.com/5d3ebe3d5890ce0f65730f81"},
+ "A0": {
+  "titulo": "Carmen se presenta en 55 segundos, grabada con el móvil",
+  "texto": "Carmen, maestra de 4.º de Primaria en un colegio de Zaragoza, se grabó con el móvil en su casa, del tirón y sin guion: «Soy Carmen, llevo doce años con niños de 9 y 10 años y me conecto desde Zaragoza. Me metí en educación por mi maestra de 5.º. Me encanta Genially y sufro con las hojas de cálculo. Un dato curioso: toco la gaita». Duró 55 segundos. Lo publicó en la sección «Preséntate» del padlet de la clase, con su alias (Capella) como título y «Capitán:» más el nombre de su profe en la primera línea. Después copió el enlace de su publicación (⋮ → «Copiar el enlace a la publicación») y lo pegó en el reto."
+ },
+ "A1": {
+  "titulo": "Javier (FP) saca del cajón un banco de prácticas a medias",
+  "texto": "Tengo a medias un banco de prácticas de montaje de ordenadores para 1.º del ciclo de Sistemas Microinformáticos y Redes. Lo empecé en Genially: hay seis fichas hechas (placa base, procesador, RAM, fuente, disco y refrigeración) y faltan las de periféricos y la autoevaluación final. Se quedó ahí en febrero, cuando me di cuenta de que las fotos de los componentes eran de internet y no sabía si podía usarlas. Me frenó eso y el perfeccionismo: quería hacer yo todas las fotos en el taller y nunca encontraba el momento. Lo comparto tal cual, con sus huecos.",
+  "detalle": [
+   "Javier, profesor de FP de Grado Medio, lo escribe directamente en la caja del reto: no se corrige ni se puntúa.",
+   "Opcional: el enlace al Genially con permiso de lectura, para que la tripulación lo vea."
+  ]
+ },
+ "B1": {
+  "titulo": "Lucía abre su Bitácora en Google Sites y publica su presentación",
+  "texto": "Lucía, profesora de Biología y Geología de 3.º de ESO en un instituto de Murcia, creó su Bitácora en Google Sites y la llamó «Bitácora de Lucía · MUTECD». La personalizó con el verde de su departamento, otra tipografía y una foto suya en el laboratorio. Dejó el menú preparado con cinco páginas vacías (Actividad 1, Actividad 2, Videotutorial, Microgamificación y Reto libre) y publicó la primera entrada, «Quién soy»: diez líneas sobre su trayectoria, sus grupos y lo que espera del máster («aprender a crear recursos que mi alumnado use también desde el móvil»). Pulsó «Publicar», abrió el enlace en una ventana de incógnito para comprobar que se veía sin su cuenta y lo pegó en el reto y en su BIO de la Nave.",
+  "detalle": [
+   "Alternativa rápida: duplicar la plantilla oficial de Genially y cambiar colores, foto y textos.",
+   "No hace falta que esté llena: basta con la portada y la primera entrada.",
+   "Si la cuenta del centro no deja publicar en abierto, mejor crearla con una cuenta personal.",
+   "Comprobación clave: el enlace se abre en incógnito sin pedir permiso."
+  ]
+ },
+ "L1": {
+  "titulo": "Pilar crea una infografía del aparato circulatorio y el logo «PULSO»",
+  "texto": "Pilar, maestra de 6.º de Primaria, pidió a Microsoft Designer una infografía del recorrido de la sangre con un prompt que dice contexto, tipo de imagen y finalidad. La primera versión traía etiquetas inventadas en inglés, así que iteró: «solo seis etiquetas, en español y con letra grande». Eligió la segunda y lo justificó en dos líneas: «Se lee desde el fondo del aula y distingue por color la sangre con y sin oxígeno, que es justo lo que evalúo». Después hizo en Canva un logo circular con un corazón y la palabra «PULSO» dentro. Puso las dos imágenes en la portada de su Bitácora y pegó una captura en el padlet.",
+  "detalle": [
+   "Prompt: «Eres ilustrador de materiales escolares. Para una clase de 6.º de Primaria sobre el aparato circulatorio, crea una infografía vertical del recorrido de la sangre (corazón, pulmones y resto del cuerpo) con flechas rojas y azules. Finalidad: que el alumnado explique el recorrido con sus palabras».",
+   "Iteración: «Solo seis etiquetas, en español, letra grande y fondo blanco».",
+   "Criterio docente, en dos líneas: por qué esa versión y no la otra.",
+   "Logo: hecho en Canva, con la palabra clave «PULSO» bien visible."
+  ]
+ },
+ "X1": {
+  "titulo": "Rosa entrega su Actividad 1 y la marca en la Nave al enviarla",
+  "texto": "Rosa, profesora de Inglés de 1.º de Bachillerato, diseñó una actividad de expresión oral a partir de una imagen creada con IA: una calle de su ciudad en 2050 que el alumnado describe y compara con su barrio usando will y be going to. Su PDF (4 páginas) incluye la planificación (grupo, unidad y tarea), la actividad, la referencia a la IA usada, las capturas de la tabla técnica y de la reflexiva y el enlace a su Bitácora. En la Bitácora, la página «Actividad 1» muestra la imagen, la tarea, las dos tablas completas y las capturas del proceso. Subió el PDF a la plataforma de UNIR y, solo después de enviarlo, marcó «Lo he hecho» en la Nave y pegó el enlace de esa página de su Bitácora.",
+  "detalle": [
+   "Tabla técnica: función de la IA, prompt inicial, iteración, criterio docente, evidencia del proceso y cita de la herramienta.",
+   "Tabla reflexiva: cómo integró la IA, qué cambió en la actividad, qué puso ella y qué aprendió.",
+   "Con el «+» añadió un segundo enlace: el de la imagen publicada.",
+   "Se marca al ENVIAR la actividad, no al empezarla."
+  ]
+ },
+ "A2": {
+  "titulo": "Un clip de 50 segundos para quien faltó a clase",
+  "texto": "Nuria, profesora de Lengua de 1.º de ESO, grabó con el móvil 50 segundos sobre cómo encontrar el sujeto de una oración: escribe una frase en la pizarra, pone el verbo en plural y señala qué grupo de palabras tiene que cambiar con él. Nada más. Lo subió a YouTube en oculto, se lo enseñó a su hija para ver si se entendía sin ella delante y pegó el enlace en el reto. Abajo tienes otro ejemplo real: «Publicar y compartir un Genially», un tutorial corto de Mr. Cuarter que explica un procedimiento paso a paso.",
+  "enlace": "https://youtu.be/ZE_JdQUmepk"
+ },
+ "B2": {
+  "titulo": "Marta (Tecnología, 3.º ESO): videotutorial de Tinkercad con tres preguntas",
+  "texto": "Mi videotutorial enseña a diseñar un llavero en Tinkercad y a exportarlo en STL para imprimirlo en 3D. El objetivo didáctico es que mi alumnado de 3.º de ESO sepa agrupar formas, crear huecos y medir en milímetros antes de llegar al taller, para dedicar la clase a imprimir y corregir. Las tres preguntas están justo después de cada paso difícil. Al hacerlo aprendí que el guion lo es todo: la primera grabación duraba nueve minutos y, al escribir antes lo que iba a decir, bajó a cuatro. También aprendí que una buena pregunta comprueba un paso, no un detalle.",
+  "detalle": [
+   "Guion de una página, grabación de pantalla con Screencastify y edición en Clipchamp (cortes y zoom en los botones).",
+   "Subido a YouTube en oculto e importado en Edpuzzle con 3 preguntas: en el 1:10, el 2:30 y el 3:40.",
+   "Aula invertida: lo ven en casa y en clase se imprime.",
+   "El enlace de Edpuzzle va en el reto; la reflexión, en la caja y en su Bitácora."
+  ],
+  "enlace": "https://edpuzzle.com/media/68ff9e1a400997c66a1f3eea"
+ },
+ "L2": {
+  "titulo": "Raúl (Matemáticas, 3.º ESO) reparte su sesión de sistemas de ecuaciones",
+  "texto": "ANTES de clase (en casa):\n· Ven un vídeo de 5 minutos sobre el método de sustitución, con dos preguntas en Edpuzzle.\n· Resuelven un sistema guiado paso a paso.\n· Escriben su duda principal en un formulario de una sola pregunta.\n\nDURANTE la clase:\n· Resolvemos en la pizarra las tres dudas más repetidas del formulario.\n· Por parejas, plantean y resuelven dos problemas reales (entradas de cine, monedas).\n· Cada pareja explica un problema a otra y se corrigen entre sí.\n· Cierre: un ejercicio individual de salida, de 5 minutos."
+ },
+ "A3": {
+  "titulo": "Irene (Inglés, 5.º de Primaria) monta tres senderos hacia el mismo objetivo",
+  "texto": "Irene creó un Genially con un solo objetivo: describir su rutina diaria en presente simple. En la portada hay tres puertas y cada estudiante elige una. «Hazlo»: ordena viñetas de un día y graba un audio contándolas. «Léelo»: lee un cómic corto y completa una tabla de horas y acciones. «Escúchalo»: escucha un pódcast de dos niños y responde con dibujos. Los tres caminos terminan en la misma tarea: escribir cinco frases sobre su propio día. Abajo tienes un ejemplo real en Genially: «(Math) Series niveladas».",
+  "detalle": [
+   "Criterio: cada sendero es una actividad distinta, no la misma con otro nombre.",
+   "Si no tienes una hora esta semana, vale un boceto a mano de los caminos, fotografiado."
+  ],
+  "enlace": "https://view.genially.com/673a886db3cebc087dcc971a"
+ },
+ "B3": {
+  "titulo": "Patricia rellena seis cruces de la matriz para «Las plantas» (3.º de Primaria)",
+  "texto": "Patricia, maestra de 3.º de Primaria, contextualizó su unidad «Las plantas» (Ciencias de la Naturaleza, 8-9 años) con sus objetivos, contenidos y criterios de evaluación. Hizo la tabla 8×6 en Google Docs, con las inteligencias en filas y los niveles de Bloom en columnas, y rellenó seis casillas: una por cada nivel de Bloom y con seis inteligencias distintas. Cada actividad lleva objetivo, tarea del alumno, recurso, evaluación, tiempo y tipo. Las 42 casillas vacías quedan a la vista para completarlas más adelante. Abajo tienes un paisaje real ya terminado en Genially («El viaje del Endurance»): una matriz así es la planificación que sostiene un paisaje como ese.",
+  "detalle": [
+   "Naturalista × Recordar: nombra las partes de una planta del huerto con una ficha de fotos · lista de cotejo · 20 min · obligatoria.",
+   "Lingüística × Comprender: explica en un audio de 1 minuto qué necesita una planta para vivir · rúbrica · 15 min · obligatoria.",
+   "Lógico-matemática × Aplicar: mide cada dos días una judía que germina y lo anota en una tabla · hoja de registro · 2 semanas · obligatoria.",
+   "Visual-espacial × Analizar: compara con fotos una planta al sol y otra a la sombra · escala de valoración · 30 min · optativa.",
+   "Interpersonal × Evaluar: en equipo, deciden con tres criterios qué maceta está mejor cuidada · coevaluación · 30 min · optativa.",
+   "Musical × Crear: inventa una canción corta sobre el ciclo de la planta con Chrome Music Lab · rúbrica · 45 min · voluntaria."
+  ],
+  "enlace": "https://view.genially.com/5d3ebe3d5890ce0f65730f81"
+ },
+ "L3": {
+  "titulo": "Beatriz (Francés, EOI) explica itinerario y paisaje en cinco líneas",
+  "texto": "Un itinerario de aprendizaje es una secuencia ordenada de actividades para llegar a un objetivo.\nPuede tener alguna bifurcación, pero el orden lo marca el docente y todos siguen un recorrido parecido.\nUn paisaje de aprendizaje ofrece muchas actividades a la vez, planificadas cruzando inteligencias múltiples y niveles de Bloom.\nEn el paisaje cada estudiante elige qué hace y en qué orden, entre tareas obligatorias, optativas y voluntarias.\nLa diferencia: el itinerario guía un recorrido; el paisaje abre varias opciones y atiende mejor a la diversidad."
+ },
+ "X2": {
+  "titulo": "Patricia entrega su paisaje de aprendizaje y lo marca en la Nave",
+  "texto": "Patricia, maestra de 3.º de Primaria, amplió la matriz de su unidad «Las plantas» a ocho actividades y las llevó a un paisaje: una imagen interactiva en Genially (no una presentación) con un huerto ilustrado en el que cada planta abre una actividad, con un color según sea obligatoria, optativa o voluntaria. Su PDF (11 páginas, dentro del límite para ocho actividades) recoge la contextualización, la matriz y la ficha completa de cada actividad. En la Bitácora añadió la página «Actividad 2» con la matriz, el paisaje incrustado y un párrafo sobre cómo ese diseño atiende a la diversidad. Subió el PDF a la plataforma de UNIR y, al enviarlo, marcó «Lo he hecho» en la Nave con el enlace del paisaje y, con el «+», el de su Bitácora.",
+  "detalle": [
+   "PDF (80 %): contextualización, matriz 8×6 y ficha de cada actividad (objetivo, tarea, recursos citados, evaluación, tiempo y tipo).",
+   "ePortfolio (20 %): evidencias de la matriz y del paisaje, más la justificación del diseño y de la atención a la diversidad.",
+   "Se marca al ENVIAR la actividad, no al empezarla."
+  ]
+ },
+ "A4": {
+  "titulo": "Álvaro publica en LinkedIn su primer videoquiz, sin esperar a pulirlo",
+  "texto": "Álvaro, profesor de Educación Física de 1.º de Bachillerato, publicó en LinkedIn, en abierto, una captura de su primer videoquiz con dos líneas: «Esta semana he convertido la explicación del salto de altura en un vídeo con preguntas para verlo antes de clase. No es perfecto, pero mi grupo ya lo está usando. #mutecdstargate». Tardó cinco minutos. Abrió la publicación, copió su enlace directo y lo pegó en el reto. Esa misma publicación le sirve después como evidencia en otros retos."
+ },
+ "B4": {
+  "titulo": "Daniel (Física y Química, 4.º ESO) monta su Classroom con tres recursos que ya existen",
+  "texto": "Mi contenido llega al móvil a través de la app de Classroom: cada tarea y cada anuncio avisan con una notificación, y elijo recursos que se ven bien en pantalla pequeña (vídeos cortos y una simulación que funciona en el navegador del móvil). Las instrucciones caben en tres líneas, no en un PDF. La conversación la mantengo viva así: cada lunes publico en el tablón una pregunta de la semana, respondo a los comentarios de clase en menos de 24 horas y en cada práctica dejo un comentario privado a cada estudiante. Cuando una duda se repite, la respondo en el tablón para todos.",
+  "detalle": [
+   "Aula «Física y Química 4.º B» con una tarea publicada: «Práctica: densidad de sólidos irregulares», con fecha y rúbrica.",
+   "Tablón abierto a comentarios y un anuncio de bienvenida.",
+   "Tres recursos ajenos, cada uno con dos líneas de por qué ese y su fuente: la simulación «Densidad» de PhET (Universidad de Colorado, CC BY 4.0), un vídeo divulgativo de YouTube sobre el principio de Arquímedes (canal citado) y un juego de Educaplay de otro docente sobre unidades (autor citado).",
+   "Google Doc con permiso de lectura y dos capturas (el tablón y la tarea): su enlace va en el reto."
+  ]
+ },
+ "L4": {
+  "titulo": "Mónica descubre en incógnito que su rúbrica pedía permiso",
+  "texto": "Mónica, maestra de Educación Infantil, eligió la rúbrica que había hecho en Google Docs. Copió el enlace, abrió una ventana de incógnito (Ctrl + Mayús + N en Chrome) y le salió «Necesitas permiso». En el documento pulsó «Compartir», cambió «Restringido» por «Cualquier persona con el enlace» con el rol «Lector» y volvió a probar: ahora se abría sin iniciar sesión. Hizo la captura con la ventana de incógnito y el documento a la vista y la pegó en el reto. Cinco minutos."
+ },
+ "A5": {
+  "titulo": "Laura (Inglés, 2.º ESO) hace una rúbrica de 4 criterios con descripciones observables",
+  "texto": "Laura eligió un objetivo que ya trabaja: «Presentar oralmente su ciudad durante dos minutos». Hizo en Google Docs una tabla con 4 criterios (contenido, vocabulario, fluidez y pronunciación) y 4 niveles (Inicial, En proceso, Conseguido y Destacado). En cada casilla escribió lo que se ve o se oye, no un adjetivo: en vez de «buen vocabulario», «usa 8 o más palabras de la unidad sin repetir». La compartió como «Cualquier persona con el enlace · Lector», se la pasó a una compañera para ver si podía usarla sin preguntarle y pegó el enlace en el reto.",
+  "detalle": [
+   "Contenido · Destacado: nombra 4 o más lugares y da un dato de cada uno. Inicial: nombra 1 lugar, sin datos.",
+   "Fluidez · Destacado: habla dos minutos con 2 pausas largas como máximo. Inicial: lee casi todo del papel.",
+   "Sin adjetivos sueltos («bien», «adecuado»): si no se puede observar, no se puede medir."
+  ]
+ },
+ "B5": {
+  "titulo": "Laura monta en Google Sites el centro de recursos de Inglés de 2.º ESO",
+  "texto": "Laura creó en Google Sites «English Hub · 2.º ESO» con un menú de cinco páginas: Inicio, Unidad 1, Unidad 2, Unidad 3 y «Cómo se evalúa». Cada unidad tiene sus recursos (un vídeo con preguntas, un juego de Wordwall, una ficha de vocabulario), cada uno con una línea que dice para qué sirve. En «Cómo se evalúa» incrustó la rúbrica de la exposición oral que hizo en el reto anterior. Comprobó el enlace en incógnito y lo pegó en el reto. En su Bitácora añadió la entrada «Centro de recursos»: evidencia (el enlace), contexto (grupo y uso) y reflexión (qué cambia al tenerlo todo en un sitio). Esa misma semana cerró allí su página de la Actividad 1.",
+  "detalle": [
+   "Web no es aula virtual: aquí no se entregan tareas; el alumnado encuentra los recursos sin pedirlos.",
+   "Organizada con criterio: por unidad (también valdría por tipo de recurso).",
+   "La rúbrica, a la vista en su propia página, no escondida tras un enlace."
+  ],
+  "pua": "En PUA este reto recupera también a Vera y no hay reto anterior de rúbrica: la rúbrica (3-4 criterios con descripciones observables) se hace aquí mismo."
+ },
+ "L5": {
+  "titulo": "Paula crea en Google Forms tres preguntas de autoevaluación sobre el feudalismo",
+  "texto": "Paula, profesora de Geografía e Historia de 2.º de ESO, abrió Google Forms en modo cuestionario, con la puntuación y las respuestas visibles al enviar. Escribió una pregunta por cada objetivo de la unidad: 1) ¿Qué estamento trabajaba la tierra? (opción múltiple). 2) Relaciona señor y vasallo con sus obligaciones (cuadrícula). 3) ¿Por qué un campesino aceptaba depender de un señor? (respuesta corta, con una respuesta modelo como comentario). Lo insertó en su Bitácora (Google Sites → Insertar → Formularios) y pegó el enlace en el reto. Doce minutos."
+ },
+ "A6": {
+  "titulo": "Ramón repasa 15 minutos y gana al Simulador a la segunda",
+  "texto": "Ramón, profesor de FP Básica, se preparó 15 minutos antes de entrar: repasó sus notas de los temas 1 al 5 y se apuntó los pares que más se confunden (itinerario y paisaje, videotutorial y videoquiz, aula virtual y web de recursos, ABJ y gamificación). La primera partida la perdió por contestar despacio. En la segunda respondió sin apurar los 25 segundos, guardó «reparar escudo» para cuando su escudo iba bajo y llegó al Remate sin fallos pendientes. No tuvo que entregar nada: la insignia se registró sola."
+ },
+ "B6": {
+  "titulo": "Carlos (Química, 1.º Bachillerato): escape de formulación en tres fases",
+  "texto": "Mi juego cubre este objetivo: nombrar y formular compuestos inorgánicos binarios y ternarios según la IUPAC. Es un escape en Genially con tres fases, y cada una sube la dificultad: en la primera se reconocen óxidos e hidruros; en la segunda hay que nombrar sales binarias; en la tercera, formular oxoácidos a partir de su nombre. Cada fase da un dígito del candado final, así que no se avanza sin acertar. Lo evalúo con un Google Forms al final, donde cada equipo escribe el código y cuántos intentos le costó cada fase, y con una lista de cotejo mientras juegan: así veo en qué fase se atascan y qué tengo que repasar.",
+  "detalle": [
+   "Hecho en Genially con una plantilla de escape: portada, tres salas y candado final.",
+   "Cada mecánica sirve a un aprendizaje: sin nombrar bien el compuesto, la puerta no se abre.",
+   "Enlace público del Genially en el reto; la reflexión, en la caja y en su Bitácora."
+  ]
+ },
+ "L6": {
+  "titulo": "Marta justifica su videotutorial de Tinkercad según el aula invertida",
+  "texto": "Recurso: videotutorial de Tinkercad con tres preguntas en Edpuzzle (3.º ESO).\nMetodología: aula invertida.\nSe ve en casa, antes de la sesión, al ritmo de cada estudiante.\nLas preguntas comprueban que ha entendido cada paso antes de seguir.\nEdpuzzle me dice quién lo ha visto y qué pregunta se falla más.\nCon eso empiezo la clase resolviendo solo las dudas reales.\nEl tiempo de aula se dedica a diseñar e imprimir, conmigo al lado.\nVídeo y no PDF: el procedimiento se entiende mejor viéndolo.\nEdpuzzle y no YouTube a secas: sin preguntas no sabría quién lo sigue.\nAporta autonomía, respeta los ritmos y deja más práctica guiada en clase."
+ },
+ "A7": {
+  "titulo": "Rocío (5.º de Primaria) crea la insignia «Guardianes de la biblioteca»",
+  "texto": "Se llama «Guardianes de la biblioteca». Reconoce al equipo que cada viernes deja la biblioteca de aula ordenada, con los libros revisados y las fichas de préstamo al día. En nuestra historia de clase, esos libros son el archivo de todas las aventuras que hemos leído: si se pierden o se rompen, el lunes nadie puede seguir la suya. No premia obedecer: recuerda que cuidar lo que es de todos es cuidar a los compañeros.",
+  "detalle": [
+   "Diseñada en Canva: escudo azul con un libro abierto y una llave.",
+   "Compartida con el enlace de solo lectura de Canva y publicada en el padlet de la clase."
+  ]
+ },
+ "B7": {
+  "titulo": "Ana (FP de Cuidados Auxiliares de Enfermería) convierte el registro diario en un turno de guardia",
+  "texto": "Mi microgamificación refuerza una conducta concreta: rellenar cada día, completa y sin errores, la hoja de registro de las prácticas. Nadie juega: la tarea es la de siempre. La envuelve una historia: mi grupo es el equipo de guardia del «Hospital Aurora» y cada registro bien hecho es un paciente atendido a tiempo. En un tablero de Genially cada equipo tiene la barra de progreso de su turno, y con cinco días seguidos sin errores gana la insignia «Turno impecable». Lo hago así porque en su trabajo real un registro incompleto tiene consecuencias, y la historia les ayuda a verlo antes de salir a las prácticas.",
+  "detalle": [
+   "Tablero en Genially: una barra por equipo que avanza con cada registro que valida la profesora.",
+   "Insignia «Turno impecable» al quinto día seguido sin errores.",
+   "No es ABJ: no hay un juego que jugar, solo elementos de juego (historia, progreso e insignia) sobre una tarea real."
+  ]
+ },
+ "L7": {
+  "titulo": "Pedro hace una tabla de los equipos que más han mejorado",
+  "texto": "Pedro, profesor de Educación Física de 1.º de ESO, no quería premiar solo al más rápido. En Google Sheets hizo una tabla de cinco filas, una por equipo, con tres columnas: marca media en la primera prueba de 1.000 metros, marca media actual y porcentaje de mejora. La ordenó por la mejora y añadió formato condicional para que el primer puesto salga en verde. Así, arriba va el equipo que más ha progresado, aunque no sea el más rápido. Hizo la captura y la pegó en el reto. Diez minutos."
+ },
+ "A8": {
+  "titulo": "Clara (Geografía e Historia, 1.º ESO) trae al aula un Coliseo en 3D",
+  "texto": "Usaría un modelo 3D del Coliseo publicado en Sketchfab, que desde el móvil se puede colocar sobre la mesa en realidad aumentada. Sería en 1.º de ESO, en la unidad de Roma. Por parejas, el alumnado lo giraría y se acercaría a las gradas, la arena y las entradas, y dibujaría un plano sencillo con el lugar donde se sentaba cada grupo social. Esa capa añade lo que el libro no da con una foto: el tamaño, la estructura por dentro y la posibilidad de compararlo con un estadio que conocen.",
+  "detalle": [
+   "En el reto va el enlace al modelo: aquí no se construye nada, se elige un recurso que ya existe.",
+   "Se cita el autor del modelo y su licencia, que aparecen en la propia ficha de Sketchfab."
+  ]
+ },
+ "B8": {
+  "titulo": "Lucía crea una lámina con RA y publica su Bitácora completa",
+  "texto": "Lucía, la profesora de Biología y Geología de 3.º de ESO que abrió su Bitácora en la semana 1, hizo su experiencia de realidad aumentada con una lámina del aparato digestivo: junto a cada órgano hay un código QR que abre en el móvil un modelo 3D de ese órgano (de Sketchfab, con su autor citado) o un vídeo suyo de 40 segundos. La imprimió en A3 para la pared del aula y la usó como reto libre. Después cerró la Bitácora: convirtió su paisaje de la Actividad 2 en una imagen interactiva de Genially incrustada en su página, revisó que las cinco páginas estuvieran completas (Actividad 1, Actividad 2, videotutorial, microgamificación y reto libre), lo abrió todo en incógnito y pegó el enlace único en el reto.",
+  "detalle": [
+   "Cada página sigue el mismo patrón: evidencia → contexto → reflexión.",
+   "Probó los QR con dos móviles distintos antes de imprimir la lámina.",
+   "Un solo enlace, el de la Bitácora, que lleva a todo lo demás."
+  ]
+ },
+ "L8": {
+  "titulo": "Víctor mete en una diapositiva el QR de su juego sobre la orquesta",
+  "texto": "Víctor, profesor de Música de 2.º de ESO, abrió en Chrome el enlace público de su juego de Wordwall sobre las familias de instrumentos y generó el QR con el botón derecho → «Crear código QR para esta página». Lo pegó en una diapositiva de Google Slides titulada «Escanea y juega: la orquesta», lo escaneó con su móvil para comprobar que abría el juego y, con la pantalla partida, hizo una captura con la diapositiva a la izquierda y el juego abierto a la derecha, con su dirección visible. La pegó en el reto. Ocho minutos."
+ },
+ "XS": {
+  "titulo": "Isabel monta su plataforma «EXPLORA» en 90 minutos",
+  "texto": "Isabel, maestra de 6.º de Primaria, recibió un caso: una plataforma para preparar una salida al entorno natural. Minutos 0-15: un Google Sites con portada, el logo hecho en Canva con la palabra clave que pedía el caso, «EXPLORA», y cinco líneas que explican el enfoque. Minutos 15-40: Módulo 1 (antes de la salida), con su videoquiz reutilizado del tema 2 y un cuestionario de autoevaluación de tres preguntas creado en el momento. Minutos 40-65: Módulo 2 (durante la salida), con un juego de Wordwall creado en directo y su QR dentro de una lámina. Minutos 65-78: justificación de diez líneas según el ABP. Minutos 78-90: todos los enlaces abiertos en incógnito, capturas y repaso de ortografía. Al terminar, pegó el enlace público y subió las capturas.",
+  "detalle": [
+   "¿El logo lleva la palabra clave?",
+   "¿Se abre todo en una ventana de incógnito?",
+   "¿Hay dos módulos y tres productos?",
+   "¿La justificación cabe en diez líneas?",
+   "¿Hay capturas y se ha repasado la ortografía?"
+  ]
+ }
 }
 # 15-sep · EL RETO SECRETO (S7) ES EL ESCAPE UNI (Norberto). En la Nave, su botón de entrada; al final del escape, el
 # botón lleva a validar.html?reto=S7&llave=… (la llave, PALABRA_HUEVO de Datos.gs; la web solo lleva su huella).

@@ -218,18 +218,24 @@
     cifra(g, gx + 3 * (gw + gap), gy + 152, gw, pct + " %", null, "del viaje");
 
     // las insignias
-    var ix = 110, iy = 960;
+    /**
+     * 🔴 17-sep · EN FILAS IGUALES. Norberto: «el diploma es maravilloso; solo queda arreglar las insignias de la segunda
+     * fila: que en la fila 1 y en la fila 2 haya el mismo número de insignias, o ±1». Iban 20 por fila (y no cabían 20
+     * en el ancho): con 22, una fila de 20 y otra de 2 que además pisaba el mensaje del Capitán. Ahora se reparten a
+     * partes iguales, la fila corta va centrada bajo la larga, y si con dos filas no caben antes del mensaje, se hacen
+     * un poco más pequeñas.
+     */
+    var ix = 110, iy = 940, my = 1170;
     texto(g, "SUS INSIGNIAS", ix, iy, { tam: 20, peso: 700, color: "#93A7BA", espacio: "5px" });
-    var imgs = await Promise.all(d.insigniasLista.map(function (k) { return cargarImagen("assets/img/insignias/" + k + ".png"); }));
-    var lado = 78, sep = 12, porFila = 20;
+    var imgs = (await Promise.all(d.insigniasLista.map(function (k) { return cargarImagen("assets/img/insignias/" + k + ".png"); }))).filter(Boolean);
+    var fila = colocarInsignias(imgs.length, W - 2 * ix, (my - 34 - 14) - (iy + 24));
     imgs.forEach(function (im, i) {
-      if (!im) return;
-      var px = ix + (i % porFila) * (lado + sep), py = iy + 26 + Math.floor(i / porFila) * (lado + sep);
-      g.drawImage(im, px, py, lado, lado);
+      var f = Math.floor(i / fila.porFila), enFila = Math.min(fila.porFila, imgs.length - f * fila.porFila);
+      var px = ix + ((fila.porFila - enFila) * (fila.lado + fila.sep)) / 2 + (i - f * fila.porFila) * (fila.lado + fila.sep);
+      g.drawImage(im, px, iy + 24 + f * (fila.lado + fila.sep), fila.lado, fila.lado);
     });
 
     // el mensaje y las firmas
-    var my = 1170;
     g.strokeStyle = "rgba(255,255,255,.12)";
     g.beginPath(); g.moveTo(110, my - 34); g.lineTo(W - 110, my - 34); g.stroke();
     parrafo(g, "«Recluta " + d.alias + ": cuando llegaste, la galaxia estaba perdiendo su memoria. Hoy tu Bitácora existe, "
@@ -244,6 +250,22 @@
 
     return c;
   }
+
+  /**
+   * Cuántas por fila y de qué tamaño: se prueba con 1, 2 y 3 filas IGUALES (±1) y se queda la que deja las insignias más
+   * grandes (a igualdad, la de menos filas), sin pasar de 78 px ni del ancho, ni del alto que hay antes del mensaje.
+   */
+  function colocarInsignias(n, ancho, alto) {
+    var sep = 12, mejor = { lado: 0, sep: sep, filas: 1, porFila: Math.max(1, n) };
+    for (var filas = 1; filas <= 3; filas++) {
+      var porFila = Math.max(1, Math.ceil(n / filas));
+      var lado = Math.min(78, Math.floor((ancho + sep) / porFila) - sep, Math.floor((alto - (filas - 1) * sep) / filas));
+      if (lado > mejor.lado) mejor = { lado: lado, sep: sep, filas: filas, porFila: porFila };
+      if (porFila === 1) break;
+    }
+    return mejor;
+  }
+  window.SG_DIPLOMA_FILAS = colocarInsignias;   // (lo prueba la batería 83)
 
   // ──────────────────────────────────────────────────────── la pantalla
   async function ver() {

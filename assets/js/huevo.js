@@ -23,9 +23,34 @@
 
   var url = new URLSearchParams(location.search);
   var HUEVO = (url.get("h") || url.get("huevo") || "").trim();
+  /**
+   * 🔴 17-sep · EL CÓDIGO, EL TIPO Y LA PÁGINA PROPIA. Norberto: «es importante usar direcciones más difíciles»; «debería
+   * poder marcarse si es huevo de Pascua o recompensa: a veces haremos actividades y al superarlas tendrán su recompensa
+   * (la mayoría): ¡Enhorabuena! Has ganado una recompensa. Pulsa para conseguirla»; y «el enlace directo sí tiene que
+   * tener el fondo de STARGATE, una página dedicada donde aparezca el Capitán sorprendido. Sin fondo, solo el embed».
+   * `c` es el código que comprueba el servidor; `t` dice qué es antes de saber el grupo (r = recompensa, h = huevo).
+   */
+  var CODIGO = (url.get("c") || "").trim();
+  var TIPO_URL = url.get("t") === "h" ? "huevo" : url.get("t") === "r" ? "recompensa" : "";
+  var DIRECTO = url.get("embed") !== "1";
+  function tipo() { return (EST && EST.H && EST.H.tipo) || TIPO_URL || "huevo"; }
+  function esRec() { return tipo() === "recompensa"; }
+  function marcarPagina() {
+    document.body.classList.toggle("huevo-directo", DIRECTO);
+    document.body.classList.toggle("huevo-rec", esRec());
+    document.title = "STARGATE · " + (esRec() ? "Tu recompensa" : "Un huevo de Pascua");
+  }
+  /** En la página propia, el Capitán a un lado: señalando el hallazgo o con el pulgar arriba por el reto superado. */
+  function escena(dice) {
+    if (!DIRECTO) return "";
+    return '<div class="hv-escena"><img class="hv-cap" src="assets/img/capitan/' + (esRec() ? "pulgar" : "senala") + '.png" alt="El Capitán" width="360" height="480">'
+      + '<p class="hv-bocadillo">' + (dice || (esRec() ? "¡Reto superado, recluta! Esto te lo has ganado." : "¡Vaya! ¿Cómo has dado con este escondite?")) + '</p></div>';
+  }
   // «👁 Ver cómo se ve» desde la consola: la misma página, sin reclamar nada
   var VISTA = url.get("vista") === "1", PER_VISTA = (url.get("per") || "").trim();
   var MOTOR = null, YO = null, PER = "", FICHA = "", EST = null, RELOJ = 0;
+  // 17-sep · con cuenta de docente: la misma página, y se «reclama» de mentira (ver `simular`)
+  var SIMULA = false;
   // 15-sep · pulsó «Abrirlo» sin sesión: en cuanto entre con Google, se reclama solo (Norberto: «una vez iniciada, el
   // mensaje de lo que ha ganado»)
   var QUIERE = false;
@@ -36,12 +61,17 @@
 
   /** El sobre del misterio: lo que se ve ANTES de saber qué hay dentro. */
   function portada(sub, botón) {
-    return '<div class="hv"><div class="hv-caja">'
-      + '<div class="hv-icono">🥚</div>'
-      + '<div class="eyebrow amber">Has encontrado algo</div>'
-      + '<h2>Un escondite de la Tripulación Cero</h2>'
+    var rec = esRec();
+    return '<div class="hv">' + escena() + '<div class="hv-caja">' + avisoSimula()
+      + '<div class="hv-icono">' + (rec ? "🎁" : "🥚") + '</div>'
+      + '<div class="eyebrow amber">' + (rec ? "Reto superado" : "Has encontrado un huevo de Pascua") + '</div>'
+      + '<h2>' + (rec ? "¡Enhorabuena! Has ganado una recompensa" : "Un escondite de la Tripulación Cero") + '</h2>'
       + '<p class="hv-sub">' + sub + '</p>'
       + (botón || '') + '</div></div>';
+  }
+  function invita() { return esRec() ? 'Pulsa para conseguirla. <b>Solo se puede una vez.</b>' : 'Hay algo aquí para ti. Púlsalo y es tuyo — <b>solo se puede una vez</b>.'; }
+  function botonAbrir(id) {
+    return '<button class="btn epico" id="' + id + '"><span class="ep-luz"></span><span class="ep-txt">' + (esRec() ? "🎁 Conseguir mi recompensa" : "🥚 Abrirlo") + '</span></button>';
   }
 
   function cargando(t) {
@@ -59,8 +89,8 @@
   }
   function portadaHeroe(clave, eyebrow, sub, botón, clase, copias) {
     var h = heroeDe(clave);
-    return '<div class="hv"><div class="hv-caja hv-heroe ' + (clase || '') + ' r-' + esc(h.rareza.replace(/[^a-záéíóú]/g, "")) + '">'
-      + '<div class="eyebrow amber">' + eyebrow + '</div>'
+    return '<div class="hv">' + escena() + '<div class="hv-caja hv-heroe ' + (clase || '') + ' r-' + esc(h.rareza.replace(/[^a-záéíóú]/g, "")) + '">'
+      + avisoSimula() + '<div class="eyebrow amber">' + eyebrow + '</div>'
       + '<figure class="hv-fig"><img src="assets/img/heroes/' + esc(clave) + '.jpg" alt="' + esc(h.nombre) + '" width="512" height="512">'
       + (h.rareza ? '<figcaption class="hv-rareza">' + esc(h.rareza.charAt(0).toUpperCase() + h.rareza.slice(1)) + '</figcaption>' : '')
       + (copias ? '<span class="hv-copias" title="Cuántos tienes">×' + copias + '</span>' : '')
@@ -73,6 +103,8 @@
   /** La portada según cómo esté el premio AHORA. El servidor decide al reclamar; esto lo cuenta antes. */
   function pintarEstado() {
     clearTimeout(RELOJ);
+    marcarPagina();
+    if (SIMULA) return pintarSimulacion();
     var e = EST || {}, fijo = esHeroeFijo(), cuando = MOTOR.cuandoEs;
     var caja = function (sub, botón, clase) {
       return fijo ? portadaHeroe(e.H.heroe, VISTA ? "Así lo verá tu alumnado" : (e.yaEra ? "Ya es tuyo" : "Tu recompensa"), sub, botón, clase)
@@ -93,9 +125,9 @@
     }
     if (e.yaEra && !VISTA) {
       if (fijo) return pinta(portadaHeroe(e.H.heroe, "Ya es tuyo", 'Ya está en tu colección: lo reclamaste en su momento.', botónNave(), 'gana', e.copias));
-      return pinta('<div class="hv"><div class="hv-caja"><div class="hv-icono">✓</div>'
-        + '<h2>Este ya lo tenías</h2>'
-        + '<p class="hv-sub">Lo reclamaste en su momento y está en tu cuenta. Hay más escondidos por ahí.</p>'
+      return pinta('<div class="hv">' + escena(esRec() ? "Esta ya es tuya, recluta." : "Este ya lo encontraste tú.") + '<div class="hv-caja"><div class="hv-icono">✓</div>'
+        + '<h2>' + (esRec() ? "Esta recompensa ya es tuya" : "Este ya lo tenías") + '</h2>'
+        + '<p class="hv-sub">' + (esRec() ? "La conseguiste en su momento y está en tu cuenta." : "Lo reclamaste en su momento y está en tu cuenta. Hay más escondidos por ahí.") + '</p>'
         + botónNave() + '</div></div>');
     }
     if (e.estado === "pronto") {
@@ -115,16 +147,14 @@
     }
     if (e.estado === "agotado") return pinta(caja('Llegaste tarde: ya lo han reclamado las ' + e.tope + ' personas que podían.', ''));
     // abierto
-    if (VISTA) return pinta(caja(fijo ? 'Súmalo a tu colección. Solo se puede una vez.'
-                                      : 'Hay algo aquí para ti. Púlsalo y es tuyo — <b>solo se puede una vez</b>.',
-                                 parado(fijo ? "🛡️ Sumarlo a mi colección" : "🥚 Abrirlo") + '<p class="hv-nota-vista">Vista previa: desde aquí no se reclama.</p>'));
-    var boton = '<button class="btn epico" id="hv-abrir"><span class="ep-luz"></span>'
-               + '<span class="ep-txt">' + (fijo ? (e.copias ? "🛡️ Reclamarlo" : "🛡️ Sumarlo a mi colección") : "🥚 Abrirlo") + '</span></button>';
+    if (VISTA) return pinta(caja(fijo ? 'Súmalo a tu colección. Solo se puede una vez.' : invita(),
+                                 parado(fijo ? "🛡️ Sumarlo a mi colección" : esRec() ? "🎁 Conseguir mi recompensa" : "🥚 Abrirlo") + '<p class="hv-nota-vista">Vista previa: desde aquí no se reclama.</p>'));
+    var boton = fijo ? '<button class="btn epico" id="hv-abrir"><span class="ep-luz"></span>'
+               + '<span class="ep-txt">' + (e.copias ? "🛡️ Reclamarlo" : "🛡️ Sumarlo a mi colección") + '</span></button>' : botonAbrir("hv-abrir");
     if (fijo && e.copias) pinta(portadaHeroe(e.H.heroe, "Tu recompensa",
       'Este <b>ya lo tienes</b>. Reclámalo igualmente: NEBULA te dejará elegir entre quedártelo repetido, <b>40 ◈</b> o un <b>sobre de cromos</b>.',
       boton, '', e.copias));
-    else pinta(caja(fijo ? 'Súmalo a tu colección. <b>Solo se puede una vez.</b>'
-                         : 'Hay algo aquí para ti. Púlsalo y es tuyo — <b>solo se puede una vez</b>.', boton));
+    else pinta(caja(fijo ? 'Súmalo a tu colección. <b>Solo se puede una vez.</b>' : invita(), boton));
     document.getElementById("hv-abrir").onclick = reclamar;
   }
 
@@ -173,6 +203,64 @@
     };
   }
 
+  /**
+   * 🔴 17-sep · EL DOCENTE PUEDE PROBARLO DELANTE DE SU CLASE. Norberto: «aunque detecte la cuenta del profesorado,
+   * que me permita ver la recompensa (avisa de que es cuenta de docente y de que es una simulación, que no se descuenta),
+   * pero que se vea y pueda "reclamarla" para enseñar a los estudiantes cómo se hace». Se busca el premio en SUS grupos,
+   * se enseña igual que al alumnado y el botón abre un premio de mentira (el sobre con cartas al azar, el héroe, los
+   * créditos…): no llama al servidor, no cuenta como reclamado y no gasta el tope.
+   */
+  function avisoSimula() {
+    return SIMULA ? '<p class="hv-sim">🧑‍🏫 <b>Cuenta de docente · simulación.</b> Así lo vive tu alumnado: no se reclama nada y el premio sigue intacto.</p>' : '';
+  }
+  function correoYo() { return String((YO && (YO.correo || YO.email)) || "").toLowerCase(); }
+  function pareceDocente() {
+    try { return localStorage.getItem("sgEsDocente") === "1" || (MOTOR.VITALICIOS || []).indexOf(correoYo()) >= 0; } catch (e) { return false; }
+  }
+  function simular() {
+    cargando("Buscando este premio en tus grupos…");
+    return (MOTOR.misPERs ? MOTOR.misPERs(correoYo()) : Promise.resolve([])).catch(function () { return []; }).then(function (gs) {
+      if (!gs.length) return otraCuenta();
+      return Promise.all(gs.map(function (g) {
+        return MOTOR.getDoc(MOTOR.doc(MOTOR.db, "rewards", g.id + "__huevo_" + HUEVO))
+          .then(function (d) { return d.exists() && !d.data().stargateBorrado; }).catch(function () { return false; });
+      })).then(function (tiene) {
+        var g = gs.filter(function (x, i) { return tiene[i]; })[0];
+        if (!g) return fallo("Eres docente, pero este premio no está en ninguno de tus grupos. Revisa el enlace en Premios por enlace.");
+        PER = g.id; SIMULA = true;
+        return MOTOR.estadoHuevo(PER, HUEVO, null).then(function (e) { EST = e; pintarEstado(); });
+      });
+    });
+  }
+  function pintarSimulacion() {
+    var e = EST || {}, fijo = esHeroeFijo(), cuando = MOTOR.cuandoEs;
+    var ahora = e.estado === "pausado" ? " (Ahora mismo está <b>en pausa</b> para tu alumnado.)"
+              : e.estado === "pronto" ? " (Tu alumnado podrá desde " + esc(cuando(e.desde)) + ".)"
+              : e.estado === "cerrado" ? " (Para tu alumnado ya se cerró.)"
+              : e.estado === "agotado" ? " (Para tu alumnado ya está agotado.)" : "";
+    var boton = '<button class="btn epico" id="hv-simular"><span class="ep-luz"></span><span class="ep-txt">'
+      + (fijo ? "🛡️ Sumarlo a mi colección" : esRec() ? "🎁 Conseguir mi recompensa" : "🥚 Abrirlo") + '</span></button>';
+    if (fijo) pinta(portadaHeroe(e.H.heroe, "Tu recompensa", 'Súmalo a tu colección. <b>Solo se puede una vez.</b>' + ahora, boton));
+    else pinta(portada(invita() + ahora, boton));
+    document.getElementById("hv-simular").onclick = function () {
+      var H = e.H || {}, cat = window.SG_CATALOGO || {}, al = function (l) { return l[Math.floor(Math.random() * l.length)]; };
+      var cromos = cat.cromos || [], heroes = cat.heroes || [], n = Number(H.cantidad || H.creditos) || 0, t = H.premio || "sobre", d = {};
+      var carta = function (x, tipoC) { return { clave: x.clave, nombre: x.nombre, rareza: x.rareza, tipo: tipoC }; };
+      if (/^sobre/.test(t) && cromos.length) {
+        var cuantas = t === "sobre_grande" ? 5 : 3, pool = t === "sobre_epico" ? cromos.filter(function (c) { return !/com/i.test(c.rareza); })
+                    : t === "sobre_raro" ? cromos.filter(function (c) { return !/com/i.test(c.rareza); }) : cromos;
+        d.cartas = []; for (var i = 0; i < cuantas; i++) d.cartas.push(carta(al(pool.length ? pool : cromos), "cromo"));
+      } else if (t === "heroe_fijo") { var h = heroeDe(H.heroe); d = { clave: H.heroe, nombre: h.nombre, rareza: h.rareza }; }
+      else if ((t === "heroe" || /^capsula_/.test(t)) && heroes.length) {
+        var pool2 = t === "capsula_legendaria" ? heroes.filter(function (x) { return /legend|mito/i.test(x.rareza); }) : t === "capsula_elite" ? heroes.filter(function (x) { return /épica|legend|mito/i.test(x.rareza); }) : heroes;
+        var x = al(pool2.length ? pool2 : heroes); d = { clave: x.clave, nombre: x.nombre, rareza: x.rareza };
+      } else if (t === "bolsa") d.creditos = n || 50;
+      else if (t === "xp") d.xp = n || 100;
+      else if (t === "participaciones") d.n = n || 1;
+      premio({ premio: t, detalle: d, simulado: true });
+    };
+  }
+
   // ---------------------------------------------------------------- la puerta
   /**
    * 🔴 La sesión se pide AQUÍ, no se manda a otra página. Quien encuentra esto está dentro de un
@@ -186,8 +274,8 @@
    * escondite con su botón, y el botón pide la cuenta.
    */
   function puerta() {
-    pinta(portada('Hay algo aquí para ti. Púlsalo y es tuyo — <b>solo se puede una vez</b>.',
-      '<button class="btn epico" id="hv-abrir0"><span class="ep-luz"></span><span class="ep-txt">🥚 Abrirlo</span></button>'));
+    marcarPagina();
+    pinta(portada(invita(), botonAbrir("hv-abrir0")));
     document.getElementById("hv-abrir0").onclick = puertaGoogle;
   }
   function puertaGoogle() {
@@ -221,7 +309,7 @@
   function otraCuenta() {
     var correo = String((YO && (YO.correo || YO.email)) || ""), docente = false;
     try { docente = localStorage.getItem("sgEsDocente") === "1" || (MOTOR.VITALICIOS || []).indexOf(correo.toLowerCase()) >= 0; } catch (e) {}
-    pinta('<div class="hv"><div class="hv-caja mal"><div class="hv-icono">🥚</div>'
+    pinta('<div class="hv">' + escena("Hmm… con esa cuenta no te encuentro.") + '<div class="hv-caja mal"><div class="hv-icono">' + (esRec() ? "🎁" : "🥚") + '</div>'
       + '<h2>' + (docente ? "Esta cuenta es de docente" : "Esta cuenta no está en ningún grupo") + '</h2>'
       + '<p class="hv-sub">' + (docente
           ? 'Estás con <b>' + esc(correo) + '</b>. Los premios son para tu alumnado; para ver cómo se ve, usa «👁 Ver cómo se ve» en Premios por enlace.'
@@ -239,7 +327,7 @@
   }
 
   function fallo(msg) {
-    pinta('<div class="hv"><div class="hv-caja mal"><div class="hv-icono">🥚</div>'
+    pinta('<div class="hv">' + escena("Algo no ha ido bien…") + '<div class="hv-caja mal"><div class="hv-icono">' + (esRec() ? "🎁" : "🥚") + '</div>'
       + '<h2>No he podido dártelo</h2><p class="hv-sub">' + esc(msg) + '</p></div></div>');
   }
 
@@ -254,8 +342,8 @@
 
   function reclamar() {
     if (esHeroeFijo()) pinta(portadaHeroe(EST.H.heroe, "Tu recompensa", 'Sumándolo a tu colección…', '<div class="hv-cargando"><i></i></div>'));
-    else cargando("Abriendo el escondite…");
-    MOTOR.reclamarHuevo(PER, HUEVO, FICHA).then(function (r) {
+    else cargando(esRec() ? "Consiguiendo tu recompensa…" : "Abriendo el escondite…");
+    MOTOR.reclamarHuevo(PER, HUEVO, FICHA, CODIGO).then(function (r) {
       if (r.yaEra) { EST.yaEra = true; return pintarEstado(); }
       if (r.repetido) { EST.copias = r.copias; EST.yaEra = true; EST.sinAbrir = true; return oferta(); }
       premio(r);
@@ -263,9 +351,14 @@
   }
 
   function botónNave() {
+    if (SIMULA) return '<p class="hv-sim">🧑‍🏫 Era una simulación: no se ha guardado nada y el premio sigue intacto para tu alumnado.</p>'
+      + '<p class="hv-pie"><button class="btn" id="hv-otra-vez" type="button">↻ Repetir la simulación</button></p>';
     return '<p class="hv-pie"><a class="btn" href="recluta.html?per=' + esc(PER)
       + '" target="_blank" rel="noopener">🚀 Ver mi Nave ↗</a></p>';
   }
+  document.addEventListener("click", function (ev) {
+    var b = ev.target && ev.target.closest && ev.target.closest("#hv-otra-vez"); if (b && SIMULA) pintarEstado();
+  });
 
   function premio(r) {
     // (los sobres nuevos se abren como un sobre y las cápsulas como un héroe)
@@ -275,7 +368,7 @@
     if (!r.__abierto && window.SG && SG.SOBRE && !d.sinAbrir &&
         ((t === "sobre" && d.cartas && d.cartas.length) || (t === "heroe" && d.clave))) {
       var cartas = t === "sobre" ? d.cartas : [{ clave: d.clave, nombre: d.nombre, tipo: "heroe", rareza: d.rareza || "épica", repetida: (r.copias || 0) > 1 }];
-      return SG.SOBRE.revelar(cartas, { titulo: t === "sobre" ? "Lo que había en el escondite" : fijo ? "Tu recompensa" : "Un héroe escondido" })
+      return SG.SOBRE.revelar(cartas, { titulo: esRec() ? "Tu recompensa" : t === "sobre" ? "Lo que había en el escondite" : fijo ? "Tu recompensa" : "Un héroe escondido" })
         .then(function () { r.__abierto = true; premio(r); });
     }
     var que = t === "sobre" ? (d.cartas || []).map(function (c) { return c.nombre; }).join(" · ")
@@ -293,15 +386,15 @@
       try { if (window.SG && SG.FIESTA) SG.FIESTA.sonar("nivel"); } catch (e) {}
       return;
     }
-    pinta('<div class="hv"><div class="hv-caja gana">'
+    pinta('<div class="hv">' + escena(esRec() ? "¡Bien hecho! Ya está en tu cuenta." : "¡Menudo hallazgo!") + '<div class="hv-caja gana">'
       + '<div class="hv-icono grande">' + (ICONOS[t] || "🎁") + '</div>'
-      + '<div class="eyebrow amber">Lo has encontrado</div>'
+      + '<div class="eyebrow amber">' + (esRec() ? "Tu recompensa" : "Lo has encontrado") + '</div>'
       + '<h2>' + esc(NOMBRES[t] || "Un premio") + '</h2>'
       + (que ? '<p class="hv-que">' + esc(que) + '</p>' : '')
       + '<p class="hv-sub">' + (t === "participaciones"
           ? 'Ya son tuyas: cada una es una papeleta más para el sorteo. Las ves en el Mercado de tu Nave.'
           : d.sinAbrir ? 'Lo tienes en tu inventario: ábrelo desde tu Nave, en Mi botín.'
-          : 'Ya está en tu cuenta.') + (fijo ? '' : ' Hay más escondidos por ahí.') + '</p>'
+          : 'Ya está en tu cuenta.') + (fijo || esRec() ? '' : ' Hay más escondidos por ahí.') + '</p>'
       + botónNave() + '</div></div>');
     confeti();
     try { if (window.SG && SG.FIESTA) SG.FIESTA.sonar("nivel"); } catch (e) {}
@@ -357,7 +450,7 @@
      * a uno; si por lo que sea estuviera en dos, se coge el que tenga este escondite configurado.
      */
     MOTOR.misGruposDeAlumno(YO.uid).then(function (fichas) {
-      if (!fichas.length) return otraCuenta();
+      if (!fichas.length) return pareceDocente() || (MOTOR.misPERs && !VISTA) ? simular() : otraCuenta();
       /**
        * 🔴 12-sep · EL GRUPO QUE TIENE ESTE ESCONDITE, no el primero. El comentario de arriba ya lo
        * prometía y el código cogía `fichas[0]`: alguien alistado en dos grupos (un repetidor, un

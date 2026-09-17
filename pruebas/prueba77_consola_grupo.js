@@ -77,10 +77,11 @@ c(/var sinSaltar = festivas\.filter/.test(C) && /id="cal-festivos"/.test(C) && /
 
 // 7 · el premio por enlace
 const H = leer("assets/js/huevo.js");
-c(/function puerta\(\) \{\s*pinta\(portada\('Hay algo aquí para ti/.test(H) && /hv-abrir0/.test(H), "🔴 sin sesión, la misma portada que la vista previa, con «🥚 Abrirlo»");
+// (17-sep · la portada dice «recompensa» o «huevo» según el enlace: `invita()` y `botonAbrir()`)
+c(/function puerta\(\) \{\s*marcarPagina\(\);\s*pinta\(portada\(invita\(\), botonAbrir\("hv-abrir0"\)\)\)/.test(H) && /Hay algo aquí para ti/.test(H), "🔴 sin sesión, la misma portada que la vista previa, con «🥚 Abrirlo» (o «🎁 Conseguir mi recompensa»)");
 c(/function puertaGoogle\(\)/.test(H) && /QUIERE = true/.test(H) && /if \(auto && e\.estado === "abierto" && !e\.yaEra\) return reclamar\(\);/.test(H),
   "   «Abrirlo» → Google → se reclama solo al volver");
-c(/function otraCuenta\(\)/.test(H) && /Entrar con otra cuenta/.test(H) && /if \(!fichas\.length\) return otraCuenta\(\);/.test(H),
+c(/function otraCuenta\(\)/.test(H) && /Entrar con otra cuenta/.test(H) && /if \(!fichas\.length\) return pareceDocente\(\) \|\| \(MOTOR\.misPERs && !VISTA\) \? simular\(\) : otraCuenta\(\);/.test(H),
   "   con una cuenta sin grupo: con qué cuenta estás y botón para entrar con otra");
 
 // 8 · las cajas incrustadas, sin fondo

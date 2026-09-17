@@ -47,6 +47,22 @@ c(/st\.estado!=='fin'/.test(N.replace(/\s/g, "").replace(/'/g, "'")) || /st\.est
 c(/diploma\.html\?per=/.test(N), "   con su enlace");
 c(/dip-caja/.test(leer("assets/css/stargate.css")), "   y su estilo");
 
+// 17-sep · las insignias, en filas iguales (Norberto: «que en la fila 1 y en la fila 2 haya el mismo número, o ±1»)
+const trozoFilas = D.slice(D.indexOf("  function colocarInsignias"), D.indexOf("  window.SG_DIPLOMA_FILAS"));
+let colocar = null; try { colocar = new Function(trozoFilas + "; return colocarInsignias;")(); } catch (e) {}
+c(!!colocar, "🔴 el reparto de las insignias es una función que se puede probar");
+if (colocar) {
+  const ALTO = (1170 - 34 - 14) - (940 + 24), filasDe = (n, r) => Array.from({ length: r.filas }, (_, i) => Math.max(0, Math.min(r.porFila, n - i * r.porFila))).filter(Boolean);
+  [5, 12, 17, 22, 23, 27].forEach(n => {
+    const r = colocar(n, 2000 - 220, ALTO), fl = filasDe(n, r);
+    c(fl.reduce((a, b) => a + b, 0) === n && Math.max(...fl) - Math.min(...fl) <= 1, "   con " + n + " insignias, filas iguales o ±1", fl.join("+"));
+    c(r.porFila * (r.lado + r.sep) - r.sep <= 1780 && fl.length * (r.lado + r.sep) - r.sep <= ALTO, "   y caben (en ancho y antes del mensaje del Capitán)", JSON.stringify(r));
+  });
+  const r22 = colocar(22, 1780, ALTO);
+  c(filasDe(22, r22).join("+") === "11+11", "🔴 el caso de su captura (22): 11 y 11, no 20 y 2", filasDe(22, r22).join("+"));
+}
+c(/\(fila\.porFila - enFila\) \* \(fila\.lado \+ fila\.sep\)\) \/ 2/.test(D), "   la fila corta va centrada bajo la larga");
+
 console.log("\n  Batería 83 · el diploma de la tripulación");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
 fallos.forEach(f => console.log("   ✗ " + f));

@@ -256,6 +256,7 @@
 
     var guardado = url.get("per");
     if (guardado && PERS.filter(function (p) { return p.id === guardado; }).length) return abrir(guardado);
+    if (url.get("comun") && gestionados().length) return verComunes(url.get("comun"));
 
     // 🔴 Ya NO se salta la lista cuando solo hay un grupo. Antes se entraba directo «por comodidad»,
     // y así el docente no veía nunca los botones de directo —que es para lo que viene— ni sabía que
@@ -273,6 +274,11 @@
       // y con 2 o 4, en dos columnas: con tres por fila, cuatro grupos dejaban uno solo abajo
       (vivos.length ? '<div class="gp-grid' + (vivos.length === 1 ? ' uno' : (vivos.length === 2 || vivos.length === 4) ? ' par' : '') + '">' + vivos.map(tarjetaGrupo).join("") + '</div>'
                     : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
+      // 17-sep · lo que se configura UNA vez para varios grupos (Norberto: «¿valen para cualquier grupo? Sería maravilloso
+      // poder reciclarlos… que compartan la misma página de configuración y ajustar a qué grupos afecta»)
+      (gestionados().length ? '<section class="gp-comun"><div class="gp-comun-t"><h3>🌐 Para todos tus grupos</h3>' +
+        '<p class="small muted">Se configuran <b>una vez</b> y eliges a qué grupos afectan: todos o solo algunos. Dentro de cada grupo ves los que le tocan.</p></div>' +
+        '<div class="gp-comun-b"><a class="btn" href="consola.html?comun=premios">🎁 Premios por enlace</a></div></section>' : '') +
       /**
        * 🔴 15-sep · LOS EMBEDS, UNA SOLA VEZ. Norberto: «en todas las fichas de cada grupo aparece Embed para
        * Genially, pero entiendo que es el mismo para todos: déjalo en algún lugar especificando que es el
@@ -346,6 +352,22 @@
     document.body.classList.add("consola-dentro");
   }
 
+  /** 17-sep · «🌐 Para todos tus grupos»: lo que se configura una vez para varios grupos, fuera de ninguno. */
+  function verComunes(que) {
+    PER = null; DATOS = null;
+    history.replaceState(null, "", "consola.html?comun=" + encodeURIComponent(que));
+    var g = gestionados();
+    app.innerHTML = '<div class="card cuenta c-cab"><div class="c-cab-t"><b>🌐 Para todos tus grupos</b><span>' + g.length + (g.length === 1 ? " grupo" : " grupos") +
+        ' que llevas · lo que configures aquí vale en los que elijas</span></div>' +
+      '<div class="c-cab-b"><button class="btn min" id="c-volver">← Tus grupos</button> ' + botonBuzon("consola") + '</div></div>' +
+      '<div class="pestanas"><button class="pest activa" data-tab="huevos">Premios por enlace</button></div>' +
+      '<div id="c-aviso" class="aviso" hidden></div><div id="c-cuerpo"></div>';
+    $("#c-volver").onclick = function () { url.delete("comun"); history.replaceState(null, "", "consola.html"); elegirGrupo(); };
+    cablearCopiar(app);
+    document.body.classList.add("consola-dentro");
+    verPremios(null, $("#c-cuerpo"));
+  }
+
   async function abrir(perId) {
     PER = perId;
     history.replaceState(null, "", "consola.html?per=" + encodeURIComponent(perId));
@@ -371,8 +393,10 @@
    * equipo («la versión vista, sin edición, la debería poder ver el docente raso»): editar sigue siendo del referente.
    */
   var TABS = [["alumnado", "Mi gente"], ["rankings", "Rankings"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
-              ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1],
-              ["huevos", "Premios por enlace", 1], ["sorteos", "Sorteos", 1], ["ofertas", "Ofertas", 1], ["ajustes", "Ajustes del grupo", 1],
+              ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1], ["ajustes", "Ajustes del grupo", 1],
+              // 17-sep · las que pueden afectar a VARIOS grupos, juntas y tras su raya 🌐 (Norberto: «separar las opciones
+              // exclusivas de un grupo de las que afectan a todos o pueden afectar»)
+              ["huevos", "Premios por enlace", 1, "varios"], ["sorteos", "Sorteos", 1, "varios"], ["ofertas", "Ofertas", 1, "varios"],
               ["canjes", "Cola de nota"]];
   function pendientesCola() {
     return ((DATOS && DATOS.vales) || []).filter(function (v) { return (v.status || "pending") === "pending"; }).length;
@@ -418,7 +442,8 @@
       '<div class="pestanas">' + misTabs().map(function (x, i, todas) {
         var cola = x[0] === "canjes" ? pendientesCola() : 0;
         // (una raya antes de las del referente; el icono de cada una va en la hoja de estilos)
-        var raya = x[2] && !(todas[i - 1] || [])[2] ? '<span class="pest-sep" aria-hidden="true"></span>' : "";
+        var raya = x[2] && !(todas[i - 1] || [])[2] ? '<span class="pest-sep" aria-hidden="true"></span>'
+                 : x[3] && !(todas[i - 1] || [])[3] ? '<span class="pest-sep pest-sep-g" title="Estas pueden afectar a varios de tus grupos">🌐</span>' : "";
         return raya + '<button class="pest' + (TAB === x[0] ? " activa" : "") + (cola ? " pest-aviso" : "") + '" data-tab="' + x[0] + '"' +
           (cola ? ' title="' + cola + (cola === 1 ? " subida de nota espera" : " subidas de nota esperan") + ' tu visto bueno"' : "") + '>' + x[1] +
           (cola ? '<span class="pest-n" aria-label="' + cola + ' pendientes">' + cola + "</span>" : "") + "</button>";
@@ -1097,213 +1122,400 @@
   }
 
   // ---------------------------------------------------------------- escondites
-  var PREMIOS = [["sobre","🃏 Un sobre de cromos (3 cartas)"],
-                 ["heroe_fijo","🛡️ Un héroe que eliges tú"],
-                 ["heroe","🎲 Un héroe al azar"],
-                 ["bolsa","💰 Créditos"],
-                 ["xp","⚡ Experiencia (xp)"],
-                 ["participaciones","🎟️ Participaciones del sorteo"],
-                 // 14-sep · los sobres y las cápsulas nuevos: la legendaria, escondida en una presentación
-                 ["capsula_legendaria","🟨 Una cápsula legendaria (un Mito seguro)"],
-                 ["capsula_elite","🟪 Una cápsula de élite"],
-                 ["sobre_epico","✨ Un sobre épico (3 cartas, sin comunes)"],
-                 ["sobre_raro","💎 Un sobre de raras"],
-                 ["sobre_grande","🃏 Un sobre grande (5 cartas)"]];
-  // 15-sep · las cápsulas y los sobres nuevos, solo si el grupo los tiene en su tienda (los grupos de
-  // antes del 14-sep no): si no, el enlace daba en silencio un sobre normal de tres cartas. El que ya
-  // estuviera elegido se queda en la lista, para no cambiar un premio guardado sin decirlo.
-  function premiosDelGrupo(elegido) {
-    var hay = {}; ((DATOS && DATOS.recompensas) || []).forEach(function (r) { hay[r.stargateTipo] = true; });
-    return PREMIOS.filter(function (p) { return !/^(capsula_|sobre_)/.test(p[0]) || hay[p[0]] || p[0] === elegido; });
-  }
-  // 14-sep · los sorteos del grupo que aún no se han hecho (para regalar participaciones por enlace)
-  function sorteosAbiertos() {
-    return ((DATOS && DATOS.recompensas) || []).filter(function (r) { return r.systemEffect === "lottery_ticket" && !r.isRaffleCompleted; });
-  }
+  /**
+   * 🔴 17-sep · LOS PREMIOS POR ENLACE, REHECHOS. Lo que dijo Norberto al probarlos, una cosa detrás de otra:
+   *   · «¿Valen para cualquier grupo? Sería maravilloso poder reciclarlos… marcar a qué grupos afecta (con opción TODOS)».
+   *   · «He creado un premio, lo he reclamado, y al volver a entrar ha desaparecido: no le di a Guardar. Debería estar
+   *     dentro de cada recompensa; si no, pasará muchísimo». → cada premio se GUARDA SOLO al tocarlo.
+   *   · «No hace falta ver la dirección» y «¿qué significa enlace? ¿no lo puedes generar tú en segundo plano?».
+   *   · «Es importante usar direcciones más difíciles: un usuario avispado cambia el 1 por el 2». → id y código al azar.
+   *   · «Se pueden ir añadiendo a medida que los vaya necesitando» (los grupos empezaban con ocho de muestra).
+   *   · «El desplegable rompe la magia: una ventana con las opciones explicadas de forma visual» y «pon una imagen del
+   *     premio que se escoja, visualmente es feo».
+   *   · «Debería poder marcarse si es huevo de Pascua o recompensa (la mayoría)».
+   * El catálogo y cómo se guarda, en motor.js (`guardarPremioEnlace`). Aquí, la pantalla: la misma dentro de un grupo
+   * (los que le afectan) y en «🌐 Para todos tus grupos» (todos).
+   */
+  var PREMIO_INFO = {
+    sobre: ["🃏", "Un sobre de cromos", "Tres cartas al azar del álbum, como un sobre del Mercado.", "canje/sobre.jpg"],
+    heroe_fijo: ["🛡️", "Un héroe que eliges tú", "El héroe exacto que elijas: el premio perfecto para un reto de clase.", "canje/heroe.jpg"],
+    heroe: ["🎲", "Un héroe al azar", "Uno de los 30 héroes, con las mismas probabilidades que en el Mercado.", "canje/heroe.jpg"],
+    bolsa: ["💰", "Créditos", "Una bolsa de ◈ para gastar en el Mercado. Tú eliges cuántos.", ""],
+    xp: ["⚡", "Experiencia", "Puntos de xp: suben su nivel y su puesto en el ranking. Tú eliges cuántos.", ""],
+    participaciones: ["🎟️", "Participaciones del sorteo", "Papeletas extra para un sorteo abierto de este grupo (de 1 a 10).", "canje/sorteo.jpg"],
+    sobre_grande: ["🃏", "Un sobre grande", "Cinco cartas en vez de tres, con las probabilidades de siempre.", "canje/sobre_grande.jpg"],
+    sobre_raro: ["💎", "Un sobre de raras", "Tres cartas donde las comunes casi desaparecen.", "canje/sobre_raro.jpg"],
+    sobre_epico: ["✨", "Un sobre épico", "Tres cartas y ninguna común: legendaria, cuatro veces más que en el de siempre.", "canje/sobre_epico.jpg"],
+    capsula_elite: ["🟪", "Una cápsula de élite", "Un héroe de la Vanguardia o, casi una de cada tres, un Mito.", "canje/capsula_elite.jpg"],
+    capsula_legendaria: ["🟨", "Una cápsula legendaria", "Un Mito seguro: para el hallazgo más difícil.", "canje/capsula_legendaria.jpg"]
+  };
+  var ORDEN_PREMIOS = ["sobre", "heroe_fijo", "heroe", "bolsa", "xp", "participaciones", "sobre_grande", "sobre_raro", "sobre_epico", "capsula_elite", "capsula_legendaria"];
   function heroesDelCatalogo() { return ((window.SG_CATALOGO || {}).heroes) || []; }
   function rarezaBonita(r) { r = String(r || "").toLowerCase(); return r ? r.charAt(0).toUpperCase() + r.slice(1) : ""; }
   // «datetime-local» habla en la hora de quien lo rellena; se guarda como instante (ms)
   function aLocal(ms) { if (!ms) return ""; var d = new Date(Number(ms)); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16); }
   function deLocal(v) { if (!v) return 0; var t = new Date(v).getTime(); return isNaN(t) ? 0 : t; }
-  /**
-   * LOS PREMIOS POR ENLACE, uno por presentación… o por reto de clase.
-   *
-   * 🔴 El límite va en el ESCONDITE, no en el premio. Norberto preguntó si hacía falta «una
-   * recompensa por presentación limitada a 1 por persona», o una semanal —con el riesgo de que
-   * alguien reclame la misma cada semana sin encontrar el resto—. Las dos atan el límite al premio,
-   * y lo que hay que contar no es cuántos premios se lleva alguien: es cuántos escondites DISTINTOS
-   * ha encontrado. Con el id en el enlace y una marca en su ficha, repetir es imposible y el mismo
-   * premio se puede usar en los ocho.
-   *
-   * 🔴 13-sep · Y AHORA TAMBIÉN «UN HÉROE QUE ELIGES TÚ», CON FECHAS. Norberto: «lanzo un reto en clase
-   * y al superarlo les lleva a una página donde está el héroe conseguido, que se suma a su colección;
-   * con un botón de activo/desactivado, el tiempo que está abierto y cuántos pueden reclamarlo». El
-   * interruptor guarda al momento —es lo que se pulsa en clase, con prisa—; las fechas las hace
-   * cumplir el servidor.
-   */
-  function verHuevos(t) {
-    var H = ((DATOS.proyecto || {}).stargate || {}).huevos || [];
-    $("#c-cuerpo").innerHTML =
-      '<div class="card"><h3>Premios por enlace</h3>' +
-      '<p class="small muted">Un enlace que da un premio a quien lo pulse. Escóndelo en un rincón del ' +
-      'Genially como <b>huevo de Pascua</b>, o úsalo de <b>meta de un reto de clase</b>: quien lo supera, ' +
-      'llega a la página y se lleva el héroe que hayas elegido. Quien lo pulse sin haber entrado verá la ' +
-      'puerta de Google ahí mismo. <b>Cada persona solo puede reclamarlo una vez</b>, aunque el enlace ' +
-      'circule. Puedes ponerle <b>fechas</b> (abierto solo durante la clase), un <b>tope</b> («los tres ' +
-      'primeros») y pausarlo con su interruptor.</p>' +
-      '<div id="hv-lista" class="hv-lista">' + (H.length ? H.map(filaHuevo).join("") :
-        '<p class="small muted">Todavía no hay ninguno.</p>') + '</div>' +
-      '<p class="hv-botones"><button class="btn" id="hv-add">+ Añadir un premio</button> ' +
-      '<button class="btn primary" id="hv-save">Guardar</button></p></div>';
-    cablearHuevos(H);
+  function sorteosDe(datos) {
+    return ((datos && datos.recompensas) || []).filter(function (r) { return r.systemEffect === "lottery_ticket" && !r.isRaffleCompleted; });
   }
+  /** La imagen del premio (el héroe elegido, si es uno concreto); si no tiene, un azulejo con su icono. */
+  function imgPremio(it, clase) {
+    var I = PREMIO_INFO[it.premio] || PREMIO_INFO.sobre;
+    if (it.premio === "heroe_fijo" && it.heroe) return '<img class="' + clase + '" src="assets/img/heroes/' + esc(it.heroe) + '.jpg" alt="" loading="lazy">';
+    return I[3] ? '<img class="' + clase + '" src="assets/img/' + I[3] + '" alt="" loading="lazy">'
+                : '<span class="' + clase + ' pe-azulejo pe-az-' + esc(it.premio) + '" aria-hidden="true">' + I[0] + "</span>";
+  }
+  function nombrePremio(it) {
+    var I = PREMIO_INFO[it.premio] || PREMIO_INFO.sobre, n = Number(it.cantidad) || 0;
+    if (it.premio === "heroe_fijo" && it.heroe) { var h = heroesDelCatalogo().filter(function (x) { return x.clave === it.heroe; })[0]; return "🛡️ " + (h ? h.nombre + " · " + rarezaBonita(h.rareza) : "Un héroe"); }
+    if (it.premio === "bolsa") return "💰 " + (n || 50) + " ◈";
+    if (it.premio === "xp") return "⚡ " + (n || 100) + " xp";
+    if (it.premio === "participaciones") return "🎟️ " + (n || 1) + (n === 1 || !n ? " participación" : " participaciones") + " del sorteo";
+    return I[0] + " " + I[1];
+  }
+  // quién lleva qué: los grupos que gobierna quien mira (y sus nombres)
+  function gestionados() { return PERS.filter(function (p) { return refDe(p); }).map(function (p) { return p.id; }); }
+  function nombreDeGrupo(id) { var p = PERS.filter(function (x) { return x.id === id; })[0]; return (p && p.nombre) || id; }
+  function textoAmbito(it) {
+    var g = gestionados();
+    if (it.grupos === "todos") return "🌐 Todos tus grupos" + (g.length > 1 ? " (" + g.length + ")" : "");
+    var l = it.grupos || [];
+    return l.length === 1 ? "Solo «" + nombreDeGrupo(l[0]) + "»" : "🌐 " + l.length + " grupos";
+  }
+
+  var PE = { lista: [], contexto: null, datos: {}, timers: {}, destino: null };
+  function verHuevos() { verPremios(PER, $("#c-cuerpo")); }
   /**
-   * 🔴 13-sep · UN PREMIO, TRES LÍNEAS QUE SE LEEN: qué es (enlace, nombre, premio y su detalle),
-   * cuándo y cuántos (interruptor, fechas, topes y cómo está ahora mismo) y el enlace con sus botones.
-   * El hueco del detalle cambia con el premio —cantidad, el héroe con su cara, o qué trae un sobre—
-   * para que no quede ninguna caja vacía.
+   * La pantalla de premios. `contexto`: el grupo en el que se está (enseña los que le afectan y los nuevos nacen para él)
+   * o null (🌐 todos tus grupos).
    */
-  function filaHuevo(h, i) {
-    var lim = Number(h.limite) || 0, esc_ = Number(h.porEscuadron) || 0, pr = h.premio || "sobre";
-    var hs = heroesDelCatalogo(), heroe = h.heroe || (hs[0] && hs[0].clave) || "";
-    var url = location.origin + "/huevo.html?h=" + (h.id || "") + "&embed=1";
-    var insertar = '<iframe src="' + url + '" width="100%" height="620" style="border:0;border-radius:16px" allow="clipboard-write" title="Premio de STARGATE"></iframe>';
-    return '<div class="hv-f" data-i="' + i + '"><div class="hv-l1">' +
-      '<label class="h-campo h-c-id">Enlace<input class="h-id" value="' + esc(h.id || "") + '" placeholder="p1" maxlength="12" title="Identificador: va en el enlace"></label>' +
-      '<label class="h-campo h-c-nom">Nombre<input class="h-nom" value="' + esc(h.nombre || "") + '" placeholder="Presentación del Tema 1 · Reto del lunes"></label>' +
-      '<label class="h-campo h-c-premio">Premio<select class="h-premio">' + premiosDelGrupo(pr).map(function (p) {
-        return '<option value="' + p[0] + '"' + (pr === p[0] ? " selected" : "") + ">" + p[1] + "</option>"; }).join("") + '</select></label>' +
-      '<div class="h-extra">' +
-        // la cantidad solo cuenta para créditos, xp y participaciones: un sobre son siempre tres cartas y un héroe, uno
-        '<label class="h-campo h-cant"' + (pr === "bolsa" || pr === "xp" || pr === "participaciones" ? "" : " hidden") + '>Cantidad' +
-          '<input class="h-cantidad" type="number" min="1" value="' + (Number(h.cantidad || h.creditos) || (pr === "xp" ? 100 : pr === "participaciones" ? 1 : 50)) + '"></label>' +
-        '<label class="h-campo h-c-sorteo"' + (pr === "participaciones" ? "" : " hidden") + '>Del sorteo<select class="h-sorteo">' +
-          (sorteosAbiertos().length ? sorteosAbiertos().map(function (r) {
-            return '<option value="' + esc(r.docId) + '"' + (h.sorteo === r.docId ? " selected" : "") + ">" + esc(((r.stargateSorteo || {}).premio) || r.title) + "</option>"; }).join("")
-            : '<option value="">— no hay ningún sorteo abierto —</option>') + '</select></label>' +
-        // la cara, a la izquierda y a la altura de «etiqueta + campo»: así las etiquetas de la fila no se descuadran
-        '<div class="h-c-heroe"' + (pr === "heroe_fijo" ? "" : " hidden") + '>' +
-          '<img class="h-heroe-img" src="assets/img/heroes/' + esc(heroe) + '.jpg" alt="" width="58" height="58">' +
-          '<label class="h-campo">Héroe<select class="h-heroe">' + hs.map(function (x) {
-            return '<option value="' + esc(x.clave) + '"' + (x.clave === heroe ? " selected" : "") + ">" + esc(x.nombre) + " · " + esc(rarezaBonita(x.rareza)) + "</option>"; }).join("") +
-          '</select></label></div>' +
-        '<p class="h-nota"' + (pr === "sobre" || pr === "heroe" ? "" : " hidden") + '>' +
-          (pr === "heroe" ? "Uno de los " + (hs.length || 30) + " héroes, con las mismas probabilidades que en el Mercado" : "Tres cartas al azar del álbum, como un sobre del Mercado") + '</p>' +
-      '</div>' +
-      '<button class="btn min h-del" title="Quitar este premio" aria-label="Quitar este premio">✕</button>' +
-      '</div><div class="hv-l3">' +
-      '<label class="h-sw" title="Encendido: se puede reclamar (dentro de sus fechas). Se guarda al momento.">' +
-        '<input type="checkbox" class="h-on"' + (h.activo === false ? "" : " checked") + '><i></i>' +
-        '<span class="h-sw-si">Activo</span><span class="h-sw-no">En pausa</span></label>' +
-      '<label class="h-campo h-fecha">Abierto desde<input class="h-desde" type="datetime-local" value="' + aLocal(h.desde) + '" title="Vacío = ya"></label>' +
-      '<label class="h-campo h-fecha">Hasta<input class="h-hasta" type="datetime-local" value="' + aLocal(h.hasta) + '" title="Vacío = sin fecha de cierre"></label>' +
-      /**
-       * 🔴 LOS TRES LÍMITES QUE PIDIÓ NORBERTO —«global, por grupo, ilimitado, máximo uno por
-       * persona»—, y con NOMBRE. Uno por persona va siempre (es un escondite: se encuentra una vez).
-       * Los lleva el servidor (`claimLinkedReward`), dentro de una transacción. Vacío = sin tope.
-       */
-      '<label class="h-campo h-num">Tope total<input class="h-lim" type="number" min="0" value="' + (lim || "") + '" placeholder="sin tope" title="Vacío = sin tope; 5 = solo los cinco primeros de todo el grupo"></label>' +
-      '<label class="h-campo h-num">Por escuadrón<input class="h-esc" type="number" min="0" value="' + (esc_ || "") + '" placeholder="sin tope" title="Vacío = sin tope; 2 = los dos primeros de CADA escuadrón"></label>' +
-      '<p class="h-estado" aria-live="polite">' + esc(textoEstado(h, null)) + '</p>' +
-      '</div><div class="hv-l2">' +
-      '<code class="h-url">' + esc(url) + '</code>' +
-      '<button class="btn min" data-copiar="' + esc(url) + '">📋 Copiar enlace</button>' +
-      '<button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(insertar) + '" title="Para Genially: Insertar → Otros → Código">&lt;/&gt; Copiar para insertar</button>' +
-      '<a class="btn min" target="_blank" rel="noopener" href="huevo.html?h=' + esc(h.id || "") + '&per=' + esc(PER) + '&vista=1" title="Así lo verá tu alumnado (sin reclamarlo)">👁 Ver cómo se ve</a>' +
+  async function verPremios(contexto, destino) {
+    PE.contexto = contexto; PE.destino = destino;
+    destino.innerHTML = '<div class="card pe-card"><div class="pe-cab"><div><h3>🎁 Premios por enlace</h3>' +
+      '<p class="small muted">Un enlace que da un premio a quien lo pulse, <b>una vez por persona</b>. Una <b>recompensa</b> para quien supera un reto de clase, o un <b>huevo de Pascua</b> escondido en tu Genially. ' +
+      'El mismo enlace vale en todos los grupos a los que lo apliques. Todo se guarda solo.</p></div>' +
+      '<button type="button" class="btn primary" id="pe-nuevo">➕ Nuevo premio</button></div>' +
+      (contexto ? '<p class="pe-filtro small muted">Los que afectan a este grupo · <a href="consola.html?comun=premios">🌐 Ver los de todos tus grupos</a></p>' : "") +
+      '<div id="pe-lista" class="pe-lista"><p class="muted">Buscando tus premios…</p></div></div>';
+    $("#pe-nuevo").onclick = crearPremio;
+    try { PE.lista = await MOTOR.premiosEnlaceDe(gestionados()); }
+    catch (e) { $("#pe-lista").innerHTML = '<p class="malo">No he podido leer los premios: ' + esc(e.message) + "</p>"; return; }
+    if (contexto && DATOS) PE.datos[contexto] = DATOS;
+    pintarPremios();
+  }
+  function premiosVisibles() {
+    return PE.lista.filter(function (it) { return !PE.contexto || (it.en || []).indexOf(PE.contexto) >= 0; });
+  }
+  function pintarPremios() {
+    var l = premiosVisibles(), caja = $("#pe-lista"); if (!caja) return;
+    caja.innerHTML = l.length ? l.map(tarjetaPremio).join("")
+      : '<div class="pe-vacio"><p><b>Todavía no hay ninguno' + (PE.contexto ? " en este grupo" : "") + '.</b> Crea el primero cuando lo necesites: ' +
+        'una recompensa para el reto de hoy o un huevo escondido en la presentación.</p></div>';
+    l.forEach(function (it) { cablearPremio(it); estadoServidor(it); });
+  }
+  function tarjetaPremio(it) {
+    var g = gestionados(), rec = it.tipo !== "huevo", ver = (it.en || [])[0] || PE.contexto || g[0] || "";
+    var insertar = '<iframe src="' + MOTOR.enlacePremio(it, true) + '" width="100%" height="620" style="border:0;border-radius:16px" allow="clipboard-write" title="Premio de STARGATE"></iframe>';
+    var mas = it.premio === "bolsa" || it.premio === "xp" || it.premio === "participaciones";
+    return '<div class="hv-f pe-f" data-pe="' + esc(it.id) + '">' +
+      '<button type="button" class="pe-img" data-pe-elegir title="Cambiar el premio">' + imgPremio(it, "pe-img-i") + '<span class="pe-img-c">Cambiar</span></button>' +
+      '<div class="pe-cuerpo">' +
+        '<div class="pe-l1">' +
+          '<input class="h-nom pe-nom" value="' + esc(it.nombre || "") + '" placeholder="' + (rec ? "Ponle nombre: «Reto del lunes»" : "Ponle nombre: «Escondido en el Tema 3»") + '" aria-label="Nombre del premio" maxlength="80">' +
+          '<span class="pe-tipo" role="group" aria-label="Qué es">' +
+            '<button type="button" class="' + (rec ? "on" : "") + '" data-pe-tipo="recompensa" aria-pressed="' + rec + '">🎁 Recompensa</button>' +
+            '<button type="button" class="' + (rec ? "" : "on") + '" data-pe-tipo="huevo" aria-pressed="' + !rec + '">🥚 Huevo de Pascua</button></span>' +
+          '<label class="h-sw" title="Encendido: se puede reclamar (dentro de sus fechas).">' +
+            '<input type="checkbox" class="h-on"' + (it.activo === false ? "" : " checked") + '><i></i>' +
+            '<span class="h-sw-si">Activo</span><span class="h-sw-no">En pausa</span></label>' +
+        '</div>' +
+        '<div class="pe-l2"><b class="pe-premio">' + esc(nombrePremio(it)) + '</b>' +
+          '<span class="pe-ambito">' + esc(textoAmbito(it)) + '</span>' +
+          '<span class="h-estado">Comprobando…</span>' +
+          '<span class="pe-guardado" aria-live="polite"></span></div>' +
+        '<div class="pe-acc">' +
+          '<button type="button" class="btn min" data-copiar="' + esc(MOTOR.enlacePremio(it, false)) + '" data-copiado="✓ Enlace copiado" title="La página de STARGATE, para compartir o poner en un botón">🔗 Copiar enlace</button>' +
+          '<button type="button" class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(insertar) + '" title="Para Genially: Insertar → Otros → Código. Sin fondo: se funde con tu diapositiva">&lt;/&gt; Copiar para insertar</button>' +
+          (ver ? '<a class="btn min" target="_blank" rel="noopener" href="huevo.html?h=' + esc(it.id) + '&c=' + esc(it.codigo || "") + '&t=' + (rec ? "r" : "h") + '&per=' + esc(ver) + '&vista=1">👁 Ver cómo se ve</a>' : "") +
+          '<button type="button" class="btn min" data-pe-mas aria-expanded="false">⚙️ Grupos, fechas y topes</button>' +
+          '<button type="button" class="btn min peligro" data-pe-quitar title="Quitar este premio de todos sus grupos">🗑</button>' +
+        '</div>' +
+        '<div class="pe-mas" hidden>' +
+          '<fieldset class="pe-grupos"><legend>¿Para qué grupos?</legend>' +
+            '<label class="pe-radio"><input type="radio" name="pe-g-' + esc(it.id) + '" value="todos"' + (it.grupos === "todos" ? " checked" : "") + '> 🌐 Todos tus grupos, también los que crees después</label>' +
+            '<label class="pe-radio"><input type="radio" name="pe-g-' + esc(it.id) + '" value="elegir"' + (it.grupos === "todos" ? "" : " checked") + '> Solo estos:</label>' +
+            '<span class="pe-chips">' + g.map(function (id) {
+              var on = it.grupos === "todos" || (it.grupos || []).indexOf(id) >= 0;
+              return '<label class="pe-chip"><input type="checkbox" value="' + esc(id) + '"' + (on ? " checked" : "") + (it.grupos === "todos" ? " disabled" : "") + '> ' + esc(nombreDeGrupo(id)) + "</label>";
+            }).join("") + '</span></fieldset>' +
+          '<div class="pe-campos">' +
+            (mas ? '<label class="h-campo h-cant">' + (it.premio === "participaciones" ? "Participaciones" : it.premio === "xp" ? "Cuánta xp" : "Cuántos ◈") +
+              '<input class="h-cantidad" type="number" min="1" max="' + (it.premio === "participaciones" ? 10 : 100000) + '" value="' + (Number(it.cantidad) || (it.premio === "xp" ? 100 : it.premio === "participaciones" ? 1 : 50)) + '"></label>' : "") +
+            (it.premio === "participaciones" ? '<label class="h-campo h-c-sorteo">Del sorteo<select class="h-sorteo">' + opcionesSorteo(it) + "</select></label>" : "") +
+            '<label class="h-campo h-fecha">Abierto desde<input class="h-desde" type="datetime-local" value="' + aLocal(it.desde) + '" title="Vacío = ya"></label>' +
+            '<label class="h-campo h-fecha">Hasta<input class="h-hasta" type="datetime-local" value="' + aLocal(it.hasta) + '" title="Vacío = sin fecha de cierre"></label>' +
+            '<label class="h-campo h-num">Tope total<input class="h-lim" type="number" min="0" value="' + (Number(it.limite) || "") + '" placeholder="sin tope" title="En cada grupo: 5 = solo los cinco primeros"></label>' +
+            '<label class="h-campo h-num">Por escuadrón<input class="h-esc" type="number" min="0" value="' + (Number(it.porEscuadron) || "") + '" placeholder="sin tope" title="2 = los dos primeros de CADA escuadrón"></label>' +
+          '</div></div>' +
       '</div></div>';
   }
-  /** Cómo está AHORA: con lo que hay en pantalla (aunque no esté guardado) y lo que dice el servidor. */
-  function textoEstado(h, R) {
-    var ahora = Date.now(), cuando = MOTOR && MOTOR.cuandoEs ? MOTOR.cuandoEs : function (ms) { return new Date(ms).toLocaleString("es-ES"); };
-    var n = R ? Number(R.claimLinkTotalClaimed) || 0 : null, tope = Number(h.limite) || 0;
-    var cuantos = n == null ? "" : n ? " · 🙋 " + n + (n === 1 ? " lo ha reclamado" : " lo han reclamado") : " · nadie lo ha reclamado aún";
-    if (h.activo === false) return "⏸ En pausa: nadie puede reclamarlo" + cuantos;
-    if (Number(h.desde) && ahora < Number(h.desde)) return "⏳ Se abre " + cuando(Number(h.desde)) + cuantos;
-    if (Number(h.hasta) && ahora > Number(h.hasta)) return "🔒 Se cerró " + cuando(Number(h.hasta)) + cuantos;
-    if (tope && n != null && n >= tope) return "🏁 Agotado: " + n + " de " + tope;
-    return "🟢 Abierto" + (Number(h.hasta) ? " hasta " + cuando(Number(h.hasta)) : " ahora") + cuantos;
+  function opcionesSorteo(it) {
+    var d = PE.datos[(it.grupos || [])[0]] || (PE.contexto ? DATOS : null), s = sorteosDe(d);
+    return s.length ? s.map(function (r) { return '<option value="' + esc(r.docId) + '"' + (it.sorteo === r.docId ? " selected" : "") + ">" + esc(((r.stargateSorteo || {}).premio) || r.title) + "</option>"; }).join("")
+                    : '<option value="">— no hay ningún sorteo abierto en este grupo —</option>';
   }
-  function cablearHuevos(H) {
-    var lista = H.slice(), servidor = {};
-    var repintar = function () {
-      $("#hv-lista").innerHTML = lista.length ? lista.map(filaHuevo).join("")
-        : '<p class="small muted">Todavía no hay ninguno.</p>';
-      cablearFilas();
-    };
-    var pendiente = function (si) { var b = $("#hv-save"); if (b) { b.classList.toggle("pendiente", !!si); b.textContent = si ? "Guardar cambios" : "Guardar"; } };
-    // lo que dice el servidor de cada uno: cuántos lo han reclamado ya
-    lista.forEach(function (h) {
-      if (!h.id || !MOTOR.estadoHuevo) return;
-      MOTOR.estadoHuevo(PER, h.id).then(function (e) {
-        servidor[h.id] = e.R;
-        var i = lista.indexOf(h), f = i < 0 ? null : $('#hv-lista .hv-f[data-i="' + i + '"]');
-        if (f) $(".h-estado", f).textContent = textoEstado(lista[i], e.R);
-      }).catch(function () {});
+  /**
+   * 🔴 CÓMO ESTÁ, CONTADO POR EL SERVIDOR Y NUNCA POR LO QUE HAY ESCRITO EN PANTALLA. Norberto, 17-sep: «parece que no
+   * funciona el temporizador: me ha dejado reclamarlo, y encima es una bolsa de créditos». El editor de antes enseñaba
+   * «⏳ Se abre hoy a las 11:20» calculado con lo escrito, y no se había guardado: en el servidor seguía siendo una bolsa
+   * de 50 ◈ sin fecha. Esto lee la recompensa de verdad de cada grupo (lo mismo que decide el servidor al reclamar).
+   */
+  function estadoServidor(it) {
+    var grupos = PE.contexto ? [PE.contexto] : (it.en || []);
+    var f = document.querySelector('.pe-f[data-pe="' + it.id + '"] .h-estado'); if (!f) return;
+    if (!grupos.length) { f.textContent = "⚠️ No está en ningún grupo: marca alguno en «Grupos, fechas y topes»"; return; }
+    Promise.all(grupos.map(function (per) { return MOTOR.estadoHuevo(per, it.id).catch(function () { return null; }); })).then(function (es) {
+      var f2 = document.querySelector('.pe-f[data-pe="' + it.id + '"] .h-estado'); if (!f2) return;
+      var e = es.filter(Boolean)[0];
+      if (!e || !e.R) { f2.textContent = "⚠️ No está guardado en el servidor"; return; }
+      var n = es.reduce(function (a, x) { return a + (x ? Number(x.reclamados) || 0 : 0); }, 0);
+      it.__reclamados = n;
+      var cuantos = n ? " · 🙋 " + n + (n === 1 ? " lo ha reclamado" : " lo han reclamado") : " · nadie lo ha reclamado aún";
+      var cuando = MOTOR.cuandoEs;
+      f2.textContent = (e.estado === "pausado" ? "⏸ En pausa"
+        : e.estado === "pronto" ? "⏳ Se abre " + cuando(e.desde)
+        : e.estado === "cerrado" ? "🔒 Se cerró " + cuando(e.hasta)
+        : e.estado === "agotado" ? "🏁 Agotado"
+        : e.estado === "borrado" ? "⚠️ Quitado"
+        : "🟢 Abierto" + (e.hasta ? " hasta " + cuando(e.hasta) : "")) + cuantos;
     });
-    var validar = function () {
-      if (lista.some(function (h) { return !h.id; })) return "Cada premio necesita un identificador (va en el enlace).";
-      var ids = lista.map(function (h) { return h.id; });
-      if (new Set(ids).size !== ids.length) return "Hay dos premios con el mismo identificador.";
-      if (lista.some(function (h) { return h.premio === "heroe_fijo" && !h.heroe; })) return "Elige qué héroe se lleva.";
-      if (lista.some(function (h) { return h.premio === "participaciones" && !h.sorteo; })) return "Elige de qué sorteo son las participaciones (o crea uno en «Sorteos»).";
-      if (lista.some(function (h) { return h.premio === "participaciones" && (Number(h.cantidad) < 1 || Number(h.cantidad) > 10); })) return "De 1 a 10 participaciones por enlace.";
-      if (lista.some(function (h) { return Number(h.desde) && Number(h.hasta) && Number(h.hasta) <= Number(h.desde); }))
-        return "La fecha de «Hasta» tiene que ser después de «Abierto desde».";
-      return "";
+  }
+  function validarPremio(it) {
+    if (it.premio === "heroe_fijo" && !it.heroe) return "Elige qué héroe se lleva.";
+    if (it.premio === "participaciones") {
+      if (it.grupos === "todos" || (it.grupos || []).length !== 1) return "Las participaciones son de un sorteo de UN grupo: marca solo ese grupo.";
+      if (!it.sorteo) return "Elige de qué sorteo son las participaciones (o crea uno en «Sorteos»).";
+      if (Number(it.cantidad) < 1 || Number(it.cantidad) > 10) return "De 1 a 10 participaciones por enlace.";
+    }
+    if (it.grupos !== "todos" && !(it.grupos || []).length) return "Marca al menos un grupo.";
+    if (Number(it.desde) && Number(it.hasta) && Number(it.hasta) <= Number(it.desde)) return "«Hasta» tiene que ser después de «Abierto desde».";
+    return "";
+  }
+  /** Se guarda solo: al medio segundo de dejar de escribir, o al momento si es un botón. */
+  function guardarLuego(it, ya) {
+    var marca = document.querySelector('.pe-f[data-pe="' + it.id + '"] .pe-guardado');
+    var malo = validarPremio(it);
+    if (malo) { if (marca) { marca.textContent = "⚠️ " + malo; marca.className = "pe-guardado malo"; } return; }
+    if (marca) { marca.textContent = "Guardando…"; marca.className = "pe-guardado"; }
+    var est = document.querySelector('.pe-f[data-pe="' + it.id + '"] .h-estado'); if (est) est.textContent = "Comprobando…";
+    clearTimeout(PE.timers[it.id]);
+    PE.timers[it.id] = setTimeout(async function () {
+      try {
+        var r = await MOTOR.guardarPremioEnlace(it, gestionados());
+        it.en = r.en; it.actualizado = Date.now();
+        var m = document.querySelector('.pe-f[data-pe="' + it.id + '"] .pe-guardado');
+        if (m) {
+          m.textContent = r.saltados.length ? "⚠️ Guardado, pero no en " + r.saltados.map(function (s) { return "«" + nombreDeGrupo(s.per) + "» (" + s.motivo + ")"; }).join(", ")
+                                            : "✓ Guardado" + (r.en.length > 1 ? " en " + r.en.length + " grupos" : "");
+          m.className = "pe-guardado " + (r.saltados.length ? "malo" : "bien");
+        }
+        var f = document.querySelector('.pe-f[data-pe="' + it.id + '"]');
+        if (f) { $(".pe-ambito", f).textContent = textoAmbito(it); estadoServidor(it); }
+        // dentro de un grupo, si ya no le afecta, sale de la lista
+        if (PE.contexto && r.en.indexOf(PE.contexto) < 0) pintarPremios();
+      } catch (e) {
+        var m2 = document.querySelector('.pe-f[data-pe="' + it.id + '"] .pe-guardado');
+        if (m2) { m2.textContent = "⚠️ No se ha guardado: " + e.message; m2.className = "pe-guardado malo"; }
+      }
+    }, ya ? 0 : 600);
+  }
+  function cablearPremio(it) {
+    var f = document.querySelector('.pe-f[data-pe="' + it.id + '"]'); if (!f) return;
+    var num = function (sel) { var e = $(sel, f); return e ? Number(e.value) || 0 : 0; };
+    $(".pe-nom", f).oninput = function () { it.nombre = this.value.trim(); guardarLuego(it); };
+    Array.prototype.forEach.call(f.querySelectorAll("[data-pe-tipo]"), function (b) {
+      b.onclick = function () {
+        it.tipo = b.getAttribute("data-pe-tipo");
+        Array.prototype.forEach.call(f.querySelectorAll("[data-pe-tipo]"), function (x) { var on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-pressed", on); });
+        guardarLuego(it, true);
+        // el enlace lleva el tipo (la página lo dice antes de saber el grupo): se rehacen sus botones
+        var nuevo = tarjetaPremio(it), tmp = document.createElement("div"); tmp.innerHTML = nuevo;
+        $(".pe-acc", f).innerHTML = $(".pe-acc", tmp).innerHTML; cablearAcciones(it, f);
+      };
+    });
+    $(".h-on", f).onchange = function () { it.activo = this.checked; guardarLuego(it, true); };
+    $("[data-pe-elegir]", f).onclick = async function () {
+      var r = await elegirPremio(it); if (!r) return;
+      /**
+       * 🔴 17-sep · «me dice que YA lo tenía, y es mentira». No lo era: esa cuenta había reclamado ese mismo enlace por la
+       * mañana, cuando daba otra cosa. Un enlace se reclama una vez por persona, dé lo que dé. Si ya lo ha reclamado
+       * alguien, cambiarle el premio no se lo da a esa persona: se dice, y se ofrece crear uno nuevo.
+       */
+      if (Number(it.__reclamados) > 0 && (r.premio !== it.premio || r.heroe !== it.heroe)) {
+        var n = Number(it.__reclamados);
+        var q = await window.SG.preguntar({ titulo: "Este premio ya lo " + (n === 1 ? "ha reclamado 1 persona" : "han reclamado " + n + " personas"),
+          texto: "Un enlace se reclama una vez por persona. Si le cambias el premio, quien ya lo reclamó NO podrá conseguir el nuevo (le dirá que ya lo tiene).\n\n" +
+                 "Crea uno nuevo con su propio enlace (este sigue como está).", si: "✨ Crear uno nuevo con este premio", no: "Cancelar" });
+        if (!q) return;
+        {
+          var nuevo = MOTOR.premioNuevo({ tipo: it.tipo, nombre: it.nombre ? it.nombre + " (2)" : "", grupos: it.grupos, premio: r.premio, heroe: r.heroe, cantidad: r.cantidad, sorteo: r.sorteo });
+          try { var g2 = await MOTOR.guardarPremioEnlace(nuevo, gestionados()); nuevo.en = g2.en; } catch (e) { aviso("No se ha podido crear: " + e.message); return; }
+          PE.lista.unshift(nuevo); pintarPremios(); aviso("✨ Premio nuevo creado, con su propio enlace.", true); return;
+        }
+      }
+      Object.assign(it, r);
+      var tmp = document.createElement("div"); tmp.innerHTML = tarjetaPremio(it);
+      var abierto = !$(".pe-mas", f).hidden;
+      f.replaceWith(tmp.firstChild);
+      cablearPremio(it);
+      if (abierto) { var nf = document.querySelector('.pe-f[data-pe="' + it.id + '"]'); $(".pe-mas", nf).hidden = false; $("[data-pe-mas]", nf).setAttribute("aria-expanded", "true"); }
+      guardarLuego(it, true);
     };
-    var guardar = async function (texto) {
-      var malo = validar(); if (malo) { aviso(malo); return false; }
-      $("#hv-save").disabled = true;
-      try { await MOTOR.guardarHuevos(PER, lista); await refrescar(); aviso(texto || "Guardado.", true); return true; }
-      catch (e) { $("#hv-save").disabled = false; aviso(e.message); return false; }
+    cablearAcciones(it, f);
+    var mas = $(".pe-mas", f);
+    Array.prototype.forEach.call(mas.querySelectorAll('input[type=radio]'), function (r) {
+      r.onchange = function () {
+        var todos = r.value === "todos" && r.checked;
+        Array.prototype.forEach.call(mas.querySelectorAll(".pe-chips input"), function (c) { c.disabled = todos; if (todos) c.checked = true; });
+        it.grupos = todos ? "todos" : [].slice.call(mas.querySelectorAll(".pe-chips input:checked")).map(function (c) { return c.value; });
+        guardarLuego(it, true);
+      };
+    });
+    Array.prototype.forEach.call(mas.querySelectorAll(".pe-chips input"), function (c) {
+      c.onchange = function () { it.grupos = [].slice.call(mas.querySelectorAll(".pe-chips input:checked")).map(function (x) { return x.value; }); guardarLuego(it, true); };
+    });
+    ["h-cantidad", "h-lim", "h-esc", "h-desde", "h-hasta", "h-sorteo"].forEach(function (k) {
+      var e = $("." + k, mas); if (!e) return;
+      e.oninput = e.onchange = function () {
+        it.cantidad = num(".h-cantidad") || it.cantidad; it.limite = num(".h-lim"); it.porEscuadron = num(".h-esc");
+        it.desde = deLocal(($(".h-desde", mas) || {}).value); it.hasta = deLocal(($(".h-hasta", mas) || {}).value);
+        if ($(".h-sorteo", mas)) it.sorteo = $(".h-sorteo", mas).value;
+        $(".pe-premio", f).textContent = nombrePremio(it);
+        guardarLuego(it);
+      };
+    });
+  }
+  function cablearAcciones(it, f) {
+    var bm = $("[data-pe-mas]", f), mas = $(".pe-mas", f);
+    bm.onclick = function () { mas.hidden = !mas.hidden; bm.setAttribute("aria-expanded", String(!mas.hidden)); };
+    $("[data-pe-quitar]", f).onclick = async function () {
+      var n = (it.en || []).length;
+      if (!(await window.SG.preguntar({ titulo: "¿Quitar «" + (it.nombre || nombrePremio(it)) + "»?",
+        texto: "Deja de funcionar su enlace" + (n > 1 ? " en sus " + n + " grupos" : "") + ". Quien ya lo reclamó conserva lo que ganó.", si: "Quitar el premio", peligro: true }))) return;
+      try { await MOTOR.borrarPremioEnlace(it, gestionados()); PE.lista = PE.lista.filter(function (x) { return x.id !== it.id; }); pintarPremios(); aviso("Premio quitado.", true); }
+      catch (e) { aviso(e.message); }
     };
-    var cablearFilas = function () {
-      Array.prototype.forEach.call($("#hv-lista").querySelectorAll(".hv-f"), function (f) {
-        var i = Number(f.getAttribute("data-i"));
-        var leer = function () {
-          var premio = $(".h-premio", f).value, cant = Number($(".h-cantidad", f).value) || 0;
-          lista[i] = { id: $(".h-id", f).value.trim(), nombre: $(".h-nom", f).value.trim(),
-                       premio: premio, heroe: premio === "heroe_fijo" ? $(".h-heroe", f).value : "",
-                       sorteo: premio === "participaciones" ? $(".h-sorteo", f).value : "",
-                       limite: Number($(".h-lim", f).value) || 0,
-                       porEscuadron: Number($(".h-esc", f).value) || 0,
-                       cantidad: cant || (premio === "xp" ? 100 : premio === "participaciones" ? 1 : 50), creditos: cant || 50,
-                       desde: deLocal($(".h-desde", f).value), hasta: deLocal($(".h-hasta", f).value),
-                       activo: $(".h-on", f).checked };
-          // el hueco del detalle cambia con el premio
-          $(".h-cant", f).hidden = !(premio === "bolsa" || premio === "xp" || premio === "participaciones");
-          $(".h-c-sorteo", f).hidden = premio !== "participaciones";
-          $(".h-c-heroe", f).hidden = premio !== "heroe_fijo";
-          var nota = $(".h-nota", f); nota.hidden = !(premio === "sobre" || premio === "heroe");
-          nota.textContent = premio === "heroe" ? "Uno de los " + (heroesDelCatalogo().length || 30) + " héroes, con las mismas probabilidades que en el Mercado"
-                                                : "Tres cartas al azar del álbum, como un sobre del Mercado";
-          $(".h-heroe-img", f).src = "assets/img/heroes/" + $(".h-heroe", f).value + ".jpg";
-          $(".h-estado", f).textContent = textoEstado(lista[i], servidor[lista[i].id] || null);
-        };
-        ["h-id","h-nom","h-premio","h-heroe","h-sorteo","h-cantidad","h-lim","h-esc","h-desde","h-hasta"].forEach(function (k) {
-          var e = $("." + k, f); e.oninput = e.onchange = function () { leer(); pendiente(true); };
+  }
+  /** «➕ Nuevo premio»: primero qué es y qué da (en la ventana visual), y nace guardado y listo para copiar su enlace. */
+  async function crearPremio() {
+    var tipo = await elegirTipo(); if (!tipo) return;
+    var base = MOTOR.premioNuevo({ tipo: tipo, grupos: PE.contexto ? [PE.contexto] : "todos" });
+    var r = await elegirPremio(base); if (!r) return;
+    var it = Object.assign(base, r);
+    var malo = validarPremio(it); if (malo) { aviso(malo); return; }
+    try { var g = await MOTOR.guardarPremioEnlace(it, gestionados()); it.en = g.en; }
+    catch (e) { aviso("No se ha podido crear: " + e.message); return; }
+    PE.lista.unshift(it); pintarPremios();
+    var f = document.querySelector('.pe-f[data-pe="' + it.id + '"]');
+    if (f) { f.classList.add("pe-recien"); f.scrollIntoView({ block: "center", behavior: "smooth" }); var n = $(".pe-nom", f); if (n) n.focus({ preventScroll: true });
+      $(".pe-guardado", f).textContent = "✓ Creado y guardado: ponle nombre y copia su enlace"; $(".pe-guardado", f).className = "pe-guardado bien"; }
+  }
+
+  // ---------------------------------------------------------------- la ventana visual para elegir
+  /** Una ventana propia (no la pregunta de la casa: aquí hay tarjetas con imagen). Devuelve lo elegido o null. */
+  function ventanaVisual(titulo, cuerpo, montar) {
+    return new Promise(function (resolve) {
+      var capa = document.createElement("div"); capa.className = "sgp-capa pe-capa";
+      capa.innerHTML = '<div class="sgp-caja pe-ventana" role="dialog" aria-modal="true" aria-label="' + esc(titulo) + '">' +
+        '<div class="pe-v-cab"><h3>' + esc(titulo) + '</h3><button type="button" class="pe-v-x" aria-label="Cerrar">✕</button></div>' +
+        '<div class="pe-v-cuerpo">' + cuerpo + "</div></div>";
+      document.body.appendChild(capa);
+      var hecho = false;
+      var cerrar = function (v) { if (hecho) return; hecho = true; document.removeEventListener("keydown", tecla, true); capa.remove(); resolve(v); };
+      var tecla = function (e) { if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); cerrar(null); } };
+      document.addEventListener("keydown", tecla, true);
+      capa.addEventListener("mousedown", function (e) { if (e.target === capa) cerrar(null); });
+      $(".pe-v-x", capa).onclick = function () { cerrar(null); };
+      montar(capa, cerrar);
+      var primero = capa.querySelector(".pe-op, button, input"); if (primero) try { primero.focus(); } catch (e) {}
+    });
+  }
+  function elegirTipo() {
+    return ventanaVisual("¿Qué quieres crear?",
+      '<div class="pe-ops dos">' +
+        '<button type="button" class="pe-op" data-v="recompensa"><span class="pe-op-ico">🎁</span><b>Una recompensa</b><em>Para quien supera un reto o una actividad de clase. Al pulsar el enlace: «¡Enhorabuena! Has ganado una recompensa».</em></button>' +
+        '<button type="button" class="pe-op" data-v="huevo"><span class="pe-op-ico">🥚</span><b>Un huevo de Pascua</b><em>Escondido en un rincón de tu Genially. Quien lo encuentra: «Has encontrado un huevo de Pascua».</em></button>' +
+      "</div>",
+      function (capa, cerrar) { Array.prototype.forEach.call(capa.querySelectorAll("[data-v]"), function (b) { b.onclick = function () { cerrar(b.getAttribute("data-v")); }; }); });
+  }
+  /** Paso 1: qué premio (tarjetas con su imagen y qué da). Paso 2, si hace falta: el héroe, cuánto o de qué sorteo. */
+  function elegirPremio(it) {
+    // los sobres y cápsulas nuevos, solo si el grupo los tiene en su tienda (fuera de un grupo, todos: donde no esté, se avisa)
+    var hay = {}; if (PE.contexto && DATOS) (DATOS.recompensas || []).forEach(function (r) { hay[r.stargateTipo] = true; });
+    var ops = ORDEN_PREMIOS.filter(function (k) {
+      if (k === "participaciones" && !PE.contexto) return false;   // (son de un sorteo de un grupo)
+      return !PE.contexto || !/^(capsula_|sobre_)/.test(k) || hay[k] || it.premio === k;
+    });
+    return ventanaVisual("Elige el premio",
+      '<div class="pe-ops">' + ops.map(function (k) {
+        var I = PREMIO_INFO[k];
+        return '<button type="button" class="pe-op' + (it.premio === k ? " on" : "") + '" data-v="' + k + '">' + imgPremio({ premio: k }, "pe-op-img") +
+          "<b>" + esc(I[1]) + "</b><em>" + esc(I[2]) + "</em></button>";
+      }).join("") + "</div>",
+      function (capa, cerrar) {
+        var cuerpo = $(".pe-v-cuerpo", capa), titulo = $(".pe-v-cab h3", capa);
+        Array.prototype.forEach.call(capa.querySelectorAll(".pe-op[data-v]"), function (b) {
+          b.onclick = function () {
+            var k = b.getAttribute("data-v");
+            if (k === "heroe_fijo") return pasoHeroe(cuerpo, titulo, it, cerrar);
+            if (k === "bolsa" || k === "xp" || k === "participaciones") return pasoCantidad(cuerpo, titulo, it, k, cerrar);
+            cerrar({ premio: k, heroe: "", cantidad: 0, sorteo: "" });
+          };
         });
-        // 🔴 el interruptor GUARDA AL MOMENTO: es lo que se pulsa en clase, con el reto recién superado
-        $(".h-on", f).onchange = async function () {
-          leer();
-          var ok = await guardar(lista[i].activo ? "Activo: ya se puede reclamar" + (Number(lista[i].desde) > Date.now() ? " (cuando llegue la fecha)" : "") + "."
-                                                 : "En pausa: nadie puede reclamarlo hasta que lo actives.");
-          if (!ok) { this.checked = !this.checked; leer(); }
-        };
-        $(".h-del", f).onclick = function () { lista.splice(i, 1); repintar(); pendiente(true); };
       });
-      // los «Copiar» de cada premio los atiende el oyente delegado de `app` (cablearCopiar)
+  }
+  function pasoHeroe(cuerpo, titulo, it, cerrar) {
+    titulo.textContent = "¿Qué héroe se lleva?";
+    var hs = heroesDelCatalogo(), rarezas = [];
+    hs.forEach(function (h) { var r = rarezaBonita(h.rareza); if (rarezas.indexOf(r) < 0) rarezas.push(r); });
+    cuerpo.innerHTML = '<p class="pe-filtros"><button type="button" class="on" data-r="">Todos</button>' + rarezas.map(function (r) { return '<button type="button" data-r="' + esc(r) + '">' + esc(r) + "</button>"; }).join("") + "</p>" +
+      '<div class="pe-ops heroes">' + hs.map(function (h) {
+        return '<button type="button" class="pe-op pe-heroe' + (it.heroe === h.clave ? " on" : "") + '" data-h="' + esc(h.clave) + '" data-rar="' + esc(rarezaBonita(h.rareza)) + '">' +
+          '<img class="pe-op-img" src="assets/img/heroes/' + esc(h.clave) + '.jpg" alt="" loading="lazy"><b>' + esc(h.nombre) + "</b><em>" + esc(rarezaBonita(h.rareza)) + "</em></button>";
+      }).join("") + "</div>";
+    Array.prototype.forEach.call(cuerpo.querySelectorAll("[data-r]"), function (b) {
+      b.onclick = function () {
+        Array.prototype.forEach.call(cuerpo.querySelectorAll("[data-r]"), function (x) { x.classList.toggle("on", x === b); });
+        var r = b.getAttribute("data-r");
+        Array.prototype.forEach.call(cuerpo.querySelectorAll(".pe-heroe"), function (x) { x.hidden = !!r && x.getAttribute("data-rar") !== r; });
+      };
+    });
+    Array.prototype.forEach.call(cuerpo.querySelectorAll("[data-h]"), function (b) {
+      b.onclick = function () { cerrar({ premio: "heroe_fijo", heroe: b.getAttribute("data-h"), cantidad: 0, sorteo: "" }); };
+    });
+  }
+  function pasoCantidad(cuerpo, titulo, it, k, cerrar) {
+    var part = k === "participaciones", xp = k === "xp";
+    titulo.textContent = part ? "¿Cuántas participaciones, y de qué sorteo?" : xp ? "¿Cuánta experiencia?" : "¿Cuántos créditos?";
+    var rapidas = part ? [1, 2, 3, 5] : xp ? [50, 100, 200, 500] : [25, 50, 100, 200];
+    var actual = Number(it.premio === k && it.cantidad) || rapidas[1];
+    var sorteos = part ? sorteosDe(DATOS) : [];
+    cuerpo.innerHTML = '<div class="pe-cant">' + imgPremio({ premio: k }, "pe-op-img grande") +
+      '<div><p class="pe-rapidas">' + rapidas.map(function (n) { return '<button type="button" data-n="' + n + '"' + (n === actual ? ' class="on"' : "") + ">" + n + (part ? "" : xp ? " xp" : " ◈") + "</button>"; }).join("") + "</p>" +
+      '<label class="h-campo">O escribe cuánto<input type="number" class="pe-n" min="1" max="' + (part ? 10 : 100000) + '" value="' + actual + '"></label>' +
+      (part ? '<label class="h-campo">Del sorteo<select class="pe-s">' + (sorteos.length ? sorteos.map(function (r) { return '<option value="' + esc(r.docId) + '">' + esc(((r.stargateSorteo || {}).premio) || r.title) + "</option>"; }).join("")
+                                                                  : '<option value="">— no hay ningún sorteo abierto: créalo en «Sorteos» —</option>') + "</select></label>" : "") +
+      '<p class="pe-cant-b"><button type="button" class="btn primary" data-ok>Elegir</button></p></div></div>';
+    var inp = $(".pe-n", cuerpo);
+    Array.prototype.forEach.call(cuerpo.querySelectorAll("[data-n]"), function (b) {
+      b.onclick = function () { inp.value = b.getAttribute("data-n"); Array.prototype.forEach.call(cuerpo.querySelectorAll("[data-n]"), function (x) { x.classList.toggle("on", x === b); }); };
+    });
+    $("[data-ok]", cuerpo).onclick = function () {
+      var n = Math.floor(Number(inp.value) || 0), s = part ? ($(".pe-s", cuerpo) || {}).value || "" : "";
+      if (n < 1 || (part && n > 10)) { inp.focus(); return; }
+      if (part && !s) return;
+      cerrar({ premio: k, heroe: "", cantidad: n, sorteo: s });
     };
-    cablearFilas();
-    $("#hv-add").onclick = function () {
-      // 🔴 Un identificador que no se adivina. Con «p1, p2…», quien encuentra el primero solo tiene
-      // que cambiar el número del enlace para llevarse todos sin buscar ninguno.
-      var azar = Math.random().toString(36).slice(2, 7);
-      lista.push({ id: "e" + (lista.length + 1) + "-" + azar, nombre: "", premio: "sobre", limite: 0, porEscuadron: 0, activo: true, creditos: 50 });
-      repintar(); pendiente(true);
-      var ult = $("#hv-lista").lastElementChild; if (ult && ult.scrollIntoView) ult.scrollIntoView({ block: "center", behavior: "smooth" });
-    };
-    $("#hv-save").onclick = function () { guardar(); };
   }
 
   // ---------------------------------------------------------------- el zoco
