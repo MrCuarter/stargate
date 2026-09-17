@@ -932,9 +932,13 @@
     Array.prototype.forEach.call(m.querySelectorAll("[data-reto]"), function (b) {
       b.onclick = async function () {
         var id = b.getAttribute("data-reto"), tiene = b.getAttribute("data-tiene") === "1";
+        if (!EVID && EVID_LISTO) { try { await EVID_LISTO; } catch (x) {} }   // (sus enlaces y reflexiones, antes de preguntar)
         var mi = retos.filter(function (x) { return x.id === id; })[0] || {};
         var xp = Number(mi.points || 0), cr = Number(mi.coinsReward || 0);
-        var entregado = String(((EVID && EVID[ficha]) || {})[id] || "").trim();
+        // 17-sep · y su reflexión, en los retos que se responden en el propio reto. Norberto: «cuando una tarea tiene
+        // reflexión en vez de enlace, si hago clic, ¿puedo leer la reflexión? Debería». Se lee entera, aquí mismo.
+        var RFX1 = (window.SG_REFLEXION || {})[id], rfx = ((EVRF && EVRF[ficha]) || {})[id];
+        var entregado = String(((EVID && EVID[ficha]) || {})[id] || (rfx && rfx.enlace) || "").trim();
         var enlaces = entregado ? entregado.split(/\s+/).map(function (u) {
           var url = /^https?:\/\//i.test(u) ? u : "https://" + u;
           return '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">🔗 ' + esc(u.replace(/^https?:\/\//i, "").slice(0, 70)) + "</a>"; }).join(" ") : "";
@@ -942,7 +946,13 @@
           aqui: b.closest(".retos-ficha") || b, marca: b, peligro: tiene,
           titulo: (tiene ? "¿Anular " : "¿Validar ") + id + " a " + r.alias + "?",
           html: '<p class="sgp-reto"><b>' + esc(id) + " · " + esc(mi.title || "") + "</b>" +
-                  (tiene ? (enlaces ? "<span>" + enlaces + "</span>" : '<span class="small muted">sin enlace</span>') : "") + "</p>" +
+                  (tiene ? (enlaces ? "<span>" + enlaces + "</span>"
+                                    : (RFX1 && RFX1.modo === "texto" ? "" : '<span class="small muted">sin enlace</span>')) : "") + "</p>" +
+                (tiene && RFX1 ? (rfx
+                  ? '<div class="sgp-rf"><p class="sgp-rf-cab">✍️ <b>Su reflexión</b> · «' + esc(RFX1.titulo || "") + "»" +
+                      ((COMS[rfx.id] || []).length ? ' <span class="small muted">· 💬 ' + (COMS[rfx.id] || []).length + " de su tripulación</span>" : "") + "</p>" +
+                    '<p class="sgp-rf-txt">' + esc(rfx.texto || "") + "</p></div>"
+                  : '<p class="small muted">✍️ Este reto lleva reflexión y no la tiene.</p>') : "") +
                 '<p class="sgp-cifras">' + (tiene ? "Se le quitan " : "Se le suman ") + "<b>" + xp + " xp</b>" + (mi.badge ? ", " : " y ") + "<b>" + cr + " ◈</b>" +
                   (mi.badge ? " y su insignia" : "") + (tiene ? ". Podrá registrarlo otra vez." : ".") + "</p>",
           campo: { etiqueta: "Mensaje para " + r.alias, ayuda: tiene ? "· lo verá en su Nave" : "· opcional · lo verá en su Nave", filas: 2, max: 400,

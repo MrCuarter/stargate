@@ -3446,6 +3446,12 @@ body.fragmento{background:var(--bg)}
 .ses-caras .ev-ver{display:inline-flex;align-items:center;gap:4px;margin-top:2px;padding:3px 10px;border-radius:999px;font-size:.85rem;font-weight:700;
   color:#07121a;background:var(--teal,#37e0ec);text-decoration:none;box-shadow:0 0 14px rgba(55,224,236,.35)}
 .ses-caras .ev-ver:hover,.ses-caras .ev-ver:focus-visible{background:#fff}
+/* 17-sep · «✍️ Leer» su reflexión (retos sin enlace), y la reflexión en grande */
+.ses-caras button.ev-ver{border:0;cursor:pointer;font-family:inherit}
+.ses-caras .ev-leer{background:var(--amber,#f5b043);box-shadow:0 0 14px rgba(245,176,67,.35)}
+.ses-ficha .fr-pide{margin:6px 0 0;color:var(--mut);font-size:1rem;line-height:1.45}
+.ses-ficha .fr-rf{margin:14px 0 6px;padding:14px 18px;border-left:4px solid var(--amber,#f5b043);background:rgba(0,0,0,.28);border-radius:0 14px 14px 0;font-size:1.35rem;line-height:1.55;white-space:pre-line;overflow-wrap:anywhere}
+.ses-ficha .fr-reflexion .ev-ver{display:inline-flex;padding:6px 14px;border-radius:999px;font-weight:700;color:#07121a;background:var(--teal,#37e0ec);text-decoration:none}
 /* cada cara abre su ficha */
 .dia .cara[data-quien]{cursor:pointer;transition:transform .15s}
 .dia .cara[data-quien]:hover{transform:scale(1.06)}
@@ -4118,6 +4124,10 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 .sgp-reto{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
 .sgp-reto b{font-size:.92rem}
 .sgp-cifras{font-variant-numeric:tabular-nums}
+.sgp-rf{margin:2px 0 8px;padding:8px 12px;border-left:3px solid var(--teal);background:rgba(0,0,0,.25);border-radius:0 10px 10px 0}
+.sgp-txt .sgp-rf p{margin:0}
+.sgp-rf-cab{font-size:.85rem}
+.sgp-txt .sgp-rf-txt{margin-top:4px;color:var(--ink);font-size:.92rem;line-height:1.55;white-space:pre-line;overflow-wrap:anywhere;max-height:16em;overflow:auto}
 @media (prefers-reduced-motion:reduce){.sgp-capa,.sgp-caja,.sgp-caja.en-linea{animation:none}}
 /* 17-sep · la Nave: el mensaje del Comandante al validar o anular un reto */
 .msg-cmd{margin:0 0 12px;padding:12px 16px;border-color:rgba(55,224,236,.45);background:linear-gradient(180deg,rgba(55,224,236,.10),rgba(55,224,236,.03))}

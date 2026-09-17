@@ -3654,7 +3654,29 @@ const REG = {};   // cifras que se apuntan para el informe
       c("consola · quitar un comentario pregunta ahí mismo, desplegado en la ficha", /Quitar este comentario/.test(await rita.responder()));
       await dormir(2500);
       c("🔴 consola · la referente quita el comentario (moderar) y deja de existir", !(await consultar("stargate_comentarios", "projectId", P)).some(x => x.reflexion === P + "__A1__" + f1._id));
+      // 17-sep · LA REFLEXIÓN, A UN CLIC. Norberto: «cuando una tarea tiene reflexión en vez de enlace, si hago clic, ¿puedo
+      // leer la reflexión? Debería». En la ficha (pulsando el reto) y en la sesión («✍️ Leer» bajo su cara).
+      await rita.js("document.querySelector('#c-modal [data-reto=\"A1\"]').click(); 1");
+      c("🔴 consola · pulsar A1 en la ficha de Rosa: su reflexión entera en el desplegable (y sin «sin enlace»: A1 se responde en texto)",
+        await rita.hasta("/fracciones/.test((document.querySelector('#c-modal .sgp-rf-txt')||{}).textContent||'')", 10)
+        && await rita.js("!/sin enlace/.test(document.querySelector('#c-modal .sgp-reto').textContent)"),
+        await rita.js("((document.querySelector('#c-modal .sgp-caja')||{}).innerText||'no se desplegó').slice(0,200)"));
+      await rita.foto(FOTOS + "/37-ficha-leer-reflexion.png");
+      await rita.js("var n=document.querySelector('#c-modal .sgp-caja [data-sgp-no]'); if(n) n.click(); 1"); await dormir(200);
       await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1");
+      await rita.ir("sesion.html?per=" + P + "&sem=2"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);
+      const antA1 = await rita.js("(function(){var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return /Misiones de la semana 1/.test(x.title)})[0]; if(!b) return false; b.click(); return true;})()");
+      const selLeer = `.dia.anteriores figure[data-ficha="${f1._id}"][data-reto="A1"] .ev-leer`;
+      const hayLeer = antA1 && await rita.hasta("!!document.querySelector('" + selLeer + "')", 15);
+      c("🔴 sesión · en «Misiones de la semana 1», bajo la cara de Rosa en A1: «✍️ Leer»", hayLeer,
+        await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(x){return x.title}).join(' | ')"));
+      if (hayLeer) {
+        await rita.js("document.querySelector('" + selLeer + "').click(); 1");
+        c("sesión · «✍️ Leer» abre su reflexión en grande, con lo que pedía el reto", await rita.hasta("/fracciones/.test((document.querySelector('.ses-ficha .fr-rf')||{}).textContent||'') && !!document.querySelector('.ses-ficha .fr-pide')", 8));
+        await rita.foto(FOTOS + "/37-sesion-leer-reflexion.png");
+        await rita.js("document.querySelector('.ses-ficha .ses-ficha-x').click(); 1"); await dormir(300);
+        c("sesión · y se cierra como la ficha", await rita.js("!document.querySelector('.ses-ficha')"));
+      }
       // la sesión de la semana 12: «Lo que dijisteis», primero la de su escuadrón (Rosa es de Rita; Teo, de Dani)
       // (A1 se lanza en la semana 1: sus reflexiones se proyectan dos semanas después, en la 3)
       await rita.ir("sesion.html?per=" + P + "&sem=3"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);

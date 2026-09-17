@@ -75,6 +75,26 @@ c(!/marcarSinEnlace/.test(K) && !/sin enlace" : ""/.test(K), "🔴 Mi gente ya n
   "(ni queda una llamada suelta: la de Escuadrones reventaba con «marcarSinEnlace is not defined», lo cazó el laboratorio)");
 c(!/⚠️ sin enlace, y este reto lo pide/.test(K), "   y en la ficha, un reto sin enlace se dice sin alarma (los otorgados a mano no lo traen)");
 
+// 6 · la reflexión, a un clic (17-sep · Norberto: «cuando una tarea tiene reflexión en vez de enlace, si hago clic,
+//     ¿puedo leer la reflexión? Debería»)
+const S = leer("assets/js/sesion.js");
+c(/var RFX1 = \(window\.SG_REFLEXION \|\| \{\}\)\[id\], rfx = \(\(EVRF && EVRF\[ficha\]\) \|\| \{\}\)\[id\]/.test(RETO) && /class="sgp-rf-txt">' \+ esc\(rfx\.texto/.test(RETO),
+  "🔴 ficha → pulsar un reto con reflexión: se lee entera en el desplegable");
+c(/RFX1 && RFX1\.modo === "texto" \? ""/.test(RETO), "   y un reto que se responde en texto no dice «sin enlace» (no lo pide)");
+c(/Este reto lleva reflexión y no la tiene/.test(RETO), "   si le falta, lo dice");
+c(/if \(!EVID && EVID_LISTO\) \{ try \{ await EVID_LISTO; \}/.test(RETO), "   (espera a tener sus enlaces y reflexiones antes de desplegar: si no, diría que no la tiene)");
+c(/\.sgp-txt \.sgp-rf-txt\{[^}]*white-space:pre-line[^}]*max-height:16em;overflow:auto/.test(CSS), "   con sus saltos de línea y, si es larga, con su barra");
+c(/class="ev-ver ev-leer" data-leer="/.test(S) && /x\.fichaId===fid && x\.reto===reto/.test(S),
+  "🔴 sesión → debajo de la cara de quien respondió con reflexión, «✍️ Leer»");
+c(/function abrirReflexion\(rf\)/.test(S) && /class="fr-rf">'\+esc\(rf\.texto/.test(S) && /closest\('\[data-leer\]'\)/.test(S),
+  "   que la abre en grande para leerla en clase (con lo que pedía el reto)");
+c(/else precargarReflexiones\(\)\.then\(function\(\)\{ pinta\(/.test(S), "   aunque las reflexiones lleguen después que los enlaces");
+c(/\.ses-ficha \.fr-rf\{[^}]*font-size:1\.35rem/.test(CSS) && /\.ses-caras button\.ev-ver\{border:0/.test(CSS), "   con letra de proyector");
+const EP = fs.existsSync(path.join(RAIZ, "motor/entregas_prueba.js")) ? leer("motor/entregas_prueba.js") : "";
+c(/\^\(prueba\|demo\)-/.test(EP) && /\^\(prueba\|demo\)_/.test(EP) && /!\(await ref\.get\(\)\)\.exists/.test(EP),
+  "🔴 los grupos de prueba, con entregas de verdad: solo grupos prueba-/demo-, solo reclutas de mentira y sin pisar nada");
+c(/parseInt\(reto\.slice\(1\), 10\) \|\| 0/.test(EP), "   (el simulacro, XS, no lleva número: rompía el reparto de enlaces; lo cazó el ensayo en el emulador)");
+
 console.log("\n  Batería 87 · preguntar con la cara de STARGATE y el porqué de un reto");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
 fallos.forEach(f => console.log("   ✗ " + f));

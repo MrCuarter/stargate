@@ -411,16 +411,30 @@
   }
   function montarEvidencias(el){
     var vivo=true, M=window.SG&&window.SG.MOTOR, per=st.per;
+    /**
+     * 🔴 17-sep · Y SU REFLEXIÓN, A UN CLIC. Norberto: «cuando una tarea tiene reflexión en vez de enlace, si hago clic,
+     * ¿puedo leer la reflexión? Debería». Los retos que se responden en el propio reto (A1, L2, L3, L6…) no tienen
+     * enlace: debajo de la cara, «✍️ Leer», que la abre en grande para leerla en clase.
+     */
     var pinta=function(mapa){
       if(!vivo) return;
+      var rfs=(REFLEX&&REFLEX.per===per)?REFLEX.lista:[];
       Array.prototype.forEach.call(el.querySelectorAll('figure[data-ficha][data-reto]'),function(fg){
-        if(fg.querySelector('.ev-ver')) return;
-        var us=String(((mapa||{})[fg.getAttribute('data-ficha')]||{})[fg.getAttribute('data-reto')]||'').trim().split(/\s+/).map(enlaceDe).filter(Boolean);
-        if(!us.length) return;
-        fg.insertAdjacentHTML('beforeend','<span class="ev-vers">'+us.map(function(u,k){
-          return '<a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer" title="Ver lo que entregó">🔗 '+(k?'Ver 2':'Ver')+'</a>'; }).join('')+'</span>');
+        var fid=fg.getAttribute('data-ficha'), reto=fg.getAttribute('data-reto'), caja=fg.querySelector('.ev-vers');
+        var hueco=function(){ if(!caja){ fg.insertAdjacentHTML('beforeend','<span class="ev-vers"></span>'); caja=fg.querySelector('.ev-vers'); } return caja; };
+        if(mapa&&!fg.querySelector('a.ev-ver')){
+          var us=String(((mapa||{})[fid]||{})[reto]||'').trim().split(/\s+/).map(enlaceDe).filter(Boolean);
+          if(us.length) hueco().insertAdjacentHTML('afterbegin', us.map(function(u,k){
+            return '<a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer" title="Ver lo que entregó">🔗 '+(k?'Ver 2':'Ver')+'</a>'; }).join(''));
+        }
+        if(!fg.querySelector('.ev-leer')){
+          var rf=rfs.filter(function(x){ return x.fichaId===fid && x.reto===reto; })[0];
+          if(rf) hueco().insertAdjacentHTML('beforeend','<button type="button" class="ev-ver ev-leer" data-leer="'+esc(rf.id)+'" title="Leer su reflexión">✍️ Leer</button>');
+        }
       });
     };
+    if(REFLEX&&REFLEX.per===per) pinta(null);
+    else precargarReflexiones().then(function(){ pinta(EVIDS&&EVIDS.per===per?EVIDS.mapa:null); });
     if(EVIDS&&EVIDS.per===per){ pinta(EVIDS.mapa); return function(){ vivo=false; }; }
     if(!M||!M.getDocs||!per) return null;
     M.getDocs(M.query(M.collection(M.db,'mission_deliveries'), M.where('projectId','==',per))).then(function(r){
@@ -542,6 +556,32 @@
     var o=ocultasRF(); o[b.getAttribute('data-rfocultar')]=1;
     try{ localStorage.setItem('sgRefOcultas_'+st.per, JSON.stringify(o)); }catch(x){}
     pintar();
+  });
+
+  /** 17-sep · la reflexión de alguien, en grande (desde «✍️ Leer» debajo de su cara). Se cierra como su ficha. */
+  function abrirReflexion(rf){
+    var mazo=root.querySelector('#mazo'); if(!mazo||!rf) return;
+    cerrarFicha();
+    var RF=window.SG_REFLEXION||{}, d=RF[rf.reto]||{}, p=quienEs(rf.fichaId)||{};
+    var cat=(RET[st.tipo==='PUA'?'PUA':'REGULAR']||RET.REGULAR||[]), r=cat.filter(function(x){ return x[0]===rf.reto; })[0];
+    var av={src:''}; try{ av=SG.avatarSrc(p.avatar,p.alias,p.xp,st.tipo)||av; }catch(e){}
+    var u=enlaceDe(rf.enlace);
+    mazo.insertAdjacentHTML('beforeend','<div class="ses-ficha" role="dialog" aria-label="La reflexión de '+esc(p.alias||'')+'"><div class="ses-ficha-fondo"></div>'
+      +'<div class="fr-caja fr-reflexion"><button type="button" class="ses-ficha-x" aria-label="Cerrar">×</button>'
+      +'<div class="fr-cab">'+(av.src?'<img class="fr-av" src="'+esc(av.src)+'" alt="">':'')
+      +'<div><div class="eyebrow amber">✍️ '+(r?etiquetaReto(r[1])+' «'+esc(tituloReto(r[1]))+'»':esc(rf.reto))+'</div><h3>'+esc(p.alias||'Un recluta')+'</h3>'
+      +(d.pide?'<p class="fr-pide">'+esc(d.pide)+'</p>':'')+'</div></div>'
+      +'<p class="fr-rf">'+esc(rf.texto||'')+'</p>'
+      +(u?'<p><a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">🔗 Ver lo que entregó</a></p>':'')
+      +'</div></div>');
+    var o=mazo.querySelector('.ses-ficha');
+    o.querySelector('.ses-ficha-fondo').onclick=cerrarFicha; o.querySelector('.ses-ficha-x').onclick=cerrarFicha;
+  }
+  root.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest&&e.target.closest('[data-leer]'); if(!b) return;
+    e.stopPropagation();
+    var rf=((REFLEX&&REFLEX.lista)||[]).filter(function(x){ return x.id===b.getAttribute('data-leer'); })[0];
+    if(rf) abrirReflexion(rf);
   });
 
   // ── 5 · han movido ficha (con su cara)
