@@ -364,6 +364,9 @@
                 // Sale de la ficha de quien pregunta, no del tablero de todos.
                 if (yo_) yo_.retos = misRetos(f);
                 if (yo_) yo_.retos_fecha = misFechas(f);
+                // 17-sep · los que validó su docente a mano (no cuentan para el tope de la semana)
+                if (yo_) yo_.otorgados = (f.stargateOtorgados || []).map(function (doc) {
+                  var m = ((crudo && crudo.misiones) || []).filter(function (x) { return x.docId === doc; })[0]; return m ? m.id : doc; });
                 // 🔴 Y su propio identificador de ficha. El tablero público no lo trae —y así se
                 // queda—, pero uno tiene derecho a saber cuál es la suya: es lo que hace falta para
                 // fichar en la llamada a filas. Es SU ficha, no la de nadie más.
@@ -436,20 +439,21 @@
               // Lo que se escriba deja la ficha guardada obsoleta: se tira sin contemplaciones.
               olvidarFicha();
               if (cuerpo.accion === "registrar") {
-                // 🔴 13-sep · El tope diario y la evidencia obligatoria, también aquí, en la puerta por
-                // la que salen TODOS los registros: la Nave lo avisa antes, esto es el cerrojo.
-                var TOPE = Number(window.SG_TOPE_DIA || 0), EV = window.SG_EVIDENCIA || {};
+                // 🔴 13-sep · El tope y la evidencia obligatoria, también aquí, en la puerta por la que salen TODOS los
+                // registros: la Nave lo avisa antes, esto es el cerrojo (y el servidor, el último). 17-sep · por SEMANA.
+                var TOPE = Number(window.SG_TOPE_SEMANA || 0), EV = window.SG_EVIDENCIA || {};
                 if (TOPE) {
-                  var hoy0 = new Date(); hoy0.setHours(0, 0, 0, 0);
-                  var sellos = (ficha.missionTimestamps || {}), hoyN = 0;
+                  var hoy0 = new Date(); hoy0.setHours(0, 0, 0, 0); hoy0.setDate(hoy0.getDate() - ((hoy0.getDay() + 6) % 7));
+                  var sellos = (ficha.missionTimestamps || {}), hoyN = 0, otorg = ficha.stargateOtorgados || [];
                   Object.keys(sellos).forEach(function (k) {
+                    if (otorg.indexOf(k) >= 0) return;   // lo validó su docente a mano: no le quita hueco
                     // solo retos del propio recluta (A, B, X, S); los hitos (H…) se completan solos, y los relámpago
                     // (L…) no cuentan a propósito: se hacen en clase y no pueden quitar el hueco de un reto de verdad
                     if (!/^[ABXS]\d/.test(String(k).split("__").pop())) return;
                     var l = sellos[k]; var u = Array.isArray(l) ? l[l.length - 1] : l;
                     if (u && new Date(u) >= hoy0) hoyN++;
                   });
-                  if (hoyN >= TOPE) return { error: "Hoy ya has registrado " + TOPE + " retos. Vuelve mañana." };
+                  if (hoyN >= TOPE) return { error: "Esta semana ya has registrado " + TOPE + " retos. El lunes tienes tres huecos más." };
                 }
                 // 15-sep · uno o dos enlaces (el segundo, el del «+»), separados por un espacio
                 var trozos = String(cuerpo.evidencia || "").trim().split(/\s+/).filter(Boolean);

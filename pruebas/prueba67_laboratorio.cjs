@@ -615,7 +615,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await beto.ir("recluta.html?per=lab-clase#retos");
       await beto.hasta("[].slice.call(document.querySelectorAll('button')).some(function(b){return /Lo he hecho/.test(b.textContent)})", 25);
       // 🔴 Con las reglas del 13-sep: el tramposo intenta marcarlo TODO, y donde le piden enlace pega
-      // basura («www.culo.com», el ejemplo de Norberto). El tope de 3 al día lo frena igual.
+      // basura («www.culo.com», el ejemplo de Norberto). El tope de 3 (17-sep: por SEMANA) lo frena igual.
       let intentos = 0;
       for (let k = 0; k < 25; k++) {
         const hay = await beto.js(`(function(){ var bs=[].slice.call(document.querySelectorAll('button[data-hecho]')).filter(function(x){return !x.disabled && x.offsetParent});
@@ -628,17 +628,21 @@ const REG = {};   // cifras que se apuntan para el informe
         intentos++; await dormir(4500);
         await beto.js("var f=document.querySelector('.sb-fin, .neb-capa [data-cerrar]'); if(f) f.click(); 1");
         // (17-sep · se sigue hasta chocar con el tope: parar al llegar a 3 dejaba a veces el aviso del último reto, no el del tope)
-        if (/Hoy ya has registrado 3/.test(await beto.js("(document.getElementById('nave-aviso')||{}).textContent||''"))) break;
+        if (/Esta semana ya has registrado 3/.test(await beto.js("(document.getElementById('nave-aviso')||{}).textContent||''"))) break;
       }
       const f1 = await fichaDe("beto@lab.test", "lab-clase");
-      // (los relámpago no cuentan para el tope de 3 al día: se hacen en clase)
+      // (los relámpago no cuentan para el tope de la semana: se hacen en clase)
       const sinRel = l => (l || []).filter(x => !/__L\d$/.test(x)).length;
       const marcados = sinRel(f1.completedMissionIds) - sinRel(f0.completedMissionIds);
       REG.tramposo = { antes: "15 retos, +4.100 xp, +880 ◈ en un minuto (sin tope ni enlace)",
                        marcados, xp: f1.totalPoints - f0.totalPoints, creditos: f1.coins - f0.coins };
-      c("🔴 tramposo · con el tope, por mucho que pulse solo registra 3 retos hoy", marcados === 3, JSON.stringify(REG.tramposo));
+      c("🔴 tramposo · con el tope, por mucho que pulse solo registra 3 retos esta semana", marcados === 3, JSON.stringify(REG.tramposo));
       const avisoTope = await beto.js("(document.getElementById('nave-aviso')||{}).textContent||''");
-      c("tramposo · y la Nave le dice por qué", /Hoy ya has registrado 3/.test(avisoTope), avisoTope.slice(0, 120));
+      c("tramposo · y la Nave le dice por qué", /Esta semana ya has registrado 3/.test(avisoTope), avisoTope.slice(0, 120));
+      // 🔴 17-sep · y el SERVIDOR también: hasta hoy el tope solo lo ponía la web, y un completeMission a mano se lo saltaba
+      const libre = (await consultar("missions", "projectId", "lab-clase")).filter(m => /^B\d$/.test(m.stargateId || "") && (f1.completedMissionIds || []).indexOf(m._id) < 0)[0];
+      const aMano = libre ? await beto.js(`window.SG.MOTOR.llamar('completeMission',{projectId:'lab-clase', missionId:${JSON.stringify(libre._id)}, studentProfileId:${JSON.stringify(f1._id)}}).then(function(){return 'PASÓ'},function(e){return e.message})`) : "sin reto libre";
+      c("🔴 tramposo · y si llama al servidor a mano, el SERVIDOR tampoco le deja («Esta semana ya has registrado 3»)", /Esta semana ya has registrado 3/.test(aMano), aMano);
       const suyas = await consultar("mission_deliveries", "studentProfileId", f1._id);
       c("tramposo · y deja rastro: su basura queda como evidencia a la vista del docente", suyas.some(x => /culo/.test(x.enlace || "")),
         JSON.stringify(suyas.map(x => x.stargateReto + ":" + x.enlace)));
@@ -4595,6 +4599,82 @@ const REG = {};   // cifras que se apuntan para el informe
         lista.filter(x => !/^LETRA/.test(x)).slice(0, 6).map(x => x + " ← " + [...new Set(hallado[x])].slice(0, 3).join(", ")).join(" ‖ "));
       c("🔴 sin letra diminuta · nada por debajo de 12 px", !lista.filter(x => /^LETRA/.test(x)).length,
         lista.filter(x => /^LETRA/.test(x)).slice(0, 6).map(x => x + " ← " + [...new Set(hallado[x])].slice(0, 3).join(", ")).join(" ‖ "));
+    }
+    // ============================================================ 44 · EN VIVO: VOTACIÓN, PREGUNTA Y SESIÓN SINCRONIZADA
+    /**
+     * 17-sep · Norberto, en la prueba humana: «cuando inicio una votación, al estudiante no le aparece nada»; «lanzar pregunta
+     * en directo, las respuestas aparecen en tiempo real con su alias y avatar»; «si el docente pasa de diapo, al estudiante
+     * le pasa también». Con dos personas a la vez: Rita (aula y sesión) y Ana (su Nave y la sesión), SIN recargar.
+     */
+    if (hacer(44)) {
+      const P = "lab-clase";
+      const rv = await nueva("Rita, en directo");
+      await rv.ir("entrar.html"); await rv.entrarComo("rita@lab.test", "Rita Referente");
+      const av = await nueva("Ana, en su Nave");
+      await av.ir("entrar.html"); await av.entrarComo("ana@lab.test", "Ana Nueva");
+      await sinBienvenidas(av);
+      await av.ir("recluta.html?per=" + P); await av.hasta("!!document.querySelector('.nb-tabs')", 60); await dormir(2500);
+      await av.js("document.querySelectorAll('.sb-capa').forEach(function(x){x.remove()}); var o=document.getElementById('nave-logro'); if(o){o.classList.remove('open');o.innerHTML='';} 1");
+      // (sin votaciones abiertas de antes)
+      for (const v of (await consultar("voting_events", "projectId", P)).filter(x => x.isActive)) { try { await admin().firestore().collection("projects").doc(P).collection("voting_events").doc(v._id).update({ isActive: false }); } catch (e) {} }
+      const vs = await admin().firestore().collection("projects").doc(P).collection("voting_events").where("isActive", "==", true).get();
+      for (const d of vs.docs) await d.ref.update({ isActive: false });
+
+      // 1 · la votación en directo le salta a Ana sin recargar
+      await rv.ir("aula.html?per=" + P); await rv.hasta("document.querySelectorAll('.au-t').length>5", 40);
+      await rv.js("[].slice.call(document.querySelectorAll('.au-t')).filter(function(b){return /Votación/.test(b.textContent)})[0].click(); 1");
+      await rv.hasta("!!document.getElementById('au-vt-crear')", 20);
+      await rv.js(`(function(){ document.getElementById('au-vt-preg').value='¿Qué vemos el próximo día?';
+        var ops=document.querySelectorAll('.au-vt-op-inp'); ops[0].value='Genially'; ops[1].value='Canva';
+        var mio=document.getElementById('au-vt-mio'); if(mio) mio.checked=false;
+        document.getElementById('au-vt-crear').click(); return 1; })()`);
+      const vioVoto = await av.hasta("/Votación en directo/.test((document.querySelector('.envivo-banda')||{}).textContent||'')", 40);
+      c("🔴 en vivo · la votación le salta a Ana arriba de su Nave, SIN RECARGAR", vioVoto, await av.js("((document.querySelector('.envivo-banda')||{}).textContent||'').slice(0,160)"));
+      c("   y aparece la pestaña «En vivo»", await av.js("!!document.querySelector('.nb-t[data-tab=\"envivo\"]')"));
+
+      // 2 · la pregunta en directo: Ana responde, Rita la ve al momento con su alias
+      await rv.js("[].slice.call(document.querySelectorAll('.au-t')).filter(function(b){return /Pregunta/.test(b.textContent)})[0].click(); 1");
+      await rv.hasta("!!document.getElementById('au-pq-lanzar')", 20);
+      await rv.js("document.getElementById('au-pq-inp').value='¿Qué es lo que más os ha costado?'; document.getElementById('au-pq-lanzar').click(); 1");
+      const hayPq = await rv.hasta("!!document.getElementById('au-pq-muro') && !!document.getElementById('au-pq-cerrar')", 30);
+      const vioPq = await av.hasta("/Pregunta en directo/.test((document.querySelector('.envivo-banda')||{}).textContent||'')", 40);
+      c("🔴 en vivo · Rita lanza una pregunta y a Ana le salta en la Nave", hayPq && vioPq);
+      await av.js("document.querySelector('.nb-t[data-tab=\"envivo\"]').click(); 1");
+      await av.hasta("!!document.getElementById('ev-resp')", 20);
+      await av.js("document.getElementById('ev-resp').value='La matriz de inteligencias'; document.getElementById('ev-enviar').click(); 1");
+      const llega = await rv.hasta("/La matriz de inteligencias/.test((document.getElementById('au-pq-muro')||{}).textContent||'')", 40);
+      const conCara = await rv.js("(function(){ var r=[].slice.call(document.querySelectorAll('.au-pq-r')).filter(function(x){return /La matriz/.test(x.textContent)})[0]; return !!r && !!r.querySelector('.au-pq-cara img') && /\\S/.test(r.querySelector('b').textContent); })()");
+      c("🔴 en vivo · la respuesta de Ana le llega a Rita EN TIEMPO REAL, con su alias y su cara", llega && conCara, await rv.js("((document.getElementById('au-pq-muro')||{}).textContent||'').slice(0,160)"));
+      c("en vivo · sin errores en las páginas (aula y Nave)", !rv.errores.concat(av.errores).filter(e => !/Failed to load resource/.test(e)).length, rv.errores.concat(av.errores)[0] || "");
+      await rv.foto(FOTOS + "/44-pregunta-muro.png"); await av.foto(FOTOS + "/44-nave-envivo.png");
+
+      // 3 · la sesión sincronizada: Rita emite, Ana la sigue diapositiva a diapositiva
+      await rv.ir("sesion.html?per=" + P); await rv.hasta("!!document.querySelector('.barra-pasos .p') && !!document.getElementById('ses-directo')", 60);
+      await rv.js("document.getElementById('ses-directo').click(); 1");
+      await rv.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return /^El mensaje$/.test(x.title)})[0]; b&&b.click(); return 1; })()");
+      await dormir(1500);
+      const s1 = ((await leerDoc("stargate_envivo/" + P)) || {}).sesion || {};
+      c("🔴 en vivo · Rita emite la sesión: semana y diapositiva", s1.activa === true && s1.k === "foro", JSON.stringify(s1));
+      const al = await nueva("Ana, siguiendo la sesión");
+      await al.ir("entrar.html"); await al.entrarComo("ana@lab.test", "Ana Nueva");
+      await al.ir("sesion.html?embed=1&seguir=1&per=" + P);
+      const sigue = await al.hasta("!!document.querySelector('.ses-al-sigo') && ((document.querySelector('.barra-pasos .p.on')||{}).title==='El mensaje')", 60);
+      c("🔴 en vivo · Ana abre la sesión y va sola a la diapositiva de Rita («Siguiendo a tu Comandante»)", sigue,
+        await al.js("((document.querySelector('.barra-pasos .p.on')||{}).title||'—') + ' · ' + !!document.querySelector('.ses-al-sigo')"));
+      await rv.js("document.getElementById('sig').click(); 1"); await dormir(800);
+      const tituloRita = await rv.js("(document.querySelector('.barra-pasos .p.on')||{}).title||''");
+      const aLaVez = await al.hasta(`(document.querySelector('.barra-pasos .p.on')||{}).title===${JSON.stringify(tituloRita)}`, 30);
+      c("🔴 en vivo · Rita pasa de diapositiva y a Ana le pasa también", aLaVez && tituloRita !== "El mensaje", tituloRita);
+      c("   y en la sesión de Ana está la pregunta en directo (ya respondida)", await al.js("/La matriz de inteligencias/.test((document.querySelector('.ses-al-pq')||{}).textContent||'')"));
+      await al.js("document.getElementById('ant').click(); 1"); await dormir(700);
+      c("   si Ana se mueve sola, deja de seguir y le ofrece «Volver al ritmo»", await al.hasta("!!document.getElementById('ses-al-volver')", 10));
+      await al.js("document.getElementById('ses-al-volver').click(); 1");
+      c("   y al pulsarlo vuelve a la de Rita", await al.hasta(`(document.querySelector('.barra-pasos .p.on')||{}).title===${JSON.stringify(tituloRita)}`, 15));
+      await al.foto(FOTOS + "/44-sesion-alumna.png");
+      await rv.js("document.getElementById('ses-directo').click(); 1"); await dormir(1200);
+      c("en vivo · al apagar «En directo», la sesión deja de emitirse", ((await leerDoc("stargate_envivo/" + P)) || {}).sesion.activa === false);
+      c("en vivo · sin errores en las sesiones", !rv.errores.concat(al.errores).filter(e => !/Failed to load resource/.test(e)).length, rv.errores.concat(al.errores)[0] || "");
+      await rv.cerrar(); await av.cerrar(); await al.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

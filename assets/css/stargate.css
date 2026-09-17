@@ -4428,3 +4428,57 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 /* 17-sep · en el aula, lo que aún no se ha abierto: en sombra y con la semana en que se desbloquea */
 .au-pr.cerrado,.au-pr.cerrado:disabled{opacity:.42;filter:grayscale(.85);cursor:not-allowed;transform:none;border-style:dashed}
 .au-pr .au-sem{display:block;margin-top:3px;font-size:.75rem;font-weight:700;letter-spacing:.04em;color:#f5b043;filter:none}
+
+/* 17-sep · EN VIVO en la Nave: el aviso de arriba (cualquier pestaña) y su pestaña */
+.envivo-banda{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;margin:0 0 14px;
+  border:1px solid rgba(255,107,107,.45);background:linear-gradient(90deg,rgba(255,107,107,.12),rgba(16,26,40,.9) 55%)}
+.envivo-banda .ev-ico{width:34px;height:34px;object-fit:contain;flex:0 0 auto}
+.envivo-banda .ev-t{font-family:'Unbounded',sans-serif;font-weight:700;font-size:.9rem;color:#ff9f9f;letter-spacing:.04em;text-transform:uppercase;position:relative;padding-left:14px}
+.envivo-banda .ev-t::before{content:"";position:absolute;left:0;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:#ff5d5d;box-shadow:0 0 0 0 rgba(255,93,93,.7);animation:ev-late 1.6s infinite}
+@keyframes ev-late{0%{box-shadow:0 0 0 0 rgba(255,93,93,.7)}70%{box-shadow:0 0 0 9px rgba(255,93,93,0)}100%{box-shadow:0 0 0 0 rgba(255,93,93,0)}}
+.envivo-banda .ev-items{display:flex;flex-wrap:wrap;gap:8px}
+.ev-it{font:inherit;font-size:.88rem;color:#e8f3fa;background:rgba(0,0,0,.28);border:1px solid #3a2a38;border-radius:999px;padding:6px 12px;cursor:pointer}
+.ev-it:hover,.ev-it:focus-visible{border-color:#ff9f9f;background:rgba(255,107,107,.12)}
+.ev-pregunta h3{font-size:1.2rem;margin:4px 0 10px}
+.ev-pregunta textarea{width:100%;font:inherit;font-size:.95rem;color:#e8f3fa;background:#0b1119;border:1px solid #24304a;border-radius:10px;padding:10px 12px;resize:vertical}
+.ev-pregunta textarea:focus{outline:2px solid var(--teal);outline-offset:1px}
+.ev-acc{display:flex;align-items:center;gap:10px;margin:10px 0 0}
+.ev-mia{color:#bfe9ef}
+.ev-marco{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;border:1px solid #24304a;background:#02060d;margin:10px 0}
+.ev-marco iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+@media (prefers-reduced-motion:reduce){.envivo-banda .ev-t::before{animation:none}}
+
+/* 17-sep · aula · la pregunta en directo: el muro de respuestas con su cara y su alias */
+.au-pq-texto{font-size:1.35rem;line-height:1.3;margin:4px 0 8px}
+.au-pq-inp{width:100%;resize:vertical;margin:6px 0 10px}
+.au-pq-muro{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin:10px 0 14px}
+.au-pq-r{position:relative;display:flex;gap:10px;align-items:flex-start;padding:10px 34px 10px 10px;border-radius:12px;border:1px solid #24304a;background:#0b1119;animation:au-pq-entra .35s ease-out both}
+@keyframes au-pq-entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.au-pq-cara{flex:0 0 44px;width:44px;height:44px;border-radius:50%;overflow:hidden;border:2px solid var(--teal);display:grid;place-items:center;font-weight:800;background:#132234}
+.au-pq-cara img{width:100%;height:100%;object-fit:cover}
+.au-pq-r b{font-size:.9rem;color:#9feaf2}
+.au-pq-r p{margin:2px 0 0;font-size:.98rem;line-height:1.4;color:#e8eefc;word-break:break-word}
+.au-pq-quitar{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:6px;border:1px solid #3a2a2a;background:transparent;color:#d9a3a3;cursor:pointer;font-size:.8rem;line-height:1}
+.au-pq-quitar:hover{background:rgba(255,107,107,.15)}
+.au-pq-viva:fullscreen{background:#070b12;padding:4vh 4vw;overflow:auto}
+.au-pq-viva:fullscreen .au-pq-texto{font-size:clamp(28px,3.4vw,54px)}
+.au-pq-viva:fullscreen .au-pq-muro{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+.au-pq-viva:fullscreen .au-pq-r p{font-size:clamp(18px,1.6vw,26px)}
+.au-vt-modo{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.au-vt-dias{width:4.2em;display:inline-block;padding:3px 6px;margin:0 4px}
+
+/* 17-sep · la sesión en directo: el botón del docente y lo del recluta que la sigue */
+.ses-directo{font:inherit;font-size:.8rem;font-weight:700;padding:5px 11px;border-radius:999px;border:1px solid #3a4a60;background:rgba(0,0,0,.35);color:#cfe0ec;cursor:pointer}
+.ses-directo.on{border-color:#ff7d7d;color:#ffd0d0;background:rgba(255,93,93,.14)}
+.ses-directo.on::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff5d5d;margin-right:6px;vertical-align:1px}
+.ses-al{position:absolute;right:14px;bottom:62px;z-index:6;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:min(420px,70%)}
+.ses-al-sigo,.ses-al-volver{font:inherit;font-size:.8rem;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid rgba(55,224,236,.4);background:rgba(4,12,20,.8);color:#bff5f9}
+.ses-al-volver{cursor:pointer;border-color:#f5b043;color:#ffe3a1}
+.ses-al-pq{background:rgba(6,14,24,.94);border:1px solid rgba(255,125,125,.5);border-radius:14px;padding:10px 12px;color:#e8f3fa;width:100%}
+.ses-al-pq b{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:#ff9f9f}
+.ses-al-pq p{margin:4px 0 8px;font-size:1rem}
+.ses-al-pq textarea{width:100%;font:inherit;font-size:.9rem;color:#e8f3fa;background:#0b1119;border:1px solid #24304a;border-radius:8px;padding:7px 9px;margin-bottom:6px}
+.ses-al-mia{color:#bfe9ef;font-size:.9rem}
+.ses-al-msg{display:block;font-size:.8rem;color:#ffc9c9}
+.vt-ops-al{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:14px 0}
+.vt-ops-al .btn{font-size:clamp(1rem,1.6vw,1.4rem)}

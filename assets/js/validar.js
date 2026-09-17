@@ -113,13 +113,15 @@
    * Geniallys y llamaba a `completeMission` directamente: se saltaba las dos reglas que la Nave ya
    * aplica y ni siquiera guardaba la evidencia. Un botón «Validar B1» registraba el reto sin enlace.
    * Ahora pide el enlace AHÍ MISMO, dentro de la presentación, cuando el reto lo exige (y lo ofrece
-   * cuando solo se recomienda), respeta los tres al día y guarda lo entregado donde lo lee el docente.
+   * cuando solo se recomienda), respeta el tope de la semana y guarda lo entregado donde lo lee el docente.
    */
   function enlaceValido(v) { return /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(v || "").trim()); }
-  function deHoy(ficha) {
-    var hoy = new Date(), n = 0, S = ficha.missionTimestamps || {};
-    hoy.setHours(0, 0, 0, 0);
+  // 17-sep · por SEMANA (de lunes a domingo), sin los que validó su docente a mano
+  function deLaSemana(ficha) {
+    var hoy = new Date(), n = 0, S = ficha.missionTimestamps || {}, otorg = ficha.stargateOtorgados || [];
+    hoy.setHours(0, 0, 0, 0); hoy.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7));
     Object.keys(S).forEach(function (k) {
+      if (otorg.indexOf(k) >= 0) return;
       if (!/^[ABXS]\d/.test(String(k).split("__").pop())) return;   // los hitos (H…) van solos
       var l = S[k], u = Array.isArray(l) ? l[l.length - 1] : l;
       if (u && new Date(u) >= hoy) n++;
@@ -202,9 +204,9 @@
     if ((g.ficha.completedMissionIds || []).indexOf(mision.id) >= 0)
       return tarjeta('<h3>Ya lo tenías</h3><p>Este reto ya estaba registrado. No pasa nada: no se ' +
         'duplica ni se cobra dos veces.</p><p><a class="btn" href="recluta.html?per=' + esc(g.id) + '">Ver mi Nave</a></p>');
-    var TOPE = Number(window.SG_TOPE_DIA || 0), EV = (window.SG_EVIDENCIA || {})[RETO] || "";
-    if (TOPE && deHoy(g.ficha) >= TOPE)
-      return fallo("Hoy ya has registrado " + TOPE + " retos. Vuelve mañana: así cada reto cuenta de verdad.");
+    var TOPE = Number(window.SG_TOPE_SEMANA || 0), EV = (window.SG_EVIDENCIA || {})[RETO] || "";
+    if (TOPE && deLaSemana(g.ficha) >= TOPE)
+      return fallo("Esta semana ya has registrado " + TOPE + " retos. El lunes tienes tres huecos más.");
     if (window.SG_SECRETO && window.SG_SECRETO.esSecreto(RETO) && !g.palabraOk) return pedirPalabra(g, m);
     var RF = (window.SG_REFLEXION || {})[RETO];
     if (!yaPedido && (EV === "obligatoria" || EV === "recomendada" || RF)) return pedirEnlace(g, m, EV === "obligatoria");

@@ -541,7 +541,7 @@ AYUDA_RETOS = {
 # 🔴 Y no se inventa: cada línea es el resumen fiel de su entrada de AYUDA_RETOS (apps-script/
 # Datos.gs). Si la tarea cambia allí, esta línea miente — y mentir aquí es peor que no decir nada,
 # porque esto es lo que se lee y lo otro lo que se abre.
-# ─── QUÉ EVIDENCIA PIDE CADA RETO, Y CUÁNTOS SE PUEDEN REGISTRAR AL DÍA (13-sep) ───────────────
+# ─── QUÉ EVIDENCIA PIDE CADA RETO, Y CUÁNTOS SE PUEDEN REGISTRAR (13-sep; por SEMANA desde el 17-sep) ─
 # Norberto: «¿qué opinas sobre poner un tope de misiones validadas al día? ¿3? … Así evitamos un
 # ansioso que hace clic en todo y llega al nivel 10 sin pestañear. Y que en determinados retos sea
 # obligatorio poner la URL… Las actividades requieren una URL del artefacto sí o sí».
@@ -549,7 +549,7 @@ AYUDA_RETOS = {
 # 🔴 Por qué hacía falta, con cifras del laboratorio: un recluta marcó 15 retos de un tirón, sin
 # evidencia, y se llevó +4.100 xp y +880 ◈ en un minuto; se lo gastó en 63 sobres y, cuando su
 # docente se lo anuló todo, conservó el álbum entero. El tope y la URL no lo hacen imposible —quien
-# quiera mentir pegará «www.culo.com»—, pero lo frenan a 3 al día y dejan RASTRO: el docente ve el
+# quiera mentir pegará «www.culo.com»—, pero lo frenan (3 por semana) y dejan RASTRO: el docente ve el
 # enlace, puede comprobarlo y, si es bueno, enseñarlo en clase.
 #
 #   obligatoria  → sin un enlace, «Lo he hecho» no registra. Las actividades (X) y todos los Reto B:
@@ -610,9 +610,11 @@ REFLEXION_RETOS = {
  "L6": {"modo": "texto", "min": 250, "titulo": "Las diez líneas",
         "pide": "Justifica un recurso tuyo según una metodología concreta: qué aporta, cuándo se usa y por qué ese. Diez líneas."},
 }
-# Tres al día: el ritmo normal es de 2 retos por semana, así que tres cubren un día de ponerse al
-# día sin dejar que nadie suba diez niveles en una tarde. Deshacer uno libera su hueco.
-TOPE_RETOS_DIA = 3
+# 🔴 17-sep · TRES POR SEMANA, no al día (Norberto, en la prueba humana: «“Como mucho, 3 retos al día”. ¡Debería ser 3 retos a
+# la semana!»). La semana, de lunes a domingo. Cuentan los que registra el propio recluta (A, B, X, S7); no los hitos (van
+# solos), ni los relámpago (se hacen en clase), ni los que valida su docente desde la ficha (`stargateOtorgados`). Deshacer
+# uno libera su hueco. Lo aplica también el servidor (gamificapro/functions/stargateTope.js), con el mismo número.
+TOPE_RETOS_SEMANA = 3
 
 # 15-sep · UN EJEMPLO POR RETO (Norberto: «es lo que más les ayuda»).
 # 17-sep · Y AHORA EN TODOS (Norberto: «me encantaría que cada reto fuera acompañado de un ejemplo: a veces una imagen,

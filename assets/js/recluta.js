@@ -1090,6 +1090,77 @@
       +'<span class="ep-txt">📜 Ver mi diploma</span></a></p></div>';
   }
 
+  // ================= EN VIVO (17-sep) =================
+  /**
+   * 🔴 17-sep · Norberto: «quizá podamos resolver estos problemas añadiendo una sección en vivo en la Nave. Ahí podría aparecer
+   * la presentación en vivo del docente, temporizadores, preguntas… ¿Cómo lo ves?». Así: cuando hay algo en directo, arriba
+   * de CUALQUIER pestaña sale un aviso con lo que hay (y la pestaña «En vivo» aparece). Se entera al momento; y si no estaba
+   * conectado, lo ve al entrar mientras siga abierto (una votación en diferido dura días).
+   *   · la sesión que proyecta su Comandante: para seguirla desde aquí, diapositiva a diapositiva;
+   *   · la pregunta en directo: se responde escribiendo, y la respuesta le aparece al docente con su alias y su cara;
+   *   · la votación (en directo o en diferido).
+   */
+  var ENV = { d:{}, mia:null, miaDe:'', enviando:false };
+  function vigilarEnVivo(){
+    if(!motorNuevo()||!per||st.paraEnVivo||SIMULACRO||enDemo()||!st.yo) return;
+    var M=window.SG&&window.SG.MOTOR; if(!M||!M.vigilarEnVivo) return;
+    st.paraEnVivo=M.vigilarEnVivo(per, function(d){
+      ENV.d=d||{};
+      var p=preguntaAbierta(), s=sesionEnDirecto();
+      // 🔴 solo se repinta si cambia lo que se VE: el docente pasando diapositivas mueve esta ficha a cada rato, y repintar
+      // la Nave recargaba la sesión incrustada y borraba lo que el recluta estuviera escribiendo
+      var firma=[p&&p.id, s?1:0, s&&s.sem].join('|');
+      if(p && ENV.miaDe!==p.id){ ENV.miaDe=p.id; ENV.mia=null; ENV.borrador='';
+        return M.miRespuesta(per, p.id, st.yo.ficha).then(function(r){ ENV.mia=r; ENV.firma=firma; render(); }, function(){ ENV.firma=firma; render(); }); }
+      if(firma!==ENV.firma){ ENV.firma=firma; render(); }
+    });
+  }
+  function preguntaAbierta(){ var p=(ENV.d||{}).pregunta; return p&&p.abierta&&p.id?p:null; }
+  // la sesión cuenta como «en directo» si su docente la movió en las últimas 3 horas (si cerró sin avisar, se apaga sola)
+  function sesionEnDirecto(){ var s=(ENV.d||{}).sesion; return s&&s.activa&&(Date.now()-Number(s.t||0))<3*3600e3?s:null; }
+  function votoPendiente(){ var v=VOTO.v; if(!v) return false; return !Object.keys(VOTO.mia||{}).some(function(k){ return VOTO.mia[k]>0; }); }
+  function hayEnVivo(){ return !!(motorNuevo()&&st.yo&&(preguntaAbierta()||sesionEnDirecto()||VOTO.v)); }
+  function avisoEnVivo(){
+    if(!hayEnVivo()||SIMULACRO||st.tab==='envivo') return '';
+    var s=sesionEnDirecto(), p=preguntaAbierta(), items=[];
+    if(p) items.push('<button type="button" class="ev-it" data-tab="envivo"><b>Pregunta en directo</b>'+(ENV.mia?' · ya has respondido':' · responde')+'</button>');
+    if(VOTO.v) items.push('<button type="button" class="ev-it" data-tab="envivo"><b>'+(VOTO.v.stargateModo==='diferido'?'Votación abierta':'Votación en directo')+'</b>'+(votoPendiente()?' · vota':' · ya has votado')+'</button>');
+    if(s) items.push('<button type="button" class="ev-it" data-tab="envivo"><b>Tu Comandante está proyectando la sesión</b> · síguela</button>');
+    return '<div class="card envivo-banda" role="status"><img class="ev-ico" src="assets/img/nave/iconos/envivo.png" alt="" width="34" height="34">'
+      +'<span class="ev-t">En vivo</span><div class="ev-items">'+items.join('')+'</div></div>';
+  }
+  function envivoVista(){
+    var s=sesionEnDirecto(), p=preguntaAbierta(), html='';
+    if(p){
+      html+='<div class="card ev-pregunta"><div class="eyebrow amber">Pregunta en directo'+(p.por?' · '+esc(p.por):'')+'</div>'
+        +'<h3>'+esc(p.texto)+'</h3>'
+        +(ENV.mia?'<p class="small ev-mia">Tu respuesta: «'+esc(ENV.mia.texto)+'». Puedes cambiarla mientras siga abierta.</p>':'')
+        +'<textarea id="ev-resp" maxlength="280" rows="3" placeholder="Escribe tu respuesta (tu Comandante la verá al momento, con tu alias)">'+esc(ENV.borrador||(ENV.mia?ENV.mia.texto:''))+'</textarea>'
+        +'<p class="ev-acc"><button type="button" class="btn primary" id="ev-enviar"'+(ENV.enviando?' disabled':'')+'>'+(ENV.mia?'Cambiar mi respuesta':'Enviar respuesta')+'</button>'
+        +'<span class="small muted" id="ev-msg"></span></p></div>';
+    }
+    if(VOTO.v) html+=votacionCaja();
+    if(s){
+      var src='sesion.html?embed=1&seguir=1&per='+encodeURIComponent(per);
+      html+='<div class="card ev-sesion"><div class="eyebrow">La sesión de la semana'+(s.sem?' · semana '+esc(s.sem):'')+(s.por?' · '+esc(s.por):'')+'</div>'
+        +'<h3>Tu Comandante está proyectando</h3><p class="small muted">Va a la misma diapositiva que en clase. Desde aquí puedes fichar, votar y responder.</p>'
+        +'<div class="ev-marco"><iframe src="'+src+'" title="La sesión en directo" allow="fullscreen" allowfullscreen loading="lazy"></iframe></div>'
+        +'<p><a class="btn min" href="'+src+'" target="_blank" rel="noopener">Abrirla en grande ↗</a></p></div>';
+    }
+    return html||'<div class="card"><p class="muted">Ahora mismo no hay nada en directo.</p></div>';
+  }
+  document.addEventListener('input', function(ev){ if(ev.target&&ev.target.id==='ev-resp') ENV.borrador=ev.target.value; });
+  document.addEventListener('click', function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('#ev-enviar'); if(!b) return;
+    var p=preguntaAbierta(), M=window.SG&&window.SG.MOTOR, ta=document.getElementById('ev-resp'), msg=document.getElementById('ev-msg');
+    if(!p||!M||!ta) return;
+    var txt=ta.value.trim(); if(!txt){ if(msg) msg.textContent='Escribe algo antes de enviar.'; return; }
+    ENV.enviando=true; b.disabled=true; if(msg) msg.textContent='Enviando…';
+    M.responderPregunta(per, p.id, st.yo.ficha, st.yo.alias||'', txt).then(function(){
+      ENV.enviando=false; ENV.mia={texto:txt}; ENV.borrador=''; render(); aviso('<b>Respuesta enviada.</b> Tu Comandante ya la ve.');
+    }, function(e){ ENV.enviando=false; b.disabled=false; if(msg) msg.textContent='No se ha podido enviar: '+(e&&e.message||e); });
+  });
+
   // ================= LA VOTACIÓN DEL AULA (16-sep) =================
   // Norberto: «cada docente puede publicar una votación para que respondan, la próxima semana se resuelve… y GamificaPro
   // tiene algo divertido: comprar voto extra». Aquí se vota; el recuento y el cobro del voto extra los hace el servidor
@@ -1101,21 +1172,32 @@
     var e=((d.escuadrones)||[]).filter(function(x){ return String(x.comandante||'')===String(yo.profe||''); })[0];
     return e ? e.id : '';
   }
+  /**
+   * 🔴 17-sep · LA VOTACIÓN, EN DIRECTO. Norberto: «cuando inicio una votación, al estudiante no le aparece nada para votar».
+   * Se miraba UNA vez al abrir la Nave: si el docente la lanzaba con la Nave ya abierta, no llegaba nunca. Ahora se escucha:
+   * aparece sola, arriba en cualquier pestaña y en «En vivo». Las de «en diferido» se cierran solas a su hora.
+   */
+  function votacionVigente(l){
+    var mi=miFaccion(), ahora=Date.now();
+    return (l||[]).filter(function(v){ return v.isActive && (!v.eligibleFactionId || v.eligibleFactionId===mi) && !(v.stargateCierra && ahora>Number(v.stargateCierra)); })[0]||null;
+  }
+  function vigilarVotacion(){
+    if(!motorNuevo()||!per||st.paraVotos||SIMULACRO||enDemo()||!st.yo) return;
+    var M=window.SG&&window.SG.MOTOR; if(!M||!M.vigilarVotaciones) return;
+    st.paraVotos=M.vigilarVotaciones(per, function(l){
+      var v=votacionVigente(l), antes=VOTO.v&&VOTO.v.id;
+      VOTO.v=v; VOTO.cargada=true;
+      // (cada voto de cualquiera cambia los totales del documento: eso NO repinta; solo que aparezca, cambie o se cierre)
+      if(!v){ VOTO.mia={}; if(antes) render(); return; }
+      if(v.id!==antes) return M.miPapeleta(per, v.id, st.yo.ficha).then(function(p){ VOTO.mia=p||{}; render(); }, function(){ render(); });
+    });
+  }
   function cargarVotacion(){
-    if(VOTO.cargada || VOTO.pidiendo || !motorNuevo() || SIMULACRO || enDemo() || !st.yo) return;
-    var M=window.SG&&window.SG.MOTOR; if(!M||!M.votaciones) return;
-    VOTO.pidiendo=true;
-    M.votaciones(per).then(function(l){
-      var mi=miFaccion();
-      VOTO.v=(l||[]).filter(function(v){ return v.isActive && (!v.eligibleFactionId || v.eligibleFactionId===mi); })[0]||null;
-      VOTO.cargada=true; VOTO.pidiendo=false;
-      if(!VOTO.v) return render();
-      return M.miPapeleta(per, VOTO.v.id, st.yo.ficha).then(function(p){ VOTO.mia=p||{}; render(); });
-    }).catch(function(){ VOTO.cargada=true; VOTO.pidiendo=false; });
+    var M=window.SG&&window.SG.MOTOR; if(!M||!VOTO.v||!st.yo) return;
+    M.miPapeleta(per, VOTO.v.id, st.yo.ficha).then(function(p){ VOTO.mia=p||{}; render(); });
   }
   function votacionCaja(){
     if(!motorNuevo()||!st.yo) return '';
-    if(!VOTO.cargada){ setTimeout(cargarVotacion, 300); return ''; }
     var v=VOTO.v; if(!v) return '';
     var dados=Object.keys(VOTO.mia).reduce(function(n,k){ return n+Number(VOTO.mia[k]||0); },0);
     var gratis=Number(v.votesPerPerson||1), extra=Number(v.costPerVote||0), tope=Number(v.maxPaidVotesPerPerson||0);
@@ -1178,8 +1260,8 @@
     if(!motorNuevo() || SIMULACRO || enDemo() || !st.yo || st.yo.congelado) return;
     var id = BT.reto || 'A6';
     if(!ganoAJoran() || ((st.yo.retos) || []).indexOf(id) >= 0) return;
-    var tope = Number(window.SG_TOPE_DIA || 0);
-    if(tope && registrosDeHoy() >= tope) return;
+    var tope = Number(window.SG_TOPE_SEMANA || 0);
+    if(tope && registrosDeLaSemana() >= tope) return;
     var antes = JSON.parse(JSON.stringify(st.yo));
     post({accion:'registrar', per:per, reto:id, evidencia:'', reflexion:''}, function(){
       aviso('🏅 <b>Reto ' + esc(id) + ' registrado</b>: le ganaste al Simulador de Joran.');
@@ -1584,7 +1666,7 @@
   // Magnific en una sola lámina para que los ocho compartan estilo (Norberto: «botones más sólidos con iconos dedicados,
   // con la estética de la narrativa»; y «evitar emojis, salvo momentos concretos»).
   var TABS=[['nave','nave','Mi nave'],['retos','retos','Mis retos'],['botin','botin','Mi botín'],
-            ['mercado','mercado','Mercado Estelar'],['zoco','zoco','El Zoco'],['rankings','rankings','Rankings']];
+            ['mercado','mercado','Mercado Estelar'],['zoco','zoco','El Zoco'],['rankings','rankings','Rankings'],['envivo','envivo','En vivo']];
   function iconoTab(k){ return '<img class="i" src="assets/img/nave/iconos/'+k+'.png" alt="" width="26" height="26" aria-hidden="true">'; }
   var TABS_VIEJAS={ficha:'nave',semana:'nave',planetas:'retos',premios:'mercado',tablero:'rankings'};
   // ================= LA NAVE POR CAPÍTULOS (13-sep) =================
@@ -1612,7 +1694,8 @@
     return capsAbiertos().some(function(c){ return (c.abre||[]).indexOf(pieza)>=0; });
   }
   function proximoCap(){ var ab=capsAbiertos(); return capsTipo().filter(function(c){ return ab.indexOf(c)<0; })[0]||null; }
-  function tabVisible(k){ return k==='nave'||k==='retos'||k==='botin'||abierto(k); }
+  // 17-sep · «En vivo» solo existe mientras hay algo en directo (una votación, una pregunta, la sesión proyectándose)
+  function tabVisible(k){ return k==='nave'||k==='retos'||k==='botin'||(k==='envivo'?hayEnVivo():abierto(k)); }
   function tabsVisibles(){ return TABS.filter(function(x){ return tabVisible(x[0]); }); }
   function tabValida(k){
     if(TABS_VIEJAS[k]) k=TABS_VIEJAS[k];
@@ -1712,6 +1795,7 @@
     if(st.tab==='botin')    return botin();
     if(st.tab==='mercado')  return recompensas();
     if(st.tab==='zoco')     return zocoVista();
+    if(st.tab==='envivo')   return envivoVista();
     return '';                                  // «rankings»: vive en su propia sección del HTML
   }
   // El tablero es una <section> aparte del HTML (la pinta tablero.js), así que se enseña y se esconde
@@ -2629,7 +2713,7 @@
     {t:'La historia, en grande',foco:'.cine',
      x:'Cada semana se desbloquean los <b>vídeos</b> de la historia. Se ven aquí, a buen tamaño, y con las semanas de arriba vuelves a los anteriores cuando quieras.'},
     {t:'Lo que puedes conseguir',foco:'.retos-semana',
-     x:'Los <b>retos de esta semana</b>, con lo que da cada uno: <b>experiencia</b>, que sube de nivel a tu personaje y nunca baja, y <b>créditos ◈</b>, que se gastan.<br><br>Pulsa uno, hazlo y márcalo con <b>«Lo he hecho»</b>. Donde hay algo que entregar te pido el <b>enlace</b>: sin él no se registra, y tu docente lo ve. Como mucho, <b>'+(Number(window.SG_TOPE_DIA)||3)+' retos al día</b>.'},
+     x:'Los <b>retos de esta semana</b>, con lo que da cada uno: <b>experiencia</b>, que sube de nivel a tu personaje y nunca baja, y <b>créditos ◈</b>, que se gastan.<br><br>Pulsa uno, hazlo y márcalo con <b>«Lo he hecho»</b>. Donde hay algo que entregar te pido el <b>enlace</b>: sin él no se registra, y tu docente lo ve. Como mucho, <b>'+(Number(window.SG_TOPE_SEMANA)||3)+' retos por semana</b>.'},
     {t:'Tus marcadores, siempre a la vista',foco:'.nb-fin',
      x:'Arriba a la derecha, tus <b>xp</b> y tus <b>créditos</b>. Estés en la pestaña que estés, los verás subir en cuanto ganes algo.'},
     {t:'Cinco sitios, y ya está',foco:'.nb-tabs',
@@ -3275,7 +3359,7 @@
 
   /**
    * 🔴 13-sep · LA EVIDENCIA Y EL TOPE DIARIO, dichos ANTES de pulsar. La regla vive en
-   * `_site_data.py` (EVIDENCIA_RETOS, TOPE_RETOS_DIA) y llega aquí como SG_EVIDENCIA / SG_TOPE_DIA:
+   * `_site_data.py` (EVIDENCIA_RETOS, TOPE_RETOS_SEMANA) y llega aquí como SG_EVIDENCIA / SG_TOPE_SEMANA:
    * el campo dice «obligatorio» donde lo es, y la Nave comprueba el enlace y el tope antes de
    * mandar nada. Lo mismo comprueba `fuente.js` en la puerta por la que salen los registros.
    */
@@ -3435,14 +3519,16 @@
   /** Uno o dos enlaces, separados por espacios (15-sep · el segundo del «+»). */
   function enlacesValidos(v){ var t=String(v||'').trim().split(/\s+/).filter(Boolean); return t.length>=1&&t.length<=2&&t.every(enlaceValido); }
   function enlacesDe(v){ return String(v||'').trim().split(/\s+/).filter(Boolean); }
-  function registrosDeHoy(){
-    var hoy=new Date(); hoy.setHours(0,0,0,0);
+  // 🔴 17-sep · por SEMANA (de lunes a domingo), no por día; y sin los que ha validado su docente a mano
+  function lunes(){ var d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)); return d; }
+  function registrosDeLaSemana(){
+    var hoy=lunes(), otorgados=(st.yo&&st.yo.otorgados)||[];
     var f=(st.yo&&st.yo.retos_fecha)||{};
     // solo los retos que registra el propio recluta (A, B, X, S): los hitos (H1…) se completan solos
     // —el de Reclutamiento, al alistarse— y contarlos le quitaba un hueco el primer día.
     // 16-sep · los relámpago (L…) tampoco cuentan, A PROPÓSITO: se hacen en clase en diez minutos, y no pueden
     // quitarle a nadie el hueco de registrar ese mismo día un reto de dos horas. (El cerrojo de fuente.js, igual.)
-    return Object.keys(f).filter(function(k){ return /^[ABXS]\d/.test(k) && new Date(f[k])>=hoy; }).length;
+    return Object.keys(f).filter(function(k){ return /^[ABXS]\d/.test(k) && otorgados.indexOf(k)<0 && new Date(f[k])>=hoy; }).length;
   }
   document.addEventListener('click', function(ev){
     var b=ev.target&&ev.target.closest&&ev.target.closest('[data-voto]'); if(!b||b.disabled) return;
@@ -3453,7 +3539,6 @@
     b.disabled=true;
     M.votar(per, v.id, b.getAttribute('data-voto'), tipo).then(function(){
       aviso(tipo==='paid'?'⚡ <b>Voto extra contado.</b> Gracias por mojarte.':'🗳️ <b>Voto contado.</b> Se resuelve en clase.');
-      VOTO.cargada=false; VOTO.mia={};
       quien(null,function(d){ if(d&&d.yo) st.yo=d.yo; cargarVotacion(); });
     }).catch(function(e){
       b.disabled=false;
@@ -3467,9 +3552,9 @@
   });
 
   function marcarReto(id, boton, alEmpezar){
-    var tope=Number(window.SG_TOPE_DIA||0);
-    if(tope && registrosDeHoy()>=tope){
-      aviso('⏳ <b>Hoy ya has registrado '+tope+' retos.</b> Vuelve mañana: así cada reto cuenta de verdad.', true);
+    var tope=Number(window.SG_TOPE_SEMANA||0);
+    if(tope && registrosDeLaSemana()>=tope){
+      aviso('<b>Esta semana ya has registrado '+tope+' retos.</b> El lunes tienes tres huecos más: así cada reto cuenta de verdad.', true);
       return;
     }
     /**
@@ -4034,7 +4119,7 @@
     // El ranking «Mi escuadrón» necesita saber quién eres. En el tablero proyectado no hay nadie, y
     // por eso ese modo no aparece allí: no se esconde por seguridad, es que no significa nada.
     try{ window.SG_YO_ALIAS = st.yo ? st.yo.alias : ''; }catch(e){}
-    if(st.yo){ vigilarLlamada(); vigilarMensajes(); }
+    if(st.yo){ vigilarLlamada(); vigilarMensajes(); vigilarVotacion(); vigilarEnVivo(); }
     /**
      * 🔴 LA DEMO TIENE SALIDA. Es la página del escaparate —la enlaza el botón DEMO de la portada—, y
      * una demo que no dice cómo se entra de verdad deja al visitante mirando algo que no puede usar.
@@ -4050,7 +4135,7 @@
         + '<a class="btn ghost" href="index.html">Volver a la presentación</a></p></div>'
       : '';
     root.innerHTML = avisoDemo + (dentro
-      ? barraSimulacro()+login()+pestanas()+avisoCongelado()+avisoMensajes()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
+      ? barraSimulacro()+login()+pestanas()+avisoCongelado()+avisoMensajes()+avisoEnVivo()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
         +'<div id="nave-panel" role="tabpanel" aria-labelledby="nb-t-'+st.tab+'">'+contenido()+'</div>'
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
     verTablero(dentro && st.tab==='rankings');

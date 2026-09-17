@@ -97,7 +97,7 @@ c(/reto\.matches\('\^\(\[AB\]\[1-8\]\|L\[1-8\]\)\$'\)/.test(REGLAS),
 c(/\(\/\^L\\d\/\.test\(mi\.id\) \? " rel" : ""\)/.test(leer("assets/js/consola.js")),
   "🔴 en la ficha del docente, los relámpago salen entre sus retos (con su borde) y se pulsan como los demás");
 c(/\/\^\(\?:\[ABXSL\]\\d\|XS\$\)\/\.test\(k\)/.test(N), "   y la cifra de retos de la Nave los cuenta");
-c(/los relámpago \(L…\) tampoco cuentan, A PROPÓSITO/.test(N), "   (el tope de tres al día no los cuenta, a propósito: se hacen en clase)");
+c(/los relámpago \(L…\) tampoco cuentan, A PROPÓSITO/.test(N), "   (el tope de tres por semana no los cuenta, a propósito: se hacen en clase)");
 const DIP = leer("assets/js/diploma.js");
 c(/MISIONES\.filter\(function \(m\) \{ return m\.stargateId !== "H1"; \}\)/.test(DIP) && /CAMPANAS\.forEach/.test(DIP) && !/p\.earnedBadges \|\| \[\]\)\.length/.test(DIP),
   "🔴 el diploma cuenta retos e insignias como el tablero (de las misiones y campañas del grupo), no de earnedBadges");

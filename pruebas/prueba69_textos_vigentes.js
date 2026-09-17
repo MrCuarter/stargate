@@ -55,7 +55,7 @@ c(/__CRED_A__/.test(tour) === false, "   y las cifras de créditos salen del cat
 const R = leer("assets/js/recluta.js");
 const acto = R.slice(R.indexOf("var PASOS=["), R.indexOf("// Un solo motor"));
 c(!/correo/i.test(acto), "🔴 la bienvenida de NEBULA (motor nuevo) no pide ningún correo");
-c(/foco:'\.cine'/.test(acto) && /SG_TOPE_DIA/.test(acto) && /enlace/.test(acto),
+c(/foco:'\.cine'/.test(acto) && /SG_TOPE_SEMANA/.test(acto) && /enlace/.test(acto),
   "   y cuenta lo de hoy: los vídeos, el tope diario y el enlace obligatorio");
 // el enlace del tablero de los mensajes del foro no puede llevar al alumnado a la puerta del profesorado
 const D = leer("_site_data.py");

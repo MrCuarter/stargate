@@ -480,9 +480,11 @@ async function otorgarReto(perId, fichaId, retoId) {
   const insignias = (d.earnedBadges || []).slice();
   const badge = m.data().badge;
   if (badge && insignias.indexOf(badge) < 0) insignias.push(badge);
+  // 17-sep · validado a mano por su docente: queda apuntado para que NO le quite hueco del tope de la semana
+  const otorgados = (d.stargateOtorgados || []).filter(x => x !== m.id).concat([m.id]);
   await updateDoc(doc(db, "student_profiles", fichaId), {
     completedMissionIds: (d.completedMissionIds || []).concat([m.id]),
-    missionTimestamps: sellos, earnedBadges: insignias
+    missionTimestamps: sellos, earnedBadges: insignias, stargateOtorgados: otorgados
   });
 }
 
@@ -1126,6 +1128,10 @@ async function crearVotacion(perId, v) {
     // 🔴 si la pone para SU escuadrón, el motor no deja votar a los demás (eligibleFactionId)
     eligibleFactionId: v.escuadron || "",
     factionVoteTotals: {},
+    // 17-sep · en DIRECTO (se vota en clase, hasta que el docente la cierra) o en DIFERIDO (abierta unos días; cada cual vota
+    // cuando entra, y se cierra sola a su hora)
+    stargateModo: v.modo === "diferido" ? "diferido" : "directo",
+    stargateCierra: v.modo === "diferido" ? Date.now() + Math.max(1, Math.min(14, Number(v.dias) || 3)) * 864e5 : null,
     creado: Date.now(), stargateSemana: Number(v.semana) || null,
     stargateResuelve: Number(v.resuelve) || null, stargateProfe: String(v.profe || ""),
     creadoPor: yo ? yo.uid : null,
@@ -1136,6 +1142,60 @@ const cerrarVotacion = (perId, id) => updateDoc(doc(db, "projects", perId, "voti
 const borrarVotacion = (perId, id) => deleteDoc(doc(db, "projects", perId, "voting_events", id));
 /** Votar: gratis o pagando el voto extra. Lo cobra y lo cuenta el servidor. */
 const votar = (perId, id, opcionId, tipo) => llamar("castVote", { projectId: perId, eventId: id, optionId: opcionId, voteType: tipo || "free" });
+
+/**
+ * 🔴 17-sep · LO EN VIVO. Norberto, en la prueba humana: «cuando inicio una votación, al estudiante no le aparece nada para
+ * votar… Quizá podamos resolver estos problemas añadiendo una sección en vivo en la Nave: la presentación en vivo del
+ * docente, temporizadores, preguntas… Siempre que haya una votación activa debe aparecer en Mi nave de forma automática.
+ * Deberíamos distinguir entre votaciones en diferido o directo». Y: «además de votación me gustaría lanzar una pregunta en
+ * directo; las respuestas van apareciendo en tiempo real, con su alias y avatar»; «si el docente pasa de diapo, al
+ * estudiante le pasa también». Todo en tiempo real (onSnapshot), como la llamada a filas.
+ *
+ * - Las votaciones activas del grupo: se escuchan (antes se miraban UNA vez al abrir la Nave).
+ * - `stargate_envivo/{grupo}`: una ficha por grupo que escribe el profesorado — la sesión que proyecta (semana y
+ *   diapositiva) y la pregunta en directo abierta. La leen todos los del grupo.
+ * - `stargate_respuestas/{grupo}__{pregunta}__{ficha}`: la respuesta de cada recluta (una por pregunta, la puede
+ *   cambiar mientras está abierta), con su alias. Las reglas comprueban que la ficha es suya y la pregunta, abierta.
+ */
+function vigilarVotaciones(perId, alCambiar) {
+  return onSnapshot(query(refVotaciones(perId), where("isActive", "==", true)),
+    r => alCambiar(r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => Number(b.creado || 0) - Number(a.creado || 0))),
+    () => alCambiar([]));
+}
+const ENVIVO = "stargate_envivo", RESPUESTAS = "stargate_respuestas";
+function vigilarEnVivo(perId, alCambiar) {
+  return onSnapshot(doc(db, ENVIVO, perId), s => alCambiar(s.exists() ? s.data() : {}), () => alCambiar({}));
+}
+async function publicarEnVivo(perId, cambios) {
+  await setDoc(doc(db, ENVIVO, perId), Object.assign({ projectId: perId, actualizado: Date.now() }, cambios), { merge: true });
+}
+async function lanzarPregunta(perId, texto, por) {
+  const t = String(texto || "").trim().slice(0, 300);
+  if (!t) throw new Error("Escribe la pregunta.");
+  const id = "p" + azar(10);
+  await publicarEnVivo(perId, { pregunta: { id, texto: t, abierta: true, t: Date.now(), por: String(por || "").slice(0, 80) } });
+  return id;
+}
+async function cerrarPregunta(perId) { await updateDoc(doc(db, ENVIVO, perId), { "pregunta.abierta": false, actualizado: Date.now() }); }
+async function responderPregunta(perId, preguntaId, fichaId, alias, texto) {
+  const u = auth.currentUser;
+  if (!u) throw new Error("Entra con tu cuenta para responder.");
+  const t = String(texto || "").trim().slice(0, 280);
+  if (!t) throw new Error("Escribe tu respuesta.");
+  await setDoc(doc(db, RESPUESTAS, perId + "__" + preguntaId + "__" + fichaId),
+    { projectId: perId, pregunta: preguntaId, fichaId, uid: u.uid, alias: String(alias || ""), texto: t, creado: Date.now() });
+}
+function vigilarRespuestas(perId, preguntaId, alCambiar) {
+  return onSnapshot(query(collection(db, RESPUESTAS), where("projectId", "==", perId), where("pregunta", "==", preguntaId)),
+    r => alCambiar(r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.creado || 0) - (b.creado || 0))),
+    () => alCambiar([]));
+}
+async function quitarRespuesta(id) { await deleteDoc(doc(db, RESPUESTAS, id)); }
+async function miRespuesta(perId, preguntaId, fichaId) {
+  if (!fichaId || !preguntaId) return null;
+  try { const d = await getDoc(doc(db, RESPUESTAS, perId + "__" + preguntaId + "__" + fichaId)); return d.exists() ? d.data() : null; }
+  catch (e) { return null; }
+}
 /** Lo que ya ha votado esta persona en esa votación (papeleta por ficha). */
 async function miPapeleta(perId, id, fichaId) {
   if (!fichaId) return {};
@@ -2015,6 +2075,7 @@ window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER
                     guardarReflexion, enlaceDeReflexion, reflexionesDe, misReflexiones, comentariosDe, comentar, borrarComentario,
                     borrarReflexion, idReflexion, hitos, batalla,
                     votaciones, crearVotacion, cerrarVotacion, borrarVotacion, votar, miPapeleta,
+                    vigilarVotaciones, vigilarEnVivo, publicarEnVivo, lanzarPregunta, cerrarPregunta, responderPregunta, vigilarRespuestas, quitarRespuesta, miRespuesta,
                     referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
                     profes, anotarConexion, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };

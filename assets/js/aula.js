@@ -116,7 +116,7 @@
 
   // ---------------------------------------------------------------- pestañas
   var TABS = [["clase", "🔔", "La clase"], ["gente", "👏", "Mi gente"], ["ranking", "🏆", "Ranking"],
-              ["premios", "🎁", "Premiar"], ["tiempo", "⏱️", "Tiempo"], ["voto", "🗳️", "Votación"]];
+              ["premios", "🎁", "Premiar"], ["tiempo", "⏱️", "Tiempo"], ["voto", "🗳️", "Votación"], ["pregunta", "💬", "Pregunta"]];
   /**
    * 🔴 Con más de un grupo hace falta poder cambiar. Un docente del máster puede llevar hasta seis,
    * y sin selector el aula enseñaba siempre el primero que devolviera el servidor — sin decirlo,
@@ -508,7 +508,22 @@
       + (c.pagados ? ' <em title="votos extra pagados">(+' + c.pagados + ' ◈)</em>' : '') + '</span></div>'
       + '<div class="au-vt-barra"><i style="width:' + pct + '%"></i></div></li>';
   }
+  // 17-sep · los votos llegan en directo (antes había que recargar para ver cuántos iban)
+  function vigilarVotosAula() {
+    if (!MOTOR.vigilarVotaciones || VOT.vigila === PER) return;
+    if (VOT.parar) VOT.parar();
+    VOT.vigila = PER;
+    VOT.parar = MOTOR.vigilarVotaciones(PER, function (activas) {
+      if (VOT.lista === null) return;
+      var ids = activas.map(function (v) { return v.id; });
+      VOT.lista = activas.concat(VOT.lista.filter(function (v) { return !v.isActive && ids.indexOf(v.id) < 0; }));
+      var hayViva = activas.length > 0;
+      if (TAB === "voto" && (hayViva || VOT.habiaViva)) render();
+      VOT.habiaViva = hayViva;
+    });
+  }
   function vistaVoto() {
+    vigilarVotosAula();
     if (VOT.lista === null) { cargarVotaciones(); return '<div class="au-caja"><p class="ll-esperando">Cargando las votaciones…</p></div>'; }
     var mias = VOT.lista, viva = mias.filter(function (v) { return v.isActive; })[0] || null;
     var cerradas = mias.filter(function (v) { return !v.isActive; }).slice(0, 3);
@@ -518,14 +533,16 @@
     if (VOT.error) html += '<p class="au-nota malo">No he podido leer las votaciones: ' + esc(VOT.error) + '</p>';
     if (viva) {
       var total = votosDe(viva);
-      html += '<div class="au-tarjeta au-vt-viva"><div class="eyebrow amber">Votación abierta'
+      html += '<div class="au-tarjeta au-vt-viva"><div class="eyebrow amber">' + (viva.stargateModo === "diferido"
+          ? 'Votación en diferido' + (viva.stargateCierra ? ' · se cierra el ' + esc(new Date(Number(viva.stargateCierra)).toLocaleDateString("es-ES", { day: "numeric", month: "short" })) : '')
+          : 'Votación en directo')
         + (viva.eligibleFactionId ? ' · solo ' + esc(nombreEscuadron(viva.eligibleFactionId)) : ' · todo el grupo') + '</div>'
         + '<h3>' + esc(viva.title) + '</h3>'
         + '<ul class="au-vt-lista">' + (viva.options || []).map(function (o) { return barraVoto(viva, o, total); }).join("") + '</ul>'
         + '<p class="small muted">' + total + (total === 1 ? ' voto' : ' votos')
         + (Number(viva.costPerVote || 0) ? ' · voto extra a ' + viva.costPerVote + ' ◈ (hasta ' + (viva.maxPaidVotesPerPerson || 0) + ' por persona)' : ' · sin voto extra')
         + (viva.stargateResuelve ? ' · se resuelve en la semana ' + viva.stargateResuelve : '') + '</p>'
-        + '<p class="small muted">Tu alumnado la ve en su Nave nada más entrar. Se cierra cuando tú quieras.</p>'
+        + '<p class="small muted">Le aparece al momento en su Nave (arriba, en cualquier pestaña) y en la sesión. Los votos llegan aquí en directo. Se cierra cuando tú quieras.</p>'
         + '<div class="au-vt-botones"><button class="btn primary" id="au-vt-cerrar">Cerrar y resolver</button>'
         + '<button class="btn min" id="au-vt-borrar">Borrar</button></div></div>';
     } else {
@@ -541,6 +558,11 @@
         + '<div class="au-vt-ajustes">'
         + '<label class="au-check"><input type="checkbox" id="au-vt-extra" checked> Dejar <b>comprar voto extra</b> por ' + (CFGV.voto_extra || 15) + ' ◈ (hasta ' + (CFGV.max_extra || 2) + ')</label>'
         + (esc7 ? '<label class="au-check"><input type="checkbox" id="au-vt-mio" checked> Solo para <b>' + esc(esc7.nombre) + '</b> (tu escuadrón)</label>' : '')
+        // 17-sep · Norberto: «deberíamos distinguir entre votaciones en diferido o directo»
+        + '<div class="au-vt-modo" role="radiogroup" aria-label="Cuándo se vota">'
+        +   '<label class="au-check"><input type="radio" name="au-vt-modo" value="directo" checked> <b>En directo</b>: se vota ahora, en clase (les salta en su Nave y en la sesión)</label>'
+        +   '<label class="au-check"><input type="radio" name="au-vt-modo" value="diferido"> <b>En diferido</b>: abierta <input type="number" id="au-vt-dias" class="au-inp au-vt-dias" min="1" max="14" value="3"> días; cada cual vota cuando entra</label>'
+        + '</div>'
         + '</div>'
         + '<p class="small muted">Se resolverá en la <b>semana ' + (sem + 1) + '</b>.</p>'
         + '<button class="btn primary" id="au-vt-crear">🗳️ Publicar la votación</button>'
@@ -598,17 +620,106 @@
         extra: extra ? (CFGV.voto_extra || 15) : 0, maxExtra: extra ? (CFGV.max_extra || 2) : 0,
         escuadron: (mio && mio.checked && esc7) ? esc7.id : "",
         semana: (D && D.semana) || null, resuelve: ((D && D.semana) || 0) + 1, profe: nombreDocente(),
+        modo: ((app.querySelector('input[name="au-vt-modo"]:checked') || {}).value) || "directo",
+        dias: Number((document.getElementById("au-vt-dias") || {}).value) || 3,
       }).then(function () { cargarVotaciones(true); })
         .catch(function (e) { crear.disabled = false; msg.textContent = "No he podido publicarla: " + e.message; msg.className = "ll-pie malo"; });
     };
   }
 
   // ---------------------------------------------------------------- pintar
+  // ---------------------------------------------------------------- 7 · la pregunta en directo
+  /**
+   * 🔴 17-sep · Norberto: «además de votación me gustaría lanzar pregunta en directo. Los estudiantes pueden responder
+   * escribiendo directamente. Las respuestas van apareciendo en tiempo real mientras cada estudiante contesta. Aparece su
+   * alias y avatar junto con la respuesta». Se lanza aquí; a cada recluta le salta en su Nave (y en la sesión); su respuesta
+   * cae en este muro al momento. «Proyectar» lo pone a pantalla completa. Se puede quitar una respuesta que no deba verse.
+   */
+  var PQ = { d: {}, resp: [], de: "", parar: null, pararEnv: null };
+  function preguntaDelGrupo() { return (PQ.d || {}).pregunta || null; }
+  function vigilarPregunta() {
+    if (!MOTOR.vigilarEnVivo || PQ.pararEnv === PER) return;
+    if (PQ.pararFn) PQ.pararFn();
+    PQ.pararEnv = PER;
+    PQ.pararFn = MOTOR.vigilarEnVivo(PER, function (d) {
+      PQ.d = d || {};
+      var p = preguntaDelGrupo();
+      if (p && p.id !== PQ.de) {
+        PQ.de = p.id; PQ.resp = [];
+        if (PQ.parar) PQ.parar();
+        PQ.parar = MOTOR.vigilarRespuestas(PER, p.id, function (l) { PQ.resp = l; pintarMuro(); });
+      }
+      var firma = p ? p.id + (p.abierta ? "+" : "-") : "";
+      if (TAB === "pregunta" && firma !== PQ.firma) render();   // (la sesión que proyecta también mueve esta ficha: eso no repinta)
+      PQ.firma = firma;
+    });
+  }
+  function muroHtml() {
+    var p = preguntaDelGrupo(); if (!p) return "";
+    var porFicha = {}; (D && D.reclutas || []).forEach(function (x) { if (x.ficha) porFicha[x.ficha] = x; });
+    return PQ.resp.length ? PQ.resp.map(function (r) {
+      var x = porFicha[r.fichaId] || { alias: r.alias }, c = caraDe(x);
+      return '<div class="au-pq-r"><span class="au-pq-cara">' + (c ? '<img src="' + esc(c) + '" alt="" loading="lazy">' : esc((r.alias || "?").charAt(0))) + '</span>'
+        + '<div><b>' + esc(r.alias || x.alias || "") + '</b><p>' + esc(r.texto) + '</p></div>'
+        + '<button type="button" class="au-pq-quitar" data-pq-quitar="' + esc(r.id) + '" title="Quitar esta respuesta">✕</button></div>';
+    }).join("") : '<p class="ll-esperando">Esperando respuestas…</p>';
+  }
+  function pintarMuro() {
+    var m = document.getElementById("au-pq-muro"), n = document.getElementById("au-pq-n");
+    if (m) m.innerHTML = muroHtml();
+    if (n) n.textContent = PQ.resp.length + (PQ.resp.length === 1 ? " respuesta" : " respuestas");
+  }
+  function vistaPregunta() {
+    vigilarPregunta();
+    var p = preguntaDelGrupo(), abierta = p && p.abierta;
+    var html = '<div class="au-caja">';
+    if (abierta) {
+      html += '<div class="au-tarjeta au-pq-viva" id="au-pq-viva"><div class="eyebrow amber">Pregunta en directo' + (p.por ? ' · ' + esc(p.por) : '') + '</div>'
+        + '<h3 class="au-pq-texto">' + esc(p.texto) + '</h3>'
+        + '<p class="small muted"><b id="au-pq-n">' + PQ.resp.length + (PQ.resp.length === 1 ? " respuesta" : " respuestas") + '</b> · les salta en su Nave y en la sesión; aquí aparecen al momento, con su alias y su cara.</p>'
+        + '<div class="au-pq-muro" id="au-pq-muro">' + muroHtml() + '</div>'
+        + '<div class="au-vt-botones"><button class="btn primary" id="au-pq-cerrar">Cerrar la pregunta</button>'
+        + '<button class="btn min" id="au-pq-proyectar">⛶ Proyectar</button></div></div>';
+    } else {
+      html += '<div class="au-tarjeta"><div class="eyebrow verde">Pregunta en directo</div>'
+        + '<h3>Lanza una pregunta a tu clase</h3>'
+        + '<p class="small muted">Contestan escribiendo, desde su Nave o desde la sesión, y ves sus respuestas aparecer aquí en tiempo real. Ejemplo: «¿Qué es lo que más os ha costado de la actividad?»</p>'
+        + '<textarea id="au-pq-inp" class="au-inp au-pq-inp" maxlength="300" rows="3" placeholder="Escribe la pregunta"></textarea>'
+        + '<button class="btn primary" id="au-pq-lanzar">Lanzar la pregunta</button><p class="ll-pie" id="au-pq-msg"></p></div>';
+      if (p && PQ.resp.length) html += '<div class="au-tarjeta"><div class="eyebrow">La última (cerrada)</div><h3>' + esc(p.texto) + '</h3>'
+        + '<div class="au-pq-muro" id="au-pq-muro">' + muroHtml() + '</div></div>';
+    }
+    return html + '</div>';
+  }
+  function cablearPregunta() {
+    var lanzar = document.getElementById("au-pq-lanzar");
+    if (lanzar) lanzar.onclick = function () {
+      var txt = (document.getElementById("au-pq-inp").value || "").trim(), msg = document.getElementById("au-pq-msg");
+      if (txt.length < 3) { msg.textContent = "Escribe la pregunta."; msg.className = "ll-pie malo"; return; }
+      lanzar.disabled = true; msg.className = "ll-pie"; msg.textContent = "Lanzando…";
+      MOTOR.lanzarPregunta(PER, txt, nombreDocente()).catch(function (e) {
+        lanzar.disabled = false; msg.textContent = "No he podido lanzarla: " + e.message; msg.className = "ll-pie malo"; });
+    };
+    var cerrar = document.getElementById("au-pq-cerrar");
+    if (cerrar) cerrar.onclick = function () {
+      cerrar.disabled = true;
+      MOTOR.cerrarPregunta(PER).catch(function (e) { cerrar.disabled = false; window.SG.avisar("No he podido cerrarla", e.message, true); });
+    };
+    var proy = document.getElementById("au-pq-proyectar");
+    if (proy) proy.onclick = function () { var el = document.getElementById("au-pq-viva"); if (el && el.requestFullscreen) el.requestFullscreen().catch(function () {}); };
+  }
+  // (delegado: el muro se repinta solo con cada respuesta y los botones se renuevan)
+  document.addEventListener("click", async function (ev) {
+    var b = ev.target && ev.target.closest && ev.target.closest("[data-pq-quitar]"); if (!b) return;
+    if (!(await window.SG.preguntar({ titulo: "¿Quitar esta respuesta?", texto: "Deja de verse aquí y en la proyección.", si: "Quitarla", peligro: true }))) return;
+    MOTOR.quitarRespuesta(b.getAttribute("data-pq-quitar")).catch(function (e) { window.SG.avisar("No he podido quitarla", e.message, true); });
+  });
+
   function render() {
     pinta(barra() + '<div class="au-cuerpo">'
       + (TAB === "clase" ? vistaClase() : TAB === "gente" ? vistaGente()
         : TAB === "ranking" ? vistaRanking() : TAB === "tiempo" ? vistaTiempo()
-        : TAB === "voto" ? vistaVoto() : vistaPremios()) + "</div>");
+        : TAB === "voto" ? vistaVoto() : TAB === "pregunta" ? vistaPregunta() : vistaPremios()) + "</div>");
     Array.prototype.forEach.call(app.querySelectorAll("[data-au]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-au"); render(); };
     });
@@ -627,6 +738,7 @@
     if (TAB === "premios") cablearPremios();
     if (TAB === "tiempo") cablearTiempo();
     if (TAB === "voto") cablearVoto();
+    if (TAB === "pregunta") cablearPregunta();
     if (SESION) pintaPresentes();
   }
 

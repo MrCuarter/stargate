@@ -48,6 +48,19 @@
   var TRAMO = /^(apertura|ap)$/.test(q.get('tramo') || '') ? 'ap'
             : /^(cierre|ci)$/.test(q.get('tramo') || '') ? 'ci' : '';
   var st={per:q.get('per')||'', d:null, sem:0, i:0, f:0, slides:[], tipo:'REGULAR', nombre:'', inicio:'', aviso:'', miNombre:'', fuera:null};
+  /**
+   * 🔴 17-sep · LA SESIÓN, SINCRONIZADA. Norberto: «si un estudiante abre ese embed o tiene ese enlace, que detecte que es un
+   * estudiante y le deje visualizarlo. ¿Sería posible que, si se detecta docente de un grupo y estudiante de un grupo a la vez,
+   * los estudiantes sigan el ritmo del docente? Si el docente pasa de diapo, al estudiante le pasa también. Esto permitiría
+   * que los estudiantes pudieran fichar directamente sobre la presentación, lanzar votaciones, preguntas o repartir premios».
+   *   · El DOCENTE que proyecta (en su Genially, o con «Proyectar» / pantalla completa) emite en qué diapositiva está:
+   *     `stargate_envivo/{grupo}.sesion` (semana, clave de la diapositiva y cuál de ellas). Un botón «En directo» lo apaga.
+   *   · El RECLUTA que la abre (el mismo embed del Genially, o desde «En vivo» de su Nave, `?seguir=1`) la ve en modo
+   *     alumno: va a la misma diapositiva, ficha en la llamada a filas, vota en la votación y responde la pregunta en
+   *     directo ahí mismo. Si se mueve por su cuenta, deja de seguir hasta que pulsa «Volver al ritmo».
+   */
+  var SEGUIR = q.get('seguir') === '1';
+  var DIRECTO = { on:false, t:null, ultimo:'' }, SEG = { on:true, d:{}, parar:null, mia:null, miaDe:'' };
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function cargando(t,p){return '<div class="cargando"><div class="txt">'+t+'</div><div class="barra"><i></i></div>'+(p?'<div class="pista">'+p+'</div>':'')+'</div>';}
@@ -241,6 +254,27 @@
 
   // ── 2 · la llamada a filas, con la gente entrando en directo
   var MINUTOS=[10, 30, 60, 120];
+  // 17-sep · el recluta ficha AQUÍ, sobre la presentación (Norberto: «que los estudiantes pudieran fichar directamente sobre la presentación»)
+  function llamadaAlumno(M, mando){
+    if(!M||!M.llamadaAbierta||!M.ficharLlamada||!st.ficha){ mando.innerHTML='<p class="sub">Ficha desde tu Nave.</p>'; return null; }
+    var vivo=true, hecho=false;
+    var mira=function(){
+      if(!vivo||hecho) return;
+      M.llamadaAbierta(st.per).then(function(s){
+        if(!vivo||hecho) return;
+        if(!s){ mando.innerHTML='<p class="sub">Tu Comandante aún no ha tocado la llamada.</p>'; return; }
+        if(mando.querySelector('#ses-al-presente')) return;
+        mando.innerHTML='<button type="button" class="btn primary grande" id="ses-al-presente">Presente</button><p class="ses-err" id="ses-al-err"></p>';
+        mando.querySelector('#ses-al-presente').onclick=function(e){
+          var b=e.currentTarget; b.disabled=true; b.textContent='Fichando…';
+          M.ficharLlamada(st.per, st.ficha).then(function(){ hecho=true; mando.innerHTML='<p class="sub"><b>Presente.</b> Ya estás en la lista de hoy.</p>'; })
+            .catch(function(err){ b.disabled=false; b.textContent='Presente'; mando.querySelector('#ses-al-err').textContent=String(err&&err.message||err); });
+        };
+      }).catch(function(){});
+    };
+    mira(); var iv=setInterval(mira, 5000);
+    return function(){ vivo=false; clearInterval(iv); };
+  }
   function diaLlamada(){
     return {k:'llamada', rot:'Llamada a filas', html:
       '<div class="dia llamada"><img class="ll-cap" src="assets/img/capitan/senala.png" alt="">'
@@ -251,6 +285,7 @@
   }
   function montarLlamada(el){
     var M=window.SG&&window.SG.MOTOR, mando=el.querySelector('#ses-ll'), caja=el.querySelector('#ses-ll-gente');
+    if(st.alumno) return llamadaAlumno(M, mando);
     if(!M||!M.llamadaAbierta||!st.per){ mando.innerHTML='<p class="sub">Ábrela desde tu Genially o desde Mis grupos.</p>'; return null; }
     var reloj=null, vivo=true, vistos={};
     var cerrada=function(){
@@ -515,11 +550,25 @@
                 :'<h2>'+esc(abierta.title)+'</h2>')
       +(abierta?'<div class="vt-abierta"><div class="eyebrow amber">'+(resuelta?'Y ahora, la siguiente':'Votad desde vuestra Nave')+'</div>'
          +(resuelta?'<h3>'+esc(abierta.title)+'</h3>':'')
-         +'<ul class="vt-ops">'+(abierta.options||[]).map(function(o){ return '<li>'+esc(o.title)+'</li>'; }).join('')+'</ul>'
+         +(st.alumno
+            ? '<div class="vt-ops vt-ops-al">'+(abierta.options||[]).map(function(o){ return '<button type="button" class="btn" data-ses-voto="'+esc(o.id)+'" data-ses-vev="'+esc(abierta.id)+'">'+esc(o.title)+'</button>'; }).join('')+'</div><p class="ses-err" id="ses-voto-msg"></p>'
+            : '<ul class="vt-ops">'+(abierta.options||[]).map(function(o){ return '<li>'+esc(o.title)+'</li>'; }).join('')+'</ul>')
          +'<p class="ses-sub">Entrad en vuestra Nave y votad: se resuelve'+(abierta.stargateResuelve?' en la semana '+abierta.stargateResuelve:' la semana que viene')
          +(Number(abierta.costPerVote||0)?'. Y quien lo tenga claro puede comprar un voto extra por '+abierta.costPerVote+' ◈':'')+'.</p></div>':'')
       +'</div>'};
   }
+  document.addEventListener('click', function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('[data-ses-voto]'); if(!b||!st.alumno) return;
+    var M=window.SG&&window.SG.MOTOR, msg=document.getElementById('ses-voto-msg'); if(!M||!M.votar) return;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-ses-voto]'), function(x){ x.disabled=true; });
+    M.votar(st.per, b.getAttribute('data-ses-vev'), b.getAttribute('data-ses-voto'), 'free').then(function(){
+      b.classList.add('primary'); if(msg) msg.textContent='Voto contado. Gracias.';
+    }, function(e){
+      Array.prototype.forEach.call(document.querySelectorAll('[data-ses-voto]'), function(x){ x.disabled=false; });
+      var m=String((e&&e.message)||e);
+      if(msg) msg.textContent=/NO_FREE_VOTES_LEFT/.test(m)?'Ya has votado.':/FACTION_NOT_ELIGIBLE/.test(m)?'Esta votación es de otro escuadrón.':'No se ha podido votar: '+m;
+    });
+  });
   function nombreDeFaccion(id){
     var e=(((st.d||{}).escuadrones)||[]).filter(function(x){ return x.id===id; })[0];
     return e?String(e.comandante||''):'';
@@ -960,9 +1009,9 @@
     }
     if(!medio.length) medio.push(diaPuente(TRAMO==='ap'));
 
-    if(TRAMO==='ap') return d.concat([diaPuente(true)]);
-    if(TRAMO==='ci') return ci;
-    return d.concat(medio, ci);
+    var todo = TRAMO==='ap' ? d.concat([diaPuente(true)]) : TRAMO==='ci' ? ci : d.concat(medio, ci);
+    // (el recluta no «enseña la Nave simulada»: es la del docente)
+    return st.alumno ? todo.filter(function(x){ return x.k!=='simulacro'; }) : todo;
   }
 
   /**
@@ -1017,6 +1066,7 @@
     var fs=enPantalla();
     return '<div class="ses-ctl">'
       +(!EMBED?'<button type="button" class="ses-ic" data-ses-ventana title="Abrir la sesión en una ventana aparte, solo con la presentación" aria-label="Abrir en una ventana aparte">'+IC_VENTANA+'</button>':'')
+      +(!st.alumno&&st.per&&st.yo?'<button type="button" class="ses-directo'+(DIRECTO.on?' on':'')+'" id="ses-directo">'+(DIRECTO.on?'En directo':'Emitir en directo')+'</button>':'')
       +'<button type="button" class="ses-ic" id="ses-pantalla" title="'+(fs?'Salir de pantalla completa (F)':'Pantalla completa (F)')+'" aria-label="'+(fs?'Salir de pantalla completa':'Pantalla completa')+'">'+(fs?IC_SALIR:IC_PANTALLA)+'</button>'
       +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div></div>';
   }
@@ -1033,6 +1083,7 @@
     if(document.fullscreenElement||document.webkitFullscreenElement){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); return; }
     // pantalla completa sobre el MAZO (la tira de preparación queda fuera). Si el navegador no deja —dentro de un
     // Genially que no la permite—, el mazo ocupa todo lo que tiene.
+    encenderDirecto();   // 17-sep · quien proyecta, emite (sus reclutas lo siguen desde la Nave)
     var falla=function(){ document.body.classList.add('proyectando'); marcarPantalla(); };
     var pide=mazo.requestFullscreen||mazo.webkitRequestFullscreen;
     if(!pide) falla();
@@ -1116,6 +1167,10 @@
     wire();
     montar();
     marcarTramo();
+    // 17-sep · en directo: el docente que proyecta dentro de su Genially emite solo; el recluta, sigue
+    var bd=root.querySelector('#ses-directo'); if(bd) bd.onclick=function(){ DIRECTO.on?apagarDirecto():encenderDirecto(); };
+    if(EMBED && !st.alumno && st.per && st.yo) encenderDirecto(); else emitir();
+    if(st.alumno){ seguirDocente(); SEG.dibujado=''; pintarSeguir(); }
   }
   /**
    * Cada diapositiva puede traer `montar(lienzo)` (la llamada a filas en directo, el ticket que se
@@ -1143,9 +1198,10 @@
     ir(st.i-1, true);
   }
 
-  function ir(i, hacia_atras){
+  function ir(i, hacia_atras, desdeDirecto){
     var n=st.slides.length;
     if(i<0||i>=n) return;
+    if(st.alumno && !desdeDirecto && i!==st.i && SEG.on && (SEG.d.sesion||{}).activa){ SEG.on=false; pintarSeguir(); }
     st.i=i;
     // al volver atrás a un podio, se ve entero; al llegar de frente, se destapa de uno en uno
     st.f=hacia_atras&&st.slides[i].frag?st.slides[i].frag:0;
@@ -1163,6 +1219,86 @@
       var c=root.querySelector('.cuenta'); if(c) c.textContent=(i+1)+' / '+n;
       marcarTramo();
     } else pintar();
+    emitir();
+  }
+
+  // ── el docente emite dónde está (con un respiro: pasar tres diapositivas seguidas es UNA escritura)
+  function ocurrencia(i){ var sl=st.slides[i]; if(!sl) return null; var n=0; for(var j=0;j<i;j++) if(st.slides[j].k===sl.k) n++; return {k:sl.k, n:n}; }
+  function emitir(){
+    if(!DIRECTO.on||st.alumno||!st.per) return;
+    var M=window.SG&&window.SG.MOTOR, o=ocurrencia(st.i); if(!M||!M.publicarEnVivo||!o) return;
+    var firma=st.sem+'|'+o.k+'|'+o.n; if(firma===DIRECTO.ultimo) return;
+    clearTimeout(DIRECTO.t);
+    DIRECTO.t=setTimeout(function(){
+      DIRECTO.ultimo=firma;
+      M.publicarEnVivo(st.per, {sesion:{activa:true, sem:st.sem, k:o.k, n:o.n, t:Date.now(), por:st.miNombre||''}}).catch(function(){});
+    }, 350);
+  }
+  function encenderDirecto(){
+    if(st.alumno||!st.per||!st.yo||DIRECTO.on) return;
+    DIRECTO.on=true; DIRECTO.ultimo=''; emitir(); pintarDirecto();
+  }
+  function apagarDirecto(){
+    if(!DIRECTO.on) return;
+    DIRECTO.on=false; clearTimeout(DIRECTO.t); pintarDirecto();
+    var M=window.SG&&window.SG.MOTOR; if(M&&M.publicarEnVivo&&st.per) M.publicarEnVivo(st.per, {sesion:{activa:false, t:Date.now()}}).catch(function(){});
+  }
+  function pintarDirecto(){
+    var b=root.querySelector('#ses-directo'); if(!b) return;
+    b.classList.toggle('on', DIRECTO.on);
+    b.textContent=DIRECTO.on?'En directo':'Emitir en directo';
+    b.title=DIRECTO.on?'Tus reclutas ven esta sesión a tu ritmo desde su Nave. Pulsa para dejar de emitir.':'Que tus reclutas la sigan a tu ritmo desde su Nave';
+  }
+  window.addEventListener('pagehide', function(){ if(DIRECTO.on){ var M=window.SG&&window.SG.MOTOR; if(M&&M.publicarEnVivo) M.publicarEnVivo(st.per,{sesion:{activa:false,t:Date.now()}}).catch(function(){}); } });
+
+  // ── el recluta sigue al docente
+  function indiceDe(k, n){ var c=-1; for(var i=0;i<st.slides.length;i++){ if(st.slides[i].k===k){ c++; if(c===Number(n||0)) return i; } } return -1; }
+  function seguirDocente(){
+    if(!st.alumno||!st.per||SEG.parar) return;
+    var M=window.SG&&window.SG.MOTOR; if(!M||!M.vigilarEnVivo) return;
+    SEG.parar=M.vigilarEnVivo(st.per, function(d){
+      SEG.d=d||{};
+      var s=SEG.d.sesion;
+      if(SEG.on && s && s.activa && (Date.now()-Number(s.t||0))<3*3600e3){
+        if(Number(s.sem)&&Number(s.sem)!==Number(st.sem)){ st.sem=Number(s.sem); st.i=0; pintar(); }
+        var i=indiceDe(s.k, s.n); if(i>=0&&i!==st.i) ir(i, false, true);
+      }
+      var p=SEG.d.pregunta;
+      if(p&&p.abierta&&p.id&&SEG.miaDe!==p.id){ SEG.miaDe=p.id; SEG.mia=null;
+        if(M.miRespuesta) M.miRespuesta(st.per, p.id, st.ficha).then(function(r){ SEG.mia=r; pintarSeguir(); }); }
+      pintarSeguir();
+    });
+  }
+  function aliasMio(){ var r=vivos().filter(function(x){ return x.fid===st.ficha; })[0]; return (r&&r.alias)||''; }
+  function pintarSeguir(){
+    if(!st.alumno) return;
+    var mazo=root.querySelector('#mazo'); if(!mazo) return;
+    var s=SEG.d.sesion, vivo=s&&s.activa&&(Date.now()-Number(s.t||0))<3*3600e3, p=SEG.d.pregunta;
+    var caja=mazo.querySelector('.ses-al'); if(!caja){ caja=document.createElement('div'); caja.className='ses-al'; mazo.appendChild(caja); }
+    var html='';
+    if(vivo) html+=SEG.on?'<span class="ses-al-sigo">Siguiendo a tu Comandante</span>'
+                        :'<button type="button" class="ses-al-volver" id="ses-al-volver">Volver al ritmo de tu Comandante</button>';
+    if(p&&p.abierta&&p.id){
+      var pend=!SEG.mia;
+      html+='<div class="ses-al-pq'+(pend?' abierta':'')+'"><b>Pregunta en directo</b><p>'+esc(p.texto)+'</p>'
+        +(pend?'<textarea id="ses-al-resp" maxlength="280" rows="2" placeholder="Tu respuesta"></textarea><button type="button" class="btn primary" id="ses-al-enviar">Enviar</button>'
+             :'<p class="ses-al-mia">Tu respuesta: «'+esc(SEG.mia.texto)+'»</p>')
+        +'<span class="ses-al-msg" id="ses-al-msg"></span></div>';
+    }
+    // (lo que se está escribiendo no se pisa al repintar)
+    var ta=caja.querySelector('#ses-al-resp'), borrador=ta?ta.value:'';
+    if(caja.getAttribute('data-html')===html) return;
+    caja.setAttribute('data-html', html); caja.innerHTML=html;
+    var ta2=caja.querySelector('#ses-al-resp'); if(ta2&&borrador) ta2.value=borrador;
+    var v=caja.querySelector('#ses-al-volver'); if(v) v.onclick=function(){ SEG.on=true; var s2=SEG.d.sesion; if(s2){ var i=indiceDe(s2.k,s2.n); if(i>=0) ir(i,false,true); } pintarSeguir(); };
+    var en=caja.querySelector('#ses-al-enviar');
+    if(en) en.onclick=function(){
+      var M=window.SG&&window.SG.MOTOR, txt=(caja.querySelector('#ses-al-resp').value||'').trim(), msg=caja.querySelector('#ses-al-msg');
+      if(!txt){ msg.textContent='Escribe algo antes de enviar.'; return; }
+      en.disabled=true; msg.textContent='Enviando…';
+      M.responderPregunta(st.per, p.id, st.ficha, aliasMio(), txt).then(function(){ SEG.mia={texto:txt}; pintarSeguir(); },
+        function(e){ en.disabled=false; msg.textContent='No se ha podido enviar: '+(e&&e.message||e); });
+    };
   }
 
   function wire(){
@@ -1330,6 +1466,18 @@
     return M.misGruposDeAlumno(yo.uid).then(function(gs){
       gs=gs||[];
       var nave=function(per){ return 'recluta.html?per='+encodeURIComponent(per)+(EMBED?'&embed=1':''); };
+      // 🔴 17-sep · dentro de la presentación (o desde «En vivo»), el recluta VE la sesión, al ritmo de su Comandante
+      if(EMBED||SEGUIR){
+        var entrar=function(g){ st.alumno=true; st.ficha=g.ficha; st.per=g.per; st.i=0; st.sem=0; cargarYArrancar(); };
+        if(gs.length===1) return entrar(gs[0]);
+        if(gs.length>1){
+          caja('<h2>¿En qué clase estás?</h2><p class="sub">Estás alistado en más de un grupo.</p><div class="ses-grupos">'
+            +gs.map(function(g,i){ return '<button type="button" class="ses-grupo" data-al="'+i+'"><b>'+esc(g.nombreGrupo||g.per)+'</b><span>Ver la sesión</span></button>'; }).join('')+'</div>'+quienSoy(yo));
+          cablearSalir();
+          Array.prototype.forEach.call(root.querySelectorAll('[data-al]'),function(b){ b.onclick=function(){ entrar(gs[Number(b.getAttribute('data-al'))]); }; });
+          return;
+        }
+      }
       if(gs.length===1){ location.replace(nave(gs[0].per)); return; }
       if(!gs.length) return sinGrupos(yo);
       caja('<h2>Tu Nave te espera</h2><p class="sub">Esta presentación es del profesorado. Estás alistado en más de un grupo: ¿a qué Nave vas?</p>'
@@ -1392,6 +1540,7 @@
         return M.misPERs(yo.correo).then(function(ps){
           var x=(ps||[]).filter(function(y){ return y.id===per; })[0];
           st.miNombre=(x&&x.miNombre)||'';
+          if(x && !st.alumno) st.yo=st.yo||yo;   // es docente de este grupo: puede emitir en directo
           if(!st.grupos) st.grupos=(ps||[]).filter(function(y){ return y.estado==='en marcha'; });
           fin();
         });
@@ -1433,8 +1582,21 @@
     return F.tablero(st.per, true).then(function(d){ if(d&&!d.error){ st.d=d; return true; } return false; }).catch(function(){ return false; });
   }
 
+  function comoAlumnoDe(per){
+    var M=window.SG&&window.SG.MOTOR; if(!M||!M.sesion) return cargarYArrancar();
+    M.sesion().then(function(yo){
+      if(!yo) return cargarYArrancar();
+      return M.misGruposDeAlumno(yo.uid).then(function(gs){
+        var g=(gs||[]).filter(function(x){ return x.per===per; })[0];
+        if(g){ st.alumno=true; st.ficha=g.ficha; }
+        cargarYArrancar();
+      });
+    }).catch(function(){ cargarYArrancar(); });
+  }
   if(!st.per){
     if (window.SG && window.SG.MOTOR) porLaCuenta();
     else document.addEventListener('sg:motor', porLaCuenta);
+  } else if(SEGUIR){
+    if (window.SG && window.SG.MOTOR) comoAlumnoDe(st.per); else document.addEventListener('sg:motor', function(){ comoAlumnoDe(st.per); });
   } else cargarYArrancar();   // (el dato fresco no puede mover la diapositiva de sitio: se arranca una vez)
 })();
