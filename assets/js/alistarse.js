@@ -181,9 +181,13 @@
     if (dado) dado.onclick = function () {
       var banco = window.SG_ALIAS || [];
       if (!banco.length) return;
+      // 17-sep · DOBLES (Norberto: «que sean dobles, no solo uno; combínalos entre sí»): dos nombres del banco, distintos y
+      // que quepan en el campo (24). Con ~400 nombres salen más de 150.000 combinaciones: casi imposible repetir en un grupo.
+      var uno = function () { return banco[Math.floor(Math.random() * banco.length)]; };
+      var doble = function () { var a, b, k = 0; do { a = uno(); b = uno(); } while ((a === b || (a + " " + b).length > 24) && ++k < 30); return a + " " + b; };
       var elegir = function () {
         var n = campo.value.trim(), intento = 0;
-        do { n = banco[Math.floor(Math.random() * banco.length)]; }
+        do { n = doble(); }
         while ((n === campo.value.trim() || (ocupados && ocupados[plano(n)])) && ++intento < 40);
         campo.value = n;
         campo.focus();

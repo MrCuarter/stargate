@@ -101,7 +101,7 @@ c(/function tarjetaReto\(t, mios\)/.test(N) && (N.match(/tarjetaReto\(/g) || [])
   "🔴 «Qué hay que hacer, explicado» pinta la MISMA tarjeta que la de la semana (con su insignia)");
 c(!/<article class="reto'\+\(ya\?' ok':''\)\+'">'\s*\+'<header><span class="reto-id">'\+esc\(r\[0\]\)\+'<\/span><h4>'\+esc\(r\[1\]\)\+'<\/h4>'\s*\+'<span class="reto-xp">'\+r\[3\]\+' xp<\/span>'\s*\+\(ya\?'<span class="reto-ya">✅ ya lo tienes<\/span>':''\)\+'<\/header>'\s*\+\(texto/.test(N),
   "   y la ficha vieja (solo texto) ya no está");
-c(/window\.SG_EJEMPLOS\|\|\{\}/.test(N) && /💡 Ver un ejemplo/.test(N) && /EJEMPLOS_RETOS = \{/.test(leer("_site_data.py")) && /window\.SG_EJEMPLOS=/.test(leer("recluta.html")),
+c(/window\.SG_EJEMPLOS\|\|\{\}/.test(N) && /Ver un ejemplo ↗/.test(N) && /EJEMPLOS_RETOS = \{/.test(leer("_site_data.py")) && /window\.SG_EJEMPLOS=/.test(leer("recluta.html")),
   "   «💡 Ver un ejemplo» solo en los retos que tienen uno (EJEMPLOS_RETOS, un solo sitio)");
 const CARTAS = path.resolve(RAIZ, "..", "Retos e Insignias", "_work", "cartas.py");
 if (fs.existsSync(CARTAS)) {

@@ -110,7 +110,7 @@
       root.innerHTML='<div class="card"><h3>¿De qué PER eres recluta?</h3><p class="small muted">Elige tu grupo para entrar en tu nave. Si no lo sabes, pregunta a tu Capitán.</p>'
         // 🔴 Solo el NOMBRE del grupo. «REGULAR/PUA» es jerga de la hoja de cálculo: al alumnado no le
         // dice nada y le hace dudar de si ha elegido bien.
-        +pers.map(function(p){return '<p><a class="btn" href="recluta.html?per='+encodeURIComponent(p.id)+'">🚀 '+esc(p.nombre)+'</a></p>';}).join('')+'</div>';
+        +pers.map(function(p){return '<p><a class="btn" href="recluta.html?per='+encodeURIComponent(p.id)+'">'+esc(p.nombre)+'</a></p>';}).join('')+'</div>';
     }).catch(function(){root.innerHTML='<p class="lead">No se pudo cargar la lista de PERs.</p>';});
     return;
   }
@@ -342,10 +342,10 @@
       +(st.msgYo?'<p class="small" style="margin-top:8px;color:var(--amber)">'+st.msgYo+'</p>':'')
       +(alta?'<div class="nave-alta"><span class="o">¿aún no te has alistado?</span>'
         +(motorNuevo()
-          ? '<a class="btn primary" href="'+esc(altaUrl)+'">🧭 Alistarme ahora →</a>'
+          ? '<a class="btn primary" href="'+esc(altaUrl)+'">Alistarme ahora →</a>'
             +'<p class="small muted">Es el <b>primer paso</b> y solo se hace una vez: nombre, alias, '
             +'Comandante y personaje. Si tu clase tiene <b>código</b>, tenlo a mano — te lo pedirá.</p>'
-          : '<a class="btn primary" href="'+esc(altaUrl)+'" data-vent="📓 Bitácora de mando">📓 Alistarme en la Bitácora de mando →</a>'
+          : '<a class="btn primary" href="'+esc(altaUrl)+'" data-vent="Bitácora de mando">Alistarme en la Bitácora de mando →</a>'
             +'<p class="small muted">Es el <b>primer paso</b> y solo se hace una vez: eliges alias y personaje. '
             +'Hasta que no lo envíes no existes a bordo. Después vuelve aquí con <b>ese mismo correo</b>.</p>')
         +'</div>':'')
@@ -498,7 +498,7 @@
     // 🔴 No se llama «Los ocho planetas»: así se llama el MAPA, que está en «Mis retos» y es otra
     // cosa (qué está abierto y qué no). Dos títulos iguales para dos pantallas distintas es la forma
     // más barata de que alguien busque una y encuentre la otra.
-    return '<div class="card panel-planetas"><h3>🪐 Tu panel de control</h3>'
+    return '<div class="card panel-planetas"><h3>Tu panel de control</h3>'
       + '<p class="small muted">Cada planeta es un tema, con sus retos y sus materiales. Se abre '
       + 'aquí mismo, sin salir de la Nave.</p>'
       + '<div class="marco-genially"><iframe src="' + esc(u) + '" loading="lazy" allowfullscreen '
@@ -876,7 +876,7 @@
                     A3: ["compartir-genially.gif", "¿Cómo comparto mi Genially?"] };
   function extraReto(id, d){
     var out='', g=GIF_RETOS[id];
-    if(id==='A0' && d.padlet) out+='<p class="rs-extra"><a class="btn min" href="'+esc(d.padlet)+'" target="_blank" rel="noopener">🧱 Abrir el padlet de tu clase ↗</a></p>';
+    if(id==='A0' && d.padlet) out+='<p class="rs-extra"><a class="btn min" href="'+esc(d.padlet)+'" target="_blank" rel="noopener">Abrir el padlet de tu clase ↗</a></p>';
     if(g) out+='<details class="rs-gif"><summary>'+esc(g[1])+'</summary><img src="assets/img/ayuda/'+g[0]+'" alt="'+esc(g[1])+'" loading="lazy"></details>';
     return out;
   }
@@ -905,7 +905,7 @@
         +(gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')
         +'<div class="rs-premio"><span class="p xp">+'+t[3]+' xp</span>'
           +'<span class="p cr">+'+creditosDeReto(t[0])+' ◈</span>'
-          +(ejPag?'<a class="rs-ej" href="'+ejPag+'" target="_blank" rel="noopener" title="Se abre en una pestaña nueva">💡 Ver un ejemplo ↗</a>':'')+'</div>'
+          +(ejPag?'<a class="rs-ej" href="'+ejPag+'" target="_blank" rel="noopener" title="Se abre en una pestaña nueva">Ver un ejemplo ↗</a>':'')+'</div>'
         +'<div class="rs-abrir">▾ '+(ya?'Ver lo que pedía':'Cómo se hace, paso a paso')+'</div>'
       +'</div><div class="rs-der">'+premioDeReto(t[2])+'</div></div></summary>'
       +'<div class="rs-detalle">'
@@ -917,7 +917,7 @@
        * una pestaña». Aquí queda el enlace, con el título del caso; el caso, la captura, las tablas y la autoevaluación
        * viven en ejemplo.html?reto=… (assets/js/ejemplo.js).
        */
-      +(ejPag?'<p class="rs-ej-ver"><a href="'+ejPag+'" target="_blank" rel="noopener">💡 Ver un ejemplo: <span>'+esc(ej.titulo||'')+'</span> ↗</a></p>':'')
+      +(ejPag?'<p class="rs-ej-ver"><a href="'+ejPag+'" target="_blank" rel="noopener">Ver un ejemplo: <span>'+esc(ej.titulo||'')+'</span> ↗</a></p>':'')
       +extraReto(t[0], d)
       +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado.</p>'+accionesDeHecho(t[0])
           // 15-sep · S7 es el Escape UNI: su puerta, y se registra solo con el botón del final del escape
@@ -930,7 +930,7 @@
               +'<p class="small muted">Se registra solo, con el botón del final del escape.</p></div>'
           :(motorNuevo()
             ? '<div class="rs-marcar">'+campoReflexion(t[0],'rs-rf')+campoEvidencia(t[0],'rs-ev')
-              +'<button class="btn primary" type="button" data-hecho="'+esc(t[0])+'">✅ Lo he hecho</button></div>'
+              +'<button class="btn primary" type="button" data-hecho="'+esc(t[0])+'">✓ Lo he hecho</button></div>'
             : (d.formBitacora?'<p style="margin-top:12px"><a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">Marcarlo en la Bitácora →</a></p>':'')))
       +panelTripulacion(t[0])
       +'</div></details>';
@@ -1083,7 +1083,7 @@
     if(!motorNuevo()||!st.yo||st.estado!=='fin') return '';
     return '<div class="card dip-caja">'
       +'<div class="eyebrow amber">Fin del viaje</div>'
-      +'<h3>📜 Tu diploma de la Tripulación Cero</h3>'
+      +'<h3>Tu diploma de la Tripulación Cero</h3>'
       +'<p class="small">Tu alias y tu nombre, tus insignias, tus cartas, tus héroes y todo lo que has recorrido, '
       +'firmado por tu Capitán. Se descarga como imagen y se puede imprimir.</p>'
       +'<p><a class="btn epico" href="diploma.html?per='+esc(per)+'"><span class="ep-luz"></span>'
@@ -1124,7 +1124,7 @@
     var mio=Object.keys(VOTO.mia).filter(function(k){ return VOTO.mia[k]>0; });
     return '<div class="card voto-caja">'
       +'<div class="eyebrow amber">La voz de la tripulación'+(v.stargateProfe?' · '+esc(v.stargateProfe):'')+'</div>'
-      +'<h3>🗳️ '+esc(v.title)+'</h3>'
+      +'<h3>'+esc(v.title)+'</h3>'
       +(dados
          ? '<p class="small">Ya has votado'+(mio.length?': <b>'+esc(((v.options||[]).filter(function(o){return o.id===mio[0];})[0]||{}).title||'')+'</b>':'')
            +'. '+(v.stargateResuelve?'Se resuelve en la semana '+v.stargateResuelve+'.':'Se resuelve la semana que viene.')+'</p>'
@@ -1157,7 +1157,7 @@
     return '<div class="card sim-caja' + (gano ? '' : ' cerrada') + '">'
       + '<img class="sim-em" src="assets/img/batalla/emblema.webp" alt="" width="84" height="84" loading="lazy">'
       + '<div class="sim-txt"><div class="eyebrow amber">' + (gano ? 'Desbloqueado' : 'Bloqueado') + '</div>'
-      + '<h3>🎮 El Simulador de Joran</h3>'
+      + '<h3>El Simulador de Joran</h3>'
       + '<p class="small">' + (gano
           ? 'Repasa tema a tema o con todas las preguntas del viaje, y mide tu marca contra la de tu tripulación.'
           : 'Gánale a <b>' + esc(BT.rival || 'RUTA AZUL') + '</b> en el reto ' + esc(BT.reto || 'A6') + ' y se queda en tu Nave para siempre.') + '</p>'
@@ -1246,7 +1246,7 @@
         ? '<h3 style="margin-top:1.4em">Héroes de la Rebelión <span class="small muted">'+n+' de '+HER.length+'</span></h3>'
           +cambio+'<div class="vest-grid">'+he+'</div>'
         : '')
-      +(d.formCanje?'<p style="margin-top:12px"><a class="btn small primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎭 Conseguir un héroe →</a></p>':'')
+      +(d.formCanje?'<p style="margin-top:12px"><a class="btn small primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Conseguir un héroe →</a></p>':'')
       +'</section>';
   }
 
@@ -1321,7 +1321,7 @@
     /**
      * 🔴 12-sep · UNA LLAMADA DE OTRO ESCUADRÓN NO ES ASUNTO TUYO. Cada Comandante toca llamada para
      * SU escuadrón, y la Nave se la enseñaba a todo el grupo: el laboratorio simuló una clase y a
-     * Carla —del otro Comandante— le salió «✋ Presente» en una llamada que no era la suya. Al
+     * Carla —del otro Comandante— le salió «Presente» en una llamada que no era la suya. Al
      * pulsar, el servidor le decía que no. Un botón que existe para decirte que no es un botón roto.
      * El recluta se ata a su escuadrón por el nombre de su Comandante (`profe`), que es la misma
      * llave que usan los rankings.
@@ -1336,7 +1336,7 @@
       +'<span class="small">'+esc(L.comandante||'Tu Comandante')+' ha tocado llamada'
       +(L.escuadron?' para <b>'+esc(L.escuadron)+'</b>':'')+'. Responde y te llevas <b>'
       +(L.xp||0)+' xp</b> y <b>'+(L.creditos||0)+' ◈</b>.</span>'
-      +'<div class="pase-fila"><button class="btn primary" id="pase-ok" type="button">✋ Presente</button>'
+      +'<div class="pase-fila"><button class="btn primary" id="pase-ok" type="button">Presente</button>'
       +'<span class="pase-cuenta" id="pase-cuenta">'+reloj(seg)+'</span></div>'
       +'<div class="small muted" id="pase-msg"></div></div>';
   }
@@ -1405,7 +1405,7 @@
     if(!b||!st.yo||!st.yo.ficha) return;
     b.disabled=true; b.textContent='Registrando…';
     var antes=JSON.parse(JSON.stringify(st.yo)), donde=puntoDe(b);
-    if(enDemo()){ b.disabled=false; b.textContent='✋ Presente';
+    if(enDemo()){ b.disabled=false; b.textContent='Presente';
       aviso('🎬 <b>Esto es una demostración.</b> En tu Nave de verdad, «Presente» te daría los créditos de la asistencia.'); return; }
     (SIMULACRO ? SG.FUENTE.fichar() : window.SG.MOTOR.ficharLlamada(per, st.yo.ficha)).then(function(r){
       st.fichado=true;
@@ -1435,7 +1435,7 @@
       }
       refrescarYCelebrar(antes, donde, 'reto');
     }).catch(function(e){
-      b.disabled=false; b.textContent='✋ Presente';
+      b.disabled=false; b.textContent='Presente';
       if(m) m.textContent=String(e&&e.message||e);
       if(window.SG&&SG.FIESTA) SG.FIESTA.sonar('error');
     });
@@ -1539,8 +1539,12 @@
    * La clave interna: los identificadores VIEJOS siguen funcionando (`tabValida` los traduce), así
    * que los enlaces con #premios o #ficha que alguien tenga guardados no se rompen.
    */
-  var TABS=[['nave','🛰️','Mi nave'],['retos','🎯','Mis retos'],['botin','🏅','Mi botín'],
-            ['mercado','🛒','Mercado Estelar'],['zoco','🔄','El Zoco'],['rankings','🏆','Rankings']];
+  // 17-sep · el segundo campo ya no es un emoji: es el icono de la pestaña (assets/img/nave/iconos/<clave>.png), hecho con
+  // Magnific en una sola lámina para que los ocho compartan estilo (Norberto: «botones más sólidos con iconos dedicados,
+  // con la estética de la narrativa»; y «evitar emojis, salvo momentos concretos»).
+  var TABS=[['nave','nave','Mi nave'],['retos','retos','Mis retos'],['botin','botin','Mi botín'],
+            ['mercado','mercado','Mercado Estelar'],['zoco','zoco','El Zoco'],['rankings','rankings','Rankings']];
+  function iconoTab(k){ return '<img class="i" src="assets/img/nave/iconos/'+k+'.png" alt="" width="26" height="26" aria-hidden="true">'; }
   var TABS_VIEJAS={ficha:'nave',semana:'nave',planetas:'retos',premios:'mercado',tablero:'rankings'};
   // ================= LA NAVE POR CAPÍTULOS (13-sep) =================
   // Norberto: «de primeras no quiero que puedan hacer mil cosas, esto puede agobiar; que se
@@ -1615,11 +1619,11 @@
         return '<button type="button" class="nb-t'+(on?' on':'')+'" role="tab"'
           +' aria-selected="'+on+'" aria-controls="nave-panel" tabindex="'+(on?'0':'-1')+'"'
           +' id="nb-t-'+x[0]+'" data-tab="'+x[0]+'" title="'+esc(x[2])+'">'
-          +'<span class="i" aria-hidden="true">'+x[1]+'</span><b>'+esc(x[2])+'</b>'
+          +iconoTab(x[1])+'<b>'+esc(x[2])+'</b>'
           +(x[0]==='zoco'&&zocoPendientes().length?'<span class="nb-badge" title="Te toca responder">'+zocoPendientes().length+'</span>':'')+'</button>';
       }).join('')+'</div>'
       +'<div class="nb-fin">'
-        +'<button type="button" class="nb-mas" id="nb-mas" aria-haspopup="true" aria-expanded="false" aria-label="Más opciones">···</button>'
+        +'<button type="button" class="nb-mas" id="nb-mas" aria-haspopup="true" aria-expanded="false" aria-label="Más opciones" title="Más opciones">'+iconoTab('mas')+'</button>'
       +'</div>'
       +menuMas()
       +'</nav>';
@@ -1649,13 +1653,13 @@
   function menuMas(){
     var d=st.d||{};
     return '<div class="nb-menu" id="nb-menu" hidden role="menu">'
-      +(d.formTicket?'<a role="menuitem" href="'+esc(ticketUrl(d))+'" data-vent="🎟️ Contacta con NEBULA">🎟️ <span>Dudas a NEBULA<em>anónimo, no lo ve tu clase</em></span></a>':'')
-      +(d.padlet?'<a role="menuitem" href="'+esc(d.padlet)+'" data-vent="🧱 Padlet de la clase">🧱 <span>Padlet de la clase<em>el muro común</em></span></a>':'')
-      +'<a role="menuitem" href="ayuda.html" target="_blank" rel="noopener">❓ <span>¿Mi enlace abre lo mío?<em>compruébalo antes de entregar</em></span></a>'
-      +(d.formBitacora?'<a role="menuitem" href="'+esc(d.formBitacora)+'" data-vent="📓 Bitácora de mando">📓 <span>Bitácora de mando<em>marca lo completado</em></span></a>':'')
-      +(d.formCanje?'<a role="menuitem" href="'+esc(d.formCanje)+'" data-vent="🛸 Mercado Estelar">🛸 <span>Mercado Estelar<em>gasta tus créditos</em></span></a>':'')
+      +(d.formTicket?'<a role="menuitem" href="'+esc(ticketUrl(d))+'" data-vent="Contacta con NEBULA"><span>Dudas a NEBULA<em>anónimo, no lo ve tu clase</em></span></a>':'')
+      +(d.padlet?'<a role="menuitem" href="'+esc(d.padlet)+'" data-vent="Padlet de la clase"><span>Padlet de la clase<em>el muro común</em></span></a>':'')
+      +'<a role="menuitem" href="ayuda.html" target="_blank" rel="noopener"><span>¿Mi enlace abre lo mío?<em>compruébalo antes de entregar</em></span></a>'
+      +(d.formBitacora?'<a role="menuitem" href="'+esc(d.formBitacora)+'" data-vent="Bitácora de mando"><span>Bitácora de mando<em>marca lo completado</em></span></a>':'')
+      +(d.formCanje?'<a role="menuitem" href="'+esc(d.formCanje)+'" data-vent="Mercado Estelar"><span>Mercado Estelar<em>gasta tus créditos</em></span></a>':'')
       +'<hr><div class="nb-fiesta" id="nb-fiesta"></div>'
-      +'<a role="menuitem" href="#" id="nb-salir">🚪 <span>No soy yo / salir</span></a>'
+      +'<a role="menuitem" href="#" id="nb-salir"><span>No soy yo / salir</span></a>'
       +'</div>';
   }
   function contenido(){
@@ -1767,7 +1771,7 @@
     if(i<0) return '';
     var yo=lista[i], arriba=i>0?lista[i-1]:null, abajo=i<lista.length-1?lista[i+1]:null;
     if(!arriba&&!abajo)
-      return '<div class="card duelo"><h3>⚔️ Tu duelo</h3><p class="small muted">De momento la pista es tuya: nadie delante, nadie detrás. Cuando se alisten más reclutas, aquí verás tu duelo.</p></div>';
+      return '<div class="card duelo"><h3>Tu duelo</h3><p class="small muted">De momento la pista es tuya: nadie delante, nadie detrás. Cuando se alisten más reclutas, aquí verás tu duelo.</p></div>';
     // la frase: si hay empate con el de arriba manda el empate; si no, se alterna al azar entre
     // alcanzar al de delante y escaparse del de detrás (que es justo lo que pidió Norberto)
     var msg;
@@ -1787,7 +1791,7 @@
           :es==='abajo'?(p.xp===yo.xp?'<em>⚡ empate</em>':'<em>a '+(yo.xp-p.xp)+' de ti</em>'):'<em>tu puesto</em>')
         +'</div>';
     }
-    return '<div class="card duelo"><h3>⚔️ Tu duelo</h3>'
+    return '<div class="card duelo"><h3>Tu duelo</h3>'
       +'<div class="duelo-tabla">'+fila(arriba,'arriba')+fila(yo,'yo')+fila(abajo,'abajo')+'</div>'
       +'<p class="duelo-msg">'+msg+'</p>'
       +'<p class="small" style="margin:8px 0 0"><a href="#tablero" data-ir="tablero" class="btn small">Ver el tablero completo →</a></p></div>';
@@ -1888,7 +1892,7 @@
       +'<p class="lead">Llevas <b>'+hechos+' de '+abiertos+'</b> retos de los que ya están abiertos. '
       +'Los planetas se desbloquean con el calendario: aquí solo ves lo que ya puedes hacer, para no agobiarte con lo que aún no toca. '
       +'Pulsa un planeta para desplegar sus retos.'
-      +(st.d.formBitacora?' Cuando termines uno, márcalo en tu <a href="'+esc(st.d.formBitacora)+'" data-vent="📓 Bitácora de mando"><b>Bitácora de mando</b></a>.':'')
+      +(st.d.formBitacora?' Cuando termines uno, márcalo en tu <a href="'+esc(st.d.formBitacora)+'" data-vent="Bitácora de mando"><b>Bitácora de mando</b></a>.':'')
       +'</p>'+bloques+'</section>';
   }
   function mapa(){
@@ -1908,9 +1912,9 @@
     return '<div class="foro-card">'+(s.capitulo?'<span class="pill amber">Nuevo capítulo: '+esc(s.capitulo)+'</span>':'')
       +'<h2>'+esc(titulo||('Semana '+s.sem+' · '+s.tema))+'</h2><div class="muted">'+esc(s.sub)+'</div>'
       +'<div class="foro-msg">'+msgHtml(s.foro,per)+'</div>'
-      +(s.lanza.length?'<h4>🗝️ Retos</h4><ul>'+s.lanza.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')
-      +(s.insignias.length?'<h4>🏅 Insignias en juego</h4><div class="minis">'+minis(s.insignias)+'</div>':'')
-      +(s.videos.length?'<h4>🎬 Vídeos</h4><div class="yt-list three">'+s.videos.map(function(v){return ytb(v[0],v[1]);}).join('')+'</div>':'')
+      +(s.lanza.length?'<h4>Retos</h4><ul>'+s.lanza.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')
+      +(s.insignias.length?'<h4>Insignias en juego</h4><div class="minis">'+minis(s.insignias)+'</div>':'')
+      +(s.videos.length?'<h4>Vídeos</h4><div class="yt-list three">'+s.videos.map(function(v){return ytb(v[0],v[1]);}).join('')+'</div>':'')
       +'</div>';
   }
   function estaSemana(){
@@ -1972,11 +1976,11 @@
     var afford=!r?'':tope?'<span class="chip done">Ya tienes las '+max+' que se permiten</span>'
       :(mis>=x.coste?'<span class="chip ok">Te lo puedes permitir</span>':'<span class="chip wip">Te faltan '+(x.coste-mis)+' ◈</span>');
     var boton=(motorNuevo()&&r&&!tope&&mis>=x.coste&&x.id)
-      ? '<button class="btn primary" type="button" data-canje="'+esc(x.doc||x.id)+'" data-nombre="'+esc('una participación del Gran Sorteo')+'" data-coste="'+x.coste+'" data-tipo="sorteo" data-abrir="0" data-usos="1">🎟️ Una participación · '+x.coste+' ◈</button>'
+      ? '<button class="btn primary" type="button" data-canje="'+esc(x.doc||x.id)+'" data-nombre="'+esc('una participación del Gran Sorteo')+'" data-coste="'+x.coste+'" data-tipo="sorteo" data-abrir="0" data-usos="1">Una participación · '+x.coste+' ◈</button>'
       : '';
     // 14-sep · la reventa (Norberto: «debes permitir también añadir al Zoco participaciones»)
     if(mias>0&&r&&motorNuevo()&&abierto('zoco'))
-      boton+='<button class="btn" type="button" data-zoco-poner="'+esc(x.doc)+'">🔄 Revender una en el Zoco</button>';
+      boton+='<button class="btn" type="button" data-zoco-poner="'+esc(x.doc)+'">Revender una en el Zoco</button>';
     return '<div class="card rec-card sorteo">'+cab
       +'<p class="pts">'+x.coste+' ◈ <span class="small muted">cada participación</span></p>'
       +'<p class="sorteo-mias">Llevas <b>'+mias+'</b> participaci'+(mias===1?'ón':'ones')+(max?' <span class="small muted">(como mucho '+max+')</span>':'')+'</p>'
@@ -2005,7 +2009,7 @@
     var rz=String(o.rareza||'común').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     var boton=!r||!motorNuevo()?'':ya?'<span class="chip done">✅ Ya la tienes (una por persona)</span>'
       :mis<o.precio?'<span class="chip wip">Te faltan '+(o.precio-mis)+' ◈</span>'
-      :'<button class="btn primary grande" type="button" data-canje="'+esc(x.doc)+'" data-nombre="'+esc(o.nombre)+'" data-coste="'+o.precio+'" data-tipo="oferta_'+esc(o.abre||'sobre')+'" data-abrir="1" data-usos="'+(x.usos||1)+'">⚡ Comprar por '+o.precio+' ◈</button>';
+      :'<button class="btn primary grande" type="button" data-canje="'+esc(x.doc)+'" data-nombre="'+esc(o.nombre)+'" data-coste="'+o.precio+'" data-tipo="oferta_'+esc(o.abre||'sobre')+'" data-abrir="1" data-usos="'+(x.usos||1)+'">Comprar por '+o.precio+' ◈</button>';
     return '<div class="card oferta-card rz-'+rz+(q.tipo==='carta'?' es-carta':'')+'">'
       +'<div class="of-foto"><img src="'+esc(imgOferta(o))+'" alt="" loading="lazy"><span class="of-pct">−'+o.pct+' %</span></div>'
       +'<div class="of-cuerpo"><div class="of-kicker">⚡ '+(o.auto?'Oferta de la semana':'Oferta especial')+(o.rareza?' · '+esc(o.rareza):'')+'</div>'
@@ -2032,7 +2036,7 @@
   function recompensas(){
     var d=st.d; var cat=d.recompensas||[]; var n=st.semanas.length; var r=st.yo;
     if(!cat.length) return '<section><div class="eyebrow violet">Recompensas</div><h2>Mercado Estelar</h2><p class="lead">Aquí se canjean tus <b>créditos ◈</b> por recompensas (los xp no se gastan nunca). El catálogo se abrirá pronto en la nave; mientras tanto, tu Capitán tiene la lista.</p>'
-      +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🎁 Ir al formulario de canje</a>':'')+'</section>';
+      +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Ir al formulario de canje</a>':'')+'</section>';
     var abiertas=0;
     /**
      * 🔴 LAS BLOQUEADAS, AL FINAL. Norberto: «mueve al final la recompensa bloqueada; deja en la
@@ -2063,7 +2067,7 @@
       var desde=desdeDe(x); var abierta=st.estado!=='antes'&&st.actual>=desde;
       // 🔴 13-sep · con la Nave por capítulos, lo cerrado no se enseña: una línea al final dice qué llega
       if(!abierta&&porCapitulos()) return '';
-      if(!abierta) return '<div class="card rec-card lock"><h3>🔒 Recompensa clasificada</h3><p class="small muted">Se desbloquea en la semana '+desde+'.</p></div>';
+      if(!abierta) return '<div class="card rec-card lock"><h3>Recompensa clasificada</h3><p class="small muted">Se desbloquea en la semana '+desde+'.</p></div>';
       abiertas++;
       var mis=r?(r.creditos!=null?r.creditos:(r.xp_disponibles||0)):0;
       if(x.tipo==='sorteo'&&x.sorteo) return tarjetaSorteo(x, r, mis);
@@ -2106,7 +2110,7 @@
       // 🔴 13-sep · el cambio de héroes repetidos va EN la tarjeta del héroe, no en una tarjeta más:
       // se ofrece donde se compran, y solo cuando hay dos que cambiar
       if(x.tipo==='heroe' && motorNuevo() && r && (r.heroes_repes||0)>=2)
-        boton += '<button class="btn" type="button" data-canje="heroe_repes" data-nombre="Cambiar 2 héroes repetidos" data-coste="0" data-tipo="heroe_repes" data-abrir="1" data-usos="1">🔁 Cambiar 2 repetidos</button>';
+        boton += '<button class="btn" type="button" data-canje="heroe_repes" data-nombre="Cambiar 2 héroes repetidos" data-coste="0" data-tipo="heroe_repes" data-abrir="1" data-usos="1">Cambiar 2 repetidos</button>';
       var qe=queEs(x.tipo), img=(window.SG_IMG_RECOMPENSA||{})[x.nombre];
       return '<div class="card rec-card'+(tope?' agotada':'')+'">'
         +(img?'<div class="rec-foto"><img loading="lazy" src="assets/img/canje/'+esc(img)+'" alt=""></div>'
@@ -2136,7 +2140,7 @@
         })():'')
       +(motorNuevo()
         ? (abiertas?'<p class="small muted" style="margin-top:14px">Se canjea desde aquí mismo: no hay formulario que rellenar. Las subidas de nota quedan <b>pendientes</b> hasta que tu docente las apruebe.</p>':'')
-        : (abiertas&&d.formCanje?'<p style="margin-top:14px"><a class="btn primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🛸 Ir al Mercado Estelar</a></p>':'<p class="small muted" style="margin-top:14px">Aún no hay recompensas canjeables: sigue sumando xp.</p>'))
+        : (abiertas&&d.formCanje?'<p style="margin-top:14px"><a class="btn primary" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Ir al Mercado Estelar</a></p>':'<p class="small muted" style="margin-top:14px">Aún no hay recompensas canjeables: sigue sumando xp.</p>'))
       +'</section>';
   }
 
@@ -2245,11 +2249,11 @@
       +((t.mensajes||[]).length?'<ul class="zt-msgs">'+t.mensajes.map(function(m){
           var suyo=(m.de==='vendedor')===soyVende; return '<li class="'+(suyo?'mio':'suyo')+'"><b>'+esc(suyo?'Tú':otro.alias)+':</b> «'+esc(m.texto)+'»</li>'; }).join('')+'</ul>':'');
     var botones='';
-    if(toca && soyVende && t.paso===1) botones='<button class="btn primary" data-zt="aceptar" data-t="'+t.id+'">✅ Aceptar</button>'
-      +'<button class="btn" data-zt="contraofertar" data-t="'+t.id+'">↩️ Contraofertar</button>'
-      +'<button class="btn" data-zt="rechazar" data-t="'+t.id+'">✖️ Rechazar</button>';
-    else if(toca && !soyVende && t.paso===2) botones='<button class="btn primary" data-zt="aceptar" data-t="'+t.id+'">✅ Aceptar</button>'
-      +'<button class="btn" data-zt="rechazar" data-t="'+t.id+'">✖️ No, gracias</button>';
+    if(toca && soyVende && t.paso===1) botones='<button class="btn primary" data-zt="aceptar" data-t="'+t.id+'">Aceptar</button>'
+      +'<button class="btn" data-zt="contraofertar" data-t="'+t.id+'">Contraofertar</button>'
+      +'<button class="btn" data-zt="rechazar" data-t="'+t.id+'">Rechazar</button>';
+    else if(toca && !soyVende && t.paso===2) botones='<button class="btn primary" data-zt="aceptar" data-t="'+t.id+'">Aceptar</button>'
+      +'<button class="btn" data-zt="rechazar" data-t="'+t.id+'">No, gracias</button>';
     else if(t.estado==='abierto' && !soyVende && t.paso===1) botones='<button class="btn small" data-zt="retirar" data-t="'+t.id+'">Retirar mi oferta</button>';
     var estado = t.estado==='abierto' ? (toca?'<span class="chip wip">Te toca</span>':'<span class="chip">⏳ Esperando a '+esc(otro.alias)+'</span>')
                                       : '<span class="chip">'+(t.estado==='anulado'&&t.motivo==='sorteo'?'🎟️ Anulado: ya se sorteó':(ESTADO_TRATO[t.estado]||t.estado))+'</span>';
@@ -2285,10 +2289,10 @@
     var abiertos=z.tratos.filter(function(t){ return t.estado==='abierto' && pend.indexOf(t)<0; });
     return '<section class="zoco"><div class="eyebrow violet">Trueque entre reclutas</div><h2>El Zoco Estelar</h2>'
       +'<p class="lead">Pon tus héroes, cromos o participaciones del sorteo y los demás te ofrecen lo suyo: créditos, cartas o héroes. Lo que ofreces queda <b>apartado</b> hasta que te respondan, y cada trato se cierra en <b>3 pasos</b> como mucho.</p>'
-      +'<div class="zoco-barra"><button class="btn primary grande" id="z-poner" type="button">➕ Poner algo mío</button>'
+      +'<div class="zoco-barra"><button class="btn primary grande" id="z-poner" type="button">+ Poner algo mío</button>'
       +'<span class="small">Tienes <b>'+(r.creditos!=null?r.creditos:0)+' ◈</b>'+(apartado?' · <b>'+apartado+' ◈</b> apartados en tus ofertas':'')+'</span></div>'
       +(nov.length?'<h3 class="z-h">🆕 Novedades</h3><div class="zt-lista">'+nov.map(function(t){ return '<p class="zt-nov">'+fraseNovedad(t)+'</p>'+tarjetaTrato(t,z); }).join('')+'</div>':'')
-      +(pend.length?'<h3 class="z-h">🔔 Te toca responder</h3><div class="zt-lista">'+pend.map(function(t){ return tarjetaTrato(t,z); }).join('')+'</div>':'')
+      +(pend.length?'<h3 class="z-h">Te toca responder</h3><div class="zt-lista">'+pend.map(function(t){ return tarjetaTrato(t,z); }).join('')+'</div>':'')
       +'<h3 class="z-h">En el Zoco ahora <span class="small muted">'+otros.length+'</span></h3>'
       +(otros.length?'<div class="zc-grid">'+otros.map(function(a){ return tarjeta(a,false); }).join('')+'</div>'
                     :'<p class="small muted">Todavía nadie ha puesto nada. Sé el primero: pulsa «Poner algo mío».</p>')
@@ -3049,7 +3053,7 @@
       +'<p class="small muted">'+esc(NOMSERIE[c[2]]||('Serie '+c[2]))
       +(nn>1?' · tienes <b>'+nn+'</b>':'')+(mias.length>1?' · <b>'+(i+1)+'</b> de '+mias.length+' tuyas':'')+'</p>'
       // 13-sep · desde la ficha de la carta, al Zoco (Norberto: «al abrirse la ficha del ítem, un botón "Poner en venta"»)
-      +(abierto('zoco')&&motorNuevo()?'<button type="button" class="btn small lupa-zoco" id="lupa-zoco">🔄 Poner en el Zoco</button>':'')
+      +(abierto('zoco')&&motorNuevo()?'<button type="button" class="btn small lupa-zoco" id="lupa-zoco">Poner en el Zoco</button>':'')
       +'</div></div>';
     ov.classList.add('open');
     var lz=ov.querySelector('#lupa-zoco'); if(lz) lz.onclick=function(){ cerrarLupa(); zocoPonerVentana(per+'__cromo_'+clave); };
@@ -3279,7 +3283,7 @@
    */
   function panelTripulacion(id){
     if(!reflexionDe(id)||!motorNuevo()||enDemo()) return '';
-    return '<div class="rf-tripu" data-rftripu="'+esc(id)+'"><button type="button" class="btn min rf-ver" data-rfver="'+esc(id)+'" aria-expanded="false">💬 Lo que ha escrito tu tripulación</button>'
+    return '<div class="rf-tripu" data-rftripu="'+esc(id)+'"><button type="button" class="btn min rf-ver" data-rfver="'+esc(id)+'" aria-expanded="false">Lo que ha escrito tu tripulación</button>'
       +'<div class="rf-lista" hidden></div></div>';
   }
   function recluDeFicha(fid){
@@ -3311,7 +3315,7 @@
       +items.map(function(x){
         var r=recluDeFicha(x.fichaId), alias=(r&&r.alias)||'Un recluta', mia=x.fichaId===mioF;
         var us=enlacesDe(x.enlace||'').map(function(u,k){ var h=/^https?:\/\//i.test(u)?u:'https://'+u;
-          return '<a class="rf-enlace" href="'+esc(h)+'" target="_blank" rel="noopener noreferrer">🔗 '+(k?'Otro enlace':'Ver lo que hizo')+'</a>'; }).join(' ');
+          return '<a class="rf-enlace" href="'+esc(h)+'" target="_blank" rel="noopener noreferrer">'+(k?'Otro enlace':'Ver lo que hizo')+'</a>'; }).join(' ');
         var coms=c.coms.filter(function(m){ return m.reflexion===x.id; });
         return '<article class="rf-item'+(mia?' mia':'')+'">'
           +'<div class="rf-quien">'+caraRF(r)+'<b>'+esc(alias)+'</b>'+(mia?'<span class="chip ok">la tuya</span>':'')+'</div>'
@@ -3331,7 +3335,7 @@
   function abrirTripulacion(id, boton, forzar){
     var caja=boton&&boton.parentNode&&boton.parentNode.querySelector('.rf-lista'); if(!caja) return;
     st.rfAbierto=st.rfAbierto||{}; st.rfAbierto[id]=true;
-    caja.hidden=false; boton.setAttribute('aria-expanded','true'); boton.textContent='💬 Lo que ha escrito tu tripulación ▴';
+    caja.hidden=false; boton.setAttribute('aria-expanded','true'); boton.textContent='Lo que ha escrito tu tripulación ▴';
     var c=(st.rf||{})[id];
     if(!c) caja.innerHTML='<p class="small muted">Cargando…</p>';
     else pintarTripulacion(id, caja);
@@ -3342,7 +3346,7 @@
   document.addEventListener('click',function(ev){
     var b=ev.target&&ev.target.closest&&ev.target.closest('[data-rfver]');
     if(b){ var id=b.getAttribute('data-rfver'), caja=b.parentNode.querySelector('.rf-lista');
-      if(caja&&!caja.hidden){ caja.hidden=true; b.setAttribute('aria-expanded','false'); b.textContent='💬 Lo que ha escrito tu tripulación'; if(st.rfAbierto) delete st.rfAbierto[id]; return; }
+      if(caja&&!caja.hidden){ caja.hidden=true; b.setAttribute('aria-expanded','false'); b.textContent='Lo que ha escrito tu tripulación'; if(st.rfAbierto) delete st.rfAbierto[id]; return; }
       return abrirTripulacion(id, b); }
     var x=ev.target&&ev.target.closest&&ev.target.closest('[data-rfborrar]');
     if(x){ var reto=x.getAttribute('data-rfreto'); x.disabled=true;
@@ -3443,7 +3447,7 @@
       if(boton){ boton.disabled=true; boton.textContent='Comprobando…'; }
       SG_SECRETO.comprobar(id, escrita.value).then(function(ok){
         if(!ok){
-          if(boton){ boton.disabled=false; boton.textContent='✅ Lo he hecho'; }
+          if(boton){ boton.disabled=false; boton.textContent='✓ Lo he hecho'; }
           escrita.classList.add('falta'); escrita.focus();
           aviso('🕳️ <b>Esa no es la palabra que borró Vaeon.</b> Busca el enlace escondido en Vínculo y resuelve el enigma.', true);
           return;
@@ -3505,7 +3509,7 @@
       else aviso('✅ Reto <b>'+esc(id)+'</b> registrado. ¡Buen trabajo!');
       refrescarYCelebrar(antes, donde, 'reto');
     },function(e){
-      if(boton){ boton.disabled=false; boton.textContent='✅ Lo he hecho'; }
+      if(boton){ boton.disabled=false; boton.textContent='✓ Lo he hecho'; }
       if(window.SG&&SG.FIESTA) SG.FIESTA.sonar('error');
       aviso('No he podido registrarlo: '+esc(e), true);
     });
@@ -3848,7 +3852,7 @@
     return '<div class="mi-hacer"><p class="small muted">Se gana con <b>'+esc(t[1])+'</b> · +'+t[3]+' xp</p>'
       +campoReflexion(t[0],'mi-rf')
       +((window.SG_SECRETO&&SG_SECRETO.esSecreto(t[0]))||evidenciaDe(t[0])||reflexionDe(t[0])?campoEvidencia(t[0],'mi-ev'):'')
-      +'<button class="btn primary" type="button" id="mi-hecho" data-reto="'+esc(t[0])+'">✅ Lo he hecho</button></div>';
+      +'<button class="btn primary" type="button" id="mi-hecho" data-reto="'+esc(t[0])+'">✓ Lo he hecho</button></div>';
   };
   window.SG_BADGE_WIRE = function(clave, caja, cerrar){
     var b = caja.querySelector('#mi-hecho'); if(!b) return;
@@ -3926,8 +3930,8 @@
       // 🔴 13-sep · proyectada en la sesión, la semana es la de la clase y no se cambia: así no hay spoiler
       // por un despiste delante de todos. Para ensayar otra semana está «Mis enlaces → Tu Nave de Comandante».
       +(q.get('embed')==='1'?'<span class="sim-sem">Semana <b>'+s+'</b></span>':'<label class="sim-sem">Semana <select id="sim-sem">'+opciones+'</select></label>')
-      +'<button type="button" class="btn small" id="sim-pj">🎭 Mi personaje</button>'
-      +'<button type="button" class="btn small" id="sim-ll"'+(st.llamada?' disabled':'')+'>📣 Llamada a filas</button>'
+      +'<button type="button" class="btn small" id="sim-pj">Mi personaje</button>'
+      +'<button type="button" class="btn small" id="sim-ll"'+(st.llamada?' disabled':'')+'>Llamada a filas</button>'
       +(cap?'<button type="button" class="btn small primary" id="sim-cap" data-cap="'+cap.clave+'">▶ NEBULA · '+cap.icono+' '+esc(cap.titulo)+'</button>':'')
       +'<button type="button" class="btn small" id="sim-cero">↺ Empezar de cero</button>'
       +'</div>'

@@ -3379,13 +3379,14 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 sesión · el mensaje de la semana va justo después de la llamada a filas (antes del vídeo)", iMs > 0 && iMs === iLl + 1, JSON.stringify(titulos.slice(0, 5)));
       const irA = async (re) => dani.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return ${re}.test(x.title)})[0]; if(b){ b.click(); return true; } return false; })()`);
       await irA("/^El mensaje$/"); await dormir(900);
-      c("sesión · el mensaje, como la apertura de una saga: «Hace muy poco…», el logo y el texto subiendo",
-        await dani.hasta("!!document.querySelector('.foro-crawl.f1') && /Hace muy poco/.test(document.querySelector('.fc-intro').textContent)", 8));
-      c("sesión · sin enlaces ni la marca del grupo (en una proyección no se pulsan)",
-        await dani.js("(function(){ var t=document.querySelector('.fc-texto').textContent; return t.length>80 && !/https?:|id-del-PER|\\{/.test(t) && /Semana/.test(t); })()"));
+      // 17-sep · ya no imita a Star Wars (Norberto: «usa el logo de STARGATE»): el portal, el logo que se enciende y el mensaje en un panel
+      c("sesión · el mensaje, como la transmisión de la semana: el logo de STARGATE se enciende (y nada de «Hace muy poco…»)",
+        await dani.hasta("!!document.querySelector('.foro-crawl.fc-v2.f1') && /STARGATE/.test(document.querySelector('.fc-marca').textContent) && !document.querySelector('.fc-intro')", 8));
+      c("sesión · sin enlaces ni la marca del grupo (en una proyección no se pulsan), y con su semana",
+        await dani.js("(function(){ var t=document.querySelector('.fc-texto').textContent; return t.length>80 && !/https?:|id-del-PER|\\{/.test(t) && /Semana/.test(document.querySelector('.fc-lema').textContent); })()"));
       c("sesión · con su botón de música", await dani.js("!!document.querySelector('.fc-son')"));
       await dormir(5600);
-      c("sesión · y a los 6 s el texto ya sube", await dani.js("document.querySelector('.foro-crawl').classList.contains('f3')"));
+      c("sesión · y a los 6 s el mensaje ya está en su panel, a la vista", await dani.js("document.querySelector('.foro-crawl').classList.contains('f3') && getComputedStyle(document.querySelector('.fc-marco')).opacity>0.5"));
       await dani.foto(FOTOS + "/34-crawl.png");
       // las misiones de la semana pasada: sus entregas, a un clic
       if (sem) {

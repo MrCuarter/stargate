@@ -320,14 +320,18 @@
   function diaForo(s){
     var ps=foroParrafos(s.foro); if(!ps.length) return null;
     var pl=planeta(s.tema_n), titulo=(pl?pl[1]:s.tema)||'';
+    /**
+     * 17-sep · Norberto: «el mensaje de bienvenida no me convence: no tiene efecto Star Wars 3D. Usa el logo de STARGATE en
+     * vez de simular Star Wars». Ahora es la TRANSMISIÓN de la semana: el portal, el logo que se enciende en el centro y
+     * sube, y el mensaje en un panel que se lee sin perseguirlo.
+     */
     return {k:'foro', rot:'El mensaje', html:
-      '<div class="dia foro-crawl"><canvas class="fc-cielo" aria-hidden="true"></canvas>'
-      +'<p class="fc-intro">Hace muy poco, en una galaxia que la Estática iba apagando…</p>'
-      +'<div class="fc-logo" aria-hidden="true">STARGATE</div>'
-      +'<div class="fc-marco"><div class="fc-texto"><p class="fc-ep">Semana '+s.sem+'</p>'
+      '<div class="dia foro-crawl fc-v2"><div class="fc-fondo" aria-hidden="true"></div><canvas class="fc-cielo" aria-hidden="true"></canvas>'
+      +'<div class="fc-logo" aria-hidden="true"><span class="fc-marca">◈ STARGATE</span><span class="fc-lema">La Bitácora Estelar · Semana '+s.sem+'</span></div>'
+      +'<div class="fc-marco"><div class="fc-texto">'
       +(titulo?'<h2 class="fc-tit">'+esc(titulo)+'</h2>':'')
       +ps.map(function(x){ return '<p'+(/^—/.test(x)?' class="fc-firma"':'')+'>'+esc(x)+'</p>'; }).join('')
-      +'</div></div><button type="button" class="fc-son" title="La música">🔊</button></div>', montar: montarForo};
+      +'</div></div><button type="button" class="fc-son" title="La música">Música: sí</button></div>', montar: montarForo};
   }
   function cielo(cv){
     if(!cv||!cv.getContext) return;
@@ -343,14 +347,7 @@
     var dia=el.querySelector('.foro-crawl'); if(!dia) return null;
     var timers=[], audio=null, btn=dia.querySelector('.fc-son'), vivo=true;
     var quieto=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-    var marco=dia.querySelector('.fc-marco'), tx=dia.querySelector('.fc-texto');
-    var medir=function(){
-      cielo(dia.querySelector('.fc-cielo'));
-      var H=marco.offsetHeight||dia.offsetHeight||600, h=tx.offsetHeight||800;
-      tx.style.setProperty('--desde', H+'px'); tx.style.setProperty('--hasta', (-h-60)+'px');
-      // unos 34 px por segundo: se lee sin prisa, y nunca más largo que la música
-      tx.style.setProperty('--dur', Math.max(38, Math.min(72, Math.round((H+h)/34)))+'s');
-    };
+    var medir=function(){ cielo(dia.querySelector('.fc-cielo')); };
     medir(); window.addEventListener('resize', medir);
     var volumen=function(hasta, ms, fin){
       if(!audio) return; var desde=audio.volume, t0=Date.now();
@@ -362,20 +359,20 @@
       if(!vivo||audio) return;
       audio=new Audio(MUSICA+(window.SG_IMGV||'')); audio.volume=0;
       var pr=audio.play();
-      if(pr&&pr.then) pr.then(function(){ volumen(.85, 1200); btn.textContent='🔊'; })
-        .catch(function(){ audio=null; btn.textContent='🔈 Música'; btn.classList.add('pide'); });
+      if(pr&&pr.then) pr.then(function(){ volumen(.85, 1200); btn.textContent='Música: sí'; })
+        .catch(function(){ audio=null; btn.textContent='Poner la música'; btn.classList.add('pide'); });
       else volumen(.85, 1200);
     };
     btn.onclick=function(ev){
       ev.stopPropagation();
       if(!audio){ btn.classList.remove('pide'); return sonar(); }
-      audio.muted=!audio.muted; btn.textContent=audio.muted?'🔇':'🔊';
+      audio.muted=!audio.muted; btn.textContent=audio.muted?'Música: no':'Música: sí';
     };
     if(quieto){ dia.classList.add('quieto'); sonar(); }
     else {
-      timers.push(setTimeout(function(){ dia.classList.add('f1'); }, 60));      // «Hace muy poco…»
-      timers.push(setTimeout(function(){ dia.classList.add('f2'); sonar(); }, 4300));   // el logo, y la música
-      timers.push(setTimeout(function(){ dia.classList.add('f3'); }, 5800));   // el mensaje, subiendo
+      timers.push(setTimeout(function(){ dia.classList.add('f1'); sonar(); }, 60));   // el portal y el logo que se enciende, con la música
+      timers.push(setTimeout(function(){ dia.classList.add('f2'); }, 3600));          // el logo sube a su sitio
+      timers.push(setTimeout(function(){ dia.classList.add('f3'); }, 4500));          // y aparece el mensaje
     }
     return function(){
       vivo=false; timers.forEach(clearTimeout); window.removeEventListener('resize', medir);
@@ -926,7 +923,15 @@
     if(st.per) d.push(diaLlamada());
     var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
     deTipo('inicio').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 Para empezar')); });
-    [diaAnteriores(s)].concat(diasReflexion(s), [diaMovido(), diaSemanal(), diaTop(), diaColeccion(s), diaSimulador(s), diaVotacion(s), diaEscuadrones(), diaTicket(), diaOferta()])
+    /**
+     * 17-sep · LA SESIÓN CRECE CON LO QUE SE DESBLOQUEA (Norberto: «la primera semana debería ser más sencilla; no hace falta
+     * ranking, coleccionista… no ha habido tiempo. En la primera y segunda no queremos agobiar»). «Han movido ficha», desde la
+     * semana 2 (ya hay una semana hecha); podio, top 5 y escuadrones, cuando los Rankings (c2) llevan una semana abiertos;
+     * coleccionistas, cuando los héroes (c3) llevan una semana; la oferta, con su capítulo (c10).
+     */
+    var sem=Number(s.sem)||1, yaRank=capituloEn('c2', sem-1), yaColec=capituloEn('c3', sem-1), yaOferta=capituloEn('c10', sem);
+    [diaAnteriores(s)].concat(diasReflexion(s), [sem>=2?diaMovido():null, yaRank?diaSemanal():null, yaRank?diaTop():null, yaColec?diaColeccion(s):null,
+      diaSimulador(s), diaVotacion(s), yaRank?diaEscuadrones():null, diaTicket(), yaOferta?diaOferta():null])
       .forEach(function(x){ if(x) d.push(x); });
     d=d.concat(diapositivasNuevas(s));
     d.forEach(function(x){ x.t='ap'; });     // todo lo de arriba es APERTURA
@@ -1066,9 +1071,17 @@
     return '<div class="prep">'
       +'<div class="prep-cab"><div><div class="eyebrow violet">Solo para ti · no se proyecta</div>'
       +'<h3>Antes de empezar</h3></div>'
-      +'<div class="prep-b"><a class="btn min bz-acceso" href="buzon.html?desde=sesion&per='+encodeURIComponent(st.per||'')+'" target="_blank" rel="noopener">📡 ¿Dudas? ¿Algo falla?</a> '
+      +'<div class="prep-b"><a class="btn min bz-acceso" href="buzon.html?desde=sesion&per='+encodeURIComponent(st.per||'')+'" target="_blank" rel="noopener">¿Dudas? ¿Algo falla?</a> '
       +'<button type="button" class="btn" data-ses-ventana title="Sin la web alrededor: solo la presentación">⧉ En una ventana aparte</button> '
       +'<button type="button" class="btn primary" id="proyectar">▶ Proyectar la sesión</button></div></div>'
+      /**
+       * 17-sep · Norberto: «en la página de la sesión echo en falta un botón para copiar el código HTML directamente». Los
+       * mismos tres que la consola (apertura y cierre, que se pegan antes y después de tu presentación, y la entera), sin
+       * grupo dentro: se deduce de quién la abre.
+       */
+      +'<p class="ses-copiar"><span class="small muted">Código de inserción para tu Genially:</span> '
+        +[['apertura','1 · Apertura'],['cierre','3 · Cierre'],['','La sesión entera']].map(function(x){
+          return '<button type="button" class="btn min" data-copiar-ses="'+x[0]+'">&lt;/&gt; '+x[1]+'</button>'; }).join(' ')+'</p>'
       +(s.consejo?'<div class="card consejo"><b>El consejo del Capitán.</b> '+esc(s.consejo)+'</div>':'')
       +(s.clases?'<p class="small muted">'+esc(s.clases)+'</p>':'')
       +(s.foro?'<details class="foro-det"><summary>El mensaje de esta semana para el foro de la plataforma de UNIR (para copiar)</summary>'
@@ -1183,6 +1196,16 @@
     Array.prototype.forEach.call(root.querySelectorAll('[data-ses-ventana]'),function(b){ b.onclick=function(){ abrirEnVentana(); }; });
     Array.prototype.forEach.call(root.querySelectorAll('#ses-tramos .tr'),function(b){
       b.onclick=function(){ if(!b.disabled) irATramo(b.getAttribute('data-t')); };
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-copiar-ses]'),function(bt){
+      bt.onclick=function(){
+        var tr=bt.getAttribute('data-copiar-ses'), ruta='sesion.html?embed=1'+(tr?'&tramo='+tr:''), tit='STARGATE · '+bt.textContent.replace(/^<\/>\s*/,'');
+        var M=window.SG&&window.SG.MOTOR, cod=M&&M.codigoGenially?M.codigoGenially(ruta,tit)
+          :'<iframe src="'+location.origin+'/'+ruta+'" width="1200" height="675" style="border:0;width:100%;height:100%" allow="fullscreen; clipboard-write; autoplay; encrypted-media" allowfullscreen title="'+tit+'"></iframe>';
+        var ant=bt.innerHTML;
+        try{ navigator.clipboard.writeText(cod).then(function(){ bt.textContent='✓ Copiado'; setTimeout(function(){ bt.innerHTML=ant; },1800); }); }
+        catch(e){ bt.textContent='No se ha podido copiar'; }
+      };
     });
     var cp=root.querySelector('#copiarForo');
     if(cp) cp.onclick=function(){

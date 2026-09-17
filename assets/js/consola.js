@@ -2660,8 +2660,8 @@
       esc(S.cierreCanje || "—") + ' <button class="btn min" data-tab="calendario" type="button">📅 Cambiar en Calendario</button></p>' +
       '<label>Padlet de la clase<input id="s-padlet" value="' + esc(S.padlet || "") + '"></label>' +
       '<label>Ticket de salida <i>(formulario de Google, anónimo)</i><input id="s-ticket" value="' + esc(S.ticket || "") + '"></label>' +
-      '<label>Panel de control (ver)<input id="s-panel" value="' + esc(S.panelVer || "") + '"></label>' +
-      '<label>Panel de control (editar)<input id="s-paneled" value="' + esc(P.panelEdit || "") + '"></label>' +
+      '<label>Panel de control (ver)<input id="s-panel" value="' + esc(S.panelVer || window.SG_PANEL_MAESTRO || "") + '"></label>' +
+      '<label>Panel de control (editar)<input id="s-paneled" value="' + esc(P.panelEdit || window.SG_PANEL_MAESTRO_EDICION || "") + '"></label>' +
       '<p><button class="btn" id="s-guardar">Guardar</button></p></div>' +
       // 🔴 Dos listas separadas, y a propósito. Los de arriba llevan el grupo dentro: uno por
       // grupo y por convocatoria. Los de abajo NO llevan grupo — se deduce de quién pulsa — así que

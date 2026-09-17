@@ -3841,6 +3841,12 @@ html:has(body.embed.embed-caja){background:transparent;color-scheme:normal}
 body.embed.embed-caja{background:transparent}
 body.embed.embed-caja section,body.embed.embed-caja .wrap{background:transparent}
 body.embed.embed-caja .hv{min-height:0;padding:8px 0}
+/* 17-sep · Norberto: «en el embed aparece una línea negra horizontal en la parte inferior, elimínala; reduce al máximo el
+   radio de la sombra». La línea era el borde de abajo de toda <section> (y la sombra de 70 px se cortaba en el iframe). */
+body.embed section{border-bottom:0}
+body.embed.embed-caja .hv-caja{box-shadow:0 1px 3px rgba(0,0,0,.35)}
+body.embed.embed-caja .hv-caja.gana{box-shadow:0 0 0 1px rgba(255,209,102,.35),0 1px 3px rgba(0,0,0,.35)}
+body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 
 /* ================================================================== 15-sep · «QUÉ HAY QUE HACER, EXPLICADO» CON LA TARJETA DE
    LA SEMANA (Norberto: «muy fea, no hay imágenes, no se ve la insignia… y compacta un poco más la tarjeta»). */
@@ -4338,3 +4344,83 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
 .sr-estados .chip,.of-grupos .chip{text-decoration:none}
 .chip.of-comun{border-color:var(--teal);color:#bff4f8}
 .sr-f-nota{grid-column:1/-1;margin:2px 0}
+
+/* 17-sep · LOS RETOS EN FILAS (Norberto: «me gustaría la visualización de mis retos en filas, en vez de columnas; así también
+   podríamos ver las insignias más grandes»). Una tarjeta por fila, en «Mis retos» y en la semana de «Mi nave». */
+.rs-grid,.rs-grid.par{grid-template-columns:1fr}
+.rs-cols{grid-template-columns:1fr 176px;gap:18px}
+.rs-trofeo img{max-width:156px}
+.rs-der:has(.rs-trofeo + .rs-trofeo){flex-direction:row;justify-content:center}
+.rs-der:has(.rs-trofeo + .rs-trofeo) .rs-trofeo img{max-width:84px}
+@media(max-width:560px){.rs-cols{grid-template-columns:1fr 104px;gap:10px}.rs-trofeo img{max-width:96px}}
+
+/* 17-sep · EL MENÚ DE LA NAVE, CON BOTONES SÓLIDOS E ICONOS PROPIOS (Norberto: «botones más sólidos con iconos dedicados,
+   generados con Magnific siguiendo la estética de la narrativa»). Cada pestaña es un botón de panel con su icono; la
+   activa, con el borde turquesa encendido. Sin subrayado. */
+.nave-barra-u{height:62px}
+.nb-tabs{gap:6px;align-items:center}
+.nb-t{height:44px;padding:0 13px 0 7px;gap:8px;border-radius:11px;border:1px solid #24344c;color:#cfe0ec;font-weight:600;
+  background:linear-gradient(180deg,#15263a,#0e1828);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.nb-t::after{display:none}
+.nb-t .i{width:30px;height:30px;object-fit:contain;display:block;flex:0 0 auto}
+.nb-t:hover{color:#fff;border-color:#2f5a70;background:linear-gradient(180deg,#183049,#10203a)}
+.nb-t:hover .i{transform:translateY(-1px) scale(1.08);filter:drop-shadow(0 0 6px rgba(55,224,236,.55))}
+.nb-t.on{color:#fff;border-color:var(--teal);background:linear-gradient(180deg,#113846,#0c2432);
+  box-shadow:inset 0 0 0 1px rgba(55,224,236,.18),0 0 12px rgba(55,224,236,.18)}
+.nb-t.on .i{filter:drop-shadow(0 0 7px rgba(55,224,236,.6))}
+.nb-mas{width:44px;height:44px;padding:5px;border-radius:11px;border-color:#24344c;background:linear-gradient(180deg,#15263a,#0e1828)}
+.nb-mas .i{width:32px;height:32px;object-fit:contain;display:block}
+.nb-menu{top:58px}
+@media(max-width:760px){
+  .nave-barra-u{height:58px}
+  .nb-tabs{gap:4px}
+  .nb-t{height:42px;width:42px;padding:0;justify-content:center}
+  .nb-t .i{width:30px;height:30px}
+  .nb-mas{width:40px;height:40px;padding:4px}
+}
+/* en un móvil de 375 px caben las seis pestañas y el «···» si cada botón mide 30 px (la cuenta de arriba, 12-sep) */
+@media(max-width:420px){
+  .nb-tabs{gap:2px}
+  .nb-t{height:34px;width:30px;border-radius:8px}
+  .nb-t .i{width:24px;height:24px}
+  .nb-mas{width:32px;height:32px;padding:3px;border-radius:8px}
+  .nb-mas .i{width:24px;height:24px}
+}
+.ses-copiar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 0}
+
+/* 17-sep · LA TRANSMISIÓN DE LA SEMANA (sustituye al «crawl» de Star Wars). Norberto: «no tiene efecto Star Wars 3D; usa
+   el logo de STARGATE en vez de simular Star Wars». El portal de fondo, el logo que se enciende en el centro y sube, y el
+   mensaje en un panel que se lee sin perseguirlo. Con «reducir movimiento», todo quieto desde el principio. */
+.dia.foro-crawl.fc-v2{perspective:none;background:#02060d}
+.foro-crawl.fc-v2 .fc-fondo{position:absolute;inset:-4%;background:url(../img/nave/portal_stargate.jpg) center/cover no-repeat;opacity:.5;animation:fc-acerca 45s ease-out both}
+@keyframes fc-acerca{from{transform:scale(1.02)}to{transform:scale(1.14)}}
+.foro-crawl.fc-v2 .fc-cielo{opacity:.45}
+.foro-crawl.fc-v2 .fc-logo{top:50%;display:flex;flex-direction:column;align-items:center;gap:.35em;color:#eafcff;-webkit-text-stroke:0;text-shadow:none;
+  font-size:inherit;opacity:0;transform:translateY(-50%);transform-origin:50% 0;z-index:2}
+.foro-crawl.fc-v2 .fc-marca{font-family:'Unbounded',sans-serif;font-weight:800;letter-spacing:.08em;line-height:1;font-size:clamp(40px,8vw,140px);
+  color:#eafcff;text-shadow:0 0 30px rgba(55,224,236,.7),0 0 3px #37e0ec}
+.foro-crawl.fc-v2 .fc-lema{font-size:clamp(15px,1.7vw,26px);letter-spacing:.22em;text-transform:uppercase;color:#f5b043;font-weight:700}
+.foro-crawl.fc-v2.f1 .fc-logo{animation:fc-enciende 1.8s ease-out both}
+@keyframes fc-enciende{0%{opacity:0;filter:blur(14px);transform:translateY(-50%) scale(.9)}60%{opacity:1;filter:blur(0)}100%{opacity:1;transform:translateY(-50%) scale(1)}}
+.foro-crawl.fc-v2.f2 .fc-logo{animation:fc-arriba 1s cubic-bezier(.3,.8,.3,1) both}
+@keyframes fc-arriba{from{opacity:1;top:50%;transform:translateY(-50%) scale(1)}to{opacity:1;top:11%;transform:translateY(0) scale(.4)}}
+.foro-crawl.fc-v2 .fc-marco{inset:auto;left:50%;top:31%;bottom:7%;width:min(1100px,86%);scrollbar-width:thin;scrollbar-color:rgba(55,224,236,.45) transparent;transform:translateX(-50%);-webkit-mask-image:none;mask-image:none;
+  pointer-events:auto;opacity:0;overflow:auto;background:rgba(6,14,24,.74);border:1px solid rgba(55,224,236,.35);border-radius:18px;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);padding:3.2% 3.2%;z-index:1}
+.foro-crawl.fc-v2.f3 .fc-marco{animation:fc-panel .9s ease-out both}
+@keyframes fc-panel{from{opacity:0;transform:translate(-50%,24px)}to{opacity:1;transform:translate(-50%,0)}}
+.foro-crawl.fc-v2 .fc-texto{position:static;transform:none;visibility:visible;animation:none;color:#e6f2fa;font-weight:500;
+  font-size:clamp(18px,2.1vw,34px);line-height:1.45;text-align:left;hyphens:manual}
+.foro-crawl.fc-v2 .fc-texto .fc-tit{color:#f5b043;font-size:1.2em;letter-spacing:.05em;margin:0 0 .6em;text-align:left}
+.foro-crawl.fc-v2 .fc-texto .fc-firma{color:#9fd9e6;text-align:right}
+.foro-crawl.fc-v2.quieto .fc-logo{display:flex;opacity:1;top:11%;transform:scale(.4)}
+.foro-crawl.fc-v2.quieto .fc-marco{opacity:1}
+.foro-crawl.fc-v2 .fc-son{font-size:14px}
+@media (prefers-reduced-motion:reduce){.foro-crawl.fc-v2 .fc-fondo{animation:none}}
+/* la entrada de cada diapositiva (.dia.entra > *) pisaba las fases de la transmisión: aquí mandan las suyas */
+.dia.foro-crawl.fc-v2.entra > *{animation:none}
+.dia.foro-crawl.fc-v2.entra > .fc-fondo{animation:fc-acerca 45s ease-out both}
+.dia.foro-crawl.fc-v2.f1 > .fc-logo{animation:fc-enciende 1.8s ease-out both}
+.dia.foro-crawl.fc-v2.f2 > .fc-logo{animation:fc-arriba 1s cubic-bezier(.3,.8,.3,1) both}
+.dia.foro-crawl.fc-v2.f3 > .fc-marco{animation:fc-panel .9s ease-out both}
+@media (prefers-reduced-motion:reduce){.dia.foro-crawl.fc-v2.entra > .fc-fondo{animation:none}}

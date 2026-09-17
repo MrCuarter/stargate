@@ -90,8 +90,9 @@
        * Comandante, así que cada respuesta llega ya etiquetada. Crear un grupo no obliga a tocar el
        * formulario, ni a añadirle una opción, ni a mirarlo siquiera.
        */
-      '<label>Panel de control (ver)<input id="f-panel" placeholder="https://view.genially.com/…" autocomplete="off"></label>' +
-      '<label>Panel de control (editar)<input id="f-paneled" placeholder="https://app.genially.com/editor/…" autocomplete="off"></label>' +
+      // 17-sep · ya escritos: el panel de siempre (Norberto: «que por defecto salga ya escrito»)
+      '<label>Panel de control (ver)<input id="f-panel" value="' + esc(window.SG_PANEL_MAESTRO || "") + '" placeholder="https://view.genially.com/…" autocomplete="off"></label>' +
+      '<label>Panel de control (editar)<input id="f-paneled" value="' + esc(window.SG_PANEL_MAESTRO_EDICION || "") + '" placeholder="https://app.genially.com/editor/…" autocomplete="off"></label>' +
       '<p class="small muted">Si no pones ninguno, el grupo usa el panel oficial. Cada docente puede ' +
       'tener además el suyo propio, abajo.<br>El <b>ticket de salida</b> se pone solo: es el mismo ' +
       'formulario para todos los grupos y todos los años, y el enlace de este grupo ya lleva dentro ' +

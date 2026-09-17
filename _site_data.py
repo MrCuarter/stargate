@@ -1699,8 +1699,8 @@ ESCUADRONES = [
 # pronuncian en español y ninguno pisa un nombre que STARGATE ya usa para otra cosa — un planeta o
 # un escuadrón de alias confundiría el tablero.
 #
-# 🔴 No son obligatorios ni exclusivos: el campo se sigue pudiendo escribir a mano, y dos personas
-# pueden repetir alias (el sistema identifica por cuenta, no por alias).
+# 🔴 No son obligatorios: el campo se sigue pudiendo escribir a mano. Los alias son ÚNICOS en cada grupo (stargate_alias).
+# 17-sep · el dado propone DOS nombres combinados («Vega Altair»), no uno (alistarse.js).
 ALIAS_SUGERIDOS = [
     "Vega", "Rigel", "Altair", "Sirio", "Antares", "Deneb", "Mizar", "Alcor", "Arturo", "Capella",
     "Bellatrix", "Aldebarán", "Procyon", "Canopus", "Spica", "Pollux", "Castor", "Regulus",
@@ -1777,6 +1777,9 @@ TICKETS_API = ("https://script.google.com/macros/s/"
 # suyo propio)… ellos solo pondrán el link». Orden: el propio del docente («Mis enlaces») → el
 # oficial del grupo («Ajustes») → este. Se enseña en un iframe: basta el enlace.
 PANEL_MAESTRO = "https://view.genially.com/6a8bfc4f5068ad5903fc39e3"
+# 17-sep · Norberto: «por defecto, el panel de control de Genially quiero que sea siempre el mismo, que salga ya escrito» (tanto
+# el de edición como el de visualización). Al crear un grupo y en sus Ajustes, estos dos van ya puestos.
+PANEL_MAESTRO_EDICION = "https://app.genially.com/editor/6a8bfc4f5068ad5903fc39e3"
 
 TICKET_URL = ("https://docs.google.com/forms/d/e/"
               "1FAIpQLScqkZRCiUqKkq24s7_yzy2d2ldHXlWz8GoHCqXXmHbQlgKhIQ/viewform"
