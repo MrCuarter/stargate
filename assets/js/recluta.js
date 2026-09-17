@@ -1410,9 +1410,26 @@
   }
   function siguienteRegalo(){
     if(st.abriendoRegalo||!(st.colaRegalos||[]).length) return;
+    st.abriendoRegalo=true;
+    /**
+     * 🔴 17-sep · EL REGALO ESPERA SU TURNO. Lo pilló el laboratorio: si el regalo del Comandante llega
+     * mientras el recluta está abriendo un sobre del Mercado, SOBRE.revelar se lleva por delante la ventana
+     * que hubiera y se queda sin ver sus cartas (se las ha quedado, pero no las ha visto).
+     * Espera solo a las ventanas que SE PISARÍAN, no a la visita guiada: esa no se destruye (se queda
+     * debajo) y puede durar minutos; si esperásemos a ella, el regalo no llegaría nunca.
+     */
+    cuandoNoHayaVentana(abrirEsteRegalo);
+  }
+  function ventanaDeCartas(){ return !!document.querySelector('.sb-capa, .neb-capa, #nave-logro.open, #cromo-lupa.open, .zoco-capa'); }
+  function cuandoNoHayaVentana(fn, t0){
+    t0=t0||Date.now();
+    if(!ventanaDeCartas()||Date.now()-t0>120000) return fn();
+    setTimeout(function(){ cuandoNoHayaVentana(fn,t0); }, 700);
+  }
+  function abrirEsteRegalo(){
+    if(!(st.colaRegalos||[]).length){ st.abriendoRegalo=false; return; }
     var x=st.colaRegalos.shift(), g=(x.stargate&&x.stargate.regalo)||{}, de=(x.stargate&&x.stargate.de)||'';
     var M=window.SG&&window.SG.MOTOR;
-    st.abriendoRegalo=true;
     var hecho=function(){ st.abriendoRegalo=false; if(M&&M.mensajeLeido) M.mensajeLeido(x.id).catch(function(){}); refrescarYo(); setTimeout(siguienteRegalo, 400); };
     var tit='El regalo de tu Comandante'+(de?' · '+de:'');
     var piezas=(g.piezas||[]).filter(function(p){ return p.tipo==='cromo'||p.tipo==='heroe'; });

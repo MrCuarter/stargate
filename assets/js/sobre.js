@@ -53,11 +53,28 @@
   }
   var teclas = null;
 
+  function enCola(lista, opts, t0) {
+    return new Promise(function (res) {
+      var t = setInterval(function () {
+        if (capa && Date.now() - t0 < 120000) return;
+        clearInterval(t);
+        if (capa) { try { capa.parentNode.removeChild(capa); } catch (e) {} capa = null; }
+        res(revelar(lista, opts));
+      }, 300);
+    });
+  }
+
   function revelar(lista, opts) {
     opts = opts || {};
     var cartas = (lista || []).map(normaliza).filter(function (c) { return c && c.clave; });
     if (!cartas.length) return Promise.resolve();
-    if (capa) { try { capa.parentNode.removeChild(capa); } catch (e) {} capa = null; }
+    /**
+     * 🔴 17-sep · UNA VENTANA NO SE PISA A OTRA. Hasta hoy, un segundo sobre borraba el que estuviera abierto:
+     * el recluta se quedaba a medias (las cartas eran suyas, pero no llegaba a verlas). Lo pilló el laboratorio
+     * con el regalo del Comandante cayendo encima de un sobre del Mercado. Ahora el segundo ESPERA su turno.
+     * El tope de dos minutos es por si algo dejara la ventana colgada: antes que perder el sobre, se pisa.
+     */
+    if (capa) return enCola(lista, opts, Date.now());
     var quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     return new Promise(function (resolver) {

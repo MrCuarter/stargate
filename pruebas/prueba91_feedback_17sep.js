@@ -13,7 +13,7 @@ let ok = 0; const fallos = [];
 function c(cierto, nombre, detalle) { if (cierto) { ok++; return; } fallos.push(nombre + (detalle ? " — " + detalle : "")); }
 const leer = f => fs.readFileSync(path.join(RAIZ, f), "utf8");
 const DATOS = leer("_site_data.py"), CREAR = leer("assets/js/crear.js"), CONSOLA = leer("assets/js/consola.js");
-const ALIST = leer("assets/js/alistarse.js"), CSS = leer("assets/css/stargate.css"), NAVE = leer("assets/js/recluta.js"), SES = leer("assets/js/sesion.js");
+const SOBRE = leer("assets/js/sobre.js"), ALIST = leer("assets/js/alistarse.js"), CSS = leer("assets/css/stargate.css"), NAVE = leer("assets/js/recluta.js"), SES = leer("assets/js/sesion.js");
 
 // 1 · el panel de control de siempre, ya escrito
 c(/PANEL_MAESTRO = "https:\/\/view\.genially\.com\/6a8bfc4f5068ad5903fc39e3"/.test(DATOS) &&
@@ -68,6 +68,10 @@ c(/accion: "regalo", de: nombreDocente\(\), regalo: regalo/.test(AULA) && /avisa
 c(/if \(regalo\) sg\.regalo = \{/.test(MOTOR), "   con lo ganado dentro (motor.avisarRecluta)");
 c(/function abrirRegalos\(L\)/.test(NAVE) && /SG\.SOBRE\.revelar\(piezas/.test(NAVE) && /M\.mensajeLeido\(x\.id\)/.test(NAVE) && /abrirRegalos\(todos\.filter/.test(NAVE),
   "🔴 Nave · el regalo se abre solo (sobre o cartel), en directo o al entrar, y queda como visto");
+c(/function enCola\(lista, opts, t0\)/.test(SOBRE) && /if \(capa\) return enCola\(lista, opts, Date\.now\(\)\);/.test(SOBRE),
+  "🔴 una ventana de cartas NO pisa a otra: la segunda espera su turno (el regalo caía encima del sobre del Mercado)");
+c(/function ventanaDeCartas\(\)/.test(NAVE) && /cuandoNoHayaVentana\(abrirEsteRegalo\)/.test(NAVE) && !/\.tour\.open/.test(NAVE.slice(NAVE.indexOf("function ventanaDeCartas"), NAVE.indexOf("function ventanaDeCartas") + 400)),
+  "   y el regalo espera a las ventanas, no a la visita guiada (que no se destruye y dura minutos)");
 
 console.log("\n  Batería 91 · el feedback del 17-sep (noche), primera tanda");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");

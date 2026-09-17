@@ -29,6 +29,19 @@ const REG = {};   // cifras que se apuntan para el informe
   const vivas = [];
   const nueva = async n => { const p = await persona(n); vivas.push(p); return p; };
   /**
+   * 17-sep · CERRAR UN SOBRE COMO LO CERRARÍA UNA PERSONA. Quitarlo del DOM a lo bruto dejaba el aviso del regalo SIN
+   * LEER: volvía a saltar tres secciones más tarde, encima de otra cosa. Así se descubrió que una ventana pisaba a la
+   * otra. Aquí se pulsa hasta el final (girar, siguiente… y «Seguir»), que es lo que hace el alumnado.
+   */
+  const cerrarSobre = async p => {
+    for (let k = 0; k < 14; k++) {
+      if (!(await p.js("!!document.querySelector('.sb-capa')"))) break;
+      await p.js("var b=document.querySelector('.sb-fin')||document.querySelector('.sb-sig'); b&&b.click(); 1");
+      await dormir(450);
+    }
+    await p.js("var o=document.getElementById('nave-logro'); if(o){o.classList.remove('open');o.innerHTML='';} 1");
+  };
+  /**
    * 17-sep · LOS PREMIOS POR ENLACE, CON LA PANTALLA NUEVA. Se crean con la ventana visual, se guardan solos y su enlace
    * lleva el código secreto. Norberto lo probó con la de antes y le dejó reclamar antes de hora un premio que no era:
    * sus cambios no se habían guardado y la pantalla decía lo contrario. Estos ayudantes hacen lo que haría una persona.
@@ -350,7 +363,7 @@ const REG = {};   // cifras que se apuntan para el informe
         fBeto.coins + " → " + fBeto2.coins + " · " + await rita.js("(document.getElementById('au-pmsg')||{}).textContent||''"));
       // a varios: Todos → +25 xp
       // (la Nave de Ana, limpia de lo que le saltara al fichar: lo siguiente tiene que saltarle SOLO)
-      await ana.js("document.querySelectorAll('.sb-capa').forEach(function(x){x.remove()}); var o=document.getElementById('nave-logro'); if(o){o.classList.remove('open');o.innerHTML='';} 1");
+      await cerrarSobre(ana);
       const a0 = await fichaDe("ana@lab.test", "lab-clase"), b0 = await fichaDe("beto@lab.test", "lab-clase");
       await rita.js("document.getElementById('au-todos').click(); 1");
       c("premiar · «Todos» elige a los dos", /Para 2/.test(await rita.js("document.getElementById('au-para').textContent")));
@@ -372,9 +385,10 @@ const REG = {};   // cifras que se apuntan para el informe
       await dormir(1500);
       const avisosAna = (await consultar("notifications", "userId", a2._uid)).filter(n => n.stargate && n.stargate.accion === "regalo");
       c("🔴 premiar · a Ana le salta en su Nave SIN RECARGAR: el «+25 xp» y, al cerrarlo, el sobre con su héroe",
-        vioXp && vioHeroe && avisosAna.length >= 2, JSON.stringify({ vioXp, vioHeroe, avisos: avisosAna.length }));
+        vioXp && vioHeroe && avisosAna.length >= 2, JSON.stringify({ vioXp, vioHeroe, avisos: avisosAna.length,
+          bloqueo: await ana.js("(function(){var e=document.querySelector('#nave-logro.open, .neb-capa, .sb-capa, #cromo-lupa.open, .zoco-capa, .tour.open'); return e?((e.id||'')+'.'+e.className):'nada';})()") }));
       c("premiar · el aviso del «+25 xp» queda como visto (no vuelve a saltar al entrar)", avisosAna.some(n => n.read === true && n.stargate.regalo && n.stargate.regalo.xp === 25));
-      await ana.js("document.querySelectorAll('.sb-capa').forEach(function(x){x.remove()}); 1");
+      await cerrarSobre(ana);
       // un héroe elegido, solo a Beto
       await rita.js("document.getElementById('au-nadie').click(); 1"); await tocar("Bólido");
       await rita.js("document.querySelector('.au-pr[data-k=heroe_el]').click(); var s=document.getElementById('au-heroe'); s.value='H05_eco'; s.dispatchEvent(new Event('change')); 1");
@@ -542,7 +556,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await ana.js("var c=document.querySelector('.neb-capa'); [].slice.call(c.querySelectorAll('button')).filter(function(x){return /canjear/i.test(x.textContent)})[0].click(); 1");
       const sale = await ana.hasta("!!document.querySelector('.sb-capa .sb-carta')", 25);
       c("sobre · al canjear, sale la primera carta BOCA ABAJO", sale && !(await ana.js("document.querySelector('.sb-carta').classList.contains('girada')")));
-      c("sobre · y dice cuántas vienen (tres puntos)", (await ana.js("document.querySelectorAll('.sb-puntos i').length")) === 3);
+      c("sobre · y dice cuántas vienen (tres puntos)", (await ana.js("document.querySelectorAll('.sb-puntos i').length")) === 3,
+        await ana.js("(function(){var c=document.querySelector('.sb-capa'); return c? c.className+' · '+c.innerHTML.slice(0,400) : 'SIN CAPA';})()"));
       await ana.foto(FOTOS + "/8a-sobre-boca-abajo.png");
       const vistas = [];
       for (let k = 0; k < 3; k++) {
@@ -3452,9 +3467,13 @@ const REG = {};   // cifras que se apuntan para el informe
       const ana = await nueva("Ana entra por la sesión");
       await ana.ir("entrar.html"); await ana.entrarComo("ana@lab.test", "Ana Nueva");
       await ana.ir("sesion.html?embed=1");
-      c("🔴 embed · una estudiante que entra por la sesión va directa a SU Nave (sin la cabecera)",
-        await ana.hasta("location.pathname.indexOf('recluta.html')>=0 && /per=lab-clase/.test(location.search) && /embed=1/.test(location.search)", 30), await ana.js("location.href"));
+      // 🔴 17-sep · CAMBIO DE CRITERIO DE NORBERTO: «si un estudiante abre ese embed o tiene ese enlace, que detecte que
+      // es un estudiante y le deje también visualizarlo». Antes se le echaba a su Nave; ahora VE la sesión, sin los mandos
+      // del docente (no puede emitir en directo), y desde ahí ficha, vota y responde.
+      c("🔴 embed · una estudiante que abre la sesión LA VE, sin los mandos del docente",
+        await ana.hasta("location.pathname.indexOf('sesion.html')>=0 && !!document.querySelector('.dia') && !document.getElementById('ses-directo')", 30), await ana.js("location.href"));
       // su Nave: insignias por temas y el «+» del segundo enlace
+      await ana.ir("recluta.html?per=lab-clase");
       await ana.hasta("!!document.querySelector('.nb-t[data-tab=\"botin\"]')", 30);
       await ana.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
       // 16-sep · 27 casillas: 24 de siempre + la Bitácora en marcha, Mano rápida y Listo para la batalla
@@ -4614,7 +4633,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await av.ir("entrar.html"); await av.entrarComo("ana@lab.test", "Ana Nueva");
       await sinBienvenidas(av);
       await av.ir("recluta.html?per=" + P); await av.hasta("!!document.querySelector('.nb-tabs')", 60); await dormir(2500);
-      await av.js("document.querySelectorAll('.sb-capa').forEach(function(x){x.remove()}); var o=document.getElementById('nave-logro'); if(o){o.classList.remove('open');o.innerHTML='';} 1");
+      await cerrarSobre(av);
       // (sin votaciones abiertas de antes)
       for (const v of (await consultar("voting_events", "projectId", P)).filter(x => x.isActive)) { try { await admin().firestore().collection("projects").doc(P).collection("voting_events").doc(v._id).update({ isActive: false }); } catch (e) {} }
       const vs = await admin().firestore().collection("projects").doc(P).collection("voting_events").where("isActive", "==", true).get();
