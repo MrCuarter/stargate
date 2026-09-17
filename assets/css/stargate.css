@@ -3856,19 +3856,11 @@ body.embed.embed-caja .hv{min-height:0;padding:8px 0}
   color:var(--amber);text-decoration:none;border:1px solid #4a3a1e;background:rgba(245,176,67,.08)}
 .rs-ej:hover,.rs-ej:focus-visible{background:rgba(245,176,67,.18)}
 /* 17-sep · el ejemplo de cada reto, plegado bajo los pasos */
-.rs-ej-caja{margin:8px 0 0;border-radius:10px;background:rgba(245,176,67,.07);border:1px solid #4a3a1e}
-.rs-ej-caja>summary{cursor:pointer;padding:8px 12px;font-size:.9rem;font-weight:700;color:var(--amber);list-style:none}
-.rs-ej-caja>summary::-webkit-details-marker{display:none}
-.rs-ej-caja>summary::after{content:" ▾";color:var(--mut)}
-.rs-ej-caja[open]>summary::after{content:" ▴"}
-.rs-ej-caja>summary span{color:#f3e2c0;font-weight:600}
-.rs-ej-caja>summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px;border-radius:10px}
-.rs-ej-txt{margin:0;padding:0 12px 8px;font-size:.92rem;line-height:1.55;white-space:pre-line}
-.rs-ej-det{margin:0;padding:0 12px 8px 30px;font-size:.88rem;line-height:1.5;color:#e6d8bd}
-.rs-ej-det li+li{margin-top:2px}
-.rs-ej-pua,.rs-ej-ver{margin:0;padding:0 12px 9px;font-size:.86rem}
-.rs-ej-pua{color:var(--mut)}
-.rs-ej-ver a{color:var(--amber);font-weight:700}
+.rs-ej-ver{margin:8px 0 0;font-size:.9rem}
+.rs-ej-ver a{display:inline-flex;gap:4px;flex-wrap:wrap;color:var(--amber);font-weight:700;text-decoration:none;padding:7px 11px;border-radius:9px;
+  background:rgba(245,176,67,.08);border:1px solid #4a3a1e}
+.rs-ej-ver a span{color:#f3e2c0;font-weight:600}
+.rs-ej-ver a:hover,.rs-ej-ver a:focus-visible{background:rgba(245,176,67,.16)}
 @media(max-width:560px){.rs-cols{grid-template-columns:1fr 88px;gap:10px}}
 
 /* 15-sep · lo que ayuda a hacer el reto, dentro de su tarjeta (el padlet de la clase, el GIF de cómo copiar el enlace) */

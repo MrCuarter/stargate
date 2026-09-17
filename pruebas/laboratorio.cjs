@@ -225,7 +225,13 @@ async function persona(nombre) {
       return false;
     },
     async entrarComo(correo, nombre) {
-      await p.hasta("!!(window.SG && window.SG.EMU && window.SG.MOTOR)", 20);
+      // 17-sep · una vez, a mitad del laboratorio, la página tardó más de 35 s en cargar el motor: se espera y, si no, se recarga
+      const listo = "!!(window.SG && window.SG.EMU && window.SG.MOTOR)";
+      if (!(await p.hasta(listo, 30))) {
+        console.log("      ⏱ (la página no cargaba el motor en 30 s: se recarga · " + nombre + ")");
+        try { await p.js("location.reload(); 1", 3000); } catch (e) {}
+        await dormir(1500); await p.hasta(listo, 60);
+      }
       return p.js(`window.SG.EMU.entrarComo(${JSON.stringify(correo)}, ${JSON.stringify(nombre || correo)}).then(function(u){ return u.email; })`);
     },
     /**
@@ -286,7 +292,12 @@ async function persona(nombre) {
             return { js, hasta, sid: h.sid,
               // Page.reload solo vale para la pestaña; un iframe se recarga desde dentro
               recargar: () => NAV.enviar("Runtime.evaluate", { expression: "setTimeout(function(){location.reload()},10); 1" }, h.sid).catch(() => {}),
-              entrarComo: async (correo, nombre) => { await hasta("!!(window.SG && window.SG.EMU && window.SG.MOTOR)", 20);
+              entrarComo: async (correo, nombre) => {
+                // (17-sep · como en la pestaña: una carga lenta del motor tumbaba la batería entera; se espera más y se dice)
+                if (!(await hasta("!!(window.SG && window.SG.EMU && window.SG.MOTOR)", 20))) {
+                  console.log("      ⏱ (el iframe no cargaba el motor en 20 s · " + nombre + ")");
+                  await hasta("!!(window.SG && window.SG.EMU && window.SG.MOTOR)", 60);
+                }
                 return js(`window.SG.EMU.entrarComo(${JSON.stringify(correo)}, ${JSON.stringify(nombre || correo)}).then(function(u){ return u.email; })`); },
               texto: () => js("(document.body.innerText||'').replace(/\\s+/g,' ')") };
           }

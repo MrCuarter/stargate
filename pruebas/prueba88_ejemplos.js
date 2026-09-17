@@ -31,11 +31,52 @@ Object.keys(D.rf).forEach(id => {
 ["A2", "A3", "B2", "B3"].forEach(id => c(/^https:\/\//.test((D.ej[id] || {}).enlace || ""), "   " + id + " conserva su ejemplo publicado (enlace)"));
 c(Object.values(D.ej).every(e => !e.enlace || /^https:\/\/(view\.genially\.com|youtu\.be|edpuzzle\.com)\//.test(e.enlace)),
   "   ningún enlace inventado: solo los ejemplos públicos que ya había");
-const N = leer("assets/js/recluta.js"), CSS = leer("assets/css/stargate.css");
-c(/<details class="rs-ej-caja"><summary>💡 Ver un ejemplo/.test(N), "🔴 la Nave lo enseña dentro del reto, plegado («💡 Ver un ejemplo»)");
-c(/class="rs-ej-det"/.test(N) && /ej\.detalle\.map/.test(N), "   con sus puntos clave");
-c(/\.rs-ej-txt\{[^}]*white-space:pre-line/.test(CSS), "   y con sus saltos de línea (en L3 y L6 las líneas SON el ejemplo)");
-c(/window\.SG_EJEMPLOS=/.test(leer("recluta.html")), "   y la página lo recibe");
+const N = leer("assets/js/recluta.js"), J = leer("assets/js/ejemplo.js"), CE = leer("assets/css/ejemplo.css"), H = leer("ejemplo.html");
+// 17-sep (tarde) · Norberto: «si metemos el ejemplo dentro de la ficha del reto, se verá fatal… que cada ejemplo tenga su
+// página dedicada y abra una pestaña; estilo más académico; un botón para cerrar la pestaña»
+c(/ejPag=ej&&t\[0\]!=='S7'\?'ejemplo\.html\?reto='/.test(N) && /href="'\+ejPag\+'" target="_blank" rel="noopener"/.test(N),
+  "🔴 en la Nave, «💡 Ver un ejemplo» abre SU página en otra pestaña");
+c(!/rs-ej-caja|ej\.detalle\.map|ejemploVivo/.test(N), "🔴 y el ejemplo ya no se mete dentro de la tarjeta del reto");
+const NAVE = (leer("recluta.html").match(/window\.SG_EJEMPLOS=(\{.*?\});window\.SG_ESCAPE_UNI/) || [])[1];
+c(!!NAVE && !/"texto"|"imagen"|"vivo"/.test(NAVE) && !/"S7"/.test(NAVE), "   la Nave solo recibe el título de cada ejemplo (y nada de S7)");
+const EJ = JSON.parse((H.match(/window\.SG_EJ=(\{.*\});<\/script>/) || [])[1] || "{}");
+c(Object.keys(EJ.ejemplos || {}).length >= 28 && !(EJ.ejemplos || {}).S7 && !(EJ.consignas || {}).S7, "🔴 ejemplo.html trae todos los ejemplos, sin S7 (ni su consigna)");
+c(Object.keys(EJ.retos || {}).length >= 28 && Object.keys(EJ.consignas || {}).length >= 28 && (EJ.planetas || []).length === 8, "   con el nombre, el tema y la consigna de cada reto");
+c(/id="ej-cerrar"/.test(H) && /window\.close\(\)/.test(J) && /ej-cerrar-nota/.test(H), "🔴 con su botón «Cerrar esta pestaña» (y, si el navegador no deja, cómo cerrarla)");
+c(/--serif:/.test(CE) && /font:18px\/1\.6 var\(--serif\)/.test(CE) && !/stargate\.css/.test(H), "   estilo académico: serif sobre papel, sin la hoja de estilos de la app");
+c(/\.ej-caso\{white-space:pre-line\}/.test(CE), "   con sus saltos de línea (en L3 y L6 las líneas SON el ejemplo)");
+c(/Figura ' \+ nFig/.test(J) && /Tabla ' \+ nTab/.test(J), "   figuras y tablas numeradas, con su pie");
+c(/indice\(\)/.test(J) && /id !== "S7"/.test(J), "   sin reto (o con S7) enseña el índice de todos");
+
+// imágenes (Magnific) y ejemplos «vivos» (Norberto: «igual algún ejemplo se muestra mejor con HTML»)
+const conImg = Object.keys(D.ej).filter(id => D.ej[id].imagen), conVivo = Object.keys(D.ej).filter(id => D.ej[id].vivo);
+c(conImg.length >= 13, "🔴 los ejemplos con captura llevan su imagen", conImg.join(","));
+// «Hay algunos que ya te di ejemplo antes, usa esos cuando sea posible»: A2, A3, B2 y B3, arriba e incrustados
+["A2", "A3", "B2", "B3"].forEach(id => {
+  const e = D.ej[id] || {};
+  c(!!(e.real && e.real.titulo && e.enlace), "🔴 " + id + ": su ejemplo de verdad (el que dio Norberto) va primero en su página", e.enlace);
+  c(!/Abajo tienes/.test(e.texto || ""), "   " + id + ": y el caso ya no remite «abajo» a él");
+});
+c(!D.ej.A3.imagen, "   A3 sin captura inventada: manda su Genially de verdad");
+c(/youtube-nocookie\.com\/embed\//.test(J) && /view\.genially\.com\//.test(J) && /edpuzzle\.com\/embed\/media\//.test(J) && /if \(conReal\) html \+= real\(e, enlace\)/.test(J),
+  "   se incrustan (YouTube, Genially, Edpuzzle) antes del caso");
+conImg.forEach(id => {
+  const e = D.ej[id], f = path.join(RAIZ, "assets/img/ejemplos", e.imagen);
+  c(fs.existsSync(f), "   " + id + ": su imagen existe (" + e.imagen + ")");
+  c(fs.existsSync(f) && fs.statSync(f).size < 260 * 1024, "   " + id + ": y pesa poco (< 260 KB)", fs.existsSync(f) ? Math.round(fs.statSync(f).size / 1024) + " KB" : "");
+  c(String(e.imagen_alt || "").length > 30, "   " + id + ": con su pie (texto alternativo)");
+});
+c(conVivo.length >= 6, "🔴 lo que se lee mejor escrito va en HTML (tablas, autoevaluación, línea de tiempo)", conVivo.join(","));
+conVivo.forEach(id => (D.ej[id].vivo || []).forEach((b, i) => {
+  const n = "   " + id + " · bloque " + (i + 1) + " (" + b.tipo + ")";
+  if (b.tipo === "tabla") c(Array.isArray(b.cab) && b.filas.length && b.filas.every(f => f.length === b.cab.length), n + ": cada fila con tantas casillas como columnas");
+  else if (b.tipo === "quiz") c(b.preguntas.length && b.preguntas.every(q => q.abierta ? !!q.explica : (q.opciones || [])[q.bien] !== undefined && !!q.explica), n + ": cada pregunta con su respuesta buena y su explicación");
+  else if (b.tipo === "linea") c(b.marcas.length && b.marcas.every(m => /^\d+:\d\d$/.test(m.t) && (m.opciones || [])[m.bien] !== undefined), n + ": cada marca con su minuto y su respuesta buena");
+  else c(false, n + ": tipo desconocido");
+}));
+c(!D.ej.S7 || (!D.ej.S7.imagen && !D.ej.S7.vivo), "   S7 sigue sin nada que lo destripe");
+c(/\.ej-ancha tbody th,\.ej-ancha thead th:first-child\{position:sticky/.test(CE) && /\.ej-scroll\{overflow-x:auto/.test(CE), "   las tablas anchas se desplazan dentro de su caja, con la primera columna fija (móvil)");
+c(!/<select/.test(J), "   y sin desplegables grises: solo botones");
 
 console.log("\n  Batería 88 · un ejemplo en cada reto");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");

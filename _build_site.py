@@ -2429,6 +2429,9 @@ def _catalogo_retos(nombre):
     assert filas and all(5 <= len(f) <= 6 for f in filas), "el catálogo %s de Datos.gs no tiene la forma esperada" % nombre
     return [f[:5] for f in filas]
 _RETOS_NAVE = {"REGULAR": _catalogo_retos("RETOS_REGULAR"), "PUA": _catalogo_retos("RETOS_PUA")}
+# 17-sep · a la Nave solo le hace falta saber QUÉ retos tienen ejemplo y su título: el ejemplo entero (texto, capturas,
+# tablas) va en ejemplo.html, que se abre en otra pestaña. S7 nunca (es secreto).
+_EJ_NAVE = {k: {"titulo": v.get("titulo", "")} for k, v in EJEMPLOS_RETOS.items() if k != "S7" and (v.get("texto") or v.get("enlace"))}
 _a0 = _datos_src.index("var AYUDA_RETOS = "); _b0 = _datos_src.index(";\n// AYUDA-FIN", _a0)
 _AYUDA_NAVE = json.loads(_datos_src[_a0 + len("var AYUDA_RETOS = "):_b0])
 # 19 = A1-A8 + B1-B8 + X1 + X2 + XF (los PUA reutilizan los mismos ids)
@@ -2680,7 +2683,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(EJEMPLOS_RETOS, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_DIA={TOPE_RETOS_DIA};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_DIA={TOPE_RETOS_DIA};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};</script>
 <script src="assets/js/secreto.js" defer></script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sobre.js" defer></script>
@@ -3524,6 +3527,40 @@ convocatorias — el grupo se deduce de quién pulsa. Se configuran en
 ''' + FOOT
 open(os.path.join(HERE, "huevo.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: huevo.html  (el escondite de cada presentación)")
+
+# ---------------------------------------------------------------- la página de un ejemplo
+# 17-sep · Norberto: «si metemos el ejemplo dentro de la ficha del reto, se verá fatal… cada ejemplo con su página
+# dedicada, en una pestaña, con un estilo más académico (no hace falta la estética de la app) y un botón para cerrarla».
+# Una sola página (ejemplo.html?reto=A5; sin reto, el índice) que pinta assets/js/ejemplo.js con los datos de aquí:
+# el ejemplo, el nombre y el tema del reto y su consigna. S7 nunca: es secreto.
+_ids_ej = [k for k in EJEMPLOS_RETOS if k != "S7"]
+_filas_ej = {f[0]: f for f in _RETOS_NAVE["PUA"]}
+_filas_ej.update({f[0]: f for f in _RETOS_NAVE["REGULAR"]})
+_SG_EJ = {"ejemplos": {k: EJEMPLOS_RETOS[k] for k in _ids_ej},
+          "retos": {k: _filas_ej[k] for k in _ids_ej if k in _filas_ej},
+          "consignas": {k: _AYUDA_NAVE[k] for k in _ids_ej if k in _AYUDA_NAVE},
+          "planetas": [list(x) for x in PLANETAS],
+          # en los que se responden en la caja del reto, el texto del ejemplo ES esa respuesta (en primera persona)
+          "reflexion": [k for k in REFLEXION_RETOS if k in _ids_ej]}
+_datos_ej = json.dumps(_SG_EJ, ensure_ascii=False).replace("</", "<\\/")
+_html = ('<!DOCTYPE html>\n<html lang="es"><head>\n'
+  '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">\n'
+  '<title>STARGATE · Ejemplo de un reto</title>\n'
+  '<meta name="description" content="Un caso resuelto de un reto de STARGATE: qué hizo una docente, con qué herramienta y dónde lo dejó.">\n'
+  '<meta name="robots" content="noindex">\n<meta name="theme-color" content="#fbfaf7">\n'
+  '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%92%A1%3C/text%3E%3C/svg%3E">\n'
+  '<link rel="stylesheet" href="' + _v("assets/css/ejemplo.css") + '">\n'
+  '<script>window.SG_EJ=' + _datos_ej + ';</script>\n'
+  '</head><body>\n'
+  '<div class="ej-barra"><span><b>STARGATE</b> · Máster en Tecnología Educativa · UNIR</span>\n'
+  '<button type="button" class="ej-cerrar" id="ej-cerrar">✕ Cerrar esta pestaña</button>\n'
+  '<p class="ej-cerrar-nota" id="ej-cerrar-nota" hidden>Tu navegador no deja cerrarla desde aquí: ciérrala con la ✕ de la pestaña (⌘W o Ctrl+W).</p></div>\n'
+  '<main id="ej-app"><p>Cargando el ejemplo…</p></main>\n'
+  '<footer>STARGATE · La Bitácora Estelar — Proyecto Gamificado del Máster en Tecnología Educativa de la UNIR.</footer>\n'
+  '<script src="' + _v("assets/js/ejemplo.js") + '" defer></script>\n'
+  '</body></html>\n')
+open(os.path.join(HERE, "ejemplo.html"), "w", encoding="utf-8").write(_html)
+print("escrito: ejemplo.html  (un ejemplo por reto, en su pestaña)")
 
 # ---------------------------------------------------------------- la batalla (el Simulador de Joran)
 # 🔴 16-sep · EL RETO A6 ES UNA BATALLA (Norberto: «se van a enfrentar a un juego de preguntas contra Joran… debe

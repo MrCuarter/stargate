@@ -821,7 +821,7 @@ const REG = {};   // cifras que se apuntan para el informe
         const dir = await nueva("Dani abre el enlace directo");
         await dir.ir(enlaceDe(pb2));
         c("🔴 premios · el enlace directo abre la página de STARGATE, con fondo y el Capitán (pulgar arriba: es una recompensa)",
-          await dir.hasta("document.body.classList.contains('huevo-directo') && !!document.querySelector('.hv-escena img.hv-cap[src*=\"pulgar\"]')", 20)
+          await dir.hasta("document.body.classList.contains('huevo-directo') && !!document.querySelector('.hv-escena img.hv-cap[src*=\"pulgar\"]')", 60)
           && /Enhorabuena/.test(await dir.texto()), (await dir.texto()).slice(0, 160));
         await dir.foto(FOTOS + "/12-enlace-directo.png");
         await dir.cerrar();
@@ -3719,8 +3719,9 @@ const REG = {};   // cifras que se apuntan para el informe
       await dormir(900);
       c("🔴 nave · «Qué hay que hacer, explicado» con la tarjeta de la semana: su insignia a la vista",
         await nv.js("!!document.querySelector('details.reto-pl[open] .reto-sem .rs-trofeo img')"));
-      c("nave · y «💡 Ver un ejemplo» en el reto que tiene uno (A3), no en los demás",
-        await nv.js("(function(){ var ej=[].slice.call(document.querySelectorAll('details.reto-pl[open] .reto-sem')).map(function(r){ return !!r.querySelector('.rs-ej'); }); return ej.indexOf(true)>=0 && ej.indexOf(false)>=0; })()"));
+      // 17-sep · ya hay un ejemplo en TODOS los retos (menos S7), y cada uno abre su página en otra pestaña
+      c("nave · y «💡 Ver un ejemplo» en cada reto, que abre su página (ejemplo.html) en otra pestaña",
+        await nv.js("(function(){ var r=[].slice.call(document.querySelectorAll('details.reto-pl[open] .reto-sem')); return r.length>0 && r.every(function(x){ var a=x.querySelector('a.rs-ej'); return a && /^ejemplo\\.html\\?reto=/.test(a.getAttribute('href')) && a.target==='_blank'; }); })()"));
       await nv.foto(FOTOS + "/36-nave-retos.png");
       await nv.cerrar();
     }
@@ -4364,6 +4365,37 @@ const REG = {};   // cifras que se apuntan para el informe
      */
     if (hacer(42)) {
       const A = admin(), fs = A.firestore(), P = "lab-clase", P2 = "lab-clase-dos";
+      /**
+       * 17-sep · UN GRUPO QUE LLEGA DESPUÉS. «🌐 Todos tus grupos» se resolvía al guardar: el grupo de enero no tenía los
+       * premios «de todos» hasta que alguien los tocara, y dentro de él ni salían. Ahora se llevan solos al abrir la pantalla.
+       */
+      {
+        const P3 = "lab-clase-tres";
+        const rp = await nueva("Rita: un grupo nuevo recibe los premios de todos");
+        await rp.ir("entrar.html"); await rp.entrarComo("rita@lab.test", "Rita Referente");
+        await rp.ir("consola.html?comun=premios"); await rp.hasta("!!document.getElementById('pe-nuevo') && !/Buscando tus premios/.test((document.getElementById('pe-lista')||{}).textContent||'')", 75);
+        const creado = await rp.js("(async function(){ var M=window.SG.MOTOR; var it=M.premioNuevo({nombre:'Para los grupos que vengan', premio:'bolsa', cantidad:10}); var r=await M.guardarPremioEnlace(it, ['lab-clase']); return it.id+'|'+r.en.join(','); })()", 40000);
+        const idT = String(creado).split("|")[0];
+        c("🌐 comunes · (preparación) un premio «de todos» cuando Rita solo lleva un grupo", /\|lab-clase$/.test(String(creado)), String(creado));
+        const base = (await fs.collection("projects").doc(P).get()).data();
+        await fs.collection("projects").doc(P3).set(Object.assign({}, base, { name: "LAB · Grupo de enero", joinCode: "ENERO3" }));
+        const pv = (await fs.collection("projects").doc(P).collection("privado").doc("stargate").get()).data() || {};
+        await fs.collection("projects").doc(P3).collection("privado").doc("stargate").set(Object.assign({}, pv, { premiosEnlace: {} }));
+        await rp.ir("consola.html?comun=premios");
+        let llega = null;
+        for (let k = 0; k < 90 && !llega; k++) { llega = await leerDoc("rewards/" + P3 + "__huevo_" + idT); if (!llega) await dormir(500); }
+        const pv3 = ((await fs.collection("projects").doc(P3).collection("privado").doc("stargate").get()).data() || {}).premiosEnlace || {};
+        c("🔴 🌐 comunes · un grupo creado DESPUÉS recibe solo los premios «de todos» al abrir la pantalla (mismo enlace)",
+          !!llega && !!pv3[idT] && llega.claimLinkHash && llega.claimLinkHash === ((await leerDoc("rewards/" + P + "__huevo_" + idT)) || {}).claimLinkHash,
+          JSON.stringify({ recompensa: !!llega, catalogo: !!pv3[idT] }));
+        const dentro = await aPremiosDe(rp, P3);
+        c("🌐 comunes · y dentro del grupo nuevo ya sale", dentro && await rp.hasta(`!!document.querySelector('.pe-f[data-pe="${idT}"]')`, 20), rp.__pestanas || "");
+        c("sin errores en las páginas (el grupo que llega después)", !rp.errores.filter(e => !/Failed to load resource/.test(e)).length, rp.errores[0] || "");
+        await rp.cerrar();
+        await fs.collection("rewards").doc(P3 + "__huevo_" + idT).delete();
+        await fs.collection("projects").doc(P3).collection("privado").doc("stargate").delete();
+        await fs.collection("projects").doc(P3).delete();
+      }
       if (!(await fs.collection("projects").doc(P2).get()).exists) {
         const base = (await fs.collection("projects").doc(P).get()).data();
         await fs.collection("projects").doc(P2).set(Object.assign({}, base, { name: "LAB · Segundo grupo", joinCode: "SEGUN2" }));
@@ -4402,9 +4434,11 @@ const REG = {};   // cifras que se apuntan para el informe
       await rg.hasta("/Sorteo cambiado en 2 grupos/.test((document.getElementById('c-aviso')||{}).innerText||'')", 40);
       s1 = await tick(P); s2 = await tick(P2);
       c("🔴 🌐 sorteos · cambiarlo lo cambia en sus dos grupos a la vez", s1.cost === 12 && s2.cost === 12, JSON.stringify([s1.cost, s2.cost]));
-      await rg.hasta("document.querySelectorAll('.sr-caja .sr-ambito input[type=checkbox]').length>=2", 20);
+      // (en SU tarjeta: con varios sorteos en la página, la primera casilla de ese grupo podía ser de otro)
+      const cajaS = `.sr-caja[data-sid="${s1.stargateId}"]`;
+      await rg.hasta(`document.querySelectorAll('${cajaS} .sr-ambito input[type=checkbox]').length>=2`, 30);
       await rg.foto(FOTOS + "/42-sorteos-comunes.png");
-      await rg.js(`(function(){ var c=[].slice.call(document.querySelectorAll('.sr-caja .sr-ambito input[type=checkbox]')).filter(function(x){return x.value===${JSON.stringify(P2)}})[0]; c.checked=false; c.dispatchEvent(new Event('change')); return 1; })()`);
+      await rg.js(`(function(){ var c=[].slice.call(document.querySelectorAll('${cajaS} .sr-ambito input[type=checkbox]')).filter(function(x){return x.value===${JSON.stringify(P2)}})[0]; c.checked=false; c.dispatchEvent(new Event('change')); return 1; })()`);
       const q = await rg.responder();
       c("🌐 sorteos · quitarlo de un grupo lo pregunta antes", /Quitar este sorteo de/.test(q), q);
       const quitadoAviso = await rg.hasta("/quitado de/.test((document.getElementById('c-aviso')||{}).innerText||'')", 75);
@@ -4520,6 +4554,26 @@ const REG = {};   // cifras que se apuntan para el informe
         if (!tx) continue;
         await dormir(1200); await sb.js("document.querySelectorAll('details').forEach(function(d){d.open=true}); 1"); await barrer(sb, "nave · " + tx);
       }
+      // 17-sep · los ejemplos: en la Nave, un enlace que abre SU página en otra pestaña (Norberto: «dentro de la ficha del
+      // reto se verá fatal»); en la página, estilo académico, la autoevaluación corrige y la línea de tiempo salta de pregunta
+      await sb.ir("recluta.html?per=lab-clase"); await sb.hasta("document.querySelectorAll('a.rs-ej, .rs-ej-ver a').length>3", 40);
+      c("ejemplos · en la Nave, «💡 Ver un ejemplo» abre su página en otra pestaña (y no se mete en la tarjeta)",
+        await sb.js("(function(){ var a=[].slice.call(document.querySelectorAll('a.rs-ej, .rs-ej-ver a')); return a.length>3 && a.every(function(x){ return /ejemplo\\.html\\?reto=/.test(x.getAttribute('href')) && x.target==='_blank'; }) && !document.querySelector('.rs-ej-caja, .ejv'); })()"));
+      await sb.ir("ejemplo.html?reto=L5"); await sb.hasta("!!document.querySelector('.ej-quiz')", 20); await barrer(sb, "ejemplo L5");
+      const vivo = await sb.js(`(function(){ var q=document.querySelector('.ej-quiz .ej-q'); var ops=q.querySelectorAll('.ej-op');
+        ops[0].click(); var mal=q.querySelector('.ej-exp').textContent; ops[2].click(); var bien=q.querySelector('.ej-exp').textContent;
+        var v=document.querySelector('[data-ver]'); v.click(); var modelo=v.closest('[data-q]').querySelector('.ej-exp').textContent;
+        return [/No es esa/.test(mal), /^✓/.test(bien), /Respuesta modelo/.test(modelo), !!document.getElementById('ej-cerrar')].join('|'); })()`);
+      await sb.ir("ejemplo.html?reto=B2"); await sb.hasta("!!document.querySelector('.ej-linea')", 20); await barrer(sb, "ejemplo B2");
+      const salta = await sb.js("(function(){ var m=document.querySelectorAll('.ej-marca'); m[2].click(); return [].slice.call(document.querySelectorAll('[data-panel]')).filter(function(p){ return !p.hidden; }).map(function(p){ return p.getAttribute('data-panel'); }).join(','); })()");
+      await sb.ir("ejemplo.html?reto=A5"); await sb.hasta("!!document.querySelector('.ej-tabla')", 20); await barrer(sb, "ejemplo A5");
+      const a5 = await sb.js("[document.querySelectorAll('.ej-tabla tbody tr').length, /Tabla 1\\./.test(document.querySelector('.ej-tabla figcaption').textContent), getComputedStyle(document.body).fontFamily.indexOf('Georgia')>=0].join('|')");
+      await sb.ir("ejemplo.html?reto=B1"); await sb.hasta("!!document.querySelector('figure img')", 20); await barrer(sb, "ejemplo B1");
+      const b1 = await sb.hasta("(function(){ var i=document.querySelector('figure img'); return i && i.complete && i.naturalWidth>=1000; })()", 20);
+      await sb.ir("ejemplo.html?reto=S7"); await dormir(800);
+      const s7 = await sb.js("!!document.querySelector('.ej-indice') && !window.SG_EJ.ejemplos.S7 && !window.SG_EJ.consignas.S7");
+      c("ejemplos · la página: autoevaluación que corrige, línea de tiempo que salta, rúbrica en tabla numerada (serif), captura cargada y S7 sin destripar",
+        vivo === "true|true|true|true" && salta === "2" && a5 === "4|true|true" && b1 && s7, [vivo, salta, a5, b1, s7].join(" · "));
       for (const pg of ["foro.html?per=lab-clase", "diploma.html?per=lab-clase", "huevo.html?h=noexiste&c=x&t=r"]) { await sb.ir(pg); await sb.hasta(libre, 30); await barrer(sb, pg.split("?")[0]); }
       await sb.cerrar();
       const lista = Object.keys(hallado);

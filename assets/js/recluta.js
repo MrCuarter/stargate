@@ -885,7 +885,8 @@
     var ya=!!mios[t[0]], pasos=pasosDeReto(AY[t[0]]);
     var cuando=ya&&r.retos_fecha&&r.retos_fecha[t[0]]?' · '+fecha(r.retos_fecha[t[0]]):'';
     var gancho=(window.SG_GANCHO_RETOS||{})[t[0]]||'';
-    var ej=(window.SG_EJEMPLOS||{})[t[0]]||null, ejUrl=ej&&ej.enlace?(/^https?:\/\//i.test(ej.enlace)?ej.enlace:'https://'+ej.enlace):'';
+    // 17-sep · el ejemplo tiene su PÁGINA (ejemplo.html, estilo académico, en otra pestaña): dentro de la tarjeta «se vería fatal»
+    var ej=(window.SG_EJEMPLOS||{})[t[0]]||null, ejPag=ej&&t[0]!=='S7'?'ejemplo.html?reto='+encodeURIComponent(t[0]):'';
     /**
      * 🔴 16-sep · LOS RELÁMPAGO (L*) SE VEN DISTINTOS, y lo importante no es el rayo: es la frase
      * «se hace en clase». Norberto: «me gusta mucho que los relámpago se animen a hacer en clase, así
@@ -904,23 +905,19 @@
         +(gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')
         +'<div class="rs-premio"><span class="p xp">+'+t[3]+' xp</span>'
           +'<span class="p cr">+'+creditosDeReto(t[0])+' ◈</span>'
-          +(ejUrl?'<a class="rs-ej" href="'+esc(ejUrl)+'" target="_blank" rel="noopener">💡 Ver un ejemplo ↗</a>':'')+'</div>'
+          +(ejPag?'<a class="rs-ej" href="'+ejPag+'" target="_blank" rel="noopener" title="Se abre en una pestaña nueva">💡 Ver un ejemplo ↗</a>':'')+'</div>'
         +'<div class="rs-abrir">▾ '+(ya?'Ver lo que pedía':'Cómo se hace, paso a paso')+'</div>'
       +'</div><div class="rs-der">'+premioDeReto(t[2])+'</div></div></summary>'
       +'<div class="rs-detalle">'
       +(pasos.length?'<ol class="rs-pasos">'+pasos.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>'
                     :'<p class="small muted">Sin explicación todavía: pregunta a tu docente.</p>')
       /**
-       * 17-sep · UN EJEMPLO EN CADA RETO (Norberto: «me encantaría que cada reto fuera acompañado de un ejemplo»). Plegado
-       * bajo los pasos: el caso de una docente concreta (qué hizo, con qué y dónde lo dejó), sus puntos clave y, si lo hay,
-       * el ejemplo publicado. Los saltos de línea se respetan: en L3 y L6 las líneas SON el ejemplo.
+       * 17-sep · UN EJEMPLO EN CADA RETO, EN SU PÁGINA. Norberto primero pidió el ejemplo (todos los retos menos S7) y luego:
+       * «si metemos el ejemplo dentro de la ficha del reto, se verá fatal… que cada ejemplo tenga su página dedicada y abra
+       * una pestaña». Aquí queda el enlace, con el título del caso; el caso, la captura, las tablas y la autoevaluación
+       * viven en ejemplo.html?reto=… (assets/js/ejemplo.js).
        */
-      +(ej&&(ej.texto||ej.detalle)?'<details class="rs-ej-caja"><summary>💡 Ver un ejemplo'+(ej.titulo?': <span>'+esc(ej.titulo)+'</span>':'')+'</summary>'
-        +(ej.texto?'<p class="rs-ej-txt">'+esc(ej.texto)+'</p>':'')
-        +(ej.detalle&&ej.detalle.length?'<ul class="rs-ej-det">'+ej.detalle.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')
-        +(ej.pua&&d.tipo==='PUA'?'<p class="rs-ej-pua">'+esc(ej.pua)+'</p>':'')
-        +(ejUrl?'<p class="rs-ej-ver"><a href="'+esc(ejUrl)+'" target="_blank" rel="noopener">Ver el ejemplo publicado ↗</a></p>':'')
-        +'</details>':'')
+      +(ejPag?'<p class="rs-ej-ver"><a href="'+ejPag+'" target="_blank" rel="noopener">💡 Ver un ejemplo: <span>'+esc(ej.titulo||'')+'</span> ↗</a></p>':'')
       +extraReto(t[0], d)
       +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado.</p>'+accionesDeHecho(t[0])
           // 15-sep · S7 es el Escape UNI: su puerta, y se registra solo con el botón del final del escape

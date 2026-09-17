@@ -1205,6 +1205,17 @@
     $("#pe-nuevo").onclick = crearPremio;
     try { PE.lista = await MOTOR.premiosEnlaceDe(gestionados()); }
     catch (e) { $("#pe-lista").innerHTML = '<p class="malo">No he podido leer los premios: ' + esc(e.message) + "</p>"; return; }
+    /**
+     * 17-sep · «🌐 Todos tus grupos» se resuelve al GUARDAR: un grupo creado después (el curso de enero) no lo tenía
+     * hasta que alguien tocara el premio, y dentro de ese grupo ni aparecía. Al abrir esta pantalla, los de «todos»
+     * se llevan solos a los grupos tuyos que les falten (buscándolos en todos tus grupos, no solo en el que miras).
+     */
+    var mios = gestionados();
+    await Promise.all(PE.lista.filter(function (it) {
+      return it.grupos === "todos" && !validarPremio(it) && mios.some(function (g) { return (it.en || []).indexOf(g) < 0; });
+    }).map(async function (it) {
+      try { var r = await MOTOR.guardarPremioEnlace(it, mios); it.en = r.en; it.actualizado = Date.now(); } catch (e) {}
+    }));
     if (contexto && DATOS) PE.datos[contexto] = DATOS;
     pintarPremios();
   }
@@ -2262,6 +2273,7 @@
         try {
           if (c.checked) { await MOTOR.sorteoEnGrupos(configDeTicket(vivo.ticket), [per]); await despues("🎟️ Sorteo añadido a «" + nombreDeGrupo(per) + "»."); }
           else {
+            if (!t || t.stargateRetirado) { c.disabled = false; return; }   // (ahí no estaba: nada que quitar)
             if (!(await window.SG.preguntar({ titulo: "¿Quitar este sorteo de «" + nombreDeGrupo(per) + "»?", texto: "Solo se puede si allí nadie tiene participaciones. Deja de venderse en ese grupo.", si: "Quitarlo de ese grupo", peligro: true }))) { c.checked = true; c.disabled = false; return; }
             await MOTOR.retirarSorteo(per, t.docId); await despues("🎟️ Sorteo quitado de «" + nombreDeGrupo(per) + "».");
           }

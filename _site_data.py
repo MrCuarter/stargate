@@ -665,7 +665,7 @@ EJEMPLOS_RETOS = {
  },
  "A2": {
   "titulo": "Un clip de 50 segundos para quien faltó a clase",
-  "texto": "Nuria, profesora de Lengua de 1.º de ESO, grabó con el móvil 50 segundos sobre cómo encontrar el sujeto de una oración: escribe una frase en la pizarra, pone el verbo en plural y señala qué grupo de palabras tiene que cambiar con él. Nada más. Lo subió a YouTube en oculto, se lo enseñó a su hija para ver si se entendía sin ella delante y pegó el enlace en el reto. Abajo tienes otro ejemplo real: «Publicar y compartir un Genially», un tutorial corto de Mr. Cuarter que explica un procedimiento paso a paso.",
+  "texto": "Nuria, profesora de Lengua de 1.º de ESO, grabó con el móvil 50 segundos sobre cómo encontrar el sujeto de una oración: escribe una frase en la pizarra, pone el verbo en plural y señala qué grupo de palabras tiene que cambiar con él. Nada más. Lo subió a YouTube en oculto, se lo enseñó a su hija para ver si se entendía sin ella delante y pegó el enlace en el reto.",
   "enlace": "https://youtu.be/ZE_JdQUmepk"
  },
  "B2": {
@@ -685,7 +685,7 @@ EJEMPLOS_RETOS = {
  },
  "A3": {
   "titulo": "Irene (Inglés, 5.º de Primaria) monta tres senderos hacia el mismo objetivo",
-  "texto": "Irene creó un Genially con un solo objetivo: describir su rutina diaria en presente simple. En la portada hay tres puertas y cada estudiante elige una. «Hazlo»: ordena viñetas de un día y graba un audio contándolas. «Léelo»: lee un cómic corto y completa una tabla de horas y acciones. «Escúchalo»: escucha un pódcast de dos niños y responde con dibujos. Los tres caminos terminan en la misma tarea: escribir cinco frases sobre su propio día. Abajo tienes un ejemplo real en Genially: «(Math) Series niveladas».",
+  "texto": "Irene creó un Genially con un solo objetivo: describir su rutina diaria en presente simple. En la portada hay tres puertas y cada estudiante elige una. «Hazlo»: ordena viñetas de un día y graba un audio contándolas. «Léelo»: lee un cómic corto y completa una tabla de horas y acciones. «Escúchalo»: escucha un pódcast de dos niños y responde con dibujos. Los tres caminos terminan en la misma tarea: escribir cinco frases sobre su propio día.",
   "detalle": [
    "Criterio: cada sendero es una actividad distinta, no la misma con otro nombre.",
    "Si no tienes una hora esta semana, vale un boceto a mano de los caminos, fotografiado."
@@ -694,7 +694,7 @@ EJEMPLOS_RETOS = {
  },
  "B3": {
   "titulo": "Patricia rellena seis cruces de la matriz para «Las plantas» (3.º de Primaria)",
-  "texto": "Patricia, maestra de 3.º de Primaria, contextualizó su unidad «Las plantas» (Ciencias de la Naturaleza, 8-9 años) con sus objetivos, contenidos y criterios de evaluación. Hizo la tabla 8×6 en Google Docs, con las inteligencias en filas y los niveles de Bloom en columnas, y rellenó seis casillas: una por cada nivel de Bloom y con seis inteligencias distintas. Cada actividad lleva objetivo, tarea del alumno, recurso, evaluación, tiempo y tipo. Las 42 casillas vacías quedan a la vista para completarlas más adelante. Abajo tienes un paisaje real ya terminado en Genially («El viaje del Endurance»): una matriz así es la planificación que sostiene un paisaje como ese.",
+  "texto": "Patricia, maestra de 3.º de Primaria, contextualizó su unidad «Las plantas» (Ciencias de la Naturaleza, 8-9 años) con sus objetivos, contenidos y criterios de evaluación. Hizo la tabla 8×6 en Google Docs, con las inteligencias en filas y los niveles de Bloom en columnas, y rellenó seis casillas: una por cada nivel de Bloom y con seis inteligencias distintas. Cada actividad lleva objetivo, tarea del alumno, recurso, evaluación, tiempo y tipo. Las 42 casillas vacías quedan a la vista para completarlas más adelante.",
   "detalle": [
    "Naturalista × Recordar: nombra las partes de una planta del huerto con una ficha de fotos · lista de cotejo · 20 min · obligatoria.",
    "Lingüística × Comprender: explica en un audio de 1 minuto qué necesita una planta para vivir · rúbrica · 15 min · obligatoria.",
@@ -830,6 +830,109 @@ EJEMPLOS_RETOS = {
   ]
  }
 }
+
+# 17-sep · IMÁGENES Y EJEMPLOS «VIVOS» (Norberto: «haz imágenes para retos» y «igual algún ejemplo se muestra mejor
+# con HTML o algo que crees con código»). Se añaden a EJEMPLOS_RETOS sin tocar sus textos:
+# - `imagen` (+ `imagen_alt`): una captura verosímil del caso (Magnific · GPT 2), en assets/img/ejemplos/.
+# - `vivo`: lo que se lee mejor escrito en la propia web que en una foto: tablas (la rúbrica, la matriz, las de la
+#   Actividad 1, los pares que se confunden), el cuestionario que se puede contestar y la línea de tiempo del vídeo
+#   con sus preguntas. Lo pinta la Nave (recluta.js, `ejemploVivo`) con los colores de STARGATE.
+EJEMPLOS_EXTRA = {
+ "B1": {"imagen": "B1.jpg", "imagen_alt": "La portada de la Bitácora de Lucía en Google Sites: cabecera verde, menú de cinco páginas y la página «Quién soy» con su foto."},
+ "L1": {"imagen": "L1.jpg", "imagen_alt": "Las dos versiones de la infografía del aparato circulatorio (la primera con etiquetas en inglés, la segunda elegida) y el logo circular «PULSO»."},
+ "X2": {"imagen": "X2.jpg", "imagen_alt": "El paisaje de aprendizaje de Patricia: un huerto ilustrado con ocho plantas numeradas de colores y la ficha de la actividad 3 abierta."},
+ "B4": {"imagen": "B4.jpg", "imagen_alt": "El tablón de Classroom «Física y Química 4.º B» con la pregunta de la semana y una tarea con tres recursos citados."},
+ "L4": {"imagen": "L4.jpg", "imagen_alt": "La rúbrica de Mónica abierta en una ventana de incógnito de Chrome, sin sesión iniciada."},
+ "B5": {"imagen": "B5.jpg", "imagen_alt": "El sitio «English Hub · 2.º ESO» con su menú de cinco páginas y la rúbrica incrustada en «Cómo se evalúa»."},
+ "B6": {"imagen": "B6.jpg", "imagen_alt": "La fase 3 del escape de formulación de Carlos: un laboratorio con un candado de tres dígitos y la consigna «Formula el ácido sulfúrico»."},
+ "A7": {"imagen": "A7.jpg", "imagen_alt": "La insignia «Guardianes de la biblioteca»: un escudo azul y dorado con un libro abierto y una llave."},
+ "B7": {"imagen": "B7.jpg", "imagen_alt": "El tablero «Hospital Aurora · Equipo de guardia» con la barra de cada equipo y la insignia «Turno impecable»."},
+ "L7": {"imagen": "L7.jpg", "imagen_alt": "La hoja de cálculo de Pedro con cinco equipos ordenados por su mejora en los 1.000 metros y el primero en verde."},
+ "B8": {"imagen": "B8.jpg", "imagen_alt": "La lámina del aparato digestivo con un QR junto a cada órgano y un móvil que muestra el estómago en 3D."},
+ "L8": {"imagen": "L8.jpg", "imagen_alt": "A la izquierda, la diapositiva «Escanea y juega: la orquesta» con su QR; a la derecha, el juego de Wordwall abierto con su dirección."},
+ "XS": {"imagen": "XS.jpg", "imagen_alt": "La portada de «EXPLORA» en Google Sites: el logo, cinco líneas de presentación y los botones «Módulo 1 · Antes» y «Módulo 2 · Durante»."},
+
+ "A5": {"vivo": [{"tipo": "tabla", "titulo": "Rúbrica · Presentar oralmente su ciudad durante dos minutos (Inglés, 2.º ESO)",
+   "cab": ["Criterio", "Inicial", "En proceso", "Conseguido", "Destacado"],
+   "filas": [
+    ["Contenido", "Nombra 1 lugar, sin datos", "Nombra 2 lugares y da un dato de uno", "Nombra 3 lugares y da un dato de cada uno", "Nombra 4 o más lugares y da un dato de cada uno"],
+    ["Vocabulario", "Usa menos de 4 palabras de la unidad", "Usa de 4 a 7 palabras de la unidad", "Usa 8 o más palabras de la unidad sin repetir", "Usa 8 o más y 2 expresiones nuevas de la unidad"],
+    ["Fluidez", "Lee casi todo del papel", "No llega a 2 minutos o para muchas veces", "Habla 2 minutos con 3 o 4 pausas largas", "Habla 2 minutos con 2 pausas largas como máximo"],
+    ["Pronunciación", "No se entiende más de la mitad", "Se entiende con esfuerzo en varias frases", "Se entiende todo, con algún error", "Se entiende todo y cuida la entonación de las preguntas"]],
+   "nota": "Cada casilla dice lo que se ve o se oye, no un adjetivo: «usa 8 o más palabras», no «buen vocabulario»."}]},
+
+ "B3": {"vivo": [{"tipo": "tabla", "titulo": "Matriz de inteligencias múltiples × Bloom · «Las plantas» (3.º de Primaria)",
+   "cab": ["", "Recordar", "Comprender", "Aplicar", "Analizar", "Evaluar", "Crear"],
+   "filas": [
+    ["Lingüística", "", "Explica en un audio de 1 minuto qué necesita una planta para vivir", "", "", "", ""],
+    ["Lógico-matemática", "", "", "Mide cada dos días una judía que germina y lo anota en una tabla", "", "", ""],
+    ["Visual-espacial", "", "", "", "Compara con fotos una planta al sol y otra a la sombra", "", ""],
+    ["Corporal", "", "", "", "", "", ""],
+    ["Musical", "", "", "", "", "", "Inventa una canción corta sobre el ciclo de la planta (Chrome Music Lab)"],
+    ["Interpersonal", "", "", "", "", "En equipo, deciden con tres criterios qué maceta está mejor cuidada", ""],
+    ["Intrapersonal", "", "", "", "", "", ""],
+    ["Naturalista", "Nombra las partes de una planta del huerto con una ficha de fotos", "", "", "", "", ""]],
+   "nota": "Seis cruces: una por cada nivel de Bloom y en seis inteligencias distintas (las de sus puntos clave, abajo). Las 42 casillas vacías quedan a la vista para más adelante."}]},
+
+ "A6": {"vivo": [{"tipo": "tabla", "titulo": "Los pares que Ramón se apuntó (los que más se confunden)",
+   "cab": ["Se confunde…", "…con", "La diferencia"],
+   "filas": [
+    ["Itinerario", "Paisaje", "El itinerario es una secuencia que ordena el docente; en el paisaje hay muchas actividades a la vez (inteligencias × Bloom) y cada estudiante elige cuáles y en qué orden."],
+    ["Videotutorial", "Videoquiz", "El videotutorial explica paso a paso cómo hacer algo; el videoquiz es un vídeo con preguntas dentro que hay que responder para seguir."],
+    ["Aula virtual", "Web de recursos", "El aula virtual tiene alumnado inscrito, tareas, entregas y notas; la web de recursos ordena materiales para consultarlos."],
+    ["ABJ", "Gamificación", "En el ABJ se aprende jugando a un juego; en la gamificación se usan elementos de juego (puntos, insignias, historia) en algo que no es un juego."]]}]},
+
+ "X1": {"vivo": [
+   {"tipo": "tabla", "titulo": "Tabla técnica (lo que puso Rosa)", "cab": ["Campo", "Rosa"],
+    "filas": [
+     ["Función de la IA", "Crear la imagen de partida: la calle mayor de su ciudad en 2050, para describirla y compararla con su barrio."],
+     ["Prompt inicial", "«Ilustración realista de la calle mayor de una ciudad española en 2050, con tranvía, placas solares y gente paseando, sin texto»."],
+     ["Iteración", "Salían coches voladores y rótulos inventados: pidió «tecnología creíble, la calle reconocible y ningún texto»."],
+     ["Criterio docente", "Eligió la versión con más cosas que se pueden predecir con will y be going to (obras, carteles de próximas aperturas)."],
+     ["Evidencia del proceso", "Capturas de las tres versiones y del prompt final, en su Bitácora."],
+     ["Cita de la herramienta", "Imagen generada con Microsoft Designer (12-oct-2026). Prompt y versiones en la Bitácora."]]},
+   {"tipo": "tabla", "titulo": "Tabla reflexiva", "cab": ["Pregunta", "Rosa"],
+    "filas": [
+     ["¿Cómo integró la IA?", "Solo para el material de partida: la tarea, las preguntas y la evaluación son suyas."],
+     ["¿Qué cambió en la actividad?", "Antes describían una foto de hoy; ahora predicen, y eso obliga a usar el futuro con sentido."],
+     ["¿Qué puso ella?", "La elección de la imagen, las preguntas guía y la rúbrica de la exposición."],
+     ["¿Qué aprendió?", "A iterar el prompt con criterios didácticos, no estéticos."]]}]},
+
+ "L5": {"vivo": [{"tipo": "quiz", "titulo": "Pruébalo: las tres preguntas de Paula",
+   "preguntas": [
+    {"q": "1 · ¿Qué estamento trabajaba la tierra?", "opciones": ["La nobleza", "El clero", "El campesinado", "La realeza"], "bien": 2,
+     "explica": "El campesinado trabajaba la tierra y pagaba rentas al señor."},
+    {"q": "2 · ¿Qué debía el vasallo a su señor?", "opciones": ["Protección y un feudo", "Fidelidad y ayuda militar", "Nada: eran iguales"], "bien": 1,
+     "explica": "El vasallo juraba fidelidad y ayuda militar; el señor le daba protección y un feudo. (En Forms es una cuadrícula con los dos.)"},
+    {"q": "3 · ¿Por qué un campesino aceptaba depender de un señor?", "abierta": True,
+     "explica": "Respuesta modelo: porque a cambio recibía protección frente a ataques y tierra para cultivar, en una época sin un poder central fuerte."}],
+   "nota": "En Forms, en modo cuestionario, con la puntuación y las respuestas visibles al enviar: la autoevaluación se corrige sola."}]},
+
+ "B2": {"vivo": [{"tipo": "linea", "titulo": "Su vídeo en Edpuzzle: 4:00 y tres preguntas, justo después de cada paso difícil", "dura": "4:00",
+   "marcas": [
+    {"t": "1:10", "paso": "Agrupar formas", "q": "Para unir el aro y el cuerpo del llavero en una sola pieza, ¿qué botón usas?",
+     "opciones": ["Agrupar", "Alinear", "Duplicar"], "bien": 0, "explica": "Agrupar une las formas en una sola pieza que se mueve y se exporta junta."},
+    {"t": "2:30", "paso": "Crear huecos", "q": "¿Cómo haces el agujero para la anilla?",
+     "opciones": ["Pongo un cilindro en modo «Hueco» y agrupo", "Borro un trozo con la goma", "Bajo la opacidad del aro"], "bien": 0,
+     "explica": "Una forma en modo «Hueco» agrupada con la pieza la agujerea."},
+    {"t": "3:40", "paso": "Medir en milímetros", "q": "El llavero tiene que medir 5 cm de largo. ¿Qué escribes en Tinkercad?",
+     "opciones": ["5", "50", "500"], "bien": 1, "explica": "Tinkercad mide en milímetros: 5 cm son 50 mm."}]}]},
+}
+ # 17-sep · «Hay algunos que ya te di ejemplo antes, usa esos cuando sea posible» (Norberto, revisión de retos del 15-sep):
+ # A2, A3, B2 y B3. Su `enlace` es el de siempre; `real` dice qué es para el pie, y la página lo pone el PRIMERO, incrustado.
+for _k, _real in {
+    "A2": {"titulo": "Publicar y compartir un Genially", "autor": "Mr. Cuarter", "donde": "YouTube",
+           "por_que": "Un tutorial corto que explica un procedimiento paso a paso: justo lo que pide el reto."},
+    "A3": {"titulo": "(Math) Series niveladas", "donde": "Genially",
+           "por_que": "Varias actividades para un mismo objetivo, y cada estudiante escoge su camino."},
+    "B2": {"titulo": "Taxonomía de Bloom: qué es y ejemplos de aplicación", "donde": "Edpuzzle",
+           "por_que": "Un vídeo con preguntas insertadas que comprueban la comprensión mientras se ve."},
+    "B3": {"titulo": "(Gamificación) Paisaje de aprendizaje: El viaje del Endurance", "donde": "Genially",
+           "por_que": "Un paisaje terminado: la matriz de este reto es la planificación que lo sostiene."},
+}.items():
+    EJEMPLOS_EXTRA.setdefault(_k, {})["real"] = _real
+for _k, _v in EJEMPLOS_EXTRA.items():
+    EJEMPLOS_RETOS[_k].update(_v)
 # 15-sep · EL RETO SECRETO (S7) ES EL ESCAPE UNI (Norberto). En la Nave, su botón de entrada; al final del escape, el
 # botón lleva a validar.html?reto=S7&llave=… (la llave, PALABRA_HUEVO de Datos.gs; la web solo lleva su huella).
 ESCAPE_UNI = "https://view.genially.com/6a461360d187e3f8869ca453"
