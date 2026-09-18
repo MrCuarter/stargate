@@ -33,7 +33,8 @@
   // menú y pie, y deja solo el botón. Lo mismo que ya hacen tickets.html y embed.html.
   // 🔴 La clase va en el BODY, no en el html: así está escrita la hoja de estilos desde el principio
   // (`body.embed .nav{display:none}`). Ponerla en el otro sitio no da error, simplemente no hace nada.
-  if (new URLSearchParams(location.search).get("embed") === "1")
+  var EMBED = new URLSearchParams(location.search).get("embed") === "1";
+  if (EMBED)
     document.body.classList.add("embed", "embed-caja");   // 15-sep · caja suelta en el Genially: sin fondo
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
@@ -54,8 +55,21 @@
       '<span>Iniciar sesión con Google</span></button></p>' +
       '<p class="small muted">Solo se comprueba quién eres. No se publica nada.</p>');
     document.querySelector("#v-entrar").onclick = function () {
-      MOTOR.entrar().catch(function (e) { fallo("No he podido entrar: " + e.message); });
+      MOTOR.entrar().catch(function (e) {
+        // 18-sep · DENTRO DE UN GENIALLY. Al final del Escape UNI esto va incrustado, y algunos navegadores no dejan
+        // abrir la ventana de Google desde un marco de otra web. Si pasa, no se deja al alumnado tirado: se abre en
+        // una pestaña, donde la llave sigue en el enlace y el reto se registra igual.
+        if (EMBED) return tarjeta('<h3>Ábrelo en una pestaña</h3>' +
+          '<p>Tu navegador no deja iniciar sesión aquí dentro. Se abre igual, y al entrar el reto queda registrado.</p>' +
+          '<p><a class="btn primary grande" target="_blank" rel="noopener" href="' + esc(fuera()) + '">Abrir en una pestaña ↗</a></p>');
+        fallo("No he podido entrar: " + e.message);
+      });
     };
+  }
+  /** El mismo sitio, pero fuera del marco y con la llave puesta (si vino en el enlace). */
+  function fuera() {
+    return location.origin + location.pathname + "?reto=" + encodeURIComponent(RETO) +
+      (LLAVE ? "&llave=" + encodeURIComponent(LLAVE) : "");
   }
 
   function fallo(txt, extra) {

@@ -47,7 +47,12 @@ c(/id="ev-resp" maxlength="280"/.test(NAVE) && /M\.responderPregunta\(per, p\.id
 c(/function emitir\(\)/.test(SES) && /publicarEnVivo\(st\.per, \{sesion:\{activa:true, sem:st\.sem, k:o\.k, n:o\.n/.test(SES), "🔴 sesión · el docente emite semana y diapositiva (clave y cuál de ellas)");
 c(/if\(EMBED && !st\.alumno && st\.per && st\.yo\) encenderDirecto\(\)/.test(SES) && /encenderDirecto\(\);   \/\/ 17-sep · quien proyecta, emite/.test(SES) && /id="ses-directo"/.test(SES),
   "   al proyectar (en su Genially o a pantalla completa) emite solo, y un botón lo apaga");
-c(/function seguirDocente\(\)/.test(SES) && /ir\(i, false, true\)/.test(SES) && /Volver al ritmo de tu Comandante/.test(SES), "🔴 sesión · el recluta sigue al docente (y si se mueve solo, «Volver al ritmo»)");
+c(/function seguirDocente\(\)/.test(SES) && /ir\(i, false, true\)/.test(SES) && /Siguiendo a tu Comandante/.test(SES), "🔴 sesión · el recluta va a la diapositiva del docente, sola");
+// 18-sep · Norberto: «el estudiante tiene bloqueado cambiar de diapositiva; la suya cambia sola cuando el docente cambia»
+c(/if\(st\.alumno && !desdeDirecto && i!==st\.i && enDirecto\(\)\)\{ avisoBloqueo\(\); return; \}/.test(SES) && /function enDirecto\(\)/.test(SES),
+  "🔴 sesión · y mientras el docente emite, el recluta NO puede moverse (sí interactuar)");
+c(/mazo\.classList\.toggle\('ses-bloqueado', !!vivo\)/.test(SES) && /\.mazo\.ses-bloqueado \.nav,\.mazo\.ses-bloqueado \.barra-pasos \.p\{opacity:\.3;pointer-events:none\}/.test(leer("assets/css/stargate.css")),
+  "   las flechas y los pasos se apagan mientras va con él");
 c(/if\(EMBED\|\|SEGUIR\)\{/.test(SES) && /st\.alumno=true; st\.ficha=g\.ficha/.test(SES), "   el mismo embed, abierto por un recluta, le enseña la sesión (ya no le echa a su Nave)");
 c(/function llamadaAlumno\(M, mando\)/.test(SES) && /M\.ficharLlamada\(st\.per, st\.ficha\)/.test(SES), "🔴 el recluta ficha sobre la presentación");
 c(/data-ses-voto=/.test(SES) && /M\.votar\(st\.per, b\.getAttribute\('data-ses-vev'\)/.test(SES), "   vota en la diapositiva de la votación");

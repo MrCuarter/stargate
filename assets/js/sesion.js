@@ -352,8 +352,18 @@
           .replace(/\s*·?\s*\(Clase\s*\d+\)\s*$/i,'').replace(/\s+([.,;:])/g,'$1').trim();
       }).filter(function(x){ return x && x!=='.'; });
   }
+  /**
+   * 18-sep · Norberto: «¿es posible poner automáticamente el nombre del Comandante en vez de "— Capitán"?».
+   * Lo mismo que ya hace la Nave (`recluta.js → msgHtml`): si su nombre ya empieza por «Comandante», no se repite.
+   */
+  function conComandante(txt){
+    var jefe=String((!st.alumno && st.miNombre) || st.profeMio || '').trim();
+    if(!jefe) return String(txt||'');
+    var firma=/^comandante\b/i.test(jefe) ? jefe : 'Comandante '+jefe;
+    return String(txt||'').replace(/—\s*Capit[áa]n\b/g, '— '+firma);
+  }
   function diaForo(s){
-    var ps=foroParrafos(s.foro); if(!ps.length) return null;
+    var ps=foroParrafos(conComandante(s.foro)); if(!ps.length) return null;
     var pl=planeta(s.tema_n), titulo=(pl?pl[1]:s.tema)||'';
     /**
      * 17-sep · Norberto: «el mensaje de bienvenida no me convence: no tiene efecto Star Wars 3D. Usa el logo de STARGATE en
@@ -1136,7 +1146,7 @@
       +(s.consejo?'<div class="card consejo"><b>El consejo del Capitán.</b> '+esc(s.consejo)+'</div>':'')
       +(s.clases?'<p class="small muted">'+esc(s.clases)+'</p>':'')
       +(s.foro?'<details class="foro-det"><summary>El mensaje de esta semana para el foro de la plataforma de UNIR (para copiar)</summary>'
-        +'<pre class="foro-msg">'+esc(String(s.foro).split('{id-del-PER}').join(st.per||'{id-del-PER}'))+'</pre>'
+        +'<pre class="foro-msg">'+esc(conComandante(s.foro).split('{id-del-PER}').join(st.per||'{id-del-PER}'))+'</pre>'
         +'<button type="button" class="btn small" id="copiarForo">Copiar el mensaje</button></details>':'')
       +'</div>';
   }
@@ -1201,7 +1211,13 @@
   function ir(i, hacia_atras, desdeDirecto){
     var n=st.slides.length;
     if(i<0||i>=n) return;
-    if(st.alumno && !desdeDirecto && i!==st.i && SEG.on && (SEG.d.sesion||{}).activa){ SEG.on=false; pintarSeguir(); }
+    /**
+     * 🔴 18-sep · Norberto: «el estudiante no puede moverse libremente por las diapositivas; puede interaccionar solo
+     * con la diapositiva en la que está el comandante, pero tiene bloqueado cambiar, avanzar o retroceder. La suya
+     * cambia sola cuando el docente cambia». Mientras el docente emita, la navegación del recluta está cerrada
+     * (fichar, votar y responder siguen funcionando). En cuanto apaga el directo, vuelve a moverse solo.
+     */
+    if(st.alumno && !desdeDirecto && i!==st.i && enDirecto()){ avisoBloqueo(); return; }
     st.i=i;
     // al volver atrás a un podio, se ve entero; al llegar de frente, se destapa de uno en uno
     st.f=hacia_atras&&st.slides[i].frag?st.slides[i].frag:0;
@@ -1270,14 +1286,25 @@
     });
   }
   function aliasMio(){ var r=vivos().filter(function(x){ return x.fid===st.ficha; })[0]; return (r&&r.alias)||''; }
+  /** ¿El docente está emitiendo ahora mismo? (lo que bloquea al recluta) */
+  function enDirecto(){
+    var d=SEG.d&&SEG.d.sesion;
+    return !!(st.alumno && d && d.activa && (Date.now()-Number(d.t||0))<3*3600e3);
+  }
+  /** Un parpadeo en el rótulo: se ha intentado mover y no toca. Sin ventanas ni regañinas. */
+  function avisoBloqueo(){
+    var c=root.querySelector('.ses-al-sigo'); if(!c) return;
+    c.classList.remove('avisa'); void c.offsetWidth; c.classList.add('avisa');
+  }
   function pintarSeguir(){
     if(!st.alumno) return;
     var mazo=root.querySelector('#mazo'); if(!mazo) return;
     var s=SEG.d.sesion, vivo=s&&s.activa&&(Date.now()-Number(s.t||0))<3*3600e3, p=SEG.d.pregunta;
     var caja=mazo.querySelector('.ses-al'); if(!caja){ caja=document.createElement('div'); caja.className='ses-al'; mazo.appendChild(caja); }
     var html='';
-    if(vivo) html+=SEG.on?'<span class="ses-al-sigo">Siguiendo a tu Comandante</span>'
-                        :'<button type="button" class="ses-al-volver" id="ses-al-volver">Volver al ritmo de tu Comandante</button>';
+    // mientras emite, el recluta va con él y no puede moverse: el rótulo lo dice y no hay «volver al ritmo» que dar
+    mazo.classList.toggle('ses-bloqueado', !!vivo);
+    if(vivo) html+='<span class="ses-al-sigo">Siguiendo a tu Comandante</span>';
     if(p&&p.abierta&&p.id){
       var pend=!SEG.mia;
       html+='<div class="ses-al-pq'+(pend?' abierta':'')+'"><b>Pregunta en directo</b><p>'+esc(p.texto)+'</p>'
@@ -1468,7 +1495,7 @@
       var nave=function(per){ return 'recluta.html?per='+encodeURIComponent(per)+(EMBED?'&embed=1':''); };
       // 🔴 17-sep · dentro de la presentación (o desde «En vivo»), el recluta VE la sesión, al ritmo de su Comandante
       if(EMBED||SEGUIR){
-        var entrar=function(g){ st.alumno=true; st.ficha=g.ficha; st.per=g.per; st.i=0; st.sem=0; cargarYArrancar(); };
+        var entrar=function(g){ st.alumno=true; st.ficha=g.ficha; st.profeMio=g.profe||''; st.per=g.per; st.i=0; st.sem=0; cargarYArrancar(); };
         if(gs.length===1) return entrar(gs[0]);
         if(gs.length>1){
           caja('<h2>¿En qué clase estás?</h2><p class="sub">Estás alistado en más de un grupo.</p><div class="ses-grupos">'
@@ -1588,7 +1615,7 @@
       if(!yo) return cargarYArrancar();
       return M.misGruposDeAlumno(yo.uid).then(function(gs){
         var g=(gs||[]).filter(function(x){ return x.per===per; })[0];
-        if(g){ st.alumno=true; st.ficha=g.ficha; }
+        if(g){ st.alumno=true; st.ficha=g.ficha; st.profeMio=g.profe||''; }
         cargarYArrancar();
       });
     }).catch(function(){ cargarYArrancar(); });

@@ -1102,7 +1102,15 @@ ol.pasos-num li b{color:var(--ink)}
 .pasos-sesion .t{font-size:1.02rem}
 
 .dia.video .cuando{color:var(--amber);margin:0 0 14px;font-size:1.02rem}
-.dia.video .yt.grande{max-width:min(100%,860px);width:100%;margin:0 auto}
+/* 18-sep · Norberto: «mucho aire, vídeo pequeño: ¿puede ajustarse el contenido al tamaño de la pantalla?».
+   El vídeo crece con la pantalla en vez de quedarse en 860 px: manda lo que quepa a lo alto (la diapositiva
+   tiene su título encima), y el ancho sale solo del 16:9. En una pantalla pequeña sigue mandando el ancho. */
+.dia.video .yt.grande{width:100%;max-width:min(100%,calc(74vh * 16 / 9));margin:0 auto}
+.mazo:fullscreen .dia.video .yt.grande{max-width:min(100%,calc(78vh * 16 / 9))}
+/* 18-sep · el recluta sigue al docente: mientras él emite, aquí no se navega (sí se interactúa) */
+.mazo.ses-bloqueado .nav,.mazo.ses-bloqueado .barra-pasos .p{opacity:.3;pointer-events:none}
+.ses-al-sigo.avisa{animation:sesAvisa .5s ease}
+@keyframes sesAvisa{0%,100%{transform:none}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
 .dia.mision .pide{border-left:3px solid var(--teal);padding:4px 0 4px 18px;margin-top:12px;max-width:70ch}
 .dia.mision .pide .et{color:var(--teal2);font-size:.76rem;text-transform:uppercase;letter-spacing:.12em;font-weight:800;margin-bottom:6px}
 .dia.mision .pide p{margin:0;font-size:1.05rem;line-height:1.55}

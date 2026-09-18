@@ -58,6 +58,15 @@
   function cablearCopiar() {
     if (copiarCableado) return;
     copiarCableado = true;
+    // 18-sep · la llave del Escape UNI: al escribirla, los dos botones de S7 se quedan con el enlace montado
+    app.addEventListener("input", function (ev) {
+      var i = ev.target; if (!i || i.id !== "s7-llave") return;
+      var llave = String(i.value || "").trim();
+      var ruta = "validar.html?reto=S7" + (llave ? "&llave=" + encodeURIComponent(llave) : "");
+      var enl = document.getElementById("s7-enl"), cod = document.getElementById("s7-cod");
+      if (enl) enl.setAttribute("data-copiar", llave ? location.origin + "/" + ruta : "");
+      if (cod) cod.setAttribute("data-copiar", llave ? codigoGenially(ruta + "&embed=1", "STARGATE · Validar el reto secreto") : "");
+    });
     app.addEventListener("click", function (ev) {
       var b = ev.target && ev.target.closest ? ev.target.closest("[data-copiar]") : null;
       if (!b || !app.contains(b)) return;
@@ -2695,9 +2704,21 @@
         return '<p class="small">' + x[0] + ' <button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[1], "STARGATE · " + x[0].replace(/^\S+\s/, ""))) + '">&lt;/&gt; Copiar para insertar</button></p>';
       }).join("") +
       // 15-sep (tarde) · el reto secreto (S7) es el Escape UNI; el enlace escondido de Vínculo lleva a su puerta
-      '<p class="small">🗝️ <b>El reto secreto (S7) es el Escape UNI</b>. Se registra solo con el botón del final del escape (ese enlace ' +
-      'lo tiene Norberto). Si quieres esconder su puerta en la presentación de <b>Vínculo</b>, ponla en algo que no parezca un botón ' +
-      '(una estrella, un rincón de la imagen). <button class="btn min" data-copiado="✓ Enlace copiado" data-copiar="' + esc(location.origin + "/fragmento.html") + '">🔗 Copiar la puerta escondida</button></p>' +
+      /**
+       * 18-sep · EL FINAL DEL ESCAPE, CON SU LLAVE DENTRO. Norberto: «no se valida con palabra mágica, se valida con
+       * enlace mágico; al final del escape embeberemos la misión para validarla». El enlace y el código de inserción
+       * llevan la llave, así que el alumnado no escribe nada: entra con su cuenta y el reto queda registrado.
+       * 🔴 La llave no se guarda en ninguna parte (ni aquí, ni en el grupo, ni en el repositorio, que es público):
+       * se pega en este campo y se usa en el momento para montar el enlace.
+       */
+      '<p class="small">🗝️ <b>El reto secreto (S7) es el Escape UNI</b>. Se registra con el final del escape, y ese enlace ' +
+      '<b>lleva la llave dentro</b>: quien lo abre solo entra con su cuenta. Pega aquí tu llave y te lo doy montado.</p>' +
+      '<p class="small"><input id="s7-llave" type="text" autocomplete="off" spellcheck="false" placeholder="La llave del Escape UNI" ' +
+      'style="max-width:15rem"> <button class="btn min" id="s7-enl" data-copiado="✓ Enlace copiado" data-copiar="">🔗 Copiar el enlace del final</button> ' +
+      '<button class="btn min" id="s7-cod" data-copiado="✓ Código copiado" data-copiar="">&lt;/&gt; Copiar el código para incrustarlo</button></p>' +
+      '<p class="small muted">La llave no se guarda en ningún sitio: se usa aquí mismo. Y si quieres esconder la <b>puerta</b> del escape ' +
+      'en la presentación de <b>Vínculo</b>, ponla en algo que no parezca un botón (una estrella, un rincón de la imagen). ' +
+      '<button class="btn min" data-copiado="✓ Enlace copiado" data-copiar="' + esc(location.origin + "/fragmento.html") + '">🔗 Copiar la puerta escondida</button></p>' +
       '</div>' +
       tarjetaBorrar();
     cablearBorrar();

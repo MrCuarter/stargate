@@ -94,6 +94,18 @@ Promise.all(casos.map(([t]) => SX.comprobar("S7", t))).then(rs => {
     "   y validar.html tampoco, venga la llave del enigma o escrita a mano");
   c(!/560f3d2f/.test(MOT + NAVE + VAL), "   y la palabra (ni su huella) se escribe a mano en el motor: viene de SG_SECRETOS");
 
+  // 18-sep · Norberto: «no se valida con palabra mágica, se valida con enlace mágico; al final del escape embeberemos
+  // la misión». El enlace del final lleva la llave dentro y se puede incrustar; la consola lo monta sin guardarla.
+  const CONS = leer("assets/js/consola.js");
+  c(/id="s7-llave"/.test(CONS) && /id="s7-enl"/.test(CONS) && /id="s7-cod"/.test(CONS),
+    "🔴 la consola monta el enlace del final del escape, y su código para incrustarlo, con la llave dentro");
+  c(/codigoGenially\(ruta \+ "&embed=1"/.test(CONS) && /i\.id !== "s7-llave"/.test(CONS),
+    "   el código incrustado va con ?llave=…&embed=1 (el alumnado no escribe nada)");
+  c(!/llave/.test(CONS.slice(CONS.indexOf('guardarAjustes'), CONS.indexOf('guardarAjustes') + 3000)),
+    "🔴 y la llave NO se guarda en el grupo (el repositorio de la web es público)");
+  c(/if \(EMBED\) return tarjeta\('<h3>Ábrelo en una pestaña/.test(VAL) && /function fuera\(\)/.test(VAL),
+    "🔴 si el navegador no deja entrar con Google dentro del Genially, se ofrece abrirlo en una pestaña (con su llave)");
+
   if (require.main === module) {
     console.log("\n  Batería 74 · el reto secreto S7");
     console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");

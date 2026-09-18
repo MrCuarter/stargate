@@ -3257,6 +3257,22 @@ const REG = {};   // cifras que se apuntan para el informe
         !(await consultar("mission_deliveries", "projectId", P)).filter(d => d.missionId === S7._id && d.studentProfileId === fS._id && d.enlace).length);
       await q2.foto(FOTOS + "/31-registrado.png");
       await q2.cerrar();
+      // 🔴 18-sep · Y COMO LO VA A USAR DE VERDAD: «al final del escape embeberemos la misión para validarla».
+      // El mismo enlace, con su llave, incrustado en OTRA web: se entra con la cuenta ahí dentro y el reto queda.
+      const G5 = G3;   // Otto, que ya está alistado y acaba de quedarse sin S7 por intentarlo a lo bruto
+      const q5 = await nueva("Otto valida S7 dentro del escape");
+      await q5.ir("http://127.0.0.1:" + L.P_WEB2 + "/genially.html?que=" +
+        encodeURIComponent("validar.html?reto=S7&llave=" + encodeURIComponent(LLAVE.toLowerCase()) + "&embed=1"));
+      const fs5 = await q5.marco("validar.html");
+      await fs5.hasta("!!document.getElementById('v-entrar')", 20);
+      await fs5.entrarComo(G5[0], G5[1]);
+      await fs5.recargar(); await dormir(2500);
+      const fs6 = await q5.marco("validar.html");
+      c("🔴 secreto · incrustado al final del escape (con su llave), registra S7 sin escribir nada",
+        await fs6.hasta("/Registrado/.test(document.body.innerText)", 40) && await tiene(G5[0]), (await fs6.texto()).slice(0, 160));
+      c("secreto · y dentro del marco tampoco se queda la llave", !(await fs6.js("/llave=/.test(location.search)")) && !(await fs6.js("localStorage.getItem('sgSecreto:S7')")));
+      await q5.foto(FOTOS + "/31-embebido.png");
+      await q5.cerrar();
       // 3b · la puerta escondida de Vínculo (fragmento.html) lleva al Escape UNI
       const q4 = await nueva("Alguien encuentra la puerta escondida");
       await q4.ir("fragmento.html");
@@ -4694,10 +4710,13 @@ const REG = {};   // cifras que se apuntan para el informe
       const aLaVez = await al.hasta(`(document.querySelector('.barra-pasos .p.on')||{}).title===${JSON.stringify(tituloRita)}`, 30);
       c("🔴 en vivo · Rita pasa de diapositiva y a Ana le pasa también", aLaVez && tituloRita !== "El mensaje", tituloRita);
       c("   y en la sesión de Ana está la pregunta en directo (ya respondida)", await al.js("/La matriz de inteligencias/.test((document.querySelector('.ses-al-pq')||{}).textContent||'')"));
-      await al.js("document.getElementById('ant').click(); 1"); await dormir(700);
-      c("   si Ana se mueve sola, deja de seguir y le ofrece «Volver al ritmo»", await al.hasta("!!document.getElementById('ses-al-volver')", 10));
-      await al.js("document.getElementById('ses-al-volver').click(); 1");
-      c("   y al pulsarlo vuelve a la de Rita", await al.hasta(`(document.querySelector('.barra-pasos .p.on')||{}).title===${JSON.stringify(tituloRita)}`, 15));
+      // 🔴 18-sep · Norberto: «el estudiante tiene bloqueado cambiar de diapositiva; la suya cambia sola cuando el
+      // docente cambia». Se intenta ir atrás y no se mueve; y los controles están apagados.
+      await al.js("document.getElementById('ant').click(); 1"); await dormir(900);
+      c("🔴 en vivo · Ana NO puede moverse por su cuenta mientras Rita emite",
+        (await al.js("(document.querySelector('.barra-pasos .p.on')||{}).title||''")) === tituloRita, tituloRita);
+      c("   y sus flechas están apagadas, con el rótulo de que va con su Comandante",
+        await al.js("!!document.querySelector('#mazo.ses-bloqueado') && !!document.querySelector('.ses-al-sigo') && !document.getElementById('ses-al-volver')"));
       await al.foto(FOTOS + "/44-sesion-alumna.png");
       await rv.js("document.getElementById('ses-directo').click(); 1"); await dormir(1200);
       c("en vivo · al apagar «En directo», la sesión deja de emitirse", ((await leerDoc("stargate_envivo/" + P)) || {}).sesion.activa === false);

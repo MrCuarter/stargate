@@ -1349,7 +1349,8 @@ async function referenteEnTodos(persona, perIds) {
  */
 async function misGruposDeAlumno(uid) {
   const r = await getDocs(query(collection(db, "student_profiles"), where("userId", "==", uid)));
-  const fichas = r.docs.map(d => ({ ficha: d.id, per: d.data().projectId })).filter(x => x.per);
+  // 18-sep · `profe` viene de balde (la ficha ya está leída) y sirve para firmar el mensaje de la semana con su Comandante
+  const fichas = r.docs.map(d => ({ ficha: d.id, per: d.data().projectId, profe: d.data().stargateProfe || "" })).filter(x => x.per);
   // El nombre del grupo, para que la pantalla de «¿cómo entras hoy?» diga «PRUEBA HUMANA» y no
   // «prueba-humana». Son una o dos lecturas: nadie está alistado en diez grupos a la vez.
   // Y solo grupos de STARGATE: una ficha de GamificaPro en otro proyecto no es una Nave.
