@@ -370,7 +370,8 @@
     // 18-sep · tu comandante: el que elegiste (o el primero), y la galería para cambiarlo
     var avImg = $("#doc-ava-img"), avBtn = $("#doc-ava"), avs = $("#doc-avas");
     if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
-      if (f && f.avatar && avImg) avImg.src = "assets/img/avatares/comandantes/" + f.avatar + ".jpg";
+      // 18-sep · los retratos del equipo se rehicieron (t- → t2-): quien guardó el de antes ve el nuevo
+      if (f && f.avatar && avImg) avImg.src = "assets/img/avatares/comandantes/" + String(f.avatar).replace(/^t-/, "t2-") + ".jpg";
     }).catch(function () {});
     var galeria = function () {
       if (avs.getAttribute("data-lista")) return;
