@@ -4581,4 +4581,8 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .m-sec em{display:block;font-style:normal;font-size:.82rem;color:var(--muted);margin-top:2px}
 .m-sec:has(input:not(:checked)){opacity:.55}
 .m-sec-msg{min-height:1.2em;margin:4px 0 0;color:var(--teal2)}
+/* 18-sep · los retratos del equipo en la galería: con su nombre al pie, y una raya antes de los genéricos */
+.doc-avas-g.propios{grid-template-columns:repeat(6,1fr);padding-bottom:12px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.doc-av-op span{display:block;padding:4px 2px 2px;font-size:.8rem;font-weight:700;color:#e8f3fa;text-align:center}
+@media(max-width:900px){.doc-avas-g.propios{grid-template-columns:repeat(3,1fr)}}
 

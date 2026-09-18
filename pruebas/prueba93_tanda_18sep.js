@@ -65,6 +65,12 @@ c(/sesiones: S\.sesiones \|\| \{\}/.test(TAB), "   y viaja en el tablero del gru
 c(/<h3>Tu sesión en directo<\/h3>/.test(CONS) && /class="m-sec"><input type="checkbox" data-sec=/.test(CONS) && /✓ Guardado/.test(CONS),
   "🔴 consola · «Tu sesión en directo»: una casilla por sección, todas marcadas por defecto, y se guarda al tocarla");
 
+// ── 7 · los retratos de comandante del equipo
+c(/COMANDANTES_PROPIOS = \[/.test(DATOS) && ["norberto", "abel", "adriana", "anita", "caridad", "patricia"].every(k =>
+  fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes", k + ".jpg"))), "🔴 los seis retratos del equipo, cada uno con su fichero");
+c(/window\.SG_COMANDANTES=/.test(leer("consola.html")) && /doc-avas-g propios/.test(CONS), "   y salen los primeros en la galería, con su nombre");
+c(!fs.existsSync(path.join(RAIZ, "fotos_comandantes")) && !/fotos_comandantes\/[a-z]/.test(DATOS), "🔴 las fotos originales NO están en la web (son de personas)");
+
 console.log("\n  Batería 93 · la tanda de la prueba humana del 18-sep");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
 fallos.forEach(f => console.log("   ✗ " + f));

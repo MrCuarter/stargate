@@ -10,7 +10,7 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
-                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, REFLEXION_RETOS, TOPE_RETOS_SEMANA, SESION_SECCIONES, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
+                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, REFLEXION_RETOS, TOPE_RETOS_SEMANA, SESION_SECCIONES, COMANDANTES_PROPIOS, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
                         PASOS, ESCUADRONES, TICKET_URL, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES,
@@ -3230,6 +3230,7 @@ def _cabeza_motor():
         'window.SG_TICKET_URL=' + _json.dumps(TICKET_URL) + ';'
         'window.SG_PANEL_MAESTRO=' + _json.dumps(PANEL_MAESTRO) + ';window.SG_PANEL_MAESTRO_EDICION=' + _json.dumps(PANEL_MAESTRO_EDICION) + ';'
         'window.SG_SECCIONES_SESION=' + _json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False) + ';'
+        'window.SG_COMANDANTES=' + _json.dumps([list(x) for x in COMANDANTES_PROPIOS], ensure_ascii=False) + ';'
         # El banco de alias solo lo usa el alistamiento, pero va con el resto: son 4 KB y evita una
         # descarga aparte justo en la pantalla donde más prisa tiene la gente.
         'window.SG_ALIAS=' + _json.dumps(ALIAS_SUGERIDOS) + ';'

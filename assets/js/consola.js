@@ -375,11 +375,16 @@
     var galeria = function () {
       if (avs.getAttribute("data-lista")) return;
       avs.setAttribute("data-lista", "1");
-      avs.innerHTML = '<p class="small muted">Elige el comandante que te representa. Lo verás aquí y en tu aula.</p>' +
+      // 18-sep · primero los retratos del equipo (con su nombre: busca el tuyo), luego los ocho genéricos
+      var propios = window.SG_COMANDANTES || [];
+      avs.innerHTML = '<p class="small muted">Elige el comandante que te representa' + (propios.length ? ': si tienes retrato propio, está el primero, con tu nombre' : '') + '.</p>' +
+        (propios.length ? '<div class="doc-avas-g propios">' + propios.map(function (x) {
+          return '<button type="button" class="doc-av-op" data-av="' + esc(x[0]) + '"><img src="assets/img/avatares/comandantes/' + esc(x[0]) + '.jpg" alt="' + esc(x[1]) + '"><span>' + esc(x[1]) + '</span></button>';
+        }).join("") + '</div>' : '') +
         '<div class="doc-avas-g">' + [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) {
           return '<button type="button" class="doc-av-op" data-av="c' + n + '"><img src="assets/img/avatares/comandantes/c' + n + '.jpg" alt="Comandante ' + n + '"></button>';
         }).join("") + '</div>';
-      var actual = (avImg && (avImg.getAttribute("src").match(/\/(c\d+)\.jpg/) || [])[1]) || "";
+      var actual = (avImg && (avImg.getAttribute("src").match(/\/([a-z0-9_-]+)\.jpg/) || [])[1]) || "";
       Array.prototype.forEach.call(avs.querySelectorAll(".doc-av-op"), function (o) {
         o.classList.toggle("on", o.getAttribute("data-av") === actual);
         o.onclick = elegirAvatar(o);

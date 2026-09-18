@@ -620,6 +620,15 @@ TOPE_RETOS_SEMANA = 3
 # de si aparece una cosa u otra en función de la semana… y que cada docente pueda marcar con una checkbox lo que quiere
 # usar en su presentación. Por defecto, todo completo». Clave, nombre y qué trae. Las lee la sesión (para quitar lo que
 # el docente quite) y la consola («Mis enlaces» → «Tu sesión en directo»).
+# 18-sep · LOS RETRATOS DE COMANDANTE DEL EQUIPO (Magnific, a partir de sus fotos, con su permiso: «me las han pasado
+# ellos, están emocionados»). Clave (= fichero en assets/img/avatares/comandantes/) y nombre. En la galería del panel del
+# docente salen los primeros, con su nombre, y después los ocho genéricos (c1…c8). Las fotos originales NO están en el
+# repositorio: viven en Project_CCD/fotos_comandantes/ (fuera de git).
+COMANDANTES_PROPIOS = [
+    ("norberto", "Norberto"), ("abel", "Abel"), ("adriana", "Adriana Graciela"),
+    ("anita", "Anita"), ("caridad", "Caridad"), ("patricia", "Patricia"),
+]
+
 SESION_SECCIONES = [
     ("portada", "Portada", "El planeta de la semana y el capítulo de la historia."),
     ("llamada", "Llamada a filas", "Fichar la asistencia al empezar."),
