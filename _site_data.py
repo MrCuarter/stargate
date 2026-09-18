@@ -620,17 +620,6 @@ TOPE_RETOS_SEMANA = 3
 # de si aparece una cosa u otra en función de la semana… y que cada docente pueda marcar con una checkbox lo que quiere
 # usar en su presentación. Por defecto, todo completo». Clave, nombre y qué trae. Las lee la sesión (para quitar lo que
 # el docente quite) y la consola («Mis enlaces» → «Tu sesión en directo»).
-# 18-sep · LOS COMANDANTES DEL EQUIPO. Norberto: «que sean versiones siguiendo la estética de los personajes, que no se
-# reconozcan directamente… el estilo de los avatares de los estudiantes». Hechos con Magnific a partir de una DESCRIPCIÓN
-# de cada docente (pelo, barba, rasgos generales), sin su foto, y con los avatares del alumnado como referencia de estilo.
-# 🔴 La primera versión SÍ llevaba sus caras (se hizo con la foto): se retiró y los ficheros nuevos llevan otro nombre
-# (t-…) para que ninguna caché siga sirviendo aquellos. Las fotos originales, fuera de git (Project_CCD/fotos_comandantes/).
-# Clave (= fichero en assets/img/avatares/comandantes/) y nombre: en la galería salen los primeros, con su nombre.
-COMANDANTES_PROPIOS = [
-    ("t4-norberto", "Norberto"), ("t4-abel", "Abel"), ("t4-adriana", "Adriana Graciela"),
-    ("t4-anita", "Anita"), ("t4-caridad", "Caridad"), ("t4-patricia", "Patricia"),
-]
-
 SESION_SECCIONES = [
     ("portada", "Portada", "El planeta de la semana y el capítulo de la historia."),
     ("llamada", "Llamada a filas", "Fichar la asistencia al empezar."),

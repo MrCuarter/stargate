@@ -370,21 +370,13 @@
     // 18-sep · tu comandante: el que elegiste (o el primero), y la galería para cambiarlo
     var avImg = $("#doc-ava-img"), avBtn = $("#doc-ava"), avs = $("#doc-avas");
     if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
-      // 18-sep · los retratos del equipo se rehacen con otro nombre (t-, t2-, t3-…, por la caché del CDN): quien guardó
-      // una versión anterior ve la actual de esa persona
-      var clave = String((f && f.avatar) || ""), m = clave.match(/^t\d*-(.+)$/);
-      if (m) (window.SG_COMANDANTES || []).forEach(function (x) { if (x[0].replace(/^t\d*-/, "") === m[1]) clave = x[0]; });
-      if (clave && avImg) avImg.src = "assets/img/avatares/comandantes/" + clave + ".jpg";
+      if (f && f.avatar && avImg) avImg.src = "assets/img/avatares/comandantes/" + f.avatar + ".jpg";
     }).catch(function () {});
     var galeria = function () {
       if (avs.getAttribute("data-lista")) return;
       avs.setAttribute("data-lista", "1");
-      // 18-sep · primero los retratos del equipo (con su nombre: busca el tuyo), luego los ocho genéricos
-      var propios = window.SG_COMANDANTES || [];
-      avs.innerHTML = '<p class="small muted">Elige el comandante que te representa' + (propios.length ? ': si tienes retrato propio, está el primero, con tu nombre' : '') + '.</p>' +
-        (propios.length ? '<div class="doc-avas-g propios">' + propios.map(function (x) {
-          return '<button type="button" class="doc-av-op" data-av="' + esc(x[0]) + '"><img src="assets/img/avatares/comandantes/' + esc(x[0]) + '.jpg" alt="' + esc(x[1]) + '"><span>' + esc(x[1]) + '</span></button>';
-        }).join("") + '</div>' : '') +
+      // 18-sep · todo el reparto de comandantes, sin nombres (Norberto: «forman parte del reparto de comandantes»)
+      avs.innerHTML = '<p class="small muted">Elige el comandante que te representa.</p>' +
         '<div class="doc-avas-g">' + (window.SG_COMANDANTES_GEN || []).map(function (k) {
           return '<button type="button" class="doc-av-op" data-av="' + esc(k) + '"><img src="assets/img/avatares/comandantes/' + esc(k) + '.jpg" alt="Comandante"></button>';
         }).join("") + '</div>';

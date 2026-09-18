@@ -4552,7 +4552,9 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .doc-cifras span,.c-res-cifras span{display:block;margin-top:4px;font-size:.8rem;color:var(--muted)}
 .doc-b{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 .doc-avas{margin:-6px 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#0b1119}
-.doc-avas-g{display:grid;grid-template-columns:repeat(10,1fr);gap:10px;margin-top:8px}
+/* 18-sep · el reparto de comandantes (26): 13 por fila, 5 en móvil; la última fila, centrada */
+.doc-avas-g{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:8px}
+.doc-avas-g .doc-av-op{flex:0 0 calc((100% - 120px) / 13)}
 .doc-av-op{padding:0;border:2px solid transparent;border-radius:14px;overflow:hidden;cursor:pointer;background:none}
 .doc-av-op img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
 .doc-av-op:hover{border-color:rgba(62,214,200,.6)}
@@ -4568,7 +4570,7 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 @media(max-width:900px){
   .doc-panel{grid-template-columns:auto 1fr}
   .doc-cifras,.doc-b{grid-column:1/-1;justify-content:flex-start;align-items:flex-start;flex-wrap:wrap}
-  .doc-avas-g{grid-template-columns:repeat(5,1fr)}
+  .doc-avas-g .doc-av-op{flex-basis:calc((100% - 40px) / 5)}
 }
 /* 18-sep · la puerta, sin emojis: el comandante y la nave */
 .camino span img{width:34px;height:34px;object-fit:cover;border-radius:50%;display:block}
@@ -4582,7 +4584,4 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .m-sec:has(input:not(:checked)){opacity:.55}
 .m-sec-msg{min-height:1.2em;margin:4px 0 0;color:var(--teal2)}
 /* 18-sep · los retratos del equipo en la galería: con su nombre al pie, y una raya antes de los genéricos */
-.doc-avas-g.propios{grid-template-columns:repeat(6,1fr);padding-bottom:12px;margin-bottom:4px;border-bottom:1px solid var(--line)}
-.doc-av-op span{display:block;padding:4px 2px 2px;font-size:.8rem;font-weight:700;color:#e8f3fa;text-align:center}
-@media(max-width:900px){.doc-avas-g.propios{grid-template-columns:repeat(3,1fr)}}
 
