@@ -3222,6 +3222,13 @@ def _v(rel):
     —y el síntoma es siempre el mismo: «pero si eso ya lo he arreglado»."""
     return rel + "?v=" + _ver(rel)
 
+def _comandantes_genericos():
+    """Claves de los comandantes genéricos (c1.jpg, c2.jpg…), en orden numérico, sacadas de la carpeta."""
+    d = os.path.join(HERE, "assets/img/avatares/comandantes")
+    ks = [f[:-4] for f in os.listdir(d) if _re.match(r"^c\d+\.jpg$", f)]
+    return sorted(ks, key=lambda k: int(k[1:]))
+
+
 def _cabeza_motor():
     """Los scripts del motor, para las páginas que SIEMPRE lo usan (consola, crear, alistarse…)."""
     return (
@@ -3231,6 +3238,8 @@ def _cabeza_motor():
         'window.SG_PANEL_MAESTRO=' + _json.dumps(PANEL_MAESTRO) + ';window.SG_PANEL_MAESTRO_EDICION=' + _json.dumps(PANEL_MAESTRO_EDICION) + ';'
         'window.SG_SECCIONES_SESION=' + _json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False) + ';'
         'window.SG_COMANDANTES=' + _json.dumps([list(x) for x in COMANDANTES_PROPIOS], ensure_ascii=False) + ';'
+        # 18-sep · los comandantes genéricos (c1, c2…) salen de la carpeta: se añade una imagen y ya está en la galería
+        'window.SG_COMANDANTES_GEN=' + _json.dumps(_comandantes_genericos()) + ';'
         # El banco de alias solo lo usa el alistamiento, pero va con el resto: son 4 KB y evita una
         # descarga aparte justo en la pantalla donde más prisa tiene la gente.
         'window.SG_ALIAS=' + _json.dumps(ALIAS_SUGERIDOS) + ';'

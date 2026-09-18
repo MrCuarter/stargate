@@ -385,8 +385,8 @@
         (propios.length ? '<div class="doc-avas-g propios">' + propios.map(function (x) {
           return '<button type="button" class="doc-av-op" data-av="' + esc(x[0]) + '"><img src="assets/img/avatares/comandantes/' + esc(x[0]) + '.jpg" alt="' + esc(x[1]) + '"><span>' + esc(x[1]) + '</span></button>';
         }).join("") + '</div>' : '') +
-        '<div class="doc-avas-g">' + [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) {
-          return '<button type="button" class="doc-av-op" data-av="c' + n + '"><img src="assets/img/avatares/comandantes/c' + n + '.jpg" alt="Comandante ' + n + '"></button>';
+        '<div class="doc-avas-g">' + (window.SG_COMANDANTES_GEN || []).map(function (k) {
+          return '<button type="button" class="doc-av-op" data-av="' + esc(k) + '"><img src="assets/img/avatares/comandantes/' + esc(k) + '.jpg" alt="Comandante"></button>';
         }).join("") + '</div>';
       var actual = (avImg && (avImg.getAttribute("src").match(/\/([a-z0-9_-]+)\.jpg/) || [])[1]) || "";
       Array.prototype.forEach.call(avs.querySelectorAll(".doc-av-op"), function (o) {
