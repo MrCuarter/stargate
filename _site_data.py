@@ -620,13 +620,15 @@ TOPE_RETOS_SEMANA = 3
 # de si aparece una cosa u otra en función de la semana… y que cada docente pueda marcar con una checkbox lo que quiere
 # usar en su presentación. Por defecto, todo completo». Clave, nombre y qué trae. Las lee la sesión (para quitar lo que
 # el docente quite) y la consola («Mis enlaces» → «Tu sesión en directo»).
-# 18-sep · LOS RETRATOS DE COMANDANTE DEL EQUIPO (Magnific, a partir de sus fotos, con su permiso: «me las han pasado
-# ellos, están emocionados»). Clave (= fichero en assets/img/avatares/comandantes/) y nombre. En la galería del panel del
-# docente salen los primeros, con su nombre, y después los ocho genéricos (c1…c8). Las fotos originales NO están en el
-# repositorio: viven en Project_CCD/fotos_comandantes/ (fuera de git).
+# 18-sep · LOS COMANDANTES DEL EQUIPO. Norberto: «que sean versiones siguiendo la estética de los personajes, que no se
+# reconozcan directamente… el estilo de los avatares de los estudiantes». Hechos con Magnific a partir de una DESCRIPCIÓN
+# de cada docente (pelo, barba, rasgos generales), sin su foto, y con los avatares del alumnado como referencia de estilo.
+# 🔴 La primera versión SÍ llevaba sus caras (se hizo con la foto): se retiró y los ficheros nuevos llevan otro nombre
+# (t-…) para que ninguna caché siga sirviendo aquellos. Las fotos originales, fuera de git (Project_CCD/fotos_comandantes/).
+# Clave (= fichero en assets/img/avatares/comandantes/) y nombre: en la galería salen los primeros, con su nombre.
 COMANDANTES_PROPIOS = [
-    ("norberto", "Norberto"), ("abel", "Abel"), ("adriana", "Adriana Graciela"),
-    ("anita", "Anita"), ("caridad", "Caridad"), ("patricia", "Patricia"),
+    ("t-norberto", "Norberto"), ("t-abel", "Abel"), ("t-adriana", "Adriana Graciela"),
+    ("t-anita", "Anita"), ("t-caridad", "Caridad"), ("t-patricia", "Patricia"),
 ]
 
 SESION_SECCIONES = [

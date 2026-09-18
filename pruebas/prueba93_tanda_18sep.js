@@ -67,7 +67,10 @@ c(/<h3>Tu sesión en directo<\/h3>/.test(CONS) && /class="m-sec"><input type="ch
 
 // ── 7 · los retratos de comandante del equipo
 c(/COMANDANTES_PROPIOS = \[/.test(DATOS) && ["norberto", "abel", "adriana", "anita", "caridad", "patricia"].every(k =>
-  fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes", k + ".jpg"))), "🔴 los seis retratos del equipo, cada uno con su fichero");
+  fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes", "t-" + k + ".jpg"))), "🔴 los seis comandantes del equipo, cada uno con su fichero");
+// 🔴 18-sep · Norberto: «tienen nuestra foto real; que no se reconozcan». La primera versión (con su cara) no puede volver
+c(["norberto", "abel", "adriana", "anita", "caridad", "patricia"].every(k => !fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes", k + ".jpg"))),
+  "🔴 los retratos con su cara real ya no están en la web");
 c(/window\.SG_COMANDANTES=/.test(leer("consola.html")) && /doc-avas-g propios/.test(CONS), "   y salen los primeros en la galería, con su nombre");
 c(!fs.existsSync(path.join(RAIZ, "fotos_comandantes")) && !/fotos_comandantes\/[a-z]/.test(DATOS), "🔴 las fotos originales NO están en la web (son de personas)");
 
