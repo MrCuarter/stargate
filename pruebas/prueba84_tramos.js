@@ -39,7 +39,7 @@ c(/ci *= *ci\.concat\(diasMisiones\(s\)\)/.test(S), "   los retos de la semana s
 c(/medio\.push\(\{k:'genially', t:'pr'/.test(S),
   "🔴 el Genially del grupo es el tramo del medio (la teoría y la práctica guiada), no una diapositiva suelta");
 c(/if\(st\.per && \(!EMBED \|\| VENTANA\)\)/.test(S), "   y solo se embebe proyectando desde la web o en su ventana: dentro del Genially sería él mismo");
-c(/function diaPuente\(/.test(S) && /Ahora, la presentación/.test(S),
+c(/function diaPuente\(/.test(S) && /Ahora, el despegue/.test(S),
   "🔴 dentro del Genially, una tarjeta puente dice en voz alta lo que toca ahora");
 c(/reto relámpago/.test(S), "   y recuerda que al volver toca el reto relámpago");
 

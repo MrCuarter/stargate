@@ -176,10 +176,10 @@
       // para mostrar»): esta pantalla se proyecta y se comparte; la invitación se copia sin destaparlo.
       (p.codigo && p.estado !== "pasado"
         ? '<div class="gp-invita"><div><span>Código de clase</span><button type="button" class="gp-cod" data-cod="' + esc(p.codigo) + '" ' +
-            'title="Pulsa para verlo (y otra vez para taparlo)" aria-label="Mostrar el código de clase">•••••• <em>👁 Mostrar</em></button></div>' +
+            'title="Pulsa para verlo (y otra vez para taparlo)" aria-label="Mostrar el código de clase">•••••• <em>Mostrar</em></button></div>' +
           '<button class="btn min" data-copiado="✓ Invitación copiada" data-copiar="' + esc(invitacion(p)) + '" ' +
             'title="Copia un mensaje listo para pegar en el foro de la plataforma de UNIR o en un chat">' +
-            '📋 Copiar invitación</button></div>'
+            'Copiar invitación</button></div>'
         : '') +
       // 15-sep · Norberto: «un botón llamativo para entrar en ese grupo», como el de «Entrar en mi Nave» al alistarse.
       // Era un enlace gris («Ver mi gente y los ajustes →») y no se veía. Debajo, las pestañas que hay dentro.
@@ -187,7 +187,7 @@
         (p.estado === "pasado"
           ? '<button class="btn gp-abrir" data-per="' + esc(p.id) + '">Entrar en el grupo →</button>'
           : '<button class="btn epico gp-abrir" data-per="' + esc(p.id) + '">' +
-              '<span class="ep-luz"></span><span class="ep-txt">🚀 Entrar en el grupo</span></button>') +
+              '<span class="ep-luz"></span><span class="ep-txt">Entrar en el grupo</span></button>') +
         '<p class="gp-dentro">' + (refDe(p) ? "Mi gente · Escuadrones · Calendario · Ajustes" : "Mi gente · El Zoco · Mis enlaces · Calendario") + '</p>' +
       '</div></article>';
   }
@@ -353,7 +353,7 @@
       b.onclick = function () {
         var ver = !b.classList.contains("visto");
         b.classList.toggle("visto", ver);
-        b.innerHTML = ver ? esc(b.getAttribute("data-cod")) + ' <em>Tapar</em>' : '•••••• <em>👁 Mostrar</em>';
+        b.innerHTML = ver ? esc(b.getAttribute("data-cod")) + ' <em>Tapar</em>' : '•••••• <em>Mostrar</em>';
         b.setAttribute("aria-label", ver ? "Tapar el código de clase" : "Mostrar el código de clase");
       };
     });

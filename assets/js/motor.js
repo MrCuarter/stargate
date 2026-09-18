@@ -1967,6 +1967,17 @@ const sorteosPendientes = (perId) => llamar("stargateSorteosPendientes", { proje
 const oferta = (perId, accion, datos) => llamar("stargateOferta", Object.assign({ projectId: perId, accion: accion }, datos || {}));
 
 /** Quién ha fichado en una llamada, para verlo en directo desde el puesto de mando. */
+/**
+ * 18-sep · ¿YA FICHÉ EN ESTA LLAMADA? Norberto: «la llamada a filas aparece todo el rato si el estudiante cierra la
+ * ventana o cambia». Es que «ya he fichado» solo vivía en la memoria de la pestaña. Esto lo pregunta al servidor.
+ * (Dos igualdades y una de ellas es su uid: es lo que dejan leer las reglas, y no hace falta índice nuevo.)
+ */
+async function yaFiche(sesionId, uid) {
+  if (!sesionId || !uid) return false;
+  const r = await getDocs(query(collection(db, FICHAJES), where("sessionId", "==", sesionId), where("userId", "==", uid)));
+  return !r.empty;
+}
+
 async function fichajesDe(sesionId) {
   const r = await getDocs(query(collection(db, FICHAJES), where("sessionId", "==", sesionId)));
   return r.docs.map(d => ({ id: d.id, ...d.data() }))
@@ -2077,7 +2088,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, vigilarLlamada, traerPalabra,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, alumno, nuevoCodigo,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,

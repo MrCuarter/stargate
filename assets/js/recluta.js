@@ -1511,7 +1511,14 @@
         faccion: sesion.restrictedFactionId || '',
         xp: Number(sesion.pointsReward||15), creditos: Number(sesion.coinsReward||30)
       } : null;
-      if((st.llamada ? st.llamada.id : null)!==antes){ st.fichado=false; render(); }
+      if((st.llamada ? st.llamada.id : null)!==antes){
+        st.fichado=false; render();
+        // 🔴 18-sep · y se le pregunta al servidor si ya fichó: si cierra la ventana o cambia de pestaña, la llamada
+        // no le vuelve a saltar como si no hubiera respondido (nunca dio puntos de más: el servidor los negaba).
+        if(st.llamada && st.yo && M.yaFiche) M.yaFiche(st.llamada.id, st.yo.userId||st.yo.uid||'').then(function(ya){
+          if(ya && st.llamada){ st.fichado=true; render(); }
+        }, function(){});
+      }
     }, deMiEscuadron);
     // La cuenta atrás se refresca sola. Cuando llega a cero, se repinta y el aviso desaparece.
     if(!st.relojLlamada) st.relojLlamada=setInterval(function(){

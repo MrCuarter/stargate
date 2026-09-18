@@ -1115,11 +1115,23 @@ ol.pasos-num li b{color:var(--ink)}
 .dia.mision .pide .et{color:var(--teal2);font-size:.76rem;text-transform:uppercase;letter-spacing:.12em;font-weight:800;margin-bottom:6px}
 .dia.mision .pide p{margin:0;font-size:1.05rem;line-height:1.55}
 
+/* 18-sep · el ticket de la semana 1 va embebido (aún no hay respuestas que leer) */
+.dia.ticket-form .tk-form{width:100%;height:min(62vh,620px);border:1px solid var(--line);border-radius:14px;background:#fff}
+.dia .reto-ej{margin:12px 0 0}
 .ins-grid{display:flex;flex-wrap:wrap;gap:22px;margin-top:14px}
 .ins-grid figure{margin:0;width:min(210px,42vw);text-align:center}
 .ins-grid img{width:112px;height:112px;object-fit:contain;filter:drop-shadow(0 0 22px rgba(55,224,236,.35))}
 .ins-grid figcaption b{display:block;margin-top:8px;font-size:.94rem}
 .ins-grid figcaption em{display:block;font-style:normal;color:var(--muted);font-size:.78rem;margin-top:4px}
+/* 18-sep · Norberto: «si solo hay una insignia por sesión, ponla más grande». Con una sola, ocupa lo que le
+   corresponde: se proyecta y se ve desde el fondo del aula. */
+.dia.insignias.una .ins-grid{justify-content:flex-start;gap:34px;align-items:center;margin-top:18px}
+.dia.insignias.una .ins-grid figure{display:flex;align-items:center;gap:28px;width:auto;text-align:left;max-width:min(100%,900px)}
+.dia.insignias.una .ins-grid img{width:min(34vh,300px);height:min(34vh,300px)}
+.dia.insignias.una .ins-grid figcaption b{margin-top:0;font-size:clamp(1.2rem,2.2vw,1.9rem)}
+.dia.insignias.una .ins-grid figcaption em{font-size:clamp(.9rem,1.3vw,1.1rem);margin-top:8px;max-width:38ch}
+.dia.insignias.una .ins-grid figcaption q{font-size:clamp(.85rem,1.2vw,1rem)}
+@media(max-width:700px){.dia.insignias.una .ins-grid figure{flex-direction:column;text-align:center;gap:14px}}
 .ins-grid figcaption q{display:block;color:var(--amber);font-size:.8rem;margin-top:6px}
 
 .cierre-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:16px}
@@ -1241,7 +1253,14 @@ body.proyectando #mazo .lienzo{flex:1;min-height:0}
 
 /* ═══════════ EL AULA · el puesto de mando dentro del Genially ═══════════
    Se proyecta o se mira en un embed estrecho: todo grande, nada de tablas de ocho columnas. */
+/* 18-sep · Norberto: «el aula tiene mucho aire en pantalla completa; ¿puede adaptarse al tamaño?». En un embed
+   estrecho (dentro del Genially) sigue en una columna de 760 px, que es lo cómodo; en una pantalla grande se
+   ensancha y reparte lo de clase en columnas, para no dejar medio monitor vacío. */
 #aula .wrap{max-width:760px}
+@media (min-width:1100px){
+  #aula .wrap{max-width:min(1500px,94vw)}
+}
+@media (min-width:1500px){ #aula .wrap{font-size:1.04rem} }
 .au-barra{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:0 0 12px;
   border-bottom:1px solid #24304a}
 .au-quien{display:flex;flex-direction:column;line-height:1.25}

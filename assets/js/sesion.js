@@ -788,6 +788,19 @@
   // ── 9 · el ticket de salida de la semana pasada (anónimo), de SU escuadrón
   function diaTicket(){
     if(!window.SG_TICKETS_API||!st.per) return null;
+    /**
+     * 18-sep · Norberto: «en la primera semana no puede haber respuestas del ticket de salida: en vez de mostrar
+     * "respuestas", pon directamente el ticket embebido». En la semana 1 nadie ha contestado todavía, así que la
+     * diapositiva es el propio ticket, para rellenarlo ahí mismo.
+     */
+    if(Number(st.sem)<=1 && window.SG_TICKET_URL){
+      var u=String(window.SG_TICKET_URL).split('{GRUPO}').join(encodeURIComponent(st.nombre||st.per||''))
+              .split('{COMANDANTE}').join(encodeURIComponent(st.miNombre||''));
+      return {k:'ticket', rot:'Ticket de salida', html:
+        '<div class="dia ticket ticket-form"><div class="tk-cuerpo"><div class="kicker">El ticket de salida</div>'
+        +'<h2>Antes de iros</h2><p class="sub">Una valoración rápida y anónima. La semana que viene proyectaremos lo que digáis.</p>'
+        +'<iframe class="tk-form" src="'+esc(u)+'" title="Ticket de salida" loading="lazy"></iframe></div></div>'};
+    }
     return {k:'ticket', rot:'Ticket de salida', html:
       '<div class="dia ticket"><img class="tk-neb" src="assets/img/personajes/nebula.png" alt="">'
       +'<div class="tk-cuerpo"><div class="kicker">💬 El ticket de salida</div><h2>Lo que dijisteis al salir</h2>'
@@ -899,6 +912,11 @@
               :'<p class="sub">El enunciado completo está en tu Nave, en «Mis retos».</p>')
         +(i===ls.length-1&&s.hito?'<p class="reto-hito">🎯 <b>Esta semana se entrega:</b> '+esc(s.hito)+'</p>':'')
         +(rel?cronoRelampago(mins):'')
+        // 18-sep · Norberto: «añade enlace a los ejemplos de los retos en la presentación en vivo; si puede ser, que
+        // se abra una ventana». Es la misma página del ejemplo que ve el alumnado en su Nave.
+        +(id&&(window.SG_EJEMPLOS||{})[id]
+          ? '<p class="reto-ej"><a class="btn min" href="ejemplo.html?reto='+esc(id)+'" target="_blank" rel="noopener">Ver un ejemplo · '+esc((window.SG_EJEMPLOS||{})[id])+' &#8599;</a></p>'
+          : '')
         +'</div></div>'});
     });
     if(!ls.length&&s.hito) out.push({k:'hito', rot:'Entrega', html:
@@ -907,7 +925,7 @@
     var suyas=ls.map(function(t){ return insigniaDe(idDeReto(t)); });
     var otras=(s.insignias||[]).filter(function(k){ return suyas.indexOf(k)<0; });
     if(otras.length) out.push({k:'insignias', rot:'Insignias', html:
-      '<div class="dia insignias"><div class="kicker">🏅 También se entregan esta semana</div>'
+      '<div class="dia insignias'+(otras.length===1?' una':'')+'"><div class="kicker">También se entrega esta semana</div>'
       +'<h2>'+(otras.length===1?'La insignia en juego':'Las insignias en juego')+'</h2>'
       +'<div class="ins-grid">'+otras.map(function(k,i){ var b=badge(k);
         return '<figure style="--i:'+i+'"><img src="assets/img/insignias/'+esc(k)+'.png" alt=""><figcaption><b>'+esc(b?b.nombre:k)+'</b>'
@@ -942,7 +960,7 @@
   function diapositivasNuevas(s){
     var out=[], caps=capitulosDe(s.sem);
     caps.forEach(function(c){
-      out.push({k:'nuevo', rot:'Lo nuevo', html:
+      out.push({k:'nuevo', rot:'Tu Nave, más grande', html:
         '<div class="dia nuevo-nave"><div class="nn-txt"><div class="kicker">🔓 Se abre esta semana en STARGATE</div>'
         +'<h2>'+c.icono+' '+esc(c.titulo)+'</h2><p class="sub">'+esc(c.cabecera||'')+'</p>'
         +'<ul class="nn-lista">'+(c.puedes||[]).map(function(x,i){ return '<li style="--i:'+i+'">'+esc(x)+'</li>'; }).join('')+'</ul></div>'
@@ -1001,9 +1019,6 @@
     // tiene uno propio («Mis enlaces»), el suyo; si no, el oficial del grupo; si no, el Panel de
     // control maestro de STARGATE. Y NUNCA cuando la sesión ya va DENTRO del Genially: sería el
     // panel dentro de sí mismo.
-    ci.push({k:'tuyo', rot:'Tu ejemplo', html:
-      '<div class="dia tuyo"><img class="tuyo-cap" src="assets/img/capitan/pensativo.png" alt=""><div><div class="kicker">✋ Vuestro turno</div>'
-      +'<h2>Un ejemplo de verdad</h2><p class="sub">Un caso real, una pregunta, algo que ya hayáis probado en un aula.</p></div></div>'});
     deTipo('cierre').forEach(function(v,i){ ci.push(diaVideo(v, i, '🎬 Para cerrar el planeta')); });
     deTipo('fragmento').forEach(function(v,i){ ci.push(diaVideo(v, i, '🎁 La recompensa del bloque')); });
     ci.forEach(function(x){ x.t='ci'; });
@@ -1014,7 +1029,7 @@
     var medio=[];
     if(st.per && (!EMBED || VENTANA)){
       var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
-      if(panel) medio.push({k:'genially', t:'pr', rot:'La presentación', html:
+      if(panel) medio.push({k:'genially', t:'pr', rot:'El despegue', html:
         '<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});
     }
     if(!medio.length) medio.push(diaPuente(TRAMO==='ap'));
@@ -1029,9 +1044,9 @@
    * apertura, «ahora la presentación»; en el mazo entero y dentro del Genially, el mismo aviso.
    */
   function diaPuente(fin){
-    return {k:'puente', t:'pr', rot:'La presentación', html:
-      '<div class="dia puente"><div class="pu-caja"><div class="kicker">📽️ Segundo tiempo</div>'
-      +'<h2>Ahora, la presentación</h2>'
+    return {k:'puente', t:'pr', rot:'El despegue', html:
+      '<div class="dia puente"><div class="pu-caja"><div class="kicker">Segundo tiempo</div>'
+      +'<h2>Ahora, el despegue</h2>'
       +'<p class="sub">La teoría y la práctica guiada están en el Genially de la clase. '
       +(fin?'Sal de este panel y sigue avanzando: el cierre te espera en el siguiente embed.'
            :'Sigue en el Genially y vuelve aquí para el cierre.')+'</p>'
@@ -1045,7 +1060,7 @@
    * estamos y qué queda. Con `?tramo=` solo se enseña el que toca, marcando que hay más antes o
    * después. Es un rótulo, no un menú: no se navega desde aquí para no tentar a nadie en directo.
    */
-  var TRAMOS=[['ap','1 · Apertura'],['pr','2 · Presentación'],['ci','3 · Cierre']];
+  var TRAMOS=[['ap','1 · Apertura'],['pr','2 · Despegue'],['ci','3 · Cierre']];
   /**
    * 17-sep · Y SE PULSAN. Norberto: «sería fantástico hacer clic e ir directamente a esas sesiones». Cada tiempo lleva a
    * su primera diapositiva; el que está en el Genially (cuando la sesión va dentro de él) no se pulsa.
