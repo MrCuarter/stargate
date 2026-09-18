@@ -66,14 +66,16 @@ c(/<h3>Tu sesión en directo<\/h3>/.test(CONS) && /class="m-sec"><input type="ch
   "🔴 consola · «Tu sesión en directo»: una casilla por sección, todas marcadas por defecto, y se guarda al tocarla");
 
 // ── 7 · los retratos de comandante del equipo
-c(/COMANDANTES_PROPIOS = \[/.test(DATOS) && ["norberto", "abel", "adriana", "anita", "caridad", "patricia"].every(k =>
-  fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes", "t2-" + k + ".jpg"))), "🔴 los seis comandantes del equipo, cada uno con su fichero");
-// 18-sep · tercera versión (foto de referencia + estilo de los avatares del alumnado), con nombre nuevo para esquivar la caché
-c(["norberto", "abel", "adriana", "anita", "caridad", "patricia"].every(k => !fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes", "t-" + k + ".jpg"))) &&
-  /replace\(\/\^t-\/, "t2-"\)/.test(CONS), "   la versión anterior fuera, y quien la hubiera elegido ve la nueva");
+const PROPIOS = ((DATOS.match(/COMANDANTES_PROPIOS = \[([\s\S]*?)\]/) || [])[1] || "").match(/"t\d*-[a-z]+"/g) || [];
+const DIR_COM = path.join(RAIZ, "assets/img/avatares/comandantes");
+c(PROPIOS.length === 6 && PROPIOS.every(k => fs.existsSync(path.join(DIR_COM, k.slice(1, -1) + ".jpg"))), "🔴 los seis comandantes del equipo, cada uno con su fichero", PROPIOS.join(" "));
 // 🔴 18-sep · Norberto: «tienen nuestra foto real; que no se reconozcan». La primera versión (con su cara) no puede volver
-c(["norberto", "abel", "adriana", "anita", "caridad", "patricia"].every(k => !fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes", k + ".jpg"))),
+c(["norberto", "abel", "adriana", "anita", "caridad", "patricia"].every(k => !fs.existsSync(path.join(DIR_COM, k + ".jpg"))),
   "🔴 los retratos con su cara real ya no están en la web");
+// cada versión nueva va con otro nombre (caché del CDN): en la carpeta solo la actual, y quien guardó otra ve la actual
+const sobran = fs.readdirSync(DIR_COM).filter(f => /^t\d*-/.test(f) && PROPIOS.indexOf('"' + f.replace(/\.jpg$/, "") + '"') < 0);
+c(!sobran.length, "   en la carpeta, solo la versión actual de cada retrato", sobran.join(" "));
+c(/x\[0\]\.replace\(\/\^t\\d\*-\/, ""\) === m\[1\]/.test(CONS), "   y quien eligió una versión anterior ve la actual");
 c(/window\.SG_COMANDANTES=/.test(leer("consola.html")) && /doc-avas-g propios/.test(CONS), "   y salen los primeros en la galería, con su nombre");
 c(!fs.existsSync(path.join(RAIZ, "fotos_comandantes")) && !/fotos_comandantes\/[a-z]/.test(DATOS), "🔴 las fotos originales NO están en la web (son de personas)");
 

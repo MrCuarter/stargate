@@ -627,8 +627,8 @@ TOPE_RETOS_SEMANA = 3
 # (t-…) para que ninguna caché siga sirviendo aquellos. Las fotos originales, fuera de git (Project_CCD/fotos_comandantes/).
 # Clave (= fichero en assets/img/avatares/comandantes/) y nombre: en la galería salen los primeros, con su nombre.
 COMANDANTES_PROPIOS = [
-    ("t2-norberto", "Norberto"), ("t2-abel", "Abel"), ("t2-adriana", "Adriana Graciela"),
-    ("t2-anita", "Anita"), ("t2-caridad", "Caridad"), ("t2-patricia", "Patricia"),
+    ("t3-norberto", "Norberto"), ("t3-abel", "Abel"), ("t3-adriana", "Adriana Graciela"),
+    ("t3-anita", "Anita"), ("t3-caridad", "Caridad"), ("t3-patricia", "Patricia"),
 ]
 
 SESION_SECCIONES = [
