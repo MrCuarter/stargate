@@ -272,6 +272,19 @@
         });
       },
 
+      // 18-sep · Lo que cada docente quiere en SU sesión en directo (las secciones que quita). Por defecto, nada.
+      mi_sesion: function (M, yo, q) {
+        return M.getDoc(M.doc(M.db, "projects", q.per)).then(function (pd) {
+          var S = (pd.data() || {}).stargate || {}, sesiones = Object.assign({}, S.sesiones || {});
+          var nombre = String(q.profe || "").trim();
+          if (!nombre) return { ok: false, error: "No sé quién eres en este grupo." };
+          var off = (q.off || []).map(String).filter(function (k) { return /^[a-z]{3,20}$/.test(k); }).slice(0, 30);
+          if (off.length) sesiones[nombre] = off; else delete sesiones[nombre];
+          return M.updateDoc(M.doc(M.db, "projects", q.per), { "stargate.sesiones": sesiones })
+            .then(function () { return { ok: true, off: off }; });
+        });
+      },
+
       // La cola de subidas de nota. El tablero ya la trae: no hay que volver a preguntarla.
       pendientes: function (M, yo, q) {
         return tableroPrivado(M, q.per).then(function (t) {

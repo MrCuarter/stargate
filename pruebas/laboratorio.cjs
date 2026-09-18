@@ -118,7 +118,7 @@ async function arrancar(ver) {
       .forEach(d => { try { fs.rmSync(path.join(os.tmpdir(), d), { recursive: true, force: true }); } catch (e) {} });
   } catch (e) {}
   await dormir(600);
-  WEB = spawn("python3", ["-m", "http.server", String(P_WEB), "--bind", "127.0.0.1"], { cwd: RAIZ, stdio: "ignore" });
+  WEB = spawn("python3", [path.join(__dirname, "servidor_lab.py"), String(P_WEB)], { cwd: RAIZ, stdio: "ignore" });   // cola de 256 (ver servidor_lab.py)
   PERFIL = fs.mkdtempSync(path.join(os.tmpdir(), "sglab-"));
   // 17-sep · sin frenos para las pestañas «de fondo»: cada persona es una pestaña y solo una está delante. Chrome
   // espacia los temporizadores de las demás (hasta uno por minuto) y Firestore tardaba casi un minuto en contestar
@@ -141,7 +141,7 @@ async function arrancar(ver) {
   if (!v) throw new Error("Chrome no arrancó");
   NAV = conectar(v.webSocketDebuggerUrl); await NAV.listo;
   // para el escondite «dentro de otra web»: un segundo origen que hace de Genially
-  WEB2 = spawn("python3", ["-m", "http.server", String(P_WEB2), "--bind", "127.0.0.1"], { cwd: path.join(RAIZ, "pruebas", "anfitrion"), stdio: "ignore" });
+  WEB2 = spawn("python3", [path.join(__dirname, "servidor_lab.py"), String(P_WEB2)], { cwd: path.join(RAIZ, "pruebas", "anfitrion"), stdio: "ignore" });
   await dormir(500);
 }
 async function parar() {

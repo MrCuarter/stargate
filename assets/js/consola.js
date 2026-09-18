@@ -155,11 +155,11 @@
       // es medio minuto de aula mirando una pantalla de carga.
       '<div class="gp-hacer">' +
         '<div class="gp-celda principal"><a class="gp-b principal" href="sesion.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<span>📽️</span><b>Proyectar la clase</b></a>' + botonVentana("sesion.html?per=" + p.id, "sesion_" + p.id, "la sesión") + '</div>' +
+          '<b>Proyectar la clase</b></a>' + botonVentana("sesion.html?per=" + p.id, "sesion_" + p.id, "la sesión") + '</div>' +
         '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<span>🎛️</span><b>El aula</b></a>' + botonVentana("aula.html?per=" + p.id, "aula_" + p.id, "el aula") + '</div>' +
+          '<b>El aula</b></a>' + botonVentana("aula.html?per=" + p.id, "aula_" + p.id, "el aula") + '</div>' +
         '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<span>🔔</span><b>Llamada a filas</b></a>' + botonVentana("llamada.html?per=" + p.id, "llamada_" + p.id, "la llamada a filas") + '</div>' +
+          '<b>Llamada a filas</b></a>' + botonVentana("llamada.html?per=" + p.id, "llamada_" + p.id, "la llamada a filas") + '</div>' +
       '</div>' +
       /**
        * 🔴 EL CÓDIGO DE CLASE, A LA VISTA DE TODO EL EQUIPO. Con la puerta única el alumnado entra
@@ -274,10 +274,28 @@
     var pasados = PERS.filter(function (p) { return p.estado === "pasado"; });
     var soyRef = (PERS.some(function (p) { return p.soyReferente; }) || refGlobal()) && !modoDoc();
 
+    /**
+     * 18-sep · EL PANEL DEL DOCENTE. Norberto: «echo en falta una página de landing, parecida a la del estudiante… que
+     * los docentes también puedan coger su avatar… un panel con sus grupos, su avatar, sus datos, algunas estadísticas».
+     * Arriba, quién eres (con tu comandante), y tus cifras; debajo, tus grupos como siempre.
+     */
+    var totAlu = vivos.reduce(function (a, p) { return a + (Number(p.reclutas) || 0); }, 0);
     app.innerHTML = avisoBorrado() +
+      '<section class="doc-panel">' +
+        '<button type="button" class="doc-ava" id="doc-ava" title="Elige tu comandante"><img id="doc-ava-img" src="assets/img/avatares/comandantes/c1.jpg" alt=""><span>Cambiar</span></button>' +
+        '<div class="doc-txt"><div class="eyebrow teal">Comandante</div><h2>' + esc((YO && (YO.nombre || YO.displayName)) || "Tu puesto de mando") + '</h2>' +
+          '<p class="small muted">' + esc((YO && YO.email) || "") + '</p></div>' +
+        '<div class="doc-cifras">' +
+          '<div><b>' + vivos.length + '</b><span>' + (vivos.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span></div>' +
+          '<div><b>' + totAlu + '</b><span>reclutas a tu cargo</span></div>' +
+          '<div><b>' + pasados.length + '</b><span>' + (pasados.length === 1 ? "curso terminado" : "cursos terminados") + '</span></div>' +
+        '</div>' +
+        '<div class="doc-b">' + botonBuzon("consola") + (soyRef ? ' <a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
+      '</section>' +
+      // (la galería se monta al abrirla: escondida, sus ocho imágenes se descargarían igual en cada visita)
+      '<div class="doc-avas" id="doc-avas" hidden></div>' +
       '<div class="gp-cab"><div><h2>Tus grupos</h2>' +
-        '<p class="small muted">Todo lo de clase está aquí mismo. Entra en un grupo para su gente y sus enlaces.</p></div>' +
-        '<div class="gp-cab-b">' + botonBuzon("consola") + (soyRef ? ' <a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div></div>' +
+        '<p class="small muted">Todo lo de clase está aquí mismo. Entra en un grupo para su gente y sus enlaces.</p></div></div>' +
       // 🔴 13-sep · con UN solo grupo, la tarjeta se tumba en horizontal y ocupa la fila: estrecha y
       // sola dejaba media pantalla vacía a su derecha. Con varios, rejilla de siempre.
       // y con 2 o 4, en dos columnas: con tres por fila, cuatro grupos dejaban uno solo abajo
@@ -285,16 +303,16 @@
                     : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
       // 17-sep · lo que se configura UNA vez para varios grupos (Norberto: «¿valen para cualquier grupo? Sería maravilloso
       // poder reciclarlos… que compartan la misma página de configuración y ajustar a qué grupos afecta»)
-      (gestionados().length ? '<section class="gp-comun"><div class="gp-comun-t"><h3>🌐 Para todos tus grupos</h3>' +
+      (gestionados().length ? '<section class="gp-comun"><div class="gp-comun-t"><h3>Para todos tus grupos</h3>' +
         '<p class="small muted">Se configuran <b>una vez</b> y eliges a qué grupos afectan: todos o solo algunos. Dentro de cada grupo ves los que le tocan.</p></div>' +
-        '<div class="gp-comun-b"><a class="btn" href="consola.html?comun=premios">🎁 Premios por enlace</a> <a class="btn" href="consola.html?comun=sorteos">🎟️ Sorteos</a> ' +
-        '<a class="btn" href="consola.html?comun=ofertas">⚡ Ofertas</a></div></section>' : '') +
+        '<div class="gp-comun-b"><a class="btn" href="consola.html?comun=premios">Premios por enlace</a> <a class="btn" href="consola.html?comun=sorteos">Sorteos</a> ' +
+        '<a class="btn" href="consola.html?comun=ofertas">Ofertas</a></div></section>' : '') +
       /**
        * 🔴 15-sep · LOS EMBEDS, UNA SOLA VEZ. Norberto: «en todas las fichas de cada grupo aparece Embed para
        * Genially, pero entiendo que es el mismo para todos: déjalo en algún lugar especificando que es el
        * mismo para todos los grupos». Lo es: ninguno lleva el grupo dentro (piden la cuenta y preguntan).
        */
-      '<section class="gp-gen"><div class="gp-gen-txt"><h3>🧩 Para tus Geniallys</h3>' +
+      '<section class="gp-gen"><div class="gp-gen-txt"><h3>Para tus Geniallys</h3>' +
         '<p class="small muted">Los <b>mismos para todos tus grupos</b> y para los cursos que vengan: piden tu cuenta y, si llevas varios grupos, ' +
         'preguntan en cuál estáis. Se copia el código y, en Genially, <b>Insertar → Otros → Código</b>. ' +
         'O pulsa <b>⧉</b> y se abre <b>en su propia ventana</b>, sin nada más alrededor: para proyectarla o tenerla a mano durante la clase.</p></div>' +
@@ -349,6 +367,35 @@
     Array.prototype.forEach.call(app.querySelectorAll("[data-per]"), function (b) {
       b.onclick = function () { if (b.getAttribute("data-ir")) TAB = b.getAttribute("data-ir"); abrir(b.getAttribute("data-per")); };
     });
+    // 18-sep · tu comandante: el que elegiste (o el primero), y la galería para cambiarlo
+    var avImg = $("#doc-ava-img"), avBtn = $("#doc-ava"), avs = $("#doc-avas");
+    if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
+      if (f && f.avatar && avImg) avImg.src = "assets/img/avatares/comandantes/" + f.avatar + ".jpg";
+    }).catch(function () {});
+    var galeria = function () {
+      if (avs.getAttribute("data-lista")) return;
+      avs.setAttribute("data-lista", "1");
+      avs.innerHTML = '<p class="small muted">Elige el comandante que te representa. Lo verás aquí y en tu aula.</p>' +
+        '<div class="doc-avas-g">' + [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) {
+          return '<button type="button" class="doc-av-op" data-av="c' + n + '"><img src="assets/img/avatares/comandantes/c' + n + '.jpg" alt="Comandante ' + n + '"></button>';
+        }).join("") + '</div>';
+      var actual = (avImg && (avImg.getAttribute("src").match(/\/(c\d+)\.jpg/) || [])[1]) || "";
+      Array.prototype.forEach.call(avs.querySelectorAll(".doc-av-op"), function (o) {
+        o.classList.toggle("on", o.getAttribute("data-av") === actual);
+        o.onclick = elegirAvatar(o);
+      });
+    };
+    var elegirAvatar = function (o) {
+      return function () {
+        var k = o.getAttribute("data-av");
+        MOTOR.ponerAvatarDocente(k).then(function () {
+          if (avImg) avImg.src = "assets/img/avatares/comandantes/" + k + ".jpg";
+          Array.prototype.forEach.call(app.querySelectorAll(".doc-av-op"), function (x) { x.classList.toggle("on", x === o); });
+          if (avs) avs.hidden = true;
+        }, function (e) { aviso("No se ha podido guardar tu avatar: " + esc(e.message || e)); });
+      };
+    };
+    if (avBtn && avs) avBtn.onclick = function () { galeria(); avs.hidden = !avs.hidden; };
     Array.prototype.forEach.call(app.querySelectorAll(".gp-cod"), function (b) {
       b.onclick = function () {
         var ver = !b.classList.contains("visto");
@@ -453,6 +500,20 @@
         ' · ' + semanaTexto(t) + ' · ' + t.reclutas.length + ' reclutas</span></div>' +
         '<div class="c-cab-b"><button class="btn min" id="c-cambiar">← Mis grupos</button> ' + botonBuzon("consola", PER) +
         ' <button class="btn min" id="c-salir">Salir</button></div></div>' +
+      /**
+       * 🔴 18-sep · Norberto: «cuando entro a un grupo no tengo las opciones más importantes (proyectar la clase, aula,
+       * llamada a filas). ¡Es lo más importante! Debería estar dentro del grupo». Estaban solo en la tarjeta de «Mis
+       * grupos», que es de donde vienes: al entrar, desaparecían.
+       */
+      '<div class="gp-hacer c-hacer">' +
+        '<div class="gp-celda principal"><a class="gp-b principal" href="sesion.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
+          '<b>Proyectar la clase</b></a>' + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") + '</div>' +
+        '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
+          '<b>El aula</b></a>' + botonVentana("aula.html?per=" + PER, "aula_" + PER, "el aula") + '</div>' +
+        '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
+          '<b>Llamada a filas</b></a>' + botonVentana("llamada.html?per=" + PER, "llamada_" + PER, "la llamada a filas") + '</div>' +
+      '</div>' +
+      resumenGrupo(t) +
       '<div class="pestanas">' + misTabs().map(function (x, i, todas) {
         var cola = x[0] === "canjes" ? pendientesCola() : 0;
         // (una raya antes de las del referente; el icono de cada una va en la hoja de estilos)
@@ -489,7 +550,7 @@
     rankings: ["Rankings", "Todos los rankings del grupo —xp, esta semana, colección, constancia, relámpago, logros, el Simulador de Joran y los escuadrones—, del <b>grupo entero o de un escuadrón</b>. Son los mismos que ve tu alumnado en su Nave: para <b>ensalzar</b> en clase a quien destaca en cada cosa."],
     canjes: ["Cola de nota", "Solo aparece cuando alguien pide una subida de <b>nota</b>, y brilla hasta que la resuelves: ninguna se aplica sola. Los créditos no se mueven hasta entonces."],
     zoco: ["El Zoco", "Los trueques entre tu alumnado (se abren en la semana 8; en PUA, la 7): quién cambia qué con quién y los mensajes que se dejan. Si uno no te cuadra, <b>Deshacer</b> devuelve cada cosa a su dueño."],
-    mios: ["Mis enlaces", "Tu panel de Genially, si has hecho una copia propia, y los enlaces del grupo para repartir en clase: la Nave, el tablero para proyectar, la sesión y el padlet."],
+    mios: ["Mis enlaces", "<b>Tu sesión en directo</b> (qué secciones salen en tu presentación), tu panel de Genially si has hecho una copia propia, y los enlaces del grupo para repartir en clase."],
     equipo: ["Equipo docente", "Quién imparte y quién lleva el grupo, <b>por su correo de Google</b>. Añadir a alguien aquí es darle entrada; quitarlo, quitársela. No hay PIN."],
     escuadrones: ["Escuadrones", "Cada escuadrón con su Comandante. La llamada a filas y el aula de cada docente van por aquí: cada cual ve y llama a los suyos."],
     huevos: ["Premios por enlace", "Crea un premio —xp, créditos, un sobre de cromos, un héroe— con sus topes (en total, por escuadrón o por persona) y pega su enlace donde quieras. Por ejemplo: «los 5 primeros de cada escuadrón, un sobre»."],
@@ -1070,7 +1131,16 @@
     }
     var mio = (t.paneles || {})[yo.nombre] || "";
     var oficial = t.panel || "";
+    // 18-sep · TU SESIÓN EN DIRECTO: qué secciones salen en tu presentación (por defecto, todas). Se guarda al tocarla.
+    var offMio = ((t.sesiones || {})[yo.nombre]) || [];
     $("#c-cuerpo").innerHTML =
+      '<div class="card m-sesion"><h3>Tu sesión en directo</h3>' +
+      '<p class="small muted">Marca lo que quieres en tu presentación. Por defecto sale todo; lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
+      'Cada semana solo aparece lo que ese día tiene algo que enseñar.</p>' +
+      '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
+        return '<label class="m-sec"><input type="checkbox" data-sec="' + esc(x[0]) + '"' + (offMio.indexOf(x[0]) < 0 ? " checked" : "") + '>' +
+          '<span><b>' + esc(x[1]) + '</b><em>' + esc(x[2]) + '</em></span></label>'; }).join("") + '</div>' +
+      '<p class="small m-sec-msg" id="m-sec-msg" aria-live="polite"></p></div>' +
       '<div class="card"><h3>Tu panel de Genially</h3>' +
       '<p class="small muted">Es el que abre <b>tu</b> alumnado desde su Nave. Si lo dejas vacío, ' +
       'usan el panel oficial del grupo — que es lo normal: solo necesitas el tuyo si has duplicado ' +
@@ -1101,15 +1171,26 @@
         enlaceFila("🧱", "Padlet de la clase", t.padlet || "") +
       '</div></div>';
 
+    Array.prototype.forEach.call(document.querySelectorAll(".m-sec input"), function (c) {
+      c.onchange = async function () {
+        var off = Array.prototype.filter.call(document.querySelectorAll(".m-sec input"), function (x) { return !x.checked; })
+          .map(function (x) { return x.getAttribute("data-sec"); });
+        var msg = $("#m-sec-msg"); msg.textContent = "Guardando…";
+        try { await guardarMiParte("sesiones", yo.nombre, off);
+              t.sesiones = t.sesiones || {}; if (off.length) t.sesiones[yo.nombre] = off; else delete t.sesiones[yo.nombre];
+              msg.textContent = "✓ Guardado" + (off.length ? " · quitas " + off.length + (off.length === 1 ? " sección" : " secciones") : " · sale todo"); }
+        catch (e) { c.checked = !c.checked; msg.textContent = "No se ha podido guardar: " + (e.message || e); }
+      };
+    });
     $("#m-guardar").onclick = async function () {
       var v = $("#m-panel").value.trim();
       $("#m-guardar").disabled = true;
-      try { await SG.FUENTE.accion({ accion: "mi_panel", per: PER, profe: yo.nombre, url: v });
+      try { await guardarMiParte("paneles", yo.nombre, v);
             await refrescar(); aviso(v ? "Guardado. Tu alumnado abrirá el tuyo." : "Quitado.", true); }
       catch (e) { $("#m-guardar").disabled = false; aviso(e.message); }
     };
     if ($("#m-quitar")) $("#m-quitar").onclick = async function () {
-      try { await SG.FUENTE.accion({ accion: "mi_panel", per: PER, profe: yo.nombre, url: "" });
+      try { await guardarMiParte("paneles", yo.nombre, "");
             await refrescar(); aviso("Quitado. Vuelven al panel oficial.", true); }
       catch (e) { aviso(e.message); }
     };
@@ -2628,6 +2709,46 @@
    * servidor (`deleteProject` de GamificaPro: el grupo, su alumnado, retos, Mercado, llamadas, Zoco y
    * alias). Solo quien lo creó o un referente vitalicio; el grupo de la demostración pública, nunca.
    */
+  /**
+   * 18-sep · EL GRUPO DE UN VISTAZO. Norberto: «dentro de cada grupo, un landing con insights sobre ese grupo». Todo sale
+   * de lo que la consola ya tiene (el tablero del grupo): ni una lectura más a Firestore.
+   */
+  function resumenGrupo(t) {
+    var R = (t && t.reclutas) || [], n = R.length;
+    if (!n) return '<div class="card c-resumen vacio"><b>Todavía no se ha alistado nadie.</b> <span class="small muted">Comparte la invitación desde «Mis grupos».</span></div>';
+    var activos = R.filter(function (r) { return Number(r.xp7) > 0; }).length;
+    var sinNada = R.filter(function (r) { return !(r.hechos || []).length; }).length;
+    var retos = R.reduce(function (a, r) { return a + (r.hechos || []).length; }, 0);
+    var top = R.filter(function (r) { return Number(r.xp7) > 0; }).sort(function (a, b) { return Number(b.xp7) - Number(a.xp7); }).slice(0, 3);
+    var cola = 0; try { cola = pendientesCola(); } catch (e) {}
+    var pct = function (x) { return Math.round(x * 100 / n) + " %"; };
+    return '<div class="card c-resumen"><div class="c-res-cifras">' +
+        '<div><b>' + n + '</b><span>alistados</span></div>' +
+        '<div><b>' + activos + '</b><span>activos esta semana · ' + pct(activos) + '</span></div>' +
+        '<div><b>' + retos + '</b><span>retos registrados</span></div>' +
+        '<div' + (sinNada ? ' class="ojo"' : '') + '><b>' + sinNada + '</b><span>sin estrenarse todavía</span></div>' +
+        (cola ? '<div class="ojo"><b>' + cola + '</b><span>' + (cola === 1 ? "subida de nota espera" : "subidas de nota esperan") + '</span></div>' : '') +
+      '</div>' +
+      (top.length ? '<p class="c-res-top"><span>Esta semana destacan</span> ' + top.map(function (r) {
+        return '<b>' + esc(r.alias) + '</b> <em>+' + Number(r.xp7) + ' xp</em>'; }).join(" · ") + '</p>' : '') +
+    '</div>';
+  }
+  /**
+   * 🔴 18-sep · LO DE CADA DOCENTE EN SU GRUPO (su Genially propio y su sesión a medida). La consola llamaba a
+   * `SG.FUENTE.accion(...)`, pero la consola NO carga fuente.js: el botón «Guardar» de «Tu panel de Genially» nunca
+   * funcionó aquí (lo destapó la prueba de la sesión a medida). Se escribe directamente con el motor, que sí está.
+   * Las reglas dejan a cualquier docente del grupo tocar `stargate` (menos el equipo y el mando).
+   */
+  async function guardarMiParte(campo, nombre, valor) {
+    nombre = String(nombre || "").trim();
+    if (!nombre) throw new Error("No sé quién eres en este grupo.");
+    var ref = MOTOR.doc(MOTOR.db, "projects", PER), pd = await MOTOR.getDoc(ref);
+    var m = Object.assign({}, (((pd.exists() ? pd.data() : {}) || {}).stargate || {})[campo] || {});
+    var vacio = valor == null || valor === "" || (Array.isArray(valor) && !valor.length);
+    if (vacio) delete m[nombre]; else m[nombre] = valor;
+    var cambio = {}; cambio["stargate." + campo] = m;
+    await MOTOR.updateDoc(ref, cambio);
+  }
   var VITALICIOS_WEB = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"];
   function puedoBorrar() {
     var P = DATOS.proyecto || {}, u = YO || {};

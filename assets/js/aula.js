@@ -43,7 +43,7 @@
     };
   }
   function noEresDocente() {
-    pinta('<div class="au-caja"><div class="au-icono">🛡️</div><h2>Esto es de tu Comandante</h2>'
+    pinta('<div class="au-caja"><div class="au-icono">' + icono("gente") + '</div><h2>Esto es de tu Comandante</h2>'
       + '<p class="au-sub">Este panel lo usa quien da la clase. Lo tuyo está en <b>tu Nave</b>.</p>'
       // 🔴 Una cuenta puede no traer correo (las de prueba, o un proveedor que no lo dé). Sin esta
       // guarda salía «Estás como · No soy yo», que parece la página rota justo cuando estás
@@ -115,8 +115,13 @@
   }
 
   // ---------------------------------------------------------------- pestañas
-  var TABS = [["clase", "🔔", "La clase"], ["gente", "👏", "Mi gente"], ["ranking", "🏆", "Ranking"],
-              ["premios", "🎁", "Premiar"], ["tiempo", "⏱️", "Tiempo"], ["voto", "🗳️", "Votación"], ["pregunta", "💬", "Pregunta"]];
+  /**
+   * 18-sep · Norberto: «la página del aula tiene muchos emojis: usa nuestros iconos personalizados o crea nuevos».
+   * El segundo campo es el icono de `assets/img/nave/iconos/` (Magnific, de una sola lámina, como los de la Nave).
+   */
+  var TABS = [["clase", "clase", "La clase"], ["gente", "gente", "Mi gente"], ["ranking", "rankings", "Ranking"],
+              ["premios", "premios", "Premiar"], ["tiempo", "tiempo", "Tiempo"], ["voto", "voto", "Votación"], ["pregunta", "pregunta", "Pregunta"]];
+  function icono(k) { return '<img class="au-ico" src="assets/img/nave/iconos/' + k + '.png" alt="" width="26" height="26">'; }
   /**
    * 🔴 Con más de un grupo hace falta poder cambiar. Un docente del máster puede llevar hasta seis,
    * y sin selector el aula enseñaba siempre el primero que devolviera el servidor — sin decirlo,
@@ -149,20 +154,20 @@
               return '<option value="' + esc(x.id) + '"' + (x.id === PER ? " selected" : "") + ">"
                 + esc(x.nombre || x.id) + esc(coletilla(x)) + "</option>"; }).join("") + "</select>"
           : '<span class="small muted">' + esc(g.nombre || PER) + esc(coletilla(g)) + "</span>")
-      + ' <a class="btn min bz-acceso" href="buzon.html?desde=aula&per=' + encodeURIComponent(PER || "") + '" target="_blank" rel="noopener">📡 ¿Dudas? ¿Algo falla?</a>'
+      + ' <a class="btn min bz-acceso" href="buzon.html?desde=aula&per=' + encodeURIComponent(PER || "") + '" target="_blank" rel="noopener">¿Dudas? ¿Algo falla?</a>'
       + (TAB !== "tiempo" && (TMP.corre || (TMP.quedan > 0 && TMP.quedan < TMP.total))
-          ? ' <button type="button" class="au-mini-reloj' + (TMP.corre ? " corre" : "") + '" data-au="tiempo" title="El temporizador">⏱️ <span id="au-reloj-mini">' + mmss(quedanTmp()) + '</span></button>' : '')
+          ? ' <button type="button" class="au-mini-reloj' + (TMP.corre ? " corre" : "") + '" data-au="tiempo" title="El temporizador">' + icono("tiempo") + ' <span id="au-reloj-mini">' + mmss(quedanTmp()) + '</span></button>' : '')
       + "</div>"
       + '<div class="au-tabs">' + TABS.map(function (t) {
           return '<button type="button" class="au-t' + (TAB === t[0] ? " on" : "") + '" data-au="' + t[0] + '">'
-            + '<span class="i">' + t[1] + "</span><b>" + t[2] + "</b></button>"; }).join("") + "</div></div>";
+            + '<span class="i">' + icono(t[1]) + "</span><b>" + t[2] + "</b></button>"; }).join("") + "</div></div>";
   }
 
   // ---------------------------------------------------------------- 1 · la clase
   function vistaClase() {
     var s = semanaActual();
     var llamada = SESION
-      ? '<div class="au-llamada viva"><div class="au-cab"><b>📣 Llamada abierta</b>'
+      ? '<div class="au-llamada viva"><div class="au-cab"><b>Llamada abierta</b>'
           + '<span id="au-cuenta" class="au-cuenta"></span></div>'
         // 🔴 Decir PARA QUIÉN está abierta no es un adorno: si das clase a dos escuadrones, saber
         // que solo vale para uno es la diferencia entre pasar lista bien y pasarla mal.
@@ -174,12 +179,12 @@
         // los nombres sueltos solo si aún no está la tarjeta de «En clase hoy» con sus caras (serían los mismos dos veces)
         + (enClaseHoy().length ? '' : '<div class="au-nombres" id="au-nombres"></div>')
         + '<button class="ll-min" id="au-cerrar">Cerrar la llamada</button></div>'
-      : '<div class="au-llamada"><div class="au-cab"><b>🔔 Llamada a filas</b></div>'
+      : '<div class="au-llamada"><div class="au-cab"><b>Llamada a filas</b></div>'
         + '<p class="small muted">Abre el fichaje para tu escuadrón. En la Nave de tu gente aparece solo.</p>'
         + '<div class="ll-minutos">' + [10, 30, 60, 120].map(function (m) {
             return '<button type="button" class="ll-m' + (m === 60 ? " on" : "") + '" data-min="' + m + '">'
               + m + " min</button>"; }).join("") + "</div>"
-        + '<button class="ll-btn" id="au-tocar">🔔 Tocar llamada</button>'
+        + '<button class="ll-btn" id="au-tocar">Tocar llamada</button>'
         + '<p class="ll-pie" id="au-msg"></p></div>';
 
     var orden = s
@@ -200,8 +205,8 @@
             var c = caraDe(x);
             return '<span class="au-cara quieta">' + (c ? '<img src="' + esc(c) + '" alt="" loading="lazy">' : '')
               + '<b>' + esc(x.alias) + '</b></span>'; }).join("") + '</div>'
-        + '<div class="au-acciones"><button type="button" class="au-azar-btn" id="au-ir-azar">🎲 ¿A quién pregunto?</button>'
-        + '<button type="button" class="ll-min" id="au-ir-premiar">🎁 Premiar a los presentes</button></div></div>'
+        + '<div class="au-acciones"><button type="button" class="au-azar-btn" id="au-ir-azar">¿A quién pregunto?</button>'
+        + '<button type="button" class="ll-min" id="au-ir-premiar">Premiar a los presentes</button></div></div>'
       : "";
     return llamada + enClase + orden;
   }
@@ -224,7 +229,7 @@
 
     return avisoDeQuienVeo()
       + '<div class="au-tarjeta"><div class="eyebrow verde">Para nombrar en voz alta</div>'
-      + "<h3>👏 Esta semana han hecho algo</h3>"
+      + "<h3>Esta semana han hecho algo</h3>"
       + (semana.length
           ? '<div class="au-gente">' + semana.map(function (x) {
               return '<div class="au-p"><b>' + esc(x.alias) + "</b><span>+" + (x.xp7 || 0) + " xp</span></div>";
@@ -257,7 +262,7 @@
       return { n: e.nombre, emb: e.emblema, media: Math.round(suyos.reduce(function (a, x) { return a + x.xp; }, 0) / suyos.length) };
     }).filter(Boolean).sort(function (a, b) { return b.media - a.media; });
 
-    return avisoDeQuienVeo() + '<div class="au-tarjeta"><h3>🏆 Tu escuadrón</h3>'
+    return avisoDeQuienVeo() + '<div class="au-tarjeta"><h3>Tu escuadrón</h3>'
       + '<ol class="au-rank">' + g.slice(0, 10).map(function (x, i) {
           return "<li><span>" + (i + 1) + "</span><b>" + (x.corona ? "👑 " : "") + esc(x.alias) + "</b>"
             + "<em>" + x.xp + " xp</em></li>"; }).join("") + "</ol></div>"
@@ -289,9 +294,9 @@
     { g: "Puntos", k: "cr20", t: "+20 ◈", cr: 20 }, { g: "Puntos", k: "cr50", t: "+50 ◈", cr: 50 },
     { g: "Colección", k: "carta", t: "🃏 Una carta", regalo: { tipo: "carta" }, clase: "carta" },
     { g: "Colección", k: "sobre", t: "🃏 Un sobre (3 cartas)", regalo: { tipo: "sobre" }, clase: "carta" },
-    { g: "Colección", k: "heroe", t: "🛡️ Un héroe al azar", regalo: { tipo: "heroe" }, clase: "heroe" },
-    { g: "Colección", k: "heroe_el", t: "🛡️ Un héroe que eliges…", elegir: true, clase: "heroe" },
-    { g: "Adornos", k: "marco", t: "🖼️ Marco dorado", regalo: { tipo: "adorno", cual: "marco" }, clase: "adorno" },
+    { g: "Colección", k: "heroe", t: "Un héroe al azar", regalo: { tipo: "heroe" }, clase: "heroe" },
+    { g: "Colección", k: "heroe_el", t: "Un héroe que eliges…", elegir: true, clase: "heroe" },
+    { g: "Adornos", k: "marco", t: "Marco dorado", regalo: { tipo: "adorno", cual: "marco" }, clase: "adorno" },
     { g: "Adornos", k: "fondo", t: "🌌 Fondo de ficha", regalo: { tipo: "adorno", cual: "fondo" }, clase: "adorno" },
     { g: "Adornos", k: "titulo", t: "🏷️ Título de recluta", regalo: { tipo: "adorno", cual: "titulo" }, clase: "adorno" }
   ];
@@ -306,7 +311,7 @@
   function regalosSorteo() {
     var s = sorteoAbierto(); if (!s) return [];
     return [1, 2, 3].map(function (n) {
-      return { g: "Sorteo", k: "part" + n, t: "🎟️ " + n + " participaci" + (n === 1 ? "ón" : "ones"), regalo: { tipo: "participacion", sorteo: s.doc, n: n }, clase: "sorteo" }; });
+      return { g: "Sorteo", k: "part" + n, t: n + " participaci" + (n === 1 ? "ón" : "ones"), regalo: { tipo: "participacion", sorteo: s.doc, n: n }, clase: "sorteo" }; });
   }
   /**
    * 14-sep · LAS CÁPSULAS Y LOS SOBRES NUEVOS, de premio (Norberto: «un cofre legendario, donde siempre
@@ -383,7 +388,7 @@
       +   '<div class="au-acciones">'
       +     '<button type="button" class="ll-min" id="au-todos">Todos</button>'
       +     '<button type="button" class="ll-min" id="au-nadie">Ninguno</button>'
-      +     '<button type="button" class="au-azar-btn" id="au-azar"' + (g.length ? '' : ' disabled') + '>🎲 Pregunta al azar</button>'
+      +     '<button type="button" class="au-azar-btn" id="au-azar"' + (g.length ? '' : ' disabled') + '>Pregunta al azar</button>'
       +     '<label class="au-sinrep" title="Quien ya ha salido hoy no vuelve a salir hasta que hayan salido todos"><input type="checkbox" id="au-sinrep" checked> Sin repetir</label>'
       +   '</div>'
       +   '<div id="au-sorteo" class="au-sorteo" hidden></div>'
@@ -434,7 +439,17 @@
       + '<button type="button" class="btn" id="au-t-grande">⛶ Pantalla completa</button></div>'
       + '<p class="small muted">Suena un aviso al terminar. Sigue contando aunque cambies de pestaña.</p></div>';
   }
-  function poner(seg) { TMP.total = seg; TMP.quedan = seg; TMP.corre = false; TMP.fin_ok = false; clearInterval(TMP.iv); TMP.iv = null; render(); }
+  /**
+   * 18-sep · Norberto: «si el docente lanza temporizador, votación o pregunta, que se pinte sobre la diapositiva actual
+   * para que los estudiantes en directo contesten». El temporizador viaja en la ficha «en vivo» del grupo (`sesion.crono`,
+   * dentro del mapa que ya podía escribir el docente: no hacen falta reglas nuevas) y la sesión de cada recluta lo pinta.
+   */
+  function emitirCrono() {
+    if (!PER || !window.SG || !SG.MOTOR || !SG.MOTOR.publicarEnVivo) return;
+    var c = TMP.corre ? { hasta: TMP.fin, total: TMP.total } : null;
+    SG.MOTOR.publicarEnVivo(PER, { sesion: { crono: c } }).catch(function () {});
+  }
+  function poner(seg) { TMP.total = seg; TMP.quedan = seg; TMP.corre = false; TMP.fin_ok = false; clearInterval(TMP.iv); TMP.iv = null; emitirCrono(); render(); }
   function cablearTiempo() {
     Array.prototype.forEach.call(app.querySelectorAll("[data-min]"), function (b) { b.onclick = function () { poner(Number(b.getAttribute("data-min")) * 60); }; });
     var otro = document.getElementById("au-t-min");
@@ -443,6 +458,7 @@
       if (TMP.corre) { TMP.quedan = quedanTmp(); TMP.corre = false; clearInterval(TMP.iv); TMP.iv = null; }
       else { if (TMP.quedan <= 0) TMP.quedan = TMP.total; TMP.fin = Date.now() + TMP.quedan * 1000; TMP.corre = true; TMP.fin_ok = false;
              clearInterval(TMP.iv); TMP.iv = setInterval(tic, 250); }
+      emitirCrono();
       render();
     };
     document.getElementById("au-t-reset").onclick = function () { poner(TMP.total); };
@@ -457,7 +473,7 @@
     if (b) b.style.width = (TMP.total ? Math.round(q * 100 / TMP.total) : 0) + "%";
     var caja = document.getElementById("au-tiempo"); if (caja) caja.classList.toggle("ultimos", TMP.corre && q <= 10 && q > 0);
     if (TMP.corre && q <= 0) {
-      TMP.corre = false; TMP.quedan = 0; TMP.fin_ok = true; clearInterval(TMP.iv); TMP.iv = null; campana();
+      TMP.corre = false; TMP.quedan = 0; TMP.fin_ok = true; clearInterval(TMP.iv); TMP.iv = null; campana(); emitirCrono();
       if (TAB === "tiempo") render(); else { var mm = document.querySelector(".au-mini-reloj"); if (mm) { mm.classList.remove("corre"); mm.classList.add("fin"); } }
     }
   }
@@ -547,7 +563,7 @@
         + '<button class="btn min" id="au-vt-borrar">Borrar</button></div></div>';
     } else {
       html += '<div class="au-tarjeta"><div class="eyebrow verde">Nueva votación</div>'
-        + '<h3>🗳️ Pregunta a tu clase</h3>'
+        + '<h3>Pregunta a tu clase</h3>'
         + '<p class="small muted">La responden desde su Nave durante la semana y la resuelves en la siguiente clase. '
         + 'Ejemplo: «' + esc((CFGV.ejemplos || [])[0] || "¿Qué herramienta prefieres que veamos la semana que viene?") + '»</p>'
         + '<label class="au-et">La pregunta</label>'
@@ -565,7 +581,7 @@
         + '</div>'
         + '</div>'
         + '<p class="small muted">Se resolverá en la <b>semana ' + (sem + 1) + '</b>.</p>'
-        + '<button class="btn primary" id="au-vt-crear">🗳️ Publicar la votación</button>'
+        + '<button class="btn primary" id="au-vt-crear">Publicar la votación</button>'
         + '<p class="ll-pie" id="au-vt-msg"></p></div>';
     }
     if (cerradas.length) {
@@ -753,7 +769,7 @@
     if (t) t.onclick = function () {
       t.disabled = true; t.textContent = "Tocando…";
       MOTOR.abrirLlamada(PER, min).then(function () { vigilar(); })
-        .catch(function (e) { t.disabled = false; t.textContent = "🔔 Tocar llamada";
+        .catch(function (e) { t.disabled = false; t.textContent = "Tocar llamada";
           document.getElementById("au-msg").textContent = String(e && e.message || e); });
     };
     // «En clase hoy» → a Premiar, con la lista de hoy (y ya sorteando, o con todos elegidos)
@@ -823,9 +839,9 @@
         fin(res.map(function (x) {
           var quien = "<b>" + esc(alias[x.ficha] || "?") + "</b>";
           if (x.error) return '<span class="malo">' + quien + ": " + esc(x.error) + "</span>";
-          if (x.participaciones) return "🎟️ " + quien + " suma " + x.participaciones + " participaci" + (x.participaciones === 1 ? "ón" : "ones") + " al Gran Sorteo";
+          if (x.participaciones) return quien + " suma " + x.participaciones + " participaci" + (x.participaciones === 1 ? "ón" : "ones") + " al Gran Sorteo";
           if (x.ya) return "➖ " + quien + " ya lo tenía";
-          return "🎁 " + quien + " se lleva " + x.piezas.map(function (p) {
+          return quien + " se lleva " + x.piezas.map(function (p) {
             return "<b>" + esc(p.nombre) + "</b>" + (p.rareza ? " (" + esc(String(p.rareza).toLowerCase()) + ")" : ""); }).join(", ");
         }).join("<br>"));
       }).catch(function (er) { fin('<span class="malo">' + esc(er && er.message || er) + "</span>"); });
@@ -873,7 +889,7 @@
       caja.innerHTML = (c ? '<img src="' + esc(c) + '" alt="">' : '')
         + '<div><span class="eyebrow amber">Le toca a</span><b>' + esc(gana.alias) + '</b>'
         + '<em>' + (reinicio ? "Ya habían salido todos: empiezo otra ronda. " : "") + 'Si acierta, dale su premio abajo.</em></div>'
-        + '<button type="button" class="ll-min" id="au-otra-vez">🎲 Otra</button>';
+        + '<button type="button" class="ll-min" id="au-otra-vez">Otra</button>';
       document.getElementById("au-otra-vez").onclick = function () { sortear(marcar); };
       var cara = app.querySelector('.au-cara[data-ficha="' + gana.ficha + '"]');
       if (cara) cara.classList.add("gana");

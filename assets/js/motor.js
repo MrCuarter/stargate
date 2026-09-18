@@ -2053,6 +2053,22 @@ async function anotarConexion() {
   await setDoc(ref, { uid: yo.uid, correo: yo.correo, nombre: yo.nombre || x.nombre || "", foto: yo.foto || x.foto || "",
     primera: x.primera || ahora, ultima: ahora, n: (x.n || 0) + 1, ultimas: (x.ultimas || []).concat(ahora).slice(-20) });
 }
+/**
+ * 18-sep · EL PANEL DEL DOCENTE. Norberto: «que los docentes también puedan coger avatares… un panel del docente con sus
+ * grupos, su avatar, sus datos, algunas estadísticas». El avatar es una clave de assets/img/avatares/comandantes/ (c1…),
+ * guardada en su propia ficha de conexión (stargate_profes/{uid}), que solo lee él y el Mando.
+ */
+async function miFichaDocente() {
+  const yo = await sesion(); if (!yo) return null;
+  const d = await getDoc(doc(db, "stargate_profes", yo.uid));
+  return Object.assign({ uid: yo.uid, correo: yo.correo, nombre: yo.nombre || "", foto: yo.foto || "" }, d.exists() ? d.data() : {});
+}
+async function ponerAvatarDocente(clave) {
+  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
+  if (!/^[a-z0-9_-]{1,40}$/.test(String(clave || ""))) throw new Error("Ese avatar no existe");
+  await setDoc(doc(db, "stargate_profes", yo.uid), { uid: yo.uid, correo: yo.correo, avatar: clave }, { merge: true });
+}
+
 /** Solo el Mando: TODOS los grupos de STARGATE (con su equipo, si se deja leer) y cuántos alistados tiene cada uno. */
 async function todosLosGrupos() {
   const r = await getDocs(collection(db, "projects"));
@@ -2088,7 +2104,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, alumno, nuevoCodigo,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,

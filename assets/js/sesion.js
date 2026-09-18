@@ -228,7 +228,14 @@
    * el 6) iban los tres seguidos. Los de misión («Misión · Actividad 1») van con las misiones.
    */
   function tipoVideo(v){
-    var t=String((v[0]&&v[0].titulo)||'');
+    var t=String((v[0]&&v[0].titulo)||''), c=String(v[1]||'');
+    /**
+     * 18-sep · Norberto, de la semana 1: «el docente explica la asignatura, después el tema 1»; «el vídeo del ePortfolio
+     * intercámbialo por el del primer planeta». El momento lo dice el propio dato (`cuando` en _site_data.py): lo que
+     * empieza por «Apertura» va antes del despegue; lo que empieza por «Tras el despegue», justo después, antes de los retos.
+     */
+    if(/^Apertura\b/i.test(c)) return 'inicio';
+    if(/^Tras el despegue\b/i.test(c)) return 'tema';
     if(/^Fragmento/i.test(t)) return 'fragmento';
     if(/·\s*cierre/i.test(t)) return 'cierre';
     if(/^Misi[oó]n|Plan de Ataque/i.test(t)) return 'mision';
@@ -573,6 +580,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('[data-ses-voto]'), function(x){ x.disabled=true; });
     M.votar(st.per, b.getAttribute('data-ses-vev'), b.getAttribute('data-ses-voto'), 'free').then(function(){
       b.classList.add('primary'); if(msg) msg.textContent='Voto contado. Gracias.';
+      if(SEG.voto && SEG.voto.id===b.getAttribute('data-ses-vev')){ SEG.yaVote=true; setTimeout(pintarSeguir, 900); }
     }, function(e){
       Array.prototype.forEach.call(document.querySelectorAll('[data-ses-voto]'), function(x){ x.disabled=false; });
       var m=String((e&&e.message)||e);
@@ -992,6 +1000,15 @@
       }};
   }
 
+  var SEC_DE_K={portada:'portada', llamada:'llamada', foro:'mensaje', anteriores:'repaso', reflexion:'repaso',
+    movido:'clasificacion', semanal:'clasificacion', top:'clasificacion', escuadrones:'clasificacion', coleccion:'coleccion',
+    simulador:'simulador', votacion:'votacion', ticket:'ticket', oferta:'oferta', nuevo:'novedades', simulacro:'novedades',
+    genially:'despegue', puente:'despegue', reto:'misiones', hito:'misiones', insignias:'recompensa'};
+  function secDe(x){ return x.sec || SEC_DE_K[x.k] || 'misiones'; }
+  function apagadas(){
+    var S=st.sesionesDelGrupo||(st.d&&st.d.sesiones)||{}, quien=String((!st.alumno&&st.miNombre)||st.profeMio||'').trim();
+    return (quien&&Array.isArray(S[quien]))?S[quien]:[];
+  }
   function construir(s, n){
     var vids=s.videos||[], deTipo=function(t){ return vids.filter(function(v){ return tipoVideo(v)===t; }); };
     // `t` dice en qué tiempo de la clase va cada diapositiva: 'ap' antes de la presentación,
@@ -999,7 +1016,7 @@
     var d=[diaPortada(s, n)];
     if(st.per) d.push(diaLlamada());
     var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
-    deTipo('inicio').forEach(function(v,i){ d.push(diaVideo(v, i, '🎬 Para empezar')); });
+    deTipo('inicio').forEach(function(v,i){ d.push(Object.assign(diaVideo(v, i, 'Para empezar'), {sec:'videos'})); });
     /**
      * 17-sep · LA SESIÓN CRECE CON LO QUE SE DESBLOQUEA (Norberto: «la primera semana debería ser más sencilla; no hace falta
      * ranking, coleccionista… no ha habido tiempo. En la primera y segunda no queremos agobiar»). «Han movido ficha», desde la
@@ -1013,14 +1030,15 @@
     d=d.concat(diapositivasNuevas(s));
     d.forEach(function(x){ x.t='ap'; });     // todo lo de arriba es APERTURA
     var ci=[];
-    deTipo('mision').forEach(function(v,i){ ci.push(diaVideo(v, i, '🎬 La misión')); });
+    deTipo('tema').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'Rumbo al planeta'), {sec:'misiones'})); });
+    deTipo('mision').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'La misión'), {sec:'misiones'})); });
     ci=ci.concat(diasMisiones(s));
     // 🔴 El Genially del grupo (el panel), EMBEBIDO: es donde empieza la clase de verdad. Si el docente
     // tiene uno propio («Mis enlaces»), el suyo; si no, el oficial del grupo; si no, el Panel de
     // control maestro de STARGATE. Y NUNCA cuando la sesión ya va DENTRO del Genially: sería el
     // panel dentro de sí mismo.
-    deTipo('cierre').forEach(function(v,i){ ci.push(diaVideo(v, i, '🎬 Para cerrar el planeta')); });
-    deTipo('fragmento').forEach(function(v,i){ ci.push(diaVideo(v, i, '🎁 La recompensa del bloque')); });
+    deTipo('cierre').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'Para cerrar el planeta'), {sec:'cierre'})); });
+    deTipo('fragmento').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'La recompensa del bloque'), {sec:'cierre'})); });
     ci.forEach(function(x){ x.t='ci'; });
 
     // El tramo del medio. Proyectando desde la web (sin Genially) va el panel del grupo EMBEBIDO, que
@@ -1036,7 +1054,14 @@
 
     var todo = TRAMO==='ap' ? d.concat([diaPuente(true)]) : TRAMO==='ci' ? ci : d.concat(medio, ci);
     // (el recluta no «enseña la Nave simulada»: es la del docente)
-    return st.alumno ? todo.filter(function(x){ return x.k!=='simulacro'; }) : todo;
+    if(st.alumno) todo=todo.filter(function(x){ return x.k!=='simulacro'; });
+    /**
+     * 18-sep · LA SESIÓN A MEDIDA. Cada docente quita en «Mis enlaces» las secciones que no quiere; al recluta que le
+     * sigue le pasa lo mismo (se mira la elección de SU Comandante). Nunca se queda vacía: como poco, la portada.
+     */
+    var off=apagadas();
+    if(off.length){ var quedan=todo.filter(function(x){ return off.indexOf(secDe(x))<0; }); todo=quedan.length?quedan:[todo[0]]; }
+    return todo;
   }
 
   /**
@@ -1188,8 +1213,26 @@
           return '<button type="button" class="p'+(i===st.i?' on':'')+(i<st.i?' past':'')+'" data-i="'+i+'" title="'+esc(d.rot)+'"><span>'+esc(d.rot)+'</span></button>';
         }).join('')+'</div>'
       +controles()
+      /**
+       * 18-sep · EL AULA, DENTRO DE LA PRESENTACIÓN. Norberto: «un botón en todas las páginas de la presentación con el
+       * aula organizado: estudiantes conectados, selector aleatorio, temporizadores, dar premios, iniciar pregunta o
+       * votación. Solo aparecería si detecta que eres docente». Es el aula de siempre (aula.html) en un panel lateral:
+       * no hay dos aulas que mantener. Lo que lances desde ahí se pinta en la sesión de cada recluta que te sigue.
+       */
+      +(!st.alumno && st.per && st.yo
+        ? '<button type="button" class="ses-aula-b" id="ses-aula-b" title="El aula: premiar, tiempo, votación y pregunta">'
+          +'<img src="assets/img/nave/iconos/clase.png" alt="" width="22" height="22"><span>El aula</span></button>'
+          +'<aside class="ses-aula" id="ses-aula" hidden><div class="ses-aula-cab"><b>El aula</b>'
+          +'<button type="button" class="btn min" id="ses-aula-x">Cerrar</button></div>'
+          +'<iframe title="El aula" data-src="aula.html?per='+encodeURIComponent(st.per)+'&embed=1"></iframe></aside>'
+        : '')
       +'</div>';
     wire();
+    var ab=root.querySelector('#ses-aula-b'), aa=root.querySelector('#ses-aula');
+    if(ab&&aa){
+      ab.onclick=function(){ var f=aa.querySelector('iframe'); if(f&&!f.src) f.src=f.getAttribute('data-src'); aa.hidden=!aa.hidden; ab.classList.toggle('on', !aa.hidden); };
+      aa.querySelector('#ses-aula-x').onclick=function(){ aa.hidden=true; ab.classList.remove('on'); };
+    }
     montar();
     marcarTramo();
     // 17-sep · en directo: el docente que proyecta dentro de su Genially emite solo; el recluta, sigue
@@ -1299,6 +1342,23 @@
         if(M.miRespuesta) M.miRespuesta(st.per, p.id, st.ficha).then(function(r){ SEG.mia=r; pintarSeguir(); }); }
       pintarSeguir();
     });
+    // 18-sep · y las votaciones: si el docente lanza una desde su aula, se pinta aquí encima, sin salir de la presentación
+    if(M.vigilarVotaciones && !SEG.pararVotos) SEG.pararVotos=M.vigilarVotaciones(st.per, function(l){
+      var ahora=Date.now(), v=(l||[]).filter(function(x){ return x.isActive && !(x.stargateCierra && ahora>Number(x.stargateCierra)); })[0]||null;
+      if((v&&v.id)!==(SEG.voto&&SEG.voto.id)){ SEG.voto=v; SEG.yaVote=false;
+        if(v && M.miPapeleta) M.miPapeleta(st.per, v.id, st.ficha).then(function(pp){ SEG.yaVote=Object.keys(pp||{}).some(function(k){ return Number((pp||{})[k])>0; }); pintarSeguir(); }, function(){}); }
+      else SEG.voto=v;
+      pintarSeguir();
+    });
+  }
+  /** El temporizador del aula, a la vista del recluta: se cuenta aquí (el docente solo manda cuándo acaba). */
+  function relojAlumno(){
+    var s=SEG.d&&SEG.d.sesion, c=s&&s.crono, el=root.querySelector('#ses-al-reloj');
+    if(!el||!c) return;
+    var q=Math.max(0, Math.round((Number(c.hasta)-Date.now())/1000));
+    el.textContent=Math.floor(q/60)+':'+('0'+(q%60)).slice(-2);
+    var caja=el.closest('.ses-al-crono'); if(caja) caja.classList.toggle('ultimos', q<=10);
+    if(q<=0 && SEG.relojIv){ clearInterval(SEG.relojIv); SEG.relojIv=null; pintarSeguir(); }
   }
   function aliasMio(){ var r=vivos().filter(function(x){ return x.fid===st.ficha; })[0]; return (r&&r.alias)||''; }
   /** ¿El docente está emitiendo ahora mismo? (lo que bloquea al recluta) */
@@ -1327,11 +1387,19 @@
              :'<p class="ses-al-mia">Tu respuesta: «'+esc(SEG.mia.texto)+'»</p>')
         +'<span class="ses-al-msg" id="ses-al-msg"></span></div>';
     }
+    var cr=s&&s.crono, crVivo=cr&&Number(cr.hasta)>Date.now();
+    if(crVivo) html+='<div class="ses-al-crono"><b>Tiempo</b><span id="ses-al-reloj">…</span></div>';
+    var vt=SEG.voto;
+    if(vt) html+='<div class="ses-al-vt"><b>'+(vt.stargateModo==='diferido'?'Votación abierta':'Votación en directo')+'</b><p>'+esc(vt.title||vt.titulo||'')+'</p>'
+      +(SEG.yaVote?'<p class="ses-al-mia">Tu voto ya está dentro.</p>'
+        :'<div class="vt-ops vt-ops-al">'+(vt.options||[]).map(function(o){ return '<button type="button" class="btn" data-ses-voto="'+esc(o.id)+'" data-ses-vev="'+esc(vt.id)+'">'+esc(o.title)+'</button>'; }).join('')+'</div><p class="ses-err" id="ses-voto-msg"></p>')
+      +'</div>';
     // (lo que se está escribiendo no se pisa al repintar)
     var ta=caja.querySelector('#ses-al-resp'), borrador=ta?ta.value:'';
     if(caja.getAttribute('data-html')===html) return;
     caja.setAttribute('data-html', html); caja.innerHTML=html;
     var ta2=caja.querySelector('#ses-al-resp'); if(ta2&&borrador) ta2.value=borrador;
+    if(crVivo){ relojAlumno(); if(!SEG.relojIv) SEG.relojIv=setInterval(relojAlumno, 500); }
     var v=caja.querySelector('#ses-al-volver'); if(v) v.onclick=function(){ SEG.on=true; var s2=SEG.d.sesion; if(s2){ var i=indiceDe(s2.k,s2.n); if(i>=0) ir(i,false,true); } pintarSeguir(); };
     var en=caja.querySelector('#ses-al-enviar');
     if(en) en.onclick=function(){
@@ -1570,9 +1638,24 @@
    * Cómo se llama quien proyecta EN ESTE GRUPO (el nombre que llevan en «profe» las fichas de su
    * escuadrón): con él, «han movido ficha», las misiones y el ticket de salida son de SU clase.
    */
+  /**
+   * 18-sep · TU SESIÓN A MEDIDA, LEÍDA DEL GRUPO AL MOMENTO. La puerta pública (el tablero) guarda 30 s de copia: quien
+   * acaba de quitar una sección en «Mis enlaces» y abre la sesión la vería todavía entera. El docente sí puede leer su
+   * grupo directamente, así que se lee aquí; y si llega cuando la sesión ya arrancó, se rehace el mazo mientras siga en
+   * la portada (con una red lenta no se pierde; más adelante no se mueve nada de lo que se está viendo).
+   */
+  function configFresca(per){
+    var M=window.SG&&window.SG.MOTOR; if(!M||!M.getDoc||st.alumno) return;
+    M.getDoc(M.doc(M.db,'projects',per)).then(function(pd){
+      if(per!==st.per) return;
+      var antes=JSON.stringify(apagadas());
+      st.sesionesDelGrupo=(((pd&&pd.exists()?pd.data():{})||{}).stargate||{}).sesiones||{};
+      if(st.slides && st.slides.length && st.i===0 && JSON.stringify(apagadas())!==antes) pintar();
+    }).catch(function(){});
+  }
   function miNombreDe(per, listo){
     var g=(st.grupos||[]).filter(function(x){ return x.id===per; })[0];
-    if(g){ st.miNombre=g.miNombre||''; return listo(); }
+    if(g){ st.miNombre=g.miNombre||''; if(st.miNombre) configFresca(per); return listo(); }
     var hecho=false, fin=function(){ if(!hecho){ hecho=true; listo(); } };
     setTimeout(fin, 4000);   // sin motor o sin cuenta, la sesión sale igual (con el grupo entero)
     var ir_=function(){
@@ -1584,6 +1667,7 @@
           st.miNombre=(x&&x.miNombre)||'';
           if(x && !st.alumno) st.yo=st.yo||yo;   // es docente de este grupo: puede emitir en directo
           if(!st.grupos) st.grupos=(ps||[]).filter(function(y){ return y.estado==='en marcha'; });
+          if(x && !st.alumno) configFresca(per);
           fin();
         });
       }).catch(fin);

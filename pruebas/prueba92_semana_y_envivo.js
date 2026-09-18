@@ -39,7 +39,7 @@ c(/if\(!v\)\{ VOTO\.mia=\{\}; if\(antes\) render\(\); return; \}/.test(NAVE), " 
 // ── 4 · la pregunta en directo
 ["lanzarPregunta", "cerrarPregunta", "responderPregunta", "vigilarRespuestas", "quitarRespuesta", "miRespuesta", "vigilarEnVivo", "publicarEnVivo"].forEach(f =>
   c(new RegExp("function " + f + "\\(").test(MOTOR) && new RegExp("\\b" + f + ",").test(MOTOR.slice(MOTOR.indexOf("window.SG.MOTOR = {"))), "   motor · " + f));
-c(/\["pregunta", "💬", "Pregunta"\]/.test(AULA) && /function vistaPregunta\(\)/.test(AULA) && /MOTOR\.vigilarRespuestas\(PER, p\.id/.test(AULA), "🔴 aula · pestaña «Pregunta» con el muro de respuestas en tiempo real");
+c(/\["pregunta", "pregunta", "Pregunta"\]/.test(AULA) && /function vistaPregunta\(\)/.test(AULA) && /MOTOR\.vigilarRespuestas\(PER, p\.id/.test(AULA), "🔴 aula · pestaña «Pregunta» con el muro de respuestas en tiempo real");
 c(/caraDe\(x\)/.test(AULA.slice(AULA.indexOf("function muroHtml"))) && /data-pq-quitar/.test(AULA), "   con la cara y el alias de cada uno, y se puede quitar una");
 c(/id="ev-resp" maxlength="280"/.test(NAVE) && /M\.responderPregunta\(per, p\.id, st\.yo\.ficha/.test(NAVE), "🔴 Nave · se responde escribiendo, desde «En vivo»");
 

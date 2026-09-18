@@ -27,7 +27,7 @@ c(Array.isArray(V.ejemplos) && V.ejemplos.length >= 2 && /herramienta/i.test(V.e
 ["aula.html", "recluta.html", "sesion.html"].forEach(p => c(/window\.SG_VOTACION=/.test(leer(p)), "   la configuración llega a " + p));
 
 // 2 · el aula: con los cronómetros
-c(/\["voto", "🗳️", "Votación"\]/.test(A), "🔴 la votación es una pestaña del aula, al lado de «Tiempo»");
+c(/\["voto", "voto", "Votación"\]/.test(A), "🔴 la votación es una pestaña del aula, al lado de «Tiempo» (con su icono propio, sin emoji)");
 c(/\["tiempo", "⏱️", "Tiempo"\][^\]]*\n?\s*\["voto"/.test(A) || A.indexOf('["tiempo"') < A.indexOf('["voto"'), "   y va justo después del temporizador");
 c(/function vistaVoto\(\)/.test(A) && /function cablearVoto\(\)/.test(A), "   con su vista y su cableado");
 c(/crearVotacion\(PER, \{/.test(A) && /cerrarVotacion\(PER/.test(A), "   el docente la publica y la cierra desde ahí");

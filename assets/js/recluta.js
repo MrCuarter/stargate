@@ -880,9 +880,31 @@
     if(g) out+='<details class="rs-gif"><summary>'+esc(g[1])+'</summary><img src="assets/img/ayuda/'+g[0]+'" alt="'+esc(g[1])+'" loading="lazy"></details>';
     return out;
   }
+  /**
+   * 🔴 18-sep · EL RETO QUE AÚN NO SE HA EXPLICADO. Norberto: «organiza el despliegue de los retos… si un reto no se ha
+   * explicado en clase, al estudiante le aparece sombreado con el mensaje (próxima semana)». La semana sale del mismo
+   * calendario que usa la sesión proyectable (`lanza` de cada semana → SG_SEM_RETO): un dato, un sitio. En PUA no hay
+   * calendario de lanzamientos, así que allí no se cierra nada. Si el referente abrió el capítulo antes, tampoco.
+   */
+  function semanaDeLanzamiento(id){
+    var m=(window.SG_SEM_RETO||{})[esPUA()?'PUA':'REGULAR']||{};
+    return Number(m[id]||0);
+  }
+  function retoPorLanzar(id, ya){
+    if(ya) return 0;
+    var n=semanaDeLanzamiento(id), hoy=Number(st.actual||0);
+    return (n && hoy && n>hoy) ? n : 0;
+  }
   function tarjetaReto(t, mios){
     var r=st.yo||{}, d=st.d||{}, AY=window.SG_AYUDA_RETOS||{};
     var ya=!!mios[t[0]], pasos=pasosDeReto(AY[t[0]]);
+    var cerradoHasta=retoPorLanzar(t[0], ya);
+    if(cerradoHasta) return '<div class="reto-sem por-lanzar" aria-disabled="true"><div class="rs-cab"><span class="chip pend">'
+      +(cerradoHasta===Number(st.actual||0)+1?'La próxima semana':'Semana '+cerradoHasta)+'</span>'
+      +'<span class="small muted">'+esc(t[0])+'</span></div>'
+      +'<b class="rs-tit">'+esc(t[1])+'</b>'
+      +'<p class="small muted">Se explica en clase '+(cerradoHasta===Number(st.actual||0)+1?'la próxima semana':'en la semana '+cerradoHasta)
+      +'. Hasta entonces, no se puede registrar.</p></div>';
     var cuando=ya&&r.retos_fecha&&r.retos_fecha[t[0]]?' · '+fecha(r.retos_fecha[t[0]]):'';
     var gancho=(window.SG_GANCHO_RETOS||{})[t[0]]||'';
     // 17-sep · el ejemplo tiene su PÁGINA (ejemplo.html, estilo académico, en otra pestaña): dentro de la tarjeta «se vería fatal»

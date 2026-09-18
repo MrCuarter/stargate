@@ -441,7 +441,7 @@
       // 13-sep · el calendario del referente: semanas congeladas y capítulos abiertos antes de tiempo
       pausas: SEM().limpias(inicio, pausas), pausa: SEM().pausaDe(inicio, pausas, ahora || Date.now()),
       capitulosAbiertos: S.capitulosAbiertos || {},
-      panel: S.panelVer || "", paneles: S.paneles || {},
+      panel: S.panelVer || "", paneles: S.paneles || {}, sesiones: S.sesiones || {},
       apertura: S.apertura || "", cierre_misiones: S.cierre || "", cierre_canje: S.cierreCanje || "",
       padlet: S.padlet || "",
       // La web lleva llamándolo `formTicket` desde el primer día y en siete sitios distintos.

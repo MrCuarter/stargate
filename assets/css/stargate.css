@@ -1118,6 +1118,10 @@ ol.pasos-num li b{color:var(--ink)}
 /* 18-sep · el ticket de la semana 1 va embebido (aún no hay respuestas que leer) */
 .dia.ticket-form .tk-form{width:100%;height:min(62vh,620px);border:1px solid var(--line);border-radius:14px;background:#fff}
 .dia .reto-ej{margin:12px 0 0}
+/* 18-sep · el reto que aún no se ha explicado: en sombra, con su semana, sin poder registrarse */
+.reto-sem.por-lanzar{opacity:.5;filter:grayscale(.55);border:1px dashed var(--line);border-radius:14px;padding:12px 14px;margin:0 0 10px;background:rgba(11,17,25,.5)}
+.reto-sem.por-lanzar .rs-cab{display:flex;gap:8px;align-items:center;margin:0 0 6px}
+.reto-sem.por-lanzar .rs-tit{display:block;margin:0 0 4px}
 .ins-grid{display:flex;flex-wrap:wrap;gap:22px;margin-top:14px}
 .ins-grid figure{margin:0;width:min(210px,42vw);text-align:center}
 .ins-grid img{width:112px;height:112px;object-fit:contain;filter:drop-shadow(0 0 22px rgba(55,224,236,.35))}
@@ -1273,7 +1277,11 @@ body.proyectando #mazo .lienzo{flex:1;min-height:0}
   background:#0b1119;color:#9fb0ce;font:inherit;font-size:.88rem;cursor:pointer;transition:all .15s}
 .au-t:hover{color:#fff;border-color:var(--teal);background:rgba(55,224,236,.08)}
 .au-t.on{background:#14243c;border-color:#4da3ff;color:#fff;font-weight:600}
-.au-t .i{font-size:1rem}
+.au-t .i{font-size:1rem;display:inline-flex}
+/* 18-sep · los iconos del aula (Magnific, lámina recortada), en lugar de emojis */
+.au-ico{width:26px;height:26px;object-fit:contain;display:block;filter:drop-shadow(0 0 6px rgba(62,214,200,.35))}
+.au-mini-reloj .au-ico{width:20px;height:20px;display:inline-block;vertical-align:middle}
+.au-icono .au-ico{width:64px;height:64px;margin:0 auto}
 .au-caja{background:#0d1420;border:1px solid #24304a;border-radius:16px;padding:28px 24px;text-align:center}
 .au-icono{font-size:2.4rem;line-height:1;margin-bottom:8px}
 .au-caja h2{margin:0 0 8px}
@@ -4502,6 +4510,23 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .ses-al-sigo,.ses-al-volver{font:inherit;font-size:.8rem;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid rgba(55,224,236,.4);background:rgba(4,12,20,.8);color:#bff5f9}
 .ses-al-volver{cursor:pointer;border-color:#f5b043;color:#ffe3a1}
 .ses-al-pq{background:rgba(6,14,24,.94);border:1px solid rgba(255,125,125,.5);border-radius:14px;padding:10px 12px;color:#e8f3fa;width:100%}
+/* 18-sep · lo que lanza el docente desde su aula, encima de la diapositiva del recluta: el tiempo y la votación */
+.ses-al-crono{background:rgba(6,14,24,.94);border:1px solid rgba(242,181,68,.55);border-radius:14px;padding:8px 14px;color:#fff;
+  display:flex;align-items:center;gap:12px}
+.ses-al-crono b{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+.ses-al-crono span{font:800 clamp(1.6rem,3.2vw,2.6rem)/1 var(--display,inherit);font-variant-numeric:tabular-nums}
+.ses-al-crono.ultimos{border-color:#ff7d7d;animation:sesAvisa .5s ease infinite}
+.ses-al-vt{background:rgba(6,14,24,.94);border:1px solid rgba(62,214,200,.5);border-radius:14px;padding:10px 12px;color:#e8f3fa;width:100%}
+.ses-al-vt b{font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--teal2)}
+.ses-al-vt p{margin:4px 0 8px;font-weight:700}
+/* 18-sep · el aula del docente, dentro de la presentación: un botón y un panel lateral */
+.ses-aula-b{position:absolute;left:14px;bottom:62px;z-index:7;display:flex;align-items:center;gap:8px;padding:8px 14px;
+  border-radius:12px;border:1px solid rgba(62,214,200,.45);background:rgba(6,14,24,.9);color:#e8f3fa;font:inherit;font-weight:800;cursor:pointer}
+.ses-aula-b:hover,.ses-aula-b.on{border-color:var(--teal);background:rgba(14,40,48,.95)}
+.ses-aula{position:absolute;top:0;right:0;bottom:0;z-index:8;width:min(480px,92%);display:flex;flex-direction:column;
+  background:#0b1119;border-left:1px solid var(--line);box-shadow:-18px 0 40px rgba(0,0,0,.45)}
+.ses-aula-cab{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.ses-aula iframe{flex:1;width:100%;border:0;background:#0b1119}
 .ses-al-pq b{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:#ff9f9f}
 .ses-al-pq p{margin:4px 0 8px;font-size:1rem}
 .ses-al-pq textarea{width:100%;font:inherit;font-size:.9rem;color:#e8f3fa;background:#0b1119;border:1px solid #24304a;border-radius:8px;padding:7px 9px;margin-bottom:6px}
@@ -4509,3 +4534,51 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .ses-al-msg{display:block;font-size:.8rem;color:#ffc9c9}
 .vt-ops-al{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:14px 0}
 .vt-ops-al .btn{font-size:clamp(1rem,1.6vw,1.4rem)}
+
+/* ═══════════ 18-sep · EL PANEL DEL DOCENTE Y EL GRUPO DE UN VISTAZO ═══════════
+   Norberto: «un landing parecido al del estudiante: su avatar, sus datos, algunas estadísticas; y dentro de cada grupo,
+   insights y botones para tenerlo todo a mano». Sin aire: una franja, no una portada. */
+.doc-panel{display:grid;grid-template-columns:auto 1fr auto auto;gap:18px;align-items:center;margin:0 0 16px;padding:16px 18px;
+  border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,rgba(14,40,48,.9),rgba(11,17,25,.95))}
+.doc-ava{position:relative;width:92px;height:92px;border-radius:50%;padding:0;border:2px solid rgba(242,181,68,.6);overflow:hidden;cursor:pointer;background:#0b1119}
+.doc-ava img{width:100%;height:100%;object-fit:cover;display:block}
+.doc-ava span{position:absolute;left:0;right:0;bottom:0;padding:3px 0;font-size:.75rem;font-weight:800;background:rgba(6,14,24,.8);color:#e8f3fa;opacity:0;transition:.15s}
+.doc-ava:hover span,.doc-ava:focus-visible span{opacity:1}
+.doc-txt h2{margin:2px 0 0;line-height:1.1}
+.doc-txt p{margin:2px 0 0}
+.doc-cifras{display:flex;gap:10px}
+.doc-cifras div,.c-res-cifras div{min-width:112px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(6,14,24,.55)}
+.doc-cifras b,.c-res-cifras b{display:block;font:800 1.7rem/1 var(--display,inherit)}
+.doc-cifras span,.c-res-cifras span{display:block;margin-top:4px;font-size:.8rem;color:var(--muted)}
+.doc-b{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.doc-avas{margin:-6px 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#0b1119}
+.doc-avas-g{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin-top:8px}
+.doc-av-op{padding:0;border:2px solid transparent;border-radius:14px;overflow:hidden;cursor:pointer;background:none}
+.doc-av-op img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.doc-av-op:hover{border-color:rgba(62,214,200,.6)}
+.doc-av-op.on{border-color:var(--amber)}
+.c-hacer{margin:0 0 12px}
+.c-resumen{margin:0 0 12px}
+.c-res-cifras{display:flex;flex-wrap:wrap;gap:10px}
+.c-res-cifras .ojo{border-color:rgba(242,181,68,.55)}
+.c-res-cifras .ojo b{color:var(--amber)}
+.c-res-top{margin:10px 0 0;font-size:.92rem}
+.c-res-top span{color:var(--muted);margin-right:6px}
+.c-res-top em{font-style:normal;color:var(--teal2);font-size:.85rem}
+@media(max-width:900px){
+  .doc-panel{grid-template-columns:auto 1fr}
+  .doc-cifras,.doc-b{grid-column:1/-1;justify-content:flex-start;align-items:flex-start;flex-wrap:wrap}
+  .doc-avas-g{grid-template-columns:repeat(4,1fr)}
+}
+/* 18-sep · la puerta, sin emojis: el comandante y la nave */
+.camino span img{width:34px;height:34px;object-fit:cover;border-radius:50%;display:block}
+.camino.recluta span img{border-radius:0;object-fit:contain}
+/* 18-sep · «Tu sesión en directo»: qué secciones salen en la presentación de cada docente */
+.m-secciones{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin:10px 0 4px}
+.m-sec{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line);border-radius:12px;cursor:pointer;background:rgba(6,14,24,.45)}
+.m-sec input{margin-top:3px;accent-color:var(--teal)}
+.m-sec b{display:block;font-size:.95rem}
+.m-sec em{display:block;font-style:normal;font-size:.82rem;color:var(--muted);margin-top:2px}
+.m-sec:has(input:not(:checked)){opacity:.55}
+.m-sec-msg{min-height:1.2em;margin:4px 0 0;color:var(--teal2)}
+

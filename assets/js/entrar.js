@@ -157,12 +157,12 @@
       '<p class="small muted">Has entrado como <b>' + esc(yo.correo) + "</b>.</p>" +
       '<div class="elegir-camino">' +
       (ps.length
-        ? '<a class="camino docente" href="' + esc(vuelta || "consola.html") + '"><span>🎓</span><b>Como docente</b>' +
+        ? '<a class="camino docente" href="' + esc(vuelta || "consola.html") + '"><span><img src="assets/img/avatares/comandantes/c1.jpg" alt=""></span><b>Como docente</b>' +
           "<em>" + ps.length + (ps.length === 1 ? " grupo: " : " grupos: ") +
           esc(ps.slice(0, 3).map(function (p) { return p.nombre; }).join(" · ")) + (ps.length > 3 ? "…" : "") + "</em></a>"
         : "") +
       gs.map(function (g) {
-        return '<a class="camino recluta" href="recluta.html?per=' + encodeURIComponent(g.per) + '"><span>🚀</span>' +
+        return '<a class="camino recluta" href="recluta.html?per=' + encodeURIComponent(g.per) + '"><span><img src="assets/img/nave/iconos/nave.png" alt=""></span>' +
                "<b>Como recluta</b><em>" + esc(g.nombreGrupo || nombreDe(g.per)) + "</em></a>";
       }).join("") +
       "</div>" +
