@@ -45,7 +45,7 @@
 
   // ---------------------------------------------------------------- puerta
   function puerta(msg) {
-    pinta('<div class="au-caja"><div class="au-icono"><img class=ico src=assets/img/iconos/p/envivo.png alt></div><h2>El aula</h2>'
+    pinta('<div class="au-caja"><div class="au-icono"><img class=ico src=assets/img/iconos/p/envivo.png alt></div><h2>Herramientas de clase</h2>'
       + '<p class="au-sub">' + esc(msg || "Entra con tu cuenta para mover tu clase desde aquí.") + "</p>"
       // 13-sep · con la «G» de Google, como las demás puertas: «entrar con mi cuenta» a secas no dice
       // que la contraseña se escribe en Google y no aquí

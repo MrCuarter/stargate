@@ -1493,7 +1493,7 @@
           '<span class="gp-n">2</span><img class="pt-acc-i" src="assets/img/nave/iconos/envivo.png" alt=""><span class="pt-acc-t"><b>Llamada a filas</b><em>que fichen</em></span></a>' +
           botonVentana("llamada.html?per=" + PER, "llamada_" + PER, "la llamada a filas") + '</div>' +
         '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
-          '<span class="gp-n">3</span><img class="pt-acc-i" src="assets/img/nave/iconos/clase.png" alt=""><span class="pt-acc-t"><b>El aula</b><em>' + (manual() ? "premios, tiempo, votar" : "tiempo, votar, al azar") + '</em></span></a>' +
+          '<span class="gp-n">3</span><img class="pt-acc-i" src="assets/img/nave/iconos/clase.png" alt=""><span class="pt-acc-t"><b>Herramientas de clase</b><em>quién ha fichado, premios, al azar</em></span></a>' +
           botonVentana("aula.html?per=" + PER, "aula_" + PER, "el aula") + '</div>' +
       '</div>' +
       (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
@@ -1613,7 +1613,7 @@
       // 16-sep · la sesión se pega DOS VECES en el Genially: la apertura antes de la teoría y el cierre después
       [["sesion-ap", ico("video") + " La sesión · 1 · apertura", "sesion.html?embed=1&tramo=apertura"],
        ["sesion-ci", ico("video") + " La sesión · 3 · cierre", "sesion.html?embed=1&tramo=cierre"],
-       ["sesion", ico("video") + " La sesión entera (sin partir)", "sesion.html?embed=1"], ["aula", ico("envivo") + " El aula · la clase en directo", "aula.html?embed=1"],
+       ["sesion", ico("video") + " La sesión entera (sin partir)", "sesion.html?embed=1"], ["aula", ico("envivo") + " Herramientas de clase (en directo)", "aula.html?embed=1"],
        ["llamada", ico("clase") + " La llamada a filas", "llamada.html?embed=1"], ["batalla", ico("diana") + " El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
         var tit = x[1].replace(/^<img[^>]*>\s*/, "");
         return '<span class="gp-gen-par"><button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + tit)) + '">' + x[1] + '</button>' +
@@ -3383,7 +3383,7 @@
       '<p class="small muted">Ninguno lleva el grupo dentro: piden la cuenta de quien los abre y, si lleva varios grupos, le preguntan cuál. ' +
       'Valen en todos los grupos y todas las convocatorias. En Genially: <b>Insertar → Otros → Código</b> y pegar.</p>' +
       [["<img class=ico src=assets/img/iconos/p/video.png alt> La sesión de la semana", "sesion.html?embed=1"], ["<img class=ico src=assets/img/iconos/p/clase.png alt> Llamada a filas (solo la toca el Comandante)", "llamada.html?embed=1"],
-       ["<img class=ico src=assets/img/iconos/p/envivo.png alt> El aula (el puesto de mando del docente)", "aula.html?embed=1"], ["<img class=ico src=assets/img/iconos/p/diana.png alt> Validar un reto", "validar.html?reto=S7&embed=1"],
+       ["<img class=ico src=assets/img/iconos/p/envivo.png alt> Herramientas de clase (quién ha fichado, premios, al azar)", "aula.html?embed=1"], ["<img class=ico src=assets/img/iconos/p/diana.png alt> Validar un reto", "validar.html?reto=S7&embed=1"],
        // 16-sep · la batalla del reto A6: se pone en el Genially del tema 6 y se juega en clase, cada cual en su dispositivo
        ["<img class=ico src=assets/img/iconos/p/diana.png alt> El Simulador de Joran (el reto A6)", "batalla.html?embed=1"]].map(function (x) {
         return '<p class="small">' + x[0] + ' <button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[1], "STARGATE · " + x[0].replace(/^<img[^>]*>\s*/, ""))) + '">&lt;/&gt; Copiar para insertar</button></p>';
@@ -3463,7 +3463,9 @@
     var cfgDemo = ((d.proyecto || {}).stargate || {}), docs = cfgDemo.docentes || [];
     var yoDemo = docs.filter(function (x) { return x.rol === "referente"; })[0] || docs[0] || { nombre: "Capitana Vega" };
     YO = YO || { uid: "demo", correo: "referente@ejemplo.es", nombre: yoDemo.nombre };
-    PER = per; PERS = [{ id: per, nombre: (d.proyecto || {}).name || per, soyReferente: true, miNombre: yoDemo.nombre }];
+    PER = per; PERS = [{ id: per, nombre: (d.proyecto || {}).name || per, soyReferente: true, miNombre: yoDemo.nombre,
+                         estado: "en marcha", semana: cfgDemo.demoSemana || 1, total: cfgDemo.semanas || 15,
+                         reclutas: (d.perfiles || []).length }];
     // 🔴 Las mismas claves que arma `leerPER`, con los mismos nombres. El catálogo y `privadoPER`
     // no son opcionales: sin ellos el traductor revienta al calcular el primer nivel.
     DATOS = Object.assign({}, d, { privados: privados, vales: d.vales || [],

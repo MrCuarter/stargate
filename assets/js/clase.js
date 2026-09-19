@@ -491,7 +491,7 @@
         + '<span class="ic"><img class=ico src=assets/img/iconos/p/video.png alt></span><b>Proyectar la semana</b>'
         + '<em>el planeta, los vídeos, los retos y el hito — ya montado para la pantalla</em></a>'
       + (NUEVO ? '<a class="herr" href="aula.html?per=' + encodeURIComponent(st.per) + mot + '" target="_blank" rel="noopener">'
-        + '<span class="ic"><img class=ico src=assets/img/iconos/p/envivo.png alt></span><b>El aula</b>'
+        + '<span class="ic"><img class=ico src=assets/img/iconos/p/envivo.png alt></span><b>Herramientas de clase</b>'
         + '<em>llamada a filas, quién ficha, a quién felicitar y premios a mano</em></a>' : '')
       + (NUEVO ? '<a class="herr" href="llamada.html?per=' + encodeURIComponent(st.per) + mot + '" target="_blank" rel="noopener">'
         + '<span class="ic"><img class=ico src=assets/img/iconos/p/clase.png alt></span><b>Llamada a filas</b>'

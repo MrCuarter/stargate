@@ -38,9 +38,12 @@ from _site_data import PASOS, TABLERO_API, PER_DEMO
 # existe en este portátil enseña una pantalla que nadie tiene. Pero mientras una pantalla nueva
 # todavia no esta subida, `--local` permite sacarla del servidor de pruebas. Cuando se suba, se
 # vuelven a disparar sin la opcion y quedan las de verdad.
-LOCAL = "--local" in sys.argv
-if LOCAL: sys.argv = [a for a in sys.argv if a != "--local"]
-WEB = "http://localhost:8791" if LOCAL else "https://stargate.mistercuarter.es"
+# `--local` usa el servidor de pruebas (8791 por defecto); `--local=8793`, otro puerto —util cuando el
+# laboratorio ya esta ocupando el suyo—.
+LOCAL = [a for a in sys.argv if a == "--local" or a.startswith("--local=")]
+PUERTO_LOCAL = (LOCAL[0].split("=")[1] if LOCAL and "=" in LOCAL[0] else "8791")
+if LOCAL: sys.argv = [a for a in sys.argv if a not in LOCAL]
+WEB = ("http://localhost:" + PUERTO_LOCAL) if LOCAL else "https://stargate.mistercuarter.es"
 PER = "clase-demo"                     # el unico grupo con gente: las capturas salen vivas
 PER_NUEVO = PER_DEMO                   # el grupo de ejemplo, uno de verdad leido por la puerta publica
 # La Nave rediseñada, en modo demostracion: sin sesion y con un recluta sembrado.
@@ -176,9 +179,16 @@ TOMAS = {
  "d3_sala.png":       dict(antes=SIN_GLOBO, url=WEB + "/consola.html?demo=1&motor=firestore",
                            ancho=1360, alto=1000, espera=6,
                            listo="!!document.querySelector('.cn-secs')",
-                           scroll="(function(){var b=document.querySelector('.cn-t[data-sec=\'gente\']'); if(b) b.click(); return 1;})()",
+                           # 🔴 El clic se REPITE hasta que salga lo que esperamos: la pantalla se pinta y se cablea en
+                           # dos tiempos, y un clic disparado justo entre los dos no hacia nada —y el capturador se
+                           # quedaba esperando una tabla que nadie iba a pedir.
+                           # (el selector va SIN comillas dentro: en una cadena de Python, \' no deja backslash y el
+                           #  JavaScript salia partido en dos —el clic no se llegaba a disparar y nadie se enteraba—)
+                           scroll="(function(){var t=setInterval(function(){var b=document.querySelector('.cn-t[data-sec=gente]');"
+                                  "if(b) b.click(); if(document.querySelectorAll('tbody tr[data-r]').length>2) clearInterval(t);},600); return 1;})()",
                            listo2="document.querySelectorAll('tbody tr[data-r]').length>2",
-                           scroll2="(function(){var f=document.querySelector('tbody tr[data-r]'); if(f) f.click(); return 1;})()",
+                           scroll2="(function(){var t=setInterval(function(){var f=document.querySelector('tbody tr[data-r]');"
+                                   "if(f) f.click(); if(document.querySelector('#c-modal.abierto')) clearInterval(t);},600); return 1;})()",
                            listo3="!!document.querySelector('#c-modal.abierto .fi-cab')"),
  "d7_aula.png":       dict(antes=SIN_GLOBO, url=WEB + "/aula.html?demo=1&motor=firestore",
                            ancho=1180, alto=880, espera=7,
