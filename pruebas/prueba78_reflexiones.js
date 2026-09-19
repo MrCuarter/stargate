@@ -71,7 +71,7 @@ c(/function panelTripulacion\(id\)/.test(N) && /Lo que ha escrito tu tripulació
   "🔴 «💬 Lo que ha escrito tu tripulación»: sus reflexiones, en el propio reto");
 c(/Ver lo que hizo/.test(trozo(N, "function pintarTripulacion", 4000)), "   con su enlace (sirve de ejemplo)");
 c(/data-rfform=/.test(N) && /accion:'comentar'/.test(N) && /data-rfborrar=/.test(N), "   y se comentan (quitar el tuyo, también)");
-c(/En la Nave de Comandante no se comenta/.test(N) && /comentar: 'dejaría tu comentario/.test(N), "   en el simulacro y en la demo no se escribe (y se dice)");
+c(/En la Nave de ejemplo no se comenta/.test(N) && /comentar: 'dejaría tu comentario/.test(N), "   en el simulacro y en la demo no se escribe (y se dice)");
 c(/e\.textos=\{\}/.test(N) && /e\.coms=\{\}/.test(N), "   lo escrito (reflexión o comentario) no se pierde al repintarse la Nave");
 
 // 6 · la caja de validar (dentro de un Genially)

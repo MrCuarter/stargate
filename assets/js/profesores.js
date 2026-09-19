@@ -132,7 +132,7 @@
       if (q) q.onclick = function () {
         if (!q.classList.contains("seguro")) { q.classList.add("seguro"); q.textContent = "¿Seguro? Pulsa otra vez"; return; }
         q.disabled = true;
-        MOTOR.ponerReferente(correo, false, t.nombre).then(function () { return recargar("<b>" + esc(t.nombre || correo) + "</b> ya no es referente: no podrá crear grupos. Su papel en cada grupo se cambia en el Equipo docente de ese grupo."); })
+        MOTOR.ponerReferente(correo, false, t.nombre).then(function () { return recargar("<b>" + esc(t.nombre || correo) + "</b> ya no es referente: no podrá crear grupos. Su papel en cada grupo se cambia en Gestionar grupos → Equipo docente."); })
           .catch(function (e) { aviso("No ha salido: " + esc(e.message || e)); });
       };
       if (a) a.onclick = function () {
@@ -140,7 +140,7 @@
         if (!per) { sel.focus(); return; }
         a.disabled = true;
         MOTOR.anadirDocente(per, { nombre: t.nombre || correo.split("@")[0], correo: correo, rol: rol })
-          .then(function () { return recargar("<img class=ico src=assets/img/iconos/p/gente.png alt> <b>" + esc(t.nombre || correo) + "</b> ya está en ese grupo (" + rol + "). Entra con su cuenta y lo verá en Mis grupos."); })
+          .then(function () { return recargar("<img class=ico src=assets/img/iconos/p/gente.png alt> <b>" + esc(t.nombre || correo) + "</b> ya está en ese grupo (" + rol + "). Entra con su cuenta y lo verá en su Nave."); })
           .catch(function (e) { a.disabled = false; aviso("No ha salido: " + esc((e && e.message) || e)); });
       };
     });
@@ -164,7 +164,7 @@
         return;
       }
       if ((MOTOR.VITALICIOS || []).indexOf(String(yo.correo || "").toLowerCase()) < 0) {
-        app.innerHTML = '<div class="card"><h2>Esta página es del Mando</h2><p>Con <b>' + esc(yo.correo) + '</b> no se puede ver. Lo tuyo está en <a href="consola.html">Mis grupos</a>.</p></div>';
+        app.innerHTML = '<div class="card"><h2>Esta página es del Mando</h2><p>Con <b>' + esc(yo.correo) + '</b> no se puede ver. Lo tuyo está en <a href="consola.html">tu Nave</a>.</p></div>';
         return;
       }
       return cargar().then(pintar);

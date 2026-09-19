@@ -3523,7 +3523,7 @@
               var ra=recluDeFicha(m.fichaId), suyo=m.fichaId===mioF;
               return '<p class="rf-com"><b>'+esc((ra&&ra.alias)||'Un recluta')+'</b> '+esc(m.texto||'')
                 +(suyo?' <button type="button" class="rf-borrar" data-rfborrar="'+esc(m.id)+'" data-rfreto="'+esc(id)+'" title="Quitar mi comentario" aria-label="Quitar mi comentario">✕</button>':'')+'</p>'; }).join('')+'</div>'
-          +(SIMULACRO?'<p class="small muted">En la Nave de Comandante no se comenta: aquí no se guarda nada.</p>'
+          +(SIMULACRO?'<p class="small muted">En la Nave de ejemplo no se comenta: aquí no se guarda nada.</p>'
             :'<form class="rf-comentar" data-rfform="'+esc(x.id)+'" data-rfreto="'+esc(id)+'"><input maxlength="400" placeholder="'+(mia?'Contesta a tu tripulación…':'Comenta algo a '+esc(alias)+'…')+'" aria-label="Tu comentario">'
             +'<button type="submit" class="btn min">Enviar</button></form>')
           +'</article>';
@@ -4136,7 +4136,7 @@
       +'<span class="sim-tit"><b><img class=ico src=assets/img/iconos/p/envivo.png alt> La Nave de tu Comandante</b><em>Simulacro: nada de esto cuenta ni se guarda</em></span>'
       +'<div class="sim-mandos">'
       // 🔴 13-sep · proyectada en la sesión, la semana es la de la clase y no se cambia: así no hay spoiler
-      // por un despiste delante de todos. Para ensayar otra semana está «Mis enlaces → Tu Nave de Comandante».
+      // por un despiste delante de todos. Para ensayar otra semana está «Enlaces → Tu Nave de ejemplo (simulacro)», en la consola.
       +(q.get('embed')==='1'?'<span class="sim-sem">Semana <b>'+s+'</b></span>':'<label class="sim-sem">Semana <select id="sim-sem">'+opciones+'</select></label>')
       +'<button type="button" class="btn small" id="sim-pj">Mi personaje</button>'
       +'<button type="button" class="btn small" id="sim-ll"'+(st.llamada?' disabled':'')+'>Llamada a filas</button>'

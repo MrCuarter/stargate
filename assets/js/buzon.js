@@ -64,15 +64,15 @@
             + (g.codigo && MOT().invitacion ? copiar(MOT().invitacion(g), "<img class=ico src=assets/img/iconos/p/notas.png alt> Copiar invitación", "✓ Invitación copiada") : '') + '</div>';
         }, '<p>Entra con la cuenta de tu grupo y te lo doy aquí mismo.</p>')
           + '<p class="small">La invitación es un mensaje listo para el foro de la plataforma de UNIR, con el enlace directo: tu alumnado entra con Google, '
-          + 'escribe el código y se alista solo. También está en <a href="consola.html">Mis grupos</a> (el código sale tapado: pulsa «<img class=ico src=assets/img/iconos/p/ojo.png alt> Mostrar»).</p>';
+          + 'escribe el código y se alista solo. También está en <a href="consola.html">tu Nave</a>: en el Puente las tres primeras semanas y, después, en Mi gente (el código sale tapado: pulsa «<img class=ico src=assets/img/iconos/p/ojo.png alt> Mostrar»). Y en las semanas 1 y 2, en la diapositiva «Únete a la clase» de la sesión.</p>';
       } },
     { id: "mi-genially", t: "Cambiar los enlaces de tu Genially",
       claves: ["cambiar el genially", "cambio el genially", "cambiar mi genially", "cambio los enlaces", "cambiar los enlaces", "cambiar el enlace", "cambio el enlace", "enlaces de genially", "enlace del genially", "mi genially", "mi propio genially", "otro genially", "poner mi genially", "duplicar", "mi panel", "mis enlaces"],
       x: function () {
-        return '<p>Tu Genially es el que abre <b>tu</b> alumnado desde su Nave. Se pone en tu grupo → pestaña <b>Mis enlaces</b> → «Tu Genially» (si lo dejas vacío, usan el oficial del grupo):</p>'
+        return '<p>Tu Genially es el que abre <b>tu</b> alumnado desde su Nave. Se pone en tu Nave, con <b>Mando manual</b>: <b>Enlaces</b> → «Tu Genially» (o en el Puente, «Tu panel de control»). Si lo dejas vacío, usan el oficial del grupo:</p>'
           + porGrupo(function (g) {
             return '<div class="bz-dato"><b>' + esc(g.nombre || g.id) + '</b><a class="btn min" href="consola.html?per=' + encodeURIComponent(g.id) + '&tab=mios"><img class=ico src=assets/img/iconos/p/enlace.png alt> Abrir sus enlaces</a></div>'
-              + (g.soyReferente ? '<p class="small">Como llevas este grupo, el panel <b>oficial</b> (el de todos) está en su pestaña <b>Ajustes</b> → «Panel de control (ver)».</p>' : '');
+              + (g.soyReferente ? '<p class="small">Como llevas este grupo, el panel <b>oficial</b> (el de todos) está en <b>Gestionar grupos</b> → <b>Ajustes del grupo</b> → «Panel de control (ver)».</p>' : '');
           }, '')
           + '<p class="small">¿Ya lo has cambiado y sigue saliendo el viejo? Recarga con <b>Ctrl + Mayús + R</b> (<b>⌘ + Mayús + R</b> en Mac).</p>';
       } },
@@ -81,7 +81,7 @@
       x: function () {
         var u = window.SG_GENIALLY_CARPETA || "";
         return (u ? '<p><a class="btn" href="' + esc(u) + '" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/varios.png alt> Abrir la carpeta de Geniallys ↗</a></p>' : '')
-          + '<p>Los Geniallys de los ocho planetas y el panel de control. Usa los estándar tal cual; si quieres el tuyo, duplica uno y pégalo en tu grupo → <b>Mis enlaces</b>. '
+          + '<p>Los Geniallys de los ocho planetas y el panel de control. Usa los estándar tal cual; si quieres el tuyo, duplica uno y pégalo en tu Nave → <b>Tu panel de control</b> (con Mando manual). '
           + 'Si te pide permiso, pídeselo a tu referente: es una carpeta del equipo docente.</p>';
       } },
     { id: "material", t: "El material audiovisual: vídeos, insignias, cromos y láminas",

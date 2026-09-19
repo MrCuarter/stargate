@@ -42,8 +42,10 @@ c(/inp\.oninput = function \(\) \{ b\.disabled = !coincide\(\); \};/.test(CONS) 
 c(/sin preocuparte de mayúsculas, acentos ni signos/.test(CONS), "   y la tarjeta lo dice");
 
 // ── 3 · los cursos terminados, a la vista del docente
-c(/id="doc-viejos-b" role="button" tabindex="0"/.test(CONS) && /d\.open = true; d\.scrollIntoView/.test(CONS),
-  "🔴 consola · «1 curso terminado ↓» abre el cajón de los cursos terminados y baja hasta él");
+// 19-sep · ya no en la Nave (Norberto: «no queremos info que se usará una o dos veces»): en «Gestionar grupos», con su filtro;
+// y quien no tiene nada en marcha los ve en su Nave, para consultarlos
+c(/\["terminado", "Terminados"\], \["archivado", "Archivados"\]/.test(CONS) && /cn-pasados/.test(CONS) && !/doc-viejos-b/.test(CONS),
+  "🔴 consola · los cursos terminados, en «Gestionar grupos» (con su filtro) y no en la Nave; sin nada en marcha, se ven para consultarlos");
 
 console.log("\n  Batería 94 · la puerta y los cursos terminados (19-sep)");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");

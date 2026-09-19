@@ -929,7 +929,16 @@ function vigilarLlamada(perId, alCambiar, elegir) {
  * solo para el referente. Norberto: «el referente tiene poder de eliminar o congelar (puede acceder,
  * pero no puede hacer nada, bloqueado)».
  */
-const alumno = (perId, fichaId, accion) => llamar("stargateAlumno", { projectId: perId, fichaId, accion });
+const alumno = (perId, fichaId, accion, extra) => llamar("stargateAlumno", Object.assign({ projectId: perId, fichaId, accion }, extra || {}));
+/**
+ * 19-sep · CAMBIAR A UN RECLUTA DE GRUPO, con todo lo suyo (Norberto eligió «todo»: xp, créditos, insignias, cromos y
+ * héroes). Lo hace el servidor (stargateAlumno, acción «mover»): traduce los identificadores de un grupo al otro
+ * (cada reto, campaña y recompensa se llama `grupo__id`) y exige ser referente de los DOS grupos.
+ */
+async function moverRecluta(perId, fichaId, destino) {
+  try { return await alumno(perId, fichaId, "mover", { destino }); }
+  catch (e) { if (sinDesplegar(e) || /accion|qué hacer/i.test(String(e && e.message))) throw new Error("Falta desplegar en el servidor la versión nueva de «stargateAlumno» (con «mover»): el comando está en el traspaso."); throw e; }
+}
 // ¿la función aún no está en el servidor? (un 404 del propio Firebase, no un «no» nuestro, que va en español)
 const sinDesplegar = e => /not-found|internal/.test(String(e && e.code)) && !/[áéíóúñ]|recluta|grupo/i.test(String(e && e.message));
 async function darDeBaja(perId, fichaId) {
@@ -2138,7 +2147,7 @@ if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, ponerModoDocente, misNotas, guardarNotas,
-                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, alumno, nuevoCodigo,
+                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,

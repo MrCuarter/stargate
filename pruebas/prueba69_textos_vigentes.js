@@ -49,7 +49,8 @@ const pasosTour = (tour.match(/x:'[^']*'/g) || []).join(" ");
 VIEJO.concat([[/registro\.html'/, "el registro viejo como parada"], [/\bPIN\b(?! que repartir)/, "un PIN"]]).forEach(([re, que]) => {
   c(!re.test(pasosTour), "🔴 la visita del Capitán no habla de " + que);
 });
-c(/p:'consola\.html',sel:'\.gp'/.test(tour), "🔴 la visita del Capitán empieza en Mis grupos, señalando su grupo");
+// 19-sep · la Nave del Comandante: la visita empieza en su ficha (ya no hay «Mis grupos»)
+c(/p:'consola\.html',sel:'\.cn-hero'/.test(tour), "🔴 la visita del Capitán empieza en su Nave, señalando su ficha");
 c(!/p:'index\.html'/.test(tour), "   y ya no se para en la portada pública");
 c(/__CRED_A__/.test(tour) === false, "   y las cifras de créditos salen del catálogo, no de un marcador sin sustituir");
 const R = leer("assets/js/recluta.js");

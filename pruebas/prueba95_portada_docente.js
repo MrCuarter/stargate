@@ -22,12 +22,12 @@ c(/\.ses-aula\[hidden\]\{display:none\}/.test(CSS), "🔴 el aula de la presenta
 c(/e\.key==='Escape'&&a&&!a\.hidden/.test(S), "   y con Escape");
 c(/&embed=1&panel=1/.test(S) && /classList\.add\("au-panel"\)/.test(A) && /body\.au-panel \.au-quien>b/.test(CSS), "   dentro, el aula en modo panel (sin nombre, selector ni «¿Dudas?»)");
 
-// ── 2 · Mis grupos
-c(/'<div class="gp-grid uno">' \+ vivos\.map\(tarjetaGrupo\)/.test(K) && /'<div class="gp-grid uno">' \+ pasados\.map/.test(K), "🔴 los grupos, siempre en fila a todo el ancho");
+// ── 2 · la Nave del Comandante (19-sep: ya no hay «Mis grupos»; una pestaña por grupo en marcha)
+c(/function pestanasGrupos\(\)/.test(K) && /class="cn-g' \+ \(on \? " on" : ""\)/.test(K) && /if \(V\.length\) return abrir\(V\[0\]\.id\);/.test(K), "🔴 una pestaña por grupo en marcha, y se entra directo en el grupo");
 c(/id="doc-ajustes-b"/.test(K) && /function pintarAjustes\(caja, vivos, avBtn\)/.test(K), "🔴 ⚙ Ajustes en el panel: tu comandante y tu sesión para todos tus grupos");
 
 // ── 3 · la rueda de la sesión
-c(/function botonCfgSesion\(per\)/.test(K) && (K.match(/botonCfgSesion\((p\.id|PER)\)/g) || []).length === 2, "🔴 la rueda al lado de «Proyectar la clase», en la fila y dentro del grupo");
+c(/function botonCfgSesion\(per\)/.test(K) && (K.match(/botonCfgSesion\((p\.id|PER)\)/g) || []).length === 1, "🔴 la rueda al lado de «Empezar la clase», en el Puente del grupo");
 c(/function abrirCfgSesion\(per\)/.test(K) && /data-cfg-todo/.test(K) && /guardarParteEn\(per, "sesiones", nombre, off\)/.test(K), "   su ventana guarda al tocar, en ese grupo, y tiene «Marcar todo»");
 c(!/bloqueSesion\(t, yo\.nombre\)/.test(K) && !/\(yoN \? bloqueSesion/.test(K), "   y ya no está ni en Mis enlaces ni en la portada");
 const caps = fs.readdirSync(path.join(RAIZ, "assets/img/sesion")).filter(f => f.endsWith(".jpg"));
@@ -36,7 +36,7 @@ c(/var SIN_CAPTURA = \{ simulador:/.test(K), "   y las que dependen de que haya 
 c(/data-sec="'\+esc\(secDe\(d\)\)\+'"/.test(S), "   (cada paso de la sesión dice su sección: así se sacan las capturas)");
 
 // ── 4 · la portada del grupo
-c(/var TABS = \[\["portada", "Portada"\]/.test(K) && /TAB = "portada";   \/\/ 19-sep/.test(K) && /TAB = b\.getAttribute\("data-ir"\) \|\| "portada"; abrir/.test(K), "🔴 al entrar en un grupo, su portada (la primera pestaña)");
+c(/var TABS = \[\["portada", "Portada"\]/.test(K) && /TAB = "portada";   \/\/ 19-sep/.test(K) && /\["puente", "Puente", "assets\/img\/nave\/iconos\/nave\.png", \["portada"\]\]/.test(K), "🔴 al entrar en un grupo, su Puente (la primera sección)");
 c(!/TAB = "portada";\n\s*PER = perId/.test(K), "   y el aviso de la Cola de nota sigue llevando a la Cola (abrir() no la pisa)");
 c(/function verPortada\(t\)/.test(K) && /El vídeo que toca/.test(K) && /Retos de esta semana/.test(K) && /Retos ya lanzados/.test(K), "   semana, el vídeo que toca, los retos de la semana y los ya lanzados");
 c(/'<span class="pt-n"><b>' \+ n \+ '<\/b>\/' \+ N \+ ' · ' \+ pct \+ ' %<\/span>/.test(K), "   cada reto con cuántos lo han hecho y el porcentaje");

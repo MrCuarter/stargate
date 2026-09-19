@@ -54,7 +54,8 @@ c(/async function quitarDeGrupo\(per, id\)/.test(M) && /claimLinkEnabled: false,
 c(/saltados\.push\(\{ per, motivo: "no tiene ese premio en su tienda" \}\)/.test(M), "   si un grupo no tiene esa cápsula en su tienda, se dice (no da en silencio un sobre normal)");
 c(/¿Para qué grupos\?/.test(K) && /varios\.png alt> Todos tus grupos, también los que crees después/.test(K), "🔴 cada premio dice a qué grupos afecta, con «Todos»");
 c(/function verComunes\(que\)/.test(K) && /consola\.html\?comun=premios/.test(K) && /🌐 Para todos tus grupos/.test(K), "🔴 «🌐 Para todos tus grupos» en la portada de la consola");
-c(/\["huevos", "Premios por enlace", 1, "varios"\]/.test(K) && /pest-sep pest-sep-g/.test(K), "   y en el grupo, esas pestañas separadas de las exclusivas (🌐)");
+c(/\["huevos", "Premios por enlace", 1, "varios"\]/.test(K) && /\["premios", "Premios", "assets\/img\/nave\/iconos\/premios\.png", \["huevos", "sorteos", "ofertas"\]\]/.test(K) && /cn-comun/.test(K),
+  "   y en el grupo, juntas en la sección «Premios», con la entrada a «Para todos tus grupos»");
 c(/const huevos = \[\];/.test(SEM) && !/id: "p" \+ n/.test(SEM), "🔴 los grupos ya no nacen con «p1…p8» de muestra");
 
 // 4 · la pantalla: visual, sin grises, con la imagen del premio

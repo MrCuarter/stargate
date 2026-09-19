@@ -1,5 +1,5 @@
 // STARGATE — visita guiada con el Capitán (autogenerado por _build_site.py: editar TOUR_JS, no este fichero)
-// Empieza en Mis grupos; si la cuenta es de referente (se ve su zona), suma los pasos de crear grupo.
+// Empieza en la Nave del Comandante; si la cuenta es de referente (ve «Gestionar grupos»), suma los pasos de crear grupo.
 (function(){
   var KEYR='sgTourRol';
   /**
@@ -7,21 +7,22 @@
    * puesto de mando»), pasaba por el «Registro» de la hoja de cálculo y acababa mandando al «panel
    * del profesorado con el PIN que te dará tu referente». Tres paradas en sitios que ya no existen.
    *
-   * Ahora empieza donde aterriza el docente —Mis grupos— y señala los botones de verdad: el código de
-   * clase, proyectar, la llamada, el aula y su gente. Luego el método (guía, cronología, actividades).
-   * Lo del referente ya no se pregunta: se VE. Si en Mis grupos está la zona del referente, la visita
-   * suma sus pasos; si no, no los enseña.
+   * Ahora empieza donde aterriza el docente —su Nave del Comandante (19-sep)— y señala lo de verdad: su
+   * ficha y NEBULA, los tres pasos de la clase, «Hoy toca», las secciones y sus grupos. Luego el método
+   * (guía, cronología, actividades). Lo del referente ya no se pregunta: se VE. Si en la barra de arriba
+   * está «Gestionar grupos» (solo lo ve el referente), la visita suma sus pasos; si no, no los enseña.
    *
    * Tres claves nuevas en cada paso: `espera` (la consola pinta los grupos cuando llega la sesión, así
    * que el paso aguarda a que su objetivo exista), `si` (si el objetivo no aparece, el paso se salta en
    * vez de señalar al vacío) y `rol` (el paso que mira si eres referente).
    */
   var BASE=[
-   {p:'consola.html',sel:'.gp',listo:'.gp',espera:1,rol:1,pose:'saluda',t:'Bienvenido al mando',x:'Recluta… perdón: <b>Capitán</b>. Soy tu homólogo en la historia. Esto es <b>Mis grupos</b>, tu puesto de mando: cada tarjeta es un grupo tuyo, y todo lo de clase sale de ella. Te lo enseño en dos minutos.'},
-   {p:'consola.html',sel:'.gp-b.principal',listo:'.gp',espera:1,si:1,pose:'tablet',t:'Cada clase empieza aquí',x:'<b>Empezar la clase</b>: la sesión de la semana ya montada —el planeta, los vídeos, los retos y las insignias—; pasas con las flechas. Arriba, solo para ti, el consejo del Capitán y el mensaje de la semana para el foro.'},
-   {p:'consola.html',sel:'.gp-hacer',listo:'.gp',espera:1,si:1,pose:'brazos',t:'Durante la clase',x:'<b>Llamada a filas</b> es el pase de lista con premio: tu alumnado pulsa «Presente» en su Nave y se lleva créditos y un sobre de cromos. <b>El aula</b> te dice quién ha fichado, a quién felicitar y el ranking, y deja repartir premios a mano. Si tu referente te ha dado el <b>Genially de clase</b>, ya las lleva dentro: al abrirlo entras con tu cuenta y eliges el grupo.'},
-   {p:'consola.html',sel:'.gp-abrir',listo:'.gp',espera:1,si:1,pose:'tablet',t:'Entra en tu grupo',x:'<b><img class=ico src=assets/img/iconos/p/cohete.png alt> Entrar en el grupo</b> abre su puesto por dentro. En <b>Mi gente</b>, tu alumnado con sus xp, créditos, insignias y los <b>enlaces de sus evidencias</b>. Pulsa una fila y se abre su ficha para validar o anular un reto, con un mensaje que le llega a su Nave. Si alguien pide una subida de nota, aparece la pestaña <b>Cola de nota</b>, brillando: ninguna se aplica sin tu visto bueno. Y arriba, junto al nombre del grupo, el <b>código de clase</b> (tapado hasta que lo pulses) y <b>«Copiar invitación»</b>: un mensaje listo para el foro de la plataforma de UNIR, con el enlace dentro.'},
-   {p:'consola.html',sel:'.ref-zona',listo:'.gp',espera:1,si:1,soloRef:1,pose:'senala',t:'Como referente',x:'Lo tuyo como referente: <b>crear un grupo</b> en un minuto, los <b>tickets de salida</b> de todas tus clases y el montaje paso a paso. Dentro de cada grupo verás además <b>Equipo docente</b>, <b>Escuadrones</b>, <b>Premios por enlace</b> y <b>Ajustes</b>.'},
+   {p:'consola.html',sel:'.cn-hero',listo:'.cn-secs',espera:1,rol:1,pose:'saluda',t:'Bienvenido a tu Nave',x:'Recluta… perdón: <b>Capitán</b>. Esta es tu <b>Nave del Comandante</b>: tu ficha, y NEBULA con lo que pasa en tu grupo y quién necesita un empujón. Debajo, todo lo de tu clase. Te lo enseño en dos minutos.'},
+   {p:'consola.html',sel:'.pt-acc',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Cada clase empieza aquí',x:'<b>1 · Empezar la clase</b>: la sesión de la semana ya montada (la rueda dice qué diapositivas salen). <b>2 · Llamada a filas</b>: el pase de lista con premio. <b>3 · El aula</b>: quién ha fichado, a quién felicitar, el tiempo y las votaciones. Si tu referente te ha dado el <b>Genially de clase</b>, ya los lleva dentro.'},
+   {p:'consola.html',sel:'.pt-hoy',listo:'.cn-secs',espera:1,si:1,pose:'brazos',t:'Hoy toca',x:'Lo de esta semana, de un vistazo: el planeta, el calendario (entregas y tests), los vídeos y las fichas de los retos, con cuántos de tu gente los han hecho. Más abajo, el mensaje para el foro de la plataforma de UNIR y tus notas.'},
+   {p:'consola.html',sel:'.cn-secs',listo:'.cn-secs',espera:1,pose:'senala',t:'Las secciones de tu grupo',x:'<b>Mi gente</b>: tu alumnado y su ficha para validar o anular un reto; si alguien pide una subida de nota, brilla la <b>Cola de nota</b>. <b>Rankings</b>, el <b>Calendario</b> y, en mando manual, <b>El Zoco</b>, <b>Premios</b> y <b>Enlaces</b> (los códigos para tus Geniallys).'},
+   {p:'consola.html',sel:'.cn-grupos',listo:'.cn-secs',espera:1,si:1,pose:'pensativo',t:'Tus grupos',x:'Una pestaña por grupo en marcha: si llevas dos, cambias aquí. El <b>código de clase</b> sale en el Puente las tres primeras semanas; después, en <b>Mi gente</b>.'},
+   {p:'consola.html',sel:'.lnk.solo-referente',listo:'.cn-secs',espera:1,si:1,soloRef:1,pose:'senala',t:'Como referente',x:'Crear un grupo, el equipo docente, los escuadrones, los ajustes y el calendario, mover reclutas, graduar y borrar: en <b>Gestionar grupos</b>, aquí arriba. Lo que se hace una o dos veces por curso, fuera de tu Nave.'},
    {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'<b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase.'},
    {p:'guia.html',sel:'#retos',pose:'tablet',t:'Dos retos por tema',x:'El <b>Reto A</b> da la <b>insignia</b> del personaje: no cuenta para nota, aunque da 100 xp y 20 ◈. El <b>Reto B</b> produce una evidencia real de la Bitácora (250 xp y 50 ◈) y <b>pide su enlace</b>. Los <b>xp</b> suben de nivel y nunca se gastan; los <b>créditos ◈</b> son lo que se canjea. Y nadie registra más de 3 retos al día.'},
    {p:'cronologia.html',sel:'#mapa',pose:'senala',t:'Tu carta de navegación',x:'El mapa de las <b>15 semanas</b>: qué vídeo proyectar, qué reto lanzar, qué insignia entregar y el hito de evaluación. Sin fechas: semanas, como tu aula.'},
@@ -30,9 +31,9 @@
   ];
   var REF=[
    {p:'crear.html',sel:'',pose:'tablet',t:'Referente: crear un grupo',x:'Los grupos se crean <b>aquí</b>, con tu cuenta de Google: nombre, tipo REGULAR/PUA, primer día de la semana 1, los enlaces de la clase y el equipo docente. En un minuto queda sembrado entero —los retos, los 8 planetas, la tienda, los escuadrones y el álbum— y sale su <b>código de clase</b>.'},
-   {p:'crear.html',sel:'',pose:'senala',t:'Referente: el equipo y la fecha',x:'No hay PIN que repartir. Pones a cada docente con <b>su correo</b> en el equipo y con eso entra en Mis grupos iniciando sesión con Google; si alguien se va, lo quitas del equipo y deja de entrar. Lo que sí tienes que poner bien es la <b>fecha de la semana 1</b>: marca el ritmo de todo, desde la orden de la semana hasta los desbloqueos de la Nave.'}
+   {p:'crear.html',sel:'',pose:'senala',t:'Referente: el equipo y la fecha',x:'No hay PIN que repartir. Pones a cada docente con <b>su correo</b> en el equipo y con eso entra en su Nave iniciando sesión con Google; si alguien se va, lo quitas del equipo y deja de entrar. Lo que sí tienes que poner bien es la <b>fecha de la semana 1</b>: marca el ritmo de todo, desde la orden de la semana hasta los desbloqueos de la Nave.'}
   ];
-  var FINAL={p:'consola.html',sel:'.gp',listo:'.gp',espera:1,pose:'pulgar',t:'Listo para el salto',x:'Eso es todo, Capitán. Cuando quieras repasarlo, <b>▶ Visita guiada</b> en la barra de arriba; y las dudas de siempre, en las <a href="guia.html#faq">preguntas frecuentes</a>. Recuerda: <b>una obra que no se documenta, no existe</b>. Corto y cierro.'};
+  var FINAL={p:'consola.html',sel:'.cn-hero',listo:'.cn-secs',espera:1,pose:'pulgar',t:'Listo para el salto',x:'Eso es todo, Capitán. Cuando quieras repasarlo, <b>▶ Visita guiada</b> en la barra de arriba; y las dudas de siempre, en las <a href="guia.html#faq">preguntas frecuentes</a>. Recuerda: <b>una obra que no se documenta, no existe</b>. Corto y cierro.'};
   // v3.35 · VISITAS DE UNA SOLA PÁGINA. La de arriba recorre toda la web; una página puede declarar
   // la suya con `window.SG_TOUR_LOCAL = {clave, pasos:[…]}` — es lo que hace la sala del docente para
   // explicar el ORDEN de lo que tiene que hacer el alumnado. No salta de página y lleva su propia
@@ -119,7 +120,7 @@
     localStorage.setItem(clavePaso(),String(i));
     clearTarget();
     var tg=s.sel?objetivo(s):null;
-    // la página aún no ha pintado lo que se señala (Mis grupos espera a la sesión): se aguarda, pero
+    // la página aún no ha pintado lo que se señala (la Nave espera a la sesión): se aguarda, pero
     // solo mientras la página no esté lista (`listo`: sus grupos ya pintados). Lista y sin objetivo,
     // el objetivo no va a llegar: no se hace esperar a nadie.
     var lista = !s.listo || !!document.querySelector(s.listo);
@@ -128,7 +129,7 @@
     // si el paso depende de algo que en esta cuenta no existe (la zona del referente), se salta
     if(!tg && s.si){ var k=i+sentido; if(k>=0 && k<S.length) return render(k); }
     // y lo del referente se decide ANTES de pintar el contador, para que «1 / N» no cambie de N al paso 2
-    if(s.rol && tg){ try{ localStorage.setItem(KEYR, document.querySelector('.ref-zona') ? 'ref' : 'doc'); }catch(e){} S=steps(); }
+    if(s.rol && tg){ try{ localStorage.setItem(KEYR, document.querySelector('.lnk.solo-referente:not([hidden])') ? 'ref' : 'doc'); }catch(e){} S=steps(); }
     if(tg){tg.classList.add('tour-target'); if(tg.tagName==='DETAILS') tg.open=true;}
     if(!ov){ov=document.createElement('div'); ov.className='tour'; document.body.appendChild(ov);}
     var btns = s.ask
@@ -191,7 +192,7 @@
   function invitar(){
     if(localStorage.getItem('sgTourDone') || localStorage.getItem(KEY) || document.querySelector('.tour-invite')) return;
     var inv=document.createElement('div'); inv.className='tour-invite';
-    inv.innerHTML='<img src="assets/img/capitan/saluda.png" alt=""><div><b>¿Primera vez en el puesto de mando?</b><br>Te lo enseño en dos minutos.</div><button type="button" class="tour-start">Empezar</button><button type="button" class="x" aria-label="Cerrar">✕</button>';
+    inv.innerHTML='<img src="assets/img/capitan/saluda.png" alt=""><div><b>¿Primera vez en tu Nave del Comandante?</b><br>Te lo enseño en dos minutos.</div><button type="button" class="tour-start">Empezar</button><button type="button" class="x" aria-label="Cerrar">✕</button>';
     document.body.appendChild(inv);
     inv.querySelector('.x').onclick=function(){inv.remove(); localStorage.setItem('sgTourDone','1');};
     inv.querySelector('.tour-start').addEventListener('click',function(){inv.remove();});
@@ -199,7 +200,7 @@
   if(q===null && page()==='guia.html') invitar();
   if(q===null && page()==='consola.html'){
     var vueltas=0, vigila=setInterval(function(){
-      if(document.querySelector('.gp')){ clearInterval(vigila); invitar(); }
+      if(document.querySelector('.cn-secs')){ clearInterval(vigila); invitar(); }   // (19-sep · la Nave del Comandante ya está pintada)
       else if(++vueltas>60) clearInterval(vigila);
     }, 300);
   }

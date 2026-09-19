@@ -24,7 +24,10 @@
   }
   function nombre(e) {
     var c = typeof e.className === "string" ? e.className.trim().split(/\s+/).slice(0, 2).join(".") : "";
-    return e.tagName.toLowerCase() + (c ? "." + c : "") + (e.id ? "#" + e.id : "");
+    var n = e.tagName.toLowerCase() + (c ? "." + c : "") + (e.id ? "#" + e.id : "");
+    // (un <div> sin clase no dice nada: se le pone dónde está)
+    if (!c && !e.id && e.parentElement) { var p = e.parentElement, pc = typeof p.className === "string" ? p.className.trim().split(/\s+/)[0] : ""; n += " (en " + p.tagName.toLowerCase() + (pc ? "." + pc : "") + ")"; }
+    return n;
   }
   function dentroDeCaja(e) {
     for (var p = e; p && p !== document.body; p = p.parentElement) if (esCaja(p, getComputedStyle(p))) return true;
@@ -35,7 +38,7 @@
   [].slice.call(document.querySelectorAll("body *")).forEach(function (e) {
     if (/^(IMG|SVG|VIDEO|IFRAME|CANVAS|PICTURE|TEXTAREA|INPUT|SELECT|BUTTON|SUMMARY|P|UL|OL|LI|SPAN|B|EM|A|LABEL|FIGURE)$/.test(e.tagName)) return;
     var r = visible(e); if (!r || r.height < 90 || r.width < 100) return;
-    if (e.closest("[aria-hidden='true'],.tour,.sgp-capa,.cfg-capa,.nb-menu") || !dentroDeCaja(e)) return;
+    if (e.closest("[aria-hidden='true'],.tour,.tour-invite,.sgp-capa,.cfg-capa,.nb-menu") || !dentroDeCaja(e)) return;   // (las ventanas flotantes, no)
     var s = getComputedStyle(e);
     if (s.overflowY === "auto" || s.overflowY === "scroll") return;
     var t = [];

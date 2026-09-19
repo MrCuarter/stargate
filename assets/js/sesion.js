@@ -282,6 +282,38 @@
     mira(); var iv=setInterval(mira, 5000);
     return function(){ vivo=false; clearInterval(iv); };
   }
+  /**
+   * 19-sep · ÚNETE A LA CLASE, en las semanas 1 y 2. Norberto: «en la sesión de la semana 1 y semana 2, deberías añadir una
+   * diapositiva con el enlace para unirse a la clase y el código, junto con botón de copiar invitación directa para que el
+   * docente pueda pasarlo por el chat de forma sencilla». El código, en grande (se proyecta: lo copian de la pantalla); el
+   * botón copia el mensaje con el enlace directo (el mismo de «Copiar invitación» de la consola). El código no viaja en el
+   * tablero público: lo lee aquí la cuenta del docente, del documento del grupo.
+   */
+  function diaUnete(){
+    return {k:'unete', sec:'unete', rot:'Únete a la clase', html:
+      '<div class="dia llamada unete"><img class="ll-cap" src="assets/img/capitan/saluda.png" alt="">'
+      +'<div class="ll-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/gente.png alt> Primeras semanas</div><h2>Únete a la tripulación</h2>'
+      +'<p class="sub">Entra en <b>'+esc(location.host)+'</b>, pulsa <b>Iniciar sesión con Google</b> y, cuando te lo pida, escribe el código de clase:</p>'
+      +'<div class="un-cod" id="ses-un-cod" aria-live="polite">······</div>'
+      +'<p class="un-pie"><button type="button" class="btn primary" id="ses-un-copiar" disabled>Copiar la invitación para el chat</button> <span class="small" id="ses-un-msg"></span></p>'
+      +'</div></div>', montar: montarUnete};
+  }
+  function montarUnete(el){
+    var M=window.SG&&window.SG.MOTOR, cod=el.querySelector('#ses-un-cod'), b=el.querySelector('#ses-un-copiar'), msg=el.querySelector('#ses-un-msg');
+    if(!M||!M.getDoc||!st.per){ cod.textContent='—'; msg.textContent='Entra con tu cuenta de docente para verlo.'; return null; }
+    M.getDoc(M.doc(M.db,'projects',st.per)).then(function(d){
+      var c=d&&d.exists()?String(d.data().joinCode||''):'';
+      if(!c){ cod.textContent='—'; msg.textContent='Este grupo no tiene código de clase: pídeselo a tu referente.'; return; }
+      cod.textContent=c;
+      var txt=M.invitacion({id:st.per, codigo:c});
+      b.disabled=false;
+      b.onclick=function(){
+        (navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(txt):Promise.reject())
+          .then(function(){ msg.textContent='✓ Copiada: pégala en el chat.'; },function(){ msg.textContent='No he podido copiarla: selecciona el código de la pantalla.'; });
+      };
+    }).catch(function(){ cod.textContent='—'; msg.textContent='No he podido leer el código.'; });
+    return null;
+  }
   function diaLlamada(){
     return {k:'llamada', rot:'Llamada a filas', html:
       '<div class="dia llamada"><img class="ll-cap" src="assets/img/capitan/senala.png" alt="">'
@@ -293,7 +325,7 @@
   function montarLlamada(el){
     var M=window.SG&&window.SG.MOTOR, mando=el.querySelector('#ses-ll'), caja=el.querySelector('#ses-ll-gente');
     if(st.alumno) return llamadaAlumno(M, mando);
-    if(!M||!M.llamadaAbierta||!st.per){ mando.innerHTML='<p class="sub">Ábrela desde tu Genially o desde Mis grupos.</p>'; return null; }
+    if(!M||!M.llamadaAbierta||!st.per){ mando.innerHTML='<p class="sub">Ábrela desde tu Genially o desde tu Nave.</p>'; return null; }
     var reloj=null, vivo=true, vistos={};
     var cerrada=function(){
       var min=MINUTOS[1];
@@ -1014,6 +1046,7 @@
     // `t` dice en qué tiempo de la clase va cada diapositiva: 'ap' antes de la presentación,
     // 'ci' después. Es lo único que hace falta para poder pegar el embed dos veces.
     var d=[diaPortada(s, n)];
+    if(st.per && !st.alumno && (Number(s.sem)||1)<=2) d.push(diaUnete());   // 19-sep · semanas 1 y 2
     if(st.per) d.push(diaLlamada());
     var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
     deTipo('inicio').forEach(function(v,i){ d.push(Object.assign(diaVideo(v, i, 'Para empezar'), {sec:'videos'})); });
@@ -1637,7 +1670,7 @@
   }
   function sinGrupo(msg){
     st.aviso='<div class="card aviso-per"><h3>¿De qué grupo?</h3>'
-      +'<p>'+(msg||'Ábrela desde <a href="consola.html">tus grupos</a>, o entra con tu cuenta y la deduzco sola.')
+      +'<p>'+(msg||'Ábrela desde <a href="consola.html">tu Nave</a>, o entra con tu cuenta y la deduzco sola.')
       +' Mientras tanto, este es el calendario estándar.</p></div>';
     arrancar(null);
   }

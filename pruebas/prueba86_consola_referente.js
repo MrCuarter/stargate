@@ -80,7 +80,7 @@ c(/"popup=yes,width=/.test(K), "   una ventana emergente de verdad, sin las barr
 c(/"sg_" \+ String\(clave/.test(K), "   y siempre la misma para cada embed: pulsar dos veces no abre dos");
 c(/bloqueado la ventana/.test(K), "   y si el navegador la bloquea, lo dice y explica cómo permitirla");
 c(/botonVentana\(x\[2\], x\[0\]/.test(K), "   en los seis códigos de «Para tus Geniallys»");
-c((K.match(/botonVentana\("(sesion|aula|llamada)\.html\?per=" \+ p\.id/g) || []).length === 3, "   en las tres acciones de clase de cada grupo (con su grupo)");
+c((K.match(/botonVentana\("(sesion|aula|llamada)\.html\?per=" \+ PER/g) || []).length === 3, "   en las tres acciones de clase del grupo (con su grupo)");
 c(/"tablero_" \+ PER/.test(K) && /"sesion_" \+ PER/.test(K), "   y en Mis enlaces: el tablero para proyectar y la sesión");
 
 // 8 · los enlaces del grupo y Mi gente (16-sep · Norberto: «necesito dos botones, copiar enlace o copiar </>; ahora

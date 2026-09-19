@@ -312,7 +312,7 @@
     pinta('<div class="hv">' + escena("Hmm… con esa cuenta no te encuentro.") + '<div class="hv-caja mal"><div class="hv-icono">' + (esRec() ? "<img class=ico src=assets/img/iconos/p/premios.png alt>" : "<img class=ico src=assets/img/iconos/p/botin.png alt>") + '</div>'
       + '<h2>' + (docente ? "Esta cuenta es de docente" : "Esta cuenta no está en ningún grupo") + '</h2>'
       + '<p class="hv-sub">' + (docente
-          ? 'Estás con <b>' + esc(correo) + '</b> y este premio no está en ninguno de tus grupos. Si es de tu alumnado, ábrelo desde «Premios por enlace» de su grupo (con tu cuenta puedes probarlo como simulación).'
+          ? 'Estás con <b>' + esc(correo) + '</b> y este premio no está en ninguno de tus grupos. Si es de tu alumnado, ábrelo desde tu Nave → Premios → «Premios por enlace» de su grupo (con tu cuenta puedes probarlo como simulación).'
           : 'Estás con <b>' + esc(correo) + '</b>, y no la encuentro alistada. Entra con <b>la cuenta con la que te alistaste</b> en STARGATE.') + '</p>'
       + '<button class="btn epico" id="hv-otra-cuenta"><span class="ep-luz"></span>'
       + '<span class="ep-g">' + ((window.SG && window.SG.LOGO_G) || '') + '</span>'

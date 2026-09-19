@@ -83,7 +83,7 @@
     pinta('<div class="ll-caja"><div class="ll-icono"><img class=ico src=assets/img/iconos/p/calendario.png alt></div>'
       + "<h2>No tienes ningún grupo en marcha</h2>"
       + '<p class="ll-sub">Tus grupos ya han terminado, así que no hay a quién pasar lista. '
-      + "Si acabas de crear uno, comprueba su <b>fecha de la semana 1</b> en Mis grupos → Ajustes del grupo.</p>"
+      + "Si acabas de crear uno, comprueba su <b>fecha de la semana 1</b> en Gestionar grupos → Calendario.</p>"
       + '<p class="ll-pie">' + TODOS.map(function (x) {
           return esc(x.nombre || x.id) + esc(coletilla(x)); }).join("<br>") + "</p></div>");
   }

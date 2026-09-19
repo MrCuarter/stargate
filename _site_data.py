@@ -619,9 +619,10 @@ TOPE_RETOS_SEMANA = 3
 # 18-sep · LAS SECCIONES DE LA SESIÓN EN DIRECTO. Norberto: «que cada sección tenga un nombre propio, independientemente
 # de si aparece una cosa u otra en función de la semana… y que cada docente pueda marcar con una checkbox lo que quiere
 # usar en su presentación. Por defecto, todo completo». Clave, nombre y qué trae. Las lee la sesión (para quitar lo que
-# el docente quite) y la consola («Mis enlaces» → «Tu sesión en directo»).
+# el docente quite) y la consola (la rueda de «1 · Empezar la clase», en el Puente de la Nave del Comandante).
 SESION_SECCIONES = [
     ("portada", "Portada", "El planeta de la semana y el capítulo de la historia."),
+    ("unete", "Únete a la clase", "Semanas 1 y 2: el código y el enlace para alistarse, y «Copiar invitación» para el chat."),
     ("llamada", "Llamada a filas", "Fichar la asistencia al empezar."),
     ("mensaje", "Mensaje de la semana", "La transmisión con el logo de STARGATE."),
     ("videos", "Vídeos de apertura", "La sinopsis, la Bitácora o la entrada al planeta."),
@@ -632,7 +633,7 @@ SESION_SECCIONES = [
     ("votacion", "Votación", "La votación de la semana, si la hay."),
     ("ticket", "Ticket de salida", "Lo que dijisteis al salir (o el ticket para rellenar)."),
     ("oferta", "Oferta de la semana", "La rebaja de esta semana en el Mercado."),
-    ("novedades", "Novedades de la semana", "Lo que se abre en la Nave, y tu Nave de Comandante para enseñarlo."),
+    ("novedades", "Novedades de la semana", "Lo que se abre en la Nave, y tu Nave de ejemplo para enseñarlo."),
     ("despegue", "El despegue", "Tu Genially: la teoría y la práctica guiada."),
     ("misiones", "Misiones", "El vídeo del planeta, la misión y los retos que se lanzan."),
     ("recompensa", "Recompensa", "Las insignias que se entregan esta semana."),
@@ -1408,8 +1409,8 @@ BRAZOS = [
   # propio sitio (`platform: hostinger`), no supuesto.
   dict(clave="hostinger", icono="<img class=ico src=assets/img/iconos/p/varios.png alt>", logo="hostinger.png", titulo="Hostinger", papel="Donde vive todo",
        url="https://www.hostinger.com/es?REFERRALCODE=TH1MRCUARNEM",
-       texto="La web que estás leyendo, el puesto de mando del profesorado y la Nave del alumnado están "
-             "alojados aquí. Es la pieza menos vistosa de las cuatro y la única sin la que nada de "
+       texto="La web que estás leyendo, la Nave del Comandante (la del profesorado) y la Nave del alumnado están "
+             "alojadas aquí. Es la pieza menos vistosa de las cuatro y la única sin la que nada de "
              "esto existiría: sin un sitio donde vivir, un proyecto así se queda en una carpeta del "
              "ordenador."),
 ]
@@ -1513,12 +1514,12 @@ PASOS = [
   porque="Desde el 12-sep esto ya no vive en una hoja de cálculo: es una página más de la web, y se "
          "entra con tu cuenta de Google. Lo de la hoja está en <a href='legacy.html'>el archivo</a>.",
   pasos=[
-   dict(cod="R1", t="La consola del referente", pose="saluda", img="r1_consola.png",
-    hacer="Abre <code>crear.html</code> y entra con tu cuenta de Google.",
+   dict(cod="R1", t="Gestionar grupos", pose="saluda", img="r1_consola.png",
+    hacer="Entra con tu cuenta de Google → en el menú, <b>Gestionar grupos</b> → <b>«+ Crear un grupo»</b>.",
     voz="Esto es la sala de máquinas de STARGATE. Antes era una hoja de cálculo con un menú; ahora "
-        "es esta página. Entras con tu cuenta de Google, la misma con la que llevas tus cosas de la "
-        "asignatura, y no hay ningún PIN que recordar. Si eres el profe referente de tu grupo, esta "
-        "página es para ti. Son siete pasos, y luego casi no vuelves por aquí."),
+        "es Gestionar grupos, arriba en el menú, y solo la ve el profe referente. Entras con tu cuenta "
+        "de Google, la misma con la que llevas tus cosas de la asignatura, y no hay ningún PIN que "
+        "recordar. Pulsa Crear un grupo: son siete pasos, y luego casi no vuelves por aquí."),
 
    dict(cod="R2", t="Cinco datos y ya", pose="pensativo", img="r2_grupo.png",
     hacer="Bloque <b>1 · El grupo</b>: nombre, tipo y el primer día de la semana 1.",
@@ -1536,7 +1537,7 @@ PASOS = [
 
    dict(cod="R4", t="El equipo docente", pose="tablet", img="r4_equipo.png",
     hacer="Bloque <b>3 · El equipo</b>: un nombre y un correo por persona. Marca quién es referente.",
-    voz="Esta lista es la llave. Quien esté aquí con su correo entra en Mis grupos simplemente iniciando "
+    voz="Esta lista es la llave. Quien esté aquí con su correo entra en su nave simplemente iniciando "
         "sesión, sin que le tengas que dar nada. Ya no hay dos PIN que repartir ni que cambiar antes "
         "del estreno: si alguien se va del equipo, lo borras de la lista y deja de entrar. Y cada "
         "docente se lleva su escuadrón, con su nombre y su emblema."),
@@ -1549,19 +1550,21 @@ PASOS = [
         "que configurar nada más: ya está funcionando."),
 
    dict(cod="R6", t="Lo único que tienes que repartir", pose="senala", img=None,
-    hacer="El <b>código de clase</b>: está en la tarjeta del grupo, en Mis grupos, con el botón <b>«Copiar invitación»</b>.",
-    voz="Un código. Uno solo, de seis caracteres, y sale en grande en la tarjeta del grupo para que "
-        "lo escribas en la pizarra. Tu alumnado entra por la portada con su cuenta de Google, escribe "
+    hacer="El <b>código de clase</b>: en el <b>Puente</b> de tu Nave las tres primeras semanas (después, en <b>Mi gente</b>), con el botón <b>«Copiar invitación»</b>. Y en la sesión de las semanas 1 y 2, en grande, en la diapositiva <b>«Únete a la clase»</b>.",
+    voz="Un código. Uno solo, de seis caracteres. Las tres primeras semanas lo tienes en el Puente de "
+        "tu nave, y después en Mi gente. Y en la sesión de las dos primeras semanas sale en grande, en "
+        "su propia diapositiva, para que lo copien de la pantalla. Tu alumnado entra por la portada con su cuenta de Google, escribe "
         "el código y se alista. Y si prefieres mandarlo por escrito, el botón Copiar invitación te da "
         "un mensaje listo para el foro de la plataforma de UNIR, con el enlace directo dentro. Ya no hay "
         "tres formularios que repartir ni un documento con candado: esto se lo puedes dar a una clase sin pensarlo."),
 
-   dict(cod="R7", t="El puesto de mando", pose="pulgar", img="r7_consola.png",
-    hacer="<code>consola.html</code>: alumnado, cola de nota, equipo docente y ajustes.",
-    voz="Y aquí vives a partir de ahora. El alumnado con su nombre y su correo, otorgar o anular un "
-        "reto cuando algo se tuerza, la cola de subidas de nota que apruebas tú, pasar a todo el "
-        "alumnado de un docente a otro si alguien se va a mitad de curso, y los ajustes del grupo. "
-        "A partir de aquí esto funciona solo. Nos vemos arriba."),
+   dict(cod="R7", t="Tu Nave del Comandante", pose="pulgar", img="r7_consola.png",
+    hacer="<b>Mi nave</b>: la clase de cada semana, tu gente y la cola de nota. Lo de una o dos veces por curso, en <b>Gestionar grupos</b>.",
+    voz="Y aquí vives a partir de ahora: en tu nave, que te deja directamente dentro de tu grupo. Tu "
+        "gente con su nombre y su correo, otorgar o anular un reto cuando algo se tuerza y la cola de "
+        "subidas de nota que apruebas tú. Lo que se hace una o dos veces por curso, como pasar a todo "
+        "el alumnado de un docente a otro si alguien se va a mitad de curso, o los ajustes del grupo, "
+        "se queda en Gestionar grupos. A partir de aquí esto funciona solo. Nos vemos arriba."),
   ]),
 
  dict(
@@ -1569,14 +1572,14 @@ PASOS = [
   quien="Quien <b>imparte</b>. Tu referente te pone en el equipo docente con tu correo: con eso entras.",
   cuanto="Seis pasos · cuatro de ellos son lo que harás cada semana",
   porque="Corto a propósito. La <b>visita guiada</b> del Capitán ya te cuenta tus botones, la narrativa, "
-         "los retos y las insignias — te la ofrece la primera vez que entras en Mis grupos, y luego está "
+         "los retos y las insignias — te la ofrece la primera vez que entras en tu Nave, y luego está "
          "arriba a la derecha. Aquí está solo lo que se hace cada semana.",
   pasos=[
    dict(cod="D1", t="El atajo que deberías usar primero", pose="saluda", img="d1_portada.png",
-    hacer="Portada → <b>Iniciar sesión con Google</b> → en <b>Mis grupos</b>, la visita guiada del Capitán (o el botón <b>▶ Visita guiada</b>, arriba a la derecha).",
-    voz="Bienvenido al puesto de mando. Entras por la portada con tu cuenta de Google y aterrizas en "
-        "Mis grupos. La primera vez te ofrezco una visita de dos minutos: el código de clase, proyectar "
-        "la clase, la llamada a filas, el aula y tu gente, y después el método. Si eres referente, te "
+    hacer="Portada → <b>Iniciar sesión con Google</b> → en <b>tu Nave</b>, la visita guiada del Capitán (o el botón <b>▶ Visita guiada</b>, arriba a la derecha).",
+    voz="Bienvenido a tu nave. Entras por la portada con tu cuenta de Google y aterrizas dentro de tu "
+        "grupo. La primera vez te ofrezco una visita de dos minutos: tu ficha, los tres pasos de cada "
+        "clase, lo que toca esta semana y las secciones de tu grupo, y después el método. Si eres referente, te "
         "enseño también lo tuyo. Aquí voy a enseñarte solo las cuatro cosas que harás cada semana."),
 
    dict(cod="D2", t="Uno: la orden de la semana", pose="senala", img="d2_cronologia.png",
@@ -1586,23 +1589,24 @@ PASOS = [
         "foro, ya escrito. Lo copias, lo pegas en el foro de la plataforma de UNIR y sigues con tu vida."),
 
    dict(cod="D3", t="Dos: tu gente", pose="tablet", img="d3_sala.png",
-    hacer="<b>Mis grupos</b> → <b>Entrar en el grupo</b> → <b>Mi gente</b> → pulsa cualquier fila.",
+    hacer="Tu Nave → <b>Mi gente</b> → pulsa cualquier fila.",
     voz="Esta es tu gente, y entras con tu cuenta de Google: ni PIN, ni escribir tu correo, ni elegir "
         "tu nombre de una lista. Si pulsas a cualquiera se abre su ficha: lo que lleva hecho, sus "
         "insignias, sus créditos, su correo y el enlace de cada evidencia. El aviso sin enlace te dice "
-        "dónde falta una. Desde aquí también puedes darle o quitarle un reto a mano cuando algo se tuerza."),
+        "dónde falta una. Desde aquí también puedes darle o quitarle un reto a mano cuando algo se tuerza, "
+        "con el mando manual puesto."),
 
    dict(cod="D4", t="Tres: el aula, dentro del Genially", pose="brazos", img="d7_aula.png",
-    hacer="<b>Mis grupos</b> → botón <b>El aula</b> de tu grupo. O dentro del <b>Genially de clase</b> que te da tu referente.",
+    hacer="Tu Nave → en el Puente, <b>3 · El aula</b>. O dentro del <b>Genially de clase</b> que te da tu referente.",
     voz="Esto es lo que más te va a cambiar la clase. Es tu puesto de mando y vive dentro del "
         "Genially, así que no tienes que salir de la presentación para nada. Desde aquí tocas "
         "llamada a filas y ves quién va fichando en directo; miras a quién felicitar por lo que ha "
-        "hecho esta semana y a quién dar la bienvenida porque acaba de llegar; y repartes premios a "
+        "hecho esta semana y a quién dar la bienvenida porque acaba de llegar; y, con el mando manual, repartes premios a "
         "mano: experiencia, créditos o una carta de regalo. Incluso puede elegir a alguien al azar "
         "por ti. Se monta una vez y vale para todos tus grupos, siempre."),
 
    dict(cod="D5", t="Cuatro: los tickets", pose="pensativo", img="d5_tickets.png",
-    hacer="Portada → <b>Tickets de salida</b> (si llevas el grupo, también en Mis grupos → Como profe referente) → pulsa cualquier valoración.",
+    hacer="Portada → <b>Tickets de salida</b> → pulsa cualquier valoración.",
     voz="El ticket de salida es tu termómetro, y es anónimo, así que la gente dice lo que piensa de "
         "verdad. Pulsa cualquier resultado y se ve en grande. Y hay una versión apaisada pensada "
         "para proyectarla en clase: enseñar lo que ha votado el grupo genera más conversación que "
@@ -1799,8 +1803,8 @@ TICKETS_API = ("https://script.google.com/macros/s/"
 
 # 14-sep · EL PANEL DE CONTROL DE CLASE POR DEFECTO (el Genially del referente). Norberto: «por
 # defecto este es el panel de control para todos los grupos (aunque los docentes pueden configurar el
-# suyo propio)… ellos solo pondrán el link». Orden: el propio del docente («Mis enlaces») → el
-# oficial del grupo («Ajustes») → este. Se enseña en un iframe: basta el enlace.
+# suyo propio)… ellos solo pondrán el link». Orden: el propio del docente («Tu panel de control» / «Enlaces», en su Nave) → el
+# oficial del grupo («Ajustes del grupo», en Gestionar grupos) → este. Se enseña en un iframe: basta el enlace.
 PANEL_MAESTRO = "https://view.genially.com/6a8bfc4f5068ad5903fc39e3"
 # 17-sep · Norberto: «por defecto, el panel de control de Genially quiero que sea siempre el mismo, que salga ya escrito» (tanto
 # el de edición como el de visualización). Al crear un grupo y en sus Ajustes, estos dos van ya puestos.

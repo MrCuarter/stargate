@@ -30,7 +30,7 @@
   function listo(yo, r) {
     caja('<div class="kicker"><img class=ico src=assets/img/iconos/p/hecho.png alt> Invitación aceptada</div><h2>¡Bienvenida al puente, Comandante!</h2>'
       + '<p class="sub">La cuenta <b>' + esc(yo.correo) + "</b> ya es profe referente de STARGATE" + (r.ya ? " (ya la habías aceptado)" : "") + ".</p>"
-      + '<div class="inv-botones"><a class="btn primary grande" href="consola.html"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Ir a Mis grupos</a>'
+      + '<div class="inv-botones"><a class="btn primary grande" href="consola.html"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Ir a mi nave</a>'
       + '<a class="btn" href="crear.html"><img class=ico src=assets/img/iconos/p/estrella.png alt> Crear un grupo</a><a class="btn" href="prueba-equipo.html"><img class=ico src=assets/img/iconos/p/brujula.png alt> La guía de prueba</a></div>'
       + '<p class="small muted">Norberto puede añadirte a un grupo que ya existe; mientras, puedes crear el tuyo.</p>');
   }

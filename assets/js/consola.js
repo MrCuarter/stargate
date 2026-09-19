@@ -15,6 +15,9 @@
   var app = document.querySelector("#consola-app");
   if (!app) return;
   var MOTOR = null, YO = null, PERS = [], PER = null, DATOS = null, TAB = "portada";   // 19-sep · se entra por la portada
+  // 19-sep · «Gestionar grupos» (gestion.html) es esta misma consola en su otro modo: solo referentes, lo que se hace una
+  // o dos veces por curso (Norberto: «solo desde esa página se pueden crear, borrar o gestionar… no hace falta meter ruido»)
+  var GESTION = !!window.SG_GESTION;
   /**
    * 19-sep · PILOTO AUTOMÁTICO / MANDO MANUAL. Norberto: «el modo simple se limita a seguir lo que el referente ha creado,
    * sin complicaciones… proyecta su clase, sigue el guion. El avanzado permite crear alguna recompensa… Quiero evitar
@@ -231,84 +234,6 @@
       '</div>' +
     '</section>';
   }
-  /** 19-sep · lo que toca esta semana en ese grupo (los mismos datos que la sesión): el vídeo, los retos que se lanzan y el hito. */
-  function hoyToca(p) {
-    if (p.estado !== "en marcha") return "";
-    var SEMS = window.SG_SEMANAS || [], S = p.stargate || {}, sem = Number(p.semana) || 0;
-    var s = S.tipo === "PUA" ? SEMS.filter(function (x) { return x.tema_n === Math.min(sem, 8); })[0] : SEMS[Math.min(sem, SEMS.length) - 1];
-    if (!s) return "";
-    var v = ((s.videos || [])[0] || [])[0], lanza = (s.lanza || []).map(function (x) { return String(x).replace(/\s*\(.*\)\s*$/, ""); });
-    return '<details class="gp-hoy-d"' + (PERS.filter(function (x) { return x.estado === "en marcha"; }).length === 1 ? " open" : "") + '><summary class="gp-hoy"><b>' + ico("calendario") + ' Hoy toca</b> ' + esc(s.tema) +
-      (v ? ' · <span>' + ico("video") + ' ' + esc(v.titulo) + '</span>' : '') +
-      (lanza.length ? ' · <span>' + ico("diana") + ' ' + esc(lanza.join(" · ")) + '</span>' : '') +
-      (s.hito ? ' · <span>' + ico("medalla") + ' ' + esc(s.hito) + '</span>' : '') + '</summary>' +
-      bloqueHoyToca(S, sem, Number(p.total) || 15, null) + '</details>';
-  }
-  function tarjetaGrupo(p) {
-    var S = p.stargate || {};
-    var vivo = p.estado === "en marcha";
-    var cuando = p.estado === "en marcha" ? "Semana " + p.semana + " de " + p.total
-               : p.estado === "por empezar" ? "Empieza el " + (S.inicio || "—")
-               : p.estado === "sin fecha" ? "Sin fecha de inicio" : "Terminado";
-
-    /**
-     * 🔴 EL EMBLEMA DE TU ESCUADRÓN, no el del grupo. Petición de Norberto: «a golpe de vista se
-     * debe ver el nombre, su emblema de escuadrón, número de estudiantes inscritos, semana».
-     * Y «su» es la palabra: cada docente comanda un escuadrón dentro del grupo, con su propio
-     * emblema. Enseñar el del grupo daría el mismo icono en las seis tarjetas y no diría nada.
-     */
-    var nombreMio = ((S.docentes || []).filter(function (d) {
-      return String(d.correo || "").toLowerCase() === String(YO.correo || "").toLowerCase(); })[0] || {}).nombre;
-    var mio = (p.factions || []).filter(function (f) { return f.teacherName === nombreMio; })[0]
-              || (p.factions || [])[0] || null;
-
-    return '<article class="gp' + (vivo ? " vivo" : " off") + '">' +
-      '<header>' +
-        (mio && mio.imageUrl
-          ? '<img class="gp-emb" src="' + esc(mio.imageUrl) + '" alt="" loading="lazy">'
-          : '<div class="gp-emb sin">◈</div>') +
-        '<div class="gp-tit"><div class="gp-est">' + (vivo ? "EN MARCHA" : p.estado.toUpperCase()) + '</div>' +
-          '<h3>' + esc(p.nombre) + '</h3>' +
-          (mio ? '<p class="gp-esc">' + esc(mio.name) + '</p>' : '') + '</div>' +
-        (p.soyReferente ? '<span class="gp-ref" title="Llevas este grupo">★</span>' : '') +
-        // 19-sep · Norberto: «no encuentro la manera de borrar o archivar un grupo. Debe ser más fácil»
-        (gestionable(p) ? '<button type="button" class="gp-mas" data-gestion="' + esc(p.id) + '" title="Archivar, reabrir o borrar el grupo" aria-label="Archivar o borrar «' + esc(p.nombre) + '»">⋯</button>' : '') +
-      '</header>' +
-      // 15-sep · Norberto: «la Cola de nota debería aparecer solo si hay algo que hacer… que brille o un globo con aviso»
-      (p.cola ? '<button type="button" class="gp-cola" data-per="' + esc(p.id) + '" data-ir="canjes"><img class=ico src=assets/img/iconos/p/clase.png alt> <b>' + p.cola + '</b> ' +
-        (p.cola === 1 ? "subida de nota espera" : "subidas de nota esperan") + ' tu visto bueno <span>Revisar →</span></button>' : '') +
-      // Las dos cifras que se miran de un vistazo: cuánta gente hay y por dónde vamos.
-      '<div class="gp-cifras">' +
-        '<div><b>' + (p.reclutas == null ? "—" : p.reclutas) + '</b><span>alistados</span></div>' +
-        '<div><b>' + (p.estado === "en marcha" ? p.semana : "—") + '</b><span>' +
-          (p.estado === "en marcha" ? "de " + p.total + " semanas" : esc(cuando)) + '</span></div>' +
-      '</div>' +
-      // 🔴 Lo de clase, en la tarjeta. Se busca con los alumnos ya sentados: cada clic de más ahí
-      // es medio minuto de aula mirando una pantalla de carga.
-      '<div class="gp-hacer">' +
-        // 19-sep · los tres pasos de una clase en directo, en su orden: proyectar, pasar lista y tener el aula a mano
-        '<div class="gp-celda principal"><a class="gp-b principal" href="sesion.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<span class="gp-n">1</span><b>Empezar la clase</b><em>proyecta la sesión</em></a>' + botonCfgSesion(p.id) + botonVentana("sesion.html?per=" + p.id, "sesion_" + p.id, "la sesión") + '</div>' +
-        '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<span class="gp-n">2</span><b>Llamada a filas</b><em>que fichen</em></a>' + botonVentana("llamada.html?per=" + p.id, "llamada_" + p.id, "la llamada a filas") + '</div>' +
-        '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<span class="gp-n">3</span><b>El aula</b><em>' + (manual() ? "premios, tiempo, votar" : "tiempo, votar, preguntar") + '</em></a>' + botonVentana("aula.html?per=" + p.id, "aula_" + p.id, "el aula") + '</div>' +
-      '</div>' +
-      // 🔴 19-sep · EL CÓDIGO DE CLASE YA NO VA EN LA FILA. Norberto: «es algo que se usará solo el primer y segundo día, no
-      // merece tener tantísimo espacio. Sería mejor que apareciera dentro del grupo». Está en la portada del grupo (codigoClase).
-      // 15-sep · Norberto: «un botón llamativo para entrar en ese grupo», como el de «Entrar en mi Nave» al alistarse.
-      // Era un enlace gris («Ver mi gente y los ajustes →») y no se veía. Debajo, las pestañas que hay dentro.
-      hoyToca(p) +
-      '<div class="gp-pie">' +
-        (p.estado === "pasado"
-          ? '<button class="btn gp-abrir" data-per="' + esc(p.id) + '">Entrar en el grupo →</button>'
-          : '<button class="btn epico gp-abrir" data-per="' + esc(p.id) + '">' +
-              '<span class="ep-luz"></span><span class="ep-txt">Entrar en el grupo</span></button>') +
-        '<p class="gp-dentro">' + (refDe(p) ? "Mi gente · Escuadrones · Calendario · Ajustes" : "Mi gente · El Zoco · Mis enlaces · Calendario") + '</p>' +
-      '</div></article>';
-  }
-
-
   /** El código para insertar en Genially (Insertar → Otros → Código): llena la caja que le des. */
   function codigoGenially(ruta, titulo) { return MOTOR.codigoGenially(ruta, titulo); }
 
@@ -355,10 +280,26 @@
   function refGlobal() { try { return localStorage.getItem("sgEsReferente") === "1"; } catch (e) { return false; } }
   function refDe(p) { return !!(p && p.soyReferente) && !modoDoc(); }
   document.addEventListener("sg:modo", function () { if (!YO) return; if (PER && DATOS) pintar(); else elegirGrupo(); });
+  /**
+   * 🔴 19-sep · LA NAVE DEL COMANDANTE. Norberto: «la página inicial del docente debería ser visualmente similar a la nave
+   * del estudiante… en vez de insignias conseguidas, grupos activos, estudiantes en total… tantas pestañas como grupos
+   * activos y al clicarlas mostrase toda la info de cada grupo». Y luego: «simplicidad máxima en la página principal…
+   * no queremos info que se usará una o dos veces en todo el curso (borrar, crear grupo, compartir enlace…)».
+   * Decidido con un borrador dibujado (lienzo «Nave del Comandante · borrador») y cuatro preguntas:
+   *   · no hay página de «Mis grupos»: se entra directo en el grupo (el último que abriste, o el primero en marcha);
+   *   · en el Puente, tu ficha de comandante y NEBULA arriba, como «Mi nave» del recluta;
+   *   · una pestaña por grupo en marcha (también con uno solo) y las secciones del grupo con iconos propios;
+   *   · crear, graduar, borrar, el equipo, los escuadrones, los ajustes del grupo y editar el calendario viven en
+   *     «Gestionar grupos» (gestion.html), solo para referentes.
+   */
+  var CLAVE_ULTIMO = "sgConsolaPer";
+  function vivos() { return PERS.filter(function (p) { return p.estado !== "pasado"; }); }
+  function soyRefAlguno() { return (PERS.some(function (p) { return p.soyReferente; }) || refGlobal()) && !modoDoc(); }
   async function elegirGrupo() {
     cargando("Buscando tus grupos…");
     PERS = await MOTOR.misPERs(YO.correo);
     contarBuzon();   // (15-sep · el contador del buzón: si llega antes de pintar, sale ya en el botón; si no, se añade)
+    if (GESTION) return verGestion();
     if (!PERS.length) {
       // 15-sep · un referente nuevo (por invitación) aún no tiene grupos: se le da la bienvenida, no un «no figuras»
       if (refGlobal() && !modoDoc()) {
@@ -383,126 +324,47 @@
     var guardado = url.get("per");
     if (guardado && PERS.filter(function (p) { return p.id === guardado; }).length) return abrir(guardado);
     if (url.get("comun") && gestionados().length) return verComunes(url.get("comun"));
-
-    // 🔴 Ya NO se salta la lista cuando solo hay un grupo. Antes se entraba directo «por comodidad»,
-    // y así el docente no veía nunca los botones de directo —que es para lo que viene— ni sabía que
-    // esta pantalla existía. Con un grupo, la tarjeta ocupa la pantalla entera y se entiende sola.
-    var vivos = PERS.filter(function (p) { return p.estado !== "pasado"; });
+    var V = vivos(), ultimo = "";
+    try { ultimo = localStorage.getItem(CLAVE_ULTIMO) || ""; } catch (e) {}
+    if (ultimo && V.some(function (p) { return p.id === ultimo; })) return abrir(ultimo);
+    if (V.length) return abrir(V[0].id);
+    // ninguno en marcha: tu ficha y tus cursos terminados (se abren igual, para consultarlos)
     var pasados = PERS.filter(function (p) { return p.estado === "pasado"; });
-    var soyRef = (PERS.some(function (p) { return p.soyReferente; }) || refGlobal()) && !modoDoc();
+    app.innerHTML = avisoBorrado() + heroComandante() +
+      '<div class="card cn-vacio"><h3>Ninguno de tus grupos está en marcha</h3>' +
+        (pasados.length ? '<p class="small muted">Tus cursos terminados, para consultarlos:</p><p class="cn-pasados">' + pasados.map(function (p) {
+          return '<button type="button" class="btn min" data-per="' + esc(p.id) + '">' + esc(p.nombre) + ' →</button>'; }).join(" ") + '</p>' : '') +
+        (soyRefAlguno() ? '<p><a class="btn" href="gestion.html">' + ico("ajustes") + ' Gestionar grupos</a></p>' : '') + '</div>';
+    Array.prototype.forEach.call(app.querySelectorAll("[data-per]"), function (b) { b.onclick = function () { TAB = "portada"; abrir(b.getAttribute("data-per")); }; });
+    cablearHero();
+    document.body.classList.add("consola-dentro");
+  }
 
-    /**
-     * 18-sep · EL PANEL DEL DOCENTE. Norberto: «echo en falta una página de landing, parecida a la del estudiante… que
-     * los docentes también puedan coger su avatar… un panel con sus grupos, su avatar, sus datos, algunas estadísticas».
-     * Arriba, quién eres (con tu comandante), y tus cifras; debajo, tus grupos como siempre.
-     */
-    var totAlu = vivos.reduce(function (a, p) { return a + (Number(p.reclutas) || 0); }, 0);
-    app.innerHTML = avisoBorrado() +
-      '<section class="doc-panel">' +
-        '<button type="button" class="doc-ava" id="doc-ava" title="Elige tu comandante"><img id="doc-ava-img" src="assets/img/avatares/comandantes/' + esc((FICHA && FICHA.avatar) || "c1") + '.jpg" alt=""><span>Cambiar</span></button>' +
-        '<div class="doc-txt"><div class="eyebrow teal">Comandante</div><h2>' + esc((YO && (YO.nombre || YO.displayName)) || "Tu puesto de mando") + '</h2>' +
-          '<p class="small muted">' + esc((YO && YO.email) || "") + '</p></div>' +
-        '<div class="doc-cifras">' +
-          '<div><b>' + vivos.length + '</b><span>' + (vivos.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span></div>' +
-          '<div><b>' + totAlu + '</b><span>reclutas a tu cargo</span></div>' +
-          // 19-sep · Norberto buscaba un curso terminado y no lo veía (el cajón está al final, plegado): la cifra lleva a él
-          (pasados.length
-            ? '<div class="ir" id="doc-viejos-b" role="button" tabindex="0" title="Ver los cursos terminados"><b>' + pasados.length + '</b><span>' + (pasados.length === 1 ? "curso terminado ↓" : "cursos terminados ↓") + '</span></div>'
-            : '<div><b>0</b><span>cursos terminados</span></div>') +
-        '</div>' +
-        '<div class="doc-b">' + selectorModo() + '<button type="button" class="btn min" id="doc-ajustes-b" data-av aria-expanded="false"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Ajustes</button>' + botonBuzon("consola") +
-          (soyRef ? ' <a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
-      '</section>' +
-      // (la galería se monta al abrirla: escondida, sus ocho imágenes se descargarían igual en cada visita)
-      '<div class="doc-avas" id="doc-avas" hidden></div>' +
-      // 19-sep · Norberto: «en su landing debería haber un botón de ajustes… Dijimos de poner configurar las sesiones en
-      // vivo, ¿no lo has hecho?». Estaba dentro de cada grupo (Mis enlaces) y no se encontraba: aquí, para todos a la vez
-      '<div class="doc-ajustes" id="doc-ajustes" hidden></div>' +
-      // (19-sep · «cero aire»: sin titular «Tus grupos»; las filas se explican solas)
-      // 🔴 13-sep · con UN solo grupo, la tarjeta se tumba en horizontal y ocupa la fila: estrecha y
-      // sola dejaba media pantalla vacía a su derecha. Con varios, rejilla de siempre.
-      // y con 2 o 4, en dos columnas: con tres por fila, cuatro grupos dejaban uno solo abajo
-      // 19-sep · Norberto: «las fichas de los grupos prefiero que sean filas que ocupen todo el ancho». Siempre en fila
-      // (la que ya tenía un grupo solo), también los terminados
-      (vivos.length ? '<div class="gp-grid uno">' + vivos.map(tarjetaGrupo).join("") + '</div>'
-                    : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
-      // 17-sep · lo que se configura UNA vez para varios grupos (Norberto: «¿valen para cualquier grupo? Sería maravilloso
-      // poder reciclarlos… que compartan la misma página de configuración y ajustar a qué grupos afecta»)
-      '<div class="gp-herr" data-av>' +
-      (gestionados().length ? '<section class="gp-comun"><div class="gp-comun-t"><h3>Para todos tus grupos</h3>' +
-        '<p class="small muted">Una vez, y eliges a qué grupos afectan.</p></div>' +
-        '<div class="gp-comun-b"><a class="btn" href="consola.html?comun=premios">Premios por enlace</a> <a class="btn" href="consola.html?comun=sorteos">Sorteos</a> ' +
-        '<a class="btn" href="consola.html?comun=ofertas">Ofertas</a></div></section>' : '') +
-      /**
-       * 🔴 15-sep · LOS EMBEDS, UNA SOLA VEZ. Norberto: «en todas las fichas de cada grupo aparece Embed para
-       * Genially, pero entiendo que es el mismo para todos: déjalo en algún lugar especificando que es el
-       * mismo para todos los grupos». Lo es: ninguno lleva el grupo dentro (piden la cuenta y preguntan).
-       */
-      '<section class="gp-gen"><div class="gp-gen-txt"><h3>Para tus Geniallys</h3>' +
-        '<details class="gp-ayuda"><summary>¿Cómo se usan?</summary><p class="small muted">Los <b>mismos para todos tus grupos</b> y para los cursos que vengan: piden tu cuenta y, si llevas varios grupos, ' +
-        'preguntan en cuál estáis. Se copia el código y, en Genially, <b>Insertar → Otros → Código</b>. ' +
-        'O pulsa <b>⧉</b> y se abre <b>en su propia ventana</b>, sin nada más alrededor: para proyectarla o tenerla a mano durante la clase.</p></details></div>' +
-        '<div class="gp-gen-b">' +
-        // 16-sep · la sesión se pega DOS VECES en el Genially: la apertura antes de la teoría y el
-        // cierre después. Así no hay que navegar por dentro del panel delante de la clase.
-        [["sesion-ap", "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión · 1 · apertura", "sesion.html?embed=1&tramo=apertura"],
-         ["sesion-ci", "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión · 3 · cierre", "sesion.html?embed=1&tramo=cierre"],
-         ["sesion", "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión entera (sin partir)", "sesion.html?embed=1"], ["aula", "<img class=ico src=assets/img/iconos/p/envivo.png alt> El aula · la clase en directo", "aula.html?embed=1"],
-         ["llamada", "<img class=ico src=assets/img/iconos/p/clase.png alt> La llamada a filas", "llamada.html?embed=1"], ["batalla", "<img class=ico src=assets/img/iconos/p/diana.png alt> El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
-          return '<span class="gp-gen-par"><button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + x[1].replace(/^<img[^>]*>\s*/, ""))) + '">' + x[1] + '</button>' +
-            botonVentana(x[2], x[0], x[1].replace(/^<img[^>]*>\s*/, "")) + '</span>';
-        }).join("") + '</div></section>' +
+  /** La ficha del comandante (como la del recluta en «Mi nave») y, a su lado, NEBULA y tu gente (las pinta el Puente). */
+  function heroComandante() {
+    var V = vivos(), nombre = (YO && (YO.nombre || YO.displayName)) || "Comandante";
+    var total = V.reduce(function (a, p) { return a + (Number(p.reclutas) || 0); }, 0), mio = miNombreAqui();
+    return '<div class="grid cols-2 nave-estado cn-hero">' +
+      '<div class="card cn-ficha"><div class="nave-perfil">' +
+        '<button type="button" class="av-lupa" id="doc-ava" title="Elige tu comandante" aria-label="Elegir tu comandante">' +
+          '<img class="av" id="doc-ava-img" src="assets/img/avatares/comandantes/' + esc((FICHA && FICHA.avatar) || "c1") + '.jpg" alt=""></button>' +
+        '<div class="cn-ficha-t"><div class="eyebrow teal">La Nave del Comandante</div><h3>' + esc(nombre) + '</h3>' +
+          '<p class="small"><b>Comandante' + (soyRefAlguno() ? ' referente' : '') + '</b>' + (mio ? ' · en este grupo, «' + esc(mio) + '»' : '') + '</p>' +
+          '<p class="monedas"><span class="m xp"><b>' + V.length + '</b> ' + (V.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span>' +
+            '<span class="m cred"><b>' + total + '</b> ' + (total === 1 ? "recluta a tu cargo" : "reclutas a tu cargo") + '</span></p>' +
+        '</div></div>' +
+        // (los botones, a lo ancho de la ficha: en la columna del texto se apilaban uno por línea y, en el móvil, se salían)
+        '<div class="cn-ficha-b">' + selectorModo() +
+          '<button type="button" class="btn min" id="doc-ajustes-b" data-av aria-expanded="false">' + ico("ajustes") + ' Ajustes</button>' + botonBuzon("consola", PER) + '</div>' +
       '</div>' +
-      /**
-       * 🔴 LO DEL REFERENTE, EN UNA FRANJA APARTE. Norberto: «el referente básicamente debe tener
-       * un menú extra». Y «extra» es la palabra: su día a día es EXACTAMENTE el del docente —sus
-       * grupos, su gente, proyectar— y solo se le añade lo de gobernar. Hacerle otra pantalla
-       * distinta habría sido mantener dos cosas y que una se quedara atrás.
-       *
-       * Va DEBAJO de sus grupos, no encima: incluso el referente entra aquí a dar clase mucho más a
-       * menudo que a crear un grupo. Y por encima de los cursos terminados, que se abren todavía menos.
-       * 🔴 12-sep · El comentario ya decía «debajo» y el código lo pintaba ENCIMA: se leía una cosa
-       * y se veía la contraria. Lo cazó el laboratorio con la primera captura de datos de verdad.
-       */
-      (soyRef
-        ? '<details class="cajon ref-zona"><summary><b>★ Como profe referente</b> ' +
-          '<span class="cnt">gobernar los grupos</span></summary>' +
-          '<div class="ref-grid">' +
-            '<a class="ref-b" href="crear.html"><span><img class=ico src=assets/img/iconos/p/estrella.png alt></span><b>Crear un grupo</b>' +
-              '<em>Calendario, retos, tienda y código, en un minuto.</em></a>' +
-            '<a class="ref-b" href="tickets.html"><span><img class=ico src=assets/img/iconos/p/ticket.png alt></span><b>Los tickets de salida</b>' +
-              '<em>Las dudas de todas tus clases, por tema y fecha.</em></a>' +
-            '<a class="ref-b" href="registro.html"><span><img class=ico src=assets/img/iconos/p/medalla.png alt></span><b>El tablero y las insignias</b>' +
-              '<em>La ceremonia, el ranking y los dos marcadores.</em></a>' +
-            '<a class="ref-b" href="pasos.html"><span><img class=ico src=assets/img/iconos/p/brujula.png alt></span><b>Montarlo paso a paso</b>' +
-              '<em>El recorrido completo, con capturas.</em></a>' +
-            // 15-sep · la página de Profesores, solo para el Mando (los vitalicios)
-            (VITALICIOS_WEB.indexOf(String(YO.correo || "").toLowerCase()) >= 0
-              ? '<a class="ref-b" href="profesores.html"><span><img class=ico src=assets/img/iconos/p/gente.png alt></span><b>Profesores</b><em>Referentes, invitaciones, sus grupos y sus conexiones.</em></a>' : '') +
-          '</div>' +
-          '<p class="small muted" style="margin-top:12px">Dentro de cada grupo tienes además ' +
-          '<b>Equipo docente</b>, <b>Escuadrones</b> y <b>Ajustes</b>: esas tres solo las ve quien ' +
-          'lleva el grupo.</p></details>'
-        : '') +
-
-      (pasados.length
-        ? '<details class="cajon gp-viejos"><summary><b><img class=ico src=assets/img/iconos/p/calendario.png alt> Cursos terminados</b> ' +
-          '<span class="cnt">' + pasados.length + '</span></summary>' +
-          '<div class="gp-grid uno">' + pasados.map(tarjetaGrupo).join("") + '</div></details>'
-        : '');
-
-    Array.prototype.forEach.call(app.querySelectorAll("[data-per]"), function (b) {
-      // 19-sep · cada botón dice a qué pestaña lleva: la suya (la Cola de nota) o la portada del grupo
-      b.onclick = function () { TAB = b.getAttribute("data-ir") || "portada"; abrir(b.getAttribute("data-per")); };
-    });
-    var viejosB = $("#doc-viejos-b");
-    if (viejosB) viejosB.onclick = viejosB.onkeydown = function (e) {
-      if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
-      e.preventDefault();
-      var d = app.querySelector(".gp-viejos");
-      if (d) { d.open = true; d.scrollIntoView({ behavior: "smooth", block: "start" }); }
-    };
-    // 18-sep · tu comandante: el que elegiste (o el primero), y la galería para cambiarlo
+      '<div class="cn-der" id="cn-neb"></div>' +
+    '</div>' +
+    // (la galería se monta al abrirla: escondida, sus imágenes se descargarían igual en cada visita)
+    '<div class="doc-avas" id="doc-avas" hidden></div>' +
+    // 19-sep · «un botón de ajustes para ajustar su nombre, alias, foto…» y tu sesión en directo para todos tus grupos
+    '<div class="doc-ajustes" id="doc-ajustes" hidden></div>';
+  }
+  function cablearHero() {
     var avImg = $("#doc-ava-img"), avBtn = $("#doc-ava"), avs = $("#doc-avas");
     if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
       if (f && f.avatar && avImg) avImg.src = "assets/img/avatares/comandantes/" + f.avatar + ".jpg";
@@ -518,29 +380,46 @@
       var actual = (avImg && (avImg.getAttribute("src").match(/\/([a-z0-9_-]+)\.jpg/) || [])[1]) || "";
       Array.prototype.forEach.call(avs.querySelectorAll(".doc-av-op"), function (o) {
         o.classList.toggle("on", o.getAttribute("data-av") === actual);
-        o.onclick = elegirAvatar(o);
+        o.onclick = function () {
+          var k = o.getAttribute("data-av");
+          MOTOR.ponerAvatarDocente(k).then(function () {
+            if (avImg) avImg.src = "assets/img/avatares/comandantes/" + k + ".jpg";
+            if (FICHA) FICHA.avatar = k;
+            Array.prototype.forEach.call(avs.querySelectorAll(".doc-av-op"), function (x) { x.classList.toggle("on", x === o); });
+            avs.hidden = true;
+          }, function (e) { aviso("No se ha podido guardar tu avatar: " + esc(e.message || e)); });
+        };
       });
-    };
-    var elegirAvatar = function (o) {
-      return function () {
-        var k = o.getAttribute("data-av");
-        MOTOR.ponerAvatarDocente(k).then(function () {
-          if (avImg) avImg.src = "assets/img/avatares/comandantes/" + k + ".jpg";
-          Array.prototype.forEach.call(app.querySelectorAll(".doc-av-op"), function (x) { x.classList.toggle("on", x === o); });
-          if (avs) avs.hidden = true;
-        }, function (e) { aviso("No se ha podido guardar tu avatar: " + esc(e.message || e)); });
-      };
     };
     if (avBtn && avs) avBtn.onclick = function () { galeria(); avs.hidden = !avs.hidden; };
     var ajB = $("#doc-ajustes-b"), ajP = $("#doc-ajustes");
     if (ajB && ajP) ajB.onclick = function () {
-      if (ajP.hidden) pintarAjustes(ajP, vivos, avBtn);
+      if (ajP.hidden) pintarAjustes(ajP, vivos(), avBtn);
       ajP.hidden = !ajP.hidden; ajB.setAttribute("aria-expanded", String(!ajP.hidden));
       if (!ajP.hidden) ajP.scrollIntoView({ behavior: "smooth", block: "nearest" });
     };
-    cablearCopiar(app);
-    // el titular «Mi puesto de mando» sobra encima de «Tus grupos»: dos titulares enormes seguidos
-    document.body.classList.add("consola-dentro");
+  }
+  /** 🔴 EL EMBLEMA DE TU ESCUADRÓN en ese grupo (Norberto: «a golpe de vista… su emblema de escuadrón»), no el del grupo. */
+  function emblemaDe(p) {
+    var S = (p && p.stargate) || {};
+    var nombreMio = ((S.docentes || []).filter(function (d) {
+      return String(d.correo || "").toLowerCase() === String(YO.correo || "").toLowerCase(); })[0] || {}).nombre;
+    var mio = (p.factions || []).filter(function (f) { return f.teacherName === nombreMio; })[0] || (p.factions || [])[0] || null;
+    return { img: mio && mio.imageUrl ? mio.imageUrl : "", nombre: mio ? mio.name : "" };
+  }
+  /** Una pestaña por grupo en marcha (y el que tengas abierto, aunque haya terminado). */
+  function pestanasGrupos() {
+    var L = vivos(), actual = PERS.filter(function (p) { return p.id === PER; })[0];
+    if (actual && L.indexOf(actual) < 0) L = L.concat([actual]);
+    return '<div class="cn-grupos" role="tablist" aria-label="Tus grupos">' + L.map(function (p) {
+      var e = emblemaDe(p), on = p.id === PER;
+      var linea = p.estado === "en marcha" ? "Semana " + p.semana + " de " + p.total : p.estado === "por empezar" ? "Empieza el " + ((p.stargate || {}).inicio || "—")
+                : p.estado === "pasado" ? "Terminado" : "Sin fecha";
+      return '<button type="button" class="cn-g' + (on ? " on" : "") + '" role="tab" aria-selected="' + on + '" data-grupo="' + esc(p.id) + '">' +
+        (e.img ? '<img src="' + esc(e.img) + '" alt="" loading="lazy">' : '<span class="cn-g-sin">◈</span>') +
+        '<span><b>' + esc(p.nombre) + '</b><em>' + esc(linea) + (p.reclutas != null ? ' · ' + p.reclutas + ' reclutas' : '') + '</em></span>' +
+        (p.cola ? '<span class="cn-g-n" title="Subidas de nota que esperan tu visto bueno">' + p.cola + '</span>' : '') + '</button>';
+    }).join("") + '</div>';
   }
 
   /** 17-sep · «🌐 Para todos tus grupos»: lo que se configura una vez para varios grupos, fuera de ninguno. */
@@ -550,7 +429,7 @@
     var g = gestionados();
     app.innerHTML = '<div class="card cuenta c-cab"><div class="c-cab-t"><b><img class=ico src=assets/img/iconos/p/varios.png alt> Para todos tus grupos</b><span>' + g.length + (g.length === 1 ? " grupo" : " grupos") +
         ' que llevas · lo que configures aquí vale en los que elijas</span></div>' +
-      '<div class="c-cab-b"><button class="btn min" id="c-volver">← Tus grupos</button> ' + botonBuzon("consola") + '</div></div>' +
+      '<div class="c-cab-b"><button class="btn min" id="c-volver">← Tu Nave</button> ' + botonBuzon("consola") + '</div></div>' +
       '<div class="pestanas">' + [["premios", "huevos", "Premios por enlace"], ["sorteos", "sorteos", "Sorteos"], ["ofertas", "ofertas", "Ofertas"]].map(function (x) {
         return '<button class="pest' + (que === x[0] ? " activa" : "") + '" data-tab="' + x[1] + '" data-comun="' + x[0] + '">' + x[2] + "</button>"; }).join("") + '</div>' +
       '<div id="c-aviso" class="aviso" hidden></div><div id="c-cuerpo"></div>';
@@ -566,6 +445,7 @@
   async function abrir(perId) {
     PER = perId;
     history.replaceState(null, "", "consola.html?per=" + encodeURIComponent(perId));
+    try { localStorage.setItem(CLAVE_ULTIMO, perId); } catch (e) {}   // 19-sep · la próxima vez, se entra en este
     cargando("Leyendo el grupo…");
     try { DATOS = await MOTOR.leerPER(perId, true); }
     catch (e) { return fallo("No he podido leer el grupo: " + e.message); }
@@ -588,8 +468,8 @@
    * equipo («la versión vista, sin edición, la debería poder ver el docente raso»): editar sigue siendo del referente.
    */
   // 19-sep · «Portada», la primera: el grupo de un vistazo (semana, vídeo, retos, foro, panel, sesión y tus notas)
+  // 19-sep · el equipo, los escuadrones y los ajustes del grupo se fueron a «Gestionar grupos» (GTABS)
   var TABS = [["portada", "Portada"], ["alumnado", "Mi gente"], ["rankings", "Rankings"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
-              ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1], ["ajustes", "Ajustes del grupo", 1],
               // 17-sep · las que pueden afectar a VARIOS grupos, juntas y tras su raya 🌐 (Norberto: «separar las opciones
               // exclusivas de un grupo de las que afectan a todos o pueden afectar»)
               ["huevos", "Premios por enlace", 1, "varios"], ["sorteos", "Sorteos", 1, "varios"], ["ofertas", "Ofertas", 1, "varios"],
@@ -627,90 +507,72 @@
     }).catch(function () {});
   }
 
+  /**
+   * 🔴 19-sep · LAS SECCIONES DEL GRUPO, CON ICONOS PROPIOS (el mismo menú que la Nave del recluta). Eran doce pestañas;
+   * Norberto eligió juntarlas: Mi gente lleva la Cola de nota; Premios, los premios por enlace, los sorteos y las
+   * ofertas. El equipo, los escuadrones y los ajustes del grupo se fueron a «Gestionar grupos». Cada sección muestra
+   * solo lo que esa cuenta puede usar (en piloto automático, El Zoco, Premios y Enlaces no salen).
+   */
+  var SECCIONES = [["puente", "Puente", "assets/img/nave/iconos/nave.png", ["portada"]],
+                   ["gente", "Mi gente", "assets/img/nave/iconos/gente.png", ["alumnado", "canjes"]],
+                   ["rankings", "Rankings", "assets/img/nave/iconos/rankings.png", ["rankings"]],
+                   ["calendario", "Calendario", "assets/img/iconos/calendario.png", ["calendario"]],
+                   ["zoco", "El Zoco", "assets/img/nave/iconos/zoco.png", ["zoco"]],
+                   ["premios", "Premios", "assets/img/nave/iconos/premios.png", ["huevos", "sorteos", "ofertas"]],
+                   ["enlaces", "Enlaces", "assets/img/iconos/enlace.png", ["mios"]]];
+  var SUB_NOMBRE = { alumnado: "Reclutas", canjes: "Cola de nota", huevos: "Premios por enlace", sorteos: "Sorteos", ofertas: "Ofertas" };
+  function seccionDe(tab) { return SECCIONES.filter(function (x) { return x[3].indexOf(tab) >= 0; })[0] || SECCIONES[0]; }
+  function barraSecciones() {
+    var mias = misTabs().map(function (x) { return x[0]; }), cola = pendientesCola(), actual = seccionDe(TAB)[0];
+    return '<div class="cn-secs" role="tablist" aria-label="Secciones del grupo">' + SECCIONES.map(function (x) {
+      var dentro = x[3].filter(function (k) { return mias.indexOf(k) >= 0; });
+      if (!dentro.length) return "";
+      var n = x[0] === "gente" ? cola : 0, on = x[0] === actual;
+      return '<button type="button" class="pest cn-t' + (on ? " activa" : "") + (n ? " pest-aviso" : "") + '" role="tab" aria-selected="' + on + '" data-tab="' + dentro[0] + '" data-sec="' + x[0] + '"' +
+        (n ? ' title="' + n + (n === 1 ? " subida de nota espera" : " subidas de nota esperan") + ' tu visto bueno"' : "") + '>' +
+        '<img class="i" src="' + x[2] + '" alt="" width="30" height="30" aria-hidden="true"><b>' + x[1] + '</b>' +
+        (n ? '<span class="pest-n" aria-label="' + n + ' pendientes">' + n + '</span>' : "") + '</button>';
+    }).join("") + '</div>';
+  }
+  function subPestanas() {
+    var mias = misTabs().map(function (x) { return x[0]; }), sec = seccionDe(TAB);
+    var dentro = sec[3].filter(function (k) { return mias.indexOf(k) >= 0; });
+    if (dentro.length < 2) return "";
+    // (17-sep · premios, sorteos y ofertas que valen para VARIOS de tus grupos: su página, desde aquí si llevas más de uno)
+    var comun = sec[0] === "premios" && gestionados().length > 1
+      ? '<a class="pest cn-s cn-comun" href="consola.html?comun=' + (TAB === "sorteos" ? "sorteos" : TAB === "ofertas" ? "ofertas" : "premios") + '">' + ico("varios") + ' Para todos tus grupos</a>' : "";
+    return '<div class="cn-sub" role="tablist" aria-label="' + esc(sec[1]) + '">' + dentro.map(function (k) {
+      var n = k === "canjes" ? pendientesCola() : 0;
+      return '<button type="button" class="pest cn-s' + (TAB === k ? " activa" : "") + (n ? " pest-aviso" : "") + '" data-tab="' + k + '">' + SUB_NOMBRE[k] +
+        (n ? '<span class="pest-n">' + n + '</span>' : "") + '</button>';
+    }).join("") + comun + '</div>';
+  }
+
   function pintar() {
+    if (GESTION) return pintarGestion();
     var t = window.SG.TABLERO.tablero(DATOS, true);
     // 🔴 Y si el TAB recordado ya no le corresponde —dejó de ser referente, llega por un enlace con #ajustes o
     // (15-sep) acaba de resolver la última subida de nota y la Cola se esconde— se cae al primero, ANTES de pintar
     // las pestañas para que la encendida sea la que se ve.
     if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
-    app.innerHTML =
-      // 15-sep · el nombre a un lado y los botones al otro (antes iban en la misma línea y «Salir» caía solo a otra fila)
-      '<div class="card cuenta c-cab"><div class="c-cab-t"><b>' + esc(t.nombre) + '</b><span>' + esc(t.tipo) +
-        ' · ' + semanaTexto(t) + ' · ' + t.reclutas.length + ' reclutas</span></div>' +
-        '<div class="c-cab-b">' + selectorModo() + ' <button class="btn min" id="c-cambiar">← Mis grupos</button> ' + botonBuzon("consola", PER) +
-        ' <button class="btn min" id="c-salir">Salir</button></div></div>' +
-      /**
-       * 🔴 18-sep · Norberto: «cuando entro a un grupo no tengo las opciones más importantes (proyectar la clase, aula,
-       * llamada a filas). ¡Es lo más importante! Debería estar dentro del grupo». Estaban solo en la tarjeta de «Mis
-       * grupos», que es de donde vienes: al entrar, desaparecían.
-       */
-      '<div class="gp-hacer c-hacer">' +
-        // 19-sep · los tres pasos de una clase en directo, en su orden: proyectar, pasar lista y tener el aula a mano
-        '<div class="gp-celda principal"><a class="gp-b principal" href="sesion.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
-          '<span class="gp-n">1</span><b>Empezar la clase</b><em>proyecta la sesión</em></a>' + botonCfgSesion(PER) + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") + '</div>' +
-        '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
-          '<span class="gp-n">2</span><b>Llamada a filas</b><em>que fichen</em></a>' + botonVentana("llamada.html?per=" + PER, "llamada_" + PER, "la llamada a filas") + '</div>' +
-        '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
-          '<span class="gp-n">3</span><b>El aula</b><em>' + (manual() ? "premios, tiempo, votar" : "tiempo, votar, preguntar") + '</em></a>' + botonVentana("aula.html?per=" + PER, "aula_" + PER, "el aula") + '</div>' +
-      '</div>' +
-      '<div class="pestanas">' + misTabs().map(function (x, i, todas) {
-        var cola = x[0] === "canjes" ? pendientesCola() : 0;
-        // (una raya antes de las del referente; el icono de cada una va en la hoja de estilos)
-        var raya = x[2] && !(todas[i - 1] || [])[2] ? '<span class="pest-sep" aria-hidden="true"></span>'
-                 : x[3] && !(todas[i - 1] || [])[3] ? '<span class="pest-sep pest-sep-g" title="Estas pueden afectar a varios de tus grupos"><img class=ico src=assets/img/iconos/p/varios.png alt></span>' : "";
-        return raya + '<button class="pest' + (TAB === x[0] ? " activa" : "") + (cola ? " pest-aviso" : "") + '" data-tab="' + x[0] + '"' +
-          (cola ? ' title="' + cola + (cola === 1 ? " subida de nota espera" : " subidas de nota esperan") + ' tu visto bueno"' : "") + '>' + x[1] +
-          (cola ? '<span class="pest-n" aria-label="' + cola + ' pendientes">' + cola + "</span>" : "") + "</button>";
-      }).join("") + "</div>" +
+    // 19-sep · tu ficha y NEBULA, solo en el Puente (como «Mi nave» del recluta); en las demás secciones, al grano
+    app.innerHTML = avisoBorrado() + (TAB === "portada" ? heroComandante() : "") +
+      pestanasGrupos() + barraSecciones() + subPestanas() +
       '<div id="c-aviso" class="aviso" hidden></div>' +
       '<div id="c-cuerpo"></div>';
     Array.prototype.forEach.call(app.querySelectorAll("[data-tab]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-tab"); pintar(); };
     });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-grupo]"), function (b) {
+      b.onclick = function () { var id = b.getAttribute("data-grupo"); if (id !== PER) abrir(id); };
+    });
+    if (TAB === "portada") cablearHero();
     // Copiar un enlace, con confirmación visible: sin ella no sabes si ha ido.
     cablearCopiar(app);
-    if ($("#c-cambiar")) $("#c-cambiar").onclick = function () { url.delete("per"); elegirGrupo(); };
-    $("#c-salir").onclick = function () { MOTOR.salir(); };
-    ({ portada: verPortada, alumnado: verAlumnado, rankings: verRankings, canjes: verCanjes, zoco: verZoco, mios: verMios, equipo: verEquipo,
-       escuadrones: verEscuadrones, huevos: verHuevos, sorteos: verSorteos, ofertas: verOfertas, calendario: verCalendario, ajustes: verAjustes })[TAB](t);
-    ofrecerVisitaDelGrupo();
+    ({ portada: verPortada, alumnado: verAlumnado, rankings: verRankings, canjes: verCanjes, zoco: verZoco, mios: verMios,
+       huevos: verHuevos, sorteos: verSorteos, ofertas: verOfertas, calendario: verCalendario })[TAB](t);
     contarBuzon();
-    document.body.classList.add("consola-dentro");   // dentro de un grupo, el titular grande sobra
-  }
-
-  /**
-   * 🔴 13-sep · LA VISITA DE DENTRO DEL GRUPO. La de Mis grupos enseña las tarjetas; aquí dentro hay
-   * siete pestañas (tres si no llevas el grupo) y ninguna explicación. Se ofrece una vez; después la
-   * repite «▶ Visita guiada». Solo con las pestañas que esta cuenta VE: al docente que imparte no se
-   * le habla de Ajustes que no tiene.
-   */
-  var PASOS_GRUPO = {
-    portada: ["Portada", "Tu grupo de un vistazo: en qué semana vais, el <b>vídeo que toca</b>, los <b>retos de esta semana</b> y los ya lanzados con cuántos los han hecho, el <b>mensaje del foro</b> para copiar, tu panel de control, qué sale en tu sesión y <b>tus notas</b>."],
-    alumnado: ["Mi gente", "Tu alumnado con sus xp, créditos e insignias. <b>Pulsa una fila</b>: ves su ficha, los <b>enlaces de sus evidencias</b> y puedes validar o anular un reto con un mensaje que le llega a su Nave."],
-    rankings: ["Rankings", "Todos los rankings del grupo —xp, esta semana, colección, constancia, relámpago, logros, el Simulador de Joran y los escuadrones—, del <b>grupo entero o de un escuadrón</b>. Son los mismos que ve tu alumnado en su Nave: para <b>ensalzar</b> en clase a quien destaca en cada cosa."],
-    canjes: ["Cola de nota", "Solo aparece cuando alguien pide una subida de <b>nota</b>, y brilla hasta que la resuelves: ninguna se aplica sola. Los créditos no se mueven hasta entonces."],
-    zoco: ["El Zoco", "Los trueques entre tu alumnado (se abren en la semana 8; en PUA, la 7): quién cambia qué con quién y los mensajes que se dejan. Si uno no te cuadra, <b>Deshacer</b> devuelve cada cosa a su dueño."],
-    mios: ["Mis enlaces", "Tu panel de Genially si has hecho una copia propia, y los enlaces del grupo para repartir en clase."],
-    equipo: ["Equipo docente", "Quién imparte y quién lleva el grupo, <b>por su correo de Google</b>. Añadir a alguien aquí es darle entrada; quitarlo, quitársela. No hay PIN."],
-    escuadrones: ["Escuadrones", "Cada escuadrón con su Comandante. La llamada a filas y el aula de cada docente van por aquí: cada cual ve y llama a los suyos."],
-    huevos: ["Premios por enlace", "Crea un premio —xp, créditos, un sobre de cromos, un héroe— con sus topes (en total, por escuadrón o por persona) y pega su enlace donde quieras. Por ejemplo: «los 5 primeros de cada escuadrón, un sobre»."],
-    sorteos: ["Sorteos", "El <b>Gran Sorteo</b> y los que crees tú: tu alumnado compra participaciones, tú las regalas o las escondes en un enlace, y el día señalado lo <b>proyectas</b>. Lo sortea el servidor: una papeleta por participación y nadie gana dos."],
-    ofertas: ["Ofertas", "La <b>oferta de la semana</b> sale sola en el Mercado desde la semana 3: un sobre, una cápsula, un héroe o una carta concretos, rebajados y con unidades según los inscritos y la rareza. Aquí la <b>alargas, la cancelas, cambias sus unidades</b> o creas una tú."],
-    calendario: ["Calendario", "El curso entero en un calendario: cada semana con su número, las <b>no lectivas</b> (Navidad, Semana Santa) y lo que se abre cada una. Si llevas el grupo, pulsa una semana para marcarla como no lectiva y todo lo de detrás se corre solo."],
-    ajustes: ["Ajustes del grupo", "El nombre, el código de clase, el padlet, el panel oficial y los enlaces para montar una vez en los Geniallys."]
-  };
-  function ofrecerVisitaDelGrupo() {
-    var pasos = [{ sel: ".pestanas", pose: "saluda", t: "Tu grupo por dentro",
-      x: "Arriba, las pestañas de este grupo. Te cuento en un minuto para qué sirve cada una." }];
-    misTabs().forEach(function (x, i) {
-      var q = PASOS_GRUPO[x[0]]; if (!q) return;
-      pasos.push({ sel: '.pest[data-tab="' + x[0] + '"]', pose: ["tablet", "senala", "brazos", "pensativo"][i % 4], t: q[0], x: q[1] });
-    });
-    pasos.push({ sel: "#c-cambiar", pose: "pulgar", t: "¿Otro grupo?",
-      x: "<b>«← Mis grupos»</b> te devuelve a todos tus grupos. Y esta visita la repites cuando quieras con <b>▶ Visita guiada</b>, arriba." });
-    window.SG_TOUR_LOCAL = { clave: "grupo", invita: "¿Te enseño tu grupo por dentro?",
-      invita2: "Las pestañas, en un minuto.", pasos: pasos };
-    if (window.sgTour && window.sgTour.ofrecerLocal) window.sgTour.ofrecerLocal();
+    document.body.classList.add("consola-dentro");   // el titular grande de la página sobra: la Nave empieza arriba
   }
 
   // Un grupo que empieza dentro de dos semanas está en la «semana -1», que es verdad y no dice
@@ -865,7 +727,9 @@
           '<em>' + (e.comandante === mio ? "el tuyo" : esc(e.comandante)) + '</em><span>' + n + '</span></button>';
       }).join("") + '</div>' : '';
     var lista = sinGenteQueVer(t) ? [] : t.reclutas.map(function (r, i) { return [r, i]; }).filter(function (x) { return !filtro || x[0].profe === filtro; });
-    $("#c-cuerpo").innerHTML = '<div class="card"><h3>Alumnado</h3>' +
+    // 19-sep · el código de clase vive aquí (en el Puente solo sale las tres primeras semanas): por si falta alguien
+    var cod = (DATOS.proyecto || {}).joinCode;
+    $("#c-cuerpo").innerHTML = '<div class="card"><div class="cn-gente-cab"><h3>Alumnado</h3>' + (cod ? '<span class="cn-falta">¿Falta alguien?</span>' + codigoClase(PER, cod) : '') + '</div>' +
       '<p class="small muted">El nombre y el correo solo los ves tú y el resto del equipo docente. ' +
       '<b>Pulsa una fila</b> y se abre su ficha: sus retos, los enlaces de lo que ha entregado y lo que puedes hacer.</p>' + chips +
       (lista.length ? tablaGente(lista, caps, !filtro) : '<p class="muted">' + (sinGenteQueVer(t) ? 'No tienes escuadrón en este grupo, así que aquí no hay alumnado a tu nombre.' : 'Todavía no hay nadie en este escuadrón.') + '</p>') +
@@ -1096,7 +960,9 @@
       // 🔴 DAR DE BAJA y CONGELAR (14-sep): solo el referente (Norberto: «el referente tiene poder de eliminar o
       // congelar: puede acceder, pero no puede hacer nada, bloqueado»). La baja hace falta de verdad: alguien que se
       // alista en el grupo equivocado o con la cuenta que no era deja una ficha huérfana en el ranking.
-      (esRef ? '<div class="ficha-ref"><h4>Solo el referente</h4>' + cambioDeComandante(r) +
+      // 19-sep · y ya no en tu Nave: es gestión, va en «Gestionar grupos» (Norberto: «solo desde esa página se pueden… gestionar
+      // (añadir estudiantes, profes, graduar, cambiar a un estudiante de grupo…)»). En la Nave, la ficha es para dar clase.
+      (esRef && GESTION ? '<div class="ficha-ref"><h4>Solo el referente</h4>' + cambioDeComandante(r) + moverDeGrupo(r) +
         '<p><button type="button" class="btn min" id="c-congelar">' + (r.congelado ? "▶ Descongelar a " : "<img class=ico src=assets/img/iconos/p/hielo.png alt> Congelar a ") + esc(r.alias) + "</button> " +
         '<span class="small muted">' + (r.congelado ? "vuelve a poder hacer de todo." : "podrá entrar y mirar, pero no registrar retos, comprar, fichar ni usar el Zoco.") + "</span></p>" +
         '<p><button type="button" class="btn min peligro" id="c-baja">Dar de baja a ' + esc(r.alias) + "</button> " +
@@ -1128,6 +994,16 @@
         avisoFicha(/not-found|internal/.test(String(e && e.code)) && !/[áéíóú]/.test(String(e && e.message))
           ? "Falta desplegar en el servidor la función «stargateAlumno» (el comando está en el traspaso)." : e.message);
       }
+    };
+    var mov = m.querySelector("#c-mover-b");
+    if (mov) mov.onclick = async function () {
+      var dest = (m.querySelector("#c-mover") || {}).value, pd = PERS.filter(function (p) { return p.id === dest; })[0];
+      if (!dest || !pd) return;
+      if (!(await window.SG.preguntar({ aqui: mov.closest("p") || mov, marca: mov, titulo: "¿Pasar a «" + r.alias + "» al grupo «" + pd.nombre + "»?",
+        texto: "Se lleva todo lo suyo: xp, créditos, insignias, cromos y héroes. En este grupo deja de estar.", si: "Cambiar de grupo" }))) return;
+      mov.disabled = true;
+      try { await MOTOR.moverRecluta(PER, ficha, dest); await refrescar(); cerrarFicha(); aviso(r.alias + " ya está en «" + pd.nombre + "».", true); }
+      catch (e) { mov.disabled = false; avisoFicha(e.message); }
     };
     var baja = m.querySelector("#c-baja");
     if (baja) baja.onclick = async function () {
@@ -1168,7 +1044,7 @@
                     (tiene ? (enlaces ? "<span>" + enlaces + "</span>" : '<span class="small muted">sin enlace</span>') : '<span class="small muted">todavía no lo ha registrado</span>') + "</p>" +
                   (tiene && rfx ? '<div class="sgp-rf"><p class="sgp-rf-cab"><b>Su reflexión</b> · «' + esc((RFX1 && RFX1.titulo) || "") + "»</p>" +
                     '<p class="sgp-rf-txt">' + esc(rfx.texto || "") + "</p></div>" : "") +
-                  '<p class="small muted">Validar o anular retos lo hace tu referente. Si quieres hacerlo tú, pasa a <b>Mando manual</b> (en Mis grupos, arriba).</p>',
+                  '<p class="small muted">Validar o anular retos lo hace tu referente. Si quieres hacerlo tú, pasa a <b>Mando manual</b> (en tu ficha, en el Puente).</p>',
             si: "Cerrar", no: "" });
           return;
         }
@@ -1278,7 +1154,7 @@
    * tienen captura fija: van con su icono y cuándo salen.
    */
   var SIN_CAPTURA = { simulador: ["diana", "Sale cuando alguien ha jugado al Simulador"], votacion: ["rayo", "Sale si hay una votación esta semana"],
-                      oferta: ["monedas", "Sale si hay oferta en el Mercado"] };
+                      oferta: ["monedas", "Sale si hay oferta en el Mercado"], unete: ["gente", "Sale en las semanas 1 y 2: el código y la invitación"] };
   function casillasSesion(off) {
     var hay = window.SG_CAPTURAS_SESION || [];
     return '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
@@ -1346,14 +1222,17 @@
   });
 
   /**
-   * 🔴 19-sep · ARCHIVAR, REABRIR O BORRAR UN GRUPO, DESDE SU FILA. Norberto: «no encuentro la manera de borrar o archivar un
-   * grupo. Debe ser más fácil. Busca una forma intuitiva de que el referente pueda archivar / graduar o eliminar». Solo
-   * existía «Borrar», al fondo de Ajustes. Ahora «⋯» en la fila de cada grupo que llevas, con las dos salidas explicadas:
-   *   · Graduar y archivar: la marca `stargate.archivado`, que ya entendía toda la web (estadoDelPER → «pasado»): pasa a
-   *     «Cursos terminados», sale del aula y de la llamada a filas, y el alumnado sigue entrando a su Nave. No se borra
-   *     nada y se reabre con otro clic. Es del referente (las reglas dejan al equipo tocar `stargate`, salvo el equipo).
-   *   · Borrar para siempre: la función de siempre (deleteProject), escribiendo el nombre. De quien lo creó o un vitalicio,
-   *     que es lo que comprueba el servidor.
+   * 🔴 19-sep · GESTIONAR GRUPOS (gestion.html), SOLO REFERENTES. Norberto: «para gestionar grupos enteros (solo el
+   * referente) debería haber una página dedicada. Solo desde esa página se pueden crear, borrar o gestionar (añadir
+   * estudiantes, profes, graduar, cambiar a un estudiante de grupo…). No hace falta meter ruido en las fichas». Con el
+   * borrador dibujado eligió qué se muda aquí: el equipo docente, los escuadrones, los ajustes del grupo y editar el
+   * calendario (verlo sigue en la Nave, para todos). Es la misma consola en su otro modo (`GESTION`): las pantallas de
+   * siempre (verEquipo, verEscuadrones, verAjustes, verCalendario, la ficha de cada recluta) se pintan dentro del grupo
+   * que abres en la tabla.
+   *   · Graduar y archivar: la marca `stargate.archivado`, que ya entendía toda la web (estadoDelPER → «pasado»). No se
+   *     borra nada, el alumnado sigue entrando a su Nave y se reabre con otro clic.
+   *   · Borrar para siempre: la función de siempre (deleteProject), escribiendo el nombre. De quien lo creó o un vitalicio.
+   *   · Cambiar a un recluta de grupo: en su ficha (stargateAlumno, acción «mover»); se lleva todo lo suyo.
    */
   var AVISO_GESTION = "";
   function puedeBorrarP(p) {
@@ -1362,62 +1241,103 @@
     return !!u.uid && (p.ownerId === u.uid || p.teacherId === u.uid ||
       ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"].indexOf(String(u.email || u.correo || "").toLowerCase()) >= 0);
   }
-  function gestionable(p) { return !!p && !(Number(((p.stargate || {}).demoSemana) || 0) > 0) && (refDe(p) || puedeBorrarP(p)); }
-  function abrirGestion(per) {
-    var p = PERS.filter(function (x) { return x.id === per; })[0];
-    if (!p) return;
-    var S = p.stargate || {}, arch = !!S.archivado, porFechas = p.estado === "pasado" && !arch, nombre = String(p.nombre || per).trim();
-    var plano = function (x) { return String(x || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, ""); };
-    var estado = arch ? "Archivado" : p.estado === "en marcha" ? "En marcha · semana " + p.semana + " de " + p.total
-               : p.estado === "pasado" ? "Curso terminado" : p.estado === "por empezar" ? "Por empezar" : "Sin fecha";
-    var capa = document.createElement("div");
-    capa.className = "cfg-capa"; capa.setAttribute("role", "dialog"); capa.setAttribute("aria-modal", "true");
-    capa.setAttribute("aria-label", "Archivar o borrar " + nombre);
-    capa.innerHTML = '<div class="cfg-caja gs-caja">' +
-      '<div class="cfg-cab">' + ico("botin", "grande") + '<div><b>' + esc(nombre) + '</b><span>' + esc(estado) +
-        (p.reclutas != null ? ' · ' + p.reclutas + (Number(p.reclutas) === 1 ? " recluta" : " reclutas") : '') + '</span></div>' +
-        '<button type="button" class="btn min" data-cfg-x>Cerrar</button></div>' +
-      (refDe(p) && !porFechas
-        ? '<div class="gs-op">' + ico(arch ? "envivo" : "medalla", "grande") + '<div><b>' + (arch ? "Reabrir el curso" : "Graduar y archivar") + '</b><p>' +
-            (arch ? 'Vuelve a <b>Mis grupos</b>, en marcha o terminado según sus fechas. Todo sigue como estaba.'
-                  : 'Pasa a <b>Cursos terminados</b> y deja de salir en el aula y en la llamada a filas. Tu alumnado sigue entrando a su Nave con todo lo que ganó. <b>No se borra nada</b> y se puede reabrir.') +
-            '</p></div><button type="button" class="btn" id="gs-arch">' + (arch ? "Reabrir" : "Archivar") + '</button></div>'
-        : '') +
-      (porFechas ? '<p class="gs-nota">Terminó por fechas: ya está en <b>Cursos terminados</b> y no hace falta archivarlo.</p>' : '') +
-      (puedeBorrarP(p)
-        ? '<div class="gs-op peligro">' + ico("papelera", "grande") + '<div><b>Borrar para siempre</b><p>Para los grupos de prueba. Se borra <b>todo</b>: el grupo, las fichas de su alumnado, sus retos, el Mercado y el Zoco. <b>No se puede deshacer.</b></p>' +
-            '<label>Escribe su nombre para confirmarlo: <b>' + esc(nombre) + '</b><input id="gs-nombre" autocomplete="off" spellcheck="false" placeholder="sin preocuparte de mayúsculas, acentos ni signos"></label></div>' +
-            '<button type="button" class="btn peligro" id="gs-borrar" disabled>Borrar</button></div>'
-        : '<p class="gs-nota">Borrarlo del todo solo puede quien lo creó o un referente vitalicio.</p>') +
-      '<p class="gs-msg" id="gs-msg" role="status"></p></div>';
-    document.body.appendChild(capa);
-    var cerrar = function () { capa.remove(); document.removeEventListener("keydown", tecla); };
-    var tecla = function (e) { if (e.key === "Escape") cerrar(); };
-    document.addEventListener("keydown", tecla);
-    capa.addEventListener("click", function (e) { if (e.target === capa || e.target.closest("[data-cfg-x]")) cerrar(); });
-    var msg = capa.querySelector("#gs-msg");
-    var ba = capa.querySelector("#gs-arch");
-    if (ba) ba.onclick = async function () {
-      ba.disabled = true; msg.textContent = arch ? "Reabriendo…" : "Archivando…";
-      try {
-        await MOTOR.guardarAjustes(per, { "stargate.archivado": arch ? false : Date.now() });
-        AVISO_GESTION = '<div class="card borrado-ok"><p>' + ico(arch ? "envivo" : "medalla") + ' <b>«' + esc(nombre) + '»</b> ' +
-          (arch ? "reabierto." : "graduado y archivado: está en «Cursos terminados», abajo. Se reabre desde su «⋯».") + '</p></div>';
-        cerrar(); PER = null; DATOS = null; history.replaceState(null, "", "consola.html"); elegirGrupo();
-      } catch (e) { ba.disabled = false; msg.textContent = "No se ha podido: " + (e.message || e); }
-    };
-    var inp = capa.querySelector("#gs-nombre"), bb = capa.querySelector("#gs-borrar");
-    if (inp && bb) {
-      var coincide = function () { return !!plano(nombre) && plano(inp.value) === plano(nombre); };
-      inp.oninput = function () { bb.disabled = !coincide(); };
-      bb.onclick = async function () {
-        if (!coincide()) return;
-        bb.disabled = true; bb.textContent = "Borrando…"; msg.textContent = "";
-        try { await MOTOR.llamar("deleteProject", { projectId: per }); location.href = "consola.html?borrado=" + encodeURIComponent(nombre); }
-        catch (e) { bb.disabled = false; bb.textContent = "Borrar"; msg.textContent = e.message || String(e); }
-      };
+  var GTABS = [["alumnado", "Alumnado", "assets/img/nave/iconos/gente.png"], ["equipo", "Equipo docente", "assets/img/iconos/estrella.png"],
+               ["escuadrones", "Escuadrones", "assets/img/iconos/escudo.png"], ["ajustes", "Ajustes del grupo", "assets/img/iconos/ajustes.png"],
+               ["calendario", "Calendario", "assets/img/iconos/calendario.png"], ["cerrar", "Cerrar el curso", "assets/img/iconos/medalla.png"]];
+  var FILTRO_G = "todos";
+  function gruposGestion() { return PERS.filter(function (p) { return refDe(p) || puedeBorrarP(p); }); }
+  function estadoG(p) { return (p.stargate || {}).archivado ? "archivado" : p.estado === "pasado" ? "terminado" : p.estado; }
+  function verGestion() {
+    document.body.classList.add("consola-dentro");
+    if (!soyRefAlguno()) {
+      app.innerHTML = '<div class="card"><h3>Gestionar grupos es del referente</h3><p>Crear, graduar o borrar grupos, el equipo docente y mover reclutas lo hace tu profe referente. ' +
+        'Lo tuyo está en <a href="consola.html">tu Nave</a>.</p></div>';
+      return;
     }
-    var f = capa.querySelector("#gs-arch") || inp || capa.querySelector("[data-cfg-x]"); if (f) f.focus();
+    if (GTABS.every(function (x) { return x[0] !== TAB; })) TAB = "alumnado";
+    var per = url.get("per");
+    if (per && gruposGestion().some(function (p) { return p.id === per; })) return abrirG(per);
+    PER = null; DATOS = null; pintarGestion();
+  }
+  async function abrirG(per) {
+    if (PER === per && DATOS) { PER = null; DATOS = null; history.replaceState(null, "", "gestion.html"); return pintarGestion(); }
+    PER = per; DATOS = null; history.replaceState(null, "", "gestion.html?per=" + encodeURIComponent(per));
+    pintarGestion();
+    try { DATOS = await MOTOR.leerPER(per, true); } catch (e) { return fallo("No he podido leer el grupo: " + e.message); }
+    if (PER === per) pintarGestion();
+  }
+  function pintarGestion() {
+    var G = gruposGestion(), cuenta = { todos: G.length };
+    G.forEach(function (p) { var e = estadoG(p); cuenta[e] = (cuenta[e] || 0) + 1; });
+    var FIL = [["todos", "Todos"], ["en marcha", "En marcha"], ["por empezar", "Por empezar"], ["terminado", "Terminados"], ["archivado", "Archivados"]];
+    var fila = function (p) {
+      var e = emblemaDe(p), est = estadoG(p), abierto = p.id === PER;
+      var estTxt = est === "en marcha" ? "Semana " + p.semana + " de " + p.total : est === "por empezar" ? "Empieza el " + ((p.stargate || {}).inicio ? diaC(p.stargate.inicio) : "—")
+                 : est === "terminado" ? "Terminado" : est === "archivado" ? "Archivado" : "Sin fecha";
+      var eq = (p.equipo || []).map(function (d) { return esc(d.nombre || d.correo) + (d.rol === "referente" ? " (ref.)" : ""); }).join(" · ");
+      return '<div class="gs-fila' + (abierto ? " on" : "") + '">' +
+          '<div class="gs-g">' + (e.img ? '<img src="' + esc(e.img) + '" alt="" loading="lazy">' : '<span class="cn-g-sin">◈</span>') +
+            '<span><b>' + esc(p.nombre) + '</b><em>' + esc(((p.stargate || {}).tipo || "REGULAR") === "PUA" ? "PUA" : "Regular") + '</em></span></div>' +
+          '<span class="gs-est ' + est.replace(/\s/g, "-") + '">' + esc(estTxt) + '</span>' +
+          '<span class="gs-n">' + (p.reclutas == null ? "—" : p.reclutas) + '<em> reclutas</em></span>' +
+          '<span class="gs-eq">' + (eq || "—") + '</span>' +
+          '<span class="gs-b"><a class="btn min" href="consola.html?per=' + esc(p.id) + '" title="Abrirlo en tu Nave">Abrir ↗</a>' +
+            '<button type="button" class="btn min' + (abierto ? " primary" : "") + '" data-gabrir="' + esc(p.id) + '" aria-expanded="' + abierto + '">Gestionar ' + (abierto ? "▴" : "▾") + '</button></span>' +
+        '</div>' +
+        (abierto ? '<div class="gs-panel">' + (DATOS
+          ? '<div class="cn-secs gs-tabs" role="tablist">' + GTABS.map(function (x) {
+              return '<button type="button" class="pest cn-t' + (TAB === x[0] ? " activa" : "") + '" data-tab="' + x[0] + '"><img class="i" src="' + x[2] + '" alt="" width="30" height="30" aria-hidden="true"><b>' + x[1] + '</b></button>'; }).join("") + '</div>' +
+            '<div id="c-aviso" class="aviso" hidden></div><div id="c-cuerpo"></div>'
+          : '<p class="muted">Leyendo el grupo…</p>') + '</div>' : '');
+    };
+    var vis = G.filter(function (p) { return FILTRO_G === "todos" || estadoG(p) === FILTRO_G; });
+    app.innerHTML = avisoBorrado() +
+      '<div class="card gs-cab">' + ico("ajustes", "grande") + '<div class="gs-cab-t"><div class="eyebrow amber">Solo referentes</div><h2>Gestionar grupos</h2>' +
+        '<p class="small muted">Lo que se hace una o dos veces por curso: crear, el equipo docente, los escuadrones, los ajustes y el calendario de cada grupo, mover reclutas, graduar y borrar. Nada de esto sale en tu Nave.</p></div>' +
+        '<a class="btn primary" href="crear.html">+ Crear un grupo</a></div>' +
+      '<div class="gs-filtros" role="group" aria-label="Qué grupos">' + FIL.filter(function (x) { return x[0] === "todos" || cuenta[x[0]]; }).map(function (x) {
+        return '<button type="button" class="chip' + (FILTRO_G === x[0] ? " on" : "") + '" data-gfiltro="' + x[0] + '" aria-pressed="' + (FILTRO_G === x[0]) + '">' + x[1] + ' · ' + (cuenta[x[0]] || 0) + '</button>'; }).join("") + '</div>' +
+      '<div class="gs-tabla">' + (vis.length ? vis.map(fila).join("") : '<p class="muted">Ningún grupo aquí.</p>') + '</div>';
+    Array.prototype.forEach.call(app.querySelectorAll("[data-gfiltro]"), function (b) { b.onclick = function () { FILTRO_G = b.getAttribute("data-gfiltro"); pintarGestion(); }; });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-gabrir]"), function (b) { b.onclick = function () { abrirG(b.getAttribute("data-gabrir")); }; });
+    Array.prototype.forEach.call(app.querySelectorAll(".gs-panel [data-tab]"), function (b) { b.onclick = function () { TAB = b.getAttribute("data-tab"); pintarGestion(); }; });
+    cablearCopiar(app);
+    if (PER && DATOS && $("#c-cuerpo")) {
+      var t = window.SG.TABLERO.tablero(DATOS, true);
+      if (GTABS.every(function (x) { return x[0] !== TAB; })) TAB = "alumnado";
+      ({ alumnado: verAlumnado, equipo: verEquipo, escuadrones: verEscuadrones, ajustes: verAjustes, calendario: verCalendario, cerrar: verCerrar })[TAB](t);
+    }
+  }
+  /** «Cerrar el curso»: graduar y archivar (o reabrir) y, para los de prueba, borrar. */
+  function verCerrar(t) {
+    var p = PERS.filter(function (x) { return x.id === PER; })[0] || {}, arch = !!((DATOS.proyecto || {}).stargate || {}).archivado, porFechas = p.estado === "pasado" && !arch;
+    $("#c-cuerpo").innerHTML =
+      (porFechas ? '<div class="card"><h3>' + ico("medalla") + ' Curso terminado</h3><p class="small muted">Terminó por fechas: ya está entre los terminados y no hace falta archivarlo.</p></div>'
+        : '<div class="card gs-op"><h3>' + ico(arch ? "envivo" : "medalla") + ' ' + (arch ? "Reabrir el curso" : "Graduar y archivar") + '</h3>' +
+            '<p class="small">' + (arch ? 'Vuelve a las Naves de su equipo docente, en marcha o terminado según sus fechas. Todo sigue como estaba.'
+              : 'Al acabar el curso. Sale de las Naves de su equipo docente, del aula y de la llamada a filas. El alumnado sigue entrando a su Nave con todo lo que ganó. <b>No se borra nada</b> y se puede reabrir.') + '</p>' +
+            '<p><button type="button" class="btn" id="gs-arch">' + (arch ? "Reabrir" : "Graduar y archivar") + '</button></p></div>') +
+      tarjetaBorrar();
+    cablearBorrar();
+    var ba = $("#gs-arch");
+    if (ba) ba.onclick = async function () {
+      ba.disabled = true;
+      try {
+        await MOTOR.guardarAjustes(PER, { "stargate.archivado": arch ? false : Date.now() });
+        AVISO_GESTION = '<div class="card borrado-ok"><p>' + ico(arch ? "envivo" : "medalla") + ' <b>«' + esc(p.nombre || PER) + '»</b> ' +
+          (arch ? "reabierto." : "graduado y archivado. Lo encuentras en «Archivados».") + '</p></div>';
+        PERS = await MOTOR.misPERs(YO.correo); DATOS = await MOTOR.leerPER(PER, true); pintarGestion();
+      } catch (e) { ba.disabled = false; aviso("No se ha podido: " + (e.message || e)); }
+    };
+  }
+  /** En la ficha de un recluta, dentro de «Gestionar grupos»: pasarlo a otro de tus grupos con todo lo suyo. */
+  function moverDeGrupo(r) {
+    var otros = PERS.filter(function (p) { return p.id !== PER && refDe(p) && p.estado !== "pasado"; });
+    if (!otros.length || !r.ficha) return "";
+    return '<p class="fi-mover"><label>' + ico("cohete") + ' Pasar a ' + esc(r.alias) + ' al grupo <select id="c-mover">' +
+      otros.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.nombre) + '</option>'; }).join("") +
+      '</select></label> <button type="button" class="btn min" id="c-mover-b">Cambiar de grupo</button> ' +
+      '<span class="small muted">se lleva todo: xp, créditos, insignias, cromos y héroes.</span></p>';
   }
   /**
    * 19-sep · EL CÓDIGO DE CLASE, DENTRO DEL GRUPO. Norberto: «es algo que se usará solo el primer y segundo día, no merece
@@ -1438,11 +1358,6 @@
     b.classList.toggle("visto", ver);
     b.innerHTML = ver ? esc(b.getAttribute("data-cod")) + ' <em>Tapar</em>' : '•••••• <em>Mostrar</em>';
     b.setAttribute("aria-label", ver ? "Tapar el código de clase" : "Mostrar el código de clase");
-  });
-  document.addEventListener("click", function (e) {
-    var b = e.target && e.target.closest && e.target.closest("[data-gestion]");
-    if (!b) return;
-    e.preventDefault(); abrirGestion(b.getAttribute("data-gestion"));
   });
 
   /**
@@ -1467,7 +1382,7 @@
     var sin = o.gente.filter(function (r) { return !(r.hechos || []).length; });
     var pct = N ? Math.round(act * 100 / N) : 0;
     var nom = function (A) { return A.slice(0, 3).map(function (r) { return r.alias; }).join(", ") + (A.length > 3 ? "…" : ""); };
-    if (!N) L.push({ t: "Todavía no se ha alistado nadie. Copia la invitación en «Mis grupos» y pégala hoy en el foro: el primer día es cuando más gente se apunta." });
+    if (!N) L.push({ t: "Todavía no se ha alistado nadie. Copia la invitación (junto al nombre del grupo, aquí abajo) y pégala hoy en el foro: el primer día es cuando más gente se apunta." });
     if (o.cola) L.push({ t: "Tienes " + o.cola + (o.cola === 1 ? " subida de nota esperando" : " subidas de nota esperando") + " tu visto bueno. Resuélvelas pronto: quien pide nota está pendiente.", a: ["Ver la Cola de nota", "cola"] });
     if (sil.length) L.push({ t: (sil.length === 1 ? "Una persona lleva" : sil.length + " reclutas llevan") + " una semana en silencio (" + nom(sil) + "). Un mensaje personal funciona mejor que un aviso general: una línea basta.", a: ["Escribirles", "silencio"] });
     if (sin.length && N) L.push({ t: (sin.length === 1 ? "Una persona no ha" : sin.length + " no han") + " registrado aún su primer reto. El «Preséntate» (A0) es el más fácil: deja cinco minutos al final de la clase para hacerlo juntos.", a: ["Escribirles", "sin"] });
@@ -1558,17 +1473,31 @@
     var consejos = consejosNebula({ gente: gente, sem: sem, total: total, s: s, antes: antes, cola: (function () { try { return pendientesCola(); } catch (e) { return 0; } })(),
       semNuevoTema: !!(s && (!sAnt || sAnt.tema_n !== s.tema_n)), semanaDe: function (r) { return semanaDeReto(r, tipo, mapa); } });
 
+    // 19-sep · LA NAVE DEL COMANDANTE: la cabecera del grupo (el código de clase, solo hasta la semana 3: Norberto, «puede
+    // estar bien que esté visible las 3 primeras semanas; después solo dentro del propio grupo», o sea, en Mi gente)
+    var pAqui = PERS.filter(function (x) { return x.id === PER; })[0] || {}, emb = emblemaDe(pAqui), ini = ((DATOS.proyecto || {}).stargate || {}).inicio;
+    var codigo = (DATOS.proyecto || {}).joinCode;
     $("#c-cuerpo").innerHTML = '<div class="pt">' +
-      '<div class="card pt-hero"><img class="pt-ava" id="pt-ava" src="assets/img/avatares/comandantes/c1.jpg" alt="">' +
-        '<div><div class="eyebrow teal">' + esc(estado) + (s ? ' · ' + esc(s.tema) : '') + '</div>' +
-        '<h2>' + esc(s ? s.sub || s.tema : t.nombre) + '</h2>' +
-        '<p class="small muted">' + (yoN ? 'Comandante <b>' + esc(yoN) + '</b> · ' : '') + esc(deQuien) + (s && s.capitulo ? ' · capítulo «' + esc(s.capitulo) + '»' : '') + '</p></div>' +
-        (sem <= total ? codigoClase(PER, (DATOS.proyecto || {}).joinCode) : '') + '</div>' +
-      bannerNebula(consejos) + resumenGrupo(t, gente) +
+      '<div class="card pt-cab">' + (emb.img ? '<img class="pt-emb" src="' + esc(emb.img) + '" alt="">' : '') +
+        '<div class="pt-cab-t"><div class="eyebrow teal">' + esc(estado) + (s ? ' · ' + esc(s.tema) : '') + '</div>' +
+        '<h2>' + esc(t.nombre) + '</h2>' +
+        '<p class="small muted">' + (emb.nombre ? 'Tu escuadrón: <b>' + esc(emb.nombre) + '</b> · ' : '') + esc(deQuien) +
+          (ini ? ' · ' + (sem < 1 ? 'empieza el ' : 'empezó el ') + esc(diaC(ini)) : '') + '</p></div>' +
+        (sem <= 3 ? codigoClase(PER, codigo) : '') + '</div>' +
+      // los tres pasos de una clase en directo, en su orden: proyectar, pasar lista y tener el aula a mano
+      '<div class="pt-acc c-hacer">' +
+        '<div class="gp-celda principal"><a class="gp-b principal" href="sesion.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
+          '<span class="gp-n">1</span><img class="pt-acc-i" src="assets/img/iconos/cohete.png" alt=""><span class="pt-acc-t"><b>Empezar la clase</b><em>proyecta la sesión de hoy</em></span></a>' +
+          botonCfgSesion(PER) + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") + '</div>' +
+        '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
+          '<span class="gp-n">2</span><img class="pt-acc-i" src="assets/img/nave/iconos/envivo.png" alt=""><span class="pt-acc-t"><b>Llamada a filas</b><em>que fichen</em></span></a>' +
+          botonVentana("llamada.html?per=" + PER, "llamada_" + PER, "la llamada a filas") + '</div>' +
+        '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
+          '<span class="gp-n">3</span><img class="pt-acc-i" src="assets/img/nave/iconos/clase.png" alt=""><span class="pt-acc-t"><b>El aula</b><em>' + (manual() ? "premios, tiempo, votar" : "tiempo, votar, al azar") + '</em></span></a>' +
+          botonVentana("aula.html?per=" + PER, "aula_" + PER, "el aula") + '</div>' +
+      '</div>' +
       (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
         '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente) + '</div>') +
-      (antes.length ? '<div class="card pt-ant"><h3>Retos ya lanzados</h3><p class="small muted">Cuántos los han registrado, ' + esc(deQuien) + '. En ámbar, los que van por debajo del 25 %.</p>' +
-        '<ul class="pt-retos">' + antes.map(fila).join("") + '</ul></div>' : '') +
       '<div class="pt-dos">' +
         (foro ? '<div class="card pt-foro"><h3>Mensaje del foro</h3><p class="small muted">Para pegar esta semana en el foro de la plataforma de UNIR, ya firmado por ti.</p>' +
           '<div class="foro-msg recortado" id="pt-foro-txt">' + esc(foro).replace(/\n/g, "<br>") + '</div>' +
@@ -1584,6 +1513,8 @@
             (propio ? ' <button type="button" class="btn min" id="pt-panel-of">Volver al oficial</button>' : '') + '</p>' +
             '<p class="small m-sec-msg" id="pt-panel-msg" aria-live="polite"></p></div></div>' +
       '</div>' +
+      (antes.length ? '<div class="card pt-ant"><h3>Retos ya lanzados</h3><p class="small muted">Cuántos los han registrado, ' + esc(deQuien) + '. En ámbar, los que van por debajo del 25 %.</p>' +
+        '<ul class="pt-retos">' + antes.map(fila).join("") + '</ul></div>' : '') +
       '<div class="pt-dos">' +
         // 19-sep · «opción de mandar un mensaje a los estudiantes: les aparecerá en su tablón la próxima vez que se conecten»
         '<div class="card pt-msg" data-av><h3>' + ico("mensaje") + ' Mensaje a tus reclutas</h3>' +
@@ -1601,9 +1532,11 @@
       '</div>' +
     '</div>';
 
+    // NEBULA y tu gente, arriba, al lado de tu ficha (como «la orden de la semana» al lado de la ficha del recluta)
+    var der = $("#cn-neb"); if (der) der.innerHTML = bannerNebula(consejos) + resumenGrupo(t, gente);
     var mas = $("#pt-foro-mas"), txt = $("#pt-foro-txt");
     if (mas && txt) mas.onclick = function () { var a = txt.classList.toggle("abierto"); mas.textContent = a ? "Plegar" : "Leer entero"; };
-    Array.prototype.forEach.call(document.querySelectorAll("#c-cuerpo [data-tab-ir]"), function (b) {
+    Array.prototype.forEach.call(document.querySelectorAll("#consola-app [data-tab-ir]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-tab-ir"); pintar(); };
     });
     if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
@@ -1632,7 +1565,7 @@
     Array.prototype.forEach.call(document.querySelectorAll("#c-cuerpo [data-dest]"), function (b) { b.onclick = function () { ponDestino(b.getAttribute("data-dest")); }; });
     // «Escribirles» (en las cifras o en un consejo de NEBULA): elige a quién y lleva a la caja del mensaje
     var escribirA = function (a) { ponDestino(a); if (mTxt) { mTxt.scrollIntoView({ behavior: "smooth", block: "center" }); mTxt.focus(); } };
-    Array.prototype.forEach.call(document.querySelectorAll("#c-cuerpo [data-escribir]"), function (b) { b.onclick = function () { escribirA(b.getAttribute("data-escribir")); }; });
+    Array.prototype.forEach.call(document.querySelectorAll("#consola-app [data-escribir]"), function (b) { b.onclick = function () { escribirA(b.getAttribute("data-escribir")); }; });
     cablearNebula(consejos, function (que) { if (que === "cola") { TAB = "canjes"; pintar(); } else escribirA(que); });
     if (mTxt && mOk) {
       mTxt.oninput = function () { mN.textContent = mTxt.value.length + "/400"; mOk.disabled = !mTxt.value.trim() || !DEST[destino].length; };
@@ -1666,11 +1599,32 @@
     }).catch(function (e) { nmsg.textContent = "No he podido leer tus notas: " + (e.message || e); });
   }
 
+  /**
+   * 🔴 15-sep · LOS EMBEDS, UNA SOLA VEZ. Norberto: «en todas las fichas de cada grupo aparece Embed para Genially, pero
+   * entiendo que es el mismo para todos: déjalo en algún lugar especificando que es el mismo para todos los grupos». Lo
+   * es: ninguno lleva el grupo dentro (piden la cuenta y preguntan). Vivían en «Mis grupos»; desde el 19-sep, en «Enlaces».
+   */
+  function paraTusGeniallys() {
+    return '<section class="card gp-gen"><div class="gp-gen-txt"><h3>Para tus Geniallys</h3>' +
+      '<details class="gp-ayuda"><summary>¿Cómo se usan?</summary><p class="small muted">Los <b>mismos para todos tus grupos</b> y para los cursos que vengan: piden tu cuenta y, si llevas varios grupos, ' +
+      'preguntan en cuál estáis. Se copia el código y, en Genially, <b>Insertar → Otros → Código</b>. ' +
+      'O pulsa <b>⧉</b> y se abre <b>en su propia ventana</b>, sin nada más alrededor: para proyectarla o tenerla a mano durante la clase.</p></details></div>' +
+      '<div class="gp-gen-b">' +
+      // 16-sep · la sesión se pega DOS VECES en el Genially: la apertura antes de la teoría y el cierre después
+      [["sesion-ap", ico("video") + " La sesión · 1 · apertura", "sesion.html?embed=1&tramo=apertura"],
+       ["sesion-ci", ico("video") + " La sesión · 3 · cierre", "sesion.html?embed=1&tramo=cierre"],
+       ["sesion", ico("video") + " La sesión entera (sin partir)", "sesion.html?embed=1"], ["aula", ico("envivo") + " El aula · la clase en directo", "aula.html?embed=1"],
+       ["llamada", ico("clase") + " La llamada a filas", "llamada.html?embed=1"], ["batalla", ico("diana") + " El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
+        var tit = x[1].replace(/^<img[^>]*>\s*/, "");
+        return '<span class="gp-gen-par"><button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + tit)) + '">' + x[1] + '</button>' +
+          botonVentana(x[2], x[0], tit) + '</span>';
+      }).join("") + '</div></section>';
+  }
   function verMios(t) {
     var yo = (t.docentes_full || []).filter(function (d) {
       return String(d.correo || "").toLowerCase() === String(YO.correo || "").toLowerCase(); })[0];
     if (!yo) {
-      $("#c-cuerpo").innerHTML = '<div class="card"><h3>Mis enlaces</h3>' +
+      $("#c-cuerpo").innerHTML = '<div class="card"><h3>Enlaces</h3>' +
         '<p>No te encuentro en el equipo docente de este grupo con <b>' + esc(YO.correo) + '</b>, ' +
         'así que no sé cuál es tu sitio aquí.</p></div>';
       return;
@@ -1679,7 +1633,7 @@
     var oficial = t.panel || "";
     // (19-sep · «Tu sesión en directo» ya no vive aquí: Norberto, «no tiene ningún sentido en Mis enlaces». Es la rueda
     // de al lado de «Empezar la clase»)
-    $("#c-cuerpo").innerHTML =
+    $("#c-cuerpo").innerHTML = paraTusGeniallys() +
       '<div class="card"><h3>Tu panel de Genially</h3>' +
       '<p class="small muted">Es el que abre <b>tu</b> alumnado desde su Nave. Si lo dejas vacío, ' +
       'usan el panel oficial del grupo — que es lo normal: solo necesitas el tuyo si has duplicado ' +
@@ -1706,7 +1660,7 @@
         enlaceFila("<img class=ico src=assets/img/iconos/p/medalla.png alt>", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1", "tablero_" + PER, true) +
         enlaceFila("<img class=ico src=assets/img/iconos/p/video.png alt>", "La sesión de esta semana", "sesion.html?per=" + encodeURIComponent(PER), "sesion_" + PER, true) +
         // 13-sep · la Nave con tu Comandante de recluta, para ensayar (o enseñarla fuera de la sesión): no guarda nada
-        enlaceFila("<img class=ico src=assets/img/iconos/p/envivo.png alt>", "Tu Nave de Comandante (simulacro)", "recluta.html?simulacro=1&per=" + encodeURIComponent(PER), "", true) +
+        enlaceFila("<img class=ico src=assets/img/iconos/p/envivo.png alt>", "Tu Nave de ejemplo (simulacro)", "recluta.html?simulacro=1&per=" + encodeURIComponent(PER), "", true) +
         enlaceFila("<img class=ico src=assets/img/iconos/p/notas.png alt>", "Padlet de la clase", t.padlet || "") +
       '</div></div>';
 
@@ -2922,7 +2876,7 @@
           '<p class="small">' + cfg.ganadores + " ganador" + (cfg.ganadores === 1 ? "" : "es") + " por grupo · " + cfg.coste + " ◈ la participación" + (cfg.maximo ? " · máx. " + cfg.maximo + " por persona" : "") +
           " · a la venta del " + diaDe(cfg.desde) + " al " + diaDe(cfg.fecha) + "</p>" +
           '<p class="small sr-estados">' + s.grupos.map(function (x) {
-            return '<a class="chip" href="consola.html?per=' + esc(x.per) + '" title="Entrar en el grupo: su bombo y el sorteo en directo">' + esc(nombreDeGrupo(x.per)) + " · " + estadoSorteo(x.ticket)[1] + "</a>"; }).join(" ") + "</p></div></div>" +
+            return '<a class="chip" href="consola.html?per=' + esc(x.per) + '" title="Abrir ese grupo: su bombo y el sorteo en directo">' + esc(nombreDeGrupo(x.per)) + " · " + estadoSorteo(x.ticket)[1] + "</a>"; }).join(" ") + "</p></div></div>" +
           '<div class="sr-ambito"></div>' +
           (s.grupos.some(function (x) { return !x.ticket.isRaffleCompleted; }) ? '<p class="sr-botones"><button class="btn sr-editar"><img class=ico src=assets/img/iconos/p/editar.png alt> Cambiar (en todos sus grupos)</button></p><div class="sr-editar-f"></div>' : "") +
           "</div>";
@@ -3040,7 +2994,8 @@
   var INICIALES = ["D", "L", "M", "X", "J", "V", "S"];
   function verCalendario(t) {
     var S = DATOS.proyecto.stargate || {}, SS = window.SGSEMANAS, cat = window.SG_CATALOGO || {};
-    var edita = soyRefAqui();
+    // 19-sep · verlo, en la Nave (para todo el equipo); editarlo, solo en «Gestionar grupos» (lo eligió Norberto)
+    var edita = soyRefAqui() && GESTION;
     if (!edita || !CAL || CAL.per !== PER) CAL = calDelGrupo();
     var tipo = S.tipo === "PUA" ? "PUA" : "REGULAR", total = (cat.semanas || {})[tipo] || 15, extra = cat.semanasCanjeExtra || 1;
     var re = function () { verCalendario(t); };
@@ -3255,7 +3210,7 @@
   }
   function resumenGrupo(t, gente) {
     var R = gente || (t && t.reclutas) || [], n = R.length;
-    if (!n) return '<div class="card c-resumen vacio"><b>Todavía no se ha alistado nadie.</b> <span class="small muted">Comparte la invitación desde «Mis grupos».</span></div>';
+    if (!n) return '<div class="card c-resumen vacio"><b>Todavía no se ha alistado nadie.</b> <span class="small muted">Comparte la invitación: el código de clase está en el Puente (las tres primeras semanas) y en «Mi gente».</span></div>';
     var activos = R.filter(function (r) { return Number(r.xp7) > 0; }).length;
     var sinNada = R.filter(function (r) { return !(r.hechos || []).length; }).length;
     var retos = R.reduce(function (a, r) { return a + (r.hechos || []).length; }, 0);
@@ -3385,7 +3340,7 @@
       b.disabled = true; b.textContent = "Borrando…";
       try {
         await MOTOR.llamar("deleteProject", { projectId: PER });
-        location.href = "consola.html?borrado=" + encodeURIComponent(nombre);
+        location.href = (GESTION ? "gestion.html" : "consola.html") + "?borrado=" + encodeURIComponent(nombre);
       } catch (e) { b.disabled = false; b.textContent = "Borrar el grupo para siempre"; aviso(e.message); }
     };
   }
@@ -3450,13 +3405,8 @@
       'en la presentación de <b>Vínculo</b>, ponla en algo que no parezca un botón (una estrella, un rincón de la imagen). ' +
       '<button class="btn min" data-copiado="✓ Enlace copiado" data-copiar="' + esc(location.origin + "/fragmento.html") + '"><img class=ico src=assets/img/iconos/p/enlace.png alt> Copiar la puerta escondida</button></p>' +
       '</div>' +
-      // 19-sep · graduar y archivar también desde aquí (el mismo «⋯» que en la fila de Mis grupos)
-      (gestionable(PERS.filter(function (x) { return x.id === PER; })[0])
-        ? '<div class="card gs-aj"><h3>' + ico("medalla") + ' Graduar y archivar</h3><p class="small">Al acabar el curso: pasa a «Cursos terminados», el alumnado conserva su Nave y no se borra nada. Se puede reabrir.</p>' +
-            '<p><button type="button" class="btn" data-gestion="' + esc(PER) + '">' + ico("botin") + ' Archivar o borrar…</button></p></div>'
-        : '') +
-      tarjetaBorrar();
-    cablearBorrar();
+      '';
+
     var aCal = app.querySelector('#c-cuerpo [data-tab="calendario"]');
     if (aCal) aCal.onclick = function () { TAB = "calendario"; pintar(); };
     if ($("#s-codigo")) $("#s-codigo").onclick = async function () {

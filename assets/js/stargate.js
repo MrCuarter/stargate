@@ -11,7 +11,7 @@
    *
    * 🔴 Las entradas `solo-referente` del menú nacen OCULTAS en el HTML, y es deliberado: esta web
    * es estática y no sabe quién mira, así que si nacieran visibles habría un parpadeo en el que
-   * cualquier docente vería «Crear grupo» antes de que se escondiera. Esconder después de enseñar
+   * cualquier docente vería «Gestionar grupos» antes de que se escondiera. Esconder después de enseñar
    * es peor que no esconder: ya lo ha visto y ya sabe que existe.
    *
    * Vive aquí —y no en `puerta.js`— porque el menú es el mismo en TODAS las páginas y la puerta solo

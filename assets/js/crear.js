@@ -260,7 +260,7 @@
           '<img class=ico src=assets/img/iconos/p/enlace.png alt> Copiar el enlace de invitación</button>' +
         '<p class="small muted">Es lo único que tienes que repartir. Ya lleva el código dentro.</p>' +
         '</div>' +
-        '<p><a class="btn" href="consola.html?per=' + esc(d.id) + '">Ir a la consola</a> ' +
+        '<p><a class="btn" href="consola.html?per=' + esc(d.id) + '">Ir a mi nave</a> ' +
         '<a class="btn min" href="crear.html">Crear otro</a></p></div>';
 
       var bc = document.getElementById("c-copiar");
@@ -314,10 +314,10 @@
     app.innerHTML = '<div class="card"><h3>Esto lo hace tu profe referente</h3>' +
       '<p class="lead">Crear un grupo —con su calendario, sus retos y su código— es cosa de quien ' +
       'coordina la asignatura. ' + (ps.length ? 'Tú ya tienes ' + (ps.length === 1 ? 'tu grupo' : 'tus ' + ps.length + ' grupos') +
-      ' en el puesto de mando.' : 'Con la cuenta <b>' + esc((YO && YO.correo) || '') + '</b> aún no eres profe referente: si deberías serlo, pide a Norberto tu invitación.') + '</p>' +
+      ' en tu Nave.' : 'Con la cuenta <b>' + esc((YO && YO.correo) || '') + '</b> aún no eres profe referente: si deberías serlo, pide a Norberto tu invitación.') + '</p>' +
       '<p class="small muted">Si necesitas un grupo nuevo, pídeselo: lo crea en un minuto y te añade ' +
       'al equipo con este mismo correo.</p>' +
-      '<p><a class="btn primary" href="consola.html"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Ir a mis grupos</a></p></div>';
+      '<p><a class="btn primary" href="consola.html"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Ir a mi nave</a></p></div>';
   }
 
   function arrancar() {

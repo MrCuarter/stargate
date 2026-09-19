@@ -38,7 +38,7 @@ c(/\(solo en este grupo\)/.test(K) && /varios\.png alt> varios grupos/.test(K), 
 c(/"Oferta creada: ya está en el Mercado de tu alumnado\."/.test(K) && /"Oferta alargada\."/.test(K) && /"✕ Oferta cancelada\."/.test(K), "   (con los mismos avisos de siempre)");
 // 3 · la página común y la separación
 c(/\[\["premios", "huevos", "Premios por enlace"\], \["sorteos", "sorteos", "Sorteos"\], \["ofertas", "ofertas", "Ofertas"\]\]/.test(K), "🔴 la página común tiene sus tres pestañas");
-c(/consola\.html\?comun=sorteos/.test(K) && /consola\.html\?comun=ofertas/.test(K), "   y la portada lleva a las tres");
+c(/href="consola\.html\?comun=' \+ \(TAB === "sorteos" \? "sorteos" : TAB === "ofertas" \? "ofertas" : "premios"\)/.test(K), "   y la sección «Premios» lleva a las tres (a la que estés mirando)");
 c(/function selectorGrupos\(nombre, sel\)/.test(K) && /varios\.png alt> Todos tus grupos \(/.test(K), "   un solo «¿Para qué grupos?» para sorteos y ofertas");
 // 4 · los desplegables con apartados
 c(/n\.tagName === "OPTGROUP"/.test(SG) && /\.sgsel-g\{/.test(CSS), "🔴 los desplegables de la casa respetan los apartados («Sobres y cápsulas», «Un héroe concreto»…)");

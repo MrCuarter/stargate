@@ -101,8 +101,9 @@ c(/b\.textContent = "¿Seguro\? Pulsa otra vez"/.test(K), "   quitar se confirma
 c(/pideReflexion\(\(r\.retos \|\| \{\}\)\[id\]\) \? '<p class="small muted"><img class=ico src=assets\/img\/iconos\/p\/editar\.png alt> Este reto lleva reflexión y no la tiene/.test(K),
   "   y «no la tiene» solo si se registró cuando ya se pedía");
 c(/\.retos-ficha \.reto:first-of-type\{border-top:1px solid/.test(CSS), "🔴 el primer reto de cada tema no pierde el borde de arriba (la regla de la Nave lo alcanzaba)");
-c(/#consola \.c-cab\{margin:0 0 14px\}/.test(CSS) && /\.pest\.activa\{background:linear-gradient/.test(CSS) && /class="pest-sep"/.test(K),
-  "🔴 pestañas con cuerpo e icono, separadas de la cabecera, y las del referente tras una raya");
+// 19-sep · la Nave del Comandante: las secciones del grupo son los botones con icono del menú de la Nave del recluta
+c(/\.pest\.activa\{background:linear-gradient/.test(CSS) && /class="pest cn-t/.test(K) && /\.pest\.cn-t \.i\{width:30px;height:30px/.test(CSS) && /\.pest\.cn-t::before,\.pest\.cn-s::before\{display:none!important/.test(CSS),
+  "🔴 las secciones del grupo: botones con cuerpo y su icono propio (el menú de la Nave), sin el icono pequeño de antes");
 
 console.log("\n  Batería 87 · preguntar con la cara de STARGATE y el porqué de un reto");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");

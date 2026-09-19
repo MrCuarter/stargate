@@ -516,7 +516,7 @@
               ? '<span class="small muted">Lleva el <b>código de la clase (' + esc(st.d.codigo)
                 + ')</b> dentro. Quien llegue sin el enlace tendrá que escribirlo.</span>'
               : '<span class="small muted">Este grupo no tiene código: puede alistarse cualquiera que '
-                + 'tenga el enlace. Tu referente puede ponerle uno desde la consola.</span>')
+                + 'tenga el enlace. Tu referente puede ponerle uno desde Gestionar grupos → Ajustes del grupo.</span>')
           + '</div>'
         : '<p class="acc-nota">Cinco cosas, y no hay una sexta: los tres formularios, su Nave y el Genially.</p>')
       +'<div class="accesos">'
@@ -605,7 +605,7 @@
     return '<div class="card" style="border-color:var(--amber)"><h3>Todavía no tienes grupo asignado</h3>'
       +'<p>No encuentro <b>'+esc(st.correo)+'</b> en el equipo docente de ningún grupo. '
       +'Pídele a tu <b>profesor/a referente</b> que te añada con ese mismo correo desde '
-      +'<b>Puesto de mando → Equipo docente → Añadir a alguien al equipo</b>.</p>'
+      +'<b>Gestionar grupos → Equipo docente → Añadir a alguien al equipo</b>.</p>'
       +'<p class="small muted">Mientras tanto te dejo abajo la <b>clase de prácticas</b>: es un grupo '
       +'de mentira con alumnado inventado. Tócalo todo, no se rompe nada.</p>'
       +'<p><button class="btn small" id="cambiarD2">Probar con otro correo</button></p></div>';
@@ -623,10 +623,10 @@
           ? 'El correo <b>'+esc(st.correo)+'</b> no aparece en el equipo docente de ningún grupo.'
           : 'No apareces en el equipo docente de ningún grupo.')+'</p>'
         +'<p class="small muted">Dos motivos posibles: o <b>aún no has creado ninguno</b>, o alguien '
-        +'tiene que añadirte con <b>ese mismo correo</b> desde <b>Puesto de mando → Equipo docente</b>. '
+        +'tiene que añadirte con <b>ese mismo correo</b> desde <b>Gestionar grupos → Equipo docente</b>. '
         +'Ojo también a <b>con qué cuenta de Google has entrado</b>: es el despiste más común.</p>'
         +'<p><a class="btn primary" href="crear.html"><img class=ico src=assets/img/iconos/p/estrella.png alt> Crear mi primer grupo</a> '
-        +'<a class="btn" href="consola.html"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Puesto de mando</a></p>'
+        +'<a class="btn" href="consola.html"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Mi nave</a></p>'
         +'<p><button class="btn small" id="cambiarD">Entrar con otra cuenta</button></p></div>';
       document.getElementById('cambiarD').onclick=olvidarCorreo;
       return;

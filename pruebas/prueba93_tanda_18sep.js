@@ -37,13 +37,14 @@ c(/SEG\.pararVotos=M\.vigilarVotaciones\(st\.per/.test(SES) && /class="ses-al-vt
 
 // ── 3 · el panel del docente y el grupo de un vistazo
 c(/async function miFichaDocente\(\)/.test(MOTOR) && /async function ponerAvatarDocente\(clave\)/.test(MOTOR), "🔴 motor · el docente guarda su avatar de comandante");
-c(/class="doc-panel"/.test(CONS) && /\(window\.SG_COMANDANTES_GEN \|\| \[\]\)\.map/.test(CONS), "🔴 consola · panel del docente con su comandante, que se cambia de una galería");
+// 19-sep · el panel del docente es ahora la ficha de la Nave del Comandante (la misma pieza que la del recluta)
+c(/<div class="grid cols-2 nave-estado cn-hero">/.test(CONS) && /class="av-lupa" id="doc-ava"/.test(CONS) && /\(window\.SG_COMANDANTES_GEN \|\| \[\]\)\.map/.test(CONS), "🔴 consola · la ficha del docente con su comandante, que se cambia de una galería");
 // 18-sep · los genéricos salen de la carpeta (c1, c2…): se añade una imagen y ya está en la galería
 const GEN = JSON.parse((leer("consola.html").match(/window\.SG_COMANDANTES_GEN=(\[[^\]]*\]);/) || [])[1] || "[]");
 c(GEN.length >= 26 && GEN.every((k, i) => k === "c" + (i + 1) && fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes", k + ".jpg"))),
   "   los comandantes genéricos, en orden y todos con su imagen (rubios, castaños, pelirrojos, veteranos y alienígenas)", GEN.join(" "));
-c(/function resumenGrupo\(t, gente\)/.test(CONS) && /resumenGrupo\(t, gente\) \+/.test(CONS), "🔴 dentro del grupo, sus cifras de un vistazo (activos, sin estrenarse, destacados)");
-c(/'<div class="gp-hacer c-hacer">'/.test(CONS), "🔴 dentro del grupo, proyectar la clase, el aula y la llamada a filas");
+c(/function resumenGrupo\(t, gente\)/.test(CONS) && /der\.innerHTML = bannerNebula\(consejos\) \+ resumenGrupo\(t, gente\)/.test(CONS), "🔴 dentro del grupo, sus cifras de un vistazo (activos, sin estrenarse, destacados), junto a NEBULA");
+c(/'<div class="pt-acc c-hacer">'/.test(CONS), "🔴 dentro del grupo, proyectar la clase, el aula y la llamada a filas");
 
 // ── 4 · iconos y fuera emojis
 ["clase", "gente", "premios", "tiempo", "voto", "pregunta"].forEach(k =>

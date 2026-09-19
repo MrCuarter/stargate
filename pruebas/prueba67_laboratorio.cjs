@@ -46,6 +46,16 @@ const REG = {};   // cifras que se apuntan para el informe
    * lleva el código secreto. Norberto lo probó con la de antes y le dejó reclamar antes de hora un premio que no era:
    * sus cambios no se habían guardado y la pantalla decía lo contrario. Estos ayudantes hacen lo que haría una persona.
    */
+  /**
+   * 🔴 19-sep · «GESTIONAR GRUPOS» (gestion.html, solo referentes): el equipo, los escuadrones, los ajustes, editar el
+   * calendario y cerrar el curso se mudaron allí. Abre el grupo en la tabla y pulsa la pestaña, como una persona.
+   */
+  const aGestion = async (p, per, tab) => {
+    await p.ir("gestion.html?per=" + per);
+    await p.hasta("!!document.querySelector('.gs-panel [data-tab]')", 75);
+    if (tab && tab !== "alumnado") { await p.js(`document.querySelector('.gs-panel [data-tab="${tab}"]').click(); 1`); }
+    await dormir(700);
+  };
   const premiosDe = async per => { const d = await leerDoc("projects/" + per + "/privado/stargate"); return Object.values((d && d.premiosEnlace) || {}); };
   const enlaceDe = (it, embed) => "huevo.html?h=" + it.id + "&c=" + encodeURIComponent(it.codigo) + "&t=" + (it.tipo === "huevo" ? "h" : "r") + (embed ? "&embed=1" : "");
   const tarjeta = (id, js) => `(function(){ var f=document.querySelector('.pe-f[data-pe="${id}"]'); if(!f) return 'SIN TARJETA'; ${js} })()`;
@@ -59,7 +69,7 @@ const REG = {};   // cifras que se apuntan para el informe
     const hay = await p.hasta("!!document.querySelector('.pest[data-tab=\"huevos\"]')", 75);
     if (Date.now() - t0 > 10000) console.log("      ⏱ (emulador lento: la consola de " + per + " tardó " + Math.round((Date.now() - t0) / 1000) + " s)");
     if (!hay) {
-      p.__pestanas = await p.js("location.search + ' · pestañas: ' + [].slice.call(document.querySelectorAll('.pestanas .pest')).map(function(b){return b.getAttribute('data-tab')}).join(',') + ' · ' + (document.querySelector('main')||document.body).innerText.replace(/\\s+/g,' ').slice(0,300)") + " · errores: " + JSON.stringify((p.errores || []).slice(-6));
+      p.__pestanas = await p.js("location.search + ' · pestañas: ' + [].slice.call(document.querySelectorAll('.cn-secs .pest')).map(function(b){return b.getAttribute('data-tab')}).join(',') + ' · ' + (document.querySelector('main')||document.body).innerText.replace(/\\s+/g,' ').slice(0,300)") + " · errores: " + JSON.stringify((p.errores || []).slice(-6));
       await p.foto(FOTOS + "/sin-pestana-premios.png");
       return false;
     }
@@ -114,9 +124,11 @@ const REG = {};   // cifras que se apuntan para el informe
         // 15-sep · la Cola de nota solo sale si hay algo pendiente (y entonces es +1); el Calendario lo ve todo el
         // equipo: el docente raso ve Mi gente, El Zoco, Mis enlaces y Calendario
         // 19-sep · +1 para todos: «Portada», la primera (el grupo de un vistazo)
-        ["rita@lab.test", "Rita Referente", 12, "referente que imparte"],
-        ["dani@lab.test", "Dani Docente", 7, "docente raso"],   // (16-sep · +Rankings, para todos; 19-sep · en mando manual, +Premios por enlace)
-        ["sol@lab.test", "Sol Coordina", 12, "referente que NO imparte"],
+        // 🔴 19-sep · LA NAVE DEL COMANDANTE: siete secciones con iconos (Puente, Mi gente, Rankings, Calendario, El Zoco, Premios,
+        // Enlaces) en mando manual; el equipo, los escuadrones y los ajustes se fueron a «Gestionar grupos»
+        ["rita@lab.test", "Rita Referente", 7, "referente que imparte"],
+        ["dani@lab.test", "Dani Docente", 7, "docente raso"],
+        ["sol@lab.test", "Sol Coordina", 7, "referente que NO imparte"],
       ];
       for (const [correo, nombre, pestanas, quien] of casos) {
         const p = await nueva(quien);
@@ -124,24 +136,23 @@ const REG = {};   // cifras que se apuntan para el informe
         c("docentes · con sesión guardada, la puerta pregunta «¿Eres tú?» (" + quien + ")", pregunto);
         const fue = await p.hasta("location.pathname.indexOf('consola.html')>=0", 20);
         c("docentes · el " + quien + " entra y cae en su puesto de mando", fue, await p.js("location.pathname"));
-        const tarjeta = await p.hasta("document.body.innerText.indexOf('LAB')>=0", 20);
-        c("docentes · y ve su grupo (" + quien + ")", tarjeta, (await p.texto()).slice(0, 200));
-        const t = await p.texto();
-        c("docentes · la tarjeta dice cuántos se han alistado (" + quien + ")", /20\s*alistad/i.test(t), (t.match(/\d+\s*alistad\w*/i) || ["—"])[0]);
-        c("docentes · y en qué semana va (" + quien + ")", /10\s*de 15 semanas/i.test(t), (t.match(/\d+\s*de \d+ semanas/) || ["—"])[0]);
-        // 15-sep · entrar al grupo con el botón épico «🚀 Entrar en el grupo» (antes, un enlace gris)
-        c("docentes · la tarjeta tiene el botón épico «Entrar en el grupo» (" + quien + ")",
-          await p.js("(function(){var b=document.querySelector('.gp .gp-abrir'); return !!b && b.classList.contains('epico') && b.offsetHeight>=44;})()"));
-        await p.js("(function(){var b=document.querySelector('.gp .gp-abrir'); if(b) b.scrollIntoView({block:'center',behavior:'instant'}); return 1;})()");
+        // 🔴 19-sep · LA NAVE DEL COMANDANTE: ya no hay «Mis grupos» con tarjetas y «Entrar en el grupo»; se entra directo en tu
+        // grupo (su pestaña arriba), con tu ficha, los tres pasos de la clase y las secciones con iconos
+        const tarjeta = await p.hasta("!!document.querySelector('.cn-g.on') && /LAB/.test(document.querySelector('.cn-g.on').textContent)", 30);
+        c("docentes · y cae DENTRO de su grupo, con su pestaña arriba (" + quien + ")", tarjeta, (await p.texto()).slice(0, 200));
+        const pg = await p.js("(document.querySelector('.cn-g.on')||{textContent:''}).textContent");
+        c("docentes · la pestaña del grupo dice en qué semana va y cuántos se han alistado (" + quien + ")", /Semana 10 de 15/.test(pg) && /20 reclutas/.test(pg), pg);
+        c("docentes · en el Puente, los tres pasos de la clase, a la vista (" + quien + ")",
+          await p.hasta("!!document.querySelector('.pt-acc .gp-b.principal') && document.querySelector('.pt-acc .gp-b.principal').offsetHeight>=44 && document.querySelectorAll('.pt-acc .gp-b').length===3", 30));
         await p.foto(FOTOS + "/1-" + quien.replace(/\W+/g, "-") + "-tarjeta.png");
-        const r = await p.js(`(function(){ var b=[].slice.call(document.querySelectorAll('a,button')).filter(function(x){return /Entrar en el grupo/i.test(x.textContent)&&x.offsetParent})[0]; if(!b) return 'no hay'; b.click(); return b.textContent.trim(); })()`);
-        await p.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
-        const tabs = await p.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).map(function(b){return b.textContent.trim()})");
-        const conCola = (tabs || []).some(x => /^Cola de nota/.test(x));
-        c("docentes · el " + quien + " ve " + pestanas + " pestañas" + (conCola ? " (+ la Cola de nota, que tiene algo)" : ""),
-          (tabs || []).length === pestanas + (conCola ? 1 : 0), "botón «" + r + "» · vio [" + tabs + "]");
-        c("docentes · la Cola de nota, si sale, es la última y lleva su número (" + quien + ")",
-          !conCola || /^Cola de nota\d+$/.test(tabs[tabs.length - 1]), tabs && tabs[tabs.length - 1]);
+        const tabs = await p.js("[].slice.call(document.querySelectorAll('.cn-secs .pest')).map(function(b){return b.textContent.trim()})");
+        const conCola = (tabs || []).some(x => /^Mi gente\d+$/.test(x));
+        c("docentes · el " + quien + " ve " + pestanas + " secciones" + (conCola ? " (Mi gente con la Cola de nota, que tiene algo)" : ""),
+          (tabs || []).length === pestanas, "vio [" + tabs + "]");
+        c("docentes · y ninguna de gestión (equipo, escuadrones, ajustes): van en «Gestionar grupos» (" + quien + ")",
+          await p.js("!document.querySelector('.pest[data-tab=\"equipo\"],.pest[data-tab=\"escuadrones\"],.pest[data-tab=\"ajustes\"]')"));
+        await p.js("var b=document.querySelector('.cn-t[data-sec=\"gente\"]'); if(b) b.click(); 1");
+        await p.hasta("document.querySelectorAll('tr[data-r]').length>0 || /Alumnado/.test((document.getElementById('c-cuerpo')||{}).textContent||'')", 20);
         await dormir(800);
         const gente = await p.texto();
         const n = (gente.match(/reclutas?/gi) || []).length;
@@ -752,7 +763,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const rita = await nueva("Rita revisa evidencias");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       await rita.ir("consola.html?per=lab-clase&tab=alumnado");
-      await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
+      await rita.hasta("document.querySelectorAll('.cn-secs .pest').length>0", 20);
       // 15-sep · «Mi gente» abre en su escuadrón: aquí se miran todos
       await rita.hasta("!!document.querySelector('.gf[data-gf=\"\"]') || !!document.querySelector('tr[data-r]')", 12);
       await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1");
@@ -973,8 +984,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await nadie.ir("recluta.html?per=lab-clase");
       c("bienvenida · la Nave sin sesión manda a la puerta única", await nadie.hasta("location.pathname.indexOf('entrar.html')>=0", 20), await nadie.js("location.href"));
       // 14c · el Capitán, en Mis grupos: referente (con sus pasos) y docente (sin ellos)
-      // (19-sep · un paso menos: el del código de clase va dentro de «Entra en tu grupo», que es donde vive el código)
-      for (const [correo, nombre, total, ref] of [["rita@lab.test", "Rita Referente", 13, true], ["dani@lab.test", "Dani Docente", 10, false]]) {
+      // (19-sep · la Nave del Comandante: tu ficha, los tres pasos, «Hoy toca», las secciones y tus grupos; y, al referente, «Gestionar grupos»)
+      for (const [correo, nombre, total, ref] of [["rita@lab.test", "Rita Referente", 14, true], ["dani@lab.test", "Dani Docente", 11, false]]) {
         const p = await nueva("visita " + nombre);
         await p.entrarPorLaPuerta(correo, nombre);
         // Dani es también alumna desde la sección 4: entonces la puerta pregunta, y aquí entra como docente
@@ -998,37 +1009,21 @@ const REG = {};   // cifras que se apuntan para el informe
         const nums = recorrido.map(v => v && v.n);
         c("capitán · " + nombre + ": " + total + " pasos, contados igual de principio a fin", recorrido.length === total && nums.every(n => new RegExp("/ " + total + "$").test(n)), JSON.stringify(nums));
         const enConsola = recorrido.filter(v => v.pag === "consola.html" && v.t !== "Listo para el salto");
-        c("capitán · " + nombre + ": en Mis grupos cada paso señala un botón de verdad",
-          enConsola.every(v => /\bgp|ref-zona|cajon/.test(v.diana)), JSON.stringify(enConsola.map(v => v.t + "→" + v.diana)));
+        c("capitán · " + nombre + ": en su Nave cada paso señala algo de verdad",
+          enConsola.every(v => /cn-|pt-|solo-referente/.test(v.diana)), JSON.stringify(enConsola.map(v => v.t + "→" + v.diana)));
         const titulos = recorrido.map(v => v.t);
         c("capitán · " + nombre + (ref ? " (referente) ve sus pasos: su zona y crear un grupo" : " (docente) NO ve los del referente"),
           ref ? titulos.indexOf("Como referente") >= 0 && titulos.indexOf("Referente: crear un grupo") >= 0
               : titulos.indexOf("Como referente") < 0 && !titulos.some(t => /^Referente/.test(t)), JSON.stringify(titulos));
-        c("capitán · " + nombre + ": pasa por la guía, la cronología y las actividades, y acaba en Mis grupos",
+        c("capitán · " + nombre + ": pasa por la guía, la cronología y las actividades, y acaba en su Nave",
           ["guia.html", "cronologia.html", "actividades.html"].every(x => recorrido.some(v => v.pag === x)) && recorrido[recorrido.length - 1].pag === "consola.html",
           JSON.stringify(recorrido.map(v => v.pag)));
-        // 14d · la visita de dentro del grupo
+        // 14d · 19-sep · ya no hay «visita de dentro del grupo»: la Nave del Comandante ES el grupo, y la visita general
+        // recorre sus secciones (el paso «Las secciones de tu grupo» señala la barra con sus iconos)
         await p.js("document.querySelector('.tour.open .tour-next') && document.querySelector('.tour.open .tour-next').click(); 1");
-        await p.ir("consola.html?per=lab-clase&tab=alumnado");
-        const invG = await p.hasta("!!document.querySelector('.tour-invite .tour-aqui')", 20);
-        c("capitán · dentro del grupo ofrece «¿Te enseño tu grupo por dentro?» (" + nombre + ")", invG);
-        await p.js("document.querySelector('.tour-invite .tour-aqui').click(); 1"); await dormir(900);
-        const loc = [await vista()];
-        for (let k = 0; k < 16; k++) {   // (19-sep · con «Portada», el referente ya tiene 14 pasos)
-          const hay = await p.js("(function(){var b=document.querySelector('.tour.open .tour-next'); if(!b) return 0; b.click(); return 1;})()");
-          if (!hay) break; await dormir(700); const v = await vista(); if (!v) break; loc.push(v);
-          if (k === 0) {   // 15-sep · el halo de la pestaña, por ENCIMA de sus vecinas (antes quedaba debajo)
-            const encima = await p.js("(function(){var t=document.querySelector('.pest.tour-target'); if(!t) return 'sin diana'; var r=t.getBoundingClientRect(); var e=document.elementFromPoint(r.left+r.width/2, r.bottom-2); return getComputedStyle(t).zIndex+'|'+(e===t||t.contains(e));})()");
-            c("capitán · el halo de la pestaña queda por encima de las demás (" + nombre + ")", /^4\|true$/.test(String(encima)), encima);
-            await p.foto(FOTOS + "/14-visita-pestana-" + (ref ? "ref" : "doc") + ".png");
-          }
-        }
-        // 13-sep · +1: «El Zoco» (todos); referente, +«Calendario», (14-sep) +«Sorteos» y +«Ofertas»; (15-sep) el Calendario
-        // para todos y la Cola de nota solo si hay algo pendiente
-        const hayCola = await p.js("!!document.querySelector('.pest[data-tab=\"canjes\"]')");
-        const nTabs = (ref ? 12 : 7) + (hayCola ? 1 : 0);   // (16-sep · +Rankings, para todos; 19-sep · +Portada, la primera)
-        c("capitán · la visita del grupo tiene " + (nTabs + 2) + " pasos, uno por pestaña que " + nombre + " ve",
-          loc.length === nTabs + 2 && loc.slice(1, nTabs + 1).every(v => /\bpest\b/.test(v.diana)), JSON.stringify(loc.map(v => v.t + "→" + v.diana)));
+        await p.ir("consola.html?per=lab-clase&tab=alumnado"); await p.hasta("!!document.querySelector('.cn-secs')", 30); await dormir(2500);
+        c("capitán · dentro del grupo ya no ofrece otra visita aparte (la Nave es el grupo) (" + nombre + ")", await p.js("!document.querySelector('.tour-invite .tour-aqui')"));
+        c("capitán · y la visita general enseña las secciones del grupo (" + nombre + ")", recorrido.some(v => v.t === "Las secciones de tu grupo" && /cn-secs/.test(v.diana)), JSON.stringify(recorrido.map(v => v.t + "→" + v.diana)));
       }
     }
     // ============================================================ 15 · LOS VITALICIOS CREAN GRUPOS
@@ -1066,12 +1061,12 @@ const REG = {};   // cifras que se apuntan para el informe
         await v.ir("consola.html");
         const ve = await v.hasta("document.body.innerText.indexOf(" + JSON.stringify(grupo.toUpperCase()) + ")>=0 || document.body.innerText.indexOf(" + JSON.stringify(grupo) + ")>=0", 25);
         // 19-sep · el código ya NO va en la fila (Norberto: «se usará solo el primer y segundo día… mejor dentro del grupo»)
-        c("vitalicio · el grupo nuevo aparece en Mis grupos, sin el código de clase en su fila", ve && await v.js("!document.querySelector('.gp .gp-cod')"),
+        c("vitalicio · el grupo nuevo aparece en su Nave (su pestaña arriba)", ve && await v.js("[].slice.call(document.querySelectorAll('.cn-g')).some(function(b){return b.getAttribute('data-grupo')===" + JSON.stringify(id) + "})"),
           (await v.texto()).slice(0, 240));
         await v.ir("consola.html?per=" + id); await v.hasta("!!document.querySelector('.pt-cod .gp-cod')", 60);
         const tapado = await v.js(`(function(){ var b=document.querySelector('.pt-cod .gp-cod');
           if(!b||b.getAttribute('data-cod')!==${JSON.stringify(codigo)}||b.textContent.indexOf(${JSON.stringify(codigo)})>=0) return false; b.click(); return b.textContent.indexOf(${JSON.stringify(codigo)})>=0; })()`);
-        c("vitalicio · dentro del grupo, su código tapado, que se destapa al pulsar", tapado, (await v.texto()).slice(0, 240));
+        c("vitalicio · en el Puente (aún no ha empezado: semanas 1-3), su código tapado, que se destapa al pulsar", tapado, (await v.texto()).slice(0, 240));
         // y alguien se alista con ese código
         const nuevo = await nueva("alumno de " + grupo);
         const alumno = "alumno." + id.replace(/[^a-z0-9]/g, "") + "@lab.test";
@@ -2248,8 +2243,9 @@ const REG = {};   // cifras que se apuntan para el informe
       const futura = SS.inicioDeSemana(S0.inicio, semHoy + 2, S0.pausas || []);   // la semana que empieza dentro de dos
       const rita = await nueva("Rita y el calendario");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"calendario\"]')", 25);
-      await rita.js("var x=document.querySelector('.tour-invite .tour-x, .tour-invite [data-cerrar]'); if(x) x.click(); document.querySelector('.pest[data-tab=\"calendario\"]').click(); 1");
+      // 19-sep · editar el calendario, en «Gestionar grupos» (verlo sigue en la Nave, para todos)
+      await aGestion(rita, P, "calendario");
+      await rita.js("var x=document.querySelector('.tour-invite .tour-x, .tour-invite [data-cerrar]'); if(x) x.click(); 1");
       // 15-sep · el calendario como un calendario: una fila por semana (.cal-fila) con sus 7 días
       await rita.hasta("!!document.querySelector('.cal-vis')", 20);
       const filas = await rita.js("document.querySelectorAll('.cal-vis .cal-fila:not(.cal-cabeza)').length");
@@ -2351,7 +2347,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // quien solo imparte no ve el calendario
       const dani = await nueva("Dani sin calendario");
       await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente");
-      await dani.ir("consola.html?per=" + P + "&tab=alumnado"); await dani.hasta("document.querySelectorAll('.pestanas .pest').length>0", 25);
+      await dani.ir("consola.html?per=" + P + "&tab=alumnado"); await dani.hasta("document.querySelectorAll('.cn-secs .pest').length>0", 25);
       // 15-sep · el calendario lo ve todo el equipo («la versión vista, sin edición, la debería poder ver el docente raso»)
       c("calendario · un docente que solo imparte ve el «Calendario», pero no lo toca", await dani.js("!!document.querySelector('.pest[data-tab=\"calendario\"]')"));
       await dani.cerrar();
@@ -2394,9 +2390,9 @@ const REG = {};   // cifras que se apuntan para el informe
       c("borrar · el grupo está lleno: retos, Mercado, un alumno, su alias y restos del Zoco",
         !!id && lleno.missions > 10 && lleno.rewards > 5 && lleno.student_profiles === 1 && lleno.stargate_alias === 1 && lleno.stargate_zoco === 1 && lleno.stargate_tratos === 1, JSON.stringify(lleno));
       // el botón, en Ajustes
-      await nor.ir("consola.html?per=" + id + "&tab=alumnado"); await nor.hasta("!!document.querySelector('.pest[data-tab=\"ajustes\"]')", 25);
-      await nor.js("document.querySelector('.pest[data-tab=\"ajustes\"]').click(); 1"); await nor.hasta("!!document.getElementById('s-borrar')", 15);
-      c("borrar · en «Ajustes» está «Borrar este grupo», apagado hasta escribir el nombre", await nor.js("document.getElementById('s-borrar').disabled"));
+      // 19-sep · en «Gestionar grupos» → «Cerrar el curso» (Norberto: «solo desde esa página se pueden crear, borrar o gestionar»)
+      await aGestion(nor, id, "cerrar"); await nor.hasta("!!document.getElementById('s-borrar')", 15);
+      c("borrar · en «Gestionar grupos → Cerrar el curso» está «Borrar este grupo», apagado hasta escribir el nombre", await nor.js("document.getElementById('s-borrar').disabled"));
       await nor.js("var i=document.getElementById('s-borrar-nombre'); i.value='PRUEBA'; i.dispatchEvent(new Event('input')); 1");
       c("borrar · con el nombre a medias, sigue apagado", await nor.js("document.getElementById('s-borrar').disabled"));
       await nor.js(`var i=document.getElementById('s-borrar-nombre'); i.value=${JSON.stringify(NOMBRE)}; i.dispatchEvent(new Event('input')); 1`);
@@ -2404,7 +2400,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await nor.foto(FOTOS + "/24-borrar-grupo.png");
       await nor.js("document.getElementById('s-borrar').click(); 1");
       c("borrar · la última pregunta, en su ventana con la cara de STARGATE", /borrar «/.test(await nor.responder()));
-      c("borrar · vuelve a «Mis grupos» diciendo que se ha borrado", await nor.hasta("location.search.indexOf('borrado=')>=0 && /borrado/i.test(document.body.innerText)", 60),
+      c("borrar · vuelve a «Gestionar grupos» diciendo que se ha borrado", await nor.hasta("location.pathname.indexOf('gestion.html')>=0 && location.search.indexOf('borrado=')>=0 && /borrado/i.test(document.body.innerText)", 60),
         await nor.js("location.href") + " · " + (await nor.texto()).slice(0, 200));
       await nor.foto(FOTOS + "/24-borrado.png");
       const queda = {}; for (const col of COLS) queda[col] = await cuenta(col, id);
@@ -2563,8 +2559,8 @@ const REG = {};   // cifras que se apuntan para el informe
       const tM = (await consultar("stargate_tratos", "projectId", P)).filter(t => t.anuncio === A2 && t.estado === "abierto")[0];
 
       // 3 · la consola: el bombo, cambiar el precio, y sortear en directo
-      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"sorteos\"]')", 25);
-      await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1");
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.cn-t[data-sec=\"premios\"]')", 25);
+      await rita.js("(function(){ if(!document.querySelector('.pest[data-tab=\"sorteos\"]')){ var s=document.querySelector('.cn-t[data-sec=\"premios\"]'); if(s) s.click(); } document.querySelector('.pest[data-tab=\"sorteos\"]').click(); return 1; })()");
       await rita.hasta("!!document.querySelector('.sr-caja')", 20);
       const cuenta = await rita.js("(document.querySelector('.sr-cuenta')||{}).innerText||''");
       c("🔴 sorteo · la consola cuenta el bombo: 21 participaciones de 4 reclutas (10 + 2 + 4 + 5, con la reventa)", /21 participaciones de 4 reclutas/.test(cuenta), cuenta);
@@ -2579,7 +2575,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("sorteo · y la siguiente compra ya cuesta 25 (Íker: 300 − 20 − 20 − 25 = 235, con 3 papeletas)", fI.coins === 235 && papeletas(fI) === 3, fI.coins + " · " + papeletas(fI));
       const antes = {}; for (const k of Object.keys(F)) antes[k] = papeletas(await ficha(k));
       // el sorteo, proyectado
-      await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1"); await rita.hasta("!!document.querySelector('.sr-directo')", 20);
+      await rita.js("(function(){ if(!document.querySelector('.pest[data-tab=\"sorteos\"]')){ var s=document.querySelector('.cn-t[data-sec=\"premios\"]'); if(s) s.click(); } document.querySelector('.pest[data-tab=\"sorteos\"]').click(); return 1; })()"); await rita.hasta("!!document.querySelector('.sr-directo')", 20);
       await rita.js("document.querySelector('.sr-directo').click(); 1");
       c("sorteo · «Sortear en directo» abre el bombo para proyectar (sin nombres reales ni correos)", await rita.hasta("document.querySelectorAll('.sr-proy .sr-chip').length===4", 10)
         && !/@lab\.test/.test(await rita.js("document.querySelector('.sr-proy').innerText")));
@@ -2647,7 +2643,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await n1.foto(FOTOS + "/25-mercado-sorteado.png");
       await n1.cerrar();
       // 5 · la referente crea otro sorteo desde la consola y sale en el Mercado
-      await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1"); await rita.hasta("!!document.getElementById('sr-nuevo')", 20);
+      await rita.js("(function(){ if(!document.querySelector('.pest[data-tab=\"sorteos\"]')){ var s=document.querySelector('.cn-t[data-sec=\"premios\"]'); if(s) s.click(); } document.querySelector('.pest[data-tab=\"sorteos\"]').click(); return 1; })()"); await rita.hasta("!!document.getElementById('sr-nuevo')", 20);
       await rita.js("document.getElementById('sr-nuevo').click(); 1"); await rita.hasta("!!document.querySelector('#sr-nuevo-f .sr-premio')", 10);
       await rita.js(`(function(){ var f=document.querySelector('#sr-nuevo-f'); f.querySelector('.sr-premio').value='Una tarde de juegos de mesa'; f.querySelector('.sr-desc').value='Para toda la escuadra ganadora';
         f.querySelector('.sr-gan').value='1'; f.querySelector('.sr-coste').value='5'; f.querySelector('.sr-max').value='3';
@@ -2672,18 +2668,21 @@ const REG = {};   // cifras que se apuntan para el informe
       await fs.collection("projects").doc(P2).set(Object.assign({}, base, { name: "LAB · Segundo grupo", joinCode: "SEGUN2" }));
       const rita = await nueva("Rita copia el embed");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html"); await rita.hasta("!!document.querySelector('.gp')", 25);
       // 15-sep · el embed va UNA vez, en «Para tus Geniallys» (el mismo para todos los grupos), no en cada tarjeta
+      // (19-sep · vivía en «Mis grupos»; ahora en la sección «Enlaces» de tu Nave)
+      await rita.ir("consola.html?per=" + P + "&tab=mios"); await rita.hasta("!!document.querySelector('.gp-gen [data-embed]')", 60);
       const cod = await rita.js("(document.querySelector('.gp-gen [data-embed=\"sesion\"]')||{getAttribute:function(){return ''}}).getAttribute('data-copiar')");
       c("🔴 embed · «Para tus Geniallys» copia el CÓDIGO para insertar la sesión (un iframe), no una dirección suelta",
         /^<iframe src="http:\/\/[^"]+\/sesion\.html\?embed=1"/.test(cod) && /allowfullscreen/.test(cod), cod.slice(0, 120));
       // 16-sep · son SEIS: la sesión partida en dos (apertura y cierre), la sesión entera, el aula, la llamada y la batalla
       c("embed · y va una sola vez para todos los grupos, no repetido en cada tarjeta",
-        await rita.js("document.querySelectorAll('.gp [data-embed]').length===0 && document.querySelectorAll('.gp-gen [data-embed]').length===6"));
-      // 19-sep · el código de clase, dentro del grupo (en su portada), no en la fila de Mis grupos
-      await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('.pt-cod .gp-cod')", 60);
-      c("código · el de clase va DENTRO del grupo, tapado, y se destapa al pulsar",
-        await rita.js("(function(){ var b=document.querySelector('.pt-cod .gp-cod'); if(!b||/[A-Z0-9]{6}/.test(b.textContent)) return false; b.click(); return /[A-Z0-9]{6}/.test(b.textContent); })()"));
+        await rita.js("document.querySelectorAll('.gp-gen').length===1 && document.querySelectorAll('.gp-gen [data-embed]').length===6"));
+      // 19-sep · el código de clase: en el Puente solo las tres primeras semanas; después (lab-clase va por la 10), en «Mi gente»
+      await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('.pt-acc')", 60);
+      c("código · en la semana 10 ya no sale en el Puente", await rita.js("!document.querySelector('.pt-cab .gp-cod')"));
+      await rita.ir("consola.html?per=lab-clase&tab=alumnado"); await rita.hasta("!!document.querySelector('.cn-gente-cab .gp-cod')", 60);
+      c("código · está en «Mi gente», tapado, y se destapa al pulsar",
+        await rita.js("(function(){ var b=document.querySelector('.cn-gente-cab .gp-cod'); if(!b||/[A-Z0-9]{6}/.test(b.textContent)) return false; b.click(); return /[A-Z0-9]{6}/.test(b.textContent); })()"));
       await rita.cerrar();
       const p = await nueva("La sesión dentro del Genially");
       await p.ir("http://127.0.0.1:" + L.P_WEB2 + "/genially.html?que=" + encodeURIComponent("sesion.html?embed=1"));
@@ -2765,9 +2764,10 @@ const REG = {};   // cifras que se apuntan para el informe
         await fs.collection("projects").doc(P2).collection("privado").doc("stargate").set(Object.assign({}, privBase, { premiosEnlace: {} }));
         const rg = await nueva("Rita reparte un premio en sus dos grupos");
         await rg.ir("entrar.html"); await rg.entrarComo("rita@lab.test", "Rita Referente");
-        await rg.ir("consola.html");
-        c("🌐 comunes · en «Tus grupos», la entrada «Para todos tus grupos»", await rg.hasta("!!document.querySelector('.gp-comun a[href*=\"comun=premios\"]')", 25));
-        await rg.js("document.querySelector('.gp-comun a[href*=\"comun=premios\"]').click(); 1");
+        // 19-sep · la entrada, dentro de la sección «Premios» de tu Nave (si llevas más de un grupo)
+        await rg.ir("consola.html?per=" + P + "&tab=huevos");
+        c("🌐 comunes · en «Premios», la entrada «Para todos tus grupos»", await rg.hasta("!!document.querySelector('.cn-sub a.cn-comun[href*=\"comun=premios\"]')", 60));
+        await rg.js("document.querySelector('.cn-sub a.cn-comun').click(); 1");
         await rg.hasta("!!document.getElementById('pe-nuevo') && !/Buscando tus premios/.test((document.getElementById('pe-lista')||{}).textContent||'')", 25);
         await rg.foto(FOTOS + "/26-comunes.png");
         const G = await crearPremioUI(rg, P2, { tipo: "huevo", premio: "bolsa", cantidad: 30 });
@@ -2790,8 +2790,8 @@ const REG = {};   // cifras que se apuntan para el informe
           c("🌐 comunes · dentro del grupo que ya no lo tiene, no aparece", await rg.js(`!document.querySelector('.pe-f[data-pe="${G.id}"]')`));
           const dentroP = await aPremiosDe(rg, P);
           c("🌐 comunes · y dentro del que sí, aparece (con su ámbito)", dentroP && await rg.hasta(tarjeta(G.id, "return /Solo/.test(f.querySelector('.pe-ambito').textContent);"), 15), rg.__pestanas || "");
-          c("🌐 comunes · la barra de pestañas separa lo de varios grupos (🌐) de lo exclusivo del grupo",
-            await rg.js("!!document.querySelector('.pestanas .pest-sep-g') && document.querySelector('.pestanas .pest-sep-g').nextElementSibling.getAttribute('data-tab')==='huevos'"));
+          c("🌐 comunes · «Premios» junta los premios por enlace, los sorteos y las ofertas (y la entrada a «Para todos tus grupos»)",
+            await rg.js("['huevos','sorteos','ofertas'].every(function(k){ return !!document.querySelector('.cn-sub .pest[data-tab=\"'+k+'\"]'); }) && !!document.querySelector('.cn-sub a.cn-comun')"));
         }
         await rg.cerrar();
       }
@@ -2849,14 +2849,26 @@ const REG = {};   // cifras que se apuntan para el informe
       await llama(g4, "zocoOfertar", [puestoB, { creditos: 30, piezas: [] }, ""]); await g4.cerrar();
       const antesG = (await ficha("gelida")).coins, antesB = (await ficha("brasa")).coins;
 
-      // 3 · Rita congela a Gélida desde su consola
+      // 3 · Rita congela a Gélida desde «Gestionar grupos» (19-sep · en su Nave, la ficha es para dar clase: sin congelar ni baja)
       const rita = await nueva("Rita congela");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"alumnado\"]')", 25);
+      await aGestion(rita, P, "alumnado");
       await rita.js("document.querySelector('.pest[data-tab=\"alumnado\"]').click(); 1"); await rita.hasta("document.querySelectorAll('[data-r]').length>0", 20);
       const abreFicha = async (q, alias) => { await q.js(`(function(){ var f=[].slice.call(document.querySelectorAll('[data-r]')).filter(function(x){return x.querySelector('td:nth-child(2) b') && x.querySelector('td:nth-child(2) b').textContent===${JSON.stringify(alias)}})[0]; if(f) f.click(); return !!f; })()`); return q.hasta("!!document.querySelector('#c-ficha .card')", 10); };
       await abreFicha(rita, "Gélida");
       c("🔴 congelar · en la ficha, «Solo el referente»: 🧊 Congelar y Dar de baja", await rita.hasta("!!document.getElementById('c-congelar') && !!document.getElementById('c-baja')", 10));
+      {
+        const rn = await nueva("Rita, en su Nave");
+        await rn.ir("entrar.html"); await rn.entrarComo("rita@lab.test", "Rita Referente");
+        await rn.ir("consola.html?per=" + P + "&tab=alumnado"); await rn.hasta("document.querySelectorAll('[data-r]').length>0", 30);
+        await rn.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1");   // (Gélida es de otro escuadrón: «Todos»)
+        await rn.hasta("[].slice.call(document.querySelectorAll('[data-r] td:nth-child(2) b')).some(function(x){return x.textContent==='Gélida'})", 20);
+        await abreFicha(rn, "Gélida");
+        const abre = await rn.hasta("!!document.querySelector('#c-modal.abierto .fi-cab')", 15);   // (la ficha se abre en #c-modal)
+        c("🔴 gestión · en su Nave, la ficha no trae «Congelar» ni «Dar de baja» (van en «Gestionar grupos»)", abre && await rn.js("!document.getElementById('c-congelar') && !document.getElementById('c-baja')"),
+          JSON.stringify({ abre: abre, filas: await rn.js("document.querySelectorAll('[data-r]').length"), modal: await rn.js("!!document.querySelector('#c-ficha .card')"), ref: await rn.js("!!document.querySelector('#c-modal .ficha-ref')") }));
+        await rn.cerrar();
+      }
       await rita.foto(FOTOS + "/27-ficha-referente.png");
       await rita.js("document.getElementById('c-congelar').click(); 1");
       c("🔴 congelar · pregunta desplegada debajo, dentro de la ficha (no el aviso del navegador)",
@@ -3063,8 +3075,8 @@ const REG = {};   // cifras que se apuntan para el informe
       // 2 · el referente crea una a mano: una cápsula legendaria al 30 %, con las unidades que tocan
       const rita = await nueva("Rita y las ofertas");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"ofertas\"]')", 25);
-      await rita.js("document.querySelector('.pest[data-tab=\"ofertas\"]').click(); 1"); await rita.hasta("!!document.getElementById('of-nueva')", 15);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.cn-t[data-sec=\"premios\"]')", 25);
+      await rita.js("(function(){ if(!document.querySelector('.pest[data-tab=\"ofertas\"]')){ var s=document.querySelector('.cn-t[data-sec=\"premios\"]'); if(s) s.click(); } document.querySelector('.pest[data-tab=\"ofertas\"]').click(); return 1; })()"); await rita.hasta("!!document.getElementById('of-nueva')", 15);
       c("ofertas · la consola del referente tiene su pestaña «Ofertas», con la de la semana", await rita.hasta("document.querySelectorAll('[data-of]').length>=1", 10));
       await rita.js("document.getElementById('of-nueva').click(); 1"); await rita.hasta("!!document.getElementById('of-que')", 10);
       await rita.js("var s=document.getElementById('of-que'); s.value='cofre:capsula_legendaria'; document.getElementById('of-pct').value='30'; document.getElementById('of-dias').value='3'; document.getElementById('of-crear').click(); 1");
@@ -3108,7 +3120,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("ofertas · un estudiante no puede crear ofertas", /Solo el referente/.test(await q2.js(`window.SG.MOTOR.oferta('${P}','crear',{que:{tipo:'cofre',cual:'cromo'},pct:90}).then(function(){return 'CREÓ'},function(e){return e.message})`)));
       await q2.cerrar();
       // 4 · el referente alarga, cambia unidades y cancela
-      await rita.js("document.querySelector('.pest[data-tab=\"ofertas\"]').click(); 1"); await rita.hasta("document.querySelectorAll('[data-of]').length>=2", 15);
+      await rita.js("(function(){ if(!document.querySelector('.pest[data-tab=\"ofertas\"]')){ var s=document.querySelector('.cn-t[data-sec=\"premios\"]'); if(s) s.click(); } document.querySelector('.pest[data-tab=\"ofertas\"]').click(); return 1; })()"); await rita.hasta("document.querySelectorAll('[data-of]').length>=2", 15);
       const finAntes = (await leerDoc("rewards/" + manual._id)).flashOffer.endsAt;
       await rita.js(`document.querySelector('[data-of="${manual._id}"] [data-of-mas="1"]').click(); 1`);
       await rita.hasta("/Oferta alargada/.test((document.getElementById('c-aviso')||{}).innerText||'')", 20);
@@ -3197,8 +3209,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await g1.cerrar();
       const rita = await nueva("Rita copia los ganadores");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"sorteos\"]')", 25);
-      await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1"); await rita.hasta(`!!document.querySelector('[data-copiar-gan="${T}"]')`, 20);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.cn-t[data-sec=\"premios\"]')", 25);
+      await rita.js("(function(){ if(!document.querySelector('.pest[data-tab=\"sorteos\"]')){ var s=document.querySelector('.cn-t[data-sec=\"premios\"]'); if(s) s.click(); } document.querySelector('.pest[data-tab=\"sorteos\"]').click(); return 1; })()"); await rita.hasta(`!!document.querySelector('[data-copiar-gan="${T}"]')`, 20);
       await rita.js("window.__copiado=''; navigator.clipboard.writeText=function(t){ window.__copiado=t; return Promise.resolve(); }; document.querySelector('[data-copiar-gan=\"" + T + "\"]').click(); 1");
       c("🔴 sorteo auto · en la consola, «se resolvió solo» y «📋 Copiar ganadores» copia alias, nombre y correo",
         await rita.hasta("/gana@lab\\.test/.test(window.__copiado||'') && /Fortuna/.test(window.__copiado)", 15) && /se resolvió solo/.test(await rita.texto()),
@@ -3294,8 +3306,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // 4 · la consola da el enlace para esconderlo
       const rita = await nueva("Rita copia el enlace escondido");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"ajustes\"]')", 25);
-      await rita.js("document.querySelector('.pest[data-tab=\"ajustes\"]').click(); 1");
+      await aGestion(rita, P, "ajustes");
       c("secreto · consola → Ajustes → «Para los Geniallys»: el enlace escondido del reto secreto (fragmento.html)",
         await rita.hasta("[].slice.call(document.querySelectorAll('[data-copiar]')).some(function(b){return /fragmento\\.html$/.test(b.getAttribute('data-copiar'))})", 15));
       await rita.cerrar();
@@ -3310,8 +3321,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const P = "lab-clase";
       const rita = await nueva("Rita añade a alguien al equipo");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"equipo\"]')", 25);
-      await rita.js("document.querySelector('.pest[data-tab=\"equipo\"]').click(); 1"); await rita.hasta("!!document.getElementById('e-add')", 15);
+      await aGestion(rita, P, "equipo"); await rita.hasta("!!document.getElementById('e-add')", 15);
       await rita.js("document.getElementById('e-nom').value='Nuria Nueva'; document.getElementById('e-mail').value='Nuria@Lab.test'; document.getElementById('e-rol').value='docente'; document.getElementById('e-add').click(); 1");
       c("equipo · la referente (que no es la dueña) añade a Nuria desde «Equipo docente»",
         await rita.hasta("/ya está en el equipo/.test((document.getElementById('c-aviso')||{}).innerText||'')", 30), await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
@@ -3634,9 +3644,14 @@ const REG = {};   // cifras que se apuntan para el informe
       const antes = await ri.js("document.querySelectorAll('.pest').length");
       await ri.js("document.getElementById('sg-modo').click(); 1"); await dormir(1500);
       const despues = await ri.js("document.querySelectorAll('.pest').length");
-      c("🔴 modo · «👤 Modo docente» esconde las pestañas de referente (y el botón pasa a «★ Modo referente»)",
-        despues < antes && /Modo referente/.test(await ri.js("document.getElementById('sg-modo').textContent")), antes + " → " + despues);
-      c("modo · y «Crear grupo» desaparece del menú", await ri.js("[].slice.call(document.querySelectorAll('.lnk.solo-referente')).every(function(a){return a.hidden})"));
+      // 19-sep · las secciones ya son las mismas para todos (lo del referente vive en «Gestionar grupos»): lo que cambia
+      // es que su enlace desaparece del menú y, si entra por la dirección, la página le dice que es del referente
+      c("🔴 modo · «👤 Modo docente» quita «Gestionar grupos» del menú (y el botón pasa a «★ Modo referente»)",
+        despues === antes && /Modo referente/.test(await ri.js("document.getElementById('sg-modo').textContent"))
+        && await ri.js("[].slice.call(document.querySelectorAll('.lnk.solo-referente')).every(function(a){return a.hidden})"), antes + " → " + despues);
+      await ri.ir("gestion.html"); await ri.hasta("!!document.querySelector('#consola-app .card')", 40);
+      c("modo · y «Gestionar grupos» por la dirección le dice que es del referente", await ri.js("/es del referente/.test(document.body.innerText)"));
+      await ri.ir("consola.html?per=" + P + "&tab=alumnado"); await ri.hasta("document.querySelectorAll('.pest').length>0", 30);
       await ri.foto(FOTOS + "/35-modo-docente.png");
       await ri.js("document.getElementById('sg-modo').click(); 1"); await dormir(1500);
       c("modo · y vuelve con «★ Modo referente»", (await ri.js("document.querySelectorAll('.pest').length")) === antes);
@@ -3656,20 +3671,23 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       // la Cola de nota con algo dentro: brilla en la tarjeta y sale la última, con su número
       const vale = await fs.collection("purchased_vouchers").add({ projectId: P, status: "pending", studentId: "lab-nadie", rewardTitle: "Subida de nota (laboratorio)", cost: 0, createdAt: Date.now() });
-      await rita.ir("consola.html");
-      const brilla = await rita.hasta("!!document.querySelector('.gp-cola')", 30);
-      c("🔴 cola · con una subida de nota pendiente, la tarjeta del grupo lo avisa (y brilla)", brilla && /1/.test(await rita.js("document.querySelector('.gp-cola').textContent")),
-        brilla ? await rita.js("document.querySelector('.gp-cola').textContent") : (await rita.texto()).slice(0, 200));
+      // 19-sep · en la Nave del Comandante: brilla «Mi gente» (con su número) y la pestaña del grupo lleva el aviso
+      await rita.ir("consola.html?per=" + P);
+      const brilla = await rita.hasta("!!document.querySelector('.cn-t[data-sec=\"gente\"].pest-aviso .pest-n')", 45);
+      c("🔴 cola · con una subida de nota pendiente, «Mi gente» lo avisa (brilla y con su número) y la pestaña del grupo también",
+        brilla && (await rita.js("document.querySelector('.cn-t[data-sec=\"gente\"] .pest-n').textContent")) === "1" && (await rita.js("(document.querySelector('.cn-g.on .cn-g-n')||{}).textContent")) === "1",
+        brilla ? await rita.js("document.querySelector('.cn-t[data-sec=\"gente\"]').textContent") : (await rita.texto()).slice(0, 200));
       await rita.foto(FOTOS + "/36-tarjeta-cola.png");
       if (brilla) {
-        await rita.js("document.querySelector('.gp-cola').click(); 1");
-        await rita.hasta("!!document.querySelector('.pest[data-tab=\"canjes\"]')", 20);
-        const cola = await rita.js("(function(){var t=[].slice.call(document.querySelectorAll('.pestanas .pest')); var u=t[t.length-1]; return {ultima:u.getAttribute('data-tab'), activa:u.classList.contains('activa'), brillo:u.classList.contains('pest-aviso'), n:(u.querySelector('.pest-n')||{}).textContent};})()");
-        c("cola · y lleva directo a la Cola de nota: la última pestaña, encendida, brillando y con su número", cola && cola.ultima === "canjes" && cola.activa && cola.brillo && cola.n === "1", JSON.stringify(cola));
+        await rita.js("document.querySelector('.cn-t[data-sec=\"gente\"]').click(); 1");
+        await rita.hasta("!!document.querySelector('.cn-sub .pest[data-tab=\"canjes\"]')", 20);
+        const cola = await rita.js("(function(){var u=document.querySelector('.cn-sub .pest[data-tab=\"canjes\"]'); return {brillo:u.classList.contains('pest-aviso'), n:(u.querySelector('.pest-n')||{}).textContent};})()");
+        c("cola · y dentro de «Mi gente», la pestaña «Cola de nota», brillando y con su número", cola && cola.brillo && cola.n === "1", JSON.stringify(cola));
+        await rita.js("document.querySelector('.cn-sub .pest[data-tab=\"canjes\"]').click(); 1"); await dormir(1200);
         await rita.foto(FOTOS + "/36-cola.png");
       }
       await fs.collection("purchased_vouchers").doc(vale.id).delete();
-      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0 && !!document.querySelector('tr[data-r]')", 30);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("document.querySelectorAll('.cn-secs .pest').length>0 && !!document.querySelector('tr[data-r]')", 30);
       c("cola · sin nada pendiente, la pestaña ni sale", await rita.js("!document.querySelector('.pest[data-tab=\"canjes\"]')"));
       // Mi gente: el filtro por escuadrón, en el suyo
       const chips = await rita.js("[].slice.call(document.querySelectorAll('.gf')).map(function(b){return b.textContent.replace(/\\s+/g,' ').trim()+(b.classList.contains('on')?' [on]':'')})");
@@ -3705,15 +3723,17 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1"); await dormir(300);
       c("consola · Escape la cierra", await rita.js("!document.querySelector('#c-modal.abierto')"));
       // la Cola de nota: solo si hay algo
+      // (19-sep · la Cola de nota vive dentro de «Mi gente»: si hay algo, brilla «Mi gente»; si no, ni sale)
       const hayVale = await rita.js("!!document.querySelector('.pest[data-tab=\"canjes\"]')");
-      const ultima = await rita.js("(function(){var t=document.querySelectorAll('.pestanas .pest'); return t[t.length-1].getAttribute('data-tab');})()");
-      c("consola · la Cola de nota: si sale, la última y brillando; si no hay nada, no sale", hayVale ? ultima === "canjes" && await rita.js("!!document.querySelector('.pest.pest-aviso .pest-n')") : ultima !== "canjes", hayVale + " · " + ultima);
+      const brillaGente = await rita.js("!!document.querySelector('.cn-t[data-sec=\"gente\"].pest-aviso')");
+      c("consola · la Cola de nota: si sale, «Mi gente» brilla; si no hay nada, ni sale ni brilla", hayVale === brillaGente, hayVale + " · " + brillaGente);
       // el Zoco con su fecha
       await rita.js("document.querySelector('.pest[data-tab=\"zoco\"]').click(); 1");
       const zoco = await rita.hasta("!!document.querySelector('.zoco-abre')", 20) ? await rita.js("document.querySelector('.zoco-abre').textContent") : "";
       c("consola · el Zoco dice el día exacto en que se abre", /(lunes|martes|miércoles|jueves|viernes|sábado|domingo) \d{1,2} de [a-z]+/.test(zoco) && /semana 8/.test(zoco), zoco);
       // los escuadrones se abren
-      await rita.js("document.querySelector('.pest[data-tab=\"escuadrones\"]').click(); 1"); await rita.hasta("!!document.querySelector('.esc-det')", 15);
+      // (19-sep · los escuadrones y el equipo, en «Gestionar grupos»)
+      await aGestion(rita, P, "escuadrones"); await rita.hasta("!!document.querySelector('.esc-det')", 15);
       await rita.js("document.querySelector('.esc-det summary').click(); 1"); await dormir(400);
       c("🔴 consola · un escuadrón se abre con su Comandante y su gente", await rita.js("!!document.querySelector('.esc-det[open] .esc-datos') && document.querySelectorAll('.esc-det[open] tr[data-r]').length>0"));
       await rita.foto(FOTOS + "/36-escuadron.png");
@@ -3721,7 +3741,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("consola · y su gente abre la ficha, como en Mi gente", await rita.hasta("!!document.querySelector('#c-modal.abierto .fi-cab')", 10));
       await rita.js("document.querySelector('#c-modal [data-cerrar-ficha]').click(); 1");
       // el equipo docente, persona a persona: añadir, hacer referente, quitar
-      await rita.js("document.querySelector('.pest[data-tab=\"equipo\"]').click(); 1"); await rita.hasta("!!document.querySelector('.eq-p')", 15);
+      await rita.js("document.querySelector('.gs-panel .pest[data-tab=\"equipo\"]').click(); 1"); await rita.hasta("!!document.querySelector('.eq-p')", 15);
       c("consola · Equipo docente: una tarjeta por persona, con sus botones", await rita.js("document.querySelectorAll('.eq-p').length>=2 && !!document.querySelector('.eq-p [data-rol]') && !!document.querySelector('.eq-p .eq-lnk')"));
       await rita.foto(FOTOS + "/36-equipo.png");
       await rita.js("document.getElementById('e-nom').value='Quique Temporal'; document.getElementById('e-mail').value='quique@lab.test'; document.getElementById('e-rol').value='docente'; document.getElementById('e-add').click(); 1");
@@ -4555,8 +4575,8 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 🌐 ofertas · cancelarla la cancela en sus dos grupos", o1[0].stargateOferta.cancelada === true && o2[0].stargateOferta.cancelada === true,
         JSON.stringify([o1[0].stargateOferta.cancelada, o2[0].stargateOferta.cancelada]));
       // dentro de un grupo, la barra separa lo común y la oferta dice que es de varios
-      await rg.ir("consola.html?per=" + P + "&tab=alumnado"); await rg.hasta("!!document.querySelector('.pest[data-tab=\"ofertas\"]')", 75);
-      await rg.js("document.querySelector('.pest[data-tab=\"ofertas\"]').click(); 1");
+      await rg.ir("consola.html?per=" + P + "&tab=alumnado"); await rg.hasta("!!document.querySelector('.cn-t[data-sec=\"premios\"]')", 75);
+      await rg.js("(function(){ if(!document.querySelector('.pest[data-tab=\"ofertas\"]')){ var s=document.querySelector('.cn-t[data-sec=\"premios\"]'); if(s) s.click(); } document.querySelector('.pest[data-tab=\"ofertas\"]').click(); return 1; })()");
       c("🌐 ofertas · dentro del grupo, la oferta dice «🌐 varios grupos»", await rg.hasta(`!!document.querySelector('[data-comun="${o1[0].stargateComun}"] .of-comun')`, 20));
       c("sin errores en las páginas (sorteos y ofertas comunes)", !rg.errores.filter(e => !/Failed to load resource/.test(e)).length, rg.errores[0] || "");
       await rg.cerrar();
@@ -4603,10 +4623,15 @@ const REG = {};   // cifras que se apuntan para el informe
       const libre = "!/Buscando|Cargando|Abriendo/.test((document.querySelector('main')||document.body).innerText.slice(0,400))";
       const rb = await nueva("Rita barre la web");
       await rb.ir("entrar.html"); await rb.entrarComo("rita@lab.test", "Rita Referente");
-      await rb.ir("consola.html"); await rb.hasta("!!document.querySelector('.gp-comun')", 60); await barrer(rb, "consola (tus grupos)");
+      await rb.ir("consola.html"); await rb.hasta("!!document.querySelector('.cn-secs')", 60); await barrer(rb, "consola (tu Nave)");
+      // 19-sep · y «Gestionar grupos», pestaña a pestaña
+      await aGestion(rb, "lab-clase");
+      for (const t of ["alumnado", "equipo", "escuadrones", "ajustes", "calendario", "cerrar"]) {
+        await rb.js(`document.querySelector('.gs-panel .pest[data-tab="${t}"]').click(); 1`); await dormir(1800); await barrer(rb, "gestión · " + t);
+      }
       for (const cm of ["premios", "sorteos", "ofertas"]) { await rb.ir("consola.html?comun=" + cm); await rb.hasta(libre, 40); await barrer(rb, "común " + cm); }
-      await rb.ir("consola.html?per=lab-clase&tab=alumnado"); await rb.hasta("document.querySelectorAll('.pestanas .pest').length>5", 75);
-      const pests = await rb.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).map(function(b){return b.getAttribute('data-tab')})");
+      await rb.ir("consola.html?per=lab-clase&tab=alumnado"); await rb.hasta("document.querySelectorAll('.cn-secs .pest').length>5", 75);
+      const pests = await rb.js("[].slice.call(document.querySelectorAll('.cn-secs .pest')).map(function(b){return b.getAttribute('data-tab')})");
       for (const t of pests) {
         await rb.js(`document.querySelector('.pest[data-tab="${t}"]').click(); 1`); await dormir(2000); await barrer(rb, "consola · " + t);
         if (await rb.js("!!document.getElementById('pe-nuevo')")) { await rb.js("document.getElementById('pe-nuevo').click(); 1"); await barrer(rb, "consola · premios (ventana)"); await rb.js("window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1"); }
@@ -4759,7 +4784,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rs.ir("entrar.html"); await rs.entrarComo("rita@lab.test", "Rita Referente");
       const hay = await aMisEnlaces();
       const casillas = await rs.js("(function(){ var l=[].slice.call(document.querySelectorAll('.m-sec input')); return l.length+'|'+l.filter(function(x){return x.checked}).length; })()");
-      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas marcadas", hay && casillas === "16|16", casillas);
+      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas marcadas", hay && casillas === "17|17", casillas);   // (19-sep · 17 con «Únete a la clase»)
       // (la sesión lee la elección del docente directamente del grupo; con el emulador atascado eso tarda: se espera a que
       // el mazo ACABE reflejándola, como mucho un minuto. En producción son milisegundos)
       const conTop = "[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Top 5'})";
@@ -4810,17 +4835,22 @@ const REG = {};   // cifras que se apuntan para el informe
       const P = "lab-clase";
       const rp = await nueva("Rita y la portada de su grupo");
       await rp.ir("entrar.html"); await rp.entrarComo("rita@lab.test", "Rita Referente");
-      await rp.ir("consola.html"); await rp.hasta("!!document.querySelector('.gp')", 75);
-      c("🔴 Mis grupos · cada grupo, en una fila a todo el ancho", await rp.js("[].slice.call(document.querySelectorAll('.gp-grid')).length>0 && [].slice.call(document.querySelectorAll('.gp-grid')).every(function(g){return g.classList.contains('uno')})"));
-      c("   y cada fila lleva la rueda de «Configurar la sesión»", await rp.js("!!document.querySelector('.gp [data-cfg-sesion]')"));
+      // 🔴 19-sep · LA NAVE DEL COMANDANTE (Norberto: «visualmente similar a la nave del estudiante… tantas pestañas como grupos
+      // activos… simplicidad máxima: nada que se use una o dos veces en todo el curso»)
+      await rp.ir("consola.html"); await rp.hasta("!!document.querySelector('.cn-hero') && !!document.querySelector('#cn-neb .pt-neb')", 75);
+      c("🔴 la Nave del Comandante · su ficha (como la del recluta) con NEBULA al lado, la pestaña de su grupo y las secciones con iconos",
+        await rp.js("!!document.querySelector('.cn-hero .nave-perfil img.av') && !!document.querySelector('.cn-hero .monedas') && document.querySelectorAll('.cn-g').length>=1 && document.querySelectorAll('.cn-secs .pest img.i').length>=4"));
+      c("   la rueda de «Configurar la sesión», junto a «Empezar la clase»", await rp.js("!!document.querySelector('.pt-acc [data-cfg-sesion]')"));
+      c("🔴   y nada de lo que se usa una o dos veces por curso: ni crear, ni borrar, ni graduar, ni cursos terminados",
+        await rp.js("!/Crear un grupo|Borrar este grupo|Graduar y archivar|cursos? terminados?/i.test(document.getElementById('consola-app').innerText) && !document.querySelector('[data-gestion],.gp-mas,.gp-viejos')"));
       await rp.js("document.getElementById('doc-ajustes-b').click(); 1");
       c("🔴 panel · «Ajustes» trae tu comandante y tu sesión para todos tus grupos", await rp.hasta("!!document.querySelector('#doc-ajustes:not([hidden]) .m-sec input') && !!document.getElementById('doc-aj-ava')", 10));
-      c("   sin un solo emoji en Mis grupos", await rp.js("!/[\\u{1F300}-\\u{1FAFF}]/u.test(document.getElementById('consola-app').innerText)"));
+      c("   sin un solo emoji en su Nave", await rp.js("!/[\\u{1F300}-\\u{1FAFF}]/u.test(document.getElementById('consola-app').innerText)"));
       // la portada
       await rp.ir("consola.html?per=" + P);
-      const hayP = await rp.hasta("!!document.querySelector('.pt-hero')", 75);
+      const hayP = await rp.hasta("!!document.querySelector('.pt-cab')", 75);
       c("🔴 al entrar en el grupo, la portada: semana, vídeo, retos, panel, mensaje y notas", hayP && await rp.js("!!document.querySelector('.pt-video') && !!document.querySelector('.pt-retos') && !!document.getElementById('pt-notas') && !!document.getElementById('pt-msg-txt') && !!document.getElementById('pt-panel-ed')"));
-      c("   y la pestaña encendida es «Portada»", await rp.js("(document.querySelector('.pest.activa')||{getAttribute:function(){return ''}}).getAttribute('data-tab')==='portada'"));
+      c("   y la sección encendida es el Puente", await rp.js("(document.querySelector('.pest.activa')||{getAttribute:function(){return ''}}).getAttribute('data-tab')==='portada'"));
       // NEBULA, encima de las cifras, escribiendo su consejo
       const neb = await rp.hasta("(document.getElementById('pt-neb-p')||{}).textContent.length>40 && !document.getElementById('pt-neb-p').classList.contains('escribe')", 20);
       c("🔴 NEBULA · un consejo sobre su gente, escrito a máquina, justo encima de las cifras", neb &&
@@ -4897,14 +4927,14 @@ const REG = {};   // cifras que se apuntan para el informe
       const dn = await nueva("Dani y sus dos modos");
       await dn.ir("entrar.html"); await dn.entrarComo("dani@lab.test", "Dani Docente");
       await dn.js("try{ localStorage.removeItem('sgModoNivel'); }catch(e){} 1");   // (como un docente de verdad, la primera vez)
-      await dn.ir("consola.html"); await dn.hasta("!!document.querySelector('.gp')", 75); await dormir(800);
+      await dn.ir("consola.html"); await dn.hasta("!!document.querySelector('.cn-secs') && !!document.querySelector('.pt-hoy .ht')", 75); await dormir(800);
       c("🔴 piloto · un docente nuevo empieza en PILOTO AUTOMÁTICO", await dn.js("document.body.classList.contains('modo-piloto') && document.querySelector('.modo-sel [data-modo=\"piloto\"]').classList.contains('on')"));
       c("   sin la rueda de la sesión, sin Ajustes y sin las herramientas (Geniallys, para todos tus grupos)",
         await dn.js("['.gp-cfg','#doc-ajustes-b','.gp-herr'].every(function(s){ var e=document.querySelector(s); return !e || getComputedStyle(e).display==='none'; })"));
-      c("🔴 hoy toca · en Mis grupos, desplegado, con fichas de reto completas y el calendario de la semana",
-        await dn.js("!!document.querySelector('.gp-hoy-d[open] .ht') && document.querySelectorAll('.gp-hoy-d .ht-reto').length>0 && document.querySelectorAll('.gp-hoy-d .ht-cal li').length>0 && !!document.querySelector('.gp-hoy-d .ht-reto .ht-reto-pie .p.xp')"));
-      await dn.ir("consola.html?per=" + P); await dn.hasta("!!document.querySelector('.pt-hero')", 75); await dormir(1000);
-      const tp = JSON.parse(await dn.js("JSON.stringify([].slice.call(document.querySelectorAll('.pestanas .pest')).map(function(b){return b.getAttribute('data-tab')}))"));
+      c("🔴 hoy toca · en el Puente, con fichas de reto completas y el calendario de la semana",
+        await dn.js("!!document.querySelector('.pt-hoy .ht') && document.querySelectorAll('.pt-hoy .ht-reto').length>0 && document.querySelectorAll('.pt-hoy .ht-cal li').length>0 && !!document.querySelector('.pt-hoy .ht-reto .ht-reto-pie .p.xp')"));
+      await dn.ir("consola.html?per=" + P); await dn.hasta("!!document.querySelector('.pt-cab')", 75); await dormir(1000);
+      const tp = JSON.parse(await dn.js("JSON.stringify([].slice.call(document.querySelectorAll('.cn-secs .pest')).map(function(b){return b.getAttribute('data-tab')}))"));
       c("🔴 piloto · dentro del grupo, solo lo de dar clase (sin Zoco, Mis enlaces ni premios)", tp.indexOf("portada") === 0 && ["zoco", "mios", "huevos", "sorteos", "ofertas"].every(k => tp.indexOf(k) < 0), JSON.stringify(tp));
       c("   la portada, con su «Hoy toca» (y cuántos lo han hecho) y sin el mensaje a los reclutas",
         await dn.js("!!document.querySelector('.pt-hoy .ht-reto .pt-n') && getComputedStyle(document.querySelector('.pt-msg')).display==='none'"));
@@ -4927,7 +4957,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const fd = await leerDoc("stargate_profes/" + await dn.js("window.__uid"));
       c("   y se guarda en su ficha (le sigue a cualquier equipo)", !!fd && fd.modo === "manual", JSON.stringify(fd && fd.modo));
       await dn.ir("consola.html?per=" + P); await dn.hasta("!!document.querySelector('.pest[data-tab=\"huevos\"]')", 75);
-      const tm = JSON.parse(await dn.js("JSON.stringify([].slice.call(document.querySelectorAll('.pestanas .pest')).map(function(b){return b.getAttribute('data-tab')}))"));
+      const tm = JSON.parse(await dn.js("JSON.stringify([].slice.call(document.querySelectorAll('.cn-secs .pest')).map(function(b){return b.getAttribute('data-tab')}))"));
       c("🔴 mando manual · el docente raso tiene El Zoco, Mis enlaces y Premios por enlace (sorteos y ofertas, no)", ["zoco", "mios", "huevos"].every(k => tm.indexOf(k) >= 0) && tm.indexOf("sorteos") < 0 && tm.indexOf("ofertas") < 0, JSON.stringify(tm));
       await dn.ir("aula.html?per=" + P); await dn.hasta("!!document.querySelector('.au-t[data-au=\"premios\"]')", 60);
       c("   y el aula, con «Premiar»", await dn.js("!!document.querySelector('.au-t[data-au=\"premios\"]')"));
@@ -4937,62 +4967,114 @@ const REG = {};   // cifras que se apuntan para el informe
       c("modos · sin errores", !dn.errores.filter(e => !/Failed to load resource/.test(e)).length, dn.errores[0] || "");
       await dn.cerrar();
     }
-    // 19-sep · Norberto: «está súper compacto, se corta» y «tenemos MUCHO AIRE»; y «no encuentro la manera de borrar o
-    // archivar un grupo». Mis grupos a cuatro anchos (nada fuera de su fila, cabecera en una tira) y el «⋯» de cada fila.
+    // 19-sep · LA NAVE DEL COMANDANTE Y «GESTIONAR GRUPOS». Norberto: «tenemos MUCHO AIRE», «no encuentro la manera de borrar
+    // o archivar un grupo», «para gestionar grupos enteros (solo el referente) debería haber una página dedicada… no hace
+    // falta meter ruido». La Nave a cuatro anchos (nada se sale, ni un hueco de aire) y la gestión, de verdad.
     if (hacer(48)) {
-      const rg = await nueva("Rita: Mis grupos sin cortes, y archivar");
+      const AIRE = require("fs").readFileSync(path.join(__dirname, "medir_aire.js"), "utf8");
+      const rg = await nueva("Rita: su Nave a cuatro anchos, y gestionar");
       await rg.ir("entrar.html"); await rg.entrarComo("rita@lab.test", "Rita Referente");
       for (const [w, h, movil] of [[1000, 800, false], [1280, 800, false], [1440, 900, false], [390, 844, true]]) {
         await rg.tamano(w, h, movil);
-        await rg.ir("consola.html"); await rg.hasta("!!document.querySelector('.gp')", 75); await dormir(700);
-        const m = JSON.parse(await rg.js(`JSON.stringify((function(){
-          var out = { corta: [], invita: !!document.querySelector('.gp .gp-invita, .gp .gp-cod') };
-          [].slice.call(document.querySelectorAll('.gp')).forEach(function(g){
-            var r = g.getBoundingClientRect();
-            [].slice.call(g.querySelectorAll('*')).forEach(function(x){
-              if (/ep-luz/.test(String(x.className||''))) return;
-              var q = x.getBoundingClientRect();
-              if (q.width && (q.right > r.right + 1 || q.left < r.left - 1)) out.corta.push(String(x.className||x.tagName).slice(0,24) + '@' + Math.round(q.right - r.right)); });
-          });
-          var h2 = document.querySelector('.doc-txt h2'); out.nombre = !!h2 && h2.scrollWidth <= h2.clientWidth + 1;
-          out.cabAlto = Math.round(document.querySelector('.doc-panel').getBoundingClientRect().height);
-          out.pisa = [].slice.call(document.querySelectorAll('.gp-celda')).some(function(c){ var b=c.querySelector('.gp-b b'), v=c.querySelector('.gp-vent');
-            if (!b || !v) return false; var x=b.getBoundingClientRect(), y=v.getBoundingClientRect(); return x.width && x.right > y.left + 1 && x.bottom > y.top && x.top < y.bottom; });
-          out.hscroll = document.documentElement.scrollWidth > innerWidth + 1;
-          return out; })())`));
-        c(`🔴 Mis grupos a ${w} px · nada se sale de su fila`, !m.corta.length, m.corta.slice(0, 4).join(", "));
-        c(`   el nombre del comandante entero y la cabecera sin aire (${m.cabAlto} px)`, m.nombre && m.cabAlto <= (w < 760 ? 300 : 140), "alto " + m.cabAlto);
-        c(`   ni el código de clase en la fila, ni texto bajo los ⧉, ni scroll de lado`, !m.invita && !m.pisa && !m.hscroll, JSON.stringify(m));
-        await rg.foto(FOTOS + "/48-misgrupos-" + w + ".png");
+        await rg.ir("consola.html"); await rg.hasta("!!document.querySelector('#cn-neb .pt-neb') && !!document.querySelector('.pt-acc')", 75); await dormir(900);
+        const m = JSON.parse(await rg.js(`JSON.stringify({ hscroll: document.documentElement.scrollWidth > innerWidth + 1,
+          nombre: (function(){ var h=document.querySelector('.cn-ficha-t h3'); return !!h && h.scrollWidth <= h.clientWidth + 1; })(),
+          pisa: [].slice.call(document.querySelectorAll('.gp-celda')).some(function(c){ var b=c.querySelector('.gp-b b'), v=c.querySelector('.gp-vent'); if(!b||!v) return false; var x=b.getBoundingClientRect(), y=v.getBoundingClientRect(); return x.width && x.right > y.left + 1 && x.bottom > y.top && x.top < y.bottom; }) })`));
+        const aire = await rg.js(AIRE);
+        c(`🔴 la Nave a ${w} px · sin scroll de lado, el nombre entero y nada bajo los ⧉`, !m.hscroll && m.nombre && !m.pisa, JSON.stringify(m));
+        c(`   y sin aire (ningún hueco de más de 40 px dentro de una caja)`, !aire.length, aire.slice(0, 3).join(" · "));
+        await rg.foto(FOTOS + "/48-nave-" + w + ".png");
       }
       await rg.tamano(1280, 800, false);
-      await rg.ir("consola.html"); await rg.hasta("!!document.querySelector('.gp-grid.uno .gp-mas')", 75);
-      const P2 = await rg.js("document.querySelector('.gp-grid.uno .gp-mas').getAttribute('data-gestion')");
-      await rg.js("document.querySelector('.gp-grid.uno .gp-mas').click(); 1");
-      c("🔴 archivar · el «⋯» de la fila abre «Graduar y archivar» (y borrar, o quién puede)",
-        await rg.hasta("!!document.querySelector('.gs-caja #gs-arch') && (!!document.getElementById('gs-borrar') || /quien lo creó/.test(document.querySelector('.gs-caja').textContent))", 10));
+      // la gestión: la tabla, un grupo abierto y cada pestaña
+      await rg.ir("consola.html"); await rg.hasta("!!document.querySelector('.cn-secs')", 60);
+      c("🔴 gestión · «Gestionar grupos» en la barra de arriba (es referente)", await rg.js("!!document.querySelector('.lnk.solo-referente[href=\"gestion.html\"]:not([hidden])')"));
+      await aGestion(rg, "lab-clase");
+      c("   con «+ Crear un grupo» y la tabla de sus grupos", await rg.js("!!document.querySelector('.gs-cab a[href=\"crear.html\"]') && document.querySelectorAll('.gs-fila').length>=1"));
+      for (const t of ["alumnado", "equipo", "escuadrones", "ajustes", "calendario", "cerrar"]) {
+        await rg.js(`document.querySelector('.gs-panel .pest[data-tab="${t}"]').click(); 1`); await dormir(1500);
+        c(`   gestión · «${t}» se abre sin errores y sin aire`, await rg.js("!!document.querySelector('#c-cuerpo .card')") && !(await rg.js(AIRE)).length);
+      }
       await rg.foto(FOTOS + "/48-gestion.png");
+      // graduar y archivar, y reabrir
+      await rg.js(`document.querySelector('.gs-panel .pest[data-tab="cerrar"]').click(); 1`); await rg.hasta("!!document.getElementById('gs-arch')", 15);
       await rg.js("document.getElementById('gs-arch').click(); 1");
       const arch = await rg.hasta("!!document.querySelector('.borrado-ok') && /archivado/.test(document.querySelector('.borrado-ok').textContent)", 25);
-      const d1 = (await leerDoc("projects/" + P2)) || {};
-      const enViejos = `(function(){ var b=[].slice.call(document.querySelectorAll('.gp-mas')).filter(function(x){return x.getAttribute('data-gestion')===${JSON.stringify(P2)}})[0]; return !!b && !!b.closest('.gp-viejos'); })()`;
-      c("   al archivar, queda marcado y pasa a «Cursos terminados»", arch && !!(d1.stargate || {}).archivado && await rg.js(enViejos), JSON.stringify((d1.stargate || {}).archivado));
-      await rg.js(`[].slice.call(document.querySelectorAll('.gp-mas')).filter(function(x){return x.getAttribute('data-gestion')===${JSON.stringify(P2)}})[0].click(); 1`);
-      await rg.hasta("!!document.getElementById('gs-arch') && /Reabrir/.test(document.getElementById('gs-arch').textContent)", 10);
+      const d1 = (await leerDoc("projects/lab-clase")) || {};
+      c("🔴 gestión · «Graduar y archivar» lo marca y sale entre los «Archivados»", arch && !!(d1.stargate || {}).archivado && await rg.js("!!document.querySelector('[data-gfiltro=\"archivado\"]')"), JSON.stringify((d1.stargate || {}).archivado));
+      await rg.hasta("!!document.getElementById('gs-arch') && /Reabrir/.test(document.getElementById('gs-arch').textContent)", 15);
       await rg.js("document.getElementById('gs-arch').click(); 1");
       const re = await rg.hasta("!!document.querySelector('.borrado-ok') && /reabierto/.test(document.querySelector('.borrado-ok').textContent)", 25);
-      const d2 = (await leerDoc("projects/" + P2)) || {};
-      c("   y «Reabrir» lo devuelve a Mis grupos", re && !(d2.stargate || {}).archivado && !(await rg.js(enViejos)));
-      // en Ajustes del grupo, lo mismo
-      await rg.ir("consola.html?per=" + P2 + "&tab=ajustes"); await rg.hasta("!!document.querySelector('.gs-aj [data-gestion]')", 60);
-      c("   y también desde Ajustes del grupo («Archivar o borrar…»)", await rg.js("!!document.querySelector('.gs-aj [data-gestion]')"));
+      c("   y «Reabrir» lo devuelve", re && !(((await leerDoc("projects/lab-clase")) || {}).stargate || {}).archivado);
       c("gestión · sin errores", !rg.errores.filter(e => !/Failed to load resource/.test(e)).length, rg.errores[0] || "");
       await rg.cerrar();
-      const dd = await nueva("Dani no archiva");
+      // un docente raso: ni el enlace ni la página
+      const dd = await nueva("Dani no gestiona");
       await dd.ir("entrar.html"); await dd.entrarComo("dani@lab.test", "Dani Docente");
-      await dd.ir("consola.html"); await dd.hasta("!!document.querySelector('.gp')", 75); await dormir(600);
-      c("   un docente raso no tiene «⋯» (archivar es del referente)", await dd.js("!document.querySelector('.gp-mas')"));
+      await dd.ir("consola.html"); await dd.hasta("!!document.querySelector('.cn-secs')", 75); await dormir(600);
+      c("   un docente raso no ve «Gestionar grupos» arriba", await dd.js("!document.querySelector('.lnk.solo-referente[href=\"gestion.html\"]:not([hidden])')"));
+      await dd.ir("gestion.html"); await dd.hasta("/es del referente/.test(document.body.innerText)", 40);
+      c("   y si entra por la dirección, se le dice que es del referente", await dd.js("/es del referente/.test(document.body.innerText) && !document.querySelector('.gs-fila')"));
       await dd.cerrar();
+      // 🔴 CAMBIAR A UN RECLUTA DE GRUPO, con todo lo suyo (Norberto eligió «todo»). Un segundo grupo, clon del primero
+      // (sus retos, campañas y recompensas con su prefijo), y Rita lo hace desde «Gestionar grupos», como una persona.
+      {
+        const A = admin(), fs = A.firestore(), P = "lab-clase", P2 = "lab-mover";
+        const base = (await fs.collection("projects").doc(P).get()).data();
+        await fs.collection("projects").doc(P2).set(Object.assign({}, base, { name: "LAB · Grupo de destino", joinCode: "MOVER2" }));
+        const priv = (await fs.collection("projects").doc(P).collection("privado").doc("stargate").get()).data() || {};
+        await fs.collection("projects").doc(P2).collection("privado").doc("stargate").set(Object.assign({}, priv, { premiosEnlace: {} }));
+        for (const col of ["missions", "campaigns", "rewards"]) {
+          const docs = (await fs.collection(col).where("projectId", "==", P).get()).docs;
+          for (let i = 0; i < docs.length; i += 400) {
+            const lote = fs.batch();
+            docs.slice(i, i + 400).forEach(d => { const x = JSON.parse(JSON.stringify(d.data()).split('"' + P + '__').join('"' + P2 + '__')); x.projectId = P2; lote.set(fs.collection(col).doc(P2 + d.id.slice(P.length)), x); });
+            await lote.commit();
+          }
+        }
+        // el recluta: uno con retos hechos, cromos y alias (de los sembrados)
+        const fichas = (await fs.collection("student_profiles").where("projectId", "==", P).get()).docs
+          .filter(d => (d.data().completedMissionIds || []).length >= 3 && !d.data().stargateCongelado)
+          .sort((a, b) => (b.data().inventory || []).length - (a.data().inventory || []).length);
+        const F = fichas[0], antes = F && F.data();
+        c("mover · hay un recluta con retos para mover", !!F, F && antes.displayName);
+        if (F) {
+          const rm = await nueva("Rita mueve a un recluta");
+          await rm.ir("entrar.html"); await rm.entrarComo("rita@lab.test", "Rita Referente");
+          await aGestion(rm, P, "alumnado");
+          await rm.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1"); await dormir(600);
+          await rm.js(`(function(){ var f=[].slice.call(document.querySelectorAll('[data-r]')).filter(function(x){return x.querySelector('td:nth-child(2) b') && x.querySelector('td:nth-child(2) b').textContent===${JSON.stringify(antes.displayName)}})[0]; if(f) f.click(); return !!f; })()`);
+          const hay = await rm.hasta("!!document.getElementById('c-mover-b') && [].slice.call(document.querySelectorAll('#c-mover option')).some(function(o){return o.value==='" + P2 + "'})", 15);
+          c("🔴 mover · en su ficha (en «Gestionar grupos»), «Cambiar de grupo» con sus otros grupos", hay);
+          if (hay) {
+            await rm.js(`var s=document.getElementById('c-mover'); s.value=${JSON.stringify(P2)}; s.dispatchEvent(new Event('change')); document.getElementById('c-mover-b').click(); 1`);
+            c("mover · pregunta antes, en su ventana", /al grupo «LAB · Grupo de destino»/.test(await rm.responder()));
+            const hecho = await rm.hasta("/ya está en «LAB · Grupo de destino»/.test((document.getElementById('c-aviso')||{}).innerText||'')", 40);
+            const d = (await leerDoc("student_profiles/" + F.id)) || {};
+            const alias = await consultar("stargate_alias", "uid", antes.userId);
+            c("🔴 mover · se mueve de verdad (el servidor): su ficha, ahora en el otro grupo", hecho && d.projectId === P2, (await rm.js("(document.getElementById('c-aviso')||{}).innerText||''")) + " · " + d.projectId);
+            c("🔴   con todo lo suyo: xp, créditos, insignias y colección, y los retos traducidos al otro grupo",
+              d.totalPoints === antes.totalPoints && d.coins === antes.coins && JSON.stringify(d.earnedBadges || []) === JSON.stringify(antes.earnedBadges || [])
+              && (d.completedMissionIds || []).length === antes.completedMissionIds.length && (d.completedMissionIds || []).every(x => x.indexOf(P2 + "__") === 0)
+              && (d.inventory || []).length === antes.inventory.length && (d.inventory || []).every(x => x.indexOf(P + "__") !== 0),
+              JSON.stringify({ xp: [antes.totalPoints, d.totalPoints], retos: (d.completedMissionIds || []).slice(0, 3), inv: (d.inventory || []).slice(0, 2) }));
+            c("   su alias, reservado en el otro grupo (y libre en el suyo)", alias.some(x => x.projectId === P2) && !alias.some(x => x.projectId === P));
+            c("   y un escuadrón del otro grupo", !!d.squadId && (base.factions || []).some(f => f.id === d.squadId));
+          }
+          c("mover · sin errores", !rm.errores.filter(e => !/Failed to load resource/.test(e)).length, rm.errores[0] || "");
+          await rm.cerrar();
+        }
+      }
+      // la sesión de las semanas 1 y 2: «Únete a la clase» con el código y «Copiar la invitación para el chat»
+      const rs = await nueva("Rita proyecta la semana 1");
+      await rs.ir("entrar.html"); await rs.entrarComo("rita@lab.test", "Rita Referente");
+      await rs.ir("sesion.html?per=lab-clase&sem=1"); await rs.hasta("!!document.querySelector('[data-sec=\"unete\"]')", 60);
+      await rs.js("document.querySelector('[data-sec=\"unete\"]').click(); 1");
+      const cod = await rs.hasta("/^[A-Z0-9]{6}$/.test((document.getElementById('ses-un-cod')||{}).textContent||'') && !document.getElementById('ses-un-copiar').disabled", 20);
+      c("🔴 sesión · en la semana 1, «Únete a la clase» con el código en grande y el botón para el chat", cod, await rs.js("(document.getElementById('ses-un-cod')||{}).textContent"));
+      await rs.ir("sesion.html?per=lab-clase&sem=3"); await rs.hasta("!!document.querySelector('[data-sec=\"portada\"]')", 60);
+      c("   y en la semana 3 ya no sale", await rs.js("!document.querySelector('[data-sec=\"unete\"]')"));
+      await rs.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

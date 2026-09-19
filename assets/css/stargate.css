@@ -5009,3 +5009,117 @@ body.modo-piloto #consola-app .gp-celda:has(.gp-cfg) .gp-b{padding-right:44px}
 .grid.nave-rec{align-items:start}
 .nave-rec .rec-card .rec-cuerpo{flex:none}
 .nave-rec .rec-card .rec-pie{margin-top:0}
+/* ================================================================== 19-sep · LA NAVE DEL COMANDANTE
+   Norberto: «la página inicial del docente debería ser visualmente similar a la nave del estudiante». La misma ficha
+   (nave-perfil, monedas), el mismo menú de botones con iconos (el de la Nave del recluta) y, en lugar de insignias, sus
+   grupos y su gente. Decidido con el borrador dibujado del lienzo «Nave del Comandante · borrador». */
+.cn-hero{margin:0 0 12px;gap:14px}
+.cn-hero>.card{margin:0}
+.cn-ficha .nave-perfil{margin:0;align-items:flex-start}
+.cn-ficha .nave-perfil .av-lupa{width:190px}
+.cn-ficha .nave-perfil img.av{width:190px;height:190px;border-radius:20px}
+.cn-ficha-t{min-width:0;display:flex;flex-direction:column;gap:6px}
+.cn-ficha-t h3{margin:0;font-size:clamp(1.2rem,2vw,1.5rem)}
+.cn-ficha-t p{margin:0}
+.cn-ficha-t .monedas{margin:2px 0}
+.cn-ficha-b{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.cn-der{display:flex;flex-direction:column;gap:10px;min-width:0}
+.cn-der>.card{margin:0}
+@media(max-width:640px){.cn-ficha .nave-perfil{flex-direction:row}.cn-ficha .nave-perfil .av-lupa,.cn-ficha .nave-perfil img.av{width:96px;height:96px}}
+/* una pestaña por grupo en marcha */
+.cn-grupos{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8px}
+.cn-g{display:flex;align-items:center;gap:10px;min-height:58px;padding:6px 14px 6px 6px;border-radius:14px;border:1px solid #24344c;
+  background:linear-gradient(180deg,#132236,#0d1828);color:#cfe0ec;font:inherit;cursor:pointer;text-align:left}
+.cn-g img,.cn-g .cn-g-sin{width:44px;height:44px;border-radius:11px;object-fit:cover;flex:none}
+.cn-g .cn-g-sin{display:grid;place-items:center;color:var(--teal);background:#0b1119}
+.cn-g b{display:block;font-family:'Unbounded',sans-serif;font-size:.92rem;color:#fff;line-height:1.25}
+.cn-g em{font-style:normal;font-size:.8rem;color:var(--mut)}
+.cn-g:hover{border-color:#2f5a70}
+.cn-g.on{border-color:var(--teal);background:linear-gradient(180deg,#113846,#0c2432);box-shadow:0 0 14px rgba(55,224,236,.2)}
+.cn-g-n{margin-left:6px;min-width:24px;height:24px;padding:0 7px;border-radius:99px;background:var(--amber);color:#2a1a02;font-weight:800;font-size:.8rem;display:grid;place-items:center}
+.cn-g:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+/* el menú de secciones, con los botones de la Nave del recluta */
+.cn-secs{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:7px;margin:0 0 10px;border:1px solid var(--line);border-radius:16px;background:rgba(8,14,24,.8)}
+.pest.cn-t{height:46px;padding:0 13px 0 7px;gap:8px;border-radius:11px;border:1px solid #24344c;color:#cfe0ec;font-weight:600;font-size:.9rem;
+  background:linear-gradient(180deg,#15263a,#0e1828);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transform:none}
+.pest.cn-t::before,.pest.cn-s::before{display:none!important;content:none!important}
+.pest.cn-t .i{width:30px;height:30px;object-fit:contain;display:block;flex:none}
+.pest.cn-t b{font-weight:600}
+.pest.cn-t:hover{color:#fff;border-color:#2f5a70;background:linear-gradient(180deg,#183049,#10203a);box-shadow:none}
+.pest.cn-t.activa{color:#fff;border-color:var(--teal);background:linear-gradient(180deg,#113846,#0c2432);box-shadow:inset 0 0 0 1px rgba(55,224,236,.18),0 0 12px rgba(55,224,236,.18)}
+.pest.cn-t.activa .i{filter:drop-shadow(0 0 7px rgba(55,224,236,.6))}
+.pest.cn-t.pest-aviso{border-color:var(--amber)}
+.cn-sub{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 10px}
+.pest.cn-s{padding:6px 12px;font-size:.86rem;border-radius:999px}
+@media(max-width:760px){
+  .cn-secs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .cn-secs::-webkit-scrollbar{display:none}
+  .pest.cn-t{flex:none}
+  .pest.cn-t b{display:none}
+  .pest.cn-t{width:46px;padding:0;justify-content:center}
+  .cn-grupos{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .cn-g{flex:none}
+}
+/* el Puente: la cabecera del grupo y los tres pasos de la clase */
+.pt-cab{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pt-emb{width:64px;height:64px;border-radius:14px;object-fit:cover;flex:none;border:1px solid #2a4656}
+.pt-cab-t{min-width:0;flex:1 1 300px}
+.pt-cab-t h2{margin:1px 0;font-size:clamp(1.25rem,2.2vw,1.6rem);text-wrap:balance}
+.pt-cab-t p{margin:0}
+.pt-cab .pt-cod{margin-left:auto}
+.pt-acc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
+.pt-acc .gp-celda .gp-b{min-height:72px;padding:10px 44px 10px 12px;gap:10px;border-radius:16px}
+.pt-acc .gp-celda:has(.gp-cfg) .gp-b{padding-right:84px}
+body.modo-piloto .pt-acc .gp-celda:has(.gp-cfg) .gp-b{padding-right:44px}
+.pt-acc .gp-celda.principal{grid-column:auto}
+.pt-acc .gp-b.principal{box-shadow:0 0 18px rgba(55,224,236,.18)}
+.pt-acc-i{width:46px;height:46px;object-fit:contain;flex:none}
+.pt-acc-t{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.pt-acc-t b{font-family:'Unbounded',sans-serif;font-size:1rem}
+.pt-acc-t em{font-style:normal;font-size:.82rem;color:var(--mut);font-weight:600}
+@media(max-width:760px){.pt-acc{grid-template-columns:minmax(0,1fr)}}
+/* «Mi gente»: el código de clase, por si falta alguien */
+.cn-gente-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cn-gente-cab h3{margin:0;margin-right:auto}
+.cn-falta{font-size:.85rem;color:var(--mut);font-weight:700}
+.cn-vacio .cn-pasados{display:flex;gap:6px;flex-wrap:wrap}
+/* ================================================================== 19-sep · GESTIONAR GRUPOS (solo referentes) */
+.gs-cab{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 10px}
+.gs-cab-t{flex:1 1 320px;min-width:0}
+.gs-cab-t h2{margin:0}
+.gs-cab-t p{margin:2px 0 0}
+.gs-filtros{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.gs-filtros .chip{cursor:pointer;font:700 .86rem 'DM Sans',system-ui;padding:6px 12px;border-radius:999px;border:1px solid #2a4656;background:none;color:#c7d6ee}
+.gs-filtros .chip.on{background:var(--teal);color:#04222a;border-color:var(--teal)}
+.gs-tabla{display:flex;flex-direction:column;gap:6px}
+.gs-fila{display:grid;grid-template-columns:minmax(0,1.5fr) 160px 110px minmax(0,1.4fr) auto;gap:12px;align-items:center;padding:8px 12px;
+  border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.02);font-size:.9rem}
+.gs-fila.on{border-color:var(--teal);background:rgba(55,224,236,.06)}
+.gs-g{display:flex;align-items:center;gap:10px;min-width:0}
+.gs-g img,.gs-g .cn-g-sin{width:40px;height:40px;border-radius:10px;object-fit:cover;flex:none}
+.gs-g b{display:block;font-size:.95rem}
+.gs-g em{font-style:normal;font-size:.8rem;color:var(--mut)}
+.gs-est{font-weight:700}
+.gs-est.en-marcha{color:var(--teal)}.gs-est.por-empezar{color:var(--amber)}.gs-est.terminado,.gs-est.archivado{color:var(--mut)}
+.gs-n em{font-style:normal;color:var(--mut);font-size:.8rem}
+.gs-eq{color:#c7d6ee;font-size:.85rem;min-width:0}
+.gs-b{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.gs-panel{border:1px solid var(--teal);border-radius:16px;padding:10px 12px;background:#0b1624;margin:-2px 0 6px}
+.gs-panel .gs-tabs{margin:0 0 10px}
+.gs-panel #c-cuerpo>.card:first-child{margin-top:0}
+.gs-op h3{margin:0 0 4px}
+@media(max-width:900px){.gs-fila{grid-template-columns:minmax(0,1fr) auto;row-gap:4px}.gs-est,.gs-n,.gs-eq{grid-column:1}.gs-b{grid-column:2;grid-row:1 / span 4;align-self:start}}
+.cn-ficha .cn-ficha-b{margin-top:12px}
+.cn-der .c-res-cifras{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
+@media(max-width:640px){.cn-ficha .cn-ficha-b .modo-sel{width:100%}}
+.cn-der .c-res-cifras>div{flex:1 1 92px;min-width:0}
+/* 19-sep · la regla del aire en «Gestionar grupos»: cada persona del equipo mide lo suyo y sus botones van pegados */
+.eq-lista{align-items:start}
+.eq-acc,.eq-p .eq-pasar{margin-top:0}
+/* 19-sep · la sesión de las semanas 1 y 2: «Únete a la tripulación», con el código en grande (se proyecta) */
+.dia.unete .un-cod{font:800 clamp(2.4rem,7vw,4.6rem)/1.05 ui-monospace,'IBM Plex Mono',monospace;letter-spacing:.22em;color:#fff;
+  padding:10px 22px;margin:8px 0 12px;border:2px dashed rgba(245,176,67,.6);border-radius:18px;background:rgba(245,176,67,.06);display:inline-block}
+.dia.unete .un-pie{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0}
+.dia.unete .un-cod{align-self:flex-start;width:fit-content}
+.cn-sub .cn-comun{margin-left:auto;text-decoration:none}
+.esc-datos{align-items:start}   /* 19-sep · cada dato de un escuadrón mide lo suyo (el del Comandante, con su correo, estiraba a los demás) */

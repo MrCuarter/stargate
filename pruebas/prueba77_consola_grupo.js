@@ -21,10 +21,11 @@ const tabs = (K.match(/var TABS = \[([\s\S]*?)\];/) || [, ""])[1];
 c(/\["canjes", "Cola de nota"\]\s*$/.test(tabs.trim()), "🔴 la Cola de nota es la ÚLTIMA pestaña", tabs.trim().slice(-60));
 c(/x\[0\] !== "canjes" \|\| cola > 0/.test(K), "🔴 y solo sale si hay algo pendiente");
 c(/pest-aviso/.test(K) && /class="pest-n"/.test(K) && /\.pest\.pest-aviso\{[^}]*animation:colaBrilla/.test(CSS), "   brilla, con el número en un globo");
-c(/if \(!misTabs\(\)\.some\(function \(x\) \{ return x\[0\] === TAB; \}\)\) TAB = misTabs\(\)\[0\]\[0\];\s*app\.innerHTML/.test(K),
+c(/if \(!misTabs\(\)\.some\(function \(x\) \{ return x\[0\] === TAB; \}\)\) TAB = misTabs\(\)\[0\]\[0\];[\s\S]{0,200}?app\.innerHTML/.test(K),
   "   al resolver la última, se cae a la primera pestaña ANTES de pintarlas (la encendida es la que se ve)");
-c(/where\("status", "==", "pending"\)/.test(M) && /x\.cola = /.test(M) && /class="gp-cola"/.test(K) && /data-ir="canjes"/.test(K),
-  "   y la tarjeta de Mis grupos avisa, con un botón que lleva directo a la cola");
+// 19-sep · en la Nave del Comandante: la pestaña del grupo lleva el aviso y «Mi gente» brilla con su número
+c(/where\("status", "==", "pending"\)/.test(M) && /x\.cola = /.test(M) && /cn-g-n/.test(K) && /var n = x\[0\] === "gente" \? cola : 0/.test(K),
+  "   y la pestaña del grupo avisa, y «Mi gente» brilla con su número (dentro está la Cola)");
 
 // 2 · el Zoco con su fecha
 c(/function zocoCuando\(\)/.test(K) && /inicioDeSemana\(S\.inicio, sem, S\.pausas\)/.test(trozo(K, "function zocoCuando")) && /c\.clave === "c5"/.test(K),
@@ -64,7 +65,7 @@ if (fs.existsSync(SRV)) {
 // 6 · el calendario
 const C = trozo(K, "function verCalendario", 16000);
 c(/\["calendario", "Calendario"\]/.test(K), "🔴 el calendario lo ve todo el equipo");
-c(/var edita = soyRefAqui\(\);/.test(C) && /var toca = edita && futura;/.test(C) && /if \(!edita\) return;/.test(C), "   pero solo el referente lo cambia (y solo semanas futuras)");
+c(/var edita = soyRefAqui\(\) && GESTION;/.test(C) && /var toca = edita && futura;/.test(C) && /if \(!edita\) return;/.test(C), "   pero solo el referente lo cambia, en «Gestionar grupos» (y solo semanas futuras)");
 c(/class="cal-7"/.test(C) && /cal-d/.test(C) && /INICIALES\[\(dia0 \+ k\) % 7\]/.test(C), "   como un calendario: una fila por semana con sus siete días");
 c(/"S" \+ f\.semana/.test(C) && /iconos\/p\/calendario\.png/.test(C) && /iconos\/p\/mercado\.png/.test(C), "   cada semana con su número, las festivas y la de canje");
 c(/data-cal-tg=/.test(C) && /Marcar no lectiva/.test(C), "   una semana se marca como no lectiva pulsándola");
