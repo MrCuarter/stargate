@@ -1812,4 +1812,25 @@ PANEL_MAESTRO_EDICION = "https://app.genially.com/editor/6a8bfc4f5068ad5903fc39e
 
 TICKET_URL = ("https://docs.google.com/forms/d/e/"
               "1FAIpQLScqkZRCiUqKkq24s7_yzy2d2ldHXlWz8GoHCqXXmHbQlgKhIQ/viewform"
-              "?usp=pp_url&entry.489397158={GRUPO}&entry.856117988={COMANDANTE}")
+              "?usp=pp_url&entry.489397158={GRUPO}&entry.856117988={COMANDANTE}&entry.240809630={TEMA}")
+
+# 🔴 20-sep · EL TEMA, YA ELEGIDO. El ticket se rellena AL ACABAR CADA TEMA (no cada semana), y la sesión
+# que lo cierra lo incrusta en su última diapositiva. Si el tema va ya marcado, las respuestas se pueden
+# agrupar por tema y la sesión que abre el siguiente proyecta «cómo os fue» sin que nadie ordene nada.
+#
+# Son los textos EXACTOS de las opciones del formulario (Google ignora en silencio cualquier otro): la clave
+# es el número de tema —`tema_n` de cada semana— y «a1», «a2»… para las actividades, que tienen opción propia.
+# Si algún día se tocan las opciones del formulario, se tocan aquí.
+TICKET_TEMAS = {
+    "0": "Repaso / balance final",
+    "1": "Tema 1: Creación de contenido multimedia (Fôrge)",
+    "2": "Tema 2: El vídeo como recurso (Ecos)",
+    "3": "Tema 3: Contenidos interactivos (Sendara)",
+    "4": "Tema 4: M-learning (Reliae)",
+    "5": "Tema 5: Evaluación y ePortfolio (Umbral)",
+    "6": "Tema 6: Aprendizaje Basado en el Juego (Ludo)",
+    "7": "Tema 7: Gamificación (Vínculo)",
+    "8": "Tema 8: Realidad Aumentada y Virtual (Liminar)",
+    "a1": "Actividad 1: actividad didáctica a partir de una imagen con IA",
+    "a2": "Actividad 2: planifica y crea un paisaje de aprendizaje",
+}

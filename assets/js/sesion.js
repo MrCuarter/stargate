@@ -60,6 +60,12 @@
    *     directo ahí mismo. Si se mueve por su cuenta, deja de seguir hasta que pulsa «Volver al ritmo».
    */
   var SEGUIR = q.get('seguir') === '1';
+  /**
+   * 🔴 20-sep · EL ENLACE DEL CHAT (?seguir=1&fichar=1). Norberto: «añade un enlace rápido para compartir por el chat
+   * de Teams [para que] se puedan unir a la sesión (fichaje + se abre presentación)». Quien lo abre entra con su
+   * cuenta, ve la presentación al ritmo de la clase y ficha SOLO en cuanto la llamada está abierta: sin botones.
+   */
+  var FICHAR = q.get('fichar') === '1';
   var DIRECTO = { on:false, t:null, ultimo:'' }, SEG = { on:true, d:{}, parar:null, mia:null, miaDe:'' };
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -256,7 +262,29 @@
       +'<h1>'+esc(s.tema)+'</h1><p class="sub">'+esc(s.sub||'')+'</p>'
       +(pl?'<p class="planeta-nom">Planeta <b>'+esc(pl[1])+'</b> · '+esc(pl[2])+'</p>':'')
       +(s.capitulo?'<p class="pill amber">Nuevo capítulo de la historia: «'+esc(s.capitulo)+'»</p>':'')
-      +'</div></div>'};
+      /**
+       * 🔴 20-sep · EL ENLACE PARA EL CHAT. Norberto: «añade un enlace rápido para compartir por el chat de Teams
+       * [para que] se puedan unir a la sesión (fichaje + se abre presentación). En la primera diapositiva debería
+       * estar, botón de copiar». Solo lo ve quien da la clase (al recluta no le sirve de nada).
+       */
+      +(!st.alumno&&st.per&&st.yo?'<p class="pt-chat"><button type="button" class="btn min" id="ses-chat">Copiar el enlace para el chat</button> <span class="small" id="ses-chat-m">Entran con su cuenta, fichan solos y ven esta presentación.</span></p>':'')
+      +'</div></div>', montar: montarPortada};
+  }
+  /** El enlace que se pega en el chat: sigue la clase y ficha solo en cuanto la llamada está abierta. */
+  function enlaceClase(){
+    var u=new URL('sesion.html', location.href); u.search='';
+    u.searchParams.set('per', st.per); u.searchParams.set('seguir','1'); u.searchParams.set('fichar','1');
+    return u.href;
+  }
+  function montarPortada(el){
+    var b=el.querySelector('#ses-chat'), m=el.querySelector('#ses-chat-m'); if(!b) return null;
+    b.onclick=function(){
+      var txt='Clase de hoy'+(st.nombre?' · '+st.nombre:'')+': entra aquí, fichas solo y ves la presentación al mismo ritmo que en clase.\n'+enlaceClase();
+      (navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(txt):Promise.reject())
+        .then(function(){ m.textContent='✓ Copiado: pégalo en el chat de Teams.'; },
+              function(){ m.textContent='No he podido copiarlo: '+enlaceClase(); });
+    };
+    return null;
   }
 
   // ── 2 · la llamada a filas, con la gente entrando en directo
@@ -264,12 +292,22 @@
   // 17-sep · el recluta ficha AQUÍ, sobre la presentación (Norberto: «que los estudiantes pudieran fichar directamente sobre la presentación»)
   function llamadaAlumno(M, mando){
     if(!M||!M.llamadaAbierta||!M.ficharLlamada||!st.ficha){ mando.innerHTML='<p class="sub">Ficha desde tu Nave.</p>'; return null; }
-    var vivo=true, hecho=false;
+    var vivo=true, hecho=false, yendo=false;
+    // 🔴 20-sep · quien entra por el enlace del chat (?fichar=1) NO pulsa nada: ficha «solo, en cuanto la
+    // llamada está abierta». El botón se queda para quien abre la presentación por su cuenta.
+    var fichar=function(){
+      if(!vivo||hecho||yendo) return; yendo=true;
+      mando.innerHTML='<p class="sub">Fichando…</p>';
+      M.ficharLlamada(st.per, st.ficha).then(function(){
+        hecho=true; if(vivo) mando.innerHTML='<p class="sub"><b>Presente.</b> Ya estás en la lista de hoy.</p>';
+      },function(err){ yendo=false; if(vivo) mando.innerHTML='<p class="ses-err">No he podido ficharte: '+esc(String((err&&err.message)||err))+'</p>'; });
+    };
     var mira=function(){
       if(!vivo||hecho) return;
       M.llamadaAbierta(st.per).then(function(s){
         if(!vivo||hecho) return;
-        if(!s){ mando.innerHTML='<p class="sub">Tu Comandante aún no ha tocado la llamada.</p>'; return; }
+        if(!s){ if(!yendo) mando.innerHTML='<p class="sub">Tu Comandante aún no ha tocado la llamada.</p>'; return; }
+        if(FICHAR) return fichar();
         if(mando.querySelector('#ses-al-presente')) return;
         mando.innerHTML='<button type="button" class="btn primary grande" id="ses-al-presente">Presente</button><p class="ses-err" id="ses-al-err"></p>';
         mando.querySelector('#ses-al-presente').onclick=function(e){
@@ -825,26 +863,71 @@
       }).join('')+'</div></div>'};
   }
 
-  // ── 9 · el ticket de salida de la semana pasada (anónimo), de SU escuadrón
-  function diaTicket(){
-    if(!window.SG_TICKETS_API||!st.per) return null;
-    /**
-     * 18-sep · Norberto: «en la primera semana no puede haber respuestas del ticket de salida: en vez de mostrar
-     * "respuestas", pon directamente el ticket embebido». En la semana 1 nadie ha contestado todavía, así que la
-     * diapositiva es el propio ticket, para rellenarlo ahí mismo.
-     */
-    if(Number(st.sem)<=1 && window.SG_TICKET_URL){
-      var u=String(window.SG_TICKET_URL).split('{GRUPO}').join(encodeURIComponent(st.nombre||st.per||''))
-              .split('{COMANDANTE}').join(encodeURIComponent(st.miNombre||''));
-      return {k:'ticket', rot:'Ticket de salida', html:
-        '<div class="dia ticket ticket-form"><div class="tk-cuerpo"><div class="kicker">El ticket de salida</div>'
-        +'<h2>Antes de iros</h2><p class="sub">Una valoración rápida y anónima. La semana que viene proyectaremos lo que digáis.</p>'
-        +'<iframe class="tk-form" src="'+esc(u)+'" title="Ticket de salida" loading="lazy"></iframe></div></div>'};
-    }
-    return {k:'ticket', rot:'Ticket de salida', html:
-      '<div class="dia ticket"><img class="tk-neb" src="assets/img/personajes/nebula.png" alt="">'
-      +'<div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/mensaje.png alt> El ticket de salida</div><h2>Lo que dijisteis al salir</h2>'
-      +'<div id="ses-tk"><p class="sub">Leyendo vuestras respuestas…</p></div></div></div>', montar: montarTicket};
+  /* ── 9 · EL TICKET DE SALIDA · se rellena AL ACABAR CADA TEMA, no cada semana ──────────────────
+   *
+   * 🔴 20-sep · Norberto: «se hace al acabar tema, no semana… por si no lo tenías claro». De ahí las tres
+   * diapositivas y dónde va cada una:
+   *   · la ÚLTIMA sesión de un tema termina con el TICKET EMBEBIDO, para rellenarlo ahí mismo, en clase;
+   *   · la PRIMERA del tema siguiente empieza con el RESUMEN («cómo os fue», el reparto de cada nota) y,
+   *     detrás, las DUDAS y comentarios que escribieron.
+   * Todo de SU escuadrón (el campo «profesor o profesora» del formulario) y de SU tema: si no hay nada,
+   * lo dice y anima a rellenarlo al acabar el próximo, en vez de dejar un hueco en blanco.
+   */
+  function temaDe(s){ return Number(s&&s.tema_n)||0; }
+  function iDe(lista, s){ for(var k=0;k<lista.length;k++) if(lista[k]===s) return k; return (Number(s&&s.sem)||1)-1; }
+  function ultimaDelTema(lista, i){ var sig=lista[i+1]; return !sig || temaDe(sig)!==temaDe(lista[i]); }
+  function primeraDelTema(lista, i){ var ant=lista[i-1]; return !ant || temaDe(ant)!==temaDe(lista[i]); }
+  /** El texto EXACTO de la opción del formulario para el tema de una semana (para dejarlo ya elegido). */
+  function opcionTema(s){
+    var T=window.SG_TICKET_TEMAS||{}, n=temaDe(s);
+    var act=String((s&&s.sub)||'').match(/Actividad (\d)/i);
+    return (act&&T['a'+act[1]]) || T[String(n)] || '';
+  }
+  /** Con qué se queda el resumen: las opciones del formulario que son de ESE tema (el suyo y sus actividades). */
+  function esDelTema(v, lista, i){
+    var s=lista[i]; if(!s) return true;
+    var n=temaDe(s), t=String(v||'').trim();
+    if(!t) return false;
+    if(n===0) return /^Repaso/i.test(t) || /^Presentaci/i.test(t);
+    if(new RegExp('^Tema\\s*'+n+'\\b').test(t)) return true;
+    // las actividades tienen su propia opción y viven dentro de un tema: «Actividad 1» es del tema 1
+    var m=t.match(/^Actividad\s*(\d)/i); if(!m) return false;
+    for(var k=0;k<lista.length;k++) if(temaDe(lista[k])===n && new RegExp('Actividad\\s*'+m[1]+'\\b','i').test(String(lista[k].sub||''))) return true;
+    return false;
+  }
+  /** La última diapositiva de la última sesión del tema: el formulario, para rellenarlo en clase. */
+  function diaTicketForm(s){
+    if(!window.SG_TICKET_URL||!st.per) return null;
+    // 🔴 20-sep · el hueco «Grupo» lleva el ID del grupo, no su nombre: es por lo que pregunta el lector de la
+    // hoja (`motor/tablero.js` lo rellena igual). Con el nombre, las respuestas no aparecían en ningún sitio.
+    // Y el Comandante, el de quien da la clase o el del recluta que la sigue: antes se quedaba vacío al seguirla.
+    var u=String(window.SG_TICKET_URL).split('{GRUPO}').join(encodeURIComponent(st.per||''))
+            .split('{COMANDANTE}').join(encodeURIComponent(elComandante()))
+            .split('{TEMA}').join(encodeURIComponent(opcionTema(s)));
+    return {k:'ticket_form', sec:'ticket', t:'ci', rot:'Ticket de salida', html:
+      '<div class="dia ticket ticket-form"><div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/ticket.png alt> Cerramos el tema</div>'
+      +'<h2>El ticket de salida</h2><p class="sub">Anónimo y rápido: se rellena al acabar cada tema. En la próxima clase proyectaremos lo que digáis.</p>'
+      // (`embedded=true` es como Google sirve sus formularios dentro de otra página: sin su cabecera ni su pie)
+      +'<iframe class="tk-form" src="'+esc(u+'&embedded=true')+'" title="Ticket de salida" loading="lazy"></iframe>'
+      +'<p class="small muted tk-otro">¿No te cabe en la pantalla? <a href="'+esc(u)+'" target="_blank" rel="noopener">Ábrelo en otra pestaña</a>.</p></div></div>'};
+  }
+  function elComandante(){ return String((!st.alumno&&st.miNombre)||st.profeMio||'').trim(); }
+  /** Las dos de abrir tema: cómo fue el anterior y qué preguntasteis. */
+  function diasTicket(lista, i){
+    if(!window.SG_TICKETS_API||!st.per||i<=0) return [];
+    var ant=i-1;    // la última semana del tema anterior
+    return [
+      {k:'ticket', sec:'ticket', rot:'Cómo os fue', html:
+        '<div class="dia ticket"><img class="tk-neb" src="assets/img/personajes/nebula.png" alt="">'
+        +'<div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/notas.png alt> El ticket del tema anterior</div><h2>Cómo os fue</h2>'
+        +'<div id="ses-tk"><p class="sub">Leyendo vuestras respuestas…</p></div></div></div>',
+       montar: function(el){ return montarTicket(el, lista, ant, 'notas'); }},
+      {k:'ticket_dudas', sec:'ticket', rot:'Vuestras dudas', html:
+        '<div class="dia ticket"><img class="tk-neb" src="assets/img/personajes/nebula.png" alt="">'
+        +'<div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/mensaje.png alt> Lo que escribisteis</div><h2>Vuestras dudas y comentarios</h2>'
+        +'<div id="ses-tk"><p class="sub">Leyendo vuestras respuestas…</p></div></div></div>',
+       montar: function(el){ return montarTicket(el, lista, ant, 'textos'); }}
+    ];
   }
   var TK=null, TK_PROMESA=null;
   /**
@@ -860,27 +943,88 @@
       .then(function(d){ TK={per:per, lista:(d&&d.tickets)||[]}; return TK; }, function(e){ TK={per:per, lista:[], error:true}; return TK; });
     return TK_PROMESA;
   }
-  function montarTicket(el){
+  /**
+   * Las columnas que no son ni una nota ni un comentario: la cabecera del formulario y las de elegir.
+   * 🔴 20-sep · «¿Cómo has seguido esta clase?» (en directo / en diferido) se colaba entre los comentarios
+   * porque su respuesta es un texto largo. Ahora manda la PREGUNTA, no lo larga que sea la respuesta.
+   */
+  var TK_ELIGE=/Selecciona el tema|profesor o profesora|prefieres que transcurran|C[oó]mo has seguido/i;
+  var TK_CORTO=[[/utilidad de las herramientas/i,'La utilidad de lo visto'],[/satisfacci[oó]n general del desarrollo/i,'La clase, en general'],
+    [/contenidos te[oó]ricos/i,'La teoría'],[/estrategias pr[aá]cticas/i,'La práctica'],[/grado de participaci[oó]n/i,'Vuestra participación'],
+    [/utilidad de la actividad/i,'La actividad, ¿os sirvió?'],[/calidad de la actividad que has entregado/i,'Vuestra entrega'],
+    [/puntuaci[oó]n obtenida/i,'La nota'],[/vibraciones te ha transmitido/i,'La presentación'],[/utilidad que percibes del temario/i,'El temario'],
+    [/conocimientos iniciales/i,'Lo que sabíais al empezar'],[/se ha hablado de la misi[oó]n/i,'Se habló de la misión'],
+    [/tablero o el ranking/i,'Se vio el tablero'],[/reconocido en p[uú]blico/i,'Se reconoció a alguien'],
+    [/satisfacci[oó]n con tu profesor/i,'Vuestro Comandante'],[/satisfacci[oó]n con la asignatura/i,'La asignatura'],
+    [/Comparada con otras asignaturas/i,'Comparada con otras'],[/forma de seguir esta asignatura/i,'Cómo se sigue'],
+    [/duda sobre la actividad/i,'Sobre la actividad'],[/Alguna duda/i,'Dudas y comentarios'],[/qu[eé] esperas/i,'Qué esperáis'],
+    [/lo mejor/i,'Lo mejor'],[/lo peor/i,'Lo peor'],[/comentario a tu profesor/i,'Para su Comandante']];
+  function corto(c){
+    for(var k=0;k<TK_CORTO.length;k++) if(TK_CORTO[k][0].test(c)) return TK_CORTO[k][1];
+    var t=String(c||'').replace(/^(Valora la satisfacci[oó]n (con|sobre|de)( la| el)?|Valora la|Valora tu|¿C[oó]mo valorar[ií]as tus?|STARGATE · )\s*/i,'');
+    t=t.replace(/[¿?]/g,'').trim();
+    return t.charAt(0).toUpperCase()+t.slice(1, 52);
+  }
+  /** De las respuestas en bruto a lo que se proyecta: el reparto de cada nota, los textos y cómo siguieron la clase. */
+  function analizarTickets(filas){
+    var notas={}, orden=[], textos=[], seguido={directo:0, diferido:0};
+    filas.forEach(function(x){ Object.keys(x.r).forEach(function(c){
+      var v=String(x.r[c]==null?'':x.r[c]).trim(); if(!v) return;
+      if(/C[oó]mo has seguido/i.test(c)){ if(/DIRECTO/i.test(v)) seguido.directo++; else if(/diferido|grabaci/i.test(v)) seguido.diferido++; return; }
+      if(TK_ELIGE.test(c)) return;
+      if(/^[1-5]$/.test(v)){ if(!notas[c]){ notas[c]=[0,0,0,0,0]; orden.push(c); } notas[c][Number(v)-1]++; return; }
+      if(v.length>2) textos.push({c:c, v:v});
+    }); });
+    var lista=orden.map(function(c){
+      var n=notas[c], total=n.reduce(function(a,b){ return a+b; },0);
+      return {c:c, corto:corto(c), n:n, total:total,
+              media: total?n.reduce(function(a,b,i){ return a+b*(i+1); },0)/total : 0,
+              pct: n.map(function(x){ return total?Math.round(x*100/total):0; })};
+    }).filter(function(x){ return x.total; });
+    return {notas:lista, textos:textos, seguido:seguido};
+  }
+  /** Una nota: su nombre corto, el reparto del 1 al 5 en una barra y la media. */
+  function filaNota(x){
+    return '<div class="tk-nota"><span class="tk-n-t">'+esc(x.corto)+'</span>'
+      +'<span class="tk-n-b">'+x.pct.map(function(p,i){
+          return p?'<i class="v'+(i+1)+'" style="width:'+p+'%" title="'+(i+1)+' de 5 · '+p+'%">'+(p>=12?'<em>'+p+'%</em>':'')+'</i>':''; }).join('')+'</span>'
+      +'<b class="tk-n-m">'+x.media.toFixed(1)+'</b></div>';
+  }
+  function montarTicket(el, semLista, iTema, que){
     var caja=el.querySelector('#ses-tk'), vivo=true;
+    var nada=function(txt){ caja.innerHTML='<div class="tk-nada"><b>¡No hay comentarios!</b><p class="sub">'+txt+'</p></div>'; };
     var pinta=function(lista){
       if(!vivo) return;
       var campo=function(r,frag){ for(var k in r) if(k.indexOf(frag)>=0) return r[k]; return ''; };
-      var mias=st.miNombre?lista.filter(function(x){ return String(campo(x.r,'profesor o profesora'))===st.miNombre; }):lista;
+      // 🔴 de MI escuadrón: el del docente que da la clase o, si la sigue un recluta, el de su Comandante
+      var yo=elComandante();
+      var mias=yo?lista.filter(function(x){ return String(campo(x.r,'profesor o profesora')).trim()===yo; }):lista;
       if(mias.length) lista=mias;
-      if(!lista.length){ caja.innerHTML='<p class="sub">Todavía no hay respuestas. El ticket se contesta al final de cada clase, desde la Nave.</p>'; return; }
-      // lo de la última semana con respuestas (la clase anterior)
-      var t=function(x){ return new Date(x.fecha).getTime()||0; }, ult=Math.max.apply(null, lista.map(t));
-      var sem=lista.filter(function(x){ return t(x) > ult-7*864e5; });
-      var sats=[], textos=[];
-      sem.forEach(function(x){ Object.keys(x.r).forEach(function(c){
-        var v=String(x.r[c]).trim(); if(!v||c.indexOf('Selecciona el tema')>=0||c.indexOf('profesor o profesora')>=0||c.indexOf('STARGATE ·')===0) return;
-        if(/^[1-5]$/.test(v)){ if(/satisfacci/i.test(c)) sats.push(Number(v)); }
-        else if(v.length>8) textos.push(v); }); });
-      var media=sats.length?sats.reduce(function(a,b){return a+b;},0)/sats.length:0;
-      caja.innerHTML='<div class="tk-cifras"><div class="tk-c"><b>'+sem.length+'</b><span>'+(sem.length===1?'respuesta':'respuestas')+'</span></div>'
-        +(sats.length?'<div class="tk-c"><b>'+media.toFixed(1)+'</b><span>de 5, cómo os fue</span></div>':'')+'</div>'
-        +(textos.length?'<div class="tk-ecos">'+textos.slice(0,4).map(function(x,i){ return '<blockquote style="--i:'+i+'">'+esc(x.length>220?x.slice(0,217)+'…':x)+'</blockquote>'; }).join('')+'</div>'
-          :'<p class="sub">Sin dudas escritas: todo claro.</p>');
+      // y de SU tema, el que se acaba de cerrar
+      var suyas=lista.filter(function(x){ return esDelTema(campo(x.r,'Selecciona el tema'), semLista, iTema); });
+      if(suyas.length) lista=suyas;
+      else if(lista.length){   // nadie marcó el tema (el formulario puede cambiar): lo último que llegó
+        var t=function(x){ return new Date(x.fecha).getTime()||0; }, ult=Math.max.apply(null, lista.map(t));
+        lista=lista.filter(function(x){ return t(x) > ult-14*864e5; });
+      }
+      // el nombre del tema, sin el «(cont.)» de la semana: el ticket es del TEMA, no de una semana suelta
+      var tema=String((semLista[iTema]&&semLista[iTema].tema)||'el tema anterior').replace(/\s*\(cont\.\)/,'');
+      if(!lista.length) return nada('Nadie de tu escuadrón rellenó el ticket de <b>'+esc(tema)+'</b>. Recuérdaselo al acabar este: son dos minutos y es anónimo.');
+      var A=analizarTickets(lista);
+      if(que==='textos'){
+        if(!A.textos.length) return nada('Nadie escribió ninguna duda sobre <b>'+esc(tema)+'</b>. Animadles a hacerlo en el ticket del tema que empieza hoy: lo que preguntéis ahí se responde en clase.');
+        caja.innerHTML='<div class="tk-ecos">'+A.textos.slice(0,6).map(function(x,i){
+            return '<blockquote style="--i:'+i+'"><span class="tk-de">'+esc(corto(x.c))+'</span>'+esc(x.v.length>240?x.v.slice(0,237)+'…':x.v)+'</blockquote>'; }).join('')+'</div>'
+          +(A.textos.length>6?'<p class="small muted">Y '+(A.textos.length-6)+' más.</p>':'');
+        return;
+      }
+      var seg=A.seguido, sig=seg.directo+seg.diferido;
+      caja.innerHTML='<div class="tk-cifras"><div class="tk-c"><b>'+lista.length+'</b><span>'+(lista.length===1?'respuesta':'respuestas')+'</span></div>'
+        +'<div class="tk-c ancha"><b>'+esc(tema)+'</b><span>el tema que cerrasteis</span></div>'
+        +(sig?'<div class="tk-c"><b>'+Math.round(seg.directo*100/sig)+'%</b><span>en directo · el '+Math.round(seg.diferido*100/sig)+'%, en diferido</span></div>':'')+'</div>'
+        +(A.notas.length?'<div class="tk-notas">'+A.notas.slice(0,6).map(filaNota).join('')
+            +'<p class="tk-leyenda"><i class="v1"></i>1 <i class="v2"></i>2 <i class="v3"></i>3 <i class="v4"></i>4 <i class="v5"></i>5 · el número de la derecha es la media</p></div>'
+          :'<p class="sub">Contestaron, pero sin puntuar nada.</p>');
     };
     var fallo=function(){ if(vivo) caja.innerHTML='<p class="sub">No he podido leer las respuestas del ticket ahora mismo. Pasa a la siguiente: no hace falta esperar.</p>'; };
     if(TK&&TK.per===st.per&&!TK.error){ pinta(TK.lista); }
@@ -1045,9 +1189,11 @@
     var vids=s.videos||[], deTipo=function(t){ return vids.filter(function(v){ return tipoVideo(v)===t; }); };
     // `t` dice en qué tiempo de la clase va cada diapositiva: 'ap' antes de la presentación,
     // 'ci' después. Es lo único que hace falta para poder pegar el embed dos veces.
-    var d=[diaPortada(s, n)];
+    var d=[diaPortada(s, n)], L=semanas(), iS=iDe(L, s);
     if(st.per && !st.alumno && (Number(s.sem)||1)<=2) d.push(diaUnete());   // 19-sep · semanas 1 y 2
     if(st.per) d.push(diaLlamada());
+    // 20-sep · al empezar un tema, lo que dijisteis al cerrar el anterior: primero cómo fue, después las dudas
+    if(primeraDelTema(L, iS)) diasTicket(L, iS).forEach(function(x){ d.push(x); });
     var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
     deTipo('inicio').forEach(function(v,i){ d.push(Object.assign(diaVideo(v, i, 'Para empezar'), {sec:'videos'})); });
     /**
@@ -1058,7 +1204,7 @@
      */
     var sem=Number(s.sem)||1, yaRank=capituloEn('c2', sem-1), yaColec=capituloEn('c3', sem-1), yaOferta=capituloEn('c10', sem);
     [diaAnteriores(s)].concat(diasReflexion(s), [sem>=2?diaMovido():null, yaRank?diaSemanal():null, yaRank?diaTop():null, yaColec?diaColeccion(s):null,
-      diaSimulador(s), diaVotacion(s), yaRank?diaEscuadrones():null, diaTicket(), yaOferta?diaOferta():null])
+      diaSimulador(s), diaVotacion(s), yaRank?diaEscuadrones():null, yaOferta?diaOferta():null])
       .forEach(function(x){ if(x) d.push(x); });
     d=d.concat(diapositivasNuevas(s));
     d.forEach(function(x){ x.t='ap'; });     // todo lo de arriba es APERTURA
@@ -1072,6 +1218,8 @@
     // panel dentro de sí mismo.
     deTipo('cierre').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'Para cerrar el planeta'), {sec:'cierre'})); });
     deTipo('fragmento').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'La recompensa del bloque'), {sec:'cierre'})); });
+    // 20-sep · y si esta sesión cierra el tema, lo último es el ticket de salida, para rellenarlo en clase
+    if(ultimaDelTema(L, iS)){ var tf=diaTicketForm(s); if(tf) ci.push(tf); }
     ci.forEach(function(x){ x.t='ci'; });
 
     // El tramo del medio. Proyectando desde la web (sin Genially) va el panel del grupo EMBEBIDO, que
@@ -1086,6 +1234,15 @@
     if(!medio.length) medio.push(diaPuente(TRAMO==='ap'));
 
     var todo = TRAMO==='ap' ? d.concat([diaPuente(true)]) : TRAMO==='ci' ? ci : d.concat(medio, ci);
+    /**
+     * 🔴 20-sep · UN TRAMO PUEDE QUEDARSE VACÍO, y entonces no había NADA que pintar: `st.slides[0]` no existía
+     * y el embed se quedaba en negro. Pasa con `?tramo=cierre` en una semana sin vídeos de cierre ni misiones.
+     * Mejor decir que ese tramo no tiene nada esta semana que dejar la pantalla muerta delante de la clase.
+     */
+    if(!todo.length) todo=[{k:'vacio', t:TRAMO||'ap', rot:'Nada por aquí', html:
+      '<div class="dia puente"><div class="pu-caja"><div class="kicker">'+(TRAMO==='ci'?'Tercer tiempo':'Este tiempo')+'</div>'
+      +'<h2>Esta semana no hay nada aquí</h2>'
+      +'<p class="sub">La semana '+esc(String(s.sem))+' no trae nada para este tramo. Sigue con tu Genially: el resto de la sesión está en los otros embeds.</p></div></div>'}];
     // (el recluta no «enseña la Nave simulada»: es la del docente)
     if(st.alumno) todo=todo.filter(function(x){ return x.k!=='simulacro'; });
     /**
@@ -1150,6 +1307,13 @@
     return '<div class="ses-ctl">'
       +(!EMBED?'<button type="button" class="ses-ic" data-ses-ventana title="Abrir la sesión en una ventana aparte, solo con la presentación" aria-label="Abrir en una ventana aparte">'+IC_VENTANA+'</button>':'')
       +(!st.alumno&&st.per&&st.yo?'<button type="button" class="ses-directo'+(DIRECTO.on?' on':'')+'" id="ses-directo">'+(DIRECTO.on?'En directo':'Emitir en directo')+'</button>':'')
+      /**
+       * 🔴 20-sep · LAS HERRAMIENTAS DE CLASE, ARRIBA. Norberto: «quería un botón sencillo, que no tape otros
+       * botones (ahora tapa)». Flotando abajo a la derecha se comía la barra de pasos; aquí vive con los demás
+       * mandos del docente y no tapa nada.
+       */
+      +(!st.alumno&&st.per&&st.yo?'<button type="button" class="ses-aula-b" id="ses-aula-b" title="Herramientas de clase: quién ha fichado, al azar, pregunta, votación, premios y el tiempo">'
+        +'<img src="assets/img/nave/iconos/clase.png" alt="" width="18" height="18"><span>Herramientas</span></button>':'')
       +'<button type="button" class="ses-ic" id="ses-pantalla" title="'+(fs?'Salir de pantalla completa (F)':'Pantalla completa (F)')+'" aria-label="'+(fs?'Salir de pantalla completa':'Pantalla completa')+'">'+(fs?IC_SALIR:IC_PANTALLA)+'</button>'
       +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div></div>';
   }
@@ -1248,17 +1412,16 @@
         }).join('')+'</div>'
       +controles()
       /**
-       * 18-sep · EL AULA, DENTRO DE LA PRESENTACIÓN. Norberto: «un botón en todas las páginas de la presentación con el
-       * aula organizado: estudiantes conectados, selector aleatorio, temporizadores, dar premios, iniciar pregunta o
-       * votación. Solo aparecería si detecta que eres docente». Es el aula de siempre (aula.html) en un panel lateral:
-       * no hay dos aulas que mantener. Lo que lances desde ahí se pinta en la sesión de cada recluta que te sigue.
+       * 18-sep · LAS HERRAMIENTAS DE CLASE, DENTRO DE LA PRESENTACIÓN. Norberto: «un botón en todas las páginas de la
+       * presentación con el aula organizado: estudiantes conectados, selector aleatorio, temporizadores, dar premios,
+       * iniciar pregunta o votación. Solo aparecería si detecta que eres docente». Son las de siempre (aula.html) en un
+       * panel lateral: no hay dos que mantener. Lo que lances desde ahí se pinta en la sesión de quien te sigue.
+       * (20-sep · el botón que lo abre vive arriba, con los demás mandos: ver `controles()`.)
        */
       +(!st.alumno && st.per && st.yo
-        ? '<button type="button" class="ses-aula-b" id="ses-aula-b" title="El aula: premiar, tiempo, votación y pregunta">'
-          +'<img src="assets/img/nave/iconos/clase.png" alt="" width="22" height="22"><span>El aula</span></button>'
-          +'<aside class="ses-aula" id="ses-aula" hidden><div class="ses-aula-cab"><b>El aula</b>'
+        ? '<aside class="ses-aula" id="ses-aula" hidden><div class="ses-aula-cab"><b>Herramientas de clase</b>'
           +'<button type="button" class="btn min" id="ses-aula-x">Cerrar</button></div>'
-          +'<iframe title="El aula" data-src="aula.html?per='+encodeURIComponent(st.per)+'&embed=1&panel=1"></iframe></aside>'
+          +'<iframe title="Herramientas de clase" data-src="aula.html?per='+encodeURIComponent(st.per)+'&embed=1&panel=1"></iframe></aside>'
         : '')
       +'</div>';
     wire();

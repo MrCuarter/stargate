@@ -29,8 +29,12 @@ c(/function retoPorLanzar\(id, ya\)/.test(NAVE) && /class="reto-sem por-lanzar '
 c(/\.reto-sem\.por-lanzar\{opacity:\.5/.test(CSS), "   y se ve en sombra");
 
 // ── 2 · el aula, dentro de la presentación
-c(/!st\.alumno && st\.per && st\.yo\s*\n?\s*\? '<button type="button" class="ses-aula-b"/.test(SES) && /aula\.html\?per='\+encodeURIComponent\(st\.per\)\+'&embed=1/.test(SES),
-  "🔴 sesión · el docente tiene «El aula» en cualquier diapositiva (solo si es docente de ese grupo)");
+// 🔴 20-sep · el botón se llama «Herramientas» y vive en la fila de mandos de arriba: flotando abajo TAPABA
+// la barra de pasos («un botón sencillo, que no tape otros botones»).
+c(/class="ses-aula-b" id="ses-aula-b"/.test(SES) && /<span>Herramientas<\/span><\/button>/.test(SES) && /aula\.html\?per='\+encodeURIComponent\(st\.per\)\+'&embed=1/.test(SES),
+  "🔴 sesión · el docente tiene las «Herramientas» en cualquier diapositiva (solo si es docente de ese grupo)");
+c(/function controles\(\)\{[\s\S]*?ses-aula-b[\s\S]*?ses-pantalla/.test(SES) && !/\.ses-aula-b\{position:absolute/.test(CSS),
+  "   y va con los demás mandos, no flotando encima de la barra de pasos");
 c(/function emitirCrono\(\)/.test(AULA) && /publicarEnVivo\(PER, \{ sesion: \{ crono: c \} \}\)/.test(AULA), "🔴 aula · el temporizador viaja a la sesión de la clase");
 c(/function relojAlumno\(\)/.test(SES) && /class="ses-al-crono"/.test(SES), "   y el recluta lo ve encima de la diapositiva");
 c(/SEG\.pararVotos=M\.vigilarVotaciones\(st\.per/.test(SES) && /class="ses-al-vt"/.test(SES), "🔴 la votación que lanza el docente se pinta encima, y se vota ahí");

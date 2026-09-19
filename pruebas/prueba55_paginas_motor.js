@@ -263,8 +263,15 @@ igual(campos.length, new Set(campos).size, "   y no es el MISMO campo dos veces 
 ["{EMAIL}", "{CORREO}", "{ALIAS}", "{NOMBRE}", "{FICHA}", "{UID}"].forEach(function (h) {
   c(TICKET.indexOf(h) < 0, "🔴 el ticket NO lleva " + h + ": es anónimo o no es un ticket");
 });
-igual((TICKET.match(/\{[A-Z]+\}/g) || []).sort(), ["{COMANDANTE}", "{GRUPO}"],
-  "🔴 y esos dos son los ÚNICOS huecos: cualquier otro habría que rellenarlo, y nadie lo haría");
+igual((TICKET.match(/\{[A-Z]+\}/g) || []).sort(), ["{COMANDANTE}", "{GRUPO}", "{TEMA}"],
+  "🔴 y esos tres son los ÚNICOS huecos: cualquier otro habría que rellenarlo, y nadie lo haría");
+// 🔴 20-sep · el TEMA. El ticket se rellena al acabar cada tema, así que la sesión que lo cierra deja el tema
+// ya elegido; el resto de enlaces (la Nave, el tablero, los Geniallys) lo vacían, que ahí no se sabe cuál es.
+c(/[?&]entry\.\d+=\{TEMA\}/.test(TICKET), "   y el del TEMA cuelga de otro campo `entry.N`");
+const TABLERO_JS = fs.readFileSync(path.join(__dirname, "..", "motor", "tablero.js"), "utf8");
+c(/replace\("\{TEMA\}", ""\)/.test(TABLERO_JS), "🔴 el tablero VACÍA el hueco del tema: fuera de la sesión no se sabe cuál es");
+const SESION_JS = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "sesion.js"), "utf8");
+c(/SG_TICKET_TEMAS/.test(SESION_JS) && /opcionTema/.test(SESION_JS), "   y la sesión lo rellena con el texto exacto de la opción del formulario");
 
 // Llega a las páginas: lo emite la cabecera común, no cada página por su cuenta.
 const CABEZA = fs.readFileSync(path.join(__dirname, "..", "_build_site.py"), "utf8");
@@ -280,11 +287,11 @@ c(/SG_TICKET_URL/.test(CREAR),
 // La prueba de arriba abajo: se rellena el hueco del grupo como lo hace el tablero y el del
 // Comandante como lo hace la Nave, y se mira si lo que queda es una dirección que Google entiende.
 const conGrupo = TICKET.replace("{GRUPO}", encodeURIComponent("CLASE DEMO/25"));
-const listo = conGrupo.split("{COMANDANTE}").join(encodeURIComponent("Mr Cuarter"));
-c(listo.indexOf("{") < 0, "🔴 rellenados los dos, no queda ni un hueco sin sustituir");
+const listo = conGrupo.split("{COMANDANTE}").join(encodeURIComponent("Mr Cuarter")).split("{TEMA}").join(encodeURIComponent("Tema 3: Contenidos interactivos (Sendara)"));
+c(listo.indexOf("{") < 0, "🔴 rellenados los tres, no queda ni un hueco sin sustituir");
 const q = new URL(listo).searchParams;
 const valores = [...q.entries()].filter(e => e[0].indexOf("entry.") === 0).map(e => e[1]);
-igual(valores.sort(), ["CLASE DEMO/25", "Mr Cuarter"],
+igual(valores.sort(), ["CLASE DEMO/25", "Mr Cuarter", "Tema 3: Contenidos interactivos (Sendara)"],
   "🔴 y Google recibe los valores tal cual: la barra y el espacio sobreviven al escapado");
 c(listo.indexOf("CLASE DEMO/25") < 0,
   "   porque van escapados en la dirección, no en crudo (en crudo, la barra partiría la ruta)");

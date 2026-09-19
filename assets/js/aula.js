@@ -1,12 +1,16 @@
-// STARGATE — EL AULA · el puesto de mando del docente, dentro del Genially.  aula.html[?per=<id>]
+// STARGATE — HERRAMIENTAS DE CLASE · lo que se necesita EN DIRECTO, dentro del Genially.  aula.html[?per=<id>]
 //
 // 🔴 QUÉ PROBLEMA RESUELVE. Dar clase con una gamificación tiene un enemigo concreto: SALIR de la
 // presentación. Abrir otra pestaña, buscar el grupo, volver, perder el hilo. Al final no se toca
 // nada y el juego se queda en los puntos que el sistema da solo, que es justo lo que no dinamiza.
 //
-// Esto es todo lo que hace falta para mover una clase, en un embed que vive DENTRO del Genially:
-// tocar llamada a filas, ver quién ficha en directo, felicitar a quien ha terminado algo esta
-// semana, dar la bienvenida a los que acaban de llegar, mirar el ranking y repartir premios a mano.
+// 🔴 20-sep · Y SOLO LO DE DIRECTO. Norberto: «son cosas distintas. En la sesión son herramientas de gestión de
+// aula, rápidas. Dentro del grupo necesito todas las opciones posibles para gestionar y visualizar. ¿Para qué
+// quiero un temporizador [en mi grupo]? ¿O seleccionar un estudiante al azar? Son cosas que puedo necesitar en
+// una sesión en directo, pero no cuando estoy tranquilamente viendo el progreso de mi clase». Así que aquí:
+// quién ha fichado, a quién le toca, una pregunta, una votación, un premio y el tiempo. Lo demás —felicitar,
+// rankings, quién se ha movido— está en la Nave del Comandante y en las diapositivas de la sesión, que ya lo
+// cuentan: repetirlo aquí era llenar de ruido el momento en el que menos se puede leer.
 //
 // 🔴 Y el grupo NO va en el enlace: se deduce de quién pulsa. Uno solo para todos los Geniallys, de
 // todos los grupos, de todos los años.
@@ -28,7 +32,9 @@
   // 19-sep · PILOTO AUTOMÁTICO / MANDO MANUAL (el mismo modo de la consola, de su ficha): en piloto, sin «Premiar»
   var MODO = "piloto";
   try { MODO = localStorage.getItem("sgModoNivel") === "manual" ? "manual" : "piloto"; } catch (e) {}
-  function aplicarModoAula() { document.body.classList.toggle("modo-piloto", MODO !== "manual"); if (MODO !== "manual" && TAB === "premios") TAB = "clase"; }
+  // 20-sep · «Premiar» sale SIEMPRE, también en piloto automático: dar un premio en clase es de lo más de directo
+  // que hay («poder dar un premio concreto a un estudiante o a toda la clase»), no una opción avanzada.
+  function aplicarModoAula() { document.body.classList.toggle("modo-piloto", MODO !== "manual"); }
   var SESION = null, reloj = null, dejarDeVigilar = null, PRESENTES = [];
   // PREMIAR: a quién (se conserva al repintar), de dónde sale la lista y a quién ya se ha preguntado hoy
   var ELEGIDOS = {}, FUENTE_P = "", PRESENTES_HOY = null, PREGUNTADOS = {};
@@ -126,8 +132,8 @@
    * 18-sep · Norberto: «la página del aula tiene muchos emojis: usa nuestros iconos personalizados o crea nuevos».
    * El segundo campo es el icono de `assets/img/nave/iconos/` (Magnific, de una sola lámina, como los de la Nave).
    */
-  var TABS = [["clase", "clase", "La clase"], ["gente", "gente", "Mi gente"], ["ranking", "rankings", "Ranking"],
-              ["premios", "premios", "Premiar"], ["tiempo", "tiempo", "Tiempo"], ["voto", "voto", "Votación"], ["pregunta", "pregunta", "Pregunta"]];
+  var TABS = [["clase", "envivo", "En clase"], ["premios", "premios", "Premiar"],
+              ["pregunta", "pregunta", "Pregunta"], ["voto", "voto", "Votación"], ["tiempo", "tiempo", "Tiempo"]];
   function icono(k) { return '<img class="au-ico" src="assets/img/nave/iconos/' + k + '.png" alt="" width="26" height="26">'; }
   /**
    * 🔴 Con más de un grupo hace falta poder cambiar. Un docente del máster puede llevar hasta seis,
@@ -165,123 +171,47 @@
       + (TAB !== "tiempo" && (TMP.corre || (TMP.quedan > 0 && TMP.quedan < TMP.total))
           ? ' <button type="button" class="au-mini-reloj' + (TMP.corre ? " corre" : "") + '" data-au="tiempo" title="El temporizador">' + icono("tiempo") + ' <span id="au-reloj-mini">' + mmss(quedanTmp()) + '</span></button>' : '')
       + "</div>"
-      + '<div class="au-tabs">' + TABS.filter(function (t) { return MODO === "manual" || t[0] !== "premios"; }).map(function (t) {
+      + '<div class="au-tabs">' + TABS.map(function (t) {
           return '<button type="button" class="au-t' + (TAB === t[0] ? " on" : "") + '" data-au="' + t[0] + '" title="' + t[2] + '">'
             + '<span class="i">' + icono(t[1]) + "</span><b>" + t[2] + "</b></button>"; }).join("") + "</div></div>";
   }
 
-  // ---------------------------------------------------------------- 1 · la clase
-  function vistaClase() {
-    var s = semanaActual();
-    var llamada = SESION
-      ? '<div class="au-llamada viva"><div class="au-cab"><b>Llamada abierta</b>'
-          + '<span id="au-cuenta" class="au-cuenta"></span></div>'
-        // 🔴 Decir PARA QUIÉN está abierta no es un adorno: si das clase a dos escuadrones, saber
-        // que solo vale para uno es la diferencia entre pasar lista bien y pasarla mal.
-        + '<p class="small muted" style="margin:0 0 8px">'
-          + (SESION.escuadron ? 'Solo para <b>' + esc(SESION.escuadron) + '</b>'
-                              : 'Para todo el grupo') + '</p>'
-        + '<div class="au-presentes"><b id="au-np">' + PRESENTES.length + "</b> "
-          + (PRESENTES.length === 1 ? "presente" : "presentes") + "</div>"
-        // los nombres sueltos solo si aún no está la tarjeta de «En clase hoy» con sus caras (serían los mismos dos veces)
-        + (enClaseHoy().length ? '' : '<div class="au-nombres" id="au-nombres"></div>')
-        + '<button class="ll-min" id="au-cerrar">Cerrar la llamada</button></div>'
-      : '<div class="au-llamada"><div class="au-cab"><b>Llamada a filas</b></div>'
-        + '<p class="small muted">Abre el fichaje para tu escuadrón. En la Nave de tu gente aparece solo.</p>'
-        + '<div class="ll-minutos">' + [10, 30, 60, 120].map(function (m) {
-            return '<button type="button" class="ll-m' + (m === 60 ? " on" : "") + '" data-min="' + m + '">'
-              + m + " min</button>"; }).join("") + "</div>"
-        + '<button class="ll-btn" id="au-tocar">Tocar llamada</button>'
-        + '<p class="ll-pie" id="au-msg"></p></div>';
-
-    var orden = s
-      ? '<div class="au-tarjeta"><div class="eyebrow amber">La orden de esta semana</div>'
-        + "<h3>Semana " + s.sem + " · " + esc(s.tema) + "</h3>"
-        + '<p class="small muted">' + esc(s.sub || "") + "</p>"
-        + (s.lanza && s.lanza.length ? "<ul class=\"au-lista\">" + s.lanza.map(function (x) {
-            return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "")
-        + (s.hito ? '<p class="small"><b>Hito:</b> ' + esc(s.hito) + "</p>" : "")
-        + (s.consejo ? '<p class="au-consejo"><img class=ico src=assets/img/iconos/p/estrella.png alt> ' + esc(s.consejo) + "</p>" : "")
-        + "</div>"
-      : "";
-    // 🔴 13-sep · quién está en clase HOY (ha respondido a una llamada), con lo que se hace con ellos
-    var hoy = enClaseHoy();
-    var enClase = hoy.length
-      ? '<div class="au-tarjeta au-hoy"><h3><img class=ico src=assets/img/iconos/p/hecho.png alt> En clase hoy · ' + hoy.length + '</h3>'
-        + '<div class="au-caras mini">' + hoy.slice(0, 30).map(function (x) {
-            var c = caraDe(x);
-            return '<span class="au-cara quieta">' + (c ? '<img src="' + esc(c) + '" alt="" loading="lazy">' : '')
-              + '<b>' + esc(x.alias) + '</b></span>'; }).join("") + '</div>'
-        + '<div class="au-acciones"><button type="button" class="au-azar-btn" id="au-ir-azar">¿A quién pregunto?</button>'
-        + '<button type="button" class="ll-min" id="au-ir-premiar" data-av>Premiar a los presentes</button></div>'
-        + '<p class="au-elegido" id="au-elegido" aria-live="polite" hidden></p></div>'
-      : "";
-    return llamada + enClase + orden;
-  }
-
-  // ---------------------------------------------------------------- 2 · mi gente
+  // ---------------------------------------------------------------- 1 · en clase
   /**
-   * Halagos y bienvenidas.
-   *
-   * 🔴 Esto es lo que Norberto llamó «dinamizar»: la máquina ya reparte los puntos, pero nombrar en
-   * voz alta a quien acaba de conseguir algo es lo único que la máquina NO puede hacer. Aquí sale
-   * hecho: quién ha terminado algo esta semana y quién acaba de llegar, para leerlo en clase.
+   * 🔴 20-sep · EL ENLACE PARA EL CHAT. Norberto: «añade un enlace rápido para compartir por el chat de Teams
+   * [para que] se puedan unir a la sesión (fichaje + se abre presentación)». Entran con su cuenta, fichan solos
+   * en cuanto la llamada está abierta y ven la presentación al ritmo de la clase.
    */
-  function vistaGente() {
-    var g = mios();
-    var semana = g.filter(function (x) { return (x.xp7 || 0) > 0; })
-                  .sort(function (a, b) { return (b.xp7 || 0) - (a.xp7 || 0); });
-    var nuevos = g.slice().sort(function (a, b) { return (b.n || 0) - (a.n || 0); })
-                  .filter(function (x) { return (x.n || 0) <= 2; });
-    var parados = g.filter(function (x) { return !(x.xp7 > 0); });
-
-    return avisoDeQuienVeo()
-      + '<div class="au-tarjeta"><div class="eyebrow verde">Para nombrar en voz alta</div>'
-      + "<h3>Esta semana han hecho algo</h3>"
-      + (semana.length
-          ? '<div class="au-gente">' + semana.map(function (x) {
-              return '<div class="au-p"><b>' + esc(x.alias) + "</b><span>+" + (x.xp7 || 0) + " xp</span></div>";
-            }).join("") + "</div>"
-          : '<p class="small muted">Todavía nadie esta semana. Buen momento para recordarlo en clase.</p>')
-      + "</div>"
-      + '<div class="au-tarjeta"><h3><img class=ico src=assets/img/iconos/p/anadir.png alt> Recién llegados</h3>'
-      + '<p class="small muted">Dales la bienvenida por su nombre: es lo que engancha el primer día.</p>'
-      + (nuevos.length
-          ? '<div class="au-gente">' + nuevos.map(function (x) {
-              return '<div class="au-p nuevo"><b>' + esc(x.alias) + "</b><span>" + (x.n || 0) + " insignias</span></div>";
-            }).join("") + "</div>"
-          : '<p class="small muted">Nadie nuevo por ahora.</p>')
-      + "</div>"
-      + '<div class="au-tarjeta"><h3><img class=ico src=assets/img/iconos/p/tiempo.png alt> Sin moverse esta semana</h3>'
-      + '<p class="small muted">Ni regañina ni lista pública: es para que sepas a quién preguntar «¿todo bien?».</p>'
-      + (parados.length
-          ? '<div class="au-gente">' + parados.slice(0, 12).map(function (x) {
-              return '<div class="au-p frio"><b>' + esc(x.alias) + "</b></div>"; }).join("") + "</div>"
-          : '<p class="small muted">Ninguno. Semana redonda.</p>')
-      + "</div>";
+  function enlaceSesion() {
+    var u = new URL("sesion.html", location.href); u.search = "";
+    u.searchParams.set("per", PER); u.searchParams.set("seguir", "1"); u.searchParams.set("fichar", "1");
+    return u.href;
   }
-
-  // ---------------------------------------------------------------- 3 · ranking
-  function vistaRanking() {
-    var g = mios().slice().sort(function (a, b) { return b.xp - a.xp; });
-    var esc7 = (D.escuadrones || []).map(function (e) {
-      var suyos = (D.reclutas || []).filter(function (x) { return x.profe === e.comandante; });
-      if (!suyos.length) return null;
-      return { n: e.nombre, emb: e.emblema, media: Math.round(suyos.reduce(function (a, x) { return a + x.xp; }, 0) / suyos.length) };
-    }).filter(Boolean).sort(function (a, b) { return b.media - a.media; });
-
-    return avisoDeQuienVeo() + '<div class="au-tarjeta"><h3>Tu escuadrón</h3>'
-      + '<ol class="au-rank">' + g.slice(0, 10).map(function (x, i) {
-          return "<li><span>" + (i + 1) + "</span><b>" + (x.corona ? "<img class=ico src=assets/img/iconos/p/corona.png alt> " : "") + esc(x.alias) + "</b>"
-            + "<em>" + x.xp + " xp</em></li>"; }).join("") + "</ol></div>"
-      + (esc7.length > 1
-          ? '<div class="au-tarjeta"><h3><img class=ico src=assets/img/iconos/p/diana.png alt> Entre escuadrones</h3>'
-            + '<p class="small muted">Por media de xp por recluta: sumando ganaría siempre el más numeroso.</p>'
-            + '<ol class="au-rank">' + esc7.map(function (e, i) {
-                return "<li><span>" + (i + 1) + "</span>"
-                  + (e.emb ? '<img class="au-emb" src="' + esc(e.emb) + '" alt="">' : "")
-                  + "<b>" + esc(e.n) + "</b><em>" + e.media + " xp</em></li>"; }).join("") + "</ol></div>"
-          : "");
+  /**
+   * Quién está en clase AHORA: los que han respondido a una llamada a filas hoy. La llamada se toca desde la
+   * presentación (tiene su diapositiva) y desde la Nave: aquí solo se mira, que es lo que hace falta en directo.
+   */
+  function vistaClase() {
+    var hoy = enClaseHoy(), u = enlaceSesion();
+    return '<div class="au-tarjeta au-chat"><div class="au-cab2"><h3>' + icono("gente") + ' Para el chat de la clase</h3>'
+      +   '<button type="button" class="btn min" id="au-chat-c">Copiar el enlace</button></div>'
+      +   '<p class="small muted">Se unen con su cuenta, fichan solos y siguen la presentación desde su pantalla.</p>'
+      +   '<code class="au-chat-u">' + esc(u) + '</code></div>'
+      + '<div class="au-tarjeta au-hoy"><div class="au-cab2"><h3>' + icono("envivo") + ' En clase hoy · ' + hoy.length + '</h3>'
+      +   (SESION ? '<span class="au-viva">Llamada abierta'
+            + (SESION.escuadron ? ' · ' + esc(SESION.escuadron) : '')
+            + ' · <b id="au-np">' + PRESENTES.length + '</b> fichando</span>'
+          : '<span class="small muted">Toca la llamada en la presentación</span>')
+      +   '</div>'
+      +   (hoy.length
+          ? '<div class="au-caras mini">' + hoy.slice(0, 40).map(function (x) {
+              var c = caraDe(x);
+              return '<span class="au-cara quieta">' + (c ? '<img src="' + esc(c) + '" alt="" loading="lazy">' : '')
+                + '<b>' + esc(x.alias) + '</b></span>'; }).join("") + '</div>'
+          : '<p class="small muted">Todavía no ha fichado nadie. La llamada a filas está en la presentación: en cuanto la abras, van apareciendo aquí.</p>')
+      +   '<div class="au-acciones"><button type="button" class="au-azar-btn" id="au-ir-azar">¿A quién pregunto?</button>'
+      +     '<button type="button" class="ll-min" id="au-ir-premiar" data-av>Premiar a los presentes</button></div>'
+      +   '<p class="au-elegido" id="au-elegido" aria-live="polite" hidden></p></div>';
   }
 
   // ---------------------------------------------------------------- 4 · premiar (y preguntar al azar)
@@ -298,16 +228,34 @@
    * servidor, una transacción por estudiante (`stargateRegalar`).
    */
   var REGALOS = [
-    { g: "Puntos", k: "xp25", t: "+25 xp", xp: 25 }, { g: "Puntos", k: "xp50", t: "+50 xp", xp: 50 },
-    { g: "Puntos", k: "cr20", t: "+20 ◈", cr: 20 }, { g: "Puntos", k: "cr50", t: "+50 ◈", cr: 50 },
-    { g: "Colección", k: "carta", t: "<img class=ico src=assets/img/iconos/p/estrella.png alt> Una carta", regalo: { tipo: "carta" }, clase: "carta" },
-    { g: "Colección", k: "sobre", t: "<img class=ico src=assets/img/iconos/p/estrella.png alt> Un sobre (3 cartas)", regalo: { tipo: "sobre" }, clase: "carta" },
+    { g: "Puntos", k: "xp25", t: "+25 xp", xp: 25, clase: "puntos" }, { g: "Puntos", k: "xp50", t: "+50 xp", xp: 50, clase: "puntos" },
+    { g: "Puntos", k: "cr20", t: "+20 ◈", cr: 20, clase: "puntos" }, { g: "Puntos", k: "cr50", t: "+50 ◈", cr: 50, clase: "puntos" },
+    { g: "Colección", k: "carta", t: "Una carta", regalo: { tipo: "carta" }, clase: "carta" },
+    { g: "Colección", k: "sobre", t: "Un sobre (3 cartas)", regalo: { tipo: "sobre" }, clase: "carta" },
     { g: "Colección", k: "heroe", t: "Un héroe al azar", regalo: { tipo: "heroe" }, clase: "heroe" },
     { g: "Colección", k: "heroe_el", t: "Un héroe que eliges…", elegir: true, clase: "heroe" },
     { g: "Adornos", k: "marco", t: "Marco dorado", regalo: { tipo: "adorno", cual: "marco" }, clase: "adorno" },
-    { g: "Adornos", k: "fondo", t: "<img class=ico src=assets/img/iconos/p/varios.png alt> Fondo de ficha", regalo: { tipo: "adorno", cual: "fondo" }, clase: "adorno" },
-    { g: "Adornos", k: "titulo", t: "<img class=ico src=assets/img/iconos/p/ticket.png alt> Título de recluta", regalo: { tipo: "adorno", cual: "titulo" }, clase: "adorno" }
+    { g: "Adornos", k: "fondo", t: "Fondo de ficha", regalo: { tipo: "adorno", cual: "fondo" }, clase: "adorno" },
+    { g: "Adornos", k: "titulo", t: "Título de recluta", regalo: { tipo: "adorno", cual: "titulo" }, clase: "adorno" }
   ];
+  /**
+   * 🔴 20-sep · CADA PREMIO, CON SU DIBUJO. Norberto: «la sección de a quién cambia el nombre y usa dibujos e
+   * iconos para las recompensas, es muy poco visual». Son las MISMAS imágenes que ve el alumnado cuando le llega
+   * (`assets/img/canje/`): así lo que proyectas y lo que le sale en su Nave es la misma cosa.
+   */
+  var IMG_PREMIO = { xp25: "assets/img/iconos/p/rayo.png", xp50: "assets/img/iconos/p/rayo.png",
+    cr20: "assets/img/iconos/p/monedas.png", cr50: "assets/img/iconos/p/monedas.png",
+    carta: "assets/img/tarjetas/N1_recluta_carta.png", sobre: "assets/img/canje/sobre.jpg",
+    heroe: "assets/img/canje/heroe.jpg", heroe_el: "assets/img/canje/heroe.jpg",
+    marco: "assets/img/canje/marco.jpg", fondo: "assets/img/canje/planeta.jpg", titulo: "assets/img/canje/titulo.jpg",
+    capsula_legendaria: "assets/img/canje/capsula_legendaria.jpg", capsula_elite: "assets/img/canje/capsula_elite.jpg",
+    sobre_epico: "assets/img/canje/sobre_epico.jpg", sobre_raro: "assets/img/canje/sobre_raro.jpg",
+    sobre_grande: "assets/img/canje/sobre_grande.jpg" };
+  function imgPremio(k) {
+    if (IMG_PREMIO[k]) return IMG_PREMIO[k];
+    if (/^part\d$/.test(k)) { var s = sorteoAbierto(); return "assets/img/canje/" + ((s && s.imagen) || "sorteo_generico.jpg"); }
+    return "assets/img/iconos/p/premios.png";
+  }
   /**
    * 14-sep · EL GRAN SORTEO: participaciones de regalo (Norberto: «…y el profe regalarlas»). Solo si
    * el grupo tiene un sorteo abierto; si tiene varios, del primero que se sortea.
@@ -326,8 +274,8 @@
    * toca un avatar legendario… quiero poder ocultarlos en Genially o darlos de recompensa»). Solo los
    * que tenga la tienda del grupo; los reparte el servidor con SU cofre.
    */
-  var COFRES_REGALO = [["capsula_legendaria", "<img class=ico src=assets/img/iconos/p/corona.png alt> Cápsula legendaria", "heroe"], ["capsula_elite", "<img class=ico src=assets/img/iconos/p/escudo.png alt> Cápsula de élite", "heroe"],
-                       ["sobre_epico", "<img class=ico src=assets/img/iconos/p/estrella.png alt> Sobre épico", "carta"], ["sobre_raro", "<img class=ico src=assets/img/iconos/p/estrella.png alt> Sobre de raras", "carta"], ["sobre_grande", "<img class=ico src=assets/img/iconos/p/estrella.png alt> Sobre grande (5)", "carta"]];
+  var COFRES_REGALO = [["capsula_legendaria", "Cápsula legendaria", "heroe"], ["capsula_elite", "Cápsula de élite", "heroe"],
+                       ["sobre_epico", "Sobre épico", "carta"], ["sobre_raro", "Sobre de raras", "carta"], ["sobre_grande", "Sobre grande (5)", "carta"]];
   function regalosCofres() {
     var hay = {}; ((D && D.recompensas) || []).forEach(function (x) { hay[x.tipo] = true; });
     return COFRES_REGALO.filter(function (c) { return hay[c[0]]; }).map(function (c) {
@@ -380,8 +328,8 @@
     var heroes = ((window.SG_CATALOGO || {}).heroes) || [];
     return avisoDeQuienVeo()
       + '<div class="au-tarjeta au-quienes">'
-      +   '<div class="au-cab2"><h3>¿A quién?</h3><div class="au-seg" role="group" aria-label="De dónde">'
-      +     '<button type="button" data-fuente="hoy" aria-pressed="' + (FUENTE_P === "hoy") + '"><img class=ico src=assets/img/iconos/p/hecho.png alt> En clase hoy <b>' + hoy.length + '</b></button>'
+      +   '<div class="au-cab2"><h3>¿Quién se lo lleva?</h3><div class="au-seg" role="group" aria-label="De dónde">'
+      +     '<button type="button" data-fuente="hoy" aria-pressed="' + (FUENTE_P === "hoy") + '">En clase hoy <b>' + hoy.length + '</b></button>'
       +     '<button type="button" data-fuente="todos" aria-pressed="' + (FUENTE_P === "todos") + '">Todo mi escuadrón <b>' + mios().filter(function (x) { return x.ficha; }).length + '</b></button>'
       +   '</div></div>'
       +   (g.length
@@ -391,12 +339,12 @@
                 + (c ? '<img src="' + esc(c) + '" alt="" loading="lazy">' : '<span class="au-sin">' + esc((x.alias || "?").charAt(0)) + '</span>')
                 + '<b>' + esc(x.alias) + '</b></button>'; }).join("") + '</div>'
           : '<p class="small muted">' + (FUENTE_P === "hoy"
-              ? 'Hoy todavía no ha respondido nadie a la llamada a filas. Tócala en «La clase», o elige de todo tu escuadrón.'
+              ? 'Hoy todavía no ha fichado nadie. Abre la llamada a filas en la presentación, o elige de todo tu escuadrón.'
               : 'Todavía no hay nadie en tu escuadrón.') + '</p>')
       +   '<div class="au-acciones">'
-      +     '<button type="button" class="ll-min" id="au-todos">Todos</button>'
+      +     '<button type="button" class="ll-min" id="au-todos">' + (FUENTE_P === "hoy" ? "Todos los presentes" : "Toda la clase") + '</button>'
       +     '<button type="button" class="ll-min" id="au-nadie">Ninguno</button>'
-      +     '<button type="button" class="au-azar-btn" id="au-azar"' + (g.length ? '' : ' disabled') + '>Pregunta al azar</button>'
+      +     '<button type="button" class="au-azar-btn" id="au-azar"' + (g.length ? '' : ' disabled') + '>Uno al azar</button>'
       +     '<label class="au-sinrep" title="Quien ya ha salido hoy no vuelve a salir hasta que hayan salido todos"><input type="checkbox" id="au-sinrep" checked> Sin repetir</label>'
       +   '</div>'
       +   '<div id="au-sorteo" class="au-sorteo" hidden></div>'
@@ -411,7 +359,8 @@
                   var cerr = regaloCerrado(r.k);
                   return '<button type="button" class="au-pr' + (r.clase ? " " + r.clase : "") + (cerr ? " cerrado" : "") + '" data-k="' + r.k + '"'
                     + (cerr ? ' disabled title="' + (cerr === 99 ? "No existe en un grupo PUA" : "Se desbloquea en la semana " + cerr) + '"' : '')
-                    + (r.xp || r.cr ? ' data-xp="' + (r.xp || 0) + '" data-cr="' + (r.cr || 0) + '"' : '') + '>' + r.t
+                    + (r.xp || r.cr ? ' data-xp="' + (r.xp || 0) + '" data-cr="' + (r.cr || 0) + '"' : '') + '>'
+                    + '<img class="au-pr-i" src="' + esc(imgPremio(r.k)) + '" alt="" loading="lazy"><span class="au-pr-t">' + r.t + '</span>'
                     + (cerr ? '<span class="au-sem">' + (cerr === 99 ? "No en PUA" : "Semana " + cerr) + '</span>' : '') + '</button>'; }).join("")
               + '</div></div>'; }).join("")
       +   '<div class="au-heroe-el" id="au-heroe-el" hidden>'
@@ -742,8 +691,7 @@
   function render() {
     aplicarModoAula();
     pinta(barra() + '<div class="au-cuerpo">'
-      + (TAB === "clase" ? vistaClase() : TAB === "gente" ? vistaGente()
-        : TAB === "ranking" ? vistaRanking() : TAB === "tiempo" ? vistaTiempo()
+      + (TAB === "clase" ? vistaClase() : TAB === "tiempo" ? vistaTiempo()
         : TAB === "voto" ? vistaVoto() : TAB === "pregunta" ? vistaPregunta() : vistaPremios()) + "</div>");
     Array.prototype.forEach.call(app.querySelectorAll("[data-au]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-au"); render(); };
@@ -768,35 +716,19 @@
   }
 
   function cablearClase() {
-    var min = 60;
-    Array.prototype.forEach.call(app.querySelectorAll(".ll-m"), function (b) {
-      b.onclick = function () { min = Number(b.getAttribute("data-min"));
-        Array.prototype.forEach.call(app.querySelectorAll(".ll-m"), function (x) { x.classList.remove("on"); });
-        b.classList.add("on"); };
-    });
-    var t = document.getElementById("au-tocar");
-    if (t) t.onclick = function () {
-      t.disabled = true; t.textContent = "Tocando…";
-      MOTOR.abrirLlamada(PER, min).then(function () { vigilar(); })
-        .catch(function (e) { t.disabled = false; t.textContent = "Tocar llamada";
-          document.getElementById("au-msg").textContent = String(e && e.message || e); });
+    var cop = document.getElementById("au-chat-c");
+    if (cop) cop.onclick = function () {
+      var txt = "Clase de hoy: entra aquí, fichas solo y ves la presentación al mismo ritmo que en clase.\n" + enlaceSesion();
+      (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(txt) : Promise.reject())
+        .then(function () { cop.textContent = "✓ Copiado"; }, function () { cop.textContent = "Selecciónalo y cópialo"; });
     };
     // «En clase hoy» → a Premiar, con la lista de hoy (y ya sorteando, o con todos elegidos)
     var ia = document.getElementById("au-ir-azar"), ip = document.getElementById("au-ir-premiar");
     if (ia) ia.onclick = function () {
-      // 19-sep · en piloto automático no hay «Premiar»: el azar se resuelve aquí mismo, entre los presentes
-      if (MODO !== "manual") {
-        var L = enClaseHoy(); if (!L.length) L = mios();
-        var x = L[Math.floor(Math.random() * L.length)], el = document.getElementById("au-elegido");
-        if (el && x) { el.hidden = false; el.innerHTML = 'Le toca a <b>' + esc(x.alias || "") + '</b>'; }
-        return;
-      }
       TAB = "premios"; FUENTE_P = "hoy"; render();
       var b = document.getElementById("au-azar"); if (b) b.click(); };
     if (ip) ip.onclick = function () { TAB = "premios"; FUENTE_P = "hoy"; ELEGIDOS = {};
       enClaseHoy().forEach(function (x) { ELEGIDOS[x.ficha] = true; }); render(); };
-    var cc = document.getElementById("au-cerrar");
-    if (cc) cc.onclick = function () { MOTOR.cerrarLlamada(SESION.id).then(function () { SESION = null; render(); }); };
   }
 
   function cablearPremios() {
@@ -970,7 +902,7 @@
   function recargar() {
     return MOTOR.tablero(PER, true).then(function (t) {
       D = t;
-      if (TAB === "gente" || TAB === "ranking") render();
+      if (TAB === "clase") render();   // (20-sep · la única que solo mira datos; «Premiar» no se repinta a media faena)
     });
   }
   /** Quién ha respondido hoy a una llamada; si cambia y estás en «Premiar», se repinta (sin perder a quién elegiste). */

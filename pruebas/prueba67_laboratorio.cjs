@@ -354,7 +354,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("aula.html?per=lab-clase");
       const ve = await rita.hasta("/Andrómeda/.test(document.body.innerText) && /Bólido/.test(document.body.innerText)", 25);
       c("clase · en el aula de la referente aparecen los que han fichado, con su alias", ve, (await rita.texto()).slice(0, 300));
-      c("clase · y dice cuántos van", /2\s*presentes/.test(await rita.texto()));
+      // 20-sep · en las herramientas de clase la llamada ya no se toca (está en la presentación): solo se mira
+      c("clase · y dice cuántos van", /2\s*fichando/.test(await rita.texto()) || /En clase hoy · 2/.test(await rita.texto()), (await rita.texto()).slice(0, 200));
       await rita.foto(FOTOS + "/5-aula.png");
 
       // 🔴 13-sep · «En clase hoy»: quien ha respondido hoy, con sus caras (Carla es de otro escuadrón)
@@ -2708,8 +2709,14 @@ const REG = {};   // cifras que se apuntan para el informe
       // la sesión rehecha (14-sep): el orden que eligió Norberto y nada que le hable al docente
       const rots = JSON.parse(await f2.js("JSON.stringify([].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')}))"));
       // (15-sep · entre la llamada y el vídeo, «El mensaje»: el del foro, como apertura de saga)
+      // 20-sep · la semana 10 abre tema (el 6) y también lo cierra: por eso lleva «Cómo os fue» y «Vuestras dudas»
+      // detrás de la llamada, y el «Ticket de salida» embebido de última (el ticket se rellena al ACABAR el tema).
+      const sinTk = rots.filter(x => ["Cómo os fue", "Vuestras dudas", "Ticket de salida"].indexOf(x) < 0);
       c("🔴 sesión · empieza por la portada, la llamada a filas y el mensaje; luego el vídeo; y el de cierre va lo último (semana 10)",
-        rots[0] === "Portada" && rots[1] === "Llamada a filas" && rots[2] === "El mensaje" && rots[3] === "Vídeo" && rots[rots.length - 1] === "Vídeo" && rots.indexOf("Tu ejemplo") < 0 && rots.indexOf("El despegue") > 3, JSON.stringify(rots));
+        sinTk[0] === "Portada" && sinTk[1] === "Llamada a filas" && sinTk[2] === "El mensaje" && sinTk[3] === "Vídeo"
+        && sinTk[sinTk.length - 1] === "Vídeo" && sinTk.indexOf("Tu ejemplo") < 0 && sinTk.indexOf("El despegue") > 3, JSON.stringify(rots));
+      c("🔴 sesión · y el ticket: el resumen y las dudas al principio, el formulario al final del todo",
+        rots[2] === "Cómo os fue" && rots[3] === "Vuestras dudas" && rots[rots.length - 1] === "Ticket de salida", JSON.stringify(rots.slice(0, 5)) + " … " + rots[rots.length - 1]);
       const ir_ = async t => f2.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return x.getAttribute('title')===${JSON.stringify(t)}})[0]; if(b){ b.click(); return 1; } return 0; })()`);
       // la llamada a filas, tocada DESDE la sesión, y la gente entrando con su cara
       for (const d of (await fs.collection("attendance_sessions").where("projectId", "==", P).where("active", "==", true).get()).docs) await d.ref.update({ active: false });
@@ -2752,7 +2759,10 @@ const REG = {};   // cifras que se apuntan para el informe
       c("sesión · ninguna diapositiva con letra por debajo de 12 px", !chicas.length, chicas.join(" · "));
       await f2.js("document.getElementById('ses-cambiar').click(); 1");
       c("embed · «⇄ Cambiar de grupo» vuelve a preguntar", vista.cambiar && await f2.hasta("document.querySelectorAll('.ses-grupo').length>=2", 10));
-      c("embed · sin errores dentro del iframe", !p.errores.filter(e => !/Failed to load resource/.test(e)).length, p.errores[0] || "");
+      // (el «report-only» de docs.google.com al incrustar su propio formulario lo escribe Google y no bloquea nada:
+      //  el ticket se ve y se rellena. No es un error nuestro ni hay forma de quitarlo desde aquí.)
+      const RUIDO_EMBED = /Failed to load resource|report-only Content Security Policy/i;
+      c("embed · sin errores dentro del iframe", !p.errores.filter(e => !RUIDO_EMBED.test(e)).length, p.errores.filter(e => !RUIDO_EMBED.test(e))[0] || "");
       await p.cerrar();
       /**
        * 🌐 17-sep · PARA TODOS TUS GRUPOS. Norberto: «¿los premios por enlace valen para cualquier grupo? Sería maravilloso
@@ -3451,8 +3461,10 @@ const REG = {};   // cifras que se apuntan para el informe
         if (await dani.js("!![].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return /^Misiones de la semana/.test(b.title)})[0]")) { sem = k; break; }
       }
       const titulos = await dani.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title})");
-      const iLl = titulos.indexOf("Llamada a filas"), iMs = titulos.indexOf("El mensaje");
-      c("🔴 sesión · el mensaje de la semana va justo después de la llamada a filas (antes del vídeo)", iMs > 0 && iMs === iLl + 1, JSON.stringify(titulos.slice(0, 5)));
+      // (20-sep · si la semana abre tema, entre medias van «Cómo os fue» y «Vuestras dudas»: el ticket del anterior)
+      const sinTk_ = titulos.filter(x => ["Cómo os fue", "Vuestras dudas", "Ticket de salida"].indexOf(x) < 0);
+      const iLl = sinTk_.indexOf("Llamada a filas"), iMs = sinTk_.indexOf("El mensaje");
+      c("🔴 sesión · el mensaje de la semana va justo después de la llamada a filas (antes del vídeo)", iMs > 0 && iMs === iLl + 1, JSON.stringify(titulos.slice(0, 6)));
       const irA = async (re) => dani.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return ${re}.test(x.title)})[0]; if(b){ b.click(); return true; } return false; })()`);
       await irA("/^El mensaje$/"); await dormir(900);
       // 17-sep · ya no imita a Star Wars (Norberto: «usa el logo de STARGATE»): el portal, el logo que se enciende y el mensaje en un panel
@@ -4328,8 +4340,8 @@ const REG = {};   // cifras que se apuntan para el informe
       const rita = await nueva("Rita publica la votación");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente"); await sinBienvenidas(rita);
       await rita.ir("aula.html?per=" + P); await rita.hasta("!!document.querySelector('.au-tabs')", 30);
-      c("votación · el aula tiene su pestaña, junto al temporizador",
-        await rita.js("[].slice.call(document.querySelectorAll('.au-tabs [data-au]')).map(function(b){return b.getAttribute('data-au')}).join(',').indexOf('tiempo,voto')>=0"),
+      c("votación · las herramientas de clase tienen su pestaña, junto a «Pregunta» y el temporizador",
+        await rita.js("[].slice.call(document.querySelectorAll('.au-tabs [data-au]')).map(function(b){return b.getAttribute('data-au')}).join(',').indexOf('pregunta,voto,tiempo')>=0"),
         await rita.js("[].slice.call(document.querySelectorAll('.au-tabs [data-au]')).map(function(b){return b.getAttribute('data-au')}).join(',')"));
       await rita.js("document.querySelector('.au-tabs [data-au=\"voto\"]').click(); 1");
       await rita.hasta("!!document.querySelector('#au-vt-crear')", 25);
@@ -4946,9 +4958,12 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 piloto · en la ficha, un reto enseña lo entregado pero sin «Validar» ni «Anular»",
         await dn.js("(function(){ var c=[].slice.call(document.querySelectorAll('.sgp-caja')).pop(); return !!c && !c.querySelector('[data-sgp-no]') && /Cerrar/.test(c.querySelector('[data-sgp-si]').textContent) && /lo hace tu referente/.test(c.textContent); })()"));
       await dn.js("var c=[].slice.call(document.querySelectorAll('.sgp-caja')).pop(); c&&c.querySelector('[data-sgp-si]').click(); 1");
-      // el aula en piloto
+      // 20-sep · las herramientas de clase, también en piloto: premiar en clase es de directo, no una opción avanzada
       await dn.ir("aula.html?per=" + P); await dn.hasta("!!document.querySelector('.au-tabs')", 60); await dormir(800);
-      c("🔴 piloto · el aula, sin «Premiar»", await dn.js("!document.querySelector('.au-t[data-au=\"premios\"]')"));
+      c("🔴 piloto · las herramientas de clase tienen «Premiar» igual", await dn.js("!!document.querySelector('.au-t[data-au=\"premios\"]')"));
+      c("   y solo las cinco de directo (sin «Mi gente» ni «Ranking»)",
+        await dn.js("[].slice.call(document.querySelectorAll('.au-t')).map(function(b){return b.getAttribute('data-au')}).join(',')") === "clase,premios,pregunta,voto,tiempo",
+        await dn.js("[].slice.call(document.querySelectorAll('.au-t')).map(function(b){return b.getAttribute('data-au')}).join(',')"));
       // pasa a mando manual
       await dn.ir("consola.html"); await dn.hasta("!!document.querySelector('.modo-sel')", 75);
       await dn.js("document.querySelector('.modo-sel [data-modo=\"manual\"]').click(); 1"); await dormir(2500);
@@ -5075,6 +5090,71 @@ const REG = {};   // cifras que se apuntan para el informe
       await rs.ir("sesion.html?per=lab-clase&sem=3"); await rs.hasta("!!document.querySelector('[data-sec=\"portada\"]')", 60);
       c("   y en la semana 3 ya no sale", await rs.js("!document.querySelector('[data-sec=\"unete\"]')"));
       await rs.cerrar();
+    }
+    /* ============================================================ 49 · EL TICKET POR TEMA Y LAS HERRAMIENTAS DE CLASE
+     * 20-sep · Norberto: «al principio debe salir el resumen de respuestas del último ticket de salida (porcentajes,
+     * valoraciones); en la siguiente diapositiva, las preguntas, dudas o comentarios; la última diapositiva es el
+     * ticket embebido… se hace al acabar tema, no semana». Y de «El aula»: «un botón sencillo, que no tape otros
+     * botones… lo que sobra es la llamada a filas, "para nombrar en voz alta" y "tu escuadrón"».
+     */
+    if (hacer(49)) {
+      const rt = await nueva("Rita cierra un tema y abre el siguiente");
+      await rt.ir("entrar.html"); await rt.entrarComo("rita@lab.test", "Rita Referente");
+      // la semana 2 CIERRA el tema 1: el ticket embebido es la última diapositiva
+      await rt.ir("sesion.html?per=lab-clase&sem=2"); await rt.hasta("!!document.querySelector('.barra-pasos .p')", 60);
+      const rots = await rt.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title})");
+      c("🔴 ticket · la semana 2 cierra el tema 1 y acaba con «Ticket de salida»", rots[rots.length - 1] === "Ticket de salida", JSON.stringify(rots.slice(-3)));
+      await rt.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).pop().click(); 1");
+      const src = await rt.hasta("!!document.querySelector('.tk-form')", 20) && await rt.js("document.querySelector('.tk-form').getAttribute('src')");
+      // (la semana 2 es la de la Actividad 1, y el formulario tiene su propia opción: esa es la que toca, no «Tema 1»)
+      c("   con el formulario dentro, el grupo por su ID, la Comandante y el tema ya elegido",
+        /docs\.google\.com\/forms/.test(src || "") && /=lab-clase(&|$)/.test(src || "") && /Rita(\+|%20)Referente/.test(src || "")
+        && /entry\.240809630=(Tema|Actividad)(\+|%20)/.test(src || ""), src);
+      c("   y sin huecos sin rellenar", (src || "").indexOf("{") < 0 && (src || "").indexOf("%7B") < 0, src);
+      await rt.foto(FOTOS + "/49-ticket-form.png");
+      // la semana 3 ABRE el tema 2: primero «Cómo os fue», después «Vuestras dudas»
+      await rt.ir("sesion.html?per=lab-clase&sem=3"); await rt.hasta("!!document.querySelector('.barra-pasos .p')", 60);
+      const r3 = await rt.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title})");
+      c("🔴 ticket · la semana 3 abre tema: «Cómo os fue» y detrás «Vuestras dudas», al principio",
+        r3.indexOf("Cómo os fue") > 0 && r3.indexOf("Vuestras dudas") === r3.indexOf("Cómo os fue") + 1 && r3.indexOf("Cómo os fue") <= 3, JSON.stringify(r3.slice(0, 6)));
+      c("   y esa sesión NO cierra tema: no lleva el formulario", r3.indexOf("Ticket de salida") < 0, JSON.stringify(r3.slice(-3)));
+      await rt.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.title==='Vuestras dudas'})[0].click(); 1");
+      // (el lector de tickets vive en Google: aquí no hay respuestas, así que lo que toca es el mensaje)
+      const nada = await rt.hasta("!!document.getElementById('ses-tk') && !/Leyendo vuestras respuestas/.test(document.getElementById('ses-tk').innerText)", 40);
+      c("🔴 ticket · sin respuestas, «¡No hay comentarios!» animando a rellenarlo (nunca un hueco en blanco)",
+        nada && /No hay comentarios|no he podido leer/i.test(await rt.js("document.getElementById('ses-tk').innerText")),
+        (await rt.js("document.getElementById('ses-tk').innerText")).slice(0, 120));
+      await rt.foto(FOTOS + "/49-ticket-dudas.png");
+      // el botón de las herramientas: arriba, sin tapar la barra de pasos
+      await rt.ir("sesion.html?per=lab-clase&sem=3"); await rt.hasta("!!document.getElementById('ses-aula-b')", 60); await dormir(600);
+      const tapa = await rt.js(`(function(){ var b=document.getElementById('ses-aula-b').getBoundingClientRect();
+        return [].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(p){ var r=p.getBoundingClientRect();
+          return r.width && b.right > r.left && b.left < r.right && b.bottom > r.top && b.top < r.bottom; }); })()`);
+      c("🔴 herramientas · el botón está arriba y NO tapa ni un paso de la barra", !tapa && /Herramientas/.test(await rt.js("document.getElementById('ses-aula-b').textContent")));
+      // el enlace para el chat, en la portada
+      await rt.js("document.querySelector('.barra-pasos .p').click(); 1"); await dormir(400);
+      c("🔴 chat · la portada trae «Copiar el enlace para el chat» (solo quien da la clase)",
+        await rt.js("!!document.getElementById('ses-chat')"));
+      // y las herramientas de clase, con lo de directo y nada más
+      await rt.ir("aula.html?per=lab-clase&panel=1"); await rt.hasta("!!document.querySelector('.au-tabs')", 60); await dormir(1200);
+      const tabs = await rt.js("[].slice.call(document.querySelectorAll('.au-t')).map(function(b){return b.getAttribute('data-au')}).join(',')");
+      c("🔴 herramientas · cinco pestañas de directo: En clase, Premiar, Pregunta, Votación y Tiempo", tabs === "clase,premios,pregunta,voto,tiempo", tabs);
+      const txt = await rt.texto();
+      c("   sin la llamada a filas, sin «para nombrar en voz alta» y sin «tu escuadrón»",
+        !/Tocar llamada/.test(txt) && !/nombrar en voz alta/i.test(txt) && !/Tu escuadrón/i.test(txt));
+      c("🔴 chat · y el enlace de unirse, con su botón de copiar", /seguir=1&fichar=1/.test(await rt.js("(document.querySelector('.au-chat-u')||{}).textContent||''")));
+      await rt.js("[].slice.call(document.querySelectorAll('.au-t')).filter(function(b){return /Premiar/.test(b.textContent)})[0].click(); 1");
+      await rt.hasta("!!document.querySelector('.au-pr')", 20);
+      // (van con loading="lazy": se recorre la lista entera para que les toque cargar)
+      await rt.js("[].slice.call(document.querySelectorAll('.au-pr')).forEach(function(x){ x.scrollIntoView(); }); 1");
+      await rt.hasta("[].slice.call(document.querySelectorAll('img.au-pr-i')).every(function(i){ return i.complete; })", 20);
+      const rotas = await rt.js(`JSON.stringify([].slice.call(document.querySelectorAll('.au-pr')).filter(function(x){ var i=x.querySelector('img.au-pr-i'); return !i || !i.naturalWidth; }).map(function(x){ return x.getAttribute('data-k'); }))`);
+      c("🔴 premios · cada uno con su dibujo, y todos cargan", rotas === "[]", rotas + " de " + await rt.js("document.querySelectorAll('.au-pr').length + ' premios'"));
+      c("   y la sección se llama «¿Quién se lo lleva?», con «Toda la clase»",
+        /¿Quién se lo lleva\?/.test(await rt.texto()) && /Toda la clase|Todos los presentes/.test(await rt.js("(document.getElementById('au-todos')||{}).textContent||''")));
+      await rt.foto(FOTOS + "/49-herramientas.png");
+      c("herramientas · sin errores", !rt.errores.filter(e => !/Failed to load resource/.test(e)).length, rt.errores[0] || "");
+      await rt.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

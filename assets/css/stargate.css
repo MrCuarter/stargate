@@ -2911,6 +2911,25 @@ body.alistado header.hero{display:none}
 .au-caras.mini{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
 .au-cara b{word-break:normal;overflow-wrap:anywhere;hyphens:auto}
 
+/* ═══════ 🔴 20-sep · HERRAMIENTAS DE CLASE: lo de directo, y VISTO ═══════
+   «la sección de a quién cambia el nombre y usa dibujos e iconos para las recompensas, es muy poco
+   visual. Intenta compactar más la info». Cada premio enseña la misma imagen que le llegará al
+   recluta; el nombre, debajo y pequeño. Y arriba, el enlace que se pega en el chat de la clase. */
+.au-pr{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 8px 8px;line-height:1.15}
+/* la lámina del premio, recortada como una miniatura (el arte es apaisado: a 46 px «contain» no se veía nada) */
+.au-pr-i{width:100%;height:54px;object-fit:cover;object-position:center;border-radius:8px;background:#060d15}
+.au-pr.puntos .au-pr-i{height:44px;width:44px;object-fit:contain;background:none;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5))}
+.au-pr-t{font-size:.84rem;font-weight:700}
+.au-grupo-pr .au-pr{padding:9px 6px 8px}
+.au-chat .au-cab2{margin-bottom:2px}
+.au-chat-u{display:block;margin-top:8px;padding:7px 10px;border-radius:9px;background:#0b1119;border:1px solid #24304a;
+  color:#9fd8e0;font-size:.78rem;word-break:break-all}
+.au-viva{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;color:#bfe9ef}
+.au-viva::before{content:"";width:8px;height:8px;border-radius:50%;background:#3ed6c8;box-shadow:0 0 0 0 rgba(62,214,200,.6);animation:auLate 1.6s infinite}
+@keyframes auLate{70%{box-shadow:0 0 0 7px rgba(62,214,200,0)}100%{box-shadow:0 0 0 0 rgba(62,214,200,0)}}
+@media (prefers-reduced-motion:reduce){.au-viva::before{animation:none}}
+@media(max-width:560px){.au-pr-i{width:38px;height:38px}.au-pr-t{font-size:.78rem}}
+
 /* ================================================================== LA NAVE POR CAPÍTULOS (13-sep) */
 .prox-cap{margin:4px 0 0;font-size:.9rem;color:var(--mut,#8aa5ab)}
 .prox-cap b{color:#ffe3a1}
@@ -3241,6 +3260,31 @@ body.embed .ses-puerta{min-height:100vh;border:0;border-radius:0}
 .tk-ecos{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
 .tk-ecos blockquote{margin:0;border-left:4px solid var(--teal);background:rgba(55,224,236,.06);border-radius:0 14px 14px 0;
   padding:10px 14px;font-size:clamp(1rem,1.6vw,1.2rem);line-height:1.4;animation:ses-sube .45s both;animation-delay:calc(var(--i,0)*110ms + .2s)}
+/* 🔴 20-sep · EL TICKET, POR TEMA. El resumen de cómo fue el tema anterior (el reparto de cada nota, no una
+   media suelta), las dudas con la pregunta de la que salen, y qué se dice cuando nadie ha contestado. */
+.tk-c.ancha b{font-size:clamp(1.1rem,2.2vw,1.7rem);color:#e8f3fa}
+.tk-de{display:block;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--teal2);margin-bottom:4px}
+.tk-nada{border:1px dashed rgba(62,214,200,.45);border-radius:16px;padding:16px 20px;background:rgba(55,224,236,.05)}
+.tk-nada > b{display:block;font:800 clamp(1.4rem,3vw,2.2rem)/1.1 var(--display,inherit);color:var(--amber);margin-bottom:6px}
+.tk-nada .sub b{color:#e8f3fa}   /* (el nombre del tema va DENTRO de la frase, no en su propia línea) */
+.tk-nada .sub{margin:0}
+.tk-notas{display:flex;flex-direction:column;gap:7px}
+.tk-nota{display:grid;grid-template-columns:minmax(120px,26%) 1fr auto;align-items:center;gap:10px}
+.tk-n-t{color:#cfe0ec;font-size:clamp(.85rem,1.3vw,1.05rem)}
+.tk-n-b{display:flex;height:22px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.05)}
+.tk-n-b i{display:flex;align-items:center;justify-content:center;min-width:0;transition:width .4s ease}
+.tk-n-b em{font-style:normal;font-size:.7rem;font-weight:800;color:#06131a;opacity:.85}
+.tk-n-m{font-variant-numeric:tabular-nums;font-size:clamp(1rem,1.8vw,1.35rem);color:var(--amber)}
+.tk-n-b .v1,.tk-leyenda .v1{background:#ff7d7d}.tk-n-b .v2,.tk-leyenda .v2{background:#ffa96b}
+.tk-n-b .v3,.tk-leyenda .v3{background:#ffd76b}.tk-n-b .v4,.tk-leyenda .v4{background:#8fe0a8}
+.tk-n-b .v5,.tk-leyenda .v5{background:#3ed6c8}
+.tk-leyenda{margin:2px 0 0;color:var(--muted);font-size:.78rem;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.tk-leyenda i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.dia.ticket-form .tk-otro{margin:0}
+/* el enlace para el chat, en la portada: solo lo ve quien da la clase */
+.pt-chat{margin:14px 0 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pt-chat .small{color:var(--muted)}
+@media (max-width:760px){ .tk-nota{grid-template-columns:1fr auto;grid-template-areas:"t m" "b b"} .tk-n-t{grid-area:t} .tk-n-m{grid-area:m} .tk-n-b{grid-area:b} }
 
 /* 11 · las misiones de hoy, con su insignia */
 .dia.mision.con-ins{flex-direction:row;align-items:center;gap:30px}
@@ -4532,10 +4576,14 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .ses-al-vt{background:rgba(6,14,24,.94);border:1px solid rgba(62,214,200,.5);border-radius:14px;padding:10px 12px;color:#e8f3fa;width:100%}
 .ses-al-vt b{font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--teal2)}
 .ses-al-vt p{margin:4px 0 8px;font-weight:700}
-/* 18-sep · el aula del docente, dentro de la presentación: un botón y un panel lateral */
-.ses-aula-b{position:absolute;left:14px;bottom:62px;z-index:7;display:flex;align-items:center;gap:8px;padding:8px 14px;
-  border-radius:12px;border:1px solid rgba(62,214,200,.45);background:rgba(6,14,24,.9);color:#e8f3fa;font:inherit;font-weight:800;cursor:pointer}
-.ses-aula-b:hover,.ses-aula-b.on{border-color:var(--teal);background:rgba(14,40,48,.95)}
+/* 18-sep · las herramientas de clase, dentro de la presentación: un botón y un panel lateral.
+   🔴 20-sep · el botón flotaba abajo a la izquierda y TAPABA la barra de pasos («un botón sencillo, que no
+   tape otros botones»). Ahora va en la fila de mandos de arriba (`.ses-ctl`), donde no se come nada. */
+.ses-aula-b{display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;
+  border:1px solid rgba(62,214,200,.45);background:rgba(0,0,0,.35);color:#cfe0ec;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+.ses-aula-b img{opacity:.9}
+.ses-aula-b:hover,.ses-aula-b.on{border-color:var(--teal);background:rgba(14,40,48,.95);color:#e8f3fa}
+@media (max-width:640px){ .ses-aula-b span{display:none} .ses-aula-b{padding:5px 8px} }
 .ses-aula{position:absolute;top:0;right:0;bottom:0;z-index:8;width:min(460px,100%);display:flex;flex-direction:column;
   background:#0b1119;border-left:1px solid var(--line);box-shadow:-18px 0 40px rgba(0,0,0,.45)}
 .ses-aula-cab{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}

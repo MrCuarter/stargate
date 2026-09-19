@@ -28,7 +28,9 @@ c(Array.isArray(V.ejemplos) && V.ejemplos.length >= 2 && /herramienta/i.test(V.e
 
 // 2 · el aula: con los cronómetros
 c(/\["voto", "voto", "Votación"\]/.test(A), "🔴 la votación es una pestaña del aula, al lado de «Tiempo» (con su icono propio, sin emoji)");
-c(/\["tiempo", "⏱️", "Tiempo"\][^\]]*\n?\s*\["voto"/.test(A) || A.indexOf('["tiempo"') < A.indexOf('["voto"'), "   y va justo después del temporizador");
+// 20-sep · las herramientas de clase van por lo que más se usa en directo: En clase, Premiar, Pregunta, Votación
+// y el Tiempo al final («déjalo, pequeño»). Lo que importa es que la votación y la pregunta estén juntas.
+c(A.indexOf('["pregunta"') < A.indexOf('["voto"') && A.indexOf('["voto"') < A.indexOf('["tiempo"'), "   al lado de «Pregunta» y antes del temporizador");
 c(/function vistaVoto\(\)/.test(A) && /function cablearVoto\(\)/.test(A), "   con su vista y su cableado");
 c(/crearVotacion\(PER, \{/.test(A) && /cerrarVotacion\(PER/.test(A), "   el docente la publica y la cierra desde ahí");
 c(/eligibleFactionId|escuadron:/.test(A) && /miEscuadron\(\)/.test(A), "   puede ser solo para SU escuadrón o para todo el grupo");

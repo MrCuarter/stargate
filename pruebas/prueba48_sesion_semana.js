@@ -90,14 +90,16 @@ c(/window\.SGCAL\.vista\(st\.tipo, SEM\)/.test(S),
 c(/semanaActual\(st\.inicio, st\.pausas\)/.test(S), "la semana que abre es la que toca por la fecha de inicio del PER (y sus semanas congeladas)");
 
 // ------------------------------------------------------- d) el mazo se construye entero
-["portada", "llamada", "video", "anteriores", "movido", "semanal", "top", "coleccion", "escuadrones", "ticket", "nuevo", "simulacro", "reto", "insignias", "hito", "genially"].forEach(function (k) {
+["portada", "llamada", "video", "anteriores", "movido", "semanal", "top", "coleccion", "escuadrones", "ticket", "ticket_dudas", "ticket_form", "nuevo", "simulacro", "reto", "insignias", "hito", "genially"].forEach(function (k) {
   c(MAZO.indexOf("k:'" + k + "'") >= 0, "el mazo tiene la diapositiva «" + k + "»");
 });
 // 🔴 14-sep · el ORDEN que eligió Norberto: portada → llamada a filas → vídeo de intro → misiones de la
-// semana pasada → han movido ficha → ranking semanal → top 5 → escuadrones → ticket de salida → lo
-// nuevo y el simulador → misiones de hoy → tu ejemplo → vídeo de cierre (siempre lo último)
-const orden = ["diaPortada(", "diaLlamada(", "deTipo('inicio')", "diaAnteriores(", "diaMovido(", "diaSemanal(", "diaTop(", "diaColeccion(",
-               "diaEscuadrones(", "diaTicket(", "diaOferta(", "diapositivasNuevas(", "deTipo('mision')", "diasMisiones(", "deTipo('cierre')", "deTipo('fragmento')"];
+// semana pasada → han movido ficha → ranking semanal → top 5 → escuadrones → lo nuevo y el simulador →
+// misiones de hoy → tu ejemplo → vídeo de cierre (siempre lo último).
+// 🔴 20-sep · y el ticket, que se rellena AL ACABAR CADA TEMA: el resumen y las dudas al principio (al abrir
+// tema) y el formulario embebido lo ÚLTIMO de todo (al cerrarlo).
+const orden = ["diaPortada(", "diaLlamada(", "diasTicket(", "deTipo('inicio')", "diaAnteriores(", "diaMovido(", "diaSemanal(", "diaTop(", "diaColeccion(",
+               "diaEscuadrones(", "diaOferta(", "diapositivasNuevas(", "deTipo('mision')", "diasMisiones(", "deTipo('cierre')", "deTipo('fragmento')", "diaTicketForm("];
 const pos = orden.map(x => construir.indexOf(x));
 c(pos.every(x => x >= 0) && pos.every((x, i) => i === 0 || x > pos[i - 1]), "🔴 el mazo va en el orden acordado", JSON.stringify(orden.filter((x, i) => pos[i] < 0)));
 c(/if\(st\.per && \(!EMBED \|\| VENTANA\)\)/.test(construir), "🔴 el panel de Genially no entra cuando la sesión ya va DENTRO del Genially");

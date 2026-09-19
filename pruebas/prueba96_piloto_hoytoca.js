@@ -33,7 +33,10 @@ c(/class="card pt-msg" data-av/.test(K) && /id="pt-panel-ed" data-av/.test(K) &&
 c(/var hace = c\.a && \(manual\(\) \|\| c\.a\[1\] === "cola"\)/.test(K), "   NEBULA en piloto no ofrece «Escribirles» (sí «Ver la Cola de nota»)");
 c(/if \(!manual\(\)\) \{\s*await window\.SG\.preguntar\(\{ aqui: b\.closest\("\.retos-ficha"\) \|\| b, marca: b,/.test(K) && /si: "Cerrar", no: "" \}\);/.test(K),
   "🔴 en piloto la ficha enseña lo entregado, pero validar o anular lo hace el referente");
-c(/MODO === "manual" \|\| t\[0\] !== "premios"/.test(A) && /id="au-ir-premiar" data-av/.test(A) && /Le toca a <b>/.test(A), "🔴 el aula en piloto: sin «Premiar»; «¿A quién pregunto?» elige ahí mismo");
+// 🔴 20-sep · «Premiar» sale también en piloto: dar un premio en clase es de directo, no una opción avanzada
+// («poder dar un premio concreto a un estudiante o a toda la clase»).
+c(!/t\[0\] !== "premios"/.test(A) && /\["premios", "premios", "Premiar"\]/.test(A) && /id="au-ir-premiar" data-av/.test(A),
+  "🔴 las herramientas de clase tienen «Premiar» en los dos modos");
 
 // ── 3 · «Hoy toca»
 c(/function bloqueHoyToca\(S, sem, total, gente\)/.test(K) && /function fichaReto\(r, tipo, prog\)/.test(K), "🔴 «Hoy toca»: un bloque con las fichas de reto completas");
