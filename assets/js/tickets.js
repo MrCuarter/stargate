@@ -29,6 +29,12 @@
   var NUEVO = !!(window.SG && SG.FUENTE && SG.FUENTE.nombre==='firestore');
   var LECTOR = String(window.SG_TICKETS_API||'').trim();
 
+  function sinSesion(msg){
+    root.innerHTML='<div class="card"><h3>Entra con tu cuenta</h3>'
+      +'<p>'+esc(msg||'Los tickets los lee quien está dentro de STARGATE.')+' Lo que el alumnado escribe aquí es suyo: '
+      +'por eso el lector de la hoja ya no le contesta a cualquiera.</p>'
+      +'<p><a class="btn grande" href="entrar.html?volver='+encodeURIComponent(location.pathname+location.search)+'">Iniciar sesión con Google</a></p></div>';
+  }
   function sinLector(){
     var hoja=String(window.SG_TICKETS_HOJA||'');
     root.innerHTML='<div class="card"><h3>El panel todavía no lee esta hoja</h3>'
@@ -44,9 +50,13 @@
     if(st.demo){return cb(demo(b));}
     if(NUEVO){
       if(!LECTOR) return sinLector();
-      return fetch(LECTOR,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)})
+      // 🔴 20-sep · con la credencial de la sesión: el lector de la hoja ya no contesta sin identificarse
+      // (ver apps-script/LectorTickets.gs). Si no hay sesión, lo dice en vez de enseñar un panel vacío.
+      var M=window.SG&&window.SG.MOTOR, llave=(M&&M.credencial)?M.credencial():Promise.resolve('');
+      return llave.then(function(t){
+        return fetch(LECTOR,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},b,{token:t||''}))}); })
         .then(function(r){return r.json();})
-        .then(function(d){ if(d.error){alert(d.error);return;} cb(d); })
+        .then(function(d){ if(d.error){ if(/sesi[oó]n/i.test(d.error)) return sinSesion(d.error); alert(d.error);return;} cb(d); })
         .catch(function(e){alert('Error: '+e.message);});
     }
     b.pin=st.pin;fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)}).then(function(r){return r.json();}).then(function(d){if(d.error){if(/PIN/.test(d.error)){sessionStorage.removeItem('sgPin');st.pin='';pedirPin(d.error);return;}alert(d.error);return;}cb(d);}).catch(function(e){alert('Error: '+e.message);});}

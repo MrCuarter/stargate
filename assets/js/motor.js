@@ -555,6 +555,16 @@ async function avisarRecluta(perId, userId, { reto = "", accion = "", texto = ""
   });
   return r.id;
 }
+/**
+ * 🔴 20-sep · LA CREDENCIAL DE LA SESIÓN, para lo poco que vive FUERA de Firestore: el lector del ticket de
+ * salida (una hoja de Google con su Apps Script). Ese lector ya no contesta a cualquiera: se le manda este
+ * token y él le pregunta a Firebase si vale. Vacío si no hay nadie identificado (y entonces no se lee nada).
+ */
+async function credencial() {
+  const u = auth.currentUser;
+  if (!u || !u.getIdToken) return "";
+  try { return await u.getIdToken(); } catch (e) { return ""; }
+}
 /** La Nave, a la escucha de los mensajes sin leer de su Comandante en este grupo (en directo, como la llamada a filas). */
 function vigilarMensajes(perId, alCambiar) {
   const u = auth.currentUser;
@@ -2144,7 +2154,7 @@ function codigoGenially(ruta, titulo) {
 
 window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
-window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
+window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo,

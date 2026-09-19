@@ -33,6 +33,11 @@
  *       Acceso:        Cualquier usuario
  *  4. Copia la URL que acaba en /exec y ponla en `_site_data.py → TICKETS_API`.
  *
+ * 🔴 20-sep · SI YA ESTABA DESPLEGADO, HAY QUE VOLVER A HACERLO: este fichero ahora pide identificarse (ver «la
+ * puerta, con llave», más abajo). Se pega otra vez encima, y en Implementar → Gestionar implementaciones → ✏️ →
+ * Versión: Nueva → Implementar. La dirección /exec no cambia, así que no hay que tocar nada más. Hasta que se
+ * haga, el panel y la sesión seguirán leyendo como siempre; el agujero solo se cierra al redesplegar.
+ *
  * 🔴 Es un proyecto INDEPENDIENTE, no uno pegado a la hoja, y abre la hoja por su identificador.
  * Dos razones. Una: un script pegado a la hoja se abre desde el menú de la hoja, y con varias
  * cuentas de Google en el mismo navegador ese menú te manda a la cuenta equivocada. Dos: si algún
@@ -117,6 +122,36 @@ function json_(o) {
 }
 
 /**
+ * 🔴 20-sep · LA PUERTA, CON LLAVE. Una aplicación web de Apps Script con «acceso: cualquier usuario» es
+ * pública de verdad: su dirección está en el código de la página, así que hasta hoy cualquiera que la
+ * copiara podía leer las dudas de todas las clases —anónimas, sí, pero de nadie más— y hasta escribir en
+ * la columna «Resuelto» de la hoja. Eso no es aceptable para lo que el alumnado escribe en confianza.
+ *
+ * Ahora hay que venir identificado: la página manda el `token` de la sesión de STARGATE (el de Firebase) y
+ * aquí se comprueba con el propio Firebase antes de contestar nada. No hace falta guardar ninguna clave: se
+ * valida contra el proyecto, que es quien emitió el token. Quien no haya iniciado sesión en STARGATE, no lee.
+ *
+ * (No se puede afinar más desde aquí —quién es docente de qué grupo vive en Firestore, no en esta hoja—,
+ * pero el salto de «el mundo entero» a «quien está dentro de STARGATE» es el que importaba.)
+ */
+var FIREBASE_API_KEY = "AIzaSyAsbivRCpCD2d0UvuB2JQpdJVHLgpEvD4k";   // la clave pública del sitio (va en la web)
+
+/** ¿Quién manda esto? El usuario de Firebase, o null si el token no vale. */
+function usuarioDelToken_(token) {
+  token = String(token || "");
+  if (token.length < 40) return null;
+  try {
+    var r = UrlFetchApp.fetch("https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=" + FIREBASE_API_KEY, {
+      method: "post", contentType: "application/json", muteHttpExceptions: true,
+      payload: JSON.stringify({ idToken: token })
+    });
+    if (r.getResponseCode() !== 200) return null;
+    var u = (JSON.parse(r.getContentText()).users || [])[0];
+    return u && u.localId ? u : null;
+  } catch (err) { return null; }
+}
+
+/**
  * La puerta. Dos peticiones y se acabó.
  *
  * Se responde a GET y a POST porque el panel manda POST y un navegador curioso (o una prueba desde
@@ -132,6 +167,8 @@ function doPost(e) {
 function atender_(q) {
   try {
     var a = String(q.accion || "tickets");
+    var quien = usuarioDelToken_(q.token);
+    if (!quien) return json_({ error: "Inicia sesión en STARGATE para ver los tickets." });
     if (a === "pers") return json_({ pers: gruposConTickets_() });
     if (a === "tickets") return json_({ tickets: ticketsDe_(q.per) });
     if (a === "ticket_resuelto") {

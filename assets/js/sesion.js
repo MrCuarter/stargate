@@ -938,7 +938,11 @@
   function precargarTickets(){
     if(TK_PROMESA||!window.SG_TICKETS_API||!st.per) return TK_PROMESA;
     var per=st.per, tope=new Promise(function(_,no){ setTimeout(function(){ no(new Error('tarda demasiado')); }, 12000); });
-    TK_PROMESA=Promise.race([fetch(String(window.SG_TICKETS_API),{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({accion:'tickets',per:per})})
+    // 🔴 20-sep · con la credencial de la sesión: el lector de la hoja ya no le contesta a cualquiera que
+    // conozca su dirección (ver apps-script/LectorTickets.gs). Sin sesión iniciada no hay respuestas.
+    var M=window.SG&&window.SG.MOTOR, llave=(M&&M.credencial)?M.credencial():Promise.resolve('');
+    TK_PROMESA=Promise.race([llave.then(function(t){
+      return fetch(String(window.SG_TICKETS_API),{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({accion:'tickets',per:per,token:t||''})}); })
       .then(function(r){ return r.json(); }), tope])
       .then(function(d){ TK={per:per, lista:(d&&d.tickets)||[]}; return TK; }, function(e){ TK={per:per, lista:[], error:true}; return TK; });
     return TK_PROMESA;

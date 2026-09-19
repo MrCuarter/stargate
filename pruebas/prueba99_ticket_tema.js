@@ -121,7 +121,18 @@ c(/var IMG_PREMIO = \{/.test(AULA) && /function imgPremio\(k\)/.test(AULA) && /c
 c(!/<img class=ico src=assets\/img\/iconos\/p\/\w+\.png alt> (Una carta|Cápsula|Sobre)/.test(AULA),
   "   sin iconos pegados al nombre: la imagen ya lo dice");
 
-// ── 6 · el botón, donde no tapa nada
+// ── 6 · el lector del ticket ya no le contesta a cualquiera
+const GS = leer("apps-script/LectorTickets.gs"), MOTOR = leer("assets/js/motor.js"), TK = leer("assets/js/tickets.js");
+c(/function usuarioDelToken_\(token\)/.test(GS) && /identitytoolkit\.googleapis\.com\/v1\/accounts:lookup/.test(GS),
+  "🔴 el lector de la hoja comprueba con Firebase quién le pregunta");
+c(/var quien = usuarioDelToken_\(q\.token\);\s*\n\s*if \(!quien\) return json_\(/.test(GS),
+  "   y si no vale el token, no contesta NADA (ni leer ni marcar resuelto)");
+c(/async function credencial\(\)/.test(MOTOR) && /entrar, salir, sesion, credencial,/.test(MOTOR), "   el motor sabe dar esa credencial");
+c(/token:t\|\|''/.test(SES) && /token:t\|\|''/.test(TK), "   y la mandan la sesión y el panel de tickets");
+c(/function sinSesion\(msg\)/.test(TK), "   sin sesión, el panel lo dice en vez de quedarse en blanco");
+c(/VOLVER A HACERLO/.test(GS), "🔴 y el fichero avisa de que hay que volver a desplegarlo para que sirva de algo");
+
+// ── 7 · el botón, donde no tapa nada
 c(/\.ses-aula-b\{display:flex/.test(CSS) && !/\.ses-aula-b\{position:absolute/.test(CSS),
   "🔴 el botón de las herramientas ya no flota encima de la barra de pasos");
 c(/\.tk-nota\{display:grid/.test(CSS) && /\.tk-n-b \.v1/.test(CSS), "   y el resumen del ticket tiene su barra de colores");
