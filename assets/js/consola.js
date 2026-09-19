@@ -3454,12 +3454,22 @@
       privados[p.id] = { firstName: n[0], lastName: n[1],
                          email: n[0].toLowerCase() + "@ejemplo.es", bitacora: "", bio: "" };
     });
-    PER = per; PERS = [{ id: per, nombre: (d.proyecto || {}).name || per }];
+    /**
+     * 🔴 20-sep · En la demostración hay que SER alguien: la Nave enseña «tu gente», y sin nombre ni papel
+     * («¿soy referente aquí?», «¿cómo me llamo en este grupo?») la pantalla salía vacía —«no tienes escuadrón
+     * en este grupo»— y las capturas de «Cómo se hace» retrataban una consola sin nadie. Se toma prestado el
+     * primer docente del grupo de ejemplo, que también es de mentira.
+     */
+    var cfgDemo = ((d.proyecto || {}).stargate || {}), docs = cfgDemo.docentes || [];
+    var yoDemo = docs.filter(function (x) { return x.rol === "referente"; })[0] || docs[0] || { nombre: "Capitana Vega" };
+    YO = YO || { uid: "demo", correo: "referente@ejemplo.es", nombre: yoDemo.nombre };
+    PER = per; PERS = [{ id: per, nombre: (d.proyecto || {}).name || per, soyReferente: true, miNombre: yoDemo.nombre }];
     // 🔴 Las mismas claves que arma `leerPER`, con los mismos nombres. El catálogo y `privadoPER`
     // no son opcionales: sin ellos el traductor revienta al calcular el primer nivel.
     DATOS = Object.assign({}, d, { privados: privados, vales: d.vales || [],
                                    catalogo: window.SG_CATALOGO,
-                                   privadoPER: { referente: "referente@ejemplo.es", panelEdit: "", docentes: [] } });
+                                   privadoPER: { referente: "referente@ejemplo.es", panelEdit: "",
+                                                 docentes: docs.map(function (x) { return { nombre: x.nombre, correo: (x.nombre || "").toLowerCase().replace(/[^a-z]+/g, ".") + "@ejemplo.es", rol: x.rol || "docente", imparte: x.imparte !== false }; }) } });
     pintar();
     Array.prototype.forEach.call(app.querySelectorAll("button"), function (b) {
       if (/Guardar|Conceder|Denegar|Pasar el alumnado/.test(b.textContent)) b.disabled = true;
