@@ -4874,3 +4874,83 @@ section.ht{padding:0;margin:0;border:0;background:none}
 .gp-hoy-d section.ht{margin-top:4px;padding:12px;border:1px solid rgba(242,181,68,.35);background:rgba(242,181,68,.04)}
 .ht-vids .pt-vids{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px}
 .ht-vids .pt-vids li{grid-template-columns:112px minmax(0,1fr)}
+/* ================================================================== 19-sep · MIS GRUPOS SIN CORTES NI AIRE (2.ª vuelta)
+   Norberto, con dos capturas: «está súper compacto, se corta» y «tenemos MUCHO AIRE». La cabecera dejaba el nombre en
+   «Norbert…» y las cifras en tres pisos (los botones se comían la fila). Las filas de grupo se salían por la derecha, con
+   el código de clase cortado, y «Llamada a filas» quedaba bajo su ⧉.
+   - La cabecera es una tira que se parte sola.
+   - Cada fila se ordena por SU ancho (container queries), no por el de la ventana.
+   - El código de clase se va dentro del grupo. */
+#consola-app .doc-panel{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 14px}
+#consola-app .doc-ava{width:54px;height:54px;flex:none}
+#consola-app .doc-txt{display:block;flex:0 1 auto;min-width:0}
+#consola-app .doc-txt .eyebrow{margin:0}
+#consola-app .doc-txt h2{white-space:nowrap;overflow:visible;max-width:none;font-size:clamp(1.1rem,1.6vw,1.35rem)}
+#consola-app .doc-txt p:empty{display:none}
+#consola-app .doc-cifras{display:flex;flex-wrap:wrap;gap:6px;flex:0 1 auto}
+#consola-app .doc-b{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+@media(max-width:760px){#consola-app .doc-b{margin-left:0;justify-content:flex-start;flex:1 1 100%}}
+
+#consola-app .gp-grid.uno{container-type:inline-size;grid-template-columns:minmax(0,1fr)}
+#consola-app .gp-grid.uno .gp{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"cab" "cifras" "hacer" "hoy" "pie";
+  gap:8px;padding:10px 12px;align-items:center}
+#consola-app .gp-grid.uno .gp:has(.gp-cola){grid-template-areas:"cola" "cab" "cifras" "hacer" "hoy" "pie"}
+#consola-app .gp-grid.uno .gp>header{grid-area:cab;min-width:0}
+#consola-app .gp-grid.uno .gp-cifras{grid-area:cifras;margin:0}
+#consola-app .gp-grid.uno .gp-hacer{grid-area:hacer;margin:0}
+#consola-app .gp-grid.uno .gp-pie{grid-area:pie;margin:0}
+#consola-app .gp-grid.uno .gp-cola{grid-area:cola;margin:0}
+#consola-app .gp-grid.uno .gp-hoy-d{grid-area:hoy;min-width:0}
+#consola-app .gp-grid.uno .gp-dentro{display:none}
+#consola-app .gp h3{font-size:1.1rem;text-wrap:balance}
+/* las dos cifras, en línea: «21 alistados · 8 de 15 semanas» (en cajas altas partían la etiqueta en dos) */
+#consola-app .gp-cifras{display:flex;flex-wrap:wrap;gap:6px}
+#consola-app .gp-cifras div{display:flex;align-items:baseline;gap:5px;padding:5px 10px;white-space:nowrap}
+#consola-app .gp-cifras b{display:inline;font-size:1.1rem}
+#consola-app .gp-cifras span{font-size:.8rem}
+/* 1 · 2 · 3: el texto no se mete bajo la rueda ni el ⧉ (el relleno de «#consola-app .gp-b» pisaba el de la celda) */
+#consola-app .gp-celda .gp-b{padding:9px 44px 9px 11px;min-height:48px}
+#consola-app .gp-celda:has(.gp-cfg) .gp-b{padding-right:84px}
+body.modo-piloto #consola-app .gp-celda:has(.gp-cfg) .gp-b{padding-right:44px}
+#consola-app .gp-b b{flex:none;white-space:nowrap}
+#consola-app .gp-b em{min-width:0}
+/* «Hoy toca»: se parte en renglones, nunca se sale */
+#consola-app .gp-hoy span,.gp-hoy span{white-space:normal}
+#consola-app .gp-hoy{line-height:1.45}
+@container (min-width:620px){
+  #consola-app .gp-grid.uno .gp{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"cab cifras pie" "hacer hacer hacer" "hoy hoy hoy";column-gap:12px}
+  #consola-app .gp-grid.uno .gp:has(.gp-cola){grid-template-areas:"cola cola cola" "cab cifras pie" "hacer hacer hacer" "hoy hoy hoy"}
+  #consola-app .gp-grid.uno .gp-hacer{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  #consola-app .gp-grid.uno .gp-celda.principal{grid-column:auto}
+  #consola-app .gp-grid.uno .gp-pie{align-self:center}
+}
+@container (max-width:900px){
+  #consola-app .gp-grid.uno .gp-b em{display:none}
+  #consola-app .gp-grid.uno .gp-b b{white-space:normal;flex:0 1 auto}
+}
+@container (max-width:619px){
+  #consola-app .gp-grid.uno .gp-pie .btn.epico.gp-abrir{width:100%}
+}
+/* «⋯»: archivar, reabrir o borrar el grupo (del referente) */
+.gp-mas{flex:none;width:38px;height:38px;border-radius:10px;border:1px solid #2a4656;background:#0b1119;color:#c7d6ee;
+  font:800 1.2rem/1 'DM Sans',system-ui,sans-serif;cursor:pointer;display:grid;place-items:center;padding:0}
+.gp-mas:hover,.gp-mas:focus-visible{border-color:var(--teal,#3ed6c8);color:#fff;background:rgba(62,214,200,.12);outline:none}
+.gs-caja{width:min(640px,100%)}
+.gs-op{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px 12px;align-items:center;padding:12px;margin:0 0 8px;
+  border:1px solid rgba(62,214,200,.35);border-radius:14px;background:rgba(62,214,200,.05)}
+.gs-op b{font-size:1.02rem}
+.gs-op p{margin:3px 0 0;font-size:.88rem;color:#c7d6ee;line-height:1.45}
+.gs-op label{display:block;margin:8px 0 0;font-size:.86rem}
+.gs-op input{display:block;width:100%;margin-top:4px}
+.gs-op>.btn{align-self:end;white-space:nowrap}
+.gs-op.peligro{border-color:rgba(255,122,107,.5);background:rgba(255,122,107,.06)}
+.gs-nota{margin:0 0 8px;font-size:.86rem;color:var(--mut)}
+.gs-msg{margin:2px 0 0;font-size:.86rem;min-height:1.2em}
+.gs-msg:empty{display:none}
+@media(max-width:560px){.gs-op{grid-template-columns:auto minmax(0,1fr)}.gs-op>.btn{grid-column:1/-1;justify-content:center}}
+/* el código de clase, dentro del grupo: una tira pequeña en la cabecera de la portada */
+.pt-hero{flex-wrap:wrap}
+.pt-cod{margin-left:auto;display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;padding:6px 10px;border:1px dashed rgba(242,181,68,.45);border-radius:12px}
+.pt-cod>span{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--amber,#f2b544);white-space:nowrap}
+.pt-cod .gp-cod{font-size:1.05rem;letter-spacing:.16em}
+@media(max-width:640px){.pt-cod{margin-left:0;flex:1 1 100%}}

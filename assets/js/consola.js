@@ -271,6 +271,8 @@
           '<h3>' + esc(p.nombre) + '</h3>' +
           (mio ? '<p class="gp-esc">' + esc(mio.name) + '</p>' : '') + '</div>' +
         (p.soyReferente ? '<span class="gp-ref" title="Llevas este grupo">★</span>' : '') +
+        // 19-sep · Norberto: «no encuentro la manera de borrar o archivar un grupo. Debe ser más fácil»
+        (gestionable(p) ? '<button type="button" class="gp-mas" data-gestion="' + esc(p.id) + '" title="Archivar, reabrir o borrar el grupo" aria-label="Archivar o borrar «' + esc(p.nombre) + '»">⋯</button>' : '') +
       '</header>' +
       // 15-sep · Norberto: «la Cola de nota debería aparecer solo si hay algo que hacer… que brille o un globo con aviso»
       (p.cola ? '<button type="button" class="gp-cola" data-per="' + esc(p.id) + '" data-ir="canjes"><img class=ico src=assets/img/iconos/p/clase.png alt> <b>' + p.cola + '</b> ' +
@@ -292,26 +294,8 @@
         '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
           '<span class="gp-n">3</span><b>El aula</b><em>' + (manual() ? "premios, tiempo, votar" : "tiempo, votar, preguntar") + '</em></a>' + botonVentana("aula.html?per=" + p.id, "aula_" + p.id, "el aula") + '</div>' +
       '</div>' +
-      /**
-       * 🔴 EL CÓDIGO DE CLASE, A LA VISTA DE TODO EL EQUIPO. Con la puerta única el alumnado entra
-       * con «el código que reparte tu docente el primer día» —lo dice la portada—, y el docente raso
-       * NO LO VEÍA en ningún sitio: vivía en «Ajustes», que es del referente, y en «Mis enlaces» solo
-       * iba escondido dentro de una URL. Invitar a la clase es lo PRIMERO que hace un docente nuevo.
-       *
-       * El código se enseña grande —se escribe en la pizarra o se dicta— y el botón copia un mensaje
-       * listo para pegar en el foro o en un chat, con el enlace directo que ya lleva el código dentro.
-       * Norberto: «un botón para copiar el enlace de invitación, no hace falta que aparezca el enlace».
-       * En un curso terminado no sale: ya no se alista nadie.
-       */
-      // 15-sep · tapado hasta que se pulsa (Norberto: «el código de clase mantenlo oculto, obliga a clicar
-      // para mostrar»): esta pantalla se proyecta y se comparte; la invitación se copia sin destaparlo.
-      (p.codigo && p.estado !== "pasado"
-        ? '<div class="gp-invita"><div><span>Código de clase</span><button type="button" class="gp-cod" data-cod="' + esc(p.codigo) + '" ' +
-            'title="Pulsa para verlo (y otra vez para taparlo)" aria-label="Mostrar el código de clase">•••••• <em>Mostrar</em></button></div>' +
-          '<button class="btn min" data-copiado="✓ Invitación copiada" data-copiar="' + esc(invitacion(p)) + '" ' +
-            'title="Copia un mensaje listo para pegar en el foro de la plataforma de UNIR o en un chat">' +
-            'Copiar invitación</button></div>'
-        : '') +
+      // 🔴 19-sep · EL CÓDIGO DE CLASE YA NO VA EN LA FILA. Norberto: «es algo que se usará solo el primer y segundo día, no
+      // merece tener tantísimo espacio. Sería mejor que apareciera dentro del grupo». Está en la portada del grupo (codigoClase).
       // 15-sep · Norberto: «un botón llamativo para entrar en ese grupo», como el de «Entrar en mi Nave» al alistarse.
       // Era un enlace gris («Ver mi gente y los ajustes →») y no se veía. Debajo, las pestañas que hay dentro.
       hoyToca(p) +
@@ -359,7 +343,8 @@
   // tras «Borrar este grupo»: que se vea que se ha hecho
   function avisoBorrado() {
     var b = url.get("borrado");
-    return b ? '<div class="card borrado-ok"><p><img class=ico src=assets/img/iconos/p/papelera.png alt> <b>«' + esc(b) + '»</b> borrado, con todo lo suyo.</p></div>' : "";
+    var g = AVISO_GESTION; AVISO_GESTION = "";   // (19-sep · y tras archivar o reabrir desde «⋯»)
+    return g || (b ? '<div class="card borrado-ok"><p><img class=ico src=assets/img/iconos/p/papelera.png alt> <b>«' + esc(b) + '»</b> borrado, con todo lo suyo.</p></div>' : "");
   }
   /**
    * 15-sep · EL «MODO DOCENTE» (Norberto): el referente oculta lo suyo con el botón de arriba (stargate.js) y ve lo
@@ -553,14 +538,6 @@
       ajP.hidden = !ajP.hidden; ajB.setAttribute("aria-expanded", String(!ajP.hidden));
       if (!ajP.hidden) ajP.scrollIntoView({ behavior: "smooth", block: "nearest" });
     };
-    Array.prototype.forEach.call(app.querySelectorAll(".gp-cod"), function (b) {
-      b.onclick = function () {
-        var ver = !b.classList.contains("visto");
-        b.classList.toggle("visto", ver);
-        b.innerHTML = ver ? esc(b.getAttribute("data-cod")) + ' <em>Tapar</em>' : '•••••• <em>Mostrar</em>';
-        b.setAttribute("aria-label", ver ? "Tapar el código de clase" : "Mostrar el código de clase");
-      };
-    });
     cablearCopiar(app);
     // el titular «Mi puesto de mando» sobra encima de «Tus grupos»: dos titulares enormes seguidos
     document.body.classList.add("consola-dentro");
@@ -1369,6 +1346,106 @@
   });
 
   /**
+   * 🔴 19-sep · ARCHIVAR, REABRIR O BORRAR UN GRUPO, DESDE SU FILA. Norberto: «no encuentro la manera de borrar o archivar un
+   * grupo. Debe ser más fácil. Busca una forma intuitiva de que el referente pueda archivar / graduar o eliminar». Solo
+   * existía «Borrar», al fondo de Ajustes. Ahora «⋯» en la fila de cada grupo que llevas, con las dos salidas explicadas:
+   *   · Graduar y archivar: la marca `stargate.archivado`, que ya entendía toda la web (estadoDelPER → «pasado»): pasa a
+   *     «Cursos terminados», sale del aula y de la llamada a filas, y el alumnado sigue entrando a su Nave. No se borra
+   *     nada y se reabre con otro clic. Es del referente (las reglas dejan al equipo tocar `stargate`, salvo el equipo).
+   *   · Borrar para siempre: la función de siempre (deleteProject), escribiendo el nombre. De quien lo creó o un vitalicio,
+   *     que es lo que comprueba el servidor.
+   */
+  var AVISO_GESTION = "";
+  function puedeBorrarP(p) {
+    var u = YO || {};
+    if (!p || Number(((p.stargate || {}).demoSemana) || 0) > 0) return false;
+    return !!u.uid && (p.ownerId === u.uid || p.teacherId === u.uid ||
+      ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"].indexOf(String(u.email || u.correo || "").toLowerCase()) >= 0);
+  }
+  function gestionable(p) { return !!p && !(Number(((p.stargate || {}).demoSemana) || 0) > 0) && (refDe(p) || puedeBorrarP(p)); }
+  function abrirGestion(per) {
+    var p = PERS.filter(function (x) { return x.id === per; })[0];
+    if (!p) return;
+    var S = p.stargate || {}, arch = !!S.archivado, porFechas = p.estado === "pasado" && !arch, nombre = String(p.nombre || per).trim();
+    var plano = function (x) { return String(x || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, ""); };
+    var estado = arch ? "Archivado" : p.estado === "en marcha" ? "En marcha · semana " + p.semana + " de " + p.total
+               : p.estado === "pasado" ? "Curso terminado" : p.estado === "por empezar" ? "Por empezar" : "Sin fecha";
+    var capa = document.createElement("div");
+    capa.className = "cfg-capa"; capa.setAttribute("role", "dialog"); capa.setAttribute("aria-modal", "true");
+    capa.setAttribute("aria-label", "Archivar o borrar " + nombre);
+    capa.innerHTML = '<div class="cfg-caja gs-caja">' +
+      '<div class="cfg-cab">' + ico("botin", "grande") + '<div><b>' + esc(nombre) + '</b><span>' + esc(estado) +
+        (p.reclutas != null ? ' · ' + p.reclutas + (Number(p.reclutas) === 1 ? " recluta" : " reclutas") : '') + '</span></div>' +
+        '<button type="button" class="btn min" data-cfg-x>Cerrar</button></div>' +
+      (refDe(p) && !porFechas
+        ? '<div class="gs-op">' + ico(arch ? "envivo" : "medalla", "grande") + '<div><b>' + (arch ? "Reabrir el curso" : "Graduar y archivar") + '</b><p>' +
+            (arch ? 'Vuelve a <b>Mis grupos</b>, en marcha o terminado según sus fechas. Todo sigue como estaba.'
+                  : 'Pasa a <b>Cursos terminados</b> y deja de salir en el aula y en la llamada a filas. Tu alumnado sigue entrando a su Nave con todo lo que ganó. <b>No se borra nada</b> y se puede reabrir.') +
+            '</p></div><button type="button" class="btn" id="gs-arch">' + (arch ? "Reabrir" : "Archivar") + '</button></div>'
+        : '') +
+      (porFechas ? '<p class="gs-nota">Terminó por fechas: ya está en <b>Cursos terminados</b> y no hace falta archivarlo.</p>' : '') +
+      (puedeBorrarP(p)
+        ? '<div class="gs-op peligro">' + ico("papelera", "grande") + '<div><b>Borrar para siempre</b><p>Para los grupos de prueba. Se borra <b>todo</b>: el grupo, las fichas de su alumnado, sus retos, el Mercado y el Zoco. <b>No se puede deshacer.</b></p>' +
+            '<label>Escribe su nombre para confirmarlo: <b>' + esc(nombre) + '</b><input id="gs-nombre" autocomplete="off" spellcheck="false" placeholder="sin preocuparte de mayúsculas, acentos ni signos"></label></div>' +
+            '<button type="button" class="btn peligro" id="gs-borrar" disabled>Borrar</button></div>'
+        : '<p class="gs-nota">Borrarlo del todo solo puede quien lo creó o un referente vitalicio.</p>') +
+      '<p class="gs-msg" id="gs-msg" role="status"></p></div>';
+    document.body.appendChild(capa);
+    var cerrar = function () { capa.remove(); document.removeEventListener("keydown", tecla); };
+    var tecla = function (e) { if (e.key === "Escape") cerrar(); };
+    document.addEventListener("keydown", tecla);
+    capa.addEventListener("click", function (e) { if (e.target === capa || e.target.closest("[data-cfg-x]")) cerrar(); });
+    var msg = capa.querySelector("#gs-msg");
+    var ba = capa.querySelector("#gs-arch");
+    if (ba) ba.onclick = async function () {
+      ba.disabled = true; msg.textContent = arch ? "Reabriendo…" : "Archivando…";
+      try {
+        await MOTOR.guardarAjustes(per, { "stargate.archivado": arch ? false : Date.now() });
+        AVISO_GESTION = '<div class="card borrado-ok"><p>' + ico(arch ? "envivo" : "medalla") + ' <b>«' + esc(nombre) + '»</b> ' +
+          (arch ? "reabierto." : "graduado y archivado: está en «Cursos terminados», abajo. Se reabre desde su «⋯».") + '</p></div>';
+        cerrar(); PER = null; DATOS = null; history.replaceState(null, "", "consola.html"); elegirGrupo();
+      } catch (e) { ba.disabled = false; msg.textContent = "No se ha podido: " + (e.message || e); }
+    };
+    var inp = capa.querySelector("#gs-nombre"), bb = capa.querySelector("#gs-borrar");
+    if (inp && bb) {
+      var coincide = function () { return !!plano(nombre) && plano(inp.value) === plano(nombre); };
+      inp.oninput = function () { bb.disabled = !coincide(); };
+      bb.onclick = async function () {
+        if (!coincide()) return;
+        bb.disabled = true; bb.textContent = "Borrando…"; msg.textContent = "";
+        try { await MOTOR.llamar("deleteProject", { projectId: per }); location.href = "consola.html?borrado=" + encodeURIComponent(nombre); }
+        catch (e) { bb.disabled = false; bb.textContent = "Borrar"; msg.textContent = e.message || String(e); }
+      };
+    }
+    var f = capa.querySelector("#gs-arch") || inp || capa.querySelector("[data-cfg-x]"); if (f) f.focus();
+  }
+  /**
+   * 19-sep · EL CÓDIGO DE CLASE, DENTRO DEL GRUPO. Norberto: «es algo que se usará solo el primer y segundo día, no merece
+   * tener tantísimo espacio. Sería mejor que apareciera dentro del grupo, no en la previsualización». Una tira pequeña en la
+   * cabecera de la portada: tapado hasta pulsar (esta pantalla se proyecta) y «Copiar invitación» con el enlace dentro.
+   */
+  function codigoClase(per, codigo) {
+    if (!codigo) return "";
+    return '<div class="pt-cod"><span>Código de clase</span><button type="button" class="gp-cod" data-cod="' + esc(codigo) + '" ' +
+        'title="Pulsa para verlo (y otra vez para taparlo)" aria-label="Mostrar el código de clase">•••••• <em>Mostrar</em></button>' +
+      '<button type="button" class="btn min" data-copiado="✓ Invitación copiada" data-copiar="' + esc(invitacion({ id: per, codigo: codigo })) + '" ' +
+        'title="Copia un mensaje listo para pegar en el foro de la plataforma de UNIR o en un chat">' + ico("enlace") + ' Copiar invitación</button></div>';
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target && e.target.closest && e.target.closest(".gp-cod");
+    if (!b) return;
+    var ver = !b.classList.contains("visto");
+    b.classList.toggle("visto", ver);
+    b.innerHTML = ver ? esc(b.getAttribute("data-cod")) + ' <em>Tapar</em>' : '•••••• <em>Mostrar</em>';
+    b.setAttribute("aria-label", ver ? "Tapar el código de clase" : "Mostrar el código de clase");
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target && e.target.closest && e.target.closest("[data-gestion]");
+    if (!b) return;
+    e.preventDefault(); abrirGestion(b.getAttribute("data-gestion"));
+  });
+
+  /**
    * 19-sep · LA PORTADA DEL GRUPO. Norberto: «el docente, cuando entra en su grupo, debería tener una página
    * prácticamente similar a la del estudiante, salvo que aparece su avatar… vídeo, mensaje del foro, panel de control,
    * con los botones para hacer cambios» y «debe ver de un vistazo el estado de su grupo: en qué semana estamos, qué vídeo
@@ -1485,7 +1562,8 @@
       '<div class="card pt-hero"><img class="pt-ava" id="pt-ava" src="assets/img/avatares/comandantes/c1.jpg" alt="">' +
         '<div><div class="eyebrow teal">' + esc(estado) + (s ? ' · ' + esc(s.tema) : '') + '</div>' +
         '<h2>' + esc(s ? s.sub || s.tema : t.nombre) + '</h2>' +
-        '<p class="small muted">' + (yoN ? 'Comandante <b>' + esc(yoN) + '</b> · ' : '') + esc(deQuien) + (s && s.capitulo ? ' · capítulo «' + esc(s.capitulo) + '»' : '') + '</p></div></div>' +
+        '<p class="small muted">' + (yoN ? 'Comandante <b>' + esc(yoN) + '</b> · ' : '') + esc(deQuien) + (s && s.capitulo ? ' · capítulo «' + esc(s.capitulo) + '»' : '') + '</p></div>' +
+        (sem <= total ? codigoClase(PER, (DATOS.proyecto || {}).joinCode) : '') + '</div>' +
       bannerNebula(consejos) + resumenGrupo(t, gente) +
       (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
         '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente) + '</div>') +
@@ -3372,6 +3450,11 @@
       'en la presentación de <b>Vínculo</b>, ponla en algo que no parezca un botón (una estrella, un rincón de la imagen). ' +
       '<button class="btn min" data-copiado="✓ Enlace copiado" data-copiar="' + esc(location.origin + "/fragmento.html") + '"><img class=ico src=assets/img/iconos/p/enlace.png alt> Copiar la puerta escondida</button></p>' +
       '</div>' +
+      // 19-sep · graduar y archivar también desde aquí (el mismo «⋯» que en la fila de Mis grupos)
+      (gestionable(PERS.filter(function (x) { return x.id === PER; })[0])
+        ? '<div class="card gs-aj"><h3>' + ico("medalla") + ' Graduar y archivar</h3><p class="small">Al acabar el curso: pasa a «Cursos terminados», el alumnado conserva su Nave y no se borra nada. Se puede reabrir.</p>' +
+            '<p><button type="button" class="btn" data-gestion="' + esc(PER) + '">' + ico("botin") + ' Archivar o borrar…</button></p></div>'
+        : '') +
       tarjetaBorrar();
     cablearBorrar();
     var aCal = app.querySelector('#c-cuerpo [data-tab="calendario"]');

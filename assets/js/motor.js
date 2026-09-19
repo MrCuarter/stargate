@@ -168,7 +168,9 @@ async function misPERs(correo) {
   // —«a golpe de vista se debe ver el nombre, su emblema de escuadrón, número de estudiantes
   // inscritos, semana»— y pedirlo aparte serían N lecturas más para pintar una lista.
   const mios = r.docs.map(d => ({ id: d.id, nombre: d.data().name, factions: d.data().factions || [],
-                                  stargate: d.data().stargate || {}, codigo: d.data().joinCode || "" }))
+                                  stargate: d.data().stargate || {}, codigo: d.data().joinCode || "",
+                                  // 19-sep · para «Archivar o borrar» desde Mis grupos: borrar es de quien lo creó (o un vitalicio)
+                                  ownerId: d.data().ownerId || "", teacherId: d.data().teacherId || "" }))
                      .filter(x => x.stargate.version)
                      .map(x => Object.assign(x, estadoDelPER(x.stargate)));
   // 🔴 EN QUÉ SEMANA VA CADA GRUPO, decidido UNA vez y aquí.

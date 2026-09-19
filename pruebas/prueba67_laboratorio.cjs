@@ -1064,11 +1064,13 @@ const REG = {};   // cifras que se apuntan para el informe
         c("vitalicio · y con sus retos sembrados", misiones.length >= 20, misiones.length + " misiones");
         await v.ir("consola.html");
         const ve = await v.hasta("document.body.innerText.indexOf(" + JSON.stringify(grupo.toUpperCase()) + ")>=0 || document.body.innerText.indexOf(" + JSON.stringify(grupo) + ")>=0", 25);
-        // 15-sep · el código va TAPADO en la tarjeta (Norberto: «mantenlo oculto, obliga a clicar para mostrar»)
-        const tapado = await v.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.gp-cod')).filter(function(x){return x.getAttribute('data-cod')===${JSON.stringify(codigo)}})[0];
-          if(!b||b.textContent.indexOf(${JSON.stringify(codigo)})>=0) return false; b.click(); return b.textContent.indexOf(${JSON.stringify(codigo)})>=0; })()`);
-        c("vitalicio · el grupo nuevo aparece en Mis grupos con su código tapado, que se destapa al pulsar", ve && tapado,
+        // 19-sep · el código ya NO va en la fila (Norberto: «se usará solo el primer y segundo día… mejor dentro del grupo»)
+        c("vitalicio · el grupo nuevo aparece en Mis grupos, sin el código de clase en su fila", ve && await v.js("!document.querySelector('.gp .gp-cod')"),
           (await v.texto()).slice(0, 240));
+        await v.ir("consola.html?per=" + id); await v.hasta("!!document.querySelector('.pt-cod .gp-cod')", 60);
+        const tapado = await v.js(`(function(){ var b=document.querySelector('.pt-cod .gp-cod');
+          if(!b||b.getAttribute('data-cod')!==${JSON.stringify(codigo)}||b.textContent.indexOf(${JSON.stringify(codigo)})>=0) return false; b.click(); return b.textContent.indexOf(${JSON.stringify(codigo)})>=0; })()`);
+        c("vitalicio · dentro del grupo, su código tapado, que se destapa al pulsar", tapado, (await v.texto()).slice(0, 240));
         // y alguien se alista con ese código
         const nuevo = await nueva("alumno de " + grupo);
         const alumno = "alumno." + id.replace(/[^a-z0-9]/g, "") + "@lab.test";
@@ -2677,8 +2679,10 @@ const REG = {};   // cifras que se apuntan para el informe
       // 16-sep · son SEIS: la sesión partida en dos (apertura y cierre), la sesión entera, el aula, la llamada y la batalla
       c("embed · y va una sola vez para todos los grupos, no repetido en cada tarjeta",
         await rita.js("document.querySelectorAll('.gp [data-embed]').length===0 && document.querySelectorAll('.gp-gen [data-embed]').length===6"));
-      c("código · el de clase sale tapado y se destapa al pulsar",
-        await rita.js("(function(){ var b=document.querySelector('.gp-cod'); if(!b||/[A-Z0-9]{6}/.test(b.textContent)) return false; b.click(); return /[A-Z0-9]{6}/.test(b.textContent); })()"));
+      // 19-sep · el código de clase, dentro del grupo (en su portada), no en la fila de Mis grupos
+      await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('.pt-cod .gp-cod')", 60);
+      c("código · el de clase va DENTRO del grupo, tapado, y se destapa al pulsar",
+        await rita.js("(function(){ var b=document.querySelector('.pt-cod .gp-cod'); if(!b||/[A-Z0-9]{6}/.test(b.textContent)) return false; b.click(); return /[A-Z0-9]{6}/.test(b.textContent); })()"));
       await rita.cerrar();
       const p = await nueva("La sesión dentro del Genially");
       await p.ir("http://127.0.0.1:" + L.P_WEB2 + "/genially.html?que=" + encodeURIComponent("sesion.html?embed=1"));
@@ -4929,6 +4933,63 @@ const REG = {};   // cifras que se apuntan para el informe
       await dn.js("document.querySelector('.modo-sel [data-modo=\"piloto\"]').click(); 1"); await dormir(1500);
       c("modos · sin errores", !dn.errores.filter(e => !/Failed to load resource/.test(e)).length, dn.errores[0] || "");
       await dn.cerrar();
+    }
+    // 19-sep · Norberto: «está súper compacto, se corta» y «tenemos MUCHO AIRE»; y «no encuentro la manera de borrar o
+    // archivar un grupo». Mis grupos a cuatro anchos (nada fuera de su fila, cabecera en una tira) y el «⋯» de cada fila.
+    if (hacer(48)) {
+      const rg = await nueva("Rita: Mis grupos sin cortes, y archivar");
+      await rg.ir("entrar.html"); await rg.entrarComo("rita@lab.test", "Rita Referente");
+      for (const [w, h, movil] of [[1000, 800, false], [1280, 800, false], [1440, 900, false], [390, 844, true]]) {
+        await rg.tamano(w, h, movil);
+        await rg.ir("consola.html"); await rg.hasta("!!document.querySelector('.gp')", 75); await dormir(700);
+        const m = JSON.parse(await rg.js(`JSON.stringify((function(){
+          var out = { corta: [], invita: !!document.querySelector('.gp .gp-invita, .gp .gp-cod') };
+          [].slice.call(document.querySelectorAll('.gp')).forEach(function(g){
+            var r = g.getBoundingClientRect();
+            [].slice.call(g.querySelectorAll('*')).forEach(function(x){
+              if (/ep-luz/.test(String(x.className||''))) return;
+              var q = x.getBoundingClientRect();
+              if (q.width && (q.right > r.right + 1 || q.left < r.left - 1)) out.corta.push(String(x.className||x.tagName).slice(0,24) + '@' + Math.round(q.right - r.right)); });
+          });
+          var h2 = document.querySelector('.doc-txt h2'); out.nombre = !!h2 && h2.scrollWidth <= h2.clientWidth + 1;
+          out.cabAlto = Math.round(document.querySelector('.doc-panel').getBoundingClientRect().height);
+          out.pisa = [].slice.call(document.querySelectorAll('.gp-celda')).some(function(c){ var b=c.querySelector('.gp-b b'), v=c.querySelector('.gp-vent');
+            if (!b || !v) return false; var x=b.getBoundingClientRect(), y=v.getBoundingClientRect(); return x.width && x.right > y.left + 1 && x.bottom > y.top && x.top < y.bottom; });
+          out.hscroll = document.documentElement.scrollWidth > innerWidth + 1;
+          return out; })())`));
+        c(`🔴 Mis grupos a ${w} px · nada se sale de su fila`, !m.corta.length, m.corta.slice(0, 4).join(", "));
+        c(`   el nombre del comandante entero y la cabecera sin aire (${m.cabAlto} px)`, m.nombre && m.cabAlto <= (w < 760 ? 300 : 140), "alto " + m.cabAlto);
+        c(`   ni el código de clase en la fila, ni texto bajo los ⧉, ni scroll de lado`, !m.invita && !m.pisa && !m.hscroll, JSON.stringify(m));
+        await rg.foto(FOTOS + "/48-misgrupos-" + w + ".png");
+      }
+      await rg.tamano(1280, 800, false);
+      await rg.ir("consola.html"); await rg.hasta("!!document.querySelector('.gp-grid.uno .gp-mas')", 75);
+      const P2 = await rg.js("document.querySelector('.gp-grid.uno .gp-mas').getAttribute('data-gestion')");
+      await rg.js("document.querySelector('.gp-grid.uno .gp-mas').click(); 1");
+      c("🔴 archivar · el «⋯» de la fila abre «Graduar y archivar» (y borrar, o quién puede)",
+        await rg.hasta("!!document.querySelector('.gs-caja #gs-arch') && (!!document.getElementById('gs-borrar') || /quien lo creó/.test(document.querySelector('.gs-caja').textContent))", 10));
+      await rg.foto(FOTOS + "/48-gestion.png");
+      await rg.js("document.getElementById('gs-arch').click(); 1");
+      const arch = await rg.hasta("!!document.querySelector('.borrado-ok') && /archivado/.test(document.querySelector('.borrado-ok').textContent)", 25);
+      const d1 = (await leerDoc("projects/" + P2)) || {};
+      const enViejos = `(function(){ var b=[].slice.call(document.querySelectorAll('.gp-mas')).filter(function(x){return x.getAttribute('data-gestion')===${JSON.stringify(P2)}})[0]; return !!b && !!b.closest('.gp-viejos'); })()`;
+      c("   al archivar, queda marcado y pasa a «Cursos terminados»", arch && !!(d1.stargate || {}).archivado && await rg.js(enViejos), JSON.stringify((d1.stargate || {}).archivado));
+      await rg.js(`[].slice.call(document.querySelectorAll('.gp-mas')).filter(function(x){return x.getAttribute('data-gestion')===${JSON.stringify(P2)}})[0].click(); 1`);
+      await rg.hasta("!!document.getElementById('gs-arch') && /Reabrir/.test(document.getElementById('gs-arch').textContent)", 10);
+      await rg.js("document.getElementById('gs-arch').click(); 1");
+      const re = await rg.hasta("!!document.querySelector('.borrado-ok') && /reabierto/.test(document.querySelector('.borrado-ok').textContent)", 25);
+      const d2 = (await leerDoc("projects/" + P2)) || {};
+      c("   y «Reabrir» lo devuelve a Mis grupos", re && !(d2.stargate || {}).archivado && !(await rg.js(enViejos)));
+      // en Ajustes del grupo, lo mismo
+      await rg.ir("consola.html?per=" + P2 + "&tab=ajustes"); await rg.hasta("!!document.querySelector('.gs-aj [data-gestion]')", 60);
+      c("   y también desde Ajustes del grupo («Archivar o borrar…»)", await rg.js("!!document.querySelector('.gs-aj [data-gestion]')"));
+      c("gestión · sin errores", !rg.errores.filter(e => !/Failed to load resource/.test(e)).length, rg.errores[0] || "");
+      await rg.cerrar();
+      const dd = await nueva("Dani no archiva");
+      await dd.ir("entrar.html"); await dd.entrarComo("dani@lab.test", "Dani Docente");
+      await dd.ir("consola.html"); await dd.hasta("!!document.querySelector('.gp')", 75); await dormir(600);
+      c("   un docente raso no tiene «⋯» (archivar es del referente)", await dd.js("!document.querySelector('.gp-mas')"));
+      await dd.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
