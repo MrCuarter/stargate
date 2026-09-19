@@ -4713,3 +4713,115 @@ h3 .ico{margin-right:4px}
 /* 19-sep · las pestañas del grupo, con iconos propios (antes, emojis en el content) */
 .pest[data-tab="portada"]::before{content:"";background-image:url(../img/iconos/p/nave.png)}
 .pest[data-tab]::before{display:inline-block;width:1.25em;height:1.25em;margin-right:7px;vertical-align:-.25em;background-size:contain;background-repeat:no-repeat;background-position:center}
+
+/* ================================================================== 19-sep · MIS GRUPOS, CERO AIRE
+   Norberto: «revisa todo y mejora el landing del docente, cero aire». Cabecera en una franja (avatar, nombre y cifras en
+   línea debajo, botones a la derecha); cada grupo en UNA línea desde 1400 px y en dos por debajo (quién · cifras · código ·
+   entrar / lo de clase a lo ancho); lo común y los Geniallys, una fila cada uno; la explicación larga, plegada. */
+#consola-app .doc-panel{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"ava txt b" "ava cif b";
+  column-gap:14px;row-gap:4px;padding:10px 14px;margin:0 0 10px}
+#consola-app .doc-ava{grid-area:ava;width:62px;height:62px}
+#consola-app .doc-txt{grid-area:txt;display:flex;align-items:baseline;gap:10px;min-width:0;flex-wrap:wrap}
+#consola-app .doc-txt .eyebrow{font-size:.75rem}
+#consola-app .doc-txt h2{margin:0;font-size:clamp(1.1rem,1.7vw,1.4rem);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#consola-app .doc-txt p{margin:0;font-size:.78rem}
+#consola-app .doc-cifras{grid-area:cif;gap:6px;flex-wrap:wrap}
+#consola-app .doc-cifras div{min-width:0;padding:3px 9px;display:flex;align-items:baseline;gap:5px;border-radius:999px}
+#consola-app .doc-cifras b{font-size:.98rem}
+#consola-app .doc-cifras span{margin:0;font-size:.78rem;white-space:nowrap}
+#consola-app .doc-b{grid-area:b;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px}
+#consola-app .gp-grid.uno{gap:8px}
+#consola-app .gp{padding:10px 12px}
+#consola-app .gp header{gap:10px}
+#consola-app .gp-emb{width:44px;height:44px;border-radius:11px}
+#consola-app .gp h3{font-size:1.02rem;margin:1px 0}
+#consola-app .gp-est{font-size:.75rem}
+#consola-app .gp-cifras{grid-template-columns:auto auto;gap:6px}
+#consola-app .gp-cifras div{padding:6px 10px}
+#consola-app .gp-cifras b{font-size:1.15rem}
+#consola-app .gp-cifras span{font-size:.76rem}
+#consola-app .gp-b{padding:9px 11px}
+#consola-app .gp-pie .btn.epico.gp-abrir{font-size:.95rem;padding:11px 18px;white-space:nowrap;min-height:46px}   /* el botón llamativo, como pidió (y pulsable) */
+#consola-app .gp-invita{padding:6px 10px;gap:8px}
+#consola-app .gp-invita b{font-size:1rem}
+@media(min-width:900px){
+  #consola-app .gp-grid.uno .gp{grid-template-columns:minmax(0,1fr) auto auto auto;grid-template-areas:"cab cifras invita pie" "hacer hacer hacer hacer";
+    column-gap:12px;row-gap:8px;align-items:center}
+  #consola-app .gp-grid.uno .gp:has(.gp-cola){grid-template-areas:"cola cola cola cola" "cab cifras invita pie" "hacer hacer hacer hacer"}
+  #consola-app .gp-grid.uno .gp-hacer{grid-template-columns:1.4fr 1fr 1fr;gap:6px}
+  #consola-app .gp-grid.uno .gp-celda.principal{grid-column:auto}
+  #consola-app .gp-grid.uno .gp-invita{align-self:center;flex-wrap:nowrap}
+  #consola-app .gp-grid.uno .gp-invita>div{flex:none}
+  #consola-app .gp-grid.uno .gp-invita .btn{flex:none}
+  #consola-app .gp-grid.uno .gp-invita b{font-size:1rem;letter-spacing:.14em}
+  #consola-app .gp-grid.uno .gp-pie{align-self:center}
+  #consola-app .gp-grid.uno .gp-dentro{display:none}
+}
+@media(min-width:1400px){
+  #consola-app .gp-grid.uno .gp{grid-template-columns:minmax(200px,1fr) auto minmax(380px,2fr) auto auto;grid-template-areas:"cab cifras hacer invita pie"}
+  #consola-app .gp-grid.uno .gp:has(.gp-cola){grid-template-areas:"cola cola cola cola cola" "cab cifras hacer invita pie"}
+}
+#consola-app .gp-herr{margin:10px 0;display:flex;flex-direction:column;gap:8px}
+#consola-app .gp-herr>section{margin:0}
+#consola-app .gp-comun,#consola-app .gp-gen{padding:10px 14px;gap:8px 14px;align-items:center;flex-wrap:nowrap}
+#consola-app .gp-comun h3,#consola-app .gp-gen-txt h3{font-size:.98rem;margin:0}
+#consola-app .gp-comun p{font-size:.8rem;margin:2px 0 0}
+#consola-app .gp-comun-t,#consola-app .gp-gen-txt{flex:0 0 225px}
+#consola-app .gp-comun h3,#consola-app .gp-gen-txt h3{white-space:nowrap}
+#consola-app .gp-comun-b,#consola-app .gp-gen-b{flex:1;justify-content:flex-start;gap:6px}
+#consola-app .gp-gen-b .btn.min,#consola-app .gp-comun-b .btn{padding:7px 11px;font-size:.86rem}
+.gp-ayuda summary{cursor:pointer;font-size:.8rem;color:var(--teal,#3ed6c8);margin-top:2px}
+.gp-ayuda p{font-size:.8rem;margin:6px 0 0}
+@media(max-width:760px){#consola-app .gp-comun,#consola-app .gp-gen{flex-wrap:wrap}#consola-app .gp-comun-t,#consola-app .gp-gen-txt{flex:1 1 100%}
+  #consola-app .doc-panel{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"ava txt" "ava cif" "b b"}
+  #consola-app .doc-b{justify-content:flex-start}}
+/* 19-sep · la portada del grupo, también sin aire */
+.pt{gap:10px}
+.pt .card{padding:12px 16px}
+.pt-hero{gap:14px}
+.pt-ava{width:64px;height:64px}
+.pt-hero h2{font-size:clamp(1.2rem,2.1vw,1.6rem);margin:0 0 2px}
+.pt-dos{gap:10px}
+.pt-neb{padding:10px 14px}
+.pt-neb-cara{width:56px;height:56px}
+#pt-neb-p{min-height:2.6em;font-size:1rem}
+.pt .c-resumen{margin:0}
+.pt-vids{gap:8px;margin:6px 0}
+.pt-vids li{grid-template-columns:112px 1fr}
+.pt-vids img{width:112px;height:63px}
+.pt-retos{gap:6px;margin:6px 0}
+.pt-reto{padding:6px 10px}
+/* 19-sep · la fila de cada grupo, pensada para empezar la clase: 1 · 2 · 3 y «Hoy toca» */
+.gp-b .gp-n{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font-size:.78rem;font-weight:800;
+  background:rgba(62,214,200,.16);color:var(--teal,#3ed6c8);border:1px solid rgba(62,214,200,.45)}
+.gp-b.principal .gp-n{background:var(--teal,#3ed6c8);color:#05222a}
+.gp-b em{font-style:normal;font-size:.76rem;color:var(--mut);font-weight:600;margin-left:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gp-hoy{margin:0;font-size:.84rem;color:#c7d6ee;line-height:1.5}
+.gp-hoy>b{color:var(--amber,#f2b544);margin-right:4px}
+.gp-hoy span{white-space:nowrap}
+@media(min-width:900px){
+  #consola-app .gp-grid.uno .gp{grid-template-areas:"cab cifras invita pie" "hacer hacer hacer hacer" "hoy hoy hoy hoy"}
+  #consola-app .gp-grid.uno .gp:has(.gp-cola){grid-template-areas:"cola cola cola cola" "cab cifras invita pie" "hacer hacer hacer hacer" "hoy hoy hoy hoy"}
+  #consola-app .gp-grid.uno .gp-hoy{grid-area:hoy}
+}
+@media(min-width:1400px){
+  #consola-app .gp-grid.uno .gp{grid-template-areas:"cab cifras hacer invita pie" "hoy hoy hoy hoy hoy"}
+  #consola-app .gp-grid.uno .gp:has(.gp-cola){grid-template-areas:"cola cola cola cola cola" "cab cifras hacer invita pie" "hoy hoy hoy hoy hoy"}
+}
+@media(max-width:640px){.gp-b em{display:none}.gp-hoy span{white-space:normal}}
+/* 19-sep · en el MÓVIL, cero aire (Norberto lo mira desde el teléfono) */
+@media(max-width:760px){
+  .nav .wrap{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:8px 12px;gap:4px}
+  .nav .wrap::-webkit-scrollbar{display:none}
+  .nav .wrap>*{flex:none;white-space:nowrap}
+  .nav .brand{margin-right:6px}
+  #consola-app .doc-panel{grid-template-areas:"ava txt" "cif cif" "b b";row-gap:8px;padding:10px 12px}
+  #consola-app .doc-ava{width:52px;height:52px}
+  #consola-app .doc-cifras{flex-wrap:wrap}
+  #consola-app .doc-b .btn{padding:7px 10px;font-size:.84rem}
+  #consola-app .gp-dentro{display:none}
+  #consola-app .gp-invita{padding:8px 10px}
+  #consola-app .c-cab{padding:10px 12px;gap:8px}
+  #consola-app .c-cab .btn{padding:7px 10px;font-size:.84rem}
+  #consola-app .c-cab-b{display:flex;flex-wrap:wrap;gap:6px}
+}

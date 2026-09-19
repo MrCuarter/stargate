@@ -28,10 +28,10 @@
     };
   }
   function listo(yo, r) {
-    caja('<div class="kicker">✅ Invitación aceptada</div><h2>¡Bienvenida al puente, Comandante!</h2>'
+    caja('<div class="kicker"><img class=ico src=assets/img/iconos/p/hecho.png alt> Invitación aceptada</div><h2>¡Bienvenida al puente, Comandante!</h2>'
       + '<p class="sub">La cuenta <b>' + esc(yo.correo) + "</b> ya es profe referente de STARGATE" + (r.ya ? " (ya la habías aceptado)" : "") + ".</p>"
-      + '<div class="inv-botones"><a class="btn primary grande" href="consola.html">🎛️ Ir a Mis grupos</a>'
-      + '<a class="btn" href="crear.html">✨ Crear un grupo</a><a class="btn" href="prueba-equipo.html">🧭 La guía de prueba</a></div>'
+      + '<div class="inv-botones"><a class="btn primary grande" href="consola.html"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Ir a Mis grupos</a>'
+      + '<a class="btn" href="crear.html"><img class=ico src=assets/img/iconos/p/estrella.png alt> Crear un grupo</a><a class="btn" href="prueba-equipo.html"><img class=ico src=assets/img/iconos/p/brujula.png alt> La guía de prueba</a></div>'
       + '<p class="small muted">Norberto puede añadirte a un grupo que ya existe; mientras, puedes crear el tuyo.</p>');
   }
   function malo(tipo, yo) {
@@ -56,7 +56,7 @@
           caja('<div class="kicker">STARGATE · Invitación</div><h2>Esta invitación es para otra persona</h2>'
             + '<p class="sub">Estás con <b>' + esc(yo.correo) + "</b>, que ya lo puede todo, así que no la gasto."
             + (inv ? " Es para <b>" + esc(inv.nombre || "—") + "</b> y está " + (inv.usadoPor ? "usada por <b>" + esc(inv.usadoCorreo || "") + "</b>" : "sin usar") + "." : " No la encuentro.") + "</p>"
-            + '<p class="inv-botones"><a class="btn" href="profesores.html">👥 Ir a Profesores</a></p>');
+            + '<p class="inv-botones"><a class="btn" href="profesores.html"><img class=ico src=assets/img/iconos/p/gente.png alt> Ir a Profesores</a></p>');
         });
       }
       return MOTOR.canjearInvitacion(T).then(function (r) { if (r && r.ok) listo(yo, r); else malo(r && r.error, yo); });

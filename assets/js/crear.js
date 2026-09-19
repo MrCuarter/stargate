@@ -107,7 +107,7 @@
       '<p><button class="btn min" id="btn-mas">+ Añadir docente</button></p></div>' +
 
       '<div class="card resumen"><h3>Lo que se va a crear</h3><div id="f-resumen">—</div>' +
-      '<p><button class="btn primary grande" id="btn-crear">✨ Crear el grupo</button></p>' +
+      '<p><button class="btn primary grande" id="btn-crear"><img class=ico src=assets/img/iconos/p/estrella.png alt> Crear el grupo</button></p>' +
       '<div id="f-progreso" class="small muted"></div></div>';
 
     $("#btn-salir").onclick = function () { MOTOR.salir(); };
@@ -204,7 +204,7 @@
       "<li>Semana 1: <b>" + S.inicio + "</b> — última semana acaba el <b>" + S.cierre + "</b></li>" +
       "<li>El canje sigue abierto hasta el <b>" + S.cierreCanje + "</b></li>" +
       // 15-sep · las semanas festivas de la UNIR, ya saltadas (Navidad: la del 24 y la siguiente; Semana Santa)
-      ((S.pausas || []).length ? "<li>🎄 Se saltan las semanas festivas de la UNIR: <b>" + S.pausas.map(function (p) {
+      ((S.pausas || []).length ? "<li><img class=ico src=assets/img/iconos/p/calendario.png alt> Se saltan las semanas festivas de la UNIR: <b>" + S.pausas.map(function (p) {
           var f = window.SGSEMANAS.masDias(p, 6); return corta(p) + " – " + corta(f); }).join("</b>, <b>") +
         "</b>. Se pueden cambiar después en <b>Calendario</b>.</li>" : "") +
       "<li>El Arsenal de batalla se abre en la semana " + arsenal.stargateSemana + "</li>" +
@@ -257,7 +257,7 @@
           : '') +
         '<div class="exito-acciones">' +
         '<button class="btn primary grande" id="c-copiar" data-url="' + esc(alta) + '">' +
-          '🔗 Copiar el enlace de invitación</button>' +
+          '<img class=ico src=assets/img/iconos/p/enlace.png alt> Copiar el enlace de invitación</button>' +
         '<p class="small muted">Es lo único que tienes que repartir. Ya lleva el código dentro.</p>' +
         '</div>' +
         '<p><a class="btn" href="consola.html?per=' + esc(d.id) + '">Ir a la consola</a> ' +
@@ -268,7 +268,7 @@
         var url = bc.getAttribute("data-url");
         var ok = function () {
           bc.textContent = "✓ Copiado";
-          setTimeout(function () { bc.textContent = "🔗 Copiar el enlace de invitación"; }, 1800);
+          setTimeout(function () { bc.innerHTML = "<img class=ico src=assets/img/iconos/p/enlace.png alt> Copiar el enlace de invitación"; }, 1800);
         };
         // 🔴 Con respaldo: `navigator.clipboard` no existe fuera de https ni en navegadores viejos,
         // y quedarse sin copiar el único enlace que hay que repartir sería el peor final posible.
@@ -317,7 +317,7 @@
       ' en el puesto de mando.' : 'Con la cuenta <b>' + esc((YO && YO.correo) || '') + '</b> aún no eres profe referente: si deberías serlo, pide a Norberto tu invitación.') + '</p>' +
       '<p class="small muted">Si necesitas un grupo nuevo, pídeselo: lo crea en un minuto y te añade ' +
       'al equipo con este mismo correo.</p>' +
-      '<p><a class="btn primary" href="consola.html">🎛️ Ir a mis grupos</a></p></div>';
+      '<p><a class="btn primary" href="consola.html"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Ir a mis grupos</a></p></div>';
   }
 
   function arrancar() {

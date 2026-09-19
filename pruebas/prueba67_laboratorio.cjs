@@ -51,6 +51,8 @@ const REG = {};   // cifras que se apuntan para el informe
   const tarjeta = (id, js) => `(function(){ var f=document.querySelector('.pe-f[data-pe="${id}"]'); if(!f) return 'SIN TARJETA'; ${js} })()`;
   const aPremiosDe = async (p, per) => {
     const t0 = Date.now();
+    // (19-sep · sin «&tab=alumnado»: aquí se va a Premios, no hace falta pasar por Mi gente, y abrir Mi gente antes deja más
+    // escuchas vivas y el canal del emulador se atasca: «client is offline». Entra por la portada y pulsa Premios)
     await p.ir("consola.html?per=" + per);
     // 17-sep · con el emulador, justo después de guardar premios en dos grupos, la consola tardó a veces 25-55 s en
     // leer los grupos (el canal de escucha del emulador se atasca; fuera del emulador, 0,3 s). Se espera y se anota.
@@ -704,7 +706,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // la docente lo anula todo, uno a uno (como en la consola)
       const rita = await nueva("Rita anula al tramposo");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=lab-clase");
+      await rita.ir("consola.html?per=lab-clase&tab=alumnado");
       await rita.hasta("!!(window.SG && SG.MOTOR)", 15);
       const suyos = (f2.completedMissionIds || []).map(id => (M.find(m => m._id === id) || {}).stargateId).filter(Boolean);
       const res = await rita.js("(async function(){ var out=[]; var L=" + JSON.stringify(suyos) + "; for (var k=0;k<L.length;k++){ try{ out.push(await window.SG.MOTOR.anularReto('lab-clase'," + JSON.stringify(f2._id) + ",L[k],'trampa')); }catch(e){ out.push({error:e.message}); } } return out; })()", 120000);
@@ -749,7 +751,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await fs.collection("student_profiles").doc(fAna._id).update({ completedMissionIds: (fAna.completedMissionIds || []).concat(["lab-clase__B3"]) });
       const rita = await nueva("Rita revisa evidencias");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=lab-clase");
+      await rita.ir("consola.html?per=lab-clase&tab=alumnado");
       await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0", 20);
       // 15-sep · «Mi gente» abre en su escuadrón: aquí se miran todos
       await rita.hasta("!!document.querySelector('.gf[data-gf=\"\"]') || !!document.querySelector('tr[data-r]')", 12);
@@ -1006,12 +1008,12 @@ const REG = {};   // cifras que se apuntan para el informe
           JSON.stringify(recorrido.map(v => v.pag)));
         // 14d · la visita de dentro del grupo
         await p.js("document.querySelector('.tour.open .tour-next') && document.querySelector('.tour.open .tour-next').click(); 1");
-        await p.ir("consola.html?per=lab-clase");
+        await p.ir("consola.html?per=lab-clase&tab=alumnado");
         const invG = await p.hasta("!!document.querySelector('.tour-invite .tour-aqui')", 20);
         c("capitán · dentro del grupo ofrece «¿Te enseño tu grupo por dentro?» (" + nombre + ")", invG);
         await p.js("document.querySelector('.tour-invite .tour-aqui').click(); 1"); await dormir(900);
         const loc = [await vista()];
-        for (let k = 0; k < 12; k++) {
+        for (let k = 0; k < 16; k++) {   // (19-sep · con «Portada», el referente ya tiene 14 pasos)
           const hay = await p.js("(function(){var b=document.querySelector('.tour.open .tour-next'); if(!b) return 0; b.click(); return 1;})()");
           if (!hay) break; await dormir(700); const v = await vista(); if (!v) break; loc.push(v);
           if (k === 0) {   // 15-sep · el halo de la pestaña, por ENCIMA de sus vecinas (antes quedaba debajo)
@@ -1023,7 +1025,7 @@ const REG = {};   // cifras que se apuntan para el informe
         // 13-sep · +1: «El Zoco» (todos); referente, +«Calendario», (14-sep) +«Sorteos» y +«Ofertas»; (15-sep) el Calendario
         // para todos y la Cola de nota solo si hay algo pendiente
         const hayCola = await p.js("!!document.querySelector('.pest[data-tab=\"canjes\"]')");
-        const nTabs = (ref ? 11 : 5) + (hayCola ? 1 : 0);   // (16-sep · +🏆 Rankings, para todos)
+        const nTabs = (ref ? 12 : 6) + (hayCola ? 1 : 0);   // (16-sep · +Rankings, para todos; 19-sep · +Portada, la primera)
         c("capitán · la visita del grupo tiene " + (nTabs + 2) + " pasos, uno por pestaña que " + nombre + " ve",
           loc.length === nTabs + 2 && loc.slice(1, nTabs + 1).every(v => /\bpest\b/.test(v.diana)), JSON.stringify(loc.map(v => v.t + "→" + v.diana)));
       }
@@ -1240,7 +1242,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await dormir(3000);
       const tras = await premiosDe("lab-clase"), viejo = tras.filter(x => x.id === fila.id)[0], otro = tras.filter(x => x.id !== fila.id && x.premio === "heroe" && x.creado > fila.creado)[0];
       c("🔴 héroe · …y crea uno NUEVO con su propio enlace; el que ya se reclamó sigue como estaba", tras.length === nAntes + 1 && viejo.premio === "heroe_fijo" && !!otro,
-        JSON.stringify({ n: nAntes + " → " + tras.length, viejo: viejo && viejo.premio, otro: otro && otro.id }));
+        JSON.stringify({ n: nAntes + " → " + tras.length, viejo: viejo && viejo.premio, otro: otro && otro.id,
+          aviso: await rita.js("(document.getElementById('c-aviso')||{}).textContent||''"), errores: (rita.errores || []).slice(-4) }));
 
       /**
        * 🔴 LA SIMULACIÓN DE DOCENTE (Norberto: «aunque detecte la cuenta del profesorado, que me permita ver la recompensa y
@@ -1427,7 +1430,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const vistos = [];
       for (let k = 0; k < 10; k++) { const pk = await paso3(); if (!pk) break; const cab = pk.n.split(" · ").slice(0, 2).join(" · "); if (vistos.indexOf(cab) < 0) vistos.push(cab);
         await nora3.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(600); }
-      c("🔴 semana 3 · le tocan el 2 (Mercado) y el 3 (Rebelión), en ese orden", vistos.length === 2 && /1 de 2 · 🛒/.test(vistos[0]) && /2 de 2 · 🛡️/.test(vistos[1]), JSON.stringify(vistos));
+      c("🔴 semana 3 · le tocan el 2 (Mercado) y el 3 (Rebelión), en ese orden", vistos.length === 2 && /1 de 2 · +El Mercado/.test(vistos[0]) && /2 de 2 · +La Rebelión/.test(vistos[1]), JSON.stringify(vistos));
       const t3 = await nora3.js("[].slice.call(document.querySelectorAll('.nb-t')).map(function(b){return b.getAttribute('data-tab')})");
       c("semana 3 · ya están el Mercado y los rankings", t3.indexOf("mercado") >= 0 && t3.indexOf("rankings") >= 0, JSON.stringify(t3));
       await nora3.js("document.querySelector('.nb-t[data-tab=\"mercado\"]').click(); 1"); await dormir(1500);
@@ -1454,7 +1457,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // y su docente lo ve en «Alumnado»
       const rita = await nueva("Rita mira las bienvenidas");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('td.bienv')", 25);
+      await rita.ir("consola.html?per=lab-clase&tab=alumnado"); await rita.hasta("!!document.querySelector('td.bienv')", 25);
       await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1");   // 15-sep · todos los escuadrones
       const celda = await rita.js("[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(t){return /Nora Nébula/.test(t.textContent)}).map(function(t){return t.querySelector('td.bienv').textContent})[0]||''");
       c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 9 abiertos en la semana 10, 1 saltado)", /3\/9/.test(celda) && /1 saltado/.test(celda), celda);
@@ -2135,7 +2138,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // ─────────────────────────────────────────── 20 · LA DOCENTE: EL REGISTRO Y «DESHACER» (todo o nada)
       const rita = await nueva("Rita mira el Zoco");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"zoco\"]')", 25);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"zoco\"]')", 25);
       await rita.js("document.querySelector('.pest[data-tab=\"zoco\"]').click(); 1");
       await rita.hasta("!!document.querySelector('.zoco-tabla')", 25);
       const filas = await rita.js("document.querySelectorAll('.zoco-tabla tbody tr').length"), nTratos = (await tratos()).length;
@@ -2242,7 +2245,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const futura = SS.inicioDeSemana(S0.inicio, semHoy + 2, S0.pausas || []);   // la semana que empieza dentro de dos
       const rita = await nueva("Rita y el calendario");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"calendario\"]')", 25);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"calendario\"]')", 25);
       await rita.js("var x=document.querySelector('.tour-invite .tour-x, .tour-invite [data-cerrar]'); if(x) x.click(); document.querySelector('.pest[data-tab=\"calendario\"]').click(); 1");
       // 15-sep · el calendario como un calendario: una fila por semana (.cal-fila) con sus 7 días
       await rita.hasta("!!document.querySelector('.cal-vis')", 20);
@@ -2345,7 +2348,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // quien solo imparte no ve el calendario
       const dani = await nueva("Dani sin calendario");
       await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente");
-      await dani.ir("consola.html?per=" + P); await dani.hasta("document.querySelectorAll('.pestanas .pest').length>0", 25);
+      await dani.ir("consola.html?per=" + P + "&tab=alumnado"); await dani.hasta("document.querySelectorAll('.pestanas .pest').length>0", 25);
       // 15-sep · el calendario lo ve todo el equipo («la versión vista, sin edición, la debería poder ver el docente raso»)
       c("calendario · un docente que solo imparte ve el «Calendario», pero no lo toca", await dani.js("!!document.querySelector('.pest[data-tab=\"calendario\"]')"));
       await dani.cerrar();
@@ -2388,7 +2391,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("borrar · el grupo está lleno: retos, Mercado, un alumno, su alias y restos del Zoco",
         !!id && lleno.missions > 10 && lleno.rewards > 5 && lleno.student_profiles === 1 && lleno.stargate_alias === 1 && lleno.stargate_zoco === 1 && lleno.stargate_tratos === 1, JSON.stringify(lleno));
       // el botón, en Ajustes
-      await nor.ir("consola.html?per=" + id); await nor.hasta("!!document.querySelector('.pest[data-tab=\"ajustes\"]')", 25);
+      await nor.ir("consola.html?per=" + id + "&tab=alumnado"); await nor.hasta("!!document.querySelector('.pest[data-tab=\"ajustes\"]')", 25);
       await nor.js("document.querySelector('.pest[data-tab=\"ajustes\"]').click(); 1"); await nor.hasta("!!document.getElementById('s-borrar')", 15);
       c("borrar · en «Ajustes» está «Borrar este grupo», apagado hasta escribir el nombre", await nor.js("document.getElementById('s-borrar').disabled"));
       await nor.js("var i=document.getElementById('s-borrar-nombre'); i.value='PRUEBA'; i.dispatchEvent(new Event('input')); 1");
@@ -2407,7 +2410,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 borrar · y los demás grupos siguen intactos", JSON.stringify(labAntes) === JSON.stringify(labDespues), JSON.stringify([labAntes, labDespues]));
       // lo que no se puede
       const dani = await nueva("Dani intenta borrar");
-      await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente"); await dani.ir("consola.html?per=lab-clase"); await dani.hasta("!!(window.SG&&window.SG.MOTOR)", 20);
+      await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente"); await dani.ir("consola.html?per=lab-clase&tab=alumnado"); await dani.hasta("!!(window.SG&&window.SG.MOTOR)", 20);
       const noDani = await dani.js("window.SG.MOTOR.llamar('deleteProject',{projectId:'lab-clase'}).then(function(){return 'BORRÓ'},function(e){return e.message})");
       c("🔴 borrar · un docente que no es el dueño no puede borrar un grupo (el servidor se niega)", !/BORRÓ/.test(noDani) && !!(await leerDoc("projects/lab-clase")), noDani);
       await fs.collection("projects").doc("demo-lab").set({ name: "Demo", teacherId: "sembrado", ownerId: "sembrado", coTeacherEmails: ["n.cuartero.10@gmail.com"], stargate: { version: 1, demoSemana: 10, inicio: hoy } });
@@ -2557,7 +2560,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const tM = (await consultar("stargate_tratos", "projectId", P)).filter(t => t.anuncio === A2 && t.estado === "abierto")[0];
 
       // 3 · la consola: el bombo, cambiar el precio, y sortear en directo
-      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"sorteos\"]')", 25);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"sorteos\"]')", 25);
       await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1");
       await rita.hasta("!!document.querySelector('.sr-caja')", 20);
       const cuenta = await rita.js("(document.querySelector('.sr-cuenta')||{}).innerText||''");
@@ -2844,7 +2847,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // 3 · Rita congela a Gélida desde su consola
       const rita = await nueva("Rita congela");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"alumnado\"]')", 25);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"alumnado\"]')", 25);
       await rita.js("document.querySelector('.pest[data-tab=\"alumnado\"]').click(); 1"); await rita.hasta("document.querySelectorAll('[data-r]').length>0", 20);
       const abreFicha = async (q, alias) => { await q.js(`(function(){ var f=[].slice.call(document.querySelectorAll('[data-r]')).filter(function(x){return x.querySelector('td:nth-child(2) b') && x.querySelector('td:nth-child(2) b').textContent===${JSON.stringify(alias)}})[0]; if(f) f.click(); return !!f; })()`); return q.hasta("!!document.querySelector('#c-ficha .card')", 10); };
       await abreFicha(rita, "Gélida");
@@ -2877,7 +2880,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // 5 · un docente raso no puede
       const dani = await nueva("Dani mira la ficha");
       await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente");
-      await dani.ir("consola.html?per=" + P); await dani.hasta("!!document.querySelector('.pest[data-tab=\"alumnado\"]')", 25);
+      await dani.ir("consola.html?per=" + P + "&tab=alumnado"); await dani.hasta("!!document.querySelector('.pest[data-tab=\"alumnado\"]')", 25);
       await dani.js("document.querySelector('.pest[data-tab=\"alumnado\"]').click(); 1"); await dani.hasta("document.querySelectorAll('[data-r]').length>0", 20);
       const hayG = await abreFicha(dani, "Gélida");
       c("🔴 congelar · un docente raso no ve ni «Congelar» ni «Dar de baja»", !hayG || !(await dani.js("!!document.getElementById('c-congelar') || !!document.getElementById('c-baja')")));
@@ -3055,7 +3058,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // 2 · el referente crea una a mano: una cápsula legendaria al 30 %, con las unidades que tocan
       const rita = await nueva("Rita y las ofertas");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"ofertas\"]')", 25);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"ofertas\"]')", 25);
       await rita.js("document.querySelector('.pest[data-tab=\"ofertas\"]').click(); 1"); await rita.hasta("!!document.getElementById('of-nueva')", 15);
       c("ofertas · la consola del referente tiene su pestaña «Ofertas», con la de la semana", await rita.hasta("document.querySelectorAll('[data-of]').length>=1", 10));
       await rita.js("document.getElementById('of-nueva').click(); 1"); await rita.hasta("!!document.getElementById('of-que')", 10);
@@ -3189,7 +3192,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await g1.cerrar();
       const rita = await nueva("Rita copia los ganadores");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"sorteos\"]')", 25);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"sorteos\"]')", 25);
       await rita.js("document.querySelector('.pest[data-tab=\"sorteos\"]').click(); 1"); await rita.hasta(`!!document.querySelector('[data-copiar-gan="${T}"]')`, 20);
       await rita.js("window.__copiado=''; navigator.clipboard.writeText=function(t){ window.__copiado=t; return Promise.resolve(); }; document.querySelector('[data-copiar-gan=\"" + T + "\"]').click(); 1");
       c("🔴 sorteo auto · en la consola, «se resolvió solo» y «📋 Copiar ganadores» copia alias, nombre y correo",
@@ -3286,7 +3289,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // 4 · la consola da el enlace para esconderlo
       const rita = await nueva("Rita copia el enlace escondido");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"ajustes\"]')", 25);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"ajustes\"]')", 25);
       await rita.js("document.querySelector('.pest[data-tab=\"ajustes\"]').click(); 1");
       c("secreto · consola → Ajustes → «Para los Geniallys»: el enlace escondido del reto secreto (fragmento.html)",
         await rita.hasta("[].slice.call(document.querySelectorAll('[data-copiar]')).some(function(b){return /fragmento\\.html$/.test(b.getAttribute('data-copiar'))})", 15));
@@ -3302,7 +3305,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const P = "lab-clase";
       const rita = await nueva("Rita añade a alguien al equipo");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('.pest[data-tab=\"equipo\"]')", 25);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.pest[data-tab=\"equipo\"]')", 25);
       await rita.js("document.querySelector('.pest[data-tab=\"equipo\"]').click(); 1"); await rita.hasta("!!document.getElementById('e-add')", 15);
       await rita.js("document.getElementById('e-nom').value='Nuria Nueva'; document.getElementById('e-mail').value='Nuria@Lab.test'; document.getElementById('e-rol').value='docente'; document.getElementById('e-add').click(); 1");
       c("equipo · la referente (que no es la dueña) añade a Nuria desde «Equipo docente»",
@@ -3315,7 +3318,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // Dani, docente raso, intenta hacerse referente: por el servidor y a pelo contra Firestore
       const dani = await nueva("Dani intenta hacerse referente");
       await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente");
-      await dani.ir("consola.html?per=" + P); await dani.hasta("!!(window.SG && window.SG.MOTOR && window.SG.MOTOR.db)", 25); await dormir(1500);
+      await dani.ir("consola.html?per=" + P + "&tab=alumnado"); await dani.hasta("!!(window.SG && window.SG.MOTOR && window.SG.MOTOR.db)", 25); await dormir(1500);
       const porServidor = await dani.js(`window.SG.MOTOR.anadirDocente('${P}', { nombre: 'Dani', correo: 'dani@lab.test', rol: 'referente' }).then(function(){return 'LO HIZO'},function(e){return e.message})`, 60000);
       c("🔴 equipo · un docente raso no se hace referente por el servidor", !/LO HIZO/.test(porServidor) && /referente/i.test(porServidor), porServidor);
       const intento = (codigo) => dani.js(`(function(){ var M=window.SG.MOTOR; return (${codigo}).then(function(){return 'ESCRIBIÓ'},function(e){return String(e.code||e.message)}); })()`, 60000);
@@ -3621,7 +3624,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // el modo docente de una referente
       const ri = await nueva("Rita en modo docente");
       await ri.ir("entrar.html"); await ri.entrarComo("rita@lab.test", "Rita Referente");
-      await ri.ir("consola.html?per=" + P);
+      await ri.ir("consola.html?per=" + P + "&tab=alumnado");
       await ri.hasta("!!document.getElementById('sg-modo') && document.querySelectorAll('.pest').length>0", 30);
       const antes = await ri.js("document.querySelectorAll('.pest').length");
       await ri.js("document.getElementById('sg-modo').click(); 1"); await dormir(1500);
@@ -3661,7 +3664,7 @@ const REG = {};   // cifras que se apuntan para el informe
         await rita.foto(FOTOS + "/36-cola.png");
       }
       await fs.collection("purchased_vouchers").doc(vale.id).delete();
-      await rita.ir("consola.html?per=" + P); await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0 && !!document.querySelector('tr[data-r]')", 30);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("document.querySelectorAll('.pestanas .pest').length>0 && !!document.querySelector('tr[data-r]')", 30);
       c("cola · sin nada pendiente, la pestaña ni sale", await rita.js("!document.querySelector('.pest[data-tab=\"canjes\"]')"));
       // Mi gente: el filtro por escuadrón, en el suyo
       const chips = await rita.js("[].slice.call(document.querySelectorAll('.gf')).map(function(b){return b.textContent.replace(/\\s+/g,' ').trim()+(b.classList.contains('on')?' [on]':'')})");
@@ -3864,7 +3867,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // la referente: la reflexión en la ficha, y modera un comentario
       const rita = await nueva("Rita modera las reflexiones");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('tr[data-r]')", 30);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('tr[data-r]')", 30);
       await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1"); await dormir(600);
       await rita.hasta("[].slice.call(document.querySelectorAll('tr[data-r]')).some(function(f){return /Rosa Rumbo/.test(f.textContent)})", 15);
       c("consola · A1 sin enlace (en A1 es opcional) no sale como «sin enlace» en Mi gente",
@@ -4072,7 +4075,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // su referente lo ve en la ficha
       const rita = await nueva("Rita ve los logros de Lara");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
-      await rita.ir("consola.html?per=" + P); await rita.hasta("!!document.querySelector('tr[data-r]')", 30);
+      await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('tr[data-r]')", 30);
       await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1"); await dormir(600);
       await rita.js("window.scrollTo(0,0); var f=[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(x){return /Lara Lumen/.test(x.textContent)})[0]; if(f) f.click(); 1");
       const enFicha = await rita.hasta("!!document.querySelector('#c-modal .fi-abordo')", 20);
@@ -4545,7 +4548,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 🌐 ofertas · cancelarla la cancela en sus dos grupos", o1[0].stargateOferta.cancelada === true && o2[0].stargateOferta.cancelada === true,
         JSON.stringify([o1[0].stargateOferta.cancelada, o2[0].stargateOferta.cancelada]));
       // dentro de un grupo, la barra separa lo común y la oferta dice que es de varios
-      await rg.ir("consola.html?per=" + P); await rg.hasta("!!document.querySelector('.pest[data-tab=\"ofertas\"]')", 75);
+      await rg.ir("consola.html?per=" + P + "&tab=alumnado"); await rg.hasta("!!document.querySelector('.pest[data-tab=\"ofertas\"]')", 75);
       await rg.js("document.querySelector('.pest[data-tab=\"ofertas\"]').click(); 1");
       c("🌐 ofertas · dentro del grupo, la oferta dice «🌐 varios grupos»", await rg.hasta(`!!document.querySelector('[data-comun="${o1[0].stargateComun}"] .of-comun')`, 20));
       c("sin errores en las páginas (sorteos y ofertas comunes)", !rg.errores.filter(e => !/Failed to load resource/.test(e)).length, rg.errores[0] || "");
@@ -4595,7 +4598,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rb.ir("entrar.html"); await rb.entrarComo("rita@lab.test", "Rita Referente");
       await rb.ir("consola.html"); await rb.hasta("!!document.querySelector('.gp-comun')", 60); await barrer(rb, "consola (tus grupos)");
       for (const cm of ["premios", "sorteos", "ofertas"]) { await rb.ir("consola.html?comun=" + cm); await rb.hasta(libre, 40); await barrer(rb, "común " + cm); }
-      await rb.ir("consola.html?per=lab-clase"); await rb.hasta("document.querySelectorAll('.pestanas .pest').length>5", 75);
+      await rb.ir("consola.html?per=lab-clase&tab=alumnado"); await rb.hasta("document.querySelectorAll('.pestanas .pest').length>5", 75);
       const pests = await rb.js("[].slice.call(document.querySelectorAll('.pestanas .pest')).map(function(b){return b.getAttribute('data-tab')})");
       for (const t of pests) {
         await rb.js(`document.querySelector('.pest[data-tab="${t}"]').click(); 1`); await dormir(2000); await barrer(rb, "consola · " + t);

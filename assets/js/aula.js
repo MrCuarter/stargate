@@ -35,7 +35,7 @@
 
   // ---------------------------------------------------------------- puerta
   function puerta(msg) {
-    pinta('<div class="au-caja"><div class="au-icono">🛰️</div><h2>El aula</h2>'
+    pinta('<div class="au-caja"><div class="au-icono"><img class=ico src=assets/img/iconos/p/envivo.png alt></div><h2>El aula</h2>'
       + '<p class="au-sub">' + esc(msg || "Entra con tu cuenta para mover tu clase desde aquí.") + "</p>"
       // 13-sep · con la «G» de Google, como las demás puertas: «entrar con mi cuenta» a secas no dice
       // que la contraseña se escribe en Google y no aquí
@@ -89,9 +89,9 @@
     var suyos = (D.reclutas || []).filter(function (x) { return String(x.profe || "") === yo; });
     if (suyos.length) return "";
     if (soyReferente())
-      return '<p class="au-nota">👑 Eres el <b>referente</b> de este grupo: aquí ves a <b>toda</b> la ' +
+      return '<p class="au-nota"><img class=ico src=assets/img/iconos/p/corona.png alt> Eres el <b>referente</b> de este grupo: aquí ves a <b>toda</b> la ' +
              "clase, no solo a un escuadrón.</p>";
-    return '<p class="au-nota malo">⚠️ No encuentro alumnado asignado a <b>' + esc(yo || YO.correo) +
+    return '<p class="au-nota malo"><img class=ico src=assets/img/iconos/p/aviso.png alt> No encuentro alumnado asignado a <b>' + esc(yo || YO.correo) +
       "</b> en este grupo. Puede que tu nombre esté escrito distinto en el equipo docente, o que " +
       "todavía no se haya alistado nadie contigo como Comandante. <b>No te enseño el alumnado de " +
       "otros escuadrones</b>: sería premiar a gente que no es tuya.</p>";
@@ -197,13 +197,13 @@
         + (s.lanza && s.lanza.length ? "<ul class=\"au-lista\">" + s.lanza.map(function (x) {
             return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "")
         + (s.hito ? '<p class="small"><b>Hito:</b> ' + esc(s.hito) + "</p>" : "")
-        + (s.consejo ? '<p class="au-consejo">💡 ' + esc(s.consejo) + "</p>" : "")
+        + (s.consejo ? '<p class="au-consejo"><img class=ico src=assets/img/iconos/p/estrella.png alt> ' + esc(s.consejo) + "</p>" : "")
         + "</div>"
       : "";
     // 🔴 13-sep · quién está en clase HOY (ha respondido a una llamada), con lo que se hace con ellos
     var hoy = enClaseHoy();
     var enClase = hoy.length
-      ? '<div class="au-tarjeta au-hoy"><h3>🟢 En clase hoy · ' + hoy.length + '</h3>'
+      ? '<div class="au-tarjeta au-hoy"><h3><img class=ico src=assets/img/iconos/p/hecho.png alt> En clase hoy · ' + hoy.length + '</h3>'
         + '<div class="au-caras mini">' + hoy.slice(0, 30).map(function (x) {
             var c = caraDe(x);
             return '<span class="au-cara quieta">' + (c ? '<img src="' + esc(c) + '" alt="" loading="lazy">' : '')
@@ -239,7 +239,7 @@
             }).join("") + "</div>"
           : '<p class="small muted">Todavía nadie esta semana. Buen momento para recordarlo en clase.</p>')
       + "</div>"
-      + '<div class="au-tarjeta"><h3>🆕 Recién llegados</h3>'
+      + '<div class="au-tarjeta"><h3><img class=ico src=assets/img/iconos/p/anadir.png alt> Recién llegados</h3>'
       + '<p class="small muted">Dales la bienvenida por su nombre: es lo que engancha el primer día.</p>'
       + (nuevos.length
           ? '<div class="au-gente">' + nuevos.map(function (x) {
@@ -247,7 +247,7 @@
             }).join("") + "</div>"
           : '<p class="small muted">Nadie nuevo por ahora.</p>')
       + "</div>"
-      + '<div class="au-tarjeta"><h3>🕗 Sin moverse esta semana</h3>'
+      + '<div class="au-tarjeta"><h3><img class=ico src=assets/img/iconos/p/tiempo.png alt> Sin moverse esta semana</h3>'
       + '<p class="small muted">Ni regañina ni lista pública: es para que sepas a quién preguntar «¿todo bien?».</p>'
       + (parados.length
           ? '<div class="au-gente">' + parados.slice(0, 12).map(function (x) {
@@ -267,10 +267,10 @@
 
     return avisoDeQuienVeo() + '<div class="au-tarjeta"><h3>Tu escuadrón</h3>'
       + '<ol class="au-rank">' + g.slice(0, 10).map(function (x, i) {
-          return "<li><span>" + (i + 1) + "</span><b>" + (x.corona ? "👑 " : "") + esc(x.alias) + "</b>"
+          return "<li><span>" + (i + 1) + "</span><b>" + (x.corona ? "<img class=ico src=assets/img/iconos/p/corona.png alt> " : "") + esc(x.alias) + "</b>"
             + "<em>" + x.xp + " xp</em></li>"; }).join("") + "</ol></div>"
       + (esc7.length > 1
-          ? '<div class="au-tarjeta"><h3>⚔️ Entre escuadrones</h3>'
+          ? '<div class="au-tarjeta"><h3><img class=ico src=assets/img/iconos/p/diana.png alt> Entre escuadrones</h3>'
             + '<p class="small muted">Por media de xp por recluta: sumando ganaría siempre el más numeroso.</p>'
             + '<ol class="au-rank">' + esc7.map(function (e, i) {
                 return "<li><span>" + (i + 1) + "</span>"
@@ -295,13 +295,13 @@
   var REGALOS = [
     { g: "Puntos", k: "xp25", t: "+25 xp", xp: 25 }, { g: "Puntos", k: "xp50", t: "+50 xp", xp: 50 },
     { g: "Puntos", k: "cr20", t: "+20 ◈", cr: 20 }, { g: "Puntos", k: "cr50", t: "+50 ◈", cr: 50 },
-    { g: "Colección", k: "carta", t: "🃏 Una carta", regalo: { tipo: "carta" }, clase: "carta" },
-    { g: "Colección", k: "sobre", t: "🃏 Un sobre (3 cartas)", regalo: { tipo: "sobre" }, clase: "carta" },
+    { g: "Colección", k: "carta", t: "<img class=ico src=assets/img/iconos/p/estrella.png alt> Una carta", regalo: { tipo: "carta" }, clase: "carta" },
+    { g: "Colección", k: "sobre", t: "<img class=ico src=assets/img/iconos/p/estrella.png alt> Un sobre (3 cartas)", regalo: { tipo: "sobre" }, clase: "carta" },
     { g: "Colección", k: "heroe", t: "Un héroe al azar", regalo: { tipo: "heroe" }, clase: "heroe" },
     { g: "Colección", k: "heroe_el", t: "Un héroe que eliges…", elegir: true, clase: "heroe" },
     { g: "Adornos", k: "marco", t: "Marco dorado", regalo: { tipo: "adorno", cual: "marco" }, clase: "adorno" },
-    { g: "Adornos", k: "fondo", t: "🌌 Fondo de ficha", regalo: { tipo: "adorno", cual: "fondo" }, clase: "adorno" },
-    { g: "Adornos", k: "titulo", t: "🏷️ Título de recluta", regalo: { tipo: "adorno", cual: "titulo" }, clase: "adorno" }
+    { g: "Adornos", k: "fondo", t: "<img class=ico src=assets/img/iconos/p/varios.png alt> Fondo de ficha", regalo: { tipo: "adorno", cual: "fondo" }, clase: "adorno" },
+    { g: "Adornos", k: "titulo", t: "<img class=ico src=assets/img/iconos/p/ticket.png alt> Título de recluta", regalo: { tipo: "adorno", cual: "titulo" }, clase: "adorno" }
   ];
   /**
    * 14-sep · EL GRAN SORTEO: participaciones de regalo (Norberto: «…y el profe regalarlas»). Solo si
@@ -321,8 +321,8 @@
    * toca un avatar legendario… quiero poder ocultarlos en Genially o darlos de recompensa»). Solo los
    * que tenga la tienda del grupo; los reparte el servidor con SU cofre.
    */
-  var COFRES_REGALO = [["capsula_legendaria", "🟨 Cápsula legendaria", "heroe"], ["capsula_elite", "🟪 Cápsula de élite", "heroe"],
-                       ["sobre_epico", "✨ Sobre épico", "carta"], ["sobre_raro", "💎 Sobre de raras", "carta"], ["sobre_grande", "🃏 Sobre grande (5)", "carta"]];
+  var COFRES_REGALO = [["capsula_legendaria", "<img class=ico src=assets/img/iconos/p/corona.png alt> Cápsula legendaria", "heroe"], ["capsula_elite", "<img class=ico src=assets/img/iconos/p/escudo.png alt> Cápsula de élite", "heroe"],
+                       ["sobre_epico", "<img class=ico src=assets/img/iconos/p/estrella.png alt> Sobre épico", "carta"], ["sobre_raro", "<img class=ico src=assets/img/iconos/p/estrella.png alt> Sobre de raras", "carta"], ["sobre_grande", "<img class=ico src=assets/img/iconos/p/estrella.png alt> Sobre grande (5)", "carta"]];
   function regalosCofres() {
     var hay = {}; ((D && D.recompensas) || []).forEach(function (x) { hay[x.tipo] = true; });
     return COFRES_REGALO.filter(function (c) { return hay[c[0]]; }).map(function (c) {
@@ -376,7 +376,7 @@
     return avisoDeQuienVeo()
       + '<div class="au-tarjeta au-quienes">'
       +   '<div class="au-cab2"><h3>¿A quién?</h3><div class="au-seg" role="group" aria-label="De dónde">'
-      +     '<button type="button" data-fuente="hoy" aria-pressed="' + (FUENTE_P === "hoy") + '">🟢 En clase hoy <b>' + hoy.length + '</b></button>'
+      +     '<button type="button" data-fuente="hoy" aria-pressed="' + (FUENTE_P === "hoy") + '"><img class=ico src=assets/img/iconos/p/hecho.png alt> En clase hoy <b>' + hoy.length + '</b></button>'
       +     '<button type="button" data-fuente="todos" aria-pressed="' + (FUENTE_P === "todos") + '">Todo mi escuadrón <b>' + mios().filter(function (x) { return x.ficha; }).length + '</b></button>'
       +   '</div></div>'
       +   (g.length
@@ -437,7 +437,7 @@
           return '<button type="button" class="btn' + (TMP.total === m * 60 ? " on" : "") + '" data-min="' + m + '">' + m + ' min</button>'; }).join("")
       + '<label class="au-t-otro">Otro <input type="number" id="au-t-min" min="1" max="180" inputmode="numeric" placeholder="min"></label></div>'
       + '<div class="au-t-ctl"><button type="button" class="btn primary grande" id="au-t-go">'
-      + (TMP.corre ? "⏸ Pausa" : (TMP.quedan > 0 && TMP.quedan < TMP.total ? "▶ Seguir" : "▶ Empezar")) + '</button>'
+      + (TMP.corre ? "<img class=ico src=assets/img/iconos/p/pausa.png alt> Pausa" : (TMP.quedan > 0 && TMP.quedan < TMP.total ? "▶ Seguir" : "▶ Empezar")) + '</button>'
       + '<button type="button" class="btn" id="au-t-reset">↺ Reiniciar</button>'
       + '<button type="button" class="btn" id="au-t-grande">⛶ Pantalla completa</button></div>'
       + '<p class="small muted">Suena un aviso al terminar. Sigue contando aunque cambies de pestaña.</p></div>';
@@ -827,7 +827,7 @@
                     function (er) { fallos.push(x.alias + " (" + (er && er.message || er) + ")"); });
           });
         }, Promise.resolve()).then(function () {
-          fin((hechos.length ? "✅ <b>" + esc(hechos.join(", ")) + "</b>: " + (r.xp ? "+" + r.xp + " xp " : "") + (r.cr ? "+" + r.cr + " ◈" : "") : "")
+          fin((hechos.length ? "<img class=ico src=assets/img/iconos/p/hecho.png alt> <b>" + esc(hechos.join(", ")) + "</b>: " + (r.xp ? "+" + r.xp + " xp " : "") + (r.cr ? "+" + r.cr + " ◈" : "") : "")
             + (fallos.length ? '<br><span class="malo">No he podido con: ' + esc(fallos.join(", ")) + '</span>' : ""));
         });
         return;
@@ -843,7 +843,7 @@
           var quien = "<b>" + esc(alias[x.ficha] || "?") + "</b>";
           if (x.error) return '<span class="malo">' + quien + ": " + esc(x.error) + "</span>";
           if (x.participaciones) return quien + " suma " + x.participaciones + " participaci" + (x.participaciones === 1 ? "ón" : "ones") + " al Gran Sorteo";
-          if (x.ya) return "➖ " + quien + " ya lo tenía";
+          if (x.ya) return quien + " ya lo tenía";
           return quien + " se lleva " + x.piezas.map(function (p) {
             return "<b>" + esc(p.nombre) + "</b>" + (p.rareza ? " (" + esc(String(p.rareza).toLowerCase()) + ")" : ""); }).join(", ");
         }).join("<br>"));

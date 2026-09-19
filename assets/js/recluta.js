@@ -178,7 +178,7 @@
         bc.onclick=fuera; capa.onclick=function(ev){ if(ev.target===capa) fuera(); };
         setTimeout(function(){ bc.focus(); },40);
       } else {
-        aviso('🎬 <b>Esto es una demostración.</b> En tu Nave de verdad, este botón ' + hace
+        aviso('<b>Esto es una demostración.</b> En tu Nave de verdad, este botón ' + hace
           + '. Aquí no se guarda nada.');
         // 🔴 Y se repinta: quien llamó ya había puesto el botón en «Registrando…» y deshabilitado.
         // Sin repintar se quedaría así para siempre, que es un botón roto en la página del escaparate.
@@ -264,7 +264,7 @@
   // aguanta una semana más: el alumnado tiene que verlo sin preguntar.
   function plazos(){
     var d=st.d; if(!d||(!d.cierre_misiones&&!d.cierre_canje)) return '';
-    return '<p class="small muted" style="margin-top:6px">🗓️ Registras misiones hasta el <b>'+fecha(d.cierre_misiones)+'</b>'
+    return '<p class="small muted" style="margin-top:6px"><img class=ico src=assets/img/iconos/p/calendario.png alt> Registras misiones hasta el <b>'+fecha(d.cierre_misiones)+'</b>'
       +(d.cierre_canje&&d.cierre_canje!==d.cierre_misiones
         ? ' y te queda <b>una semana más</b> (hasta el <b>'+fecha(d.cierre_canje)+'</b>) para <b>canjear</b> lo que hayas ganado.'
         : '.')+'</p>';
@@ -277,7 +277,7 @@
     var d=st.d||{}; if(!d.pausa||!d.inicio||!window.SGSEMANAS||st.estado!=='curso') return '';
     var vuelve=window.SGSEMANAS.inicioDeSemana(d.inicio, (st.actual||1)+1, d.pausas);
     var f=window.SGSEMANAS.fecha(vuelve), MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-    return '<p class="prox-cap pausa-nave">⏸️ <b>Semana de pausa.</b> El viaje se detiene: la semana '+((st.actual||1)+1)+' empieza el <b>'+f.getDate()+' de '+MESES[f.getMonth()]+'</b>.</p>';
+    return '<p class="prox-cap pausa-nave"><img class=ico src=assets/img/iconos/p/pausa.png alt> <b>Semana de pausa.</b> El viaje se detiene: la semana '+((st.actual||1)+1)+' empieza el <b>'+f.getDate()+' de '+MESES[f.getMonth()]+'</b>.</p>';
   }
   function cabecera(){
     var d=st.d,n=st.semanas.length;
@@ -289,14 +289,14 @@
     var vistos=porCapitulos()?capsVistos():{}, vienen=porCapitulos()?capsTipo().filter(function(c){ return ab.indexOf(c)<0; }):[];
     return '<div class="tab-head"><div><div class="eyebrow teal">La Nave del Recluta · '+esc(d.nombre)+(d.tipo==='PUA'?' · PUA':'')+'</div><h3>'+pos+'</h3>'+(st.tab==='retos'?plazos():'')
       // 🔴 13-sep · lo que llega después, en UNA línea (lo cerrado no se enseña: agobia)
-      +(prox&&st.estado!=='fin'?'<p class="prox-cap">🔓 '+(sp===st.actual+1?'La semana que viene':'En la semana '+sp)+': <b>'+prox.icono+' '+esc(prox.titulo)+'</b></p>':'')
+      +(prox&&st.estado!=='fin'?'<p class="prox-cap"><img class=ico src=assets/img/iconos/p/abierto.png alt> '+(sp===st.actual+1?'La semana que viene':'En la semana '+sp)+': <b>'+prox.icono+' '+esc(prox.titulo)+'</b></p>':'')
       +pausaNave()+'</div>'
       +'<div class="small muted rep-caps"><button class="btn small" id="btn-onboard" type="button" aria-haspopup="'+(ab.length>0)+'">▶ '+(ab.length?'Capítulos de NEBULA':'Repetir bienvenida')+'</button>'
       +(ab.length?'<div class="rep-menu" id="rep-menu" hidden><p class="rep-tit">Capítulos de NEBULA</p>'+ab.map(function(c){
           var v=vistos[c.clave];
           return '<button type="button" class="btn small" data-cap="'+c.clave+'"><span>'+c.icono+' '+c.n+' · '+esc(c.titulo)+'</span>'
             +'<em>'+(v?(v.estado==='saltado'?'saltado · ver':'✓ visto · ver otra vez'):'nuevo · ver')+'</em></button>'; }).join('')
-          +vienen.map(function(c){ return '<div class="rep-vien"><span>🔒 '+c.n+' · '+esc(c.titulo)+'</span><em>semana '+semanaCap(c)+'</em></div>'; }).join('')
+          +vienen.map(function(c){ return '<div class="rep-vien"><span><img class=ico src=assets/img/iconos/p/candado.png alt> '+c.n+' · '+esc(c.titulo)+'</span><em>semana '+semanaCap(c)+'</em></div>'; }).join('')
           +'</div>':'')
       +'</div></div>';
   }
@@ -402,7 +402,7 @@
       if(!tiene) return '';
       return abierta
         ? '<button type="button" class="cine-t'+(n===CINE.sem?' on':'')+'" data-cine-sem="'+n+'" title="'+esc(s.tema||'')+'">S'+n+'</button>'
-        : '<span class="cine-t cerrada" title="Se desbloquea la semana '+n+'">🔒'+n+'</span>';
+        : '<span class="cine-t cerrada" title="Se desbloquea la semana '+n+'"><img class=ico src=assets/img/iconos/p/candado.png alt>'+n+'</span>';
     }).join('');
     var pantalla = CINE.jugando
       ? '<iframe src="https://www.youtube-nocookie.com/embed/'+esc(v.id)+'?autoplay=1&rel=0&modestbranding=1" title="'+esc(v.titulo)+'" '
@@ -563,13 +563,13 @@
         +(llena?'<span class="sello-serie" title="'+esc(NOMSELLO[sr[1]]||'Serie completa')+'">✦ serie completa</span>':'')+'</h4>'
         +'<p class="small muted">'+esc(sr[2])+'</p>'
         +'<div class="album">'+cs.map(celda).join('')+'</div></div>';}).join('');
-    var album=CROMOS.length?('<details class="cajon album-cromos"><summary><b>🃏 Tu álbum de cromos</b> <span class="cnt">'+nCromos+' / '+CROMOS.length+'</span></summary>'
+    var album=CROMOS.length?('<details class="cajon album-cromos"><summary><b><img class=ico src=assets/img/iconos/p/estrella.png alt> Tu álbum de cromos</b> <span class="cnt">'+nCromos+' / '+CROMOS.length+'</span></summary>'
       +'<p class="small muted">Cada «Sobre de cromos» (15 ◈) trae una carta al azar. Los ocho tripulantes son <b>comunes</b>; '
       +'los Ecos, NEBULA y el Capitán, <b>raros</b>; el Recluta y la Estática, <b>épicos</b>; y hay dos '
       +'<b>LEGENDARIOS</b>: el General Vaeon (2 de cada 100 sobres) y <b>Ander Vaeon</b>, la carta que revela '
       +'quién era antes de ser Vaeon — <b>1 de cada 100</b>, la más difícil de toda la galaxia.'
       +'</p>'
-      +(repes?'<p class="repes'+(libres>=3?' listo':'')+'">🔁 Llevas <b>'+repes+'</b> repetido'+(repes===1?'':'s')
+      +(repes?'<p class="repes'+(libres>=3?' listo':'')+'"><img class=ico src=assets/img/iconos/p/zoco.png alt> Llevas <b>'+repes+'</b> repetido'+(repes===1?'':'s')
         +(libres>=3?' — y con 3 te llevas un sobre <b>gratis</b>. Puedes cambiar '+Math.floor(libres/3)+' vez'+(Math.floor(libres/3)===1?'':'es')+'.'
                    :(libres?' ('+libres+' sin cambiar): con 3 te llevas un sobre gratis.':' — ya los has cambiado todos por sobres.'))
         +(libres>=3&&d.formCanje?' <a class="btn small" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Cambiar 3 repetidos →</a>':'')+'</p>':'')
@@ -580,17 +580,17 @@
       +'que se puede comprar — eso está en el <button class="btn small" type="button" data-tab="mercado">Mercado Estelar</button>.</p>'
       // 14-sep · lo ganado en un sorteo, lo primero: es lo que más ilusión hace
       +sinAbrirHtml(r)
-      +((r.premios||[]).length?'<div class="card botin-premios"><p>🏆 <b>Lo que has ganado en el Gran Sorteo:</b> '+r.premios.map(esc).join(' · ')
+      +((r.premios||[]).length?'<div class="card botin-premios"><p><img class=ico src=assets/img/iconos/p/rankings.png alt> <b>Lo que has ganado en el Gran Sorteo:</b> '+r.premios.map(esc).join(' · ')
         +'</p><p class="small muted">Tu docente te dirá cómo recibirlo.</p></div>':'')
-      +'<details class="cajon" open><summary><b>🏅 Insignias</b> <span class="cnt">'+nIns+' / '+BADGES.length+'</span></summary>'
+      +'<details class="cajon" open><summary><b><img class=ico src=assets/img/iconos/p/medalla.png alt> Insignias</b> <span class="cnt">'+nIns+' / '+BADGES.length+'</span></summary>'
       +'<p class="small muted">Por planetas: cada tema tiene su tripulante y su reto. '
       +'Las apagadas están por conseguir: púlsalas para ver qué piden.</p>'
       +col+'</details>'
       +aBordo()
       +album
       // 🔴 13-sep · el cambio de héroes repetidos vive dentro del cajón plegado: se anuncia en la tapa
-      +'<details class="cajon"><summary><b>🎭 Personajes y héroes</b> <span class="cnt">tu vestuario</span>'
-      +((r.heroes_repes||0)>=2?' <span class="chip ok">🔁 '+r.heroes_repes+' héroes repetidos para cambiar</span>':'')+'</summary>'
+      +'<details class="cajon"><summary><b>Personajes y héroes</b> <span class="cnt">tu vestuario</span>'
+      +((r.heroes_repes||0)>=2?' <span class="chip ok"><img class=ico src=assets/img/iconos/p/zoco.png alt> '+r.heroes_repes+' héroes repetidos para cambiar</span>':'')+'</summary>'
       +vestuario()+'</details>'
       +adornos()
       +'</section>';
@@ -608,7 +608,7 @@
   }
   function sinAbrirHtml(r){
     var l=sinAbrir(r); if(!l.length||!motorNuevo()) return '';
-    return '<div class="card botin-sinabrir"><p>🎁 <b>Tienes '+(l.length===1?'algo':'cosas')+' sin abrir</b></p><div class="sa-lista">'
+    return '<div class="card botin-sinabrir"><p><img class=ico src=assets/img/iconos/p/premios.png alt> <b>Tienes '+(l.length===1?'algo':'cosas')+' sin abrir</b></p><div class="sa-lista">'
       +l.map(function(x){ return '<button type="button" class="btn primary" data-abrirpend="'+esc(x.id)+'" data-usos="'+x.usos+'">Abrir: '+esc(x.nombre)+'</button>'; }).join('')
       +'</div></div>';
   }
@@ -634,7 +634,7 @@
 
     var partes='';
     if(tieneTit){
-      partes+='<div class="ad-uno"><b>🏷️ Tu título</b>'
+      partes+='<div class="ad-uno"><b><img class=ico src=assets/img/iconos/p/ticket.png alt> Tu título</b>'
         +'<p class="small muted">Se lee bajo tu alias, en tu ficha y en el tablero.</p>'
         +'<div class="ad-fila"><input id="ad-titulo" maxlength="40" value="'+esc(r.titulo||'')+'" '
         +'placeholder="La que no se rinde" autocomplete="off">'
@@ -649,7 +649,7 @@
           +'title="'+esc(p[1])+'"><img loading="lazy" src="assets/img/planetas/'+p[0]+'.png'+(window.SG_IMGV||'')+'" alt="">'
           +'<span>'+esc(p[1])+'</span></button>';
       }).join('');
-      partes+='<div class="ad-uno"><b>🌌 El fondo de tu ficha</b>'
+      partes+='<div class="ad-uno"><b><img class=ico src=assets/img/iconos/p/varios.png alt> El fondo de tu ficha</b>'
         +'<p class="small muted">Elige cuál de los ocho llevas detrás. Puedes cambiarlo cuando quieras.</p>'
         +'<div class="ad-planetas">'+ops
         +'<button type="button" class="ad-pl ad-nada'+(r.fondo?'':' on')+'" data-fondo=""><span>Sin fondo</span></button>'
@@ -657,12 +657,12 @@
     }
     if(tieneMar){
       var puesto=r.marco==='oro';
-      partes+='<div class="ad-uno"><b>🖼️ El marco dorado</b>'
+      partes+='<div class="ad-uno"><b><img class=ico src=assets/img/iconos/p/estrella.png alt> El marco dorado</b>'
         +'<p class="small muted">Enmarca tu avatar en tu ficha y en el tablero.</p>'
         +'<div class="ad-fila"><button class="btn'+(puesto?' primary':' min')+'" type="button" '
         +'data-marco="'+(puesto?'':'oro')+'">'+(puesto?'✓ Puesto — quitármelo':'Ponérmelo')+'</button></div></div>';
     }
-    return '<details class="cajon" open><summary><b>✨ Tus adornos</b> '
+    return '<details class="cajon" open><summary><b><img class=ico src=assets/img/iconos/p/estrella.png alt> Tus adornos</b> '
       +'<span class="cnt">lo que has comprado</span></summary>'
       +'<div class="ad-grid">'+partes+'</div></details>';
   }
@@ -701,7 +701,7 @@
             +(ya?'<em class="ab-ok" title="Conseguido el '+fechaCorta(ya)+'">✓ '+fechaCorta(ya)+'</em>'
                 :(x.donde&&tabVisible(x.donde)?'<button type="button" class="btn min" data-tab="'+esc(x.donde)+'">Ir</button>':''))+'</li>';
         }).join('')+'</ul>'
-        +'<p class="ab-premio">🎁 '+(cub[c.clave]?'<b>Premio recibido:</b> '+esc(premioTexto(c.premio)):'Al completarla: <b>'+esc(premioTexto(c.premio))+'</b>')+'</p></div>';
+        +'<p class="ab-premio"><img class=ico src=assets/img/iconos/p/premios.png alt> '+(cub[c.clave]?'<b>Premio recibido:</b> '+esc(premioTexto(c.premio)):'Al completarla: <b>'+esc(premioTexto(c.premio))+'</b>')+'</p></div>';
     }).join('');
     var HN={}; (window.SG_HEROES||[]).forEach(function(x){ HN[x[0]]=x[1]; });
     var heroes=(AB.heroes||[]).map(function(k){
@@ -713,10 +713,10 @@
       +(ley?'<p>NEBULA te ha nombrado <b>Contramaestre</b>: conoces cada rincón de la Nave. El héroe legendario, en sus dos versiones, ya está en tu vestuario —ponte el que quieras— y esta carta lleva tu nombre.</p>'
            :'<p>Completa las cinco y NEBULA te nombra <b>Contramaestre</b>: un <b>héroe legendario</b> —en dos versiones, él y ella, y eliges cuál llevar— que no sale en ninguna cápsula, y una <b>carta legendaria con tu alias</b>. No se compra, no se regala y no se cambia en el Zoco.</p>')
       +'<div class="ab-heroes">'+heroes+'</div></div></div>';
-    var diasTxt=dias.total?'<p class="ab-dias">🔥 Llevas <b>'+(dias.racha||0)+'</b> día'+(dias.racha===1?'':'s')+' seguido'+(dias.racha===1?'':'s')+' a bordo'
+    var diasTxt=dias.total?'<p class="ab-dias"><img class=ico src=assets/img/iconos/p/fuego.png alt> Llevas <b>'+(dias.racha||0)+'</b> día'+(dias.racha===1?'':'s')+' seguido'+(dias.racha===1?'':'s')+' a bordo'
       +((dias.mejor||0)>(dias.racha||0)?' (tu mejor racha: '+dias.mejor+')':'')+' y <b>'+dias.total+'</b> en total. Cuenta una visita al día.</p>':'';
-    return '<details class="cajon a-bordo" id="a-bordo"><summary><b>🎖️ Logros de a bordo</b> <span class="cnt">'+n+' / '+AB.hitos.length+'</span>'
-      +(ley?' <span class="chip ok">🌟 Contramaestre</span>':'')+'</summary>'
+    return '<details class="cajon a-bordo" id="a-bordo"><summary><b><img class=ico src=assets/img/iconos/p/medalla.png alt> Logros de a bordo</b> <span class="cnt">'+n+' / '+AB.hitos.length+'</span>'
+      +(ley?' <span class="chip ok"><img class=ico src=assets/img/iconos/p/estrella.png alt> Contramaestre</span>':'')+'</summary>'
       +'<p class="small muted">La <b>primera vez</b> que haces cada cosa en la Nave. Se apuntan solos. Cada cubierta completa trae su premio, y las cinco, el <b>Contramaestre de la Nave</b>.</p>'
       // (el Contramaestre, como sexta casilla: ocupa el hueco que dejan cinco cubiertas en tres columnas)
       +diasTxt+'<div class="ab-cubiertas">'+cubs+leyenda+'</div></details>';
@@ -844,11 +844,11 @@
     var ya=((st.yo&&st.yo.evidencias)||{})[id]||'', los=enlacesDe(ya);
     var R=reflexionDe(id), mia=((st.yo&&st.yo.reflexiones)||{})[id]||'';
     return '<div class="rh">'
-      +(R?'<div class="rf-caja rf-mia"><label class="rf-et" for="rfh-'+esc(id)+'">✍️ Tu reflexión <span class="rf-preg">'+esc(R.pide)+'</span></label>'
+      +(R?'<div class="rf-caja rf-mia"><label class="rf-et" for="rfh-'+esc(id)+'"><img class=ico src=assets/img/iconos/p/editar.png alt> Tu reflexión <span class="rf-preg">'+esc(R.pide)+'</span></label>'
         +'<textarea class="rh-rf rf-txt" id="rfh-'+esc(id)+'" data-rfh="'+esc(id)+'" rows="5" maxlength="2000" placeholder="Escríbela aquí: al menos '+R.min+' letras">'+esc(mia)+'</textarea>'
         +'<div class="rf-pie"><span class="rf-n'+(mia.length>=R.min?' ok':'')+'" data-rfn-min="'+R.min+'">'+mia.length+' / '+R.min+'</span>'
         +'<button class="btn min" type="button" data-guardarf="'+esc(id)+'">'+(mia?'Guardar cambios':'Guardar mi reflexión')+'</button></div></div>':'')
-      +(los.length?'<p class="rh-ya">🔗 '+(los.length>1?'Tus enlaces: ':'Tu enlace: ')+los.map(function(u){
+      +(los.length?'<p class="rh-ya"><img class=ico src=assets/img/iconos/p/enlace.png alt> '+(los.length>1?'Tus enlaces: ':'Tu enlace: ')+los.map(function(u){
           return '<a href="'+esc(/^https?:\/\//i.test(u)?u:'https://'+u)+'" target="_blank" rel="noopener">'+esc(u.replace(/^https?:\/\//,'').slice(0,60))+'</a>'; }).join(' · ')+'</p>':'')
       +'<div class="rh-ev"><input class="rh-in" data-evid="'+esc(id)+'" type="text" inputmode="url" value="'+esc(ya)+'" '
         +'placeholder="Enlace de tu evidencia (si son dos, sepáralos con un espacio)" autocomplete="off">'
@@ -919,7 +919,7 @@
     return '<details class="reto-sem'+(ya?' hecho':'')+(rel?' relampago':'')+'">'
       +'<summary><div class="rs-cab"><span class="chip '+(ya?'ok':'pend')+'">'
         +(ya?'✓ Registrado'+cuando:'Pendiente')+'</span>'
-        +(rel?'<span class="chip rel">⚡ En clase · 10-15 min</span>':'')
+        +(rel?'<span class="chip rel"><img class=ico src=assets/img/iconos/p/rayo.png alt> En clase · 10-15 min</span>':'')
         +cuantosLoLlevan(t[0])
         +'<span class="small muted">'+esc(t[0])+'</span></div>'
       +'<div class="rs-cols"><div class="rs-izq">'
@@ -945,10 +945,10 @@
           // 15-sep · S7 es el Escape UNI: su puerta, y se registra solo con el botón del final del escape
           // 16-sep · el reto A6 no se marca: se GANA al Simulador de Joran (batalla.html)
           :(t[0]===(BT.reto||'A6')&&motorNuevo())
-            ? '<div class="rs-marcar rs-batalla"><a class="btn epico" href="batalla.html?per='+esc(per)+'"><span class="ep-luz"></span><span class="ep-txt">⚔️ Enfréntate al Simulador de Joran</span></a>'
+            ? '<div class="rs-marcar rs-batalla"><a class="btn epico" href="batalla.html?per='+esc(per)+'"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Enfréntate al Simulador de Joran</span></a>'
               +'<p class="small muted">No hay nada que entregar: se registra solo si le ganas. Y si pierdes, cada derrota lo cansa.</p></div>'
           :(t[0]==='S7'&&window.SG_ESCAPE_UNI)
-            ? '<div class="rs-marcar rs-escape"><a class="btn epico" href="'+esc(window.SG_ESCAPE_UNI)+'" target="_blank" rel="noopener"><span class="ep-luz"></span><span class="ep-txt">🗝️ Entrar en el Escape UNI</span></a>'
+            ? '<div class="rs-marcar rs-escape"><a class="btn epico" href="'+esc(window.SG_ESCAPE_UNI)+'" target="_blank" rel="noopener"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/llave.png alt> Entrar en el Escape UNI</span></a>'
               +'<p class="small muted">Se registra solo, con el botón del final del escape.</p></div>'
           :(motorNuevo()
             ? '<div class="rs-marcar">'+campoReflexion(t[0],'rs-rf')+campoEvidencia(t[0],'rs-ev')
@@ -998,7 +998,7 @@
       +'. Pulsa uno para ver qué hay que hacer, y márcalo aquí mismo cuando lo tengas.</p>'
       // filas llenas: con 4 retos, dos y dos (de tres en tres quedaba uno solo en la segunda fila)
       +'<div class="rs-grid'+(suyos.length===4?' par':'')+'">'+tarjetas+'</div>'
-      +(atrasados?'<p class="rs-atras">🕗 Y llevas <b>'+atrasados+'</b> reto'+(atrasados===1?'':'s')
+      +(atrasados?'<p class="rs-atras"><img class=ico src=assets/img/iconos/p/tiempo.png alt> Y llevas <b>'+atrasados+'</b> reto'+(atrasados===1?'':'s')
         +' sin registrar de semanas anteriores. '
         +'<button class="btn small" type="button" data-tab="retos">Verlos en Mis retos →</button></p>':'')
       +'</div>';
@@ -1023,7 +1023,7 @@
       +c('rankings',r.pos||'—','','puesto','Ver el tablero')
       // 15-sep (noche) · y los logros de a bordo: lleva a su cajón de «Mi botín», ya abierto
       +(AB.hitos.length&&motorNuevo()&&abierto('logros')?'<button type="button" class="nc" id="nc-ab" title="Ver tus logros de a bordo"><b>'+nHitos(r)
-        +'<small>/'+AB.hitos.length+'</small></b><span>'+(esContramaestre(r)?'🌟 logros':'logros')+'</span></button>':'')
+        +'<small>/'+AB.hitos.length+'</small></b><span>'+(esContramaestre(r)?'<img class=ico src=assets/img/iconos/p/estrella.png alt> logros':'logros')+'</span></button>':'')
       +'</div>';
   }
 
@@ -1055,7 +1055,7 @@
         +'<span class="bn-tip"><b>'+ni.faltan+' xp</b> para el nivel '+(ni.nivel+1)
         +(ni.evo?'<br>Tu personaje evoluciona a <b>'+esc(ni.evo.rango)+'</b> en el nivel '+ni.evo.nivel:'')+'</span>'
         +'<span class="bn-lado">nivel '+(ni.nivel+1)+' en <b>'+ni.faltan+'</b> xp</span></div>'
-      :'<p class="small muted">Nivel máximo: <b>'+esc(ni.titulo)+'</b>. Has hecho el viaje entero. 🫡</p>';
+      :'<p class="small muted">Nivel máximo: <b>'+esc(ni.titulo)+'</b>. Has hecho el viaje entero.</p>';
     // 30-ago · cada insignia se abre en grande con su ficha (planeta y qué hay que hacer para
     // ganarla) — el modal ya existía en la web; aquí solo se cablea. Las pendientes también: ver
     // qué pide una insignia que no tienes es la mejor gasolina.
@@ -1068,7 +1068,7 @@
 
     return '<div class="grid cols-2 nave-estado"><div class="card"'+estiloFicha+'><div class="nave-perfil">'
       +'<button type="button" class="av-lupa" id="btn-av" title="Pulsa para verte en grande" aria-label="Ampliar tu personaje">'+av+'</button>'
-      +'<div><h3>'+(r.corona?'👑 ':'')+esc(r.alias)+(r.racha>=3?' <span class="chip-racha" title="Semanas seguidas registrando algo">🔥 '+r.racha+'</span>':'')+'</h3>'
+      +'<div><h3>'+(r.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(r.alias)+(r.racha>=3?' <span class="chip-racha" title="Semanas seguidas registrando algo"><img class=ico src=assets/img/iconos/p/fuego.png alt> '+r.racha+'</span>':'')+'</h3>'
       +(r.titulo?'<div class="titulo-recluta">«'+esc(r.titulo)+'»</div>':'')
       +'<p class="small"><b>Nivel '+ni.nivel+' · '+esc(ni.rangoNombre)+'</b>'+(ni.titulo&&ni.titulo!==ni.rangoNombre?' <span class="muted">('+esc(ni.titulo)+')</span>':'')+' · puesto '+r.pos+(r.planeta&&r.planeta!=='—'?' · planeta '+esc(r.planeta):'')+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
       +'<p class="monedas"><span class="m xp" title="Los xp no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje."><b>'+r.xp+'</b> xp</span>'
@@ -1109,7 +1109,7 @@
       +'<p class="small">Tu alias y tu nombre, tus insignias, tus cartas, tus héroes y todo lo que has recorrido, '
       +'firmado por tu Capitán. Se descarga como imagen y se puede imprimir.</p>'
       +'<p><a class="btn epico" href="diploma.html?per='+esc(per)+'"><span class="ep-luz"></span>'
-      +'<span class="ep-txt">📜 Ver mi diploma</span></a></p></div>';
+      +'<span class="ep-txt"><img class=ico src=assets/img/iconos/p/libro.png alt> Ver mi diploma</span></a></p></div>';
   }
 
   // ================= EN VIVO (17-sep) =================
@@ -1239,7 +1239,7 @@
             +((dados>=gratis && !puedePagar)?' disabled':'')+'>'+esc(o.title)+(mia>1?' <em>×'+mia+'</em>':'')+'</button>'; }).join('')
       +'</div>'
       +(dados>=gratis && puedePagar
-         ? '<p class="small voto-extra">⚡ <b>Voto extra</b>: puedes votar otra vez por <b>'+extra+' ◈</b> ('
+         ? '<p class="small voto-extra"><img class=ico src=assets/img/iconos/p/rayo.png alt> <b>Voto extra</b>: puedes votar otra vez por <b>'+extra+' ◈</b> ('
            +(tope-pagados)+' más como mucho'+(creditos<extra?'; te faltan créditos':'')+'). Pulsa la opción que quieras.</p>'
          : '')
       +'<p class="small muted voto-pie">Los resultados se enseñan en clase cuando se resuelva.</p></div>';
@@ -1270,7 +1270,7 @@
       + (gano && T ? '<p class="small muted">' + (T.batallas || 0) + ' batallas · ' + (T.aciertos || 0) + ' aciertos'
           + (T.aciertos ? ' · ' + (Math.round((T.ms / 1000) / T.aciertos * 10) / 10) + ' s por acierto' : '') + '</p>' : '')
       + '<p><a class="btn ' + (gano ? 'primary' : 'epico') + '" href="batalla.html?per=' + esc(per) + '">'
-      + (gano ? '🎮 Entrenar' : '<span class="ep-luz"></span><span class="ep-txt">⚔️ Enfrentarte al simulador</span>') + '</a></p>'
+      + (gano ? '<img class=ico src=assets/img/iconos/p/diana.png alt> Entrenar' : '<span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Enfrentarte al simulador</span>') + '</a></p>'
       + '</div></div>';
   }
   /**
@@ -1286,7 +1286,7 @@
     if(tope && registrosDeLaSemana() >= tope) return;
     var antes = JSON.parse(JSON.stringify(st.yo));
     post({accion:'registrar', per:per, reto:id, evidencia:'', reflexion:''}, function(){
-      aviso('🏅 <b>Reto ' + esc(id) + ' registrado</b>: le ganaste al Simulador de Joran.');
+      aviso('<b>Reto ' + esc(id) + ' registrado</b>: le ganaste al Simulador de Joran.');
       refrescarYCelebrar(antes, null, 'reto');
     }, function(){ /* si no se puede hoy (tope, red), se reintenta la próxima vez que entre */ });
   }
@@ -1316,7 +1316,7 @@
     // ⚔️ Resistencia (raras, 4% cada una · 56% del sobre) — el grueso del ejército, las primeras en caer
     // 🔥 Vanguardia (épicas, 3% · 36%) — van por delante, cuesta alcanzarlas
     // 🌟 Mito (legendarias, 2% · 8%) — nadie las ha visto: van en sombra hasta que caen
-    var RANGO_HEROE={'rara':'⚔️ Resistencia','épica':'🔥 Vanguardia','epica':'🔥 Vanguardia','LEGENDARIA':'🌟 MITO'};
+    var RANGO_HEROE={'rara':'Resistencia','épica':'Vanguardia','epica':'Vanguardia','LEGENDARIA':'MITO'};   // texto: celda() lo escapa
     var copias=yo.heroes_n||{};
     var verHeroes=abierto('heroes')||(yo.heroes||[]).length>0;
     // (el Contramaestre no se enseña, ni en sombra, hasta que NEBULA presenta los logros de a bordo)
@@ -1326,16 +1326,16 @@
       // 15-sep (noche) · el Contramaestre: solo se gana con los logros de a bordo (y no va al Zoco)
       var deABordo=(AB.heroes||[]).indexOf(h[0])>=0;
       var cel=celda('heroe:'+h[0], 'assets/img/heroes/'+h[0]+(tengo?'':'_bloqueado')+'.jpg',
-        h[1], tengo?(deABordo?'🎖️ De a bordo':(RANGO_HEROE[h[3]]||h[3])):(deABordo?'logros de a bordo':'sin descubrir'), puesto==='heroe:'+h[0], tengo)
+        h[1], tengo?(deABordo?'De a bordo':(RANGO_HEROE[h[3]]||h[3])):(deABordo?'logros de a bordo':'sin descubrir'), puesto==='heroe:'+h[0], tengo)
         // la burbuja con las copias, como las cartas del álbum
         .replace('</button>', nx>1?'<span class="nx" title="Tienes '+nx+'">×'+nx+'</span></button>':'</button>');
       // 13-sep · y un botón para ponerlo en el Zoco (pulsar el héroe sigue siendo ponérselo)
       return tengo&&!deABordo&&abierto('zoco')&&motorNuevo()
-        ? '<div class="vest-caja">'+cel+'<button type="button" class="vest-zoco" data-zoco-poner="'+esc(per+'__heroe_'+h[0])+'" title="Poner en el Zoco" aria-label="Poner '+esc(h[1])+' en el Zoco">🔄</button></div>'
+        ? '<div class="vest-caja">'+cel+'<button type="button" class="vest-zoco" data-zoco-poner="'+esc(per+'__heroe_'+h[0])+'" title="Poner en el Zoco" aria-label="Poner '+esc(h[1])+' en el Zoco"><img class=ico src=assets/img/iconos/p/zoco.png alt></button></div>'
         : cel;
     }).join('');
     var n=(yo.heroes||[]).length, rh=Number(yo.heroes_repes)||0;
-    var cambio = rh ? '<p class="repes'+(rh>=2?' listo':'')+'">🔁 Llevas <b>'+rh+'</b> héroe'+(rh===1?'':'s')+' repetido'+(rh===1?'':'s')
+    var cambio = rh ? '<p class="repes'+(rh>=2?' listo':'')+'"><img class=ico src=assets/img/iconos/p/zoco.png alt> Llevas <b>'+rh+'</b> héroe'+(rh===1?'':'s')+' repetido'+(rh===1?'':'s')
       +(rh>=2?' — cambia 2 por <b>un héroe nuevo al azar</b>. '
           +(motorNuevo()?'<button class="btn small primary" type="button" data-canje="heroe_repes" data-nombre="Cambiar 2 héroes repetidos" data-coste="0" data-tipo="heroe_repes" data-abrir="1" data-usos="1">Cambiar 2 repetidos →</button>':'')
           :': con 2, un héroe nuevo al azar.')+'</p>' : '';
@@ -1374,7 +1374,7 @@
    */
   function avisoCongelado(){
     if(!st.yo||!st.yo.congelado||SIMULACRO) return '';
-    return '<div class="card congelado-aviso" role="status"><p>🧊 <b>Tu referente ha congelado tu cuenta.</b> '
+    return '<div class="card congelado-aviso" role="status"><p><img class=ico src=assets/img/iconos/p/hielo.png alt> <b>Tu referente ha congelado tu cuenta.</b> '
       +'Puedes mirar tu Nave, pero no registrar retos, comprar, fichar ni usar el Zoco hasta que la descongele. '
       +'Si crees que es un error, habla con tu Comandante.</p></div>';
   }
@@ -1392,7 +1392,7 @@
       var r=RET.filter(function(f){ return f[0]===s.reto; })[0];
       var cuando=x.createdAt?new Date(x.createdAt):null;
       return '<div class="card msg-cmd'+(anul?' anulado':val?' validado':'')+'" role="status">'
-        +'<p class="mc-cab"><span class="mc-ico" aria-hidden="true">'+(anul?'↩️':val?'✅':'📡')+'</span>'
+        +'<p class="mc-cab"><span class="mc-ico" aria-hidden="true">'+(anul?'↩':val?'<img class=ico src=assets/img/iconos/p/hecho.png alt>':'<img class=ico src=assets/img/iconos/p/envivo.png alt>')+'</span>'
         +'<b>Mensaje de tu Comandante'+(s.de?' · '+esc(s.de):'')+'</b>'
         +(cuando?'<span class="mc-cuando">'+esc(cuando.toLocaleDateString('es-ES',{day:'numeric',month:'short'}))+', '+esc(cuando.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}))+'</span>':'')
         // (el «Entendido», en la misma línea: una fila entera para un botón era aire)
@@ -1492,9 +1492,9 @@
       var e=((st.d&&st.d.escuadrones)||[]).filter(function(x){return x.id===L.faccion;})[0];
       if(e && st.yo.profe && e.comandante && e.comandante!==st.yo.profe) return '';
     }
-    if(st.fichado) return '<div class="pase-nave hecho">✅ <b>Presente.</b> Ya estás en la lista de hoy.</div>';
+    if(st.fichado) return '<div class="pase-nave hecho"><img class=ico src=assets/img/iconos/p/hecho.png alt> <b>Presente.</b> Ya estás en la lista de hoy.</div>';
     var seg=Math.max(0,Math.round((L.hasta-Date.now())/1000));
-    return '<div class="pase-nave"><b>🔔 Llamada a filas</b>'
+    return '<div class="pase-nave"><b><img class=ico src=assets/img/iconos/p/clase.png alt> Llamada a filas</b>'
       +'<span class="small">'+esc(L.comandante||'Tu Comandante')+' ha tocado llamada'
       +(L.escuadron?' para <b>'+esc(L.escuadron)+'</b>':'')+'. Responde y te llevas <b>'
       +(L.xp||0)+' xp</b> y <b>'+(L.creditos||0)+' ◈</b>.</span>'
@@ -1575,7 +1575,7 @@
     b.disabled=true; b.textContent='Registrando…';
     var antes=JSON.parse(JSON.stringify(st.yo)), donde=puntoDe(b);
     if(enDemo()){ b.disabled=false; b.textContent='Presente';
-      aviso('🎬 <b>Esto es una demostración.</b> En tu Nave de verdad, «Presente» te daría los créditos de la asistencia.'); return; }
+      aviso('<b>Esto es una demostración.</b> En tu Nave de verdad, «Presente» te daría los créditos de la asistencia.'); return; }
     (SIMULACRO ? SG.FUENTE.fichar() : window.SG.MOTOR.ficharLlamada(per, st.yo.ficha)).then(function(r){
       st.fichado=true;
       if(r&&r.repetido){ if(m) m.textContent='Ya constabas en la lista de hoy.'; render(); return; }
@@ -1593,11 +1593,11 @@
         var tenia = inventarioDe(antes);
         setTimeout(function(){
           SG.SOBRE.revelar(r.regalo.map(function(c){ return marcaRepetida(c, tenia); }),
-            { titulo:'🎁 El regalo de tu Comandante', alAlbum:function(){ irA('botin'); } });
+            { titulo:'El regalo de tu Comandante', alAlbum:function(){ irA('botin'); } });
         }, 1300);
       }
       if(r && r.racha > 1){
-        var txt = '🔥 <b>'+r.racha+' clases seguidas</b>'
+        var txt = '<img class=ico src=assets/img/iconos/p/fuego.png alt> <b>'+r.racha+' clases seguidas</b>'
           + (r.extra ? ' · +'+r.extra+' ◈ extra por constancia' : '');
         if(r.extra >= 25) txt += ' (el tope)';
         aviso(txt);
@@ -1900,25 +1900,25 @@
   //     resuelve» empuja más que un ánimo genérico.
   var FRASES_ARRIBA=[
     '¡Tú puedes! Estás a {delta} xp de superar a {alias}. {sugerencia}',
-    '{alias} va justo delante, a solo {delta} xp. Un último empujón y ese puesto es tuyo. 🚀',
-    'NEBULA detecta una nave a {delta} xp por delante: es {alias}. Rumbo de intercepción. 🛰️',
+    '{alias} va justo delante, a solo {delta} xp. Un último empujón y ese puesto es tuyo. <img class=ico src=assets/img/iconos/p/cohete.png alt>',
+    'NEBULA detecta una nave a {delta} xp por delante: es {alias}. Rumbo de intercepción. <img class=ico src=assets/img/iconos/p/envivo.png alt>',
     'El puesto de {alias} tiembla: {delta} xp y le adelantas. {sugerencia}',
-    '¿Ves esa estela? Es {alias}, a {delta} xp. Nadie recuerda a quien CASI adelanta. 😉'];
+    '¿Ves esa estela? Es {alias}, a {delta} xp. Nadie recuerda a quien CASI adelanta.'];
   var FRASES_ABAJO=[
     '¡Cuidado, te pisan los talones! {alias} está a solo {delta} xp. ¿Hacemos una misión para desmarcarnos?',
-    '{alias} se acerca por popa: {delta} xp de margen. Un reto a tiempo y le pierdes de vista. 🛡️',
-    'Tu margen con {alias} es de {delta} xp. En esta galaxia, quien se acomoda, ve pasar naves. ⚠️',
+    '{alias} se acerca por popa: {delta} xp de margen. Un reto a tiempo y le pierdes de vista. <img class=ico src=assets/img/iconos/p/escudo.png alt>',
+    'Tu margen con {alias} es de {delta} xp. En esta galaxia, quien se acomoda, ve pasar naves. <img class=ico src=assets/img/iconos/p/aviso.png alt>',
     'Aviso de NEBULA: {alias} lleva los motores encendidos y está a {delta} xp. Toca acelerar.'];
   var FRASES_LIDER=[
-    '👑 Vas en cabeza, recluta. {alias} te sigue a {delta} xp: que el trono no se enfríe.',
-    '👑 Primer puesto. {alias} está a {delta} xp — también en cabeza se entrena. {sugerencia}'];
+    '<img class=ico src=assets/img/iconos/p/corona.png alt> Vas en cabeza, recluta. {alias} te sigue a {delta} xp: que el trono no se enfríe.',
+    '<img class=ico src=assets/img/iconos/p/corona.png alt> Primer puesto. {alias} está a {delta} xp — también en cabeza se entrena. {sugerencia}'];
   // 30-ago · Norberto: «si hay empate, anima a desmarcarse». El empate es la tercera vía del banco
   // y salta tanto si empatas con el de delante como con el de detrás.
   var FRASES_EMPATE=[
-    '⚡ Empate técnico con {alias}: el siguiente reto decide quién va delante. ¿Va a ser tuyo?',
-    '⚡ {alias} y tú vais CLAVADOS a xp. Un solo reto rompe el empate… ¿quién se desmarca primero?',
-    '⚡ Cero distancia con {alias}. En la Cero lo llaman «órbita compartida» — hasta que alguien enciende motores. 🔥',
-    '⚡ Mismos xp que {alias}. Cualquier reto te desmarca: el que tengas a medias es el candidato perfecto.'];
+    '<img class=ico src=assets/img/iconos/p/rayo.png alt> Empate técnico con {alias}: el siguiente reto decide quién va delante. ¿Va a ser tuyo?',
+    '<img class=ico src=assets/img/iconos/p/rayo.png alt> {alias} y tú vais CLAVADOS a xp. Un solo reto rompe el empate… ¿quién se desmarca primero?',
+    '<img class=ico src=assets/img/iconos/p/rayo.png alt> Cero distancia con {alias}. En la Cero lo llaman «órbita compartida» — hasta que alguien enciende motores. <img class=ico src=assets/img/iconos/p/fuego.png alt>',
+    '<img class=ico src=assets/img/iconos/p/rayo.png alt> Mismos xp que {alias}. Cualquier reto te desmarca: el que tengas a medias es el candidato perfecto.'];
   function sugerenciaDuelo(delta){
     if(delta<=0) return '';
     if(delta<=100) return 'Cualquier reto te lo da.';
@@ -1928,7 +1928,7 @@
   }
   function fraseDuelo(banco, alias, delta){
     var f=banco[Math.floor(Math.random()*banco.length)];
-    return esc(f).replace('{alias}','<b>'+esc(alias)+'</b>')
+    return f.replace('{alias}','<b>'+esc(alias)+'</b>')   // el banco es texto fijo de arriba, con iconos: no se escapa
                  .replace('{delta}','<b>'+delta+'</b>')
                  .replace('{sugerencia}',esc(sugerenciaDuelo(delta)));
   }
@@ -1956,10 +1956,10 @@
       if(!p) return '';
       return '<div class="duelo-fila'+(es==='yo'?' yo':'')+'"><span class="pos">#'+p.pos+'</span>'
         +'<b>'+(es==='yo'?'TÚ · ':'')+esc(p.alias)+'</b>'
-        +(p.corona?' <span title="corona semanal">👑</span>':'')
+        +(p.corona?' <span title="corona semanal"><img class=ico src=assets/img/iconos/p/corona.png alt></span>':'')
         +'<span class="pts">'+p.xp+' xp</span>'
-        +(es==='arriba'?(p.xp===yo.xp?'<em>⚡ empate</em>':'<em>te saca '+(p.xp-yo.xp)+'</em>')
-          :es==='abajo'?(p.xp===yo.xp?'<em>⚡ empate</em>':'<em>a '+(yo.xp-p.xp)+' de ti</em>'):'<em>tu puesto</em>')
+        +(es==='arriba'?(p.xp===yo.xp?'<em><img class=ico src=assets/img/iconos/p/rayo.png alt> empate</em>':'<em>te saca '+(p.xp-yo.xp)+'</em>')
+          :es==='abajo'?(p.xp===yo.xp?'<em><img class=ico src=assets/img/iconos/p/rayo.png alt> empate</em>':'<em>a '+(yo.xp-p.xp)+' de ti</em>'):'<em>tu puesto</em>')
         +'</div>';
     }
     return '<div class="card duelo"><h3>Tu duelo</h3>'
@@ -2031,7 +2031,7 @@
       if(!suyos.length) return;
       if(!abierto){
         bloques+='<details class="reto-pl lock"><summary><span class="pl-n">Planeta '+t+'</span>'
-          +'<b>???</b><em>🔇 Se abre en la semana '+abre+'</em></summary>'
+          +'<b>???</b><em>Se abre en la semana '+abre+'</em></summary>'
           +'<p class="small muted">Todavía no. La nave llega a este planeta en la semana '+abre+'.</p></details>';
         return;
       }
@@ -2050,11 +2050,11 @@
     if(finales.length){
       var abiertoFin=st.estado==='fin'||st.actual>=(st.semanas.length?st.semanas[st.semanas.length-1].sem:99);
       bloques+='<details class="reto-pl'+(abiertoFin?'':' lock')+'"><summary><span class="pl-n">Final</span>'
-        +'<b>'+(abiertoFin?'La batalla final':'???')+'</b><em>'+(abiertoFin?'el examen':'🔇 al terminar el viaje')+'</em></summary>'
+        +'<b>'+(abiertoFin?'La batalla final':'???')+'</b><em>'+(abiertoFin?'el examen':'al terminar el viaje')+'</em></summary>'
         +(abiertoFin?finales.map(function(r){
             return '<article class="reto'+(mios[r[0]]?' ok':'')+'"><header><span class="reto-id">'+esc(r[0])+'</span>'
               +'<h4>'+esc(r[1])+'</h4><span class="reto-xp">'+r[3]+' xp</span>'
-              +(mios[r[0]]?'<span class="reto-ya">✅ ya lo tienes</span>':'')+'</header>'
+              +(mios[r[0]]?'<span class="reto-ya"><img class=ico src=assets/img/iconos/p/hecho.png alt> ya lo tienes</span>':'')+'</header>'
               +'<p>'+esc(AY[r[0]]||'Se abre al final del viaje.')+'</p></article>';
           }).join('')
         :'<p class="small muted">Se desbloquea al final del viaje.</p>')+'</details>';
@@ -2072,7 +2072,7 @@
       var abre=sems.length?sems[0].sem:99; var abierto=st.actual>=abre&&st.estado!=='antes';
       var actual=sems.some(function(s){return s.sem===st.actual;});
       var V=window.SG_IMGV||'';
-      if(!abierto) return '<div class="nave-pl lock"><img src="assets/img/planetas/'+p[0]+'.png'+V+'" alt=""><b>???</b><em>🔇 Señal bloqueada · semana '+abre+'</em></div>';
+      if(!abierto) return '<div class="nave-pl lock"><img src="assets/img/planetas/'+p[0]+'.png'+V+'" alt=""><b>???</b><em>Señal bloqueada · semana '+abre+'</em></div>';
       return '<div class="nave-pl on'+(actual?' actual':'')+'" data-tema="'+t+'" role="button" tabindex="0"><img src="assets/img/planetas/'+p[0]+'.png'+V+'" alt="'+esc(p[1])+'"><b>'+esc(p[1])+'</b><em>'+esc(p[2])+'</em></div>';
     }).join('');
     return '<section><div class="eyebrow">El viaje</div><h2>Los ocho planetas</h2>'
@@ -2106,21 +2106,21 @@
    * sitio se parece mucho a que te hayan cobrado por nada.
    */
   var QUE_ES = {
-    cromo:      ["🃏","Carta del álbum","Se abre sola y se queda en tu álbum.","Ver mi álbum","botin"],
-    cromo_repes:["🔁","Cambio de repetidos","Tus repetidas se convierten en un sobre nuevo.","Ver mi álbum","botin"],
-    heroe:      ["🛡️","Héroe de la Rebelión","Lo tendrás en el vestuario: puedes vestirlo cuando quieras.","Ir al vestuario","botin"],
+    cromo:      ["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Carta del álbum","Se abre sola y se queda en tu álbum.","Ver mi álbum","botin"],
+    cromo_repes:["<img class=ico src=assets/img/iconos/p/zoco.png alt>","Cambio de repetidos","Tus repetidas se convierten en un sobre nuevo.","Ver mi álbum","botin"],
+    heroe:      ["<img class=ico src=assets/img/iconos/p/escudo.png alt>","Héroe de la Rebelión","Lo tendrás en el vestuario: puedes vestirlo cuando quieras.","Ir al vestuario","botin"],
     // 14-sep · los sobres y las cápsulas nuevos
-    sobre_grande:["🃏","Cartas del álbum","Cinco cartas que se abren solas y se quedan en tu álbum.","Ver mi álbum","botin"],
-    sobre_raro: ["💎","Cartas del álbum","Tres cartas con muchas más raras y épicas. Se quedan en tu álbum.","Ver mi álbum","botin"],
-    sobre_epico:["✨","Cartas del álbum","Tres cartas sin comunes. Se quedan en tu álbum.","Ver mi álbum","botin"],
-    capsula_elite:["🟪","Héroe de la Rebelión","Un héroe de la Vanguardia o un Mito, a tu vestuario.","Ir al vestuario","botin"],
-    capsula_legendaria:["🟨","Héroe legendario","Un Mito seguro, a tu vestuario.","Ir al vestuario","botin"],
-    heroe_repes:["🔁","Cambio de héroes repetidos","Dos repetidos se convierten en un héroe nuevo al azar.","Ir al vestuario","botin"],
-    marco:      ["🖼️","Adorno de tu ficha","Enmarca tu avatar. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
-    fondo:      ["🌌","Adorno de tu ficha","Cambia el fondo de tu ficha. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
-    titulo:     ["🏷️","Adorno de tu ficha","Un título que acompaña a tu alias delante de toda la clase.","Ver mi ficha","nave"],
-    nota:       ["📈","Afecta a tu nota","No se aplica sola: la aprueba tu docente al terminar las clases.","Entendido",""],
-    sorteo:     ["🎟️","Una participación del Gran Sorteo","Es una papeleta más: cuantas tengas, más posibilidades. La ves en el Mercado.","Ver el sorteo","mercado"]
+    sobre_grande:["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Cartas del álbum","Cinco cartas que se abren solas y se quedan en tu álbum.","Ver mi álbum","botin"],
+    sobre_raro: ["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Cartas del álbum","Tres cartas con muchas más raras y épicas. Se quedan en tu álbum.","Ver mi álbum","botin"],
+    sobre_epico:["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Cartas del álbum","Tres cartas sin comunes. Se quedan en tu álbum.","Ver mi álbum","botin"],
+    capsula_elite:["<img class=ico src=assets/img/iconos/p/escudo.png alt>","Héroe de la Rebelión","Un héroe de la Vanguardia o un Mito, a tu vestuario.","Ir al vestuario","botin"],
+    capsula_legendaria:["<img class=ico src=assets/img/iconos/p/corona.png alt>","Héroe legendario","Un Mito seguro, a tu vestuario.","Ir al vestuario","botin"],
+    heroe_repes:["<img class=ico src=assets/img/iconos/p/zoco.png alt>","Cambio de héroes repetidos","Dos repetidos se convierten en un héroe nuevo al azar.","Ir al vestuario","botin"],
+    marco:      ["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Adorno de tu ficha","Enmarca tu avatar. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
+    fondo:      ["<img class=ico src=assets/img/iconos/p/varios.png alt>","Adorno de tu ficha","Cambia el fondo de tu ficha. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
+    titulo:     ["<img class=ico src=assets/img/iconos/p/ticket.png alt>","Adorno de tu ficha","Un título que acompaña a tu alias delante de toda la clase.","Ver mi ficha","nave"],
+    nota:       ["<img class=ico src=assets/img/iconos/p/rankings.png alt>","Afecta a tu nota","No se aplica sola: la aprueba tu docente al terminar las clases.","Entendido",""],
+    sorteo:     ["<img class=ico src=assets/img/iconos/p/ticket.png alt>","Una participación del Gran Sorteo","Es una papeleta más: cuantas tengas, más posibilidades. La ves en el Mercado.","Ver el sorteo","mercado"]
   };
   /**
    * EL GRAN SORTEO, EN EL MERCADO (14-sep). Norberto: «dos licencias de Genially de año completo, a
@@ -2134,13 +2134,13 @@
     var S=x.sorteo||{}, mias=Number(((r&&r.participaciones)||{})[x.doc]||0), max=(x.max&&x.max<99)?x.max:0;
     var img='assets/img/canje/'+esc(S.imagen||'sorteo_generico.jpg');
     var cab='<div class="rec-foto"><img loading="lazy" src="'+img+'" alt=""></div><div class="rec-cuerpo">'
-      +'<div class="rec-quees">🎟️ El Gran Sorteo</div><h3>'+esc(S.premio||x.nombre)+'</h3>';
+      +'<div class="rec-quees"><img class=ico src=assets/img/iconos/p/ticket.png alt> El Gran Sorteo</div><h3>'+esc(S.premio||x.nombre)+'</h3>';
     if(S.hecho){
       var gane=r&&(S.ganadoresFichas||[]).indexOf(r.fid)>=0;
       return '<div class="card rec-card sorteo hecho">'+cab
-        +'<p class="sorteo-res">🎉 Ya se ha sorteado. '+(S.ganadoresAlias||[]).length+' ganador'+((S.ganadoresAlias||[]).length===1?'':'es')+': <b>'
+        +'<p class="sorteo-res"><img class=ico src=assets/img/iconos/p/estrella.png alt> Ya se ha sorteado. '+(S.ganadoresAlias||[]).length+' ganador'+((S.ganadoresAlias||[]).length===1?'':'es')+': <b>'
         +(S.ganadoresAlias||[]).map(esc).join('</b> y <b>')+'</b></p>'
-        +(gane?'<p class="sorteo-gane">🏆 <b>¡Has ganado!</b> Tu docente te dirá cómo recibir tu premio.</p>':'')
+        +(gane?'<p class="sorteo-gane"><img class=ico src=assets/img/iconos/p/rankings.png alt> <b>¡Has ganado!</b> Tu docente te dirá cómo recibir tu premio.</p>':'')
         +'</div><div class="rec-pie"></div></div>';
     }
     var tope=max&&mias>=max;
@@ -2159,7 +2159,7 @@
       +(S.fecha?' · se sortea <b>solo</b> el <b>'+fechaLarga(S.fecha)+'</b>: ese día, al entrar, verás el resultado':'')+'. Cada participación es una papeleta: cuantas más, más posibilidades. Tu docente también las regala. Como en una lotería, lo jugado no se devuelve.</p>'
       +'</div><div class="rec-pie">'+afford+boton+'</div></div>';
   }
-  function queEs(tipo){ return QUE_ES[tipo] || ["🎁","Recompensa","",'',""]; }
+  function queEs(tipo){ return QUE_ES[tipo] || ["<img class=ico src=assets/img/iconos/p/premios.png alt>","Recompensa","",'',""]; }
   /**
    * 14-sep · LA OFERTA DE LA SEMANA (Norberto: «un ítem que aparece aleatoriamente de forma temporal en
    * el mercado… rebajado, con stock limitado en tiempo y en unidades»). Arriba del Mercado, en grande:
@@ -2178,16 +2178,16 @@
   function tarjetaOferta(x){
     var o=x.oferta, r=st.yo, mis=r?(r.creditos!=null?r.creditos:0):0, ya=!!(r&&r.ofertas&&r.ofertas[x.doc]), q=o.que||{};
     var rz=String(o.rareza||'común').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    var boton=!r||!motorNuevo()?'':ya?'<span class="chip done">✅ Ya la tienes (una por persona)</span>'
+    var boton=!r||!motorNuevo()?'':ya?'<span class="chip done"><img class=ico src=assets/img/iconos/p/hecho.png alt> Ya la tienes (una por persona)</span>'
       :mis<o.precio?'<span class="chip wip">Te faltan '+(o.precio-mis)+' ◈</span>'
       :'<button class="btn primary grande" type="button" data-canje="'+esc(x.doc)+'" data-nombre="'+esc(o.nombre)+'" data-coste="'+o.precio+'" data-tipo="oferta_'+esc(o.abre||'sobre')+'" data-abrir="1" data-usos="'+(x.usos||1)+'">Comprar por '+o.precio+' ◈</button>';
     return '<div class="card oferta-card rz-'+rz+(q.tipo==='carta'?' es-carta':'')+'">'
       +'<div class="of-foto"><img src="'+esc(imgOferta(o))+'" alt="" loading="lazy"><span class="of-pct">−'+o.pct+' %</span></div>'
-      +'<div class="of-cuerpo"><div class="of-kicker">⚡ '+(o.auto?'Oferta de la semana':'Oferta especial')+(o.rareza?' · '+esc(o.rareza):'')+'</div>'
+      +'<div class="of-cuerpo"><div class="of-kicker"><img class=ico src=assets/img/iconos/p/rayo.png alt> '+(o.auto?'Oferta de la semana':'Oferta especial')+(o.rareza?' · '+esc(o.rareza):'')+'</div>'
       +'<h3>'+esc(o.nombre)+'</h3>'
       +'<p class="of-precio"><s>'+o.base+' ◈</s> <b>'+o.precio+' ◈</b></p>'
       +'<p class="of-meta">'+(o.quedan==null?'<span>Sin límite de unidades</span>':'<span>Quedan <b>'+o.quedan+'</b> de '+(o.total||o.quedan)+'</span>')
-      +'<span>Una por persona</span><span>⏳ Termina en <b>'+quedaTiempo(o.fin)+'</b></span></p>'
+      +'<span>Una por persona</span><span><img class=ico src=assets/img/iconos/p/tiempo.png alt> Termina en <b>'+quedaTiempo(o.fin)+'</b></span></p>'
       +boton+'</div></div>';
   }
   /** 14-sep · al entrar: si esta semana aún no tiene su oferta, el servidor la crea (una vez) */
@@ -2251,7 +2251,7 @@
         :tope?'<span class="chip done">Ya la tienes'+(x.max>1?' ('+veces+'/'+x.max+')':'')+'</span>'
         :(mis>=x.coste?'<span class="chip ok">Te lo puedes permitir</span>':'<span class="chip wip">Te faltan '+(x.coste-mis)+' ◈</span>')
         +(veces?' <span class="chip">canjeada '+veces+(repetible?' vece'+(veces===1?'z':'s'):' de '+x.max)+'</span>':'');
-      var aviso=x.tipo==='nota'?'<p class="small muted">⏳ Queda pendiente hasta que tu docente la apruebe.</p>':x.tipo==='avatar'||x.tipo==='avatar_url'?'<p class="small muted">⚡ Automática: si se concede, tu avatar cambia solo.</p>':'';
+      var aviso=x.tipo==='nota'?'<p class="small muted"><img class=ico src=assets/img/iconos/p/tiempo.png alt> Queda pendiente hasta que tu docente la apruebe.</p>':x.tipo==='avatar'||x.tipo==='avatar_url'?'<p class="small muted"><img class=ico src=assets/img/iconos/p/rayo.png alt> Automática: si se concede, tu avatar cambia solo.</p>':'';
       // 🔴 Con el motor nuevo se canjea aquí mismo. El cobro y la comprobación de saldo los hace el
       // servidor —el navegador no puede tocar los créditos ni queriendo—, así que el botón solo
       // pide; si no llega, contesta que no y no se mueve nada.
@@ -2306,7 +2306,7 @@
       +'<div class="grid '+((abiertas%3===0||abiertas<2)?'cols-3':(abiertas%2===0?'cols-2':'cols-3'))+' nave-rec">'+cards+'</div>'
       +(porCapitulos()?(function(){
           var ab=capsAbiertos(), vienen=capsTipo().filter(function(c){ return ab.indexOf(c)<0 && (c.mercado||[]).length; });
-          return vienen.length?'<p class="rec-prox">🔓 <b>Próximamente en el Mercado:</b> '+vienen.map(function(c){
+          return vienen.length?'<p class="rec-prox"><img class=ico src=assets/img/iconos/p/abierto.png alt> <b>Próximamente en el Mercado:</b> '+vienen.map(function(c){
             return c.icono+' '+esc(c.titulo)+' <span>(semana '+semanaCap(c)+')</span>'; }).join(' · ')+'</p>':'';
         })():'')
       +(motorNuevo()
@@ -2408,8 +2408,8 @@
   }
   /** El tope de créditos por una pieza: 3 veces su precio (una participación, 3 veces lo que cuesta). */
   function topeZoco(p){ if(p.tipo!=='participacion') return TOPE_ZOCO[p.tipo]||45; var s=sorteoDePieza(p.id); return Math.max(15, 3*((s&&s.coste)||0)); }
-  var ESTADO_TRATO={aceptado:'✅ Cambiado', rechazado:'✖️ Rechazado', retirado:'↩️ Retirado', caducado:'⌛ Caducó sin respuesta',
-    anulado:'🚫 Anulado: ya no lo tenía', vendido:'💰 Se lo quedó otro', deshecho:'↺ Deshecho por el docente'};
+  var ESTADO_TRATO={aceptado:'<img class=ico src=assets/img/iconos/p/hecho.png alt> Cambiado', rechazado:'✕ Rechazado', retirado:'↩ Retirado', caducado:'<img class=ico src=assets/img/iconos/p/tiempo.png alt> Caducó sin respuesta',
+    anulado:'<img class=ico src=assets/img/iconos/p/aviso.png alt> Anulado: ya no lo tenía', vendido:'<img class=ico src=assets/img/iconos/p/monedas.png alt> Se lo quedó otro', deshecho:'↺ Deshecho por el docente'};
   function tarjetaTrato(t, z){
     var soyVende=t.vende.uid===z.uid, otro=soyVende?t.compra:t.vende, pz=datosPieza(t.pieza);
     var toca=t.estado==='abierto'&&((soyVende&&t.turno==='vendedor')||(!soyVende&&t.turno==='comprador'));
@@ -2426,8 +2426,8 @@
     else if(toca && !soyVende && t.paso===2) botones='<button class="btn primary" data-zt="aceptar" data-t="'+t.id+'">Aceptar</button>'
       +'<button class="btn" data-zt="rechazar" data-t="'+t.id+'">No, gracias</button>';
     else if(t.estado==='abierto' && !soyVende && t.paso===1) botones='<button class="btn small" data-zt="retirar" data-t="'+t.id+'">Retirar mi oferta</button>';
-    var estado = t.estado==='abierto' ? (toca?'<span class="chip wip">Te toca</span>':'<span class="chip">⏳ Esperando a '+esc(otro.alias)+'</span>')
-                                      : '<span class="chip">'+(t.estado==='anulado'&&t.motivo==='sorteo'?'🎟️ Anulado: ya se sorteó':(ESTADO_TRATO[t.estado]||t.estado))+'</span>';
+    var estado = t.estado==='abierto' ? (toca?'<span class="chip wip">Te toca</span>':'<span class="chip"><img class=ico src=assets/img/iconos/p/tiempo.png alt> Esperando a '+esc(otro.alias)+'</span>')
+                                      : '<span class="chip">'+(t.estado==='anulado'&&t.motivo==='sorteo'?'<img class=ico src=assets/img/iconos/p/ticket.png alt> Anulado: ya se sorteó':(ESTADO_TRATO[t.estado]||t.estado))+'</span>';
     return '<div class="card zt'+(toca?' toca':'')+'"><div class="zt-cab"><img class="zt-pz '+t.pieza.tipo+'" src="'+esc(pz.img)+'" alt="">'
       +'<div><p class="zt-tit">'+tit+'</p>'+estado+(t.paso===2&&t.estado==='abierto'?' <span class="chip">paso 2 de 3</span>':'')+'</div></div>'
       +cuerpo+(botones?'<div class="zt-btns">'+botones+'</div>':'')+'</div>';
@@ -2450,7 +2450,7 @@
         +'<div class="zc-txt"><b>'+esc(d.nombre)+'</b><span class="zc-meta">'+(d.rareza?esc(d.rareza.charAt(0).toUpperCase()+d.rareza.slice(1).toLowerCase())+' · ':'')+(mio?'<em>tuyo</em>':'de '+esc(a.vende.alias))+'</span>'
         +(mio ? (ofertasA[a.id]?'<span class="chip ok">'+ofertasA[a.id]+' oferta'+(ofertasA[a.id]>1?'s':'')+'</span>':'<span class="chip">sin ofertas aún</span>')
                +'<button class="btn small" data-zretirar="'+a.id+'">Retirar</button>'
-              : mo ? '<span class="chip">⏳ Ya has ofertado</span>'
+              : mo ? '<span class="chip"><img class=ico src=assets/img/iconos/p/tiempo.png alt> Ya has ofertado</span>'
                    : '<button class="btn primary" data-zofertar="'+a.id+'">Hacer una oferta</button>')
         +'</div></div>';
     };
@@ -2462,7 +2462,7 @@
       +'<p class="lead">Pon tus héroes, cromos o participaciones del sorteo y los demás te ofrecen lo suyo: créditos, cartas o héroes. Lo que ofreces queda <b>apartado</b> hasta que te respondan, y cada trato se cierra en <b>3 pasos</b> como mucho.</p>'
       +'<div class="zoco-barra"><button class="btn primary grande" id="z-poner" type="button">+ Poner algo mío</button>'
       +'<span class="small">Tienes <b>'+(r.creditos!=null?r.creditos:0)+' ◈</b>'+(apartado?' · <b>'+apartado+' ◈</b> apartados en tus ofertas':'')+'</span></div>'
-      +(nov.length?'<h3 class="z-h">🆕 Novedades</h3><div class="zt-lista">'+nov.map(function(t){ return '<p class="zt-nov">'+fraseNovedad(t)+'</p>'+tarjetaTrato(t,z); }).join('')+'</div>':'')
+      +(nov.length?'<h3 class="z-h"><img class=ico src=assets/img/iconos/p/estrella.png alt> Novedades</h3><div class="zt-lista">'+nov.map(function(t){ return '<p class="zt-nov">'+fraseNovedad(t)+'</p>'+tarjetaTrato(t,z); }).join('')+'</div>':'')
       +(pend.length?'<h3 class="z-h">Te toca responder</h3><div class="zt-lista">'+pend.map(function(t){ return tarjetaTrato(t,z); }).join('')+'</div>':'')
       +'<h3 class="z-h">En el Zoco ahora <span class="small muted">'+otros.length+'</span></h3>'
       +(otros.length?'<div class="zc-grid">'+otros.map(function(a){ return tarjeta(a,false); }).join('')+'</div>'
@@ -2556,7 +2556,7 @@
       var pz=datosPieza(piezaDeId(soloId));
       return nebulaPregunta({ titulo:'¿Pongo «'+esc(pz.nombre)+'» en el Zoco?',
         cuerpo:'<p class="neb-nota">Sigue siendo tuyo (y te lo puedes seguir poniendo) hasta que aceptes una oferta. Lo retiras cuando quieras.</p>',
-        si:'Sí, ponerlo', no:'Ahora no' }).then(function(ok){ if(ok) tras(ZAPI().zocoPoner(per,[soloId]), function(){ return '🔄 <b>'+esc(pz.nombre)+'</b> ya está en el Zoco.'; }); });
+        si:'Sí, ponerlo', no:'Ahora no' }).then(function(ok){ if(ok) tras(ZAPI().zocoPoner(per,[soloId]), function(){ return '<b>'+esc(pz.nombre)+'</b> ya está en el Zoco.'; }); });
     }
     var mias=piezasDe(st.yo, true);
     if(!mias.length) return aviso('Todavía no tienes héroes, cromos ni participaciones que cambiar.');
@@ -2566,7 +2566,7 @@
     var ok=v.capa.querySelector('#zm-ok');
     var el=cablearSelector(v.capa, 8, function(l){ ok.disabled=!l.length; ok.textContent=l.length?'Poner '+l.length+' en el Zoco':'Poner en el Zoco'; });
     ok.onclick=function(){ var l=el(); if(!l.length) return; ok.disabled=true; v.fuera();
-      tras(ZAPI().zocoPoner(per,l), function(){ return '🔄 <b>'+l.length+'</b> '+(l.length===1?'cosa':'cosas')+' en el Zoco.'; }); };
+      tras(ZAPI().zocoPoner(per,l), function(){ return '<b>'+l.length+'</b> '+(l.length===1?'cosa':'cosas')+' en el Zoco.'; }); };
   }
   function zocoOfertaVentana(anuncio){
     var d=datosPieza(anuncio.pieza), tope=topeZoco(anuncio.pieza), mis=Number((st.yo||{}).creditos)||0;
@@ -2584,7 +2584,7 @@
       if(!cr&&!ps.length) return aviso('Ofrece algo: créditos, cartas o héroes.');
       if(cr>mis) return aviso('No tienes '+cr+' ◈.');
       v.fuera();
-      tras(ZAPI().zocoOfertar(anuncio.id,{creditos:cr,piezas:ps},v.capa.querySelector('#zm-msg').value), function(){ return '📨 Oferta enviada a <b>'+esc(anuncio.vende.alias)+'</b>. Lo ofrecido queda apartado.'; });
+      tras(ZAPI().zocoOfertar(anuncio.id,{creditos:cr,piezas:ps},v.capa.querySelector('#zm-msg').value), function(){ return 'Oferta enviada a <b>'+esc(anuncio.vende.alias)+'</b>. Lo ofrecido queda apartado.'; });
     };
   }
   function zocoContraVentana(t){
@@ -2603,7 +2603,7 @@
       var cr=Math.max(0,Math.floor(Number(v.capa.querySelector('#zm-cr').value)||0)), l=el();
       if(!cr&&!l.length) return aviso('Di qué quieres a cambio.');
       v.fuera();
-      tras(ZAPI().zocoResponder(t.id,'contraofertar',{pide:{creditos:cr,piezas:l}, mensaje:v.capa.querySelector('#zm-msg').value}), function(){ return '↩️ Contraoferta enviada a <b>'+esc(t.compra.alias)+'</b>: ahora le toca a él.'; });
+      tras(ZAPI().zocoResponder(t.id,'contraofertar',{pide:{creditos:cr,piezas:l}, mensaje:v.capa.querySelector('#zm-msg').value}), function(){ return '↩ Contraoferta enviada a <b>'+esc(t.compra.alias)+'</b>: ahora le toca a él.'; });
     };
   }
   function zocoRechazarVentana(t){
@@ -2613,7 +2613,7 @@
       +'<label class="zm-campo">Mensaje <span class="small muted">(opcional)</span><input id="zm-msg" maxlength="140" placeholder="Pides poco · Ya lo tengo · Busco un MITO…"></label>'
       +'<div class="zm-pie"><button class="btn primary" id="zm-ok">'+(soyVende?'Rechazar':'No, gracias')+'</button><button class="btn" data-cerrar>Volver</button></div>');
     v.capa.querySelector('#zm-ok').onclick=function(){ var m=v.capa.querySelector('#zm-msg').value; v.fuera();
-      tras(ZAPI().zocoResponder(t.id,'rechazar',{mensaje:m}), function(){ return '✖️ Hecho. '+(soyVende?'Su oferta ha vuelto a '+esc(otro.alias)+'.':'Lo que ofreciste ha vuelto a ti.'); }); };
+      tras(ZAPI().zocoResponder(t.id,'rechazar',{mensaje:m}), function(){ return '✕ Hecho. '+(soyVende?'Su oferta ha vuelto a '+esc(otro.alias)+'.':'Lo que ofreciste ha vuelto a ti.'); }); };
   }
   function cablearZoco(){
     if(st.tab!=='zoco') return;
@@ -2622,14 +2622,14 @@
     Array.prototype.forEach.call(root.querySelectorAll('[data-zofertar]'),function(x){
       x.onclick=function(){ var a=z.anuncios.filter(function(y){ return y.id===x.getAttribute('data-zofertar'); })[0]; if(a) zocoOfertaVentana(a); }; });
     Array.prototype.forEach.call(root.querySelectorAll('[data-zretirar]'),function(x){
-      x.onclick=function(){ tras(ZAPI().zocoRetirar(x.getAttribute('data-zretirar')), function(){ return '↩️ Retirado del Zoco. Si había ofertas, han vuelto a sus dueños.'; }); }; });
+      x.onclick=function(){ tras(ZAPI().zocoRetirar(x.getAttribute('data-zretirar')), function(){ return '↩ Retirado del Zoco. Si había ofertas, han vuelto a sus dueños.'; }); }; });
     Array.prototype.forEach.call(root.querySelectorAll('[data-zt]'),function(x){
       x.onclick=function(){
         var t=z.tratos.filter(function(y){ return y.id===x.getAttribute('data-t'); })[0]; if(!t) return;
         var acc=x.getAttribute('data-zt'), pz=datosPieza(t.pieza);
         if(acc==='contraofertar') return zocoContraVentana(t);
         if(acc==='rechazar') return zocoRechazarVentana(t);
-        if(acc==='retirar') return tras(ZAPI().zocoResponder(t.id,'retirar'), function(){ return '↩️ Oferta retirada: lo apartado ha vuelto a ti.'; });
+        if(acc==='retirar') return tras(ZAPI().zocoResponder(t.id,'retirar'), function(){ return '↩ Oferta retirada: lo apartado ha vuelto a ti.'; });
         if(acc==='aceptar'){
           var soyVende=t.vende.uid===z.uid, pago=t.paso===2?t.pide:t.ofrece;
           return nebulaPregunta({ titulo: soyVende?'¿Cambias tu «'+esc(pz.nombre)+'»?':'¿Aceptas y te llevas «'+esc(pz.nombre)+'»?',
@@ -2654,9 +2654,9 @@
     if(!abierto('zoco')||st.tab==='zoco') return '';
     var n=zocoPendientes().length, nov=zocoNovedades();
     if(!n&&!nov.length) return '';
-    var txt = n ? '🔔 <b>El Zoco Estelar:</b> tienes <b>'+n+'</b> trato'+(n>1?'s':'')+' esperando tu respuesta.'
+    var txt = n ? '<img class=ico src=assets/img/iconos/p/clase.png alt> <b>El Zoco Estelar:</b> tienes <b>'+n+'</b> trato'+(n>1?'s':'')+' esperando tu respuesta.'
                   +(nov.length?' Y '+nov.length+' novedad'+(nov.length>1?'es':'')+'.':'')
-                : '🆕 <b>El Zoco Estelar:</b> '+fraseNovedad(nov[0])+(nov.length>1?' <span class="small">(y '+(nov.length-1)+' más)</span>':'');
+                : '<img class=ico src=assets/img/iconos/p/estrella.png alt> <b>El Zoco Estelar:</b> '+fraseNovedad(nov[0])+(nov.length>1?' <span class="small">(y '+(nov.length-1)+' más)</span>':'');
     return '<div class="card zoco-aviso" role="status"><p>'+txt+'</p><button type="button" class="btn primary" data-tab="zoco">Ir al Zoco</button></div>';
   }
   /** 14-sep · el Gran Sorteo ya se ha hecho: a quien gana, que lo sepa nada más entrar; y a todos, quién. */
@@ -2669,10 +2669,10 @@
     var l=sorteosHechosSinVer(); if(!l.length) return '';
     var x=l[0], S=x.sorteo, gane=(S.ganadoresFichas||[]).indexOf(st.yo.fid)>=0, nadie=!(S.ganadoresAlias||[]).length;
     return '<div class="card sorteo-aviso'+(gane?' gane':'')+'" role="status"><p>'+(gane
-        ? '🏆 <b>¡Has ganado el Gran Sorteo!</b> Te llevas: <b>'+esc(S.premio)+'</b>. Tu docente te dirá cómo recibirlo.'
-        : nadie ? '🎟️ <b>El Gran Sorteo se ha resuelto:</b> esta vez nadie tenía participaciones.'
-        : '🎟️ <b>El Gran Sorteo ya tiene ganadores:</b> '+esc(S.premio)+' para <b>'+(S.ganadoresAlias||[]).map(esc).join('</b> y <b>')+'</b>.')
-      +'</p><span><button type="button" class="btn primary" data-sorteo-ver="'+esc(x.doc)+'">🎟️ Ver resultado del sorteo</button>'
+        ? '<img class=ico src=assets/img/iconos/p/rankings.png alt> <b>¡Has ganado el Gran Sorteo!</b> Te llevas: <b>'+esc(S.premio)+'</b>. Tu docente te dirá cómo recibirlo.'
+        : nadie ? '<img class=ico src=assets/img/iconos/p/ticket.png alt> <b>El Gran Sorteo se ha resuelto:</b> esta vez nadie tenía participaciones.'
+        : '<img class=ico src=assets/img/iconos/p/ticket.png alt> <b>El Gran Sorteo ya tiene ganadores:</b> '+esc(S.premio)+' para <b>'+(S.ganadoresAlias||[]).map(esc).join('</b> y <b>')+'</b>.')
+      +'</p><span><button type="button" class="btn primary" data-sorteo-ver="'+esc(x.doc)+'"><img class=ico src=assets/img/iconos/p/ticket.png alt> Ver resultado del sorteo</button>'
       +'<button type="button" class="btn" data-sorteo-visto="'+esc(x.doc)+'" aria-label="Cerrar el aviso">✕</button></span></div>';
   }
   /**
@@ -2687,13 +2687,13 @@
     var capa=document.createElement('div'); capa.className='neb-capa';
     capa.innerHTML='<div class="neb-caja gana sorteo-resultado" role="dialog" aria-modal="true" aria-labelledby="sres-t">'
       +'<div class="neb-cara"><img src="assets/img/personajes/nebula.png" alt="NEBULA"></div><div class="neb-quien">NEBULA</div>'
-      +'<h3 id="sres-t">🎟️ El resultado del Gran Sorteo</h3>'
+      +'<h3 id="sres-t"><img class=ico src=assets/img/iconos/p/ticket.png alt> El resultado del Gran Sorteo</h3>'
       +'<div class="neb-arte"><img src="assets/img/canje/'+esc(S.imagen||'sorteo_generico.jpg')+'" alt=""></div>'
       +'<p class="neb-nota">'+esc(S.premio||'')+(S.fecha?' · sorteado el <b>'+fechaLarga(S.fecha)+'</b>':'')+'</p>'
       +(gente.length?'<div class="sres-gan">'+gente.map(function(p,i){
           return '<figure style="--i:'+i+'">'+(SG.avatarImg?SG.avatarImg(p.avatar,p.alias,'',p.xp,(st.d||{}).tipo):'')+'<figcaption>'+esc(p.alias)+'</figcaption></figure>'; }).join('')+'</div>'
         :'<p class="neb-nota">Nadie tenía participaciones: esta vez no hubo ganadores.</p>')
-      +'<p class="neb-nota sres-tu">'+(gane?'🏆 <b>¡Eres tú!</b> Tu docente te dirá cómo recibir tu premio.'
+      +'<p class="neb-nota sres-tu">'+(gane?'<img class=ico src=assets/img/iconos/p/rankings.png alt> <b>¡Eres tú!</b> Tu docente te dirá cómo recibir tu premio.'
         :'Esta vez no te ha tocado. Como en toda lotería, lo jugado no se devuelve… ¡suerte en la próxima!')+'</p>'
       +'<div class="neb-botones"><button type="button" class="btn primary" data-cerrar>Seguir</button></div></div>';
     document.body.appendChild(capa);
@@ -2812,7 +2812,7 @@
         {t:'Cómo se hace un trato',foco:'.nb-t[data-tab="zoco"]',
          x:'Ofreces algo y queda <b>apartado</b> hasta que te respondan. Quien vende acepta, rechaza con un mensaje o te hace una <b>contraoferta</b> mirando lo que tienes. Tú tienes la última palabra: <b>3 pasos</b> y trato cerrado.'},
         {t:'Poner lo tuyo',foco:'.nb-t[data-tab="botin"]',
-         x:'Desde tu álbum (abre una carta en grande) o desde tu vestuario (el 🔄 de cada héroe): «Poner en el Zoco». Sigue siendo tuyo hasta que aceptes una oferta. Y las <b>participaciones del Gran Sorteo</b> también se revenden aquí.'}],
+         x:'Desde tu álbum (abre una carta en grande) o desde tu vestuario (el <img class=ico src=assets/img/iconos/p/zoco.png alt> de cada héroe): «Poner en el Zoco». Sigue siendo tuyo hasta que aceptes una oferta. Y las <b>participaciones del Gran Sorteo</b> también se revenden aquí.'}],
     // 16-sep · LA OFERTA DE LA SEMANA (semana 5): empezaba en la 3 sin que nadie la explicara; ahora tiene su capítulo
     c10:[{t:'La oferta de la semana',foco:'.nb-t[data-tab="mercado"]',
           x:'Desde hoy, cada semana sale <b>una oferta</b> en el Mercado: un sobre, una cápsula, un héroe o una carta concretos, <b>rebajados entre un 20 y un 40 %</b>. Arriba del todo, con su cuenta atrás.'},
@@ -3020,7 +3020,7 @@
       if(mp){ var pl=(window.SG_PLANETAS||[])[Number(mp[1])-1];
         L.push({peso:PESO.planeta, eyebrow:'PLANETA COMPLETO', titulo:pl?pl[1]:('Tema '+mp[1]),
           sub:'Has terminado todos sus retos', img:pl?('assets/img/planetas/'+pl[0]+'.png'+(window.SG_IMGV||'')):'', clase:'figura'}); }
-      else if(mr) L.push({peso:PESO.racha, eyebrow:'CONSTANCIA', titulo:'🔥 '+mr[1]+' semanas seguidas',
+      else if(mr) L.push({peso:PESO.racha, eyebrow:'CONSTANCIA', titulo:mr[1]+' semanas seguidas',
           sub:'Has vuelto cada semana. Eso es lo difícil.', img:'', clase:'texto'});
       else if(k==='tutorial') L.push({peso:PESO.tutorial, eyebrow:'EL CAPITÁN TE PAGA',
           titulo:'Bienvenido a bordo', sub:'Por hacer la visita guiada', img:'', clase:'texto'});
@@ -3029,7 +3029,7 @@
         L.push({peso:PESO.serie, eyebrow:'SERIE COMPLETA', titulo:'✦ '+(sl?sl[2]:'Serie completa'),
           sub:sl?sl[1]:'', img:'', clase:'texto'}); }
       else if(k==='album') L.push({peso:PESO.legendaria-1, eyebrow:'COLECCIONISTA',
-          titulo:'🃏 ¡Álbum completo!', sub:'Las 20 cartas. Muy poca gente llega aquí.', img:'', clase:'texto'});
+          titulo:'¡Álbum completo!', sub:'Las 20 cartas. Muy poca gente llega aquí.', img:'', clase:'texto'});
     });
     if(r.titulo&&r.titulo!==ant.titulo)
       L.push({peso:PESO.titulo, eyebrow:'NUEVO TÍTULO', titulo:'«'+r.titulo+'»', sub:'Se lee bajo tu alias', img:'', clase:'texto'});
@@ -3115,15 +3115,15 @@
     var nuevos=(d.nuevos||[]).filter(function(k){ return HB[k]; });
     if(nuevos.length>3){
       // quien ya lo había hecho antes de que existieran (o todo de golpe): un cartel, no un muro de clics
-      L.push({eyebrow:'LOGROS DE A BORDO · '+n+' DE '+AB.hitos.length, titulo:'🎖️ '+nuevos.length+' logros de golpe',
-        sub:nuevos.map(function(k){ return HB[k].icono+' '+HB[k].titulo; }).join(' · '), img:'', clase:'texto'});
+      L.push({eyebrow:'LOGROS DE A BORDO · '+n+' DE '+AB.hitos.length, titulo:nuevos.length+' logros de golpe',
+        sub:nuevos.map(function(k){ return HB[k].titulo; }).join(' · '), img:'', clase:'texto'});
     } else nuevos.forEach(function(k){ var x=HB[k], cb=CB[x.cubierta]||{};
       // lo que dice: en qué cubierta está, cuánto le queda y qué premio espera al completarla
       var suyos=AB.hitos.filter(function(y){ return y.cubierta===x.cubierta; }), ya=suyos.filter(function(y){ return (d.hitos||{})[y.clave]; }).length;
-      L.push({eyebrow:'LOGRO DE A BORDO · '+n+' DE '+AB.hitos.length, titulo:x.icono+' '+x.titulo,
+      L.push({eyebrow:'LOGRO DE A BORDO · '+n+' DE '+AB.hitos.length, titulo:x.titulo,
         sub:(cb.nombre||'')+' · '+ya+' de '+suyos.length+(ya<suyos.length&&cb.premio?' · al completarla, '+premioTexto(cb.premio):''), img:'', clase:'texto'}); });
     (d.premios||[]).forEach(function(p){ var c=CB[p.cubierta]||{nombre:p.cubierta};
-      L.push({eyebrow:'CUBIERTA COMPLETA', titulo:'🎁 '+c.nombre, sub:'Tu premio: '+(p.tipo==='creditos'?p.creditos+' ◈, ya en tu ficha.'
+      L.push({eyebrow:'CUBIERTA COMPLETA', titulo:String(c.nombre), sub:'Tu premio: '+(p.tipo==='creditos'?p.creditos+' ◈, ya en tu ficha.'
         :p.tipo==='capsula'?'una cápsula de rescate. Se abre al cerrar esto.':'un sobre de cromos. Se abre al cerrar esto.'), img:'', clase:'texto'}); });
     if(d.legendario) L.push({eyebrow:'LEGENDARIO DE A BORDO', titulo:'Contramaestre de la Nave',
       sub:'Has completado las cinco cubiertas. El héroe legendario (él y ella) ya está en tu vestuario, y esta carta lleva tu nombre.',
@@ -3181,7 +3181,7 @@
       +'<button type="button" class="lupa-x" aria-label="Cerrar">×</button>'
       +'<img class="lupa-av" src="'+esc(src.src)+'" data-fb="'+esc(src.fallback)+'" alt="Tu personaje"'
       +' onerror="var f=this.dataset.fb; if(this.src.indexOf(f)<0)this.src=f;">'
-      +'<div class="lupa-pie"><h4>'+(r.corona?'👑 ':'')+esc(r.alias)+'</h4>'
+      +'<div class="lupa-pie"><h4>'+(r.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(r.alias)+'</h4>'
       +(r.titulo?'<p class="small">«'+esc(r.titulo)+'»</p>':'')
       +'<p class="small muted">Nivel '+ni.nivel+' · '+esc(ni.rangoNombre||src.rango||'')+'</p></div></div>';
     ov.classList.add('open');
@@ -3334,7 +3334,7 @@
     if(boton){ boton.disabled=true; }
     post({accion:'adorno',per:per,campo:campo,valor:valor},function(){
       var antes=st.yo?JSON.parse(JSON.stringify(st.yo)):{};
-      aviso(valor?'✨ Puesto. Míralo en tu ficha.':'Quitado.');
+      aviso(valor?'Puesto. Míralo en tu ficha.':'Quitado.');
       refrescarYCelebrar(antes, null, 'canje-mudo', '');
     },function(e){
       if(boton){ boton.disabled=false; }
@@ -3347,13 +3347,13 @@
     var caja=document.querySelector('[data-evid="'+id+'"]');
     var v=caja?caja.value.trim().split(/\s+/).filter(Boolean).join(' '):'';
     if(!v) return aviso('Pega primero el enlace.', true);
-    if(!enlacesValidos(v)) return aviso('🔗 Eso no parece un enlace (o son más de dos): cada uno con su dominio, como padlet.com/…, separados por un espacio.', true);
+    if(!enlacesValidos(v)) return aviso('Eso no parece un enlace (o son más de dos): cada uno con su dominio, como padlet.com/…, separados por un espacio.', true);
     boton.disabled=true; boton.textContent='Guardando…';
     post({accion:'evidencia',per:per,reto:id,evidencia:v},function(){
       if(st.yo){ st.yo.evidencias=st.yo.evidencias||{}; st.yo.evidencias[id]=v; }
       boton.textContent='✓ Guardado';
       setTimeout(function(){ boton.disabled=false; boton.textContent='Cambiar enlace'; },1600);
-      aviso('🔗 Enlace guardado en <b>'+esc(id)+'</b>.');
+      aviso('Enlace guardado en <b>'+esc(id)+'</b>.');
     },function(e){
       boton.disabled=false; boton.textContent='Guardar enlace';
       aviso('No he podido guardarlo: '+esc(e), true);
@@ -3420,10 +3420,10 @@
   function campoReflexion(id, clase){
     var R=reflexionDe(id); if(!R) return '';
     var ide='rf-'+clase+'-'+id;
-    return '<div class="rf-caja"><label class="rf-et" for="'+esc(ide)+'">✍️ '+esc(R.pide)+'</label>'
+    return '<div class="rf-caja"><label class="rf-et" for="'+esc(ide)+'"><img class=ico src=assets/img/iconos/p/editar.png alt> '+esc(R.pide)+'</label>'
       +'<textarea class="'+clase+' rf-txt" id="'+esc(ide)+'" data-rf="'+esc(id)+'" rows="6" maxlength="2000" placeholder="Escríbelo aquí mismo: al menos '+R.min+' letras."></textarea>'
       +'<div class="rf-pie"><span class="rf-n" data-rfn-min="'+R.min+'">0 / '+R.min+'</span>'
-      +'<span class="rf-aviso">👀 La leerá tu tripulación en este reto y puede salir en clase con tu alias, nunca con tu nombre.</span></div></div>';
+      +'<span class="rf-aviso"><img class=ico src=assets/img/iconos/p/ojo.png alt> La leerá tu tripulación en este reto y puede salir en clase con tu alias, nunca con tu nombre.</span></div></div>';
   }
   // el contador de letras, al escribir (en verde al llegar al mínimo)
   document.addEventListener('input',function(ev){
@@ -3437,13 +3437,13 @@
     var R=reflexionDe(id), caja=document.querySelector('[data-rfh="'+id+'"]'), t=caja?caja.value.trim():'';
     if(!R) return;
     if(t.length<R.min){ if(caja){ caja.classList.add('falta'); caja.focus(); }
-      return aviso('✍️ <b>Tu reflexión es muy corta</b>: escribe al menos '+R.min+' letras (llevas '+t.length+').', true); }
+      return aviso('<b>Tu reflexión es muy corta</b>: escribe al menos '+R.min+' letras (llevas '+t.length+').', true); }
     boton.disabled=true; boton.textContent='Guardando…';
     post({accion:'reflexion',per:per,reto:id,texto:t},function(){
       if(st.yo){ st.yo.reflexiones=st.yo.reflexiones||{}; st.yo.reflexiones[id]=t; }
       delete (st.rf||{})[id];   // la tripulación la verá al día
       boton.textContent='✓ Guardada'; setTimeout(function(){ boton.disabled=false; boton.textContent='Guardar cambios'; },1600);
-      aviso('✍️ Reflexión guardada en <b>'+esc(id)+'</b>.');
+      aviso('Reflexión guardada en <b>'+esc(id)+'</b>.');
     },function(e){ boton.disabled=false; boton.textContent='Guardar mi reflexión'; aviso('No he podido guardarla: '+esc(e), true); });
   }
   /**
@@ -3584,7 +3584,7 @@
     var M=window.SG&&window.SG.MOTOR; if(!M) return;
     b.disabled=true;
     M.votar(per, v.id, b.getAttribute('data-voto'), tipo).then(function(){
-      aviso(tipo==='paid'?'⚡ <b>Voto extra contado.</b> Gracias por mojarte.':'🗳️ <b>Voto contado.</b> Se resuelve en clase.');
+      aviso(tipo==='paid'?'<b>Voto extra contado.</b> Gracias por mojarte.':'<b>Voto contado.</b> Se resuelve en clase.');
       quien(null,function(d){ if(d&&d.yo) st.yo=d.yo; cargarVotacion(); });
     }).catch(function(e){
       b.disabled=false;
@@ -3613,7 +3613,7 @@
       var escrita=cajasS.filter(function(x){return x.value&&x.value.trim();})[0];
       if(!escrita){
         cajasS.forEach(function(x){ x.classList.add('falta'); }); if(cajasS[0]) cajasS[0].focus();
-        aviso('🕳️ <b>Este reto pide una palabra</b>: la que borró Vaeon. Está al final de un enlace que no debería estar en la presentación del planeta Vínculo.', true);
+        aviso('<b>Este reto pide una palabra</b>: la que borró Vaeon. Está al final de un enlace que no debería estar en la presentación del planeta Vínculo.', true);
         return;
       }
       if(boton){ boton.disabled=true; boton.textContent='Comprobando…'; }
@@ -3621,7 +3621,7 @@
         if(!ok){
           if(boton){ boton.disabled=false; boton.textContent='✓ Lo he hecho'; }
           escrita.classList.add('falta'); escrita.focus();
-          aviso('🕳️ <b>Esa no es la palabra que borró Vaeon.</b> Busca el enlace escondido en Vínculo y resuelve el enigma.', true);
+          aviso('<b>Esa no es la palabra que borró Vaeon.</b> Busca el enlace escondido en Vínculo y resuelve el enigma.', true);
           return;
         }
         // 🔴 18-sep · la palabra la comprueba también el SERVIDOR, que deja la marca en la ficha: sin ella,
@@ -3633,7 +3633,7 @@
         M_.traerPalabra(per, id, escrita.value).then(seguir, function(e){
           if(boton){ boton.disabled=false; boton.textContent='✓ Lo he hecho'; }
           escrita.classList.add('falta'); escrita.focus();
-          aviso('🕳️ <b>'+esc(String((e&&e.message)||e))+'</b>', true);
+          aviso('<b>'+esc(String((e&&e.message)||e))+'</b>', true);
         });
       });
       return;
@@ -3646,7 +3646,7 @@
       textoRF=conRF?conRF.value.trim():'';
       if(textoRF.length<RF.min){
         cajasR.forEach(function(x){ x.classList.add('falta'); }); if(conRF||cajasR[0]) (conRF||cajasR[0]).focus();
-        aviso('✍️ <b>Este reto se responde aquí mismo</b>: escribe al menos '+RF.min+' letras (llevas '+textoRF.length+').', true);
+        aviso('<b>Este reto se responde aquí mismo</b>: escribe al menos '+RF.min+' letras (llevas '+textoRF.length+').', true);
         return;
       }
     }
@@ -3656,7 +3656,7 @@
       if(!buena){
         cajas.forEach(function(x){ x.classList.add('falta'); });
         if(cajas[0]) cajas[0].focus();
-        aviso('🔗 <b>Este reto necesita el enlace</b> de lo que has hecho (tu Bitácora, el vídeo, el juego…). '
+        aviso('<b>Este reto necesita el enlace</b> de lo que has hecho (tu Bitácora, el vídeo, el juego…). '
           +'Así tu Comandante puede verlo — y enseñarlo en clase si es bueno.', true);
         return;
       }
@@ -3666,7 +3666,7 @@
     var ev2=ev2s.filter(function(x){return x.value&&x.value.trim();})[0]||null;
     if(ev2&&!enlaceValido(ev2.value)){
       ev2.classList.add('falta'); ev2.focus();
-      aviso('🔗 <b>El segundo enlace no parece un enlace</b>: debería tener un dominio, como padlet.com/…', true);
+      aviso('<b>El segundo enlace no parece un enlace</b>: debería tener un dominio, como padlet.com/…', true);
       return;
     }
     if(boton){ boton.disabled=true; boton.textContent='Registrando…'; }
@@ -3686,8 +3686,8 @@
       // ocurre debajo de un modal, se pierde la mitad de la recompensa.
       if(alEmpezar) try{ alEmpezar(); }catch(e){}
       if(RF) delete (st.rf||{})[id];
-      if(res&&res.avisoReflexion) aviso('✅ Reto <b>'+esc(id)+'</b> registrado, pero tu reflexión no se ha guardado: ábrelo y pulsa «Guardar mi reflexión».', true);
-      else aviso('✅ Reto <b>'+esc(id)+'</b> registrado. ¡Buen trabajo!');
+      if(res&&res.avisoReflexion) aviso('Reto <b>'+esc(id)+'</b> registrado, pero tu reflexión no se ha guardado: ábrelo y pulsa «Guardar mi reflexión».', true);
+      else aviso('Reto <b>'+esc(id)+'</b> registrado. ¡Buen trabajo!');
       refrescarYCelebrar(antes, donde, 'reto');
     },function(e){
       if(boton){ boton.disabled=false; boton.textContent='✓ Lo he hecho'; }
@@ -3921,13 +3921,13 @@
         var capaN = document.querySelector('.neb-capa'); if (capaN && capaN.parentNode) capaN.parentNode.removeChild(capaN);
         var tenidas = inventarioDe(antes);
         SG.SOBRE.revelar(varias.map(function(c){ return marcaRepetida(c, tenidas); }),
-          { titulo: /^oferta_/.test(tipo || '') ? '⚡ Lo que traía tu oferta' : tipo === 'heroe' ? 'Lo que traía la cápsula de rescate' : tipo === 'capsula_elite' ? 'Lo que traía la cápsula de élite'
+          { titulo: /^oferta_/.test(tipo || '') ? 'Lo que traía tu oferta' : tipo === 'heroe' ? 'Lo que traía la cápsula de rescate' : tipo === 'capsula_elite' ? 'Lo que traía la cápsula de élite'
                   : tipo === 'capsula_legendaria' ? '¡Un Mito de la cápsula legendaria!' : tipo === 'heroe_repes' ? 'Tu héroe nuevo (por 2 repetidos)'
                   : tipo === 'sobre_grande' ? 'Tu sobre grande' : tipo === 'sobre_raro' ? 'Tu sobre de raras' : tipo === 'sobre_epico' ? 'Tu sobre épico' : 'Tu sobre de cromos',
             alAlbum: function(){ irA('botin'); } })
           .then(function(){
-            aviso(/^(heroe|capsula|oferta_heroe)/.test(tipo || '') ? '🛡️ <b>Un héroe</b> a tu vestuario' + (coste ? ' · −' + coste + ' ◈' : '') + '.'
-              : '🃏 <b>' + varias.length + (varias.length === 1 ? ' carta' : ' cartas') + '</b> a tu álbum'
+            aviso(/^(heroe|capsula|oferta_heroe)/.test(tipo || '') ? '<b>Un héroe</b> a tu vestuario' + (coste ? ' · −' + coste + ' ◈' : '') + '.'
+              : '<b>' + varias.length + (varias.length === 1 ? ' carta' : ' cartas') + '</b> a tu álbum'
               + (coste ? ' · −' + coste + ' ◈' : '') + '.');
           });
         refrescarYCelebrar(antes, donde, 'canje-mudo', '');
@@ -4021,12 +4021,12 @@
     // 16-sep · el reto A6 se gana en el simulador
     if(t[0]===(BT.reto||'A6'))
       return '<div class="mi-hacer"><p class="small muted">Se gana con <b>'+esc(t[1])+'</b> · +'+t[3]+' xp</p>'
-        +'<p><a class="btn epico" href="batalla.html?per='+esc(per)+'"><span class="ep-luz"></span><span class="ep-txt">⚔️ Enfréntate al Simulador de Joran</span></a></p>'
+        +'<p><a class="btn epico" href="batalla.html?per='+esc(per)+'"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Enfréntate al Simulador de Joran</span></a></p>'
         +'<p class="small muted">Se registra solo al ganarle.</p></div>';
     // 15-sep · S7 es el Escape UNI: su puerta (se registra solo al final del escape)
     if(t[0]==='S7'&&window.SG_ESCAPE_UNI)
       return '<div class="mi-hacer"><p class="small muted">Se gana con <b>'+esc(t[1])+'</b> · +'+t[3]+' xp</p>'
-        +'<p><a class="btn epico" href="'+esc(window.SG_ESCAPE_UNI)+'" target="_blank" rel="noopener"><span class="ep-luz"></span><span class="ep-txt">🗝️ Entrar en el Escape UNI</span></a></p>'
+        +'<p><a class="btn epico" href="'+esc(window.SG_ESCAPE_UNI)+'" target="_blank" rel="noopener"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/llave.png alt> Entrar en el Escape UNI</span></a></p>'
         +'<p class="small muted">Se registra solo, con el botón del final del escape.</p></div>';
     // 15-sep · y la casilla del enlace aquí también: ahora TODOS los retos A, B y X lo piden (sin ella, «Lo he hecho»
     // desde la ficha de la insignia se quedaba en «falta el enlace» sin sitio donde ponerlo)
@@ -4106,7 +4106,7 @@
          || capsAbiertos().filter(function(c){ return PASOS_CAP[c.clave]||c.clave==='c1'; }).slice(-1)[0];
     var opciones=''; for(var k=1;k<=n;k++) opciones+='<option value="'+k+'"'+(k===s?' selected':'')+'>'+k+'</option>';
     return '<div class="sim-barra" role="region" aria-label="Simulacro">'
-      +'<span class="sim-tit"><b>🛰️ La Nave de tu Comandante</b><em>Simulacro: nada de esto cuenta ni se guarda</em></span>'
+      +'<span class="sim-tit"><b><img class=ico src=assets/img/iconos/p/envivo.png alt> La Nave de tu Comandante</b><em>Simulacro: nada de esto cuenta ni se guarda</em></span>'
       +'<div class="sim-mandos">'
       // 🔴 13-sep · proyectada en la sesión, la semana es la de la clase y no se cambia: así no hay spoiler
       // por un despiste delante de todos. Para ensayar otra semana está «Mis enlaces → Tu Nave de Comandante».
@@ -4183,7 +4183,7 @@
      */
     var avisoDemo = (dentro && DEMO && !st.email)
       ? '<div class="card demo-aviso"><p class="small">'
-        + '🎬 <b>Modo demostración.</b> Estás viendo la Nave con la ficha de <b>'+esc(st.yo.alias||'un recluta')
+        + '<img class=ico src=assets/img/iconos/p/video.png alt> <b>Modo demostración.</b> Estás viendo la Nave con la ficha de <b>'+esc(st.yo.alias||'un recluta')
         + '</b>, un recluta de ejemplo. Pulsa lo que quieras: aquí no se guarda nada.</p>'
         + '<p class="demo-salidas"><a class="btn primary btn-google" href="entrar.html">'
         + ((window.SG && window.SG.LOGO_G) || '') + '<span>Entrar con mi cuenta</span></a>'
@@ -4242,7 +4242,7 @@
           if(bs.length&&window.SG&&SG.SOBRE){ var ten=inventarioDe(antes);
             SG.SOBRE.revelar(bs.map(function(c){ return marcaRepetida(c, ten); }),{titulo:'Lo que tenías sin abrir', alAlbum:function(){ irA('botin'); }}).then(refrescarYo, refrescarYo); }
           else refrescarYo();
-        },function(e){ b.disabled=false; b.textContent='Abrir'; aviso('⚠️ No se ha podido abrir: '+esc(String(e)), true); }); }; });
+        },function(e){ b.disabled=false; b.textContent='Abrir'; aviso('No se ha podido abrir: '+esc(String(e)), true); }); }; });
     var salir=document.getElementById('nb-salir');
     if(salir) salir.onclick=function(e){ e.preventDefault(); olvidar(); };
     cablearTeclado();
@@ -4319,13 +4319,13 @@
         post({accion:'vestir',per:per,email:st.email,viste:clave},function(){
           b.classList.remove('guardando');
           if(st.yo) st.yo.viste=clave;
-          aviso('✅ Ya llevas puesto <b>'+esc(nombre)+'</b>');
+          aviso('Ya llevas puesto <b>'+esc(nombre)+'</b>');
           refrescarYo();                                   // callado: sin pantalla de carga ni saltos
         },function(e){
           b.classList.remove('on'); b.classList.remove('guardando');
           if(antes) antes.classList.add('on');
           if(av&&avAntes) av.setAttribute('src',avAntes);
-          aviso('⚠️ No se ha podido cambiar: '+esc(String(e)), true);
+          aviso('No se ha podido cambiar: '+esc(String(e)), true);
         });
       };});
     Array.prototype.forEach.call(root.querySelectorAll('.badge-col .b[data-key]'),function(el){

@@ -29,9 +29,9 @@
       return '<a href="?'+(q.get('per')?'per='+encodeURIComponent(q.get('per')):'inicio='+esc(inicio||'')+'&tipo='+tipo)+'&semana='+x.sem+(document.body.classList.contains('embed')?'&embed=1':'')+'" class="'+(x.sem===s.sem?'on':x.sem<actual?'past':'')+'">'+x.sem+'</a>';}).join('')+'</div>';
     var cuerpo='<div class="foro-card">'+(s.capitulo?'<span class="pill amber">Nuevo capítulo: '+esc(s.capitulo)+'</span>':'')+'<h2>'+esc(s.tema)+'</h2><div class="muted">'+esc(s.sub)+'</div>'
       +'<pre class="foro-msg">'+msgHtml(s.foro,q.get('per'))+'</pre>'
-      +(s.lanza.length?'<h4>🗝️ Retos de la semana</h4><ul>'+s.lanza.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')
-      +(s.insignias.length?'<h4>🏅 Insignias en juego</h4><div class="dots">'+s.insignias.map(function(k){return '<img class="dot" src="assets/img/insignias/'+k+'.png" title="'+k+'">';}).join('')+'</div>':'')
-      +'<h4>🎬 Vídeos de la semana</h4><div class="yt-list three">'+s.videos.map(function(v){return yt(v[0],v[1]);}).join('')+'</div>'
+      +(s.lanza.length?'<h4><img class=ico src=assets/img/iconos/p/llave.png alt> Retos de la semana</h4><ul>'+s.lanza.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')
+      +(s.insignias.length?'<h4><img class=ico src=assets/img/iconos/p/medalla.png alt> Insignias en juego</h4><div class="dots">'+s.insignias.map(function(k){return '<img class="dot" src="assets/img/insignias/'+k+'.png" title="'+k+'">';}).join('')+'</div>':'')
+      +'<h4><img class=ico src=assets/img/iconos/p/video.png alt> Vídeos de la semana</h4><div class="yt-list three">'+s.videos.map(function(v){return yt(v[0],v[1]);}).join('')+'</div>'
       +'<p class="small muted">Hito: '+esc(s.hito)+'</p></div>';
     root.innerHTML=cab+nav+cuerpo;wire();}
   // ?todos=1 — TODOS los mensajes, semana a semana, listos para copiar (para el profe que los publica a mano en el foro)

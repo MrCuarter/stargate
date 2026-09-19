@@ -64,8 +64,9 @@ c(/querySelectorAll\('\[data-ev="'\+id\+'"\]'\)/.test(evid),
 
 // ---------------------------------------------------------------- d) el botín, todo junto
 c(/function botin\(\)/.test(NAVE), "«Mi botín» existe");
-["🏅 Insignias", "🃏 Tu álbum", "🎭 Personajes"].forEach(function (t) {
-  c(NAVE.indexOf(t) >= 0, "   y recoge «" + t + "»");
+// (19-sep · con iconos propios en vez de emojis)
+[[/<b><img class=ico [^>]*> Insignias<\/b>/, "Insignias"], [/<b><img class=ico [^>]*> Tu álbum/, "Tu álbum"], [/<b>Personajes y héroes<\/b>/, "Personajes"]].forEach(function (x) {
+  c(x[0].test(NAVE), "   y recoge «" + x[1] + "»");
 });
 c(/function badgesCronologicos\(\)/.test(NAVE), "las insignias van en el orden en que se ganan");
 // 15-sep · y agrupadas por temas (Norberto): cada planeta con su tripulante y su reto; luego la historia y los hitos

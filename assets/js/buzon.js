@@ -61,17 +61,17 @@
       x: function () {
         return porGrupo(function (g) {
           return '<div class="bz-dato"><div><b>' + esc(g.nombre || g.id) + '</b><span class="bz-codigo">' + esc(g.codigo || "—") + '</span></div>'
-            + (g.codigo && MOT().invitacion ? copiar(MOT().invitacion(g), "📋 Copiar invitación", "✓ Invitación copiada") : '') + '</div>';
+            + (g.codigo && MOT().invitacion ? copiar(MOT().invitacion(g), "<img class=ico src=assets/img/iconos/p/notas.png alt> Copiar invitación", "✓ Invitación copiada") : '') + '</div>';
         }, '<p>Entra con la cuenta de tu grupo y te lo doy aquí mismo.</p>')
           + '<p class="small">La invitación es un mensaje listo para el foro de la plataforma de UNIR, con el enlace directo: tu alumnado entra con Google, '
-          + 'escribe el código y se alista solo. También está en <a href="consola.html">Mis grupos</a> (el código sale tapado: pulsa «👁 Mostrar»).</p>';
+          + 'escribe el código y se alista solo. También está en <a href="consola.html">Mis grupos</a> (el código sale tapado: pulsa «<img class=ico src=assets/img/iconos/p/ojo.png alt> Mostrar»).</p>';
       } },
     { id: "mi-genially", t: "Cambiar los enlaces de tu Genially",
       claves: ["cambiar el genially", "cambio el genially", "cambiar mi genially", "cambio los enlaces", "cambiar los enlaces", "cambiar el enlace", "cambio el enlace", "enlaces de genially", "enlace del genially", "mi genially", "mi propio genially", "otro genially", "poner mi genially", "duplicar", "mi panel", "mis enlaces"],
       x: function () {
         return '<p>Tu Genially es el que abre <b>tu</b> alumnado desde su Nave. Se pone en tu grupo → pestaña <b>Mis enlaces</b> → «Tu Genially» (si lo dejas vacío, usan el oficial del grupo):</p>'
           + porGrupo(function (g) {
-            return '<div class="bz-dato"><b>' + esc(g.nombre || g.id) + '</b><a class="btn min" href="consola.html?per=' + encodeURIComponent(g.id) + '&tab=mios">🔗 Abrir sus enlaces</a></div>'
+            return '<div class="bz-dato"><b>' + esc(g.nombre || g.id) + '</b><a class="btn min" href="consola.html?per=' + encodeURIComponent(g.id) + '&tab=mios"><img class=ico src=assets/img/iconos/p/enlace.png alt> Abrir sus enlaces</a></div>'
               + (g.soyReferente ? '<p class="small">Como llevas este grupo, el panel <b>oficial</b> (el de todos) está en su pestaña <b>Ajustes</b> → «Panel de control (ver)».</p>' : '');
           }, '')
           + '<p class="small">¿Ya lo has cambiado y sigue saliendo el viejo? Recarga con <b>Ctrl + Mayús + R</b> (<b>⌘ + Mayús + R</b> en Mac).</p>';
@@ -80,14 +80,14 @@
       claves: ["carpeta de genially", "carpeta de los genially", "carpeta genially", "geniallys", "plantilla", "plantillas", "donde estan los genially", "genially de los planetas", "genially de cada planeta"],
       x: function () {
         var u = window.SG_GENIALLY_CARPETA || "";
-        return (u ? '<p><a class="btn" href="' + esc(u) + '" target="_blank" rel="noopener">🪐 Abrir la carpeta de Geniallys ↗</a></p>' : '')
+        return (u ? '<p><a class="btn" href="' + esc(u) + '" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/varios.png alt> Abrir la carpeta de Geniallys ↗</a></p>' : '')
           + '<p>Los Geniallys de los ocho planetas y el panel de control. Usa los estándar tal cual; si quieres el tuyo, duplica uno y pégalo en tu grupo → <b>Mis enlaces</b>. '
           + 'Si te pide permiso, pídeselo a tu referente: es una carpeta del equipo docente.</p>';
       } },
     { id: "material", t: "El material audiovisual: vídeos, insignias, cromos y láminas",
       claves: ["material audiovisual", "audiovisual", "recursos", "material", "videos de la serie", "insignias", "cromos", "laminas", "fondos", "imagenes", "personajes", "kit", "paquete", "drive"],
       x: function () {
-        return '<p><a class="btn" href="recursos.html">📦 Recursos audiovisuales</a> <a class="btn min" href="cronologia.html">🗓️ Qué vídeo toca cada semana</a></p>'
+        return '<p><a class="btn" href="recursos.html"><img class=ico src=assets/img/iconos/p/botin.png alt> Recursos audiovisuales</a> <a class="btn min" href="cronologia.html"><img class=ico src=assets/img/iconos/p/calendario.png alt> Qué vídeo toca cada semana</a></p>'
           + '<p>En Recursos están los 17 vídeos de la serie, las 24 insignias, los cromos y las láminas: para proyectar, para el aula virtual o para tus materiales. '
           + 'Para montar Geniallys (fondos por planeta, clips, personajes recortados, HUD, iconos, insignias y cartas) está el paquete del equipo en Drive, '
           + '<b>DRIVE_EQUIPO_STARGATE</b>' + (window.SG_DRIVE_EQUIPO ? ': <a href="' + esc(window.SG_DRIVE_EQUIPO) + '" target="_blank" rel="noopener">ábrelo ↗</a>' : '')
@@ -98,9 +98,9 @@
       x: function () {
         return '<p>El <b>mismo código para todos tus grupos</b>: al abrirlo pide tu cuenta y, si llevas varios, pregunta en cuál estáis. '
           + 'En Genially: <b>Insertar → Otros → Código</b>, y pegar.</p><div class="bz-botones">'
-          + copiar(iframe("sesion.html?embed=1", "STARGATE · La sesión de la semana"), "📽️ La sesión de la semana", "✓ Código copiado")
-          + copiar(iframe("aula.html?embed=1", "STARGATE · El aula"), "🛰️ El aula · la clase en directo", "✓ Código copiado")
-          + copiar(iframe("llamada.html?embed=1", "STARGATE · La llamada a filas"), "🔔 La llamada a filas", "✓ Código copiado") + '</div>';
+          + copiar(iframe("sesion.html?embed=1", "STARGATE · La sesión de la semana"), "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión de la semana", "✓ Código copiado")
+          + copiar(iframe("aula.html?embed=1", "STARGATE · El aula"), "<img class=ico src=assets/img/iconos/p/envivo.png alt> El aula · la clase en directo", "✓ Código copiado")
+          + copiar(iframe("llamada.html?embed=1", "STARGATE · La llamada a filas"), "<img class=ico src=assets/img/iconos/p/clase.png alt> La llamada a filas", "✓ Código copiado") + '</div>';
       } },
     { id: "enlaces", t: "Los enlaces de tu grupo: la Nave, el tablero y la sesión",
       claves: ["enlace de la nave", "nave del alumnado", "nave de los alumnos", "enlace del tablero", "tablero", "ranking", "padlet", "enlaces del grupo", "enlace de la sesion", "donde esta la nave"],
@@ -108,10 +108,10 @@
         return porGrupo(function (g) {
           var S = g.stargate || {}, o = location.origin + "/";
           return '<div class="bz-dato bz-enl"><b>' + esc(g.nombre || g.id) + '</b><div class="bz-botones">'
-            + copiar(o + "recluta.html?per=" + encodeURIComponent(g.id), "🚀 La Nave")
-            + copiar(o + "registro.html?per=" + encodeURIComponent(g.id) + "&solo=1", "🏅 El tablero")
-            + copiar(o + "sesion.html?per=" + encodeURIComponent(g.id), "📽️ La sesión")
-            + (S.padlet ? copiar(S.padlet, "🧱 El padlet") : '') + '</div></div>';
+            + copiar(o + "recluta.html?per=" + encodeURIComponent(g.id), "<img class=ico src=assets/img/iconos/p/cohete.png alt> La Nave")
+            + copiar(o + "registro.html?per=" + encodeURIComponent(g.id) + "&solo=1", "<img class=ico src=assets/img/iconos/p/medalla.png alt> El tablero")
+            + copiar(o + "sesion.html?per=" + encodeURIComponent(g.id), "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión")
+            + (S.padlet ? copiar(S.padlet, "<img class=ico src=assets/img/iconos/p/notas.png alt> El padlet") : '') + '</div></div>';
         }, '<p>Entra con la cuenta de tu grupo y te los doy aquí mismo.</p>') + '<p class="small">Cada botón copia el enlace, listo para pegar.</p>';
       } },
     { id: "semana", t: "En qué semana va tu grupo y qué toca",
@@ -119,7 +119,7 @@
       x: function () {
         return porGrupo(function (g) {
           return '<div class="bz-dato"><div><b>' + esc(g.nombre || g.id) + '</b><span>' + (g.estado === "en marcha" ? "Semana " + g.semana + " de " + g.total : esc(g.estado || "")) + '</span></div>'
-            + '<a class="btn min" href="sesion.html?per=' + encodeURIComponent(g.id) + '" target="_blank" rel="noopener">📽️ La sesión de hoy</a></div>';
+            + '<a class="btn min" href="sesion.html?per=' + encodeURIComponent(g.id) + '" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/video.png alt> La sesión de hoy</a></div>';
         }, '') + '<p class="small">La sesión trae la semana montada: el mensaje, los vídeos, quién ha hecho qué y las misiones. Semana a semana, en la <a href="cronologia.html">cronología</a>.</p>';
       } },
     { id: "foro", t: "El mensaje de esta semana para el foro",
@@ -131,8 +131,8 @@
     { id: "tiempo", t: "Un temporizador para la clase",
       claves: ["temporizador", "cronometro", "timer", "cuenta atras", "controlar el tiempo", "tiempos"],
       x: function () {
-        return '<p>En <b>El aula</b> → pestaña <b>⏱️ Tiempo</b>: 1, 3, 5, 10 o 15 minutos (o los que pongas), en grande para proyectar, con aviso al terminar. '
-          + 'El aula va dentro de tu Genially con el código de «🛰️ El aula» (pregúntame «¿cómo pongo el aula en Genially?»).</p>';
+        return '<p>En <b>El aula</b> → pestaña <b><img class=ico src=assets/img/iconos/p/tiempo.png alt> Tiempo</b>: 1, 3, 5, 10 o 15 minutos (o los que pongas), en grande para proyectar, con aviso al terminar. '
+          + 'El aula va dentro de tu Genially con el código de «<img class=ico src=assets/img/iconos/p/envivo.png alt> El aula» (pregúntame «¿cómo pongo el aula en Genially?»).</p>';
       } }
   ];
   function buscar(texto) {
@@ -149,17 +149,17 @@
   // (la batería 75 prueba el buscador sin página: por eso se expone antes de mirar si hay #bz-app)
   window.SG_BUZON = { buscar: buscar, kb: KB, vivas: VIVAS };
   if (!app) return;
-  var CHIPS = [["lista", "🔔 No puedo pasar lista"], ["genially", "🖼️ El Genially no se actualiza"], ["entrar", "🚪 Un alumno no puede entrar"],
-               ["retos", "🎯 No le suman los retos"], ["embed", "📽️ La sesión no se ve en Genially"]];
+  var CHIPS = [["lista", "<img class=ico src=assets/img/iconos/p/clase.png alt> No puedo pasar lista"], ["genially", "<img class=ico src=assets/img/iconos/p/zoco.png alt> El Genially no se actualiza"], ["entrar", "<img class=ico src=assets/img/iconos/p/abierto.png alt> Un alumno no puede entrar"],
+               ["retos", "<img class=ico src=assets/img/iconos/p/diana.png alt> No le suman los retos"], ["embed", "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión no se ve en Genially"]];
   // 15-sep · y las dudas de siempre, que el Capitán contesta con tus datos
-  var DUDAS = [["invitacion", "🔑 ¿Cuál es el código de invitación?"], ["mi-genially", "🔗 ¿Cómo cambio los enlaces de Genially?"],
-               ["carpeta", "🪐 ¿Dónde está la carpeta de Geniallys?"], ["material", "📦 ¿Dónde está el material audiovisual?"],
-               ["insertar", "📽️ ¿Cómo pongo la sesión en Genially?"], ["semana", "🗓️ ¿En qué semana vamos?"]];
-  var TIPOS = [["problema", "🛠️", "Un problema", "Qué ha pasado, dónde y con quién. Si puedes, qué esperabas que pasara."],
-               ["duda", "❓", "Una duda", "Qué quieres hacer. Te respondemos con los pasos."],
-               ["idea", "💡", "Una idea", "Qué mejorarías y para qué. Las ideas se reúnen y las decide el coordinador."]];
-  var ESTADOS = { nuevo: ["📡", "Recibido"], en_marcha: ["🛠️", "En marcha"], resuelto: ["✅", "Resuelto"],
-                  para_norberto: ["🧭", "Con el coordinador"], anotado: ["🗂️", "Anotado"] };
+  var DUDAS = [["invitacion", "<img class=ico src=assets/img/iconos/p/llave.png alt> ¿Cuál es el código de invitación?"], ["mi-genially", "<img class=ico src=assets/img/iconos/p/enlace.png alt> ¿Cómo cambio los enlaces de Genially?"],
+               ["carpeta", "<img class=ico src=assets/img/iconos/p/varios.png alt> ¿Dónde está la carpeta de Geniallys?"], ["material", "<img class=ico src=assets/img/iconos/p/botin.png alt> ¿Dónde está el material audiovisual?"],
+               ["insertar", "<img class=ico src=assets/img/iconos/p/video.png alt> ¿Cómo pongo la sesión en Genially?"], ["semana", "<img class=ico src=assets/img/iconos/p/calendario.png alt> ¿En qué semana vamos?"]];
+  var TIPOS = [["problema", "<img class=ico src=assets/img/iconos/p/ajustes.png alt>", "Un problema", "Qué ha pasado, dónde y con quién. Si puedes, qué esperabas que pasara."],
+               ["duda", "<img class=ico src=assets/img/iconos/p/pregunta.png alt>", "Una duda", "Qué quieres hacer. Te respondemos con los pasos."],
+               ["idea", "<img class=ico src=assets/img/iconos/p/estrella.png alt>", "Una idea", "Qué mejorarías y para qué. Las ideas se reúnen y las decide el coordinador."]];
+  var ESTADOS = { nuevo: ["<img class=ico src=assets/img/iconos/p/envivo.png alt>", "Recibido"], en_marcha: ["<img class=ico src=assets/img/iconos/p/ajustes.png alt>", "En marcha"], resuelto: ["<img class=ico src=assets/img/iconos/p/hecho.png alt>", "Resuelto"],
+                  para_norberto: ["<img class=ico src=assets/img/iconos/p/brujula.png alt>", "Con el coordinador"], anotado: ["<img class=ico src=assets/img/iconos/p/notas.png alt>", "Anotado"] };
 
   function cuando(ms) {
     var s = Math.max(0, Math.round((Date.now() - Number(ms || 0)) / 1000));
@@ -192,21 +192,21 @@
       ? '<div class="bz-cap"><img src="assets/img/capitan/senala.png" alt=""><p><b>El Capitán</b>' + (L[0] && typeof L[0].x === "function"
           ? 'Te lo digo ahora mismo, Comandante:' : 'Esto ya tiene solución conocida. Mira si te sirve antes de enviarlo:') + '</p></div>'
         + L.map(function (e) { return '<article class="bz-sol"><h3>' + esc(e.t) + '</h3><div>' + (typeof e.x === "function" ? e.x() : e.x) + '</div></article>'; }).join("")
-        + '<p class="bz-sol-botones"><button class="btn" id="bz-resuelto" type="button">✅ Esto lo resuelve</button></p>'
+        + '<p class="bz-sol-botones"><button class="btn" id="bz-resuelto" type="button"><img class=ico src=assets/img/iconos/p/hecho.png alt> Esto lo resuelve</button></p>'
       : '<div class="bz-cap"><img src="assets/img/capitan/pensativo.png" alt=""><p><b>El Capitán</b>Mientras escribes, busco si esto ya tiene solución. '
         + 'Si no la tiene, transmítelo: el Mando lo revisa cada día y te responde aquí mismo.</p></div>';
     cablearCopiar(caja);
     var r = document.getElementById("bz-resuelto");
     if (r) r.onclick = function () {
       ST.texto = ""; ST.sugeridas = []; pintar();
-      aviso("✅ ¡Perfecto, Comandante! Si vuelve a pasar, aquí estamos.", true);
+      aviso("<img class=ico src=assets/img/iconos/p/hecho.png alt> ¡Perfecto, Comandante! Si vuelve a pasar, aquí estamos.", true);
     };
   }
   /** Copiar al portapapeles (con plan B para navegadores que no dejan: un textarea y copiar). */
   function cablearCopiar(raiz) {
     Array.prototype.forEach.call((raiz || document).querySelectorAll("[data-copiar]"), function (b) {
       b.onclick = function () {
-        var t = b.getAttribute("data-copiar"), ok = function () { var antes = b.textContent; b.textContent = b.getAttribute("data-copiado") || "✓ Copiado"; setTimeout(function () { b.textContent = antes; }, 1800); };
+        var t = b.getAttribute("data-copiar"), ok = function () { var antes = b.innerHTML; b.textContent = b.getAttribute("data-copiado") || "✓ Copiado"; setTimeout(function () { b.innerHTML = antes; }, 1800); };
         var planB = function () { var ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select();
           try { document.execCommand("copy"); ok(); } catch (e) {} ta.remove(); };
         if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, planB); else planB();
@@ -232,8 +232,8 @@
       + grupos
       + '<label class="bz-campo">Cuéntanoslo<textarea id="bz-texto" maxlength="2000" rows="6" placeholder="' + esc(tipo[3]) + '">' + esc(ST.texto) + '</textarea>'
       + '<span class="bz-cuenta" id="bz-cuenta">' + ST.texto.length + ' / 2000</span></label>'
-      + (ST.tipo === "problema" ? '<label class="bz-urg"><input type="checkbox" id="bz-urgente"' + (ST.urgente ? " checked" : "") + '> 🚨 Me está bloqueando la clase ahora mismo</label>' : '')
-      + '<p class="bz-acciones"><button class="btn primary grande" id="bz-enviar" type="button">📡 Transmitir al Mando</button></p>'
+      + (ST.tipo === "problema" ? '<label class="bz-urg"><input type="checkbox" id="bz-urgente"' + (ST.urgente ? " checked" : "") + '> <img class=ico src=assets/img/iconos/p/aviso.png alt> Me está bloqueando la clase ahora mismo</label>' : '')
+      + '<p class="bz-acciones"><button class="btn primary grande" id="bz-enviar" type="button"><img class=ico src=assets/img/iconos/p/envivo.png alt> Transmitir al Mando</button></p>'
       + '<p class="small muted">Con tu mensaje viaja desde dónde escribes (la página, el grupo, la semana y tu navegador): así encontramos el fallo sin tener que preguntarte.</p>'
       + '</section><aside class="bz-sugiere" id="bz-sugiere" aria-live="polite"></aside></div>';
   }
@@ -249,14 +249,14 @@
     Array.prototype.forEach.call(app.querySelectorAll("[data-duda]"), function (b) {
       b.onclick = function () {
         var e = VIVAS.filter(function (x) { return x.id === b.getAttribute("data-duda"); })[0];
-        ST.tipo = "duda"; ST.urgente = false; ST.sugeridas = e ? [e] : []; ST.texto = b.textContent.replace(/^\S+\s/, "");
+        ST.tipo = "duda"; ST.urgente = false; ST.sugeridas = e ? [e] : []; ST.texto = b.textContent.trim();
         pintar(); var s = document.getElementById("bz-sugiere"); if (s && s.scrollIntoView && window.innerWidth < 900) s.scrollIntoView({ behavior: "smooth", block: "start" });
       };
     });
     Array.prototype.forEach.call(app.querySelectorAll("[data-chip]"), function (b) {
       b.onclick = function () {
         var e = KB.filter(function (x) { return x.id === b.getAttribute("data-chip"); })[0];
-        ST.tipo = "problema"; ST.sugeridas = e ? [e] : []; if (!ST.texto) ST.texto = b.textContent.replace(/^\S+\s/, "") + ". ";
+        ST.tipo = "problema"; ST.sugeridas = e ? [e] : []; if (!ST.texto) ST.texto = b.textContent.trim() + ". ";
         pintar(); var t = document.getElementById("bz-texto"); if (t) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); }
       };
     });
@@ -284,7 +284,7 @@
           ' y te responde aquí mismo (y te avisa por correo); lo urgente, lo primero.', true);
       });
     }).catch(function (e) {
-      b.disabled = false; b.textContent = "📡 Transmitir al Mando";
+      b.disabled = false; b.innerHTML = "<img class=ico src=assets/img/iconos/p/envivo.png alt> Transmitir al Mando";
       aviso(/permission|insufficient/i.test(String(e && (e.code || e.message)))
         ? "La frecuencia no me deja transmitir desde esta cuenta ahora mismo. Recarga la página y vuelve a probar en un rato; si sigue igual, avisa a tu referente."
         : "No ha salido: " + esc((e && e.message) || e));
@@ -298,9 +298,9 @@
     var cx = m.contexto || {};
     return '<article class="bz-msg ' + esc(m.estado || "nuevo") + (m.urgente ? " urgente" : "") + (nuevoParaMi ? " fresco" : "") + '" data-m="' + esc(m.id) + '">'
       + '<header><span class="bz-tipo-et">' + tipo[1] + ' ' + tipo[2] + '</span>'
-      + (m.urgente ? '<span class="chip bz-urgente">🚨 Urgente</span>' : '')
+      + (m.urgente ? '<span class="chip bz-urgente"><img class=ico src=assets/img/iconos/p/aviso.png alt> Urgente</span>' : '')
       + '<span class="chip bz-estado">' + e[0] + ' ' + (comoMando && m.estado === "para_norberto" ? "Para ti" : e[1]) + '</span>'
-      + (nuevoParaMi ? '<span class="chip bz-nueva-r">📡 Respuesta nueva</span>' : '')
+      + (nuevoParaMi ? '<span class="chip bz-nueva-r"><img class=ico src=assets/img/iconos/p/envivo.png alt> Respuesta nueva</span>' : '')
       + '<time>' + cuando(m.creado) + '</time>'
       + (comoMando ? '<span class="bz-quien">' + esc(m.nombre || m.correo || "") + ' · ' + esc(m.grupo || m.projectId || "") + '</span>' : (m.grupo ? '<span class="bz-quien">' + esc(m.grupo) + '</span>' : ''))
       + '</header>'
@@ -308,16 +308,16 @@
       + (comoMando ? '<p class="bz-cx">' + ["desde " + (cx.desde || "—"), cx.semana ? "semana " + cx.semana : "", cx.pantalla || "", cx.referente ? "referente" : "",
            (cx.navegador || "").replace(/^.*?\) /, "").slice(0, 60)].filter(Boolean).map(esc).join(" · ") + '</p>' : '')
       + ((m.respuestas || []).length ? '<div class="bz-hilo">' + m.respuestas.map(function (r) {
-          return '<div class="bz-r ' + (r.de === "mando" ? "mando" : "docente") + '"><b>' + (r.de === "mando" ? "📡 El Mando" : (comoMando ? esc(m.nombre || "Docente") : "Tú")) + '</b>'
+          return '<div class="bz-r ' + (r.de === "mando" ? "mando" : "docente") + '"><b>' + (r.de === "mando" ? "<img class=ico src=assets/img/iconos/p/envivo.png alt> El Mando" : (comoMando ? esc(m.nombre || "Docente") : "Tú")) + '</b>'
             + '<p>' + esc(r.texto) + '</p><time>' + cuando(r.fecha) + '</time></div>'; }).join("") + '</div>' : '')
       + '<div class="bz-contesta"><textarea rows="2" maxlength="2000" placeholder="' + (comoMando ? "Responder como el Mando…" : "Contestar…") + '"></textarea>'
       + '<div class="bz-contesta-b">'
       + (comoMando
         ? '<select aria-label="Estado">' + Object.keys(ESTADOS).map(function (k) {
-            return '<option value="' + k + '"' + (k === (m.estado === "nuevo" ? (m.tipo === "idea" ? "anotado" : "resuelto") : m.estado) ? " selected" : "") + '>' + ESTADOS[k][0] + ' ' + (k === "para_norberto" ? "Para ti" : ESTADOS[k][1]) + '</option>'; }).join("") + '</select>'
+            return '<option value="' + k + '"' + (k === (m.estado === "nuevo" ? (m.tipo === "idea" ? "anotado" : "resuelto") : m.estado) ? " selected" : "") + '>' + (k === "para_norberto" ? "Para ti" : ESTADOS[k][1]) + '</option>'; }).join("") + '</select>'
           + '<button class="btn primary" type="button" data-responder>Responder</button>'
         : '<button class="btn" type="button" data-responder>Contestar</button>'
-          + (m.estado !== "resuelto" ? ' <button class="btn min" type="button" data-cerrar>✅ Ya está resuelto</button>' : ''))
+          + (m.estado !== "resuelto" ? ' <button class="btn min" type="button" data-cerrar><img class=ico src=assets/img/iconos/p/hecho.png alt> Ya está resuelto</button>' : ''))
       + '</div></div></article>';
   }
   function cablearMensajes(raiz, comoMando) {
@@ -329,18 +329,18 @@
         if (!t && !comoMando) { ta.focus(); return; }
         r.disabled = true;
         MOTOR.buzonResponder(id, t, comoMando ? { comoMando: true, estado: sel.value } : {})
-          .then(function () { return cargar(); }).then(function () { pintar(); aviso(comoMando ? "Respondido." : "📡 Enviado al Mando.", true); })
+          .then(function () { return cargar(); }).then(function () { pintar(); aviso(comoMando ? "Respondido." : "<img class=ico src=assets/img/iconos/p/envivo.png alt> Enviado al Mando.", true); })
           .catch(function (e) { r.disabled = false; aviso("No ha salido: " + esc((e && e.message) || e)); });
       };
       if (c) c.onclick = function () {
         MOTOR.buzonResponder(id, "", { estado: "resuelto" }).then(function () { return cargar(); })
-          .then(function () { pintar(); aviso("✅ Cerrado. ¡Gracias, Comandante!", true); });
+          .then(function () { pintar(); aviso("<img class=ico src=assets/img/iconos/p/hecho.png alt> Cerrado. ¡Gracias, Comandante!", true); });
       };
     });
   }
 
   // ── la vista del Mando: todo, con filtros
-  var FILTROS = [["abiertas", "📡 Por resolver"], ["urgentes", "🚨 Urgentes"], ["para_norberto", "🧭 Para ti"], ["ideas", "💡 Ideas"], ["resueltas", "✅ Resueltas"], ["todas", "Todas"]];
+  var FILTROS = [["abiertas", "<img class=ico src=assets/img/iconos/p/envivo.png alt> Por resolver"], ["urgentes", "<img class=ico src=assets/img/iconos/p/aviso.png alt> Urgentes"], ["para_norberto", "<img class=ico src=assets/img/iconos/p/brujula.png alt> Para ti"], ["ideas", "<img class=ico src=assets/img/iconos/p/estrella.png alt> Ideas"], ["resueltas", "<img class=ico src=assets/img/iconos/p/hecho.png alt> Resueltas"], ["todas", "Todas"]];
   function filtra(L) {
     return L.filter(function (m) {
       if (FILTRO === "abiertas") return m.estado === "nuevo" || m.estado === "en_marcha";
@@ -355,7 +355,7 @@
   function arde(m) { return m.urgente && m.estado !== "resuelto" && m.estado !== "anotado" ? 1 : 0; }
   function vistaMando() {
     var L = filtra(TODOS).slice().sort(function (a, b) { return (arde(b) - arde(a)) || ((b.actualizado || 0) - (a.actualizado || 0)); });
-    return '<section class="bz-mando"><h2>📋 Todas las transmisiones <span class="small muted">(solo el Mando)</span></h2>'
+    return '<section class="bz-mando"><h2><img class=ico src=assets/img/iconos/p/notas.png alt> Todas las transmisiones <span class="small muted">(solo el Mando)</span></h2>'
       + '<div class="bz-filtros" role="group">' + FILTROS.map(function (f) {
           var n = FILTRO === f[0] ? L.length : filtraCon(f[0]).length;
           return '<button type="button" class="bz-chip' + (FILTRO === f[0] ? " on" : "") + '" data-filtro="' + f[0] + '">' + f[1] + ' <b>' + n + '</b></button>'; }).join("") + '</div>'

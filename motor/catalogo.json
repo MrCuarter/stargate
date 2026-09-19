@@ -35,7 +35,7 @@
       },
       {
         "id": "L1",
-        "titulo": "Reto ⚡ «La chispa y la marca» (imagen con IA + logo)",
+        "titulo": "Reto relámpago «La chispa y la marca» (imagen con IA + logo)",
         "insignias": [
           "R1_la-chispa"
         ],
@@ -76,7 +76,7 @@
       },
       {
         "id": "L2",
-        "titulo": "Reto ⚡ «Módulo 1 y módulo 2» (antes y durante la clase)",
+        "titulo": "Reto relámpago «Módulo 1 y módulo 2» (antes y durante la clase)",
         "insignias": [],
         "xp": 60,
         "tema": 2,
@@ -104,7 +104,7 @@
       },
       {
         "id": "L3",
-        "titulo": "Reto ⚡ «Cinco líneas que explican» (itinerario y paisaje)",
+        "titulo": "Reto relámpago «Cinco líneas que explican» (itinerario y paisaje)",
         "insignias": [],
         "xp": 60,
         "tema": 3,
@@ -142,7 +142,7 @@
       },
       {
         "id": "L4",
-        "titulo": "Reto ⚡ «Enlace en incógnito» (que se vea sin tu cuenta)",
+        "titulo": "Reto relámpago «Enlace en incógnito» (que se vea sin tu cuenta)",
         "insignias": [],
         "xp": 60,
         "tema": 4,
@@ -170,7 +170,7 @@
       },
       {
         "id": "L5",
-        "titulo": "Reto ⚡ «Tres preguntas» (autoevaluación)",
+        "titulo": "Reto relámpago «Tres preguntas» (autoevaluación)",
         "insignias": [],
         "xp": 60,
         "tema": 5,
@@ -198,7 +198,7 @@
       },
       {
         "id": "L6",
-        "titulo": "Reto ⚡ «Las diez líneas» (justifica un recurso)",
+        "titulo": "Reto relámpago «Las diez líneas» (justifica un recurso)",
         "insignias": [],
         "xp": 60,
         "tema": 6,
@@ -236,7 +236,7 @@
       },
       {
         "id": "L7",
-        "titulo": "Reto ⚡ «El marcador» (tabla de clasificación)",
+        "titulo": "Reto relámpago «El marcador» (tabla de clasificación)",
         "insignias": [],
         "xp": 60,
         "tema": 7,
@@ -264,7 +264,7 @@
       },
       {
         "id": "L8",
-        "titulo": "Reto ⚡ «El QR» (un QR dentro de una lámina)",
+        "titulo": "Reto relámpago «El QR» (un QR dentro de una lámina)",
         "insignias": [],
         "xp": 60,
         "tema": 8,
@@ -305,7 +305,7 @@
       },
       {
         "id": "L1",
-        "titulo": "Reto ⚡ «La chispa y la marca» (imagen con IA + logo)",
+        "titulo": "Reto relámpago «La chispa y la marca» (imagen con IA + logo)",
         "insignias": [
           "R1_la-chispa"
         ],
@@ -337,7 +337,7 @@
       },
       {
         "id": "L2",
-        "titulo": "Reto ⚡ «Módulo 1 y módulo 2» (antes y durante la clase)",
+        "titulo": "Reto relámpago «Módulo 1 y módulo 2» (antes y durante la clase)",
         "insignias": [],
         "xp": 60,
         "tema": 2,
@@ -356,7 +356,7 @@
       },
       {
         "id": "L3",
-        "titulo": "Reto ⚡ «Cinco líneas que explican» (itinerario y paisaje)",
+        "titulo": "Reto relámpago «Cinco líneas que explican» (itinerario y paisaje)",
         "insignias": [],
         "xp": 60,
         "tema": 3,
@@ -385,7 +385,7 @@
       },
       {
         "id": "L4",
-        "titulo": "Reto ⚡ «Enlace en incógnito» (que se vea sin tu cuenta)",
+        "titulo": "Reto relámpago «Enlace en incógnito» (que se vea sin tu cuenta)",
         "insignias": [],
         "xp": 60,
         "tema": 4,
@@ -404,7 +404,7 @@
       },
       {
         "id": "L5",
-        "titulo": "Reto ⚡ «Tres preguntas» (autoevaluación)",
+        "titulo": "Reto relámpago «Tres preguntas» (autoevaluación)",
         "insignias": [],
         "xp": 60,
         "tema": 5,
@@ -423,7 +423,7 @@
       },
       {
         "id": "L6",
-        "titulo": "Reto ⚡ «Las diez líneas» (justifica un recurso)",
+        "titulo": "Reto relámpago «Las diez líneas» (justifica un recurso)",
         "insignias": [],
         "xp": 60,
         "tema": 6,
@@ -452,7 +452,7 @@
       },
       {
         "id": "L7",
-        "titulo": "Reto ⚡ «El marcador» (tabla de clasificación)",
+        "titulo": "Reto relámpago «El marcador» (tabla de clasificación)",
         "insignias": [],
         "xp": 60,
         "tema": 7,
@@ -471,7 +471,7 @@
       },
       {
         "id": "L8",
-        "titulo": "Reto ⚡ «El QR» (un QR dentro de una lámina)",
+        "titulo": "Reto relámpago «El QR» (un QR dentro de una lámina)",
         "insignias": [],
         "xp": 60,
         "tema": 8,
@@ -1002,7 +1002,7 @@
       "nombre": "Cápsula de rescate",
       "coste": 60,
       "maximo": 99,
-      "descripcion": "Una cápsula de rescate llega a tu Nave con UN héroe de la Rebelión dentro, al azar: 30 figuras en tres rangos. ⚔️ La Resistencia (56%): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar.",
+      "descripcion": "Una cápsula de rescate llega a tu Nave con UN héroe de la Rebelión dentro, al azar: 30 figuras en tres rangos. La Resistencia (56%): el grueso del ejército. La Vanguardia (36%): van por delante, cuesta alcanzarlas. Los MITOS (8%, ni uno de cada doce): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar.",
       "desdeSemana": 3,
       "tipo": "heroe"
     },
@@ -1050,7 +1050,7 @@
       "nombre": "Subir 0,5 en un entregable",
       "coste": 550,
       "maximo": 1,
-      "descripcion": "⚔️ ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. 🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — estarías tirando 550 créditos a la basura. Comprueba tu nota primero. Con esos créditos cierras media docena de sobres o te llevas nueve héroes.",
+      "descripcion": "ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — estarías tirando 550 créditos a la basura. Comprueba tu nota primero. Con esos créditos cierras media docena de sobres o te llevas nueve héroes.",
       "desdeSemana": 15,
       "tipo": "nota"
     },
@@ -1058,7 +1058,7 @@
       "nombre": "Subir 1 punto en un entregable",
       "coste": 850,
       "maximo": 1,
-      "descripcion": "⚔️ ARSENAL DE BATALLA · Un punto entero en una actividad ya entregada y corregida. 🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, no te sube nada y pierdes los 850 créditos. Es la recompensa más cara del catálogo a propósito: elegirla significa renunciar a casi todo lo demás.",
+      "descripcion": "ARSENAL DE BATALLA · Un punto entero en una actividad ya entregada y corregida. LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, no te sube nada y pierdes los 850 créditos. Es la recompensa más cara del catálogo a propósito: elegirla significa renunciar a casi todo lo demás.",
       "desdeSemana": 15,
       "tipo": "nota"
     },
@@ -1066,7 +1066,7 @@
       "nombre": "Recalificar un trabajo entregado fuera de plazo",
       "coste": 700,
       "maximo": 1,
-      "descripcion": "⚔️ ARSENAL DE BATALLA · Que se te corrija un trabajo que entregaste tarde. No es un aprobado automático: es que se mire y se puntúe como si hubiera llegado a tiempo.",
+      "descripcion": "ARSENAL DE BATALLA · Que se te corrija un trabajo que entregaste tarde. No es un aprobado automático: es que se mire y se puntúe como si hubiera llegado a tiempo.",
       "desdeSemana": 15,
       "tipo": "nota"
     },
@@ -1074,7 +1074,7 @@
       "nombre": "Recalificar un suspenso",
       "coste": 950,
       "maximo": 1,
-      "descripcion": "⚔️ ARSENAL DE BATALLA · Una segunda oportunidad sobre un trabajo suspenso: lo rehaces y se vuelve a corregir. Pensada para quien ha trabajado y se le atragantó una entrega.",
+      "descripcion": "ARSENAL DE BATALLA · Una segunda oportunidad sobre un trabajo suspenso: lo rehaces y se vuelve a corregir. Pensada para quien ha trabajado y se le atragantó una entrega.",
       "desdeSemana": 15,
       "tipo": "nota"
     }

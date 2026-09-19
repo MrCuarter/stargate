@@ -307,7 +307,7 @@
     var b = document.createElement("button");
     b.id = "sg-son"; b.type = "button";
     var pinta = function () {
-      b.textContent = suena() ? "🔊" : "🔇";
+      b.innerHTML = suena() ? "<svg viewBox=\"0 0 24 24\" width=\"1.2em\" height=\"1.2em\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"vertical-align:middle\" aria-hidden=\"true\"><path d=\"M11 5 6 9H2v6h4l5 4z\"/><path d=\"M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14\"/></svg>" : "<svg viewBox=\"0 0 24 24\" width=\"1.2em\" height=\"1.2em\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"vertical-align:middle\" aria-hidden=\"true\"><path d=\"M11 5 6 9H2v6h4l5 4z\"/><path d=\"M22 9l-6 6M16 9l6 6\"/></svg>";
       b.title = suena() ? "Silenciar los sonidos" : "Activar los sonidos";
       b.setAttribute("aria-label", b.title);
       b.classList.toggle("mudo", !suena());

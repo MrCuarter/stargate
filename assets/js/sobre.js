@@ -116,10 +116,10 @@
           '<span class="sb-rareza">' + esc(r === "legendaria" ? "LEGENDARIA" : c.rareza || "común") + '</span>' +
           (c.tipo === "heroe"
             // 🔴 13-sep · un héroe repetido se decía como nuevo: pagabas 60 ◈ y nadie te avisaba
-            ? (c.repetida ? '<p class="sb-extra">🔁 Repetido: con dos héroes repetidos, uno nuevo al azar (en tu vestuario).</p>'
-                          : '<p class="sb-extra nueva">✨ Nuevo en tu vestuario</p>')
-            : (c.repetida ? '<p class="sb-extra">🔁 Repetida: con tres repetidas, un sobre nuevo gratis.</p>'
-                          : '<p class="sb-extra nueva">✨ Nueva en tu álbum</p>'));
+            ? (c.repetida ? '<p class="sb-extra"><img class=ico src=assets/img/iconos/p/zoco.png alt> Repetido: con dos héroes repetidos, uno nuevo al azar (en tu vestuario).</p>'
+                          : '<p class="sb-extra nueva"><img class=ico src=assets/img/iconos/p/estrella.png alt> Nuevo en tu vestuario</p>')
+            : (c.repetida ? '<p class="sb-extra"><img class=ico src=assets/img/iconos/p/zoco.png alt> Repetida: con tres repetidas, un sobre nuevo gratis.</p>'
+                          : '<p class="sb-extra nueva"><img class=ico src=assets/img/iconos/p/estrella.png alt> Nueva en tu álbum</p>'));
         capa.querySelector(".sb-sig").textContent = i < cartas.length - 1 ? "Siguiente carta →" : "Ver las " + cartas.length;
         if (cartas.length === 1) capa.querySelector(".sb-sig").textContent = c.tipo === "heroe" ? "Guardarlo" : "Guardarla";
         // una legendaria se celebra como tal: chispas doradas y el sonido de subir de nivel

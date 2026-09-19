@@ -33,16 +33,16 @@
   // Los cuatro jugadores de Bartle (1996) y, en la Nave, lo que mueve a cada uno. Las filas no van
   // en el orden de los tipos: si no, bastaría con bajar en diagonal.
   var TIPOS = [
-    { k: "triunfador", n: "Triunfador", ico: "🏅", d: "Completar, coleccionar, subir de nivel." },
-    { k: "explorador", n: "Explorador", ico: "🧭", d: "Descubrir lo que nadie le ha contado." },
-    { k: "socializador", n: "Socializador", ico: "🤝", d: "Estar con los suyos: el grupo es el juego." },
-    { k: "competidor", n: "Competidor", ico: "⚔️", d: "Medirse con los demás y ganar." }
+    { k: "triunfador", n: "Triunfador", ico: "<img class=ico src=assets/img/iconos/p/medalla.png alt>", d: "Completar, coleccionar, subir de nivel." },
+    { k: "explorador", n: "Explorador", ico: "<img class=ico src=assets/img/iconos/p/brujula.png alt>", d: "Descubrir lo que nadie le ha contado." },
+    { k: "socializador", n: "Socializador", ico: "<img class=ico src=assets/img/iconos/p/gente.png alt>", d: "Estar con los suyos: el grupo es el juego." },
+    { k: "competidor", n: "Competidor", ico: "<img class=ico src=assets/img/iconos/p/diana.png alt>", d: "Medirse con los demás y ganar." }
   ];
   var HILOS = [
-    { t: "🏆 El ranking de la semana y el duelo con quien tienes al lado", k: "competidor" },
-    { t: "🃏 Completar el álbum de cromos, carta a carta", k: "triunfador" },
-    { t: "🛡️ Hacer piña con tu escuadrón", k: "socializador" },
-    { t: "🕳️ Un enlace escondido que nadie te ha contado", k: "explorador" }
+    { t: "El ranking de la semana y el duelo con quien tienes al lado", k: "competidor" },
+    { t: "Completar el álbum de cromos, carta a carta", k: "triunfador" },
+    { t: "Hacer piña con tu escuadrón", k: "socializador" },
+    { t: "Un enlace escondido que nadie te ha contado", k: "explorador" }
   ];
 
   // ── lo que lleva hecho (en su navegador: recargar no le devuelve al principio)
@@ -78,7 +78,7 @@
   // ── 0 · el enlace que no debía estar
   function portada() {
     escena("puerto",
-      '<div class="kicker">🕳️ Canal sin registrar</div><h1>El Fragmento Prohibido</h1>'
+      '<div class="kicker">Canal sin registrar</div><h1>El Fragmento Prohibido</h1>'
       + nebula('No deberías estar aquí. Este enlace no sale en ningún mapa de la Nave: alguien lo escondió en Vínculo '
         + 'para quien mira donde nadie mira. Detrás hay un archivo de Ashan que <b>Vaeon selló con su propia mano</b>. '
         + 'Si lo abres, sabrás algo que nadie más a bordo sabe.')
@@ -91,7 +91,7 @@
   function telar(resuelto) {
     var mostrarBien = st.intentosTelar >= 2;
     escena("telar",
-      '<div class="kicker">🧵 1 de 2 · La sala de los vínculos</div><h2>El telar de Vínculo</h2>'
+      '<div class="kicker"><img class=ico src=assets/img/iconos/p/enlace.png alt> 1 de 2 · La sala de los vínculos</div><h2>El telar de Vínculo</h2>'
       + '<p class="fr-sub">El archivo está atado a un telar. Cada hilo une un <b>tipo de jugador</b> con lo que le hace volver a la Nave. '
       + 'Vaeon los cruzó todos. Pon cada uno en su sitio y el telar abrirá el paso.</p>'
       + '<div class="fr-tipos">' + TIPOS.map(function (t) {
@@ -154,7 +154,7 @@
   function sello(aviso, foco) {
     var g0 = ((st.giro % 26) + 26) % 26, lee = leer(g0);
     escena("sello",
-      '<div class="kicker">🔏 2 de 2 · El sello de Vaeon</div><h2>La inscripción sellada</h2>'
+      '<div class="kicker"><img class=ico src=assets/img/iconos/p/candado.png alt> 2 de 2 · El sello de Vaeon</div><h2>La inscripción sellada</h2>'
       + '<p class="fr-sub">Vaeon escribió el nombre al revés del mundo. Gira el disco: el anillo de <b>fuera</b> es lo que está escrito; '
       + 'el de <b>dentro</b>, lo que significa.</p>'
       + '<div class="fr-insc" aria-label="Inscripción">' + INSC.split("").map(function (c) { return '<span>' + esc(c) + '</span>'; }).join("") + '</div>'
@@ -192,14 +192,14 @@
     var P = String(st.palabra || "").toUpperCase(), p = P.toLowerCase();
     escena("puente",
       '<div class="fr-rev"><div class="fr-carta"><img id="fr-carta" src="assets/img/tarjetas/S1_' + esc(p) + '_carta.png" alt="La carta del nombre que borró"></div>'
-      + '<div class="fr-rev-txt"><div class="kicker">🔓 El sello se rompe</div><h2 class="fr-nombre">' + esc(P) + '</h2>'
+      + '<div class="fr-rev-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/abierto.png alt> El sello se rompe</div><h2 class="fr-nombre">' + esc(P) + '</h2>'
       + '<p class="fr-sub">Así se llamaba antes de ser Vaeon. <b>' + esc(P.charAt(0) + p.slice(1)) + '</b>, el Archivista Mayor de Ashan, '
       + 'custodio de la memoria de un mundo. Cuando la Estática se llevó a los suyos, releerlos no lo consoló: lo rompió. '
       + 'Y el primer archivo que selló bajo llave fue su propio nombre. Ahora lo sabes tú.</p>'
       + nebula('¿Te has fijado? Este reto no lo pedía nadie y no hacía falta para acabar el planeta. Lo has buscado porque había un secreto. '
         + 'En gamificación, eso es la <b>motivación del explorador</b>: pocos diseños la cuidan y es de las que más enganchan. Guárdala para el tuyo.')
-      + '<p class="fr-premio">🏅 Registra el reto: <b>+' + (Number(F.xp) || 150) + ' xp</b> y la insignia legendaria <b>' + esc(F.insignia || "") + '</b>.</p>'
-      + '<p class="fr-acciones"><button type="button" class="btn primary grande" id="fr-registrar">🕳️ Registrar el reto secreto</button></p>'
+      + '<p class="fr-premio"><img class=ico src=assets/img/iconos/p/medalla.png alt> Registra el reto: <b>+' + (Number(F.xp) || 150) + ' xp</b> y la insignia legendaria <b>' + esc(F.insignia || "") + '</b>.</p>'
+      + '<p class="fr-acciones"><button type="button" class="btn primary grande" id="fr-registrar">Registrar el reto secreto</button></p>'
       + '<p class="fr-nota">No se lo cuentes a nadie: los secretos se encuentran jugando.</p></div></div>',
       "revelacion");
     var img = document.getElementById("fr-carta");

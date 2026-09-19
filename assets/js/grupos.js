@@ -32,13 +32,13 @@
   // que se comparte con el alumnado» y era justo al revés: registro.html es la web del método, con la
   // guía de instalación y el acceso del profesorado. El único enlace web del alumnado es su Nave.
   var ACCESOS=[
-    ['clase.html','🧑‍🏫','Mi clase (sala del docente)','Lo que requiere tu intervención, las dudas del ticket y tu gente — con los errores corregibles desde ahí.','profe'],
-    ['recluta.html','🚀','La Nave del recluta','La web del alumnado: orden de la semana, planetas, ficha personal, álbum de cromos y recompensas. <b>La única página que se les da.</b>','alu'],
-    ['registro.html','🏆','Tablero del grupo y método','El ranking en vivo y la explicación del sistema, con la guía de instalación. En clase se enseña <b>embebido</b> en el Genially, no por este enlace.','profe'],
-    ['profes.html','🧑‍🏫','Panel del profesorado','Alumnos, ajustes, canjes y ciclo de vida del PER. Pide el <b>PIN</b>.','profe'],
-    ['tickets.html','🎟️','Tickets de salida','Las valoraciones y dudas anónimas de «Contacta con NEBULA», por sección.','profe'],
-    ['foro.html','💬','Foro de la semana','El mensaje que toca publicar esta semana, listo para copiar.','profe'],
-    ['embed.html','🔗','Enlaces, embeds y QR','Todo lo que hay que pegar en los Geniallys de este grupo.','profe']
+    ['clase.html','<img class=ico src=assets/img/iconos/p/gente.png alt>','Mi clase (sala del docente)','Lo que requiere tu intervención, las dudas del ticket y tu gente — con los errores corregibles desde ahí.','profe'],
+    ['recluta.html','<img class=ico src=assets/img/iconos/p/cohete.png alt>','La Nave del recluta','La web del alumnado: orden de la semana, planetas, ficha personal, álbum de cromos y recompensas. <b>La única página que se les da.</b>','alu'],
+    ['registro.html','<img class=ico src=assets/img/iconos/p/rankings.png alt>','Tablero del grupo y método','El ranking en vivo y la explicación del sistema, con la guía de instalación. En clase se enseña <b>embebido</b> en el Genially, no por este enlace.','profe'],
+    ['profes.html','<img class=ico src=assets/img/iconos/p/gente.png alt>','Panel del profesorado','Alumnos, ajustes, canjes y ciclo de vida del PER. Pide el <b>PIN</b>.','profe'],
+    ['tickets.html','<img class=ico src=assets/img/iconos/p/ticket.png alt>','Tickets de salida','Las valoraciones y dudas anónimas de «Contacta con NEBULA», por sección.','profe'],
+    ['foro.html','<img class=ico src=assets/img/iconos/p/mensaje.png alt>','Foro de la semana','El mensaje que toca publicar esta semana, listo para copiar.','profe'],
+    ['embed.html','<img class=ico src=assets/img/iconos/p/enlace.png alt>','Enlaces, embeds y QR','Todo lo que hay que pegar en los Geniallys de este grupo.','profe']
   ];
   var QUIEN={alu:'<span class="quien alu">alumnado</span>',profe:'<span class="quien profe">solo profes</span>'};
 
@@ -52,14 +52,14 @@
     else if(d===null)  forms='<p class="small muted">No se han podido leer los formularios de este grupo.</p>';
     else {
       var b=[];
-      if(d.formBitacora) b.push(['📓','Bitácora de mando',d.formBitacora]);
-      if(d.formCanje)    b.push(['🎁','Canje de recompensas',d.formCanje]);
-      if(d.formTicket)   b.push(['🎟️','Ticket «Contacta con NEBULA»',d.formTicket]);
-      if(d.panel)        b.push(['🪐','Panel de control (Genially)',d.panel]);
+      if(d.formBitacora) b.push(['<img class=ico src=assets/img/iconos/p/notas.png alt>','Bitácora de mando',d.formBitacora]);
+      if(d.formCanje)    b.push(['<img class=ico src=assets/img/iconos/p/premios.png alt>','Canje de recompensas',d.formCanje]);
+      if(d.formTicket)   b.push(['<img class=ico src=assets/img/iconos/p/ticket.png alt>','Ticket «Contacta con NEBULA»',d.formTicket]);
+      if(d.panel)        b.push(['<img class=ico src=assets/img/iconos/p/varios.png alt>','Panel de control (Genially)',d.panel]);
       // los cuatro son del alumnado: se dice, para que la tarjeta no deje nada a la interpretación
       forms=b.length?('<div class="forms">'+b.map(function(x){
           return '<a class="chip-link" href="'+esc(x[2])+'" target="_blank" rel="noopener">'+x[0]+' '+esc(x[1])+'</a>';}).join('')
-        +'</div><p class="acc-nota">✅ Estos cuatro se comparten con el alumnado. Junto a su Nave, es TODO lo que tocan.</p>')
+        +'</div><p class="acc-nota"><img class=ico src=assets/img/iconos/p/hecho.png alt> Estos cuatro se comparten con el alumnado. Junto a su Nave, es TODO lo que tocan.</p>')
         :'<p class="small muted">Este grupo aún no tiene formularios publicados.</p>';
     }
     return '<div class="card grupo'+(p.id===foco?' foco':'')+'" id="g-'+esc(p.id)+'">'
@@ -67,7 +67,7 @@
       +'<p class="small muted">'+esc(p.tipo||'')+(p.estado?' · '+esc(p.estado):'')
       +(p.inicio?' · empezó el '+esc(fecha(p.inicio)):'')+(sem?' · <b>'+esc(sem)+'</b>':'')+'</p></div>'
       +'<button class="btn small copiar" type="button" data-url="'+location.origin+location.pathname.replace(/grupos\.html$/,'')
-      +'recluta.html?per='+encodeURIComponent(p.id)+'">📋 Copiar enlace del alumnado</button></div>'
+      +'recluta.html?per='+encodeURIComponent(p.id)+'"><img class=ico src=assets/img/iconos/p/notas.png alt> Copiar enlace del alumnado</button></div>'
       +'<div class="accesos">'+accesos+'</div>'+forms+'</div>';
   }
 
@@ -80,7 +80,7 @@
     Array.prototype.forEach.call(root.querySelectorAll('.copiar'),function(b){
       b.onclick=function(){ var t=b.getAttribute('data-url');
         (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){
-          var v=b.textContent; b.textContent='✓ Copiado'; setTimeout(function(){b.textContent=v;},1600);
+          var v=b.innerHTML; b.textContent='✓ Copiado'; setTimeout(function(){b.innerHTML=v;},1600);
         }).catch(function(){ window.prompt('Copia el enlace:', t); }); };
     });
     var f=foco&&document.getElementById('g-'+foco); if(f) f.scrollIntoView({block:'center'});

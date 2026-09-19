@@ -31,7 +31,7 @@ function montar(root, per, OPC){
   // la batalla ya no son 24, y escribirlo a mano aquí era la segunda copia de un dato que vive en _build_site.py.
   var ORDEN=(window.SG_BADGES&&window.SG_BADGES.length)?window.SG_BADGES.slice():["P1_bran","P2_tomas","P3_sylla","P4_amara","P5_vera","P6_joran","P7_mara","P8_noa","R1_la-chispa","R2_el-eco-que-ensena","R3_la-matriz","R4_entorno-de-aula","R5_bitacora-medida","R6_el-juego","R7_microgamificacion","R8_ultimo-umbral","E1_nebula","E2_capitan","E3_vaeon","H1_reclutamiento","H2_primera-forja","H3_cartografo","H4_tripulacion-cero","H5_la-liberacion"];
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-  function msg(h){root.innerHTML='<div class="wip"><span class="ic">🛰️</span><div>'+h+'</div></div>';}
+  function msg(h){root.innerHTML='<div class="wip"><span class="ic"><img class=ico src=assets/img/iconos/p/envivo.png alt></span><div>'+h+'</div></div>';}
   var FUENTE=(window.SG&&SG.FUENTE)||null;
   if(!enConsola&&!API&&(!FUENTE||FUENTE.nombre!=='firestore')){msg('<b>Tablero pendiente de conectar.</b> Falta la URL del web app (guía de instalación, abajo).');return;}
   // 🔴 Este tablero es el que vive DENTRO de los Geniallys del profesorado, donde no hay sesión de
@@ -73,14 +73,14 @@ function montar(root, per, OPC){
 
   // ---------- los tres modos ----------
   var MODOS=[
-    {k:'xp', et:'⭐ Más xp', col:'xp',
+    {k:'xp', et:'<img class=ico src=assets/img/iconos/p/estrella.png alt> Más xp', col:'xp',
      ayuda:'Los xp que has ganado desde que empezaste. <b>Nunca bajan</b>: canjear recompensas no te quita puestos.',
      val:function(p){return p.xp;}, unidad:' xp', vacio:'Todavía nadie ha registrado nada.'},
-    {k:'semana', et:'🔥 Esta semana', col:'sem',
+    {k:'semana', et:'<img class=ico src=assets/img/iconos/p/fuego.png alt> Esta semana', col:'sem',
      ayuda:'xp ganados en los <b>últimos 7 días</b>. Se renueva solo, así que da igual cómo empezaste: esta semana salís todos de cero.',
      val:function(p){return p.xp7||0;}, unidad:' xp', soloConValor:true,
      vacio:'Esta semana todavía no ha registrado nada nadie. La carrera está abierta.'},
-    {k:'coleccion', et:'🃏 Colección', col:'col',
+    {k:'coleccion', et:'<img class=ico src=assets/img/iconos/p/estrella.png alt> Colección', col:'col',
      ayuda:'Lo que <b>tienes</b>, no lo que has trabajado: cartas del álbum, héroes de la Rebelión y versiones de tu personaje. Al 100 % lo tienes TODO.',
      val:pctCol, unidad:' %', pct:true, soloConValor:true,
      vacio:'Nadie ha empezado a coleccionar todavía. Los sobres se abren desde la semana 2.'},
@@ -90,19 +90,19 @@ function montar(root, per, OPC){
      * tablas de xp — se consigue midiendo COSAS DISTINTAS, para que quien no destaca trabajando
      * destaque siendo constante, o coleccionando, o terminando lo que empieza.
      */
-    {k:'escuadron', et:'🛡️ Mi escuadrón', col:'xp', soloSiSeQuienSoy:true,
+    {k:'escuadron', et:'<img class=ico src=assets/img/iconos/p/escudo.png alt> Mi escuadrón', col:'xp', soloSiSeQuienSoy:true,
      ayuda:'Solo tu gente. En una clase de doscientos, ser el 40.º no dice nada; ser el 3.º de los tuyos, sí.',
      val:function(p){return p.xp;}, unidad:' xp', filtro:function(p){ return mismoEscuadron(p); },
      vacio:'Todavía no hay nadie más en tu escuadrón.'},
-    {k:'racha', et:'📆 Constancia', col:'racha',
+    {k:'racha', et:'<img class=ico src=assets/img/iconos/p/calendario.png alt> Constancia', col:'racha',
      ayuda:'Semanas <b>seguidas</b> registrando algo. Premia a quien no falla, que es justo lo que el ranking de xp no ve.',
      val:function(p){return p.racha||0;}, unidad:function(v){return v===1?' semana':' semanas';}, soloConValor:true,
      vacio:'Nadie lleva todavía una racha. Con registrar algo dos semanas seguidas ya sales aquí.'},
-    {k:'insignias', et:'🏅 Insignias', col:'n',
+    {k:'insignias', et:'<img class=ico src=assets/img/iconos/p/medalla.png alt> Insignias', col:'n',
      ayuda:'Cuántas llevas de las 24. No es lo mismo que los xp: se puede tener mucha experiencia con pocas insignias.',
      val:function(p){return p.n||0;}, unidad:'', soloConValor:true,
      vacio:'Todavía no se ha entregado ninguna insignia.'},
-    {k:'planetas', et:'🪐 Explorador', col:'pl',
+    {k:'planetas', et:'<img class=ico src=assets/img/iconos/p/varios.png alt> Explorador', col:'pl',
      ayuda:'Planetas <b>completos</b>: temas con todos sus retos cerrados. Premia terminar lo que se empieza en vez de picotear.',
      // 🔴 `planetas_completos` es un ARRAY con los números de los temas cerrados, no un contador.
      // Restando dos arrays sale NaN y el orden se rompe SIN error: la tabla salía en el orden en que
@@ -115,32 +115,32 @@ function montar(root, per, OPC){
      * Joran con sus mismos nombres y sus mismos mínimos (un dato, un sitio: SG_BATALLA), los logros de a bordo y los
      * relámpago, que se juegan en clase y por eso premian ESTAR. Cada uno mide una cosa distinta: más gente brilla.
      */
-    {k:'relampago', et:'🌩️ Relámpago', col:'xp',
+    {k:'relampago', et:'<img class=ico src=assets/img/iconos/p/rayo.png alt> Relámpago', col:'xp',
      ayuda:'Retos <b>relámpago</b> hechos: los de diez minutos que se juegan en clase. Premia estar, no correr.',
      val:function(p){return nRelampago(p)||0;},
      unidad:function(v){return v===1?' relámpago':' relámpago';}, soloConValor:true,
      vacio:'Todavía nadie ha hecho un relámpago. Se juegan en clase, desde la semana 2.'},
-    {k:'logros', et:'🎖️ Logros de a bordo', col:'xp',
+    {k:'logros', et:'<img class=ico src=assets/img/iconos/p/medalla.png alt> Logros de a bordo', col:'xp',
      ayuda:'Las <b>primeras veces</b> en la Nave: el primer reto, la primera reflexión, comentar a tu tripulación, tres días seguidos…',
      val:function(p){return nLogros(p)||0;},
      unidad:function(v){return v===1?' logro':' logros';}, soloConValor:true,
      vacio:'Todavía nadie tiene logros de a bordo. Se presentan en la semana 9.'},
-    {k:'sabio', et:medalla('sabio','📚 Quien más sabe'), col:'xp',
+    {k:'sabio', et:medalla('sabio','<img class=ico src=assets/img/iconos/p/libro.png alt> Quien más sabe'), col:'xp',
      ayuda:'Respuestas <b>correctas</b> en el Simulador de Joran, sumando todas sus batallas.',
      val:function(p){return Number(simT(p).aciertos)||0;}, unidad:' aciertos', soloConValor:true,
      vacio:'Nadie ha peleado todavía contra el Simulador de Joran.'},
-    {k:'certero', et:medalla('certero','🎯 El más certero'), col:'xp', pct:true,
+    {k:'certero', et:medalla('certero','<img class=ico src=assets/img/iconos/p/diana.png alt> El más certero'), col:'xp', pct:true,
      ayuda:function(){return 'Porcentaje de <b>aciertos</b> en el Simulador, a partir de '+MIN.respondidas+' respuestas: una buena tarde no vale por un curso.';},
      val:function(p){var t=simT(p); return Number(t.respondidas)>=MIN.respondidas?(t.aciertos*100)/t.respondidas:0;},
      unidad:' %', soloConValor:true,
      vacio:'Nadie llega todavía al mínimo de respuestas en el Simulador.'},
-    {k:'rapido', et:medalla('rapido','⚡ El más rápido'), col:'xp', pct:true, asc:true,
+    {k:'rapido', et:medalla('rapido','<img class=ico src=assets/img/iconos/p/rayo.png alt> El más rápido'), col:'xp', pct:true, asc:true,
      ayuda:function(){return 'Segundos por <b>acierto</b> en el Simulador, a partir de '+MIN.aciertos+' aciertos. Aquí gana el número más <b>bajo</b>.';},
      val:function(p){var t=simT(p); return Number(t.aciertos)>=MIN.aciertos?(t.ms/1000)/t.aciertos:0;},
      unidad:' s por acierto', soloConValor:true,
      vacio:'Nadie llega todavía al mínimo de aciertos en el Simulador.'},
-    {k:'escuadrones', et:'⚔️ Escuadrones', col:'xp', porEquipos:true,
-     ayuda:'Los escuadrones entre sí, por <b>media de xp por recluta</b>. 🔴 Por media y no por total: sumando ganaría siempre el más numeroso, y eso no mediría nada.',
+    {k:'escuadrones', et:'<img class=ico src=assets/img/iconos/p/diana.png alt> Escuadrones', col:'xp', porEquipos:true,
+     ayuda:'Los escuadrones entre sí, por <b>media de xp por recluta</b>. Por media y no por total: sumando ganaría siempre el más numeroso, y eso no mediría nada.',
      val:function(p){return p.xp;}, unidad:' xp de media',
      vacio:'Todavía no hay escuadrones con gente dentro.'}
   ];
@@ -179,10 +179,10 @@ function montar(root, per, OPC){
       +'<button class="lupa-x" aria-label="Cerrar">×</button>'
       +'<div class="fr-cab"><img class="fr-av'+(p.marco==='oro'?' marco-oro':'')+'" src="'+esc(av.src)+'" alt="">'
         +'<div><div class="eyebrow amber">'+esc(av.rango)+' · puesto '+p._pos+'</div>'
-        +'<h3>'+(p.corona?'👑 ':'')+esc(p.alias)+'</h3>'
+        +'<h3>'+(p.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(p.alias)+'</h3>'
         +(p.titulo?'<div class="titulo-recluta">«'+esc(p.titulo)+'»</div>':'')
         +'<div class="small muted">Nivel '+(SG.nivel?SG.nivel(p.xp,d.tipo):1)+' · '+p.xp+' xp · planeta '+esc(p.planeta)
-        +(p.racha>=3?' · 🔥 '+p.racha+' semanas seguidas':'')+'</div></div></div>'
+        +(p.racha>=3?' · <img class=ico src=assets/img/iconos/p/fuego.png alt> '+p.racha+' semanas seguidas':'')+'</div></div></div>'
       +(p.bio?'<p class="fr-bio">«'+esc(p.bio)+'»</p>':'')
       +'<div class="fr-kpis">'
         +'<div><b>'+p.n+'</b><span>de '+ORDEN.length+' insignias</span></div>'
@@ -219,16 +219,16 @@ function montar(root, per, OPC){
     function chipsAmbito(){
       if(ESCS.length<2||modo.porEquipos) return '';
       return '<div class="rank-ambito" role="group" aria-label="De quién es el ranking">'
-        +'<button type="button" class="ra'+(!ambito?' on':'')+'" data-amb="">🌐 Todo el grupo <span>'+todos.length+'</span></button>'
+        +'<button type="button" class="ra'+(!ambito?' on':'')+'" data-amb=""><img class=ico src=assets/img/iconos/p/varios.png alt> Todo el grupo <span>'+todos.length+'</span></button>'
         +ESCS.map(function(e){ var n=todos.filter(function(p){return p.profe===e.comandante;}).length, on=ambito===e.comandante;
           return '<button type="button" class="ra'+(on?' on':'')+'" data-amb="'+esc(e.comandante)+'">'
             +(e.emblema?'<img src="'+esc(e.emblema)+'" alt="" width="20" height="20" loading="lazy">':'')+esc(e.nombre||e.comandante)+' <span>'+n+'</span></button>'; }).join('')
         +'</div>';
     }
     function ayudaDe(m){ return typeof m.ayuda==='function'?m.ayuda():m.ayuda; }
-    var forms='<div class="cta-row" style="justify-content:flex-start">'+(d.formBitacora?'<a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">📓 Mi Bitácora de mando (registrar lo que he hecho)</a>':'')
-      +(d.formTicket?'<a class="btn" href="'+esc(d.formTicket)+'" target="_blank" rel="noopener">🎟️ Ticket de salida</a>':'')
-      +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">🛸 Mercado Estelar</a>':'')+'</div>';
+    var forms='<div class="cta-row" style="justify-content:flex-start">'+(d.formBitacora?'<a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/notas.png alt> Mi Bitácora de mando (registrar lo que he hecho)</a>':'')
+      +(d.formTicket?'<a class="btn" href="'+esc(d.formTicket)+'" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/ticket.png alt> Ticket de salida</a>':'')
+      +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/mercado.png alt> Mercado Estelar</a>':'')+'</div>';
 
     /**
      * EL RANKING DE EQUIPOS. Cada escuadrón se convierte en una fila con la MEDIA de sus reclutas.
@@ -296,7 +296,7 @@ function montar(root, per, OPC){
               +'<span class="small muted">'+esc(e._comandante)+' · '+e._n+' recluta'+(e._n===1?'':'s')+'</span></div>'
               +'<div class="esc-val">'+cifra(e,modo)+'</div></div>';
           }).join('')+'</div>'
-        : '<div class="wip"><span class="ic">🛰️</span><div>'+modo.vacio+'</div></div>';
+        : '<div class="wip"><span class="ic"><img class=ico src=assets/img/iconos/p/envivo.png alt></span><div>'+modo.vacio+'</div></div>';
       root.innerHTML=(solo?'':'<div class="tab-head"><div><div class="eyebrow amber">'+esc(d.nombre)+' · '+esc(d.tipo)+' · '+esc(d.estado)+'</div><h3>Ranking de escuadrones</h3></div>'
         +'<div class="small muted">'+r.length+' escuadrones · '+todos.length+' reclutas</div></div>')
         +pestanas+cuerpo;
@@ -318,9 +318,9 @@ function montar(root, per, OPC){
           return '<button type="button" class="rank-tab'+(m.k===modo.k?' on':'')+'" data-modo="'+m.k+'" role="tab" aria-selected="'+(m.k===modo.k)+'">'+m.et+'</button>';}).join('')
         +'</div><p class="small muted rank-ayuda">'+ayudaDe(modo)+'</p>';
       var podio=top.length?'<div class="podium">'+[1,0,2].map(function(i){var p=top[i];if(!p)return '';
-        var cls=['gold','silver','bronze'][i],med=['🥇','🥈','🥉'][i];
+        var cls=['gold','silver','bronze'][i],med='<img class=ico src=assets/img/iconos/p/medalla.png alt>';
         return '<div class="pod '+cls+'"><div class="medal">'+med+'</div>'+SG.avatarImg(p.avatar,p.alias,'big'+(p.marco==='oro'?' marco-oro':''),p.xp,d.tipo)
-          +'<div><b>'+(p.corona?'👑 ':'')+esc(p.alias)+'</b></div>'+(p.titulo?'<div class="titulo-recluta">«'+esc(p.titulo)+'»</div>':'')
+          +'<div><b>'+(p.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(p.alias)+'</b></div>'+(p.titulo?'<div class="titulo-recluta">«'+esc(p.titulo)+'»</div>':'')
           +'<div class="rango">Nivel '+(SG.nivel?SG.nivel(p.xp,d.tipo):1)+' · '+SG.avatarSrc(p.avatar,p.alias,p.xp,d.tipo).rango+'</div>'
           +'<div class="pts">'+cifra(p,modo)+'</div><div class="h"></div></div>';}).join('')+'</div>':'';
       var th=function(c){return modo.col===c?' class="on"':'';};
@@ -329,8 +329,8 @@ function montar(root, per, OPC){
       var filas=r.map(function(p){
         window.__fichas[p.alias.toLowerCase()]=p;
         return '<tr class="clicable" data-ficha="'+esc(p.alias.toLowerCase())+'" data-alias="'+esc(p.alias.toLowerCase())+'" tabindex="0" title="Ver la ficha de '+esc(p.alias)+'"><td><b>'+p._pos+'</b></td>'
-          +'<td class="who">'+embRow(p)+SG.avatarImg(p.avatar,p.alias,p.marco==='oro'?'marco-oro':'')+'<span><b>'+(p.corona?'👑 ':'')+esc(p.alias)+'</b>'
-          +(p.racha>=3?'<span class="chip-racha" title="'+p.racha+' semanas seguidas registrando algo">🔥 '+p.racha+'</span>':'')
+          +'<td class="who">'+embRow(p)+SG.avatarImg(p.avatar,p.alias,p.marco==='oro'?'marco-oro':'')+'<span><b>'+(p.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(p.alias)+'</b>'
+          +(p.racha>=3?'<span class="chip-racha" title="'+p.racha+' semanas seguidas registrando algo"><img class=ico src=assets/img/iconos/p/fuego.png alt> '+p.racha+'</span>':'')
           +(p.titulo?'<em class="titulo-recluta">«'+esc(p.titulo)+'»</em>':'')+'</span></td>'
           +'<td>'+esc(p.planeta)+'</td><td>'+p.n+'/'+ORDEN.length+'</td>'
           +'<td'+td('col','small')+'>'+colTxt(p)+'</td>'
@@ -352,7 +352,7 @@ function montar(root, per, OPC){
             ? (alojado ? '' :
                '<div class="cta-row" style="justify-content:center;margin:0 0 14px">'
               +'<a class="btn primary grande" href="recluta.html?per='+encodeURIComponent(per)
-              +'" target="_blank" rel="noopener">🚀 Entrar en mi Nave — registrar y canjear</a></div>')
+              +'" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/cohete.png alt> Entrar en mi Nave — registrar y canjear</a></div>')
             : forms)+chipsAmbito()+pestanas+podio
         +'<div class="buscar"><input id="buscaAlias" type="search" placeholder="Busca tu alias…" autocomplete="off"><span class="small muted">pulsa en cualquier recluta para ver su ficha · «Semana» son los xp de los últimos 7 días</span></div>'
         +(r.length?'<div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Recluta</th><th>Planeta</th><th>Insignias</th>'

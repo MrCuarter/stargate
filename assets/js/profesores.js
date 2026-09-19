@@ -59,22 +59,22 @@
       + '<div class="pr-cifras"><div><b>' + todos.length + '</b><span>profes</span></div><div><b>' + todos.filter(function (t) { return t.esRef; }).length + '</b><span>referentes</span></div>'
       + '<div><b>' + todos.filter(function (t) { return t.ultima > sietes; }).length + '</b><span>conectados esta semana</span></div><div><b>' + D.grupos.length + '</b><span>grupos</span></div></div>'
       // invitar
-      + '<section class="card pr-invitar"><h2>✉️ Invitar a un profe referente</h2>'
+      + '<section class="card pr-invitar"><h2><img class=ico src=assets/img/iconos/p/sobre.png alt> Invitar a un profe referente</h2>'
       + '<p class="small muted">Un enlace de un solo uso (vale 14 días): quien lo abre entra con su cuenta de Google y esa cuenta queda como referente. No hace falta saber su correo.</p>'
       + '<div class="pr-fila"><input id="pr-inv-nombre" placeholder="Nombre (para reconocer la invitación)" maxlength="80"><button class="btn primary" id="pr-inv-crear" type="button">Crear invitación</button></div>'
       + (ULTIMA ? '<div class="pr-enlace"><p>Invitación para <b>' + esc(ULTIMA.nombre) + '</b> (caduca el ' + new Date(ULTIMA.caduca).toLocaleDateString("es-ES") + '):</p>'
-          + '<code>' + esc(ULTIMA.enlace) + '</code> <button class="btn min" data-copiar="' + esc(ULTIMA.enlace) + '" data-copiado="✓ Enlace copiado">📋 Copiar el enlace</button></div>' : '')
+          + '<code>' + esc(ULTIMA.enlace) + '</code> <button class="btn min" data-copiar="' + esc(ULTIMA.enlace) + '" data-copiado="✓ Enlace copiado"><img class=ico src=assets/img/iconos/p/notas.png alt> Copiar el enlace</button></div>' : '')
       + '<p class="small muted" style="margin-top:12px">¿Sabes ya su correo? Hazlo referente directamente:</p>'
       + '<div class="pr-fila"><input id="pr-ref-correo" placeholder="correo@…" type="email"><input id="pr-ref-nombre" placeholder="Nombre" maxlength="80"><button class="btn" id="pr-ref-poner" type="button">★ Hacer referente</button></div>'
       + (pend.length || D.invs.length ? '<details class="pr-invs"' + (pend.length ? " open" : "") + '><summary>Invitaciones (' + pend.length + ' sin usar de ' + D.invs.length + ')</summary><ul>'
           + D.invs.slice(0, 20).map(function (i) {
-              var e = i.usadoPor ? "✅ aceptada por <b>" + esc(i.usadoCorreo || "") + "</b> " + cuando(i.usadoEn) : Number(i.caduca) < Date.now() ? "⌛ caducada" : "⏳ sin usar · caduca el " + new Date(i.caduca).toLocaleDateString("es-ES");
+              var e = i.usadoPor ? "<img class=ico src=assets/img/iconos/p/hecho.png alt> aceptada por <b>" + esc(i.usadoCorreo || "") + "</b> " + cuando(i.usadoEn) : Number(i.caduca) < Date.now() ? "<img class=ico src=assets/img/iconos/p/tiempo.png alt> caducada" : "<img class=ico src=assets/img/iconos/p/tiempo.png alt> sin usar · caduca el " + new Date(i.caduca).toLocaleDateString("es-ES");
               return '<li><b>' + esc(i.nombre || "—") + '</b> · ' + e + (!i.usadoPor && Number(i.caduca) > Date.now()
-                ? ' <button class="btn min" data-copiar="' + esc(location.origin + "/invitacion.html?t=" + i.id) + '" data-copiado="✓ Copiado">📋 Enlace</button>' : '') + '</li>'; }).join("")
+                ? ' <button class="btn min" data-copiar="' + esc(location.origin + "/invitacion.html?t=" + i.id) + '" data-copiado="✓ Copiado"><img class=ico src=assets/img/iconos/p/notas.png alt> Enlace</button>' : '') + '</li>'; }).join("")
           + '</ul></details>' : '')
       + '</section>'
       // la lista
-      + '<section class="pr-lista"><div class="pr-lista-cab"><h2>👥 El profesorado</h2><div class="pr-filtros">'
+      + '<section class="pr-lista"><div class="pr-lista-cab"><h2><img class=ico src=assets/img/iconos/p/gente.png alt> El profesorado</h2><div class="pr-filtros">'
       + [["todos", "Todos"], ["referentes", "★ Referentes"], ["con", "Con grupo"], ["sin", "Sin grupo"]].map(function (f) {
           return '<button type="button" class="bz-chip' + (FILTRO === f[0] ? " on" : "") + '" data-filtro="' + f[0] + '">' + f[1] + '</button>'; }).join("") + '</div></div>'
       + (L.length ? L.map(function (t) {
@@ -108,15 +108,15 @@
   function cablear() {
     Array.prototype.forEach.call(app.querySelectorAll("[data-filtro]"), function (b) { b.onclick = function () { FILTRO = b.getAttribute("data-filtro"); pintar(); }; });
     Array.prototype.forEach.call(app.querySelectorAll("[data-copiar]"), function (b) {
-      b.onclick = function () { var t = b.getAttribute("data-copiar"), antes = b.textContent;
-        (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = b.getAttribute("data-copiado") || "✓"; setTimeout(function () { b.textContent = antes; }, 1600); },
+      b.onclick = function () { var t = b.getAttribute("data-copiar"), antes = b.innerHTML;
+        (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = b.getAttribute("data-copiado") || "✓"; setTimeout(function () { b.innerHTML = antes; }, 1600); },
           function () { window.prompt("Copia el enlace:", t); }); };
     });
     document.getElementById("pr-inv-crear").onclick = function () {
       var n = document.getElementById("pr-inv-nombre").value.trim();
       if (!n) { aviso("Pon un nombre: así sabrás de quién es la invitación."); return; }
       this.disabled = true;
-      MOTOR.crearInvitacion(n).then(function (r) { ULTIMA = { nombre: n, enlace: r.enlace, caduca: r.caduca }; return recargar("✉️ Invitación creada para <b>" + esc(n) + "</b>: copia el enlace y mándaselo."); })
+      MOTOR.crearInvitacion(n).then(function (r) { ULTIMA = { nombre: n, enlace: r.enlace, caduca: r.caduca }; return recargar("<img class=ico src=assets/img/iconos/p/sobre.png alt> Invitación creada para <b>" + esc(n) + "</b>: copia el enlace y mándaselo."); })
         .catch(function (e) { aviso("No ha salido: " + esc((e && e.message) || e)); });
     };
     document.getElementById("pr-ref-poner").onclick = function () {
@@ -140,7 +140,7 @@
         if (!per) { sel.focus(); return; }
         a.disabled = true;
         MOTOR.anadirDocente(per, { nombre: t.nombre || correo.split("@")[0], correo: correo, rol: rol })
-          .then(function () { return recargar("👥 <b>" + esc(t.nombre || correo) + "</b> ya está en ese grupo (" + rol + "). Entra con su cuenta y lo verá en Mis grupos."); })
+          .then(function () { return recargar("<img class=ico src=assets/img/iconos/p/gente.png alt> <b>" + esc(t.nombre || correo) + "</b> ya está en ese grupo (" + rol + "). Entra con su cuenta y lo verá en Mis grupos."); })
           .catch(function (e) { a.disabled = false; aviso("No ha salido: " + esc((e && e.message) || e)); });
       };
     });

@@ -14,7 +14,7 @@
   "use strict";
   var app = document.querySelector("#consola-app");
   if (!app) return;
-  var MOTOR = null, YO = null, PERS = [], PER = null, DATOS = null, TAB = "alumnado";
+  var MOTOR = null, YO = null, PERS = [], PER = null, DATOS = null, TAB = "portada";   // 19-sep · se entra por la portada
   var url = new URLSearchParams(location.search);
   if (/^[a-z_]+$/.test(url.get("tab") || "")) TAB = url.get("tab");   // 15-sep · el Capitán enlaza a una pestaña (p. ej. «Mis enlaces»)
 
@@ -119,11 +119,23 @@
     var aro = /\bgrande\b/.test(cls || "");
     return '<img class="ico' + (cls ? " " + cls : "") + '" src="assets/img/iconos/' + (aro ? "" : "p/") + k + '.png" alt="" width="20" height="20">';
   }
-  /** La rueda de «Configurar la sesión», al lado de «Proyectar la clase» (en la fila del grupo y dentro de él). */
+  /** La rueda de «Configurar la sesión», al lado de «Empezar la clase» (en la fila del grupo y dentro de él). */
   function botonCfgSesion(per) {
     return '<button type="button" class="gp-cfg" data-cfg-sesion="' + esc(per) + '" title="Configurar la sesión: qué diapositivas salen" aria-label="Configurar la sesión">' + ico("ajustes") + '</button>';
   }
 
+  /** 19-sep · lo que toca esta semana en ese grupo (los mismos datos que la sesión): el vídeo, los retos que se lanzan y el hito. */
+  function hoyToca(p) {
+    if (p.estado !== "en marcha") return "";
+    var SEMS = window.SG_SEMANAS || [], S = p.stargate || {}, sem = Number(p.semana) || 0;
+    var s = S.tipo === "PUA" ? SEMS.filter(function (x) { return x.tema_n === Math.min(sem, 8); })[0] : SEMS[Math.min(sem, SEMS.length) - 1];
+    if (!s) return "";
+    var v = ((s.videos || [])[0] || [])[0], lanza = (s.lanza || []).map(function (x) { return String(x).replace(/\s*\(.*\)\s*$/, ""); });
+    return '<p class="gp-hoy"><b>' + ico("calendario") + ' Hoy toca</b> ' + esc(s.tema) +
+      (v ? ' · <span>' + ico("video") + ' ' + esc(v.titulo) + '</span>' : '') +
+      (lanza.length ? ' · <span>' + ico("diana") + ' ' + esc(lanza.join(" · ")) + '</span>' : '') +
+      (s.hito ? ' · <span>' + ico("medalla") + ' ' + esc(s.hito) + '</span>' : '') + '</p>';
+  }
   function tarjetaGrupo(p) {
     var S = p.stargate || {};
     var vivo = p.estado === "en marcha";
@@ -164,12 +176,13 @@
       // 🔴 Lo de clase, en la tarjeta. Se busca con los alumnos ya sentados: cada clic de más ahí
       // es medio minuto de aula mirando una pantalla de carga.
       '<div class="gp-hacer">' +
+        // 19-sep · los tres pasos de una clase en directo, en su orden: proyectar, pasar lista y tener el aula a mano
         '<div class="gp-celda principal"><a class="gp-b principal" href="sesion.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<b>Proyectar la clase</b></a>' + botonCfgSesion(p.id) + botonVentana("sesion.html?per=" + p.id, "sesion_" + p.id, "la sesión") + '</div>' +
-        '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<b>El aula</b></a>' + botonVentana("aula.html?per=" + p.id, "aula_" + p.id, "el aula") + '</div>' +
+          '<span class="gp-n">1</span><b>Empezar la clase</b><em>proyecta la sesión</em></a>' + botonCfgSesion(p.id) + botonVentana("sesion.html?per=" + p.id, "sesion_" + p.id, "la sesión") + '</div>' +
         '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<b>Llamada a filas</b></a>' + botonVentana("llamada.html?per=" + p.id, "llamada_" + p.id, "la llamada a filas") + '</div>' +
+          '<span class="gp-n">2</span><b>Llamada a filas</b><em>que fichen</em></a>' + botonVentana("llamada.html?per=" + p.id, "llamada_" + p.id, "la llamada a filas") + '</div>' +
+        '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
+          '<span class="gp-n">3</span><b>El aula</b><em>premios, tiempo, votar</em></a>' + botonVentana("aula.html?per=" + p.id, "aula_" + p.id, "el aula") + '</div>' +
       '</div>' +
       /**
        * 🔴 EL CÓDIGO DE CLASE, A LA VISTA DE TODO EL EQUIPO. Con la puerta única el alumnado entra
@@ -193,6 +206,7 @@
         : '') +
       // 15-sep · Norberto: «un botón llamativo para entrar en ese grupo», como el de «Entrar en mi Nave» al alistarse.
       // Era un enlace gris («Ver mi gente y los ajustes →») y no se veía. Debajo, las pestañas que hay dentro.
+      hoyToca(p) +
       '<div class="gp-pie">' +
         (p.estado === "pasado"
           ? '<button class="btn gp-abrir" data-per="' + esc(p.id) + '">Entrar en el grupo →</button>'
@@ -311,8 +325,7 @@
       // 19-sep · Norberto: «en su landing debería haber un botón de ajustes… Dijimos de poner configurar las sesiones en
       // vivo, ¿no lo has hecho?». Estaba dentro de cada grupo (Mis enlaces) y no se encontraba: aquí, para todos a la vez
       '<div class="doc-ajustes" id="doc-ajustes" hidden></div>' +
-      '<div class="gp-cab"><div><h2>Tus grupos</h2>' +
-        '<p class="small muted">Todo lo de clase está aquí mismo. Entra en un grupo para su gente y sus enlaces.</p></div></div>' +
+      // (19-sep · «cero aire»: sin titular «Tus grupos»; las filas se explican solas)
       // 🔴 13-sep · con UN solo grupo, la tarjeta se tumba en horizontal y ocupa la fila: estrecha y
       // sola dejaba media pantalla vacía a su derecha. Con varios, rejilla de siempre.
       // y con 2 o 4, en dos columnas: con tres por fila, cuatro grupos dejaban uno solo abajo
@@ -322,8 +335,9 @@
                     : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
       // 17-sep · lo que se configura UNA vez para varios grupos (Norberto: «¿valen para cualquier grupo? Sería maravilloso
       // poder reciclarlos… que compartan la misma página de configuración y ajustar a qué grupos afecta»)
+      '<div class="gp-herr">' +
       (gestionados().length ? '<section class="gp-comun"><div class="gp-comun-t"><h3>Para todos tus grupos</h3>' +
-        '<p class="small muted">Se configuran <b>una vez</b> y eliges a qué grupos afectan: todos o solo algunos. Dentro de cada grupo ves los que le tocan.</p></div>' +
+        '<p class="small muted">Una vez, y eliges a qué grupos afectan.</p></div>' +
         '<div class="gp-comun-b"><a class="btn" href="consola.html?comun=premios">Premios por enlace</a> <a class="btn" href="consola.html?comun=sorteos">Sorteos</a> ' +
         '<a class="btn" href="consola.html?comun=ofertas">Ofertas</a></div></section>' : '') +
       /**
@@ -332,9 +346,9 @@
        * mismo para todos los grupos». Lo es: ninguno lleva el grupo dentro (piden la cuenta y preguntan).
        */
       '<section class="gp-gen"><div class="gp-gen-txt"><h3>Para tus Geniallys</h3>' +
-        '<p class="small muted">Los <b>mismos para todos tus grupos</b> y para los cursos que vengan: piden tu cuenta y, si llevas varios grupos, ' +
+        '<details class="gp-ayuda"><summary>¿Cómo se usan?</summary><p class="small muted">Los <b>mismos para todos tus grupos</b> y para los cursos que vengan: piden tu cuenta y, si llevas varios grupos, ' +
         'preguntan en cuál estáis. Se copia el código y, en Genially, <b>Insertar → Otros → Código</b>. ' +
-        'O pulsa <b>⧉</b> y se abre <b>en su propia ventana</b>, sin nada más alrededor: para proyectarla o tenerla a mano durante la clase.</p></div>' +
+        'O pulsa <b>⧉</b> y se abre <b>en su propia ventana</b>, sin nada más alrededor: para proyectarla o tenerla a mano durante la clase.</p></details></div>' +
         '<div class="gp-gen-b">' +
         // 16-sep · la sesión se pega DOS VECES en el Genially: la apertura antes de la teoría y el
         // cierre después. Así no hay que navegar por dentro del panel delante de la clase.
@@ -345,6 +359,7 @@
           return '<span class="gp-gen-par"><button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + x[1].replace(/^<img[^>]*>\s*/, ""))) + '">' + x[1] + '</button>' +
             botonVentana(x[2], x[0], x[1].replace(/^<img[^>]*>\s*/, "")) + '</span>';
         }).join("") + '</div></section>' +
+      '</div>' +
       /**
        * 🔴 LO DEL REFERENTE, EN UNA FRANJA APARTE. Norberto: «el referente básicamente debe tener
        * un menú extra». Y «extra» es la palabra: su día a día es EXACTAMENTE el del docente —sus
@@ -384,7 +399,8 @@
         : '');
 
     Array.prototype.forEach.call(app.querySelectorAll("[data-per]"), function (b) {
-      b.onclick = function () { if (b.getAttribute("data-ir")) TAB = b.getAttribute("data-ir"); abrir(b.getAttribute("data-per")); };
+      // 19-sep · cada botón dice a qué pestaña lleva: la suya (la Cola de nota) o la portada del grupo
+      b.onclick = function () { TAB = b.getAttribute("data-ir") || "portada"; abrir(b.getAttribute("data-per")); };
     });
     var viejosB = $("#doc-viejos-b");
     if (viejosB) viejosB.onclick = viejosB.onkeydown = function (e) {
@@ -463,8 +479,6 @@
   }
 
   async function abrir(perId) {
-    // 19-sep · se entra siempre por la portada del grupo (salvo que un enlace pida otra pestaña)
-    if (perId !== PER && !/^[a-z_]+$/.test(url.get("tab") || "")) TAB = "portada";
     PER = perId;
     history.replaceState(null, "", "consola.html?per=" + encodeURIComponent(perId));
     cargando("Leyendo el grupo…");
@@ -542,12 +556,13 @@
        * grupos», que es de donde vienes: al entrar, desaparecían.
        */
       '<div class="gp-hacer c-hacer">' +
+        // 19-sep · los tres pasos de una clase en directo, en su orden: proyectar, pasar lista y tener el aula a mano
         '<div class="gp-celda principal"><a class="gp-b principal" href="sesion.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
-          '<b>Proyectar la clase</b></a>' + botonCfgSesion(PER) + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") + '</div>' +
-        '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
-          '<b>El aula</b></a>' + botonVentana("aula.html?per=" + PER, "aula_" + PER, "el aula") + '</div>' +
+          '<span class="gp-n">1</span><b>Empezar la clase</b><em>proyecta la sesión</em></a>' + botonCfgSesion(PER) + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") + '</div>' +
         '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
-          '<b>Llamada a filas</b></a>' + botonVentana("llamada.html?per=" + PER, "llamada_" + PER, "la llamada a filas") + '</div>' +
+          '<span class="gp-n">2</span><b>Llamada a filas</b><em>que fichen</em></a>' + botonVentana("llamada.html?per=" + PER, "llamada_" + PER, "la llamada a filas") + '</div>' +
+        '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
+          '<span class="gp-n">3</span><b>El aula</b><em>premios, tiempo, votar</em></a>' + botonVentana("aula.html?per=" + PER, "aula_" + PER, "el aula") + '</div>' +
       '</div>' +
       '<div class="pestanas">' + misTabs().map(function (x, i, todas) {
         var cola = x[0] === "canjes" ? pendientesCola() : 0;
@@ -1355,7 +1370,7 @@
             return '<li><a href="https://youtu.be/' + esc(y.id) + '" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/' + esc(y.id) + '/mqdefault.jpg" alt="" loading="lazy" width="160" height="90"></a>' +
               '<div><b>' + esc(y.titulo || "") + '</b><span>' + esc(v[1] || "") + '</span></div></li>'; }).join("") + '</ul>'
             : '<p class="small muted">Esta semana no hay vídeo.</p>') +
-          '<p class="small muted">Salen solos en <b>Proyectar la clase</b>, cada uno en su momento.</p></div>' +
+          '<p class="small muted">Salen solos en <b>Empezar la clase</b>, cada uno en su momento.</p></div>' +
         '<div class="card pt-sem"><h3>Retos de esta semana</h3>' +
           (estos.length ? '<ul class="pt-retos">' + estos.map(fila).join("") + '</ul>'
                         : '<p class="small muted">Esta semana no se lanza ningún reto nuevo: tiempo para terminar los que hay.</p>') +
@@ -1475,7 +1490,7 @@
     var mio = (t.paneles || {})[yo.nombre] || "";
     var oficial = t.panel || "";
     // (19-sep · «Tu sesión en directo» ya no vive aquí: Norberto, «no tiene ningún sentido en Mis enlaces». Es la rueda
-    // de al lado de «Proyectar la clase»)
+    // de al lado de «Empezar la clase»)
     $("#c-cuerpo").innerHTML =
       '<div class="card"><h3>Tu panel de Genially</h3>' +
       '<p class="small muted">Es el que abre <b>tu</b> alumnado desde su Nave. Si lo dejas vacío, ' +

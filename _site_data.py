@@ -63,7 +63,7 @@ CRONO = [
       videos=[("act1","Al lanzar la Actividad 1"),
               ("t1c","Al cerrar el trabajo del planeta"),
               ("f1","Justo tras el cierre: la recompensa del bloque")],
-      lanza=["Actividad 1 — actividad didáctica a partir de una imagen con IA", "Reto B «La Bitácora en marcha» (tu ePortfolio)", "Reto ⚡ «La chispa y la marca» (imagen con IA + logo) — en clase, 15 min"],
+      lanza=["Actividad 1 — actividad didáctica a partir de una imagen con IA", "Reto B «La Bitácora en marcha» (tu ePortfolio)", "Reto relámpago «La chispa y la marca» (imagen con IA + logo) — en clase, 15 min"],
       insignias=["P1_bran","R1_la-chispa","E2_capitan","H2_primera-forja"],
       hito="Presenta la Act. 1 · Test del Tema 1",
       clases="Clases 03–04",
@@ -77,7 +77,7 @@ CRONO = [
  dict(sem=4, tema="Tema 2 (cont.) · Ecos", sub="El vídeo que pregunta",
       capitulo=None,
       videos=[("t2c","Al cerrar el bloque"),("f2","Tras el cierre")],
-      lanza=["Reto B «El eco que enseña» (videotutorial + videoquiz)", "Reto ⚡ «Módulo 1 y módulo 2» (antes y durante) — en clase, 15 min"], insignias=["P2_tomas","R2_el-eco-que-ensena"],
+      lanza=["Reto B «El eco que enseña» (videotutorial + videoquiz)", "Reto relámpago «Módulo 1 y módulo 2» (antes y durante) — en clase, 15 min"], insignias=["P2_tomas","R2_el-eco-que-ensena"],
       hito="Test del Tema 2 · Bitácora: videotutorial enriquecido", clases="Clase 06",
       consejo="El fragmento de Tomás (su hija Lena) es el momento emocional del bloque: dale su espacio."),
  dict(sem=5, tema="Tema 3 · Sendara", sub="Contenidos interactivos",
@@ -90,7 +90,7 @@ CRONO = [
       capitulo=None,
       videos=[("act2","Al lanzar la Actividad 2"),
               ("t3c","Al cerrar el bloque"),("f3","Tras el cierre")],
-      lanza=["Actividad 2 — planifica y crea un paisaje de aprendizaje", "Reto B «La matriz» (matriz 8×6)", "Reto ⚡ «Cinco líneas que explican» (itinerario y paisaje) — en clase, 15 min"],
+      lanza=["Actividad 2 — planifica y crea un paisaje de aprendizaje", "Reto B «La matriz» (matriz 8×6)", "Reto relámpago «Cinco líneas que explican» (itinerario y paisaje) — en clase, 15 min"],
       insignias=["P3_sylla","R3_la-matriz"],
       hito="Presenta la Act. 2 · Test del Tema 3 · Bitácora: itinerario o paisaje", clases="Clases 08–09",
       consejo="La Act. 2 se presenta ahora y se resuelve en la semana 13: recuérdalo para que no la dejen morir."),
@@ -103,14 +103,14 @@ CRONO = [
  dict(sem=8, tema="Tema 4 (cont.) · Reliae", sub="El entorno digital de aula",
       capitulo=None,
       videos=[("t4c","Al cerrar el bloque"),("f4","Tras el cierre")],
-      lanza=["Reto B «El entorno de aula» (aula virtual)", "Reto ⚡ «Enlace en incógnito» — en clase, 10 min"], insignias=["P4_amara","R4_entorno-de-aula"],
+      lanza=["Reto B «El entorno de aula» (aula virtual)", "Reto relámpago «Enlace en incógnito» — en clase, 10 min"], insignias=["P4_amara","R4_entorno-de-aula"],
       hito="Test del Tema 4 · Bitácora: tu entorno de aula", clases="Clase 11",
       consejo="La lección de Amara (compartir a tiempo, pulir después) es oro contra el perfeccionismo del alumnado."),
  dict(sem=9, tema="Tema 5 · Umbral", sub="Evaluación y ePortfolio — aparece la Estática",
       capitulo="Evaluando la situación",
       videos=[("t5i","Al abrir el Tema 5 (¡aparece Vaeon!)"),
               ("t5c","Al cerrar el bloque"),("f5","Tras el cierre")],
-      lanza=["Reto A «Mide con método» (Vera)", "Reto B «La Bitácora medida» (web de recursos + rúbrica)", "Reto ⚡ «Tres preguntas» (autoevaluación) — en clase, 15 min"],
+      lanza=["Reto A «Mide con método» (Vera)", "Reto B «La Bitácora medida» (web de recursos + rúbrica)", "Reto relámpago «Tres preguntas» (autoevaluación) — en clase, 15 min"],
       insignias=["P5_vera","R5_bitacora-medida"],
       hito="Resolución de la Act. 1 · Test del Tema 5", clases="Clase 12",
       consejo="El momento dramático del curso: justo cuando saben medir, aparece el enemigo que silencia. Y se resuelve la Act. 1."),
@@ -125,13 +125,13 @@ CRONO = [
  dict(sem=11, tema="Tema 7 · Vínculo", sub="Gamificación",
       capitulo="El arte de motivar",
       videos=[("t7i","Al abrir el Tema 7")],
-      lanza=["Reto A «Un porqué» (Mara)", "Reto ⚡ «Las diez líneas» (justifica un recurso) — en clase, 15 min"],
+      lanza=["Reto A «Un porqué» (Mara)", "Reto relámpago «Las diez líneas» (justifica un recurso) — en clase, 15 min"],
       insignias=[], hito="Microgamificación en marcha", clases="Clase 15",
       consejo="Aquí NO se juega: se toman elementos del juego. Es el error conceptual más común del curso — apóyate en Joran y Mara."),
  dict(sem=12, tema="Tema 7 (cont.) · Vínculo", sub="Gamificación profunda",
       capitulo=None,
       videos=[("t7c","Al cerrar el bloque"),("f7","Tras el cierre")],
-      lanza=["Reto B «La microgamificación»", "Reto ⚡ «El marcador» (tabla de clasificación) — en clase, 10 min"], insignias=["P7_mara","R7_microgamificacion","E3_vaeon"],
+      lanza=["Reto B «La microgamificación»", "Reto relámpago «El marcador» (tabla de clasificación) — en clase, 10 min"], insignias=["P7_mara","R7_microgamificacion","E3_vaeon"],
       hito="Test del Tema 7 · Bitácora: tu microgamificación", clases="Clase 16",
       consejo="Momento meta: STARGATE es una gamificación profunda funcionando delante de sus ojos. Díselo."),
  dict(sem=13, tema="Tema 8 · Liminar", sub="Realidad Aumentada",
@@ -144,7 +144,7 @@ CRONO = [
  dict(sem=14, tema="Tema 8 (cont.) · Liminar", sub="Realidad Virtual — NEBULA casi completa",
       capitulo=None,
       videos=[("f8","NEBULA recuerda por qué la Cero se quedó: el fragmento de Noa cae aquí")],
-      lanza=["Reto B «El último umbral» (RA/RV + publicar la Bitácora)", "Reto ⚡ «El QR» (dentro de una lámina) — en clase, 10 min"], insignias=["P8_noa","R8_ultimo-umbral","H4_tripulacion-cero"],
+      lanza=["Reto B «El último umbral» (RA/RV + publicar la Bitácora)", "Reto relámpago «El QR» (dentro de una lámina) — en clase, 10 min"], insignias=["P8_noa","R8_ultimo-umbral","H4_tripulacion-cero"],
       hito="Test del Tema 8 · la Tripulación Cero queda completa", clases="Clase 18",
       consejo="Con Noa se completa la Cero (insignia de hito Tripulación Cero). Deja el finale para la última semana."),
  dict(sem=15, tema="Repaso · La liberación", sub="Simulacro y salto final",
@@ -357,22 +357,22 @@ CUBIERTAS_A_BORDO = [
 ]
 #   hito: (clave, cubierta, icono, título, qué hay que hacer, pestaña de la Nave donde se hace)
 HITOS_A_BORDO = [
- ("reto",       "puente",     "🚀", "Primer salto",          "Registra tu primer reto.",                                   "retos"),
- ("reflexion",  "puente",     "✍️", "Tu voz",                "Escribe tu primera reflexión en un reto.",                   "retos"),
- ("comentario", "puente",     "💬", "Eco de la tripulación", "Comenta la reflexión de alguien de tu tripulación.",         "retos"),
- ("compra",     "mercado",    "🛒", "Primera compra",        "Compra algo en el Mercado Estelar.",                         "mercado"),
- ("carta",      "mercado",    "🃏", "Primera carta",         "Consigue tu primera carta del álbum.",                       "mercado"),
- ("heroe",      "mercado",    "🛡️", "Un héroe a tu lado",    "Consigue tu primer héroe de la Rebelión.",                   "mercado"),
- ("sorteo",     "mercado",    "🎟️", "Boleto dorado",         "Consigue una participación del Gran Sorteo.",                "mercado"),
- ("viste",      "camarote",   "🎭", "Otra cara",             "Ponte uno de tus héroes como avatar.",                       "botin"),
- ("skin",       "camarote",   "🧬", "Has evolucionado",      "Ponte una skin que hayas desbloqueado al subir de nivel.",   "botin"),
- ("adorno",     "camarote",   "✨", "Con estilo",            "Ponte un título, un marco o un fondo.",                      "botin"),
- ("cambio",     "zoco",       "🔁", "Nada se tira",          "Cambia tus repetidos por un sobre o por un héroe nuevo.",    "botin"),
- ("zoco",       "zoco",       "🏪", "Tu puesto",             "Pon una pieza en el Zoco Estelar.",                          "zoco"),
- ("trato",      "zoco",       "🤝", "Trato hecho",           "Cierra un trato en el Zoco, comprando o vendiendo.",         "zoco"),
- ("dias3",      "constancia", "🔥", "Tres días seguidos",    "Entra en tu Nave tres días seguidos.",                       ""),
- ("dias7",      "constancia", "☄️", "Una semana entera",     "Entra en tu Nave siete días seguidos.",                      ""),
- ("dias20",     "constancia", "🌌", "Veinte días a bordo",   "Entra en tu Nave veinte días distintos.",                    ""),
+ ("reto",       "puente",     "<img class=ico src=assets/img/iconos/p/cohete.png alt>", "Primer salto",          "Registra tu primer reto.",                                   "retos"),
+ ("reflexion",  "puente",     "<img class=ico src=assets/img/iconos/p/editar.png alt>", "Tu voz",                "Escribe tu primera reflexión en un reto.",                   "retos"),
+ ("comentario", "puente",     "<img class=ico src=assets/img/iconos/p/mensaje.png alt>", "Eco de la tripulación", "Comenta la reflexión de alguien de tu tripulación.",         "retos"),
+ ("compra",     "mercado",    "<img class=ico src=assets/img/iconos/p/mercado.png alt>", "Primera compra",        "Compra algo en el Mercado Estelar.",                         "mercado"),
+ ("carta",      "mercado",    "<img class=ico src=assets/img/iconos/p/sobre.png alt>", "Primera carta",         "Consigue tu primera carta del álbum.",                       "mercado"),
+ ("heroe",      "mercado",    "<img class=ico src=assets/img/iconos/p/escudo.png alt>", "Un héroe a tu lado",    "Consigue tu primer héroe de la Rebelión.",                   "mercado"),
+ ("sorteo",     "mercado",    "<img class=ico src=assets/img/iconos/p/ticket.png alt>", "Boleto dorado",         "Consigue una participación del Gran Sorteo.",                "mercado"),
+ ("viste",      "camarote",   "<img class=ico src=assets/img/iconos/p/gente.png alt>", "Otra cara",             "Ponte uno de tus héroes como avatar.",                       "botin"),
+ ("skin",       "camarote",   "<img class=ico src=assets/img/iconos/p/rankings.png alt>", "Has evolucionado",      "Ponte una skin que hayas desbloqueado al subir de nivel.",   "botin"),
+ ("adorno",     "camarote",   "<img class=ico src=assets/img/iconos/p/estrella.png alt>", "Con estilo",            "Ponte un título, un marco o un fondo.",                      "botin"),
+ ("cambio",     "zoco",       "<img class=ico src=assets/img/iconos/p/zoco.png alt>", "Nada se tira",          "Cambia tus repetidos por un sobre o por un héroe nuevo.",    "botin"),
+ ("zoco",       "zoco",       "<img class=ico src=assets/img/iconos/p/monedas.png alt>", "Tu puesto",             "Pon una pieza en el Zoco Estelar.",                          "zoco"),
+ ("trato",      "zoco",       "<img class=ico src=assets/img/iconos/p/hecho.png alt>", "Trato hecho",           "Cierra un trato en el Zoco, comprando o vendiendo.",         "zoco"),
+ ("dias3",      "constancia", "<img class=ico src=assets/img/iconos/p/fuego.png alt>", "Tres días seguidos",    "Entra en tu Nave tres días seguidos.",                       ""),
+ ("dias7",      "constancia", "<img class=ico src=assets/img/iconos/p/calendario.png alt>", "Una semana entera",     "Entra en tu Nave siete días seguidos.",                      ""),
+ ("dias20",     "constancia", "<img class=ico src=assets/img/iconos/p/varios.png alt>", "Veinte días a bordo",   "Entra en tu Nave veinte días distintos.",                    ""),
 ]
 assert {h[1] for h in HITOS_A_BORDO} == {c[0] for c in CUBIERTAS_A_BORDO}, "cada hito, en una cubierta que exista"
 # El premio de las cinco: el Contramaestre de la Nave. Van FUERA de HEROES a propósito: HEROES es lo que
@@ -511,7 +511,7 @@ _AYUDA_DOC = _ayuda_de_los_retos()
 # se escriben a mano las piezas que ese documento no cubre (las Actividades y el examen).
 AYUDA_RETOS = {
  "A0": "Graba un vídeo de MÁXIMO 60 segundos presentándote al resto de la tripulación y publícalo en la "
-       "sección 📹 «Preséntate» del padlet de la clase (título = tu alias; primera línea = «Capitán: tu profe»). No hace falta guion de cine — si te da apuro, "
+       "sección «Preséntate» del padlet de la clase (título = tu alias; primera línea = «Capitán: tu profe»). No hace falta guion de cine — si te da apuro, "
        "responde a tres o cuatro de estas: ¿quién eres y a qué te dedicas? ¿desde dónde te conectas? "
        "¿por qué educación? ¿una herramienta que ames y una que sufras? ¿un dato curioso que nadie "
        "adivinaría? Grábalo del tirón con el móvil: natural gana a perfecto. Después copia el enlace de TU "
@@ -529,7 +529,7 @@ AYUDA_RETOS = {
         "mismo delante de todos (¿el logo lleva la palabra?, ¿se abre en incógnito?, ¿hay dos módulos?, ¿tres "
         "productos?, ¿la justificación cabe en diez líneas?). Nadie sabe lo que son noventa minutos hasta que los vive.",
   # 15-sep · el reto secreto es el Escape UNI (Norberto): se registra solo, con el botón del final del escape
-  "S7": "🗝️ Hay una sala de la que no se sale sin pensar: el Escape UNI. Entra, resuelve sus enigmas y, al final, "
+  "S7": "Hay una sala de la que no se sale sin pensar: el Escape UNI. Entra, resuelve sus enigmas y, al final, "
         "pulsa el botón que te espera: el reto se registra solo en tu Nave. Nadie va a darte las respuestas: "
         "los secretos de la gamificación se encuentran jugando.",
 }
@@ -1039,31 +1039,31 @@ def semana_capitulo(semana_regular, tipo):
     return max(min(6, suyas), min(suyas, 5 + math.ceil((semana_regular - 5) * (suyas - 5) / (total - 5))))
 
 CAPITULOS = [
-    {"n": 1, "clave": "c1", "titulo": "Canal abierto", "icono": "🛰️", "semana": 1,
+    {"n": 1, "clave": "c1", "titulo": "Canal abierto", "icono": "<img class=ico src=assets/img/iconos/p/envivo.png alt>", "semana": 1,
      "abre": ["nave", "retos", "botin"], "mercado": [],
      "cabecera": "Tu Nave, ya en marcha",
      "puedes": ["Tu personaje, tu nivel y tus créditos, siempre a la vista",
                 "Los retos de la semana: se hacen y se marcan con «Lo he hecho» (con el enlace de tu evidencia)",
-  "📓 Tu Bitácora, desde hoy: el viaje entero termina en ella, y el primer reto B es abrirla",
-  "⚡ Los retos relámpago: diez o quince minutos, y se hacen EN CLASE — quien viene, sale con el reto hecho",
-                "✋ Presente en la llamada a filas: créditos y un sobre de regalo",
+  "Tu Bitácora, desde hoy: el viaje entero termina en ella, y el primer reto B es abrirla",
+  "Los retos relámpago: diez o quince minutos, y se hacen EN CLASE — quien viene, sale con el reto hecho",
+                "Presente en la llamada a filas: créditos y un sobre de regalo",
                 "Mi botín: tus insignias y tu álbum de cromos"],
      "imagen": "assets/img/canje/sobre.jpg"},
-    {"n": 2, "clave": "c2", "titulo": "El Mercado Estelar", "icono": "🛒", "semana": 2,
+    {"n": 2, "clave": "c2", "titulo": "El Mercado Estelar", "icono": "<img class=ico src=assets/img/iconos/p/mercado.png alt>", "semana": 2,
      "abre": ["mercado", "rankings"], "mercado": ["cromo", "cromo_repes"],
      "cabecera": "Ya puedes gastar tus créditos",
      "puedes": ["Comprar sobres de cromos: tres cartas al azar por 15 ◈",
                 "Cambiar 3 cartas repetidas por un sobre nuevo, gratis",
                 "Los rankings: tu clase de ocho maneras distintas, y tu duelo con quien tienes cerca"],
      "imagen": "assets/img/canje/sobre.jpg"},
-    {"n": 3, "clave": "c3", "titulo": "La Rebelión", "icono": "🛡️", "semana": 3,
+    {"n": 3, "clave": "c3", "titulo": "La Rebelión", "icono": "<img class=ico src=assets/img/iconos/p/escudo.png alt>", "semana": 3,
      "abre": ["heroes"], "mercado": ["heroe"],
      "cabecera": "Llegan los Héroes de la Rebelión",
      "puedes": ["La cápsula de rescate del Mercado: un héroe al azar de 30 por 60 ◈",
                 "Ponértelos (y quitártelos) gratis en tu vestuario",
                 "Cambiar 2 héroes repetidos por uno nuevo al azar"],
      "imagen": "assets/img/canje/capsula_rescate.jpg"},
-    {"n": 4, "clave": "c4", "titulo": "Tu insignia de mando", "icono": "🖼️", "semana": 4,
+    {"n": 4, "clave": "c4", "titulo": "Tu insignia de mando", "icono": "<img class=ico src=assets/img/iconos/p/estrella.png alt>", "semana": 4,
      "abre": ["adornos"], "mercado": ["titulo", "fondo", "marco", "sobre_grande"],
      "cabecera": "Tu ficha, a tu gusto",
      "puedes": ["Un título bajo tu alias", "El fondo de tu ficha: el planeta que elijas",
@@ -1078,7 +1078,7 @@ CAPITULOS = [
     # logros (CAPITULO) en estas mismas semanas: la batería 79 lo compara.
     #
     # LA OFERTA DE LA SEMANA: empezaba en la 3, a la vez que los héroes y sin que nadie la explicara. Ahora tiene su capítulo.
-    {"n": 5, "clave": "c10", "titulo": "La oferta de la semana", "icono": "⚡", "semana": 5,
+    {"n": 5, "clave": "c10", "titulo": "La oferta de la semana", "icono": "<img class=ico src=assets/img/iconos/p/rayo.png alt>", "semana": 5,
      "abre": ["ofertas"], "mercado": [],
      "cabecera": "Cada semana, algo rebajado… por poco tiempo",
      "puedes": ["Cada semana sale una oferta en el Mercado: un sobre, una cápsula, un héroe o una carta concretos",
@@ -1087,7 +1087,7 @@ CAPITULOS = [
                 "Una por persona. Y tu docente también puede preparar las suyas"],
      "imagen": "assets/img/canje/oferta.jpg"},
     # 16-sep · en PUA NO hay Gran Sorteo (Norberto: «nooo hay sorteo»): son 8 semanas y el premio es de la convocatoria larga.
-    {"n": 6, "clave": "c6", "titulo": "El Gran Sorteo", "icono": "🎟️", "semana": 6, "sin_pua": True,
+    {"n": 6, "clave": "c6", "titulo": "El Gran Sorteo", "icono": "<img class=ico src=assets/img/iconos/p/ticket.png alt>", "semana": 6, "sin_pua": True,
      "abre": ["sorteo"], "mercado": ["sorteo", "sobre_raro"],
      "cabecera": "El Gran Sorteo de la tripulación",
      "puedes": ["Se sortean dos licencias de Genially de un año completo",
@@ -1101,7 +1101,7 @@ CAPITULOS = [
     # legendario; obviamente caro… y para la 10 debería estar todo descubierto»). 16-sep: de la 8 a la 7, antes que el
     # Zoco: al llegar a él ya se sabe lo que vale cada pieza (y hay legendarias que cambiar).
     # 16-sep · tampoco el Hangar: con 4.350 xp y menos créditos, la cápsula legendaria (320 ◈) es un escaparate que nadie alcanza.
-    {"n": 7, "clave": "c8", "titulo": "El Hangar de las Leyendas", "icono": "🟨", "semana": 7, "sin_pua": True,
+    {"n": 7, "clave": "c8", "titulo": "El Hangar de las Leyendas", "icono": "<img class=ico src=assets/img/iconos/p/corona.png alt>", "semana": 7, "sin_pua": True,
      "abre": [], "mercado": ["sobre_epico", "capsula_elite", "capsula_legendaria"],
      "cabecera": "Las cápsulas de élite, la legendaria y el sobre épico",
      "puedes": ["La cápsula de élite: un héroe de la Vanguardia o un Mito, sin la Resistencia",
@@ -1112,7 +1112,7 @@ CAPITULOS = [
     # 16-sep · EL ZOCO, de la 5 a la 8 (en PUA, la 7): lo más complejo de la Nave —negociar con otras personas en 3 pasos,
     # con lo ofrecido apartado, topes y caducidad—, cuando ya hay repetidas (y legendarias) que cambiar.
     # 16-sep · y el Zoco se queda fuera de PUA: negociar en tres pasos, con lo apartado y 7 días de caducidad, no cabe en 8 semanas.
-    {"n": 8, "clave": "c5", "titulo": "El Zoco Estelar", "icono": "🔄", "semana": 8, "sin_pua": True,
+    {"n": 8, "clave": "c5", "titulo": "El Zoco Estelar", "icono": "<img class=ico src=assets/img/iconos/p/zoco.png alt>", "semana": 8, "sin_pua": True,
      "abre": ["zoco"], "mercado": [],
      "cabecera": "El trueque entre reclutas",
      "puedes": ["Poner tus héroes y cromos en el Zoco (repetidos o no)",
@@ -1125,7 +1125,7 @@ CAPITULOS = [
     # cuentan desde el primero): ese día NEBULA los presenta con lo que cada cual ya lleva, y el servidor paga entonces las
     # cubiertas que ya estuvieran completas. 16-sep: los últimos, en la 9 (en PUA, la 7, con el Zoco): piden haberlo
     # usado todo, y así todo lo que piden ya está abierto.
-    {"n": 9, "clave": "c9", "titulo": "Los logros de a bordo", "icono": "🎖️", "semana": 9, "semana_pua": 6,
+    {"n": 9, "clave": "c9", "titulo": "Los logros de a bordo", "icono": "<img class=ico src=assets/img/iconos/p/medalla.png alt>", "semana": 9, "semana_pua": 6,
      "abre": ["logros"], "mercado": [],
      "cabecera": "Lo que ya sabes hacer en la Nave, con premio",
      "puedes": ["16 logros: la primera vez que haces cada cosa en la Nave. Se apuntan solos, y los que ya hiciste también cuentan",
@@ -1138,7 +1138,7 @@ CAPITULOS = [
     # clase y la semana siguiente mostramos el emulador desbloqueado (aunque algunos ya lo tendrán desbloqueado)». La
     # batalla se abre con el planeta Ludo (tema 6, semana 10); este capítulo la presenta a la clase entera la semana
     # siguiente. En PUA el tema 6 cae en la 5, así que el capítulo va con el Arsenal, en la 8.
-    {"n": 10, "clave": "c11", "titulo": "El Simulador de Joran", "icono": "🎮", "semana": 11, "semana_pua": 7,
+    {"n": 10, "clave": "c11", "titulo": "El Simulador de Joran", "icono": "<img class=ico src=assets/img/iconos/p/diana.png alt>", "semana": 11, "semana_pua": 7,
      "abre": ["simulador"], "mercado": [],
      "cabecera": "El simulador que dejó encendido Joran",
      "puedes": ["Si le ganaste a RUTA AZUL en el reto A6, el simulador ya está en tu Nave",
@@ -1147,7 +1147,7 @@ CAPITULOS = [
                 "Cada modo tiene su ranking: ganar vale, ganar entero vale más y ganar sin fallar, lo máximo",
                 "Es repaso de verdad: las preguntas salen del temario, y la batalla final es el examen"],
      "imagen": "assets/img/canje/simulador.jpg"},
-    {"n": 11, "clave": "c7", "titulo": "El Arsenal de batalla", "icono": "⚔️", "semana": 15,
+    {"n": 11, "clave": "c7", "titulo": "El Arsenal de batalla", "icono": "<img class=ico src=assets/img/iconos/p/diana.png alt>", "semana": 15,
      "abre": ["arsenal"], "mercado": ["nota"],
      "cabecera": "El Arsenal: créditos por nota",
      "puedes": ["Subir 0,5 o 1 punto en un entregable, o que se recalifique un trabajo",
@@ -1204,15 +1204,15 @@ BATALLA = {
                 ["media", "Media", "El equilibrio del reto de Joran.", "×1"],
                 ["dificil", "Difícil", "Medias y difíciles, aguanta más, pega antes y sin pistas.", "×1,35"]],
     # y los reconocimientos del grupo, que salen del historial de cada recluta
-    "medallas": [["rapido", "⚡", "El más rápido", "menos segundos por acierto"],
-                 ["certero", "🎯", "El más certero", "más aciertos por respuesta"],
-                 ["sabio", "📚", "Quien más sabe", "más respuestas correctas en total"]],
+    "medallas": [["rapido", "<img class=ico src=assets/img/iconos/p/rayo.png alt>", "El más rápido", "menos segundos por acierto"],
+                 ["certero", "<img class=ico src=assets/img/iconos/p/diana.png alt>", "El más certero", "más aciertos por respuesta"],
+                 ["sabio", "<img class=ico src=assets/img/iconos/p/libro.png alt>", "Quien más sabe", "más respuestas correctas en total"]],
     # 16-sep · el mínimo para optar a «rápido» y «certero» (el espejo de BATALLA.MEDALLAS en GamificaPro): una buena
     # tarde no puede valer por un curso. Lo usan también los rankings de la Nave y de la consola.
     "medallas_min": {"aciertos": 20, "respondidas": 30},
-    "objetos": [["cura", "🔧", "Reparación", "Recupera 35 de escudo"],
-                ["furia", "⚡", "Sobrecarga", "Tu próximo golpe hace el doble"],
-                ["lentitud", "📡", "Interferencia", "Retrasa su ataque 12 segundos"]],
+    "objetos": [["cura", "<img class=ico src=assets/img/iconos/p/ajustes.png alt>", "Reparación", "Recupera 35 de escudo"],
+                ["furia", "<img class=ico src=assets/img/iconos/p/rayo.png alt>", "Sobrecarga", "Tu próximo golpe hace el doble"],
+                ["lentitud", "<img class=ico src=assets/img/iconos/p/envivo.png alt>", "Interferencia", "Retrasa su ataque 12 segundos"]],
 }
 
 # ─────────────────── LAS VOTACIONES DEL AULA (16-sep) ───────────────────
@@ -1319,7 +1319,7 @@ RECOMPENSAS = [
  ("Marco dorado del avatar", 60, 1,
   "Tu avatar con marco y brillo dorados en el ranking y la Nave. Te lo pones (y te lo quitas) en Mi botín.", 4, "marco"),
  ("Cápsula de rescate", 60, 99,
-  "Una cápsula de rescate llega a tu Nave con UN héroe de la Rebelión dentro, al azar: 30 figuras en tres rangos. ⚔️ La Resistencia (%d%%): el grueso del ejército. 🔥 La Vanguardia (%d%%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (%d%%, ni uno de cada doce): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar." % (_pct_cofre("heroe")["rara"], _pct_cofre("heroe")["épica"], _pct_cofre("heroe")["legendaria"]), 3, "heroe"),
+  "Una cápsula de rescate llega a tu Nave con UN héroe de la Rebelión dentro, al azar: 30 figuras en tres rangos. La Resistencia (%d%%): el grueso del ejército. La Vanguardia (%d%%): van por delante, cuesta alcanzarlas. Los MITOS (%d%%, ni uno de cada doce): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar." % (_pct_cofre("heroe")["rara"], _pct_cofre("heroe")["épica"], _pct_cofre("heroe")["legendaria"]), 3, "heroe"),
  ("Sobre grande", 25, 99,
   "CINCO cartas al azar del álbum (en vez de tres), con las mismas probabilidades que el sobre de siempre: más cartas por cada crédito.", 4, "sobre_grande"),
  ("Sobre de raras", 35, 99,
@@ -1331,20 +1331,20 @@ RECOMPENSAS = [
  ("Cápsula legendaria", 320, 99,
   "Un MITO seguro: uno de los héroes legendarios de la Rebelión, siempre. La cápsula más cara del hangar, y también la que tu docente puede esconder en una presentación o darte de premio.", 7, "capsula_legendaria"),
  ("Subir 0,5 en un entregable", 550, 1,
-  "⚔️ ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. "
-  "🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — "
+  "ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. "
+  "LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — "
   "estarías tirando 550 créditos a la basura. Comprueba tu nota primero. Con esos créditos cierras "
   "media docena de sobres o te llevas nueve héroes.", 15, "nota"),
  ("Subir 1 punto en un entregable", 850, 1,
-  "⚔️ ARSENAL DE BATALLA · Un punto entero en una actividad ya entregada y corregida. "
-  "🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, no te sube nada y pierdes "
+  "ARSENAL DE BATALLA · Un punto entero en una actividad ya entregada y corregida. "
+  "LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, no te sube nada y pierdes "
   "los 850 créditos. Es la recompensa más cara del catálogo a propósito: elegirla significa "
   "renunciar a casi todo lo demás.", 15, "nota"),
  ("Recalificar un trabajo entregado fuera de plazo", 700, 1,
-  "⚔️ ARSENAL DE BATALLA · Que se te corrija un trabajo que entregaste tarde. No es un aprobado "
+  "ARSENAL DE BATALLA · Que se te corrija un trabajo que entregaste tarde. No es un aprobado "
   "automático: es que se mire y se puntúe como si hubiera llegado a tiempo.", 15, "nota"),
  ("Recalificar un suspenso", 950, 1,
-  "⚔️ ARSENAL DE BATALLA · Una segunda oportunidad sobre un trabajo suspenso: lo rehaces y se "
+  "ARSENAL DE BATALLA · Una segunda oportunidad sobre un trabajo suspenso: lo rehaces y se "
   "vuelve a corregir. Pensada para quien ha trabajado y se le atragantó una entrega.", 15, "nota"),
 ]
 assert [n[0] for n in NIVELES] == list(range(1, 11)), "los niveles van del 1 al 10"
@@ -1391,14 +1391,14 @@ DIRECTOR = dict(
 
 # Los tres brazos. Salen del centro, no van en fila con él.
 BRAZOS = [
-  dict(clave="openart", icono="🎨", logo="openart.png", titulo="OpenArt", papel="El mundo dibujado",
+  dict(clave="openart", icono="<img class=ico src=assets/img/iconos/p/editar.png alt>", logo="openart.png", titulo="OpenArt", papel="El mundo dibujado",
        url="",
        texto="De aquí salieron <b>las imágenes</b>: los ocho planetas, la Tripulación Cero, las "
              "portadas de cada tema, las 24 insignias y las 26 cartas del álbum. Con "
              "<b>nano-banana</b>, elegido por una razón práctica: acepta una imagen de "
              "referencia y respeta el encuadre 16:9 sin recortar por su cuenta — que es lo que "
              "hace falta cuando el plano tiene que encajar en un montaje."),
-  dict(clave="magnific", icono="🎬", logo="magnific.svg", titulo="Magnific", papel="La voz y el movimiento",
+  dict(clave="magnific", icono="<img class=ico src=assets/img/iconos/p/video.png alt>", logo="magnific.svg", titulo="Magnific", papel="La voz y el movimiento",
        url="https://referral.magnific.com/mzW6daB",
        texto="Puso <b>las voces</b> de los personajes y <b>los clips de vídeo</b>. Y algo que no se "
              "ve pero se nota: las <b>anclas</b> de personaje, que son las que hacen que NEBULA sea "
@@ -1406,7 +1406,7 @@ BRAZOS = [
   # 🔴 El cuarto pilar. No es una herramienta de creación como las otras tres —no habla por MCP con
   # nadie— pero sin ella no habría web: es donde vive todo. Comprobado en la cabecera HTTP del
   # propio sitio (`platform: hostinger`), no supuesto.
-  dict(clave="hostinger", icono="🌍", logo="hostinger.png", titulo="Hostinger", papel="Donde vive todo",
+  dict(clave="hostinger", icono="<img class=ico src=assets/img/iconos/p/varios.png alt>", logo="hostinger.png", titulo="Hostinger", papel="Donde vive todo",
        url="https://www.hostinger.com/es?REFERRALCODE=TH1MRCUARNEM",
        texto="La web que estás leyendo, el puesto de mando del profesorado y la Nave del alumnado están "
              "alojados aquí. Es la pieza menos vistosa de las cuatro y la única sin la que nada de "
@@ -1507,7 +1507,7 @@ CASTING = [
 
 PASOS = [
  dict(
-  id="referente", icono="🛰️", titulo="Si creas el grupo",
+  id="referente", icono="<img class=ico src=assets/img/iconos/p/envivo.png alt>", titulo="Si creas el grupo",
   quien="El profe <b>referente</b>: una persona por curso. Crea el grupo y reparte las llaves.",
   cuanto="Siete pasos · se hacen UNA vez por grupo",
   porque="Desde el 12-sep esto ya no vive en una hoja de cálculo: es una página más de la web, y se "
@@ -1565,7 +1565,7 @@ PASOS = [
   ]),
 
  dict(
-  id="imparte", icono="🎓", titulo="Si das las clases",
+  id="imparte", icono="<img class=ico src=assets/img/iconos/p/medalla.png alt>", titulo="Si das las clases",
   quien="Quien <b>imparte</b>. Tu referente te pone en el equipo docente con tu correo: con eso entras.",
   cuanto="Seis pasos · cuatro de ellos son lo que harás cada semana",
   porque="Corto a propósito. La <b>visita guiada</b> del Capitán ya te cuenta tus botones, la narrativa, "
@@ -1616,7 +1616,7 @@ PASOS = [
   ]),
 
  dict(
-  id="estudiante", icono="🧑‍🚀", titulo="Si eres recluta",
+  id="estudiante", icono="<img class=ico src=assets/img/iconos/p/cohete.png alt>", titulo="Si eres recluta",
   quien="El <b>alumnado</b>. Dales el código de clase (o pega la invitación en el foro de la plataforma de UNIR de la semana 1).",
   cuanto="Siete pasos · el segundo es el que importa de verdad",
   porque="Corto porque nadie lee instrucciones largas. Tiene un objetivo por encima de todos: que se "

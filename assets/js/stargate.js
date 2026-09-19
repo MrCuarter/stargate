@@ -41,7 +41,7 @@
         encenderSegunRol(); try{ document.dispatchEvent(new CustomEvent('sg:modo')); }catch(e){} };
       wrap.insertBefore(b, wrap.querySelector('.tour-start'));
     }
-    b.textContent = md ? '★ Modo referente' : '👤 Modo docente';
+    b.textContent = md ? '★ Modo referente' : 'Modo docente';
     b.title = md ? 'Volver a ver todo lo de referente' : 'Ocultar lo de referente (para clase): ves lo mismo que un profe';
     b.setAttribute('aria-pressed', md ? 'true' : 'false');
     b.classList.toggle('on', md);
@@ -299,7 +299,7 @@ window.SG.preguntar = function (o) {
         (larga ? ">" + e(F.valor || "") + "</textarea>" : ' value="' + e(F.valor || "") + '">') +
         '<p class="sgp-err" hidden></p></div>';
     }
-    caja.innerHTML = '<p class="sgp-quien">' + (o.peligro ? "⚠️ " : "📡 ") + e(o.quien || "Puesto de mando") + "</p>" +
+    caja.innerHTML = '<p class="sgp-quien">' + (o.peligro ? "<img class=ico src=assets/img/iconos/p/aviso.png alt> " : "<img class=ico src=assets/img/iconos/p/envivo.png alt> ") + e(o.quien || "Puesto de mando") + "</p>" +
       '<h3 id="' + idT + '">' + e(o.titulo || "") + "</h3>" +
       (parrafos || o.html ? '<div class="sgp-txt">' + parrafos + (o.html || "") + "</div>" : "") + campo +
       '<div class="sgp-bot">' + (o.no === "" ? "" : '<button type="button" class="btn min" data-sgp-no>' + e(o.no || "Cancelar") + "</button>") +

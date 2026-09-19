@@ -45,7 +45,7 @@
     pinta('<div class="bt-caja bt-centro"><div class="bt-cargando"><i></i></div><p class="bt-sub">' + esc(t) + '</p></div>');
   }
   function fallo(msg, reintenta) {
-    pinta('<div class="bt-caja bt-centro mal"><div class="bt-icono">🎮</div><h2>No he podido abrir el simulador</h2>'
+    pinta('<div class="bt-caja bt-centro mal"><div class="bt-icono"><img class=ico src=assets/img/iconos/p/diana.png alt></div><h2>No he podido abrir el simulador</h2>'
       + '<p class="bt-sub">' + esc(msg) + '</p>'
       + (reintenta ? '<p><button class="btn" id="bt-otra">Volver a intentarlo</button></p>' : '') + '</div>');
     if (reintenta) $('#bt-otra').onclick = function () { cargarEstado(); };
@@ -66,7 +66,7 @@
     };
   }
   function otraCuenta(correo) {
-    pinta('<div class="bt-caja bt-centro mal"><div class="bt-icono">🎮</div><h2>Esta cuenta no está en ningún grupo</h2>'
+    pinta('<div class="bt-caja bt-centro mal"><div class="bt-icono"><img class=ico src=assets/img/iconos/p/diana.png alt></div><h2>Esta cuenta no está en ningún grupo</h2>'
       + '<p class="bt-sub">Estás con <b>' + esc(correo) + '</b>, y no la encuentro alistada. Entra con <b>la cuenta con la que te alistaste</b>.</p>'
       + '<button class="btn epico" id="bt-otra2"><span class="ep-luz"></span><span class="ep-g">'
       + ((window.SG && window.SG.LOGO_G) || '') + '</span><span class="ep-txt">Entrar con otra cuenta</span></button></div>');
@@ -111,8 +111,8 @@
       + '<p class="bt-sub">«A mis críos del refugio les hice jugar cien veces antes de la noche de verdad. Contigo voy a hacer lo mismo: '
       + 'preguntas de todo lo que llevas recorrido, temas 1 al 5. Si me ganas, el simulador es tuyo.» — <b>Joran Pike</b></p>'
       + reglas()
-      + (c ? '<p class="bt-cansa">🔧 Lo has intentado ' + c + (c === 1 ? ' vez' : ' veces') + ': esta vez atacará más despacio.</p>' : '')
-      + '<p><button class="btn epico grande" data-empezar="reto"><span class="ep-luz"></span><span class="ep-txt">⚔️ Empezar la batalla</span></button></p>'
+      + (c ? '<p class="bt-cansa"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Lo has intentado ' + c + (c === 1 ? ' vez' : ' veces') + ': esta vez atacará más despacio.</p>' : '')
+      + '<p><button class="btn epico grande" data-empezar="reto"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Empezar la batalla</span></button></p>'
       + '<p class="small muted">No hay nada que entregar: el reto A6 se registra solo al ganar.</p></div></div>';
   }
   function tarjetaModo(m) {
@@ -133,10 +133,10 @@
     var cuerpo = '';
     // un docente alistado en su propio grupo juega como recluta; para enseñarlo en clase, el ensayo
     if (EST.puedeEnsayar && !EST.docente)
-      cuerpo += '<p class="bt-ganado">👩‍🏫 <b>Eres docente de este grupo.</b> Aquí juegas como recluta, con tu ficha. '
+      cuerpo += '<p class="bt-ganado"><img class=ico src=assets/img/iconos/p/gente.png alt> <b>Eres docente de este grupo.</b> Aquí juegas como recluta, con tu ficha. '
         + '<a class="btn min" href="batalla.html?per=' + esc(PER) + '&ensayo=1">Enseñarlo en clase (modo ensayo)</a></p>';
     if ((EST.modos || []).indexOf('reto') >= 0 && !gan) cuerpo += tarjetaReto();
-    else if (gan && !EST.docente) cuerpo += '<p class="bt-ganado">🏅 <b>Insignia de Joran conseguida.</b> '
+    else if (gan && !EST.docente) cuerpo += '<p class="bt-ganado"><img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Insignia de Joran conseguida.</b> '
       + '<button class="btn min" data-empezar="reto">Volver a pelear con él</button></p>';
     if (modos.length) {
       var N = CFG.niveles || [];
@@ -151,7 +151,7 @@
             + (EST.total.aciertos ? ' · <b>' + (Math.round((EST.total.ms / 1000) / EST.total.aciertos * 10) / 10) + ' s</b> por acierto' : '') + '</p>' : '')
         + '<div class="bt-ranking" id="bt-ranking"></div>';
     } else if (!gan) {
-      cuerpo += '<p class="bt-bloqueado">🔒 El entrenamiento por temas se abre cuando le ganas.</p>';
+      cuerpo += '<p class="bt-bloqueado"><img class=ico src=assets/img/iconos/p/candado.png alt> El entrenamiento por temas se abre cuando le ganas.</p>';
     }
     pinta('<div class="bt-menu">' + cab + cuerpo + '</div>');
     Array.prototype.forEach.call(app.querySelectorAll('[data-empezar]'), function (b) {
@@ -255,7 +255,7 @@
     if (br) br.style.width = Math.max(0, B.rival * 100 / B.rivalMax) + '%';
     var m = $('#bt-marcador');
     if (m) m.innerHTML = 'Aciertos <b>' + B.aciertos + '</b> · fallos <b>' + (B.respondidas - B.aciertos) + '</b>'
-      + (B.guardia ? ' · 🛡️ en guardia' : '') + (B.furia ? ' · ⚡ sobrecargado' : '');
+      + (B.guardia ? ' · <img class=ico src=assets/img/iconos/p/escudo.png alt> en guardia' : '') + (B.furia ? ' · <img class=ico src=assets/img/iconos/p/rayo.png alt> sobrecargado' : '');
     var im = $('#bt-rival');
     if (im) im.src = 'assets/img/batalla/rival' + (B.rival <= B.rivalMax * 0.35 ? '_danado' : '') + '.jpg';
   }
@@ -264,8 +264,8 @@
     if (B.fase !== 'accion') { caja.hidden = true; caja.innerHTML = ''; return; }
     var o = CFG.objetos || [];
     caja.hidden = false;
-    caja.innerHTML = '<button class="bt-acc golpe" data-acc="golpe">⚔️ Golpear<span>−' + ((CFG.golpe || 20) * (B.furia ? 2 : 1)) + '</span></button>'
-      + '<button class="bt-acc guardia" data-acc="guardia">🛡️ Cubrirte<span>su golpe, a la mitad</span></button>'
+    caja.innerHTML = '<button class="bt-acc golpe" data-acc="golpe"><img class=ico src=assets/img/iconos/p/diana.png alt> Golpear<span>−' + ((CFG.golpe || 20) * (B.furia ? 2 : 1)) + '</span></button>'
+      + '<button class="bt-acc guardia" data-acc="guardia"><img class=ico src=assets/img/iconos/p/escudo.png alt> Cubrirte<span>su golpe, a la mitad</span></button>'
       + o.map(function (x) {
           var n = (B.objetos || {})[x[0]] || 0;
           return '<button class="bt-acc obj" data-acc="' + esc(x[0]) + '"' + (n ? '' : ' disabled') + '>' + x[1] + ' ' + esc(x[2]) + '<span>' + esc(x[3]) + '</span></button>';
@@ -308,7 +308,7 @@
         + q.opciones.map(function (o, k) { return '<button class="bt-op" data-op="' + k + '">' + esc(o) + '</button>'; }).join('')
       + '</div>'
       + (q.tipo !== 'una' ? '<p class="bt-responder"><button class="btn primary" id="bt-ok" disabled>Responder</button></p>' : '')
-      + (q.pista ? '<p class="bt-pista">💡 ' + esc(q.pista) + '</p>' : '')
+      + (q.pista ? '<p class="bt-pista"><img class=ico src=assets/img/iconos/p/estrella.png alt> ' + esc(q.pista) + '</p>' : '')
       + '</div>';
     Array.prototype.forEach.call(caja.querySelectorAll('[data-op]'), function (b) {
       b.onclick = function () { tocarOpcion(Number(b.getAttribute('data-op')), b); };
@@ -397,8 +397,8 @@
           cifra('−' + s.d, 'izq', s.guardia ? 'flojo' : ''); if (s.guardia) dice('Tu guardia se ha comido la mitad.'); }
         if (s.t === 'objeto') dice(FRASES[s.o] || '');
         if (s.t === 'guardia') dice(FRASES.guardia);
-        if (s.t === 'remate') aviso('⚡ RUTA AZUL se tambalea: redime tus ' + s.n + ' falladas y remátalo.');
-        if (s.t === 'remate-final') aviso(s.impecable ? '🌟 Sin un solo fallo. El Remate cae entero.' : '🌟 Cadena redimida. ¡Remate!');
+        if (s.t === 'remate') aviso('RUTA AZUL se tambalea: redime tus ' + s.n + ' falladas y remátalo.');
+        if (s.t === 'remate-final') aviso(s.impecable ? 'Sin un solo fallo. El Remate cae entero.' : 'Cadena redimida. ¡Remate!');
       }, i * 260);
     });
   }
@@ -480,7 +480,7 @@
           : '<p class="bt-sub">Cada derrota lo cansa: la próxima vez atacará más despacio. '
             + '«A la ruta azul se juega cien veces, no una.»</p>')
       + '<p class="bt-final-btns"><button class="btn primary" id="bt-otravez">' + (gano ? 'Otra batalla' : 'Volver a intentarlo') + '</button>'
-      + '<a class="btn" href="recluta.html?per=' + esc(PER) + '">🚀 Volver a mi Nave</a></p></div>';
+      + '<a class="btn" href="recluta.html?per=' + esc(PER) + '"><img class=ico src=assets/img/iconos/p/cohete.png alt> Volver a mi Nave</a></p></div>';
     pinta(cuerpo);
     $('#bt-otravez').onclick = function () { cargarEstado(); };
     if (gano) fiesta();
@@ -495,11 +495,11 @@
         if (r.empty) throw new Error('sin misión');
         return M.llamar('completeMission', { projectId: PER, missionId: r.docs[0].id, studentProfileId: EST.ficha });
       })
-      .then(function () { t.innerHTML = '🏅 <b>Reto A6 registrado</b> y la insignia de Joran es tuya. El simulador ya está en tu Nave.'; })
+      .then(function () { t.innerHTML = '<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Reto A6 registrado</b> y la insignia de Joran es tuya. El simulador ya está en tu Nave.'; })
       .catch(function (e) {
         var ya = /ya/i.test(String(e && e.message));
-        t.innerHTML = ya ? '🏅 <b>Ya lo tenías registrado.</b> El simulador está en tu Nave.'
-          : '🏅 <b>Victoria guardada.</b> El reto A6 se registrará solo la próxima vez que entres en tu Nave.';
+        t.innerHTML = ya ? '<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Ya lo tenías registrado.</b> El simulador está en tu Nave.'
+          : '<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Victoria guardada.</b> El reto A6 se registrará solo la próxima vez que entres en tu Nave.';
       });
   }
   function fiesta() {

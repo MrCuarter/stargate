@@ -33,7 +33,7 @@
 
   // ---------------------------------------------------------------- la puerta
   function puerta(msg) {
-    pinta('<div class="ll-caja"><div class="ll-icono">🔔</div>'
+    pinta('<div class="ll-caja"><div class="ll-icono"><img class=ico src=assets/img/iconos/p/clase.png alt></div>'
       + "<h2>Llamada a filas</h2>"
       + '<p class="ll-sub">' + esc(msg || "Esto solo puede tocarlo el Comandante de la clase.") + "</p>"
       // 13-sep · con la «G» de Google, como las demás puertas: «entrar con mi cuenta» a secas no dice
@@ -50,9 +50,9 @@
    * proyectada, y hay que decírselo sin asustarle.
    */
   function noEresComandante() {
-    pinta('<div class="ll-caja ll-no"><div class="ll-icono">🛡️</div>'
+    pinta('<div class="ll-caja ll-no"><div class="ll-icono"><img class=ico src=assets/img/iconos/p/escudo.png alt></div>'
       + "<h2>Esto lo toca tu Comandante</h2>"
-      + '<p class="ll-sub">Cuando lo haga, el botón de <b>✋ Presente</b> aparecerá solo en '
+      + '<p class="ll-sub">Cuando lo haga, el botón de <b><img class=ico src=assets/img/iconos/p/gente.png alt> Presente</b> aparecerá solo en '
       + '<b>tu Nave</b>. No hay que hacer nada aquí.</p>'
       + '<p class="ll-pie">' + (YO.correo ? 'Estás como ' + esc(YO.correo) + '. ' : '')
       + '<button class="ll-min" id="ll-otra">No soy yo</button></p></div>');
@@ -80,7 +80,7 @@
   }
   /** Todos sus grupos han acabado: mejor decirlo que dejarle abrir una llamada que nadie puede usar. */
   function soloPasados() {
-    pinta('<div class="ll-caja"><div class="ll-icono">🗓️</div>'
+    pinta('<div class="ll-caja"><div class="ll-icono"><img class=ico src=assets/img/iconos/p/calendario.png alt></div>'
       + "<h2>No tienes ningún grupo en marcha</h2>"
       + '<p class="ll-sub">Tus grupos ya han terminado, así que no hay a quién pasar lista. '
       + "Si acabas de crear uno, comprueba su <b>fecha de la semana 1</b> en Mis grupos → Ajustes del grupo.</p>"
@@ -91,7 +91,7 @@
   // ---------------------------------------------------------------- el botón del Comandante
   function tocar() {
     var g = GRUPOS.filter(function (x) { return x.id === PER; })[0] || {};
-    pinta('<div class="ll-caja"><div class="ll-icono">🔔</div>'
+    pinta('<div class="ll-caja"><div class="ll-icono"><img class=ico src=assets/img/iconos/p/clase.png alt></div>'
       + "<h2>Llamada a filas</h2>"
       + '<p class="ll-sub">Abre el fichaje para <b>tu escuadrón</b> durante el tiempo que elijas. '
       + "En la Nave de tu gente aparecerá el botón solo.</p>"
@@ -100,7 +100,7 @@
           // empezando— la elección no puede ser un desplegable discreto que se pasa por alto
           // proyectando. Se avisa en ámbar y cada opción lleva su semana, que es lo que de verdad
           // distingue «el que acaba» de «el que empieza» cuando los dos se llaman parecido.
-          ? '<p class="ll-ojo">⚠️ Tienes <b>' + GRUPOS.length + ' grupos abiertos</b>. Comprueba cuál es este.</p>'
+          ? '<p class="ll-ojo"><img class=ico src=assets/img/iconos/p/aviso.png alt> Tienes <b>' + GRUPOS.length + ' grupos abiertos</b>. Comprueba cuál es este.</p>'
             + '<label class="ll-campo">Grupo<select id="ll-per">' + GRUPOS.map(function (x) {
               return '<option value="' + esc(x.id) + '"' + (x.id === PER ? " selected" : "") + ">"
                 + esc(x.nombre || x.id) + esc(coletilla(x)) + "</option>"; }).join("") + "</select></label>"
@@ -120,9 +120,9 @@
       + '<label class="ll-campo ll-regalo"><input type="checkbox" id="ll-sobre"> '
       + '<span>Regalar un <b>sobre de cromos</b> a quien fiche</span></label>'
       + '<p class="ll-nota">Tres cartas al azar. No toca ni los xp ni el ranking: es colección.</p>'
-      + '<button class="ll-btn grande" id="ll-tocar">🔔 Tocar llamada</button>'
+      + '<button class="ll-btn grande" id="ll-tocar"><img class=ico src=assets/img/iconos/p/clase.png alt> Tocar llamada</button>'
       + '<p class="ll-pie" id="ll-msg"></p>'
-      + '<p class="ll-pie"><a href="buzon.html?desde=llamada&per=' + encodeURIComponent(PER || "") + '" target="_blank" rel="noopener">📡 ¿Dudas? ¿Algo falla? Escribe al Mando</a></p></div>');
+      + '<p class="ll-pie"><a href="buzon.html?desde=llamada&per=' + encodeURIComponent(PER || "") + '" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/envivo.png alt> ¿Dudas? ¿Algo falla? Escribe al Mando</a></p></div>');
 
     var min = 60;
     Array.prototype.forEach.call(app.querySelectorAll(".ll-m"), function (b) {
@@ -140,7 +140,7 @@
       MOTOR.abrirLlamada(PER, min, { regalo: regalo && regalo.checked ? "sobre" : "" })
         .then(function (r) { SESION = r; enMarcha(); })
         .catch(function (err) {
-          b.disabled = false; b.textContent = "🔔 Tocar llamada";
+          b.disabled = false; b.innerHTML = "<img class=ico src=assets/img/iconos/p/clase.png alt> Tocar llamada";
           document.getElementById("ll-msg").textContent = String(err && err.message || err);
         });
     };
@@ -151,7 +151,7 @@
    * convierte el pase de lista en un momento de clase en vez de en un trámite.
    */
   function enMarcha() {
-    pinta('<div class="ll-caja ll-viva"><div class="ll-icono">📣</div>'
+    pinta('<div class="ll-caja ll-viva"><div class="ll-icono"><img class=ico src=assets/img/iconos/p/mensaje.png alt></div>'
       + "<h2>Llamada abierta</h2>"
       // 🔴 DE QUÉ GRUPO. Decía «Para todo el grupo» sin nombrarlo: proyectado delante de una clase,
       // con dos grupos vivos, no había forma de saber a cuál se la habías abierto.

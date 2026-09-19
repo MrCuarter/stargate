@@ -90,7 +90,7 @@ const N = leer("assets/js/recluta.js"), F = leer("assets/js/fuente.js"), M = lee
   c(/function aBordo\(\)/.test(N) && /\+aBordo\(\)\n\s*\+album/.test(N), "🔴 «Mi botín» tiene su cajón «🎖️ Logros de a bordo», detrás de las insignias");
   c(/!abierto\('logros'\)\) return '';/.test(N) && /abierto\('logros'\)&&d&&/.test(N) && /abierto\('logros'\) \|\| mios\[h\[0\]\]/.test(N),
     "🔴 antes de su capítulo no se ve nada (ni el cajón, ni los carteles, ni el Contramaestre en sombra): se apuntan en silencio");
-  c(/id="nc-ab"/.test(N) && /'🌟 logros':'logros'/.test(N), "   la ficha lleva su cifra (y lleva al cajón)");
+  c(/id="nc-ab"/.test(N) && /'<img class=ico [^>]*> logros':'logros'/.test(N), "   la ficha lleva su cifra (y lleva al cajón)");
   c(/function cartaABordo\(alias, cls\)/.test(N) && /class="ab-nombre"/.test(N), "🔴 la carta del Contramaestre lleva el alias de quien la gana, escrito en el hueco del nombre");
   c(/function comprobarHitos\(\)/.test(N) && /setTimeout\(comprobarHitos, 1800\)/.test(N) && /if\(HITOS_TRAS\[cuerpo\.accion\]\) hitosLuego\(\)/.test(N) && /hitosLuego\(2500\)/.test(N),
     "   se pregunta al entrar y tras hacer algo que pueda ser un logro (también en el Zoco)");

@@ -41,7 +41,7 @@
       + '<li>Copia el <b>ID de cliente</b> y ponlo en <code>_site_data.py</code> → <code>GOOGLE_CLIENT_ID</code></li>'
       + '<li>Vuelve a la pantalla de consentimiento y pulsa <b>Publicar aplicación</b></li>'
       + '</ol>'
-      + '<p class="small muted">🔴 Como solo pedimos el correo (permiso <b>no sensible</b>), Google '
+      + '<p class="small muted"><img class=ico src=assets/img/iconos/p/aviso.png alt> Como solo pedimos el correo (permiso <b>no sensible</b>), Google '
       + '<b>no exige verificar la aplicación</b>: no hay que solicitar nada ni esperar a nadie.</p>'
       + '<p class="small muted">El ID de cliente <b>no es un secreto</b>: va escrito en el HTML de '
       + 'cualquier web que use este botón. Lo que cierra la puerta es que el servidor comprueba que '
@@ -77,7 +77,7 @@
       + '<div class="card" style="background:rgba(255,255,255,.03)">'
       + '<p><b>' + esc(suelto.email || '—') + '</b>'
       + (suelto.name ? ' <span class="muted">· ' + esc(suelto.name) + '</span>' : '') + '</p>'
-      + '<p class="small muted">🔴 Esto <b>no vale como prueba</b>: cualquiera puede leer un token, e '
+      + '<p class="small muted"><img class=ico src=assets/img/iconos/p/aviso.png alt> Esto <b>no vale como prueba</b>: cualquiera puede leer un token, e '
       + 'inventarse uno. Sirve para verlo, no para fiarse.</p></div>'
       + '<h3 style="margin-top:18px">3 · Lo que dice el servidor</h3>'
       + '<div class="card" id="srv">' + '<p class="small muted">Preguntándole a Google…</p></div>');
@@ -92,11 +92,11 @@
       .then(function (d) {
         var ok = d && d.ok;
         document.getElementById('srv').innerHTML = ok
-          ? '<p style="font-size:1.3rem"><b>' + esc(d.correo) + '</b> ✅</p>'
+          ? '<p style="font-size:1.3rem"><b>' + esc(d.correo) + '</b> <img class=ico src=assets/img/iconos/p/hecho.png alt></p>'
             + '<p class="small">Google confirma que el token es auténtico, que se emitió <b>para esta '
             + 'aplicación</b> y que el correo está verificado. <b>Esto sí vale.</b></p>'
             + (suelto.email && String(suelto.email).toLowerCase() !== d.correo
-               ? '<p class="small" style="color:var(--amber)">⚠ El servidor y el navegador no dicen lo '
+               ? '<p class="small" style="color:var(--amber)"><img class=ico src=assets/img/iconos/p/aviso.png alt> El servidor y el navegador no dicen lo '
                  + 'mismo. Manda el servidor.</p>' : '')
           : '<p style="color:var(--amber)"><b>No ha colado:</b> ' + esc((d && d.error) || 'sin respuesta') + '</p>'
             + '<p class="small muted">Si dice «El token no es de esta aplicación», el ID de cliente de '

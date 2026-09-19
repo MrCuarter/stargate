@@ -198,7 +198,7 @@
       // v3.14 · hasta cuándo se registra y hasta cuándo se canjea: el docente lo necesita para
       // avisar en clase, y son fechas distintas a propósito
       +((st.d&&st.d.cierre_misiones)
-        ? '<p class="small muted">🗓️ Misiones hasta el <b>'+fecha(st.d.cierre_misiones)+'</b>'
+        ? '<p class="small muted"><img class=ico src=assets/img/iconos/p/calendario.png alt> Misiones hasta el <b>'+fecha(st.d.cierre_misiones)+'</b>'
           +(st.d.cierre_canje&&st.d.cierre_canje!==st.d.cierre_misiones
             ? ' · canje hasta el <b>'+fecha(st.d.cierre_canje)+'</b> <span class="muted">(una semana más: la de reclamar lo ganado)</span>'
             : '')+'</p>'
@@ -216,13 +216,13 @@
     // mirando la pantalla. Con la hoja, el servidor la guardaba y la comparaba. En Firestore, un
     // sitio donde el alumnado pueda comprobarla es un sitio donde puede leerla antes — y entonces
     // no hay pase que valga. Necesita su propia puerta en el servidor, y eso es otro trabajo.
-    if(NUEVO) return '<div class="card apagado" id="sala-pase"><h3>🎓 Pase de lista en directo</h3>'
+    if(NUEVO) return '<div class="card apagado" id="sala-pase"><h3><img class=ico src=assets/img/iconos/p/medalla.png alt> Pase de lista en directo</h3>'
       +'<p class="small muted">Todavía no funciona en los grupos del motor nuevo. La palabra tiene '
       +'que poder comprobarse sin que se pueda leer antes, y eso pide una puerta propia en el '
       +'servidor.</p></div>';
     var p=st.pase;
     if(!p||!p.hasta||new Date(p.hasta)<=new Date())
-      return '<div class="card" id="sala-pase"><h3>🎓 Pase de lista en directo</h3>'
+      return '<div class="card" id="sala-pase"><h3><img class=ico src=assets/img/iconos/p/medalla.png alt> Pase de lista en directo</h3>'
         +'<p class="small muted">Abre una ventana y enseña la consigna en pantalla. Quien esté en clase la teclea en su Nave y se lleva unos créditos. Una vez por sesión.</p>'
         +'<p><button class="btn primary" id="abrirPase">Abrir el pase de lista</button></p>'
         +'<p class="small muted">Ojo: premia <b>estar</b> en la sesión en directo, pero no es un control de asistencia fiable: quien está en clase puede escribirle la consigna por el chat a quien no está. Si te importa que no se filtre, ábrelo con la clase ya empezada y déjalo pocos minutos.</p></div>';
@@ -230,14 +230,14 @@
     // docente comparte esa misma pantalla para dar clase. Tapada sigue VALIENDO —la ventana no se
     // cierra—, solo deja de verse; asi puede enseñar otra cosa sin cerrar el pase.
     var tapada = !!st.paseOculto;
-    return '<div class="card pase-abierto" id="sala-pase"><h3>🎓 Pase de lista ABIERTO</h3>'
+    return '<div class="card pase-abierto" id="sala-pase"><h3><img class=ico src=assets/img/iconos/p/medalla.png alt> Pase de lista ABIERTO</h3>'
       +'<p class="small muted">Enséñales esta pantalla. Se cierra sola.</p>'
       +(tapada
         ? '<div class="consigna consigna-tapada" title="La ventana sigue abierta">\u2022 \u2022 \u2022 \u2022</div>'
         : '<div class="consigna">'+esc(p.palabra)+'</div>')
       +'<p class="small muted">Cierra a las <b>'+hora(p.hasta)+'</b> · <span id="cuenta"></span>'
       +(tapada?' · <b>tapada</b>, pero sigue abierta':'')+'</p>'
-      +'<p><button class="btn small" id="taparPase">'+(tapada?'\ud83d\udc41 Ver la consigna':'\ud83d\ude48 Ocultar la consigna')+'</button> '
+      +'<p><button class="btn small" id="taparPase">'+(tapada?'<img class=ico src=assets/img/iconos/p/ojo.png alt> Ver la consigna':'<img class=ico src=assets/img/iconos/p/candado.png alt> Ocultar la consigna')+'</button> '
       +'<button class="btn small" id="abrirPase">Abrir otra ventana</button></p></div>';}
 
   function hora(d){var x=new Date(d);return ('0'+x.getHours()).slice(-2)+':'+('0'+x.getMinutes()).slice(-2)+':'+('0'+x.getSeconds()).slice(-2);}
@@ -253,7 +253,7 @@
   function bloquePanel(){
     var yo=((st.d&&st.d.docentes)||[]).filter(function(d){return d.nombre===st.profe;})[0]||{};
     var delPer=(st.d&&st.d.panel)||'';
-    return '<div class="card" id="sala-panel"><h3>🪐 Tu panel de Genially</h3>'
+    return '<div class="card" id="sala-panel"><h3><img class=ico src=assets/img/iconos/p/varios.png alt> Tu panel de Genially</h3>'
       +'<p class="small muted">Es lo que abren TUS alumnos desde la Nave. Dejalo vacio y veran el del grupo.</p>'
       +'<div class="pase-fila" style="max-width:640px">'
       +'<input id="miPanel" style="flex:1;min-width:260px" placeholder="https://view.genially.com/..." value="'+esc(yo.panel||'')+'">'
@@ -272,7 +272,7 @@
     // le llega a ninguna persona concreta. Es lo primero que hay que arreglar, así que va arriba.
     var sinDoc=((st.d&&st.d.reclutas)||[]).filter(function(x){return !String(x.profe||'').trim();});
     var avisoSinDoc = sinDoc.length
-      ? '<div class="card" style="border-color:#f5b043"><h3>⚠ '+sinDoc.length+' recluta(s) sin docente asignado</h3>'
+      ? '<div class="card" style="border-color:#f5b043"><h3><img class=ico src=assets/img/iconos/p/aviso.png alt> '+sinDoc.length+' recluta(s) sin docente asignado</h3>'
         +'<p class="small">No han contestado «¿Quién imparte tu clase?». Cuando canjeen algo que haya que aplicar '
         +'a mano, el aviso <b>no le llegará a ninguna persona concreta</b>: solo al profe referente. '
         +'Asígnaselos tú desde <b>Mi grupo</b> → «Corregir».</p>'
@@ -302,7 +302,7 @@
     return '<section id="sala-clase"><div class="eyebrow violet">Antes de entrar</div><h2>Con qué empezar la clase</h2>'
       +(s?'<div class="card"><h3>La orden de la semana '+sem+' · '+esc(s.tema)+'</h3><p class="small">'+esc(s.sub||'')+'</p>'
         +'<p class="small"><b>Se lanza:</b> '+esc((s.lanza||[]).join(' · ')||'—')+'</p>'
-        +'<p><a class="btn primary" href="sesion.html?per='+encodeURIComponent(st.per)+'&sem='+sem+'" target="_blank" rel="noopener">📽️ Proyectar la sesión de la semana ↗</a></p>'
+        +'<p><a class="btn primary" href="sesion.html?per='+encodeURIComponent(st.per)+'&sem='+sem+'" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/video.png alt> Proyectar la sesión de la semana ↗</a></p>'
         +'<p class="small muted">Se abre la semana entera montada como presentación: el planeta, los vídeos con su momento, las misiones con lo que piden, las insignias y el hito. No hace falta montar ningún Genially.</p>'
         +'<p><a class="btn small" href="foro.html?per='+encodeURIComponent(st.per)+'" target="_blank" rel="noopener">Ver el mensaje del foro para copiar ↗</a> '
         +'<a class="btn small" href="cronologia.html#sem'+sem+'" target="_blank" rel="noopener">La semana entera ↗</a></p></div>':'')
@@ -325,12 +325,12 @@
       var ult=(p.eventos||[]).length?f((p.eventos||[]).map(function(e){return e.fecha;}).sort().pop()):'—';
       return '<tr class="clicable" data-al-fila="'+i+'" title="Ver la ficha de '+esc(p.alias)+'"><td>'+p.pos+'</td><td><b>'+esc(p.alias)+'</b><br><span class="small muted">'+priv(p.nombre)+'</span></td>'
         +'<td class="small">'+priv(p.email)+'</td>'
-        +'<td>'+(String(p.profe||'').trim()?esc(p.profe):'<span class="chip" style="background:#f5b04333;color:#8a5b00">⚠ sin docente</span>')+'</td>'
+        +'<td>'+(String(p.profe||'').trim()?esc(p.profe):'<span class="chip" style="background:#f5b04333;color:#8a5b00"><img class=ico src=assets/img/iconos/p/aviso.png alt> sin docente</span>')+'</td>'
         +'<td>N'+p.nivel+' <span class="small muted">'+esc(p.rango_nombre||'')+'</span></td>'
         +'<td class="pts">'+p.xp+'</td><td>'+p.creditos+' ◈</td><td>'+p.n+'/24</td><td class="small muted">'+ult+'</td>'
         +'<td><button class="btn small primary" data-al="'+i+'">Ver ficha</button></td></tr>';}).join('');
     return '<section id="sala-grupo"><div class="eyebrow teal">Tu gente</div><h2>Mi grupo</h2>'
-      +'<div class="cta-row" style="justify-content:flex-start;margin:0 0 12px">'+'<a class="btn primary" href="registro.html?per='+encodeURIComponent(st.per)+'&solo=1" target="_blank" rel="noopener">📽️ Proyectar el ranking</a>'+'<button class="btn small" id="verPriv">'+(st.verPrivado?'🙈 Tapar correos y nombres':'👁 Ver correos y nombres')+'</button></div>'+'<p class="lead small">📽️ abre <b>otra página, sin PIN</b>: el servidor no le manda correos ni nombres, así que se puede compartir pantalla con ella sin miedo. Aquí, en cambio, están tapados solo por fuera.</p>'+'<p class="lead">Pulsa <b>Ver ficha</b> (o la fila) y tienes la radiografía completa de esa persona: su inventario, sus canjes y los mismos campos para corregirla. No hace falta abrir ninguna hoja de cálculo. '
+      +'<div class="cta-row" style="justify-content:flex-start;margin:0 0 12px">'+'<a class="btn primary" href="registro.html?per='+encodeURIComponent(st.per)+'&solo=1" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/video.png alt> Proyectar el ranking</a>'+'<button class="btn small" id="verPriv">'+(st.verPrivado?'<img class=ico src=assets/img/iconos/p/candado.png alt> Tapar correos y nombres':'<img class=ico src=assets/img/iconos/p/ojo.png alt> Ver correos y nombres')+'</button></div>'+'<p class="lead small"><img class=ico src=assets/img/iconos/p/video.png alt> abre <b>otra página, sin PIN</b>: el servidor no le manda correos ni nombres, así que se puede compartir pantalla con ella sin miedo. Aquí, en cambio, están tapados solo por fuera.</p>'+'<p class="lead">Pulsa <b>Ver ficha</b> (o la fila) y tienes la radiografía completa de esa persona: su inventario, sus canjes y los mismos campos para corregirla. No hace falta abrir ninguna hoja de cálculo. '
       +'<label class="small" style="margin-left:8px"><input type="checkbox" id="chkMios"'+(st.soloMios?' checked':'')+'> solo mis alumnos</label></p>'
       +(r.length?'<div class="tablewrap"><table class="rank"><thead><tr><th>#</th><th>Recluta</th><th>Correo</th><th>Docente</th><th>Nivel</th><th>xp</th><th>◈</th><th>Insignias</th><th>Últ. registro</th><th></th></tr></thead><tbody>'+filas+'</tbody></table></div><div id="ficha"></div>'
         :'<p class="lead">Ningún recluta te ha elegido todavía como docente. Si ya tienes clase, revisa que hayan respondido «¿Quién imparte tu clase?» en su Bitácora — o desmarca «solo mis alumnos» y corrígeselo tú.</p>')
@@ -488,28 +488,28 @@
       + '<h2>Tus tres botones</h2>'
       + '<div class="herramientas">'
       + '<a class="herr" href="sesion.html?per=' + encodeURIComponent(st.per) + mot + '" target="_blank" rel="noopener">'
-        + '<span class="ic">📽️</span><b>Proyectar la semana</b>'
+        + '<span class="ic"><img class=ico src=assets/img/iconos/p/video.png alt></span><b>Proyectar la semana</b>'
         + '<em>el planeta, los vídeos, los retos y el hito — ya montado para la pantalla</em></a>'
       + (NUEVO ? '<a class="herr" href="aula.html?per=' + encodeURIComponent(st.per) + mot + '" target="_blank" rel="noopener">'
-        + '<span class="ic">🛰️</span><b>El aula</b>'
+        + '<span class="ic"><img class=ico src=assets/img/iconos/p/envivo.png alt></span><b>El aula</b>'
         + '<em>llamada a filas, quién ficha, a quién felicitar y premios a mano</em></a>' : '')
       + (NUEVO ? '<a class="herr" href="llamada.html?per=' + encodeURIComponent(st.per) + mot + '" target="_blank" rel="noopener">'
-        + '<span class="ic">🔔</span><b>Llamada a filas</b>'
+        + '<span class="ic"><img class=ico src=assets/img/iconos/p/clase.png alt></span><b>Llamada a filas</b>'
         + '<em>solo el pase de lista, con el botón grande para proyectar</em></a>' : '')
       + '</div>'
-      + (NUEVO ? '<p class="acc-nota">🧩 Los dos últimos ya van dentro del <b>Genially de clase</b> que te da tu referente: '
+      + (NUEVO ? '<p class="acc-nota"><img class=ico src=assets/img/iconos/p/estrella.png alt> Los dos últimos ya van dentro del <b>Genially de clase</b> que te da tu referente: '
         + 'piden tu cuenta y te preguntan el grupo, así que valen para todos tus grupos y todos los cursos.</p>' : '')
       + '</section>';
     return herramientas
       +'<section id="sala-enlaces"><div class="eyebrow">Sin buscar en Drive</div><h2>Los enlaces de este grupo</h2>'
-      +'<h3 class="acc-tit acc-alu">✅ Esto sí se comparte con el alumnado</h3>'
+      +'<h3 class="acc-tit acc-alu"><img class=ico src=assets/img/iconos/p/hecho.png alt> Esto sí se comparte con el alumnado</h3>'
       // 🔴 12-sep · EN EL MOTOR NUEVO FALTABA EL ENLACE MÁS IMPORTANTE: el de alistarse. Es el único
       // que el docente TIENE que repartir —sin él no hay clase— y no estaba por ninguna parte de su
       // propia sala. Va primero, con el código dentro, para que no haya que juntar dos cosas a mano.
       +(NUEVO
         ? '<p class="acc-nota">Dos cosas: el enlace para <b>alistarse</b> (el primer día) y su '
           + '<b>Nave</b> (el resto del curso). Lo demás ya lo tienen dentro de la Nave.</p>'
-          + '<div class="acc-alta"><b>🧭 Para alistarse — dáselo el primer día</b>'
+          + '<div class="acc-alta"><b><img class=ico src=assets/img/iconos/p/brujula.png alt> Para alistarse — dáselo el primer día</b>'
           + '<code>' + esc(location.origin + '/alistarse.html?per=' + encodeURIComponent(st.per) + mot
               + ((st.d && st.d.codigo) ? '&codigo=' + st.d.codigo : '')) + '</code>'
           + ((st.d && st.d.codigo)
@@ -520,21 +520,21 @@
           + '</div>'
         : '<p class="acc-nota">Cinco cosas, y no hay una sexta: los tres formularios, su Nave y el Genially.</p>')
       +'<div class="accesos">'
-      +a('📓',d.formBitacora,'Bitácora: se alistan y registran retos','bitacora')
-      +a('🚀','recluta.html?per='+encodeURIComponent(st.per),'La Nave del recluta','nave')
-      +a('🎟️',d.formTicket,'Ticket de salida','ticket')
-      +a('🎁',d.formCanje,'Canje de recompensas','canje')
-      +a('🪐',d.panel,'Panel de control (Genially)','panel')
+      +a('<img class=ico src=assets/img/iconos/p/notas.png alt>',d.formBitacora,'Bitácora: se alistan y registran retos','bitacora')
+      +a('<img class=ico src=assets/img/iconos/p/cohete.png alt>','recluta.html?per='+encodeURIComponent(st.per),'La Nave del recluta','nave')
+      +a('<img class=ico src=assets/img/iconos/p/ticket.png alt>',d.formTicket,'Ticket de salida','ticket')
+      +a('<img class=ico src=assets/img/iconos/p/premios.png alt>',d.formCanje,'Canje de recompensas','canje')
+      +a('<img class=ico src=assets/img/iconos/p/varios.png alt>',d.panel,'Panel de control (Genially)','panel')
       +'</div>'
-      +'<h3 class="acc-tit acc-profe">🔒 Solo para el profesorado — no lo repartas</h3>'
+      +'<h3 class="acc-tit acc-profe"><img class=ico src=assets/img/iconos/p/candado.png alt> Solo para el profesorado — no lo repartas</h3>'
       +'<p class="acc-nota">El tablero y el foro sí se enseñan en clase, pero <b>embebidos dentro del Genially</b>'
       +' (el código está en «Enlaces, embeds y QR»). Sus enlaces sueltos llevan a la web del profesorado.</p>'
       +'<div class="accesos">'
-      +a('🏆','registro.html?per='+encodeURIComponent(st.per),'Tablero del grupo','tablero')
-      +a('💬','foro.html?per='+encodeURIComponent(st.per),'Foro dinámico','foro')
-      +a('🔗','embed.html?per='+encodeURIComponent(st.per)+'&profe='+encodeURIComponent(st.profe),'Enlaces, embeds y QR','embed')
-      +a('📄',d.doc,'Documento de enlaces del PER','doc')
-      +a('🧑‍🏫','profes.html?per='+encodeURIComponent(st.per),'Panel completo (referente)','profes')
+      +a('<img class=ico src=assets/img/iconos/p/rankings.png alt>','registro.html?per='+encodeURIComponent(st.per),'Tablero del grupo','tablero')
+      +a('<img class=ico src=assets/img/iconos/p/mensaje.png alt>','foro.html?per='+encodeURIComponent(st.per),'Foro dinámico','foro')
+      +a('<img class=ico src=assets/img/iconos/p/enlace.png alt>','embed.html?per='+encodeURIComponent(st.per)+'&profe='+encodeURIComponent(st.profe),'Enlaces, embeds y QR','embed')
+      +a('<img class=ico src=assets/img/iconos/p/notas.png alt>',d.doc,'Documento de enlaces del PER','doc')
+      +a('<img class=ico src=assets/img/iconos/p/gente.png alt>','profes.html?per='+encodeURIComponent(st.per),'Panel completo (referente)','profes')
       +'</div></section>';}
 
   function bloqueMisPers(){
@@ -571,7 +571,7 @@
         +'<button class="btn small" data-rc="'+i+'">Rechazar</button></td></tr>';
     }).join('');
     return '<section id="cola"><div class="eyebrow amber">Te esperan</div>'
-      +'<h2>⚔️ Solicitudes de nota · '+ps.length+'</h2>'
+      +'<h2><img class=ico src=assets/img/iconos/p/diana.png alt> Solicitudes de nota · '+ps.length+'</h2>'
       +'<p class="lead">Nadie ha pagado nada todavía: <b>los créditos se cobran al aprobar</b>. Si '
       +'rechazas, esa persona se queda con su dinero entero y recibe el motivo.</p>'
       +'<p class="small muted">Aprobar significa que <b>tú</b> aplicarás la nota en la plataforma de la '
@@ -625,8 +625,8 @@
         +'<p class="small muted">Dos motivos posibles: o <b>aún no has creado ninguno</b>, o alguien '
         +'tiene que añadirte con <b>ese mismo correo</b> desde <b>Puesto de mando → Equipo docente</b>. '
         +'Ojo también a <b>con qué cuenta de Google has entrado</b>: es el despiste más común.</p>'
-        +'<p><a class="btn primary" href="crear.html">✨ Crear mi primer grupo</a> '
-        +'<a class="btn" href="consola.html">🎛️ Puesto de mando</a></p>'
+        +'<p><a class="btn primary" href="crear.html"><img class=ico src=assets/img/iconos/p/estrella.png alt> Crear mi primer grupo</a> '
+        +'<a class="btn" href="consola.html"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Puesto de mando</a></p>'
         +'<p><button class="btn small" id="cambiarD">Entrar con otra cuenta</button></p></div>';
       document.getElementById('cambiarD').onclick=olvidarCorreo;
       return;

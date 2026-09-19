@@ -203,7 +203,7 @@
     texto(g, "por completar el viaje de la Tripulación Cero" + (d.escuadron ? " con el escuadrón " + d.escuadron : "")
       + (d.comandante ? ", a las órdenes de " + d.comandante : "") + ".", x0, 520, { tam: 26, peso: 400, color: "#93A7BA" });
     if (d.contramaestre)
-      texto(g, "🌟 Contramaestre de la Nave", x0, 566, { tam: 26, peso: 700, color: "#FFD166" });
+      texto(g, "Contramaestre de la Nave", x0, 566, { tam: 26, peso: 700, color: "#FFD166" });
 
     // las cifras
     var gx = 520, gw = 216, gap = 20, gy = 610;
@@ -276,9 +276,9 @@
     pinta('<div class="dp-cab"><div class="eyebrow amber">Bitácora Estelar</div>'
       + "<h1>Tu diploma, " + esc(d.alias) + "</h1>"
       + '<p class="muted">Sale de tu ficha: no hay que rellenar nada. Descárgalo o imprímelo; el código de abajo lo identifica.</p>'
-      + '<p class="dp-botones"><button class="btn primary" id="dp-png">📥 Descargar</button>'
-      + '<button class="btn" id="dp-print">🖨️ Imprimir</button>'
-      + '<a class="btn" href="recluta.html?per=' + esc(PER) + '">🚀 Volver a mi Nave</a></p></div>'
+      + '<p class="dp-botones"><button class="btn primary" id="dp-png">Descargar</button>'
+      + '<button class="btn" id="dp-print">Imprimir</button>'
+      + '<a class="btn" href="recluta.html?per=' + esc(PER) + '"><img class=ico src=assets/img/iconos/p/cohete.png alt> Volver a mi Nave</a></p></div>'
       + '<div class="dp-lienzo" id="dp-lienzo"></div>');
     document.getElementById("dp-lienzo").appendChild(LIENZO);
     LIENZO.className = "dp-canvas";

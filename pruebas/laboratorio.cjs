@@ -272,6 +272,10 @@ async function persona(nombre) {
       })()`);
     },
     texto() { return p.js("(document.body.innerText||'').replace(/\\s+/g,' ')"); },
+    /** 19-sep · el tamaño de la pantalla (p. ej. un móvil: 390×844, móvil=true), para mirar cómo queda en el teléfono. */
+    tamano(ancho, alto, movil) {
+      return env("Emulation.setDeviceMetricsOverride", { width: ancho, height: alto, deviceScaleFactor: movil ? 2 : 1, mobile: !!movil });
+    },
     async foto(fichero) {
       const r = await env("Page.captureScreenshot", { format: "png" });
       fs.writeFileSync(fichero, Buffer.from(r.data, "base64")); return fichero;

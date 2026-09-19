@@ -52,33 +52,33 @@ var RETOS_REGULAR = [
   //  LOS RELAMPAGO (L*): diez o quince minutos, EN CLASE, con el cronometro del aula proyectado.
   // Cada uno entrena un gesto que el examen da por sabido y que ningun otro reto practica. Quien
   // viene a clase sale con el reto hecho; quien esa noche trabajaba lo tiene abierto 48 horas.
-  ["L1","Reto \u26a1 \u00abLa chispa y la marca\u00bb (imagen con IA + logo)",["R1_la-chispa"],60,1,2],
+  ["L1","Reto rel\u00e1mpago \u00abLa chispa y la marca\u00bb (imagen con IA + logo)",["R1_la-chispa"],60,1,2],
   ["X1","Actividad 1 entregada (imagen con IA)",["H2_primera-forja","E2_capitan"],500,1],
   ["A2","Reto A \u00abUn mensaje para quien falt\u00f3\u00bb (recupera a Tom\u00e1s)",["P2_tomas"],100,2],
   ["B2","Reto B \u00abEl eco que ense\u00f1a\u00bb (videotutorial + videoquiz)",["R2_el-eco-que-ensena"],250,2],
-  ["L2","Reto \u26a1 \u00abM\u00f3dulo 1 y m\u00f3dulo 2\u00bb (antes y durante la clase)",[],60,2,4],
+  ["L2","Reto rel\u00e1mpago \u00abM\u00f3dulo 1 y m\u00f3dulo 2\u00bb (antes y durante la clase)",[],60,2,4],
   ["A3","Reto A \u00abDos senderos\u00bb (recupera a Sylla)",["P3_sylla"],100,3],
   ["B3","Reto B \u00abLa matriz\u00bb (matriz 8\u00d76)",["R3_la-matriz"],250,3],
-  ["L3","Reto \u26a1 \u00abCinco l\u00edneas que explican\u00bb (itinerario y paisaje)",[],60,3,6],
+  ["L3","Reto rel\u00e1mpago \u00abCinco l\u00edneas que explican\u00bb (itinerario y paisaje)",[],60,3,6],
   ["X2","Actividad 2 entregada (paisaje de aprendizaje)",["H3_cartografo"],500,3],
   ["A4","Reto A \u00abAbre el canal\u00bb (recupera a Amara)",["P4_amara"],100,4],
   ["B4","Reto B \u00abEl entorno de aula\u00bb (aula virtual + tres recursos que ya existen)",["R4_entorno-de-aula"],250,4],
-  ["L4","Reto \u26a1 \u00abEnlace en inc\u00f3gnito\u00bb (que se vea sin tu cuenta)",[],60,4,8],
+  ["L4","Reto rel\u00e1mpago \u00abEnlace en inc\u00f3gnito\u00bb (que se vea sin tu cuenta)",[],60,4,8],
   ["A5","Reto A \u00abMide con m\u00e9todo\u00bb (recupera a Vera)",["P5_vera"],100,5],
   ["B5","Reto B \u00abLa Bit\u00e1cora medida\u00bb (web de recursos + r\u00fabrica)",["R5_bitacora-medida"],250,5],
-  ["L5","Reto \u26a1 \u00abTres preguntas\u00bb (autoevaluaci\u00f3n)",[],60,5,9],
+  ["L5","Reto rel\u00e1mpago \u00abTres preguntas\u00bb (autoevaluaci\u00f3n)",[],60,5,9],
   ["A6","Reto A \u00abEl Simulador de Joran\u00bb (recupera a Joran)",["P6_joran"],100,6],
   ["B6","Reto B \u00abEl juego\u00bb (juego digital)",["R6_el-juego"],250,6],
-  ["L6","Reto \u26a1 \u00abLas diez l\u00edneas\u00bb (justifica un recurso)",[],60,6,11],
+  ["L6","Reto rel\u00e1mpago \u00abLas diez l\u00edneas\u00bb (justifica un recurso)",[],60,6,11],
   ["A7","Reto A \u00abUn porqu\u00e9\u00bb (recupera a Mara)",["P7_mara"],100,7],
   ["B7","Reto B \u00abLa microgamificaci\u00f3n\u00bb",["R7_microgamificacion"],250,7],
   // v3.41 - el huevo de Pascua: un enlace oculto en la presentacion de Vinculo lleva a un
   // enigma; la palabra secreta del final es la evidencia (el formulario la valida solo).
   ["S7","Reto secreto \u00abEl Escape UNI\u00bb",["E3_vaeon"],150,7],
-  ["L7","Reto \u26a1 \u00abEl marcador\u00bb (tabla de clasificaci\u00f3n)",[],60,7,12],
+  ["L7","Reto rel\u00e1mpago \u00abEl marcador\u00bb (tabla de clasificaci\u00f3n)",[],60,7,12],
   ["A8","Reto A \u00abLa capa posible\u00bb (recupera a Noa)",["P8_noa"],100,8],
   ["B8","Reto B \u00abEl \u00faltimo umbral\u00bb (RA/RV + Bit\u00e1cora publicada)",["R8_ultimo-umbral"],250,8],
-  ["L8","Reto \u26a1 \u00abEl QR\u00bb (un QR dentro de una l\u00e1mina)",[],60,8,14],
+  ["L8","Reto rel\u00e1mpago \u00abEl QR\u00bb (un QR dentro de una l\u00e1mina)",[],60,8,14],
   // 16-sep - el simulacro. No lo inventamos nosotros: la clase 20 de la semana 15 ya se llama
   // "Simulacro del examen" en la programacion oficial de la asignatura. Aqui solo se le pone premio.
   ["XS","Reto \u00abEl simulacro del examen\u00bb (90 minutos de reloj)",["H7_listo-para-la-batalla"],300,8,15]
@@ -87,26 +87,26 @@ var RETOS_REGULAR = [
 var RETOS_PUA = [
   ["A0","Reto \u00abPres\u00e9ntate a tu tripulaci\u00f3n\u00bb (v\u00eddeo de 60 s)",["E1_nebula"],100,1],
   ["B1","La Bit\u00e1cora en marcha: tu ePortfolio (recupera a Bran)",["P1_bran","R0_bitacora-en-marcha"],300,1],
-  ["L1","Reto \u26a1 \u00abLa chispa y la marca\u00bb (imagen con IA + logo)",["R1_la-chispa"],60,1,2],
+  ["L1","Reto rel\u00e1mpago \u00abLa chispa y la marca\u00bb (imagen con IA + logo)",["R1_la-chispa"],60,1,2],
   ["X1","Actividad 1 entregada",["H2_primera-forja","E2_capitan"],500,1],
   ["B2","El eco que ense\u00f1a: videotutorial (recupera a Tom\u00e1s)",["P2_tomas","R2_el-eco-que-ensena"],300,2],
-  ["L2","Reto \u26a1 \u00abM\u00f3dulo 1 y m\u00f3dulo 2\u00bb (antes y durante la clase)",[],60,2,4],
+  ["L2","Reto rel\u00e1mpago \u00abM\u00f3dulo 1 y m\u00f3dulo 2\u00bb (antes y durante la clase)",[],60,2,4],
   ["B3","La matriz 8\u00d76 (recupera a Sylla)",["P3_sylla","R3_la-matriz"],300,3],
-  ["L3","Reto \u26a1 \u00abCinco l\u00edneas que explican\u00bb (itinerario y paisaje)",[],60,3,6],
+  ["L3","Reto rel\u00e1mpago \u00abCinco l\u00edneas que explican\u00bb (itinerario y paisaje)",[],60,3,6],
   ["X2","Actividad 2 entregada",["H3_cartografo"],500,3],
   ["B4","El entorno de aula + tres recursos que ya existen (recupera a Amara)",["P4_amara","R4_entorno-de-aula"],300,4],
-  ["L4","Reto \u26a1 \u00abEnlace en inc\u00f3gnito\u00bb (que se vea sin tu cuenta)",[],60,4,8],
+  ["L4","Reto rel\u00e1mpago \u00abEnlace en inc\u00f3gnito\u00bb (que se vea sin tu cuenta)",[],60,4,8],
   ["B5","La Bit\u00e1cora medida (recupera a Vera)",["P5_vera","R5_bitacora-medida"],300,5],
-  ["L5","Reto \u26a1 \u00abTres preguntas\u00bb (autoevaluaci\u00f3n)",[],60,5,9],
+  ["L5","Reto rel\u00e1mpago \u00abTres preguntas\u00bb (autoevaluaci\u00f3n)",[],60,5,9],
   ["B6","El juego digital (recupera a Joran)",["P6_joran","R6_el-juego"],300,6],
-  ["L6","Reto \u26a1 \u00abLas diez l\u00edneas\u00bb (justifica un recurso)",[],60,6,11],
+  ["L6","Reto rel\u00e1mpago \u00abLas diez l\u00edneas\u00bb (justifica un recurso)",[],60,6,11],
   ["B7","La microgamificaci\u00f3n (recupera a Mara)",["P7_mara","R7_microgamificacion"],300,7],
   // v3.41 - el huevo de Pascua: un enlace oculto en la presentacion de Vinculo lleva a un
   // enigma; la palabra secreta del final es la evidencia (el formulario la valida solo).
   ["S7","Reto secreto \u00abEl Escape UNI\u00bb",["E3_vaeon"],150,7],
-  ["L7","Reto \u26a1 \u00abEl marcador\u00bb (tabla de clasificaci\u00f3n)",[],60,7,12],
+  ["L7","Reto rel\u00e1mpago \u00abEl marcador\u00bb (tabla de clasificaci\u00f3n)",[],60,7,12],
   ["B8","El \u00faltimo umbral: RA/RV + Bit\u00e1cora publicada (recupera a Noa)",["P8_noa","R8_ultimo-umbral"],300,8],
-  ["L8","Reto \u26a1 \u00abEl QR\u00bb (un QR dentro de una l\u00e1mina)",[],60,8,14],
+  ["L8","Reto rel\u00e1mpago \u00abEl QR\u00bb (un QR dentro de una l\u00e1mina)",[],60,8,14],
   ["XS","Reto \u00abEl simulacro del examen\u00bb (90 minutos de reloj)",["H7_listo-para-la-batalla"],300,8,15]
 ];
 // BONUS-INICIO - Los genera _build_site.py desde _site_data.py: NO editar a mano.
@@ -161,7 +161,7 @@ function valorBonus_(clave) {
 // tema, porque un alumno que no sabe que se le pide ESCRIBE UN CORREO. Lo genera _build_site.py
 // desde _site_data.py (AYUDA_RETOS): NO editar a mano.
 var AYUDA_RETOS = {
- "A0": "Graba un v\u00eddeo de M\u00c1XIMO 60 segundos present\u00e1ndote al resto de la tripulaci\u00f3n y publ\u00edcalo en la secci\u00f3n \ud83d\udcf9 \u00abPres\u00e9ntate\u00bb del padlet de la clase (t\u00edtulo = tu alias; primera l\u00ednea = \u00abCapit\u00e1n: tu profe\u00bb). No hace falta guion de cine \u2014 si te da apuro, responde a tres o cuatro de estas: \u00bfqui\u00e9n eres y a qu\u00e9 te dedicas? \u00bfdesde d\u00f3nde te conectas? \u00bfpor qu\u00e9 educaci\u00f3n? \u00bfuna herramienta que ames y una que sufras? \u00bfun dato curioso que nadie adivinar\u00eda? Gr\u00e1balo del tir\u00f3n con el m\u00f3vil: natural gana a perfecto. Despu\u00e9s copia el enlace de TU publicaci\u00f3n (los tres puntos \u22ee \u2192 \u00abCopiar el enlace a la publicaci\u00f3n\u00bb) y p\u00e9galo aqu\u00ed. Sirve para ponernos cara desde el primer d\u00eda \u2014 y NEBULA te da su insignia: lo que se comparte no se apaga.",
+ "A0": "Graba un v\u00eddeo de M\u00c1XIMO 60 segundos present\u00e1ndote al resto de la tripulaci\u00f3n y publ\u00edcalo en la secci\u00f3n \u00abPres\u00e9ntate\u00bb del padlet de la clase (t\u00edtulo = tu alias; primera l\u00ednea = \u00abCapit\u00e1n: tu profe\u00bb). No hace falta guion de cine \u2014 si te da apuro, responde a tres o cuatro de estas: \u00bfqui\u00e9n eres y a qu\u00e9 te dedicas? \u00bfdesde d\u00f3nde te conectas? \u00bfpor qu\u00e9 educaci\u00f3n? \u00bfuna herramienta que ames y una que sufras? \u00bfun dato curioso que nadie adivinar\u00eda? Gr\u00e1balo del tir\u00f3n con el m\u00f3vil: natural gana a perfecto. Despu\u00e9s copia el enlace de TU publicaci\u00f3n (los tres puntos \u22ee \u2192 \u00abCopiar el enlace a la publicaci\u00f3n\u00bb) y p\u00e9galo aqu\u00ed. Sirve para ponernos cara desde el primer d\u00eda \u2014 y NEBULA te da su insignia: lo que se comparte no se apaga.",
  "A1": "Saca del caj\u00f3n algo que tengas a medias \u2014o que dejaste a medias\u2014 tal como est\u00e1: un recurso, una unidad, una idea que se qued\u00f3 ah\u00ed. Escr\u00edbelo aqu\u00ed mismo, en la caja del reto: qu\u00e9 es, en qu\u00e9 punto se qued\u00f3 y qu\u00e9 te fren\u00f3 para terminarlo. Si puedes, a\u00f1ade el enlace al propio archivo (con permiso de lectura). Tu tripulaci\u00f3n leer\u00e1 lo que escribas \u2014y t\u00fa lo suyo\u2014: no se corrige ni se punt\u00faa; el \u00fanico criterio es sacarlo del caj\u00f3n y compartirlo sin terminar.",
  "A2": "Graba un clip corto (m\u00e1x. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no pudo venir a clase. S\u00fabelo donde quieras (YouTube en oculto, Drive con permiso de lectura, el padlet de la clase\u2026) y pega su enlace. Criterio \u00fanico: que funcione sin ti delante (se entiende solo).",
  "A3": "(Este cuesta cerca de una hora: no es una p\u00edldora de quince minutos. Si esta semana no tienes ese hueco, vale un boceto a mano de los dos caminos, fotografiado.) Crea un artefacto interactivo (un Genially o similar) con una bifurcaci\u00f3n: un objetivo de aprendizaje y dos o tres actividades distintas para alcanzarlo, y que cada estudiante elija su sendero al empezar (p. ej. uno que aprende haciendo, otro leyendo, otro escuchando). Pega su enlace. Criterio: que cada sendero sea una actividad de verdad \u2014no la misma con otro nombre\u2014 y que todos lleguen a la misma cima.",
@@ -186,7 +186,7 @@ var AYUDA_RETOS = {
  "L6": "Diez o quince minutos, en clase. Coge un recurso que ya hayas creado en este viaje y justif\u00edcalo seg\u00fan una metodolog\u00eda concreta (ABJ, aula invertida, ABP, aprendizaje colaborativo\u2026): qu\u00e9 aporta al aprendizaje, en qu\u00e9 momento se usa y por qu\u00e9 ese recurso y no otro. Diez l\u00edneas exactas, ni una m\u00e1s \u2014 la limitaci\u00f3n es parte del ejercicio. Escr\u00edbelo aqu\u00ed mismo, en la caja del reto. En el examen esa justificaci\u00f3n vale entre dos y tres puntos, y tiene ese mismo l\u00edmite de diez l\u00edneas.",
  "L7": "Diez minutos, en clase. Monta una tabla de clasificaci\u00f3n sencilla para una din\u00e1mica de tu aula: una hoja de c\u00e1lculo, un Genially, lo que sea. Con cinco filas basta. Piensa qu\u00e9 mides (no tiene por qu\u00e9 ser qui\u00e9n va primero: puede ser qui\u00e9n ha ayudado m\u00e1s, o qu\u00e9 equipo ha mejorado). Pega aqu\u00ed el enlace o la captura. Es la L de \u00abPBL: points, badges, leaderboards\u00bb \u2014 lo \u00fanico del tr\u00edo que no fabricas en ning\u00fan otro reto, y que el examen pide crear.",
  "L8": "Diez minutos, en clase. Genera un c\u00f3digo QR que abra un recurso tuyo (tu juego, tu Bit\u00e1cora, tu v\u00eddeo), m\u00e9telo dentro de una l\u00e1mina o una presentaci\u00f3n y haz la captura donde se vea todo: la l\u00e1mina, el QR y ad\u00f3nde lleva. Pega aqu\u00ed la captura. Un modelo de examen lo pide con estas palabras: \u00abun c\u00f3digo QR creado durante el examen de acceso a un juego digital educativo\u00bb. Vale un punto y se hace en diez minutos\u2026 si lo has hecho antes una vez.",
- "S7": "\ud83d\udddd\ufe0f Hay una sala de la que no se sale sin pensar: el Escape UNI. Entra, resuelve sus enigmas y, al final, pulsa el bot\u00f3n que te espera: el reto se registra solo en tu Nave. Nadie va a darte las respuestas: los secretos de la gamificaci\u00f3n se encuentran jugando.",
+ "S7": "Hay una sala de la que no se sale sin pensar: el Escape UNI. Entra, resuelve sus enigmas y, al final, pulsa el bot\u00f3n que te espera: el reto se registra solo en tu Nave. Nadie va a darte las respuestas: los secretos de la gamificaci\u00f3n se encuentran jugando.",
  "X1": "La Actividad 1 entregada donde te la pide tu profesor. Pulsa \u00abLo he hecho\u00bb cuando la hayas ENVIADO, no cuando la empieces, y pega el enlace o los enlaces que compartiste en tu actividad (es obligatorio; el \u00ab+\u00bb a\u00f1ade un segundo).",
  "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al ENVIARLA, y pega el enlace o los enlaces que compartiste en tu actividad (es obligatorio; el \u00ab+\u00bb a\u00f1ade un segundo).",
  "XS": "El ensayo general, con el reloj de verdad: 90 minutos para resolver un caso como el del examen. Se hace en la clase de repaso (semana 15). Se te dar\u00e1 un planteamiento y tendr\u00e1s que montar, EN ESE RATO, una plataforma digital (web o Genially) con su portada, su logo con la palabra clave, dos m\u00f3dulos y tres productos digitales \u2014algunos puedes reutilizarlos de los que ya has hecho en el viaje: para eso est\u00e1 tu Arsenal\u2014. Al terminar, pega aqu\u00ed el enlace p\u00fablico y sube tus capturas. No lleva nota: lleva una lista de comprobaci\u00f3n que repasas t\u00fa mismo delante de todos (\u00bfel logo lleva la palabra?, \u00bfse abre en inc\u00f3gnito?, \u00bfhay dos m\u00f3dulos?, \u00bftres productos?, \u00bfla justificaci\u00f3n cabe en diez l\u00edneas?). Nadie sabe lo que son noventa minutos hasta que los vive."
@@ -406,16 +406,16 @@ var RECOMPENSAS_INICIALES = [
   ["T\u00edtulo de recluta",40,3,"Un t\u00edtulo narrativo bajo tu alias en el tablero y la Nave. Lo eliges t\u00fa en Mi bot\u00edn.",4,"titulo"],
   ["Fondo de ficha: tu planeta",35,1,"Tu ficha de la Nave con el planeta que elijas de fondo. Eliges cu\u00e1l de los ocho en Mi bot\u00edn.",4,"fondo"],
   ["Marco dorado del avatar",60,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Te lo pones (y te lo quitas) en Mi bot\u00edn.",4,"marco"],
-  ["C\u00e1psula de rescate",60,99,"Una c\u00e1psula de rescate llega a tu Nave con UN h\u00e9roe de la Rebeli\u00f3n dentro, al azar: 30 figuras en tres rangos. \u2694\ufe0f La Resistencia (56%): el grueso del ej\u00e9rcito. \ud83d\udd25 La Vanguardia (36%): van por delante, cuesta alcanzarlas. \ud83c\udf1f Los MITOS (8%, ni uno de cada doce): ni siquiera se dejan ver hasta que caen. Se acumulan \u2014cuantos m\u00e1s tengas, m\u00e1s donde elegir\u2014 y te los pones gratis desde tu Nave. \u00bfRepetido? Con 2 repetidos, uno nuevo al azar.",3,"heroe"],
+  ["C\u00e1psula de rescate",60,99,"Una c\u00e1psula de rescate llega a tu Nave con UN h\u00e9roe de la Rebeli\u00f3n dentro, al azar: 30 figuras en tres rangos. La Resistencia (56%): el grueso del ej\u00e9rcito. La Vanguardia (36%): van por delante, cuesta alcanzarlas. Los MITOS (8%, ni uno de cada doce): ni siquiera se dejan ver hasta que caen. Se acumulan \u2014cuantos m\u00e1s tengas, m\u00e1s donde elegir\u2014 y te los pones gratis desde tu Nave. \u00bfRepetido? Con 2 repetidos, uno nuevo al azar.",3,"heroe"],
   ["Sobre grande",25,99,"CINCO cartas al azar del \u00e1lbum (en vez de tres), con las mismas probabilidades que el sobre de siempre: m\u00e1s cartas por cada cr\u00e9dito.",4,"sobre_grande"],
   ["Sobre de raras",35,99,"TRES cartas donde las comunes casi desaparecen: rara 64%, \u00e9pica 18%, legendaria 6% (y com\u00fan solo 12%). Para cerrar las series dif\u00edciles.",6,"sobre_raro"],
   ["Sobre \u00e9pico",60,99,"TRES cartas y ninguna com\u00fan: rara 45%, \u00e9pica 39% y LEGENDARIA 16% en cada carta, cuatro veces m\u00e1s que en el sobre de siempre.",7,"sobre_epico"],
   ["C\u00e1psula de \u00e9lite",140,99,"En esta c\u00e1psula no viaja la Resistencia: un h\u00e9roe de la Vanguardia (69%) o un MITO (31%, casi cuatro veces m\u00e1s que en la de rescate).",7,"capsula_elite"],
   ["C\u00e1psula legendaria",320,99,"Un MITO seguro: uno de los h\u00e9roes legendarios de la Rebeli\u00f3n, siempre. La c\u00e1psula m\u00e1s cara del hangar, y tambi\u00e9n la que tu docente puede esconder en una presentaci\u00f3n o darte de premio.",7,"capsula_legendaria"],
-  ["Subir 0,5 en un entregable",550,1,"\u2694\ufe0f ARSENAL DE BATALLA \u00b7 Medio punto m\u00e1s en una actividad ya entregada y corregida. \ud83d\udd34 LEE ESTO ANTES: si ya tienes la nota m\u00e1xima de evaluaci\u00f3n continua, esto NO te sube nada \u2014 estar\u00edas tirando 550 cr\u00e9ditos a la basura. Comprueba tu nota primero. Con esos cr\u00e9ditos cierras media docena de sobres o te llevas nueve h\u00e9roes.",15,"nota"],
-  ["Subir 1 punto en un entregable",850,1,"\u2694\ufe0f ARSENAL DE BATALLA \u00b7 Un punto entero en una actividad ya entregada y corregida. \ud83d\udd34 LEE ESTO ANTES: si ya tienes la nota m\u00e1xima de evaluaci\u00f3n continua, no te sube nada y pierdes los 850 cr\u00e9ditos. Es la recompensa m\u00e1s cara del cat\u00e1logo a prop\u00f3sito: elegirla significa renunciar a casi todo lo dem\u00e1s.",15,"nota"],
-  ["Recalificar un trabajo entregado fuera de plazo",700,1,"\u2694\ufe0f ARSENAL DE BATALLA \u00b7 Que se te corrija un trabajo que entregaste tarde. No es un aprobado autom\u00e1tico: es que se mire y se punt\u00fae como si hubiera llegado a tiempo.",15,"nota"],
-  ["Recalificar un suspenso",950,1,"\u2694\ufe0f ARSENAL DE BATALLA \u00b7 Una segunda oportunidad sobre un trabajo suspenso: lo rehaces y se vuelve a corregir. Pensada para quien ha trabajado y se le atragant\u00f3 una entrega.",15,"nota"]
+  ["Subir 0,5 en un entregable",550,1,"ARSENAL DE BATALLA \u00b7 Medio punto m\u00e1s en una actividad ya entregada y corregida. LEE ESTO ANTES: si ya tienes la nota m\u00e1xima de evaluaci\u00f3n continua, esto NO te sube nada \u2014 estar\u00edas tirando 550 cr\u00e9ditos a la basura. Comprueba tu nota primero. Con esos cr\u00e9ditos cierras media docena de sobres o te llevas nueve h\u00e9roes.",15,"nota"],
+  ["Subir 1 punto en un entregable",850,1,"ARSENAL DE BATALLA \u00b7 Un punto entero en una actividad ya entregada y corregida. LEE ESTO ANTES: si ya tienes la nota m\u00e1xima de evaluaci\u00f3n continua, no te sube nada y pierdes los 850 cr\u00e9ditos. Es la recompensa m\u00e1s cara del cat\u00e1logo a prop\u00f3sito: elegirla significa renunciar a casi todo lo dem\u00e1s.",15,"nota"],
+  ["Recalificar un trabajo entregado fuera de plazo",700,1,"ARSENAL DE BATALLA \u00b7 Que se te corrija un trabajo que entregaste tarde. No es un aprobado autom\u00e1tico: es que se mire y se punt\u00fae como si hubiera llegado a tiempo.",15,"nota"],
+  ["Recalificar un suspenso",950,1,"ARSENAL DE BATALLA \u00b7 Una segunda oportunidad sobre un trabajo suspenso: lo rehaces y se vuelve a corregir. Pensada para quien ha trabajado y se le atragant\u00f3 una entrega.",15,"nota"]
 ];
 // RECOMPENSAS-FIN
 

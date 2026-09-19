@@ -63,7 +63,7 @@
   function portada(sub, botón) {
     var rec = esRec();
     return '<div class="hv">' + escena() + '<div class="hv-caja">' + avisoSimula()
-      + '<div class="hv-icono">' + (rec ? "🎁" : "🥚") + '</div>'
+      + '<div class="hv-icono">' + (rec ? "<img class=ico src=assets/img/iconos/p/premios.png alt>" : "<img class=ico src=assets/img/iconos/p/botin.png alt>") + '</div>'
       + '<div class="eyebrow amber">' + (rec ? "Reto superado" : "Has encontrado un huevo de Pascua") + '</div>'
       + '<h2>' + (rec ? "¡Enhorabuena! Has ganado una recompensa" : "Un escondite de la Tripulación Cero") + '</h2>'
       + '<p class="hv-sub">' + sub + '</p>'
@@ -71,7 +71,7 @@
   }
   function invita() { return esRec() ? 'Pulsa para conseguirla. <b>Solo se puede una vez.</b>' : 'Hay algo aquí para ti. Púlsalo y es tuyo — <b>solo se puede una vez</b>.'; }
   function botonAbrir(id) {
-    return '<button class="btn epico" id="' + id + '"><span class="ep-luz"></span><span class="ep-txt">' + (esRec() ? "🎁 Conseguir mi recompensa" : "🥚 Abrirlo") + '</span></button>';
+    return '<button class="btn epico" id="' + id + '"><span class="ep-luz"></span><span class="ep-txt">' + (esRec() ? "<img class=ico src=assets/img/iconos/p/premios.png alt> Conseguir mi recompensa" : "<img class=ico src=assets/img/iconos/p/botin.png alt> Abrirlo") + '</span></button>';
   }
 
   function cargando(t) {
@@ -132,7 +132,7 @@
     }
     if (e.estado === "pronto") {
       pinta(caja('Todavía no: <b>se abre ' + esc(cuando(e.desde)) + '</b>. Deja esta página abierta y el botón se encenderá solo.',
-                 parado("⏳ Se abre " + esc(cuando(e.desde)))));
+                 parado("<img class=ico src=assets/img/iconos/p/tiempo.png alt> Se abre " + esc(cuando(e.desde)))));
       // se enciende sola a la hora (con un segundo de margen para no llegar antes que el servidor)
       var falta = e.desde - Date.now() + 1000;
       if (falta > 0 && falta < 864e5) RELOJ = setTimeout(function () { EST.estado = MOTOR.estadoDePremio(EST.R); pintarEstado(); }, falta);
@@ -141,16 +141,16 @@
     if (e.estado === "cerrado") return pinta(caja('Se cerró ' + esc(cuando(e.hasta)) + '. Este ya no se puede reclamar.', ''));
     if (e.estado === "pausado") {
       pinta(caja('Está en pausa. Tu docente lo activará cuando toque.',
-                 VISTA ? parado("⏸ En pausa") : '<button class="btn" id="hv-otra">↻ Volver a mirar</button>'));
+                 VISTA ? parado("<img class=ico src=assets/img/iconos/p/pausa.png alt> En pausa") : '<button class="btn" id="hv-otra">↻ Volver a mirar</button>'));
       var o = document.getElementById("hv-otra"); if (o) o.onclick = function () { mirar._v = undefined; mirar(YO); };
       return;
     }
     if (e.estado === "agotado") return pinta(caja('Llegaste tarde: ya lo han reclamado las ' + e.tope + ' personas que podían.', ''));
     // abierto
     if (VISTA) return pinta(caja(fijo ? 'Súmalo a tu colección. Solo se puede una vez.' : invita(),
-                                 parado(fijo ? "🛡️ Sumarlo a mi colección" : esRec() ? "🎁 Conseguir mi recompensa" : "🥚 Abrirlo") + '<p class="hv-nota-vista">Vista previa: desde aquí no se reclama.</p>'));
+                                 parado(fijo ? "<img class=ico src=assets/img/iconos/p/escudo.png alt> Sumarlo a mi colección" : esRec() ? "<img class=ico src=assets/img/iconos/p/premios.png alt> Conseguir mi recompensa" : "<img class=ico src=assets/img/iconos/p/botin.png alt> Abrirlo") + '<p class="hv-nota-vista">Vista previa: desde aquí no se reclama.</p>'));
     var boton = fijo ? '<button class="btn epico" id="hv-abrir"><span class="ep-luz"></span>'
-               + '<span class="ep-txt">' + (e.copias ? "🛡️ Reclamarlo" : "🛡️ Sumarlo a mi colección") + '</span></button>' : botonAbrir("hv-abrir");
+               + '<span class="ep-txt">' + (e.copias ? "<img class=ico src=assets/img/iconos/p/escudo.png alt> Reclamarlo" : "<img class=ico src=assets/img/iconos/p/escudo.png alt> Sumarlo a mi colección") + '</span></button>' : botonAbrir("hv-abrir");
     if (fijo && e.copias) pinta(portadaHeroe(e.H.heroe, "Tu recompensa",
       'Este <b>ya lo tienes</b>. Reclámalo igualmente: NEBULA te dejará elegir entre quedártelo repetido, <b>40 ◈</b> o un <b>sobre de cromos</b>.',
       boton, '', e.copias));
@@ -185,11 +185,11 @@
       + '<button class="btn epico" id="hv-elegir" disabled><span class="ep-luz"></span><span class="ep-txt">Elige una</span></button>'
       + '</div></div>');
     var btn = document.getElementById("hv-elegir"), elegido = "";
-    var DICE = { quedar: "🛡️ Quedármelo", creditos: "💰 Cobrar 40 ◈", sobre: "🃏 Abrir el sobre" };
+    var DICE = { quedar: "<img class=ico src=assets/img/iconos/p/escudo.png alt> Quedármelo", creditos: "<img class=ico src=assets/img/iconos/p/monedas.png alt> Cobrar 40 ◈", sobre: "<img class=ico src=assets/img/iconos/p/estrella.png alt> Abrir el sobre" };
     Array.prototype.forEach.call(app.querySelectorAll('input[name="hv-op"]'), function (r) {
       r.onchange = function () {
         elegido = r.value; btn.disabled = false;
-        btn.querySelector(".ep-txt").textContent = DICE[elegido];
+        btn.querySelector(".ep-txt").innerHTML = DICE[elegido];
         Array.prototype.forEach.call(app.querySelectorAll(".hv-op"), function (l) { l.classList.toggle("on", l.contains(r)); });
       };
     });
@@ -211,7 +211,7 @@
    * créditos…): no llama al servidor, no cuenta como reclamado y no gasta el tope.
    */
   function avisoSimula() {
-    return SIMULA ? '<p class="hv-sim">🧑‍🏫 <b>Cuenta de docente · simulación.</b> Así lo vive tu alumnado: no se reclama nada y el premio sigue intacto.</p>' : '';
+    return SIMULA ? '<p class="hv-sim"><img class=ico src=assets/img/iconos/p/gente.png alt> <b>Cuenta de docente · simulación.</b> Así lo vive tu alumnado: no se reclama nada y el premio sigue intacto.</p>' : '';
   }
   function correoYo() { return String((YO && (YO.correo || YO.email)) || "").toLowerCase(); }
   function pareceDocente() {
@@ -239,7 +239,7 @@
               : e.estado === "cerrado" ? " (Para tu alumnado ya se cerró.)"
               : e.estado === "agotado" ? " (Para tu alumnado ya está agotado.)" : "";
     var boton = '<button class="btn epico" id="hv-simular"><span class="ep-luz"></span><span class="ep-txt">'
-      + (fijo ? "🛡️ Sumarlo a mi colección" : esRec() ? "🎁 Conseguir mi recompensa" : "🥚 Abrirlo") + '</span></button>';
+      + (fijo ? "<img class=ico src=assets/img/iconos/p/escudo.png alt> Sumarlo a mi colección" : esRec() ? "<img class=ico src=assets/img/iconos/p/premios.png alt> Conseguir mi recompensa" : "<img class=ico src=assets/img/iconos/p/botin.png alt> Abrirlo") + '</span></button>';
     if (fijo) pinta(portadaHeroe(e.H.heroe, "Tu recompensa", 'Súmalo a tu colección. <b>Solo se puede una vez.</b>' + ahora, boton));
     else pinta(portada(invita() + ahora, boton));
     document.getElementById("hv-simular").onclick = function () {
@@ -309,7 +309,7 @@
   function otraCuenta() {
     var correo = String((YO && (YO.correo || YO.email)) || ""), docente = false;
     try { docente = localStorage.getItem("sgEsDocente") === "1" || (MOTOR.VITALICIOS || []).indexOf(correo.toLowerCase()) >= 0; } catch (e) {}
-    pinta('<div class="hv">' + escena("Hmm… con esa cuenta no te encuentro.") + '<div class="hv-caja mal"><div class="hv-icono">' + (esRec() ? "🎁" : "🥚") + '</div>'
+    pinta('<div class="hv">' + escena("Hmm… con esa cuenta no te encuentro.") + '<div class="hv-caja mal"><div class="hv-icono">' + (esRec() ? "<img class=ico src=assets/img/iconos/p/premios.png alt>" : "<img class=ico src=assets/img/iconos/p/botin.png alt>") + '</div>'
       + '<h2>' + (docente ? "Esta cuenta es de docente" : "Esta cuenta no está en ningún grupo") + '</h2>'
       + '<p class="hv-sub">' + (docente
           ? 'Estás con <b>' + esc(correo) + '</b> y este premio no está en ninguno de tus grupos. Si es de tu alumnado, ábrelo desde «Premios por enlace» de su grupo (con tu cuenta puedes probarlo como simulación).'
@@ -327,7 +327,7 @@
   }
 
   function fallo(msg) {
-    pinta('<div class="hv">' + escena("Algo no ha ido bien…") + '<div class="hv-caja mal"><div class="hv-icono">' + (esRec() ? "🎁" : "🥚") + '</div>'
+    pinta('<div class="hv">' + escena("Algo no ha ido bien…") + '<div class="hv-caja mal"><div class="hv-icono">' + (esRec() ? "<img class=ico src=assets/img/iconos/p/premios.png alt>" : "<img class=ico src=assets/img/iconos/p/botin.png alt>") + '</div>'
       + '<h2>No he podido dártelo</h2><p class="hv-sub">' + esc(msg) + '</p></div></div>');
   }
 
@@ -337,8 +337,8 @@
                   // 14-sep · los sobres y las cápsulas nuevos
                   sobre_grande: "Un sobre grande", sobre_raro: "Un sobre de raras", sobre_epico: "Un sobre épico",
                   capsula_elite: "Una cápsula de élite", capsula_legendaria: "Una cápsula legendaria" };
-  var ICONOS  = { sobre: "🃏", heroe: "🛡️", heroe_fijo: "🛡️", bolsa: "💰", xp: "⚡", participaciones: "🎟️",
-                  sobre_grande: "🃏", sobre_raro: "💎", sobre_epico: "✨", capsula_elite: "🟪", capsula_legendaria: "🟨" };
+  var ICONOS  = { sobre: "<img class=ico src=assets/img/iconos/p/estrella.png alt>", heroe: "<img class=ico src=assets/img/iconos/p/escudo.png alt>", heroe_fijo: "<img class=ico src=assets/img/iconos/p/escudo.png alt>", bolsa: "<img class=ico src=assets/img/iconos/p/monedas.png alt>", xp: "<img class=ico src=assets/img/iconos/p/rayo.png alt>", participaciones: "<img class=ico src=assets/img/iconos/p/ticket.png alt>",
+                  sobre_grande: "<img class=ico src=assets/img/iconos/p/estrella.png alt>", sobre_raro: "<img class=ico src=assets/img/iconos/p/estrella.png alt>", sobre_epico: "<img class=ico src=assets/img/iconos/p/estrella.png alt>", capsula_elite: "<img class=ico src=assets/img/iconos/p/escudo.png alt>", capsula_legendaria: "<img class=ico src=assets/img/iconos/p/corona.png alt>" };
 
   function reclamar() {
     if (esHeroeFijo()) pinta(portadaHeroe(EST.H.heroe, "Tu recompensa", 'Sumándolo a tu colección…', '<div class="hv-cargando"><i></i></div>'));
@@ -351,10 +351,10 @@
   }
 
   function botónNave() {
-    if (SIMULA) return '<p class="hv-sim">🧑‍🏫 Era una simulación: no se ha guardado nada y el premio sigue intacto para tu alumnado.</p>'
+    if (SIMULA) return '<p class="hv-sim"><img class=ico src=assets/img/iconos/p/gente.png alt> Era una simulación: no se ha guardado nada y el premio sigue intacto para tu alumnado.</p>'
       + '<p class="hv-pie"><button class="btn" id="hv-otra-vez" type="button">↻ Repetir la simulación</button></p>';
     return '<p class="hv-pie"><a class="btn" href="recluta.html?per=' + esc(PER)
-      + '" target="_blank" rel="noopener">🚀 Ver mi Nave ↗</a></p>';
+      + '" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/cohete.png alt> Ver mi Nave ↗</a></p>';
   }
   document.addEventListener("click", function (ev) {
     var b = ev.target && ev.target.closest && ev.target.closest("#hv-otra-vez"); if (b && SIMULA) pintarEstado();
@@ -387,7 +387,7 @@
       return;
     }
     pinta('<div class="hv">' + escena(esRec() ? "¡Bien hecho! Ya está en tu cuenta." : "¡Menudo hallazgo!") + '<div class="hv-caja gana">'
-      + '<div class="hv-icono grande">' + (ICONOS[t] || "🎁") + '</div>'
+      + '<div class="hv-icono grande">' + (ICONOS[t] || "<img class=ico src=assets/img/iconos/p/premios.png alt>") + '</div>'
       + '<div class="eyebrow amber">' + (esRec() ? "Tu recompensa" : "Lo has encontrado") + '</div>'
       + '<h2>' + esc(NOMBRES[t] || "Un premio") + '</h2>'
       + (que ? '<p class="hv-que">' + esc(que) + '</p>' : '')

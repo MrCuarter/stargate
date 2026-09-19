@@ -332,7 +332,7 @@ async function reservarAlias(lote, perId, uid, alias) {
   const r = await getDoc(refAlias(perId, alias)).catch(() => null);
   if (r && r.exists()) {
     if (r.data().uid === uid) return;
-    throw new Error("«" + alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa 🎲 para que te sugiera uno).");
+    throw new Error("«" + alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa el dado para que te sugiera uno).");
   }
   lote.set(refAlias(perId, alias), { projectId: perId, uid: uid, alias: String(alias), creado: Date.now() });
 }
@@ -373,7 +373,7 @@ async function alistar(perId, datos, alAvanzar) {
    * el ranking dos «Halo» tampoco se distinguen. Sin mayúsculas ni tildes: «halo» y «Haló» son el mismo.
    */
   if (await aliasOcupado(perId, datos.alias, { uid: yo.uid }))
-    throw new Error("«" + datos.alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa 🎲 para que te sugiera uno).");
+    throw new Error("«" + datos.alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa el dado para que te sugiera uno).");
 
   avisa("Abriendo tu ficha…");
   const ficha = doc(collection(db, "student_profiles"));
@@ -395,7 +395,7 @@ async function alistar(perId, datos, alAvanzar) {
     if (!/permission|insufficient/i.test(String(e && (e.code || e.message)))) throw e;
     // dos personas pulsando a la vez con el mismo alias: el servidor deja pasar a una sola
     if (await aliasOcupado(perId, datos.alias, { uid: yo.uid }))
-      throw new Error("«" + datos.alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa 🎲 para que te sugiera uno).");
+      throw new Error("«" + datos.alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa el dado para que te sugiera uno).");
     // 🔴 servidor con las reglas de ANTES del registro de alias (el despliegue de la web y el de las
     // reglas no son el mismo segundo): ahí la reserva no existe y la ficha va sola, como siempre.
     // Con las reglas nuevas esto no pasa nunca: una ficha sin su reserva la rechazan.
@@ -2111,7 +2111,7 @@ async function todosLosGrupos() {
  */
 function invitacion(p) {
   const enlace = location.origin + "/alistarse.html?per=" + encodeURIComponent(p.id) + "&codigo=" + encodeURIComponent(p.codigo);
-  return "🚀 Te esperamos en STARGATE, el proyecto gamificado de la asignatura.\n" +
+  return "Te esperamos en STARGATE, el proyecto gamificado de la asignatura.\n" +
          "Entra aquí con tu cuenta de Google y alístate: " + enlace + "\n" +
          "Si te pide un código de clase, es " + p.codigo + ".";
 }

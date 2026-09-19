@@ -182,9 +182,9 @@
     mazo.insertAdjacentHTML('beforeend','<div class="ses-ficha" role="dialog" aria-label="Ficha de '+esc(p.alias)+'"><div class="ses-ficha-fondo"></div>'
       +'<div class="fr-caja"><button type="button" class="ses-ficha-x" aria-label="Cerrar">×</button>'
       +'<div class="fr-cab">'+(av.src?'<img class="fr-av" src="'+esc(av.src)+'" alt="">':'')
-      +'<div><div class="eyebrow amber">'+esc(av.rango||p.rango_nombre||'')+(pos>0?' · puesto '+pos:'')+'</div><h3>'+(p.corona?'👑 ':'')+esc(p.alias)+'</h3>'
+      +'<div><div class="eyebrow amber">'+esc(av.rango||p.rango_nombre||'')+(pos>0?' · puesto '+pos:'')+'</div><h3>'+(p.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(p.alias)+'</h3>'
       +(p.titulo?'<div class="titulo-recluta">«'+esc(p.titulo)+'»</div>':'')
-      +'<div class="small muted">Nivel '+(SG.nivel?SG.nivel(p.xp,st.tipo):(p.nivel||1))+' · '+(p.xp||0)+' xp'+(p.planeta?' · planeta '+esc(p.planeta):'')+(p.racha>=3?' · 🔥 '+p.racha+' semanas seguidas':'')+'</div></div></div>'
+      +'<div class="small muted">Nivel '+(SG.nivel?SG.nivel(p.xp,st.tipo):(p.nivel||1))+' · '+(p.xp||0)+' xp'+(p.planeta?' · planeta '+esc(p.planeta):'')+(p.racha>=3?' · <img class=ico src=assets/img/iconos/p/fuego.png alt> '+p.racha+' semanas seguidas':'')+'</div></div></div>'
       +(p.bio?'<p class="fr-bio">«'+esc(p.bio)+'»</p>':'')
       +'<div class="fr-kpis"><div><b>'+(p.n||0)+'</b><span>de 24 insignias</span></div>'
       +'<div><b>'+(col.cromos?col.cromos.tengo:0)+'</b><span>de '+(col.cromos?col.cromos.total:26)+' cartas</span></div>'
@@ -220,7 +220,7 @@
     return '';
   }
   function tituloReto(txt){ var m=String(txt||'').match(/«([^»]+)»/); return m?m[1]:String(txt||''); }
-  function etiquetaReto(txt){ var t=String(txt||''); return /^Reto A/.test(t)?'Reto A':/^Reto B/.test(t)?'Reto B':/^Reto ⚡/.test(t)?'Reto relámpago':/^Actividad/.test(t)?'Actividad':/^Reto/.test(t)?'Reto':'Misión'; }
+  function etiquetaReto(txt){ var t=String(txt||''); return /^Reto A/.test(t)?'Reto A':/^Reto B/.test(t)?'Reto B':/^Reto (\u26A1|rel[aá]mpago)/i.test(t)?'Reto relámpago':/^Actividad/.test(t)?'Actividad':/^Reto/.test(t)?'Reto':'Misión'; }
   /**
    * LOS VÍDEOS, CADA UNO EN SU SITIO. Norberto: «no pongas el vídeo de intro y el de cierre a
    * continuación… vídeo intro al principio, vídeo final siempre lo último». Con un tema de dos
@@ -285,8 +285,8 @@
   function diaLlamada(){
     return {k:'llamada', rot:'Llamada a filas', html:
       '<div class="dia llamada"><img class="ll-cap" src="assets/img/capitan/senala.png" alt="">'
-      +'<div class="ll-cuerpo"><div class="kicker">🔔 Para empezar</div><h2>Llamada a filas</h2>'
-      +'<p class="sub">Entra en tu Nave y pulsa <b>✋ Presente</b>.</p>'
+      +'<div class="ll-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/clase.png alt> Para empezar</div><h2>Llamada a filas</h2>'
+      +'<p class="sub">Entra en tu Nave y pulsa <b><img class=ico src=assets/img/iconos/p/gente.png alt> Presente</b>.</p>'
       +'<div class="ll-mando" id="ses-ll"><p class="sub">Un momento…</p></div>'
       +'<div id="ses-ll-gente"></div></div></div>', montar: montarLlamada};
   }
@@ -299,14 +299,14 @@
       var min=MINUTOS[1];
       mando.innerHTML='<div class="ll-minutos">'+MINUTOS.map(function(m){ return '<button type="button" class="ll-m'+(m===min?' on':'')+'" data-min="'+m+'">'+m+' min</button>'; }).join('')+'</div>'
         +'<label class="ll-regalo"><input type="checkbox" id="ses-ll-sobre"> Regalo: un <b>sobre de cromos</b> a quien fiche</label>'
-        +'<button type="button" class="btn primary grande" id="ses-ll-tocar">🔔 Tocar llamada a filas</button><p class="ses-err" id="ses-ll-err"></p>';
+        +'<button type="button" class="btn primary grande" id="ses-ll-tocar"><img class=ico src=assets/img/iconos/p/clase.png alt> Tocar llamada a filas</button><p class="ses-err" id="ses-ll-err"></p>';
       Array.prototype.forEach.call(mando.querySelectorAll('.ll-m'),function(b){ b.onclick=function(){
         min=Number(b.getAttribute('data-min')); Array.prototype.forEach.call(mando.querySelectorAll('.ll-m'),function(x){ x.classList.toggle('on', x===b); }); }; });
       mando.querySelector('#ses-ll-tocar').onclick=function(e){
         var b=e.currentTarget; b.disabled=true; b.textContent='Tocando…';
         M.abrirLlamada(st.per, min, { regalo: mando.querySelector('#ses-ll-sobre').checked ? 'sobre' : '' })
           .then(function(r){ if(vivo) abierta({ id:r.id, hasta:r.hasta }); })
-          .catch(function(err){ b.disabled=false; b.textContent='🔔 Tocar llamada a filas'; mando.querySelector('#ses-ll-err').textContent=String(err&&err.message||err); });
+          .catch(function(err){ b.disabled=false; b.innerHTML='<img class=ico src=assets/img/iconos/p/clase.png alt> Tocar llamada a filas'; mando.querySelector('#ses-ll-err').textContent=String(err&&err.message||err); });
       };
     };
     var pintaGente=function(id){
@@ -442,10 +442,10 @@
         hechos:gente.filter(function(p){ return (p.hechos||[]).indexOf(id)>=0; }) }; }).filter(function(f){ return f.id; });
     if(!filas.length || !filas.some(function(f){ return f.hechos.length; })) return null;
     return {k:'anteriores', rot:'Misiones de la semana '+prev.sem, html:
-      '<div class="dia anteriores"><div class="kicker">🗝️ Las misiones de la semana '+prev.sem+'</div><h2>¿Quién las ha superado?</h2>'
+      '<div class="dia anteriores"><div class="kicker"><img class=ico src=assets/img/iconos/p/llave.png alt> Las misiones de la semana '+prev.sem+'</div><h2>¿Quién las ha superado?</h2>'
       +'<div class="ant-lista">'+filas.map(function(f,i){
         return '<div class="ant-f" style="--i:'+i+'">'
-          +(f.ins?'<img class="ant-ins" src="assets/img/insignias/'+esc(f.ins)+'.png" alt="">':'<span class="ant-ins vacia">🗝️</span>')
+          +(f.ins?'<img class="ant-ins" src="assets/img/insignias/'+esc(f.ins)+'.png" alt="">':'<span class="ant-ins vacia"><img class=ico src=assets/img/iconos/p/llave.png alt></span>')
           +'<div class="ant-txt"><div class="ant-cab"><span class="ant-et">'+etiquetaReto(f.txt)+'</span><b>«'+esc(tituloReto(f.txt))+'»</b>'
           +'<span class="ant-n"><b>'+f.hechos.length+'</b> de '+gente.length+'</span></div>'
           +(f.hechos.length?caras(f.hechos, 12, null, function(p){ return ' data-ficha="'+esc(p.fid||p.ficha||'')+'" data-reto="'+esc(f.id)+'"'; })
@@ -481,11 +481,11 @@
         if(mapa&&!fg.querySelector('a.ev-ver')){
           var us=String(((mapa||{})[fid]||{})[reto]||'').trim().split(/\s+/).map(enlaceDe).filter(Boolean);
           if(us.length) hueco().insertAdjacentHTML('afterbegin', us.map(function(u,k){
-            return '<a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer" title="Ver lo que entregó">🔗 '+(k?'Ver 2':'Ver')+'</a>'; }).join(''));
+            return '<a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer" title="Ver lo que entregó"><img class=ico src=assets/img/iconos/p/enlace.png alt> '+(k?'Ver 2':'Ver')+'</a>'; }).join(''));
         }
         if(!fg.querySelector('.ev-leer')){
           var rf=rfs.filter(function(x){ return x.fichaId===fid && x.reto===reto; })[0];
-          if(rf) hueco().insertAdjacentHTML('beforeend','<button type="button" class="ev-ver ev-leer" data-leer="'+esc(rf.id)+'" title="Leer su reflexión">✍️ Leer</button>');
+          if(rf) hueco().insertAdjacentHTML('beforeend','<button type="button" class="ev-ver ev-leer" data-leer="'+esc(rf.id)+'" title="Leer su reflexión"><img class=ico src=assets/img/iconos/p/editar.png alt> Leer</button>');
         }
       });
     };
@@ -557,12 +557,12 @@
       var ord=(v.options||[]).slice().sort(function(a,b){ return votosDeOpcion(v,b)-votosDeOpcion(v,a); });
       return '<div class="vt-res"><h3>'+esc(v.title)+'</h3><ol class="vt-lista">'+ord.map(function(o,i){
         var n=votosDeOpcion(v,o), pct=total?Math.round(n*100/total):0;
-        return '<li style="--i:'+i+'"'+(i===0?' class="gana"':'')+'><span class="vt-t">'+(i===0?'🏆 ':'')+esc(o.title)+'</span>'
+        return '<li style="--i:'+i+'"'+(i===0?' class="gana"':'')+'><span class="vt-t">'+(i===0?'<img class=ico src=assets/img/iconos/p/rankings.png alt> ':'')+esc(o.title)+'</span>'
           +'<span class="vt-b"><i style="width:'+pct+'%"></i></span><span class="vt-n">'+n+'</span></li>'; }).join('')
         +'</ol><p class="ses-sub">'+total+(total===1?' voto':' votos')+' de la tripulación</p></div>';
     };
     return {k:'votacion', rot:'La votación', html:
-      '<div class="dia votacion"><div class="kicker">🗳️ La voz de la tripulación</div>'
+      '<div class="dia votacion"><div class="kicker"><img class=ico src=assets/img/iconos/p/voto.png alt> La voz de la tripulación</div>'
       +(resuelta?'<h2>Habéis decidido</h2>'+pintaResuelta(resuelta)
                 :'<h2>'+esc(abierta.title)+'</h2>')
       +(abierta?'<div class="vt-abierta"><div class="eyebrow amber">'+(resuelta?'Y ahora, la siguiente':'Votad desde vuestra Nave')+'</div>'
@@ -606,7 +606,7 @@
       if(!todas.length) return null;
       var elegidas=orden(todas.filter(function(x){ return mios[x.fichaId]; })).concat(orden(todas.filter(function(x){ return !mios[x.fichaId]; }))).slice(0,4);
       return {k:'reflexion', rot:'Lo que dijisteis', html:
-        '<div class="dia reflex"><div class="kicker">💬 Lo que dijisteis · '+etiquetaReto(r.txt)+' «'+esc(tituloReto(r.txt))+'»</div>'
+        '<div class="dia reflex"><div class="kicker"><img class=ico src=assets/img/iconos/p/mensaje.png alt> Lo que dijisteis · '+etiquetaReto(r.txt)+' «'+esc(tituloReto(r.txt))+'»</div>'
         +'<h2>'+esc(RF[r.id].titulo||'Lo que dijisteis')+'</h2>'
         +'<div class="rfx-lista n'+elegidas.length+'">'+elegidas.map(function(x,i){
           var p=quienEs(x.fichaId), t=String(x.texto||''), corto=t.length>380?t.slice(0,370).replace(/\s+\S*$/,'')+'…':t;
@@ -615,7 +615,7 @@
             +'<button type="button" class="rfx-ocultar" data-rfocultar="'+esc(x.id)+'" title="No enseñar esta respuesta">Ocultar</button>'
             +'<div class="rfx-quien">'+cara(p)+'<b>'+esc(p.alias)+'</b></div>'
             +'<blockquote>'+esc(corto)+'</blockquote>'
-            +(u?'<a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">🔗 Ver lo que hizo</a>':'')
+            +(u?'<a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer"><img class=ico src=assets/img/iconos/p/enlace.png alt> Ver lo que hizo</a>':'')
             +'</figure>'; }).join('')+'</div>'
         +(todas.length>elegidas.length?'<p class="sub rfx-mas">y '+(todas.length-elegidas.length)+' más en la Nave, en el propio reto</p>':'')
         +'</div>'};
@@ -640,10 +640,10 @@
     mazo.insertAdjacentHTML('beforeend','<div class="ses-ficha" role="dialog" aria-label="La reflexión de '+esc(p.alias||'')+'"><div class="ses-ficha-fondo"></div>'
       +'<div class="fr-caja fr-reflexion"><button type="button" class="ses-ficha-x" aria-label="Cerrar">×</button>'
       +'<div class="fr-cab">'+(av.src?'<img class="fr-av" src="'+esc(av.src)+'" alt="">':'')
-      +'<div><div class="eyebrow amber">✍️ '+(r?etiquetaReto(r[1])+' «'+esc(tituloReto(r[1]))+'»':esc(rf.reto))+'</div><h3>'+esc(p.alias||'Un recluta')+'</h3>'
+      +'<div><div class="eyebrow amber"><img class=ico src=assets/img/iconos/p/editar.png alt> '+(r?etiquetaReto(r[1])+' «'+esc(tituloReto(r[1]))+'»':esc(rf.reto))+'</div><h3>'+esc(p.alias||'Un recluta')+'</h3>'
       +(d.pide?'<p class="fr-pide">'+esc(d.pide)+'</p>':'')+'</div></div>'
       +'<p class="fr-rf">'+esc(rf.texto||'')+'</p>'
-      +(u?'<p><a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">🔗 Ver lo que entregó</a></p>':'')
+      +(u?'<p><a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer"><img class=ico src=assets/img/iconos/p/enlace.png alt> Ver lo que entregó</a></p>':'')
       +'</div></div>');
     var o=mazo.querySelector('.ses-ficha');
     o.querySelector('.ses-ficha-fondo').onclick=cerrarFicha; o.querySelector('.ses-ficha-x').onclick=cerrarFicha;
@@ -660,7 +660,7 @@
     var r=miGente().filter(function(p){ return (p.xp7||0)>0; }).sort(function(a,b){ return (b.xp7||0)-(a.xp7||0); });
     if(!r.length) return null;
     return {k:'movido', rot:'Han movido ficha', html:
-      '<div class="dia movido"><div class="kicker">⭐ Esta semana</div><h2>Han movido ficha</h2>'
+      '<div class="dia movido"><div class="kicker"><img class=ico src=assets/img/iconos/p/estrella.png alt> Esta semana</div><h2>Han movido ficha</h2>'
       +caras(r, 18, function(p){ return '<em>+'+(p.xp7||0)+' xp</em>'; })+'</div>'};
   }
 
@@ -671,12 +671,12 @@
     var n=r.length, sitio=function(p,pos){
       var f=n-pos+1;   // se destapa primero el último del podio
       return '<div class="podio-p p'+pos+' fr" data-f="'+f+'">'+cara(p,'grande')
-        +'<b class="podio-al">'+(pos===1?'👑 ':'')+esc(p.alias)+'</b><span class="podio-xp">+'+(p.xp7||0)+' xp</span>'
+        +'<b class="podio-al">'+(pos===1?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(p.alias)+'</b><span class="podio-xp">+'+(p.xp7||0)+' xp</span>'
         +'<div class="podio-escalon"><span>'+pos+'</span></div></div>';
     };
     var orden=n===3?[[r[1],2],[r[0],1],[r[2],3]]:[[r[1],2],[r[0],1]];
     return {k:'semanal', rot:'Ranking semanal', frag:n, html:
-      '<div class="dia semanal"><div class="kicker">🏅 El ranking de la semana</div><h2>Los que más han sumado</h2>'
+      '<div class="dia semanal"><div class="kicker"><img class=ico src=assets/img/iconos/p/medalla.png alt> El ranking de la semana</div><h2>Los que más han sumado</h2>'
       +'<div class="podio">'+orden.map(function(x){ return sitio(x[0],x[1]); }).join('')+'</div></div>'};
   }
 
@@ -686,7 +686,7 @@
     if(r.length<3) return null;
     var max=r[0].xp||1;
     return {k:'top', rot:'Top 5', html:
-      '<div class="dia top"><div class="kicker">🏆 El ranking de la tripulación</div><h2>Los cinco de arriba</h2>'
+      '<div class="dia top"><div class="kicker"><img class=ico src=assets/img/iconos/p/rankings.png alt> El ranking de la tripulación</div><h2>Los cinco de arriba</h2>'
       +'<ol class="top5">'+r.map(function(p,i){
         return '<li style="--i:'+i+'"><span class="top-pos">'+(i+1)+'</span>'+cara(p)
           +'<span class="top-al"><b>'+esc(p.alias)+'</b><em>'+esc(p.rango_nombre||('Nivel '+(p.nivel||1)))+'</em></span>'
@@ -717,20 +717,20 @@
         return '<li style="--i:'+i+'"><span class="col-pos">'+(i+1)+'</span>'+cara(p)+'<b>'+esc(p.alias)+'</b><span class="col-n">'+val(p)+(tot?'<em>/'+tot(p)+'</em>':'')+'</span></li>'; }).join('')+'</ol></div>';
     };
     var c=function(p,k){ return ((p.coleccion||{})[k]||{}); };
-    var cols=[col('Álbum de cromos','🃏', function(p){ return c(p,'cromos').tengo||0; }, function(p){ return c(p,'cromos').total||26; }),
-              col('Héroes','🛡️', function(p){ return c(p,'heroes').tengo||0; }, function(p){ return c(p,'heroes').total||''; }),
-              col('Insignias','🏅', function(p){ return p.n||0; }, function(){ return 24; }),
+    var cols=[col('Álbum de cromos','<img class=ico src=assets/img/iconos/p/estrella.png alt>', function(p){ return c(p,'cromos').tengo||0; }, function(p){ return c(p,'cromos').total||26; }),
+              col('Héroes','<img class=ico src=assets/img/iconos/p/escudo.png alt>', function(p){ return c(p,'heroes').tengo||0; }, function(p){ return c(p,'heroes').total||''; }),
+              col('Insignias','<img class=ico src=assets/img/iconos/p/medalla.png alt>', function(p){ return p.n||0; }, function(){ return 24; }),
               // 15-sep (noche) · y los logros de a bordo, desde la semana en que NEBULA los presenta
-              conLogros?col('Logros de a bordo','🎖️', nLog, function(){ return AB.hitos.length; }):''].filter(Boolean);
+              conLogros?col('Logros de a bordo','<img class=ico src=assets/img/iconos/p/medalla.png alt>', nLog, function(){ return AB.hitos.length; }):''].filter(Boolean);
     var ley=R.filter(function(p){ return (p.leyendas||[]).length; });
     var cm=conLogros?R.filter(function(p){ return (p.cubiertas||{}).todo; }):[];
     if(!cols.length) return null;
     return {k:'coleccion', rot:'Coleccionistas', html:
-      '<div class="dia coleccion"><div class="kicker">🃏 Los coleccionistas</div><h2>Los que más han reunido</h2>'
+      '<div class="dia coleccion"><div class="kicker"><img class=ico src=assets/img/iconos/p/estrella.png alt> Los coleccionistas</div><h2>Los que más han reunido</h2>'
       +'<div class="col-grid">'+cols.join('')+'</div>'
-      +(ley.length?'<div class="col-ley"><span class="col-ley-t">👑 Tienen algo legendario</span>'+ley.slice(0,8).map(function(p){
+      +(ley.length?'<div class="col-ley"><span class="col-ley-t"><img class=ico src=assets/img/iconos/p/corona.png alt> Tienen algo legendario</span>'+ley.slice(0,8).map(function(p){
           return '<span class="col-ley-u">'+cara(p)+'<b>'+esc(p.alias)+'</b><em>'+esc(p.leyendas[0])+(p.leyendas.length>1?' y '+(p.leyendas.length-1)+' más':'')+'</em></span>'; }).join('')+'</div>':'')
-      +(cm.length?'<div class="col-ley"><span class="col-ley-t">🌟 Contramaestres de la Nave</span>'+cm.slice(0,8).map(function(p){
+      +(cm.length?'<div class="col-ley"><span class="col-ley-t"><img class=ico src=assets/img/iconos/p/estrella.png alt> Contramaestres de la Nave</span>'+cm.slice(0,8).map(function(p){
           return '<span class="col-ley-u">'+cara(p)+'<b>'+esc(p.alias)+'</b><em>los 16 logros de a bordo</em></span>'; }).join('')+'</div>':'')
       +'</div>'};
   }
@@ -761,16 +761,16 @@
     if(!ganaron.length && !marcas.length) return null;
     var med=function(ico, tit, x, val){ return x?'<span class="col-ley-u">'+cara(x.p)+'<b>'+esc(x.p.alias)+'</b><em>'+ico+' '+tit+' · '+val(x.t)+'</em></span>':''; };
     return {k:'simulador', rot:'El Simulador de Joran', html:
-      '<div class="dia simulador"><div class="kicker">🎮 Entrenamiento</div><h2>El Simulador de Joran</h2>'
+      '<div class="dia simulador"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Entrenamiento</div><h2>El Simulador de Joran</h2>'
       +'<p class="ses-sub">Quien le ganó a <b>'+esc(BT.rival||'RUTA AZUL')+'</b> lo tiene en su Nave para repasar tema a tema… y quien no, puede volver a intentarlo: cada derrota lo cansa.</p>'
-      +(ganaron.length?'<div class="col-ley"><span class="col-ley-t">⚔️ Le han ganado ('+ganaron.length+')</span>'+ganaron.slice(0,10).map(function(p){
+      +(ganaron.length?'<div class="col-ley"><span class="col-ley-t"><img class=ico src=assets/img/iconos/p/diana.png alt> Le han ganado ('+ganaron.length+')</span>'+ganaron.slice(0,10).map(function(p){
           return '<span class="col-ley-u">'+cara(p)+'<b>'+esc(p.alias)+'</b></span>'; }).join('')+'</div>':'')
-      +(marcas.length?'<div class="col-grid"><div class="col-c"><h3>🏆 Mejores marcas</h3><ol>'+marcas.map(function(x,i){
+      +(marcas.length?'<div class="col-grid"><div class="col-c"><h3><img class=ico src=assets/img/iconos/p/rankings.png alt> Mejores marcas</h3><ol>'+marcas.map(function(x,i){
           return '<li style="--i:'+i+'"><span class="col-pos">'+(i+1)+'</span>'+cara(x.p)+'<b>'+esc(x.p.alias)+'</b><span class="col-n">'+x.n+'</span></li>'; }).join('')+'</ol></div></div>':'')
-      +((rapido||certero||sabio)?'<div class="col-ley"><span class="col-ley-t">🏅 Reconocimientos</span>'
-          +med('⚡','el más rápido',rapido,function(t){ return (Math.round((t.ms/1000)/t.aciertos*10)/10)+' s por acierto'; })
-          +med('🎯','el más certero',certero,function(t){ return Math.round(t.aciertos*100/t.respondidas)+' % de aciertos'; })
-          +med('📚','quien más sabe',sabio,function(t){ return t.aciertos+' aciertos'; })+'</div>':'')
+      +((rapido||certero||sabio)?'<div class="col-ley"><span class="col-ley-t"><img class=ico src=assets/img/iconos/p/medalla.png alt> Reconocimientos</span>'
+          +med('<img class=ico src=assets/img/iconos/p/rayo.png alt>','el más rápido',rapido,function(t){ return (Math.round((t.ms/1000)/t.aciertos*10)/10)+' s por acierto'; })
+          +med('<img class=ico src=assets/img/iconos/p/diana.png alt>','el más certero',certero,function(t){ return Math.round(t.aciertos*100/t.respondidas)+' % de aciertos'; })
+          +med('<img class=ico src=assets/img/iconos/p/libro.png alt>','quien más sabe',sabio,function(t){ return t.aciertos+' aciertos'; })+'</div>':'')
       +'</div>'};
   }
 
@@ -784,11 +784,11 @@
       .sort(function(a,b){ return b.media-a.media; });
     var max=filas[0].media||1;
     return {k:'escuadrones', rot:'Escuadrones', html:
-      '<div class="dia escuadrones"><div class="kicker">🛡️ Entre escuadrones · xp de media</div><h2>¿Qué escuadrón va delante?</h2>'
+      '<div class="dia escuadrones"><div class="kicker"><img class=ico src=assets/img/iconos/p/escudo.png alt> Entre escuadrones · xp de media</div><h2>¿Qué escuadrón va delante?</h2>'
       +'<div class="esc-lista">'+filas.map(function(f,i){
         return '<div class="esc-f'+(f.cmd===st.miNombre?' mio':'')+'" style="--i:'+i+'">'
-          +(f.emblema?'<img class="esc-emb" src="'+esc(f.emblema)+'" alt="">':'<span class="esc-emb vacia">🛡️</span>')
-          +'<span class="esc-nom"><b>'+(i===0?'🏆 ':'')+esc(f.nombre)+'</b><em>Comandante '+esc(f.cmd)+' · '+f.n+' reclutas</em></span>'
+          +(f.emblema?'<img class="esc-emb" src="'+esc(f.emblema)+'" alt="">':'<span class="esc-emb vacia"><img class=ico src=assets/img/iconos/p/escudo.png alt></span>')
+          +'<span class="esc-nom"><b>'+(i===0?'<img class=ico src=assets/img/iconos/p/rankings.png alt> ':'')+esc(f.nombre)+'</b><em>Comandante '+esc(f.cmd)+' · '+f.n+' reclutas</em></span>'
           +'<span class="esc-bar"><i style="width:'+Math.round(f.media*100/max)+'%"></i></span><span class="esc-xp">'+f.media+' xp</span></div>';
       }).join('')+'</div></div>'};
   }
@@ -811,7 +811,7 @@
     }
     return {k:'ticket', rot:'Ticket de salida', html:
       '<div class="dia ticket"><img class="tk-neb" src="assets/img/personajes/nebula.png" alt="">'
-      +'<div class="tk-cuerpo"><div class="kicker">💬 El ticket de salida</div><h2>Lo que dijisteis al salir</h2>'
+      +'<div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/mensaje.png alt> El ticket de salida</div><h2>Lo que dijisteis al salir</h2>'
       +'<div id="ses-tk"><p class="sub">Leyendo vuestras respuestas…</p></div></div></div>', montar: montarTicket};
   }
   var TK=null, TK_PROMESA=null;
@@ -870,7 +870,7 @@
     var fin=new Date(o.fin-60000), dia=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][fin.getDay()];
     return {k:'oferta', rot:'La oferta', html:
       '<div class="dia oferta-dia'+(q.tipo==='carta'?' es-carta':'')+'"><div class="of-dia-img"><img src="'+esc(img)+'" alt=""><span class="of-pct">−'+o.pct+' %</span></div>'
-      +'<div class="of-dia-txt"><div class="kicker">⚡ La oferta de la semana</div><h2>'+esc(o.nombre)+'</h2>'
+      +'<div class="of-dia-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/rayo.png alt> La oferta de la semana</div><h2>'+esc(o.nombre)+'</h2>'
       +'<p class="odia-precio"><s>'+o.base+' ◈</s> <b>'+o.precio+' ◈</b></p>'
       +'<p class="odia-meta">'+(o.quedan==null?'Sin límite de unidades':'Solo quedan <b>'+o.quedan+'</b>')+' · una por persona · hasta el '+dia+'</p>'
       +'<p class="sub">En el Mercado de vuestra Nave. Cuando se acaban, se acaban.</p></div></div>'};
@@ -883,10 +883,10 @@
    * va un cronómetro grande con sus minutos (los del calendario: «— en clase, 15 min») para lanzarlo ahí mismo.
    */
   function cronoRelampago(min){
-    return '<div class="rel-crono" data-min="'+min+'"><div class="rc-eyebrow">⚡ Se hace ahora, en clase</div>'
+    return '<div class="rel-crono" data-min="'+min+'"><div class="rc-eyebrow"><img class=ico src=assets/img/iconos/p/rayo.png alt> Se hace ahora, en clase</div>'
       +'<div class="rc-reloj" aria-live="polite">'+(min<10?'0':'')+min+':00</div>'
       +'<div class="rc-botones"><button type="button" class="btn primary" data-rc="go">▶ Empezar</button>'
-      +'<button type="button" class="btn" data-rc="pausa">⏸ Pausa</button><button type="button" class="btn" data-rc="reset">↺</button></div></div>';
+      +'<button type="button" class="btn" data-rc="pausa"><img class=ico src=assets/img/iconos/p/pausa.png alt> Pausa</button><button type="button" class="btn" data-rc="reset">↺</button></div></div>';
   }
   function montarCrono(el){
     var c=el.querySelector('.rel-crono'); if(!c) return null;
@@ -910,15 +910,15 @@
     ls.forEach(function(txt,i){
       var id=idDeReto(txt), pide=id?AYU[id]:'', ins=insigniaDe(id), b=ins?badge(ins):null;
       var rel=/^L\d$/.test(id), mins=rel?Number((String(txt).match(/(\d+)\s*min/)||[])[1]||10):0;
-      out.push({k:'reto', rot:rel?'⚡ Relámpago':'Misión '+(i+1), montar:rel?montarCrono:null, html:
+      out.push({k:'reto', rot:rel?'Relámpago':'Misión '+(i+1), montar:rel?montarCrono:null, html:
         // (clase «mision», no «reto»: `.reto` es el botón de reto de otra página y la dejaba apagada)
         '<div class="dia mision'+(ins?' con-ins':'')+'">'
         +(ins?'<figure class="reto-ins"><img src="assets/img/insignias/'+esc(ins)+'.png" alt=""><figcaption>'+esc(b?b.nombre:'')+'</figcaption></figure>':'')
-        +'<div class="reto-txt"><div class="kicker">🎯 Misión '+(i+1)+' de '+ls.length+' · '+etiquetaReto(txt)+'</div>'
+        +'<div class="reto-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Misión '+(i+1)+' de '+ls.length+' · '+etiquetaReto(txt)+'</div>'
         +'<h2>«'+esc(tituloReto(txt))+'»</h2>'
         +(pide?'<div class="pide"><div class="et">Qué hay que hacer</div><p>'+esc(pide)+'</p></div>'
               :'<p class="sub">El enunciado completo está en tu Nave, en «Mis retos».</p>')
-        +(i===ls.length-1&&s.hito?'<p class="reto-hito">🎯 <b>Esta semana se entrega:</b> '+esc(s.hito)+'</p>':'')
+        +(i===ls.length-1&&s.hito?'<p class="reto-hito"><img class=ico src=assets/img/iconos/p/diana.png alt> <b>Esta semana se entrega:</b> '+esc(s.hito)+'</p>':'')
         +(rel?cronoRelampago(mins):'')
         // 18-sep · Norberto: «añade enlace a los ejemplos de los retos en la presentación en vivo; si puede ser, que
         // se abra una ventana». Es la misma página del ejemplo que ve el alumnado en su Nave.
@@ -928,7 +928,7 @@
         +'</div></div>'});
     });
     if(!ls.length&&s.hito) out.push({k:'hito', rot:'Entrega', html:
-      '<div class="dia hito"><div class="kicker">🎯 Esta semana</div><h2>Lo que se entrega</h2><p class="grande">'+esc(s.hito)+'</p></div>'});
+      '<div class="dia hito"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Esta semana</div><h2>Lo que se entrega</h2><p class="grande">'+esc(s.hito)+'</p></div>'});
     // las insignias de la semana que no van con ninguna misión (las de capítulo e historia), juntas
     var suyas=ls.map(function(t){ return insigniaDe(idDeReto(t)); });
     var otras=(s.insignias||[]).filter(function(k){ return suyas.indexOf(k)<0; });
@@ -969,7 +969,7 @@
     var out=[], caps=capitulosDe(s.sem);
     caps.forEach(function(c){
       out.push({k:'nuevo', rot:'Tu Nave, más grande', html:
-        '<div class="dia nuevo-nave"><div class="nn-txt"><div class="kicker">🔓 Se abre esta semana en STARGATE</div>'
+        '<div class="dia nuevo-nave"><div class="nn-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/abierto.png alt> Se abre esta semana en STARGATE</div>'
         +'<h2>'+c.icono+' '+esc(c.titulo)+'</h2><p class="sub">'+esc(c.cabecera||'')+'</p>'
         +'<ul class="nn-lista">'+(c.puedes||[]).map(function(x,i){ return '<li style="--i:'+i+'">'+esc(x)+'</li>'; }).join('')+'</ul></div>'
         +(c.imagen?'<img class="nn-img" src="'+esc(c.imagen)+'" alt="">':'')+'</div>'});
@@ -989,7 +989,7 @@
       return 'recluta.html?simulacro=1&embed=1'+(capitulosDe(Number(sem)).length?'&nebula=1':'')+'&per='+encodeURIComponent(st.per||'demo-motor')+'&semana='+sem; };
     var opciones=''; for(var k=1;k<=n;k++) opciones+='<option value="'+k+'"'+(k===s.sem?' selected':'')+'>'+k+(k===s.sem?' · esta':'')+'</option>';
     return {k:'simulacro', rot:caps.length?'Enséñalo':'La Nave', html:
-      '<div class="dia simulacro"><div class="sim-barra"><span class="sim-t">🛰️ '+(caps.length?'Enséñalo: ':'')+'la Nave de un recluta, en simulacro</span>'
+      '<div class="dia simulacro"><div class="sim-barra"><span class="sim-t"><img class=ico src=assets/img/iconos/p/envivo.png alt> '+(caps.length?'Enséñalo: ':'')+'la Nave de un recluta, en simulacro</span>'
       +'<label class="sim-sel">Semana <select class="sim-sem" aria-label="Semana de la Nave simulada">'+opciones+'</select></label>'
       +'<span class="sim-nota">Nada de lo que toques aquí cuenta</span></div>'
       +'<iframe src="'+esc(url(s.sem))+'" title="La Nave de tu Comandante, en simulacro" loading="lazy"></iframe></div>',
@@ -1599,7 +1599,7 @@
       if(!gs.length) return sinGrupos(yo);
       caja('<h2>Tu Nave te espera</h2><p class="sub">Esta presentación es del profesorado. Estás alistado en más de un grupo: ¿a qué Nave vas?</p>'
         +'<div class="ses-grupos">'+gs.map(function(g){
-          return '<a class="ses-grupo" href="'+esc(nave(g.per))+'"><b>🚀 '+esc(g.nombreGrupo||g.per)+'</b><span>Ir a mi Nave</span></a>'; }).join('')+'</div>'
+          return '<a class="ses-grupo" href="'+esc(nave(g.per))+'"><b><img class=ico src=assets/img/iconos/p/cohete.png alt> '+esc(g.nombreGrupo||g.per)+'</b><span>Ir a mi Nave</span></a>'; }).join('')+'</div>'
         +quienSoy(yo));
       cablearSalir();
     }).catch(function(){ sinGrupos(yo); });

@@ -130,7 +130,7 @@ ESP=[("E1_nebula","NEBULA","Preséntate a tu tripulación","La Bitácora viva qu
 ("E2_capitan","El Capitán","Presentar la Act. 1","El mando de la misión: tú, docente"),
 ("E3_vaeon","General Vaeon","El Escape UNI (reto secreto S7)","Señor de la Estática (villano)")]
 RETO=[("R0_bitacora-en-marcha","La Bitácora en marcha","Reto B · T1","Tu ePortfolio abierto y su primera entrada"),
-("R1_la-chispa","La chispa","Reto ⚡ · T1","Imagen didáctica con IA y tu logo (Act 1)"),
+("R1_la-chispa","La chispa","Reto relámpago · T1","Imagen didáctica con IA y tu logo (Act 1)"),
 ("R2_el-eco-que-ensena","El eco que enseña","Reto B · T2","Videotutorial + videoquiz"),
 ("R3_la-matriz","La matriz","Reto B · T3","Matriz 8×6 del paisaje (Act 2)"),
 ("R4_entorno-de-aula","El entorno de aula","Reto B · T4","Aula virtual con una tarea o material publicado"),
@@ -254,16 +254,16 @@ planetas_html="\n".join(planeta(*p) for p in PLANETAS)
 
 # ================= PORTADA (index.html) =================
 tiles = [
- ("consola.html","🎛️","Mis grupos","Tu puesto de mando: proyectar la clase, el aula, la llamada a filas, tu gente y la cola de nota."),
- ("guia.html","🧭","La guía","Narrativa, personajes, retos e insignias, cómo dinamizarlo en clase y las preguntas frecuentes."),
- ("cronologia.html","🗓️","La cronología","Semana a semana: qué vídeo, qué reto, qué insignia y el mensaje para el foro de la plataforma de UNIR."),
- ("actividades.html","🎯","Misiones y evaluación","Las dos actividades, el ePortfolio y el examen con los requisitos oficiales."),
- ("registro.html","🏅","El tablero y las insignias","Cómo se entrega una insignia, el ranking de cada grupo y los dos marcadores: xp y créditos."),
- ("recluta.html?per=demo-stargate&amp;demo=1","🚀","La Nave del Recluta","Así la ve tu alumnado: su ficha, la orden de la semana, los retos, el álbum y el Mercado. Ábrela en modo demostración."),
- ("tickets.html","🎟️","Tickets de salida","Valoraciones y dudas anónimas del alumnado, por tema y por clase."),
- ("panel.html","🪐","Panel de control","El mapa de los ocho planetas sobre el universo: cada uno lleva a la presentación de su tema."),
- ("recursos.html","📦","Sala de recursos","Las 24 insignias, los cromos y los materiales."),
- ("crear.html","✨","Crear un grupo","Solo referentes: siembra un grupo entero —retos, planetas, tienda y álbum— en un minuto."),
+ ("consola.html","<img class=ico src=assets/img/iconos/p/gente.png alt>","Mis grupos","Tu puesto de mando: proyectar la clase, el aula, la llamada a filas, tu gente y la cola de nota."),
+ ("guia.html","<img class=ico src=assets/img/iconos/p/brujula.png alt>","La guía","Narrativa, personajes, retos e insignias, cómo dinamizarlo en clase y las preguntas frecuentes."),
+ ("cronologia.html","<img class=ico src=assets/img/iconos/p/calendario.png alt>","La cronología","Semana a semana: qué vídeo, qué reto, qué insignia y el mensaje para el foro de la plataforma de UNIR."),
+ ("actividades.html","<img class=ico src=assets/img/iconos/p/diana.png alt>","Misiones y evaluación","Las dos actividades, el ePortfolio y el examen con los requisitos oficiales."),
+ ("registro.html","<img class=ico src=assets/img/iconos/p/medalla.png alt>","El tablero y las insignias","Cómo se entrega una insignia, el ranking de cada grupo y los dos marcadores: xp y créditos."),
+ ("recluta.html?per=demo-stargate&amp;demo=1","<img class=ico src=assets/img/iconos/p/cohete.png alt>","La Nave del Recluta","Así la ve tu alumnado: su ficha, la orden de la semana, los retos, el álbum y el Mercado. Ábrela en modo demostración."),
+ ("tickets.html","<img class=ico src=assets/img/iconos/p/ticket.png alt>","Tickets de salida","Valoraciones y dudas anónimas del alumnado, por tema y por clase."),
+ ("panel.html","<img class=ico src=assets/img/iconos/p/varios.png alt>","Panel de control","El mapa de los ocho planetas sobre el universo: cada uno lleva a la presentación de su tema."),
+ ("recursos.html","<img class=ico src=assets/img/iconos/p/botin.png alt>","Sala de recursos","Las 24 insignias, los cromos y los materiales."),
+ ("crear.html","<img class=ico src=assets/img/iconos/p/estrella.png alt>","Crear un grupo","Solo referentes: siembra un grupo entero —retos, planetas, tienda y álbum— en un minuto."),
 ]
 # 🔴 Las cifras del proceso se CUENTAN del disco, no se escriben a mano: si mañana hay tres planos
 # mas, la web lo dice sola. Si la carpeta de produccion no esta a mano (se construye desde otro
@@ -341,7 +341,7 @@ PORTADA = head("STARGATE · La Bitácora Estelar",
 y la Bitácora —su ePortfolio— es lo que vuelve a encenderlo todo.</p>
 <div id="hero-cta" class="cta-row">
 <a class="btn primary grande btn-google" href="entrar.html">{LOGO_G}<span>Iniciar sesión con Google</span></a>
-<a class="btn grande btn-demo" href="recluta.html?per=demo-stargate&amp;demo=1">🎬 Ver la demo</a>
+<a class="btn grande btn-demo" href="recluta.html?per=demo-stargate&amp;demo=1"><img class=ico src=assets/img/iconos/p/video.png alt> Ver la demo</a>
 <a class="btn ghost" href="{PLAYLIST}" target="_blank" rel="noopener">Serie completa en YouTube ↗</a>
 <p class="cta-pie small muted">Estudiante o docente, se entra por aquí: al entrar, el sistema te
 reconoce y te lleva a tu sitio. <b>¿Solo quieres curiosear?</b> La demo te enseña la Nave de un
@@ -371,21 +371,21 @@ La batalla final es el examen.</p></div>
 que elegir bando en la puerta ni recordar ningún PIN.</p>
 <div class="grid cols-3 puertas-3">
   <div class="card puerta-tile">
-    <span class="ic">🚀</span>
+    <span class="ic"><img class=ico src=assets/img/iconos/p/cohete.png alt></span>
     <h3>Si eres estudiante</h3>
     <p>Vas a tu <b>Nave</b>: tu personaje, la orden de la semana, los planetas que se abren, tus
     insignias y el Mercado Estelar. Desde ahí registras lo que completas y canjeas lo que ganas.</p>
     <span class="chip">Sin teclear nada →</span>
   </div>
   <div class="card puerta-tile">
-    <span class="ic">🎓</span>
+    <span class="ic"><img class=ico src=assets/img/iconos/p/medalla.png alt></span>
     <h3>Si eres docente</h3>
     <p>Vas a tu <b>puesto de mando</b>: tus grupos, y en cada uno lo que se usa en directo —proyectar
     la sesión, la llamada a filas y el aula—. Y desde ahí, la guía del método y las actividades.</p>
     <span class="chip">Sin teclear nada →</span>
   </div>
   <div class="card puerta-tile">
-    <span class="ic">🔑</span>
+    <span class="ic"><img class=ico src=assets/img/iconos/p/llave.png alt></span>
     <h3>Si aún no estás</h3>
     <p>Te pide el <b>código de clase</b>, el que reparte tu docente el primer día. Con él te alistas
     en el momento y ya tienes Nave. Es lo único que hay que teclear en toda la web.</p>
@@ -394,7 +394,7 @@ que elegir bando en la puerta ni recordar ningún PIN.</p>
 </div>
 <p class="cta-row" style="margin-top:26px">
 <a class="btn primary grande btn-google" href="entrar.html">{LOGO_G}<span>Iniciar sesión con Google</span></a>
-<a class="btn grande btn-demo" href="recluta.html?per=demo-stargate&amp;demo=1">🎬 Ver la demo sin cuenta</a></p>
+<a class="btn grande btn-demo" href="recluta.html?per=demo-stargate&amp;demo=1"><img class=ico src=assets/img/iconos/p/video.png alt> Ver la demo sin cuenta</a></p>
 </div></section>
 <section id="secciones"><div class="wrap">
 <div class="eyebrow teal">Zona del profesorado</div><h2>Dónde está cada cosa</h2>
@@ -435,7 +435,7 @@ dice para que lo sepas. Donde la herramienta lo ofrece, <b>quien entra por ahí 
 o un crédito de bienvenida</b>; y en todos los casos este proyecto recibe créditos que se reinvierten
 en seguir ampliando la aventura.</p>
 
-<p style="margin-top:26px"><a class="btn primary grande" href="comosehizo.html">📖 Cómo se hizo, con todo el detalle →</a></p>
+<p style="margin-top:26px"><a class="btn primary grande" href="comosehizo.html"><img class=ico src=assets/img/iconos/p/libro.png alt> Cómo se hizo, con todo el detalle →</a></p>
 <p class="small muted">El casting de las nueve voces, las anclas de personaje, por qué esos modelos
 y cuántos borradores hubo de verdad.</p>
 </div></section>
@@ -446,7 +446,7 @@ FAQ = [
  ("¿Tengo que cambiar mi programación para usar STARGATE?", "No. STARGATE no añade trabajo: <b>renombra y da sentido</b> al que ya existe (2 actividades + ePortfolio con 3 retos + tests). Sigue la programación oficial; la capa narrativa va encima."),
  ("¿Cómo entro? ¿Necesito algún PIN?", "No hay PIN. Entras con la <b>cuenta de Google</b> que tu profe referente puso en el equipo docente del grupo, desde la portada (<b>«Iniciar sesión con Google»</b>). El sistema te reconoce y te lleva a <a href='consola.html'>Mis grupos</a>. Si te dice que esa cuenta no lleva ningún grupo, pide a tu referente que te añada con <b>ese mismo correo</b>."),
  ("¿Cómo invito a mi clase?", "En <a href='consola.html'>Mis grupos</a>, cada grupo enseña su <b>código de clase</b> en grande (para la pizarra) y el botón <b>«Copiar invitación»</b>, que copia un mensaje listo para pegar en el foro de la plataforma de UNIR, con el enlace directo. Tu alumnado entra con Google, escribe el código y se alista solo."),
- ("¿Qué uso durante la clase en directo?", "Tres botones en la tarjeta de tu grupo: <b>Proyectar la clase</b> (la sesión de la semana montada: planeta, vídeos, retos e insignias; pasa con las flechas), <b>Llamada a filas</b> (el pase de lista: tu alumnado pulsa «Presente» en su Nave y se lleva créditos y un sobre de cromos) y <b>El aula</b> (quién ha fichado, a quién felicitar, el ranking y los premios a mano). Si tu referente te ha dado el <b>Genially de clase</b>, ya los lleva dentro: al abrirlo entras con tu cuenta y eliges el grupo. Si montas el tuyo, copia su código en <b>Mis grupos → Entrar en el grupo → Para los Geniallys</b> (en Genially: Insertar → Otros → Código)."),
+ ("¿Qué uso durante la clase en directo?", "Tres botones en la tarjeta de tu grupo: <b>Empezar la clase</b> (la sesión de la semana montada: planeta, vídeos, retos e insignias; pasa con las flechas), <b>Llamada a filas</b> (el pase de lista: tu alumnado pulsa «Presente» en su Nave y se lleva créditos y un sobre de cromos) y <b>El aula</b> (quién ha fichado, a quién felicitar, el ranking y los premios a mano). Si tu referente te ha dado el <b>Genially de clase</b>, ya los lleva dentro: al abrirlo entras con tu cuenta y eliges el grupo. Si montas el tuyo, copia su código en <b>Mis grupos → Entrar en el grupo → Para los Geniallys</b> (en Genially: Insertar → Otros → Código)."),
  ("Un estudiante ha marcado retos que no ha hecho. ¿Qué hago?", "En Mis grupos → <b>Entrar en el grupo</b> → <b>Mi gente</b>, pulsa su fila y <b>anula</b> el reto: se le descuentan los xp y los créditos que dio, y queda anotado. Si ya se había gastado los créditos, lo cosmético que compró se queda (el aviso te dice qué no se ha podido retirar), pero <b>la nota está a salvo</b>: ninguna subida de nota se aplica sin que la apruebes en la <b>Cola de nota</b>. Con el enlace obligatorio y el tope de 3 retos al día, una trampa así se ve enseguida."),
  ("¿Puedo dar un premio que se reclame desde una presentación?", "Sí: <b>Premios por enlace</b>, dentro del grupo (la pestaña la ve quien lo lleva, el referente; si no lo eres, pídeselo). Eliges qué da (xp, créditos, un sobre de cromos, un héroe…), cuántas veces (en total, por escuadrón o por persona) y te llevas un enlace para pegar en cualquier web o presentación. Por ejemplo: «los 5 primeros de cada escuadrón que lo pulsen, un sobre». Quien llega tarde lee que ya se ha agotado."),
  ("¿Dónde veo las dudas y valoraciones de mi alumnado?", "En los <a href='tickets.html'>tickets de salida</a>: al final de cada clase el alumnado valora la sesión y deja dudas de forma <b>anónima</b> («Contacta con NEBULA»), y tú las ves por tema y fecha, y marcas las resueltas."),
@@ -462,7 +462,7 @@ FAQ = [
  ("¿Cuál es la diferencia entre Ludo (T6) y Vínculo (T7)?", "En <b>Ludo se juega</b>: el juego ES la actividad (ABJ). En <b>Vínculo no se juega</b>: se toman elementos del juego (puntos, insignias, niveles, narrativa) y se ponen sobre una tarea que no es un juego (gamificación). Es el error conceptual más común: apóyate en Joran y Mara."),
  ("¿Cómo funciona el examen dentro de la historia?", "La batalla final ES el examen. En la semana 15 el vídeo <b>Plan de Ataque</b> lo presenta (caso, plataforma en directo, tablero de retos, reglas). Los tests de cada tema son el entrenamiento; la última semana hay repaso y simulacro."),
  ("¿Puedo mencionar Genially o la asignatura en público?", "En comunicación pública (redes, web abierta) el proyecto se nombra siempre «Proyecto Gamificado del Máster en Tecnología Educativa de la UNIR», sin la asignatura y sin citar herramientas. Dentro del aula y en este puesto de mando, sin problema."),
- ("¿Cómo registran los alumnos sus retos e insignias?", "Solos, desde su <b>Nave</b>: abren el reto, lo hacen y pulsan <b>«Lo he hecho»</b>. Donde hay algo que entregar (los Retos B, las actividades) el reto <b>pide el enlace</b> de la evidencia y sin él no se registra; y nadie registra más de <b>3 retos al día</b>, para que nadie llegue al nivel 10 a golpe de clic. Los xp, el nivel, los créditos, las insignias y el <b>avatar que evoluciona</b> se calculan solos. Tú ves cada enlace en <b>Mi gente</b> (pulsa la fila) y un aviso «⚠️ sin enlace» donde falte."),
+ ("¿Cómo registran los alumnos sus retos e insignias?", "Solos, desde su <b>Nave</b>: abren el reto, lo hacen y pulsan <b>«Lo he hecho»</b>. Donde hay algo que entregar (los Retos B, las actividades) el reto <b>pide el enlace</b> de la evidencia y sin él no se registra; y nadie registra más de <b>3 retos al día</b>, para que nadie llegue al nivel 10 a golpe de clic. Los xp, el nivel, los créditos, las insignias y el <b>avatar que evoluciona</b> se calculan solos. Tú ves cada enlace en <b>Mi gente</b> (pulsa la fila) y un aviso «<img class=ico src=assets/img/iconos/p/aviso.png alt> sin enlace» donde falte."),
  ("¿Qué es la Nave del Recluta?", "La web del alumnado: su <b>personaje con rango</b>, la orden de la semana, los vídeos, los retos, su botín (insignias, cromos y héroes), el Mercado Estelar y los rankings. Entran por la <b>misma puerta que tú</b>, la portada, con «Iniciar sesión con Google»: si ya están alistados van directos a su Nave, y si no, escriben el <b>código de clase</b> y se alistan en un minuto. La primera vez NEBULA les enseña cada rincón. Para <b>enseñarla sin cuenta</b> (en una charla, a un compañero) está el botón <b>«Ver la demo»</b> de la portada."),
  ("¿Qué es el panel de control de los planetas?", "El <a href='panel.html'>mapa de la galaxia</a>: los ocho planetas sobre el universo, cada uno enlazando a la presentación de su tema. Con <code>?per=</code> los planetas se <b>desbloquean solos</b> según el calendario del grupo. Sirve como página o incrustado en Genially. El <b>referente</b> pone el panel oficial del grupo en <b>Ajustes del grupo</b>, y cada docente puede poner su copia en <b>Mis enlaces</b>."),
  ("¿Qué son los xp, los niveles y los créditos?", f"Son <b>dos marcadores distintos</b>. Los <b>xp</b> (Reto A 100 · Reto B 250 · Actividad 500 · Batalla 500 · hitos 300) miden el viaje, <b>nunca bajan</b> y dan el <b>nivel del 1 al 10</b>: el personaje <b>evoluciona</b> al entrar en los niveles 3 (Cadete), 5 (Oficial), 8 (Comandante) y 10 (<b>Leyenda</b>, el viaje completo). Los <b>créditos ◈</b> (Reto A {CREDITOS['retoA']} · Reto B {CREDITOS['retoB']} · Actividad {CREDITOS['actividad']} · hitos {CREDITOS['derivada']}) son la moneda: es lo único que se descuenta al canjear recompensas. Comprar cromos no baja de nivel a nadie. Todo automático; tabla completa en <a href='registro.html#economia'>El tablero → Dos marcadores</a>."),
@@ -477,10 +477,10 @@ faq_html="\n".join(f'<details class="faq"><summary>{q}</summary><div>{a}</div></
 # [id, título, claves (sin tildes, en minúsculas), respuesta]. Si la web cambia un botón de sitio,
 # se cambia aquí: la batería 75 comprueba que cada una tiene claves, texto y enlaces que existen.
 AVERIAS = [
- ("lista", "No puedo pasar lista, o el alumnado no ve «✋ Presente»",
+ ("lista", "No puedo pasar lista, o el alumnado no ve «Presente»",
   ["pasar lista", "llamada", "presente", "fichar", "asistencia", "lista"],
-  "La llamada se toca desde <a href='consola.html'>Mis grupos</a> → tu grupo → <b>«🔔 Llamada a filas»</b> (o en la diapositiva 2 de "
-  "la sesión). Es para <b>tu escuadrón</b>: quien es de otro Comandante no la ve. Si alguien no ve «✋ Presente»: 1) que recargue su Nave; "
+  "La llamada se toca desde <a href='consola.html'>Mis grupos</a> → tu grupo → <b>«<img class=ico src=assets/img/iconos/p/clase.png alt> Llamada a filas»</b> (o en la diapositiva 2 de "
+  "la sesión). Es para <b>tu escuadrón</b>: quien es de otro Comandante no la ve. Si alguien no ve «<img class=ico src=assets/img/iconos/p/gente.png alt> Presente»: 1) que recargue su Nave; "
   "2) mira en <b>Mi gente</b> que es de tu escuadrón; 3) la llamada no ha caducado (sale la cuenta atrás); 4) cada estudiante ficha "
   "<b>una vez al día</b>. Si tu llamada no se abre, recarga la página y vuelve a tocarla."),
  ("genially", "He cambiado el Genially y sigue saliendo el viejo",
@@ -493,7 +493,7 @@ AVERIAS = [
   ["no puede entrar", "no entra", "no aparece", "no le deja", "alistar", "alistarse", "cuenta", "codigo"],
   "Casi siempre es la cuenta: tiene que entrar con la <b>misma cuenta de Google</b> con la que se alistó (en un ordenador compartido, "
   "«¿Eres tú?» le deja cambiar). Si nunca se alistó, que use la invitación o el <b>código de clase</b> de tu grupo. Si en <b>Mi gente</b> "
-  "sale con 🧊, su referente le ha congelado la cuenta: puede mirar, pero no hacer nada."),
+  "sale con <img class=ico src=assets/img/iconos/p/hielo.png alt>, su referente le ha congelado la cuenta: puede mirar, pero no hacer nada."),
  ("retos", "A un estudiante no le suman los retos o los créditos",
   ["no suma", "no le suma", "creditos", "xp", "no cuenta", "lo he hecho", "no registra", "no se registra", "reto"],
   "Tres cosas lo explican casi siempre: 1) como mucho <b>3 retos por semana</b> (de lunes a domingo); 2) casi todos piden el <b>enlace</b> de lo que se ha hecho "
@@ -510,7 +510,7 @@ AVERIAS = [
   "Nadie los apunta a mano, ni el profesorado: son del servidor."),
  ("embed", "La sesión (o la llamada) no se ve dentro del Genially",
   ["embed", "incrustar", "insertar", "iframe", "dentro del genially", "no se ve", "codigo"],
-  "En Genially se inserta el <b>código</b>, no la dirección: <a href='consola.html'>Mis grupos</a> → <b>«📋 Embed para Genially»</b> "
+  "En Genially se inserta el <b>código</b>, no la dirección: <a href='consola.html'>Mis grupos</a> → <b>«<img class=ico src=assets/img/iconos/p/notas.png alt> Embed para Genially»</b> "
   "(o Ajustes del grupo → «Para los Geniallys») → en Genially, <b>Insertar → Otros → Código</b>, y pegar. Dentro pedirá tu cuenta de "
   "Google y, si llevas varios grupos, «¿En qué grupo estamos?». Si la ventana de Google no aparece, permite las ventanas emergentes."),
  ("vieja", "La sesión o el ranking enseñan datos viejos",
@@ -524,10 +524,10 @@ AVERIAS = [
  ("congelar", "Un estudiante hace trampas o hay que darle de baja",
   ["trampa", "trampas", "tramposo", "congelar", "bloquear", "dar de baja", "baja", "eliminar"],
   "Si ha marcado retos que no ha hecho, <b>Mi gente → su fila → anular</b> el reto (se le descuenta lo que dio). Para bloquear la cuenta "
-  "o darle de baja: <b>Mi gente → su ficha → «Solo el referente»</b>: 🧊 Congelar (mira, pero no hace nada) o Dar de baja. Lo hace el referente."),
+  "o darle de baja: <b>Mi gente → su ficha → «Solo el referente»</b>: <img class=ico src=assets/img/iconos/p/hielo.png alt> Congelar (mira, pero no hace nada) o Dar de baja. Lo hace el referente."),
  ("equipo", "Quiero añadir a un docente al grupo",
   ["anadir docente", "nuevo docente", "equipo docente", "companero", "profesor nuevo", "referente"],
-  "Lo hace el referente: dentro del grupo, <b>Equipo docente</b> → «➕ Añadir a alguien»: nombre, <b>su correo de Google</b> (el de la cuenta con la que "
+  "Lo hace el referente: dentro del grupo, <b>Equipo docente</b> → «<img class=ico src=assets/img/iconos/p/anadir.png alt> Añadir a alguien»: nombre, <b>su correo de Google</b> (el de la cuenta con la que "
   "entrará) y el rol. Cada persona del equipo tiene su tarjeta con lo demás: hacerla referente o docente, pasar su alumnado a otro y quitarla del equipo."),
  ("calendario", "Hay una semana de vacaciones y el calendario sigue",
   ["vacaciones", "navidad", "semana santa", "festivo", "calendario", "congelar semana", "retrasar"],
@@ -675,10 +675,10 @@ en el <b>Tema 5</b> y se va llenando durante todo el viaje. Cada página se escr
 <section id="retos"><div class="wrap">
 <div class="eyebrow">Retos e insignias</div><h2>Dos retos por tema</h2>
 <div class="grid cols-2">
-<div class="card"><h3>Reto A — «La Llave» 🗝️</h3><p>Micro-tarea reflexiva o de comunidad (10–20 min) que encarna la
+<div class="card"><h3>Reto A — «La Llave» <img class=ico src=assets/img/iconos/p/llave.png alt></h3><p>Micro-tarea reflexiva o de comunidad (10–20 min) que encarna la
 lección del personaje. <b>No cuenta para nota</b> (da 100 xp simbólicos del juego): su recompensa es
 <b>desbloquear al personaje</b> (fragmento + insignia). Es el motor de <b>motivación e identidad</b>.</p></div>
-<div class="card"><h3>Reto B — «La Forja» 🔨</h3><p>Tarea de creación con criterios claros que produce una <b>evidencia
+<div class="card"><h3>Reto B — «La Forja» <img class=ico src=assets/img/iconos/p/fuego.png alt></h3><p>Tarea de creación con criterios claros que produce una <b>evidencia
 real</b> de la Bitácora y es un <b>trozo digerible</b> de la siguiente actividad grande. Su recompensa es la
 <b>insignia de reto</b>. Es el motor de <b>producción</b>.</p></div>
 </div>
@@ -688,7 +688,7 @@ real</b> de la Bitácora y es un <b>trozo digerible</b> de la siguiente activida
 recompensas: en cuanto el alumno compra algo, «retrocede» — y castigar la compra mata la tienda. Aquí van
 separados, y conviene explicarlo en clase porque <b>es el contenido del Tema 7 en vivo</b>:</p>
 <div class="grid cols-2" style="gap:14px">
-<div class="card"><h3>⭐ xp — el viaje</h3><p class="small">Solo suben, <b>nunca se gastan</b>. Dan el
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/estrella.png alt> xp — el viaje</h3><p class="small">Solo suben, <b>nunca se gastan</b>. Dan el
 <b>nivel</b> (1 a 10), el puesto en el ranking y hacen <b>evolucionar al personaje</b> (5 versiones de arte,
 en los niveles 3, 5, 8 y 10). Reto A 100 · Reto B 250 · Actividad 500 · Batalla 500 · hitos 300.</p></div>
 <div class="card"><h3>◈ créditos — el bolsillo</h3><p class="small">Se ganan con el mismo trabajo
@@ -726,14 +726,14 @@ El viaje completo da <b>{CRED_VIAJE['REGULAR']} ◈</b> y todo lo cosmético cue
 pasos, y los tres primeros suman menos de cinco minutos.</p>
 <div class="grid cols-2 clase-viva">
 <div class="card"><span class="cv-n">1</span><h3>Proyecta la sesión</h3>
-<p>Abre <b>Proyectar la clase</b> desde tus grupos. Trae en orden: dónde estáis, <b>a quién
+<p>Abre <b>Empezar la clase</b> desde tus grupos. Trae en orden: dónde estáis, <b>a quién
 felicitar esta semana</b> —con nombre—, el ranking, la misión más hecha, lo que os dijeron en el
 ticket y una invitación concreta. Termina con el Genially del grupo, y ahí empieza la clase.</p>
 <p class="small muted">También se incrusta en tu Genially: el mismo enlace vale para todos tus
 grupos, porque sabe quién eres.</p></div>
 
 <div class="card"><span class="cv-n">2</span><h3>Toca llamada a filas</h3>
-<p>Un botón. Se abre el fichaje y en la Nave de tu gente aparece <b>✋ Presente</b>: unos créditos
+<p>Un botón. Se abre el fichaje y en la Nave de tu gente aparece <b><img class=ico src=assets/img/iconos/p/gente.png alt> Presente</b>: unos créditos
 por estar, y tú ves quién llega en directo desde <b>el aula</b>.</p>
 <p class="small muted">No es un control de asistencia fiable y no pretende serlo — quien está puede
 avisar a quien no. Ábrelo con la clase empezada y déjalo poco rato.</p></div>
@@ -748,7 +748,7 @@ un estudiante al azar.</p></div>
 <div class="card"><span class="cv-n">4</span><h3>Ponte en su lugar una vez</h3>
 <p>Antes de la primera sesión, abre la Nave como si fueras alumno. Diez minutos entendiendo lo que
 ven ellos ahorran media hora de dudas en clase.</p>
-<p style="margin-top:12px"><a class="btn primary" href="recluta.html?per=demo-motor&amp;demo=1" target="_blank" rel="noopener">🚀 Probar la Nave como estudiante ↗</a></p>
+<p style="margin-top:12px"><a class="btn primary" href="recluta.html?per=demo-motor&amp;demo=1" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/cohete.png alt> Probar la Nave como estudiante ↗</a></p>
 <p class="small muted">Es un recluta de mentira en un grupo de pruebas: toca lo que quieras, no se
 guarda nada.</p></div>
 </div>
@@ -757,7 +757,7 @@ guarda nada.</p></div>
 <div class="tips">
 <div class="tip"><b>Empieza con el gancho, no con el temario.</b> Primera sesión: vídeo de sinopsis, preséntate como <b>Capitán</b>, reparte la insignia de <b>Reclutamiento</b> y deja una pregunta en el aire.</div>
 <div class="tip"><b>Un mensaje por semana para el foro de la plataforma de UNIR</b> (ya redactados, en la <a href="cronologia.html">cronología</a>): introducen el tema con la narrativa y cierran con la "Bitácora de esta semana". Solo pon tu nombre y el enlace de la herramienta del momento.</div>
-<div class="tip"><b>Separa los tres retos en tu discurso.</b> El Reto A como <i>invitación</i> ("recupera a Bran"); el Reto B como <i>encargo</i> con criterios; y el <b>⚡ relámpago</b> como lo que es: <i>diez minutos, aquí y ahora, en clase</i> — quien viene, sale con él hecho.</div>
+<div class="tip"><b>Separa los tres retos en tu discurso.</b> El Reto A como <i>invitación</i> ("recupera a Bran"); el Reto B como <i>encargo</i> con criterios; y el <b><img class=ico src=assets/img/iconos/p/rayo.png alt> relámpago</b> como lo que es: <i>diez minutos, aquí y ahora, en clase</i> — quien viene, sale con él hecho.</div>
 <div class="tip"><b>Entrega las insignias en público.</b> El refuerzo funciona cuando se ve: publica el medallón y nombra el logro con la frase del personaje. Un tablero con las 24 hace visible el avance.</div>
 <div class="tip"><b>Vincula siempre reto → Bitácora.</b> Cada Reto B <i>ya es</i> una página del ePortfolio (y a veces media actividad grande resuelta). Así no acumulan tareas: construyen.</div>
 <div class="tip"><b>Usa la distinción Ludo/Vínculo como momento estrella.</b> En T6 <b>se juega</b> (el juego ES la actividad); en T7 <b>no</b> (se toman elementos del juego). Apóyate en Joran y Mara.</div>
@@ -778,22 +778,22 @@ guarda nada.</p></div>
 referente: son carpetas compartidas con el equipo docente, no públicas.</p>
 <div class="grid cols-3">
 <a class="card enl" href="{GENIALLY_CARPETA}" target="_blank" rel="noopener">
-  <span class="enl-ico">🪐</span><h3>Carpeta de Geniallys</h3>
+  <span class="enl-ico"><img class=ico src=assets/img/iconos/p/varios.png alt></span><h3>Carpeta de Geniallys</h3>
   <p>Los Geniallys de los ocho planetas y el panel de control. Usa los estándar tal cual; si quieres
   el tuyo, duplica uno y pégalo en <b>Puesto de mando → Mis enlaces</b>.</p></a>
 <a class="card enl" href="recursos.html">
-  <span class="enl-ico">📦</span><h3>Recursos audiovisuales</h3>
+  <span class="enl-ico"><img class=ico src=assets/img/iconos/p/botin.png alt></span><h3>Recursos audiovisuales</h3>
   <p>Los 17 vídeos de la serie, las 24 insignias, los cromos y las láminas. Para proyectar, para el
   aula virtual o para tus propios materiales.</p></a>
 <a class="card enl" href="cronologia.html">
-  <span class="enl-ico">🗓️</span><h3>La cronología</h3>
+  <span class="enl-ico"><img class=ico src=assets/img/iconos/p/calendario.png alt></span><h3>La cronología</h3>
   <p>Semana a semana: qué vídeo toca, qué reto se lanza, qué insignia se entrega y el mensaje del
   foro ya escrito.</p></a>
 <!-- 🔴 `pasos.html` se quedó huérfana al sacarla del menú: nadie la enlazaba y una página que no
      enlaza nadie no existe. Aquí es donde tiene sentido — es material de consulta, no una sección
      del menú diario. -->
 <a class="card enl" href="pasos.html">
-  <span class="enl-ico">🧭</span><h3>Montarlo paso a paso</h3>
+  <span class="enl-ico"><img class=ico src=assets/img/iconos/p/brujula.png alt></span><h3>Montarlo paso a paso</h3>
   <p>El recorrido completo con capturas: crear un grupo, repartir el enlace, la primera sesión.
   Se consulta una vez y casi no se vuelve.</p></a>
 </div>
@@ -843,7 +843,7 @@ marco narrativo STARGATE—. Los requisitos provienen de los enunciados y la gu�
 <div class="card"><h3>Tests de tema</h3><p>Un test por tema (T1–T8). <span class="pts">0,1</span> cada uno (0,8 en total). Preparan para el examen.</p></div>
 <div class="card"><h3>Asistencia en directo</h3><p>Asistencia a <b>3 clases en directo</b> a lo largo del curso. <span class="pts">0,2</span> cada una (0,6 en total).</p></div>
 </div>
-<div class="official">📋 Oficial · 4,3 + 4,3 + 0,8 + 0,6 = <b>10 puntos</b> de evaluación continua. La Actividad 3 de programaciones anteriores <b>ya no existe</b>.</div>
+<div class="official"><img class=ico src=assets/img/iconos/p/notas.png alt> Oficial · 4,3 + 4,3 + 0,8 + 0,6 = <b>10 puntos</b> de evaluación continua. La Actividad 3 de programaciones anteriores <b>ya no existe</b>.</div>
 <blockquote>En STARGATE cada elemento tiene su nombre: las actividades son <b>misiones mayores</b>, los tests son
 <b>controles de sistemas</b>, las clases en directo son <b>sesiones de mando</b> y las experiencias del portfolio
 son <b>páginas de la Bitácora</b>. La nota mide tu avance; la Bitácora es lo que te llevas a casa.</blockquote>
@@ -892,7 +892,7 @@ autoevaluación</b>, las dos actividades y tres retos (videotutorial, microgamif
 <tr><td>T6 · Ludo</td><td>Diseño de un juego digital educativo</td><td>Reto B «El juego»</td></tr>
 <tr><td>T7 · Vínculo</td><td>Recursos de gamificación: cartas de recompensa, insignias o narrativas</td><td>Reto B «La microgamificación»</td></tr>
 </tbody></table>
-<div class="official" style="margin-top:14px">💡 La experiencia del <b>Tema 7</b> es, literalmente, crear <b>cartas, insignias o narrativas</b>: STARGATE es el ejemplo vivo de esa entrega.</div>
+<div class="official" style="margin-top:14px"><img class=ico src=assets/img/iconos/p/estrella.png alt> La experiencia del <b>Tema 7</b> es, literalmente, crear <b>cartas, insignias o narrativas</b>: STARGATE es el ejemplo vivo de esa entrega.</div>
 </div></section>
 
 <section id="examen"><div class="wrap">
@@ -912,7 +912,7 @@ plataforma en directo, tablero de retos, reglas de ortografía, enlaces público
 <div class="eyebrow amber">Descargas</div><h2>Documentos oficiales (programación nueva)</h2>
 <p class="lead">Los enunciados, pautas y rúbricas vigentes. Descárgalos desde aquí; son los mismos que en el aula virtual.</p>
 <div class="docs">{docs_html}</div>
-<div class="official" style="margin-top:16px">📚 <b>Temario (PDF de los temas):</b> los disponibles son de la programación anterior y con nombres bailados; no se publican hasta recibir el temario actualizado.</div>
+<div class="official" style="margin-top:16px"><img class=ico src=assets/img/iconos/p/libro.png alt> <b>Temario (PDF de los temas):</b> los disponibles son de la programación anterior y con nombres bailados; no se publican hasta recibir el temario actualizado.</div>
 </div></section>
 ''' + FOOT
 
@@ -957,8 +957,8 @@ para proyectarlo, Mis grupos → Entrar en el grupo → <b>Mis enlaces</b>.</p>
 <section id="plantilla-eportfolio"><div class="wrap">
 <div class="eyebrow teal">La Bitácora</div><h2>Plantilla del ePortfolio</h2>
 <div class="grid cols-2">
-<div class="card"><h3>🪐 Plantilla Genially de la Bitácora</h3>{plantilla_ep_html}</div>
-<div class="card"><h3>📘 Pautas oficiales</h3><p>Cómo se recoge cada evidencia y su reflexión (5 pasos, estructura por página):
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/varios.png alt> Plantilla Genially de la Bitácora</h3>{plantilla_ep_html}</div>
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/libro.png alt> Pautas oficiales</h3><p>Cómo se recoge cada evidencia y su reflexión (5 pasos, estructura por página):
 <a href="assets/docs/Pautas_ePortfolio.docx" download><b>Pautas del ePortfolio (DOCX)</b></a>.
 Como referencia de nivel, el <a href="assets/docs/Ejemplo_ePortfolio_alumnado.pdf">ejemplo real de un grupo (PDF)</a>.
 El resto de documentos oficiales están en <a href="actividades.html#docs">Actividades → Descargas</a>.</p></div>
@@ -998,17 +998,17 @@ def semana_card(s):
 {cap}
 <div class="sem-grid">
 <div class="col">
-<h4>🎬 Vídeos que se proyectan</h4>
+<h4><img class=ico src=assets/img/iconos/p/video.png alt> Vídeos que se proyectan</h4>
 <div class="yt-list">{vids}</div>
 </div>
 <div class="col">
-<h4>🗝️ Retos que se lanzan</h4><ul>{lanza}</ul>
-<h4>🏅 Insignias que se entregan</h4><div class="minis">{mini_badges(s["insignias"])}</div>
-<h4>📌 Hitos de la semana</h4><p>{s["hito"]}</p>
+<h4><img class=ico src=assets/img/iconos/p/llave.png alt> Retos que se lanzan</h4><ul>{lanza}</ul>
+<h4><img class=ico src=assets/img/iconos/p/medalla.png alt> Insignias que se entregan</h4><div class="minis">{mini_badges(s["insignias"])}</div>
+<h4><img class=ico src=assets/img/iconos/p/diana.png alt> Hitos de la semana</h4><p>{s["hito"]}</p>
 <div class="consejo"><img src="assets/img/capitan/senala.png" alt=""><div><b>Consejo del Capitán</b><br>{s["consejo"]}</div></div>
 </div>
 </div>
-<details class="foro"><summary>💬 Mensaje del foro dinamizador (listo para copiar)</summary>
+<details class="foro"><summary><img class=ico src=assets/img/iconos/p/mensaje.png alt> Mensaje del foro dinamizador (listo para copiar)</summary>
 <div class="foro-box"><button class="copy" type="button" data-copy="foro{sem}">Copiar texto</button><pre id="foro{sem}">{foro}</pre>
 <small>La firma es siempre «Capitán», a secas (sin tu nombre). Revisa las herramientas citadas (son ejemplos, cambian cada curso) y, donde aparezca el enlace del tablero, usa el de tu PER.</small></div>
 </details>
@@ -1098,14 +1098,14 @@ GENPAGE = head("STARGATE · Los Geniallys",
 <section id="lista"><div class="wrap">
 <div class="eyebrow teal">Por planeta</div><h2>Los ocho Geniallys</h2>
 <div class="gens">{gen_html}</div>
-<div class="official" style="margin-top:18px">🧩 <b>Cómo se añade un Genially a esta página:</b> en Genially, <i>Compartir → Insertar</i> (o el enlace público de vista). Se pega en
+<div class="official" style="margin-top:18px"><img class=ico src=assets/img/iconos/p/anadir.png alt> <b>Cómo se añade un Genially a esta página:</b> en Genially, <i>Compartir → Insertar</i> (o el enlace público de vista). Se pega en
 <code>_site_data.py → GENIALLYS[n]["view"]</code> y se regenera la web; el hueco del tema pasa a «Publicado» con el Genially incrustado.</div>
 </div></section>
 
 <section><div class="wrap">
 <div class="eyebrow amber">Para el equipo que los monta</div><h2>Qué lleva cada Genially</h2>
 <div class="grid cols-2">
-<div class="card"><h3>Estructura sugerida</h3><p>Portada con el fondo de espacio y el planeta-halo → <b>intro</b> (vídeo de llegada) → contenido del tema sobre los fondos de superficie → los <b>retos</b> (A, B y el ⚡ relámpago de la semana de continuación) → <b>cierre</b> (vídeo) → recompensa: el <b>fragmento</b> del tripulante + su insignia y carta.</p></div>
+<div class="card"><h3>Estructura sugerida</h3><p>Portada con el fondo de espacio y el planeta-halo → <b>intro</b> (vídeo de llegada) → contenido del tema sobre los fondos de superficie → los <b>retos</b> (A, B y el <img class=ico src=assets/img/iconos/p/rayo.png alt> relámpago de la semana de continuación) → <b>cierre</b> (vídeo) → recompensa: el <b>fragmento</b> del tripulante + su insignia y carta.</p></div>
 <div class="card"><h3>Material</h3><p>Todo está en el paquete <a href="{DRIVE_EQUIPO}" target="_blank" rel="noopener"><b>DRIVE_EQUIPO_STARGATE</b> ↗</a> (Drive): una carpeta por tema con fondos, clips, insignias, carta, retos y enlaces, más el documento «Qué va en cada Genially» con la miniatura de cada recurso. Los vídeos se insertan desde YouTube con el enlace de la <a href="cronologia.html">cronología</a>.</p></div>
 </div>
 </div></section>
@@ -1147,21 +1147,21 @@ lo que no puede faltar es tu ceremonia:</p>
 <section id="profe-herramientas"><div class="wrap">
 <div class="eyebrow">También desde tu puesto</div><h2>Lo que usas cada semana</h2>
 <div class="grid cols-2">
-<div class="card"><h3>🛰️ El aula, dentro de tu Genially</h3><p>Tu puesto de mando <b>sin salir de la presentación</b>: tocas <b>llamada a filas</b> y ves quién ficha en directo, miras a quién felicitar por lo que ha hecho esta semana y a quién dar la bienvenida, consultas el ranking y repartes premios a mano — experiencia, créditos o una carta de regalo, incluso eligiendo a alguien al azar. Ábrelo con el botón <b>«El aula»</b> de tu grupo en <a href="consola.html">Mis grupos</a>, o ábrelo desde el <b>Genially de clase</b> que te da tu referente: pide tu cuenta y te pregunta el grupo.</p>
-<p class="small muted">🔴 Ese enlace <b>no lleva el grupo dentro</b>: se deduce de tu cuenta. Se monta una vez en todos tus Geniallys y no se toca más, ni al crear un grupo nuevo ni el curso que viene.</p></div>
-<div class="card"><h3>🔔 Llamada a filas</h3><p>El pase de lista. Lo tocas tú —y solo tú: quien no sea Comandante recibe un aviso que se lo explica— y se abre el fichaje <b>solo para tu escuadrón</b>, los minutos que elijas. En la Nave de tu gente aparece el botón <b>✋ Presente</b> con su cuenta atrás, y al pulsarlo cobran. <a href="llamada.html">llamada.html</a>, también universal.</p>
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/envivo.png alt> El aula, dentro de tu Genially</h3><p>Tu puesto de mando <b>sin salir de la presentación</b>: tocas <b>llamada a filas</b> y ves quién ficha en directo, miras a quién felicitar por lo que ha hecho esta semana y a quién dar la bienvenida, consultas el ranking y repartes premios a mano — experiencia, créditos o una carta de regalo, incluso eligiendo a alguien al azar. Ábrelo con el botón <b>«El aula»</b> de tu grupo en <a href="consola.html">Mis grupos</a>, o ábrelo desde el <b>Genially de clase</b> que te da tu referente: pide tu cuenta y te pregunta el grupo.</p>
+<p class="small muted"><img class=ico src=assets/img/iconos/p/aviso.png alt> Ese enlace <b>no lleva el grupo dentro</b>: se deduce de tu cuenta. Se monta una vez en todos tus Geniallys y no se toca más, ni al crear un grupo nuevo ni el curso que viene.</p></div>
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/clase.png alt> Llamada a filas</h3><p>El pase de lista. Lo tocas tú —y solo tú: quien no sea Comandante recibe un aviso que se lo explica— y se abre el fichaje <b>solo para tu escuadrón</b>, los minutos que elijas. En la Nave de tu gente aparece el botón <b><img class=ico src=assets/img/iconos/p/gente.png alt> Presente</b> con su cuenta atrás, y al pulsarlo cobran. <a href="llamada.html">llamada.html</a>, también universal.</p>
 <p class="small muted">No hay palabra que dictar: lo que no se puede adivinar es <b>cuándo</b> la vas a tocar.</p></div>
-<div class="card"><h3>🎟️ Ticket de salida «Contacta con NEBULA»</h3><p>El alumnado valora la clase y deja dudas de forma <b>anónima</b> (presentación / tema / actividad / repaso, indicando quién imparte). Tú lo explotas en el <a href="tickets.html">panel visual de tickets</a>: valoraciones 1–5 por sección y dudas que puedes marcar como resueltas cuando las trates en clase.</p></div>
-<div class="card"><h3>🎁 El Mercado Estelar</h3><p>Los xp no se gastan nunca: lo que se canjea son los <b>créditos ◈</b>, en el Mercado de la Nave, sin formularios (sobres de cromos, héroes, adornos…). Las recompensas que tocan la <b>nota</b> no se conceden solas: esperan en la <b>Cola de nota</b> de tu grupo (<a href="consola.html">Mis grupos</a> → Entrar en el grupo) hasta que las apruebas.</p></div>
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/ticket.png alt> Ticket de salida «Contacta con NEBULA»</h3><p>El alumnado valora la clase y deja dudas de forma <b>anónima</b> (presentación / tema / actividad / repaso, indicando quién imparte). Tú lo explotas en el <a href="tickets.html">panel visual de tickets</a>: valoraciones 1–5 por sección y dudas que puedes marcar como resueltas cuando las trates en clase.</p></div>
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/premios.png alt> El Mercado Estelar</h3><p>Los xp no se gastan nunca: lo que se canjea son los <b>créditos ◈</b>, en el Mercado de la Nave, sin formularios (sobres de cromos, héroes, adornos…). Las recompensas que tocan la <b>nota</b> no se conceden solas: esperan en la <b>Cola de nota</b> de tu grupo (<a href="consola.html">Mis grupos</a> → Entrar en el grupo) hasta que las apruebas.</p></div>
 </div>
 </div></section>
 
 <section id="roles"><div class="wrap">
 <div class="eyebrow teal">Dos papeles, un sistema</div><h2>¿Quién hace qué?</h2>
 <div class="grid cols-2">
-<div class="card"><h3>🛰️ Profesorado referente <span class="pill">gestiona el PER</span></h3>
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/envivo.png alt> Profesorado referente <span class="pill">gestiona el PER</span></h3>
 <p><b>Crea el grupo</b> desde <a href="crear.html">la consola del referente</a> (con la fecha de la semana 1, que marca el ritmo de todo el sistema), <b>pone el equipo docente</b> —quien esté en esa lista entra con su propia cuenta, sin PIN que repartir—, <b>monta y actualiza el Genially del grupo</b> y gobierna el día a día desde <a href="consola.html">el puesto de mando</a>: alumnado, cola de nota, traspasos y ajustes. La chuleta completa está en <a href="pasos.html#referente">Cómo se hace</a>.</p></div>
-<div class="card"><h3>🎓 Profesorado que imparte <span class="pill">dinamiza el aula</span></h3>
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/medalla.png alt> Profesorado que imparte <span class="pill">dinamiza el aula</span></h3>
 <p>No toca ninguna hoja: sigue la <a href="cronologia.html">cronología</a>, publica el mensaje de la semana en el foro de la plataforma de UNIR, entrega las insignias <b>con ceremonia</b> y usa <a href="consola.html">Mis grupos</a> (proyectar la clase, el aula, la llamada a filas, su gente) y los <a href="tickets.html">tickets</a>, todo con su propia cuenta de Google. Si quiere un <b>panel de control Genially propio</b>, lo pega él mismo en Mis grupos → Entrar en el grupo → <b>Mis enlaces</b>.</p></div>
 </div>
 <p class="small muted" style="margin-top:10px">En la mayoría de los PER el referente <b>también imparte</b>: entonces te tocan las dos columnas. El botón <b>▶ Visita guiada</b> de arriba te lo enseña, y en Mis grupos el Capitán te explica cada botón la primera vez.</p>
@@ -1188,18 +1188,18 @@ lo que no puede faltar es tu ceremonia:</p>
 </div>
 <div class="card"><h3>2 · Nadie hace nada</h3><p>Los xp, los créditos, las insignias, el planeta actual y el nivel los calcula el sistema con cada reto que se marca, y el tablero cambia al momento. Las insignias de hito <b>Tripulación Cero</b> y <b>La Liberación</b> se otorgan solas. Si hay un registro falso, el docente lo anula desde <a href="consola.html">Mis grupos</a> → Mi gente (pulsa la fila) y se descuenta lo que dio, con su asiento en el libro. Todo queda guardado para análisis e investigación.</p>
 <p class="small muted">Hasta septiembre de 2026 esto vivía en una hoja de cálculo con formularios: está contado en <a href="legacy.html">el archivo</a>.</p></div>
-<div class="card"><h3>3 · Un grupo nuevo, un minuto</h3><p>Antes, dos minutos en padlet.com: crea el <b>padlet del grupo</b> en formato <b>«Muro con secciones»</b> con cuatro secciones — <b>📹 Preséntate · 🎨 La chispa · 🎲 Ensaya jugando · 🛡️ Mi insignia</b> — y deja que los visitantes escriban. Después, en <a href="crear.html">Crear grupo</a> (con tu cuenta de Google): nombre, tipo REGULAR/PUA, primer día de la semana 1, el <b>equipo docente por su correo</b> y el enlace del padlet. Sale un <b>código de clase</b>, y «Copiar invitación» lo convierte en un mensaje listo para el foro de la plataforma de UNIR.</p></div>
+<div class="card"><h3>3 · Un grupo nuevo, un minuto</h3><p>Antes, dos minutos en padlet.com: crea el <b>padlet del grupo</b> en formato <b>«Muro con secciones»</b> con cuatro secciones — <b>Preséntate · La chispa · Ensaya jugando · Mi insignia</b> — y deja que los visitantes escriban. Después, en <a href="crear.html">Crear grupo</a> (con tu cuenta de Google): nombre, tipo REGULAR/PUA, primer día de la semana 1, el <b>equipo docente por su correo</b> y el enlace del padlet. Sale un <b>código de clase</b>, y «Copiar invitación» lo convierte en un mensaje listo para el foro de la plataforma de UNIR.</p></div>
 </div>
 <h3 style="margin-top:1.6em">Avatares</h3>
 <div><p class="lead">Cada recluta elige su personaje al alistarse: uno de los <b>siete</b>, en versión ella/él. Cada personaje tiene <b>cinco versiones de arte</b> — Recluta → Cadete → Oficial → Comandante → <b>Leyenda</b> — que se <b>desbloquean por nivel</b> (3, 5, 8 y 10; ver <a href="#economia">la tabla de niveles</a>). Al desbloquear una nueva se pone sola, pero desde ese momento son <b>skins</b>: el recluta elige cuál lleva desde su Nave, cuando quiera y gratis.</p><img src="assets/img/avatares/lamina_personajes.jpg" alt="Personajes que evolucionan" style="border-radius:14px;border:1px solid var(--line);margin-bottom:12px">
-<div class="official" style="display:block">🎭 <b>El vestuario de héroes.</b> Además de las skins, hay <b>héroes de la Rebelión</b>: figuras únicas que salen <b>al azar</b> con la recompensa del mismo nombre (60 ◈, desde la semana {_SEM_HEROE}) y que se <b>acumulan</b>. Se ponen y se quitan gratis desde la Nave. Los que aún no tienes salen en <b>sombra</b>, y los <b>LEGENDARIOS</b> no se dejan ver hasta que caen. Poner tu propia imagen y comprar un personaje suelto <b>se han retirado</b>: el vestuario los sustituye.</div></div>
+<div class="official" style="display:block"><img class=ico src=assets/img/iconos/p/escudo.png alt> <b>El vestuario de héroes.</b> Además de las skins, hay <b>héroes de la Rebelión</b>: figuras únicas que salen <b>al azar</b> con la recompensa del mismo nombre (60 ◈, desde la semana {_SEM_HEROE}) y que se <b>acumulan</b>. Se ponen y se quitan gratis desde la Nave. Los que aún no tienes salen en <b>sombra</b>, y los <b>LEGENDARIOS</b> no se dejan ver hasta que caen. Poner tu propia imagen y comprar un personaje suelto <b>se han retirado</b>: el vestuario los sustituye.</div></div>
 </div>
 <h3 id="economia" style="margin-top:1.6em">Dos marcadores: xp y créditos ◈</h3>
 <p class="lead">Es la decisión de diseño más importante del sistema, y de paso el ejemplo vivo de una
 distinción que el alumnado va a estudiar en el <b>Tema 7</b>: <b>puntos de progreso</b> y <b>moneda
 canjeable</b> no son lo mismo y no deben compartir marcador.</p>
 <div class="grid cols-2">
-<div class="card"><h3>⭐ Los xp — el viaje</h3><p class="small"><b>Solo suben. No se gastan nunca.</b>
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/estrella.png alt> Los xp — el viaje</h3><p class="small"><b>Solo suben. No se gastan nunca.</b>
 Miden lo que el recluta ha recorrido: marcan su <b>nivel</b> (del 1 al 10), su puesto en el ranking y hacen
 <b>evolucionar a su personaje</b>. Comprar cromos no le baja de nivel: lo que ha aprendido no se devuelve.</p>
 <p class="small">Reclutamiento 100 · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 ·
@@ -1226,7 +1226,7 @@ la <b>Cola de nota</b> hasta que el docente las aprueba.</p>
 <div class="tablewrap"><table><thead><tr><th>Recompensa</th><th>Coste</th><th>Desde</th><th>Cómo se aplica</th></tr></thead><tbody>
 {recompensas_html}
 </tbody></table></div>
-<p class="small muted" style="margin-top:8px">Además, sin canje: la <b>corona semanal</b> 👑 aparece sola en el tablero junto al recluta que más xp ganó en los últimos 7 días.</p>
+<p class="small muted" style="margin-top:8px">Además, sin canje: la <b>corona semanal</b> <img class=ico src=assets/img/iconos/p/corona.png alt> aparece sola en el tablero junto al recluta que más xp ganó en los últimos 7 días.</p>
 <p class="small muted">Las cosméticas se aplican solas (el avatar cambia en el tablero al instante). Las de nota quedan <b>pendientes</b> en la Cola de nota hasta que el docente las aprueba, y los créditos no se mueven hasta entonces. En PUA las semanas se escalan solas. En la Nave, las que aún no tocan aparecen como «recompensa clasificada».</p>
 <p class="small muted" style="margin-top:18px">¿Buscas cómo se instalaba el sistema antiguo, con la hoja de cálculo y los formularios? Está en <a href="legacy.html">el archivo</a>.</p>
 </div></section>
@@ -1352,7 +1352,7 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
         encenderSegunRol(); try{ document.dispatchEvent(new CustomEvent('sg:modo')); }catch(e){} };
       wrap.insertBefore(b, wrap.querySelector('.tour-start'));
     }
-    b.textContent = md ? '★ Modo referente' : '👤 Modo docente';
+    b.textContent = md ? '★ Modo referente' : 'Modo docente';
     b.title = md ? 'Volver a ver todo lo de referente' : 'Ocultar lo de referente (para clase): ves lo mismo que un profe';
     b.setAttribute('aria-pressed', md ? 'true' : 'false');
     b.classList.toggle('on', md);
@@ -1610,7 +1610,7 @@ window.SG.preguntar = function (o) {
         (larga ? ">" + e(F.valor || "") + "</textarea>" : ' value="' + e(F.valor || "") + '">') +
         '<p class="sgp-err" hidden></p></div>';
     }
-    caja.innerHTML = '<p class="sgp-quien">' + (o.peligro ? "⚠️ " : "📡 ") + e(o.quien || "Puesto de mando") + "</p>" +
+    caja.innerHTML = '<p class="sgp-quien">' + (o.peligro ? "<img class=ico src=assets/img/iconos/p/aviso.png alt> " : "<img class=ico src=assets/img/iconos/p/envivo.png alt> ") + e(o.quien || "Puesto de mando") + "</p>" +
       '<h3 id="' + idT + '">' + e(o.titulo || "") + "</h3>" +
       (parrafos || o.html ? '<div class="sgp-txt">' + parrafos + (o.html || "") + "</div>" : "") + campo +
       '<div class="sgp-bot">' + (o.no === "" ? "" : '<button type="button" class="btn min" data-sgp-no>' + e(o.no || "Cancelar") + "</button>") +
@@ -1805,9 +1805,9 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
   var BASE=[
    {p:'consola.html',sel:'.gp',listo:'.gp',espera:1,rol:1,pose:'saluda',t:'Bienvenido al mando',x:'Recluta… perdón: <b>Capitán</b>. Soy tu homólogo en la historia. Esto es <b>Mis grupos</b>, tu puesto de mando: cada tarjeta es un grupo tuyo, y todo lo de clase sale de ella. Te lo enseño en dos minutos.'},
    {p:'consola.html',sel:'.gp-invita',listo:'.gp',espera:1,si:1,pose:'senala',t:'Lo primero: tu clase',x:'El <b>código de clase</b>, en grande para escribirlo en la pizarra. <b>«Copiar invitación»</b> te da un mensaje listo para pegar en el foro de la plataforma de UNIR, con el enlace dentro. Tu alumnado entra con Google, escribe el código y se alista solo.'},
-   {p:'consola.html',sel:'.gp-b.principal',listo:'.gp',espera:1,si:1,pose:'tablet',t:'Cada clase empieza aquí',x:'<b>Proyectar la clase</b>: la sesión de la semana ya montada —el planeta, los vídeos, los retos y las insignias—; pasas con las flechas. Arriba, solo para ti, el consejo del Capitán y el mensaje de la semana para el foro.'},
+   {p:'consola.html',sel:'.gp-b.principal',listo:'.gp',espera:1,si:1,pose:'tablet',t:'Cada clase empieza aquí',x:'<b>Empezar la clase</b>: la sesión de la semana ya montada —el planeta, los vídeos, los retos y las insignias—; pasas con las flechas. Arriba, solo para ti, el consejo del Capitán y el mensaje de la semana para el foro.'},
    {p:'consola.html',sel:'.gp-hacer',listo:'.gp',espera:1,si:1,pose:'brazos',t:'Durante la clase',x:'<b>Llamada a filas</b> es el pase de lista con premio: tu alumnado pulsa «Presente» en su Nave y se lleva créditos y un sobre de cromos. <b>El aula</b> te dice quién ha fichado, a quién felicitar y el ranking, y deja repartir premios a mano. Si tu referente te ha dado el <b>Genially de clase</b>, ya las lleva dentro: al abrirlo entras con tu cuenta y eliges el grupo.'},
-   {p:'consola.html',sel:'.gp-abrir',listo:'.gp',espera:1,si:1,pose:'tablet',t:'Entra en tu grupo',x:'<b>🚀 Entrar en el grupo</b> abre su puesto por dentro. En <b>Mi gente</b>, tu alumnado con sus xp, créditos, insignias y los <b>enlaces de sus evidencias</b>. Pulsa una fila y se abre su ficha para validar o anular un reto, con un mensaje que le llega a su Nave. Si alguien pide una subida de nota, aparece la pestaña <b>Cola de nota</b>, brillando: ninguna se aplica sin tu visto bueno.'},
+   {p:'consola.html',sel:'.gp-abrir',listo:'.gp',espera:1,si:1,pose:'tablet',t:'Entra en tu grupo',x:'<b><img class=ico src=assets/img/iconos/p/cohete.png alt> Entrar en el grupo</b> abre su puesto por dentro. En <b>Mi gente</b>, tu alumnado con sus xp, créditos, insignias y los <b>enlaces de sus evidencias</b>. Pulsa una fila y se abre su ficha para validar o anular un reto, con un mensaje que le llega a su Nave. Si alguien pide una subida de nota, aparece la pestaña <b>Cola de nota</b>, brillando: ninguna se aplica sin tu visto bueno.'},
    {p:'consola.html',sel:'.ref-zona',listo:'.gp',espera:1,si:1,soloRef:1,pose:'senala',t:'Como referente',x:'Lo tuyo como referente: <b>crear un grupo</b> en un minuto, los <b>tickets de salida</b> de todas tus clases y el montaje paso a paso. Dentro de cada grupo verás además <b>Equipo docente</b>, <b>Escuadrones</b>, <b>Premios por enlace</b> y <b>Ajustes</b>.'},
    {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'<b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase.'},
    {p:'guia.html',sel:'#retos',pose:'tablet',t:'Dos retos por tema',x:'El <b>Reto A</b> da la <b>insignia</b> del personaje: no cuenta para nota, aunque da 100 xp y __CRED_A__ ◈. El <b>Reto B</b> produce una evidencia real de la Bitácora (250 xp y __CRED_B__ ◈) y <b>pide su enlace</b>. Los <b>xp</b> suben de nivel y nunca se gastan; los <b>créditos ◈</b> son lo que se canjea. Y nadie registra más de 3 retos al día.'},
@@ -1919,8 +1919,8 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
     if(tg){tg.classList.add('tour-target'); if(tg.tagName==='DETAILS') tg.open=true;}
     if(!ov){ov=document.createElement('div'); ov.className='tour'; document.body.appendChild(ov);}
     var btns = s.ask
-      ? '<button type="button" class="tour-rol primary" data-rol="ref">🛰️ Sí, soy referente</button>'
-        +'<button type="button" class="tour-rol" data-rol="doc">🎓 Imparto clases</button>'
+      ? '<button type="button" class="tour-rol primary" data-rol="ref"><img class=ico src=assets/img/iconos/p/envivo.png alt> Sí, soy referente</button>'
+        +'<button type="button" class="tour-rol" data-rol="doc"><img class=ico src=assets/img/iconos/p/medalla.png alt> Imparto clases</button>'
         +'<button type="button" class="tour-exit">Salir</button>'
       : '<button type="button" class="tour-prev"'+(i===0?' disabled':'')+'>← Anterior</button>'
         +'<button type="button" class="tour-next primary">'+(i===S.length-1?'Terminar ✓':'Siguiente →')+'</button>'
@@ -2181,8 +2181,8 @@ docentes dentro de la asignatura. Para cualquier cosa relacionada con tus datos:
 <h3>Al iniciar sesión con Google (es la única forma de entrar)</h3>
 <p>Se recibe <b>tu dirección de correo y tu nombre público</b>. Nada más. En concreto:</p>
 <ul>
-<li>🔴 <b>No</b> se recibe ni se pide tu contraseña.</li>
-<li>🔴 <b>No</b> hay acceso a tu Drive, tu Gmail, tus contactos ni tus documentos. La pantalla de
+<li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>No</b> se recibe ni se pide tu contraseña.</li>
+<li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>No</b> hay acceso a tu Drive, tu Gmail, tus contactos ni tus documentos. La pantalla de
   permisos de Google lo dice: solo «ver tu dirección de correo electrónico».</li>
 <li>El correo sirve para <b>encontrar tu ficha</b> y para que nadie pueda registrar misiones ni
   canjear recompensas haciéndose pasar por ti.</li>
@@ -2213,7 +2213,7 @@ cifrada, y las reglas de la base de datos impiden que nadie lea la ficha de otra
 <h2>4 · Quién puede verlos</h2>
 <ul>
 <li><b>El profesorado de tu asignatura.</b> Cada docente ve a su grupo.</li>
-<li>🔴 <b>El tablero público de clase enseña SOLO tu alias</b>, tu avatar y tus puntos. Nunca tu
+<li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>El tablero público de clase enseña SOLO tu alias</b>, tu avatar y tus puntos. Nunca tu
   correo ni tu nombre real, ni siquiera si el docente comparte pantalla. Está construido así a
   propósito: esos datos no salen del servidor.</li>
 <li><b>Nadie más.</b> No se venden, no se ceden, no se usan para publicidad y no se comparten con
@@ -2303,7 +2303,7 @@ estaba marcada: se abrirá por la primera página.</p>
 <p class="small">Abre tu propio enlace en una <b>ventana de incógnito</b> (o pásaselo a alguien).
 Si se abre justo donde tiene que abrirse y sin pedir permisos, está bien. Es el minuto mejor
 invertido de todo el reto.</p>
-<p style="margin-top:14px"><a class="btn primary" href="recluta.html">🚀 Volver a mi Nave</a></p></div>
+<p style="margin-top:14px"><a class="btn primary" href="recluta.html"><img class=ico src=assets/img/iconos/p/cohete.png alt> Volver a mi Nave</a></p></div>
 </div></section>
 ''' + FOOT
 
@@ -2437,7 +2437,7 @@ _AYUDA_NAVE = json.loads(_datos_src[_a0 + len("var AYUDA_RETOS = "):_b0])
 # 19 = A1-A8 + B1-B8 + X1 + X2 + XF (los PUA reutilizan los mismos ids)
 assert len(_AYUDA_NAVE) >= 19, "AYUDA_RETOS de Datos.gs se ha quedado corta (%d)" % len(_AYUDA_NAVE)
 
-RETOS_REGULAR=[("A0","Reto «Preséntate a tu tripulación»"),("A1","Reto A «El boceto sin quemar» (Bran)"),("B1","Reto B «La Bitácora en marcha»"),("X1","Actividad 1 entregada"),("A2","Reto A «Un mensaje para quien faltó» (Tomás)"),("B2","Reto B «El eco que enseña»"),("A3","Reto A «Dos senderos» (Sylla)"),("B3","Reto B «La matriz»"),("X2","Actividad 2 entregada"),("A4","Reto A «Abre el canal» (Amara)"),("B4","Reto B «El entorno de aula»"),("A5","Reto A «Mide con método» (Vera)"),("B5","Reto B «La Bitácora medida»"),("A6","Reto A «El Simulador de Joran» (Joran)"),("B6","Reto B «El juego»"),("A7","Reto A «Un porqué» (Mara)"),("B7","Reto B «La microgamificación»"),("A8","Reto A «La capa posible» (Noa)"),("B8","Reto B «El último umbral»"),("S7","Reto secreto «El Escape UNI»"),("L1","Reto ⚡ «La chispa y la marca»"),("L2","Reto ⚡ «Módulo 1 y módulo 2»"),("L3","Reto ⚡ «Cinco líneas que explican»"),("L4","Reto ⚡ «Enlace en incógnito»"),("L5","Reto ⚡ «Tres preguntas»"),("L6","Reto ⚡ «Las diez líneas»"),("L7","Reto ⚡ «El marcador»"),("L8","Reto ⚡ «El QR»"),("XS","Reto «El simulacro del examen»")]
+RETOS_REGULAR=[("A0","Reto «Preséntate a tu tripulación»"),("A1","Reto A «El boceto sin quemar» (Bran)"),("B1","Reto B «La Bitácora en marcha»"),("X1","Actividad 1 entregada"),("A2","Reto A «Un mensaje para quien faltó» (Tomás)"),("B2","Reto B «El eco que enseña»"),("A3","Reto A «Dos senderos» (Sylla)"),("B3","Reto B «La matriz»"),("X2","Actividad 2 entregada"),("A4","Reto A «Abre el canal» (Amara)"),("B4","Reto B «El entorno de aula»"),("A5","Reto A «Mide con método» (Vera)"),("B5","Reto B «La Bitácora medida»"),("A6","Reto A «El Simulador de Joran» (Joran)"),("B6","Reto B «El juego»"),("A7","Reto A «Un porqué» (Mara)"),("B7","Reto B «La microgamificación»"),("A8","Reto A «La capa posible» (Noa)"),("B8","Reto B «El último umbral»"),("S7","Reto secreto «El Escape UNI»"),("L1","Reto relámpago «La chispa y la marca»"),("L2","Reto relámpago «Módulo 1 y módulo 2»"),("L3","Reto relámpago «Cinco líneas que explican»"),("L4","Reto relámpago «Enlace en incógnito»"),("L5","Reto relámpago «Tres preguntas»"),("L6","Reto relámpago «Las diez líneas»"),("L7","Reto relámpago «El marcador»"),("L8","Reto relámpago «El QR»"),("XS","Reto «El simulacro del examen»")]
 RETOS_PUA=[("A0","Reto «Preséntate a tu tripulación»"),("B1","La Bitácora en marcha (Bran)"),("X1","Actividad 1 entregada"),("B2","El eco que enseña (Tomás)"),("B3","La matriz (Sylla)"),("X2","Actividad 2 entregada"),("B4","El entorno de aula (Amara)"),("B5","La Bitácora medida (Vera)"),("B6","El juego (Joran)"),("B7","La microgamificación (Mara)"),("B8","El último umbral (Noa)")]
 SEMANAS_JSON = json.dumps([{
   "sem": s["sem"], "tema": s["tema"], "sub": s["sub"], "capitulo": s.get("capitulo"),
@@ -3342,7 +3342,7 @@ _html = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <h1>Un archivo que no debería existir</h1>
 <p class="fr-neb"><b>NEBULA:</b> «Vaeon selló aquí algo que no quería que nadie encontrara. La puerta está detrás.
 Entra, resuelve lo que te pida y, al final, pulsa el botón que te espera: tu Nave lo sabrá.»</p>
-<p><a class="btn epico" href="{ESCAPE_UNI}" rel="noopener"><span class="ep-luz"></span><span class="ep-txt">🗝️ Entrar en el Escape UNI</span></a></p>
+<p><a class="btn epico" href="{ESCAPE_UNI}" rel="noopener"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/llave.png alt> Entrar en el Escape UNI</span></a></p>
 </div></div></main>
 </body></html>
 '''
@@ -3360,7 +3360,7 @@ _html = head("STARGATE · Frecuencia de mando",
                + ';window.SG_GENIALLY_CARPETA=' + json.dumps(GENIALLY_CARPETA) + ';window.SG_DRIVE_EQUIPO=' + json.dumps(DRIVE_EQUIPO) + ';</script>'
                + "\n</head>") + '''
 <header class="hero corto"><div class="bz-cab"><img class="bz-cap-grande" src="assets/img/capitan/saluda.png" alt="">
-<div><div class="kicker">📡 Frecuencia de mando</div><h1>¿Qué necesitas, Comandante?</h1>
+<div><div class="kicker"><img class=ico src=assets/img/iconos/p/envivo.png alt> Frecuencia de mando</div><h1>¿Qué necesitas, Comandante?</h1>
 <p>Pregunta tu duda y el Capitán te contesta al momento, con los datos de tus grupos. Si es un problema o una idea, transmítela:
 la lee el equipo del proyecto, con la ayuda de un asistente de IA que resuelve lo que puede cada día; lo demás lo decide el
 coordinador. Las respuestas te llegan aquí y te avisamos por correo.</p></div></div></header>
@@ -3411,51 +3411,51 @@ _PE = [
  ]),
  ("1 · Mis grupos (el puesto de mando)", [
    ("Entra en <a href='consola.html'>Mis grupos</a>.",
-    "La tarjeta de cada grupo: alistados, semana, «Proyectar la clase», «El aula», «Llamada a filas» y el botón grande <b>«🚀 Entrar en el grupo»</b>. El <b>código de clase</b> sale tapado: pulsa «👁 Mostrar». Si alguien ha pedido subir nota, un aviso 🔔 brilla en la tarjeta."),
-   ("Pulsa «📋 Copiar invitación» y pégala en un documento.",
+    "La tarjeta de cada grupo: alistados, semana, «Empezar la clase», «El aula», «Llamada a filas» y el botón grande <b>«<img class=ico src=assets/img/iconos/p/cohete.png alt> Entrar en el grupo»</b>. El <b>código de clase</b> sale tapado: pulsa «Mostrar». Si alguien ha pedido subir nota, un aviso <img class=ico src=assets/img/iconos/p/clase.png alt> brilla en la tarjeta."),
+   ("Pulsa «Copiar invitación» y pégala en un documento.",
     "Un mensaje listo para el foro de la plataforma de UNIR, con el enlace directo y el código."),
-   ("Mira la franja «🧩 Para tus Geniallys».",
+   ("Mira la franja «Para tus Geniallys».",
     "Seis códigos para insertar en Genially, los mismos para todos tus grupos: la sesión <b>partida en dos</b> (1 · apertura y 3 · cierre), la sesión entera, el aula, la llamada a filas y el Simulador de Joran. Y al lado de cada uno, <b>⧉</b>: lo abre <b>en su propia ventana</b>, solo con ese contenido (también en las acciones de clase de cada grupo)."),
-   ("Arriba del todo, pulsa «👤 Modo docente».",
+   ("Arriba del todo, pulsa «Modo docente».",
     "Desaparece todo lo de referente (crear grupos, equipo, escuadrones, ajustes…): lo que ve un profe en clase. En <b>Mi gente</b> solo sale <b>tu escuadrón</b>, sin los botones de los demás. El calendario lo sigue viendo, sin poder tocarlo. Vuelve con «★ Modo referente»."),
  ]),
  ("2 · Crear un grupo", [
    ("<a href='crear.html'>Crear grupo</a>: un nombre de prueba, REGULAR y como semana 1 un lunes de septiembre u octubre.",
     "El resumen dice cuándo acaba y <b>salta solo las semanas festivas de la UNIR</b>: las dos de Navidad y la de Semana Santa."),
    ("Créalo.", "En un minuto, el grupo sembrado entero y su código."),
-   ("Entra en el grupo → <b>Calendario</b>.", "Un calendario de verdad: una fila por semana con sus 7 días (S1, S2…), las festivas de la UNIR con 🎄 y lo que se abre cada semana."),
+   ("Entra en el grupo → <b>Calendario</b>.", "Un calendario de verdad: una fila por semana con sus 7 días (S1, S2…), las festivas de la UNIR con <img class=ico src=assets/img/iconos/p/calendario.png alt> y lo que se abre cada semana."),
    ("Pulsa una semana que aún no haya llegado.", "Pasa a <b>no lectiva</b> y las de detrás se renumeran; abajo, «Al guardar» dice a qué día se mueve cada una. «Deshacer los cambios» lo deja como estaba."),
  ]),
  ("3 · La sesión de la semana (lo que se proyecta)", [
-   ("En la tarjeta del grupo, «📽️ Proyectar la clase».", "Arriba, solo para ti: el consejo del Capitán y el mensaje del foro para copiar. Abajo, el mazo que se proyecta."),
-   ("Pasa a la diapositiva «El mensaje».", "El mensaje de la semana como la apertura de una saga, con música épica (si no suena, «🔈 Música»)."),
-   ("En «¿Quién las ha superado?», pulsa la cara de un recluta.", "Su ficha: nivel, insignias, cartas y retos. Y bajo quien entregó enlace, «🔗 Ver»: se abre su trabajo."),
+   ("En la tarjeta del grupo, «<img class=ico src=assets/img/iconos/p/video.png alt> Empezar la clase».", "Arriba, solo para ti: el consejo del Capitán y el mensaje del foro para copiar. Abajo, el mazo que se proyecta."),
+   ("Pasa a la diapositiva «El mensaje».", "El mensaje de la semana como la apertura de una saga, con música épica (si no suena, «Música»)."),
+   ("En «¿Quién las ha superado?», pulsa la cara de un recluta.", "Su ficha: nivel, insignias, cartas y retos. Y bajo quien entregó enlace, «<img class=ico src=assets/img/iconos/p/enlace.png alt> Ver»: se abre su trabajo."),
    ("Llega a «La Nave» y cambia la semana del selector.", "La Nave de un estudiante simulada, en la semana que elijas: para enseñar en clase lo que se abre (el Mercado, el Zoco…)."),
-   ("Arriba, elige la <b>semana 9</b> y pasa a «Lo nuevo».", "Se presentan «🎖️ <b>Los logros de a bordo</b>»: 16 primeras veces en la Nave, 5 cubiertas con premio y el <b>Contramaestre de la Nave</b>. En «Enséñalo», NEBULA lo cuenta en la Nave simulada."),
+   ("Arriba, elige la <b>semana 9</b> y pasa a «Lo nuevo».", "Se presentan «<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Los logros de a bordo</b>»: 16 primeras veces en la Nave, 5 cubiertas con premio y el <b>Contramaestre de la Nave</b>. En «Enséñalo», NEBULA lo cuenta en la Nave simulada."),
    ("Elige la <b>semana 12</b> y busca «Lo que dijisteis».", "Las reflexiones que el alumnado escribió en los retos de hace dos semanas, primero las de tu escuadrón, con su enlace. «Ocultar» quita una de la diapositiva."),
    ("Mira el <b>rótulo de arriba</b> del mazo: 1 · Apertura → 2 · Presentación → 3 · Cierre.",
-    "Una clase no es un continuo: primero se repasa (portada, llamada a filas, el parte de vuelo, el ticket de la semana pasada), después va <b>tu</b> presentación con la teoría, y al final se lanzan los retos de la semana —con el ⚡ relámpago— y el vídeo de cierre."),
+    "Una clase no es un continuo: primero se repasa (portada, llamada a filas, el parte de vuelo, el ticket de la semana pasada), después va <b>tu</b> presentación con la teoría, y al final se lanzan los retos de la semana —con el <img class=ico src=assets/img/iconos/p/rayo.png alt> relámpago— y el vídeo de cierre."),
    ("Si tienes un Genially: inserta el código de «La sesión · 1 · apertura» en tu diapositiva de arranque y el de «3 · cierre» después de tu teoría (Insertar → Otros → Código).",
     "Cada uno abre directo en su tiempo, así no navegas por dentro del panel delante de la clase. Dentro pide tu cuenta y el grupo. Abajo, «⏻» para cerrar sesión. Si entra un estudiante, va a su Nave. (Si prefieres proyectar desde la web, usa «La sesión entera»: ahí tu Genially va embebido en medio.)"),
  ]),
  ("4 · El aula (la clase en directo)", [
-   ("«🎛️ El aula» → «🔔 Llamada a filas».", "El alumnado pulsa «✋ Presente» en su Nave y aquí se ve entrar a cada uno."),
-   ("«🎁 Premiar»: elige a alguien y dale un sobre o un cofre.", "Le llega al momento a su Nave."),
-   ("«🎲 ¿A quién pregunto?» y la pestaña «⏱️ Tiempo» (3 min → Empezar).", "Una cuenta atrás grande, a pantalla completa, con aviso al terminar."),
-   ("Pestaña «🗳️ Votación»: escribe una pregunta («¿qué herramienta vemos la semana que viene?»), dos o tres opciones y publícala.",
+   ("«<img class=ico src=assets/img/iconos/p/envivo.png alt> El aula» → «<img class=ico src=assets/img/iconos/p/clase.png alt> Llamada a filas».", "El alumnado pulsa «<img class=ico src=assets/img/iconos/p/gente.png alt> Presente» en su Nave y aquí se ve entrar a cada uno."),
+   ("«<img class=ico src=assets/img/iconos/p/premios.png alt> Premiar»: elige a alguien y dale un sobre o un cofre.", "Le llega al momento a su Nave."),
+   ("«<img class=ico src=assets/img/iconos/p/dados.png alt> ¿A quién pregunto?» y la pestaña «<img class=ico src=assets/img/iconos/p/tiempo.png alt> Tiempo» (3 min → Empezar).", "Una cuenta atrás grande, a pantalla completa, con aviso al terminar."),
+   ("Pestaña «<img class=ico src=assets/img/iconos/p/voto.png alt> Votación»: escribe una pregunta («¿qué herramienta vemos la semana que viene?»), dos o tres opciones y publícala.",
     "La ve tu alumnado en su Nave y la responde durante la semana; tú ves el recuento en vivo, ellos no. Al cerrarla, la <b>sesión</b> de la semana siguiente la proyecta con la ganadora. Quien lo tenga muy claro puede <b>comprar un voto extra</b> con sus créditos."),
  ]),
  ("5 · Dentro del grupo", [
-   ("«🚀 Entrar en el grupo» → <b>Mi gente</b>.", "Arriba, un botón por escuadrón (empieza en el tuyo) y «Todos»."),
+   ("«<img class=ico src=assets/img/iconos/p/cohete.png alt> Entrar en el grupo» → <b>Mi gente</b>.", "Arriba, un botón por escuadrón (empieza en el tuyo) y «Todos»."),
    ("Pulsa una fila.", "Su ficha se abre en una ventana: sus <b>retos e insignias por temas</b> (encendidas las ganadas), lo que entregó en una línea por reto con sus <b>reflexiones</b> (con «Quitar», para moderar), sus <b>logros de a bordo</b> y lo que el profe puede hacer (pulsar un reto para validarlo o anularlo con un mensaje que le llega a su Nave; y si llevas el grupo, <b>cambiar de Comandante</b>, congelar o dar de baja). Se cierra con ✕ o Escape."),
    ("En la ficha, pulsa un reto (verde = registrado).", "Se despliega <b>debajo de su tema</b>: qué se le suma o se le quita, su enlace y un <b>mensaje para el recluta</b> con motivos rápidos («El enlace no abre», «No es público»…). Anula uno con un motivo: al recluta le sale arriba de su Nave hasta que pulsa «Entendido»."),
-   ("Pestaña <b>🏆 Rankings</b>.", "Los mismos rankings que ve el alumnado en su Nave, del <b>grupo entero o de un escuadrón</b>, con el emblema de cada escuadrón en la tabla. Trece formas de medir (xp, esta semana, colección, constancia, relámpago, logros, el Simulador de Joran…): para ensalzar en clase a quien destaca en cada cosa."),
+   ("Pestaña <b><img class=ico src=assets/img/iconos/p/rankings.png alt> Rankings</b>.", "Los mismos rankings que ve el alumnado en su Nave, del <b>grupo entero o de un escuadrón</b>, con el emblema de cada escuadrón en la tabla. Trece formas de medir (xp, esta semana, colección, constancia, relámpago, logros, el Simulador de Joran…): para ensalzar en clase a quien destaca en cada cosa."),
    ("<b>Escuadrones</b>: pulsa uno.", "Se despliega con su Comandante, sus cifras y su gente; cada fila abre también la ficha."),
-   ("<b>Equipo docente</b>.", "Una tarjeta por persona: hacerla referente o docente, pasar su alumnado a otro, quitarla del equipo, ver su escuadrón y en qué otros grupos está. Abajo, «➕ Añadir a alguien» por su correo de Google."),
+   ("<b>Equipo docente</b>.", "Una tarjeta por persona: hacerla referente o docente, pasar su alumnado a otro, quitarla del equipo, ver su escuadrón y en qué otros grupos está. Abajo, «<img class=ico src=assets/img/iconos/p/anadir.png alt> Añadir a alguien» por su correo de Google."),
    ("<b>El Zoco</b> y el resto de pestañas (Premios por enlace, Sorteos, Ofertas, Ajustes).", "El Zoco dice el día exacto en que se abre. La <b>Cola de nota</b> solo aparece, la última y brillando, cuando alguien pide subir nota."),
  ]),
  ("6 · ¿Dudas? El buzón", [
-   ("Pulsa «📡 ¿Dudas? ¿Algo falla?» y toca «🔑 ¿Cuál es el código de invitación?».", "El Capitán contesta al momento, con los datos de tus grupos."),
+   ("Pulsa «<img class=ico src=assets/img/iconos/p/envivo.png alt> ¿Dudas? ¿Algo falla?» y toca «<img class=ico src=assets/img/iconos/p/llave.png alt> ¿Cuál es el código de invitación?».", "El Capitán contesta al momento, con los datos de tus grupos."),
    ("Escribe ahí todo lo que te llame la atención de esta prueba (un fallo, algo que no se entiende, una idea).",
     "Llega a Norberto con su contexto y se responde en la misma página (y te avisa por correo)."),
  ]),
@@ -3463,15 +3463,15 @@ _PE = [
    ("En otra ventana, con la otra cuenta, entra por la <a href='index.html'>portada</a> y escribe el código de tu grupo.", "Te alistas en un minuto (alias y Comandante) y NEBULA te enseña la Nave."),
    ("«Mis retos»: busca el <b>Reto B de la semana 1</b>, «La Bitácora en marcha».",
     "El curso entero termina en un ePortfolio y se empieza por él: crearlo, publicar su <b>primera entrada</b> (la presentación) y pegar el enlace <b>aquí y en tu BIO</b>. No hace falta enseñar la plataforma en clase: el alumnado ya trae el curso de competencia digital A1-A2."),
-   ("Busca un reto con el sello <b>«⚡ En clase · 10-15 min»</b>.",
+   ("Busca un reto con el sello <b>«<img class=ico src=assets/img/iconos/p/rayo.png alt> En clase · 10-15 min»</b>.",
     "Son los <b>relámpago</b>: ocho píldoras de diez o quince minutos pensadas para hacerse <b>en clase</b>, con el cronómetro del aula proyectado — quien viene, sale con el reto hecho (y quien no pudo venir lo tiene abierto igual). Cada uno entrena un gesto que el examen da por sabido: el logo con la palabra clave, repartir una sesión en dos módulos, explicar un concepto en cinco líneas, comprobar el enlace en incógnito… Con cinco de los ocho se gana la insignia «Mano rápida»."),
-   ("«Mis retos»: despliega un reto y márcalo.", "La misma tarjeta que la de la semana, con su insignia. Casi todos piden el <b>enlace</b> (hay un «+» para un segundo); sin él, no se registra. Algunos traen «💡 Ver un ejemplo»."),
-   ("Busca un reto <b>con reflexión</b> (A1, B6…).", "Se responde en una <b>caja grande</b> en el propio reto (con un mínimo de letras). Hecho, «💬 Lo que ha escrito tu tripulación»: las de los demás, con su enlace, y se pueden comentar."),
+   ("«Mis retos»: despliega un reto y márcalo.", "La misma tarjeta que la de la semana, con su insignia. Casi todos piden el <b>enlace</b> (hay un «+» para un segundo); sin él, no se registra. Algunos traen «<img class=ico src=assets/img/iconos/p/estrella.png alt> Ver un ejemplo»."),
+   ("Busca un reto <b>con reflexión</b> (A1, B6…).", "Se responde en una <b>caja grande</b> en el propio reto (con un mínimo de letras). Hecho, «<img class=ico src=assets/img/iconos/p/mensaje.png alt> Lo que ha escrito tu tripulación»: las de los demás, con su enlace, y se pueden comentar."),
    ("«Mi botín».", "Tus insignias, por planetas: el tripulante y el reto de cada tema."),
-   ("«Mi botín» → «🎖️ <b>Logros de a bordo</b>» (en el grupo de prueba ya están; en uno nuevo, desde la semana 9).", "Lo que ya has hecho, con su fecha, y lo que falta con «Ir». Registra un reto o compra un sobre: NEBULA lo celebra al momento. Al completar una cubierta llega su premio, y con las cinco, el <b>Contramaestre</b>: un héroe legendario y una carta con tu alias."),
-   ("El reto <b>A6</b>: pulsa «⚔️ Enfréntate al Simulador de Joran».", "Es una <b>batalla de preguntas</b> contra RUTA AZUL: aciertas y golpeas, fallas y pierdes tiempo (y Joran te corrige). Si le ganas, se registra el reto solo, te llevas su insignia y el <b>Simulador</b> se queda en tu Nave para repasar tema a tema, con su ranking. Si pierdes, cada derrota lo cansa."),
+   ("«Mi botín» → «<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Logros de a bordo</b>» (en el grupo de prueba ya están; en uno nuevo, desde la semana 9).", "Lo que ya has hecho, con su fecha, y lo que falta con «Ir». Registra un reto o compra un sobre: NEBULA lo celebra al momento. Al completar una cubierta llega su premio, y con las cinco, el <b>Contramaestre</b>: un héroe legendario y una carta con tu alias."),
+   ("El reto <b>A6</b>: pulsa «<img class=ico src=assets/img/iconos/p/diana.png alt> Enfréntate al Simulador de Joran».", "Es una <b>batalla de preguntas</b> contra RUTA AZUL: aciertas y golpeas, fallas y pierdes tiempo (y Joran te corrige). Si le ganas, se registra el reto solo, te llevas su insignia y el <b>Simulador</b> se queda en tu Nave para repasar tema a tema, con su ranking. Si pierdes, cada derrota lo cansa."),
    ("Y con tu cuenta de docente, abre <code>batalla.html?ensayo=1</code> de tu grupo.", "Lo mismo en <b>modo ensayo</b>, para enseñarlo en clase sin que cuente."),
-   ("Al acabar el viaje (última semana), en la Nave sale «📜 Tu diploma».", "Con tu alias, tu nombre, tus insignias y tus cifras, firmado por tu Comandante. Se descarga o se imprime.")
+   ("Al acabar el viaje (última semana), en la Nave sale «<img class=ico src=assets/img/iconos/p/libro.png alt> Tu diploma».", "Con tu alias, tu nombre, tus insignias y tus cifras, firmado por tu Comandante. Se descarga o se imprime.")
  ]),
 ]
 def _pe_html():
@@ -3487,9 +3487,9 @@ def _pe_html():
 _pe_cuerpo, _pe_n = _pe_html()
 _html = head("STARGATE · Prueba manual", "La prueba manual de STARGATE para el equipo docente.", "grp").replace(
     "</head>", '<meta name="robots" content="noindex,nofollow">\n</head>') + '''
-<header class="hero corto"><div class="kicker">🧭 Prueba manual · para el equipo</div><h1>Prueba STARGATE, paso a paso</h1>
+<header class="hero corto"><div class="kicker"><img class=ico src=assets/img/iconos/p/brujula.png alt> Prueba manual · para el equipo</div><h1>Prueba STARGATE, paso a paso</h1>
 <p>Una ronda por todo lo que usarás en el curso, en el orden en que te lo encontrarás. Marca cada paso al hacerlo
-(se guarda en este navegador) y cuéntanos lo que veas desde el buzón: «📡 ¿Dudas? ¿Algo falla?».
+(se guarda en este navegador) y cuéntanos lo que veas desde el buzón: «<img class=ico src=assets/img/iconos/p/envivo.png alt> ¿Dudas? ¿Algo falla?».
 <span class="pe-cuenta" id="pe-cuenta">0 / ''' + str(_pe_n) + '''</span></p></header>
 <section id="prueba-equipo"><div class="wrap pe-wrap">
 ''' + _pe_cuerpo + '''
@@ -3560,7 +3560,7 @@ _html = head("STARGATE · Un premio para ti",
 <div id="huevo-app"><p class="muted">Cargando…</p></div>
 ''' + '<script src="' + _v("assets/js/sobre.js") + '" defer></script>' + '<script src="' + _v("assets/js/huevo.js") + '" defer></script>' + '''
 <p class="small muted nota-docente" style="margin-top:22px">Para el profesorado: un enlace por premio
-(el que copias con «📋 Copiar enlace»), y cada uno vale en <b>todos</b> los grupos y todas las
+(el que copias con «<img class=ico src=assets/img/iconos/p/notas.png alt> Copiar enlace»), y cada uno vale en <b>todos</b> los grupos y todas las
 convocatorias — el grupo se deduce de quién pulsa. Se configuran en
 <a href="consola.html">Mis grupos</a> → Entrar en el grupo → <b>Premios por enlace</b>, con su botón
 «&lt;/&gt; Copiar para insertar» (en Genially: Insertar → Otros → Código).</p>

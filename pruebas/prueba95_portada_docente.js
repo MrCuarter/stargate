@@ -36,7 +36,8 @@ c(/var SIN_CAPTURA = \{ simulador:/.test(K), "   y las que dependen de que haya 
 c(/data-sec="'\+esc\(secDe\(d\)\)\+'"/.test(S), "   (cada paso de la sesión dice su sección: así se sacan las capturas)");
 
 // ── 4 · la portada del grupo
-c(/var TABS = \[\["portada", "Portada"\]/.test(K) && /if \(perId !== PER && !\/\^\[a-z_\]\+\$\/\.test\(url\.get\("tab"\) \|\| ""\)\) TAB = "portada";/.test(K), "🔴 al entrar en un grupo, su portada (la primera pestaña)");
+c(/var TABS = \[\["portada", "Portada"\]/.test(K) && /TAB = "portada";   \/\/ 19-sep/.test(K) && /TAB = b\.getAttribute\("data-ir"\) \|\| "portada"; abrir/.test(K), "🔴 al entrar en un grupo, su portada (la primera pestaña)");
+c(!/TAB = "portada";\n\s*PER = perId/.test(K), "   y el aviso de la Cola de nota sigue llevando a la Cola (abrir() no la pisa)");
 c(/function verPortada\(t\)/.test(K) && /El vídeo que toca/.test(K) && /Retos de esta semana/.test(K) && /Retos ya lanzados/.test(K), "   semana, el vídeo que toca, los retos de la semana y los ya lanzados");
 c(/'<span class="pt-n"><b>' \+ n \+ '<\/b>\/' \+ N \+ ' · ' \+ pct \+ ' %<\/span>/.test(K), "   cada reto con cuántos lo han hecho y el porcentaje");
 c(/window\.SG_SEMANAS=/.test(H) && /window\.SG_SEM_RETO=/.test(H), "   con los mismos datos que la sesión y la Nave (un dato, un sitio)");

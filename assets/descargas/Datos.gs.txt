@@ -52,33 +52,33 @@ var RETOS_REGULAR = [
   // 🔴 LOS RELÁMPAGO (L*): diez o quince minutos, EN CLASE, con el cronómetro del aula proyectado.
   // Cada uno entrena un gesto que el examen da por sabido y que ningún otro reto practica. Quien
   // viene a clase sale con el reto hecho; quien esa noche trabajaba lo tiene abierto 48 horas.
-  ["L1","Reto ⚡ «La chispa y la marca» (imagen con IA + logo)",["R1_la-chispa"],60,1,2],
+  ["L1","Reto relámpago «La chispa y la marca» (imagen con IA + logo)",["R1_la-chispa"],60,1,2],
   ["X1","Actividad 1 entregada (imagen con IA)",["H2_primera-forja","E2_capitan"],500,1],
   ["A2","Reto A «Un mensaje para quien faltó» (recupera a Tomás)",["P2_tomas"],100,2],
   ["B2","Reto B «El eco que enseña» (videotutorial + videoquiz)",["R2_el-eco-que-ensena"],250,2],
-  ["L2","Reto ⚡ «Módulo 1 y módulo 2» (antes y durante la clase)",[],60,2,4],
+  ["L2","Reto relámpago «Módulo 1 y módulo 2» (antes y durante la clase)",[],60,2,4],
   ["A3","Reto A «Dos senderos» (recupera a Sylla)",["P3_sylla"],100,3],
   ["B3","Reto B «La matriz» (matriz 8×6)",["R3_la-matriz"],250,3],
-  ["L3","Reto ⚡ «Cinco líneas que explican» (itinerario y paisaje)",[],60,3,6],
+  ["L3","Reto relámpago «Cinco líneas que explican» (itinerario y paisaje)",[],60,3,6],
   ["X2","Actividad 2 entregada (paisaje de aprendizaje)",["H3_cartografo"],500,3],
   ["A4","Reto A «Abre el canal» (recupera a Amara)",["P4_amara"],100,4],
   ["B4","Reto B «El entorno de aula» (aula virtual + tres recursos que ya existen)",["R4_entorno-de-aula"],250,4],
-  ["L4","Reto ⚡ «Enlace en incógnito» (que se vea sin tu cuenta)",[],60,4,8],
+  ["L4","Reto relámpago «Enlace en incógnito» (que se vea sin tu cuenta)",[],60,4,8],
   ["A5","Reto A «Mide con método» (recupera a Vera)",["P5_vera"],100,5],
   ["B5","Reto B «La Bitácora medida» (web de recursos + rúbrica)",["R5_bitacora-medida"],250,5],
-  ["L5","Reto ⚡ «Tres preguntas» (autoevaluación)",[],60,5,9],
+  ["L5","Reto relámpago «Tres preguntas» (autoevaluación)",[],60,5,9],
   ["A6","Reto A «El Simulador de Joran» (recupera a Joran)",["P6_joran"],100,6],
   ["B6","Reto B «El juego» (juego digital)",["R6_el-juego"],250,6],
-  ["L6","Reto ⚡ «Las diez líneas» (justifica un recurso)",[],60,6,11],
+  ["L6","Reto relámpago «Las diez líneas» (justifica un recurso)",[],60,6,11],
   ["A7","Reto A «Un porqué» (recupera a Mara)",["P7_mara"],100,7],
   ["B7","Reto B «La microgamificación»",["R7_microgamificacion"],250,7],
   // v3.41 · el huevo de Pascua: un enlace oculto en la presentación de Vínculo lleva a un
   // enigma; la palabra secreta del final es la evidencia (el formulario la valida solo).
   ["S7","Reto secreto «El Escape UNI»",["E3_vaeon"],150,7],
-  ["L7","Reto ⚡ «El marcador» (tabla de clasificación)",[],60,7,12],
+  ["L7","Reto relámpago «El marcador» (tabla de clasificación)",[],60,7,12],
   ["A8","Reto A «La capa posible» (recupera a Noa)",["P8_noa"],100,8],
   ["B8","Reto B «El último umbral» (RA/RV + Bitácora publicada)",["R8_ultimo-umbral"],250,8],
-  ["L8","Reto ⚡ «El QR» (un QR dentro de una lámina)",[],60,8,14],
+  ["L8","Reto relámpago «El QR» (un QR dentro de una lámina)",[],60,8,14],
   // 16-sep · el simulacro. No lo inventamos nosotros: la clase 20 de la semana 15 ya se llama
   // «Simulacro del examen» en la programación oficial de la asignatura. Aquí solo se le pone premio.
   ["XS","Reto «El simulacro del examen» (90 minutos de reloj)",["H7_listo-para-la-batalla"],300,8,15]
@@ -87,26 +87,26 @@ var RETOS_REGULAR = [
 var RETOS_PUA = [
   ["A0","Reto «Preséntate a tu tripulación» (vídeo de 60 s)",["E1_nebula"],100,1],
   ["B1","La Bitácora en marcha: tu ePortfolio (recupera a Bran)",["P1_bran","R0_bitacora-en-marcha"],300,1],
-  ["L1","Reto ⚡ «La chispa y la marca» (imagen con IA + logo)",["R1_la-chispa"],60,1,2],
+  ["L1","Reto relámpago «La chispa y la marca» (imagen con IA + logo)",["R1_la-chispa"],60,1,2],
   ["X1","Actividad 1 entregada",["H2_primera-forja","E2_capitan"],500,1],
   ["B2","El eco que enseña: videotutorial (recupera a Tomás)",["P2_tomas","R2_el-eco-que-ensena"],300,2],
-  ["L2","Reto ⚡ «Módulo 1 y módulo 2» (antes y durante la clase)",[],60,2,4],
+  ["L2","Reto relámpago «Módulo 1 y módulo 2» (antes y durante la clase)",[],60,2,4],
   ["B3","La matriz 8×6 (recupera a Sylla)",["P3_sylla","R3_la-matriz"],300,3],
-  ["L3","Reto ⚡ «Cinco líneas que explican» (itinerario y paisaje)",[],60,3,6],
+  ["L3","Reto relámpago «Cinco líneas que explican» (itinerario y paisaje)",[],60,3,6],
   ["X2","Actividad 2 entregada",["H3_cartografo"],500,3],
   ["B4","El entorno de aula + tres recursos que ya existen (recupera a Amara)",["P4_amara","R4_entorno-de-aula"],300,4],
-  ["L4","Reto ⚡ «Enlace en incógnito» (que se vea sin tu cuenta)",[],60,4,8],
+  ["L4","Reto relámpago «Enlace en incógnito» (que se vea sin tu cuenta)",[],60,4,8],
   ["B5","La Bitácora medida (recupera a Vera)",["P5_vera","R5_bitacora-medida"],300,5],
-  ["L5","Reto ⚡ «Tres preguntas» (autoevaluación)",[],60,5,9],
+  ["L5","Reto relámpago «Tres preguntas» (autoevaluación)",[],60,5,9],
   ["B6","El juego digital (recupera a Joran)",["P6_joran","R6_el-juego"],300,6],
-  ["L6","Reto ⚡ «Las diez líneas» (justifica un recurso)",[],60,6,11],
+  ["L6","Reto relámpago «Las diez líneas» (justifica un recurso)",[],60,6,11],
   ["B7","La microgamificación (recupera a Mara)",["P7_mara","R7_microgamificacion"],300,7],
   // v3.41 · el huevo de Pascua: un enlace oculto en la presentación de Vínculo lleva a un
   // enigma; la palabra secreta del final es la evidencia (el formulario la valida solo).
   ["S7","Reto secreto «El Escape UNI»",["E3_vaeon"],150,7],
-  ["L7","Reto ⚡ «El marcador» (tabla de clasificación)",[],60,7,12],
+  ["L7","Reto relámpago «El marcador» (tabla de clasificación)",[],60,7,12],
   ["B8","El último umbral: RA/RV + Bitácora publicada (recupera a Noa)",["P8_noa","R8_ultimo-umbral"],300,8],
-  ["L8","Reto ⚡ «El QR» (un QR dentro de una lámina)",[],60,8,14],
+  ["L8","Reto relámpago «El QR» (un QR dentro de una lámina)",[],60,8,14],
   ["XS","Reto «El simulacro del examen» (90 minutos de reloj)",["H7_listo-para-la-batalla"],300,8,15]
 ];
 // BONUS-INICIO · Los genera _build_site.py desde _site_data.py: NO editar a mano.
@@ -161,7 +161,7 @@ function valorBonus_(clave) {
 // tema, porque un alumno que no sabe que se le pide ESCRIBE UN CORREO. Lo genera _build_site.py
 // desde _site_data.py (AYUDA_RETOS): NO editar a mano.
 var AYUDA_RETOS = {
- "A0": "Graba un vídeo de MÁXIMO 60 segundos presentándote al resto de la tripulación y publícalo en la sección 📹 «Preséntate» del padlet de la clase (título = tu alias; primera línea = «Capitán: tu profe»). No hace falta guion de cine — si te da apuro, responde a tres o cuatro de estas: ¿quién eres y a qué te dedicas? ¿desde dónde te conectas? ¿por qué educación? ¿una herramienta que ames y una que sufras? ¿un dato curioso que nadie adivinaría? Grábalo del tirón con el móvil: natural gana a perfecto. Después copia el enlace de TU publicación (los tres puntos ⋮ → «Copiar el enlace a la publicación») y pégalo aquí. Sirve para ponernos cara desde el primer día — y NEBULA te da su insignia: lo que se comparte no se apaga.",
+ "A0": "Graba un vídeo de MÁXIMO 60 segundos presentándote al resto de la tripulación y publícalo en la sección «Preséntate» del padlet de la clase (título = tu alias; primera línea = «Capitán: tu profe»). No hace falta guion de cine — si te da apuro, responde a tres o cuatro de estas: ¿quién eres y a qué te dedicas? ¿desde dónde te conectas? ¿por qué educación? ¿una herramienta que ames y una que sufras? ¿un dato curioso que nadie adivinaría? Grábalo del tirón con el móvil: natural gana a perfecto. Después copia el enlace de TU publicación (los tres puntos ⋮ → «Copiar el enlace a la publicación») y pégalo aquí. Sirve para ponernos cara desde el primer día — y NEBULA te da su insignia: lo que se comparte no se apaga.",
  "A1": "Saca del cajón algo que tengas a medias —o que dejaste a medias— tal como está: un recurso, una unidad, una idea que se quedó ahí. Escríbelo aquí mismo, en la caja del reto: qué es, en qué punto se quedó y qué te frenó para terminarlo. Si puedes, añade el enlace al propio archivo (con permiso de lectura). Tu tripulación leerá lo que escribas —y tú lo suyo—: no se corrige ni se puntúa; el único criterio es sacarlo del cajón y compartirlo sin terminar.",
  "A2": "Graba un clip corto (máx. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no pudo venir a clase. Súbelo donde quieras (YouTube en oculto, Drive con permiso de lectura, el padlet de la clase…) y pega su enlace. Criterio único: que funcione sin ti delante (se entiende solo).",
  "A3": "(Este cuesta cerca de una hora: no es una píldora de quince minutos. Si esta semana no tienes ese hueco, vale un boceto a mano de los dos caminos, fotografiado.) Crea un artefacto interactivo (un Genially o similar) con una bifurcación: un objetivo de aprendizaje y dos o tres actividades distintas para alcanzarlo, y que cada estudiante elija su sendero al empezar (p. ej. uno que aprende haciendo, otro leyendo, otro escuchando). Pega su enlace. Criterio: que cada sendero sea una actividad de verdad —no la misma con otro nombre— y que todos lleguen a la misma cima.",
@@ -186,7 +186,7 @@ var AYUDA_RETOS = {
  "L6": "Diez o quince minutos, en clase. Coge un recurso que ya hayas creado en este viaje y justifícalo según una metodología concreta (ABJ, aula invertida, ABP, aprendizaje colaborativo…): qué aporta al aprendizaje, en qué momento se usa y por qué ese recurso y no otro. Diez líneas exactas, ni una más — la limitación es parte del ejercicio. Escríbelo aquí mismo, en la caja del reto. En el examen esa justificación vale entre dos y tres puntos, y tiene ese mismo límite de diez líneas.",
  "L7": "Diez minutos, en clase. Monta una tabla de clasificación sencilla para una dinámica de tu aula: una hoja de cálculo, un Genially, lo que sea. Con cinco filas basta. Piensa qué mides (no tiene por qué ser quién va primero: puede ser quién ha ayudado más, o qué equipo ha mejorado). Pega aquí el enlace o la captura. Es la L de «PBL: points, badges, leaderboards» — lo único del trío que no fabricas en ningún otro reto, y que el examen pide crear.",
  "L8": "Diez minutos, en clase. Genera un código QR que abra un recurso tuyo (tu juego, tu Bitácora, tu vídeo), mételo dentro de una lámina o una presentación y haz la captura donde se vea todo: la lámina, el QR y adónde lleva. Pega aquí la captura. Un modelo de examen lo pide con estas palabras: «un código QR creado durante el examen de acceso a un juego digital educativo». Vale un punto y se hace en diez minutos… si lo has hecho antes una vez.",
- "S7": "🗝️ Hay una sala de la que no se sale sin pensar: el Escape UNI. Entra, resuelve sus enigmas y, al final, pulsa el botón que te espera: el reto se registra solo en tu Nave. Nadie va a darte las respuestas: los secretos de la gamificación se encuentran jugando.",
+ "S7": "Hay una sala de la que no se sale sin pensar: el Escape UNI. Entra, resuelve sus enigmas y, al final, pulsa el botón que te espera: el reto se registra solo en tu Nave. Nadie va a darte las respuestas: los secretos de la gamificación se encuentran jugando.",
  "X1": "La Actividad 1 entregada donde te la pide tu profesor. Pulsa «Lo he hecho» cuando la hayas ENVIADO, no cuando la empieces, y pega el enlace o los enlaces que compartiste en tu actividad (es obligatorio; el «+» añade un segundo).",
  "X2": "La Actividad 2 entregada donde te la pide tu profesor. Igual: al ENVIARLA, y pega el enlace o los enlaces que compartiste en tu actividad (es obligatorio; el «+» añade un segundo).",
  "XS": "El ensayo general, con el reloj de verdad: 90 minutos para resolver un caso como el del examen. Se hace en la clase de repaso (semana 15). Se te dará un planteamiento y tendrás que montar, EN ESE RATO, una plataforma digital (web o Genially) con su portada, su logo con la palabra clave, dos módulos y tres productos digitales —algunos puedes reutilizarlos de los que ya has hecho en el viaje: para eso está tu Arsenal—. Al terminar, pega aquí el enlace público y sube tus capturas. No lleva nota: lleva una lista de comprobación que repasas tú mismo delante de todos (¿el logo lleva la palabra?, ¿se abre en incógnito?, ¿hay dos módulos?, ¿tres productos?, ¿la justificación cabe en diez líneas?). Nadie sabe lo que son noventa minutos hasta que los vive."
@@ -406,16 +406,16 @@ var RECOMPENSAS_INICIALES = [
   ["Título de recluta",40,3,"Un título narrativo bajo tu alias en el tablero y la Nave. Lo eliges tú en Mi botín.",4,"titulo"],
   ["Fondo de ficha: tu planeta",35,1,"Tu ficha de la Nave con el planeta que elijas de fondo. Eliges cuál de los ocho en Mi botín.",4,"fondo"],
   ["Marco dorado del avatar",60,1,"Tu avatar con marco y brillo dorados en el ranking y la Nave. Te lo pones (y te lo quitas) en Mi botín.",4,"marco"],
-  ["Cápsula de rescate",60,99,"Una cápsula de rescate llega a tu Nave con UN héroe de la Rebelión dentro, al azar: 30 figuras en tres rangos. ⚔️ La Resistencia (56%): el grueso del ejército. 🔥 La Vanguardia (36%): van por delante, cuesta alcanzarlas. 🌟 Los MITOS (8%, ni uno de cada doce): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar.",3,"heroe"],
+  ["Cápsula de rescate",60,99,"Una cápsula de rescate llega a tu Nave con UN héroe de la Rebelión dentro, al azar: 30 figuras en tres rangos. La Resistencia (56%): el grueso del ejército. La Vanguardia (36%): van por delante, cuesta alcanzarlas. Los MITOS (8%, ni uno de cada doce): ni siquiera se dejan ver hasta que caen. Se acumulan —cuantos más tengas, más donde elegir— y te los pones gratis desde tu Nave. ¿Repetido? Con 2 repetidos, uno nuevo al azar.",3,"heroe"],
   ["Sobre grande",25,99,"CINCO cartas al azar del álbum (en vez de tres), con las mismas probabilidades que el sobre de siempre: más cartas por cada crédito.",4,"sobre_grande"],
   ["Sobre de raras",35,99,"TRES cartas donde las comunes casi desaparecen: rara 64%, épica 18%, legendaria 6% (y común solo 12%). Para cerrar las series difíciles.",6,"sobre_raro"],
   ["Sobre épico",60,99,"TRES cartas y ninguna común: rara 45%, épica 39% y LEGENDARIA 16% en cada carta, cuatro veces más que en el sobre de siempre.",7,"sobre_epico"],
   ["Cápsula de élite",140,99,"En esta cápsula no viaja la Resistencia: un héroe de la Vanguardia (69%) o un MITO (31%, casi cuatro veces más que en la de rescate).",7,"capsula_elite"],
   ["Cápsula legendaria",320,99,"Un MITO seguro: uno de los héroes legendarios de la Rebelión, siempre. La cápsula más cara del hangar, y también la que tu docente puede esconder en una presentación o darte de premio.",7,"capsula_legendaria"],
-  ["Subir 0,5 en un entregable",550,1,"⚔️ ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. 🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — estarías tirando 550 créditos a la basura. Comprueba tu nota primero. Con esos créditos cierras media docena de sobres o te llevas nueve héroes.",15,"nota"],
-  ["Subir 1 punto en un entregable",850,1,"⚔️ ARSENAL DE BATALLA · Un punto entero en una actividad ya entregada y corregida. 🔴 LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, no te sube nada y pierdes los 850 créditos. Es la recompensa más cara del catálogo a propósito: elegirla significa renunciar a casi todo lo demás.",15,"nota"],
-  ["Recalificar un trabajo entregado fuera de plazo",700,1,"⚔️ ARSENAL DE BATALLA · Que se te corrija un trabajo que entregaste tarde. No es un aprobado automático: es que se mire y se puntúe como si hubiera llegado a tiempo.",15,"nota"],
-  ["Recalificar un suspenso",950,1,"⚔️ ARSENAL DE BATALLA · Una segunda oportunidad sobre un trabajo suspenso: lo rehaces y se vuelve a corregir. Pensada para quien ha trabajado y se le atragantó una entrega.",15,"nota"]
+  ["Subir 0,5 en un entregable",550,1,"ARSENAL DE BATALLA · Medio punto más en una actividad ya entregada y corregida. LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, esto NO te sube nada — estarías tirando 550 créditos a la basura. Comprueba tu nota primero. Con esos créditos cierras media docena de sobres o te llevas nueve héroes.",15,"nota"],
+  ["Subir 1 punto en un entregable",850,1,"ARSENAL DE BATALLA · Un punto entero en una actividad ya entregada y corregida. LEE ESTO ANTES: si ya tienes la nota máxima de evaluación continua, no te sube nada y pierdes los 850 créditos. Es la recompensa más cara del catálogo a propósito: elegirla significa renunciar a casi todo lo demás.",15,"nota"],
+  ["Recalificar un trabajo entregado fuera de plazo",700,1,"ARSENAL DE BATALLA · Que se te corrija un trabajo que entregaste tarde. No es un aprobado automático: es que se mire y se puntúe como si hubiera llegado a tiempo.",15,"nota"],
+  ["Recalificar un suspenso",950,1,"ARSENAL DE BATALLA · Una segunda oportunidad sobre un trabajo suspenso: lo rehaces y se vuelve a corregir. Pensada para quien ha trabajado y se le atragantó una entrega.",15,"nota"]
 ];
 // RECOMPENSAS-FIN
 

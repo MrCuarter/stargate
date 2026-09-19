@@ -72,7 +72,7 @@ c(/90 minutos/.test(D.AYUDA_RETOS.XS || "") && /lista de comprobación/.test(D.A
 ["R0_bitacora-en-marcha", "H6_mano-rapida", "H7_listo-para-la-batalla"].forEach(k =>
   c(fs.existsSync(path.join(RAIZ, "assets/img/insignias", k + ".png")), "   la insignia " + k + " está dibujada"));
 const N = leer("assets/js/recluta.js");
-c(/t\[0\]\.charAt\(0\) === 'L'/.test(N) && /⚡ En clase · 10-15 min/.test(N),
+c(/t\[0\]\.charAt\(0\) === 'L'/.test(N) && /<img class=ico [^>]*rayo\.png alt> En clase · 10-15 min/.test(N),
   "🔴 en la Nave, el relámpago dice que se hace EN CLASE (es el hincapié que pidió Norberto)");
 c(/\.reto-sem\.relampago/.test(leer("assets/css/stargate.css")), "   y se distingue de una entrega de dos horas");
 c(/tramo=apertura/.test(leer("assets/js/consola.js")) && /tramo=cierre/.test(leer("assets/js/consola.js")),

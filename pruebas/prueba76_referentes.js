@@ -51,8 +51,8 @@ c(/conexiones/.test(PR) && /alistados/.test(PR) && /última/.test(PR), "de cada 
 
 // 4 · el modo docente
 const T = leer("assets/js/stargate.js");
-c(/window\.SG_MODO_DOCENTE = modoDocente/.test(T) && /sgModoDocente/.test(T) && /sg:modo/.test(T) && /👤 Modo docente/.test(T),
-  "🔴 el menú tiene el botón «👤 Modo docente» (y avisa con sg:modo)");
+c(/window\.SG_MODO_DOCENTE = modoDocente/.test(T) && /sgModoDocente/.test(T) && /sg:modo/.test(T) && /: 'Modo docente'/.test(T),
+  "🔴 el menú tiene el botón «Modo docente» (y avisa con sg:modo)");
 c(/a\.hidden = !ref \|\| md/.test(T), "   y en modo docente se apaga «Crear grupo» del menú");
 const CON = leer("assets/js/consola.js");
 c(/function refDe\(p\) \{ return !!\(p && p\.soyReferente\) && !modoDoc\(\); \}/.test(CON), "la consola: lo de referente, solo fuera del modo docente");

@@ -125,7 +125,7 @@
       '<label>Alias de recluta <i>(el que verá la clase)</i>' +
         '<span class="con-boton"><input id="a-alias" maxlength="24" autocomplete="off" ' +
           'placeholder="Vega, Orion, Nix…">' +
-        '<button type="button" class="btn min" id="a-dado" title="Proponme un alias">🎲 Sugiéreme uno</button>' +
+        '<button type="button" class="btn min" id="a-dado" title="Proponme un alias"><img class=ico src=assets/img/iconos/p/dados.png alt> Sugiéreme uno</button>' +
       '</span></label>' +
       '<p class="small muted">¿Sin ideas? Pulsa el dado las veces que quieras hasta que suene bien.</p></div>' +
 
@@ -167,7 +167,7 @@
        */
       '<div class="card a-firmar"><p class="a-firmar-lema">Todo listo, recluta.</p>' +
       '<button class="btn epico" id="a-enviar"><span class="ep-luz"></span>' +
-      '<span class="ep-txt">⚡ Embarcar</span></button>' +
+      '<span class="ep-txt"><img class=ico src=assets/img/iconos/p/rayo.png alt> Embarcar</span></button>' +
       '<p class="a-firmar-pie">Se hace una sola vez. A partir de aquí, tu Nave.</p>' +
       '<div id="a-paso" class="small muted"></div></div>';
 
@@ -303,10 +303,10 @@
             esc(escuadron.name) + '">'
           : '') +
       '</div>' +
-      '<div class="bv-premios"><span>🏅 Insignia de <b>Reclutamiento</b></span>' +
+      '<div class="bv-premios"><span><img class=ico src=assets/img/iconos/p/medalla.png alt> Insignia de <b>Reclutamiento</b></span>' +
         '<span>+100 xp</span><span>+20 ◈</span></div>' +
       '<p class="bv-ir"><a class="btn epico" href="' + naveUrl() + '">' +
-        '<span class="ep-luz"></span><span class="ep-txt">🚀 Entrar en mi Nave</span></a></p>' +
+        '<span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/cohete.png alt> Entrar en mi Nave</span></a></p>' +
       '</div>');
     confeti();
   }
