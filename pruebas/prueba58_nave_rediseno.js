@@ -50,7 +50,7 @@ c(/function pasosDeReto\(txt\)/.test(NAVE),
   "🔴 el paso a paso sale de PARTIR la explicación del catálogo, no de un texto escrito aparte");
 c(/if\(out\.length && f\.length<42\)/.test(NAVE),
   "   y las frases cortas se pegan a la anterior: «Piénsalo para aula invertida.» no es un paso");
-c(/rs-premio"><span class="p xp">\+'\+t\[3\]\+' xp/.test(NAVE), "cada reto enseña los xp que da");
+c(/<span class="p xp">\+'\+t\[3\]\+' xp/.test(NAVE) && /rs-premio">'\+premio/.test(NAVE), "cada reto enseña los xp que da");
 c(/creditosDeReto\(t\[0\]\)/.test(NAVE), "   y los créditos");
 c(/P\.creditosDe\(\{id:id\},tipo,cat\)/.test(NAVE),
   "🔴 los créditos los calcula la MISMA regla que siembra el grupo, no una copia que se desincronice");

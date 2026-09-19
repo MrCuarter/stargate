@@ -895,11 +895,32 @@
     var n=semanaDeLanzamiento(id), hoy=Number(st.actual||0);
     return (n && hoy && n>hoy) ? n : 0;
   }
-  function tarjetaReto(t, mios){
+  /**
+   * 🔴 19-sep · SIN AIRE: DOS FORMAS DE LA MISMA FICHA. Norberto, con la captura de «Mis retos»: «no hago más que repetir
+   * que debemos reducir el aire». La insignia de 180 px marcaba la altura de cada ficha y empujaba los botones al fondo
+   * (≈360 px por reto). Eligió, entre cuatro dibujadas:
+   *   · `ficha` («Mi nave», los de esta semana): rejilla de tres, la misma pieza que el «Hoy toca» del docente, con la
+   *     insignia a 64 px junto al título. Al abrir una, ocupa la fila entera (el formulario necesita sitio).
+   *   · `fila` («Mis retos», todos por planeta): una línea por reto (insignia pequeña, estado, título y premio); lo demás
+   *     —el gancho, los pasos, el ejemplo, registrar y la insignia en grande— al abrirla.
+   * La regla (memoria «feedback-regla-del-aire»): la altura la marca el texto, nunca una imagen.
+   */
+  function miniPremio(claves){
+    return '<span class="rs-minis">'+(claves||[]).map(function(k){
+      return '<img class="rs-mini" loading="lazy" src="assets/img/insignias/'+k+'.png" alt="">';
+    }).join('')+'</span>';
+  }
+  function queTeLlevas(claves){
+    var k=(claves||[])[0]; if(!k) return '';
+    var c=CLASE_PREMIO[String(k).charAt(0)]||CLASE_PREMIO.R;
+    return '<span class="rs-que '+c[1]+'">· '+c[0].toLowerCase()+' <b>'+esc(NOMBRES[k]||k)+'</b></span>';
+  }
+  function tarjetaReto(t, mios, modo){
+    modo = modo==='fila' ? 'fila' : 'ficha';
     var r=st.yo||{}, d=st.d||{}, AY=window.SG_AYUDA_RETOS||{};
     var ya=!!mios[t[0]], pasos=pasosDeReto(AY[t[0]]);
     var cerradoHasta=retoPorLanzar(t[0], ya);
-    if(cerradoHasta) return '<div class="reto-sem por-lanzar" aria-disabled="true"><div class="rs-cab"><span class="chip pend">'
+    if(cerradoHasta) return '<div class="reto-sem por-lanzar '+modo+'" aria-disabled="true"><div class="rs-cab"><span class="chip pend">'
       +(cerradoHasta===Number(st.actual||0)+1?'La próxima semana':'Semana '+cerradoHasta)+'</span>'
       +'<span class="small muted">'+esc(t[0])+'</span></div>'
       +'<b class="rs-tit">'+esc(t[1])+'</b>'
@@ -916,21 +937,26 @@
      * abierto igual — no se castiga a quien esa noche trabajaba—, pero quien viene sale con él hecho.
      */
     var rel = t[0].charAt(0) === 'L';
-    return '<details class="reto-sem'+(ya?' hecho':'')+(rel?' relampago':'')+'">'
-      +'<summary><div class="rs-cab"><span class="chip '+(ya?'ok':'pend')+'">'
+    var cab='<div class="rs-cab"><span class="chip '+(ya?'ok':'pend')+'">'
         +(ya?'✓ Registrado'+cuando:'Pendiente')+'</span>'
         +(rel?'<span class="chip rel"><img class=ico src=assets/img/iconos/p/rayo.png alt> En clase · 10-15 min</span>':'')
         +cuantosLoLlevan(t[0])
-        +'<span class="small muted">'+esc(t[0])+'</span></div>'
-      +'<div class="rs-cols"><div class="rs-izq">'
-        +'<b class="rs-tit">'+esc(t[1])+'</b>'
-        +(gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')
-        +'<div class="rs-premio"><span class="p xp">+'+t[3]+' xp</span>'
-          +'<span class="p cr">+'+creditosDeReto(t[0])+' ◈</span>'
-          +(ejPag?'<a class="rs-ej" href="'+ejPag+'" target="_blank" rel="noopener" title="Se abre en una pestaña nueva">Ver un ejemplo ↗</a>':'')+'</div>'
-        +'<div class="rs-abrir">▾ '+(ya?'Ver lo que pedía':'Cómo se hace, paso a paso')+'</div>'
-      +'</div><div class="rs-der">'+premioDeReto(t[2])+'</div></div></summary>'
+        +'<span class="small muted">'+esc(t[0])+'</span>'+(modo==='fila'?queTeLlevas(t[2]):'')+'</div>';
+    var premio='<span class="p xp">+'+t[3]+' xp</span><span class="p cr">+'+creditosDeReto(t[0])+' ◈</span>';
+    return '<details class="reto-sem '+modo+(ya?' hecho':'')+(rel?' relampago':'')+'">'
+      +(modo==='fila'
+        ? '<summary class="rs-fila">'+miniPremio(t[2])+'<div class="rs-fila-t">'+cab+'<b class="rs-tit">'+esc(t[1])+'</b></div>'
+            +'<div class="rs-premio">'+premio+'</div><span class="rs-flecha" aria-hidden="true">▾</span></summary>'
+        : '<summary>'+cab
+            +'<div class="rs-cuerpo">'+miniPremio(t[2])+'<div class="rs-cuerpo-t"><b class="rs-tit">'+esc(t[1])+'</b>'
+              +(gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')+queTeLlevas(t[2])+'</div></div>'
+            +'<div class="rs-premio">'+premio
+              +(ejPag?'<a class="rs-ej" href="'+ejPag+'" target="_blank" rel="noopener" title="Se abre en una pestaña nueva">Ver un ejemplo ↗</a>':'')+'</div>'
+            +'<div class="rs-abrir">▾ '+(ya?'Ver lo que pedía':'Cómo se hace, paso a paso')+'</div></summary>')
       +'<div class="rs-detalle">'
+      // (abierta, la insignia en grande a la derecha de los pasos: ahí sí hay texto que la acompañe)
+      +'<div class="rs-det-cols"><div class="rs-det-main">'
+      +(modo==='fila'&&gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')
       +(pasos.length?'<ol class="rs-pasos">'+pasos.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>'
                     :'<p class="small muted">Sin explicación todavía: pregunta a tu docente.</p>')
       /**
@@ -954,6 +980,7 @@
             ? '<div class="rs-marcar">'+campoReflexion(t[0],'rs-rf')+campoEvidencia(t[0],'rs-ev')
               +'<button class="btn primary" type="button" data-hecho="'+esc(t[0])+'">✓ Lo he hecho</button></div>'
             : (d.formBitacora?'<p style="margin-top:12px"><a class="btn primary" href="'+esc(d.formBitacora)+'" target="_blank" rel="noopener">Marcarlo en la Bitácora →</a></p>':'')))
+      +'</div><div class="rs-der">'+premioDeReto(t[2])+'</div></div>'
       +panelTripulacion(t[0])
       +'</div></details>';
   }
@@ -2039,7 +2066,7 @@
       var hechosAqui=suyos.filter(function(r){return mios[r[0]];}).length;
       hechos+=hechosAqui;
       // 15-sep · la misma tarjeta que «Lo que puedes conseguir esta semana» (tarjetaReto), en su rejilla
-      var fichas='<div class="rs-grid rs-grid-pl">'+suyos.map(function(r){ return tarjetaReto(r, mios); }).join('')+'</div>';
+      var fichas='<div class="rs-grid rs-grid-pl rs-filas">'+suyos.map(function(r){ return tarjetaReto(r, mios, 'fila'); }).join('')+'</div>';
       var actual=sems.some(function(s){return s.sem===st.actual;});
       bloques+='<details class="reto-pl'+(actual?' actual':'')+'"'+(actual?' open':'')+'>'
         +'<summary><span class="pl-n">Planeta '+t+'</span><b>'+esc(p[1])+'</b>'

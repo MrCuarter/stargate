@@ -4954,3 +4954,58 @@ body.modo-piloto #consola-app .gp-celda:has(.gp-cfg) .gp-b{padding-right:44px}
 .pt-cod>span{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--amber,#f2b544);white-space:nowrap}
 .pt-cod .gp-cod{font-size:1.05rem;letter-spacing:.16em}
 @media(max-width:640px){.pt-cod{margin-left:0;flex:1 1 100%}}
+/* ================================================================== 19-sep · LAS FICHAS DE RETO, SIN AIRE
+   Norberto, con la captura de «Mis retos»: «no hago más que repetir que debemos reducir el aire». La insignia de 180 px
+   marcaba la altura de la ficha y los botones iban al fondo (≈360 px por reto). Elegido entre cuatro dibujadas: en
+   «Mi nave», rejilla de tres (la ficha del «Hoy toca» del docente); en «Mis retos», filas plegadas. La altura la marca
+   el texto: la insignia va pequeña junto al título y, al abrir, en grande al lado de los pasos. */
+.rs-grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));align-items:start}
+.rs-grid.par{grid-template-columns:repeat(2,minmax(0,1fr))}
+.rs-grid .reto-sem[open]{grid-column:1/-1}
+.reto-sem.ficha>summary,.reto-sem.ficha:not([open])>summary{height:auto;display:flex;flex-direction:column;gap:8px;padding:12px 14px}
+.reto-sem.ficha .rs-cab,.reto-sem.fila .rs-cab{margin:0;flex-wrap:wrap;gap:6px 8px}
+.rs-cuerpo{display:flex;gap:12px;align-items:flex-start}
+.rs-cuerpo-t{min-width:0}
+.rs-minis{display:flex;gap:4px;flex:none}
+.rs-mini{width:64px;height:64px;object-fit:contain;display:block}
+.rs-minis:has(.rs-mini + .rs-mini) .rs-mini{width:44px;height:44px}
+.reto-sem.ficha .rs-tit{margin:0 0 3px}
+.reto-sem.ficha .rs-gancho{margin:0 0 3px}
+.rs-que{display:inline-block;font-size:.82rem;color:var(--mut)}
+.rs-que.per b{color:#c79be6}.rs-que.esp b{color:var(--amber)}.rs-que.hito b{color:#4fd18b}.rs-que.ins b{color:var(--teal)}
+.reto-sem.ficha .rs-premio,.reto-sem.ficha:not([open]) .rs-premio{margin:0}
+.reto-sem.ficha .rs-abrir{margin:0}
+/* «Mis retos»: una línea por reto */
+.rs-grid.rs-filas{grid-template-columns:minmax(0,1fr);gap:8px}
+.reto-sem.fila>summary.rs-fila,.reto-sem.fila:not([open])>summary.rs-fila{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px 14px;padding:9px 14px;height:auto}
+.reto-sem.fila .rs-mini{width:48px;height:48px}
+.reto-sem.fila .rs-minis:has(.rs-mini + .rs-mini) .rs-mini{width:36px;height:36px}
+.rs-fila-t{min-width:0;display:flex;flex-direction:column;gap:2px}
+.reto-sem.fila .rs-tit{margin:0;font-size:1rem}
+.reto-sem.fila .rs-premio,.reto-sem.fila:not([open]) .rs-premio{margin:0;flex-wrap:nowrap}
+.rs-flecha{color:var(--mut);font-size:1.1rem;line-height:1;transition:transform .15s}
+.reto-sem.fila[open] .rs-flecha{transform:rotate(180deg)}
+.reto-sem.fila[open]>summary{border-bottom:1px solid var(--line)}
+@media(max-width:640px){
+  .reto-sem.fila>summary.rs-fila,.reto-sem.fila:not([open])>summary.rs-fila{grid-template-columns:auto minmax(0,1fr) auto;gap:4px 10px}
+  .reto-sem.fila .rs-minis{grid-row:span 2;align-self:start}
+  .reto-sem.fila .rs-premio{grid-column:2}
+  .reto-sem.fila .rs-flecha{grid-column:3;grid-row:1}
+}
+.reto-sem.por-lanzar.fila{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;padding:9px 14px;margin:0}
+.reto-sem.por-lanzar.fila .rs-cab,.reto-sem.por-lanzar.fila .rs-tit{margin:0}
+.reto-sem.por-lanzar.fila p{margin:0;flex-basis:100%}
+/* abierta: los pasos y, a su lado, la insignia en grande */
+.rs-det-cols{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:16px;align-items:start}
+.rs-det-cols .rs-der{align-self:start}
+.rs-det-cols .rs-trofeo img{max-width:130px}
+.rs-det-cols .rs-der:has(.rs-trofeo + .rs-trofeo) .rs-trofeo img{max-width:72px}
+@media(max-width:640px){.rs-det-cols{grid-template-columns:minmax(0,1fr)}.rs-det-cols .rs-der{display:none}}
+@media(max-width:640px){.reto-sem.fila .rs-que{display:none}.reto-sem.fila .rs-mini{width:40px;height:40px}.reto-sem.fila .rs-tit{font-size:.95rem}}
+/* 19-sep · la regla del aire en «Mi botín» y el «Mercado Estelar» (el medidor, pruebas/medir_aire.js, encontró cajas
+   estiradas por su vecina: hasta 170 px en blanco). Cada caja mide lo que su contenido; el botón, pegado a lo suyo. */
+.ins-temas,.ab-cubiertas{align-items:start}
+.ins-temas .ins-tema .badge-col{grid-template-columns:repeat(auto-fill,minmax(66px,1fr))}
+.grid.nave-rec{align-items:start}
+.nave-rec .rec-card .rec-cuerpo{flex:none}
+.nave-rec .rec-card .rec-pie{margin-top:0}

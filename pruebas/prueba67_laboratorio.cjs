@@ -973,7 +973,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await nadie.ir("recluta.html?per=lab-clase");
       c("bienvenida · la Nave sin sesión manda a la puerta única", await nadie.hasta("location.pathname.indexOf('entrar.html')>=0", 20), await nadie.js("location.href"));
       // 14c · el Capitán, en Mis grupos: referente (con sus pasos) y docente (sin ellos)
-      for (const [correo, nombre, total, ref] of [["rita@lab.test", "Rita Referente", 14, true], ["dani@lab.test", "Dani Docente", 11, false]]) {
+      // (19-sep · un paso menos: el del código de clase va dentro de «Entra en tu grupo», que es donde vive el código)
+      for (const [correo, nombre, total, ref] of [["rita@lab.test", "Rita Referente", 13, true], ["dani@lab.test", "Dani Docente", 10, false]]) {
         const p = await nueva("visita " + nombre);
         await p.entrarPorLaPuerta(correo, nombre);
         // Dani es también alumna desde la sección 4: entonces la puerta pregunta, y aquí entra como docente
@@ -3787,11 +3788,13 @@ const REG = {};   // cifras que se apuntan para el informe
       await nv.ir("recluta.html?per=" + P + "#retos"); await nv.hasta("!!document.querySelector('details.reto-pl')", 30); await dormir(1200);
       await nv.js("(function(){ var d=[].slice.call(document.querySelectorAll('details.reto-pl')); d.forEach(function(x){ x.open=false; }); var t3=d.filter(function(x){ return /Sendara/.test(x.textContent); })[0]; if(t3){ t3.open=true; t3.scrollIntoView({block:'start',behavior:'instant'}); } return 1; })()");
       await dormir(900);
-      c("🔴 nave · «Qué hay que hacer, explicado» con la tarjeta de la semana: su insignia a la vista",
-        await nv.js("!!document.querySelector('details.reto-pl[open] .reto-sem .rs-trofeo img')"));
+      // 19-sep · en filas plegadas (Norberto eligió entre cuatro, contra el aire): la insignia pequeña en la fila, grande al abrir
+      c("🔴 nave · «Qué hay que hacer, explicado» en filas de menos de 110 px: su insignia a la vista (y en grande al abrirla; los relámpago no dan)",
+        await nv.js("(function(){ var r=[].slice.call(document.querySelectorAll('details.reto-pl[open] details.reto-sem.fila')); return r.length>0 && r.every(function(x){ var ins = !!x.querySelector('summary .rs-mini') && !!x.querySelector('.rs-detalle .rs-trofeo img'); return (ins || /relampago/.test(x.className)) && x.querySelector('summary').getBoundingClientRect().height < 110; }); })()"),
+        await nv.js("JSON.stringify([].slice.call(document.querySelectorAll('details.reto-pl[open] .reto-sem')).map(function(x){ return [x.className, !!x.querySelector('summary .rs-mini'), !!x.querySelector('.rs-detalle .rs-trofeo img'), x.querySelector('summary') ? Math.round(x.querySelector('summary').getBoundingClientRect().height) : 0]; }))"));
       // 17-sep · ya hay un ejemplo en TODOS los retos (menos S7), y cada uno abre su página en otra pestaña
       c("nave · y «💡 Ver un ejemplo» en cada reto, que abre su página (ejemplo.html) en otra pestaña",
-        await nv.js("(function(){ var r=[].slice.call(document.querySelectorAll('details.reto-pl[open] .reto-sem')); return r.length>0 && r.every(function(x){ var a=x.querySelector('a.rs-ej'); return a && /^ejemplo\\.html\\?reto=/.test(a.getAttribute('href')) && a.target==='_blank'; }); })()"));
+        await nv.js("(function(){ var r=[].slice.call(document.querySelectorAll('details.reto-pl[open] .reto-sem')); return r.length>0 && r.every(function(x){ var a=x.querySelector('a.rs-ej, .rs-ej-ver a'); return a && /^ejemplo\\.html\\?reto=/.test(a.getAttribute('href')) && a.target==='_blank'; }); })()"));
       await nv.foto(FOTOS + "/36-nave-retos.png");
       await nv.cerrar();
     }

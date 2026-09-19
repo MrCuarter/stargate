@@ -92,13 +92,14 @@ c(/html:has\(body\.embed\.embed-caja\)\{background:transparent;color-scheme:norm
 // 9 · la Nave: simetría
 c(/\.reto-pl \.reto-cuenta\{margin-left:auto;min-width:3\.2em;text-align:right/.test(CSS) && /\.reto-pl>summary::after\{margin-left:14px\}/.test(CSS),
   "🔴 los contadores de los planetas, en el mismo eje");
-c(/\.rs-grid\{align-items:stretch\}/.test(CSS) && /\.rs-grid:has\(\.reto-sem\[open\]\)\{align-items:start\}/.test(CSS) && /\.reto-sem:not\(\[open\]\) \.rs-premio\{margin-top:auto\}/.test(CSS),
-  "🔴 los dos retos de la semana a la misma altura (y si abres uno, el otro no se estira)");
+// 19-sep · la regla del aire: cada ficha mide lo que su texto (ya no se estiran a la altura de la vecina con los botones al fondo)
+c(/\.rs-grid\{grid-template-columns:repeat\(auto-fill,minmax\(280px,1fr\)\);align-items:start\}/.test(CSS) && /\.rs-grid \.reto-sem\[open\]\{grid-column:1\/-1\}/.test(CSS) && /\.reto-sem\.ficha \.rs-premio,\.reto-sem\.ficha:not\(\[open\]\) \.rs-premio\{margin:0\}/.test(CSS),
+  "🔴 los retos de la semana, en rejilla y cada uno de su altura (y el que abres ocupa la fila)");
 
 // 10 · la Nave: la misma tarjeta en «esta semana» y en «Qué hay que hacer, explicado», y el ejemplo solo donde lo hay
 const N = leer("assets/js/recluta.js");
-c(/function tarjetaReto\(t, mios\)/.test(N) && (N.match(/tarjetaReto\(/g) || []).length >= 3 && /class="rs-grid rs-grid-pl"/.test(N),
-  "🔴 «Qué hay que hacer, explicado» pinta la MISMA tarjeta que la de la semana (con su insignia)");
+c(/function tarjetaReto\(t, mios, modo\)/.test(N) && (N.match(/tarjetaReto\(/g) || []).length >= 3 && /class="rs-grid rs-grid-pl rs-filas"/.test(N) && /tarjetaReto\(r, mios, 'fila'\)/.test(N),
+  "🔴 «Qué hay que hacer, explicado» pinta la MISMA tarjeta que la de la semana, en fila plegada (con su insignia)");
 c(!/<article class="reto'\+\(ya\?' ok':''\)\+'">'\s*\+'<header><span class="reto-id">'\+esc\(r\[0\]\)\+'<\/span><h4>'\+esc\(r\[1\]\)\+'<\/h4>'\s*\+'<span class="reto-xp">'\+r\[3\]\+' xp<\/span>'\s*\+\(ya\?'<span class="reto-ya">✅ ya lo tienes<\/span>':''\)\+'<\/header>'\s*\+\(texto/.test(N),
   "   y la ficha vieja (solo texto) ya no está");
 c(/window\.SG_EJEMPLOS\|\|\{\}/.test(N) && /Ver un ejemplo ↗/.test(N) && /EJEMPLOS_RETOS = \{/.test(leer("_site_data.py")) && /window\.SG_EJEMPLOS=/.test(leer("recluta.html")),

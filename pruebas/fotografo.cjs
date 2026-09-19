@@ -32,7 +32,7 @@ const PANTALLAS = [
 ];
 (async () => {
   await L.arrancar(false);
-  const pequenas = [], desbordes = [], cajas = [], recortes = [], solapes = [], tapados = [];
+  const pequenas = [], desbordes = [], cajas = [], recortes = [], solapes = [], tapados = [], aires = [];
   for (const movil of [false, true]) {
     for (let [correo, nombre, url, id] of PANTALLAS) {
       const p = await L.persona(id);
@@ -78,6 +78,12 @@ const PANTALLAS = [
       if (capas && capas.recortadas.length) recortes.push(et + capas.recortadas.join(" · "));
       if (capas && capas.solapes.length) solapes.push(et + capas.solapes.join(" · "));
       if (capas && capas.tapados.length) tapados.push(et + capas.tapados.join(" · "));
+      // 🔴 19-sep · el AIRE (Norberto: «no hago más que repetir que debemos reducir el aire»): huecos vacíos de más de
+      // 40 px dentro de una caja, con los desplegables abiertos (la regla: memoria «feedback-regla-del-aire»)
+      await p.js("[].slice.call(document.querySelectorAll('details')).forEach(function(d){ if(!d.closest('.reto-sem')) d.open=true; }); 1");
+      await L.dormir(300);
+      const aire = await p.js(fs.readFileSync(__dirname + "/medir_aire.js", "utf8"));
+      if (aire && aire.length) aires.push(et + aire.join(" · "));
       // las visitas guiadas se fotografían aparte: aquí se cierran y se vuelve arriba
       await p.js(`(function(){ [].slice.call(document.querySelectorAll('.tour-exit,.tour .x,[data-tour-salir]')).forEach(function(b){ try{b.click()}catch(e){} });
         window.scrollTo(0,0); return true; })()`);
@@ -94,5 +100,6 @@ const PANTALLAS = [
   console.log("imágenes recortadas por su caja:\n  " + (recortes.length ? recortes.join("\n  ") : "ninguna"));
   console.log("cajas que se pisan:\n  " + (solapes.length ? solapes.join("\n  ") : "ninguna"));
   console.log("pulsables tapados por otra capa:\n  " + (tapados.length ? tapados.join("\n  ") : "ninguno"));
+  console.log("aire (huecos de más de 40 px dentro de una caja):\n  " + (aires.length ? aires.join("\n  ") : "ninguno"));
   await L.parar(); process.exit(0);
 })().catch(e => { console.error(e); L.parar(); process.exit(1); });

@@ -24,7 +24,7 @@ c(mapa.A1 === 1 && mapa.B1 === 2, "🔴 tema 1: el reto rápido (A1) la semana 1
 c(mapa.A2 === 3 && mapa.B2 === 4 && mapa.A3 === 5 && mapa.B3 === 6 && mapa.A4 === 7 && mapa.B4 === 8, "   y así en los temas 2, 3 y 4 (el largo, en la semana de cierre)");
 c(mapa.A5 === 9 && mapa.B5 === 9 && mapa.A6 === 10 && mapa.B6 === 10, "   los temas de una sola sesión (5 y 6) lanzan los dos a la vez");
 c(mapa.A7 === 11 && mapa.B7 === 12 && mapa.A8 === 13 && mapa.B8 === 14, "   y los temas 7 y 8, el largo a la semana siguiente");
-c(/function retoPorLanzar\(id, ya\)/.test(NAVE) && /class="reto-sem por-lanzar"/.test(NAVE) && /La próxima semana/.test(NAVE),
+c(/function retoPorLanzar\(id, ya\)/.test(NAVE) && /class="reto-sem por-lanzar '\+modo\+'"/.test(NAVE) && /La próxima semana/.test(NAVE),
   "🔴 Nave · el reto que aún no se ha explicado sale en sombra, con «la próxima semana» y sin poder registrarse");
 c(/\.reto-sem\.por-lanzar\{opacity:\.5/.test(CSS), "   y se ve en sombra");
 
