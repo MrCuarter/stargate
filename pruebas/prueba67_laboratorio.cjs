@@ -4811,11 +4811,27 @@ const REG = {};   // cifras que se apuntan para el informe
       const hayP = await rp.hasta("!!document.querySelector('.pt-hero')", 75);
       c("🔴 al entrar en el grupo, la portada: semana, vídeo, retos, panel, mensaje y notas", hayP && await rp.js("!!document.querySelector('.pt-video') && !!document.querySelector('.pt-retos') && !!document.getElementById('pt-notas') && !!document.getElementById('pt-msg-txt') && !!document.getElementById('pt-panel-ed')"));
       c("   y la pestaña encendida es «Portada»", await rp.js("(document.querySelector('.pest.activa')||{getAttribute:function(){return ''}}).getAttribute('data-tab')==='portada'"));
+      // NEBULA, encima de las cifras, escribiendo su consejo
+      const neb = await rp.hasta("(document.getElementById('pt-neb-p')||{}).textContent.length>40 && !document.getElementById('pt-neb-p').classList.contains('escribe')", 20);
+      c("🔴 NEBULA · un consejo sobre su gente, escrito a máquina, justo encima de las cifras", neb &&
+        await rp.js("(function(){ var n=document.querySelector('.pt-neb'), r=document.querySelector('.c-resumen'); return !!n && !!r && n.nextElementSibling===r; })()"),
+        await rp.js("(document.getElementById('pt-neb-p')||{}).textContent"));
+      if (await rp.js("!!document.getElementById('pt-neb-otro')")) {
+        const antesN = await rp.js("document.getElementById('pt-neb-p').textContent");
+        await rp.js("document.getElementById('pt-neb-otro').click(); 1"); await dormir(2500);
+        c("   «Otro consejo» cambia el consejo", antesN !== await rp.js("document.getElementById('pt-neb-p').textContent"));
+      }
+      await rp.js("var b=document.querySelector('.c-res-ojo [data-escribir]'); if(b) b.click(); 1"); await dormir(500);
+      c("   «Escribirles» elige a quién y lleva a la caja del mensaje", await rp.js("!document.querySelector('.c-res-ojo [data-escribir]') || (document.activeElement && document.activeElement.id==='pt-msg-txt' && document.querySelector('.pt-seg .on').getAttribute('data-dest')!=='todos')"));
+      await rp.js("var b=document.querySelector('.pt-seg [data-dest=\"todos\"]'); b&&b.click(); window.scrollTo(0,0); 1");
+      await rp.foto(FOTOS + "/46-portada.png");
       const nums = JSON.parse(await rp.js("JSON.stringify([].slice.call(document.querySelectorAll('.pt-reto .pt-n')).map(function(x){return x.textContent}))"));
       c("🔴 los retos ya lanzados, con cuántos los han hecho y el porcentaje", nums.length > 0 && nums.every(t => /^\d+\/\d+ · \d+ %$/.test(t)), JSON.stringify(nums.slice(0, 3)));
       // la rueda
       await rp.js("document.querySelector('.c-hacer [data-cfg-sesion]').click(); 1");
       c("🔴 la rueda de al lado de «Proyectar la clase» abre «Configurar la sesión»", await rp.hasta("!!document.querySelector('.cfg-capa .m-sec input[data-sec=\"videos\"]')", 10));
+      c("   con la captura de cada diapositiva (y el icono de las que dependen de que haya algo)", await rp.js("document.querySelectorAll('.cfg-capa img.m-sec-img').length>=13 && document.querySelectorAll('.cfg-capa .m-sec-img.sin').length>=1"));
+      await rp.foto(FOTOS + "/46-rueda.png");
       await rp.js("var x=document.querySelector('.cfg-capa .m-sec input[data-sec=\"videos\"]'); x.checked=false; x.dispatchEvent(new Event('change')); 1");
       const g1 = await rp.hasta("/Guardado/.test((document.querySelector('.cfg-capa #m-sec-msg')||{}).textContent||'')", 25);
       const ses = ((((await leerDoc("projects/" + P)) || {}).stargate || {}).sesiones) || {};

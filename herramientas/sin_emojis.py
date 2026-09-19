@@ -41,7 +41,7 @@ TEXTO = re.compile(r"textContent|innerText|aviso\(|\.title\s*=|setAttribute\(\"(
                    r"document\.title|aria-label=\"[^\"]*$|<option")
 
 def src(k):
-    return ("assets/img/nave/iconos/" + k[len(N):] if k.startswith(N) else "assets/img/iconos/p/" + k) + ".png"
+    return "assets/img/iconos/p/" + (k[len(N):] if k.startswith(N) else k) + ".png"   # (las de la Nave, también en p/: con fondo transparente)
 
 def cambia(linea):
     s = linea.strip()

@@ -66,7 +66,7 @@ const C = trozo(K, "function verCalendario", 16000);
 c(/\["calendario", "Calendario"\]/.test(K), "🔴 el calendario lo ve todo el equipo");
 c(/var edita = soyRefAqui\(\);/.test(C) && /var toca = edita && futura;/.test(C) && /if \(!edita\) return;/.test(C), "   pero solo el referente lo cambia (y solo semanas futuras)");
 c(/class="cal-7"/.test(C) && /cal-d/.test(C) && /INICIALES\[\(dia0 \+ k\) % 7\]/.test(C), "   como un calendario: una fila por semana con sus siete días");
-c(/"S" \+ f\.semana/.test(C) && /iconos\/p\/calendario\.png/.test(C) && /nave\/iconos\/mercado\.png/.test(C), "   cada semana con su número, las festivas y la de canje");
+c(/"S" \+ f\.semana/.test(C) && /iconos\/p\/calendario\.png/.test(C) && /iconos\/p\/mercado\.png/.test(C), "   cada semana con su número, las festivas y la de canje");
 c(/data-cal-tg=/.test(C) && /Marcar no lectiva/.test(C), "   una semana se marca como no lectiva pulsándola");
 c(/tramos/.test(C) && /empieza el <b>/.test(C), "🔴 y «Al guardar» dice a qué día se mueve cada semana (lo que echaba en falta)");
 c(/semanas lectivas/.test(C) && /no lectiva/.test(C), "   con el resumen arriba: semanas lectivas, no lectivas y canje");

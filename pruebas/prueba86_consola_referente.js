@@ -50,7 +50,7 @@ c(/ficha\.data\(\)\.projectId !== perId/.test(M), "   comprobando que la ficha e
 c(/cambiarComandante, avisarRecluta/.test(M), "   y el motor lo exporta");
 
 // 5 · los rankings, para todos
-c(/\["rankings", "Rankings"\]/.test(K) && !/\["rankings", "Rankings", 1\]/.test(K) && /\.pest\[data-tab="rankings"\]::before\{content:"🏆"\}/.test(CSS),
+c(/\["rankings", "Rankings"\]/.test(K) && !/\["rankings", "Rankings", 1\]/.test(K) && /\.pest\[data-tab="rankings"\]::before\{content:"";background-image:url\(\.\.\/img\/iconos\/p\/rankings\.png\)\}/.test(CSS),
   "🔴 la consola tiene pestaña de Rankings, y la ve también el docente (no es cosa del referente)");
 c(/window\.SG_RANKING_MONTAR\(\$\("#c-rank"\), PER, \{ datos: t,/.test(K),
   "🔴 son LOS MISMOS rankings de la Nave (assets/js/tablero.js), montados con los datos que la consola ya tiene");

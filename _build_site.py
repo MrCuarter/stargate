@@ -3240,6 +3240,8 @@ def _cabeza_motor():
         # 18-sep · los comandantes (c1, c2…) salen de la carpeta: se añade una imagen y ya está en la galería. Sin
         # nombres: los retratos inspirados en el equipo forman parte del reparto como los demás (Norberto)
         'window.SG_COMANDANTES_GEN=' + _json.dumps(_comandantes_genericos()) + ';'
+        # 19-sep · las capturas de cada sección de la sesión (herramientas/capturas_sesion.cjs): las que haya en la carpeta
+        'window.SG_CAPTURAS_SESION=' + _json.dumps(sorted(f[:-4] for f in os.listdir(os.path.join(HERE, "assets/img/sesion")) if f.endswith(".jpg"))) + ';'
         # El banco de alias solo lo usa el alistamiento, pero va con el resto: son 4 KB y evita una
         # descarga aparte justo en la pantalla donde más prisa tiene la gente.
         'window.SG_ALIAS=' + _json.dumps(ALIAS_SUGERIDOS) + ';'

@@ -923,7 +923,7 @@
         // 18-sep · Norberto: «añade enlace a los ejemplos de los retos en la presentación en vivo; si puede ser, que
         // se abra una ventana». Es la misma página del ejemplo que ve el alumnado en su Nave.
         +(id&&(window.SG_EJEMPLOS||{})[id]
-          ? '<p class="reto-ej"><a class="btn min" href="ejemplo.html?reto='+esc(id)+'" target="_blank" rel="noopener">Ver un ejemplo · '+esc((window.SG_EJEMPLOS||{})[id])+' &#8599;</a></p>'
+          ? '<p class="reto-ej"><a class="btn min" href="ejemplo.html?reto='+esc(id)+'" target="_blank" rel="noopener">Ver un ejemplo · '+esc(((window.SG_EJEMPLOS||{})[id]||{}).titulo||'')+' &#8599;</a></p>'
           : '')
         +'</div></div>'});
     });
@@ -1210,7 +1210,8 @@
       // con varios grupos: cambiar de grupo sin salir del Genially (abajo, en la barra: arriba tapaba títulos)
       +'<div class="barra-pasos">'+(EMBED && st.yo ? '<button type="button" class="ses-salir-b" id="ses-salir-b" title="Cerrar sesión ('+esc(st.yo.correo||'')+')">⏻</button>' : '')
       +(st.grupos && st.grupos.length > 1 ? '<button type="button" class="ses-cambiar" id="ses-cambiar" title="Cambiar de grupo">⇄ '+esc(st.nombre||'Grupo')+'</button>' : '')+st.slides.map(function(d,i){
-          return '<button type="button" class="p'+(i===st.i?' on':'')+(i<st.i?' past':'')+'" data-i="'+i+'" title="'+esc(d.rot)+'"><span>'+esc(d.rot)+'</span></button>';
+          // (19-sep · data-sec: la sección de «Configurar la sesión» a la que pertenece; con ella se hacen sus capturas)
+          return '<button type="button" class="p'+(i===st.i?' on':'')+(i<st.i?' past':'')+'" data-i="'+i+'" data-sec="'+esc(secDe(d))+'" title="'+esc(d.rot)+'"><span>'+esc(d.rot)+'</span></button>';
         }).join('')+'</div>'
       +controles()
       /**

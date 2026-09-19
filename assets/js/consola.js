@@ -153,7 +153,7 @@
         (p.soyReferente ? '<span class="gp-ref" title="Llevas este grupo">★</span>' : '') +
       '</header>' +
       // 15-sep · Norberto: «la Cola de nota debería aparecer solo si hay algo que hacer… que brille o un globo con aviso»
-      (p.cola ? '<button type="button" class="gp-cola" data-per="' + esc(p.id) + '" data-ir="canjes"><img class=ico src=assets/img/nave/iconos/clase.png alt> <b>' + p.cola + '</b> ' +
+      (p.cola ? '<button type="button" class="gp-cola" data-per="' + esc(p.id) + '" data-ir="canjes"><img class=ico src=assets/img/iconos/p/clase.png alt> <b>' + p.cola + '</b> ' +
         (p.cola === 1 ? "subida de nota espera" : "subidas de nota esperan") + ' tu visto bueno <span>Revisar →</span></button>' : '') +
       // Las dos cifras que se miran de un vistazo: cuánta gente hay y por dónde vamos.
       '<div class="gp-cifras">' +
@@ -340,8 +340,8 @@
         // cierre después. Así no hay que navegar por dentro del panel delante de la clase.
         [["sesion-ap", "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión · 1 · apertura", "sesion.html?embed=1&tramo=apertura"],
          ["sesion-ci", "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión · 3 · cierre", "sesion.html?embed=1&tramo=cierre"],
-         ["sesion", "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión entera (sin partir)", "sesion.html?embed=1"], ["aula", "<img class=ico src=assets/img/nave/iconos/envivo.png alt> El aula · la clase en directo", "aula.html?embed=1"],
-         ["llamada", "<img class=ico src=assets/img/nave/iconos/clase.png alt> La llamada a filas", "llamada.html?embed=1"], ["batalla", "<img class=ico src=assets/img/iconos/p/diana.png alt> El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
+         ["sesion", "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión entera (sin partir)", "sesion.html?embed=1"], ["aula", "<img class=ico src=assets/img/iconos/p/envivo.png alt> El aula · la clase en directo", "aula.html?embed=1"],
+         ["llamada", "<img class=ico src=assets/img/iconos/p/clase.png alt> La llamada a filas", "llamada.html?embed=1"], ["batalla", "<img class=ico src=assets/img/iconos/p/diana.png alt> El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
           return '<span class="gp-gen-par"><button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + x[1].replace(/^<img[^>]*>\s*/, ""))) + '">' + x[1] + '</button>' +
             botonVentana(x[2], x[0], x[1].replace(/^<img[^>]*>\s*/, "")) + '</span>';
         }).join("") + '</div></section>' +
@@ -370,7 +370,7 @@
               '<em>El recorrido completo, con capturas.</em></a>' +
             // 15-sep · la página de Profesores, solo para el Mando (los vitalicios)
             (VITALICIOS_WEB.indexOf(String(YO.correo || "").toLowerCase()) >= 0
-              ? '<a class="ref-b" href="profesores.html"><span><img class=ico src=assets/img/nave/iconos/gente.png alt></span><b>Profesores</b><em>Referentes, invitaciones, sus grupos y sus conexiones.</em></a>' : '') +
+              ? '<a class="ref-b" href="profesores.html"><span><img class=ico src=assets/img/iconos/p/gente.png alt></span><b>Profesores</b><em>Referentes, invitaciones, sus grupos y sus conexiones.</em></a>' : '') +
           '</div>' +
           '<p class="small muted" style="margin-top:12px">Dentro de cada grupo tienes además ' +
           '<b>Equipo docente</b>, <b>Escuadrones</b> y <b>Ajustes</b>: esas tres solo las ve quien ' +
@@ -511,7 +511,7 @@
    */
   var BZ_N = null;
   function botonBuzon(desde, per) {
-    return '<a class="btn min bz-acceso" data-bz href="buzon.html?desde=' + desde + (per ? '&per=' + encodeURIComponent(per) : '') + '"><img class=ico src=assets/img/nave/iconos/envivo.png alt> ¿Dudas? ¿Algo falla?'
+    return '<a class="btn min bz-acceso" data-bz href="buzon.html?desde=' + desde + (per ? '&per=' + encodeURIComponent(per) : '') + '"><img class=ico src=assets/img/iconos/p/envivo.png alt> ¿Dudas? ¿Algo falla?'
       + (BZ_N ? '<span class="bz-n" title="Respuestas del Mando sin leer">' + BZ_N + '</span>' : '') + '</a>';
   }
   function contarBuzon() {
@@ -549,7 +549,6 @@
         '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
           '<b>Llamada a filas</b></a>' + botonVentana("llamada.html?per=" + PER, "llamada_" + PER, "la llamada a filas") + '</div>' +
       '</div>' +
-      resumenGrupo(t) +
       '<div class="pestanas">' + misTabs().map(function (x, i, todas) {
         var cola = x[0] === "canjes" ? pendientesCola() : 0;
         // (una raya antes de las del referente; el icono de cada una va en la hoja de estilos)
@@ -743,7 +742,7 @@
    */
   function verRankings(t) {
     var mio = miNombreAqui(), tengoEsc = (t.escuadrones || []).some(function (e) { return e.comandante === mio; });
-    $("#c-cuerpo").innerHTML = '<div class="card c-rankings"><h3><img class=ico src=assets/img/nave/iconos/rankings.png alt> Rankings</h3>' +
+    $("#c-cuerpo").innerHTML = '<div class="card c-rankings"><h3><img class=ico src=assets/img/iconos/p/rankings.png alt> Rankings</h3>' +
       '<p class="small muted">Los mismos que ve tu alumnado en su Nave, del <b>grupo entero o de un escuadrón</b>. Cada uno mide una cosa distinta, ' +
       'para que brille más gente: proyéctalos en clase y ensalza a quien destaca. Pulsa a alguien para ver su ficha pública.</p>' +
       '<div id="c-rank" class="c-rank"></div></div>';
@@ -768,7 +767,7 @@
       (lista.length ? tablaGente(lista, caps, !filtro) : '<p class="muted">' + (sinGenteQueVer(t) ? 'No tienes escuadrón en este grupo, así que aquí no hay alumnado a tu nombre.' : 'Todavía no hay nadie en este escuadrón.') + '</p>') +
       (ref && t.sin_docente ? '<p class="aviso"><img class=ico src=assets/img/iconos/p/aviso.png alt> ' + t.sin_docente + ' recluta(s) sin Comandante asignado.</p>' : "") +
       // 16-sep · la hoja de cálculo para evaluar: lo que hay en pantalla, tal cual, en un CSV
-      (lista.length ? '<p class="gp-csv"><button type="button" class="btn min" id="c-csv"><img class=ico src=assets/img/nave/iconos/rankings.png alt> Descargar CSV</button>' +
+      (lista.length ? '<p class="gp-csv"><button type="button" class="btn min" id="c-csv"><img class=ico src=assets/img/iconos/p/rankings.png alt> Descargar CSV</button>' +
         '<span class="small muted">Lo de esta vista (' + lista.length + ' reclutas) para tu hoja de cálculo: xp, créditos, retos, insignias, ' +
         'cartas, héroes, logros, el Simulador y los enlaces que ha entregado cada cual.</span></p>' : "") +
       "</div>";
@@ -967,7 +966,7 @@
   function cambioDeComandante(r) {
     var fs = ((DATOS.proyecto && DATOS.proyecto.factions) || []).filter(function (f) { return f.teacherName && f.teacherName !== r.profe; });
     if (!fs.length) return "";
-    return '<p class="fi-cmd"><label><img class=ico src=assets/img/nave/iconos/zoco.png alt> Pasar a ' + esc(r.alias) + ' al escuadrón de <select id="c-cmd">' +
+    return '<p class="fi-cmd"><label><img class=ico src=assets/img/iconos/p/zoco.png alt> Pasar a ' + esc(r.alias) + ' al escuadrón de <select id="c-cmd">' +
       fs.map(function (f) { return '<option value="' + esc(f.teacherName) + '">' + esc(f.name || f.teacherName) + " · " + esc(f.teacherName) + "</option>"; }).join("") +
       '</select></label> <button type="button" class="btn min" id="c-cmd-b">Cambiar</button> ' +
       '<span class="small muted">se lleva todo lo suyo: retos, créditos y colección.</span></p>';
@@ -1157,15 +1156,29 @@
    * todos y cambiarlo afecta al alumnado de sus compañeros; el suyo solo lo ven los suyos. Por eso
    * esta pestaña la ve todo el mundo y la de Ajustes no.
    */
-  /** «Tu sesión en directo»: una casilla por sección, todas marcadas por defecto. La usan la portada y Mis enlaces. */
+  /**
+   * Las casillas de la sesión, una por sección y con su captura (Norberto, 19-sep: «añade capturas de cada diapositiva…
+   * si no, no sabe lo que es cada cosa»). Las que dependen de que haya algo (una batalla, una votación, una oferta) no
+   * tienen captura fija: van con su icono y cuándo salen.
+   */
+  var SIN_CAPTURA = { simulador: ["diana", "Sale cuando alguien ha jugado al Simulador"], votacion: ["rayo", "Sale si hay una votación esta semana"],
+                      oferta: ["monedas", "Sale si hay oferta en el Mercado"] };
+  function casillasSesion(off) {
+    var hay = window.SG_CAPTURAS_SESION || [];
+    return '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
+      var k = x[0], sc = SIN_CAPTURA[k] || ["video", "Sale cuando esa semana tiene algo que enseñar"];
+      return '<label class="m-sec"><input type="checkbox" data-sec="' + esc(k) + '"' + (off.indexOf(k) < 0 ? " checked" : "") + '>' +
+        (hay.indexOf(k) >= 0 ? '<img class="m-sec-img" src="assets/img/sesion/' + esc(k) + '.jpg" alt="" loading="lazy" width="480" height="270">'
+                             : '<span class="m-sec-img sin">' + ico(sc[0]) + '<small>' + esc(sc[1]) + '</small></span>') +
+        '<span><b>' + esc(x[1]) + '</b><em>' + esc(x[2]) + '</em></span></label>'; }).join("") + '</div>';
+  }
+  /** «Tu sesión en directo»: una casilla por sección, todas marcadas por defecto (la ventana de la rueda). */
   function bloqueSesion(t, nombre) {
     var offMio = ((t.sesiones || {})[nombre]) || [];
     return '<div class="card m-sesion"><h3>Tu sesión en directo</h3>' +
       '<p class="small muted">Marca lo que quieres en tu presentación. Por defecto sale todo; lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
       'Cada semana solo aparece lo que ese día tiene algo que enseñar.</p>' +
-      '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
-        return '<label class="m-sec"><input type="checkbox" data-sec="' + esc(x[0]) + '"' + (offMio.indexOf(x[0]) < 0 ? " checked" : "") + '>' +
-          '<span><b>' + esc(x[1]) + '</b><em>' + esc(x[2]) + '</em></span></label>'; }).join("") + '</div>' +
+      casillasSesion(offMio) +
       '<p class="small m-sec-msg" id="m-sec-msg" aria-live="polite"></p></div>';
   }
   /**
@@ -1226,6 +1239,64 @@
    * Todo sale de lo que la consola ya tiene (el tablero del grupo y los datos de la semana): ni una lectura más, salvo
    * tu comandante y tus notas.
    */
+  /**
+   * 19-sep · NEBULA, EN LA PORTADA. Norberto: «mensajes de ánimo para el docente, con consejos para promover la
+   * participación… insights de la última semana, activos, pasivos… un pequeño banner con la cara de NEBULA y el mensaje
+   * con efecto máquina de escribir, justo encima de los insights». Se eligen por lo que ha pasado en SU gente; cada uno
+   * con un consejo concreto y, si lo hay, un botón que lo hace.
+   */
+  function consejosNebula(o) {
+    var L = [], N = o.gente.length, act = o.gente.filter(function (r) { return Number(r.xp7) > 0; }).length;
+    var sil = o.gente.filter(function (r) { return !Number(r.xp7) && (r.hechos || []).length; });
+    var sin = o.gente.filter(function (r) { return !(r.hechos || []).length; });
+    var pct = N ? Math.round(act * 100 / N) : 0;
+    var nom = function (A) { return A.slice(0, 3).map(function (r) { return r.alias; }).join(", ") + (A.length > 3 ? "…" : ""); };
+    if (!N) L.push({ t: "Todavía no se ha alistado nadie. Copia la invitación en «Mis grupos» y pégala hoy en el foro: el primer día es cuando más gente se apunta." });
+    if (o.cola) L.push({ t: "Tienes " + o.cola + (o.cola === 1 ? " subida de nota esperando" : " subidas de nota esperando") + " tu visto bueno. Resuélvelas pronto: quien pide nota está pendiente.", a: ["Ver la Cola de nota", "cola"] });
+    if (sil.length) L.push({ t: (sil.length === 1 ? "Una persona lleva" : sil.length + " reclutas llevan") + " una semana en silencio (" + nom(sil) + "). Un mensaje personal funciona mejor que un aviso general: una línea basta.", a: ["Escribirles", "silencio"] });
+    if (sin.length && N) L.push({ t: (sin.length === 1 ? "Una persona no ha" : sin.length + " no han") + " registrado aún su primer reto. El «Preséntate» (A0) es el más fácil: deja cinco minutos al final de la clase para hacerlo juntos.", a: ["Escribirles", "sin"] });
+    var flojo = o.antes.filter(function (r) { return o.semanaDe(r) === o.sem - 1; }).map(function (r) {
+      var h = o.gente.filter(function (x) { return (x.hechos || []).indexOf(r.id) >= 0; }).length; return { r: r, p: N ? Math.round(h * 100 / N) : 0 }; })
+      .filter(function (x) { return x.p < 30; })[0];
+    if (flojo && N) L.push({ t: "El reto " + flojo.r.id + " de la semana pasada solo lo ha hecho el " + flojo.p + " %. Enséñalo con su ejemplo en la sesión («Ver un ejemplo»): lo que se ve hecho, se hace." });
+    if (N && pct >= 70) L.push({ t: "¡Menuda tripulación! El " + pct + " % se ha movido esta semana. Nómbralos en clase: el reconocimiento en público es el mejor combustible." });
+    else if (N && pct >= 40) L.push({ t: "Media tripulación en marcha (" + act + " de " + N + "). Proyecta «Han movido ficha» al empezar la clase: ver a los compañeros tira de los demás." });
+    else if (N) L.push({ t: "Semana tranquila: solo " + act + " de " + N + " se han movido. Propón un reto relámpago en clase, diez minutos en directo: romper el hielo juntos cuesta menos." });
+    if (o.s && o.s.tema_n && o.semNuevoTema) L.push({ t: "Esta semana abrís " + o.s.tema + ". Pon su vídeo al principio y presenta la misión con calma: el primer reto del planeta marca el ritmo." });
+    if (o.sem === o.total) L.push({ t: "Última semana del viaje. Recuérdales que el Mercado sigue abierto una semana más para canjear y que el diploma les espera en su Nave." });
+    var gen = ["Abre la llamada a filas al empezar: fichar da créditos y un sobre de cromos, y es la costumbre que más engancha.",
+               "Lanza una votación desde el aula: dos minutos, y participa hasta quien no quiere hablar en voz alta.",
+               "Proyecta el ranking de la semana, no el general: cualquiera puede ganarlo, y eso anima a los que van por detrás.",
+               "Usa el mensaje a tus reclutas para recordar lo que se cierra esta semana: una línea basta."];
+    L.push({ t: gen[(o.sem || 0) % gen.length] });
+    return L;
+  }
+  function bannerNebula(consejos) {
+    return '<div class="card pt-neb"><div class="pt-neb-cara"><img src="assets/img/personajes/nebula.png" alt=""></div>' +
+      '<div class="pt-neb-txt"><b>NEBULA</b><p id="pt-neb-p" aria-live="polite"></p>' +
+      '<p class="pt-neb-pie"><span id="pt-neb-acc"></span>' + (consejos.length > 1 ? '<button type="button" class="btn min" id="pt-neb-otro">Otro consejo</button>' +
+        '<span class="small muted" id="pt-neb-n"></span>' : '') + '</p></div></div>';
+  }
+  function cablearNebula(consejos, alHacer) {
+    var p = $("#pt-neb-p"), n = $("#pt-neb-n"), acc = $("#pt-neb-acc"), i = 0, tic = null;
+    if (!p || !consejos.length) return;
+    var quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var pon = function () {
+      var c = consejos[i], txt = c.t, k = 0; clearInterval(tic);
+      if (n) n.textContent = (i + 1) + "/" + consejos.length;
+      acc.innerHTML = c.a ? '<button type="button" class="btn min primary" data-neb="' + c.a[1] + '">' + esc(c.a[0]) + '</button>' : "";
+      if (quieto) { p.textContent = txt; return; }
+      p.textContent = ""; p.classList.add("escribe");
+      tic = setInterval(function () {
+        if (!document.body.contains(p)) return clearInterval(tic);
+        k += 2; p.textContent = txt.slice(0, k);
+        if (k >= txt.length) { clearInterval(tic); p.classList.remove("escribe"); }
+      }, 22);
+    };
+    var otro = $("#pt-neb-otro"); if (otro) otro.onclick = function () { i = (i + 1) % consejos.length; pon(); };
+    acc.onclick = function (e) { var b = e.target.closest("[data-neb]"); if (b) alHacer(b.getAttribute("data-neb")); };
+    pon();
+  }
   function semanaDeReto(r, tipo, mapa) {
     if (tipo === "PUA") return Number(r.tema || 0);          // en PUA, cada tema es su semana
     return Number(mapa[r.id] || ((window.SG_CATALOGO || {}).semanaDelTema || {})[String(r.tema)] || 0);
@@ -1261,14 +1332,21 @@
     var foro = s && s.foro ? firma(s.foro) : "";
     var propio = ((t.paneles || {})[yoN]) || "", panelMio = propio || t.panel || window.SG_PANEL_MAESTRO || "";
     var conUid = gente.filter(function (r) { return !!r.uid; });
+    var DEST = { todos: conUid, silencio: conUid.filter(function (r) { return !Number(r.xp7) && (r.hechos || []).length; }),
+                 sin: conUid.filter(function (r) { return !(r.hechos || []).length; }) };
+    var destino = "todos";
     var vids = (s && s.videos) || [];
     var estado = sem < 1 ? "Aún no ha empezado" : sem > total ? "Curso terminado" : "Semana " + sem + " de " + total;
+    var sAnt = sem >= 2 ? (tipo === "PUA" ? null : SEMS[Math.min(sem - 1, SEMS.length) - 1]) : null;
+    var consejos = consejosNebula({ gente: gente, sem: sem, total: total, s: s, antes: antes, cola: (function () { try { return pendientesCola(); } catch (e) { return 0; } })(),
+      semNuevoTema: !!(s && (!sAnt || sAnt.tema_n !== s.tema_n)), semanaDe: function (r) { return semanaDeReto(r, tipo, mapa); } });
 
     $("#c-cuerpo").innerHTML = '<div class="pt">' +
       '<div class="card pt-hero"><img class="pt-ava" id="pt-ava" src="assets/img/avatares/comandantes/c1.jpg" alt="">' +
         '<div><div class="eyebrow teal">' + esc(estado) + (s ? ' · ' + esc(s.tema) : '') + '</div>' +
         '<h2>' + esc(s ? s.sub || s.tema : t.nombre) + '</h2>' +
         '<p class="small muted">' + (yoN ? 'Comandante <b>' + esc(yoN) + '</b> · ' : '') + esc(deQuien) + (s && s.capitulo ? ' · capítulo «' + esc(s.capitulo) + '»' : '') + '</p></div></div>' +
+      bannerNebula(consejos) + resumenGrupo(t, gente) +
       (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
       '<div class="pt-dos">' +
         '<div class="card pt-video"><h3>El vídeo que toca</h3>' +
@@ -1307,6 +1385,9 @@
         // 19-sep · «opción de mandar un mensaje a los estudiantes: les aparecerá en su tablón la próxima vez que se conecten»
         '<div class="card pt-msg"><h3>' + ico("mensaje") + ' Mensaje a tus reclutas</h3>' +
           '<p class="small muted">Les sale arriba en su Nave —al momento si están dentro, o la próxima vez que entren— hasta que lo marcan como leído. Va ' + esc(deQuien) + '.</p>' +
+          '<div class="pt-seg" role="group" aria-label="A quién">' +
+            [["todos", "Todos"], ["silencio", "En silencio"], ["sin", "Sin estrenarse"]].filter(function (x) { return x[0] === "todos" || DEST[x[0]].length; }).map(function (x) {
+              return '<button type="button" data-dest="' + x[0] + '" aria-pressed="' + (x[0] === "todos") + '"' + (x[0] === "todos" ? ' class="on"' : '') + '>' + x[1] + ' · ' + DEST[x[0]].length + '</button>'; }).join("") + '</div>' +
           '<textarea id="pt-msg-txt" rows="3" maxlength="400" placeholder="Por ejemplo: el jueves repasamos el reto B2; traed la Bitácora al día."></textarea>' +
           '<p class="pt-fila pt-msg-pie"><span class="small muted" id="pt-msg-n">0/400</span>' +
             '<button type="button" class="btn primary" id="pt-msg-ok" disabled>Enviar a ' + conUid.length + (conUid.length === 1 ? " recluta" : " reclutas") + '</button></p>' +
@@ -1339,20 +1420,31 @@
     if ($("#pt-panel-of")) $("#pt-panel-of").onclick = function () { guardaPanel(""); };
     // el mensaje a tus reclutas: uno a cada uno, con el mismo buzón que «validar/anular un reto»
     var mTxt = $("#pt-msg-txt"), mOk = $("#pt-msg-ok"), mN = $("#pt-msg-n"), mRes = $("#pt-msg-res");
+    var ponDestino = function (a) {
+      if (!DEST[a]) return; destino = a;
+      Array.prototype.forEach.call(document.querySelectorAll("#c-cuerpo [data-dest]"), function (b) {
+        var on = b.getAttribute("data-dest") === a; b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); });
+      if (mOk) { mOk.textContent = "Enviar a " + DEST[a].length + (DEST[a].length === 1 ? " recluta" : " reclutas"); mOk.disabled = !mTxt.value.trim() || !DEST[a].length; }
+    };
+    Array.prototype.forEach.call(document.querySelectorAll("#c-cuerpo [data-dest]"), function (b) { b.onclick = function () { ponDestino(b.getAttribute("data-dest")); }; });
+    // «Escribirles» (en las cifras o en un consejo de NEBULA): elige a quién y lleva a la caja del mensaje
+    var escribirA = function (a) { ponDestino(a); if (mTxt) { mTxt.scrollIntoView({ behavior: "smooth", block: "center" }); mTxt.focus(); } };
+    Array.prototype.forEach.call(document.querySelectorAll("#c-cuerpo [data-escribir]"), function (b) { b.onclick = function () { escribirA(b.getAttribute("data-escribir")); }; });
+    cablearNebula(consejos, function (que) { if (que === "cola") { TAB = "canjes"; pintar(); } else escribirA(que); });
     if (mTxt && mOk) {
-      mTxt.oninput = function () { mN.textContent = mTxt.value.length + "/400"; mOk.disabled = !mTxt.value.trim() || !conUid.length; };
+      mTxt.oninput = function () { mN.textContent = mTxt.value.length + "/400"; mOk.disabled = !mTxt.value.trim() || !DEST[destino].length; };
       mOk.onclick = async function () {
-        var txt = mTxt.value.trim(); if (!txt) return;
-        if (!(await window.SG.preguntar({ titulo: "¿Enviar el mensaje a tus " + conUid.length + " reclutas?", texto: txt, si: "Enviar" }))) return;
+        var txt = mTxt.value.trim(), para = DEST[destino]; if (!txt || !para.length) return;
+        if (!(await window.SG.preguntar({ titulo: "¿Enviar el mensaje a " + (para.length === 1 ? "1 recluta" : para.length + " reclutas") + "?", texto: txt, si: "Enviar" }))) return;
         mOk.disabled = true; var ok = 0, mal = 0, i = 0;
         var uno = async function () {
-          while (i < conUid.length) { var r = conUid[i++];
+          while (i < para.length) { var r = para[i++];
             try { await MOTOR.avisarRecluta(PER, r.uid, { texto: txt, de: yoN, titulo: "Mensaje de tu Comandante" }); ok++; }
             catch (e) { mal++; }
-            mRes.textContent = "Enviando… " + (ok + mal) + " de " + conUid.length; }
+            mRes.textContent = "Enviando… " + (ok + mal) + " de " + para.length; }
         };
         await Promise.all([uno(), uno(), uno(), uno()]);
-        mRes.textContent = mal ? "Enviado a " + ok + " de " + conUid.length + " (" + mal + " no se han podido enviar: prueba otra vez)" : "✓ Enviado a " + ok + (ok === 1 ? " recluta" : " reclutas");
+        mRes.textContent = mal ? "Enviado a " + ok + " de " + para.length + " (" + mal + " no se han podido enviar: prueba otra vez)" : "✓ Enviado a " + ok + (ok === 1 ? " recluta" : " reclutas");
         if (!mal) { mTxt.value = ""; mN.textContent = "0/400"; } else mOk.disabled = false;
       };
     }
@@ -1411,7 +1503,7 @@
         enlaceFila("<img class=ico src=assets/img/iconos/p/medalla.png alt>", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1", "tablero_" + PER, true) +
         enlaceFila("<img class=ico src=assets/img/iconos/p/video.png alt>", "La sesión de esta semana", "sesion.html?per=" + encodeURIComponent(PER), "sesion_" + PER, true) +
         // 13-sep · la Nave con tu Comandante de recluta, para ensayar (o enseñarla fuera de la sesión): no guarda nada
-        enlaceFila("<img class=ico src=assets/img/nave/iconos/envivo.png alt>", "Tu Nave de Comandante (simulacro)", "recluta.html?simulacro=1&per=" + encodeURIComponent(PER), "", true) +
+        enlaceFila("<img class=ico src=assets/img/iconos/p/envivo.png alt>", "Tu Nave de Comandante (simulacro)", "recluta.html?simulacro=1&per=" + encodeURIComponent(PER), "", true) +
         enlaceFila("<img class=ico src=assets/img/iconos/p/notas.png alt>", "Padlet de la clase", t.padlet || "") +
       '</div></div>';
 
@@ -1519,7 +1611,7 @@
    */
   async function verPremios(contexto, destino) {
     PE.contexto = contexto; PE.destino = destino;
-    destino.innerHTML = '<div class="card pe-card"><div class="pe-cab"><div><h3><img class=ico src=assets/img/nave/iconos/premios.png alt> Premios por enlace</h3>' +
+    destino.innerHTML = '<div class="card pe-card"><div class="pe-cab"><div><h3><img class=ico src=assets/img/iconos/p/premios.png alt> Premios por enlace</h3>' +
       '<p class="small muted">Un enlace que da un premio a quien lo pulse, <b>una vez por persona</b>. Una <b>recompensa</b> para quien supera un reto de clase, o un <b>huevo de Pascua</b> escondido en tu Genially. ' +
       'El mismo enlace vale en todos los grupos a los que lo apliques. Todo se guarda solo.</p></div>' +
       '<button type="button" class="btn primary" id="pe-nuevo"><img class=ico src=assets/img/iconos/p/anadir.png alt> Nuevo premio</button></div>' +
@@ -1562,8 +1654,8 @@
         '<div class="pe-l1">' +
           '<input class="h-nom pe-nom" value="' + esc(it.nombre || "") + '" placeholder="' + (rec ? "Ponle nombre: «Reto del lunes»" : "Ponle nombre: «Escondido en el Tema 3»") + '" aria-label="Nombre del premio" maxlength="80">' +
           '<span class="pe-tipo" role="group" aria-label="Qué es">' +
-            '<button type="button" class="' + (rec ? "on" : "") + '" data-pe-tipo="recompensa" aria-pressed="' + rec + '"><img class=ico src=assets/img/nave/iconos/premios.png alt> Recompensa</button>' +
-            '<button type="button" class="' + (rec ? "" : "on") + '" data-pe-tipo="huevo" aria-pressed="' + !rec + '"><img class=ico src=assets/img/nave/iconos/botin.png alt> Huevo de Pascua</button></span>' +
+            '<button type="button" class="' + (rec ? "on" : "") + '" data-pe-tipo="recompensa" aria-pressed="' + rec + '"><img class=ico src=assets/img/iconos/p/premios.png alt> Recompensa</button>' +
+            '<button type="button" class="' + (rec ? "" : "on") + '" data-pe-tipo="huevo" aria-pressed="' + !rec + '"><img class=ico src=assets/img/iconos/p/botin.png alt> Huevo de Pascua</button></span>' +
           '<label class="h-sw" title="Encendido: se puede reclamar (dentro de sus fechas).">' +
             '<input type="checkbox" class="h-on"' + (it.activo === false ? "" : " checked") + '><i></i>' +
             '<span class="h-sw-si">Activo</span><span class="h-sw-no">En pausa</span></label>' +
@@ -1619,10 +1711,10 @@
       if (!e || !e.R) { f2.textContent = "No está guardado en el servidor"; return; }
       var n = es.reduce(function (a, x) { return a + (x ? Number(x.reclamados) || 0 : 0); }, 0);
       it.__reclamados = n;
-      var cuantos = n ? " · <img class=ico src=assets/img/nave/iconos/gente.png alt> " + n + (n === 1 ? " lo ha reclamado" : " lo han reclamado") : " · nadie lo ha reclamado aún";
+      var cuantos = n ? " · <img class=ico src=assets/img/iconos/p/gente.png alt> " + n + (n === 1 ? " lo ha reclamado" : " lo han reclamado") : " · nadie lo ha reclamado aún";
       var cuando = MOTOR.cuandoEs;
       f2.innerHTML = (e.estado === "pausado" ? "<img class=ico src=assets/img/iconos/p/pausa.png alt> En pausa"
-        : e.estado === "pronto" ? "<img class=ico src=assets/img/nave/iconos/tiempo.png alt> Se abre " + cuando(e.desde)
+        : e.estado === "pronto" ? "<img class=ico src=assets/img/iconos/p/tiempo.png alt> Se abre " + cuando(e.desde)
         : e.estado === "cerrado" ? "<img class=ico src=assets/img/iconos/p/candado.png alt> Se cerró " + cuando(e.hasta)
         : e.estado === "agotado" ? "<img class=ico src=assets/img/iconos/p/hecho.png alt> Agotado"
         : e.estado === "borrado" ? "<img class=ico src=assets/img/iconos/p/aviso.png alt> Quitado"
@@ -1782,8 +1874,8 @@
   function elegirTipo() {
     return ventanaVisual("¿Qué quieres crear?",
       '<div class="pe-ops dos">' +
-        '<button type="button" class="pe-op" data-v="recompensa"><span class="pe-op-ico"><img class=ico src=assets/img/nave/iconos/premios.png alt></span><b>Una recompensa</b><em>Para quien supera un reto o una actividad de clase. Al pulsar el enlace: «¡Enhorabuena! Has ganado una recompensa».</em></button>' +
-        '<button type="button" class="pe-op" data-v="huevo"><span class="pe-op-ico"><img class=ico src=assets/img/nave/iconos/botin.png alt></span><b>Un huevo de Pascua</b><em>Escondido en un rincón de tu Genially. Quien lo encuentra: «Has encontrado un huevo de Pascua».</em></button>' +
+        '<button type="button" class="pe-op" data-v="recompensa"><span class="pe-op-ico"><img class=ico src=assets/img/iconos/p/premios.png alt></span><b>Una recompensa</b><em>Para quien supera un reto o una actividad de clase. Al pulsar el enlace: «¡Enhorabuena! Has ganado una recompensa».</em></button>' +
+        '<button type="button" class="pe-op" data-v="huevo"><span class="pe-op-ico"><img class=ico src=assets/img/iconos/p/botin.png alt></span><b>Un huevo de Pascua</b><em>Escondido en un rincón de tu Genially. Quien lo encuentra: «Has encontrado un huevo de Pascua».</em></button>' +
       "</div>",
       function (capa, cerrar) { Array.prototype.forEach.call(capa.querySelectorAll("[data-v]"), function (b) { b.onclick = function () { cerrar(b.getAttribute("data-v")); }; }); });
   }
@@ -1863,8 +1955,8 @@
    * sus mensajes (Norberto: «un mensaje corto… que ve también el docente»). Un docente puede
    * deshacer un trueque cerrado: lo hace el servidor, y si algo ya no se puede devolver, lo dice.
    */
-  var NOM_ESTADO = { abierto: "<img class=ico src=assets/img/nave/iconos/tiempo.png alt> En marcha", aceptado: "<img class=ico src=assets/img/iconos/p/hecho.png alt> Cambiado", rechazado: "✕ Rechazado", retirado: "↩ Retirado",
-    caducado: "<img class=ico src=assets/img/nave/iconos/tiempo.png alt> Caducado", anulado: "<img class=ico src=assets/img/iconos/p/aviso.png alt> Anulado", vendido: "<img class=ico src=assets/img/iconos/p/monedas.png alt> Se lo quedó otro", deshecho: "↺ Deshecho" };
+  var NOM_ESTADO = { abierto: "<img class=ico src=assets/img/iconos/p/tiempo.png alt> En marcha", aceptado: "<img class=ico src=assets/img/iconos/p/hecho.png alt> Cambiado", rechazado: "✕ Rechazado", retirado: "↩ Retirado",
+    caducado: "<img class=ico src=assets/img/iconos/p/tiempo.png alt> Caducado", anulado: "<img class=ico src=assets/img/iconos/p/aviso.png alt> Anulado", vendido: "<img class=ico src=assets/img/iconos/p/monedas.png alt> Se lo quedó otro", deshecho: "↺ Deshecho" };
   /**
    * 15-sep · CUÁNDO SE ABRE EL ZOCO, CON SU FECHA (Norberto: «indica en el Zoco la fecha exacta que se abre»). Es el
    * capítulo 5 (c5): su semana del curso, con las no lectivas saltadas, y si el referente lo abrió antes, se dice.
@@ -1960,7 +2052,7 @@
       var vital = VITALICIOS_WEB.indexOf(correo) >= 0, esRef = d.rol === "referente", otros = enOtros(correo);
       var destinos = docs.filter(function (x) { return x.nombre !== d.nombre && conEsc(x.nombre); });
       return '<article class="eq-p' + (esRef ? " ref" : "") + '">' +
-        '<div class="eq-cab">' + (f && f.imageUrl ? '<img src="' + esc(f.imageUrl) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="eq-sin" aria-hidden="true"><img class=ico src=assets/img/nave/iconos/gente.png alt></span>') +
+        '<div class="eq-cab">' + (f && f.imageUrl ? '<img src="' + esc(f.imageUrl) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="eq-sin" aria-hidden="true"><img class=ico src=assets/img/iconos/p/gente.png alt></span>') +
           '<div class="eq-quien"><h4>' + esc(d.nombre || correo) + (soyYo ? ' <span class="chip">tú</span>' : "") + "</h4>" +
           '<p class="small muted">' + esc(correo || "sin correo") + "</p></div>" +
           '<span class="eq-rol' + (esRef ? " ref" : "") + '"' + (vital ? ' title="Referente vitalicio: manda en todos los grupos"' : "") + '>' + (vital ? "<img class=ico src=assets/img/iconos/p/estrella.png alt> Vitalicio" : esRef ? "<img class=ico src=assets/img/iconos/p/estrella.png alt> Referente" : "Docente") + "</span></div>" +
@@ -1983,7 +2075,7 @@
     var nomsH = Object.keys(huerfanos), conDestino = docs.filter(function (x) { return conEsc(x.nombre); });
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>Equipo docente</h3>' +
       '<p class="small muted">Cada persona, con lo que se le puede hacer. Entran con <b>su cuenta de Google</b>: añadirla es darle entrada al grupo; quitarla, quitársela.' +
-      (VITALICIOS_WEB.indexOf(yo) >= 0 ? ' Todo el profesorado de todos los grupos está en <a href="profesores.html"><img class=ico src=assets/img/nave/iconos/gente.png alt> Profesores</a>.' : "") + "</p>" +
+      (VITALICIOS_WEB.indexOf(yo) >= 0 ? ' Todo el profesorado de todos los grupos está en <a href="profesores.html"><img class=ico src=assets/img/iconos/p/gente.png alt> Profesores</a>.' : "") + "</p>" +
       '<div class="eq-lista">' + docs.map(tarjeta).join("") + "</div></div>" +
       (nomsH.length && conDestino.length ? '<div class="card"><h3><img class=ico src=assets/img/iconos/p/aviso.png alt> Alumnado sin Comandante</h3>' +
         '<p class="small muted">Su Comandante ya no está en el equipo. Pásalo a alguien que sí esté (y entra en su escuadrón).</p>' +
@@ -2200,8 +2292,8 @@
   function estadoSorteo(t) {
     var ahora = Date.now();
     if (t.stargateRetirado) return ["retirado", "<img class=ico src=assets/img/iconos/p/aviso.png alt> Quitado de este grupo"];
-    if (t.isRaffleCompleted) return ["hecho", "<img class=ico src=assets/img/nave/iconos/rankings.png alt> Sorteado el " + diaDe(t.raffleResolvedAt)];
-    if (Number(t.availableFrom) > ahora) return ["pronto", "<img class=ico src=assets/img/nave/iconos/tiempo.png alt> A la venta desde el " + diaDe(t.availableFrom)];
+    if (t.isRaffleCompleted) return ["hecho", "<img class=ico src=assets/img/iconos/p/rankings.png alt> Sorteado el " + diaDe(t.raffleResolvedAt)];
+    if (Number(t.availableFrom) > ahora) return ["pronto", "<img class=ico src=assets/img/iconos/p/tiempo.png alt> A la venta desde el " + diaDe(t.availableFrom)];
     if (Number(t.ticketDeadline) && Number(t.ticketDeadline) <= ahora) return ["listo", "<img class=ico src=assets/img/iconos/p/dados.png alt> Venta cerrada: listo para sortear"];
     return ["venta", "<img class=ico src=assets/img/iconos/p/hecho.png alt> A la venta · se sortea el " + diaDe(t.ticketDeadline)];
   }
@@ -2269,8 +2361,8 @@
   function estadoOferta(r) {
     var so = r.stargateOferta || {}, fo = r.flashOffer || {}, ahora = Date.now();
     if (so.cancelada) return ["cancelada", "✕ Cancelada"];
-    if (ahora < Number(so.desde || 0)) return ["pronto", "<img class=ico src=assets/img/nave/iconos/tiempo.png alt> Empieza el " + diaDe(so.desde)];
-    if (ahora >= Number(fo.endsAt || 0)) return ["fin", "<img class=ico src=assets/img/nave/iconos/tiempo.png alt> Terminó el " + diaDe(fo.endsAt)];
+    if (ahora < Number(so.desde || 0)) return ["pronto", "<img class=ico src=assets/img/iconos/p/tiempo.png alt> Empieza el " + diaDe(so.desde)];
+    if (ahora >= Number(fo.endsAt || 0)) return ["fin", "<img class=ico src=assets/img/iconos/p/tiempo.png alt> Terminó el " + diaDe(fo.endsAt)];
     // (15-sep · agotada NO es terminada: le faltan unidades, no tiempo; antes solo ofrecía «Reabrir»)
     if (r.isLimitedStock === true && Number(r.globalStock || 0) <= 0) return ["agotada", "<img class=ico src=assets/img/iconos/p/fuego.png alt> Agotada"];
     return ["viva", "<img class=ico src=assets/img/iconos/p/rayo.png alt> A la venta hasta el " + diaDe(fo.endsAt)];
@@ -2456,7 +2548,7 @@
           ' · a la venta del ' + diaDe(x.availableFrom) + ' al ' + diaDe(x.ticketDeadline) + '</p></div></div>' +
           (e[0] === "retirado" ? '<p class="small muted">Se quitó de este grupo antes de vender ninguna participación. Puedes volver a añadirlo desde sus grupos.</p>'
           : e[0] === "hecho"
-            ? '<div class="sr-ganadores"><p><img class=ico src=assets/img/nave/iconos/rankings.png alt> <b>Ganadores</b> (entrégales el premio)' + (x.raffleResolvedBy === "auto" ? ' · <span class="small muted">se resolvió solo el ' + diaDe(x.raffleResolvedAt) + '</span>' : '') + ':</p>' +
+            ? '<div class="sr-ganadores"><p><img class=ico src=assets/img/iconos/p/rankings.png alt> <b>Ganadores</b> (entrégales el premio)' + (x.raffleResolvedBy === "auto" ? ' · <span class="small muted">se resolvió solo el ' + diaDe(x.raffleResolvedAt) + '</span>' : '') + ':</p>' +
               ((x.raffleWinnerIds || []).length ? '<ul>' + ganadores + '</ul>' +
                 // 14-sep · Norberto: «importante guardar estos datos para poder dar las licencias de forma manual»
                 '<p><button class="btn" data-copiar-gan="' + esc(x.docId) + '"><img class=ico src=assets/img/iconos/p/notas.png alt> Copiar ganadores (alias, nombre y correo)</button></p>'
@@ -2587,7 +2679,7 @@
     el.innerHTML = '<p class="small sr-ambito-t"><img class=ico src=assets/img/iconos/p/varios.png alt> <b>En sus grupos:</b> ' + g.map(function (per) {
       var t = de[per], on = !!t && !t.stargateRetirado, hecho = !!t && t.isRaffleCompleted && !t.stargateRetirado;
       return '<label class="pe-chip' + (hecho ? " hecho" : "") + '" title="' + (hecho ? "Ya se hizo aquí" : on ? "Desmárcalo para quitarlo de este grupo" : "Márcalo para llevarlo a este grupo") + '">' +
-        '<input type="checkbox" value="' + esc(per) + '"' + (on ? " checked" : "") + (hecho ? " disabled" : "") + "> " + esc(nombreDeGrupo(per)) + (hecho ? " · <img class=ico src=assets/img/nave/iconos/rankings.png alt>" : "") + "</label>";
+        '<input type="checkbox" value="' + esc(per) + '"' + (on ? " checked" : "") + (hecho ? " disabled" : "") + "> " + esc(nombreDeGrupo(per)) + (hecho ? " · <img class=ico src=assets/img/iconos/p/rankings.png alt>" : "") + "</label>";
     }).join(" ") + "</p>";
     Array.prototype.forEach.call(el.querySelectorAll("input[type=checkbox]"), function (c) {
       c.onchange = async function () {
@@ -2686,10 +2778,10 @@
       for (var k = 0; k < res.ganadores.length; k++) {
         await caer(res.ganadores[k]);
         dichos.push('<b>' + esc(res.ganadores[k].alias) + '</b>');
-        $("#sr-res", capa).innerHTML = '<p class="sr-gana"><img class=ico src=assets/img/nave/iconos/rankings.png alt> ' + dichos.join(" · ") + '</p>';
+        $("#sr-res", capa).innerHTML = '<p class="sr-gana"><img class=ico src=assets/img/iconos/p/rankings.png alt> ' + dichos.join(" · ") + '</p>';
         await new Promise(function (ok) { setTimeout(ok, quieto ? 0 : 900); });
       }
-      $("#sr-res", capa).innerHTML = '<p class="sr-gana"><img class=ico src=assets/img/nave/iconos/rankings.png alt> ' + dichos.join(" · ") + '</p><p class="sr-proy-sub">¡Enhorabuena! ' +
+      $("#sr-res", capa).innerHTML = '<p class="sr-gana"><img class=ico src=assets/img/iconos/p/rankings.png alt> ' + dichos.join(" · ") + '</p><p class="sr-proy-sub">¡Enhorabuena! ' +
         (res.ganadores.length > 1 ? 'Os' : 'Te') + ' llevá' + (res.ganadores.length > 1 ? 'is' : 's') + ' ' + esc(res.premio) + '.</p>';
       go.remove();   // (`hidden` no basta: .btn lleva su propio display)
     };
@@ -2774,7 +2866,7 @@
       var pasada = f.fin < hoy, actual = f.inicio <= hoy && hoy <= f.fin, futura = f.inicio > hoy;
       var festiva = f.congelada && festivas.indexOf(f.inicio) >= 0;
       var clase = f.congelada ? (festiva ? "festivo" : "nolectiva") : f.canje ? "canje" : "lectiva";
-      var et = f.congelada ? (festiva ? "<img class=ico src=assets/img/iconos/p/calendario.png alt>" : "<img class=ico src=assets/img/iconos/p/pausa.png alt>") : f.canje ? "<img class=ico src=assets/img/nave/iconos/mercado.png alt>" : "S" + f.semana;
+      var et = f.congelada ? (festiva ? "<img class=ico src=assets/img/iconos/p/calendario.png alt>" : "<img class=ico src=assets/img/iconos/p/pausa.png alt>") : f.canje ? "<img class=ico src=assets/img/iconos/p/mercado.png alt>" : "S" + f.semana;
       var que = [];
       // 15-sep · Norberto: «hay que saltarse SIEMPRE la semana del 24 de diciembre, la siguiente y la de Jueves Santo». Los grupos
       // nuevos nacen así; en uno de antes, una festiva que aún cuenta como lectiva se señala (y abajo se saltan todas de un clic).
@@ -2785,7 +2877,7 @@
         caps.filter(function (c) { return semCap(c) === f.semana; }).forEach(function (c) {
           que.push(c.icono + " " + esc(c.titulo) + (CAL.abiertos[c.clave] ? ' <span class="chip ok">ya abierto</span>' : "")); });
         if (f.semana === total) que.push("<img class=ico src=assets/img/iconos/p/hecho.png alt> Último día para registrar retos: <b>" + diaCorto(f.fin) + "</b>");
-        if (f.semana === total + extra) que.push("<img class=ico src=assets/img/nave/iconos/mercado.png alt> Último día para canjear: <b>" + diaCorto(f.fin) + "</b>");
+        if (f.semana === total + extra) que.push("<img class=ico src=assets/img/iconos/p/mercado.png alt> Último día para canjear: <b>" + diaCorto(f.fin) + "</b>");
         if (f.canje && !que.length) que.push('<span class="muted">Semana de canje: sin retos nuevos</span>');
       }
       var dias = "";
@@ -2858,7 +2950,7 @@
           "Las de detrás se renumeran solas y abajo verás a qué día se mueve cada una. Nada cambia hasta <b>Guardar</b>.</p></div>"
         : '<p class="small muted">Lo lleva tu referente. Aquí ves cada semana del curso, las que no son lectivas y lo que se abre en cada una.</p>') +
       '<div class="cal-ley"><span class="l lectiva">S1 · lectiva</span><span class="l nolectiva"><img class=ico src=assets/img/iconos/p/pausa.png alt> no lectiva</span>' +
-        '<span class="l festivo"><img class=ico src=assets/img/iconos/p/calendario.png alt> festiva UNIR</span><span class="l canje"><img class=ico src=assets/img/nave/iconos/mercado.png alt> canje</span><span class="l hoy">hoy</span></div>' +
+        '<span class="l festivo"><img class=ico src=assets/img/iconos/p/calendario.png alt> festiva UNIR</span><span class="l canje"><img class=ico src=assets/img/iconos/p/mercado.png alt> canje</span><span class="l hoy">hoy</span></div>' +
       '<div class="cal-vis" role="list"><div class="cal-fila cal-cabeza" aria-hidden="true"><span class="cal-et"></span><span class="cal-7">' + cabDias +
         '</span><span class="cal-que">Qué pasa</span></div>' + filas.map(fila).join("") + "</div></div>" +
       (edita
@@ -2946,8 +3038,14 @@
    * 18-sep · EL GRUPO DE UN VISTAZO. Norberto: «dentro de cada grupo, un landing con insights sobre ese grupo». Todo sale
    * de lo que la consola ya tiene (el tablero del grupo): ni una lectura más a Firestore.
    */
-  function resumenGrupo(t) {
-    var R = (t && t.reclutas) || [], n = R.length;
+  function filaNombres(tit, L, a) {
+    if (!L.length) return "";
+    return '<p class="c-res-top c-res-ojo"><span>' + esc(tit) + ' · ' + L.length + '</span> ' +
+      L.slice(0, 10).map(function (r) { return '<b>' + esc(r.alias) + '</b>'; }).join(" · ") + (L.length > 10 ? ' <em>y ' + (L.length - 10) + ' más</em>' : '') +
+      ' <button type="button" class="btn min" data-escribir="' + a + '">' + ico("mensaje") + ' Escribirles</button></p>';
+  }
+  function resumenGrupo(t, gente) {
+    var R = gente || (t && t.reclutas) || [], n = R.length;
     if (!n) return '<div class="card c-resumen vacio"><b>Todavía no se ha alistado nadie.</b> <span class="small muted">Comparte la invitación desde «Mis grupos».</span></div>';
     var activos = R.filter(function (r) { return Number(r.xp7) > 0; }).length;
     var sinNada = R.filter(function (r) { return !(r.hechos || []).length; }).length;
@@ -2964,6 +3062,9 @@
       '</div>' +
       (top.length ? '<p class="c-res-top"><span>Esta semana destacan</span> ' + top.map(function (r) {
         return '<b>' + esc(r.alias) + '</b> <em>+' + Number(r.xp7) + ' xp</em>'; }).join(" · ") + '</p>' : '') +
+      // 19-sep · «estudiantes activos, estudiantes pasivos… algo para que pueda ver lo que hace falta»
+      filaNombres("En silencio esta semana", R.filter(function (r) { return !Number(r.xp7) && (r.hechos || []).length; }), "silencio") +
+      filaNombres("Sin estrenarse", R.filter(function (r) { return !(r.hechos || []).length; }), "sin") +
     '</div>';
   }
   /**
@@ -3021,9 +3122,7 @@
             ' (' + esc(mios.map(function (p) { return p.nombre; }).join(" · ")) + '). Por defecto sale todo; lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
             'Para un solo grupo: dentro del grupo, en <b>Mis enlaces</b>.</p>' +
             (distintos ? '<p class="small aviso-suave">Ahora mismo tus grupos no tienen la misma selección: te enseño la de «' + esc(mios[0].nombre) + '». Al tocar una casilla, todos quedan igual.</p>' : '') +
-            '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
-              return '<label class="m-sec"><input type="checkbox" data-sec="' + esc(x[0]) + '"' + (base.indexOf(x[0]) < 0 ? " checked" : "") + '>' +
-                '<span><b>' + esc(x[1]) + '</b><em>' + esc(x[2]) + '</em></span></label>'; }).join("") + '</div>' +
+            casillasSesion(base) +
             '<p class="small m-sec-msg" id="doc-aj-msg" aria-live="polite"></p>'
           : '<p class="small muted">No te encuentro en el equipo docente de ningún grupo en marcha con <b>' + esc((YO && YO.correo) || "") + '</b>.</p>') +
       '</div></div>';
@@ -3119,8 +3218,8 @@
       '<div class="card"><h3>Para los Geniallys · se montan UNA vez</h3>' +
       '<p class="small muted">Ninguno lleva el grupo dentro: piden la cuenta de quien los abre y, si lleva varios grupos, le preguntan cuál. ' +
       'Valen en todos los grupos y todas las convocatorias. En Genially: <b>Insertar → Otros → Código</b> y pegar.</p>' +
-      [["<img class=ico src=assets/img/iconos/p/video.png alt> La sesión de la semana", "sesion.html?embed=1"], ["<img class=ico src=assets/img/nave/iconos/clase.png alt> Llamada a filas (solo la toca el Comandante)", "llamada.html?embed=1"],
-       ["<img class=ico src=assets/img/nave/iconos/envivo.png alt> El aula (el puesto de mando del docente)", "aula.html?embed=1"], ["<img class=ico src=assets/img/iconos/p/diana.png alt> Validar un reto", "validar.html?reto=S7&embed=1"],
+      [["<img class=ico src=assets/img/iconos/p/video.png alt> La sesión de la semana", "sesion.html?embed=1"], ["<img class=ico src=assets/img/iconos/p/clase.png alt> Llamada a filas (solo la toca el Comandante)", "llamada.html?embed=1"],
+       ["<img class=ico src=assets/img/iconos/p/envivo.png alt> El aula (el puesto de mando del docente)", "aula.html?embed=1"], ["<img class=ico src=assets/img/iconos/p/diana.png alt> Validar un reto", "validar.html?reto=S7&embed=1"],
        // 16-sep · la batalla del reto A6: se pone en el Genially del tema 6 y se juega en clase, cada cual en su dispositivo
        ["<img class=ico src=assets/img/iconos/p/diana.png alt> El Simulador de Joran (el reto A6)", "batalla.html?embed=1"]].map(function (x) {
         return '<p class="small">' + x[0] + ' <button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[1], "STARGATE · " + x[0].replace(/^<img[^>]*>\s*/, ""))) + '">&lt;/&gt; Copiar para insertar</button></p>';

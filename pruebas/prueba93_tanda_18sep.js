@@ -42,7 +42,7 @@ c(/class="doc-panel"/.test(CONS) && /\(window\.SG_COMANDANTES_GEN \|\| \[\]\)\.m
 const GEN = JSON.parse((leer("consola.html").match(/window\.SG_COMANDANTES_GEN=(\[[^\]]*\]);/) || [])[1] || "[]");
 c(GEN.length >= 26 && GEN.every((k, i) => k === "c" + (i + 1) && fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes", k + ".jpg"))),
   "   los comandantes genéricos, en orden y todos con su imagen (rubios, castaños, pelirrojos, veteranos y alienígenas)", GEN.join(" "));
-c(/function resumenGrupo\(t\)/.test(CONS) && /resumenGrupo\(t\) \+/.test(CONS), "🔴 dentro del grupo, sus cifras de un vistazo (activos, sin estrenarse, destacados)");
+c(/function resumenGrupo\(t, gente\)/.test(CONS) && /resumenGrupo\(t, gente\) \+/.test(CONS), "🔴 dentro del grupo, sus cifras de un vistazo (activos, sin estrenarse, destacados)");
 c(/'<div class="gp-hacer c-hacer">'/.test(CONS), "🔴 dentro del grupo, proyectar la clase, el aula y la llamada a filas");
 
 // ── 4 · iconos y fuera emojis
