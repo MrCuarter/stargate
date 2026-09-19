@@ -1166,7 +1166,7 @@
    */
   function diaSimulacro(s, caps){
     var n=semanas().length, url=function(sem){
-      return 'recluta.html?simulacro=1&embed=1'+(capitulosDe(Number(sem)).length?'&nebula=1':'')+'&per='+encodeURIComponent(st.per||'demo-motor')+'&semana='+sem; };
+      return 'recluta.html?simulacro=1&embed=1'+(capitulosDe(Number(sem)).length?'&nebula=1':'')+'&per='+encodeURIComponent(st.per||window.SG_PER_DEMO||'demo-stargate')+'&semana='+sem; };
     var opciones=''; for(var k=1;k<=n;k++) opciones+='<option value="'+k+'"'+(k===s.sem?' selected':'')+'>'+k+(k===s.sem?' · esta':'')+'</option>';
     return {k:'simulacro', rot:caps.length?'Enséñalo':'La Nave', html:
       '<div class="dia simulacro"><div class="sim-barra"><span class="sim-t"><img class=ico src=assets/img/iconos/p/envivo.png alt> '+(caps.length?'Enséñalo: ':'')+'la Nave de un recluta, en simulacro</span>'

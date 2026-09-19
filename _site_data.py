@@ -223,6 +223,13 @@ GOOGLE_CLIENT_ID = "631545413622-fpc6e9lteh6j9ikk79o2opdquh0a1art.apps.googleuse
 # URL del despliegue «Aplicación web» (termina en /exec). Vacío = tablero pendiente de conectar.
 TABLERO_API = "https://script.google.com/macros/s/AKfycbxlrRGIBJPD9h8-6D46Y4IJ8Gb2fu9v4-6wYZjgPAom2W1QfLh14ltBZmXV2Sx3_nXvPg/exec"
 
+# ---------- el grupo de demostración ----------
+# 🔴 20-sep · Las pantallas de ejemplo (?demo=1: la Nave, la consola, el aula, las capturas de «Cómo se hace») leen un
+# grupo DE VERDAD por la puerta pública. Su identificador estaba escrito a mano en seis sitios, apuntando a
+# «demo-motor»… que ya no existe: el botón «Probar la Nave como estudiante» de la guía llevaba a un error, y las
+# capturas no se podían regenerar. Un dato, un sitio. Si algún día se cambia el grupo de ejemplo, se cambia AQUÍ.
+PER_DEMO = "demo-stargate"
+
 # ---------- cromos: el álbum del «Sobre de cromos» ----------
 # FUENTE ÚNICA del álbum. De aquí salen (a) el catálogo que pinta la Nave del Recluta
 # (window.SG_CROMOS) y (b) el bloque «var CROMOS» del Apps Script, que _build_site.py

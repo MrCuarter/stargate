@@ -927,7 +927,7 @@
   function demostracion() {
     var PUB = window.SG_API_PUBLICA ||
       "https://us-central1-gamificapro-99e0a.cloudfunctions.net/tableroStargate";
-    var per = url.get("per") || "demo-motor";
+    var per = url.get("per") || window.SG_PER_DEMO || "demo-stargate";
     YO = { correo: "docente@ejemplo.es", nombre: "Capitana Vega" };
     GRUPOS = [{ id: per, nombre: "CLASE DEMO" }];
     PER = per;

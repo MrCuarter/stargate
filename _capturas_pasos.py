@@ -32,7 +32,7 @@ import json, os, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from _site_data import PASOS, TABLERO_API
+from _site_data import PASOS, TABLERO_API, PER_DEMO
 
 # 🔴 Por defecto se retrata la web VIVA: es la que ve la gente, y una captura de algo que solo
 # existe en este portátil enseña una pantalla que nadie tiene. Pero mientras una pantalla nueva
@@ -42,7 +42,7 @@ LOCAL = "--local" in sys.argv
 if LOCAL: sys.argv = [a for a in sys.argv if a != "--local"]
 WEB = "http://localhost:8791" if LOCAL else "https://stargate.mistercuarter.es"
 PER = "clase-demo"                     # el unico grupo con gente: las capturas salen vivas
-PER_NUEVO = "demo-motor"               # su gemelo en el motor nuevo, para las pantallas nuevas
+PER_NUEVO = PER_DEMO                   # el grupo de ejemplo, uno de verdad leido por la puerta publica
 # La Nave rediseñada, en modo demostracion: sin sesion y con un recluta sembrado.
 NAVE_DEMO = WEB + "/recluta.html?per=" + PER_NUEVO + "&demo=1&motor=firestore"
 ALUMNO = "demo05@reclutas.demo"        # recluta sembrado, correo inventado a proposito
@@ -129,9 +129,11 @@ TOMAS = {
                            ancho=1280, alto=820, espera=4,
                            listo="!!document.getElementById('f-docentes')",
                            scroll=subir("3 · El equipo")),
+ # 20-sep · R7 ya no es la lista de grupos (se fue): es la NAVE DEL COMANDANTE, con su ficha,
+ # NEBULA al lado, la pestaña del grupo y sus secciones con iconos.
  "r7_consola.png":    dict(antes=SIN_GLOBO, url=WEB + "/consola.html?demo=1&motor=firestore",
-                           ancho=1360, alto=980, espera=5,
-                           listo="document.querySelectorAll('tbody tr').length>2"),
+                           ancho=1360, alto=1040, espera=6,
+                           listo="!!document.querySelector('.cn-hero') && !!document.querySelector('.cn-secs') && !!document.querySelector('.pt-acc')"),
  "e2_cuenta.png":     dict(antes=OLVIDAR, url=WEB + "/alistarse.html?per=%s&motor=firestore" % PER_NUEVO,
                            ancho=1100, alto=760, espera=5,
                            listo="/Iniciar sesión con Google|Entrar con Google/.test(document.body.innerText)"),
@@ -169,13 +171,15 @@ TOMAS = {
                            listo2="document.querySelectorAll('details.cajon').length>2"),
  # 13-sep · D3 ya no es la sala del docente (clase.html), que se fue: es «Mi gente» en Mis grupos,
  # con la ficha de un recluta abierta (sus retos, sus enlaces, otorgar y anular).
+ # 20-sep · «Mi gente» es ahora una sección de la Nave del Comandante, y la ficha del recluta se abre
+ # en una ventana (#c-modal), no debajo de la tabla.
  "d3_sala.png":       dict(antes=SIN_GLOBO, url=WEB + "/consola.html?demo=1&motor=firestore",
-                           ancho=1360, alto=1000, espera=5,
-                           listo="document.querySelectorAll('tbody tr').length>2",
-                           scroll="(function(){var f=document.querySelector('tbody tr[data-r]'); if(f) f.click(); return 1;})()",
-                           listo2="!!(document.getElementById('c-ficha')&&document.getElementById('c-ficha').innerText.length>40)",
-                           scroll2="(function(){var f=document.getElementById('c-ficha');"
-                                   "window.scrollTo(0,f.getBoundingClientRect().top+window.pageYOffset-90);return 1;})()"),
+                           ancho=1360, alto=1000, espera=6,
+                           listo="!!document.querySelector('.cn-secs')",
+                           scroll="(function(){var b=document.querySelector('.cn-t[data-sec=\'gente\']'); if(b) b.click(); return 1;})()",
+                           listo2="document.querySelectorAll('tbody tr[data-r]').length>2",
+                           scroll2="(function(){var f=document.querySelector('tbody tr[data-r]'); if(f) f.click(); return 1;})()",
+                           listo3="!!document.querySelector('#c-modal.abierto .fi-cab')"),
  "d7_aula.png":       dict(antes=SIN_GLOBO, url=WEB + "/aula.html?demo=1&motor=firestore",
                            ancho=1180, alto=880, espera=7,
                            listo="document.querySelectorAll('.au-t').length>3"),

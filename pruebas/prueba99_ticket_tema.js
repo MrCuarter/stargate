@@ -132,7 +132,19 @@ c(/token:t\|\|''/.test(SES) && /token:t\|\|''/.test(TK), "   y la mandan la sesi
 c(/function sinSesion\(msg\)/.test(TK), "   sin sesión, el panel lo dice en vez de quedarse en blanco");
 c(/VOLVER A HACERLO/.test(GS), "🔴 y el fichero avisa de que hay que volver a desplegarlo para que sirva de algo");
 
-// ── 7 · el botón, donde no tapa nada
+// ── 7 · el grupo de ejemplo, en un solo sitio (y existiendo)
+const AULA_JS = AULA, CONS = leer("assets/js/consola.js"), SITE = leer("_site_data.py"), BUILD = leer("_build_site.py"), GUIA = leer("guia.html");
+c(/^PER_DEMO = "demo-stargate"$/m.test(SITE), "🔴 el grupo de las pantallas de ejemplo se escribe UNA vez (_site_data.PER_DEMO)");
+c(/window\.SG_PER_DEMO=/.test(BUILD) && ["consola.html", "aula.html", "sesion.html"].every(f => /SG_PER_DEMO/.test(leer(f))),
+  "   y viaja a las páginas que lo usan");
+["assets/js/aula.js", "assets/js/consola.js", "assets/js/sesion.js", "guia.html", "_capturas_pasos.py", "_build_site.py"].forEach(function (f) {
+  c(leer(f).indexOf("demo-motor") < 0, "🔴 nadie apunta ya a «demo-motor», que ya no existe: " + f);
+});
+c(/per=demo-stargate/.test(GUIA), "   «Probar la Nave como estudiante» lleva a un grupo que existe");
+c(/window\.SG_PER_DEMO \|\| "demo-stargate"/.test(AULA_JS) && /window\.SG_PER_DEMO \|\| "demo-stargate"/.test(CONS),
+  "   y si algún día no llegara, el respaldo es el mismo");
+
+// ── 8 · el botón, donde no tapa nada
 c(/\.ses-aula-b\{display:flex/.test(CSS) && !/\.ses-aula-b\{position:absolute/.test(CSS),
   "🔴 el botón de las herramientas ya no flota encima de la barra de pasos");
 c(/\.tk-nota\{display:grid/.test(CSS) && /\.tk-n-b \.v1/.test(CSS), "   y el resumen del ticket tiene su barra de colores");

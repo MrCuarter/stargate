@@ -12,7 +12,7 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, REFLEXION_RETOS, TOPE_RETOS_SEMANA, SESION_SECCIONES, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
-                        PASOS, ESCUADRONES, TICKET_URL, TICKET_TEMAS, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
+                        PASOS, ESCUADRONES, PER_DEMO, TICKET_URL, TICKET_TEMAS, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES,
                         HITOS_A_BORDO, CUBIERTAS_A_BORDO, HEROES_A_BORDO, CARTA_A_BORDO, BATALLA, SIN_PUA, VOTACION)
 # Los logros de a bordo, tal y como los lee el navegador (un dato, un sitio: _site_data.py)
@@ -750,7 +750,7 @@ un estudiante al azar.</p></div>
 <div class="card"><span class="cv-n">4</span><h3>Ponte en su lugar una vez</h3>
 <p>Antes de la primera sesión, abre la Nave como si fueras alumno. Diez minutos entendiendo lo que
 ven ellos ahorran media hora de dudas en clase.</p>
-<p style="margin-top:12px"><a class="btn primary" href="recluta.html?per=demo-motor&amp;demo=1" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/cohete.png alt> Probar la Nave como estudiante ↗</a></p>
+<p style="margin-top:12px"><a class="btn primary" href="recluta.html?per={PER_DEMO}&amp;demo=1" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/cohete.png alt> Probar la Nave como estudiante ↗</a></p>
 <p class="small muted">Es un recluta de mentira en un grupo de pruebas: toca lo que quieras, no se
 guarda nada.</p></div>
 </div>
@@ -3236,6 +3236,8 @@ def _cabeza_motor():
     return (
         '<script>window.SG_FIREBASE=' + _json.dumps(FIREBASE) + ';'
         'window.SG_CATALOGO_URL="' + _v("motor/catalogo.json") + '";'
+        # el grupo de ejemplo de las pantallas ?demo=1 (la consola y el aula): un dato, un sitio
+        'window.SG_PER_DEMO=' + _json.dumps(PER_DEMO) + ';'
         'window.SG_TICKET_URL=' + _json.dumps(TICKET_URL) + ';'
         'window.SG_TICKET_TEMAS=' + _json.dumps(TICKET_TEMAS, ensure_ascii=False) + ';'
         'window.SG_PANEL_MAESTRO=' + _json.dumps(PANEL_MAESTRO) + ';window.SG_PANEL_MAESTRO_EDICION=' + _json.dumps(PANEL_MAESTRO_EDICION) + ';'
@@ -3273,6 +3275,7 @@ def _cabeza_fuente():
     modo = _json.dumps(MOTOR_POR_DEFECTO)
     return (
         '<script>window.SG_FIREBASE=' + cfg + ';window.SG_MOTOR=' + modo + ';'
+        'window.SG_PER_DEMO=' + _json.dumps(PER_DEMO) + ';'
         'window.SG_TICKETS_API=' + _json.dumps(TICKETS_API) + ';'
         'window.SG_TICKETS_HOJA=' + _json.dumps(TICKETS_HOJA) + ';'
         'window.SG_PANEL_MAESTRO=' + _json.dumps(PANEL_MAESTRO) + ';window.SG_PANEL_MAESTRO_EDICION=' + _json.dumps(PANEL_MAESTRO_EDICION) + ';'

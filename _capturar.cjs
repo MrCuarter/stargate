@@ -96,6 +96,17 @@ function conectar(url) {
         if (!ok2) throw new Error("«" + t.nombre + "»: la pestaña no llego a pintarse (" + t.listo2 + ")");
       }
       if (t.scroll2) await c.enviar("Runtime.evaluate", { expression: t.scroll2, awaitPromise: true });
+      // 20-sep · y una tercera, para lo que necesita DOS clics (entrar en «Mi gente» y abrir una ficha,
+      // que ahora se abre en su ventana). Mismo patron: esperar por condicion, nunca por reloj.
+      if (t.listo3) {
+        let ok3 = false;
+        for (let i = 0; i < 60; i++) {
+          const r = await c.enviar("Runtime.evaluate", { expression: t.listo3, returnByValue: true });
+          if (r && r.result && r.result.value) { ok3 = true; break; }
+          await dormir(1000);
+        }
+        if (!ok3) throw new Error("«" + t.nombre + "»: lo ultimo no llego a salir (" + t.listo3 + ")");
+      }
       await dormir(1500);
       const s = await c.enviar("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
       const f = path.join(DESTINO, t.nombre);
