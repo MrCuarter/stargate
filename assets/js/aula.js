@@ -121,11 +121,6 @@
     var mio = lista.filter(function (x) { return String(x.correo || "").toLowerCase() === YO.correo; })[0];
     return (mio && mio.nombre) || YO.nombre || "";
   }
-  function semanaActual() {
-    var sem = window.SG_SEMANAS || [];
-    if (!D || !D.semana) return null;
-    return sem[Math.min(Math.max(D.semana, 1), sem.length) - 1] || null;
-  }
 
   // ---------------------------------------------------------------- pestañas
   /**
