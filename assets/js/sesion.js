@@ -1224,14 +1224,20 @@
           +'<img src="assets/img/nave/iconos/clase.png" alt="" width="22" height="22"><span>El aula</span></button>'
           +'<aside class="ses-aula" id="ses-aula" hidden><div class="ses-aula-cab"><b>El aula</b>'
           +'<button type="button" class="btn min" id="ses-aula-x">Cerrar</button></div>'
-          +'<iframe title="El aula" data-src="aula.html?per='+encodeURIComponent(st.per)+'&embed=1"></iframe></aside>'
+          +'<iframe title="El aula" data-src="aula.html?per='+encodeURIComponent(st.per)+'&embed=1&panel=1"></iframe></aside>'
         : '')
       +'</div>';
     wire();
     var ab=root.querySelector('#ses-aula-b'), aa=root.querySelector('#ses-aula');
     if(ab&&aa){
       ab.onclick=function(){ var f=aa.querySelector('iframe'); if(f&&!f.src) f.src=f.getAttribute('data-src'); aa.hidden=!aa.hidden; ab.classList.toggle('on', !aa.hidden); };
-      aa.querySelector('#ses-aula-x').onclick=function(){ aa.hidden=true; ab.classList.remove('on'); };
+      // 🔴 19-sep · «el botón de cerrar aula no funciona»: el panel tenía display:flex y eso le ganaba a `hidden`
+      // (ahora `.ses-aula[hidden]{display:none}`). Y se cierra también con Escape
+      var cerrarAula=function(){ aa.hidden=true; ab.classList.remove('on'); };
+      aa.querySelector('#ses-aula-x').onclick=cerrarAula;
+      if(!SEG.escAula){ SEG.escAula=true; document.addEventListener('keydown',function(e){
+        var a=document.getElementById('ses-aula'), b=document.getElementById('ses-aula-b');
+        if(e.key==='Escape'&&a&&!a.hidden){ a.hidden=true; if(b) b.classList.remove('on'); } }); }
     }
     montar();
     marcarTramo();

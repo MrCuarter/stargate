@@ -24,11 +24,11 @@ const K = leer("assets/js/consola.js"), M = leer("assets/js/motor.js"), H = leer
 c(!/id="hv-save"/.test(K) && !/function cablearHuevos/.test(K), "🔴 no hay un «Guardar» para toda la lista que se pueda olvidar");
 c(/function guardarLuego\(it, ya\)/.test(K) && /MOTOR\.guardarPremioEnlace\(it, gestionados\(\)\)/.test(K) && /\}, ya \? 0 : 600\);/.test(K),
   "🔴 cada premio se guarda solo al tocarlo (al medio segundo; los botones, al momento)");
-c(/"✓ Guardado"/.test(K) && /"⚠️ No se ha guardado: "/.test(K), "   y lo dice: «✓ Guardado» o por qué no");
+c(/"✓ Guardado"/.test(K) && /"No se ha guardado: "/.test(K), "   y lo dice: «✓ Guardado» o por qué no");
 c(!/estadoLocal/.test(K) && /function estadoServidor\(it\)/.test(K) && /MOTOR\.estadoHuevo\(per, it\.id\)/.test(K),
   "🔴 el estado de la tarjeta («⏳ Se abre…») lo cuenta el SERVIDOR, nunca lo escrito en pantalla");
 c(/"Comprobando…"/.test(K), "   mientras se guarda, no promete nada («Comprobando…»)");
-c(/Este premio ya lo " \+ \(n === 1 \? "ha reclamado 1 persona"/.test(K) && /✨ Crear uno nuevo con este premio/.test(K) && /if \(!q\) return;/.test(K),
+c(/Este premio ya lo " \+ \(n === 1 \? "ha reclamado 1 persona"/.test(K) && /si: "Crear uno nuevo con este premio"/.test(K) && /if \(!q\) return;/.test(K),
   "🔴 cambiar el premio de uno ya reclamado avisa y crea uno nuevo (quien lo reclamó no podría el nuevo)");
 
 // 2 · el código secreto
@@ -52,7 +52,7 @@ c(/function destinosDe\(item, gestionados\)/.test(M) && /item\.grupos === "todos
 c(/async function quitarDeGrupo\(per, id\)/.test(M) && /claimLinkEnabled: false, stargateBorrado: true/.test(M) && /deleteField\(\)/.test(M),
   "   y de los grupos que se desmarcan se quita (cerrado; quien lo reclamó lo conserva)");
 c(/saltados\.push\(\{ per, motivo: "no tiene ese premio en su tienda" \}\)/.test(M), "   si un grupo no tiene esa cápsula en su tienda, se dice (no da en silencio un sobre normal)");
-c(/¿Para qué grupos\?/.test(K) && /🌐 Todos tus grupos, también los que crees después/.test(K), "🔴 cada premio dice a qué grupos afecta, con «Todos»");
+c(/¿Para qué grupos\?/.test(K) && /varios\.png alt> Todos tus grupos, también los que crees después/.test(K), "🔴 cada premio dice a qué grupos afecta, con «Todos»");
 c(/function verComunes\(que\)/.test(K) && /consola\.html\?comun=premios/.test(K) && /🌐 Para todos tus grupos/.test(K), "🔴 «🌐 Para todos tus grupos» en la portada de la consola");
 c(/\["huevos", "Premios por enlace", 1, "varios"\]/.test(K) && /pest-sep pest-sep-g/.test(K), "   y en el grupo, esas pestañas separadas de las exclusivas (🌐)");
 c(/const huevos = \[\];/.test(SEM) && !/id: "p" \+ n/.test(SEM), "🔴 los grupos ya no nacen con «p1…p8» de muestra");

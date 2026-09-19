@@ -111,9 +111,10 @@ const REG = {};   // cifras que se apuntan para el informe
         // 14-sep · y +1 para quien lleva el grupo: «Ofertas» (la oferta de la semana y las suyas)
         // 15-sep · la Cola de nota solo sale si hay algo pendiente (y entonces es +1); el Calendario lo ve todo el
         // equipo: el docente raso ve Mi gente, El Zoco, Mis enlaces y Calendario
-        ["rita@lab.test", "Rita Referente", 11, "referente que imparte"],
-        ["dani@lab.test", "Dani Docente", 5, "docente raso"],   // (16-sep · +🏆 Rankings, para todos)
-        ["sol@lab.test", "Sol Coordina", 11, "referente que NO imparte"],
+        // 19-sep · +1 para todos: «Portada», la primera (el grupo de un vistazo)
+        ["rita@lab.test", "Rita Referente", 12, "referente que imparte"],
+        ["dani@lab.test", "Dani Docente", 6, "docente raso"],   // (16-sep · +🏆 Rankings, para todos)
+        ["sol@lab.test", "Sol Coordina", 12, "referente que NO imparte"],
       ];
       for (const [correo, nombre, pestanas, quien] of casos) {
         const p = await nueva(quien);
@@ -4733,16 +4734,22 @@ const REG = {};   // cifras que se apuntan para el informe
       const P = "lab-clase";
       const rs = await nueva("Rita elige su sesión");
       // (tras otras secciones el emulador se atasca a veces 25-55 s en su canal de escucha: si no llega, se recarga una vez)
+      // 19-sep · ya no está en «Mis enlaces» (Norberto: «no tiene ningún sentido»): es la rueda de al lado de «Proyectar la clase»
+      const abreRueda = async () => {
+        await rs.ir("consola.html?per=" + P);
+        if (!(await rs.hasta("!!document.querySelector('.c-hacer [data-cfg-sesion]')", 75))) return false;
+        await rs.js("document.querySelector('.c-hacer [data-cfg-sesion]').click(); 1");
+        return rs.hasta("!!document.querySelector('.cfg-capa .m-sec input[data-sec=\"clasificacion\"]')", 10);
+      };
       const aMisEnlaces = async () => {
-        await rs.ir("consola.html?per=" + P + "&tab=mios");
-        if (await rs.hasta("!!document.querySelector('.m-sec input[data-sec=\"clasificacion\"]')", 75)) return true;
-        console.log("      ⏱ (emulador lento: Mis enlaces no llegó en 75 s; se recarga)");
-        await rs.ir("consola.html?per=" + P + "&tab=mios"); return rs.hasta("!!document.querySelector('.m-sec input[data-sec=\"clasificacion\"]')", 75);
+        if (await abreRueda()) return true;
+        console.log("      ⏱ (emulador lento: el grupo no llegó en 75 s; se recarga)");
+        return abreRueda();
       };
       await rs.ir("entrar.html"); await rs.entrarComo("rita@lab.test", "Rita Referente");
       const hay = await aMisEnlaces();
       const casillas = await rs.js("(function(){ var l=[].slice.call(document.querySelectorAll('.m-sec input')); return l.length+'|'+l.filter(function(x){return x.checked}).length; })()");
-      c("🔴 sesión a medida · en «Mis enlaces», una casilla por sección y, por defecto, todas marcadas", hay && casillas === "16|16", casillas);
+      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas marcadas", hay && casillas === "16|16", casillas);
       // (la sesión lee la elección del docente directamente del grupo; con el emulador atascado eso tarda: se espera a que
       // el mazo ACABE reflejándola, como mucho un minuto. En producción son milisegundos)
       const conTop = "[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Top 5'})";
@@ -4767,13 +4774,91 @@ const REG = {};   // cifras que se apuntan para el informe
       c("sesión a medida · al volver a marcarla, vuelve", ["Han movido ficha", "Top 5"].every(r => otraVez.indexOf(r) >= 0), JSON.stringify(otraVez));
       // 🔴 y el «Guardar» de «Tu panel de Genially», que en la consola nunca había funcionado (llamaba a un módulo que
       // la consola no carga): lo destapó esta sección
-      await aMisEnlaces();
+      // (con reintento: tras otras secciones el emulador se atasca a veces)
+      await rs.ir("consola.html?per=" + P + "&tab=mios");
+      if (!(await rs.hasta("!!document.getElementById('m-panel')", 75))) {
+        console.log("      ⏱ (Mis enlaces no llegó en 75 s: " + JSON.stringify((await rs.texto()).slice(0, 160)) + "; se recarga)");
+        await rs.ir("consola.html?per=" + P + "&tab=mios"); await rs.hasta("!!document.getElementById('m-panel')", 75);
+      }
+      c("   y en «Mis enlaces» ya no está (solo la rueda)", await rs.js("!document.querySelector('#c-cuerpo .m-sec')"));
       await rs.js("document.getElementById('m-panel').value='https://view.genially.com/lab-panel-propio'; document.getElementById('m-guardar').click(); 1");
       await dormir(2500);
       const pan = (((await leerDoc("projects/" + P)) || {}).stargate || {}).paneles || {};
       c("🔴 Mis enlaces · «Guardar» tu Genially propio funciona (antes fallaba en silencio)", Object.values(pan).indexOf("https://view.genially.com/lab-panel-propio") >= 0, JSON.stringify(pan));
       c("sesión a medida · sin errores", !rs.errores.filter(e => !/Failed to load resource/.test(e)).length, rs.errores[0] || "");
       await rs.cerrar();
+    }
+
+    // ============================================================ 46 · LA PORTADA DEL GRUPO Y LO DEL 19-SEP
+    /**
+     * 19-sep · Norberto: «el docente debe ver de un vistazo el estado de su grupo» (la portada: semana, vídeo, retos con
+     * cuántos y %, foro, panel, mensaje y notas), «las fichas de los grupos, filas a todo el ancho», «un botón de ajustes en
+     * su landing», «la rueda de configurar la sesión», «mandar un mensaje a los estudiantes» y «el botón de cerrar aula no
+     * funciona». Todo contra el servidor (el emulador), como lo haría Rita.
+     */
+    if (hacer(46)) {
+      const P = "lab-clase";
+      const rp = await nueva("Rita y la portada de su grupo");
+      await rp.ir("entrar.html"); await rp.entrarComo("rita@lab.test", "Rita Referente");
+      await rp.ir("consola.html"); await rp.hasta("!!document.querySelector('.gp')", 75);
+      c("🔴 Mis grupos · cada grupo, en una fila a todo el ancho", await rp.js("[].slice.call(document.querySelectorAll('.gp-grid')).length>0 && [].slice.call(document.querySelectorAll('.gp-grid')).every(function(g){return g.classList.contains('uno')})"));
+      c("   y cada fila lleva la rueda de «Configurar la sesión»", await rp.js("!!document.querySelector('.gp [data-cfg-sesion]')"));
+      await rp.js("document.getElementById('doc-ajustes-b').click(); 1");
+      c("🔴 panel · «Ajustes» trae tu comandante y tu sesión para todos tus grupos", await rp.hasta("!!document.querySelector('#doc-ajustes:not([hidden]) .m-sec input') && !!document.getElementById('doc-aj-ava')", 10));
+      c("   sin un solo emoji en Mis grupos", await rp.js("!/[\\u{1F300}-\\u{1FAFF}]/u.test(document.getElementById('consola-app').innerText)"));
+      // la portada
+      await rp.ir("consola.html?per=" + P);
+      const hayP = await rp.hasta("!!document.querySelector('.pt-hero')", 75);
+      c("🔴 al entrar en el grupo, la portada: semana, vídeo, retos, panel, mensaje y notas", hayP && await rp.js("!!document.querySelector('.pt-video') && !!document.querySelector('.pt-retos') && !!document.getElementById('pt-notas') && !!document.getElementById('pt-msg-txt') && !!document.getElementById('pt-panel-ed')"));
+      c("   y la pestaña encendida es «Portada»", await rp.js("(document.querySelector('.pest.activa')||{getAttribute:function(){return ''}}).getAttribute('data-tab')==='portada'"));
+      const nums = JSON.parse(await rp.js("JSON.stringify([].slice.call(document.querySelectorAll('.pt-reto .pt-n')).map(function(x){return x.textContent}))"));
+      c("🔴 los retos ya lanzados, con cuántos los han hecho y el porcentaje", nums.length > 0 && nums.every(t => /^\d+\/\d+ · \d+ %$/.test(t)), JSON.stringify(nums.slice(0, 3)));
+      // la rueda
+      await rp.js("document.querySelector('.c-hacer [data-cfg-sesion]').click(); 1");
+      c("🔴 la rueda de al lado de «Proyectar la clase» abre «Configurar la sesión»", await rp.hasta("!!document.querySelector('.cfg-capa .m-sec input[data-sec=\"videos\"]')", 10));
+      await rp.js("var x=document.querySelector('.cfg-capa .m-sec input[data-sec=\"videos\"]'); x.checked=false; x.dispatchEvent(new Event('change')); 1");
+      const g1 = await rp.hasta("/Guardado/.test((document.querySelector('.cfg-capa #m-sec-msg')||{}).textContent||'')", 25);
+      const ses = ((((await leerDoc("projects/" + P)) || {}).stargate || {}).sesiones) || {};
+      c("   y se guarda al tocar una casilla", g1 && Object.values(ses).some(v => (v || []).indexOf("videos") >= 0), JSON.stringify(ses));
+      await rp.js("document.querySelector('[data-cfg-todo]').click(); 1");
+      c("   «Marcar todo» lo devuelve a completo", await rp.hasta("/sale todo/.test((document.querySelector('.cfg-capa #m-sec-msg')||{}).textContent||'')", 25));
+      await rp.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1");
+      c("   y Escape la cierra", await rp.hasta("!document.querySelector('.cfg-capa')", 5));
+      // tus notas
+      await rp.hasta("!!document.getElementById('pt-notas') && !document.getElementById('pt-notas').disabled", 40);
+      await rp.js("var n=document.getElementById('pt-notas'); n.value='Repasar la entrega de Otto'; n.dispatchEvent(new Event('input')); 1");
+      const gn = await rp.hasta("/Guardado/.test(document.getElementById('pt-notas-msg').textContent)", 20);
+      await rp.js("window.__uid=''; window.SG.MOTOR.sesion().then(function(y){ window.__uid=(y&&y.uid)||'-'; }); 1"); await rp.hasta("!!window.__uid", 10);
+      const uid = await rp.js("window.__uid");
+      const notas = await leerDoc("projects/" + P + "/privado/notas_" + uid);
+      c("🔴 tus notas se guardan solas, en privado (projects/…/privado: solo el equipo docente)", gn && !!notas && notas.texto === "Repasar la entrega de Otto", JSON.stringify(notas));
+      // el enlace del panel
+      await rp.js("document.getElementById('pt-panel-ed').click(); document.getElementById('pt-panel-in').value='https://view.genially.com/lab-portada'; document.getElementById('pt-panel-ok').click(); 1");
+      await dormir(3000);
+      const pan = ((((await leerDoc("projects/" + P)) || {}).stargate || {}).paneles) || {};
+      c("🔴 el enlace del panel se cambia desde la portada, para todo tu alumnado", Object.values(pan).indexOf("https://view.genially.com/lab-portada") >= 0, JSON.stringify(pan));
+      // el mensaje a tus reclutas
+      await rp.hasta("!!document.getElementById('pt-msg-txt')", 60);
+      const nDest = Number(await rp.js("(document.getElementById('pt-msg-ok').textContent.match(/\\d+/)||[0])[0]"));
+      const TXT = "Mañana repasamos el reto B2 (lab)";
+      const antesN = (await consultar("notifications", "projectId", P)).filter(x => x.message === TXT).length;
+      await rp.js("var t=document.getElementById('pt-msg-txt'); t.value=" + JSON.stringify(TXT) + "; t.dispatchEvent(new Event('input')); document.getElementById('pt-msg-ok').click(); 1");
+      if (await rp.hasta("!!document.querySelector('[data-sgp-si]')", 8)) await rp.js("document.querySelector('[data-sgp-si]').click(); 1");
+      const env = await rp.hasta("/Enviado a/.test(document.getElementById('pt-msg-res').textContent)", 60);
+      const nuevos = (await consultar("notifications", "projectId", P)).filter(x => x.message === TXT);
+      c("🔴 el mensaje a tus reclutas: uno a cada uno, a su Nave", env && nDest > 0 && nuevos.length - antesN === nDest && nuevos.every(x => x.read === false && x.title === "Mensaje de tu Comandante"),
+        nDest + " → " + (nuevos.length - antesN));
+      c("portada · sin errores", !rp.errores.filter(e => !/Failed to load resource/.test(e)).length, rp.errores[0] || "");
+      // el aula dentro de la presentación
+      await rp.ir("sesion.html?per=" + P); await rp.hasta("!!document.getElementById('ses-aula-b')", 60);
+      const d0 = await rp.js("getComputedStyle(document.getElementById('ses-aula')).display");
+      await rp.js("document.getElementById('ses-aula-b').click(); 1"); await dormir(600);
+      const d1 = await rp.js("getComputedStyle(document.getElementById('ses-aula')).display");
+      await rp.js("document.getElementById('ses-aula-x').click(); 1"); await dormir(300);
+      const d2 = await rp.js("getComputedStyle(document.getElementById('ses-aula')).display");
+      c("🔴 el aula de la presentación: sale cerrada, se abre y «Cerrar» la cierra de verdad", d0 === "none" && d1 !== "none" && d2 === "none", [d0, d1, d2].join(" → "));
+      c("   y dentro, sin cabecera de más: el aula sabe que va en el panel", /panel=1/.test(await rp.js("document.querySelector('#ses-aula iframe').src")));
+      await rp.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

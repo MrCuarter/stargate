@@ -114,6 +114,16 @@
   // (15-sep · el texto vive en el motor: el Capitán del buzón da la misma invitación)
   function invitacion(p) { return MOTOR.invitacion(p); }
 
+  /** 19-sep · Norberto: «no queremos emojis, tenemos iconos muy chulos». Los iconos propios (Magnific), en un sitio. */
+  function ico(k, cls) {   // el pictograma suelto para texto y botones; con aro solo en grande
+    var aro = /\bgrande\b/.test(cls || "");
+    return '<img class="ico' + (cls ? " " + cls : "") + '" src="assets/img/iconos/' + (aro ? "" : "p/") + k + '.png" alt="" width="20" height="20">';
+  }
+  /** La rueda de «Configurar la sesión», al lado de «Proyectar la clase» (en la fila del grupo y dentro de él). */
+  function botonCfgSesion(per) {
+    return '<button type="button" class="gp-cfg" data-cfg-sesion="' + esc(per) + '" title="Configurar la sesión: qué diapositivas salen" aria-label="Configurar la sesión">' + ico("ajustes") + '</button>';
+  }
+
   function tarjetaGrupo(p) {
     var S = p.stargate || {};
     var vivo = p.estado === "en marcha";
@@ -143,7 +153,7 @@
         (p.soyReferente ? '<span class="gp-ref" title="Llevas este grupo">★</span>' : '') +
       '</header>' +
       // 15-sep · Norberto: «la Cola de nota debería aparecer solo si hay algo que hacer… que brille o un globo con aviso»
-      (p.cola ? '<button type="button" class="gp-cola" data-per="' + esc(p.id) + '" data-ir="canjes">🔔 <b>' + p.cola + '</b> ' +
+      (p.cola ? '<button type="button" class="gp-cola" data-per="' + esc(p.id) + '" data-ir="canjes"><img class=ico src=assets/img/nave/iconos/clase.png alt> <b>' + p.cola + '</b> ' +
         (p.cola === 1 ? "subida de nota espera" : "subidas de nota esperan") + ' tu visto bueno <span>Revisar →</span></button>' : '') +
       // Las dos cifras que se miran de un vistazo: cuánta gente hay y por dónde vamos.
       '<div class="gp-cifras">' +
@@ -155,7 +165,7 @@
       // es medio minuto de aula mirando una pantalla de carga.
       '<div class="gp-hacer">' +
         '<div class="gp-celda principal"><a class="gp-b principal" href="sesion.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<b>Proyectar la clase</b></a>' + botonVentana("sesion.html?per=" + p.id, "sesion_" + p.id, "la sesión") + '</div>' +
+          '<b>Proyectar la clase</b></a>' + botonCfgSesion(p.id) + botonVentana("sesion.html?per=" + p.id, "sesion_" + p.id, "la sesión") + '</div>' +
         '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
           '<b>El aula</b></a>' + botonVentana("aula.html?per=" + p.id, "aula_" + p.id, "el aula") + '</div>' +
         '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
@@ -227,7 +237,7 @@
   // tras «Borrar este grupo»: que se vea que se ha hecho
   function avisoBorrado() {
     var b = url.get("borrado");
-    return b ? '<div class="card borrado-ok"><p>🗑️ <b>«' + esc(b) + '»</b> borrado, con todo lo suyo.</p></div>' : "";
+    return b ? '<div class="card borrado-ok"><p><img class=ico src=assets/img/iconos/p/papelera.png alt> <b>«' + esc(b) + '»</b> borrado, con todo lo suyo.</p></div>' : "";
   }
   /**
    * 15-sep · EL «MODO DOCENTE» (Norberto): el referente oculta lo suyo con el botón de arriba (stargate.js) y ve lo
@@ -248,7 +258,7 @@
         app.innerHTML = avisoBorrado() + '<div class="card"><h3>¡Bienvenida al puente, Comandante!</h3>' +
           '<p>Eres <b>profe referente</b> con <b>' + esc(YO.correo) + '</b>, pero aún no llevas ningún grupo. Crea el primero (en un minuto, con su calendario y su código) ' +
           'o pide a Norberto que te añada a uno que ya exista.</p>' +
-          '<p><a class="btn primary grande" href="crear.html">✨ Crear mi primer grupo</a> <a class="btn" href="prueba-equipo.html">🧭 La guía de prueba</a> ' + botonBuzon("consola") + '</p></div>';
+          '<p><a class="btn primary grande" href="crear.html"><img class=ico src=assets/img/iconos/p/estrella.png alt> Crear mi primer grupo</a> <a class="btn" href="prueba-equipo.html"><img class=ico src=assets/img/iconos/p/brujula.png alt> La guía de prueba</a> ' + botonBuzon("consola") + '</p></div>';
         document.body.classList.add("consola-dentro");
         return;
       }
@@ -293,16 +303,22 @@
             ? '<div class="ir" id="doc-viejos-b" role="button" tabindex="0" title="Ver los cursos terminados"><b>' + pasados.length + '</b><span>' + (pasados.length === 1 ? "curso terminado ↓" : "cursos terminados ↓") + '</span></div>'
             : '<div><b>0</b><span>cursos terminados</span></div>') +
         '</div>' +
-        '<div class="doc-b">' + botonBuzon("consola") + (soyRef ? ' <a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
+        '<div class="doc-b"><button type="button" class="btn min" id="doc-ajustes-b" aria-expanded="false"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Ajustes</button>' + botonBuzon("consola") +
+          (soyRef ? ' <a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
       '</section>' +
       // (la galería se monta al abrirla: escondida, sus ocho imágenes se descargarían igual en cada visita)
       '<div class="doc-avas" id="doc-avas" hidden></div>' +
+      // 19-sep · Norberto: «en su landing debería haber un botón de ajustes… Dijimos de poner configurar las sesiones en
+      // vivo, ¿no lo has hecho?». Estaba dentro de cada grupo (Mis enlaces) y no se encontraba: aquí, para todos a la vez
+      '<div class="doc-ajustes" id="doc-ajustes" hidden></div>' +
       '<div class="gp-cab"><div><h2>Tus grupos</h2>' +
         '<p class="small muted">Todo lo de clase está aquí mismo. Entra en un grupo para su gente y sus enlaces.</p></div></div>' +
       // 🔴 13-sep · con UN solo grupo, la tarjeta se tumba en horizontal y ocupa la fila: estrecha y
       // sola dejaba media pantalla vacía a su derecha. Con varios, rejilla de siempre.
       // y con 2 o 4, en dos columnas: con tres por fila, cuatro grupos dejaban uno solo abajo
-      (vivos.length ? '<div class="gp-grid' + (vivos.length === 1 ? ' uno' : (vivos.length === 2 || vivos.length === 4) ? ' par' : '') + '">' + vivos.map(tarjetaGrupo).join("") + '</div>'
+      // 19-sep · Norberto: «las fichas de los grupos prefiero que sean filas que ocupen todo el ancho». Siempre en fila
+      // (la que ya tenía un grupo solo), también los terminados
+      (vivos.length ? '<div class="gp-grid uno">' + vivos.map(tarjetaGrupo).join("") + '</div>'
                     : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
       // 17-sep · lo que se configura UNA vez para varios grupos (Norberto: «¿valen para cualquier grupo? Sería maravilloso
       // poder reciclarlos… que compartan la misma página de configuración y ajustar a qué grupos afecta»)
@@ -322,12 +338,12 @@
         '<div class="gp-gen-b">' +
         // 16-sep · la sesión se pega DOS VECES en el Genially: la apertura antes de la teoría y el
         // cierre después. Así no hay que navegar por dentro del panel delante de la clase.
-        [["sesion-ap", "📽️ La sesión · 1 · apertura", "sesion.html?embed=1&tramo=apertura"],
-         ["sesion-ci", "📽️ La sesión · 3 · cierre", "sesion.html?embed=1&tramo=cierre"],
-         ["sesion", "📽️ La sesión entera (sin partir)", "sesion.html?embed=1"], ["aula", "🛰️ El aula · la clase en directo", "aula.html?embed=1"],
-         ["llamada", "🔔 La llamada a filas", "llamada.html?embed=1"], ["batalla", "⚔️ El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
-          return '<span class="gp-gen-par"><button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + x[1].replace(/^\S+\s/, ""))) + '">' + x[1] + '</button>' +
-            botonVentana(x[2], x[0], x[1].replace(/^\S+\s/, "")) + '</span>';
+        [["sesion-ap", "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión · 1 · apertura", "sesion.html?embed=1&tramo=apertura"],
+         ["sesion-ci", "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión · 3 · cierre", "sesion.html?embed=1&tramo=cierre"],
+         ["sesion", "<img class=ico src=assets/img/iconos/p/video.png alt> La sesión entera (sin partir)", "sesion.html?embed=1"], ["aula", "<img class=ico src=assets/img/nave/iconos/envivo.png alt> El aula · la clase en directo", "aula.html?embed=1"],
+         ["llamada", "<img class=ico src=assets/img/nave/iconos/clase.png alt> La llamada a filas", "llamada.html?embed=1"], ["batalla", "<img class=ico src=assets/img/iconos/p/diana.png alt> El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
+          return '<span class="gp-gen-par"><button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + x[1].replace(/^<img[^>]*>\s*/, ""))) + '">' + x[1] + '</button>' +
+            botonVentana(x[2], x[0], x[1].replace(/^<img[^>]*>\s*/, "")) + '</span>';
         }).join("") + '</div></section>' +
       /**
        * 🔴 LO DEL REFERENTE, EN UNA FRANJA APARTE. Norberto: «el referente básicamente debe tener
@@ -344,17 +360,17 @@
         ? '<details class="cajon ref-zona"><summary><b>★ Como profe referente</b> ' +
           '<span class="cnt">gobernar los grupos</span></summary>' +
           '<div class="ref-grid">' +
-            '<a class="ref-b" href="crear.html"><span>✨</span><b>Crear un grupo</b>' +
+            '<a class="ref-b" href="crear.html"><span><img class=ico src=assets/img/iconos/p/estrella.png alt></span><b>Crear un grupo</b>' +
               '<em>Calendario, retos, tienda y código, en un minuto.</em></a>' +
-            '<a class="ref-b" href="tickets.html"><span>🎟️</span><b>Los tickets de salida</b>' +
+            '<a class="ref-b" href="tickets.html"><span><img class=ico src=assets/img/iconos/p/ticket.png alt></span><b>Los tickets de salida</b>' +
               '<em>Las dudas de todas tus clases, por tema y fecha.</em></a>' +
-            '<a class="ref-b" href="registro.html"><span>🏅</span><b>El tablero y las insignias</b>' +
+            '<a class="ref-b" href="registro.html"><span><img class=ico src=assets/img/iconos/p/medalla.png alt></span><b>El tablero y las insignias</b>' +
               '<em>La ceremonia, el ranking y los dos marcadores.</em></a>' +
-            '<a class="ref-b" href="pasos.html"><span>🧭</span><b>Montarlo paso a paso</b>' +
+            '<a class="ref-b" href="pasos.html"><span><img class=ico src=assets/img/iconos/p/brujula.png alt></span><b>Montarlo paso a paso</b>' +
               '<em>El recorrido completo, con capturas.</em></a>' +
             // 15-sep · la página de Profesores, solo para el Mando (los vitalicios)
             (VITALICIOS_WEB.indexOf(String(YO.correo || "").toLowerCase()) >= 0
-              ? '<a class="ref-b" href="profesores.html"><span>👥</span><b>Profesores</b><em>Referentes, invitaciones, sus grupos y sus conexiones.</em></a>' : '') +
+              ? '<a class="ref-b" href="profesores.html"><span><img class=ico src=assets/img/nave/iconos/gente.png alt></span><b>Profesores</b><em>Referentes, invitaciones, sus grupos y sus conexiones.</em></a>' : '') +
           '</div>' +
           '<p class="small muted" style="margin-top:12px">Dentro de cada grupo tienes además ' +
           '<b>Equipo docente</b>, <b>Escuadrones</b> y <b>Ajustes</b>: esas tres solo las ve quien ' +
@@ -362,9 +378,9 @@
         : '') +
 
       (pasados.length
-        ? '<details class="cajon gp-viejos"><summary><b>🗓️ Cursos terminados</b> ' +
+        ? '<details class="cajon gp-viejos"><summary><b><img class=ico src=assets/img/iconos/p/calendario.png alt> Cursos terminados</b> ' +
           '<span class="cnt">' + pasados.length + '</span></summary>' +
-          '<div class="gp-grid">' + pasados.map(tarjetaGrupo).join("") + '</div></details>'
+          '<div class="gp-grid uno">' + pasados.map(tarjetaGrupo).join("") + '</div></details>'
         : '');
 
     Array.prototype.forEach.call(app.querySelectorAll("[data-per]"), function (b) {
@@ -407,6 +423,12 @@
       };
     };
     if (avBtn && avs) avBtn.onclick = function () { galeria(); avs.hidden = !avs.hidden; };
+    var ajB = $("#doc-ajustes-b"), ajP = $("#doc-ajustes");
+    if (ajB && ajP) ajB.onclick = function () {
+      if (ajP.hidden) pintarAjustes(ajP, vivos, avBtn);
+      ajP.hidden = !ajP.hidden; ajB.setAttribute("aria-expanded", String(!ajP.hidden));
+      if (!ajP.hidden) ajP.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    };
     Array.prototype.forEach.call(app.querySelectorAll(".gp-cod"), function (b) {
       b.onclick = function () {
         var ver = !b.classList.contains("visto");
@@ -425,7 +447,7 @@
     PER = null; DATOS = null;
     history.replaceState(null, "", "consola.html?comun=" + encodeURIComponent(que));
     var g = gestionados();
-    app.innerHTML = '<div class="card cuenta c-cab"><div class="c-cab-t"><b>🌐 Para todos tus grupos</b><span>' + g.length + (g.length === 1 ? " grupo" : " grupos") +
+    app.innerHTML = '<div class="card cuenta c-cab"><div class="c-cab-t"><b><img class=ico src=assets/img/iconos/p/varios.png alt> Para todos tus grupos</b><span>' + g.length + (g.length === 1 ? " grupo" : " grupos") +
         ' que llevas · lo que configures aquí vale en los que elijas</span></div>' +
       '<div class="c-cab-b"><button class="btn min" id="c-volver">← Tus grupos</button> ' + botonBuzon("consola") + '</div></div>' +
       '<div class="pestanas">' + [["premios", "huevos", "Premios por enlace"], ["sorteos", "sorteos", "Sorteos"], ["ofertas", "ofertas", "Ofertas"]].map(function (x) {
@@ -441,6 +463,8 @@
   }
 
   async function abrir(perId) {
+    // 19-sep · se entra siempre por la portada del grupo (salvo que un enlace pida otra pestaña)
+    if (perId !== PER && !/^[a-z_]+$/.test(url.get("tab") || "")) TAB = "portada";
     PER = perId;
     history.replaceState(null, "", "consola.html?per=" + encodeURIComponent(perId));
     cargando("Leyendo el grupo…");
@@ -464,7 +488,8 @@
    * muévelo a la última opción, y que brille cuando hay algo pendiente». Y el calendario, a la vista de todo el
    * equipo («la versión vista, sin edición, la debería poder ver el docente raso»): editar sigue siendo del referente.
    */
-  var TABS = [["alumnado", "Mi gente"], ["rankings", "Rankings"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
+  // 19-sep · «Portada», la primera: el grupo de un vistazo (semana, vídeo, retos, foro, panel, sesión y tus notas)
+  var TABS = [["portada", "Portada"], ["alumnado", "Mi gente"], ["rankings", "Rankings"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
               ["equipo", "Equipo docente", 1], ["escuadrones", "Escuadrones", 1], ["ajustes", "Ajustes del grupo", 1],
               // 17-sep · las que pueden afectar a VARIOS grupos, juntas y tras su raya 🌐 (Norberto: «separar las opciones
               // exclusivas de un grupo de las que afectan a todos o pueden afectar»)
@@ -486,7 +511,7 @@
    */
   var BZ_N = null;
   function botonBuzon(desde, per) {
-    return '<a class="btn min bz-acceso" data-bz href="buzon.html?desde=' + desde + (per ? '&per=' + encodeURIComponent(per) : '') + '">📡 ¿Dudas? ¿Algo falla?'
+    return '<a class="btn min bz-acceso" data-bz href="buzon.html?desde=' + desde + (per ? '&per=' + encodeURIComponent(per) : '') + '"><img class=ico src=assets/img/nave/iconos/envivo.png alt> ¿Dudas? ¿Algo falla?'
       + (BZ_N ? '<span class="bz-n" title="Respuestas del Mando sin leer">' + BZ_N + '</span>' : '') + '</a>';
   }
   function contarBuzon() {
@@ -518,7 +543,7 @@
        */
       '<div class="gp-hacer c-hacer">' +
         '<div class="gp-celda principal"><a class="gp-b principal" href="sesion.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
-          '<b>Proyectar la clase</b></a>' + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") + '</div>' +
+          '<b>Proyectar la clase</b></a>' + botonCfgSesion(PER) + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") + '</div>' +
         '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
           '<b>El aula</b></a>' + botonVentana("aula.html?per=" + PER, "aula_" + PER, "el aula") + '</div>' +
         '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
@@ -529,7 +554,7 @@
         var cola = x[0] === "canjes" ? pendientesCola() : 0;
         // (una raya antes de las del referente; el icono de cada una va en la hoja de estilos)
         var raya = x[2] && !(todas[i - 1] || [])[2] ? '<span class="pest-sep" aria-hidden="true"></span>'
-                 : x[3] && !(todas[i - 1] || [])[3] ? '<span class="pest-sep pest-sep-g" title="Estas pueden afectar a varios de tus grupos">🌐</span>' : "";
+                 : x[3] && !(todas[i - 1] || [])[3] ? '<span class="pest-sep pest-sep-g" title="Estas pueden afectar a varios de tus grupos"><img class=ico src=assets/img/iconos/p/varios.png alt></span>' : "";
         return raya + '<button class="pest' + (TAB === x[0] ? " activa" : "") + (cola ? " pest-aviso" : "") + '" data-tab="' + x[0] + '"' +
           (cola ? ' title="' + cola + (cola === 1 ? " subida de nota espera" : " subidas de nota esperan") + ' tu visto bueno"' : "") + '>' + x[1] +
           (cola ? '<span class="pest-n" aria-label="' + cola + ' pendientes">' + cola + "</span>" : "") + "</button>";
@@ -543,7 +568,7 @@
     cablearCopiar(app);
     if ($("#c-cambiar")) $("#c-cambiar").onclick = function () { url.delete("per"); elegirGrupo(); };
     $("#c-salir").onclick = function () { MOTOR.salir(); };
-    ({ alumnado: verAlumnado, rankings: verRankings, canjes: verCanjes, zoco: verZoco, mios: verMios, equipo: verEquipo,
+    ({ portada: verPortada, alumnado: verAlumnado, rankings: verRankings, canjes: verCanjes, zoco: verZoco, mios: verMios, equipo: verEquipo,
        escuadrones: verEscuadrones, huevos: verHuevos, sorteos: verSorteos, ofertas: verOfertas, calendario: verCalendario, ajustes: verAjustes })[TAB](t);
     ofrecerVisitaDelGrupo();
     contarBuzon();
@@ -557,11 +582,12 @@
    * le habla de Ajustes que no tiene.
    */
   var PASOS_GRUPO = {
+    portada: ["Portada", "Tu grupo de un vistazo: en qué semana vais, el <b>vídeo que toca</b>, los <b>retos de esta semana</b> y los ya lanzados con cuántos los han hecho, el <b>mensaje del foro</b> para copiar, tu panel de control, qué sale en tu sesión y <b>tus notas</b>."],
     alumnado: ["Mi gente", "Tu alumnado con sus xp, créditos e insignias. <b>Pulsa una fila</b>: ves su ficha, los <b>enlaces de sus evidencias</b> y puedes validar o anular un reto con un mensaje que le llega a su Nave."],
     rankings: ["Rankings", "Todos los rankings del grupo —xp, esta semana, colección, constancia, relámpago, logros, el Simulador de Joran y los escuadrones—, del <b>grupo entero o de un escuadrón</b>. Son los mismos que ve tu alumnado en su Nave: para <b>ensalzar</b> en clase a quien destaca en cada cosa."],
     canjes: ["Cola de nota", "Solo aparece cuando alguien pide una subida de <b>nota</b>, y brilla hasta que la resuelves: ninguna se aplica sola. Los créditos no se mueven hasta entonces."],
     zoco: ["El Zoco", "Los trueques entre tu alumnado (se abren en la semana 8; en PUA, la 7): quién cambia qué con quién y los mensajes que se dejan. Si uno no te cuadra, <b>Deshacer</b> devuelve cada cosa a su dueño."],
-    mios: ["Mis enlaces", "<b>Tu sesión en directo</b> (qué secciones salen en tu presentación), tu panel de Genially si has hecho una copia propia, y los enlaces del grupo para repartir en clase."],
+    mios: ["Mis enlaces", "Tu panel de Genially si has hecho una copia propia, y los enlaces del grupo para repartir en clase."],
     equipo: ["Equipo docente", "Quién imparte y quién lleva el grupo, <b>por su correo de Google</b>. Añadir a alguien aquí es darle entrada; quitarlo, quitársela. No hay PIN."],
     escuadrones: ["Escuadrones", "Cada escuadrón con su Comandante. La llamada a filas y el aula de cada docente van por aquí: cada cual ve y llama a los suyos."],
     huevos: ["Premios por enlace", "Crea un premio —xp, créditos, un sobre de cromos, un héroe— con sus topes (en total, por escuadrón o por persona) y pega su enlace donde quieras. Por ejemplo: «los 5 primeros de cada escuadrón, un sobre»."],
@@ -696,7 +722,7 @@
         var tipoG = ((DATOS.proyecto || {}).stargate || {}).tipo || "REGULAR";
         var cara = window.SG && SG.avatarImg ? SG.avatarImg(r.avatar, r.alias, "gente-av" + (r.marco === "oro" ? " marco-oro" : ""), r.xp, tipoG) : "";
         return '<tr data-r="' + i + '" tabindex="0"' + (r.congelado ? ' class="congelado"' : '') + '><td>' + r.pos + '</td><td class="gente-quien"><div class="gq">' + cara + '<span><b>' + esc(r.alias) + '</b>' +
-          (r.corona ? " 👑" : "") + (r.congelado ? ' <span class="chip" title="Cuenta congelada por el referente">🧊 congelado</span>' : '') + '</span></div></td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
+          (r.corona ? " <img class=ico src=assets/img/iconos/p/corona.png alt>" : "") + (r.congelado ? ' <span class="chip" title="Cuenta congelada por el referente"><img class=ico src=assets/img/iconos/p/hielo.png alt> congelado</span>' : '') + '</span></div></td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
           esc(r.email || "") + '</span></td>' + (conComandante ? '<td>' + esc(r.profe || "—") + '</td>' : '') + '<td>' + r.xp +
           '</td><td>' + r.creditos + '</td><td>' + r.n + "/" + NBADGES() + "</td>" + celdaBienvenida(r, caps) + "</tr>";
       }).join("") + "</tbody></table></div>";
@@ -717,7 +743,7 @@
    */
   function verRankings(t) {
     var mio = miNombreAqui(), tengoEsc = (t.escuadrones || []).some(function (e) { return e.comandante === mio; });
-    $("#c-cuerpo").innerHTML = '<div class="card c-rankings"><h3>🏆 Rankings</h3>' +
+    $("#c-cuerpo").innerHTML = '<div class="card c-rankings"><h3><img class=ico src=assets/img/nave/iconos/rankings.png alt> Rankings</h3>' +
       '<p class="small muted">Los mismos que ve tu alumnado en su Nave, del <b>grupo entero o de un escuadrón</b>. Cada uno mide una cosa distinta, ' +
       'para que brille más gente: proyéctalos en clase y ensalza a quien destaca. Pulsa a alguien para ver su ficha pública.</p>' +
       '<div id="c-rank" class="c-rank"></div></div>';
@@ -740,9 +766,9 @@
       '<p class="small muted">El nombre y el correo solo los ves tú y el resto del equipo docente. ' +
       '<b>Pulsa una fila</b> y se abre su ficha: sus retos, los enlaces de lo que ha entregado y lo que puedes hacer.</p>' + chips +
       (lista.length ? tablaGente(lista, caps, !filtro) : '<p class="muted">' + (sinGenteQueVer(t) ? 'No tienes escuadrón en este grupo, así que aquí no hay alumnado a tu nombre.' : 'Todavía no hay nadie en este escuadrón.') + '</p>') +
-      (ref && t.sin_docente ? '<p class="aviso">⚠️ ' + t.sin_docente + ' recluta(s) sin Comandante asignado.</p>' : "") +
+      (ref && t.sin_docente ? '<p class="aviso"><img class=ico src=assets/img/iconos/p/aviso.png alt> ' + t.sin_docente + ' recluta(s) sin Comandante asignado.</p>' : "") +
       // 16-sep · la hoja de cálculo para evaluar: lo que hay en pantalla, tal cual, en un CSV
-      (lista.length ? '<p class="gp-csv"><button type="button" class="btn min" id="c-csv">📊 Descargar CSV</button>' +
+      (lista.length ? '<p class="gp-csv"><button type="button" class="btn min" id="c-csv"><img class=ico src=assets/img/nave/iconos/rankings.png alt> Descargar CSV</button>' +
         '<span class="small muted">Lo de esta vista (' + lista.length + ' reclutas) para tu hoja de cálculo: xp, créditos, retos, insignias, ' +
         'cartas, héroes, logros, el Simulador y los enlaces que ha entregado cada cual.</span></p>' : "") +
       "</div>";
@@ -811,7 +837,7 @@
       var lista = b.closest(".sgp-rf-coms"), linea = b.closest("p");
       if (linea) linea.remove();
       if (lista) { var n = lista.querySelectorAll("p").length, s = lista.querySelector("summary");
-        if (!n) lista.remove(); else if (s) s.textContent = "💬 " + n + (n === 1 ? " comentario" : " comentarios") + " de su tripulación"; }
+        if (!n) lista.remove(); else if (s) s.textContent = "" + n + (n === 1 ? " comentario" : " comentarios") + " de su tripulación"; }
     } else {
       try { await MOTOR.borrarReflexion(PER, b.getAttribute("data-rfquitar"), r.ficha); } catch (e) { b.disabled = false; return avisoFicha(e.message); }
       if (caja && caja.__cerrar) caja.__cerrar(null);
@@ -840,8 +866,8 @@
       return '<span class="fi-ab' + (cub[c.clave] ? " ok" : "") + '" title="' + esc(suyos.filter(function (x) { return !h[x.clave]; }).map(function (x) { return "Le falta: " + x.titulo; }).join(" · ") || "Completa") + '">' +
         (cub[c.clave] ? "✓ " : "") + esc(c.nombre) + " " + n + "/" + suyos.length + "</span>";
     }).join(" ");
-    return '<p class="fi-abordo"><b>🎖️ ' + nHitos(r) + '/' + AB.hitos.length + ' logros de a bordo</b>' + (cub.todo ? " · <b>🌟 Contramaestre de la Nave</b>" : "") + " · " + partes +
-      (d.total ? ' <span class="small muted">· 🔥 ' + (d.racha || 0) + " días seguidos, " + d.total + " en total</span>" : "") + "</p>" +
+    return '<p class="fi-abordo"><b><img class=ico src=assets/img/iconos/p/medalla.png alt> ' + nHitos(r) + '/' + AB.hitos.length + ' logros de a bordo</b>' + (cub.todo ? " · <b><img class=ico src=assets/img/iconos/p/estrella.png alt> Contramaestre de la Nave</b>" : "") + " · " + partes +
+      (d.total ? ' <span class="small muted">· <img class=ico src=assets/img/iconos/p/fuego.png alt> ' + (d.racha || 0) + " días seguidos, " + d.total + " en total</span>" : "") + "</p>" +
       lineaSimulador(r);
   }
   /**
@@ -854,7 +880,7 @@
     if (!S[BT.clave || "joran"] && !S.total) return "";
     var m = S.marcas || {}, mejores = Object.keys(m).sort(function (a, b) { return (m[b].p || 0) - (m[a].p || 0); }).slice(0, 3);
     var T = S.total || {};
-    return '<p class="fi-abordo"><b>🎮 ' + (S[BT.clave || "joran"] ? "Venció a " + esc(BT.rival || "RUTA AZUL") : "Todavía no ha ganado al simulador") + "</b>" +
+    return '<p class="fi-abordo"><b><img class=ico src=assets/img/iconos/p/diana.png alt> ' + (S[BT.clave || "joran"] ? "Venció a " + esc(BT.rival || "RUTA AZUL") : "Todavía no ha ganado al simulador") + "</b>" +
       (mejores.length ? " · " + mejores.map(function (k) {
         return '<span class="fi-ab ok">' + esc(k === "todas" ? "Todas" : "T" + k.slice(1)) + " " + (m[k].p || 0) + "</span>"; }).join(" ") : "") +
       (T.batallas ? ' <span class="small muted">· ' + T.batallas + " batallas, " + (T.aciertos || 0) + " aciertos" +
@@ -941,7 +967,7 @@
   function cambioDeComandante(r) {
     var fs = ((DATOS.proyecto && DATOS.proyecto.factions) || []).filter(function (f) { return f.teacherName && f.teacherName !== r.profe; });
     if (!fs.length) return "";
-    return '<p class="fi-cmd"><label>🔀 Pasar a ' + esc(r.alias) + ' al escuadrón de <select id="c-cmd">' +
+    return '<p class="fi-cmd"><label><img class=ico src=assets/img/nave/iconos/zoco.png alt> Pasar a ' + esc(r.alias) + ' al escuadrón de <select id="c-cmd">' +
       fs.map(function (f) { return '<option value="' + esc(f.teacherName) + '">' + esc(f.name || f.teacherName) + " · " + esc(f.teacherName) + "</option>"; }).join("") +
       '</select></label> <button type="button" class="btn min" id="c-cmd-b">Cambiar</button> ' +
       '<span class="small muted">se lleva todo lo suyo: retos, créditos y colección.</span></p>';
@@ -954,13 +980,13 @@
       '<button type="button" class="c-modal-x" data-cerrar-ficha aria-label="Cerrar la ficha">✕</button>' +
       '<div class="fi-cab">' + (f && f.imageUrl ? '<img class="fi-emb" src="' + esc(f.imageUrl) + '" alt="" width="56" height="56">' : '') +
         '<div><div class="fi-esc">' + (f ? esc(f.name) + " · " : "") + "Comandante " + esc(r.profe || "—") + "</div>" +
-        "<h3>" + esc(r.alias) + (r.corona ? " 👑" : "") + (r.nombre ? ' <span>· ' + esc(r.nombre) + "</span>" : "") + "</h3>" +
+        "<h3>" + esc(r.alias) + (r.corona ? " <img class=ico src=assets/img/iconos/p/corona.png alt>" : "") + (r.nombre ? ' <span>· ' + esc(r.nombre) + "</span>" : "") + "</h3>" +
         (r.email ? '<p class="small muted">' + esc(r.email) + "</p>" : "") + "</div></div>" +
       '<div class="fi-cifras"><div><b>' + r.xp + '</b><span>xp</span></div><div><b>' + r.creditos + '</b><span>◈ créditos</span></div>' +
         '<div><b>' + r.nivel + '</b><span>nivel · ' + esc(r.rango_nombre || "") + '</span></div><div><b>' + r.n + '/' + NBADGES() + '</b><span>insignias</span></div>' +
         '<div><b>' + (r.racha || 0) + '</b><span>semanas de racha</span></div></div>' +
       lineaABordo(r) +
-      (r.congelado ? '<p class="aviso">🧊 <b>Cuenta congelada</b>' + (r.congelado.fecha ? " desde el " + diaDe(r.congelado.fecha) : "") + ": entra y mira su Nave, pero no puede hacer nada.</p>" : "") +
+      (r.congelado ? '<p class="aviso"><img class=ico src=assets/img/iconos/p/hielo.png alt> <b>Cuenta congelada</b>' + (r.congelado.fecha ? " desde el " + diaDe(r.congelado.fecha) : "") + ": entra y mira su Nave, pero no puede hacer nada.</p>" : "") +
       '<div class="c-modal-aviso aviso" hidden></div>' +
       "<h4>Sus retos y sus insignias, por temas</h4>" + temasDeLaFicha(r, retos) +
       '<p class="small muted">Insignia encendida = ganada. Reto en verde = registrado. Pulsa un reto: ves su enlace y su reflexión, y lo validas o lo anulas con un mensaje que le llega a su Nave. Todo queda anotado en el libro de experiencia, con quién y cuándo.</p>' +
@@ -968,7 +994,7 @@
       // congelar: puede acceder, pero no puede hacer nada, bloqueado»). La baja hace falta de verdad: alguien que se
       // alista en el grupo equivocado o con la cuenta que no era deja una ficha huérfana en el ranking.
       (esRef ? '<div class="ficha-ref"><h4>Solo el referente</h4>' + cambioDeComandante(r) +
-        '<p><button type="button" class="btn min" id="c-congelar">' + (r.congelado ? "▶️ Descongelar a " : "🧊 Congelar a ") + esc(r.alias) + "</button> " +
+        '<p><button type="button" class="btn min" id="c-congelar">' + (r.congelado ? "▶ Descongelar a " : "<img class=ico src=assets/img/iconos/p/hielo.png alt> Congelar a ") + esc(r.alias) + "</button> " +
         '<span class="small muted">' + (r.congelado ? "vuelve a poder hacer de todo." : "podrá entrar y mirar, pero no registrar retos, comprar, fichar ni usar el Zoco.") + "</span></p>" +
         '<p><button type="button" class="btn min peligro" id="c-baja">Dar de baja a ' + esc(r.alias) + "</button> " +
         '<span class="small muted">borra su ficha del grupo. Podrá alistarse otra vez, aquí o en otro, empezando de cero.</span></p></div>' : ""));
@@ -976,11 +1002,11 @@
     if (cmdB) cmdB.onclick = async function () {
       var a = (m.querySelector("#c-cmd") || {}).value; if (!a) return;
       if (!(await window.SG.preguntar({ aqui: cmdB.closest("p") || cmdB, marca: cmdB, titulo: "¿Pasar a «" + r.alias + "» al escuadrón de " + a + "?",
-        texto: "Cambia de Comandante y de escuadrón. Se lleva todo lo suyo: retos, créditos y colección.", si: "🔀 Cambiar de Comandante" }))) return;
+        texto: "Cambia de Comandante y de escuadrón. Se lleva todo lo suyo: retos, créditos y colección.", si: "Cambiar de Comandante" }))) return;
       cmdB.disabled = true;
       try {
         await MOTOR.cambiarComandante(PER, ficha, a); await refrescar();
-        reabrirFicha(ficha, "🔀 " + r.alias + " ya está en el escuadrón de " + a + ".", true);
+        reabrirFicha(ficha, "" + r.alias + " ya está en el escuadrón de " + a + ".", true);
       } catch (e) { cmdB.disabled = false; avisoFicha("No se ha podido cambiar: " + (e.message || e), false); }
     };
     var cong = m.querySelector("#c-congelar");
@@ -989,11 +1015,11 @@
       if (!ya && !(await window.SG.preguntar({ aqui: cong.closest("p") || cong, marca: cong, titulo: "¿Congelar la cuenta de «" + r.alias + "»?",
         texto: "Podrá entrar y mirar su Nave, pero no hacer nada: ni registrar retos, ni comprar, ni fichar, ni el Zoco. " +
                "Lo que tenga en el Zoco se retira (y cada oferta devuelve lo suyo).\n\nSe descongela con un clic, cuando quieras.",
-        si: "🧊 Congelar", peligro: true }))) return;
+        si: "Congelar", peligro: true }))) return;
       cong.disabled = true;
       try {
         await MOTOR.alumno(PER, ficha, ya ? "descongelar" : "congelar"); await refrescar();
-        reabrirFicha(ficha, ya ? "▶️ " + r.alias + " ya puede volver a hacer de todo." : "🧊 " + r.alias + " está congelado: mira, pero no toca.", true);
+        reabrirFicha(ficha, ya ? "▶ " + r.alias + " ya puede volver a hacer de todo." : "" + r.alias + " está congelado: mira, pero no toca.", true);
       } catch (e) {
         cong.disabled = false;
         avisoFicha(/not-found|internal/.test(String(e && e.code)) && !/[áéíóú]/.test(String(e && e.message))
@@ -1030,7 +1056,7 @@
         var entregado = String(((EVID && EVID[ficha]) || {})[id] || (rfx && rfx.enlace) || "").trim();
         var enlaces = entregado ? entregado.split(/\s+/).map(function (u) {
           var url = /^https?:\/\//i.test(u) ? u : "https://" + u;
-          return '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">🔗 ' + esc(u.replace(/^https?:\/\//i, "").slice(0, 70)) + "</a>"; }).join(" ") : "";
+          return '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer"><img class=ico src=assets/img/iconos/p/enlace.png alt> ' + esc(u.replace(/^https?:\/\//i, "").slice(0, 70)) + "</a>"; }).join(" ") : "";
         var resp = await window.SG.preguntar({
           aqui: b.closest(".retos-ficha") || b, marca: b, peligro: tiene,
           titulo: (tiene ? "¿Anular " : "¿Validar ") + id + " a " + r.alias + "?",
@@ -1038,16 +1064,16 @@
                   (tiene ? (enlaces ? "<span>" + enlaces + "</span>"
                                     : (RFX1 && RFX1.modo === "texto" ? "" : '<span class="small muted">sin enlace</span>')) : "") + "</p>" +
                 (tiene && RFX1 ? (rfx
-                  ? '<div class="sgp-rf"><p class="sgp-rf-cab">✍️ <b>Su reflexión</b> · «' + esc(RFX1.titulo || "") + "»</p>" +
+                  ? '<div class="sgp-rf"><p class="sgp-rf-cab"><img class=ico src=assets/img/iconos/p/editar.png alt> <b>Su reflexión</b> · «' + esc(RFX1.titulo || "") + "»</p>" +
                     '<p class="sgp-rf-txt">' + esc(rfx.texto || "") + "</p>" +
-                    ((COMS[rfx.id] || []).length ? '<details class="sgp-rf-coms"><summary>💬 ' + (COMS[rfx.id] || []).length +
+                    ((COMS[rfx.id] || []).length ? '<details class="sgp-rf-coms"><summary><img class=ico src=assets/img/iconos/p/mensaje.png alt> ' + (COMS[rfx.id] || []).length +
                       ((COMS[rfx.id] || []).length === 1 ? " comentario" : " comentarios") + " de su tripulación</summary>" +
                       (COMS[rfx.id] || []).map(function (c) { var q = (DATOS.perfiles || []).filter(function (p) { return p.id === c.fichaId; })[0];
                         return '<p class="evid-com"><b>' + esc((q && q.displayName) || "Un recluta") + "</b> " + esc(c.texto || "") +
                           ' <button type="button" class="btn min" data-rfquitarcom="' + esc(c.id) + '">Quitar</button></p>'; }).join("") + "</details>" : "") +
                     '<p class="sgp-rf-mod"><button type="button" class="btn min" data-rfquitar="' + esc(id) + '">Quitar la reflexión</button> ' +
                       '<span class="small muted">deja de verse en la Nave y en la sesión; el reto sigue registrado</span></p></div>'
-                  : (pideReflexion((r.retos || {})[id]) ? '<p class="small muted">✍️ Este reto lleva reflexión y no la tiene.</p>' : "")) : "") +
+                  : (pideReflexion((r.retos || {})[id]) ? '<p class="small muted"><img class=ico src=assets/img/iconos/p/editar.png alt> Este reto lleva reflexión y no la tiene.</p>' : "")) : "") +
                 '<p class="sgp-cifras">' + (tiene ? "Se le quitan " : "Se le suman ") + "<b>" + xp + " xp</b>" + (mi.badge ? ", " : " y ") + "<b>" + cr + " ◈</b>" +
                   (mi.badge ? " y su insignia" : "") + (tiene ? ". Podrá registrarlo otra vez." : ".") + "</p>",
           campo: { etiqueta: "Mensaje para " + r.alias, ayuda: tiene ? "· lo verá en su Nave" : "· opcional · lo verá en su Nave", filas: 2, max: 400,
@@ -1131,6 +1157,220 @@
    * todos y cambiarlo afecta al alumnado de sus compañeros; el suyo solo lo ven los suyos. Por eso
    * esta pestaña la ve todo el mundo y la de Ajustes no.
    */
+  /** «Tu sesión en directo»: una casilla por sección, todas marcadas por defecto. La usan la portada y Mis enlaces. */
+  function bloqueSesion(t, nombre) {
+    var offMio = ((t.sesiones || {})[nombre]) || [];
+    return '<div class="card m-sesion"><h3>Tu sesión en directo</h3>' +
+      '<p class="small muted">Marca lo que quieres en tu presentación. Por defecto sale todo; lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
+      'Cada semana solo aparece lo que ese día tiene algo que enseñar.</p>' +
+      '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
+        return '<label class="m-sec"><input type="checkbox" data-sec="' + esc(x[0]) + '"' + (offMio.indexOf(x[0]) < 0 ? " checked" : "") + '>' +
+          '<span><b>' + esc(x[1]) + '</b><em>' + esc(x[2]) + '</em></span></label>'; }).join("") + '</div>' +
+      '<p class="small m-sec-msg" id="m-sec-msg" aria-live="polite"></p></div>';
+  }
+  /**
+   * 19-sep · LA RUEDA DE «CONFIGURAR LA SESIÓN». Norberto: «pon un botón de configurar sesión en vivo, algo intuitivo, icono
+   * de rueda dentada… Simpleza, pero potencia de personalización». Una ventana encima, con una casilla por sección
+   * (todas marcadas por defecto) y un «Todo» para volver a empezar. Se guarda al tocarla, en ESE grupo.
+   */
+  function abrirCfgSesion(per) {
+    var p = PERS.filter(function (x) { return x.id === per; })[0] || {};
+    var nombre = p.miNombre || miNombreEn(p);
+    var dentro = per === PER && DATOS;
+    var ses = (dentro ? ((window.SG.TABLERO.tablero(DATOS, true) || {}).sesiones) : ((p.stargate || {}).sesiones)) || {};
+    var t = { sesiones: ses };
+    var capa = document.createElement("div");
+    capa.className = "cfg-capa"; capa.setAttribute("role", "dialog"); capa.setAttribute("aria-modal", "true");
+    capa.innerHTML = '<div class="cfg-caja">' +
+      '<div class="cfg-cab">' + ico("ajustes", "grande") + '<div><b>Configurar la sesión</b><span>' + esc(p.nombre || per) + '</span></div>' +
+        '<button type="button" class="btn min" data-cfg-x>Cerrar</button></div>' +
+      (nombre ? bloqueSesion(t, nombre) + '<p class="cfg-pie"><button type="button" class="btn min" data-cfg-todo>Marcar todo</button> ' +
+                  '<a class="btn min" href="sesion.html?per=' + encodeURIComponent(per) + '" target="_blank" rel="noopener">Ver la sesión ↗</a></p>'
+             : '<p class="muted">No te encuentro en el equipo docente de este grupo con <b>' + esc((YO && YO.correo) || "") + '</b>.</p>') +
+      '</div>';
+    document.body.appendChild(capa);
+    var cerrar = function () { capa.remove(); document.removeEventListener("keydown", tecla); };
+    var tecla = function (e) { if (e.key === "Escape") cerrar(); };
+    document.addEventListener("keydown", tecla);
+    capa.addEventListener("click", function (e) { if (e.target === capa || e.target.closest("[data-cfg-x]")) cerrar(); });
+    var cajas = function () { return Array.prototype.slice.call(capa.querySelectorAll(".m-sec input")); };
+    var guardar = async function (revertir) {
+      var off = cajas().filter(function (x) { return !x.checked; }).map(function (x) { return x.getAttribute("data-sec"); });
+      var msg = capa.querySelector("#m-sec-msg"); msg.textContent = "Guardando…";
+      try {
+        await guardarParteEn(per, "sesiones", nombre, off);
+        p.stargate = p.stargate || {}; p.stargate.sesiones = p.stargate.sesiones || {};
+        if (off.length) p.stargate.sesiones[nombre] = off; else delete p.stargate.sesiones[nombre];
+        if (dentro && DATOS.proyecto) { var S = DATOS.proyecto.stargate = DATOS.proyecto.stargate || {}; S.sesiones = Object.assign({}, p.stargate.sesiones); }
+        msg.textContent = "✓ Guardado" + (off.length ? " · quitas " + off.length + (off.length === 1 ? " sección" : " secciones") : " · sale todo");
+      } catch (e) { if (revertir) revertir(); msg.textContent = "No se ha podido guardar: " + (e.message || e); }
+    };
+    cajas().forEach(function (c) { c.onchange = function () { guardar(function () { c.checked = !c.checked; }); }; });
+    var todo = capa.querySelector("[data-cfg-todo]");
+    if (todo) todo.onclick = function () { cajas().forEach(function (c) { c.checked = true; }); guardar(); };
+    var primera = capa.querySelector(".m-sec input"); if (primera) primera.focus();
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target && e.target.closest && e.target.closest("[data-cfg-sesion]");
+    if (!b) return;
+    e.preventDefault(); abrirCfgSesion(b.getAttribute("data-cfg-sesion"));
+  });
+
+  /**
+   * 19-sep · LA PORTADA DEL GRUPO. Norberto: «el docente, cuando entra en su grupo, debería tener una página
+   * prácticamente similar a la del estudiante, salvo que aparece su avatar… vídeo, mensaje del foro, panel de control,
+   * con los botones para hacer cambios» y «debe ver de un vistazo el estado de su grupo: en qué semana estamos, qué vídeo
+   * toca, qué retos están pendientes de esa semana, retos pasados con número de estudiantes que los han hecho y
+   * porcentaje; accesos rápidos para proyectar la clase, llamar a filas y el aula (arriba, en todas las pestañas);
+   * configurar la sesión (por defecto, todas las diapositivas); una caja de texto por si tiene algo pendiente».
+   * Todo sale de lo que la consola ya tiene (el tablero del grupo y los datos de la semana): ni una lectura más, salvo
+   * tu comandante y tus notas.
+   */
+  function semanaDeReto(r, tipo, mapa) {
+    if (tipo === "PUA") return Number(r.tema || 0);          // en PUA, cada tema es su semana
+    return Number(mapa[r.id] || ((window.SG_CATALOGO || {}).semanaDelTema || {})[String(r.tema)] || 0);
+  }
+  function verPortada(t) {
+    var sem = Number(t.semana) || 0, total = Number(t.semanas) || 15, tipo = t.tipo === "PUA" ? "PUA" : "REGULAR";
+    var SEMS = window.SG_SEMANAS || [];
+    var s = sem >= 1 ? (tipo === "PUA" ? SEMS.filter(function (x) { return x.tema_n === Math.min(sem, 8); })[0]
+                                        : SEMS[Math.min(sem, SEMS.length) - 1]) : null;
+    var mapa = ((window.SG_SEM_RETO || {})[tipo]) || {};
+    var cat = ((((window.SG_CATALOGO || {}).retos) || {})[tipo]) || [];
+    var yoN = miNombreAqui();
+    var mia = yoN ? t.reclutas.filter(function (r) { return r.profe === yoN; }) : [];
+    var gente = mia.length ? mia : t.reclutas, N = gente.length;
+    var deQuien = mia.length ? "de tus " + N + " reclutas" : "del grupo · " + N + (N === 1 ? " recluta" : " reclutas");
+    var hechoPor = function (id) { return gente.filter(function (r) { return (r.hechos || []).indexOf(id) >= 0; }).length; };
+    var fila = function (r) {
+      var n = hechoPor(r.id), pct = N ? Math.round(n * 100 / N) : 0, w = semanaDeReto(r, tipo, mapa);
+      return '<li class="pt-reto' + (pct >= 75 ? " alto" : pct < 25 ? " bajo" : "") + '"><span class="pt-id">' + esc(r.id) + '</span>' +
+        '<span class="pt-tit">' + esc(r.titulo) + '<em>semana ' + w + '</em></span>' +
+        '<span class="pt-barra" aria-hidden="true"><i style="width:' + pct + '%"></i></span>' +
+        '<span class="pt-n"><b>' + n + '</b>/' + N + ' · ' + pct + ' %</span></li>';
+    };
+    var lanzados = cat.filter(function (r) { var w = semanaDeReto(r, tipo, mapa); return w && sem && w <= sem; });
+    var estos = lanzados.filter(function (r) { return semanaDeReto(r, tipo, mapa) === sem; });
+    var antes = lanzados.filter(function (r) { return semanaDeReto(r, tipo, mapa) < sem; })
+                        .sort(function (a, b) { return semanaDeReto(b, tipo, mapa) - semanaDeReto(a, tipo, mapa); });
+    var luego = cat.filter(function (r) { return semanaDeReto(r, tipo, mapa) === sem + 1; });
+    var firma = function (txt) {
+      if (!yoN) return String(txt || "");
+      return String(txt || "").replace(/—\s*Capit[áa]n\b/g, "— " + (/^comandante\b/i.test(yoN) ? yoN : "Comandante " + yoN));
+    };
+    var foro = s && s.foro ? firma(s.foro) : "";
+    var propio = ((t.paneles || {})[yoN]) || "", panelMio = propio || t.panel || window.SG_PANEL_MAESTRO || "";
+    var conUid = gente.filter(function (r) { return !!r.uid; });
+    var vids = (s && s.videos) || [];
+    var estado = sem < 1 ? "Aún no ha empezado" : sem > total ? "Curso terminado" : "Semana " + sem + " de " + total;
+
+    $("#c-cuerpo").innerHTML = '<div class="pt">' +
+      '<div class="card pt-hero"><img class="pt-ava" id="pt-ava" src="assets/img/avatares/comandantes/c1.jpg" alt="">' +
+        '<div><div class="eyebrow teal">' + esc(estado) + (s ? ' · ' + esc(s.tema) : '') + '</div>' +
+        '<h2>' + esc(s ? s.sub || s.tema : t.nombre) + '</h2>' +
+        '<p class="small muted">' + (yoN ? 'Comandante <b>' + esc(yoN) + '</b> · ' : '') + esc(deQuien) + (s && s.capitulo ? ' · capítulo «' + esc(s.capitulo) + '»' : '') + '</p></div></div>' +
+      (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
+      '<div class="pt-dos">' +
+        '<div class="card pt-video"><h3>El vídeo que toca</h3>' +
+          (vids.length ? '<ul class="pt-vids">' + vids.map(function (v) {
+            var y = v[0] || {};
+            return '<li><a href="https://youtu.be/' + esc(y.id) + '" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/' + esc(y.id) + '/mqdefault.jpg" alt="" loading="lazy" width="160" height="90"></a>' +
+              '<div><b>' + esc(y.titulo || "") + '</b><span>' + esc(v[1] || "") + '</span></div></li>'; }).join("") + '</ul>'
+            : '<p class="small muted">Esta semana no hay vídeo.</p>') +
+          '<p class="small muted">Salen solos en <b>Proyectar la clase</b>, cada uno en su momento.</p></div>' +
+        '<div class="card pt-sem"><h3>Retos de esta semana</h3>' +
+          (estos.length ? '<ul class="pt-retos">' + estos.map(fila).join("") + '</ul>'
+                        : '<p class="small muted">Esta semana no se lanza ningún reto nuevo: tiempo para terminar los que hay.</p>') +
+          (s && s.hito ? '<p class="small"><b>Hito:</b> ' + esc(s.hito) + '</p>' : '') +
+          (luego.length ? '<p class="small muted pt-luego"><b>La semana que viene:</b> ' + esc(luego.map(function (r) { return r.id + " · " + r.titulo; }).join(" · ")) + '</p>' : '') +
+          (s && s.consejo ? '<p class="au-consejo"><img class=ico src=assets/img/iconos/p/estrella.png alt> ' + esc(s.consejo) + '</p>' : '') +
+        '</div>' +
+      '</div>') +
+      (antes.length ? '<div class="card pt-ant"><h3>Retos ya lanzados</h3><p class="small muted">Cuántos los han registrado, ' + esc(deQuien) + '. En ámbar, los que van por debajo del 25 %.</p>' +
+        '<ul class="pt-retos">' + antes.map(fila).join("") + '</ul></div>' : '') +
+      '<div class="pt-dos">' +
+        (foro ? '<div class="card pt-foro"><h3>Mensaje del foro</h3><p class="small muted">Para pegar esta semana en el foro de la plataforma de UNIR, ya firmado por ti.</p>' +
+          '<div class="foro-msg recortado" id="pt-foro-txt">' + esc(foro).replace(/\n/g, "<br>") + '</div>' +
+          '<button type="button" class="leer-entero" id="pt-foro-mas">Leer entero</button>' +
+          '<p><button class="btn" data-copiado="✓ Mensaje copiado" data-copiar="' + esc(foro) + '">Copiar el mensaje</button></p></div>' : '') +
+        // 19-sep · «un botón para editar el enlace del panel de Genially, para cambiarlo fácilmente a todos sus estudiantes»
+        '<div class="card pt-panel"><h3>' + ico("enlace") + ' Tu panel de control</h3>' +
+          '<p class="small muted">El Genially que abre <b>tu</b> alumnado desde su Nave. Ahora usan ' + (propio ? '<b>el tuyo</b>.' : 'el <b>oficial</b> del grupo.') + '</p>' +
+          '<p class="pt-fila">' + (panelMio ? '<a class="btn" href="' + esc(panelMio) + '" target="_blank" rel="noopener">Abrir el panel ↗</a> ' : '') +
+            '<button type="button" class="btn min" id="pt-panel-ed" aria-expanded="false">' + ico("editar") + ' Cambiar el enlace</button></p>' +
+          '<div id="pt-panel-caja" hidden><label>Tu Genially<input id="pt-panel-in" value="' + esc(propio) + '" placeholder="https://view.genially.com/…" autocomplete="off"></label>' +
+            '<p class="pt-fila"><button type="button" class="btn primary" id="pt-panel-ok">Guardar para mis reclutas</button>' +
+            (propio ? ' <button type="button" class="btn min" id="pt-panel-of">Volver al oficial</button>' : '') + '</p>' +
+            '<p class="small m-sec-msg" id="pt-panel-msg" aria-live="polite"></p></div></div>' +
+      '</div>' +
+      '<div class="pt-dos">' +
+        // 19-sep · «opción de mandar un mensaje a los estudiantes: les aparecerá en su tablón la próxima vez que se conecten»
+        '<div class="card pt-msg"><h3>' + ico("mensaje") + ' Mensaje a tus reclutas</h3>' +
+          '<p class="small muted">Les sale arriba en su Nave —al momento si están dentro, o la próxima vez que entren— hasta que lo marcan como leído. Va ' + esc(deQuien) + '.</p>' +
+          '<textarea id="pt-msg-txt" rows="3" maxlength="400" placeholder="Por ejemplo: el jueves repasamos el reto B2; traed la Bitácora al día."></textarea>' +
+          '<p class="pt-fila pt-msg-pie"><span class="small muted" id="pt-msg-n">0/400</span>' +
+            '<button type="button" class="btn primary" id="pt-msg-ok" disabled>Enviar a ' + conUid.length + (conUid.length === 1 ? " recluta" : " reclutas") + '</button></p>' +
+          '<p class="small m-sec-msg" id="pt-msg-res" aria-live="polite"></p></div>' +
+        '<div class="card pt-notas"><h3>' + ico("notas") + ' Tus notas</h3><p class="small muted">Lo que tengas pendiente con este grupo. Solo lo ve el equipo docente del grupo, nunca tu alumnado; se guarda solo.</p>' +
+          '<textarea id="pt-notas" rows="4" maxlength="4000" placeholder="Por ejemplo: repasar la entrega de Lucía; recordar el sorteo el jueves…" disabled></textarea>' +
+          '<p class="small m-sec-msg" id="pt-notas-msg" aria-live="polite"></p></div>' +
+      '</div>' +
+    '</div>';
+
+    var mas = $("#pt-foro-mas"), txt = $("#pt-foro-txt");
+    if (mas && txt) mas.onclick = function () { var a = txt.classList.toggle("abierto"); mas.textContent = a ? "Plegar" : "Leer entero"; };
+    Array.prototype.forEach.call(document.querySelectorAll("#c-cuerpo [data-tab-ir]"), function (b) {
+      b.onclick = function () { TAB = b.getAttribute("data-tab-ir"); pintar(); };
+    });
+    if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
+      var im = $("#pt-ava"); if (im && f && f.avatar) im.src = "assets/img/avatares/comandantes/" + f.avatar + ".jpg";
+    }).catch(function () {});
+    // el enlace del panel, aquí mismo
+    var pEd = $("#pt-panel-ed"), pCaja = $("#pt-panel-caja"), pMsg = $("#pt-panel-msg");
+    if (pEd && pCaja) pEd.onclick = function () { pCaja.hidden = !pCaja.hidden; pEd.setAttribute("aria-expanded", String(!pCaja.hidden)); if (!pCaja.hidden) $("#pt-panel-in").focus(); };
+    var guardaPanel = async function (v) {
+      if (v && !/^https:\/\/\S+\.\S+/i.test(v)) { pMsg.textContent = "Tiene que ser una dirección que empiece por https://"; return; }
+      pMsg.textContent = "Guardando…";
+      try { await guardarMiParte("paneles", yoN, v); await refrescar();
+            aviso(v ? "Guardado: tu alumnado abrirá tu panel." : "Quitado: tu alumnado vuelve al panel oficial.", true); }
+      catch (e) { pMsg.textContent = "No se ha podido guardar: " + (e.message || e); }
+    };
+    if ($("#pt-panel-ok")) $("#pt-panel-ok").onclick = function () { guardaPanel($("#pt-panel-in").value.trim()); };
+    if ($("#pt-panel-of")) $("#pt-panel-of").onclick = function () { guardaPanel(""); };
+    // el mensaje a tus reclutas: uno a cada uno, con el mismo buzón que «validar/anular un reto»
+    var mTxt = $("#pt-msg-txt"), mOk = $("#pt-msg-ok"), mN = $("#pt-msg-n"), mRes = $("#pt-msg-res");
+    if (mTxt && mOk) {
+      mTxt.oninput = function () { mN.textContent = mTxt.value.length + "/400"; mOk.disabled = !mTxt.value.trim() || !conUid.length; };
+      mOk.onclick = async function () {
+        var txt = mTxt.value.trim(); if (!txt) return;
+        if (!(await window.SG.preguntar({ titulo: "¿Enviar el mensaje a tus " + conUid.length + " reclutas?", texto: txt, si: "Enviar" }))) return;
+        mOk.disabled = true; var ok = 0, mal = 0, i = 0;
+        var uno = async function () {
+          while (i < conUid.length) { var r = conUid[i++];
+            try { await MOTOR.avisarRecluta(PER, r.uid, { texto: txt, de: yoN, titulo: "Mensaje de tu Comandante" }); ok++; }
+            catch (e) { mal++; }
+            mRes.textContent = "Enviando… " + (ok + mal) + " de " + conUid.length; }
+        };
+        await Promise.all([uno(), uno(), uno(), uno()]);
+        mRes.textContent = mal ? "Enviado a " + ok + " de " + conUid.length + " (" + mal + " no se han podido enviar: prueba otra vez)" : "✓ Enviado a " + ok + (ok === 1 ? " recluta" : " reclutas");
+        if (!mal) { mTxt.value = ""; mN.textContent = "0/400"; } else mOk.disabled = false;
+      };
+    }
+    // las notas: se cargan y se guardan solas (un segundo después de dejar de escribir)
+    var nota = $("#pt-notas"), nmsg = $("#pt-notas-msg"), perAqui = PER, tNota = null;
+    if (nota && MOTOR.misNotas) MOTOR.misNotas(perAqui).then(function (d) {
+      if (PER !== perAqui) return;
+      nota.value = (d && d.texto) || ""; nota.disabled = false;
+      nota.oninput = function () {
+        clearTimeout(tNota); nmsg.textContent = "…";
+        tNota = setTimeout(function () {
+          MOTOR.guardarNotas(perAqui, nota.value).then(function () { nmsg.textContent = "✓ Guardado"; })
+            .catch(function (e) { nmsg.textContent = "No se ha podido guardar: " + (e.message || e); });
+        }, 900);
+      };
+    }).catch(function (e) { nmsg.textContent = "No he podido leer tus notas: " + (e.message || e); });
+  }
+
   function verMios(t) {
     var yo = (t.docentes_full || []).filter(function (d) {
       return String(d.correo || "").toLowerCase() === String(YO.correo || "").toLowerCase(); })[0];
@@ -1142,16 +1382,9 @@
     }
     var mio = (t.paneles || {})[yo.nombre] || "";
     var oficial = t.panel || "";
-    // 18-sep · TU SESIÓN EN DIRECTO: qué secciones salen en tu presentación (por defecto, todas). Se guarda al tocarla.
-    var offMio = ((t.sesiones || {})[yo.nombre]) || [];
+    // (19-sep · «Tu sesión en directo» ya no vive aquí: Norberto, «no tiene ningún sentido en Mis enlaces». Es la rueda
+    // de al lado de «Proyectar la clase»)
     $("#c-cuerpo").innerHTML =
-      '<div class="card m-sesion"><h3>Tu sesión en directo</h3>' +
-      '<p class="small muted">Marca lo que quieres en tu presentación. Por defecto sale todo; lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
-      'Cada semana solo aparece lo que ese día tiene algo que enseñar.</p>' +
-      '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
-        return '<label class="m-sec"><input type="checkbox" data-sec="' + esc(x[0]) + '"' + (offMio.indexOf(x[0]) < 0 ? " checked" : "") + '>' +
-          '<span><b>' + esc(x[1]) + '</b><em>' + esc(x[2]) + '</em></span></label>'; }).join("") + '</div>' +
-      '<p class="small m-sec-msg" id="m-sec-msg" aria-live="polite"></p></div>' +
       '<div class="card"><h3>Tu panel de Genially</h3>' +
       '<p class="small muted">Es el que abre <b>tu</b> alumnado desde su Nave. Si lo dejas vacío, ' +
       'usan el panel oficial del grupo — que es lo normal: solo necesitas el tuyo si has duplicado ' +
@@ -1172,27 +1405,16 @@
       '<p class="small muted">Para repartir en clase. Cambiarlos es cosa del profe referente.</p>' +
       '<div class="m-enlaces">' +
         // 16-sep · el alistamiento sale del código del grupo (el mismo enlace que «Copiar invitación»): salía «sin configurar»
-        enlaceFila("🧭", "Alistarse (con el código)", t.alta || (DATOS.proyecto && DATOS.proyecto.joinCode
+        enlaceFila("<img class=ico src=assets/img/iconos/p/brujula.png alt>", "Alistarse (con el código)", t.alta || (DATOS.proyecto && DATOS.proyecto.joinCode
           ? "alistarse.html?per=" + encodeURIComponent(PER) + "&codigo=" + encodeURIComponent(DATOS.proyecto.joinCode) : "")) +
-        enlaceFila("🚀", "La Nave del alumnado", "recluta.html?per=" + encodeURIComponent(PER), "", true) +
-        enlaceFila("🏅", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1", "tablero_" + PER, true) +
-        enlaceFila("📽️", "La sesión de esta semana", "sesion.html?per=" + encodeURIComponent(PER), "sesion_" + PER, true) +
+        enlaceFila("<img class=ico src=assets/img/iconos/p/cohete.png alt>", "La Nave del alumnado", "recluta.html?per=" + encodeURIComponent(PER), "", true) +
+        enlaceFila("<img class=ico src=assets/img/iconos/p/medalla.png alt>", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1", "tablero_" + PER, true) +
+        enlaceFila("<img class=ico src=assets/img/iconos/p/video.png alt>", "La sesión de esta semana", "sesion.html?per=" + encodeURIComponent(PER), "sesion_" + PER, true) +
         // 13-sep · la Nave con tu Comandante de recluta, para ensayar (o enseñarla fuera de la sesión): no guarda nada
-        enlaceFila("🛰️", "Tu Nave de Comandante (simulacro)", "recluta.html?simulacro=1&per=" + encodeURIComponent(PER), "", true) +
-        enlaceFila("🧱", "Padlet de la clase", t.padlet || "") +
+        enlaceFila("<img class=ico src=assets/img/nave/iconos/envivo.png alt>", "Tu Nave de Comandante (simulacro)", "recluta.html?simulacro=1&per=" + encodeURIComponent(PER), "", true) +
+        enlaceFila("<img class=ico src=assets/img/iconos/p/notas.png alt>", "Padlet de la clase", t.padlet || "") +
       '</div></div>';
 
-    Array.prototype.forEach.call(document.querySelectorAll(".m-sec input"), function (c) {
-      c.onchange = async function () {
-        var off = Array.prototype.filter.call(document.querySelectorAll(".m-sec input"), function (x) { return !x.checked; })
-          .map(function (x) { return x.getAttribute("data-sec"); });
-        var msg = $("#m-sec-msg"); msg.textContent = "Guardando…";
-        try { await guardarMiParte("sesiones", yo.nombre, off);
-              t.sesiones = t.sesiones || {}; if (off.length) t.sesiones[yo.nombre] = off; else delete t.sesiones[yo.nombre];
-              msg.textContent = "✓ Guardado" + (off.length ? " · quitas " + off.length + (off.length === 1 ? " sección" : " secciones") : " · sale todo"); }
-        catch (e) { c.checked = !c.checked; msg.textContent = "No se ha podido guardar: " + (e.message || e); }
-      };
-    });
     $("#m-guardar").onclick = async function () {
       var v = $("#m-panel").value.trim();
       $("#m-guardar").disabled = true;
@@ -1221,7 +1443,7 @@
     return '<div class="m-fila"><span>' + ico + '</span><b>' + esc(tit) + '</b>' +
       '<a href="' + esc(url) + '" target="_blank" rel="noopener">Abrir ↗</a>' +
       (ventana ? botonVentana(url, ventana, tit) : "") +
-      '<button class="btn min" data-copiar="' + esc(absoluta(url)) + '" data-copiado="✓ Enlace copiado" title="Copia la dirección completa">🔗 Enlace</button>' +
+      '<button class="btn min" data-copiar="' + esc(absoluta(url)) + '" data-copiado="✓ Enlace copiado" title="Copia la dirección completa"><img class=ico src=assets/img/iconos/p/enlace.png alt> Enlace</button>' +
       (incrustable ? '<button class="btn min" data-copiar="' + esc(codigoGenially(conEmbed(url), "STARGATE · " + tit)) + '" data-copiado="✓ Código copiado" ' +
         'title="Copia el código para Genially: Insertar → Otros → Código">&lt;/&gt; Código</button>' : "") +
       '</div>';
@@ -1244,16 +1466,16 @@
    */
   var PREMIO_INFO = {
     sobre: ["🃏", "Un sobre de cromos", "Tres cartas al azar del álbum, como un sobre del Mercado.", "canje/sobre.jpg"],
-    heroe_fijo: ["🛡️", "Un héroe que eliges tú", "El héroe exacto que elijas: el premio perfecto para un reto de clase.", "canje/heroe.jpg"],
-    heroe: ["🎲", "Un héroe al azar", "Uno de los 30 héroes, con las mismas probabilidades que en el Mercado.", "canje/heroe.jpg"],
-    bolsa: ["💰", "Créditos", "Una bolsa de ◈ para gastar en el Mercado. Tú eliges cuántos.", ""],
-    xp: ["⚡", "Experiencia", "Puntos de xp: suben su nivel y su puesto en el ranking. Tú eliges cuántos.", ""],
-    participaciones: ["🎟️", "Participaciones del sorteo", "Papeletas extra para un sorteo abierto de este grupo (de 1 a 10).", "canje/sorteo.jpg"],
+    heroe_fijo: ["<img class=ico src=assets/img/iconos/p/escudo.png alt>", "Un héroe que eliges tú", "El héroe exacto que elijas: el premio perfecto para un reto de clase.", "canje/heroe.jpg"],
+    heroe: ["<img class=ico src=assets/img/iconos/p/dados.png alt>", "Un héroe al azar", "Uno de los 30 héroes, con las mismas probabilidades que en el Mercado.", "canje/heroe.jpg"],
+    bolsa: ["<img class=ico src=assets/img/iconos/p/monedas.png alt>", "Créditos", "Una bolsa de ◈ para gastar en el Mercado. Tú eliges cuántos.", ""],
+    xp: ["<img class=ico src=assets/img/iconos/p/rayo.png alt>", "Experiencia", "Puntos de xp: suben su nivel y su puesto en el ranking. Tú eliges cuántos.", ""],
+    participaciones: ["<img class=ico src=assets/img/iconos/p/ticket.png alt>", "Participaciones del sorteo", "Papeletas extra para un sorteo abierto de este grupo (de 1 a 10).", "canje/sorteo.jpg"],
     sobre_grande: ["🃏", "Un sobre grande", "Cinco cartas en vez de tres, con las probabilidades de siempre.", "canje/sobre_grande.jpg"],
-    sobre_raro: ["💎", "Un sobre de raras", "Tres cartas donde las comunes casi desaparecen.", "canje/sobre_raro.jpg"],
-    sobre_epico: ["✨", "Un sobre épico", "Tres cartas y ninguna común: legendaria, cuatro veces más que en el de siempre.", "canje/sobre_epico.jpg"],
-    capsula_elite: ["🟪", "Una cápsula de élite", "Un héroe de la Vanguardia o, casi una de cada tres, un Mito.", "canje/capsula_elite.jpg"],
-    capsula_legendaria: ["🟨", "Una cápsula legendaria", "Un Mito seguro: para el hallazgo más difícil.", "canje/capsula_legendaria.jpg"]
+    sobre_raro: ["<img class=ico src=assets/img/iconos/p/estrella.png alt>", "Un sobre de raras", "Tres cartas donde las comunes casi desaparecen.", "canje/sobre_raro.jpg"],
+    sobre_epico: ["<img class=ico src=assets/img/iconos/p/estrella.png alt>", "Un sobre épico", "Tres cartas y ninguna común: legendaria, cuatro veces más que en el de siempre.", "canje/sobre_epico.jpg"],
+    capsula_elite: ["<img class=ico src=assets/img/iconos/p/escudo.png alt>", "Una cápsula de élite", "Un héroe de la Vanguardia o, casi una de cada tres, un Mito.", "canje/capsula_elite.jpg"],
+    capsula_legendaria: ["<img class=ico src=assets/img/iconos/p/corona.png alt>", "Una cápsula legendaria", "Un Mito seguro: para el hallazgo más difícil.", "canje/capsula_legendaria.jpg"]
   };
   var ORDEN_PREMIOS = ["sobre", "heroe_fijo", "heroe", "bolsa", "xp", "participaciones", "sobre_grande", "sobre_raro", "sobre_epico", "capsula_elite", "capsula_legendaria"];
   function heroesDelCatalogo() { return ((window.SG_CATALOGO || {}).heroes) || []; }
@@ -1273,20 +1495,20 @@
   }
   function nombrePremio(it) {
     var I = PREMIO_INFO[it.premio] || PREMIO_INFO.sobre, n = Number(it.cantidad) || 0;
-    if (it.premio === "heroe_fijo" && it.heroe) { var h = heroesDelCatalogo().filter(function (x) { return x.clave === it.heroe; })[0]; return "🛡️ " + (h ? h.nombre + " · " + rarezaBonita(h.rareza) : "Un héroe"); }
-    if (it.premio === "bolsa") return "💰 " + (n || 50) + " ◈";
-    if (it.premio === "xp") return "⚡ " + (n || 100) + " xp";
-    if (it.premio === "participaciones") return "🎟️ " + (n || 1) + (n === 1 || !n ? " participación" : " participaciones") + " del sorteo";
-    return I[0] + " " + I[1];
+    if (it.premio === "heroe_fijo" && it.heroe) { var h = heroesDelCatalogo().filter(function (x) { return x.clave === it.heroe; })[0]; return "" + (h ? h.nombre + " · " + rarezaBonita(h.rareza) : "Un héroe"); }
+    if (it.premio === "bolsa") return "" + (n || 50) + " ◈";
+    if (it.premio === "xp") return "" + (n || 100) + " xp";
+    if (it.premio === "participaciones") return "" + (n || 1) + (n === 1 || !n ? " participación" : " participaciones") + " del sorteo";
+    return I[1];
   }
   // quién lleva qué: los grupos que gobierna quien mira (y sus nombres)
   function gestionados() { return PERS.filter(function (p) { return refDe(p); }).map(function (p) { return p.id; }); }
   function nombreDeGrupo(id) { var p = PERS.filter(function (x) { return x.id === id; })[0]; return (p && p.nombre) || id; }
   function textoAmbito(it) {
     var g = gestionados();
-    if (it.grupos === "todos") return "🌐 Todos tus grupos" + (g.length > 1 ? " (" + g.length + ")" : "");
+    if (it.grupos === "todos") return "Todos tus grupos" + (g.length > 1 ? " (" + g.length + ")" : "");
     var l = it.grupos || [];
-    return l.length === 1 ? "Solo «" + nombreDeGrupo(l[0]) + "»" : "🌐 " + l.length + " grupos";
+    return l.length === 1 ? "Solo «" + nombreDeGrupo(l[0]) + "»" : "" + l.length + " grupos";
   }
 
   var PE = { lista: [], contexto: null, datos: {}, timers: {}, destino: null };
@@ -1297,11 +1519,11 @@
    */
   async function verPremios(contexto, destino) {
     PE.contexto = contexto; PE.destino = destino;
-    destino.innerHTML = '<div class="card pe-card"><div class="pe-cab"><div><h3>🎁 Premios por enlace</h3>' +
+    destino.innerHTML = '<div class="card pe-card"><div class="pe-cab"><div><h3><img class=ico src=assets/img/nave/iconos/premios.png alt> Premios por enlace</h3>' +
       '<p class="small muted">Un enlace que da un premio a quien lo pulse, <b>una vez por persona</b>. Una <b>recompensa</b> para quien supera un reto de clase, o un <b>huevo de Pascua</b> escondido en tu Genially. ' +
       'El mismo enlace vale en todos los grupos a los que lo apliques. Todo se guarda solo.</p></div>' +
-      '<button type="button" class="btn primary" id="pe-nuevo">➕ Nuevo premio</button></div>' +
-      (contexto ? '<p class="pe-filtro small muted">Los que afectan a este grupo · <a href="consola.html?comun=premios">🌐 Ver los de todos tus grupos</a></p>' : "") +
+      '<button type="button" class="btn primary" id="pe-nuevo"><img class=ico src=assets/img/iconos/p/anadir.png alt> Nuevo premio</button></div>' +
+      (contexto ? '<p class="pe-filtro small muted">Los que afectan a este grupo · <a href="consola.html?comun=premios"><img class=ico src=assets/img/iconos/p/varios.png alt> Ver los de todos tus grupos</a></p>' : "") +
       '<div id="pe-lista" class="pe-lista"><p class="muted">Buscando tus premios…</p></div></div>';
     $("#pe-nuevo").onclick = crearPremio;
     try { PE.lista = await MOTOR.premiosEnlaceDe(gestionados()); }
@@ -1340,8 +1562,8 @@
         '<div class="pe-l1">' +
           '<input class="h-nom pe-nom" value="' + esc(it.nombre || "") + '" placeholder="' + (rec ? "Ponle nombre: «Reto del lunes»" : "Ponle nombre: «Escondido en el Tema 3»") + '" aria-label="Nombre del premio" maxlength="80">' +
           '<span class="pe-tipo" role="group" aria-label="Qué es">' +
-            '<button type="button" class="' + (rec ? "on" : "") + '" data-pe-tipo="recompensa" aria-pressed="' + rec + '">🎁 Recompensa</button>' +
-            '<button type="button" class="' + (rec ? "" : "on") + '" data-pe-tipo="huevo" aria-pressed="' + !rec + '">🥚 Huevo de Pascua</button></span>' +
+            '<button type="button" class="' + (rec ? "on" : "") + '" data-pe-tipo="recompensa" aria-pressed="' + rec + '"><img class=ico src=assets/img/nave/iconos/premios.png alt> Recompensa</button>' +
+            '<button type="button" class="' + (rec ? "" : "on") + '" data-pe-tipo="huevo" aria-pressed="' + !rec + '"><img class=ico src=assets/img/nave/iconos/botin.png alt> Huevo de Pascua</button></span>' +
           '<label class="h-sw" title="Encendido: se puede reclamar (dentro de sus fechas).">' +
             '<input type="checkbox" class="h-on"' + (it.activo === false ? "" : " checked") + '><i></i>' +
             '<span class="h-sw-si">Activo</span><span class="h-sw-no">En pausa</span></label>' +
@@ -1351,15 +1573,15 @@
           '<span class="h-estado">Comprobando…</span>' +
           '<span class="pe-guardado" aria-live="polite"></span></div>' +
         '<div class="pe-acc">' +
-          '<button type="button" class="btn min" data-copiar="' + esc(MOTOR.enlacePremio(it, false)) + '" data-copiado="✓ Enlace copiado" title="La página de STARGATE, para compartir o poner en un botón">🔗 Copiar enlace</button>' +
+          '<button type="button" class="btn min" data-copiar="' + esc(MOTOR.enlacePremio(it, false)) + '" data-copiado="✓ Enlace copiado" title="La página de STARGATE, para compartir o poner en un botón"><img class=ico src=assets/img/iconos/p/enlace.png alt> Copiar enlace</button>' +
           '<button type="button" class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(insertar) + '" title="Para Genially: Insertar → Otros → Código. Sin fondo: se funde con tu diapositiva">&lt;/&gt; Copiar para insertar</button>' +
-          (ver ? '<a class="btn min" target="_blank" rel="noopener" href="huevo.html?h=' + esc(it.id) + '&c=' + esc(it.codigo || "") + '&t=' + (rec ? "r" : "h") + '&per=' + esc(ver) + '&vista=1">👁 Ver cómo se ve</a>' : "") +
-          '<button type="button" class="btn min" data-pe-mas aria-expanded="false">⚙️ Grupos, fechas y topes</button>' +
-          '<button type="button" class="btn min peligro" data-pe-quitar title="Quitar este premio de todos sus grupos">🗑</button>' +
+          (ver ? '<a class="btn min" target="_blank" rel="noopener" href="huevo.html?h=' + esc(it.id) + '&c=' + esc(it.codigo || "") + '&t=' + (rec ? "r" : "h") + '&per=' + esc(ver) + '&vista=1"><img class=ico src=assets/img/iconos/p/ojo.png alt> Ver cómo se ve</a>' : "") +
+          '<button type="button" class="btn min" data-pe-mas aria-expanded="false"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Grupos, fechas y topes</button>' +
+          '<button type="button" class="btn min peligro" data-pe-quitar title="Quitar este premio de todos sus grupos"><img class=ico src=assets/img/iconos/p/papelera.png alt></button>' +
         '</div>' +
         '<div class="pe-mas" hidden>' +
           '<fieldset class="pe-grupos"><legend>¿Para qué grupos?</legend>' +
-            '<label class="pe-radio"><input type="radio" name="pe-g-' + esc(it.id) + '" value="todos"' + (it.grupos === "todos" ? " checked" : "") + '> 🌐 Todos tus grupos, también los que crees después</label>' +
+            '<label class="pe-radio"><input type="radio" name="pe-g-' + esc(it.id) + '" value="todos"' + (it.grupos === "todos" ? " checked" : "") + '> <img class=ico src=assets/img/iconos/p/varios.png alt> Todos tus grupos, también los que crees después</label>' +
             '<label class="pe-radio"><input type="radio" name="pe-g-' + esc(it.id) + '" value="elegir"' + (it.grupos === "todos" ? "" : " checked") + '> Solo estos:</label>' +
             '<span class="pe-chips">' + g.map(function (id) {
               var on = it.grupos === "todos" || (it.grupos || []).indexOf(id) >= 0;
@@ -1390,21 +1612,21 @@
   function estadoServidor(it) {
     var grupos = PE.contexto ? [PE.contexto] : (it.en || []);
     var f = document.querySelector('.pe-f[data-pe="' + it.id + '"] .h-estado'); if (!f) return;
-    if (!grupos.length) { f.textContent = "⚠️ No está en ningún grupo: marca alguno en «Grupos, fechas y topes»"; return; }
+    if (!grupos.length) { f.textContent = "No está en ningún grupo: marca alguno en «Grupos, fechas y topes»"; return; }
     Promise.all(grupos.map(function (per) { return MOTOR.estadoHuevo(per, it.id).catch(function () { return null; }); })).then(function (es) {
       var f2 = document.querySelector('.pe-f[data-pe="' + it.id + '"] .h-estado'); if (!f2) return;
       var e = es.filter(Boolean)[0];
-      if (!e || !e.R) { f2.textContent = "⚠️ No está guardado en el servidor"; return; }
+      if (!e || !e.R) { f2.textContent = "No está guardado en el servidor"; return; }
       var n = es.reduce(function (a, x) { return a + (x ? Number(x.reclamados) || 0 : 0); }, 0);
       it.__reclamados = n;
-      var cuantos = n ? " · 🙋 " + n + (n === 1 ? " lo ha reclamado" : " lo han reclamado") : " · nadie lo ha reclamado aún";
+      var cuantos = n ? " · <img class=ico src=assets/img/nave/iconos/gente.png alt> " + n + (n === 1 ? " lo ha reclamado" : " lo han reclamado") : " · nadie lo ha reclamado aún";
       var cuando = MOTOR.cuandoEs;
-      f2.textContent = (e.estado === "pausado" ? "⏸ En pausa"
-        : e.estado === "pronto" ? "⏳ Se abre " + cuando(e.desde)
-        : e.estado === "cerrado" ? "🔒 Se cerró " + cuando(e.hasta)
-        : e.estado === "agotado" ? "🏁 Agotado"
-        : e.estado === "borrado" ? "⚠️ Quitado"
-        : "🟢 Abierto" + (e.hasta ? " hasta " + cuando(e.hasta) : "")) + cuantos;
+      f2.innerHTML = (e.estado === "pausado" ? "<img class=ico src=assets/img/iconos/p/pausa.png alt> En pausa"
+        : e.estado === "pronto" ? "<img class=ico src=assets/img/nave/iconos/tiempo.png alt> Se abre " + cuando(e.desde)
+        : e.estado === "cerrado" ? "<img class=ico src=assets/img/iconos/p/candado.png alt> Se cerró " + cuando(e.hasta)
+        : e.estado === "agotado" ? "<img class=ico src=assets/img/iconos/p/hecho.png alt> Agotado"
+        : e.estado === "borrado" ? "<img class=ico src=assets/img/iconos/p/aviso.png alt> Quitado"
+        : "<img class=ico src=assets/img/iconos/p/hecho.png alt> Abierto" + (e.hasta ? " hasta " + cuando(e.hasta) : "")) + cuantos;
     });
   }
   function validarPremio(it) {
@@ -1422,7 +1644,7 @@
   function guardarLuego(it, ya) {
     var marca = document.querySelector('.pe-f[data-pe="' + it.id + '"] .pe-guardado');
     var malo = validarPremio(it);
-    if (malo) { if (marca) { marca.textContent = "⚠️ " + malo; marca.className = "pe-guardado malo"; } return; }
+    if (malo) { if (marca) { marca.textContent = "" + malo; marca.className = "pe-guardado malo"; } return; }
     if (marca) { marca.textContent = "Guardando…"; marca.className = "pe-guardado"; }
     var est = document.querySelector('.pe-f[data-pe="' + it.id + '"] .h-estado'); if (est) est.textContent = "Comprobando…";
     clearTimeout(PE.timers[it.id]);
@@ -1432,7 +1654,7 @@
         it.en = r.en; it.actualizado = Date.now();
         var m = document.querySelector('.pe-f[data-pe="' + it.id + '"] .pe-guardado');
         if (m) {
-          m.textContent = r.saltados.length ? "⚠️ Guardado, pero no en " + r.saltados.map(function (s) { return "«" + nombreDeGrupo(s.per) + "» (" + s.motivo + ")"; }).join(", ")
+          m.textContent = r.saltados.length ? "Guardado, pero no en " + r.saltados.map(function (s) { return "«" + nombreDeGrupo(s.per) + "» (" + s.motivo + ")"; }).join(", ")
                                             : "✓ Guardado" + (r.en.length > 1 ? " en " + r.en.length + " grupos" : "");
           m.className = "pe-guardado " + (r.saltados.length ? "malo" : "bien");
         }
@@ -1442,7 +1664,7 @@
         if (PE.contexto && r.en.indexOf(PE.contexto) < 0) pintarPremios();
       } catch (e) {
         var m2 = document.querySelector('.pe-f[data-pe="' + it.id + '"] .pe-guardado');
-        if (m2) { m2.textContent = "⚠️ No se ha guardado: " + e.message; m2.className = "pe-guardado malo"; }
+        if (m2) { m2.textContent = "No se ha guardado: " + e.message; m2.className = "pe-guardado malo"; }
       }
     }, ya ? 0 : 600);
   }
@@ -1472,12 +1694,12 @@
         var n = Number(it.__reclamados);
         var q = await window.SG.preguntar({ titulo: "Este premio ya lo " + (n === 1 ? "ha reclamado 1 persona" : "han reclamado " + n + " personas"),
           texto: "Un enlace se reclama una vez por persona. Si le cambias el premio, quien ya lo reclamó NO podrá conseguir el nuevo (le dirá que ya lo tiene).\n\n" +
-                 "Crea uno nuevo con su propio enlace (este sigue como está).", si: "✨ Crear uno nuevo con este premio", no: "Cancelar" });
+                 "Crea uno nuevo con su propio enlace (este sigue como está).", si: "Crear uno nuevo con este premio", no: "Cancelar" });
         if (!q) return;
         {
           var nuevo = MOTOR.premioNuevo({ tipo: it.tipo, nombre: it.nombre ? it.nombre + " (2)" : "", grupos: it.grupos, premio: r.premio, heroe: r.heroe, cantidad: r.cantidad, sorteo: r.sorteo });
           try { var g2 = await MOTOR.guardarPremioEnlace(nuevo, gestionados()); nuevo.en = g2.en; } catch (e) { aviso("No se ha podido crear: " + e.message); return; }
-          PE.lista.unshift(nuevo); pintarPremios(); aviso("✨ Premio nuevo creado, con su propio enlace.", true); return;
+          PE.lista.unshift(nuevo); pintarPremios(); aviso("Premio nuevo creado, con su propio enlace.", true); return;
         }
       }
       Object.assign(it, r);
@@ -1560,8 +1782,8 @@
   function elegirTipo() {
     return ventanaVisual("¿Qué quieres crear?",
       '<div class="pe-ops dos">' +
-        '<button type="button" class="pe-op" data-v="recompensa"><span class="pe-op-ico">🎁</span><b>Una recompensa</b><em>Para quien supera un reto o una actividad de clase. Al pulsar el enlace: «¡Enhorabuena! Has ganado una recompensa».</em></button>' +
-        '<button type="button" class="pe-op" data-v="huevo"><span class="pe-op-ico">🥚</span><b>Un huevo de Pascua</b><em>Escondido en un rincón de tu Genially. Quien lo encuentra: «Has encontrado un huevo de Pascua».</em></button>' +
+        '<button type="button" class="pe-op" data-v="recompensa"><span class="pe-op-ico"><img class=ico src=assets/img/nave/iconos/premios.png alt></span><b>Una recompensa</b><em>Para quien supera un reto o una actividad de clase. Al pulsar el enlace: «¡Enhorabuena! Has ganado una recompensa».</em></button>' +
+        '<button type="button" class="pe-op" data-v="huevo"><span class="pe-op-ico"><img class=ico src=assets/img/nave/iconos/botin.png alt></span><b>Un huevo de Pascua</b><em>Escondido en un rincón de tu Genially. Quien lo encuentra: «Has encontrado un huevo de Pascua».</em></button>' +
       "</div>",
       function (capa, cerrar) { Array.prototype.forEach.call(capa.querySelectorAll("[data-v]"), function (b) { b.onclick = function () { cerrar(b.getAttribute("data-v")); }; }); });
   }
@@ -1641,8 +1863,8 @@
    * sus mensajes (Norberto: «un mensaje corto… que ve también el docente»). Un docente puede
    * deshacer un trueque cerrado: lo hace el servidor, y si algo ya no se puede devolver, lo dice.
    */
-  var NOM_ESTADO = { abierto: "⏳ En marcha", aceptado: "✅ Cambiado", rechazado: "✖️ Rechazado", retirado: "↩️ Retirado",
-    caducado: "⌛ Caducado", anulado: "🚫 Anulado", vendido: "💰 Se lo quedó otro", deshecho: "↺ Deshecho" };
+  var NOM_ESTADO = { abierto: "<img class=ico src=assets/img/nave/iconos/tiempo.png alt> En marcha", aceptado: "<img class=ico src=assets/img/iconos/p/hecho.png alt> Cambiado", rechazado: "✕ Rechazado", retirado: "↩ Retirado",
+    caducado: "<img class=ico src=assets/img/nave/iconos/tiempo.png alt> Caducado", anulado: "<img class=ico src=assets/img/iconos/p/aviso.png alt> Anulado", vendido: "<img class=ico src=assets/img/iconos/p/monedas.png alt> Se lo quedó otro", deshecho: "↺ Deshecho" };
   /**
    * 15-sep · CUÁNDO SE ABRE EL ZOCO, CON SU FECHA (Norberto: «indica en el Zoco la fecha exacta que se abre»). Es el
    * capítulo 5 (c5): su semana del curso, con las no lectivas saltadas, y si el referente lo abrió antes, se dice.
@@ -1654,11 +1876,11 @@
     var S = DATOS.proyecto.stargate || {}, SS = window.SGSEMANAS, tipo = S.tipo === "PUA" ? "PUA" : "REGULAR";
     var c5 = (window.SG_CAPITULOS || []).filter(function (c) { return c.clave === "c5"; })[0];
     var sem = (c5 && (c5.semanas || {})[tipo]) || 5;
-    if (!S.inicio || !SS) return "🗓️ Se abre en la <b>semana " + sem + "</b>.";
+    if (!S.inicio || !SS) return "<img class=ico src=assets/img/iconos/p/calendario.png alt> Se abre en la <b>semana " + sem + "</b>.";
     var dia = SS.inicioDeSemana(S.inicio, sem, S.pausas), hoy = SS.iso(new Date());
-    if ((S.capitulosAbiertos || {}).c5 && dia > hoy) return "🔓 <b>Abierto antes de tiempo</b>: su fecha era el " + diaLargo(dia) + " (semana " + sem + ").";
-    return dia <= hoy ? "✅ Abierto desde el <b>" + diaLargo(dia) + "</b> (semana " + sem + ")."
-                      : "🗓️ Se abre el <b>" + diaLargo(dia) + "</b> (semana " + sem + ").";
+    if ((S.capitulosAbiertos || {}).c5 && dia > hoy) return "<img class=ico src=assets/img/iconos/p/abierto.png alt> <b>Abierto antes de tiempo</b>: su fecha era el " + diaLargo(dia) + " (semana " + sem + ").";
+    return dia <= hoy ? "<img class=ico src=assets/img/iconos/p/hecho.png alt> Abierto desde el <b>" + diaLargo(dia) + "</b> (semana " + sem + ")."
+                      : "<img class=ico src=assets/img/iconos/p/calendario.png alt> Se abre el <b>" + diaLargo(dia) + "</b> (semana " + sem + ").";
   }
   function verZoco(t) {
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>El Zoco Estelar</h3><p class="muted">Cargando los trueques…</p></div>';
@@ -1667,12 +1889,12 @@
         // 14-sep · las participaciones del sorteo también se revenden en el Zoco
         if (/__sorteo[a-z0-9]*$/i.test(String(id))) {
           var t = ((DATOS && DATOS.recompensas) || []).filter(function (r) { return r.docId === id; })[0];
-          return "🎟️ Participación · " + esc(((t && t.stargateSorteo) || {}).premio || "sorteo");
+          return "<img class=ico src=assets/img/iconos/p/ticket.png alt> Participación · " + esc(((t && t.stargateSorteo) || {}).premio || "sorteo");
         }
         var k = String(id).split("__").pop(), h = /^heroe_/.test(k), c = k.replace(/^(heroe|cromo)_/, "");
         var x = h ? (window.SG_CATALOGO && SG_CATALOGO.heroes || []).filter(function (y) { return y.clave === c; })[0]
                   : (window.SG_CATALOGO && SG_CATALOGO.cromos || []).filter(function (y) { return y.clave === c; })[0];
-        return (h ? "🛡️ " : "🃏 ") + esc((x && x.nombre) || c);
+        return (h ? "<img class=ico src=assets/img/iconos/p/escudo.png alt> " : "<img class=ico src=assets/img/iconos/p/estrella.png alt> ") + esc((x && x.nombre) || c);
       };
       // una participación de un sorteo ya hecho no se puede devolver: su trueque ya no se deshace
       var sorteada = function (id) { return ((DATOS && DATOS.recompensas) || []).some(function (r) { return r.docId === id && r.isRaffleCompleted; }); };
@@ -1685,7 +1907,7 @@
         (lista.length ? '<div class="tabla-envoltura"><table class="tabla zoco-tabla"><thead><tr><th>Estado</th><th>Vende</th><th>Qué</th><th>Compra</th><th>Ofrece / paga</th><th>Mensajes</th><th></th></tr></thead><tbody>' +
           lista.map(function (x) {
             var pago = x.estado === "aceptado" ? (x.pagado || x.ofrece) : (x.pide || x.ofrece);
-            var estado = x.estado === "anulado" && x.motivo === "sorteo" ? "🎟️ Anulado: ya se sorteó" : (NOM_ESTADO[x.estado] || esc(x.estado));
+            var estado = x.estado === "anulado" && x.motivo === "sorteo" ? "<img class=ico src=assets/img/iconos/p/ticket.png alt> Anulado: ya se sorteó" : (NOM_ESTADO[x.estado] || esc(x.estado));
             return '<tr><td>' + estado + '</td><td>' + esc(x.vende.alias) + '</td><td>' + pieza(x.pieza.id) +
               '</td><td>' + esc(x.compra.alias) + '</td><td>' + pq(pago) + '</td><td class="small">' +
               (x.mensajes || []).map(function (m) { return "<b>" + esc(m.de === "vendedor" ? x.vende.alias : x.compra.alias) + ":</b> «" + esc(m.texto) + "»"; }).join("<br>") +
@@ -1738,20 +1960,20 @@
       var vital = VITALICIOS_WEB.indexOf(correo) >= 0, esRef = d.rol === "referente", otros = enOtros(correo);
       var destinos = docs.filter(function (x) { return x.nombre !== d.nombre && conEsc(x.nombre); });
       return '<article class="eq-p' + (esRef ? " ref" : "") + '">' +
-        '<div class="eq-cab">' + (f && f.imageUrl ? '<img src="' + esc(f.imageUrl) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="eq-sin" aria-hidden="true">👤</span>') +
+        '<div class="eq-cab">' + (f && f.imageUrl ? '<img src="' + esc(f.imageUrl) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="eq-sin" aria-hidden="true"><img class=ico src=assets/img/nave/iconos/gente.png alt></span>') +
           '<div class="eq-quien"><h4>' + esc(d.nombre || correo) + (soyYo ? ' <span class="chip">tú</span>' : "") + "</h4>" +
           '<p class="small muted">' + esc(correo || "sin correo") + "</p></div>" +
-          '<span class="eq-rol' + (esRef ? " ref" : "") + '"' + (vital ? ' title="Referente vitalicio: manda en todos los grupos"' : "") + '>' + (vital ? "⭐ Vitalicio" : esRef ? "⭐ Referente" : "Docente") + "</span></div>" +
-        '<p class="eq-esc">' + (f ? "🛡️ <b>" + esc(f.name) + "</b> · " + n + " recluta" + (n === 1 ? "" : "s") +
+          '<span class="eq-rol' + (esRef ? " ref" : "") + '"' + (vital ? ' title="Referente vitalicio: manda en todos los grupos"' : "") + '>' + (vital ? "<img class=ico src=assets/img/iconos/p/estrella.png alt> Vitalicio" : esRef ? "<img class=ico src=assets/img/iconos/p/estrella.png alt> Referente" : "Docente") + "</span></div>" +
+        '<p class="eq-esc">' + (f ? "<img class=ico src=assets/img/iconos/p/escudo.png alt> <b>" + esc(f.name) + "</b> · " + n + " recluta" + (n === 1 ? "" : "s") +
             ' <button type="button" class="eq-lnk" data-ver-esc="' + esc(d.nombre) + '">Ver su escuadrón →</button>'
           : '<span class="muted">Sin escuadrón (coordina, o se incorporó después)</span>' + (n ? " · " + n + " reclutas a su nombre" : "")) + "</p>" +
         (otros.length ? '<p class="small eq-otros">También en ' + otros.map(function (g) {
-            return '<a href="consola.html?per=' + encodeURIComponent(g.id) + '&tab=equipo">' + esc(g.nombre) + "</a>" + (g.rol === "referente" ? " ⭐" : ""); }).join(" · ") + "</p>" : "") +
+            return '<a href="consola.html?per=' + encodeURIComponent(g.id) + '&tab=equipo">' + esc(g.nombre) + "</a>" + (g.rol === "referente" ? " <img class=ico src=assets/img/iconos/p/estrella.png alt>" : ""); }).join(" · ") + "</p>" : "") +
         (n && destinos.length ? '<div class="eq-pasar"><span>Pasar su alumnado a</span><select data-dest="' + i + '" aria-label="A quién pasa su alumnado">' +
             destinos.map(function (x) { return "<option>" + esc(x.nombre) + "</option>"; }).join("") + "</select>" +
             '<button type="button" class="btn min" data-pasar="' + i + '">Pasar</button></div>' : "") +
         '<div class="eq-acc">' +
-          (vital ? "" : '<button type="button" class="btn min" data-rol="' + i + '">' + (esRef ? "Pasar a docente" : "⭐ Hacer referente") + "</button>") +
+          (vital ? "" : '<button type="button" class="btn min" data-rol="' + i + '">' + (esRef ? "Pasar a docente" : "<img class=ico src=assets/img/iconos/p/estrella.png alt> Hacer referente") + "</button>") +
           (vital || soyYo ? "" : '<button type="button" class="btn min peligro" data-quitar="' + i + '">Quitar del equipo</button>') +
         "</div></article>";
     };
@@ -1761,9 +1983,9 @@
     var nomsH = Object.keys(huerfanos), conDestino = docs.filter(function (x) { return conEsc(x.nombre); });
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>Equipo docente</h3>' +
       '<p class="small muted">Cada persona, con lo que se le puede hacer. Entran con <b>su cuenta de Google</b>: añadirla es darle entrada al grupo; quitarla, quitársela.' +
-      (VITALICIOS_WEB.indexOf(yo) >= 0 ? ' Todo el profesorado de todos los grupos está en <a href="profesores.html">👥 Profesores</a>.' : "") + "</p>" +
+      (VITALICIOS_WEB.indexOf(yo) >= 0 ? ' Todo el profesorado de todos los grupos está en <a href="profesores.html"><img class=ico src=assets/img/nave/iconos/gente.png alt> Profesores</a>.' : "") + "</p>" +
       '<div class="eq-lista">' + docs.map(tarjeta).join("") + "</div></div>" +
-      (nomsH.length && conDestino.length ? '<div class="card"><h3>⚠️ Alumnado sin Comandante</h3>' +
+      (nomsH.length && conDestino.length ? '<div class="card"><h3><img class=ico src=assets/img/iconos/p/aviso.png alt> Alumnado sin Comandante</h3>' +
         '<p class="small muted">Su Comandante ya no está en el equipo. Pásalo a alguien que sí esté (y entra en su escuadrón).</p>' +
         '<p class="eq-pasar"><label>De<select id="t-de">' + nomsH.map(function (x) { return "<option>" + esc(x) + "</option>"; }).join("") + "</select></label>" +
         '<label>A<select id="t-a">' + conDestino.map(function (d) { return "<option>" + esc(d.nombre) + "</option>"; }).join("") + "</select></label>" +
@@ -1772,7 +1994,7 @@
        * 🔴 AÑADIR A ALGUIEN, que hasta el 13-sep no se podía. El equipo se fijaba al CREAR el grupo y después era de
        * solo lectura: un docente que se incorpora a mitad de curso o un co-referente obligaban a sembrar otra vez.
        */
-      '<div class="card"><h3>➕ Añadir a alguien al equipo</h3>' +
+      '<div class="card"><h3><img class=ico src=assets/img/iconos/p/anadir.png alt> Añadir a alguien al equipo</h3>' +
       '<p class="small muted">El correo tiene que ser <b>el de su cuenta de Google</b>: es con el que entrará, y es lo que el servidor mira para dejarle pasar.</p>' +
       '<div class="eq-form"><label>Nombre<input id="e-nom" placeholder="Cómo aparece ante su clase" autocomplete="off"></label>' +
       '<label>Correo<input id="e-mail" type="email" placeholder="nombre@ejemplo.com" autocomplete="off"></label>' +
@@ -1923,7 +2145,7 @@
           '<div class="esc-val">' + x.media + ' xp<span class="esc-ver">Ver su gente</span></div></summary>' +
           '<div class="esc-cuerpo"><div class="esc-datos">' +
             '<div><span>Comandante</span><b>' + esc(x.e.comandante) + "</b>" + (d.correo ? "<em>" + esc(d.correo) + "</em>" : "") +
-              (d.rol === "referente" ? "<em>⭐ referente</em>" : "") + "</div>" +
+              (d.rol === "referente" ? "<em><img class=ico src=assets/img/iconos/p/estrella.png alt> referente</em>" : "") + "</div>" +
             "<div><span>Reclutas</span><b>" + x.suyos.length + "</b></div>" +
             "<div><span>Media de xp</span><b>" + x.media + "</b></div>" +
             "<div><span>Insignias de media</span><b>" + String(x.ins).replace(".", ",") + "</b></div></div>" +
@@ -1932,7 +2154,7 @@
           "</div></details>";
       }).join("") +
       (huerfanos.length
-        ? '<p class="small" style="margin-top:14px;color:var(--amber)">⚠️ <b>' + huerfanos.length +
+        ? '<p class="small" style="margin-top:14px;color:var(--amber)"><img class=ico src=assets/img/iconos/p/aviso.png alt> <b>' + huerfanos.length +
           "</b> recluta" + (huerfanos.length === 1 ? "" : "s") + " sin escuadrón: su Comandante ya no " +
           "está en el equipo. Pásalos a otro docente desde la pestaña <b>Equipo docente</b>.</p>"
         : "") +
@@ -1977,11 +2199,11 @@
   function deFecha(v) { return v ? new Date(v + "T00:00:00").getTime() : 0; }
   function estadoSorteo(t) {
     var ahora = Date.now();
-    if (t.stargateRetirado) return ["retirado", "🚫 Quitado de este grupo"];
-    if (t.isRaffleCompleted) return ["hecho", "🏆 Sorteado el " + diaDe(t.raffleResolvedAt)];
-    if (Number(t.availableFrom) > ahora) return ["pronto", "⏳ A la venta desde el " + diaDe(t.availableFrom)];
-    if (Number(t.ticketDeadline) && Number(t.ticketDeadline) <= ahora) return ["listo", "🎲 Venta cerrada: listo para sortear"];
-    return ["venta", "🟢 A la venta · se sortea el " + diaDe(t.ticketDeadline)];
+    if (t.stargateRetirado) return ["retirado", "<img class=ico src=assets/img/iconos/p/aviso.png alt> Quitado de este grupo"];
+    if (t.isRaffleCompleted) return ["hecho", "<img class=ico src=assets/img/nave/iconos/rankings.png alt> Sorteado el " + diaDe(t.raffleResolvedAt)];
+    if (Number(t.availableFrom) > ahora) return ["pronto", "<img class=ico src=assets/img/nave/iconos/tiempo.png alt> A la venta desde el " + diaDe(t.availableFrom)];
+    if (Number(t.ticketDeadline) && Number(t.ticketDeadline) <= ahora) return ["listo", "<img class=ico src=assets/img/iconos/p/dados.png alt> Venta cerrada: listo para sortear"];
+    return ["venta", "<img class=ico src=assets/img/iconos/p/hecho.png alt> A la venta · se sortea el " + diaDe(t.ticketDeadline)];
   }
   function formSorteo(t, P) {
     var S = (t && t.stargateSorteo) || {}, hoy = Date.now();
@@ -1997,7 +2219,7 @@
       '<label class="h-campo h-fecha">A la venta desde<input class="sr-desde" type="date" value="' + aFecha(v.desde) + '"></label>' +
       '<label class="h-campo h-fecha">Se sortea el<input class="sr-fecha" type="date" value="' + aFecha(v.fecha) + '"></label>' +
       // 🌐 17-sep · al crearlo, a qué grupos va; al cambiarlo, se cambia en todos los suyos
-      (t ? (gestionados().length > 1 ? '<p class="small muted sr-f-nota">🌐 Se cambia en todos los grupos donde está este sorteo (menos donde ya se haya hecho).</p>' : "")
+      (t ? (gestionados().length > 1 ? '<p class="small muted sr-f-nota"><img class=ico src=assets/img/iconos/p/varios.png alt> Se cambia en todos los grupos donde está este sorteo (menos donde ya se haya hecho).</p>' : "")
          : (gestionados().length > 1 ? selectorGrupos("sr-g-nuevo", PER ? [PER] : "todos") : "")) +
       '<p class="sr-f-pie"><button class="btn primary sr-guardar">' + (t ? "Guardar los cambios" : "Crear el sorteo") + '</button> ' +
       '<button class="btn sr-cancelar">Cancelar</button></p></div>';
@@ -2011,7 +2233,7 @@
   function selectorGrupos(nombre, sel) {
     var g = gestionados(), todos = sel === "todos";
     return '<fieldset class="pe-grupos sg-grupos" data-grupos="' + esc(nombre) + '"><legend>¿Para qué grupos?</legend>' +
-      '<label class="pe-radio"><input type="radio" name="' + esc(nombre) + '" value="todos"' + (todos ? " checked" : "") + "> 🌐 Todos tus grupos (" + g.length + ")</label>" +
+      '<label class="pe-radio"><input type="radio" name="' + esc(nombre) + '" value="todos"' + (todos ? " checked" : "") + "> <img class=ico src=assets/img/iconos/p/varios.png alt> Todos tus grupos (" + g.length + ")</label>" +
       '<label class="pe-radio"><input type="radio" name="' + esc(nombre) + '" value="elegir"' + (todos ? "" : " checked") + "> Solo estos:</label>" +
       '<span class="pe-chips">' + g.map(function (id) {
         var on = todos || (sel || []).indexOf(id) >= 0;
@@ -2046,12 +2268,12 @@
   var RZ_OF = { common: "común", rare: "rara", epic: "épica", legendary: "legendaria" };
   function estadoOferta(r) {
     var so = r.stargateOferta || {}, fo = r.flashOffer || {}, ahora = Date.now();
-    if (so.cancelada) return ["cancelada", "✖️ Cancelada"];
-    if (ahora < Number(so.desde || 0)) return ["pronto", "⏳ Empieza el " + diaDe(so.desde)];
-    if (ahora >= Number(fo.endsAt || 0)) return ["fin", "⌛ Terminó el " + diaDe(fo.endsAt)];
+    if (so.cancelada) return ["cancelada", "✕ Cancelada"];
+    if (ahora < Number(so.desde || 0)) return ["pronto", "<img class=ico src=assets/img/nave/iconos/tiempo.png alt> Empieza el " + diaDe(so.desde)];
+    if (ahora >= Number(fo.endsAt || 0)) return ["fin", "<img class=ico src=assets/img/nave/iconos/tiempo.png alt> Terminó el " + diaDe(fo.endsAt)];
     // (15-sep · agotada NO es terminada: le faltan unidades, no tiempo; antes solo ofrecía «Reabrir»)
-    if (r.isLimitedStock === true && Number(r.globalStock || 0) <= 0) return ["agotada", "🔥 Agotada"];
-    return ["viva", "⚡ A la venta hasta el " + diaDe(fo.endsAt)];
+    if (r.isLimitedStock === true && Number(r.globalStock || 0) <= 0) return ["agotada", "<img class=ico src=assets/img/iconos/p/fuego.png alt> Agotada"];
+    return ["viva", "<img class=ico src=assets/img/iconos/p/rayo.png alt> A la venta hasta el " + diaDe(fo.endsAt)];
   }
   function botonesOferta(e) {
     return e[0] === "viva" || e[0] === "pronto" ? '<p class="of-botones"><button class="btn min" data-of-mas="1">+1 día</button> <button class="btn min" data-of-mas="7">+1 semana</button> ' +
@@ -2064,7 +2286,7 @@
     var precio = Math.max(0, Math.floor(Number(r.cost || 0) * (100 - pct) / 100)), vend = Number(fo.unitsSold || 0);
     return '<div class="card of-fila ' + e[0] + '" data-of="' + esc(r.docId) + '" data-comun="' + esc(r.stargateComun || "") + '">' +
       '<div><b>' + esc(so.nombre || r.title) + '</b> <span class="chip">' + esc(so.rareza || "") + '</span> <span class="chip' + (e[0] === "viva" ? " ok" : "") + '">' + e[1] + '</span>' +
-      (r.stargateComun ? ' <span class="chip of-comun">🌐 varios grupos</span>' : "") +
+      (r.stargateComun ? ' <span class="chip of-comun"><img class=ico src=assets/img/iconos/p/varios.png alt> varios grupos</span>' : "") +
       '<p class="small">' + (so.auto ? "Automática · semana " + (so.semana || "—") : "Creada por " + esc(so.por || "el referente")) + ' · <s>' + r.cost + ' ◈</s> <b>' + precio + ' ◈</b> (−' + pct + ' %) · ' +
       (so.unidades == null ? "sin límite de unidades" : vend + " de " + so.unidades + " vendidas") + ' · una por persona</p>' + (ambito || "") + '</div>' +
       botonesOferta(e) + '</div>';
@@ -2110,7 +2332,7 @@
         }); }).catch(function (e) { if (alFallar) try { alFallar(); } catch (x) {} aviso(e.message); });
       };
       Array.prototype.forEach.call(c.querySelectorAll("[data-of-mas]"), function (b) {
-        b.onclick = function () { b.disabled = true; hazlo("extender", { dias: Number(b.getAttribute("data-of-mas")) }, "⏳ Oferta alargada.", function () { b.disabled = false; }); }; });
+        b.onclick = function () { b.disabled = true; hazlo("extender", { dias: Number(b.getAttribute("data-of-mas")) }, "Oferta alargada.", function () { b.disabled = false; }); }; });
       var u = c.querySelector("[data-of-uds]");
       if (u) u.onclick = async function () {
         var resp = await window.SG.preguntar({ titulo: "¿Cuántas unidades en total?", texto: "Escribe «ilimitado» para quitar el tope." + (comun ? " Se aplica en cada uno de sus grupos." : ""),
@@ -2124,7 +2346,7 @@
       var x = c.querySelector("[data-of-cancelar]");
       if (x) x.onclick = async function () {
         if (!(await window.SG.preguntar({ titulo: "¿Cancelar esta oferta?", texto: "Sale del Mercado ya" + (comun ? ", en todos sus grupos" : "") + ". Quien la compró la conserva.", si: "Cancelar la oferta", no: "Mantenerla", peligro: true }))) return;
-        hazlo("cancelar", {}, "✖️ Oferta cancelada."); };
+        hazlo("cancelar", {}, "✕ Oferta cancelada."); };
     });
   }
   function verOfertas(t) {
@@ -2133,10 +2355,10 @@
       .sort(function (a, b) { return Number((b.stargateOferta || {}).desde || 0) - Number((a.stargateOferta || {}).desde || 0); });
     var auto = (DATOS.proyecto.stargate || {}).ofertasAuto !== false;
     $("#c-cuerpo").innerHTML =
-      '<div class="card"><h3>⚡ Ofertas</h3>' +
+      '<div class="card"><h3><img class=ico src=assets/img/iconos/p/rayo.png alt> Ofertas</h3>' +
       '<p class="small">Cada semana, desde la 5 (con su capítulo de NEBULA), sale <b>sola</b> una oferta en el Mercado: un sobre, una cápsula, un héroe o una carta concretos, ' +
       'rebajados un 20-40 %, durante esa semana y con <b>unidades según los inscritos y la rareza</b> (común: sin límite; rara: la mitad; épica: una cuarta parte; legendaria: el 10 %). Una por persona.' +
-      (gestionados().length > 1 ? ' Las que crees tú pueden salir <b>en varios de tus grupos</b> a la vez (<a href="consola.html?comun=ofertas">🌐 ver las de todos</a>).' : "") + '</p>' +
+      (gestionados().length > 1 ? ' Las que crees tú pueden salir <b>en varios de tus grupos</b> a la vez (<a href="consola.html?comun=ofertas"><img class=ico src=assets/img/iconos/p/varios.png alt> ver las de todos</a>).' : "") + '</p>' +
       '<label class="of-auto"><input type="checkbox" id="of-auto"' + (auto ? " checked" : "") + '> Oferta automática cada semana <span class="small muted">(solo en este grupo)</span></label>' +
       '<p><button class="btn primary" id="of-nueva">+ Crear una oferta</button></p><div id="of-nueva-f"></div></div>' +
       (L.length ? L.map(function (r) { return filaOferta(r); }).join("") : '<div class="card"><p class="small muted">Todavía no ha salido ninguna oferta. La primera sale sola en la semana 3, cuando alguien abre su Nave.</p></div>');
@@ -2151,7 +2373,7 @@
       });
     };
     $("#of-auto").onchange = function () { var cb = $("#of-auto"), antes = !cb.checked;
-      pide("auto", { on: cb.checked }, cb.checked ? "⚡ Una oferta automática cada semana." : "Ofertas automáticas apagadas: solo las que crees tú.",
+      pide("auto", { on: cb.checked }, cb.checked ? "Una oferta automática cada semana." : "Ofertas automáticas apagadas: solo las que crees tú.",
         function () { cb.checked = antes; }); };
     cablearAccionesOferta(app, function () { return PER; }, pide);
     $("#of-nueva").onclick = function () {
@@ -2163,9 +2385,9 @@
         if (!destinos.length) return aviso("Marca al menos un grupo.");
         $("#of-crear").disabled = true;
         var vuelve = function () { var c = $("#of-crear"); if (c) c.disabled = false; };
-        if (destinos.length === 1 && destinos[0] === PER) return pide("crear", datos, "⚡ Oferta creada: ya está en el Mercado de tu alumnado.", vuelve);
+        if (destinos.length === 1 && destinos[0] === PER) return pide("crear", datos, "Oferta creada: ya está en el Mercado de tu alumnado.", vuelve);
         MOTOR.crearOfertaEnGrupos(datos, destinos).then(function (r) {
-          return tras("⚡ Oferta creada en " + (destinos.length - r.fallos.length) + " grupos." + (r.fallos.length ? " No se pudo en " + nombresDe(r.fallos.map(function (f) { return f.per; })) + ": " + r.fallos[0].motivo : ""));
+          return tras("Oferta creada en " + (destinos.length - r.fallos.length) + " grupos." + (r.fallos.length ? " No se pudo en " + nombresDe(r.fallos.map(function (f) { return f.per; })) + ": " + r.fallos[0].motivo : ""));
         }).catch(function (e) { vuelve(); aviso(e.message); });
       };
     };
@@ -2180,12 +2402,12 @@
     var R = (datos0 && datos0.recompensas) || [];
     var fin = function (o) { return Math.max.apply(null, o.grupos.map(function (x) { return Number((x.oferta.flashOffer || {}).endsAt || 0); })); };
     lista.sort(function (a, b) { return fin(b) - fin(a); });
-    destino.innerHTML = '<div class="card"><h3>⚡ Ofertas</h3><p class="small">Una oferta que crees aquí sale en el Mercado de los grupos que elijas, a la vez. En cada grupo ' +
+    destino.innerHTML = '<div class="card"><h3><img class=ico src=assets/img/iconos/p/rayo.png alt> Ofertas</h3><p class="small">Una oferta que crees aquí sale en el Mercado de los grupos que elijas, a la vez. En cada grupo ' +
       'las unidades salen de <b>sus</b> inscritos. Lo que hagas con ella (alargar, unidades, cancelar) se hace en todos. La oferta automática de cada semana se enciende o apaga dentro de cada grupo.</p>' +
       '<p><button class="btn primary" id="of-nueva">+ Crear una oferta</button></p><div id="of-nueva-f"></div></div>' +
       (lista.length ? lista.map(function (o) {
         var r = o.grupos[0].oferta;
-        var amb = '<p class="small of-grupos">' + (o.grupos.length > 1 || o.comun ? "🌐 " : "") + o.grupos.map(function (x) {
+        var amb = '<p class="small of-grupos">' + (o.grupos.length > 1 || o.comun ? "<img class=ico src=assets/img/iconos/p/varios.png alt> " : "") + o.grupos.map(function (x) {
           return '<a class="chip" href="consola.html?per=' + esc(x.per) + '">' + esc(nombreDeGrupo(x.per)) + " · " + estadoOferta(x.oferta)[1] + "</a>"; }).join(" ") + "</p>";
         return filaOferta(r, amb).replace('data-of="', 'data-per="' + esc(o.grupos[0].per) + '" data-of="');
       }).join("") : '<div class="card"><p class="small muted">Ninguno de tus grupos tiene ofertas todavía.</p></div>');
@@ -2202,7 +2424,7 @@
         if (!destinos.length) return aviso("Marca al menos un grupo.");
         $("#of-crear").disabled = true;
         MOTOR.crearOfertaEnGrupos(datos, destinos).then(function (r) {
-          return repinta("⚡ Oferta creada en " + (destinos.length - r.fallos.length) + (destinos.length === 1 ? " grupo." : " grupos.") + (r.fallos.length ? " No se pudo en " + nombresDe(r.fallos.map(function (f) { return f.per; })) + ": " + r.fallos[0].motivo : ""));
+          return repinta("Oferta creada en " + (destinos.length - r.fallos.length) + (destinos.length === 1 ? " grupo." : " grupos.") + (r.fallos.length ? " No se pudo en " + nombresDe(r.fallos.map(function (f) { return f.per; })) + ": " + r.fallos[0].motivo : ""));
         }).catch(function (e) { var c = $("#of-crear"); if (c) c.disabled = false; aviso(e.message); });
       };
     };
@@ -2213,12 +2435,12 @@
     var L = sorteosDelGrupo(), cat = window.SG_CATALOGO || {}, porDefecto = (cat.sorteos || [])[0];
     var falta = porDefecto && !L.some(function (x) { return x.stargateId === porDefecto.id; });
     $("#c-cuerpo").innerHTML =
-      '<div class="card"><h3>🎟️ Sorteos</h3>' +
+      '<div class="card"><h3><img class=ico src=assets/img/iconos/p/ticket.png alt> Sorteos</h3>' +
       '<p class="small">Para dinamizar la clase. Tu alumnado compra <b>participaciones</b> en el Mercado; tú las <b>regalas</b> en el aula ' +
-      '(Premiar → 🎟️) o las <b>escondes en un enlace</b> (Premios por enlace → 🎟️ Participaciones). El día del sorteo, <b>proyéctalo</b>: ' +
+      '(Premiar → <img class=ico src=assets/img/iconos/p/ticket.png alt>) o las <b>escondes en un enlace</b> (Premios por enlace → <img class=ico src=assets/img/iconos/p/ticket.png alt> Participaciones). El día del sorteo, <b>proyéctalo</b>: ' +
       'lo hace el servidor, una papeleta por participación, y nadie gana dos. Entre ellos, las <b>revenden en el Zoco</b>; lo que siga a la venta ' +
       'al sortear se retira solo y cada oferta devuelve sus créditos.</p>' +
-      (falta ? '<p><button class="btn primary" id="sr-defecto">➕ Añadir el Gran Sorteo: ' + esc(porDefecto.ganadores + " × " + porDefecto.premio) + '</button></p>' : "") +
+      (falta ? '<p><button class="btn primary" id="sr-defecto"><img class=ico src=assets/img/iconos/p/anadir.png alt> Añadir el Gran Sorteo: ' + esc(porDefecto.ganadores + " × " + porDefecto.premio) + '</button></p>' : "") +
       '<p><button class="btn" id="sr-nuevo">+ Crear otro sorteo</button></p><div id="sr-nuevo-f"></div></div>' +
       (L.length ? L.map(function (x) {
         var P = premioDelSorteo(x), S = x.stargateSorteo || {}, e = estadoSorteo(x), B = bomboDe(x);
@@ -2234,17 +2456,17 @@
           ' · a la venta del ' + diaDe(x.availableFrom) + ' al ' + diaDe(x.ticketDeadline) + '</p></div></div>' +
           (e[0] === "retirado" ? '<p class="small muted">Se quitó de este grupo antes de vender ninguna participación. Puedes volver a añadirlo desde sus grupos.</p>'
           : e[0] === "hecho"
-            ? '<div class="sr-ganadores"><p>🏆 <b>Ganadores</b> (entrégales el premio)' + (x.raffleResolvedBy === "auto" ? ' · <span class="small muted">se resolvió solo el ' + diaDe(x.raffleResolvedAt) + '</span>' : '') + ':</p>' +
+            ? '<div class="sr-ganadores"><p><img class=ico src=assets/img/nave/iconos/rankings.png alt> <b>Ganadores</b> (entrégales el premio)' + (x.raffleResolvedBy === "auto" ? ' · <span class="small muted">se resolvió solo el ' + diaDe(x.raffleResolvedAt) + '</span>' : '') + ':</p>' +
               ((x.raffleWinnerIds || []).length ? '<ul>' + ganadores + '</ul>' +
                 // 14-sep · Norberto: «importante guardar estos datos para poder dar las licencias de forma manual»
-                '<p><button class="btn" data-copiar-gan="' + esc(x.docId) + '">📋 Copiar ganadores (alias, nombre y correo)</button></p>'
+                '<p><button class="btn" data-copiar-gan="' + esc(x.docId) + '"><img class=ico src=assets/img/iconos/p/notas.png alt> Copiar ganadores (alias, nombre y correo)</button></p>'
                 : '<p class="small muted">Nadie tenía participaciones: se cerró sin ganadores.</p>') + '</div>'
             : '<p class="sr-cuenta"><b>' + total + '</b> participaci' + (total === 1 ? 'ón' : 'ones') + ' de <b>' + B.length + '</b> recluta' + (B.length === 1 ? '' : 's') + '</p>' +
               (B.length ? '<details class="cajon"><summary><b>El bombo</b> <span class="cnt">' + B.length + '</span></summary><div class="tabla-envoltura"><table class="tabla sr-tabla"><thead><tr><th>Alias</th><th>Nombre</th><th>Participaciones</th><th>Posibilidades</th></tr></thead><tbody>' +
                 B.map(function (b) { return '<tr><td>' + esc(b.alias) + '</td><td>' + esc(b.nombre || "—") + '</td><td>' + b.n + '</td><td>' + Math.round(100 * b.n / Math.max(1, total)) + ' %</td></tr>'; }).join("") +
                 '</tbody></table></div></details>' : '') +
-              '<p class="sr-botones"><button class="btn primary sr-directo" data-doc="' + esc(x.docId) + '"' + (B.length ? '' : ' disabled title="Nadie tiene participaciones todavía"') + '>🎲 Sortear en directo</button> ' +
-              '<button class="btn sr-editar" data-doc="' + esc(x.docId) + '">✏️ Cambiar</button></p><div class="sr-editar-f"></div>') +
+              '<p class="sr-botones"><button class="btn primary sr-directo" data-doc="' + esc(x.docId) + '"' + (B.length ? '' : ' disabled title="Nadie tiene participaciones todavía"') + '><img class=ico src=assets/img/iconos/p/dados.png alt> Sortear en directo</button> ' +
+              '<button class="btn sr-editar" data-doc="' + esc(x.docId) + '"><img class=ico src=assets/img/iconos/p/editar.png alt> Cambiar</button></p><div class="sr-editar-f"></div>') +
           (gestionados().length > 1 ? '<div class="sr-ambito" data-sid="' + esc(x.stargateId || "") + '"></div>' : "") +
           '</div>';
       }).join("") : '<div class="card"><p class="small muted">Este grupo todavía no tiene ningún sorteo.</p></div>');
@@ -2259,7 +2481,7 @@
     var vencidos = L.filter(function (x) { return !x.isRaffleCompleted && Number(x.ticketDeadline || 0) > 0 && Number(x.ticketDeadline) <= Date.now(); });
     if (vencidos.length && !SORTEOS_PEDIDOS[PER] && MOTOR.sorteosPendientes) {
       SORTEOS_PEDIDOS[PER] = true;
-      MOTOR.sorteosPendientes(PER).then(function (r) { if (r && (r.resueltos || []).length) tras("🎟️ El sorteo se ha resuelto solo: ya tienes los ganadores."); }).catch(function () {});
+      MOTOR.sorteosPendientes(PER).then(function (r) { if (r && (r.resueltos || []).length) tras("El sorteo se ha resuelto solo: ya tienes los ganadores."); }).catch(function () {});
     }
     // «Copiar ganadores»: del ARCHIVO del sorteo (guarda su contacto aunque luego se den de baja)
     Array.prototype.forEach.call(app.querySelectorAll("[data-copiar-gan]"), function (b) {
@@ -2279,7 +2501,7 @@
           // 🔴 15-sep · el portapapeles se escribe DESPUÉS de leer el archivo (una espera de red) y Safari lo
           // rechaza; antes no se esperaba la promesa y decía «Copiados» sin haber copiado nada. Si no deja,
           // la lista sale en un cuadro, ya seleccionada, para copiarla a mano.
-          var hecho = function () { aviso("📋 Copiados: " + gente.length + " ganador" + (gente.length === 1 ? "" : "es") + ". Pégalos donde vayas a gestionar las licencias.", true); };
+          var hecho = function () { aviso("Copiados: " + gente.length + " ganador" + (gente.length === 1 ? "" : "es") + ". Pégalos donde vayas a gestionar las licencias.", true); };
           var aMano = function () {
             var t = b.parentNode.querySelector("textarea.gan-copia");
             if (!t) { t = document.createElement("textarea"); t.className = "gan-copia"; t.readOnly = true; b.parentNode.insertBefore(t, b.nextSibling); }
@@ -2362,21 +2584,21 @@
     var g = gestionados(), de = {};
     s.grupos.forEach(function (x) { de[x.per] = x.ticket; });
     var vivo = s.grupos.filter(function (x) { return !x.ticket.stargateRetirado; })[0] || s.grupos[0];
-    el.innerHTML = '<p class="small sr-ambito-t">🌐 <b>En sus grupos:</b> ' + g.map(function (per) {
+    el.innerHTML = '<p class="small sr-ambito-t"><img class=ico src=assets/img/iconos/p/varios.png alt> <b>En sus grupos:</b> ' + g.map(function (per) {
       var t = de[per], on = !!t && !t.stargateRetirado, hecho = !!t && t.isRaffleCompleted && !t.stargateRetirado;
       return '<label class="pe-chip' + (hecho ? " hecho" : "") + '" title="' + (hecho ? "Ya se hizo aquí" : on ? "Desmárcalo para quitarlo de este grupo" : "Márcalo para llevarlo a este grupo") + '">' +
-        '<input type="checkbox" value="' + esc(per) + '"' + (on ? " checked" : "") + (hecho ? " disabled" : "") + "> " + esc(nombreDeGrupo(per)) + (hecho ? " · 🏆" : "") + "</label>";
+        '<input type="checkbox" value="' + esc(per) + '"' + (on ? " checked" : "") + (hecho ? " disabled" : "") + "> " + esc(nombreDeGrupo(per)) + (hecho ? " · <img class=ico src=assets/img/nave/iconos/rankings.png alt>" : "") + "</label>";
     }).join(" ") + "</p>";
     Array.prototype.forEach.call(el.querySelectorAll("input[type=checkbox]"), function (c) {
       c.onchange = async function () {
         var per = c.value, t = de[per];
         c.disabled = true;
         try {
-          if (c.checked) { await MOTOR.sorteoEnGrupos(configDeTicket(vivo.ticket), [per]); await despues("🎟️ Sorteo añadido a «" + nombreDeGrupo(per) + "»."); }
+          if (c.checked) { await MOTOR.sorteoEnGrupos(configDeTicket(vivo.ticket), [per]); await despues("Sorteo añadido a «" + nombreDeGrupo(per) + "»."); }
           else {
             if (!t || t.stargateRetirado) { c.disabled = false; return; }   // (ahí no estaba: nada que quitar)
             if (!(await window.SG.preguntar({ titulo: "¿Quitar este sorteo de «" + nombreDeGrupo(per) + "»?", texto: "Solo se puede si allí nadie tiene participaciones. Deja de venderse en ese grupo.", si: "Quitarlo de ese grupo", peligro: true }))) { c.checked = true; c.disabled = false; return; }
-            await MOTOR.retirarSorteo(per, t.docId); await despues("🎟️ Sorteo quitado de «" + nombreDeGrupo(per) + "».");
+            await MOTOR.retirarSorteo(per, t.docId); await despues("Sorteo quitado de «" + nombreDeGrupo(per) + "».");
           }
         } catch (e) { c.checked = !c.checked; c.disabled = false; aviso(e.message); }
       };
@@ -2389,7 +2611,7 @@
     try { l = await MOTOR.sorteosDeGrupos(gestionados()); } catch (e) {}
     var fechaDe = function (s) { return Math.max.apply(null, s.grupos.map(function (x) { return Number(x.ticket.ticketDeadline || 0); })); };
     l.sort(function (a, b) { return fechaDe(a) - fechaDe(b); });
-    destino.innerHTML = '<div class="card"><h3>🎟️ Sorteos</h3><p class="small">Un sorteo se configura una vez y va a los grupos que elijas. ' +
+    destino.innerHTML = '<div class="card"><h3><img class=ico src=assets/img/iconos/p/ticket.png alt> Sorteos</h3><p class="small">Un sorteo se configura una vez y va a los grupos que elijas. ' +
       'Cada grupo tiene <b>su bombo</b> y su <b>sorteo en directo</b> (entra en el grupo → Sorteos). Cambiarlo aquí lo cambia en todos sus grupos.</p>' +
       '<p><button class="btn primary" id="sr-nuevo">+ Crear un sorteo</button></p><div id="sr-nuevo-f"></div></div>' +
       (l.length ? l.map(function (s) {
@@ -2401,7 +2623,7 @@
           '<p class="small sr-estados">' + s.grupos.map(function (x) {
             return '<a class="chip" href="consola.html?per=' + esc(x.per) + '" title="Entrar en el grupo: su bombo y el sorteo en directo">' + esc(nombreDeGrupo(x.per)) + " · " + estadoSorteo(x.ticket)[1] + "</a>"; }).join(" ") + "</p></div></div>" +
           '<div class="sr-ambito"></div>' +
-          (s.grupos.some(function (x) { return !x.ticket.isRaffleCompleted; }) ? '<p class="sr-botones"><button class="btn sr-editar">✏️ Cambiar (en todos sus grupos)</button></p><div class="sr-editar-f"></div>' : "") +
+          (s.grupos.some(function (x) { return !x.ticket.isRaffleCompleted; }) ? '<p class="sr-botones"><button class="btn sr-editar"><img class=ico src=assets/img/iconos/p/editar.png alt> Cambiar (en todos sus grupos)</button></p><div class="sr-editar-f"></div>' : "") +
           "</div>";
       }).join("") : '<div class="card"><p class="small muted">Ninguno de tus grupos tiene sorteos todavía.</p></div>');
     var repinta = function (texto) { return verSorteosComunes(destino).then(function () { if (texto) aviso(texto, true); }); };
@@ -2432,7 +2654,7 @@
       B.reduce(function (a, b) { return a + b.n; }, 0) + ' papeletas de ' + B.length + ' recluta' + (B.length === 1 ? '' : 's') + ' · nadie gana dos</p>' +
       '<div class="sr-bombo">' + B.map(function (b) { return '<span class="sr-chip" data-f="' + esc(b.ficha) + '">' + esc(b.alias) + ' <i>×' + b.n + '</i></span>'; }).join("") + '</div>' +
       '<div class="sr-res" id="sr-res" aria-live="polite"></div>' +
-      '<p class="sr-proy-bot"><button class="btn epico" id="sr-go"><span class="ep-luz"></span><span class="ep-txt">🎲 ¡Sortear!</span></button> ' +
+      '<p class="sr-proy-bot"><button class="btn epico" id="sr-go"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/dados.png alt> ¡Sortear!</span></button> ' +
       '<button class="btn" id="sr-pantalla">⛶ Pantalla completa</button> <button class="btn" id="sr-salir">Cerrar</button></p></div>';
     document.body.appendChild(capa);
     var cerrar = function () { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); capa.remove(); refrescar().then(function () { TAB = "sorteos"; pintar(); }); };
@@ -2446,7 +2668,7 @@
       go.disabled = true; go.querySelector(".ep-txt").textContent = "Sorteando…";
       var res;
       try { res = await MOTOR.sortear(PER, x.docId); }
-      catch (e) { go.disabled = false; go.querySelector(".ep-txt").textContent = "🎲 ¡Sortear!"; $("#sr-res", capa).innerHTML = '<p class="malo">' + esc(e.message) + '</p>'; return; }
+      catch (e) { go.disabled = false; go.querySelector(".ep-txt").innerHTML = "<img class=ico src=assets/img/iconos/p/dados.png alt> ¡Sortear!"; $("#sr-res", capa).innerHTML = '<p class="malo">' + esc(e.message) + '</p>'; return; }
       var chips = [].slice.call(capa.querySelectorAll(".sr-chip")), quieto = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
       var caer = function (g) {
         return new Promise(function (ok) {
@@ -2464,10 +2686,10 @@
       for (var k = 0; k < res.ganadores.length; k++) {
         await caer(res.ganadores[k]);
         dichos.push('<b>' + esc(res.ganadores[k].alias) + '</b>');
-        $("#sr-res", capa).innerHTML = '<p class="sr-gana">🏆 ' + dichos.join(" · ") + '</p>';
+        $("#sr-res", capa).innerHTML = '<p class="sr-gana"><img class=ico src=assets/img/nave/iconos/rankings.png alt> ' + dichos.join(" · ") + '</p>';
         await new Promise(function (ok) { setTimeout(ok, quieto ? 0 : 900); });
       }
-      $("#sr-res", capa).innerHTML = '<p class="sr-gana">🏆 ' + dichos.join(" · ") + '</p><p class="sr-proy-sub">¡Enhorabuena! ' +
+      $("#sr-res", capa).innerHTML = '<p class="sr-gana"><img class=ico src=assets/img/nave/iconos/rankings.png alt> ' + dichos.join(" · ") + '</p><p class="sr-proy-sub">¡Enhorabuena! ' +
         (res.ganadores.length > 1 ? 'Os' : 'Te') + ' llevá' + (res.ganadores.length > 1 ? 'is' : 's') + ' ' + esc(res.premio) + '.</p>';
       go.remove();   // (`hidden` no basta: .btn lleva su propio display)
     };
@@ -2522,7 +2744,7 @@
     var tipo = S.tipo === "PUA" ? "PUA" : "REGULAR", total = (cat.semanas || {})[tipo] || 15, extra = cat.semanasCanjeExtra || 1;
     var re = function () { verCalendario(t); };
     if (!CAL.inicio) {
-      $("#c-cuerpo").innerHTML = '<div class="card cal-caja"><h3>📅 El calendario del grupo</h3>' + (edita
+      $("#c-cuerpo").innerHTML = '<div class="card cal-caja"><h3><img class=ico src=assets/img/iconos/p/calendario.png alt> El calendario del grupo</h3>' + (edita
         ? '<p>Este grupo aún no tiene fecha de semana 1. Ponla y verás el curso entero (con las semanas festivas de la UNIR ya marcadas).</p>' +
           '<div class="cal-cab"><label>Primer día de la semana 1 <input type="date" id="cal-inicio"></label></div>'
         : '<p class="muted">Tu referente aún no ha puesto la fecha de la semana 1.</p>') + "</div>";
@@ -2552,18 +2774,18 @@
       var pasada = f.fin < hoy, actual = f.inicio <= hoy && hoy <= f.fin, futura = f.inicio > hoy;
       var festiva = f.congelada && festivas.indexOf(f.inicio) >= 0;
       var clase = f.congelada ? (festiva ? "festivo" : "nolectiva") : f.canje ? "canje" : "lectiva";
-      var et = f.congelada ? (festiva ? "🎄" : "⏸") : f.canje ? "🛒" : "S" + f.semana;
+      var et = f.congelada ? (festiva ? "<img class=ico src=assets/img/iconos/p/calendario.png alt>" : "<img class=ico src=assets/img/iconos/p/pausa.png alt>") : f.canje ? "<img class=ico src=assets/img/nave/iconos/mercado.png alt>" : "S" + f.semana;
       var que = [];
       // 15-sep · Norberto: «hay que saltarse SIEMPRE la semana del 24 de diciembre, la siguiente y la de Jueves Santo». Los grupos
       // nuevos nacen así; en uno de antes, una festiva que aún cuenta como lectiva se señala (y abajo se saltan todas de un clic).
-      if (!f.congelada && festivas.indexOf(f.inicio) >= 0) que.push('<span class="cal-aviso">🎄 ' + fiesta(f.inicio) + ' en la UNIR: debería ser no lectiva</span>');
+      if (!f.congelada && festivas.indexOf(f.inicio) >= 0) que.push('<span class="cal-aviso"><img class=ico src=assets/img/iconos/p/calendario.png alt> ' + fiesta(f.inicio) + ' en la UNIR: debería ser no lectiva</span>');
       if (f.congelada) que.push(festiva ? "<b>" + fiesta(f.inicio) + "</b> en la UNIR: no hay clase" : "<b>No lectiva</b>: el curso no avanza esta semana");
       else {
-        planetas.filter(function (p) { return p.sem === f.semana; }).forEach(function (p) { que.push("🪐 Planeta " + p.n + " · " + esc(p.nombre)); });
+        planetas.filter(function (p) { return p.sem === f.semana; }).forEach(function (p) { que.push("<img class=ico src=assets/img/iconos/p/varios.png alt> Planeta " + p.n + " · " + esc(p.nombre)); });
         caps.filter(function (c) { return semCap(c) === f.semana; }).forEach(function (c) {
           que.push(c.icono + " " + esc(c.titulo) + (CAL.abiertos[c.clave] ? ' <span class="chip ok">ya abierto</span>' : "")); });
-        if (f.semana === total) que.push("🏁 Último día para registrar retos: <b>" + diaCorto(f.fin) + "</b>");
-        if (f.semana === total + extra) que.push("🛒 Último día para canjear: <b>" + diaCorto(f.fin) + "</b>");
+        if (f.semana === total) que.push("<img class=ico src=assets/img/iconos/p/hecho.png alt> Último día para registrar retos: <b>" + diaCorto(f.fin) + "</b>");
+        if (f.semana === total + extra) que.push("<img class=ico src=assets/img/nave/iconos/mercado.png alt> Último día para canjear: <b>" + diaCorto(f.fin) + "</b>");
         if (f.canje && !que.length) que.push('<span class="muted">Semana de canje: sin retos nuevos</span>');
       }
       var dias = "";
@@ -2614,12 +2836,12 @@
         if (nuevo.cierre !== viejo.cierre) cambios.push("Registrar retos: hasta el <b>" + diaCorto(nuevo.cierre) + "</b> (antes, " + diaCorto(viejo.cierre) + ").");
         if (nuevo.cierreCanje !== viejo.cierreCanje) cambios.push("Canjear: hasta el <b>" + diaCorto(nuevo.cierreCanje) + "</b> (antes, " + diaCorto(viejo.cierreCanje) + ").");
         var semAntes = SS.semanaDelCurso(S0.inicio, S0.pausas);
-        if (semAntes !== semHoy) cambios.push("⚠️ <b>Hoy el grupo pasa de la semana " + semAntes + " a la " + semHoy + ".</b>");
+        if (semAntes !== semHoy) cambios.push("<img class=ico src=assets/img/iconos/p/aviso.png alt> <b>Hoy el grupo pasa de la semana " + semAntes + " a la " + semHoy + ".</b>");
       }
     }
 
     $("#c-cuerpo").innerHTML =
-      '<div class="card cal-caja"><h3>📅 El calendario del grupo</h3>' +
+      '<div class="card cal-caja"><h3><img class=ico src=assets/img/iconos/p/calendario.png alt> El calendario del grupo</h3>' +
       '<div class="cal-resumen">' +
         "<span><b>" + total + "</b> semanas lectivas <em>(" + (tipo === "PUA" ? "PUA" : "curso regular") + ")</em></span>" +
         "<span><b>" + noLect + "</b> no lectiva" + (noLect === 1 ? "" : "s") + "</span>" +
@@ -2627,16 +2849,16 @@
         "<span>Retos hasta el <b>" + diaCorto(nuevo.cierre) + "</b></span>" +
         "<span>Canje hasta el <b>" + diaCorto(nuevo.cierreCanje) + "</b></span>" +
         '<span class="cal-hoy-txt">Hoy: <b>' + hoyTxt + "</b></span></div>" +
-      (sinSaltar.length ? '<p class="cal-aviso-caja">🎄 <b>' + sinSaltar.length + (sinSaltar.length === 1 ? " semana festiva" : " semanas festivas") +
+      (sinSaltar.length ? '<p class="cal-aviso-caja"><img class=ico src=assets/img/iconos/p/calendario.png alt> <b>' + sinSaltar.length + (sinSaltar.length === 1 ? " semana festiva" : " semanas festivas") +
         " de la UNIR</b> (Navidad o Semana Santa) " + (sinSaltar.length === 1 ? "cuenta" : "cuentan") + " aún como lectiva" + (sinSaltar.length === 1 ? "" : "s") + " en este grupo." +
         (edita ? ' <button type="button" class="btn min" id="cal-festivos">Saltarlas</button>' : " Díselo a tu referente.") + "</p>" : "") +
       (edita
         ? '<div class="cal-cab"><label>Primer día de la semana 1 <input type="date" id="cal-inicio" value="' + esc(CAL.inicio) + '"></label>' +
-          '<p class="small">👆 <b>Pulsa una semana</b> que aún no haya llegado para marcarla como <b>no lectiva</b> (o para que vuelva a serlo). ' +
+          '<p class="small"><b>Pulsa una semana</b> que aún no haya llegado para marcarla como <b>no lectiva</b> (o para que vuelva a serlo). ' +
           "Las de detrás se renumeran solas y abajo verás a qué día se mueve cada una. Nada cambia hasta <b>Guardar</b>.</p></div>"
         : '<p class="small muted">Lo lleva tu referente. Aquí ves cada semana del curso, las que no son lectivas y lo que se abre en cada una.</p>') +
-      '<div class="cal-ley"><span class="l lectiva">S1 · lectiva</span><span class="l nolectiva">⏸ no lectiva</span>' +
-        '<span class="l festivo">🎄 festiva UNIR</span><span class="l canje">🛒 canje</span><span class="l hoy">hoy</span></div>' +
+      '<div class="cal-ley"><span class="l lectiva">S1 · lectiva</span><span class="l nolectiva"><img class=ico src=assets/img/iconos/p/pausa.png alt> no lectiva</span>' +
+        '<span class="l festivo"><img class=ico src=assets/img/iconos/p/calendario.png alt> festiva UNIR</span><span class="l canje"><img class=ico src=assets/img/nave/iconos/mercado.png alt> canje</span><span class="l hoy">hoy</span></div>' +
       '<div class="cal-vis" role="list"><div class="cal-fila cal-cabeza" aria-hidden="true"><span class="cal-et"></span><span class="cal-7">' + cabDias +
         '</span><span class="cal-que">Qué pasa</span></div>' + filas.map(fila).join("") + "</div></div>" +
       (edita
@@ -2653,8 +2875,8 @@
             return '<div class="cal-cap' + (porFecha || antes ? " on" : "") + '"><b>' + c.icono + " " + esc(c.titulo) + "</b>" +
               '<span class="small">' + (porFecha ? "Abierto (semana " + semCap(c) + ")" : antes ? "Abierto antes de tiempo · su semana era la " + semCap(c)
                                         : "Se abre la semana " + semCap(c) + " · " + diaCorto(cuando)) + "</span>" +
-              (porFecha ? "" : antes ? '<button type="button" class="btn min" data-cal-cierra="' + c.clave + '">↩️ Volver a su semana</button>'
-                                     : '<button type="button" class="btn min" data-cal-abre="' + c.clave + '">🔓 Abrir ya</button>') + "</div>";
+              (porFecha ? "" : antes ? '<button type="button" class="btn min" data-cal-cierra="' + c.clave + '">↩ Volver a su semana</button>'
+                                     : '<button type="button" class="btn min" data-cal-abre="' + c.clave + '"><img class=ico src=assets/img/iconos/p/abierto.png alt> Abrir ya</button>') + "</div>";
           }).join("") + "</div></div>"
         : "");
     if (!edita) return;
@@ -2760,6 +2982,70 @@
     var cambio = {}; cambio["stargate." + campo] = m;
     await MOTOR.updateDoc(ref, cambio);
   }
+  /** Lo mismo que `guardarMiParte`, pero en un grupo cualquiera (los ajustes del panel tocan todos los tuyos). */
+  async function guardarParteEn(per, campo, nombre, valor) {
+    nombre = String(nombre || "").trim();
+    if (!per || !nombre) return false;
+    var ref = MOTOR.doc(MOTOR.db, "projects", per), pd = await MOTOR.getDoc(ref);
+    var m = Object.assign({}, (((pd.exists() ? pd.data() : {}) || {}).stargate || {})[campo] || {});
+    var vacio = valor == null || valor === "" || (Array.isArray(valor) && !valor.length);
+    if (vacio) delete m[nombre]; else m[nombre] = valor;
+    var cambio = {}; cambio["stargate." + campo] = m;
+    await MOTOR.updateDoc(ref, cambio);
+    return true;
+  }
+  /** Tu nombre en el equipo docente de un grupo (con él se guarda lo tuyo: tu Genially, tu sesión). */
+  function miNombreEn(p) {
+    // `miNombre` lo pone el motor desde la lista privada del equipo (los correos no están en el grupo público)
+    if (p && p.miNombre) return p.miNombre;
+    return ((((p && p.stargate) || {}).docentes || []).filter(function (d) {
+      return String(d.correo || "").toLowerCase() === String((YO && YO.correo) || "").toLowerCase(); })[0] || {}).nombre || "";
+  }
+  /**
+   * 19-sep · ⚙ AJUSTES DEL PANEL: tu comandante y tu sesión en directo para TODOS tus grupos en marcha de una vez.
+   * Dentro de cada grupo (Mis enlaces) se puede afinar para uno solo; aquí se escribe lo mismo en cada uno.
+   */
+  function pintarAjustes(caja, vivos, avBtn) {
+    var mios = vivos.filter(function (p) { return !!miNombreEn(p); });
+    var base = mios[0] ? ((((mios[0].stargate || {}).sesiones) || {})[miNombreEn(mios[0])] || []) : [];
+    var distintos = mios.some(function (p) {
+      var o = (((p.stargate || {}).sesiones) || {})[miNombreEn(p)] || [];
+      return o.slice().sort().join() !== base.slice().sort().join();
+    });
+    caja.innerHTML = '<div class="doc-aj-grid">' +
+      '<div class="card"><h3>Tu comandante</h3><p class="small muted">El retrato con el que apareces en tu panel. Elige entre los 26 del reparto.</p>' +
+        '<p><button type="button" class="btn" id="doc-aj-ava">Elegir comandante</button></p></div>' +
+      '<div class="card m-sesion"><h3>Tu sesión en directo · en todos tus grupos</h3>' +
+        (mios.length
+          ? '<p class="small muted">Marca lo que quieres en tu presentación; se aplica a tus <b>' + mios.length + '</b> ' + (mios.length === 1 ? "grupo en marcha" : "grupos en marcha") +
+            ' (' + esc(mios.map(function (p) { return p.nombre; }).join(" · ")) + '). Por defecto sale todo; lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
+            'Para un solo grupo: dentro del grupo, en <b>Mis enlaces</b>.</p>' +
+            (distintos ? '<p class="small aviso-suave">Ahora mismo tus grupos no tienen la misma selección: te enseño la de «' + esc(mios[0].nombre) + '». Al tocar una casilla, todos quedan igual.</p>' : '') +
+            '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
+              return '<label class="m-sec"><input type="checkbox" data-sec="' + esc(x[0]) + '"' + (base.indexOf(x[0]) < 0 ? " checked" : "") + '>' +
+                '<span><b>' + esc(x[1]) + '</b><em>' + esc(x[2]) + '</em></span></label>'; }).join("") + '</div>' +
+            '<p class="small m-sec-msg" id="doc-aj-msg" aria-live="polite"></p>'
+          : '<p class="small muted">No te encuentro en el equipo docente de ningún grupo en marcha con <b>' + esc((YO && YO.correo) || "") + '</b>.</p>') +
+      '</div></div>';
+    var bAva = caja.querySelector("#doc-aj-ava");
+    if (bAva && avBtn) bAva.onclick = function () { avBtn.click(); avBtn.scrollIntoView({ behavior: "smooth", block: "nearest" }); };
+    Array.prototype.forEach.call(caja.querySelectorAll(".m-sec input"), function (c) {
+      c.onchange = async function () {
+        var off = Array.prototype.filter.call(caja.querySelectorAll(".m-sec input"), function (x) { return !x.checked; })
+          .map(function (x) { return x.getAttribute("data-sec"); });
+        var msg = caja.querySelector("#doc-aj-msg"); msg.textContent = "Guardando en tus " + mios.length + " grupos…";
+        try {
+          await Promise.all(mios.map(function (p) {
+            return guardarParteEn(p.id, "sesiones", miNombreEn(p), off).then(function () {
+              p.stargate = p.stargate || {}; p.stargate.sesiones = p.stargate.sesiones || {};
+              if (off.length) p.stargate.sesiones[miNombreEn(p)] = off; else delete p.stargate.sesiones[miNombreEn(p)];
+            });
+          }));
+          msg.textContent = "✓ Guardado en " + mios.length + (mios.length === 1 ? " grupo" : " grupos") + (off.length ? " · quitas " + off.length + (off.length === 1 ? " sección" : " secciones") : " · sale todo");
+        } catch (e) { c.checked = !c.checked; msg.textContent = "No se ha podido guardar: " + (e.message || e); }
+      };
+    });
+  }
   var VITALICIOS_WEB = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"];
   function puedoBorrar() {
     var P = DATOS.proyecto || {}, u = YO || {};
@@ -2767,10 +3053,10 @@
   }
   function tarjetaBorrar() {
     var P = DATOS.proyecto || {}, S = P.stargate || {};
-    if (Number(S.demoSemana || 0) > 0) return '<div class="card"><h3>🗑️ Borrar este grupo</h3><p class="small muted">Es el grupo de la demostración pública: no se borra desde aquí.</p></div>';
-    if (!puedoBorrar()) return '<div class="card"><h3>🗑️ Borrar este grupo</h3><p class="small muted">Solo puede borrarlo quien lo creó' +
+    if (Number(S.demoSemana || 0) > 0) return '<div class="card"><h3><img class=ico src=assets/img/iconos/p/papelera.png alt> Borrar este grupo</h3><p class="small muted">Es el grupo de la demostración pública: no se borra desde aquí.</p></div>';
+    if (!puedoBorrar()) return '<div class="card"><h3><img class=ico src=assets/img/iconos/p/papelera.png alt> Borrar este grupo</h3><p class="small muted">Solo puede borrarlo quien lo creó' +
       (P.ownerEmail ? " (" + esc(P.ownerEmail) + ")" : "") + " o un referente vitalicio.</p></div>";
-    return '<div class="card zona-peligro"><h3>🗑️ Borrar este grupo</h3>' +
+    return '<div class="card zona-peligro"><h3><img class=ico src=assets/img/iconos/p/papelera.png alt> Borrar este grupo</h3>' +
       '<p class="small">Se borra <b>todo</b>: el grupo, las fichas de su alumnado, sus retos, el Mercado, las llamadas, el Zoco y los alias. ' +
       '<b>No se puede deshacer.</b> Pensado para los grupos de prueba.</p>' +
       '<label>Para confirmarlo, escribe su nombre: <b>' + esc(P.name || PER) + '</b> <span class="small muted">(sin preocuparte de mayúsculas, acentos ni signos)</span><input id="s-borrar-nombre" autocomplete="off" spellcheck="false"></label>' +
@@ -2802,7 +3088,7 @@
       // 🔴 13-sep · la fecha de la semana 1 vive en «Calendario». Aquí solo cambiaba el documento del
       // grupo: el Mercado y los planetas se quedaban con sus fechas viejas (se abrían en la semana mala).
       '<p class="small">Semana 1: <b>' + esc(S.inicio || "—") + '</b> · retos hasta ' + esc(S.cierre || "—") + ' · canje hasta ' +
-      esc(S.cierreCanje || "—") + ' <button class="btn min" data-tab="calendario" type="button">📅 Cambiar en Calendario</button></p>' +
+      esc(S.cierreCanje || "—") + ' <button class="btn min" data-tab="calendario" type="button"><img class=ico src=assets/img/iconos/p/calendario.png alt> Cambiar en Calendario</button></p>' +
       '<label>Padlet de la clase<input id="s-padlet" value="' + esc(S.padlet || "") + '"></label>' +
       '<label>Ticket de salida <i>(formulario de Google, anónimo)</i><input id="s-ticket" value="' + esc(S.ticket || "") + '"></label>' +
       '<label>Panel de control (ver)<input id="s-panel" value="' + esc(S.panelVer || window.SG_PANEL_MAESTRO || "") + '"></label>' +
@@ -2833,11 +3119,11 @@
       '<div class="card"><h3>Para los Geniallys · se montan UNA vez</h3>' +
       '<p class="small muted">Ninguno lleva el grupo dentro: piden la cuenta de quien los abre y, si lleva varios grupos, le preguntan cuál. ' +
       'Valen en todos los grupos y todas las convocatorias. En Genially: <b>Insertar → Otros → Código</b> y pegar.</p>' +
-      [["📽️ La sesión de la semana", "sesion.html?embed=1"], ["🔔 Llamada a filas (solo la toca el Comandante)", "llamada.html?embed=1"],
-       ["🛰️ El aula (el puesto de mando del docente)", "aula.html?embed=1"], ["🎯 Validar un reto", "validar.html?reto=S7&embed=1"],
+      [["<img class=ico src=assets/img/iconos/p/video.png alt> La sesión de la semana", "sesion.html?embed=1"], ["<img class=ico src=assets/img/nave/iconos/clase.png alt> Llamada a filas (solo la toca el Comandante)", "llamada.html?embed=1"],
+       ["<img class=ico src=assets/img/nave/iconos/envivo.png alt> El aula (el puesto de mando del docente)", "aula.html?embed=1"], ["<img class=ico src=assets/img/iconos/p/diana.png alt> Validar un reto", "validar.html?reto=S7&embed=1"],
        // 16-sep · la batalla del reto A6: se pone en el Genially del tema 6 y se juega en clase, cada cual en su dispositivo
-       ["⚔️ El Simulador de Joran (el reto A6)", "batalla.html?embed=1"]].map(function (x) {
-        return '<p class="small">' + x[0] + ' <button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[1], "STARGATE · " + x[0].replace(/^\S+\s/, ""))) + '">&lt;/&gt; Copiar para insertar</button></p>';
+       ["<img class=ico src=assets/img/iconos/p/diana.png alt> El Simulador de Joran (el reto A6)", "batalla.html?embed=1"]].map(function (x) {
+        return '<p class="small">' + x[0] + ' <button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[1], "STARGATE · " + x[0].replace(/^<img[^>]*>\s*/, ""))) + '">&lt;/&gt; Copiar para insertar</button></p>';
       }).join("") +
       // 15-sep (tarde) · el reto secreto (S7) es el Escape UNI; el enlace escondido de Vínculo lleva a su puerta
       /**
@@ -2847,14 +3133,14 @@
        * 🔴 La llave no se guarda en ninguna parte (ni aquí, ni en el grupo, ni en el repositorio, que es público):
        * se pega en este campo y se usa en el momento para montar el enlace.
        */
-      '<p class="small">🗝️ <b>El reto secreto (S7) es el Escape UNI</b>. Se registra con el final del escape, y ese enlace ' +
+      '<p class="small"><img class=ico src=assets/img/iconos/p/llave.png alt> <b>El reto secreto (S7) es el Escape UNI</b>. Se registra con el final del escape, y ese enlace ' +
       '<b>lleva la llave dentro</b>: quien lo abre solo entra con su cuenta. Pega aquí tu llave y te lo doy montado.</p>' +
       '<p class="small"><input id="s7-llave" type="text" autocomplete="off" spellcheck="false" placeholder="La llave del Escape UNI" ' +
-      'style="max-width:15rem"> <button class="btn min" id="s7-enl" data-copiado="✓ Enlace copiado" data-copiar="">🔗 Copiar el enlace del final</button> ' +
+      'style="max-width:15rem"> <button class="btn min" id="s7-enl" data-copiado="✓ Enlace copiado" data-copiar=""><img class=ico src=assets/img/iconos/p/enlace.png alt> Copiar el enlace del final</button> ' +
       '<button class="btn min" id="s7-cod" data-copiado="✓ Código copiado" data-copiar="">&lt;/&gt; Copiar el código para incrustarlo</button></p>' +
       '<p class="small muted">La llave no se guarda en ningún sitio: se usa aquí mismo. Y si quieres esconder la <b>puerta</b> del escape ' +
       'en la presentación de <b>Vínculo</b>, ponla en algo que no parezca un botón (una estrella, un rincón de la imagen). ' +
-      '<button class="btn min" data-copiado="✓ Enlace copiado" data-copiar="' + esc(location.origin + "/fragmento.html") + '">🔗 Copiar la puerta escondida</button></p>' +
+      '<button class="btn min" data-copiado="✓ Enlace copiado" data-copiar="' + esc(location.origin + "/fragmento.html") + '"><img class=ico src=assets/img/iconos/p/enlace.png alt> Copiar la puerta escondida</button></p>' +
       '</div>' +
       tarjetaBorrar();
     cablearBorrar();

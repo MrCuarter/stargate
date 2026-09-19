@@ -34,12 +34,12 @@ c(/async function ofertaEnGrupos\(docs, accion, datos\)/.test(M) && /function he
 c(/function formOferta\(R, sel\)/.test(K) && /selectorGrupos\("of-g-nuevo", sel\)/.test(K), "   su formulario lleva «¿Para qué grupos?»");
 c(/async function verOfertasComunes\(destino\)/.test(K) && /La oferta automática de cada semana se enciende o apaga dentro de cada grupo/.test(K),
   "🔴 «🌐 Para todos tus grupos» → Ofertas (la automática semanal sigue siendo de cada grupo)");
-c(/\(solo en este grupo\)/.test(K) && /🌐 varios grupos/.test(K), "   y dentro de un grupo se distingue qué es solo suyo y qué es de varios");
-c(/"⚡ Oferta creada: ya está en el Mercado de tu alumnado\."/.test(K) && /"⏳ Oferta alargada\."/.test(K) && /"✖️ Oferta cancelada\."/.test(K), "   (con los mismos avisos de siempre)");
+c(/\(solo en este grupo\)/.test(K) && /varios\.png alt> varios grupos/.test(K), "   y dentro de un grupo se distingue qué es solo suyo y qué es de varios");
+c(/"Oferta creada: ya está en el Mercado de tu alumnado\."/.test(K) && /"Oferta alargada\."/.test(K) && /"✕ Oferta cancelada\."/.test(K), "   (con los mismos avisos de siempre)");
 // 3 · la página común y la separación
 c(/\[\["premios", "huevos", "Premios por enlace"\], \["sorteos", "sorteos", "Sorteos"\], \["ofertas", "ofertas", "Ofertas"\]\]/.test(K), "🔴 la página común tiene sus tres pestañas");
 c(/consola\.html\?comun=sorteos/.test(K) && /consola\.html\?comun=ofertas/.test(K), "   y la portada lleva a las tres");
-c(/function selectorGrupos\(nombre, sel\)/.test(K) && /🌐 Todos tus grupos \(/.test(K), "   un solo «¿Para qué grupos?» para sorteos y ofertas");
+c(/function selectorGrupos\(nombre, sel\)/.test(K) && /varios\.png alt> Todos tus grupos \(/.test(K), "   un solo «¿Para qué grupos?» para sorteos y ofertas");
 // 4 · los desplegables con apartados
 c(/n\.tagName === "OPTGROUP"/.test(SG) && /\.sgsel-g\{/.test(CSS), "🔴 los desplegables de la casa respetan los apartados («Sobres y cápsulas», «Un héroe concreto»…)");
 

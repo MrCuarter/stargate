@@ -19,6 +19,9 @@
   // faltaba era que alguien pusiera la clase. Otras siete páginas lo hacen; estas dos, que son las
   // que de verdad viven embebidas, se habían quedado sin ello.
   if (new URLSearchParams(location.search).get("embed") === "1") document.body.classList.add("embed");
+  // 19-sep · dentro del panel de la presentación: el grupo ya está fijado; fuera nombre, selector y «¿Dudas?», y las
+  // pestañas en una fila que cabe
+  if (new URLSearchParams(location.search).get("panel") === "1") document.body.classList.add("au-panel");
   var url = new URLSearchParams(location.search);
   var PER_FIJO = url.get("per") || "";
   var MOTOR = null, YO = null, GRUPOS = [], PER = "", D = null, TAB = "clase";
@@ -159,7 +162,7 @@
           ? ' <button type="button" class="au-mini-reloj' + (TMP.corre ? " corre" : "") + '" data-au="tiempo" title="El temporizador">' + icono("tiempo") + ' <span id="au-reloj-mini">' + mmss(quedanTmp()) + '</span></button>' : '')
       + "</div>"
       + '<div class="au-tabs">' + TABS.map(function (t) {
-          return '<button type="button" class="au-t' + (TAB === t[0] ? " on" : "") + '" data-au="' + t[0] + '">'
+          return '<button type="button" class="au-t' + (TAB === t[0] ? " on" : "") + '" data-au="' + t[0] + '" title="' + t[2] + '">'
             + '<span class="i">' + icono(t[1]) + "</span><b>" + t[2] + "</b></button>"; }).join("") + "</div></div>";
   }
 

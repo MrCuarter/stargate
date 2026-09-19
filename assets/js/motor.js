@@ -2068,6 +2068,22 @@ async function miFichaDocente() {
   const d = await getDoc(doc(db, "stargate_profes", yo.uid));
   return Object.assign({ uid: yo.uid, correo: yo.correo, nombre: yo.nombre || "", foto: yo.foto || "" }, d.exists() ? d.data() : {});
 }
+/**
+ * 19-sep · TUS NOTAS DEL GRUPO. Norberto: «una caja de texto por si tiene algo pendiente». Van en
+ * projects/{grupo}/privado/notas_{uid}: `privado` solo lo lee y escribe el equipo docente del grupo (reglas de
+ * siempre, sin desplegar nada) y nunca el alumnado. Una por docente.
+ */
+async function misNotas(perId) {
+  const yo = await sesion(); if (!yo || !perId) return { texto: "" };
+  const d = await getDoc(doc(db, "projects", perId, "privado", "notas_" + yo.uid));
+  return d.exists() ? d.data() : { texto: "" };
+}
+async function guardarNotas(perId, texto) {
+  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
+  const t = String(texto || "").slice(0, 4000);
+  await setDoc(doc(db, "projects", perId, "privado", "notas_" + yo.uid), { texto: t, uid: yo.uid, cuando: Date.now() }, { merge: true });
+  return true;
+}
 async function ponerAvatarDocente(clave) {
   const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
   if (!/^[a-z0-9_-]{1,40}$/.test(String(clave || ""))) throw new Error("Ese avatar no existe");
@@ -2109,7 +2125,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, alumno, nuevoCodigo,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,

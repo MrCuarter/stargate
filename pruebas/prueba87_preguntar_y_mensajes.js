@@ -98,7 +98,7 @@ c(/parseInt\(reto\.slice\(1\), 10\) \|\| 0/.test(EP), "   (el simulacro, XS, no 
 // 7 · la ficha, más simple (17-sep · Norberto: «Lo que ha entregado ya se ve al pulsar el propio reto; bórralo»)
 c(/data-rfquitarcom="' \+ esc\(c\.id\)/.test(RETO) && /class="sgp-rf-coms"/.test(RETO), "🔴 los comentarios de su tripulación y quitarlos, dentro del desplegable del reto");
 c(/b\.textContent = "¿Seguro\? Pulsa otra vez"/.test(K), "   quitar se confirma pulsando dos veces (otra pregunta desplegada cerraría la del reto)");
-c(/pideReflexion\(\(r\.retos \|\| \{\}\)\[id\]\) \? '<p class="small muted">✍️ Este reto lleva reflexión y no la tiene/.test(K),
+c(/pideReflexion\(\(r\.retos \|\| \{\}\)\[id\]\) \? '<p class="small muted"><img class=ico src=assets\/img\/iconos\/p\/editar\.png alt> Este reto lleva reflexión y no la tiene/.test(K),
   "   y «no la tiene» solo si se registró cuando ya se pedía");
 c(/\.retos-ficha \.reto:first-of-type\{border-top:1px solid/.test(CSS), "🔴 el primer reto de cada tema no pierde el borde de arriba (la regla de la Nave lo alcanzaba)");
 c(/#consola \.c-cab\{margin:0 0 14px\}/.test(CSS) && /\.pest\.activa\{background:linear-gradient/.test(CSS) && /class="pest-sep"/.test(K),
