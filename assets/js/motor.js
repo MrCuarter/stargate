@@ -1354,10 +1354,15 @@ async function misGruposDeAlumno(uid) {
   // El nombre del grupo, para que la pantalla de «¿cómo entras hoy?» diga «PRUEBA HUMANA» y no
   // «prueba-humana». Son una o dos lecturas: nadie está alistado en diez grupos a la vez.
   // Y solo grupos de STARGATE: una ficha de GamificaPro en otro proyecto no es una Nave.
-  const nombres = await Promise.all(fichas.map(f => getDoc(doc(db, "projects", f.per))
-    .then(p => (p.exists() && (p.data().stargate || {}).version) ? (p.data().name || f.per) : null)
+  // 19-sep · y la fecha de inicio (semana 1), en la misma lectura: la puerta la enseña bajo el nombre del grupo
+  const grupos = await Promise.all(fichas.map(f => getDoc(doc(db, "projects", f.per))
+    .then(p => (p.exists() && (p.data().stargate || {}).version) ? { nombre: p.data().name || f.per, inicio: p.data().stargate.inicio || "",
+      estado: estadoDelPER(p.data().stargate).estado } : null)
     .catch(() => null)));
-  return fichas.map((f, i) => Object.assign(f, { nombreGrupo: nombres[i] })).filter(f => f.nombreGrupo);
+  // (el curso terminado se sigue listando: Norberto, 19-sep, «me parece bien que un estudiante pueda acceder a un grupo
+  // terminado»; la puerta lo pone debajo y lo marca)
+  return fichas.map((f, i) => Object.assign(f, { nombreGrupo: grupos[i] && grupos[i].nombre, inicio: grupos[i] ? grupos[i].inicio : "",
+    estado: grupos[i] ? grupos[i].estado : "" })).filter(f => f.nombreGrupo);
 }
 
 /**

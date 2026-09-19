@@ -2373,6 +2373,14 @@ body.huevo-rec .hv-caja:not(.mal){border-color:rgba(245,176,67,.55)}
 .elegir-camino .camino:hover{border-color:var(--teal,#3ed6c8);background:rgba(62,214,200,.07)}
 .elegir-camino .camino span{grid-row:1/3;font-size:1.6rem;align-self:center}
 .elegir-camino .camino b{font-size:1.02rem}
+/* 19-sep · recluta: el nombre del grupo, grande y resaltado; debajo, «Recluta · empezó el…» */
+.elegir-camino .camino.recluta b{font-size:1.2rem;font-weight:800;line-height:1.2;color:#eafcff}
+.elegir-camino .camino.recluta em{color:var(--teal,#3ed6c8);font-weight:600}
+.elegir-camino .camino.recluta.terminado{opacity:.8}
+.elegir-camino .camino.recluta.terminado em{color:var(--mut,#8aa5ab)}
+/* 19-sep · «N cursos terminados» del panel: lleva al cajón */
+.doc-cifras .ir{cursor:pointer;transition:.15s}
+.doc-cifras .ir:hover,.doc-cifras .ir:focus-visible{border-color:var(--teal,#3ed6c8);outline:none}
 .elegir-camino .camino em{font-style:normal;font-size:.84rem;color:var(--mut,#8aa5ab)}
 .elegir-camino .camino.docente{border-color:rgba(242,181,68,.45)}
 

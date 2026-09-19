@@ -146,6 +146,13 @@
    * Para quien el sistema reconoce de más de una forma: docente y alumno, o alumno de varios grupos.
    * No se adivina: se pregunta, con los nombres de sus grupos a la vista. Un botón por camino.
    */
+  var MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  function inicioDe(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ""));
+    if (!m) return "";
+    var f = new Date(+m[1], +m[2] - 1, +m[3]), hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    return " · " + (f > hoy ? "empieza el " : "empezó el ") + (+m[3]) + " " + MESES[+m[2] - 1] + " " + m[1];
+  }
   function elegir(yo, ps, gs, vuelta) {
     var nombreDe = function (id) {
       var p = ps.filter(function (x) { return x.id === id; })[0];
@@ -161,9 +168,14 @@
           "<em>" + ps.length + (ps.length === 1 ? " grupo: " : " grupos: ") +
           esc(ps.slice(0, 3).map(function (p) { return p.nombre; }).join(" · ")) + (ps.length > 3 ? "…" : "") + "</em></a>"
         : "") +
-      gs.map(function (g) {
-        return '<a class="camino recluta" href="recluta.html?per=' + encodeURIComponent(g.per) + '"><span><img src="assets/img/nave/iconos/nave.png" alt=""></span>' +
-               "<b>Como recluta</b><em>" + esc(g.nombreGrupo || nombreDe(g.per)) + "</em></a>";
+      // 19-sep · Norberto: «resaltado y en grande el nombre del grupo; debajo, Recluta y la fecha de inicio». El curso más
+      // reciente, arriba (casi nadie verá más de uno: con un solo grupo se entra directo a la Nave)
+      gs.slice().sort(function (a, b) {
+        return ((a.estado === "pasado") - (b.estado === "pasado")) || String(b.inicio || "").localeCompare(String(a.inicio || ""));
+      }).map(function (g) {
+        var fin = g.estado === "pasado";
+        return '<a class="camino recluta' + (fin ? ' terminado' : '') + '" href="recluta.html?per=' + encodeURIComponent(g.per) + '"><span><img src="assets/img/nave/iconos/nave.png" alt=""></span>' +
+               "<b>" + esc(g.nombreGrupo || nombreDe(g.per)) + "</b><em>Recluta" + inicioDe(g.inicio) + (fin ? " · curso terminado" : "") + "</em></a>";
       }).join("") +
       "</div>" +
       '<p class="small muted"><a href="#" id="e-otra">Entrar con otra cuenta</a></p>'

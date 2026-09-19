@@ -288,7 +288,10 @@
         '<div class="doc-cifras">' +
           '<div><b>' + vivos.length + '</b><span>' + (vivos.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span></div>' +
           '<div><b>' + totAlu + '</b><span>reclutas a tu cargo</span></div>' +
-          '<div><b>' + pasados.length + '</b><span>' + (pasados.length === 1 ? "curso terminado" : "cursos terminados") + '</span></div>' +
+          // 19-sep · Norberto buscaba un curso terminado y no lo veía (el cajón está al final, plegado): la cifra lleva a él
+          (pasados.length
+            ? '<div class="ir" id="doc-viejos-b" role="button" tabindex="0" title="Ver los cursos terminados"><b>' + pasados.length + '</b><span>' + (pasados.length === 1 ? "curso terminado ↓" : "cursos terminados ↓") + '</span></div>'
+            : '<div><b>0</b><span>cursos terminados</span></div>') +
         '</div>' +
         '<div class="doc-b">' + botonBuzon("consola") + (soyRef ? ' <a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
       '</section>' +
@@ -367,6 +370,13 @@
     Array.prototype.forEach.call(app.querySelectorAll("[data-per]"), function (b) {
       b.onclick = function () { if (b.getAttribute("data-ir")) TAB = b.getAttribute("data-ir"); abrir(b.getAttribute("data-per")); };
     });
+    var viejosB = $("#doc-viejos-b");
+    if (viejosB) viejosB.onclick = viejosB.onkeydown = function (e) {
+      if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      var d = app.querySelector(".gp-viejos");
+      if (d) { d.open = true; d.scrollIntoView({ behavior: "smooth", block: "start" }); }
+    };
     // 18-sep · tu comandante: el que elegiste (o el primero), y la galería para cambiarlo
     var avImg = $("#doc-ava-img"), avBtn = $("#doc-ava"), avs = $("#doc-avas");
     if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
@@ -2763,15 +2773,19 @@
     return '<div class="card zona-peligro"><h3>🗑️ Borrar este grupo</h3>' +
       '<p class="small">Se borra <b>todo</b>: el grupo, las fichas de su alumnado, sus retos, el Mercado, las llamadas, el Zoco y los alias. ' +
       '<b>No se puede deshacer.</b> Pensado para los grupos de prueba.</p>' +
-      '<label>Para confirmarlo, escribe su nombre: <b>' + esc(P.name || PER) + '</b><input id="s-borrar-nombre" autocomplete="off" spellcheck="false"></label>' +
+      '<label>Para confirmarlo, escribe su nombre: <b>' + esc(P.name || PER) + '</b> <span class="small muted">(sin preocuparte de mayúsculas, acentos ni signos)</span><input id="s-borrar-nombre" autocomplete="off" spellcheck="false"></label>' +
       '<p><button class="btn peligro" id="s-borrar" type="button" disabled>Borrar el grupo para siempre</button></p></div>';
   }
   function cablearBorrar() {
     var inp = $("#s-borrar-nombre"), b = $("#s-borrar"), nombre = String((DATOS.proyecto || {}).name || PER).trim();
     if (!inp || !b) return;
-    inp.oninput = function () { b.disabled = inp.value.trim() !== nombre; };
+    // 🔴 19-sep · «PRUEBA · SEMANA 16 (fin del viaje)» no se podía borrar: el «·» no está en el teclado y el botón no se
+    // encendía nunca. Se compara sin mayúsculas, acentos, signos ni espacios: «prueba semana 16 fin del viaje» vale
+    var plano = function (x) { return String(x || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, ""); };
+    var coincide = function () { return !!plano(nombre) && plano(inp.value) === plano(nombre); };
+    inp.oninput = function () { b.disabled = !coincide(); };
     b.onclick = async function () {
-      if (inp.value.trim() !== nombre) return;
+      if (!coincide()) return;
       if (!(await window.SG.preguntar({ titulo: "Última pregunta: ¿borrar «" + nombre + "» y todo lo que tiene?", texto: "No se puede deshacer.",
         si: "Borrar el grupo", peligro: true }))) return;
       b.disabled = true; b.textContent = "Borrando…";
