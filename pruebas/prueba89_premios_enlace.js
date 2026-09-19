@@ -22,7 +22,7 @@ const K = leer("assets/js/consola.js"), M = leer("assets/js/motor.js"), H = leer
 
 // 1 · se guarda solo, y lo que se ve es lo del servidor
 c(!/id="hv-save"/.test(K) && !/function cablearHuevos/.test(K), "🔴 no hay un «Guardar» para toda la lista que se pueda olvidar");
-c(/function guardarLuego\(it, ya\)/.test(K) && /MOTOR\.guardarPremioEnlace\(it, gestionados\(\)\)/.test(K) && /\}, ya \? 0 : 600\);/.test(K),
+c(/function guardarLuego\(it, ya\)/.test(K) && /MOTOR\.guardarPremioEnlace\(it, premiables\(\)\)/.test(K)   /* (19-sep · premiables: también los grupos del docente en mando manual) */ && /\}, ya \? 0 : 600\);/.test(K),
   "🔴 cada premio se guarda solo al tocarlo (al medio segundo; los botones, al momento)");
 c(/"✓ Guardado"/.test(K) && /"No se ha guardado: "/.test(K), "   y lo dice: «✓ Guardado» o por qué no");
 c(!/estadoLocal/.test(K) && /function estadoServidor\(it\)/.test(K) && /MOTOR\.estadoHuevo\(per, it\.id\)/.test(K),

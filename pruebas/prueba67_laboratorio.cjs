@@ -115,7 +115,7 @@ const REG = {};   // cifras que se apuntan para el informe
         // equipo: el docente raso ve Mi gente, El Zoco, Mis enlaces y Calendario
         // 19-sep · +1 para todos: «Portada», la primera (el grupo de un vistazo)
         ["rita@lab.test", "Rita Referente", 12, "referente que imparte"],
-        ["dani@lab.test", "Dani Docente", 6, "docente raso"],   // (16-sep · +🏆 Rankings, para todos)
+        ["dani@lab.test", "Dani Docente", 7, "docente raso"],   // (16-sep · +Rankings, para todos; 19-sep · en mando manual, +Premios por enlace)
         ["sol@lab.test", "Sol Coordina", 12, "referente que NO imparte"],
       ];
       for (const [correo, nombre, pestanas, quien] of casos) {
@@ -1025,7 +1025,7 @@ const REG = {};   // cifras que se apuntan para el informe
         // 13-sep · +1: «El Zoco» (todos); referente, +«Calendario», (14-sep) +«Sorteos» y +«Ofertas»; (15-sep) el Calendario
         // para todos y la Cola de nota solo si hay algo pendiente
         const hayCola = await p.js("!!document.querySelector('.pest[data-tab=\"canjes\"]')");
-        const nTabs = (ref ? 12 : 6) + (hayCola ? 1 : 0);   // (16-sep · +Rankings, para todos; 19-sep · +Portada, la primera)
+        const nTabs = (ref ? 12 : 7) + (hayCola ? 1 : 0);   // (16-sep · +Rankings, para todos; 19-sep · +Portada, la primera)
         c("capitán · la visita del grupo tiene " + (nTabs + 2) + " pasos, uno por pestaña que " + nombre + " ve",
           loc.length === nTabs + 2 && loc.slice(1, nTabs + 1).every(v => /\bpest\b/.test(v.diana)), JSON.stringify(loc.map(v => v.t + "→" + v.diana)));
       }
@@ -4878,6 +4878,57 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 el aula de la presentación: sale cerrada, se abre y «Cerrar» la cierra de verdad", d0 === "none" && d1 !== "none" && d2 === "none", [d0, d1, d2].join(" → "));
       c("   y dentro, sin cabecera de más: el aula sabe que va en el panel", /panel=1/.test(await rp.js("document.querySelector('#ses-aula iframe').src")));
       await rp.cerrar();
+    }
+
+    // ============================================================ 47 · PILOTO AUTOMÁTICO / MANDO MANUAL Y «HOY TOCA»
+    /**
+     * 19-sep · Norberto: «el docente raso, modo simple o avanzado… por defecto, todos empiezan en modo simple» y «desarrolla
+     * más "Hoy toca": las fichas de retos completas y la info del calendario». Dani (docente raso) entra por primera vez.
+     */
+    if (hacer(47)) {
+      const P = "lab-clase";
+      const dn = await nueva("Dani y sus dos modos");
+      await dn.ir("entrar.html"); await dn.entrarComo("dani@lab.test", "Dani Docente");
+      await dn.js("try{ localStorage.removeItem('sgModoNivel'); }catch(e){} 1");   // (como un docente de verdad, la primera vez)
+      await dn.ir("consola.html"); await dn.hasta("!!document.querySelector('.gp')", 75); await dormir(800);
+      c("🔴 piloto · un docente nuevo empieza en PILOTO AUTOMÁTICO", await dn.js("document.body.classList.contains('modo-piloto') && document.querySelector('.modo-sel [data-modo=\"piloto\"]').classList.contains('on')"));
+      c("   sin la rueda de la sesión, sin Ajustes y sin las herramientas (Geniallys, para todos tus grupos)",
+        await dn.js("['.gp-cfg','#doc-ajustes-b','.gp-herr'].every(function(s){ var e=document.querySelector(s); return !e || getComputedStyle(e).display==='none'; })"));
+      c("🔴 hoy toca · en Mis grupos, desplegado, con fichas de reto completas y el calendario de la semana",
+        await dn.js("!!document.querySelector('.gp-hoy-d[open] .ht') && document.querySelectorAll('.gp-hoy-d .ht-reto').length>0 && document.querySelectorAll('.gp-hoy-d .ht-cal li').length>0 && !!document.querySelector('.gp-hoy-d .ht-reto .ht-reto-pie .p.xp')"));
+      await dn.ir("consola.html?per=" + P); await dn.hasta("!!document.querySelector('.pt-hero')", 75); await dormir(1000);
+      const tp = JSON.parse(await dn.js("JSON.stringify([].slice.call(document.querySelectorAll('.pestanas .pest')).map(function(b){return b.getAttribute('data-tab')}))"));
+      c("🔴 piloto · dentro del grupo, solo lo de dar clase (sin Zoco, Mis enlaces ni premios)", tp.indexOf("portada") === 0 && ["zoco", "mios", "huevos", "sorteos", "ofertas"].every(k => tp.indexOf(k) < 0), JSON.stringify(tp));
+      c("   la portada, con su «Hoy toca» (y cuántos lo han hecho) y sin el mensaje a los reclutas",
+        await dn.js("!!document.querySelector('.pt-hoy .ht-reto .pt-n') && getComputedStyle(document.querySelector('.pt-msg')).display==='none'"));
+      // la ficha: ver lo entregado sí, validar/anular no
+      await dn.ir("consola.html?per=" + P + "&tab=alumnado"); await dn.hasta("document.querySelectorAll('tr[data-r]').length>0", 60);
+      await dn.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1"); await dormir(600);
+      await dn.js("document.querySelector('tr[data-r]').click(); 1"); await dn.hasta("!!document.querySelector('#c-modal [data-reto]')", 20);
+      await dn.js("document.querySelector('#c-modal [data-reto]').click(); 1"); await dn.hasta("!!document.querySelector('.sgp-caja [data-sgp-si]')", 10);
+      c("🔴 piloto · en la ficha, un reto enseña lo entregado pero sin «Validar» ni «Anular»",
+        await dn.js("(function(){ var c=[].slice.call(document.querySelectorAll('.sgp-caja')).pop(); return !!c && !c.querySelector('[data-sgp-no]') && /Cerrar/.test(c.querySelector('[data-sgp-si]').textContent) && /lo hace tu referente/.test(c.textContent); })()"));
+      await dn.js("var c=[].slice.call(document.querySelectorAll('.sgp-caja')).pop(); c&&c.querySelector('[data-sgp-si]').click(); 1");
+      // el aula en piloto
+      await dn.ir("aula.html?per=" + P); await dn.hasta("!!document.querySelector('.au-tabs')", 60); await dormir(800);
+      c("🔴 piloto · el aula, sin «Premiar»", await dn.js("!document.querySelector('.au-t[data-au=\"premios\"]')"));
+      // pasa a mando manual
+      await dn.ir("consola.html"); await dn.hasta("!!document.querySelector('.modo-sel')", 75);
+      await dn.js("document.querySelector('.modo-sel [data-modo=\"manual\"]').click(); 1"); await dormir(2500);
+      c("🔴 mando manual · aparece todo (la rueda, Ajustes y las herramientas)", await dn.js("!document.body.classList.contains('modo-piloto') && getComputedStyle(document.querySelector('.gp-cfg')).display!=='none'"));
+      await dn.js("window.__uid=''; window.SG.MOTOR.sesion().then(function(y){ window.__uid=(y&&y.uid)||'-'; }); 1"); await dn.hasta("!!window.__uid", 10);
+      const fd = await leerDoc("stargate_profes/" + await dn.js("window.__uid"));
+      c("   y se guarda en su ficha (le sigue a cualquier equipo)", !!fd && fd.modo === "manual", JSON.stringify(fd && fd.modo));
+      await dn.ir("consola.html?per=" + P); await dn.hasta("!!document.querySelector('.pest[data-tab=\"huevos\"]')", 75);
+      const tm = JSON.parse(await dn.js("JSON.stringify([].slice.call(document.querySelectorAll('.pestanas .pest')).map(function(b){return b.getAttribute('data-tab')}))"));
+      c("🔴 mando manual · el docente raso tiene El Zoco, Mis enlaces y Premios por enlace (sorteos y ofertas, no)", ["zoco", "mios", "huevos"].every(k => tm.indexOf(k) >= 0) && tm.indexOf("sorteos") < 0 && tm.indexOf("ofertas") < 0, JSON.stringify(tm));
+      await dn.ir("aula.html?per=" + P); await dn.hasta("!!document.querySelector('.au-t[data-au=\"premios\"]')", 60);
+      c("   y el aula, con «Premiar»", await dn.js("!!document.querySelector('.au-t[data-au=\"premios\"]')"));
+      // y vuelve al piloto (para las secciones que vengan)
+      await dn.ir("consola.html"); await dn.hasta("!!document.querySelector('.modo-sel')", 75);
+      await dn.js("document.querySelector('.modo-sel [data-modo=\"piloto\"]').click(); 1"); await dormir(1500);
+      c("modos · sin errores", !dn.errores.filter(e => !/Failed to load resource/.test(e)).length, dn.errores[0] || "");
+      await dn.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

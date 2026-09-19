@@ -25,6 +25,10 @@
   var url = new URLSearchParams(location.search);
   var PER_FIJO = url.get("per") || "";
   var MOTOR = null, YO = null, GRUPOS = [], PER = "", D = null, TAB = "clase";
+  // 19-sep · PILOTO AUTOMÁTICO / MANDO MANUAL (el mismo modo de la consola, de su ficha): en piloto, sin «Premiar»
+  var MODO = "piloto";
+  try { MODO = localStorage.getItem("sgModoNivel") === "manual" ? "manual" : "piloto"; } catch (e) {}
+  function aplicarModoAula() { document.body.classList.toggle("modo-piloto", MODO !== "manual"); if (MODO !== "manual" && TAB === "premios") TAB = "clase"; }
   var SESION = null, reloj = null, dejarDeVigilar = null, PRESENTES = [];
   // PREMIAR: a quién (se conserva al repintar), de dónde sale la lista y a quién ya se ha preguntado hoy
   var ELEGIDOS = {}, FUENTE_P = "", PRESENTES_HOY = null, PREGUNTADOS = {};
@@ -161,7 +165,7 @@
       + (TAB !== "tiempo" && (TMP.corre || (TMP.quedan > 0 && TMP.quedan < TMP.total))
           ? ' <button type="button" class="au-mini-reloj' + (TMP.corre ? " corre" : "") + '" data-au="tiempo" title="El temporizador">' + icono("tiempo") + ' <span id="au-reloj-mini">' + mmss(quedanTmp()) + '</span></button>' : '')
       + "</div>"
-      + '<div class="au-tabs">' + TABS.map(function (t) {
+      + '<div class="au-tabs">' + TABS.filter(function (t) { return MODO === "manual" || t[0] !== "premios"; }).map(function (t) {
           return '<button type="button" class="au-t' + (TAB === t[0] ? " on" : "") + '" data-au="' + t[0] + '" title="' + t[2] + '">'
             + '<span class="i">' + icono(t[1]) + "</span><b>" + t[2] + "</b></button>"; }).join("") + "</div></div>";
   }
@@ -209,7 +213,8 @@
             return '<span class="au-cara quieta">' + (c ? '<img src="' + esc(c) + '" alt="" loading="lazy">' : '')
               + '<b>' + esc(x.alias) + '</b></span>'; }).join("") + '</div>'
         + '<div class="au-acciones"><button type="button" class="au-azar-btn" id="au-ir-azar">¿A quién pregunto?</button>'
-        + '<button type="button" class="ll-min" id="au-ir-premiar">Premiar a los presentes</button></div></div>'
+        + '<button type="button" class="ll-min" id="au-ir-premiar" data-av>Premiar a los presentes</button></div>'
+        + '<p class="au-elegido" id="au-elegido" aria-live="polite" hidden></p></div>'
       : "";
     return llamada + enClase + orden;
   }
@@ -735,6 +740,7 @@
   });
 
   function render() {
+    aplicarModoAula();
     pinta(barra() + '<div class="au-cuerpo">'
       + (TAB === "clase" ? vistaClase() : TAB === "gente" ? vistaGente()
         : TAB === "ranking" ? vistaRanking() : TAB === "tiempo" ? vistaTiempo()
@@ -777,7 +783,15 @@
     };
     // «En clase hoy» → a Premiar, con la lista de hoy (y ya sorteando, o con todos elegidos)
     var ia = document.getElementById("au-ir-azar"), ip = document.getElementById("au-ir-premiar");
-    if (ia) ia.onclick = function () { TAB = "premios"; FUENTE_P = "hoy"; render();
+    if (ia) ia.onclick = function () {
+      // 19-sep · en piloto automático no hay «Premiar»: el azar se resuelve aquí mismo, entre los presentes
+      if (MODO !== "manual") {
+        var L = enClaseHoy(); if (!L.length) L = mios();
+        var x = L[Math.floor(Math.random() * L.length)], el = document.getElementById("au-elegido");
+        if (el && x) { el.hidden = false; el.innerHTML = 'Le toca a <b>' + esc(x.alias || "") + '</b>'; }
+        return;
+      }
+      TAB = "premios"; FUENTE_P = "hoy"; render();
       var b = document.getElementById("au-azar"); if (b) b.click(); };
     if (ip) ip.onclick = function () { TAB = "premios"; FUENTE_P = "hoy"; ELEGIDOS = {};
       enClaseHoy().forEach(function (x) { ELEGIDOS[x.ficha] = true; }); render(); };
@@ -1015,6 +1029,10 @@
       var q_ = u ? u.uid : null; if (q_ === mirar._v) return; mirar._v = q_;  // una vez por cuenta: sesion() y sg:sesion llegan los dos al cargar
       YO = u;
       if (!YO) return puerta();
+      if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
+        var m = f && (f.modo === "manual" || f.modo === "piloto") ? f.modo : null;
+        if (m && m !== MODO) { MODO = m; try { localStorage.setItem("sgModoNivel", MODO); } catch (e) {} if (D) render(); }
+      }).catch(function () {});
       MOTOR.misPERs(YO.correo).then(function (ps) {
         GRUPOS = ps || [];
         if (!GRUPOS.length) return noEresDocente();

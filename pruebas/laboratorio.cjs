@@ -232,6 +232,9 @@ async function persona(nombre) {
         try { await p.js("location.reload(); 1", 3000); } catch (e) {}
         await dormir(1500); await p.hasta(listo, 60);
       }
+      // 19-sep · los docentes del laboratorio llegan en MANDO MANUAL (lo que prueban las secciones es la consola entera);
+      // el arranque en piloto automático lo prueba la §47 quitando esta marca
+      await p.js("try{ localStorage.setItem('sgModoNivel','manual'); }catch(e){} 1");
       return p.js(`window.SG.EMU.entrarComo(${JSON.stringify(correo)}, ${JSON.stringify(nombre || correo)}).then(function(u){ return u.email; })`);
     },
     /**

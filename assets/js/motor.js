@@ -2084,6 +2084,16 @@ async function guardarNotas(perId, texto) {
   await setDoc(doc(db, "projects", perId, "privado", "notas_" + yo.uid), { texto: t, uid: yo.uid, cuando: Date.now() }, { merge: true });
   return true;
 }
+/**
+ * 19-sep · EL MODO DEL DOCENTE. Norberto: «el docente raso, modo simple o modo avanzado. El simple se limita a seguir lo
+ * que el referente ha creado, sin complicaciones… quiero evitar que docentes nuevos se agobien y permitir a los
+ * experimentados DISFRUTAR». «Piloto automático» (por defecto) o «Mando manual», en su ficha: le sigue a cualquier equipo.
+ */
+async function ponerModoDocente(modo) {
+  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
+  if (modo !== "piloto" && modo !== "manual") throw new Error("Ese modo no existe");
+  await setDoc(doc(db, "stargate_profes", yo.uid), { uid: yo.uid, correo: yo.correo, modo: modo }, { merge: true });
+}
 async function ponerAvatarDocente(clave) {
   const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
   if (!/^[a-z0-9_-]{1,40}$/.test(String(clave || ""))) throw new Error("Ese avatar no existe");
@@ -2125,7 +2135,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, misNotas, guardarNotas,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, alumno, nuevoCodigo,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,

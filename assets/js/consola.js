@@ -15,6 +15,42 @@
   var app = document.querySelector("#consola-app");
   if (!app) return;
   var MOTOR = null, YO = null, PERS = [], PER = null, DATOS = null, TAB = "portada";   // 19-sep · se entra por la portada
+  /**
+   * 19-sep · PILOTO AUTOMÁTICO / MANDO MANUAL. Norberto: «el modo simple se limita a seguir lo que el referente ha creado,
+   * sin complicaciones… proyecta su clase, sigue el guion. El avanzado permite crear alguna recompensa… Quiero evitar
+   * que docentes nuevos se agobien y permitir a los experimentados DISFRUTAR». Por defecto, todos en piloto automático.
+   * El piloto solo OCULTA (lo marcado con data-av y las pestañas de AV_TABS): no hay dos consolas que mantener.
+   */
+  var FICHA = null, MODO = "piloto", CLAVE_MODO = "sgModoNivel";
+  var AV_TABS = ["zoco", "mios", "huevos", "sorteos", "ofertas"];
+  function manual() { return MODO === "manual"; }
+  function aplicarModo() {
+    document.body.classList.toggle("modo-piloto", !manual());
+    try { localStorage.setItem(CLAVE_MODO, MODO); } catch (e) {}
+  }
+  function cargarFicha() {
+    var local = ""; try { local = localStorage.getItem(CLAVE_MODO) || ""; } catch (e) {}
+    return (MOTOR.miFichaDocente ? MOTOR.miFichaDocente() : Promise.resolve(null)).then(function (f) {
+      FICHA = f || {};
+      MODO = (FICHA.modo === "manual" || FICHA.modo === "piloto") ? FICHA.modo : (local === "manual" ? "manual" : "piloto");
+    }, function () { MODO = local === "manual" ? "manual" : "piloto"; }).then(aplicarModo);
+  }
+  function ponerModo(m) {
+    MODO = m === "manual" ? "manual" : "piloto"; aplicarModo();
+    // (se guarda en su ficha; si el servidor aún no lo admite, se queda en este navegador)
+    if (MOTOR.ponerModoDocente) MOTOR.ponerModoDocente(MODO).then(function () { if (FICHA) FICHA.modo = MODO; }).catch(function () {});
+    if (PER && DATOS) { if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = "portada"; pintar(); } else elegirGrupo();
+  }
+  function selectorModo() {
+    return '<div class="modo-sel" role="group" aria-label="Cómo quieres tu consola">' +
+      '<button type="button" data-modo="piloto" aria-pressed="' + !manual() + '"' + (manual() ? '' : ' class="on"') + ' title="Lo justo para dar tu clase: sigue el rumbo que ha marcado tu referente">' + ico("cohete") + ' Piloto automático</button>' +
+      '<button type="button" data-modo="manual" aria-pressed="' + manual() + '"' + (manual() ? ' class="on"' : '') + ' title="Todo a mano: premios, tu sesión a medida, tu panel, mensajes y más">' + ico("ajustes") + ' Mando manual</button></div>';
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target && e.target.closest && e.target.closest("[data-modo]");
+    if (!b || !YO) return;
+    var m = b.getAttribute("data-modo"); if (m !== MODO) ponerModo(m);
+  });
   var url = new URLSearchParams(location.search);
   if (/^[a-z_]+$/.test(url.get("tab") || "")) TAB = url.get("tab");   // 15-sep · el Capitán enlaza a una pestaña (p. ej. «Mis enlaces»)
 
@@ -121,9 +157,80 @@
   }
   /** La rueda de «Configurar la sesión», al lado de «Empezar la clase» (en la fila del grupo y dentro de él). */
   function botonCfgSesion(per) {
-    return '<button type="button" class="gp-cfg" data-cfg-sesion="' + esc(per) + '" title="Configurar la sesión: qué diapositivas salen" aria-label="Configurar la sesión">' + ico("ajustes") + '</button>';
+    return '<button type="button" class="gp-cfg" data-av data-cfg-sesion="' + esc(per) + '" title="Configurar la sesión: qué diapositivas salen" aria-label="Configurar la sesión">' + ico("ajustes") + '</button>';
   }
 
+  /**
+   * 19-sep · «HOY TOCA», VISUAL. Norberto: «desarrolla más "Hoy toca", debe ser más visual, que se vean las fichas de retos
+   * completas. Incorpora la info del calendario (entrega de tarea, presentación, etc.)». Todo sale de los datos de siempre:
+   * la semana (SG_SEMANAS: hito, clases, lo que se lanza, vídeos), sus fechas (el calendario del grupo, con sus pausas),
+   * los capítulos de NEBULA que se abren, y cada reto del catálogo con su gancho, su insignia y su ejemplo.
+   */
+  function semanaDe(S, sem) {
+    var SEMS = window.SG_SEMANAS || [];
+    return S.tipo === "PUA" ? SEMS.filter(function (x) { return x.tema_n === Math.min(sem, 8); })[0] : SEMS[Math.min(sem, SEMS.length) - 1];
+  }
+  var MESES_C = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  function diaC(iso) { var d = window.SGSEMANAS.fecha(iso); return d.getDate() + " " + MESES_C[d.getMonth()]; }
+  function creditosDeRetoC(id, tipo) {
+    var c = ((window.SG_CATALOGO || {}).creditos) || {}, k = id.charAt(0);
+    var v = k === "A" ? c.retoA : k === "B" ? (tipo === "PUA" ? c.retoB_pua || c.retoB : c.retoB) : k === "L" ? c.relampago : k === "X" ? c.actividad : 0;
+    return Number(v) || 0;
+  }
+  function icoCal(t) {
+    return /^Test/i.test(t) ? "libro" : /present/i.test(t) ? "envivo" : /Bit[áa]cora/i.test(t) ? "notas" : /resoluci|entreg/i.test(t) ? "hecho" : "estrella";
+  }
+  /** La ficha de un reto, completa (como la ve el alumnado): insignia, qué es, su gancho, lo que da y su ejemplo. */
+  function fichaReto(r, tipo, prog) {
+    var rel = r.id.charAt(0) === "L", ins = (r.insignias || [])[0] || "", g = (window.SG_GANCHO_RETOS || {})[r.id] || "";
+    var ej = (window.SG_EJEMPLOS || {})[r.id], m = /^(Reto (?:A|B|relámpago)|Actividad \d)\s*(.*)$/i.exec(r.titulo || "") || [null, "", r.titulo || ""];
+    return '<article class="ht-reto' + (rel ? " rel" : "") + '">' +
+      '<div class="ht-reto-cab"><span class="pt-id">' + esc(r.id) + '</span><span class="ht-tipo">' + esc(m[1] || "Reto") + '</span>' +
+        (rel ? '<span class="chip rel">' + ico("rayo") + ' En clase · 10-15 min</span>' : '') + '</div>' +
+      '<div class="ht-reto-cuerpo">' + (ins ? '<img class="ht-ins" src="assets/img/insignias/' + esc(ins) + '.png" alt="" loading="lazy" onerror="this.remove()">' : '') +
+        '<div><b>' + esc(m[2] || r.titulo || "") + '</b>' + (g ? '<p>' + esc(g) + '</p>' : '') + '</div></div>' +
+      '<div class="ht-reto-pie"><span class="p xp">+' + Number(r.xp || 0) + ' xp</span>' +
+        (creditosDeRetoC(r.id, tipo) ? '<span class="p cr">+' + creditosDeRetoC(r.id, tipo) + ' ◈</span>' : '') +
+        (prog ? '<span class="pt-n"><b>' + prog.n + '</b>/' + prog.N + ' · ' + prog.pct + ' %</span>' : '') +
+        (ej && r.id !== "S7" ? '<a class="ht-ej" href="ejemplo.html?reto=' + esc(r.id) + '" target="_blank" rel="noopener">Ver un ejemplo ↗</a>' : '') + '</div>' +
+    '</article>';
+  }
+  /** El bloque «Hoy toca» de un grupo en una semana. `gente` (opcional): con ella, cada ficha dice cuántos lo han hecho. */
+  function bloqueHoyToca(S, sem, total, gente) {
+    var s = semanaDe(S, sem); if (!s) return "";
+    var tipo = S.tipo === "PUA" ? "PUA" : "REGULAR", mapa = ((window.SG_SEM_RETO || {})[tipo]) || {};
+    var cat = ((((window.SG_CATALOGO || {}).retos) || {})[tipo]) || [];
+    var estos = cat.filter(function (r) { return semanaDeReto(r, tipo, mapa) === sem; });
+    var luego = cat.filter(function (r) { return semanaDeReto(r, tipo, mapa) === sem + 1; });
+    var pl = (((window.SG_CATALOGO || {}).temas) || []).filter(function (t) { return t.n === s.tema_n; })[0];
+    var fechas = "";
+    try { if (S.inicio && window.SGSEMANAS) fechas = diaC(window.SGSEMANAS.inicioDeSemana(S.inicio, sem, S.pausas)) + " – " + diaC(window.SGSEMANAS.finDeSemana(S.inicio, sem, S.pausas)); } catch (e) {}
+    // el calendario de la semana: el hito (tests, presentaciones, entregas), las Actividades que se lanzan, NEBULA y los cierres
+    var cal = String(s.hito || "").split(" · ").filter(Boolean).map(function (t) { return [icoCal(t), t]; });
+    (s.lanza || []).forEach(function (t) { if (/^Actividad/i.test(t)) cal.unshift(["anadir", "Se lanza la " + String(t).split(" — ")[0]]); });
+    (window.SG_CAPITULOS || []).forEach(function (c) { if (c.listo !== false && ((c.semanas || {})[tipo]) === sem) cal.push(["envivo", "NEBULA abre el capítulo «" + c.titulo + "»"]); });
+    if (sem === total) cal.push(["aviso", "Último día para registrar retos: " + (fechas ? fechas.split(" – ")[1] : "el domingo")]);
+    var vids = (s.videos || []);
+    var N = gente ? gente.length : 0;
+    var prog = function (r) { if (!gente) return null; var n = gente.filter(function (x) { return (x.hechos || []).indexOf(r.id) >= 0; }).length;
+      return { n: n, N: N, pct: N ? Math.round(n * 100 / N) : 0 }; };
+    return '<section class="ht">' +
+      '<div class="ht-cab">' + (pl ? '<img class="ht-planeta" src="assets/img/planetas/' + esc(pl.clave) + '.png" alt="" loading="lazy">' : '') +
+        '<div><div class="eyebrow teal">Hoy toca · semana ' + sem + (fechas ? ' · ' + esc(fechas) : '') + (s.clases ? ' · ' + esc(s.clases) : '') + '</div>' +
+        '<h3>' + esc(s.tema) + '</h3><p class="small muted">' + esc(s.sub || "") + (s.capitulo ? ' · capítulo «' + esc(s.capitulo) + '»' : '') + '</p></div></div>' +
+      (cal.length ? '<ul class="ht-cal">' + cal.map(function (x) { return '<li>' + ico(x[0]) + ' ' + esc(x[1]) + '</li>'; }).join("") + '</ul>' : '') +
+      (vids.length ? '<div class="ht-vids pt-video"><b class="ht-sub">El vídeo que toca</b><ul class="pt-vids">' + vids.map(function (v) {
+          var y = v[0] || {};
+          return '<li><a href="https://youtu.be/' + esc(y.id) + '" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/' + esc(y.id) + '/mqdefault.jpg" alt="" loading="lazy" width="160" height="90"></a>' +
+            '<div><b>' + esc(y.titulo || "") + '</b><span>' + esc(v[1] || "") + '</span></div></li>'; }).join("") + '</ul></div>' : '') +
+      '<div class="ht-bloque"><b class="ht-sub">Retos de esta semana</b>' +
+        (estos.length ? '<div class="ht-retos">' + estos.map(function (r) { return fichaReto(r, tipo, prog(r)); }).join("") + '</div>'
+                      : '<p class="small muted">Esta semana no se lanza ningún reto nuevo: tiempo para terminar los que hay.</p>') +
+        (luego.length ? '<p class="small muted pt-luego"><b>La semana que viene:</b> ' + esc(luego.map(function (r) { return r.id + " · " + r.titulo; }).join(" · ")) + '</p>' : '') +
+        (s.consejo ? '<p class="au-consejo">' + ico("estrella") + ' ' + esc(s.consejo) + '</p>' : '') +
+      '</div>' +
+    '</section>';
+  }
   /** 19-sep · lo que toca esta semana en ese grupo (los mismos datos que la sesión): el vídeo, los retos que se lanzan y el hito. */
   function hoyToca(p) {
     if (p.estado !== "en marcha") return "";
@@ -131,10 +238,11 @@
     var s = S.tipo === "PUA" ? SEMS.filter(function (x) { return x.tema_n === Math.min(sem, 8); })[0] : SEMS[Math.min(sem, SEMS.length) - 1];
     if (!s) return "";
     var v = ((s.videos || [])[0] || [])[0], lanza = (s.lanza || []).map(function (x) { return String(x).replace(/\s*\(.*\)\s*$/, ""); });
-    return '<p class="gp-hoy"><b>' + ico("calendario") + ' Hoy toca</b> ' + esc(s.tema) +
+    return '<details class="gp-hoy-d"' + (PERS.filter(function (x) { return x.estado === "en marcha"; }).length === 1 ? " open" : "") + '><summary class="gp-hoy"><b>' + ico("calendario") + ' Hoy toca</b> ' + esc(s.tema) +
       (v ? ' · <span>' + ico("video") + ' ' + esc(v.titulo) + '</span>' : '') +
       (lanza.length ? ' · <span>' + ico("diana") + ' ' + esc(lanza.join(" · ")) + '</span>' : '') +
-      (s.hito ? ' · <span>' + ico("medalla") + ' ' + esc(s.hito) + '</span>' : '') + '</p>';
+      (s.hito ? ' · <span>' + ico("medalla") + ' ' + esc(s.hito) + '</span>' : '') + '</summary>' +
+      bloqueHoyToca(S, sem, Number(p.total) || 15, null) + '</details>';
   }
   function tarjetaGrupo(p) {
     var S = p.stargate || {};
@@ -182,7 +290,7 @@
         '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
           '<span class="gp-n">2</span><b>Llamada a filas</b><em>que fichen</em></a>' + botonVentana("llamada.html?per=" + p.id, "llamada_" + p.id, "la llamada a filas") + '</div>' +
         '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(p.id) + '" target="_blank" rel="noopener">' +
-          '<span class="gp-n">3</span><b>El aula</b><em>premios, tiempo, votar</em></a>' + botonVentana("aula.html?per=" + p.id, "aula_" + p.id, "el aula") + '</div>' +
+          '<span class="gp-n">3</span><b>El aula</b><em>' + (manual() ? "premios, tiempo, votar" : "tiempo, votar, preguntar") + '</em></a>' + botonVentana("aula.html?per=" + p.id, "aula_" + p.id, "el aula") + '</div>' +
       '</div>' +
       /**
        * 🔴 EL CÓDIGO DE CLASE, A LA VISTA DE TODO EL EQUIPO. Con la puerta única el alumnado entra
@@ -306,7 +414,7 @@
     var totAlu = vivos.reduce(function (a, p) { return a + (Number(p.reclutas) || 0); }, 0);
     app.innerHTML = avisoBorrado() +
       '<section class="doc-panel">' +
-        '<button type="button" class="doc-ava" id="doc-ava" title="Elige tu comandante"><img id="doc-ava-img" src="assets/img/avatares/comandantes/c1.jpg" alt=""><span>Cambiar</span></button>' +
+        '<button type="button" class="doc-ava" id="doc-ava" title="Elige tu comandante"><img id="doc-ava-img" src="assets/img/avatares/comandantes/' + esc((FICHA && FICHA.avatar) || "c1") + '.jpg" alt=""><span>Cambiar</span></button>' +
         '<div class="doc-txt"><div class="eyebrow teal">Comandante</div><h2>' + esc((YO && (YO.nombre || YO.displayName)) || "Tu puesto de mando") + '</h2>' +
           '<p class="small muted">' + esc((YO && YO.email) || "") + '</p></div>' +
         '<div class="doc-cifras">' +
@@ -317,7 +425,7 @@
             ? '<div class="ir" id="doc-viejos-b" role="button" tabindex="0" title="Ver los cursos terminados"><b>' + pasados.length + '</b><span>' + (pasados.length === 1 ? "curso terminado ↓" : "cursos terminados ↓") + '</span></div>'
             : '<div><b>0</b><span>cursos terminados</span></div>') +
         '</div>' +
-        '<div class="doc-b"><button type="button" class="btn min" id="doc-ajustes-b" aria-expanded="false"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Ajustes</button>' + botonBuzon("consola") +
+        '<div class="doc-b">' + selectorModo() + '<button type="button" class="btn min" id="doc-ajustes-b" data-av aria-expanded="false"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Ajustes</button>' + botonBuzon("consola") +
           (soyRef ? ' <a class="btn min" href="crear.html">+ Crear un grupo</a>' : '') + '</div>' +
       '</section>' +
       // (la galería se monta al abrirla: escondida, sus ocho imágenes se descargarían igual en cada visita)
@@ -335,7 +443,7 @@
                     : '<div class="card"><p>Ninguno de tus grupos está en marcha ahora mismo.</p></div>') +
       // 17-sep · lo que se configura UNA vez para varios grupos (Norberto: «¿valen para cualquier grupo? Sería maravilloso
       // poder reciclarlos… que compartan la misma página de configuración y ajustar a qué grupos afecta»)
-      '<div class="gp-herr">' +
+      '<div class="gp-herr" data-av>' +
       (gestionados().length ? '<section class="gp-comun"><div class="gp-comun-t"><h3>Para todos tus grupos</h3>' +
         '<p class="small muted">Una vez, y eliges a qué grupos afectan.</p></div>' +
         '<div class="gp-comun-b"><a class="btn" href="consola.html?comun=premios">Premios por enlace</a> <a class="btn" href="consola.html?comun=sorteos">Sorteos</a> ' +
@@ -514,7 +622,11 @@
   }
   function misTabs() {
     var ref = refDe(PERS.filter(function (p) { return p.id === PER; })[0]), cola = pendientesCola();
-    return TABS.filter(function (x) { return (!x[2] || ref) && (x[0] !== "canjes" || cola > 0); });
+    return TABS.filter(function (x) {
+      if (!manual() && AV_TABS.indexOf(x[0]) >= 0) return false;
+      var permitida = !x[2] || ref || (manual() && x[0] === "huevos");   // (19-sep · en mando manual, premios para su grupo)
+      return permitida && (x[0] !== "canjes" || cola > 0);
+    });
   }
   function soyRefAqui() { return refDe(PERS.filter(function (p) { return p.id === PER; })[0]); }
   function miNombreAqui() { var p = PERS.filter(function (x) { return x.id === PER; })[0]; return (p && p.miNombre) || ""; }
@@ -548,7 +660,7 @@
       // 15-sep · el nombre a un lado y los botones al otro (antes iban en la misma línea y «Salir» caía solo a otra fila)
       '<div class="card cuenta c-cab"><div class="c-cab-t"><b>' + esc(t.nombre) + '</b><span>' + esc(t.tipo) +
         ' · ' + semanaTexto(t) + ' · ' + t.reclutas.length + ' reclutas</span></div>' +
-        '<div class="c-cab-b"><button class="btn min" id="c-cambiar">← Mis grupos</button> ' + botonBuzon("consola", PER) +
+        '<div class="c-cab-b">' + selectorModo() + ' <button class="btn min" id="c-cambiar">← Mis grupos</button> ' + botonBuzon("consola", PER) +
         ' <button class="btn min" id="c-salir">Salir</button></div></div>' +
       /**
        * 🔴 18-sep · Norberto: «cuando entro a un grupo no tengo las opciones más importantes (proyectar la clase, aula,
@@ -562,7 +674,7 @@
         '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
           '<span class="gp-n">2</span><b>Llamada a filas</b><em>que fichen</em></a>' + botonVentana("llamada.html?per=" + PER, "llamada_" + PER, "la llamada a filas") + '</div>' +
         '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
-          '<span class="gp-n">3</span><b>El aula</b><em>premios, tiempo, votar</em></a>' + botonVentana("aula.html?per=" + PER, "aula_" + PER, "el aula") + '</div>' +
+          '<span class="gp-n">3</span><b>El aula</b><em>' + (manual() ? "premios, tiempo, votar" : "tiempo, votar, preguntar") + '</em></a>' + botonVentana("aula.html?per=" + PER, "aula_" + PER, "el aula") + '</div>' +
       '</div>' +
       '<div class="pestanas">' + misTabs().map(function (x, i, todas) {
         var cola = x[0] === "canjes" ? pendientesCola() : 0;
@@ -1071,6 +1183,18 @@
         var enlaces = entregado ? entregado.split(/\s+/).map(function (u) {
           var url = /^https?:\/\//i.test(u) ? u : "https://" + u;
           return '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer"><img class=ico src=assets/img/iconos/p/enlace.png alt> ' + esc(u.replace(/^https?:\/\//i, "").slice(0, 70)) + "</a>"; }).join(" ") : "";
+        // 19-sep · en PILOTO AUTOMÁTICO se ve lo entregado (enlace y reflexión), pero validar o anular lo hace el referente
+        if (!manual()) {
+          await window.SG.preguntar({ aqui: b.closest(".retos-ficha") || b, marca: b,
+            titulo: id + " · " + r.alias,
+            html: '<p class="sgp-reto"><b>' + esc(id) + " · " + esc(mi.title || "") + "</b>" +
+                    (tiene ? (enlaces ? "<span>" + enlaces + "</span>" : '<span class="small muted">sin enlace</span>') : '<span class="small muted">todavía no lo ha registrado</span>') + "</p>" +
+                  (tiene && rfx ? '<div class="sgp-rf"><p class="sgp-rf-cab"><b>Su reflexión</b> · «' + esc((RFX1 && RFX1.titulo) || "") + "»</p>" +
+                    '<p class="sgp-rf-txt">' + esc(rfx.texto || "") + "</p></div>" : "") +
+                  '<p class="small muted">Validar o anular retos lo hace tu referente. Si quieres hacerlo tú, pasa a <b>Mando manual</b> (en Mis grupos, arriba).</p>',
+            si: "Cerrar", no: "" });
+          return;
+        }
         var resp = await window.SG.preguntar({
           aqui: b.closest(".retos-ficha") || b, marca: b, peligro: tiene,
           titulo: (tiene ? "¿Anular " : "¿Validar ") + id + " a " + r.alias + "?",
@@ -1299,7 +1423,8 @@
     var pon = function () {
       var c = consejos[i], txt = c.t, k = 0; clearInterval(tic);
       if (n) n.textContent = (i + 1) + "/" + consejos.length;
-      acc.innerHTML = c.a ? '<button type="button" class="btn min primary" data-neb="' + c.a[1] + '">' + esc(c.a[0]) + '</button>' : "";
+      var hace = c.a && (manual() || c.a[1] === "cola");
+      acc.innerHTML = hace ? '<button type="button" class="btn min primary" data-neb="' + c.a[1] + '">' + esc(c.a[0]) + '</button>' : "";
       if (quieto) { p.textContent = txt; return; }
       p.textContent = ""; p.classList.add("escribe");
       tic = setInterval(function () {
@@ -1363,22 +1488,7 @@
         '<p class="small muted">' + (yoN ? 'Comandante <b>' + esc(yoN) + '</b> · ' : '') + esc(deQuien) + (s && s.capitulo ? ' · capítulo «' + esc(s.capitulo) + '»' : '') + '</p></div></div>' +
       bannerNebula(consejos) + resumenGrupo(t, gente) +
       (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
-      '<div class="pt-dos">' +
-        '<div class="card pt-video"><h3>El vídeo que toca</h3>' +
-          (vids.length ? '<ul class="pt-vids">' + vids.map(function (v) {
-            var y = v[0] || {};
-            return '<li><a href="https://youtu.be/' + esc(y.id) + '" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/' + esc(y.id) + '/mqdefault.jpg" alt="" loading="lazy" width="160" height="90"></a>' +
-              '<div><b>' + esc(y.titulo || "") + '</b><span>' + esc(v[1] || "") + '</span></div></li>'; }).join("") + '</ul>'
-            : '<p class="small muted">Esta semana no hay vídeo.</p>') +
-          '<p class="small muted">Salen solos en <b>Empezar la clase</b>, cada uno en su momento.</p></div>' +
-        '<div class="card pt-sem"><h3>Retos de esta semana</h3>' +
-          (estos.length ? '<ul class="pt-retos">' + estos.map(fila).join("") + '</ul>'
-                        : '<p class="small muted">Esta semana no se lanza ningún reto nuevo: tiempo para terminar los que hay.</p>') +
-          (s && s.hito ? '<p class="small"><b>Hito:</b> ' + esc(s.hito) + '</p>' : '') +
-          (luego.length ? '<p class="small muted pt-luego"><b>La semana que viene:</b> ' + esc(luego.map(function (r) { return r.id + " · " + r.titulo; }).join(" · ")) + '</p>' : '') +
-          (s && s.consejo ? '<p class="au-consejo"><img class=ico src=assets/img/iconos/p/estrella.png alt> ' + esc(s.consejo) + '</p>' : '') +
-        '</div>' +
-      '</div>') +
+        '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente) + '</div>') +
       (antes.length ? '<div class="card pt-ant"><h3>Retos ya lanzados</h3><p class="small muted">Cuántos los han registrado, ' + esc(deQuien) + '. En ámbar, los que van por debajo del 25 %.</p>' +
         '<ul class="pt-retos">' + antes.map(fila).join("") + '</ul></div>' : '') +
       '<div class="pt-dos">' +
@@ -1390,7 +1500,7 @@
         '<div class="card pt-panel"><h3>' + ico("enlace") + ' Tu panel de control</h3>' +
           '<p class="small muted">El Genially que abre <b>tu</b> alumnado desde su Nave. Ahora usan ' + (propio ? '<b>el tuyo</b>.' : 'el <b>oficial</b> del grupo.') + '</p>' +
           '<p class="pt-fila">' + (panelMio ? '<a class="btn" href="' + esc(panelMio) + '" target="_blank" rel="noopener">Abrir el panel ↗</a> ' : '') +
-            '<button type="button" class="btn min" id="pt-panel-ed" aria-expanded="false">' + ico("editar") + ' Cambiar el enlace</button></p>' +
+            '<button type="button" class="btn min" id="pt-panel-ed" data-av aria-expanded="false">' + ico("editar") + ' Cambiar el enlace</button></p>' +
           '<div id="pt-panel-caja" hidden><label>Tu Genially<input id="pt-panel-in" value="' + esc(propio) + '" placeholder="https://view.genially.com/…" autocomplete="off"></label>' +
             '<p class="pt-fila"><button type="button" class="btn primary" id="pt-panel-ok">Guardar para mis reclutas</button>' +
             (propio ? ' <button type="button" class="btn min" id="pt-panel-of">Volver al oficial</button>' : '') + '</p>' +
@@ -1398,7 +1508,7 @@
       '</div>' +
       '<div class="pt-dos">' +
         // 19-sep · «opción de mandar un mensaje a los estudiantes: les aparecerá en su tablón la próxima vez que se conecten»
-        '<div class="card pt-msg"><h3>' + ico("mensaje") + ' Mensaje a tus reclutas</h3>' +
+        '<div class="card pt-msg" data-av><h3>' + ico("mensaje") + ' Mensaje a tus reclutas</h3>' +
           '<p class="small muted">Les sale arriba en su Nave —al momento si están dentro, o la próxima vez que entren— hasta que lo marcan como leído. Va ' + esc(deQuien) + '.</p>' +
           '<div class="pt-seg" role="group" aria-label="A quién">' +
             [["todos", "Todos"], ["silencio", "En silencio"], ["sin", "Sin estrenarse"]].filter(function (x) { return x[0] === "todos" || DEST[x[0]].length; }).map(function (x) {
@@ -1610,9 +1720,15 @@
   }
   // quién lleva qué: los grupos que gobierna quien mira (y sus nombres)
   function gestionados() { return PERS.filter(function (p) { return refDe(p); }).map(function (p) { return p.id; }); }
+  /** 19-sep · para los premios por enlace: los grupos que llevas y, en mando manual, también aquellos en los que das clase. */
+  function premiables() {
+    var g = gestionados();
+    if (manual()) PERS.forEach(function (p) { if (p.miNombre && p.estado !== "pasado" && g.indexOf(p.id) < 0) g.push(p.id); });
+    return g;
+  }
   function nombreDeGrupo(id) { var p = PERS.filter(function (x) { return x.id === id; })[0]; return (p && p.nombre) || id; }
   function textoAmbito(it) {
-    var g = gestionados();
+    var g = premiables();
     if (it.grupos === "todos") return "Todos tus grupos" + (g.length > 1 ? " (" + g.length + ")" : "");
     var l = it.grupos || [];
     return l.length === 1 ? "Solo «" + nombreDeGrupo(l[0]) + "»" : "" + l.length + " grupos";
@@ -1633,14 +1749,14 @@
       (contexto ? '<p class="pe-filtro small muted">Los que afectan a este grupo · <a href="consola.html?comun=premios"><img class=ico src=assets/img/iconos/p/varios.png alt> Ver los de todos tus grupos</a></p>' : "") +
       '<div id="pe-lista" class="pe-lista"><p class="muted">Buscando tus premios…</p></div></div>';
     $("#pe-nuevo").onclick = crearPremio;
-    try { PE.lista = await MOTOR.premiosEnlaceDe(gestionados()); }
+    try { PE.lista = await MOTOR.premiosEnlaceDe(premiables()); }
     catch (e) { $("#pe-lista").innerHTML = '<p class="malo">No he podido leer los premios: ' + esc(e.message) + "</p>"; return; }
     /**
      * 17-sep · «🌐 Todos tus grupos» se resuelve al GUARDAR: un grupo creado después (el curso de enero) no lo tenía
      * hasta que alguien tocara el premio, y dentro de ese grupo ni aparecía. Al abrir esta pantalla, los de «todos»
      * se llevan solos a los grupos tuyos que les falten (buscándolos en todos tus grupos, no solo en el que miras).
      */
-    var mios = gestionados();
+    var mios = premiables();
     await Promise.all(PE.lista.filter(function (it) {
       return it.grupos === "todos" && !validarPremio(it) && mios.some(function (g) { return (it.en || []).indexOf(g) < 0; });
     }).map(async function (it) {
@@ -1660,7 +1776,7 @@
     l.forEach(function (it) { cablearPremio(it); estadoServidor(it); });
   }
   function tarjetaPremio(it) {
-    var g = gestionados(), rec = it.tipo !== "huevo", ver = (it.en || [])[0] || PE.contexto || g[0] || "";
+    var g = premiables(), rec = it.tipo !== "huevo", ver = (it.en || [])[0] || PE.contexto || g[0] || "";
     var insertar = '<iframe src="' + MOTOR.enlacePremio(it, true) + '" width="100%" height="620" style="border:0;border-radius:16px" allow="clipboard-write" title="Premio de STARGATE"></iframe>';
     var mas = it.premio === "bolsa" || it.premio === "xp" || it.premio === "participaciones";
     return '<div class="hv-f pe-f" data-pe="' + esc(it.id) + '">' +
@@ -1757,7 +1873,7 @@
     clearTimeout(PE.timers[it.id]);
     PE.timers[it.id] = setTimeout(async function () {
       try {
-        var r = await MOTOR.guardarPremioEnlace(it, gestionados());
+        var r = await MOTOR.guardarPremioEnlace(it, premiables());
         it.en = r.en; it.actualizado = Date.now();
         var m = document.querySelector('.pe-f[data-pe="' + it.id + '"] .pe-guardado');
         if (m) {
@@ -1805,7 +1921,7 @@
         if (!q) return;
         {
           var nuevo = MOTOR.premioNuevo({ tipo: it.tipo, nombre: it.nombre ? it.nombre + " (2)" : "", grupos: it.grupos, premio: r.premio, heroe: r.heroe, cantidad: r.cantidad, sorteo: r.sorteo });
-          try { var g2 = await MOTOR.guardarPremioEnlace(nuevo, gestionados()); nuevo.en = g2.en; } catch (e) { aviso("No se ha podido crear: " + e.message); return; }
+          try { var g2 = await MOTOR.guardarPremioEnlace(nuevo, premiables()); nuevo.en = g2.en; } catch (e) { aviso("No se ha podido crear: " + e.message); return; }
           PE.lista.unshift(nuevo); pintarPremios(); aviso("Premio nuevo creado, con su propio enlace.", true); return;
         }
       }
@@ -1848,7 +1964,7 @@
       var n = (it.en || []).length;
       if (!(await window.SG.preguntar({ titulo: "¿Quitar «" + (it.nombre || nombrePremio(it)) + "»?",
         texto: "Deja de funcionar su enlace" + (n > 1 ? " en sus " + n + " grupos" : "") + ". Quien ya lo reclamó conserva lo que ganó.", si: "Quitar el premio", peligro: true }))) return;
-      try { await MOTOR.borrarPremioEnlace(it, gestionados()); PE.lista = PE.lista.filter(function (x) { return x.id !== it.id; }); pintarPremios(); aviso("Premio quitado.", true); }
+      try { await MOTOR.borrarPremioEnlace(it, premiables()); PE.lista = PE.lista.filter(function (x) { return x.id !== it.id; }); pintarPremios(); aviso("Premio quitado.", true); }
       catch (e) { aviso(e.message); }
     };
   }
@@ -1859,7 +1975,7 @@
     var r = await elegirPremio(base); if (!r) return;
     var it = Object.assign(base, r);
     var malo = validarPremio(it); if (malo) { aviso(malo); return; }
-    try { var g = await MOTOR.guardarPremioEnlace(it, gestionados()); it.en = g.en; }
+    try { var g = await MOTOR.guardarPremioEnlace(it, premiables()); it.en = g.en; }
     catch (e) { aviso("No se ha podido crear: " + e.message); return; }
     PE.lista.unshift(it); pintarPremios();
     var f = document.querySelector('.pe-f[data-pe="' + it.id + '"]');
@@ -3057,7 +3173,7 @@
     if (!L.length) return "";
     return '<p class="c-res-top c-res-ojo"><span>' + esc(tit) + ' · ' + L.length + '</span> ' +
       L.slice(0, 10).map(function (r) { return '<b>' + esc(r.alias) + '</b>'; }).join(" · ") + (L.length > 10 ? ' <em>y ' + (L.length - 10) + ' más</em>' : '') +
-      ' <button type="button" class="btn min" data-escribir="' + a + '">' + ico("mensaje") + ' Escribirles</button></p>';
+      ' <button type="button" class="btn min" data-av data-escribir="' + a + '">' + ico("mensaje") + ' Escribirles</button></p>';
   }
   function resumenGrupo(t, gente) {
     var R = gente || (t && t.reclutas) || [], n = R.length;
@@ -3319,10 +3435,11 @@
 
   function arrancar() {
     MOTOR = window.SG.MOTOR;
-    if (url.get("demo") === "1") return demostracion();
+    if (url.get("demo") === "1") { MODO = "manual"; aplicarModo(); return demostracion(); }
     var mirar = function (u) {
       var q_ = u ? u.uid : null; if (q_ === mirar._v) return; mirar._v = q_;  // una vez por cuenta: sesion() y sg:sesion llegan los dos al cargar
-      YO = u; YO ? elegirGrupo() : puerta();
+      YO = u; if (!YO) return puerta();
+      cargarFicha().then(elegirGrupo);
     };
     MOTOR.sesion().then(mirar);
     document.addEventListener("sg:sesion", function (e) { mirar(e.detail); });

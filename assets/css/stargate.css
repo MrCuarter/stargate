@@ -4825,3 +4825,52 @@ h3 .ico{margin-right:4px}
   #consola-app .c-cab .btn{padding:7px 10px;font-size:.84rem}
   #consola-app .c-cab-b{display:flex;flex-wrap:wrap;gap:6px}
 }
+/* ================================================================== 19-sep · PILOTO AUTOMÁTICO / MANDO MANUAL */
+body.modo-piloto [data-av]{display:none!important}
+.modo-sel{display:inline-flex;border:1px solid rgba(62,214,200,.45);border-radius:999px;padding:3px;gap:3px;background:rgba(6,14,24,.7)}
+.modo-sel button{font:inherit;font-size:.84rem;font-weight:700;padding:6px 12px;border-radius:999px;border:0;background:none;color:#c7d6ee;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.modo-sel button .ico{width:1.2em;height:1.2em}
+.modo-sel button.on{background:var(--teal,#3ed6c8);color:#05222a}
+.modo-sel button:focus-visible{outline:2px solid var(--teal,#3ed6c8);outline-offset:2px}
+.au-elegido{margin:10px 0 0;padding:10px 14px;border-radius:12px;border:1px solid rgba(62,214,200,.45);background:rgba(62,214,200,.1);font-size:1.1rem;text-align:center}
+.au-elegido b{font-size:1.4rem;color:#fff}
+@media(max-width:760px){.modo-sel{width:100%}.modo-sel button{flex:1;justify-content:center;padding:7px 8px}}
+/* ================================================================== 19-sep · «HOY TOCA», visual (Mis grupos y la portada) */
+.gp-hoy-d{grid-area:hoy;margin:0}
+.gp-hoy-d>summary{cursor:pointer;list-style:none}
+.gp-hoy-d>summary::-webkit-details-marker{display:none}
+.gp-hoy-d>summary::after{content:" ▾";color:var(--teal,#3ed6c8)}
+.gp-hoy-d[open]>summary{display:none}
+.ht{display:flex;flex-direction:column;gap:10px}
+.gp-hoy-d .ht{margin-top:4px;padding:12px;border:1px solid rgba(242,181,68,.35);border-radius:14px;background:rgba(242,181,68,.04)}
+.ht-cab{display:flex;gap:12px;align-items:center}
+.ht-planeta{width:64px;height:64px;flex:none;object-fit:contain;filter:drop-shadow(0 0 10px rgba(62,214,200,.35))}
+.ht-cab h3{margin:1px 0;font-size:1.15rem}
+.ht-cab p{margin:0}
+.ht-cal{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.ht-cal li{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid rgba(242,181,68,.4);background:rgba(242,181,68,.08);font-size:.84rem;color:#f3e3bd}
+.ht-sub{display:block;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--teal,#3ed6c8);margin:2px 0 6px}
+.ht-vids .pt-vids{display:flex;flex-direction:row;flex-wrap:wrap;gap:10px}
+.ht-vids .pt-vids li{grid-template-columns:112px minmax(0,220px)}
+.ht-retos{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.ht-reto{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;border:1px solid rgba(62,214,200,.35);background:linear-gradient(180deg,rgba(62,214,200,.07),rgba(6,14,24,.5))}
+.ht-reto.rel{border-color:rgba(242,181,68,.5);background:linear-gradient(180deg,rgba(242,181,68,.08),rgba(6,14,24,.5))}
+.ht-reto-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ht-tipo{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.ht-reto-cuerpo{display:flex;gap:10px;align-items:flex-start}
+.ht-ins{width:58px;height:58px;flex:none;object-fit:contain}
+.ht-reto-cuerpo b{display:block;font-size:1rem;line-height:1.3}
+.ht-reto-cuerpo p{margin:4px 0 0;font-size:.88rem;color:#c7d6ee;line-height:1.45}
+.ht-reto-pie{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto}
+.ht-reto-pie .p{font-size:.8rem;font-weight:800;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.06)}
+.ht-reto-pie .p.xp{color:var(--teal,#3ed6c8)}
+.ht-reto-pie .p.cr{color:var(--amber,#f2b544)}
+.ht-ej{margin-left:auto;font-size:.84rem;font-weight:700;color:var(--teal,#3ed6c8);text-decoration:none}
+.ht-ej:hover{text-decoration:underline}
+.pt-hoy{padding:14px 16px}
+@media(max-width:640px){.ht-planeta{width:48px;height:48px}.ht-retos{grid-template-columns:1fr}.ht-vids .pt-vids li{grid-template-columns:96px 1fr}.ht-vids .pt-vids img{width:96px;height:54px}}
+/* (el bloque es un <section>: sin el relleno ni la raya de las secciones de la web) */
+section.ht{padding:0;margin:0;border:0;background:none}
+.gp-hoy-d section.ht{margin-top:4px;padding:12px;border:1px solid rgba(242,181,68,.35);background:rgba(242,181,68,.04)}
+.ht-vids .pt-vids{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px}
+.ht-vids .pt-vids li{grid-template-columns:112px minmax(0,1fr)}
