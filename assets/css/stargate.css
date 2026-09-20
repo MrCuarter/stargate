@@ -3804,6 +3804,14 @@ body.con-modal{overflow:hidden}
 .fi-cifras div{padding:9px 12px;border-radius:11px;background:rgba(0,0,0,.28);border:1px solid var(--line)}
 .fi-cifras b{display:block;font-family:'Unbounded',sans-serif;font-size:1.15rem;font-variant-numeric:tabular-nums}
 .fi-cifras span{font-size:.78rem;color:var(--mut)}
+/* 🔴 20-sep · «Lo suyo» en la ficha de cada recluta: cartas, cómo se viste, papeletas y el Zoco. Cuatro cajas
+   iguales —mismo borde, mismo aire por dentro— para que se lean de un barrido, no cuatro párrafos seguidos. */
+.fi-suyo{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:6px 0 4px}
+.fi-s-u{padding:11px 13px;border-radius:12px;background:rgba(0,0,0,.24);border:1px solid var(--line)}
+.fi-s-u > b:first-child{display:flex;align-items:center;gap:7px;font-size:.84rem;color:var(--teal2)}
+#fi-zoco{grid-column:1/-1}
+.fi-s-u p{margin:5px 0 0;font-size:.86rem}
+.fi-s-u p.small{font-size:.78rem}
 .c-modal-caja h4{margin:14px 0 4px;font-size:.95rem}
 .c-modal-aviso{margin:10px 0 0}
 
@@ -5112,6 +5120,14 @@ body.modo-piloto #consola-app .gp-celda:has(.gp-cfg) .gp-b{padding-right:44px}
 .gr-t p{margin:0}
 .gr-cambiar{width:30px;height:30px;border-radius:9px;border:1px solid #2c4a6a;background:#0b1119;color:var(--teal);font-size:1rem;cursor:pointer}
 .gr-acc{display:flex;align-items:center;gap:6px;margin-left:auto}
+/* 🔴 20-sep · LA NAVE ESCUELA. La franja que avisa de que este grupo es para trastear, con el selector de semana.
+   Va DENTRO del banner y en su propia línea (flex-basis:100%) para que no se confunda con el grupo de al lado: un
+   docente tiene que saber en un vistazo que lo que está mirando no es su clase. */
+.gr-escuela{flex:1 1 100%;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:relative;
+  margin:4px 0 0;padding:12px 16px;border-radius:14px;border:1px dashed rgba(255,209,102,.5);background:rgba(255,209,102,.07)}
+.gr-escuela .ht-sub{display:flex;align-items:center;gap:8px;margin:0;flex:none;color:var(--amber)}
+.gr-escuela p{margin:0;flex:1 1 320px;min-width:0;color:var(--mut)}
+.gr-escuela .tk-sel{margin:0;flex:none}
 /* 🔴 20-sep · «haz este botón más vistoso, debe destacar, es el que más se va a pulsar (estilo el de alistarse, con
    tonos azul verdosos)»: el mismo relleno que el botón de alistarse, con su brillo y un pulso muy suave. */
 .gr-acc .gp-b.principal{min-height:72px;padding:12px 20px;gap:14px;border-radius:18px;

@@ -18,17 +18,30 @@
    * se deja de esperar y se dice; la clase no puede pararse por esto.
    */
   function pedir(per) {
-    if (!per || !window.SG_TICKETS_API) return Promise.resolve({ per: per, lista: [], error: true });
+    if (!per) return Promise.resolve({ per: per, lista: [], error: true });
     if (PROMESA && TK && TK.per === per && !TK.error) return PROMESA;
     if (PROMESA && !TK) return PROMESA;
-    var M = window.SG && window.SG.MOTOR, llave = (M && M.credencial) ? M.credencial() : Promise.resolve("");
+    var M = window.SG && window.SG.MOTOR;
+    /**
+     * 🔴 20-sep · PRIMERO SE MIRA EN EL PROPIO GRUPO. La Nave Escuela —el grupo para que el profesorado
+     * trastee— lleva sus tickets sembrados en `privado/tickets`, porque sus respuestas no pueden ir a la hoja
+     * de Google donde escribe el alumnado de verdad. Un grupo normal no tiene ese documento: la lectura
+     * devuelve [] y se sale por la puerta de siempre. Se pregunta aquí, y no con una bandera que cada página
+     * tendría que acordarse de pasar, porque la página que proyecta la sesión no siempre sabe todavía qué
+     * grupo es cuando precarga los tickets.
+     */
+    var propios = (M && M.ticketsGuardados) ? M.ticketsGuardados(per) : Promise.resolve([]);
     var tope = new Promise(function (_, no) { setTimeout(function () { no(new Error("tarda demasiado")); }, 12000); });
     PROMESA = Promise.race([
-      llave.then(function (t) {
-        return fetch(String(window.SG_TICKETS_API), { method: "POST", redirect: "follow",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ accion: "tickets", per: per, token: t || "" }) });
-      }).then(function (r) { return r.json(); }), tope])
+      propios.catch(function () { return []; }).then(function (filas) {
+        if (filas && filas.length) return { tickets: filas, propios: true };
+        if (!window.SG_TICKETS_API) return { error: "" };
+        return ((M && M.credencial) ? M.credencial() : Promise.resolve("")).then(function (t) {
+          return fetch(String(window.SG_TICKETS_API), { method: "POST", redirect: "follow",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ accion: "tickets", per: per, token: t || "" }) });
+        }).then(function (r) { return r.json(); });
+      }), tope])
       .then(function (d) { TK = { per: per, lista: (d && d.tickets) || [], error: !!(d && d.error), motivo: (d && d.error) || "" }; return TK; },
             function () { TK = { per: per, lista: [], error: true, motivo: "" }; return TK; });
     return PROMESA;

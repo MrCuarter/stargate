@@ -106,6 +106,21 @@
     if (!ahora && inicio && S.demoSemana > 0) {
       ahora = SEM().fecha(SEM().inicioDeSemana(inicio, S.demoSemana, pausas)).getTime() + 3.5 * 864e5;
     }
+    /**
+     * 🔴 20-sep · LA NAVE ESCUELA: el mismo truco, pero eligiendo. El grupo para que el profesorado
+     * trastee está sembrado con el curso ENTERO —quince semanas de actividad con sus fechas—, y su
+     * gracia es poder mirarlo por dentro en cualquier momento del viaje: «así se ve la semana 1»,
+     * «así la 16». La semana elegida vive en el NAVEGADOR de quien mira (`SG_SEMANA_ESCUELA`), no en
+     * el documento: dos docentes pueden estar en semanas distintas a la vez y ninguno le mueve el
+     * curso al otro, y explorar no escribe nada en el servidor.
+     *
+     * Como los registros conservan sus fechas, la foto sale coherente sola: en la semana 5 nadie
+     * aparece con retos de la 9, el álbum está a medias y la corona es la de entonces.
+     */
+    if (!ahora && inicio && S.escuela) {
+      var elegida = Number((typeof window !== "undefined" && window.SG_SEMANA_ESCUELA) || 0);
+      if (elegida > 0) ahora = SEM().fecha(SEM().inicioDeSemana(inicio, elegida, pausas)).getTime() + 3.5 * 864e5;
+    }
     var cat = datos.catalogo;
     // 🔴 Las misiones se buscan por LOS DOS identificadores: el de STARGATE («A1») y el del
     // documento («grupo__A1»). No es indecisión: la ficha de un alumno guarda el del documento
@@ -134,6 +149,14 @@
       var k = String(r.stargateId || r.docId || r.id || ""), i = k.lastIndexOf("__");
       premioSorteo[i >= 0 ? k.slice(i + 2) : k] = r;
       premioPorDoc[String(r.docId || r.id)] = r;
+    });
+    // 20-sep · y al revés: de la PARTICIPACIÓN a su premio. La ficha de cada recluta enseña cuántas papeletas tiene
+    // («¿veo las participaciones que tiene?»), y sin esto solo se podría decir un número sin decir de qué sorteo.
+    var sorteoDeTicket = {};
+    (datos.recompensas || []).forEach(function (r) {
+      if (r.systemEffect !== "lottery_ticket") return;
+      var pr = premioPorDoc[String(r.linkedItemId || "")] || {};
+      sorteoDeTicket[String(r.docId || r.id)] = { premio: pr.title || r.title || "el sorteo", hecho: !!r.isRaffleCompleted };
     });
 
     // Los vales de canje, agrupados por quien los compró. `studentId` es el uid del alumno.
@@ -248,6 +271,13 @@
       var gastados = Number(p.stargateRepesGastados || 0);
       // 14-sep · lo ganado en un sorteo (la licencia): se enseña en su botín
       var premios = inv.filter(function (x) { return premioSorteo[x]; }).map(function (x) { return premioSorteo[x].title || x; });
+      // las papeletas que tiene AHORA (las del Zoco siguen siendo suyas hasta que se cierre el trato)
+      var papeletas = [];
+      Object.keys(p.lotteryEntries || {}).forEach(function (k) {
+        var n = Math.floor(Number(p.lotteryEntries[k]) || 0); if (n <= 0) return;
+        var so = sorteoDeTicket[k] || {};
+        papeletas.push({ id: k, n: n, premio: so.premio || "el sorteo", hecho: !!so.hecho });
+      });
 
       var xp = Number(p.totalPoints || 0);
       var ganados = 0;
@@ -322,7 +352,8 @@
         bonus: (p.completedCampaignIds || []).slice(),
         planetas_completos: planetas, heroes: heroes, n_heroes: heroes.length, skins: skins,
         heroes_n: heroesN, heroes_repes: heroesRepes, premios: premios,
-        viste: valido, repes: repes, repes_gastados: gastados,
+        viste: valido, repes: repes, repes_gastados: gastados, papeletas: papeletas,
+        n_papeletas: papeletas.reduce(function (a, x) { return a + x.n; }, 0),
         repes_disponibles: Math.max(0, repes - gastados),
         insignias_album: album, n_album: album.length, leyendas: leyendas,
         racha: racha(inicio, fechas, ahora, pausas),
@@ -388,7 +419,7 @@
     var PRIV = datos.privadoPER || {};
     var docentes = (PRIV.docentes && PRIV.docentes.length) ? PRIV.docentes : (S.docentes || []);
     var res = {
-      per: P.id, nombre: P.name || "", tipo: tipo,
+      per: P.id, nombre: P.name || "", tipo: tipo, escuela: !!S.escuela,
       profesorado: docentes.map(function (d) { return d.nombre; }).join(", "),
       referente: PRIV.referente || "", estado: P.active === false ? "cerrado" : "abierto",
       inicio: inicio, reclutas: lista,

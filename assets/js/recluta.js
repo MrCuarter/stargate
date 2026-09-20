@@ -2075,9 +2075,15 @@
   // Y no hace ni una llamada nueva: se viste con un recluta del tablero PÚBLICO, que no lleva
   // correos ni nombres. Aunque alguien fuerce ?demo=1, no hay nada privado que enseñar.
   var DEMO = q.get('demo')==='1';
+  /**
+   * ¿Se puede mirar esta Nave sin cuenta, como demostración? Solo en los grupos que existen para eso: el del botón
+   * «Ver la demo» de la portada, los de prueba y —desde el 20-sep— la NAVE ESCUELA, el grupo donde el profesorado
+   * trastea. Sin esto, un docente que quisiera ver la Nave por dentro tendría que alistarse en su propio grupo.
+   * Una clase de verdad nunca entra aquí: ni lleva esas palabras en el nombre ni lleva `escuela`.
+   */
   function demoPermitido(){
     var n=String((st.d&&st.d.nombre)||'').toUpperCase();
-    return DEMO && (n.indexOf('DEMO')>=0 || n.indexOf('PRUEBA')>=0);
+    return DEMO && (n.indexOf('DEMO')>=0 || n.indexOf('PRUEBA')>=0 || !!(st.d&&st.d.escuela));
   }
   function ponDemo(r){
     // el 3.º del ranking: tiene recorrido que enseñar (insignias, cromos, un duelo por arriba y por
@@ -2855,22 +2861,42 @@
     {t:'Canal abierto, recluta',foco:'.nave-estado',
      x:'Soy <b>NEBULA</b>, la inteligencia de esta nave. La galaxia se apaga por <b>la Estática</b>, un silencio que hace que nadie cree ni comparta. Cruzarás <b>ocho planetas</b>, los ocho temas del curso, para reencenderla.<br><br><b>Esto de aquí eres tú</b>: tu personaje, tu nivel y lo que llevas ganado. Al lado, la orden de esta semana.'},
     {t:'La historia, en grande',foco:'.cine',
-     x:'Cada semana se desbloquean los <b>vídeos</b> de la historia. Se ven aquí, a buen tamaño, y con las semanas de arriba vuelves a los anteriores cuando quieras.'},
+     x:'Cada semana se desbloquean los <b>vídeos</b> de la historia. Se ven aquí, a buen tamaño, y con las semanas de arriba vuelves a los anteriores cuando quieras.<br><br>Los <b>fragmentos</b> de cada tripulante, no: esos se ganan. Completa su misión y su vídeo se abre para ti — y todos se van guardando en <b>El Archivo</b>.'},
     {t:'Lo que puedes conseguir',foco:'.retos-semana',
      x:'Los <b>retos de esta semana</b>, con lo que da cada uno: <b>experiencia</b>, que sube de nivel a tu personaje y nunca baja, y <b>créditos ◈</b>, que se gastan.<br><br>Pulsa uno, hazlo y márcalo con <b>«Lo he hecho»</b>. Donde hay algo que entregar te pido el <b>enlace</b>: sin él no se registra, y tu docente lo ve. Como mucho, <b>'+(Number(window.SG_TOPE_SEMANA)||3)+' retos por semana</b>.'},
     {t:'Tus marcadores, siempre a la vista',foco:'.nb-fin',
-     x:'Arriba a la derecha, tus <b>xp</b> y tus <b>créditos</b>. Estés en la pestaña que estés, los verás subir en cuanto ganes algo.'},
-    {t:'Cinco sitios, y ya está',foco:'.nb-tabs',
-     x:'<b>Mi nave</b> es esto. <b>Mis retos</b>, el viaje entero por los ocho planetas. <b>Mi botín</b>, lo que llevas ganado: insignias, cromos y personajes. <b>Mercado Estelar</b>, donde se gasta. Y <b>Rankings</b>: tu clase de ocho maneras distintas, porque si no destacas en una, destacas en otra.'},
-    {t:'Y ahora, estrénate',foco:'.nb-t[data-tab="mercado"]',
-     x:'Cuando tu docente toque <b>llamada a filas</b> en clase, te saldrá aquí arriba: pulsa <b>«Presente»</b> y te llevas créditos y un sobre.<br><br>Y si ya tienes para uno, ve al <b>Mercado Estelar</b> y abre un <b>sobre de cromos</b>. Es la forma más rápida de entender para qué sirve todo esto. Corto y cierro.'}
+     x:'Arriba a la derecha, tus <b>xp</b> y tus <b>créditos</b>. Estés en la pestaña que estés, los verás subir en cuanto ganes algo.'}
   ];
+  var PASO_ESTRENATE={t:'Y ahora, estrénate',foco:'.nb-t[data-tab="mercado"]',
+     x:'Cuando tu docente toque <b>llamada a filas</b> en clase, te saldrá aquí arriba: pulsa <b>«Presente»</b> y te llevas créditos y un sobre.<br><br>Y si ya tienes para uno, ve al <b>Mercado Estelar</b> y abre un <b>sobre de cromos</b>. Es la forma más rápida de entender para qué sirve todo esto. Corto y cierro.'};
+  /**
+   * 🔴 20-sep · LAS PESTAÑAS SE CUENTAN SOLAS. El paso decía «Cinco sitios, y ya está» y las nombraba a
+   * mano. Con «El Archivo» —que está desde el primer día— ya eran seis, y con El Zoco abierto, siete:
+   * NEBULA contaba mal lo que se ve en pantalla, que es justo lo que no puede hacer un guía. Ahora la
+   * frase se arma con las pestañas que esa persona tiene delante. «En vivo» no cuenta: va y viene con la
+   * clase, y mañana no estaría.
+   */
+  var TAB_QUE_ES={nave:'<b>Mi nave</b> es esto.',
+    retos:'<b>Mis retos</b>, el viaje entero por los ocho planetas.',
+    botin:'<b>Mi botín</b>, lo que llevas ganado: insignias, cromos y personajes.',
+    archivo:'<b>El Archivo</b>, la historia en vídeo, fragmento a fragmento.',
+    mercado:'<b>Mercado Estelar</b>, donde se gasta.',
+    zoco:'<b>El Zoco</b>, donde se cambia con el resto de la tripulación.',
+    rankings:'Y <b>Rankings</b>: tu clase de ocho maneras distintas, porque si no destacas en una, destacas en otra.'};
+  var NUMERO={1:'un',2:'dos',3:'tres',4:'cuatro',5:'cinco',6:'seis',7:'siete',8:'ocho'};
+  function pasoTabs(){
+    var ks=tabsVisibles().map(function(x){ return x[0]; }).filter(function(k){ return k!=='envivo' && TAB_QUE_ES[k]; });
+    var n=ks.length, todas=n>=Object.keys(TAB_QUE_ES).length;
+    return {t:(NUMERO[n]||n)+(n===1?' sitio':' sitios')+(todas?', y ya está':', de momento'),foco:'.nb-tabs',
+      x:ks.map(function(k){ return TAB_QUE_ES[k]; }).join(' ')+(todas?'':'<br><br>Cada semana se abre algo nuevo en la Nave, y te lo cuento yo.')};
+  }
+  function pasosNave(){ return PASOS.concat([pasoTabs(), PASO_ESTRENATE]); }
   // Un solo motor para los dos actos: el acto decide QUÉ pasos, con qué clave de memoria y qué pone
   // el último botón. Duplicar la función habría sido la vía rápida para que uno de los dos se quede
   // sin arreglar el día que se toque algo.
   var ACTOS={
     puerta:{pasos:PASOS_PUERTA, clave:'sgNavePuerta_', fin:'Escribo mi correo ✓'},
-    nave:  {pasos:PASOS,        clave:'sgNaveOnboard_', fin:'A la nave ✓'}
+    nave:  {pasos:pasosNave,    clave:'sgNaveOnboard_', fin:'A la nave ✓'}
   };
   /**
    * 🔴 13-sep · NEBULA POR CAPÍTULOS. El capítulo 1 es la bienvenida de siempre, contando SOLO lo que
@@ -2880,12 +2906,8 @@
    * docente lo ve en «Alumnado».
    */
   function pasosCap1(){
-    var p=PASOS.slice(0,4);
-    var nt=tabsVisibles().length;
-    p.push({t:nt>=5?'Cinco sitios, y ya está':'De momento, '+(nt===3?'tres':nt)+' sitios',foco:'.nb-tabs',
-      x:nt>=5?PASOS[4].x
-        :'<b>Mi nave</b> es esto. <b>Mis retos</b>, el viaje entero por los ocho planetas. Y <b>Mi botín</b>, lo que llevas ganado: insignias y cromos.<br><br>Cada semana se abre algo nuevo en la Nave, y te lo cuento yo.'});
-    p.push(abierto('mercado')?PASOS[5]:{t:'Y ahora, estrénate',foco:'.nb-t[data-tab="botin"]',
+    var p=PASOS.slice(0).concat([pasoTabs()]);
+    p.push(abierto('mercado')?PASO_ESTRENATE:{t:'Y ahora, estrénate',foco:'.nb-t[data-tab="botin"]',
       x:'Cuando tu docente toque <b>llamada a filas</b> en clase, te saldrá aquí arriba: pulsa <b>«Presente»</b> y te llevas créditos y un <b>sobre de cromos</b>. Las cartas, en Mi botín.<br><br>Haz tus retos de la semana y márcalos. Corto y cierro.'});
     return p;
   }
@@ -3013,8 +3035,10 @@
     acto=acto||'nave'; op=op||onboarding._op||{};
     // un capítulo es un acto más, con sus pasos y sin clave propia (lo apunta marcarCap)
     var A=ACTOS[acto]||{pasos:pasosDe(acto)||[], clave:'', fin:op.de&&op.orden<op.de?'Siguiente capítulo →':'A la nave ✓'};
-    if(i===0) A.pasosFijos=A.pasos;
-    var P=onboarding._P&&onboarding._acto===acto&&i>0?onboarding._P:A.pasos;
+    // los pasos de la bienvenida se arman al momento (las pestañas que esa persona tiene HOY): por eso
+    // `pasos` puede ser una función. Se resuelve aquí, y solo al empezar — a mitad manda `onboarding._P`.
+    var pasos = typeof A.pasos==='function' ? A.pasos() : A.pasos;
+    var P=onboarding._P&&onboarding._acto===acto&&i>0?onboarding._P:pasos;
     onboarding._P=P; onboarding._acto=acto; onboarding._op=op;
     var ov=document.getElementById('nave-onboard');
     if(!ov){ov=document.createElement('div');ov.id='nave-onboard';ov.className='tour open';document.body.appendChild(ov);}

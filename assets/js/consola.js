@@ -628,7 +628,40 @@
       '<div class="gr-acc"><a class="gp-b principal" href="sesion.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
         '<img class="pt-acc-i" src="assets/img/iconos/cohete.png" alt=""><span class="pt-acc-t"><b>Empezar la clase</b><em>proyecta la sesión de hoy</em></span></a>' +
         botonCfgSesion(PER) + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") + '</div>' +
+      barraEscuela(t, sem, total) +
     '</div>';
+  }
+  /**
+   * 🔴 20-sep · LA NAVE ESCUELA, POR DENTRO Y EN LA SEMANA QUE QUIERAS. Norberto: «crea un grupo EJEMPLO… sirve para
+   * que los docentes puedan explorar, interactuar… añade un selector de semanas, lo más fiel posible a un grupo
+   * normal». El grupo lleva el curso entero sembrado con sus fechas, así que moverse de semana no es un adorno: en
+   * la 3 el álbum está a medias, el Mercado a medio abrir y la corona es la de entonces.
+   *
+   * La semana elegida vive en el navegador (`SG_SEMANA_ESCUELA`, ver la plantilla de stargate.js): explorar no
+   * escribe NADA en el servidor, y dos docentes pueden estar en semanas distintas sin pisarse.
+   */
+  function barraEscuela(t, sem, total) {
+    if (!t || !t.escuela) return "";
+    var n = Number(window.SG_SEMANA_ESCUELA || 0) || sem, T = Math.max(1, Number(total) || 15);
+    var ops = ""; for (var i = 1; i <= T; i++) ops += '<option value="' + i + '"' + (i === n ? " selected" : "") + '>Semana ' + i + '</option>';
+    return '<div class="gr-escuela">' +
+      '<b class="ht-sub">' + ico("nave") + ' Nave Escuela</b>' +
+      '<p class="small">Un grupo entero para trastear: entra, valida retos, premia, abre una votación. <b>No es una clase de verdad</b> y nada de lo que hagas aquí sale de aquí.</p>' +
+      '<label class="tk-sel">Verlo en <select id="esc-sem" aria-label="En qué semana se mira la Nave Escuela">' + ops + '</select></label>' +
+      '<a class="btn min" href="recluta.html?per=' + esc(PER) + '&demo=1&semana=' + n + '" target="_blank" rel="noopener">' + ico("cohete") + ' Verla como recluta ↗</a>' +
+      '<button type="button" class="btn min tour-start">' + ico("brujula") + ' Visita guiada</button>' +
+    '</div>';
+  }
+  /** El selector de semana: se guarda en el navegador y se repinta todo desde cero, como si hoy fuera esa semana. */
+  function cablearEscuela() {
+    var sel = document.getElementById("esc-sem"); if (!sel) return;
+    sel.onchange = function () {
+      var n = Number(sel.value) || 1;
+      try { localStorage.setItem("sgSemanaEscuela", String(n)); } catch (e) {}
+      window.SG_SEMANA_ESCUELA = n;
+      if (window.SG && SG.TK && SG.TK.limpiar) SG.TK.limpiar();
+      pintar();
+    };
   }
 
   var SECCIONES = [["puente", "Puente", "assets/img/nave/iconos/nave.png", ["portada"]],
@@ -707,6 +740,7 @@
       b.onclick = function () { var id = b.getAttribute("data-grupo"); if (id !== PER) abrir(id); };
     });
     if (TAB === "portada") cablearHero();
+    cablearEscuela();   // el selector de semana de la Nave Escuela va en el banner: está en todas las secciones
     // Copiar un enlace, con confirmación visible: sin ella no sabes si ha ido.
     cablearCopiar(app);
     ({ portada: verPortada, alumnado: verAlumnado, rankings: verRankings, canjes: verCanjes, zoco: verZoco, mios: verMios,
@@ -1080,6 +1114,81 @@
       '</select></label> <button type="button" class="btn min" id="c-cmd-b">Cambiar</button> ' +
       '<span class="small muted">se lleva todo lo suyo: retos, créditos y colección.</span></p>';
   }
+  /**
+   * 🔴 20-sep · «LO SUYO», EN SU FICHA. Norberto, preparando la Nave Escuela: «si miro la ficha de un estudiante,
+   * ¿veo las participaciones que tiene, lo que ha puesto en el Zoco y sus cartas/avatares?». No: la ficha contaba
+   * xp, créditos, insignias y retos, y ahí se acababa. Y es justo lo que se mira antes de hablar con alguien en
+   * clase —«llevas tres papeletas», «tienes a Xena puesta en el Zoco desde hace una semana»—, y lo que hace falta
+   * para entender una reclamación («me falta un cromo»).
+   *
+   * Lo que sale de los datos que ya están (el tablero) se pinta al momento; lo del Zoco vive en otra colección, así
+   * que se pide una vez por grupo y se rellena cuando llega, sin hacer esperar a la ficha.
+   */
+  function bloqueSuyo(r) {
+    var C = r.coleccion || {}, cr = C.cromos || {}, he = C.heroes || {}, sk = C.skins || {};
+    var cat = window.SG_CATALOGO || {};
+    var nombreHeroe = function (clave) {
+      var h = (cat.heroes || []).filter(function (x) { return x.clave === clave; })[0];
+      return (h && h.nombre) || clave;
+    };
+    var viste = String(r.viste || "");
+    var lleva = viste.indexOf("heroe:") === 0 ? "el héroe <b>" + esc(nombreHeroe(viste.slice(6))) + "</b>"
+              : "su personaje" + (r.avatar && r.avatar.skin ? " de rango " + r.avatar.skin : "");
+    var adornos = [];
+    if (r.titulo) adornos.push("título «" + esc(r.titulo) + "»");
+    if (r.marco === "oro") adornos.push("marco dorado");
+    if (r.fondo) adornos.push("fondo de planeta");
+    var pap = r.papeletas || [];
+    return '<h4>Lo suyo</h4>' +
+      '<div class="fi-suyo">' +
+        '<div class="fi-s-u"><b>' + ico("estrella") + ' Cartas y héroes</b>' +
+          '<p>' + (cr.tengo || 0) + '/' + (cr.total || 0) + ' cromos · ' + (he.tengo || 0) + '/' + (he.total || 0) + ' héroes · ' +
+            (sk.tengo || 0) + '/' + (sk.total || 0) + ' rangos' +
+            (r.n_album ? ' · <b>' + r.n_album + '</b> ' + (r.n_album === 1 ? 'serie completa' : 'series completas') : '') +
+            (r.repes_disponibles ? ' · ' + r.repes_disponibles + ' repetidas sin cambiar' : '') + '</p>' +
+          (r.leyendas && r.leyendas.length ? '<p class="small">' + ico("corona") + ' Legendarios: <b>' + r.leyendas.map(esc).join(", ") + '</b></p>' : '') + '</div>' +
+        '<div class="fi-s-u"><b>' + ico("botin") + ' Cómo se viste</b>' +
+          '<p>Lleva puesto ' + lleva + '.' + (adornos.length ? ' Ha comprado: ' + adornos.join(", ") + '.' : ' Sin adornos comprados.') + '</p></div>' +
+        '<div class="fi-s-u"><b>' + ico("dados") + ' El Gran Sorteo</b>' +
+          '<p>' + (pap.length
+            ? pap.map(function (x) { return '<b>' + x.n + '</b> ' + (x.n === 1 ? 'participación' : 'participaciones') + ' · ' + esc(x.premio) + (x.hecho ? ' <span class="muted">(ya sorteado)</span>' : ''); }).join("<br>")
+            : 'Sin participaciones.') +
+            (r.premios && r.premios.length ? '<br>' + ico("corona") + ' Ha ganado: <b>' + r.premios.map(esc).join(", ") + '</b>' : '') + '</p></div>' +
+        '<div class="fi-s-u" id="fi-zoco"><b>' + ico("mercado") + ' En el Zoco</b><p class="muted">Mirando el Zoco…</p></div>' +
+      '</div>';
+  }
+  /** Lo del Zoco, cuando llega: lo que tiene puesto y los tratos en los que anda metido. */
+  var ZOCO_CACHE = null, ZOCO_CACHE_PER = "";
+  function zocoDeFicha(r) {
+    var caja = document.getElementById("fi-zoco"); if (!caja || !MOTOR.zocoAnunciosGrupo) return;
+    var perAqui = PER;
+    var datos = (ZOCO_CACHE && ZOCO_CACHE_PER === PER) ? ZOCO_CACHE
+      : Promise.all([MOTOR.zocoAnunciosGrupo(PER), MOTOR.zocoTratosGrupo(PER)]);
+    ZOCO_CACHE = datos; ZOCO_CACHE_PER = PER;
+    datos.then(function (d) {
+      if (PER !== perAqui) return;
+      var caja2 = document.getElementById("fi-zoco"); if (!caja2) return;
+      var mios = (d[0] || []).filter(function (a) { return a.vende && a.vende.ficha === r.ficha; });
+      var puesto = mios.filter(function (a) { return a.estado === "abierto"; });
+      var tratos = (d[1] || []).filter(function (t) { return (t.vende && t.vende.ficha === r.ficha) || (t.compra && t.compra.ficha === r.ficha); });
+      var abiertos = tratos.filter(function (t) { return t.estado === "abierto"; });
+      var cerrados = tratos.filter(function (t) { return t.estado === "aceptado"; }).length;
+      // el nombre de la pieza, no su clave: «Xena» dice algo, «H04_xena» no
+      var nombre = function (p) {
+        var k = String((p && p.clave) || ""), C = window.SG_CATALOGO || {};
+        if ((p && p.tipo) === "participacion") return "una participación del sorteo";
+        var x = ((p && p.tipo) === "heroe" ? (C.heroes || []) : (C.cromos || [])).filter(function (y) { return y.clave === k; })[0];
+        return esc((x && x.nombre) || k || "—");
+      };
+      caja2.innerHTML = '<b>' + ico("mercado") + ' En el Zoco</b><p>' +
+        (puesto.length ? 'Tiene puesto: <b>' + puesto.map(function (a) { return nombre(a.pieza); }).join(", ") + '</b>.' : 'No tiene nada puesto.') +
+        (abiertos.length ? ' ' + abiertos.length + (abiertos.length === 1 ? ' trato abierto' : ' tratos abiertos') + '.' : '') +
+        (cerrados ? ' <span class="muted">' + cerrados + (cerrados === 1 ? ' trueque cerrado' : ' trueques cerrados') + '.</span>' : '') +
+        '</p>';
+    }, function () {
+      var caja2 = document.getElementById("fi-zoco"); if (caja2) caja2.innerHTML = '<b>' + ico("mercado") + ' En el Zoco</b><p class="muted">No he podido mirar el Zoco ahora mismo.</p>';
+    });
+  }
   function verFicha(r) {
     var retos = retosOrdenados(), ficha = r.ficha, esRef = soyRefAqui();
     FICHA_RF = r;   // (para quitar una reflexión o un comentario desde su ficha)
@@ -1096,6 +1205,7 @@
       lineaABordo(r) +
       (r.congelado ? '<p class="aviso"><img class=ico src=assets/img/iconos/p/hielo.png alt> <b>Cuenta congelada</b>' + (r.congelado.fecha ? " desde el " + diaDe(r.congelado.fecha) : "") + ": entra y mira su Nave, pero no puede hacer nada.</p>" : "") +
       '<div class="c-modal-aviso aviso" hidden></div>' +
+      bloqueSuyo(r) +
       "<h4>Sus retos y sus insignias, por temas</h4>" + temasDeLaFicha(r, retos) +
       '<p class="small muted">Insignia encendida = ganada. Reto en verde = registrado. Pulsa un reto: ves su enlace y su reflexión, y lo validas o lo anulas con un mensaje que le llega a su Nave. Todo queda anotado en el libro de experiencia, con quién y cuándo.</p>' +
       // 🔴 DAR DE BAJA y CONGELAR (14-sep): solo el referente (Norberto: «el referente tiene poder de eliminar o
@@ -1108,6 +1218,7 @@
         '<span class="small muted">' + (r.congelado ? "vuelve a poder hacer de todo." : "podrá entrar y mirar, pero no registrar retos, comprar, fichar ni usar el Zoco.") + "</span></p>" +
         '<p><button type="button" class="btn min peligro" id="c-baja">Dar de baja a ' + esc(r.alias) + "</button> " +
         '<span class="small muted">borra su ficha del grupo. Podrá alistarse otra vez, aquí o en otro, empezando de cero.</span></p></div>' : ""));
+    zocoDeFicha(r);
     var cmdB = m.querySelector("#c-cmd-b");
     if (cmdB) cmdB.onclick = async function () {
       var a = (m.querySelector("#c-cmd") || {}).value; if (!a) return;
@@ -1760,11 +1871,10 @@
     // 🔴 20-sep · el mensaje del foro: el TUYO si lo has escrito (vale para todos tus grupos), si no el oficial firmado
     var mioForo = ((FICHA && FICHA.foros) || {})[String(sem)] || "";
     var foroTxt = mioForo || foro;
+    // 🔴 20-sep (tarde) · Norberto: «pon el panel de control embebido justo debajo» del banner. Es lo primero que se
+    // abre al empezar la clase —el Genially que su alumnado tiene delante—, así que abre el Puente; las cifras, «Hoy
+    // toca» y lo demás van después.
     $("#c-cuerpo").innerHTML = '<div class="pt">' +
-      resumenGrupo(t, gente, { lanzados: lanzados.length, retosSem: estos, consejos: consejos }) +
-      (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
-        '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente, bloqueForo(sem, foroTxt, !!mioForo, (t.escuadrones || []).filter(function (e) { return e.comandante === yoN; })[0])) + '</div>') +
-      cajaTickets(SEMS, Math.max(0, Math.min(sem, SEMS.length) - 1)) +
       // 🔴 20-sep · «embebe el panel de control del grupo actual en "Mi nave" del comandante. Añade un botón para cambiar
       // enlace»: el Genially que abre su alumnado, aquí mismo, sin salir a otra pestaña.
       '<div class="card pt-panel"><div class="pt-panel-cab"><h3>' + ico("enlace") + ' Tu panel de control</h3>' +
@@ -1777,6 +1887,10 @@
             '<p class="pt-fila"><button type="button" class="btn primary" id="pt-panel-ok">Guardar para mis reclutas</button>' +
             (propio ? ' <button type="button" class="btn min" id="pt-panel-of">Volver al oficial</button>' : '') + '</p>' +
             '<p class="small m-sec-msg" id="pt-panel-msg" aria-live="polite"></p></div></div>' +
+      resumenGrupo(t, gente, { lanzados: lanzados.length, retosSem: estos, consejos: consejos }) +
+      (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
+        '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente, bloqueForo(sem, foroTxt, !!mioForo, (t.escuadrones || []).filter(function (e) { return e.comandante === yoN; })[0])) + '</div>') +
+      cajaTickets(SEMS, Math.max(0, Math.min(sem, SEMS.length) - 1)) +
       (antes.length ? '<details class="card pt-ant pt-plega"><summary><span class="pt-plega-t">' + ico("retos") + ' Retos ya lanzados</span>' +
         '<span class="small muted">' + antes.length + ' en marcha · cuántos los han registrado</span></summary>' +
         '<p class="small muted">Cuántos los han registrado, ' + esc(deQuien) + '. En ámbar, los que van por debajo del 25 %.</p>' +

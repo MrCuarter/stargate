@@ -236,6 +236,26 @@ function visible(html) {
   c(huerfanas.length === 0, "y el índice de la guía no se salta ninguna sección", huerfanas.join(" · "));
 }
 
+/**
+ * 🔴 20-sep · Y UN HUECO QUE NADIE RELLENÓ. `_build_site.py` escribe algunas páginas con f-strings («{VARIABLE}» se
+ * sustituye) y otras pegando cadenas normales (donde «{VARIABLE}» sale TAL CUAL). Una línea de `_cabeza_motor()`
+ * decía `window.SG_FRAGMENTOS={FRAGMENTOS_JSON}` sin f delante, así que la Nave del Comandante reventaba al cargar
+ * con «FRAGMENTOS_JSON is not defined» — y ninguna batería lo vio, porque el HTML estaba perfectamente formado.
+ * Aquí se busca lo que delata el fallo: un hueco con NOMBRE_EN_MAYÚSCULAS dentro de un <script>.
+ */
+// (no vale cualquier «{ALGO}»: el enlace del ticket lleva {GRUPO}, {COMANDANTE} y {TEMA} a propósito, y los
+// rellena la página al vuelo. Lo que delata el fallo es un hueco puesto COMO VALOR: `window.SG_X={ALGO};`)
+const HUECO = /=\s*\{[A-Z][A-Z0-9_]{3,}\}\s*[;,)]/g;
+const conHueco = [];
+PAGINAS.forEach(f => {
+  const html = fs.readFileSync(path.join(RAIZ, f), "utf8");
+  (html.match(/<script\b[^>]*>[\s\S]*?<\/script>/g) || []).forEach(sc => {
+    (sc.match(HUECO) || []).forEach(h => conHueco.push(f + " → " + h));
+  });
+});
+c(!conHueco.length, "🔴 ninguna página lleva un hueco del build sin rellenar («{ALGO_JSON}» dentro de un <script>)",
+  conHueco.slice(0, 6).join(" · "));
+
 module.exports = { nombre: "Erratas y texto visible", ok, fallos };
 if (require.main === module) {
   console.log("\n  Batería 65 · erratas y texto visible");

@@ -988,7 +988,8 @@ const REG = {};   // cifras que se apuntan para el informe
       c("bienvenida · la Nave sin sesión manda a la puerta única", await nadie.hasta("location.pathname.indexOf('entrar.html')>=0", 20), await nadie.js("location.href"));
       // 14c · el Capitán, en Mis grupos: referente (con sus pasos) y docente (sin ellos)
       // (19-sep · la Nave del Comandante: tu ficha, los tres pasos, «Hoy toca», las secciones y tus grupos; y, al referente, «Gestionar grupos»)
-      for (const [correo, nombre, total, ref] of [["rita@lab.test", "Rita Referente", 14, true], ["dani@lab.test", "Dani Docente", 11, false]]) {
+      // 🔴 20-sep · la visita se rehízo con la Nave de hoy: 14 paradas + el cierre, y dos más si eres referente
+      for (const [correo, nombre, total, ref] of [["rita@lab.test", "Rita Referente", 17, true], ["dani@lab.test", "Dani Docente", 14, false]]) {
         const p = await nueva("visita " + nombre);
         await p.entrarPorLaPuerta(correo, nombre);
         // Dani es también alumna desde la sección 4: entonces la puerta pregunta, y aquí entra como docente
@@ -1013,7 +1014,8 @@ const REG = {};   // cifras que se apuntan para el informe
         c("capitán · " + nombre + ": " + total + " pasos, contados igual de principio a fin", recorrido.length === total && nums.every(n => new RegExp("/ " + total + "$").test(n)), JSON.stringify(nums));
         const enConsola = recorrido.filter(v => v.pag === "consola.html" && v.t !== "Listo para el salto");
         c("capitán · " + nombre + ": en su Nave cada paso señala algo de verdad",
-          enConsola.every(v => /cn-|pt-|solo-referente/.test(v.diana)), JSON.stringify(enConsola.map(v => v.t + "→" + v.diana)));
+          // (qué señala cada paso lo vigila la batería 102; aquí lo que importa es que en pantalla haya DIANA)
+          enConsola.every(v => /\btour-target\b/.test(v.diana)), JSON.stringify(enConsola.map(v => v.t + "→" + v.diana)));
         const titulos = recorrido.map(v => v.t);
         c("capitán · " + nombre + (ref ? " (referente) ve sus pasos: su zona y crear un grupo" : " (docente) NO ve los del referente"),
           ref ? titulos.indexOf("Como referente") >= 0 && titulos.indexOf("Referente: crear un grupo") >= 0
@@ -1064,12 +1066,16 @@ const REG = {};   // cifras que se apuntan para el informe
         await v.ir("consola.html");
         const ve = await v.hasta("document.body.innerText.indexOf(" + JSON.stringify(grupo.toUpperCase()) + ")>=0 || document.body.innerText.indexOf(" + JSON.stringify(grupo) + ")>=0", 25);
         // 19-sep · el código ya NO va en la fila (Norberto: «se usará solo el primer y segundo día… mejor dentro del grupo»)
-        c("vitalicio · el grupo nuevo aparece en su Nave (su pestaña arriba)", ve && await v.js("[].slice.call(document.querySelectorAll('.cn-g')).some(function(b){return b.getAttribute('data-grupo')===" + JSON.stringify(id) + "})"),
+        // 🔴 20-sep · la rejilla de tarjetas de grupo (`.cn-g`) se fue con la Nave nueva: cambiar de grupo es el
+        // DESPLEGABLE de tu ficha, y la Nave abre sola el último que miraste.
+        c("vitalicio · el grupo nuevo aparece en su Nave (en el desplegable de su ficha)",
+          ve && await v.js("[].slice.call(document.querySelectorAll('#cn-sel-g option')).some(function(o){return o.value===" + JSON.stringify(id) + "})"),
           (await v.texto()).slice(0, 240));
-        await v.ir("consola.html?per=" + id); await v.hasta("!!document.querySelector('.pt-cod .gp-cod')", 60);
+        // 🔴 20-sep · y el código de clase vive en «Reclutas» («el código de clase y copiar invitación, muévelo a Mi gente»)
+        await v.ir("consola.html?per=" + id + "&tab=alumnado"); await v.hasta("!!document.querySelector('.pt-cod .gp-cod')", 60);
         const tapado = await v.js(`(function(){ var b=document.querySelector('.pt-cod .gp-cod');
           if(!b||b.getAttribute('data-cod')!==${JSON.stringify(codigo)}||b.textContent.indexOf(${JSON.stringify(codigo)})>=0) return false; b.click(); return b.textContent.indexOf(${JSON.stringify(codigo)})>=0; })()`);
-        c("vitalicio · en el Puente (aún no ha empezado: semanas 1-3), su código tapado, que se destapa al pulsar", tapado, (await v.texto()).slice(0, 240));
+        c("vitalicio · en «Reclutas», su código tapado, que se destapa al pulsar", tapado, (await v.texto()).slice(0, 240));
         // y alguien se alista con ese código
         const nuevo = await nueva("alumno de " + grupo);
         const alumno = "alumno." + id.replace(/[^a-z0-9]/g, "") + "@lab.test";
@@ -5175,6 +5181,105 @@ const REG = {};   // cifras que se apuntan para el informe
       await rt.foto(FOTOS + "/49-herramientas.png");
       c("herramientas · sin errores", !rt.errores.filter(e => !/Failed to load resource/.test(e)).length, rt.errores[0] || "");
       await rt.cerrar();
+    }
+
+    // ============================================================ 50 · LA NAVE ESCUELA (20-sep)
+    /**
+     * 🔴 Norberto: «crea un grupo EJEMPLO (busca un nombre más atractivo). Sirve para que los docentes puedan
+     * explorar, interactuar… añade un selector de semanas, lo más fiel posible a un grupo normal». Y la pregunta que
+     * lo cierra todo: «si miro la ficha de un estudiante, ¿veo las participaciones que tiene, lo que ha puesto en el
+     * Zoco y sus cartas/avatares?».
+     *
+     * Aquí se siembra la Nave Escuela EN EL LABORATORIO (con el equipo docente del laboratorio) y se comprueba lo
+     * que no se puede comprobar leyendo el código: que el selector de semana cambia de verdad lo que se ve, que los
+     * tickets salen sin la hoja de Google, y que en la ficha está lo suyo.
+     */
+    if (hacer(50)) {
+      const { spawnSync } = require("child_process");
+      const r = spawnSync(process.execPath, [path.join(L.RAIZ, "motor", "sembrar_prueba.js"), "--escuela"],
+        { encoding: "utf8", env: Object.assign({}, process.env, { FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080" }) });
+      c("🔴 escuela · el grupo se siembra entero de una vez", /sembrado: nave-escuela/.test(r.stdout || ""),
+        ((r.stderr || "") + (r.stdout || "")).slice(-260));
+      const gente = await consultar("student_profiles", "projectId", "nave-escuela");
+      c("   con 30 reclutas y muy distinta implicación", gente.length === 30 &&
+        gente.filter(x => !(x.completedMissionIds || []).length).length >= 2 &&
+        gente.filter(x => (x.completedMissionIds || []).length >= 25).length >= 2,
+        gente.length + " fichas · sin empezar " + gente.filter(x => !(x.completedMissionIds || []).length).length);
+
+      const ne = await nueva("Rita explora la Nave Escuela");
+      await ne.ir("entrar.html"); await ne.entrarComo("rita@lab.test", "Rita Referente");
+      await ne.ir("consola.html?per=nave-escuela"); await ne.hasta("!!document.querySelector('.cn-secs')", 90);
+      await dormir(1200);
+      c("🔴 escuela · el banner avisa de que es para trastear, y trae el selector de semana",
+        await ne.js("!!document.querySelector('.gr-escuela #esc-sem')") &&
+        /no es una clase de verdad/i.test(await ne.js("(document.querySelector('.gr-escuela')||{}).innerText||''")));
+      c("   y desde ahí se puede empezar la visita guiada y verla como recluta",
+        await ne.js("!!document.querySelector('.gr-escuela .tour-start') && !!document.querySelector('.gr-escuela a[href*=\"recluta.html\"]')"));
+      const sem16 = await ne.js("(document.querySelector('.gr-banner .eyebrow')||{}).textContent||''");
+      const retos16 = await ne.js("document.querySelectorAll('.pt-retos li, .pt-reto').length");
+      // 🔴 el selector: se elige la semana 3 y TODO se recalcula (la semana del banner y lo que llevan)
+      await ne.js("var s=document.getElementById('esc-sem'); s.value='3'; s.dispatchEvent(new Event('change')); 1");
+      await ne.hasta("/Semana 3 /.test((document.querySelector('.gr-banner .eyebrow')||{}).textContent||'')", 60);
+      const sem3 = await ne.js("(document.querySelector('.gr-banner .eyebrow')||{}).textContent||''");
+      c("🔴 escuela · al elegir otra semana, el grupo entero se ve como estaba entonces",
+        /Semana 15 /.test(sem16) && /Semana 3 /.test(sem3), sem16 + "  →  " + sem3);
+      const activos3 = await ne.js("(document.querySelector('.c-resumen')||{}).innerText||''");
+      c("   y con ella cambian las cifras del grupo (nadie registra en la 3 lo de la 12)",
+        !/undefined|NaN/.test(activos3) && activos3.length > 20, activos3.slice(0, 90).replace(/\n/g, " · "));
+      c("   la semana elegida se recuerda en el navegador, no en el grupo (explorar no escribe nada)",
+        (await ne.js("localStorage.getItem('sgSemanaEscuela')")) === "3" &&
+        !(await leerDoc("projects/nave-escuela")).stargate.demoSemana);
+      await ne.foto(FOTOS + "/50-escuela-semana3.png");
+      // de vuelta al final del curso, que es donde está todo
+      await ne.js("var s=document.getElementById('esc-sem'); s.value='15'; s.dispatchEvent(new Event('change')); 1");
+      await ne.hasta("/Semana 15 /.test((document.querySelector('.gr-banner .eyebrow')||{}).textContent||'')", 60);
+      c("   (y al volver a la última, otra vez el viaje entero)", retos16 > 0);
+
+      // 🔴 LOS TICKETS, SIN LA HOJA DE GOOGLE: los de este grupo viven con él
+      await ne.hasta("!!document.querySelector('.pt-tk')", 60);
+      await ne.js("document.querySelector('.pt-tk').open=true; 1");
+      await ne.hasta("!!document.querySelector('.tk-notas .tk-nota, .tk-lista .tk-uno')", 60);
+      const tk = await ne.js("(document.querySelector('.pt-tk')||{}).innerText||''");
+      c("🔴 escuela · los tickets de salida salen sin pasar por la hoja de Google",
+        /respuesta/.test(tk) && await ne.js("document.querySelectorAll('.tk-nota').length") >= 3, tk.slice(0, 110).replace(/\n/g, " · "));
+      c("   con el desplegable de temas para mirar los anteriores",
+        await ne.js("document.querySelectorAll('#tk-tema option').length") >= 6);
+      await ne.js("document.querySelector('.pt-tk').scrollIntoView({block:'center'}); 1"); await dormir(500);
+      await ne.foto(FOTOS + "/50-escuela-tickets.png");
+
+      // 🔴 LA PREGUNTA DE NORBERTO: la ficha de un recluta
+      await ne.js("(document.querySelector('.cn-secs [data-sec=gente]')||document.querySelector('[data-tab=alumnado]')).click(); 1");
+      await ne.hasta("document.querySelectorAll('tr[data-r]').length>0", 60); await dormir(900);
+      await ne.js(`(function(){ var f=[].slice.call(document.querySelectorAll('tr[data-r]'));
+        (f.filter(function(x){return /Trit/.test(x.textContent)})[0]||f[0]).click(); })(); 1`);
+      await ne.hasta("!!document.querySelector('.fi-suyo')", 40);
+      await ne.hasta("!/Mirando el Zoco/.test((document.getElementById('fi-zoco')||{}).innerText||'')", 60);
+      const suyo = await ne.js("(document.querySelector('.fi-suyo')||{}).innerText||''");
+      c("🔴 ficha · «Lo suyo»: sus cartas y sus héroes, con la cuenta", /cromos/.test(suyo) && /héroes/.test(suyo), suyo.slice(0, 120).replace(/\n/g, " · "));
+      c("🔴 ficha · cómo se viste (su héroe o su personaje) y lo que se ha comprado", /Lleva puesto/.test(suyo));
+      c("🔴 ficha · las participaciones que tiene del Gran Sorteo", /participaci/i.test(suyo));
+      c("🔴 ficha · y lo que tiene puesto en el Zoco", /Zoco/.test(suyo) && !/Mirando el Zoco/.test(suyo),
+        (await ne.js("(document.getElementById('fi-zoco')||{}).innerText||''")).replace(/\n/g, " · "));
+      await ne.foto(FOTOS + "/50-escuela-ficha.png");
+
+      // 🔴 y en la SESIÓN PROYECTADA: la semana 3 abre el tema 2, así que «Cómo os fue» lee el ticket del tema 1
+      await ne.ir("sesion.html?per=nave-escuela&sem=3"); await ne.hasta("!!document.querySelector('.barra-pasos .p')", 90);
+      await ne.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.title==='Cómo os fue'})[0].click(); 1");
+      await ne.hasta("!/Leyendo vuestras respuestas/.test((document.getElementById('ses-tk')||document.body).innerText)", 60);
+      const comofue = await ne.js("(document.getElementById('ses-tk')||document.body).innerText");
+      c("🔴 escuela · y la sesión proyecta «Cómo os fue» con esas mismas respuestas",
+        /%/.test(comofue) && !/No hay comentarios|no he podido leer/i.test(comofue), comofue.slice(0, 110).replace(/\n/g, " · "));
+      await ne.foto(FOTOS + "/50-escuela-sesion.png");
+
+      // y la Nave de un recluta, que es lo que el docente quiere enseñar
+      await ne.ir("recluta.html?per=nave-escuela&demo=1&semana=15");
+      await ne.hasta("!!document.querySelector('.nb-tabs')", 90); await dormir(900);
+      const tabs = await ne.js("[].slice.call(document.querySelectorAll('.nb-t')).map(function(b){return b.textContent.trim()}).join(' · ')");
+      c("🔴 escuela · su Nave se puede mirar como demostración, con todas sus pestañas",
+        /Archivo/.test(tabs) && /Zoco/.test(tabs) && /Mercado/.test(tabs), tabs);
+      await ne.foto(FOTOS + "/50-escuela-recluta.png");
+      c("escuela · sin errores", !ne.errores.filter(e => !/Failed to load resource/.test(e)).length, ne.errores[0] || "");
+      await ne.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

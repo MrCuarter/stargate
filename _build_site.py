@@ -1320,6 +1320,24 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
   window.SG = window.SG || {}; window.SG.BADGE = BADGE; window.SG.CARDT = CARDT;
 
   /**
+   * 🔴 20-sep · EN QUÉ SEMANA SE MIRA LA NAVE ESCUELA. El grupo para que el profesorado trastee lleva el curso
+   * entero sembrado y se puede ver en cualquiera de sus semanas. La elegida vive en el NAVEGADOR de quien mira,
+   * no en el grupo: explorar no escribe nada y dos personas pueden estar en semanas distintas a la vez.
+   *
+   * Se lee aquí, lo primero de todo, porque `motor/tablero.js` la consulta al calcular «hoy» y el tablero se
+   * arma en cuanto llegan los datos. De la dirección (`?semana=5`, que se puede pegar en un mensaje) o de la
+   * última que se eligió. A un grupo normal no le afecta: el tablero solo la mira si el grupo es escuela.
+   */
+  try {
+    var _qs = location.search.match(/[?&]semana=(\d{1,2})/);
+    var _sem = _qs ? Number(_qs[1]) : Number(localStorage.getItem('sgSemanaEscuela') || 0);
+    if (_sem > 0 && _sem <= 20) {
+      window.SG_SEMANA_ESCUELA = _sem;
+      if (_qs) localStorage.setItem('sgSemanaEscuela', String(_sem));
+    }
+  } catch (e) {}
+
+  /**
    * ENCENDER LO QUE SOLO VE EL PROFE REFERENTE.
    *
    * 🔴 Las entradas `solo-referente` del menú nacen OCULTAS en el HTML, y es deliberado: esta web
@@ -1841,33 +1859,43 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
    * puesto de mando»), pasaba por el «Registro» de la hoja de cálculo y acababa mandando al «panel
    * del profesorado con el PIN que te dará tu referente». Tres paradas en sitios que ya no existen.
    *
-   * Ahora empieza donde aterriza el docente —su Nave del Comandante (19-sep)— y señala lo de verdad: su
-   * ficha y NEBULA, los tres pasos de la clase, «Hoy toca», las secciones y sus grupos. Luego el método
-   * (guía, cronología, actividades). Lo del referente ya no se pregunta: se VE. Si en la barra de arriba
-   * está «Gestionar grupos» (solo lo ve el referente), la visita suma sus pasos; si no, no los enseña.
+   * 🔴 20-sep · Y OTRA VEZ, porque la Nave del Comandante se rehízo entera. La visita señalaba
+   * `.cn-hero`, una clase que ya no existe: el paso 1 se quedaba sin objetivo y, con él, la visita
+   * dejaba de detectar al referente —esa comprobación cuelga del paso 1—, así que a un referente NUNCA
+   * le salían sus dos pasos. Y contaba «la llamada a filas» (retirada), «Mi gente» (hoy «Reclutas») y
+   * «tus notas» (borradas). Ahora recorre lo que hay: la ficha con su desplegable de grupos, el banner
+   * con «Empezar la clase», los aros y NEBULA, «Hoy toca» con los retos aún cerrados, la carta del
+   * foro firmada, los tickets de salida, el panel embebido y las secciones. Después, el método.
    *
-   * Tres claves nuevas en cada paso: `espera` (la consola pinta los grupos cuando llega la sesión, así
-   * que el paso aguarda a que su objetivo exista), `si` (si el objetivo no aparece, el paso se salta en
-   * vez de señalar al vacío) y `rol` (el paso que mira si eres referente).
+   * Lo del referente no se pregunta: se VE. Si en la barra de arriba está «Gestionar grupos» (solo lo
+   * ve el referente), la visita suma sus pasos; si no, no los enseña.
+   *
+   * Tres claves en cada paso: `espera` (la consola pinta los grupos cuando llega la sesión, así que el
+   * paso aguarda a que su objetivo exista), `si` (si el objetivo no aparece —un grupo sin tickets, una
+   * cuenta sin panel—, el paso se salta en vez de señalar al vacío) y `rol` (el paso que mira si eres
+   * referente). 🔴 El paso con `rol` tiene que señalar algo que EXISTA SIEMPRE en la Nave.
    */
   var BASE=[
-   {p:'consola.html',sel:'.cn-hero',listo:'.cn-secs',espera:1,rol:1,pose:'saluda',t:'Bienvenido a tu Nave',x:'Recluta… perdón: <b>Capitán</b>. Esta es tu <b>Nave del Comandante</b>: tu ficha, y NEBULA con lo que pasa en tu grupo y quién necesita un empujón. Debajo, todo lo de tu clase. Te lo enseño en dos minutos.'},
-   {p:'consola.html',sel:'.gr-banner',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Cada clase empieza aquí',x:'El banner de tu grupo, con <b>Empezar la clase</b>: la sesión de la semana ya montada (la rueda dice qué diapositivas salen). Dentro de la sesión tienes la <b>llamada a filas</b> y las <b>herramientas de clase</b> (quién ha fichado, premiar, el tiempo y las votaciones). Todo lo del grupo va debajo de este banner.'},
-   {p:'consola.html',sel:'.pt-hoy',listo:'.cn-secs',espera:1,si:1,pose:'brazos',t:'Hoy toca',x:'Lo de esta semana, de un vistazo: el planeta, el calendario (entregas y tests), los vídeos y las fichas de los retos, con cuántos de tu gente los han hecho. Más abajo, el mensaje para el foro de la plataforma de UNIR y tus notas.'},
-   {p:'consola.html',sel:'.cn-secs',listo:'.cn-secs',espera:1,pose:'senala',t:'Las secciones de tu grupo',x:'<b>Mi gente</b>: tu alumnado y su ficha para validar o anular un reto; si alguien pide una subida de nota, brilla la <b>Cola de nota</b>. <b>Rankings</b>, el <b>Calendario</b> y, en mando manual, <b>El Zoco</b>, <b>Premios</b> y <b>Enlaces</b> (los códigos para tus Geniallys).'},
-   {p:'consola.html',sel:'.cn-ficha',listo:'.cn-secs',espera:1,si:1,pose:'pensativo',t:'Tu ficha y tus grupos',x:'Tu comandante, tus cifras y —si llevas más de un grupo— el <b>desplegable</b> para cambiar de uno a otro. El <b>código de clase</b> y la invitación están en <b>Reclutas</b>.'},
+   {p:'consola.html',sel:'.cn-ficha',listo:'.cn-secs',espera:1,rol:1,pose:'saluda',t:'Bienvenido a tu Nave',x:'Recluta… perdón: <b>Capitán</b>. Esta es tu <b>Nave del Comandante</b>: tu comandante, tus cifras y, si llevas más de un grupo, el <b>desplegable</b> para saltar de uno a otro. En <b>Ajustes</b>, tu nombre y tu alias. Te lo enseño en dos minutos.'},
+   {p:'consola.html',sel:'.gr-banner',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Cada clase empieza aquí',x:'El banner de tu grupo, con <b>Empezar la clase</b>: la sesión de la semana ya montada (la rueda de al lado dice qué diapositivas salen). Dentro tienes las <b>herramientas de clase</b> —quién ha fichado, premiar, una pregunta, una votación y el tiempo—. Todo lo de este grupo va debajo de este banner.'},
+   {p:'consola.html',sel:'.c-resumen',listo:'.cn-secs',espera:1,si:1,pose:'brazos',t:'Cómo va tu grupo',x:'Los <b>aros</b> se llenan con el porcentaje; pasa el ratón por encima y te dan la cuenta exacta. Al lado, <b>NEBULA</b>: púlsala y se abre con lo que conviene hacer esta semana. Debajo, <b>quién destaca</b>, con su cara y qué ha hecho — listo para nombrarlos en voz alta.'},
+   {p:'consola.html',sel:'.pt-hoy',listo:'.cn-secs',espera:1,si:1,pose:'senala',t:'Hoy toca',x:'Lo de esta semana: el planeta, el calendario con las entregas, los vídeos (se ven aquí mismo, sin salir a YouTube) y <b>todos los retos del tema</b> — los que todavía no están abiertos salen en gris, diciendo en qué semana se desbloquean.'},
+   {p:'consola.html',sel:'#ht-foro',listo:'.cn-secs',espera:1,si:1,pose:'pensativo',t:'El mensaje del foro, firmado por ti',x:'Una carta oficial, con la cabecera de STARGATE y, al pie, <b>tu avatar, tu nombre y tu sello</b>. <b>Copiar</b>, y a pegarlo en el foro de la plataforma de UNIR. Con <b>Editar</b> escribes tu versión: se guarda en tu ficha, así que vale para todos tus grupos — también para los que crees más adelante.'},
+   {p:'consola.html',sel:'.pt-tk',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Los tickets de salida',x:'Lo que escribió tu escuadrón al cerrar el tema: cada pregunta con su reparto de notas, y sus comentarios. Sale el <b>último tema cerrado</b>, y el desplegable abre los anteriores. Tú decides qué se lee en clase: lo que <b>fijes</b> sale seguro, lo que <b>ocultes</b> no sale, y del resto salen los que quepan en la diapositiva.'},
+   {p:'consola.html',sel:'.pt-panel',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Tu panel de control',x:'El Genially que abre tu alumnado desde su Nave, <b>aquí dentro</b>: lo compruebas sin abrir otra pestaña. Y si prefieres usar el tuyo, <b>Cambiar el enlace</b> y tus reclutas verán ese.'},
+   {p:'consola.html',sel:'.cn-secs',listo:'.cn-secs',espera:1,pose:'senala',t:'Las secciones de tu grupo',x:'<b>Reclutas</b>: tu alumnado, la ficha de cada uno para validar o anular un reto, y el <b>código de clase</b> para quien falte; si alguien pide una subida de nota, brilla la <b>Cola de nota</b>. Después <b>Rankings</b>, el <b>Calendario</b> y, en mando manual, <b>El Zoco</b>, <b>Premios</b> y <b>Enlaces</b>. La última es <b>Contacto</b>: si algo falla, por ahí me llega.'},
    {p:'consola.html',sel:'.lnk.solo-referente',listo:'.cn-secs',espera:1,si:1,soloRef:1,pose:'senala',t:'Como referente',x:'Crear un grupo, el equipo docente, los escuadrones, los ajustes y el calendario, mover reclutas, graduar y borrar: en <b>Gestionar grupos</b>, aquí arriba. Lo que se hace una o dos veces por curso, fuera de tu Nave.'},
-   {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'<b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase.'},
+   {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'<b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase. Quien completa la misión de un tripulante <b>desbloquea su fragmento de vídeo</b>; dos semanas más tarde se abre para todo el grupo, y todos se coleccionan en <b>El Archivo</b> de su Nave.'},
    {p:'guia.html',sel:'#retos',pose:'tablet',t:'Dos retos por tema',x:'El <b>Reto A</b> da la <b>insignia</b> del personaje: no cuenta para nota, aunque da 100 xp y __CRED_A__ ◈. El <b>Reto B</b> produce una evidencia real de la Bitácora (250 xp y __CRED_B__ ◈) y <b>pide su enlace</b>. Los <b>xp</b> suben de nivel y nunca se gastan; los <b>créditos ◈</b> son lo que se canjea. Y nadie registra más de 3 retos al día.'},
    {p:'cronologia.html',sel:'#mapa',pose:'senala',t:'Tu carta de navegación',x:'El mapa de las <b>15 semanas</b>: qué vídeo proyectar, qué reto lanzar, qué insignia entregar y el hito de evaluación. Sin fechas: semanas, como tu aula.'},
-   {p:'cronologia.html',sel:'#sem1',pose:'pensativo',t:'La orden del día',x:'Despliega una semana y tendrás la orden completa, con los vídeos reproducibles aquí mismo y el <b>mensaje para el foro de la plataforma de UNIR</b>, listo para copiar (la firma es siempre «Capitán», a secas). Tu alumnado ya lo ve solo en su Nave.'},
+   {p:'cronologia.html',sel:'#sem1',pose:'pensativo',t:'La orden del día',x:'Despliega una semana y tendrás la orden completa, con los vídeos reproducibles aquí mismo y el <b>mensaje para el foro de la plataforma de UNIR</b> (aquí va sin firmar; el tuyo, firmado, está en tu Nave). Tu alumnado ya ve su parte solo, en su Nave.'},
    {p:'actividades.html',sel:'#act1',pose:'pensativo',t:'Misiones y evaluación',x:'Las dos misiones mayores, el ePortfolio y el examen con los <b>requisitos oficiales</b>, más los documentos para descargar.'}
   ];
   var REF=[
    {p:'crear.html',sel:'',pose:'tablet',t:'Referente: crear un grupo',x:'Los grupos se crean <b>aquí</b>, con tu cuenta de Google: nombre, tipo REGULAR/PUA, primer día de la semana 1, los enlaces de la clase y el equipo docente. En un minuto queda sembrado entero —los retos, los 8 planetas, la tienda, los escuadrones y el álbum— y sale su <b>código de clase</b>.'},
    {p:'crear.html',sel:'',pose:'senala',t:'Referente: el equipo y la fecha',x:'No hay PIN que repartir. Pones a cada docente con <b>su correo</b> en el equipo y con eso entra en su Nave iniciando sesión con Google; si alguien se va, lo quitas del equipo y deja de entrar. Lo que sí tienes que poner bien es la <b>fecha de la semana 1</b>: marca el ritmo de todo, desde la orden de la semana hasta los desbloqueos de la Nave.'}
   ];
-  var FINAL={p:'consola.html',sel:'.cn-hero',listo:'.cn-secs',espera:1,pose:'pulgar',t:'Listo para el salto',x:'Eso es todo, Capitán. Cuando quieras repasarlo, <b>▶ Visita guiada</b> en la barra de arriba; y las dudas de siempre, en las <a href="guia.html#faq">preguntas frecuentes</a>. Recuerda: <b>una obra que no se documenta, no existe</b>. Corto y cierro.'};
+  var FINAL={p:'consola.html',sel:'.cn-ficha',listo:'.cn-secs',espera:1,pose:'pulgar',t:'Listo para el salto',x:'Eso es todo, Capitán. Cuando quieras repasarlo, <b>▶ Visita guiada</b> en la barra de arriba; y las dudas de siempre, en las <a href="guia.html#faq">preguntas frecuentes</a>. Recuerda: <b>una obra que no se documenta, no existe</b>. Corto y cierro.'};
   // v3.35 · VISITAS DE UNA SOLA PÁGINA. La de arriba recorre toda la web; una página puede declarar
   // la suya con `window.SG_TOUR_LOCAL = {clave, pasos:[…]}` — es lo que hace la sala del docente para
   // explicar el ORDEN de lo que tiene que hacer el alumnado. No salta de página y lleva su propia
@@ -3355,7 +3383,10 @@ def _cabeza_motor():
         'window.SG_EVIDENCIA=' + _json.dumps(EVIDENCIA_RETOS) + ';window.SG_REFLEXION=' + _json.dumps(REFLEXION_RETOS, ensure_ascii=False) + ';window.SG_TOPE_SEMANA=' + str(TOPE_RETOS_SEMANA) + ';'
         'window.SG_CAPITULOS=' + CAPITULOS_JSON + ';window.SG_SECRETOS=' + _json.dumps(SECRETOS) + ';'
         # 15-sep (noche) · los logros de a bordo: la Nave los enseña, la consola y la sala del docente los cuentan
-        'window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_A_BORDO=' + _json.dumps(_A_BORDO, ensure_ascii=False) + ';'
+        # 🔴 20-sep · esto NO es una f-string: iba escrito «{FRAGMENTOS_JSON}» y salía tal cual a la página, así que
+        # la Nave del Comandante reventaba con «FRAGMENTOS_JSON is not defined» en cuanto cargaba. Lo destapó el
+        # laboratorio mirando los errores de consola, no las baterías: un `{...}` sin f delante no se ve leyendo.
+        'window.SG_FRAGMENTOS=' + FRAGMENTOS_JSON + ';window.SG_A_BORDO=' + _json.dumps(_A_BORDO, ensure_ascii=False) + ';'
         'window.SG_BATALLA=' + _json.dumps(BATALLA, ensure_ascii=False) + ';'
         'window.SG_SIN_PUA=' + _json.dumps(SIN_PUA, ensure_ascii=False) + ';'
         'window.SG_VOTACION=' + _json.dumps(VOTACION, ensure_ascii=False) + ';</script>'

@@ -7,6 +7,24 @@
   window.SG = window.SG || {}; window.SG.BADGE = BADGE; window.SG.CARDT = CARDT;
 
   /**
+   * 🔴 20-sep · EN QUÉ SEMANA SE MIRA LA NAVE ESCUELA. El grupo para que el profesorado trastee lleva el curso
+   * entero sembrado y se puede ver en cualquiera de sus semanas. La elegida vive en el NAVEGADOR de quien mira,
+   * no en el grupo: explorar no escribe nada y dos personas pueden estar en semanas distintas a la vez.
+   *
+   * Se lee aquí, lo primero de todo, porque `motor/tablero.js` la consulta al calcular «hoy» y el tablero se
+   * arma en cuanto llegan los datos. De la dirección (`?semana=5`, que se puede pegar en un mensaje) o de la
+   * última que se eligió. A un grupo normal no le afecta: el tablero solo la mira si el grupo es escuela.
+   */
+  try {
+    var _qs = location.search.match(/[?&]semana=(\d{1,2})/);
+    var _sem = _qs ? Number(_qs[1]) : Number(localStorage.getItem('sgSemanaEscuela') || 0);
+    if (_sem > 0 && _sem <= 20) {
+      window.SG_SEMANA_ESCUELA = _sem;
+      if (_qs) localStorage.setItem('sgSemanaEscuela', String(_sem));
+    }
+  } catch (e) {}
+
+  /**
    * ENCENDER LO QUE SOLO VE EL PROFE REFERENTE.
    *
    * 🔴 Las entradas `solo-referente` del menú nacen OCULTAS en el HTML, y es deliberado: esta web

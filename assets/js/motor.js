@@ -1864,6 +1864,15 @@ async function zocoTratosGrupo(perId) {
   const r = await getDocs(query(collection(db, "stargate_tratos"), where("projectId", "==", perId)));
   return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => Number(b.actualizado || 0) - Number(a.actualizado || 0));
 }
+/**
+ * 20-sep · LO PUESTO EN EL ZOCO DE UN GRUPO, para el profesorado. La ficha de cada recluta dice qué tiene puesto a
+ * cambiar (Norberto: «si miro la ficha de un estudiante, ¿veo… lo que ha puesto en el Zoco?»), y la pantalla del
+ * Zoco lo cruza con los tratos. Lo abierto y lo cerrado: retirar algo también es parte de la historia.
+ */
+async function zocoAnunciosGrupo(perId) {
+  const r = await getDocs(query(collection(db, "stargate_zoco"), where("projectId", "==", perId)));
+  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => Number(b.creado || 0) - Number(a.creado || 0));
+}
 const zocoPoner = (perId, piezas) => llamar("stargateZocoPoner", { projectId: perId, piezas });
 const zocoRetirar = (anuncioId) => llamar("stargateZocoRetirar", { anuncioId });
 const zocoOfertar = (anuncioId, ofrece, mensaje) => llamar("stargateZocoOfertar", { anuncioId, ofrece, mensaje: mensaje || "" });
@@ -2121,6 +2130,23 @@ async function ponerModoDocente(modo) {
  * docente en cada grupo —lo que uno quiere leer en voz alta no es lo que quiere otro—, así que vive en
  * `projects/{grupo}/privado/tickets_{uid}`: lo lee y lo escribe el equipo docente del grupo, nunca el alumnado.
  */
+/**
+ * 🔴 20-sep · LOS TICKETS QUE VIVEN CON SU GRUPO (la Nave Escuela). El ticket de salida de verdad es ANÓNIMO a
+ * propósito: un formulario de Google que deja las respuestas en una hoja, y de ahí las lee el panel. El grupo de
+ * exploración no puede usar esa hoja —meterle cien respuestas inventadas sería ensuciar con datos falsos el sitio
+ * donde el alumnado escribe en confianza—, así que las suyas se guardan con él, en `privado/tickets`.
+ *
+ * Devuelve [] para un grupo normal (el documento no existe) y también si Firestore dice que no: quien lee esto es
+ * quien da la clase, y si algo falla la sesión tiene que seguir por la hoja de siempre.
+ */
+async function ticketsGuardados(perId) {
+  if (!perId) return [];
+  try {
+    const d = await getDoc(doc(db, "projects", perId, "privado", "tickets"));
+    const v = d.exists() ? d.data() : null;
+    return (v && Array.isArray(v.filas)) ? v.filas : [];
+  } catch (e) { return []; }
+}
 async function marcasTicket(perId) {
   const yo = await sesion(); if (!yo || !perId) return { fijadas: [], ocultas: [] };
   const d = await getDoc(doc(db, "projects", perId, "privado", "tickets_" + yo.uid));
@@ -2197,10 +2223,10 @@ if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, ponerModoDocente, misNotas, guardarNotas,
-                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, marcasTicket, marcarTicket,
+                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
-                    zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
+                    zocoDatos, zocoTratosGrupo, zocoAnunciosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta, sorteosDeGrupos, sorteoEnGrupos, retirarSorteo, participacionesEn,
                     ofertasDeGrupos, crearOfertaEnGrupos, ofertaEnGrupos,
                     buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto, invitacion, codigoGenially,

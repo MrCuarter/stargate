@@ -50,7 +50,9 @@ VIEJO.concat([[/registro\.html'/, "el registro viejo como parada"], [/\bPIN\b(?!
   c(!re.test(pasosTour), "🔴 la visita del Capitán no habla de " + que);
 });
 // 19-sep · la Nave del Comandante: la visita empieza en su ficha (ya no hay «Mis grupos»)
-c(/p:'consola\.html',sel:'\.cn-hero'/.test(tour), "🔴 la visita del Capitán empieza en su Nave, señalando su ficha");
+// 🔴 20-sep · la ficha del comandante es `.cn-ficha` desde que la Nave se rehízo (`.cn-hero` ya no existe). Lo demás
+// que señala la visita lo vigila la batería 102, que comprueba que CADA objetivo existe de verdad.
+c(/p:'consola\.html',sel:'\.cn-ficha'/.test(tour), "🔴 la visita del Capitán empieza en su Nave, señalando su ficha");
 c(!/p:'index\.html'/.test(tour), "   y ya no se para en la portada pública");
 c(/__CRED_A__/.test(tour) === false, "   y las cifras de créditos salen del catálogo, no de un marcador sin sustituir");
 const R = leer("assets/js/recluta.js");
