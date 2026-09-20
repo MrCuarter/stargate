@@ -38,7 +38,9 @@ c(/data-sec="'\+esc\(secDe\(d\)\)\+'"/.test(S), "   (cada paso de la sesión dic
 // ── 4 · la portada del grupo
 c(/var TABS = \[\["portada", "Portada"\]/.test(K) && /TAB = "portada";   \/\/ 19-sep/.test(K) && /\["puente", "Puente", "assets\/img\/nave\/iconos\/nave\.png", \["portada"\]\]/.test(K), "🔴 al entrar en un grupo, su Puente (la primera sección)");
 c(!/TAB = "portada";\n\s*PER = perId/.test(K), "   y el aviso de la Cola de nota sigue llevando a la Cola (abrir() no la pisa)");
-c(/function verPortada\(t\)/.test(K) && /El vídeo que toca/.test(K) && /Retos de esta semana/.test(K) && /Retos ya lanzados/.test(K), "   semana, el vídeo que toca, los retos de la semana y los ya lanzados");
+// 20-sep · «deben aparecer todos los retos de esa semana; si no se han desbloqueado, se oscurecen»
+c(/function verPortada\(t\)/.test(K) && /El vídeo que toca/.test(K) && /Los retos de ' \+ esc/.test(K) && /Retos ya lanzados/.test(K), "   semana, el vídeo que toca, los retos del tema y los ya lanzados");
+c(/Se desbloquea la semana ' \+ luegoEn/.test(K) && /\.ht-reto\.por-lanzar\{/.test(CSS), "🔴 y los del tema que aún no tocan salen en sombra, con la semana en que se abren");
 c(/'<span class="pt-n"><b>' \+ n \+ '<\/b>\/' \+ N \+ ' · ' \+ pct \+ ' %<\/span>/.test(K), "   cada reto con cuántos lo han hecho y el porcentaje");
 c(/window\.SG_SEMANAS=/.test(H) && /window\.SG_SEM_RETO=/.test(H), "   con los mismos datos que la sesión y la Nave (un dato, un sitio)");
 c(/id="pt-panel-ed"/.test(K) && /guardarMiParte\("paneles", yoN, v\)/.test(K), "🔴 el enlace del panel, editable ahí mismo, para todo tu alumnado");

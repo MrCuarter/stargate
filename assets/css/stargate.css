@@ -4906,6 +4906,9 @@ body.modo-piloto [data-av]{display:none!important}
 .ht-vids .pt-vids{display:flex;flex-direction:row;flex-wrap:wrap;gap:10px}
 .ht-vids .pt-vids li{grid-template-columns:112px minmax(0,220px)}
 .ht-retos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+/* 20-sep · los del mismo tema que aún no se han lanzado: en sombra y con la semana en la que se abren */
+.ht-reto.por-lanzar{opacity:.55;filter:grayscale(.5);border-style:dashed}
+.ht-reto.por-lanzar .chip.luego{background:rgba(255,209,102,.12);border-color:rgba(255,209,102,.45);color:var(--amber)}
 .ht-reto{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;border:1px solid rgba(62,214,200,.35);background:linear-gradient(180deg,rgba(62,214,200,.07),rgba(6,14,24,.5))}
 .ht-reto.rel{border-color:rgba(242,181,68,.5);background:linear-gradient(180deg,rgba(242,181,68,.08),rgba(6,14,24,.5))}
 .ht-reto-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -5262,6 +5265,37 @@ body.con-planeta #consola-app .cn-secs{background:rgba(8,14,24,.7);backdrop-filt
 .pt-panel-cab h3{margin:0;margin-right:auto}
 .pt-panel-marco{margin-top:8px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#070b12}
 .pt-panel-marco iframe{display:block;width:100%;height:min(56vh,520px);border:0}
+/* 🔴 20-sep · EL MENSAJE DEL FORO, COMO UNA CARTA OFICIAL (la Nave) y su firma en la sesión proyectada */
+.foro-carta{margin:10px 0 0;border:1px solid rgba(55,224,236,.28);border-radius:16px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(13,26,42,.96),rgba(10,17,28,.96))}
+.fc-cab{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid rgba(55,224,236,.22);
+  background:linear-gradient(90deg,rgba(55,224,236,.12),transparent)}
+.fc-marca{font-family:'Unbounded',sans-serif;font-size:.95rem;letter-spacing:.12em;color:#fff}
+.fc-meta{margin-left:auto;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--teal2,#8fe6ef)}
+.fc-cuerpo{padding:16px 22px;display:flex;flex-direction:column;gap:12px}
+.fc-cuerpo p{margin:0;font-size:1rem;line-height:1.65;color:#dfeaf6;text-wrap:pretty}
+.fc-firma{display:flex;align-items:center;gap:14px;padding:14px 22px;border-top:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.02)}
+.fc-av{width:56px;height:56px;border-radius:14px;object-fit:cover;flex:none;border:1px solid rgba(55,224,236,.45)}
+.fc-quien{display:flex;flex-direction:column;line-height:1.3;min-width:0}
+.fc-quien b{font-family:'Unbounded',sans-serif;font-size:.98rem;color:#fff}
+.fc-quien em{font-style:normal;font-size:.86rem;color:var(--mut)}
+.fc-sello{width:54px;height:54px;object-fit:contain;margin-left:auto;opacity:.75;
+  filter:drop-shadow(0 0 10px rgba(255,209,102,.35)) sepia(.25)}
+@media(max-width:600px){.fc-cuerpo{padding:14px 16px}.fc-cab,.fc-firma{padding:12px 16px}.fc-sello{display:none}}
+/* 🔴 20-sep · y la firma, en la transmisión que se proyecta: un sello fijo abajo a la izquierda, siempre a la vista
+   (dentro del texto se iría con el desplazamiento justo cuando más mira la clase). */
+.fc-firma-c{position:absolute;left:clamp(14px,3vw,34px);bottom:clamp(14px,3vw,30px);z-index:4;
+  display:flex;align-items:center;gap:14px;padding:10px 16px 10px 10px;border-radius:18px;
+  background:rgba(6,12,20,.72);border:1px solid rgba(55,224,236,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  animation:fcFirma 1s ease .6s both}
+@keyframes fcFirma{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.fc-firma-c{animation:none}}
+.fc-firma-c .fc-av{width:clamp(52px,5vw,76px);height:clamp(52px,5vw,76px);border-radius:16px}
+.fc-firma-c .fc-quien b{font-size:clamp(.95rem,1.4vw,1.25rem);color:#fff}
+.fc-firma-c .fc-quien em{font-size:clamp(.8rem,1vw,.95rem)}
+.fc-firma-c .fc-sello{width:clamp(44px,4vw,64px);height:clamp(44px,4vw,64px);margin-left:6px}
+@media(max-width:700px){.fc-firma-c{gap:10px;padding:8px 12px 8px 8px}.fc-firma-c .fc-sello{display:none}}
 /* 🔴 20-sep · la caja de «Tickets de salida» en la Nave: elegir tema, ver las notas y decidir qué se lee en clase */
 .tk-sel{display:inline-flex;align-items:center;gap:8px;font-size:.9rem;color:var(--mut);margin:0 0 10px}
 .tk-sel select{padding:7px 10px;border-radius:10px;border:1px solid #2c4a6a;background:#0b1119;color:#e8eefc;font:inherit;font-size:.9rem}

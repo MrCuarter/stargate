@@ -452,8 +452,27 @@
       +'<div class="fc-logo" aria-hidden="true"><span class="fc-marca">◈ STARGATE</span><span class="fc-lema">La Bitácora Estelar · Semana '+s.sem+'</span></div>'
       +'<div class="fc-marco"><div class="fc-texto">'
       +(titulo?'<h2 class="fc-tit">'+esc(titulo)+'</h2>':'')
-      +ps.map(function(x){ return '<p'+(/^—/.test(x)?' class="fc-firma"':'')+'>'+esc(x)+'</p>'; }).join('')
-      +'</div></div><button type="button" class="fc-son" title="La música">Música: sí</button></div>', montar: montarForo};
+      +ps.filter(function(x){ return !/^—/.test(x); }).map(function(x){ return '<p>'+esc(x)+'</p>'; }).join('')
+      /**
+       * 🔴 20-sep · LA FIRMA DEL COMANDANTE, EN GRANDE. Norberto: «añade el mensaje del comandante de esa semana de
+       * forma muy visual, con avatar de docente, sello, etc.». El avatar lo pone `montarForo` cuando quien proyecta es
+       * el docente (es SU ficha); el sello es el emblema de su escuadrón, que sí viaja en el tablero.
+       */
+      +'</div></div>'
+      +firmaForo()
+      +'<button type="button" class="fc-son" title="La música">Música: sí</button></div>', montar: montarForo};
+  }
+  /** Quién firma la transmisión: su comandante (si lo sabemos), su nombre y el emblema de su escuadrón de sello. */
+  function firmaForo(){
+    var quien=elComandante(), escs=(st.d&&st.d.escuadrones)||[];
+    var mio=escs.filter(function(e){ return e.comandante===quien; })[0]||null;
+    if(!quien && !mio) return '';
+    return '<footer class="fc-firma-c">'
+      +'<img class="fc-av" id="ses-fc-av" src="'+esc((mio&&mio.emblema)||'assets/img/personajes/nebula.png')+'" alt="">'
+      +'<span class="fc-quien"><b>'+esc(/^comandante/i.test(quien)?quien:'Comandante '+quien)+'</b>'
+        +'<em>'+esc((mio&&mio.nombre)||st.nombre||'')+'</em></span>'
+      +((mio&&mio.emblema)?'<img class="fc-sello" src="'+esc(mio.emblema)+'" alt="">':'')
+    +'</footer>';
   }
   function cielo(cv){
     if(!cv||!cv.getContext) return;
@@ -469,6 +488,11 @@
     var dia=el.querySelector('.foro-crawl'); if(!dia) return null;
     var timers=[], audio=null, btn=dia.querySelector('.fc-son'), vivo=true;
     var quieto=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+    // el avatar de quien da la clase: solo él puede leer su ficha, así que se pone al vuelo cuando es él quien proyecta
+    var av=dia.querySelector('#ses-fc-av');
+    if(av && !st.alumno && window.SG && SG.MOTOR && SG.MOTOR.miFichaDocente) SG.MOTOR.miFichaDocente().then(function(f){
+      if(f && f.avatar) av.src='assets/img/avatares/comandantes/'+f.avatar+'.jpg';
+    }).catch(function(){});
     var medir=function(){ cielo(dia.querySelector('.fc-cielo')); };
     medir(); window.addEventListener('resize', medir);
     var volumen=function(hasta, ms, fin){

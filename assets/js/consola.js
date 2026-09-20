@@ -184,12 +184,16 @@
     return /^Test/i.test(t) ? "libro" : /present/i.test(t) ? "envivo" : /Bit[áa]cora/i.test(t) ? "notas" : /resoluci|entreg/i.test(t) ? "hecho" : "estrella";
   }
   /** La ficha de un reto, completa (como la ve el alumnado): insignia, qué es, su gancho, lo que da y su ejemplo. */
-  function fichaReto(r, tipo, prog) {
+  function fichaReto(r, tipo, prog, luegoEn) {
     var rel = r.id.charAt(0) === "L", ins = (r.insignias || [])[0] || "", g = (window.SG_GANCHO_RETOS || {})[r.id] || "";
     var ej = (window.SG_EJEMPLOS || {})[r.id], m = /^(Reto (?:A|B|relámpago)|Actividad \d)\s*(.*)$/i.exec(r.titulo || "") || [null, "", r.titulo || ""];
-    return '<article class="ht-reto' + (rel ? " rel" : "") + '">' +
+    // 🔴 20-sep · Norberto: «deben aparecer todos los retos de esa semana; si no se han desbloqueado, se oscurecen o
+    // aparece "se desbloquea la semana…"». Así se ve el tema entero desde su primera clase, sin prometer lo que aún
+    // no pueden hacer.
+    return '<article class="ht-reto' + (rel ? " rel" : "") + (luegoEn ? " por-lanzar" : "") + '">' +
       '<div class="ht-reto-cab"><span class="pt-id">' + esc(r.id) + '</span><span class="ht-tipo">' + esc(m[1] || "Reto") + '</span>' +
-        (rel ? '<span class="chip rel">' + ico("rayo") + ' En clase · 10-15 min</span>' : '') + '</div>' +
+        (luegoEn ? '<span class="chip luego">' + ico("candado") + ' Se desbloquea la semana ' + luegoEn + '</span>' : '') +
+        (rel && !luegoEn ? '<span class="chip rel">' + ico("rayo") + ' En clase · 10-15 min</span>' : '') + '</div>' +
       '<div class="ht-reto-cuerpo">' + (ins ? '<img class="ht-ins" src="assets/img/insignias/' + esc(ins) + '.png" alt="" loading="lazy" onerror="this.remove()">' : '') +
         '<div><b>' + esc(m[2] || r.titulo || "") + '</b>' + (g ? '<p>' + esc(g) + '</p>' : '') + '</div></div>' +
       '<div class="ht-reto-pie"><span class="p xp">+' + Number(r.xp || 0) + ' xp</span>' +
@@ -204,7 +208,35 @@
    * editarlo (los docentes pueden personalizar sus propios mensajes si quieren y guardarlos para todos sus grupos)».
    * El suyo manda sobre el oficial; se guarda en su ficha (`MOTOR.guardarForo`), no en el grupo, porque vale para todos.
    */
-  function bloqueForo(sem, texto, propio) {
+  /**
+   * 🔴 20-sep · EL MENSAJE DEL FORO, COMO UNA CARTA OFICIAL. Norberto: «¿no puedes mejorar el formato? Añadir un sello
+   * del comandante, logo STARGATE… que sea un mensaje más profesional, como un mail / carta oficial, que termine con
+   * el avatar del comandante y su nombre (detecta el docente y dibuja su avatar y nombre en cada grupo)». Pues eso: la
+   * cabecera con la marca y la semana, el cuerpo en párrafos de verdad (el texto traía los saltos puestos a mano y se
+   * veía «cortado») y la firma con SU comandante, SU nombre y el emblema de su escuadrón de sello.
+   * Lo que se copia sigue siendo el texto plano: el foro de UNIR no entiende de sellos.
+   */
+  function cartaForo(sem, texto, esc7) {
+    var P = (window.SG && SG.foroParrafos) ? SG.foroParrafos(texto) : String(texto || "").split(/\n\s*\n/);
+    var firma = P.length > 1 && /^—/.test(P[P.length - 1]) ? P.pop() : "";
+    var yoN = miNombreAqui() || (YO && (YO.nombre || YO.correo)) || "Tu Comandante";
+    var av = (FICHA && FICHA.avatar) || "c1";
+    var pAqui = PERS.filter(function (x) { return x.id === PER; })[0] || {}, emb = emblemaDe(pAqui);
+    // el sello: el emblema de SU escuadrón en este grupo (el del tablero, que es el que siempre está)
+    if (!emb.img && esc7) emb = { img: esc7.emblema || "", nombre: esc7.nombre || "" };
+    var clases = (firma.match(/\(Clases?\s*[^)]+\)/i) || [])[0] || "";
+    return '<article class="foro-carta" id="ht-foro-txt">' +
+      '<header class="fc-cab"><span class="fc-marca">◈ STARGATE</span>' +
+        '<span class="fc-meta">Bitácora de mando · Semana ' + sem + (clases ? ' · ' + esc(clases.replace(/[()]/g, "")) : "") + '</span></header>' +
+      '<div class="fc-cuerpo">' + P.map(function (x) { return '<p>' + esc(x) + '</p>'; }).join("") + '</div>' +
+      '<footer class="fc-firma">' +
+        '<img class="fc-av" src="assets/img/avatares/comandantes/' + esc(av) + '.jpg" alt="" loading="lazy">' +
+        '<span class="fc-quien"><b>' + esc(/^comandante/i.test(yoN) ? yoN : "Comandante " + yoN) + '</b>' +
+          '<em>' + (emb.nombre ? esc(emb.nombre) + ' · ' : "") + esc(pAqui.nombre || "") + '</em></span>' +
+        (emb.img ? '<img class="fc-sello" src="' + esc(emb.img) + '" alt="" loading="lazy">' : "") +
+      '</footer></article>';
+  }
+  function bloqueForo(sem, texto, propio, esc7) {
     if (!texto && !propio) return "";
     return '<div class="ht-foro" id="ht-foro"><div class="ht-foro-cab"><b class="ht-sub">' + ico("mensaje") + ' El mensaje del foro' +
         (propio ? ' <span class="ht-mio">tuyo</span>' : '') + '</b>' +
@@ -212,8 +244,7 @@
         '<button type="button" class="btn min" id="ht-foro-todos">Ver todos</button>' +
         '<button type="button" class="btn min" data-copiado="✓ Mensaje copiado" data-copiar="' + esc(texto) + '">Copiar</button></span></div>' +
       '<p class="small muted">Para pegar esta semana en el foro de la plataforma de UNIR, ya firmado por ti.</p>' +
-      '<div class="foro-msg recortado" id="ht-foro-txt">' + esc(texto).replace(/\n/g, "<br>") + '</div>' +
-      '<button type="button" class="leer-entero" id="ht-foro-mas">Leer entero</button>' +
+      cartaForo(sem, texto, esc7) +
       '<div class="ht-foro-caja" id="ht-foro-caja" hidden><label>Tu mensaje para la semana ' + sem + '<textarea id="ht-foro-in" rows="8" maxlength="4000">' + esc(texto) + '</textarea></label>' +
         '<p class="small muted">Se guarda en <b>tu ficha</b>, no en este grupo: lo verás en todos tus grupos y en los que crees más adelante. Si lo borras, vuelve el oficial.</p>' +
         '<p class="pt-fila"><button type="button" class="btn primary" id="ht-foro-ok">Guardar para todos mis grupos</button>' +
@@ -226,8 +257,15 @@
     var s = semanaDe(S, sem); if (!s) return "";
     var tipo = S.tipo === "PUA" ? "PUA" : "REGULAR", mapa = ((window.SG_SEM_RETO || {})[tipo]) || {};
     var cat = ((((window.SG_CATALOGO || {}).retos) || {})[tipo]) || [];
-    var estos = cat.filter(function (r) { return semanaDeReto(r, tipo, mapa) === sem; });
-    var luego = cat.filter(function (r) { return semanaDeReto(r, tipo, mapa) === sem + 1; });
+    // los de esta semana y los del MISMO tema que se abren más adelante (esos salen en sombra, con su semana)
+    var delTema = cat.filter(function (r) {
+      var w = semanaDeReto(r, tipo, mapa);
+      if (!w || w < sem) return false;
+      return w === sem || Number(r.tema || 0) === Number(s.tema_n || 0);
+    }).sort(function (a, b) { return semanaDeReto(a, tipo, mapa) - semanaDeReto(b, tipo, mapa); });
+    var estos = delTema.filter(function (r) { return semanaDeReto(r, tipo, mapa) === sem; });
+    // «la semana que viene» solo cuenta lo que NO se ve ya aquí (si no, se repetiría)
+    var luego = cat.filter(function (r) { return semanaDeReto(r, tipo, mapa) === sem + 1 && delTema.indexOf(r) < 0; });
     var pl = (((window.SG_CATALOGO || {}).temas) || []).filter(function (t) { return t.n === s.tema_n; })[0];
     var fechas = "";
     try { if (S.inicio && window.SGSEMANAS) fechas = diaC(window.SGSEMANAS.inicioDeSemana(S.inicio, sem, S.pausas)) + " – " + diaC(window.SGSEMANAS.finDeSemana(S.inicio, sem, S.pausas)); } catch (e) {}
@@ -250,9 +288,12 @@
           var y = v[0] || {};
           return '<li><a href="https://youtu.be/' + esc(y.id) + '" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/' + esc(y.id) + '/mqdefault.jpg" alt="" loading="lazy" width="160" height="90"></a>' +
             '<div><b>' + esc(y.titulo || "") + '</b><span>' + esc(v[1] || "") + '</span></div></li>'; }).join("") + '</ul></div>' : '') +
-      '<div class="ht-bloque"><b class="ht-sub">Retos de esta semana</b>' +
-        (estos.length ? '<div class="ht-retos">' + estos.map(function (r) { return fichaReto(r, tipo, prog(r)); }).join("") + '</div>'
+      '<div class="ht-bloque"><b class="ht-sub">Los retos de ' + esc(String(s.tema || "este tema").replace(/\s*\(cont\.\)/, "")) + '</b>' +
+        (delTema.length ? '<div class="ht-retos">' + delTema.map(function (r) {
+            var w = semanaDeReto(r, tipo, mapa);
+            return fichaReto(r, tipo, w === sem ? prog(r) : null, w > sem ? w : 0); }).join("") + '</div>'
                       : '<p class="small muted">Esta semana no se lanza ningún reto nuevo: tiempo para terminar los que hay.</p>') +
+        (estos.length && delTema.length > estos.length ? '<p class="small muted">En sombra, los del mismo tema que se abren más adelante.</p>' : '') +
         (luego.length ? '<p class="small muted pt-luego"><b>La semana que viene:</b> ' + esc(luego.map(function (r) { return r.id + " · " + r.titulo; }).join(" · ")) + '</p>' : '') +
         (s.consejo ? '<p class="au-consejo">' + ico("estrella") + ' ' + esc(s.consejo) + '</p>' : '') +
       '</div>' +
@@ -1720,7 +1761,7 @@
     $("#c-cuerpo").innerHTML = '<div class="pt">' +
       resumenGrupo(t, gente, { lanzados: lanzados.length, retosSem: estos, consejos: consejos }) +
       (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
-        '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente, bloqueForo(sem, foroTxt, !!mioForo)) + '</div>') +
+        '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente, bloqueForo(sem, foroTxt, !!mioForo, (t.escuadrones || []).filter(function (e) { return e.comandante === yoN; })[0])) + '</div>') +
       cajaTickets(SEMS, Math.max(0, Math.min(sem, SEMS.length) - 1)) +
       // 🔴 20-sep · «embebe el panel de control del grupo actual en "Mi nave" del comandante. Añade un botón para cambiar
       // enlace»: el Genially que abre su alumnado, aquí mismo, sin salir a otra pestaña.
@@ -1755,8 +1796,6 @@
 
     // 🔴 20-sep · NEBULA vive DENTRO de la caja de cifras: su botón abre los consejos ahí mismo
     cablearBotonNebula();
-    var mas = $("#ht-foro-mas"), txt = $("#ht-foro-txt");
-    if (mas && txt) mas.onclick = function () { var a = txt.classList.toggle("abierto"); mas.textContent = a ? "Plegar" : "Leer entero"; };
     cablearForo(sem, foroTxt, mioForo);
     pintarCajaTickets(SEMS, Math.max(0, Math.min(sem, SEMS.length) - 1));
     Array.prototype.forEach.call(document.querySelectorAll("#consola-app [data-tab-ir]"), function (b) {

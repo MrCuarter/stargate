@@ -39,13 +39,13 @@ c(!/t\[0\] !== "premios"/.test(A) && /\["premios", "premios", "Premiar"\]/.test(
   "🔴 las herramientas de clase tienen «Premiar» en los dos modos");
 
 // ── 3 · «Hoy toca»
-c(/function bloqueHoyToca\(S, sem, total, gente, foro\)/.test(K) && /function fichaReto\(r, tipo, prog\)/.test(K), "🔴 «Hoy toca»: un bloque con las fichas de reto completas");
+c(/function bloqueHoyToca\(S, sem, total, gente, foro\)/.test(K) && /function fichaReto\(r, tipo, prog, luegoEn\)/.test(K), "🔴 «Hoy toca»: un bloque con las fichas de reto completas");
 c(/window\.SG_GANCHO_RETOS=/.test(H) && /window\.SG_EJEMPLOS=/.test(H), "   con el gancho y el ejemplo de cada reto (los mismos datos que la Nave)");
 c(/String\(s\.hito \|\| ""\)\.split\(" · "\)/.test(K) && /"Se lanza la "/.test(K) && /NEBULA abre el capítulo/.test(K) && /Último día para registrar retos/.test(K),
   "🔴 y el calendario de la semana: tests, presentaciones, entregas, las Actividades que se lanzan, NEBULA y los cierres");
 c(/window\.SGSEMANAS\.inicioDeSemana\(S\.inicio, sem, S\.pausas\)/.test(K), "   con las fechas de verdad de esa semana (el calendario del grupo, con sus pausas)");
 c((K.match(/bloqueHoyToca\(/g) || []).length === 2 && !/gp-hoy-d/.test(K), "🔴 en el Puente de cada grupo (ya no hay «Mis grupos» con su resumen)");
-c(/'<div class="card pt-hoy">' \+ bloqueHoyToca\(\(DATOS\.proyecto \|\| \{\}\)\.stargate \|\| \{\}, sem, total, gente, bloqueForo\(sem, foroTxt, !!mioForo\)\)/.test(K), "   y en la portada, con cuántos lo han hecho y el mensaje del foro dentro");
+c(/'<div class="card pt-hoy">' \+ bloqueHoyToca\(\(DATOS\.proyecto \|\| \{\}\)\.stargate \|\| \{\}, sem, total, gente, bloqueForo\(sem, foroTxt, !!mioForo,/.test(K), "   y en la portada, con cuántos lo han hecho y el mensaje del foro dentro");
 const src = K.slice(K.indexOf("  function icoCal(t) {"), K.indexOf("  /** La ficha de un reto"));
 let icoCal = null; try { icoCal = new Function(src + "; return icoCal;")(); } catch (e) {}
 c(!!icoCal && icoCal("Test del Tema 6") === "libro" && icoCal("Presenta la Act. 1") === "envivo" && icoCal("Resolución de la Act. 1") === "hecho" && icoCal("Bitácora: un juego digital") === "notas",
