@@ -124,11 +124,11 @@ const REG = {};   // cifras que se apuntan para el informe
         // 15-sep · la Cola de nota solo sale si hay algo pendiente (y entonces es +1); el Calendario lo ve todo el
         // equipo: el docente raso ve Mi gente, El Zoco, Mis enlaces y Calendario
         // 19-sep · +1 para todos: «Portada», la primera (el grupo de un vistazo)
-        // 🔴 19-sep · LA NAVE DEL COMANDANTE: siete secciones con iconos (Puente, Mi gente, Rankings, Calendario, El Zoco, Premios,
-        // Enlaces) en mando manual; el equipo, los escuadrones y los ajustes se fueron a «Gestionar grupos»
-        ["rita@lab.test", "Rita Referente", 7, "referente que imparte"],
-        ["dani@lab.test", "Dani Docente", 7, "docente raso"],
-        ["sol@lab.test", "Sol Coordina", 7, "referente que NO imparte"],
+        // 🔴 20-sep · LA NAVE DEL COMANDANTE: ocho secciones con iconos (Puente, Reclutas, Rankings, Calendario, El Zoco,
+        // Premios, Enlaces y Contacto) en mando manual; el equipo, los escuadrones y los ajustes, en «Gestionar grupos»
+        ["rita@lab.test", "Rita Referente", 8, "referente que imparte"],
+        ["dani@lab.test", "Dani Docente", 8, "docente raso"],
+        ["sol@lab.test", "Sol Coordina", 8, "referente que NO imparte"],
       ];
       for (const [correo, nombre, pestanas, quien] of casos) {
         const p = await nueva(quien);
@@ -138,16 +138,18 @@ const REG = {};   // cifras que se apuntan para el informe
         c("docentes · el " + quien + " entra y cae en su puesto de mando", fue, await p.js("location.pathname"));
         // 🔴 19-sep · LA NAVE DEL COMANDANTE: ya no hay «Mis grupos» con tarjetas y «Entrar en el grupo»; se entra directo en tu
         // grupo (su pestaña arriba), con tu ficha, los tres pasos de la clase y las secciones con iconos
-        const tarjeta = await p.hasta("!!document.querySelector('.cn-g.on') && /LAB/.test(document.querySelector('.cn-g.on').textContent)", 30);
-        c("docentes · y cae DENTRO de su grupo, con su pestaña arriba (" + quien + ")", tarjeta, (await p.texto()).slice(0, 200));
-        const pg = await p.js("(document.querySelector('.cn-g.on')||{textContent:''}).textContent");
-        c("docentes · la pestaña del grupo dice en qué semana va y cuántos se han alistado (" + quien + ")", /Semana 10 de 15/.test(pg) && /20 reclutas/.test(pg), pg);
+        // 20-sep · el grupo se abre solo y lo anuncia su banner (con el planeta del tema); los demás, en el desplegable
+        const tarjeta = await p.hasta("!!document.querySelector('.gr-banner') && /LAB/.test(document.querySelector('.gr-banner').textContent)", 30);
+        c("docentes · y cae DENTRO de su grupo, con su banner arriba (" + quien + ")", tarjeta, (await p.texto()).slice(0, 200));
+        const pg = await p.js("(document.querySelector('.gr-banner')||{textContent:''}).textContent");
+        c("docentes · el banner dice en qué semana va y cuántos tiene a su nombre (" + quien + ")", /Semana 10 de 15/.test(pg) && /reclutas/.test(pg), pg);
+        c("docentes · y el planeta del tema, de fondo (" + quien + ")", await p.js("!!document.querySelector('.gr-plan') && document.body.classList.contains('con-planeta')"));
         c("docentes · en el Puente, los tres pasos de la clase, a la vista (" + quien + ")",
-          await p.hasta("!!document.querySelector('.pt-acc .gp-b.principal') && document.querySelector('.pt-acc .gp-b.principal').offsetHeight>=44 && document.querySelectorAll('.pt-acc .gp-b').length===3", 30));
+          await p.hasta("!!document.querySelector('.gr-acc .gp-b.principal') && document.querySelector('.gr-acc .gp-b.principal').offsetHeight>=44 && document.querySelectorAll('.gr-acc .gp-b').length===1", 30));
         await p.foto(FOTOS + "/1-" + quien.replace(/\W+/g, "-") + "-tarjeta.png");
         const tabs = await p.js("[].slice.call(document.querySelectorAll('.cn-secs .pest')).map(function(b){return b.textContent.trim()})");
-        const conCola = (tabs || []).some(x => /^Mi gente\d+$/.test(x));
-        c("docentes · el " + quien + " ve " + pestanas + " secciones" + (conCola ? " (Mi gente con la Cola de nota, que tiene algo)" : ""),
+        const conCola = (tabs || []).some(x => /^Reclutas\d+$/.test(x));
+        c("docentes · el " + quien + " ve " + pestanas + " secciones" + (conCola ? " (Reclutas con la Cola de nota, que tiene algo)" : ""),
           (tabs || []).length === pestanas, "vio [" + tabs + "]");
         c("docentes · y ninguna de gestión (equipo, escuadrones, ajustes): van en «Gestionar grupos» (" + quien + ")",
           await p.js("!document.querySelector('.pest[data-tab=\"equipo\"],.pest[data-tab=\"escuadrones\"],.pest[data-tab=\"ajustes\"]')"));
@@ -156,7 +158,7 @@ const REG = {};   // cifras que se apuntan para el informe
         await dormir(800);
         const gente = await p.texto();
         const n = (gente.match(/reclutas?/gi) || []).length;
-        c("docentes · «Mi gente» del " + quien + " no revienta", p.errores.length === 0, p.errores[0]);
+        c("docentes · «Reclutas» del " + quien + " no revienta", p.errores.length === 0, p.errores[0]);
         await p.foto(FOTOS + "/1-" + quien.replace(/\W+/g, "-") + ".png");
       }
     }
@@ -2679,8 +2681,8 @@ const REG = {};   // cifras que se apuntan para el informe
       c("embed · y va una sola vez para todos los grupos, no repetido en cada tarjeta",
         await rita.js("document.querySelectorAll('.gp-gen').length===1 && document.querySelectorAll('.gp-gen [data-embed]').length===6"));
       // 19-sep · el código de clase: en el Puente solo las tres primeras semanas; después (lab-clase va por la 10), en «Mi gente»
-      await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('.pt-acc')", 60);
-      c("código · en la semana 10 ya no sale en el Puente", await rita.js("!document.querySelector('.pt-cab .gp-cod')"));
+      await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('.gr-banner')", 60);
+      c("código · no sale en el Puente ninguna semana (vive en «Reclutas»)", await rita.js("!document.querySelector('.pt .gp-cod')"));
       await rita.ir("consola.html?per=lab-clase&tab=alumnado"); await rita.hasta("!!document.querySelector('.cn-gente-cab .gp-cod')", 60);
       c("código · está en «Mi gente», tapado, y se destapa al pulsar",
         await rita.js("(function(){ var b=document.querySelector('.cn-gente-cab .gp-cod'); if(!b||/[A-Z0-9]{6}/.test(b.textContent)) return false; b.click(); return /[A-Z0-9]{6}/.test(b.textContent); })()"));
@@ -4784,8 +4786,8 @@ const REG = {};   // cifras que se apuntan para el informe
       // 19-sep · ya no está en «Mis enlaces» (Norberto: «no tiene ningún sentido»): es la rueda de al lado de «Proyectar la clase»
       const abreRueda = async () => {
         await rs.ir("consola.html?per=" + P);
-        if (!(await rs.hasta("!!document.querySelector('.c-hacer [data-cfg-sesion]')", 75))) return false;
-        await rs.js("document.querySelector('.c-hacer [data-cfg-sesion]').click(); 1");
+        if (!(await rs.hasta("!!document.querySelector('.gr-acc [data-cfg-sesion]')", 75))) return false;
+        await rs.js("document.querySelector('.gr-acc [data-cfg-sesion]').click(); 1");
         return rs.hasta("!!document.querySelector('.cfg-capa .m-sec input[data-sec=\"clasificacion\"]')", 10);
       };
       const aMisEnlaces = async () => {
@@ -4849,10 +4851,10 @@ const REG = {};   // cifras que se apuntan para el informe
       await rp.ir("entrar.html"); await rp.entrarComo("rita@lab.test", "Rita Referente");
       // 🔴 19-sep · LA NAVE DEL COMANDANTE (Norberto: «visualmente similar a la nave del estudiante… tantas pestañas como grupos
       // activos… simplicidad máxima: nada que se use una o dos veces en todo el curso»)
-      await rp.ir("consola.html"); await rp.hasta("!!document.querySelector('.cn-hero') && !!document.querySelector('#cn-neb .pt-neb')", 75);
-      c("🔴 la Nave del Comandante · su ficha (como la del recluta) con NEBULA al lado, la pestaña de su grupo y las secciones con iconos",
-        await rp.js("!!document.querySelector('.cn-hero .nave-perfil img.av') && !!document.querySelector('.cn-hero .monedas') && document.querySelectorAll('.cn-g').length>=1 && document.querySelectorAll('.cn-secs .pest img.i').length>=4"));
-      c("   la rueda de «Configurar la sesión», junto a «Empezar la clase»", await rp.js("!!document.querySelector('.pt-acc [data-cfg-sesion]')"));
+      await rp.ir("consola.html"); await rp.hasta("!!document.querySelector('.cn-ficha.ancha') && !!document.querySelector('.gr-banner')", 75);
+      c("🔴 la Nave del Comandante · su ficha a todo el ancho, el banner del grupo debajo y las secciones con iconos",
+        await rp.js("!!document.querySelector('.cn-ficha.ancha img.av') && !!document.querySelector('.cn-ficha .monedas') && !!document.querySelector('.gr-banner .gp-b.principal') && document.querySelectorAll('.cn-secs .pest img.i').length>=4"));
+      c("   la rueda de «Configurar la sesión», junto a «Empezar la clase»", await rp.js("!!document.querySelector('.gr-acc [data-cfg-sesion]')"));
       c("🔴   y nada de lo que se usa una o dos veces por curso: ni crear, ni borrar, ni graduar, ni cursos terminados",
         await rp.js("!/Crear un grupo|Borrar este grupo|Graduar y archivar|cursos? terminados?/i.test(document.getElementById('consola-app').innerText) && !document.querySelector('[data-gestion],.gp-mas,.gp-viejos')"));
       await rp.js("document.getElementById('doc-ajustes-b').click(); 1");
@@ -4860,27 +4862,35 @@ const REG = {};   // cifras que se apuntan para el informe
       c("   sin un solo emoji en su Nave", await rp.js("!/[\\u{1F300}-\\u{1FAFF}]/u.test(document.getElementById('consola-app').innerText)"));
       // la portada
       await rp.ir("consola.html?per=" + P);
-      const hayP = await rp.hasta("!!document.querySelector('.pt-cab')", 75);
-      c("🔴 al entrar en el grupo, la portada: semana, vídeo, retos, panel, mensaje y notas", hayP && await rp.js("!!document.querySelector('.pt-video') && !!document.querySelector('.pt-retos') && !!document.getElementById('pt-notas') && !!document.getElementById('pt-msg-txt') && !!document.getElementById('pt-panel-ed')"));
+      const hayP = await rp.hasta("!!document.querySelector('.gr-banner')", 75);
+      // 20-sep · fuera «Tus notas»; el panel del grupo va EMBEBIDO y el mensaje del foro, dentro de «Hoy toca»
+      c("🔴 al entrar en el grupo, la portada: semana, vídeo, retos, el panel embebido, el mensaje del foro y el mensaje a tus reclutas",
+        hayP && await rp.js("!!document.querySelector('.pt-video') && !!document.querySelector('.pt-retos') && !document.getElementById('pt-notas') && !!document.getElementById('pt-msg-txt') && !!document.querySelector('.pt-panel-marco iframe') && !!document.getElementById('ht-foro-txt')"));
       c("   y la sección encendida es el Puente", await rp.js("(document.querySelector('.pest.activa')||{getAttribute:function(){return ''}}).getAttribute('data-tab')==='portada'"));
       // NEBULA, encima de las cifras, escribiendo su consejo
       const neb = await rp.hasta("(document.getElementById('pt-neb-p')||{}).textContent.length>40 && !document.getElementById('pt-neb-p').classList.contains('escribe')", 20);
-      c("🔴 NEBULA · un consejo sobre su gente, escrito a máquina, justo encima de las cifras", neb &&
-        await rp.js("(function(){ var n=document.querySelector('.pt-neb'), r=document.querySelector('.c-resumen'); return !!n && !!r && n.nextElementSibling===r; })()"),
+      // 20-sep · NEBULA ya no ocupa media portada: asoma como el globo del onboarding y se cierra
+      c("🔴 NEBULA · un consejo sobre su gente, escrito a máquina, en su ventanita", neb &&
+        await rp.js("!!document.querySelector('#cn-neb-flota.neb-flota')"),
         await rp.js("(document.getElementById('pt-neb-p')||{}).textContent"));
+
       if (await rp.js("!!document.getElementById('pt-neb-otro')")) {
         const antesN = await rp.js("document.getElementById('pt-neb-p').textContent");
         await rp.js("document.getElementById('pt-neb-otro').click(); 1"); await dormir(2500);
         c("   «Otro consejo» cambia el consejo", antesN !== await rp.js("document.getElementById('pt-neb-p').textContent"));
       }
-      await rp.js("var b=document.querySelector('.c-res-ojo [data-escribir]'); if(b) b.click(); 1"); await dormir(500);
+      await rp.js("var x=document.getElementById('pt-neb-x'); if(x) x.click(); 1"); await dormir(400);
+      c("   y se cierra cuando molesta", await rp.js("!document.getElementById('cn-neb-flota')"));
+      await rp.js("try{sessionStorage.removeItem('sgNebCerrada')}catch(e){}; 1");
+      await rp.js("var d=document.querySelector('.pt-msg'); if(d) d.open=true; var b=document.querySelector('.c-res-ojo [data-escribir]'); if(b) b.click(); 1"); await dormir(500);
       c("   «Escribirles» elige a quién y lleva a la caja del mensaje", await rp.js("!document.querySelector('.c-res-ojo [data-escribir]') || (document.activeElement && document.activeElement.id==='pt-msg-txt' && document.querySelector('.pt-seg .on').getAttribute('data-dest')!=='todos')"));
       await rp.js("var b=document.querySelector('.pt-seg [data-dest=\"todos\"]'); b&&b.click(); window.scrollTo(0,0); 1");
       await rp.foto(FOTOS + "/46-portada.png");
+      await rp.js("var d=document.querySelector('.pt-ant'); if(d) d.open=true; 1"); await dormir(300);
       const nums = JSON.parse(await rp.js("JSON.stringify([].slice.call(document.querySelectorAll('.pt-reto .pt-n')).map(function(x){return x.textContent}))"));
       c("🔴 los retos ya lanzados, con cuántos los han hecho y el porcentaje", nums.length > 0 && nums.every(t => /^\d+\/\d+ · \d+ %$/.test(t)), JSON.stringify(nums.slice(0, 3)));
       // la rueda
-      await rp.js("document.querySelector('.c-hacer [data-cfg-sesion]').click(); 1");
+      await rp.js("document.querySelector('.gr-acc [data-cfg-sesion]').click(); 1");
       c("🔴 la rueda de al lado de «Proyectar la clase» abre «Configurar la sesión»", await rp.hasta("!!document.querySelector('.cfg-capa .m-sec input[data-sec=\"videos\"]')", 10));
       c("   con la captura de cada diapositiva (y el icono de las que dependen de que haya algo)", await rp.js("document.querySelectorAll('.cfg-capa img.m-sec-img').length>=13 && document.querySelectorAll('.cfg-capa .m-sec-img.sin').length>=1"));
       await rp.foto(FOTOS + "/46-rueda.png");
@@ -4892,14 +4902,19 @@ const REG = {};   // cifras que se apuntan para el informe
       c("   «Marcar todo» lo devuelve a completo", await rp.hasta("/sale todo/.test((document.querySelector('.cfg-capa #m-sec-msg')||{}).textContent||'')", 25));
       await rp.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1");
       c("   y Escape la cierra", await rp.hasta("!document.querySelector('.cfg-capa')", 5));
-      // tus notas
-      await rp.hasta("!!document.getElementById('pt-notas') && !document.getElementById('pt-notas').disabled", 40);
-      await rp.js("var n=document.getElementById('pt-notas'); n.value='Repasar la entrega de Otto'; n.dispatchEvent(new Event('input')); 1");
-      const gn = await rp.hasta("/Guardado/.test(document.getElementById('pt-notas-msg').textContent)", 20);
+      // 🔴 20-sep · en su lugar, TU mensaje del foro: se escribe aquí y vale para TODOS tus grupos (ficha del docente)
+      await rp.js("var b=document.getElementById('ht-foro-ed'); if(b) b.click(); 1");
+      const hayEd = await rp.hasta("!!document.getElementById('ht-foro-in') && !document.getElementById('ht-foro-caja').hidden", 20);
+      await rp.js("var t=document.getElementById('ht-foro-in'); t.value='Equipo: esta semana jugamos. — Rita'; document.getElementById('ht-foro-ok').click(); 1");
+      await dormir(3000);
       await rp.js("window.__uid=''; window.SG.MOTOR.sesion().then(function(y){ window.__uid=(y&&y.uid)||'-'; }); 1"); await rp.hasta("!!window.__uid", 10);
       const uid = await rp.js("window.__uid");
-      const notas = await leerDoc("projects/" + P + "/privado/notas_" + uid);
-      c("🔴 tus notas se guardan solas, en privado (projects/…/privado: solo el equipo docente)", gn && !!notas && notas.texto === "Repasar la entrega de Otto", JSON.stringify(notas));
+      const fichaD = (await leerDoc("stargate_profes/" + uid)) || {};
+      c("🔴 el mensaje del foro que escribes es TUYO y vale en todos tus grupos (tu ficha, no el grupo)",
+        hayEd && !!(fichaD.foros || {})["10"] && /esta semana jugamos/.test((fichaD.foros || {})["10"]), JSON.stringify(fichaD.foros || {}).slice(0, 120));
+      c("   y la Nave lo enseña marcado como tuyo", await rp.hasta("/tuyo/i.test((document.querySelector('.ht-foro-cab')||{}).textContent||'')", 20));
+      await rp.js("var b=document.getElementById('ht-foro-of'); if(b) b.click(); 1"); await dormir(2500);
+      c("   «Volver al oficial» lo quita", !((await leerDoc("stargate_profes/" + uid)) || {}).foros || !(((await leerDoc("stargate_profes/" + uid)) || {}).foros || {})["10"]);
       // el enlace del panel
       await rp.js("document.getElementById('pt-panel-ed').click(); document.getElementById('pt-panel-in').value='https://view.genially.com/lab-portada'; document.getElementById('pt-panel-ok').click(); 1");
       await dormir(3000);

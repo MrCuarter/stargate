@@ -2115,6 +2115,22 @@ async function ponerModoDocente(modo) {
   if (modo !== "piloto" && modo !== "manual") throw new Error("Ese modo no existe");
   await setDoc(doc(db, "stargate_profes", yo.uid), { uid: yo.uid, correo: yo.correo, modo: modo }, { merge: true });
 }
+/**
+ * 🔴 20-sep · TUS MENSAJES DEL FORO. Norberto: «los docentes pueden personalizar sus propios mensajes si quieren y
+ * guardarlos para todos sus grupos». Así que NO van en el grupo (como el panel o la sesión a medida): van en la ficha
+ * del docente —`stargate_profes/{uid}.foros`—, una entrada por semana. El oficial (el del calendario, firmado con su
+ * nombre) sigue siendo el que se ve mientras no escriba el suyo; borrar el suyo devuelve el oficial.
+ */
+async function guardarForo(sem, texto) {
+  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
+  const k = String(Number(sem) || 0); if (k === "0") throw new Error("No sé de qué semana es ese mensaje");
+  const d = await getDoc(doc(db, "stargate_profes", yo.uid));
+  const foros = Object.assign({}, (d.exists() ? d.data() : {}).foros || {});
+  const t = String(texto || "").trim().slice(0, 4000);
+  if (t) foros[k] = t; else delete foros[k];
+  await setDoc(doc(db, "stargate_profes", yo.uid), { uid: yo.uid, correo: yo.correo, foros: foros }, { merge: true });
+  return foros;
+}
 async function ponerAvatarDocente(clave) {
   const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
   if (!/^[a-z0-9_-]{1,40}$/.test(String(clave || ""))) throw new Error("Ese avatar no existe");
@@ -2157,7 +2173,7 @@ if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, ponerModoDocente, misNotas, guardarNotas,
-                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo,
+                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,

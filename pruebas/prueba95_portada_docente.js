@@ -22,8 +22,8 @@ c(/\.ses-aula\[hidden\]\{display:none\}/.test(CSS), "🔴 el aula de la presenta
 c(/e\.key==='Escape'&&a&&!a\.hidden/.test(S), "   y con Escape");
 c(/&embed=1&panel=1/.test(S) && /classList\.add\("au-panel"\)/.test(A) && /body\.au-panel \.au-quien>b/.test(CSS), "   dentro, el aula en modo panel (sin nombre, selector ni «¿Dudas?»)");
 
-// ── 2 · la Nave del Comandante (19-sep: ya no hay «Mis grupos»; una pestaña por grupo en marcha)
-c(/function pestanasGrupos\(\)/.test(K) && /class="cn-g' \+ \(on \? " on" : ""\)/.test(K) && /if \(V\.length\) return abrir\(V\[0\]\.id\);/.test(K), "🔴 una pestaña por grupo en marcha, y se entra directo en el grupo");
+// ── 2 · la Nave del Comandante (20-sep: los grupos, en un desplegable dentro de tu ficha)
+c(/function selectorDeGrupo\(\)/.test(K) && /id="cn-sel-g"/.test(K) && /if \(V\.length\) return abrir\(V\[0\]\.id\);/.test(K), "🔴 los grupos, en un desplegable en tu ficha, y se entra directo en el último");
 c(/id="doc-ajustes-b"/.test(K) && /function pintarAjustes\(caja, vivos, avBtn\)/.test(K), "🔴 ⚙ Ajustes en el panel: tu comandante y tu sesión para todos tus grupos");
 
 // ── 3 · la rueda de la sesión
@@ -42,15 +42,18 @@ c(/function verPortada\(t\)/.test(K) && /El vídeo que toca/.test(K) && /Retos d
 c(/'<span class="pt-n"><b>' \+ n \+ '<\/b>\/' \+ N \+ ' · ' \+ pct \+ ' %<\/span>/.test(K), "   cada reto con cuántos lo han hecho y el porcentaje");
 c(/window\.SG_SEMANAS=/.test(H) && /window\.SG_SEM_RETO=/.test(H), "   con los mismos datos que la sesión y la Nave (un dato, un sitio)");
 c(/id="pt-panel-ed"/.test(K) && /guardarMiParte\("paneles", yoN, v\)/.test(K), "🔴 el enlace del panel, editable ahí mismo, para todo tu alumnado");
-c(/async function misNotas\(perId\)/.test(M) && /"privado", "notas_" \+ yo\.uid/.test(M) && /id="pt-notas"/.test(K), "🔴 tus notas, en privado (solo el equipo docente) y se guardan solas");
+// 20-sep · «elimina "tus notas". No lo necesitamos» (Norberto)
+c(!/id="pt-notas"/.test(K) && !/Tus notas/.test(K), "🔴 ya no hay caja de «Tus notas» en el Puente");
+// y el panel del grupo se ve aquí mismo, embebido
+c(/class="pt-panel-marco"/.test(K) && /<iframe src="' \+ esc\(panelMio\)/.test(K), "🔴 el panel de control del grupo, embebido en tu Nave");
 c(/MOTOR\.avisarRecluta\(PER, r\.uid, \{ texto: txt, de: yoN, titulo: "Mensaje de tu Comandante" \}\)/.test(K), "🔴 el mensaje a tus reclutas: uno a cada uno, al buzón de su Nave");
 c(/\["silencio", "En silencio"\]/.test(K) && /class="pt-seg"/.test(K), "   a todos, a los que están en silencio o a los que no se han estrenado (sin controles grises)");
 
 // ── 5 · NEBULA, sus consejos y los insights
-c(/function bannerNebula\(consejos\)/.test(K) && /bannerNebula\(consejos\) \+ resumenGrupo\(t, gente\)/.test(K), "🔴 NEBULA justo encima de las cifras del grupo");
+c(/function nebulaFlotante\(consejos\)/.test(K) && /nebulaFlotante\(consejos\);/.test(K), "🔴 NEBULA asoma como el globo del onboarding, y se cierra");
 c(/p\.classList\.add\("escribe"\)/.test(K) && /prefers-reduced-motion: reduce/.test(K), "   con efecto máquina de escribir (y sin él, si se pide menos movimiento)");
 c(/filaNombres\("En silencio esta semana"/.test(K) && /filaNombres\("Sin estrenarse"/.test(K), "🔴 los insights: quién está en silencio y quién sin estrenarse, con «Escribirles»");
-const src = K.slice(K.indexOf("  function consejosNebula(o) {"), K.indexOf("  function bannerNebula("));
+const src = K.slice(K.indexOf("  function consejosNebula(o) {"), K.indexOf("  var NEB_CERRADA"));
 let consejos = null; try { consejos = new Function(src + "; return consejosNebula;")(); } catch (e) {}
 const r = (a, xp7, h) => ({ alias: a, xp7: xp7, hechos: h });
 const base = { sem: 5, total: 15, s: { tema: "Tema 3 · Sendara", tema_n: 3 }, antes: [{ id: "B2", titulo: "x" }], semanaDe: () => 4, semNuevoTema: true, cola: 2 };

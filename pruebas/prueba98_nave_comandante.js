@@ -16,11 +16,14 @@ const GP = "/Users/nor/Claude/vibewebs/gamificapro/functions/stargateAlumno.js",
 
 // 1 · la Nave: se entra directo en el grupo, con la ficha de la Nave del recluta
 c(/if \(ultimo && V\.some\(function \(p\) \{ return p\.id === ultimo; \}\)\) return abrir\(ultimo\);/.test(K) && /localStorage\.setItem\(CLAVE_ULTIMO, perId\)/.test(K), "🔴 se entra directo en el grupo (el último que abriste, o el primero en marcha)");
-c(/<div class="grid cols-2 nave-estado cn-hero">/.test(K) && /class="nave-perfil"/.test(K) && /class="monedas"/.test(K), "🔴 la ficha del comandante es la de la Nave del recluta (nave-perfil, monedas)");
+// 20-sep · «la caja de la ficha del comandante quizá pueda ocupar todo el ancho (aumenta avatar, más info del docente…)»
+c(/<div class="card cn-ficha ancha">/.test(K) && /class="cn-ficha-c"/.test(K) && /class="monedas"/.test(K) && /\.cn-ficha img\.av\{width:140px/.test(CSS),
+  "🔴 la ficha del comandante ocupa todo el ancho, con el avatar grande y sus cifras");
 c(/\(TAB === "portada" \? heroComandante\(\) : ""\)/.test(K), "   solo en el Puente (en las demás secciones, al grano)");
 c(/var SECCIONES = \[\["puente"/.test(K) && ["nave", "gente", "rankings", "zoco", "premios"].every(k => new RegExp("assets/img/nave/iconos/" + k + "\\.png").test(K)), "🔴 las secciones del grupo, con los iconos del menú de la Nave");
 c(!/\["equipo", "Equipo docente", 1\]/.test(K.slice(K.indexOf("var TABS ="), K.indexOf("var TABS =") + 600)), "   sin equipo, escuadrones ni ajustes (se fueron a «Gestionar grupos»)");
-c(/\(sem <= 3 \? codigoClase\(PER, codigo\) : ''\)/.test(K) && /¿Falta alguien\?/.test(K), "🔴 el código de clase: en el Puente hasta la semana 3; después, en «Mi gente»");
+// 20-sep · «código de clase y copiar invitación muévelo a Mi gente»: ya no sale en el Puente ninguna semana
+c(!/codigoClase\(PER, codigo\)/.test(K) && /¿Falta alguien\?/.test(K) && /codigoClase\(PER, cod\)/.test(K), "🔴 el código de clase vive solo en «Reclutas»");
 c(!/function tarjetaGrupo/.test(K) && !/gp-mas/.test(K), "🔴 nada de lo que se usa una o dos veces en la portada: ni fichas de «Mis grupos», ni «⋯»");
 // 2 · Gestionar grupos
 c(/var GESTION = !!window\.SG_GESTION;/.test(K) && /window\.SG_GESTION=1/.test(G), "🔴 «Gestionar grupos» (gestion.html): la misma consola en su otro modo");

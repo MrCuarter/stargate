@@ -23,9 +23,9 @@ c(/x\[0\] !== "canjes" \|\| cola > 0/.test(K), "🔴 y solo sale si hay algo pen
 c(/pest-aviso/.test(K) && /class="pest-n"/.test(K) && /\.pest\.pest-aviso\{[^}]*animation:colaBrilla/.test(CSS), "   brilla, con el número en un globo");
 c(/if \(!misTabs\(\)\.some\(function \(x\) \{ return x\[0\] === TAB; \}\)\) TAB = misTabs\(\)\[0\]\[0\];[\s\S]{0,200}?app\.innerHTML/.test(K),
   "   al resolver la última, se cae a la primera pestaña ANTES de pintarlas (la encendida es la que se ve)");
-// 19-sep · en la Nave del Comandante: la pestaña del grupo lleva el aviso y «Mi gente» brilla con su número
-c(/where\("status", "==", "pending"\)/.test(M) && /x\.cola = /.test(M) && /cn-g-n/.test(K) && /var n = x\[0\] === "gente" \? cola : 0/.test(K),
-  "   y la pestaña del grupo avisa, y «Mi gente» brilla con su número (dentro está la Cola)");
+// 20-sep · en la Nave del Comandante: «Reclutas» brilla con su número, y el desplegable de grupos lo dice de los otros
+c(/where\("status", "==", "pending"\)/.test(M) && /x\.cola = /.test(M) && /p\.cola \? ' · ' \+ p\.cola \+ ' pendiente'/.test(K) && /var n = x\[0\] === "gente" \? cola : 0/.test(K),
+  "   «Reclutas» brilla con su número (dentro está la Cola) y el desplegable avisa de los demás grupos");
 
 // 2 · el Zoco con su fecha
 c(/function zocoCuando\(\)/.test(K) && /inicioDeSemana\(S\.inicio, sem, S\.pausas\)/.test(trozo(K, "function zocoCuando")) && /c\.clave === "c5"/.test(K),

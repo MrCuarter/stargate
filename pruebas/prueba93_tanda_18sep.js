@@ -42,13 +42,18 @@ c(/SEG\.pararVotos=M\.vigilarVotaciones\(st\.per/.test(SES) && /class="ses-al-vt
 // ── 3 · el panel del docente y el grupo de un vistazo
 c(/async function miFichaDocente\(\)/.test(MOTOR) && /async function ponerAvatarDocente\(clave\)/.test(MOTOR), "🔴 motor · el docente guarda su avatar de comandante");
 // 19-sep · el panel del docente es ahora la ficha de la Nave del Comandante (la misma pieza que la del recluta)
-c(/<div class="grid cols-2 nave-estado cn-hero">/.test(CONS) && /class="av-lupa" id="doc-ava"/.test(CONS) && /\(window\.SG_COMANDANTES_GEN \|\| \[\]\)\.map/.test(CONS), "🔴 consola · la ficha del docente con su comandante, que se cambia de una galería");
+// 20-sep · la ficha ocupa TODO el ancho y lleva dentro el desplegable de grupos
+c(/<div class="card cn-ficha ancha">/.test(CONS) && /class="av-lupa" id="doc-ava"/.test(CONS) && /\(window\.SG_COMANDANTES_GEN \|\| \[\]\)\.map/.test(CONS), "🔴 consola · la ficha del docente con su comandante, que se cambia de una galería");
 // 18-sep · los genéricos salen de la carpeta (c1, c2…): se añade una imagen y ya está en la galería
 const GEN = JSON.parse((leer("consola.html").match(/window\.SG_COMANDANTES_GEN=(\[[^\]]*\]);/) || [])[1] || "[]");
 c(GEN.length >= 26 && GEN.every((k, i) => k === "c" + (i + 1) && fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes", k + ".jpg"))),
   "   los comandantes genéricos, en orden y todos con su imagen (rubios, castaños, pelirrojos, veteranos y alienígenas)", GEN.join(" "));
-c(/function resumenGrupo\(t, gente\)/.test(CONS) && /der\.innerHTML = bannerNebula\(consejos\) \+ resumenGrupo\(t, gente\)/.test(CONS), "🔴 dentro del grupo, sus cifras de un vistazo (activos, sin estrenarse, destacados), junto a NEBULA");
-c(/'<div class="pt-acc c-hacer">'/.test(CONS), "🔴 dentro del grupo, proyectar la clase, el aula y la llamada a filas");
+// 20-sep · las cifras abren el Puente (debajo del banner del grupo) y NEBULA asoma como el globo del onboarding
+c(/function resumenGrupo\(t, gente\)/.test(CONS) && /'<div class="pt">' \+\s*\n?\s*resumenGrupo\(t, gente\)/.test(CONS), "🔴 dentro del grupo, sus cifras de un vistazo (activos, sin estrenarse, destacados), lo primero del Puente");
+c(/function nebulaFlotante\(consejos\)/.test(CONS) && /d\.className = "neb-flota"/.test(CONS) && /\.neb-flota\{position:fixed/.test(CSS), "   y NEBULA, en una ventanita que se cierra");
+// 20-sep · un solo paso: «un docente empezará la clase, en ese enlace ya están incluidos los pasos 2 y 3»
+c(/function bannerGrupo\(t\)/.test(CONS) && /class="gr-acc"/.test(CONS) && /Empezar la clase/.test(CONS)
+  && !/Llamada a filas<\/b>/.test(CONS.slice(CONS.indexOf("function bannerGrupo"), CONS.indexOf("var SECCIONES"))), "🔴 dentro del grupo, un solo paso: empezar la clase (la llamada y las herramientas van dentro)");
 
 // ── 4 · iconos y fuera emojis
 ["clase", "gente", "premios", "tiempo", "voto", "pregunta"].forEach(k =>

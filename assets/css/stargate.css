@@ -4693,10 +4693,12 @@ body.au-panel .au-t .i img{width:22px;height:22px}
 .pt-n{font-size:.82rem;color:var(--mut);white-space:nowrap;font-variant-numeric:tabular-nums}
 .pt-n b{color:#e8f3fa;font-size:.95rem}
 .pt-luego{margin-top:10px}
-.pt-foro .foro-msg{font-size:.9rem;line-height:1.55;color:#c7d6ee;padding:10px 12px;border-left:2px solid var(--teal,#3ed6c8);background:#0f1a2b;border-radius:0 9px 9px 0}
-.pt-foro .foro-msg.recortado{max-height:160px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
-.pt-foro .foro-msg.recortado.abierto{max-height:none;-webkit-mask-image:none;mask-image:none}
-.pt-foro .leer-entero{margin:8px 0 0}
+.pt-foro .foro-msg,.ht-foro .foro-msg{font-size:.9rem;line-height:1.55;color:#c7d6ee;padding:10px 12px;border-left:2px solid var(--teal,#3ed6c8);background:#0f1a2b;border-radius:0 9px 9px 0}
+.pt-foro .foro-msg.recortado,.ht-foro .foro-msg.recortado{max-height:160px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+.pt-foro .foro-msg.recortado.abierto,.ht-foro .foro-msg.recortado.abierto{max-height:none;-webkit-mask-image:none;mask-image:none}
+.pt-foro .leer-entero,.ht-foro .leer-entero{margin:8px 0 0}
+/* 🔴 la caja de editar, cerrada de verdad: display:flex le ganaba a [hidden] (el mismo fallo que el panel del aula) */
+.ht-foro-caja[hidden]{display:none}
 .pt textarea{width:100%;font:inherit;font-size:.95rem;color:#e8f3fa;background:#0b1119;border:1px solid var(--line);border-radius:10px;padding:10px 12px;resize:vertical}
 .pt textarea:focus{outline:2px solid var(--teal,#3ed6c8);outline-offset:1px}
 .pt-h-notas{margin-top:18px!important}
@@ -4892,18 +4894,18 @@ body.modo-piloto [data-av]{display:none!important}
 .gp-hoy-d>summary::-webkit-details-marker{display:none}
 .gp-hoy-d>summary::after{content:" ▾";color:var(--teal,#3ed6c8)}
 .gp-hoy-d[open]>summary{display:none}
-.ht{display:flex;flex-direction:column;gap:10px}
+.ht{display:flex;flex-direction:column;gap:18px}   /* 20-sep · que respire: cada bloque de «Hoy toca», separado */
 .gp-hoy-d .ht{margin-top:4px;padding:12px;border:1px solid rgba(242,181,68,.35);border-radius:14px;background:rgba(242,181,68,.04)}
 .ht-cab{display:flex;gap:12px;align-items:center}
-.ht-planeta{width:64px;height:64px;flex:none;object-fit:contain;filter:drop-shadow(0 0 10px rgba(62,214,200,.35))}
+.ht-planeta{width:112px;height:112px;flex:none;object-fit:contain;filter:drop-shadow(0 0 22px rgba(62,214,200,.4))}
 .ht-cab h3{margin:1px 0;font-size:1.15rem}
 .ht-cab p{margin:0}
 .ht-cal{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
 .ht-cal li{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid rgba(242,181,68,.4);background:rgba(242,181,68,.08);font-size:.84rem;color:#f3e3bd}
-.ht-sub{display:block;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--teal,#3ed6c8);margin:2px 0 6px}
+.ht-sub{display:block;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--teal,#3ed6c8);margin:2px 0 10px}
 .ht-vids .pt-vids{display:flex;flex-direction:row;flex-wrap:wrap;gap:10px}
 .ht-vids .pt-vids li{grid-template-columns:112px minmax(0,220px)}
-.ht-retos{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.ht-retos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 .ht-reto{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;border:1px solid rgba(62,214,200,.35);background:linear-gradient(180deg,rgba(62,214,200,.07),rgba(6,14,24,.5))}
 .ht-reto.rel{border-color:rgba(242,181,68,.5);background:linear-gradient(180deg,rgba(242,181,68,.08),rgba(6,14,24,.5))}
 .ht-reto-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -4919,7 +4921,7 @@ body.modo-piloto [data-av]{display:none!important}
 .ht-ej{margin-left:auto;font-size:.84rem;font-weight:700;color:var(--teal,#3ed6c8);text-decoration:none}
 .ht-ej:hover{text-decoration:underline}
 .pt-hoy{padding:14px 16px}
-@media(max-width:640px){.ht-planeta{width:48px;height:48px}.ht-retos{grid-template-columns:1fr}.ht-vids .pt-vids li{grid-template-columns:96px 1fr}.ht-vids .pt-vids img{width:96px;height:54px}}
+@media(max-width:640px){.ht-planeta{width:72px;height:72px}.ht-retos{grid-template-columns:1fr}.ht-vids .pt-vids li{grid-template-columns:96px 1fr}.ht-vids .pt-vids img{width:96px;height:54px}}
 /* (el bloque es un <section>: sin el relleno ni la raya de las secciones de la web) */
 section.ht{padding:0;margin:0;border:0;background:none}
 .gp-hoy-d section.ht{margin-top:4px;padding:12px;border:1px solid rgba(242,181,68,.35);background:rgba(242,181,68,.04)}
@@ -5064,37 +5066,59 @@ body.modo-piloto #consola-app .gp-celda:has(.gp-cfg) .gp-b{padding-right:44px}
    Norberto: «la página inicial del docente debería ser visualmente similar a la nave del estudiante». La misma ficha
    (nave-perfil, monedas), el mismo menú de botones con iconos (el de la Nave del recluta) y, en lugar de insignias, sus
    grupos y su gente. Decidido con el borrador dibujado del lienzo «Nave del Comandante · borrador». */
-.cn-hero{margin:0 0 12px;gap:14px}
-.cn-hero>.card{margin:0}
-.cn-ficha .nave-perfil{margin:0;align-items:flex-start}
-.cn-ficha .nave-perfil .av-lupa{width:190px}
-.cn-ficha .nave-perfil img.av{width:190px;height:190px;border-radius:20px}
-.cn-ficha-t{min-width:0;display:flex;flex-direction:column;gap:6px}
-.cn-ficha-t h3{margin:0;font-size:clamp(1.2rem,2vw,1.5rem)}
+/* 🔴 20-sep · TU FICHA, A TODO EL ANCHO, y con el desplegable de grupos dentro: lo tuyo arriba, lo del grupo debajo
+   de su banner. El fondo difuminado quita la sensación de hueco vacío sin meter una sola caja más. */
+.cn-ficha.ancha{margin:0 0 12px;position:relative;overflow:hidden;
+  background:radial-gradient(760px 320px at 88% -30%,rgba(55,224,236,.16),transparent 62%),
+             linear-gradient(180deg,rgba(17,33,52,.96),rgba(10,17,28,.96))}
+.cn-ficha.ancha::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.14;
+  background:url(../img/nave/iconos/nave.png) right -40px center/260px no-repeat;filter:blur(1px)}
+.cn-ficha-c{display:flex;align-items:center;gap:20px;flex-wrap:wrap;position:relative;z-index:1}
+.cn-ficha .av-lupa{width:140px;flex:none;position:relative;border:0;background:none;padding:0;cursor:pointer}
+.cn-ficha img.av{width:140px;height:140px;border-radius:20px;object-fit:cover;display:block;border:1px solid rgba(55,224,236,.4);
+  box-shadow:0 14px 40px rgba(0,0,0,.5)}
+.av-cambiar{position:absolute;right:6px;bottom:6px;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+  background:rgba(8,14,24,.88);border:1px solid rgba(55,224,236,.5)}
+.av-cambiar img{width:16px;height:16px}
+.cn-ficha-t{min-width:0;flex:1 1 320px;display:flex;flex-direction:column;gap:6px}
+.cn-ficha-t h3{margin:0;font-size:clamp(1.4rem,2.6vw,2rem)}
 .cn-ficha-t p{margin:0}
-.cn-ficha-t .monedas{margin:2px 0}
-.cn-ficha-b{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.cn-der{display:flex;flex-direction:column;gap:10px;min-width:0}
-.cn-der>.card{margin:0}
-@media(max-width:640px){.cn-ficha .nave-perfil{flex-direction:row}.cn-ficha .nave-perfil .av-lupa,.cn-ficha .nave-perfil img.av{width:96px;height:96px}}
-/* una pestaña por grupo en marcha */
-.cn-grupos{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8px}
-.cn-g{display:flex;align-items:center;gap:10px;min-height:58px;padding:6px 14px 6px 6px;border-radius:14px;border:1px solid #24344c;
-  background:linear-gradient(180deg,#132236,#0d1828);color:#cfe0ec;font:inherit;cursor:pointer;text-align:left}
-.cn-g img,.cn-g .cn-g-sin{width:44px;height:44px;border-radius:11px;object-fit:cover;flex:none}
-.cn-g .cn-g-sin{display:grid;place-items:center;color:var(--teal);background:#0b1119}
-.cn-g b{display:block;font-family:'Unbounded',sans-serif;font-size:.92rem;color:#fff;line-height:1.25}
-.cn-g em{font-style:normal;font-size:.8rem;color:var(--mut)}
-.cn-g:hover{border-color:#2f5a70}
-.cn-g.on{border-color:var(--teal);background:linear-gradient(180deg,#113846,#0c2432);box-shadow:0 0 14px rgba(55,224,236,.2)}
-.cn-g-n{margin-left:6px;min-width:24px;height:24px;padding:0 7px;border-radius:99px;background:var(--amber);color:#2a1a02;font-weight:800;font-size:.8rem;display:grid;place-items:center}
-.cn-g:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.cn-ficha-t .monedas{margin:4px 0 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cn-ficha-t .monedas .m.emb img{width:34px;height:34px;border-radius:9px;object-fit:cover;display:block}
+.cn-ficha-t .monedas .m.emb{padding:3px}
+.cn-ficha-b{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;flex:1 1 260px}
+.cn-sel{display:flex;flex-direction:column;gap:3px}
+.cn-sel-t{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.cn-sel select{max-width:300px;padding:8px 10px;border-radius:11px;border:1px solid #2c4a6a;background:#0b1119;color:#e8eefc;font:inherit;font-size:.9rem}
+@media(max-width:640px){
+  .cn-ficha .av-lupa,.cn-ficha img.av{width:104px;height:104px}
+  .cn-ficha-b{justify-content:flex-start}
+  .cn-sel select{max-width:100%}
+}
+/* 🔴 20-sep · EL BANNER DEL GRUPO: abre TODO lo suyo, y lleva el único paso que hace falta (empezar la clase) */
+.gr-banner{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:0 0 14px;padding:20px 24px;position:relative;overflow:hidden;min-height:132px;
+  background:radial-gradient(620px 260px at 12% -40%,rgba(255,209,102,.14),transparent 60%),linear-gradient(180deg,#132236,#0c1626);
+  border-color:rgba(255,209,102,.35)}
+/* el planeta del tema, de portada: descansa la vista y dice de un golpe dónde estáis */
+.gr-plan{position:absolute;right:-30px;top:50%;translate:0 -50%;width:340px;height:340px;object-fit:contain;opacity:.45;
+  pointer-events:none;filter:blur(.4px);mask-image:radial-gradient(closest-side,#000 55%,transparent);-webkit-mask-image:radial-gradient(closest-side,#000 55%,transparent)}
+@media(max-width:900px){.gr-plan{width:220px;height:220px;opacity:.18}}
+.gr-emb{width:72px;height:72px;border-radius:16px;object-fit:cover;flex:none;border:1px solid #2a4656}
+.gr-t{min-width:0;flex:1 1 320px}
+.gr-t h2{margin:1px 0;font-size:clamp(1.3rem,2.6vw,1.9rem);text-wrap:balance;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.gr-t p{margin:0}
+.gr-cambiar{width:30px;height:30px;border-radius:9px;border:1px solid #2c4a6a;background:#0b1119;color:var(--teal);font-size:1rem;cursor:pointer}
+.gr-acc{display:flex;align-items:center;gap:6px;margin-left:auto}
+.gr-acc .gp-b.principal{min-height:66px;padding:10px 14px;gap:10px;border-radius:16px;box-shadow:0 0 18px rgba(55,224,236,.18)}
+@media(max-width:760px){.gr-acc{margin-left:0;width:100%;flex-wrap:wrap}.gr-acc .gp-b.principal{flex:1 1 100%}}
 /* el menú de secciones, con los botones de la Nave del recluta */
 .cn-secs{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:7px;margin:0 0 10px;border:1px solid var(--line);border-radius:16px;background:rgba(8,14,24,.8)}
 .pest.cn-t{height:46px;padding:0 13px 0 7px;gap:8px;border-radius:11px;border:1px solid #24344c;color:#cfe0ec;font-weight:600;font-size:.9rem;
   background:linear-gradient(180deg,#15263a,#0e1828);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transform:none}
 .pest.cn-t::before,.pest.cn-s::before{display:none!important;content:none!important}
 .pest.cn-t .i{width:30px;height:30px;object-fit:contain;display:block;flex:none}
+.pest.cn-t{text-decoration:none}                 /* (20-sep · «Contacto» es un enlace: sin subrayado, como las demás) */
+a.pest.cn-t-fin{margin-left:auto}                /* y va al final de la fila */
 .pest.cn-t b{font-weight:600}
 .pest.cn-t:hover{color:#fff;border-color:#2f5a70;background:linear-gradient(180deg,#183049,#10203a);box-shadow:none}
 .pest.cn-t.activa{color:#fff;border-color:var(--teal);background:linear-gradient(180deg,#113846,#0c2432);box-shadow:inset 0 0 0 1px rgba(55,224,236,.18),0 0 12px rgba(55,224,236,.18)}
@@ -5129,7 +5153,90 @@ body.modo-piloto .pt-acc .gp-celda:has(.gp-cfg) .gp-b{padding-right:44px}
 .pt-acc-t b{font-family:'Unbounded',sans-serif;font-size:1rem}
 .pt-acc-t em{font-style:normal;font-size:.82rem;color:var(--mut);font-weight:600}
 @media(max-width:760px){.pt-acc{grid-template-columns:minmax(0,1fr)}}
-/* «Mi gente»: el código de clase, por si falta alguien */
+/* 🔴 20-sep · EL PUENTE, SIN AIRE Y SIMÉTRICO. Norberto: «revisa los espacios y el aire… haz que las tarjetas sean
+   simétricas. Prueba a usar una imagen de fondo para evitar la sensación de aire vacío». El fondo va en el contenedor,
+   difuminado y fijo, para que ninguna caja tenga que estirarse para llenar la pantalla. */
+/* 🔴 20-sep · EL PLANETA DE LA SEMANA, DE ATMÓSFERA. Fijo detrás de todo (no se mueve al bajar), grande y difuminado:
+   la Nave deja de ser una pared de cajas y se nota en qué planeta estáis. Cambia solo al cambiar de tema. */
+/* el universo de la Nave del recluta (el MISMO fichero: un dato, un sitio) y, encima, el planeta del tema */
+body.con-planeta{background:linear-gradient(180deg,rgba(8,12,20,.82),rgba(8,12,20,.94)),url(../img/nave/fondo_universo.jpg) center/cover fixed,var(--bg)}
+body.con-planeta::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:var(--planeta) no-repeat right -90px top 40px/min(440px,52vw) auto;
+  opacity:.5;filter:drop-shadow(0 0 60px rgba(62,214,200,.45)) saturate(1.1)}
+body.con-planeta::after{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:radial-gradient(760px 520px at 86% 12%,rgba(55,224,236,.14),transparent 62%),
+             radial-gradient(900px 560px at 4% 86%,rgba(255,209,102,.07),transparent 60%)}
+/* las cajas dejan pasar un poco el planeta: se nota dónde estáis sin que cueste leer */
+body.con-planeta #consola-app .card{background:rgba(11,18,30,.78);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+body.con-planeta #consola-app .cn-secs{background:rgba(8,14,24,.7);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+@media(max-width:700px){body.con-planeta::before{opacity:.28;background-size:min(280px,60vw) auto;background-position:right -40px top 10px}}
+@media (prefers-reduced-motion:no-preference){body.con-planeta::before{animation:planFlota 26s ease-in-out infinite alternate}}
+@keyframes planFlota{from{transform:translateY(0)}to{transform:translateY(-16px)}}
+.pt{display:flex;flex-direction:column;gap:18px;position:relative}
+/* 🔴 20-sep · «mucha información compacta, difícil de leer, agobia: haz que respire». No son huecos vacíos: es aire
+   DENTRO de cada caja, letra más grande y lo que no se usa a diario, plegado. */
+.pt>.card,.pt>details.card{padding:22px 24px}
+.pt h3{font-size:1.05rem}
+.pt .small{font-size:.92rem;line-height:1.55}
+@media(max-width:700px){.pt>.card,.pt>details.card{padding:16px 16px}}
+.pt>.card{margin:0}
+.pt-uno>.card{margin:0}
+/* las cifras del grupo, con su aro: cuánto es esa cifra sobre el total, de un vistazo */
+.c-res-cifras{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:14px;align-items:stretch}
+.c-res-cifras>div{display:flex;align-items:center;gap:14px;min-width:0;padding:14px 16px}
+.c-res-cifras>div>span{font-size:.9rem;color:var(--mut);line-height:1.35;display:flex;flex-direction:column}
+.c-res-cifras>div>span b{color:#e8f3fa;font-size:1rem;font-weight:700}
+.c-aro{--p:0;position:relative;width:70px;height:70px;flex:none;display:grid;place-items:center;border-radius:50%;
+  background:conic-gradient(var(--aro,var(--teal)) calc(var(--p)*1%),rgba(255,255,255,.07) 0)}
+.c-aro i{position:absolute;inset:5px;border-radius:50%;background:#0c1421}
+.c-aro b{position:relative;font-family:'Unbounded',sans-serif;font-size:1.3rem;color:#fff;font-variant-numeric:tabular-nums}
+.c-aro.bien{--aro:#3ed6c8}.c-aro.todo{--aro:#4da3ff}.c-aro.retos{--aro:#ffd166}.c-aro.aviso{--aro:#ff9f6b}
+@media (prefers-reduced-motion:no-preference){ .c-aro{animation:aroEntra .6s ease both} }
+@keyframes aroEntra{from{transform:scale(.86);opacity:0}to{transform:none;opacity:1}}
+/* lo que no se usa cada día: plegado, y se abre de una línea */
+.pt-plega{padding:0!important}
+.pt-plega>summary{display:flex;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer;padding:16px 24px;list-style:none;border-radius:16px}
+.pt-plega>summary::-webkit-details-marker{display:none}
+.pt-plega>summary::after{content:"▾";margin-left:auto;color:var(--teal);transition:transform .2s}
+.pt-plega[open]>summary::after{transform:rotate(180deg)}
+.pt-plega>summary:hover{background:rgba(55,224,236,.05)}
+.pt-plega-t{display:flex;align-items:center;gap:8px;font-family:'Unbounded',sans-serif;font-size:1.05rem;color:#fff}
+.pt-plega>*:not(summary){margin-left:24px;margin-right:24px}
+.pt-plega>*:last-child{margin-bottom:18px}
+@media(max-width:700px){.pt-plega>summary{padding:14px 16px}.pt-plega>*:not(summary){margin-left:16px;margin-right:16px}}
+/* el panel del grupo, embebido */
+.pt-panel-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pt-panel-cab h3{margin:0;margin-right:auto}
+.pt-panel-marco{margin-top:8px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#070b12}
+.pt-panel-marco iframe{display:block;width:100%;height:min(56vh,520px);border:0}
+/* el mensaje del foro, dentro de «Hoy toca» */
+.ht-foro{margin:12px 0 0;padding:10px 12px;border-radius:14px;border:1px solid rgba(55,224,236,.25);background:rgba(55,224,236,.05)}
+.ht-foro-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ht-foro-cab .ht-sub{margin:0;margin-right:auto}
+.ht-foro-b{display:flex;gap:6px;flex-wrap:wrap}
+.ht-mio{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:#04222a;background:var(--teal);border-radius:999px;padding:2px 7px;font-weight:800}
+.ht-foro .foro-msg{margin-top:6px}
+.ht-foro-caja{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.ht-foro-caja textarea{width:100%;font:inherit;font-size:.92rem;line-height:1.45;color:#e8f3fa;background:#0b1119;border:1px solid #24304a;border-radius:10px;padding:8px 10px}
+.foro-todos{display:flex;flex-direction:column;gap:6px;max-height:64vh;overflow:auto}
+.foro-una{border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:rgba(255,255,255,.02)}
+.foro-una summary{cursor:pointer;font-size:.92rem}
+/* NEBULA, como el globo del onboarding */
+.neb-flota{position:fixed;left:18px;bottom:18px;z-index:60;width:min(420px,calc(100vw - 36px));display:flex;gap:12px;align-items:flex-start;
+  padding:12px 14px;border-radius:18px;border:1px solid rgba(55,224,236,.45);background:rgba(10,18,30,.97);
+  box-shadow:0 20px 50px rgba(0,0,0,.55);animation:nebEntra .45s ease both}
+@keyframes nebEntra{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.neb-flota{animation:none}}
+.neb-flota-cara{width:56px;height:56px;border-radius:50%;object-fit:cover;object-position:top;flex:none;border:1px solid rgba(55,224,236,.45)}
+.neb-flota-txt{min-width:0;flex:1}
+.neb-flota-txt b{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--teal2,#8fe6ef)}
+.neb-flota-txt p{margin:2px 0 0;font-size:.92rem;line-height:1.45;color:#e8f3fa}
+.neb-flota .pt-neb-pie{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 0}
+.neb-flota-x{position:absolute;top:6px;right:8px;width:26px;height:26px;border:0;background:none;color:var(--mut);cursor:pointer;font-size:.95rem}
+.neb-flota-x:hover{color:#fff}
+@media(max-width:560px){.neb-flota{right:10px;left:10px;bottom:10px;width:auto}}
+.neb-flota{max-width:min(420px,calc(100vw - 36px))}
+/* «Reclutas»: el código de clase, por si falta alguien */
 .cn-gente-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .cn-gente-cab h3{margin:0;margin-right:auto}
 .cn-falta{font-size:.85rem;color:var(--mut);font-weight:700}

@@ -198,8 +198,30 @@
         (ej && r.id !== "S7" ? '<a class="ht-ej" href="ejemplo.html?reto=' + esc(r.id) + '" target="_blank" rel="noopener">Ver un ejemplo ↗</a>' : '') + '</div>' +
     '</article>';
   }
+  /**
+   * 🔴 20-sep · EL MENSAJE DEL FORO, AQUÍ. Norberto: «añade justo encima de "el vídeo que toca" el mensaje del foro de
+   * esa semana para tus estudiantes. Añade botón para ver todos los mensajes del foro y un icono de un lápiz para
+   * editarlo (los docentes pueden personalizar sus propios mensajes si quieren y guardarlos para todos sus grupos)».
+   * El suyo manda sobre el oficial; se guarda en su ficha (`MOTOR.guardarForo`), no en el grupo, porque vale para todos.
+   */
+  function bloqueForo(sem, texto, propio) {
+    if (!texto && !propio) return "";
+    return '<div class="ht-foro" id="ht-foro"><div class="ht-foro-cab"><b class="ht-sub">' + ico("mensaje") + ' El mensaje del foro' +
+        (propio ? ' <span class="ht-mio">tuyo</span>' : '') + '</b>' +
+      '<span class="ht-foro-b"><button type="button" class="btn min" id="ht-foro-ed" title="Escribir tu versión de este mensaje" aria-expanded="false">' + ico("editar") + ' Editar</button>' +
+        '<button type="button" class="btn min" id="ht-foro-todos">Ver todos</button>' +
+        '<button type="button" class="btn min" data-copiado="✓ Mensaje copiado" data-copiar="' + esc(texto) + '">Copiar</button></span></div>' +
+      '<p class="small muted">Para pegar esta semana en el foro de la plataforma de UNIR, ya firmado por ti.</p>' +
+      '<div class="foro-msg recortado" id="ht-foro-txt">' + esc(texto).replace(/\n/g, "<br>") + '</div>' +
+      '<button type="button" class="leer-entero" id="ht-foro-mas">Leer entero</button>' +
+      '<div class="ht-foro-caja" id="ht-foro-caja" hidden><label>Tu mensaje para la semana ' + sem + '<textarea id="ht-foro-in" rows="8" maxlength="4000">' + esc(texto) + '</textarea></label>' +
+        '<p class="pt-fila"><button type="button" class="btn primary" id="ht-foro-ok">Guardar para todos mis grupos</button>' +
+        (propio ? ' <button type="button" class="btn min" id="ht-foro-of">Volver al oficial</button>' : '') +
+        '<span class="small m-sec-msg" id="ht-foro-msg" aria-live="polite"></span></p></div>' +
+    '</div>';
+  }
   /** El bloque «Hoy toca» de un grupo en una semana. `gente` (opcional): con ella, cada ficha dice cuántos lo han hecho. */
-  function bloqueHoyToca(S, sem, total, gente) {
+  function bloqueHoyToca(S, sem, total, gente, foro) {
     var s = semanaDe(S, sem); if (!s) return "";
     var tipo = S.tipo === "PUA" ? "PUA" : "REGULAR", mapa = ((window.SG_SEM_RETO || {})[tipo]) || {};
     var cat = ((((window.SG_CATALOGO || {}).retos) || {})[tipo]) || [];
@@ -222,6 +244,7 @@
         '<div><div class="eyebrow teal">Hoy toca · semana ' + sem + (fechas ? ' · ' + esc(fechas) : '') + (s.clases ? ' · ' + esc(s.clases) : '') + '</div>' +
         '<h3>' + esc(s.tema) + '</h3><p class="small muted">' + esc(s.sub || "") + (s.capitulo ? ' · capítulo «' + esc(s.capitulo) + '»' : '') + '</p></div></div>' +
       (cal.length ? '<ul class="ht-cal">' + cal.map(function (x) { return '<li>' + ico(x[0]) + ' ' + esc(x[1]) + '</li>'; }).join("") + '</ul>' : '') +
+      (foro || "") +
       (vids.length ? '<div class="ht-vids pt-video"><b class="ht-sub">El vídeo que toca</b><ul class="pt-vids">' + vids.map(function (v) {
           var y = v[0] || {};
           return '<li><a href="https://youtu.be/' + esc(y.id) + '" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/' + esc(y.id) + '/mqdefault.jpg" alt="" loading="lazy" width="160" height="90"></a>' +
@@ -340,24 +363,31 @@
     document.body.classList.add("consola-dentro");
   }
 
-  /** La ficha del comandante (como la del recluta en «Mi nave») y, a su lado, NEBULA y tu gente (las pinta el Puente). */
+  /**
+   * 🔴 20-sep · TU FICHA, A TODO EL ANCHO. Norberto: «la caja de la ficha del comandante quizá pueda ocupar todo el ancho
+   * (aumenta avatar, pon más info del docente…)». Y el cambio de grupo, que era una rejilla de tarjetas que «queda fatal»,
+   * ahora es un desplegable DENTRO de esta caja. Lo de NEBULA y las cifras del grupo se fue de aquí: TODO lo del grupo va
+   * debajo de su banner (ver `bannerGrupo`), que es lo que él pedía para no mezclar lo tuyo con lo suyo.
+   */
   function heroComandante() {
     var V = vivos(), nombre = (YO && (YO.nombre || YO.displayName)) || "Comandante";
     var total = V.reduce(function (a, p) { return a + (Number(p.reclutas) || 0); }, 0), mio = miNombreAqui();
-    return '<div class="grid cols-2 nave-estado cn-hero">' +
-      '<div class="card cn-ficha"><div class="nave-perfil">' +
+    var pAqui = PERS.filter(function (x) { return x.id === PER; })[0], emb = pAqui ? emblemaDe(pAqui) : { img: "", nombre: "" };
+    return '<div class="card cn-ficha ancha">' +
+      '<div class="cn-ficha-c">' +
         '<button type="button" class="av-lupa" id="doc-ava" title="Elige tu comandante" aria-label="Elegir tu comandante">' +
-          '<img class="av" id="doc-ava-img" src="assets/img/avatares/comandantes/' + esc((FICHA && FICHA.avatar) || "c1") + '.jpg" alt=""></button>' +
+          '<img class="av" id="doc-ava-img" src="assets/img/avatares/comandantes/' + esc((FICHA && FICHA.avatar) || "c1") + '.jpg" alt="">' +
+          '<span class="av-cambiar">' + ico("editar") + '</span></button>' +
         '<div class="cn-ficha-t"><div class="eyebrow teal">La Nave del Comandante</div><h3>' + esc(nombre) + '</h3>' +
-          '<p class="small"><b>Comandante' + (soyRefAlguno() ? ' referente' : '') + '</b>' + (mio ? ' · en este grupo, «' + esc(mio) + '»' : '') + '</p>' +
+          '<p class="small"><b>Comandante' + (soyRefAlguno() ? ' referente' : '') + '</b>' + (mio ? ' · en este grupo, «' + esc(mio) + '»' : '') +
+            (emb.nombre ? ' · escuadrón <b>' + esc(emb.nombre) + '</b>' : '') + (YO && YO.correo ? ' · <span class="muted">' + esc(YO.correo) + '</span>' : '') + '</p>' +
           '<p class="monedas"><span class="m xp"><b>' + V.length + '</b> ' + (V.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span>' +
-            '<span class="m cred"><b>' + total + '</b> ' + (total === 1 ? "recluta a tu cargo" : "reclutas a tu cargo") + '</span></p>' +
-        '</div></div>' +
-        // (los botones, a lo ancho de la ficha: en la columna del texto se apilaban uno por línea y, en el móvil, se salían)
-        '<div class="cn-ficha-b">' + selectorModo() +
-          '<button type="button" class="btn min" id="doc-ajustes-b" data-av aria-expanded="false">' + ico("ajustes") + ' Ajustes</button>' + botonBuzon("consola", PER) + '</div>' +
+            '<span class="m cred"><b>' + total + '</b> ' + (total === 1 ? "recluta a tu cargo" : "reclutas a tu cargo") + '</span>' +
+            (emb.img ? '<span class="m emb"><img src="' + esc(emb.img) + '" alt="" loading="lazy"></span>' : '') + '</p>' +
+        '</div>' +
+        '<div class="cn-ficha-b">' + selectorDeGrupo() + selectorModo() +
+          '<button type="button" class="btn min" id="doc-ajustes-b" data-av aria-expanded="false">' + ico("ajustes") + ' Ajustes</button></div>' +
       '</div>' +
-      '<div class="cn-der" id="cn-neb"></div>' +
     '</div>' +
     // (la galería se monta al abrirla: escondida, sus imágenes se descargarían igual en cada visita)
     '<div class="doc-avas" id="doc-avas" hidden></div>' +
@@ -392,6 +422,8 @@
       });
     };
     if (avBtn && avs) avBtn.onclick = function () { galeria(); avs.hidden = !avs.hidden; };
+    var selG = $("#cn-sel-g");
+    if (selG) selG.onchange = function () { if (selG.value && selG.value !== PER) { TAB = "portada"; abrir(selG.value); } };
     var ajB = $("#doc-ajustes-b"), ajP = $("#doc-ajustes");
     if (ajB && ajP) ajB.onclick = function () {
       if (ajP.hidden) pintarAjustes(ajP, vivos(), avBtn);
@@ -407,19 +439,26 @@
     var mio = (p.factions || []).filter(function (f) { return f.teacherName === nombreMio; })[0] || (p.factions || [])[0] || null;
     return { img: mio && mio.imageUrl ? mio.imageUrl : "", nombre: mio ? mio.name : "" };
   }
-  /** Una pestaña por grupo en marcha (y el que tengas abierto, aunque haya terminado). */
-  function pestanasGrupos() {
+  /** Los grupos que llevas: el que tengas abierto y los demás en marcha. */
+  function gruposParaElegir() {
     var L = vivos(), actual = PERS.filter(function (p) { return p.id === PER; })[0];
     if (actual && L.indexOf(actual) < 0) L = L.concat([actual]);
-    return '<div class="cn-grupos" role="tablist" aria-label="Tus grupos">' + L.map(function (p) {
-      var e = emblemaDe(p), on = p.id === PER;
-      var linea = p.estado === "en marcha" ? "Semana " + p.semana + " de " + p.total : p.estado === "por empezar" ? "Empieza el " + ((p.stargate || {}).inicio || "—")
-                : p.estado === "pasado" ? "Terminado" : "Sin fecha";
-      return '<button type="button" class="cn-g' + (on ? " on" : "") + '" role="tab" aria-selected="' + on + '" data-grupo="' + esc(p.id) + '">' +
-        (e.img ? '<img src="' + esc(e.img) + '" alt="" loading="lazy">' : '<span class="cn-g-sin">◈</span>') +
-        '<span><b>' + esc(p.nombre) + '</b><em>' + esc(linea) + (p.reclutas != null ? ' · ' + p.reclutas + ' reclutas' : '') + '</em></span>' +
-        (p.cola ? '<span class="cn-g-n" title="Subidas de nota que esperan tu visto bueno">' + p.cola + '</span>' : '') + '</button>';
-    }).join("") + '</div>';
+    return L;
+  }
+  /**
+   * 🔴 20-sep · CAMBIAR DE GRUPO, UN DESPLEGABLE. Norberto: «el espacio donde están todos los grupos para elegirlos queda
+   * fatal. ¿No sería mejor un desplegable? Prueba a incorporarlo en la caja donde está el avatar del docente». Con un solo
+   * grupo no hay nada que elegir: no sale (el nombre ya está en su banner, aquí abajo).
+   */
+  function selectorDeGrupo() {
+    var L = gruposParaElegir();
+    if (L.length < 2) return "";
+    return '<label class="cn-sel"><span class="cn-sel-t">Grupo</span><select id="cn-sel-g" aria-label="Cambiar de grupo">' + L.map(function (p) {
+      var linea = p.estado === "en marcha" ? "semana " + p.semana + " de " + p.total : p.estado === "por empezar" ? "empieza el " + ((p.stargate || {}).inicio || "—")
+                : p.estado === "pasado" ? "terminado" : "sin fecha";
+      return '<option value="' + esc(p.id) + '"' + (p.id === PER ? " selected" : "") + '>' + esc(p.nombre) + ' · ' + esc(linea) +
+        (p.reclutas != null ? ' · ' + p.reclutas + ' reclutas' : '') + (p.cola ? ' · ' + p.cola + ' pendiente' + (p.cola === 1 ? '' : 's') : '') + '</option>';
+    }).join("") + '</select></label>';
   }
 
   /** 17-sep · «🌐 Para todos tus grupos»: lo que se configura una vez para varios grupos, fuera de ninguno. */
@@ -469,7 +508,7 @@
    */
   // 19-sep · «Portada», la primera: el grupo de un vistazo (semana, vídeo, retos, foro, panel, sesión y tus notas)
   // 19-sep · el equipo, los escuadrones y los ajustes del grupo se fueron a «Gestionar grupos» (GTABS)
-  var TABS = [["portada", "Portada"], ["alumnado", "Mi gente"], ["rankings", "Rankings"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
+  var TABS = [["portada", "Portada"], ["alumnado", "Reclutas"], ["rankings", "Rankings"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
               // 17-sep · las que pueden afectar a VARIOS grupos, juntas y tras su raya 🌐 (Norberto: «separar las opciones
               // exclusivas de un grupo de las que afectan a todos o pueden afectar»)
               ["huevos", "Premios por enlace", 1, "varios"], ["sorteos", "Sorteos", 1, "varios"], ["ofertas", "Ofertas", 1, "varios"],
@@ -513,8 +552,43 @@
    * ofertas. El equipo, los escuadrones y los ajustes del grupo se fueron a «Gestionar grupos». Cada sección muestra
    * solo lo que esa cuenta puede usar (en piloto automático, El Zoco, Premios y Enlaces no salen).
    */
+  /**
+   * 🔴 20-sep · EL BANNER DEL GRUPO. Norberto: «el banner con el nombre del grupo grande y el botón de empezar la clase
+   * debe ir justo debajo de la caja del comandante. TODA la información relativa a ese grupo debe ir debajo del banner:
+   * ahora aparece información encima y queda confuso». Así que esto abre el grupo en TODAS sus secciones, y lo de arriba
+   * es solo tuyo. Los pasos 2 y 3 (llamada y herramientas) se fueron: «un docente empezará la clase, en ese enlace ya
+   * están incluidos los pasos 2 y 3».
+   */
+  function bannerGrupo(t) {
+    if (!t) return "";
+    var pAqui = PERS.filter(function (x) { return x.id === PER; })[0] || {}, emb = emblemaDe(pAqui);
+    var sem = Number(t.semana) || 0, total = Number(t.semanas) || 15;
+    var SEMS = window.SG_SEMANAS || [], tipo = t.tipo === "PUA" ? "PUA" : "REGULAR";
+    var s = sem >= 1 ? (tipo === "PUA" ? SEMS.filter(function (x) { return x.tema_n === Math.min(sem, 8); })[0] : SEMS[Math.min(sem, SEMS.length) - 1]) : null;
+    var estado = sem < 1 ? "Aún no ha empezado" : sem > total ? "Curso terminado" : "Semana " + sem + " de " + total;
+    var yoN = miNombreAqui(), mia = yoN ? t.reclutas.filter(function (r) { return r.profe === yoN; }) : [];
+    var N = (mia.length ? mia : t.reclutas).length;
+    var ini = ((DATOS.proyecto || {}).stargate || {}).inicio;
+    var otros = gruposParaElegir().length > 1 && TAB !== "portada";
+    // 🔴 20-sep · «usa imágenes para descansar, para no atosigar al cerebro con tanta información»: el planeta del tema
+    // que tocáis, grande y desvanecido, hace de portada del grupo. Cambia con la semana, así que el banner nunca es
+    // el mismo cartel gris dos temas seguidos.
+    var pl = (((window.SG_CATALOGO || {}).temas) || []).filter(function (x) { return s && x.n === s.tema_n; })[0];
+    return '<div class="card gr-banner">' + (pl ? '<img class="gr-plan" src="assets/img/planetas/' + esc(pl.clave) + '.png" alt="" loading="lazy">' : '') +
+      (emb.img ? '<img class="gr-emb" src="' + esc(emb.img) + '" alt="">' : '') +
+      '<div class="gr-t"><div class="eyebrow teal">' + esc(estado) + (s ? ' · ' + esc(s.tema) : '') + '</div>' +
+        '<h2>' + esc(t.nombre) + (otros ? ' <button type="button" class="gr-cambiar" data-tab="portada" title="Cambiar de grupo">⇄</button>' : '') + '</h2>' +
+        '<p class="small muted">' + (emb.nombre ? 'Tu escuadrón <b>' + esc(emb.nombre) + '</b> · ' : '') +
+          (mia.length ? 'de tus ' + N + ' reclutas' : 'del grupo · ' + N + (N === 1 ? ' recluta' : ' reclutas')) +
+          (ini ? ' · ' + (sem < 1 ? 'empieza el ' : 'empezó el ') + esc(diaC(ini)) : '') + '</p></div>' +
+      '<div class="gr-acc"><a class="gp-b principal" href="sesion.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
+        '<img class="pt-acc-i" src="assets/img/iconos/cohete.png" alt=""><span class="pt-acc-t"><b>Empezar la clase</b><em>proyecta la sesión de hoy</em></span></a>' +
+        botonCfgSesion(PER) + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") + '</div>' +
+    '</div>';
+  }
+
   var SECCIONES = [["puente", "Puente", "assets/img/nave/iconos/nave.png", ["portada"]],
-                   ["gente", "Mi gente", "assets/img/nave/iconos/gente.png", ["alumnado", "canjes"]],
+                   ["gente", "Reclutas", "assets/img/nave/iconos/gente.png", ["alumnado", "canjes"]],
                    ["rankings", "Rankings", "assets/img/nave/iconos/rankings.png", ["rankings"]],
                    ["calendario", "Calendario", "assets/img/iconos/calendario.png", ["calendario"]],
                    ["zoco", "El Zoco", "assets/img/nave/iconos/zoco.png", ["zoco"]],
@@ -532,7 +606,12 @@
         (n ? ' title="' + n + (n === 1 ? " subida de nota espera" : " subidas de nota esperan") + ' tu visto bueno"' : "") + '>' +
         '<img class="i" src="' + x[2] + '" alt="" width="30" height="30" aria-hidden="true"><b>' + x[1] + '</b>' +
         (n ? '<span class="pest-n" aria-label="' + n + ' pendientes">' + n + '</span>' : "") + '</button>';
-    }).join("") + '</div>';
+    }).join("") +
+      // 20-sep · «¿Dudas? ¿Algo falla?» era un botón perdido en tu ficha: ahora es la última sección, «Contacto»
+      '<a class="pest cn-t cn-t-fin bz-acceso" data-bz href="buzon.html?desde=consola' + (PER ? '&per=' + encodeURIComponent(PER) : '') + '">' +
+        '<img class="i" src="assets/img/iconos/p/envivo.png" alt="" width="30" height="30" aria-hidden="true"><b>Contacto</b>' +
+        (BZ_N ? '<span class="bz-n" title="Respuestas del Mando sin leer">' + BZ_N + '</span>' : '') + '</a>' +
+    '</div>';
   }
   function subPestanas() {
     var mias = misTabs().map(function (x) { return x[0]; }), sec = seccionDe(TAB);
@@ -548,16 +627,33 @@
     }).join("") + comun + '</div>';
   }
 
+  /**
+   * 🔴 20-sep · LA ATMÓSFERA DEL PLANETA QUE TOCA. Norberto: «mucha información compacta… agobia», «usa imágenes para
+   * descansar», «puedes poner el fondo del planeta que toca esa semana, algo que haga que sea una experiencia visual y
+   * atractiva». El planeta del tema en curso se queda de fondo de TODA la Nave —fijo, grande y desvanecido—, así que la
+   * pantalla cambia sola cada vez que avanzáis de tema y la vista tiene dónde descansar entre bloque y bloque.
+   */
+  function atmosfera(t) {
+    var sem = Number(t && t.semana) || 0, SEMS = window.SG_SEMANAS || [];
+    var tipo = (t && t.tipo) === "PUA" ? "PUA" : "REGULAR";
+    var s = sem >= 1 ? (tipo === "PUA" ? SEMS.filter(function (x) { return x.tema_n === Math.min(sem, 8); })[0] : SEMS[Math.min(sem, SEMS.length) - 1]) : null;
+    var pl = (((window.SG_CATALOGO || {}).temas) || []).filter(function (x) { return s && x.n === s.tema_n; })[0];
+    document.body.classList.toggle("con-planeta", !!pl);
+    // 🔴 la variable la usa la hoja de estilos: una ruta relativa se resolvería contra assets/css/ (404). Absoluta.
+    if (pl) document.body.style.setProperty("--planeta", 'url("' + new URL("assets/img/planetas/" + pl.clave + ".png", document.baseURI).href + '")');
+    else document.body.style.removeProperty("--planeta");
+  }
   function pintar() {
     if (GESTION) return pintarGestion();
     var t = window.SG.TABLERO.tablero(DATOS, true);
+    atmosfera(t);
     // 🔴 Y si el TAB recordado ya no le corresponde —dejó de ser referente, llega por un enlace con #ajustes o
     // (15-sep) acaba de resolver la última subida de nota y la Cola se esconde— se cae al primero, ANTES de pintar
     // las pestañas para que la encendida sea la que se ve.
     if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
     // 19-sep · tu ficha y NEBULA, solo en el Puente (como «Mi nave» del recluta); en las demás secciones, al grano
     app.innerHTML = avisoBorrado() + (TAB === "portada" ? heroComandante() : "") +
-      pestanasGrupos() + barraSecciones() + subPestanas() +
+      bannerGrupo(t) + barraSecciones() + subPestanas() +
       '<div id="c-aviso" class="aviso" hidden></div>' +
       '<div id="c-cuerpo"></div>';
     Array.prototype.forEach.call(app.querySelectorAll("[data-tab]"), function (b) {
@@ -727,9 +823,10 @@
           '<em>' + (e.comandante === mio ? "el tuyo" : esc(e.comandante)) + '</em><span>' + n + '</span></button>';
       }).join("") + '</div>' : '';
     var lista = sinGenteQueVer(t) ? [] : t.reclutas.map(function (r, i) { return [r, i]; }).filter(function (x) { return !filtro || x[0].profe === filtro; });
-    // 19-sep · el código de clase vive aquí (en el Puente solo sale las tres primeras semanas): por si falta alguien
+    // 20-sep · el código de clase y la invitación viven AQUÍ y solo aquí (Norberto): en el Puente ocupaban sitio
+    // todo el curso para algo que se usa los dos primeros días.
     var cod = (DATOS.proyecto || {}).joinCode;
-    $("#c-cuerpo").innerHTML = '<div class="card"><div class="cn-gente-cab"><h3>Alumnado</h3>' + (cod ? '<span class="cn-falta">¿Falta alguien?</span>' + codigoClase(PER, cod) : '') + '</div>' +
+    $("#c-cuerpo").innerHTML = '<div class="card"><div class="cn-gente-cab"><h3>Reclutas</h3>' + (cod ? '<span class="cn-falta">¿Falta alguien?</span>' + codigoClase(PER, cod) : '') + '</div>' +
       '<p class="small muted">El nombre y el correo solo los ves tú y el resto del equipo docente. ' +
       '<b>Pulsa una fila</b> y se abre su ficha: sus retos, los enlaces de lo que ha entregado y lo que puedes hacer.</p>' + chips +
       (lista.length ? tablaGente(lista, caps, !filtro) : '<p class="muted">' + (sinGenteQueVer(t) ? 'No tienes escuadrón en este grupo, así que aquí no hay alumnado a tu nombre.' : 'Todavía no hay nadie en este escuadrón.') + '</p>') +
@@ -1402,14 +1499,31 @@
     L.push({ t: gen[(o.sem || 0) % gen.length] });
     return L;
   }
-  function bannerNebula(consejos) {
-    return '<div class="card pt-neb"><div class="pt-neb-cara"><img src="assets/img/personajes/nebula.png" alt=""></div>' +
-      '<div class="pt-neb-txt"><b>NEBULA</b><p id="pt-neb-p" aria-live="polite"></p>' +
+  /**
+   * 🔴 20-sep · NEBULA, COMO EL GLOBO DEL ONBOARDING. Norberto: «el consejo de NEBULA podría ser una ventana emergente o
+   * algo como el mensaje del onboarding que aparece». Ocupaba media portada al lado de la ficha; ahora asoma abajo a la
+   * derecha, se lee, se pide otro consejo y se cierra. Cerrarlo dura lo que dure la sesión del navegador: al día
+   * siguiente vuelve a saludar, que es cuando el consejo sirve de algo.
+   */
+  var NEB_CERRADA = (function () { try { return sessionStorage.getItem("sgNebCerrada") === "1"; } catch (e) { return false; } })();
+  function nebulaFlotante(consejos) {
+    var v = document.getElementById("cn-neb-flota"); if (v) v.remove();
+    if (!consejos || !consejos.length || NEB_CERRADA) return;
+    var d = document.createElement("div");
+    d.id = "cn-neb-flota"; d.className = "neb-flota"; d.setAttribute("role", "status");
+    d.innerHTML = '<img class="neb-flota-cara" src="assets/img/personajes/nebula.png" alt="">' +
+      '<div class="neb-flota-txt"><b>NEBULA</b><p id="pt-neb-p" aria-live="polite"></p>' +
       '<p class="pt-neb-pie"><span id="pt-neb-acc"></span>' + (consejos.length > 1 ? '<button type="button" class="btn min" id="pt-neb-otro">Otro consejo</button>' +
-        '<span class="small muted" id="pt-neb-n"></span>' : '') + '</p></div></div>';
+        '<span class="small muted" id="pt-neb-n"></span>' : '') + '</p></div>' +
+      '<button type="button" class="neb-flota-x" id="pt-neb-x" aria-label="Cerrar el consejo">✕</button>';
+    document.body.appendChild(d);
+    d.querySelector("#pt-neb-x").onclick = function () {
+      NEB_CERRADA = true; try { sessionStorage.setItem("sgNebCerrada", "1"); } catch (e) {}
+      d.remove();
+    };
   }
   function cablearNebula(consejos, alHacer) {
-    var p = $("#pt-neb-p"), n = $("#pt-neb-n"), acc = $("#pt-neb-acc"), i = 0, tic = null;
+    var p = document.getElementById("pt-neb-p"), n = document.getElementById("pt-neb-n"), acc = document.getElementById("pt-neb-acc"), i = 0, tic = null;
     if (!p || !consejos.length) return;
     var quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var pon = function () {
@@ -1425,9 +1539,52 @@
         if (k >= txt.length) { clearInterval(tic); p.classList.remove("escribe"); }
       }, 22);
     };
-    var otro = $("#pt-neb-otro"); if (otro) otro.onclick = function () { i = (i + 1) % consejos.length; pon(); };
+    var otro = document.getElementById("pt-neb-otro"); if (otro) otro.onclick = function () { i = (i + 1) % consejos.length; pon(); };
     acc.onclick = function (e) { var b = e.target.closest("[data-neb]"); if (b) alHacer(b.getAttribute("data-neb")); };
     pon();
+  }
+  /**
+   * El mensaje del foro: editarlo (y que valga para todos tus grupos), verlos todos y volver al oficial.
+   * El oficial va firmado con tu nombre; el tuyo se guarda tal cual lo escribes.
+   */
+  function cablearForo(sem, texto, mio) {
+    var ed = document.getElementById("ht-foro-ed"), caja = document.getElementById("ht-foro-caja");
+    if (ed && caja) ed.onclick = function () {
+      caja.hidden = !caja.hidden; ed.setAttribute("aria-expanded", String(!caja.hidden));
+      if (!caja.hidden) document.getElementById("ht-foro-in").focus();
+    };
+    var msg = document.getElementById("ht-foro-msg");
+    var guarda = function (v) {
+      if (!MOTOR.guardarForo) return;
+      msg.textContent = "Guardando…";
+      MOTOR.guardarForo(sem, v).then(function (foros) {
+        if (FICHA) FICHA.foros = foros;
+        aviso(v ? "Guardado: este mensaje es el tuyo en todos tus grupos." : "Quitado: vuelve el mensaje oficial.", true);
+        pintar();
+      }, function (e) { msg.textContent = "No se ha podido guardar: " + (e.message || e); });
+    };
+    var ok = document.getElementById("ht-foro-ok"); if (ok) ok.onclick = function () { guarda(document.getElementById("ht-foro-in").value.trim()); };
+    var of = document.getElementById("ht-foro-of"); if (of) of.onclick = function () { guarda(""); };
+    // «Ver todos»: los de todas las semanas del curso, con el tuyo marcado, en una ventana
+    var todos = document.getElementById("ht-foro-todos");
+    if (todos) todos.onclick = function () {
+      var SEMS = window.SG_SEMANAS || [], mios = (FICHA && FICHA.foros) || {}, yoN = miNombreAqui();
+      var firma = function (txt) {
+        if (!yoN) return String(txt || "");
+        return String(txt || "").replace(/—\s*Capit[áa]n\b/g, "— " + (/^comandante\b/i.test(yoN) ? yoN : "Comandante " + yoN));
+      };
+      modalFicha('<div class="fi-cab"><h3>' + ico("mensaje") + ' Los mensajes del foro</h3>' +
+          '<p class="small muted">Uno por semana, ya firmados por ti. Los que hayas escrito tú salen marcados y valen en todos tus grupos.</p>' +
+          '<button type="button" class="c-modal-x" data-cerrar-ficha aria-label="Cerrar">✕</button></div>' +
+        '<div class="foro-todos">' + SEMS.map(function (x) {
+          var t = mios[String(x.sem)] || firma(x.foro || "");
+          if (!t) return "";
+          return '<details class="foro-una"' + (Number(x.sem) === Number(sem) ? " open" : "") + '><summary><b>Semana ' + x.sem + '</b> · ' + esc(x.tema) +
+            (mios[String(x.sem)] ? ' <span class="ht-mio">tuyo</span>' : '') + '</summary>' +
+            '<div class="foro-msg abierto">' + esc(t).replace(/\n/g, "<br>") + '</div>' +
+            '<p><button type="button" class="btn min" data-copiado="✓ Copiado" data-copiar="' + esc(t) + '">Copiar</button></p></details>';
+        }).join("") + '</div>');
+    };
   }
   function semanaDeReto(r, tipo, mapa) {
     if (tipo === "PUA") return Number(r.tema || 0);          // en PUA, cada tema es su semana
@@ -1473,51 +1630,35 @@
     var consejos = consejosNebula({ gente: gente, sem: sem, total: total, s: s, antes: antes, cola: (function () { try { return pendientesCola(); } catch (e) { return 0; } })(),
       semNuevoTema: !!(s && (!sAnt || sAnt.tema_n !== s.tema_n)), semanaDe: function (r) { return semanaDeReto(r, tipo, mapa); } });
 
-    // 19-sep · LA NAVE DEL COMANDANTE: la cabecera del grupo (el código de clase, solo hasta la semana 3: Norberto, «puede
-    // estar bien que esté visible las 3 primeras semanas; después solo dentro del propio grupo», o sea, en Mi gente)
-    var pAqui = PERS.filter(function (x) { return x.id === PER; })[0] || {}, emb = emblemaDe(pAqui), ini = ((DATOS.proyecto || {}).stargate || {}).inicio;
-    var codigo = (DATOS.proyecto || {}).joinCode;
+    // 20-sep · la cabecera del grupo se fue al banner (`bannerGrupo`), y el código de clase a «Reclutas»: Norberto,
+    // «código de clase y copiar invitación muévelo a Mi gente; el espacio que libera, para el botón de empezar clase».
+    // 🔴 20-sep · el mensaje del foro: el TUYO si lo has escrito (vale para todos tus grupos), si no el oficial firmado
+    var mioForo = ((FICHA && FICHA.foros) || {})[String(sem)] || "";
+    var foroTxt = mioForo || foro;
     $("#c-cuerpo").innerHTML = '<div class="pt">' +
-      '<div class="card pt-cab">' + (emb.img ? '<img class="pt-emb" src="' + esc(emb.img) + '" alt="">' : '') +
-        '<div class="pt-cab-t"><div class="eyebrow teal">' + esc(estado) + (s ? ' · ' + esc(s.tema) : '') + '</div>' +
-        '<h2>' + esc(t.nombre) + '</h2>' +
-        '<p class="small muted">' + (emb.nombre ? 'Tu escuadrón: <b>' + esc(emb.nombre) + '</b> · ' : '') + esc(deQuien) +
-          (ini ? ' · ' + (sem < 1 ? 'empieza el ' : 'empezó el ') + esc(diaC(ini)) : '') + '</p></div>' +
-        (sem <= 3 ? codigoClase(PER, codigo) : '') + '</div>' +
-      // los tres pasos de una clase en directo, en su orden: proyectar, pasar lista y tener el aula a mano
-      '<div class="pt-acc c-hacer">' +
-        '<div class="gp-celda principal"><a class="gp-b principal" href="sesion.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
-          '<span class="gp-n">1</span><img class="pt-acc-i" src="assets/img/iconos/cohete.png" alt=""><span class="pt-acc-t"><b>Empezar la clase</b><em>proyecta la sesión de hoy</em></span></a>' +
-          botonCfgSesion(PER) + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") + '</div>' +
-        '<div class="gp-celda"><a class="gp-b" href="llamada.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
-          '<span class="gp-n">2</span><img class="pt-acc-i" src="assets/img/nave/iconos/envivo.png" alt=""><span class="pt-acc-t"><b>Llamada a filas</b><em>que fichen</em></span></a>' +
-          botonVentana("llamada.html?per=" + PER, "llamada_" + PER, "la llamada a filas") + '</div>' +
-        '<div class="gp-celda"><a class="gp-b" href="aula.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
-          '<span class="gp-n">3</span><img class="pt-acc-i" src="assets/img/nave/iconos/clase.png" alt=""><span class="pt-acc-t"><b>Herramientas de clase</b><em>quién ha fichado, premios, al azar</em></span></a>' +
-          botonVentana("aula.html?per=" + PER, "aula_" + PER, "el aula") + '</div>' +
-      '</div>' +
+      resumenGrupo(t, gente) +
       (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
-        '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente) + '</div>') +
-      '<div class="pt-dos">' +
-        (foro ? '<div class="card pt-foro"><h3>Mensaje del foro</h3><p class="small muted">Para pegar esta semana en el foro de la plataforma de UNIR, ya firmado por ti.</p>' +
-          '<div class="foro-msg recortado" id="pt-foro-txt">' + esc(foro).replace(/\n/g, "<br>") + '</div>' +
-          '<button type="button" class="leer-entero" id="pt-foro-mas">Leer entero</button>' +
-          '<p><button class="btn" data-copiado="✓ Mensaje copiado" data-copiar="' + esc(foro) + '">Copiar el mensaje</button></p></div>' : '') +
-        // 19-sep · «un botón para editar el enlace del panel de Genially, para cambiarlo fácilmente a todos sus estudiantes»
-        '<div class="card pt-panel"><h3>' + ico("enlace") + ' Tu panel de control</h3>' +
+        '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente, bloqueForo(sem, foroTxt, !!mioForo)) + '</div>') +
+      // 🔴 20-sep · «embebe el panel de control del grupo actual en "Mi nave" del comandante. Añade un botón para cambiar
+      // enlace»: el Genially que abre su alumnado, aquí mismo, sin salir a otra pestaña.
+      '<div class="card pt-panel"><div class="pt-panel-cab"><h3>' + ico("enlace") + ' Tu panel de control</h3>' +
+          '<span class="pt-fila">' + (panelMio ? '<a class="btn min" href="' + esc(panelMio) + '" target="_blank" rel="noopener">Abrir ↗</a> ' : '') +
+            '<button type="button" class="btn min" id="pt-panel-ed" data-av aria-expanded="false">' + ico("editar") + ' Cambiar el enlace</button></span></div>' +
           '<p class="small muted">El Genially que abre <b>tu</b> alumnado desde su Nave. Ahora usan ' + (propio ? '<b>el tuyo</b>.' : 'el <b>oficial</b> del grupo.') + '</p>' +
-          '<p class="pt-fila">' + (panelMio ? '<a class="btn" href="' + esc(panelMio) + '" target="_blank" rel="noopener">Abrir el panel ↗</a> ' : '') +
-            '<button type="button" class="btn min" id="pt-panel-ed" data-av aria-expanded="false">' + ico("editar") + ' Cambiar el enlace</button></p>' +
+          (panelMio ? '<div class="pt-panel-marco"><iframe src="' + esc(panelMio) + '" title="Tu panel de control" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'
+                    : '<p class="small muted">Todavía no hay ningún panel puesto.</p>') +
           '<div id="pt-panel-caja" hidden><label>Tu Genially<input id="pt-panel-in" value="' + esc(propio) + '" placeholder="https://view.genially.com/…" autocomplete="off"></label>' +
             '<p class="pt-fila"><button type="button" class="btn primary" id="pt-panel-ok">Guardar para mis reclutas</button>' +
             (propio ? ' <button type="button" class="btn min" id="pt-panel-of">Volver al oficial</button>' : '') + '</p>' +
             '<p class="small m-sec-msg" id="pt-panel-msg" aria-live="polite"></p></div></div>' +
-      '</div>' +
-      (antes.length ? '<div class="card pt-ant"><h3>Retos ya lanzados</h3><p class="small muted">Cuántos los han registrado, ' + esc(deQuien) + '. En ámbar, los que van por debajo del 25 %.</p>' +
-        '<ul class="pt-retos">' + antes.map(fila).join("") + '</ul></div>' : '') +
-      '<div class="pt-dos">' +
+      (antes.length ? '<details class="card pt-ant pt-plega"><summary><span class="pt-plega-t">' + ico("retos") + ' Retos ya lanzados</span>' +
+        '<span class="small muted">' + antes.length + ' en marcha · cuántos los han registrado</span></summary>' +
+        '<p class="small muted">Cuántos los han registrado, ' + esc(deQuien) + '. En ámbar, los que van por debajo del 25 %.</p>' +
+        '<ul class="pt-retos">' + antes.map(fila).join("") + '</ul></details>' : '') +
+      '<div class="pt-uno">' +
         // 19-sep · «opción de mandar un mensaje a los estudiantes: les aparecerá en su tablón la próxima vez que se conecten»
-        '<div class="card pt-msg" data-av><h3>' + ico("mensaje") + ' Mensaje a tus reclutas</h3>' +
+        '<details class="card pt-msg pt-plega" data-av><summary><span class="pt-plega-t">' + ico("mensaje") + ' Mensaje a tus reclutas</span>' +
+          '<span class="small muted">les sale en su Nave, al momento</span></summary>' +
           '<p class="small muted">Les sale arriba en su Nave —al momento si están dentro, o la próxima vez que entren— hasta que lo marcan como leído. Va ' + esc(deQuien) + '.</p>' +
           '<div class="pt-seg" role="group" aria-label="A quién">' +
             [["todos", "Todos"], ["silencio", "En silencio"], ["sin", "Sin estrenarse"]].filter(function (x) { return x[0] === "todos" || DEST[x[0]].length; }).map(function (x) {
@@ -1525,17 +1666,15 @@
           '<textarea id="pt-msg-txt" rows="3" maxlength="400" placeholder="Por ejemplo: el jueves repasamos el reto B2; traed la Bitácora al día."></textarea>' +
           '<p class="pt-fila pt-msg-pie"><span class="small muted" id="pt-msg-n">0/400</span>' +
             '<button type="button" class="btn primary" id="pt-msg-ok" disabled>Enviar a ' + conUid.length + (conUid.length === 1 ? " recluta" : " reclutas") + '</button></p>' +
-          '<p class="small m-sec-msg" id="pt-msg-res" aria-live="polite"></p></div>' +
-        '<div class="card pt-notas"><h3>' + ico("notas") + ' Tus notas</h3><p class="small muted">Lo que tengas pendiente con este grupo. Solo lo ve el equipo docente del grupo, nunca tu alumnado; se guarda solo.</p>' +
-          '<textarea id="pt-notas" rows="4" maxlength="4000" placeholder="Por ejemplo: repasar la entrega de Lucía; recordar el sorteo el jueves…" disabled></textarea>' +
-          '<p class="small m-sec-msg" id="pt-notas-msg" aria-live="polite"></p></div>' +
+          '<p class="small m-sec-msg" id="pt-msg-res" aria-live="polite"></p></details>' +
       '</div>' +
     '</div>';
 
-    // NEBULA y tu gente, arriba, al lado de tu ficha (como «la orden de la semana» al lado de la ficha del recluta)
-    var der = $("#cn-neb"); if (der) der.innerHTML = bannerNebula(consejos) + resumenGrupo(t, gente);
-    var mas = $("#pt-foro-mas"), txt = $("#pt-foro-txt");
+    // 20-sep · NEBULA ya no ocupa media portada: asoma como el globo del onboarding, y se cierra
+    nebulaFlotante(consejos);
+    var mas = $("#ht-foro-mas"), txt = $("#ht-foro-txt");
     if (mas && txt) mas.onclick = function () { var a = txt.classList.toggle("abierto"); mas.textContent = a ? "Plegar" : "Leer entero"; };
+    cablearForo(sem, foroTxt, mioForo);
     Array.prototype.forEach.call(document.querySelectorAll("#consola-app [data-tab-ir]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-tab-ir"); pintar(); };
     });
@@ -1584,19 +1723,6 @@
         if (!mal) { mTxt.value = ""; mN.textContent = "0/400"; } else mOk.disabled = false;
       };
     }
-    // las notas: se cargan y se guardan solas (un segundo después de dejar de escribir)
-    var nota = $("#pt-notas"), nmsg = $("#pt-notas-msg"), perAqui = PER, tNota = null;
-    if (nota && MOTOR.misNotas) MOTOR.misNotas(perAqui).then(function (d) {
-      if (PER !== perAqui) return;
-      nota.value = (d && d.texto) || ""; nota.disabled = false;
-      nota.oninput = function () {
-        clearTimeout(tNota); nmsg.textContent = "…";
-        tNota = setTimeout(function () {
-          MOTOR.guardarNotas(perAqui, nota.value).then(function () { nmsg.textContent = "✓ Guardado"; })
-            .catch(function (e) { nmsg.textContent = "No se ha podido guardar: " + (e.message || e); });
-        }, 900);
-      };
-    }).catch(function (e) { nmsg.textContent = "No he podido leer tus notas: " + (e.message || e); });
   }
 
   /**
@@ -3210,19 +3336,28 @@
   }
   function resumenGrupo(t, gente) {
     var R = gente || (t && t.reclutas) || [], n = R.length;
-    if (!n) return '<div class="card c-resumen vacio"><b>Todavía no se ha alistado nadie.</b> <span class="small muted">Comparte la invitación: el código de clase está en el Puente (las tres primeras semanas) y en «Mi gente».</span></div>';
+    if (!n) return '<div class="card c-resumen vacio"><b>Todavía no se ha alistado nadie.</b> <span class="small muted">Comparte la invitación: el código de clase está en <b>Reclutas</b>.</span> <button type="button" class="btn min" data-tab-ir="alumnado">Ir a Reclutas</button></div>';
     var activos = R.filter(function (r) { return Number(r.xp7) > 0; }).length;
     var sinNada = R.filter(function (r) { return !(r.hechos || []).length; }).length;
     var retos = R.reduce(function (a, r) { return a + (r.hechos || []).length; }, 0);
     var top = R.filter(function (r) { return Number(r.xp7) > 0; }).sort(function (a, b) { return Number(b.xp7) - Number(a.xp7); }).slice(0, 3);
     var cola = 0; try { cola = pendientesCola(); } catch (e) {}
-    var pct = function (x) { return Math.round(x * 100 / n) + " %"; };
+    var pc = function (x) { return n ? Math.round(x * 100 / n) : 0; };
+    /**
+     * 🔴 20-sep · «esa caja debe ser más visual, incluso dinámica». Cada cifra lleva su aro de progreso —lo que
+     * representa sobre el total del grupo— y crece al entrar. Los números siguen siendo los mismos: lo que cambia es
+     * que de un vistazo se ve cuánto es «9 activos» sin tener que dividir mentalmente por 10.
+     */
+    var aro = function (v, total, cls) {
+      var p = total ? Math.max(0, Math.min(100, Math.round(v * 100 / total))) : 0;
+      return '<span class="c-aro ' + cls + '" style="--p:' + p + '"><i></i><b>' + v + '</b></span>';
+    };
     return '<div class="card c-resumen"><div class="c-res-cifras">' +
-        '<div><b>' + n + '</b><span>alistados</span></div>' +
-        '<div><b>' + activos + '</b><span>activos esta semana · ' + pct(activos) + '</span></div>' +
-        '<div><b>' + retos + '</b><span>retos registrados</span></div>' +
-        '<div' + (sinNada ? ' class="ojo"' : '') + '><b>' + sinNada + '</b><span>sin estrenarse todavía</span></div>' +
-        (cola ? '<div class="ojo"><b>' + cola + '</b><span>' + (cola === 1 ? "subida de nota espera" : "subidas de nota esperan") + '</span></div>' : '') +
+        '<div>' + aro(n, n, "todo") + '<span><b>alistados</b></span></div>' +
+        '<div>' + aro(activos, n, "bien") + '<span><b>activos</b>esta semana · ' + pc(activos) + ' %</span></div>' +
+        '<div>' + aro(retos, Math.max(retos, n), "retos") + '<span><b>retos</b>registrados</span></div>' +
+        '<div' + (sinNada ? ' class="ojo"' : '') + '>' + aro(sinNada, n, sinNada ? "aviso" : "bien") + '<span><b>sin estrenarse</b>todavía</span></div>' +
+        (cola ? '<div class="ojo">' + aro(cola, Math.max(cola, n), "aviso") + '<span><b>' + (cola === 1 ? "subida de nota" : "subidas de nota") + '</b>esperan tu visto bueno</span></div>' : '') +
       '</div>' +
       (top.length ? '<p class="c-res-top"><span>Esta semana destacan</span> ' + top.map(function (r) {
         return '<b>' + esc(r.alias) + '</b> <em>+' + Number(r.xp7) + ' xp</em>'; }).join(" · ") + '</p>' : '') +
