@@ -62,8 +62,11 @@ c(F.esDelTema("Actividad 1: actividad didáctica a partir de una imagen con IA",
   "🔴 las actividades cuentan para SU tema: «Actividad 1» es del tema 1");
 
 // ── 2 · lo que se proyecta: porcentajes de cada nota, dudas aparte y el mensaje de cuando no hay nada
-const tramo2 = SES.slice(SES.indexOf("var TK_ELIGE="), SES.indexOf("function montarTicket("));
-const A = new Function("esc", tramo2 + "\n return {analizarTickets:analizarTickets, corto:corto, filaNota:filaNota};")(x => String(x));
+// 20-sep · el análisis vive en el lector común: se evalúa ese fichero y se usa su SG.TK
+const TKC = leer("assets/js/tkcomun.js");
+const ventana = { SG: {} };
+new Function("window", TKC).call(ventana, ventana);
+const A = { analizarTickets: ventana.SG.TK.analizar, corto: ventana.SG.TK.corto };
 const filas = [
   { r: { "Valora la satisfacción general del desarrollo de la clase": "5",
          "¿Cómo has seguido esta clase?": "La he seguido EN DIRECTO",
@@ -81,6 +84,7 @@ igual(an.notas.length, 1, "una pregunta puntuada, una fila");
 igual(an.notas[0].pct, [0, 0, 50, 0, 50], "🔴 con el REPARTO de cada nota en porcentaje, no una media suelta");
 igual(an.notas[0].media, 4, "   y su media");
 igual(an.notas[0].corto, "La clase, en general", "   con el nombre corto, que es lo que cabe proyectado");
+igual(an.textos[0].id, "f0·Dudas y comentarios", "   y cada comentario con su nombre estable (su fila y de qué pregunta sale)");
 c(!an.notas.some(x => /profesor o profesora|Selecciona el tema/.test(x.c)), "   la cabecera del formulario no se puntúa a sí misma");
 c(/¡No hay comentarios!/.test(SES) && /Animadles a hacerlo en el ticket del tema que empieza hoy/.test(SES),
   "🔴 sin respuestas: «¡No hay comentarios!», animando a rellenarlo al acabar el tema");
@@ -128,9 +132,27 @@ c(/function usuarioDelToken_\(token\)/.test(GS) && /identitytoolkit\.googleapis\
 c(/var quien = usuarioDelToken_\(q\.token\);\s*\n\s*if \(!quien\) return json_\(/.test(GS),
   "   y si no vale el token, no contesta NADA (ni leer ni marcar resuelto)");
 c(/async function credencial\(\)/.test(MOTOR) && /entrar, salir, sesion, credencial,/.test(MOTOR), "   el motor sabe dar esa credencial");
-c(/token:t\|\|''/.test(SES) && /token:t\|\|''/.test(TK), "   y la mandan la sesión y el panel de tickets");
+c(/token: t \|\| ""/.test(leer("assets/js/tkcomun.js")) && /token:t\|\|''/.test(TK), "   y la mandan el lector común (sesión y Nave) y el panel de tickets");
 c(/function sinSesion\(msg\)/.test(TK), "   sin sesión, el panel lo dice en vez de quedarse en blanco");
 c(/VOLVER A HACERLO/.test(GS), "🔴 y el fichero avisa de que hay que volver a desplegarlo para que sirva de algo");
+
+// ── 6b · 🔴 LA CAJA DE TICKETS EN LA NAVE, y qué se proyecta de ella
+const CONSOLA = leer("assets/js/consola.js"), MOT = leer("assets/js/motor.js");
+c(/function cajaTickets\(SEMS, iAhora\)/.test(CONSOLA) && /function pintarCajaTickets\(SEMS, iAhora\)/.test(CONSOLA) && /id="tk-tema"/.test(CONSOLA),
+  "🔴 la Nave tiene su caja de «Tickets de salida», con el desplegable de temas");
+c(/function temaPorDefecto\(temas, iAhora\)/.test(CONSOLA) && /previos\.length \? previos\[previos\.length - 1\]/.test(CONSOLA),
+  "   y por defecto sale el último tema cerrado (en el tema 5, los del 4)");
+c(/data-tkm="fija"/.test(CONSOLA) && /data-tkm="oculta"/.test(CONSOLA) && /MOTOR\.marcarTicket\(PER, id, tenia \? "" : que\)/.test(CONSOLA),
+  "🔴 cada comentario se puede FIJAR (sale seguro) u OCULTAR (no sale), y se guarda");
+c(/async function marcasTicket\(perId\)/.test(MOT) && /async function marcarTicket\(perId, id, estado\)/.test(MOT) && /"privado", "tickets_" \+ yo\.uid/.test(MOT),
+  "   las marcas viven en el grupo, en privado (solo el equipo docente)");
+c(/var visibles=A\.textos\.filter\(function\(x\)\{ return m\.ocultas\.indexOf\(x\.id\)<0; \}\)/.test(SES) && /var CABEN=6, salen=fijas\.concat\(resto\)/.test(SES),
+  "🔴 y la sesión obedece: fuera lo oculto, primero lo fijado y del resto los que quepan");
+c(/\.tk-uno\.fija\{/.test(CSS) && /\.tk-uno\.oculta\{/.test(CSS) && /\.tk-ecos blockquote\.fijada\{/.test(CSS), "   y se nota a simple vista qué está fijado y qué oculto");
+// un solo lector para las dos pantallas
+c(/window\.SG\.TK = \{ pedir: pedir/.test(leer("assets/js/tkcomun.js")) && /SG\.TK\.pedir\(st\.per\)/.test(SES) && /SG\.TK\.pedir\(PER\)/.test(CONSOLA),
+  "🔴 un solo lector de tickets para la sesión y para la Nave (un dato, un sitio)");
+["sesion.html", "consola.html"].forEach(function (f) { c(leer(f).indexOf("assets/js/tkcomun.js") > 0, "   y llega a " + f); });
 
 // ── 7 · el grupo de ejemplo, en un solo sitio (y existiendo)
 const AULA_JS = AULA, CONS = leer("assets/js/consola.js"), SITE = leer("_site_data.py"), BUILD = leer("_build_site.py"), GUIA = leer("guia.html");

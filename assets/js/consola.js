@@ -1591,6 +1591,87 @@
     if (tipo === "PUA") return Number(r.tema || 0);          // en PUA, cada tema es su semana
     return Number(mapa[r.id] || ((window.SG_CATALOGO || {}).semanaDelTema || {})[String(r.tema)] || 0);
   }
+  /* ── 🔴 20-sep · LA CAJA DE TICKETS DE SALIDA, EN LA NAVE ────────────────────────────────────────────────────────
+   * Norberto: «añade una caja en la Nave de Comandante con Tickets de salida. Se puede elegir tickets anteriores para
+   * ver respuestas, pero por defecto aparece el último lanzado: si estamos en el tema 5, saldrán resultados del tema 4.
+   * Utiliza un botón de ocultar (no saldrá en la sesión en vivo) o fijar (saldrá seguro). Los no marcados saldrán los
+   * que quepan en la diapositiva».
+   *
+   * Aquí se repasa con calma lo que escribió el alumnado y se decide qué se lee en clase; la sesión obedece esas
+   * marcas (`sesion.js`, diapositiva «Vuestras dudas»). Las respuestas se piden con el lector común (`SG.TK`).
+   */
+  var TK_TEMA = null;          // qué tema se está mirando (null = el último cerrado)
+  var TK_MARCAS = null;
+  /** Los temas del curso con la semana en la que acaban: para el desplegable y para saber cuál fue el último. */
+  function temasDelCurso(SEMS) {
+    var out = [];
+    SEMS.forEach(function (x, i) {
+      var n = Number(x.tema_n) || 0, ya = out.filter(function (o) { return o.n === n; })[0];
+      var nombre = String(x.tema || "").replace(/\s*\(cont\.\)/, "");
+      if (ya) { ya.fin = i; ya.nombre = ya.nombre || nombre; } else out.push({ n: n, nombre: nombre, ini: i, fin: i });
+    });
+    return out;
+  }
+  function temaPorDefecto(temas, iAhora) {
+    var previos = temas.filter(function (x) { return x.fin < iAhora; });
+    return (previos.length ? previos[previos.length - 1] : temas[0]) || null;
+  }
+  function cajaTickets(SEMS, iAhora) {
+    if (!window.SG_TICKETS_API || !PER) return "";
+    var temas = temasDelCurso(SEMS), suyo = TK_TEMA != null ? temas.filter(function (x) { return x.n === TK_TEMA; })[0] : null;
+    var elegido = suyo || temaPorDefecto(temas, iAhora); if (!elegido) return "";
+    return '<details class="card pt-tk pt-plega"' + (TK_TEMA != null ? " open" : "") + '><summary>' +
+        '<span class="pt-plega-t">' + ico("ticket") + ' Tickets de salida</span>' +
+        '<span class="small muted" id="tk-resumen">' + esc(elegido.nombre) + ' · el último que cerrasteis</span></summary>' +
+      '<p class="small muted">Lo que escribieron al acabar el tema. Elige qué se lee en clase: lo que <b>fijes</b> sale seguro en la sesión, lo que <b>ocultes</b> no sale, y del resto salen los que quepan.</p>' +
+      '<label class="tk-sel">De qué tema <select id="tk-tema">' + temas.map(function (x) {
+        return '<option value="' + x.n + '"' + (x.n === elegido.n ? " selected" : "") + '>' + esc(x.nombre) + '</option>'; }).join("") + '</select></label>' +
+      '<div id="tk-caja"><p class="small muted">Leyendo las respuestas…</p></div></details>';
+  }
+  function pintarCajaTickets(SEMS, iAhora) {
+    var caja = document.getElementById("tk-caja"); if (!caja || !window.SG || !SG.TK) return;
+    var temas = temasDelCurso(SEMS), suyo = TK_TEMA != null ? temas.filter(function (x) { return x.n === TK_TEMA; })[0] : null;
+    var elegido = suyo || temaPorDefecto(temas, iAhora); if (!elegido) return;
+    var sel = document.getElementById("tk-tema");
+    if (sel) sel.onchange = function () { TK_TEMA = Number(sel.value); pintar(); };
+    var yoN = miNombreAqui(), perAqui = PER;
+    Promise.all([SG.TK.pedir(PER), (MOTOR.marcasTicket ? MOTOR.marcasTicket(PER) : Promise.resolve(null))])
+      .then(function (r) {
+        if (PER !== perAqui) return;
+        var d = r[0]; TK_MARCAS = r[1] || { fijadas: [], ocultas: [] };
+        if (d.error) { caja.innerHTML = '<p class="small muted">No he podido leer las respuestas ahora mismo' + (d.motivo ? ' (' + esc(d.motivo) + ')' : "") + '. Vuelve a entrar en un rato.</p>'; return; }
+        var filas = SG.TK.deTema(d.lista, SEMS, elegido.fin, yoN);
+        var res = document.getElementById("tk-resumen");
+        if (res) res.textContent = elegido.nombre + " · " + (filas.length ? filas.length + (filas.length === 1 ? " respuesta" : " respuestas") : "sin respuestas");
+        if (!filas.length) { caja.innerHTML = '<p class="small muted">Nadie de tu escuadrón rellenó el ticket de <b>' + esc(elegido.nombre) + '</b>.</p>'; return; }
+        var A = SG.TK.analizar(filas), seg = A.seguido, sig = seg.directo + seg.diferido;
+        var m = TK_MARCAS;
+        caja.innerHTML = '<div class="tk-cifras chicas"><div class="tk-c"><b>' + filas.length + '</b><span>' + (filas.length === 1 ? "respuesta" : "respuestas") + '</span></div>' +
+            (sig ? '<div class="tk-c"><b>' + Math.round(seg.directo * 100 / sig) + '%</b><span>en directo</span></div>' : "") +
+            (A.notas.length ? '<div class="tk-c"><b>' + (A.notas.reduce(function (a, x) { return a + x.media; }, 0) / A.notas.length).toFixed(1) + '</b><span>de media, en todo</span></div>' : "") + '</div>' +
+          (A.notas.length ? '<div class="tk-notas">' + A.notas.map(function (x) {
+            return '<div class="tk-nota"><span class="tk-n-t">' + esc(x.corto) + '</span><span class="tk-n-b">' + x.pct.map(function (p, i) {
+                return p ? '<i class="v' + (i + 1) + '" style="width:' + p + '%" title="' + (i + 1) + ' de 5 · ' + p + '%">' + (p >= 12 ? '<em>' + p + '%</em>' : "") + '</i>' : ""; }).join("") +
+              '</span><b class="tk-n-m">' + x.media.toFixed(1) + '</b></div>'; }).join("") + '</div>' : "") +
+          (A.textos.length ? '<div class="tk-lista">' + A.textos.map(function (x) {
+            var fija = m.fijadas.indexOf(x.id) >= 0, oculta = m.ocultas.indexOf(x.id) >= 0;
+            return '<div class="tk-uno' + (fija ? " fija" : "") + (oculta ? " oculta" : "") + '" data-tk="' + esc(x.id) + '">' +
+              '<span class="tk-de">' + esc(SG.TK.corto(x.c)) + '</span><p>' + esc(x.v) + '</p>' +
+              '<span class="tk-b"><button type="button" class="btn min" data-tkm="fija" aria-pressed="' + fija + '">' + ico("estrella") + ' ' + (fija ? "Fijada" : "Fijar") + '</button>' +
+                '<button type="button" class="btn min" data-tkm="oculta" aria-pressed="' + oculta + '">' + ico("ojo") + ' ' + (oculta ? "Oculta" : "Ocultar") + '</button></span></div>'; }).join("") + '</div>'
+            : '<p class="small muted">Puntuaron, pero no escribió nadie.</p>');
+        caja.onclick = function (ev) {
+          var b = ev.target && ev.target.closest && ev.target.closest("[data-tkm]"); if (!b) return;
+          var fila = b.closest("[data-tk]"), id = fila.getAttribute("data-tk"), que = b.getAttribute("data-tkm");
+          var tenia = b.getAttribute("aria-pressed") === "true";
+          Array.prototype.forEach.call(fila.querySelectorAll("[data-tkm]"), function (x) { x.disabled = true; });
+          MOTOR.marcarTicket(PER, id, tenia ? "" : que).then(function (nuevas) {
+            TK_MARCAS = nuevas; pintarCajaTickets(SEMS, iAhora);
+          }, function (e) { aviso("No se ha podido guardar: " + (e.message || e)); pintarCajaTickets(SEMS, iAhora); });
+        };
+      }, function () { caja.innerHTML = '<p class="small muted">No he podido leer las respuestas ahora mismo.</p>'; });
+  }
+
   function verPortada(t) {
     var sem = Number(t.semana) || 0, total = Number(t.semanas) || 15, tipo = t.tipo === "PUA" ? "PUA" : "REGULAR";
     var SEMS = window.SG_SEMANAS || [];
@@ -1640,6 +1721,7 @@
       resumenGrupo(t, gente, { lanzados: lanzados.length, retosSem: estos, consejos: consejos }) +
       (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
         '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente, bloqueForo(sem, foroTxt, !!mioForo)) + '</div>') +
+      cajaTickets(SEMS, Math.max(0, Math.min(sem, SEMS.length) - 1)) +
       // 🔴 20-sep · «embebe el panel de control del grupo actual en "Mi nave" del comandante. Añade un botón para cambiar
       // enlace»: el Genially que abre su alumnado, aquí mismo, sin salir a otra pestaña.
       '<div class="card pt-panel"><div class="pt-panel-cab"><h3>' + ico("enlace") + ' Tu panel de control</h3>' +
@@ -1676,6 +1758,7 @@
     var mas = $("#ht-foro-mas"), txt = $("#ht-foro-txt");
     if (mas && txt) mas.onclick = function () { var a = txt.classList.toggle("abierto"); mas.textContent = a ? "Plegar" : "Leer entero"; };
     cablearForo(sem, foroTxt, mioForo);
+    pintarCajaTickets(SEMS, Math.max(0, Math.min(sem, SEMS.length) - 1));
     Array.prototype.forEach.call(document.querySelectorAll("#consola-app [data-tab-ir]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-tab-ir"); pintar(); };
     });

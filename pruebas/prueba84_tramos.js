@@ -61,7 +61,9 @@ c(/var semResuelve=function\(v\)/.test(S) && /return r \? r===sem :/.test(S),
   "🔴 una votación resuelta sale SOLO en la semana en que se resuelve (antes salía en todas las siguientes)");
 c(/return desde\|\|semResuelve\(v\) \? \(sem>=desde && sem<=hasta\)/.test(S), "   y la abierta, desde que se publica hasta que se resuelve");
 c(/st\.semHoy=hoy&&hoy>0\?hoy:1;/.test(S), "   (la sesión sabe qué semana es hoy aunque se proyecte otra)");
-c(/function precargarTickets\(\)/.test(S) && /no\(new Error\('tarda demasiado'\)\); \}, 12000\)/.test(S),
+// 20-sep · pedirlo y entenderlo vive en el lector común (assets/js/tkcomun.js), que lo usan la sesión y la Nave
+const TKC = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "tkcomun.js"), "utf8");
+c(/function precargarTickets\(\)/.test(S) && /SG\.TK\.pedir\(st\.per\)/.test(S) && /no\(new Error\("tarda demasiado"\)\); \}, 12000\)/.test(TKC),
   "🔴 el ticket de salida se pide al abrir la sesión y no se queda en «Leyendo…»: 12 s como mucho, y si no, lo dice");
 c(/function cronoRelampago\(min\)/.test(S) && /montar:rel\?montarCrono:null/.test(S) && /\(\\d\+\)\\s\*min/.test(S),
   "🔴 la diapositiva de un relámpago lleva su cronómetro, con los minutos del calendario");

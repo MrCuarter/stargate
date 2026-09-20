@@ -5262,6 +5262,24 @@ body.con-planeta #consola-app .cn-secs{background:rgba(8,14,24,.7);backdrop-filt
 .pt-panel-cab h3{margin:0;margin-right:auto}
 .pt-panel-marco{margin-top:8px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#070b12}
 .pt-panel-marco iframe{display:block;width:100%;height:min(56vh,520px);border:0}
+/* 🔴 20-sep · la caja de «Tickets de salida» en la Nave: elegir tema, ver las notas y decidir qué se lee en clase */
+.tk-sel{display:inline-flex;align-items:center;gap:8px;font-size:.9rem;color:var(--mut);margin:0 0 10px}
+.tk-sel select{padding:7px 10px;border-radius:10px;border:1px solid #2c4a6a;background:#0b1119;color:#e8eefc;font:inherit;font-size:.9rem}
+.tk-cifras.chicas .tk-c{padding:8px 14px}
+.tk-cifras.chicas .tk-c b{font-size:1.5rem}
+.pt-tk .tk-notas{margin:12px 0}
+.tk-lista{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.tk-uno{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:start;padding:10px 12px;border-radius:12px;
+  border:1px solid var(--line);background:rgba(255,255,255,.02)}
+.tk-uno .tk-de{grid-column:1/-1}
+.tk-uno p{margin:0;font-size:.95rem;line-height:1.5;color:#e8f3fa}
+.tk-uno .tk-b{display:flex;gap:6px;align-self:center}
+.tk-uno.fija{border-color:var(--teal);background:rgba(55,224,236,.07)}
+.tk-uno.oculta{opacity:.5}
+.tk-uno.oculta p{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.35)}
+@media(max-width:640px){.tk-uno{grid-template-columns:1fr}.tk-uno .tk-b{justify-content:flex-start}}
+/* y en la sesión, lo fijado se nota */
+.tk-ecos blockquote.fijada{border-left-color:var(--amber);background:rgba(255,209,102,.08)}
 /* el mensaje del foro, dentro de «Hoy toca» */
 .ht-foro{margin:12px 0 0;padding:10px 12px;border-radius:14px;border:1px solid rgba(55,224,236,.25);background:rgba(55,224,236,.05)}
 .ht-foro-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap}

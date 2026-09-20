@@ -3241,6 +3241,8 @@ def _cabeza_motor():
         'window.SG_PER_DEMO=' + _json.dumps(PER_DEMO) + ';'
         'window.SG_TICKET_URL=' + _json.dumps(TICKET_URL) + ';'
         'window.SG_TICKET_TEMAS=' + _json.dumps(TICKET_TEMAS, ensure_ascii=False) + ';'
+        # 20-sep · la Nave del Comandante también lee el ticket (su caja de «Tickets de salida»)
+        'window.SG_TICKETS_API=' + _json.dumps(TICKETS_API) + ';'
         'window.SG_PANEL_MAESTRO=' + _json.dumps(PANEL_MAESTRO) + ';window.SG_PANEL_MAESTRO_EDICION=' + _json.dumps(PANEL_MAESTRO_EDICION) + ';'
         'window.SG_SECCIONES_SESION=' + _json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False) + ';'
         # 18-sep · los comandantes (c1, c2…) salen de la carpeta: se añade una imagen y ya está en la galería. Sin

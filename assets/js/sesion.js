@@ -929,64 +929,21 @@
        montar: function(el){ return montarTicket(el, lista, ant, 'textos'); }}
     ];
   }
-  var TK=null, TK_PROMESA=null;
   /**
-   * 16-sep · El ticket se lee de una hoja de Google a través de Apps Script (fuera de la plataforma). Si Google tarda o
-   * la red del centro no deja llegar, la diapositiva no puede quedarse en «Leyendo…» delante de la clase: se espera como
-   * mucho 12 segundos y, si no, lo dice.
+   * 20-sep · El ticket lo leen la sesión Y la Nave del Comandante (para repasarlo y decidir qué se proyecta), así que
+   * pedirlo y entenderlo vive en un solo sitio: `assets/js/tkcomun.js` (`SG.TK`). Aquí solo se pinta.
    */
-  function precargarTickets(){
-    if(TK_PROMESA||!window.SG_TICKETS_API||!st.per) return TK_PROMESA;
-    var per=st.per, tope=new Promise(function(_,no){ setTimeout(function(){ no(new Error('tarda demasiado')); }, 12000); });
-    // 🔴 20-sep · con la credencial de la sesión: el lector de la hoja ya no le contesta a cualquiera que
-    // conozca su dirección (ver apps-script/LectorTickets.gs). Sin sesión iniciada no hay respuestas.
-    var M=window.SG&&window.SG.MOTOR, llave=(M&&M.credencial)?M.credencial():Promise.resolve('');
-    TK_PROMESA=Promise.race([llave.then(function(t){
-      return fetch(String(window.SG_TICKETS_API),{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({accion:'tickets',per:per,token:t||''})}); })
-      .then(function(r){ return r.json(); }), tope])
-      .then(function(d){ TK={per:per, lista:(d&&d.tickets)||[]}; return TK; }, function(e){ TK={per:per, lista:[], error:true}; return TK; });
-    return TK_PROMESA;
+  function precargarTickets(){ return (window.SG && SG.TK) ? SG.TK.pedir(st.per) : null; }
+  var MARCAS=null, MARCAS_P=null;
+  function marcasDelGrupo(){
+    if(MARCAS) return Promise.resolve(MARCAS);
+    var M=window.SG&&window.SG.MOTOR;
+    if(!MARCAS_P) MARCAS_P=(M&&M.marcasTicket&&st.per&&!st.alumno ? M.marcasTicket(st.per) : Promise.resolve(null))
+      .then(function(x){ return x||{fijadas:[],ocultas:[]}; }, function(){ return {fijadas:[],ocultas:[]}; });
+    return MARCAS_P;
   }
-  /**
-   * Las columnas que no son ni una nota ni un comentario: la cabecera del formulario y las de elegir.
-   * 🔴 20-sep · «¿Cómo has seguido esta clase?» (en directo / en diferido) se colaba entre los comentarios
-   * porque su respuesta es un texto largo. Ahora manda la PREGUNTA, no lo larga que sea la respuesta.
-   */
-  var TK_ELIGE=/Selecciona el tema|profesor o profesora|prefieres que transcurran|C[oó]mo has seguido/i;
-  var TK_CORTO=[[/utilidad de las herramientas/i,'La utilidad de lo visto'],[/satisfacci[oó]n general del desarrollo/i,'La clase, en general'],
-    [/contenidos te[oó]ricos/i,'La teoría'],[/estrategias pr[aá]cticas/i,'La práctica'],[/grado de participaci[oó]n/i,'Vuestra participación'],
-    [/utilidad de la actividad/i,'La actividad, ¿os sirvió?'],[/calidad de la actividad que has entregado/i,'Vuestra entrega'],
-    [/puntuaci[oó]n obtenida/i,'La nota'],[/vibraciones te ha transmitido/i,'La presentación'],[/utilidad que percibes del temario/i,'El temario'],
-    [/conocimientos iniciales/i,'Lo que sabíais al empezar'],[/se ha hablado de la misi[oó]n/i,'Se habló de la misión'],
-    [/tablero o el ranking/i,'Se vio el tablero'],[/reconocido en p[uú]blico/i,'Se reconoció a alguien'],
-    [/satisfacci[oó]n con tu profesor/i,'Vuestro Comandante'],[/satisfacci[oó]n con la asignatura/i,'La asignatura'],
-    [/Comparada con otras asignaturas/i,'Comparada con otras'],[/forma de seguir esta asignatura/i,'Cómo se sigue'],
-    [/duda sobre la actividad/i,'Sobre la actividad'],[/Alguna duda/i,'Dudas y comentarios'],[/qu[eé] esperas/i,'Qué esperáis'],
-    [/lo mejor/i,'Lo mejor'],[/lo peor/i,'Lo peor'],[/comentario a tu profesor/i,'Para su Comandante']];
-  function corto(c){
-    for(var k=0;k<TK_CORTO.length;k++) if(TK_CORTO[k][0].test(c)) return TK_CORTO[k][1];
-    var t=String(c||'').replace(/^(Valora la satisfacci[oó]n (con|sobre|de)( la| el)?|Valora la|Valora tu|¿C[oó]mo valorar[ií]as tus?|STARGATE · )\s*/i,'');
-    t=t.replace(/[¿?]/g,'').trim();
-    return t.charAt(0).toUpperCase()+t.slice(1, 52);
-  }
-  /** De las respuestas en bruto a lo que se proyecta: el reparto de cada nota, los textos y cómo siguieron la clase. */
-  function analizarTickets(filas){
-    var notas={}, orden=[], textos=[], seguido={directo:0, diferido:0};
-    filas.forEach(function(x){ Object.keys(x.r).forEach(function(c){
-      var v=String(x.r[c]==null?'':x.r[c]).trim(); if(!v) return;
-      if(/C[oó]mo has seguido/i.test(c)){ if(/DIRECTO/i.test(v)) seguido.directo++; else if(/diferido|grabaci/i.test(v)) seguido.diferido++; return; }
-      if(TK_ELIGE.test(c)) return;
-      if(/^[1-5]$/.test(v)){ if(!notas[c]){ notas[c]=[0,0,0,0,0]; orden.push(c); } notas[c][Number(v)-1]++; return; }
-      if(v.length>2) textos.push({c:c, v:v});
-    }); });
-    var lista=orden.map(function(c){
-      var n=notas[c], total=n.reduce(function(a,b){ return a+b; },0);
-      return {c:c, corto:corto(c), n:n, total:total,
-              media: total?n.reduce(function(a,b,i){ return a+b*(i+1); },0)/total : 0,
-              pct: n.map(function(x){ return total?Math.round(x*100/total):0; })};
-    }).filter(function(x){ return x.total; });
-    return {notas:lista, textos:textos, seguido:seguido};
-  }
+  function corto(c){ return (window.SG && SG.TK) ? SG.TK.corto(c) : String(c||''); }
+  function esDelTema(v, lista, i){ return (window.SG && SG.TK) ? SG.TK.esDelTema(v, lista, i) : true; }
   /** Una nota: su nombre corto, el reparto del 1 al 5 en una barra y la media. */
   function filaNota(x){
     return '<div class="tk-nota"><span class="tk-n-t">'+esc(x.corto)+'</span>'
@@ -1014,12 +971,24 @@
       // el nombre del tema, sin el «(cont.)» de la semana: el ticket es del TEMA, no de una semana suelta
       var tema=String((semLista[iTema]&&semLista[iTema].tema)||'el tema anterior').replace(/\s*\(cont\.\)/,'');
       if(!lista.length) return nada('Nadie de tu escuadrón rellenó el ticket de <b>'+esc(tema)+'</b>. Recuérdaselo al acabar este: son dos minutos y es anónimo.');
-      var A=analizarTickets(lista);
+      var A=SG.TK.analizar(lista);
       if(que==='textos'){
-        if(!A.textos.length) return nada('Nadie escribió ninguna duda sobre <b>'+esc(tema)+'</b>. Animadles a hacerlo en el ticket del tema que empieza hoy: lo que preguntéis ahí se responde en clase.');
-        caja.innerHTML='<div class="tk-ecos">'+A.textos.slice(0,6).map(function(x,i){
-            return '<blockquote style="--i:'+i+'"><span class="tk-de">'+esc(corto(x.c))+'</span>'+esc(x.v.length>240?x.v.slice(0,237)+'…':x.v)+'</blockquote>'; }).join('')+'</div>'
-          +(A.textos.length>6?'<p class="small muted">Y '+(A.textos.length-6)+' más.</p>':'');
+        /**
+         * 🔴 20-sep · LO QUE SE PROYECTA LO ELIGE EL DOCENTE. Norberto: «un botón de ocultar (no saldrá en la sesión en
+         * vivo) o fijar (saldrá seguro). Los no marcados saldrán los que quepan en la diapositiva». Las marcas se ponen
+         * en la caja de «Tickets de salida» de su Nave y se guardan en el grupo (`MOTOR.marcasTicket`).
+         */
+        var m=MARCAS||{fijadas:[],ocultas:[]};
+        var visibles=A.textos.filter(function(x){ return m.ocultas.indexOf(x.id)<0; });
+        var fijas=visibles.filter(function(x){ return m.fijadas.indexOf(x.id)>=0; });
+        var resto=visibles.filter(function(x){ return m.fijadas.indexOf(x.id)<0; });
+        var CABEN=6, salen=fijas.concat(resto).slice(0, Math.max(CABEN, fijas.length));
+        if(!salen.length) return nada(A.textos.length
+          ? 'Has ocultado todo lo que escribieron sobre <b>'+esc(tema)+'</b>: aquí no sale nada.'
+          : 'Nadie escribió ninguna duda sobre <b>'+esc(tema)+'</b>. Animadles a hacerlo en el ticket del tema que empieza hoy: lo que preguntéis ahí se responde en clase.');
+        caja.innerHTML='<div class="tk-ecos">'+salen.map(function(x,i){
+            return '<blockquote style="--i:'+i+'"'+(m.fijadas.indexOf(x.id)>=0?' class="fijada"':'')+'><span class="tk-de">'+esc(corto(x.c))+'</span>'+esc(x.v.length>240?x.v.slice(0,237)+'…':x.v)+'</blockquote>'; }).join('')+'</div>'
+          +(visibles.length>salen.length?'<p class="small muted">Y '+(visibles.length-salen.length)+' más.</p>':'');
         return;
       }
       var seg=A.seguido, sig=seg.directo+seg.diferido;
@@ -1031,10 +1000,11 @@
           :'<p class="sub">Contestaron, pero sin puntuar nada.</p>');
     };
     var fallo=function(){ if(vivo) caja.innerHTML='<p class="sub">No he podido leer las respuestas del ticket ahora mismo. Pasa a la siguiente: no hace falta esperar.</p>'; };
-    if(TK&&TK.per===st.per&&!TK.error){ pinta(TK.lista); }
-    else { if(TK&&TK.error){ TK=null; TK_PROMESA=null; }
-      var pr=precargarTickets(); if(!pr) return fallo();
-      pr.then(function(x){ if(x.error) fallo(); else pinta(x.lista); }); }
+    var pr=precargarTickets(); if(!pr) return fallo();
+    // las marcas (qué se fija y qué se oculta) van con las respuestas: se piden a la vez
+    Promise.all([pr, marcasDelGrupo()]).then(function(r){
+      MARCAS=r[1]; if(r[0].error) fallo(); else pinta(r[0].lista);
+    }, fallo);
     return function(){ vivo=false; };
   }
 
