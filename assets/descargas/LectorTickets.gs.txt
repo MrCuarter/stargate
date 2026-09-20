@@ -152,6 +152,23 @@ function usuarioDelToken_(token) {
 }
 
 /**
+ * 🔴 EJECUTA ESTO UNA VEZ DESPUÉS DE PEGAR EL FICHERO (▶ Ejecutar, con «autorizar» elegida arriba).
+ *
+ * Desde el 20-sep este lector pregunta a Firebase quién le escribe, y eso es una llamada a INTERNET: un permiso que
+ * el proyecto no tenía. Google lo pide la primera vez que se ejecuta, no al implementar. Si no se autoriza aquí, la
+ * aplicación web contestaría «no he podido comprobar quién eres» a todo el mundo.
+ *
+ * Sale «Se ha completado la ejecución» y, en el registro, «autorización: bien». Con eso, a implementar.
+ */
+function autorizar() {
+  var r = UrlFetchApp.fetch("https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=" + FIREBASE_API_KEY, {
+    method: "post", contentType: "application/json", muteHttpExceptions: true, payload: JSON.stringify({ idToken: "x" })
+  });
+  // 400 es lo que toca (el token es falso): lo que importa es que la llamada haya podido salir
+  Logger.log("autorización: " + (r.getResponseCode() === 400 ? "bien" : "responde " + r.getResponseCode()));
+}
+
+/**
  * La puerta. Dos peticiones y se acabó.
  *
  * Se responde a GET y a POST porque el panel manda POST y un navegador curioso (o una prueba desde
