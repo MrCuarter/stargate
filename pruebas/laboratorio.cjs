@@ -235,6 +235,18 @@ async function persona(nombre) {
       // 19-sep · los docentes del laboratorio llegan en MANDO MANUAL (lo que prueban las secciones es la consola entera);
       // el arranque en piloto automático lo prueba la §47 quitando esta marca
       await p.js("try{ localStorage.setItem('sgModoNivel','manual'); }catch(e){} 1");
+      /**
+       * 🔴 20-sep · SI NO SE PUEDE ENTRAR, QUE SE SEPA POR QUÉ. Cuando el motor no llegaba, esto reventaba con
+       * «Cannot read properties of undefined (reading 'entrarComo')», que no dice nada: ¿no se inyectó el
+       * interruptor del laboratorio?, ¿reventó motor.js al cargar?, ¿la página es otra? Ahora se mira y se cuenta.
+       */
+      if (!(await p.js("!!(window.SG && window.SG.EMU)").catch(() => false))) {
+        const d = await p.js(`JSON.stringify({ url: location.href, listo: document.readyState,
+          emu: window.SG_EMU === true, hay_SG: !!window.SG, hay_MOTOR: !!(window.SG && window.SG.MOTOR),
+          modulos: [].slice.call(document.querySelectorAll('script[type=module]')).map(function(x){ return x.src.split('/').pop(); }) })`).catch(() => "{}");
+        throw new Error("el motor del laboratorio no llegó a " + (nombre || correo) + " · " + d +
+          " · errores de la página: " + JSON.stringify(p.errores.slice(-3)));
+      }
       return p.js(`window.SG.EMU.entrarComo(${JSON.stringify(correo)}, ${JSON.stringify(nombre || correo)}).then(function(u){ return u.email; })`);
     },
     /**

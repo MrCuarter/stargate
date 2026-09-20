@@ -229,6 +229,10 @@ TABLERO_API = "https://script.google.com/macros/s/AKfycbxlrRGIBJPD9h8-6D46Y4IJ8G
 # «demo-motor»… que ya no existe: el botón «Probar la Nave como estudiante» de la guía llevaba a un error, y las
 # capturas no se podían regenerar. Un dato, un sitio. Si algún día se cambia el grupo de ejemplo, se cambia AQUÍ.
 PER_DEMO = "demo-stargate"
+# 🔴 20-sep · LA NAVE ESCUELA: el grupo donde el profesorado trastea (30 reclutas, el curso entero y un selector
+# de semanas). Lo siembra `motor/sembrar_prueba.js --escuela`. Va aquí para que lo sepan la web y la presentación
+# del equipo sin que nadie escriba el identificador dos veces.
+PER_ESCUELA = "nave-escuela"
 
 # ---------- cromos: el álbum del «Sobre de cromos» ----------
 # FUENTE ÚNICA del álbum. De aquí salen (a) el catálogo que pinta la Nave del Recluta
@@ -1048,7 +1052,7 @@ def semana_capitulo(semana_regular, tipo):
 
 CAPITULOS = [
     {"n": 1, "clave": "c1", "titulo": "Canal abierto", "icono": "<img class=ico src=assets/img/iconos/p/envivo.png alt>", "semana": 1,
-     "abre": ["nave", "retos", "botin"], "mercado": [],
+     "abre": ["nave", "retos", "botin", "archivo"], "mercado": [],
      "cabecera": "Tu Nave, ya en marcha",
      "puedes": ["Tu personaje, tu nivel y tus créditos, siempre a la vista",
                 "Los retos de la semana: se hacen y se marcan con «Lo he hecho» (con el enlace de tu evidencia)",

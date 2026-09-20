@@ -23,9 +23,13 @@ function fin() {
   fallos.forEach(f => console.log("   ✗ " + f));
   process.exit(fallos.length ? 1 : 0);
 }
-(async () => {
-  if (!fs.existsSync(CHROME)) { console.log("   ⚠️ sin Chrome: no se ha probado la ventana de Google"); return fin(); }
-  try { await fetch(PUERTA, { method: "HEAD" }); } catch (e) { console.log("   ⚠️ sin red: no se ha probado la ventana de Google"); return fin(); }
+/**
+ * 🔴 20-sep · DOS INTENTOS, NO UNO. Esta batería depende de la web PUBLICADA y de Google: justo después de publicar
+ * —mientras el CDN reparte la versión nueva— o con la red a medio gas, fallaba y había que volver a lanzarla para
+ * verla en verde. Una batería que da rojo cuando no pasa nada malo es peor que no tenerla: se deja de mirar.
+ * Ahora lo intenta dos veces y solo canta si falla las dos.
+ */
+async function intentar(apuntar) {
   const perfil = fs.mkdtempSync(path.join(os.tmpdir(), "sgpop-"));
   const ch = spawn(CHROME, ["--headless=new", "--disable-gpu", "--no-first-run", "--remote-debugging-port=9337", `--user-data-dir=${perfil}`, "about:blank"], { stdio: "ignore" });
   try {
@@ -43,15 +47,26 @@ function fin() {
     for (let k = 0; k < 20 && !boton; k++) { await dormir(600);
       const r = await env("Runtime.evaluate", { expression: "(function(){var b=[].slice.call(document.querySelectorAll('button')).filter(function(x){return /Iniciar sesión con Google/.test(x.textContent)&&x.offsetParent})[0]; return b?b.textContent.trim():'';})()", returnByValue: true }, sessionId);
       boton = r.result && r.result.value; }
-    c(!!boton, "la puerta publicada enseña «Iniciar sesión con Google» a quien llega sin sesión");
+    apuntar(!!boton, "la puerta publicada enseña «Iniciar sesión con Google» a quien llega sin sesión");
     await env("Runtime.evaluate", { expression: "[].slice.call(document.querySelectorAll('button')).filter(function(x){return /Iniciar sesión con Google/.test(x.textContent)&&x.offsetParent})[0].click()", userGesture: true }, sessionId);
     const vistas = [];
     for (let k = 0; k < 25; k++) { await dormir(600);
       Object.values(targets).filter(t => t.type === "page" && t.targetId !== targetId).forEach(t => { if (vistas.indexOf(t.url) < 0) vistas.push(t.url); });
       if (vistas.some(u => /accounts\.google\.com/.test(u))) break; }
-    c(vistas.some(u => /\/__\/auth\/handler\?/.test(u)), "al pulsar se abre la ventana del ayudante de Google", vistas.join(" · ").slice(0, 200));
-    c(vistas.some(u => /accounts\.google\.com/.test(u)), "🔴 y esa ventana LLEGA a la pantalla de cuentas de Google", vistas.join(" · ").slice(0, 240));
-  } catch (e) { c(false, "la batería no revienta", e.message); }
+    apuntar(vistas.some(u => /\/__\/auth\/handler\?/.test(u)), "al pulsar se abre la ventana del ayudante de Google", vistas.join(" · ").slice(0, 200));
+    apuntar(vistas.some(u => /accounts\.google\.com/.test(u)), "🔴 y esa ventana LLEGA a la pantalla de cuentas de Google", vistas.join(" · ").slice(0, 240));
+  } catch (e) { apuntar(false, "la batería no revienta", e.message); }
   finally { try { ch.kill(); } catch (e) {} }
+}
+(async () => {
+  if (!fs.existsSync(CHROME)) { console.log("   ⚠️ sin Chrome: no se ha probado la ventana de Google"); return fin(); }
+  try { await fetch(PUERTA, { method: "HEAD" }); } catch (e) { console.log("   ⚠️ sin red: no se ha probado la ventana de Google"); return fin(); }
+  for (let vuelta = 1; vuelta <= 2; vuelta++) {
+    const suyos = [];
+    await intentar((cierto, nombre, detalle) => suyos.push({ cierto, nombre, detalle }));
+    if (suyos.every(x => x.cierto) || vuelta === 2) { suyos.forEach(x => c(x.cierto, x.nombre, x.detalle)); break; }
+    console.log("   ⚠️ primer intento con fallos (¿la publicación aún repartiéndose?): se repite una vez");
+    await dormir(4000);
+  }
   fin();
 })();

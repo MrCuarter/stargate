@@ -554,8 +554,12 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .album .c.leg:not(.no){box-shadow:0 0 12px rgba(245,176,67,.5)}
 /* los dos marcadores de la ficha: xp (nivel) y créditos (bolsillo) */
 .monedas{display:flex;flex-wrap:wrap;gap:10px;margin:.5em 0 .2em}
+/* 🔴 20-sep · EL INTERROGANTE PROMETE UNA EXPLICACIÓN. Estas cápsulas llevaban `cursor:help` siempre, pero en la
+   ficha del Comandante («2 grupos en marcha», «30 reclutas a tu cargo») no tenían título: el ratón se convertía en
+   un interrogante y al pararse no salía nada. Ahora el interrogante sale SOLO si hay título que leer. */
 .monedas .m{display:inline-flex;align-items:baseline;gap:5px;padding:4px 12px;border-radius:999px;
-  border:1px solid var(--line);font-size:.82rem;cursor:help}
+  border:1px solid var(--line);font-size:.82rem;cursor:default}
+.monedas .m[title]{cursor:help}
 .monedas .m b{font-size:1.05rem}
 .monedas .m.xp{border-color:rgba(55,224,236,.45);color:var(--teal)}
 .monedas .m.cred{border-color:rgba(245,176,67,.5);color:var(--amber)}
@@ -5483,3 +5487,115 @@ body.con-visor{overflow:hidden}
 .dia.unete .un-cod{align-self:flex-start;width:fit-content}
 .cn-sub .cn-comun{margin-left:auto;text-decoration:none}
 .esc-datos{align-items:start}   /* 19-sep · cada dato de un escuadrón mide lo suyo (el del Comandante, con su correo, estiraba a los demás) */
+
+/* ═══════════════ EL PRESTRENO · la presentación para el equipo docente (20-sep) ═══════════════
+   Norberto: «monta la presentación… visual, con los recursos de STARGATE, interactiva, como las sesiones
+   semanales», para docentes que van a dar la asignatura por primera vez. Usa el mazo de la sesión (.mazo,
+   .lienzo, .barra-pasos, .nav): lo que se añade aquí es lo de dentro de cada diapositiva. Que se parezca a la
+   sesión de clase no es pereza — es que quien la ve proyectada está viendo el producto funcionando. */
+.pr-mazo{min-height:min(76vh,720px)}
+/* las flechas ‹ › van pegadas a los lados y flotan por encima: el contenido se aparta de ellas, que si no
+   se comían el principio de una pregunta o de una fila */
+/* y los mandos (el contador y «Pantalla completa») flotan arriba a la derecha: se les deja su franja, que
+   si no se comían el arranque de los títulos largos */
+.pr-mazo .dia{gap:16px;padding-left:66px;padding-right:66px;padding-top:56px}
+@media(max-width:700px){.pr-mazo .dia{padding-left:20px;padding-right:20px}}
+.pr-mandos{position:absolute;top:10px;right:14px;display:flex;align-items:center;gap:10px;z-index:3}
+.pr-cuenta{font-size:.78rem;color:var(--mut);font-variant-numeric:tabular-nums}
+.pr-portada{align-items:center;text-align:center;justify-content:center}
+.pr-portada h1{font-size:clamp(1.8rem,4.4vw,3.2rem);text-wrap:balance}
+.pr-logo{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:8px}
+.pr-logo .fc-marca{font-family:'Unbounded',sans-serif;font-size:clamp(1.1rem,2.6vw,1.7rem);letter-spacing:.18em;color:var(--teal)}
+.pr-logo .fc-lema{font-size:.8rem;letter-spacing:.24em;text-transform:uppercase;color:var(--amber)}
+.pr-sub{font-size:clamp(1rem,1.6vw,1.2rem);color:var(--ink);max-width:46ch;margin:0 auto}
+.pr-pie{font-size:.82rem;color:var(--mut);margin:14px 0 0}
+.pr-centro{text-align:center;align-items:center}
+.pr-centro h1{font-size:clamp(1.5rem,3.4vw,2.5rem);text-wrap:balance}
+.pr-cita{margin:6px 0 0;padding:12px 18px;border-left:3px solid var(--amber);background:rgba(245,176,67,.08);
+  border-radius:0 12px 12px 0;font-size:clamp(.92rem,1.3vw,1.05rem);color:#f0e4cf;text-wrap:pretty}
+.pr-tres{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;width:100%}
+.pr-t{padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.28)}
+.pr-t b{display:block;font-family:'Unbounded',sans-serif;font-size:1rem;color:var(--teal2);margin-bottom:4px}
+.pr-t span{font-size:.88rem;color:var(--mut)}
+.pr-t.on{border-color:rgba(55,224,236,.5);background:rgba(55,224,236,.08)}
+.pr-t.on span{color:var(--ink)}
+.pr-tres-g .pr-t{padding:18px 20px}
+/* la historia: el vídeo de bienvenida, con su cartel */
+.pr-video{align-items:center;text-align:center}
+.pr-marco{width:min(100%,760px);border-radius:18px;overflow:hidden;border:1px solid rgba(55,224,236,.3)}
+.pr-play{display:block;width:100%;padding:0;border:0;background:#000;cursor:pointer;position:relative;line-height:0}
+.pr-play img{width:100%;height:auto;opacity:.82;transition:opacity .2s}
+.pr-play:hover img{opacity:1}
+.pr-play-b{position:absolute;inset:0;display:grid;place-items:center;font-size:3rem;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.6)}
+/* los tres nombres */
+.pr-cartas{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.pr-c{margin:0;display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;
+  border:1px solid var(--line);background:rgba(0,0,0,.3)}
+.pr-c img{width:100%;height:150px;object-fit:contain}
+.pr-c figcaption b{display:block;font-family:'Unbounded',sans-serif;font-size:.95rem;color:var(--teal2);margin-bottom:5px}
+.pr-c figcaption span{font-size:.85rem;color:var(--mut)}
+.pr-bit{display:grid;place-items:center;height:150px;font-size:4rem;color:var(--amber)}
+/* el mapa de planetas, pulsable */
+.pr-planetas{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:900px){.pr-planetas{grid-template-columns:repeat(2,1fr)}}
+.pr-pl{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:14px;
+  border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s}
+.pr-pl:hover,.pr-pl.on{border-color:rgba(55,224,236,.55);background:rgba(55,224,236,.1)}
+.pr-pl img{width:72px;height:72px;object-fit:contain}
+.pr-pl b{font-family:'Unbounded',sans-serif;font-size:.85rem}
+.pr-pl em{font-style:normal;font-size:.76rem;color:var(--mut);text-align:center}
+.pr-ficha{margin-top:4px;padding:14px 16px;border-radius:16px;border:1px solid rgba(55,224,236,.3);background:rgba(8,20,30,.72)}
+.pr-ficha-c{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.pr-ficha-pl{width:110px;height:110px;object-fit:contain;flex:none}
+.pr-ficha-t{flex:1 1 320px;min-width:0}
+.pr-ficha-t h3{margin:2px 0 6px}
+.pr-ficha-t p{margin:0 0 8px;font-size:.92rem}
+.pr-tripu{display:flex;align-items:center;gap:12px}
+.pr-tripu img{width:52px;height:74px;object-fit:cover;border-radius:8px;flex:none;border:1px solid var(--line)}
+/* la línea de las semanas */
+.pr-linea{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.pr-sem{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:12px;
+  border:1px solid var(--line);background:rgba(0,0,0,.26);min-width:64px}
+.pr-sem img{width:38px;height:38px;object-fit:contain}
+.pr-sem-n{font-family:'Unbounded',sans-serif;font-size:.8rem;color:var(--teal2)}
+.pr-sem em{font-style:normal;font-size:.76rem;color:var(--mut)}
+.pr-sem.fin{border-color:rgba(245,176,67,.45)}
+.pr-sem-fin{font-size:2rem;line-height:1;color:var(--amber)}
+/* los capítulos */
+.pr-caps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.pr-cap{padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.26)}
+.pr-cap b{display:block;font-size:.78rem;color:var(--amber);letter-spacing:.08em;text-transform:uppercase}
+.pr-cap span{font-size:.9rem}
+/* las dos monedas */
+.pr-dos{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.pr-m{padding:16px 18px;border-radius:16px;border:1px solid var(--line);background:rgba(0,0,0,.3)}
+.pr-m b{display:block;font-family:'Unbounded',sans-serif;font-size:1.3rem;margin-bottom:6px}
+.pr-m span{font-size:.9rem;color:var(--mut)}
+.pr-m-xp{border-color:rgba(55,224,236,.45)}.pr-m-xp b{color:var(--teal)}
+.pr-m-cred{border-color:rgba(245,176,67,.45)}.pr-m-cred b{color:var(--amber)}
+/* los rankings */
+.pr-rank{display:flex;flex-wrap:wrap;gap:8px}
+.pr-r{padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.28);font-size:.88rem}
+/* lo que NO */
+.pr-no{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.pr-n{padding:14px 16px;border-radius:14px;border:1px solid rgba(255,125,125,.35);background:rgba(255,125,125,.07)}
+.pr-n b{display:block;font-family:'Unbounded',sans-serif;font-size:.95rem;color:#ffb3b3;margin-bottom:4px}
+.pr-n span{font-size:.86rem;color:var(--mut)}
+/* las preguntas: la respuesta, plegada, para que dé tiempo a contestar */
+.pr-preg{display:flex;flex-direction:column;gap:9px}
+.pr-q{text-align:left;padding:13px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.28);
+  color:var(--ink);cursor:pointer;transition:border-color .15s}
+.pr-q:hover{border-color:rgba(55,224,236,.45)}
+.pr-q b{display:block;font-size:1rem}
+.pr-q .pr-a{display:none;margin-top:8px;font-size:.9rem;color:var(--mut)}
+.pr-q[aria-expanded="true"]{border-color:rgba(55,224,236,.5);background:rgba(55,224,236,.08)}
+.pr-q[aria-expanded="true"] .pr-a{display:block}
+/* el paso siguiente */
+.pr-pasos{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
+.pr-pasos li{font-size:.95rem}
+/* la tarjeta que lo abre, en «Gestionar grupos» */
+.gs-prestreno{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-color:rgba(245,176,67,.4);
+  background:radial-gradient(520px 200px at 10% -30%,rgba(255,209,102,.12),transparent 60%),rgba(13,20,32,.9)}
+.gs-prestreno .gs-pr-t{flex:1 1 340px;min-width:0}
+.gs-prestreno h3{margin:0 0 4px}
+.gs-prestreno p{margin:0;color:var(--mut);font-size:.9rem}

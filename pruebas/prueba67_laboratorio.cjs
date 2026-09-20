@@ -4637,6 +4637,16 @@ const REG = {};   // cifras que se apuntan para el informe
           vistos[el.tagName+el.className]=1;
           out.push('LETRA '+fs.toFixed(1)+'px '+el.tagName.toLowerCase()+(typeof el.className==='string'&&el.className?'.'+el.className.trim().split(/\s+/).slice(0,2).join('.'):'')+' «'+nd.nodeValue.trim().slice(0,30)+'»');
         }
+        // 🔴 20-sep · EL INTERROGANTE QUE NO EXPLICA NADA. Norberto: «al pasar el ratón en algunos sitios de la ficha
+        // del docente el ratón se convierte en un interrogante». Ese cursor es una promesa: si al pararse no sale
+        // nada -ni title, ni aria-label, ni un globo propio dentro-, la promesa no se cumple.
+        document.querySelectorAll('*').forEach(function(el){
+          if (getComputedStyle(el).cursor !== 'help') return;
+          var r = el.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return;
+          // el cursor se HEREDA: si quien lo explica es un padre (la cápsula con su title), el <b> de dentro no es el fallo
+          if (el.closest('[title], [aria-label]') || el.querySelector('[class*="tip"], [role=tooltip]')) return;
+          out.push('AYUDA-SIN-AYUDA '+el.tagName.toLowerCase()+(typeof el.className==='string'&&el.className?'.'+el.className.trim().split(/\s+/).slice(0,2).join('.'):'')+' «'+String(el.textContent||'').trim().replace(/\s+/g,' ').slice(0,30)+'»');
+        });
         return out;
       })()`;
       const GOOGLE = /«Iniciar sesión con Google»/;
@@ -4699,8 +4709,11 @@ const REG = {};   // cifras que se apuntan para el informe
       for (const pg of ["foro.html?per=lab-clase", "diploma.html?per=lab-clase", "huevo.html?h=noexiste&c=x&t=r"]) { await sb.ir(pg); await sb.hasta(libre, 30); await barrer(sb, pg.split("?")[0]); }
       await sb.cerrar();
       const lista = Object.keys(hallado);
-      c("🔴 sin grises · ningún botón, desplegable ni campo con el gris (o el blanco) del navegador", !lista.filter(x => !/^LETRA/.test(x)).length,
-        lista.filter(x => !/^LETRA/.test(x)).slice(0, 6).map(x => x + " ← " + [...new Set(hallado[x])].slice(0, 3).join(", ")).join(" ‖ "));
+      c("🔴 sin grises · ningún botón, desplegable ni campo con el gris (o el blanco) del navegador", !lista.filter(x => !/^(LETRA|AYUDA-SIN-AYUDA)/.test(x)).length,
+        lista.filter(x => !/^(LETRA|AYUDA-SIN-AYUDA)/.test(x)).slice(0, 6).map(x => x + " ← " + [...new Set(hallado[x])].slice(0, 3).join(", ")).join(" ‖ "));
+      c("🔴 sin interrogantes vacíos · el cursor de ayuda solo donde hay algo que leer",
+        !lista.filter(x => /^AYUDA-SIN-AYUDA/.test(x)).length,
+        lista.filter(x => /^AYUDA-SIN-AYUDA/.test(x)).slice(0, 5).map(x => x + " ← " + [...new Set(hallado[x])].slice(0, 3).join(", ")).join(" ‖ "));
       c("🔴 sin letra diminuta · nada por debajo de 12 px", !lista.filter(x => /^LETRA/.test(x)).length,
         lista.filter(x => /^LETRA/.test(x)).slice(0, 6).map(x => x + " ← " + [...new Set(hallado[x])].slice(0, 3).join(", ")).join(" ‖ "));
     }

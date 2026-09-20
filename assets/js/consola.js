@@ -438,9 +438,9 @@
         '<div class="cn-ficha-t"><div class="eyebrow teal">La Nave del Comandante</div><h3>' + esc(nombre) + '</h3>' +
           '<p class="small"><b>Comandante' + (soyRefAlguno() ? ' referente' : '') + '</b>' + (mio ? ' · en este grupo, «' + esc(mio) + '»' : '') +
             (emb.nombre ? ' · escuadrón <b>' + esc(emb.nombre) + '</b>' : '') + (YO && YO.correo ? ' · <span class="muted">' + esc(YO.correo) + '</span>' : '') + '</p>' +
-          '<p class="monedas"><span class="m xp"><b>' + V.length + '</b> ' + (V.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span>' +
-            '<span class="m cred"><b>' + total + '</b> ' + (total === 1 ? "recluta a tu cargo" : "reclutas a tu cargo") + '</span>' +
-            (emb.img ? '<span class="m emb"><img src="' + esc(emb.img) + '" alt="" loading="lazy"></span>' : '') + '</p>' +
+          '<p class="monedas"><span class="m xp" title="Los grupos de STARGATE en los que das clase ahora mismo. Los terminados no cuentan."><b>' + V.length + '</b> ' + (V.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span>' +
+            '<span class="m cred" title="Todo el alumnado de esos grupos, sumado."><b>' + total + '</b> ' + (total === 1 ? "recluta a tu cargo" : "reclutas a tu cargo") + '</span>' +
+            (emb.img ? '<span class="m emb" title="' + esc(emb.nombre ? "Tu escuadrón en este grupo: " + emb.nombre : "Tu escuadrón en este grupo") + '"><img src="' + esc(emb.img) + '" alt="" loading="lazy"></span>' : '') + '</p>' +
         '</div>' +
         '<div class="cn-ficha-b">' + selectorDeGrupo() + selectorModo() +
           '<button type="button" class="btn min" id="doc-ajustes-b" data-av aria-expanded="false">' + ico("ajustes") + ' Ajustes</button></div>' +
@@ -1559,6 +1559,19 @@
       '<div class="card gs-cab">' + ico("ajustes", "grande") + '<div class="gs-cab-t"><div class="eyebrow amber">Solo referentes</div><h2>Gestionar grupos</h2>' +
         '<p class="small muted">Lo que se hace una o dos veces por curso: crear, el equipo docente, los escuadrones, los ajustes y el calendario de cada grupo, mover reclutas, graduar y borrar. Nada de esto sale en tu Nave.</p></div>' +
         '<a class="btn primary" href="crear.html">+ Crear un grupo</a></div>' +
+      /**
+       * 🔴 20-sep · LA PRESENTACIÓN PARA EL EQUIPO, AQUÍ. Norberto: «esta presentación está disponible si eres
+       * profe referente. Piensa dónde colocarla en su Nave del Comandante». Va en «Gestionar grupos» y no en la
+       * Nave por una razón: la Nave es POR GRUPO y esto no es de ningún grupo — es del equipo, y se hace una vez
+       * por curso, que es exactamente lo que esta página reúne. Además, solo la ve el referente, que es quien
+       * convoca la reunión.
+       */
+      '<div class="card gs-prestreno">' + ico("brujula", "grande") +
+        '<div class="gs-pr-t"><div class="eyebrow amber">Antes de empezar el curso</div><h3>Presentar STARGATE al equipo</h3>' +
+        '<p>La reunión de arranque, montada para proyectar: la historia, el temario planeta a planeta, las semanas, ' +
+        'cómo se gana y qué tiene que hacer el docente. Para quien va a dar la asignatura por primera vez.</p></div>' +
+        '<a class="btn primary" href="prestreno.html" target="_blank" rel="noopener">' + ico("cohete") + ' Abrir la presentación ↗</a>' +
+        botonVentana("prestreno.html", "prestreno", "la presentación") + '</div>' +
       '<div class="gs-filtros" role="group" aria-label="Qué grupos">' + FIL.filter(function (x) { return x[0] === "todos" || cuenta[x[0]]; }).map(function (x) {
         return '<button type="button" class="chip' + (FILTRO_G === x[0] ? " on" : "") + '" data-gfiltro="' + x[0] + '" aria-pressed="' + (FILTRO_G === x[0]) + '">' + x[1] + ' · ' + (cuenta[x[0]] || 0) + '</button>'; }).join("") + '</div>' +
       '<div class="gs-tabla">' + (vis.length ? vis.map(fila).join("") : '<p class="muted">Ningún grupo aquí.</p>') + '</div>';

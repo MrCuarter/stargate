@@ -12,7 +12,7 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, REFLEXION_RETOS, TOPE_RETOS_SEMANA, SESION_SECCIONES, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
-                        PASOS, ESCUADRONES, PER_DEMO, TICKET_URL, TICKET_TEMAS, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
+                        PASOS, ESCUADRONES, PER_DEMO, PER_ESCUELA, TICKET_URL, TICKET_TEMAS, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES,
                         HITOS_A_BORDO, CUBIERTAS_A_BORDO, HEROES_A_BORDO, CARTA_A_BORDO, BATALLA, SIN_PUA, VOTACION)
 # Los logros de a bordo, tal y como los lee el navegador (un dato, un sitio: _site_data.py)
@@ -2819,6 +2819,32 @@ al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></heade
 ''' + FOOT
 html=(SESION.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
 open(os.path.join(HERE,"sesion.html"),"w",encoding="utf-8").write(html); print("escrito: sesion.html")
+
+# ================= 20-sep · EL PRESTRENO: la presentación para el equipo docente =================
+# 🔴 Norberto: «monta la presentación. Debe ser visual, usar los recursos de STARGATE, interactiva… como las
+# sesiones semanales. La diferencia clave: está orientada a docentes primerizos que van a impartir la asignatura
+# y usar STARGATE por primera vez. Esta presentación está disponible si eres profe referente».
+#
+# Se parece a la sesión de clase A PROPÓSITO: el mismo mazo, las mismas flechas, la misma barra. Quien la ve
+# proyectada está viendo el producto funcionando, que convence más que cualquier explicación. Su contenido es el
+# de la PARTE 0 de la guía del profesorado (Project_CCD/GUIA_PROFES_PDF.md), y los datos —planetas, semanas,
+# retos, capítulos, tripulación— salen de `_site_data.py`: un dato, un sitio.
+PRESTRENO = head("STARGATE · Presentar al equipo docente",
+                 "La presentación para el equipo: la historia, el temario planeta a planeta, las semanas, las mecánicas y qué hace el docente. Para proyectar en la reunión de arranque.",
+                 "cla", puerta=True) + f'''
+<header class="hero corto"><div class="kicker">Solo referentes</div><h1>Presentar STARGATE al equipo</h1>
+<p>La reunión de arranque, montada para proyectar: de qué va la historia, <b>el temario planeta a planeta</b>,
+las {len(CRONO)} semanas, cómo se gana y —lo que más tranquiliza— <b>qué tiene que hacer el docente y qué no</b>.
+Pasa con <b>←</b> y <b>→</b>; el mapa de planetas y las preguntas se abren pulsando.</p>
+<p class="small muted">El guion completo, con los minutos de cada bloque y qué decir en cada uno, está en la
+<b>Parte 0</b> de la guía del profesorado.</p></header>
+<section><div class="wrap"><div id="prestreno-app"></div>
+<script>window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_PER_ESCUELA={json.dumps(PER_ESCUELA)};</script>
+<script src="assets/js/prestreno.js" defer></script>
+</div></section>
+''' + FOOT
+html=(PRESTRENO.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
+open(os.path.join(HERE,"prestreno.html"),"w",encoding="utf-8").write(html); print("escrito: prestreno.html  (la presentación del equipo, solo referentes)")
 
 # ================= v3.63 · PRUEBA EN PARALELO DEL LOGIN DE GOOGLE =================
 # 🔴 Esta pagina NO va en el menu, ni en el pie, ni enlazada desde ningun sitio. Es un banco de
