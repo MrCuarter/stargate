@@ -49,8 +49,9 @@ const GEN = JSON.parse((leer("consola.html").match(/window\.SG_COMANDANTES_GEN=(
 c(GEN.length >= 26 && GEN.every((k, i) => k === "c" + (i + 1) && fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes", k + ".jpg"))),
   "   los comandantes genéricos, en orden y todos con su imagen (rubios, castaños, pelirrojos, veteranos y alienígenas)", GEN.join(" "));
 // 20-sep · las cifras abren el Puente (debajo del banner del grupo) y NEBULA asoma como el globo del onboarding
-c(/function resumenGrupo\(t, gente\)/.test(CONS) && /'<div class="pt">' \+\s*\n?\s*resumenGrupo\(t, gente\)/.test(CONS), "🔴 dentro del grupo, sus cifras de un vistazo (activos, sin estrenarse, destacados), lo primero del Puente");
-c(/function nebulaFlotante\(consejos\)/.test(CONS) && /d\.className = "neb-flota"/.test(CONS) && /\.neb-flota\{position:fixed/.test(CSS), "   y NEBULA, en una ventanita que se cierra");
+c(/function resumenGrupo\(t, gente, extra\)/.test(CONS) && /'<div class="pt">' \+\s*\n?\s*resumenGrupo\(t, gente,/.test(CONS), "🔴 dentro del grupo, sus cifras de un vistazo (activos, sin estrenarse, destacados), lo primero del Puente");
+// 20-sep · NEBULA vive DENTRO de esa caja: un botón grande que la abre por debajo
+c(/id="c-neb-b"/.test(CONS) && /function cablearBotonNebula\(\)/.test(CONS) && /\.c-neb-p\{/.test(CSS) && !/neb-flota/.test(CONS), "   y NEBULA, en un botón dentro de esa misma caja");
 // 20-sep · un solo paso: «un docente empezará la clase, en ese enlace ya están incluidos los pasos 2 y 3»
 c(/function bannerGrupo\(t\)/.test(CONS) && /class="gr-acc"/.test(CONS) && /Empezar la clase/.test(CONS)
   && !/Llamada a filas<\/b>/.test(CONS.slice(CONS.indexOf("function bannerGrupo"), CONS.indexOf("var SECCIONES"))), "🔴 dentro del grupo, un solo paso: empezar la clase (la llamada y las herramientas van dentro)");

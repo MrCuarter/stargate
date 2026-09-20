@@ -4867,21 +4867,26 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 al entrar en el grupo, la portada: semana, vídeo, retos, el panel embebido, el mensaje del foro y el mensaje a tus reclutas",
         hayP && await rp.js("!!document.querySelector('.pt-video') && !!document.querySelector('.pt-retos') && !document.getElementById('pt-notas') && !!document.getElementById('pt-msg-txt') && !!document.querySelector('.pt-panel-marco iframe') && !!document.getElementById('ht-foro-txt')"));
       c("   y la sección encendida es el Puente", await rp.js("(document.querySelector('.pest.activa')||{getAttribute:function(){return ''}}).getAttribute('data-tab')==='portada'"));
-      // NEBULA, encima de las cifras, escribiendo su consejo
+      // 🔴 20-sep · las cifras: aro que se llena, PORCENTAJE dentro y la fracción al pasar por encima
+      const don = JSON.parse(await rp.js(`JSON.stringify([].slice.call(document.querySelectorAll('.c-cifra')).map(function(x){
+        var d=x.querySelector('.c-don'); return [ (d.querySelector('.c-don-n')||{}).textContent, d.getAttribute('title'), (d.querySelector('.val')||{style:{}}).style.strokeDashoffset ]; }))`));
+      c("🔴 cifras · cada una con su aro lleno a su porcentaje y la fracción al pasar por encima",
+        don.length >= 4 && don.every(x => /^\d+%$/.test(String(x[0]).replace(/\s/g, "")) && /^\d+\/\d+$/.test(x[1]) && parseFloat(x[2]) >= 0), JSON.stringify(don.slice(0, 3)));
+      // NEBULA, dentro de esa caja: su botón abre los consejos debajo
+      c("🔴 NEBULA · un botón en la caja de cifras, con el primer consejo asomando", await rp.js("!!document.getElementById('c-neb-b') && !!document.querySelector('.c-neb-prev')"));
+      await rp.js("var b=document.getElementById('c-neb-b'); if(b && document.getElementById('c-neb-p').hidden) b.click(); 1"); await dormir(400);
       const neb = await rp.hasta("(document.getElementById('pt-neb-p')||{}).textContent.length>40 && !document.getElementById('pt-neb-p').classList.contains('escribe')", 20);
-      // 20-sep · NEBULA ya no ocupa media portada: asoma como el globo del onboarding y se cierra
-      c("🔴 NEBULA · un consejo sobre su gente, escrito a máquina, en su ventanita", neb &&
-        await rp.js("!!document.querySelector('#cn-neb-flota.neb-flota')"),
+      c("   y al pulsarlo, el consejo se escribe a máquina dentro de la caja", neb && await rp.js("!document.getElementById('c-neb-p').hidden"),
         await rp.js("(document.getElementById('pt-neb-p')||{}).textContent"));
-
       if (await rp.js("!!document.getElementById('pt-neb-otro')")) {
         const antesN = await rp.js("document.getElementById('pt-neb-p').textContent");
         await rp.js("document.getElementById('pt-neb-otro').click(); 1"); await dormir(2500);
-        c("   «Otro consejo» cambia el consejo", antesN !== await rp.js("document.getElementById('pt-neb-p').textContent"));
+        c("   «Siguiente consejo» cambia el consejo", antesN !== await rp.js("document.getElementById('pt-neb-p').textContent"));
       }
-      await rp.js("var x=document.getElementById('pt-neb-x'); if(x) x.click(); 1"); await dormir(400);
-      c("   y se cierra cuando molesta", await rp.js("!document.getElementById('cn-neb-flota')"));
-      await rp.js("try{sessionStorage.removeItem('sgNebCerrada')}catch(e){}; 1");
+      // y los destacados de la semana, con su cara
+      c("🔴 «Esta semana destacan»: cada quien con su cara, su alias y qué ha hecho",
+        await rp.js("document.querySelectorAll('.c-top-u').length>0 && !!document.querySelector('.c-top-u img.c-top-av') && /xp/.test((document.querySelector('.c-top-xp')||{}).textContent||'')"),
+        await rp.js("(document.querySelector('.c-top-u')||{}).innerText"));
       await rp.js("var d=document.querySelector('.pt-msg'); if(d) d.open=true; var b=document.querySelector('.c-res-ojo [data-escribir]'); if(b) b.click(); 1"); await dormir(500);
       c("   «Escribirles» elige a quién y lleva a la caja del mensaje", await rp.js("!document.querySelector('.c-res-ojo [data-escribir]') || (document.activeElement && document.activeElement.id==='pt-msg-txt' && document.querySelector('.pt-seg .on').getAttribute('data-dest')!=='todos')"));
       await rp.js("var b=document.querySelector('.pt-seg [data-dest=\"todos\"]'); b&&b.click(); window.scrollTo(0,0); 1");

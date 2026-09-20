@@ -215,6 +215,7 @@
       '<div class="foro-msg recortado" id="ht-foro-txt">' + esc(texto).replace(/\n/g, "<br>") + '</div>' +
       '<button type="button" class="leer-entero" id="ht-foro-mas">Leer entero</button>' +
       '<div class="ht-foro-caja" id="ht-foro-caja" hidden><label>Tu mensaje para la semana ' + sem + '<textarea id="ht-foro-in" rows="8" maxlength="4000">' + esc(texto) + '</textarea></label>' +
+        '<p class="small muted">Se guarda en <b>tu ficha</b>, no en este grupo: lo verás en todos tus grupos y en los que crees más adelante. Si lo borras, vuelve el oficial.</p>' +
         '<p class="pt-fila"><button type="button" class="btn primary" id="ht-foro-ok">Guardar para todos mis grupos</button>' +
         (propio ? ' <button type="button" class="btn min" id="ht-foro-of">Volver al oficial</button>' : '') +
         '<span class="small m-sec-msg" id="ht-foro-msg" aria-live="polite"></span></p></div>' +
@@ -1505,22 +1506,23 @@
    * derecha, se lee, se pide otro consejo y se cierra. Cerrarlo dura lo que dure la sesión del navegador: al día
    * siguiente vuelve a saludar, que es cuando el consejo sirve de algo.
    */
-  var NEB_CERRADA = (function () { try { return sessionStorage.getItem("sgNebCerrada") === "1"; } catch (e) { return false; } })();
-  function nebulaFlotante(consejos) {
-    var v = document.getElementById("cn-neb-flota"); if (v) v.remove();
-    if (!consejos || !consejos.length || NEB_CERRADA) return;
-    var d = document.createElement("div");
-    d.id = "cn-neb-flota"; d.className = "neb-flota"; d.setAttribute("role", "status");
-    d.innerHTML = '<img class="neb-flota-cara" src="assets/img/personajes/nebula.png" alt="">' +
-      '<div class="neb-flota-txt"><b>NEBULA</b><p id="pt-neb-p" aria-live="polite"></p>' +
-      '<p class="pt-neb-pie"><span id="pt-neb-acc"></span>' + (consejos.length > 1 ? '<button type="button" class="btn min" id="pt-neb-otro">Otro consejo</button>' +
-        '<span class="small muted" id="pt-neb-n"></span>' : '') + '</p></div>' +
-      '<button type="button" class="neb-flota-x" id="pt-neb-x" aria-label="Cerrar el consejo">✕</button>';
-    document.body.appendChild(d);
-    d.querySelector("#pt-neb-x").onclick = function () {
-      NEB_CERRADA = true; try { sessionStorage.setItem("sgNebCerrada", "1"); } catch (e) {}
-      d.remove();
+  /**
+   * 🔴 20-sep · EL BOTÓN DE NEBULA, EN LA CAJA DE CIFRAS. Norberto: «¿cómo verías meter en esa misma caja un botón
+   * relativamente grande con los consejos de NEBULA? Al hacer clic se amplía la caja por debajo y aparecen los
+   * consejos, uno detrás de otro, con un botón de llamada a la acción si es necesario y otro de siguiente consejo.
+   * Esto implica eliminar a NEBULA del desplegable de la parte inferior izquierda». Abierta o cerrada, se recuerda
+   * mientras dure la sesión del navegador: quien la quiere abierta no la abre en cada pantalla.
+   */
+  function nebAbierta() { try { return sessionStorage.getItem("sgNebAbierta") === "1"; } catch (e) { return false; } }
+  function cablearBotonNebula() {
+    var b = document.getElementById("c-neb-b"), p = document.getElementById("c-neb-p");
+    if (!b || !p) return;
+    var pon = function (abrir) {
+      p.hidden = !abrir; b.setAttribute("aria-expanded", String(abrir)); b.classList.toggle("on", abrir);
+      try { sessionStorage.setItem("sgNebAbierta", abrir ? "1" : "0"); } catch (e) {}
     };
+    b.onclick = function () { pon(p.hidden); };
+    pon(nebAbierta());
   }
   function cablearNebula(consejos, alHacer) {
     var p = document.getElementById("pt-neb-p"), n = document.getElementById("pt-neb-n"), acc = document.getElementById("pt-neb-acc"), i = 0, tic = null;
@@ -1636,7 +1638,7 @@
     var mioForo = ((FICHA && FICHA.foros) || {})[String(sem)] || "";
     var foroTxt = mioForo || foro;
     $("#c-cuerpo").innerHTML = '<div class="pt">' +
-      resumenGrupo(t, gente) +
+      resumenGrupo(t, gente, { lanzados: lanzados.length, retosSem: estos, consejos: consejos }) +
       (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
         '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente, bloqueForo(sem, foroTxt, !!mioForo)) + '</div>') +
       // 🔴 20-sep · «embebe el panel de control del grupo actual en "Mi nave" del comandante. Añade un botón para cambiar
@@ -1670,8 +1672,8 @@
       '</div>' +
     '</div>';
 
-    // 20-sep · NEBULA ya no ocupa media portada: asoma como el globo del onboarding, y se cierra
-    nebulaFlotante(consejos);
+    // 🔴 20-sep · NEBULA vive DENTRO de la caja de cifras: su botón abre los consejos ahí mismo
+    cablearBotonNebula();
     var mas = $("#ht-foro-mas"), txt = $("#ht-foro-txt");
     if (mas && txt) mas.onclick = function () { var a = txt.classList.toggle("abierto"); mas.textContent = a ? "Plegar" : "Leer entero"; };
     cablearForo(sem, foroTxt, mioForo);
@@ -3334,33 +3336,72 @@
       L.slice(0, 10).map(function (r) { return '<b>' + esc(r.alias) + '</b>'; }).join(" · ") + (L.length > 10 ? ' <em>y ' + (L.length - 10) + ' más</em>' : '') +
       ' <button type="button" class="btn min" data-av data-escribir="' + a + '">' + ico("mensaje") + ' Escribirles</button></p>';
   }
-  function resumenGrupo(t, gente) {
-    var R = gente || (t && t.reclutas) || [], n = R.length;
+  /**
+   * 🔴 20-sep · LAS CIFRAS DEL GRUPO, DE UN VISTAZO. Norberto: «no me gustan los círculos… ¿hay algo que simule un
+   * círculo que se llena en función del porcentaje completado? ¿podría aparecer un porcentaje con efecto de llenado y
+   * al poner el ratón encima que aparezca la fracción "5/17"?». Eso es: un aro que se llena al entrar, el PORCENTAJE
+   * dentro y la fracción al pasar por encima. Y en la misma caja, NEBULA (su botón abre los consejos aquí mismo) y
+   * los destacados de la semana con su cara, su alias y qué han hecho.
+   */
+  var DON_C = 213.6;   // la vuelta entera del aro (2·π·34)
+  function donut(hechos, total, cls, etiqueta) {
+    var pct = total ? Math.max(0, Math.min(100, Math.round(hechos * 100 / total))) : 0;
+    var falta = (DON_C * (100 - pct) / 100).toFixed(1);
+    return '<div class="c-don ' + cls + '" title="' + hechos + '/' + total + '" role="img" aria-label="' + esc(etiqueta) + ': ' + hechos + ' de ' + total + ', el ' + pct + ' %">' +
+      '<svg viewBox="0 0 80 80" aria-hidden="true"><circle class="pista" cx="40" cy="40" r="34"/>' +
+        '<circle class="val" cx="40" cy="40" r="34" style="stroke-dasharray:' + DON_C + ';stroke-dashoffset:' + falta + '"/></svg>' +
+      '<b class="c-don-n">' + pct + '<i>%</i></b>' +
+      '<span class="c-don-f">' + hechos + '/' + total + '</span></div>';
+  }
+  function cifra(hechos, total, cls, tit, pie) {
+    return '<div class="c-cifra">' + donut(hechos, total, cls, tit) +
+      '<span class="c-cifra-t"><b>' + hechos + ' ' + esc(tit) + '</b><em>' + esc(pie) + '</em></span></div>';
+  }
+  /** Qué ha hecho esta semana quien destaca: lo justo para nombrarlo en voz alta. */
+  function hitoDe(r, retosSem) {
+    var suyos = (retosSem || []).filter(function (x) { return (r.hechos || []).indexOf(x.id) >= 0; });
+    if (suyos.length) return suyos.length === 1 ? "ha hecho " + suyos[0].id : "ha hecho " + suyos.map(function (x) { return x.id; }).join(" y ");
+    if (r.corona) return "lleva la corona del grupo";
+    if (Number(r.n)) return "ya lleva " + r.n + (Number(r.n) === 1 ? " insignia" : " insignias");
+    return "se ha movido esta semana";
+  }
+  function resumenGrupo(t, gente, extra) {
+    var R = gente || (t && t.reclutas) || [], n = R.length, X = extra || {};
     if (!n) return '<div class="card c-resumen vacio"><b>Todavía no se ha alistado nadie.</b> <span class="small muted">Comparte la invitación: el código de clase está en <b>Reclutas</b>.</span> <button type="button" class="btn min" data-tab-ir="alumnado">Ir a Reclutas</button></div>';
     var activos = R.filter(function (r) { return Number(r.xp7) > 0; }).length;
     var sinNada = R.filter(function (r) { return !(r.hechos || []).length; }).length;
     var retos = R.reduce(function (a, r) { return a + (r.hechos || []).length; }, 0);
+    // el techo de los retos: lo que se podría haber registrado de lo ya lanzado (así el aro significa algo)
+    var posibles = Math.max(retos, n * Math.max(1, Number(X.lanzados) || 1));
     var top = R.filter(function (r) { return Number(r.xp7) > 0; }).sort(function (a, b) { return Number(b.xp7) - Number(a.xp7); }).slice(0, 3);
     var cola = 0; try { cola = pendientesCola(); } catch (e) {}
-    var pc = function (x) { return n ? Math.round(x * 100 / n) : 0; };
-    /**
-     * 🔴 20-sep · «esa caja debe ser más visual, incluso dinámica». Cada cifra lleva su aro de progreso —lo que
-     * representa sobre el total del grupo— y crece al entrar. Los números siguen siendo los mismos: lo que cambia es
-     * que de un vistazo se ve cuánto es «9 activos» sin tener que dividir mentalmente por 10.
-     */
-    var aro = function (v, total, cls) {
-      var p = total ? Math.max(0, Math.min(100, Math.round(v * 100 / total))) : 0;
-      return '<span class="c-aro ' + cls + '" style="--p:' + p + '"><i></i><b>' + v + '</b></span>';
-    };
-    return '<div class="card c-resumen"><div class="c-res-cifras">' +
-        '<div>' + aro(n, n, "todo") + '<span><b>alistados</b></span></div>' +
-        '<div>' + aro(activos, n, "bien") + '<span><b>activos</b>esta semana · ' + pc(activos) + ' %</span></div>' +
-        '<div>' + aro(retos, Math.max(retos, n), "retos") + '<span><b>retos</b>registrados</span></div>' +
-        '<div' + (sinNada ? ' class="ojo"' : '') + '>' + aro(sinNada, n, sinNada ? "aviso" : "bien") + '<span><b>sin estrenarse</b>todavía</span></div>' +
-        (cola ? '<div class="ojo">' + aro(cola, Math.max(cola, n), "aviso") + '<span><b>' + (cola === 1 ? "subida de nota" : "subidas de nota") + '</b>esperan tu visto bueno</span></div>' : '') +
+    var tipoG = ((DATOS.proyecto || {}).stargate || {}).tipo || "REGULAR";
+    var consejos = X.consejos || [];
+    return '<div class="card c-resumen">' +
+      '<div class="c-res-arriba">' +
+        '<div class="c-res-cifras">' +
+          cifra(n, n, "todo", n === 1 ? "alistado" : "alistados", "en tu escuadrón") +
+          cifra(activos, n, "bien", "activos", "esta semana") +
+          cifra(retos, posibles, "retos", "retos", "registrados de los lanzados") +
+          cifra(sinNada, n, sinNada ? "aviso" : "bien", "sin estrenarse", sinNada ? "aún no han registrado nada" : "todo el mundo ha empezado") +
+          (cola ? cifra(cola, n, "aviso", cola === 1 ? "subida de nota" : "subidas de nota", "esperan tu visto bueno") : "") +
+        '</div>' +
+        // 🔴 NEBULA, aquí dentro: «un botón relativamente grande que se adapte al espacio que le queda… al hacer clic
+        // se amplía la caja por debajo y aparecen los consejos, uno detrás de otro»
+        (consejos.length ? '<button type="button" class="c-neb-b" id="c-neb-b" aria-expanded="false" aria-controls="c-neb-p">' +
+          '<img src="assets/img/personajes/nebula.png" alt="">' +
+          '<span class="c-neb-t"><b>NEBULA</b><em>' + consejos.length + (consejos.length === 1 ? ' consejo para esta semana' : ' consejos para esta semana') + '</em>' +
+            '<em class="c-neb-prev">«' + esc(String(consejos[0].t || "").slice(0, 118)) + (String(consejos[0].t || "").length > 118 ? '…' : '') + '»</em></span>' +
+          '<span class="c-neb-mas" aria-hidden="true">▾</span></button>' : '') +
       '</div>' +
-      (top.length ? '<p class="c-res-top"><span>Esta semana destacan</span> ' + top.map(function (r) {
-        return '<b>' + esc(r.alias) + '</b> <em>+' + Number(r.xp7) + ' xp</em>'; }).join(" · ") + '</p>' : '') +
+      (consejos.length ? '<div class="c-neb-p" id="c-neb-p" hidden><p id="pt-neb-p" aria-live="polite"></p>' +
+        '<p class="pt-neb-pie"><span id="pt-neb-acc"></span>' + (consejos.length > 1 ? '<button type="button" class="btn min" id="pt-neb-otro">Siguiente consejo</button>' +
+          '<span class="small muted" id="pt-neb-n"></span>' : '') + '</p></div>' : '') +
+      (top.length ? '<div class="c-top"><b class="ht-sub">Esta semana destacan</b><div class="c-top-g">' + top.map(function (r) {
+          var cara = window.SG && SG.avatarImg ? SG.avatarImg(r.avatar, r.alias, "c-top-av" + (r.marco === "oro" ? " marco-oro" : ""), r.xp, tipoG) : "";
+          return '<div class="c-top-u">' + cara + '<span><b>' + esc(r.alias) + (r.corona ? ' <img class=ico src=assets/img/iconos/p/corona.png alt>' : '') + '</b>' +
+            '<em>' + esc(hitoDe(r, X.retosSem)) + '</em></span><span class="c-top-xp">+' + Number(r.xp7) + ' xp</span></div>';
+        }).join("") + '</div></div>' : '') +
       // 19-sep · «estudiantes activos, estudiantes pasivos… algo para que pueda ver lo que hace falta»
       filaNombres("En silencio esta semana", R.filter(function (r) { return !Number(r.xp7) && (r.hechos || []).length; }), "silencio") +
       filaNombres("Sin estrenarse", R.filter(function (r) { return !(r.hechos || []).length; }), "sin") +

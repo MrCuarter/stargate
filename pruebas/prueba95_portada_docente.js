@@ -50,10 +50,18 @@ c(/MOTOR\.avisarRecluta\(PER, r\.uid, \{ texto: txt, de: yoN, titulo: "Mensaje d
 c(/\["silencio", "En silencio"\]/.test(K) && /class="pt-seg"/.test(K), "   a todos, a los que están en silencio o a los que no se han estrenado (sin controles grises)");
 
 // ── 5 · NEBULA, sus consejos y los insights
-c(/function nebulaFlotante\(consejos\)/.test(K) && /nebulaFlotante\(consejos\);/.test(K), "🔴 NEBULA asoma como el globo del onboarding, y se cierra");
+// 🔴 20-sep · «¿cómo verías meter en esa misma caja un botón relativamente grande con los consejos de NEBULA?»
+c(/id="c-neb-b"/.test(K) && /function cablearBotonNebula\(\)/.test(K) && /cablearBotonNebula\(\);/.test(K) && !/neb-flota/.test(K),
+  "🔴 NEBULA es un botón dentro de la caja de cifras: al pulsarlo se abren los consejos debajo");
+c(/id="pt-neb-otro">Siguiente consejo/.test(K) && /id="pt-neb-acc"/.test(K), "   uno detrás de otro, con su llamada a la acción");
+// las cifras: un aro que se llena, el porcentaje dentro y la fracción al pasar por encima
+c(/function donut\(hechos, total, cls, etiqueta\)/.test(K) && /class="c-don-f"/.test(K) && /stroke-dashoffset/.test(K) && /@keyframes donLlena/.test(CSS),
+  "🔴 las cifras: un aro que se llena, el porcentaje dentro y la fracción al pasar por encima");
+c(/function hitoDe\(r, retosSem\)/.test(K) && /class="c-top-u"/.test(K) && /SG\.avatarImg\(r\.avatar, r\.alias, "c-top-av"/.test(K),
+  "🔴 «Esta semana destacan»: cada quien con su cara, su alias y qué ha hecho");
 c(/p\.classList\.add\("escribe"\)/.test(K) && /prefers-reduced-motion: reduce/.test(K), "   con efecto máquina de escribir (y sin él, si se pide menos movimiento)");
 c(/filaNombres\("En silencio esta semana"/.test(K) && /filaNombres\("Sin estrenarse"/.test(K), "🔴 los insights: quién está en silencio y quién sin estrenarse, con «Escribirles»");
-const src = K.slice(K.indexOf("  function consejosNebula(o) {"), K.indexOf("  var NEB_CERRADA"));
+const src = K.slice(K.indexOf("  function consejosNebula(o) {"), K.indexOf("  function nebAbierta()"));
 let consejos = null; try { consejos = new Function(src + "; return consejosNebula;")(); } catch (e) {}
 const r = (a, xp7, h) => ({ alias: a, xp7: xp7, hechos: h });
 const base = { sem: 5, total: 15, s: { tema: "Tema 3 · Sendara", tema_n: 3 }, antes: [{ id: "B2", titulo: "x" }], semanaDe: () => 4, semNuevoTema: true, cola: 2 };
