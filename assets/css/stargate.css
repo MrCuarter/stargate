@@ -3579,6 +3579,11 @@ body.fragmento{background:var(--bg)}
 .foro-crawl.f3 .fc-texto{visibility:visible;animation:fc-sube var(--dur,60s) linear both}
 @keyframes fc-sube{from{transform:translateY(var(--desde,100vh))}to{transform:translateY(var(--hasta,-200%))}}
 .fc-texto p{margin:0 0 .9em}
+/* en la proyección, lo mismo pero en grande: se lee desde el fondo del aula */
+.fc-texto .fc-h{font-size:clamp(.85rem,1.5vw,1.1rem);margin:.4em 0 .5em}
+.fc-texto .fc-ordenes{margin:0 0 .9em;gap:.45em}
+.fc-texto .fc-ordenes li{padding-left:1.3em;font-size:inherit;color:inherit}
+.fc-texto .fc-ordenes li::before{font-size:.7em;line-height:1.9}
 .fc-texto .fc-ep{text-align:center;margin:0;font-size:.78em;letter-spacing:.14em;text-transform:uppercase}
 .fc-texto .fc-tit{text-align:center;margin:.1em 0 .8em;font-size:1.7em;letter-spacing:.08em;text-transform:uppercase;color:#ffcf3f}
 .fc-texto .fc-firma{text-align:right}
@@ -5229,7 +5234,9 @@ body.con-planeta #consola-app .cn-secs{background:rgba(8,14,24,.7);backdrop-filt
 .c-don .pista{stroke:rgba(255,255,255,.08)}
 .c-don .val{stroke:var(--aro);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--aro) 55%,transparent))}
 .c-don-n{font-family:'Unbounded',sans-serif;font-size:1.15rem;color:#fff;font-variant-numeric:tabular-nums;line-height:1}
-.c-don-n i{font-style:normal;font-size:.62em;color:var(--mut);margin-left:1px}
+/* 🔴 el «%» del aro iba en .62em = 10,5 px: por debajo del mínimo de la casa (nada baja de 12). Lo cazó el
+   barrido de grises y letra diminuta del laboratorio, que hasta hoy no llegaba a mirar el Puente. */
+.c-don-n i{font-style:normal;font-size:.78rem;color:var(--mut);margin-left:1px}
 /* la fracción, al pasar por encima (y en el título, para quien no usa ratón) */
 .c-don-f{position:absolute;inset:0;display:grid;place-items:center;border-radius:50%;background:rgba(6,12,20,.92);
   color:#fff;font-weight:800;font-size:.95rem;font-variant-numeric:tabular-nums;opacity:0;transition:opacity .15s}
@@ -5355,6 +5362,15 @@ body.con-visor{overflow:hidden}
 .fc-meta{margin-left:auto;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--teal2,#8fe6ef)}
 .fc-cuerpo{padding:16px 22px;display:flex;flex-direction:column;gap:12px}
 .fc-cuerpo p{margin:0;font-size:1rem;line-height:1.65;color:#dfeaf6;text-wrap:pretty}
+/* 🔴 20-sep (tarde) · «que parezca un comunicado oficial de la nave STARGATE»: el encabezado de las órdenes y la
+   lista de retos, con su filete y su viñeta de rombo. Vale para la carta de la Nave y para la transmisión que se
+   proyecta, que ahora leen el mismo mensaje en bloques. */
+.fc-h{margin:6px 0 0;font-family:'Unbounded',sans-serif;font-size:.8rem;letter-spacing:.14em;color:var(--teal);
+  text-transform:uppercase;display:flex;align-items:center;gap:12px}
+.fc-h::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(55,224,236,.45),transparent)}
+.fc-ordenes{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+.fc-ordenes li{position:relative;padding-left:22px;font-size:.97rem;line-height:1.55;color:#dfeaf6}
+.fc-ordenes li::before{content:"◈";position:absolute;left:0;top:0;color:var(--amber);font-size:.8rem;line-height:1.75}
 .fc-firma{display:flex;align-items:center;gap:14px;padding:14px 22px;border-top:1px solid rgba(255,255,255,.07);
   background:rgba(255,255,255,.02)}
 .fc-av{width:56px;height:56px;border-radius:14px;object-fit:cover;flex:none;border:1px solid rgba(55,224,236,.45)}

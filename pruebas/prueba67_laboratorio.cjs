@@ -1411,7 +1411,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await nora.ir("recluta.html?per=lab-clase&semana=1");
       await nora.hasta("document.querySelectorAll('.nb-t').length>0", 25);
       const t1 = await tabs();
-      c("🔴 semana 1 · solo Mi nave, Mis retos y Mi botín (ni Mercado ni rankings)", JSON.stringify(t1) === JSON.stringify(["nave", "retos", "botin"]), JSON.stringify(t1));
+      // 🔴 20-sep · «El Archivo» está desde el primer día: los vídeos se coleccionan aunque casi todos estén cerrados
+      c("🔴 semana 1 · solo Mi nave, Mis retos, Mi botín y El Archivo (ni Mercado ni rankings)", JSON.stringify(t1) === JSON.stringify(["nave", "retos", "botin", "archivo"]), JSON.stringify(t1));
       c("semana 1 · una línea dice qué llega: «La semana que viene: 🛒 El Mercado Estelar»", /La semana que viene: .*Mercado Estelar/.test(await nora.texto()));
       await nora.hasta("!!document.querySelector('#nave-onboard.open')", 15);
       const q1 = await paso();
@@ -3694,8 +3695,9 @@ const REG = {};   // cifras que se apuntan para el informe
       // 19-sep · en la Nave del Comandante: brilla «Mi gente» (con su número) y la pestaña del grupo lleva el aviso
       await rita.ir("consola.html?per=" + P);
       const brilla = await rita.hasta("!!document.querySelector('.cn-t[data-sec=\"gente\"].pest-aviso .pest-n')", 45);
-      c("🔴 cola · con una subida de nota pendiente, «Mi gente» lo avisa (brilla y con su número) y la pestaña del grupo también",
-        brilla && (await rita.js("document.querySelector('.cn-t[data-sec=\"gente\"] .pest-n').textContent")) === "1" && (await rita.js("(document.querySelector('.cn-g.on .cn-g-n')||{}).textContent")) === "1",
+      // 🔴 20-sep · ya no hay rejilla de tarjetas de grupo (`.cn-g`): el aviso vive en la sección «Reclutas» de la barra
+      c("🔴 cola · con una subida de nota pendiente, «Reclutas» lo avisa: brilla y con su número",
+        brilla && (await rita.js("document.querySelector('.cn-t[data-sec=\"gente\"] .pest-n').textContent")) === "1",
         brilla ? await rita.js("document.querySelector('.cn-t[data-sec=\"gente\"]').textContent") : (await rita.texto()).slice(0, 200));
       await rita.foto(FOTOS + "/36-tarjeta-cola.png");
       if (brilla) {
@@ -4651,7 +4653,9 @@ const REG = {};   // cifras que se apuntan para el informe
       }
       for (const cm of ["premios", "sorteos", "ofertas"]) { await rb.ir("consola.html?comun=" + cm); await rb.hasta(libre, 40); await barrer(rb, "común " + cm); }
       await rb.ir("consola.html?per=lab-clase&tab=alumnado"); await rb.hasta("document.querySelectorAll('.cn-secs .pest').length>5", 75);
-      const pests = await rb.js("[].slice.call(document.querySelectorAll('.cn-secs .pest')).map(function(b){return b.getAttribute('data-tab')})");
+      // 🔴 20-sep · «Contacto» es la última de la barra y NO abre una pestaña: es un enlace al buzón. Sin filtrarlo,
+      // el barrido buscaba `.pest[data-tab="null"]` y reventaba.
+      const pests = await rb.js("[].slice.call(document.querySelectorAll('.cn-secs .pest')).map(function(b){return b.getAttribute('data-tab')}).filter(Boolean)");
       for (const t of pests) {
         await rb.js(`document.querySelector('.pest[data-tab="${t}"]').click(); 1`); await dormir(2000); await barrer(rb, "consola · " + t);
         if (await rb.js("!!document.getElementById('pe-nuevo')")) { await rb.js("document.getElementById('pe-nuevo').click(); 1"); await barrer(rb, "consola · premios (ventana)"); await rb.js("window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1"); }
@@ -4897,6 +4901,13 @@ const REG = {};   // cifras que se apuntan para el informe
       c("   «Escribirles» elige a quién y lleva a la caja del mensaje", await rp.js("!document.querySelector('.c-res-ojo [data-escribir]') || (document.activeElement && document.activeElement.id==='pt-msg-txt' && document.querySelector('.pt-seg .on').getAttribute('data-dest')!=='todos')"));
       await rp.js("var b=document.querySelector('.pt-seg [data-dest=\"todos\"]'); b&&b.click(); window.scrollTo(0,0); 1");
       await rp.foto(FOTOS + "/46-portada.png");
+      // 🔴 20-sep (tarde) · la carta del foro es un COMUNICADO: sus ÓRDENES DE LA SEMANA con los retos de verdad
+      await rp.js("document.getElementById('ht-foro').scrollIntoView({block:'start'}); 1"); await dormir(500);
+      const carta = await rp.js("(function(){ var c=document.querySelector('.foro-carta'); if(!c) return null; return {h:(c.querySelector('.fc-h')||{}).textContent||'', n:c.querySelectorAll('.fc-ordenes li').length, ps:c.querySelectorAll('.fc-cuerpo p').length, firma:(c.querySelector('.fc-firma b')||{}).textContent||''};})()");
+      c("🔴 foro · la carta se lee como un comunicado: sus ÓRDENES DE LA SEMANA y los retos en lista",
+        carta && /ÓRDENES DE LA SEMANA/.test(carta.h) && carta.n >= 1 && carta.ps >= 3 && /Comandante/.test(carta.firma), JSON.stringify(carta));
+      await rp.foto(FOTOS + "/46-carta-foro.png");
+      await rp.js("window.scrollTo(0,0); 1");
       await rp.js("var d=document.querySelector('.pt-ant'); if(d) d.open=true; 1"); await dormir(300);
       const nums = JSON.parse(await rp.js("JSON.stringify([].slice.call(document.querySelectorAll('.pt-reto .pt-n')).map(function(x){return x.textContent}))"));
       c("🔴 los retos ya lanzados, con cuántos los han hecho y el porcentaje", nums.length > 0 && nums.every(t => /^\d+\/\d+ · \d+ %$/.test(t)), JSON.stringify(nums.slice(0, 3)));
@@ -5270,6 +5281,17 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 escuela · y la sesión proyecta «Cómo os fue» con esas mismas respuestas",
         /%/.test(comofue) && !/No hay comentarios|no he podido leer/i.test(comofue), comofue.slice(0, 110).replace(/\n/g, " · "));
       await ne.foto(FOTOS + "/50-escuela-sesion.png");
+
+      // 🔴 y la TRANSMISIÓN proyectada: la semana 10 abre saga, así que lleva el mensaje del foro en grande
+      await ne.ir("sesion.html?per=nave-escuela&sem=10"); await ne.hasta("!!document.querySelector('.barra-pasos .p')", 90);
+      const hayForo = await ne.js("(function(){var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return x.title==='El mensaje'})[0]; if(!b) return 0; b.click(); return 1;})()");
+      if (hayForo) {
+        await ne.hasta("!!document.querySelector('.fc-texto')", 30); await dormir(1400);
+        const proy = await ne.js("(function(){var t=document.querySelector('.fc-texto'); return {h:(t.querySelector('.fc-h')||{}).textContent||'', n:t.querySelectorAll('.fc-ordenes li').length, enlaces:/https?:/.test(t.innerText)};})()");
+        c("🔴 foro · proyectado, el comunicado mantiene sus órdenes (y sigue sin enlaces)",
+          proy && /ÓRDENES DE LA SEMANA/.test(proy.h) && proy.n >= 1 && !proy.enlaces, JSON.stringify(proy));
+        await ne.foto(FOTOS + "/50-foro-proyectado.png");
+      }
 
       // y la Nave de un recluta, que es lo que el docente quiere enseñar
       await ne.ir("recluta.html?per=nave-escuela&demo=1&semana=15");

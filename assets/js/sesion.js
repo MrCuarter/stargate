@@ -421,13 +421,14 @@
    * grupo. La música es la épica de la miniserie de STARGATE (nuestra), 80 s: suena al llegar y se
    * apaga sola al pasar de diapositiva. Con «menos movimiento» en el sistema, el texto sale quieto.
    */
-  function foroParrafos(t){
-    return String(t||'').split('{id-del-PER}').join('')
-      .replace(/:?[ \t]*https?:\/\/\S+/g,'§')
-      .split(/\n\s*\n/).map(function(x){
-        return x.replace(/\s*\n\s*/g,' ').replace(/\s*§\s*$/,'.').replace(/\s*§\s*/g,' ')
-          .replace(/\s*·?\s*\(Clase\s*\d+\)\s*$/i,'').replace(/\s+([.,;:])/g,'$1').trim();
-      }).filter(function(x){ return x && x!=='.'; });
+  /**
+   * 🔴 20-sep (tarde) · UN DATO, UN SITIO. Esto era una copia de `SG.foroParrafos` con dos arreglos propios (fuera
+   * los enlaces, fuera el «(Clase 10)»), así que cualquier cambio en la forma del mensaje había que hacerlo dos
+   * veces. Ahora se usa la de la casa, que además devuelve el comunicado EN BLOQUES: lo que pasa, las órdenes de
+   * la semana y la firma. `proyectar` es lo que antes hacía esta copia.
+   */
+  function foroBloques(t){
+    return (window.SG && SG.foroParrafos) ? SG.foroParrafos(t, { proyectar: 1 }) : [];
   }
   /**
    * 18-sep · Norberto: «¿es posible poner automáticamente el nombre del Comandante en vez de "— Capitán"?».
@@ -440,7 +441,7 @@
     return String(txt||'').replace(/—\s*Capit[áa]n\b/g, '— '+firma);
   }
   function diaForo(s){
-    var ps=foroParrafos(conComandante(s.foro)); if(!ps.length) return null;
+    var ps=foroBloques(conComandante(s.foro)); if(!ps.length) return null;
     var pl=planeta(s.tema_n), titulo=(pl?pl[1]:s.tema)||'';
     /**
      * 17-sep · Norberto: «el mensaje de bienvenida no me convence: no tiene efecto Star Wars 3D. Usa el logo de STARGATE en
@@ -452,7 +453,10 @@
       +'<div class="fc-logo" aria-hidden="true"><span class="fc-marca">◈ STARGATE</span><span class="fc-lema">La Bitácora Estelar · Semana '+s.sem+'</span></div>'
       +'<div class="fc-marco"><div class="fc-texto">'
       +(titulo?'<h2 class="fc-tit">'+esc(titulo)+'</h2>':'')
-      +ps.filter(function(x){ return !/^—/.test(x); }).map(function(x){ return '<p>'+esc(x)+'</p>'; }).join('')
+      +ps.filter(function(b){ return b.t!=='firma'; }).map(function(b){
+        if(b.t==='h') return '<h3 class="fc-h">'+esc(b.x)+'</h3>';
+        if(b.t==='ul') return '<ul class="fc-ordenes">'+b.items.map(function(i){ return '<li>'+esc(i)+'</li>'; }).join('')+'</ul>';
+        return '<p>'+esc(b.x)+'</p>'; }).join('')
       /**
        * 🔴 20-sep · LA FIRMA DEL COMANDANTE, EN GRANDE. Norberto: «añade el mensaje del comandante de esa semana de
        * forma muy visual, con avatar de docente, sello, etc.». El avatar lo pone `montarForo` cuando quien proyecta es

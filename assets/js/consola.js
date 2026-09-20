@@ -216,9 +216,18 @@
    * veía «cortado») y la firma con SU comandante, SU nombre y el emblema de su escuadrón de sello.
    * Lo que se copia sigue siendo el texto plano: el foro de UNIR no entiende de sellos.
    */
+  /**
+   * 🔴 20-sep (tarde) · UN COMUNICADO, NO UN CORREO. Norberto: «que parezca un comunicado oficial de la nave
+   * STARGATE». El mensaje del foro ya viene en bloques (`SG.foroParrafos`): lo que pasa, las ÓRDENES DE LA SEMANA
+   * con sus retos y la firma. Aquí cada bloque se pinta como lo que es —encabezado, lista, párrafo— en vez de
+   * aplastarlo todo a párrafos seguidos, que es lo que lo hacía parecer un aviso cualquiera.
+   */
   function cartaForo(sem, texto, esc7) {
-    var P = (window.SG && SG.foroParrafos) ? SG.foroParrafos(texto) : String(texto || "").split(/\n\s*\n/);
-    var firma = P.length > 1 && /^—/.test(P[P.length - 1]) ? P.pop() : "";
+    var B = (window.SG && SG.foroParrafos) ? SG.foroParrafos(texto)
+          : String(texto || "").split(/\n\s*\n/).map(function (x) { return { t: "p", x: x }; });
+    var fb = B.filter(function (x) { return x.t === "firma"; })[0];
+    var firma = fb ? fb.x : "";
+    var P = B.filter(function (x) { return x.t !== "firma"; });
     var yoN = miNombreAqui() || (YO && (YO.nombre || YO.correo)) || "Tu Comandante";
     var av = (FICHA && FICHA.avatar) || "c1";
     var pAqui = PERS.filter(function (x) { return x.id === PER; })[0] || {}, emb = emblemaDe(pAqui);
@@ -228,7 +237,11 @@
     return '<article class="foro-carta" id="ht-foro-txt">' +
       '<header class="fc-cab"><span class="fc-marca">◈ STARGATE</span>' +
         '<span class="fc-meta">Bitácora de mando · Semana ' + sem + (clases ? ' · ' + esc(clases.replace(/[()]/g, "")) : "") + '</span></header>' +
-      '<div class="fc-cuerpo">' + P.map(function (x) { return '<p>' + esc(x) + '</p>'; }).join("") + '</div>' +
+      '<div class="fc-cuerpo">' + P.map(function (b) {
+        if (b.t === "h") return '<h4 class="fc-h">' + esc(b.x) + '</h4>';
+        if (b.t === "ul") return '<ul class="fc-ordenes">' + b.items.map(function (i) { return '<li>' + esc(i) + '</li>'; }).join("") + '</ul>';
+        return '<p>' + esc(b.x) + '</p>';
+      }).join("") + '</div>' +
       '<footer class="fc-firma">' +
         '<img class="fc-av" src="assets/img/avatares/comandantes/' + esc(av) + '.jpg" alt="" loading="lazy">' +
         '<span class="fc-quien"><b>' + esc(/^comandante/i.test(yoN) ? yoN : "Comandante " + yoN) + '</b>' +

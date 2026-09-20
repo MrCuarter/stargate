@@ -66,8 +66,15 @@ c(MAZO.indexOf("s.consejo") < 0, "🔴 el consejo del Capitán NO entra en ningu
 // 🔴 15-sep · el mensaje del foro SÍ se proyecta desde hoy (Norberto: «justo antes del vídeo, con música épica
 // y un efecto rollo Star Wars»), pero SOLO en su diapositiva, limpio: sin enlaces (en una proyección no se pulsan)
 // ni la marca del grupo. En cualquier otra diapositiva, no.
-const FORO = S.slice(S.indexOf("function foroParrafos("), S.indexOf("function cielo("));
-c(FORO.length > 200 && /https\?:/.test(FORO) && /id-del-PER/.test(FORO), "🔴 el mensaje del foro se proyecta solo en su apertura de saga, sin enlaces ni la marca del grupo");
+// 🔴 20-sep (tarde) · la limpieza dejó de ser una copia local: la hace `SG.foroParrafos(t,{proyectar:1})`, que
+// además devuelve el comunicado en bloques (las ÓRDENES DE LA SEMANA con sus retos). Un dato, un sitio.
+const COMUN = fs.readFileSync(path.join(RAIZ, "assets/js/stargate.js"), "utf8");
+c(/SG\.foroParrafos\(t,\s*\{\s*proyectar:\s*1\s*\}\)/.test(S) && S.indexOf("function foroParrafos(") < 0,
+  "🔴 la sesión limpia el mensaje del foro con el lector de la casa, no con una copia suya");
+c(/op\.proyectar[\s\S]{0,200}https\?:/.test(COMUN) && /id-del-PER/.test(COMUN),
+  "🔴 el mensaje del foro se proyecta solo en su apertura de saga, sin enlaces ni la marca del grupo");
+c(/t:\s*'ul'/.test(COMUN) && /t:\s*'h'/.test(COMUN) && /fc-ordenes/.test(S),
+  "🔴 y se proyecta como un comunicado: sus encabezados y sus órdenes, no un muro de párrafos");
 c(MAZO.split("s.foro").length === 2 && /diaForo\(s\)/.test(construir) && construir.indexOf("diaForo(s)") < construir.indexOf("deTipo('inicio')"),
   "   y justo antes del vídeo de inicio (ninguna otra diapositiva lo usa)");
 // 🔴 14-sep · Norberto: «"Nómbralos en voz alta. Los puntos los da el sistema; la ceremonia la haces tú"

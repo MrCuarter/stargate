@@ -224,10 +224,56 @@ window.SG.avatarSrc = function(av, alias, xp, tipoPer){
  * mano (para que quepa en una caja estrecha), y eso, dentro de una caja ancha, se ve «cortado». Aquí se deshacen esos
  * saltos: línea en blanco = párrafo nuevo, y dentro de un párrafo el texto fluye. Lo usan la sesión y la Nave.
  */
-window.SG.foroParrafos = function (t) {
-  return String(t || '').split('{id-del-PER}').join('')
-    .split(/\n\s*\n/).map(function (x) { return x.replace(/\s*\n\s*/g, ' ').replace(/\s+([.,;:])/g, '$1').trim(); })
-    .filter(Boolean);
+/**
+ * EL MENSAJE DEL FORO, EN BLOQUES. Un mensaje de estos no es una tirada de párrafos: es un comunicado, y tiene
+ * partes —lo que pasa, las órdenes de la semana y la firma—. Aquí se reconocen, para que la carta de la Nave y la
+ * transmisión que se proyecta puedan pintarlas como lo que son en vez de aplastarlo todo a párrafos.
+ *
+ * Lo que se reconoce, y por qué así: el texto se escribe en `FORO_DINAMIZADOR_STARGARTE.md` y tiene que seguir
+ * leyéndose bien PEGADO EN CRUDO en el foro de UNIR, que es lo que hace el docente. Por eso las marcas son las que
+ * cualquiera usaría escribiendo a mano:
+ *   · una línea que empieza por «·» es un punto de una lista;
+ *   · una línea corta EN MAYÚSCULAS, sola, es un encabezado;
+ *   · un bloque que empieza por «—» es la firma.
+ * Todo lo demás es un párrafo, con sus saltos de línea unidos.
+ *
+ * `op.proyectar`: para la sesión en clase. Quita los enlaces (en una proyección no se pulsan) y el «(Clase 10)» del
+ * final, que ahí sobra.
+ */
+window.SG.foroParrafos = function (t, op) {
+  op = op || {};
+  var txt = String(t || '').split('{id-del-PER}').join('');
+  if (op.proyectar) txt = txt.replace(/:?[ \t]*https?:\/\/\S+/g, '§');
+  var limpia = function (x) {
+    x = x.replace(/\s+([.,;:])/g, '$1').trim();
+    if (op.proyectar) x = x.replace(/\s*§\s*$/, '.').replace(/\s*§\s*/g, ' ').replace(/\s*·?\s*\(Clases?\s*[^)]*\)\s*$/i, '').trim();
+    return x;
+  };
+  var esItem = function (l) { return /^\s*[·•-]\s+/.test(l); };
+  var esTitulo = function (l) { return l.length <= 46 && /[A-ZÁÉÍÓÚÑ]/.test(l) && l === l.toUpperCase() && !/[.:!?]$/.test(l); };
+  var out = [];
+  txt.split(/\n\s*\n/).forEach(function (trozo) {
+    var lineas = trozo.split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+    if (!lineas.length) return;
+    if (/^—/.test(lineas[0])) { var f = limpia(lineas.join(' ')); if (f) out.push({ t: 'firma', x: f }); return; }
+    if (lineas.some(esItem)) {
+      var cab = [], items = [];
+      lineas.forEach(function (l) {
+        if (esItem(l)) items.push(limpia(l.replace(/^\s*[·•-]\s+/, '')));
+        else if (!items.length) cab.push(l);
+      });
+      var titulo = cab.join(' ').trim();
+      if (titulo && esTitulo(titulo)) out.push({ t: 'h', x: titulo });
+      else if (titulo) out.push({ t: 'p', x: limpia(titulo) });
+      items = items.filter(Boolean);
+      if (items.length) out.push({ t: 'ul', items: items });
+      return;
+    }
+    var uno = limpia(lineas.join(' '));
+    if (!uno || uno === '.') return;
+    out.push({ t: esTitulo(uno) ? 'h' : 'p', x: uno });
+  });
+  return out;
 };
 window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
   var ea = function(x){ return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); };
