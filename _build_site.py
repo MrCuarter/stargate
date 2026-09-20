@@ -1408,6 +1408,42 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
   Array.prototype.forEach.call(document.querySelectorAll('.yt'),function(el){
     el.addEventListener('click',function(){playYT(el);});
     el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();playYT(el);}});});
+  /**
+   * 🔴 20-sep · EL VISOR: los vídeos se ven AQUÍ. Norberto: «haz que los vídeos se reproduzcan en la propia web, un
+   * visor de vídeos; no hagas que lleve a YouTube (si es posible)». Se abre encima, con el título y el botón de cerrar
+   * (✕, Escape o pulsando fuera). El reproductor sigue siendo el de YouTube —sin cookies, sin vídeos relacionados y con
+   * su marca al mínimo—, que es la única forma de ver lo que está alojado allí, pero ya no hay ningún enlace que saque
+   * a nadie de la Nave.
+   */
+  function visorAbrir(id, titulo){
+    if(!id) return;
+    var limpio=function(t){ return String(t||'').replace(/[&<>"]/g,''); };
+    var v=document.getElementById('sg-visor');
+    if(!v){
+      v=document.createElement('div'); v.id='sg-visor'; v.className='sg-visor';
+      v.setAttribute('role','dialog'); v.setAttribute('aria-modal','true'); v.setAttribute('aria-label','Reproductor de vídeo');
+      document.body.appendChild(v);
+      v.addEventListener('click',function(e){ if(e.target===v||(e.target.closest&&e.target.closest('[data-visor-x]'))) visorCerrar(); });
+      document.addEventListener('keydown',function(e){ if(e.key==='Escape') visorCerrar(); });
+    }
+    v.innerHTML='<div class="sgv-caja"><div class="sgv-cab"><b>'+limpio(titulo)+'</b>'
+      +'<button type="button" class="sgv-x" data-visor-x aria-label="Cerrar el vídeo">✕</button></div>'
+      +'<div class="sgv-pant"><iframe src="https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&rel=0&modestbranding=1&playsinline=1&color=white" '
+      +'title="'+limpio(titulo||'Vídeo')+'" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div></div>';
+    v.classList.add('abierto'); document.body.classList.add('con-visor');
+  }
+  function visorCerrar(){
+    var v=document.getElementById('sg-visor'); if(!v||!v.classList.contains('abierto')) return;
+    v.classList.remove('abierto'); v.innerHTML=''; document.body.classList.remove('con-visor');
+  }
+  window.SG.VISOR={ abrir: visorAbrir, cerrar: visorCerrar };
+  // cualquier cosa con data-video (la pinte quien la pinte, ahora o después) abre el visor
+  document.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest&&e.target.closest('[data-video]');
+    if(!b) return;
+    e.preventDefault();
+    visorAbrir(b.getAttribute('data-video'), b.getAttribute('data-video-t')||'');
+  });
   // copiar mensajes del foro
   Array.prototype.forEach.call(document.querySelectorAll('button.copy[data-copy]'),function(b){
     b.addEventListener('click',function(){var t=document.getElementById(b.getAttribute('data-copy')); if(!t) return;
@@ -1477,6 +1513,16 @@ window.SG.avatarSrc = function(av, alias, xp, tipoPer){
          // escribe su propia dirección). Se descarta. Los paréntesis, codificados (por los url() del CSS).
          if(!/^https?:\/\//i.test(u) || /["'<>`\\\s]/.test(u)) u=''; else u=u.replace(/\(/g,'%28').replace(/\)/g,'%29'); }
   return { src: u || fallback, fallback: fallback, rango: window.SG.RANGOS[r-1], r: r, evo: !u };
+};
+/**
+ * 🔴 20-sep · EL MENSAJE DEL FORO, EN PÁRRAFOS DE VERDAD. El texto viene del calendario con saltos de línea puestos a
+ * mano (para que quepa en una caja estrecha), y eso, dentro de una caja ancha, se ve «cortado». Aquí se deshacen esos
+ * saltos: línea en blanco = párrafo nuevo, y dentro de un párrafo el texto fluye. Lo usan la sesión y la Nave.
+ */
+window.SG.foroParrafos = function (t) {
+  return String(t || '').split('{id-del-PER}').join('')
+    .split(/\n\s*\n/).map(function (x) { return x.replace(/\s*\n\s*/g, ' ').replace(/\s+([.,;:])/g, '$1').trim(); })
+    .filter(Boolean);
 };
 window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
   var ea = function(x){ return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); };

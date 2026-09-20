@@ -422,7 +422,6 @@
    * Es el orden del viaje, de la semana 1 a la última: lo que ya ha llegado se ve; lo de semanas futuras, con candado
    * (como los planetas); y los FRAGMENTOS, solo si te los has ganado —o cuando se abren para todos—.
    */
-  var ARCH={abierto:''};
   function archivo(){
     var L=st.semanas||[], hasta=Math.min(Math.max(st.actual||0,0),L.length);
     var total=0, tengo=0, filas=L.map(function(s){
@@ -439,13 +438,10 @@
                 +(fr?tapaFragmento(fr):'<div class="frag-tapa"><img class=ico src=assets/img/iconos/p/candado.png alt><b>???</b><span>Llega en la <b>semana '+s.sem+'</b></span></div>')
                 +'</article>';
             }
-            var jug=ARCH.abierto===y.id;
-            return '<article class="ar-v'+(fr?' es-frag':'')+(jug?' on':'')+'">'
-              +(jug
-                ? '<div class="ar-pant"><iframe src="https://www.youtube-nocookie.com/embed/'+esc(y.id)+'?autoplay=1&rel=0&modestbranding=1" title="'+esc(y.titulo)+'" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>'
-                : '<button type="button" class="ar-poster" data-arch="'+esc(y.id)+'" aria-label="Ver «'+esc(y.titulo)+'»">'
-                  +'<img src="https://i.ytimg.com/vi/'+esc(y.id)+'/hqdefault.jpg" alt="" loading="lazy">'
-                  +'<span class="cine-play" aria-hidden="true">▶</span></button>')
+            return '<article class="ar-v'+(fr?' es-frag':'')+'">'
+              +'<button type="button" class="ar-poster" data-video="'+esc(y.id)+'" data-video-t="'+esc(y.titulo)+'" aria-label="Ver «'+esc(y.titulo)+'»">'
+                +'<img src="https://i.ytimg.com/vi/'+esc(y.id)+'/hqdefault.jpg" alt="" loading="lazy">'
+                +'<span class="cine-play" aria-hidden="true">▶</span></button>' 
               +'<div class="ar-txt"><b>'+esc(y.titulo)+'</b>'+(nota?'<em>'+esc(nota)+'</em>':'')
               +(fr?'<span class="ar-chip"><img class=ico src=assets/img/iconos/p/estrella.png alt> Fragmento '+fr.n+'</span>':'')+'</div></article>';
           }).join('')+'</div></section>';
@@ -516,16 +512,6 @@
     var viejo=document.querySelector('.cine'); if(!viejo) return;
     var tmp=document.createElement('div'); tmp.innerHTML=cine();
     if(tmp.firstChild) viejo.parentNode.replaceChild(tmp.firstChild, viejo);
-  });
-  // 20-sep · el Archivo: se abre el vídeo en su propia tarjeta (y se repinta solo esa sección)
-  document.addEventListener('click', function(ev){
-    var b=ev.target.closest&&ev.target.closest('[data-arch]');
-    if(!b||!b.closest('.archivo')) return;
-    ARCH.abierto=b.getAttribute('data-arch');
-    var viejo=document.querySelector('.archivo'); if(!viejo) return;
-    var tmp=document.createElement('div'); tmp.innerHTML=archivo();
-    if(tmp.firstChild) viejo.parentNode.replaceChild(tmp.firstChild, viejo);
-    var nuevo=document.querySelector('.ar-v.on'); if(nuevo) nuevo.scrollIntoView({block:'center', behavior:'smooth'});
   });
 
   /**
@@ -1824,8 +1810,7 @@
   var TABS=[['nave','nave','Mi nave'],['retos','retos','Mis retos'],['botin','botin','Mi botín'],
             ['archivo','archivo','El Archivo'],
             ['mercado','mercado','Mercado Estelar'],['zoco','zoco','El Zoco'],['rankings','rankings','Rankings'],['envivo','envivo','En vivo']];
-  // (el Archivo aún no tiene icono de la lámina de la Nave: usa el pictograma de vídeo, del mismo juego)
-  function iconoTab(k){ return '<img class="i" src="'+(k==='archivo'?'assets/img/iconos/p/video.png':'assets/img/nave/iconos/'+k+'.png')+'" alt="" width="26" height="26" aria-hidden="true">'; }
+  function iconoTab(k){ return '<img class="i" src="assets/img/nave/iconos/'+k+'.png" alt="" width="26" height="26" aria-hidden="true">'; }
   var TABS_VIEJAS={ficha:'nave',semana:'nave',planetas:'retos',premios:'mercado',tablero:'rankings'};
   // ================= LA NAVE POR CAPÍTULOS (13-sep) =================
   // Norberto: «de primeras no quiero que puedan hacer mil cosas, esto puede agobiar; que se

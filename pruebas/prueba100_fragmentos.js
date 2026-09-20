@@ -42,7 +42,11 @@ c(!/data-cine-play/.test(REC.slice(REC.indexOf("var fr=fragDe(v.id)"), REC.index
 c(/\['archivo','archivo','El Archivo'\]/.test(REC) && /if\(st\.tab==='archivo'\)  return archivo\(\);/.test(REC), "🔴 la Nave tiene «El Archivo»");
 c(/function archivo\(\)/.test(REC) && /La historia, fragmento a fragmento/.test(REC) && /\.ar-grid\{/.test(CSS), "   con todos los vídeos en orden");
 c(/de '\+FRAGS\.length\+' fragmentos/.test(REC), "   y el marcador de cuántos fragmentos llevas");
-c(/ARCH\.abierto=b\.getAttribute\('data-arch'\)/.test(REC), "   cada vídeo se abre en su tarjeta");
+// 20-sep · y se ven en la web: el visor, no YouTube
+c(/data-video="'\+esc\(y\.id\)\+'"/.test(REC) && /window\.SG\.VISOR=\{ abrir: visorAbrir/.test(leer("assets/js/stargate.js")) && /\.sg-visor\{position:fixed/.test(leer("assets/css/stargate.css")),
+  "🔴 cada vídeo se abre en el visor de la propia web");
+c(!/youtu\.be/.test(leer("assets/js/consola.js")) && /data-video="' \+ esc\(y\.id\)/.test(leer("assets/js/consola.js")),
+  "   y «Hoy toca» ya no saca a nadie a YouTube");
 c(/class="ar-v cerrada"/.test(REC) && /Llega en la <b>semana/.test(REC), "   lo de semanas futuras, con candado");
 
 // ── 4 · al completar el reto, el vídeo en la ventana de recompensa
@@ -53,6 +57,17 @@ c(/FRAGMENTO DESBLOQUEADO/.test(REC) && /class="logro-video"/.test(REC) && /\.lo
 c(/Number\(f\.publica\)===Number\(s\.sem\)/.test(SES) && /El fragmento, ya para todos/.test(SES),
   "🔴 la sesión proyecta cada fragmento en su semana pública, no en la suya");
 c(/if\(f && Number\(f\.publica\)!==Number\(s\.sem\)\) return;/.test(SES), "   y no lo enseña antes de tiempo");
+
+// ── 6 · el material gráfico: su icono, y ninguno con el fondo pegado
+c(fs.existsSync(path.join(R, "assets/img/nave/iconos/archivo.png")), "🔴 «El Archivo» tiene su icono en la lámina de la Nave");
+c(/iconoTab\(k\)\{ return '<img class="i" src="assets\/img\/nave\/iconos\/'\+k\+'\.png"/.test(REC), "   y la pestaña lo usa como las demás");
+
+// 🔴 stargate.js y tour.js los ESCRIBE el build: editarlos a mano se pierde en la siguiente construcción
+["assets/js/stargate.js", "assets/js/tour.js"].forEach(function (f) {
+  c(/autogenerado por _build_site\.py/.test(leer(f)), "🔴 " + f + " avisa de que lo genera el build (no se edita a mano)");
+});
+c(/window\.SG\.VISOR=\{ abrir: visorAbrir/.test(B) && /window\.SG\.foroParrafos = function/.test(B),
+  "   y el visor y los párrafos del foro viven en su plantilla (JS_TEMPLATE), no en el fichero generado");
 
 console.log("\n  Batería 100 · los fragmentos se ganan, y El Archivo (20-sep)");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");

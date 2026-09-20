@@ -5265,6 +5265,25 @@ body.con-planeta #consola-app .cn-secs{background:rgba(8,14,24,.7);backdrop-filt
 .pt-panel-cab h3{margin:0;margin-right:auto}
 .pt-panel-marco{margin-top:8px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#070b12}
 .pt-panel-marco iframe{display:block;width:100%;height:min(56vh,520px);border:0}
+/* 🔴 20-sep · EL VISOR: los vídeos se ven en la web, sin salir a YouTube */
+.sg-visor{position:fixed;inset:0;z-index:120;display:none;place-items:center;padding:clamp(12px,3vw,34px);
+  background:rgba(4,8,14,.88);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sg-visor.abierto{display:grid}
+body.con-visor{overflow:hidden}
+.sgv-caja{width:min(1180px,100%);border-radius:18px;overflow:hidden;border:1px solid rgba(55,224,236,.4);
+  background:#070b12;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.sgv-cab{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.sgv-cab b{font-size:.95rem;color:#e8f3fa;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sgv-x{margin-left:auto;width:36px;height:36px;border-radius:10px;border:1px solid #2c4a6a;background:#0b1119;color:#cfe0ec;
+  font-size:1rem;cursor:pointer;flex:none}
+.sgv-x:hover{border-color:var(--teal);color:#fff}
+.sgv-pant{aspect-ratio:16/9;background:#000}
+.sgv-pant iframe{width:100%;height:100%;border:0;display:block}
+/* la miniatura de «Hoy toca», ahora un botón que abre el visor */
+.pt-vid-b{position:relative;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:10px;overflow:hidden;line-height:0}
+.pt-vid-b img{display:block;border-radius:10px}
+.pt-vid-play{position:absolute;inset:0;display:grid;place-items:center;font-size:1.5rem;color:#fff;text-shadow:0 3px 12px rgba(0,0,0,.7)}
+.pt-vid-b:hover img{filter:brightness(1.12)}
 /* el fragmento recién desbloqueado, dentro del cartel de recompensa */
 .logro-video{width:min(560px,78vw);aspect-ratio:16/9;margin:6px auto 2px;border-radius:14px;overflow:hidden;border:1px solid rgba(55,224,236,.4)}
 .logro-video iframe{width:100%;height:100%;border:0;display:block}

@@ -286,7 +286,9 @@
       (foro || "") +
       (vids.length ? '<div class="ht-vids pt-video"><b class="ht-sub">El vídeo que toca</b><ul class="pt-vids">' + vids.map(function (v) {
           var y = v[0] || {};
-          return '<li><a href="https://youtu.be/' + esc(y.id) + '" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/' + esc(y.id) + '/mqdefault.jpg" alt="" loading="lazy" width="160" height="90"></a>' +
+          // 20-sep · se ve AQUÍ, en el visor: ya no se sale a YouTube
+          return '<li><button type="button" class="pt-vid-b" data-video="' + esc(y.id) + '" data-video-t="' + esc(y.titulo || "") + '" aria-label="Ver «' + esc(y.titulo || "") + '»">' +
+            '<img src="https://i.ytimg.com/vi/' + esc(y.id) + '/mqdefault.jpg" alt="" loading="lazy" width="160" height="90"><span class="pt-vid-play" aria-hidden="true">▶</span></button>' +
             '<div><b>' + esc(y.titulo || "") + '</b><span>' + esc(v[1] || "") + '</span></div></li>'; }).join("") + '</ul></div>' : '') +
       '<div class="ht-bloque"><b class="ht-sub">Los retos de ' + esc(String(s.tema || "este tema").replace(/\s*\(cont\.\)/, "")) + '</b>' +
         (delTema.length ? '<div class="ht-retos">' + delTema.map(function (r) {
@@ -651,7 +653,7 @@
     }).join("") +
       // 20-sep · «¿Dudas? ¿Algo falla?» era un botón perdido en tu ficha: ahora es la última sección, «Contacto»
       '<a class="pest cn-t cn-t-fin bz-acceso" data-bz href="buzon.html?desde=consola' + (PER ? '&per=' + encodeURIComponent(PER) : '') + '">' +
-        '<img class="i" src="assets/img/iconos/p/envivo.png" alt="" width="30" height="30" aria-hidden="true"><b>Contacto</b>' +
+        '<img class="i" src="assets/img/nave/iconos/envivo.png" alt="" width="30" height="30" aria-hidden="true"><b>Contacto</b>' +
         (BZ_N ? '<span class="bz-n" title="Respuestas del Mando sin leer">' + BZ_N + '</span>' : '') + '</a>' +
     '</div>';
   }
