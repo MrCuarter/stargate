@@ -1336,8 +1336,7 @@
   function puedeBorrarP(p) {
     var u = YO || {};
     if (!p || Number(((p.stargate || {}).demoSemana) || 0) > 0) return false;
-    return !!u.uid && (p.ownerId === u.uid || p.teacherId === u.uid ||
-      ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"].indexOf(String(u.email || u.correo || "").toLowerCase()) >= 0);
+    return !!u.uid && (p.ownerId === u.uid || p.teacherId === u.uid || esVitalicio());   // (quien lo creó, o un vitalicio)
   }
   var GTABS = [["alumnado", "Alumnado", "assets/img/nave/iconos/gente.png"], ["equipo", "Equipo docente", "assets/img/iconos/estrella.png"],
                ["escuadrones", "Escuadrones", "assets/img/iconos/escudo.png"], ["ajustes", "Ajustes del grupo", "assets/img/iconos/ajustes.png"],
@@ -3486,9 +3485,16 @@
     });
   }
   var VITALICIOS_WEB = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"];
+  /**
+   * 🔴 20-sep · Un referente VITALICIO puede borrar cualquier grupo de STARGATE (el servidor ya lo hacía), pero aquí no
+   * le salía el botón: se miraba `YO.email` y la sesión guarda el correo en `YO.correo`. Como el fallo era silencioso
+   * —ni error ni aviso, simplemente no aparecía— se leen los dos nombres y se acabó.
+   */
+  function correoYo() { var u = YO || {}; return String(u.correo || u.email || "").toLowerCase(); }
+  function esVitalicio() { return VITALICIOS_WEB.indexOf(correoYo()) >= 0; }
   function puedoBorrar() {
     var P = DATOS.proyecto || {}, u = YO || {};
-    return !!u.uid && (P.ownerId === u.uid || P.teacherId === u.uid || VITALICIOS_WEB.indexOf(String(u.email || "").toLowerCase()) >= 0);
+    return !!u.uid && (P.ownerId === u.uid || P.teacherId === u.uid || esVitalicio());
   }
   function tarjetaBorrar() {
     var P = DATOS.proyecto || {}, S = P.stargate || {};

@@ -42,6 +42,12 @@ c(/function diaUnete\(\)/.test(S) && /\(Number\(s\.sem\)\|\|1\)<=2\) d\.push\(di
 c(/\("unete", "Únete a la clase"/.test(D), "   y se puede quitar desde la rueda, como las demás");
 c(/\.dia\.unete \.un-cod\{/.test(CSS), "   con el código en grande (se proyecta)");
 
+// 🔴 20-sep · un referente vitalicio ve «Borrar este grupo» en CUALQUIER grupo: la sesión guarda el correo en
+// `YO.correo` y se miraba `YO.email` (el botón no salía y no lo decía nadie)
+c(/function correoYo\(\) \{ var u = YO \|\| \{\}; return String\(u\.correo \|\| u\.email/.test(K) && /function esVitalicio\(\)/.test(K)
+  && (K.match(/esVitalicio\(\)/g) || []).length >= 3 && !/String\(u\.email \|\| ""\)/.test(K),
+  "🔴 el referente vitalicio puede borrar cualquier grupo (se mira YO.correo, no YO.email)");
+
 console.log("\n  Batería 98 · la Nave del Comandante y «Gestionar grupos» (19-sep)");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

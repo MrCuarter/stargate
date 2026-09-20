@@ -2641,6 +2641,7 @@ al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></heade
 <section><div class="wrap"><div id="sesion-app"></div>
 <script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};</script>
 <script src="assets/js/calendario.js" defer></script>
+<script src="assets/js/tkcomun.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>
 </div></section>
 ''' + FOOT
@@ -3705,7 +3706,7 @@ _html = head("STARGATE · Mi nave",
 <header class="hero corto"><h1>Mi nave</h1></header>
 <section id="consola"><div class="wrap">
 <div id="consola-app"><p class="muted">Cargando…</p></div>
-''' + '<script>window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
+''' + '<script>window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "consola.html"), "w", encoding="utf-8").write(_ver_assets(_html))
@@ -3720,7 +3721,7 @@ _html = head("STARGATE · Gestionar grupos",
 <header class="hero corto"><h1>Gestionar grupos</h1></header>
 <section id="consola"><div class="wrap">
 <div id="consola-app"><p class="muted">Cargando…</p></div>
-''' + '<script>window.SG_GESTION=1;window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
+''' + '<script>window.SG_GESTION=1;window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "gestion.html"), "w", encoding="utf-8").write(_ver_assets(_html))

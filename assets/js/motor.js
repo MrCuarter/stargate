@@ -2116,6 +2116,30 @@ async function ponerModoDocente(modo) {
   await setDoc(doc(db, "stargate_profes", yo.uid), { uid: yo.uid, correo: yo.correo, modo: modo }, { merge: true });
 }
 /**
+ * 🔴 20-sep · QUÉ SE PROYECTA DEL TICKET Y QUÉ NO. Norberto: «utiliza un botón de ocultar (no saldrá en la sesión en
+ * vivo) o fijar (saldrá seguro). Los no marcados saldrán los que quepan en la diapositiva». Es una decisión de cada
+ * docente en cada grupo —lo que uno quiere leer en voz alta no es lo que quiere otro—, así que vive en
+ * `projects/{grupo}/privado/tickets_{uid}`: lo lee y lo escribe el equipo docente del grupo, nunca el alumnado.
+ */
+async function marcasTicket(perId) {
+  const yo = await sesion(); if (!yo || !perId) return { fijadas: [], ocultas: [] };
+  const d = await getDoc(doc(db, "projects", perId, "privado", "tickets_" + yo.uid));
+  const v = d.exists() ? d.data() : {};
+  return { fijadas: v.fijadas || [], ocultas: v.ocultas || [] };
+}
+/** `estado`: "fija", "oculta" o "" (quitarle la marca). Devuelve las marcas ya actualizadas. */
+async function marcarTicket(perId, id, estado) {
+  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
+  const m = await marcasTicket(perId);
+  const fuera = (L) => L.filter((x) => x !== id);
+  const nuevas = { fijadas: fuera(m.fijadas), ocultas: fuera(m.ocultas) };
+  if (estado === "fija") nuevas.fijadas.push(id);
+  if (estado === "oculta") nuevas.ocultas.push(id);
+  await setDoc(doc(db, "projects", perId, "privado", "tickets_" + yo.uid),
+    { fijadas: nuevas.fijadas, ocultas: nuevas.ocultas, uid: yo.uid, cuando: Date.now() }, { merge: true });
+  return nuevas;
+}
+/**
  * 🔴 20-sep · TUS MENSAJES DEL FORO. Norberto: «los docentes pueden personalizar sus propios mensajes si quieren y
  * guardarlos para todos sus grupos». Así que NO van en el grupo (como el panel o la sesión a medida): van en la ficha
  * del docente —`stargate_profes/{uid}.foros`—, una entrada por semana. El oficial (el del calendario, firmado con su
@@ -2173,7 +2197,7 @@ if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, ponerModoDocente, misNotas, guardarNotas,
-                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo,
+                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     zocoDatos, zocoTratosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
