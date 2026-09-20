@@ -1215,7 +1215,21 @@
     // control maestro de STARGATE. Y NUNCA cuando la sesión ya va DENTRO del Genially: sería el
     // panel dentro de sí mismo.
     deTipo('cierre').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'Para cerrar el planeta'), {sec:'cierre'})); });
-    deTipo('fragmento').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'La recompensa del bloque'), {sec:'cierre'})); });
+    /**
+     * 🔴 20-sep · EL FRAGMENTO, DOS SEMANAS DESPUÉS. Norberto: «que aparezca el vídeo, pero dos semanas más tarde: el
+     * del tema 6 aparecería en el tema 7, el último día. Así todos verán el vídeo, pero los que completen la misión lo
+     * podrán ver antes». En su semana se habla de él (el reto lo desbloquea); en la sesión sale cuando ya es de todos.
+     */
+    var FR=window.SG_FRAGMENTOS||[];
+    FR.filter(function(f){ return Number(f.publica)===Number(s.sem); }).forEach(function(f,i){
+      ci.push(Object.assign(diaVideo([{id:f.id, titulo:f.titulo}, f.nota||'La recompensa del bloque'], i, 'El fragmento, ya para todos'), {sec:'cierre'}));
+    });
+    // (el fragmento de esta semana NO se proyecta aquí: se gana con su reto y sale en la sesión de su semana pública)
+    deTipo('fragmento').forEach(function(v,i){
+      var f=FR.filter(function(x){ return x.id===(v[0]||{}).id; })[0];
+      if(f && Number(f.publica)!==Number(s.sem)) return;
+      ci.push(Object.assign(diaVideo(v, i, 'La recompensa del bloque'), {sec:'cierre'}));
+    });
     // 20-sep · y si esta sesión cierra el tema, lo último es el ticket de salida, para rellenarlo en clase
     if(ultimaDelTema(L, iS)){ var tf=diaTicketForm(s); if(tf) ci.push(tf); }
     ci.forEach(function(x){ x.t='ci'; });

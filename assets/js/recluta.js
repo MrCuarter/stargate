@@ -387,6 +387,76 @@
    * · Arriba, las semanas como temporadas: las que ya han llegado se pueden ver; las futuras salen
    *   con candado y sin título —se sabe que hay algo, no qué—, igual que los planetas.
    */
+  /* ── 🔴 20-sep · LOS FRAGMENTOS SE GANAN ──────────────────────────────────────────────────────────────────────
+   * Norberto: «cuando completen la misión que corresponde a un personaje, además de la insignia, desbloqueen el vídeo,
+   * el fragmento de ese personaje. Los que no la completan lo tendrán bloqueado, sin poder darle al play… o mejor aún,
+   * que aparezca dos semanas más tarde: el del tema 6 aparecería en el tema 7, el último día. Así todos lo verán, pero
+   * los que completen la misión lo verán antes».
+   *
+   * Qué fragmento va con qué reto y cuándo se abre para todos lo calcula el build (`SG_FRAGMENTOS`), leyendo los
+   * títulos del calendario y de los retos: aquí solo se pregunta. Y no se trata de esconderlo del mundo —quien busque
+   * el vídeo en YouTube lo encontrará—, sino de que en su Nave sea algo que se GANA.
+   */
+  var FRAGS=(window.SG_FRAGMENTOS||[]);
+  function fragDe(id){ for(var i=0;i<FRAGS.length;i++) if(FRAGS[i].id===id) return FRAGS[i]; return null; }
+  function fragAbierto(f){
+    if(!f) return true;
+    var mios=(st.yo&&st.yo.retos)||[];
+    if(f.reto && mios.indexOf(f.reto)>=0) return true;
+    return Number(st.actual||0) >= Number(f.publica||99);
+  }
+  function fragMotivo(f){
+    return (f.reto ? 'Se desbloquea al registrar el reto <b>'+esc(f.reto)+'</b>' : 'Se desbloquea al final del viaje')
+      + (Number(f.publica) ? ' · para todos, en la <b>semana '+f.publica+'</b>' : '');
+  }
+  function tapaFragmento(f, cls){
+    return '<div class="frag-tapa'+(cls?' '+cls:'')+'" role="img" aria-label="Bloqueado. '+esc(String(fragMotivo(f)).replace(/<[^>]+>/g,''))+'">'
+      +'<img class=ico src=assets/img/iconos/p/candado.png alt>'
+      +'<b>'+esc(f.titulo)+'</b><span>'+fragMotivo(f)+'</span></div>';
+  }
+  /**
+   * 🔴 20-sep · EL ARCHIVO. Norberto: «me encantaría añadir una página que fuera el cine… donde van apareciendo todos
+   * los vídeos cronológicamente, de toda nuestra narrativa. Los fragmentos que no estén desbloqueados aparecerán como
+   * bloqueados. Es otra forma de coleccionar: coleccionar vídeos, coleccionar la historia».
+   *
+   * Es el orden del viaje, de la semana 1 a la última: lo que ya ha llegado se ve; lo de semanas futuras, con candado
+   * (como los planetas); y los FRAGMENTOS, solo si te los has ganado —o cuando se abren para todos—.
+   */
+  var ARCH={abierto:''};
+  function archivo(){
+    var L=st.semanas||[], hasta=Math.min(Math.max(st.actual||0,0),L.length);
+    var total=0, tengo=0, filas=L.map(function(s){
+      var V=s.videos||[]; if(!V.length) return '';
+      var llegada=s.sem<=hasta && st.estado!=='antes';
+      return '<section class="ar-sem'+(llegada?'':' futura')+'"><h3><span class="ar-n">S'+s.sem+'</span>'+esc(s.tema||'')+'</h3>'
+        +'<div class="ar-grid">'+V.map(function(v){
+            var y=v[0], nota=v[1]||'', fr=fragDe(y.id);
+            total++;
+            var abierto = llegada && (!fr || fragAbierto(fr));
+            if(abierto) tengo++;
+            if(!abierto){
+              return '<article class="ar-v cerrada">'
+                +(fr?tapaFragmento(fr):'<div class="frag-tapa"><img class=ico src=assets/img/iconos/p/candado.png alt><b>???</b><span>Llega en la <b>semana '+s.sem+'</b></span></div>')
+                +'</article>';
+            }
+            var jug=ARCH.abierto===y.id;
+            return '<article class="ar-v'+(fr?' es-frag':'')+(jug?' on':'')+'">'
+              +(jug
+                ? '<div class="ar-pant"><iframe src="https://www.youtube-nocookie.com/embed/'+esc(y.id)+'?autoplay=1&rel=0&modestbranding=1" title="'+esc(y.titulo)+'" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>'
+                : '<button type="button" class="ar-poster" data-arch="'+esc(y.id)+'" aria-label="Ver «'+esc(y.titulo)+'»">'
+                  +'<img src="https://i.ytimg.com/vi/'+esc(y.id)+'/hqdefault.jpg" alt="" loading="lazy">'
+                  +'<span class="cine-play" aria-hidden="true">▶</span></button>')
+              +'<div class="ar-txt"><b>'+esc(y.titulo)+'</b>'+(nota?'<em>'+esc(nota)+'</em>':'')
+              +(fr?'<span class="ar-chip"><img class=ico src=assets/img/iconos/p/estrella.png alt> Fragmento '+fr.n+'</span>':'')+'</div></article>';
+          }).join('')+'</div></section>';
+    }).join('');
+    var fr7=FRAGS.filter(function(f){ return fragAbierto(f); }).length;
+    return '<section class="archivo"><div class="ar-cab"><div><div class="eyebrow teal">El Archivo</div>'
+      +'<h2>La historia, fragmento a fragmento</h2>'
+      +'<p class="lead">Todo lo que ha grabado NEBULA, en orden. Los <b>fragmentos</b> de cada personaje se desbloquean al registrar su reto… o solos, un par de semanas después.</p></div>'
+      +'<div class="ar-marcador"><b>'+fr7+'</b><span>de '+FRAGS.length+' fragmentos<br>desbloqueados</span></div></div>'
+      +(filas||'<div class="card"><p class="muted">Todavía no hay vídeos que enseñar.</p></div>')+'</section>';
+  }
   var CINE={sem:0,i:0,jugando:false};
   function cine(){
     var L=st.semanas||[]; if(!L.length||st.estado==='antes') return '';
@@ -404,7 +474,10 @@
         ? '<button type="button" class="cine-t'+(n===CINE.sem?' on':'')+'" data-cine-sem="'+n+'" title="'+esc(s.tema||'')+'">S'+n+'</button>'
         : '<span class="cine-t cerrada" title="Se desbloquea la semana '+n+'"><img class=ico src=assets/img/iconos/p/candado.png alt>'+n+'</span>';
     }).join('');
-    var pantalla = CINE.jugando
+    // 20-sep · si es un fragmento que aún no ha ganado, ni play ni carátula: una tapa que dice cómo abrirlo
+    var fr=fragDe(v.id), cerrado=fr&&!fragAbierto(fr);
+    var pantalla = cerrado ? tapaFragmento(fr, 'grande')
+      : CINE.jugando
       ? '<iframe src="https://www.youtube-nocookie.com/embed/'+esc(v.id)+'?autoplay=1&rel=0&modestbranding=1" title="'+esc(v.titulo)+'" '
         +'allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>'
       : '<button type="button" class="cine-poster" data-cine-play="1" aria-label="Ver «'+esc(v.titulo)+'»">'
@@ -443,6 +516,16 @@
     var viejo=document.querySelector('.cine'); if(!viejo) return;
     var tmp=document.createElement('div'); tmp.innerHTML=cine();
     if(tmp.firstChild) viejo.parentNode.replaceChild(tmp.firstChild, viejo);
+  });
+  // 20-sep · el Archivo: se abre el vídeo en su propia tarjeta (y se repinta solo esa sección)
+  document.addEventListener('click', function(ev){
+    var b=ev.target.closest&&ev.target.closest('[data-arch]');
+    if(!b||!b.closest('.archivo')) return;
+    ARCH.abierto=b.getAttribute('data-arch');
+    var viejo=document.querySelector('.archivo'); if(!viejo) return;
+    var tmp=document.createElement('div'); tmp.innerHTML=archivo();
+    if(tmp.firstChild) viejo.parentNode.replaceChild(tmp.firstChild, viejo);
+    var nuevo=document.querySelector('.ar-v.on'); if(nuevo) nuevo.scrollIntoView({block:'center', behavior:'smooth'});
   });
 
   /**
@@ -1739,8 +1822,10 @@
   // Magnific en una sola lámina para que los ocho compartan estilo (Norberto: «botones más sólidos con iconos dedicados,
   // con la estética de la narrativa»; y «evitar emojis, salvo momentos concretos»).
   var TABS=[['nave','nave','Mi nave'],['retos','retos','Mis retos'],['botin','botin','Mi botín'],
+            ['archivo','archivo','El Archivo'],
             ['mercado','mercado','Mercado Estelar'],['zoco','zoco','El Zoco'],['rankings','rankings','Rankings'],['envivo','envivo','En vivo']];
-  function iconoTab(k){ return '<img class="i" src="assets/img/nave/iconos/'+k+'.png" alt="" width="26" height="26" aria-hidden="true">'; }
+  // (el Archivo aún no tiene icono de la lámina de la Nave: usa el pictograma de vídeo, del mismo juego)
+  function iconoTab(k){ return '<img class="i" src="'+(k==='archivo'?'assets/img/iconos/p/video.png':'assets/img/nave/iconos/'+k+'.png')+'" alt="" width="26" height="26" aria-hidden="true">'; }
   var TABS_VIEJAS={ficha:'nave',semana:'nave',planetas:'retos',premios:'mercado',tablero:'rankings'};
   // ================= LA NAVE POR CAPÍTULOS (13-sep) =================
   // Norberto: «de primeras no quiero que puedan hacer mil cosas, esto puede agobiar; que se
@@ -1768,7 +1853,7 @@
   }
   function proximoCap(){ var ab=capsAbiertos(); return capsTipo().filter(function(c){ return ab.indexOf(c)<0; })[0]||null; }
   // 17-sep · «En vivo» solo existe mientras hay algo en directo (una votación, una pregunta, la sesión proyectándose)
-  function tabVisible(k){ return k==='nave'||k==='retos'||k==='botin'||(k==='envivo'?hayEnVivo():abierto(k)); }
+  function tabVisible(k){ return k==='nave'||k==='retos'||k==='botin'||k==='archivo'||(k==='envivo'?hayEnVivo():abierto(k)); }
   function tabsVisibles(){ return TABS.filter(function(x){ return tabVisible(x[0]); }); }
   function tabValida(k){
     if(TABS_VIEJAS[k]) k=TABS_VIEJAS[k];
@@ -1867,6 +1952,7 @@
     if(st.tab==='retos')    return mapa()+retos();
     if(st.tab==='botin')    return botin();
     if(st.tab==='mercado')  return recompensas();
+    if(st.tab==='archivo')  return archivo();
     if(st.tab==='zoco')     return zocoVista();
     if(st.tab==='envivo')   return envivoVista();
     return '';                                  // «rankings»: vive en su propia sección del HTML
@@ -3006,6 +3092,22 @@
             comun:50,rara:55,heroe:60,epica:70,nivel:80,legendaria:99};
   function logrosNuevos(r,ant){
     var L=[], NOM=window.SG_BADGE_NAMES||{};
+    /**
+     * 🔴 20-sep · EL FRAGMENTO QUE ACABAS DE GANAR. Norberto: «cuando completen esa misión, en la ventana que se abre
+     * con la recompensa debe aparecer también el vídeo desbloqueado». Va con el peso de una insignia: es lo que de
+     * verdad querían ver.
+     */
+    (function(){
+      var antes=(ant.retos)||[], ahora=(r.retos)||[];
+      ahora.forEach(function(id){
+        if(antes.indexOf(id)>=0) return;
+        var f=FRAGS.filter(function(x){ return x.reto===id; })[0]; if(!f) return;
+        L.push({peso:PESO.serie, eyebrow:'FRAGMENTO DESBLOQUEADO', titulo:f.titulo,
+          sub:'Ya puedes verlo en El Archivo, cuando quieras.', clase:'figura',
+          html:'<div class="logro-video"><iframe src="https://www.youtube-nocookie.com/embed/'+f.id+'?rel=0&modestbranding=1" '
+            +'title="'+esc(f.titulo)+'" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>'});
+      });
+    })();
     var CR={}; (window.SG_CROMOS||[]).forEach(function(c){CR[c[0]]=c;});
     var HE={}; (window.SG_HEROES||[]).forEach(function(h){HE[h[0]]=h;});
     // cartas nuevas (o repetidas: tambien es abrir un sobre)
