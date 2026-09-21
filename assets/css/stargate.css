@@ -5564,9 +5564,21 @@ body.con-visor{overflow:hidden}
 .pr-c{margin:0;display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;
   border:1px solid var(--line);background:rgba(0,0,0,.3)}
 .pr-c img{width:100%;height:150px;object-fit:contain}
-.pr-c figcaption b{display:block;font-family:'Unbounded',sans-serif;font-size:.95rem;color:var(--teal2);margin-bottom:5px}
+/* 21-sep · SOLO el nombre de la tarjeta, no cualquier negrita de dentro: el `b` suelto convertía «dejando
+   constancia» en un titular con su propia línea y dejaba el punto final flotando debajo. */
+.pr-c figcaption > b{display:block;font-family:'Unbounded',sans-serif;font-size:.95rem;color:var(--teal2);margin-bottom:5px}
 .pr-c figcaption span{font-size:.85rem;color:var(--mut)}
-.pr-bit{display:grid;place-items:center;height:150px;font-size:4rem;color:var(--amber)}
+/* 21-sep · la Bitácora ya no es una tarjeta con un rombo: tiene diapositiva propia (Norberto: «la Bitácora merece
+   una diapositiva completa. Enlaza con la plantilla de Genially»). */
+.pr-bit2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;margin-top:14px}
+.pr-b-c{border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:rgba(255,255,255,.02)}
+.pr-b-c > b{display:block;color:var(--teal2);font-size:.95rem;margin-bottom:8px}
+.pr-b-p{margin:0;padding-left:1.25em;display:flex;flex-direction:column;gap:6px;font-size:.92rem;line-height:1.45}
+.pr-b-l{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:.92rem;line-height:1.45}
+.pr-b-l li{border-left:2px solid var(--amber);padding-left:10px}
+.pr-b-l em{font-style:normal;color:var(--mut);font-size:.85rem}
+.pr-b-cta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:18px 0 0}
+.pr-b-cta span{color:var(--mut);font-size:.88rem;max-width:44ch}
 /* el mapa de planetas, pulsable */
 .pr-planetas{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 @media(max-width:900px){.pr-planetas{grid-template-columns:repeat(2,1fr)}}
@@ -5594,10 +5606,12 @@ body.con-visor{overflow:hidden}
 .pr-sem.fin{border-color:rgba(245,176,67,.45)}
 .pr-sem-fin{font-size:2rem;line-height:1;color:var(--amber)}
 /* los capítulos */
-.pr-caps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+/* 21-sep · cada capítulo dice su semana DE VERDAD (antes «semana undefined») y qué es, en una línea */
+.pr-caps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
 .pr-cap{padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.26)}
 .pr-cap b{display:block;font-size:.78rem;color:var(--amber);letter-spacing:.08em;text-transform:uppercase}
-.pr-cap span{font-size:.9rem}
+.pr-cap span{display:block;font-size:.9rem}
+.pr-cap em{display:block;font-style:normal;color:var(--mut);font-size:.82rem;line-height:1.35;margin-top:3px}
 /* las dos monedas */
 .pr-dos{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .pr-m{padding:16px 18px;border-radius:16px;border:1px solid var(--line);background:rgba(0,0,0,.3)}

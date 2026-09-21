@@ -108,9 +108,42 @@
             '<figcaption><b>NEBULA</b><span>La inteligencia de la nave. Guía el viaje y va recomponiéndose con el curso. Es quien presenta cada cosa nueva en la Nave del alumnado.</span></figcaption></figure>' +
           '<figure class="pr-c"><img src="assets/img/personajes/vaeon.png" alt="">' +
             '<figcaption><b>La Estática · General Vaeon</b><span>La amenaza. Donde entra, la gente deja de crear, registrar y compartir. No se combate disparando: se combate <b>dejando constancia</b>.</span></figcaption></figure>' +
-          '<figure class="pr-c pr-c-bit"><span class="pr-bit">◈</span>' +
-            '<figcaption><b>La Bitácora Estelar</b><span>El arma. Y <b>es el ePortfolio</b> de la asignatura: lo que se evalúa. La metáfora no está encima del temario — es el temario.</span></figcaption></figure>' +
+          // 🔴 21-sep · Norberto: «el tercer nombre no debería ser la Bitácora, será el Comandante, ¿no? El otro
+          // personaje». Cierto: los tres NOMBRES son los tres personajes, y el tercero está en la sala. La Bitácora
+          // no es un nombre que aprenderse, es el arma — y tiene su propia diapositiva justo detrás.
+          '<figure class="pr-c"><img src="assets/img/capitan/saluda.png" alt="">' +
+            '<figcaption><b>El Capitán · eres tú</b><span>El mando de la misión. La nave tiene inteligencia, pero no capitán: lo pone cada aula. Tu alumnado te llama <b>Capitán</b> y tú entras por tu <b>Nave del Comandante</b>.</span></figcaption></figure>' +
         '</div>' +
+      '</div>' };
+  }
+  /**
+   * 🔴 21-sep · Norberto: «la Bitácora merece una diapositiva completa. Enlaza con la plantilla de Genially».
+   * Es la pieza que más cuesta que se entienda en una reunión: parece decorado y **es el ePortfolio evaluable**. Así
+   * que va sola, con el patrón de cada página, lo que acaba dentro (las dos Actividades salen del dato) y el enlace
+   * a la plantilla, para que nadie tenga que montarla de cero.
+   */
+  function bitacora() {
+    var pl = window.SG_PLANTILLA_EP || "", A = window.SG_ACTIVIDADES || [];
+    return { rot: "La Bitácora", html:
+      '<div class="dia">' +
+        '<div class="kicker"><img class=ico src=assets/img/iconos/p/libro.png alt> El arma de esta guerra</div>' +
+        '<h2>La Bitácora Estelar <u>es</u> el ePortfolio</h2>' +
+        '<p class="sub">No es decorado sobre el temario: <b>es el temario</b>. La Estática no teme sus notas, teme su '
+        + 'archivo — y ese archivo es lo que se evalúa. Se abre el <b>primer día</b>, con el reto B de la semana 1, y '
+        + 'se publica al final del viaje.</p>' +
+        '<div class="pr-bit2">' +
+          '<div class="pr-b-c"><b>Cada página, igual</b>' +
+            '<ol class="pr-b-p"><li>La <b>evidencia</b>: lo que ha creado</li><li>El <b>contexto</b>: para quién y para qué</li>' +
+            '<li>La <b>reflexión</b>: qué aprendió al crearlo</li><li>La <b>autoevaluación</b>: qué mejoraría</li></ol></div>' +
+          '<div class="pr-b-c"><b>Qué acaba dentro</b>' +
+            '<ul class="pr-b-l">' + A.map(function (a) {
+              return '<li><b>Actividad ' + esc(String(a.n)) + '</b> · ' + esc(a.titulo) + ' <em>(' + esc(a.puntos) + ' pts · el 20 % es esta página)</em></li>';
+            }).join("") +
+            '<li><b>Tres hazañas más</b>, de sus retos semanales: el videotutorial, la microgamificación y una a su elección</li></ul></div>' +
+        '</div>' +
+        (pl ? '<p class="pr-b-cta"><a class="btn primary" href="' + esc(pl) + '" target="_blank" rel="noopener">'
+              + '<img class=ico src=assets/img/iconos/p/varios.png alt> Abrir la plantilla en Genially &#8599;</a>'
+              + '<span>Montada y lista: el alumnado la reutiliza y empieza con la casa hecha.</span></p>' : '') +
       '</div>' };
   }
   function mapa() {
@@ -161,15 +194,25 @@
         }).join("") + '</div>' +
       '</div>' };
   }
+  /**
+   * 🔴 21-sep · «Aparece semana UNDEFINED. Debe aparecer qué semana se desbloquea y qué es cada cosa (brevemente)».
+   * Cada capítulo guarda su semana por tipo de grupo (`semanas.REGULAR` / `.PUA`) — `c.semana`, a secas, nunca
+   * existió— y su `cabecera`, que es justo esa línea de «qué es» que faltaba. Y en orden de apertura, que es como se
+   * cuenta: la Nave crece, no aparece entera.
+   */
   function capitulos() {
-    var abiertos = CAPS.filter(function (c) { return c.listo !== false; });
+    var abiertos = CAPS.filter(function (c) { return c.listo !== false; })
+      .map(function (c) { return { c: c, s: Number((c.semanas || {}).REGULAR) || 0 }; })
+      .sort(function (a, b) { return a.s - b.s; });
     return { rot: "Por capítulos", html:
       '<div class="dia">' +
         '<div class="kicker">Nadie se agobia el primer día</div>' +
         '<h2>La Nave se abre por capítulos</h2>' +
         '<p class="small muted">Lo que todavía no toca <b>ni se ve</b>. Cada vez que se abre algo, NEBULA lo presenta.</p>' +
-        '<div class="pr-caps">' + abiertos.map(function (c) {
-          return '<div class="pr-cap"><b>Semana ' + c.semana + '</b><span>' + esc(c.titulo || c.clave) + '</span></div>';
+        '<div class="pr-caps">' + abiertos.map(function (x, i) {
+          return '<div class="pr-cap" style="--i:' + i + '"><b>Semana ' + x.s + '</b>' +
+            '<span>' + (x.c.icono || "") + ' ' + esc(x.c.titulo || x.c.clave) + '</span>' +
+            '<em>' + esc(x.c.cabecera || "") + '</em></div>';
         }).join("") + '</div>' +
       '</div>' };
   }
@@ -301,7 +344,7 @@
   }
 
   function mazo() {
-    return [portada(), problema(), historia(), nombres(), mapa(), semanas(), capitulos(),
+    return [portada(), problema(), historia(), nombres(), bitacora(), mapa(), semanas(), capitulos(),
             comoSeGana(), rankings(), queHaceElDocente(), loQueNo(), preguntas(), siguiente(), enlaces(), cierre()];
   }
 

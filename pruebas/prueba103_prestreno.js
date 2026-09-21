@@ -19,6 +19,16 @@ const c = (cond, txt, dato) => { if (cond) ok++; else fallos.push(txt); console.
 const JS = L("assets/js/prestreno.js"), HTML = L("prestreno.html"), CSS = L("assets/css/stargate.css");
 const CONS = L("assets/js/consola.js");
 
+// 🔴 el valor de un `window.SG_*` del HTML servido. Nada de «hasta el </script>»: ya no hay un último fijo —cada
+// tanda añade globales— y el que lo diera por supuesto se comía los de detrás (pasó el 21-sep con SG_ENLACES).
+const dato = n => {
+  const i = HTML.indexOf("window." + n + "=");
+  if (i < 0) return null;
+  const j = HTML.indexOf(";window.", i), k = HTML.indexOf(";</script>", i);
+  return JSON.parse(HTML.slice(i + ("window." + n + "=").length, (j < 0 || (k >= 0 && k < j)) ? k : j));
+};
+
+
 // ── 1 · existe, está tras la puerta del profesorado y no se enlaza al alumnado
 c(fs.existsSync(path.join(R, "prestreno.html")), "🔴 la presentación del equipo existe (prestreno.html)");
 c(/assets\/js\/puerta\.js/.test(HTML), "   y va tras la puerta del profesorado");
@@ -57,11 +67,7 @@ c((JS.match(/\["¿/g) || []).length >= 5, "   y son las cinco que siempre salen"
 c(/data-video=/.test(JS), "   el vídeo de bienvenida se ve dentro, con el visor de la casa");
 
 // ── 6 · 🔴 21-sep · LOS ENLACES DE INTERÉS (Norberto: «añade una diapo con enlaces de interés… ¿me dejo alguno?»)
-const ENL = (function () {
-  const i = HTML.indexOf("window.SG_ENLACES=");
-  const j = HTML.indexOf(";</script>", i);
-  return i < 0 ? [] : JSON.parse(HTML.slice(i + "window.SG_ENLACES=".length, j));
-})();
+const ENL = dato("SG_ENLACES") || [];
 c(/function enlaces\(\)/.test(JS) && /enlaces\(\), cierre\(\)/.test(JS),
   "🔴 la presentación acaba con la diapositiva de enlaces, justo antes del cierre");
 c(ENL.length >= 6 && ENL.every(e => e.length === 4 && e[1] && e[2] && e[3]),
@@ -92,6 +98,48 @@ c(!/se valida o se anula/.test(JS) && /No hay que validar nada/.test(JS),
   "🔴 «lo que NO hay que hacer» no promete una validación que no existe");
 c(!/se mira y se valida o se anula/.test(fs.readFileSync(path.join(R, "..", "GUIA_PROFES_PDF.md"), "utf8")),
   "   y la guía del profesorado, igual");
+
+// ── 6 quater · 🔴 21-sep · SE MONTAN LAS DIAPOSITIVAS DE VERDAD (tres cosas que Norberto vio proyectadas)
+//   «Aparece semana UNDEFINED. Debe aparecer qué semana se desbloquea y qué es cada cosa (brevemente)».
+//   «El tercer nombre no debería ser la Bitácora, será el Comandante, ¿no? El otro personaje».
+//   «La Bitácora merece una diapositiva completa. Enlaza con la plantilla de Genially».
+const trozo = (a, b) => JS.slice(JS.indexOf(a), JS.indexOf(b));
+const pintar = new Function(`
+  var CAPS = ${JSON.stringify(dato("SG_CAPITULOS") || [])};
+  var window = { SG_PLANTILLA_EP: ${JSON.stringify(dato("SG_PLANTILLA_EP") || "")},
+                 SG_ACTIVIDADES: ${JSON.stringify(dato("SG_ACTIVIDADES") || [])} };
+  ${trozo("var esc = function", "var $ =")}
+  ${trozo("function nombres()", "function mapa()")}
+  ${trozo("function capitulos()", "function comoSeGana()")}
+  return { capitulos: capitulos, nombres: nombres, bitacora: bitacora, CAPS: CAPS, A: window.SG_ACTIVIDADES, PL: window.SG_PLANTILLA_EP };
+`)();
+
+const caps = pintar.capitulos().html;
+c(!/undefined/i.test(caps), "🔴 ni un «Semana undefined»: cada capítulo dice la semana en la que se abre");
+c(pintar.CAPS.filter(x => x.listo !== false).every(x => caps.indexOf("Semana " + x.semanas.REGULAR) > 0),
+  "   y es la suya, la del calendario (semanas.REGULAR)");
+c(pintar.CAPS.filter(x => x.listo !== false).every(x => !x.cabecera || caps.indexOf(x.cabecera) > 0),
+  "🔴 y qué es cada cosa, en una línea (su cabecera, la misma que le enseña NEBULA al alumnado)");
+const semCaps = (caps.match(/Semana (\d+)/g) || []).map(x => Number(x.replace(/\D/g, "")));
+c(semCaps.length > 1 && semCaps.every((x, i) => i === 0 || x >= semCaps[i - 1]),
+  "   en orden de apertura, que es como se cuenta", JSON.stringify(semCaps));
+
+const nom = pintar.nombres().html;
+c(/El Capitán/.test(nom) && /img\/capitan\//.test(nom),
+  "🔴 el tercer nombre es el Capitán (el otro personaje), no la Bitácora");
+c(/eres tú/.test(nom) && /Nave del Comandante/.test(nom), "   y dice quién es: el docente que está en la sala");
+c(!/La Bitácora Estelar<\/b>/.test(nom), "   la Bitácora ya no es una de las tres tarjetas");
+
+const bit = pintar.bitacora().html;
+c(/bitacora\(\), mapa\(\)/.test(JS), "🔴 la Bitácora tiene diapositiva propia, detrás de los tres nombres");
+c(/evidencia/.test(bit) && /contexto/.test(bit) && /reflexión/.test(bit) && /autoevaluación/.test(bit),
+  "   con el patrón de cada página: evidencia, contexto, reflexión y autoevaluación");
+c(pintar.A.every(a => bit.indexOf(a.titulo) > 0) && /Tres hazañas más/.test(bit),
+  "   y lo que acaba dentro: las dos Actividades (del dato) y tres retos más");
+c(!!pintar.PL && bit.indexOf(pintar.PL) > 0 && /Abrir la plantilla en Genially/.test(bit),
+  "🔴 y enlaza con la plantilla de Genially", pintar.PL);
+c(/\.pr-bit2\{/.test(CSS) && /\.pr-c figcaption > b\{/.test(CSS),
+  "   con su estilo — y la negrita de dentro de una tarjeta ya no se convierte en titular");
 
 // ── 7 · y el guion está en la guía, no duplicado aquí
 const GUIA = fs.readFileSync(path.join(R, "..", "GUIA_PROFES_PDF.md"), "utf8");
