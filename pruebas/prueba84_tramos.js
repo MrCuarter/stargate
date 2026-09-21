@@ -38,7 +38,7 @@ c(/ci *= *ci\.concat\(diasMisiones\(s\)\)/.test(S), "   los retos de la semana s
 // 3 · el tramo del medio
 c(/medio\.push\(\{k:'genially', t:'pr'/.test(S),
   "🔴 el Genially del grupo es el tramo del medio (la teoría y la práctica guiada), no una diapositiva suelta");
-c(/if\(st\.per && \(!EMBED \|\| VENTANA\)\)/.test(S), "   y solo se embebe proyectando desde la web o en su ventana: dentro del Genially sería él mismo");
+c(/if\(!EMBED \|\| VENTANA\)\{/.test(S), "   y solo se embebe proyectando desde la web o en su ventana: dentro del Genially sería él mismo");
 c(/function diaPuente\(/.test(S) && /Ahora, el despegue/.test(S),
   "🔴 dentro del Genially, una tarjeta puente dice en voz alta lo que toca ahora");
 c(/reto relámpago/.test(S), "   y recuerda que al volver toca el reto relámpago");
@@ -82,7 +82,7 @@ c(/function abrirEnVentana\(\)/.test(S) && /u\.searchParams\.set\('ventana','1'\
   "🔴 y el de abrirla en una ventana aparte, sin la web alrededor");
 c(/\(!EMBED\?'<button type="button" class="ses-ic" data-ses-ventana/.test(S) && /data-ses-ventana title="Sin la web alrededor/.test(S),
   "   en la presentación y junto a «Proyectar la sesión» (dentro de un Genially no sale)");
-c(/var VENTANA = EMBED && q\.get\('ventana'\) === '1'/.test(S) && /if\(st\.per && \(!EMBED \|\| VENTANA\)\)/.test(S),
+c(/var VENTANA = EMBED && q\.get\('ventana'\) === '1'/.test(S) && /if\(!EMBED \|\| VENTANA\)\{/.test(S),
   "🔴 en su ventana va el Genially del grupo en medio (no está dentro de un Genially: no hace falta la tarjeta puente)");
 c(/'sg_sesion_'\+String\(st\.per/.test(S), "   y pulsar dos veces no abre dos (el mismo nombre que el ⧉ de la consola)");
 

@@ -1570,8 +1570,8 @@
         '<div class="gs-pr-t"><div class="eyebrow amber">Antes de empezar el curso</div><h3>Presentar STARGATE al equipo</h3>' +
         '<p>La reunión de arranque, montada para proyectar: la historia, el temario planeta a planeta, las semanas, ' +
         'cómo se gana y qué tiene que hacer el docente. Para quien va a dar la asignatura por primera vez.</p></div>' +
-        '<a class="btn primary" href="prestreno.html" target="_blank" rel="noopener">' + ico("cohete") + ' Abrir la presentación ↗</a>' +
-        botonVentana("prestreno.html", "prestreno", "la presentación") + '</div>' +
+        '<div class="gs-pr-b"><a class="btn primary" href="prestreno.html" target="_blank" rel="noopener">' + ico("cohete") + ' Abrir la presentación ↗</a>' +
+        botonVentana("prestreno.html", "prestreno", "la presentación") + '</div></div>' +
       '<div class="gs-filtros" role="group" aria-label="Qué grupos">' + FIL.filter(function (x) { return x[0] === "todos" || cuenta[x[0]]; }).map(function (x) {
         return '<button type="button" class="chip' + (FILTRO_G === x[0] ? " on" : "") + '" data-gfiltro="' + x[0] + '" aria-pressed="' + (FILTRO_G === x[0]) + '">' + x[1] + ' · ' + (cuenta[x[0]] || 0) + '</button>'; }).join("") + '</div>' +
       '<div class="gs-tabla">' + (vis.length ? vis.map(fila).join("") : '<p class="muted">Ningún grupo aquí.</p>') + '</div>';

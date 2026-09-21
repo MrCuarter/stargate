@@ -627,6 +627,87 @@ REFLEXION_RETOS = {
 # uno libera su hueco. Lo aplica también el servidor (gamificapro/functions/stargateTope.js), con el mismo número.
 TOPE_RETOS_SEMANA = 3
 
+# ────────────────────── LAS DOS MISIONES MAYORES (las actividades que SÍ puntúan) ──────────────────────
+# 🔴 21-sep · Norberto: «Necesito saber qué misiones/retos están directamente relacionados con la act1 y act2. En las
+# sesiones en vivo de los temas 1 y 3 debes añadir un par de diapositivas explicando la actividad que toca. Es importante
+# que aparezcan los retos relacionados para que vean que los retos forman parte del proceso. Las actividades sí cuentan
+# para su nota final, los retos no».
+#
+# 🔴 UN DATO, UN SITIO. Esto es el enunciado oficial, y de aquí sale TODO lo que lo cuenta: la página «Actividades y
+# evaluación» (actividades.html), las dos diapositivas de la sesión en directo de las semanas 2 y 6, y la guía del
+# profesorado. Antes vivía escrito a mano dentro del HTML de `_build_site.py`: lo leía quien abriera esa página y nadie
+# más — ni el docente que proyecta, ni el recluta que registra el reto.
+#
+#   pasos    → el enunciado paso a paso, como lo pide el documento oficial. Lo marcado **así** se pinta en negrita
+#              (ni la sesión ni la página entienden markdown: las dos convierten esa marca y escapan el resto).
+#   retos    → 🔴 LA PREGUNTA DE NORBERTO, respondida en el dato: qué reto deja hecho qué trozo de la actividad.
+#              No son «retos del mismo tema»: cada línea dice la PIEZA de la entrega que ese reto ya produce. Si un día
+#              un reto deja de alimentar la actividad, se quita de aquí y desaparece de los tres sitios a la vez.
+#   resuelve → la semana en la que se corrige y se devuelve (no la de entrega). Sale de CRONO («Se resuelve la Act. 1»).
+ACTIVIDADES = [
+ dict(clave="a1", n=1, orden="I", reto="X1", video="act1", tema=1, sem=2, resuelve=9, puntos="4,3",
+      planeta="Fôrge", lema="La primera chispa",
+      titulo="Actividad didáctica a partir de una imagen con IA",
+      resumen="El recluta diseña una actividad para su aula a partir de una imagen creada con IA, "
+              "documentando el proceso con criterio docente.",
+      pasos=[
+        ("Planifica", "obligatorio",
+         "Define el alumnado, el tema del aula y la tarea que harán con la imagen."),
+        ("Crea la imagen con IA", "iteración",
+         "Prompt estructurado (contexto educativo + tipo de imagen + finalidad, modelo tipo CRAFT/RITA), "
+         "**al menos una iteración**, y selección final con **tu criterio docente**. Cita la herramienta y "
+         "respeta derechos de autor."),
+        ("Tabla técnica", "",
+         "Documenta función de la IA, prompt inicial, iteración, criterio docente, evidencia del proceso "
+         "(enlace o capturas) y citación."),
+        ("Tabla reflexiva", "ePortfolio",
+         "Reflexión crítica: cómo integraste la IA, cómo transformó la actividad, qué pusiste tú y qué aprendiste."),
+        ("Entregables", "",
+         "**PDF (80%)**, máx. 4 páginas, con planificación, actividad, referencia a la IA, capturas de las tablas "
+         "y el enlace al ePortfolio. **ePortfolio (20%)** con la imagen, la tarea, las tablas completas y la "
+         "evidencia del proceso."),
+      ],
+      retos=[
+        ("L1", "Tu imagen, hecha en clase con prompt, iteración y criterio docente: es **la tabla técnica de la "
+               "Actividad 1** con otro nombre. Quien hizo el relámpago ya tiene el núcleo de la entrega."),
+        ("B1", "Tu Bitácora, creada y publicada: es **donde vive la página de la Actividad 1**, y esa página es el "
+               "20 % de su nota."),
+        ("A1", "El trabajo que sacaste del cajón: **de ahí suele salir el tema** de la actividad — ya sabes en qué "
+               "punto se quedó y qué te frenó."),
+      ]),
+ dict(clave="a2", n=2, orden="II", reto="X2", video="act2", tema=3, sem=6, resuelve=13, puntos="4,3",
+      planeta="Sendara", lema="Cuarenta y ocho senderos",
+      titulo="Planifica y crea un paisaje de aprendizaje",
+      resumen="Ante un aula con ritmos muy dispares, el recluta diseña un paisaje de aprendizaje que atiende a "
+              "la diversidad: no hay una sola ruta.",
+      pasos=[
+        ("Contextualiza", "",
+         "Describe una unidad didáctica real de tu nivel: edad, área, tema y elementos curriculares "
+         "(objetivos, contenidos, criterios de evaluación)."),
+        ("Matriz de programación 8×6", "núcleo",
+         "Tabla de doble entrada: **8 inteligencias múltiples × 6 niveles de Bloom** = 48 casillas. Rellena "
+         "**al menos 6 cruces** variados en complejidad y en talento, con una actividad en cada uno."),
+        ("Cada actividad, completa", "",
+         "Objetivo, tarea del alumno, recursos (con cita/enlace), instrumentos de evaluación, tiempo estimado "
+         "y tipo: obligatoria, optativa o voluntaria."),
+        ("El paisaje interactivo", "",
+         "Convierte una **imagen interactiva** (no una presentación) en el paisaje, con las actividades "
+         "integradas dentro del territorio."),
+        ("Entregables", "",
+         "**PDF (80%)** (máx. 10 páginas para 6 actividades, +1 por actividad extra) con planificación y matriz. "
+         "**ePortfolio (20%)**: evidencias de matriz y paisaje (15%) + justificación del diseño y atención a la "
+         "diversidad (5%)."),
+      ],
+      retos=[
+        ("B3", "La matriz 8×6 de tu unidad, contextualizada y con seis cruces: es **el corazón de planificación de "
+               "la Actividad 2**, y se entrega tal cual."),
+        ("A3", "Tu bifurcación de dos senderos: **el paisaje en pequeño**, con la herramienta que vas a usar y sin "
+               "el susto de las 48 casillas."),
+        ("L3", "Itinerario y paisaje en cinco líneas: es **la defensa del diseño** que pide el ePortfolio — y es lo "
+               "que vale punto y medio en la portada del examen."),
+      ]),
+]
+
 # 18-sep · LAS SECCIONES DE LA SESIÓN EN DIRECTO. Norberto: «que cada sección tenga un nombre propio, independientemente
 # de si aparece una cosa u otra en función de la semana… y que cada docente pueda marcar con una checkbox lo que quiere
 # usar en su presentación. Por defecto, todo completo». Clave, nombre y qué trae. Las lee la sesión (para quitar lo que
@@ -646,6 +727,8 @@ SESION_SECCIONES = [
     ("oferta", "Oferta de la semana", "La rebaja de esta semana en el Mercado."),
     ("novedades", "Novedades de la semana", "Lo que se abre en la Nave, y tu Nave de ejemplo para enseñarlo."),
     ("despegue", "El despegue", "Tu Genially: la teoría y la práctica guiada."),
+    # 21-sep · solo en las semanas que lanzan una actividad (la 2 y la 6): qué pide y qué retos la construyen
+    ("actividad", "La misión mayor", "La actividad que puntúa y los retos que ya le han hecho un trozo."),
     ("misiones", "Misiones", "El vídeo del planeta, la misión y los retos que se lanzan."),
     ("recompensa", "Recompensa", "Las insignias que se entregan esta semana."),
     ("cierre", "Cierre del planeta", "El vídeo de cierre y la recompensa del bloque."),
@@ -1845,3 +1928,23 @@ TICKET_TEMAS = {
     "a1": "Actividad 1: actividad didáctica a partir de una imagen con IA",
     "a2": "Actividad 2: planifica y crea un paisaje de aprendizaje",
 }
+
+# ────────────── 21-sep · LOS ENLACES DE INTERÉS (la última diapositiva de la presentación al equipo) ──────────────
+# Norberto: «añade una diapo con enlaces de interés (Drive compartido, carpeta de geniallys actualizados y
+# plataforma STARGATE). ¿Me dejo alguno?». Sí, cinco: el **panel de control** que se proyecta en clase, los
+# **enunciados y rúbricas** oficiales, la **plantilla de la Bitácora** que reutiliza el alumnado, los **vídeos** de
+# la serie y —lo primero que necesita quien empieza— la **Nave Escuela**, el grupo de mentira para trastear.
+#
+# 🔴 Ni una dirección escrita aquí: cada una se coge de donde ya vive. Si mañana cambia el Drive del equipo o el
+# panel maestro, esta diapositiva lo dice bien sin que nadie se acuerde de ella.
+#   (icono, título, para qué sirve, dirección)
+ENLACES_EQUIPO = [
+    ("nave",      "La plataforma STARGATE",      "Tu Nave del Comandante, la de tu alumnado y todo lo demás. Se entra con la cuenta de Google de la universidad.", "https://stargate.mistercuarter.es"),
+    ("gente",     "La Nave Escuela",             "El grupo de mentira, con 30 reclutas y el curso entero, para trastear sin romper nada.", "consola.html?per=" + PER_ESCUELA),
+    ("notas",     "Actividades y evaluación",    "Las dos misiones mayores paso a paso, el ePortfolio, el examen y los documentos oficiales para descargar.", "actividades.html"),
+    ("clase",     "El panel de control de la clase", "El Genially maestro: la teoría y la práctica guiada, ya montadas. Es el segundo tiempo de cada sesión.", PANEL_MAESTRO),
+    ("varios",    "La carpeta de Geniallys",     "Los Geniallys del curso, actualizados: de aquí sale el panel de cada grupo.", GENIALLY_CARPETA),
+    ("libro",     "El Drive del equipo",         "Fondos, personajes, insignias, cartas, el pack de audio y la guía del profesorado en PDF.", DRIVE_EQUIPO),
+    ("video",     "Los vídeos de la serie",      "Los 33 vídeos, en orden: la sinopsis, los ocho planetas, las misiones y los cierres.", PLAYLIST),
+    ("estrella",  "La plantilla de la Bitácora", "El ePortfolio ya montado en Genially, para que el alumnado lo reutilice como base.", PLANTILLA_EPORTFOLIO),
+]

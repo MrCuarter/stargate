@@ -56,7 +56,44 @@ c(/pr-q/.test(JS) && /aria-expanded/.test(JS), "🔴 las preguntas se abren de u
 c((JS.match(/\["¿/g) || []).length >= 5, "   y son las cinco que siempre salen", (JS.match(/\["¿/g) || []).length);
 c(/data-video=/.test(JS), "   el vídeo de bienvenida se ve dentro, con el visor de la casa");
 
-// ── 6 · y el guion está en la guía, no duplicado aquí
+// ── 6 · 🔴 21-sep · LOS ENLACES DE INTERÉS (Norberto: «añade una diapo con enlaces de interés… ¿me dejo alguno?»)
+const ENL = (function () {
+  const i = HTML.indexOf("window.SG_ENLACES=");
+  const j = HTML.indexOf(";</script>", i);
+  return i < 0 ? [] : JSON.parse(HTML.slice(i + "window.SG_ENLACES=".length, j));
+})();
+c(/function enlaces\(\)/.test(JS) && /enlaces\(\), cierre\(\)/.test(JS),
+  "🔴 la presentación acaba con la diapositiva de enlaces, justo antes del cierre");
+c(ENL.length >= 6 && ENL.every(e => e.length === 4 && e[1] && e[2] && e[3]),
+  "   y son " + ENL.length + ", cada uno con su icono, su nombre, para qué sirve y su dirección", JSON.stringify(ENL.map(e => e[1])));
+// los tres que pidió, más los que faltaban
+[["Drive", /drive\.google\.com/], ["la carpeta de Geniallys", /app\.genially\.com\/teams/], ["la plataforma", /stargate\.mistercuarter\.es/],
+ ["el panel que se proyecta", /view\.genially\.com/], ["los vídeos", /youtube\.com\/playlist/], ["la Nave Escuela", /per=nave-escuela/]]
+  .forEach(x => c(ENL.some(e => x[1].test(e[3])), "   está " + x[0]));
+// (el trozo SÍ lleva un /^https?:\/\//, pero es el que le quita el protocolo al texto; lo que no puede haber es una
+//  dirección entrecomillada, que sería una copia de la que ya vive en _site_data.py)
+c(!/["']https?:\/\/[a-z]/.test(JS.slice(JS.indexOf("function enlaces()"), JS.indexOf("function cierre()"))),
+  "🔴 ni una dirección escrita a mano: salen de _site_data.py (ENLACES_EQUIPO)");
+c(/^ENLACES_EQUIPO = \[/m.test(fs.readFileSync(path.join(R, "_site_data.py"), "utf8")), "   que es donde ya vivían todas");
+c(/\.pr-enl\{/.test(CSS) && /\.pr-e\{/.test(CSS), "   con su rejilla de tarjetas");
+
+// ── 6 bis · 🔴 21-sep · LA VENTANA LIMPIA (Norberto: «exclusivamente la presentación… evitar distractores»)
+c(/embed.*===.*"1".*classList\.add\("embed"\)/.test(JS.replace(/\n\s*/g, " ")),
+  "🔴 con ?embed=1 la página se queda solo con la presentación (sin menú, cabecera ni pie)");
+c(/body\.embed section:has\(#prestreno-app\)/.test(CSS) && /body\.embed \.pr-mazo \.lienzo\{overflow:auto\}/.test(CSS),
+  "   y el mazo ocupa la ventana entera, dejando rodar lo que no quepa");
+c(/\.pr-mazo \.dia\{justify-content:safe center\}/.test(CSS),
+  "   una diapositiva más alta que la ventana no se come su propio principio");
+
+// ── 6 ter · 🔴 21-sep · lo que se dice del trabajo del docente tiene que ser VERDAD
+// Norberto: «esto es mentira, no es necesario validar. Si el docente tiene dudas de la veracidad, puede consultar el
+// enlace y anular su entrega». El reto lo registra el recluta y cuenta solo: no hay bandeja de correcciones.
+c(!/se valida o se anula/.test(JS) && /No hay que validar nada/.test(JS),
+  "🔴 «lo que NO hay que hacer» no promete una validación que no existe");
+c(!/se mira y se valida o se anula/.test(fs.readFileSync(path.join(R, "..", "GUIA_PROFES_PDF.md"), "utf8")),
+  "   y la guía del profesorado, igual");
+
+// ── 7 · y el guion está en la guía, no duplicado aquí
 const GUIA = fs.readFileSync(path.join(R, "..", "GUIA_PROFES_PDF.md"), "utf8");
 c(/# PARTE 0 · El guion de la reunión/.test(GUIA), "🔴 la guía del profesorado lleva su guion (Parte 0)");
 c(/Presentar STARGATE al equipo/.test(GUIA), "   y dice dónde está la presentación montada");

@@ -19,6 +19,14 @@
 (function () {
   var root = document.getElementById("prestreno-app");
   if (!root) return;
+  /**
+   * 🔴 21-sep · ?embed=1 · LA VENTANA LIMPIA. Norberto: «el icono de la derecha "Abrir la presentación" debe abrir
+   * la presentación en una ventana sin nada más, exclusivamente la presentación. Simplifica al máximo la ventana
+   * que se abre para evitar distractores». El botón ⧉ de «Gestionar grupos» abre una ventana emergente con este
+   * parámetro; con la clase puesta, la hoja de estilos se lleva menú, cabecera y pie, y el mazo ocupa la ventana.
+   * Es el mismo gesto que ya tenían la sesión de clase y el aula: un solo sitio que decide qué es «sin nada más».
+   */
+  if (new URLSearchParams(location.search).get("embed") === "1") document.body.classList.add("embed");
   var esc = function (x) { return String(x == null ? "" : x).replace(/[&<>"']/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var $ = function (s, d) { return (d || document).querySelector(s); };
@@ -214,7 +222,10 @@
         '<div class="pr-no">' +
           '<div class="pr-n"><b>No hay que apuntar puntos</b><span>ni llevar una hoja, ni contar insignias</span></div>' +
           '<div class="pr-n"><b>No hay que crear nada</b><span>los retos, los planetas, la tienda y el calendario vienen sembrados</span></div>' +
-          '<div class="pr-n"><b>No hay que corregir dos veces</b><span>se mira el enlace y se valida o se anula con un motivo</span></div>' +
+          // 🔴 21-sep · Norberto: «esto es mentira, no es necesario validar. Si el docente tiene dudas de la
+          // veracidad, puede consultar el enlace y anular su entrega». El reto lo registra el propio recluta y
+          // cuenta al instante: aquí no hay bandeja de correcciones, solo la posibilidad de deshacer.
+          '<div class="pr-n"><b>No hay que validar nada</b><span>el reto lo registra el recluta y cuenta solo; si dudas, abres su enlace y lo anulas con un motivo</span></div>' +
           '<div class="pr-n"><b>No pasa nada si un día falla</b><span>el curso no depende de la web: la clase sigue</span></div>' +
         '</div>' +
       '</div>' };
@@ -252,6 +263,33 @@
         '</ol>' +
       '</div>' };
   }
+  /**
+   * 🔴 21-sep · LOS ENLACES DE INTERÉS. Norberto: «añade una diapo con enlaces de interés (Drive compartido, carpeta
+   * de geniallys actualizados y plataforma STARGATE). ¿Me dejo alguno?». Sí: el panel que se proyecta, los enunciados
+   * y rúbricas, la plantilla de la Bitácora, los vídeos y la Nave Escuela. Es la diapositiva que la gente fotografía,
+   * así que cada tarjeta enseña la dirección entera —legible desde el fondo del aula— y se puede pulsar.
+   *
+   * Las direcciones salen de `SG_ENLACES` (de `_site_data.py`): aquí no hay ni una escrita a mano.
+   */
+  function enlaces() {
+    var L = window.SG_ENLACES || [];
+    return { rot: "Enlaces", html:
+      '<div class="dia">' +
+        '<div class="kicker"><img class=ico src=assets/img/iconos/p/enlace.png alt> Guardaos esto</div>' +
+        '<h2>Dónde está cada cosa</h2>' +
+        '<div class="pr-enl">' + L.map(function (e, i) {
+          // la dirección, sin el «https://» que no aporta nada; lo que no quepa lo recorta la hoja de estilos,
+          // que sabe el ancho de la columna mejor que yo (y el título ya lleva la flecha de «se abre fuera»)
+          var corto = String(e[3]).replace(/^https?:\/\//, "").replace(/\/$/, "");
+          return '<a class="pr-e" style="--i:' + i + '" href="' + esc(e[3]) + '" target="_blank" rel="noopener">' +
+            '<img class=ico src="assets/img/iconos/p/' + esc(e[0]) + '.png" alt>' +
+            '<b>' + esc(e[1]) + ' &#8599;</b><span>' + esc(e[2]) + '</span>' +
+            '<em title="' + esc(e[3]) + '">' + esc(corto) + '</em></a>';
+        }).join("") + '</div>' +
+        '<p class="sub">Todo esto vive también en <b>tu Nave</b>, en la sección <b>Enlaces</b>. Y si algo no se abre, ' +
+        'escribid al Mando desde <b>Contacto</b>: es el mismo sitio donde se piden cosas.</p>' +
+      '</div>' };
+  }
   function cierre() {
     return { rot: "Cierre", html:
       '<div class="dia pr-portada">' +
@@ -264,7 +302,7 @@
 
   function mazo() {
     return [portada(), problema(), historia(), nombres(), mapa(), semanas(), capitulos(),
-            comoSeGana(), rankings(), queHaceElDocente(), loQueNo(), preguntas(), siguiente(), cierre()];
+            comoSeGana(), rankings(), queHaceElDocente(), loQueNo(), preguntas(), siguiente(), enlaces(), cierre()];
   }
 
   // ───────────────────────────────────────────────────────────── el mazo, como el de clase

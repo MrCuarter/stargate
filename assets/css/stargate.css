@@ -1119,6 +1119,33 @@ ol.pasos-num li b{color:var(--ink)}
 .dia.mision .pide .et{color:var(--teal2);font-size:.76rem;text-transform:uppercase;letter-spacing:.12em;font-weight:800;margin-bottom:6px}
 .dia.mision .pide p{margin:0;font-size:1.05rem;line-height:1.55}
 
+/* ───── 🔴 21-sep · LA MISIÓN MAYOR: la actividad que puntúa (semanas 2 y 6) ─────
+   Norberto: «es importante que aparezcan los retos relacionados para que vean que los retos forman parte del
+   proceso. Las actividades sí cuentan para su nota final, los retos no». Dos diapositivas en la sesión y, con las
+   mismas clases, su bloque en la página «Actividades y evaluación»: lo único que cambia es el tamaño. */
+.dia.act-mayor .act-nota{margin:10px 0 0;border:1px solid rgba(245,176,67,.5);background:rgba(245,176,67,.08);
+  border-radius:14px;padding:10px 16px;font-size:1.02rem;max-width:70ch}
+.act-pasos{list-style:none;counter-reset:ap;margin:14px 0 0;padding:0;display:grid;gap:8px;max-width:76ch}
+.act-pasos li{counter-increment:ap;position:relative;padding:8px 0 8px 40px;font-size:1rem;line-height:1.45}
+.act-pasos li::before{content:counter(ap);position:absolute;left:0;top:7px;width:26px;height:26px;border-radius:50%;
+  background:var(--teal);color:#05222a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem}
+.act-pasos li b{display:inline}
+.act-pasos li em{display:block;font-style:normal;color:var(--mut);font-size:.95rem;margin-top:2px}
+.act-tag{display:inline-block;margin-left:6px;border:1px solid rgba(55,224,236,.45);border-radius:999px;
+  padding:1px 9px;font-size:.8rem;color:var(--teal2);vertical-align:1px}
+/* los retos que la construyen: la misma lista en la sesión y en la página */
+.act-retos{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:10px;max-width:80ch}
+.act-retos li{border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:14px;
+  padding:12px 16px;background:rgba(255,255,255,.02)}
+.act-retos li p{margin:4px 0 0;color:var(--mut);font-size:.95rem;line-height:1.5}
+.act-retos .ar-t{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.act-retos .ar-t b{color:var(--amber)}
+.act-retos .ar-w{border:1px solid var(--line);border-radius:999px;padding:1px 10px;font-size:.8rem;color:var(--mut)}
+.dia .act-pasos li,.dia .act-retos li{animation:ses-sube .45s both;animation-delay:calc(var(--i,0)*80ms + .15s)}
+.mazo:fullscreen .act-pasos li,body.embed .mazo .act-pasos li{font-size:clamp(1rem,1.5vw,1.35rem)}
+.mazo:fullscreen .act-pasos li em,body.embed .mazo .act-pasos li em{font-size:clamp(.95rem,1.35vw,1.2rem)}
+.mazo:fullscreen .act-retos li p,body.embed .mazo .act-retos li p{font-size:clamp(.95rem,1.35vw,1.2rem)}
+
 /* 18-sep · el ticket de la semana 1 va embebido (aún no hay respuestas que leer) */
 .dia.ticket-form .tk-form{width:100%;height:min(62vh,620px);border:1px solid var(--line);border-radius:14px;background:#fff}
 .dia .reto-ej{margin:12px 0 0}
@@ -5499,6 +5526,11 @@ body.con-visor{overflow:hidden}
 /* y los mandos (el contador y «Pantalla completa») flotan arriba a la derecha: se les deja su franja, que
    si no se comían el arranque de los títulos largos */
 .pr-mazo .dia{gap:16px;padding-left:66px;padding-right:66px;padding-top:56px}
+/* 21-sep · una diapositiva más alta que la ventana (la de enlaces, en una pantalla pequeña) se centraba y se comía
+   su propio principio: centrada, lo que sobra se va por ARRIBA y no hay forma de llegar. `safe` centra mientras
+   quepa y, cuando no, empieza por el principio — y el lienzo la deja rodar. */
+.pr-mazo .dia{justify-content:safe center}
+.mazo.pr-mazo:fullscreen .lienzo{overflow:auto}
 @media(max-width:700px){.pr-mazo .dia{padding-left:20px;padding-right:20px}}
 .pr-mandos{position:absolute;top:10px;right:14px;display:flex;align-items:center;gap:10px;z-index:3}
 .pr-cuenta{font-size:.78rem;color:var(--mut);font-variant-numeric:tabular-nums}
@@ -5593,9 +5625,40 @@ body.con-visor{overflow:hidden}
 /* el paso siguiente */
 .pr-pasos{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
 .pr-pasos li{font-size:.95rem}
+/* 21-sep · los enlaces de interés: la diapositiva que la gente fotografía. Cada tarjeta enseña la dirección entera,
+   legible desde el fondo del aula, y se puede pulsar (en la reunión se proyecta, pero también se navega). */
+.pr-enl{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;margin:16px 0 0}
+.pr-e{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"i t" "i d" "i u";column-gap:12px;row-gap:3px;
+  border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.02);
+  text-decoration:none;color:inherit;transition:.15s;animation:ses-pop .4s ease-out both;
+  animation-delay:calc(var(--i,0)*60ms + .1s)}
+.pr-e:hover,.pr-e:focus-visible{border-color:var(--teal);background:rgba(55,224,236,.07)}
+.pr-e .ico{grid-area:i;align-self:start;width:1.6em;height:1.6em;margin-top:2px;vertical-align:0}
+.pr-e b{grid-area:t;color:var(--teal2);font-size:1rem;line-height:1.25}
+.pr-e span{grid-area:d;color:var(--mut);font-size:.88rem;line-height:1.4}
+.pr-e em{grid-area:u;font-style:normal;color:var(--amber);font-size:.8rem;margin-top:2px;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(prefers-reduced-motion:reduce){.pr-e{animation:none}}
+
+/* 🔴 21-sep · LA VENTANA LIMPIA (?embed=1). Norberto: «el icono de la derecha debe abrir la presentación en una
+   ventana sin nada más, exclusivamente la presentación. Simplifica al máximo la ventana que se abre para evitar
+   distractores». El menú, la cabecera y el pie se los lleva ya `body.embed`; aquí el mazo pasa a ocupar la ventana
+   entera. Dos matices que no tiene la sesión de clase: el contenido puede crecer por encima de la ventana (el mapa
+   con su ficha abierta, las preguntas desplegadas), así que se deja rodar en vez de recortarlo; y se conserva la
+   franja de arriba, que es por donde flotan el contador y «Pantalla completa». */
+body.embed section:has(#prestreno-app){padding:0;border:0}
+body.embed .wrap:has(#prestreno-app){max-width:none;padding:0}
+body.embed .pr-mazo .lienzo{overflow:auto}
+body.embed .pr-mazo .dia{padding-top:56px}
+
 /* la tarjeta que lo abre, en «Gestionar grupos» */
-.gs-prestreno{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-color:rgba(245,176,67,.4);
+/* 🔴 21-sep · Norberto: «aumenta área de seguridad, se solapan las cajas». El botón primario tiene un resplandor al
+   pasar el ratón (`.btn.primary:hover`, 34 px de desenfoque) que con 16 px de separación se metía encima del texto de
+   la izquierda y del botón de ventana. El aire va aquí, no en el resplandor: 28 px entre el texto y los botones, y los
+   dos botones en su propia caja para que viajen juntos cuando la tarjeta se parte en dos líneas. */
+.gs-prestreno{display:flex;align-items:center;gap:28px;flex-wrap:wrap;border-color:rgba(245,176,67,.4);
   background:radial-gradient(520px 200px at 10% -30%,rgba(255,209,102,.12),transparent 60%),rgba(13,20,32,.9)}
 .gs-prestreno .gs-pr-t{flex:1 1 340px;min-width:0}
+.gs-prestreno .gs-pr-b{display:flex;align-items:center;gap:14px;flex:0 0 auto}
 .gs-prestreno h3{margin:0 0 4px}
 .gs-prestreno p{margin:0;color:var(--mut);font-size:.9rem}

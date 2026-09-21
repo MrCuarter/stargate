@@ -15,6 +15,7 @@
 (function(){
   var API=(window.SG_TABLERO_API||"").trim(), SEM=window.SG_SEMANAS||[],
       PLAN=window.SG_PLANETAS||[], AYU=window.SG_AYUDA_RETOS||{}, RET=window.SG_RETOS||{},
+      ACTS=window.SG_ACTIVIDADES||[],
       root=document.getElementById('sesion-app');
   if(!root) return;
   var q=new URLSearchParams(location.search);
@@ -1083,6 +1084,69 @@
     pinta();
     return para;
   }
+  /**
+   * ════════ 🔴 21-sep · LA MISIÓN MAYOR: LA ACTIVIDAD QUE SÍ PUNTÚA ════════
+   *
+   * Norberto: «en las sesiones en vivo de los temas 1 y 3 debes añadir un par de diapositivas explicando la actividad
+   * que toca. Es importante que aparezcan los retos relacionados para que vean que los retos forman parte del
+   * proceso. Las actividades sí cuentan para su nota final, los retos no».
+   *
+   * Dos diapositivas, y en este orden: **qué pide** la actividad (el enunciado oficial, paso a paso) y **qué retos le
+   * han hecho ya un trozo**. La segunda es la que importa: el alumnado vive los retos como un juego aparte, y aquí se
+   * ve que el relámpago de la semana pasada ES la tabla técnica que hay que entregar.
+   *
+   * Todo sale del dato (`SG_ACTIVIDADES`, el mismo que pinta «Actividades y evaluación»); la semana de cada reto, del
+   * calendario. Si un reto se mueve de semana o cambia de nombre, esto lo dice bien sin que nadie se acuerde.
+   */
+  function fuerte(t){ return esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
+  /** La semana que lanza una actividad lo dice en su subtítulo — la misma regla que usa el ticket de salida. */
+  function actividadDe(s){
+    var m=String((s&&s.sub)||'').match(/Actividad\s+(\d)/i); if(!m) return null;
+    return ACTS.filter(function(a){ return String(a.n)===m[1]; })[0]||null;
+  }
+  function nombreReto(id){
+    var f=(RET.REGULAR||[]).filter(function(r){ return r[0]===id; })[0];
+    return f?f[1]:id;
+  }
+  /** En qué semana se lanza un reto, según el calendario de la vista (REGULAR o PUA). 0 = no lo lanza nadie. */
+  function semanaDeReto(id){
+    var L=semanas();
+    for(var i=0;i<L.length;i++){
+      var l=L[i].lanza||[];
+      for(var j=0;j<l.length;j++) if(idDeReto(l[j])===id) return Number(L[i].sem)||0;
+    }
+    return 0;
+  }
+  function diasActividad(s){
+    var a=actividadDe(s); if(!a) return [];
+    var sem=Number(s.sem)||0;
+    var pasos=(a.pasos||[]).map(function(p,i){
+      return '<li style="--i:'+i+'"><b>'+esc(p[0])+'</b>'+(p[1]?' <span class="act-tag">'+esc(p[1])+'</span>':'')
+        +'<em>'+fuerte(p[2])+'</em></li>'; }).join('');
+    var retos=(a.retos||[]).map(function(r,i){
+      var w=semanaDeReto(r[0]);
+      var cuando=!w?'':(w<sem?'Semana '+w+' · ya lo tienes':w===sem?'Se lanza hoy':'Semana '+w);
+      return '<li style="--i:'+i+'"><div class="ar-t"><b>'+esc(nombreReto(r[0]))+'</b>'
+        +(cuando?'<span class="ar-w">'+esc(cuando)+'</span>':'')+'</div><p>'+fuerte(r[1])+'</p></li>'; }).join('');
+    return [
+      {k:'act', rot:'La actividad', html:
+        '<div class="dia act-mayor"><div class="kicker"><img class=ico src=assets/img/iconos/p/notas.png alt> '
+        +'Misión mayor '+esc(a.orden)+' · Planeta '+esc(a.planeta)+' · se lanza hoy</div>'
+        +'<h2>Actividad '+esc(String(a.n))+' — '+esc(a.titulo)+'</h2>'
+        +'<p class="sub"><i>«'+esc(a.lema)+'.»</i> '+esc(a.resumen)+'</p>'
+        +'<p class="act-nota"><b>'+esc(a.puntos)+' de los 10 puntos</b> de la evaluación continua. '
+        +'Se entrega en la plataforma de UNIR y se resuelve en la <b>semana '+esc(String(a.resuelve))+'</b>.</p>'
+        +'<ol class="act-pasos">'+pasos+'</ol></div>'},
+      {k:'actretos', rot:'Ya la tienes empezada', html:
+        '<div class="dia act-retos-dia"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> '
+        +'Lo que ya llevas hecho</div>'
+        +'<h2>Los retos que construyen la Actividad '+esc(String(a.n))+'</h2>'
+        +'<p class="sub">Los retos <b>no puntúan</b>; la actividad, <b>sí</b> — '+esc(a.puntos)+' puntos. Pero cada uno '
+        +'de estos retos deja hecho un trozo de la entrega: quien los hace <b>no empieza de cero</b>.</p>'
+        +'<ul class="act-retos">'+retos+'</ul></div>'}
+    ];
+  }
+
   function diasMisiones(s){
     var out=[], ls=s.lanza||[];
     ls.forEach(function(txt,i){
@@ -1181,7 +1245,8 @@
   var SEC_DE_K={portada:'portada', llamada:'llamada', foro:'mensaje', anteriores:'repaso', reflexion:'repaso',
     movido:'clasificacion', semanal:'clasificacion', top:'clasificacion', escuadrones:'clasificacion', coleccion:'coleccion',
     simulador:'simulador', votacion:'votacion', ticket:'ticket', oferta:'oferta', nuevo:'novedades', simulacro:'novedades',
-    genially:'despegue', puente:'despegue', reto:'misiones', hito:'misiones', insignias:'recompensa'};
+    genially:'despegue', puente:'despegue', act:'actividad', actretos:'actividad',
+    reto:'misiones', hito:'misiones', insignias:'recompensa'};
   function secDe(x){ return x.sec || SEC_DE_K[x.k] || 'misiones'; }
   function apagadas(){
     var S=st.sesionesDelGrupo||(st.d&&st.d.sesiones)||{}, quien=String((!st.alumno&&st.miNombre)||st.profeMio||'').trim();
@@ -1213,6 +1278,8 @@
     var ci=[];
     deTipo('tema').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'Rumbo al planeta'), {sec:'misiones'})); });
     deTipo('mision').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'La misión'), {sec:'misiones'})); });
+    // 21-sep · y justo detrás del vídeo de la misión, la actividad que puntúa y los retos que la construyen
+    ci=ci.concat(diasActividad(s));
     ci=ci.concat(diasMisiones(s));
     // 🔴 El Genially del grupo (el panel), EMBEBIDO: es donde empieza la clase de verdad. Si el docente
     // tiene uno propio («Mis enlaces»), el suyo; si no, el oficial del grupo; si no, el Panel de
@@ -1241,8 +1308,16 @@
     // El tramo del medio. Proyectando desde la web (sin Genially) va el panel del grupo EMBEBIDO, que
     // es donde está la teoría y la práctica guiada; dentro del Genially no se puede (sería el panel
     // dentro de sí mismo), así que ahí va una tarjeta que dice dónde seguir.
+    /**
+     * 🔴 21-sep · EL SEGUNDO TIEMPO **ES** EL PANEL. Norberto, con la diapositiva «Ahora, el despegue» delante:
+     * «sustituye el contenido de esta diapositiva por el Genially del panel de control del grupo del profesor».
+     * Salía la tarjeta de texto —que solo dice dónde seguir— siempre que la sesión se abría SIN grupo (sesion.html
+     * a pelo, que es como se mira antes de clase): `st.per` vacío cortaba antes de mirar si había panel. Y panel hay
+     * siempre: el del docente, el del grupo o, en último término, el Panel de control maestro de STARGATE. La tarjeta
+     * se queda solo para el único sitio donde el embebido es imposible: dentro del propio Genially.
+     */
     var medio=[];
-    if(st.per && (!EMBED || VENTANA)){
+    if(!EMBED || VENTANA){
       var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
       if(panel) medio.push({k:'genially', t:'pr', rot:'El despegue', html:
         '<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});

@@ -1548,6 +1548,23 @@ const REG = {};   // cifras que se apuntan para el informe
       // (14-sep · «El plan de hoy» ya no va aparte: Norberto eligió juntarlo con las misiones)
       c("🔴 sesión · la semana 2 lleva «Lo nuevo» y «Enséñalo», justo antes de las misiones de hoy",
         rot.indexOf("Tu Nave, más grande") > 1 && rot.indexOf("Enséñalo") === rot.indexOf("Tu Nave, más grande") + 1 && rot.indexOf("Misión 1") > rot.indexOf("Enséñalo"), JSON.stringify(rot));
+      /**
+       * 🔴 21-sep · LA MISIÓN MAYOR. Norberto: «en las sesiones en vivo de los temas 1 y 3 añade un par de diapositivas
+       * explicando la actividad que toca… es importante que aparezcan los retos relacionados para que vean que los
+       * retos forman parte del proceso. Las actividades sí cuentan para su nota final, los retos no».
+       */
+      c("🔴 sesión · la semana 2 lleva la misión mayor (la actividad y los retos que la construyen) ANTES de las misiones",
+        rot.indexOf("La actividad") > 0 && rot.indexOf("Ya la tienes empezada") === rot.indexOf("La actividad") + 1
+        && rot.indexOf("Misión 1") > rot.indexOf("Ya la tienes empezada"), JSON.stringify(rot));
+      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='La actividad'})[0].click(); 1"); await dormir(700);
+      const act1 = await rita.texto();
+      c("sesión · la actividad, con lo que pesa y cuándo se resuelve", /4,3 de los 10 puntos/.test(act1) && /semana 9/.test(act1) && /Tabla técnica/.test(act1), act1.slice(0, 120));
+      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Ya la tienes empezada'})[0].click(); 1"); await dormir(700);
+      const act2 = await rita.texto();
+      c("🔴 sesión · y los retos que la construyen, con la frase que importa («los retos no puntúan; la actividad, sí»)",
+        /no puntúan/.test(act2) && /La chispa y la marca/.test(act2) && /La Bitácora en marcha/.test(act2) && /El boceto sin quemar/.test(act2), act2.slice(0, 160));
+      c("   con la semana de cada reto: el de hoy y el que ya tienen hecho", /Se lanza hoy/.test(act2) && /Semana 1 · ya lo tienes/.test(act2));
+      await rita.foto(FOTOS + "/21-sesion-mision-mayor.png");
       await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Tu Nave, más grande'})[0].click(); 1"); await dormir(700);
       c("sesión · «🔓 Se abre esta semana en STARGATE: El Mercado Estelar», con lo que se puede hacer", /Se abre esta semana/i.test(await rita.texto()) && /sobres de cromos/i.test(await rita.texto()));
       await rita.foto(FOTOS + "/21-sesion-lo-nuevo.png");
@@ -2710,7 +2727,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await f2.js(`[].slice.call(document.querySelectorAll('.ses-grupo')).filter(function(b){return b.getAttribute('data-per')==='${P}'})[0].click(); 1`);
       c("🔴 embed · elige su grupo y arranca la sesión de la semana que toca", await f2.hasta("!!document.querySelector('.mazo .dia.portada') && /Semana 10/i.test(document.querySelector('.mazo').innerText)", 25),
         (await f2.texto()).slice(0, 200));
-      const vista = JSON.parse(await f2.js("JSON.stringify({ prep: !!document.querySelector('.prep'), tira: !!document.querySelector('.sem-tira'), panel: [].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Empezar'}), alto: document.querySelector('.mazo').getBoundingClientRect().height, vh: innerHeight, cambiar: !!document.getElementById('ses-cambiar') })"));
+      const vista = JSON.parse(await f2.js("JSON.stringify({ prep: !!document.querySelector('.prep'), tira: !!document.querySelector('.sem-tira'), panel: !!document.querySelector('.dia.genially iframe'), alto: document.querySelector('.mazo').getBoundingClientRect().height, vh: innerHeight, cambiar: !!document.getElementById('ses-cambiar') })"));
       c("embed · se proyecta solo el mazo: sin la tira del docente (el consejo) ni el selector de semanas", !vista.prep && !vista.tira, JSON.stringify(vista));
       c("embed · y llena la caja del Genially", Math.abs(vista.alto - vista.vh) < 4, JSON.stringify(vista));
       c("🔴 embed · sin la diapositiva del panel de Genially (sería el Genially dentro de sí mismo)", !vista.panel, JSON.stringify(vista));
@@ -4821,7 +4838,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rs.ir("entrar.html"); await rs.entrarComo("rita@lab.test", "Rita Referente");
       const hay = await aMisEnlaces();
       const casillas = await rs.js("(function(){ var l=[].slice.call(document.querySelectorAll('.m-sec input')); return l.length+'|'+l.filter(function(x){return x.checked}).length; })()");
-      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas marcadas", hay && casillas === "17|17", casillas);   // (19-sep · 17 con «Únete a la clase»)
+      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas marcadas", hay && casillas === "18|18", casillas);   // (21-sep · 18 con «La misión mayor»)
       // (la sesión lee la elección del docente directamente del grupo; con el emulador atascado eso tarda: se espera a que
       // el mazo ACABE reflejándola, como mucho un minuto. En producción son milisegundos)
       const conTop = "[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Top 5'})";

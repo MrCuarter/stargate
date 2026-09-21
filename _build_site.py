@@ -10,9 +10,9 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
-                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, REFLEXION_RETOS, TOPE_RETOS_SEMANA, SESION_SECCIONES, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
+                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, REFLEXION_RETOS, TOPE_RETOS_SEMANA, SESION_SECCIONES, ACTIVIDADES, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
-                        PASOS, ESCUADRONES, PER_DEMO, PER_ESCUELA, TICKET_URL, TICKET_TEMAS, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
+                        PASOS, ESCUADRONES, PER_DEMO, PER_ESCUELA, ENLACES_EQUIPO, TICKET_URL, TICKET_TEMAS, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES,
                         HITOS_A_BORDO, CUBIERTAS_A_BORDO, HEROES_A_BORDO, CARTA_A_BORDO, BATALLA, SIN_PUA, VOTACION)
 # Los logros de a bordo, tal y como los lee el navegador (un dato, un sitio: _site_data.py)
@@ -830,6 +830,52 @@ _SUB = open(os.path.join(HERE, "_docs_reservados.txt")).read().strip()
 def doc_url(f): return "assets/docs/%s%s" % ((_SUB + "/") if f in _RESERVADOS else "", f)
 docs_html="\n".join(f'<a class="doc" href="{doc_url(f)}" download><span class="ext">{f.rsplit(".",1)[1].upper()}</span><b>{t}</b><em>{d}</em></a>' for f,t,d in DOCS)
 
+# ───────── 21-sep · LAS DOS MISIONES MAYORES, DESDE EL DATO (_site_data.ACTIVIDADES) ─────────
+# 🔴 Estaban escritas a mano aquí abajo, en el HTML, y esta página era el ÚNICO sitio donde vivía el enunciado: ni la
+# sesión que se proyecta en clase ni la guía del profesorado podían contarlo sin copiarlo (y una copia, tarde o
+# temprano, miente). Ahora las tres beben del mismo dato — y de él sale también lo que Norberto pidió el 21-sep: qué
+# reto construye qué trozo de cada actividad.
+def _negrita(t):
+    """**así** → <b>así</b>. La marca vive en el dato porque lo pinta también la sesión (que además escapa el resto)."""
+    return _reS.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", t)
+try:
+    _CAT_RETOS = {r["id"]: r.get("titulo", "") for r in
+                  json.load(open(os.path.join(HERE, "motor", "catalogo.json"), encoding="utf-8"))
+                      .get("retos", {}).get("REGULAR", [])}
+except Exception as _eA:
+    _CAT_RETOS = {}
+    print("🔴 no he podido leer el catálogo para nombrar los retos de las actividades:", _eA)
+def _nombre_reto(rid):
+    """El nombre del reto se lee del catálogo: en ACTIVIDADES solo va el id, para no tener dos veces el mismo título."""
+    n = _CAT_RETOS.get(rid, "")
+    if not n:
+        raise SystemExit("🔴 ACTIVIDADES cita el reto %s y el catálogo no lo tiene: o se renombró, o se borró." % rid)
+    return n
+def _seccion_actividad(a):
+    pasos = "\n".join(
+        '<div class="step"><b>%s</b>%s<br>%s</div>'
+        % (t, (' <span class="tag-req">%s</span>' % et) if et else "", _negrita(x))
+        for t, et, x in a["pasos"])
+    retos = "\n".join('<li><div class="ar-t"><b>%s</b></div><p>%s</p></li>'
+                      % (_nombre_reto(rid), _negrita(linea)) for rid, linea in a["retos"])
+    # 🔴 el ancla es act1/act2 (no la clave a1/a2): la citan las insignias, la ayuda y la guía desde hace semanas
+    return ('<section id="act%(n)d"><div class="wrap">\n'
+            '<div class="eyebrow amber">Misión mayor %(orden)s · Planeta %(planeta)s · semana %(sem)d '
+            '(se resuelve en la %(resuelve)d)</div>'
+            '<h2>Actividad %(n)d — %(titulo)s</h2>\n'
+            '<p class="lead"><i>«%(lema)s.»</i> %(resumen)s <span class="pill amber">%(puntos)s puntos</span></p>\n'
+            '<div class="yt-full">%(video)s</div>\n'
+            '<h3>El enunciado, paso a paso (lo que entrega el alumnado)</h3>\n'
+            '<div class="steps">\n%(pasos)s\n</div>\n'
+            '<h3>Los retos que la construyen</h3>\n'
+            '<p class="lead">Los retos <b>no puntúan</b>; la actividad, <b>sí</b> — %(puntos)s de los 10 puntos. '
+            'Pero cada uno de estos retos deja hecho un trozo de la entrega: quien los hace no empieza de cero.</p>\n'
+            '<ul class="act-retos">\n%(retos)s\n</ul>\n'
+            '</div></section>'
+            % dict(a, video=ytbox(a["video"], "El enunciado narrativo: ponlo al lanzar la actividad"),
+                   pasos=pasos, retos=retos))
+actividades_html = "\n\n".join(_seccion_actividad(a) for a in ACTIVIDADES)
+
 ACT = head("STARGATE · Actividades y evaluación",
   "Las misiones (actividades), el ePortfolio, la evaluación, el examen y los documentos oficiales de la asignatura con su marco narrativo STARGATE.","act", puerta=True) + f'''
 <header class="hero"><div class="kicker">Documentos oficiales</div>
@@ -851,35 +897,7 @@ marco narrativo STARGATE—. Los requisitos provienen de los enunciados y la gu�
 son <b>páginas de la Bitácora</b>. La nota mide tu avance; la Bitácora es lo que te llevas a casa.</blockquote>
 </div></section>
 
-<section id="act1"><div class="wrap">
-<div class="eyebrow amber">Misión mayor I · Planeta Fôrge · semana 2 (se resuelve en la 9)</div><h2>Actividad 1 — Actividad didáctica a partir de una imagen con IA</h2>
-<p class="lead"><i>«La primera chispa.»</i> El recluta diseña una actividad para su aula a partir de una imagen creada con IA,
-documentando el proceso con criterio docente. <span class="pill amber">4,3 puntos</span></p>
-<div class="yt-full">{ytbox("act1","El enunciado narrativo: ponlo al lanzar la actividad")}</div>
-<h3>El enunciado, paso a paso (lo que entrega el alumnado)</h3>
-<div class="steps">
-<div class="step"><b>Planifica</b> <span class="tag-req">obligatorio</span><br>Define el alumnado, el tema del aula y la tarea que harán con la imagen.</div>
-<div class="step"><b>Crea la imagen con IA</b> <span class="tag-req">iteración</span><br>Prompt estructurado (contexto educativo + tipo de imagen + finalidad, modelo tipo CRAFT/RITA), <b>al menos una iteración</b>, y selección final con <b>tu criterio docente</b>. Cita la herramienta y respeta derechos de autor.</div>
-<div class="step"><b>Tabla técnica</b><br>Documenta función de la IA, prompt inicial, iteración, criterio docente, evidencia del proceso (enlace o capturas) y citación.</div>
-<div class="step"><b>Tabla reflexiva</b> <span class="tag-req">ePortfolio</span><br>Reflexión crítica: cómo integraste la IA, cómo transformó la actividad, qué pusiste tú y qué aprendiste.</div>
-<div class="step"><b>Entregables</b><br><b>PDF (80%)</b>, máx. 4 páginas, con planificación, actividad, referencia a la IA, capturas de las tablas y el enlace al ePortfolio. <b>ePortfolio (20%)</b> con la imagen, la tarea, las tablas completas y la evidencia del proceso.</div>
-</div>
-</div></section>
-
-<section id="act2"><div class="wrap">
-<div class="eyebrow amber">Misión mayor II · Planeta Sendara · semana 6 (se resuelve en la 13)</div><h2>Actividad 2 — Planifica y crea un paisaje de aprendizaje</h2>
-<p class="lead"><i>«Cuarenta y ocho senderos.»</i> Ante un aula con ritmos muy dispares, el recluta diseña un paisaje de
-aprendizaje que atiende a la diversidad: no hay una sola ruta. <span class="pill amber">4,3 puntos</span></p>
-<div class="yt-full">{ytbox("act2","El enunciado narrativo: ponlo al lanzar la actividad")}</div>
-<h3>El enunciado, paso a paso (lo que entrega el alumnado)</h3>
-<div class="steps">
-<div class="step"><b>Contextualiza</b><br>Describe una unidad didáctica real de tu nivel: edad, área, tema y elementos curriculares (objetivos, contenidos, criterios de evaluación).</div>
-<div class="step"><b>Matriz de programación 8×6</b> <span class="tag-req">núcleo</span><br>Tabla de doble entrada: <b>8 inteligencias múltiples × 6 niveles de Bloom</b> = 48 casillas. Rellena <b>al menos 6 cruces</b> variados en complejidad y en talento, con una actividad en cada uno.</div>
-<div class="step"><b>Cada actividad, completa</b><br>Objetivo, tarea del alumno, recursos (con cita/enlace), instrumentos de evaluación, tiempo estimado y tipo: obligatoria, optativa o voluntaria.</div>
-<div class="step"><b>El paisaje interactivo</b><br>Convierte una <b>imagen interactiva</b> (no una presentación) en el paisaje, con las actividades integradas dentro del territorio.</div>
-<div class="step"><b>Entregables</b><br><b>PDF (80%)</b> (máx. 10 páginas para 6 actividades, +1 por actividad extra) con planificación y matriz. <b>ePortfolio (20%)</b>: evidencias de matriz y paisaje (15%) + justificación del diseño y atención a la diversidad (5%).</div>
-</div>
-</div></section>
+{actividades_html}
 
 <section id="eportfolio"><div class="wrap">
 <div class="eyebrow teal">La Bitácora</div><h2>El ePortfolio, página a página</h2>
@@ -2811,7 +2829,7 @@ Pasa con las flechas <b>←</b> y <b>→</b>.</p>
 <p class="small muted">El <b>consejo del Capitán</b> y el mensaje del foro están arriba, fuera del mazo:
 al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></header>
 <section><div class="wrap"><div id="sesion-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/tkcomun.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>
@@ -2839,7 +2857,7 @@ Pasa con <b>←</b> y <b>→</b>; el mapa de planetas y las preguntas se abren p
 <p class="small muted">El guion completo, con los minutos de cada bloque y qué decir en cada uno, está en la
 <b>Parte 0</b> de la guía del profesorado.</p></header>
 <section><div class="wrap"><div id="prestreno-app"></div>
-<script>window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_PER_ESCUELA={json.dumps(PER_ESCUELA)};</script>
+<script>window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_PER_ESCUELA={json.dumps(PER_ESCUELA)};window.SG_ENLACES={json.dumps([list(x) for x in ENLACES_EQUIPO], ensure_ascii=False)};</script>
 <script src="assets/js/prestreno.js" defer></script>
 </div></section>
 ''' + FOOT
