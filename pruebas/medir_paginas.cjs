@@ -22,6 +22,7 @@ const { persona, dormir, admin } = L;
 const ETQ = process.argv[2] || "x";
 const ANCHOS = (process.argv.find(a => a.indexOf("--anchos=") === 0) || "--anchos=").slice(9).split(",").filter(Boolean).map(Number);
 const PESO = process.argv.includes("--peso");
+const MOVIL = process.argv.includes("--movil");   // 23-sep · el teléfono de verdad: táctil, 2x y su alto
 const MEDIR = `(function(){
   var r=performance.getEntriesByType('resource'), g={}, img={n:0,kb:0,fuera:0}, fn={}, fs={n:0};
   r.forEach(function(e){
@@ -60,7 +61,7 @@ const SCAN = `(function(){ var W=document.documentElement.clientWidth, m=[];
   const al = await persona("mp recluta");
   await al.ir("entrar.html"); await al.entrarComo("medir@lab.test", "Medir");
   const uid = await al.js("window.SG.MOTOR.auth.currentUser.uid");
-  const f = (await fsA.collection("student_profiles").where("projectId", "==", P).get()).docs.sort((a, b) => (b.data().xp || 0) - (a.data().xp || 0))[8];
+  const f = (await fsA.collection("student_profiles").where("projectId", "==", P).get()).docs.sort((a, b) => (b.data().totalPoints || 0) - (a.data().totalPoints || 0))[8];
   const viejo = f.data().userId; await f.ref.update({ userId: uid, email: "medir@lab.test" });
   for (const d of (await fsA.collection("stargate_alias").where("uid", "==", viejo).get()).docs) await d.ref.update({ uid });
   const doc = await persona("mp docente");
@@ -82,6 +83,9 @@ const SCAN = `(function(){ var W=document.documentElement.clientWidth, m=[];
     ["gestion-premios", doc, "gestion.html?per=" + P, ".gs-panel [data-tab]", "premios"],
     ["aula", doc, "aula.html?per=" + P, "#au-cuerpo, .au-tabs, main"],
     ["prestreno", doc, "prestreno.html", ".dia, main"],
+    ["portada", al, "index.html", ".dz"],
+    ["guia-recluta", al, "guia-recluta.html", "#empezar"],
+    ["guia-profes", doc, "guia.html", "#que"],
   ].filter(x => !SOLO.length || SOLO.indexOf(x[0]) >= 0);
   if (PESO) {
     const vistos = {};
@@ -94,8 +98,10 @@ const SCAN = `(function(){ var W=document.documentElement.clientWidth, m=[];
   }
   for (const w of ANCHOS) {
     for (const [n, p, url, listo, pest] of PAG) {
-      await p.tamano(w, 900); await p.ir(url);
+      await p.tamano(w, MOVIL ? 844 : 900, MOVIL); await p.ir(url);
       const ok = await p.hasta(`!!document.querySelector(${JSON.stringify(listo)})`, 60); await dormir(3500);
+      // (las celebraciones que salen solas al entrar —sobres, logros de a bordo— tapan la página: fuera, como las cerraría alguien)
+      await p.js("[].slice.call(document.querySelectorAll('.sb-capa,#nave-logro.open,.tour-invite,.neb-capa')).forEach(function(x){x.remove()}); document.body.style.overflow=''; 1").catch(() => {});
       if (pest) { await p.js(`(function(){var b=document.querySelector('.gs-panel [data-tab="${pest}"]'); if(b) b.click(); return 1;})()`); await dormir(2500); }
       const res = await p.js(SCAN);
       console.log(w, n, ok ? "" : "(NO CARGÓ)", res);

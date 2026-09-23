@@ -76,6 +76,9 @@ section h2{font-size:clamp(1.5rem,3.4vw,2.2rem);margin:0 0 .2em}
 .grid{display:grid;gap:18px}
 .cols-2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
 .cols-3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:900px){.cols-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.cols-4{grid-template-columns:1fr}}
 .card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:16px;padding:22px}
 .card h3{margin:.1em 0 .4em;font-size:1.12rem;color:#eafcff}
 .card.accent{border-color:#2a4a3e}
@@ -2257,7 +2260,7 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 /* ══════════ EL SUBMENÚ DE LA GUÍA ══════════
    La guía es larga a propósito: es el método entero. Sin índice se navega a rueda de ratón. Y se
    pega arriba al bajar — un índice que desaparece al hacer scroll no es un índice, es una portada. */
-.guia-sub{position:sticky;top:0;z-index:18;background:rgba(8,12,20,.94);
+.guia-sub{position:sticky;top:var(--nav-h,54px);z-index:18;background:rgba(8,12,20,.94);
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);margin-bottom:8px}
 .guia-sub .wrap{display:flex;gap:4px;overflow-x:auto;padding-top:9px;padding-bottom:9px;
@@ -5512,6 +5515,10 @@ body.embed .mazo .emb-c figcaption span,body.embed .mazo .emb-pasos li span,body
    justo delante y quién le pisa los talones). Todo con flex-wrap y rejillas que se parten solas: en media pantalla cada
    fila se apila en vez de aplastarse (el fallo de antes: un avatar de 230 px fijos en una columna de 330). */
 .nave-ficha{display:flex;flex-direction:column;gap:16px}
+/* 23-sep · es una <section>, y `#nave-app section{padding:22px 0}` le quitaba el margen de los lados: el avatar, NEBULA y la
+   carrera quedaban pegados al borde de la tarjeta (se vio en las capturas de la guía del recluta) */
+#nave-app section.nave-ficha{padding:22px}
+@media(max-width:560px){#nave-app section.nave-ficha{padding:14px}}
 .nf-arriba{display:flex;flex-wrap:wrap;align-items:center;gap:18px 24px}
 .nf-arriba .av-lupa{flex:0 0 auto;width:clamp(120px,16vw,190px)}
 .nf-arriba .av-lupa img.av{width:100%;height:auto;aspect-ratio:1}
@@ -5844,3 +5851,133 @@ body.embed .pr-mazo .dia{padding-top:56px}
 .gs-prestreno .gs-pr-b{display:flex;align-items:center;gap:14px;flex:0 0 auto}
 .gs-prestreno h3{margin:0 0 4px}
 .gs-prestreno p{margin:0;color:var(--mut);font-size:.9rem}
+
+/* ───── 23-sep · LA GUÍA DEL RECLUTA (guia-recluta.html) ─────
+   Una guía que se entiende mirando: cada bloque lleva su captura de la Nave de verdad (pruebas/capturas_recluta.cjs).
+   Texto y captura a la par en pantalla ancha; una debajo de otra en el móvil. La altura la pone el texto. */
+.gr-dos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media(max-width:860px){.gr-dos{grid-template-columns:1fr}}
+.gr-cap{margin:14px 0 0;display:flex;flex-direction:column;gap:6px}
+.gr-dos>.gr-cap{margin-top:0}
+.gr-cap img{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.gr-cap.alta img{max-height:640px;object-fit:cover;object-position:top}
+.gr-cap figcaption{font-size:.85rem;color:var(--mut)}
+.gr-pasos{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
+.gr-pasos li::marker{color:var(--teal);font-weight:800}
+.gr-tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px;margin:18px 0 8px}
+.gr-tab{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}
+.gr-tab img{width:40px;height:40px;object-fit:contain;flex:none}
+.gr-tab b{display:block;color:#eafcff}
+.gr-tab p{margin:2px 0 0;font-size:.9rem;color:var(--mut)}
+.tabla-scroll{overflow-x:auto;margin:12px 0}
+.gr-tabla{width:100%;border-collapse:collapse;font-size:.92rem}
+.gr-tabla th{text-align:left;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:8px 10px;border-bottom:1px solid var(--line)}
+.gr-tabla td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top}
+.gr-tabla td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.gr-lista{margin:6px 0 10px;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+/* 23-sep · el índice de las guías se pegaba en top:0, DEBAJO de la barra de arriba (también pegada, y por encima):
+   al bajar, desaparecía. Se pega justo debajo de ella; la altura de la barra la mide stargate.js (--nav-h). */
+/* ───── 23-sep · LA PORTADA ES UN DOSSIER (index.html + assets/js/dossier.js) ─────
+   Once diapositivas a pantalla completa: se pasan con las flechas, la rueda o el dedo (scroll-snap), con puntos a la
+   derecha y pantalla completa. Sin JavaScript es una página normal de arriba abajo. La portada no dice nada del máster
+   ni de fechas: STARGATE y la UNIR. */
+html.con-dossier{scroll-snap-type:y proximity;scroll-padding-top:var(--nav-h,54px)}
+/* (las secciones con id llevan scroll-margin-top de 110 px para el índice pegado de las guías: aquí no hay índice) */
+.dossier .dz{scroll-margin-top:0}
+.dz{position:relative;min-height:calc(100svh - var(--nav-h,54px));display:flex;align-items:center;scroll-snap-align:start;
+  padding:clamp(28px,6vh,64px) 0;border-bottom:1px solid var(--line);overflow:hidden}
+.dz-in{width:min(1180px,calc(100% - 64px));margin:0 auto;position:relative;z-index:2;display:flex;flex-direction:column;gap:14px}
+.dz-k{font-size:.78rem;letter-spacing:.24em;text-transform:uppercase;color:var(--amber);font-weight:800}
+.dz h2{font-family:'Unbounded',sans-serif;font-size:clamp(1.7rem,4.2vw,3rem);margin:0;text-wrap:balance;line-height:1.1}
+.dz-lead{font-size:clamp(1.02rem,1.7vw,1.3rem);line-height:1.5;max-width:60ch;margin:0;color:var(--ink)}
+.dz-dos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(20px,4vw,48px);align-items:center}
+@media(max-width:860px){.dz-dos{grid-template-columns:1fr}}
+.dz-cap{display:block;width:100%;height:auto;border-radius:14px;border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.dz-portada{text-align:center}
+.dz-portada video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.dz-velo{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at center,rgba(8,12,20,.35),rgba(8,12,20,.88))}
+.dz-portada .dz-in,.dz-cierre .dz-in{align-items:center}
+.dz-portada .dz-lead,.dz-cierre .dz-lead{margin:0 auto}
+.dz-marca{font-family:'Unbounded',sans-serif;font-size:clamp(2.6rem,9vw,6.4rem);letter-spacing:.06em;margin:0;line-height:1;color:#eafcff;
+  text-shadow:0 0 40px rgba(55,224,236,.45)}
+.dz-lema{font-size:clamp(.8rem,1.4vw,1rem);letter-spacing:.3em;text-transform:uppercase;color:var(--amber);font-weight:800}
+.dz-cta{justify-content:center;margin-top:10px}
+.dz-pie{font-size:.9rem;color:var(--mut);margin:0}
+.dz-baja{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:2;font-size:.85rem;color:var(--mut);text-decoration:none;
+  display:flex;gap:8px;align-items:center;white-space:nowrap}
+.dz-baja i{font-style:normal;display:inline-block;animation:dz-bote 1.8s ease-in-out infinite}
+@keyframes dz-bote{50%{transform:translateY(5px)}}
+.dz-foto::before{content:"";position:absolute;inset:0;background:var(--fondo) center/cover no-repeat;opacity:.28;z-index:0}
+.dz-voces{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,3vw,32px);margin-top:8px}
+.dz-voces figure{margin:0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}
+.dz-voces img{height:clamp(160px,34vh,340px);width:auto;max-width:100%;object-fit:contain;filter:drop-shadow(0 12px 30px rgba(55,224,236,.25))}
+.dz-voces b{display:block;font-family:'Unbounded',sans-serif;font-size:1.05rem;color:#eafcff;margin-bottom:4px}
+.dz-voces figcaption{font-size:.95rem;color:var(--mut);max-width:30ch}
+@media(max-width:640px){.dz-voces{grid-template-columns:1fr}.dz-voces figure{flex-direction:row;text-align:left;align-items:center}.dz-voces img{height:110px}}
+.dz-planetas,.dz-cartas{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:12px;margin-top:10px}
+@media(max-width:1000px){.dz-planetas,.dz-cartas{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.dz-pl{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
+.dz-pl img{width:100%;max-width:120px;aspect-ratio:1;object-fit:contain}
+.dz-pl b{font-family:'Unbounded',sans-serif;font-size:.95rem}
+.dz-pl em{font-style:normal;font-size:.8rem;color:var(--mut)}
+.dz-carta{margin:0;display:flex;flex-direction:column;gap:6px;align-items:center}
+.dz-carta img{width:100%;height:auto;border-radius:10px;box-shadow:0 10px 26px rgba(0,0,0,.45);transform:rotate(calc((var(--i) - 3.5) * .6deg))}
+.dz-carta figcaption{font-size:.8rem;color:var(--mut);text-align:center}
+.dz-lista{margin:6px 0 0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px;font-size:clamp(.98rem,1.4vw,1.1rem)}
+.dz-lista li::marker{color:var(--teal)}
+.dz-mecanicas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:8px}
+@media(max-width:900px){.dz-mecanicas{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.dz-mecanicas{grid-template-columns:1fr}}
+.dz-mecanicas>div{padding:13px 15px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}
+.dz-mecanicas img{width:38px;height:38px;object-fit:contain}
+.dz-mecanicas>div>b{display:block;margin:4px 0 3px;color:#eafcff;font-size:1.02rem}
+.dz-mecanicas p{margin:0;font-size:.9rem;line-height:1.45;color:var(--mut)}
+.dz-cadena{list-style:none;counter-reset:dz;display:flex;flex-wrap:wrap;gap:10px;padding:0;margin:8px 0}
+.dz-cadena li{counter-increment:dz;padding:12px 18px;border:1px solid rgba(55,224,236,.45);border-radius:999px;background:rgba(8,18,28,.8);font-weight:700}
+.dz-cadena li::before{content:counter(dz);color:var(--amber);margin-right:8px;font-family:'Unbounded',sans-serif}
+.dz-cita{font-family:'Unbounded',sans-serif;font-size:clamp(1.1rem,2.4vw,1.6rem);color:#eafcff;margin:8px 0 0}
+.dz-tres{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media(max-width:860px){.dz-tres{grid-template-columns:1fr}}
+.dz-tres>div{padding:18px;border-left:3px solid var(--teal);background:rgba(255,255,255,.025);border-radius:0 12px 12px 0}
+.dz-tres b{color:#eafcff;font-size:1.1rem}
+.dz-tres p{margin:6px 0 0;color:var(--mut)}
+.dz-cierre{text-align:center;background:radial-gradient(ellipse at center,rgba(55,224,236,.12),transparent 65%)}
+.dz-puntos{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:19;display:flex;flex-direction:column;gap:10px}
+.dz-puntos a{position:relative;display:block;width:10px;height:10px;border-radius:50%;border:1px solid rgba(234,252,255,.55);background:rgba(8,12,20,.6)}
+.dz-puntos a.on{background:var(--teal);border-color:var(--teal);box-shadow:0 0 10px rgba(55,224,236,.6)}
+.dz-puntos span{position:absolute;right:18px;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:.78rem;padding:3px 8px;border-radius:6px;
+  background:rgba(8,12,20,.9);color:var(--ink);opacity:0;pointer-events:none;transition:opacity .15s}
+.dz-puntos a:hover span,.dz-puntos a:focus-visible span{opacity:1}
+.dz-mandos{position:fixed;right:14px;bottom:14px;z-index:19;display:flex;gap:10px;align-items:center}
+.dz-cuenta{font-size:.8rem;color:var(--mut);font-variant-numeric:tabular-nums;background:rgba(8,12,20,.7);padding:4px 8px;border-radius:8px}
+@media(max-width:640px){.dz-in{width:calc(100% - 44px)}.dz-puntos{right:6px;gap:8px}.dz-puntos a{width:8px;height:8px}#dz-pantalla{display:none}}
+html.con-dossier:fullscreen .nav,html.con-dossier:fullscreen footer{display:none}
+html.con-dossier:fullscreen{scroll-padding-top:0}
+html.con-dossier:fullscreen .dz{min-height:100vh}
+@media (prefers-reduced-motion:reduce){.dz-baja i{animation:none}}
+/* ───── 23-sep · LA PASADA DEL MÓVIL (390 px, con pruebas/medir_paginas.cjs --movil) ───── */
+/* el podio de los rankings se salía 18 px: sus columnas ya no crecen con lo que llevan dentro */
+.podium{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr)}
+.pod{min-width:0}
+@media(max-width:480px){.podium{gap:8px}.pod{padding:12px 6px}.pod .titulo-recluta,.pod .rango{overflow-wrap:anywhere}}
+/* «Piloto automático / Mando manual» se cortaba por la derecha en la ficha del docente */
+@media(max-width:480px){.modo-sel button{font-size:.76rem;padding:6px 6px;white-space:normal;line-height:1.2}}
+/* las flechas de la sesión tapaban el texto: en el teléfono suben a la esquina de arriba, junto a los mandos */
+@media(max-width:720px){
+  .mazo .nav{top:8px;transform:none;width:34px;height:34px;font-size:1.25rem;opacity:.7}
+  .mazo .nav.ant{left:10px}.mazo .nav.sig{left:50px;right:auto}
+}
+/* el dossier en el teléfono: se pasa deslizando; los puntos estorbaban al texto (queda la cuenta «3 / 11») */
+@media(max-width:640px){.dz-puntos{display:none}}
+@media(max-width:720px){.ses-directo .sd-mas{display:none}}
+/* la ficha del docente: el desplegable de grupos (con el nombre largo del grupo) ensanchaba la fila y la tarjeta la cortaba */
+.cn-ficha-b{min-width:0}
+.cn-ficha-b>*{max-width:100%;min-width:0}
+@media(max-width:640px){.cn-sel{width:100%}.cn-sel select{width:100%}}
+/* las cifras del recluta en el teléfono: las cinco en una fila (con 3+2 quedaba un hueco) */
+@media(max-width:640px){
+  .nf-arriba .nave-cifras{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+  .nf-arriba .nave-cifras .nc{padding:7px 2px}
+  .nf-arriba .nave-cifras b{font-size:.95rem}
+  .nf-arriba .nave-cifras span{font-size:.75rem;line-height:1.15}
+}

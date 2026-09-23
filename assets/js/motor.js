@@ -91,7 +91,7 @@ async function entrarComo(correo, nombre) {
 async function salir() {
   // La marca de docente se va con la sesión: si no, quien cierre sesión seguiría entrando en la
   // zona del profesorado desde ese navegador.
-  try { localStorage.removeItem("sgEsDocente"); } catch (e) {}
+  try { localStorage.removeItem("sgEsDocente"); localStorage.removeItem("sgEsRecluta"); } catch (e) {}
   await signOut(auth);
 }
 

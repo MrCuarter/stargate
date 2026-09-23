@@ -47,6 +47,37 @@
   if (localStorage.getItem('sgEsDocente') === '1') { abrir(); return; }
 
   /**
+   * 🔴 23-sep · LA PUERTA DE LA GUÍA DEL RECLUTA (`data-puerta="sesion"`). Norberto: «una guía del estudiante, que
+   * aparece al estudiante (y al docente para que la vea)». Aquí no hace falta ser docente: basta con ser de la casa, que
+   * es tener la marca de recluta (la ponen la puerta de entrada o la Nave al ver tu ficha). Quien no la tiene, entra con
+   * su cuenta y `entrar.html` le devuelve aquí. Como la otra, esconde el camino, no el contenido.
+   */
+  var SESION = raiz.getAttribute('data-puerta') === 'sesion';
+  if (SESION) {
+    if (localStorage.getItem('sgEsRecluta') === '1') { abrir(); return; }
+    var pintarSesion = function(){
+      if (abierta) return;
+      var d = document.createElement('div');
+      d.id = 'puerta';
+      d.innerHTML = '<div class="puerta-caja">'
+        + '<div class="eyebrow teal">Guía del recluta</div>'
+        + '<h2>Entra con tu cuenta</h2>'
+        + '<p class="small muted">Esta guía es para quien ya está en STARGATE. Entra con la <b>cuenta de Google</b> '
+        + 'con la que te alistaste y vuelves aquí.</p>'
+        + '<p><a class="btn primary btn-google" id="puertaCuenta" href="entrar.html?volver=' + encodeURIComponent('guia-recluta.html') + '">'
+        + LOGO_G + '<span>Iniciar sesión con Google</span></a></p>'
+        + '<p class="small muted puerta-tranquilo">Te llevará a la pantalla de Google. Tu contraseña se escribe allí, nunca aquí.</p>'
+        + '<p class="small muted" style="margin-top:14px">¿Aún no estás? Pídele a tu docente el <b>código de clase</b> y entra por '
+        + '<a href="index.html">la puerta principal</a>.</p>'
+        + '</div>';
+      document.body.appendChild(d);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pintarSesion);
+    else pintarSesion();
+    return;
+  }
+
+  /**
    * 🔴 13-sep · SI YA HAY SESIÓN, NO SE PIDE UN CLIC PARA NADA. La marca de arriba vive en este
    * navegador; quien ya tenía la sesión de Google abierta pero no la marca (la borró, o entró por
    * otra puerta) veía la caja «Iniciar sesión con Google» y, al pulsar, no pasaba nada visible: la

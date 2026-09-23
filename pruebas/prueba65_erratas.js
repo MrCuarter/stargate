@@ -137,7 +137,8 @@ function visible(html) {
   c(malas.length === 0, "🔴 Genially no se nombra en las páginas del público", malas.join(" · "));
 
   const I = visible(fs.readFileSync(path.join(RAIZ, "index.html"), "utf8"));
-  c(/Máster en Tecnología Educativa/.test(I), "la portada nombra el máster como toca");
+  // 23-sep · Norberto: la portada, «mencionando la UNIR, pero sin datos del máster ni fechas concretas»
+  c(!/Máster/i.test(I) && /UNIR/.test(I), "la portada nombra la UNIR y no el máster");
   c(/UNIR/.test(I), "y la universidad");
 }
 

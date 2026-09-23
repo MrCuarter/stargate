@@ -51,6 +51,10 @@
     var ref=false; try{ ref = localStorage.getItem('sgEsReferente')==='1'; }catch(e){}
     var md = ref && modoDocente();
     Array.prototype.forEach.call(document.querySelectorAll('.lnk.solo-referente'),function(a){ a.hidden = !ref || md; });
+    // 23-sep · el pie: la guía del profesorado solo al docente; la del recluta, a quien haya entrado (alumno o docente)
+    var doc=false, rec=false; try{ doc = localStorage.getItem('sgEsDocente')==='1'; rec = localStorage.getItem('sgEsRecluta')==='1'; }catch(e){}
+    Array.prototype.forEach.call(document.querySelectorAll('.solo-docente'),function(a){ a.hidden = !doc; });
+    Array.prototype.forEach.call(document.querySelectorAll('.solo-sesion'),function(a){ a.hidden = !(doc || rec); });
     var b = document.getElementById('sg-modo'), wrap = document.querySelector('.nav .wrap');
     if(!ref || !wrap || (document.body && document.body.classList.contains('embed'))){ if(b) b.remove(); return; }
     if(!b){
@@ -66,6 +70,9 @@
   }
   encenderSegunRol();
   document.addEventListener('sg:rol', encenderSegunRol);
+  // 23-sep · la altura de la barra de arriba, para lo que se pega justo debajo (el índice de las guías)
+  function altoNav(){ var n=document.querySelector('.nav'); if(n) document.documentElement.style.setProperty('--nav-h', Math.round(n.getBoundingClientRect().height)+'px'); }
+  altoNav(); window.addEventListener('resize', altoNav);
   var back=document.createElement('div');
   back.className='modal-backdrop'; back.setAttribute('role','dialog'); back.setAttribute('aria-modal','true');
   document.body.appendChild(back);

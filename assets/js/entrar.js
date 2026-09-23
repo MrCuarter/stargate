@@ -130,7 +130,14 @@
           // la guía se topa OTRA VEZ con la puerta del material, después de haber entrado.
           try { localStorage.setItem("sgEsDocente", "1"); } catch (e) {}
         }
+        // 23-sep · y la del recluta: enciende en el pie «Guía del recluta» (la ve también el docente)
+        if (gs.length) { try { localStorage.setItem("sgEsRecluta", "1"); } catch (e) {} }
         if (ps.length && !gs.length) return ir(vuelta || "consola.html");
+        /**
+         * 23-sep · LA ÚNICA VUELTA QUE SE LE HACE AL ALUMNADO: la de su guía. Venía de `guia-recluta.html`, cuya puerta
+         * se abre con la marca que se acaba de poner, así que aquí no hay bucle (el de arriba era con la guía DOCENTE).
+         */
+        if (!ps.length && gs.length && /^guia-recluta\.html/.test(vuelta)) return ir(vuelta);
         if (!ps.length && gs.length === 1) return ir("recluta.html?per=" + encodeURIComponent(gs[0].per));
         if (ps.length || gs.length) return elegir(yo, ps, gs, vuelta);
         return pedirCodigo(yo, "");

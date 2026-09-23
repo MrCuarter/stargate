@@ -2047,6 +2047,8 @@
   function menuMas(){
     var d=st.d||{};
     return '<div class="nb-menu" id="nb-menu" hidden role="menu">'
+      // 23-sep · la guía del recluta, lo primero (en la demo sin cuenta no: su puerta pide entrar)
+      +(!DEMO?'<a role="menuitem" href="guia-recluta.html"><span>Guía del recluta<em>cómo funciona todo, paso a paso</em></span></a>':'')
       +(d.formTicket?'<a role="menuitem" href="'+esc(ticketUrl(d))+'" data-vent="Contacta con NEBULA"><span>Dudas a NEBULA<em>anónimo, no lo ve tu clase</em></span></a>':'')
       +(d.padlet?'<a role="menuitem" href="'+esc(d.padlet)+'" data-vent="Padlet de la clase"><span>Padlet de la clase<em>el muro común</em></span></a>':'')
       +'<a role="menuitem" href="ayuda.html" target="_blank" rel="noopener"><span>¿Mi enlace abre lo mío?<em>compruébalo antes de entregar</em></span></a>'
@@ -3508,6 +3510,8 @@
       st.cargandoYo=false;
       if(d&&d.yo){ st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true;
         if(st.email) localStorage.setItem(KEY_MAIL,st.email);
+        // 23-sep · la marca del recluta: enciende «Guía del recluta» (pie y menú «···») y abre su puerta
+        try{ if(!DEMO&&!SIMULACRO){ localStorage.setItem('sgEsRecluta','1'); document.dispatchEvent(new CustomEvent('sg:rol')); } }catch(e){}
         setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200); setTimeout(sorteosAlEntrar, 900); setTimeout(ofertaAlEntrar, 1100);
         setTimeout(comprobarHitos, 1800);   // 15-sep · el día a bordo y los logros que ya se vean en los datos
         setTimeout(comprobarBatalla, 2400);  // 16-sep · y el reto A6, si ganó al simulador y no llegó a registrarse

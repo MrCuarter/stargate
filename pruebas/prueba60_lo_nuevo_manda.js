@@ -48,8 +48,10 @@ c(/q\.get\("motor"\)\s*\|\|\s*window\.SG_MOTOR/.test(build),
 // `profes.html`, que habla DIRECTAMENTE con Apps Script (no pasa por `fuente.js`, mírese su
 // `post()`). Es decir: la puerta principal de la web llevaba al sistema archivado.
 const idx = raiz("index.html");
-contiene(idx, 'href="consola.html"', "🔴 la portada lleva al puesto de mando nuevo");
-contiene(idx, 'href="crear.html"', "   y a crear un grupo sin hojas de cálculo");
+// 🔴 23-sep · la portada es un dossier público: al puesto de mando se llega ENTRANDO (entrar.html reparte), no por un
+// enlace de la portada (Norberto: «solo un dossier… sobre STARGATE»)
+contiene(idx, 'href="entrar.html"', "🔴 la portada lleva a la puerta única (y de ahí, al puesto de mando)");
+c(idx.indexOf('href="crear.html"') < 0 && idx.indexOf('href="consola.html"') < 0, "   y no enseña la zona del profesorado a quien no ha entrado");
 c(!/href="profes\.html"/.test(idx),
   "🔴 y ya NO ofrece el panel viejo con PIN como si fuera el camino normal");
 

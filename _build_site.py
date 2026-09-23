@@ -73,7 +73,7 @@ LOGO_G = ('<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" fo
   '<path fill="#EA4335" d="M24 9.5c3.2 0 6 1.1 8.2 3.2l6.2-6.2C34.7 3 29.8 1 24 1 15.6 1 8.3 5.6 4.7 13.9l7.2 5.6C13.6 14.4 18.4 9.5 24 9.5z"/>'
   '</svg>')
 
-def head(title, desc, active, puerta=False, publica=False):
+def head(title, desc, active, puerta=False, publica=False, alumno=False):
     def _lnk(h, t, k, solo=""):
         act = " active" if k == active else ""
         # 🔴 Las entradas marcadas `solo` se pintan APAGADAS y las enciende el motor si procede.
@@ -94,6 +94,7 @@ def head(title, desc, active, puerta=False, publica=False):
     # eso obliga a acertar ANTES de que el sistema sepa quién eres: quien elegía mal acababa en la
     # mitad equivocada de la web. Ahora se entra primero y el servidor reparte.
     links = ('<a class="lnk" href="entrar.html">Entrar</a>') if publica else \
+            ('<a class="lnk" href="entrar.html">Mi nave</a>') if alumno else \
             "".join(_lnk(e[0], e[1], e[2], e[3] if len(e) > 3 else "") for e in NAV)
     return f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -106,17 +107,24 @@ def head(title, desc, active, puerta=False, publica=False):
 <script>window.SG_TABLERO_API="{TABLERO_API}";</script>
 <script src="assets/js/stargate.js" defer></script>
 <script src="assets/js/tour.js" defer></script>
-{'<script>document.documentElement.classList.add("cerrado")</script><script src="assets/js/puerta.js" defer></script>' if puerta else ''}
+{('<script>document.documentElement.classList.add("cerrado")' + (';document.documentElement.setAttribute("data-puerta","sesion")' if puerta == "sesion" else '') + '</script><script src="assets/js/puerta.js" defer></script>') if puerta else ''}
 </head><body>
 <nav class="nav"><div class="wrap">
-<a class="brand" href="index.html">◈ STARGATE {'' if publica else '<span class="modo docente">Capitán<i> · docentes</i></span>'}</a>
+<a class="brand" href="index.html">◈ STARGATE {'' if publica else '<span class="modo recluta">Recluta<i> · alumnado</i></span>' if alumno else '<span class="modo docente">Capitán<i> · docentes</i></span>'}</a>
 {links}
-{'' if publica else '<button class="tour-start" type="button" title="Visita guiada con el Capitán" aria-label="Visita guiada">&#9654;<span> Visita guiada</span></button>'}
+{'' if (publica or alumno) else '<button class="tour-start" type="button" title="Visita guiada con el Capitán" aria-label="Visita guiada">&#9654;<span> Visita guiada</span></button>'}
 </div></nav>'''
 
+# 🔴 23-sep · EL PIE, SEGÚN QUIÉN MIRA. Norberto: «la guía del profesorado está para todo el mundo en el pie de la página.
+# No debería ser así. Debería aparecer solo al iniciar como docente. Del mismo modo, una guía del estudiante, que aparece
+# al estudiante (y al docente para que la vea)». Las dos nacen OCULTAS (como `solo-referente` del menú: esconder después
+# de enseñar es peor que no esconder) y las enciende `encenderSegunRol()` de stargate.js con las marcas del navegador:
+# `sgEsDocente` (la pone el motor al ver que la cuenta lleva grupos) y `sgEsRecluta` (la pone la puerta o la Nave al ver
+# su ficha). Y sin «Máster en…»: el pie sale también en la portada pública, que habla de STARGATE y de la UNIR, sin datos
+# del máster (23-sep, Norberto).
 FOOT = '''<footer><div class="wrap">
-STARGATE · La Bitácora Estelar — Proyecto Gamificado del <b>Máster en Tecnología Educativa</b> de la UNIR.<br>
-Documento vivo · <a href="index.html">Inicio</a> · <a href="comosehizo.html">Cómo se hizo</a> · <a href="guia.html#faq">Guía para docentes</a> · <a href="privacidad.html">Privacidad</a>
+STARGATE · La Bitácora Estelar — un proyecto de gamificación educativa de la <b>UNIR</b>.<br>
+<a href="index.html">Inicio</a><span class="solo-sesion" hidden> · <a href="guia-recluta.html">Guía del recluta</a></span><span class="solo-docente" hidden> · <a href="guia.html">Guía del profesorado</a></span> · <a href="comosehizo.html">Cómo se hizo</a> · <a href="privacidad.html">Privacidad</a>
 </div></footer></body></html>'''
 
 # ---------- galerías ----------
@@ -330,117 +338,189 @@ tiles_html="\n".join(f'<a class="tile" href="{h}"><span class="ic">{i}</span><b>
 # a la guia, la cronologia y los Geniallys — el material del equipo, abierto a quien pasara por ahi.
 # Ahora es la ENTRADA al proyecto: que es STARGATE, y dos puertas. Sirve ademas para enseñarlo fuera
 # (SIMO, redes, un compañero curioso) sin que nadie caiga en la trastienda.
+# ================= 23-sep · LA PORTADA ES UN DOSSIER =================
+# 🔴 Norberto: «en la página principal, sin iniciar sesión, solo un dossier, sencillo, visual, sobre STARGATE,
+# mencionando la UNIR, pero sin datos del máster ni fechas concretas; quizá puedas mostrarlo en modo presentación».
+# La portada vieja era un folleto largo (qué es, por dónde entras, la zona del profesorado, las voces, cómo se hizo).
+# Ahora es una PRESENTACIÓN: once diapositivas a pantalla completa que se pasan con las flechas, la rueda o el dedo
+# (scroll-snap: en el móvil es deslizar), con puntos a la derecha y pantalla completa. Y a la vez es una página normal:
+# sin JavaScript se lee de arriba abajo, y los buscadores ven todo el texto.
+#
+# Lo que NO lleva, a propósito: el nombre del máster, la asignatura, créditos, semanas o fechas (eso vive dentro, para
+# quien ya ha entrado), herramientas de terceros, ni la zona del profesorado (el docente entra y ya está en su Nave).
+# Los datos que sí enseña —planetas, tripulantes, capturas— salen de los sitios de siempre: un dato, un sitio.
+def _dz_cap(k, alt):
+    f = os.path.join(HERE, "assets", "img", "capturas", k + ".webp")
+    v = hashlib.md5(open(f, "rb").read()).hexdigest()[:8] if os.path.exists(f) else "0"
+    return f'<img class="dz-cap" src="assets/img/capturas/{k}.webp?v={v}" alt="{alt}" loading="lazy">'
+_dz_planetas = "".join(
+    f'<div class="dz-pl"><img src="assets/img/planetas/{k}.png" alt="" loading="lazy"><b>{n}</b><em>{t.split(" · ", 1)[-1]}</em></div>'
+    for k, n, t in PLANETAS)
+_dz_tripu = "".join(
+    f'<figure class="dz-carta" style="--i:{i}"><img src="assets/img/tarjetas/{k}_carta.webp" alt="{n}" loading="lazy"><figcaption>{n}</figcaption></figure>'
+    for i, (k, n, *_r) in enumerate(PERS))
+_DZ = [  # (ancla, rótulo del punto)
+    ("inicio", "STARGATE"), ("premisa", "La premisa"), ("voces", "Las tres voces"), ("viaje", "El viaje"),
+    ("tripulacion", "La Tripulación Cero"), ("nave", "La Nave"), ("juego", "Cómo se juega"), ("bitacora", "La Bitácora"),
+    ("aula", "En el aula"), ("docente", "Para el docente"), ("embarca", "Embarca")]
+_dz_puntos = "".join(f'<a href="#{a}" data-dz="{a}" title="{t}"><span>{t}</span></a>' for a, t in _DZ)
 PORTADA = head("STARGATE · La Bitácora Estelar",
-  "STARGATE, el proyecto gamificado del Máster en Tecnología Educativa de la UNIR: ocho planetas, ocho temas y una Bitácora que lo reenciende todo.","inicio", publica=True) + f'''
-<header class="hero hero-video">
-<video autoplay muted loop playsinline preload="auto" poster="{HERO_POSTER}"><source src="{HERO_MP4}" type="video/mp4"></video>
-<div class="veil"></div>
-<div class="hero-inner">
-<div class="kicker">Máster en Tecnología Educativa · UNIR</div>
-<h1>STARGATE</h1>
-<div class="sub">La Bitácora Estelar</div>
-<p>La galaxia se apaga por la Estática. El alumnado son los reclutas, ocho planetas son los ocho temas
-y la Bitácora —su ePortfolio— es lo que vuelve a encenderlo todo.</p>
-<div id="hero-cta" class="cta-row">
-<a class="btn primary grande btn-google" href="entrar.html">{LOGO_G}<span>Iniciar sesión con Google</span></a>
+  "STARGATE, un proyecto de gamificación educativa de la UNIR: una asignatura convertida en una misión, con ocho planetas, una tripulación perdida y una Bitácora que lo vuelve a encender todo.","inicio",
+  publica=True) + f'''
+<main class="dossier" id="dossier">
+
+<section class="dz dz-portada" id="inicio" data-dz-t="STARGATE">
+<video autoplay muted loop playsinline preload="metadata" poster="{HERO_POSTER}"><source src="{HERO_MP4}" type="video/mp4"></video>
+<div class="dz-velo"></div>
+<div class="dz-in">
+<div class="dz-k">Un proyecto de gamificación educativa · UNIR</div>
+<h1 class="dz-marca">STARGATE</h1>
+<div class="dz-lema">La Bitácora Estelar</div>
+<p class="dz-lead">Una asignatura entera convertida en una misión: ocho planetas, una tripulación perdida y una
+Bitácora que lo vuelve a encender todo.</p>
+<div class="cta-row dz-cta">
+<a class="btn primary grande btn-google" href="entrar.html" data-dz-entrar>{LOGO_G}<span>Iniciar sesión con Google</span></a>
 <a class="btn grande btn-demo" href="recluta.html?per=demo-stargate&amp;demo=1"><img class=ico src=assets/img/iconos/p/video.png alt> Ver la demo</a>
-<a class="btn ghost" href="{PLAYLIST}" target="_blank" rel="noopener">Serie completa en YouTube ↗</a>
-<p class="cta-pie small muted">Estudiante o docente, se entra por aquí: al entrar, el sistema te
-reconoce y te lleva a tu sitio. <b>¿Solo quieres curiosear?</b> La demo te enseña la Nave de un
-estudiante por dentro, sin cuenta y sin que se guarde nada.</p>
 </div>
-</div></header>
-
-<section id="en60"><div class="wrap">
-<div class="eyebrow">La misión en 60 segundos</div><h2>Qué es STARGATE</h2>
-<div class="grid cols-3">
-<div class="card"><h3>1 · La premisa</h3><p>La agencia STARGATE cruzó una puerta estelar. Al otro lado, una galaxia se apaga por
-<b>la Estática</b>: un silencio que hace que nadie cree, registre ni comparta. Contra ella no sirven las armas:
-sirve <b>dejar constancia</b>.</p></div>
-<div class="card"><h3>2 · El viaje</h3><p>El alumnado es un <b>recluta</b>. Cruza <b>ocho planetas = ocho temas</b>, guiado por
-<b>NEBULA</b> (la IA de la nave) y por ti, <b>el Capitán</b>. En cada planeta recupera a un tripulante de la
-<b>Tripulación Cero</b> y gana sus insignias.</p></div>
-<div class="card"><h3>3 · El arma</h3><p>La <b>Bitácora Estelar</b> es el ePortfolio. Cada página: evidencia → contexto →
-reflexión → autoevaluación. Cuando está completa, la Estática retrocede y <b>la puerta a la Tierra se abre</b>.
-La batalla final es el examen.</p></div>
+<p class="dz-pie">Estudiante o docente: entras con tu cuenta y el sistema te lleva a tu sitio.</p>
 </div>
-<div class="planetas">{planetas_html}</div>
-</div></section>
+<a class="dz-baja" href="#premisa" aria-label="Ver el dossier">Desliza o pulsa → para ver el dossier <i aria-hidden="true">↓</i></a>
+</section>
 
-<section id="puertas"><div class="wrap">
-<div class="eyebrow teal">Por dónde entras</div><h2>Una sola puerta</h2>
-<p class="lead">Da igual quién seas: entras con tu cuenta de Google y el sistema te reconoce. No hay
-que elegir bando en la puerta ni recordar ningún PIN.</p>
-<div class="grid cols-3 puertas-3">
-  <div class="card puerta-tile">
-    <span class="ic"><img class=ico src=assets/img/iconos/p/cohete.png alt></span>
-    <h3>Si eres estudiante</h3>
-    <p>Vas a tu <b>Nave</b>: tu personaje, la orden de la semana, los planetas que se abren, tus
-    insignias y el Mercado Estelar. Desde ahí registras lo que completas y canjeas lo que ganas.</p>
-    <span class="chip">Sin teclear nada →</span>
-  </div>
-  <div class="card puerta-tile">
-    <span class="ic"><img class=ico src=assets/img/iconos/p/medalla.png alt></span>
-    <h3>Si eres docente</h3>
-    <p>Vas a tu <b>Nave del Comandante</b>, ya dentro de tu grupo: lo que se usa en directo —proyectar
-    la sesión, la llamada a filas y el aula— y lo que toca esta semana. Y desde ahí, la guía del método y las actividades.</p>
-    <span class="chip">Sin teclear nada →</span>
-  </div>
-  <div class="card puerta-tile">
-    <span class="ic"><img class=ico src=assets/img/iconos/p/llave.png alt></span>
-    <h3>Si aún no estás</h3>
-    <p>Te pide el <b>código de clase</b>, el que reparte tu docente el primer día. Con él te alistas
-    en el momento y ya tienes Nave. Es lo único que hay que teclear en toda la web.</p>
-    <span class="chip">Un código de 6 caracteres →</span>
-  </div>
-</div>
-<p class="cta-row" style="margin-top:26px">
-<a class="btn primary grande btn-google" href="entrar.html">{LOGO_G}<span>Iniciar sesión con Google</span></a>
-<a class="btn grande btn-demo" href="recluta.html?per=demo-stargate&amp;demo=1"><img class=ico src=assets/img/iconos/p/video.png alt> Ver la demo sin cuenta</a></p>
-</div></section>
-<section id="secciones"><div class="wrap">
-<div class="eyebrow teal">Zona del profesorado</div><h2>Dónde está cada cosa</h2>
-<p class="lead small">Todo esto es material del profesorado: se abre con la misma cuenta con la que
-entras. Si eres estudiante, tu sitio es la Nave.</p>
-<div class="tiles">{tiles_html}</div>
-</div></section>
-
-<section id="voces"><div class="wrap">
-<div class="two">
+<section class="dz dz-foto" id="premisa" style="--fondo:url(../img/nave/portal_stargate.jpg)">
+<div class="dz-in dz-dos">
 <div>
-<div class="eyebrow amber">Las tres voces</div><h2>NEBULA, el Capitán y Vaeon</h2>
-<p class="lead"><b>NEBULA</b> narra y lanza los retos. <b>El Capitán eres tú</b>: das las órdenes (enunciados), reconoces los
-logros (insignias) y sostienes la moral; en el foro de la plataforma de UNIR se firma siempre como <i>Capitán</i>, a secas. <b>Vaeon</b> silencia:
-es la personificación de los errores de diseño educativo, y aparece en el Tema 5.</p>
-<p><a class="btn" href="guia.html#pers">Conoce a la Tripulación Cero →</a></p>
+<div class="dz-k">La premisa</div>
+<h2>Una galaxia se apaga</h2>
+<p class="dz-lead">Al otro lado de una puerta estelar, la <b>Estática</b> lo va silenciando todo: un apagón que hace que la
+gente deje de <b>crear, registrar y compartir</b>. Contra ella no sirven las armas.</p>
+<p class="dz-lead">Sirve <b>dejar constancia</b>.</p>
 </div>
-<div class="trio trio-amenaza"><img src="assets/img/personajes/nebula.png" alt="NEBULA"><img src="assets/img/capitan/brazos.png" alt="El Capitán"><img src="assets/img/personajes/vaeon.png" alt="General Vaeon"></div>
+<div>{ytbox("trailer", "El tráiler, en un minuto")}</div>
 </div>
-</div></section>
+</section>
 
-<section id="comohizo"><div class="wrap">
-<div class="eyebrow teal">Cómo se hizo</div><h2>Esto lo ha montado un profesor</h2>
-<p class="lead">Sin estudio, sin productora y sin equipo: un docente, un ordenador y cuatro
-herramientas. Lo cuento porque la pregunta que más me hacen al enseñarlo es
-«¿y esto cuánto cuesta encargarlo?» — y la respuesta es que no se encargó.</p>
+<section class="dz" id="voces">
+<div class="dz-in">
+<div class="dz-k">La historia</div>
+<h2>Tres voces</h2>
+<div class="dz-voces">
+<figure><img src="assets/img/personajes/nebula.png" alt="NEBULA" loading="lazy"><figcaption><b>NEBULA</b>La IA de la nave. Narra el viaje, lanza los retos y guarda un secreto que se revela poco a poco.</figcaption></figure>
+<figure><img src="assets/img/capitan/brazos.png" alt="El Capitán" loading="lazy"><figcaption><b>El Capitán</b>Es el docente: da las órdenes, reconoce los logros y sostiene la moral de la tripulación.</figcaption></figure>
+<figure><img src="assets/img/personajes/vaeon.png" alt="El General Vaeon" loading="lazy"><figcaption><b>Vaeon</b>El que silencia. La personificación de los errores que apagan un aula.</figcaption></figure>
+</div>
+</div>
+</section>
 
-<!-- 🔴 NADA DE grid cols-3 AQUÍ. Este bloque ya trae su propia estructura: Claude a todo lo ancho
-     y las tres herramientas en fila debajo. Metido en una rejilla de tres columnas, Claude quedaba
-     aplastado en 353 px a la izquierda, el conector se comía otra columna entera y las tres
-     herramientas se apilaban en la tercera — con medio bloque en blanco por el medio. En
-     `comosehizo.html` se veía bien porque allí NO va envuelto; aquí sí, y nadie lo comparó. -->
-<div>{comohizo_html}</div>
-<!-- 🔴 Decirlo. Son de afiliado y ocultarlo seria justo lo contrario del proyecto, que va de dejar
-     constancia. Ademas la peticion se sostiene mejor dicha en voz alta que disimulada. -->
-<p class="small muted" style="margin-top:14px">Los botones son <b>enlaces de afiliado</b>, y se
-dice para que lo sepas. Donde la herramienta lo ofrece, <b>quien entra por ahí se lleva un descuento
-o un crédito de bienvenida</b>; y en todos los casos este proyecto recibe créditos que se reinvierten
-en seguir ampliando la aventura.</p>
+<section class="dz" id="viaje">
+<div class="dz-in">
+<div class="dz-k">El viaje</div>
+<h2>Ocho planetas, ocho temas</h2>
+<p class="dz-lead">Cada tema de la asignatura es un mundo. El alumnado lo cruza como un <b>recluta</b> del equipo de rescate,
+y la nave avanza sola con el calendario: cada semana se abre algo nuevo.</p>
+<div class="dz-planetas">{_dz_planetas}</div>
+</div>
+</section>
 
-<p style="margin-top:26px"><a class="btn primary grande" href="comosehizo.html"><img class=ico src=assets/img/iconos/p/libro.png alt> Cómo se hizo, con todo el detalle →</a></p>
-<p class="small muted">El casting de las nueve voces, las anclas de personaje, por qué esos modelos
-y cuántos borradores hubo de verdad.</p>
-</div></section>
+<section class="dz" id="tripulacion">
+<div class="dz-in">
+<div class="dz-k">Lo que se recupera</div>
+<h2>La Tripulación Cero</h2>
+<p class="dz-lead">El primer equipo que cruzó la puerta no volvió. En cada planeta espera uno de sus ocho tripulantes, y
+<b>se recupera haciendo su reto</b>: con él llegan su insignia, su carta y su fragmento de la historia.</p>
+<div class="dz-cartas">{_dz_tripu}</div>
+</div>
+</section>
+
+<section class="dz" id="nave">
+<div class="dz-in dz-dos">
+<div>
+<div class="dz-k">Para el alumnado</div>
+<h2>Cada recluta tiene su Nave</h2>
+<ul class="dz-lista">
+<li><b>Su personaje</b>, que evoluciona al subir de nivel.</li>
+<li><b>La orden de la semana</b>: el capítulo, el mensaje y los retos.</li>
+<li><b>Sus retos</b>, explicados paso a paso y con ejemplos.</li>
+<li><b>Su botín</b>: insignias, cromos, héroes y logros de a bordo.</li>
+</ul>
+</div>
+{_dz_cap("nave", "La Nave de un recluta: su personaje, su nivel, sus cifras y su carrera")}
+</div>
+</section>
+
+<section class="dz" id="juego">
+<div class="dz-in">
+<div class="dz-k">Cómo se juega</div>
+<h2>Lo que se hace, se registra. Lo que se registra, cuenta.</h2>
+<div class="dz-mecanicas">
+<div><img src="assets/img/nave/iconos/retos.png" alt="" loading="lazy"><b>Retos</b><p>Cortos, con su enlace de evidencia. Unos recuperan a un tripulante; otros construyen la Bitácora; los relámpago se hacen en clase.</p></div>
+<div><img src="assets/img/nave/iconos/botin.png" alt="" loading="lazy"><b>Dos monedas</b><p>La <b>experiencia</b> solo sube y marca el nivel. Los <b>créditos</b> se gastan. Separar progreso y moneda es una lección de gamificación en sí misma.</p></div>
+<div><img src="assets/img/nave/iconos/mercado.png" alt="" loading="lazy"><b>Mercado Estelar</b><p>Sobres de cromos, cápsulas de héroes y adornos para la ficha. Una economía entera dentro de la clase.</p></div>
+<div><img src="assets/img/nave/iconos/zoco.png" alt="" loading="lazy"><b>El Zoco</b><p>El trueque entre reclutas: se cambian cartas, héroes y participaciones, con ofertas y contraofertas.</p></div>
+<div><img src="assets/img/nave/iconos/rankings.png" alt="" loading="lazy"><b>Rankings y escuadrones</b><p>Varias clasificaciones, siempre por alias. Cada docente lleva su escuadrón, con su nombre y su emblema.</p></div>
+<div><img src="assets/img/nave/iconos/archivo.png" alt="" loading="lazy"><b>El Archivo</b><p>La historia completa, capítulo a capítulo. Los fragmentos de la Tripulación Cero no se ven: se ganan.</p></div>
+</div>
+</div>
+</section>
+
+<section class="dz dz-foto" id="bitacora" style="--fondo:url(../img/nave/canonica_espacio.jpg)">
+<div class="dz-in">
+<div class="dz-k">El arma</div>
+<h2>La Bitácora</h2>
+<p class="dz-lead">El ePortfolio de cada recluta. Todo el viaje termina en ella, y cada página sigue el mismo patrón:</p>
+<ol class="dz-cadena"><li>La evidencia</li><li>El contexto</li><li>La reflexión</li><li>La autoevaluación</li></ol>
+<p class="dz-cita">«Una obra que no se documenta, no existe.»</p>
+</div>
+</section>
+
+<section class="dz" id="aula">
+<div class="dz-in dz-dos">
+<div>
+<div class="dz-k">En el aula</div>
+<h2>La clase se proyecta</h2>
+<ul class="dz-lista">
+<li><b>Una sesión montada para cada semana</b>: el capítulo, los retos, los rankings y lo que dijo la clase.</li>
+<li><b>Llamada a filas</b>: se ficha desde el móvil con un botón.</li>
+<li><b>Herramientas de aula</b>: al azar, preguntas, votaciones, premios y el cronómetro.</li>
+<li><b>El Simulador de Joran</b>: una batalla de preguntas para repasar jugando.</li>
+</ul>
+</div>
+{_dz_cap("sesion", "La sesión de la semana, proyectada")}
+</div>
+</section>
+
+<section class="dz" id="docente">
+<div class="dz-in">
+<div class="dz-k">Para el docente</div>
+<h2>El trabajo de siempre, con otra piel</h2>
+<div class="dz-tres">
+<div><b>No añade tareas</b><p>Renombra y da sentido a lo que la asignatura ya pedía: las actividades, el ePortfolio y los temas.</p></div>
+<div><b>Se lleva solo</b><p>El alumnado registra lo que hace con su enlace; los niveles, las insignias y los rankings se calculan solos.</p></div>
+<div><b>Todo en un sitio</b><p>La Nave del Comandante: empezar la clase, ver a cada recluta, premiar y seguir el grupo.</p></div>
+</div>
+</div>
+</section>
+
+<section class="dz dz-cierre" id="embarca">
+<div class="dz-velo"></div>
+<div class="dz-in">
+<div class="dz-k">STARGATE · UNIR</div>
+<h2 class="dz-marca">Embarca</h2>
+<p class="dz-lead">Si ya estás en un grupo, entra con tu cuenta. Si solo quieres curiosear, la demo te enseña la Nave de un
+recluta por dentro, sin cuenta y sin que se guarde nada.</p>
+<div class="cta-row dz-cta">
+<a class="btn primary grande btn-google" href="entrar.html" data-dz-entrar>{LOGO_G}<span>Iniciar sesión con Google</span></a>
+<a class="btn grande btn-demo" href="recluta.html?per=demo-stargate&amp;demo=1"><img class=ico src=assets/img/iconos/p/video.png alt> Ver la demo</a>
+<a class="btn ghost" href="{PLAYLIST}" target="_blank" rel="noopener">La serie en YouTube ↗</a>
+</div>
+<p class="dz-pie">¿Cómo se hizo? Lo ha montado un profesor, y <a href="comosehizo.html">lo cuenta aquí →</a></p>
+</div>
+</section>
+
+</main>
+<nav class="dz-puntos" aria-label="Diapositivas del dossier">{_dz_puntos}</nav>
+<div class="dz-mandos"><span class="dz-cuenta" id="dz-cuenta">1 / {len(_DZ)}</span><button type="button" class="btn min" id="dz-pantalla">Pantalla completa</button></div>
+<script src="assets/js/dossier.js" defer></script>
 ''' + FOOT
 
 # ================= GUÍA (guia.html) =================
@@ -564,6 +644,7 @@ GUIA = head("STARGATE · Guía para el profesorado",
   <a href="#din">Una clase en directo</a>
   <a href="#enlaces">Recursos</a>
   <a href="#faq">Dudas</a>
+  <a href="guia-recluta.html">La guía de tu alumnado →</a>
 </div></nav>
 
 <section id="que"><div class="wrap">
@@ -883,6 +964,242 @@ evaluacion_html = ('<div class="grid cols-4 eval-partes" style="margin-top:14px"
     + '<div class="official"><img class=ico src=assets/img/iconos/p/notas.png alt> Oficial · %s = <b>%s puntos</b> de evaluación continua. '
       'La Actividad 3 de programaciones anteriores <b>ya no existe</b>.</div>'
     % (" + ".join(x[1] for x in EVALUACION), ("%g" % _suma).replace(".", ",")))
+
+# ================= 23-sep · LA GUÍA DEL RECLUTA (guia-recluta.html) =================
+# 🔴 Norberto: «igual está bien una guía del estudiante, que aparece al estudiante (y al docente para que la vea)». La
+# guía del profesorado explica el sistema a quien lo dirige; esta se lo explica a quien lo juega, con SU vocabulario
+# (tu Nave, tus retos, tu nota) y con capturas de la Nave de verdad, hechas desde el lado del estudiante en la Nave
+# Escuela (pruebas/capturas_recluta.cjs → assets/img/capturas/*.webp).
+#
+# 🔴 NI UN NÚMERO A MANO: niveles, precios, créditos, xp de cada tipo de reto, capítulos, evaluación y tope semanal salen
+# de `_site_data.py` y de `motor/catalogo.json`. Si mañana cambia un precio, la guía lo dice bien sin que nadie la toque.
+# La puerta es `puerta="sesion"` (puerta.js): la abren la marca de recluta o la de docente; los demás, a entrar.
+_CAT_GR = json.load(open(os.path.join(HERE, "motor", "catalogo.json"), encoding="utf-8"))
+_XP_ID = {r["id"]: r["xp"] for r in _CAT_GR["retos"]["REGULAR"]}
+_XP_TIPO = {}
+for _r in _CAT_GR["retos"]["REGULAR"]:
+    _XP_TIPO.setdefault(_r["id"][0], _r["xp"])
+def _gr_v(k):
+    f = os.path.join(HERE, "assets", "img", "capturas", k + ".webp")
+    return hashlib.md5(open(f, "rb").read()).hexdigest()[:8] if os.path.exists(f) else "0"
+def _gr_img(k, alt, pie="", clase=""):
+    return (f'<figure class="gr-cap{(" " + clase) if clase else ""}"><img src="assets/img/capturas/{k}.webp?v={_gr_v(k)}" alt="{alt}" loading="lazy">'
+            + (f'<figcaption>{pie}</figcaption>' if pie else '') + '</figure>')
+_GR_TABS = [
+    ("nave", "Mi nave", "Tu ficha (personaje, nivel, xp y créditos), lo que NEBULA te dice hoy, tu carrera con quien va justo delante y justo detrás, y <b>la orden de la semana</b>."),
+    ("retos", "Mis retos", "El mapa de los ocho planetas y todos los retos, explicados paso a paso. <b>Aquí se registran.</b>"),
+    ("botin", "Mi botín", "Tus insignias por tema, el álbum de cromos, los héroes de tu vestuario y los logros de a bordo."),
+    ("archivo", "El Archivo", "Los vídeos de la historia en orden, y los fragmentos de la Tripulación Cero que vas ganando."),
+    ("mercado", "Mercado Estelar", "Donde gastas tus créditos: sobres, cápsulas, adornos para tu ficha y, al final del viaje, las subidas de nota."),
+    ("zoco", "El Zoco", "El trueque con tu tripulación: pones cromos, héroes o participaciones y te ofrecen créditos u otras piezas."),
+    ("rankings", "Rankings", "El tablero de tu grupo: varias clasificaciones distintas, siempre por alias."),
+    ("mas", "El botón «···»", "Esta guía, las dudas anónimas a NEBULA, el padlet de la clase, «¿Mi enlace abre lo mío?» y «No soy yo / salir»."),
+]
+_GR_ABRE = {"nave": "Mi nave", "retos": "Mis retos", "botin": "Mi botín", "archivo": "El Archivo", "mercado": "el Mercado Estelar",
+            "rankings": "los Rankings", "heroes": "los héroes y las cápsulas", "adornos": "los adornos de tu ficha",
+            "ofertas": "la oferta de la semana", "sorteo": "el Gran Sorteo", "zoco": "el Zoco", "logros": "los logros de a bordo",
+            "simulador": "el Simulador de Joran", "arsenal": "las subidas de nota"}
+_gr_caps = "".join(
+    '<tr><td class="num">%d</td><td><b>%s</b></td><td>%s</td></tr>' % (c["semana"], c["titulo"],
+        (", ".join(_GR_ABRE.get(a, a) for a in c.get("abre", [])) or "—").capitalize())
+    for c in sorted(CAPITULOS, key=lambda c: c["semana"]))
+_gr_niveles = "".join('<tr><td class="num">%d</td><td><b>%s</b> <span class="muted">· %s</span></td><td class="num">%s xp</td></tr>'
+                      % (n, nom, RANGOS[r - 1], f"{xp:,}".replace(",", ".")) for n, xp, r, nom in NIVELES)
+_gr_tienda = "".join('<tr><td><b>%s</b></td><td class="num">%s</td><td class="num">%s</td></tr>'
+                     % (r[0], ("%d %s" % (r[1], MONEDA)) if r[1] else "sin coste", r[4])
+                     for r in RECOMPENSAS if r[5] != "nota")
+_gr_notas = "".join('<li><b>%s</b> · %d %s</li>' % (r[0], r[1], MONEDA) for r in RECOMPENSAS if r[5] == "nota")
+_gr_act = "".join(
+    '<div class="card"><h3>Actividad %d · %s</h3><p class="small">Se lanza en la <b>semana %d</b> y se resuelve en la <b>%d</b> · <b>%s puntos</b>.</p>'
+    '<p class="small">La preparan: %s.</p></div>'
+    % (a["n"], a["titulo"], a["sem"], a["resuelve"], a["puntos"], ", ".join(_nombre_reto(rid) for rid, _ in a["retos"]))
+    for a in ACTIVIDADES)
+_gr_eval = ('<div class="grid cols-4 eval-partes" style="margin-top:14px">'
+    + "".join('<div class="card"><h3>%s</h3><p><span class="pts">%s</span></p><p class="small">%s</p></div>' % (n, pts, como)
+              for n, pts, como in EVALUACION) + '</div>')
+_gr_reflex = ", ".join(sorted(REFLEXION_RETOS.keys()))
+GUIA_RECLUTA = head("STARGATE · Guía del recluta",
+  "Cómo funciona tu Nave de STARGATE: alistarte, los retos, la Bitácora, tu nota, los niveles, el Mercado y el Zoco, paso a paso.",
+  "guiarec", puerta="sesion", alumno=True) + f'''
+<header class="hero"><div class="kicker">Guía del recluta</div>
+<h1>Cómo funciona tu Nave</h1>
+<p>Todo lo que necesitas para el viaje, en el orden en que lo vas a necesitar: cómo se entra, qué hay en cada
+pestaña, cómo se registra un reto, qué cuenta para tu nota y en qué se gastan los créditos.</p>
+<p style="margin-top:18px"><span class="pill">8 planetas = 8 temas</span><span class="pill">{len(NIVELES)} niveles</span><span class="pill">{sum(1 for c in CROMOS)} cromos</span><span class="pill">{TOPE_RETOS_SEMANA} retos por semana, como mucho</span></p>
+</header>
+
+<nav class="guia-sub" aria-label="Secciones de la guía del recluta"><div class="wrap">
+  <a href="#empezar">Primer día</a><a href="#nave">Tu Nave</a><a href="#semana">Cada semana</a><a href="#retos">Los retos</a>
+  <a href="#nota">Tu nota</a><a href="#bitacora">La Bitácora</a><a href="#progreso">Niveles y créditos</a>
+  <a href="#botin">Tu botín</a><a href="#mercado">Mercado y Zoco</a><a href="#archivo">La historia</a><a href="#dudas">Dudas</a>
+</div></nav>
+
+<section id="empezar"><div class="wrap">
+<div class="eyebrow teal">Primer día</div><h2>Te alistas una vez, y ya está</h2>
+<div class="gr-dos">
+<div>
+<ol class="gr-pasos">
+<li><b>Entra con tu cuenta de Google</b> en la portada. Usa siempre la misma: es tu llave, no hay contraseñas nuevas.</li>
+<li><b>Escribe el código de clase</b> que te da tu docente (o abre su invitación). Es lo único que se teclea en toda la web.</li>
+<li><b>Rellena tu ficha</b>: tu <b>nombre real</b> (solo lo ve el profesorado, para ponerte la nota), tu <b>alias</b> (lo que ve la
+clase; no se puede repetir en el grupo), <b>tu Comandante</b> (quien te da clase: te lleva a su escuadrón), tu <b>personaje</b>
+y, si ya la tienes, el enlace de tu <b>Bitácora</b>.</li>
+<li><b>Embarca.</b> Te llevas la insignia de Reclutamiento, tus primeros xp y créditos, y entras en tu Nave.</li>
+</ol>
+<p class="small muted">A partir de ahí, cada vez que entres con tu cuenta vas directo a tu Nave.</p>
+</div>
+{_gr_img("alistarse", "El alistamiento: quién eres, tu Comandante, tu personaje y tu Bitácora", "El alistamiento, tal como lo vas a ver.", "alta")}
+</div>
+</div></section>
+
+<section id="nave"><div class="wrap">
+<div class="eyebrow">Tu Nave</div><h2>Lo que hay en cada pestaña</h2>
+{_gr_img("nave", "La ficha del recluta: personaje, nivel, cifras, NEBULA y tu carrera", "Arriba del todo, tu ficha: tu personaje, tu nivel, tus cifras, lo que NEBULA te dice hoy y tu carrera.")}
+<div class="gr-tabs">{"".join(f'<div class="gr-tab"><img src="assets/img/nave/iconos/{k}.png" alt="" loading="lazy"><div><b>{t}</b><p>{d}</p></div></div>' for k, t, d in _GR_TABS)}</div>
+<h3>No todo está desde el primer día</h3>
+<p class="lead small">La Nave se abre por capítulos. Cada semana llega algo nuevo y <b>NEBULA te lo presenta al entrar</b>;
+lo que aún no toca, ni se ve. Si te saltas un capítulo, lo recuperas en «Capítulos de NEBULA», arriba a la derecha.</p>
+<div class="tabla-scroll"><table class="gr-tabla"><thead><tr><th>Semana</th><th>Capítulo</th><th>Lo que se abre</th></tr></thead><tbody>{_gr_caps}</tbody></table></div>
+</div></section>
+
+<section id="semana"><div class="wrap">
+<div class="eyebrow teal">Cada semana</div><h2>Una semana a bordo</h2>
+<div class="grid cols-3">
+<div class="card"><h3>1 · La orden de la semana</h3><p>En tu Nave, la carta de tu Comandante: el vídeo del capítulo, el mensaje y los
+retos que se lanzan. Léela primero: es el mapa de la semana.</p></div>
+<div class="card"><h3>2 · La clase en directo</h3><p>Tu docente proyecta la sesión. Al empezar toca <b>llamada a filas</b>: en tu Nave aparece
+el botón <b>Presente</b>. Púlsalo y te llevas xp y créditos; si vienes a varias clases seguidas, la racha suma un extra.</p></div>
+<div class="card"><h3>3 · Los retos, a tu ritmo</h3><p>Durante la semana haces los retos que quieras (como mucho <b>{TOPE_RETOS_SEMANA}</b>, de lunes a
+domingo) y los registras en <b>Mis retos</b>. Al acabar cada tema, el <b>ticket de salida</b>: anónimo, para decir qué te llevas y qué duda queda.</p></div>
+</div>
+<div class="gr-dos" style="margin-top:18px">
+{_gr_img("orden", "La orden de la semana, con el vídeo y la firma de tu Comandante", "La orden de la semana.")}
+{_gr_img("presente", "El aviso de la llamada a filas con el botón Presente", "La llamada a filas: tienes el tiempo que marca el reloj.")}
+</div>
+</div></section>
+
+<section id="retos"><div class="wrap">
+<div class="eyebrow amber">Los retos</div><h2>Qué hay que hacer, y cómo se registra</h2>
+<div class="grid cols-4">
+<div class="card"><h3>Reto A</h3><p class="small">Recupera al tripulante del planeta y te da su insignia. <b>{_XP_TIPO.get("A", 0)} xp</b> y <b>{CREDITOS["retoA"]} {MONEDA}</b>.</p></div>
+<div class="card"><h3>Reto B</h3><p class="small">Una pieza de tu Bitácora: la evidencia del tema. <b>{_XP_TIPO.get("B", 0)} xp</b> y <b>{CREDITOS["retoB"]} {MONEDA}</b>.</p></div>
+<div class="card"><h3>Reto relámpago</h3><p class="small">De diez o quince minutos, <b>se hace en clase</b>. <b>{_XP_TIPO.get("L", 0)} xp</b> y <b>{CREDITOS["relampago"]} {MONEDA}</b>.</p></div>
+<div class="card"><h3>Y además</h3><p class="small">Las dos <b>Actividades</b> (se marcan al ENVIARLAS), un <b>reto secreto</b> que nadie anuncia y el <b>simulacro</b> del examen.</p></div>
+</div>
+<div class="gr-dos" style="margin-top:18px">
+{_gr_img("reto", "Un reto abierto: los pasos, la reflexión, el enlace y Lo he hecho", "Un reto abierto por «Cómo se hace, paso a paso».")}
+<div>
+<h3>Para registrarlo</h3>
+<ol class="gr-pasos">
+<li>Abre el reto en <b>Mis retos</b> y pulsa <b>«Cómo se hace, paso a paso»</b>. Muchos traen un ejemplo de otra persona.</li>
+<li>Hazlo, publícalo y <b>pega el enlace</b> de lo que has hecho (el «+» añade un segundo). Sin enlace no se registra.
+Antes, compruébalo en <a href="ayuda.html">¿Mi enlace abre lo mío?</a>: que se abra en una ventana de incógnito.</li>
+<li>En algunos retos ({_gr_reflex}) se escribe además <b>una reflexión</b> en el propio reto. La lee tu tripulación y
+puede salir en clase, <b>siempre con tu alias, nunca con tu nombre</b>.</li>
+<li>Pulsa <b>«Lo he hecho»</b>: suben tus xp y tus créditos al momento.</li>
+</ol>
+<p class="small muted">Tu docente ve cada enlace. Si registras algo que no has hecho, lo anula y se van los xp y los créditos.</p>
+</div></div>
+</div></section>
+
+<section id="nota"><div class="wrap">
+<div class="eyebrow amber">Tu nota</div><h2>Lo que cuenta, y lo que no</h2>
+<p class="lead"><b>Los retos no puntúan</b>: son el entrenamiento. Lo que pone la nota es esto:</p>
+{_gr_eval}
+<p class="small">{EVALUACION_EXAMEN}</p>
+<h3>Pero los retos te dejan media Actividad hecha</h3>
+<div class="grid cols-2">{_gr_act}</div>
+</div></section>
+
+<section id="bitacora"><div class="wrap">
+<div class="eyebrow teal">La Bitácora</div><h2>Tu ePortfolio es el arma</h2>
+<div class="gr-dos">
+<div>
+<p class="lead">En la historia, la Estática apaga lo que nadie documenta. Tu <b>Bitácora</b> —tu ePortfolio— es lo que lo vuelve a
+encender: el curso entero termina en ella, y además <b>vale el 20 % de cada Actividad</b>.</p>
+<p>Cada página sigue el mismo patrón: <b>la evidencia</b> (lo que has hecho) → <b>el contexto</b> (para quién y para qué) →
+<b>la reflexión</b> (qué has aprendido) → <b>la autoevaluación</b>. El Reto B de la semana 1 es abrirla y publicar la primera entrada.</p>
+<p><a class="btn" href="{PLANTILLA_EPORTFOLIO}" target="_blank" rel="noopener">La plantilla de la Bitácora ↗</a></p>
+<p class="small muted">Pega su enlace en tu ficha (al alistarte, o después en tu Nave) para que tu docente la encuentre.</p>
+</div>
+<div class="trio"><img src="assets/img/personajes/nebula.png" alt="NEBULA" loading="lazy"></div>
+</div>
+</div></section>
+
+<section id="progreso"><div class="wrap">
+<div class="eyebrow">Niveles y créditos</div><h2>Dos monedas, y solo una se gasta</h2>
+<div class="tabla-scroll"><table class="gr-tabla"><thead><tr><th></th><th>xp (experiencia)</th><th>{MONEDA} créditos</th></tr></thead><tbody>
+<tr><td>Qué son</td><td>El viaje recorrido</td><td>El bolsillo</td></tr>
+<tr><td>¿Bajan?</td><td><b>Nunca</b></td><td>Al gastarlos</td></tr>
+<tr><td>Para qué</td><td>Tu <b>nivel</b> y la evolución de tu personaje</td><td>El Mercado Estelar y el Zoco</td></tr>
+</tbody></table></div>
+<p class="small">Cada reto da las dos a la vez. Canjear algo <b>solo gasta créditos</b>: tu nivel no se mueve.</p>
+<h3>Los niveles</h3>
+<p class="lead small">Tu personaje cambia de aspecto al subir de rango. El viaje entero son unos <b>{f"{XP_VIAJE['REGULAR']:,}".replace(",", ".")} xp</b>.</p>
+<div class="tabla-scroll"><table class="gr-tabla"><thead><tr><th>Nivel</th><th>Nombre · rango</th><th>Desde</th></tr></thead><tbody>{_gr_niveles}</tbody></table></div>
+</div></section>
+
+<section id="botin"><div class="wrap">
+<div class="eyebrow amber">Tu botín</div><h2>Insignias, cromos, héroes y logros</h2>
+<div class="gr-dos">
+<div>
+<p><b>Insignias.</b> Cada reto A y B tiene la suya, ordenadas por planeta. Las apagadas son las que te faltan: púlsalas para ver cómo se ganan.</p>
+<p><b>Cromos.</b> {sum(1 for c in CROMOS)} cartas en series: salen de los sobres del Mercado, y los repetidos se cambian por sobres nuevos o se truecan en el Zoco.</p>
+<p><b>Héroes.</b> Salen de las cápsulas y visten tu ficha; los más raros son muy difíciles de conseguir.</p>
+<p><b>Logros de a bordo.</b> La Nave apunta la primera vez que haces cada cosa y los días que vienes. {len(HITOS_A_BORDO)} logros en {len(CUBIERTAS_A_BORDO)} cubiertas;
+cada cubierta completa trae su premio, y con todas llega el <b>Contramaestre de la Nave</b>, que no se compra, no se regala y no se cambia.</p>
+</div>
+{_gr_img("logros", "Los logros de a bordo, por cubiertas", "Mi botín → Logros de a bordo.")}
+</div>
+{_gr_img("botin", "Mi botín: las insignias por planeta", "Mi botín: tus insignias, planeta a planeta.")}
+</div></section>
+
+<section id="mercado"><div class="wrap">
+<div class="eyebrow">Mercado y Zoco</div><h2>En qué se gastan los créditos</h2>
+{_gr_img("mercado", "El Mercado Estelar con la oferta de la semana", "El Mercado Estelar, con la oferta de la semana arriba.")}
+<div class="tabla-scroll"><table class="gr-tabla"><thead><tr><th>En el Mercado</th><th>Precio</th><th>Desde la semana</th></tr></thead><tbody>{_gr_tienda}</tbody></table></div>
+<h3>Las subidas de nota</h3>
+<p>Desde la semana <b>{SEMANA_ARSENAL}</b> («El Arsenal de batalla»), el Mercado ofrece también:</p>
+<ul class="gr-lista">{_gr_notas}</ul>
+<p class="small"><b>No se conceden solas.</b> Al pedir una, tus créditos quedan <b>apartados</b> y tu docente decide; si la deniega, vuelven a tu bolsillo.</p>
+<h3>El Zoco: el trueque</h3>
+<div class="gr-dos">
+<p>Pones en el Zoco lo que te sobra (cromos, héroes, participaciones del sorteo) y tu tripulación te ofrece lo suyo: créditos, cartas o héroes.
+Lo ofrecido queda apartado hasta que se responde, y cada trato se cierra en pocos pasos. Nada de esto se ve fuera de tu grupo.</p>
+{_gr_img("zoco", "El Zoco Estelar con lo que ofrece la tripulación", "El Zoco Estelar.")}
+</div>
+</div></section>
+
+<section id="archivo"><div class="wrap">
+<div class="eyebrow teal">La historia</div><h2>El Archivo, el Simulador y los rankings</h2>
+<div class="gr-dos">
+<div>
+<p><b>El Archivo.</b> Todos los vídeos de la historia, en orden. Los <b>fragmentos</b> —el vídeo de cada tripulante de la
+Tripulación Cero— <b>se ganan</b>: aparecen al completar el reto A de su tema. Quien no lo gana, no lo ve.</p>
+<p><b>El Simulador de Joran.</b> El reto A del Tema 6 no se entrega: se gana en una <b>batalla de preguntas</b> contra RUTA AZUL,
+sobre todo lo recorrido. Si pierdes, vuelves a intentarlo; al ganar, el simulador se queda en tu Nave para repasar tema a tema.</p>
+<p><b>Los rankings.</b> Varias clasificaciones (xp, esta semana, colección, tu escuadrón…), <b>siempre por alias</b>: tu nombre real no sale nunca.</p>
+</div>
+{_gr_img("simulador", "El Simulador de Joran: la batalla contra RUTA AZUL", "El Simulador de Joran.")}
+</div>
+<div class="gr-dos" style="margin-top:18px">
+{_gr_img("archivo", "El Archivo: la historia fragmento a fragmento", "El Archivo.")}
+{_gr_img("rankings", "El tablero de la tripulación", "Rankings.")}
+</div>
+</div></section>
+
+<section id="dudas"><div class="wrap">
+<div class="eyebrow">Dudas</div><h2>Cuando algo no sale</h2>
+<details class="faq"><summary>No puedo entrar, o entro y no veo mi Nave</summary><div>Casi siempre es la cuenta: entra con la <b>misma cuenta de Google con la que te alistaste</b>. En el menú «···» de tu Nave está «No soy yo / salir» para cambiarla. Si nunca te alistaste, te pedirá el código de clase.</div></details>
+<details class="faq"><summary>«Ese alias ya existe»</summary><div>Los alias no se repiten dentro de un grupo. Elige otro, o pulsa «Sugiéreme uno».</div></details>
+<details class="faq"><summary>No me sale el botón «Presente»</summary><div>La llamada es de <b>tu Comandante</b> (la de otro docente no te sale) y dura lo que marca su reloj. Si ya la ha abierto, recarga la Nave.</div></details>
+<details class="faq"><summary>Me he equivocado al registrar un reto</summary><div>Díselo a tu docente: puede anularlo desde tu ficha, con su porqué.</div></details>
+<details class="faq"><summary>¿Quién ve mi nombre real?</summary><div><b>Solo el profesorado.</b> Tu clase te ve por tu alias: en los rankings, en las reflexiones y en el Zoco.</div></details>
+<details class="faq"><summary>¿Puedo perder xp?</summary><div>No. Los xp solo suben. Lo que se gasta son los créditos.</div></details>
+<details class="faq"><summary>Tengo una duda de la asignatura</summary><div>Pregúntala en clase, o en «Dudas a NEBULA» (menú «···»): es <b>anónimo</b> y no lo ve tu clase.</div></details>
+<p class="small muted" style="margin-top:18px">Qué datos se guardan y quién los ve: <a href="privacidad.html">privacidad</a>.</p>
+</div></section>
+''' + FOOT
 
 ACT = head("STARGATE · Actividades y evaluación",
   "Las misiones (actividades), el ePortfolio, la evaluación, el examen y los documentos oficiales de la asignatura con su marco narrativo STARGATE.","act", puerta=True) + f'''
@@ -1385,6 +1702,10 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
     var ref=false; try{ ref = localStorage.getItem('sgEsReferente')==='1'; }catch(e){}
     var md = ref && modoDocente();
     Array.prototype.forEach.call(document.querySelectorAll('.lnk.solo-referente'),function(a){ a.hidden = !ref || md; });
+    // 23-sep · el pie: la guía del profesorado solo al docente; la del recluta, a quien haya entrado (alumno o docente)
+    var doc=false, rec=false; try{ doc = localStorage.getItem('sgEsDocente')==='1'; rec = localStorage.getItem('sgEsRecluta')==='1'; }catch(e){}
+    Array.prototype.forEach.call(document.querySelectorAll('.solo-docente'),function(a){ a.hidden = !doc; });
+    Array.prototype.forEach.call(document.querySelectorAll('.solo-sesion'),function(a){ a.hidden = !(doc || rec); });
     var b = document.getElementById('sg-modo'), wrap = document.querySelector('.nav .wrap');
     if(!ref || !wrap || (document.body && document.body.classList.contains('embed'))){ if(b) b.remove(); return; }
     if(!b){
@@ -1400,6 +1721,9 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
   }
   encenderSegunRol();
   document.addEventListener('sg:rol', encenderSegunRol);
+  // 23-sep · la altura de la barra de arriba, para lo que se pega justo debajo (el índice de las guías)
+  function altoNav(){ var n=document.querySelector('.nav'); if(n) document.documentElement.style.setProperty('--nav-h', Math.round(n.getBoundingClientRect().height)+'px'); }
+  altoNav(); window.addEventListener('resize', altoNav);
   var back=document.createElement('div');
   back.className='modal-backdrop'; back.setAttribute('role','dialog'); back.setAttribute('aria-modal','true');
   document.body.appendChild(back);
@@ -2682,7 +3006,7 @@ exactamente el mismo tablero que devolvía la hoja.</p>
 ''' + FOOT
 
 PAGES=[("index.html",PORTADA),("comosehizo.html",COMOSEHIZO),("ayuda.html",AYUDA),("privacidad.html",PRIVACIDAD),("guia.html",GUIA),("cronologia.html",CRONOLOGIA),("actividades.html",ACT),
-       ("registro.html",REGPAGE),("recursos.html",REC),("legacy.html",LEGACY)]
+       ("registro.html",REGPAGE),("recursos.html",REC),("legacy.html",LEGACY),("guia-recluta.html",GUIA_RECLUTA)]
 def _ver(rel): return hashlib.md5(open(os.path.join(HERE,rel),"rb").read()).hexdigest()[:10]
 vc,vj,vt = _ver("assets/css/stargate.css"), _ver("assets/js/stargate.js"), _ver("assets/js/tour.js")
 for name,html in PAGES:
@@ -3086,7 +3410,7 @@ recluta para ver su ficha: su personaje, su biografía, su nivel y las insignias
 <script>window.SG_TABLERO_ALOJADO=true;</script>
 <script src="assets/js/tablero.js" defer></script>
 </div></section>
-<footer><div class="wrap">STARGATE · La Bitácora Estelar — Proyecto Gamificado del <b>Máster en Tecnología Educativa</b> de la UNIR.</div></footer></body></html>'''
+<footer><div class="wrap">STARGATE · La Bitácora Estelar — un proyecto de gamificación educativa de la <b>UNIR</b>.<br><a href="guia-recluta.html">Guía del recluta</a><span class="solo-docente" hidden> · <a href="guia.html">Guía del profesorado</a></span> · <a href="privacidad.html">Privacidad</a></div></footer></body></html>'''
 html=(RECLUTA.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"'))
 open(os.path.join(HERE,"recluta.html"),"w",encoding="utf-8").write(html); print("escrito: recluta.html")
 
@@ -3376,6 +3700,8 @@ def _derivar_webp(carpeta, calidad=85):
                          + "\n   ".join(faltan[:12]))
     return hechas
 print("insignias: %d WebP rehechas desde su PNG" % _derivar_webp(os.path.join(HERE, "assets", "img", "insignias")))
+# 23-sep · y las cartas (el dossier de la portada enseña las de la Tripulación Cero: en PNG eran medio mega cada una)
+print("cartas: %d WebP rehechas desde su PNG" % _derivar_webp(os.path.join(HERE, "assets", "img", "tarjetas")))
 
 # ================= LAS IMÁGENES QUE EL JS CONSTRUYE, ¿ESTÁN? =================
 # El 26-ago el cartel de «HÉROE DE LA REBELIÓN» pedía `heroes/<clave>.png` y los archivos son .jpg:

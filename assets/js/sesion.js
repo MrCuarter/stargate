@@ -1539,7 +1539,7 @@
     var fs=enPantalla();
     return '<div class="ses-ctl">'
       +(!EMBED?'<button type="button" class="ses-ic" data-ses-ventana title="Abrir la sesión en una ventana aparte, solo con la presentación" aria-label="Abrir en una ventana aparte">'+IC_VENTANA+'</button>':'')
-      +(!st.alumno&&st.per&&st.yo?'<button type="button" class="ses-directo'+(DIRECTO.on?' on':'')+'" id="ses-directo">'+(DIRECTO.on?'En directo':'Emitir en directo')+'</button>':'')
+      +(!st.alumno&&st.per&&st.yo?'<button type="button" class="ses-directo'+(DIRECTO.on?' on':'')+'" id="ses-directo">'+(DIRECTO.on?'En directo':'Emitir<span class="sd-mas"> en directo</span>')+'</button>':'')
       /**
        * 🔴 20-sep · LAS HERRAMIENTAS DE CLASE, ARRIBA. Norberto: «quería un botón sencillo, que no tape otros
        * botones (ahora tapa)». Flotando abajo a la derecha se comía la barra de pasos; aquí vive con los demás
@@ -1760,7 +1760,8 @@
   function pintarDirecto(){
     var b=root.querySelector('#ses-directo'); if(!b) return;
     b.classList.toggle('on', DIRECTO.on);
-    b.textContent=DIRECTO.on?'En directo':'Emitir en directo';
+    // (23-sep · en el teléfono se queda en «Emitir»: con el texto entero, los mandos tapaban las flechas)
+    b.innerHTML=DIRECTO.on?'En directo':'Emitir<span class="sd-mas"> en directo</span>';
     b.title=DIRECTO.on?'Tus reclutas ven esta sesión a tu ritmo desde su Nave. Pulsa para dejar de emitir.':'Que tus reclutas la sigan a tu ritmo desde su Nave';
   }
   window.addEventListener('pagehide', function(){ if(DIRECTO.on){ var M=window.SG&&window.SG.MOTOR; if(M&&M.publicarEnVivo) M.publicarEnVivo(st.per,{sesion:{activa:false,t:Date.now()}}).catch(function(){}); } });
