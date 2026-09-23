@@ -435,12 +435,7 @@
    * 18-sep · Norberto: «¿es posible poner automáticamente el nombre del Comandante en vez de "— Capitán"?».
    * Lo mismo que ya hace la Nave (`recluta.js → msgHtml`): si su nombre ya empieza por «Comandante», no se repite.
    */
-  function conComandante(txt){
-    var jefe=String((!st.alumno && st.miNombre) || st.profeMio || '').trim();
-    if(!jefe) return String(txt||'');
-    var firma=/^comandante\b/i.test(jefe) ? jefe : 'Comandante '+jefe;
-    return String(txt||'').replace(/—\s*Capit[áa]n\b/g, '— '+firma);
-  }
+  function conComandante(txt){ return window.SG.firmaComandante(txt, elComandante()); }
   function diaForo(s){
     var ps=foroBloques(conComandante(s.foro)); if(!ps.length) return null;
     var pl=planeta(s.tema_n), titulo=(pl?pl[1]:s.tema)||'';
@@ -480,6 +475,27 @@
     return window.SG.rotulo({ nombre:quien, avatar:((st.d&&st.d.avatares)||{})[quien]||'', escuadron:(mio&&mio.nombre)||'',
       emblema:(mio&&mio.emblema)||'', grupo:st.nombre||'', clase:'grande' });
   }
+  /**
+   * 🔴 23-sep · EL RETRATO DEL COMANDANTE, AL VUELO. Sale del grupo (`avatares[nombre]`), que es lo que ve también el
+   * recluta que sigue la sesión. Si el grupo aún no lo tiene y proyecta el propio docente, se lee su ficha (solo él
+   * puede), se cambia en el rótulo y en la tarjeta de «Quiénes somos», y se deja guardado en el grupo para su alumnado.
+   * Antes, sin esto y sin comandante elegido, el rótulo enseñaba al Capitán: el personaje, no el docente.
+   */
+  function retratoAlVuelo(el){
+    var imgs=el.querySelectorAll('.rotulo .rt-av, [data-retrato]'), quien=elComandante();
+    if(!imgs.length||!quien) return;
+    var poner=function(k){ var u=window.SG.avatarComandante(k);
+      Array.prototype.forEach.call(imgs, function(i){ if(i.getAttribute('src')!==u) i.src=u; }); };
+    // las diapositivas se pintan todas al empezar: si otra ya lo trajo, esta se pone al día al montarse
+    var ya=((st.d&&st.d.avatares)||{})[quien]; if(ya){ poner(ya); return; }
+    if(st.alumno||!(window.SG&&SG.MOTOR&&SG.MOTOR.miFichaDocente)) return;
+    SG.MOTOR.miFichaDocente().then(function(f){
+      if(!f||!f.avatar) return;
+      poner(f.avatar);
+      if(st.d){ st.d.avatares=Object.assign({}, st.d.avatares||{}); st.d.avatares[quien]=f.avatar; }
+      if(SG.MOTOR.avatarEnGrupo&&st.per) SG.MOTOR.avatarEnGrupo(st.per, quien, f.avatar).catch(function(){});
+    }).catch(function(){});
+  }
   function cielo(cv){
     if(!cv||!cv.getContext) return;
     var r=cv.getBoundingClientRect(), dpr=Math.min(2, window.devicePixelRatio||1), c=cv.getContext('2d');
@@ -494,11 +510,7 @@
     var dia=el.querySelector('.foro-crawl'); if(!dia) return null;
     var timers=[], audio=null, btn=dia.querySelector('.fc-son'), vivo=true;
     var quieto=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-    // el retrato de quien da la clase, si el grupo aún no lo tiene: solo él puede leer su ficha, así que se pone al vuelo
-    var av=dia.querySelector('.rotulo .rt-av'), yaEnGrupo=((st.d&&st.d.avatares)||{})[elComandante()];
-    if(av && !yaEnGrupo && !st.alumno && window.SG && SG.MOTOR && SG.MOTOR.miFichaDocente) SG.MOTOR.miFichaDocente().then(function(f){
-      if(f && f.avatar) av.src=window.SG.avatarComandante(f.avatar);
-    }).catch(function(){});
+    retratoAlVuelo(dia);
     var medir=function(){ cielo(dia.querySelector('.fc-cielo')); };
     medir(); window.addEventListener('resize', medir);
     var volumen=function(hasta, ms, fin){
@@ -1290,17 +1302,24 @@
       +(!st.alumno&&st.per&&st.yo?'<p class="pt-chat"><button type="button" class="btn min" id="ses-chat">Copiar el enlace para el chat</button> <span class="small" id="ses-chat-m">Entran con su cuenta, fichan solos y ven esta presentación.</span></p>':'')
       +'</div></div>', montar: montarPortada};
   }
+  /**
+   * 🔴 23-sep · CUATRO NOMBRES. Norberto: «Capitán de la Nave (es nuestro personaje), Comandante STARGATE (el docente de
+   * cada grupo)… una cuarta ficha donde sí salga el avatar del docente con su nombre». El Capitán es el de los vídeos;
+   * el Comandante es quien está en la sala, con el comandante que eligió y su nombre (el retrato, al vuelo si hace falta).
+   */
   function diaNombres(){
     var cap=elComandante();
-    var tarjeta=function(img, cls, nom, txt){ return '<figure class="emb-c'+(cls?' '+cls:'')+'"><img src="'+img+'" alt="" loading="lazy">'
+    var tarjeta=function(img, cls, nom, txt, extra){ return '<figure class="emb-c'+(cls?' '+cls:'')+'"><img src="'+img+'" alt="" loading="lazy"'+(extra||'')+'>'
       +'<figcaption><b>'+nom+'</b><span>'+txt+'</span></figcaption></figure>'; };
     return {k:'embarque_nombres', sec:'embarque', rot:'Quiénes somos', html:
-      '<div class="dia emb"><div class="kicker">La tripulación de La Constancia</div><h2>Tres nombres, y ya está</h2>'
-      +'<div class="emb-tres">'
+      '<div class="dia emb"><div class="kicker">La tripulación de La Constancia</div><h2>Cuatro nombres, y ya está</h2>'
+      +'<div class="emb-tres emb-cuatro">'
       +tarjeta('assets/img/personajes/nebula.png','', 'NEBULA', 'La inteligencia de la nave. Os guía y os presenta cada cosa nueva en vuestra Nave.')
       +tarjeta('assets/img/personajes/vaeon.png','', 'La Estática · Vaeon', 'La amenaza: donde entra, nadie crea ni comparte. No se le gana disparando: se le gana <b>dejando constancia</b>.')
-      +tarjeta(window.SG.avatarComandante(((st.d&&st.d.avatares)||{})[cap]||''),'cap', 'Vuestro Capitán', (cap?'<b>'+esc(/^comandante/i.test(cap)?cap:'Comandante '+cap)+'</b>. ':'')+'El mando de esta misión. La nave tiene inteligencia; el capitán lo pone cada aula.')
-      +'</div></div>'};
+      +tarjeta('assets/img/capitan/saluda.png','', 'Capitán de la Nave', 'El veterano al mando de La Constancia. Os da las órdenes de cada misión en los vídeos.')
+      +tarjeta(window.SG.avatarComandante(((st.d&&st.d.avatares)||{})[cap]||''),'cmd', 'Comandante STARGATE',
+        (cap?'<b>'+esc(cap.replace(/^comandante\s+/i,''))+'</b>, vuestro docente. ':'Vuestro docente. ')+'Firma la orden de cada semana, valida vuestros retos y os ve en directo.', ' data-retrato')
+      +'</div></div>', montar: function(el){ retratoAlVuelo(el); return null; }};
   }
   function diaViaje(){
     var P=window.SG_PLANETAS||[];

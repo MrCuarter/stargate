@@ -244,8 +244,8 @@
     parrafo(g, "NEBULA: «Lo que se comparte no se apaga. Tu viaje queda registrado aquí, y desde aquí seguirá enseñando.»",
       110, my + 96, 1100, 36, { tam: 24, color: "#93A7BA" });
 
-    texto(g, (d.comandante || "El Capitán"), W - 110, my + 40, { tam: 30, peso: 700, ancla: "right", color: "#FFD166", familia: '"Unbounded","DM Sans",sans-serif' });
-    texto(g, "Capitán" + (d.escuadron ? " · " + d.escuadron : ""), W - 110, my + 76, { tam: 22, peso: 400, ancla: "right", color: "#93A7BA" });
+    texto(g, (d.comandante || "Tu Comandante"), W - 110, my + 40, { tam: 30, peso: 700, ancla: "right", color: "#FFD166", familia: '"Unbounded","DM Sans",sans-serif' });
+    texto(g, "Comandante STARGATE" + (d.escuadron ? " · " + d.escuadron : ""), W - 110, my + 76, { tam: 22, peso: 400, ancla: "right", color: "#93A7BA" });
     texto(g, d.fecha + " · código " + d.codigo, W - 110, my + 116, { tam: 20, peso: 400, ancla: "right", color: "#6f8399" });
 
     return c;

@@ -44,10 +44,7 @@
     var jefe=(st.yo&&st.yo.profe)||'';
     // 🔴 Sin duplicar el tratamiento: hay docentes cuyo nombre en el sistema YA es «Comandante
     // Orion», y anteponerlo otra vez firmaba «Comandante Comandante Orion».
-    if(jefe){
-      var firma = /^comandante\b/i.test(jefe.trim()) ? jefe.trim() : 'Comandante '+jefe.trim();
-      txt=txt.replace(/—\s*Capit[áa]n\b/g,'— '+firma);
-    }
+    txt=window.SG.firmaComandante(txt, jefe);
     /**
      * 🔴 23-sep · EL MISMO LECTOR QUE LA NAVE DEL COMANDANTE Y LA SESIÓN (SG.foroParrafos): encabezados, órdenes, firma y,
      * lo que pidió Norberto, «siempre que haya un enlace de YouTube, embébelo dentro del mensaje». Antes este mensaje se
@@ -120,7 +117,7 @@
           +'<p><a class="btn" href="index.html">← Volver al inicio</a></p></div>';
         return;
       }
-      root.innerHTML='<div class="card"><h3>¿De qué PER eres recluta?</h3><p class="small muted">Elige tu grupo para entrar en tu nave. Si no lo sabes, pregunta a tu Capitán.</p>'
+      root.innerHTML='<div class="card"><h3>¿De qué PER eres recluta?</h3><p class="small muted">Elige tu grupo para entrar en tu nave. Si no lo sabes, pregunta a tu Comandante.</p>'
         // 🔴 Solo el NOMBRE del grupo. «REGULAR/PUA» es jerga de la hoja de cálculo: al alumnado no le
         // dice nada y le hace dudar de si ha elegido bien.
         +pers.map(function(p){return '<p><a class="btn" href="recluta.html?per='+encodeURIComponent(p.id)+'">'+esc(p.nombre)+'</a></p>';}).join('')+'</div>';
@@ -1319,7 +1316,7 @@
       +'<div class="eyebrow amber">Fin del viaje</div>'
       +'<h3>Tu diploma de la Tripulación Cero</h3>'
       +'<p class="small">Tu alias y tu nombre, tus insignias, tus cartas, tus héroes y todo lo que has recorrido, '
-      +'firmado por tu Capitán. Se descarga como imagen y se puede imprimir.</p>'
+      +'firmado por tu Comandante. Se descarga como imagen y se puede imprimir.</p>'
       +'<p><a class="btn epico" href="diploma.html?per='+esc(per)+'"><span class="ep-luz"></span>'
       +'<span class="ep-txt"><img class=ico src=assets/img/iconos/p/libro.png alt> Ver mi diploma</span></a></p></div>';
   }
@@ -2408,7 +2405,7 @@
 
   function recompensas(){
     var d=st.d; var cat=d.recompensas||[]; var n=st.semanas.length; var r=st.yo;
-    if(!cat.length) return '<section><div class="eyebrow violet">Recompensas</div><h2>Mercado Estelar</h2><p class="lead">Aquí se canjean tus <b>créditos ◈</b> por recompensas (los xp no se gastan nunca). El catálogo se abrirá pronto en la nave; mientras tanto, tu Capitán tiene la lista.</p>'
+    if(!cat.length) return '<section><div class="eyebrow violet">Recompensas</div><h2>Mercado Estelar</h2><p class="lead">Aquí se canjean tus <b>créditos ◈</b> por recompensas (los xp no se gastan nunca). El catálogo se abrirá pronto en la nave; mientras tanto, tu Comandante tiene la lista.</p>'
       +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Ir al formulario de canje</a>':'')+'</section>';
     var abiertas=0;
     /**
@@ -4633,7 +4630,7 @@
    */
   var fresco=motorNuevo()&&!DEMO;
   SG.FUENTE.tablero(per, fresco).then(function(d){
-    if(d.error){root.innerHTML='<p class="lead">PER no encontrado. Pregunta a tu Capitán por el enlace bueno.</p>';return;}
+    if(d.error){root.innerHTML='<p class="lead">PER no encontrado. Pregunta a tu Comandante por el enlace bueno.</p>';return;}
     st.d=d; st.dFresco=fresco?d:null; st.semanas=window.SGCAL.vista(d.tipo,SEM);
     // 🔴 El rango se calcula distinto en PUA (diez semanas, no quince). La fiesta dibuja el avatar
     // del nivel nuevo y necesita saberlo, o a un recluta de PUA le enseñaría el arte equivocado

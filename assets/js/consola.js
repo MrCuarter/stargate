@@ -459,14 +459,14 @@
       var yo = miNombreEn(p); if (!yo) return;
       var S = p.stargate = p.stargate || {}, A = S.avatares = S.avatares || {};
       if (A[yo] === k) return;
-      guardarParteEn(p.id, "avatares", yo, k).then(function () { A[yo] = k; }).catch(function () {});
+      MOTOR.avatarEnGrupo(p.id, yo, k).then(function () { A[yo] = k; }).catch(function () {});
     });
   }
   function cablearHero() {
     var avImg = $("#doc-ava-img"), avBtn = $("#doc-ava"), avs = $("#doc-avas");
     if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
       if (f && f.avatar && avImg) avImg.src = "assets/img/avatares/comandantes/" + f.avatar + ".jpg";
-      if (f && f.avatar) avatarEnMisGrupos(f.avatar);
+      avatarEnMisGrupos((f && f.avatar) || "c1");   // sin elegir, el c1 que ves aquí: el mismo en tu grupo
     }).catch(function () {});
     var galeria = function () {
       if (avs.getAttribute("data-lista")) return;
@@ -1743,10 +1743,7 @@
     var todos = document.getElementById("ht-foro-todos");
     if (todos) todos.onclick = function () {
       var SEMS = window.SG_SEMANAS || [], mios = (FICHA && FICHA.foros) || {}, yoN = miNombreAqui();
-      var firma = function (txt) {
-        if (!yoN) return String(txt || "");
-        return String(txt || "").replace(/—\s*Capit[áa]n\b/g, "— " + (/^comandante\b/i.test(yoN) ? yoN : "Comandante " + yoN));
-      };
+      var firma = function (txt) { return window.SG.firmaComandante(txt, yoN); };
       modalFicha('<div class="fi-cab"><h3>' + ico("mensaje") + ' Los mensajes del foro</h3>' +
           '<p class="small muted">Uno por semana, ya firmados por ti. Los que hayas escrito tú salen marcados y valen en todos tus grupos.</p>' +
           '<button type="button" class="c-modal-x" data-cerrar-ficha aria-label="Cerrar">✕</button></div>' +
@@ -1869,10 +1866,7 @@
     var antes = lanzados.filter(function (r) { return semanaDeReto(r, tipo, mapa) < sem; })
                         .sort(function (a, b) { return semanaDeReto(b, tipo, mapa) - semanaDeReto(a, tipo, mapa); });
     var luego = cat.filter(function (r) { return semanaDeReto(r, tipo, mapa) === sem + 1; });
-    var firma = function (txt) {
-      if (!yoN) return String(txt || "");
-      return String(txt || "").replace(/—\s*Capit[áa]n\b/g, "— " + (/^comandante\b/i.test(yoN) ? yoN : "Comandante " + yoN));
-    };
+    var firma = function (txt) { return window.SG.firmaComandante(txt, yoN); };
     var foro = s && s.foro ? firma(s.foro) : "";
     var propio = ((t.paneles || {})[yoN]) || "", panelMio = propio || t.panel || window.SG_PANEL_MAESTRO || "";
     var conUid = gente.filter(function (r) { return !!r.uid; });

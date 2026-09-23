@@ -2085,8 +2085,11 @@ async function anotarConexion() {
   const k = "sgConexion:" + yo.uid;
   try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, "1"); } catch (e) {}
   const ref = doc(db, "stargate_profes", yo.uid), d = await getDoc(ref), x = d.exists() ? d.data() : {}, ahora = Date.now();
+  // 🔴 23-sep · CON `merge`. Sin él, cada sesión nueva REESCRIBÍA la ficha entera y se llevaba lo que el docente había
+  // guardado en ella: su comandante (`avatar`), sus mensajes del foro (`foros`) y su modo (`modo`). Así salía el
+  // Capitán en «El mensaje» de Norberto aunque hubiera elegido comandante.
   await setDoc(ref, { uid: yo.uid, correo: yo.correo, nombre: yo.nombre || x.nombre || "", foto: yo.foto || x.foto || "",
-    primera: x.primera || ahora, ultima: ahora, n: (x.n || 0) + 1, ultimas: (x.ultimas || []).concat(ahora).slice(-20) });
+    primera: x.primera || ahora, ultima: ahora, n: (x.n || 0) + 1, ultimas: (x.ultimas || []).concat(ahora).slice(-20) }, { merge: true });
 }
 /**
  * 18-sep · EL PANEL DEL DOCENTE. Norberto: «que los docentes también puedan coger avatares… un panel del docente con sus
@@ -2097,6 +2100,22 @@ async function miFichaDocente() {
   const yo = await sesion(); if (!yo) return null;
   const d = await getDoc(doc(db, "stargate_profes", yo.uid));
   return Object.assign({ uid: yo.uid, correo: yo.correo, nombre: yo.nombre || "", foto: yo.foto || "" }, d.exists() ? d.data() : {});
+}
+/**
+ * 🔴 23-sep · TU COMANDANTE EN TU GRUPO. El rótulo de «El mensaje», la orden de la semana y la tarjeta de «Quiénes somos»
+ * llevan tu retrato, y los ve tu alumnado, que no puede leer tu ficha: la clave se copia al grupo
+ * (`stargate.avatares[tu nombre en su equipo]`). Solo escribe si falta o ha cambiado. Lo usan la Nave del Comandante
+ * (en todos tus grupos al entrar o al cambiar de comandante) y la sesión (si proyectas y aún no estaba).
+ */
+async function avatarEnGrupo(perId, nombre, clave) {
+  nombre = String(nombre || "").trim(); clave = String(clave || "").trim();
+  if (!perId || !nombre || !clave) return false;
+  const ref = doc(db, "projects", perId), pd = await getDoc(ref);
+  const A = Object.assign({}, ((((pd.exists() ? pd.data() : {}) || {}).stargate) || {}).avatares || {});
+  if (A[nombre] === clave) return false;
+  A[nombre] = clave;
+  await updateDoc(ref, { "stargate.avatares": A });
+  return true;
 }
 /**
  * 19-sep · TUS NOTAS DEL GRUPO. Norberto: «una caja de texto por si tiene algo pendiente». Van en
@@ -2231,7 +2250,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,

@@ -26,7 +26,15 @@ c(/class="rotulo rotulo-grande"/.test(rt) && /recorte\/c3\.png/.test(rt), "🔴 
 c((rt.match(/rt-emb/g) || []).length === 1, "🔴 el emblema del escuadrón, UNA vez (antes salía a los dos lados)", (rt.match(/rt-emb/g) || []).length);
 c(/>Comandante Norberto Cuartero</.test(rt) && /Escuadrón Los Yunques · DEMO/.test(rt), "   su nombre con su rango, y debajo el escuadrón y el grupo");
 c(!/Comandante Comandante/.test(win.SG.rotulo({ nombre: "Comandante Ana" })) && win.SG.rotulo({ nombre: " " }) === "", "   sin «Comandante Comandante», y sin nombre no hay rótulo");
-c(/capitan\/saluda\.png/.test(win.SG.rotulo({ nombre: "Ana" })), "   sin comandante elegido, el Capitán de la serie");
+c(/recorte\/c1\.png/.test(win.SG.rotulo({ nombre: "Ana" })) && !/capitan\//.test(win.SG.rotulo({ nombre: "Ana" })),
+  "🔴 sin comandante elegido, el c1 (el de su Nave): nunca el Capitán, que es el personaje de la serie");
+c(win.SG.firmaComandante("Hola.\n— Tu Comandante", "Ana") === "Hola.\n— Comandante Ana" && win.SG.firmaComandante("x — Capitán", "Comandante Leo") === "x — Comandante Leo"
+  && win.SG.firmaComandante("x — Tu Comandante", "") === "x — Tu Comandante", "🔴 la firma de los mensajes, en un sitio: «— Tu Comandante» (o el «— Capitán» viejo) pasa a su nombre");
+// 🔴 23-sep · la ficha del docente se borraba en cada sesión nueva (setDoc sin merge): avatar, foros y modo
+{ const MO = fs.readFileSync(path.join(R, "assets/js/motor.js"), "utf8"), an = MO.slice(MO.indexOf("async function anotarConexion"), MO.indexOf("async function anotarConexion") + 1200);
+  const sets = MO.match(/setDoc\(doc\(db, "stargate_profes"[^;]*;|setDoc\(ref, \{ uid: yo\.uid[^;]*;/g) || [];
+  c(/\}, \{ merge: true \}\);\s*\}/.test(an) && sets.length >= 4 && sets.every(x => /merge: true/.test(x)),
+    "🔴 NINGUNA escritura de la ficha del docente la reescribe entera: entrar ya no borra su comandante, sus foros ni su modo", sets.length); }
 c(win.SG.rotulo({ nombre: "<b>x</b>" }).indexOf("<b>x") < 0, "   y el nombre se escapa (lo escribe cada docente)");
 const recortes = fs.readdirSync(path.join(R, "assets/img/avatares/comandantes/recorte")).filter(f => /^c\d+\.png$/.test(f));
 const retratos = fs.readdirSync(path.join(R, "assets/img/avatares/comandantes")).filter(f => /^c\d+\.jpg$/.test(f));

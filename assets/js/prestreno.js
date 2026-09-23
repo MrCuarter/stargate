@@ -99,20 +99,22 @@
       '</div>' };
   }
   function nombres() {
-    return { rot: "Tres nombres", html:
+    return { rot: "Cuatro nombres", html:
       '<div class="dia">' +
-        '<div class="kicker">Los tres nombres que hay que saberse</div>' +
+        '<div class="kicker">Los cuatro nombres que hay que saberse</div>' +
         '<h2>Y no hay que estudiárselos: salen solos</h2>' +
-        '<div class="pr-cartas">' +
+        '<div class="pr-cartas pr-cuatro">' +
           '<figure class="pr-c"><img src="assets/img/personajes/nebula.png" alt="">' +
             '<figcaption><b>NEBULA</b><span>La inteligencia de la nave. Guía el viaje y va recomponiéndose con el curso. Es quien presenta cada cosa nueva en la Nave del alumnado.</span></figcaption></figure>' +
           '<figure class="pr-c"><img src="assets/img/personajes/vaeon.png" alt="">' +
             '<figcaption><b>La Estática · General Vaeon</b><span>La amenaza. Donde entra, la gente deja de crear, registrar y compartir. No se combate disparando: se combate <b>dejando constancia</b>.</span></figcaption></figure>' +
-          // 🔴 21-sep · Norberto: «el tercer nombre no debería ser la Bitácora, será el Comandante, ¿no? El otro
-          // personaje». Cierto: los tres NOMBRES son los tres personajes, y el tercero está en la sala. La Bitácora
-          // no es un nombre que aprenderse, es el arma — y tiene su propia diapositiva justo detrás.
+          // 🔴 23-sep · Norberto: «Capitán de la Nave (es nuestro personaje), Comandante STARGATE (el docente de cada
+          // grupo)». El Capitán es el de los vídeos y el de la visita guiada; el Comandante eres tú, con tu avatar y tu
+          // nombre: así te ve tu alumnado en el mensaje de cada semana y en su Nave.
           '<figure class="pr-c"><img src="assets/img/capitan/saluda.png" alt="">' +
-            '<figcaption><b>El Capitán · eres tú</b><span>El mando de la misión. La nave tiene inteligencia, pero no capitán: lo pone cada aula. Tu alumnado te llama <b>Capitán</b> y tú entras por tu <b>Nave del Comandante</b>.</span></figcaption></figure>' +
+            '<figcaption><b>Capitán de la Nave</b><span>El veterano al mando de La Constancia. Da las órdenes de cada misión en los vídeos y te guía en la visita de tu Nave.</span></figcaption></figure>' +
+          '<figure class="pr-c pr-cmd"><img src="assets/img/avatares/comandantes/recorte/c1.png" alt="">' +
+            '<figcaption><b>Comandante STARGATE · eres tú</b><span>Cada docente es el Comandante de su grupo: <b>eliges tu avatar</b> y tu nombre, firmas la orden de cada semana y entras por tu <b>Nave del Comandante</b>.</span></figcaption></figure>' +
         '</div>' +
       '</div>' };
   }

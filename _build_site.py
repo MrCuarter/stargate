@@ -110,7 +110,7 @@ def head(title, desc, active, puerta=False, publica=False, alumno=False):
 {('<script>document.documentElement.classList.add("cerrado")' + (';document.documentElement.setAttribute("data-puerta","sesion")' if puerta == "sesion" else '') + '</script><script src="assets/js/puerta.js" defer></script>') if puerta else ''}
 </head><body>
 <nav class="nav"><div class="wrap">
-<a class="brand" href="index.html">◈ STARGATE {'' if publica else '<span class="modo recluta">Recluta<i> · alumnado</i></span>' if alumno else '<span class="modo docente">Capitán<i> · docentes</i></span>'}</a>
+<a class="brand" href="index.html">◈ STARGATE {'' if publica else '<span class="modo recluta">Recluta<i> · alumnado</i></span>' if alumno else '<span class="modo docente">Comandante<i> · docentes</i></span>'}</a>
 {links}
 {'' if (publica or alumno) else '<button class="tour-start" type="button" title="Visita guiada con el Capitán" aria-label="Visita guiada">&#9654;<span> Visita guiada</span></button>'}
 </div></nav>'''
@@ -137,7 +137,7 @@ PERS=[("P1_bran","Bran Okafor","Reto A · T1 · Fôrge","Lo imperfecto compartid
 ("P7_mara","Mara Voss","Reto A · T7 · Vínculo","Un porqué mueve personas"),
 ("P8_noa","Noa Lieth","Reto A · T8 · Liminar","Enseñar futuros")]
 ESP=[("E1_nebula","NEBULA","Preséntate a tu tripulación","La Bitácora viva que narra el viaje"),
-("E2_capitan","El Capitán","Presentar la Act. 1","El mando de la misión: tú, docente"),
+("E2_capitan","El Capitán","Presentar la Act. 1","El Capitán de la Nave, al mando de La Constancia"),
 ("E3_vaeon","General Vaeon","El Escape UNI (reto secreto S7)","Señor de la Estática (villano)")]
 RETO=[("R0_bitacora-en-marcha","La Bitácora en marcha","Reto B · T1","Tu ePortfolio abierto y su primera entrada"),
 ("R1_la-chispa","La chispa","Reto relámpago · T1","Imagen didáctica con IA y tu logo (Act 1)"),
@@ -687,8 +687,8 @@ gente deje de <b>crear, registrar y compartir</b>. Contra ella no sirven las arm
 <div class="two">
 <div><p class="lead"><b>NEBULA</b> es la IA de la nave y la narradora: cálida, clara. Su secreto —que se revela poco a
 poco— es que es la <b>Bitácora de la Tripulación Cero</b>, el primer equipo que no regresó. Cada planeta
-documentado <b>recupera un fragmento</b> de quién fue. El <b>Capitán</b> eres <b>tú, docente</b>: el mando que
-da las órdenes, reconoce los logros y sostiene la moral.</p></div>
+documentado <b>recupera un fragmento</b> de quién fue. El <b>Capitán de la Nave</b> es el veterano al mando: da las órdenes de cada misión en los vídeos. Y el
+<b>Comandante STARGATE</b> eres <b>tú, docente</b>: el mando de tu grupo, con tu avatar y tu nombre, que reconoce los logros y sostiene la moral.</p></div>
 <div class="trio"><img src="assets/img/personajes/nebula.png" alt="NEBULA"><img src="assets/img/capitan/tablet.png" alt="El Capitán"></div>
 </div>
 <h3 style="margin-top:1.2em">La Tripulación Cero — 8 personajes que se recuperan</h3>
@@ -857,7 +857,7 @@ guarda nada.</p></div>
 
 <h3 style="margin-top:34px">Y el resto de la rutina</h3>
 <div class="tips">
-<div class="tip"><b>Empieza con el gancho, no con el temario.</b> Primera sesión: vídeo de sinopsis, preséntate como <b>Capitán</b>, reparte la insignia de <b>Reclutamiento</b> y deja una pregunta en el aire.</div>
+<div class="tip"><b>Empieza con el gancho, no con el temario.</b> Primera sesión: vídeo de sinopsis, preséntate como su <b>Comandante</b>, reparte la insignia de <b>Reclutamiento</b> y deja una pregunta en el aire.</div>
 <div class="tip"><b>Un mensaje por semana para el foro de la plataforma de UNIR</b> (ya redactados, en la <a href="cronologia.html">cronología</a>): introducen el tema con la narrativa y cierran con la "Bitácora de esta semana". Solo pon tu nombre y el enlace de la herramienta del momento.</div>
 <div class="tip"><b>Separa los tres retos en tu discurso.</b> El Reto A como <i>invitación</i> ("recupera a Bran"); el Reto B como <i>encargo</i> con criterios; y el <b><img class=ico src=assets/img/iconos/p/rayo.png alt> relámpago</b> como lo que es: <i>diez minutos, aquí y ahora, en clase</i> — quien viene, sale con él hecho.</div>
 <div class="tip"><b>Entrega las insignias en público.</b> El refuerzo funciona cuando se ve: publica el medallón y nombra el logro con la frase del personaje. Un tablero con las 24 hace visible el avance.</div>
@@ -1369,7 +1369,7 @@ def semana_card(s):
 </div>
 <details class="foro"><summary><img class=ico src=assets/img/iconos/p/mensaje.png alt> Mensaje del foro dinamizador (listo para copiar)</summary>
 <div class="foro-box"><button class="copy" type="button" data-copy="foro{sem}">Copiar texto</button><pre id="foro{sem}">{foro}</pre>
-<small>La firma es siempre «Capitán», a secas (sin tu nombre). Revisa las herramientas citadas (son ejemplos, cambian cada curso) y, donde aparezca el enlace del tablero, usa el de tu PER.</small></div>
+<small>Firma «— Tu Comandante»: en tu Nave del Comandante y en la sesión ya sale con tu nombre. Revisa las herramientas citadas (son ejemplos, cambian cada curso) y, donde aparezca el enlace del tablero, usa el de tu PER.</small></div>
 </details>
 </div></details>'''
 
@@ -1605,7 +1605,7 @@ BADGE_INFO = {
  "P8_noa":{"nombre":"Noa Lieth · La Arquitecta de capas","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 8: «La capa posible».","cuando":"Tema 8 · Planeta Liminar","tarea":"Describe una «capa» sobre tu aula real: cómo sería si aprendiera a hablar de sí misma. Y elige un compromiso concreto que te llevas de todo el viaje. Con esto la Tripulación Cero queda completa."},
  # Especiales
  "E1_nebula":{"nombre":"NEBULA · La Bitácora viva","tipo":"Insignia de personaje (especial)","como":"Completando el reto «Preséntate a tu tripulación»: un vídeo de 60 segundos en el padlet de la clase.","cuando":"Semana 1","tarea":"NEBULA es la IA de la nave y tu narradora constante. Te da su insignia cuando compartes tu cara con la tripulación: preséntate en un vídeo de un minuto y publícalo en el padlet. Lo que se comparte no se apaga."},
- "E2_capitan":{"nombre":"El Capitán · El Mando de la misión","tipo":"Insignia de personaje (especial)","como":"Se obtiene al presentar la Actividad 1.","cuando":"Temas 1–2","tarea":"El Capitán es el mando de la misión (tu profesor o profesora). Su insignia reconoce que has asumido tu primera misión mayor: la actividad didáctica con imagen de IA."},
+ "E2_capitan":{"nombre":"El Capitán · El Mando de la misión","tipo":"Insignia de personaje (especial)","como":"Se obtiene al presentar la Actividad 1.","cuando":"Temas 1–2","tarea":"El Capitán de la Nave es el veterano al mando de La Constancia, el que da las órdenes de cada misión en los vídeos. Su insignia reconoce que has asumido tu primera misión mayor: la actividad didáctica con imagen de IA."},
  "E3_vaeon":{"nombre":"General Vaeon · Señor de la Estática","tipo":"Insignia de villano","como":"Saliendo del Escape UNI, el reto secreto (S7): el botón del final del escape registra el reto. Su puerta está en la Nave, y también escondida en la presentación del planeta Vínculo.","cuando":"Tema 7 · Vínculo","tarea":"Vaeon es el antagonista: personifica los errores del diseño educativo (contenido que no se entiende, recursos que no llegan, saber no compartido). Su insignia no se anuncia: se encuentra. Coleccionar su carta es el trofeo de haber entendido al enemigo."},
  # Retos (Reto B)
  "R1_la-chispa":{"nombre":"La chispa","tipo":"Insignia de reto","como":"Completando el reto relámpago L1 del Tema 1.","cuando":"Tema 1 · Fôrge","tarea":"Genera con una IA una imagen con finalidad didáctica: prompt estructurado (contexto + tipo de imagen + finalidad), al menos una iteración, selección final con tu criterio docente y evidencia del proceso. Es el núcleo de la Actividad 1."},
@@ -2004,11 +2004,24 @@ window.SG.foroParrafos = function (t, op) {
  *
  * El retrato es el recorte sin fondo de su comandante (assets/img/avatares/comandantes/recorte/<clave>.png, los 26
  * recortados en local). La clave la guarda el grupo en `stargate.avatares[nombre]` —la ficha del docente solo la lee él,
- * y su alumnado también tiene que verle—. Sin comandante elegido, el Capitán de la serie.
+ * y su alumnado también tiene que verle—.
+ * 🔴 23-sep · Sin comandante elegido, el c1: el mismo que ve ese docente en su Nave del Comandante. NUNCA el Capitán:
+ * Norberto, «Capitán de la Nave (es nuestro personaje), Comandante STARGATE (el docente de cada grupo)».
  *   o: { nombre, avatar (cN), escuadron, emblema, grupo, clase: '' | 'grande' | 'carta' }
  */
 window.SG.avatarComandante = function (clave) {
-  return clave ? 'assets/img/avatares/comandantes/recorte/' + String(clave).replace(/[^\w-]/g, '') + '.png' : 'assets/img/capitan/saluda.png';
+  return 'assets/img/avatares/comandantes/recorte/' + (String(clave || '').replace(/[^\w-]/g, '') || 'c1') + '.png';
+};
+/**
+ * 🔴 23-sep · LA FIRMA DE LOS MENSAJES, EN UN SITIO. Los del foro acaban en «— Tu Comandante» (antes «— Capitán», que
+ * ahora es el personaje de la serie); quien los lee tiene delante a su docente, así que se firma con su nombre
+ * («— Comandante Ana Ruiz»), sin duplicar el tratamiento si su nombre ya empieza por «Comandante». Lo usan la sesión,
+ * la Nave del Comandante y la Nave del recluta.
+ */
+window.SG.firmaComandante = function (txt, nombre) {
+  var n = String(nombre || '').trim(); txt = String(txt == null ? '' : txt);
+  if (!n) return txt;
+  return txt.replace(/—\s*(?:Tu\s+Comandante|Capit[áa]n)\b/g, '— ' + (/^comandante\b/i.test(n) ? n : 'Comandante ' + n));
 };
 window.SG.rotulo = function (o) {
   o = o || {};
@@ -2420,7 +2433,7 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
    * referente). 🔴 El paso con `rol` tiene que señalar algo que EXISTA SIEMPRE en la Nave.
    */
   var BASE=[
-   {p:'consola.html',sel:'.cn-ficha',listo:'.cn-secs',espera:1,rol:1,pose:'saluda',t:'Bienvenido a tu Nave',x:'Recluta… perdón: <b>Capitán</b>. Esta es tu <b>Nave del Comandante</b>: tu comandante, tus cifras y, si llevas más de un grupo, el <b>desplegable</b> para saltar de uno a otro. Pulsa el <b>lápiz de tu avatar</b> para elegir tu comandante y el nombre con el que te ve tu alumnado. Te lo enseño en dos minutos.'},
+   {p:'consola.html',sel:'.cn-ficha',listo:'.cn-secs',espera:1,rol:1,pose:'saluda',t:'Bienvenido a tu Nave',x:'Recluta… perdón: <b>Comandante</b>. Esta es tu <b>Nave del Comandante</b>: tu comandante, tus cifras y, si llevas más de un grupo, el <b>desplegable</b> para saltar de uno a otro. Pulsa el <b>lápiz de tu avatar</b> para elegir tu comandante y el nombre con el que te ve tu alumnado. Te lo enseño en dos minutos.'},
    {p:'consola.html',sel:'.gr-banner',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Cada clase empieza aquí',x:'El banner de tu grupo, con <b>Empezar la clase</b>: la sesión de la semana ya montada (la rueda de al lado dice qué diapositivas salen). Dentro tienes las <b>herramientas de clase</b> —pasar lista, a quién pregunto, premiar, una pregunta, una votación y el tiempo—. Todo lo de este grupo va debajo de este banner.'},
    {p:'consola.html',sel:'.cn-secs',listo:'.cn-secs',espera:1,pose:'senala',t:'Las secciones de tu grupo',x:'<b>Reclutas</b>: tu alumnado, la ficha de cada uno con lo que ha entregado (y, si hace falta, para anular un reto), y el <b>código de clase</b> para quien falte; si alguien pide una subida de nota, brilla la <b>Cola de nota</b>. Después <b>Rankings</b>, el <b>Calendario</b> y, en mando manual, <b>El Zoco</b>, <b>Premios</b> y <b>Enlaces</b>. La última es <b>Contacto</b>: si algo falla, por ahí me llega.'},
    {p:'consola.html',sel:'.pt-panel',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Tu panel de control',x:'El Genially que abre tu alumnado desde su Nave, <b>aquí dentro</b>: lo compruebas sin abrir otra pestaña. Y si prefieres usar el tuyo, <b>Cambiar el enlace</b> y tus reclutas verán ese.'},
@@ -2441,7 +2454,7 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
    {p:'crear.html',sel:'',pose:'tablet',t:'Referente: crear un grupo',x:'Los grupos se crean <b>aquí</b>, con tu cuenta de Google: nombre, tipo REGULAR/PUA, primer día de la semana 1, los enlaces de la clase y el equipo docente. En un minuto queda sembrado entero —los retos, los 8 planetas, la tienda, los escuadrones y el álbum— y sale su <b>código de clase</b>.'},
    {p:'crear.html',sel:'',pose:'senala',t:'Referente: el equipo y la fecha',x:'No hay PIN que repartir. Pones a cada docente con <b>su correo</b> en el equipo y con eso entra en su Nave iniciando sesión con Google; si alguien se va, lo quitas del equipo y deja de entrar. Lo que sí tienes que poner bien es la <b>fecha de la semana 1</b>: marca el ritmo de todo, desde la orden de la semana hasta los desbloqueos de la Nave.'}
   ];
-  var FINAL={p:'consola.html',sel:'.cn-ficha',listo:'.cn-secs',espera:1,pose:'pulgar',t:'Listo para el salto',x:'Eso es todo, Capitán. Cuando quieras repasarlo, <b>▶ Visita guiada</b> en la barra de arriba; y las dudas de siempre, en las <a href="guia.html#faq">preguntas frecuentes</a>. Recuerda: <b>una obra que no se documenta, no existe</b>. Corto y cierro.'};
+  var FINAL={p:'consola.html',sel:'.cn-ficha',listo:'.cn-secs',espera:1,pose:'pulgar',t:'Listo para el salto',x:'Eso es todo, Comandante. Cuando quieras repasarlo, <b>▶ Visita guiada</b> en la barra de arriba; y las dudas de siempre, en las <a href="guia.html#faq">preguntas frecuentes</a>. Recuerda: <b>una obra que no se documenta, no existe</b>. Corto y cierro.'};
   // v3.35 · VISITAS DE UNA SOLA PÁGINA. La de arriba recorre toda la web; una página puede declarar
   // la suya con `window.SG_TOUR_LOCAL = {clave, pasos:[…]}` — es lo que hace la sala del docente para
   // explicar el ORDEN de lo que tiene que hacer el alumnado. No salta de página y lleva su propia
@@ -3215,7 +3228,7 @@ TOUR_CLASE = {
  "pasos": [
   {"sel":"#sala-herramientas","pose":"senala","t":"Tus tres botones",
    "x":"Lo que se usa <b>en directo</b>: proyectar la semana ya montada, el <b>aula</b> —donde tocas llamada a filas, ves quién ficha y repartes premios a mano— y la llamada suelta con el botón grande. Los dos últimos se incrustan en tu Genially y valen para todos tus grupos."},
-  {"sel":"#sala-cabecera","pose":"saluda","t":"Esta es tu sala, Capitán",
+  {"sel":"#sala-cabecera","pose":"saluda","t":"Esta es tu sala, Comandante",
    "x":"Todo lo que necesitas antes de entrar al aula, en una página. Pero empecemos por lo que más "
        "se atasca: <b>el orden en que tu alumnado tiene que hacer las cosas</b>. Son cinco pasos, y el "
        "primero no se puede saltar."},
@@ -3270,7 +3283,7 @@ TOUR_CLASE = {
   {"sel":"#sala-enlaces","pose":"tablet","t":"Todo lo del grupo, sin buscar en Drive",
    "x":"Los enlaces de <b>este</b> grupo: tablero, Nave, los tres formularios, el panel de Genially, "
        "el foro y el generador de embeds y QR. Y si eres el referente, el panel completo."},
-  {"sel":"#sala-cabecera","pose":"pulgar","t":"Listo, Capitán",
+  {"sel":"#sala-cabecera","pose":"pulgar","t":"Listo, Comandante",
    "x":"Recuerda los dos primeros pasos y el resto va solo: <b>que se alisten</b> y <b>que editen su "
        "respuesta</b> en vez de empezar de cero. Puedes volver a ver esto cuando quieras con el botón "
        "«Visita guiada» de la barra de arriba."}
@@ -4378,7 +4391,7 @@ print("escrito: batalla.html  (el Simulador de Joran)")
 # el grupo se deduce de quién entra, y cada cual ve SOLO el suyo.
 _html = head("STARGATE · Tu diploma",
              "El diploma de la Tripulación Cero: tu alias, tu nombre, tus insignias y todo lo que has recorrido, "
-             "firmado por tu Capitán.",
+             "firmado por tu Comandante.",
              "reg", publica=True).replace("</head>",
              '<link rel="stylesheet" href="' + _v("assets/css/diploma.css") + '">'
              + _cabeza_motor()

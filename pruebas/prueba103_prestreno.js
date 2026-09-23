@@ -125,10 +125,12 @@ c(semCaps.length > 1 && semCaps.every((x, i) => i === 0 || x >= semCaps[i - 1]),
   "   en orden de apertura, que es como se cuenta", JSON.stringify(semCaps));
 
 const nom = pintar.nombres().html;
-c(/El Capitán/.test(nom) && /img\/capitan\//.test(nom),
-  "🔴 el tercer nombre es el Capitán (el otro personaje), no la Bitácora");
-c(/eres tú/.test(nom) && /Nave del Comandante/.test(nom), "   y dice quién es: el docente que está en la sala");
-c(!/La Bitácora Estelar<\/b>/.test(nom), "   la Bitácora ya no es una de las tres tarjetas");
+// 🔴 23-sep · Norberto: «Capitán de la Nave (es nuestro personaje), Comandante STARGATE (el docente de cada grupo)»
+c(/<b>Capitán de la Nave<\/b>/.test(nom) && /img\/capitan\//.test(nom) && !/Capitán[^<]*eres tú/.test(nom),
+  "🔴 el Capitán de la Nave es el personaje de la serie, no el docente");
+c(/<b>Comandante STARGATE · eres tú<\/b>/.test(nom) && /comandantes\/recorte\//.test(nom) && /Nave del Comandante/.test(nom),
+  "🔴 y la cuarta tarjeta es el Comandante STARGATE: el docente, con su avatar");
+c((nom.match(/<figure class="pr-c/g) || []).length === 4 && !/La Bitácora Estelar<\/b>/.test(nom), "   cuatro tarjetas, y la Bitácora no es una de ellas");
 
 const bit = pintar.bitacora().html;
 c(/bitacora\(\), mapa\(\)/.test(JS), "🔴 la Bitácora tiene diapositiva propia, detrás de los tres nombres");

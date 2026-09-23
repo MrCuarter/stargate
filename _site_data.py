@@ -59,7 +59,7 @@ CRONO = [
       insignias=["E1_nebula","H1_reclutamiento"],
       hito="Presentación ante el mando · Bitácora de la semana: un recurso multimedia con IA",
       clases="Clases 01–02",
-      consejo="Preséntate como Capitán y reparte la insignia de Reclutamiento en público. El Opening puede abrir cada clase."),
+      consejo="Preséntate como su Comandante y reparte la insignia de Reclutamiento en público. El Opening puede abrir cada clase."),
  dict(sem=2, tema="Tema 1 (cont.) · Fôrge", sub="Actividad 1",
       capitulo=None,
       videos=[("act1","Al lanzar la Actividad 1"),
@@ -524,7 +524,7 @@ _AYUDA_DOC = _ayuda_de_los_retos()
 # se escriben a mano las piezas que ese documento no cubre (las Actividades y el examen).
 AYUDA_RETOS = {
  "A0": "Graba un vídeo de MÁXIMO 60 segundos presentándote al resto de la tripulación y publícalo en la "
-       "sección «Preséntate» del padlet de la clase (título = tu alias; primera línea = «Capitán: tu profe»). No hace falta guion de cine — si te da apuro, "
+       "sección «Preséntate» del padlet de la clase (título = tu alias; primera línea = «Comandante: tu profe»). No hace falta guion de cine — si te da apuro, "
        "responde a tres o cuatro de estas: ¿quién eres y a qué te dedicas? ¿desde dónde te conectas? "
        "¿por qué educación? ¿una herramienta que ames y una que sufras? ¿un dato curioso que nadie "
        "adivinaría? Grábalo del tirón con el móvil: natural gana a perfecto. Después copia el enlace de TU "
@@ -737,7 +737,7 @@ SESION_EMBARQUE = [
     ("portada", "", "ap", "**Bienvenidos a bordo de La Constancia**, la nave de STARGATE"),
     ("mensaje", "", "ap", "**El mensaje** del Comandante, con tu rótulo"),
     ("video", "sinopsis", "ap", "**Cap. 0 · Sinopsis** (1:47): la historia entera"),
-    ("nombres", "", "ap", "**Tres nombres**: NEBULA, la Estática y su Capitán, que eres tú"),
+    ("nombres", "", "ap", "**Cuatro nombres**: NEBULA, la Estática, el Capitán de la Nave y su Comandante STARGATE, que eres tú, con tu avatar"),
     ("viaje", "", "ap", "**El viaje**: ocho planetas, ocho temas"),
     ("semana", "", "ap", "**Así es una semana**: la sesión, los retos, la Nave y el ticket"),
     ("nota", "", "ap", "**Lo que puntúa**: las dos actividades (cuándo se lanzan y se resuelven), los tests, la asistencia y el examen; los retos, no"),
