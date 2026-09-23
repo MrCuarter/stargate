@@ -258,7 +258,7 @@
       setTimeout(function () {
         var d = document.createElement("div");
         d.className = "insignia-gana";
-        d.innerHTML = '<img src="assets/img/insignias/' + k + '.png" alt="" width="86" height="86">' +
+        d.innerHTML = '<img src="assets/img/insignias/' + k + '.webp" alt="" width="86" height="86">' +
           '<div><span class="ig-eyebrow">Insignia conseguida</span>' +
           '<b>' + (nombres[k] || k) + '</b></div>';
         document.body.appendChild(d);

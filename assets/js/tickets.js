@@ -167,7 +167,7 @@ Array.prototype.forEach.call(root.querySelectorAll('.temachip'),function(b){b.on
 var sp=document.getElementById('selPer');if(sp)sp.onchange=function(){st.per=this.value;st.prof='';st.tema='';cargar();};var sf=document.getElementById('selProf');if(sf)sf.onchange=function(){st.prof=this.value;render();};
     Array.prototype.forEach.call(root.querySelectorAll('button[data-f]'),function(b){b.onclick=function(){var profe=localStorage.getItem('sgProfe')||prompt('Tu nombre (para el registro):')||'';localStorage.setItem('sgProfe',profe);post({accion:'ticket_resuelto',per:st.per,fila:parseInt(b.getAttribute('data-f'),10),valor:b.getAttribute('data-v')==='1',profe:profe},function(){cargar();});};});}
   function demo(b){if(b.accion==='pers')return {pers:[{id:'demo',nombre:'PER de demostración',tipo:'REGULAR',estado:'Abierto'}]};if(b.accion==='ticket_resuelto'){var t=st.tickets.filter(function(x){return x.fila===b.fila;})[0];if(t)t.resuelto=b.valor?'Sí · demo':'';return {ok:true};}
-    var P=['Ana Pérez','Luis Gómez'],S='Selecciona el tema o actividad',PR='El profesor o profesora que imparte tu clase...',out=[],i;
+    var P=['Ana Pérez','Luis Gómez'],S='Selecciona el tema',PR='El profesor o profesora que imparte tu clase...',out=[],i;
     function r(a,b2){return a+Math.floor(Math.random()*(b2-a+1));}
     // 🔴 v3.43 · La demo genera TRES temas con el mismo bloque de preguntas, no uno. Con un solo
     // tema el «Panorama de la asignatura» no aparece nunca (necesita preguntas repetidas en varias

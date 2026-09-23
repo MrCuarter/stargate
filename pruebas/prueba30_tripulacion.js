@@ -20,7 +20,7 @@ ALUMNOS.forEach(([email, alias, nombre]) =>
   E.enviarBitacora(G, PER, { email, alias, nombre, profe: "Mr Cuarter" }));
 
 // un parte del ticket: lo único que importa para contar es la sección elegida
-const TIT_SEL = "Selecciona el tema o actividad que hemos trabajado y sobre el que quieres hacer una pregunta";
+const TIT_SEL = "Selecciona el tema que hemos trabajado y sobre el que quieres hacer una pregunta";
 function mandarParte(seccion) {
   const sh = G._maestra.getSheetByName("T · " + PER);
   if (sh.getLastRow() < 1) sh.appendRow(["Marca temporal", TIT_SEL]);

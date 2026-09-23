@@ -227,7 +227,7 @@
      */
     var ix = 110, iy = 940, my = 1170;
     texto(g, "SUS INSIGNIAS", ix, iy, { tam: 20, peso: 700, color: "#93A7BA", espacio: "5px" });
-    var imgs = (await Promise.all(d.insigniasLista.map(function (k) { return cargarImagen("assets/img/insignias/" + k + ".png"); }))).filter(Boolean);
+    var imgs = (await Promise.all(d.insigniasLista.map(function (k) { return cargarImagen("assets/img/insignias/" + k + ".webp"); }))).filter(Boolean);
     var fila = colocarInsignias(imgs.length, W - 2 * ix, (my - 34 - 14) - (iy + 24));
     imgs.forEach(function (im, i) {
       var f = Math.floor(i / fila.porFila), enFila = Math.min(fila.porFila, imgs.length - f * fila.porFila);

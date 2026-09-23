@@ -194,7 +194,7 @@
       '<div class="ht-reto-cab"><span class="pt-id">' + esc(r.id) + '</span><span class="ht-tipo">' + esc(m[1] || "Reto") + '</span>' +
         (luegoEn ? '<span class="chip luego">' + ico("candado") + ' Se desbloquea la semana ' + luegoEn + '</span>' : '') +
         (rel && !luegoEn ? '<span class="chip rel">' + ico("rayo") + ' En clase · 10-15 min</span>' : '') + '</div>' +
-      '<div class="ht-reto-cuerpo">' + (ins ? '<img class="ht-ins" src="assets/img/insignias/' + esc(ins) + '.png" alt="" loading="lazy" onerror="this.remove()">' : '') +
+      '<div class="ht-reto-cuerpo">' + (ins ? '<img class="ht-ins" src="assets/img/insignias/' + esc(ins) + '.webp" alt="" loading="lazy" onerror="this.remove()">' : '') +
         '<div><b>' + esc(m[2] || r.titulo || "") + '</b>' + (g ? '<p>' + esc(g) + '</p>' : '') + '</div></div>' +
       '<div class="ht-reto-pie"><span class="p xp">+' + Number(r.xp || 0) + ' xp</span>' +
         (creditosDeRetoC(r.id, tipo) ? '<span class="p cr">+' + creditosDeRetoC(r.id, tipo) + ' ◈</span>' : '') +
@@ -1129,7 +1129,7 @@
     };
     var ins = function (k) {
       vistas[k] = 1; var on = suyas.indexOf(k) >= 0;
-      return '<img class="fi-in' + (on ? "" : " no") + '" src="assets/img/insignias/' + esc(k) + '.png" alt="' + esc(N[k] || k) + '" title="' + esc(N[k] || k) + (on ? "" : " · pendiente") + '" loading="lazy" width="44" height="44">';
+      return '<img class="fi-in' + (on ? "" : " no") + '" src="assets/img/insignias/' + esc(k) + '.webp" alt="' + esc(N[k] || k) + '" title="' + esc(N[k] || k) + (on ? "" : " · pendiente") + '" loading="lazy" width="44" height="44">';
     };
     var fila = function (tit, sub, ks, mis) {
       var hechos = mis.filter(function (mi) { return (r.retos || {})[mi.id]; }).length;

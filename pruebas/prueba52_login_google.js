@@ -96,7 +96,7 @@ const CODIGO = R.replace(/^\s*\/\/.*$/gm, "");
 const F = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "fuente.js"), "utf8");
 c(/accion: "quien", per: per, token: quien_\.token/.test(F),
   "🔴 con el motor viejo se manda el TOKEN, no el correo, cuando se entra con Google");
-c(/SG\.FUENTE\.quien\(per,quien_\)/.test(CODIGO),
+c(/SG\.FUENTE\.quien\(per,quien_(,yaFresco)?\)/.test(CODIGO),
   "   y la Nave pide su ficha a la fuente, sin saber qué motor hay detrás");
 // Y con Firestore el token deja de hacer falta: quien pide los datos ES quien inició sesión, y eso
 // lo sabe el servidor sin que nadie se lo cuente. El correo tecleado desaparece del problema.

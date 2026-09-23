@@ -4973,8 +4973,11 @@ const REG = {};   // cifras que se apuntan para el informe
       c("   la rueda de «Configurar la sesión», junto a «Empezar la clase»", await rp.js("!!document.querySelector('.gr-acc [data-cfg-sesion]')"));
       c("🔴   y nada de lo que se usa una o dos veces por curso: ni crear, ni borrar, ni graduar, ni cursos terminados",
         await rp.js("!/Crear un grupo|Borrar este grupo|Graduar y archivar|cursos? terminados?/i.test(document.getElementById('consola-app').innerText) && !document.querySelector('[data-gestion],.gp-mas,.gp-viejos')"));
-      await rp.js("document.getElementById('doc-ajustes-b').click(); 1");
-      c("🔴 panel · «Ajustes» trae tu comandante y tu sesión para todos tus grupos", await rp.hasta("!!document.querySelector('#doc-ajustes:not([hidden]) .m-sec input') && !!document.getElementById('doc-aj-ava')", 10));
+      // 🔴 23-sep · «Ajustes» ya no existe (Norberto: el avatar ya se cambia en el lápiz; «Configurar diapositivas» vive en
+      // la sesión, en «Antes de empezar»). El lápiz trae tu comandante y, desde hoy, tu nombre.
+      await rp.js("document.getElementById('doc-ava').click(); 1");
+      c("🔴 panel · sin «Ajustes»: el lápiz del avatar trae tu comandante y tu nombre",
+        await rp.hasta("!document.getElementById('doc-ajustes-b') && !!document.getElementById('doc-nom') && !!document.getElementById('doc-nom-g')", 10));
       c("   sin un solo emoji en su Nave", await rp.js("!/[\\u{1F300}-\\u{1FAFF}]/u.test(document.getElementById('consola-app').innerText)"));
       // la portada
       await rp.ir("consola.html?per=" + P);
@@ -5009,7 +5012,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rp.foto(FOTOS + "/46-portada.png");
       // 🔴 20-sep (tarde) · la carta del foro es un COMUNICADO: sus ÓRDENES DE LA SEMANA con los retos de verdad
       await rp.js("document.getElementById('ht-foro').scrollIntoView({block:'start'}); 1"); await dormir(500);
-      const carta = await rp.js("(function(){ var c=document.querySelector('.foro-carta'); if(!c) return null; return {h:(c.querySelector('.fc-h')||{}).textContent||'', n:c.querySelectorAll('.fc-ordenes li').length, ps:c.querySelectorAll('.fc-cuerpo p').length, firma:(c.querySelector('.fc-firma b')||{}).textContent||''};})()");
+      const carta = await rp.js("(function(){ var c=document.querySelector('.foro-carta'); if(!c) return null; return {h:(c.querySelector('.fc-h')||{}).textContent||'', n:c.querySelectorAll('.fc-ordenes li').length, ps:c.querySelectorAll('.fc-cuerpo p').length, firma:(c.querySelector('.fc-firma-r .rotulo .rt-nom')||{}).textContent||''};})()");   // (23-sep · la firma es el rótulo del comandante)
       c("🔴 foro · la carta se lee como un comunicado: sus ÓRDENES DE LA SEMANA y los retos en lista",
         carta && /ÓRDENES DE LA SEMANA/.test(carta.h) && carta.n >= 1 && carta.ps >= 3 && /Comandante/.test(carta.firma), JSON.stringify(carta));
       await rp.foto(FOTOS + "/46-carta-foro.png");

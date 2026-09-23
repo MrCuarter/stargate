@@ -357,7 +357,7 @@
     // insignias: las 24, en el orden del catalogo
     var ins=ORD.map(function(k){var t=!!tengoIns[k];
       return '<span class="fr-ins'+(t?'':' no')+'" title="'+esc(N[k]||k)+(t?'':' \u00b7 todav\u00eda no')+'">'
-        +'<img src="assets/img/insignias/'+k+'.png" alt="" loading="lazy"><em>'+esc(N[k]||k)+'</em></span>';}).join('');
+        +'<img src="assets/img/insignias/'+k+'.webp" alt="" loading="lazy"><em>'+esc(N[k]||k)+'</em></span>';}).join('');
 
     // cartas: las 20, con su rareza (el borde lo pone la clase, como en la Nave)
     function rar(r){r=String(r||'').toLowerCase();

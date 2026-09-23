@@ -416,7 +416,7 @@ async function sembrarZoco(gente) {
  * verdad de ese tema, que es lo que se lee en voz alta al abrir el siguiente.
  */
 async function sembrarTickets(ini) {
-  const P_TEMA = "Selecciona el tema o la actividad que acabas de terminar";
+  const P_TEMA = "Selecciona el tema que hemos trabajado y sobre el que quieres hacer una pregunta";
   const P_PROFE = "¿Quién es tu profesor o profesora?";
   const P_SIGUE = "¿Cómo has seguido esta clase?";
   const NOTAS = [

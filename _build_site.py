@@ -111,7 +111,7 @@ def head(title, desc, active, puerta=False, publica=False):
 <nav class="nav"><div class="wrap">
 <a class="brand" href="index.html">◈ STARGATE {'' if publica else '<span class="modo docente">Capitán<i> · docentes</i></span>'}</a>
 {links}
-{'' if publica else '<button class="tour-start" type="button" title="Visita guiada con el Capitán">&#9654; Visita guiada</button>'}
+{'' if publica else '<button class="tour-start" type="button" title="Visita guiada con el Capitán" aria-label="Visita guiada">&#9654;<span> Visita guiada</span></button>'}
 </div></nav>'''
 
 FOOT = '''<footer><div class="wrap">
@@ -198,10 +198,10 @@ PASO_S7 = [k for k, *_ in PLANETAS].index("p7_vinculo") + 1
 
 def badge(key,title,tag,sub,sm=False):
     c=" sm" if sm else ""
-    return (f'<figure class="badge{c}" data-key="{key}" title="Ver detalle"><img loading="lazy" src="assets/img/insignias/{key}.png" alt="{title}">'
+    return (f'<figure class="badge{c}" data-key="{key}" title="Ver detalle"><img loading="lazy" src="assets/img/insignias/{key}.webp" alt="{title}">'
             f'<figcaption><b>{title}</b><span class="tag">{tag}</span><em>{sub}</em></figcaption></figure>')
 def hito(key,title,sub):
-    return (f'<figure class="badge sm" data-key="{key}" title="Ver detalle"><img loading="lazy" src="assets/img/insignias/{key}.png" alt="{title}">'
+    return (f'<figure class="badge sm" data-key="{key}" title="Ver detalle"><img loading="lazy" src="assets/img/insignias/{key}.webp" alt="{title}">'
             f'<figcaption><b>{title}</b><em>{sub}</em></figcaption></figure>')
 def cardt(key):
     return f'<div class="card-thumb" data-card="{key}" title="Ampliar tarjeta"><img loading="lazy" src="assets/img/tarjetas/{key}_carta.png" alt="Carta de {key}"></div>'
@@ -1007,7 +1007,7 @@ NAVE_BADGES = [k for k,*_ in PERS]+[k for k,*_ in ESP]+[k for k,*_ in RETO]+[k f
 
 def mini_badges(keys):
     if not keys: return '<span class="muted">— ninguna esta semana —</span>'
-    return "".join(f'<figure class="mini badge" data-key="{k}" title="{BADGE_NAME.get(k,k)}"><img loading="lazy" src="assets/img/insignias/{k}.png" alt="{BADGE_NAME.get(k,k)}"><figcaption>{BADGE_NAME.get(k,k)}</figcaption></figure>' for k in keys)
+    return "".join(f'<figure class="mini badge" data-key="{k}" title="{BADGE_NAME.get(k,k)}"><img loading="lazy" src="assets/img/insignias/{k}.webp" alt="{BADGE_NAME.get(k,k)}"><figcaption>{BADGE_NAME.get(k,k)}</figcaption></figure>' for k in keys)
 
 def semana_card(s):
     sem = s["sem"]
@@ -1048,7 +1048,7 @@ for _i,_n in enumerate(["Bran","Tomás","Sylla","Amara","Vera","Joran","Mara","N
     SHORT[f"f{_i}"]=f"F{_i} {_n}"
 def fila_mapa(s):
     vids = " · ".join(SHORT.get(c, V[c][1]) for c,_ in s["videos"])
-    ins = " ".join(f'<img class="dot" src="assets/img/insignias/{k}.png" title="{BADGE_NAME.get(k,k)}" alt="">' for k in s["insignias"]) or "—"
+    ins = " ".join(f'<img class="dot" src="assets/img/insignias/{k}.webp" title="{BADGE_NAME.get(k,k)}" alt="">' for k in s["insignias"]) or "—"
     return f'<tr><td><a href="#sem{s["sem"]}"><b>S{s["sem"]}</b></a></td><td>{s["tema"]}<br><small>{s["sub"]}</small></td><td>{vids}</td><td>{ins}</td><td>{s["hito"]}</td></tr>'
 mapa_html = "\n".join(fila_mapa(s) for s in CRONO)
 
@@ -1409,7 +1409,7 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
     var b=back.querySelector('.modal-close'); if(b){b.addEventListener('click',close); b.focus();}}
   function openBadge(key){var d=BADGE[key]; if(!d) return;
     back.innerHTML='<div class="modal modal-badge"><button class="modal-close" aria-label="Cerrar">✕</button>'
-      +'<div class="fig"><img src="assets/img/insignias/'+key+'.png" alt="'+esc(d.nombre)+'"></div>'
+      +'<div class="fig"><img src="assets/img/insignias/'+key+'.webp" alt="'+esc(d.nombre)+'"></div>'
       +'<div class="body"><div class="type">'+esc(d.tipo)+'</div><h3>'+esc(d.nombre)+'</h3>'
       +'<dl><dt>Cómo se consigue</dt><dd>'+esc(d.como)+'</dd>'
       +'<dt>Cuándo</dt><dd>'+esc(d.cuando)+'</dd>'
@@ -3352,6 +3352,31 @@ print("apps-script: CROMOS (%d cartas) + HEROES (%d) + NIVELES (%d) + RECOMPENSA
       % (len(CROMOS), len(HEROES), len(NIVELES), len(RECOMPENSAS), len(AYUDA_RETOS),
          sum(1 for _v in AYUDA_RETOS.values() if _v.startswith("(falta)"))))
 
+# ================= LAS INSIGNIAS, EN WEBP (derivadas del PNG, nunca copiadas a mano) =================
+# 🔴 23-sep · Norberto: «las páginas van más lentas cuantas más semanas». Medido en la Nave Escuela: la Nave de un
+# recluta bajaba 13 MB de imágenes y 11 eran las 27 insignias, PNG de 600 px a ~430 KB cada una (el tablero pinta
+# todas en cada fila, aunque esté escondido). En WebP, a la misma medida, ~74 KB y la misma cara. El PNG se queda:
+# es la FUENTE (y lo que se descarga para los Geniallys); la web pide el .webp, que se rehace aquí si el PNG cambia.
+def _derivar_webp(carpeta, calidad=85):
+    try:
+        from PIL import Image as _Img
+    except ImportError:
+        _Img = None
+    hechas, faltan = 0, []
+    for _png in sorted(glob.glob(os.path.join(carpeta, "*.png"))):
+        _webp = _png[:-4] + ".webp"
+        if os.path.exists(_webp) and os.path.getmtime(_webp) >= os.path.getmtime(_png):
+            continue
+        if _Img is None:
+            faltan.append(os.path.basename(_webp)); continue
+        _Img.open(_png).save(_webp, "WEBP", quality=calidad, method=6)
+        hechas += 1
+    if faltan:
+        raise SystemExit("🔴 Faltan las insignias en WebP y aquí no hay Pillow para hacerlas (pip3 install pillow):\n   "
+                         + "\n   ".join(faltan[:12]))
+    return hechas
+print("insignias: %d WebP rehechas desde su PNG" % _derivar_webp(os.path.join(HERE, "assets", "img", "insignias")))
+
 # ================= LAS IMÁGENES QUE EL JS CONSTRUYE, ¿ESTÁN? =================
 # El 26-ago el cartel de «HÉROE DE LA REBELIÓN» pedía `heroes/<clave>.png` y los archivos son .jpg:
 # la celebración salía con la figura rota, justo lo contrario de lo que se buscaba. El fallo no lo
@@ -3378,8 +3403,9 @@ print("imagenes: las %d rutas que arma el JS existen todas" % (len(_CATALOGO["he
 # pantalla que el profesorado usa para hablar con un alumno. Se comprueban aqui, al construir.
 _falta_ficha = []
 for _k in NAVE_BADGES:
-    if not os.path.exists(os.path.join(HERE, "assets", "img", "insignias", _k + ".png")):
-        _falta_ficha.append("insignia " + _k)
+    for _ext in (".png", ".webp"):
+        if not os.path.exists(os.path.join(HERE, "assets", "img", "insignias", _k + _ext)):
+            _falta_ficha.append("insignia " + _k + _ext)
 for _c in CROMOS:
     if not os.path.exists(os.path.join(HERE, "assets", "img", "tarjetas", _c[0] + "_carta.png")):
         _falta_ficha.append("carta " + _c[0])

@@ -453,7 +453,10 @@ td.who{display:flex;align-items:center;gap:6px}td.who>span{display:inline-block;
   border-color:var(--teal)}
 @media(max-width:620px){.nave-barra{top:0}.nave-accesos .acc em{display:none}}
 body.embed .nave-barra{top:0}
-.nave-mapa{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:12px;margin-top:14px}
+.nave-mapa{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
+/* 23-sep · son ocho: en 8, 4 o 2 columnas (con auto-fit salían 6+2 o 7+1 a media pantalla, una fila coja) */
+@media(min-width:1100px){.nave-mapa{grid-template-columns:repeat(8,minmax(0,1fr))}}
+@media(max-width:520px){.nave-mapa{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .nave-pl{position:relative;text-align:center;padding:14px 8px 12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02)}
 .nave-pl img{width:78px;height:78px;object-fit:contain;filter:drop-shadow(0 8px 20px rgba(0,0,0,.55))}
 .nave-pl b{display:block;font-size:.85rem;margin-top:6px}
@@ -529,6 +532,9 @@ body.embed .nave-accesos{margin-top:0}
 .modo.recluta{background:rgba(55,224,236,.14);color:var(--teal);border:1px solid rgba(55,224,236,.45)}
 .modo i{font-style:normal}
 @media(max-width:760px){.modo{margin-left:6px;padding:2px 7px;font-size:.75rem}.modo i{display:none}}
+/* 23-sep · a media pantalla (761-1000 px) la cabecera del docente partía en dos filas pegadas arriba: fuera « · docentes»
+   del distintivo y la visita guiada se queda en su ▶ (con su nombre al pasar por encima) */
+@media(max-width:1000px){.nav .modo i{display:none}.nav .tour-start span{display:none}}
 .panel .tit .modo{display:inline-block}
 
 /* ---- barra de carga (contactando con NEBULA / cargando panel) ---- */
@@ -2220,6 +2226,10 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 .ses-tramos .tr.on{color:#0a1118;background:var(--teal,#37e0ec);border-color:transparent}
 .ses-tramos .tr.fuera{opacity:.5;font-weight:500}
 @media(max-width:720px){.ses-tramos{display:none}}
+/* 23-sep · a media pantalla los tramos (centrados) se montaban encima de «Emitir en directo» y «Herramientas»: por debajo
+   de 1320 px se van a la izquierda, que está libre; y por debajo de 900, «Herramientas» se queda en su icono. */
+@media(max-width:1320px){.ses-tramos{left:14px;transform:none}}
+@media(max-width:900px){.ses-aula-b span{display:none}.ses-aula-b{padding:5px 8px}}
 
 .dia.puente{display:grid;place-items:center;text-align:center}
 .dia.puente .pu-caja{max-width:640px}
@@ -3212,6 +3222,13 @@ body.embed .ses-puerta{min-height:100vh;border:0;border-radius:0}
    más grande, las caras de la gente y las insignias como protagonistas; cada diapositiva entra con
    un escalonado corto (y nada se mueve si el sistema pide menos movimiento). */
 .mazo .dia{padding:24px 34px;gap:8px}
+/* 23-sep · las flechas «‹ ›» (46 px, a 10 px del borde) se ponían encima del contenido: a media pantalla, «‹» tapaba
+   «Copiar el enlace para el chat». El texto deja su hueco; lo que va a sangre (vídeo, Genially, el mensaje, el
+   simulacro, el ticket) no, y la portada con planeta conserva su margen derecho. En el móvil las flechas van aparte. */
+@media(min-width:721px){
+  .mazo .dia:not(.video):not(.genially):not(.simulacro):not(.foro-crawl):not(.ticket){padding-left:66px}
+  .mazo .dia:not(.video):not(.genially):not(.simulacro):not(.foro-crawl):not(.ticket):not(.con-planeta){padding-right:66px}
+}
 .mazo .dia h2{font-size:clamp(1.5rem,3.2vw,2.5rem)}
 .dia.entra > *{animation:ses-sube .5s cubic-bezier(.2,.8,.2,1) both}
 .dia.entra > *:nth-child(2){animation-delay:.07s}.dia.entra > *:nth-child(3){animation-delay:.14s}
@@ -3357,8 +3374,8 @@ body.embed .ses-puerta{min-height:100vh;border:0;border-radius:0}
 .mazo:fullscreen .ant-f .cara,body.embed .mazo .ant-f .cara{--t:clamp(60px,6vw,88px)}
 .mazo:fullscreen .top5 .cara,body.embed .mazo .top5 .cara{--t:clamp(56px,6vh,80px)}
 .mazo:fullscreen .ses-caras figcaption,body.embed .mazo .ses-caras figcaption{font-size:clamp(1rem,1.5vw,1.4rem)}
-.mazo:fullscreen .dia{padding:3vh 4vw}
-body.embed .mazo .dia{padding:3vh 4vw}
+.mazo:fullscreen .dia{padding:3vh max(66px,4vw)}
+body.embed .mazo .dia{padding:3vh max(66px,4vw)}
 @media (prefers-reduced-motion:reduce){
   .dia.entra > *,.ses-caras figure,.ant-f,.top5 li,.esc-f,.tk-ecos blockquote,.ins-grid figure,.nn-lista li{animation:none}
   .dia.portada .planeta,.reto-ins img,.tk-neb,.podio-p.p1.on .cara{animation:none}
@@ -4534,6 +4551,9 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
   .nb-t .i{width:30px;height:30px}
   .nb-mas{width:40px;height:40px;padding:4px}
 }
+/* 23-sep · a media pantalla (lo decide ajustarPestanas() en recluta.js, midiendo): la activa con su nombre, las demás en icono */
+.nb-tabs.apretada .nb-t:not(.on){width:44px;padding:0;justify-content:center}
+.nb-tabs.apretada .nb-t:not(.on) b{display:none}
 /* en un móvil de 375 px caben las seis pestañas y el «···» si cada botón mide 30 px (la cuenta de arriba, 12-sep) */
 @media(max-width:420px){
   .nb-tabs{gap:2px}
@@ -5498,7 +5518,8 @@ body.embed .mazo .emb-c figcaption span,body.embed .mazo .emb-pasos li span,body
 .nf-quien{flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:6px}
 .nf-quien h3{margin:0}
 .nf-quien p{margin:0}
-.nf-arriba .nave-cifras{flex:1 1 340px;margin:0}
+/* (23-sep · a media pantalla salían 3+2 con un hueco: con 520 px de base, o caben las cinco en fila o bajan a su propia fila) */
+.nf-arriba .nave-cifras{flex:1 1 520px;margin:0}
 .nf-abajo{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;align-items:start}
 .nf-nebula{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;
   background:rgba(55,224,236,.07);border:1px solid rgba(55,224,236,.3)}

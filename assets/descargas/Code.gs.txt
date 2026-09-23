@@ -1655,7 +1655,7 @@ function construirTicket_(ft, referente, profesores, perId) {
     prof = ft.addListItem().setTitle("El profesor o profesora que imparte tu clase...").setRequired(true);
     prof.setChoiceValues(listaProfes_(referente, profesores, perId));
   }
-  var sel = ft.addListItem().setTitle("Selecciona el tema o actividad que hemos trabajado y sobre el que quieres hacer una pregunta").setRequired(true);
+  var sel = ft.addListItem().setTitle("Selecciona el tema que hemos trabajado y sobre el que quieres hacer una pregunta").setRequired(true);
   // páginas
   var pPres = ft.addPageBreakItem().setTitle("Sobre la presentación de la asignatura").setHelpText("Dudas, inquietudes u opiniones, de manera anónima. Todos los campos son opcionales.");
   escala_(ft, "¿Qué vibraciones te ha transmitido la presentación?", "¡Horrible!", "Buenísimas, ya tengo ganas de empezar");

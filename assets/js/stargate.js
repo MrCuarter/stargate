@@ -75,7 +75,7 @@
     var b=back.querySelector('.modal-close'); if(b){b.addEventListener('click',close); b.focus();}}
   function openBadge(key){var d=BADGE[key]; if(!d) return;
     back.innerHTML='<div class="modal modal-badge"><button class="modal-close" aria-label="Cerrar">✕</button>'
-      +'<div class="fig"><img src="assets/img/insignias/'+key+'.png" alt="'+esc(d.nombre)+'"></div>'
+      +'<div class="fig"><img src="assets/img/insignias/'+key+'.webp" alt="'+esc(d.nombre)+'"></div>'
       +'<div class="body"><div class="type">'+esc(d.tipo)+'</div><h3>'+esc(d.nombre)+'</h3>'
       +'<dl><dt>Cómo se consigue</dt><dd>'+esc(d.como)+'</dd>'
       +'<dt>Cuándo</dt><dd>'+esc(d.cuando)+'</dd>'

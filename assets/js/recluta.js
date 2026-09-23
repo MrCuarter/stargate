@@ -70,7 +70,7 @@
   }
   function ytb(v,c){return '<div class="yt" data-id="'+v.id+'" role="button" tabindex="0"><img loading="lazy" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><span class="play">▶</span><div class="cap"><b>'+esc(v.titulo)+'</b><em>'+esc(c)+'</em></div></div>';}
   function wireYt(el){Array.prototype.forEach.call(el.querySelectorAll('.yt[data-id]'),function(y){y.onclick=function(){if(y.classList.contains('on'))return;var f=document.createElement('iframe');f.src='https://www.youtube-nocookie.com/embed/'+y.getAttribute('data-id')+'?autoplay=1&rel=0';f.allow='autoplay; encrypted-media; picture-in-picture';f.allowFullscreen=true;y.insertBefore(f,y.firstChild);y.classList.add('on');};});}
-  function minis(keys){return keys.map(function(k){return '<figure class="mini badge"><img loading="lazy" src="assets/img/insignias/'+k+'.png" alt="'+esc(NOMBRES[k]||k)+'"><figcaption>'+esc(NOMBRES[k]||k)+'</figcaption></figure>';}).join('');}
+  function minis(keys){return keys.map(function(k){return '<figure class="mini badge"><img loading="lazy" src="assets/img/insignias/'+k+'.webp" alt="'+esc(NOMBRES[k]||k)+'"><figcaption>'+esc(NOMBRES[k]||k)+'</figcaption></figure>';}).join('');}
 
   // ---------- sin PER: selector ----------
   var per=q.get('per');
@@ -140,8 +140,8 @@
   // 🔴 La Nave ya no sabe CON QUIÉN habla, y ese es el truco entero de la mudanza: pide su ficha y
   // se la dan, venga del Apps Script de siempre o de Firestore. Lo decide assets/js/fuente.js con un
   // interruptor, así que volver al motor viejo es cambiar una palabra y no reescribir esta página.
-  function quien(quien_,cb){
-    SG.FUENTE.quien(per,quien_).then(cb).catch(function(){cb({error:'red'});});
+  function quien(quien_,cb,yaFresco){
+    SG.FUENTE.quien(per,quien_,yaFresco).then(cb).catch(function(){cb({error:'red'});});
   }
   // Vestirse escribe, pero SIN PIN a propósito: el alumnado no va a recordar otra clave. El servidor
   // solo deja ponerse algo que ya se tiene desbloqueado, así que lo peor que puede pasar es que
@@ -640,7 +640,7 @@
     var r=st.yo, d=st.d; if(!r) return '';
     var tieneIns=function(kk){ return (r.insignias||[]).indexOf(kk)>=0; };
     var celdaIns=function(kk){var tiene=tieneIns(kk);
-      return '<div class="b'+(tiene?'':' no')+'" data-key="'+kk+'" role="button" tabindex="0" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+' — pulsa para ver cómo se gana"><img loading="lazy" src="assets/img/insignias/'+kk+'.png" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';};
+      return '<div class="b'+(tiene?'':' no')+'" data-key="'+kk+'" role="button" tabindex="0" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+' — pulsa para ver cómo se gana"><img loading="lazy" src="assets/img/insignias/'+kk+'.webp" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';};
     /**
      * 15-sep · LAS INSIGNIAS, POR TEMAS. Norberto: «¿qué opinas de organizarlas por temas? ¿es posible?».
      * Sí, y encaja con el viaje: cada planeta trae su tripulante (P) y su reto (R), así que de un vistazo
@@ -920,7 +920,7 @@
     return (claves||[]).map(function(k){
       var c = CLASE_PREMIO[String(k).charAt(0)] || CLASE_PREMIO.R;
       return '<figure class="rs-trofeo '+c[1]+'">'
-        +'<img loading="lazy" src="assets/img/insignias/'+k+'.png" alt="">'
+        +'<img loading="lazy" src="assets/img/insignias/'+k+'.webp" alt="">'
         +'<figcaption><em>'+c[0]+'</em><b>'+esc(NOMBRES[k]||k)+'</b></figcaption></figure>';
     }).join('');
   }
@@ -1025,7 +1025,7 @@
    */
   function miniPremio(claves){
     return '<span class="rs-minis">'+(claves||[]).map(function(k){
-      return '<img class="rs-mini" loading="lazy" src="assets/img/insignias/'+k+'.png" alt="">';
+      return '<img class="rs-mini" loading="lazy" src="assets/img/insignias/'+k+'.webp" alt="">';
     }).join('')+'</span>';
   }
   function queTeLlevas(claves){
@@ -1956,6 +1956,17 @@
   // 17-sep · «En vivo» solo existe mientras hay algo en directo (una votación, una pregunta, la sesión proyectándose)
   function tabVisible(k){ return k==='nave'||k==='retos'||k==='botin'||k==='archivo'||(k==='envivo'?hayEnVivo():abierto(k)); }
   function tabsVisibles(){ return TABS.filter(function(x){ return tabVisible(x[0]); }); }
+  /**
+   * 🔴 23-sep · A MEDIA PANTALLA, NINGUNA PESTAÑA ESCONDIDA. Norberto: «con la ventana a media pantalla se rompe». Entre
+   * 760 y ~1080 px las siete pestañas con su nombre no caben, y la barra (que se desplaza sin barra visible) dejaba
+   * fuera «El Zoco» y «Rankings» sin que nada lo dijera. Cuando no caben, la activa conserva su nombre y las demás se
+   * quedan en su icono (con el nombre al pasar por encima). Se mide, no se adivina: depende de cuántas haya y de la letra.
+   */
+  function ajustarPestanas(){
+    var t=root.querySelector('.nb-tabs'); if(!t) return;
+    t.classList.remove('apretada');
+    if(t.scrollWidth>t.clientWidth+1) t.classList.add('apretada');
+  }
   function tabValida(k){
     if(TABS_VIEJAS[k]) k=TABS_VIEJAS[k];
     return TABS.some(function(x){return x[0]===k;}) && tabVisible(k) ? k : 'nave';
@@ -3235,7 +3246,7 @@
     (r.insignias||[]).forEach(function(k){
       if((ant.insignias||[]).indexOf(k)>=0) return;
       L.push({peso:PESO.insignia, eyebrow:'INSIGNIA', titulo:NOM[k]||k, sub:'',
-        img:'assets/img/insignias/'+k+'.png', clase:'figura'});
+        img:'assets/img/insignias/'+k+'.webp', clase:'figura'});
     });
     (r.bonus||[]).forEach(function(k){
       if((ant.bonus||[]).indexOf(k)>=0) return;
@@ -3491,6 +3502,8 @@
     // error de consola feísimo y dejaba la pantalla a medias.
     if(!st.d) return;
     st.cargandoYo=true; st.msgYo=''; render();
+    // (23-sep · la primera vez, con el tablero fresco que la Nave acaba de traer: una petición al servidor, no dos)
+    var ya=st.dFresco; st.dFresco=null;
     quien(null,function(d){
       st.cargandoYo=false;
       if(d&&d.yo){ st.yo=d.yo; st.email=(d.correo||'').toLowerCase(); st.verificado=true;
@@ -3512,7 +3525,7 @@
         st.msgYo='Tu cuenta es correcta, pero todavía no te has alistado en este grupo. Es un minuto:';
       } else if(d&&d.error){ st.msgYo=esc(d.error); }
       render();
-    });
+    }, ya);
   }
 
   function montarBotonGoogle(){
@@ -4426,6 +4439,9 @@
     Array.prototype.forEach.call(root.querySelectorAll('[data-tab]'),function(b){
       b.onclick=function(){ irA(b.getAttribute('data-tab')); };
     });
+    ajustarPestanas();
+    if(!window.__sgPestanasRs){ window.__sgPestanasRs=true; var rsP=0;
+      window.addEventListener('resize',function(){ cancelAnimationFrame(rsP); rsP=requestAnimationFrame(ajustarPestanas); }); }
     // El menú «···». Se cierra al pulsar fuera y con Escape, como cualquier menú.
     var mas=document.getElementById('nb-mas'), menu=document.getElementById('nb-menu');
     if(mas&&menu){
@@ -4605,9 +4621,16 @@
   // sepa en qué pestaña está.
   verTablero(false);
   root.innerHTML=cargando('Estableciendo conexión con NEBULA…','Sincronizando la Bitácora de tu PER');
-  SG.FUENTE.tablero(per).then(function(d){
+  /**
+   * 🔴 23-sep · FRESCO DESDE EL PRINCIPIO, Y UNA SOLA VEZ. La Nave pedía el tablero de la caché y, nada más pintarse,
+   * «¿quién soy?» lo volvía a pedir fresco (más el tablero de abajo y el calendario: cuatro veces el grupo entero).
+   * Con sesión, esta es la Nave de UNA persona y lo va a pedir fresco igualmente: se pide fresco aquí, se le pasa a
+   * «¿quién soy?», y el tablero y el calendario se llevan esta misma respuesta (assets/js/fuente.js).
+   */
+  var fresco=motorNuevo()&&!DEMO;
+  SG.FUENTE.tablero(per, fresco).then(function(d){
     if(d.error){root.innerHTML='<p class="lead">PER no encontrado. Pregunta a tu Capitán por el enlace bueno.</p>';return;}
-    st.d=d; st.semanas=window.SGCAL.vista(d.tipo,SEM);
+    st.d=d; st.dFresco=fresco?d:null; st.semanas=window.SGCAL.vista(d.tipo,SEM);
     // 🔴 El rango se calcula distinto en PUA (diez semanas, no quince). La fiesta dibuja el avatar
     // del nivel nuevo y necesita saberlo, o a un recluta de PUA le enseñaría el arte equivocado
     // justo en el momento de enseñarle en qué se ha convertido.

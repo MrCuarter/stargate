@@ -181,7 +181,7 @@
     var pos=vivos().slice().sort(function(a,b){ return (b.xp||0)-(a.xp||0); }).indexOf(p)+1;
     var CR=window.SG_CROMOS||[], cat=(RET[st.tipo==='PUA'?'PUA':'REGULAR']||RET.REGULAR||[]), col=p.coleccion||{};
     var ins=(p.insignias||[]).map(function(k){ var b=badge(k);
-      return '<span class="fr-ins"><img src="assets/img/insignias/'+esc(k)+'.png" alt=""><em>'+esc((b&&b.nombre)||(window.SG_BADGE_NAMES||{})[k]||k)+'</em></span>'; }).join('');
+      return '<span class="fr-ins"><img src="assets/img/insignias/'+esc(k)+'.webp" alt=""><em>'+esc((b&&b.nombre)||(window.SG_BADGE_NAMES||{})[k]||k)+'</em></span>'; }).join('');
     var cro=Object.keys(p.cromos||{}).map(function(k){ var c=CR.filter(function(x){ return x[0]===k; })[0], n=(p.cromos||{})[k]||1;
       return '<span class="fr-cro"><img src="assets/img/tarjetas/'+esc(k)+'_carta.png'+(window.SG_CARDV||'')+'" alt=""><em>'+esc(c?c[1]:k)+(n>1?' ×'+n:'')+'</em></span>'; }).join('');
     var retos=(p.hechos||[]).map(function(id){ var r=cat.filter(function(x){ return x[0]===id; })[0];
@@ -545,7 +545,7 @@
       '<div class="dia anteriores"><div class="kicker"><img class=ico src=assets/img/iconos/p/llave.png alt> Las misiones de la semana '+prev.sem+'</div><h2>¿Quién las ha superado?</h2>'
       +'<div class="ant-lista">'+filas.map(function(f,i){
         return '<div class="ant-f" style="--i:'+i+'">'
-          +(f.ins?'<img class="ant-ins" src="assets/img/insignias/'+esc(f.ins)+'.png" alt="">':'<span class="ant-ins vacia"><img class=ico src=assets/img/iconos/p/llave.png alt></span>')
+          +(f.ins?'<img class="ant-ins" src="assets/img/insignias/'+esc(f.ins)+'.webp" alt="">':'<span class="ant-ins vacia"><img class=ico src=assets/img/iconos/p/llave.png alt></span>')
           +'<div class="ant-txt"><div class="ant-cab"><span class="ant-et">'+etiquetaReto(f.txt)+'</span><b>«'+esc(tituloReto(f.txt))+'»</b>'
           +'<span class="ant-n"><b>'+f.hechos.length+'</b> de '+gente.length+'</span></div>'
           +(f.hechos.length?caras(f.hechos, 12, null, function(p){ return ' data-ficha="'+esc(p.fid||p.ficha||'')+'" data-reto="'+esc(f.id)+'"'; })
@@ -1174,7 +1174,7 @@
       out.push({k:'reto', rot:rel?'Relámpago':'Misión '+(i+1), montar:rel?montarCrono:null, html:
         // (clase «mision», no «reto»: `.reto` es el botón de reto de otra página y la dejaba apagada)
         '<div class="dia mision'+(ins?' con-ins':'')+'">'
-        +(ins?'<figure class="reto-ins"><img src="assets/img/insignias/'+esc(ins)+'.png" alt=""><figcaption>'+esc(b?b.nombre:'')+'</figcaption></figure>':'')
+        +(ins?'<figure class="reto-ins"><img src="assets/img/insignias/'+esc(ins)+'.webp" alt=""><figcaption>'+esc(b?b.nombre:'')+'</figcaption></figure>':'')
         +'<div class="reto-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Misión '+(i+1)+' de '+ls.length+' · '+etiquetaReto(txt)+'</div>'
         +'<h2>«'+esc(tituloReto(txt))+'»</h2>'
         +(pide?'<div class="pide"><div class="et">Qué hay que hacer</div><p>'+esc(pide)+'</p></div>'
@@ -1197,7 +1197,7 @@
       '<div class="dia insignias'+(otras.length===1?' una':'')+'"><div class="kicker">También se entrega esta semana</div>'
       +'<h2>'+(otras.length===1?'La insignia en juego':'Las insignias en juego')+'</h2>'
       +'<div class="ins-grid">'+otras.map(function(k,i){ var b=badge(k);
-        return '<figure style="--i:'+i+'"><img src="assets/img/insignias/'+esc(k)+'.png" alt=""><figcaption><b>'+esc(b?b.nombre:k)+'</b>'
+        return '<figure style="--i:'+i+'"><img src="assets/img/insignias/'+esc(k)+'.webp" alt=""><figcaption><b>'+esc(b?b.nombre:k)+'</b>'
           +(b&&b.como?'<em>'+esc(b.como)+'</em>':'')+(b&&b.cita?'<q>'+esc(b.cita)+'</q>':'')+'</figcaption></figure>'; }).join('')+'</div></div>'});
     return out;
   }

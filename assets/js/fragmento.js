@@ -203,7 +203,7 @@
       + '<p class="fr-nota">No se lo cuentes a nadie: los secretos se encuentran jugando.</p></div></div>',
       "revelacion");
     var img = document.getElementById("fr-carta");
-    img.onerror = function () { img.onerror = null; img.src = "assets/img/insignias/" + (F.insigniaClave || "E3_vaeon") + ".png"; };
+    img.onerror = function () { img.onerror = null; img.src = "assets/img/insignias/" + (F.insigniaClave || "E3_vaeon") + ".webp"; };
     document.getElementById("fr-registrar").onclick = function () {
       window.SG_SECRETO.guardar("S7", P);
       location.href = "validar.html?reto=S7" + (EMBED ? "&embed=1" : "");

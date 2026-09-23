@@ -83,7 +83,7 @@ function montar(root, per, OPC){
       setTimeout(function(){ if(!(window.SG&&window.SG.MOTOR)) msg('<b>No he podido comprobar quién eres.</b> Recarga la página.'); }, 12000); }
   }
   if(!enConsola) msg('Cargando el tablero…');
-  function dots(p){return ORDEN.map(function(k){var on=p.insignias.indexOf(k)>=0;return '<img class="dot'+(on?'':' off')+'" src="assets/img/insignias/'+k+'.png" title="'+esc(N[k]||k)+(on?'':' (pendiente)')+'" alt="">';}).join('');}
+  function dots(p){return ORDEN.map(function(k){var on=p.insignias.indexOf(k)>=0;return '<img class="dot'+(on?'':' off')+'" loading="lazy" src="assets/img/insignias/'+k+'.webp" title="'+esc(N[k]||k)+(on?'':' (pendiente)')+'" alt="">';}).join('');}
 
   // ---------- la colección ----------
   // El servidor manda el desglose y un pct SIN redondear: con 35 piezas, redondear antes de ordenar
@@ -205,7 +205,7 @@ function montar(root, per, OPC){
     var d=window.__d||{};
     var av=SG.avatarSrc(p.avatar,p.alias,p.xp,d.tipo);
     var ins=(p.insignias||[]).map(function(k){
-      return '<span class="fr-ins"><img src="assets/img/insignias/'+k+'.png" alt=""><em>'+esc(N[k]||k)+'</em></span>';}).join('');
+      return '<span class="fr-ins"><img src="assets/img/insignias/'+k+'.webp" alt=""><em>'+esc(N[k]||k)+'</em></span>';}).join('');
     var CR=window.SG_CROMOS||[];
     var mios=Object.keys(p.cromos||{});
     var cro=mios.map(function(k){var c=CR.filter(function(x){return x[0]===k;})[0];

@@ -96,7 +96,33 @@
     // Firestore es una ida y vuelta, y aquí no cambia nada entre una y otra.
     var cacheFicha = {};
     var crudo = null;
-    var olvidarFicha = function () { cacheFicha = {}; };
+    var olvidarFicha = function () { cacheFicha = {}; MEMO = {}; };
+    /**
+     * 🔴 23-sep · UNA PETICIÓN POR VISITA, NO CUATRO. Norberto: «las páginas van más lentas cuantas más semanas
+     * llevamos». Medido en la Nave Escuela (semana 15): la Nave del recluta pedía el grupo ENTERO al servidor cuatro
+     * veces al cargar —la Nave, «¿quién soy?», el tablero de abajo y el calendario—, cada uno por su lado, y el
+     * tablero crece con cada semana. Aquí se guarda lo que llegó (en crudo: cada cual lo traduce para sí y nadie
+     * toca el objeto del vecino) y se reparte:
+     *   · lo que solo mira se lleva lo que haya, en marcha o de hace menos de 30 s (lo mismo que la caché del servidor);
+     *   · lo que pide fresco solo se suma a una petición fresca que AÚN está en marcha: una que ya llegó puede ser de
+     *     antes de escribir (la Nave escribe sola al entrar: logros, oferta, sorteos), y eso es lo que el fresco evita;
+     *   · la Nave le pasa a «¿quién soy?» el tablero fresco que acaba de traer (`quien(per, null, tablero)`).
+     * Escribir por aquí (`accion`) lo olvida todo.
+     */
+    var MEMO = {};
+    var pedirTablero = function (per, fresco) {
+      var m = MEMO[per], ahora = Date.now(), copia = function (d) { return d && typeof d === "object" ? Object.assign({}, d) : d; };
+      if (m && !fresco && (!m.fin || ahora - m.fin < 30000)) return m.p.then(copia);
+      if (m && fresco && m.fresco && !m.fin) return m.p.then(copia);
+      var reg = { fin: 0, fresco: !!fresco };
+      reg.p = fetch(PUBLICA + "?per=" + encodeURIComponent(per) + (fresco ? "&t=" + ahora : ""))
+        .then(function (r) { return r.json(); })
+        .then(function (d) { reg.fin = Date.now(); if (d && d.error && MEMO[per] === reg) delete MEMO[per]; return d; },
+              function (e) { if (MEMO[per] === reg) delete MEMO[per]; throw e; });
+      MEMO[per] = reg;
+      // (cada cual recibe SU copia del crudo: el traductor le añade el catálogo y no puede tocar la de otro)
+      return reg.p.then(copia);
+    };
     var miFicha = function (M, per, yo) {
       var k = per + "|" + yo.uid;
       if (cacheFicha[k]) return Promise.resolve(cacheFicha[k]);
@@ -340,8 +366,7 @@
         // 200 mirándolo a la vez. Pero justo después de marcar un reto esa caché es veneno: el
         // alumno pulsa, se registra, y su Nave le sigue enseñando lo de antes. Quien acaba de
         // escribir pide fresco; los 200 que solo miran, no.
-        return fetch(PUBLICA + "?per=" + encodeURIComponent(per) + (fresco ? "&t=" + Date.now() : ""))
-          .then(function (r) { return r.json(); })
+        return pedirTablero(per, fresco)
           .then(function (d) {
             if (d.error) return d;
             return esperarTraductor().then(function () {
@@ -360,11 +385,12 @@
        * el motor viejo había que verificar contra Google para que nadie mirara la ficha del vecino,
        * simplemente deja de existir.
        */
-      quien: function (per) {
+      quien: function (per, quien_, yaFresco) {
         return esperar().then(function (M) {
           return M.sesion().then(function (yo) {
             if (!yo) return { error: "Entra con tu cuenta de Google para ver tu ficha.", sinSesion: true };
-            return window.SG.FUENTE.tablero(per, true).then(function (t) {
+            // (23-sep · si quien pregunta acaba de traer el tablero FRESCO, se usa ese: no se pide dos veces seguidas)
+            return (yaFresco && yaFresco.reclutas ? Promise.resolve(yaFresco) : window.SG.FUENTE.tablero(per, true)).then(function (t) {
               return miFicha(M, per, yo).then(function (f) {
                 if (!f) return { error: "Todavía no te has alistado en este grupo.", sinFicha: true };
                 // 🔴 13-sep · por la FICHA, no por el alias: con dos «Halo» en el grupo, uno veía la
@@ -438,6 +464,7 @@
        * sí lo escribe el navegador: falsearlo solo te cambia el disfraz a ti.
        */
       accion: function (cuerpo) {
+        MEMO = {};   // lo que se escriba deja viejo lo que se guardó del tablero
         return esperar().then(function (M) {
           return M.sesion().then(function (yo) {
             if (!yo) return { error: "Entra con tu cuenta para poder hacer eso." };
