@@ -20,10 +20,13 @@ const ENTRAR = leer("assets/js/entrar.js");
 const sr = (leer("recluta.html").match(/window\.SG_SEM_RETO=(\{.*?\}\});/) || [])[1];
 let mapa = {}; try { mapa = JSON.parse(sr).REGULAR; } catch (e) {}
 c(/def _sem_de_reto\(catalogo\)/.test(BUILD) && /SEM_RETO_JSON/.test(BUILD), "🔴 la semana de cada reto sale del calendario de la sesión (un dato, un sitio)");
-c(mapa.A1 === 1 && mapa.B1 === 2, "🔴 tema 1: el reto rápido (A1) la semana 1 y el largo (B1) la 2", JSON.stringify({ A1: mapa.A1, B1: mapa.B1 }));
-c(mapa.A2 === 3 && mapa.B2 === 4 && mapa.A3 === 5 && mapa.B3 === 6 && mapa.A4 === 7 && mapa.B4 === 8, "   y así en los temas 2, 3 y 4 (el largo, en la semana de cierre)");
-c(mapa.A5 === 9 && mapa.B5 === 9 && mapa.A6 === 10 && mapa.B6 === 10, "   los temas de una sola sesión (5 y 6) lanzan los dos a la vez");
-c(mapa.A7 === 11 && mapa.B7 === 12 && mapa.A8 === 13 && mapa.B8 === 14, "   y los temas 7 y 8, el largo a la semana siguiente");
+// 23-sep · los 20 retos: el relámpago (L) se hace en la clase del tema y el principal (B) se lanza en la de cierre
+c(mapa.L0 === 1 && mapa.L1 === 2 && mapa.B1 === 2, "🔴 tema 1: la hoja de ruta (L0) la semana 1; el relámpago (L1) y el principal (B1), la 2",
+  JSON.stringify({ L0: mapa.L0, L1: mapa.L1, B1: mapa.B1 }));
+c(mapa.L2 === 3 && mapa.B2 === 4 && mapa.L3 === 5 && mapa.B3 === 6 && mapa.L4 === 7 && mapa.B4 === 8, "   y así en los temas 2, 3 y 4 (el principal, en la semana de cierre)");
+c(mapa.L5 === 9 && mapa.B5 === 9 && mapa.L6 === 10 && mapa.B6 === 10, "   los temas de una sola sesión (5 y 6) lanzan los dos a la vez");
+c(mapa.L7 === 11 && mapa.B7 === 12 && mapa.L8 === 13 && mapa.B8 === 14, "   y los temas 7 y 8, el principal a la semana siguiente");
+c(!Object.keys(mapa).some(k => /^A[1-8]$/.test(k)), "   y ningún A: ya no existen");
 c(/function retoPorLanzar\(id, ya\)/.test(NAVE) && /class="reto-sem por-lanzar '\+modo\+'"/.test(NAVE) && /La próxima semana/.test(NAVE),
   "🔴 Nave · el reto que aún no se ha explicado sale en sombra, con «la próxima semana» y sin poder registrarse");
 c(/\.reto-sem\.por-lanzar\{opacity:\.5/.test(CSS), "   y se ve en sombra");
@@ -46,7 +49,7 @@ c(/async function miFichaDocente\(\)/.test(MOTOR) && /async function ponerAvatar
 c(/<div class="card cn-ficha ancha">/.test(CONS) && /class="av-lupa" id="doc-ava"/.test(CONS) && /\(window\.SG_COMANDANTES_GEN \|\| \[\]\)\.map/.test(CONS), "🔴 consola · la ficha del docente con su comandante, que se cambia de una galería");
 // 18-sep · los genéricos salen de la carpeta (c1, c2…): se añade una imagen y ya está en la galería
 const GEN = JSON.parse((leer("consola.html").match(/window\.SG_COMANDANTES_GEN=(\[[^\]]*\]);/) || [])[1] || "[]");
-c(GEN.length >= 26 && GEN.every((k, i) => k === "c" + (i + 1) && fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes", k + ".jpg"))),
+c(GEN.length >= 26 && GEN.every((k, i) => k === "c" + (i + 1) && fs.existsSync(path.join(RAIZ, "assets/img/avatares/comandantes/retrato", k + ".jpg"))),
   "   los comandantes genéricos, en orden y todos con su imagen (rubios, castaños, pelirrojos, veteranos y alienígenas)", GEN.join(" "));
 // 20-sep · las cifras y NEBULA, en el Puente. 🔴 20-sep (tarde) · y ya no abren: delante va el PANEL DE CONTROL
 // embebido («pon el panel de control embebido justo debajo» del banner), que es lo primero que se abre en clase.

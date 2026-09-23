@@ -96,8 +96,9 @@ ACTS.forEach(function (a) {
 
   // 🔴 la marca **negrita** del dato se convierte: si se colara, la clase leería asteriscos
   c(uno.indexOf("**") < 0 && dos.indexOf("**") < 0, "   Actividad " + a.n + " · sin asteriscos sueltos en pantalla");
-  c(/<b>la tabla técnica de la Actividad 1<\/b>|<b>el corazón de planificación de la Actividad 2<\/b>/.test(dos),
-    "   Actividad " + a.n + " · y lo importante de cada línea, en negrita");
+  const negritas = a.retos.map(r => (String(r[1]).match(/\*\*([^*]+)\*\*/) || [])[1]);
+  c(negritas.every(t => t && dos.indexOf("<b>" + t + "</b>") > 0),
+    "   Actividad " + a.n + " · y lo importante de cada línea, en negrita", JSON.stringify(negritas));
 });
 
 // ── 3 · un dato, un sitio: la misma respuesta en la página del alumnado
@@ -113,7 +114,8 @@ c(/def _seccion_actividad\(a\)/.test(L("_build_site.py")) && /_negrita\(/.test(L
 // ── 4 · la sección se puede apagar, como todas las demás
 c(/\("actividad", "La misión mayor"/.test(DATOS), "🔴 es una sección con nombre: el docente puede quitarla de su sesión");
 c(/act:'actividad', actretos:'actividad'/.test(S), "   y las dos diapositivas pertenecen a ella");
-c(/ci=ci\.concat\(diasActividad\(s\)\);\s*\n\s*ci=ci\.concat\(diasMisiones\(s\)\)/.test(S),
+// 23-sep · entre la actividad y las misiones va la diapositiva de los retos de la semana (el comandante, retador)
+c(/ci=ci\.concat\(diasActividad\(s\)\);\s*\n\s*var rs=diaRetosSemana\(s\); if\(rs\) ci\.push\(rs\);\s*\n\s*ci=ci\.concat\(diasMisiones\(s\)\)/.test(S),
   "🔴 van detrás del vídeo de la misión y delante de los retos de la semana");
 
 // ── 5 · y se ven (el estilo existe, y nada por debajo de 12 px)

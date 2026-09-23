@@ -278,7 +278,9 @@
         completionMethod: { type: "manual" },
         requiresTeacherValidation: false,
         enabled: true,
-        isMandatory: r.id.charAt(0) !== "S" && r.id.charAt(0) !== "L"
+        // 🔴 23-sep · lo mismo que `opcional_` de Datos.gs: ni el secreto (S*), ni los relámpago (L*, en clase: faltar a una
+        // no puede dejar el planeta abierto para siempre) ni el simulacro (XS) cierran el planeta.
+        isMandatory: r.id.charAt(0) !== "S" && r.id.charAt(0) !== "L" && r.id !== "XS"
       };
     });
 
@@ -297,7 +299,9 @@
         missionIds: mias.map(function (m) { return m.id; }),
         // El reto secreto no puede ser obligatorio para dar el planeta por completo: es un huevo
         // de Pascua, y quien no lo encuentre no puede quedarse sin su bonus.
-        optionalMissionIds: mias.filter(function (m) { return m.id.charAt(0) === "S"; })
+        // 🔴 23-sep · Y los relámpago y el simulacro tampoco: aquí solo estaba el secreto, así que el servidor exigía los
+        // relámpago para pagar el planeta mientras la web los daba por opcionales. Ahora, los mismos que `isMandatory`.
+        optionalMissionIds: mias.filter(function (m) { return !m.isMandatory; })
                                 .map(function (m) { return m.id; }),
         // 🔴 El bonus de planeta deja de ser código nuestro: es la recompensa de la campaña, y la
         // paga el motor desde dentro. Mismos 150 xp y 40 créditos de siempre — salen del catálogo.
@@ -313,7 +317,7 @@
     // de misiones que, al completarse, da xp y una insignia. Mismo mecanismo, otro conjunto.
     cat.derivadas.forEach(function (d, i) {
       // Un requisito es una insignia; con "#" delante, el id de un reto. Lo segundo existe por los
-      // relámpago, que no dan insignia propia: «Mano rápida» se gana con CINCO de los ocho.
+      // relámpago: «Mano rápida» se gana con CINCO de los ocho de los planetas (L1-L8; La hoja de ruta, L0, no cuenta).
       var necesita = misiones.filter(function (m) {
         return d.requiere.indexOf("#" + m.id) >= 0 ||
                m.stargateBadges.some(function (b) { return d.requiere.indexOf(b) >= 0; });

@@ -985,10 +985,10 @@
    */
   /**
    * 15-sep · LO QUE AYUDA A HACERLO, donde se hace. Norberto, de A0: «mete el gif de cómo compartir la publicación en
-   * padlet, y añade el enlace al Padlet que se genera al crear el grupo». A3 (un Genially), el de compartir un Genially.
+   * padlet, y añade el enlace al Padlet que se genera al crear el grupo». B3 (el itinerario, en Genially), el de compartir un Genially.
    */
   var GIF_RETOS = { A0: ["compartir-padlet.gif", "¿Cómo copio el enlace de mi publicación en Padlet?"],
-                    A3: ["compartir-genially.gif", "¿Cómo comparto mi Genially?"] };
+                    B3: ["compartir-genially.gif", "¿Cómo comparto mi Genially?"] };   // 23-sep · el itinerario en Genially (antes, A3)
   function extraReto(id, d){
     var out='', g=GIF_RETOS[id];
     if(id==='A0' && d.padlet) out+='<p class="rs-extra"><a class="btn min" href="'+esc(d.padlet)+'" target="_blank" rel="noopener">Abrir el padlet de tu clase ↗</a></p>';
@@ -1084,8 +1084,9 @@
       +extraReto(t[0], d)
       +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado.</p>'+accionesDeHecho(t[0])
           // 15-sep · S7 es el Escape UNI: su puerta, y se registra solo con el botón del final del escape
-          // 16-sep · el reto A6 no se marca: se GANA al Simulador de Joran (batalla.html)
-          :(t[0]===(BT.reto||'A6')&&motorNuevo())
+          // 16-sep · el reto que se GANA al Simulador de Joran (batalla.html). 🔴 23-sep · desde que el Simulador es un juego
+          // de repaso, ningún reto lo es (SG_BATALLA.reto = null) y esta rama no salta; se queda por si vuelve.
+          :(BT.reto&&t[0]===BT.reto&&motorNuevo())
             ? '<div class="rs-marcar rs-batalla"><a class="btn epico" href="batalla.html?per='+esc(per)+'"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Enfréntate al Simulador de Joran</span></a>'
               +'<p class="small muted">No hay nada que entregar: se registra solo si le ganas. Y si pierdes, cada derrota lo cansa.</p></div>'
           :(t[0]==='S7'&&window.SG_ESCAPE_UNI)
@@ -1296,7 +1297,7 @@
       return '<li class="'+que+'">'+cara(p)+'<b>'+(que==='yo'?'Tú':esc(p.alias))+'</b><span class="pos">'+p.pos+'.º · '+p.xp+' xp</span>'+(que==='yo'?'':'<em>'+esc(dif)+'</em>')+'</li>';
     };
     // la frase del duelo de siempre (30-ago): si hay empate, el empate; si no, alcanzar al de delante o escaparse del de
-    // detrás, y el reto concreto que cierra el hueco («un Reto B lo resuelve» empuja más que un ánimo genérico)
+    // detrás, y el reto concreto que cierra el hueco («un reto principal lo resuelve» empuja más que un ánimo genérico)
     var emp=(ar&&ar.xp===yo.xp)?ar:(ab&&ab.xp===yo.xp)?ab:null, msg;
     if(emp) msg=fraseDuelo(FRASES_EMPATE,emp.alias,0);
     else if(!ar) msg=fraseDuelo(FRASES_LIDER,ab.alias,yo.xp-ab.xp);
@@ -1473,7 +1474,7 @@
       + '<h3>El Simulador de Joran</h3>'
       + '<p class="small">' + (gano
           ? 'Repasa tema a tema o con todas las preguntas del viaje, y mide tu marca contra la de tu tripulación.'
-          : 'Gánale a <b>' + esc(BT.rival || 'RUTA AZUL') + '</b> en el reto ' + esc(BT.reto || 'A6') + ' y se queda en tu Nave para siempre.') + '</p>'
+          : 'Gánale a <b>' + esc(BT.rival || 'RUTA AZUL') + '</b>' + (BT.reto ? ' en el reto ' + esc(BT.reto) : '') + ' y el entrenamiento se queda en tu Nave para siempre.') + '</p>'
       + (gano && mejores.length ? '<p class="sim-marcas">' + mejores.map(function(m){
           return '<span>' + esc(m === 'todas' ? 'Todas' : 'T' + m.slice(1)) + ' <b>' + (marcas[m].p || 0) + '</b></span>'; }).join('') + '</p>' : '')
       + (gano && T ? '<p class="small muted">' + (T.batallas || 0) + ' batallas · ' + (T.aciertos || 0) + ' aciertos'
@@ -1489,7 +1490,7 @@
    */
   function comprobarBatalla(){
     if(!motorNuevo() || SIMULACRO || enDemo() || !st.yo || st.yo.congelado) return;
-    var id = BT.reto || 'A6';
+    var id = BT.reto; if(!id) return;   // 23-sep · el Simulador ya no es un reto: ganarle no registra nada
     if(!ganoAJoran() || ((st.yo.retos) || []).indexOf(id) >= 0) return;
     var tope = Number(window.SG_TOPE_SEMANA || 0);
     if(tope && registrosDeLaSemana() >= tope) return;
@@ -2146,7 +2147,7 @@
   function sugerenciaDuelo(delta){
     if(delta<=0) return '';
     if(delta<=100) return 'Cualquier reto te lo da.';
-    if(delta<=250) return 'Un Reto B (250 xp) lo resuelve.';
+    if(delta<=250) return 'Un reto principal (250 xp) lo resuelve.';
     if(delta<=500) return 'Una Actividad (500 xp) lo resuelve de golpe.';
     return 'Paso a paso: cada reto suma.';
   }
@@ -3033,9 +3034,9 @@
           x:'Desde hoy, cada semana sale <b>una oferta</b> en el Mercado: un sobre, una cápsula, un héroe o una carta concretos, <b>rebajados entre un 20 y un 40 %</b>. Arriba del todo, con su cuenta atrás.'},
          {t:'Poco tiempo y pocas unidades',foco:'.nb-t[data-tab="mercado"]',
           x:'Dura lo que dura la semana y, si es algo raro, hay pocas unidades para todo el grupo: cuando se acaban, se acabó. <b>Una por persona</b>. Tu docente también puede preparar las suyas.'}],
-    // 16-sep · EL SIMULADOR DE JORAN (semana 11): la semana pasada se peleó en clase; hoy se enseña a todos
+    // 16-sep · EL SIMULADOR DE JORAN (semana 11). 23-sep · ya no es un reto: un juego de repaso que se enseña a todos
     c11:[{t:'El Simulador de Joran',foco:'.nb-t[data-tab="nave"]',
-          x:'Joran dejó encendido su simulador de entrenamiento, <b>RUTA AZUL</b>: un rival hecho de luz que pregunta por el temario. Quien le ganó en el reto ya lo tiene en su Nave; quien no, puede volver a intentarlo — <b>cada derrota lo cansa</b>.'},
+          x:'Joran dejó encendido su simulador de entrenamiento, <b>RUTA AZUL</b>: un rival hecho de luz que pregunta por el temario. Gánale una vez y el entrenamiento se queda en tu Nave; si pierdes, vuelve a intentarlo — <b>cada derrota lo cansa</b>. No es un reto: es para repasar jugando.'},
          {t:'Repasar jugando',foco:'.nb-t[data-tab="nave"]',
           x:'Dentro se entrena <b>tema a tema</b> o con <b>todas</b> las preguntas del viaje, y se elige la dificultad. Cada modo tiene su <b>ranking</b> del grupo, y hay reconocimientos al más rápido, al más certero y a quien más sabe.'}],
     // 14-sep · el Gran Sorteo: lo cuenta con el premio y los ganadores de SU grupo (el referente
@@ -3511,7 +3512,7 @@
         try{ if(!DEMO&&!SIMULACRO){ localStorage.setItem('sgEsRecluta','1'); document.dispatchEvent(new CustomEvent('sg:rol')); } }catch(e){}
         setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200); setTimeout(sorteosAlEntrar, 900); setTimeout(ofertaAlEntrar, 1100);
         setTimeout(comprobarHitos, 1800);   // 15-sep · el día a bordo y los logros que ya se vean en los datos
-        setTimeout(comprobarBatalla, 2400);  // 16-sep · y el reto A6, si ganó al simulador y no llegó a registrarse
+        setTimeout(comprobarBatalla, 2400);  // 16-sep · el reto de la batalla, si ganó y no llegó a registrarse (desde el 23-sep, ninguno: BT.reto = null)
       } else if(d&&d.sinSesion&&!DEMO&&window.top===window.self&&q.get('embed')!=='1'){
         /**
          * 🔴 13-sep · SIN SESIÓN, A LA PUERTA ÚNICA. La Nave tenía su propia caja «Identifícate,
@@ -4255,8 +4256,8 @@
     var t = retoDeInsignia(clave); if(!t) return '';
     var ya = ((st.yo.retos)||[]).indexOf(t[0])>=0;
     if(ya) return '<p class="mi-ya">✓ Ya la tienes. La ganaste con este reto.</p>';
-    // 16-sep · el reto A6 se gana en el simulador
-    if(t[0]===(BT.reto||'A6'))
+    // 16-sep · el reto que se gana en el simulador (ninguno desde el 23-sep: SG_BATALLA.reto = null)
+    if(BT.reto&&t[0]===BT.reto)
       return '<div class="mi-hacer"><p class="small muted">Se gana con <b>'+esc(t[1])+'</b> · +'+t[3]+' xp</p>'
         +'<p><a class="btn epico" href="batalla.html?per='+esc(per)+'"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Enfréntate al Simulador de Joran</span></a></p>'
         +'<p class="small muted">Se registra solo al ganarle.</p></div>';

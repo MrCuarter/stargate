@@ -31,6 +31,16 @@ _SEM_HEROE = _DESDE["Cápsula de rescate"]
 
 _SERIE_TIT_WEB = {k: t for k, t, _ in CROMO_SERIES}
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+# 🔴 23-sep · EL CATÁLOGO SE CONGELA LO PRIMERO. Varias piezas de más abajo (las actividades, las fichas de las insignias, la
+# xp por tipo) leen motor/catalogo.json, y se regeneraba casi al final: al cambiar un reto en Datos.gs, la construcción
+# leía el catálogo VIEJO y solo acertaba a la segunda. Pasó al pasar de 27 retos a 20.
+import subprocess as _subp0
+try:
+    _subp0.run(["node", os.path.join(HERE, "motor", "catalogo.js")], check=True,
+               stdout=open(os.path.join(HERE, "motor", "catalogo.json"), "w", encoding="utf-8"))
+except Exception as _e0:
+    print("⚠️  no he podido congelar motor/catalogo.json al empezar: %s" % _e0)
 FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%B8%3C/text%3E%3C/svg%3E"
 
 # 🔴 12-sep · FALTABAN LAS DOS ACCIONES QUE MÁS SE USAN. Norberto, mirando la web publicada: «No
@@ -128,32 +138,32 @@ STARGATE · La Bitácora Estelar — un proyecto de gamificación educativa de l
 </div></footer></body></html>'''
 
 # ---------- galerías ----------
-PERS=[("P1_bran","Bran Okafor","Reto A · T1 · Fôrge","Lo imperfecto compartido"),
-("P2_tomas","Tomás Reyer","Reto A · T2 · Ecos","Tu voz cuando no estás"),
-("P3_sylla","Sylla Bren","Reto A · T3 · Sendara","No hay una sola ruta"),
-("P4_amara","Amara Sol","Reto A · T4 · Reliae","Compartir a tiempo"),
-("P5_vera","Vera Khal","Reto A · T5 · Umbral","Medir es cuidar"),
-("P6_joran","Joran Pike","Reto A · T6 · Ludo","El ensayo del miedo"),
-("P7_mara","Mara Voss","Reto A · T7 · Vínculo","Un porqué mueve personas"),
-("P8_noa","Noa Lieth","Reto A · T8 · Liminar","Enseñar futuros")]
+PERS=[("P1_bran","Bran Okafor","Relámpago · T1 · Fôrge","Lo imperfecto compartido"),
+("P2_tomas","Tomás Reyer","Relámpago · T2 · Ecos","Tu voz cuando no estás"),
+("P3_sylla","Sylla Bren","Relámpago · T3 · Sendara","No hay una sola ruta"),
+("P4_amara","Amara Sol","Relámpago · T4 · Reliae","Compartir a tiempo"),
+("P5_vera","Vera Khal","Relámpago · T5 · Umbral","Medir es cuidar"),
+("P6_joran","Joran Pike","Relámpago · T6 · Ludo","El ensayo del miedo"),
+("P7_mara","Mara Voss","Relámpago · T7 · Vínculo","Un porqué mueve personas"),
+("P8_noa","Noa Lieth","Relámpago · T8 · Liminar","Enseñar futuros")]
 ESP=[("E1_nebula","NEBULA","Preséntate a tu tripulación","La Bitácora viva que narra el viaje"),
 ("E2_capitan","El Capitán","Presentar la Act. 1","El Capitán de la Nave, al mando de La Constancia"),
 ("E3_vaeon","General Vaeon","El Escape UNI (reto secreto S7)","Señor de la Estática (villano)")]
-RETO=[("R0_bitacora-en-marcha","La Bitácora en marcha","Reto B · T1","Tu ePortfolio abierto y su primera entrada"),
-("R1_la-chispa","La chispa","Reto relámpago · T1","Imagen didáctica con IA y tu logo (Act 1)"),
-("R2_el-eco-que-ensena","El eco que enseña","Reto B · T2","Videotutorial + videoquiz"),
-("R3_la-matriz","La matriz","Reto B · T3","Matriz 8×6 del paisaje (Act 2)"),
-("R4_entorno-de-aula","El entorno de aula","Reto B · T4","Aula virtual con una tarea o material publicado"),
-("R5_bitacora-medida","La Bitácora medida","Reto B · T5","Web de recursos con la rúbrica a la vista"),
-("R6_el-juego","El juego","Reto B · T6","Juego digital educativo (ABJ)"),
-("R7_microgamificacion","La microgamificación","Reto B · T7","Microgamificación"),
-("R8_ultimo-umbral","El último umbral","Reto B · T8","Experiencia RA/RV + publicar Bitácora")]
+RETO=[("R0_bitacora-en-marcha","La Bitácora en marcha","Reto principal · T1","Tu ePortfolio abierto con su primera experiencia"),
+("R1_la-chispa","La chispa","Relámpago · T1","Del boceto a la imagen con IA (Act 1)"),
+("R2_el-eco-que-ensena","El eco que enseña","Reto principal · T2","Videotutorial en Edpuzzle"),
+("R3_la-matriz","El itinerario","Reto principal · T3","Itinerario con refuerzo y ampliación (Act 2)"),
+("R4_entorno-de-aula","El entorno de aula","Reto principal · T4","Tu aula en Classroom o Sites"),
+("R5_bitacora-medida","La Bitácora medida","Reto principal · T5","Web abierta con la rúbrica a la vista"),
+("R6_el-juego","El juego","Reto principal · T6","Juego digital educativo (ABJ)"),
+("R7_microgamificacion","La microgamificación","Reto principal · T7","Microgamificación"),
+("R8_ultimo-umbral","El último umbral","Reto principal · T8","Tu Bitácora publicada")]
 HITO=[("H1_reclutamiento","Reclutamiento","Aceptas la misión (Sem. 1)"),
 ("H2_primera-forja","Primera Forja","Entregas la Actividad 1"),
 ("H3_cartografo","Cartógrafo","Entregas la Actividad 2"),
 ("H4_tripulacion-cero","Tripulación Cero","Recuperas a los 8 personajes"),
 ("H5_la-liberacion","La Liberación","Completas y publicas la Bitácora"),
-("H6_mano-rapida","Mano rápida","Cinco de los ocho retos relámpago"),
+("H6_mano-rapida","Mano rápida","Cinco relámpagos de los ocho planetas"),
 ("H7_listo-para-la-batalla","Listo para la batalla","Superas el simulacro del examen")]
 CARDS=[c[0] for c in CROMOS]                       # el álbum manda: 26 cartas en 5 series
 SERIE_DE={c[0]:c[2] for c in CROMOS}
@@ -257,9 +267,10 @@ def tabla_recompensas():
     return "\n".join(filas)
 niveles_html = tabla_niveles()
 recompensas_html = tabla_recompensas()
-CRED_VIAJE = {t: (CREDITOS["reclutamiento"] + 2*CREDITOS["actividad"] + 2*CREDITOS["derivada"]
-                  + (8*CREDITOS["retoA"] + 8*CREDITOS["retoB"] + CREDITOS["final"] if t == "REGULAR"
-                     else 8*CREDITOS["retoB_pua"])) for t in ("REGULAR", "PUA")}
+# 23-sep · el tripulante lo recupera ahora el relámpago de cada planeta (antes el Reto A, con los mismos 20 ◈)
+CRED_VIAJE = {t: (CREDITOS["reclutamiento"] + 2*CREDITOS["actividad"] + 2*CREDITOS["derivada"] + 8*CREDITOS["relampago"]
+                  + (8*CREDITOS["retoB"] + CREDITOS["final"] if t == "REGULAR" else 8*CREDITOS["retoB_pua"]))
+              for t in ("REGULAR", "PUA")}
 planetas_html="\n".join(planeta(*p) for p in PLANETAS)
 
 # ================= PORTADA (index.html) =================
@@ -454,7 +465,7 @@ y la nave avanza sola con el calendario: cada semana se abre algo nuevo.</p>
 <div class="dz-k">Cómo se juega</div>
 <h2>Lo que se hace, se registra. Lo que se registra, cuenta.</h2>
 <div class="dz-mecanicas">
-<div><img src="assets/img/nave/iconos/retos.png" alt="" loading="lazy"><b>Retos</b><p>Cortos, con su enlace de evidencia. Unos recuperan a un tripulante; otros construyen la Bitácora; los relámpago se hacen en clase.</p></div>
+<div><img src="assets/img/nave/iconos/retos.png" alt="" loading="lazy"><b>Retos</b><p>Dos por tema, prácticos y con su enlace: el relámpago, en clase, recupera a un tripulante; el principal construye la Bitácora.</p></div>
 <div><img src="assets/img/nave/iconos/botin.png" alt="" loading="lazy"><b>Dos monedas</b><p>La <b>experiencia</b> solo sube y marca el nivel. Los <b>créditos</b> se gastan. Separar progreso y moneda es una lección de gamificación en sí misma.</p></div>
 <div><img src="assets/img/nave/iconos/mercado.png" alt="" loading="lazy"><b>Mercado Estelar</b><p>Sobres de cromos, cápsulas de héroes y adornos para la ficha. Una economía entera dentro de la clase.</p></div>
 <div><img src="assets/img/nave/iconos/zoco.png" alt="" loading="lazy"><b>El Zoco</b><p>El trueque entre reclutas: se cambian cartas, héroes y participaciones, con ofertas y contraofertas.</p></div>
@@ -548,27 +559,27 @@ FAQ = [
  ("¿Cómo entro? ¿Necesito algún PIN?", "No hay PIN. Entras con la <b>cuenta de Google</b> que tu profe referente puso en el equipo docente del grupo, desde la portada (<b>«Iniciar sesión con Google»</b>). El sistema te reconoce y te deja en tu <a href='consola.html'>Nave del Comandante</a>, ya dentro de tu grupo. Si te dice que esa cuenta no lleva ningún grupo, pide a tu referente que te añada con <b>ese mismo correo</b>."),
  ("¿Cómo invito a mi clase?", "Las tres primeras semanas, el <b>Puente</b> de <a href='consola.html'>tu Nave</a> enseña el <b>código de clase</b> (tapado hasta que lo pulsas: esa pantalla se proyecta) y el botón <b>«Copiar invitación»</b>, que copia un mensaje listo para pegar en el foro de la plataforma de UNIR, con el enlace directo. Después, los dos siguen en <b>Mi gente</b>. Y en las semanas 1 y 2 la sesión en directo trae la diapositiva <b>«Únete a la clase»</b>: el código en grande y «Copiar la invitación para el chat». Tu alumnado entra con Google, escribe el código y se alista solo."),
  ("¿Qué uso durante la clase en directo?", "Tres botones en el <b>Puente</b> de tu Nave, en su orden: <b>1 · Empezar la clase</b> (la sesión de la semana montada: planeta, vídeos, retos e insignias; pasa con las flechas), <b>2 · Llamada a filas</b> (el pase de lista: tu alumnado pulsa «Presente» en su Nave y se lleva créditos y un sobre de cromos) y <b>3 · El aula</b> (quién ha fichado, a quién felicitar, el ranking y, en Mando manual, los premios a mano). Si tu referente te ha dado el <b>Genially de clase</b>, ya los lleva dentro: al abrirlo entras con tu cuenta y eliges el grupo. Si montas el tuyo, copia su código en tu Nave → <b>Enlaces</b> → <b>Para tus Geniallys</b> (en Mando manual; en Genially: Insertar → Otros → Código)."),
- ("Un estudiante ha marcado retos que no ha hecho. ¿Qué hago?", "En tu Nave → <b>Mi gente</b>, pulsa su fila y <b>anula</b> el reto (con <b>Mando manual</b>; en Piloto automático lo hace tu referente): se le descuentan los xp y los créditos que dio, y queda anotado. Si ya se había gastado los créditos, lo cosmético que compró se queda (el aviso te dice qué no se ha podido retirar), pero <b>la nota está a salvo</b>: ninguna subida de nota se aplica sin que la apruebes en la <b>Cola de nota</b>. Con el enlace obligatorio y el tope de 3 retos al día, una trampa así se ve enseguida."),
+ ("Un estudiante ha marcado retos que no ha hecho. ¿Qué hago?", "En tu Nave → <b>Mi gente</b>, pulsa su fila y <b>anula</b> el reto (con <b>Mando manual</b>; en Piloto automático lo hace tu referente): se le descuentan los xp y los créditos que dio, y queda anotado. Si ya se había gastado los créditos, lo cosmético que compró se queda (el aviso te dice qué no se ha podido retirar), pero <b>la nota está a salvo</b>: ninguna subida de nota se aplica sin que la apruebes en la <b>Cola de nota</b>. Con el enlace obligatorio y el tope de 3 retos por semana, una trampa así se ve enseguida."),
  ("¿Puedo dar un premio que se reclame desde una presentación?", "Sí: en tu Nave, con <b>Mando manual</b>, <b>Premios</b> → <b>Premios por enlace</b>. Eliges qué da (xp, créditos, un sobre de cromos, un héroe…), cuántas veces (en total, por escuadrón o por persona) y te llevas un enlace para pegar en cualquier web o presentación. Por ejemplo: «los 5 primeros de cada escuadrón que lo pulsen, un sobre». Quien llega tarde lee que ya se ha agotado."),
  ("¿Dónde veo las dudas y valoraciones de mi alumnado?", "En los <a href='tickets.html'>tickets de salida</a>: al final de cada clase el alumnado valora la sesión y deja dudas de forma <b>anónima</b> («Contacta con NEBULA»), y tú las ves por tema y fecha, y marcas las resueltas."),
  ("Un estudiante dice que no puede entrar", "Casi siempre es la cuenta: tiene que entrar con la <b>misma cuenta de Google</b> con la que se alistó (en un ordenador compartido, la pantalla «¿Eres tú?» le deja cambiar de cuenta). Si nunca se alistó, que escriba el <b>código de clase</b> al entrar. En <b>Mi gente</b> ves el correo con el que se alistó cada uno."),
  ("¿Qué hago exactamente en la primera sesión?", "Antes de clase, en el <b>Puente</b> de <a href='consola.html'>tu Nave</a> pulsa <b>«Copiar invitación»</b> y pégala en el foro de la plataforma de UNIR (o escribe el <b>código de clase</b> en la pizarra; en la sesión, la diapositiva <b>«Únete a la clase»</b> lo enseña en grande). En clase: pon el vídeo de <b>Sinopsis</b>, después el de <b>La Bitácora</b> (ePortfolio), preséntate como <b>Capitán</b> y deja que se alisten en el momento: al hacerlo se llevan la insignia de <b>Reclutamiento</b>, que merece su minuto de ceremonia. Deja una pregunta en el aire: «¿por qué se apagan los mundos?»."),
  ("¿Cuándo pongo cada vídeo?", "La <a href='cronologia.html'>cronología</a> lo dice semana a semana: la <b>intro</b> del planeta al abrir el tema, el <b>cierre</b> al terminar el bloque y el <b>fragmento</b> del tripulante justo después, como recompensa. Las misiones (Bitácora, Act. 1, Act. 2) al lanzar cada una."),
  ("Los vídeos están en «oculto» en YouTube, ¿funcionan?", "Sí. Un vídeo oculto se ve con el enlace y se puede insertar en Genially o en el aula virtual. Van pasando a públicos solos según el calendario de redes del canal; tú no tienes que tocar nada."),
- ("¿El Reto A puntúa?", f"<b>Para nota, no</b> — y es a propósito: es el motor de motivación, y convertirlo en nota le quitaría la función. Sí da <b>100 xp</b> (que suben nivel) y <b>{CREDITOS['retoA']} créditos ◈</b>, y su recompensa real es desbloquear al personaje (fragmento + insignia). El Reto B sí produce una evidencia evaluable de la Bitácora."),
+ ("¿Los retos puntúan?", f"<b>Para nota, no</b> — y es a propósito: son el motor de motivación. El <b>relámpago</b> (en clase) da <b>100 xp</b> y <b>{CREDITOS['relampago']} ◈</b>, y su recompensa real es recuperar al tripulante (fragmento + insignia). El <b>reto principal</b> da 250 xp y es la experiencia del portfolio del tema: una pieza de la Bitácora, que sí se evalúa dentro de las Actividades."),
  ("¿Cómo y cuándo entrego las insignias?", "En público y con ceremonia: celébralo en clase o en el foro de la plataforma de UNIR y nombra el logro con la frase del personaje. No hay que anotar nada: la registra el propio estudiante desde su Nave y tú la ves en <b>Mi gente</b>. Qué insignia toca cada semana está en la <a href='cronologia.html'>cronología</a>."),
  ("¿Dónde están los enunciados y rúbricas oficiales?", "En <a href='actividades.html#docs'>Actividades → Documentos oficiales</a> (enunciados de la Act. 1 y 2, pautas del ePortfolio, instrucciones de uso de IA, rúbricas y planificación semanal)."),
  ("¿Qué pasa con el temario (PDF de los temas)?", "Los PDF de temas disponibles son de la programación anterior y con nombres cambiados; <b>no se publican aquí</b> hasta recibir el temario actualizado. Los vídeos de la serie ya siguen el orden nuevo (T6 ABJ → T7 Gamificación)."),
- ("Mi grupo es PUA (condensado). ¿Cómo lo adapto?", "Agrupa los mensajes para el foro de la plataforma de UNIR por bloque (dos semanas en un mensaje) y lanza los retos del tema juntos (el A, el B y el relámpago). La cronología sirve igual: son 15 semanas de contenido que tú compactas."),
+ ("Mi grupo es PUA (condensado). ¿Cómo lo adapto?", "Agrupa los mensajes para el foro de la plataforma de UNIR por bloque (dos semanas en un mensaje) y lanza los dos retos del tema juntos (el relámpago y el principal). La cronología sirve igual: son 15 semanas de contenido que tú compactas."),
  ("¿Cuál es la diferencia entre Ludo (T6) y Vínculo (T7)?", "En <b>Ludo se juega</b>: el juego ES la actividad (ABJ). En <b>Vínculo no se juega</b>: se toman elementos del juego (puntos, insignias, niveles, narrativa) y se ponen sobre una tarea que no es un juego (gamificación). Es el error conceptual más común: apóyate en Joran y Mara."),
  ("¿Cómo funciona el examen dentro de la historia?", "La batalla final ES el examen. En la semana 15 el vídeo <b>Plan de Ataque</b> lo presenta (caso, plataforma en directo, tablero de retos, reglas). Los tests de cada tema son el entrenamiento; la última semana hay repaso y simulacro."),
  ("¿Puedo mencionar Genially o la asignatura en público?", "En comunicación pública (redes, web abierta) el proyecto se nombra siempre «Proyecto Gamificado del Máster en Tecnología Educativa de la UNIR», sin la asignatura y sin citar herramientas. Dentro del aula y en esta web del profesorado, sin problema."),
- ("¿Cómo registran los alumnos sus retos e insignias?", "Solos, desde su <b>Nave</b>: abren el reto, lo hacen y pulsan <b>«Lo he hecho»</b>. Donde hay algo que entregar (los Retos B, las actividades) el reto <b>pide el enlace</b> de la evidencia y sin él no se registra; y nadie registra más de <b>3 retos al día</b>, para que nadie llegue al nivel 10 a golpe de clic. Los xp, el nivel, los créditos, las insignias y el <b>avatar que evoluciona</b> se calculan solos. Tú ves cada enlace en <b>Mi gente</b> (pulsa la fila) y un aviso «<img class=ico src=assets/img/iconos/p/aviso.png alt> sin enlace» donde falte."),
+ ("¿Cómo registran los alumnos sus retos e insignias?", "Solos, desde su <b>Nave</b>: abren el reto, lo hacen y pulsan <b>«Lo he hecho»</b>. Todos los retos son prácticos y <b>piden el enlace</b> (o la captura) de lo que se ha hecho: sin él no se registra; y nadie registra más de <b>3 retos por semana</b> (los relámpagos, que se hacen en clase, no cuentan), para que nadie llegue al nivel 10 a golpe de clic. Los xp, el nivel, los créditos, las insignias y el <b>avatar que evoluciona</b> se calculan solos. Tú ves cada enlace en <b>Mi gente</b> (pulsa la fila) y un aviso «<img class=ico src=assets/img/iconos/p/aviso.png alt> sin enlace» donde falte."),
  ("¿Qué es la Nave del Recluta?", "La web del alumnado: su <b>personaje con rango</b>, la orden de la semana, los vídeos, los retos, su botín (insignias, cromos y héroes), el Mercado Estelar y los rankings. Entran por la <b>misma puerta que tú</b>, la portada, con «Iniciar sesión con Google»: si ya están alistados van directos a su Nave, y si no, escriben el <b>código de clase</b> y se alistan en un minuto. La primera vez NEBULA les enseña cada rincón. Para <b>enseñarla sin cuenta</b> (en una charla, a un compañero) está el botón <b>«Ver la demo»</b> de la portada."),
  ("¿Qué es el panel de control de los planetas?", "El <a href='panel.html'>mapa de la galaxia</a>: los ocho planetas sobre el universo, cada uno enlazando a la presentación de su tema. Con <code>?per=</code> los planetas se <b>desbloquean solos</b> según el calendario del grupo. Sirve como página o incrustado en Genially. El <b>referente</b> pone el panel oficial del grupo en <b>Gestionar grupos → Ajustes del grupo</b>, y cada docente puede poner su copia en su Nave, con Mando manual: <b>Tu panel de control</b> → «Cambiar el enlace»."),
- ("¿Qué son los xp, los niveles y los créditos?", f"Son <b>dos marcadores distintos</b>. Los <b>xp</b> (Reto A 100 · Reto B 250 · Actividad 500 · Batalla 500 · hitos 300) miden el viaje, <b>nunca bajan</b> y dan el <b>nivel del 1 al 10</b>: el personaje <b>evoluciona</b> al entrar en los niveles 3 (Cadete), 5 (Oficial), 8 (Comandante) y 10 (<b>Leyenda</b>, el viaje completo). Los <b>créditos ◈</b> (Reto A {CREDITOS['retoA']} · Reto B {CREDITOS['retoB']} · Actividad {CREDITOS['actividad']} · hitos {CREDITOS['derivada']}) son la moneda: es lo único que se descuenta al canjear recompensas. Comprar cromos no baja de nivel a nadie. Todo automático; tabla completa en <a href='registro.html#economia'>El tablero → Dos marcadores</a>."),
+ ("¿Qué son los xp, los niveles y los créditos?", f"Son <b>dos marcadores distintos</b>. Los <b>xp</b> (relámpago 100 · reto principal 250 · Actividad 500 · simulacro 300 · hitos 300) miden el viaje, <b>nunca bajan</b> y dan el <b>nivel del 1 al 10</b>: el personaje <b>evoluciona</b> al entrar en los niveles 3 (Cadete), 5 (Oficial), 8 (Comandante) y 10 (<b>Leyenda</b>, el viaje completo). Los <b>créditos ◈</b> (relámpago {CREDITOS['relampago']} · reto principal {CREDITOS['retoB']} · Actividad {CREDITOS['actividad']} · hitos {CREDITOS['derivada']}) son la moneda: es lo único que se descuenta al canjear recompensas. Comprar cromos no baja de nivel a nadie. Todo automático; tabla completa en <a href='registro.html#economia'>El tablero → Dos marcadores</a>."),
  ("¿Cómo abro un grupo nuevo?", "Lo hace el <b>profesor/a referente</b> en <b>Gestionar grupos</b> → <a href='crear.html'>«+ Crear un grupo»</a>, con su cuenta de Google: nombre, tipo REGULAR/PUA, primer día de la semana 1, el <b>equipo docente por su correo</b> y los enlaces de la clase (el padlet, el panel). En un minuto el grupo queda sembrado entero —los retos con sus insignias, los 8 planetas, la tienda, los escuadrones y el álbum— y sale un <b>código de clase</b> para repartir. Sin hojas de cálculo ni PIN. <span class='small muted'>Cómo era antes, en <a href='legacy.html'>el archivo</a>.</span>"),
- ("¿Qué hago si un alumno no hace el Reto A?", f"Nada punitivo: no cuenta para nota. Pero el tripulante sigue «sin recuperar» y esos 100 xp y {CREDITOS['retoA']} ◈ se quedan sin ganar: usa la narrativa (NEBULA sigue incompleta) como invitación, no como castigo. Lo habitual es que el grupo arrastre."),
+ ("¿Qué hago si un alumno falta el día del relámpago?", f"Nada: lo hace esa misma semana, en diferido, desde su Nave. Si no lo hace, el tripulante sigue «sin recuperar» y esos 100 xp y {CREDITOS['relampago']} ◈ se quedan sin ganar (su fragmento se abre igual para todos dos semanas después): usa la narrativa como invitación, no como castigo."),
 ]
 faq_html="\n".join(f'<details class="faq"><summary>{q}</summary><div>{a}</div></details>' for q,a in FAQ)
 
@@ -598,8 +609,7 @@ AVERIAS = [
  ("retos", "A un estudiante no le suman los retos o los créditos",
   ["no suma", "no le suma", "creditos", "xp", "no cuenta", "lo he hecho", "no registra", "no se registra", "reto"],
   "Tres cosas lo explican casi siempre: 1) como mucho <b>3 retos por semana</b> (de lunes a domingo); 2) casi todos piden el <b>enlace</b> de lo que se ha hecho "
-  "(A1 y A6 se responden con su reflexión, en el propio reto, y el secreto se registra al salir del Escape UNI), y los retos con reflexión "
-  "piden además <b>un mínimo de letras</b>: sin lo que piden, no se registran; 3) lo que toca la nota espera en la <b>Cola de nota</b> "
+  "(el secreto se registra al salir del Escape UNI): sin lo que piden, no se registran; 3) lo que toca la nota espera en la <b>Cola de nota</b> "
   "(en <b>Mi gente</b>, que brilla con un número cuando hay algo) hasta que lo apruebas. Si aun así falta algo que viste en clase, puedes "
   "<b>otorgarlo a mano</b> (con Mando manual): Mi gente → pulsa su fila → en su ficha, pulsa el reto."),
  ("logros", "A un estudiante no le sale un logro de a bordo (o su premio)",
@@ -692,7 +702,7 @@ documentado <b>recupera un fragmento</b> de quién fue. El <b>Capitán de la Nav
 <div class="trio"><img src="assets/img/personajes/nebula.png" alt="NEBULA"><img src="assets/img/capitan/tablet.png" alt="El Capitán"></div>
 </div>
 <h3 style="margin-top:1.2em">La Tripulación Cero — 8 personajes que se recuperan</h3>
-<p class="lead">Cada tripulante encarna la <b>lección</b> de su tema. Al superar el <b>Reto A</b> del planeta se
+<p class="lead">Cada tripulante encarna la <b>lección</b> de su tema. Al hacer el <b>relámpago</b> del planeta (en clase) se
 desbloquea su fragmento-vídeo y su <b>insignia de personaje</b>. Pulsa cada insignia para ver el reto.</p>
 <div class="badges">{pers_html}</div>
 <h3 style="margin-top:1.8em">Personajes especiales</h3>
@@ -750,7 +760,7 @@ mundo olvida lo que sabía hacer.</p></div>
 </div>
 <h3 style="margin-top:1.8em">El álbum completo — 26 cartas en 5 series</h3>
 <p class="lead">Cada carta trae retrato, historia breve, clase, atributos y cita. Regla de oro, y conviene
-decirla en clase: <b>la insignia se gana, el cromo se compra</b>. El Reto A da la <b>insignia</b> del
+decirla en clase: <b>la insignia se gana, el cromo se compra</b>. El relámpago da la <b>insignia</b> del
 tripulante; las <b>26 cartas del álbum salen únicamente de los sobres</b> (15 ◈, desde la semana 2), al azar
 y con rarezas: comunes los ocho tripulantes, raros los Ecos, NEBULA y
 el Capitán, épicos el Recluta y la Estática, y <b>LEGENDARIOS el General Vaeon</b> (2 % del sobre) y sobre todo
@@ -775,15 +785,21 @@ en el <b>Tema 5</b> y se va llenando durante todo el viaje. Cada página se escr
 </div></section>
 
 <section id="retos"><div class="wrap">
-<div class="eyebrow">Retos e insignias</div><h2>Dos retos por tema</h2>
+<div class="eyebrow">Retos e insignias</div><h2>Dos retos por tema, los dos prácticos</h2>
+<p class="lead">Para docentes en activo, con su trabajo, su familia y otras cuatro asignaturas a la vez: <b>20 retos</b> en
+todo el curso y nunca más de uno para casa por semana. La reflexión no es un reto: cada clase abre con su pregunta del
+calendario oficial y la resuelves tú en directo.</p>
 <div class="grid cols-2">
-<div class="card"><h3>Reto A — «La Llave» <img class=ico src=assets/img/iconos/p/llave.png alt></h3><p>Micro-tarea reflexiva o de comunidad (10–20 min) que encarna la
-lección del personaje. <b>No cuenta para nota</b> (da 100 xp simbólicos del juego): su recompensa es
-<b>desbloquear al personaje</b> (fragmento + insignia). Es el motor de <b>motivación e identidad</b>.</p></div>
-<div class="card"><h3>Reto B — «La Forja» <img class=ico src=assets/img/iconos/p/fuego.png alt></h3><p>Tarea de creación con criterios claros que produce una <b>evidencia
-real</b> de la Bitácora y es un <b>trozo digerible</b> de la siguiente actividad grande. Su recompensa es la
-<b>insignia de reto</b>. Es el motor de <b>producción</b>.</p></div>
+<div class="card"><h3>Relámpago — en clase <img class=ico src=assets/img/iconos/p/rayo.png alt></h3><p>Una práctica de 10–15 minutos que nace de la
+pregunta de su clase: crear, diseñar o encontrar algo. Se hace <b>en directo</b>, con el cronómetro del aula, y quien
+no pudo venir la hace esa semana. <b>Recupera al tripulante</b> (fragmento + insignia) y deja un trozo que sirve para la
+actividad. Es el motor de <b>motivación e identidad</b>.</p></div>
+<div class="card"><h3>Reto principal — en casa <img class=ico src=assets/img/iconos/p/fuego.png alt></h3><p>La <b>experiencia del portfolio</b> que marca el
+calendario oficial para el tema: una evidencia real de la Bitácora y, a menudo, un trozo de la siguiente actividad
+grande. Su recompensa es la <b>insignia de reto</b>. Es el motor de <b>producción</b>.</p></div>
 </div>
+<p class="small muted">Fôrge lleva un relámpago más («La hoja de ruta», en la clase 2). Y tres extras: la presentación
+(semana 1), el simulacro del examen (clase 20) y el Escape UNI, secreto.</p>
 <div class="card" style="margin-top:22px"><div class="eyebrow amber">La decisión de diseño que más se nota</div>
 <h3>Dos marcadores: xp para el nivel, créditos ◈ para el bolsillo</h3>
 <p>Un error clásico al gamificar es usar <b>un solo contador</b> para medir el progreso y para pagar las
@@ -792,9 +808,9 @@ separados, y conviene explicarlo en clase porque <b>es el contenido del Tema 7 e
 <div class="grid cols-2" style="gap:14px">
 <div class="card"><h3><img class=ico src=assets/img/iconos/p/estrella.png alt> xp — el viaje</h3><p class="small">Solo suben, <b>nunca se gastan</b>. Dan el
 <b>nivel</b> (1 a 10), el puesto en el ranking y hacen <b>evolucionar al personaje</b> (5 versiones de arte,
-en los niveles 3, 5, 8 y 10). Reto A 100 · Reto B 250 · Actividad 500 · Batalla 500 · hitos 300.</p></div>
+en los niveles 3, 5, 8 y 10). Relámpago 100 · reto principal 250 · Actividad 500 · simulacro 300 · hitos 300.</p></div>
 <div class="card"><h3>◈ créditos — el bolsillo</h3><p class="small">Se ganan con el mismo trabajo
-(Reto A {CREDITOS['retoA']} · Reto B {CREDITOS['retoB']} · Actividad {CREDITOS['actividad']} · hitos {CREDITOS['derivada']}) y son <b>lo único que se descuenta</b> en el canje.
+(relámpago {CREDITOS['relampago']} · reto principal {CREDITOS['retoB']} · Actividad {CREDITOS['actividad']} · hitos {CREDITOS['derivada']}) y son <b>lo único que se descuenta</b> en el canje.
 El viaje completo da <b>{CRED_VIAJE['REGULAR']} ◈</b> y todo lo cosmético cuesta 280: <b>hay que elegir</b>.</p></div>
 </div>
 <p class="small muted" style="margin-top:10px">Tabla completa de niveles y precios en
@@ -805,12 +821,12 @@ El viaje completo da <b>{CRED_VIAJE['REGULAR']} ◈</b> y todo lo cosmético cue
 <div class="badges">{reto_html}</div>
 <h3 style="margin-top:1.8em">Las 5 insignias de hito</h3>
 <div class="badges sm5">{hito_html}</div>
-<table style="margin-top:1.4em"><thead><tr><th>Tema</th><th>Reto B produce…</th><th>…que es un trozo de</th></tr></thead><tbody>
-<tr><td>T1 Fôrge</td><td>La imagen con IA + tabla técnica del prompt</td><td><b>Actividad 1</b></td></tr>
-<tr><td>T2 Ecos</td><td>Un videotutorial + videoquiz</td><td>Bitácora (reto videotutorial)</td></tr>
-<tr><td>T3 Sendara</td><td>La matriz 8×6 con ≥6 cruces</td><td><b>Actividad 2</b></td></tr>
-<tr><td>T4 Reliae</td><td>Un aula virtual con una tarea o material publicado</td><td>Bitácora (evidencia)</td></tr>
-<tr><td>T5 Umbral</td><td>Una web de recursos con la rúbrica a la vista (+ cierre Act 1)</td><td><b>Consolida la Bitácora</b></td></tr>
+<table style="margin-top:1.4em"><thead><tr><th>Tema</th><th>El reto principal produce…</th><th>…que es un trozo de</th></tr></thead><tbody>
+<tr><td>T1 Fôrge</td><td>La Bitácora abierta, con su primera experiencia (lo creado con IA)</td><td>La página de la <b>Actividad 1</b></td></tr>
+<tr><td>T2 Ecos</td><td>Un videotutorial con sus preguntas dentro (Edpuzzle)</td><td>Bitácora (reto videotutorial)</td></tr>
+<tr><td>T3 Sendara</td><td>Un itinerario en Genially con refuerzo y ampliación</td><td><b>Actividad 2</b> (el esqueleto del paisaje)</td></tr>
+<tr><td>T4 Reliae</td><td>Un entorno de aula (Classroom o Sites) funcionando</td><td>Bitácora (evidencia)</td></tr>
+<tr><td>T5 Umbral</td><td>Una web abierta con tres recursos y su rúbrica (+ cierre Act 1)</td><td><b>Consolida la Bitácora</b></td></tr>
 <tr><td>T6 Ludo</td><td>Un juego digital educativo</td><td>Bitácora (reto juego)</td></tr>
 <tr><td>T7 Vínculo</td><td>Una microgamificación</td><td>Bitácora (reto microgamificación)</td></tr>
 <tr><td>T8 Liminar</td><td>Experiencia RA/RV + <b>publicar la Bitácora</b> (+ cierre Act 2)</td><td><b>Cierra la Bitácora</b></td></tr>
@@ -859,15 +875,15 @@ guarda nada.</p></div>
 <div class="tips">
 <div class="tip"><b>Empieza con el gancho, no con el temario.</b> Primera sesión: vídeo de sinopsis, preséntate como su <b>Comandante</b>, reparte la insignia de <b>Reclutamiento</b> y deja una pregunta en el aire.</div>
 <div class="tip"><b>Un mensaje por semana para el foro de la plataforma de UNIR</b> (ya redactados, en la <a href="cronologia.html">cronología</a>): introducen el tema con la narrativa y cierran con la "Bitácora de esta semana". Solo pon tu nombre y el enlace de la herramienta del momento.</div>
-<div class="tip"><b>Separa los tres retos en tu discurso.</b> El Reto A como <i>invitación</i> ("recupera a Bran"); el Reto B como <i>encargo</i> con criterios; y el <b><img class=ico src=assets/img/iconos/p/rayo.png alt> relámpago</b> como lo que es: <i>diez minutos, aquí y ahora, en clase</i> — quien viene, sale con él hecho.</div>
+<div class="tip"><b>Separa los dos retos en tu discurso.</b> El <b><img class=ico src=assets/img/iconos/p/rayo.png alt> relámpago</b> como lo que es: <i>quince minutos, aquí y ahora, en clase</i>, que recuperan a un tripulante ("recupera a Bran"); y el <b>reto principal</b> como <i>encargo</i> con criterios, para casa.</div>
 <div class="tip"><b>Entrega las insignias en público.</b> El refuerzo funciona cuando se ve: publica el medallón y nombra el logro con la frase del personaje. Un tablero con las 24 hace visible el avance.</div>
-<div class="tip"><b>Vincula siempre reto → Bitácora.</b> Cada Reto B <i>ya es</i> una página del ePortfolio (y a veces media actividad grande resuelta). Así no acumulan tareas: construyen.</div>
+<div class="tip"><b>Vincula siempre reto → Bitácora.</b> Cada reto principal <i>ya es</i> una página del ePortfolio (y a veces media actividad grande resuelta). Así no acumulan tareas: construyen.</div>
 <div class="tip"><b>Usa la distinción Ludo/Vínculo como momento estrella.</b> En T6 <b>se juega</b> (el juego ES la actividad); en T7 <b>no</b> (se toman elementos del juego). Apóyate en Joran y Mara.</div>
 <div class="tip"><b>Reserva a Vaeon para subir la tensión.</b> Haz que la Estática aparezca en T5: justo cuando saben medir, surge el enemigo que silencia.</div>
 <div class="tip"><b>Cierra con La Liberación.</b> En el repaso final, la Bitácora completa vence a la Estática y abre la puerta a la Tierra. Celebra las Bitácoras publicadas.</div>
 <div class="tip"><b>Lo atemporal en los vídeos, lo actual en el foro.</b> Los vídeos hablan solo de conceptos (no nombran apps); las herramientas concretas viven en el foro de la plataforma de UNIR.</div>
 </div>
-<blockquote>Errores a evitar: convertir el Reto A en nota · dar insignias sin ceremonia · meter nombres de apps en los vídeos · pedir solo entregables sin la capa narrativa · confundir ABJ y Gamificación delante del alumnado.</blockquote>
+<blockquote>Errores a evitar: convertir los retos en nota · dar insignias sin ceremonia · meter nombres de apps en los vídeos · pedir solo entregables sin la capa narrativa · confundir ABJ y Gamificación delante del alumnado.</blockquote>
 </div></section>
 
 <!-- 🔴 LOS ENLACES DE INTERÉS, en la guía. «En la guía deben aparecer los enlaces de interés,
@@ -1037,6 +1053,9 @@ _gr_eval = ('<div class="grid cols-4 eval-partes" style="margin-top:14px">'
     + "".join('<div class="card"><h3>%s</h3><p><span class="pts">%s</span></p><p class="small">%s</p></div>' % (n, pts, como)
               for n, pts, como in EVALUACION) + '</div>')
 _gr_reflex = ", ".join(sorted(REFLEXION_RETOS.keys()))
+# 23-sep · con los 20 retos ninguno se responde por escrito: sin retos con reflexión, la línea ni sale (no «En algunos retos ()»)
+_gr_reflex_li = (f'<li>En algunos retos ({_gr_reflex}) se escribe además <b>una reflexión</b> en el propio reto. La lee tu tripulación y\n'
+                 'puede salir en clase, <b>siempre con tu alias, nunca con tu nombre</b>.</li>\n') if REFLEXION_RETOS else ""
 GUIA_RECLUTA = head("STARGATE · Guía del recluta",
   "Cómo funciona tu Nave de STARGATE: alistarte, los retos, la Bitácora, tu nota, los niveles, el Mercado y el Zoco, paso a paso.",
   "guiarec", puerta="sesion", alumno=True) + f'''
@@ -1088,8 +1107,8 @@ lo que aún no toca, ni se ve. Si te saltas un capítulo, lo recuperas en «Cap�
 retos que se lanzan. Léela primero: es el mapa de la semana.</p></div>
 <div class="card"><h3>2 · La clase en directo</h3><p>Tu docente proyecta la sesión. Al empezar toca <b>llamada a filas</b>: en tu Nave aparece
 el botón <b>Presente</b>. Púlsalo y te llevas xp y créditos; si vienes a varias clases seguidas, la racha suma un extra.</p></div>
-<div class="card"><h3>3 · Los retos, a tu ritmo</h3><p>Durante la semana haces los retos que quieras (como mucho <b>{TOPE_RETOS_SEMANA}</b>, de lunes a
-domingo) y los registras en <b>Mis retos</b>. Al acabar cada tema, el <b>ticket de salida</b>: anónimo, para decir qué te llevas y qué duda queda.</p></div>
+<div class="card"><h3>3 · Los retos</h3><p>Dos por tema: el <b>relámpago</b>, que haces en clase en quince minutos (o esa semana, si no pudiste venir), y el <b>reto principal</b>, en casa.
+Los registras en <b>Mis retos</b> (como mucho <b>{TOPE_RETOS_SEMANA}</b> por semana; los relámpagos no cuentan). Al acabar cada tema, el <b>ticket de salida</b>: anónimo, para decir qué te llevas y qué duda queda.</p></div>
 </div>
 <div class="gr-dos" style="margin-top:18px">
 {_gr_img("orden", "La orden de la semana, con el vídeo y la firma de tu Comandante", "La orden de la semana.")}
@@ -1100,22 +1119,20 @@ domingo) y los registras en <b>Mis retos</b>. Al acabar cada tema, el <b>ticket 
 <section id="retos"><div class="wrap">
 <div class="eyebrow amber">Los retos</div><h2>Qué hay que hacer, y cómo se registra</h2>
 <div class="grid cols-4">
-<div class="card"><h3>Reto A</h3><p class="small">Recupera al tripulante del planeta y te da su insignia. <b>{_XP_TIPO.get("A", 0)} xp</b> y <b>{CREDITOS["retoA"]} {MONEDA}</b>.</p></div>
-<div class="card"><h3>Reto B</h3><p class="small">Una pieza de tu Bitácora: la evidencia del tema. <b>{_XP_TIPO.get("B", 0)} xp</b> y <b>{CREDITOS["retoB"]} {MONEDA}</b>.</p></div>
-<div class="card"><h3>Reto relámpago</h3><p class="small">De diez o quince minutos, <b>se hace en clase</b>. <b>{_XP_TIPO.get("L", 0)} xp</b> y <b>{CREDITOS["relampago"]} {MONEDA}</b>.</p></div>
-<div class="card"><h3>Y además</h3><p class="small">Las dos <b>Actividades</b> (se marcan al ENVIARLAS), un <b>reto secreto</b> que nadie anuncia y el <b>simulacro</b> del examen.</p></div>
+<div class="card"><h3>Relámpago</h3><p class="small">Quince minutos, <b>en clase</b>: creas, diseñas o encuentras algo, y recuperas al tripulante del planeta (su insignia y su fragmento). <b>100 xp</b> y <b>{CREDITOS["relampago"]} {MONEDA}</b>.</p></div>
+<div class="card"><h3>Reto principal</h3><p class="small">En casa: la experiencia del portfolio del tema, una pieza de tu Bitácora. <b>{_XP_TIPO.get("B", 0)} xp</b> y <b>{CREDITOS["retoB"]} {MONEDA}</b>.</p></div>
+<div class="card"><h3>Fôrge, uno más</h3><p class="small">El primer tema trae dos relámpagos: «La hoja de ruta» (tu programación, en la clase 2) y el que recupera a Bran.</p></div>
+<div class="card"><h3>Y además</h3><p class="small">Las dos <b>Actividades</b> (se marcan al ENVIARLAS), tu <b>presentación</b> de la semana 1, un <b>reto secreto</b> que nadie anuncia y el <b>simulacro</b> del examen.</p></div>
 </div>
 <div class="gr-dos" style="margin-top:18px">
-{_gr_img("reto", "Un reto abierto: los pasos, la reflexión, el enlace y Lo he hecho", "Un reto abierto por «Cómo se hace, paso a paso».")}
+{_gr_img("reto", "Un reto abierto: los pasos, el ejemplo, el enlace y Lo he hecho", "Un reto abierto por «Cómo se hace, paso a paso».")}
 <div>
 <h3>Para registrarlo</h3>
 <ol class="gr-pasos">
 <li>Abre el reto en <b>Mis retos</b> y pulsa <b>«Cómo se hace, paso a paso»</b>. Muchos traen un ejemplo de otra persona.</li>
 <li>Hazlo, publícalo y <b>pega el enlace</b> de lo que has hecho (el «+» añade un segundo). Sin enlace no se registra.
 Antes, compruébalo en <a href="ayuda.html">¿Mi enlace abre lo mío?</a>: que se abra en una ventana de incógnito.</li>
-<li>En algunos retos ({_gr_reflex}) se escribe además <b>una reflexión</b> en el propio reto. La lee tu tripulación y
-puede salir en clase, <b>siempre con tu alias, nunca con tu nombre</b>.</li>
-<li>Pulsa <b>«Lo he hecho»</b>: suben tus xp y tus créditos al momento.</li>
+{_gr_reflex_li}<li>Pulsa <b>«Lo he hecho»</b>: suben tus xp y tus créditos al momento.</li>
 </ol>
 <p class="small muted">Tu docente ve cada enlace. Si registras algo que no has hecho, lo anula y se van los xp y los créditos.</p>
 </div></div>
@@ -1137,7 +1154,7 @@ puede salir en clase, <b>siempre con tu alias, nunca con tu nombre</b>.</li>
 <p class="lead">En la historia, la Estática apaga lo que nadie documenta. Tu <b>Bitácora</b> —tu ePortfolio— es lo que lo vuelve a
 encender: el curso entero termina en ella, y además <b>vale el 20 % de cada Actividad</b>.</p>
 <p>Cada página sigue el mismo patrón: <b>la evidencia</b> (lo que has hecho) → <b>el contexto</b> (para quién y para qué) →
-<b>la reflexión</b> (qué has aprendido) → <b>la autoevaluación</b>. El Reto B de la semana 1 es abrirla y publicar la primera entrada.</p>
+<b>la reflexión</b> (qué has aprendido) → <b>la autoevaluación</b>. El reto principal del Tema 1 («La Bitácora en marcha», semana 2) es abrirla y publicar tu primera experiencia.</p>
 <p><a class="btn" href="{PLANTILLA_EPORTFOLIO}" target="_blank" rel="noopener">La plantilla de la Bitácora ↗</a></p>
 <p class="small muted">Pega su enlace en tu ficha (al alistarte, o después en tu Nave) para que tu docente la encuentre.</p>
 </div>
@@ -1162,7 +1179,7 @@ encender: el curso entero termina en ella, y además <b>vale el 20 % de cada Act
 <div class="eyebrow amber">Tu botín</div><h2>Insignias, cromos, héroes y logros</h2>
 <div class="gr-dos">
 <div>
-<p><b>Insignias.</b> Cada reto A y B tiene la suya, ordenadas por planeta. Las apagadas son las que te faltan: púlsalas para ver cómo se ganan.</p>
+<p><b>Insignias.</b> El relámpago y el reto principal de cada tema tienen la suya, ordenadas por planeta. Las apagadas son las que te faltan: púlsalas para ver cómo se ganan.</p>
 <p><b>Cromos.</b> {sum(1 for c in CROMOS)} cartas en series: salen de los sobres del Mercado, y los repetidos se cambian por sobres nuevos o se truecan en el Zoco.</p>
 <p><b>Héroes.</b> Salen de las cápsulas y visten tu ficha; los más raros son muy difíciles de conseguir.</p>
 <p><b>Logros de a bordo.</b> La Nave apunta la primera vez que haces cada cosa y los días que vienes. {len(HITOS_A_BORDO)} logros en {len(CUBIERTAS_A_BORDO)} cubiertas;
@@ -1194,9 +1211,9 @@ Lo ofrecido queda apartado hasta que se responde, y cada trato se cierra en poco
 <div class="gr-dos">
 <div>
 <p><b>El Archivo.</b> Todos los vídeos de la historia, en orden. Los <b>fragmentos</b> —el vídeo de cada tripulante de la
-Tripulación Cero— <b>se ganan</b>: aparecen al completar el reto A de su tema. Quien no lo gana, no lo ve.</p>
-<p><b>El Simulador de Joran.</b> El reto A del Tema 6 no se entrega: se gana en una <b>batalla de preguntas</b> contra RUTA AZUL,
-sobre todo lo recorrido. Si pierdes, vuelves a intentarlo; al ganar, el simulador se queda en tu Nave para repasar tema a tema.</p>
+Tripulación Cero— <b>se ganan</b>: aparecen al completar el relámpago de su tema. Quien no lo hace, lo verá dos semanas más tarde.</p>
+<p><b>El Simulador de Joran.</b> Una <b>batalla de preguntas</b> contra RUTA AZUL sobre todo lo recorrido, para repasar jugando.
+Si pierdes, vuelves a intentarlo; al ganar, el entrenamiento se queda en tu Nave para repasar tema a tema.</p>
 <p><b>Los rankings.</b> Varias clasificaciones (xp, esta semana, colección, tu escuadrón…), <b>siempre por alias</b>: tu nombre real no sale nunca.</p>
 </div>
 {_gr_img("simulador", "El Simulador de Joran: la batalla contra RUTA AZUL", "El Simulador de Joran.")}
@@ -1244,12 +1261,13 @@ son <b>páginas de la Bitácora</b>. La nota mide tu avance; la Bitácora es lo 
 autoevaluación</b>, las dos actividades y tres retos (videotutorial, microgamificación y uno libre). Plataforma libre; un único enlace de acceso en cada entrega. Estas son las
 <b>experiencias del portfolio</b> que propone la programación oficial, tema a tema:</p>
 <table><thead><tr><th>Tema</th><th>Experiencia en el portfolio (oficial)</th><th>En STARGATE</th></tr></thead><tbody>
-<tr><td>T1 · Fôrge</td><td>Recursos multimedia didácticos generados con ayuda de la IA</td><td>Relámpago L1 «La chispa»</td></tr>
-<tr><td>T2 · Ecos</td><td>Enriquecer el videotutorial con preguntas (videoquiz)</td><td>Reto B «El eco que enseña»</td></tr>
-<tr><td>T4 · Reliae</td><td>Entorno digital para el aula (p. ej. Site/Classroom)</td><td>Reto B «El entorno de aula»</td></tr>
-<tr><td>T5 · Umbral</td><td>Registrar el progreso (p. ej. formularios) + e-portfolio</td><td>Reto B «La Bitácora medida»</td></tr>
-<tr><td>T6 · Ludo</td><td>Diseño de un juego digital educativo</td><td>Reto B «El juego»</td></tr>
-<tr><td>T7 · Vínculo</td><td>Recursos de gamificación: cartas de recompensa, insignias o narrativas</td><td>Reto B «La microgamificación»</td></tr>
+<tr><td>T1 · Fôrge</td><td>Recursos multimedia didácticos generados con ayuda de la IA</td><td>Reto principal «La Bitácora en marcha» (con la imagen del relámpago)</td></tr>
+<tr><td>T2 · Ecos</td><td>Edpuzzle para enriquecer el videotutorial que has creado</td><td>Reto principal «El eco que enseña»</td></tr>
+<tr><td>T3 · Sendara</td><td>Genially para crear un itinerario o paisaje de aprendizaje</td><td>Reto principal «El itinerario»</td></tr>
+<tr><td>T4 · Reliae</td><td>Google Sites o Classroom: un entorno digital para el aula</td><td>Reto principal «El entorno de aula»</td></tr>
+<tr><td>T5 · Umbral</td><td>Google Forms para registrar el progreso</td><td>Relámpago «Mide con método» (rúbrica + formulario)</td></tr>
+<tr><td>T6 · Ludo</td><td>Cualquier herramienta de diseño de juego digital educativo</td><td>Reto principal «El juego»</td></tr>
+<tr><td>T7 · Vínculo</td><td>Recursos de gamificación: cartas de recompensa, insignias o narrativas</td><td>Relámpago «Un porqué» y reto principal «La microgamificación»</td></tr>
 </tbody></table>
 <div class="official" style="margin-top:14px"><img class=ico src=assets/img/iconos/p/estrella.png alt> La experiencia del <b>Tema 7</b> es, literalmente, crear <b>cartas, insignias o narrativas</b>: STARGATE es el ejemplo vivo de esa entrega.</div>
 </div></section>
@@ -1464,7 +1482,7 @@ GENPAGE = head("STARGATE · Los Geniallys",
 <section><div class="wrap">
 <div class="eyebrow amber">Para el equipo que los monta</div><h2>Qué lleva cada Genially</h2>
 <div class="grid cols-2">
-<div class="card"><h3>Estructura sugerida</h3><p>Portada con el fondo de espacio y el planeta-halo → <b>intro</b> (vídeo de llegada) → contenido del tema sobre los fondos de superficie → los <b>retos</b> (A, B y el <img class=ico src=assets/img/iconos/p/rayo.png alt> relámpago de la semana de continuación) → <b>cierre</b> (vídeo) → recompensa: el <b>fragmento</b> del tripulante + su insignia y carta.</p></div>
+<div class="card"><h3>Estructura sugerida</h3><p>Portada con el fondo de espacio y el planeta-halo → <b>intro</b> (vídeo de llegada) → contenido del tema sobre los fondos de superficie → los <b>retos</b> (el <img class=ico src=assets/img/iconos/p/rayo.png alt> relámpago de la clase y el reto principal) → <b>cierre</b> (vídeo) → recompensa: el <b>fragmento</b> del tripulante + su insignia y carta.</p></div>
 <div class="card"><h3>Material</h3><p>Todo está en el paquete <a href="{DRIVE_EQUIPO}" target="_blank" rel="noopener"><b>DRIVE_EQUIPO_STARGATE</b> ↗</a> (Drive): una carpeta por tema con fondos, clips, insignias, carta, retos y enlaces, más el documento «Qué va en cada Genially» con la miniatura de cada recurso. Los vídeos se insertan desde YouTube con el enlace de la <a href="cronologia.html">cronología</a>.</p></div>
 </div>
 </div></section>
@@ -1529,7 +1547,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <section id="orden"><div class="wrap">
 <div class="eyebrow amber">Calendario de entrega</div><h2>Qué insignia toca cada semana</h2>
 <div class="tablewrap"><table><thead><tr><th>Sem</th><th>Tema</th><th>Se entregan</th></tr></thead><tbody>{orden_html}</tbody></table></div>
-<p class="lead" style="margin-top:10px">Las de <b>personaje</b> (P) llegan con el Reto A; las de <b>reto</b> (R) con el Reto B; las <b>especiales</b> y de <b>hito</b> en sus momentos (reclutamiento, Act. 1, Act. 2, Cero completa, Liberación).</p>
+<p class="lead" style="margin-top:10px">Las de <b>personaje</b> (P) llegan con el relámpago de cada tema; las de <b>reto</b> (R) con el reto principal; las <b>especiales</b> y de <b>hito</b> en sus momentos (reclutamiento, Act. 1, Act. 2, Cero completa, Liberación).</p>
 </div></section>
 
 <section id="tablero"><div class="wrap">
@@ -1561,13 +1579,13 @@ canjeable</b> no son lo mismo y no deben compartir marcador.</p>
 <div class="card"><h3><img class=ico src=assets/img/iconos/p/estrella.png alt> Los xp — el viaje</h3><p class="small"><b>Solo suben. No se gastan nunca.</b>
 Miden lo que el recluta ha recorrido: marcan su <b>nivel</b> (del 1 al 10), su puesto en el ranking y hacen
 <b>evolucionar a su personaje</b>. Comprar cromos no le baja de nivel: lo que ha aprendido no se devuelve.</p>
-<p class="small">Reclutamiento 100 · Reto A 100 · Reto B 250 · Actividad entregada 500 · Batalla final 500 ·
-hitos derivados 300. Viaje completo = <b>{_mil(XP_VIAJE["REGULAR"])} xp</b> (PUA: 300 por tema + 500 por actividad,
+<p class="small">Reclutamiento 100 · relámpago 100 · reto principal 250 · Actividad entregada 500 · simulacro 300 ·
+hitos derivados 300. Viaje completo = <b>{_mil(XP_VIAJE["REGULAR"])} xp</b> (PUA: los mismos retos,
 {_mil(XP_VIAJE["PUA"])} xp). Los xp <b>no son nota</b>.</p></div>
 <div class="card"><h3>◈ Los créditos — el bolsillo</h3><p class="small"><b>Es lo único que se descuenta.</b>
 Se ganan con el mismo trabajo que da xp, pero en otra escala, y se gastan en el canje. Cuando un recluta
 compra un sobre de cromos pierde créditos, no progreso.</p>
-<p class="small">Reclutamiento {CREDITOS["reclutamiento"]} ◈ · Reto A {CREDITOS["retoA"]} · Reto B {CREDITOS["retoB"]} ·
+<p class="small">Reclutamiento {CREDITOS["reclutamiento"]} ◈ · relámpago {CREDITOS["relampago"]} · reto principal {CREDITOS["retoB"]} ·
 Actividad {CREDITOS["actividad"]} · Batalla final {CREDITOS["final"]} · hitos derivados {CREDITOS["derivada"]}.
 Un viaje completo da <b>{CRED_VIAJE["REGULAR"]} ◈</b> (PUA: {CRED_VIAJE["PUA"]} ◈). Todo lo cosmético del catálogo
 cuesta 280 ◈: <b>hay que elegir</b>, y esa elección es la mitad de la gracia.</p></div>
@@ -1594,28 +1612,28 @@ la <b>Cola de nota</b> hasta que el docente las aprueba.</p>
 # ================= DATOS DE LOS MODALES (insignias) =================
 # tipo · como (cómo se consigue) · cuando · tarea (qué hay que hacer)
 BADGE_INFO = {
- # Personajes de la Tripulación Cero (Reto A)
- "P1_bran":{"nombre":"Bran Okafor · El Forjador","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 1: «El boceto sin quemar».","cuando":"Tema 1 · Planeta Fôrge","tarea":"Publica en el foro de la plataforma de UNIR un borrador en bruto de algo que estés creando y una frase sobre qué te daba reparo enseñarlo sin pulir. No se corrige: el único criterio es compartirlo antes de terminarlo. Al hacerlo se recupera el fragmento de Bran."},
- "P2_tomas":{"nombre":"Tomás Reyer · El Cronista","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 2: «Un mensaje para quien faltó».","cuando":"Tema 2 · Planeta Ecos","tarea":"Graba un clip corto (máx. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no vino a clase. Debe entenderse solo, sin ti delante."},
- "P3_sylla":{"nombre":"Sylla Bren · La Rastreadora","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 3: «Dos senderos».","cuando":"Tema 3 · Planeta Sendara","tarea":"Toma un objetivo de aprendizaje y describe dos rutas completamente distintas para alcanzarlo, pensadas para dos alumnos diferentes. Que las dos lleguen a la misma cima."},
- "P4_amara":{"nombre":"Amara Sol · La Operadora","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 4: «Abre el canal».","cuando":"Tema 4 · Planeta Reliae","tarea":"Publica en tus redes una reflexión o un recurso del curso con el hashtag #mutecdstargate, en abierto. A tiempo por encima de perfecto: se publica hoy, se pule mañana.","cita":"Llegué tarde por querer llegar perfecta. Nunca más."},
- "P5_vera":{"nombre":"Vera Khal · La Médica","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 5: «Mide con método».","cuando":"Tema 5 · Planeta Umbral","tarea":"Define un indicador observable que vayas a seguir de verdad del aprendizaje de tus alumnos, acompañado de la pregunta que lo convierte en cuidado: «¿qué haré mañana mejor que hoy?»."},
- "P6_joran":{"nombre":"Joran Pike · El Ingeniero-jugador","tipo":"Insignia de personaje","como":"Ganando al Simulador de Joran (RUTA AZUL) en el Reto A del Tema 6.","cuando":"Tema 6 · Planeta Ludo","tarea":"Enfréntate a RUTA AZUL, el simulador de entrenamiento de Joran, desde el botón del reto en tu Nave: preguntas de los temas 1 al 5, con imágenes y esquemas. Aciertas y golpeas; fallas y pierdes tiempo, no escudo. Se registra solo al ganar, y el simulador se queda en tu Nave para repasar cuando quieras. Si pierdes, cada derrota lo cansa: la próxima vez ataca más despacio.","cita":"Esta ya la hemos ganado cien veces. Ruta azul."},
- "P7_mara":{"nombre":"Mara Voss · El Mando","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 7: «Un porqué».","cuando":"Tema 7 · Planeta Vínculo","tarea":"Toma una tarea rutinaria y escribe el «porqué» / la narrativa que la convierte en una causa. Diseña una insignia con sentido: memoria de un acto significativo, no premio por obedecer."},
- "P8_noa":{"nombre":"Noa Lieth · La Arquitecta de capas","tipo":"Insignia de personaje","como":"Completando el Reto A del Tema 8: «La capa posible».","cuando":"Tema 8 · Planeta Liminar","tarea":"Describe una «capa» sobre tu aula real: cómo sería si aprendiera a hablar de sí misma. Y elige un compromiso concreto que te llevas de todo el viaje. Con esto la Tripulación Cero queda completa."},
+ # Personajes de la Tripulación Cero (el relámpago de cada tema; 23-sep)
+ "P1_bran":{"nombre":"Bran Okafor · El Forjador","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 1: «Del boceto a la forja» (en clase).","cuando":"Tema 1 · Planeta Fôrge","tarea":"Publica en el foro de la plataforma de UNIR un borrador en bruto de algo que estés creando y una frase sobre qué te daba reparo enseñarlo sin pulir. No se corrige: el único criterio es compartirlo antes de terminarlo. Al hacerlo se recupera el fragmento de Bran."},
+ "P2_tomas":{"nombre":"Tomás Reyer · El Cronista","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 2: «Un mensaje para quien faltó» (en clase).","cuando":"Tema 2 · Planeta Ecos","tarea":"Graba un clip corto (máx. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no vino a clase. Debe entenderse solo, sin ti delante."},
+ "P3_sylla":{"nombre":"Sylla Bren · La Rastreadora","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 3: «Dos senderos» (en clase).","cuando":"Tema 3 · Planeta Sendara","tarea":"Toma un objetivo de aprendizaje y describe dos rutas completamente distintas para alcanzarlo, pensadas para dos alumnos diferentes. Que las dos lleguen a la misma cima."},
+ "P4_amara":{"nombre":"Amara Sol · La Operadora","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 4: «Abre el canal» (en clase).","cuando":"Tema 4 · Planeta Reliae","tarea":"Publica en tus redes una reflexión o un recurso del curso con el hashtag #mutecdstargate, en abierto. A tiempo por encima de perfecto: se publica hoy, se pule mañana.","cita":"Llegué tarde por querer llegar perfecta. Nunca más."},
+ "P5_vera":{"nombre":"Vera Khal · La Médica","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 5: «Mide con método» (en clase).","cuando":"Tema 5 · Planeta Umbral","tarea":"Define un indicador observable que vayas a seguir de verdad del aprendizaje de tus alumnos, acompañado de la pregunta que lo convierte en cuidado: «¿qué haré mañana mejor que hoy?»."},
+ "P6_joran":{"nombre":"Joran Pike · El Ingeniero-jugador","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 6: «Encuentra el juego» (en clase).","cuando":"Tema 6 · Planeta Ludo","tarea":"Enfréntate a RUTA AZUL, el simulador de entrenamiento de Joran, desde el botón del reto en tu Nave: preguntas de los temas 1 al 5, con imágenes y esquemas. Aciertas y golpeas; fallas y pierdes tiempo, no escudo. Se registra solo al ganar, y el simulador se queda en tu Nave para repasar cuando quieras. Si pierdes, cada derrota lo cansa: la próxima vez ataca más despacio.","cita":"Esta ya la hemos ganado cien veces. Ruta azul."},
+ "P7_mara":{"nombre":"Mara Voss · El Mando","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 7: «Un porqué» (en clase).","cuando":"Tema 7 · Planeta Vínculo","tarea":"Toma una tarea rutinaria y escribe el «porqué» / la narrativa que la convierte en una causa. Diseña una insignia con sentido: memoria de un acto significativo, no premio por obedecer."},
+ "P8_noa":{"nombre":"Noa Lieth · La Arquitecta de capas","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 8: «El QR» (en clase).","cuando":"Tema 8 · Planeta Liminar","tarea":"Describe una «capa» sobre tu aula real: cómo sería si aprendiera a hablar de sí misma. Y elige un compromiso concreto que te llevas de todo el viaje. Con esto la Tripulación Cero queda completa."},
  # Especiales
  "E1_nebula":{"nombre":"NEBULA · La Bitácora viva","tipo":"Insignia de personaje (especial)","como":"Completando el reto «Preséntate a tu tripulación»: un vídeo de 60 segundos en el padlet de la clase.","cuando":"Semana 1","tarea":"NEBULA es la IA de la nave y tu narradora constante. Te da su insignia cuando compartes tu cara con la tripulación: preséntate en un vídeo de un minuto y publícalo en el padlet. Lo que se comparte no se apaga."},
  "E2_capitan":{"nombre":"El Capitán · El Mando de la misión","tipo":"Insignia de personaje (especial)","como":"Se obtiene al presentar la Actividad 1.","cuando":"Temas 1–2","tarea":"El Capitán de la Nave es el veterano al mando de La Constancia, el que da las órdenes de cada misión en los vídeos. Su insignia reconoce que has asumido tu primera misión mayor: la actividad didáctica con imagen de IA."},
  "E3_vaeon":{"nombre":"General Vaeon · Señor de la Estática","tipo":"Insignia de villano","como":"Saliendo del Escape UNI, el reto secreto (S7): el botón del final del escape registra el reto. Su puerta está en la Nave, y también escondida en la presentación del planeta Vínculo.","cuando":"Tema 7 · Vínculo","tarea":"Vaeon es el antagonista: personifica los errores del diseño educativo (contenido que no se entiende, recursos que no llegan, saber no compartido). Su insignia no se anuncia: se encuentra. Coleccionar su carta es el trofeo de haber entendido al enemigo."},
- # Retos (Reto B)
- "R1_la-chispa":{"nombre":"La chispa","tipo":"Insignia de reto","como":"Completando el reto relámpago L1 del Tema 1.","cuando":"Tema 1 · Fôrge","tarea":"Genera con una IA una imagen con finalidad didáctica: prompt estructurado (contexto + tipo de imagen + finalidad), al menos una iteración, selección final con tu criterio docente y evidencia del proceso. Es el núcleo de la Actividad 1."},
- "R2_el-eco-que-ensena":{"nombre":"El eco que enseña","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 2.","cuando":"Tema 2 · Ecos","tarea":"Crea un videotutorial de calidad (guion + grabación de pantalla + edición) y enriquécelo con 2–3 preguntas insertadas (videoquiz). Piénsalo para aula invertida y súbelo a la Bitácora con una reflexión breve."},
- "R3_la-matriz":{"nombre":"La matriz","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 3.","cuando":"Tema 3 · Sendara","tarea":"Construye la matriz de programación 8×6 (8 inteligencias múltiples × 6 niveles de Bloom = 48 casillas) y rellena al menos 6 cruces variados, con una actividad en cada uno. Es el núcleo de planificación de la Actividad 2."},
- "R4_entorno-de-aula":{"nombre":"El entorno de aula","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 4.","cuando":"Tema 4 · Reliae","tarea":"Monta un espacio digital de aula organizado (tipo Classroom, Sites, Moodle…) donde compartas materiales y puedas dar feedback y comunicarte en diferido y en directo. Deja enlace/captura + reflexión en la Bitácora."},
- "R5_bitacora-medida":{"nombre":"La Bitácora medida","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 5.","cuando":"Tema 5 · Umbral","tarea":"Diseña una rúbrica digital sencilla y estructura formalmente tu ePortfolio (una sección por evidencia, con el patrón evidencia → contexto → reflexión → autoevaluación). Esta semana además se cierra la Actividad 1."},
- "R6_el-juego":{"nombre":"El juego","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 6.","cuando":"Tema 6 · Ludo","tarea":"Adapta o crea un juego digital educativo para un objetivo concreto de tu aula. En Aprendizaje Basado en el Juego el juego ES la actividad: cada mecánica debe servir a un aprendizaje. Sube el juego + reflexión."},
- "R7_microgamificacion":{"nombre":"La microgamificación","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 7.","cuando":"Tema 7 · Vínculo","tarea":"Diseña una microgamificación de calidad: un toque de juego sobre una tarea que NO es un juego (una insignia, una barra de progreso, un tablero, un reto con narrativa). Aquí no se juega: se toman elementos del juego para enganchar."},
- "R8_ultimo-umbral":{"nombre":"El último umbral","tipo":"Insignia de reto","como":"Completando el Reto B del Tema 8.","cuando":"Tema 8 · Liminar","tarea":"Crea una experiencia de Realidad Aumentada o Virtual para tu materia y termina y publica la Bitácora (paisaje como imagen interactiva + las 5 páginas completas + enlace único). Resuelve la Actividad 2."},
+ # Retos (el reto principal de cada tema; 23-sep)
+ "R1_la-chispa":{"nombre":"La chispa","tipo":"Insignia de reto","como":"Completando el relámpago del Tema 1: «Del boceto a la forja» (con la de Bran).","cuando":"Tema 1 · Fôrge","tarea":"Genera con una IA una imagen con finalidad didáctica: prompt estructurado (contexto + tipo de imagen + finalidad), al menos una iteración, selección final con tu criterio docente y evidencia del proceso. Es el núcleo de la Actividad 1."},
+ "R2_el-eco-que-ensena":{"nombre":"El eco que enseña","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 2.","cuando":"Tema 2 · Ecos","tarea":"Crea un videotutorial de calidad (guion + grabación de pantalla + edición) y enriquécelo con 2–3 preguntas insertadas (videoquiz). Piénsalo para aula invertida y súbelo a la Bitácora con una reflexión breve."},
+ "R3_la-matriz":{"nombre":"El itinerario","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 3.","cuando":"Tema 3 · Sendara","tarea":"Construye la matriz de programación 8×6 (8 inteligencias múltiples × 6 niveles de Bloom = 48 casillas) y rellena al menos 6 cruces variados, con una actividad en cada uno. Es el núcleo de planificación de la Actividad 2."},
+ "R4_entorno-de-aula":{"nombre":"El entorno de aula","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 4.","cuando":"Tema 4 · Reliae","tarea":"Monta un espacio digital de aula organizado (tipo Classroom, Sites, Moodle…) donde compartas materiales y puedas dar feedback y comunicarte en diferido y en directo. Deja enlace/captura + reflexión en la Bitácora."},
+ "R5_bitacora-medida":{"nombre":"La Bitácora medida","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 5.","cuando":"Tema 5 · Umbral","tarea":"Diseña una rúbrica digital sencilla y estructura formalmente tu ePortfolio (una sección por evidencia, con el patrón evidencia → contexto → reflexión → autoevaluación). Esta semana además se cierra la Actividad 1."},
+ "R6_el-juego":{"nombre":"El juego","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 6.","cuando":"Tema 6 · Ludo","tarea":"Adapta o crea un juego digital educativo para un objetivo concreto de tu aula. En Aprendizaje Basado en el Juego el juego ES la actividad: cada mecánica debe servir a un aprendizaje. Sube el juego + reflexión."},
+ "R7_microgamificacion":{"nombre":"La microgamificación","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 7.","cuando":"Tema 7 · Vínculo","tarea":"Diseña una microgamificación de calidad: un toque de juego sobre una tarea que NO es un juego (una insignia, una barra de progreso, un tablero, un reto con narrativa). Aquí no se juega: se toman elementos del juego para enganchar."},
+ "R8_ultimo-umbral":{"nombre":"El último umbral","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 8.","cuando":"Tema 8 · Liminar","tarea":"Crea una experiencia de Realidad Aumentada o Virtual para tu materia y termina y publica la Bitácora (paisaje como imagen interactiva + las 5 páginas completas + enlace único). Resuelve la Actividad 2."},
  # Hitos
  "H1_reclutamiento":{"nombre":"Reclutamiento","tipo":"Insignia de hito","como":"Se entrega en la primera sesión, cuando el recluta se presenta ante el mando.","cuando":"Semana 1","tarea":"Aceptas la misión: te alistas en el equipo de rescate de STARGATE y abres tu Bitácora Estelar."},
  "H2_primera-forja":{"nombre":"Primera Forja","tipo":"Insignia de hito","como":"Se entrega con la Actividad 1.","cuando":"Temas 1–2","tarea":"Tu primera obra queda registrada en la Bitácora: la actividad didáctica creada a partir de una imagen con IA."},
@@ -2002,15 +2020,19 @@ window.SG.foroParrafos = function (t, op) {
  * la versión recortada del borrador. Uno solo para las tres cartas que firma: la diapositiva «El mensaje», la orden de la
  * semana del recluta y la carta del foro de la Nave del Comandante. Y UN emblema (antes salía el del escuadrón dos veces).
  *
- * El retrato es el recorte sin fondo de su comandante (assets/img/avatares/comandantes/recorte/<clave>.png, los 26
- * recortados en local). La clave la guarda el grupo en `stargate.avatares[nombre]` —la ficha del docente solo la lee él,
+ * El retrato es el recorte sin fondo de su comandante (🔴 23-sep · en alta: assets/img/avatares/comandantes/recorte_hd/<clave>.webp,
+ * sacados de los originales de Magnific; los ocho primeros, ampliados). Carpeta nueva a propósito: el CDN guarda 7 días. La clave la guarda el grupo en `stargate.avatares[nombre]` —la ficha del docente solo la lee él,
  * y su alumnado también tiene que verle—.
  * 🔴 23-sep · Sin comandante elegido, el c1: el mismo que ve ese docente en su Nave del Comandante. NUNCA el Capitán:
  * Norberto, «Capitán de la Nave (es nuestro personaje), Comandante STARGATE (el docente de cada grupo)».
  *   o: { nombre, avatar (cN), escuadron, emblema, grupo, clase: '' | 'grande' | 'carta' }
  */
 window.SG.avatarComandante = function (clave) {
-  return 'assets/img/avatares/comandantes/recorte/' + (String(clave || '').replace(/[^\w-]/g, '') || 'c1') + '.png';
+  return window.SG.comandanteHd(clave);
+};
+/** 23-sep · el retrato CON fondo (la galería del lápiz, tu ficha, la Nave del Comandante): 480 px, carpeta nueva. */
+window.SG.avatarRetrato = function (clave) {
+  return 'assets/img/avatares/comandantes/retrato/' + (String(clave || '').replace(/[^\w-]/g, '') || 'c1') + '.jpg';
 };
 /**
  * 🔴 23-sep · LA FIRMA DE LOS MENSAJES, EN UN SITIO. Los del foro acaban en «— Tu Comandante» (antes «— Capitán», que
@@ -2022,6 +2044,20 @@ window.SG.firmaComandante = function (txt, nombre) {
   var n = String(nombre || '').trim(); txt = String(txt == null ? '' : txt);
   if (!n) return txt;
   return txt.replace(/—\s*(?:Tu\s+Comandante|Capit[áa]n)\b/g, '— ' + (/^comandante\b/i.test(n) ? n : 'Comandante ' + n));
+};
+/**
+ * 🔴 23-sep · EL COMANDANTE DE CUERPO ENTERO. Norberto: «generar una imagen de cada comandante de cuerpo completo con 3
+ * poses para usarlo de forma recurrente en las sesiones en vivo: una con cara de duda cuando lanzamos la pregunta, otra con
+ * cara de desafío con los retos y otra saludando». Tres poses por comandante (Magnific, una lámina por comandante y cortada
+ * en local): `duda` (la pregunta de la clase), `reto` (los retos de la semana) y `saludo` (la portada y la despedida).
+ * Si una pose faltara, la imagen cae sola al retrato en alta (recorte_hd) con su `onerror`.
+ */
+window.SG.comandanteCuerpo = function (clave, pose) {
+  var k = String(clave || '').replace(/[^\w-]/g, '') || 'c1';
+  return 'assets/img/avatares/comandantes/cuerpo/' + k + '_' + String(pose || 'saludo').replace(/[^a-z]/g, '') + '.webp';
+};
+window.SG.comandanteHd = function (clave) {
+  return 'assets/img/avatares/comandantes/recorte_hd/' + (String(clave || '').replace(/[^\w-]/g, '') || 'c1') + '.webp';
 };
 window.SG.rotulo = function (o) {
   o = o || {};
@@ -2039,7 +2075,7 @@ window.SG.rotulo = function (o) {
 window.SG.CFGSESION = (function () {
   function e(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function ico(k, grande){ return '<img class="ico'+(grande?' grande':'')+'" src="assets/img/iconos/'+(grande?'':'p/')+k+'.png" alt="" width="20" height="20">'; }
-  var SIN_CAPTURA = { simulador: ["diana", "Sale cuando alguien ha jugado al Simulador"], votacion: ["rayo", "Sale si hay una votación esta semana"],
+  var SIN_CAPTURA = { pregunta: ["pregunta", "Sale en las clases que tienen pregunta en el calendario oficial"], simulador: ["diana", "Sale cuando alguien ha jugado al Simulador"], votacion: ["rayo", "Sale si hay una votación esta semana"],
                       oferta: ["monedas", "Sale si hay oferta en el Mercado"], unete: ["gente", "Sale en las semanas 1 y 2: el código y la invitación"] };
   function casillas(off) {
     var hay = window.SG_CAPTURAS_SESION || [];
@@ -2440,12 +2476,12 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
    {p:'consola.html',sel:'.c-resumen',listo:'.cn-secs',espera:1,si:1,pose:'brazos',t:'Cómo va tu grupo',x:'Los <b>aros</b> se llenan con el porcentaje; pasa el ratón por encima y te dan la cuenta exacta. Al lado, <b>NEBULA</b>: púlsala y se abre con lo que conviene hacer esta semana. Debajo, <b>quién destaca</b>, con su cara y qué ha hecho — listo para nombrarlos en voz alta.'},
    {p:'consola.html',sel:'.pt-hoy',listo:'.cn-secs',espera:1,si:1,pose:'senala',t:'Hoy toca',x:'Lo de esta semana: el planeta, el calendario con las entregas, los vídeos (se ven aquí mismo, sin salir a YouTube) y <b>todos los retos del tema</b> — los que todavía no están abiertos salen en gris, diciendo en qué semana se desbloquean.'},
    {p:'consola.html',sel:'#ht-foro',listo:'.cn-secs',espera:1,si:1,pose:'pensativo',t:'El mensaje del foro, firmado por ti',x:'Una carta oficial, con la cabecera de STARGATE y, al pie, <b>tu avatar, tu nombre y tu sello</b>. <b>Copiar</b>, y a pegarlo en el foro de la plataforma de UNIR. Con <b>Editar</b> escribes tu versión: se guarda en tu ficha, así que vale para todos tus grupos — también para los que crees más adelante.'},
-   {p:'consola.html',sel:'.ht-retos',listo:'.cn-secs',espera:1,si:1,pose:'senala',t:'Los retos de este tema',x:'Aquí, <b>todos los retos del tema</b> con cuántos los han hecho: el <b>Reto A</b> recupera a un tripulante, el <b>Reto B</b> deja una evidencia en la Bitácora y el <b>relámpago</b> se hace en clase, en quince minutos. Los que aún no se han abierto salen <b>en gris</b>, con su semana. Tu alumnado los registra solo; tú <b>no validas nada</b>: si dudas de una entrega, abres su enlace desde la ficha del recluta y la anulas con un motivo.'},
+   {p:'consola.html',sel:'.ht-retos',listo:'.cn-secs',espera:1,si:1,pose:'senala',t:'Los retos de este tema',x:'Aquí, <b>todos los retos del tema</b> con cuántos los han hecho: el <b>relámpago</b>, en clase y en quince minutos, recupera a un tripulante; el <b>reto principal</b> deja una evidencia en la Bitácora. Los que aún no se han abierto salen <b>en gris</b>, con su semana. Tu alumnado los registra solo; tú <b>no validas nada</b>: si dudas de una entrega, abres su enlace desde la ficha del recluta y la anulas con un motivo.'},
    {p:'consola.html',sel:'.pt-tk',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Los tickets de salida',x:'Lo que escribió tu escuadrón al cerrar el tema: cada pregunta con su reparto de notas, y sus comentarios. Sale el <b>último tema cerrado</b>, y el desplegable abre los anteriores. Tú decides qué se lee en clase: lo que <b>fijes</b> sale seguro, lo que <b>ocultes</b> no sale, y del resto salen los que quepan en la diapositiva.'},
    {p:'consola.html',sel:'.lnk.solo-referente',listo:'.cn-secs',espera:1,si:1,soloRef:1,pose:'senala',t:'Como referente',x:'Crear un grupo, el equipo docente, los escuadrones, los ajustes y el calendario, mover reclutas, graduar y borrar: en <b>Gestionar grupos</b>, aquí arriba. Lo que se hace una o dos veces por curso, fuera de tu Nave.'},
    {p:'consola.html',sel:'.lnk[href="guia.html"]',listo:'.cn-secs',espera:1,pose:'brazos',t:'Ahora nos vamos a la Guía',x:'Hasta aquí, <b>tu Nave</b>: lo de tu grupo. Lo que viene está en la <b>Guía</b>, este enlace de arriba, y es <b>común a todos los grupos</b>: la base del proyecto —la historia, los retos, el calendario de las 15 semanas y la evaluación—. Pulsa <b>Siguiente</b> y te llevo; al acabar vuelves aquí solo.'},
-   {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'Ya estás en la <b>Guía</b>. <b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase. Quien completa la misión de un tripulante <b>desbloquea su fragmento de vídeo</b>, y solo quien la completa lo ve: se coleccionan en <b>El Archivo</b> de su Nave.'},
-   {p:'guia.html',sel:'#retos',pose:'tablet',t:'Tres retos por tema',x:'El <b>Reto A</b> da la <b>insignia</b> del personaje: no cuenta para nota, aunque da 100 xp y __CRED_A__ ◈. El <b>Reto B</b> produce una evidencia real de la Bitácora (250 xp y __CRED_B__ ◈) y <b>pide su enlace</b>. Los <b>xp</b> suben de nivel y nunca se gastan; los <b>créditos ◈</b> son lo que se canjea. Y el <b>relámpago</b>, que se hace en clase. Nadie registra más de __TOPE__ retos por semana.'},
+   {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'Ya estás en la <b>Guía</b>. <b>NEBULA</b> narra, <b>yo</b> doy las órdenes de cada misión, <b>tú</b> eres el Comandante de tu grupo y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase. Quien hace el relámpago de un tripulante <b>desbloquea su fragmento de vídeo</b> antes que nadie: se coleccionan en <b>El Archivo</b> de su Nave.'},
+   {p:'guia.html',sel:'#retos',pose:'tablet',t:'Dos retos por tema',x:'Los dos prácticos. El <b>relámpago</b>, en clase, recupera al tripulante y da su <b>insignia</b>: no cuenta para nota, aunque da 100 xp y __CRED_A__ ◈. El <b>reto principal</b>, en casa, es la experiencia del portfolio del tema (250 xp y __CRED_B__ ◈) y <b>pide su enlace</b>. Los <b>xp</b> suben de nivel y nunca se gastan; los <b>créditos ◈</b> son lo que se canjea. Nadie registra más de __TOPE__ retos por semana.'},
    {p:'cronologia.html',sel:'#mapa',pose:'senala',t:'Tu carta de navegación',x:'El mapa de las <b>15 semanas</b>: qué vídeo proyectar, qué reto lanzar, qué insignia entregar y el hito de evaluación. Sin fechas: semanas, como tu aula.'},
    {p:'cronologia.html',sel:'#sem1',pose:'pensativo',t:'La orden del día',x:'Despliega una semana y tendrás la orden completa, con los vídeos reproducibles aquí mismo y el <b>mensaje para el foro de la plataforma de UNIR</b> (aquí va sin firmar; el tuyo, firmado, está en tu Nave). Tu alumnado ya ve su parte solo, en su Nave.'},
    {p:'actividades.html',sel:'#act1',pose:'pensativo',t:'Misiones y evaluación',x:'Las dos misiones mayores, el ePortfolio y el examen con los <b>requisitos oficiales</b>, más los documentos para descargar.'}
@@ -2651,7 +2687,7 @@ def _js_valido(nombre, codigo):
 _js_valido("stargate.js", js)
 open(os.path.join(HERE,"assets","js","stargate.js"),"w",encoding="utf-8").write(js)
 open(os.path.join(HERE,"assets","js","tour.js"),"w",encoding="utf-8").write(
-  TOUR_JS.replace("__CRED_A__", str(CREDITOS["retoA"])).replace("__CRED_B__", str(CREDITOS["retoB"]))
+  TOUR_JS.replace("__CRED_A__", str(CREDITOS["relampago"])).replace("__CRED_B__", str(CREDITOS["retoB"]))
          .replace("__TOPE__", str(TOPE_RETOS_SEMANA)))
 
 # 🔴 Y TODOS los .js del sitio, no solo los generados aquí. El 27-ago se desplegó un `recluta.js`
@@ -3068,13 +3104,29 @@ _RETOS_NAVE = {"REGULAR": _catalogo_retos("RETOS_REGULAR"), "PUA": _catalogo_ret
 # 17-sep · a la Nave solo le hace falta saber QUÉ retos tienen ejemplo y su título: el ejemplo entero (texto, capturas,
 # tablas) va en ejemplo.html, que se abre en otra pestaña. S7 nunca (es secreto).
 _EJ_NAVE = {k: {"titulo": v.get("titulo", "")} for k, v in EJEMPLOS_RETOS.items() if k != "S7" and (v.get("texto") or v.get("enlace"))}
-_a0 = _datos_src.index("var AYUDA_RETOS = "); _b0 = _datos_src.index(";\n// AYUDA-FIN", _a0)
-_AYUDA_NAVE = json.loads(_datos_src[_a0 + len("var AYUDA_RETOS = "):_b0])
+# 🔴 23-sep · La explicación de cada reto se CALCULA desde el documento maestro (y no se lee del bloque AYUDA_RETOS de
+# Datos.gs, que esta misma construcción reescribe MÁS ABAJO): leída de ahí, la primera construcción tras cambiar un reto
+# servía el texto viejo. La misma función la usa la reescritura de Datos.gs: un cálculo, dos usos.
+def _ayuda_de_gs(src):
+    def _retos(nombre):
+        a = src.index("var %s = [" % nombre); b = src.index("\n];", a)
+        return _re.findall(r'\["([A-Z0-9]+)","([^"]*)"', src[a:b])
+    ay, sin = dict(AYUDA_RETOS), []          # X1, X2, XS, S7 y A0: no están en el documento
+    for nom in ("RETOS_REGULAR", "RETOS_PUA"):
+        for rid, et in _retos(nom):
+            if rid in ay: continue
+            # el nombre del reto va entre comillas angulares: se coge el más largo que encaje («El juego» ≠ «El juego digital»)
+            cand = sorted([k for k in _AYUDA_DOC if k in et], key=len, reverse=True)
+            if cand: ay[rid] = _AYUDA_DOC[cand[0]]
+            else: sin.append("%s · %s" % (rid, et))
+    return ay, sin
+_AYUDA_NAVE = _ayuda_de_gs(_datos_src)[0]
 # 19 = A1-A8 + B1-B8 + X1 + X2 + XF (los PUA reutilizan los mismos ids)
 assert len(_AYUDA_NAVE) >= 19, "AYUDA_RETOS de Datos.gs se ha quedado corta (%d)" % len(_AYUDA_NAVE)
 
-RETOS_REGULAR=[("A0","Reto «Preséntate a tu tripulación»"),("A1","Reto A «El boceto sin quemar» (Bran)"),("B1","Reto B «La Bitácora en marcha»"),("X1","Actividad 1 entregada"),("A2","Reto A «Un mensaje para quien faltó» (Tomás)"),("B2","Reto B «El eco que enseña»"),("A3","Reto A «Dos senderos» (Sylla)"),("B3","Reto B «La matriz»"),("X2","Actividad 2 entregada"),("A4","Reto A «Abre el canal» (Amara)"),("B4","Reto B «El entorno de aula»"),("A5","Reto A «Mide con método» (Vera)"),("B5","Reto B «La Bitácora medida»"),("A6","Reto A «El Simulador de Joran» (Joran)"),("B6","Reto B «El juego»"),("A7","Reto A «Un porqué» (Mara)"),("B7","Reto B «La microgamificación»"),("A8","Reto A «La capa posible» (Noa)"),("B8","Reto B «El último umbral»"),("S7","Reto secreto «El Escape UNI»"),("L1","Reto relámpago «La chispa y la marca»"),("L2","Reto relámpago «Módulo 1 y módulo 2»"),("L3","Reto relámpago «Cinco líneas que explican»"),("L4","Reto relámpago «Enlace en incógnito»"),("L5","Reto relámpago «Tres preguntas»"),("L6","Reto relámpago «Las diez líneas»"),("L7","Reto relámpago «El marcador»"),("L8","Reto relámpago «El QR»"),("XS","Reto «El simulacro del examen»")]
-RETOS_PUA=[("A0","Reto «Preséntate a tu tripulación»"),("B1","La Bitácora en marcha (Bran)"),("X1","Actividad 1 entregada"),("B2","El eco que enseña (Tomás)"),("B3","La matriz (Sylla)"),("X2","Actividad 2 entregada"),("B4","El entorno de aula (Amara)"),("B5","La Bitácora medida (Vera)"),("B6","El juego (Joran)"),("B7","La microgamificación (Mara)"),("B8","El último umbral (Noa)")]
+RETOS_REGULAR=[("A0","Reto «Preséntate a tu tripulación»"),("L0","Reto relámpago «La hoja de ruta»"),("L1","Reto relámpago «Del boceto a la forja» (recupera a Bran)"),("B1","Reto principal «La Bitácora en marcha»"),("X1","Actividad 1 entregada"),("L2","Reto relámpago «Un mensaje para quien faltó» (recupera a Tomás)"),("B2","Reto principal «El eco que enseña»"),("L3","Reto relámpago «Dos senderos» (recupera a Sylla)"),("B3","Reto principal «El itinerario»"),("X2","Actividad 2 entregada"),("L4","Reto relámpago «Abre el canal» (recupera a Amara)"),("B4","Reto principal «El entorno de aula»"),("L5","Reto relámpago «Mide con método» (recupera a Vera)"),("B5","Reto principal «Tu centro de recursos»"),("L6","Reto relámpago «Encuentra el juego» (recupera a Joran)"),("B6","Reto principal «El juego»"),("L7","Reto relámpago «Un porqué» (recupera a Mara)"),("B7","Reto principal «La microgamificación»"),("S7","Reto secreto «El Escape UNI»"),("L8","Reto relámpago «El QR» (recupera a Noa)"),("B8","Reto principal «El último umbral»"),("XS","Reto «El simulacro del examen»")]
+# 23-sep · PUA lleva los mismos retos que REGULAR (el viaje es más corto; el reto principal vale algo más)
+RETOS_PUA=list(RETOS_REGULAR)
 """
 🔴 20-sep · LOS FRAGMENTOS SE GANAN. Norberto: «cuando completen la misión que corresponde a un personaje, además de
 ganar la insignia o el premio, desbloqueen el vídeo, el fragmento de ese personaje… los que no la completan lo tendrán
@@ -3083,7 +3135,7 @@ día. Así todos lo verán, pero los que completen la misión lo verán antes».
 
 De dónde sale cada cosa, sin escribir nada dos veces:
  · el fragmento y su personaje, del título del vídeo del CRONO («Fragmento 6 · Joran Pike»);
- · el reto que lo recupera, del título del reto («Reto A … (recupera a Joran)» → A6);
+ · el reto que lo recupera, del título del reto («Reto relámpago … (recupera a Joran)» → L6; hasta el 23-sep, los A);
  · la semana en que se abre para todos, del calendario: el FINAL del tema siguiente al suyo.
 Si algún día se renombra un personaje en un sitio y no en el otro, el build lo canta (assert de abajo).
 """
@@ -3134,7 +3186,9 @@ SEMANAS_JSON = json.dumps([{
   "lanza": s["lanza"], "insignias": s["insignias"], "foro": FORO.get(s["sem"], ""), "hito": s["hito"],
   # v3.60 · el consejo y las clases ya vivian en el CRONO pero no viajaban al navegador: los necesita
   # la sala de sesion (sesion.html) para la tira de preparacion del docente.
-  "consejo": s.get("consejo", ""), "clases": s.get("clases", "")} for s in CRONO], ensure_ascii=False)
+  "consejo": s.get("consejo", ""), "clases": s.get("clases", ""),
+  # 23-sep · la pregunta de cada clase (calendario oficial): abre la sesión con el comandante del docente
+  "preguntas": [list(q) for q in s.get("preguntas", [])]} for s in CRONO], ensure_ascii=False)
 
 """
 18-sep · EN QUÉ SEMANA SE LANZA CADA RETO. Norberto: «organiza el despliegue de los retos… si un reto no se ha
@@ -3674,20 +3728,7 @@ _gs = _sustituir(_gs, "var BONUS_PLANETA = ", ";\n// BONUS-FIN",
 # El texto de cada reto sale del documento maestro (_AYUDA_DOC, por nombre); aquí se empareja con su
 # id leyendo las etiquetas de RETOS_REGULAR/RETOS_PUA, que viven en Code.gs. Así el dato tiene UN solo
 # origen y el emparejamiento tampoco se escribe a mano.
-def _retos_del_gs(nombre):
-    a = _gs.index("var %s = [" % nombre); b = _gs.index("\n];", a)
-    return _re.findall(r'\["([A-Z0-9]+)","([^"]*)"', _gs[a:b])
-
-_ayuda = dict(AYUDA_RETOS)          # X1, X2 y XF: no están en el documento
-_sin = []
-for _nom in ("RETOS_REGULAR", "RETOS_PUA"):
-    for _rid, _et in _retos_del_gs(_nom):
-        if _rid in _ayuda: continue
-        # el nombre del reto va entre comillas angulares (REGULAR) o suelto dentro de la etiqueta (PUA):
-        # se coge el más largo que encaje, para que «El juego» no gane a «El juego digital»
-        _cand = sorted([k for k in _AYUDA_DOC if k in _et], key=len, reverse=True)
-        if _cand: _ayuda[_rid] = _AYUDA_DOC[_cand[0]]
-        else: _sin.append("%s · %s" % (_rid, _et))
+_ayuda, _sin = _ayuda_de_gs(_gs)
 if _sin:
     raise SystemExit("🔴 Estos retos se quedarían SIN explicación en el formulario, y eso es justo lo "
                      "que genera los correos al profesorado:\n   " + "\n   ".join(_sin))
@@ -3966,8 +4007,8 @@ def _v(rel):
     return rel + "?v=" + _ver(rel)
 
 def _comandantes_genericos():
-    """Claves de los comandantes genéricos (c1.jpg, c2.jpg…), en orden numérico, sacadas de la carpeta."""
-    d = os.path.join(HERE, "assets/img/avatares/comandantes")
+    """Claves de los comandantes genéricos (c1.jpg, c2.jpg…), en orden numérico, sacadas de la carpeta (23-sep: retrato/)."""
+    d = os.path.join(HERE, "assets/img/avatares/comandantes/retrato")
     ks = [f[:-4] for f in os.listdir(d) if _re.match(r"^c\d+\.jpg$", f)]
     return sorted(ks, key=lambda k: int(k[1:]))
 
@@ -4216,15 +4257,14 @@ _PE = [
  ]),
  ("7 · Como estudiante (con tu otra cuenta)", [
    ("En otra ventana, con la otra cuenta, entra por la <a href='index.html'>portada</a> y escribe el código de tu grupo.", "Te alistas en un minuto (alias y Comandante) y NEBULA te enseña la Nave."),
-   ("«Mis retos»: busca el <b>Reto B de la semana 1</b>, «La Bitácora en marcha».",
-    "El curso entero termina en un ePortfolio y se empieza por él: crearlo, publicar su <b>primera entrada</b> (la presentación) y pegar el enlace <b>aquí y en tu BIO</b>. No hace falta enseñar la plataforma en clase: el alumnado ya trae el curso de competencia digital A1-A2."),
+   ("«Mis retos»: busca el <b>reto principal de Fôrge</b>, «La Bitácora en marcha».",
+    "El curso entero termina en un ePortfolio y se empieza por él: crearlo, publicar su <b>primera experiencia</b> (los recursos creados con IA) y pegar el enlace <b>aquí y en tu BIO</b>. No hace falta enseñar la plataforma en clase: el alumnado ya trae el curso de competencia digital A1-A2."),
    ("Busca un reto con el sello <b>«<img class=ico src=assets/img/iconos/p/rayo.png alt> En clase · 10-15 min»</b>.",
-    "Son los <b>relámpago</b>: ocho píldoras de diez o quince minutos pensadas para hacerse <b>en clase</b>, con el cronómetro del aula proyectado — quien viene, sale con el reto hecho (y quien no pudo venir lo tiene abierto igual). Cada uno entrena un gesto que el examen da por sabido: el logo con la palabra clave, repartir una sesión en dos módulos, explicar un concepto en cinco líneas, comprobar el enlace en incógnito… Con cinco de los ocho se gana la insignia «Mano rápida»."),
+    "Son los <b>relámpago</b>: uno por tema (dos en Fôrge), de quince minutos, para hacerse <b>en clase</b> con el cronómetro del aula proyectado — quien viene, sale con el reto hecho, y quien no pudo venir lo hace esa semana. Cada uno nace de la pregunta de su clase, <b>recupera al tripulante</b> del planeta y deja un trozo para la actividad: una imagen con IA, un QR, un juego encontrado… Con cinco de los ocho planetas se gana la insignia «Mano rápida»."),
    ("«Mis retos»: despliega un reto y márcalo.", "La misma tarjeta que la de la semana, con su insignia. Casi todos piden el <b>enlace</b> (hay un «+» para un segundo); sin él, no se registra. Algunos traen «<img class=ico src=assets/img/iconos/p/estrella.png alt> Ver un ejemplo»."),
-   ("Busca un reto <b>con reflexión</b> (A1, B6…).", "Se responde en una <b>caja grande</b> en el propio reto (con un mínimo de letras). Hecho, «<img class=ico src=assets/img/iconos/p/mensaje.png alt> Lo que ha escrito tu tripulación»: las de los demás, con su enlace, y se pueden comentar."),
    ("«Mi botín».", "Tus insignias, por planetas: el tripulante y el reto de cada tema."),
    ("«Mi botín» → «<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Logros de a bordo</b>» (en el grupo de prueba ya están; en uno nuevo, desde la semana 9).", "Lo que ya has hecho, con su fecha, y lo que falta con «Ir». Registra un reto o compra un sobre: NEBULA lo celebra al momento. Al completar una cubierta llega su premio, y con las cinco, el <b>Contramaestre</b>: un héroe legendario y una carta con tu alias."),
-   ("El reto <b>A6</b>: pulsa «<img class=ico src=assets/img/iconos/p/diana.png alt> Enfréntate al Simulador de Joran».", "Es una <b>batalla de preguntas</b> contra RUTA AZUL: aciertas y golpeas, fallas y pierdes tiempo (y Joran te corrige). Si le ganas, se registra el reto solo, te llevas su insignia y el <b>Simulador</b> se queda en tu Nave para repasar tema a tema, con su ranking. Si pierdes, cada derrota lo cansa."),
+   ("El <b>Simulador de Joran</b>: pulsa «<img class=ico src=assets/img/iconos/p/diana.png alt> Enfréntate al Simulador de Joran» (se abre con el planeta Ludo).", "Es una <b>batalla de preguntas</b> contra RUTA AZUL, para repasar jugando: aciertas y golpeas, fallas y pierdes tiempo (y Joran te corrige). Si le ganas, el entrenamiento se queda en tu Nave para repasar tema a tema, con su ranking. No es un reto: no da insignia ni cuenta para nada más que para aprender. Si pierdes, cada derrota lo cansa."),
    ("Y con tu cuenta de docente, abre <code>batalla.html?ensayo=1</code> de tu grupo.", "Lo mismo en <b>modo ensayo</b>, para enseñarlo en clase sin que cuente."),
    ("Al acabar el viaje (última semana), en la Nave sale «<img class=ico src=assets/img/iconos/p/libro.png alt> Tu diploma».", "Con tu alias, tu nombre, tus insignias y tus cifras, firmado por tu Comandante. Se descarga o se imprime.")
  ]),

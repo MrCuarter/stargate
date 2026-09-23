@@ -22,9 +22,10 @@ const FR = JSON.parse((H.match(/window\.SG_FRAGMENTOS=(\[[\s\S]*?\]);window\./) 
 c(/def _fragmentos\(\)/.test(B) && /Fragmento\\\\s\*\(\\\\d\+\)/.test(B) === false, "🔴 los fragmentos se derivan en el build (no hay lista escrita a mano)");
 c(FR.length >= 9, "los nueve fragmentos llegan a la Nave", FR.length);
 c(FR.every(f => f.id && f.titulo && f.personaje && Number(f.sem) > 0 && Number(f.publica) > 0), "cada uno con su vídeo, su personaje, su semana y cuándo se abre para todos");
-igual(FR.filter(f => f.reto).map(f => f.reto), ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"], "🔴 cada fragmento va con el reto que recupera a ese personaje");
+// 23-sep · a los personajes los recupera el relámpago de su tema (L1–L8): los A ya no existen
+igual(FR.filter(f => f.reto).map(f => f.reto), ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8"], "🔴 cada fragmento va con el reto que recupera a ese personaje");
 const f6 = FR.filter(f => f.n === 6)[0] || {};
-c(f6.reto === "A6" && Number(f6.sem) === 10 && Number(f6.publica) === 12,
+c(f6.reto === "L6" && Number(f6.sem) === 10 && Number(f6.publica) === 12,
   "🔴 el del tema 6 (semana 10) se abre para todos al acabar el tema 7 (semana 12)", JSON.stringify(f6));
 c(FR.every(f => Number(f.publica) >= Number(f.sem)), "   y ninguno se abre antes de existir");
 

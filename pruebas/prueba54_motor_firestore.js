@@ -32,9 +32,9 @@ const cat = catalogo();
 // Tres reclutas con historias distintas a propósito: una que va lanzada, otro que se alistó y
 // desapareció, y una tercera que empató en xp para que el desempate se note.
 const GENTE = [
-  { email: "ana@alumno.es",  alias: "Ana",  nombre: "Ana Ruiz",   retos: ["A0", "A1", "B1", "X1"] },
+  { email: "ana@alumno.es",  alias: "Ana",  nombre: "Ana Ruiz",   retos: ["A0", "L1", "B1", "X1"] },
   { email: "luis@alumno.es", alias: "Luis", nombre: "Luis Paz",   retos: ["A0"] },
-  { email: "eva@alumno.es",  alias: "Eva",  nombre: "Eva Sol",    retos: ["A0", "A1", "B1", "X1"] }
+  { email: "eva@alumno.es",  alias: "Eva",  nombre: "Eva Sol",    retos: ["A0", "L1", "B1", "X1"] }
 ];
 const RETOS = G.RETOS_REGULAR;
 const etiqueta = id => RETOS.filter(r => r[0] === id)[0][1];
@@ -220,8 +220,8 @@ igual(pua.proyecto.stargate.semanas, cat.semanas.PUA, "un PUA dura las semanas d
 const arsPua = pua.recompensas.filter(r => r.stargateTipo === "nota")[0];
 c(arsPua.stargateSemana <= cat.semanas.PUA,
   "🔴 el Arsenal se abre DENTRO del curso corto (semana " + arsPua.stargateSemana + " de " + cat.semanas.PUA + ")");
-c(pua.proyecto.levelSystem[9].xpRequired < p.proyecto.levelSystem[9].xpRequired,
-  "y llegar a Leyenda cuesta menos xp en PUA, porque el viaje da menos");
+c(pua.proyecto.levelSystem[9].xpRequired === p.proyecto.levelSystem[9].xpRequired,
+  "y llegar a Leyenda cuesta lo mismo en PUA: mismos retos, mismo valor (desde el 23-sep)");
 
 // ------------------------------------------------------------------ i) los dos identificadores
 // 🔴 Esto casi se cuela en producción. Las colecciones de GamificaPro son comunes a todos los

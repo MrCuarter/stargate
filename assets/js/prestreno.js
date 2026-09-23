@@ -43,7 +43,7 @@
       .sort(function (a, b) { return Number(a[0][1]) - Number(b[0][1]); })
       .map(function (c) { return { n: Number(c[0][1]), clave: c[0], nombre: c[1] }; });
   }
-  /** El reto A de un tema (el que recupera al tripulante) y el B (el que deja evidencia). */
+  /** Los dos retos de un tema: el relámpago (L, recupera al tripulante) y el principal (B, la experiencia del portfolio). */
   function retosDe(tema) {
     var r = {};
     RETOS.forEach(function (x) {
@@ -52,7 +52,7 @@
       var m = String(id).match(/^([ABLX])(\d)$/); if (!m || Number(m[2]) !== tema) return;
       // el título ya viene entrecomillado y con el nombre del tripulante entre paréntesis: fuera los dos,
       // que el tripulante ya se dice arriba y las comillas las pone la frase
-      r[m[1]] = { id: id, titulo: String(tit).replace(/^Reto (relámpago |[AB] )?/, "").replace(/\s*\([^)]*\)\s*$/, "").trim() };
+      r[m[1]] = { id: id, titulo: String(tit).replace(/^Reto (relámpago |principal |[AB] )?/, "").replace(/\s*\([^)]*\)\s*$/, "").trim() };
     });
     return r;
   }
@@ -113,7 +113,7 @@
           // nombre: así te ve tu alumnado en el mensaje de cada semana y en su Nave.
           '<figure class="pr-c"><img src="assets/img/capitan/saluda.png" alt="">' +
             '<figcaption><b>Capitán de la Nave</b><span>El veterano al mando de La Constancia. Da las órdenes de cada misión en los vídeos y te guía en la visita de tu Nave.</span></figcaption></figure>' +
-          '<figure class="pr-c pr-cmd"><img src="assets/img/avatares/comandantes/recorte/c1.png" alt="">' +
+          '<figure class="pr-c pr-cmd"><img src="assets/img/avatares/comandantes/recorte_hd/c1.webp" alt="">' +
             '<figcaption><b>Comandante STARGATE · eres tú</b><span>Cada docente es el Comandante de su grupo: <b>eliges tu avatar</b> y tu nombre, firmas la orden de cada semana y entras por tu <b>Nave del Comandante</b>.</span></figcaption></figure>' +
         '</div>' +
       '</div>' };
@@ -131,7 +131,7 @@
         '<div class="kicker"><img class=ico src=assets/img/iconos/p/libro.png alt> El arma de esta guerra</div>' +
         '<h2>La Bitácora Estelar <u>es</u> el ePortfolio</h2>' +
         '<p class="sub">No es decorado sobre el temario: <b>es el temario</b>. La Estática no teme sus notas, teme su '
-        + 'archivo — y ese archivo es lo que se evalúa. Se abre el <b>primer día</b>, con el reto B de la semana 1, y '
+        + 'archivo — y ese archivo es lo que se evalúa. Se abre en la <b>semana 2</b>, con el reto principal de Fôrge, y '
         + 'se publica al final del viaje.</p>' +
         '<div class="pr-bit2">' +
           '<div class="pr-b-c"><b>Cada página, igual</b>' +
@@ -173,11 +173,10 @@
         '<h3>' + esc(p[1]) + '</h3>' +
         '<p>' + esc(s.sub || String(p[2] || "").replace(/^T\d+ · /, "")) + '</p>' +
         (T.nombre ? '<p class="pr-tripu"><img src="assets/img/tarjetas/' + esc(T.clave) + '_carta.png' + esc(window.SG_CARDV || "") + '" alt="" loading="lazy">' +
-          '<span>Aquí se quedó <b>' + esc(T.nombre) + '</b>. Quien completa el <b>reto A</b> lo recupera y desbloquea su fragmento de vídeo.</span></p>' : '') +
+          '<span>Aquí se quedó <b>' + esc(T.nombre) + '</b>. Quien hace el <b>relámpago</b> del tema, en clase, lo recupera y desbloquea su fragmento de vídeo.</span></p>' : '') +
         '<ul class="fc-ordenes">' +
-          (r.A ? '<li><b>Reto A</b> ' + esc(r.A.titulo) + ' — recupera al tripulante</li>' : '') +
-          (r.B ? '<li><b>Reto B</b> ' + esc(r.B.titulo) + ' — deja evidencia en la Bitácora</li>' : '') +
-          (r.L ? '<li><b>Relámpago</b> ' + esc(r.L.titulo) + ' — 15 minutos, en clase</li>' : '') +
+          (r.L ? '<li><b>Relámpago</b> ' + esc(r.L.titulo) + ' — en clase, recupera al tripulante</li>' : '') +
+          (r.B ? '<li><b>Reto principal</b> ' + esc(r.B.titulo) + ' — en casa, la experiencia del portfolio</li>' : '') +
         '</ul></div></div>';
   }
   function semanas() {
@@ -222,15 +221,15 @@
     return { rot: "Cómo se gana", html:
       '<div class="dia">' +
         '<div class="kicker">Las mecánicas, en una diapositiva</div>' +
-        '<h2>Dos monedas, tres retos y un tope</h2>' +
+        '<h2>Dos monedas, dos retos por tema y un tope</h2>' +
         '<div class="pr-dos">' +
           '<div class="pr-m pr-m-xp"><b>xp</b><span>Suben de nivel y <b>no se gastan nunca</b>. Marcan el rango y hacen evolucionar al personaje.</span></div>' +
           '<div class="pr-m pr-m-cred"><b>créditos ◈</b><span>Es lo que se canjea: cartas, héroes, adornos y —al final— subidas de nota.</span></div>' +
         '</div>' +
         '<div class="pr-tres">' +
-          '<div class="pr-t"><b>Reto A</b><span>recupera al tripulante · no cuenta para nota</span></div>' +
-          '<div class="pr-t"><b>Reto B</b><span>evidencia real de la Bitácora · <b>pide el enlace</b></span></div>' +
-          '<div class="pr-t"><b>Relámpago</b><span>15 minutos, en clase</span></div>' +
+          '<div class="pr-t"><b>Relámpago</b><span>15 minutos, en clase · recupera al tripulante</span></div>' +
+          '<div class="pr-t"><b>Reto principal</b><span>en casa · la experiencia del portfolio · <b>pide el enlace</b></span></div>' +
+          '<div class="pr-t"><b>20 retos</b><span>dos por tema (tres en Fôrge) y tres extras · nunca más de uno en casa por semana</span></div>' +
         '</div>' +
         '<p class="pr-cita">Nadie registra más de <b>' + (window.SG_TOPE_SEMANA || 3) + ' retos por semana</b>. No se puede hacer el curso en una tarde.</p>' +
       '</div>' };
@@ -277,7 +276,7 @@
   }
   var PREGUNTAS = [
     ["¿Esto me da más trabajo?", "Menos. No se apunta nada a mano y la sesión viene montada. Lo que sí pide son treinta segundos de ceremonia en clase: decir el alias en voz alta."],
-    ["¿Y si alguien hace trampas?", "El reto B pide el enlace, hay tope semanal y cada reto se puede anular con un motivo que le llega a su Nave. Y ninguna nota sube sin vuestro visto bueno."],
+    ["¿Y si alguien hace trampas?", "Todos los retos piden el enlace, hay tope semanal y cada reto se puede anular con un motivo que le llega a su Nave. Y ninguna nota sube sin vuestro visto bueno."],
     ["¿Los puntos son la nota?", "No. Los xp y los créditos son del juego. La nota sale de las actividades y del examen, como siempre."],
     ["¿Tengo que saberme la historia?", "No. Cada semana tenéis el mensaje del foro ya escrito y la sesión proyectada la cuenta sola."],
     ["¿Y si no me gusta la gamificación?", "Usad solo la parte operativa: la sesión montada, los enlaces y el seguimiento. Su Nave la tendrán igual."]

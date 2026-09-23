@@ -47,6 +47,10 @@ def yt(clave):
 # videos: [(clave_V, cuándo dentro de la semana)]
 # insignias: claves de assets/img/insignias que se ENTREGAN esa semana
 # lanza: retos que se lanzan (se resuelven después)
+# preguntas: 🔴 23-sep · la pregunta de cada clase, tal cual el calendario oficial de la asignatura («Resolución de problemas
+#   en las clases en directo»). Solo las que son preguntas: las presentaciones, resoluciones, el repaso y el simulacro no
+#   llevan. La sesión abre con ella (el comandante del docente, recortado, y la pregunta en grande) y NO se contesta: la
+#   resuelve el docente en clase (Norberto: «solo lanzamos la pregunta de reflexión y el docente la va respondiendo»).
 CRONO = [
  dict(sem=1, tema="Tema 1 · Fôrge", sub="Creación de contenido multimedia — Bienvenida",
       capitulo="El reclutamiento",
@@ -55,8 +59,9 @@ CRONO = [
               ("sinopsis","Primera sesión: el gancho de arranque"),
               ("bitacora","Apertura: tras la sinopsis, presenta la Bitácora (ePortfolio) y la asignatura"),
               ("t1i","Tras el despegue: al abrir el Tema 1, antes de sus retos")],
-      lanza=["Reto «Preséntate a tu tripulación» (vídeo 60 s)", "Reto A «El boceto sin quemar» (Bran)"],
+      lanza=["Reto «Preséntate a tu tripulación» (vídeo 60 s)", "Reto relámpago «La hoja de ruta» (tu programación didáctica) — en clase, 15 min"],
       insignias=["E1_nebula","H1_reclutamiento"],
+      preguntas=[("2", "¿Cómo empezamos nuestra programación de aula en un documento académico? ¿Nos puede asistir la IA para crear nuestras planificaciones?")],
       hito="Presentación ante el mando · Bitácora de la semana: un recurso multimedia con IA",
       clases="Clases 01–02",
       consejo="Preséntate como su Comandante y reparte la insignia de Reclutamiento en público. El Opening puede abrir cada clase."),
@@ -65,90 +70,103 @@ CRONO = [
       videos=[("act1","Al lanzar la Actividad 1"),
               ("t1c","Al cerrar el trabajo del planeta"),
               ("f1","Justo tras el cierre: la recompensa del bloque")],
-      lanza=["Actividad 1 — actividad didáctica a partir de una imagen con IA", "Reto B «La Bitácora en marcha» (tu ePortfolio)", "Reto relámpago «La chispa y la marca» (imagen con IA + logo) — en clase, 15 min"],
+      lanza=["Actividad 1 — actividad didáctica a partir de una imagen con IA", "Reto relámpago «Del boceto a la forja» (recupera a Bran) — en clase, 15 min", "Reto principal «La Bitácora en marcha» (tu ePortfolio)"],
       insignias=["P1_bran","R1_la-chispa","E2_capitan","H2_primera-forja"],
+      preguntas=[("3", "¿Cómo creamos recursos didácticos para nuestras clases y cómo la IA puede ayudarnos en la creación de estos materiales?")],
       hito="Presenta la Act. 1 · Test del Tema 1",
       clases="Clases 03–04",
-      consejo="P1 y R1 se entregan al completar los retos del T1; la del Capitán y Primera Forja, al presentar/entregar la Act. 1."),
+      consejo="La de Bran (P1) y La chispa (R1) se entregan con el relámpago de la clase 3; la del Capitán y Primera Forja, al presentar/entregar la Act. 1."),
  dict(sem=3, tema="Tema 2 · Ecos", sub="El vídeo como recurso",
       capitulo=None,
       videos=[("t2i","Al abrir el Tema 2")],
-      lanza=["Reto A «Un mensaje para quien faltó» (Tomás)"],
-      insignias=[], hito="Videotutorial en marcha", clases="Clase 05",
+      lanza=["Reto relámpago «Un mensaje para quien faltó» (recupera a Tomás) — en clase, 15 min"],
+      insignias=["P2_tomas"], hito="Videotutorial en marcha", clases="Clase 05",
+      preguntas=[("5", "¿Cómo creamos nuestros videotutoriales con herramientas que pueden agilizar los procesos, como IA?")],
       consejo="Ecos = solo regresa el mensaje que se entiende. Conecta con el aula invertida."),
  dict(sem=4, tema="Tema 2 (cont.) · Ecos", sub="El vídeo que pregunta",
       capitulo=None,
       videos=[("t2c","Al cerrar el bloque"),("f2","Tras el cierre")],
-      lanza=["Reto B «El eco que enseña» (videotutorial + videoquiz)", "Reto relámpago «Módulo 1 y módulo 2» (antes y durante) — en clase, 15 min"], insignias=["P2_tomas","R2_el-eco-que-ensena"],
+      lanza=["Reto principal «El eco que enseña» (videotutorial en Edpuzzle)"], insignias=["R2_el-eco-que-ensena"],
+      preguntas=[("6", "¿Cómo nos podemos asegurar de que han visto y entendido los conceptos que se trabajan en un vídeo? ¿La IA nos puede ayudar a generar preguntas para el videoquiz?")],
       hito="Test del Tema 2 · Bitácora: videotutorial enriquecido", clases="Clase 06",
       consejo="El fragmento de Tomás (su hija Lena) es el momento emocional del bloque: dale su espacio."),
  dict(sem=5, tema="Tema 3 · Sendara", sub="Contenidos interactivos",
       capitulo="Una ruta hacia la Tierra",
       videos=[("t3i","Al abrir el Tema 3")],
-      lanza=["Reto A «Dos senderos» (Sylla)"],
-      insignias=[], hito="Itinerario de aprendizaje", clases="Clase 07",
+      lanza=["Reto relámpago «Dos senderos» (recupera a Sylla) — en clase, 15 min"],
+      insignias=["P3_sylla"], hito="Itinerario de aprendizaje", clases="Clase 07",
+      preguntas=[("7", "¿Cómo podemos crear un itinerario de aprendizaje? ¿Las herramientas de IA nos pueden facilitar la planificación?")],
       consejo="El mapa de un solo sendero de Sendara ES el itinerario; guárdate el paisaje para la semana 6."),
  dict(sem=6, tema="Tema 3 (cont.) · Sendara", sub="Actividad 2 — el paisaje",
       capitulo=None,
       videos=[("act2","Al lanzar la Actividad 2"),
               ("t3c","Al cerrar el bloque"),("f3","Tras el cierre")],
-      lanza=["Actividad 2 — planifica y crea un paisaje de aprendizaje", "Reto B «La matriz» (matriz 8×6)", "Reto relámpago «Cinco líneas que explican» (itinerario y paisaje) — en clase, 15 min"],
-      insignias=["P3_sylla","R3_la-matriz"],
+      lanza=["Actividad 2 — planifica y crea un paisaje de aprendizaje", "Reto principal «El itinerario» (refuerzo y ampliación en Genially)"],
+      insignias=["R3_la-matriz"],
+      preguntas=[("8", "¿Cómo podemos atender a la personalización del aprendizaje con un paisaje de aprendizaje?")],
       hito="Presenta la Act. 2 · Test del Tema 3 · Bitácora: itinerario o paisaje", clases="Clases 08–09",
       consejo="La Act. 2 se presenta ahora y se resuelve en la semana 13: recuérdalo para que no la dejen morir."),
  dict(sem=7, tema="Tema 4 · Reliae", sub="M-learning",
       capitulo="Estableciendo comunicaciones",
       videos=[("t4i","Al abrir el Tema 4")],
-      lanza=["Reto A «Abre el canal» (Amara)"],
-      insignias=[], hito="Compartir de forma organizada", clases="Clase 10",
+      lanza=["Reto relámpago «Abre el canal» (recupera a Amara) — en clase, 10 min"],
+      insignias=["P4_amara"], hito="Compartir de forma organizada", clases="Clase 10",
+      preguntas=[("10", "¿Qué tendríamos que hacer para compartir de manera organizada los materiales del aula con nuestros alumnos?")],
       consejo="Primero compartir ordenado (Sites/Classroom/Moodle); la comunicación viva llega la semana que viene."),
  dict(sem=8, tema="Tema 4 (cont.) · Reliae", sub="El entorno digital de aula",
       capitulo=None,
       videos=[("t4c","Al cerrar el bloque"),("f4","Tras el cierre")],
-      lanza=["Reto B «El entorno de aula» (aula virtual)", "Reto relámpago «Enlace en incógnito» — en clase, 10 min"], insignias=["P4_amara","R4_entorno-de-aula"],
+      lanza=["Reto principal «El entorno de aula» (Classroom o Sites)"], insignias=["R4_entorno-de-aula"],
+      preguntas=[("11", "¿Qué tendríamos que hacer para compartir de manera organizada los materiales con nuestros alumnos, establecer actividades, calificarlas o incluso comunicarnos con ellos?")],
       hito="Test del Tema 4 · Bitácora: tu entorno de aula", clases="Clase 11",
       consejo="La lección de Amara (compartir a tiempo, pulir después) es oro contra el perfeccionismo del alumnado."),
  dict(sem=9, tema="Tema 5 · Umbral", sub="Evaluación y ePortfolio — aparece la Estática",
       capitulo="Evaluando la situación",
       videos=[("t5i","Al abrir el Tema 5 (¡aparece Vaeon!)"),
               ("t5c","Al cerrar el bloque"),("f5","Tras el cierre")],
-      lanza=["Reto A «Mide con método» (Vera)", "Reto B «La Bitácora medida» (web de recursos + rúbrica)", "Reto relámpago «Tres preguntas» (autoevaluación) — en clase, 15 min"],
+      lanza=["Reto relámpago «Mide con método» (recupera a Vera) — en clase, 15 min", "Reto principal «Tu centro de recursos» (web abierta + rúbrica)"],
       insignias=["P5_vera","R5_bitacora-medida"],
+      preguntas=[("12", "¿Qué herramientas son más útiles para seguir el progreso del alumno?")],
       hito="Resolución de la Act. 1 · Test del Tema 5", clases="Clase 12",
       consejo="El momento dramático del curso: justo cuando saben medir, aparece el enemigo que silencia. Y se resuelve la Act. 1."),
  dict(sem=10, tema="Tema 6 · Ludo", sub="Aprendizaje Basado en el Juego (ABJ)",
       capitulo="Aprender jugando",
       videos=[("t6i","Al abrir el Tema 6"),
               ("t6c","Al cerrar el bloque"),("f6","Tras el cierre")],
-      lanza=["Reto A «El Simulador de Joran» (batalla de preguntas, Joran)", "Reto B «El juego» (juego digital educativo)"],
+      lanza=["Reto relámpago «Encuentra el juego» (recupera a Joran) — en clase, 15 min", "Reto principal «El juego» (juego digital)"],
       insignias=["P6_joran","R6_el-juego"],
+      preguntas=[("13", "¿Cómo planificamos y creamos nuestro material para impartir una clase bajo el Aprendizaje Basado en el Juego?"), ("14", "¿Cómo integramos los juegos digitales en el paisaje de aprendizaje?")],
       hito="Test del Tema 6 · Bitácora: un juego digital", clases="Clases 13–14",
       consejo="En Ludo SE JUEGA: el juego es la actividad. Fija ya la diferencia con lo que viene en Vínculo."),
  dict(sem=11, tema="Tema 7 · Vínculo", sub="Gamificación",
       capitulo="El arte de motivar",
       videos=[("t7i","Al abrir el Tema 7")],
-      lanza=["Reto A «Un porqué» (Mara)", "Reto relámpago «Las diez líneas» (justifica un recurso) — en clase, 15 min"],
-      insignias=[], hito="Microgamificación en marcha", clases="Clase 15",
+      lanza=["Reto relámpago «Un porqué» (recupera a Mara) — en clase, 15 min"],
+      insignias=["P7_mara"], hito="Microgamificación en marcha", clases="Clase 15",
+      preguntas=[("15", "¿Cómo planificamos y creamos nuestro material para impartir una clase bajo un PBL?")],
       consejo="Aquí NO se juega: se toman elementos del juego. Es el error conceptual más común del curso — apóyate en Joran y Mara."),
  dict(sem=12, tema="Tema 7 (cont.) · Vínculo", sub="Gamificación profunda",
       capitulo=None,
       videos=[("t7c","Al cerrar el bloque"),("f7","Tras el cierre")],
-      lanza=["Reto B «La microgamificación»", "Reto relámpago «El marcador» (tabla de clasificación) — en clase, 10 min"], insignias=["P7_mara","R7_microgamificacion","E3_vaeon"],
+      lanza=["Reto principal «La microgamificación»"], insignias=["R7_microgamificacion","E3_vaeon"],
+      preguntas=[("16", "¿Cómo planificamos y creamos nuestro material para impartir una clase bajo una gamificación profunda?")],
       hito="Test del Tema 7 · Bitácora: tu microgamificación", clases="Clase 16",
       consejo="Momento meta: STARGATE es una gamificación profunda funcionando delante de sus ojos. Díselo."),
  dict(sem=13, tema="Tema 8 · Liminar", sub="Realidad Aumentada",
       capitulo=None,
       videos=[("t8i","Al abrir el Tema 8")],
-      lanza=["Reto A «La capa posible» (Noa)"],
-      insignias=["H3_cartografo"],
+      lanza=["Reto relámpago «El QR» (recupera a Noa) — en clase, 10 min"],
+      insignias=["P8_noa","H3_cartografo"],
+      preguntas=[("17", "¿Cómo aprovechamos la RA en el aula?")],
       hito="Resolución de la Act. 2", clases="Clase 17",
-      consejo="Se resuelve la Actividad 2: la insignia de Cartógrafo se entrega con el paisaje presentado."),
+      consejo="Se resuelve la Actividad 2: la insignia de Cartógrafo se entrega con el paisaje presentado. Con el QR de Noa se completa la Cero."),
  dict(sem=14, tema="Tema 8 (cont.) · Liminar", sub="Realidad Virtual — NEBULA casi completa",
       capitulo=None,
       videos=[("f8","NEBULA recuerda por qué la Cero se quedó: el fragmento de Noa cae aquí")],
-      lanza=["Reto B «El último umbral» (RA/RV + publicar la Bitácora)", "Reto relámpago «El QR» (dentro de una lámina) — en clase, 10 min"], insignias=["P8_noa","R8_ultimo-umbral","H4_tripulacion-cero"],
+      lanza=["Reto principal «El último umbral» (tu Bitácora publicada)"], insignias=["R8_ultimo-umbral","H4_tripulacion-cero"],
+      preguntas=[("18", "¿Cómo aprovechamos la RV en el aula?")],
       hito="Test del Tema 8 · la Tripulación Cero queda completa", clases="Clase 18",
-      consejo="Con Noa se completa la Cero (insignia de hito Tripulación Cero). Deja el finale para la última semana."),
+      consejo="Con la Cero completa llega la insignia de hito Tripulación Cero. Deja el finale para la última semana."),
  dict(sem=15, tema="Repaso · La liberación", sub="Simulacro y salto final",
       capitulo="La liberación",
       videos=[("finale","La revelación: la verdad de la Cero (sin resolución)"),
@@ -362,7 +380,7 @@ HEROES_OCULTOS = [h[0] for h in HEROES if h[2] == "LEGENDARIA"]
 # UNA visita por día, en la zona horaria de cada cual (hay alumnado a los dos lados del Atlántico).
 #   cubierta: (clave, nombre, de qué va, premio {tipo: sobre | capsula | creditos, n})
 CUBIERTAS_A_BORDO = [
- ("puente",     "El puente",         "Los retos y tu tripulación",     {"tipo": "sobre"}),
+ ("puente",     "El puente",         "Tus retos",                      {"tipo": "sobre"}),
  ("mercado",    "El Mercado",        "Tu colección",                   {"tipo": "creditos", "n": 25}),
  ("camarote",   "El camarote",       "Tu imagen",                      {"tipo": "sobre"}),
  ("zoco",       "El Zoco",           "El trueque",                     {"tipo": "capsula"}),
@@ -371,8 +389,11 @@ CUBIERTAS_A_BORDO = [
 #   hito: (clave, cubierta, icono, título, qué hay que hacer, pestaña de la Nave donde se hace)
 HITOS_A_BORDO = [
  ("reto",       "puente",     "<img class=ico src=assets/img/iconos/p/cohete.png alt>", "Primer salto",          "Registra tu primer reto.",                                   "retos"),
- ("reflexion",  "puente",     "<img class=ico src=assets/img/iconos/p/editar.png alt>", "Tu voz",                "Escribe tu primera reflexión en un reto.",                   "retos"),
- ("comentario", "puente",     "<img class=ico src=assets/img/iconos/p/mensaje.png alt>", "Eco de la tripulación", "Comenta la reflexión de alguien de tu tripulación.",         "retos"),
+ # 🔴 23-sep · con los 20 retos ninguno se responde por escrito: «Tu voz» (tu primera reflexión) y «Eco de la tripulación»
+ # (comentar una) ya no se podían ganar, y sin ellos nadie completaba el puente ni llegaba al Contramaestre. Los dos
+ # retos de cada tema ocupan su sitio.
+ ("relampago",  "puente",     "<img class=ico src=assets/img/iconos/p/rayo.png alt>", "Chispa en clase",       "Registra tu primer reto relámpago (el que se hace en clase).", "retos"),
+ ("principal",  "puente",     "<img class=ico src=assets/img/iconos/p/diana.png alt>", "Tu gran reto",          "Registra tu primer reto principal (el de casa).",            "retos"),
  ("compra",     "mercado",    "<img class=ico src=assets/img/iconos/p/mercado.png alt>", "Primera compra",        "Compra algo en el Mercado Estelar.",                         "mercado"),
  ("carta",      "mercado",    "<img class=ico src=assets/img/iconos/p/sobre.png alt>", "Primera carta",         "Consigue tu primera carta del álbum.",                       "mercado"),
  ("heroe",      "mercado",    "<img class=ico src=assets/img/iconos/p/escudo.png alt>", "Un héroe a tu lado",    "Consigue tu primer héroe de la Rebelión.",                   "mercado"),
@@ -414,18 +435,21 @@ RANGOS = ["Recluta", "Cadete", "Oficial", "Comandante", "Leyenda"]
 NIVELES = [
  ( 1,    0, 1, "Recluta raso"),
  ( 2,  300, 1, "Recluta de guardia"),
- ( 3,  700, 2, "Cadete"),
- ( 4, 1150, 2, "Cadete de vuelo"),
- ( 5, 1650, 3, "Oficial"),
- ( 6, 2200, 3, "Oficial de puente"),
- ( 7, 2800, 3, "Oficial mayor"),
- ( 8, 3450, 4, "Comandante"),
- ( 9, 4150, 4, "Comandante de flota"),
- (10, 5000, 5, "Leyenda de la Cero"),
+ ( 3,  650, 2, "Cadete"),
+ ( 4, 1050, 2, "Cadete de vuelo"),
+ ( 5, 1550, 3, "Oficial"),
+ ( 6, 2050, 3, "Oficial de puente"),
+ ( 7, 2600, 3, "Oficial mayor"),
+ ( 8, 3200, 4, "Comandante"),
+ ( 9, 3850, 4, "Comandante de flota"),
+ (10, 4650, 5, "Leyenda de la Cero"),
 ]
 # v3.41 · fuera la Batalla final (500), dentro el huevo de Pascua S7 (150) — también en PUA.
-# El nivel 10 (5.000) exige ahora los bonus de planeta: Leyenda = completarlo de verdad.
-XP_VIAJE = {"REGULAR": 5680, "PUA": 5280}   # 16-sep: +480 (ocho relámpago) +300 (simulacro) +150 (Mano rápida)
+# El nivel 10 exige los bonus de planeta: Leyenda = completarlo de verdad. 🔴 23-sep · la curva entera, escalada al viaje
+# de 20 retos (× 5.260 / 5.680, redondeada a 50): el mismo esfuerzo relativo para cada nivel.
+# 🔴 23-sep · de 27 retos a 20: fuera A1-A8 y los relámpago de escribir; los relámpago (100 xp) recuperan al tripulante.
+# = xp de los retos del catálogo (Datos.gs) + reclutamiento (100) + hitos derivados (750). La batería 85 lo comprueba.
+XP_VIAJE = {"REGULAR": 5260, "PUA": 5260}   # PUA lleva los mismos retos y con el mismo valor
 # ◈ que da cada tipo de logro (el xp lo sigue fijando la tabla de retos del Apps Script)
 # 26-ago · SUBE LO QUE SE GANA. Con el vestuario de héroes hay mucho más donde gastar, y con la
 # economía vieja (590 ◈ el viaje entero) elegir una recompensa de nota significaba renunciar a
@@ -575,19 +599,14 @@ AYUDA_RETOS = {
 #   (vacío)      → sin enlace: los que se responden en la caja (A1, L2, L3, L6), A6 (se gana en el Simulador) y el
 #                  secreto (S7). (17-sep: A3, A5 y A8 ya piden enlace; este comentario lo decía al revés)
 EVIDENCIA_RETOS = {
- # 15-sep · Norberto, reto a reto: TODOS los A, B y X piden su enlace (A0 el de su publicación del padlet)
- "X1": "obligatoria", "X2": "obligatoria",
+ # 15-sep · Norberto, reto a reto: todos piden su enlace (A0 el de su publicación del padlet).
+ # 🔴 23-sep · desde que los retos son SOLO prácticos (crear, diseñar, encontrar), todos piden su enlace o su captura:
+ # ya no hay retos de escribir en la caja.
+ "X1": "obligatoria", "X2": "obligatoria", "A0": "obligatoria",
  "B1": "obligatoria", "B2": "obligatoria", "B3": "obligatoria", "B4": "obligatoria",
  "B5": "obligatoria", "B6": "obligatoria", "B7": "obligatoria", "B8": "obligatoria",
- "A0": "obligatoria", "A2": "obligatoria", "A3": "obligatoria", "A4": "obligatoria",
- "A5": "obligatoria", "A7": "obligatoria", "A8": "obligatoria",
- # 15-sep (noche) · A1 se RESPONDE en el reto (REFLEXION_RETOS): el enlace pasa a opcional
- # 16-sep · A6 no pide nada: se gana al Simulador de Joran (batalla.html) y se registra solo
- "A1": "", "A6": "",
- # 16-sep · LOS RELÁMPAGO. Piden lo mínimo que demuestra que se ha hecho: una captura o un enlace.
- # Los tres que son de escribir (L2, L3 y L6) se responden en la caja y el enlace es opcional.
- "L1": "obligatoria", "L4": "obligatoria", "L5": "obligatoria", "L7": "obligatoria", "L8": "obligatoria",
- "L2": "", "L3": "", "L6": "",
+ "L0": "obligatoria", "L1": "obligatoria", "L2": "obligatoria", "L3": "obligatoria", "L4": "obligatoria",
+ "L5": "obligatoria", "L6": "obligatoria", "L7": "obligatoria", "L8": "obligatoria",
  "XS": "obligatoria",
 }
 # 15-sep (noche) · LOS RETOS QUE SE RESPONDEN EN EL PROPIO RETO. Norberto: «en los retos en los que tienen que compartir
@@ -600,31 +619,12 @@ EVIDENCIA_RETOS = {
 #   modo "texto": se responde en la caja y el enlace es opcional (EVIDENCIA_RETOS lo dice)
 #   modo "ambos": el enlace a lo creado sigue siendo obligatorio y la reflexión va en la caja
 REFLEXION_RETOS = {
- "A1": {"modo": "texto", "min": 120, "titulo": "Lo que nos frena",
-        "pide": "¿Qué tienes a medias, en qué punto se quedó y qué te frenó para terminarlo?"},
- "B2": {"modo": "ambos", "min": 150, "titulo": "Lo que aprendimos grabando",
-        "pide": "Tu reflexión: qué objetivo didáctico cubre tu videotutorial y qué aprendiste al hacerlo."},
- "B4": {"modo": "ambos", "min": 150, "titulo": "Aulas que viajan en el bolsillo",
-        "pide": "Tu reflexión: cómo llega tu contenido al móvil del alumno y cómo mantienes viva la conversación."},
- "B6": {"modo": "ambos", "min": 150, "titulo": "Juegos con niveles",
-        "pide": "Tu reflexión: qué objetivo cubre tu juego, qué cambia de un nivel a otro y cómo lo evalúas."},
- "A7": {"modo": "ambos", "min": 120, "titulo": "Insignias con sentido",
-        "pide": "El porqué de tu insignia: cómo se llama, qué acto reconoce y qué historia convierte esa tarea en una causa."},
- "B7": {"modo": "ambos", "min": 150, "titulo": "Tareas convertidas en causa",
-        "pide": "Tu reflexión: qué conducta refuerza tu microgamificación, qué historia la envuelve y por qué."},
- "A8": {"modo": "ambos", "min": 200, "titulo": "Capas que ya existen",
-        "pide": "¿Cómo usarías ese recurso en una clase concreta? Qué vería tu alumnado, qué haría y qué añade esa capa."},
- # 16-sep · los relámpago de escribir. Son cortos a propósito: se hacen en clase, en diez minutos, y
- # entrenan justo lo que el examen puntúa — repartir una sesión, explicar un concepto y justificar.
- "L2": {"modo": "texto", "min": 120, "titulo": "Antes y durante",
-        "pide": "Tu sesión, en dos listas: qué hace tu alumnado ANTES de clase y qué hacéis DURANTE."},
- "L3": {"modo": "texto", "min": 150, "titulo": "Itinerario y paisaje, en cinco líneas",
-        "pide": "Con tus palabras: qué es un itinerario de aprendizaje y en qué se diferencia de un paisaje. Cinco líneas."},
- "L6": {"modo": "texto", "min": 250, "titulo": "Las diez líneas",
-        "pide": "Justifica un recurso tuyo según una metodología concreta: qué aporta, cuándo se usa y por qué ese. Diez líneas."},
+ # 🔴 23-sep · VACÍO A PROPÓSITO. Norberto: «los retos deben ser prácticos (crear algo, diseñar, encontrar…)»; la reflexión
+ # pasa a la pregunta de cada clase, que resuelve el docente en directo. El mecanismo (la caja grande, «Lo que ha escrito
+ # tu tripulación», «Lo que dijisteis») se queda por si algún día vuelve a hacer falta un reto de escribir.
 }
 # 🔴 17-sep · TRES POR SEMANA, no al día (Norberto, en la prueba humana: «“Como mucho, 3 retos al día”. ¡Debería ser 3 retos a
-# la semana!»). La semana, de lunes a domingo. Cuentan los que registra el propio recluta (A, B, X, S7); no los hitos (van
+# la semana!»). La semana, de lunes a domingo. Cuentan los que registra el propio recluta (A0, B, X, S7); no los hitos (van
 # solos), ni los relámpago (se hacen en clase), ni los que valida su docente desde la ficha (`stargateOtorgados`). Deshacer
 # uno libera su hueco. Lo aplica también el servidor (gamificapro/functions/stargateTope.js), con el mismo número.
 TOPE_RETOS_SEMANA = 3
@@ -670,12 +670,12 @@ ACTIVIDADES = [
          "evidencia del proceso."),
       ],
       retos=[
-        ("L1", "Tu imagen, hecha en clase con prompt, iteración y criterio docente: es **la tabla técnica de la "
-               "Actividad 1** con otro nombre. Quien hizo el relámpago ya tiene el núcleo de la entrega."),
+        ("L0", "Tu programación de aula, hecha en la clase 2: es **la unidad real de la que parte la actividad** — el "
+               "alumnado, el tema y la tarea ya están planificados."),
+        ("L1", "Tu imagen, hecha en clase a partir de un boceto, con instrucción, iteración y criterio docente: es **el núcleo "
+               "de la tabla técnica de la Actividad 1**. Quien hizo el relámpago ya tiene media entrega."),
         ("B1", "Tu Bitácora, creada y publicada: es **donde vive la página de la Actividad 1**, y esa página es el "
                "20 % de su nota."),
-        ("A1", "El trabajo que sacaste del cajón: **de ahí suele salir el tema** de la actividad — ya sabes en qué "
-               "punto se quedó y qué te frenó."),
       ]),
  dict(clave="a2", n=2, orden="II", reto="X2", video="act2", tema=3, sem=6, resuelve=13, puntos="4,3",
       planeta="Sendara", lema="Cuarenta y ocho senderos",
@@ -701,12 +701,10 @@ ACTIVIDADES = [
          "diversidad (5%)."),
       ],
       retos=[
-        ("B3", "La matriz 8×6 de tu unidad, contextualizada y con seis cruces: es **el corazón de planificación de "
-               "la Actividad 2**, y se entrega tal cual."),
-        ("A3", "Tu bifurcación de dos senderos: **el paisaje en pequeño**, con la herramienta que vas a usar y sin "
-               "el susto de las 48 casillas."),
-        ("L3", "Itinerario y paisaje en cinco líneas: es **la defensa del diseño** que pide el ePortfolio — y es lo "
-               "que vale punto y medio en la portada del examen."),
+        ("L0", "La unidad de tu aula que programaste en la clase 2: **la actividad empieza describiéndola**."),
+        ("L3", "Tus dos senderos para un mismo objetivo: **el paisaje en pequeño**, sin el susto de las 48 casillas."),
+        ("B3", "Tu itinerario en Genially, con refuerzo y ampliación: **el esqueleto del paisaje interactivo**. La matriz "
+               "8×6 se hace ya dentro de la actividad."),
       ]),
 ]
 
@@ -750,7 +748,11 @@ SESION_EMBARQUE = [
     ("forge", "", "ap", "**Rumbo a Fôrge**: la portada del planeta"),
     ("video", "t1i", "ap", "**T1 Fôrge · intro** (1:25)"),
     ("despegue", "", "pr", "**El despegue**: tu panel de control"),
+    # 23-sep · la clase 2 abre con su pregunta; después, los retos de la semana (la hoja de ruta, en directo) y la despedida
+    ("pregunta", "", "ci", "**La pregunta de la clase 2**, con tu comandante: la resuelves tú en clase"),
+    ("retos", "", "ci", "**Vuestros retos**: la hoja de ruta, en clase, y la presentación, en casa"),
     ("misiones", "", "ci", "**Las misiones** de la semana y la insignia de Reclutamiento"),
+    ("hasta", "", "ci", "**Hasta la próxima**: tu comandante se despide"),
 ]
 
 # 18-sep · LAS SECCIONES DE LA SESIÓN EN DIRECTO. Norberto: «que cada sección tenga un nombre propio, independientemente
@@ -762,10 +764,12 @@ SESION_SECCIONES = [
     ("unete", "Únete a la clase", "Semanas 1 y 2: el código y el enlace para alistarse, y «Copiar invitación» para el chat."),
     # 23-sep · solo en la semana 1: la presentación de la asignatura dentro de la historia
     ("embarque", "El embarque", "Semana 1: quiénes son, el viaje, cómo es una semana, lo que puntúa y la Bitácora."),
+    # 23-sep · la pregunta de la clase (calendario oficial): el comandante del docente y la pregunta en grande
+    ("pregunta", "La pregunta de la clase", "La pregunta del calendario oficial, con tu comandante. La resuelves tú en clase."),
     ("llamada", "Llamada a filas", "Fichar la asistencia al empezar."),
     ("mensaje", "Mensaje de la semana", "La transmisión con el logo de STARGATE."),
     ("videos", "Vídeos de apertura", "La sinopsis, la Bitácora o la entrada al planeta."),
-    ("repaso", "Repaso de la semana anterior", "Quién hizo cada misión y «Lo que dijisteis»."),
+    ("repaso", "Repaso de la semana anterior", "Quién hizo cada misión la semana pasada."),
     ("clasificacion", "Clasificación", "Han movido ficha, la semana, el top 5 y los escuadrones."),
     ("coleccion", "Coleccionistas", "Quién va más avanzado en su colección."),
     ("simulador", "El Simulador de Joran", "Las marcas y los reconocimientos de la batalla."),
@@ -792,33 +796,39 @@ EJEMPLOS_RETOS = {
   "titulo": "Carmen se presenta en 55 segundos, grabada con el móvil",
   "texto": "Carmen, maestra de 4.º de Primaria en un colegio de Zaragoza, se grabó con el móvil en su casa, del tirón y sin guion: «Soy Carmen, llevo doce años con niños de 9 y 10 años y me conecto desde Zaragoza. Me metí en educación por mi maestra de 5.º. Me encanta Genially y sufro con las hojas de cálculo. Un dato curioso: toco la gaita». Duró 55 segundos. Lo publicó en la sección «Preséntate» del padlet de la clase, con su alias (Capella) como título y «Capitán:» más el nombre de su profe en la primera línea. Después copió el enlace de su publicación (⋮ → «Copiar el enlace a la publicación») y lo pegó en el reto."
  },
- "A1": {
-  "titulo": "Javier (FP) saca del cajón un banco de prácticas a medias",
-  "texto": "Tengo a medias un banco de prácticas de montaje de ordenadores para 1.º del ciclo de Sistemas Microinformáticos y Redes. Lo empecé en Genially: hay seis fichas hechas (placa base, procesador, RAM, fuente, disco y refrigeración) y faltan las de periféricos y la autoevaluación final. Se quedó ahí en febrero, cuando me di cuenta de que las fotos de los componentes eran de internet y no sabía si podía usarlas. Me frenó eso y el perfeccionismo: quería hacer yo todas las fotos en el taller y nunca encontraba el momento. Lo comparto tal cual, con sus huecos.",
+ "L0": {
+  "titulo": "Andrés deja hecha en clase la programación de «La fotosíntesis» (2.º ESO)",
+  "texto": "Andrés, profesor de Biología y Geología de 2.º de ESO, siguió en directo la herramienta que enseñó su Comandante y, en quince minutos, dejó hecha la programación de su unidad «La fotosíntesis»: el grupo y su nivel, tres objetivos, los contenidos, cinco actividades en orden y cómo las evalúa. No está terminada —le faltan los tiempos y la atención a la diversidad—, pero ya existe. Compartió el documento con permiso de lectura y pegó el enlace en el reto. De esa misma unidad saldrán sus dos Actividades.",
   "detalle": [
-   "Javier, profesor de FP de Grado Medio, lo escribe directamente en la caja del reto: no se corrige ni se puntúa.",
-   "Opcional: el enlace al Genially con permiso de lectura, para que la tripulación lo vea."
-  ]
- },
- "B1": {
-  "titulo": "Lucía abre su Bitácora en Google Sites y publica su presentación",
-  "texto": "Lucía, profesora de Biología y Geología de 3.º de ESO en un instituto de Murcia, creó su Bitácora en Google Sites y la llamó «Bitácora de Lucía · MUTECD». La personalizó con el verde de su departamento, otra tipografía y una foto suya en el laboratorio. Dejó el menú preparado con cinco páginas vacías (Actividad 1, Actividad 2, Videotutorial, Microgamificación y Reto libre) y publicó la primera entrada, «Quién soy»: diez líneas sobre su trayectoria, sus grupos y lo que espera del máster («aprender a crear recursos que mi alumnado use también desde el móvil»). Pulsó «Publicar», abrió el enlace en una ventana de incógnito para comprobar que se veía sin su cuenta y lo pegó en el reto y en su BIO de la Nave.",
-  "detalle": [
-   "Alternativa rápida: duplicar la plantilla oficial de Genially y cambiar colores, foto y textos.",
-   "No hace falta que esté llena: basta con la portada y la primera entrada.",
-   "Si la cuenta del centro no deja publicar en abierto, mejor crearla con una cuenta personal.",
-   "Comprobación clave: el enlace se abre en incógnito sin pedir permiso."
+   "Lo mínimo: nivel, área, objetivos, contenidos, actividades y evaluación.",
+   "No tiene que estar terminada: tiene que existir, y ser de una unidad real de tu aula.",
+   "Si no pudiste venir, vale cualquier herramienta: un documento, una plantilla o una IA que te ayude a ordenarla."
   ]
  },
  "L1": {
-  "titulo": "Pilar crea una infografía del aparato circulatorio y el logo «PULSO»",
-  "texto": "Pilar, maestra de 6.º de Primaria, pidió a Microsoft Designer una infografía del recorrido de la sangre con un prompt que dice contexto, tipo de imagen y finalidad. La primera versión traía etiquetas inventadas en inglés, así que iteró: «solo seis etiquetas, en español y con letra grande». Eligió la segunda y lo justificó en dos líneas: «Se lee desde el fondo del aula y distingue por color la sangre con y sin oxígeno, que es justo lo que evalúo». Después hizo en Canva un logo circular con un corazón y la palabra «PULSO» dentro. Puso las dos imágenes en la portada de su Bitácora y pegó una captura en el padlet.",
+  "titulo": "Pilar convierte su boceto del aparato circulatorio en una infografía con IA",
+  "texto": "Pilar, maestra de 6.º de Primaria, trajo a clase el boceto a lápiz del recorrido de la sangre que dibuja cada año en la pizarra y se lo pidió a Microsoft Designer convertido en infografía con un prompt que dice contexto, tipo de imagen y finalidad. La primera versión traía etiquetas inventadas en inglés, así que iteró: «solo seis etiquetas, en español y con letra grande». Eligió la segunda y lo justificó en dos líneas: «Se lee desde el fondo del aula y distingue por color la sangre con y sin oxígeno, que es justo lo que evalúo». Después hizo en Canva un logo circular con un corazón y la palabra «PULSO» dentro. Subió el boceto y la versión elegida, el antes y el después, y pegó la captura en el reto.",
   "detalle": [
+   "Partió de su boceto: no empezó de cero, empezó de lo que ya tenía a medias.",
    "Prompt: «Eres ilustrador de materiales escolares. Para una clase de 6.º de Primaria sobre el aparato circulatorio, crea una infografía vertical del recorrido de la sangre (corazón, pulmones y resto del cuerpo) con flechas rojas y azules. Finalidad: que el alumnado explique el recorrido con sus palabras».",
    "Iteración: «Solo seis etiquetas, en español, letra grande y fondo blanco».",
    "Criterio docente, en dos líneas: por qué esa versión y no la otra.",
    "Logo: hecho en Canva, con la palabra clave «PULSO» bien visible."
-  ]
+  ],
+  "imagen": "L1.jpg",
+  "imagen_alt": "Las dos versiones de la infografía del aparato circulatorio (la primera con etiquetas en inglés, la segunda elegida) y el logo circular «PULSO»."
+ },
+ "B1": {
+  "titulo": "Lucía abre su Bitácora en Google Sites y publica sus recursos creados con IA",
+  "texto": "Lucía, profesora de Biología y Geología de 3.º de ESO en un instituto de Murcia, creó su Bitácora en Google Sites y la llamó «Bitácora de Lucía · MUTECD». La personalizó con el verde de su departamento y una foto suya en el laboratorio, y dejó el menú preparado: Quién soy, Actividad 1, Actividad 2 y sus experiencias. Publicó la primera, «Recursos creados con IA»: la infografía de la célula de su relámpago y un audio de dos minutos para repasar sus partes, cada uno con su contexto, su reflexión y su autoevaluación. Pulsó «Publicar», abrió el enlace en una ventana de incógnito para comprobar que se veía sin su cuenta y lo pegó en el reto y en su BIO de la Nave.",
+  "detalle": [
+   "Alternativa rápida: duplicar la plantilla oficial de Genially y cambiar colores, foto y textos.",
+   "No hace falta que esté llena: basta con la portada y la primera experiencia.",
+   "Si la cuenta del centro no deja publicar en abierto, mejor crearla con una cuenta personal.",
+   "Comprobación clave: el enlace se abre en incógnito sin pedir permiso."
+  ],
+  "imagen": "B1.jpg",
+  "imagen_alt": "La portada de la Bitácora de Lucía en Google Sites: cabecera verde, menú de cinco páginas y la página «Quién soy» con su foto."
  },
  "X1": {
   "titulo": "Rosa entrega su Actividad 1 y la marca en la Nave al enviarla",
@@ -830,10 +840,16 @@ EJEMPLOS_RETOS = {
    "Se marca al ENVIAR la actividad, no al empezarla."
   ]
  },
- "A2": {
+ "L2": {
   "titulo": "Un clip de 50 segundos para quien faltó a clase",
   "texto": "Nuria, profesora de Lengua de 1.º de ESO, grabó con el móvil 50 segundos sobre cómo encontrar el sujeto de una oración: escribe una frase en la pizarra, pone el verbo en plural y señala qué grupo de palabras tiene que cambiar con él. Nada más. Lo subió a YouTube en oculto, se lo enseñó a su hija para ver si se entendía sin ella delante y pegó el enlace en el reto.",
-  "enlace": "https://youtu.be/ZE_JdQUmepk"
+  "enlace": "https://youtu.be/ZE_JdQUmepk",
+  "real": {
+   "titulo": "Publicar y compartir un Genially",
+   "autor": "Mr. Cuarter",
+   "donde": "YouTube",
+   "por_que": "Un tutorial corto que explica un procedimiento paso a paso: justo lo que pide el reto."
+  }
  },
  "B2": {
   "titulo": "Marta (Tecnología, 3.º ESO): videotutorial de Tinkercad con tres preguntas",
@@ -842,39 +858,32 @@ EJEMPLOS_RETOS = {
    "Guion de una página, grabación de pantalla con Screencastify y edición en Clipchamp (cortes y zoom en los botones).",
    "Subido a YouTube en oculto e importado en Edpuzzle con 3 preguntas: en el 1:10, el 2:30 y el 3:40.",
    "Aula invertida: lo ven en casa y en clase se imprime.",
-   "El enlace de Edpuzzle va en el reto; la reflexión, en la caja y en su Bitácora."
+   "El enlace de Edpuzzle va en el reto; la reflexión, en su Bitácora."
   ],
   "enlace": "https://edpuzzle.com/media/68ff9e1a400997c66a1f3eea"
  },
- "L2": {
-  "titulo": "Raúl (Matemáticas, 3.º ESO) reparte su sesión de sistemas de ecuaciones",
-  "texto": "ANTES de clase (en casa):\n· Ven un vídeo de 5 minutos sobre el método de sustitución, con dos preguntas en Edpuzzle.\n· Resuelven un sistema guiado paso a paso.\n· Escriben su duda principal en un formulario de una sola pregunta.\n\nDURANTE la clase:\n· Resolvemos en la pizarra las tres dudas más repetidas del formulario.\n· Por parejas, plantean y resuelven dos problemas reales (entradas de cine, monedas).\n· Cada pareja explica un problema a otra y se corrigen entre sí.\n· Cierre: un ejercicio individual de salida, de 5 minutos."
- },
- "A3": {
-  "titulo": "Irene (Inglés, 5.º de Primaria) monta tres senderos hacia el mismo objetivo",
-  "texto": "Irene creó un Genially con un solo objetivo: describir su rutina diaria en presente simple. En la portada hay tres puertas y cada estudiante elige una. «Hazlo»: ordena viñetas de un día y graba un audio contándolas. «Léelo»: lee un cómic corto y completa una tabla de horas y acciones. «Escúchalo»: escucha un pódcast de dos niños y responde con dibujos. Los tres caminos terminan en la misma tarea: escribir cinco frases sobre su propio día.",
+ "L3": {
+  "titulo": "Irene (Inglés, 5.º de Primaria) diseña dos senderos hacia el mismo objetivo",
+  "texto": "Irene eligió un objetivo: describir su rutina diaria en presente simple. Diseñó dos actividades distintas para llegar a él. «Hazlo»: ordenar viñetas de un día y grabar un audio contándolas. «Léelo»: leer un cómic corto y completar una tabla de horas y acciones. Las dos terminan en la misma tarea: escribir cinco frases sobre su propio día. Lo hizo en clase en una hoja, le hizo una foto y la pegó en el reto.",
   "detalle": [
-   "Criterio: cada sendero es una actividad distinta, no la misma con otro nombre.",
-   "Si no tienes una hora esta semana, vale un boceto a mano de los caminos, fotografiado."
-  ],
-  "enlace": "https://view.genially.com/673a886db3cebc087dcc971a"
+   "Criterio: dos actividades distintas de verdad, no la misma con otro nombre.",
+   "En el reto principal lo convierte en un itinerario de Genially, con refuerzo y ampliación."
+  ]
  },
  "B3": {
-  "titulo": "Patricia rellena seis cruces de la matriz para «Las plantas» (3.º de Primaria)",
-  "texto": "Patricia, maestra de 3.º de Primaria, contextualizó su unidad «Las plantas» (Ciencias de la Naturaleza, 8-9 años) con sus objetivos, contenidos y criterios de evaluación. Hizo la tabla 8×6 en Google Docs, con las inteligencias en filas y los niveles de Bloom en columnas, y rellenó seis casillas: una por cada nivel de Bloom y con seis inteligencias distintas. Cada actividad lleva objetivo, tarea del alumno, recurso, evaluación, tiempo y tipo. Las 42 casillas vacías quedan a la vista para completarlas más adelante.",
+  "titulo": "Irene lleva sus dos senderos a un itinerario de Genially, con refuerzo y ampliación",
+  "texto": "Irene llevó a Genially los dos senderos de su relámpago (describir su rutina diaria en presente simple). La portada presenta el objetivo y dos puertas: «Hazlo» y «Léelo». Antes de la tarea final añadió una actividad de refuerzo —ordenar frases con las horas, para quien se atasca— y una de ampliación —comparar su rutina con la de un niño de otro país, para quien va por delante—, cada una con su botón. Lo publicó en abierto, lo comprobó en una ventana de incógnito y pegó el enlace en el reto y en su Bitácora.",
   "detalle": [
-   "Naturalista × Recordar: nombra las partes de una planta del huerto con una ficha de fotos · lista de cotejo · 20 min · obligatoria.",
-   "Lingüística × Comprender: explica en un audio de 1 minuto qué necesita una planta para vivir · rúbrica · 15 min · obligatoria.",
-   "Lógico-matemática × Aplicar: mide cada dos días una judía que germina y lo anota en una tabla · hoja de registro · 2 semanas · obligatoria.",
-   "Visual-espacial × Analizar: compara con fotos una planta al sol y otra a la sombra · escala de valoración · 30 min · optativa.",
-   "Interpersonal × Evaluar: en equipo, deciden con tres criterios qué maceta está mejor cuidada · coevaluación · 30 min · optativa.",
-   "Musical × Crear: inventa una canción corta sobre el ciclo de la planta con Chrome Music Lab · rúbrica · 45 min · voluntaria."
+   "Refuerzo: para quien lo necesita, antes de la tarea final.",
+   "Ampliación: para quien va por delante.",
+   "Es el esqueleto del paisaje de la Actividad 2; la matriz 8×6 se hace dentro de la Actividad."
   ],
-  "enlace": "https://view.genially.com/5d3ebe3d5890ce0f65730f81"
- },
- "L3": {
-  "titulo": "Beatriz (Francés, EOI) explica itinerario y paisaje en cinco líneas",
-  "texto": "Un itinerario de aprendizaje es una secuencia ordenada de actividades para llegar a un objetivo.\nPuede tener alguna bifurcación, pero el orden lo marca el docente y todos siguen un recorrido parecido.\nUn paisaje de aprendizaje ofrece muchas actividades a la vez, planificadas cruzando inteligencias múltiples y niveles de Bloom.\nEn el paisaje cada estudiante elige qué hace y en qué orden, entre tareas obligatorias, optativas y voluntarias.\nLa diferencia: el itinerario guía un recorrido; el paisaje abre varias opciones y atiende mejor a la diversidad."
+  "enlace": "https://view.genially.com/673a886db3cebc087dcc971a",
+  "real": {
+   "titulo": "(Math) Series niveladas",
+   "donde": "Genially",
+   "por_que": "Varias actividades para un mismo objetivo, y cada estudiante escoge su camino."
+  }
  },
  "X2": {
   "titulo": "Patricia entrega su paisaje de aprendizaje y lo marca en la Nave",
@@ -885,7 +894,7 @@ EJEMPLOS_RETOS = {
    "Se marca al ENVIAR la actividad, no al empezarla."
   ]
  },
- "A4": {
+ "L4": {
   "titulo": "Álvaro publica en LinkedIn su primer videoquiz, sin esperar a pulirlo",
   "texto": "Álvaro, profesor de Educación Física de 1.º de Bachillerato, publicó en LinkedIn, en abierto, una captura de su primer videoquiz con dos líneas: «Esta semana he convertido la explicación del salto de altura en un vídeo con preguntas para verlo antes de clase. No es perfecto, pero mi grupo ya lo está usando. #mutecdstargate». Tardó cinco minutos. Abrió la publicación, copió su enlace directo y lo pegó en el reto. Esa misma publicación le sirve después como evidencia en otros retos."
  },
@@ -899,17 +908,58 @@ EJEMPLOS_RETOS = {
    "Google Doc con permiso de lectura y dos capturas (el tablón y la tarea): su enlace va en el reto."
   ]
  },
- "L4": {
-  "titulo": "Mónica descubre en incógnito que su rúbrica pedía permiso",
-  "texto": "Mónica, maestra de Educación Infantil, eligió la rúbrica que había hecho en Google Docs. Copió el enlace, abrió una ventana de incógnito (Ctrl + Mayús + N en Chrome) y le salió «Necesitas permiso». En el documento pulsó «Compartir», cambió «Restringido» por «Cualquier persona con el enlace» con el rol «Lector» y volvió a probar: ahora se abría sin iniciar sesión. Hizo la captura con la ventana de incógnito y el documento a la vista y la pegó en el reto. Cinco minutos."
- },
- "A5": {
-  "titulo": "Laura (Inglés, 2.º ESO) hace una rúbrica de 4 criterios con descripciones observables",
-  "texto": "Laura eligió un objetivo que ya trabaja: «Presentar oralmente su ciudad durante dos minutos». Hizo en Google Docs una tabla con 4 criterios (contenido, vocabulario, fluidez y pronunciación) y 4 niveles (Inicial, En proceso, Conseguido y Destacado). En cada casilla escribió lo que se ve o se oye, no un adjetivo: en vez de «buen vocabulario», «usa 8 o más palabras de la unidad sin repetir». La compartió como «Cualquier persona con el enlace · Lector», se la pasó a una compañera para ver si podía usarla sin preguntarle y pegó el enlace en el reto.",
+ "L5": {
+  "titulo": "Laura (Inglés, 2.º ESO) hace una rúbrica de autoevaluación y un formulario para recogerla",
+  "texto": "Laura eligió un objetivo que ya trabaja: «Presentar oralmente su ciudad durante dos minutos». Hizo una rúbrica de autoevaluación con 4 criterios (contenido, vocabulario, fluidez y pronunciación) y 4 niveles (Inicial, En proceso, Conseguido y Destacado). En cada casilla escribió lo que se ve o se oye, no un adjetivo: en vez de «buen vocabulario», «usa 8 o más palabras de la unidad sin repetir». Después la pasó a un Google Forms, una pregunta por criterio con los cuatro niveles como opciones, para que cada estudiante se autoevalúe al terminar su exposición. Pegó en el reto el enlace del formulario y una captura de la rúbrica.",
   "detalle": [
    "Contenido · Destacado: nombra 4 o más lugares y da un dato de cada uno. Inicial: nombra 1 lugar, sin datos.",
    "Fluidez · Destacado: habla dos minutos con 2 pausas largas como máximo. Inicial: lee casi todo del papel.",
-   "Sin adjetivos sueltos («bien», «adecuado»): si no se puede observar, no se puede medir."
+   "Sin adjetivos sueltos («bien», «adecuado»): si no se puede observar, no se puede medir.",
+   "Opción que se ve en clase: CoRubrics, que convierte la rúbrica en el formulario solo."
+  ],
+  "vivo": [
+   {
+    "tipo": "tabla",
+    "titulo": "Rúbrica · Presentar oralmente su ciudad durante dos minutos (Inglés, 2.º ESO)",
+    "cab": [
+     "Criterio",
+     "Inicial",
+     "En proceso",
+     "Conseguido",
+     "Destacado"
+    ],
+    "filas": [
+     [
+      "Contenido",
+      "Nombra 1 lugar, sin datos",
+      "Nombra 2 lugares y da un dato de uno",
+      "Nombra 3 lugares y da un dato de cada uno",
+      "Nombra 4 o más lugares y da un dato de cada uno"
+     ],
+     [
+      "Vocabulario",
+      "Usa menos de 4 palabras de la unidad",
+      "Usa de 4 a 7 palabras de la unidad",
+      "Usa 8 o más palabras de la unidad sin repetir",
+      "Usa 8 o más y 2 expresiones nuevas de la unidad"
+     ],
+     [
+      "Fluidez",
+      "Lee casi todo del papel",
+      "No llega a 2 minutos o para muchas veces",
+      "Habla 2 minutos con 3 o 4 pausas largas",
+      "Habla 2 minutos con 2 pausas largas como máximo"
+     ],
+     [
+      "Pronunciación",
+      "No se entiende más de la mitad",
+      "Se entiende con esfuerzo en varias frases",
+      "Se entiende todo, con algún error",
+      "Se entiende todo y cuida la entonación de las preguntas"
+     ]
+    ],
+    "nota": "Cada casilla dice lo que se ve o se oye, no un adjetivo: «usa 8 o más palabras», no «buen vocabulario»."
+   }
   ]
  },
  "B5": {
@@ -920,15 +970,15 @@ EJEMPLOS_RETOS = {
    "Organizada con criterio: por unidad (también valdría por tipo de recurso).",
    "La rúbrica, a la vista en su propia página, no escondida tras un enlace."
   ],
-  "pua": "En PUA este reto recupera también a Vera y no hay reto anterior de rúbrica: la rúbrica (3-4 criterios con descripciones observables) se hace aquí mismo."
  },
- "L5": {
-  "titulo": "Paula crea en Google Forms tres preguntas de autoevaluación sobre el feudalismo",
-  "texto": "Paula, profesora de Geografía e Historia de 2.º de ESO, abrió Google Forms en modo cuestionario, con la puntuación y las respuestas visibles al enviar. Escribió una pregunta por cada objetivo de la unidad: 1) ¿Qué estamento trabajaba la tierra? (opción múltiple). 2) Relaciona señor y vasallo con sus obligaciones (cuadrícula). 3) ¿Por qué un campesino aceptaba depender de un señor? (respuesta corta, con una respuesta modelo como comentario). Lo insertó en su Bitácora (Google Sites → Insertar → Formularios) y pegó el enlace en el reto. Doce minutos."
- },
- "A6": {
-  "titulo": "Ramón repasa 15 minutos y gana al Simulador a la segunda",
-  "texto": "Ramón, profesor de FP Básica, se preparó 15 minutos antes de entrar: repasó sus notas de los temas 1 al 5 y se apuntó los pares que más se confunden (itinerario y paisaje, videotutorial y videoquiz, aula virtual y web de recursos, ABJ y gamificación). La primera partida la perdió por contestar despacio. En la segunda respondió sin apurar los 25 segundos, guardó «reparar escudo» para cuando su escudo iba bajo y llegó al Remate sin fallos pendientes. No tuvo que entregar nada: la insignia se registró sola."
+ "L6": {
+  "titulo": "Sergio (Matemáticas, 1.º ESO) adapta el Uno para practicar fracciones",
+  "texto": "Sergio cogió el Uno de toda la vida y le cambió una regla: sobre cada carta pegó una fracción, y solo se puede echar una carta si es equivalente a la de la mesa (1/2 sobre 2/4) o si es del mismo color. Las cartas de «roba dos» obligan a simplificar en voz alta la fracción que te toca. Lo probó en clase con un grupo, hizo una foto de la mesa con las cartas y la pegó en el reto.",
+  "detalle": [
+   "No inventa un juego: adapta uno que todos conocen.",
+   "La regla nueva es la que enseña: sin fracciones equivalentes, no se juega.",
+   "Vale igual uno digital: la URL de un Kahoot, un Wordwall o un Genially que ya exista, y lo que le cambias."
+  ]
  },
  "B6": {
   "titulo": "Carlos (Química, 1.º Bachillerato): escape de formulación en tres fases",
@@ -936,20 +986,18 @@ EJEMPLOS_RETOS = {
   "detalle": [
    "Hecho en Genially con una plantilla de escape: portada, tres salas y candado final.",
    "Cada mecánica sirve a un aprendizaje: sin nombrar bien el compuesto, la puerta no se abre.",
-   "Enlace público del Genially en el reto; la reflexión, en la caja y en su Bitácora."
+   "Enlace público del Genially en el reto; la reflexión, en su Bitácora."
   ]
  },
- "L6": {
-  "titulo": "Marta justifica su videotutorial de Tinkercad según el aula invertida",
-  "texto": "Recurso: videotutorial de Tinkercad con tres preguntas en Edpuzzle (3.º ESO).\nMetodología: aula invertida.\nSe ve en casa, antes de la sesión, al ritmo de cada estudiante.\nLas preguntas comprueban que ha entendido cada paso antes de seguir.\nEdpuzzle me dice quién lo ha visto y qué pregunta se falla más.\nCon eso empiezo la clase resolviendo solo las dudas reales.\nEl tiempo de aula se dedica a diseñar e imprimir, conmigo al lado.\nVídeo y no PDF: el procedimiento se entiende mejor viéndolo.\nEdpuzzle y no YouTube a secas: sin preguntas no sabría quién lo sigue.\nAporta autonomía, respeta los ritmos y deja más práctica guiada en clase."
- },
- "A7": {
+ "L7": {
   "titulo": "Rocío (5.º de Primaria) crea la insignia «Guardianes de la biblioteca»",
   "texto": "Se llama «Guardianes de la biblioteca». Reconoce al equipo que cada viernes deja la biblioteca de aula ordenada, con los libros revisados y las fichas de préstamo al día. En nuestra historia de clase, esos libros son el archivo de todas las aventuras que hemos leído: si se pierden o se rompen, el lunes nadie puede seguir la suya. No premia obedecer: recuerda que cuidar lo que es de todos es cuidar a los compañeros.",
   "detalle": [
-   "Diseñada en Canva: escudo azul con un libro abierto y una llave.",
-   "Compartida con el enlace de solo lectura de Canva y publicada en el padlet de la clase."
-  ]
+   "Diseñada con la IA de Canva a partir de una descripción: escudo azul con un libro abierto y una llave.",
+   "Compartida con el enlace de solo lectura de Canva."
+  ],
+  "imagen": "A7.jpg",
+  "imagen_alt": "La insignia «Guardianes de la biblioteca»: un escudo azul y dorado con un libro abierto y una llave."
  },
  "B7": {
   "titulo": "Ana (FP de Cuidados Auxiliares de Enfermería) convierte el registro diario en un turno de guardia",
@@ -960,30 +1008,17 @@ EJEMPLOS_RETOS = {
    "No es ABJ: no hay un juego que jugar, solo elementos de juego (historia, progreso e insignia) sobre una tarea real."
   ]
  },
- "L7": {
-  "titulo": "Pedro hace una tabla de los equipos que más han mejorado",
-  "texto": "Pedro, profesor de Educación Física de 1.º de ESO, no quería premiar solo al más rápido. En Google Sheets hizo una tabla de cinco filas, una por equipo, con tres columnas: marca media en la primera prueba de 1.000 metros, marca media actual y porcentaje de mejora. La ordenó por la mejora y añadió formato condicional para que el primer puesto salga en verde. Así, arriba va el equipo que más ha progresado, aunque no sea el más rápido. Hizo la captura y la pegó en el reto. Diez minutos."
- },
- "A8": {
-  "titulo": "Clara (Geografía e Historia, 1.º ESO) trae al aula un Coliseo en 3D",
-  "texto": "Usaría un modelo 3D del Coliseo publicado en Sketchfab, que desde el móvil se puede colocar sobre la mesa en realidad aumentada. Sería en 1.º de ESO, en la unidad de Roma. Por parejas, el alumnado lo giraría y se acercaría a las gradas, la arena y las entradas, y dibujaría un plano sencillo con el lugar donde se sentaba cada grupo social. Esa capa añade lo que el libro no da con una foto: el tamaño, la estructura por dentro y la posibilidad de compararlo con un estadio que conocen.",
-  "detalle": [
-   "En el reto va el enlace al modelo: aquí no se construye nada, se elige un recurso que ya existe.",
-   "Se cita el autor del modelo y su licencia, que aparecen en la propia ficha de Sketchfab."
-  ]
- },
- "B8": {
-  "titulo": "Lucía crea una lámina con RA y publica su Bitácora completa",
-  "texto": "Lucía, la profesora de Biología y Geología de 3.º de ESO que abrió su Bitácora en la semana 1, hizo su experiencia de realidad aumentada con una lámina del aparato digestivo: junto a cada órgano hay un código QR que abre en el móvil un modelo 3D de ese órgano (de Sketchfab, con su autor citado) o un vídeo suyo de 40 segundos. La imprimió en A3 para la pared del aula y la usó como reto libre. Después cerró la Bitácora: convirtió su paisaje de la Actividad 2 en una imagen interactiva de Genially incrustada en su página, revisó que las cinco páginas estuvieran completas (Actividad 1, Actividad 2, videotutorial, microgamificación y reto libre), lo abrió todo en incógnito y pegó el enlace único en el reto.",
-  "detalle": [
-   "Cada página sigue el mismo patrón: evidencia → contexto → reflexión.",
-   "Probó los QR con dos móviles distintos antes de imprimir la lámina.",
-   "Un solo enlace, el de la Bitácora, que lleva a todo lo demás."
-  ]
- },
  "L8": {
   "titulo": "Víctor mete en una diapositiva el QR de su juego sobre la orquesta",
   "texto": "Víctor, profesor de Música de 2.º de ESO, abrió en Chrome el enlace público de su juego de Wordwall sobre las familias de instrumentos y generó el QR con el botón derecho → «Crear código QR para esta página». Lo pegó en una diapositiva de Google Slides titulada «Escanea y juega: la orquesta», lo escaneó con su móvil para comprobar que abría el juego y, con la pantalla partida, hizo una captura con la diapositiva a la izquierda y el juego abierto a la derecha, con su dirección visible. La pegó en el reto. Ocho minutos."
+ },
+ "B8": {
+  "titulo": "Lucía publica su Bitácora completa antes del examen",
+  "texto": "Lucía, la profesora de Biología y Geología de 3.º de ESO que abrió su Bitácora en la semana 2, la cerró antes del examen: la página de la Actividad 1, la de la Actividad 2 con su paisaje incrustado, sus experiencias del portfolio con las tres hazañas —el videotutorial, la microgamificación y, a su elección, su juego digital— y la lámina con el QR de su relámpago. Lo abrió todo en una ventana de incógnito y pegó el enlace único en el reto.",
+  "detalle": [
+   "Cada página sigue el mismo patrón: evidencia, contexto, reflexión y autoevaluación.",
+   "Un solo enlace, el de la Bitácora, que lleva a todo lo demás."
+  ]
  },
  "XS": {
   "titulo": "Isabel monta su plataforma «EXPLORA» en 90 minutos",
@@ -1005,49 +1040,13 @@ EJEMPLOS_RETOS = {
 #   Actividad 1, los pares que se confunden), el cuestionario que se puede contestar y la línea de tiempo del vídeo
 #   con sus preguntas. Lo pinta la Nave (recluta.js, `ejemploVivo`) con los colores de STARGATE.
 EJEMPLOS_EXTRA = {
- "B1": {"imagen": "B1.jpg", "imagen_alt": "La portada de la Bitácora de Lucía en Google Sites: cabecera verde, menú de cinco páginas y la página «Quién soy» con su foto."},
- "L1": {"imagen": "L1.jpg", "imagen_alt": "Las dos versiones de la infografía del aparato circulatorio (la primera con etiquetas en inglés, la segunda elegida) y el logo circular «PULSO»."},
  "X2": {"imagen": "X2.jpg", "imagen_alt": "El paisaje de aprendizaje de Patricia: un huerto ilustrado con ocho plantas numeradas de colores y la ficha de la actividad 3 abierta."},
  "B4": {"imagen": "B4.jpg", "imagen_alt": "El tablón de Classroom «Física y Química 4.º B» con la pregunta de la semana y una tarea con tres recursos citados."},
- "L4": {"imagen": "L4.jpg", "imagen_alt": "La rúbrica de Mónica abierta en una ventana de incógnito de Chrome, sin sesión iniciada."},
  "B5": {"imagen": "B5.jpg", "imagen_alt": "El sitio «English Hub · 2.º ESO» con su menú de cinco páginas y la rúbrica incrustada en «Cómo se evalúa»."},
  "B6": {"imagen": "B6.jpg", "imagen_alt": "La fase 3 del escape de formulación de Carlos: un laboratorio con un candado de tres dígitos y la consigna «Formula el ácido sulfúrico»."},
- "A7": {"imagen": "A7.jpg", "imagen_alt": "La insignia «Guardianes de la biblioteca»: un escudo azul y dorado con un libro abierto y una llave."},
  "B7": {"imagen": "B7.jpg", "imagen_alt": "El tablero «Hospital Aurora · Equipo de guardia» con la barra de cada equipo y la insignia «Turno impecable»."},
- "L7": {"imagen": "L7.jpg", "imagen_alt": "La hoja de cálculo de Pedro con cinco equipos ordenados por su mejora en los 1.000 metros y el primero en verde."},
- "B8": {"imagen": "B8.jpg", "imagen_alt": "La lámina del aparato digestivo con un QR junto a cada órgano y un móvil que muestra el estómago en 3D."},
  "L8": {"imagen": "L8.jpg", "imagen_alt": "A la izquierda, la diapositiva «Escanea y juega: la orquesta» con su QR; a la derecha, el juego de Wordwall abierto con su dirección."},
  "XS": {"imagen": "XS.jpg", "imagen_alt": "La portada de «EXPLORA» en Google Sites: el logo, cinco líneas de presentación y los botones «Módulo 1 · Antes» y «Módulo 2 · Durante»."},
-
- "A5": {"vivo": [{"tipo": "tabla", "titulo": "Rúbrica · Presentar oralmente su ciudad durante dos minutos (Inglés, 2.º ESO)",
-   "cab": ["Criterio", "Inicial", "En proceso", "Conseguido", "Destacado"],
-   "filas": [
-    ["Contenido", "Nombra 1 lugar, sin datos", "Nombra 2 lugares y da un dato de uno", "Nombra 3 lugares y da un dato de cada uno", "Nombra 4 o más lugares y da un dato de cada uno"],
-    ["Vocabulario", "Usa menos de 4 palabras de la unidad", "Usa de 4 a 7 palabras de la unidad", "Usa 8 o más palabras de la unidad sin repetir", "Usa 8 o más y 2 expresiones nuevas de la unidad"],
-    ["Fluidez", "Lee casi todo del papel", "No llega a 2 minutos o para muchas veces", "Habla 2 minutos con 3 o 4 pausas largas", "Habla 2 minutos con 2 pausas largas como máximo"],
-    ["Pronunciación", "No se entiende más de la mitad", "Se entiende con esfuerzo en varias frases", "Se entiende todo, con algún error", "Se entiende todo y cuida la entonación de las preguntas"]],
-   "nota": "Cada casilla dice lo que se ve o se oye, no un adjetivo: «usa 8 o más palabras», no «buen vocabulario»."}]},
-
- "B3": {"vivo": [{"tipo": "tabla", "titulo": "Matriz de inteligencias múltiples × Bloom · «Las plantas» (3.º de Primaria)",
-   "cab": ["", "Recordar", "Comprender", "Aplicar", "Analizar", "Evaluar", "Crear"],
-   "filas": [
-    ["Lingüística", "", "Explica en un audio de 1 minuto qué necesita una planta para vivir", "", "", "", ""],
-    ["Lógico-matemática", "", "", "Mide cada dos días una judía que germina y lo anota en una tabla", "", "", ""],
-    ["Visual-espacial", "", "", "", "Compara con fotos una planta al sol y otra a la sombra", "", ""],
-    ["Corporal", "", "", "", "", "", ""],
-    ["Musical", "", "", "", "", "", "Inventa una canción corta sobre el ciclo de la planta (Chrome Music Lab)"],
-    ["Interpersonal", "", "", "", "", "En equipo, deciden con tres criterios qué maceta está mejor cuidada", ""],
-    ["Intrapersonal", "", "", "", "", "", ""],
-    ["Naturalista", "Nombra las partes de una planta del huerto con una ficha de fotos", "", "", "", "", ""]],
-   "nota": "Seis cruces: una por cada nivel de Bloom y en seis inteligencias distintas (las de sus puntos clave, abajo). Las 42 casillas vacías quedan a la vista para más adelante."}]},
-
- "A6": {"vivo": [{"tipo": "tabla", "titulo": "Los pares que Ramón se apuntó (los que más se confunden)",
-   "cab": ["Se confunde…", "…con", "La diferencia"],
-   "filas": [
-    ["Itinerario", "Paisaje", "El itinerario es una secuencia que ordena el docente; en el paisaje hay muchas actividades a la vez (inteligencias × Bloom) y cada estudiante elige cuáles y en qué orden."],
-    ["Videotutorial", "Videoquiz", "El videotutorial explica paso a paso cómo hacer algo; el videoquiz es un vídeo con preguntas dentro que hay que responder para seguir."],
-    ["Aula virtual", "Web de recursos", "El aula virtual tiene alumnado inscrito, tareas, entregas y notas; la web de recursos ordena materiales para consultarlos."],
-    ["ABJ", "Gamificación", "En el ABJ se aprende jugando a un juego; en la gamificación se usan elementos de juego (puntos, insignias, historia) en algo que no es un juego."]]}]},
 
  "X1": {"vivo": [
    {"tipo": "tabla", "titulo": "Tabla técnica (lo que puso Rosa)", "cab": ["Campo", "Rosa"],
@@ -1065,16 +1064,6 @@ EJEMPLOS_EXTRA = {
      ["¿Qué puso ella?", "La elección de la imagen, las preguntas guía y la rúbrica de la exposición."],
      ["¿Qué aprendió?", "A iterar el prompt con criterios didácticos, no estéticos."]]}]},
 
- "L5": {"vivo": [{"tipo": "quiz", "titulo": "Pruébalo: las tres preguntas de Paula",
-   "preguntas": [
-    {"q": "1 · ¿Qué estamento trabajaba la tierra?", "opciones": ["La nobleza", "El clero", "El campesinado", "La realeza"], "bien": 2,
-     "explica": "El campesinado trabajaba la tierra y pagaba rentas al señor."},
-    {"q": "2 · ¿Qué debía el vasallo a su señor?", "opciones": ["Protección y un feudo", "Fidelidad y ayuda militar", "Nada: eran iguales"], "bien": 1,
-     "explica": "El vasallo juraba fidelidad y ayuda militar; el señor le daba protección y un feudo. (En Forms es una cuadrícula con los dos.)"},
-    {"q": "3 · ¿Por qué un campesino aceptaba depender de un señor?", "abierta": True,
-     "explica": "Respuesta modelo: porque a cambio recibía protección frente a ataques y tierra para cultivar, en una época sin un poder central fuerte."}],
-   "nota": "En Forms, en modo cuestionario, con la puntuación y las respuestas visibles al enviar: la autoevaluación se corrige sola."}]},
-
  "B2": {"vivo": [{"tipo": "linea", "titulo": "Su vídeo en Edpuzzle: 4:00 y tres preguntas, justo después de cada paso difícil", "dura": "4:00",
    "marcas": [
     {"t": "1:10", "paso": "Agrupar formas", "q": "Para unir el aro y el cuerpo del llavero en una sola pieza, ¿qué botón usas?",
@@ -1086,16 +1075,12 @@ EJEMPLOS_EXTRA = {
      "opciones": ["5", "50", "500"], "bien": 1, "explica": "Tinkercad mide en milímetros: 5 cm son 50 mm."}]}]},
 }
  # 17-sep · «Hay algunos que ya te di ejemplo antes, usa esos cuando sea posible» (Norberto, revisión de retos del 15-sep):
- # A2, A3, B2 y B3. Su `enlace` es el de siempre; `real` dice qué es para el pie, y la página lo pone el PRIMERO, incrustado.
+ # L2 y B2 (antes A2, A3, B2 y B3; B3 lleva ya el suyo dentro). Su `enlace` es el de siempre; `real` dice qué es para el pie, y la página lo pone el PRIMERO, incrustado.
 for _k, _real in {
-    "A2": {"titulo": "Publicar y compartir un Genially", "autor": "Mr. Cuarter", "donde": "YouTube",
+    "L2": {"titulo": "Publicar y compartir un Genially", "autor": "Mr. Cuarter", "donde": "YouTube",
            "por_que": "Un tutorial corto que explica un procedimiento paso a paso: justo lo que pide el reto."},
-    "A3": {"titulo": "(Math) Series niveladas", "donde": "Genially",
-           "por_que": "Varias actividades para un mismo objetivo, y cada estudiante escoge su camino."},
     "B2": {"titulo": "Taxonomía de Bloom: qué es y ejemplos de aplicación", "donde": "Edpuzzle",
            "por_que": "Un vídeo con preguntas insertadas que comprueban la comprensión mientras se ve."},
-    "B3": {"titulo": "(Gamificación) Paisaje de aprendizaje: El viaje del Endurance", "donde": "Genially",
-           "por_que": "Un paisaje terminado: la matriz de este reto es la planificación que lo sostiene."},
 }.items():
     EJEMPLOS_EXTRA.setdefault(_k, {})["real"] = _real
 for _k, _v in EJEMPLOS_EXTRA.items():
@@ -1106,42 +1091,36 @@ ESCAPE_UNI = "https://view.genially.com/6a461360d187e3f8869ca453"
 
 GANCHO_RETOS = {
  "A0": "Un vídeo de 60 s presentándote, al padlet de la clase, y el enlace de tu publicación.",
- "A1": "Cuenta aquí algo que tengas (o dejaste) a medias y qué te frenó. Y lee a tu tripulación.",
- "B1": "Abre tu ePortfolio y publica su primera entrada: tu presentación. El enlace, aquí y en tu BIO.",
- # 16-sep · los relámpago: diez o quince minutos, en clase. La línea dice el gesto, no la teoría.
- "L1": "Una imagen didáctica con IA (prompt + una iteración) y un logo con tu palabra clave.",
- "L2": "Tu sesión en dos listas: qué hacen antes de clase y qué durante.",
- "L3": "Cinco líneas tuyas: qué es un itinerario y en qué se diferencia de un paisaje.",
- "L4": "Abre un recurso tuyo en incógnito y sube la captura de que se ve sin tu cuenta.",
- "L5": "Un cuestionario de autoevaluación de tres preguntas, enlazado en tu Bitácora.",
- "L6": "Justifica un recurso tuyo según una metodología. Diez líneas exactas.",
- "L7": "Una tabla de clasificación sencilla para una dinámica de tu aula.",
- "L8": "Un QR que abra un recurso tuyo, dentro de una lámina, con su captura.",
+ # 23-sep · los relámpago: prácticos, en clase, y cada uno recupera a su tripulante. La línea dice el gesto.
+ "L0": "En clase: la programación de una unidad de tu aula, con la herramienta que enseña tu Comandante.",
+ "L1": "En clase: un boceto o una idea a medias, hecha realidad con IA (con una iteración). El antes y el después.",
+ "L2": "En clase: un clip de 60 s explicando un concepto a quien faltó (la IA te puede ayudar con el guion).",
+ "L3": "En clase: un objetivo y dos actividades distintas para llegar a él.",
+ "L4": "En clase: publica algo tuyo del curso en tus redes con #mutecdstargate.",
+ "L5": "En clase: una rúbrica de autoevaluación y un formulario para recoger lo que respondan.",
+ "L6": "En clase: busca un juego que ya exista y adáptalo a un objetivo tuyo.",
+ "L7": "En clase: una insignia o una carta de recompensa diseñada con IA.",
+ "L8": "En clase: un QR que lleve a una actividad o un recurso tuyo, comprobado con el móvil.",
  "XS": "El ensayo general: 90 minutos de reloj para resolver un caso como el del examen.",
  "X1": "Pulsa «Lo he hecho» cuando hayas ENVIADO la Actividad 1, con su enlace (obligatorio).",
- "A2": "Un clip de 60 s explicando un concepto a quien faltó a clase.",
- "B2": "Un videotutorial con dos o tres preguntas insertadas dentro.",
- "A3": "Un Genially con una bifurcación: 2 o 3 actividades para un mismo objetivo, y cada cual elige.",
- "B3": "La matriz 8×6: inteligencias múltiples por niveles de Bloom.",
  "X2": "Pulsa «Lo he hecho» cuando hayas ENVIADO la Actividad 2, con su enlace (obligatorio).",
- "A4": "Comparte algo del curso en abierto con #mutecdstargate.",
- "B4": "Tu aula virtual con una tarea o un material publicado, en un doc con 2 capturas.",
- "A5": "Una rúbrica de 3-4 criterios para evaluar un objetivo, lista para que la use cualquiera.",
- "B5": "El centro de recursos de tu alumnado: una web (Sites o Genially) con tu rúbrica a la vista.",
- "A6": "Joran te reta: gánale a su simulador con lo que llevas aprendido.",
- "B6": "Un juego digital con niveles o varias formas de jugar, al servicio de un objetivo.",
- "A7": "Crea una insignia con sentido para una tarea rutinaria, y cuenta su porqué.",
- "B7": "Un toque de juego sobre una tarea, envuelto en una historia.",
+ # los retos principales: la experiencia del portfolio que marca el calendario oficial para cada tema
+ "B1": "Abre tu ePortfolio y publica su primera experiencia: tus recursos creados con IA.",
+ "B2": "Tu videotutorial en Edpuzzle, con tres preguntas dentro.",
+ "B3": "Tu itinerario en Genially: tus dos senderos, con refuerzo y ampliación.",
+ "B4": "Tu aula en Classroom o Sites: una tarea y tres materiales organizados.",
+ "B5": "Una web abierta, con otra herramienta: tres recursos tuyos y tu rúbrica a la vista.",
+ "B6": "Un juego digital con niveles, al servicio de un objetivo y metido en tu paisaje.",
+ "B7": "Gamifica una tarea real: una historia, tres retos y la recompensa del relámpago.",
  "S7": "Escápate del Escape UNI: el botón del final registra el reto.",
- "A8": "Una experiencia AR/VR que ya exista: su enlace, y aquí cómo la usarías.",
- "B8": "Una experiencia AR/VR (de un QR a una escena VR) y la Bitácora publicada.",
+ "B8": "Publica tu Bitácora completa: las dos Actividades, tus experiencias y tu QR.",
 }
 
-CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 55,
+CREDITOS = {"reclutamiento": 20, "retoA": 20, "retoB": 50, "retoB_pua": 50,   # 23-sep · PUA = REGULAR
             "actividad": 100, "final": 100, "derivada": 60,
- # 16-sep · el relámpago paga poco a propósito: son 10 o 15 minutos en clase, y si pagara como un
- # reto B desinflaría el Arsenal (el medio punto cuesta 550 ◈). El simulacro sí paga: son 90 minutos.
- "relampago": 10, "simulacro": 60,}
+ # 16-sep · el relámpago pagaba poco a propósito (10 ◈). 🔴 23-sep · ahora recupera al tripulante (lo que antes hacía el
+ # Reto A), así que paga lo que pagaba el Reto A: 20 ◈. El simulacro sí paga más: son 90 minutos.
+ "relampago": 20, "simulacro": 60,}
 # ---------- calendario del PER (v3.14) ----------
 # Decisión del usuario (25-ago): los formularios NO se abren y cierran a ojo. Por defecto:
 #   · abren UNA SEMANA ANTES de la semana 1 (para que el alumnado se aliste con margen),
@@ -1186,8 +1165,8 @@ CAPITULOS = [
      "cabecera": "Tu Nave, ya en marcha",
      "puedes": ["Tu personaje, tu nivel y tus créditos, siempre a la vista",
                 "Los retos de la semana: se hacen y se marcan con «Lo he hecho» (con el enlace de tu evidencia)",
-  "Tu Bitácora, desde hoy: el viaje entero termina en ella, y el primer reto B es abrirla",
-  "Los retos relámpago: diez o quince minutos, y se hacen EN CLASE — quien viene, sale con el reto hecho",
+  "Tu Bitácora, desde hoy: el viaje entero termina en ella, y el primer reto principal es abrirla",
+  "Los retos relámpago: quince minutos EN CLASE, y cada uno recupera a un tripulante — quien no pudo venir, lo hace esa semana",
                 "Presente en la llamada a filas: créditos y un sobre de regalo",
                 "Mi botín: tus insignias y tu álbum de cromos"],
      "imagen": "assets/img/canje/sobre.jpg"},
@@ -1276,14 +1255,14 @@ CAPITULOS = [
                 "Las cinco: el Contramaestre de la Nave, un héroe legendario (él y ella) y una carta con tu alias",
                 "No se compra, no se regala y no se cambia en el Zoco: solo se gana"],
      "imagen": "assets/img/canje/logros.jpg"},
-    # 16-sep · EL SIMULADOR DE JORAN (el reto A6). Norberto: «la misma semana 10 les puedo dejar hacer la actividad en
+    # 16-sep · EL SIMULADOR DE JORAN (hasta el 23-sep, el reto A6; ahora, un juego de repaso de la Nave). Norberto: «la misma semana 10 les puedo dejar hacer la actividad en
     # clase y la semana siguiente mostramos el emulador desbloqueado (aunque algunos ya lo tendrán desbloqueado)». La
     # batalla se abre con el planeta Ludo (tema 6, semana 10); este capítulo la presenta a la clase entera la semana
     # siguiente. En PUA el tema 6 cae en la 5, así que el capítulo va con el Arsenal, en la 8.
     {"n": 10, "clave": "c11", "titulo": "El Simulador de Joran", "icono": "<img class=ico src=assets/img/iconos/p/diana.png alt>", "semana": 11, "semana_pua": 7,
      "abre": ["simulador"], "mercado": [],
      "cabecera": "El simulador que dejó encendido Joran",
-     "puedes": ["Si le ganaste a RUTA AZUL en el reto A6, el simulador ya está en tu Nave",
+     "puedes": ["Gana a RUTA AZUL, el rival de Joran, y el entrenamiento se queda en tu Nave",
                 "Y si no, vuelve a intentarlo: cada derrota lo cansa y ataca más despacio",
                 "Entrena tema a tema, o con todas las preguntas del viaje a la vez",
                 "Cada modo tiene su ranking: ganar vale, ganar entero vale más y ganar sin fallar, lo máximo",
@@ -1324,7 +1303,7 @@ assert [c["n"] for c in CAPITULOS] == list(range(1, len(CAPITULOS) + 1)), "los c
 assert all(CAPITULOS[i]["semana"] <= CAPITULOS[i + 1]["semana"] for i in range(len(CAPITULOS) - 1)), \
     "un capítulo no puede abrirse antes que el anterior"
 
-# ─────────────────── EL SIMULADOR DE JORAN · la batalla del reto A6 (16-sep) ───────────────────
+# ─────────────────── EL SIMULADOR DE JORAN · la batalla de repaso (16-sep; hasta el 23-sep, el reto A6) ───────────────────
 # Norberto: «Reto A6: vamos a hacer algo más épico… se van a enfrentar a un juego de preguntas contra Joran… GamificaPro
 # tiene un motor de peleas, revísalo y lo usamos… si el usuario gana desbloquea algo nuevo en su nave: el Simulador de
 # Joran… habrá un ranking de cada tema y un modo en que entren todas las preguntas».
@@ -1334,13 +1313,15 @@ assert all(CAPITULOS[i]["semana"] <= CAPITULOS[i + 1]["semana"] for i in range(l
 # números que se le enseñan al alumnado, y tienen que ser los mismos que en `functions/stargateBatalla.js → BATALLA`
 # (la batería 80 los compara).
 BATALLA = {
-    "reto": "A6", "clave": "joran", "rival": "RUTA AZUL", "creador": "Joran Pike", "capitulo": "c11",
+    # 🔴 23-sep · el Simulador deja de ser un reto (el relámpago de Ludo pasa a ser «Encuentra el juego»): se queda en la
+    # Nave como juego de repaso. Ganar a RUTA AZUL sigue abriendo el entrenamiento, pero no registra ningún reto.
+    "reto": None, "clave": "joran", "rival": "RUTA AZUL", "creador": "Joran Pike", "capitulo": "c11",
     "tema_reto": 6, "temas_reto": [1, 2, 3, 4, 5],
     "vida": 100, "vida_rival": 180, "golpe": 20, "golpe_rival": 10,
     "cadencia": 25, "preguntas": 14, "cura": 35, "lentitud": 12,
     # 16-sep · Norberto: «sería fantástico poder escoger el nivel de dificultad en el juego». El nivel cambia las
-    # preguntas que salen, lo que aguanta el rival, cada cuánto pega y lo que vale la marca. El reto A6 va siempre en
-    # media: la insignia de Joran cuesta lo mismo para todo el mundo.
+    # preguntas que salen, lo que aguanta el rival, cada cuánto pega y lo que vale la marca. La primera victoria (la que
+    # abre el entrenamiento) va siempre en media: cuesta lo mismo para todo el mundo.
     "nivel_reto": "media",
     "niveles": [["facil", "Fácil", "Sobre todo preguntas fáciles. Aguanta menos y pega más despacio.", "×0,85"],
                 ["media", "Media", "El equilibrio del reto de Joran.", "×1"],
@@ -1371,7 +1352,7 @@ VOTACION = {
     "max_extra": 2,          # cuántos votos de pago como mucho por persona
     "pregunta_max": 120, "opcion_max": 60,
     "ejemplos": ["¿Qué herramienta prefieres que veamos la semana que viene?",
-                 "¿Qué reto B enseñamos en clase?",
+                 "¿Qué reto principal enseñamos en clase?",
                  "¿Con qué planeta empezamos el repaso?"],
 }
 

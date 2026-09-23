@@ -11,6 +11,10 @@
  * Lo que se vigila: que B1 sea la Bitácora y «La chispa» no se haya perdido (es L1), que los ocho relámpago existan con
  * su semana y su precio, que sean VOLUNTARIOS (no cierran el planeta ni son obligatorios), que «Mano rápida» se gane
  * con cinco de ocho, que el simulacro tenga su sitio en la semana 15 y que las tres insignias nuevas estén dibujadas.
+ *
+ * 23-sep · los 20 retos: «dos retos por tema y alguno extra». Cada tema tiene su relámpago EN CLASE (L0–L8, práctico:
+ * crear, diseñar, encontrar) y su reto principal en casa (B). Los A desaparecen; los relámpago pasan a 100 xp y 20 ◈
+ * (son el reto práctico del tema, no un extra de quince minutos) y se lanzan en la clase de su tema.
  */
 const fs = require("fs"), path = require("path"), { execFileSync } = require("child_process");
 const RAIZ = path.resolve(__dirname, "..");
@@ -27,20 +31,23 @@ const REG = D.RETOS_REGULAR, PUA = D.RETOS_PUA, por = {}; REG.forEach(r => (por[
 // 1 · la Bitácora ocupa el sitio de la chispa, y la chispa sigue viva
 c(por.B1 && /Bitácora en marcha/.test(por.B1[1]), "🔴 B1 es «La Bitácora en marcha»: el ePortfolio se abre en la semana 1", por.B1 && por.B1[1]);
 c(por.B1 && por.B1[2][0] === "R0_bitacora-en-marcha" && por.B1[3] === 250, "   con su insignia nueva y sus 250 xp");
-c(por.L1 && /chispa y la marca/.test(por.L1[1]) && por.L1[2][0] === "R1_la-chispa",
-  "🔴 «La chispa» no se pierde: baja a relámpago (L1) y se queda con su insignia de siempre");
+c(por.L1 && /Del boceto a la forja/.test(por.L1[1]) && por.L1[2].indexOf("R1_la-chispa") >= 0 && por.L1[2].indexOf("P1_bran") >= 0,
+  "🔴 «La chispa» no se pierde: su insignia la da L1 («Del boceto a la forja»), con la de Bran", por.L1 && por.L1[2].join(","));
 c(/ePortfolio/.test(D.AYUDA_RETOS.B1 || "") && /BIO/.test(D.AYUDA_RETOS.B1 || ""),
   "🔴 y el enunciado pide el enlace en el reto Y en la BIO de la Nave (lo que pidió Norberto)");
 c(/plantilla oficial en Genially/.test(D.AYUDA_RETOS.B1 || ""), "   y recuerda que hay plantilla oficial");
-c(/primera entrada/.test(D.AYUDA_RETOS.B1 || ""), "   y que basta con la primera entrada: la presentación");
+c(/primera experiencia/.test(D.AYUDA_RETOS.B1 || "") && /relámpago/.test(D.AYUDA_RETOS.B1 || ""),
+  "   y que basta con la primera experiencia: lo creado con IA en el relámpago y uno más");
 
-// 2 · los ocho relámpago
+// 2 · los relámpago: uno por tema, y el de la hoja de ruta en la primera clase
 const L = REG.filter(r => r[0].charAt(0) === "L");
-c(L.length === 8, "son ocho relámpago, uno por tema", String(L.length));
-c(L.every(r => r[3] === 60), "   60 xp cada uno: cuestan quince minutos, no dos horas");
-c(D.CREDITOS.relampago === 10, "🔴 y 10 ◈: si pagaran como un reto B, el Arsenal de notas se desinflaría", String(D.CREDITOS.relampago));
-c(JSON.stringify(L.map(r => r[5])) === JSON.stringify([2, 4, 6, 8, 9, 11, 12, 14]),
-  "🔴 caen en la semana de continuación, la que NO lanza reto nuevo", L.map(r => r[5]).join(","));
+c(L.map(r => r[0]).join(",") === "L0,L1,L2,L3,L4,L5,L6,L7,L8", "son nueve relámpago: L0 (la hoja de ruta) y uno por tema", L.map(r => r[0]).join(","));
+c(L.every(r => r[3] === (r[0] === "L0" ? 60 : 100)), "   100 xp cada uno (L0, 60): es el reto práctico del tema, hecho en clase");
+c(D.CREDITOS.relampago === 20, "🔴 y 20 ◈: menos que un reto principal (50), que es el que se hace en casa", String(D.CREDITOS.relampago));
+c(JSON.stringify(L.map(r => r[5])) === JSON.stringify([1, 2, 3, 5, 7, 9, 10, 11, 13]),
+  "🔴 se lanzan en la clase de su tema (el tema 1, en sus dos semanas)", L.map(r => r[5]).join(","));
+c(L.every(r => r[4] === (r[0] === "L0" ? 1 : Number(r[0].slice(1)))), "   y cada uno es de su tema");
+c(REG.filter(r => /^A[1-8]$/.test(r[0])).length === 0, "🔴 no queda ningún reto A (A1–A8): dos retos por tema, no tres");
 c(L.every(r => !/,/.test(r[1])), "   y ningún título lleva coma: el lector del formato viejo parte por comas");
 c(L.every(r => PUA.some(p => p[0] === r[0])), "   en PUA están los ocho también");
 
@@ -78,9 +85,9 @@ c(/\.reto-sem\.relampago/.test(leer("assets/css/stargate.css")), "   y se distin
 c(/tramo=apertura/.test(leer("assets/js/consola.js")) && /tramo=cierre/.test(leer("assets/js/consola.js")),
   "   y la consola da los dos embeds de la sesión, para pegarlos antes y después de la teoría");
 
-// 7 · A4 se queda como estaba (aquí me corrigió)
-c(/redes/.test(D.AYUDA_RETOS.A4 || "") && !/padlet de la clase o en el foro/.test(D.AYUDA_RETOS.A4 || ""),
-  "🔴 A4 sigue pidiendo publicar en redes: tienen otra asignatura que les obliga a crearse una");
+// 7 · publicar en redes se queda (aquí me corrigió): desde el 23-sep es el relámpago del tema 4
+c(/redes/.test(D.AYUDA_RETOS.L4 || "") && !/padlet de la clase o en el foro/.test(D.AYUDA_RETOS.L4 || ""),
+  "🔴 L4 sigue pidiendo publicar en redes: tienen otra asignatura que les obliga a crearse una");
 
 // 8 · las cuentas del viaje cuadran con el catálogo
 const XPV = JSON.parse(execFileSync("python3", ["-c", "import json,_site_data as D;print(json.dumps(D.XP_VIAJE))"], { cwd: RAIZ, encoding: "utf8" }));
@@ -104,7 +111,7 @@ c(/MISIONES\.filter\(function \(m\) \{ return m\.stargateId !== "H1"; \}\)/.test
 c(/window\.SG_BADGES=/.test(leer("diploma.html")), "   con el catálogo de insignias en su página");
 c(/SG_CATALOGO\|\|\{\}\)\.retos/.test(leer("assets/js/sesion.js")), "   y la sesión saca la insignia de cada misión del catálogo (el relámpago L1 y el simulacro tienen la suya)");
 
-console.log("\n  Batería 85 · la Bitácora y los ocho relámpago");
+console.log("\n  Batería 85 · la Bitácora y los relámpago");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
 fallos.forEach(f => console.log("   ✗ " + f));
 process.exit(fallos.length ? 1 : 0);

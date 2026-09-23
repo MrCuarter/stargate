@@ -24,7 +24,8 @@ const bonoXP = G.BONUS_PLANETA.xp * 8;
 const bonoCR = G.BONUS_PLANETA.creditos * 8;
 // 1.140 ◈ de base (16-sep): los 940 de v3.41 + 80 de los ocho relámpago (10 cada uno) + 60 del
 // simulacro + 60 de «Mano rápida», que es una insignia derivada más y paga como las otras.
-igual(rico.creditos_ganados, 1140 + bonoCR, "el viaje completo da los 1.140 ◈ de base más los bonus");
+// 23-sep · 1.080 de base desde que son 20 retos: fuera A1-A8 (160) y los relámpago viejos (8×10); dentro L0-L8 a 20 (180)
+igual(rico.creditos_ganados, 1080 + bonoCR, "el viaje completo da los 1.080 ◈ de base más los bonus");
 igual(rico.xp, G.XP_VIAJE.REGULAR + bonoXP, "y los xp del viaje más el bonus de los 8 planetas");
 igual(rico.nivel, 10, "🔴 y sigue siendo nivel 10: los bonus no se saltan el techo");
 igual(rico.nivel, 10, "nivel 10");

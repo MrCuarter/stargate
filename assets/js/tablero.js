@@ -156,10 +156,10 @@ function montar(root, per, OPC){
      * relámpago, que se juegan en clase y por eso premian ESTAR. Cada uno mide una cosa distinta: más gente brilla.
      */
     {k:'relampago', et:'<img class=ico src=assets/img/iconos/p/rayo.png alt> Relámpago', col:'xp',
-     ayuda:'Retos <b>relámpago</b> hechos: los de diez minutos que se juegan en clase. Premia estar, no correr.',
+     ayuda:'Retos <b>relámpago</b> hechos: los de quince minutos que se juegan en clase y recuperan a un tripulante. Premia estar, no correr.',
      val:function(p){return nRelampago(p)||0;},
      unidad:function(v){return v===1?' relámpago':' relámpago';}, soloConValor:true,
-     vacio:'Todavía nadie ha hecho un relámpago. Se juegan en clase, desde la semana 2.'},
+     vacio:'Todavía nadie ha hecho un relámpago. Se juegan en clase, desde la semana 1.'},
     {k:'logros', et:'<img class=ico src=assets/img/iconos/p/medalla.png alt> Logros de a bordo', col:'xp',
      ayuda:'Las <b>primeras veces</b> en la Nave: el primer reto, la primera reflexión, comentar a tu tripulación, tres días seguidos…',
      val:function(p){return nLogros(p)||0;},

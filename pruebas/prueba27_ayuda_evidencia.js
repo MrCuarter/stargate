@@ -39,11 +39,12 @@ igual(new Set(evs).size, evs.length,
   "🔴 con nombre DISTINTO cada uno: si se llamaran igual, la hoja tendría columnas repetidas y leerFila_ solo vería la última");
 // v3.38 · LA EVIDENCIA POR TIPO (petición de Norberto, 30-ago): cada reto dice la forma más fácil
 // de compartir SU producto, no un consejo genérico.
-const a1 = RETOS.filter(r => r[0] === "A1")[0];
+// 23-sep · ningún reto va ya del foro: el de redes (L4, «Abre el canal») pide el enlace directo a la publicación
+const a1 = RETOS.filter(r => r[0] === "L4")[0];
 contiene(item(G.tituloEvidenciaReto_(a1)).getHelpText(), "ENLACE DIRECTO",
-  "🔴 A1 va del foro: pide el enlace directo al mensaje, no un genérico");
-contiene(item(G.tituloEvidenciaReto_(a1)).getHelpText(), "postimages",
-  "y da las alternativas (captura a Drive compartido o postimages, o vía Bitácora)");
+  "🔴 L4 va de redes: pide el enlace directo a la publicación, no un genérico");
+contiene(item(G.tituloEvidenciaReto_(a1)).getHelpText(), "#mutecdstargate",
+  "y recuerda el hashtag");
 const b6 = RETOS.filter(r => r[0] === "B6")[0];
 contiene(item(G.tituloEvidenciaReto_(b6)).getHelpText(), "incógnito",
   "B6 es un juego con enlace propio: pide el enlace y la prueba del incógnito");
@@ -62,16 +63,16 @@ const GP = E.nuevoMundo();
 E.crearPERDemo(GP, { nombre: "GRUPO PADLET", padlet: "https://padlet.com/profe/muro-de-clase-abc123def" });
 const bitP = GP.FormApp.openByUrl(GP.perObj_(GP.perFila_("grupo-padlet").v).formBitacoraEdit);
 const itemP = t => bitP.getItems().filter(i => i.getTitle() === t)[0];
-["A0", "B1", "A6", "A7"].forEach(id => {
+["A0", "B1", "L1"].forEach(id => {
   const r = GP.RETOS_REGULAR.filter(x => x[0] === id)[0];
   const ay = itemP(GP.tituloEvidenciaReto_(r)).getHelpText();
   contiene(ay, "PADLET", "🔴 " + id + " manda al padlet de la clase");
   contiene(ay, "muro-de-clase-abc123def", "con SU enlace, no uno genérico");
   contiene(ay, "TU publicación", "y pide el enlace de la publicación propia, que es la evidencia");
 });
-const a1P = GP.RETOS_REGULAR.filter(x => x[0] === "A1")[0];
+const a1P = GP.RETOS_REGULAR.filter(x => x[0] === "L4")[0];
 c(itemP(GP.tituloEvidenciaReto_(a1P)).getHelpText().indexOf("padlet") < 0,
-  "los retos de FORO no mencionan el padlet: el foro es el foro (decisión de Norberto)");
+  "los retos de REDES no mencionan el padlet: la publicación es la evidencia (decisión de Norberto)");
 const x1P = GP.RETOS_REGULAR.filter(x => x[0] === "X1")[0];
 c(itemP(GP.tituloEvidenciaReto_(x1P)).getHelpText().indexOf("padlet") < 0, "y las Actividades tampoco");
 // sin padlet, B1 no se queda huérfano

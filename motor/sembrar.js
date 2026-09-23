@@ -31,11 +31,11 @@ const DOCENTES_DEMO = [
 // Reclutas de mentira para que la Nave y la consola tengan algo que enseñar. Los alias salen del
 // mismo banco que usa el formulario de alta, así que suenan a STARGATE y no a «alumno1».
 const SIEMBRA = [
-  { alias: "Vega",  nombre: "Vega",  apellidos: "Estrella", profe: "Capitana Vega",  retos: ["A0","A1","B1","X1","A2","B2"] },
-  { alias: "Orion", nombre: "Orion", apellidos: "Cazador",  profe: "Comandante Orion", retos: ["A0","A1","B1"] },
-  { alias: "Lyra",  nombre: "Lyra",  apellidos: "Cuerda",   profe: "Capitana Vega",  retos: ["A0","A1"] },
+  { alias: "Vega",  nombre: "Vega",  apellidos: "Estrella", profe: "Capitana Vega",  retos: ["A0","L1","B1","X1","L2","B2"] },
+  { alias: "Orion", nombre: "Orion", apellidos: "Cazador",  profe: "Comandante Orion", retos: ["A0","L1","B1"] },
+  { alias: "Lyra",  nombre: "Lyra",  apellidos: "Cuerda",   profe: "Capitana Vega",  retos: ["A0","L1"] },
   { alias: "Nix",   nombre: "Nix",   apellidos: "Noche",    profe: "Mr Cuarter",     retos: ["A0"] },
-  { alias: "Talia", nombre: "Talia", apellidos: "Vuelo",    profe: "Comandante Orion", retos: ["A0","A1","B1","X1","A2","B2","A3","B3","X2"] }
+  { alias: "Talia", nombre: "Talia", apellidos: "Vuelo",    profe: "Comandante Orion", retos: ["A0","L1","B1","X1","L2","B2","L3","B3","X2"] }
 ];
 
 // La misma traducción que hace assets/js/motor.js al sembrar desde el navegador. Los dos caminos

@@ -421,7 +421,7 @@
                 if (yo_) yo_.ofertas = f.stargateOfertas || {};
                 // 15-sep (noche) · sus logros de a bordo, las cubiertas cobradas y los días a bordo (los apunta el servidor)
                 if (yo_) { yo_.hitos = f.stargateHitos || {}; yo_.cubiertas = f.stargateCubiertas || {}; yo_.dias = f.stargateDias || {}; }
-                // 16-sep · el Simulador de Joran: si le ganó (reto A6) y sus mejores marcas por tema
+                // 16-sep · el Simulador de Joran: si le ganó y sus mejores marcas por tema
                 if (yo_) yo_.simulador = f.stargateSimulador || {};
                 // 15-sep (noche) · lo que tiene SIN ABRIR (un sobre o una cápsula que no se llegó a abrir): la Nave ofrece abrirlo
                 if (yo_) yo_.sinAbrir = Object.keys(f.consumableUses || {}).filter(function (id) {
@@ -903,7 +903,9 @@
       var P = perfil, inv = P.inventory || [], v = String(P.stargateViste || ""), t = Date.now(), h = {};
       var si = function (k, cierto) { if (cierto) h[k] = t; };
       si("reto", (P.completedMissionIds || []).length > 0);
-      si("reflexion", Object.keys(refl).length > 0);
+      // 23-sep · el relámpago y el reto principal (antes: la primera reflexión)
+      si("relampago", (P.completedMissionIds || []).some(function (x) { return /(^|__)L\d$/.test(x); }));
+      si("principal", (P.completedMissionIds || []).some(function (x) { return /(^|__)B\d$/.test(x); }));
       si("compra", !!P._compra);
       si("carta", inv.some(function (x) { return /__cromo_[A-Z]\d+_/.test(x); }));
       si("heroe", inv.some(function (x) { return /__heroe_H\d+_/.test(x) && !/__heroe_H3[12]_/.test(x); }));

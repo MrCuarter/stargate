@@ -14,34 +14,33 @@
         "semana": 0
       },
       {
-        "id": "A1",
-        "titulo": "Reto A «El boceto sin quemar» (recupera a Bran)",
+        "id": "L0",
+        "titulo": "Reto relámpago «La hoja de ruta» (tu programación didáctica)",
+        "insignias": [],
+        "xp": 60,
+        "tema": 1,
+        "semana": 1
+      },
+      {
+        "id": "L1",
+        "titulo": "Reto relámpago «Del boceto a la forja» (recupera a Bran)",
         "insignias": [
-          "P1_bran"
+          "P1_bran",
+          "R1_la-chispa"
         ],
         "xp": 100,
         "tema": 1,
-        "semana": 0
+        "semana": 2
       },
       {
         "id": "B1",
-        "titulo": "Reto B «La Bitácora en marcha» (tu ePortfolio)",
+        "titulo": "Reto principal «La Bitácora en marcha» (tu ePortfolio)",
         "insignias": [
           "R0_bitacora-en-marcha"
         ],
         "xp": 250,
         "tema": 1,
         "semana": 0
-      },
-      {
-        "id": "L1",
-        "titulo": "Reto relámpago «La chispa y la marca» (imagen con IA + logo)",
-        "insignias": [
-          "R1_la-chispa"
-        ],
-        "xp": 60,
-        "tema": 1,
-        "semana": 2
       },
       {
         "id": "X1",
@@ -55,18 +54,18 @@
         "semana": 0
       },
       {
-        "id": "A2",
-        "titulo": "Reto A «Un mensaje para quien faltó» (recupera a Tomás)",
+        "id": "L2",
+        "titulo": "Reto relámpago «Un mensaje para quien faltó» (recupera a Tomás)",
         "insignias": [
           "P2_tomas"
         ],
         "xp": 100,
         "tema": 2,
-        "semana": 0
+        "semana": 3
       },
       {
         "id": "B2",
-        "titulo": "Reto B «El eco que enseña» (videotutorial + videoquiz)",
+        "titulo": "Reto principal «El eco que enseña» (videotutorial en Edpuzzle)",
         "insignias": [
           "R2_el-eco-que-ensena"
         ],
@@ -75,40 +74,24 @@
         "semana": 0
       },
       {
-        "id": "L2",
-        "titulo": "Reto relámpago «Módulo 1 y módulo 2» (antes y durante la clase)",
-        "insignias": [],
-        "xp": 60,
-        "tema": 2,
-        "semana": 4
-      },
-      {
-        "id": "A3",
-        "titulo": "Reto A «Dos senderos» (recupera a Sylla)",
+        "id": "L3",
+        "titulo": "Reto relámpago «Dos senderos» (recupera a Sylla)",
         "insignias": [
           "P3_sylla"
         ],
         "xp": 100,
         "tema": 3,
-        "semana": 0
+        "semana": 5
       },
       {
         "id": "B3",
-        "titulo": "Reto B «La matriz» (matriz 8×6)",
+        "titulo": "Reto principal «El itinerario» (refuerzo y ampliación en Genially)",
         "insignias": [
           "R3_la-matriz"
         ],
         "xp": 250,
         "tema": 3,
         "semana": 0
-      },
-      {
-        "id": "L3",
-        "titulo": "Reto relámpago «Cinco líneas que explican» (itinerario y paisaje)",
-        "insignias": [],
-        "xp": 60,
-        "tema": 3,
-        "semana": 6
       },
       {
         "id": "X2",
@@ -121,18 +104,18 @@
         "semana": 0
       },
       {
-        "id": "A4",
-        "titulo": "Reto A «Abre el canal» (recupera a Amara)",
+        "id": "L4",
+        "titulo": "Reto relámpago «Abre el canal» (recupera a Amara)",
         "insignias": [
           "P4_amara"
         ],
         "xp": 100,
         "tema": 4,
-        "semana": 0
+        "semana": 7
       },
       {
         "id": "B4",
-        "titulo": "Reto B «El entorno de aula» (aula virtual + tres recursos que ya existen)",
+        "titulo": "Reto principal «El entorno de aula» (Classroom o Sites)",
         "insignias": [
           "R4_entorno-de-aula"
         ],
@@ -141,26 +124,18 @@
         "semana": 0
       },
       {
-        "id": "L4",
-        "titulo": "Reto relámpago «Enlace en incógnito» (que se vea sin tu cuenta)",
-        "insignias": [],
-        "xp": 60,
-        "tema": 4,
-        "semana": 8
-      },
-      {
-        "id": "A5",
-        "titulo": "Reto A «Mide con método» (recupera a Vera)",
+        "id": "L5",
+        "titulo": "Reto relámpago «Mide con método» (recupera a Vera)",
         "insignias": [
           "P5_vera"
         ],
         "xp": 100,
         "tema": 5,
-        "semana": 0
+        "semana": 9
       },
       {
         "id": "B5",
-        "titulo": "Reto B «La Bitácora medida» (web de recursos + rúbrica)",
+        "titulo": "Reto principal «Tu centro de recursos» (web abierta + rúbrica)",
         "insignias": [
           "R5_bitacora-medida"
         ],
@@ -169,26 +144,18 @@
         "semana": 0
       },
       {
-        "id": "L5",
-        "titulo": "Reto relámpago «Tres preguntas» (autoevaluación)",
-        "insignias": [],
-        "xp": 60,
-        "tema": 5,
-        "semana": 9
-      },
-      {
-        "id": "A6",
-        "titulo": "Reto A «El Simulador de Joran» (recupera a Joran)",
+        "id": "L6",
+        "titulo": "Reto relámpago «Encuentra el juego» (recupera a Joran)",
         "insignias": [
           "P6_joran"
         ],
         "xp": 100,
         "tema": 6,
-        "semana": 0
+        "semana": 10
       },
       {
         "id": "B6",
-        "titulo": "Reto B «El juego» (juego digital)",
+        "titulo": "Reto principal «El juego» (juego digital)",
         "insignias": [
           "R6_el-juego"
         ],
@@ -197,26 +164,18 @@
         "semana": 0
       },
       {
-        "id": "L6",
-        "titulo": "Reto relámpago «Las diez líneas» (justifica un recurso)",
-        "insignias": [],
-        "xp": 60,
-        "tema": 6,
-        "semana": 11
-      },
-      {
-        "id": "A7",
-        "titulo": "Reto A «Un porqué» (recupera a Mara)",
+        "id": "L7",
+        "titulo": "Reto relámpago «Un porqué» (recupera a Mara)",
         "insignias": [
           "P7_mara"
         ],
         "xp": 100,
         "tema": 7,
-        "semana": 0
+        "semana": 11
       },
       {
         "id": "B7",
-        "titulo": "Reto B «La microgamificación»",
+        "titulo": "Reto principal «La microgamificación»",
         "insignias": [
           "R7_microgamificacion"
         ],
@@ -235,40 +194,24 @@
         "semana": 0
       },
       {
-        "id": "L7",
-        "titulo": "Reto relámpago «El marcador» (tabla de clasificación)",
-        "insignias": [],
-        "xp": 60,
-        "tema": 7,
-        "semana": 12
-      },
-      {
-        "id": "A8",
-        "titulo": "Reto A «La capa posible» (recupera a Noa)",
+        "id": "L8",
+        "titulo": "Reto relámpago «El QR» (recupera a Noa)",
         "insignias": [
           "P8_noa"
         ],
         "xp": 100,
         "tema": 8,
-        "semana": 0
+        "semana": 13
       },
       {
         "id": "B8",
-        "titulo": "Reto B «El último umbral» (RA/RV + Bitácora publicada)",
+        "titulo": "Reto principal «El último umbral» (tu Bitácora publicada)",
         "insignias": [
           "R8_ultimo-umbral"
         ],
         "xp": 250,
         "tema": 8,
         "semana": 0
-      },
-      {
-        "id": "L8",
-        "titulo": "Reto relámpago «El QR» (un QR dentro de una lámina)",
-        "insignias": [],
-        "xp": 60,
-        "tema": 8,
-        "semana": 14
       },
       {
         "id": "XS",
@@ -293,29 +236,37 @@
         "semana": 0
       },
       {
-        "id": "B1",
-        "titulo": "La Bitácora en marcha: tu ePortfolio (recupera a Bran)",
-        "insignias": [
-          "P1_bran",
-          "R0_bitacora-en-marcha"
-        ],
-        "xp": 300,
+        "id": "L0",
+        "titulo": "Reto relámpago «La hoja de ruta» (tu programación didáctica)",
+        "insignias": [],
+        "xp": 60,
         "tema": 1,
-        "semana": 0
+        "semana": 1
       },
       {
         "id": "L1",
-        "titulo": "Reto relámpago «La chispa y la marca» (imagen con IA + logo)",
+        "titulo": "Reto relámpago «Del boceto a la forja» (recupera a Bran)",
         "insignias": [
+          "P1_bran",
           "R1_la-chispa"
         ],
-        "xp": 60,
+        "xp": 100,
         "tema": 1,
         "semana": 2
       },
       {
+        "id": "B1",
+        "titulo": "Reto principal «La Bitácora en marcha» (tu ePortfolio)",
+        "insignias": [
+          "R0_bitacora-en-marcha"
+        ],
+        "xp": 250,
+        "tema": 1,
+        "semana": 0
+      },
+      {
         "id": "X1",
-        "titulo": "Actividad 1 entregada",
+        "titulo": "Actividad 1 entregada (imagen con IA)",
         "insignias": [
           "H2_primera-forja",
           "E2_capitan"
@@ -325,46 +276,48 @@
         "semana": 0
       },
       {
-        "id": "B2",
-        "titulo": "El eco que enseña: videotutorial (recupera a Tomás)",
+        "id": "L2",
+        "titulo": "Reto relámpago «Un mensaje para quien faltó» (recupera a Tomás)",
         "insignias": [
-          "P2_tomas",
+          "P2_tomas"
+        ],
+        "xp": 100,
+        "tema": 2,
+        "semana": 3
+      },
+      {
+        "id": "B2",
+        "titulo": "Reto principal «El eco que enseña» (videotutorial en Edpuzzle)",
+        "insignias": [
           "R2_el-eco-que-ensena"
         ],
-        "xp": 300,
+        "xp": 250,
         "tema": 2,
-        "semana": 0
-      },
-      {
-        "id": "L2",
-        "titulo": "Reto relámpago «Módulo 1 y módulo 2» (antes y durante la clase)",
-        "insignias": [],
-        "xp": 60,
-        "tema": 2,
-        "semana": 4
-      },
-      {
-        "id": "B3",
-        "titulo": "La matriz 8×6 (recupera a Sylla)",
-        "insignias": [
-          "P3_sylla",
-          "R3_la-matriz"
-        ],
-        "xp": 300,
-        "tema": 3,
         "semana": 0
       },
       {
         "id": "L3",
-        "titulo": "Reto relámpago «Cinco líneas que explican» (itinerario y paisaje)",
-        "insignias": [],
-        "xp": 60,
+        "titulo": "Reto relámpago «Dos senderos» (recupera a Sylla)",
+        "insignias": [
+          "P3_sylla"
+        ],
+        "xp": 100,
         "tema": 3,
-        "semana": 6
+        "semana": 5
+      },
+      {
+        "id": "B3",
+        "titulo": "Reto principal «El itinerario» (refuerzo y ampliación en Genially)",
+        "insignias": [
+          "R3_la-matriz"
+        ],
+        "xp": 250,
+        "tema": 3,
+        "semana": 0
       },
       {
         "id": "X2",
-        "titulo": "Actividad 2 entregada",
+        "titulo": "Actividad 2 entregada (paisaje de aprendizaje)",
         "insignias": [
           "H3_cartografo"
         ],
@@ -373,70 +326,82 @@
         "semana": 0
       },
       {
-        "id": "B4",
-        "titulo": "El entorno de aula + tres recursos que ya existen (recupera a Amara)",
+        "id": "L4",
+        "titulo": "Reto relámpago «Abre el canal» (recupera a Amara)",
         "insignias": [
-          "P4_amara",
+          "P4_amara"
+        ],
+        "xp": 100,
+        "tema": 4,
+        "semana": 7
+      },
+      {
+        "id": "B4",
+        "titulo": "Reto principal «El entorno de aula» (Classroom o Sites)",
+        "insignias": [
           "R4_entorno-de-aula"
         ],
-        "xp": 300,
+        "xp": 250,
         "tema": 4,
-        "semana": 0
-      },
-      {
-        "id": "L4",
-        "titulo": "Reto relámpago «Enlace en incógnito» (que se vea sin tu cuenta)",
-        "insignias": [],
-        "xp": 60,
-        "tema": 4,
-        "semana": 8
-      },
-      {
-        "id": "B5",
-        "titulo": "La Bitácora medida (recupera a Vera)",
-        "insignias": [
-          "P5_vera",
-          "R5_bitacora-medida"
-        ],
-        "xp": 300,
-        "tema": 5,
         "semana": 0
       },
       {
         "id": "L5",
-        "titulo": "Reto relámpago «Tres preguntas» (autoevaluación)",
-        "insignias": [],
-        "xp": 60,
+        "titulo": "Reto relámpago «Mide con método» (recupera a Vera)",
+        "insignias": [
+          "P5_vera"
+        ],
+        "xp": 100,
         "tema": 5,
         "semana": 9
       },
       {
-        "id": "B6",
-        "titulo": "El juego digital (recupera a Joran)",
+        "id": "B5",
+        "titulo": "Reto principal «Tu centro de recursos» (web abierta + rúbrica)",
         "insignias": [
-          "P6_joran",
-          "R6_el-juego"
+          "R5_bitacora-medida"
         ],
-        "xp": 300,
-        "tema": 6,
+        "xp": 250,
+        "tema": 5,
         "semana": 0
       },
       {
         "id": "L6",
-        "titulo": "Reto relámpago «Las diez líneas» (justifica un recurso)",
-        "insignias": [],
-        "xp": 60,
+        "titulo": "Reto relámpago «Encuentra el juego» (recupera a Joran)",
+        "insignias": [
+          "P6_joran"
+        ],
+        "xp": 100,
         "tema": 6,
+        "semana": 10
+      },
+      {
+        "id": "B6",
+        "titulo": "Reto principal «El juego» (juego digital)",
+        "insignias": [
+          "R6_el-juego"
+        ],
+        "xp": 250,
+        "tema": 6,
+        "semana": 0
+      },
+      {
+        "id": "L7",
+        "titulo": "Reto relámpago «Un porqué» (recupera a Mara)",
+        "insignias": [
+          "P7_mara"
+        ],
+        "xp": 100,
+        "tema": 7,
         "semana": 11
       },
       {
         "id": "B7",
-        "titulo": "La microgamificación (recupera a Mara)",
+        "titulo": "Reto principal «La microgamificación»",
         "insignias": [
-          "P7_mara",
           "R7_microgamificacion"
         ],
-        "xp": 300,
+        "xp": 250,
         "tema": 7,
         "semana": 0
       },
@@ -451,31 +416,24 @@
         "semana": 0
       },
       {
-        "id": "L7",
-        "titulo": "Reto relámpago «El marcador» (tabla de clasificación)",
-        "insignias": [],
-        "xp": 60,
-        "tema": 7,
-        "semana": 12
+        "id": "L8",
+        "titulo": "Reto relámpago «El QR» (recupera a Noa)",
+        "insignias": [
+          "P8_noa"
+        ],
+        "xp": 100,
+        "tema": 8,
+        "semana": 13
       },
       {
         "id": "B8",
-        "titulo": "El último umbral: RA/RV + Bitácora publicada (recupera a Noa)",
+        "titulo": "Reto principal «El último umbral» (tu Bitácora publicada)",
         "insignias": [
-          "P8_noa",
           "R8_ultimo-umbral"
         ],
-        "xp": 300,
+        "xp": 250,
         "tema": 8,
         "semana": 0
-      },
-      {
-        "id": "L8",
-        "titulo": "Reto relámpago «El QR» (un QR dentro de una lámina)",
-        "insignias": [],
-        "xp": 60,
-        "tema": 8,
-        "semana": 14
       },
       {
         "id": "XS",
@@ -535,65 +493,65 @@
     "P1_bran": {
       "nombre": "Bran Okafor · El Forjador",
       "tipo": "Insignia de personaje",
-      "como": "Completando el Reto A del Tema 1: «El boceto sin quemar».",
+      "como": "Completando el relámpago del Tema 1: «Del boceto a la forja» (en clase).",
       "cuando": "Tema 1 · Planeta Fôrge",
-      "tarea": "Saca del cajón algo que tengas a medias —o que dejaste a medias— tal como está: un recurso, una unidad, una idea que se quedó ahí. Escríbelo aquí mismo, en la caja del reto: qué es, en qué punto se quedó y qué te frenó para terminarlo. Si puedes, añade el enlace al propio archivo (con permiso de lectura). Tu tripulación leerá lo que escribas —y tú lo suyo—: no se corrige ni se puntúa; el único criterio es sacarlo del cajón y compartirlo sin terminar.",
+      "tarea": "Quince minutos, en clase. Trae una idea a medias —un boceto en papel, unas notas, una foto— y hazla realidad con una IA: una imagen, una infografía o el logo de tu palabra clave. Escribe una instrucción con contexto educativo, tipo de imagen y finalidad, y haz al menos una iteración. Sube el antes y el después (enlace o captura). Es el núcleo de la Actividad 1, que parte justo de una imagen generada con IA.",
       "cita": "Copiadlo. Copiadlo todos."
     },
     "P2_tomas": {
       "nombre": "Tomás Reyer · El Cronista",
       "tipo": "Insignia de personaje",
-      "como": "Completando el Reto A del Tema 2: «Un mensaje para quien faltó».",
+      "como": "Completando el relámpago del Tema 2: «Un mensaje para quien faltó» (en clase).",
       "cuando": "Tema 2 · Planeta Ecos",
-      "tarea": "Graba un clip corto (máx. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no pudo venir a clase. Súbelo donde quieras (YouTube en oculto, Drive con permiso de lectura, el padlet de la clase…) y pega su enlace. Criterio único: que funcione sin ti delante (se entiende solo).",
+      "tarea": "Quince minutos, en clase. Graba un clip de 60 segundos explicando un concepto como si se lo contaras a alguien que hoy no ha podido venir. Puedes apoyarte en una IA para el guion, la voz o los subtítulos. Súbelo donde quieras (YouTube en oculto, Drive con permiso de lectura…) y pega su enlace. Criterio único: que se entienda sin ti delante. Es el primer corte de tu videotutorial.",
       "cita": "Si ves esto, es que hoy no llegué a contártelo yo."
     },
     "P3_sylla": {
       "nombre": "Sylla Bren · La Rastreadora",
       "tipo": "Insignia de personaje",
-      "como": "Completando el Reto A del Tema 3: «Dos senderos».",
+      "como": "Completando el relámpago del Tema 3: «Dos senderos» (en clase).",
       "cuando": "Tema 3 · Planeta Sendara",
-      "tarea": "(Este cuesta cerca de una hora: no es una píldora de quince minutos. Si esta semana no tienes ese hueco, vale un boceto a mano de los dos caminos, fotografiado.) Crea un artefacto interactivo (un Genially o similar) con una bifurcación: un objetivo de aprendizaje y dos o tres actividades distintas para alcanzarlo, y que cada estudiante elija su sendero al empezar (p. ej. uno que aprende haciendo, otro leyendo, otro escuchando). Pega su enlace. Criterio: que cada sendero sea una actividad de verdad —no la misma con otro nombre— y que todos lleguen a la misma cima.",
+      "tarea": "Quince minutos, en clase. Elige un objetivo de aprendizaje y diseña dos actividades distintas que lo trabajen: dos senderos para llegar a la misma cima (por ejemplo, uno haciendo y otro leyendo). Que sean de verdad distintas, no la misma con otro nombre. En papel o en un documento: pega el enlace o la captura. Es la bifurcación de tu itinerario.",
       "cita": "Mi hermano no se perdió. Lo perdió el mapa."
     },
     "P4_amara": {
       "nombre": "Amara Sol · La Operadora",
       "tipo": "Insignia de personaje",
-      "como": "Completando el Reto A del Tema 4: «Abre el canal».",
+      "como": "Completando el relámpago del Tema 4: «Abre el canal» (en clase).",
       "cuando": "Tema 4 · Planeta Reliae",
-      "tarea": "Publica en tus redes (X, LinkedIn, Instagram…) una reflexión breve o un recurso del curso con el hashtag #mutecdstargate, en abierto. Vale un hilo corto, una imagen con dos líneas o el enlace a algo que hayas creado. Y guárdate el truco: una reflexión publicada con ese hashtag es evidencia válida también en otros retos de este viaje. Criterio: a tiempo por encima de perfecto — se publica hoy, se pule mañana.",
+      "tarea": "Diez minutos, en clase. Publica en tus redes (X, LinkedIn, Instagram…) algo que hayas creado en el curso —una imagen, tu vídeo, tu itinerario— con el hashtag #mutecdstargate, en abierto. Pega el enlace de la publicación. Criterio: a tiempo por encima de perfecto — se publica hoy, se pule mañana.",
       "cita": "Llegué tarde por querer llegar perfecta. Nunca más."
     },
     "P5_vera": {
       "nombre": "Vera Khal · La Médica",
       "tipo": "Insignia de personaje",
-      "como": "Completando el Reto A del Tema 5: «Mide con método».",
+      "como": "Completando el relámpago del Tema 5: «Mide con método» (en clase).",
       "cuando": "Tema 5 · Planeta Umbral",
-      "tarea": "Elige un objetivo de aprendizaje que ya trabajes y crea una rúbrica para evaluarlo: 3 o 4 criterios, 3 o 4 niveles de logro y, en cada casilla, una descripción observable (qué hace el alumno, no un adjetivo). Compártela en un documento con permiso de lectura (Google Docs, Sheets, CoRubric…) y pega su enlace. Criterio: que otra persona pudiera usarla sin preguntarte — medir para cuidar, no para etiquetar.",
+      "tarea": "Quince minutos, en clase. Crea una rúbrica de autoevaluación para tu alumnado —tres o cuatro criterios, con niveles descritos de forma observable— y un formulario para recoger lo que respondan. En clase verás CoRubrics como una opción posible (convierte la rúbrica en un formulario), pero vale cualquier formulario. Pega el enlace o las capturas de las dos piezas. Es la experiencia de Forms del portfolio.",
       "cita": "Medir es mirar con método a alguien que te importa."
     },
     "P6_joran": {
       "nombre": "Joran Pike · El Ingeniero-jugador",
       "tipo": "Insignia de personaje",
-      "como": "Ganando al Simulador de Joran (RUTA AZUL) en el Reto A del Tema 6.",
+      "como": "Completando el relámpago del Tema 6: «Encuentra el juego» (en clase).",
       "cuando": "Tema 6 · Planeta Ludo",
-      "tarea": "Joran dejó encendido su simulador de entrenamiento: RUTA AZUL, un rival hecho de luz que pregunta por todo lo que llevas recorrido (temas 1 al 5). Entra desde el botón del reto en tu Nave y gánale: no hay nada que entregar, se registra solo al vencerlo. Cómo se pelea: aciertas y eliges golpear o cubrirte; fallas y no pierdes escudo, pierdes tiempo (y esa pregunta vuelve). El rival ataca cada 25 segundos, así que responde sin dormirte. Llevas un kit de un uso: reparar el escudo, sobrecargar tu golpe e interferir su ataque. Cuando esté al 20 % llega el Remate: sin fallos cae de un golpe; con fallos, vuelven en cadena y hay que redimirlas. Si pierdes, vuelve a intentarlo: cada derrota lo cansa y ataca más despacio. Al ganar te llevas la insignia de Joran y el Simulador se queda en tu Nave para repasar tema a tema, con su ranking.",
+      "tarea": "Quince minutos, en clase. Busca un juego que ya exista —digital o de mesa— y adáptalo a un objetivo tuyo: cambia una regla, una carta o una casilla para que enseñe. Sube una foto, una captura o la URL. Es la idea de partida de tu juego digital.",
       "cita": "Esta ya la hemos ganado cien veces. Ruta azul."
     },
     "P7_mara": {
       "nombre": "Mara Voss · El Mando",
       "tipo": "Insignia de personaje",
-      "como": "Completando el Reto A del Tema 7: «Un porqué».",
+      "como": "Completando el relámpago del Tema 7: «Un porqué» (en clase).",
       "cuando": "Tema 7 · Planeta Vínculo",
-      "tarea": "Toma una tarea rutinaria de tu aula y crea la insignia que la reconoce: diséñala (con Genially, Canva, una IA o a mano) y pega su enlace. Y aquí mismo, en la caja del reto, escribe su «porqué» en 2–4 líneas: cómo se llama, qué acto significativo reconoce y la narrativa que convierte esa tarea en una causa —no un premio por obedecer, sino memoria de algo que importa.",
+      "tarea": "Quince minutos, en clase. Diseña con IA una insignia o una carta de recompensa para una tarea de tu aula. Pega el enlace o la captura. Es la experiencia de recursos de gamificación del portfolio… y la recompensa que corona el tablero del examen.",
       "cita": "Una orden mueve cuerpos. Un porqué mueve personas."
     },
     "P8_noa": {
       "nombre": "Noa Lieth · La Arquitecta de capas",
       "tipo": "Insignia de personaje",
-      "como": "Completando el Reto A del Tema 8: «La capa posible».",
+      "como": "Completando el relámpago del Tema 8: «El QR» (en clase).",
       "cuando": "Tema 8 · Planeta Liminar",
-      "tarea": "Busca un recurso de realidad aumentada o virtual QUE YA EXISTA (una app, una experiencia AR, un modelo 3D, un tour virtual…) y pega su enlace. Después, aquí mismo, en la caja del reto, cuenta en 3–4 líneas cómo lo usarías en una clase concreta: qué vería el alumnado, qué haría y qué añade esa «capa» que no da el libro. Aquí no se construye nada: se elige bien — no toda capa se levanta; algunas ya existen y solo esperan a que alguien las traiga al aula.",
+      "tarea": "Diez minutos, en clase. Enlaza una actividad o un recurso tuyo a un código QR y compruébalo con el móvil. Sube la captura del QR y de adónde lleva. En el examen te pueden pedir un QR creado en el momento: hecho una vez, son diez minutos.",
       "cita": "Que conste que nadie nos obligó. Elegimos."
     },
     "E1_nebula": {
@@ -623,9 +581,9 @@
     "R1_la-chispa": {
       "nombre": "La chispa",
       "tipo": "Insignia de reto",
-      "como": "Completando el reto relámpago L1 del Tema 1.",
+      "como": "Completando el relámpago del Tema 1: «Del boceto a la forja» (con la de Bran).",
       "cuando": "Tema 1 · Fôrge",
-      "tarea": "Diez o quince minutos, en clase. (1) Genera con una IA una imagen con finalidad didáctica (ilustración, organizador gráfico o infografía): prompt estructurado siguiendo un modelo tipo CRAFT/RITA (contexto educativo + tipo de imagen + finalidad), al menos una iteración y la elección final con tu criterio docente dicho en dos líneas. (2) Y de paso, un logo que lleve una palabra clave dentro (la que tú quieras: será tu marca). Los dos van a la portada de tu Bitácora. Pega aquí el enlace o una captura. Es la tabla técnica de la Actividad 1: guárdala, ya tienes hecho su núcleo — y el logo con palabra clave es exactamente lo que te van a pedir el día del examen.",
+      "tarea": "Quince minutos, en clase. Trae una idea a medias —un boceto en papel, unas notas, una foto— y hazla realidad con una IA: una imagen, una infografía o el logo de tu palabra clave. Escribe una instrucción con contexto educativo, tipo de imagen y finalidad, y haz al menos una iteración. Sube el antes y el después (enlace o captura). Es el núcleo de la Actividad 1, que parte justo de una imagen generada con IA.",
       "link": {
         "text": "Actividad 1 — imagen con IA",
         "href": "actividades.html#act1"
@@ -634,20 +592,20 @@
     "R2_el-eco-que-ensena": {
       "nombre": "El eco que enseña",
       "tipo": "Insignia de reto",
-      "como": "Completando el Reto B del Tema 2.",
+      "como": "Completando el reto principal del Tema 2.",
       "cuando": "Tema 2 · Ecos",
-      "tarea": "Crea un videotutorial de calidad (guion + grabación de pantalla + edición) sobre un procedimiento de tu área, y enriquécelo con 2–3 preguntas insertadas (videoquiz) para comprobar comprensión. Piénsalo para aula invertida. Pega su enlace y escribe aquí mismo, en la caja del reto, una reflexión breve: qué objetivo didáctico cubre y qué aprendiste al hacerlo (llévala también a tu Bitácora).",
+      "tarea": "Crea un videotutorial sobre un procedimiento de tu área —puedes partir del clip del relámpago— y súbelo a Edpuzzle con tres preguntas insertadas. Pídele las preguntas a una IA y quédate con las que de verdad comprueban que se ha entendido. Pega el enlace y llévalo a tu Bitácora. Es la experiencia de Edpuzzle del portfolio y una de las hazañas obligatorias de la Bitácora: el videotutorial.",
       "link": {
         "text": "el ePortfolio (reto videotutorial)",
         "href": "actividades.html#eportfolio"
       }
     },
     "R3_la-matriz": {
-      "nombre": "La matriz",
+      "nombre": "El itinerario",
       "tipo": "Insignia de reto",
-      "como": "Completando el Reto B del Tema 3.",
+      "como": "Completando el reto principal del Tema 3.",
       "cuando": "Tema 3 · Sendara",
-      "tarea": "Construye la matriz de programación de un paisaje de aprendizaje: una tabla de doble entrada que cruza las 8 inteligencias múltiples × 6 niveles de Bloom (48 casillas). Contextualiza una unidad didáctica real (nivel, área, objetivos) y rellena al menos 6 cruces variados en complejidad y en talento, con una actividad en cada uno (objetivo, tarea del alumno, recurso, evaluación, tiempo, tipo: obligatoria/optativa/voluntaria). Es el corazón de planificación de la Actividad 2.",
+      "tarea": "Completa en Genially el itinerario de tus dos senderos: un punto de partida, la bifurcación del relámpago y, además, una actividad de refuerzo para quien lo necesite y una de ampliación para quien va por delante. Cada estudiante tiene que poder elegir su camino. Pega el enlace (público) y llévalo a tu Bitácora. Es la experiencia de Genially del portfolio y el esqueleto del paisaje de la Actividad 2 (la matriz 8×6 se hace dentro de la Actividad).",
       "link": {
         "text": "Actividad 2 — paisaje de aprendizaje",
         "href": "actividades.html#act2"
@@ -656,9 +614,9 @@
     "R4_entorno-de-aula": {
       "nombre": "El entorno de aula",
       "tipo": "Insignia de reto",
-      "como": "Completando el Reto B del Tema 4.",
+      "como": "Completando el reto principal del Tema 4.",
       "cuando": "Tema 4 · Reliae",
-      "tarea": "Monta tu aula virtual (Google Classroom, Moodle, Teams…): crea el aula, publica al menos una tarea o un material para tu alumnado y deja funcionando el canal de feedback y comunicación (tablón, comentarios, anuncios). Y ahora la otra mitad del oficio, la que casi nadie practica: publica en esa aula tres recursos que YA EXISTAN —un juego, un vídeo y una actividad interactiva que haya hecho otra persona—, cada uno con dos líneas de por qué ese y no otro y con su fuente o licencia citada. Crear está bien; encontrar rápido lo que ya está hecho, y saber si vale, es la mitad del trabajo de un docente… y el día del examen, media hora ganada. Comparte un Google Doc con permiso de lectura con al menos 2 capturas de pantalla de tu aula y pega su enlace. Y aquí mismo, en la caja del reto, tu reflexión breve: cómo llega tu contenido al móvil del alumno y cómo mantienes la conversación viva. (La web de recursos es el reto del tema 5: aquí montas el AULA.)",
+      "tarea": "Monta tu aula en Google Classroom (puede ser cerrada) o en Google Sites: publica una tarea y tres materiales organizados para tu alumnado. Comparte un documento con dos capturas de tu aula —o su enlace, si es abierta— y pégalo aquí. Es la experiencia de Sites o Classroom del portfolio.",
       "link": {
         "text": "el ePortfolio (tu aula virtual)",
         "href": "actividades.html#eportfolio"
@@ -667,9 +625,9 @@
     "R5_bitacora-medida": {
       "nombre": "La Bitácora medida",
       "tipo": "Insignia de reto",
-      "como": "Completando el Reto B del Tema 5.",
+      "como": "Completando el reto principal del Tema 5.",
       "cuando": "Tema 5 · Umbral",
-      "tarea": "Monta el centro de recursos de tu alumnado: una web (Google Sites o un Genially) con al menos 3 recursos organizados con criterio (por unidad o por tipo), navegación clara y una página de cómo se evalúa, con tu rúbrica del reto anterior a la vista. Es el ESCAPARATE, distinto del aula virtual del tema 4: aquí el estudiante encuentra todo sin tener que pedirlo. Pega su enlace y enlázala desde tu ePortfolio (una entrada con evidencia → contexto → reflexión). Esta semana además cierras la Actividad 1 dentro de la Bitácora.",
+      "tarea": "Monta el centro de recursos de tu alumnado en una web abierta, con una herramienta distinta a la del reto anterior (Google Sites, Genially…): tres recursos tuyos organizados con criterio y tu rúbrica a la vista. Tiene que abrirse sin tu cuenta: compruébalo en una ventana de incógnito. Pega el enlace y enlázalo desde tu Bitácora. Practicas otra plataforma, esta vez abierta, como la que montarás en el examen.",
       "link": {
         "text": "el ePortfolio (tu web de recursos) y la Actividad 1",
         "href": "actividades.html#eportfolio"
@@ -678,9 +636,9 @@
     "R6_el-juego": {
       "nombre": "El juego",
       "tipo": "Insignia de reto",
-      "como": "Completando el Reto B del Tema 6.",
+      "como": "Completando el reto principal del Tema 6.",
       "cuando": "Tema 6 · Ludo",
-      "tarea": "Adapta un juego existente o crea uno digital a medida para un objetivo concreto de tu aula, algo más elaborado que un quiz suelto: con varios niveles de dificultad o varias formas de jugarlo (ruleta + preguntas, un escape por fases, un tablero con caminos…). En ABJ el juego ES la actividad: cada mecánica debe servir a un aprendizaje. Pega el enlace al juego y escribe aquí mismo, en la caja del reto, tu reflexión: qué objetivo cubre, qué cambia de un nivel a otro y cómo lo evalúas (y súbelo a tu Bitácora).",
+      "tarea": "Crea un juego digital (Genially, Wordwall, Educaplay…) con niveles o varias formas de jugarlo, al servicio de un objetivo concreto, y mételo en tu paisaje de aprendizaje. Pega el enlace y llévalo a tu Bitácora. Es la experiencia de juego digital del portfolio.",
       "link": {
         "text": "el ePortfolio (reto juego digital)",
         "href": "actividades.html#eportfolio"
@@ -689,9 +647,9 @@
     "R7_microgamificacion": {
       "nombre": "La microgamificación",
       "tipo": "Insignia de reto",
-      "como": "Completando el Reto B del Tema 7.",
+      "como": "Completando el reto principal del Tema 7.",
       "cuando": "Tema 7 · Vínculo",
-      "tarea": "Diseña una microgamificación de calidad: un toque de juego sobre una tarea que no es un juego y, sobre todo, la capa narrativa que la envuelve: quién es el alumnado en esa historia, qué misión tiene y por qué importa (una insignia, una barra de progreso o un tablero, pero dentro de un relato). Distíngue bien de ABJ: aquí no se juega, se toman elementos del juego para enganchar. Pega el enlace al recurso y escribe aquí mismo, en la caja del reto, tu reflexión: qué conducta refuerza, qué historia la envuelve y por qué (y súbelo a tu Bitácora).",
+      "tarea": "Gamifica una tarea real de tu aula: una narrativa corta que la envuelva, una secuencia de tres retos y la recompensa del relámpago. Pega el enlace y llévalo a tu Bitácora. Es una de las hazañas obligatorias de la Bitácora y el esqueleto del examen: tablero de retos y recompensa.",
       "link": {
         "text": "el ePortfolio (reto microgamificación)",
         "href": "actividades.html#eportfolio"
@@ -700,9 +658,9 @@
     "R8_ultimo-umbral": {
       "nombre": "El último umbral",
       "tipo": "Insignia de reto",
-      "como": "Completando el Reto B del Tema 8.",
+      "como": "Completando el reto principal del Tema 8.",
       "cuando": "Tema 8 · Liminar",
-      "tarea": "(1) Crea una experiencia de Realidad Aumentada o Virtual para tu materia: puede ser tan sencilla como un código QR que abre un modelo 3D o un vídeo sobre una lámina, o tan elaborada como una escena VR para practicar sin riesgo. Puede ser tu reto libre del ePortfolio. (2) Termina y publica la Bitácora: convierte tu paisaje de aprendizaje (Act 2) en una imagen interactiva publicada, revisa que las 5 páginas estén completas (Act 1, Act 2, videotutorial, microgamificación, reto libre) y pega el enlace único.",
+      "tarea": "Publica tu Bitácora completa: las páginas de las dos Actividades, tus experiencias del portfolio —con las tres hazañas: el videotutorial, la microgamificación y una a tu elección— y tu QR. Revisa que todo se abre sin tu cuenta y pega el enlace único. Es el ePortfolio que se evalúa, listo antes del examen.",
       "link": {
         "text": "la Actividad 2 y la Bitácora",
         "href": "actividades.html#act2"
@@ -824,49 +782,49 @@
     },
     {
       "nivel": 3,
-      "xp": 700,
+      "xp": 650,
       "rango": 2,
       "titulo": "Cadete"
     },
     {
       "nivel": 4,
-      "xp": 1150,
+      "xp": 1050,
       "rango": 2,
       "titulo": "Cadete de vuelo"
     },
     {
       "nivel": 5,
-      "xp": 1650,
+      "xp": 1550,
       "rango": 3,
       "titulo": "Oficial"
     },
     {
       "nivel": 6,
-      "xp": 2200,
+      "xp": 2050,
       "rango": 3,
       "titulo": "Oficial de puente"
     },
     {
       "nivel": 7,
-      "xp": 2800,
+      "xp": 2600,
       "rango": 3,
       "titulo": "Oficial mayor"
     },
     {
       "nivel": 8,
-      "xp": 3450,
+      "xp": 3200,
       "rango": 4,
       "titulo": "Comandante"
     },
     {
       "nivel": 9,
-      "xp": 4150,
+      "xp": 3850,
       "rango": 4,
       "titulo": "Comandante de flota"
     },
     {
       "nivel": 10,
-      "xp": 5000,
+      "xp": 4650,
       "rango": 5,
       "titulo": "Leyenda de la Cero"
     }
@@ -875,17 +833,17 @@
     "reclutamiento": 20,
     "retoA": 20,
     "retoB": 50,
-    "retoB_pua": 55,
+    "retoB_pua": 50,
     "actividad": 100,
     "final": 100,
     "derivada": 60,
-    "relampago": 10,
+    "relampago": 20,
     "simulacro": 60
   },
   "xpReclutamiento": 100,
   "xpViaje": {
-    "REGULAR": 5680,
-    "PUA": 5280
+    "REGULAR": 5260,
+    "PUA": 5260
   },
   "semanas": {
     "REGULAR": 15,

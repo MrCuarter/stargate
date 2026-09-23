@@ -37,7 +37,7 @@ igual(r.enviados, 1, "🔴 a 7 días del cierre sale UN aviso: solo a quien le q
 igual(correosA("conplata@alumno.es").length, 1, "le llega a quien tiene saldo");
 igual(correosA("pelado@alumno.es").length, 0, "🔴 y NO se molesta a quien ya lo gastó todo");
 const av = correosA("conplata@alumno.es")[0];
-contiene(av.cuerpo, String(1140 + G.BONUS_PLANETA.creditos * 8),   // 1.140 = base 16-sep (relámpago, simulacro y Mano rápida)
+contiene(av.cuerpo, String(1080 + G.BONUS_PLANETA.creditos * 8),   // 1.080 = base 23-sep (20 retos: L0-L8 a 20 ◈)
   "el correo dice cuántos créditos le quedan, con el bonus de los planetas dentro");
 contiene(av.cuerpo, "7 días", "y cuántos días");
 contiene(av.cuerpo, "recluta.html", "con enlace a la Nave");

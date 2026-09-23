@@ -134,7 +134,8 @@ const TITULOS = ["Cartógrafa de la Nebulosa", "Piloto de pruebas", "Archivista 
 // Cuántos retos lleva cada uno. Escalado a propósito: dos sin empezar, un puñado a medias y tres
 // que van sobrados. En la semana 10 lo abierto son ~13 retos.
 const CUANTOS = [13,12,11,10,10,9,9,8,8,7,7,6,6,5,5,4,3,2,0,0];
-const ORDEN = ["A0","A1","B1","X1","A2","B2","A3","B3","X2","A4","B4","A5","B5"];
+// 23-sep · los 20 retos: un relámpago (L) y un principal (B) por tema, más la hoja de ruta (L0)
+const ORDEN = ["A0","L0","L1","B1","X1","L2","B2","L3","B3","X2","L4","B4","L5","B5"];
 
 async function main() {
   if (CUSTOM && (await db.collection("projects").doc(ID).get()).exists) {
@@ -251,7 +252,7 @@ async function main() {
       extra.stargateCapitulos = caps;
       extra.stargateDias = { tz: "Europe/Madrid", ultimo: new Date(Date.now() - 864e5).toISOString().slice(0, 10),
                              racha: Math.round(prop * 6), mejor: Math.round(prop * 9), total: Math.round(prop * 40) };
-      if (retos.indexOf("A6") >= 0) {
+      if (retos.some(r => /^[LB][6-8]$/.test(r))) {   // 23-sep · ya ha llegado a Ludo (antes: el reto A6)
         const aciertos = 20 + ((k * 13) % 60) + (esReal ? 40 : 0), respondidas = aciertos + 8 + (k % 7) * 3;
         extra.stargateSimulador = {
           joran: { f: ini + 9 * 7 * 864e5, p: 900 + ((k * 37) % 400) },

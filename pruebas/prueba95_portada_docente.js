@@ -41,7 +41,7 @@ c(/window\.SG\.CFGSESION = /.test(STG) && /data-cfg-todo/.test(STG) && /"stargat
 c(!/bloqueSesion\(t, yo\.nombre\)/.test(K) && !/\(yoN \? bloqueSesion/.test(K), "   y ya no está ni en Mis enlaces ni en la portada");
 const caps = fs.readdirSync(path.join(RAIZ, "assets/img/sesion")).filter(f => f.endsWith(".jpg"));
 c(caps.length >= 13 && /window\.SG_CAPTURAS_SESION=\[/.test(H) && /class="m-sec-img"/.test(STG), "🔴 cada casilla con la captura de su diapositiva", caps.length + " capturas");
-c(/var SIN_CAPTURA = \{ simulador:/.test(STG), "   y las que dependen de que haya algo, con su icono y cuándo salen");
+c(/var SIN_CAPTURA = \{[^}]*simulador:/.test(STG), "   y las que dependen de que haya algo (la pregunta, el simulador…), con su icono y cuándo salen");
 c(/data-sec="'\+esc\(secDe\(d\)\)\+'"/.test(S), "   (cada paso de la sesión dice su sección: así se sacan las capturas)");
 
 // ── 4 · la portada del grupo

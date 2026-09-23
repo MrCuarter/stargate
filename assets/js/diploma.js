@@ -64,7 +64,7 @@
      * ninguna derivada. Ahora salen de las misiones y campañas del grupo, igual que en «Mi botín».
      */
     var misiones = MISIONES.filter(function (m) { return m.stargateId !== "H1"; });
-    var retosTotal = misiones.length || 29;
+    var retosTotal = misiones.length || 23;   // 23-sep · 20 retos + alistamiento + las 2 Actividades
     var suyas = p.completedMissionIds || [], campSuyas = p.completedCampaignIds || [];
     var hechos = misiones.filter(function (m) { return suyas.indexOf(m.__id) >= 0; }).length;
     var ins = {};

@@ -128,7 +128,7 @@ const nom = pintar.nombres().html;
 // 🔴 23-sep · Norberto: «Capitán de la Nave (es nuestro personaje), Comandante STARGATE (el docente de cada grupo)»
 c(/<b>Capitán de la Nave<\/b>/.test(nom) && /img\/capitan\//.test(nom) && !/Capitán[^<]*eres tú/.test(nom),
   "🔴 el Capitán de la Nave es el personaje de la serie, no el docente");
-c(/<b>Comandante STARGATE · eres tú<\/b>/.test(nom) && /comandantes\/recorte\//.test(nom) && /Nave del Comandante/.test(nom),
+c(/<b>Comandante STARGATE · eres tú<\/b>/.test(nom) && /comandantes\/recorte_hd\//.test(nom) && /Nave del Comandante/.test(nom),
   "🔴 y la cuarta tarjeta es el Comandante STARGATE: el docente, con su avatar");
 c((nom.match(/<figure class="pr-c/g) || []).length === 4 && !/La Bitácora Estelar<\/b>/.test(nom), "   cuatro tarjetas, y la Bitácora no es una de ellas");
 

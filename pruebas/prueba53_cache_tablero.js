@@ -57,7 +57,7 @@ igual(api({ accion: "quien", per: PER, email: "luis@alumno.es" }).yo.alias, "Lui
 
 // registrar un reto también cuenta (editar la Bitácora añade fila: es una respuesta nueva)
 E.enviarBitacora(G, PER, { email: "ana@alumno.es", alias: "Ana", profe: "Mr Cuarter",
-  marcados: E.marcar(G, [G.RETOS_REGULAR.filter(r => r[0] === "A1")[0][1]]) });
+  marcados: E.marcar(G, [G.RETOS_REGULAR.filter(r => r[0] === "L1")[0][1]]) });
 igual(cuenta(() => api({ accion: "quien", per: PER, email: "ana@alumno.es" })), 1,
   "🔴 registrar un reto también tira la caché: el alumno ve sus xp al momento");
 

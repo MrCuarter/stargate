@@ -186,7 +186,7 @@
   /** La ficha de un reto, completa (como la ve el alumnado): insignia, qué es, su gancho, lo que da y su ejemplo. */
   function fichaReto(r, tipo, prog, luegoEn) {
     var rel = r.id.charAt(0) === "L", ins = (r.insignias || [])[0] || "", g = (window.SG_GANCHO_RETOS || {})[r.id] || "";
-    var ej = (window.SG_EJEMPLOS || {})[r.id], m = /^(Reto (?:A|B|relámpago)|Actividad \d)\s*(.*)$/i.exec(r.titulo || "") || [null, "", r.titulo || ""];
+    var ej = (window.SG_EJEMPLOS || {})[r.id], m = /^(Reto (?:A|B|principal|relámpago)|Actividad \d)\s*(.*)$/i.exec(r.titulo || "") || [null, "", r.titulo || ""];
     // 🔴 20-sep · Norberto: «deben aparecer todos los retos de esa semana; si no se han desbloqueado, se oscurecen o
     // aparece "se desbloquea la semana…"». Así se ve el tema entero desde su primera clase, sin prometer lo que aún
     // no pueden hacer.
@@ -431,7 +431,7 @@
     return '<div class="card cn-ficha ancha">' +
       '<div class="cn-ficha-c">' +
         '<button type="button" class="av-lupa" id="doc-ava" title="Elige tu comandante" aria-label="Elegir tu comandante">' +
-          '<img class="av" id="doc-ava-img" src="assets/img/avatares/comandantes/' + esc((FICHA && FICHA.avatar) || "c1") + '.jpg" alt="">' +
+          '<img class="av" id="doc-ava-img" src="' + esc(window.SG.avatarRetrato((FICHA && FICHA.avatar) || "c1")) + '" alt="">' +
           '<span class="av-cambiar">' + ico("editar") + '</span></button>' +
         '<div class="cn-ficha-t"><div class="eyebrow teal">La Nave del Comandante</div><h3>' + esc(nombre) + '</h3>' +
           '<p class="small"><b>Comandante' + (soyRefAlguno() ? ' referente' : '') + '</b>' + (mio ? ' · en este grupo, «' + esc(mio) + '»' : '') +
@@ -465,7 +465,7 @@
   function cablearHero() {
     var avImg = $("#doc-ava-img"), avBtn = $("#doc-ava"), avs = $("#doc-avas");
     if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
-      if (f && f.avatar && avImg) avImg.src = "assets/img/avatares/comandantes/" + f.avatar + ".jpg";
+      if (f && f.avatar && avImg) avImg.src = window.SG.avatarRetrato(f.avatar);
       avatarEnMisGrupos((f && f.avatar) || "c1");   // sin elegir, el c1 que ves aquí: el mismo en tu grupo
     }).catch(function () {});
     var galeria = function () {
@@ -484,7 +484,7 @@
         '<p class="small muted" id="doc-nom-m">Tu correo (<b>' + esc((YO && YO.correo) || "") + '</b>) no se cambia: es tu llave para entrar.</p></div>' +
         '<p class="small muted">Y el comandante que te representa (sale recortado en tu rótulo):</p>' +
         '<div class="doc-avas-g">' + (window.SG_COMANDANTES_GEN || []).map(function (k) {
-          return '<button type="button" class="doc-av-op" data-av="' + esc(k) + '"><img src="assets/img/avatares/comandantes/' + esc(k) + '.jpg" alt="Comandante"></button>';
+          return '<button type="button" class="doc-av-op" data-av="' + esc(k) + '"><img src="' + esc(window.SG.avatarRetrato(k)) + '" alt="Comandante"></button>';
         }).join("") + '</div>';
       var actual = (avImg && (avImg.getAttribute("src").match(/\/([a-z0-9_-]+)\.jpg/) || [])[1]) || "";
       Array.prototype.forEach.call(avs.querySelectorAll(".doc-av-op"), function (o) {
@@ -492,7 +492,7 @@
         o.onclick = function () {
           var k = o.getAttribute("data-av");
           MOTOR.ponerAvatarDocente(k).then(function () {
-            if (avImg) avImg.src = "assets/img/avatares/comandantes/" + k + ".jpg";
+            if (avImg) avImg.src = window.SG.avatarRetrato(k);
             if (FICHA) FICHA.avatar = k;
             avatarEnMisGrupos(k);
             Array.prototype.forEach.call(avs.querySelectorAll(".doc-av-op"), function (x) { x.classList.toggle("on", x === o); });
@@ -1063,7 +1063,7 @@
       lineaSimulador(r);
   }
   /**
-   * 16-sep · EL SIMULADOR DE JORAN en su ficha: si le ganó (el reto A6), sus mejores marcas y lo que lleva entrenado.
+   * 16-sep · EL SIMULADOR DE JORAN en su ficha: si le ganó (hasta el 23-sep, el reto A6; ahora, un juego de repaso), sus mejores marcas y lo que lleva entrenado.
    * Sirve para lo mismo que los logros: saber a quién animar («te falta ganarle una vez») sin preguntar en clase.
    */
   var BT = window.SG_BATALLA || {};
@@ -1931,7 +1931,7 @@
       b.onclick = function () { TAB = b.getAttribute("data-tab-ir"); pintar(); };
     });
     if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
-      var im = $("#pt-ava"); if (im && f && f.avatar) im.src = "assets/img/avatares/comandantes/" + f.avatar + ".jpg";
+      var im = $("#pt-ava"); if (im && f && f.avatar) im.src = window.SG.avatarRetrato(f.avatar);
     }).catch(function () {});
     // el enlace del panel, aquí mismo
     var pEd = $("#pt-panel-ed"), pCaja = $("#pt-panel-caja"), pMsg = $("#pt-panel-msg");
@@ -3799,8 +3799,8 @@
       'Valen en todos los grupos y todas las convocatorias. En Genially: <b>Insertar → Otros → Código</b> y pegar.</p>' +
       [["<img class=ico src=assets/img/iconos/p/video.png alt> La sesión de la semana", "sesion.html?embed=1"], ["<img class=ico src=assets/img/iconos/p/clase.png alt> Llamada a filas (solo la toca el Comandante)", "llamada.html?embed=1"],
        ["<img class=ico src=assets/img/iconos/p/envivo.png alt> Herramientas de clase (quién ha fichado, premios, al azar)", "aula.html?embed=1"], ["<img class=ico src=assets/img/iconos/p/diana.png alt> Validar un reto", "validar.html?reto=S7&embed=1"],
-       // 16-sep · la batalla del reto A6: se pone en el Genially del tema 6 y se juega en clase, cada cual en su dispositivo
-       ["<img class=ico src=assets/img/iconos/p/diana.png alt> El Simulador de Joran (el reto A6)", "batalla.html?embed=1"]].map(function (x) {
+       // 16-sep · la batalla de Joran: se pone en el Genially del tema 6 y se juega en clase (23-sep: repaso, ya no es un reto)
+       ["<img class=ico src=assets/img/iconos/p/diana.png alt> El Simulador de Joran (repaso jugando)", "batalla.html?embed=1"]].map(function (x) {
         return '<p class="small">' + x[0] + ' <button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[1], "STARGATE · " + x[0].replace(/^<img[^>]*>\s*/, ""))) + '">&lt;/&gt; Copiar para insertar</button></p>';
       }).join("") +
       // 15-sep (tarde) · el reto secreto (S7) es el Escape UNI; el enlace escondido de Vínculo lleva a su puerta

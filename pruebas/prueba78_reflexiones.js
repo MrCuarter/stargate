@@ -22,16 +22,18 @@ const trozo = (s, desde, n) => { const i = s.indexOf(desde); return i < 0 ? "" :
 const D = JSON.parse(execFileSync("python3", ["-c",
   "import json,_site_data as D;print(json.dumps({'R':D.REFLEXION_RETOS,'E':D.EVIDENCIA_RETOS}))"], { cwd: RAIZ, encoding: "utf8" }));
 const ids = Object.keys(D.R).sort();
-// 16-sep · entran los tres relámpago de escribir: L2 (antes y durante), L3 (cinco líneas) y L6 (las diez líneas).
-c(JSON.stringify(ids) === JSON.stringify(["A1", "A7", "A8", "B2", "B4", "B6", "B7", "L2", "L3", "L6"]),
-  "🔴 los retos con reflexión son los acordados: A1, A7, A8, B2, B4, B6, B7 y los tres relámpago de escribir", ids.join(","));
+// 23-sep · los 20 retos son prácticos (crear, diseñar, encontrar): ninguno se responde por escrito. La pregunta de
+// reflexión la lanza el comandante en clase y la va respondiendo él. La maquinaria se queda: lee lo que ya se escribió.
+c(ids.length === 0, "🔴 ningún reto pide reflexión: todos son prácticos (la pregunta vive en la diapositiva de la clase)", ids.join(","));
 c(ids.every(id => D.R[id].pide && D.R[id].titulo && D.R[id].min >= 100 && /^(texto|ambos)$/.test(D.R[id].modo)),
   "   cada uno con su pregunta, su título para la sesión, su mínimo (≥ 100 letras) y su modo");
 c(ids.every(id => D.R[id].modo === "texto" ? D.E[id] !== "obligatoria" : D.E[id] === "obligatoria"),
   "🔴 en los de «texto» el enlace es opcional; en los de «ambos» sigue siendo obligatorio",
   ids.map(id => id + ":" + D.R[id].modo + "/" + (D.E[id] || "opcional")).join(" "));
-c(["A0", "A2", "A3", "A4", "A5", "B1", "B3", "B5", "B8", "X1", "X2"].every(id => D.E[id] === "obligatoria" && !D.R[id]),
-  "   los demás siguen pidiendo su enlace, sin caja de reflexión");
+const CAT = JSON.parse(fs.readFileSync(path.join(RAIZ, "motor/catalogo.json"), "utf8"));
+const idsCat = ((CAT.retos || {}).REGULAR || []).map(r => r.id).filter(id => /^[ALBX]\d/.test(id));
+c(idsCat.length >= 20 && idsCat.every(id => D.E[id] === "obligatoria"),
+  "   y todos piden su enlace (el trabajo que han hecho)", idsCat.filter(id => D.E[id] !== "obligatoria").join(","));
 
 // 2 · los enunciados dicen que se responde ahí mismo (y ya no «en el foro» ni «súbelo con una reflexión»)
 const html = leer("recluta.html");

@@ -22,7 +22,7 @@ igual(f().avatar.skin, 1, "y la lleva puesta");
 igual(f().viste, "", "sin haber elegido nada");
 
 // hasta el nivel 5 (rango 3) otorgando retos
-["A1", "B1", "X1", "A2", "B2", "A3", "B3"].forEach(id =>
+["L1", "B1", "X1", "L2", "B2", "L3", "B3"].forEach(id =>
   G.hoja_(G.H.AJ).appendRow([new Date(), PER, "nova@alumno.es", id, "otorgar", "", "banco"]));
 c(f().nivel >= 5, "con retos otorgados sube de nivel (va por el " + f().nivel + ")");
 igual(f().skins, [1, 2, 3], "y se le desbloquean las skins 1, 2 y 3");
@@ -68,7 +68,7 @@ igual(G.sortearHeroe_(G.HEROES.map(h => h[0])), null, "con el vestuario completo
 // ---------------------------------------------------------------- f) si pierde el nivel, pierde la skin
 G.doPost({ postData: { contents: JSON.stringify({ accion: "vestir", per: PER, email: "nova@alumno.es", viste: "skin:3" }) } });
 igual(f().avatar.skin, 3, "lleva la skin 3");
-["A3", "B3", "A2", "B2", "X1", "B1"].forEach(id =>
+["L3", "B3", "L2", "B2", "X1", "B1"].forEach(id =>
   G.hoja_(G.H.AJ).appendRow([new Date(), PER, "nova@alumno.es", id, "anular", "", "banco"]));
 c(f().skins.indexOf(3) < 0, "al anularle retos deja de tener la skin 3 (nivel " + f().nivel + ")");
 igual(f().avatar.skin, f().rango, "🔴 y no se queda con una skin a la que ya no llega");

@@ -107,14 +107,16 @@
     var c = EST.cansancio || 0;
     return '<div class="bt-reto">'
       + '<figure class="bt-rival-foto"><img src="assets/img/batalla/rival.jpg" alt="RUTA AZUL, el rival del simulador"></figure>'
-      + '<div class="bt-reto-txt"><div class="eyebrow amber">Reto A6 · Tema 6 · Ludo</div>'
+      // 23-sep · el Simulador deja de ser un reto (CFG.reto = null): la primera victoria abre el entrenamiento, nada más
+      + '<div class="bt-reto-txt"><div class="eyebrow amber">' + (CFG.reto ? 'Reto ' + esc(CFG.reto) : 'El reto de Joran') + ' · Tema 6 · Ludo</div>'
       + '<h2>Gánale a RUTA AZUL</h2>'
       + '<p class="bt-sub">«A mis críos del refugio les hice jugar cien veces antes de la noche de verdad. Contigo voy a hacer lo mismo: '
       + 'preguntas de todo lo que llevas recorrido, temas 1 al 5. Si me ganas, el simulador es tuyo.» — <b>Joran Pike</b></p>'
       + reglas()
       + (c ? '<p class="bt-cansa"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Lo has intentado ' + c + (c === 1 ? ' vez' : ' veces') + ': esta vez atacará más despacio.</p>' : '')
       + '<p><button class="btn epico grande" data-empezar="reto"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Empezar la batalla</span></button></p>'
-      + '<p class="small muted">No hay nada que entregar: el reto A6 se registra solo al ganar.</p></div></div>';
+      + '<p class="small muted">' + (CFG.reto ? 'No hay nada que entregar: el reto ' + esc(CFG.reto) + ' se registra solo al ganar.'
+          : 'Es para repasar jugando: gánale una vez y el entrenamiento se queda en tu Nave.') + '</p></div></div>';
   }
   function tarjetaModo(m) {
     var marca = (EST.marcas || {})[m], n = m === 'todas' ? 0 : Number(m.slice(1));
@@ -130,7 +132,7 @@
       + '<div><div class="eyebrow amber">Simulador de entrenamiento · Joran Pike</div><h1>RUTA AZUL</h1>'
       + '<p class="bt-sub">' + (EST.docente ? 'Modo ensayo: juegas como docente, no se guarda nada ni cuenta para el ranking.'
           : gan ? 'Le ganaste el ' + esc(fechaCorta(gan.f)) + '. El simulador es tuyo: entrena cuando quieras.'
-                : 'El reto A6 de la tripulación.') + '</p></div></header>';
+                : 'Gánale una vez y el entrenamiento se queda en tu Nave.') + '</p></div></header>';
     var cuerpo = '';
     // un docente alistado en su propio grupo juega como recluta; para enseñarlo en clase, el ensayo
     if (EST.puedeEnsayar && !EST.docente)
@@ -477,7 +479,9 @@
       + '<p class="bt-marca"><b>' + f.marca + '</b> puntos'
         + (f.nueva ? ' · <span class="bt-nueva">nueva mejor marca</span>' : f.mejor ? ' · tu mejor: ' + f.mejor : '') + '</p>'
       + (gano
-          ? (f.reto ? '<p class="bt-sub" id="bt-reg">Registrando tu reto A6…</p>' : '<p class="bt-sub">Buen entrenamiento. Tu marca ya está en el ranking.</p>')
+          ? (f.reto && CFG.reto ? '<p class="bt-sub" id="bt-reg">Registrando tu reto ' + esc(CFG.reto) + '…</p>'
+             : f.reto && f.joran ? '<p class="bt-sub">¡El entrenamiento es tuyo! Ya puedes repasar tema a tema, con su ranking.</p>'
+             : '<p class="bt-sub">Buen entrenamiento. Tu marca ya está en el ranking.</p>')
           : '<p class="bt-sub">Cada derrota lo cansa: la próxima vez atacará más despacio. '
             + '«A la ruta azul se juega cien veces, no una.»</p>')
       + '<p class="bt-final-btns"><button class="btn primary" id="bt-otravez">' + (gano ? 'Otra batalla' : 'Volver a intentarlo') + '</button>'
@@ -487,20 +491,20 @@
     if (gano) fiesta();
     // el reto A6: lo registra la Nave con la misma puerta de siempre (`completeMission`), ahora que el servidor
     // ya sabe que le ganó. Si hoy ya llevaba su tope de retos, se queda para mañana y lo registra la Nave al entrar.
-    if (gano && f.reto && f.joran !== false) registrarA6();
+    if (gano && f.reto && CFG.reto && f.joran !== false) registrarA6();
   }
   function registrarA6() {
     var t = $('#bt-reg'); if (!t) return;
-    M.getDocs(M.query(M.collection(M.db, 'missions'), M.where('projectId', '==', PER), M.where('stargateId', '==', (CFG.reto || 'A6'))))
+    M.getDocs(M.query(M.collection(M.db, 'missions'), M.where('projectId', '==', PER), M.where('stargateId', '==', CFG.reto)))
       .then(function (r) {
         if (r.empty) throw new Error('sin misión');
         return M.llamar('completeMission', { projectId: PER, missionId: r.docs[0].id, studentProfileId: EST.ficha });
       })
-      .then(function () { t.innerHTML = '<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Reto A6 registrado</b> y la insignia de Joran es tuya. El simulador ya está en tu Nave.'; })
+      .then(function () { t.innerHTML = '<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Reto ' + esc(CFG.reto) + ' registrado</b> y la insignia de Joran es tuya. El simulador ya está en tu Nave.'; })
       .catch(function (e) {
         var ya = /ya/i.test(String(e && e.message));
         t.innerHTML = ya ? '<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Ya lo tenías registrado.</b> El simulador está en tu Nave.'
-          : '<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Victoria guardada.</b> El reto A6 se registrará solo la próxima vez que entres en tu Nave.';
+          : '<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Victoria guardada.</b> El reto se registrará solo la próxima vez que entres en tu Nave.';
       });
   }
   function fiesta() {

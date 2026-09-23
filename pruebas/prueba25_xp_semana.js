@@ -21,14 +21,14 @@ E.enviarBitacora(G, PER, { email: "orion@alumno.es", alias: "Orion", nombre: "O 
 const base = f("nova@alumno.es").xp7;
 c(base > 0, "alistarse ya cuenta como xp de esta semana (" + base + ")");
 igual(f("nova@alumno.es").xp, base, "y de momento es todo lo que tiene");
-G.hoja_(G.H.AJ).appendRow([new Date(), PER, "nova@alumno.es", "A1", "otorgar", "", "profe"]);
+G.hoja_(G.H.AJ).appendRow([new Date(), PER, "nova@alumno.es", "L1", "otorgar", "", "profe"]);
 const nova = f("nova@alumno.es");
 c(nova.xp > base, "el reto otorgado suma al xp total (" + nova.xp + ")");
 c(nova.xp7 > base, "🔴 y TAMBIÉN al de esta semana: lo validó el profe, pero lo hizo el alumno");
 igual(nova.xp7, nova.xp, "si todo es de esta semana, las dos cifras coinciden");
 
 // ---------------------------------------------------------------- b) lo viejo no cuenta
-G.hoja_(G.H.AJ).appendRow([hace(30), PER, "orion@alumno.es", "A1", "otorgar", "", "profe"]);
+G.hoja_(G.H.AJ).appendRow([hace(30), PER, "orion@alumno.es", "L1", "otorgar", "", "profe"]);
 const orion = f("orion@alumno.es");
 c(orion.xp > base, "un reto de hace un mes sigue sumando al total (" + orion.xp + ")");
 igual(orion.xp7, base, "🔴 pero NO a esta semana: si no, «esta semana» no significaría nada");
@@ -39,15 +39,15 @@ const coronados = t.reclutas.filter(x => x.corona).map(x => x.alias);
 igual(coronados, ["Nova"], "🔴 la corona semanal es de quien apretó ESTA semana, no de quien más lleva");
 
 // ---------------------------------------------------------------- d) anular quita las dos cifras
-G.hoja_(G.H.AJ).appendRow([new Date(), PER, "nova@alumno.es", "A1", "anular", "", "profe"]);
+G.hoja_(G.H.AJ).appendRow([new Date(), PER, "nova@alumno.es", "L1", "anular", "", "profe"]);
 igual(f("nova@alumno.es").xp7, base, "al anular el reto desaparece de la semana");
 igual(f("nova@alumno.es").xp, base, "y del total: es el mismo dato, no dos parecidos");
 
 // ---------------------------------------------------------------- e) las dos vías suman igual
-G.hoja_(G.H.AJ).appendRow([new Date(), PER, "nova@alumno.es", "A1", "otorgar", "", "profe"]);
+G.hoja_(G.H.AJ).appendRow([new Date(), PER, "nova@alumno.es", "L1", "otorgar", "", "profe"]);
 const porProfe = f("nova@alumno.es").xp7;
 E.enviarBitacora(G, PER, { email: "vega@alumno.es", alias: "Vega", nombre: "V V", profe: "Mr Cuarter" });
-G.hoja_(G.H.EV).appendRow([new Date(), PER, "vega@alumno.es", "Vega", "A1", "Reto A1", 1, 0, "bitacora"]);
+G.hoja_(G.H.EV).appendRow([new Date(), PER, "vega@alumno.es", "Vega", "L1", "Reto L1", 1, 0, "bitacora"]);
 const vega = f("vega@alumno.es");
 igual(vega.xp7, porProfe, "🔴 registrado por el alumno o validado por el profe: el MISMO reto vale lo mismo");
 igual(vega.xp, vega.xp7, "y todo lo suyo es de esta semana");

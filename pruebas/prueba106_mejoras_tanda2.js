@@ -22,11 +22,11 @@ const global = (html, nombre) => { const i = html.indexOf("window." + nombre + "
 const a = STG.indexOf("window.SG.avatarComandante = function"), b = STG.indexOf("window.SG.CFGSESION");
 const win = { SG: {} }; new Function("window", STG.slice(a, b))(win);
 const rt = win.SG.rotulo({ nombre: "Norberto Cuartero", avatar: "c3", escuadron: "Los Yunques", emblema: "assets/img/e.png", grupo: "DEMO", clase: "grande" });
-c(/class="rotulo rotulo-grande"/.test(rt) && /recorte\/c3\.png/.test(rt), "🔴 rótulo: el comandante que eligió, RECORTADO (sin fondo), como en un informativo");
+c(/class="rotulo rotulo-grande"/.test(rt) && /recorte_hd\/c3\.webp/.test(rt), "🔴 rótulo: el comandante que eligió, RECORTADO (sin fondo), como en un informativo");
 c((rt.match(/rt-emb/g) || []).length === 1, "🔴 el emblema del escuadrón, UNA vez (antes salía a los dos lados)", (rt.match(/rt-emb/g) || []).length);
 c(/>Comandante Norberto Cuartero</.test(rt) && /Escuadrón Los Yunques · DEMO/.test(rt), "   su nombre con su rango, y debajo el escuadrón y el grupo");
 c(!/Comandante Comandante/.test(win.SG.rotulo({ nombre: "Comandante Ana" })) && win.SG.rotulo({ nombre: " " }) === "", "   sin «Comandante Comandante», y sin nombre no hay rótulo");
-c(/recorte\/c1\.png/.test(win.SG.rotulo({ nombre: "Ana" })) && !/capitan\//.test(win.SG.rotulo({ nombre: "Ana" })),
+c(/recorte_hd\/c1\.webp/.test(win.SG.rotulo({ nombre: "Ana" })) && !/capitan\//.test(win.SG.rotulo({ nombre: "Ana" })),
   "🔴 sin comandante elegido, el c1 (el de su Nave): nunca el Capitán, que es el personaje de la serie");
 c(win.SG.firmaComandante("Hola.\n— Tu Comandante", "Ana") === "Hola.\n— Comandante Ana" && win.SG.firmaComandante("x — Capitán", "Comandante Leo") === "x — Comandante Leo"
   && win.SG.firmaComandante("x — Tu Comandante", "") === "x — Tu Comandante", "🔴 la firma de los mensajes, en un sitio: «— Tu Comandante» (o el «— Capitán» viejo) pasa a su nombre");
@@ -36,10 +36,17 @@ c(win.SG.firmaComandante("Hola.\n— Tu Comandante", "Ana") === "Hola.\n— Coma
   c(/\}, \{ merge: true \}\);\s*\}/.test(an) && sets.length >= 4 && sets.every(x => /merge: true/.test(x)),
     "🔴 NINGUNA escritura de la ficha del docente la reescribe entera: entrar ya no borra su comandante, sus foros ni su modo", sets.length); }
 c(win.SG.rotulo({ nombre: "<b>x</b>" }).indexOf("<b>x") < 0, "   y el nombre se escapa (lo escribe cada docente)");
-const recortes = fs.readdirSync(path.join(R, "assets/img/avatares/comandantes/recorte")).filter(f => /^c\d+\.png$/.test(f));
-const retratos = fs.readdirSync(path.join(R, "assets/img/avatares/comandantes")).filter(f => /^c\d+\.jpg$/.test(f));
-c(recortes.length === retratos.length && retratos.every(f => recortes.indexOf(f.replace(".jpg", ".png")) >= 0),
+// 23-sep · los comandantes, en alta: retrato/ (la cara, 480), recorte_hd/ (sin fondo, 800) y cuerpo/ (tres poses)
+const CMD = path.join(R, "assets/img/avatares/comandantes");
+const recortes = fs.readdirSync(path.join(CMD, "recorte_hd")).filter(f => /^c\d+\.webp$/.test(f));
+const retratos = fs.readdirSync(path.join(CMD, "retrato")).filter(f => /^c\d+\.jpg$/.test(f));
+c(retratos.length >= 26 && recortes.length === retratos.length && retratos.every(f => recortes.indexOf(f.replace(".jpg", ".webp")) >= 0),
   "🔴 los " + retratos.length + " comandantes tienen su recorte (ninguno cae en un hueco)", recortes.length + "/" + retratos.length);
+const poses = fs.readdirSync(path.join(CMD, "cuerpo")).filter(f => /^c\d+_(duda|reto|saludo)\.webp$/.test(f));
+c(poses.length === retratos.length * 3 && retratos.every(f => ["duda", "reto", "saludo"].every(p => poses.indexOf(f.replace(".jpg", "_" + p + ".webp")) >= 0)),
+  "🔴 y cada uno, de cuerpo entero en sus tres poses (duda, reto y saludo)", poses.length + "/" + retratos.length * 3);
+c(!fs.readdirSync(CMD).some(f => /^c\d+\.jpg$/.test(f)) && !fs.existsSync(path.join(CMD, "recorte")),
+  "   y no quedan los de baja calidad (c1.jpg, recorte/) para que nadie los vuelva a enlazar");
 c(/function firmaForo\(\)\{[\s\S]{0,300}window\.SG\.rotulo\(\{[\s\S]{0,300}clase:'grande' \}\)/.test(SES), "🔴 la diapositiva «El mensaje» firma con el rótulo grande");
 c(/\.foro-crawl\.fc-v2 \.fc-texto\{[^}]*font-size:clamp\([^)]*cqh/.test(CSS) && !/\.fc-v2 \.fc-texto\{[^}]*\dvw/.test(CSS) && /\.dia\.foro-crawl\.fc-v2\{container-type:size\}/.test(CSS),
   "🔴 la letra del mensaje se mide con la caja de la diapositiva (cqh), no con la ventana (vw)");

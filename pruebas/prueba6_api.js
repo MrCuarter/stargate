@@ -65,7 +65,7 @@ igual(post({ accion: "ficha", per: PER, pin, email: "nadie@x.es", alias: "X" }).
   "No encuentro a ese recluta en la Bitácora del grupo", "y un correo inexistente da un error claro");
 
 // --- otorgar/anular, entregado y tickets ------------------------------------------------------------
-post({ accion: "ajuste", per: PER, pin, email: "ana@alumno.es", reto_id: "A2", tipo: "otorgar", motivo: "en clase", profe: "Mr Cuarter" });
+post({ accion: "ajuste", per: PER, pin, email: "ana@alumno.es", reto_id: "L2", tipo: "otorgar", motivo: "en clase", profe: "Mr Cuarter" });
 igual(G.tablero_(PER, true).reclutas.filter(x => x.email === "ana@alumno.es")[0].xp, 200, "el profe otorga un reto desde la web");
 
 const tk = G._maestra.getSheetByName("T · " + PER);

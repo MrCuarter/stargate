@@ -216,18 +216,18 @@
       return '<figure style="--i:'+i+'"'+(attr?attr(p):'')+'>'+cara(p)+'<figcaption>'+esc(p.alias)+(pie?pie(p):'')+'</figcaption></figure>';
     }).join('')+(resto>0?'<figure class="mas" style="--i:'+vis.length+'"><span class="cara"><b>+'+resto+'</b></span><figcaption>y '+resto+' más</figcaption></figure>':'')+'</div>';
   }
-  /** La insignia de una misión: el Reto A del tema N da la del personaje (P N), el B la del reto (R N). */
+  /** La insignia de una misión: el relámpago del tema N da la del personaje (P N), el principal la del reto (R N). */
   function insigniaDe(id){
     // 16-sep · primero el catálogo (L1 lleva «La chispa»; XS, «Listo para la batalla»); si no, la regla de siempre
     var fila=(((window.SG_CATALOGO||{}).retos||{}).REGULAR||[]).filter(function(r){ return r.id===id; })[0];
     if(fila&&Array.isArray(fila.insignias)&&fila.insignias.length) return fila.insignias[0];
-    var m=String(id||'').match(/^([AB])(\d)$/); if(!m) return '';
-    var pre=(m[1]==='A'?'P':'R')+m[2]+'_', ks=Object.keys((window.SG&&SG.BADGE)||{});
+    var m=String(id||'').match(/^([ABL])(\d)$/); if(!m) return '';
+    var pre=(m[1]==='B'?'R':'P')+m[2]+'_', ks=Object.keys((window.SG&&SG.BADGE)||{});
     for(var i=0;i<ks.length;i++) if(ks[i].indexOf(pre)===0) return ks[i];
     return '';
   }
   function tituloReto(txt){ var m=String(txt||'').match(/«([^»]+)»/); return m?m[1]:String(txt||''); }
-  function etiquetaReto(txt){ var t=String(txt||''); return /^Reto A/.test(t)?'Reto A':/^Reto B/.test(t)?'Reto B':/^Reto (\u26A1|rel[aá]mpago)/i.test(t)?'Reto relámpago':/^Actividad/.test(t)?'Actividad':/^Reto/.test(t)?'Reto':'Misión'; }
+  function etiquetaReto(txt){ var t=String(txt||''); return /^Reto principal/.test(t)?'Reto principal':/^Reto A/.test(t)?'Reto A':/^Reto B/.test(t)?'Reto B':/^Reto (\u26A1|rel[aá]mpago)/i.test(t)?'Reto relámpago':/^Actividad/.test(t)?'Actividad':/^Reto/.test(t)?'Reto':'Misión'; }
   /**
    * LOS VÍDEOS, CADA UNO EN SU SITIO. Norberto: «no pongas el vídeo de intro y el de cierre a
    * continuación… vídeo intro al principio, vídeo final siempre lo último». Con un tema de dos
@@ -254,11 +254,50 @@
   }
 
   // ── 1 · la portada
+  /**
+   * 🔴 23-sep · EL COMANDANTE, DE CUERPO ENTERO: su pose (duda · reto · saludo) con el comandante que eligió el docente
+   * (el del grupo, que ve también el alumnado que sigue la sesión). Si la pose no estuviera, cae al retrato en alta.
+   */
+  function cmdCuerpo(pose, cls){
+    var k=((st.d&&st.d.avatares)||{})[elComandante()]||'';
+    return '<img class="cmd-cuerpo cmd-'+pose+(cls?' '+cls:'')+'" data-pose="'+pose+'" data-hd="'+esc(window.SG.comandanteHd(k))+'" src="'
+      +esc(window.SG.comandanteCuerpo(k, pose))+'" alt="" onerror="if(this.dataset.hd&&this.src.indexOf(this.dataset.hd)<0){this.src=this.dataset.hd}">';
+  }
+  var conRetrato=function(f){ return function(el){ retratoAlVuelo(el); return f?f(el):null; }; };
+  /**
+   * 🔴 23-sep · LA PREGUNTA DE LA CLASE. Del calendario oficial de la asignatura («Resolución de problemas en las clases en
+   * directo»), una por clase. Norberto: «solo lanzamos la pregunta de reflexión y el docente la va respondiendo durante la
+   * clase» y «aparece el comandante recortado con la pregunta en grande. No pongas nada más, sin explicaciones». Abre la
+   * sesión; en las semanas de dos clases con pregunta, sale una detrás de otra.
+   */
+  function diasPregunta(s){
+    return ((s&&s.preguntas)||[]).map(function(q){
+      return {k:'pregunta', sec:'pregunta', rot:'La pregunta', montar:conRetrato(null), html:
+        '<div class="dia pregunta-clase">'+cmdCuerpo('duda')+'<p class="pc-q">'+esc(q[1])+'</p></div>'};
+    });
+  }
+  /** Los retos de la semana, antes de sus misiones: el comandante con cara de desafío y lo que toca, en clase y en casa. */
+  function diaRetosSemana(s){
+    var ls=(s.lanza||[]).map(function(txt){ return {txt:txt, id:idDeReto(txt)}; }).filter(function(r){ return r.id && !/^X/.test(r.id); });
+    if(!ls.length) return null;
+    return {k:'retos-semana', sec:'misiones', rot:'Los retos', montar:conRetrato(null), html:
+      '<div class="dia retos-semana">'+cmdCuerpo('reto')
+      +'<div class="rs-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Esta semana</div><h2>Vuestros retos</h2><ul class="rs-lista">'
+      +ls.map(function(r, i){ var rel=/^L\d$/.test(r.id);
+        return '<li style="--i:'+i+'"><span class="rs-donde'+(rel?' clase':'')+'">'+(rel?'En clase':'En casa')+'</span><b>«'+esc(tituloReto(r.txt))+'»</b></li>'; }).join('')
+      +'</ul></div></div>'};
+  }
+  /** La despedida: el comandante saluda. */
+  function diaHastaPronto(){
+    return {k:'hasta', sec:'cierre', rot:'Hasta pronto', montar:conRetrato(null), html:
+      '<div class="dia hasta-pronto">'+cmdCuerpo('saludo')+'<div class="hp-txt"><h2>Hasta la próxima, recluta</h2></div></div>'};
+  }
   function diaPortada(s, n){
     var pl=planeta(s.tema_n);
     return {k:'portada', rot:'Portada', html:
       '<div class="dia portada'+(pl?' con-planeta':'')+'">'
       +(pl?'<img class="planeta" src="assets/img/planetas/'+esc(pl[0])+'.png'+(window.SG_IMGV||'')+'" alt="">':'')
+      +cmdCuerpo('saludo', 'pt-cmd')
       +'<div class="txt"><div class="kicker">Semana '+s.sem+' de '+n+(st.nombre?' · '+esc(st.nombre):'')+'</div>'
       +'<h1>'+esc(s.tema)+'</h1><p class="sub">'+esc(s.sub||'')+'</p>'
       +(pl?'<p class="planeta-nom">Planeta <b>'+esc(pl[1])+'</b> · '+esc(pl[2])+'</p>':'')
@@ -269,7 +308,7 @@
        * estar, botón de copiar». Solo lo ve quien da la clase (al recluta no le sirve de nada).
        */
       +(!st.alumno&&st.per&&st.yo?'<p class="pt-chat"><button type="button" class="btn min" id="ses-chat">Copiar el enlace para el chat</button> <span class="small" id="ses-chat-m">Entran con su cuenta, fichan solos y ven esta presentación.</span></p>':'')
-      +'</div></div>', montar: montarPortada};
+      +'</div></div>', montar: conRetrato(montarPortada)};
   }
   /** El enlace que se pega en el chat: sigue la clase y ficha solo en cuanto la llamada está abierta. */
   function enlaceClase(){
@@ -482,10 +521,13 @@
    * Antes, sin esto y sin comandante elegido, el rótulo enseñaba al Capitán: el personaje, no el docente.
    */
   function retratoAlVuelo(el){
-    var imgs=el.querySelectorAll('.rotulo .rt-av, [data-retrato]'), quien=elComandante();
+    var imgs=el.querySelectorAll('.rotulo .rt-av, [data-retrato], [data-pose]'), quien=elComandante();
     if(!imgs.length||!quien) return;
-    var poner=function(k){ var u=window.SG.avatarComandante(k);
-      Array.prototype.forEach.call(imgs, function(i){ if(i.getAttribute('src')!==u) i.src=u; }); };
+    var poner=function(k){
+      Array.prototype.forEach.call(imgs, function(i){
+        var pose=i.getAttribute('data-pose'), u=pose?window.SG.comandanteCuerpo(k, pose):window.SG.avatarComandante(k);
+        if(pose) i.setAttribute('data-hd', window.SG.comandanteHd(k));
+        if(i.getAttribute('src')!==u) i.src=u; }); };
     // las diapositivas se pintan todas al empezar: si otra ya lo trajo, esta se pone al día al montarse
     var ya=((st.d&&st.d.avatares)||{})[quien]; if(ya){ poner(ya); return; }
     if(st.alumno||!(window.SG&&SG.MOTOR&&SG.MOTOR.miFichaDocente)) return;
@@ -861,7 +903,8 @@
   }
   function diaSimulador(s){
     var BT=window.SG_BATALLA||{};
-    if(!BT.reto || !s || !capituloEn(BT.capitulo||'c11', s.sem)) return null;
+    // 23-sep · el Simulador ya no es un reto (BT.reto = null), pero sigue siendo el juego de repaso: sus marcas, igual
+    if(!BT.clave || !s || !capituloEn(BT.capitulo||'c11', s.sem)) return null;
     var R=vivos(), sim=function(p){ return p.simulador||{}; };
     var ganaron=R.filter(function(p){ return sim(p)[BT.clave||'joran']; });
     var marcas=R.map(function(p){ var m=(sim(p).marcas)||{}; var mejor=Object.keys(m).reduce(function(a,k){ return Math.max(a, Number(m[k].p)||0); }, 0);
@@ -874,7 +917,7 @@
     var med=function(ico, tit, x, val){ return x?'<span class="col-ley-u">'+cara(x.p)+'<b>'+esc(x.p.alias)+'</b><em>'+ico+' '+tit+' · '+val(x.t)+'</em></span>':''; };
     return {k:'simulador', rot:'El Simulador de Joran', html:
       '<div class="dia simulador"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Entrenamiento</div><h2>El Simulador de Joran</h2>'
-      +'<p class="ses-sub">Quien le ganó a <b>'+esc(BT.rival||'RUTA AZUL')+'</b> lo tiene en su Nave para repasar tema a tema… y quien no, puede volver a intentarlo: cada derrota lo cansa.</p>'
+      +'<p class="ses-sub">Quien le gana a <b>'+esc(BT.rival||'RUTA AZUL')+'</b> se queda el entrenamiento en su Nave para repasar tema a tema… y quien no, puede volver a intentarlo: cada derrota lo cansa.</p>'
       +(ganaron.length?'<div class="col-ley"><span class="col-ley-t"><img class=ico src=assets/img/iconos/p/diana.png alt> Le han ganado ('+ganaron.length+')</span>'+ganaron.slice(0,10).map(function(p){
           return '<span class="col-ley-u">'+cara(p)+'<b>'+esc(p.alias)+'</b></span>'; }).join('')+'</div>':'')
       +(marcas.length?'<div class="col-grid"><div class="col-c"><h3><img class=ico src=assets/img/iconos/p/rankings.png alt> Mejores marcas</h3><ol>'+marcas.map(function(x,i){
@@ -1295,12 +1338,12 @@
   function esEmbarque(s){ return Number(s&&s.sem)===1 && (window.SG_EMBARQUE||[]).length>0; }
   function diaEmbarque(s){
     return {k:'embarque_portada', sec:'portada', rot:'Portada', html:
-      '<div class="dia portada emb-portada"><div class="emb-fondo" aria-hidden="true"></div>'
+      '<div class="dia portada emb-portada"><div class="emb-fondo" aria-hidden="true"></div>'+cmdCuerpo('saludo', 'pt-cmd')
       +'<div class="txt"><div class="kicker">Semana 1 · Embarque'+(st.nombre?' · '+esc(st.nombre):'')+'</div>'
       +'<h1>Bienvenidos a bordo de <span class="emb-nave">La Constancia</span></h1>'
       +'<p class="sub">La nave de STARGATE. Hoy embarcamos; la primera parada, <b>Fôrge</b>.</p>'
       +(!st.alumno&&st.per&&st.yo?'<p class="pt-chat"><button type="button" class="btn min" id="ses-chat">Copiar el enlace para el chat</button> <span class="small" id="ses-chat-m">Entran con su cuenta, fichan solos y ven esta presentación.</span></p>':'')
-      +'</div></div>', montar: montarPortada};
+      +'</div></div>', montar: conRetrato(montarPortada)};
   }
   /**
    * 🔴 23-sep · CUATRO NOMBRES. Norberto: «Capitán de la Nave (es nuestro personaje), Comandante STARGATE (el docente de
@@ -1337,8 +1380,8 @@
       '<div class="dia emb"><div class="kicker">Cómo funciona</div><h2>Así es una semana a bordo</h2>'
       +'<ol class="emb-pasos">'
       +paso(0,'La sesión en directo','Esta: la historia, el tema y las misiones de la semana.')
-      +paso(1,'Los retos','El <b>A</b> recupera a un tripulante; el <b>B</b> deja una pieza en tu Bitácora; el <b>relámpago</b> se hace aquí, en clase, en quince minutos.')
-      +paso(2,'Tu Nave','Los registras tú, con el enlace de lo que has hecho. Como mucho '+tope+' por semana: esto no se hace en una tarde.')
+      +paso(1,'Los retos','Dos por tema, los dos prácticos. El <b>relámpago</b> se hace aquí, en clase, en quince minutos, y recupera a un tripulante; el <b>reto principal</b>, en casa, deja una pieza en tu Bitácora.')
+      +paso(2,'Tu Nave','Los registras tú, con el enlace de lo que has hecho. Nunca más de uno para casa por semana: está pensado para quien trabaja.')
       +paso(3,'El ticket de salida','Al acabar cada tema, dos minutos y anónimo. Lo que digáis sale en la clase siguiente.')
       +'</ol></div>'};
   }
@@ -1357,7 +1400,7 @@
     return {k:'embarque_bitacora', sec:'embarque', rot:'La Bitácora', html:
       '<div class="dia emb"><div class="kicker"><img class=ico src=assets/img/iconos/p/libro.png alt> El arma de esta guerra</div>'
       +'<h2>La Bitácora Estelar <u>es</u> vuestro ePortfolio</h2>'
-      +'<p class="sub">No es un adorno: <b>es lo que se evalúa</b>. Se abre hoy, con el reto B de esta semana, y se publica al final del viaje.</p>'
+      +'<p class="sub">No es un adorno: <b>es lo que se evalúa</b>. Se abre la semana que viene, con el primer reto principal («La Bitácora en marcha»), y se publica al final del viaje.</p>'
       +'<div class="emb-bit"><div><b>Cada página, igual</b><ol><li>La <b>evidencia</b>: lo que has creado</li><li>El <b>contexto</b>: para quién y para qué</li>'
       +'<li>La <b>reflexión</b>: qué aprendiste</li><li>La <b>autoevaluación</b>: qué mejorarías</li></ol></div>'
       +'<div><b>Qué acaba dentro</b><ul>'+A.map(function(a){ return '<li><b>Actividad '+esc(String(a.n))+'</b>: su página vale el 20 % de su nota</li>'; }).join('')
@@ -1410,6 +1453,9 @@
           if(panel) add({k:'genially', rot:'El despegue', html:'<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});
         }
       }
+      else if(pieza==='pregunta') add(diasPregunta(s));
+      else if(pieza==='retos') add(diaRetosSemana(s));
+      else if(pieza==='hasta') add(diaHastaPronto());
       else if(pieza==='misiones') add(diasMisiones(s));
     });
     out=out.filter(hay);
@@ -1424,7 +1470,7 @@
     var vids=s.videos||[], deTipo=function(t){ return vids.filter(function(v){ return tipoVideo(v)===t; }); };
     // `t` dice en qué tiempo de la clase va cada diapositiva: 'ap' antes de la presentación,
     // 'ci' después. Es lo único que hace falta para poder pegar el embed dos veces.
-    var d=[diaPortada(s, n)], L=semanas(), iS=iDe(L, s);
+    var d=diasPregunta(s).concat([diaPortada(s, n)]), L=semanas(), iS=iDe(L, s);
     if(st.per && !st.alumno && (Number(s.sem)||1)<=2) d.push(diaUnete());   // 19-sep · semanas 1 y 2
     if(st.per) d.push(diaLlamada());
     // 20-sep · al empezar un tema, lo que dijisteis al cerrar el anterior: primero cómo fue, después las dudas
@@ -1449,6 +1495,7 @@
     deTipo('mision').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'La misión'), {sec:'misiones'})); });
     // 21-sep · y justo detrás del vídeo de la misión, la actividad que puntúa y los retos que la construyen
     ci=ci.concat(diasActividad(s));
+    var rs=diaRetosSemana(s); if(rs) ci.push(rs);
     ci=ci.concat(diasMisiones(s));
     // 🔴 El Genially del grupo (el panel), EMBEBIDO: es donde empieza la clase de verdad. Si el docente
     // tiene uno propio («Mis enlaces»), el suyo; si no, el oficial del grupo; si no, el Panel de
@@ -1471,7 +1518,10 @@
       ci.push(Object.assign(diaVideo(v, i, 'La recompensa del bloque'), {sec:'cierre'}));
     });
     // 20-sep · y si esta sesión cierra el tema, lo último es el ticket de salida, para rellenarlo en clase
-    if(ultimaDelTema(L, iS)){ var tf=diaTicketForm(s); if(tf) ci.push(tf); }
+    // 23-sep · y al final, la despedida: el comandante saluda. Salvo si la clase cierra el tema: entonces lo último es el
+    // ticket (Norberto: «la última diapositiva es el ticket embebido»), y el saludo ya lo puso la portada.
+    var tf=ultimaDelTema(L, iS)?diaTicketForm(s):null;
+    ci.push(tf||diaHastaPronto());
     ci.forEach(function(x){ x.t='ci'; });
 
     // El tramo del medio. Proyectando desde la web (sin Genially) va el panel del grupo EMBEBIDO, que

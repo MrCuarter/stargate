@@ -33,7 +33,10 @@ RET.forEach(function(cat){
   const antes = ficha(em);
   E.enviarBitacora(G, PER, { email: em, marcados: E.marcar(G, [cat]) }, alumno + 1);
   const x = ficha(em);
-  igual(x.xp - antes.xp, cat[3], "«" + cat[0] + "» paga sus " + cat[3] + " xp, ni uno más ni uno menos");
+  // 23-sep · si ese reto es el ÚNICO obligatorio de su tema (el relámpago es voluntario), además cierra el planeta
+  const obligatorios = RET.filter(r => r[4] === cat[4] && !G.opcional_(r[0]));
+  const bonus = obligatorios.length === 1 && obligatorios[0][0] === cat[0] ? G.BONUS_PLANETA.xp : 0;
+  igual(x.xp - antes.xp, cat[3] + bonus, "«" + cat[0] + "» paga sus " + cat[3] + " xp" + (bonus ? " (y cierra su planeta: +" + bonus + ")" : "") + ", ni uno más ni uno menos");
 });
 
 // ---------------------------------------------------------------- b) y la web no miente sobre el dinero
@@ -41,12 +44,12 @@ RET.forEach(function(cat){
 // el motor paga 20 · 50 · 100. La tabla buena de registro.html sí se generaba, así que la web se
 // contradecía a sí misma y el docente le daba al alumnado la cifra equivocada.
 const guia = leer("guia.html");
-const promesa = "Reto A " + CRED.retoA + " · Reto B " + CRED.retoB +
-                " · Actividad " + CRED.actividad + " · hitos " + CRED.derivada;
+const promesa = "relámpago " + CRED.relampago + " · reto principal " + CRED.retoB +
+                " · Actividad " + CRED.actividad + " · hitos " + CRED.derivada;   // 23-sep · los 20 retos
 c(guia.indexOf(promesa) >= 0, "🔴 la guía dice los créditos DE VERDAD (" + promesa + ")");
 c(guia.indexOf("Reto A 10 · Reto B 30") < 0, "   y no quedan los números viejos a mano");
-c(guia.indexOf("y <b>" + CRED.retoA + " créditos ◈</b>") >= 0,
-  "   la FAQ del Reto A también (" + CRED.retoA + " ◈)");
+c(guia.indexOf("<b>" + CRED.relampago + " ◈</b>") >= 0,
+  "   la FAQ del relámpago también (" + CRED.relampago + " ◈)");
 
 // ---------------------------------------------------------------- c) una clase de verdad, a distintos ritmos
 const CLASE = [

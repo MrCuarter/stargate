@@ -171,7 +171,7 @@
       '<p class="small muted">Has entrado como <b>' + esc(yo.correo) + "</b>.</p>" +
       '<div class="elegir-camino">' +
       (ps.length
-        ? '<a class="camino docente" href="' + esc(vuelta || "consola.html") + '"><span><img src="assets/img/avatares/comandantes/c1.jpg" alt=""></span><b>Como docente</b>' +
+        ? '<a class="camino docente" href="' + esc(vuelta || "consola.html") + '"><span><img src="assets/img/avatares/comandantes/retrato/c1.jpg" alt=""></span><b>Como docente</b>' +
           "<em>" + ps.length + (ps.length === 1 ? " grupo: " : " grupos: ") +
           esc(ps.slice(0, 3).map(function (p) { return p.nombre; }).join(" · ")) + (ps.length > 3 ? "…" : "") + "</em></a>"
         : "") +

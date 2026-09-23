@@ -32,7 +32,9 @@ const B = leer("assets/js/batalla.js"), N = leer("assets/js/recluta.js"), M = le
     "'ev':D.EVIDENCIA_RETOS,'rf':list(D.REFLEXION_RETOS)}))"], { cwd: RAIZ, encoding: "utf8" }));
   const W = D.B, cap = D.caps.filter(x => x.clave === W.capitulo)[0];
 
-  c(W.reto === "A6" && W.clave === "joran" && W.rival === "RUTA AZUL", "el reto A6 es la batalla contra RUTA AZUL", JSON.stringify([W.reto, W.clave, W.rival]));
+  // 23-sep · el Simulador deja de ser un reto (el relámpago de Ludo es «Encuentra el juego»): se queda como juego de repaso
+  c(W.reto === null && W.clave === "joran" && W.rival === "RUTA AZUL", "🔴 la batalla contra RUTA AZUL ya no es un reto del catálogo (reto: null)",
+    JSON.stringify([W.reto, W.clave, W.rival]));
   c(JSON.stringify(W.temas_reto) === JSON.stringify([1, 2, 3, 4, 5]) && W.tema_reto === 6,
     "   pregunta por lo ya recorrido (temas 1 al 5) y se abre con el planeta Ludo", JSON.stringify(W.temas_reto));
   c(!!cap && cap.semanas.REGULAR === 11 && cap.semanas.PUA === 7 && cap.abre.indexOf("simulador") >= 0,
@@ -43,11 +45,13 @@ const B = leer("assets/js/batalla.js"), N = leer("assets/js/recluta.js"), M = le
   c(W.medallas.length === 3 && W.medallas.map(x => x[0]).join(",") === "rapido,certero,sabio",
     "   y tres reconocimientos: el más rápido, el más certero y quien más sabe");
 
-  // 2 · el A6 ya no se marca: se gana
-  c(D.ev.A6 === "" && D.rf.indexOf("A6") < 0, "🔴 el A6 no pide enlace ni reflexión: se gana al simulador", D.ev.A6 + " / " + D.rf.join(","));
-  c(/rs-batalla/.test(N) && /batalla\.html\?per=/.test(N), "   la tarjeta del reto lleva a la batalla, no a «Lo he hecho»");
-  c(/function comprobarBatalla/.test(N) && /ganoAJoran/.test(N),
-    "🔴 si ganó y el reto no llegó a registrarse (cerró la pestaña, tope del día), la Nave lo registra al entrar");
+  // 2 · ganarle no registra nada: abre el entrenamiento
+  c(!("A6" in D.ev) && D.rf.indexOf("A6") < 0, "🔴 no queda ningún A6 que entregar ni que reflexionar", String(D.ev.A6));
+  c(/BT\.reto&&t\[0\]===BT\.reto/.test(N) && /rs-batalla/.test(N), "   la tarjeta de reto-batalla solo sale si algún reto lo es (hoy, ninguno)");
+  c(/var id = BT\.reto; if\(!id\) return;/.test(N) && /ganoAJoran/.test(N),
+    "🔴 y la Nave no intenta registrar nada al entrar aunque haya ganado");
+  c(/f\.reto && CFG\.reto && f\.joran !== false\) registrarA6\(\)/.test(B) && /El reto de Joran/.test(B),
+    "   la batalla tampoco: la primera victoria abre el entrenamiento y lo dice");
   c(/function simuladorCaja/.test(N) && /abierto\('simulador'\)/.test(N), "   la Nave enseña el simulador (bloqueado o abierto) en «Mi nave»");
   c(/window\.SG_BATALLA/.test(leer("recluta.html")) && /window\.SG_BATALLA/.test(PAG), "   y la configuración llega a la Nave y a la batalla");
 
@@ -76,7 +80,8 @@ const B = leer("assets/js/batalla.js"), N = leer("assets/js/recluta.js"), M = le
   if (S) {
     const E = S.BATALLA;
     c(E.RETO === W.reto && E.RIVAL === W.clave && E.TEMA_RETO === W.tema_reto && JSON.stringify(E.TEMAS_RETO) === JSON.stringify(W.temas_reto),
-      "🔴 servidor y web: el mismo reto, el mismo rival y los mismos temas");
+      "🔴 servidor y web: el mismo reto (ninguno), el mismo rival y los mismos temas", JSON.stringify([E.RETO, W.reto]));
+    c(!/reto A6/.test(JSON.stringify(S.POR_MOD.stargate.TEXTOS)), "   y el servidor ya no habla del reto A6 al alumnado");
     c(E.VIDA === W.vida && E.GOLPE === W.golpe && E.GOLPE_RIVAL === W.golpe_rival && E.NIVELES.media.vidaRival === W.vida_rival,
       "🔴 y los mismos números (lo que se le enseña al alumnado es lo que va a pasar)",
       JSON.stringify([E.VIDA, E.GOLPE, E.GOLPE_RIVAL, E.NIVELES.media.vidaRival]));
@@ -84,9 +89,8 @@ const B = leer("assets/js/batalla.js"), N = leer("assets/js/recluta.js"), M = le
       "   la cadencia, las preguntas por batalla y el kit");
     c(JSON.stringify(Object.keys(E.NIVELES)) === JSON.stringify(W.niveles.map(x => x[0])) && E.NIVEL_RETO === W.nivel_reto,
       "   y los tres niveles, con el reto en media");
-    c(JSON.stringify(E.CAPITULO || { clave: W.capitulo }) !== "" && typeof S.retoSinBatalla === "function"
-      && /Simulador de Joran/.test(S.retoSinBatalla({ stargate: {} }, { stargateId: E.RETO }, {}) || ""),
-      "🔴 el reto A6 no se puede marcar sin haberle ganado (lo comprueba completeMission)");
+    c(typeof S.retoSinBatalla === "function" && S.retoSinBatalla({ stargate: {} }, { stargateId: "A6" }, {}) === null,
+      "🔴 el cerrojo de completeMission sigue ahí, pero sin reto que cerrar (un A6 viejo no bloquea nada)");
     // el banco, del lado privado
     const banco = fs.existsSync(path.join(GP, "stargateBanco.js"));
     c(banco, "   el banco de preguntas vive en el repositorio privado");
@@ -114,7 +118,7 @@ const B = leer("assets/js/batalla.js"), N = leer("assets/js/recluta.js"), M = le
   c(/data-nivel/.test(B) && /sgBtNivel/.test(B), "   la batalla deja escoger el nivel y lo recuerda");
   c(/function medallas/.test(B) && /bt-med/.test(CSS), "   y enseña los tres reconocimientos del grupo");
 
-  console.log("\n  Batería 80 · el Simulador de Joran (el reto A6)");
+  console.log("\n  Batería 80 · el Simulador de Joran (juego de repaso)");
   console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
   fallos.forEach(f => console.log("   ✗ " + f));
   process.exit(fallos.length ? 1 : 0);

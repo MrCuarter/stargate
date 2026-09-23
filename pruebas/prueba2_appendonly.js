@@ -1,3 +1,4 @@
+// 🔴 23-sep · de 27 retos a 20: el tripulante lo recupera el RELÁMPAGO (L1-L8, 100 xp, 20 ◈), y los Reto A se fueron.
 'use strict';
 // 2 · El seguro de la Bitácora por secciones: registrarEventos_ solo AÑADE.
 //     Aunque Google vacíe las casillas de una sección que no se visita, no se pierde una insignia.
@@ -13,15 +14,15 @@ const et = id => RET.filter(r => r[0] === id)[0][1];
 
 E.enviarBitacora(G, PER, { email: "dani@alumno.es", alias: "Dani", nombre: "Dani S", profe: "Mr Cuarter" });
 // 1ª visita: marca el tema 1
-E.enviarBitacora(G, PER, { email: "dani@alumno.es", marcados: E.marcar(G, [et("A1"), et("B1")]) }, 2);
+E.enviarBitacora(G, PER, { email: "dani@alumno.es", marcados: E.marcar(G, [et("L1"), et("B1")]) }, 2);
 let d = G.tablero_(PER, true).reclutas[0];
 igual(d.xp, 100 + 100 + 250, "tras el tema 1: 450 xp");
 
 // 2ª visita: el alumno salta DIRECTO al tema 6. Google reescribe la fila y el tema 1 llega VACÍO.
 E.enviarBitacora(G, PER, { email: "dani@alumno.es",
-  marcados: Object.assign(E.desmarcar(G, [et("A1"), et("B1")]), E.marcar(G, [et("A6"), et("B6")])) }, 2);
+  marcados: Object.assign(E.desmarcar(G, [et("L1"), et("B1")]), E.marcar(G, [et("L6"), et("B6")])) }, 2);
 d = G.tablero_(PER, true).reclutas[0];
-// A6+B6 son TODOS los retos del tema 6 (no tiene Actividad), así que además cae el planeta completo
+// B6 es el único obligatorio del tema 6 (el relámpago L6 es voluntario), así que además cae el planeta completo
 igual(d.xp, 100 + 100 + 250 + 100 + 250 + G.BONUS_PLANETA.xp,
   "las insignias del tema 1 NO se pierden al saltar al 6, y el 6 queda completo");
 igual(d.planetas_completos, [6], "el planeta 6 sí está completo; el 1 no, porque le falta la Actividad");
@@ -30,7 +31,7 @@ c(d.insignias.indexOf("P6_joran") >= 0, "y se suma la del tema 6");
 
 // 3ª visita: reenvía lo mismo -> nada se duplica
 const evAntes = G.hoja_("EVENTOS").getLastRow();
-E.enviarBitacora(G, PER, { email: "dani@alumno.es", marcados: E.marcar(G, [et("A6"), et("B6")]) }, 2);
+E.enviarBitacora(G, PER, { email: "dani@alumno.es", marcados: E.marcar(G, [et("L6"), et("B6")]) }, 2);
 igual(G.hoja_("EVENTOS").getLastRow(), evAntes, "reenviar lo ya registrado no duplica eventos");
 igual(G.tablero_(PER, true).reclutas[0].xp, 800 + G.BONUS_PLANETA.xp, "ni suma xp de más (800 + el planeta 1 completo)");
 
@@ -44,20 +45,20 @@ G.aplicarAvatar_(G.perObj_(G.perFila_(PER).v), "dani@alumno.es", "Personaje 3 ·
 igual(G.tablero_(PER, true).reclutas[0].avatar.n, 3, "un canje concedido sí cambia el avatar");
 
 // Ajustes del profesorado: otorgar y anular
-G.hoja_("AJUSTES").appendRow([new Date(), PER, "dani@alumno.es", "A2", "otorgar", "recuperada en clase", "Mr Cuarter"]);
+G.hoja_("AJUSTES").appendRow([new Date(), PER, "dani@alumno.es", "L2", "otorgar", "recuperada en clase", "Mr Cuarter"]);
 igual(G.tablero_(PER, true).reclutas[0].xp, 900 + G.BONUS_PLANETA.xp, "el profe puede otorgar un reto a mano (+100)");
-G.hoja_("AJUSTES").appendRow([new Date(), PER, "dani@alumno.es", "A1", "anular", "error", "Mr Cuarter"]);
+G.hoja_("AJUSTES").appendRow([new Date(), PER, "dani@alumno.es", "L1", "anular", "error", "Mr Cuarter"]);
 igual(G.tablero_(PER, true).reclutas[0].xp, 800 + G.BONUS_PLANETA.xp, "y anularlo (-100)");
 
 // 🔴 LO GANADO, GANADO. Si el profe anula un reto del tema 6, el planeta deja de estar completo,
 // pero el bonus ya CONCEDIDO no se quita: está escrito. Quitarlo devolvería créditos que quizá ya
 // se gastaron y dejaría el saldo en negativo.
 c(G.tablero_(PER, true).reclutas[0].bonus.indexOf("planeta:6") >= 0, "el bonus del planeta 6 está concedido");
-G.hoja_("AJUSTES").appendRow([new Date(), PER, "dani@alumno.es", "A6", "anular", "error", "Mr Cuarter"]);
+G.hoja_("AJUSTES").appendRow([new Date(), PER, "dani@alumno.es", "B6", "anular", "error", "Mr Cuarter"]);
 const trasAnular = G.tablero_(PER, true).reclutas[0];
-igual(trasAnular.planetas_completos, [], "al anular A6 el planeta 6 deja de estar completo");
+igual(trasAnular.planetas_completos, [], "al anular B6 el planeta 6 deja de estar completo");
 c(trasAnular.bonus.indexOf("planeta:6") >= 0, "🔴 pero el bonus sigue concedido: lo ganado, ganado");
-igual(trasAnular.xp, 800 + G.BONUS_PLANETA.xp - 100, "se le quitan los xp del reto anulado, no los del bonus");
+igual(trasAnular.xp, 800 + G.BONUS_PLANETA.xp - 250, "se le quitan los xp del reto anulado, no los del bonus");
 
 // La respuesta sin correo no rompe nada
 const shB = G._maestra.getSheetByName("B · " + PER);
