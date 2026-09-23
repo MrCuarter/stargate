@@ -107,19 +107,8 @@ c(port.indexOf('href="entrar.html"') >= 0,
 // se rompen cada vez que alguien reajusta un margen.
 const sinComentarios = h => String(h).replace(/<!--[\s\S]*?-->/g, "").replace(/\s+/g, " ");
 const CSH = sinComentarios(leer("comosehizo.html"));
-/**
- * 🔴 23-sep · LA PORTADA ES UN DOSSIER. Norberto: «en la página principal, solo un dossier, sencillo, visual, sobre
- * STARGATE». El «cómo se hizo» (las herramientas y los enlaces de afiliado) sale de la portada y se queda ENTERO en su
- * página; la portada solo lleva hasta ella, sin nombrar herramientas (la regla de lo público).
- */
-const dossier = sinComentarios(port);
-c(/href="comosehizo\.html"/.test((dossier.match(/<section class="dz dz-cierre"[\s\S]*?<\/section>/) || [""])[0]),
-  "🔴 la portada (el dossier) lleva a «Cómo se hizo» desde su última diapositiva");
-c(!/<section id="comohizo"/.test(port) && ["Claude", "OpenArt", "Magnific", "Genially"].every(function(h){
-  return sinComentarios(port.replace(/<script[\s\S]*?<\/script>/g, "")).replace(/<[^>]+>/g, " ").indexOf(h) < 0; }),
-  "   y el dossier no nombra herramientas: eso vive en «Cómo se hizo»");
-const como = CSH;
-c(como.length > 0, "«Cómo se hizo» cuenta cómo se hizo el proyecto");
+const como = sinComentarios((port.match(/<section id="comohizo"[\s\S]*?<\/section>/) || [""])[0]);
+c(como.length > 0, "la portada cuenta cómo se hizo el proyecto");
 ["Claude", "OpenArt", "Magnific"].forEach(function(h){
   c(como.indexOf(h) >= 0, "   y nombra «" + h + "»");
 });
@@ -136,12 +125,12 @@ igual(botones, urls, "🔬 hay tantos botones de apoyo como enlaces de referido 
 // 🔴 Si hay botones, hay que DECIR que son de referido. Ocultarlo seria lo contrario de un
 // proyecto que va de dejar constancia — y la peticion se sostiene mejor dicha en voz alta.
 // ---- la portada solo ADELANTA: el detalle vive en su propia pagina (peticion del 11-sep)
-
+c(/href="comosehizo\.html"/.test(como), "🔴 la portada lleva a la página del «cómo se hizo»");
 
 // ---- el director de orquesta, y que se vea que lo es
 // 🔴 No es maquetacion bonita: las tres herramientas no se hablan entre ellas, hablan con el centro.
 // Si algun dia esto vuelve a ser una fila de cuatro iguales, el proceso queda mal contado.
-[["«cómo se hizo»", CSH]].forEach(function(par){
+[["la portada", como], ["«cómo se hizo»", CSH]].forEach(function(par){
   const nom = par[0], doc = par[1];
   c(/class="director"/.test(doc), "en " + nom + " Claude va en su propio bloque, no en fila");
   c(doc.indexOf('class="director"') < doc.indexOf('class="grid cols-3 brazos"'),
@@ -152,7 +141,8 @@ igual(botones, urls, "🔬 hay tantos botones de apoyo como enlaces de referido 
   c(/la partitura la escribe el docente/i.test(doc),
     "🔴 y que la partitura la escribe el DOCENTE, que es lo que evita que esto sea un anuncio");
 });
-
+c((como.match(/class="paso"/g) || []).length === 0,
+  "   y no repite ahí el detalle: para eso está la página");
 
 if (botones > 0) {
   c(/enlaces de afiliado/.test(como), "🔴 y la página avisa de que son enlaces de afiliado");

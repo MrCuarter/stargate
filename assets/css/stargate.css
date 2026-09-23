@@ -5878,7 +5878,7 @@ body.embed .pr-mazo .dia{padding-top:56px}
 /* 23-sep · el índice de las guías se pegaba en top:0, DEBAJO de la barra de arriba (también pegada, y por encima):
    al bajar, desaparecía. Se pega justo debajo de ella; la altura de la barra la mide stargate.js (--nav-h). */
 /* ───── 23-sep · LA PORTADA ES UN DOSSIER (index.html + assets/js/dossier.js) ─────
-   Once diapositivas a pantalla completa: se pasan con las flechas, la rueda o el dedo (scroll-snap), con puntos a la
+   Doce diapositivas a pantalla completa: se pasan con las flechas, la rueda o el dedo (scroll-snap), con puntos a la
    derecha y pantalla completa. Sin JavaScript es una página normal de arriba abajo. La portada no dice nada del máster
    ni de fechas: STARGATE y la UNIR. */
 html.con-dossier{scroll-snap-type:y proximity;scroll-padding-top:var(--nav-h,54px)}
@@ -5981,3 +5981,6 @@ html.con-dossier:fullscreen .dz{min-height:100vh}
   .nf-arriba .nave-cifras b{font-size:.95rem}
   .nf-arriba .nave-cifras span{font-size:.75rem;line-height:1.15}
 }
+/* 23-sep · la diapositiva «Cómo se hizo» del dossier (con los enlaces de afiliado): el bloque de siempre, más prieto */
+.dz-comohizo .director{margin-top:4px}
+.dz-comohizo .dz-in>p{margin:0}

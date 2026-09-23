@@ -342,12 +342,13 @@ tiles_html="\n".join(f'<a class="tile" href="{h}"><span class="ic">{i}</span><b>
 # 🔴 Norberto: «en la página principal, sin iniciar sesión, solo un dossier, sencillo, visual, sobre STARGATE,
 # mencionando la UNIR, pero sin datos del máster ni fechas concretas; quizá puedas mostrarlo en modo presentación».
 # La portada vieja era un folleto largo (qué es, por dónde entras, la zona del profesorado, las voces, cómo se hizo).
-# Ahora es una PRESENTACIÓN: once diapositivas a pantalla completa que se pasan con las flechas, la rueda o el dedo
+# Ahora es una PRESENTACIÓN: doce diapositivas a pantalla completa que se pasan con las flechas, la rueda o el dedo
 # (scroll-snap: en el móvil es deslizar), con puntos a la derecha y pantalla completa. Y a la vez es una página normal:
 # sin JavaScript se lee de arriba abajo, y los buscadores ven todo el texto.
 #
 # Lo que NO lleva, a propósito: el nombre del máster, la asignatura, créditos, semanas o fechas (eso vive dentro, para
-# quien ya ha entrado), herramientas de terceros, ni la zona del profesorado (el docente entra y ya está en su Nave).
+# quien ya ha entrado) ni la zona del profesorado (el docente entra y ya está en su Nave). Las herramientas, solo en
+# la diapositiva «Cómo se hizo», con sus enlaces de afiliado (23-sep, Norberto: «recupera enlaces de afiliado»).
 # Los datos que sí enseña —planetas, tripulantes, capturas— salen de los sitios de siempre: un dato, un sitio.
 def _dz_cap(k, alt):
     f = os.path.join(HERE, "assets", "img", "capturas", k + ".webp")
@@ -362,7 +363,7 @@ _dz_tripu = "".join(
 _DZ = [  # (ancla, rótulo del punto)
     ("inicio", "STARGATE"), ("premisa", "La premisa"), ("voces", "Las tres voces"), ("viaje", "El viaje"),
     ("tripulacion", "La Tripulación Cero"), ("nave", "La Nave"), ("juego", "Cómo se juega"), ("bitacora", "La Bitácora"),
-    ("aula", "En el aula"), ("docente", "Para el docente"), ("embarca", "Embarca")]
+    ("aula", "En el aula"), ("docente", "Para el docente"), ("comohizo", "Cómo se hizo"), ("embarca", "Embarca")]
 _dz_puntos = "".join(f'<a href="#{a}" data-dz="{a}" title="{t}"><span>{t}</span></a>' for a, t in _DZ)
 PORTADA = head("STARGATE · La Bitácora Estelar",
   "STARGATE, un proyecto de gamificación educativa de la UNIR: una asignatura convertida en una misión, con ocho planetas, una tripulación perdida y una Bitácora que lo vuelve a encender todo.","inicio",
@@ -501,6 +502,25 @@ y la nave avanza sola con el calendario: cada semana se abre algo nuevo.</p>
 </div>
 </section>
 
+<!-- 🔴 23-sep · «Recupera enlaces de afiliado» (Norberto): el «cómo se hizo» vuelve a la portada, como una diapositiva
+     más del dossier, con los botones de afiliado y el aviso de que lo son. Es la única que nombra herramientas. -->
+<section id="comohizo" class="dz dz-comohizo">
+<div class="dz-in">
+<div class="dz-k">Cómo se hizo</div><h2>Esto lo ha montado un profesor</h2>
+<p class="dz-lead">Sin estudio, sin productora y sin equipo: un docente, un ordenador y cuatro
+herramientas. Lo cuento porque la pregunta que más me hacen al enseñarlo es
+«¿y esto cuánto cuesta encargarlo?» — y la respuesta es que no se encargó.</p>
+<div>{comohizo_html}</div>
+<!-- 🔴 Decirlo. Son de afiliado y ocultarlo seria justo lo contrario del proyecto, que va de dejar
+     constancia. Ademas la peticion se sostiene mejor dicha en voz alta que disimulada. -->
+<p class="small muted">Los botones son <b>enlaces de afiliado</b>, y se
+dice para que lo sepas. Donde la herramienta lo ofrece, <b>quien entra por ahí se lleva un descuento
+o un crédito de bienvenida</b>; y en todos los casos este proyecto recibe créditos que se reinvierten
+en seguir ampliando la aventura.</p>
+<p><a class="btn primary" href="comosehizo.html"><img class=ico src=assets/img/iconos/p/libro.png alt> Cómo se hizo, con todo el detalle →</a></p>
+</div>
+</section>
+
 <section class="dz dz-cierre" id="embarca">
 <div class="dz-velo"></div>
 <div class="dz-in">
@@ -513,7 +533,6 @@ recluta por dentro, sin cuenta y sin que se guarde nada.</p>
 <a class="btn grande btn-demo" href="recluta.html?per=demo-stargate&amp;demo=1"><img class=ico src=assets/img/iconos/p/video.png alt> Ver la demo</a>
 <a class="btn ghost" href="{PLAYLIST}" target="_blank" rel="noopener">La serie en YouTube ↗</a>
 </div>
-<p class="dz-pie">¿Cómo se hizo? Lo ha montado un profesor, y <a href="comosehizo.html">lo cuenta aquí →</a></p>
 </div>
 </section>
 

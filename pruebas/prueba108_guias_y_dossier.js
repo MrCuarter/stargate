@@ -76,11 +76,15 @@ c(/const SALIDA = path\.join\(WEB, "assets", "img", "capturas"\)/.test(L("prueba
 // ── 5 · la portada es un dossier
 const vis = visible(INDEX);
 const dz = INDEX.match(/<section class="dz[^"]*" id="[a-z]+"/g) || [];
-c(dz.length === 11 && /<nav class="dz-puntos"/.test(INDEX) && /assets\/js\/dossier\.js/.test(INDEX), "🔴 la portada es un dossier de 11 diapositivas, con sus puntos y su script", dz.length);
+const dzs = INDEX.match(/<section (class="dz[^"]*" id="[a-z]+"|id="[a-z]+" class="dz[^"]*")/g) || [];
+c(dzs.length === 12 && /<nav class="dz-puntos"/.test(INDEX) && /assets\/js\/dossier\.js/.test(INDEX), "🔴 la portada es un dossier de 12 diapositivas, con sus puntos y su script", dzs.length);
 c(/UNIR/.test(vis) && !/Máster|máster/.test(vis), "🔴 menciona la UNIR y no el máster");
 c(!/\b(20\d\d)\b/.test(vis) && !/\bsemana \d+\b/i.test(vis) && !/\b\d{1,2} de (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\b/i.test(vis),
   "   sin fechas concretas");
-c(!/Genially|Magnific|OpenArt|ElevenLabs|\bClaude\b/.test(vis), "   ni herramientas (eso vive en «Cómo se hizo»)");
+// 23-sep (tarde) · «recupera enlaces de afiliado»: las herramientas vuelven, pero SOLO en su diapositiva
+const sinComo = visible(INDEX.replace(/<section id="comohizo"[\s\S]*?<\/section>/, " "));
+c(!/Genially|Magnific|OpenArt|ElevenLabs|\bClaude\b/.test(sinComo), "   las herramientas, solo en la diapositiva «Cómo se hizo» (con sus enlaces de afiliado)");
+c(/<section id="comohizo" class="dz dz-comohizo">[\s\S]*?enlaces de afiliado[\s\S]*?href="comosehizo\.html"/.test(INDEX), "🔴 y esa diapositiva avisa de que son de afiliado y lleva a la página entera");
 c(!/href="(consola|crear|gestion)\.html"/.test(INDEX), "   ni la zona del profesorado: se entra, y la puerta reparte");
 c((INDEX.match(/href="entrar\.html" data-dz-entrar/g) || []).length === 2, "   con la puerta de entrada al principio y al final");
 const DJ = L("assets/js/dossier.js");
