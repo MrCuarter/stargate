@@ -473,6 +473,8 @@
       pausas: SEM().limpias(inicio, pausas), pausa: SEM().pausaDe(inicio, pausas, ahora || Date.now()),
       capitulosAbiertos: S.capitulosAbiertos || {},
       panel: S.panelVer || "", paneles: S.paneles || {}, sesiones: S.sesiones || {},
+      // 23-sep · el comandante que eligió cada docente (su clave cN), para su rótulo: su alumnado también le ve
+      avatares: S.avatares || {},
       apertura: S.apertura || "", cierre_misiones: S.cierre || "", cierre_canje: S.cierreCanje || "",
       padlet: S.padlet || "",
       // La web lleva llamándolo `formTicket` desde el primer día y en siete sitios distintos.

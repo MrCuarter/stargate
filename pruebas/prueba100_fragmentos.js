@@ -29,8 +29,11 @@ c(f6.reto === "A6" && Number(f6.sem) === 10 && Number(f6.publica) === 12,
 c(FR.every(f => Number(f.publica) >= Number(f.sem)), "   y ninguno se abre antes de existir");
 
 // ── 2 · en la Nave: bloqueado de verdad, sin play
-c(/function fragAbierto\(f\)/.test(REC) && /mios\.indexOf\(f\.reto\)>=0/.test(REC) && /Number\(st\.actual\|\|0\) >= Number\(f\.publica\|\|99\)/.test(REC),
-  "🔴 se abre al registrar su reto… o solo, en su semana pública");
+// 🔴 23-sep · Norberto: «solo quien lo recupera». Ya no se abre para todos a las dos semanas.
+c(/function fragAbierto\(f\)/.test(REC) && /if\(f\.reto\) return mios\.indexOf\(f\.reto\)>=0;/.test(REC),
+  "🔴 un fragmento con reto SOLO lo ve quien registra ese reto (nada de «para todos a las dos semanas»)");
+c(/Number\(st\.actual\|\|0\) >= Number\(f\.publica\|\|99\);   \/\/ \(sin reto/.test(REC) && FR.filter(f => !f.reto).length === 1,
+  "   el único que se abre solo es el que no tiene reto (el del final del viaje)");
 c(/function tapaFragmento\(f, cls\)/.test(REC) && /candado\.png/.test(REC) && /\.frag-tapa\{/.test(CSS),
   "🔴 el que no has ganado se tapa (ni carátula ni botón de play)");
 c(/var fr=fragDe\(v\.id\), cerrado=fr&&!fragAbierto\(fr\)/.test(REC) && /cerrado \? tapaFragmento\(fr, 'grande'\)/.test(REC),
@@ -53,10 +56,10 @@ c(/class="ar-v cerrada"/.test(REC) && /Llega en la <b>semana/.test(REC), "   lo 
 c(/FRAGMENTO DESBLOQUEADO/.test(REC) && /class="logro-video"/.test(REC) && /\.logro-video\{/.test(CSS),
   "🔴 al registrar el reto, el fragmento aparece desbloqueado en la ventana de recompensa");
 
-// ── 5 · en la sesión, dos semanas después
-c(/Number\(f\.publica\)===Number\(s\.sem\)/.test(SES) && /El fragmento, ya para todos/.test(SES),
-  "🔴 la sesión proyecta cada fragmento en su semana pública, no en la suya");
-c(/if\(f && Number\(f\.publica\)!==Number\(s\.sem\)\) return;/.test(SES), "   y no lo enseña antes de tiempo");
+// ── 5 · en la sesión: un fragmento con reto NO se proyecta (sería regalarlo en clase)
+c(/FR\.filter\(function\(f\)\{ return !f\.reto && Number\(f\.publica\)===Number\(s\.sem\); \}\)/.test(SES),
+  "🔴 la sesión solo proyecta el fragmento sin reto, en el final del viaje");
+c(/if\(f && \(f\.reto \|\| Number\(f\.publica\)!==Number\(s\.sem\)\)\) return;/.test(SES), "   y ninguno de los que se ganan");
 
 // ── 6 · el material gráfico: su icono, y ninguno con el fondo pegado
 c(fs.existsSync(path.join(R, "assets/img/nave/iconos/archivo.png")), "🔴 «El Archivo» tiene su icono en la lámina de la Nave");

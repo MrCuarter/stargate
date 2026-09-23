@@ -31,7 +31,7 @@ const SEMJSON = JSON.parse(HTML.match(/window\.SG_SEMANAS=(\[.*?\]);window\./)[1
 const TEMAS = JSON.parse(HTML.match(/window\.SG_TICKET_TEMAS=(\{[^}]*\})/)[1]);
 
 // ── 1 · el ticket se rellena al ACABAR EL TEMA, y sus tres diapositivas están donde toca
-c(/function diaTicketForm\(s\)/.test(SES) && /function diasTicket\(lista, i\)/.test(SES),
+c(/function diaTicketForm\(s, clave\)/.test(SES) && /function diasTicket\(lista, i\)/.test(SES),
   "🔴 el ticket son tres diapositivas: el formulario al cerrar el tema, y el resumen + las dudas al abrir el siguiente");
 c(/if\(primeraDelTema\(L, iS\)\) diasTicket\(L, iS\)/.test(SES), "   el resumen y las dudas, al empezar un tema");
 c(/if\(ultimaDelTema\(L, iS\)\)\{ var tf=diaTicketForm\(s\); if\(tf\) ci\.push\(tf\); \}/.test(SES),
@@ -40,7 +40,7 @@ c(SES.indexOf("ci.push(tf)") > SES.indexOf("diasMisiones(s)"), "   detrás de la
 c(!/diaTicket\(\)/.test(SES), "   y ya no hay un ticket semanal suelto");
 
 // las funciones que deciden dónde cae cada cosa, probadas contra el calendario de verdad
-const tramo = SES.slice(SES.indexOf("function temaDe(s)"), SES.indexOf("function diaTicketForm(s)"));
+const tramo = SES.slice(SES.indexOf("function temaDe(s)"), SES.indexOf("function diaTicketForm(s, clave)"));
 const F = new Function("window", tramo + "\n return {temaDe:temaDe, iDe:iDe, ultimaDelTema:ultimaDelTema, primeraDelTema:primeraDelTema, opcionTema:opcionTema, esDelTema:esDelTema};")({ SG_TICKET_TEMAS: TEMAS });
 const ultimas = SEMJSON.map((s, i) => (F.ultimaDelTema(SEMJSON, i) ? s.sem : 0)).filter(Boolean);
 const primeras = SEMJSON.map((s, i) => (F.primeraDelTema(SEMJSON, i) ? s.sem : 0)).filter(Boolean);

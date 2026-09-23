@@ -2187,6 +2187,15 @@ async function ponerAvatarDocente(clave) {
   await setDoc(doc(db, "stargate_profes", yo.uid), { uid: yo.uid, correo: yo.correo, avatar: clave }, { merge: true });
 }
 
+/**
+ * 🔴 23-sep · TU NOMBRE, EN TODOS TUS GRUPOS (Norberto: «cada docente, el suyo»). Lo hace el servidor (`stargateMiNombre`):
+ * el nombre es la llave de tu alumnado, tu escuadrón, tu panel y tus diapositivas, y hay que moverlo todo a la vez.
+ */
+async function cambiarMiNombre(nombre) {
+  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
+  return llamar("stargateMiNombre", { nombre: String(nombre || "").trim() });
+}
+
 /** Solo el Mando: TODOS los grupos de STARGATE (con su equipo, si se deja leer) y cuántos alistados tiene cada uno. */
 async function todosLosGrupos() {
   const r = await getDocs(collection(db, "projects"));
@@ -2222,7 +2231,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, ponerModoDocente, misNotas, guardarNotas,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,

@@ -50,7 +50,9 @@ def yt(clave):
 CRONO = [
  dict(sem=1, tema="Tema 1 · Fôrge", sub="Creación de contenido multimedia — Bienvenida",
       capitulo="El reclutamiento",
-      videos=[("sinopsis","Primera sesión: el gancho de arranque"),
+      # 23-sep · el tráiler oficial abre la sesión, a oscuras (Norberto: «mira a ver qué vídeo es bueno para empezar»)
+      videos=[("trailer","Apertura: a oscuras, antes de decir nada"),
+              ("sinopsis","Primera sesión: el gancho de arranque"),
               ("bitacora","Apertura: tras la sinopsis, presenta la Bitácora (ePortfolio) y la asignatura"),
               ("t1i","Tras el despegue: al abrir el Tema 1, antes de sus retos")],
       lanza=["Reto «Preséntate a tu tripulación» (vídeo 60 s)", "Reto A «El boceto sin quemar» (Bran)"],
@@ -708,6 +710,49 @@ ACTIVIDADES = [
       ]),
 ]
 
+# ────────────────────────── 23-sep · CÓMO SE EVALÚA (un dato: la página y la sesión de la semana 1) ──────────────────────────
+# Vivía escrito a mano en el HTML de «Actividades y evaluación». La sesión de la semana 1 lo cuenta ahora en clase («cuándo
+# empiezan las actividades oficiales y cuándo se entregan»), así que pasa a ser un dato. Las dos actividades, de ACTIVIDADES.
+#   (nombre, puntos, cómo)
+EVALUACION = [("Actividad %d" % a["n"], a["puntos"], "%s · se lanza en la semana %d y se resuelve en la %d" % (a["titulo"], a["sem"], a["resuelve"]))
+              for a in ACTIVIDADES] + [
+    ("Tests de tema", "0,8", "Uno por tema, 0,1 cada uno: fijan los conceptos del examen"),
+    ("Asistencia en directo", "0,6", "Tres clases en directo a lo largo del curso, 0,2 cada una"),
+]
+EVALUACION_EXAMEN = "Y el examen final, en la semana de exámenes: se construye una plataforma en directo (en la 15 hay simulacro)."
+
+# ────────────────────────── 🔴 23-sep · LA SESIÓN DE LA SEMANA 1: EL EMBARQUE ──────────────────────────
+# Norberto: «esa primera semana es la presentación de la asignatura junto con la primera parte del tema 1. Esa sesión en
+# vivo es especial. Debes empezar desde cero, explicando STARGATE, metiendo al estudiante en la narrativa. Mira a ver qué
+# vídeo es bueno para empezar. Enseñamos la nave, dejamos tiempo para que se alisten… Para acabar esta parte proyectamos
+# dentro de la presentación el ticket de salida y dejamos que lo rellenen. Después vamos a Fôrge. Replantea cómo lo
+# harías para tener ese efecto WOW… Explicarás qué se hace cada semana, cuándo empiezan las actividades oficiales y
+# cuándo se entregan. Especial hincapié en el ePortfolio». Es el guion del borrador del 22-sep, tal cual lo aprobó.
+#
+# 🔴 El orden vive AQUÍ, no en el código de la sesión: sesion.js lo lee y monta cada pieza, y la guía lo cuenta con
+# su rótulo. (pieza, argumento, tiempo, rótulo para la guía)
+#   tiempo: 'ap' apertura (el acto 1 y la llegada a Fôrge) · 'pr' el despegue (el Genially) · 'ci' el cierre (las misiones)
+SESION_EMBARQUE = [
+    ("video", "trailer", "ap", "A oscuras, el **tráiler oficial** (1:05): antes de decir nada"),
+    ("portada", "", "ap", "**Bienvenidos a bordo de La Constancia**, la nave de STARGATE"),
+    ("mensaje", "", "ap", "**El mensaje** del Comandante, con tu rótulo"),
+    ("video", "sinopsis", "ap", "**Cap. 0 · Sinopsis** (1:47): la historia entera"),
+    ("nombres", "", "ap", "**Tres nombres**: NEBULA, la Estática y su Capitán, que eres tú"),
+    ("viaje", "", "ap", "**El viaje**: ocho planetas, ocho temas"),
+    ("semana", "", "ap", "**Así es una semana**: la sesión, los retos, la Nave y el ticket"),
+    ("nota", "", "ap", "**Lo que puntúa**: las dos actividades (cuándo se lanzan y se resuelven), los tests, la asistencia y el examen; los retos, no"),
+    ("video", "bitacora", "ap", "**Misión · La Bitácora** (1:36)…"),
+    ("bitacora", "", "ap", "…y **la Bitácora ES el ePortfolio**: su patrón, qué acaba dentro y la plantilla"),
+    ("nave", "", "ap", "**Su Nave**, enseñada en simulacro"),
+    ("alistaos", "", "ap", "**¡Alistaos!**: el código grande y las caras de quien ya está a bordo, en directo"),
+    ("llamada", "", "ap", "**La llamada a filas**: su primer fichaje"),
+    ("ticket", "p", "ap", "**El ticket de la presentación**, dentro de la diapositiva: lo rellenan ahí mismo"),
+    ("forge", "", "ap", "**Rumbo a Fôrge**: la portada del planeta"),
+    ("video", "t1i", "ap", "**T1 Fôrge · intro** (1:25)"),
+    ("despegue", "", "pr", "**El despegue**: tu panel de control"),
+    ("misiones", "", "ci", "**Las misiones** de la semana y la insignia de Reclutamiento"),
+]
+
 # 18-sep · LAS SECCIONES DE LA SESIÓN EN DIRECTO. Norberto: «que cada sección tenga un nombre propio, independientemente
 # de si aparece una cosa u otra en función de la semana… y que cada docente pueda marcar con una checkbox lo que quiere
 # usar en su presentación. Por defecto, todo completo». Clave, nombre y qué trae. Las lee la sesión (para quitar lo que
@@ -715,6 +760,8 @@ ACTIVIDADES = [
 SESION_SECCIONES = [
     ("portada", "Portada", "El planeta de la semana y el capítulo de la historia."),
     ("unete", "Únete a la clase", "Semanas 1 y 2: el código y el enlace para alistarse, y «Copiar invitación» para el chat."),
+    # 23-sep · solo en la semana 1: la presentación de la asignatura dentro de la historia
+    ("embarque", "El embarque", "Semana 1: quiénes son, el viaje, cómo es una semana, lo que puntúa y la Bitácora."),
     ("llamada", "Llamada a filas", "Fichar la asistencia al empezar."),
     ("mensaje", "Mensaje de la semana", "La transmisión con el logo de STARGATE."),
     ("videos", "Vídeos de apertura", "La sinopsis, la Bitácora o la entrada al planeta."),

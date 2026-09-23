@@ -4566,7 +4566,7 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .foro-crawl.fc-v2.f3 .fc-marco{animation:fc-panel .9s ease-out both}
 @keyframes fc-panel{from{opacity:0;transform:translate(-50%,24px)}to{opacity:1;transform:translate(-50%,0)}}
 .foro-crawl.fc-v2 .fc-texto{position:static;transform:none;visibility:visible;animation:none;color:#e6f2fa;font-weight:500;
-  font-size:clamp(18px,2.1vw,34px);line-height:1.45;text-align:left;hyphens:manual}
+  font-size:clamp(13px,3.3cqh,38px);line-height:1.45;text-align:left;hyphens:manual}
 .foro-crawl.fc-v2 .fc-texto .fc-tit{color:#f5b043;font-size:1.2em;letter-spacing:.05em;margin:0 0 .6em;text-align:left}
 .foro-crawl.fc-v2 .fc-texto .fc-firma{color:#9fd9e6;text-align:right}
 .foro-crawl.fc-v2.quieto .fc-logo{display:flex;opacity:1;top:11%;transform:scale(.4)}
@@ -5438,6 +5438,126 @@ body.con-visor{overflow:hidden}
 .fc-sello{width:54px;height:54px;object-fit:contain;margin-left:auto;opacity:.75;
   filter:drop-shadow(0 0 10px rgba(255,209,102,.35)) sepia(.25)}
 @media(max-width:600px){.fc-cuerpo{padding:14px 16px}.fc-cab,.fc-firma{padding:12px 16px}.fc-sello{display:none}}
+/* ───── 🔴 23-sep · LA SEMANA 1: EL EMBARQUE (la presentación de la asignatura, dentro de la historia) ─────
+   Las diapositivas propias del acto 1. Todo lo que se lee va en rem y sube con la pantalla completa y dentro del
+   Genially, como el resto del mazo; nada por debajo de 12 px. */
+.emb-portada{justify-content:center;overflow:hidden}
+.emb-fondo{position:absolute;inset:0;background:url(../img/nave/portal_stargate.jpg) center/cover no-repeat;opacity:.42;
+  animation:fc-acerca 45s ease-out both}
+.emb-portada .txt{position:relative;z-index:1;max-width:760px}
+.emb-portada h1{text-wrap:balance}
+.emb-nave{color:#8ff3fa;text-shadow:0 0 24px rgba(55,224,236,.55)}
+.dia.emb{gap:12px}
+.emb-tres{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:14px;margin-top:6px}
+.emb-c{margin:0;display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.02)}
+.emb-c img{height:clamp(110px,22vh,190px);width:100%;object-fit:contain}
+.emb-c.cap{border-color:rgba(245,176,67,.55);background:rgba(245,176,67,.06)}
+.emb-c figcaption{display:flex;flex-direction:column;gap:4px}
+.emb-c figcaption>b{font-family:'Unbounded',sans-serif;font-size:1rem;color:var(--teal2)}
+.emb-c.cap figcaption>b{color:var(--amber)}
+.emb-c figcaption span{font-size:.95rem;line-height:1.45;color:var(--ink)}
+.emb-planetas{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px;margin-top:4px}
+.emb-pl{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:8px;border-radius:14px;border:1px solid var(--line);
+  animation:ses-pop .45s ease-out both;animation-delay:calc(var(--i,0)*70ms + .1s)}
+.emb-pl img{width:clamp(56px,10vh,96px);height:clamp(56px,10vh,96px);object-fit:contain}
+.emb-pl b{font-family:'Unbounded',sans-serif;font-size:.95rem}
+.emb-pl span{font-size:.8rem;color:var(--mut)}
+.emb-pasos{list-style:none;counter-reset:ep;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+.emb-pasos li{counter-increment:ep;display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.02);
+  animation:ses-sube .45s both;animation-delay:calc(var(--i,0)*90ms + .15s)}
+.emb-pasos li::before{content:counter(ep);width:30px;height:30px;border-radius:50%;background:var(--teal);color:#05222a;display:grid;place-items:center;font-weight:800}
+.emb-pasos li b{font-size:1.05rem}
+.emb-pasos li span{font-size:.95rem;line-height:1.45;color:var(--ink)}
+.emb-nota{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px;margin-top:4px}
+.emb-n{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;border:1px solid var(--line)}
+.emb-n.act{border-color:rgba(245,176,67,.55);background:rgba(245,176,67,.07)}
+.emb-n>b{font-family:'Unbounded',sans-serif;font-size:1.5rem;color:var(--amber);flex:none}
+.emb-n span{font-size:.9rem;line-height:1.4;color:var(--ink)}
+.emb-n span em{display:block;font-style:normal;font-weight:800;color:#fff;font-size:1rem}
+.emb-ojo{margin:6px 0 0;padding:10px 14px;border-radius:12px;border:1px solid rgba(55,224,236,.45);background:rgba(55,224,236,.07);font-size:1rem;max-width:80ch}
+.emb-bit{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.emb-bit>div{padding:12px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.02)}
+.emb-bit>div>b{display:block;color:var(--teal2);margin-bottom:6px}
+.emb-bit ol,.emb-bit ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:5px;font-size:.95rem;line-height:1.45}
+.emb-cta{margin:4px 0 0}
+.emb-abordo{margin-top:12px;display:flex;flex-direction:column;gap:8px;font-size:1.05rem}
+.emb-abordo>b{font-family:'Unbounded',sans-serif;font-size:1.6rem;color:var(--teal2)}
+.mazo:fullscreen .emb-c figcaption span,.mazo:fullscreen .emb-pasos li span,.mazo:fullscreen .emb-n span,.mazo:fullscreen .emb-bit ol,.mazo:fullscreen .emb-bit ul,
+body.embed .mazo .emb-c figcaption span,body.embed .mazo .emb-pasos li span,body.embed .mazo .emb-n span,body.embed .mazo .emb-bit ol,body.embed .mazo .emb-bit ul{font-size:clamp(.95rem,1.4vw,1.3rem)}
+@media (prefers-reduced-motion:reduce){.emb-fondo,.emb-pl,.emb-pasos li{animation:none}}
+/* «Actividades y evaluación»: las partes de la nota, del dato (EVALUACION) */
+.eval-partes{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+/* ───── 🔴 23-sep · LA FICHA DEL RECLUTA, A TODO EL ANCHO (versión B del borrador) ─────
+   Arriba, a lo ancho: su personaje, quién es y cómo va, y sus cifras. Debajo: NEBULA le habla y su carrera (quién va
+   justo delante y quién le pisa los talones). Todo con flex-wrap y rejillas que se parten solas: en media pantalla cada
+   fila se apila en vez de aplastarse (el fallo de antes: un avatar de 230 px fijos en una columna de 330). */
+.nave-ficha{display:flex;flex-direction:column;gap:16px}
+.nf-arriba{display:flex;flex-wrap:wrap;align-items:center;gap:18px 24px}
+.nf-arriba .av-lupa{flex:0 0 auto;width:clamp(120px,16vw,190px)}
+.nf-arriba .av-lupa img.av{width:100%;height:auto;aspect-ratio:1}
+.nf-quien{flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.nf-quien h3{margin:0}
+.nf-quien p{margin:0}
+.nf-arriba .nave-cifras{flex:1 1 340px;margin:0}
+.nf-abajo{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;align-items:start}
+.nf-nebula{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;
+  background:rgba(55,224,236,.07);border:1px solid rgba(55,224,236,.3)}
+.nf-nebula img{width:54px;height:72px;object-fit:contain;flex:none}
+.nf-nebula p{margin:0;font-size:1rem;line-height:1.45}
+.nf-nebula p>b:first-child{color:var(--teal2)}
+.nf-carrera{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:16px;border:1px solid var(--line)}
+.nf-carrera ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.nf-carrera li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"c n e" "c p e";column-gap:10px;align-items:center;
+  padding:5px 8px;border-radius:12px;border:1px solid transparent}
+.nf-carrera li.yo{border-color:var(--teal);background:rgba(55,224,236,.09)}
+.nf-carrera li img{grid-area:c;width:36px;height:36px;border-radius:50%;object-fit:cover}
+.nf-carrera li b{grid-area:n;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-carrera li .pos{grid-area:p;font-size:.8rem;color:var(--mut)}
+.nf-carrera li em{grid-area:e;font-style:normal;font-size:.8rem;color:#8ff3fa;text-align:right}
+.nf-carrera li.ab em{color:#ffb3a7}
+.nf-frase{margin:2px 0 0;font-size:.9rem;color:var(--ink);line-height:1.4}
+/* la orden de la semana, como la carta del proyector (a todo el ancho, debajo de la ficha) */
+.orden-carta{padding:0;overflow:hidden;border-color:rgba(55,224,236,.35);background:linear-gradient(180deg,#0c1826 0%,#0a121c 100%)}
+.oc-cab{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 14px;padding:12px 20px;border-bottom:1px solid var(--line)}
+.oc-marca{font-family:'Unbounded',sans-serif;font-weight:800;letter-spacing:.08em;color:#eaf7fb}
+.oc-meta{font-size:.78rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--amber)}
+.oc-cuerpo{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;padding:16px 20px}
+.oc-cuerpo.con-video{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.oc-video .yt-foro{margin:0;max-width:none}
+.oc-texto h3{margin:0 0 2px}
+.orden-carta .fc-firma-r{padding:4px 0 0}
+/* ───── 🔴 23-sep · EL RÓTULO DEL COMANDANTE (SG.rotulo): como en un informativo ─────
+   El recorte del comandante de pie sobre la barra, que sale por la izquierda; su título y su escuadrón debajo, con UN
+   emblema. Un solo componente para la diapositiva «El mensaje» (grande), la orden del recluta y la carta del Comandante
+   (carta). `--rt-h` es la altura del retrato; `--rt-f`, la del nombre. Todo lo demás se deriva de esas dos. */
+.rotulo{--rt-h:120px;--rt-f:1.05rem;position:relative;display:inline-flex;align-items:flex-end;max-width:100%;
+  padding-top:calc(var(--rt-h)*.42);box-sizing:border-box}
+.rotulo .rt-av{position:absolute;left:calc(var(--rt-h)*.04);bottom:0;z-index:2;width:var(--rt-h);height:var(--rt-h);
+  object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 0 calc(var(--rt-h)*.1) rgba(55,224,236,.35))}
+.rotulo .rt-barra{position:relative;display:flex;flex-direction:column;justify-content:center;gap:.28em;min-width:0;
+  min-height:calc(var(--rt-h)*.58);padding:.5em 3.2em .5em calc(var(--rt-h)*1.1);box-sizing:border-box;font-size:var(--rt-f);
+  background:linear-gradient(90deg,rgba(8,18,28,.97) 0%,rgba(8,18,28,.92) 68%,rgba(8,18,28,0) 100%);border-top:2px solid var(--teal)}
+.rotulo .rt-nom{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1em;line-height:1.15;color:#fff;letter-spacing:.01em}
+.rotulo .rt-sub{display:flex;align-items:center;gap:.45em;font-size:.72em;line-height:1.3;color:#bfe9ef}
+.rotulo .rt-emb{width:1.75em;height:1.75em;object-fit:contain;flex:none}
+.rotulo-carta{--rt-h:112px;--rt-f:1rem}
+.fc-firma-r{display:flex;justify-content:flex-start;text-align:left;padding:6px 0 0;border-top:1px solid rgba(55,224,236,.18)}
+/* 23-sep · el lápiz del avatar es «tu ficha»: tu nombre (en todos tus grupos) y tu comandante */
+.doc-nombre{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.02)}
+.doc-nom-f{display:flex;gap:8px;flex-wrap:wrap}
+.doc-nom-f input{flex:1 1 220px;min-width:0;padding:8px 10px;border-radius:10px;border:1px solid #2c4a6a;background:#0b1119;color:var(--ink);font:inherit}
+.doc-nombre p{margin:0}
+@media(max-width:560px){.rotulo-carta{--rt-h:88px;--rt-f:.9rem}}
+/* la diapositiva «El mensaje»: TODO se mide con su caja (cqh), no con la ventana. Norberto: «haz que el tamaño se adapte al
+   tamaño de la ventana, en proporción es muy grande (en pantalla completa es perfecto)». Era `vw`: 34 px de letra en una
+   caja de 560 px de alto. Con la caja como medida, en ventana sale en la misma proporción que a pantalla completa. */
+.dia.foro-crawl.fc-v2{container-type:size}
+.foro-crawl.fc-v2 .fc-marca{font-size:clamp(30px,14cqh,150px)}
+.foro-crawl.fc-v2 .fc-lema{font-size:clamp(12px,2.6cqh,28px)}
+.foro-crawl.fc-v2 .fc-marco{bottom:24%}
+.foro-crawl .rotulo-grande{position:absolute;left:0;bottom:4%;z-index:4;--rt-h:27cqh;--rt-f:clamp(13px,3.4cqh,36px);
+  max-width:78%;animation:fcFirma 1s ease .6s both}
+@media (prefers-reduced-motion:reduce){.foro-crawl .rotulo-grande{animation:none}}
 /* 🔴 20-sep · y la firma, en la transmisión que se proyecta: un sello fijo abajo a la izquierda, siempre a la vista
    (dentro del texto se iría con el desplazamiento justo cuando más mira la clase). */
 .fc-firma-c{position:absolute;left:clamp(14px,3vw,34px);bottom:clamp(14px,3vw,30px);z-index:4;

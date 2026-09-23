@@ -319,6 +319,33 @@ window.SG.foroParrafos = function (t, op) {
  *     per: el grupo · grupo: su nombre visible · nombre: tu nombre en su equipo docente (con él se guarda lo tuyo)
  *     off: las secciones que ya tienes quitadas · alGuardar: para que la página que la abre se ponga al día
  */
+/**
+ * 🔴 23-sep · EL RÓTULO DEL COMANDANTE. Norberto: «me gustaría que saliera el avatar del comandante recortado en la parte de
+ * la izquierda con su título y escuadrón debajo (como cuando habla alguien en la tele y le ponen el banner debajo)». Eligió
+ * la versión recortada del borrador. Uno solo para las tres cartas que firma: la diapositiva «El mensaje», la orden de la
+ * semana del recluta y la carta del foro de la Nave del Comandante. Y UN emblema (antes salía el del escuadrón dos veces).
+ *
+ * El retrato es el recorte sin fondo de su comandante (assets/img/avatares/comandantes/recorte/<clave>.png, los 26
+ * recortados en local). La clave la guarda el grupo en `stargate.avatares[nombre]` —la ficha del docente solo la lee él,
+ * y su alumnado también tiene que verle—. Sin comandante elegido, el Capitán de la serie.
+ *   o: { nombre, avatar (cN), escuadron, emblema, grupo, clase: '' | 'grande' | 'carta' }
+ */
+window.SG.avatarComandante = function (clave) {
+  return clave ? 'assets/img/avatares/comandantes/recorte/' + String(clave).replace(/[^\w-]/g, '') + '.png' : 'assets/img/capitan/saluda.png';
+};
+window.SG.rotulo = function (o) {
+  o = o || {};
+  var e = function (x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var n = String(o.nombre || '').trim(); if (!n) return '';
+  var titulo = /^comandante\b/i.test(n) ? n : 'Comandante ' + n;
+  var esc7 = String(o.escuadron || '').trim();
+  var linea = [esc7 ? (/^escuadr[oó]n\b/i.test(esc7) ? esc7 : 'Escuadrón ' + esc7) : '', String(o.grupo || '').trim()].filter(Boolean).join(' · ');
+  return '<div class="rotulo' + (o.clase ? ' rotulo-' + e(o.clase) : '') + '">'
+    + '<img class="rt-av" src="' + e(window.SG.avatarComandante(o.avatar)) + '" alt="" loading="lazy">'
+    + '<div class="rt-barra"><b class="rt-nom">' + e(titulo) + '</b>'
+    + (linea ? '<span class="rt-sub">' + (o.emblema ? '<img class="rt-emb" src="' + e(o.emblema) + '" alt="" loading="lazy">' : '') + e(linea) + '</span>' : '')
+    + '</div></div>';
+};
 window.SG.CFGSESION = (function () {
   function e(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function ico(k, grande){ return '<img class="ico'+(grande?' grande':'')+'" src="assets/img/iconos/'+(grande?'':'p/')+k+'.png" alt="" width="20" height="20">'; }

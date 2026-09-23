@@ -63,7 +63,7 @@ c(win.SG.ytId("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10") === "dQw4w9WgX
   && win.SG.ytId("https://www.youtube.com/shorts/dQw4w9WgXcQ") === "dQw4w9WgXcQ" && win.SG.ytId("https://example.com") === "",
   "   reconoce las formas de enlace de YouTube (watch, youtu.be, shorts) y nada más");
 c(/if \(b\.t === "yt"\) return window\.SG\.ytInline\(b\.id, b\.x\);/.test(CONS), "🔴 la carta del foro de la Nave del Comandante lo pinta");
-c(/if\(b\.t==='yt'\) return sinVideos\?'':window\.SG\.ytInline/.test(REC) && /\+ videosDelMensaje\(sm\.foro\)/.test(REC),
+c(/if\(b\.t==='yt'\) return op\.sinVideos\?'':window\.SG\.ytInline/.test(REC) && /var vids=videosDelMensaje\(sm\.foro\)/.test(REC) && /sinVideos:true/.test(REC),
   "🔴 la Nave del recluta, también: fuera del recorte de «Leer entero», delante del texto");
 c(/closest\('\.yt-foro'\)/.test(STG), "   y se reproduce ahí mismo al pulsarlo, aunque llegue después de cargar la página");
 

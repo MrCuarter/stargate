@@ -39,7 +39,7 @@
    * persona con nombre, así que se firma con el suyo — «Comandante Ana Ruiz» dice mucho más que
    * «Capitán», y es lo que pidió Norberto.
    */
-  function msgHtml(txt,perId,sinVideos){txt=String(txt==null?'':txt);
+  function msgHtml(txt,perId,op){txt=String(txt==null?'':txt); op=op||{};
     txt=perId?txt.split('{id-del-PER}').join(perId):txt.split('?per={id-del-PER}').join('').split('&per={id-del-PER}').join('');
     var jefe=(st.yo&&st.yo.profe)||'';
     // 🔴 Sin duplicar el tratamiento: hay docentes cuyo nombre en el sistema YA es «Comandante
@@ -56,10 +56,10 @@
     var enlaces=function(h){ return h.replace(/https?:\/\/[^\s<»)]+/g,function(u){ return '<a href="'+u+'" target="_blank" rel="noopener">'+u+'</a>'; }); };
     var B=(window.SG&&window.SG.foroParrafos)?window.SG.foroParrafos(txt):txt.split(/\n\s*\n/).map(function(b){ return {t:'p',x:b.replace(/\s*\n\s*/g,' ').trim()}; });
     return B.map(function(b){
-      if(b.t==='yt') return sinVideos?'':window.SG.ytInline(b.id, b.x);
+      if(b.t==='yt') return op.sinVideos?'':window.SG.ytInline(b.id, b.x);
       if(b.t==='h') return '<h4 class="fc-h">'+esc(b.x)+'</h4>';
       if(b.t==='ul') return '<ul class="fc-ordenes">'+b.items.map(function(i){ return '<li>'+enlaces(esc(i))+'</li>'; }).join('')+'</ul>';
-      if(b.t==='firma') return '<p class="foro-firma">'+esc(b.x)+'</p>';
+      if(b.t==='firma') return op.sinFirma?'':'<p class="foro-firma">'+esc(b.x)+'</p>';
       return b.x?'<p>'+enlaces(esc(b.x))+'</p>':'';
     }).join('');}
   /** Los vídeos de YouTube que trae un mensaje del foro, ya embebidos (SG.ytInline). */
@@ -406,17 +406,21 @@
    * que aparezca dos semanas más tarde: el del tema 6 aparecería en el tema 7, el último día. Así todos lo verán, pero
    * los que completen la misión lo verán antes».
    *
-   * Qué fragmento va con qué reto y cuándo se abre para todos lo calcula el build (`SG_FRAGMENTOS`), leyendo los
-   * títulos del calendario y de los retos: aquí solo se pregunta. Y no se trata de esconderlo del mundo —quien busque
-   * el vídeo en YouTube lo encontrará—, sino de que en su Nave sea algo que se GANA.
+   * Qué fragmento va con qué reto lo calcula el build (`SG_FRAGMENTOS`), leyendo los títulos del calendario y de los
+   * retos: aquí solo se pregunta. Y no se trata de esconderlo del mundo —quien busque el vídeo en YouTube lo encontrará—,
+   * sino de que en su Nave sea algo que se GANA.
+   *
+   * 🔴 23-sep · Y SOLO SE GANA. Norberto, con el laboratorio delante (una alumna sin ningún reto veía 5 de 9 fragmentos en
+   * la semana 10): «solo quien lo recupera». Fuera el «a las dos semanas, para todos». El único que se abre solo es el que
+   * no tiene reto —el Fragmento Prohibido—, al final del viaje.
    */
   var FRAGS=(window.SG_FRAGMENTOS||[]);
   function fragDe(id){ for(var i=0;i<FRAGS.length;i++) if(FRAGS[i].id===id) return FRAGS[i]; return null; }
   function fragAbierto(f){
     if(!f) return true;
     var mios=(st.yo&&st.yo.retos)||[];
-    if(f.reto && mios.indexOf(f.reto)>=0) return true;
-    return Number(st.actual||0) >= Number(f.publica||99);
+    if(f.reto) return mios.indexOf(f.reto)>=0;
+    return Number(st.actual||0) >= Number(f.publica||99);   // (sin reto: el del final del viaje)
   }
   // 23-sep · el reto, por su nombre («El boceto sin quemar»), no por su id: «A1» no le dice nada a quien lo lee
   function nombreDeReto(id){
@@ -425,8 +429,8 @@
     return id;
   }
   function fragMotivo(f){
-    return (f.reto ? 'Se desbloquea al registrar el reto <b>'+esc(nombreDeReto(f.reto))+'</b>' : 'Se desbloquea al final del viaje')
-      + (Number(f.publica) ? ' · para todos, en la <b>semana '+f.publica+'</b>' : '');
+    return f.reto ? 'Solo lo ve quien registra el reto <b>'+esc(nombreDeReto(f.reto))+'</b>'
+                  : 'Se abre al final del viaje' + (Number(f.publica) ? ', en la <b>semana '+f.publica+'</b>' : '');
   }
   /**
    * 🔴 23-sep · UN VÍDEO, CON SU CANDADO SI LO LLEVA. Norberto: «en El Archivo los estudiantes pueden ver los fragmentos
@@ -476,7 +480,7 @@
     var fr7=FRAGS.filter(function(f){ return fragAbierto(f); }).length;
     return '<section class="archivo"><div class="ar-cab"><div><div class="eyebrow teal">El Archivo</div>'
       +'<h2>La historia, fragmento a fragmento</h2>'
-      +'<p class="lead">Todo lo que ha grabado NEBULA, en orden. Los <b>fragmentos</b> de cada personaje se desbloquean al registrar su reto… o solos, un par de semanas después.</p></div>'
+      +'<p class="lead">Todo lo que ha grabado NEBULA, en orden. Los <b>fragmentos</b> de cada personaje solo los ve quien registra su reto: la historia se colecciona ganándola.</p></div>'
       +'<div class="ar-marcador"><b>'+fr7+'</b><span>de '+FRAGS.length+' fragmentos<br>desbloqueados</span></div></div>'
       +(filas||'<div class="card"><p class="muted">Todavía no hay vídeos que enseñar.</p></div>')+'</section>';
   }
@@ -561,14 +565,24 @@
     if (!lista.length) return '';
     var sm = lista[Math.min(Math.max(st.actual, 1), lista.length) - 1];
     if (!sm) return '';
-    return '<div class="card orden-sem"><div class="eyebrow amber">La orden de la semana</div>'
-      + '<h3>' + esc(sm.tema) + '</h3>'   // el número vive en la cabecera, y en un sitio basta
-      + '<p class="small muted">' + esc(sm.sub || '') + '</p>'
-      // 23-sep · el vídeo del mensaje va FUERA del recorte, delante: recortado a 120 px solo se le veía el pelo
-      + videosDelMensaje(sm.foro)
-      // recortado, con «Leer entero»: la orden entera empujaba la tarjeta muy por debajo de la ficha
-      + '<div class="foro-msg recortado">' + msgHtml(sm.foro, per, true) + '</div>'
-      + '<button type="button" class="leer-entero" data-leer-entero>Leer entero ▾</button>'
+    /**
+     * 🔴 23-sep · LA MISMA CARTA QUE LA DEL PROYECTOR. Norberto: «la orden de la semana… ¿es lo mismo que la diapositiva
+     * "El mensaje"? Entonces ponla igual de épica». A todo el ancho, con la cabecera de STARGATE, el vídeo del mensaje
+     * embebido delante (recortado a 120 px solo se le veía el pelo) y la firma de SU comandante con el rótulo común.
+     */
+    var jefe=String((st.yo&&st.yo.profe)||'').trim(), escs=(st.d&&st.d.escuadrones)||[];
+    var suEsc=escs.filter(function(e){ return jefe && e.comandante===jefe; })[0]||null;
+    var vids=videosDelMensaje(sm.foro), pl=PLAN[(Number(sm.tema_n)||1)-1];
+    return '<article class="card orden-sem orden-carta">'
+      + '<header class="oc-cab"><span class="oc-marca">◈ STARGATE</span>'
+      +   '<span class="oc-meta">La orden de la semana · Semana ' + esc(String(sm.sem)) + (pl ? ' · ' + esc(pl[1]) : '') + '</span></header>'
+      + '<div class="oc-cuerpo' + (vids ? ' con-video' : '') + '">'
+      +   (vids ? '<div class="oc-video">' + vids + '</div>' : '')
+      +   '<div class="oc-texto"><h3>' + esc(sm.tema) + '</h3>'   // el número vive en la cabecera, y en un sitio basta
+      +   '<p class="small muted">' + esc(sm.sub || '') + '</p>'
+      // recortado, con «Leer entero»: la orden entera empujaba todo lo demás muy abajo
+      +   '<div class="foro-msg recortado">' + msgHtml(sm.foro, per, {sinVideos:true, sinFirma:!!jefe}) + '</div>'
+      +   '<button type="button" class="leer-entero" data-leer-entero>Leer entero ▾</button>'
       /**
        * 🔴 LOS VÍDEOS DE LA SEMANA, AQUÍ. Estaban solo dentro de «ver la semana entera», a dos
        * clics — y son lo primero que hay que ver: el propio mensaje del foro los nombra por su
@@ -580,8 +594,11 @@
       // metida aquí, «¿tú crees que alguien va a ver los vídeos en ese tamaño?» (Norberto)
       + (sm.lanza && sm.lanza.length
           ? '<p class="small"><b>Se lanza:</b> ' + sm.lanza.map(esc).join(' · ') + '</p>' : '')
-      + '<p class="small" style="margin-top:10px">'
-      + '<button class="btn small" type="button" data-tab="semana">Ver la semana entera →</button></p></div>';
+      + '</div></div>'
+      + (jefe && window.SG.rotulo ? '<footer class="fc-firma-r">' + window.SG.rotulo({ nombre: jefe,
+          avatar: ((st.d && st.d.avatares) || {})[jefe] || '', escuadron: suEsc ? suEsc.nombre : '',
+          emblema: suEsc ? suEsc.emblema : '', grupo: (st.d && st.d.nombre) || '', clase: 'carta' }) + '</footer>' : '')
+      + '</article>';
   }
 
   /**
@@ -1086,6 +1103,20 @@
       +'</div></details>';
   }
 
+  /**
+   * Qué retos entran esta semana: los del tema de la semana que NO entraron en una semana anterior. Se deduce del
+   * calendario, que es quien sabe cuándo abre cada tema. (23-sep · aparte, porque también lo pregunta NEBULA en tu ficha.)
+   */
+  function retosDeEstaSemana(){
+    var d=st.d, RET=(window.SG_RETOS||{})[(d&&d.tipo)||'REGULAR']||[], lista=st.semanas||[];
+    if(!lista.length||!RET.length||st.estado==='antes') return null;
+    var sm=lista[Math.min(Math.max(st.actual,1),lista.length)-1]; if(!sm) return null;
+    var antes={};
+    lista.forEach(function(x){ if(x.sem<sm.sem) RET.forEach(function(t){ if(t[4]===x.tema_n) antes[t[0]]=true; }); });
+    var suyos=RET.filter(function(t){ return t[4]===sm.tema_n && !antes[t[0]]; });
+    if(!suyos.length) suyos=RET.filter(function(t){ return t[4]===sm.tema_n; });
+    return { sm:sm, suyos:suyos };
+  }
   function retosDeLaSemana(){
     var r=st.yo, d=st.d; if(!r||st.estado==='antes') return '';
     var RET=(window.SG_RETOS||{})[(d&&d.tipo)||'REGULAR']||[];
@@ -1093,13 +1124,7 @@
     var lista=st.semanas||[]; if(!lista.length||!RET.length) return '';
     var sm=lista[Math.min(Math.max(st.actual,1),lista.length)-1]; if(!sm) return '';
     var mios={}; ((r.retos)||[]).forEach(function(k){mios[k]=true;});
-
-    // Qué retos entran esta semana: los del tema de la semana que NO entraron en una semana anterior.
-    // Se deduce del calendario, que es quien sabe cuándo abre cada tema.
-    var antes={};
-    lista.forEach(function(x){ if(x.sem<sm.sem) RET.forEach(function(t){ if(t[4]===x.tema_n) antes[t[0]]=true; }); });
-    var suyos=RET.filter(function(t){ return t[4]===sm.tema_n && !antes[t[0]]; });
-    if(!suyos.length) suyos=RET.filter(function(t){ return t[4]===sm.tema_n; });
+    var suyos=(retosDeEstaSemana()||{}).suyos||[];
     if(!suyos.length) return '';
 
     var tarjetas=suyos.map(function(t){ return tarjetaReto(t, mios); }).join('');
@@ -1194,35 +1219,94 @@
     // la que evoluciona con su nivel: verla del tamaño de un pulgar era desaprovecharla. Reusa la
     // misma lupa que las cartas, así que ya trae fondo, Escape, foco y botón de cerrar.
 
-    return '<div class="grid cols-2 nave-estado"><div class="card"'+estiloFicha+'><div class="nave-perfil">'
+    /**
+     * 🔴 23-sep · LA FICHA, A TODO EL ANCHO. Norberto: «quiero que la caja con sus datos, avatar, etc. ocupe todo el ancho.
+     * Puedes completar el hueco con un mensaje personalizado de NEBULA, animando a realizar algo, felicitando… También
+     * podemos mostrar el ranking inmediato, quién está justo por encima y quién por debajo pisando los talones». Eligió la
+     * versión B del borrador: la ficha arriba, a lo ancho; debajo, NEBULA y tu carrera. Cada fila se parte sola cuando la
+     * ventana es estrecha (media pantalla), así que nada se aplasta. «Tu duelo», que era una tarjeta suelta al final de la
+     * Nave, vive ahora aquí (una sola vez).
+     */
+    var carr=carrera(), neb=nebulaDice(r, ni);
+    return '<section class="card nave-ficha"'+estiloFicha+'>'
+      +'<div class="nf-arriba">'
       +'<button type="button" class="av-lupa" id="btn-av" title="Pulsa para verte en grande" aria-label="Ampliar tu personaje">'+av+'</button>'
-      +'<div><h3>'+(r.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(r.alias)+(r.racha>=3?' <span class="chip-racha" title="Semanas seguidas registrando algo"><img class=ico src=assets/img/iconos/p/fuego.png alt> '+r.racha+'</span>':'')+'</h3>'
+      +'<div class="nf-quien"><h3>'+(r.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(r.alias)+(r.racha>=3?' <span class="chip-racha" title="Semanas seguidas registrando algo"><img class=ico src=assets/img/iconos/p/fuego.png alt> '+r.racha+'</span>':'')+'</h3>'
       +(r.titulo?'<div class="titulo-recluta">«'+esc(r.titulo)+'»</div>':'')
       +'<p class="small"><b>Nivel '+ni.nivel+' · '+esc(ni.rangoNombre)+'</b>'+(ni.titulo&&ni.titulo!==ni.rangoNombre?' <span class="muted">('+esc(ni.titulo)+')</span>':'')+' · puesto '+r.pos+(r.planeta&&r.planeta!=='—'?' · planeta '+esc(r.planeta):'')+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
       +'<p class="monedas"><span class="m xp" title="Los xp no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje."><b>'+r.xp+'</b> xp</span>'
       +'<span class="m cred" title="Los créditos son la moneda de misión: es lo único que se descuenta al canjear recompensas."><b>'+cred+'</b> ◈ créditos</span></p>'
-      // (lo de «los xp solo suben, los créditos se gastan» ya lo dicen las dos pastillas al pasar por
-      // encima: repetido debajo era una línea de relleno. Y «sin biografía todavía», también.)
-      +'</div></div>'+barra
+      +barra+'</div>'
       +cifrasDeBitacora(r)
-      +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'')
       +'</div>'
-      // Al lado de tu ficha, lo que toca ESTA semana. Es lo único que caduca de toda la pantalla, y
-      // por eso es lo que merece el sitio bueno — la colección no cambia porque abras la Nave.
-      +ordenDeLaSemana()+'</div>'
+      +'<div class="nf-abajo'+(carr?'':' solo')+'">'
+      +'<div class="nf-nebula"><img src="assets/img/personajes/nebula.png" alt="" loading="lazy"><p><b>NEBULA:</b> '+neb+'</p></div>'
+      +carr
+      +'</div>'
+      +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'')
+      +'</section>'
+      // debajo, a todo el ancho, lo que toca ESTA semana: la carta del comandante (la misma que se proyecta)
+      +ordenDeLaSemana()
       +cine()
       // 🔴 EL ORDEN DE ESTA PANTALLA, y no es casual:
-      //   1 · quién eres y qué toca        (lo que caduca)
-      //   2 · los retos de la semana       (lo que se puede hacer HOY)
-      //   3 · los planetas, embebido       (a dónde ir a por el material)
-      //   4 · el duelo                     (una frase que empuja)
+      //   1 · quién eres, cómo vas y qué toca   (lo que caduca)
+      //   2 · los retos de la semana             (lo que se puede hacer HOY)
+      //   3 · los planetas, embebido             (a dónde ir a por el material)
       // Lo que es colección se ha ido entero a «Mi botín».
       +diplomaCaja()
       +votacionCaja()
       +retosDeLaSemana()
       +simuladorCaja()
-      +panelEmbebido()
-      +duelo();
+      +panelEmbebido();
+  }
+  /**
+   * 🔴 23-sep · LO QUE TE DICE NEBULA: una frase, la que más te sirve hoy. En este orden, porque es el de lo que más
+   * importa: felicitar lo que acabas de ganar, empujar lo que tienes a medias esta semana, avisar de que subes de nivel,
+   * cuidar la racha. Y si todo está al día, decírtelo (también es un mensaje).
+   */
+  function nebulaDice(r, ni){
+    var mios={}; (r.retos||[]).forEach(function(k){ mios[k]=true; });
+    var lista=st.semanas||[], sm=lista[Math.min(Math.max(st.actual||1,1),lista.length)-1]||{};
+    // 1 · el tripulante de este tema, recuperado: su fragmento le espera
+    var fr=FRAGS.filter(function(f){ return f.reto && Number(f.tema)===Number(sm.tema_n) && mios[f.reto]; })[0];
+    if(fr) return '¡'+esc(fr.personaje||'Tu tripulante')+' está a salvo gracias a ti! Su fragmento te espera en <b>El Archivo</b>.';
+    // 2 · lo que queda por hacer de esta semana
+    var ab=(retosDeEstaSemana()||{}).suyos||[], quedan=ab.filter(function(t){ return !mios[t[0]]; });
+    if(quedan.length){
+      var m=String(quedan[0][1]||'').match(/«([^»]+)»/);
+      return 'Esta semana te '+(quedan.length===1?'queda <b>una misión</b>':'quedan <b>'+quedan.length+' misiones</b>')
+        +(m?': empieza por <b>«'+esc(m[1])+'»</b>':'')+'.';
+    }
+    // 3 · el siguiente nivel, si está cerca
+    if(ni&&ni.siguiente&&ni.faltan<=150) return 'Te faltan <b>'+ni.faltan+' xp</b> para el nivel '+(ni.nivel+1)
+      +(ni.evo&&ni.evo.nivel===ni.nivel+1?': ahí tu personaje evoluciona a <b>'+esc(ni.evo.rango)+'</b>':'')+'.';
+    // 4 · la racha
+    if(r.racha>=3) return 'Llevas <b>'+r.racha+' semanas seguidas</b> dejando constancia. Que no se rompa.';
+    return 'Todo al día, recluta. Lo de la semana que viene se abrirá solo: aquí te espero.';
+  }
+  /** Tu carrera: quién va justo delante y quién te pisa los talones (los datos del grupo, que ya trae la Nave). */
+  function carrera(){
+    if(!st.yo||!abierto('rankings')) return '';
+    var R=((st.d&&st.d.reclutas)||(window.SG_TABLERO_DATA||{}).reclutas||[]).slice().sort(function(a,b){ return (a.pos||99)-(b.pos||99); });
+    var i=R.findIndex(function(x){ return x.pos===st.yo.pos; }); if(i<0) return '';
+    var yo=R[i], ar=i>0?R[i-1]:null, ab=i<R.length-1?R[i+1]:null;
+    if(!ar&&!ab) return '';
+    var SG=window.SG||{}, tipo=(st.d&&st.d.tipo)||'REGULAR';
+    var cara=function(p){ return SG.avatarImg?SG.avatarImg(p.avatar,p.alias,'mini',p.xp,tipo):''; };
+    var fila=function(p,que){
+      if(!p) return '';
+      var dif=que==='ar'?(p.xp===yo.xp?'empate':'te saca '+(p.xp-yo.xp)):que==='ab'?(p.xp===yo.xp?'empate':(yo.xp-p.xp<=40?'te pisa los talones':'a '+(yo.xp-p.xp)+' de ti')):'tú';
+      return '<li class="'+que+'">'+cara(p)+'<b>'+(que==='yo'?'Tú':esc(p.alias))+'</b><span class="pos">'+p.pos+'.º · '+p.xp+' xp</span>'+(que==='yo'?'':'<em>'+esc(dif)+'</em>')+'</li>';
+    };
+    // la frase del duelo de siempre (30-ago): si hay empate, el empate; si no, alcanzar al de delante o escaparse del de
+    // detrás, y el reto concreto que cierra el hueco («un Reto B lo resuelve» empuja más que un ánimo genérico)
+    var emp=(ar&&ar.xp===yo.xp)?ar:(ab&&ab.xp===yo.xp)?ab:null, msg;
+    if(emp) msg=fraseDuelo(FRASES_EMPATE,emp.alias,0);
+    else if(!ar) msg=fraseDuelo(FRASES_LIDER,ab.alias,yo.xp-ab.xp);
+    else if(!ab) msg=fraseDuelo(FRASES_ARRIBA,ar.alias,ar.xp-yo.xp);
+    else msg=Math.random()<0.5?fraseDuelo(FRASES_ARRIBA,ar.alias,ar.xp-yo.xp):fraseDuelo(FRASES_ABAJO,ab.alias,yo.xp-ab.xp);
+    return '<div class="nf-carrera"><span class="eyebrow amber">Tu carrera</span><ol>'+fila(ar,'ar')+fila(yo,'yo')+fila(ab,'ab')+'</ol>'
+      +'<p class="nf-frase">'+msg+'</p><a href="#tablero" data-ir="tablero" class="small">Ver el tablero completo →</a></div>';
   }
 
   // ================= EL DIPLOMA (16-sep) =================
@@ -2020,11 +2104,11 @@
   }
   // 12-sep · `accesos()` se ha eliminado: su contenido vive ahora en el menú «···» de la barra,
   // y el aviso de la llamada a filas se pinta directamente en render().
-  // ================= EL DUELO (30-ago) =================
+  // ================= EL DUELO (30-ago) · desde el 23-sep, «Tu carrera», dentro de la ficha =================
   // Petición de Norberto: un ranking reducido con quien va justo delante y quien pisa los talones,
   // y un banco de frases que unas veces apremia a alcanzar y otras a escaparse. Decisiones:
-  //   · TARJETA en «Mi ficha», no ventana al entrar: al abrir la Nave ya compiten NEBULA y las
-  //     celebraciones; un popup más se cierra sin leer, la tarjeta está siempre donde aterrizas.
+  //   · DENTRO DE LA FICHA (23-sep, «la caja con sus datos a todo el ancho… el ranking inmediato»), no en una tarjeta
+  //     al final ni en una ventana al entrar: está siempre donde aterrizas.
   //   · Los datos salen del tablero que la propia página ya carga (sg:tablero): ni una llamada más.
   //   · La frase sugiere EL RETO CONCRETO que cierra el hueco: «te faltan 120 xp: un Reto B lo
   //     resuelve» empuja más que un ánimo genérico.
@@ -2061,41 +2145,6 @@
     return f.replace('{alias}','<b>'+esc(alias)+'</b>')   // el banco es texto fijo de arriba, con iconos: no se escapa
                  .replace('{delta}','<b>'+delta+'</b>')
                  .replace('{sugerencia}',esc(sugerenciaDuelo(delta)));
-  }
-  function duelo(){
-    if(!st.yo || !abierto('rankings')) return '';
-    var d=window.SG_TABLERO_DATA;
-    // el tablero aún no ha llegado: se deja el hueco y sg:tablero repinta cuando esté
-    if(!d||!d.reclutas) return '<div id="duelo-hueco"></div>';
-    var lista=d.reclutas.slice().sort(function(a,b){return (a.pos||99)-(b.pos||99);});
-    var i=lista.findIndex(function(x){return x.pos===st.yo.pos;});
-    if(i<0) return '';
-    var yo=lista[i], arriba=i>0?lista[i-1]:null, abajo=i<lista.length-1?lista[i+1]:null;
-    if(!arriba&&!abajo)
-      return '<div class="card duelo"><h3>Tu duelo</h3><p class="small muted">De momento la pista es tuya: nadie delante, nadie detrás. Cuando se alisten más reclutas, aquí verás tu duelo.</p></div>';
-    // la frase: si hay empate con el de arriba manda el empate; si no, se alterna al azar entre
-    // alcanzar al de delante y escaparse del de detrás (que es justo lo que pidió Norberto)
-    var msg;
-    var empatado=(arriba&&arriba.xp===yo.xp)?arriba:(abajo&&abajo.xp===yo.xp)?abajo:null;
-    if(empatado) msg=fraseDuelo(FRASES_EMPATE,empatado.alias,0);
-    else if(!arriba) msg=fraseDuelo(FRASES_LIDER,abajo.alias,yo.xp-abajo.xp);
-    else if(!abajo) msg=fraseDuelo(FRASES_ARRIBA,arriba.alias,arriba.xp-yo.xp);
-    else msg=Math.random()<0.5?fraseDuelo(FRASES_ARRIBA,arriba.alias,arriba.xp-yo.xp)
-                              :fraseDuelo(FRASES_ABAJO,abajo.alias,yo.xp-abajo.xp);
-    function fila(p,es){
-      if(!p) return '';
-      return '<div class="duelo-fila'+(es==='yo'?' yo':'')+'"><span class="pos">#'+p.pos+'</span>'
-        +'<b>'+(es==='yo'?'TÚ · ':'')+esc(p.alias)+'</b>'
-        +(p.corona?' <span title="corona semanal"><img class=ico src=assets/img/iconos/p/corona.png alt></span>':'')
-        +'<span class="pts">'+p.xp+' xp</span>'
-        +(es==='arriba'?(p.xp===yo.xp?'<em><img class=ico src=assets/img/iconos/p/rayo.png alt> empate</em>':'<em>te saca '+(p.xp-yo.xp)+'</em>')
-          :es==='abajo'?(p.xp===yo.xp?'<em><img class=ico src=assets/img/iconos/p/rayo.png alt> empate</em>':'<em>a '+(yo.xp-p.xp)+' de ti</em>'):'<em>tu puesto</em>')
-        +'</div>';
-    }
-    return '<div class="card duelo"><h3>Tu duelo</h3>'
-      +'<div class="duelo-tabla">'+fila(arriba,'arriba')+fila(yo,'yo')+fila(abajo,'abajo')+'</div>'
-      +'<p class="duelo-msg">'+msg+'</p>'
-      +'<p class="small" style="margin:8px 0 0"><a href="#tablero" data-ir="tablero" class="btn small">Ver el tablero completo →</a></p></div>';
   }
   // ================= MODO DEMO · enseñar la Nave sin ser nadie (9-sep) =================
   // Norberto: «un PER de prueba abierto, sin correo... para enseñar al público o mostrar la
@@ -2142,7 +2191,8 @@
   // cuando el tablero llega después que la ficha, el duelo se pinta solo (una vez)
   document.addEventListener('sg:tablero',function(){
     if(vestirDemo()){ render(); return; }
-    if(st.tab==='ficha'&&st.yo&&document.getElementById('duelo-hueco')) render();
+    // (23-sep · «Tu carrera» sale de los datos del grupo; si llegaron sin reclutas y el tablero sí los trae, se repinta)
+    if(st.yo&&!((st.d&&st.d.reclutas)||[]).length&&document.querySelector('.nave-ficha')) render();
   });
   // ================= LOS RETOS, EXPLICADOS (29-ago) =================
   // 🔴 El formulario llevaba semanas prometiendo «está todo explicado en tu Nave» y era MENTIRA: la
@@ -2893,8 +2943,8 @@
    * el tope diario, los marcadores, las pestañas y el mercado.
    */
   var PASOS=[
-    {t:'Canal abierto, recluta',foco:'.nave-estado',
-     x:'Soy <b>NEBULA</b>, la inteligencia de esta nave. La galaxia se apaga por <b>la Estática</b>, un silencio que hace que nadie cree ni comparta. Cruzarás <b>ocho planetas</b>, los ocho temas del curso, para reencenderla.<br><br><b>Esto de aquí eres tú</b>: tu personaje, tu nivel y lo que llevas ganado. Al lado, la orden de esta semana.'},
+    {t:'Canal abierto, recluta',foco:'.nave-ficha',
+     x:'Soy <b>NEBULA</b>, la inteligencia de esta nave. La galaxia se apaga por <b>la Estática</b>, un silencio que hace que nadie cree ni comparta. Cruzarás <b>ocho planetas</b>, los ocho temas del curso, para reencenderla.<br><br><b>Esto de aquí eres tú</b>: tu personaje, tu nivel y lo que llevas ganado; justo debajo te hablo yo, y más abajo, la orden de esta semana.'},
     {t:'La historia, en grande',foco:'.cine',
      x:'Cada semana se desbloquean los <b>vídeos</b> de la historia. Se ven aquí, a buen tamaño, y con las semanas de arriba vuelves a los anteriores cuando quieras.<br><br>Los <b>fragmentos</b> de cada tripulante, no: esos se ganan. Completa su misión y su vídeo se abre para ti — y todos se van guardando en <b>El Archivo</b>.'},
     {t:'Lo que puedes conseguir',foco:'.retos-semana',

@@ -10,7 +10,7 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
-                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, REFLEXION_RETOS, TOPE_RETOS_SEMANA, SESION_SECCIONES, ACTIVIDADES, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
+                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, REFLEXION_RETOS, TOPE_RETOS_SEMANA, SESION_SECCIONES, ACTIVIDADES, EVALUACION, EVALUACION_EXAMEN, SESION_EMBARQUE, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
                         PASOS, ESCUADRONES, PER_DEMO, PER_ESCUELA, ENLACES_EQUIPO, TICKET_URL, TICKET_TEMAS, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES,
@@ -875,6 +875,14 @@ def _seccion_actividad(a):
             % dict(a, video=ytbox(a["video"], "El enunciado narrativo: ponlo al lanzar la actividad"),
                    pasos=pasos, retos=retos))
 actividades_html = "\n\n".join(_seccion_actividad(a) for a in ACTIVIDADES)
+# 23-sep · cómo se evalúa, del dato (EVALUACION): lo cuenta también la sesión de la semana 1, y no puede decir otra cosa
+_suma = sum(float(x[1].replace(",", ".")) for x in EVALUACION)
+evaluacion_html = ('<div class="grid cols-4 eval-partes" style="margin-top:14px">'
+    + "".join('<div class="card"><h3>%s</h3><p><span class="pts">%s</span></p><p class="small">%s</p></div>' % (n, pts, como)
+              for n, pts, como in EVALUACION) + '</div>'
+    + '<div class="official"><img class=ico src=assets/img/iconos/p/notas.png alt> Oficial · %s = <b>%s puntos</b> de evaluación continua. '
+      'La Actividad 3 de programaciones anteriores <b>ya no existe</b>.</div>'
+    % (" + ".join(x[1] for x in EVALUACION), ("%g" % _suma).replace(".", ",")))
 
 ACT = head("STARGATE · Actividades y evaluación",
   "Las misiones (actividades), el ePortfolio, la evaluación, el examen y los documentos oficiales de la asignatura con su marco narrativo STARGATE.","act", puerta=True) + f'''
@@ -886,12 +894,7 @@ marco narrativo STARGATE—. Los requisitos provienen de los enunciados y la gu�
 
 <section><div class="wrap">
 <div class="eyebrow">Cómo se evalúa</div><h2>La evaluación continua (sobre 10)</h2>
-<div class="grid cols-3" style="margin-top:14px">
-<div class="card"><h3>Actividades mayores</h3><p><b>Actividad 1</b> — imagen con IA: <span class="pts">4,3</span><br><b>Actividad 2</b> — paisaje de aprendizaje: <span class="pts">4,3</span><br><small>En cada una: PDF 80 % + ePortfolio 20 %.</small></p></div>
-<div class="card"><h3>Tests de tema</h3><p>Un test por tema (T1–T8). <span class="pts">0,1</span> cada uno (0,8 en total). Preparan para el examen.</p></div>
-<div class="card"><h3>Asistencia en directo</h3><p>Asistencia a <b>3 clases en directo</b> a lo largo del curso. <span class="pts">0,2</span> cada una (0,6 en total).</p></div>
-</div>
-<div class="official"><img class=ico src=assets/img/iconos/p/notas.png alt> Oficial · 4,3 + 4,3 + 0,8 + 0,6 = <b>10 puntos</b> de evaluación continua. La Actividad 3 de programaciones anteriores <b>ya no existe</b>.</div>
+{evaluacion_html}
 <blockquote>En STARGATE cada elemento tiene su nombre: las actividades son <b>misiones mayores</b>, los tests son
 <b>controles de sistemas</b>, las clases en directo son <b>sesiones de mando</b> y las experiencias del portfolio
 son <b>páginas de la Bitácora</b>. La nota mide tu avance; la Bitácora es lo que te llevas a casa.</blockquote>
@@ -1650,6 +1653,33 @@ window.SG.foroParrafos = function (t, op) {
  *     per: el grupo · grupo: su nombre visible · nombre: tu nombre en su equipo docente (con él se guarda lo tuyo)
  *     off: las secciones que ya tienes quitadas · alGuardar: para que la página que la abre se ponga al día
  */
+/**
+ * 🔴 23-sep · EL RÓTULO DEL COMANDANTE. Norberto: «me gustaría que saliera el avatar del comandante recortado en la parte de
+ * la izquierda con su título y escuadrón debajo (como cuando habla alguien en la tele y le ponen el banner debajo)». Eligió
+ * la versión recortada del borrador. Uno solo para las tres cartas que firma: la diapositiva «El mensaje», la orden de la
+ * semana del recluta y la carta del foro de la Nave del Comandante. Y UN emblema (antes salía el del escuadrón dos veces).
+ *
+ * El retrato es el recorte sin fondo de su comandante (assets/img/avatares/comandantes/recorte/<clave>.png, los 26
+ * recortados en local). La clave la guarda el grupo en `stargate.avatares[nombre]` —la ficha del docente solo la lee él,
+ * y su alumnado también tiene que verle—. Sin comandante elegido, el Capitán de la serie.
+ *   o: { nombre, avatar (cN), escuadron, emblema, grupo, clase: '' | 'grande' | 'carta' }
+ */
+window.SG.avatarComandante = function (clave) {
+  return clave ? 'assets/img/avatares/comandantes/recorte/' + String(clave).replace(/[^\w-]/g, '') + '.png' : 'assets/img/capitan/saluda.png';
+};
+window.SG.rotulo = function (o) {
+  o = o || {};
+  var e = function (x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var n = String(o.nombre || '').trim(); if (!n) return '';
+  var titulo = /^comandante\b/i.test(n) ? n : 'Comandante ' + n;
+  var esc7 = String(o.escuadron || '').trim();
+  var linea = [esc7 ? (/^escuadr[oó]n\b/i.test(esc7) ? esc7 : 'Escuadrón ' + esc7) : '', String(o.grupo || '').trim()].filter(Boolean).join(' · ');
+  return '<div class="rotulo' + (o.clase ? ' rotulo-' + e(o.clase) : '') + '">'
+    + '<img class="rt-av" src="' + e(window.SG.avatarComandante(o.avatar)) + '" alt="" loading="lazy">'
+    + '<div class="rt-barra"><b class="rt-nom">' + e(titulo) + '</b>'
+    + (linea ? '<span class="rt-sub">' + (o.emblema ? '<img class="rt-emb" src="' + e(o.emblema) + '" alt="" loading="lazy">' : '') + e(linea) + '</span>' : '')
+    + '</div></div>';
+};
 window.SG.CFGSESION = (function () {
   function e(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function ico(k, grande){ return '<img class="ico'+(grande?' grande':'')+'" src="assets/img/iconos/'+(grande?'':'p/')+k+'.png" alt="" width="20" height="20">'; }
@@ -2058,7 +2088,7 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
    {p:'consola.html',sel:'.pt-tk',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Los tickets de salida',x:'Lo que escribió tu escuadrón al cerrar el tema: cada pregunta con su reparto de notas, y sus comentarios. Sale el <b>último tema cerrado</b>, y el desplegable abre los anteriores. Tú decides qué se lee en clase: lo que <b>fijes</b> sale seguro, lo que <b>ocultes</b> no sale, y del resto salen los que quepan en la diapositiva.'},
    {p:'consola.html',sel:'.lnk.solo-referente',listo:'.cn-secs',espera:1,si:1,soloRef:1,pose:'senala',t:'Como referente',x:'Crear un grupo, el equipo docente, los escuadrones, los ajustes y el calendario, mover reclutas, graduar y borrar: en <b>Gestionar grupos</b>, aquí arriba. Lo que se hace una o dos veces por curso, fuera de tu Nave.'},
    {p:'consola.html',sel:'.lnk[href="guia.html"]',listo:'.cn-secs',espera:1,pose:'brazos',t:'Ahora nos vamos a la Guía',x:'Hasta aquí, <b>tu Nave</b>: lo de tu grupo. Lo que viene está en la <b>Guía</b>, este enlace de arriba, y es <b>común a todos los grupos</b>: la base del proyecto —la historia, los retos, el calendario de las 15 semanas y la evaluación—. Pulsa <b>Siguiente</b> y te llevo; al acabar vuelves aquí solo.'},
-   {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'Ya estás en la <b>Guía</b>. <b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase. Quien completa la misión de un tripulante <b>desbloquea su fragmento de vídeo</b>; dos semanas más tarde se abre para todo el grupo, y todos se coleccionan en <b>El Archivo</b> de su Nave.'},
+   {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'Ya estás en la <b>Guía</b>. <b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase. Quien completa la misión de un tripulante <b>desbloquea su fragmento de vídeo</b>, y solo quien la completa lo ve: se coleccionan en <b>El Archivo</b> de su Nave.'},
    {p:'guia.html',sel:'#retos',pose:'tablet',t:'Tres retos por tema',x:'El <b>Reto A</b> da la <b>insignia</b> del personaje: no cuenta para nota, aunque da 100 xp y __CRED_A__ ◈. El <b>Reto B</b> produce una evidencia real de la Bitácora (250 xp y __CRED_B__ ◈) y <b>pide su enlace</b>. Los <b>xp</b> suben de nivel y nunca se gastan; los <b>créditos ◈</b> son lo que se canjea. Y el <b>relámpago</b>, que se hace en clase. Nadie registra más de __TOPE__ retos por semana.'},
    {p:'cronologia.html',sel:'#mapa',pose:'senala',t:'Tu carta de navegación',x:'El mapa de las <b>15 semanas</b>: qué vídeo proyectar, qué reto lanzar, qué insignia entregar y el hito de evaluación. Sin fechas: semanas, como tu aula.'},
    {p:'cronologia.html',sel:'#sem1',pose:'pensativo',t:'La orden del día',x:'Despliega una semana y tendrás la orden completa, con los vídeos reproducibles aquí mismo y el <b>mensaje para el foro de la plataforma de UNIR</b> (aquí va sin firmar; el tuyo, firmado, está en tu Nave). Tu alumnado ya ve su parte solo, en su Nave.'},
@@ -2939,7 +2969,7 @@ Pasa con las flechas <b>←</b> y <b>→</b>.</p>
 <p class="small muted">El <b>consejo del Capitán</b> y el mensaje del foro están arriba, fuera del mazo:
 al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></header>
 <section><div class="wrap"><div id="sesion-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_SECCIONES_SESION={json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False)};window.SG_CAPTURAS_SESION={json.dumps(sorted(f[:-4] for f in os.listdir(os.path.join(HERE, "assets/img/sesion")) if f.endswith(".jpg")))};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_SECCIONES_SESION={json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False)};window.SG_CAPTURAS_SESION={json.dumps(sorted(f[:-4] for f in os.listdir(os.path.join(HERE, "assets/img/sesion")) if f.endswith(".jpg")))};window.SG_EMBARQUE={json.dumps([list(x) for x in SESION_EMBARQUE], ensure_ascii=False)};window.SG_VIDEOS={json.dumps({k: {"id": v[0], "titulo": v[1]} for k, v in V.items()}, ensure_ascii=False)};window.SG_EVALUACION={json.dumps([list(x) for x in EVALUACION], ensure_ascii=False)};window.SG_EVALUACION_EXAMEN={json.dumps(EVALUACION_EXAMEN, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/tkcomun.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>

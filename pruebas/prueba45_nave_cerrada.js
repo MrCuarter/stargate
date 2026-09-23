@@ -125,7 +125,7 @@ const actoDos = R.slice(R.indexOf("var PASOS=["), R.indexOf("// Un solo motor"))
 // el visor de vídeos
 igual((actoDos.match(/\{t:/g) || []).length, 6, "   y el acto 2, seis (el último invita a estrenarse)");
 igual((actoDos.match(/foco:/g) || []).length, 6, "🔴 los seis pasos resaltan la zona de la que hablan");
-["\\.nave-estado", "\\.cine", "\\.retos-semana", "\\.nb-fin", "\\.nb-tabs", "\\.nb-t\\[data-tab=\"mercado\"\\]"]
+["\\.nave-ficha", "\\.cine", "\\.retos-semana", "\\.nb-fin", "\\.nb-tabs", "\\.nb-t\\[data-tab=\"mercado\"\\]"]
   .forEach(function (sel) {
     c(new RegExp("foco:'" + sel + "'").test(actoDos),
       "   y uno de ellos señala «" + sel.replace(/\\/g, "") + "», que la Nave pinta de verdad");

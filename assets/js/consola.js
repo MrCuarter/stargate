@@ -229,7 +229,6 @@
     var firma = fb ? fb.x : "";
     var P = B.filter(function (x) { return x.t !== "firma"; });
     var yoN = miNombreAqui() || (YO && (YO.nombre || YO.correo)) || "Tu Comandante";
-    var av = (FICHA && FICHA.avatar) || "c1";
     var pAqui = PERS.filter(function (x) { return x.id === PER; })[0] || {}, emb = emblemaDe(pAqui);
     // el sello: el emblema de SU escuadrón en este grupo (el del tablero, que es el que siempre está)
     if (!emb.img && esc7) emb = { img: esc7.emblema || "", nombre: esc7.nombre || "" };
@@ -244,12 +243,9 @@
         if (b.t === "yt") return window.SG.ytInline(b.id, b.x);
         return '<p>' + esc(b.x) + '</p>';
       }).join("") + '</div>' +
-      '<footer class="fc-firma">' +
-        '<img class="fc-av" src="assets/img/avatares/comandantes/' + esc(av) + '.jpg" alt="" loading="lazy">' +
-        '<span class="fc-quien"><b>' + esc(/^comandante/i.test(yoN) ? yoN : "Comandante " + yoN) + '</b>' +
-          '<em>' + (emb.nombre ? esc(emb.nombre) + ' · ' : "") + esc(pAqui.nombre || "") + '</em></span>' +
-        (emb.img ? '<img class="fc-sello" src="' + esc(emb.img) + '" alt="" loading="lazy">' : "") +
-      '</footer></article>';
+      // 23-sep · la firma, con el rótulo común (el mismo que en la diapositiva y en la orden del recluta)
+      '<footer class="fc-firma-r">' + window.SG.rotulo({ nombre: yoN, avatar: (FICHA && FICHA.avatar) || "", escuadron: emb.nombre || "",
+        emblema: emb.img || "", grupo: pAqui.nombre || "", clase: "carta" }) + '</footer></article>';
   }
   function bloqueForo(sem, texto, propio, esc7) {
     if (!texto && !propio) return "";
@@ -452,16 +448,41 @@
     // (la galería se monta al abrirla: escondida, sus imágenes se descargarían igual en cada visita)
     '<div class="doc-avas" id="doc-avas" hidden></div>';
   }
+  /**
+   * 🔴 23-sep · TU COMANDANTE, TAMBIÉN EN TUS GRUPOS. El rótulo de «El mensaje» y de la orden de la semana lleva tu retrato,
+   * y lo ve tu alumnado. Tu ficha (`stargate_profes`) solo la lees tú, así que la clave se copia a cada grupo en el que das
+   * clase (`stargate.avatares[tu nombre]`, como tu panel y tus diapositivas). Solo se escribe si falta o ha cambiado.
+   */
+  function avatarEnMisGrupos(k) {
+    if (!k) return;
+    PERS.forEach(function (p) {
+      var yo = miNombreEn(p); if (!yo) return;
+      var S = p.stargate = p.stargate || {}, A = S.avatares = S.avatares || {};
+      if (A[yo] === k) return;
+      guardarParteEn(p.id, "avatares", yo, k).then(function () { A[yo] = k; }).catch(function () {});
+    });
+  }
   function cablearHero() {
     var avImg = $("#doc-ava-img"), avBtn = $("#doc-ava"), avs = $("#doc-avas");
     if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
       if (f && f.avatar && avImg) avImg.src = "assets/img/avatares/comandantes/" + f.avatar + ".jpg";
+      if (f && f.avatar) avatarEnMisGrupos(f.avatar);
     }).catch(function () {});
     var galeria = function () {
       if (avs.getAttribute("data-lista")) return;
       avs.setAttribute("data-lista", "1");
       // 18-sep · todo el reparto de comandantes, sin nombres (Norberto: «forman parte del reparto de comandantes»)
-      avs.innerHTML = '<p class="small muted">Elige el comandante que te representa.</p>' +
+      /**
+       * 🔴 23-sep · EL LÁPIZ ES «TU FICHA»: tu nombre y tu comandante. Norberto: «¿dónde puede cambiar un docente su mail,
+       * su nombre… igual quiere otro nombre diferente al suyo?». Eligió que cada docente cambie el suyo: aquí, y en todos
+       * sus grupos a la vez (lo hace el servidor, porque el nombre es la llave de su alumnado). El correo no se cambia.
+       */
+      var yoN = miNombreAqui() || (YO && YO.nombre) || "";
+      avs.innerHTML = '<div class="doc-nombre"><label for="doc-nom"><b>Tu nombre</b>, el que ve tu alumnado</label>' +
+        '<div class="doc-nom-f"><input id="doc-nom" maxlength="60" value="' + esc(yoN) + '" autocomplete="off">' +
+        '<button type="button" class="btn min primary" id="doc-nom-g">Guardar en todos tus grupos</button></div>' +
+        '<p class="small muted" id="doc-nom-m">Tu correo (<b>' + esc((YO && YO.correo) || "") + '</b>) no se cambia: es tu llave para entrar.</p></div>' +
+        '<p class="small muted">Y el comandante que te representa (sale recortado en tu rótulo):</p>' +
         '<div class="doc-avas-g">' + (window.SG_COMANDANTES_GEN || []).map(function (k) {
           return '<button type="button" class="doc-av-op" data-av="' + esc(k) + '"><img src="assets/img/avatares/comandantes/' + esc(k) + '.jpg" alt="Comandante"></button>';
         }).join("") + '</div>';
@@ -473,13 +494,34 @@
           MOTOR.ponerAvatarDocente(k).then(function () {
             if (avImg) avImg.src = "assets/img/avatares/comandantes/" + k + ".jpg";
             if (FICHA) FICHA.avatar = k;
+            avatarEnMisGrupos(k);
             Array.prototype.forEach.call(avs.querySelectorAll(".doc-av-op"), function (x) { x.classList.toggle("on", x === o); });
             avs.hidden = true;
           }, function (e) { aviso("No se ha podido guardar tu avatar: " + esc(e.message || e)); });
         };
       });
     };
-    if (avBtn && avs) avBtn.onclick = function () { galeria(); avs.hidden = !avs.hidden; };
+    if (avBtn && avs) avBtn.onclick = function () { galeria(); avs.hidden = !avs.hidden; cablearNombre(); };
+    function cablearNombre() {
+      var b = $("#doc-nom-g"), inp = $("#doc-nom"), m = $("#doc-nom-m"); if (!b || b.getAttribute("data-ok")) return;
+      b.setAttribute("data-ok", "1");
+      b.onclick = function () {
+        var v = String(inp.value || "").trim().replace(/\s+/g, " ");
+        if (v.length < 2) { m.textContent = "Escribe un nombre de al menos dos letras."; return; }
+        b.disabled = true; b.textContent = "Guardando…";
+        MOTOR.cambiarMiNombre(v).then(function (r) {
+          var n = ((r && r.grupos) || []).length, f = ((r && r.fallos) || []);
+          m.innerHTML = n ? "✓ Ahora eres <b>" + esc(v) + "</b> en " + n + (n === 1 ? " grupo" : " grupos") + ". Recargo para ponerlo todo al día…"
+                          : (f.length ? "No he podido cambiarlo: " + esc(f[0].error) : "Ya te llamabas así.");
+          if (n) setTimeout(function () { location.reload(); }, 1400);
+          else { b.disabled = false; b.textContent = "Guardar en todos tus grupos"; }
+        }).catch(function (e) {
+          b.disabled = false; b.textContent = "Guardar en todos tus grupos";
+          m.textContent = /not[- ]found|NOT_FOUND|internal/i.test(String((e && (e.code || e.message)) || ""))
+            ? "Falta desplegar «stargateMiNombre» en el servidor." : "No se ha podido guardar: " + ((e && e.message) || e);
+        });
+      };
+    }
     var selG = $("#cn-sel-g");
     if (selG) selG.onchange = function () { if (selG.value && selG.value !== PER) { TAB = "portada"; abrir(selG.value); } };
   }

@@ -948,7 +948,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("bienvenida · y NO le pide «escribe tu correo» (esa puerta ya no existe)", p0 && !/correo/i.test(p0.x), p0 && p0.x.slice(0, 120));
       const focos = [p0 && p0.foco];
       for (let k = 0; k < 5; k++) { await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700); const pk = await paso(); focos.push(pk ? pk.foco : "—"); }
-      const esperados = ["nave-estado", "cine", "retos-semana", "nb-fin", "nb-tabs", "nb-t"];
+      const esperados = ["nave-ficha", "cine", "retos-semana", "nb-fin", "nb-tabs", "nb-t"];   // 23-sep · la ficha, a todo el ancho
       c("bienvenida · cada paso señala lo suyo: ficha, vídeos, retos, marcadores, pestañas y mercado",
         esperados.every((e, k) => (focos[k] || "").split(/\s+/).indexOf(e) >= 0), JSON.stringify(focos));
       // al acabar el 1, sigue el 2, el 3, el 4 y el 5, cada uno con lo suyo
@@ -1585,6 +1585,31 @@ const REG = {};   // cifras que se apuntan para el informe
         /no puntúan/.test(act2) && /La chispa y la marca/.test(act2) && /La Bitácora en marcha/.test(act2) && /El boceto sin quemar/.test(act2), act2.slice(0, 160));
       c("   con la semana de cada reto: el de hoy y el que ya tienen hecho", /Se lanza hoy/.test(act2) && /Semana 1 · ya lo tienes/.test(act2));
       await rita.foto(FOTOS + "/21-sesion-mision-mayor.png");
+      /**
+       * 🔴 23-sep · LA SEMANA 1, EL EMBARQUE. Norberto: «esa sesión es especial: empezar desde cero, explicando STARGATE…
+       * enseñamos la nave, dejamos tiempo para que se alisten… proyectamos el ticket y lo rellenan. Después vamos a Fôrge».
+       */
+      await rita.ir("sesion.html?per=lab-clase&sem=1");
+      await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>8", 25);
+      const r1 = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
+      const pos1 = t => r1.indexOf(t);
+      c("🔴 embarque · la semana 1 abre a oscuras con el tráiler, y después «Bienvenidos a bordo»",
+        r1[0] === "Vídeo" && r1[1] === "Portada", JSON.stringify(r1));
+      c("🔴 embarque · el acto 1 en su orden: mensaje, quiénes somos, el viaje, cada semana, lo que puntúa, la Bitácora",
+        ["El mensaje", "Quiénes somos", "El viaje", "Cada semana", "Lo que puntúa", "La Bitácora"].every((t, k, a) => pos1(t) > 0 && (k === 0 || pos1(t) > pos1(a[k - 1]))), JSON.stringify(r1));
+      c("🔴 embarque · se alistan y fichan EN CLASE, y rellenan el ticket antes de ir a Fôrge",
+        pos1("¡Alistaos!") > pos1("La Bitácora") && pos1("Llamada a filas") > pos1("¡Alistaos!") && pos1("Ticket de salida") > pos1("Llamada a filas")
+        && pos1("El despegue") > pos1("Ticket de salida") && pos1("Misión 1") > pos1("El despegue"), JSON.stringify(r1));
+      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Ticket de salida'})[0].click(); 1"); await dormir(700);
+      const tk1 = await rita.js("(document.querySelector('.dia.ticket-form iframe')||{}).src||''");
+      c("🔴 embarque · el ticket lleva ya elegida «Presentación de la asignatura»", /Presentaci%C3%B3n%20de%20la%20asignatura|Presentaci%C3%B3n\+de\+la\+asignatura/.test(tk1), tk1.slice(0, 160));
+      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Lo que puntúa'})[0].click(); 1"); await dormir(700);
+      const nota1 = await rita.texto();
+      c("   y cuenta lo que puntúa: las dos actividades con su semana, y que los retos no", /Actividad 1/.test(nota1) && /semana 2/.test(nota1) && /Actividad 2/.test(nota1) && /retos no puntúan/.test(nota1), nota1.slice(0, 200));
+      await rita.foto(FOTOS + "/21-embarque-nota.png");
+      // (y de vuelta a la semana 2, que es la que miran las comprobaciones de «Lo nuevo» que vienen detrás)
+      await rita.ir("sesion.html?per=lab-clase&sem=2");
+      await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
       await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Tu Nave, más grande'})[0].click(); 1"); await dormir(700);
       c("sesión · «🔓 Se abre esta semana en STARGATE: El Mercado Estelar», con lo que se puede hacer", /Se abre esta semana/i.test(await rita.texto()) && /sobres de cromos/i.test(await rita.texto()));
       await rita.foto(FOTOS + "/21-sesion-lo-nuevo.png");
@@ -3403,6 +3428,37 @@ const REG = {};   // cifras que se apuntan para el informe
       const a4 = await intento(`M.updateDoc(M.doc(M.db,'projects','${P}'), { 'stargate.paneles.Dani': 'https://view.genially.com/dani' })`);
       c("equipo · lo de siempre lo sigue pudiendo: su panel en «Mis enlaces»", a4 === "ESCRIBIÓ", a4);
       await dani.cerrar();
+      /**
+       * 🔴 23-sep · SU NOMBRE, EL QUE ÉL ELIJA (Norberto: «cada docente, el suyo»). Dani se cambia el nombre desde el lápiz
+       * de su avatar, y con él tiene que moverse todo lo que cuelga de su nombre: sus reclutas, su escuadrón y su panel.
+       * Después vuelve al suyo, para no descolocar a las secciones que vienen detrás.
+       */
+      const fsA = admin().firestore();
+      const viejo = (((await leerDoc("projects/" + P + "/privado/stargate")).docentes || []).filter(d => d.correo === "dani@lab.test")[0] || {}).nombre;
+      const suyos = async (n) => (await fsA.collection("student_profiles").where("projectId", "==", P).where("stargateProfe", "==", n).get()).size;
+      const suyosAntes = await suyos(viejo);
+      // (el panel de arriba lo escribió a pelo con la llave «Dani»; aquí, uno con su nombre de verdad, como lo guarda «Mis enlaces»)
+      await fsA.collection("projects").doc(P).update({ ["stargate.paneles." + viejo]: "https://view.genially.com/panel-de-dani" });
+      const dn = await nueva("Dani se cambia el nombre");
+      await dn.ir("entrar.html"); await dn.entrarComo("dani@lab.test", "Dani Docente");
+      await dn.hasta("location.pathname.indexOf('consola.html')>=0 || !!document.querySelector('.elegir-camino .camino.docente')", 20);
+      await dn.js("(function(){var a=document.querySelector('.elegir-camino .camino.docente'); if(a) a.click(); return 1;})()");
+      await dn.ir("consola.html?per=" + P); await dn.hasta("!!document.getElementById('doc-ava')", 60);
+      await dn.js("document.getElementById('doc-ava').click(); 1"); await dn.hasta("!!document.getElementById('doc-nom-g')", 10);
+      await dn.js("document.getElementById('doc-nom').value='Capitán Dani'; document.getElementById('doc-nom-g').click(); 1");
+      const hecho = await dn.hasta("/Ahora eres/.test((document.getElementById('doc-nom-m')||{}).textContent||'')", 60);
+      const pv3 = await leerDoc("projects/" + P + "/privado/stargate"), pr3 = await leerDoc("projects/" + P);
+      c("🔴 nombre · Dani se cambia el nombre desde el lápiz de su avatar (lo hace el servidor)",
+        hecho && (pv3.docentes || []).some(d => d.correo === "dani@lab.test" && d.nombre === "Capitán Dani"),
+        await dn.js("(document.getElementById('doc-nom-m')||{}).textContent||''"));
+      c("🔴 nombre · y su gente le sigue: las fichas que eran suyas llevan su nombre nuevo", suyosAntes > 0 && (await suyos("Capitán Dani")) === suyosAntes && (await suyos(viejo)) === 0,
+        JSON.stringify({ antes: suyosAntes, viejo }));
+      c("   su panel también («Mis enlaces» era de «" + viejo + "»)", (((pr3.stargate || {}).paneles || {})["Capitán Dani"]) === "https://view.genially.com/panel-de-dani" && !(((pr3.stargate || {}).paneles || {})[viejo]),
+        JSON.stringify((pr3.stargate || {}).paneles));
+      c("   y su escuadrón", !(pr3.factions || []).some(f => f && f.teacherName === viejo), JSON.stringify((pr3.factions || []).map(f => f && f.teacherName)));
+      await dn.js(`window.SG.MOTOR.cambiarMiNombre(${JSON.stringify(viejo || "Dani")}).then(function(){return 1},function(e){return e.message})`, 60000);
+      c("   y vuelve a su nombre de siempre", (((await leerDoc("projects/" + P + "/privado/stargate")).docentes || []).filter(d => d.correo === "dani@lab.test")[0] || {}).nombre === viejo);
+      await dn.cerrar();
     }
     // ============================================================ 33 · EL BUZÓN DEL MANDO («📡 Frecuencia de mando»)
     /**
@@ -4858,7 +4914,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rs.ir("entrar.html"); await rs.entrarComo("rita@lab.test", "Rita Referente");
       const hay = await aMisEnlaces();
       const casillas = await rs.js("(function(){ var l=[].slice.call(document.querySelectorAll('.m-sec input')); return l.length+'|'+l.filter(function(x){return x.checked}).length; })()");
-      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas marcadas", hay && casillas === "18|18", casillas);   // (21-sep · 18 con «La misión mayor»)
+      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas marcadas", hay && casillas === "19|19", casillas);   // (23-sep · 19 con «El embarque»)
       // (la sesión lee la elección del docente directamente del grupo; con el emulador atascado eso tarda: se espera a que
       // el mazo ACABE reflejándola, como mucho un minuto. En producción son milisegundos)
       const conTop = "[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Top 5'})";
