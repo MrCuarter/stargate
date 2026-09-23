@@ -1913,9 +1913,14 @@ TICKET_URL = ("https://docs.google.com/forms/d/e/"
 # agrupar por tema y la sesión que abre el siguiente proyecta «cómo os fue» sin que nadie ordene nada.
 #
 # Son los textos EXACTOS de las opciones del formulario (Google ignora en silencio cualquier otro): la clave
-# es el número de tema —`tema_n` de cada semana— y «a1», «a2»… para las actividades, que tienen opción propia.
+# es el número de tema —`tema_n` de cada semana— y «p» para la presentación de la asignatura.
 # Si algún día se tocan las opciones del formulario, se tocan aquí.
+# 🔴 23-sep · Norberto: «en el ticket de salida elimina las actividades. Solo presentación, 8 temas y final». Fuera «a1» y
+# «a2» (la semana que lanzaba una actividad preseleccionaba la actividad en vez de su tema). «p» es la presentación de la
+# asignatura: ya existía en el formulario —el constructor de Apps Script la creó la primera, con su propia página de
+# preguntas («¿Qué vibraciones te ha transmitido la presentación?»)— y la usa la sesión especial de la semana 1.
 TICKET_TEMAS = {
+    "p": "Presentación de la asignatura",
     "0": "Repaso / balance final",
     "1": "Tema 1: Creación de contenido multimedia (Fôrge)",
     "2": "Tema 2: El vídeo como recurso (Ecos)",
@@ -1925,8 +1930,6 @@ TICKET_TEMAS = {
     "6": "Tema 6: Aprendizaje Basado en el Juego (Ludo)",
     "7": "Tema 7: Gamificación (Vínculo)",
     "8": "Tema 8: Realidad Aumentada y Virtual (Liminar)",
-    "a1": "Actividad 1: actividad didáctica a partir de una imagen con IA",
-    "a2": "Actividad 2: planifica y crea un paisaje de aprendizaje",
 }
 
 # ────────────── 21-sep · LOS ENLACES DE INTERÉS (la última diapositiva de la presentación al equipo) ──────────────

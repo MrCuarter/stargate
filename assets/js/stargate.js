@@ -113,6 +113,10 @@
   Array.prototype.forEach.call(document.querySelectorAll('.yt'),function(el){
     el.addEventListener('click',function(){playYT(el);});
     el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();playYT(el);}});});
+  // 23-sep · los vídeos de dentro de un mensaje (SG.ytInline) llegan cuando la página ya está pintada: por delegación
+  document.addEventListener('click',function(e){ var el=e.target&&e.target.closest&&e.target.closest('.yt-foro'); if(el) playYT(el); });
+  document.addEventListener('keydown',function(e){ var el=e.target&&e.target.closest&&e.target.closest('.yt-foro');
+    if(el&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); playYT(el); } });
   /**
    * 🔴 20-sep · EL VISOR: los vídeos se ven AQUÍ. Norberto: «haz que los vídeos se reproduzcan en la propia web, un
    * visor de vídeos; no hagas que lleve a YouTube (si es posible)». Se abre encima, con el título y el botón de cerrar
@@ -240,9 +244,28 @@ window.SG.avatarSrc = function(av, alias, xp, tipoPer){
  * `op.proyectar`: para la sesión en clase. Quita los enlaces (en una proyección no se pulsan) y el «(Clase 10)» del
  * final, que ahí sobra.
  */
+/**
+ * 🔴 23-sep · UN ENLACE DE YOUTUBE ES UN VÍDEO. Norberto: «siempre que haya un enlace de YouTube, es para que lo embebas
+ * dentro del mensaje». Fuera de la proyección, cada enlace de YouTube se convierte en un bloque `{t:'yt', id, x}` —con
+ * `x` = lo que lo presentaba, si era una línea corta tipo «Mensaje de bienvenida:»— y lo pinta `SG.ytInline`: la
+ * carátula y, al pulsar, el vídeo AHÍ, sin salir de la página. En la proyección no: el vídeo ya tiene su diapositiva
+ * justo detrás del mensaje.
+ */
+window.SG.ytId = function (u) {
+  var m = String(u || '').match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#\s]*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
+  return m ? m[1] : '';
+};
+window.SG.ytInline = function (id, cap) {
+  var e = function (x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  return '<div class="yt yt-foro" data-id="' + e(id) + '" role="button" tabindex="0" aria-label="Ver el vídeo' + (cap ? ': ' + e(cap) : '') + '">'
+    + '<img loading="lazy" src="https://i.ytimg.com/vi/' + e(id) + '/hqdefault.jpg" alt=""><span class="play">▶</span>'
+    + (cap ? '<div class="cap"><b>' + e(cap) + '</b></div>' : '') + '</div>';
+};
 window.SG.foroParrafos = function (t, op) {
   op = op || {};
   var txt = String(t || '').split('{id-del-PER}').join('');
+  var MARCA = '\u0001';
+  if (!op.proyectar) txt = txt.replace(/https?:\/\/\S+/g, function (u) { var id = window.SG.ytId(u); return id ? MARCA + id + MARCA : u; });
   if (op.proyectar) txt = txt.replace(/:?[ \t]*https?:\/\/\S+/g, '§');
   var limpia = function (x) {
     x = x.replace(/\s+([.,;:])/g, '$1').trim();
@@ -269,12 +292,96 @@ window.SG.foroParrafos = function (t, op) {
       if (items.length) out.push({ t: 'ul', items: items });
       return;
     }
-    var uno = limpia(lineas.join(' '));
+    var junto = lineas.join(' ');
+    if (junto.indexOf(MARCA) >= 0) {
+      var ids = [], resto = junto.replace(new RegExp(MARCA + '([\\w-]{11})' + MARCA, 'g'), function (_, id) { ids.push(id); return ' '; });
+      resto = limpia(resto).replace(/[:·.\s]+$/, '');
+      // una línea corta que solo presentaba el vídeo («Mensaje de bienvenida:») pasa a ser su rótulo
+      var rotulo = ids.length === 1 && resto.length <= 60 ? resto : '';
+      if (resto && !rotulo) out.push({ t: 'p', x: resto });
+      ids.forEach(function (id) { out.push({ t: 'yt', id: id, x: rotulo }); });
+      return;
+    }
+    var uno = limpia(junto);
     if (!uno || uno === '.') return;
     out.push({ t: esTitulo(uno) ? 'h' : 'p', x: uno });
   });
   return out;
 };
+/**
+ * 🔴 23-sep · «CONFIGURAR DIAPOSITIVAS», UNA SOLA VENTANA PARA LAS DOS PÁGINAS. Norberto: «en la Nave del Comandante, pulsar
+ * en Ajustes solo hace que puedas escoger las diapositivas de la sesión en vivo o cambiar de avatar. Vamos a simplificar…
+ * para escoger las diapositivas, mejor poner un botón en "Solo para ti / Antes de empezar" que ponga "Configurar
+ * diapositivas"». Esa tira vive en la sesión (sesion.js), y la ventana vivía en la consola: para no tener dos copias de lo
+ * mismo, la ventana baja aquí y la abren las dos (la rueda del banner del grupo y el botón de la tira).
+ *
+ *   abrir({ per, grupo, nombre, off, alGuardar(off) })
+ *     per: el grupo · grupo: su nombre visible · nombre: tu nombre en su equipo docente (con él se guarda lo tuyo)
+ *     off: las secciones que ya tienes quitadas · alGuardar: para que la página que la abre se ponga al día
+ */
+window.SG.CFGSESION = (function () {
+  function e(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function ico(k, grande){ return '<img class="ico'+(grande?' grande':'')+'" src="assets/img/iconos/'+(grande?'':'p/')+k+'.png" alt="" width="20" height="20">'; }
+  var SIN_CAPTURA = { simulador: ["diana", "Sale cuando alguien ha jugado al Simulador"], votacion: ["rayo", "Sale si hay una votación esta semana"],
+                      oferta: ["monedas", "Sale si hay oferta en el Mercado"], unete: ["gente", "Sale en las semanas 1 y 2: el código y la invitación"] };
+  function casillas(off) {
+    var hay = window.SG_CAPTURAS_SESION || [];
+    return '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
+      var k = x[0], sc = SIN_CAPTURA[k] || ["video", "Sale cuando esa semana tiene algo que enseñar"];
+      return '<label class="m-sec"><input type="checkbox" data-sec="' + e(k) + '"' + ((off || []).indexOf(k) < 0 ? " checked" : "") + '>' +
+        (hay.indexOf(k) >= 0 ? '<img class="m-sec-img" src="assets/img/sesion/' + e(k) + '.jpg" alt="" loading="lazy" width="480" height="270">'
+                             : '<span class="m-sec-img sin">' + ico(sc[0]) + '<small>' + e(sc[1]) + '</small></span>') +
+        '<span><b>' + e(x[1]) + '</b><em>' + e(x[2]) + '</em></span></label>'; }).join("") + '</div>';
+  }
+  function bloque(off) {
+    return '<div class="card m-sesion"><h3>Tu sesión en directo</h3>' +
+      '<p class="small muted">Marca lo que quieres en tu presentación. Por defecto sale todo; lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
+      'Cada semana solo aparece lo que ese día tiene algo que enseñar.</p>' + casillas(off) +
+      '<p class="small m-sec-msg" id="m-sec-msg" aria-live="polite"></p></div>';
+  }
+  /** Lo tuyo dentro del mapa `stargate.sesiones` del grupo, leído y escrito al momento (otro docente puede haber tocado lo suyo). */
+  async function guardar(per, nombre, off) {
+    var M = window.SG && window.SG.MOTOR; nombre = String(nombre || "").trim();
+    if (!M || !per || !nombre) throw new Error("No sé quién eres en este grupo.");
+    var ref = M.doc(M.db, "projects", per), pd = await M.getDoc(ref);
+    var m = Object.assign({}, ((((pd.exists() ? pd.data() : {}) || {}).stargate) || {}).sesiones || {});
+    if (off && off.length) m[nombre] = off; else delete m[nombre];
+    await M.updateDoc(ref, { "stargate.sesiones": m });
+  }
+  function abrir(o) {
+    o = o || {};
+    var capa = document.createElement("div");
+    capa.className = "cfg-capa"; capa.setAttribute("role", "dialog"); capa.setAttribute("aria-modal", "true");
+    capa.innerHTML = '<div class="cfg-caja">' +
+      '<div class="cfg-cab">' + ico("ajustes", true) + '<div><b>Configurar las diapositivas</b><span>' + e(o.grupo || o.per || "") + '</span></div>' +
+        '<button type="button" class="btn min" data-cfg-x>Cerrar</button></div>' +
+      (o.nombre ? bloque(o.off || []) + '<p class="cfg-pie"><button type="button" class="btn min" data-cfg-todo>Marcar todo</button>' +
+                  (o.verSesion === false ? '' : ' <a class="btn min" href="sesion.html?per=' + encodeURIComponent(o.per || "") + '" target="_blank" rel="noopener">Ver la sesión ↗</a>') + '</p>'
+                : '<p class="muted">No te encuentro en el equipo docente de este grupo.</p>') +
+      '</div>';
+    document.body.appendChild(capa);
+    var cerrar = function () { capa.remove(); document.removeEventListener("keydown", tecla); };
+    var tecla = function (ev) { if (ev.key === "Escape") cerrar(); };
+    document.addEventListener("keydown", tecla);
+    capa.addEventListener("click", function (ev) { if (ev.target === capa || ev.target.closest("[data-cfg-x]")) cerrar(); });
+    var cajas = function () { return Array.prototype.slice.call(capa.querySelectorAll(".m-sec input")); };
+    var guarda = async function (revertir) {
+      var off = cajas().filter(function (x) { return !x.checked; }).map(function (x) { return x.getAttribute("data-sec"); });
+      var msg = capa.querySelector("#m-sec-msg"); msg.textContent = "Guardando…";
+      try {
+        await guardar(o.per, o.nombre, off);
+        if (typeof o.alGuardar === "function") o.alGuardar(off);
+        msg.textContent = "✓ Guardado" + (off.length ? " · quitas " + off.length + (off.length === 1 ? " sección" : " secciones") : " · sale todo");
+      } catch (err) { if (revertir) revertir(); msg.textContent = "No se ha podido guardar: " + (err.message || err); }
+    };
+    cajas().forEach(function (c) { c.onchange = function () { guarda(function () { c.checked = !c.checked; }); }; });
+    var todo = capa.querySelector("[data-cfg-todo]");
+    if (todo) todo.onclick = function () { cajas().forEach(function (c) { c.checked = true; }); guarda(); };
+    var primera = capa.querySelector(".m-sec input"); if (primera) primera.focus();
+    return capa;
+  }
+  return { casillas: casillas, bloque: bloque, guardar: guardar, abrir: abrir };
+})();
 window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
   var ea = function(x){ return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); };
   return '<img class="av '+ea(cls||'')+' r'+r.r+'" src="'+ea(r.src)+'" data-fb="'+ea(r.fallback)+'" alt="" title="'+ea(r.rango)+'" loading="lazy" referrerpolicy="no-referrer" onerror="var f=this.dataset.fb; if(this.src.indexOf(f)<0){this.src=f;} else if(!this.dataset.rt){this.dataset.rt=1; this.src=f+(f.indexOf(String.fromCharCode(63))<0?\'?rt=1\':\'&amp;rt=1\');}">'; };

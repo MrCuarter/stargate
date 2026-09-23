@@ -989,7 +989,9 @@ const REG = {};   // cifras que se apuntan para el informe
       // 14c · el Capitán, en Mis grupos: referente (con sus pasos) y docente (sin ellos)
       // (19-sep · la Nave del Comandante: tu ficha, los tres pasos, «Hoy toca», las secciones y tus grupos; y, al referente, «Gestionar grupos»)
       // 🔴 20-sep · la visita se rehízo con la Nave de hoy: 14 paradas + el cierre, y dos más si eres referente
-      for (const [correo, nombre, total, ref] of [["rita@lab.test", "Rita Referente", 17, true], ["dani@lab.test", "Dani Docente", 14, false]]) {
+      // 🔴 23-sep · y se reordenó (Norberto): las secciones y el panel suben al 3 y al 4, entra «Los retos de este tema»
+      // antes de los tickets y un aviso antes de saltar a la Guía → 16 para el docente, 19 para el referente
+      for (const [correo, nombre, total, ref] of [["rita@lab.test", "Rita Referente", 19, true], ["dani@lab.test", "Dani Docente", 16, false]]) {
         const p = await nueva("visita " + nombre);
         await p.entrarPorLaPuerta(correo, nombre);
         // Dani es también alumna desde la sección 4: entonces la puerta pregunta, y aquí entra como docente
@@ -1469,6 +1471,24 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1");   // 15-sep · todos los escuadrones
       const celda = await rita.js("[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(t){return /Nora Nébula/.test(t.textContent)}).map(function(t){return t.querySelector('td.bienv').textContent})[0]||''");
       c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 9 abiertos en la semana 10, 1 saltado)", /3\/9/.test(celda) && /1 saltado/.test(celda), celda);
+      /**
+       * 🔴 23-sep · LOS FRAGMENTOS SE GANAN, TAMBIÉN EN EL MAPA. Norberto: «en El Archivo los estudiantes pueden ver los
+       * fragmentos aunque no hayan recuperado al personaje». Nora no ha hecho ningún reto A: en la semana 10 abre Ludo
+       * (tema 6) en «Mis retos» y su fragmento (el de Joran, que se gana con el A6) tiene que salir con candado.
+       */
+      const nora10 = await nueva("Nora abre Ludo en la semana 10");
+      await nora10.ir("entrar.html"); await nora10.entrarComo("nora@lab.test", "Nora Prueba");
+      await nora10.ir("recluta.html?per=lab-clase&semana=10"); await nora10.hasta("document.querySelectorAll('.nb-t').length>0", 25);
+      await nora10.js("var x=document.querySelector('#nave-onboard .tour-exit'); if(x) x.click(); var t=document.querySelector('.nb-t[data-tab=\"retos\"]'); if(t) t.click(); 1");
+      await nora10.hasta("!!document.querySelector('.nave-pl.on[data-tema=\"6\"]')", 15);
+      await nora10.js("document.querySelector('.nave-pl.on[data-tema=\"6\"]').click(); 1"); await dormir(800);
+      const mapa6 = JSON.parse(await nora10.js("JSON.stringify({juega:!!document.querySelector('#nave-detalle .yt[data-id=\"LZTeVGnbPDo\"]'), candado:document.querySelectorAll('#nave-detalle .yt.cerrado .frag-tapa').length, videos:document.querySelectorAll('#nave-detalle .yt').length})"));
+      c("🔴 fragmentos · en el mapa, el fragmento de Joran sale con candado para quien no ha hecho su reto (antes se podía reproducir)",
+        !mapa6.juega && mapa6.candado >= 1, JSON.stringify(mapa6));
+      await nora10.js("var t=document.querySelector('.nb-t[data-tab=\"archivo\"]'); if(t) t.click(); 1"); await dormir(800);
+      const arch = JSON.parse(await nora10.js("JSON.stringify({juega:!!document.querySelector('.archivo [data-video=\"LZTeVGnbPDo\"]'), futuros:[].slice.call(document.querySelectorAll('.ar-sem.futura .frag-tapa > b')).map(function(b){return b.textContent})})"));
+      c("   y en El Archivo, tampoco se reproduce; y los de semanas que no han llegado no dicen de quién son", !arch.juega && arch.futuros.every(t => t === "???"), JSON.stringify(arch));
+      await nora10.foto(FOTOS + "/19-archivo-candados.png");
     }
 
     // ============================================================ 20 · LA NAVE DEL COMANDANTE (simulacro)
@@ -2703,7 +2723,7 @@ const REG = {};   // cifras que se apuntan para el informe
         /^<iframe src="http:\/\/[^"]+\/sesion\.html\?embed=1"/.test(cod) && /allowfullscreen/.test(cod), cod.slice(0, 120));
       // 16-sep · son SEIS: la sesión partida en dos (apertura y cierre), la sesión entera, el aula, la llamada y la batalla
       c("embed · y va una sola vez para todos los grupos, no repetido en cada tarjeta",
-        await rita.js("document.querySelectorAll('.gp-gen').length===1 && document.querySelectorAll('.gp-gen [data-embed]').length===6"));
+        await rita.js("document.querySelectorAll('.gp-gen').length===1 && document.querySelectorAll('.gp-gen [data-embed]').length===7"));   // 23-sep · + el tablero, universal
       // 19-sep · el código de clase: en el Puente solo las tres primeras semanas; después (lab-clase va por la 10), en «Mi gente»
       await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('.gr-banner')", 60);
       c("código · no sale en el Puente ninguna semana (vive en «Reclutas»)", await rita.js("!document.querySelector('.pt .gp-cod')"));
@@ -2740,7 +2760,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const sinTk = rots.filter(x => ["Cómo os fue", "Vuestras dudas", "Ticket de salida"].indexOf(x) < 0);
       c("🔴 sesión · empieza por la portada, la llamada a filas y el mensaje; luego el vídeo; y el de cierre va lo último (semana 10)",
         sinTk[0] === "Portada" && sinTk[1] === "Llamada a filas" && sinTk[2] === "El mensaje" && sinTk[3] === "Vídeo"
-        && sinTk[sinTk.length - 1] === "Vídeo" && sinTk.indexOf("Tu ejemplo") < 0 && sinTk.indexOf("El despegue") > 3, JSON.stringify(rots));
+        && sinTk[sinTk.length - 1] === "Vídeo" && sinTk.indexOf("Tu ejemplo") < 0 && sinTk.indexOf("El despegue") < 0, JSON.stringify(rots));   // 23-sep · dentro del Genially, el despegue ES el Genially
       c("🔴 sesión · y el ticket: el resumen y las dudas al principio, el formulario al final del todo",
         rots[2] === "Cómo os fue" && rots[3] === "Vuestras dudas" && rots[rots.length - 1] === "Ticket de salida", JSON.stringify(rots.slice(0, 5)) + " … " + rots[rots.length - 1]);
       const ir_ = async t => f2.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return x.getAttribute('title')===${JSON.stringify(t)}})[0]; if(b){ b.click(); return 1; } return 0; })()`);

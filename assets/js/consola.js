@@ -240,6 +240,8 @@
       '<div class="fc-cuerpo">' + P.map(function (b) {
         if (b.t === "h") return '<h4 class="fc-h">' + esc(b.x) + '</h4>';
         if (b.t === "ul") return '<ul class="fc-ordenes">' + b.items.map(function (i) { return '<li>' + esc(i) + '</li>'; }).join("") + '</ul>';
+        // 23-sep · un enlace de YouTube es un vídeo, aquí mismo (Norberto: «siempre que haya un enlace de YouTube, embébelo»)
+        if (b.t === "yt") return window.SG.ytInline(b.id, b.x);
         return '<p>' + esc(b.x) + '</p>';
       }).join("") + '</div>' +
       '<footer class="fc-firma">' +
@@ -442,14 +444,13 @@
             '<span class="m cred" title="Todo el alumnado de esos grupos, sumado."><b>' + total + '</b> ' + (total === 1 ? "recluta a tu cargo" : "reclutas a tu cargo") + '</span>' +
             (emb.img ? '<span class="m emb" title="' + esc(emb.nombre ? "Tu escuadrón en este grupo: " + emb.nombre : "Tu escuadrón en este grupo") + '"><img src="' + esc(emb.img) + '" alt="" loading="lazy"></span>' : '') + '</p>' +
         '</div>' +
-        '<div class="cn-ficha-b">' + selectorDeGrupo() + selectorModo() +
-          '<button type="button" class="btn min" id="doc-ajustes-b" data-av aria-expanded="false">' + ico("ajustes") + ' Ajustes</button></div>' +
+        // 🔴 23-sep · sin «Ajustes» (Norberto: «vamos a simplificar»): el comandante se cambia en el lápiz de tu avatar y las
+        // diapositivas, en «Configurar diapositivas» de la tira «Antes de empezar» (y en la rueda del banner del grupo)
+        '<div class="cn-ficha-b">' + selectorDeGrupo() + selectorModo() + '</div>' +
       '</div>' +
     '</div>' +
     // (la galería se monta al abrirla: escondida, sus imágenes se descargarían igual en cada visita)
-    '<div class="doc-avas" id="doc-avas" hidden></div>' +
-    // 19-sep · «un botón de ajustes para ajustar su nombre, alias, foto…» y tu sesión en directo para todos tus grupos
-    '<div class="doc-ajustes" id="doc-ajustes" hidden></div>';
+    '<div class="doc-avas" id="doc-avas" hidden></div>';
   }
   function cablearHero() {
     var avImg = $("#doc-ava-img"), avBtn = $("#doc-ava"), avs = $("#doc-avas");
@@ -481,12 +482,6 @@
     if (avBtn && avs) avBtn.onclick = function () { galeria(); avs.hidden = !avs.hidden; };
     var selG = $("#cn-sel-g");
     if (selG) selG.onchange = function () { if (selG.value && selG.value !== PER) { TAB = "portada"; abrir(selG.value); } };
-    var ajB = $("#doc-ajustes-b"), ajP = $("#doc-ajustes");
-    if (ajB && ajP) ajB.onclick = function () {
-      if (ajP.hidden) pintarAjustes(ajP, vivos(), avBtn);
-      ajP.hidden = !ajP.hidden; ajB.setAttribute("aria-expanded", String(!ajP.hidden));
-      if (!ajP.hidden) ajP.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    };
   }
   /** 🔴 EL EMBLEMA DE TU ESCUADRÓN en ese grupo (Norberto: «a golpe de vista… su emblema de escuadrón»), no el del grupo. */
   function emblemaDe(p) {
@@ -1418,67 +1413,23 @@
    * si no, no sabe lo que es cada cosa»). Las que dependen de que haya algo (una batalla, una votación, una oferta) no
    * tienen captura fija: van con su icono y cuándo salen.
    */
-  var SIN_CAPTURA = { simulador: ["diana", "Sale cuando alguien ha jugado al Simulador"], votacion: ["rayo", "Sale si hay una votación esta semana"],
-                      oferta: ["monedas", "Sale si hay oferta en el Mercado"], unete: ["gente", "Sale en las semanas 1 y 2: el código y la invitación"] };
-  function casillasSesion(off) {
-    var hay = window.SG_CAPTURAS_SESION || [];
-    return '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
-      var k = x[0], sc = SIN_CAPTURA[k] || ["video", "Sale cuando esa semana tiene algo que enseñar"];
-      return '<label class="m-sec"><input type="checkbox" data-sec="' + esc(k) + '"' + (off.indexOf(k) < 0 ? " checked" : "") + '>' +
-        (hay.indexOf(k) >= 0 ? '<img class="m-sec-img" src="assets/img/sesion/' + esc(k) + '.jpg" alt="" loading="lazy" width="480" height="270">'
-                             : '<span class="m-sec-img sin">' + ico(sc[0]) + '<small>' + esc(sc[1]) + '</small></span>') +
-        '<span><b>' + esc(x[1]) + '</b><em>' + esc(x[2]) + '</em></span></label>'; }).join("") + '</div>';
-  }
-  /** «Tu sesión en directo»: una casilla por sección, todas marcadas por defecto (la ventana de la rueda). */
-  function bloqueSesion(t, nombre) {
-    var offMio = ((t.sesiones || {})[nombre]) || [];
-    return '<div class="card m-sesion"><h3>Tu sesión en directo</h3>' +
-      '<p class="small muted">Marca lo que quieres en tu presentación. Por defecto sale todo; lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
-      'Cada semana solo aparece lo que ese día tiene algo que enseñar.</p>' +
-      casillasSesion(offMio) +
-      '<p class="small m-sec-msg" id="m-sec-msg" aria-live="polite"></p></div>';
-  }
   /**
    * 19-sep · LA RUEDA DE «CONFIGURAR LA SESIÓN». Norberto: «pon un botón de configurar sesión en vivo, algo intuitivo, icono
-   * de rueda dentada… Simpleza, pero potencia de personalización». Una ventana encima, con una casilla por sección
-   * (todas marcadas por defecto) y un «Todo» para volver a empezar. Se guarda al tocarla, en ESE grupo.
+   * de rueda dentada… Simpleza, pero potencia de personalización». Se guarda al tocarla, en ESE grupo.
+   * 23-sep · la ventana es la común (`SG.CFGSESION`, en la plantilla de stargate.js): la abre también la sesión, desde
+   * «Configurar diapositivas». Aquí solo se le pasa lo que la consola sabe del grupo y se pone al día al guardar.
    */
   function abrirCfgSesion(per) {
     var p = PERS.filter(function (x) { return x.id === per; })[0] || {};
     var nombre = p.miNombre || miNombreEn(p);
     var dentro = per === PER && DATOS;
     var ses = (dentro ? ((window.SG.TABLERO.tablero(DATOS, true) || {}).sesiones) : ((p.stargate || {}).sesiones)) || {};
-    var t = { sesiones: ses };
-    var capa = document.createElement("div");
-    capa.className = "cfg-capa"; capa.setAttribute("role", "dialog"); capa.setAttribute("aria-modal", "true");
-    capa.innerHTML = '<div class="cfg-caja">' +
-      '<div class="cfg-cab">' + ico("ajustes", "grande") + '<div><b>Configurar la sesión</b><span>' + esc(p.nombre || per) + '</span></div>' +
-        '<button type="button" class="btn min" data-cfg-x>Cerrar</button></div>' +
-      (nombre ? bloqueSesion(t, nombre) + '<p class="cfg-pie"><button type="button" class="btn min" data-cfg-todo>Marcar todo</button> ' +
-                  '<a class="btn min" href="sesion.html?per=' + encodeURIComponent(per) + '" target="_blank" rel="noopener">Ver la sesión ↗</a></p>'
-             : '<p class="muted">No te encuentro en el equipo docente de este grupo con <b>' + esc((YO && YO.correo) || "") + '</b>.</p>') +
-      '</div>';
-    document.body.appendChild(capa);
-    var cerrar = function () { capa.remove(); document.removeEventListener("keydown", tecla); };
-    var tecla = function (e) { if (e.key === "Escape") cerrar(); };
-    document.addEventListener("keydown", tecla);
-    capa.addEventListener("click", function (e) { if (e.target === capa || e.target.closest("[data-cfg-x]")) cerrar(); });
-    var cajas = function () { return Array.prototype.slice.call(capa.querySelectorAll(".m-sec input")); };
-    var guardar = async function (revertir) {
-      var off = cajas().filter(function (x) { return !x.checked; }).map(function (x) { return x.getAttribute("data-sec"); });
-      var msg = capa.querySelector("#m-sec-msg"); msg.textContent = "Guardando…";
-      try {
-        await guardarParteEn(per, "sesiones", nombre, off);
+    window.SG.CFGSESION.abrir({ per: per, grupo: p.nombre || per, nombre: nombre, off: ses[nombre] || [],
+      alGuardar: function (off) {
         p.stargate = p.stargate || {}; p.stargate.sesiones = p.stargate.sesiones || {};
         if (off.length) p.stargate.sesiones[nombre] = off; else delete p.stargate.sesiones[nombre];
         if (dentro && DATOS.proyecto) { var S = DATOS.proyecto.stargate = DATOS.proyecto.stargate || {}; S.sesiones = Object.assign({}, p.stargate.sesiones); }
-        msg.textContent = "✓ Guardado" + (off.length ? " · quitas " + off.length + (off.length === 1 ? " sección" : " secciones") : " · sale todo");
-      } catch (e) { if (revertir) revertir(); msg.textContent = "No se ha podido guardar: " + (e.message || e); }
-    };
-    cajas().forEach(function (c) { c.onchange = function () { guardar(function () { c.checked = !c.checked; }); }; });
-    var todo = capa.querySelector("[data-cfg-todo]");
-    if (todo) todo.onclick = function () { cajas().forEach(function (c) { c.checked = true; }); guardar(); };
-    var primera = capa.querySelector(".m-sec input"); if (primera) primera.focus();
+      } });
   }
   document.addEventListener("click", function (e) {
     var b = e.target && e.target.closest && e.target.closest("[data-cfg-sesion]");
@@ -2004,8 +1955,13 @@
       // 16-sep · la sesión se pega DOS VECES en el Genially: la apertura antes de la teoría y el cierre después
       [["sesion-ap", ico("video") + " La sesión · 1 · apertura", "sesion.html?embed=1&tramo=apertura"],
        ["sesion-ci", ico("video") + " La sesión · 3 · cierre", "sesion.html?embed=1&tramo=cierre"],
-       ["sesion", ico("video") + " La sesión entera (sin partir)", "sesion.html?embed=1"], ["aula", ico("envivo") + " Herramientas de clase (en directo)", "aula.html?embed=1"],
-       ["llamada", ico("clase") + " La llamada a filas", "llamada.html?embed=1"], ["batalla", ico("diana") + " El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
+       ["sesion", ico("video") + " La sesión entera (sin partir)", "sesion.html?embed=1"],
+       // 23-sep · Norberto: «un embed exclusivo de herramientas: dar regalos, fichar, estudiante aleatorio, lanzar pregunta…»
+       ["aula", ico("envivo") + " Solo las herramientas (pasar lista, premiar, preguntar…)", "aula.html?embed=1"],
+       ["llamada", ico("clase") + " La llamada a filas", "llamada.html?embed=1"],
+       // 23-sep · el tablero, universal (Norberto: «el mismo enlace y embed para TODOS los grupos»): era por grupo
+       ["tablero", ico("medalla") + " El tablero (los rankings)", "registro.html?solo=1&embed=1"],
+       ["batalla", ico("diana") + " El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
         var tit = x[1].replace(/^<img[^>]*>\s*/, "");
         return '<span class="gp-gen-par"><button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + tit)) + '">' + x[1] + '</button>' +
           botonVentana(x[2], x[0], tit) + '</span>';
@@ -2048,7 +2004,8 @@
         enlaceFila("<img class=ico src=assets/img/iconos/p/brujula.png alt>", "Alistarse (con el código)", t.alta || (DATOS.proyecto && DATOS.proyecto.joinCode
           ? "alistarse.html?per=" + encodeURIComponent(PER) + "&codigo=" + encodeURIComponent(DATOS.proyecto.joinCode) : "")) +
         enlaceFila("<img class=ico src=assets/img/iconos/p/cohete.png alt>", "La Nave del alumnado", "recluta.html?per=" + encodeURIComponent(PER), "", true) +
-        enlaceFila("<img class=ico src=assets/img/iconos/p/medalla.png alt>", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1", "tablero_" + PER, true) +
+        // (el enlace de ESTE grupo, para abrirlo; el código para Genially es el universal, arriba en «Para tus Geniallys»)
+        enlaceFila("<img class=ico src=assets/img/iconos/p/medalla.png alt>", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1", "tablero_" + PER, false) +
         enlaceFila("<img class=ico src=assets/img/iconos/p/video.png alt>", "La sesión de esta semana", "sesion.html?per=" + encodeURIComponent(PER), "sesion_" + PER, true) +
         // 13-sep · la Nave con tu Comandante de recluta, para ensayar (o enseñarla fuera de la sesión): no guarda nada
         enlaceFila("<img class=ico src=assets/img/iconos/p/envivo.png alt>", "Tu Nave de ejemplo (simulacro)", "recluta.html?simulacro=1&per=" + encodeURIComponent(PER), "", true) +
@@ -3356,6 +3313,21 @@
    * haría retroceder el curso una semana a mitad de clase (y volvería a cerrar lo que ya se abrió).
    */
   var CAL = null;   // el borrador: { per, inicio, pausas: [], abiertos: {} }
+  /**
+   * 🔴 23-sep · LA FECHA ESCRITA A MANO SE PERDÍA. Norberto: «me deja cambiar la fecha, pero no se guardan los cambios si
+   * escribo la fecha en vez de seleccionarla con el calendario». Escrita a mano, el `change` del campo no llega hasta que
+   * pierde el foco… que es justo al pulsar «Guardar». Y ese `change` repintaba el panel entero entre el `mousedown` y el
+   * `mouseup` del botón: el botón pulsado ya no existía y el clic se perdía sin decir nada. Ahora, si hay un ratón o un
+   * dedo apretado, el repintado espera a que se suelte (el clic llega antes), y «Guardar» relee el campo por si acaso.
+   */
+  var PULSANDO = false;
+  document.addEventListener("pointerdown", function () { PULSANDO = true; }, true);
+  document.addEventListener("pointerup", function () { setTimeout(function () { PULSANDO = false; }, 0); }, true);
+  function trasElClic(fn) {
+    if (!PULSANDO) return fn();
+    var f = function () { document.removeEventListener("pointerup", f, true); setTimeout(fn, 0); };
+    document.addEventListener("pointerup", f, true);
+  }
   var MES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
   var DSEM = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
   function diaCorto(iso) { var d = window.SGSEMANAS.fecha(iso); return DSEM[d.getDay()] + " " + d.getDate() + " " + MES[d.getMonth()]; }
@@ -3397,7 +3369,7 @@
         : '<p class="muted">Tu referente aún no ha puesto la fecha de la semana 1.</p>') + "</div>";
       if ($("#cal-inicio")) $("#cal-inicio").onchange = function () {
         if (!/^\d{4}-\d\d-\d\d$/.test(this.value)) return;
-        CAL.inicio = this.value; CAL.pausas = SS.festivosUNIR ? SS.festivosUNIR(this.value, total, extra) : []; re();
+        CAL.inicio = this.value; CAL.pausas = SS.festivosUNIR ? SS.festivosUNIR(this.value, total, extra) : []; trasElClic(re);
       };
       return;
     }
@@ -3527,13 +3499,15 @@
           }).join("") + "</div></div>"
         : "");
     if (!edita) return;
-    $("#cal-inicio").onchange = function () {
-      var nuevoIni = this.value; if (!/^\d{4}-\d\d-\d\d$/.test(nuevoIni)) return;
+    // la fecha nueva, aplicada al borrador (sin repintar: eso lo decide quien llama)
+    var ponInicio = function (nuevoIni) {
+      if (!/^\d{4}-\d\d-\d\d$/.test(nuevoIni) || nuevoIni === CAL.inicio) return false;
       // las no lectivas se quedan en las mismas semanas del calendario (recolocadas sobre la rejilla nueva)
       CAL.pausas = SS.limpias(nuevoIni, CAL.pausas.map(function (p) {
         var d = SS.dias(nuevoIni, p); return d < 0 ? "" : SS.masDias(nuevoIni, Math.floor(d / 7) * 7); }));
-      CAL.inicio = nuevoIni; re();
+      CAL.inicio = nuevoIni; return true;
     };
+    $("#cal-inicio").onchange = function () { if (ponInicio(this.value)) trasElClic(re); };
     if ($("#cal-festivos")) $("#cal-festivos").onclick = function () { CAL.pausas = SS.limpias(CAL.inicio, CAL.pausas.concat(sinSaltar)); re(); };
     Array.prototype.forEach.call(app.querySelectorAll("[data-cal-tg]"), function (b) {
       var cambia = function () {
@@ -3551,6 +3525,8 @@
       b.onclick = function () { delete CAL.abiertos[b.getAttribute("data-cal-cierra")]; re(); }; });
     if ($("#cal-deshacer")) $("#cal-deshacer").onclick = function () { CAL = calDelGrupo(); re(); };
     if ($("#cal-guardar")) $("#cal-guardar").onclick = async function () {
+      // lo que diga el campo AHORA, aunque su `change` no haya llegado (tecleado y directo al botón)
+      if ($("#cal-inicio")) ponInicio($("#cal-inicio").value);
       var b = this; b.disabled = true; b.textContent = "Guardando…";
       try {
         var paq = fechasDe(CAL), st = paq.proyecto.stargate, hoyMs = SS.fecha(new Date()).getTime();
@@ -3704,49 +3680,6 @@
     if (p && p.miNombre) return p.miNombre;
     return ((((p && p.stargate) || {}).docentes || []).filter(function (d) {
       return String(d.correo || "").toLowerCase() === String((YO && YO.correo) || "").toLowerCase(); })[0] || {}).nombre || "";
-  }
-  /**
-   * 19-sep · ⚙ AJUSTES DEL PANEL: tu comandante y tu sesión en directo para TODOS tus grupos en marcha de una vez.
-   * Dentro de cada grupo (Mis enlaces) se puede afinar para uno solo; aquí se escribe lo mismo en cada uno.
-   */
-  function pintarAjustes(caja, vivos, avBtn) {
-    var mios = vivos.filter(function (p) { return !!miNombreEn(p); });
-    var base = mios[0] ? ((((mios[0].stargate || {}).sesiones) || {})[miNombreEn(mios[0])] || []) : [];
-    var distintos = mios.some(function (p) {
-      var o = (((p.stargate || {}).sesiones) || {})[miNombreEn(p)] || [];
-      return o.slice().sort().join() !== base.slice().sort().join();
-    });
-    caja.innerHTML = '<div class="doc-aj-grid">' +
-      '<div class="card"><h3>Tu comandante</h3><p class="small muted">El retrato con el que apareces en tu panel. Elige entre los 26 del reparto.</p>' +
-        '<p><button type="button" class="btn" id="doc-aj-ava">Elegir comandante</button></p></div>' +
-      '<div class="card m-sesion"><h3>Tu sesión en directo · en todos tus grupos</h3>' +
-        (mios.length
-          ? '<p class="small muted">Marca lo que quieres en tu presentación; se aplica a tus <b>' + mios.length + '</b> ' + (mios.length === 1 ? "grupo en marcha" : "grupos en marcha") +
-            ' (' + esc(mios.map(function (p) { return p.nombre; }).join(" · ")) + '). Por defecto sale todo; lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
-            'Para un solo grupo: dentro del grupo, en <b>Mis enlaces</b>.</p>' +
-            (distintos ? '<p class="small aviso-suave">Ahora mismo tus grupos no tienen la misma selección: te enseño la de «' + esc(mios[0].nombre) + '». Al tocar una casilla, todos quedan igual.</p>' : '') +
-            casillasSesion(base) +
-            '<p class="small m-sec-msg" id="doc-aj-msg" aria-live="polite"></p>'
-          : '<p class="small muted">No te encuentro en el equipo docente de ningún grupo en marcha con <b>' + esc((YO && YO.correo) || "") + '</b>.</p>') +
-      '</div></div>';
-    var bAva = caja.querySelector("#doc-aj-ava");
-    if (bAva && avBtn) bAva.onclick = function () { avBtn.click(); avBtn.scrollIntoView({ behavior: "smooth", block: "nearest" }); };
-    Array.prototype.forEach.call(caja.querySelectorAll(".m-sec input"), function (c) {
-      c.onchange = async function () {
-        var off = Array.prototype.filter.call(caja.querySelectorAll(".m-sec input"), function (x) { return !x.checked; })
-          .map(function (x) { return x.getAttribute("data-sec"); });
-        var msg = caja.querySelector("#doc-aj-msg"); msg.textContent = "Guardando en tus " + mios.length + " grupos…";
-        try {
-          await Promise.all(mios.map(function (p) {
-            return guardarParteEn(p.id, "sesiones", miNombreEn(p), off).then(function () {
-              p.stargate = p.stargate || {}; p.stargate.sesiones = p.stargate.sesiones || {};
-              if (off.length) p.stargate.sesiones[miNombreEn(p)] = off; else delete p.stargate.sesiones[miNombreEn(p)];
-            });
-          }));
-          msg.textContent = "✓ Guardado en " + mios.length + (mios.length === 1 ? " grupo" : " grupos") + (off.length ? " · quitas " + off.length + (off.length === 1 ? " sección" : " secciones") : " · sale todo");
-        } catch (e) { c.checked = !c.checked; msg.textContent = "No se ha podido guardar: " + (e.message || e); }
-      };
-    });
   }
   var VITALICIOS_WEB = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"];
   /**

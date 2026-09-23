@@ -16,6 +16,8 @@ function c(cierto, nombre, detalle) { if (cierto) { ok++; return; } fallos.push(
 const leer = f => fs.readFileSync(path.join(RAIZ, f), "utf8");
 const K = leer("assets/js/consola.js"), S = leer("assets/js/sesion.js"), A = leer("assets/js/aula.js"), M = leer("assets/js/motor.js");
 const CSS = leer("assets/css/stargate.css"), H = leer("consola.html");
+// 23-sep · la ventana de «Configurar diapositivas» es común (la plantilla de stargate.js): la abren la consola y la sesión
+const STG = leer("assets/js/stargate.js"), SH = leer("sesion.html");
 
 // ── 1 · el aula de la presentación se cierra
 c(/\.ses-aula\[hidden\]\{display:none\}/.test(CSS), "🔴 el aula de la presentación se cierra de verdad (display:flex ya no le gana a [hidden])");
@@ -24,15 +26,22 @@ c(/&embed=1&panel=1/.test(S) && /classList\.add\("au-panel"\)/.test(A) && /body\
 
 // ── 2 · la Nave del Comandante (20-sep: los grupos, en un desplegable dentro de tu ficha)
 c(/function selectorDeGrupo\(\)/.test(K) && /id="cn-sel-g"/.test(K) && /if \(V\.length\) return abrir\(V\[0\]\.id\);/.test(K), "🔴 los grupos, en un desplegable en tu ficha, y se entra directo en el último");
-c(/id="doc-ajustes-b"/.test(K) && /function pintarAjustes\(caja, vivos, avBtn\)/.test(K), "🔴 ⚙ Ajustes en el panel: tu comandante y tu sesión para todos tus grupos");
+// 🔴 23-sep · Norberto: «vamos a simplificar. El comandante se cambia pulsando en el lápiz del avatar. Para escoger las
+// diapositivas, mejor un botón en "Solo para ti / Antes de empezar" que ponga "Configurar diapositivas"»
+c(!/id="doc-ajustes-b"/.test(K) && !/function pintarAjustes\(/.test(K), "🔴 sin «⚙ Ajustes» en la Nave del Comandante: no hacía nada que no esté en otro sitio");
+c(/id="doc-ava"/.test(K) && /av-cambiar/.test(K), "   el comandante, en el lápiz del avatar");
+c(/id="prep-cfg"/.test(S) && /Configurar diapositivas/.test(S) && /window\.SG\.CFGSESION\.abrir\(/.test(S),
+  "🔴 «Configurar diapositivas» en la tira «Antes de empezar» de la sesión");
+c(/window\.SG_SECCIONES_SESION=\[/.test(SH) && /window\.SG_CAPTURAS_SESION=\[/.test(SH), "   y la sesión lleva lo que necesita la ventana (las secciones y sus capturas)");
 
 // ── 3 · la rueda de la sesión
 c(/function botonCfgSesion\(per\)/.test(K) && (K.match(/botonCfgSesion\((p\.id|PER)\)/g) || []).length === 1, "🔴 la rueda al lado de «Empezar la clase», en el Puente del grupo");
-c(/function abrirCfgSesion\(per\)/.test(K) && /data-cfg-todo/.test(K) && /guardarParteEn\(per, "sesiones", nombre, off\)/.test(K), "   su ventana guarda al tocar, en ese grupo, y tiene «Marcar todo»");
+c(/function abrirCfgSesion\(per\)/.test(K) && /window\.SG\.CFGSESION\.abrir\(/.test(K), "   la rueda abre la MISMA ventana que la sesión (una sola, en stargate.js)");
+c(/window\.SG\.CFGSESION = /.test(STG) && /data-cfg-todo/.test(STG) && /"stargate\.sesiones": m/.test(STG), "   su ventana guarda al tocar, en ese grupo, y tiene «Marcar todo»");
 c(!/bloqueSesion\(t, yo\.nombre\)/.test(K) && !/\(yoN \? bloqueSesion/.test(K), "   y ya no está ni en Mis enlaces ni en la portada");
 const caps = fs.readdirSync(path.join(RAIZ, "assets/img/sesion")).filter(f => f.endsWith(".jpg"));
-c(caps.length >= 13 && /window\.SG_CAPTURAS_SESION=\[/.test(H) && /class="m-sec-img"/.test(K), "🔴 cada casilla con la captura de su diapositiva", caps.length + " capturas");
-c(/var SIN_CAPTURA = \{ simulador:/.test(K), "   y las que dependen de que haya algo, con su icono y cuándo salen");
+c(caps.length >= 13 && /window\.SG_CAPTURAS_SESION=\[/.test(H) && /class="m-sec-img"/.test(STG), "🔴 cada casilla con la captura de su diapositiva", caps.length + " capturas");
+c(/var SIN_CAPTURA = \{ simulador:/.test(STG), "   y las que dependen de que haya algo, con su icono y cuándo salen");
 c(/data-sec="'\+esc\(secDe\(d\)\)\+'"/.test(S), "   (cada paso de la sesión dice su sección: así se sacan las capturas)");
 
 // ── 4 · la portada del grupo

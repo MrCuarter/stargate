@@ -72,8 +72,9 @@
       + ((window.SG && window.SG.LOGO_G) || '') + '</span><span class="ep-txt">Entrar con otra cuenta</span></button></div>');
     $('#bt-otra2').onclick = function () { cargando('Abriendo…'); M.entrar().then(mirar).catch(function () { puerta(); }); };
   }
-  function elegirGrupo(grupos) {
-    pinta('<div class="bt-caja bt-centro"><h2>¿En qué grupo estamos?</h2><p class="bt-sub">Estás alistado en más de uno.</p>'
+  function elegirGrupo(grupos, docente) {
+    pinta('<div class="bt-caja bt-centro"><h2>¿En qué grupo estamos?</h2><p class="bt-sub">'
+      + (docente ? 'Das clase en más de uno: elige cuál quieres enseñar. Es un ensayo: nada cuenta ni se guarda.' : 'Estás alistado en más de uno.') + '</p>'
       + '<div class="bt-grupos">' + grupos.map(function (g, i) {
         return '<button class="btn" data-g="' + i + '">' + esc(g.nombreGrupo || g.per) + '</button>'; }).join('') + '</div></div>');
     Array.prototype.forEach.call(app.querySelectorAll('[data-g]'), function (b) {
@@ -550,9 +551,24 @@
     if (PER) return cargarEstado();
     cargando('Buscando tu grupo…');
     M.misGruposDeAlumno(YO.uid).then(function (g) {
-      if (!g.length) return otraCuenta((YO.correo || YO.email || ''));
       if (g.length === 1) { PER = g[0].per; return cargarEstado(); }
-      elegirGrupo(g);
+      if (g.length > 1) return elegirGrupo(g);
+      /**
+       * 🔴 23-sep · UN DOCENTE, TAMBIÉN. Norberto: «si se inicia sesión con la cuenta de un docente, debe poder mostrar el
+       * simulador completo a modo de ejemplo». Un docente no tiene ficha de recluta y aquí se le decía «esta cuenta no
+       * está en ningún grupo». El servidor ya lo sabía hacer —a quien da clase en el grupo y no está alistado le abre
+       * TODOS los modos, en ensayo, sin guardar nada—: faltaba buscarle en sus grupos de docente.
+       */
+      var correo = YO.correo || YO.email || '';
+      return (M.misPERs ? M.misPERs(correo) : Promise.resolve([])).then(function (ps) {
+        ps = ps || [];
+        var vivos = ps.filter(function (p) { return p.estado === 'en marcha'; });
+        var suyos = (vivos.length ? vivos : ps).map(function (p) { return { per: p.id, nombreGrupo: p.nombre }; });
+        if (!suyos.length) return otraCuenta(correo);
+        ENSAYO = true;
+        if (suyos.length === 1) { PER = suyos[0].per; return cargarEstado(); }
+        elegirGrupo(suyos, true);
+      });
     }).catch(function (e) { fallo(e && e.message ? e.message : e, true); });
   }
   function arrancar() {

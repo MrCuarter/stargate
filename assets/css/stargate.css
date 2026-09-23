@@ -286,6 +286,11 @@ footer a{color:var(--teal2)}
 .yt.on img,.yt.on .play,.yt.on .cap{display:none}
 .yt-full{margin:20px 0}.yt-full .yt .cap{font-size:.9rem}
 .yt-list{display:grid;gap:14px}.yt-list.three{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+/* 23-sep · el vídeo de YouTube que trae un mensaje del foro, embebido en el propio mensaje (SG.ytInline) */
+.yt-foro{margin:12px 0;max-width:640px}
+.orden-sem .yt-foro{margin:10px 0 12px}
+.yt-foro .cap b{font-size:.95rem}
+.foro-firma{color:var(--amber);font-weight:700}
 /* cronología */
 .tablewrap{overflow-x:auto}
 table.mapa td{font-size:.88rem}
@@ -2817,6 +2822,15 @@ body.alistado header.hero{display:none}
 .h-sw .h-sw-si{color:#7ef0c8}.h-sw .h-sw-no{display:none;color:#ffb86b}
 .h-sw input:not(:checked)~.h-sw-si{display:none}.h-sw input:not(:checked)~.h-sw-no{display:inline}
 .hv-f input[type=datetime-local]{color-scheme:dark}
+/* 🔴 23-sep · EL ICONO DEL CALENDARIO NO SE VEÍA (Norberto: «tanto en la creación de grupos como en gestión es tan oscuro
+   que no se ve. Ponlo de otro color más vistoso»). Sin `color-scheme`, el navegador pintaba su glifo NEGRO sobre el fondo
+   oscuro de la casa. Ahora todos los campos de fecha son de tema oscuro y el botón del calendario es nuestro icono, a color. */
+input[type=date],input[type=datetime-local],input[type=time]{color-scheme:dark}
+input[type=date]::-webkit-calendar-picker-indicator,input[type=datetime-local]::-webkit-calendar-picker-indicator{
+  width:22px;height:22px;padding:0;margin-left:6px;cursor:pointer;opacity:1;
+  background:url(../img/iconos/p/calendario.png) center/contain no-repeat;color:transparent}
+input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=datetime-local]::-webkit-calendar-picker-indicator:hover{
+  filter:drop-shadow(0 0 6px rgba(55,224,236,.7))}
 .hv-l2{flex-wrap:wrap}
 .hv-l2 a.btn{text-decoration:none}
 .hv-botones{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
@@ -2947,8 +2961,11 @@ body.alistado header.hero{display:none}
    visual. Intenta compactar más la info». Cada premio enseña la misma imagen que le llegará al
    recluta; el nombre, debajo y pequeño. Y arriba, el enlace que se pega en el chat de la clase. */
 .au-pr{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 8px 8px;line-height:1.15}
-/* la lámina del premio, recortada como una miniatura (el arte es apaisado: a 46 px «contain» no se veía nada) */
-.au-pr-i{width:100%;height:54px;object-fit:cover;object-position:center;border-radius:8px;background:#060d15}
+/* 🔴 23-sep · la lámina del premio, ENTERA. Norberto: «en el embed de herramientas se cortan las imágenes de recompensas.
+   Ponlas completas». Era una franja de 54 px de alto con `cover` (y un cuadrado de 38 px dentro del embed): de la carta
+   —que es vertical— quedaba una tira. Ahora cada lámina cabe entera en su caja 16:9 (las apaisadas la llenan; la carta
+   sale completa, centrada), y la caja es la misma para todas para que las filas no bailen. */
+.au-pr-i{width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;object-position:center;border-radius:8px;background:#060d15}
 .au-pr.puntos .au-pr-i{height:44px;width:44px;object-fit:contain;background:none;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5))}
 .au-pr-t{font-size:.84rem;font-weight:700}
 .au-grupo-pr .au-pr{padding:9px 6px 8px}
@@ -2956,10 +2973,13 @@ body.alistado header.hero{display:none}
 .au-chat-u{display:block;margin-top:8px;padding:7px 10px;border-radius:9px;background:#0b1119;border:1px solid #24304a;
   color:#9fd8e0;font-size:.78rem;word-break:break-all}
 .au-viva{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;color:#bfe9ef}
+/* 23-sep · pasar lista desde las herramientas: la duración y el botón, pegados; abierta, el cierre al lado */
+.au-ll{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.au-ll select{background:#0b1119;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:6px 8px;font:inherit;font-size:.85rem}
 .au-viva::before{content:"";width:8px;height:8px;border-radius:50%;background:#3ed6c8;box-shadow:0 0 0 0 rgba(62,214,200,.6);animation:auLate 1.6s infinite}
 @keyframes auLate{70%{box-shadow:0 0 0 7px rgba(62,214,200,0)}100%{box-shadow:0 0 0 0 rgba(62,214,200,0)}}
 @media (prefers-reduced-motion:reduce){.au-viva::before{animation:none}}
-@media(max-width:560px){.au-pr-i{width:38px;height:38px}.au-pr-t{font-size:.78rem}}
+@media(max-width:560px){.au-pr-t{font-size:.78rem}}
 
 /* ================================================================== LA NAVE POR CAPÍTULOS (13-sep) */
 .prox-cap{margin:4px 0 0;font-size:.9rem;color:var(--mut,#8aa5ab)}
@@ -5382,6 +5402,13 @@ body.con-visor{overflow:hidden}
 .frag-tapa.grande{aspect-ratio:auto;height:100%;min-height:260px;border:0;border-radius:16px}
 .frag-tapa.grande b{font-size:1.2rem}
 .frag-tapa.grande span{font-size:.95rem}
+/* 23-sep · el candado también en los otros sitios que enseñan vídeos: el mapa de planetas y la tira del cine */
+.yt.cerrado{cursor:default;background:#0b1119}
+.yt.cerrado .frag-tapa{height:100%;border:0}
+.cine-mini-tapa{width:112px;aspect-ratio:16/9;border-radius:7px;display:grid;place-items:center;
+  background:repeating-linear-gradient(135deg,#0b1119,#0b1119 8px,#0e1826 8px,#0e1826 16px)}
+.cine-mini-tapa img.ico{width:22px;height:22px;opacity:.8}
+.cine-mini.cerrada b{color:var(--mut)}
 @media(max-width:600px){.ar-marcador{margin-left:0}}
 
 /* 🔴 20-sep · EL MENSAJE DEL FORO, COMO UNA CARTA OFICIAL (la Nave) y su firma en la sesión proyectada */

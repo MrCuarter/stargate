@@ -1698,8 +1698,7 @@ function construirTicket_(ft, referente, profesores, perId) {
   var ch = [sel.createChoice("Presentaci\u00f3n de la asignatura", pPres)];
   for (var t = 1; t <= 8; t++) {
     ch.push(sel.createChoice("Tema " + t + ": " + TEMAS[t][1] + " (" + TEMAS[t][0] + ")", pTema));
-    if (t === 1) ch.push(sel.createChoice("Actividad 1: actividad did\u00e1ctica a partir de una imagen con IA", pAct));
-    if (t === 3) ch.push(sel.createChoice("Actividad 2: planifica y crea un paisaje de aprendizaje", pAct));
+    // 23-sep - sin las dos actividades (Norberto: "solo presentacion, 8 temas y final")
   }
   ch.push(sel.createChoice("Repaso / balance final", pRep));
   sel.setChoices(ch);

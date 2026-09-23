@@ -38,10 +38,50 @@ function montar(root, per, OPC){
   // nadie. Por eso pide los datos a la fuente y no a Firestore: con el motor nuevo hay una puerta
   // pública de solo lectura montada justo para esto.
   function fallo(e){msg('<b>No se pudo cargar el tablero.</b> '+esc(e&&e.message||e));}
-  function lista(cb){ (FUENTE?FUENTE.lista():fetch(API+'?per=all').then(function(r){return r.json();})).then(cb).catch(fallo); }
   function uno(id,cb){ (FUENTE?FUENTE.tablero(id):fetch(API+'?per='+encodeURIComponent(id)).then(function(r){return r.json();})).then(cb).catch(fallo); }
-  if(!per&&!enConsola){lista(function(d){if(!d.pers||!d.pers.length){msg('<b>Aún no hay ningún PER.</b>');return;}
-    root.innerHTML='<h3>Elige tu PER</h3><div class="pers">'+d.pers.map(function(p){return '<a class="btn" href="?per='+encodeURIComponent(p.id)+(embed?'&embed=1':'')+'">'+esc(p.nombre)+' <small>· '+esc(p.tipo)+' · '+esc(p.estado)+'</small></a>';}).join('')+'</div>';});return;}
+  /**
+   * 🔴 23-sep · EL MISMO TABLERO PARA TODOS LOS GRUPOS. Norberto: «ahora mismo cada grupo tiene su embed de tablero. Me
+   * encantaría que el mismo enlace y embed sirviera para TODOS los grupos. Al igual que en las presentaciones, detecta el
+   * usuario que ha iniciado sesión. Si es docente, aparecen los botones de sus grupos en activo para que escoja cuál
+   * mostrar. Si es estudiante, le aparece el tablero de su grupo». Sin `per`, antes salía «Elige tu PER» con TODOS los
+   * grupos del sistema, a la vista de cualquiera que abriera el enlace. Ahora se pregunta a la cuenta.
+   */
+  if(!per&&!enConsola){ porCuenta(); return; }
+  function porCuenta(){
+    var ir=function(id){ montar(root, id, OPC); };
+    var botones=function(lista, txt){
+      root.innerHTML='<div class="tb-elige"><h3>¿Qué tablero proyectamos?</h3><p class="muted">'+esc(txt)+'</p><div class="pers">'
+        +lista.map(function(g,i){ return '<button type="button" class="btn" data-tb-g="'+i+'">'+esc(g.nombre||g.id)+'</button>'; }).join('')+'</div></div>';
+      Array.prototype.forEach.call(root.querySelectorAll('[data-tb-g]'),function(b){ b.onclick=function(){ ir(lista[Number(b.getAttribute('data-tb-g'))].id); }; });
+    };
+    var puerta=function(M){
+      root.innerHTML='<div class="tb-elige"><h3>El tablero de tu grupo</h3><p class="muted">Entra con tu cuenta: si eres del alumnado, sale el '
+        +'de tu grupo; si das clase, eliges cuál.</p><button type="button" class="btn primary" id="tb-entrar">'
+        +((window.SG&&window.SG.LOGO_G)||'')+' Entrar con Google</button></div>';
+      document.getElementById('tb-entrar').onclick=function(){ M.entrar().then(arranca).catch(function(){ puerta(M); }); };
+    };
+    var arranca=function(){
+      var M=window.SG&&window.SG.MOTOR;
+      if(!M||!M.sesion){ msg('<b>El tablero necesita saber de qué grupo eres.</b> Ábrelo desde tu Nave.'); return; }
+      msg('Buscando tu grupo…');
+      M.sesion().then(function(yo){
+        if(!yo) return puerta(M);
+        return M.misGruposDeAlumno(yo.uid).then(function(g){
+          if(g.length===1) return ir(g[0].per);
+          if(g.length>1) return botones(g.map(function(x){ return {id:x.per, nombre:x.nombreGrupo||x.per}; }), 'Estás alistado en más de uno.');
+          return (M.misPERs?M.misPERs(yo.correo||yo.email||''):Promise.resolve([])).then(function(ps){
+            var vivos=(ps||[]).filter(function(x){ return x.estado==='en marcha'; });
+            if(!vivos.length) return msg('<b>Esta cuenta no está en ningún grupo en marcha.</b> Entra con la cuenta con la que te alistaste o con la que das clase.');
+            if(vivos.length===1) return ir(vivos[0].id);
+            botones(vivos.map(function(x){ return {id:x.id, nombre:x.nombre}; }), 'Das clase en más de uno: elige cuál.');
+          });
+        });
+      }).catch(fallo);
+    };
+    if(window.SG&&window.SG.MOTOR) arranca();
+    else { document.addEventListener('sg:motor', arranca, {once:true});
+      setTimeout(function(){ if(!(window.SG&&window.SG.MOTOR)) msg('<b>No he podido comprobar quién eres.</b> Recarga la página.'); }, 12000); }
+  }
   if(!enConsola) msg('Cargando el tablero…');
   function dots(p){return ORDEN.map(function(k){var on=p.insignias.indexOf(k)>=0;return '<img class="dot'+(on?'':' off')+'" src="assets/img/insignias/'+k+'.png" title="'+esc(N[k]||k)+(on?'':' (pendiente)')+'" alt="">';}).join('');}
 

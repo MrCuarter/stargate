@@ -39,7 +39,7 @@
    * persona con nombre, así que se firma con el suyo — «Comandante Ana Ruiz» dice mucho más que
    * «Capitán», y es lo que pidió Norberto.
    */
-  function msgHtml(txt,perId){txt=String(txt==null?'':txt);
+  function msgHtml(txt,perId,sinVideos){txt=String(txt==null?'':txt);
     txt=perId?txt.split('{id-del-PER}').join(perId):txt.split('?per={id-del-PER}').join('').split('&per={id-del-PER}').join('');
     var jefe=(st.yo&&st.yo.profe)||'';
     // 🔴 Sin duplicar el tratamiento: hay docentes cuyo nombre en el sistema YA es «Comandante
@@ -48,15 +48,28 @@
       var firma = /^comandante\b/i.test(jefe.trim()) ? jefe.trim() : 'Comandante '+jefe.trim();
       txt=txt.replace(/—\s*Capit[áa]n\b/g,'— '+firma);
     }
-    var parrafos=txt.split(/\n\s*\n/).map(function(b){
-      return esc(b.replace(/\s*\n\s*/g,' ').trim());
-    }).filter(Boolean);
-    return parrafos.map(function(b){
-      return '<p>'+b.replace(/https?:\/\/[^\s<»)]+/g,function(u){
-        return '<a href="'+u+'" target="_blank" rel="noopener">'+u+'</a>'; })+'</p>';
+    /**
+     * 🔴 23-sep · EL MISMO LECTOR QUE LA NAVE DEL COMANDANTE Y LA SESIÓN (SG.foroParrafos): encabezados, órdenes, firma y,
+     * lo que pidió Norberto, «siempre que haya un enlace de YouTube, embébelo dentro del mensaje». Antes este mensaje se
+     * partía aquí a mano en párrafos y el vídeo de bienvenida era una URL suelta.
+     */
+    var enlaces=function(h){ return h.replace(/https?:\/\/[^\s<»)]+/g,function(u){ return '<a href="'+u+'" target="_blank" rel="noopener">'+u+'</a>'; }); };
+    var B=(window.SG&&window.SG.foroParrafos)?window.SG.foroParrafos(txt):txt.split(/\n\s*\n/).map(function(b){ return {t:'p',x:b.replace(/\s*\n\s*/g,' ').trim()}; });
+    return B.map(function(b){
+      if(b.t==='yt') return sinVideos?'':window.SG.ytInline(b.id, b.x);
+      if(b.t==='h') return '<h4 class="fc-h">'+esc(b.x)+'</h4>';
+      if(b.t==='ul') return '<ul class="fc-ordenes">'+b.items.map(function(i){ return '<li>'+enlaces(esc(i))+'</li>'; }).join('')+'</ul>';
+      if(b.t==='firma') return '<p class="foro-firma">'+esc(b.x)+'</p>';
+      return b.x?'<p>'+enlaces(esc(b.x))+'</p>':'';
     }).join('');}
+  /** Los vídeos de YouTube que trae un mensaje del foro, ya embebidos (SG.ytInline). */
+  function videosDelMensaje(txt){
+    if(!(window.SG&&window.SG.foroParrafos)) return '';
+    return window.SG.foroParrafos(String(txt||'')).filter(function(b){ return b.t==='yt'; })
+      .map(function(b){ return window.SG.ytInline(b.id, b.x); }).join('');
+  }
   function ytb(v,c){return '<div class="yt" data-id="'+v.id+'" role="button" tabindex="0"><img loading="lazy" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt=""><span class="play">▶</span><div class="cap"><b>'+esc(v.titulo)+'</b><em>'+esc(c)+'</em></div></div>';}
-  function wireYt(el){Array.prototype.forEach.call(el.querySelectorAll('.yt'),function(y){y.onclick=function(){if(y.classList.contains('on'))return;var f=document.createElement('iframe');f.src='https://www.youtube-nocookie.com/embed/'+y.getAttribute('data-id')+'?autoplay=1&rel=0';f.allow='autoplay; encrypted-media; picture-in-picture';f.allowFullscreen=true;y.insertBefore(f,y.firstChild);y.classList.add('on');};});}
+  function wireYt(el){Array.prototype.forEach.call(el.querySelectorAll('.yt[data-id]'),function(y){y.onclick=function(){if(y.classList.contains('on'))return;var f=document.createElement('iframe');f.src='https://www.youtube-nocookie.com/embed/'+y.getAttribute('data-id')+'?autoplay=1&rel=0';f.allow='autoplay; encrypted-media; picture-in-picture';f.allowFullscreen=true;y.insertBefore(f,y.firstChild);y.classList.add('on');};});}
   function minis(keys){return keys.map(function(k){return '<figure class="mini badge"><img loading="lazy" src="assets/img/insignias/'+k+'.png" alt="'+esc(NOMBRES[k]||k)+'"><figcaption>'+esc(NOMBRES[k]||k)+'</figcaption></figure>';}).join('');}
 
   // ---------- sin PER: selector ----------
@@ -405,10 +418,23 @@
     if(f.reto && mios.indexOf(f.reto)>=0) return true;
     return Number(st.actual||0) >= Number(f.publica||99);
   }
+  // 23-sep · el reto, por su nombre («El boceto sin quemar»), no por su id: «A1» no le dice nada a quien lo lee
+  function nombreDeReto(id){
+    var R=(window.SG_RETOS||{})[(st.d&&st.d.tipo)||'REGULAR']||[];
+    for(var i=0;i<R.length;i++) if(R[i][0]===id){ var m=String(R[i][1]||'').match(/«([^»]+)»/); return m?'«'+m[1]+'»':String(R[i][1]||id); }
+    return id;
+  }
   function fragMotivo(f){
-    return (f.reto ? 'Se desbloquea al registrar el reto <b>'+esc(f.reto)+'</b>' : 'Se desbloquea al final del viaje')
+    return (f.reto ? 'Se desbloquea al registrar el reto <b>'+esc(nombreDeReto(f.reto))+'</b>' : 'Se desbloquea al final del viaje')
       + (Number(f.publica) ? ' · para todos, en la <b>semana '+f.publica+'</b>' : '');
   }
+  /**
+   * 🔴 23-sep · UN VÍDEO, CON SU CANDADO SI LO LLEVA. Norberto: «en El Archivo los estudiantes pueden ver los fragmentos
+   * aunque no hayan recuperado al personaje. Arréglalo». El Archivo sí preguntaba; los que NO preguntaban eran los otros
+   * sitios que pintan vídeos: el mapa de planetas de «Mis retos» (cada planeta abierto enseñaba sus vídeos con su play,
+   * fragmento incluido) y la tira de miniaturas del cine. Todos pasan ahora por aquí.
+   */
+  function fragCerrado(v){ var f=fragDe(v&&v.id); return f&&!fragAbierto(f) ? f : null; }
   function tapaFragmento(f, cls){
     return '<div class="frag-tapa'+(cls?' '+cls:'')+'" role="img" aria-label="Bloqueado. '+esc(String(fragMotivo(f)).replace(/<[^>]+>/g,''))+'">'
       +'<img class=ico src=assets/img/iconos/p/candado.png alt>'
@@ -434,8 +460,9 @@
             var abierto = llegada && (!fr || fragAbierto(fr));
             if(abierto) tengo++;
             if(!abierto){
+              // (un fragmento de una semana que aún no ha llegado no dice de quién es: eso lo cuenta su semana)
               return '<article class="ar-v cerrada">'
-                +(fr?tapaFragmento(fr):'<div class="frag-tapa"><img class=ico src=assets/img/iconos/p/candado.png alt><b>???</b><span>Llega en la <b>semana '+s.sem+'</b></span></div>')
+                +(fr&&llegada?tapaFragmento(fr):'<div class="frag-tapa"><img class=ico src=assets/img/iconos/p/candado.png alt><b>???</b><span>Llega en la <b>semana '+s.sem+'</b></span></div>')
                 +'</article>';
             }
             return '<article class="ar-v'+(fr?' es-frag':'')+'">'
@@ -489,9 +516,12 @@
       +'<div class="cine-nav"><span>'+(i+1)+' de '+V.length+'</span>'
       +(i<V.length-1?'<button type="button" class="btn small" data-cine-i="'+(i+1)+'">Siguiente ▶</button>':'')+'</div></div>'
       +(V.length>1?'<div class="cine-tira">'+V.map(function(x,j){
-          return '<button type="button" class="cine-mini'+(j===i?' on':'')+'" data-cine-i="'+j+'">'
-            +'<img src="https://i.ytimg.com/vi/'+esc(x[0].id)+'/mqdefault.jpg" alt="" loading="lazy">'
-            +'<span><b>'+esc(x[0].titulo)+'</b>'+(x[1]?'<em>'+esc(x[1])+'</em>':'')+'</span></button>';
+          // 23-sep · un fragmento sin ganar, en la tira, tampoco enseña su carátula: candado y cómo se abre
+          var fc=fragCerrado(x[0]);
+          return '<button type="button" class="cine-mini'+(j===i?' on':'')+(fc?' cerrada':'')+'" data-cine-i="'+j+'">'
+            +(fc?'<span class="cine-mini-tapa"><img class=ico src=assets/img/iconos/p/candado.png alt></span>'
+                :'<img src="https://i.ytimg.com/vi/'+esc(x[0].id)+'/mqdefault.jpg" alt="" loading="lazy">')
+            +'<span><b>'+esc(x[0].titulo)+'</b>'+(fc?'<em>Bloqueado</em>':(x[1]?'<em>'+esc(x[1])+'</em>':''))+'</span></button>';
         }).join('')+'</div>':'')
       +'</section>';
   }
@@ -534,8 +564,10 @@
     return '<div class="card orden-sem"><div class="eyebrow amber">La orden de la semana</div>'
       + '<h3>' + esc(sm.tema) + '</h3>'   // el número vive en la cabecera, y en un sitio basta
       + '<p class="small muted">' + esc(sm.sub || '') + '</p>'
+      // 23-sep · el vídeo del mensaje va FUERA del recorte, delante: recortado a 120 px solo se le veía el pelo
+      + videosDelMensaje(sm.foro)
       // recortado, con «Leer entero»: la orden entera empujaba la tarjeta muy por debajo de la ficha
-      + '<div class="foro-msg recortado">' + msgHtml(sm.foro, per) + '</div>'
+      + '<div class="foro-msg recortado">' + msgHtml(sm.foro, per, true) + '</div>'
       + '<button type="button" class="leer-entero" data-leer-entero>Leer entero ▾</button>'
       /**
        * 🔴 LOS VÍDEOS DE LA SEMANA, AQUÍ. Estaban solo dentro de «ver la semana entera», a dos
@@ -2189,7 +2221,10 @@
       +'<div class="foro-msg">'+msgHtml(s.foro,per)+'</div>'
       +(s.lanza.length?'<h4>Retos</h4><ul>'+s.lanza.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')
       +(s.insignias.length?'<h4>Insignias en juego</h4><div class="minis">'+minis(s.insignias)+'</div>':'')
-      +(s.videos.length?'<h4>Vídeos</h4><div class="yt-list three">'+s.videos.map(function(v){return ytb(v[0],v[1]);}).join('')+'</div>':'')
+      // 🔴 23-sep · aquí se escapaban: cada planeta abierto enseñaba sus vídeos con su play, fragmento incluido
+      +(s.videos.length?'<h4>Vídeos</h4><div class="yt-list three">'+s.videos.map(function(v){
+          var fc=fragCerrado(v[0]); return fc?'<div class="yt cerrado">'+tapaFragmento(fc)+'</div>':ytb(v[0],v[1]);
+        }).join('')+'</div>':'')
       +'</div>';
   }
   function estaSemana(){

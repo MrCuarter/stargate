@@ -1444,6 +1444,10 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
   Array.prototype.forEach.call(document.querySelectorAll('.yt'),function(el){
     el.addEventListener('click',function(){playYT(el);});
     el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();playYT(el);}});});
+  // 23-sep · los vídeos de dentro de un mensaje (SG.ytInline) llegan cuando la página ya está pintada: por delegación
+  document.addEventListener('click',function(e){ var el=e.target&&e.target.closest&&e.target.closest('.yt-foro'); if(el) playYT(el); });
+  document.addEventListener('keydown',function(e){ var el=e.target&&e.target.closest&&e.target.closest('.yt-foro');
+    if(el&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); playYT(el); } });
   /**
    * 🔴 20-sep · EL VISOR: los vídeos se ven AQUÍ. Norberto: «haz que los vídeos se reproduzcan en la propia web, un
    * visor de vídeos; no hagas que lleve a YouTube (si es posible)». Se abre encima, con el título y el botón de cerrar
@@ -1571,9 +1575,28 @@ window.SG.avatarSrc = function(av, alias, xp, tipoPer){
  * `op.proyectar`: para la sesión en clase. Quita los enlaces (en una proyección no se pulsan) y el «(Clase 10)» del
  * final, que ahí sobra.
  */
+/**
+ * 🔴 23-sep · UN ENLACE DE YOUTUBE ES UN VÍDEO. Norberto: «siempre que haya un enlace de YouTube, es para que lo embebas
+ * dentro del mensaje». Fuera de la proyección, cada enlace de YouTube se convierte en un bloque `{t:'yt', id, x}` —con
+ * `x` = lo que lo presentaba, si era una línea corta tipo «Mensaje de bienvenida:»— y lo pinta `SG.ytInline`: la
+ * carátula y, al pulsar, el vídeo AHÍ, sin salir de la página. En la proyección no: el vídeo ya tiene su diapositiva
+ * justo detrás del mensaje.
+ */
+window.SG.ytId = function (u) {
+  var m = String(u || '').match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#\s]*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
+  return m ? m[1] : '';
+};
+window.SG.ytInline = function (id, cap) {
+  var e = function (x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  return '<div class="yt yt-foro" data-id="' + e(id) + '" role="button" tabindex="0" aria-label="Ver el vídeo' + (cap ? ': ' + e(cap) : '') + '">'
+    + '<img loading="lazy" src="https://i.ytimg.com/vi/' + e(id) + '/hqdefault.jpg" alt=""><span class="play">▶</span>'
+    + (cap ? '<div class="cap"><b>' + e(cap) + '</b></div>' : '') + '</div>';
+};
 window.SG.foroParrafos = function (t, op) {
   op = op || {};
   var txt = String(t || '').split('{id-del-PER}').join('');
+  var MARCA = '\u0001';
+  if (!op.proyectar) txt = txt.replace(/https?:\/\/\S+/g, function (u) { var id = window.SG.ytId(u); return id ? MARCA + id + MARCA : u; });
   if (op.proyectar) txt = txt.replace(/:?[ \t]*https?:\/\/\S+/g, '§');
   var limpia = function (x) {
     x = x.replace(/\s+([.,;:])/g, '$1').trim();
@@ -1600,12 +1623,96 @@ window.SG.foroParrafos = function (t, op) {
       if (items.length) out.push({ t: 'ul', items: items });
       return;
     }
-    var uno = limpia(lineas.join(' '));
+    var junto = lineas.join(' ');
+    if (junto.indexOf(MARCA) >= 0) {
+      var ids = [], resto = junto.replace(new RegExp(MARCA + '([\\w-]{11})' + MARCA, 'g'), function (_, id) { ids.push(id); return ' '; });
+      resto = limpia(resto).replace(/[:·.\s]+$/, '');
+      // una línea corta que solo presentaba el vídeo («Mensaje de bienvenida:») pasa a ser su rótulo
+      var rotulo = ids.length === 1 && resto.length <= 60 ? resto : '';
+      if (resto && !rotulo) out.push({ t: 'p', x: resto });
+      ids.forEach(function (id) { out.push({ t: 'yt', id: id, x: rotulo }); });
+      return;
+    }
+    var uno = limpia(junto);
     if (!uno || uno === '.') return;
     out.push({ t: esTitulo(uno) ? 'h' : 'p', x: uno });
   });
   return out;
 };
+/**
+ * 🔴 23-sep · «CONFIGURAR DIAPOSITIVAS», UNA SOLA VENTANA PARA LAS DOS PÁGINAS. Norberto: «en la Nave del Comandante, pulsar
+ * en Ajustes solo hace que puedas escoger las diapositivas de la sesión en vivo o cambiar de avatar. Vamos a simplificar…
+ * para escoger las diapositivas, mejor poner un botón en "Solo para ti / Antes de empezar" que ponga "Configurar
+ * diapositivas"». Esa tira vive en la sesión (sesion.js), y la ventana vivía en la consola: para no tener dos copias de lo
+ * mismo, la ventana baja aquí y la abren las dos (la rueda del banner del grupo y el botón de la tira).
+ *
+ *   abrir({ per, grupo, nombre, off, alGuardar(off) })
+ *     per: el grupo · grupo: su nombre visible · nombre: tu nombre en su equipo docente (con él se guarda lo tuyo)
+ *     off: las secciones que ya tienes quitadas · alGuardar: para que la página que la abre se ponga al día
+ */
+window.SG.CFGSESION = (function () {
+  function e(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function ico(k, grande){ return '<img class="ico'+(grande?' grande':'')+'" src="assets/img/iconos/'+(grande?'':'p/')+k+'.png" alt="" width="20" height="20">'; }
+  var SIN_CAPTURA = { simulador: ["diana", "Sale cuando alguien ha jugado al Simulador"], votacion: ["rayo", "Sale si hay una votación esta semana"],
+                      oferta: ["monedas", "Sale si hay oferta en el Mercado"], unete: ["gente", "Sale en las semanas 1 y 2: el código y la invitación"] };
+  function casillas(off) {
+    var hay = window.SG_CAPTURAS_SESION || [];
+    return '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
+      var k = x[0], sc = SIN_CAPTURA[k] || ["video", "Sale cuando esa semana tiene algo que enseñar"];
+      return '<label class="m-sec"><input type="checkbox" data-sec="' + e(k) + '"' + ((off || []).indexOf(k) < 0 ? " checked" : "") + '>' +
+        (hay.indexOf(k) >= 0 ? '<img class="m-sec-img" src="assets/img/sesion/' + e(k) + '.jpg" alt="" loading="lazy" width="480" height="270">'
+                             : '<span class="m-sec-img sin">' + ico(sc[0]) + '<small>' + e(sc[1]) + '</small></span>') +
+        '<span><b>' + e(x[1]) + '</b><em>' + e(x[2]) + '</em></span></label>'; }).join("") + '</div>';
+  }
+  function bloque(off) {
+    return '<div class="card m-sesion"><h3>Tu sesión en directo</h3>' +
+      '<p class="small muted">Marca lo que quieres en tu presentación. Por defecto sale todo; lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
+      'Cada semana solo aparece lo que ese día tiene algo que enseñar.</p>' + casillas(off) +
+      '<p class="small m-sec-msg" id="m-sec-msg" aria-live="polite"></p></div>';
+  }
+  /** Lo tuyo dentro del mapa `stargate.sesiones` del grupo, leído y escrito al momento (otro docente puede haber tocado lo suyo). */
+  async function guardar(per, nombre, off) {
+    var M = window.SG && window.SG.MOTOR; nombre = String(nombre || "").trim();
+    if (!M || !per || !nombre) throw new Error("No sé quién eres en este grupo.");
+    var ref = M.doc(M.db, "projects", per), pd = await M.getDoc(ref);
+    var m = Object.assign({}, ((((pd.exists() ? pd.data() : {}) || {}).stargate) || {}).sesiones || {});
+    if (off && off.length) m[nombre] = off; else delete m[nombre];
+    await M.updateDoc(ref, { "stargate.sesiones": m });
+  }
+  function abrir(o) {
+    o = o || {};
+    var capa = document.createElement("div");
+    capa.className = "cfg-capa"; capa.setAttribute("role", "dialog"); capa.setAttribute("aria-modal", "true");
+    capa.innerHTML = '<div class="cfg-caja">' +
+      '<div class="cfg-cab">' + ico("ajustes", true) + '<div><b>Configurar las diapositivas</b><span>' + e(o.grupo || o.per || "") + '</span></div>' +
+        '<button type="button" class="btn min" data-cfg-x>Cerrar</button></div>' +
+      (o.nombre ? bloque(o.off || []) + '<p class="cfg-pie"><button type="button" class="btn min" data-cfg-todo>Marcar todo</button>' +
+                  (o.verSesion === false ? '' : ' <a class="btn min" href="sesion.html?per=' + encodeURIComponent(o.per || "") + '" target="_blank" rel="noopener">Ver la sesión ↗</a>') + '</p>'
+                : '<p class="muted">No te encuentro en el equipo docente de este grupo.</p>') +
+      '</div>';
+    document.body.appendChild(capa);
+    var cerrar = function () { capa.remove(); document.removeEventListener("keydown", tecla); };
+    var tecla = function (ev) { if (ev.key === "Escape") cerrar(); };
+    document.addEventListener("keydown", tecla);
+    capa.addEventListener("click", function (ev) { if (ev.target === capa || ev.target.closest("[data-cfg-x]")) cerrar(); });
+    var cajas = function () { return Array.prototype.slice.call(capa.querySelectorAll(".m-sec input")); };
+    var guarda = async function (revertir) {
+      var off = cajas().filter(function (x) { return !x.checked; }).map(function (x) { return x.getAttribute("data-sec"); });
+      var msg = capa.querySelector("#m-sec-msg"); msg.textContent = "Guardando…";
+      try {
+        await guardar(o.per, o.nombre, off);
+        if (typeof o.alGuardar === "function") o.alGuardar(off);
+        msg.textContent = "✓ Guardado" + (off.length ? " · quitas " + off.length + (off.length === 1 ? " sección" : " secciones") : " · sale todo");
+      } catch (err) { if (revertir) revertir(); msg.textContent = "No se ha podido guardar: " + (err.message || err); }
+    };
+    cajas().forEach(function (c) { c.onchange = function () { guarda(function () { c.checked = !c.checked; }); }; });
+    var todo = capa.querySelector("[data-cfg-todo]");
+    if (todo) todo.onclick = function () { cajas().forEach(function (c) { c.checked = true; }); guarda(); };
+    var primera = capa.querySelector(".m-sec input"); if (primera) primera.focus();
+    return capa;
+  }
+  return { casillas: casillas, bloque: bloque, guardar: guardar, abrir: abrir };
+})();
 window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
   var ea = function(x){ return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); };
   return '<img class="av '+ea(cls||'')+' r'+r.r+'" src="'+ea(r.src)+'" data-fb="'+ea(r.fallback)+'" alt="" title="'+ea(r.rango)+'" loading="lazy" referrerpolicy="no-referrer" onerror="var f=this.dataset.fb; if(this.src.indexOf(f)<0){this.src=f;} else if(!this.dataset.rt){this.dataset.rt=1; this.src=f+(f.indexOf(String.fromCharCode(63))<0?\'?rt=1\':\'&amp;rt=1\');}">'; };
@@ -1940,17 +2047,19 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
    * referente). 🔴 El paso con `rol` tiene que señalar algo que EXISTA SIEMPRE en la Nave.
    */
   var BASE=[
-   {p:'consola.html',sel:'.cn-ficha',listo:'.cn-secs',espera:1,rol:1,pose:'saluda',t:'Bienvenido a tu Nave',x:'Recluta… perdón: <b>Capitán</b>. Esta es tu <b>Nave del Comandante</b>: tu comandante, tus cifras y, si llevas más de un grupo, el <b>desplegable</b> para saltar de uno a otro. En <b>Ajustes</b>, tu nombre y tu alias. Te lo enseño en dos minutos.'},
-   {p:'consola.html',sel:'.gr-banner',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Cada clase empieza aquí',x:'El banner de tu grupo, con <b>Empezar la clase</b>: la sesión de la semana ya montada (la rueda de al lado dice qué diapositivas salen). Dentro tienes las <b>herramientas de clase</b> —quién ha fichado, premiar, una pregunta, una votación y el tiempo—. Todo lo de este grupo va debajo de este banner.'},
+   {p:'consola.html',sel:'.cn-ficha',listo:'.cn-secs',espera:1,rol:1,pose:'saluda',t:'Bienvenido a tu Nave',x:'Recluta… perdón: <b>Capitán</b>. Esta es tu <b>Nave del Comandante</b>: tu comandante, tus cifras y, si llevas más de un grupo, el <b>desplegable</b> para saltar de uno a otro. Pulsa el <b>lápiz de tu avatar</b> para elegir tu comandante y el nombre con el que te ve tu alumnado. Te lo enseño en dos minutos.'},
+   {p:'consola.html',sel:'.gr-banner',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Cada clase empieza aquí',x:'El banner de tu grupo, con <b>Empezar la clase</b>: la sesión de la semana ya montada (la rueda de al lado dice qué diapositivas salen). Dentro tienes las <b>herramientas de clase</b> —pasar lista, a quién pregunto, premiar, una pregunta, una votación y el tiempo—. Todo lo de este grupo va debajo de este banner.'},
+   {p:'consola.html',sel:'.cn-secs',listo:'.cn-secs',espera:1,pose:'senala',t:'Las secciones de tu grupo',x:'<b>Reclutas</b>: tu alumnado, la ficha de cada uno con lo que ha entregado (y, si hace falta, para anular un reto), y el <b>código de clase</b> para quien falte; si alguien pide una subida de nota, brilla la <b>Cola de nota</b>. Después <b>Rankings</b>, el <b>Calendario</b> y, en mando manual, <b>El Zoco</b>, <b>Premios</b> y <b>Enlaces</b>. La última es <b>Contacto</b>: si algo falla, por ahí me llega.'},
+   {p:'consola.html',sel:'.pt-panel',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Tu panel de control',x:'El Genially que abre tu alumnado desde su Nave, <b>aquí dentro</b>: lo compruebas sin abrir otra pestaña. Y si prefieres usar el tuyo, <b>Cambiar el enlace</b> y tus reclutas verán ese.'},
    {p:'consola.html',sel:'.c-resumen',listo:'.cn-secs',espera:1,si:1,pose:'brazos',t:'Cómo va tu grupo',x:'Los <b>aros</b> se llenan con el porcentaje; pasa el ratón por encima y te dan la cuenta exacta. Al lado, <b>NEBULA</b>: púlsala y se abre con lo que conviene hacer esta semana. Debajo, <b>quién destaca</b>, con su cara y qué ha hecho — listo para nombrarlos en voz alta.'},
    {p:'consola.html',sel:'.pt-hoy',listo:'.cn-secs',espera:1,si:1,pose:'senala',t:'Hoy toca',x:'Lo de esta semana: el planeta, el calendario con las entregas, los vídeos (se ven aquí mismo, sin salir a YouTube) y <b>todos los retos del tema</b> — los que todavía no están abiertos salen en gris, diciendo en qué semana se desbloquean.'},
    {p:'consola.html',sel:'#ht-foro',listo:'.cn-secs',espera:1,si:1,pose:'pensativo',t:'El mensaje del foro, firmado por ti',x:'Una carta oficial, con la cabecera de STARGATE y, al pie, <b>tu avatar, tu nombre y tu sello</b>. <b>Copiar</b>, y a pegarlo en el foro de la plataforma de UNIR. Con <b>Editar</b> escribes tu versión: se guarda en tu ficha, así que vale para todos tus grupos — también para los que crees más adelante.'},
+   {p:'consola.html',sel:'.ht-retos',listo:'.cn-secs',espera:1,si:1,pose:'senala',t:'Los retos de este tema',x:'Aquí, <b>todos los retos del tema</b> con cuántos los han hecho: el <b>Reto A</b> recupera a un tripulante, el <b>Reto B</b> deja una evidencia en la Bitácora y el <b>relámpago</b> se hace en clase, en quince minutos. Los que aún no se han abierto salen <b>en gris</b>, con su semana. Tu alumnado los registra solo; tú <b>no validas nada</b>: si dudas de una entrega, abres su enlace desde la ficha del recluta y la anulas con un motivo.'},
    {p:'consola.html',sel:'.pt-tk',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Los tickets de salida',x:'Lo que escribió tu escuadrón al cerrar el tema: cada pregunta con su reparto de notas, y sus comentarios. Sale el <b>último tema cerrado</b>, y el desplegable abre los anteriores. Tú decides qué se lee en clase: lo que <b>fijes</b> sale seguro, lo que <b>ocultes</b> no sale, y del resto salen los que quepan en la diapositiva.'},
-   {p:'consola.html',sel:'.pt-panel',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Tu panel de control',x:'El Genially que abre tu alumnado desde su Nave, <b>aquí dentro</b>: lo compruebas sin abrir otra pestaña. Y si prefieres usar el tuyo, <b>Cambiar el enlace</b> y tus reclutas verán ese.'},
-   {p:'consola.html',sel:'.cn-secs',listo:'.cn-secs',espera:1,pose:'senala',t:'Las secciones de tu grupo',x:'<b>Reclutas</b>: tu alumnado, la ficha de cada uno para validar o anular un reto, y el <b>código de clase</b> para quien falte; si alguien pide una subida de nota, brilla la <b>Cola de nota</b>. Después <b>Rankings</b>, el <b>Calendario</b> y, en mando manual, <b>El Zoco</b>, <b>Premios</b> y <b>Enlaces</b>. La última es <b>Contacto</b>: si algo falla, por ahí me llega.'},
    {p:'consola.html',sel:'.lnk.solo-referente',listo:'.cn-secs',espera:1,si:1,soloRef:1,pose:'senala',t:'Como referente',x:'Crear un grupo, el equipo docente, los escuadrones, los ajustes y el calendario, mover reclutas, graduar y borrar: en <b>Gestionar grupos</b>, aquí arriba. Lo que se hace una o dos veces por curso, fuera de tu Nave.'},
-   {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'<b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase. Quien completa la misión de un tripulante <b>desbloquea su fragmento de vídeo</b>; dos semanas más tarde se abre para todo el grupo, y todos se coleccionan en <b>El Archivo</b> de su Nave.'},
-   {p:'guia.html',sel:'#retos',pose:'tablet',t:'Dos retos por tema',x:'El <b>Reto A</b> da la <b>insignia</b> del personaje: no cuenta para nota, aunque da 100 xp y __CRED_A__ ◈. El <b>Reto B</b> produce una evidencia real de la Bitácora (250 xp y __CRED_B__ ◈) y <b>pide su enlace</b>. Los <b>xp</b> suben de nivel y nunca se gastan; los <b>créditos ◈</b> son lo que se canjea. Y nadie registra más de 3 retos al día.'},
+   {p:'consola.html',sel:'.lnk[href="guia.html"]',listo:'.cn-secs',espera:1,pose:'brazos',t:'Ahora nos vamos a la Guía',x:'Hasta aquí, <b>tu Nave</b>: lo de tu grupo. Lo que viene está en la <b>Guía</b>, este enlace de arriba, y es <b>común a todos los grupos</b>: la base del proyecto —la historia, los retos, el calendario de las 15 semanas y la evaluación—. Pulsa <b>Siguiente</b> y te llevo; al acabar vuelves aquí solo.'},
+   {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'Ya estás en la <b>Guía</b>. <b>NEBULA</b> narra, <b>yo</b> doy las órdenes (o sea, tú) y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase. Quien completa la misión de un tripulante <b>desbloquea su fragmento de vídeo</b>; dos semanas más tarde se abre para todo el grupo, y todos se coleccionan en <b>El Archivo</b> de su Nave.'},
+   {p:'guia.html',sel:'#retos',pose:'tablet',t:'Tres retos por tema',x:'El <b>Reto A</b> da la <b>insignia</b> del personaje: no cuenta para nota, aunque da 100 xp y __CRED_A__ ◈. El <b>Reto B</b> produce una evidencia real de la Bitácora (250 xp y __CRED_B__ ◈) y <b>pide su enlace</b>. Los <b>xp</b> suben de nivel y nunca se gastan; los <b>créditos ◈</b> son lo que se canjea. Y el <b>relámpago</b>, que se hace en clase. Nadie registra más de __TOPE__ retos por semana.'},
    {p:'cronologia.html',sel:'#mapa',pose:'senala',t:'Tu carta de navegación',x:'El mapa de las <b>15 semanas</b>: qué vídeo proyectar, qué reto lanzar, qué insignia entregar y el hito de evaluación. Sin fechas: semanas, como tu aula.'},
    {p:'cronologia.html',sel:'#sem1',pose:'pensativo',t:'La orden del día',x:'Despliega una semana y tendrás la orden completa, con los vídeos reproducibles aquí mismo y el <b>mensaje para el foro de la plataforma de UNIR</b> (aquí va sin firmar; el tuyo, firmado, está en tu Nave). Tu alumnado ya ve su parte solo, en su Nave.'},
    {p:'actividades.html',sel:'#act1',pose:'pensativo',t:'Misiones y evaluación',x:'Las dos misiones mayores, el ePortfolio y el examen con los <b>requisitos oficiales</b>, más los documentos para descargar.'}
@@ -2156,7 +2265,8 @@ def _js_valido(nombre, codigo):
 _js_valido("stargate.js", js)
 open(os.path.join(HERE,"assets","js","stargate.js"),"w",encoding="utf-8").write(js)
 open(os.path.join(HERE,"assets","js","tour.js"),"w",encoding="utf-8").write(
-  TOUR_JS.replace("__CRED_A__", str(CREDITOS["retoA"])).replace("__CRED_B__", str(CREDITOS["retoB"])))
+  TOUR_JS.replace("__CRED_A__", str(CREDITOS["retoA"])).replace("__CRED_B__", str(CREDITOS["retoB"]))
+         .replace("__TOPE__", str(TOPE_RETOS_SEMANA)))
 
 # 🔴 Y TODOS los .js del sitio, no solo los generados aquí. El 27-ago se desplegó un `recluta.js`
 # con una línea metida entre un `if` y su `else if`: el fichero entero dejaba de compilar y la Nave
@@ -2829,7 +2939,7 @@ Pasa con las flechas <b>←</b> y <b>→</b>.</p>
 <p class="small muted">El <b>consejo del Capitán</b> y el mensaje del foro están arriba, fuera del mazo:
 al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></header>
 <section><div class="wrap"><div id="sesion-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_SECCIONES_SESION={json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False)};window.SG_CAPTURAS_SESION={json.dumps(sorted(f[:-4] for f in os.listdir(os.path.join(HERE, "assets/img/sesion")) if f.endswith(".jpg")))};</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/tkcomun.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>

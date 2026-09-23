@@ -907,10 +907,10 @@
   function ultimaDelTema(lista, i){ var sig=lista[i+1]; return !sig || temaDe(sig)!==temaDe(lista[i]); }
   function primeraDelTema(lista, i){ var ant=lista[i-1]; return !ant || temaDe(ant)!==temaDe(lista[i]); }
   /** El texto EXACTO de la opción del formulario para el tema de una semana (para dejarlo ya elegido). */
+  // 23-sep · solo presentación, los 8 temas y el final (Norberto): la semana que lanza una actividad ya no la elige
   function opcionTema(s){
     var T=window.SG_TICKET_TEMAS||{}, n=temaDe(s);
-    var act=String((s&&s.sub)||'').match(/Actividad (\d)/i);
-    return (act&&T['a'+act[1]]) || T[String(n)] || '';
+    return T[String(n)] || '';
   }
   /** Con qué se queda el resumen: las opciones del formulario que son de ESE tema (el suyo y sus actividades). */
   function esDelTema(v, lista, i){
@@ -1316,15 +1316,22 @@
      * siempre: el del docente, el del grupo o, en último término, el Panel de control maestro de STARGATE. La tarjeta
      * se queda solo para el único sitio donde el embebido es imposible: dentro del propio Genially.
      */
+    /**
+     * 🔴 23-sep · Y NADA MÁS. Norberto: «El despegue: recuerda, embebe el Genially de panel de control directamente.
+     * Nada más». Quedaba la tarjeta de texto («Ahora, el despegue… sal de este panel») en los dos modos que viven DENTRO
+     * del Genially: al final del tramo de apertura y en medio de la sesión entera incrustada. Ahí el despegue ES el
+     * propio Genially —embeberlo sería el Genially dentro de sí mismo—, así que la diapositiva simplemente no está: se
+     * acaba la apertura y el docente sigue pasando su Genially. El rótulo «2 · Despegue · en el Genially» de arriba ya
+     * lo dice sin una tarjeta de por medio.
+     */
     var medio=[];
     if(!EMBED || VENTANA){
       var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
       if(panel) medio.push({k:'genially', t:'pr', rot:'El despegue', html:
         '<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});
     }
-    if(!medio.length) medio.push(diaPuente(TRAMO==='ap'));
 
-    var todo = TRAMO==='ap' ? d.concat([diaPuente(true)]) : TRAMO==='ci' ? ci : d.concat(medio, ci);
+    var todo = TRAMO==='ap' ? d : TRAMO==='ci' ? ci : d.concat(medio, ci);
     /**
      * 🔴 20-sep · UN TRAMO PUEDE QUEDARSE VACÍO, y entonces no había NADA que pintar: `st.slides[0]` no existía
      * y el embed se quedaba en negro. Pasa con `?tramo=cierre` en una semana sin vídeos de cierre ni misiones.
@@ -1343,21 +1350,6 @@
     var off=apagadas();
     if(off.length){ var quedan=todo.filter(function(x){ return off.indexOf(secDe(x))<0; }); todo=quedan.length?quedan:[todo[0]]; }
     return todo;
-  }
-
-  /**
-   * El puente entre tramos: la tarjeta que dice en voz alta lo que toca ahora. Al final de la
-   * apertura, «ahora la presentación»; en el mazo entero y dentro del Genially, el mismo aviso.
-   */
-  function diaPuente(fin){
-    return {k:'puente', t:'pr', rot:'El despegue', html:
-      '<div class="dia puente"><div class="pu-caja"><div class="kicker">Segundo tiempo</div>'
-      +'<h2>Ahora, el despegue</h2>'
-      +'<p class="sub">La teoría y la práctica guiada están en el Genially de la clase. '
-      +(fin?'Sal de este panel y sigue avanzando: el cierre te espera en el siguiente embed.'
-           :'Sigue en el Genially y vuelve aquí para el cierre.')+'</p>'
-      +'<ol class="pu-pasos"><li><b>1</b> Explicas y practicáis en el Genially</li>'
-      +'<li><b>2</b> Vuelves al panel para el <b>reto relámpago</b> y el cierre</li></ol></div></div>'};
   }
 
   // ---------- pintado ----------
@@ -1461,6 +1453,10 @@
       +'<div class="prep-cab"><div><div class="eyebrow violet">Solo para ti · no se proyecta</div>'
       +'<h3>Antes de empezar</h3></div>'
       +'<div class="prep-b"><a class="btn min bz-acceso" href="buzon.html?desde=sesion&per='+encodeURIComponent(st.per||'')+'" target="_blank" rel="noopener">¿Dudas? ¿Algo falla?</a> '
+      // 23-sep · Norberto: «para escoger las diapositivas, mejor un botón en "Solo para ti / Antes de empezar" que ponga
+      // "Configurar diapositivas"». La misma ventana que la rueda del banner del grupo (SG.CFGSESION, común a las dos)
+      +(st.per&&st.miNombre&&!st.alumno&&window.SG&&window.SG.CFGSESION
+        ?'<button type="button" class="btn" id="prep-cfg"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Configurar diapositivas</button> ':'')
       +'<button type="button" class="btn" data-ses-ventana title="Sin la web alrededor: solo la presentación">⧉ En una ventana aparte</button> '
       +'<button type="button" class="btn primary" id="proyectar">▶ Proyectar la sesión</button></div></div>'
       /**
@@ -1734,6 +1730,14 @@
     var pc=root.querySelector('#ses-pantalla');
     if(pc) pc.onclick=function(){ pantallaCompleta(); };
     Array.prototype.forEach.call(root.querySelectorAll('[data-ses-ventana]'),function(b){ b.onclick=function(){ abrirEnVentana(); }; });
+    var bCfg=document.getElementById('prep-cfg');
+    if(bCfg) bCfg.onclick=function(){
+      window.SG.CFGSESION.abrir({ per:st.per, grupo:st.nombre||st.per, nombre:st.miNombre, off:apagadas(), verSesion:false,
+        // al guardar, el mazo se rehace con lo que has elegido, sin recargar (y sin moverte si estabas a mitad)
+        alGuardar:function(off){ var S=Object.assign({}, st.sesionesDelGrupo||(st.d&&st.d.sesiones)||{});
+          if(off.length) S[st.miNombre]=off; else delete S[st.miNombre];
+          st.sesionesDelGrupo=S; pintar(); } });
+    };
     Array.prototype.forEach.call(root.querySelectorAll('#ses-tramos .tr'),function(b){
       b.onclick=function(){ if(!b.disabled) irATramo(b.getAttribute('data-t')); };
     });

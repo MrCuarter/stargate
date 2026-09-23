@@ -80,7 +80,9 @@ c(/function apagadas\(\)/.test(SES) && /off\.indexOf\(secDe\(x\)\)<0/.test(SES) 
 c(/st\.profeMio\|\|''/.test(SES.slice(SES.indexOf("function apagadas"))), "   y su alumnado, al seguirle, ve lo mismo que él");
 c(/mi_sesion: function \(M, yo, q\)/.test(FUENTE) && /"stargate\.sesiones": sesiones/.test(FUENTE), "🔴 cada docente guarda la suya en su grupo (como su Genially propio)");
 c(/sesiones: S\.sesiones \|\| \{\}/.test(TAB), "   y viaja en el tablero del grupo");
-c(/<h3>Tu sesión en directo<\/h3>/.test(CONS) && /class="m-sec"><input type="checkbox" data-sec=/.test(CONS) && /✓ Guardado/.test(CONS),
+// (23-sep · la ventana es común a la consola y a la sesión: vive en la plantilla de stargate.js)
+const STGJS = fs.readFileSync(path.join(__dirname, "..", "assets/js/stargate.js"), "utf8");
+c(/<h3>Tu sesión en directo<\/h3>/.test(STGJS) && /class="m-sec"><input type="checkbox" data-sec=/.test(STGJS) && /✓ Guardado/.test(STGJS) && /SG\.CFGSESION\.abrir\(/.test(CONS),
   "🔴 consola · «Tu sesión en directo»: una casilla por sección, todas marcadas por defecto, y se guarda al tocarla");
 
 // ── 7 · el reparto de comandantes: los inspirados en el equipo, uno más, sin nombres

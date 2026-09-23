@@ -51,11 +51,18 @@ c(SEMJSON.every((s, i) => i === 0 || !(F.primeraDelTema(SEMJSON, i) && F.ultimaD
 
 // el tema del formulario va ya elegido, con el texto EXACTO de la opción de Google
 c(/[?&]entry\.\d+=\{TEMA\}/.test(HTML), "🔴 el ticket lleva el hueco del TEMA");
+// 🔴 23-sep · Norberto: «en el ticket de salida elimina las actividades. Solo presentación, 8 temas y final»
 SEMJSON.forEach(function (s) {
   if (!s.tema_n) return;
-  c(F.opcionTema(s).indexOf("Tema " + s.tema_n + ":") === 0 || /^Actividad \d:/.test(F.opcionTema(s)),
-    "   la semana " + s.sem + " sabe qué opción del formulario le toca", F.opcionTema(s));
+  c(F.opcionTema(s).indexOf("Tema " + s.tema_n + ":") === 0,
+    "   la semana " + s.sem + " elige su TEMA (nunca una actividad)", F.opcionTema(s));
 });
+c(!Object.keys(TEMAS).some(k => /^a\d/.test(k)) && !Object.values(TEMAS).some(v => /^Actividad/.test(v)),
+  "🔴 el ticket ya no ofrece las actividades", JSON.stringify(Object.keys(TEMAS)));
+c(TEMAS.p === "Presentación de la asignatura" && Object.keys(TEMAS).filter(k => /^[1-8]$/.test(k)).length === 8 && !!TEMAS["0"],
+  "   solo presentación, los 8 temas y el final", JSON.stringify(Object.keys(TEMAS)));
+c(/createChoice\("Presentación de la asignatura"/.test(leer("apps-script/Code.gs")) && !/createChoice\("Actividad \d/.test(leer("apps-script/Code.gs")),
+  "   y el constructor del formulario dice lo mismo (si algún día se rehace, no vuelven)");
 c(F.esDelTema("Tema 2: El vídeo como recurso (Ecos)", SEMJSON, 3) === true, "   una respuesta del tema 2 cuenta para el tema 2");
 c(F.esDelTema("Tema 3: Contenidos interactivos (Sendara)", SEMJSON, 3) === false, "   y la del 3, no");
 c(F.esDelTema("Actividad 1: actividad didáctica a partir de una imagen con IA", SEMJSON, 1) === true,

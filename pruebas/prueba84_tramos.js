@@ -39,9 +39,12 @@ c(/ci *= *ci\.concat\(diasMisiones\(s\)\)/.test(S), "   los retos de la semana s
 c(/medio\.push\(\{k:'genially', t:'pr'/.test(S),
   "🔴 el Genially del grupo es el tramo del medio (la teoría y la práctica guiada), no una diapositiva suelta");
 c(/if\(!EMBED \|\| VENTANA\)\{/.test(S), "   y solo se embebe proyectando desde la web o en su ventana: dentro del Genially sería él mismo");
-c(/function diaPuente\(/.test(S) && /Ahora, el despegue/.test(S),
-  "🔴 dentro del Genially, una tarjeta puente dice en voz alta lo que toca ahora");
-c(/reto relámpago/.test(S), "   y recuerda que al volver toca el reto relámpago");
+// 🔴 23-sep · Norberto: «El despegue: recuerda, embebe el Genially de panel de control directamente. Nada más».
+// Dentro del Genially el despegue ES el Genially: ni tarjeta puente, ni el Genially dentro de sí mismo.
+c(!/function diaPuente\(/.test(S) && !/<h2>Ahora, el despegue<\/h2>/.test(S),
+  "🔴 ya no hay tarjeta puente: el despegue es el panel, y dentro del Genially no hay diapositiva de despegue");
+c(/var todo = TRAMO==='ap' \? d : TRAMO==='ci' \? ci : d\.concat\(medio, ci\)/.test(S),
+  "   la apertura acaba en su última diapositiva de verdad (el docente sigue pasando su Genially)");
 
 // 4 · el rótulo de los tres tiempos
 c(/var TRAMOS=\[\['ap'/.test(S) && /function tramos\(\)/.test(S) && /function marcarTramo\(\)/.test(S),
@@ -53,7 +56,7 @@ c(/<button type="button" class="tr'/.test(S) && /function irATramo\(t\)/.test(S)
 c(/' disabled title="Este tiempo va en tu Genially"'/.test(S), "   el que va en el Genially no se pulsa");
 c(/\.ses-tramos \.tr\{[^}]*pointer-events:auto;cursor:pointer/.test(CSS), "   (la caja deja pasar el clic; solo los botones lo recogen)");
 c(/\.ses-tramos \.tr\{[^}]*font-size:12px/.test(CSS), "   con letra de 12px, que es el mínimo de la casa");
-c(/\.dia\.puente/.test(CSS) && /\.pu-pasos/.test(CSS), "   y la tarjeta puente tiene su estilo");
+c(/\.dia\.puente/.test(CSS), "   (el estilo de la tarjeta se queda: lo usa el aviso de «esta semana no hay nada en este tramo»)");
 
 // 5 · la revisión de la sesión semana a semana (16-sep · Norberto: «revisa la sesión de la semana, que funcione todo»).
 //     Barrido en el laboratorio: las 16 semanas REGULAR y las 9 PUA, cada diapositiva, sin errores ni imágenes rotas.

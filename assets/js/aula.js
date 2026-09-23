@@ -183,8 +183,11 @@
     return u.href;
   }
   /**
-   * Quién está en clase AHORA: los que han respondido a una llamada a filas hoy. La llamada se toca desde la
-   * presentación (tiene su diapositiva) y desde la Nave: aquí solo se mira, que es lo que hace falta en directo.
+   * Quién está en clase AHORA: los que han respondido a una llamada a filas hoy.
+   * 🔴 23-sep · Y AQUÍ TAMBIÉN SE PASA LISTA. Norberto: «necesito un embed exclusivo de herramientas. Solo las herramientas
+   * (dar regalos, fichar, estudiante aleatorio, lanzar pregunta…)». Fichar solo se podía tocar desde la presentación, y
+   * quien usa este embed suelto no la tiene delante: «Pasar lista» abre la misma llamada (la del motor, la de siempre) y
+   * «Cerrar» la cierra. El vigilante de la llamada repinta esta vista solo.
    */
   function vistaClase() {
     var hoy = enClaseHoy(), u = enlaceSesion();
@@ -193,17 +196,21 @@
       +   '<p class="small muted">Se unen con su cuenta, fichan solos y siguen la presentación desde su pantalla.</p>'
       +   '<code class="au-chat-u">' + esc(u) + '</code></div>'
       + '<div class="au-tarjeta au-hoy"><div class="au-cab2"><h3>' + icono("envivo") + ' En clase hoy · ' + hoy.length + '</h3>'
-      +   (SESION ? '<span class="au-viva">Llamada abierta'
+      +   (SESION ? '<span class="au-ll"><span class="au-viva">Llamada abierta'
             + (SESION.escuadron ? ' · ' + esc(SESION.escuadron) : '')
             + ' · <b id="au-np">' + PRESENTES.length + '</b> fichando</span>'
-          : '<span class="small muted">Toca la llamada en la presentación</span>')
+            + '<button type="button" class="btn min" id="au-ll-cerrar">Cerrar la llamada</button></span>'
+          : '<span class="au-ll"><select id="au-ll-min" aria-label="Cuánto tiempo está abierta">'
+            + [10, 30, 60, 120].map(function (m) { return '<option value="' + m + '"' + (m === 30 ? ' selected' : '') + '>' + m + ' min</option>'; }).join("")
+            + '</select><button type="button" class="btn min primary" id="au-ll-tocar">' + icono("clase") + ' Pasar lista</button></span>')
       +   '</div>'
       +   (hoy.length
           ? '<div class="au-caras mini">' + hoy.slice(0, 40).map(function (x) {
               var c = caraDe(x);
               return '<span class="au-cara quieta">' + (c ? '<img src="' + esc(c) + '" alt="" loading="lazy">' : '')
                 + '<b>' + esc(x.alias) + '</b></span>'; }).join("") + '</div>'
-          : '<p class="small muted">Todavía no ha fichado nadie. La llamada a filas está en la presentación: en cuanto la abras, van apareciendo aquí.</p>')
+          : '<p class="small muted">Todavía no ha fichado nadie. Pulsa <b>Pasar lista</b>: en cuanto fichen, van apareciendo aquí.</p>')
+      +   '<p class="ses-err" id="au-ll-err" aria-live="polite"></p>'
       +   '<div class="au-acciones"><button type="button" class="au-azar-btn" id="au-ir-azar">¿A quién pregunto?</button>'
       +     '<button type="button" class="ll-min" id="au-ir-premiar" data-av>Premiar a los presentes</button></div>'
       +   '<p class="au-elegido" id="au-elegido" aria-live="polite" hidden></p></div>';
@@ -716,6 +723,18 @@
       var txt = "Clase de hoy: entra aquí, fichas solo y ves la presentación al mismo ritmo que en clase.\n" + enlaceSesion();
       (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(txt) : Promise.reject())
         .then(function () { cop.textContent = "✓ Copiado"; }, function () { cop.textContent = "Selecciónalo y cópialo"; });
+    };
+    // 23-sep · pasar lista desde aquí (la misma llamada que la de la presentación)
+    var tocar = document.getElementById("au-ll-tocar"), cerrarLl = document.getElementById("au-ll-cerrar"), errLl = document.getElementById("au-ll-err");
+    if (tocar) tocar.onclick = function () {
+      tocar.disabled = true; tocar.textContent = "Abriendo…"; if (errLl) errLl.textContent = "";
+      var min = Number((document.getElementById("au-ll-min") || {}).value) || 30;
+      MOTOR.abrirLlamada(PER, min, {}).catch(function (e) {
+        tocar.disabled = false; tocar.textContent = "Pasar lista"; if (errLl) errLl.textContent = String((e && e.message) || e); });
+    };
+    if (cerrarLl) cerrarLl.onclick = function () {
+      if (!SESION) return; cerrarLl.disabled = true;
+      MOTOR.cerrarLlamada(SESION.id).catch(function (e) { cerrarLl.disabled = false; if (errLl) errLl.textContent = String((e && e.message) || e); });
     };
     // «En clase hoy» → a Premiar, con la lista de hoy (y ya sorteando, o con todos elegidos)
     var ia = document.getElementById("au-ir-azar"), ip = document.getElementById("au-ir-premiar");
