@@ -72,7 +72,7 @@ contiene(clase, "llamada.html?per=", "   y la llamada a filas");
     "🔴 " + f.split("/").pop() + " se quita la cabecera al incrustarse");
 });
 // y la hoja de estilos tiene que seguir sabiendo esconderla: la clase sola no pinta nada
-contiene(raiz("assets/css/stargate.css"), "body.embed .nav",
+contiene(raiz("assets/css/stargate.css"), "body.embed nav.nav",   // 24-sep · nav.nav: «.nav» a secas escondía también las flechas ‹ › del mazo
   "   y la hoja de estilos esconde el menú cuando esa clase está puesta");
 
 // ---------------------------------------------------------------- h) la puerta ya no pide una llave que nadie tiene

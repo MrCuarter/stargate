@@ -200,6 +200,16 @@ c((PR.retos || []).length === CAT.length && (PR.retos || []).every(x => x.ayuda 
 c(PR.reto && PR.reto.ayuda && PR.reto.ayuda.length > 100, "   y el reto de ejemplo ya no sale sin explicación");
 c(!/Playposit/i.test(JSON.stringify(PR.retos || [])), "   (sin herramientas que ya no existen: Playposit cerró)");
 
+// ── 6 septies · 🔴 24-sep (noche) · lo que vio Norberto proyectándola
+c(/var pide = root\.requestFullscreen/.test(JS) && !/m\.requestFullscreen/.test(JS),
+  "🔴 la pantalla completa se pide sobre la caja (#prestreno-app), que no se repinta: pasar de diapositiva ya no la cierra");
+c(/body\.embed nav\.nav,/.test(CSS) && !/body\.embed \.nav,/.test(CSS),
+  "🔴 en la ventana limpia se esconde el menú de arriba (nav.nav), no las flechas ‹ › del mazo");
+c(/function ajustar\(\)/.test(JS) && /t\.style\.zoom = /.test(JS) && /window\.addEventListener\("resize", reajustar\)/.test(JS),
+  "🔴 cada diapositiva se ajusta al hueco (crece en pantalla completa, encoge en una ventana pequeña)");
+c(/miFichaDocente/.test(JS) && /comandanteHd\(CMD/.test(JS) && /assets\/js\/motor\.js/.test(HTML),
+  "🔴 sale TU comandante (el de tu ficha), no uno fijo");
+
 // ── 7 · y el guion está en la guía, no duplicado aquí
 const GUIA = fs.readFileSync(path.join(R, "..", "GUIA_PROFES_PDF.md"), "utf8");
 c(/# PARTE 0 · El guion de la reunión/.test(GUIA), "🔴 la guía del profesorado lleva su guion (Parte 0)");

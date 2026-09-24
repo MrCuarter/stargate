@@ -4681,6 +4681,14 @@ _html = head("STARGATE · Gestionar grupos",
 open(os.path.join(HERE, "gestion.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: gestion.html  (gestionar grupos, solo referentes)")
 
+# 24-sep · la presentación lee TU ficha de docente para poner tu comandante (Norberto: «el comandante que aparece no es el
+# que tengo configurado»): solo el motor, sin paquete ni tablero. Aquí, al final, porque `_v` aún no existe donde se escribe.
+_ruta = os.path.join(HERE, "prestreno.html"); _h = open(_ruta, encoding="utf-8").read()
+if "assets/js/motor.js" not in _h:
+    _h = _h.replace("</head>", '<script>window.SG_FIREBASE=' + _json.dumps(FIREBASE) + ';window.SG_CATALOGO_URL="' + _v("motor/catalogo.json") + '";</script>'
+                    '<script type="module" src="' + _v("assets/js/motor.js") + '"></script>\n</head>', 1)
+    open(_ruta, "w", encoding="utf-8").write(_ver_assets(_h))
+
 # ---------------------------------------------------------------- el interruptor, en las páginas de siempre
 # La Nave, la sala de clase, el panel y la sesión proyectable tienen que poder hablar con CUALQUIERA
 # de los dos motores. Se les añade aquí, al final, porque se escriben mucho antes de que exista

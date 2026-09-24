@@ -385,7 +385,7 @@ table.rank tr:not(.insrow) td{border-bottom:0}
 .dots .dot{width:38px;height:38px;filter:drop-shadow(0 2px 6px rgba(55,224,236,.35))}
 .dots .dot.off{filter:grayscale(1) brightness(.35);opacity:.55}
 .pers{display:flex;flex-wrap:wrap;gap:10px}
-body.embed .nav,body.embed .hero,body.embed footer,body.embed #registro,body.embed #orden,body.embed #instalacion{display:none}
+body.embed nav.nav,body.embed .hero,body.embed footer,body.embed #registro,body.embed #orden,body.embed #instalacion{display:none}   /* 24-sep · nav.nav: el menú de arriba; «.nav» a secas escondía también las flechas ‹ › de la presentación y de la sesión */
 body.embed #tablero{padding:14px 0;border:0}
 /* panel profes + foro dinámico */
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 16px}
@@ -6306,3 +6306,9 @@ body.embed .mazo .dia{padding-top:46px}
 .pr-mazo .barra-pasos.pr-secs .p{font-weight:700}
 .pr-mazo .barra-pasos.pr-secs .p em{font-style:normal;font-weight:600;opacity:.6;margin-left:3px}
 .pr-mazo .barra-pasos.pr-subs{border-top:1px solid var(--line);padding-top:4px;margin-top:2px}
+/* 24-sep · LA PRESENTACIÓN A PANTALLA COMPLETA: se pide sobre #prestreno-app (el mazo se repinta al pasar y la cerraba).
+   La caja llena la pantalla y el mazo, dentro, como en la ventana limpia */
+#prestreno-app:fullscreen{display:flex;flex-direction:column;background:#070b12;overflow:hidden}
+#prestreno-app:fullscreen .mazo{flex:1;display:flex;flex-direction:column;min-height:0;border:0;border-radius:0}
+#prestreno-app:fullscreen .lienzo{flex:1;min-height:0;overflow:auto}
+/* (el tamaño lo pone el ajuste automático de prestreno.js: `zoom` al mayor que cabe) */

@@ -43,6 +43,20 @@
   var RETOS = (window.SG_RETOS || {}).REGULAR || [];
   var CAPS = window.SG_CAPITULOS || [];
   var st = { i: 0 };
+  /**
+   * 🔴 24-sep · TU COMANDANTE. Norberto: «el comandante que aparece no es el que tengo configurado». Salía siempre el c1 (y
+   * las poses del c7). Se lee tu ficha de docente (`MOTOR.miFichaDocente`, el avatar que eliges con el lápiz) y, cuando
+   * llega, la presentación se repinta con el tuyo. Sin sesión, o sin avatar elegido, el de siempre.
+   */
+  var CMD = "";
+  function miComandante() {
+    var M = window.SG && window.SG.MOTOR; if (!M || !M.miFichaDocente) return;
+    M.miFichaDocente().then(function (f) {
+      var k = String((f && f.avatar) || "").replace(/[^\w-]/g, "");
+      if (k && k !== CMD) { CMD = k; if (SLIDES.length) { SLIDES = []; pintar(); } }
+    }, function () {});
+  }
+  if (window.SG && window.SG.MOTOR) setTimeout(miComandante, 0); else document.addEventListener("sg:motor", miComandante);
   var QUIETO = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
   /** Los ocho de la Tripulación Cero, por su cromo (P1…P8): la serie I del álbum, en orden de planeta. */
@@ -127,7 +141,7 @@
             '<figcaption><b>La Estática · General Vaeon</b><span>La amenaza. Donde entra, la gente deja de crear, registrar y compartir. Se combate <b>dejando constancia</b>.</span></figcaption></figure>' +
           '<figure class="pr-c"><img src="assets/img/capitan/saluda.png" alt="">' +
             '<figcaption><b>Capitán de la Nave</b><span>El veterano al mando de La Constancia. Da las órdenes de cada misión en los vídeos y os guía en la visita de vuestra Nave.</span></figcaption></figure>' +
-          '<figure class="pr-c pr-cmd"><img src="assets/img/avatares/comandantes/recorte_hd/c1.webp" alt="">' +
+          '<figure class="pr-c pr-cmd"><img src="' + esc(window.SG && window.SG.comandanteHd ? window.SG.comandanteHd(CMD || "c1") : "assets/img/avatares/comandantes/recorte_hd/c1.webp") + '" alt="">' +
             '<figcaption><b>Comandante STARGATE · sois vosotros</b><span>Cada docente es el Comandante de su grupo: <b>elegís avatar</b> y nombre, firmáis la orden de cada semana y entráis por vuestra <b>Nave del Comandante</b>.</span></figcaption></figure>' +
         '</div>' }) };
   }
@@ -140,7 +154,7 @@
         '<div class="pr-cmd-dos"><div class="pr-cmd-rej">' + C.map(function (k) {
           return '<img loading="lazy" src="assets/img/avatares/comandantes/retrato/' + esc(k) + '.jpg" alt="">'; }).join("") + '</div>' +
         '<div class="pr-cmd-poses">' + [["duda", "La pregunta"], ["reto", "Los retos"], ["saludo", "La despedida"]].map(function (p) {
-          return '<figure><img loading="lazy" src="assets/img/avatares/comandantes/cuerpo/c7_' + p[0] + '.webp" alt=""><figcaption>' + p[1] + '</figcaption></figure>'; }).join("") + '</div></div>' +
+          return '<figure><img loading="lazy" src="assets/img/avatares/comandantes/cuerpo/' + esc(CMD || "c7") + '_' + p[0] + '.webp" alt=""><figcaption>' + p[1] + '</figcaption></figure>'; }).join("") + '</div></div>' +
         porque('Vuestro alumnado os ve <b>dentro de la historia</b> cada semana —en el mensaje, en la pregunta de la clase, en los retos— sin tener que poner una foto. Y cada comandante tiene tres poses de cuerpo entero.') }) };
   }
   function material() {
@@ -646,7 +660,8 @@
         ['El nombre y el <b>padlet de la clase</b> (el reto de presentación lo abre), el <b>ticket de salida</b> (formulario anónimo) y el <b>panel de control</b> para ver y para editar.', 'Las fechas se cambian en el <b>Calendario</b>.'],
         'Más abajo: <b>copiar la puerta escondida</b> del Escape UNI (para el Genially de Vínculo) y <b>borrar el grupo</b> (solo para grupos de prueba; pide escribir su nombre).'),
       rx("ficha-referente", "Congelar o dar de baja", "En la ficha de un recluta · solo el referente", "Cambiar de Comandante, congelar o dar de baja",
-        ['<b>Cambiar de Comandante</b>: pasa al recluta a otro escuadrón con todo lo suyo (retos, créditos, colección).', '<b>Congelar</b>: puede mirar, pero no registrar, comprar, fichar ni usar el Zoco. <b>Descongelar</b> lo devuelve todo.', '<b>Dar de baja</b>: borra su ficha y libera su alias; podrá alistarse de cero.']),
+        ['<b>Congelar</b>: puede mirar, pero no registrar, comprar, fichar ni usar el Zoco. <b>Descongelar</b> lo devuelve todo.', '<b>Dar de baja</b>: borra su ficha y libera su alias; podrá alistarse de cero.'],
+        'Arriba, <b>pasar al recluta a otro escuadrón</b> (cambiar de Comandante) o <b>a otro grupo</b>: se lleva todo lo suyo (retos, créditos, colección).'),
       rx("premios", "Premios por enlace", "Tu Nave → Premios", "Premios por enlace: una recompensa que se reclama una vez",
         ['<b>La imagen del premio</b>: púlsala y elige (sobre, héroe, créditos, xp, cápsula o participaciones).', '<b>Recompensa o huevo de Pascua</b>, y el interruptor <b>Activo</b>.', '<b>Copiar enlace</b> o <b>copiar para insertar</b> en tu Genially: lleva un código secreto, no se adivina.', '<b>Grupos, fechas y topes</b> (total y por escuadrón). Se guarda solo, con «✓ Guardado».'],
         'Se configuran <b>una vez para todos tus grupos</b> (🌐 Para todos tus grupos). Con tu cuenta, el enlace se abre en simulación.'),
@@ -780,10 +795,51 @@
       barra() +
       '<div class="pr-mandos"><button type="button" class="btn min" id="pr-otra" title="Volver a elegir">' + (MODO === "referentes" ? "Referentes" : "Docentes") + ' ⇄</button>' +
         '<span class="pr-cuenta">' + (st.i + 1) + ' / ' + SLIDES.length + '</span>' +
-        '<button type="button" class="btn min" id="pr-pantalla">Pantalla completa</button></div>' +
+        '<button type="button" class="btn min" id="pr-pantalla">' + (document.fullscreenElement || document.webkitFullscreenElement ? 'Salir de pantalla completa' : 'Pantalla completa') + '</button></div>' +
     '</div>';
     cablear();
+    ajustar();
   }
+  /**
+   * 🔴 24-sep · CADA DIAPOSITIVA, A LA MEDIDA DEL HUECO. Norberto: «en pantalla completa no aprovechamos el tamaño de la
+   * pantalla; sin pantalla completa se corta. ¿No podemos hacer un ajuste automático según el espacio disponible?».
+   * Cuando la caja tiene un alto fijo (la ventana limpia ?embed=1, la Guía y la pantalla completa), el contenido de la
+   * diapositiva se escala con `zoom` —que recoloca el texto, no lo estira— al mayor tamaño que cabe entero: crece en una
+   * pantalla grande (hasta 1,6) y encoge en una pequeña (hasta 0,5) en vez de cortarse. En la página normal, que crece
+   * con su contenido, no hace falta. Se recalcula al cambiar la ventana, al entrar o salir de pantalla completa, cuando
+   * cargan las imágenes y al abrir la ficha de un planeta o una pregunta.
+   */
+  function conAlto() { return document.body.classList.contains("embed") || (document.fullscreenElement || document.webkitFullscreenElement) === root; }
+  function ajustar() {
+    var dia = root.querySelector(".lienzo > .dia"); if (!dia) return;
+    var t = dia.querySelector(":scope > .pr-cuerpo");
+    if (!t) {   // las diapositivas sin escena: su contenido, en una caja que se pueda escalar
+      t = document.createElement("div"); t.className = "pr-cuerpo pr-ajuste";
+      while (dia.firstChild) t.appendChild(dia.firstChild);
+      dia.appendChild(t);
+    }
+    t.style.zoom = "";
+    if (!conAlto()) return;
+    var cs = getComputedStyle(dia);
+    var alto = dia.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    if (alto < 120) return;
+    var cabe = function (k) {
+      t.style.zoom = k;
+      return t.getBoundingClientRect().height <= alto + 1 && t.scrollWidth <= t.clientWidth + 2;
+    };
+    var lo = 0.5, hi = 1.6;
+    if (cabe(hi)) return;
+    if (!cabe(lo)) { t.style.zoom = lo; return; }
+    for (var n = 0; n < 7; n++) { var m = (lo + hi) / 2; if (cabe(m)) lo = m; else hi = m; }
+    t.style.zoom = Math.floor(lo * 100) / 100;
+    // las imágenes que aún no han llegado cambian el alto: se vuelve a medir cuando llegan
+    Array.prototype.forEach.call(t.querySelectorAll("img"), function (im) {
+      if (!im.complete) im.addEventListener("load", function () { reajustar(); }, { once: true });
+    });
+  }
+  var tAjuste = 0;
+  function reajustar() { clearTimeout(tAjuste); tAjuste = setTimeout(ajustar, 60); }
+  window.addEventListener("resize", reajustar);
   function ir(n) { st.i = n; pintar(); var m = $("#mazo"); if (m) m.focus(); }
   function cablearSelector() {
     Array.prototype.forEach.call(root.querySelectorAll("[data-para]"), function (b) { b.onclick = function () { elegir(b.getAttribute("data-para")); }; });
@@ -797,11 +853,13 @@
     });
     var po = $("#pr-otra");
     if (po) po.onclick = function () { MODO = ""; SLIDES = []; st.i = 0; pintar(); };
+    // 🔴 24-sep · Norberto: «si estoy en pantalla completa y pulso las flechas… se sale la pantalla completa». Se pedía
+    // sobre #mazo, y el mazo se repinta entero al pasar de diapositiva: al desaparecer el elemento, el navegador sale. Se
+    // pide sobre la caja de la presentación (#prestreno-app), que no se repinta nunca.
     var pc = $("#pr-pantalla");
     if (pc) pc.onclick = function () {
-      var m = $("#mazo"); if (!m) return;
-      if (document.fullscreenElement) document.exitFullscreen();
-      else if (m.requestFullscreen) m.requestFullscreen();
+      if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      else { var pide = root.requestFullscreen || root.webkitRequestFullscreen; if (pide) pide.call(root); }
     };
     // el planeta que se pulsa abre su ficha debajo, sin cambiar de diapositiva
     Array.prototype.forEach.call(root.querySelectorAll(".pr-pl"), function (b) {
@@ -811,7 +869,7 @@
         Array.prototype.forEach.call(root.querySelectorAll(".pr-pl"), function (x) { x.classList.remove("on"); });
         if (ya || !caja) { if (caja) caja.hidden = true; return; }
         b.classList.add("on");
-        caja.innerHTML = fichaPlaneta(n); caja.hidden = false;
+        caja.innerHTML = fichaPlaneta(n); caja.hidden = false; reajustar();
       };
     });
     // las preguntas se abren de una en una: que dé tiempo a contestar antes de leer la respuesta
@@ -819,10 +877,15 @@
       b.onclick = function () {
         var ya = b.getAttribute("aria-expanded") === "true";
         Array.prototype.forEach.call(root.querySelectorAll(".pr-q"), function (x) { x.setAttribute("aria-expanded", "false"); });
-        b.setAttribute("aria-expanded", ya ? "false" : "true");
+        b.setAttribute("aria-expanded", ya ? "false" : "true"); reajustar();
       };
     });
   }
+  // al entrar o salir (también con Esc), el botón dice lo que hará
+  ["fullscreenchange", "webkitfullscreenchange"].forEach(function (ev) {
+    document.addEventListener(ev, function () { var b = $("#pr-pantalla"); setTimeout(ajustar, 120);
+      if (b) b.textContent = (document.fullscreenElement || document.webkitFullscreenElement) ? "Salir de pantalla completa" : "Pantalla completa"; });
+  });
   document.addEventListener("keydown", function (e) {
     if (!SLIDES.length || !MODO) return;
     if (/^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || "")) return;
