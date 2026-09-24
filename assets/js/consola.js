@@ -610,7 +610,7 @@
    */
   // 19-sep · «Portada», la primera: el grupo de un vistazo (semana, vídeo, retos, foro, panel, sesión y tus notas)
   // 19-sep · el equipo, los escuadrones y los ajustes del grupo se fueron a «Gestionar grupos» (GTABS)
-  var TABS = [["portada", "Portada"], ["alumnado", "Reclutas"], ["rankings", "Rankings"], ["zoco", "El Zoco"], ["simulador", "El Simulador"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
+  var TABS = [["portada", "Portada"], ["alumnado", "Reclutas"], ["retos", "Retos"], ["rankings", "Rankings"], ["zoco", "El Zoco"], ["simulador", "El Simulador"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
               // 17-sep · las que pueden afectar a VARIOS grupos, juntas y tras su raya 🌐 (Norberto: «separar las opciones
               // exclusivas de un grupo de las que afectan a todos o pueden afectar»)
               ["huevos", "Premios por enlace", 1, "varios"], ["sorteos", "Sorteos", 1, "varios"], ["ofertas", "Ofertas", 1, "varios"],
@@ -737,6 +737,7 @@
 
   var SECCIONES = [["puente", "Puente", "assets/img/nave/iconos/nave.png", ["portada"]],
                    ["gente", "Reclutas", "assets/img/nave/iconos/gente.png", ["alumnado", "canjes"]],
+                   ["retos", "Retos", "assets/img/nave/iconos/retos.png", ["retos"]],
                    ["rankings", "Rankings", "assets/img/nave/iconos/rankings.png", ["rankings"]],
                    ["calendario", "Calendario", "assets/img/iconos/calendario.png", ["calendario"]],
                    ["zoco", "El Zoco", "assets/img/nave/iconos/zoco.png", ["zoco"]],
@@ -816,7 +817,7 @@
     cablearEscuela();   // el selector de semana de la Nave Escuela va en el banner: está en todas las secciones
     // Copiar un enlace, con confirmación visible: sin ella no sabes si ha ido.
     cablearCopiar(app);
-    ({ portada: verPortada, alumnado: verAlumnado, rankings: verRankings, canjes: verCanjes, zoco: verZoco, mios: verMios, simulador: verSimulador,
+    ({ portada: verPortada, alumnado: verAlumnado, retos: verRetos, rankings: verRankings, canjes: verCanjes, zoco: verZoco, mios: verMios, simulador: verSimulador,
        huevos: verHuevos, sorteos: verSorteos, ofertas: verOfertas, calendario: verCalendario })[TAB](t);
     contarBuzon();
     document.body.classList.add("consola-dentro");   // el titular grande de la página sobra: la Nave empieza arriba
@@ -1016,13 +1017,14 @@
       MOTOR.comentariosDe ? MOTOR.comentariosDe(PER).catch(soloVacio) : Promise.resolve([])
     ]).then(function (x) {
         if (turno !== TURNO_EVID) return;
-        EVID = {}; EVRF = {}; COMS = {};
-        x[0].docs.forEach(function (d) { var e = d.data(); (EVID[e.studentProfileId] = EVID[e.studentProfileId] || {})[e.stargateReto || String(e.missionId).split("__").pop()] = e.enlace || ""; });
+        EVID = {}; EVRF = {}; COMS = {}; EVFE = {};
+        x[0].docs.forEach(function (d) { var e = d.data(), k = e.stargateReto || String(e.missionId).split("__").pop(); (EVID[e.studentProfileId] = EVID[e.studentProfileId] || {})[k] = e.enlace || "";
+          (EVFE[e.studentProfileId] = EVFE[e.studentProfileId] || {})[k] = Number(e.createdAt) || 0; });
         (x[1] || []).forEach(function (f) { (EVRF[f.fichaId] = EVRF[f.fichaId] || {})[f.reto] = f; });
         (x[2] || []).forEach(function (c) { (COMS[c.reflexion] = COMS[c.reflexion] || []).push(c); });
-      }).catch(function () { EVID = {}; EVRF = {}; COMS = {}; });
+      }).catch(function () { EVID = {}; EVRF = {}; COMS = {}; EVFE = {}; });
   }
-  var EVID = null, EVID_LISTO = null, TURNO_EVID = 0, EVID_PER = null, EVRF = {}, COMS = {}, FICHA_RF = null, ULTIMO_T = null;
+  var EVID = null, EVID_LISTO = null, TURNO_EVID = 0, EVID_PER = null, EVRF = {}, COMS = {}, EVFE = {}, FICHA_RF = null, ULTIMO_T = null;
   /** Las reflexiones existen desde el 16-sep-2026: lo registrado antes no se marca como «sin reflexión». */
   var REFLEXION_DESDE = Date.parse("2026-09-16T00:00:00");
   function pideReflexion(reg) { var f = reg && reg.fecha ? Date.parse(reg.fecha) : NaN; return !isNaN(f) && f >= REFLEXION_DESDE; }
@@ -2003,6 +2005,126 @@
   }
 
   /** 24-sep · la sección del Simulador: la batalla en MODO ENSAYO (no cuenta nada), dentro, y cómo llevarla a clase. */
+  /**
+   * 🔴 24-sep · LOS RETOS, UNO A UNO. Norberto: «¿cómo ves añadir en los docentes una pestaña de retos al lado de Reclutas
+   * donde podamos ver todos los retos activos hasta la fecha (los no disponibles sombreados) y al hacer clic en el reto,
+   * además de ver la info ampliada, poder ver los estudiantes que la han completado y sus respuestas o enlaces?». Y al ver
+   * el borrador: «no pongas quién NO lo ha hecho, solo los que sí. Si son muchos, pon scroll. Me encanta la idea del enlace
+   * clicable». Las tarjetas son las de «Hoy toca» (fichaReto): esta semana arriba, los ya lanzados por tema (el último,
+   * abierto) y lo que viene en sombra. Al pulsar, la ventana común (SG.preguntar, ancha): qué tienen que hacer, paso a paso
+   * (SG.pasosReto, lo mismo que lee el recluta), cómo se entrega, el ejemplo y quién lo ha hecho, el más reciente arriba,
+   * con su enlace. Los enlaces y las reflexiones son los que ya carga la consola (cargarEvid): ni una consulta más.
+   */
+  var RT_TODOS = false;
+  function verRetos(t) {
+    var sem = Number(t.semana) || 0, tipo = t.tipo === "PUA" ? "PUA" : "REGULAR";
+    var mapa = ((window.SG_SEM_RETO || {})[tipo]) || {}, SEMS = window.SG_SEMANAS || [];
+    var cat = ((((window.SG_CATALOGO || {}).retos) || {})[tipo]) || [];
+    var yoN = miNombreAqui(), todos = t.reclutas || [];
+    var mia = yoN ? todos.filter(function (r) { return r.profe === yoN; }) : [];
+    var elige = soyRefAqui() && mia.length > 0 && mia.length < todos.length;   // (el referente con escuadrón: el suyo o todos)
+    var gente = mia.length && !(elige && RT_TODOS) ? mia : todos, N = gente.length;
+    var W = function (r) { return semanaDeReto(r, tipo, mapa); };
+    var porSem = function (a, b) { return W(a) - W(b); };
+    var prog = function (r) { var n = gente.filter(function (x) { return (x.hechos || []).indexOf(r.id) >= 0; }).length;
+      return { n: n, N: N, pct: N ? Math.round(n * 100 / N) : 0 }; };
+    var tarjeta = function (r) {
+      var w = W(r);
+      return fichaReto(r, tipo, w <= sem ? prog(r) : null, w > sem ? w : 0)
+        .replace('<article class="ht-reto', '<article data-rt="' + esc(r.id) + '" role="button" tabindex="0" aria-label="Ver el reto ' + esc(r.id) + '" class="rt-clic ht-reto');
+    };
+    var conSem = cat.filter(function (r) { return W(r) > 0; });
+    var estos = conSem.filter(function (r) { return W(r) === sem; }).sort(porSem);
+    var antes = conSem.filter(function (r) { return W(r) < sem; });
+    var luego = conSem.filter(function (r) { return W(r) > sem; }).sort(porSem);
+    var temas = []; antes.forEach(function (r) { var k = Number(r.tema || 0); if (temas.indexOf(k) < 0) temas.push(k); });
+    temas.sort(function (a, b) { return b - a; });
+    var nombreTema = function (k) { var s1 = SEMS.filter(function (x) { return Number(x.tema_n) === k; })[0];
+      return s1 && s1.tema ? String(s1.tema).replace(/\s*\(cont\.\)/, "") : (k ? "Tema " + k : "Arranque"); };   // («Tema 5 · Umbral»)
+    $("#c-cuerpo").innerHTML = '<section class="card rt">' +
+      '<div class="rt-cab"><div><h3><img class="ico" src="assets/img/nave/iconos/retos.png" alt=""> Retos</h3>' +
+        '<p class="small muted">Pulsa uno: qué tienen que hacer, paso a paso, y quién lo ha hecho, con su enlace.</p></div>' +
+        (elige ? '<div class="pt-seg rt-seg" role="group" aria-label="De quién">' +
+          '<button type="button" data-rt-quien="mio" aria-pressed="' + !RT_TODOS + '"' + (RT_TODOS ? '' : ' class="on"') + '>Tu escuadrón · ' + mia.length + '</button>' +
+          '<button type="button" data-rt-quien="todos" aria-pressed="' + RT_TODOS + '"' + (RT_TODOS ? ' class="on"' : '') + '>Todo el grupo · ' + todos.length + '</button></div>' : '') +
+      '</div>' +
+      '<b class="ht-sub">' + (sem >= 1 ? 'Esta semana · la ' + sem : 'Aún no ha empezado') + '</b>' +
+      (estos.length ? '<div class="ht-retos">' + estos.map(tarjeta).join("") + '</div>'
+                    : '<p class="small muted">' + (sem >= 1 ? 'Esta semana no se lanza ningún reto nuevo: tiempo para terminar los que hay.' : 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>.') + '</p>') +
+      (temas.length ? '<b class="ht-sub">Ya lanzados</b>' + temas.map(function (k, i) {
+          var suyos = antes.filter(function (r) { return Number(r.tema || 0) === k; }).sort(porSem);
+          return '<details class="rt-tema"' + (i === 0 ? ' open' : '') + '><summary><b>' + esc(nombreTema(k)) + '</b>' +
+            '<span class="rt-tema-n">' + suyos.map(function (r) { var p = prog(r); return '<span><em>' + esc(r.id) + '</em> ' + p.n + '/' + p.N + '</span>'; }).join("") + '</span></summary>' +
+            '<div class="ht-retos">' + suyos.map(tarjeta).join("") + '</div></details>';
+        }).join("") : '') +
+      (luego.length ? '<b class="ht-sub">Lo que viene</b><div class="ht-retos">' + luego.map(tarjeta).join("") + '</div>' : '') +
+      '</section>';
+    Array.prototype.forEach.call(document.querySelectorAll("[data-rt-quien]"), function (b) {
+      b.onclick = function () { RT_TODOS = b.getAttribute("data-rt-quien") === "todos"; verRetos(t); };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("#c-cuerpo [data-rt]"), function (a) {
+      var abre = function (ev) {
+        if (ev && ev.target && ev.target.closest && ev.target.closest("a")) return;   // («Ver un ejemplo ↗» va a lo suyo)
+        var id = a.getAttribute("data-rt"), r = cat.filter(function (x) { return x.id === id; })[0];
+        if (r) abrirReto(r, t, gente, tipo, W(r), sem);
+      };
+      a.onclick = abre;
+      a.onkeydown = function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); abre(); } };
+    });
+    if (!(EVID && EVID_PER === PER)) cargarEvid(t);   // (los enlaces, ya en camino cuando pulse)
+  }
+  /** Los enlaces de un registro, pulsables (uno o varios, separados por espacios; sin https:// se les pone). */
+  function enlacesDe(entregado) {
+    return String(entregado || "").trim().split(/\s+/).filter(Boolean).map(function (u) {
+      var url = /^https?:\/\//i.test(u) ? u : "https://" + u;
+      return '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer"><img class=ico src=assets/img/iconos/p/enlace.png alt> ' + esc(u.replace(/^https?:\/\//i, "").slice(0, 70)) + "</a>"; }).join(" ");
+  }
+  /** La ficha de un reto, en grande: lo que lee el recluta y quién lo ha hecho (solo quien sí), con su enlace. */
+  async function abrirReto(r, t, gente, tipo, w, sem) {
+    if (!EVID && EVID_LISTO) { try { await EVID_LISTO; } catch (e) {} }
+    var id = r.id, futuro = w > sem, rel = id.charAt(0) === "L";
+    var m = /^(Reto (?:A|B|principal|relámpago)|Actividad \d)\s*(.*)$/i.exec(r.titulo || "") || [null, "", r.titulo || ""];
+    var ins = (r.insignias || [])[0] || "", g = (window.SG_GANCHO_RETOS || {})[id] || "";
+    var pasos = window.SG.pasosReto ? window.SG.pasosReto((window.SG_AYUDA_RETOS || {})[id]) : [];
+    var ej = (window.SG_EJEMPLOS || {})[id], RF = (window.SG_REFLEXION || {})[id], cr = creditosDeRetoC(id, tipo);
+    var tipoG = ((DATOS.proyecto || {}).stargate || {}).tipo || "REGULAR";
+    var fe = function (x) { return Number((EVFE[x.ficha] || {})[id] || 0); };
+    var hechos = gente.filter(function (x) { return (x.hechos || []).indexOf(id) >= 0; })
+      .sort(function (a, b) { return fe(b) - fe(a) || String(a.alias || "").localeCompare(String(b.alias || "")); });
+    var entrega = id === "S7" ? "Se registra solo, con la palabra del final del Escape UNI."
+      : RF ? "Se responde en el propio reto: una reflexión escrita."
+      : rel ? "Se hace en clase (10-15 min) y se registra con una foto, una captura o un enlace."
+      : "Se registra en su Nave con el enlace público de lo que ha hecho.";
+    var fila = function (x) {
+      var rfx = ((EVRF || {})[x.ficha] || {})[id], f = fe(x);
+      var entregado = String(((EVID || {})[x.ficha] || {})[id] || (rfx && rfx.enlace) || "").trim();
+      var cara = window.SG && SG.avatarImg ? SG.avatarImg(x.avatar, x.alias, "rt-av", x.xp, tipoG) : "";
+      return '<li class="rt-quien">' + cara + '<div class="rt-q"><p><b>' + esc(x.alias || "") + '</b>' +
+        (x.nombre ? ' <span class="muted">' + esc(x.nombre) + '</span>' : '') +
+        (f ? ' <span class="muted">· ' + new Date(f).getDate() + ' ' + MESES_C[new Date(f).getMonth()] + '</span>' : '') + '</p>' +
+        (entregado ? '<p class="rt-ev">' + enlacesDe(entregado) + '</p>' : (rfx ? '' : '<p class="rt-ev muted">sin enlace</p>')) +
+        (rfx && rfx.texto ? '<details class="rt-rf"><summary>Su reflexión</summary><p>' + esc(rfx.texto) + '</p></details>' : '') +
+        '</div></li>';
+    };
+    var html = '<div class="rt-fi">' +
+      '<div class="rt-fi-cab">' + (ins ? '<img class="rt-fi-ins" src="assets/img/insignias/' + esc(ins) + '.webp" alt="" onerror="this.remove()">' : '') +
+        '<div><p class="rt-fi-meta"><span class="pt-id">' + esc(id) + '</span> ' + esc(m[1] || "Reto") + ' · ' + esc(Number(r.tema) ? "Tema " + r.tema : "Arranque") +
+          ' · ' + (futuro ? 'se desbloquea la semana ' + w : 'semana ' + w) + '</p>' +
+        '<p class="rt-fi-premio"><span class="p xp">+' + Number(r.xp || 0) + ' xp</span>' + (cr ? '<span class="p cr">+' + cr + ' ◈</span>' : '') +
+          (rel ? '<span class="chip rel">' + ico("rayo") + ' En clase · 10-15 min</span>' : '') + '</p></div></div>' +
+      (g ? '<p class="rt-fi-gancho">' + esc(g) + '</p>' : '') +
+      '<p class="rt-fi-sub">Qué tienen que hacer</p>' +
+      (pasos.length ? '<ol class="rs-pasos">' + pasos.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ol>'
+                    : '<p class="small muted">Sin explicación escrita.</p>') +
+      '<p class="rt-fi-entrega">' + ico("hecho") + ' ' + esc(entrega) + '</p>' +
+      (ej && id !== "S7" ? '<p class="rt-fi-ej"><a href="ejemplo.html?reto=' + esc(id) + '" target="_blank" rel="noopener">Ver un ejemplo: <span>' + esc(ej.titulo || "") + '</span> ↗</a></p>' : '') +
+      '<div class="rt-fi-hecho"><p class="rt-fi-sub">Lo han hecho · <b>' + hechos.length + '</b> de ' + gente.length + '</p>' +
+        (futuro ? '<p class="small muted">Todavía no se puede registrar: se abre la semana ' + w + '.</p>'
+          : hechos.length ? '<ul class="rt-lista">' + hechos.map(fila).join("") + '</ul>'
+          : '<p class="small muted">Todavía nadie lo ha registrado.</p>') +
+      '</div></div>';
+    window.SG.preguntar({ quien: (m[1] || "Reto") + " · " + id, titulo: m[2] || r.titulo || id, html: html, si: "Cerrar", no: "", clase: "sgp-ancha" });
+  }
   function verSimulador(t) {
     var BT = window.SG_BATALLA || {}, gente = (t && t.reclutas) || [];
     var ganaron = gente.filter(function (r) { return ((r.simulador || {})[BT.clave || "joran"]); }).length;

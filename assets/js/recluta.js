@@ -876,35 +876,9 @@
   }
   // La explicación de un reto, partida en pasos. Las frases cortas se pegan a la anterior: «Piénsalo
   // para aula invertida.» no es un paso, es una coletilla de la frase de antes.
-  function pasosDeReto(txt){
-    // 🔴 NADA DE LOOKBEHIND. `split(/(?<=\.)\s+/)` era lo natural, pero el lookbehind es ES2018 y
-    // Safari no lo entendió hasta la 16.4: en un iPhone de hace tres años esto NO es un bucle que
-    // falla, es un error de SINTAXIS que tumba el fichero entero — la Nave no cargaría. Y la Nave la
-    // abren doscientos móviles cualesquiera. Se parte a mano, que funciona en todas partes.
-    // 🔴 13-sep · «Graba un clip corto (máx. 60 s)…» salía partido en dos pasos: «(máx.» y «60 s)…».
-    // No se corta dentro de un paréntesis, tras una abreviatura, ni si lo que sigue va en minúscula o
-    // es un número (eso no es una frase nueva). Visto en la Nave con una cuenta real.
-    var ABREV=/(?:^|[\s(])(máx|mín|aprox|ej|p\.\s?ej|pág|págs|núm|etc|vs|sr|sra|dr|dra|ud|uds|cap|fig|min|seg)\.$/i;
-    var texto=String(txt||''), fr=[], act='', hondo=0;
-    for(var i=0;i<texto.length;i++){
-      var ch=texto[i]; act+=ch;
-      if(ch==='(') hondo++; else if(ch===')'&&hondo>0) hondo--;
-      if(ch==='.' && (i+1>=texto.length || /\s/.test(texto[i+1]))){
-        var j=i+1; while(j<texto.length && /\s/.test(texto[j])) j++;
-        var sig=texto[j]||'';
-        var sigue=sig && (/[a-záéíóúñü0-9]/.test(sig));
-        if(hondo>0 || sigue || ABREV.test(act)) continue;
-        fr.push(act.trim()); act='';
-      }
-    }
-    if(act.trim()) fr.push(act.trim());
-    fr=fr.filter(Boolean);
-    var out=[];
-    fr.forEach(function(f){
-      if(out.length && f.length<42) out[out.length-1]+=' '+f; else out.push(f);
-    });
-    return out;
-  }
+  // 24-sep · el paso a paso se parte en `SG.pasosReto` (stargate.js): la consola del docente lo enseña igual en su
+  // pestaña «Retos». Allí está la historia (sin lookbehind, abreviaturas, paréntesis, frases cortas pegadas).
+  function pasosDeReto(txt){ return window.SG.pasosReto(txt); }
   /**
    * QUÉ TE LLEVAS, dicho con su nombre. La insignia ya se enseñaba, pero como una pegatina sin
    * explicar: una miniatura y un nombre propio («Bran Okafor») que no dice nada a quien aún no

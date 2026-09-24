@@ -2378,6 +2378,39 @@ window.SG.pers = function(cb){
 })();
 
 /**
+ * EL PASO A PASO DE UN RETO: su explicación (SG_AYUDA_RETOS, del documento maestro), partida en frases. La usan la Nave
+ * del recluta («Cómo se hace, paso a paso») y, desde el 24-sep, la pestaña «Retos» de la consola del docente.
+ */
+window.SG.pasosReto = function(txt){
+  // 🔴 NADA DE LOOKBEHIND. `split(/(?<=\.)\s+/)` era lo natural, pero el lookbehind es ES2018 y
+  // Safari no lo entendió hasta la 16.4: en un iPhone de hace tres años esto NO es un bucle que
+  // falla, es un error de SINTAXIS que tumba el fichero entero — la Nave no cargaría. Y la Nave la
+  // abren doscientos móviles cualesquiera. Se parte a mano, que funciona en todas partes.
+  // 🔴 13-sep · «Graba un clip corto (máx. 60 s)…» salía partido en dos pasos: «(máx.» y «60 s)…».
+  // No se corta dentro de un paréntesis, tras una abreviatura, ni si lo que sigue va en minúscula o
+  // es un número (eso no es una frase nueva). Visto en la Nave con una cuenta real.
+  var ABREV=/(?:^|[\s(])(máx|mín|aprox|ej|p\.\s?ej|pág|págs|núm|etc|vs|sr|sra|dr|dra|ud|uds|cap|fig|min|seg)\.$/i;
+  var texto=String(txt||''), fr=[], act='', hondo=0;
+  for(var i=0;i<texto.length;i++){
+    var ch=texto[i]; act+=ch;
+    if(ch==='(') hondo++; else if(ch===')'&&hondo>0) hondo--;
+    if(ch==='.' && (i+1>=texto.length || /\s/.test(texto[i+1]))){
+      var j=i+1; while(j<texto.length && /\s/.test(texto[j])) j++;
+      var sig=texto[j]||'';
+      var sigue=sig && (/[a-záéíóúñü0-9]/.test(sig));
+      if(hondo>0 || sigue || ABREV.test(act)) continue;
+      fr.push(act.trim()); act='';
+    }
+  }
+  if(act.trim()) fr.push(act.trim());
+  fr=fr.filter(Boolean);
+  var out=[];
+  fr.forEach(function(f){
+    if(out.length && f.length<42) out[out.length-1]+=' '+f; else out.push(f);
+  });
+  return out;
+};
+/**
  * 🔴 17-sep · PREGUNTAR CON LA CARA DE STARGATE, NO CON LA DEL NAVEGADOR. Norberto, anulando un reto en la consola:
  * «ese aviso no guarda la estética de STARGATE, hay que mejorarlo». El `confirm()` de siempre dice
  * «stargate.mistercuarter.es dice», congela la página y no deja escribir un porqué. Este sustituye a `confirm`,
@@ -2407,7 +2440,7 @@ window.SG.preguntar = function (o) {
       if (viejo && viejo.__cerrar) viejo.__cerrar(null);
     }
     var caja = document.createElement("div");
-    caja.className = "sgp-caja" + (o.peligro ? " peligro" : "") + (enLinea ? " en-linea" : "");
+    caja.className = "sgp-caja" + (o.peligro ? " peligro" : "") + (enLinea ? " en-linea" : "") + (o.clase ? " " + o.clase : "");   // (24-sep · `clase`: p. ej. «sgp-ancha»)
     caja.setAttribute("role", enLinea ? "group" : "dialog");
     if (!enLinea) caja.setAttribute("aria-modal", "true");
     var idT = "sgp-t-" + Date.now();
@@ -4660,7 +4693,7 @@ _html = head("STARGATE · Mi nave",
 <header class="hero corto"><h1>Mi nave</h1></header>
 <section id="consola"><div class="wrap">
 <div id="consola-app"><p class="muted">Cargando…</p></div>
-''' + '<script>window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
+''' + '<script>window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_AYUDA_RETOS=' + json.dumps(_AYUDA_NAVE, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "consola.html"), "w", encoding="utf-8").write(_ver_assets(_html))
@@ -4675,7 +4708,7 @@ _html = head("STARGATE · Gestionar grupos",
 <header class="hero corto"><h1>Gestionar grupos</h1></header>
 <section id="consola"><div class="wrap">
 <div id="consola-app"><p class="muted">Cargando…</p></div>
-''' + '<script>window.SG_GESTION=1;window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
+''' + '<script>window.SG_GESTION=1;window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_AYUDA_RETOS=' + json.dumps(_AYUDA_NAVE, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "gestion.html"), "w", encoding="utf-8").write(_ver_assets(_html))

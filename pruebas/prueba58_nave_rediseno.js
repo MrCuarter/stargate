@@ -48,7 +48,11 @@ c(/montarInterruptor\('nb-fiesta'\)/.test(NAVE), "   y el interruptor de sonido 
 c(/function retosDeLaSemana\(\)/.test(NAVE), "el bloque de retos de la semana existe");
 c(/function pasosDeReto\(txt\)/.test(NAVE),
   "🔴 el paso a paso sale de PARTIR la explicación del catálogo, no de un texto escrito aparte");
-c(/if\(out\.length && f\.length<42\)/.test(NAVE),
+// 24-sep · el cuerpo vive en `SG.pasosReto` (stargate.js): la pestaña «Retos» del docente parte igual que la Nave
+const STG58 = js("stargate.js");
+c(/function pasosDeReto\(txt\)\{ return window\.SG\.pasosReto\(txt\); \}/.test(NAVE) && /window\.SG\.pasosReto = function\(txt\)/.test(STG58),
+  "   (y se parte en un solo sitio, `SG.pasosReto`: la Nave y la consola del docente, igual)");
+c(/if\(out\.length && f\.length<42\)/.test(STG58),
   "   y las frases cortas se pegan a la anterior: «Piénsalo para aula invertida.» no es un paso");
 c(/<span class="p xp">\+'\+t\[3\]\+' xp/.test(NAVE) && /rs-premio">'\+premio/.test(NAVE), "cada reto enseña los xp que da");
 c(/creditosDeReto\(t\[0\]\)/.test(NAVE), "   y los créditos");

@@ -105,6 +105,29 @@ c(/SG\.avatarImg\(r\.avatar, r\.alias, "gente-av"/.test(K) && /\.gente-tabla \.g
   "🔴 Mi gente enseña el avatar que lleva puesto cada recluta");
 c(!/td\.gente-quien\{display:flex/.test(CSS), "   sin romper la tabla (el flex va dentro de la celda, no en la celda)");
 
+// 🔴 24-sep · LA PESTAÑA «RETOS». Norberto: «una pestaña de retos al lado de Reclutas… los no disponibles sombreados… al
+// hacer clic, la info ampliada y los estudiantes que la han completado y sus enlaces». Y: «no pongas quién NO lo ha hecho,
+// solo los que sí. Si son muchos, pon scroll. Me encanta la idea del enlace clicable».
+const STG86 = leer("assets/js/stargate.js"), CONS86 = leer("consola.html");
+c(/\["alumnado", "Reclutas"\], \["retos", "Retos"\]/.test(K) && /\["retos", "Retos", "assets\/img\/nave\/iconos\/retos\.png", \["retos"\]\]/.test(K) && /retos: verRetos/.test(K),
+  "🔴 retos · la pestaña «Retos», al lado de Reclutas, en la barra del grupo");
+c(/function verRetos\(t\)/.test(K) && /fichaReto\(r, tipo, w <= sem \? prog\(r\) : null, w > sem \? w : 0\)/.test(K),
+  "   con las tarjetas de «Hoy toca»: las lanzadas con cuántos lo han hecho, las que vienen en sombra con su semana");
+c(/data-rt="/.test(K) && /abrirReto\(r, t, gente, tipo, W\(r\), sem\)/.test(K) && /closest\("a"\)\) return;/.test(K),
+  "   cada tarjeta se pulsa (y «Ver un ejemplo ↗» sigue yendo a lo suyo)");
+c(/async function abrirReto\(/.test(K) && /window\.SG\.pasosReto\(\(window\.SG_AYUDA_RETOS \|\| \{\}\)\[id\]\)/.test(K) && /window\.SG_AYUDA_RETOS=/.test(CONS86),
+  "🔴 retos · la ficha dice qué tienen que hacer, paso a paso: el mismo texto que lee el recluta");
+c(/var hechos = gente\.filter\(function \(x\) \{ return \(x\.hechos \|\| \[\]\)\.indexOf\(id\) >= 0; \}\)/.test(K) && !/Aún no ·/.test(K),
+  "🔴 retos · solo quien SÍ lo ha hecho (nada de lista de quién falta)");
+c(/'<ul class="rt-lista">'/.test(K) && /\.rt-lista\{[^}]*max-height:[^}]*overflow-y:auto/.test(CSS),
+  "   y si son muchos, la lista rueda por dentro");
+c(/function enlacesDe\(entregado\)/.test(K) && /enlacesDe\(entregado\)/.test(K) && /target="_blank" rel="noopener noreferrer"/.test(K),
+  "🔴 retos · cada enlace, pulsable (en otra pestaña)");
+c(/EVFE\[e\.studentProfileId\]/.test(K) && /fe\(b\) - fe\(a\)/.test(K), "   el más reciente arriba (la fecha del registro)");
+c(/\(o\.clase \? " " \+ o\.clase : ""\)/.test(STG86) && /clase: "sgp-ancha"/.test(K) && /\.sgp-caja\.sgp-ancha\{max-width:720px/.test(CSS),
+  "   en la ventana de siempre, más ancha");
+c(/var elige = soyRefAqui\(\) && mia\.length > 0 && mia\.length < todos\.length/.test(K), "   el referente con escuadrón elige: el suyo o todo el grupo");
+
 console.log("\n  Batería 86 · la consola: lo del referente, la ficha y los rankings");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
 fallos.forEach(f => console.log("   ✗ " + f));

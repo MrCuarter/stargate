@@ -6373,3 +6373,52 @@ body.embed .mazo .dia{padding-top:46px}
 /* (a media pantalla, la carrera a lo ancho: quién va delante, tú y quién te sigue, lado a lado) */
 @media(min-width:640px) and (max-width:979px){ .nf-carrera ol{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px} }
 /* (24-sep · versión nueva: la anterior quedó cacheada en el CDN con el contenido viejo) */
+/* 🔴 24-sep · LA PESTAÑA «RETOS» DEL DOCENTE. Las tarjetas son las de «Hoy toca» (se pulsan); los temas ya lanzados, plegados
+   (el último, abierto); y al pulsar, la ventana común, ancha: qué hacer, paso a paso, y quién lo ha hecho con su enlace
+   (solo quien sí; con muchos, la lista rueda por dentro). */
+.rt{display:flex;flex-direction:column;gap:12px}
+.rt-cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 14px}
+.rt-cab h3{margin:0 0 2px}
+.rt-cab p{margin:0}
+.rt-seg{margin:0}
+.rt .ht-sub{margin:4px 0 0}
+.rt-clic{cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s}
+.rt-clic:hover,.rt-clic:focus-visible{border-color:var(--teal);transform:translateY(-1px);box-shadow:0 8px 22px rgba(0,0,0,.35);outline:none}
+.rt-clic.por-lanzar:hover,.rt-clic.por-lanzar:focus-visible{opacity:.8}
+.rt-tema{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:rgba(6,14,24,.35)}
+.rt-tema>summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;cursor:pointer;list-style:none}
+.rt-tema>summary::-webkit-details-marker{display:none}
+.rt-tema>summary>b::before{content:"▸ ";color:var(--teal)}
+.rt-tema[open]>summary>b::before{content:"▾ "}
+.rt-tema[open]>summary{margin-bottom:10px}
+.rt-tema-n{display:flex;flex-wrap:wrap;gap:6px}
+.rt-tema-n span{font-size:.8rem;padding:2px 9px;border-radius:999px;background:rgba(255,255,255,.05);color:#c7d6ee}
+.rt-tema-n em{font-style:normal;font-weight:700;color:var(--teal2)}
+.sgp-caja.sgp-ancha{max-width:720px;max-height:calc(100vh - 40px);overflow:auto;color-scheme:dark;scrollbar-width:thin;scrollbar-color:#2c4a6a transparent}
+.rt-fi-cab{display:flex;align-items:center;gap:12px}
+.rt-fi-ins{width:64px;height:64px;object-fit:contain;flex:none}
+.sgp-txt .rt-fi-meta{margin:0;font-size:.82rem;color:var(--mut)}
+.rt-fi-premio{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:5px 0 0}
+.rt-fi-premio .p{font-size:.8rem;font-weight:800;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.06)}
+.rt-fi-premio .p.xp{color:var(--teal,#3ed6c8)}
+.rt-fi-premio .p.cr{color:var(--amber,#f2b544)}
+.sgp-txt .rt-fi-gancho{margin:10px 0 0;font-size:.95rem;color:var(--ink);line-height:1.45}
+.sgp-txt .rt-fi-sub{margin:14px 0 2px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--teal)}
+.rt-fi .rs-pasos{margin-top:8px}
+.sgp-txt .rt-fi-entrega{margin:2px 0 0;font-size:.88rem;color:var(--ink)}
+.sgp-txt .rt-fi-ej{margin:6px 0 0}
+.rt-fi-ej a{color:var(--teal2);font-weight:700;word-break:normal}
+.rt-fi-ej a span{font-weight:400;color:#c7d6ee}
+.rt-lista{list-style:none;margin:6px 0 0;padding:0 6px 0 0;display:flex;flex-direction:column;gap:6px;max-height:min(320px,42vh);overflow-y:auto;overscroll-behavior:contain;color-scheme:dark;scrollbar-width:thin;scrollbar-color:var(--teal,#37e0ec) rgba(255,255,255,.05)}
+.rt-quien{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.22)}
+img.av.rt-av{width:38px;height:38px;flex:none}
+.rt-q{min-width:0;flex:1}
+.sgp-txt .rt-q p{margin:0;font-size:.88rem;color:var(--ink)}
+.sgp-txt .rt-q p .muted{color:var(--mut);font-weight:400}
+.sgp-txt .rt-ev{margin-top:3px}
+.rt-ev a{color:var(--teal2);text-decoration:underline;text-underline-offset:2px;margin-right:10px}
+.rt-ev a:hover{color:#fff}
+.rt-rf{margin-top:4px}
+.rt-rf summary{cursor:pointer;font-size:.85rem;color:var(--teal2)}
+.sgp-txt .rt-rf p{margin:4px 0 0;font-size:.86rem;color:#c7d6ee;white-space:pre-wrap}
+@media(max-width:560px){ .rt-fi-ins{width:48px;height:48px} .rt-lista{max-height:50vh} }
