@@ -941,7 +941,7 @@ const REG = {};   // cifras que se apuntan para el informe
         return {n:o.querySelector('.tour-step').textContent, t:o.querySelector('h3').textContent, x:o.querySelector('p').textContent, foco:f?f.className:''};})()`);
       const p0 = await paso();
       c("🔴 bienvenida · a la alumna recién alistada le sale NEBULA en su primera visita, ya dentro", sale && p0 && /1 \/ 6/.test(p0.n), JSON.stringify(p0));
-      c("🔴 capítulos · llega en la semana 10: le tocan los capítulos 1 a 9, EN ORDEN («Capítulo 1 de 9»)", p0 && /Capítulo 1 de 9/.test(p0.n), p0 && p0.n);
+      c("🔴 capítulos · llega en la semana 10: le tocan los capítulos 1 a 10, EN ORDEN («Capítulo 1 de 10»; 24-sep: el del Simulador es de la 10)", p0 && /Capítulo 1 de 10/.test(p0.n), p0 && p0.n);
       c("bienvenida · y NO le pide «escribe tu correo» (esa puerta ya no existe)", p0 && !/correo/i.test(p0.x), p0 && p0.x.slice(0, 120));
       const focos = [p0 && p0.foco];
       for (let k = 0; k < 5; k++) { await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700); const pk = await paso(); focos.push(pk ? pk.foco : "—"); }
@@ -956,9 +956,9 @@ const REG = {};   // cifras que se apuntan para el informe
         if (titulos.indexOf(pk.n.split(" · ").slice(0, 2).join(" · ")) < 0) titulos.push(pk.n.split(" · ").slice(0, 2).join(" · "));
         await leo.js("document.querySelector('#nave-onboard .tour-next').click(); 1"); await dormir(700);
       }
-      c("🔴 capítulos · de menos a más: el Mercado, la Rebelión, los adornos, la oferta, el Sorteo, el Hangar, el Zoco y los logros, uno tras otro",
-        titulos.length === 8 && /2 de 9/.test(titulos[0]) && /Mercado/.test(titulos[0]) && /Rebeli/.test(titulos[1]) && /insignia de mando/i.test(titulos[2]) && /oferta de la semana/.test(titulos[3])
-        && /Sorteo/.test(titulos[4]) && /Hangar/.test(titulos[5]) && /Zoco/.test(titulos[6]) && /logros de a bordo/.test(titulos[7]), JSON.stringify(titulos));
+      c("🔴 capítulos · de menos a más: el Mercado, la Rebelión, los adornos, la oferta, el Sorteo, el Hangar, el Zoco, los logros y el Simulador, uno tras otro",
+        titulos.length === 9 && /2 de 10/.test(titulos[0]) && /Mercado/.test(titulos[0]) && /Rebeli/.test(titulos[1]) && /insignia de mando/i.test(titulos[2]) && /oferta de la semana/.test(titulos[3])
+        && /Sorteo/.test(titulos[4]) && /Hangar/.test(titulos[5]) && /Zoco/.test(titulos[6]) && /logros de a bordo/.test(titulos[7]) && /Simulador de Joran/.test(titulos[8]), JSON.stringify(titulos));
       c("bienvenida · al terminar se cierra", !(await paso()));
       await dormir(1500);
       const fLeo = await fichaDe("leo@lab.test", "lab-clase");
@@ -974,7 +974,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 capítulos · en otro ordenador tampoco vuelve a salir (lo sabe su ficha)", !(await leo2.js("!!document.querySelector('#nave-onboard.open')")));
       await leo.js("document.getElementById('btn-onboard') && document.getElementById('btn-onboard').click(); 1"); await dormir(400);
       const menu = await leo.js("[].slice.call(document.querySelectorAll('#rep-menu [data-cap]')).map(function(b){return b.textContent})");
-      c("capítulos · «Repetir bienvenida» ofrece los capítulos abiertos (los 9 de la semana 10)", (menu || []).length === 9 && /Canal abierto/.test(menu[0]) && /oferta/.test(menu[4]) && /Sorteo/.test(menu[5]) && /Hangar/.test(menu[6]) && /Zoco/.test(menu[7]) && /logros de a bordo/.test(menu[8]), JSON.stringify(menu));
+      c("capítulos · «Repetir bienvenida» ofrece los capítulos abiertos (los 10 de la semana 10)", (menu || []).length === 10 && /Canal abierto/.test(menu[0]) && /oferta/.test(menu[4]) && /Sorteo/.test(menu[5]) && /Hangar/.test(menu[6]) && /Zoco/.test(menu[7]) && /logros de a bordo/.test(menu[8]) && /Simulador de Joran/.test(menu[9]), JSON.stringify(menu));
       await leo.js("document.querySelector('#rep-menu [data-cap=c1]').click(); 1"); await dormir(700);
       const rep = await paso();
       c("bienvenida · y el 1 se vuelve a poner desde el principio", rep && /1 \/ 6/.test(rep.n), JSON.stringify(rep));

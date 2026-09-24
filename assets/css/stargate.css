@@ -6352,3 +6352,23 @@ body.embed .mazo .dia{padding-top:46px}
 .rec-mas .rec-desc{margin-top:6px}
 .nave-rec-u .rec-card .rec-pie .chip{align-self:flex-start}
 .nave-rec-u .rec-pie .chip.rec-pend{border:1px solid rgba(245,176,67,.45);color:#f5c77a;background:rgba(245,176,67,.08)}
+/* 🔴 24-sep · LA FICHA DEL RECLUTA, SIN HUECOS. Norberto: «¡optimiza el espacio!». En ancho, una rejilla: el avatar y quién
+   eres; debajo, las cinco cifras y NEBULA; y «Tu carrera» a la derecha, de arriba abajo. Los dos envoltorios de siempre
+   (.nf-arriba, .nf-abajo) se funden en la rejilla con display:contents. Sin carrera (antes de abrir los rankings), NEBULA
+   ocupa su columna. Más estrecho, todo apilado: NEBULA y la carrera, una debajo de otra (lado a lado, la corta dejaba hueco). */
+@media(min-width:980px){
+  #nave-app section.nave-ficha{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(300px,34%);
+    grid-template-areas:"av quien car" "cif cif car" "neb neb car";gap:12px 22px;align-items:start;padding:18px 22px}
+  .nave-ficha .nf-arriba,.nave-ficha .nf-abajo{display:contents}
+  .nave-ficha .nf-arriba .av-lupa{grid-area:av;width:132px;align-self:center}
+  .nave-ficha .nf-quien{grid-area:quien;align-self:center}
+  .nave-ficha .nf-arriba .nave-cifras{grid-area:cif;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+  .nave-ficha .nf-nebula{grid-area:neb}
+  .nave-ficha .nf-carrera{grid-area:car}
+  .nave-ficha .nave-bio{grid-column:1/-1;margin:0}
+  #nave-app section.nave-ficha:not(.con-carrera){grid-template-areas:"av quien neb" "cif cif neb"}
+  .nave-ficha:not(.con-carrera) .nf-nebula{align-self:stretch}
+}
+@media(max-width:979px){ .nf-abajo{grid-template-columns:minmax(0,1fr)} }
+/* (a media pantalla, la carrera a lo ancho: quién va delante, tú y quién te sigue, lado a lado) */
+@media(min-width:640px) and (max-width:979px){ .nf-carrera ol{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px} }

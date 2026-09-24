@@ -58,7 +58,10 @@ c(/class="card orden-sem orden-carta/.test(REC) && /window\.SG\.rotulo\(/.test(R
 c(/window\.SG\.foroParrafos\(/.test(REC), "   y el mismo lector del mensaje (nada de un parser propio)");
 
 // ── 14 · la ficha del recluta arriba, a todo el ancho, con NEBULA a medida y la carrera inmediata
-c(/<section class="card nave-ficha"/.test(REC), "🔴 la ficha del recluta: una sección propia, a todo el ancho, arriba");
+c(/<section class="card nave-ficha'\+\(carr\?' con-carrera':''\)/.test(REC), "🔴 la ficha del recluta: una sección propia, a todo el ancho, arriba");
+// 24-sep · «¡optimiza el espacio!»: en ancho, una rejilla (avatar y quién · cifras · NEBULA, y la carrera a la derecha)
+c(/grid-template-areas:"av quien car" "cif cif car" "neb neb car"/.test(CSS) && /\.nave-ficha \.nf-arriba,\.nave-ficha \.nf-abajo\{display:contents\}/.test(CSS),
+  "🔴 la ficha del recluta sin huecos: la carrera a la derecha, de arriba abajo");
 c(/function nebulaDice\(r, ni\)/.test(REC) && /function carrera\(\)/.test(REC), "   con lo que NEBULA le dice a él y quién va justo encima y justo detrás");
 c(!/function duelo\(/.test(REC), "   (el «duelo» de antes queda dentro de la carrera, no repetido)");
 c(/foco:'\.nave-ficha'/.test(REC), "   y la visita guiada la señala a ella");

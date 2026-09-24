@@ -1238,7 +1238,9 @@
      * Nave, vive ahora aquí (una sola vez).
      */
     var carr=carrera(), neb=nebulaDice(r, ni);
-    return '<section class="card nave-ficha"'+estiloFicha+'>'
+    // 24-sep · Norberto: «¡optimiza el espacio!». En pantalla ancha, una rejilla: el avatar y quién eres, debajo las cifras
+    // y NEBULA, y «Tu carrera» a la derecha de arriba abajo (antes, NEBULA dejaba un hueco de 200 px bajo ella)
+    return '<section class="card nave-ficha'+(carr?' con-carrera':'')+'"'+estiloFicha+'>'
       +'<div class="nf-arriba">'
       +'<button type="button" class="av-lupa" id="btn-av" title="Pulsa para verte en grande" aria-label="Ampliar tu personaje">'+av+'</button>'
       +'<div class="nf-quien"><h3>'+(r.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(r.alias)+(r.racha>=3?' <span class="chip-racha" title="Semanas seguidas registrando algo"><img class=ico src=assets/img/iconos/p/fuego.png alt> '+r.racha+'</span>':'')+'</h3>'
