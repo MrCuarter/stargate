@@ -3419,6 +3419,12 @@ def _sem_de_reto(catalogo):
 SEM_RETO_JSON = json.dumps({"REGULAR": _sem_de_reto(RETOS_REGULAR), "PUA": _sem_de_reto(RETOS_PUA)}, ensure_ascii=False)
 # 24-sep · aquí, y no junto a `_presenta`: los retos de la presentación necesitan `_AYUDA_NAVE` y `_sem_de_reto`
 _PRESENTA_JSON = json.dumps(_presenta(), ensure_ascii=False)
+# 24-sep · las capturas de la presentación (assets/img/pres/guia) se piden con su huella: sin ella, el CDN guarda la vieja
+# 7 días y, al rehacer una captura, la presentación seguía enseñando la de antes.
+import hashlib as _hl_pres
+_PG = os.path.join(HERE, "assets", "img", "pres", "guia")
+_PRES_GUIA_V = json.dumps({f[:-5]: _hl_pres.md5(open(os.path.join(_PG, f), "rb").read()).hexdigest()[:8]
+                           for f in sorted(os.listdir(_PG)) if f.endswith(".webp")})
 
 # la Nave por capítulos (13-sep): lo leen la Nave, la sesión proyectable y la consola
 CAPITULOS_JSON = json.dumps([{k: c[k] for k in ("n", "clave", "titulo", "icono", "semanas", "abre", "mercado",
@@ -3609,7 +3615,7 @@ Pasa con <b>←</b> y <b>→</b>; el mapa de planetas y las preguntas se abren p
 <p class="small muted">El guion completo, con los minutos de cada bloque y qué decir en cada uno, está en la
 <b>Parte 0</b> de la guía del profesorado.</p></header>
 <section><div class="wrap"><div id="prestreno-app"></div>
-<script>window.SG_PRESENTA={_PRESENTA_JSON};window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_PER_ESCUELA={json.dumps(PER_ESCUELA)};window.SG_ENLACES={json.dumps([list(x) for x in ENLACES_EQUIPO], ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};</script>
+<script>window.SG_PRESENTA={_PRESENTA_JSON};window.SG_PRES_GUIA_V={_PRES_GUIA_V};window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_PER_ESCUELA={json.dumps(PER_ESCUELA)};window.SG_ENLACES={json.dumps([list(x) for x in ENLACES_EQUIPO], ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};</script>
 <script src="assets/js/prestreno.js" defer></script>
 </div></section>
 ''' + FOOT

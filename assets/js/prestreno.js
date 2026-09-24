@@ -544,7 +544,7 @@
   function comoSeHace(o) {
     return { rot: o.rot, html: escena({ cls: "pr-como", bg: o.bg || "", cap: o.cap || null,
       cuerpo: '<div class="kicker">' + o.kicker + '</div><h2>' + o.titulo + '</h2>' +
-        '<div class="pr-como-dos"><figure class="pr-como-cap"><img src="assets/img/pres/guia/' + o.img + '.webp" alt="" loading="lazy"></figure>' +
+        '<div class="pr-como-dos"><figure class="pr-como-cap"><img src="assets/img/pres/guia/' + o.img + '.webp' + ((window.SG_PRES_GUIA_V || {})[o.img] ? '?v=' + window.SG_PRES_GUIA_V[o.img] : '') + '" alt="" loading="lazy"></figure>' +
         '<div class="pr-como-t"><ol class="pr-como-pasos">' + o.pasos.map(function (x) { return '<li>' + x + '</li>'; }).join("") + '</ol>' +
         (o.nota ? '<p class="pr-como-nota">' + o.nota + '</p>' : '') + '</div></div>' }) };
   }
