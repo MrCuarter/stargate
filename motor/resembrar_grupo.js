@@ -10,6 +10,7 @@
  *
  *   node motor/resembrar_grupo.js --id=nave-escuela              → ensayo: dice lo que borraría y no toca nada
  *   node motor/resembrar_grupo.js --id=nave-escuela --aplicar    → copia, borra y vuelve a sembrar
+ *   … --aplicar --otra-vez                                       → aunque ya lleve el catálogo de hoy (cambia su código)
  *   (con FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 va al emulador)
  *
  * 🔴 Cerrojos, antes de escribir nada:
@@ -17,7 +18,7 @@
  *   · solo si el grupo es de STARGATE (`stargate.version`) — el Firestore es GamificaPro ENTERO;
  *   · solo si TODAS sus fichas son de mentira (`demo_…`, `prueba_…`, `lab_…`): si alguien de verdad se ha alistado,
  *     se para y lo dice;
- *   · copia de todo lo que se borra en ~/.config/stargate-mando/copias/resembrar-AAAA-MM-DD/<grupo>.json (fuera de
+ *   · copia de todo lo que se borra en ~/.config/stargate-mando/copias/resembrar-AAAA-MM-DD/<grupo>-HHMMSS.json (fuera de
  *     los repositorios: lleva nombres y correos de mentira, pero es un volcado del grupo).
  * El borrado es el de `deleteProject` más las colecciones de STARGATE que llegaron después.
  */
@@ -33,6 +34,9 @@ const db = admin.firestore();
 const MODO = { "demo-stargate": "--demo", "nave-escuela": "--escuela" };
 const ID = (process.argv.find(a => a.indexOf("--id=") === 0) || "").slice(5);
 const APLICAR = process.argv.includes("--aplicar");
+// 24-sep · se lanzó dos veces seguidas sobre la Nave Escuela: la segunda no arreglaba nada y le cambió el código de acceso
+// (y pisó la copia de la primera). Si el grupo ya lleva el catálogo de hoy, no se toca salvo que se pida con --otra-vez.
+const OTRA_VEZ = process.argv.includes("--otra-vez");
 if (!MODO[ID]) {
   console.error("✗ --id=demo-stargate o --id=nave-escuela: solo los grupos de mentira que se siembran con sembrar_prueba.js.");
   process.exit(2);
@@ -76,8 +80,15 @@ async function volcar(ref) {   // un documento con todo lo que lleva dentro
   console.log("\n  " + ID + (EMU ? "  (EMULADOR)" : "  (PRODUCCIÓN)") + " · " + (p.exists ? p.data().name : "—"));
   console.log("  fichas: " + fichas.length + " (todas de mentira) · retos viejos A1–A8: " + misiones.filter(x => /^A[1-8]$/.test(x)).length +
               " · con L0: " + (misiones.indexOf("L0") >= 0 ? "sí" : "no"));
-  console.log("  se borraría: " + Object.keys(cuenta).filter(k => cuenta[k]).map(k => k + " " + cuenta[k]).join(" · ") +
-              (p.exists ? " · el grupo con sus subcolecciones" : ""));
+  const alDia = p.exists && misiones.indexOf("L0") >= 0 && !misiones.some(x => /^A[1-8]$/.test(x));
+  if (!alDia || OTRA_VEZ)
+    console.log("  se borraría: " + Object.keys(cuenta).filter(k => cuenta[k]).map(k => k + " " + cuenta[k]).join(" · ") +
+                (p.exists ? " · el grupo con sus subcolecciones" : ""));
+  if (alDia && !OTRA_VEZ) {
+    console.log("\n  ✓ «" + ID + "» ya lleva el catálogo de hoy: no hace falta sembrarlo otra vez (y su código de acceso se queda como está)." +
+                "\n    Si de verdad quieres rehacerlo, añade --otra-vez.\n");
+    process.exit(0);
+  }
   if (!APLICAR) { console.log("\n  Ensayo: no se ha tocado nada. Para hacerlo, lo mismo con --aplicar.\n"); process.exit(0); }
 
   // 1 · la copia
@@ -90,7 +101,8 @@ async function volcar(ref) {   // un documento con todo lo que lleva dentro
       copia.colecciones[col] = (await db.collection(col).where("projectId", "==", ID).get()).docs.map(d => ({ id: d.id, datos: d.data() }));
     const envivo = await db.collection("stargate_envivo").doc(ID).get();
     if (envivo.exists) copia.colecciones.stargate_envivo = [{ id: ID, datos: envivo.data() }];
-    const fich = path.join(dir, ID + (EMU ? "-emulador" : "") + ".json");
+    // cada copia con su hora: dos pasadas el mismo día no se pisan
+    const fich = path.join(dir, ID + (EMU ? "-emulador" : "") + "-" + new Date().toTimeString().slice(0, 8).replace(/:/g, "") + ".json");
     fs.writeFileSync(fich, JSON.stringify(copia));
     console.log("  ✓ copia en " + fich);
 
