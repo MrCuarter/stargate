@@ -1467,7 +1467,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("consola.html?per=lab-clase&tab=alumnado"); await rita.hasta("!!document.querySelector('td.bienv')", 25);
       await rita.js("var b=document.querySelector('.gf[data-gf=\"\"]'); if(b) b.click(); 1");   // 15-sep · todos los escuadrones
       const celda = await rita.js("[].slice.call(document.querySelectorAll('tr[data-r]')).filter(function(t){return /Nora Nébula/.test(t.textContent)}).map(function(t){return t.querySelector('td.bienv').textContent})[0]||''");
-      c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 9 abiertos en la semana 10, 1 saltado)", /3\/9/.test(celda) && /1 saltado/.test(celda), celda);
+      c("🔴 semanas · la consola dice cuántos capítulos ha visto Nora (3 de los 10 abiertos en la semana 10: el del Simulador ya cuenta; 1 saltado)", /3\/10/.test(celda) && /1 saltado/.test(celda), celda);
       /**
        * 🔴 23-sep · LOS FRAGMENTOS SE GANAN, TAMBIÉN EN EL MAPA. Norberto: «en El Archivo los estudiantes pueden ver los
        * fragmentos aunque no hayan recuperado al personaje». Nora no ha hecho ningún reto A: en la semana 10 abre Ludo
@@ -5104,7 +5104,8 @@ const REG = {};   // cifras que se apuntan para el informe
       c("   con «+ Crear un grupo» y la tabla de sus grupos", await rg.js("!!document.querySelector('.gs-cab a[href=\"crear.html\"]') && document.querySelectorAll('.gs-fila').length>=1"));
       for (const t of ["alumnado", "equipo", "escuadrones", "ajustes", "calendario", "cerrar"]) {
         await rg.js(`document.querySelector('.gs-panel .pest[data-tab="${t}"]').click(); 1`); await dormir(1500);
-        c(`   gestión · «${t}» se abre sin errores y sin aire`, await rg.js("!!document.querySelector('#c-cuerpo .card')") && !(await rg.js(AIRE)).length);
+        const aireG = await rg.js(AIRE);
+        c(`   gestión · «${t}» se abre sin errores y sin aire`, await rg.js("!!document.querySelector('#c-cuerpo .card')") && !aireG.length, aireG.slice(0, 3).join(" · "));
       }
       await rg.foto(FOTOS + "/48-gestion.png");
       // graduar y archivar, y reabrir

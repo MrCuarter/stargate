@@ -2416,6 +2416,15 @@
   /** 14-sep · lo que se abre al comprarlo: el sobre de siempre, los sobres nuevos y las cápsulas. */
   function esCofre(t){ return /^(cromo|heroe|sobre_[a-z]+|capsula_[a-z]+)$/.test(String(t||'')); }
 
+  /** La primera frase de una descripción (hasta 120 caracteres): el resumen que se ve sin abrir «Ver más». */
+  // (frases enteras hasta tener algo que decir: una pregunta suelta, «¿Cartas repetidas?», no resume nada)
+  function resumenDesc(t){
+    t=String(t||'').trim(); if(!t) return '';
+    var fr=t.match(/[^.!?]+[.!?]+(\s+|$)|[^.!?]+$/g)||[t], f='';
+    for(var i=0;i<fr.length && f.length<50;i++){ if(f && (f+fr[i]).trim().length>120) break; f+=fr[i]; }
+    f=f.trim();
+    return f.length>120 ? f.slice(0,117).replace(/\s+\S*$/,'')+'…' : f;
+  }
   function recompensas(){
     var d=st.d; var cat=d.recompensas||[]; var n=st.semanas.length; var r=st.yo;
     if(!cat.length) return '<section><div class="eyebrow violet">Recompensas</div><h2>Mercado Estelar</h2><p class="lead">Aquí se canjean tus <b>créditos ◈</b> por recompensas (los xp no se gastan nunca). El catálogo se abrirá pronto en la nave; mientras tanto, tu Comandante tiene la lista.</p>'
@@ -2495,6 +2504,17 @@
       if(x.tipo==='heroe' && motorNuevo() && r && (r.heroes_repes||0)>=2)
         boton += '<button class="btn" type="button" data-canje="heroe_repes" data-nombre="Cambiar 2 héroes repetidos" data-coste="0" data-tipo="heroe_repes" data-abrir="1" data-usos="1">Cambiar 2 repetidos</button>';
       var qe=queEs(x.tipo), img=(window.SG_IMG_RECOMPENSA||{})[x.nombre];
+      /**
+       * 🔴 24-sep · TODAS DEL MISMO TAMAÑO. Norberto: «las cajas de ítems quiero que sean del mismo tamaño para dar
+       * uniformidad visual; si no, chirría. Resume las que tengan descripciones muy largas u ocúltalas con un
+       * desplegable». Todas llevan lo mismo y en el mismo sitio: la imagen, qué es, el nombre, el precio y un resumen de
+       * tres líneas como mucho (la primera frase de la descripción). Lo demás —la descripción entera, dónde acaba y el
+       * aviso de las de nota— va en «Ver más». El pie (si te llega y el botón) cae siempre a la misma altura.
+       */
+      // (en «Ver más», lo que el resumen no dice: sin repetir la primera frase)
+      var resumen=resumenDesc(x.desc), resto=x.desc&&x.desc!==resumen?(x.desc.indexOf(resumen)===0?x.desc.slice(resumen.length).trim():x.desc):'';
+      var mas=(resto?'<p class="small rec-desc">'+esc(resto)+'</p>':'')
+        +(qe[2]?'<p class="rec-donde">'+esc(qe[2])+'</p>':'')+aviso;
       return '<div class="card rec-card'+(tope?' agotada':'')+'">'
         +(img?'<div class="rec-foto"><img loading="lazy" src="assets/img/canje/'+esc(img)+'" alt=""></div>'
              :'<div class="rec-foto sin"><span>'+qe[0]+'</span></div>')
@@ -2502,10 +2522,10 @@
         +'<div class="rec-quees">'+qe[0]+' '+esc(qe[1])+'</div>'
         +'<h3>'+esc(x.nombre)+'</h3>'
         +'<p class="pts'+(gratis?' libre':'')+'">'+(gratis?'Sin créditos':x.coste+' ◈')+'</p>'
-        +(x.desc?'<p class="small rec-desc">'+esc(x.desc)+'</p>':'')
-        +(qe[2]?'<p class="rec-donde">'+esc(qe[2])+'</p>':'')
-        +aviso+'</div>'
-        +'<div class="rec-pie">'+afford+boton+'</div></div>';
+        +(resumen?'<p class="small rec-resumen">'+esc(resumen)+'</p>':'')
+        +(mas?'<details class="rec-mas"><summary>Ver más</summary>'+mas+'</details>':'')
+        +'</div>'
+        +'<div class="rec-pie">'+(x.tipo==='nota'?'<span class="chip rec-pend" title="Las subidas de nota quedan pendientes hasta que tu docente las aprueba">Pendiente de tu docente</span>':'')+afford+boton+'</div></div>';
     }).join('');
     return '<section><div class="eyebrow violet">Recompensas</div><h2>Mercado Estelar</h2>'
       +'<p class="lead">Tus <b>xp</b> no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje. Lo que se canjea son los <b>créditos ◈</b>, que ganas con el mismo trabajo. Las recompensas se van desbloqueando con el viaje.</p>'
@@ -2515,7 +2535,7 @@
       // filas llenas: de tres en tres si cuadra, si no de dos en dos (con 2, 4 o 10 tarjetas)
       // 14-sep · la oferta de la semana (y las del referente), arriba y en grande
       +(ofertas.length?'<div class="ofertas">'+ofertas.map(tarjetaOferta).join('')+'</div>':'')
-      +'<div class="grid '+((abiertas%3===0||abiertas<2)?'cols-3':(abiertas%2===0?'cols-2':'cols-3'))+' nave-rec">'+cards+'</div>'
+      +'<div class="grid nave-rec nave-rec-u">'+cards+'</div>'
       +(porCapitulos()?(function(){
           var ab=capsAbiertos(), vienen=capsTipo().filter(function(c){ return ab.indexOf(c)<0 && (c.mercado||[]).length; });
           return vienen.length?'<p class="rec-prox"><img class=ico src=assets/img/iconos/p/abierto.png alt> <b>Próximamente en el Mercado:</b> '+vienen.map(function(c){

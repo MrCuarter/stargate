@@ -3129,7 +3129,7 @@ body.simulacro .nav .brand{pointer-events:none}
 .cal-tabla tr.cal-hoy td{background:rgba(55,224,236,.07)}
 .cal-tabla tr.cal-pausa td{background:repeating-linear-gradient(135deg,rgba(255,209,102,.07) 0 10px,transparent 10px 20px)}
 .cal-tabla tr.cal-pausa .cal-sem b{color:#ffe3a1}
-.cal-caps{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.cal-caps{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;align-items:start}
 .cal-cap{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding:12px 14px;border-radius:12px;border:1px solid #1d2a40;background:#0b1119}
 .cal-cap.on{border-color:rgba(55,224,236,.45)}
 .cal-guardar ul{margin:6px 0 10px;padding-left:20px;line-height:1.6}
@@ -4992,7 +4992,7 @@ body.modo-piloto [data-av]{display:none!important}
 .ht-sub{display:block;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--teal,#3ed6c8);margin:2px 0 10px}
 .ht-vids .pt-vids{display:flex;flex-direction:row;flex-wrap:wrap;gap:10px}
 .ht-vids .pt-vids li{grid-template-columns:112px minmax(0,220px)}
-.ht-retos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.ht-retos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}   /* (cada reto, su altura: el pie pegado a su texto) */
 /* 20-sep · los del mismo tema que aún no se han lanzado: en sombra y con la semana en la que se abren */
 .ht-reto.por-lanzar{opacity:.55;filter:grayscale(.5);border-style:dashed}
 .ht-reto.por-lanzar .chip.luego{background:rgba(255,209,102,.12);border-color:rgba(255,209,102,.45);color:var(--amber)}
@@ -6312,3 +6312,43 @@ body.embed .mazo .dia{padding-top:46px}
 #prestreno-app:fullscreen .mazo{flex:1;display:flex;flex-direction:column;min-height:0;border:0;border-radius:0}
 #prestreno-app:fullscreen .lienzo{flex:1;min-height:0;overflow:auto}
 /* (el tamaño lo pone el ajuste automático de prestreno.js: `zoom` al mayor que cabe) */
+/* 24-sep · el Simulador en la Nave del Comandante (desde la semana de Ludo): la batalla en modo ensayo, dentro */
+.sim-doc-cab{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.sim-doc-cab > div{flex:1 1 320px;min-width:0}
+.sim-doc-cab h3{margin:2px 0 4px}
+.sim-doc-b{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sim-doc-marco{position:relative;margin-top:12px;aspect-ratio:16/10;max-height:78vh;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#060a12}
+.sim-doc-marco iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+/* 24-sep · ENLACES EN UN SOLO SITIO: tres apartados (la sesión · en clase · para tu alumnado) y una fila por cosa */
+#consola-app .gp-gen.m-unif,.gp-gen.m-unif{display:block;padding:14px 18px}
+#consola-app .m-unif .gp-gen-txt{flex:none;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+#consola-app .m-unif .gp-gen-txt h3{margin:0}
+.m-unif .gp-ayuda{flex:1 1 300px}
+.m-bloque{margin-top:14px}
+.m-bloque h4{margin:0 0 2px;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+.m-bloque > p{margin:0 0 4px}
+.m-bloque .m-enlaces{margin-top:6px;gap:6px}
+.m-fila-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.m-fila-t b{font-weight:600;font-size:.92rem}
+.m-fila-t em{font-style:normal;font-size:.8rem;color:var(--mut);line-height:1.35}
+.m-edit{display:flex;gap:6px;align-items:center;flex:1 1 280px;min-width:0}
+.m-edit input{flex:1;min-width:0;padding:7px 10px;border-radius:9px;border:1px solid var(--line);background:#0b1320;color:var(--ink);font:inherit;font-size:.86rem}
+@media(max-width:640px){ .m-fila-t{flex-basis:100%} .m-edit{flex-basis:100%} }
+/* 24-sep · EL MERCADO, TODAS LAS FICHAS DEL MISMO TAMAÑO (Norberto: «si no, chirría»): tres por fila, la misma
+   estructura, el nombre en dos líneas como mucho, un resumen de tres y el resto en «Ver más»; el pie, siempre abajo */
+.grid.nave-rec.nave-rec-u{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:14px}
+@media(max-width:980px){ .grid.nave-rec.nave-rec-u{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media(max-width:620px){ .grid.nave-rec.nave-rec-u{grid-template-columns:minmax(0,1fr)} }
+.nave-rec-u .rec-card{height:100%}
+.nave-rec-u .rec-card .rec-cuerpo{flex:1 1 auto}
+.nave-rec-u .rec-card .rec-pie{margin-top:auto}
+.nave-rec-u .rec-card h3{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
+.rec-resumen{color:var(--mut);line-height:1.45;margin:.35em 0 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.nave-rec-u .rec-resumen{min-height:4.35em}   /* (tres líneas siempre: «Ver más», la etiqueta y el botón caen a la misma altura en toda la fila) */
+.rec-mas{margin-top:6px}
+.rec-mas summary{cursor:pointer;color:var(--teal);font-size:.82rem;font-weight:700;list-style:none;display:inline-block}
+.rec-mas summary::-webkit-details-marker{display:none}
+.rec-mas summary::after{content:" ▾"}.rec-mas[open] summary::after{content:" ▴"}
+.rec-mas .rec-desc{margin-top:6px}
+.nave-rec-u .rec-card .rec-pie .chip{align-self:flex-start}
+.nave-rec-u .rec-pie .chip.rec-pend{border:1px solid rgba(245,176,67,.45);color:#f5c77a;background:rgba(245,176,67,.08)}

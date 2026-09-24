@@ -689,9 +689,9 @@
       rx("votacion", "Votación", "Herramientas → Votación", "Una votación que mueve el curso",
         ['<b>Para quién</b>: tu escuadrón o todo el grupo.', '<b>El voto extra</b>: votar otra vez pagando créditos (hasta dos veces).', '<b>Cerrar y resolver</b>: la sesión de esa semana trae la ganadora.'],
         'Se responde desde su Nave durante la semana; tú ves el recuento, ellos no. Y lo votado se cumple: si gana Canva, se ve Canva.'),
-      rx("geniallys", "Para tus Geniallys", "Tu Nave → Enlaces → Para tus Geniallys", "Todo, dentro de vuestro Genially",
-        ['Copia el <b>código</b> de lo que quieras: la sesión (apertura y cierre), las herramientas, la llamada, el tablero o el Simulador.', 'En Genially: <b>Insertar → Otros → Código</b>, pega y estira la caja.', 'El <b>⧉</b> de al lado lo abre en su propia ventana, para proyectar sin Genially.'],
-        'Son los mismos para todos los grupos y cursos: piden la cuenta de quien los abre. Genially no incrusta direcciones sueltas: siempre el código.')
+      rx("enlaces", "Enlaces", "Tu Nave → Enlaces", "Todo lo que se abre o se inserta, en un solo sitio",
+        ['<b>&lt;/&gt; Código</b>: para meterlo en vuestro Genially (Insertar → Otros → Código). Uno para todos los grupos y cursos.', 'El <b>⧉</b> lo abre en su propia ventana, para proyectar sin Genially.', '<b>¿Cómo se usan?</b>, en dos líneas. Tres apartados: la sesión de clase (inicio, cierre y completa), en clase y para tu alumnado, con el padlet de la clase.'],
+        'Piden la cuenta de quien los abre y preguntan en qué grupo estáis. Genially no incrusta direcciones sueltas: siempre el código.')
     ];
   }
   function radioNave() {

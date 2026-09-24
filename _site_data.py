@@ -1289,7 +1289,11 @@ CAPITULOS = [
     # clase y la semana siguiente mostramos el emulador desbloqueado (aunque algunos ya lo tendrán desbloqueado)». La
     # batalla se abre con el planeta Ludo (tema 6, semana 10); este capítulo la presenta a la clase entera la semana
     # siguiente. En PUA el tema 6 cae en la 5, así que el capítulo va con el Arsenal, en la 8.
-    {"n": 10, "clave": "c11", "titulo": "El Simulador de Joran", "icono": "<img class=ico src=assets/img/iconos/p/diana.png alt>", "semana": 11, "semana_pua": 7,
+    # 🔴 24-sep · Norberto: «debe estar desbloqueado en la semana que toca el reto de Joran para poder verlo» (y el docente,
+    # «la misma semana que empieza el tema 6»). El capítulo pasa a la semana de Ludo (10; en PUA, la 6): es la misma en que
+    # el servidor abre la batalla (`stargateBatalla`, TEMA_RETO 6) y la del relámpago de Joran. En PUA se queda en la 7:
+    # allí va un capítulo por semana y la 6 es la de los logros de a bordo (también fijada en el servidor, stargateABordo).
+    {"n": 10, "clave": "c11", "titulo": "El Simulador de Joran", "icono": "<img class=ico src=assets/img/iconos/p/diana.png alt>", "semana": 10, "semana_pua": 7,
      "abre": ["simulador"], "mercado": [],
      "cabecera": "El simulador que dejó encendido Joran",
      "puedes": ["Gana a RUTA AZUL, el rival de Joran, y el entrenamiento se queda en tu Nave",

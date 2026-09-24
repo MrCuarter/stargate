@@ -37,8 +37,9 @@ const B = leer("assets/js/batalla.js"), N = leer("assets/js/recluta.js"), M = le
     JSON.stringify([W.reto, W.clave, W.rival]));
   c(JSON.stringify(W.temas_reto) === JSON.stringify([1, 2, 3, 4, 5]) && W.tema_reto === 6,
     "   pregunta por lo ya recorrido (temas 1 al 5) y se abre con el planeta Ludo", JSON.stringify(W.temas_reto));
-  c(!!cap && cap.semanas.REGULAR === 11 && cap.semanas.PUA === 7 && cap.abre.indexOf("simulador") >= 0,
-    "🔴 el capítulo del simulador va la semana siguiente a la batalla (11; en PUA, la 7)", JSON.stringify(cap && cap.semanas));
+  // 24-sep · Norberto: «debe estar desbloqueado en la semana que toca el reto de Joran» → la de Ludo (en PUA, la 7: un capítulo por semana)
+  c(!!cap && cap.semanas.REGULAR === 10 && cap.semanas.PUA === 7 && cap.abre.indexOf("simulador") >= 0,
+    "🔴 el capítulo del simulador va la misma semana que la batalla, la de Ludo (10; en PUA, la 7)", JSON.stringify(cap && cap.semanas));
   c(!!cap && hay(cap.imagen), "   con su imagen", cap && cap.imagen);
   c(W.niveles.length === 3 && W.niveles.map(x => x[0]).join(",") === "facil,media,dificil" && W.nivel_reto === "media",
     "   tres niveles de dificultad, y el reto siempre en media (la insignia cuesta lo mismo para todos)");
@@ -117,6 +118,18 @@ const B = leer("assets/js/batalla.js"), N = leer("assets/js/recluta.js"), M = le
   c(/yo_\.simulador/.test(FU), "   y la Nave sabe si le ganó");
   c(/data-nivel/.test(B) && /sgBtNivel/.test(B), "   la batalla deja escoger el nivel y lo recuerda");
   c(/function medallas/.test(B) && /bt-med/.test(CSS), "   y enseña los tres reconocimientos del grupo");
+
+  // 🔴 24-sep · Norberto: «al docente se le desbloquea y le aparece en el menú la misma semana que empieza el tema 6
+  // (Ludo)». Su sección «Simulador», en su Nave: se abre con la semana del Tema 6 (PUA, la 6) o si el capítulo se abrió antes.
+  const K = leer("assets/js/consola.js");
+  c(/\["simulador", "El Simulador"\]/.test(K) && /\["simulador", "Simulador", "assets\/img\/iconos\/diana\.png", \["simulador"\]\]/.test(K),
+    "🔴 el docente tiene su sección «Simulador» en la Nave");
+  c(/function simuladorAbierto\(\)/.test(K) && /capitulosAbiertos \|\| \{\}\)\.c11\) return true/.test(K) && /semanaDelTema\) \|\| \{\}\)\["6"\]/.test(K)
+    && /x\[0\] === "simulador" && !simuladorAbierto\(\)\) return false/.test(K), "   y solo desde la semana del Tema 6 (o si el capítulo se abrió antes)");
+  c(/function verSimulador\(t\)/.test(K) && /batalla\.html\?per=" \+ encodeURIComponent\(PER\) \+ "&ensayo=1"/.test(K), "   dentro, el Simulador en modo ensayo en su grupo");
+  // y el alumnado la ve la misma semana: el capítulo del Simulador (c11) cae en la semana del Tema 6
+  const SD = leer("_site_data.py");
+  c(/"clave": "c11"[^\n]*\n?[^\n]*"semana": 10/.test(SD) || /"clave": "c11"[\s\S]{0,400}"semana": 10/.test(SD), "🔴 el capítulo del Simulador se abre en la semana 10 (la del Tema 6), no antes");
 
   console.log("\n  Batería 80 · el Simulador de Joran (juego de repaso)");
   console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");

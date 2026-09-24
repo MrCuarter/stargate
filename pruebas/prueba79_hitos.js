@@ -56,7 +56,7 @@ const N = leer("assets/js/recluta.js"), F = leer("assets/js/fuente.js"), M = lee
 
   // 3 · el calendario: de menos a más complejo (16-sep) y sin saturar
   const caps = D.caps, c9w = caps.filter(x => x.clave === "c9")[0], de = k => caps.filter(x => x.clave === k)[0] || {};
-  c(JSON.stringify(caps.map(x => x.clave + ":" + x.semana)) === JSON.stringify(["c1:1", "c2:2", "c3:3", "c4:4", "c10:5", "c6:6", "c8:7", "c5:8", "c9:9", "c11:11", "c7:15"]),
+  c(JSON.stringify(caps.map(x => x.clave + ":" + x.semana)) === JSON.stringify(["c1:1", "c2:2", "c3:3", "c4:4", "c10:5", "c6:6", "c8:7", "c5:8", "c9:9", "c11:10", "c7:15"]),
     "🔴 de menos a más: Nave · Mercado · héroes · adornos · ofertas · Sorteo · Hangar · Zoco · logros · simulador · Arsenal", caps.map(x => x.clave + ":" + x.semana).join(" "));
   c(!!c9w && c9w.abre.indexOf("logros") >= 0 && /logros\.jpg$/.test(c9w.imagen) && fs.existsSync(path.join(RAIZ, c9w.imagen))
     && /oferta\.jpg$/.test(de("c10").imagen || "") && fs.existsSync(path.join(RAIZ, de("c10").imagen || "x")), "   los logros y las ofertas, con su imagen");

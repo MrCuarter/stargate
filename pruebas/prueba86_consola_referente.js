@@ -79,24 +79,28 @@ c(/function abrirVentana\(ruta, clave\)/.test(K) && /u\.searchParams\.set\("embe
 c(/"popup=yes,width=/.test(K), "   una ventana emergente de verdad, sin las barras del navegador");
 c(/"sg_" \+ String\(clave/.test(K), "   y siempre la misma para cada embed: pulsar dos veces no abre dos");
 c(/bloqueado la ventana/.test(K), "   y si el navegador la bloquea, lo dice y explica cómo permitirla");
-c(/botonVentana\(x\[2\], x\[0\]/.test(K), "   en los seis códigos de «Para tus Geniallys»");
+c(/hay && o\.ventana \? botonVentana\(o\.abrir, o\.ventana, o\.tit\)/.test(K), "   en cada fila de «Enlaces» (24-sep: una sola sección)");
 // 20-sep · en el banner del grupo hay un solo paso: empezar la clase (la llamada y las herramientas están dentro)
 c((K.match(/botonVentana\("sesion\.html\?per=" \+ PER/g) || []).length === 1, "   y en «Empezar la clase», el único paso del banner del grupo");
 c(/"tablero_" \+ PER/.test(K) && /"sesion_" \+ PER/.test(K), "   y en Mis enlaces: el tablero para proyectar y la sesión");
 
 // 8 · los enlaces del grupo y Mi gente (16-sep · Norberto: «necesito dos botones, copiar enlace o copiar </>; ahora
 //     copia sesion.html?per=… y con eso no puedo meterlo al Genially. En Mi gente quiero ver el avatar»)
-c(/function absoluta\(url\)/.test(K) && /data-copiar="' \+ esc\(absoluta\(url\)\)/.test(K),
+c(/function absoluta\(url\)/.test(K) && /data-copiar="' \+ esc\(absoluta\(o\.abrir\)\)/.test(K),
   "🔴 «🔗 Enlace» copia la dirección COMPLETA, no la relativa que no sirve fuera de la web");
-c(/codigoGenially\(conEmbed\(url\), "STARGATE · " \+ tit\)/.test(K) && /&lt;\/&gt; Código/.test(K),
-  "🔴 «</> Código» copia el código para Genially, con embed=1 (sin cabecera ni menú)");
+c(/codigoGenially\(o\.codigo, "STARGATE · " \+ o\.tit\)/.test(K) && /&lt;\/&gt; Código/.test(K) && (K.slice(K.indexOf("function verMios"), K.indexOf("function mBloque")).match(/codigo: [^}]*\}/g) || []).every(x => /embed=1/.test(x)),
+  "🔴 «</> Código» copia el código para insertar, siempre con embed=1 (sin cabecera ni menú)");
 // 23-sep · el tablero ya no lleva código por grupo: su embed es el UNIVERSAL de «Para tus Geniallys» (Norberto: «el mismo
 // enlace y embed para TODOS los grupos»). Aquí queda su enlace, para abrirlo, sin código.
-c((K.match(/"sesion_" \+ PER, true\)/g) || []).length === 1 && /"tablero_" \+ PER, false\)/.test(K) && (K.match(/, "", true\)/g) || []).length === 2,
-  "   en la Nave, la sesión y la Nave de Comandante (el padlet, no: es externo; el tablero, universal)");
-c(/\["tablero", ico\("medalla"\) \+ " El tablero \(los rankings\)", "registro\.html\?solo=1&embed=1"\]/.test(K),
-  "🔴 el tablero, en «Para tus Geniallys»: un solo embed para todos los grupos (sin ?per=)");
-c(/"alistarse\.html\?per=" \+ encodeURIComponent\(PER\) \+ "&codigo="/.test(K), "   y el alistamiento ya no sale «sin configurar»: se arma con el código del grupo");
+// 24-sep · «Enlaces», una sola sección: cada fila abre ESTE grupo y su «</> Código» es el universal (sin ?per=)
+c(/abrir: "sesion\.html\?per=" \+ P \+ "&tramo=apertura"/.test(K) && /codigo: "sesion\.html\?embed=1&tramo=apertura"/.test(K) &&
+  /codigo: "sesion\.html\?embed=1&tramo=cierre"/.test(K) && /codigo: "sesion\.html\?embed=1" \}/.test(K),
+  "🔴 la sesión, en sus tres apartados (inicio, cierre y completa): abrir en este grupo y el código universal");
+c(/abrir: "registro\.html\?per=" \+ P \+ "&solo=1"/.test(K) && /embed: "tablero", codigo: "registro\.html\?solo=1&embed=1"/.test(K),
+  "🔴 el tablero: abrir en este grupo y un solo código para todos los grupos (sin ?per=)");
+c(/tit: "El padlet de la clase"[^\n]*edit: editPadlet/.test(K) && /MOTOR\.guardarAjustes\(PER, \{ "stargate\.padlet": v \}/.test(K),
+  "🔴 el padlet de la clase se escribe aquí mismo (el referente)");
+c(/"alistarse\.html\?per=" \+ P \+ "&codigo="/.test(K), "   y el alistamiento ya no sale «sin configurar»: se arma con el código del grupo");
 c(/SG\.avatarImg\(r\.avatar, r\.alias, "gente-av"/.test(K) && /\.gente-tabla \.gente-quien \.av\.gente-av/.test(CSS),
   "🔴 Mi gente enseña el avatar que lleva puesto cada recluta");
 c(!/td\.gente-quien\{display:flex/.test(CSS), "   sin romper la tabla (el flex va dentro de la celda, no en la celda)");

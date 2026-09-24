@@ -610,7 +610,7 @@
    */
   // 19-sep · «Portada», la primera: el grupo de un vistazo (semana, vídeo, retos, foro, panel, sesión y tus notas)
   // 19-sep · el equipo, los escuadrones y los ajustes del grupo se fueron a «Gestionar grupos» (GTABS)
-  var TABS = [["portada", "Portada"], ["alumnado", "Reclutas"], ["rankings", "Rankings"], ["zoco", "El Zoco"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
+  var TABS = [["portada", "Portada"], ["alumnado", "Reclutas"], ["rankings", "Rankings"], ["zoco", "El Zoco"], ["simulador", "El Simulador"], ["mios", "Mis enlaces"], ["calendario", "Calendario"],
               // 17-sep · las que pueden afectar a VARIOS grupos, juntas y tras su raya 🌐 (Norberto: «separar las opciones
               // exclusivas de un grupo de las que afectan a todos o pueden afectar»)
               ["huevos", "Premios por enlace", 1, "varios"], ["sorteos", "Sorteos", 1, "varios"], ["ofertas", "Ofertas", 1, "varios"],
@@ -618,9 +618,22 @@
   function pendientesCola() {
     return ((DATOS && DATOS.vales) || []).filter(function (v) { return (v.status || "pending") === "pending"; }).length;
   }
+  /**
+   * 🔴 24-sep · EL SIMULADOR, EN TU MENÚ. Norberto: «al docente se le desbloquea y le aparece en el menú la misma semana
+   * que empieza el tema 6 (Ludo)». Es la semana en que el servidor abre la batalla (`stargateBatalla`, TEMA_RETO 6) y en
+   * que NEBULA lo presenta al alumnado (capítulo c11). Antes, si el referente lo ha abierto a mano en el Calendario.
+   */
+  var SEM_GRUPO = { sem: 0, tipo: "REGULAR" };
+  function simuladorAbierto() {
+    var S = (DATOS && DATOS.proyecto && DATOS.proyecto.stargate) || {};
+    if ((S.capitulosAbiertos || {}).c11) return true;
+    var desde = SEM_GRUPO.tipo === "PUA" ? 6 : Number((((window.SG_CATALOGO || {}).semanaDelTema) || {})["6"]) || 10;
+    return Number(SEM_GRUPO.sem) >= desde;
+  }
   function misTabs() {
     var ref = refDe(PERS.filter(function (p) { return p.id === PER; })[0]), cola = pendientesCola();
     return TABS.filter(function (x) {
+      if (x[0] === "simulador" && !simuladorAbierto()) return false;
       if (!manual() && AV_TABS.indexOf(x[0]) >= 0) return false;
       var permitida = !x[2] || ref || (manual() && x[0] === "huevos");   // (19-sep · en mando manual, premios para su grupo)
       return permitida && (x[0] !== "canjes" || cola > 0);
@@ -727,6 +740,7 @@
                    ["rankings", "Rankings", "assets/img/nave/iconos/rankings.png", ["rankings"]],
                    ["calendario", "Calendario", "assets/img/iconos/calendario.png", ["calendario"]],
                    ["zoco", "El Zoco", "assets/img/nave/iconos/zoco.png", ["zoco"]],
+                   ["simulador", "Simulador", "assets/img/iconos/diana.png", ["simulador"]],
                    ["premios", "Premios", "assets/img/nave/iconos/premios.png", ["huevos", "sorteos", "ofertas"]],
                    ["enlaces", "Enlaces", "assets/img/iconos/enlace.png", ["mios"]]];
   var SUB_NOMBRE = { alumnado: "Reclutas", canjes: "Cola de nota", huevos: "Premios por enlace", sorteos: "Sorteos", ofertas: "Ofertas" };
@@ -781,6 +795,7 @@
   function pintar() {
     if (GESTION) return pintarGestion();
     var t = window.SG.TABLERO.tablero(DATOS, true);
+    SEM_GRUPO = { sem: Number(t && t.semana) || 0, tipo: (t && t.tipo) === "PUA" ? "PUA" : "REGULAR" };
     atmosfera(t);
     // 🔴 Y si el TAB recordado ya no le corresponde —dejó de ser referente, llega por un enlace con #ajustes o
     // (15-sep) acaba de resolver la última subida de nota y la Cola se esconde— se cae al primero, ANTES de pintar
@@ -801,7 +816,7 @@
     cablearEscuela();   // el selector de semana de la Nave Escuela va en el banner: está en todas las secciones
     // Copiar un enlace, con confirmación visible: sin ella no sabes si ha ido.
     cablearCopiar(app);
-    ({ portada: verPortada, alumnado: verAlumnado, rankings: verRankings, canjes: verCanjes, zoco: verZoco, mios: verMios,
+    ({ portada: verPortada, alumnado: verAlumnado, rankings: verRankings, canjes: verCanjes, zoco: verZoco, mios: verMios, simulador: verSimulador,
        huevos: verHuevos, sorteos: verSorteos, ofertas: verOfertas, calendario: verCalendario })[TAB](t);
     contarBuzon();
     document.body.classList.add("consola-dentro");   // el titular grande de la página sobra: la Nave empieza arriba
@@ -1987,32 +2002,31 @@
     }
   }
 
-  /**
-   * 🔴 15-sep · LOS EMBEDS, UNA SOLA VEZ. Norberto: «en todas las fichas de cada grupo aparece Embed para Genially, pero
-   * entiendo que es el mismo para todos: déjalo en algún lugar especificando que es el mismo para todos los grupos». Lo
-   * es: ninguno lleva el grupo dentro (piden la cuenta y preguntan). Vivían en «Mis grupos»; desde el 19-sep, en «Enlaces».
-   */
-  function paraTusGeniallys() {
-    return '<section class="card gp-gen"><div class="gp-gen-txt"><h3>Para tus Geniallys</h3>' +
-      '<details class="gp-ayuda"><summary>¿Cómo se usan?</summary><p class="small muted">Los <b>mismos para todos tus grupos</b> y para los cursos que vengan: piden tu cuenta y, si llevas varios grupos, ' +
-      'preguntan en cuál estáis. Se copia el código y, en Genially, <b>Insertar → Otros → Código</b>. ' +
-      'O pulsa <b>⧉</b> y se abre <b>en su propia ventana</b>, sin nada más alrededor: para proyectarla o tenerla a mano durante la clase.</p></details></div>' +
-      '<div class="gp-gen-b">' +
-      // 16-sep · la sesión se pega DOS VECES en el Genially: la apertura antes de la teoría y el cierre después
-      [["sesion-ap", ico("video") + " La sesión · 1 · apertura", "sesion.html?embed=1&tramo=apertura"],
-       ["sesion-ci", ico("video") + " La sesión · 3 · cierre", "sesion.html?embed=1&tramo=cierre"],
-       ["sesion", ico("video") + " La sesión entera (sin partir)", "sesion.html?embed=1"],
-       // 23-sep · Norberto: «un embed exclusivo de herramientas: dar regalos, fichar, estudiante aleatorio, lanzar pregunta…»
-       ["aula", ico("envivo") + " Solo las herramientas (pasar lista, premiar, preguntar…)", "aula.html?embed=1"],
-       ["llamada", ico("clase") + " La llamada a filas", "llamada.html?embed=1"],
-       // 23-sep · el tablero, universal (Norberto: «el mismo enlace y embed para TODOS los grupos»): era por grupo
-       ["tablero", ico("medalla") + " El tablero (los rankings)", "registro.html?solo=1&embed=1"],
-       ["batalla", ico("diana") + " El Simulador de Joran", "batalla.html?embed=1"]].map(function (x) {
-        var tit = x[1].replace(/^<img[^>]*>\s*/, "");
-        return '<span class="gp-gen-par"><button class="btn min" data-embed="' + x[0] + '" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[2], "STARGATE · " + tit)) + '">' + x[1] + '</button>' +
-          botonVentana(x[2], x[0], tit) + '</span>';
-      }).join("") + '</div></section>';
+  /** 24-sep · la sección del Simulador: la batalla en MODO ENSAYO (no cuenta nada), dentro, y cómo llevarla a clase. */
+  function verSimulador(t) {
+    var BT = window.SG_BATALLA || {}, gente = (t && t.reclutas) || [];
+    var ganaron = gente.filter(function (r) { return ((r.simulador || {})[BT.clave || "joran"]); }).length;
+    var ruta = "batalla.html?per=" + encodeURIComponent(PER) + "&ensayo=1";
+    $("#c-cuerpo").innerHTML = '<div class="card sim-doc">' +
+      '<div class="sim-doc-cab"><img src="assets/img/batalla/emblema.webp" alt="" width="64" height="64">' +
+        '<div><h3>El Simulador de Joran</h3><p class="small muted">Desde esta semana, la de Ludo, tu alumnado puede enfrentarse a <b>' + esc(BT.rival || "RUTA AZUL") + '</b> desde su Nave. ' +
+        'Quien le gana se queda el simulador para repasar tema a tema. Tú entras en <b>modo ensayo</b>: todo abierto y sin que cuente nada, para jugarlo con la clase.' +
+        (gente.length ? ' Ya le han ganado <b>' + ganaron + ' de ' + gente.length + '</b>.' : '') + '</p></div>' +
+        '<span class="sim-doc-b"><a class="btn min" href="' + esc(ruta) + '" target="_blank" rel="noopener">Abrir ↗</a>' + botonVentana(ruta, "batalla_" + PER, "el Simulador de Joran") +
+          '<button class="btn min" data-copiar="' + esc(codigoGenially("batalla.html?embed=1", "STARGATE · El Simulador de Joran")) + '" data-copiado="✓ Código copiado" title="El código para insertarlo (vale para todos tus grupos)">&lt;/&gt; Código</button></span></div>' +
+      '<div class="sim-doc-marco"><iframe src="' + esc(ruta) + '&embed=1" title="El Simulador de Joran, en modo ensayo" loading="lazy" allow="fullscreen"></iframe></div>' +
+      '</div>';
   }
+  /**
+   * 🔴 24-sep · ENLACES, EN UN SOLO SITIO. Norberto: «la página de enlaces tiene la información mal repartida. Vamos a
+   * unificar "Para tus Geniallys" con "Los enlaces de este grupo". No hace falta especificar Genially: con que aparezca
+   * "</> código" ya se entiende… Organiza bien con subapartados las sesiones (completa, inicio, cierre)… Debes permitir
+   * configurar el padlet de clase». Una fila por cosa, en tres apartados (la sesión de clase · en clase · para tu
+   * alumnado), y en cada fila lo mismo: Abrir ↗ (en este grupo), ⧉ (en su ventana), Enlace (la dirección de este grupo) y
+   * </> Código (el código para insertar: UNIVERSAL, sin grupo, pregunta en cuál estáis; por eso vale para todos tus
+   * grupos y cursos). Los siete códigos universales conservan su `data-embed` (el laboratorio y la guía los buscan).
+   * El padlet lo escribe aquí mismo el referente (antes solo se podía en Gestionar grupos → Ajustes).
+   */
   function verMios(t) {
     var yo = (t.docentes_full || []).filter(function (d) {
       return String(d.correo || "").toLowerCase() === String(YO.correo || "").toLowerCase(); })[0];
@@ -2024,9 +2038,45 @@
     }
     var mio = (t.paneles || {})[yo.nombre] || "";
     var oficial = t.panel || "";
-    // (19-sep · «Tu sesión en directo» ya no vive aquí: Norberto, «no tiene ningún sentido en Mis enlaces». Es la rueda
-    // de al lado de «Empezar la clase»)
-    $("#c-cuerpo").innerHTML = paraTusGeniallys() +
+    var ref = soyRefAqui(), P = encodeURIComponent(PER);
+    var alta = t.alta || (DATOS.proyecto && DATOS.proyecto.joinCode ? "alistarse.html?per=" + P + "&codigo=" + encodeURIComponent(DATOS.proyecto.joinCode) : "");
+    var padlet = t.padlet || "";
+    // (la fila del padlet: el referente lo escribe aquí; el resto lo ve, o sabe a quién pedírselo)
+    var editPadlet = ref ? '<span class="m-edit"><input id="m-padlet" value="' + esc(padlet) + '" placeholder="https://padlet.com/…" autocomplete="off" aria-label="Dirección del padlet de la clase">' +
+      '<button class="btn min" id="m-padlet-ok" type="button">Guardar</button></span>' : "";
+    $("#c-cuerpo").innerHTML =
+      '<section class="card gp-gen m-unif"><div class="gp-gen-txt"><h3>' + ico("enlace") + ' Enlaces</h3>' +
+        '<details class="gp-ayuda"><summary>¿Cómo se usan?</summary><p class="small muted"><b>Abrir ↗</b> lo abre en este grupo · ' +
+        '<b>⧉</b> lo abre en su propia ventana, sin nada alrededor, para proyectar · <b>Enlace</b> copia la dirección de este grupo · ' +
+        '<b>&lt;/&gt; Código</b> copia el código para insertarlo en tu presentación (Insertar → Otros → Código): es el mismo para ' +
+        'todos tus grupos y para los cursos que vengan, porque pide la cuenta de quien lo abre y pregunta en qué grupo estáis.</p></details></div>' +
+        mBloque("La sesión de clase", "Se inserta dos veces: el <b>inicio</b> antes de tu teoría y el <b>cierre</b> después. O <b>completa</b>, para proyectarla desde la web.", [
+          mFila({ ico: ico("video"), tit: "El inicio", desc: "La portada, la llamada a filas, la pregunta, el mensaje y el vídeo: antes de tu teoría.",
+                  abrir: "sesion.html?per=" + P + "&tramo=apertura", ventana: "sesion-ap_" + PER, embed: "sesion-ap", codigo: "sesion.html?embed=1&tramo=apertura" }),
+          mFila({ ico: ico("video"), tit: "El cierre", desc: "Los retos, el tripulante, las misiones y el ticket: después de tu teoría.",
+                  abrir: "sesion.html?per=" + P + "&tramo=cierre", ventana: "sesion-ci_" + PER, embed: "sesion-ci", codigo: "sesion.html?embed=1&tramo=cierre" }),
+          mFila({ ico: ico("video"), tit: "La sesión completa", desc: "La sesión entera, con tu panel dentro, en su sitio.",
+                  abrir: "sesion.html?per=" + P, ventana: "sesion_" + PER, embed: "sesion", codigo: "sesion.html?embed=1" })]) +
+        mBloque("En clase", "", [
+          // 23-sep · Norberto: «un embed exclusivo de herramientas: dar regalos, fichar, estudiante aleatorio, lanzar pregunta…»
+          mFila({ ico: ico("envivo"), tit: "Las herramientas", desc: "Pasar lista, al azar, premiar, una pregunta, una votación y el tiempo.",
+                  abrir: "aula.html?per=" + P, ventana: "aula_" + PER, embed: "aula", codigo: "aula.html?embed=1" }),
+          mFila({ ico: ico("clase"), tit: "La llamada a filas", desc: "Fichan desde su Nave mientras está abierta.",
+                  abrir: "llamada.html?per=" + P, ventana: "llamada_" + PER, embed: "llamada", codigo: "llamada.html?embed=1" }),
+          // 23-sep · el tablero, universal (Norberto: «el mismo enlace y embed para TODOS los grupos»)
+          mFila({ ico: ico("medalla"), tit: "El tablero (los rankings)", desc: "Para proyectar quién destaca.",
+                  abrir: "registro.html?per=" + P + "&solo=1", ventana: "tablero_" + PER, embed: "tablero", codigo: "registro.html?solo=1&embed=1" }),
+          mFila({ ico: ico("diana"), tit: "El Simulador de Joran", desc: "Con tu cuenta, en modo ensayo (no cuenta nada). Tu alumnado lo tiene en su Nave desde Ludo.",
+                  abrir: "batalla.html?per=" + P + "&ensayo=1", ventana: "batalla_" + PER, embed: "batalla", codigo: "batalla.html?embed=1" })]) +
+        mBloque("Para tu alumnado", "", [
+          // 16-sep · el alistamiento sale del código del grupo (el mismo enlace que «Copiar invitación»)
+          mFila({ ico: ico("brujula"), tit: "Alistarse (con el código)", desc: "Lo que se reparte el primer día.", abrir: alta }),
+          mFila({ ico: ico("cohete"), tit: "La Nave del alumnado", desc: "Dentro de tu Genially: cada recluta ve la suya.", abrir: "recluta.html?per=" + P, codigo: "recluta.html?per=" + P + "&embed=1" }),
+          mFila({ ico: ico("notas"), tit: "El padlet de la clase", desc: ref ? "Lo abren desde su Nave." : (padlet ? "Lo abren desde su Nave." : "Lo pone el profe referente."), abrir: padlet, edit: editPadlet }),
+          // 13-sep · la Nave con tu Comandante de recluta, para ensayar (o enseñarla fuera de la sesión): no guarda nada
+          mFila({ ico: ico("envivo"), tit: "Tu Nave de ejemplo (simulacro)", desc: "La Nave de un recluta, para ensayar: no guarda nada.", abrir: "recluta.html?simulacro=1&per=" + P })]) +
+      '</section>' +
+      // (19-sep · «Tu sesión en directo» ya no vive aquí: es la rueda de al lado de «Empezar la clase»)
       '<div class="card"><h3>Tu panel de Genially</h3>' +
       '<p class="small muted">Es el que abre <b>tu</b> alumnado desde su Nave. Si lo dejas vacío, ' +
       'usan el panel oficial del grupo — que es lo normal: solo necesitas el tuyo si has duplicado ' +
@@ -2038,25 +2088,7 @@
       '<p class="small muted">Panel oficial del grupo: ' +
         (oficial ? '<a href="' + esc(oficial) + '" target="_blank" rel="noopener">abrirlo ↗</a>'
                  : (window.SG_PANEL_MAESTRO ? 'el <a href="' + esc(window.SG_PANEL_MAESTRO) + '" target="_blank" rel="noopener">Panel de control maestro</a> de STARGATE (el de todos los grupos)' : '—')) +
-      '</p></div>' +
-
-      // 🔴 Los enlaces del grupo, en solo lectura. Un docente los necesita A MANO —los reparte en
-      // clase— pero cambiarlos es del referente: verlos sin poder tocarlos es exactamente lo que
-      // hace falta, y evita el «¿dónde estaba el padlet?» de cada semana.
-      '<div class="card"><h3>Los enlaces de este grupo</h3>' +
-      '<p class="small muted">Para repartir en clase. Cambiarlos es cosa del profe referente.</p>' +
-      '<div class="m-enlaces">' +
-        // 16-sep · el alistamiento sale del código del grupo (el mismo enlace que «Copiar invitación»): salía «sin configurar»
-        enlaceFila("<img class=ico src=assets/img/iconos/p/brujula.png alt>", "Alistarse (con el código)", t.alta || (DATOS.proyecto && DATOS.proyecto.joinCode
-          ? "alistarse.html?per=" + encodeURIComponent(PER) + "&codigo=" + encodeURIComponent(DATOS.proyecto.joinCode) : "")) +
-        enlaceFila("<img class=ico src=assets/img/iconos/p/cohete.png alt>", "La Nave del alumnado", "recluta.html?per=" + encodeURIComponent(PER), "", true) +
-        // (el enlace de ESTE grupo, para abrirlo; el código para Genially es el universal, arriba en «Para tus Geniallys»)
-        enlaceFila("<img class=ico src=assets/img/iconos/p/medalla.png alt>", "El tablero, para proyectar", "registro.html?per=" + encodeURIComponent(PER) + "&solo=1", "tablero_" + PER, false) +
-        enlaceFila("<img class=ico src=assets/img/iconos/p/video.png alt>", "La sesión de esta semana", "sesion.html?per=" + encodeURIComponent(PER), "sesion_" + PER, true) +
-        // 13-sep · la Nave con tu Comandante de recluta, para ensayar (o enseñarla fuera de la sesión): no guarda nada
-        enlaceFila("<img class=ico src=assets/img/iconos/p/envivo.png alt>", "Tu Nave de ejemplo (simulacro)", "recluta.html?simulacro=1&per=" + encodeURIComponent(PER), "", true) +
-        enlaceFila("<img class=ico src=assets/img/iconos/p/notas.png alt>", "Padlet de la clase", t.padlet || "") +
-      '</div></div>';
+      '</p></div>';
 
     $("#m-guardar").onclick = async function () {
       var v = $("#m-panel").value.trim();
@@ -2070,6 +2102,31 @@
             await refrescar(); aviso("Quitado. Vuelven al panel oficial.", true); }
       catch (e) { aviso(e.message); }
     };
+    if ($("#m-padlet-ok")) $("#m-padlet-ok").onclick = async function () {
+      var v = $("#m-padlet").value.trim(), b = this;
+      if (v && !/^https?:\/\//i.test(v)) { aviso("Pega la dirección entera del padlet (empieza por https://)."); return; }
+      b.disabled = true;
+      try { await MOTOR.guardarAjustes(PER, { "stargate.padlet": v }, null);
+            await refrescar(); aviso(v ? "Guardado: tu alumnado ya lo abre desde su Nave." : "Quitado el padlet de la clase.", true); }
+      catch (e) { b.disabled = false; aviso(e.message); }
+    };
+  }
+  function mBloque(tit, desc, filas) {
+    return '<div class="m-bloque"><h4>' + tit + '</h4>' + (desc ? '<p class="small muted">' + desc + '</p>' : '') +
+      '<div class="m-enlaces">' + filas.join("") + '</div></div>';
+  }
+  /** Una fila de «Enlaces»: Abrir ↗ y ⧉ (en este grupo), Enlace (su dirección) y </> Código (el universal, si lo hay). */
+  function mFila(o) {
+    var hay = !!o.abrir;
+    return '<div class="m-fila' + (hay || o.edit ? '' : ' vacia') + '"><span>' + o.ico + '</span>' +
+      '<div class="m-fila-t"><b>' + esc(o.tit) + '</b>' + (o.desc ? '<em>' + o.desc + '</em>' : '') + '</div>' +
+      (o.edit || '') +
+      (hay ? '<a href="' + esc(o.abrir) + '" target="_blank" rel="noopener">Abrir ↗</a>' : (o.edit ? '' : '<em>sin configurar</em>')) +
+      (hay && o.ventana ? botonVentana(o.abrir, o.ventana, o.tit) : '') +
+      (hay ? '<button class="btn min" data-copiar="' + esc(absoluta(o.abrir)) + '" data-copiado="✓ Enlace copiado" title="Copia la dirección completa de este grupo">' + ico("enlace") + ' Enlace</button>' : '') +
+      (o.codigo ? '<button class="btn min"' + (o.embed ? ' data-embed="' + o.embed + '"' : '') + ' data-copiar="' + esc(codigoGenially(o.codigo, "STARGATE · " + o.tit)) + '" data-copiado="✓ Código copiado" ' +
+        'title="Copia el código para insertar (Insertar → Otros → Código). Vale para todos tus grupos">&lt;/&gt; Código</button>' : '') +
+      '</div>';
   }
   /**
    * 🔴 16-sep · DOS FORMAS DE COPIAR. Norberto: «necesito dos botones, copiar enlace o copiar </>. Ahora copia esto:
@@ -2080,17 +2137,7 @@
    */
   function absoluta(url) { return /^https?:\/\//i.test(url) ? url : location.origin + "/" + String(url).replace(/^\/+/, ""); }
   function conEmbed(url) { return url + (url.indexOf("?") >= 0 ? "&" : "?") + "embed=1"; }
-  function enlaceFila(ico, tit, url, ventana, incrustable) {
-    if (!url) return '<div class="m-fila vacia"><span>' + ico + '</span><b>' + esc(tit) + '</b>' +
-                     '<em>sin configurar</em></div>';
-    return '<div class="m-fila"><span>' + ico + '</span><b>' + esc(tit) + '</b>' +
-      '<a href="' + esc(url) + '" target="_blank" rel="noopener">Abrir ↗</a>' +
-      (ventana ? botonVentana(url, ventana, tit) : "") +
-      '<button class="btn min" data-copiar="' + esc(absoluta(url)) + '" data-copiado="✓ Enlace copiado" title="Copia la dirección completa"><img class=ico src=assets/img/iconos/p/enlace.png alt> Enlace</button>' +
-      (incrustable ? '<button class="btn min" data-copiar="' + esc(codigoGenially(conEmbed(url), "STARGATE · " + tit)) + '" data-copiado="✓ Código copiado" ' +
-        'title="Copia el código para Genially: Insertar → Otros → Código">&lt;/&gt; Código</button>' : "") +
-      '</div>';
-  }
+
 
   // ---------------------------------------------------------------- escondites
   /**

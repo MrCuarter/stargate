@@ -24,7 +24,7 @@ if (fs.existsSync(GP)) c(/request\.resource\.data\.modo in \['piloto', 'manual'\
 
 // ── 2 · qué oculta el piloto
 // 19-sep · «Para tus Geniallys» vive en «Enlaces» y «Para todos tus grupos» en «Premios»: dos secciones que el piloto no enseña
-c(/\$\("#c-cuerpo"\)\.innerHTML = paraTusGeniallys\(\) \+/.test(K) && /var comun = sec\[0\] === "premios"/.test(K) && /\["enlaces", "Enlaces", "assets\/img\/iconos\/enlace\.png", \["mios"\]\]/.test(K),
+c(/'<section class="card gp-gen m-unif">/.test(K) && /var comun = sec\[0\] === "premios"/.test(K) && /\["enlaces", "Enlaces", "assets\/img\/iconos\/enlace\.png", \["mios"\]\]/.test(K),
   "🔴 «Para todos tus grupos» (en Premios) y «Para tus Geniallys» (en Enlaces), solo en mando manual");
 c(/class="gp-cfg" data-av/.test(K), "   la rueda de la sesión, también (23-sep · «Ajustes» ya no existe)");
 c(/var AV_TABS = \["zoco", "mios", "huevos", "sorteos", "ofertas"\]/.test(K) && /if \(!manual\(\) && AV_TABS\.indexOf\(x\[0\]\) >= 0\) return false;/.test(K), "🔴 en piloto, fuera las pestañas de gestión (Zoco, Mis enlaces, Premios, Sorteos, Ofertas)");
