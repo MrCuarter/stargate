@@ -185,8 +185,15 @@ c(/radioGestion\(\)/.test(MZ) && /radioClase\(\)/.test(MZ) && /radioNave\(\)/.te
   "🔴 y la radiografía completa: gestionar grupos, la clase, la Nave del docente y lo que ve el alumnado");
 c(/retosPorTema\(\)/.test(MZ.slice(MZ.indexOf("var secs"))) && !/retosPorTema|radio[A-Z]|ref[A-Z]/.test(DOC),
   "🔴 los retos uno a uno y la radiografía, solo en la de referentes");
-c(/doEntrar\(\), doPanel\(\), doForo\(\)/.test(DOC) && /doEntrar\(\), doPanel\(\), doForo\(\)/.test(MZ.slice(MZ.indexOf("var secs"))),
-  "🔴 en las dos: entrar, cambiar el Genially del grupo y el mensaje del foro");
+c(/doEntrar\(\), doGeniallys\(\), doPanel\(\), doForo\(\)/.test(DOC) && /doEntrar\(\), doGeniallys\(\), doPanel\(\), doForo\(\)/.test(MZ.slice(MZ.indexOf("var secs"))),
+  "🔴 en las dos: entrar, los Geniallys (la carpeta), cambiar el Genially del grupo y el mensaje del foro");
+// 24-sep · «añade una diapo con el enlace a la carpeta con los Geniallys… por defecto está enlazado el panel genérico… pueden
+// duplicar o reutilizar las que tienen eliminando todo del proyecto anterior»: la dirección, la de siempre (un dato, un sitio)
+const PRE103 = fs.readFileSync(path.join(__dirname, "..", "prestreno.html"), "utf8");
+const PJS103 = L("assets/js/prestreno.js");
+c(/function doGeniallys\(\)/.test(PJS103) && /window\.SG_GENIALLY_CARPETA/.test(PJS103) && /window\.SG_GENIALLY_CARPETA="https:\/\/app\.genially\.com\/teams\//.test(PRE103)
+  && /panel de control genérico/.test(PJS103) && /quitando todo lo del proyecto anterior/.test(PJS103),
+  "🔴 la diapositiva de los Geniallys: el panel genérico por defecto, duplicar o reutilizar, y el enlace a la carpeta");
 const nDoc = (DOC.match(/\w+\(\)/g) || []).length;
 c(nDoc <= 25 && !/rankings2\(\)|comoSeGana2\(\)|semanas\(\)|enlaces\(\)/.test(DOC), "🔴 la de docentes, reducida (" + nDoc + " diapositivas, sin rankings, mecánicas ni el calendario entero)");
 c(/function barra\(\)/.test(JS) && /pr-secs/.test(JS) && /pr-subs/.test(JS), "   la radiografía, con la barra por secciones (no 70 botones)");

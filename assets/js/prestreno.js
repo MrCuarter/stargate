@@ -594,14 +594,34 @@
               'En el <b>lápiz</b> de vuestra ficha: vuestro comandante (el avatar) y el nombre que ven vuestros reclutas.'],
       nota: '¿«Esa cuenta no lleva ningún grupo»? Pedid al referente que os añada con <b>ese mismo correo</b>.' });
   }
+  /**
+   * 24-sep · Norberto: «cuando explicamos al docente, añade una diapo con el enlace a la carpeta con los Geniallys. Explica
+   * que por defecto está enlazado el panel de control genérico con las presentaciones por defecto. Si quieren crear su
+   * propio panel con sus presentaciones, pueden duplicar o reutilizar las que tienen eliminando todo del proyecto
+   * anterior. Muestra cómo cambiarlo en STARGATE». Lo de cambiarlo es la siguiente («Tu Genially», con su captura).
+   * La dirección de la carpeta es la de siempre (GENIALLY_CARPETA, _site_data.py): un dato, un sitio.
+   */
+  function doGeniallys() {
+    var C = window.SG_GENIALLY_CARPETA || "";
+    return { rot: "Los Geniallys", html: escena({ bg: "ocho_mundos.webp", cap: ["tablet", "Por defecto, ya está todo enlazado."],
+      cuerpo: '<div class="kicker">Manos a la obra · 2</div><h2>Los Geniallys: ya enlazados, y vuestros si queréis</h2>' +
+        '<ul class="pr-ref-l">' +
+          '<li><b>Por defecto</b>, cada grupo lleva enlazado el <b>panel de control genérico</b>, con las <b>presentaciones de cada semana</b> ya dentro. No hay que tocar nada.</li>' +
+          '<li>¿Vuestro propio panel, con vuestras presentaciones? En la carpeta, <b>duplicad</b> el panel y las presentaciones que queráis, o <b>reutilizad</b> las vuestras de otro curso <b>quitando todo lo del proyecto anterior</b>.</li>' +
+          '<li>Después, en STARGATE, se cambia el enlace del panel: lo veis en la siguiente.</li>' +
+        '</ul>' +
+        (C ? '<p class="pr-b-cta"><a class="btn primary" href="' + esc(C) + '" target="_blank" rel="noopener">Abrir la carpeta de los Geniallys ↗</a></p>' : '') +
+        '<p class="pr-como-nota">La carpeta está compartida con todo el profesorado: se entra con la cuenta de Genially del equipo. Si no la veis, pedid acceso.</p>' }) };
+  }
   function doPanel() {
-    return comoSeHace({ rot: "Tu Genially", kicker: "Manos a la obra · 2", titulo: "El Genially de vuestro grupo, cambiado en un minuto", img: "panel",
+    return comoSeHace({ rot: "Tu Genially", kicker: "Manos a la obra · 3", titulo: "El Genially de vuestro grupo, cambiado en un minuto", img: "panel",
       pasos: ['En el <b>Puente</b>, lo primero: <b>Tu panel de control</b>, el Genially que abre vuestro alumnado desde su Nave.',
               'Viene el <b>oficial</b> del grupo. Para usar el vuestro: <b>Cambiar el enlace</b> y pegad su dirección de ver (<i>view.genially.com/…</i>).',
-              '<b>Guardar para mis reclutas</b>. Y si queréis deshacerlo, <b>Volver al oficial</b>.'] });
+              '<b>Guardar para mis reclutas</b>. Y si queréis deshacerlo, <b>Volver al oficial</b>.'],
+      nota: 'También en <b>Enlaces → Tu panel de Genially</b>. Lo cambia cada docente para su alumnado; el resto del grupo sigue con el oficial.' });
   }
   function doForo() {
-    return comoSeHace({ rot: "El mensaje del foro", kicker: "Manos a la obra · 3", titulo: "El mensaje del foro: ya escrito, y vuestro si queréis", img: "foro",
+    return comoSeHace({ rot: "El mensaje del foro", kicker: "Manos a la obra · 4", titulo: "El mensaje del foro: ya escrito, y vuestro si queréis", img: "foro",
       pasos: ['En <b>Hoy toca</b>, el mensaje de la semana ya escrito y firmado con vuestro comandante: <b>Copiar</b> y al foro de la plataforma de UNIR.',
               '<b>Editar</b> para escribir vuestra versión: se guarda en <b>vuestra ficha</b> y vale para todos vuestros grupos. Si la borráis, vuelve la oficial.',
               '<b>Ver todos</b>: los ' + (SEMS.length || 15) + ' mensajes del curso, de un vistazo.'] });
@@ -753,14 +773,14 @@
     if (MODO !== "referentes")
       return [portada(), encargo(), historia(), nombres(), comandantes(), mapa(), material(), semanaABordo(), unReto(),
               heroes(), cromos(), simulador(), sorteo(), nota(), tranquilos(), queHace2(),
-              doEntrar(), doPanel(), doForo(), loQueNo2(), preguntas2(), siguiente2(), cierre()];
+              doEntrar(), doGeniallys(), doPanel(), doForo(), loQueNo2(), preguntas2(), siguiente2(), cierre()];
     var secs = [
       ["Bienvenida", [portada(), refPapel()]],
       ["Crear grupos", [refCrear(), refEquipo(), refListo(), refProfes()]],
       ["Gestionar grupos", radioGestion()],
       ["La historia", [encargo(), historia(), nombres(), comandantes(), mapa(), semanas(), material()]],
       ["La clase", [semanaABordo()].concat(radioClase())],
-      ["Vuestra Nave", [doEntrar(), doPanel(), doForo()].concat(radioNave())],
+      ["Vuestra Nave", [doEntrar(), doGeniallys(), doPanel(), doForo()].concat(radioNave())],
       ["El alumnado", radioAlumnado()],
       ["Los retos", [unReto(), comoSeGana2()].concat(retosPorTema())],
       ["Recompensas", [bitacora2(), heroes(), cromos(), simulador(), sorteo(), rankings2(), nota()]],
