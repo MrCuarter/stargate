@@ -63,6 +63,12 @@
   // y se quita de un sitio.
   var MOTOR_EN_ENLACES = "&motor=firestore";
 
+  /** 24-sep · el planeta de una semana: el de su tema; en la semana sin tema (el repaso), el de la Estática (SG_SEMANAS). */
+  function planetaDeSemana(s) {
+    if (!s) return null;
+    if (Number(s.tema_n)) return (((window.SG_CATALOGO || {}).temas) || []).filter(function (x) { return x.n === s.tema_n; })[0] || null;
+    return s.planeta && s.planeta.length ? { clave: s.planeta[0], nombre: s.planeta[1] } : null;
+  }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   /**
@@ -277,7 +283,7 @@
     var estos = delTema.filter(function (r) { return semanaDeReto(r, tipo, mapa) === sem; });
     // «la semana que viene» solo cuenta lo que NO se ve ya aquí (si no, se repetiría)
     var luego = cat.filter(function (r) { return semanaDeReto(r, tipo, mapa) === sem + 1 && delTema.indexOf(r) < 0; });
-    var pl = (((window.SG_CATALOGO || {}).temas) || []).filter(function (t) { return t.n === s.tema_n; })[0];
+    var pl = planetaDeSemana(s);
     var fechas = "";
     try { if (S.inicio && window.SGSEMANAS) fechas = diaC(window.SGSEMANAS.inicioDeSemana(S.inicio, sem, S.pausas)) + " – " + diaC(window.SGSEMANAS.finDeSemana(S.inicio, sem, S.pausas)); } catch (e) {}
     // el calendario de la semana: el hito (tests, presentaciones, entregas), las Actividades que se lanzan, NEBULA y los cierres
@@ -667,7 +673,7 @@
     // 🔴 20-sep · «usa imágenes para descansar, para no atosigar al cerebro con tanta información»: el planeta del tema
     // que tocáis, grande y desvanecido, hace de portada del grupo. Cambia con la semana, así que el banner nunca es
     // el mismo cartel gris dos temas seguidos.
-    var pl = (((window.SG_CATALOGO || {}).temas) || []).filter(function (x) { return s && x.n === s.tema_n; })[0];
+    var pl = planetaDeSemana(s);
     return '<div class="card gr-banner">' + (pl ? '<img class="gr-plan" src="assets/img/planetas/' + esc(pl.clave) + '.png" alt="" loading="lazy">' : '') +
       (emb.img ? '<img class="gr-emb" src="' + esc(emb.img) + '" alt="">' : '') +
       '<div class="gr-t"><div class="eyebrow teal">' + esc(estado) + (s ? ' · ' + esc(s.tema) : '') + '</div>' +
@@ -764,7 +770,7 @@
     var sem = Number(t && t.semana) || 0, SEMS = window.SG_SEMANAS || [];
     var tipo = (t && t.tipo) === "PUA" ? "PUA" : "REGULAR";
     var s = sem >= 1 ? (tipo === "PUA" ? SEMS.filter(function (x) { return x.tema_n === Math.min(sem, 8); })[0] : SEMS[Math.min(sem, SEMS.length) - 1]) : null;
-    var pl = (((window.SG_CATALOGO || {}).temas) || []).filter(function (x) { return s && x.n === s.tema_n; })[0];
+    var pl = planetaDeSemana(s);
     document.body.classList.toggle("con-planeta", !!pl);
     // 🔴 la variable la usa la hoja de estilos: una ruta relativa se resolvería contra assets/css/ (404). Absoluta.
     if (pl) document.body.style.setProperty("--planeta", 'url("' + new URL("assets/img/planetas/" + pl.clave + ".png", document.baseURI).href + '")');
@@ -1884,6 +1890,8 @@
     // 🔴 20-sep · el mensaje del foro: el TUYO si lo has escrito (vale para todos tus grupos), si no el oficial firmado
     var mioForo = ((FICHA && FICHA.foros) || {})[String(sem)] || "";
     var foroTxt = mioForo || foro;
+    // 24-sep · al pie, «A bordo esta semana» con su escuadrón (gente): entra también en el texto que se copia al foro
+    if (window.SG.foroAbordo && foroTxt && sem >= 1 && sem <= total) foroTxt = window.SG.foroConAbordo(foroTxt, window.SG.foroAbordo(gente, ""));
     // 🔴 20-sep (tarde) · Norberto: «pon el panel de control embebido justo debajo» del banner. Es lo primero que se
     // abre al empezar la clase —el Genially que su alumnado tiene delante—, así que abre el Puente; las cifras, «Hoy
     // toca» y lo demás van después.

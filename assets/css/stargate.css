@@ -5908,11 +5908,12 @@ html.con-dossier{scroll-snap-type:y proximity;scroll-padding-top:var(--nav-h,54p
 .dz-baja i{font-style:normal;display:inline-block;animation:dz-bote 1.8s ease-in-out infinite}
 @keyframes dz-bote{50%{transform:translateY(5px)}}
 .dz-foto::before{content:"";position:absolute;inset:0;background:var(--fondo) center/cover no-repeat;opacity:.28;z-index:0}
-.dz-voces{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,3vw,32px);margin-top:8px}
+.dz-voces{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(12px,3vw,32px);margin-top:8px}
 .dz-voces figure{margin:0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}
 .dz-voces img{height:clamp(160px,34vh,340px);width:auto;max-width:100%;object-fit:contain;filter:drop-shadow(0 12px 30px rgba(55,224,236,.25))}
 .dz-voces b{display:block;font-family:'Unbounded',sans-serif;font-size:1.05rem;color:#eafcff;margin-bottom:4px}
 .dz-voces figcaption{font-size:.95rem;color:var(--mut);max-width:30ch}
+@media(max-width:900px){.dz-voces{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.dz-voces{grid-template-columns:1fr}.dz-voces figure{flex-direction:row;text-align:left;align-items:center}.dz-voces img{height:110px}}
 .dz-planetas,.dz-cartas{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:12px;margin-top:10px}
 @media(max-width:1000px){.dz-planetas,.dz-cartas{grid-template-columns:repeat(4,minmax(0,1fr))}}
@@ -6020,3 +6021,26 @@ html.con-dossier:fullscreen .dz{min-height:100vh}
   .dia.portada .pt-cmd{display:none}
 }
 @media (prefers-reduced-motion:reduce){ .dia.retos-semana .rs-lista li{animation:none} }
+/* 24-sep · la llamada a filas y «Únete»: el comandante del docente de cuerpo entero (antes, el Capitán) */
+.dia.llamada .ll-cap.cmd-cuerpo{width:22%;max-width:260px;max-height:100%}
+@media (max-width:720px){ .dia.llamada .ll-cap.cmd-cuerpo{width:auto;max-width:none;height:170px} }
+/* ── 24-sep · EL TRIPULANTE DE LA SEMANA: su carta, quién era, su historia, su frase y su fragmento prohibido ── */
+.dia.tripulante{flex-direction:row;align-items:center;gap:4%}
+.dia.tripulante .tp-carta{width:27%;max-width:320px;max-height:100%;object-fit:contain;align-self:center;filter:drop-shadow(0 0 30px rgba(55,224,236,.25))}
+.dia.tripulante .tp-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.dia.tripulante h2{margin:0;font-size:clamp(1.8rem,3.8vw,3.2rem);line-height:1.05}
+.dia.tripulante .tp-rol{margin:0;color:var(--teal2);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:clamp(.85rem,1.3vw,1.05rem)}
+.dia.tripulante .tp-hist{margin:0;font-size:clamp(1rem,1.65vw,1.35rem);line-height:1.45;color:var(--ink)}
+.dia.tripulante .tp-lec{margin:0;font-size:clamp(.95rem,1.45vw,1.2rem);color:var(--mut)}
+.dia.tripulante .tp-lec b{color:var(--ink)}
+.dia.tripulante .tp-cita{margin:2px 0;padding-left:14px;border-left:3px solid var(--amber);color:var(--amber);font-family:'Unbounded','DM Sans',sans-serif;font-size:clamp(1rem,1.7vw,1.4rem);line-height:1.3}
+.dia.tripulante .tp-frag{display:flex;gap:12px;align-items:flex-start;margin-top:4px;padding:12px 16px;border-radius:12px;border:1px solid rgba(245,176,67,.55);background:rgba(245,176,67,.08);font-size:clamp(.95rem,1.45vw,1.2rem);line-height:1.4}
+.dia.tripulante .tp-frag .ico{width:26px;height:26px;flex:none;margin-top:2px}
+.dia.tripulante .tp-frag b{color:var(--amber)}
+/* la última clase del viaje: la cita para después de la batalla */
+.dia.hasta-pronto.fin-viaje h2{font-size:clamp(1.6rem,3.4vw,3rem)}
+.dia.hasta-pronto .hp-txt .sub{font-size:clamp(1rem,1.6vw,1.3rem);color:var(--mut);margin-top:10px}
+@media (max-width:720px){
+  .dia.tripulante{flex-direction:column;align-items:stretch;gap:14px}
+  .dia.tripulante .tp-carta{width:auto;height:220px;max-width:none;align-self:center}
+}

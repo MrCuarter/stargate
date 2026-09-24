@@ -186,12 +186,13 @@
         '<h2>' + SEMS.length + ' semanas, y el sistema sabe en cuál va cada grupo</h2>' +
         '<p class="small muted">Se pone la fecha del primer día y ya está: cada semana se abre lo que toca, sin tocar nada.</p>' +
         '<div class="pr-linea">' + SEMS.map(function (s) {
-          // 🔴 la última semana no tiene tema (es el repaso): sin planeta, o salía con el de Fôrge
-          var t = Number(s.tema_n) || 0, pl = t ? (PLAN[t - 1] || []) : [];
+          // 🔴 la última semana no tiene tema (es el repaso): sin planeta de tema, o salía con el de Fôrge. 24-sep · lleva
+          // el de la Estática (Norberto: «tenemos un planeta de la Estática, mete esa imagen en la semana 15»)
+          var t = Number(s.tema_n) || 0, pl = t ? (PLAN[t - 1] || []) : (s.planeta || []);
           return '<div class="pr-sem' + (s.tema_n ? '' : ' fin') + '" title="' + esc(s.sub || "") + '">' +
             '<span class="pr-sem-n">' + s.sem + '</span>' +
             (pl[0] ? '<img src="assets/img/planetas/' + esc(pl[0]) + '.png' + esc(IMGV) + '" alt="">' : '<span class="pr-sem-fin">◈</span>') +
-            '<em>' + esc(pl[1] || "La liberación") + '</em></div>';
+            '<em>' + esc(t ? (pl[1] || "") : "La liberación") + '</em></div>';
         }).join("") + '</div>' +
       '</div>' };
   }

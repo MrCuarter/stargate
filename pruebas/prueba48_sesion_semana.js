@@ -119,7 +119,8 @@ const tipoVideo = new Function("v", S.slice(S.indexOf("function tipoVideo(v){") 
 const tipos = {};
 SEMJSON.forEach(s => (s.videos || []).forEach(v => { const t = tipoVideo(v); (tipos[t] = tipos[t] || []).push(v[0].titulo); }));
 c((tipos.inicio || []).every(t => !/cierre|Fragmento/i.test(t)) && (tipos.inicio || []).some(t => /· intro/.test(t)), "las intros van al principio", JSON.stringify(tipos.inicio));
-c((tipos.cierre || []).length >= 7 && (tipos.cierre || []).every(t => /· cierre/.test(t)), "los cierres, al final", JSON.stringify(tipos.cierre));
+// 24-sep · los ocho temas con su cierre: el de Liminar es su finale (en la semana 14)
+c((tipos.cierre || []).length === 8 && (tipos.cierre || []).every(t => /· (cierre|finale)/i.test(t)), "los cierres de los ocho temas, al final", JSON.stringify(tipos.cierre));
 c((tipos.fragmento || []).length === 9, "y los 9 fragmentos, detrás del cierre", JSON.stringify(tipos.fragmento));
 c((tipos.mision || []).every(t => /^Misi|Plan de Ataque/.test(t)), "los vídeos de misión, con las misiones", JSON.stringify(tipos.mision));
 // el enunciado de cada reto no se reescribe aquí: se cruza con el catálogo por texto

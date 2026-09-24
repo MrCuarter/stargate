@@ -102,7 +102,8 @@ c(sinImg === '<div class="dia pregunta-clase"><p class="pc-q">' + sinImg.replace
 c(/onerror="if\(this\.dataset\.hd/.test(h) && /data-hd="assets\/img\/avatares\/comandantes\/recorte_hd\/c7\.webp"/.test(h),
   "   si faltara la pose, cae sola al recorte en alta del mismo comandante");
 c(api.diasPregunta(s10).length === 2, "   la semana de dos preguntas, dos diapositivas");
-c(/var d=diasPregunta\(s\)\.concat\(\[diaPortada\(s, n\)\]\)/.test(S), "🔴 la pregunta ABRE la sesión: va antes de la portada");
+c(/var d=\[diaPortada\(s, n\)\][\s\S]{0,260}if\(st\.per\) d\.push\(diaLlamada\(\)\);\s*\n\s*d=d\.concat\(diasPregunta\(s\)\);/.test(S),
+  "🔴 el arranque, en su orden (24-sep): la portada, la llamada a filas y la pregunta");
 
 const rs = api.diaRetosSemana(s2);
 c(rs && /cmd-reto/.test(rs.html) && /c7_reto\.webp/.test(rs.html), "🔴 los retos de la semana, con el comandante en pose de desafío");
@@ -110,11 +111,11 @@ c(rs && /En clase<\/span><b>«Del boceto a la forja»/.test(rs.html) && /En casa
   "   y cada reto dice dónde se hace: el relámpago en clase, el principal en casa", rs && rs.html.replace(/<img[^>]*>/g, "").slice(0, 400));
 c(rs && !/Actividad/.test(rs.html.replace(/<img[^>]*>/g, "")), "   (las actividades tienen sus propias diapositivas: aquí no se repiten)");
 c(api.diaRetosSemana({ lanza: [] }) === null, "   y si la semana no lanza retos, no hay diapositiva vacía");
-c(/var rs=diaRetosSemana\(s\); if\(rs\) ci\.push\(rs\);\s*\n\s*ci=ci\.concat\(diasMisiones\(s\)\)/.test(S), "   va justo antes de las misiones");
+c(/var rs=diaRetosSemana\(s\); if\(rs\) ci\.push\(rs\);\s*\n\s*var tp=diaTripulante\(s\); if\(tp\) ci\.push\(tp\);[^\n]*\n\s*ci=ci\.concat\(diasMisiones\(s\)\)/.test(S), "   va antes de las misiones, con el tripulante de la semana detrás (24-sep)");
 const hp = api.diaHastaPronto();
 c(/cmd-saludo/.test(hp.html) && /c7_saludo\.webp/.test(hp.html) && hp.sec === "cierre", "🔴 y la despedida: el comandante saluda (sección de cierre)");
-c(/var tf=ultimaDelTema\(L, iS\)\?diaTicketForm\(s\):null;\s*\n\s*ci\.push\(tf\|\|diaHastaPronto\(\)\);\s*\n\s*ci\.forEach\(function\(x\)\{ x\.t='ci'; \}\);/.test(S),
-  "   es lo último de la clase… salvo si cierra el tema: entonces lo último es el ticket («la última diapositiva es el ticket embebido»)");
+c(/if\(tf\) ci\.push\(tf\);\s*\n\s*if\(finViaje\) ci\.push\(diaHastaPronto\(true\)\); else if\(!tf\) ci\.push\(diaHastaPronto\(\)\);\s*\n\s*ci\.forEach\(function\(x\)\{ x\.t='ci'; \}\);/.test(S),
+  "   es lo último de la clase… salvo si cierra el tema (lo último es el ticket); y la última del viaje acaba con «Vuelve después de la batalla»");
 c(/cmdCuerpo\('saludo', 'pt-cmd'\)/.test(S), "   y en la portada también saluda");
 c(![h, rs && rs.html, hp.html].some(x => /\p{Extended_Pictographic}/u.test(String(x))), "   sin un emoji en las diapositivas nuevas (iconos de la casa)");
 

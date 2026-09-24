@@ -14,7 +14,8 @@ from _site_data import (GOOGLE_CLIENT_ID,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
                         PASOS, ESCUADRONES, PER_DEMO, PER_ESCUELA, ENLACES_EQUIPO, TICKET_URL, TICKET_TEMAS, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES,
-                        HITOS_A_BORDO, CUBIERTAS_A_BORDO, HEROES_A_BORDO, CARTA_A_BORDO, BATALLA, SIN_PUA, VOTACION)
+                        HITOS_A_BORDO, CUBIERTAS_A_BORDO, HEROES_A_BORDO, CARTA_A_BORDO, BATALLA, SIN_PUA, VOTACION,
+                        PLANETA_FIN, TRIPULANTES)
 # Los logros de a bordo, tal y como los lee el navegador (un dato, un sitio: _site_data.py)
 _A_BORDO = {
     "cubiertas": [{"clave": c[0], "nombre": c[1], "sub": c[2], "premio": c[3]} for c in CUBIERTAS_A_BORDO],
@@ -151,7 +152,7 @@ ESP=[("E1_nebula","NEBULA","Preséntate a tu tripulación","La Bitácora viva qu
 ("E3_vaeon","General Vaeon","El Escape UNI (reto secreto S7)","Señor de la Estática (villano)")]
 RETO=[("R0_bitacora-en-marcha","La Bitácora en marcha","Reto principal · T1","Tu ePortfolio abierto con su primera experiencia"),
 ("R1_la-chispa","La chispa","Relámpago · T1","Del boceto a la imagen con IA (Act 1)"),
-("R2_el-eco-que-ensena","El eco que enseña","Reto principal · T2","Videotutorial en Edpuzzle"),
+("R2_el-eco-que-ensena","El eco que enseña","Reto principal · T2","Tu videotutorial"),
 ("R3_la-matriz","El itinerario","Reto principal · T3","Itinerario con refuerzo y ampliación (Act 2)"),
 ("R4_entorno-de-aula","El entorno de aula","Reto principal · T4","Tu aula en Classroom o Sites"),
 ("R5_bitacora-medida","La Bitácora medida","Reto principal · T5","Web abierta con la rúbrica a la vista"),
@@ -415,10 +416,11 @@ gente deje de <b>crear, registrar y compartir</b>. Contra ella no sirven las arm
 <section class="dz" id="voces">
 <div class="dz-in">
 <div class="dz-k">La historia</div>
-<h2>Tres voces</h2>
+<h2>Cuatro voces</h2>
 <div class="dz-voces">
 <figure><img src="assets/img/personajes/nebula.png" alt="NEBULA" loading="lazy"><figcaption><b>NEBULA</b>La IA de la nave. Narra el viaje, lanza los retos y guarda un secreto que se revela poco a poco.</figcaption></figure>
-<figure><img src="assets/img/capitan/brazos.png" alt="El Capitán" loading="lazy"><figcaption><b>El Capitán</b>Es el docente: da las órdenes, reconoce los logros y sostiene la moral de la tripulación.</figcaption></figure>
+<figure><img src="assets/img/capitan/brazos.png" alt="El Capitán de la Nave" loading="lazy"><figcaption><b>El Capitán de la Nave</b>El veterano al mando de La Constancia: da las órdenes de cada misión en los vídeos.</figcaption></figure>
+<figure><img src="assets/img/avatares/comandantes/cuerpo/c1_saludo.webp" alt="Un Comandante STARGATE" loading="lazy"><figcaption><b>El Comandante STARGATE</b>El docente de cada grupo, con el comandante que elige: abre cada clase, firma los mensajes y reconoce los logros.</figcaption></figure>
 <figure><img src="assets/img/personajes/vaeon.png" alt="El General Vaeon" loading="lazy"><figcaption><b>Vaeon</b>El que silencia. La personificación de los errores que apagan un aula.</figcaption></figure>
 </div>
 </div>
@@ -1262,7 +1264,7 @@ autoevaluación</b>, las dos actividades y tres retos (videotutorial, microgamif
 <b>experiencias del portfolio</b> que propone la programación oficial, tema a tema:</p>
 <table><thead><tr><th>Tema</th><th>Experiencia en el portfolio (oficial)</th><th>En STARGATE</th></tr></thead><tbody>
 <tr><td>T1 · Fôrge</td><td>Recursos multimedia didácticos generados con ayuda de la IA</td><td>Reto principal «La Bitácora en marcha» (con la imagen del relámpago)</td></tr>
-<tr><td>T2 · Ecos</td><td>Edpuzzle para enriquecer el videotutorial que has creado</td><td>Reto principal «El eco que enseña»</td></tr>
+<tr><td>T2 · Ecos</td><td>Tu videotutorial, enriquecido con sus preguntas en Edpuzzle</td><td>Reto principal «El eco que enseña» (el vídeo) y relámpago «El vídeo que pregunta» (las preguntas)</td></tr>
 <tr><td>T3 · Sendara</td><td>Genially para crear un itinerario o paisaje de aprendizaje</td><td>Reto principal «El itinerario»</td></tr>
 <tr><td>T4 · Reliae</td><td>Google Sites o Classroom: un entorno digital para el aula</td><td>Reto principal «El entorno de aula»</td></tr>
 <tr><td>T5 · Umbral</td><td>Google Forms para registrar el progreso</td><td>Relámpago «Mide con método» (rúbrica + formulario)</td></tr>
@@ -1614,7 +1616,7 @@ la <b>Cola de nota</b> hasta que el docente las aprueba.</p>
 BADGE_INFO = {
  # Personajes de la Tripulación Cero (el relámpago de cada tema; 23-sep)
  "P1_bran":{"nombre":"Bran Okafor · El Forjador","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 1: «Del boceto a la forja» (en clase).","cuando":"Tema 1 · Planeta Fôrge","tarea":"Publica en el foro de la plataforma de UNIR un borrador en bruto de algo que estés creando y una frase sobre qué te daba reparo enseñarlo sin pulir. No se corrige: el único criterio es compartirlo antes de terminarlo. Al hacerlo se recupera el fragmento de Bran."},
- "P2_tomas":{"nombre":"Tomás Reyer · El Cronista","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 2: «Un mensaje para quien faltó» (en clase).","cuando":"Tema 2 · Planeta Ecos","tarea":"Graba un clip corto (máx. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no vino a clase. Debe entenderse solo, sin ti delante."},
+ "P2_tomas":{"nombre":"Tomás Reyer · El Cronista","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 2: «El vídeo que pregunta» (en clase).","cuando":"Tema 2 · Planeta Ecos","tarea":"Graba un clip corto (máx. 60 s) explicando un concepto como si se lo contaras a un alumno que hoy no vino a clase. Debe entenderse solo, sin ti delante."},
  "P3_sylla":{"nombre":"Sylla Bren · La Rastreadora","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 3: «Dos senderos» (en clase).","cuando":"Tema 3 · Planeta Sendara","tarea":"Toma un objetivo de aprendizaje y describe dos rutas completamente distintas para alcanzarlo, pensadas para dos alumnos diferentes. Que las dos lleguen a la misma cima."},
  "P4_amara":{"nombre":"Amara Sol · La Operadora","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 4: «Abre el canal» (en clase).","cuando":"Tema 4 · Planeta Reliae","tarea":"Publica en tus redes una reflexión o un recurso del curso con el hashtag #mutecdstargate, en abierto. A tiempo por encima de perfecto: se publica hoy, se pule mañana.","cita":"Llegué tarde por querer llegar perfecta. Nunca más."},
  "P5_vera":{"nombre":"Vera Khal · La Médica","tipo":"Insignia de personaje","como":"Completando el relámpago del Tema 5: «Mide con método» (en clase).","cuando":"Tema 5 · Planeta Umbral","tarea":"Define un indicador observable que vayas a seguir de verdad del aprendizaje de tus alumnos, acompañado de la pregunta que lo convierte en cuidado: «¿qué haré mañana mejor que hoy?»."},
@@ -1627,7 +1629,7 @@ BADGE_INFO = {
  "E3_vaeon":{"nombre":"General Vaeon · Señor de la Estática","tipo":"Insignia de villano","como":"Saliendo del Escape UNI, el reto secreto (S7): el botón del final del escape registra el reto. Su puerta está en la Nave, y también escondida en la presentación del planeta Vínculo.","cuando":"Tema 7 · Vínculo","tarea":"Vaeon es el antagonista: personifica los errores del diseño educativo (contenido que no se entiende, recursos que no llegan, saber no compartido). Su insignia no se anuncia: se encuentra. Coleccionar su carta es el trofeo de haber entendido al enemigo."},
  # Retos (el reto principal de cada tema; 23-sep)
  "R1_la-chispa":{"nombre":"La chispa","tipo":"Insignia de reto","como":"Completando el relámpago del Tema 1: «Del boceto a la forja» (con la de Bran).","cuando":"Tema 1 · Fôrge","tarea":"Genera con una IA una imagen con finalidad didáctica: prompt estructurado (contexto + tipo de imagen + finalidad), al menos una iteración, selección final con tu criterio docente y evidencia del proceso. Es el núcleo de la Actividad 1."},
- "R2_el-eco-que-ensena":{"nombre":"El eco que enseña","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 2.","cuando":"Tema 2 · Ecos","tarea":"Crea un videotutorial de calidad (guion + grabación de pantalla + edición) y enriquécelo con 2–3 preguntas insertadas (videoquiz). Piénsalo para aula invertida y súbelo a la Bitácora con una reflexión breve."},
+ "R2_el-eco-que-ensena":{"nombre":"El eco que enseña","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 2.","cuando":"Tema 2 · Ecos","tarea":"Graba tu videotutorial (guion, grabación y edición) sobre un procedimiento de tu área, que se entienda sin ti delante, y llévalo a tu Bitácora."},
  "R3_la-matriz":{"nombre":"El itinerario","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 3.","cuando":"Tema 3 · Sendara","tarea":"Construye la matriz de programación 8×6 (8 inteligencias múltiples × 6 niveles de Bloom = 48 casillas) y rellena al menos 6 cruces variados, con una actividad en cada uno. Es el núcleo de planificación de la Actividad 2."},
  "R4_entorno-de-aula":{"nombre":"El entorno de aula","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 4.","cuando":"Tema 4 · Reliae","tarea":"Monta un espacio digital de aula organizado (tipo Classroom, Sites, Moodle…) donde compartas materiales y puedas dar feedback y comunicarte en diferido y en directo. Deja enlace/captura + reflexión en la Bitácora."},
  "R5_bitacora-medida":{"nombre":"La Bitácora medida","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 5.","cuando":"Tema 5 · Umbral","tarea":"Diseña una rúbrica digital sencilla y estructura formalmente tu ePortfolio (una sección por evidencia, con el patrón evidencia → contexto → reflexión → autoevaluación). Esta semana además se cierra la Actividad 1."},
@@ -1667,6 +1669,36 @@ CITAS = {
  "E2_capitan":"Una obra que no se documenta, no existe.",
  "E3_vaeon":"Si recordar duele, olvidar es misericordia.",
 }
+# 🔴 24-sep · LA PRESENTACIÓN PARA LOS COMANDANTES (prestreno.js): todo lo que enseña sale de aquí, calculado de los datos de
+# siempre (un dato, un sitio): cuántos vídeos, héroes, cartas e insignias hay, los precios del Mercado, el Arsenal, el sorteo
+# y el reto de muestra (L1, con su enunciado del documento maestro y su ejemplo).
+def _presenta():
+    import glob as _g
+    rec = {r[0]: r for r in RECOMPENSAS}
+    notas = [(r[0], r[1]) for r in RECOMPENSAS if len(r) > 5 and r[5] == "nota"]
+    kit = os.path.join(HERE, "..", "KIT_STARGATE", "fondos")
+    fondos = len(_g.glob(os.path.join(kit, "T*", "*.jpg"))) or 48
+    sor = SORTEOS[0] if SORTEOS else None
+    ej = EJEMPLOS_RETOS.get("L1", {})
+    import re as _r3
+    _d = os.path.join(HERE, "assets/img/avatares/comandantes/retrato")   # (el mismo criterio que _comandantes_genericos, que va más abajo)
+    cmds = sorted([f[:-4] for f in os.listdir(_d) if _r3.match(r"^c\d+\.jpg$", f)], key=lambda k: int(k[1:]))
+    return {
+        "comandantes": cmds,
+        "heroes": [[h[0], h[1], h[2]] for h in HEROES],
+        "cifras": {"videos": len(V), "fondos": fondos, "heroes": len(HEROES), "cartas": len(CROMOS),
+                   "insignias": len(NAVE_BADGES), "comandantes": len(cmds), "ejemplos": len(EJEMPLOS_RETOS)},
+        "precios": {"sobre": (rec.get("Sobre de cromos") or [0, 0])[1], "capsula": (rec.get("Cápsula de rescate") or [0, 0])[1],
+                    "nota": notas},
+        "arsenal": SEMANA_ARSENAL,
+        "sorteo": {"premio": (sor[1] if sor else ""), "semana": SEMANAS_PER["REGULAR"] + SEMANAS_CANJE_EXTRA},
+        "reto": {"id": "L1", "nombre": "Del boceto a la forja", "ayuda": AYUDA_RETOS.get("L1", ""), "xp": 100,
+                 "creditos": CREDITOS.get("relampago", 0), "insignias": ["P1_bran", "R1_la-chispa"], "ejemplo": ej.get("imagen", "")},
+    }
+_PRESENTA_JSON = json.dumps(_presenta(), ensure_ascii=False)
+# 24-sep · la página del tripulante en la sesión: quién es, su historia, su lección, su cita y su carta
+_TRIPUL_JSON = json.dumps({k: {"nombre": v[0], "rol": v[1], "historia": v[2], "leccion": v[3], "cita": CITAS.get(k, ""),
+                              "carta": "assets/img/tarjetas/" + k + "_carta.webp"} for k, v in TRIPULANTES.items()}, ensure_ascii=False)
 # Enlace a la actividad mayor / ePortfolio del que forma parte el reto
 LINKS = {
  "R1_la-chispa":{"text":"Actividad 1 — imagen con IA","href":"actividades.html#act1"},
@@ -2040,6 +2072,37 @@ window.SG.avatarRetrato = function (clave) {
  * («— Comandante Ana Ruiz»), sin duplicar el tratamiento si su nombre ya empieza por «Comandante». Lo usan la sesión,
  * la Nave del Comandante y la Nave del recluta.
  */
+/**
+ * 🔴 24-sep · «A BORDO ESTA SEMANA», al pie del mensaje de la semana. Norberto: felicitar dentro del propio mensaje, pero sin
+ * repetir la diapositiva de las misiones: la bienvenida a quien se ha alistado esta semana y quien acaba de ser Contramaestre
+ * de la Nave (el legendario de los logros de a bordo, que es el que lleva fecha; los de las cápsulas ya salen en
+ * «Coleccionistas»). Solo aparece si hay algo que contar, con alias (nunca nombres) y, si se sabe, del escuadrón de ese
+ * comandante. Devuelve texto con la forma del foro (un encabezado y líneas «·»): lo pintan igual la sesión, las dos Naves y
+ * el texto que se copia al foro de UNIR.
+ */
+window.SG.foroAbordo = function (reclutas, comandante, ahora) {
+  ahora = ahora || Date.now();
+  var desde = ahora - 7 * 864e5, cmd = String(comandante || '').trim();
+  var L = (reclutas || []).filter(function (r) { return r && r.alias && (!cmd || !r.profe || String(r.profe).trim() === cmd); });
+  var lista = function (xs) {
+    var n = xs.length, v = xs.slice(0, 8);
+    if (n > 8) return v.join(', ') + ' y ' + (n - 8) + ' más';
+    return v.length > 1 ? v.slice(0, -1).join(', ') + ' y ' + v[v.length - 1] : (v[0] || '');
+  };
+  var nuevos = L.filter(function (r) { return Number(r.alta) >= desde && Number(r.alta) <= ahora; }).map(function (r) { return r.alias; });
+  var contra = L.filter(function (r) { var t = Number(((r.cubiertas || {}).todo) || 0); return t >= desde && t <= ahora; }).map(function (r) { return r.alias; });
+  var lineas = [];
+  if (nuevos.length) lineas.push('· ' + lista(nuevos) + (nuevos.length > 1 ? ' se han alistado' : ' se ha alistado') + ' esta semana: bienvenida a bordo de La Constancia.');
+  if (contra.length) lineas.push('· ' + lista(contra) + (contra.length > 1 ? ' ya son' : ' ya es') + ' Contramaestre de la Nave: las cinco cubiertas completas y un héroe legendario a su lado.');
+  return lineas.length ? 'A BORDO ESTA SEMANA\n' + lineas.join('\n') : '';
+};
+/** Mete el bloque de `SG.foroAbordo` en el mensaje, justo antes de la firma (o al final, si no la tiene). */
+window.SG.foroConAbordo = function (txt, bloque) {
+  txt = String(txt == null ? '' : txt);
+  if (!bloque) return txt;
+  var m = txt.match(/\n\s*\*?—[^\n]*$/);
+  return m ? txt.slice(0, m.index) + '\n\n' + bloque + '\n' + txt.slice(m.index) : txt + '\n\n' + bloque;
+};
 window.SG.firmaComandante = function (txt, nombre) {
   var n = String(nombre || '').trim(); txt = String(txt == null ? '' : txt);
   if (!n) return txt;
@@ -2075,7 +2138,7 @@ window.SG.rotulo = function (o) {
 window.SG.CFGSESION = (function () {
   function e(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function ico(k, grande){ return '<img class="ico'+(grande?' grande':'')+'" src="assets/img/iconos/'+(grande?'':'p/')+k+'.png" alt="" width="20" height="20">'; }
-  var SIN_CAPTURA = { pregunta: ["pregunta", "Sale en las clases que tienen pregunta en el calendario oficial"], simulador: ["diana", "Sale cuando alguien ha jugado al Simulador"], votacion: ["rayo", "Sale si hay una votación esta semana"],
+  var SIN_CAPTURA = { pregunta: ["pregunta", "Sale en las clases que tienen pregunta en el calendario oficial"], tripulante: ["gente", "Sale la semana del relámpago que recupera a un tripulante"], simulador: ["diana", "Sale cuando alguien ha jugado al Simulador"], votacion: ["rayo", "Sale si hay una votación esta semana"],
                       oferta: ["monedas", "Sale si hay oferta en el Mercado"], unete: ["gente", "Sale en las semanas 1 y 2: el código y la invitación"] };
   function casillas(off) {
     var hay = window.SG_CAPTURAS_SESION || [];
@@ -3124,8 +3187,10 @@ _AYUDA_NAVE = _ayuda_de_gs(_datos_src)[0]
 # 19 = A1-A8 + B1-B8 + X1 + X2 + XF (los PUA reutilizan los mismos ids)
 assert len(_AYUDA_NAVE) >= 19, "AYUDA_RETOS de Datos.gs se ha quedado corta (%d)" % len(_AYUDA_NAVE)
 
-RETOS_REGULAR=[("A0","Reto «Preséntate a tu tripulación»"),("L0","Reto relámpago «La hoja de ruta»"),("L1","Reto relámpago «Del boceto a la forja» (recupera a Bran)"),("B1","Reto principal «La Bitácora en marcha»"),("X1","Actividad 1 entregada"),("L2","Reto relámpago «Un mensaje para quien faltó» (recupera a Tomás)"),("B2","Reto principal «El eco que enseña»"),("L3","Reto relámpago «Dos senderos» (recupera a Sylla)"),("B3","Reto principal «El itinerario»"),("X2","Actividad 2 entregada"),("L4","Reto relámpago «Abre el canal» (recupera a Amara)"),("B4","Reto principal «El entorno de aula»"),("L5","Reto relámpago «Mide con método» (recupera a Vera)"),("B5","Reto principal «Tu centro de recursos»"),("L6","Reto relámpago «Encuentra el juego» (recupera a Joran)"),("B6","Reto principal «El juego»"),("L7","Reto relámpago «Un porqué» (recupera a Mara)"),("B7","Reto principal «La microgamificación»"),("S7","Reto secreto «El Escape UNI»"),("L8","Reto relámpago «El QR» (recupera a Noa)"),("B8","Reto principal «El último umbral»"),("XS","Reto «El simulacro del examen»")]
-# 23-sep · PUA lleva los mismos retos que REGULAR (el viaje es más corto; el reto principal vale algo más)
+# 🔴 24-sep · UN DATO, UN SITIO: la lista salía escrita a mano aquí y, al intercambiar los retos de Ecos, la sesión se
+# quedó con el nombre viejo del relámpago. Ahora sale del catálogo congelado (motor/catalogo.json ← Datos.gs).
+RETOS_REGULAR=[(r["id"], r["titulo"]) for r in json.load(open(os.path.join(HERE, "motor", "catalogo.json"), encoding="utf-8"))["retos"]["REGULAR"] if r["id"] != "H1"]
+# 23-sep · PUA lleva los mismos retos que REGULAR, con el mismo valor
 RETOS_PUA=list(RETOS_REGULAR)
 """
 🔴 20-sep · LOS FRAGMENTOS SE GANAN. Norberto: «cuando completen la misión que corresponde a un personaje, además de
@@ -3164,8 +3229,11 @@ def _fragmentos():
                    _re.search(r"\(\s*" + _re.escape(nombre) + r"\s*\)$", rtit.strip(), _re.I):
                     reto = rid; break
             tema = _tema_n(s["tema"])
-            # se abre para todos al acabar el tema SIGUIENTE (el del último fragmento y el del epílogo, en su semana)
+            # se abre para todos al acabar el tema SIGUIENTE (el del último fragmento, en su semana)
             publica = (fin_tema.get(tema + 1) if tema else 0) or s["sem"]
+            # 🔴 24-sep · el epílogo (sin reto, en la semana sin tema) es el DESENLACE: se abre tras la batalla, cuando acaba
+            # el viaje (la semana siguiente a la última). La Nave lo abre al llegar al final (estado «fin»), también en PUA.
+            if not reto and not tema: publica = s["sem"] + 1
             out.append({"n": n, "id": v["id"], "titulo": v["titulo"], "personaje": quien,
                         "reto": reto, "sem": s["sem"], "tema": tema, "publica": publica,
                         "nota": cuando})
@@ -3182,6 +3250,8 @@ FRAGMENTOS_JSON = json.dumps(FRAGMENTOS, ensure_ascii=False)
 SEMANAS_JSON = json.dumps([{
   "sem": s["sem"], "tema": s["tema"], "sub": s["sub"], "capitulo": s.get("capitulo"),
   "tema_n": int(__import__("re").search(r"Tema (\d)", s["tema"]).group(1)) if "Tema " in s["tema"] else 0,
+  # 24-sep · la semana sin tema (el repaso) lleva el planeta de la Estática
+  "planeta": None if "Tema " in s["tema"] else list(PLANETA_FIN),
   "videos": [[{"id": yt(c)["id"], "titulo": yt(c)["titulo"]}, cuando] for c, cuando in s["videos"]],
   "lanza": s["lanza"], "insignias": s["insignias"], "foro": FORO.get(s["sem"], ""), "hito": s["hito"],
   # v3.60 · el consejo y las clases ya vivian en el CRONO pero no viajaban al navegador: los necesita
@@ -3379,7 +3449,7 @@ Pasa con las flechas <b>←</b> y <b>→</b>.</p>
 <p class="small muted">El <b>consejo del Capitán</b> y el mensaje del foro están arriba, fuera del mazo:
 al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></header>
 <section><div class="wrap"><div id="sesion-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_SECCIONES_SESION={json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False)};window.SG_CAPTURAS_SESION={json.dumps(sorted(f[:-4] for f in os.listdir(os.path.join(HERE, "assets/img/sesion")) if f.endswith(".jpg")))};window.SG_EMBARQUE={json.dumps([list(x) for x in SESION_EMBARQUE], ensure_ascii=False)};window.SG_VIDEOS={json.dumps({k: {"id": v[0], "titulo": v[1]} for k, v in V.items()}, ensure_ascii=False)};window.SG_EVALUACION={json.dumps([list(x) for x in EVALUACION], ensure_ascii=False)};window.SG_EVALUACION_EXAMEN={json.dumps(EVALUACION_EXAMEN, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_SECCIONES_SESION={json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False)};window.SG_CAPTURAS_SESION={json.dumps(sorted(f[:-4] for f in os.listdir(os.path.join(HERE, "assets/img/sesion")) if f.endswith(".jpg")))};window.SG_EMBARQUE={json.dumps([list(x) for x in SESION_EMBARQUE], ensure_ascii=False)};window.SG_VIDEOS={json.dumps({k: {"id": v[0], "titulo": v[1]} for k, v in V.items()}, ensure_ascii=False)};window.SG_EVALUACION={json.dumps([list(x) for x in EVALUACION], ensure_ascii=False)};window.SG_EVALUACION_EXAMEN={json.dumps(EVALUACION_EXAMEN, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};;window.SG_TRIPULANTES={_TRIPUL_JSON}</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/tkcomun.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>
@@ -3407,7 +3477,7 @@ Pasa con <b>←</b> y <b>→</b>; el mapa de planetas y las preguntas se abren p
 <p class="small muted">El guion completo, con los minutos de cada bloque y qué decir en cada uno, está en la
 <b>Parte 0</b> de la guía del profesorado.</p></header>
 <section><div class="wrap"><div id="prestreno-app"></div>
-<script>window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_PER_ESCUELA={json.dumps(PER_ESCUELA)};window.SG_ENLACES={json.dumps([list(x) for x in ENLACES_EQUIPO], ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};</script>
+<script>window.SG_PRESENTA={_PRESENTA_JSON};window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_PER_ESCUELA={json.dumps(PER_ESCUELA)};window.SG_ENLACES={json.dumps([list(x) for x in ENLACES_EQUIPO], ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};</script>
 <script src="assets/js/prestreno.js" defer></script>
 </div></section>
 ''' + FOOT

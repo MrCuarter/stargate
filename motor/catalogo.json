@@ -55,17 +55,17 @@
       },
       {
         "id": "L2",
-        "titulo": "Reto relámpago «Un mensaje para quien faltó» (recupera a Tomás)",
+        "titulo": "Reto relámpago «El vídeo que pregunta» (recupera a Tomás)",
         "insignias": [
           "P2_tomas"
         ],
         "xp": 100,
         "tema": 2,
-        "semana": 3
+        "semana": 4
       },
       {
         "id": "B2",
-        "titulo": "Reto principal «El eco que enseña» (videotutorial en Edpuzzle)",
+        "titulo": "Reto principal «El eco que enseña» (tu videotutorial)",
         "insignias": [
           "R2_el-eco-que-ensena"
         ],
@@ -277,17 +277,17 @@
       },
       {
         "id": "L2",
-        "titulo": "Reto relámpago «Un mensaje para quien faltó» (recupera a Tomás)",
+        "titulo": "Reto relámpago «El vídeo que pregunta» (recupera a Tomás)",
         "insignias": [
           "P2_tomas"
         ],
         "xp": 100,
         "tema": 2,
-        "semana": 3
+        "semana": 4
       },
       {
         "id": "B2",
-        "titulo": "Reto principal «El eco que enseña» (videotutorial en Edpuzzle)",
+        "titulo": "Reto principal «El eco que enseña» (tu videotutorial)",
         "insignias": [
           "R2_el-eco-que-ensena"
         ],
@@ -501,9 +501,9 @@
     "P2_tomas": {
       "nombre": "Tomás Reyer · El Cronista",
       "tipo": "Insignia de personaje",
-      "como": "Completando el relámpago del Tema 2: «Un mensaje para quien faltó» (en clase).",
+      "como": "Completando el relámpago del Tema 2: «El vídeo que pregunta» (en clase).",
       "cuando": "Tema 2 · Planeta Ecos",
-      "tarea": "Quince minutos, en clase. Graba un clip de 60 segundos explicando un concepto como si se lo contaras a alguien que hoy no ha podido venir. Puedes apoyarte en una IA para el guion, la voz o los subtítulos. Súbelo donde quieras (YouTube en oculto, Drive con permiso de lectura…) y pega su enlace. Criterio único: que se entienda sin ti delante. Es el primer corte de tu videotutorial.",
+      "tarea": "Quince minutos, en clase. Coge un vídeo —tu videotutorial o uno ya hecho de tu área— y métele dentro dos o tres preguntas con Edpuzzle o Playposit, justo después de cada paso difícil. Pídele las preguntas a una IA y quédate con las que de verdad comprueban que se ha entendido. ¿No te da tiempo? Encuentra un vídeo que ya tenga preguntas dentro y que te sirva para tu aula. Pega el enlace.",
       "cita": "Si ves esto, es que hoy no llegué a contártelo yo."
     },
     "P3_sylla": {
@@ -594,7 +594,7 @@
       "tipo": "Insignia de reto",
       "como": "Completando el reto principal del Tema 2.",
       "cuando": "Tema 2 · Ecos",
-      "tarea": "Crea un videotutorial sobre un procedimiento de tu área —puedes partir del clip del relámpago— y súbelo a Edpuzzle con tres preguntas insertadas. Pídele las preguntas a una IA y quédate con las que de verdad comprueban que se ha entendido. Pega el enlace y llévalo a tu Bitácora. Es la experiencia de Edpuzzle del portfolio y una de las hazañas obligatorias de la Bitácora: el videotutorial.",
+      "tarea": "Graba un videotutorial corto —de dos a cuatro minutos— sobre un procedimiento de tu área, como si se lo contaras a alguien que hoy no ha podido venir: un guion breve, la grabación (de pantalla o con el móvil) y una edición sencilla (Canva, CapCut o Clipchamp). Puedes apoyarte en una IA para el guion, la voz o los subtítulos. Súbelo donde quieras (YouTube en oculto, Drive con permiso de lectura…) y pega su enlace. Criterio: que se entienda sin ti delante. Llévalo a tu Bitácora: es la hazaña del videotutorial, y la semana que viene, en clase, le meterás las preguntas.",
       "link": {
         "text": "el ePortfolio (reto videotutorial)",
         "href": "actividades.html#eportfolio"

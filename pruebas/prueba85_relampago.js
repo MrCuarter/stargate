@@ -44,8 +44,9 @@ const L = REG.filter(r => r[0].charAt(0) === "L");
 c(L.map(r => r[0]).join(",") === "L0,L1,L2,L3,L4,L5,L6,L7,L8", "son nueve relámpago: L0 (la hoja de ruta) y uno por tema", L.map(r => r[0]).join(","));
 c(L.every(r => r[3] === (r[0] === "L0" ? 60 : 100)), "   100 xp cada uno (L0, 60): es el reto práctico del tema, hecho en clase");
 c(D.CREDITOS.relampago === 20, "🔴 y 20 ◈: menos que un reto principal (50), que es el que se hace en casa", String(D.CREDITOS.relampago));
-c(JSON.stringify(L.map(r => r[5])) === JSON.stringify([1, 2, 3, 5, 7, 9, 10, 11, 13]),
-  "🔴 se lanzan en la clase de su tema (el tema 1, en sus dos semanas)", L.map(r => r[5]).join(","));
+// 24-sep · Ecos intercambiado: el relámpago (las preguntas del vídeo) va en la clase 6, la del videoquiz (semana 4)
+c(JSON.stringify(L.map(r => r[5])) === JSON.stringify([1, 2, 4, 5, 7, 9, 10, 11, 13]),
+  "🔴 se lanzan en la clase de su tema (el tema 1, en sus dos semanas; Ecos, en la del videoquiz)", L.map(r => r[5]).join(","));
 c(L.every(r => r[4] === (r[0] === "L0" ? 1 : Number(r[0].slice(1)))), "   y cada uno es de su tema");
 c(REG.filter(r => /^A[1-8]$/.test(r[0])).length === 0, "🔴 no queda ningún reto A (A1–A8): dos retos por tema, no tres");
 c(L.every(r => !/,/.test(r[1])), "   y ningún título lleva coma: el lector del formato viejo parte por comas");

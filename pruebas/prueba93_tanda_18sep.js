@@ -23,7 +23,8 @@ c(/def _sem_de_reto\(catalogo\)/.test(BUILD) && /SEM_RETO_JSON/.test(BUILD), "�
 // 23-sep · los 20 retos: el relámpago (L) se hace en la clase del tema y el principal (B) se lanza en la de cierre
 c(mapa.L0 === 1 && mapa.L1 === 2 && mapa.B1 === 2, "🔴 tema 1: la hoja de ruta (L0) la semana 1; el relámpago (L1) y el principal (B1), la 2",
   JSON.stringify({ L0: mapa.L0, L1: mapa.L1, B1: mapa.B1 }));
-c(mapa.L2 === 3 && mapa.B2 === 4 && mapa.L3 === 5 && mapa.B3 === 6 && mapa.L4 === 7 && mapa.B4 === 8, "   y así en los temas 2, 3 y 4 (el principal, en la semana de cierre)");
+// 24-sep · Ecos, al revés: grabar el vídeo (el principal) en la 3 y meterle las preguntas (el relámpago) en la 4
+c(mapa.B2 === 3 && mapa.L2 === 4 && mapa.L3 === 5 && mapa.B3 === 6 && mapa.L4 === 7 && mapa.B4 === 8, "   y así en los temas 3 y 4 (el principal, en la semana de cierre); Ecos, al revés");
 c(mapa.L5 === 9 && mapa.B5 === 9 && mapa.L6 === 10 && mapa.B6 === 10, "   los temas de una sola sesión (5 y 6) lanzan los dos a la vez");
 c(mapa.L7 === 11 && mapa.B7 === 12 && mapa.L8 === 13 && mapa.B8 === 14, "   y los temas 7 y 8, el principal a la semana siguiente");
 c(!Object.keys(mapa).some(k => /^A[1-8]$/.test(k)), "   y ningún A: ya no existen");

@@ -376,6 +376,8 @@
         // 14-sep · qué misiones ha superado (sus ids de STARGATE): la sesión proyectada enseña quién
         // hizo cada misión de la semana pasada. No destapa nada que el ranking no enseñe ya.
         hechos: Object.keys(retos),
+        // 24-sep · cuándo se alistó: el mensaje de la semana da la bienvenida a quien acaba de llegar (SG.foroAbordo)
+        alta: Number(p.createdAt || 0) || 0,
         ultima: fechas.length ? new Date(Math.max.apply(null, fechas.map(ts))) : ""
       };
       // 🔴 El correo y el nombre real solo aquí. El endpoint público no los ve, y eso no cambia

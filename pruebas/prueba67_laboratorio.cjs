@@ -2767,7 +2767,7 @@ const REG = {};   // cifras que se apuntan para el informe
         (await f2.texto()).slice(0, 200));
       await p.foto(FOTOS + "/26-embed-grupo.png");
       await f2.js(`[].slice.call(document.querySelectorAll('.ses-grupo')).filter(function(b){return b.getAttribute('data-per')==='${P}'})[0].click(); 1`);
-      c("🔴 embed · elige su grupo y arranca la sesión de la semana que toca", await f2.hasta("!!document.querySelector('.mazo .dia.pregunta-clase') && /planificamos y creamos nuestro material/i.test(document.querySelector('.mazo').innerText)", 25),
+      c("🔴 embed · elige su grupo y arranca la sesión de la semana que toca", await f2.hasta("!!document.querySelector('.mazo .dia.portada') && /Semana 10/i.test(document.querySelector('.mazo').innerText)", 25),
         (await f2.texto()).slice(0, 200));
       const vista = JSON.parse(await f2.js("JSON.stringify({ prep: !!document.querySelector('.prep'), tira: !!document.querySelector('.sem-tira'), panel: !!document.querySelector('.dia.genially iframe'), alto: document.querySelector('.mazo').getBoundingClientRect().height, vh: innerHeight, cambiar: !!document.getElementById('ses-cambiar') })"));
       c("embed · se proyecta solo el mazo: sin la tira del docente (el consejo) ni el selector de semanas", !vista.prep && !vista.tira, JSON.stringify(vista));
@@ -2776,8 +2776,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await p.foto(FOTOS + "/26-embed-sesion.png");
       // la sesión rehecha (14-sep): el orden que eligió Norberto y nada que le hable al docente
       const rots0 = JSON.parse(await f2.js("JSON.stringify([].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')}))"));
-      // 23-sep · la clase la abren sus preguntas (la semana 10 tiene dos: clases 13 y 14); el resto, en el orden de siempre
-      c("🔴 sesión · dentro del Genially también la abren las preguntas de la clase", rots0[0] === "La pregunta" && rots0[1] === "La pregunta" && rots0[2] === "Portada", JSON.stringify(rots0.slice(0, 4)));
+      // 24-sep · tras la portada y la llamada, las preguntas de la clase (la semana 10 tiene dos: clases 13 y 14)
+      c("🔴 sesión · dentro del Genially: portada, llamada a filas y las preguntas de la clase", rots0[0] === "Portada" && rots0[1] === "Llamada a filas" && rots0[2] === "La pregunta" && rots0[3] === "La pregunta", JSON.stringify(rots0.slice(0, 5)));
       const rots = rots0.filter(x => x !== "La pregunta");
       // (15-sep · entre la llamada y el vídeo, «El mensaje»: el del foro, como apertura de saga)
       // 20-sep · la semana 10 abre tema (el 6) y también lo cierra: por eso lleva «Cómo os fue» y «Vuestras dudas»
@@ -2785,7 +2785,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const sinTk = rots.filter(x => ["Cómo os fue", "Vuestras dudas", "Ticket de salida"].indexOf(x) < 0);
       c("🔴 sesión · empieza por la portada, la llamada a filas y el mensaje; luego el vídeo; y el de cierre va lo último (semana 10)",
         sinTk[0] === "Portada" && sinTk[1] === "Llamada a filas" && sinTk[2] === "El mensaje" && sinTk[3] === "Vídeo"
-        && sinTk[sinTk.length - 1] === "Vídeo" && sinTk.indexOf("Tu ejemplo") < 0 && sinTk.indexOf("El despegue") < 0, JSON.stringify(rots));   // 23-sep · dentro del Genially, el despegue ES el Genially
+        && sinTk[sinTk.length - 1] === "Cierre del planeta" && sinTk.indexOf("Tu ejemplo") < 0 && sinTk.indexOf("El despegue") < 0, JSON.stringify(rots));   // 23-sep · dentro del Genially, el despegue ES el Genially
       c("🔴 sesión · y el ticket: el resumen y las dudas al principio, el formulario al final del todo",
         rots[2] === "Cómo os fue" && rots[3] === "Vuestras dudas" && rots[rots.length - 1] === "Ticket de salida", JSON.stringify(rots.slice(0, 5)) + " … " + rots[rots.length - 1]);
       const ir_ = async t => f2.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return x.getAttribute('title')===${JSON.stringify(t)}})[0]; if(b){ b.click(); return 1; } return 0; })()`);
@@ -3564,9 +3564,10 @@ const REG = {};   // cifras que se apuntan para el informe
       }
       const titulos = await dani.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title})");
       // (20-sep · si la semana abre tema, entre medias van «Cómo os fue» y «Vuestras dudas»: el ticket del anterior)
-      const sinTk_ = titulos.filter(x => ["Cómo os fue", "Vuestras dudas", "Ticket de salida"].indexOf(x) < 0);
+      // (24-sep · y entre la llamada y el mensaje, «La pregunta» de la clase: el orden que pidió Norberto)
+      const sinTk_ = titulos.filter(x => ["Cómo os fue", "Vuestras dudas", "Ticket de salida", "La pregunta"].indexOf(x) < 0);
       const iLl = sinTk_.indexOf("Llamada a filas"), iMs = sinTk_.indexOf("El mensaje");
-      c("🔴 sesión · el mensaje de la semana va justo después de la llamada a filas (antes del vídeo)", iMs > 0 && iMs === iLl + 1, JSON.stringify(titulos.slice(0, 6)));
+      c("🔴 sesión · el mensaje de la semana va después de la llamada a filas y la pregunta (antes del vídeo)", iMs > 0 && iMs === iLl + 1, JSON.stringify(titulos.slice(0, 6)));
       const irA = async (re) => dani.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return ${re}.test(x.title)})[0]; if(b){ b.click(); return true; } return false; })()`);
       await irA("/^El mensaje$/"); await dormir(900);
       // 17-sep · ya no imita a Star Wars (Norberto: «usa el logo de STARGATE»): el portal, el logo que se enciende y el mensaje en un panel
@@ -3972,7 +3973,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       await rita.ir("sesion.html?per=" + P + "&sem=2"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);
       const pasos = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){ return b.title; })");
-      c("🔴 sesión · la clase la abre la pregunta, antes de la portada", pasos[0] === "La pregunta" && pasos[1] === "Portada", pasos.slice(0, 4).join(" | "));
+      const arr = pasos.filter(t => t !== "Únete a la clase");   // (semanas 1 y 2: «Únete» va entre la portada y la llamada)
+      c("🔴 sesión · el arranque: la portada, la llamada a filas y la pregunta (24-sep)", arr[0] === "Portada" && arr[1] === "Llamada a filas" && arr[2] === "La pregunta", pasos.slice(0, 4).join(" | "));
       c("sesión · la semana 2 cierra el tema 1: lo último sigue siendo el ticket (no la despedida)", pasos[pasos.length - 1] === "Ticket de salida", pasos.slice(-3).join(" | "));
       const Q = await rita.js("((window.SG_SEMANAS||[]).filter(function(s){ return Number(s.sem)===2; })[0].preguntas||[])[0][1]");
       const ir = async (titulo, sel) => {
@@ -3993,6 +3995,13 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 sesión · los retos de la semana: el comandante, retador; el relámpago en clase y el principal en casa",
         veRetos && /^reto\|/.test(rt) && /En clase «Del boceto a la forja»/i.test(rt) && /En casa «La Bitácora en marcha»/i.test(rt), rt.slice(0, 200));
       await dormir(700); await rita.foto(FOTOS + "/37-retos.png");
+      // 24-sep · el tripulante que se recupera esta semana: una página entera, con su fragmento «prohibido»
+      await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){ return x.title==='Bran'; })[0]; if(b) b.click(); return 1; })()");
+      const tp = await rita.hasta("(function(){ var i=document.querySelector('.dia.tripulante img.tp-carta'); return !!i && i.complete && i.naturalWidth>0; })()", 20);
+      const tpTxt = tp ? await rita.js("document.querySelector('.dia.tripulante').innerText.replace(/\\s+/g,' ')") : "";
+      c("🔴 sesión · la página del tripulante (Bran): su carta, su historia y su fragmento prohibido hasta hacer el relámpago",
+        tp && /Bran Okafor/.test(tpTxt) && /prohibido/.test(tpTxt) && /«Del boceto a la forja»/.test(tpTxt), tpTxt.slice(0, 200));
+      await dormir(600); await rita.foto(FOTOS + "/37-tripulante.png");
       // la semana 3 no cierra tema: esa sí acaba con la despedida
       await rita.ir("sesion.html?per=" + P + "&sem=3"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);
       const pasos3 = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){ return b.title; })");
@@ -4000,6 +4009,17 @@ const REG = {};   // cifras que se apuntan para el informe
       const veHasta = await ir("Hasta pronto", ".dia.hasta-pronto");
       c("sesión · y la despedida: el comandante saluda", veHasta && await rita.js("document.querySelector('.dia.hasta-pronto img.cmd-cuerpo').dataset.pose==='saludo'"));
       await dormir(700); await rita.foto(FOTOS + "/37-hasta-pronto.png");
+      // 24-sep · la última semana: el planeta de la Estática, solo el plan de ataque y la cita para después de la batalla
+      await rita.ir("sesion.html?per=" + P + "&sem=15"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);
+      const pasos15 = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){ return b.title; })");
+      const port15 = await rita.js("(document.querySelector('.dia.portada img.planeta')||{}).src||''");
+      c("🔴 semana 15 · la portada lleva el planeta de la Estática (no el de Fôrge)", /planetas\/estatica\.png/.test(port15), port15);
+      c("🔴 semana 15 · un solo vídeo, el del plan de ataque (ni el finale, que cierra la 14, ni el Fragmento Prohibido, repetido)",
+        pasos15.filter(t => /^(Vídeo|Vídeo de la misión|Fragmento|Cierre del planeta)$/.test(t)).length === 1 && pasos15.indexOf("Vídeo de la misión") >= 0, pasos15.join(" | "));
+      c("🔴 semana 15 · y acaba con «Vuelve después de la batalla para ver el desenlace»", pasos15[pasos15.length - 1] === "Tras la batalla"
+        && await (async () => { await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).pop().click(); 1"); return rita.hasta("/Vuelve después de la batalla para ver el desenlace/.test((document.querySelector('.dia.hasta-pronto')||{}).textContent||'')", 15); })(),
+        pasos15.slice(-3).join(" | "));
+      await dormir(600); await rita.foto(FOTOS + "/37-fin-viaje.png");
       c("retos y sesión · sin errores en las páginas", ![rosa, rita].some(p => p.errores.filter(e => !/Failed to load resource/.test(e)).length),
         [rosa, rita].map(p => p.errores.filter(e => !/Failed to load resource/.test(e))[0]).filter(Boolean).join(" | "));
       for (const p of [rosa, rita]) await p.cerrar();
@@ -4711,7 +4731,8 @@ const REG = {};   // cifras que se apuntan para el informe
       // 23-sep · con los 20 retos ya no hay autoevaluación con preguntas: L5 («Mide con método») es una rúbrica en tabla
       await sb.ir("ejemplo.html?reto=L5"); await sb.hasta("!!document.querySelector('.ej-tabla')", 20); await barrer(sb, "ejemplo L5");
       const l5 = await sb.js("[document.querySelectorAll('.ej-tabla tbody tr').length>=3, /Tabla 1\\./.test(document.querySelector('.ej-tabla figcaption').textContent), getComputedStyle(document.body).fontFamily.indexOf('Georgia')>=0, !!document.getElementById('ej-cerrar')].join('|')");
-      await sb.ir("ejemplo.html?reto=B2"); await sb.hasta("!!document.querySelector('.ej-linea')", 20); await barrer(sb, "ejemplo B2");
+      // 24-sep · Ecos intercambiado: la línea de tiempo con preguntas es ahora el ejemplo del relámpago (L2)
+      await sb.ir("ejemplo.html?reto=L2"); await sb.hasta("!!document.querySelector('.ej-linea')", 20); await barrer(sb, "ejemplo L2");
       const salta = await sb.js("(function(){ var m=document.querySelectorAll('.ej-marca'); m[2].click(); return [].slice.call(document.querySelectorAll('[data-panel]')).filter(function(p){ return !p.hidden; }).map(function(p){ return p.getAttribute('data-panel'); }).join(','); })()");
       await sb.ir("ejemplo.html?reto=X1"); await sb.hasta("document.querySelectorAll('.ej-tabla').length>=2", 20); await barrer(sb, "ejemplo X1");
       const x1 = await sb.js("/Tabla 2\\./.test(document.querySelectorAll('.ej-tabla figcaption')[1].textContent)");
@@ -4836,7 +4857,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rs.ir("entrar.html"); await rs.entrarComo("rita@lab.test", "Rita Referente");
       const hay = await aMisEnlaces();
       const casillas = await rs.js("(function(){ var l=[].slice.call(document.querySelectorAll('.m-sec input')); return l.length+'|'+l.filter(function(x){return x.checked}).length; })()");
-      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas marcadas", hay && casillas === "20|20", casillas);   // (23-sep · 19 con «El embarque»; 20 con «La pregunta de la clase»)
+      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas marcadas", hay && casillas === "21|21", casillas);   // (23-sep · 19 con «El embarque»; 20 con «La pregunta de la clase»; 21 con «El tripulante»)
       // (la sesión lee la elección del docente directamente del grupo; con el emulador atascado eso tarda: se espera a que
       // el mazo ACABE reflejándola, como mucho un minuto. En producción son milisegundos)
       const conTop = "[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Top 5'})";

@@ -115,7 +115,7 @@ c(/def _seccion_actividad\(a\)/.test(L("_build_site.py")) && /_negrita\(/.test(L
 c(/\("actividad", "La misión mayor"/.test(DATOS), "🔴 es una sección con nombre: el docente puede quitarla de su sesión");
 c(/act:'actividad', actretos:'actividad'/.test(S), "   y las dos diapositivas pertenecen a ella");
 // 23-sep · entre la actividad y las misiones va la diapositiva de los retos de la semana (el comandante, retador)
-c(/ci=ci\.concat\(diasActividad\(s\)\);\s*\n\s*var rs=diaRetosSemana\(s\); if\(rs\) ci\.push\(rs\);\s*\n\s*ci=ci\.concat\(diasMisiones\(s\)\)/.test(S),
+c(/ci=ci\.concat\(diasActividad\(s\)\);\s*\n\s*var rs=diaRetosSemana\(s\); if\(rs\) ci\.push\(rs\);\s*\n\s*var tp=diaTripulante\(s\); if\(tp\) ci\.push\(tp\);[^\n]*\n\s*ci=ci\.concat\(diasMisiones\(s\)\)/.test(S),
   "🔴 van detrás del vídeo de la misión y delante de los retos de la semana");
 
 // ── 5 · y se ven (el estilo existe, y nada por debajo de 12 px)

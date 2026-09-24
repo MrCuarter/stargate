@@ -33,8 +33,10 @@ c(FR.every(f => Number(f.publica) >= Number(f.sem)), "   y ninguno se abre antes
 // 🔴 23-sep · Norberto: «solo quien lo recupera». Ya no se abre para todos a las dos semanas.
 c(/function fragAbierto\(f\)/.test(REC) && /if\(f\.reto\) return mios\.indexOf\(f\.reto\)>=0;/.test(REC),
   "🔴 un fragmento con reto SOLO lo ve quien registra ese reto (nada de «para todos a las dos semanas»)");
-c(/Number\(st\.actual\|\|0\) >= Number\(f\.publica\|\|99\);   \/\/ \(sin reto/.test(REC) && FR.filter(f => !f.reto).length === 1,
-  "   el único que se abre solo es el que no tiene reto (el del final del viaje)");
+// 24-sep · el del final del viaje se abre tras la batalla: cuando el viaje ACABA (estado «fin», también en PUA)
+c(/return st\.estado==='fin' \|\| Number\(st\.actual\|\|0\) >= Number\(f\.publica\|\|99\);/.test(REC) && FR.filter(f => !f.reto).length === 1
+  && FR.filter(f => !f.reto)[0].publica === 16,
+  "   el único que se abre solo es el que no tiene reto: tras la batalla, cuando acaba el viaje (la semana 16)");
 c(/function tapaFragmento\(f, cls\)/.test(REC) && /candado\.png/.test(REC) && /\.frag-tapa\{/.test(CSS),
   "🔴 el que no has ganado se tapa (ni carátula ni botón de play)");
 c(/var fr=fragDe\(v\.id\), cerrado=fr&&!fragAbierto\(fr\)/.test(REC) && /cerrado \? tapaFragmento\(fr, 'grande'\)/.test(REC),
@@ -60,7 +62,7 @@ c(/FRAGMENTO DESBLOQUEADO/.test(REC) && /class="logro-video"/.test(REC) && /\.lo
 // ── 5 · en la sesión: un fragmento con reto NO se proyecta (sería regalarlo en clase)
 c(/FR\.filter\(function\(f\)\{ return !f\.reto && Number\(f\.publica\)===Number\(s\.sem\); \}\)/.test(SES),
   "🔴 la sesión solo proyecta el fragmento sin reto, en el final del viaje");
-c(/if\(f && \(f\.reto \|\| Number\(f\.publica\)!==Number\(s\.sem\)\)\) return;/.test(SES), "   y ninguno de los que se ganan");
+c(/if\(yaFr\[id\] \|\| \(f && \(f\.reto \|\| Number\(f\.publica\)!==Number\(s\.sem\)\)\)\) return;/.test(SES), "   y ninguno de los que se ganan (ni ninguno dos veces)");
 
 // ── 6 · el material gráfico: su icono, y ninguno con el fondo pegado
 c(fs.existsSync(path.join(R, "assets/img/nave/iconos/archivo.png")), "🔴 «El Archivo» tiene su icono en la lámina de la Nave");

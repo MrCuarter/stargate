@@ -79,14 +79,14 @@ CRONO = [
  dict(sem=3, tema="Tema 2 · Ecos", sub="El vídeo como recurso",
       capitulo=None,
       videos=[("t2i","Al abrir el Tema 2")],
-      lanza=["Reto relámpago «Un mensaje para quien faltó» (recupera a Tomás) — en clase, 15 min"],
-      insignias=["P2_tomas"], hito="Videotutorial en marcha", clases="Clase 05",
+      lanza=["Reto principal «El eco que enseña» (tu videotutorial)"],   # 24-sep · intercambiados con la semana 4
+      insignias=["R2_el-eco-que-ensena"], hito="Videotutorial en marcha", clases="Clase 05",
       preguntas=[("5", "¿Cómo creamos nuestros videotutoriales con herramientas que pueden agilizar los procesos, como IA?")],
       consejo="Ecos = solo regresa el mensaje que se entiende. Conecta con el aula invertida."),
  dict(sem=4, tema="Tema 2 (cont.) · Ecos", sub="El vídeo que pregunta",
       capitulo=None,
       videos=[("t2c","Al cerrar el bloque"),("f2","Tras el cierre")],
-      lanza=["Reto principal «El eco que enseña» (videotutorial en Edpuzzle)"], insignias=["R2_el-eco-que-ensena"],
+      lanza=["Reto relámpago «El vídeo que pregunta» (recupera a Tomás) — en clase, 15 min"], insignias=["P2_tomas"],
       preguntas=[("6", "¿Cómo nos podemos asegurar de que han visto y entendido los conceptos que se trabajan en un vídeo? ¿La IA nos puede ayudar a generar preguntas para el videoquiz?")],
       hito="Test del Tema 2 · Bitácora: videotutorial enriquecido", clases="Clase 06",
       consejo="El fragmento de Tomás (su hija Lena) es el momento emocional del bloque: dale su espacio."),
@@ -162,19 +162,23 @@ CRONO = [
       consejo="Se resuelve la Actividad 2: la insignia de Cartógrafo se entrega con el paisaje presentado. Con el QR de Noa se completa la Cero."),
  dict(sem=14, tema="Tema 8 (cont.) · Liminar", sub="Realidad Virtual — NEBULA casi completa",
       capitulo=None,
-      videos=[("f8","NEBULA recuerda por qué la Cero se quedó: el fragmento de Noa cae aquí")],
+      # 24-sep · Norberto: «solo falta el cierre del tema 8. Ponlo». El finale (la verdad de la Cero) ES el cierre de
+      # Liminar: pasa de abrir la semana 15 a cerrar la 14, y la última semana se queda solo con el plan de ataque.
+      videos=[("finale","Al cerrar el bloque: la verdad de la Cero"),
+              ("f8","NEBULA recuerda por qué la Cero se quedó: el fragmento de Noa cae aquí")],
       lanza=["Reto principal «El último umbral» (tu Bitácora publicada)"], insignias=["R8_ultimo-umbral","H4_tripulacion-cero"],
       preguntas=[("18", "¿Cómo aprovechamos la RV en el aula?")],
       hito="Test del Tema 8 · la Tripulación Cero queda completa", clases="Clase 18",
-      consejo="Con la Cero completa llega la insignia de hito Tripulación Cero. Deja el finale para la última semana."),
+      consejo="Con la Cero completa llega la insignia de hito Tripulación Cero. El finale cierra el tema: la verdad de la Cero, sin resolver todavía."),
  dict(sem=15, tema="Repaso · La liberación", sub="Simulacro y salto final",
       capitulo="La liberación",
-      videos=[("finale","La revelación: la verdad de la Cero (sin resolución)"),
-              ("plan","El Capitán presenta el examen: la batalla ES el examen"),
-              ("f9","Tras el examen/el cierre: el epílogo de Vaeon")],
+      # 24-sep · la última semana, solo el plan de ataque. El Fragmento Prohibido (el epílogo de Vaeon, que empieza «La
+      # batalla terminó… Ganamos») NO se proyecta: se abre en la Nave de todos cuando acaba el viaje, tras el examen.
+      videos=[("plan","El Capitán presenta el examen: la batalla ES el examen"),
+              ("f9","Tras la batalla (el examen): el desenlace, en la Nave de cada cual cuando acaba el viaje")],
       lanza=["Reto «El simulacro del examen» (90 minutos de reloj, en la clase de repaso)"], insignias=["H5_la-liberacion"],
       hito="Repaso + simulacro del examen · Bitácoras publicadas", clases="Clases 19–20",
-      consejo="Celebra las Bitácoras publicadas: son el producto real del curso. El Fragmento Prohibido es el regalo final."),
+      consejo="Celebra las Bitácoras publicadas: son el producto real del curso. Despídete con «Vuelve después de la batalla para ver el desenlace»: el Fragmento Prohibido se abre en su Nave cuando acaba el viaje."),
 ]
 
 # ---------- Plantilla Genially del ePortfolio (la Bitácora) ----------
@@ -219,6 +223,7 @@ def foro_por_semana():
         # placeholders de vídeo -> enlaces reales
         cuerpo = cuerpo.replace("{vídeo de bienvenida}", yt("sinopsis")["url"])
         cuerpo = cuerpo.replace("{vídeo}", yt("finale")["url"])
+        cuerpo = cuerpo.replace("{plan de ataque}", yt("plan")["url"])   # 24-sep · la semana 15, con su vídeo
         # {tablero} -> el RANKING PÚBLICO del grupo (el foro dinámico sustituye el id solo; en la
         # copia estática, el profe pone el id de su PER). 🔴 13-sep · con `solo=1`: sin él, el enlace
         # llevaba a la página del método, que está tras la puerta del profesorado, y el alumnado que
@@ -759,14 +764,31 @@ SESION_EMBARQUE = [
 # de si aparece una cosa u otra en función de la semana… y que cada docente pueda marcar con una checkbox lo que quiere
 # usar en su presentación. Por defecto, todo completo». Clave, nombre y qué trae. Las lee la sesión (para quitar lo que
 # el docente quite) y la consola (la rueda de «1 · Empezar la clase», en el Puente de la Nave del Comandante).
+# 24-sep · Norberto: «tenemos un planeta de la Estática, mete esa imagen en la semana 15». La semana sin tema (el repaso)
+# lleva este planeta donde las demás llevan el suyo: la portada de la sesión, la tira de la presentación y el banner.
+PLANETA_FIN = ("estatica", "La Estática", "La liberación")
+
+# 24-sep · LA TRIPULACIÓN CERO, UNO A UNO (para la página del tripulante en la sesión). La historia sale de
+# NARRATIVA_V3_LA_CERO.md (la sinopsis de cada fragmento), en corto; la cita, de CITAS (_build_site.py).
+TRIPULANTES = {
+ "P1_bran":  ("Bran Okafor", "El Forjador", "Durante años quemó sus bocetos porque «no estaban listos». En Fôrge, un esquema suyo a medio acabar, compartido a tiempo, guió a un refugio entero a través de la tormenta.", "Lo imperfecto compartido vale más que lo perfecto guardado."),
+ "P2_tomas": ("Tomás Reyer", "El Cronista", "Cada noche grababa un mensaje para Lena, su hija en la Tierra, sabiendo que quizá no volvería. Sus grabaciones enseñan hoy a gente que él nunca conoció.", "Un buen vídeo es tu voz enseñando cuando tú ya no estás."),
+ "P3_sylla": ("Sylla Bren", "La Rastreadora", "Su hermano gemelo «no servía para estudiar»: solo era que la única ruta ofrecida no era la suya. Trazó los 48 senderos de Sendara para que nadie más se quedara fuera del mapa.", "No hay una sola ruta."),
+ "P4_amara": ("Amara Sol", "La Operadora", "Una vez retuvo un informe tres días «para pulirlo»; cuando lo envió, ya no quedaba nadie para leerlo. Desde entonces mantiene el canal abierto, aunque le tiemble la voz.", "Compartir a tiempo salva más que compartir perfecto."),
+ "P5_vera":  ("Vera Khal", "La Médica", "Aprendió a medir sin humillar: su historia clínica de mundos es la primera Bitácora rigurosa, y su rúbrica del silencio predijo dónde golpearía la Estática.", "Evaluar es mirar con método a alguien que te importa."),
+ "P6_joran": ("Joran Pike", "El Ingeniero-jugador", "Lo llamaban frívolo: «siempre jugando». Convirtió el simulacro de evacuación en un juego, y la noche de verdad los niños del refugio escaparon riendo por una ruta que conocían de memoria.", "El juego es el ensayo general del miedo."),
+ "P7_mara":  ("Mara Voss", "El Mando", "Guarda medallas de una guerra que preferiría no haber ganado. Por eso en la Cero las insignias no premian obediencia. Fue ella quien propuso quedarse.", "Una insignia registra un acto con significado."),
+ "P8_noa":   ("Noa Lieth", "La Arquitecta de capas", "Construía realidades superpuestas para que un mundo pudiera ensayar su futuro antes de vivirlo. Su fragmento es La Última Noche: la votación de las ocho manos y la decisión de quedarse.", "Enseñar futuros."),
+}
+
 SESION_SECCIONES = [
     ("portada", "Portada", "El planeta de la semana y el capítulo de la historia."),
     ("unete", "Únete a la clase", "Semanas 1 y 2: el código y el enlace para alistarse, y «Copiar invitación» para el chat."),
     # 23-sep · solo en la semana 1: la presentación de la asignatura dentro de la historia
     ("embarque", "El embarque", "Semana 1: quiénes son, el viaje, cómo es una semana, lo que puntúa y la Bitácora."),
-    # 23-sep · la pregunta de la clase (calendario oficial): el comandante del docente y la pregunta en grande
-    ("pregunta", "La pregunta de la clase", "La pregunta del calendario oficial, con tu comandante. La resuelves tú en clase."),
     ("llamada", "Llamada a filas", "Fichar la asistencia al empezar."),
+    # 23-sep · la pregunta de la clase (calendario oficial): el comandante del docente y la pregunta en grande (24-sep: tras la llamada)
+    ("pregunta", "La pregunta de la clase", "La pregunta del calendario oficial, con tu comandante. La resuelves tú en clase."),
     ("mensaje", "Mensaje de la semana", "La transmisión con el logo de STARGATE."),
     ("videos", "Vídeos de apertura", "La sinopsis, la Bitácora o la entrada al planeta."),
     ("repaso", "Repaso de la semana anterior", "Quién hizo cada misión la semana pasada."),
@@ -781,6 +803,9 @@ SESION_SECCIONES = [
     # 21-sep · solo en las semanas que lanzan una actividad (la 2 y la 6): qué pide y qué retos la construyen
     ("actividad", "La misión mayor", "La actividad que puntúa y los retos que ya le han hecho un trozo."),
     ("misiones", "Misiones", "El vídeo del planeta, la misión y los retos que se lanzan."),
+    # 24-sep · Norberto: «haz hincapié en el fragmento: dedica una página entera al personaje, su misión, y haz referencia
+    # al fragmento prohibido para que lo desbloqueen»
+    ("tripulante", "El tripulante", "Quién es el tripulante que se recupera esta semana, su historia y cómo se desbloquea su fragmento."),
     ("recompensa", "Recompensa", "Las insignias que se entregan esta semana."),
     ("cierre", "Cierre del planeta", "El vídeo de cierre y la recompensa del bloque."),
 ]
@@ -840,25 +865,25 @@ EJEMPLOS_RETOS = {
    "Se marca al ENVIAR la actividad, no al empezarla."
   ]
  },
- "L2": {
-  "titulo": "Un clip de 50 segundos para quien faltó a clase",
-  "texto": "Nuria, profesora de Lengua de 1.º de ESO, grabó con el móvil 50 segundos sobre cómo encontrar el sujeto de una oración: escribe una frase en la pizarra, pone el verbo en plural y señala qué grupo de palabras tiene que cambiar con él. Nada más. Lo subió a YouTube en oculto, se lo enseñó a su hija para ver si se entendía sin ella delante y pegó el enlace en el reto.",
-  "enlace": "https://youtu.be/ZE_JdQUmepk",
-  "real": {
-   "titulo": "Publicar y compartir un Genially",
-   "autor": "Mr. Cuarter",
-   "donde": "YouTube",
-   "por_que": "Un tutorial corto que explica un procedimiento paso a paso: justo lo que pide el reto."
-  }
- },
+ # 24-sep · Ecos, intercambiado: el principal es GRABAR el videotutorial; el relámpago, meterle las preguntas
  "B2": {
-  "titulo": "Marta (Tecnología, 3.º ESO): videotutorial de Tinkercad con tres preguntas",
-  "texto": "Mi videotutorial enseña a diseñar un llavero en Tinkercad y a exportarlo en STL para imprimirlo en 3D. El objetivo didáctico es que mi alumnado de 3.º de ESO sepa agrupar formas, crear huecos y medir en milímetros antes de llegar al taller, para dedicar la clase a imprimir y corregir. Las tres preguntas están justo después de cada paso difícil. Al hacerlo aprendí que el guion lo es todo: la primera grabación duraba nueve minutos y, al escribir antes lo que iba a decir, bajó a cuatro. También aprendí que una buena pregunta comprueba un paso, no un detalle.",
+  "titulo": "Marta (Tecnología, 3.º ESO): su videotutorial de Tinkercad",
+  "texto": "Mi videotutorial enseña a diseñar un llavero en Tinkercad y a exportarlo en STL para imprimirlo en 3D. El objetivo didáctico es que mi alumnado de 3.º de ESO sepa agrupar formas, crear huecos y medir en milímetros antes de llegar al taller, para dedicar la clase a imprimir y corregir. Al hacerlo aprendí que el guion lo es todo: la primera grabación duraba nueve minutos y, al escribir antes lo que iba a decir, bajó a cuatro.",
   "detalle": [
    "Guion de una página, grabación de pantalla con Screencastify y edición en Clipchamp (cortes y zoom en los botones).",
-   "Subido a YouTube en oculto e importado en Edpuzzle con 3 preguntas: en el 1:10, el 2:30 y el 3:40.",
+   "Subido a YouTube en oculto: se lo enseñó a un compañero para ver si se entendía sin ella delante.",
    "Aula invertida: lo ven en casa y en clase se imprime.",
-   "El enlace de Edpuzzle va en el reto; la reflexión, en su Bitácora."
+   "La semana siguiente, en clase, le metió las preguntas (el relámpago de Ecos)."
+  ],
+  "enlace": "https://youtu.be/ZE_JdQUmepk"
+ },
+ "L2": {
+  "titulo": "Marta (Tecnología, 3.º ESO): tres preguntas dentro de su videotutorial",
+  "texto": "En clase, Marta subió su videotutorial de Tinkercad a Edpuzzle y le metió tres preguntas, cada una justo después de un paso difícil: agrupar formas, crear huecos y medir en milímetros. Le pidió diez preguntas a una IA y se quedó con tres: las que comprueban un paso, no un detalle. Si alguien falla la segunda, sabe exactamente qué tiene que repetir en el taller.",
+  "detalle": [
+   "Importado desde YouTube en Edpuzzle, con 3 preguntas: en el 1:10, el 2:30 y el 3:40.",
+   "Si no hubiera tenido vídeo propio, valía uno ya hecho con preguntas dentro, que le sirviera para su aula.",
+   "El enlace de Edpuzzle va en el reto."
   ],
   "enlace": "https://edpuzzle.com/media/68ff9e1a400997c66a1f3eea"
  },
@@ -1064,7 +1089,7 @@ EJEMPLOS_EXTRA = {
      ["¿Qué puso ella?", "La elección de la imagen, las preguntas guía y la rúbrica de la exposición."],
      ["¿Qué aprendió?", "A iterar el prompt con criterios didácticos, no estéticos."]]}]},
 
- "B2": {"vivo": [{"tipo": "linea", "titulo": "Su vídeo en Edpuzzle: 4:00 y tres preguntas, justo después de cada paso difícil", "dura": "4:00",
+ "L2": {"vivo": [{"tipo": "linea", "titulo": "Su vídeo en Edpuzzle: 4:00 y tres preguntas, justo después de cada paso difícil", "dura": "4:00",
    "marcas": [
     {"t": "1:10", "paso": "Agrupar formas", "q": "Para unir el aro y el cuerpo del llavero en una sola pieza, ¿qué botón usas?",
      "opciones": ["Agrupar", "Alinear", "Duplicar"], "bien": 0, "explica": "Agrupar une las formas en una sola pieza que se mueve y se exporta junta."},
@@ -1077,9 +1102,9 @@ EJEMPLOS_EXTRA = {
  # 17-sep · «Hay algunos que ya te di ejemplo antes, usa esos cuando sea posible» (Norberto, revisión de retos del 15-sep):
  # L2 y B2 (antes A2, A3, B2 y B3; B3 lleva ya el suyo dentro). Su `enlace` es el de siempre; `real` dice qué es para el pie, y la página lo pone el PRIMERO, incrustado.
 for _k, _real in {
-    "L2": {"titulo": "Publicar y compartir un Genially", "autor": "Mr. Cuarter", "donde": "YouTube",
+    "B2": {"titulo": "Publicar y compartir un Genially", "autor": "Mr. Cuarter", "donde": "YouTube",
            "por_que": "Un tutorial corto que explica un procedimiento paso a paso: justo lo que pide el reto."},
-    "B2": {"titulo": "Taxonomía de Bloom: qué es y ejemplos de aplicación", "donde": "Edpuzzle",
+    "L2": {"titulo": "Taxonomía de Bloom: qué es y ejemplos de aplicación", "donde": "Edpuzzle",
            "por_que": "Un vídeo con preguntas insertadas que comprueban la comprensión mientras se ve."},
 }.items():
     EJEMPLOS_EXTRA.setdefault(_k, {})["real"] = _real
@@ -1094,7 +1119,7 @@ GANCHO_RETOS = {
  # 23-sep · los relámpago: prácticos, en clase, y cada uno recupera a su tripulante. La línea dice el gesto.
  "L0": "En clase: la programación de una unidad de tu aula, con la herramienta que enseña tu Comandante.",
  "L1": "En clase: un boceto o una idea a medias, hecha realidad con IA (con una iteración). El antes y el después.",
- "L2": "En clase: un clip de 60 s explicando un concepto a quien faltó (la IA te puede ayudar con el guion).",
+ "L2": "En clase: mete dos o tres preguntas dentro de un vídeo (el tuyo o uno ya hecho) con Edpuzzle.",
  "L3": "En clase: un objetivo y dos actividades distintas para llegar a él.",
  "L4": "En clase: publica algo tuyo del curso en tus redes con #mutecdstargate.",
  "L5": "En clase: una rúbrica de autoevaluación y un formulario para recoger lo que respondan.",
@@ -1106,7 +1131,7 @@ GANCHO_RETOS = {
  "X2": "Pulsa «Lo he hecho» cuando hayas ENVIADO la Actividad 2, con su enlace (obligatorio).",
  # los retos principales: la experiencia del portfolio que marca el calendario oficial para cada tema
  "B1": "Abre tu ePortfolio y publica su primera experiencia: tus recursos creados con IA.",
- "B2": "Tu videotutorial en Edpuzzle, con tres preguntas dentro.",
+ "B2": "Graba tu videotutorial: un procedimiento de tu área que se entienda sin ti delante.",
  "B3": "Tu itinerario en Genially: tus dos senderos, con refuerzo y ampliación.",
  "B4": "Tu aula en Classroom o Sites: una tarea y tres materiales organizados.",
  "B5": "Una web abierta, con otra herramienta: tres recursos tuyos y tu rúbrica a la vista.",

@@ -244,12 +244,14 @@
     if(/^Apertura\b/i.test(c)) return 'inicio';
     if(/^Tras el despegue\b/i.test(c)) return 'tema';
     if(/^Fragmento/i.test(t)) return 'fragmento';
-    if(/·\s*cierre/i.test(t)) return 'cierre';
+    if(/·\s*(cierre|finale)\b/i.test(t)) return 'cierre';   // 24-sep · el finale de Liminar ES su cierre
     if(/^Misi[oó]n|Plan de Ataque/i.test(t)) return 'mision';
     return 'inicio';
   }
-  function diaVideo(v, i, kicker){
-    return {k:'video', rot:'Vídeo', html:'<div class="dia video"><div class="kicker">'+kicker+'</div>'
+  function diaVideo(v, i, kicker, rot){
+    // 24-sep · cada vídeo, con su nombre en la barra («Cierre del planeta», «La misión»…): llamándose todos «Vídeo»,
+    // el cierre de cada tema no se distinguía (Norberto: «todos los temas tienen un cierre y no aparece en las sesiones»)
+    return {k:'video', rot:rot||'Vídeo', html:'<div class="dia video"><div class="kicker">'+kicker+'</div>'
       +'<h2>'+esc(v[0].titulo)+'</h2>'+yt(v[0],'')+'</div>'};
   }
 
@@ -267,8 +269,8 @@
   /**
    * 🔴 23-sep · LA PREGUNTA DE LA CLASE. Del calendario oficial de la asignatura («Resolución de problemas en las clases en
    * directo»), una por clase. Norberto: «solo lanzamos la pregunta de reflexión y el docente la va respondiendo durante la
-   * clase» y «aparece el comandante recortado con la pregunta en grande. No pongas nada más, sin explicaciones». Abre la
-   * sesión; en las semanas de dos clases con pregunta, sale una detrás de otra.
+   * clase» y «aparece el comandante recortado con la pregunta en grande. No pongas nada más, sin explicaciones». Va tras la
+   * portada y la llamada a filas (24-sep); en las semanas de dos clases con pregunta, sale una detrás de otra.
    */
   function diasPregunta(s){
     return ((s&&s.preguntas)||[]).map(function(q){
@@ -287,13 +289,40 @@
         return '<li style="--i:'+i+'"><span class="rs-donde'+(rel?' clase':'')+'">'+(rel?'En clase':'En casa')+'</span><b>«'+esc(tituloReto(r.txt))+'»</b></li>'; }).join('')
       +'</ul></div></div>'};
   }
-  /** La despedida: el comandante saluda. */
-  function diaHastaPronto(){
-    return {k:'hasta', sec:'cierre', rot:'Hasta pronto', montar:conRetrato(null), html:
-      '<div class="dia hasta-pronto">'+cmdCuerpo('saludo')+'<div class="hp-txt"><h2>Hasta la próxima, recluta</h2></div></div>'};
+  /** La despedida: el comandante saluda. En la última clase del viaje, la cita para después de la batalla (el examen). */
+  function diaHastaPronto(fin){
+    return {k:'hasta', sec:'cierre', rot:fin?'Tras la batalla':'Hasta pronto', montar:conRetrato(null), html:
+      '<div class="dia hasta-pronto'+(fin?' fin-viaje':'')+'">'+cmdCuerpo('saludo')+'<div class="hp-txt">'
+      +(fin?'<h2>Vuelve después de la batalla para ver el desenlace</h2>'
+           +'<p class="sub">Cuando acabe el viaje, el último fragmento se abre en tu Nave, en El Archivo.</p>'
+           :'<h2>Hasta la próxima, recluta</h2>')+'</div></div>'};
+  }
+  /**
+   * 🔴 24-sep · EL TRIPULANTE DE LA SEMANA. Norberto: «haz hincapié en el fragmento. Dedica una página entera al personaje,
+   * su misión y haz referencia al fragmento prohibido para que lo desbloqueen». Sale la semana que se lanza el relámpago
+   * que lo recupera (L1–L8): su carta, quién era, su historia y su lección (NARRATIVA_V3_LA_CERO.md), su frase, y que su
+   * fragmento está prohibido hasta que se gana con ese relámpago.
+   */
+  function diaTripulante(s){
+    var ls=(s.lanza||[]).map(function(txt){ return {txt:txt, id:idDeReto(txt)}; }).filter(function(r){ return /^L[1-8]$/.test(r.id); });
+    if(!ls.length) return null;
+    var r=ls[0], n=r.id.slice(1), T=window.SG_TRIPULANTES||{}, k=Object.keys(T).filter(function(x){ return x.indexOf('P'+n+'_')===0; })[0], t=k&&T[k];
+    if(!t) return null;
+    return {k:'tripulante', sec:'tripulante', rot:String(t.nombre).split(' ')[0], html:
+      '<div class="dia tripulante">'
+      +'<img class="tp-carta" src="'+esc(t.carta)+'" alt="La carta de '+esc(t.nombre)+'">'
+      +'<div class="tp-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/gente.png alt> La Tripulación Cero · Tema '+esc(n)+'</div>'
+      +'<h2>'+esc(t.nombre)+'</h2><p class="tp-rol">'+esc(t.rol)+'</p>'
+      +'<p class="tp-hist">'+esc(t.historia)+'</p>'
+      +'<p class="tp-lec"><b>Su lección:</b> '+esc(t.leccion)+'</p>'
+      +(t.cita?'<blockquote class="tp-cita">«'+esc(t.cita)+'»</blockquote>':'')
+      +'<div class="tp-frag"><img class=ico src=assets/img/iconos/p/candado.png alt><div><b>Su fragmento está prohibido</b> hasta que alguien lo recupere. '
+      +'Haz el relámpago <b>«'+esc(tituloReto(r.txt))+'»</b> y su vídeo se abrirá en tu Nave, en El Archivo. Solo lo ve quien lo gana.</div></div>'
+      +'</div></div>'};
   }
   function diaPortada(s, n){
-    var pl=planeta(s.tema_n);
+    // 24-sep · la semana sin tema (la 15) lleva el planeta de la Estática (ojo: planeta(0) daba Fôrge)
+    var pl=Number(s.tema_n)?planeta(s.tema_n):(s.planeta&&s.planeta.length?s.planeta:null);
     return {k:'portada', rot:'Portada', html:
       '<div class="dia portada'+(pl?' con-planeta':'')+'">'
       +(pl?'<img class="planeta" src="assets/img/planetas/'+esc(pl[0])+'.png'+(window.SG_IMGV||'')+'" alt="">':'')
@@ -367,14 +396,16 @@
    * botón copia el mensaje con el enlace directo (el mismo de «Copiar invitación» de la consola). El código no viaja en el
    * tablero público: lo lee aquí la cuenta del docente, del documento del grupo.
    */
+  // 24-sep · Norberto: «que en la llamada a filas también salga el avatar del docente en vez del capitán». Las dos (Únete
+  // y la llamada) llevan ahora al comandante del docente de cuerpo entero: saludando al entrar, señalando al pasar lista.
   function diaUnete(){
     return {k:'unete', sec:'unete', rot:'Únete a la clase', html:
-      '<div class="dia llamada unete"><img class="ll-cap" src="assets/img/capitan/saluda.png" alt="">'
+      '<div class="dia llamada unete">'+cmdCuerpo('saludo','ll-cap')
       +'<div class="ll-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/gente.png alt> Primeras semanas</div><h2>Únete a la tripulación</h2>'
       +'<p class="sub">Entra en <b>'+esc(location.host)+'</b>, pulsa <b>Iniciar sesión con Google</b> y, cuando te lo pida, escribe el código de clase:</p>'
       +'<div class="un-cod" id="ses-un-cod" aria-live="polite">······</div>'
       +'<p class="un-pie"><button type="button" class="btn primary" id="ses-un-copiar" disabled>Copiar la invitación para el chat</button> <span class="small" id="ses-un-msg"></span></p>'
-      +'</div></div>', montar: montarUnete};
+      +'</div></div>', montar: conRetrato(montarUnete)};
   }
   function montarUnete(el){
     var M=window.SG&&window.SG.MOTOR, cod=el.querySelector('#ses-un-cod'), b=el.querySelector('#ses-un-copiar'), msg=el.querySelector('#ses-un-msg');
@@ -394,11 +425,11 @@
   }
   function diaLlamada(){
     return {k:'llamada', rot:'Llamada a filas', html:
-      '<div class="dia llamada"><img class="ll-cap" src="assets/img/capitan/senala.png" alt="">'
+      '<div class="dia llamada">'+cmdCuerpo('reto','ll-cap')
       +'<div class="ll-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/clase.png alt> Para empezar</div><h2>Llamada a filas</h2>'
       +'<p class="sub">Entra en tu Nave y pulsa <b><img class=ico src=assets/img/iconos/p/gente.png alt> Presente</b>.</p>'
       +'<div class="ll-mando" id="ses-ll"><p class="sub">Un momento…</p></div>'
-      +'<div id="ses-ll-gente"></div></div></div>', montar: montarLlamada};
+      +'<div id="ses-ll-gente"></div></div></div>', montar: conRetrato(montarLlamada)};
   }
   function montarLlamada(el){
     var M=window.SG&&window.SG.MOTOR, mando=el.querySelector('#ses-ll'), caja=el.querySelector('#ses-ll-gente');
@@ -476,8 +507,10 @@
    */
   function conComandante(txt){ return window.SG.firmaComandante(txt, elComandante()); }
   function diaForo(s){
-    var ps=foroBloques(conComandante(s.foro)); if(!ps.length) return null;
-    var pl=planeta(s.tema_n), titulo=(pl?pl[1]:s.tema)||'';
+    // 24-sep · al pie, «A bordo esta semana» (bienvenidas y Contramaestres), solo en la sesión de la semana en curso
+    var abordo=Number(s.sem)===Number(st.semHoy)&&window.SG.foroAbordo?window.SG.foroAbordo((st.d||{}).reclutas, elComandante()):'';
+    var ps=foroBloques(conComandante(window.SG.foroConAbordo(s.foro, abordo))); if(!ps.length) return null;
+    var pl=Number(s.tema_n)?planeta(s.tema_n):null, titulo=(pl?pl[1]:s.tema)||'';   // (24-sep · planeta(0) daba Fôrge en la semana 15)
     /**
      * 17-sep · Norberto: «el mensaje de bienvenida no me convence: no tiene efecto Star Wars 3D. Usa el logo de STARGATE en
      * vez de simular Star Wars». Ahora es la TRANSMISIÓN de la semana: el portal, el logo que se enciende en el centro y
@@ -1470,9 +1503,12 @@
     var vids=s.videos||[], deTipo=function(t){ return vids.filter(function(v){ return tipoVideo(v)===t; }); };
     // `t` dice en qué tiempo de la clase va cada diapositiva: 'ap' antes de la presentación,
     // 'ci' después. Es lo único que hace falta para poder pegar el embed dos veces.
-    var d=diasPregunta(s).concat([diaPortada(s, n)]), L=semanas(), iS=iDe(L, s);
+    // 24-sep · Norberto: «cambia el orden: 1) Portada 2) Llamada a filas 3) La pregunta» (en las semanas 1 y 2, «Únete»
+    // entre la portada y la llamada: primero se entra, después se pasa lista)
+    var d=[diaPortada(s, n)], L=semanas(), iS=iDe(L, s);
     if(st.per && !st.alumno && (Number(s.sem)||1)<=2) d.push(diaUnete());   // 19-sep · semanas 1 y 2
     if(st.per) d.push(diaLlamada());
+    d=d.concat(diasPregunta(s));
     // 20-sep · al empezar un tema, lo que dijisteis al cerrar el anterior: primero cómo fue, después las dudas
     if(primeraDelTema(L, iS)) diasTicket(L, iS).forEach(function(x){ d.push(x); });
     else if(iS===1 && esEmbarque(L[0])) diasTicketPresentacion().forEach(function(x){ d.push(x); });
@@ -1491,37 +1527,45 @@
     d=d.concat(diapositivasNuevas(s));
     d.forEach(function(x){ x.t='ap'; });     // todo lo de arriba es APERTURA
     var ci=[];
-    deTipo('tema').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'Rumbo al planeta'), {sec:'misiones'})); });
-    deTipo('mision').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'La misión'), {sec:'misiones'})); });
+    deTipo('tema').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'Rumbo al planeta', 'Rumbo al planeta'), {sec:'misiones'})); });
+    deTipo('mision').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'La misión', 'Vídeo de la misión'), {sec:'misiones'})); });
     // 21-sep · y justo detrás del vídeo de la misión, la actividad que puntúa y los retos que la construyen
     ci=ci.concat(diasActividad(s));
     var rs=diaRetosSemana(s); if(rs) ci.push(rs);
+    var tp=diaTripulante(s); if(tp) ci.push(tp);   // 24-sep · el tripulante que se recupera esta semana
     ci=ci.concat(diasMisiones(s));
     // 🔴 El Genially del grupo (el panel), EMBEBIDO: es donde empieza la clase de verdad. Si el docente
     // tiene uno propio («Mis enlaces»), el suyo; si no, el oficial del grupo; si no, el Panel de
     // control maestro de STARGATE. Y NUNCA cuando la sesión ya va DENTRO del Genially: sería el
     // panel dentro de sí mismo.
-    deTipo('cierre').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'Para cerrar el planeta'), {sec:'cierre'})); });
+    deTipo('cierre').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'Para cerrar el planeta', 'Cierre del planeta'), {sec:'cierre'})); });
     /**
      * 🔴 23-sep · UN FRAGMENTO SE GANA, Y NO SE PROYECTA. Norberto: «solo quien lo recupera». Hasta hoy la sesión lo
      * proyectaba «ya para todos» dos semanas después: eso era regalarlo en clase. Solo sale el que no tiene reto —el
      * Fragmento Prohibido—, que es de todos al final del viaje.
      */
-    var FR=window.SG_FRAGMENTOS||[];
+    var FR=window.SG_FRAGMENTOS||[], yaFr={};
     FR.filter(function(f){ return !f.reto && Number(f.publica)===Number(s.sem); }).forEach(function(f,i){
-      ci.push(Object.assign(diaVideo([{id:f.id, titulo:f.titulo}, f.nota||'La recompensa del bloque'], i, 'El fragmento, ya para todos'), {sec:'cierre'}));
+      yaFr[f.id]=1;
+      ci.push(Object.assign(diaVideo([{id:f.id, titulo:f.titulo}, f.nota||'La recompensa del bloque'], i, 'El fragmento, ya para todos', 'Fragmento'), {sec:'cierre'}));
     });
     // (un fragmento con reto NO se proyecta nunca: se gana en la Nave de cada uno)
+    // 🔴 24-sep · y ninguno sale dos veces: el Fragmento Prohibido salía repetido en la semana 15 (por las dos vías)
     deTipo('fragmento').forEach(function(v,i){
-      var f=FR.filter(function(x){ return x.id===(v[0]||{}).id; })[0];
-      if(f && (f.reto || Number(f.publica)!==Number(s.sem))) return;
-      ci.push(Object.assign(diaVideo(v, i, 'La recompensa del bloque'), {sec:'cierre'}));
+      var id=(v[0]||{}).id, f=FR.filter(function(x){ return x.id===id; })[0];
+      if(yaFr[id] || (f && (f.reto || Number(f.publica)!==Number(s.sem)))) return;
+      yaFr[id]=1;
+      ci.push(Object.assign(diaVideo(v, i, 'La recompensa del bloque', 'Fragmento'), {sec:'cierre'}));
     });
     // 20-sep · y si esta sesión cierra el tema, lo último es el ticket de salida, para rellenarlo en clase
     // 23-sep · y al final, la despedida: el comandante saluda. Salvo si la clase cierra el tema: entonces lo último es el
     // ticket (Norberto: «la última diapositiva es el ticket embebido»), y el saludo ya lo puso la portada.
     var tf=ultimaDelTema(L, iS)?diaTicketForm(s):null;
-    ci.push(tf||diaHastaPronto());
+    // 24-sep · y la ÚLTIMA clase del viaje acaba con «Vuelve después de la batalla para ver el desenlace» (Norberto): el
+    // Fragmento Prohibido no se proyecta, se abre en su Nave cuando acaba el viaje. Va detrás del ticket final.
+    var finViaje=iS===L.length-1 && FR.some(function(f){ return !f.reto; });
+    if(tf) ci.push(tf);
+    if(finViaje) ci.push(diaHastaPronto(true)); else if(!tf) ci.push(diaHastaPronto());
     ci.forEach(function(x){ x.t='ci'; });
 
     // El tramo del medio. Proyectando desde la web (sin Genially) va el panel del grupo EMBEBIDO, que

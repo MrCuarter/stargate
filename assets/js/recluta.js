@@ -417,7 +417,9 @@
     if(!f) return true;
     var mios=(st.yo&&st.yo.retos)||[];
     if(f.reto) return mios.indexOf(f.reto)>=0;
-    return Number(st.actual||0) >= Number(f.publica||99);   // (sin reto: el del final del viaje)
+    // (sin reto: el del final del viaje) 🔴 24-sep · se abre tras la batalla (el examen): cuando el viaje ACABA. La Nave
+    // nunca pasa de la última semana (en PUA, la 8), así que se mira el estado, no solo el número
+    return st.estado==='fin' || Number(st.actual||0) >= Number(f.publica||99);
   }
   // 23-sep · el reto, por su nombre («El boceto sin quemar»), no por su id: «A1» no le dice nada a quien lo lee
   function nombreDeReto(id){
@@ -427,7 +429,7 @@
   }
   function fragMotivo(f){
     return f.reto ? 'Solo lo ve quien registra el reto <b>'+esc(nombreDeReto(f.reto))+'</b>'
-                  : 'Se abre al final del viaje' + (Number(f.publica) ? ', en la <b>semana '+f.publica+'</b>' : '');
+                  : 'Se abre <b>después de la batalla</b>, cuando acabe el viaje';
   }
   /**
    * 🔴 23-sep · UN VÍDEO, CON SU CANDADO SI LO LLEVA. Norberto: «en El Archivo los estudiantes pueden ver los fragmentos
@@ -569,7 +571,7 @@
      */
     var jefe=String((st.yo&&st.yo.profe)||'').trim(), escs=(st.d&&st.d.escuadrones)||[];
     var suEsc=escs.filter(function(e){ return jefe && e.comandante===jefe; })[0]||null;
-    var vids=videosDelMensaje(sm.foro), pl=PLAN[(Number(sm.tema_n)||1)-1];
+    var vids=videosDelMensaje(sm.foro), pl=Number(sm.tema_n)?PLAN[sm.tema_n-1]:(sm.planeta||null);   // (24-sep · la 15 decía «Fôrge»)
     return '<article class="card orden-sem orden-carta">'
       + '<header class="oc-cab"><span class="oc-marca">◈ STARGATE</span>'
       +   '<span class="oc-meta">La orden de la semana · Semana ' + esc(String(sm.sem)) + (pl ? ' · ' + esc(pl[1]) : '') + '</span></header>'
@@ -578,7 +580,8 @@
       +   '<div class="oc-texto"><h3>' + esc(sm.tema) + '</h3>'   // el número vive en la cabecera, y en un sitio basta
       +   '<p class="small muted">' + esc(sm.sub || '') + '</p>'
       // recortado, con «Leer entero»: la orden entera empujaba todo lo demás muy abajo
-      +   '<div class="foro-msg recortado">' + msgHtml(sm.foro, per, {sinVideos:true, sinFirma:!!jefe}) + '</div>'
+      // 24-sep · al pie de la orden de ESTA semana, «A bordo esta semana» con su escuadrón (bienvenidas y Contramaestres)
+      +   '<div class="foro-msg recortado">' + msgHtml(window.SG.foroConAbordo&&st.estado==='curso'?window.SG.foroConAbordo(sm.foro, window.SG.foroAbordo((st.d||{}).reclutas, jefe)):sm.foro, per, {sinVideos:true, sinFirma:!!jefe}) + '</div>'
       +   '<button type="button" class="leer-entero" data-leer-entero>Leer entero ▾</button>'
       /**
        * 🔴 LOS VÍDEOS DE LA SEMANA, AQUÍ. Estaban solo dentro de «ver la semana entera», a dos
