@@ -6255,3 +6255,54 @@ body.embed .mazo .dia{padding-top:46px}
 .dia.portada.emb-portada::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
   background:linear-gradient(90deg,rgba(6,10,18,.9) 0%,rgba(6,10,18,.62) 45%,rgba(6,10,18,.08) 85%)}
 .dia.portada.emb-portada .txt{z-index:2}.dia.portada.emb-portada .pt-cmd{z-index:2}
+/* ── 24-sep · LA PRESENTACIÓN, PARA REFERENTES O PARA DOCENTES: el selector de entrada, el «cómo se hace» con su captura
+   y los retos uno a uno, tema a tema ── */
+.pr-elige .pr-cuerpo{align-items:center;justify-content:center;text-align:center;min-height:100%}
+.pr-elige h1{font-size:clamp(1.8rem,4.4vw,3.4rem);margin:4px 0 6px;text-wrap:balance}
+.pr-elige .pr-logo{align-items:center}
+.pr-elige-b{display:grid;grid-template-columns:1fr 1fr;gap:18px;width:min(100%,900px)}
+.pr-elige-o{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 20px 20px;border-radius:18px;cursor:pointer;
+  background:rgba(10,16,26,.9);border:1px solid rgba(55,224,236,.45);color:var(--ink);font:inherit;text-align:center;transition:transform .15s,border-color .15s,box-shadow .15s}
+.pr-elige-o.ref{border-color:rgba(245,176,67,.55)}
+.pr-elige-o:hover,.pr-elige-o:focus-visible{transform:translateY(-3px);border-color:var(--teal);box-shadow:0 14px 40px rgba(0,0,0,.45)}
+.pr-elige-o.ref:hover,.pr-elige-o.ref:focus-visible{border-color:var(--amber)}
+.pr-elige-o img{height:clamp(110px,22vh,190px);width:auto;object-fit:contain;filter:drop-shadow(0 0 22px rgba(55,224,236,.25))}
+.pr-elige-o b{font:800 clamp(1.1rem,2vw,1.5rem) 'Unbounded',sans-serif;color:var(--teal)}
+.pr-elige-o.ref b{color:var(--amber)}
+.pr-elige-o span{font-size:clamp(.85rem,1.2vw,1rem);line-height:1.45;color:#cfdae4;max-width:40ch}
+.pr-mandos #pr-otra{margin-right:6px}
+/* el «cómo se hace»: la captura grande y los pasos numerados como en la captura */
+.pr-como-dos{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:18px;align-items:start}
+.pr-como-cap{margin:0;border-radius:12px;overflow:hidden;border:1px solid rgba(55,224,236,.35);background:#0a111b;box-shadow:0 14px 40px rgba(0,0,0,.4)}
+.pr-como-cap img{display:block;width:100%;height:auto;max-height:58vh;object-fit:contain;object-position:top}
+.pr-como-pasos{margin:0;padding:0;list-style:none;counter-reset:paso;display:flex;flex-direction:column;gap:10px}
+.pr-como-pasos li{counter-increment:paso;position:relative;padding:10px 12px 10px 44px;border-radius:12px;background:rgba(10,16,26,.86);border:1px solid var(--line);
+  font-size:clamp(.85rem,1.2vw,1.02rem);line-height:1.45}
+.pr-como-pasos li::before{content:counter(paso);position:absolute;left:10px;top:9px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;
+  background:#1bb3c4;color:#05222a;font:800 .8rem 'DM Sans',sans-serif}
+.pr-como-nota{margin:10px 0 0;padding:9px 12px;border-radius:10px;border-left:3px solid var(--amber);background:rgba(245,176,67,.08);font-size:clamp(.82rem,1.1vw,.95rem);line-height:1.45}
+.pr-ref-l{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px;max-width:780px}
+.pr-ref-l li{padding:10px 14px;border-radius:12px;background:rgba(10,16,26,.86);border:1px solid var(--line);font-size:clamp(.88rem,1.25vw,1.05rem);line-height:1.45}
+/* los retos, tema a tema */
+.pr-retos-t .pr-fondo{opacity:.55}
+.pr-rt-cab{display:flex;align-items:center;gap:14px}
+.pr-rt-cab img{width:clamp(56px,7vw,86px);height:auto;filter:drop-shadow(0 0 18px rgba(55,224,236,.35))}
+.pr-rt-cab h2{margin:2px 0 0}
+.pr-rt-rej{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.pr-rt-rej.n1{grid-template-columns:minmax(0,640px)}.pr-rt-rej.n2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pr-rt{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:14px;background:rgba(10,16,26,.9);border:1px solid var(--line)}
+.pr-rt-relampago{border-color:rgba(55,224,236,.5)}.pr-rt-principal{border-color:rgba(245,176,67,.5)}
+.pr-rt-secreto,.pr-rt-simulacro{border-color:rgba(255,122,122,.5)}.pr-rt-actividad{border-color:rgba(170,102,204,.55)}
+.pr-rt header{display:flex;gap:10px;align-items:flex-start}
+.pr-rt-ins{display:flex;gap:4px;flex:none}.pr-rt-ins img{width:48px;height:48px;object-fit:contain}
+.pr-rt-chip{display:inline-block;font:700 .75rem 'DM Sans',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--teal)}
+.pr-rt-principal .pr-rt-chip{color:var(--amber)}.pr-rt-secreto .pr-rt-chip,.pr-rt-simulacro .pr-rt-chip{color:#ff9d9d}.pr-rt-actividad .pr-rt-chip{color:#d7b3ea}
+.pr-rt h3{margin:2px 0 0;font-size:clamp(.95rem,1.4vw,1.15rem);line-height:1.25}
+.pr-rt h3 em{font-style:normal;font-weight:400;color:var(--mut);font-size:.85em}
+.pr-rt-ayuda{margin:0;font-size:clamp(.78rem,1.02vw,.9rem);line-height:1.45;color:#d4dee8}
+.pr-rt-premio{margin:auto 0 0;padding-top:6px;border-top:1px solid var(--line);font-size:clamp(.8rem,1.05vw,.92rem)}
+@media (max-width:760px){ .pr-elige-b,.pr-como-dos,.pr-rt-rej,.pr-rt-rej.n2{grid-template-columns:1fr} }
+/* la radiografía de referentes: la barra por secciones y, debajo, las diapositivas de la sección en curso */
+.pr-mazo .barra-pasos.pr-secs .p{font-weight:700}
+.pr-mazo .barra-pasos.pr-secs .p em{font-style:normal;font-weight:600;opacity:.6;margin-left:3px}
+.pr-mazo .barra-pasos.pr-subs{border-top:1px solid var(--line);padding-top:4px;margin-top:2px}

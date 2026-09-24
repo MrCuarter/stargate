@@ -247,7 +247,7 @@
       app.innerHTML = '<div class="card bien exito"><div class="exito-cap">' +
           '<img src="assets/img/capitan/pulgar.png" alt="" loading="lazy">' +
           '<div><div class="eyebrow teal">Comandante</div>' +
-          '<h3>¡Grupo listo, Capitán!</h3>' +
+          '<h3>¡Grupo listo, Comandante!</h3>' +   // 24-sep · Capitán ≠ Comandante: quien crea el grupo es el Comandante (el Capitán es el personaje)
           '<p><b>' + esc(d.nombre) + '</b> está sembrado entero: los retos con sus insignias, los ocho ' +
           'planetas, la tienda y el álbum. No queda nada por configurar.</p></div></div>' +
         (codigo

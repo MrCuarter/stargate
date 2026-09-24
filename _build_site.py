@@ -1725,10 +1725,33 @@ def _presenta():
                     "nota": notas},
         "arsenal": SEMANA_ARSENAL,
         "sorteo": {"premio": (sor[1] if sor else ""), "semana": SEMANAS_PER["REGULAR"] + SEMANAS_CANJE_EXTRA},
-        "reto": {"id": "L1", "nombre": "Del boceto a la forja", "ayuda": AYUDA_RETOS.get("L1", ""), "xp": 100,
+        "reto": {"id": "L1", "nombre": "Del boceto a la forja", "ayuda": _AYUDA_NAVE.get("L1", "") or AYUDA_RETOS.get("L1", ""), "xp": 100,
                  "creditos": CREDITOS.get("relampago", 0), "insignias": ["P1_bran", "R1_la-chispa"], "ejemplo": ej.get("imagen", "")},
+        "retos": _retos_presenta(),
     }
-_PRESENTA_JSON = json.dumps(_presenta(), ensure_ascii=False)
+def _retos_presenta():
+    """24-sep · Norberto: «para referentes deben estar todos los retos explicados uno a uno por tema». Cada reto del catálogo
+    con lo que hay que hacer (el documento maestro, `_AYUDA_NAVE`), su semana, dónde se hace, su premio y a quién recupera.
+    Los créditos, con el mismo criterio que `creditosDe` de motor/paquete.js."""
+    import re
+    cat = json.load(open(os.path.join(HERE, "motor", "catalogo.json"), encoding="utf-8"))
+    C, sem = cat["creditos"], _sem_de_reto(RETOS_REGULAR)
+    def creditos(i):
+        if i == "XS": return C["simulacro"]
+        return {"X": C["actividad"], "L": C["relampago"], "B": C["retoB"]}.get(i[0], C["retoA"])
+    def clase(i):
+        return {"L": "relampago", "B": "principal", "X": "actividad", "S": "secreto"}.get(i[0], "extra") if i != "XS" else "simulacro"
+    out = []
+    for x in cat["retos"]["REGULAR"]:
+        i, t = x["id"], x["titulo"]
+        m = re.search(r"«([^»]+)»", t); nombre = m.group(1) if m else re.sub(r"\s*\([^)]*\)\s*$", "", t).strip()
+        m2 = re.search(r"\(([^)]*)\)\s*$", t); sub = m2.group(1) if m2 else ""
+        tri = [v[0] for k, v in TRIPULANTES.items() if k.startswith("P" + i[1:] + "_")] if clase(i) == "relampago" and i != "L0" else []
+        out.append({"id": i, "clase": clase(i), "nombre": nombre, "sub": "" if sub.lower().startswith("recupera") else sub,
+                    "tema": x.get("tema") or 0, "semana": sem.get(i) or 0, "xp": x.get("xp") or 0, "creditos": creditos(i),
+                    "insignias": x.get("insignias") or [], "tripulante": tri[0] if tri else "",
+                    "ayuda": _AYUDA_NAVE.get(i, "") or AYUDA_RETOS.get(i, "")})
+    return out
 # 24-sep · la página del tripulante en la sesión: quién es, su historia, su lección, su cita y su carta
 _TRIPUL_JSON = json.dumps({k: {"nombre": v[0], "rol": v[1], "historia": v[2], "leccion": v[3], "cita": CITAS.get(k, ""),
                               "carta": "assets/img/tarjetas/" + k + "_carta.webp"} for k, v in TRIPULANTES.items()}, ensure_ascii=False)
@@ -3361,6 +3384,8 @@ def _sem_de_reto(catalogo):
     return fuera
 
 SEM_RETO_JSON = json.dumps({"REGULAR": _sem_de_reto(RETOS_REGULAR), "PUA": _sem_de_reto(RETOS_PUA)}, ensure_ascii=False)
+# 24-sep · aquí, y no junto a `_presenta`: los retos de la presentación necesitan `_AYUDA_NAVE` y `_sem_de_reto`
+_PRESENTA_JSON = json.dumps(_presenta(), ensure_ascii=False)
 
 # la Nave por capítulos (13-sep): lo leen la Nave, la sesión proyectable y la consola
 CAPITULOS_JSON = json.dumps([{k: c[k] for k in ("n", "clave", "titulo", "icono", "semanas", "abre", "mercado",

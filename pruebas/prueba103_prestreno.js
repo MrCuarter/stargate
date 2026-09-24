@@ -170,6 +170,36 @@ c(imgs.length > 15 && !faltan.length, "🔴 las " + imgs.length + " imágenes fi
 c(/assets\/video\/' \+ esc\(p\[0\]\) \+ '_llegada\.mp4/.test(JS) && fs.existsSync(path.join(R, "assets/video/p1_forge_llegada.mp4")),
   "   y el mapa: al pulsar un planeta, la nave se posa en él (el clip de KIT_STARGATE)");
 
+// ── 6 sexies · 🔴 24-sep · REFERENTES O DOCENTES. Norberto: «al empezar, dos botones… si es para referentes, añade al
+// principio el proceso para crear grupos y añadir profes» · «para referentes, todos los retos explicados uno a uno por
+// tema» · «en el de profes, capturas de iniciar sesión y cómo cambiar el Genially del grupo o los mensajes del foro».
+c(/data-para="docentes"/.test(JS) && /data-para="referentes"/.test(JS) && /if \(!MODO\) \{ root\.innerHTML = selector\(\)/.test(JS),
+  "🔴 al abrirla, dos botones: para docentes o para referentes (y ?para= la abre directa)");
+const MZ = JS.slice(JS.indexOf("function mazo()"), JS.indexOf("// ───", JS.indexOf("function mazo()")));
+// 24-sep (tarde) · «los referentes, aunque sea agobiante, deben tener la radiografía completa… los profes normales, una
+// visión reducida y motivadora: ya irán descubriendo cada semana»
+const DOC = MZ.slice(0, MZ.indexOf("var secs"));
+c(/\["Bienvenida", \[portada\(\), refPapel\(\)\]\]/.test(MZ) && /\["Crear grupos", \[refCrear\(\), refEquipo\(\), refListo\(\), refProfes\(\)\]\]/.test(MZ),
+  "🔴 para referentes, al principio: su papel, crear el grupo (3 pasos) y añadir profes");
+c(/radioGestion\(\)/.test(MZ) && /radioClase\(\)/.test(MZ) && /radioNave\(\)/.test(MZ) && /radioAlumnado\(\)/.test(MZ),
+  "🔴 y la radiografía completa: gestionar grupos, la clase, la Nave del docente y lo que ve el alumnado");
+c(/retosPorTema\(\)/.test(MZ.slice(MZ.indexOf("var secs"))) && !/retosPorTema|radio[A-Z]|ref[A-Z]/.test(DOC),
+  "🔴 los retos uno a uno y la radiografía, solo en la de referentes");
+c(/doEntrar\(\), doPanel\(\), doForo\(\)/.test(DOC) && /doEntrar\(\), doPanel\(\), doForo\(\)/.test(MZ.slice(MZ.indexOf("var secs"))),
+  "🔴 en las dos: entrar, cambiar el Genially del grupo y el mensaje del foro");
+const nDoc = (DOC.match(/\w+\(\)/g) || []).length;
+c(nDoc <= 25 && !/rankings2\(\)|comoSeGana2\(\)|semanas\(\)|enlaces\(\)/.test(DOC), "🔴 la de docentes, reducida (" + nDoc + " diapositivas, sin rankings, mecánicas ni el calendario entero)");
+c(/function barra\(\)/.test(JS) && /pr-secs/.test(JS) && /pr-subs/.test(JS), "   la radiografía, con la barra por secciones (no 70 botones)");
+const cap = ["crear", "crear-resumen", "grupo-listo", "equipo", "puerta", "panel", "foro"].concat((JS.match(/rx\("([a-z-]+)"/g) || []).map(x => x.slice(4, -1))).filter(k => !fs.existsSync(path.join(R, "assets/img/pres/guia/" + k + ".webp")));
+c(!cap.length, "   con sus capturas (las de la guía, anotadas, y las del panel y el foro)", cap.join(", "));
+const PR = dato("SG_PRESENTA") || {};
+const CAT = JSON.parse(L("motor/catalogo.json")).retos.REGULAR;
+c((PR.retos || []).length === CAT.length && (PR.retos || []).every(x => x.ayuda && x.nombre && x.xp && x.creditos),
+  "🔴 los retos de la presentación son los del catálogo, cada uno con qué hay que hacer, xp y créditos (del dato, no a mano)",
+  (PR.retos || []).filter(x => !x.ayuda).map(x => x.id).join(","));
+c(PR.reto && PR.reto.ayuda && PR.reto.ayuda.length > 100, "   y el reto de ejemplo ya no sale sin explicación");
+c(!/Playposit/i.test(JSON.stringify(PR.retos || [])), "   (sin herramientas que ya no existen: Playposit cerró)");
+
 // ── 7 · y el guion está en la guía, no duplicado aquí
 const GUIA = fs.readFileSync(path.join(R, "..", "GUIA_PROFES_PDF.md"), "utf8");
 c(/# PARTE 0 · El guion de la reunión/.test(GUIA), "🔴 la guía del profesorado lleva su guion (Parte 0)");

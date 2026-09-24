@@ -497,15 +497,279 @@
         'escribid al Mando desde <b>Contacto</b>: es el mismo sitio donde se piden cosas.</p>' +
       '</div>' };
   }
+
+  // ───────────────────────────────────────────────────────────── 24-sep · REFERENTES O DOCENTES
+  /**
+   * 🔴 24-sep · DOS PRESENTACIONES EN UNA. Norberto: «la semana que viene empezaré una reunión con los profes referentes…
+   * al empezar, dos botones: presentación para referentes o para docentes. Si es para docentes, enseñamos lo que tenemos;
+   * si es para referentes, añade al principio cuál es el proceso para crear grupos y añadir profes» · «para referentes
+   * deben estar todos los retos explicados uno a uno por tema» · «en el de profes normales, capturas de iniciar sesión y
+   * cómo cambiar el Genially del grupo o los mensajes del foro: es algo que muchos harán».
+   * La elección vive en la dirección (?para=referentes|docentes): se puede enlazar directa y sobrevive a recargar.
+   */
+  var MODO = (function () { var m = new URLSearchParams(location.search).get("para"); return m === "referentes" || m === "docentes" ? m : ""; })();
+  function elegir(m) {
+    MODO = m; SLIDES = []; st.i = 0;
+    try { var u = new URL(location.href); u.searchParams.set("para", m); history.replaceState(null, "", u.toString()); } catch (e) {}
+    pintar();
+  }
+  function selector() {
+    return '<div class="mazo pr-mazo" id="mazo" tabindex="0"><div class="lienzo">' +
+      '<div class="dia pr-esc pr-elige"><div class="pr-fondo" style="background-image:url(\'assets/img/pres/puente.webp\')"></div><div class="pr-cuerpo">' +
+        '<div class="pr-logo"><span class="fc-marca">◈ STARGATE</span><span class="fc-lema">La Bitácora Estelar</span></div>' +
+        '<h1>¿A quién se la presentamos?</h1>' +
+        '<div class="pr-elige-b">' +
+          '<button type="button" class="pr-elige-o" data-para="docentes"><img src="assets/img/capitan/saluda.png" alt="">' +
+            '<b>Para docentes</b><span>Lo esencial y lo que enamora: la historia, el material, un reto entero y las recompensas; cómo se entra, se cambia el Genially y el mensaje del foro. Lo demás se descubre semana a semana.</span></button>' +
+          '<button type="button" class="pr-elige-o ref" data-para="referentes"><img src="assets/img/capitan/tablet.png" alt="">' +
+            '<b>Para referentes</b><span>La radiografía completa: crear y gestionar grupos, cada pantalla de la web con su captura, lo que ve el alumnado y todos los retos explicados uno a uno, tema a tema.</span></button>' +
+        '</div></div></div>' +
+      '</div></div>';
+  }
+  /** Una diapositiva de «cómo se hace»: la captura (de la guía, anotada con sus números) y los pasos al lado. */
+  function comoSeHace(o) {
+    return { rot: o.rot, html: escena({ cls: "pr-como", bg: o.bg || "", cap: o.cap || null,
+      cuerpo: '<div class="kicker">' + o.kicker + '</div><h2>' + o.titulo + '</h2>' +
+        '<div class="pr-como-dos"><figure class="pr-como-cap"><img src="assets/img/pres/guia/' + o.img + '.webp" alt="" loading="lazy"></figure>' +
+        '<div class="pr-como-t"><ol class="pr-como-pasos">' + o.pasos.map(function (x) { return '<li>' + x + '</li>'; }).join("") + '</ol>' +
+        (o.nota ? '<p class="pr-como-nota">' + o.nota + '</p>' : '') + '</div></div>' }) };
+  }
+  // ── para referentes, al principio: vuestro papel y el grupo de principio a fin
+  function refPapel() {
+    return { rot: "Vuestro papel", html: escena({ bg: "mesa_plan.webp", cap: ["tablet", "Una vez por curso, y en diez minutos."],
+      cuerpo: '<div class="kicker">Solo referentes</div><h2>El referente monta el grupo. Lo demás, la nave</h2>' +
+        '<ul class="pr-ref-l">' +
+          '<li><b>Crea los grupos</b>: menú → <b>Crear grupo</b>. En segundos queda sembrado entero.</li>' +
+          '<li><b>Gestionar grupos</b>, en la barra de arriba: el <b>equipo docente</b>, los <b>escuadrones</b>, los <b>ajustes</b>, el <b>calendario</b>, mover reclutas, graduar y borrar. Lo que se hace una o dos veces por curso.</li>' +
+          '<li>En su Nave, además: <b>Premios</b>, <b>Sorteos</b> y <b>Ofertas</b>; y en la ficha de cada recluta, <b>congelar</b> o <b>dar de baja</b>.</li>' +
+          '<li>Un grupo puede tener <b>varios referentes</b>, y un referente puede no impartir: coordina sin escuadrón.</li>' +
+        '</ul>' +
+        porque('Para ser referente hace falta una <b>invitación de un solo uso</b> de la coordinación del máster: nunca se concede por el nombre, que cualquiera se lo pone en Google.') }) };
+  }
+  function refCrear() {
+    return comoSeHace({ rot: "1 · Crear el grupo", kicker: "Crear un grupo · 1 de 3", titulo: "El grupo: nombre, tipo y primer día", img: "crear",
+      pasos: ['<b>El nombre</b> del grupo (se guarda también como identificador).',
+              '<b>El tipo</b>: Regular (' + (SEMS.length || 15) + ' semanas) o PUA (8).',
+              '<b>El primer día de la semana 1</b>: de ahí salen solas la apertura, los cierres, el canje y el Arsenal.'],
+      nota: 'Arriba del formulario dice «Estás como…». Si no es la cuenta de la universidad, <b>cámbiala antes</b>: el grupo queda a su nombre.' });
+  }
+  function refEquipo() {
+    return comoSeHace({ rot: "2 · El equipo", kicker: "Crear un grupo · 2 de 3", titulo: "El equipo docente, y el resumen antes de crear", img: "crear-resumen",
+      pasos: ['<b>Cada docente</b>: nombre, <b>correo</b> (es su llave de entrada), si es referente, si imparte y su Genially propio (opcional). Quien esté aquí verá el grupo al entrar con ese correo.',
+              '<b>«Lo que se va a crear»</b>: el resumen, con las <b>semanas festivas de la UNIR ya saltadas</b>.',
+              '<b>Crear el grupo</b>.'] });
+  }
+  function refListo() {
+    return comoSeHace({ rot: "3 · Grupo listo", kicker: "Crear un grupo · 3 de 3", titulo: "Listo, sembrado entero y con su código", img: "grupo-listo",
+      pasos: ['Los <b>retos</b> con sus insignias, los <b>ocho planetas</b>, la <b>tienda</b> con precios y fechas, el <b>álbum</b>, los <b>héroes</b> y el <b>Gran Sorteo</b>: todo ya dentro.',
+              'El <b>código de clase</b>, para dictarlo el primer día.',
+              '<b>Copiar el enlace de invitación</b>: lo único que hay que repartir. Al foro de UNIR o al chat.'] });
+  }
+  function refProfes() {
+    return comoSeHace({ rot: "Añadir profes", kicker: "Gestionar grupos → Equipo docente", titulo: "Añadir profes (y quitarlos) cuando haga falta", img: "equipo",
+      pasos: ['<b>Hacer referente</b> o pasar a docente.',
+              '<b>Pasar su alumnado a…</b> otro docente, antes de quitar a quien lleva escuadrón.',
+              '<b>Quitar del equipo</b>: pierde la entrada al grupo.'],
+      nota: 'Para <b>añadir</b>, abajo del todo: nombre, correo y rol. Lo hace el servidor con sus reglas: nadie se hace referente desde su navegador y un grupo nunca se queda sin referente.' });
+  }
+  // ── para todos: lo que muchos harán la primera semana
+  function doEntrar() {
+    return comoSeHace({ rot: "Entrar", kicker: "Manos a la obra · 1", titulo: "Entrar: un botón, y a vuestra Nave", img: "puerta",
+      pasos: ['En <b>stargate.mistercuarter.es</b> → <b>Entrar</b> → <b>Iniciar sesión con Google</b>, con la cuenta que os puso el referente.',
+              'El sistema sabe que sois docentes y os deja en <b>vuestra Nave del Comandante</b>, dentro de vuestro grupo.',
+              'En el <b>lápiz</b> de vuestra ficha: vuestro comandante (el avatar) y el nombre que ven vuestros reclutas.'],
+      nota: '¿«Esa cuenta no lleva ningún grupo»? Pedid al referente que os añada con <b>ese mismo correo</b>.' });
+  }
+  function doPanel() {
+    return comoSeHace({ rot: "Tu Genially", kicker: "Manos a la obra · 2", titulo: "El Genially de vuestro grupo, cambiado en un minuto", img: "panel",
+      pasos: ['En el <b>Puente</b>, lo primero: <b>Tu panel de control</b>, el Genially que abre vuestro alumnado desde su Nave.',
+              'Viene el <b>oficial</b> del grupo. Para usar el vuestro: <b>Cambiar el enlace</b> y pegad su dirección de ver (<i>view.genially.com/…</i>).',
+              '<b>Guardar para mis reclutas</b>. Y si queréis deshacerlo, <b>Volver al oficial</b>.'] });
+  }
+  function doForo() {
+    return comoSeHace({ rot: "El mensaje del foro", kicker: "Manos a la obra · 3", titulo: "El mensaje del foro: ya escrito, y vuestro si queréis", img: "foro",
+      pasos: ['En <b>Hoy toca</b>, el mensaje de la semana ya escrito y firmado con vuestro comandante: <b>Copiar</b> y al foro de la plataforma de UNIR.',
+              '<b>Editar</b> para escribir vuestra versión: se guarda en <b>vuestra ficha</b> y vale para todos vuestros grupos. Si la borráis, vuelve la oficial.',
+              '<b>Ver todos</b>: los ' + (SEMS.length || 15) + ' mensajes del curso, de un vistazo.'] });
+  }
+  // ── para referentes: todos los retos, uno a uno, tema a tema (de SG_PRESENTA.retos, que sale del catálogo y del documento maestro)
+  var CLASES_RETO = { relampago: "Relámpago · en clase", principal: "Reto principal · en casa", actividad: "Actividad oficial",
+    extra: "Reto extra", secreto: "Reto secreto", simulacro: "Simulacro · en clase" };
+  function tarjetaReto(x) {
+    var A = (window.SG_ACTIVIDADES || []).filter(function (a) { return a.reto === x.id; })[0];
+    var cuando = A ? 'se lanza en la semana ' + A.sem + ' y se entrega en la ' + A.resuelve
+      : x.clase === "secreto" ? 'escondido en el tema ' + x.tema : x.semana ? 'semana ' + x.semana : '';
+    return '<article class="pr-rt pr-rt-' + esc(x.clase) + '">' +
+      '<header><div class="pr-rt-ins">' + (x.insignias || []).map(function (b) { return '<img src="assets/img/insignias/' + esc(b) + '.webp" alt="" loading="lazy">'; }).join("") + '</div>' +
+        '<div><span class="pr-rt-chip">' + esc(CLASES_RETO[x.clase] || "Reto") + (cuando ? ' · ' + esc(cuando) : '') + '</span>' +
+        '<h3>«' + esc(x.nombre) + '»' + (x.sub ? ' <em>' + esc(x.sub) + '</em>' : '') + '</h3></div></header>' +
+      '<p class="pr-rt-ayuda">' + esc(x.ayuda || "") + '</p>' +
+      '<p class="pr-rt-premio"><b>' + esc(String(x.xp)) + ' xp</b> · <b>' + esc(String(x.creditos)) + ' ◈</b>' +
+        (x.tripulante ? ' · recupera a <b>' + esc(x.tripulante) + '</b> y su fragmento' : '') + '</p></article>';
+  }
+  function retosPorTema() {
+    var R = PRE.retos || [], out = [];
+    for (var t = 1; t <= 8; t++) {
+      var del = R.filter(function (x) { return Number(x.tema) === t; })
+        .sort(function (a, b) { return (a.semana || 99) - (b.semana || 99); });
+      if (!del.length) continue;
+      // de tres en tres como mucho (el tema 1, con el arranque, va en dos diapositivas)
+      var trozos = del.length <= 3 ? [del] : [del.slice(0, del.length - 3), del.slice(del.length - 3)];
+      var pl = PLAN[t - 1] || [];
+      trozos.forEach(function (tr, k) {
+        out.push({ rot: "Retos · " + (pl[1] || ("Tema " + t)) + (trozos.length > 1 ? " " + (k + 1) : ""), html:
+          '<div class="dia pr-esc pr-retos-t"><div class="pr-fondo" style="background-image:url(\'assets/img/fondos/' + esc(pl[0] || "") + '.webp\')"></div><div class="pr-cuerpo">' +
+            '<div class="pr-rt-cab"><img src="assets/img/planetas/' + esc(pl[0] || "") + '.png' + esc(IMGV) + '" alt="">' +
+              '<div><div class="kicker">Los retos, uno a uno · Tema ' + t + ' · ' + esc(semanasDe(t)) + (trozos.length > 1 ? ' · ' + (k + 1) + ' de ' + trozos.length : '') + '</div>' +
+              '<h2>' + esc(pl[1] || "") + ' <span class="small muted">— ' + esc(String(pl[2] || "").replace(/^T\d+ · /, "")) + '</span></h2></div></div>' +
+            '<div class="pr-rt-rej n' + tr.length + '">' + tr.map(tarjetaReto).join("") + '</div>' +
+          '</div></div>' });
+      });
+    }
+    return out;
+  }
+
+  // ── 🔴 24-sep · LA RADIOGRAFÍA, PARA REFERENTES. Norberto: «los referentes, aunque sea agobiante, deben tener la radiografía
+  // completa de todo el proyecto. Los profes normales, una visión reducida y motivadora: ya irán descubriendo cada semana».
+  // Una diapositiva por pantalla de la web, con la captura de la guía (anotada con sus números) y lo que marca cada número.
+  // Los textos resumen la guía del profesorado (GUIA_PROFES_PDF.md, Partes A-C): si cambia una pantalla, se cambian allí y aquí.
+  function rx(img, rot, kicker, titulo, pasos, nota) { return comoSeHace({ rot: rot, kicker: kicker, titulo: titulo, img: img, pasos: pasos, nota: nota }); }
+  function radioGestion() {
+    return [
+      rx("escuadrones", "Escuadrones", "Gestionar grupos → Escuadrones", "Un escuadrón por docente que imparte",
+        ['<b>Pulsa uno</b> y se despliega.', 'Su <b>Comandante</b> con su correo, cuántos reclutas, la <b>media de xp</b> y de insignias, y su gente: cada fila abre la ficha.'],
+        'Se comparan <b>por media</b>, no por suma: así no gana siempre el más numeroso.'),
+      rx("calendario-cambio", "Calendario", "Gestionar grupos → Calendario", "Una semana sin clase, y todo se corre solo",
+        ['<b>Pulsa una semana que aún no haya llegado</b>: pasa a no lectiva (otra vez, y vuelve).', '<b>«Al guardar»</b> dice a qué día se mueve cada cosa y hasta cuándo se registran retos y se canjea.', '<b>Guardar el calendario</b> (o deshacer). Lo pasado no se toca.'],
+        'Aquí también: <b>Abrir ya</b> un capítulo de la Nave antes de tiempo, y el primer día de la semana 1. Las festivas de la UNIR se saltan solas.'),
+      rx("ajustes", "Ajustes", "Gestionar grupos → Ajustes", "Los ajustes del grupo",
+        ['El nombre y el <b>padlet de la clase</b> (el reto de presentación lo abre), el <b>ticket de salida</b> (formulario anónimo) y el <b>panel de control</b> para ver y para editar.', 'Las fechas se cambian en el <b>Calendario</b>.'],
+        'Más abajo: <b>copiar la puerta escondida</b> del Escape UNI (para el Genially de Vínculo) y <b>borrar el grupo</b> (solo para grupos de prueba; pide escribir su nombre).'),
+      rx("ficha-referente", "Congelar o dar de baja", "En la ficha de un recluta · solo el referente", "Cambiar de Comandante, congelar o dar de baja",
+        ['<b>Cambiar de Comandante</b>: pasa al recluta a otro escuadrón con todo lo suyo (retos, créditos, colección).', '<b>Congelar</b>: puede mirar, pero no registrar, comprar, fichar ni usar el Zoco. <b>Descongelar</b> lo devuelve todo.', '<b>Dar de baja</b>: borra su ficha y libera su alias; podrá alistarse de cero.']),
+      rx("premios", "Premios por enlace", "Tu Nave → Premios", "Premios por enlace: una recompensa que se reclama una vez",
+        ['<b>La imagen del premio</b>: púlsala y elige (sobre, héroe, créditos, xp, cápsula o participaciones).', '<b>Recompensa o huevo de Pascua</b>, y el interruptor <b>Activo</b>.', '<b>Copiar enlace</b> o <b>copiar para insertar</b> en tu Genially: lleva un código secreto, no se adivina.', '<b>Grupos, fechas y topes</b> (total y por escuadrón). Se guarda solo, con «✓ Guardado».'],
+        'Se configuran <b>una vez para todos tus grupos</b> (🌐 Para todos tus grupos). Con tu cuenta, el enlace se abre en simulación.'),
+      rx("ofertas", "Ofertas", "Tu Nave → Ofertas", "La oferta de la semana, sola o la tuya",
+        ['<b>Crear una oferta</b> tuya: qué, cuánta rebaja, cuántos días y cuántas unidades.', 'En cada oferta: <b>+1 día</b>, <b>+1 semana</b>, <b>unidades</b> o <b>cancelar</b> (quien la compró la conserva).'],
+        'La <b>oferta automática</b> sale sola cada semana desde que se abre el Mercado: rebajada, una por persona y con unidades según inscritos y rareza.'),
+      rx("sorteos", "El Gran Sorteo", "Tu Nave → Sorteos", "El Gran Sorteo, con su bombo",
+        ['<b>Sortear en directo</b>: la ruleta se para en cada ganador; lo elige el servidor (una papeleta por participación, nadie gana dos). Si nadie lo sortea, se resuelve solo al final.', '<b>Cambiar</b> el premio, el precio, los ganadores, las fechas o un tope por persona.'],
+        'Después, <b>Copiar ganadores</b> da alias, nombre y correo para entregar el premio.')
+    ];
+  }
+  function radioClase() {
+    return [
+      rx("banner", "El banner", "Tu Nave del Comandante", "El grupo, en una franja",
+        ['<b>El banner</b>: la semana y el tema, el grupo, tu escuadrón y tus reclutas, con el planeta de fondo.', '<b>Empezar la clase</b>: la sesión de hoy, montada. La rueda elige las diapositivas; el otro botón la abre en su ventana.', '<b>Las secciones</b>: Puente, Reclutas, Rankings, Calendario y, en mando manual, Zoco, Premios y Enlaces. Al final, <b>Contacto</b>.'],
+        'Si alguien pide subir nota, <b>Reclutas</b> brilla con su número.'),
+      rx("puente", "El Puente", "Tu Nave → Puente", "El Puente: lo de esta semana",
+        ['<b>Tu panel de control</b> (el Genially de tu alumnado), dentro.', '<b>Las cifras del grupo</b> en aros: pasa el ratón y te dan la cuenta.', '<b>NEBULA</b>: lo que conviene hacer esta semana, con su botón para ir.', '<b>Esta semana destacan</b>: tres caras para nombrar en voz alta.'],
+        'Debajo: <b>Hoy toca</b> (el vídeo, los retos, el calendario y el mensaje del foro) y el ticket de salida.'),
+      rx("llamada", "Llamada a filas", "La clase → Llamada a filas", "Llamada a filas: fichan desde su Nave",
+        ['Ves en directo cuántos han fichado. <b>Cerrar la llamada</b> la termina.'],
+        'Eliges los minutos y, si quieres, <b>regalas un sobre</b> a quien fiche. No es un control de asistencia fiable ni lo pretende: ábrela con la clase empezada y poco rato.'),
+      rx("aula", "Herramientas", "La clase → Herramientas", "Las herramientas de clase: lo del directo, y nada más",
+        ['<b>En clase</b>: quién ha fichado y sacar a alguien <b>al azar</b> sin repetir.', '<b>Premiar</b>: a una cara o a toda la clase; xp, créditos, una carta, un sobre, un héroe, una cápsula o participaciones.', '<b>Pregunta</b> al aire, en directo.', '<b>Votación</b> de la semana.', '<b>Tiempo</b>: un temporizador a pantalla completa.']),
+      rx("votacion", "Votación", "Herramientas → Votación", "Una votación que mueve el curso",
+        ['<b>Para quién</b>: tu escuadrón o todo el grupo.', '<b>El voto extra</b>: votar otra vez pagando créditos (hasta dos veces).', '<b>Cerrar y resolver</b>: la sesión de esa semana trae la ganadora.'],
+        'Se responde desde su Nave durante la semana; tú ves el recuento, ellos no. Y lo votado se cumple: si gana Canva, se ve Canva.'),
+      rx("geniallys", "Para tus Geniallys", "Tu Nave → Enlaces → Para tus Geniallys", "Todo, dentro de vuestro Genially",
+        ['Copia el <b>código</b> de lo que quieras: la sesión (apertura y cierre), las herramientas, la llamada, el tablero o el Simulador.', 'En Genially: <b>Insertar → Otros → Código</b>, pega y estira la caja.', 'El <b>⧉</b> de al lado lo abre en su propia ventana, para proyectar sin Genially.'],
+        'Son los mismos para todos los grupos y cursos: piden la cuenta de quien los abre. Genially no incrusta direcciones sueltas: siempre el código.')
+    ];
+  }
+  function radioNave() {
+    return [
+      rx("migente", "Reclutas", "Tu Nave → Reclutas", "Tus reclutas, de un vistazo",
+        ['<b>Código de clase</b> (tapado: púlsalo para enseñarlo) y <b>Copiar invitación</b> para el foro.', 'Por <b>escuadrones</b> o todo el grupo (el docente ve el suyo).', '<b>Pulsa una fila</b> y se abre su ficha.', 'La <b>Cola de nota</b>, cuando hay algo.'],
+        'El nombre y el correo solo los ve el equipo docente; la clase ve el alias.'),
+      rx("ficha", "La ficha", "Reclutas → la ficha de un recluta", "Todo lo suyo, en una ficha",
+        ['<b>Quién es</b>: escuadrón, Comandante, alias, nombre y correo, y sus cifras.', '<b>Sus retos e insignias por temas</b>: encendido lo ganado, en verde lo registrado.', '<b>Pulsa un reto</b> y se despliega lo suyo: su enlace y validar o anular.']),
+      rx("ficha-reto", "Validar o anular", "La ficha → un reto", "Validar o anular, siempre con su porqué",
+        ['<b>El reto</b>, resaltado: uno gris se valida; uno verde se anula (podrá registrarlo otra vez).', '<b>Su enlace</b>, para comprobarlo.', '<b>Un mensaje</b> para el recluta (motivos rápidos o el tuyo): le sale arriba en su Nave.', '<b>Anular</b> o <b>Validar</b>. Queda anotado quién, qué y cuándo.']),
+      rx("cola", "Cola de nota", "Reclutas → Cola de nota", "Las subidas de nota no se conceden solas",
+        ['<b>Conceder</b>.', '<b>Denegar y devolver</b>: los créditos vuelven.'],
+        'Conceder no cambia ninguna nota: te dice que se la ha ganado, y la aplicas tú donde calificas, como siempre.'),
+      rx("tickets", "Tickets de salida", "Tu Nave → Puente → Ticket de salida", "Lo que dijeron al cerrar cada tema",
+        ['<b>Fijar</b> un comentario: sale seguro en la sesión.', 'Las notas, repartidas, y los comentarios del <b>último tema cerrado</b> (el desplegable abre los anteriores).'],
+        'Se rellena al acabar un <b>tema</b>, en la última diapositiva de su última sesión. Al abrir el siguiente, «Cómo os fue» y «Vuestras dudas».'),
+      rx("rankings", "Rankings", "Tu Nave → Rankings", "Trece rankings: casi todos brillan en alguno",
+        ['<b>De quién</b>: todo el grupo o un escuadrón.', '<b>Qué se mide</b>: xp, esta semana, colección, constancia, insignias, explorador, relámpago, logros, los tres del Simulador y escuadrones.', '<b>El podio</b> y la tabla, con el emblema de cada escuadrón.'],
+        'Para ensalzar, no para señalar: proyecta uno y nombra a quien destaca.'),
+      rx("zoco", "El Zoco", "Tu Nave → El Zoco", "El Zoco: el trueque, vigilado",
+        ['El día en que se abre y cada trato, con su mensaje.'],
+        'Siempre trueque, de tres pasos como mucho; lo ofrecido queda apartado. Si ves algo raro, <b>Deshacer</b>: cada cosa vuelve a su dueño. En PUA no hay Zoco.'),
+      rx("buzon", "Contacto", "Tu Nave → Contacto", "Contacto: la Frecuencia de mando",
+        ['<b>Dudas rápidas y averías conocidas</b>: el Capitán contesta al momento, con tus datos.', 'Mientras escribes, <b>busca si ya tiene solución</b>.', 'Si no, cuéntalo: <b>un problema, una duda o una idea</b>.', '<b>Transmitir al Mando</b>: llega con su contexto y la respuesta vuelve aquí (y por correo).'])
+    ];
+  }
+  function radioAlumnado() {
+    return [
+      rx("alistarse", "Alistarse", "El alumnado · el primer día", "Se alistan una vez, y ya está",
+        ['Entran con Google, escriben el <b>código de clase</b> (o abren la invitación) y rellenan: <b>nombre real</b> (solo lo ve el profesorado), <b>alias</b> (lo que ve la clase) y <b>su Comandante</b>, que les lleva a su escuadrón.'],
+        'Al terminar: la insignia de Reclutamiento, sus primeros xp y créditos, y su Nave.'),
+      rx("nave", "La Nave del recluta", "El alumnado · su Nave", "La Nave del recluta",
+        ['<b>Las pestañas</b>: Mi nave, Mis retos, Mi botín, El Archivo, Mercado, Zoco y Rankings (se abren por capítulos).', '<b>Su ficha</b>, con NEBULA hablándole y su carrera: quién va delante y quién le pisa los talones.', '<b>La orden de la semana</b>, la misma carta que proyectas.']),
+      rx("retos", "Mis retos", "El alumnado · Mis retos", "Lo que puede conseguir esta semana",
+        ['El <b>relámpago</b> de la semana, con el tripulante que se recupera.', 'El <b>reto principal</b>, con su insignia.']),
+      rx("reto-relampago", "Registrar un reto", "El alumnado · un reto", "Cómo se registra un reto",
+        ['<b>Lo que pide</b>, paso a paso, y <b>Ver un ejemplo</b> hecho.', '<b>El enlace</b> de lo que ha hecho: obligatorio. Sin él no se registra.', 'El <b>«+»</b> añade un segundo enlace.', '<b>«Lo he hecho»</b>: se registra y suben sus xp y créditos.'],
+        'Como mucho <b>' + (window.SG_TOPE_SEMANA || 3) + ' retos por semana</b>. Lo registrado lo ves en su ficha con su enlace, y si algo no está hecho, lo anulas.'),
+      rx("mercado", "El Mercado", "El alumnado · Mercado Estelar", "El Mercado Estelar",
+        ['<b>La oferta de la semana</b>: sale sola, rebajada y con unidades contadas.', '<b>Cada tarjeta</b> dice qué trae, cuánto cuesta y si le llega: sobres con cartas del álbum, cápsulas con héroes.']),
+      rx("logros", "Logros de a bordo", "El alumnado · Mi botín → Logros", "Los logros de a bordo y el Contramaestre",
+        ['<b>Sus días a bordo</b>: los seguidos y los de todo el curso.', '<b>Lo hecho</b>, con su fecha.', '<b>Lo que falta</b>, con «Ir».', '<b>El premio de cada cubierta</b>: llega solo al completarla.'],
+        '16 logros en 5 cubiertas; con las cinco, <b>Contramaestre de la Nave</b>: un héroe legendario y una carta con su alias. No dan xp, no se compran ni se regalan.'),
+      rx("batalla", "La batalla", "El alumnado · el Simulador de Joran", "La batalla contra RUTA AZUL",
+        ['<b>Los dos escudos y el reloj</b>: el rival ataca cada 25 segundos.', '<b>La arena</b>: cada acierto, un golpe; fallar quita tiempo y la pregunta vuelve.', '<b>Joran corrige</b> cada fallo ahí mismo.', '<b>La pregunta</b>, con su tema y su dificultad.'],
+        'No es un reto ni da nota: es repaso. Quien gana se queda el Simulador para entrenar tema a tema, con su ranking.')
+    ];
+  }
+  /**
+   * 🔴 24-sep · DOS MAZOS. Para DOCENTES, reducido y motivador (lo que enamora, «poco a poco» y los tres «cómo se hace»:
+   * el resto lo irán descubriendo cada semana). Para REFERENTES, la radiografía completa, por secciones: crear grupos,
+   * gestionarlos, la historia, la clase, la Nave del docente, lo que ve el alumnado, los retos uno a uno y las recompensas.
+   */
   function mazo() {
-    return [portada(), encargo(), historia(), nombres(), comandantes(), mapa(), semanas(), material(), semanaABordo(), unReto(),
-            comoSeGana2(), bitacora2(), heroes(), cromos(), simulador(), sorteo(), rankings2(), nota(), tranquilos(), queHace2(),
-            loQueNo2(), preguntas2(), siguiente2(), enlaces(), cierre()];
+    if (MODO !== "referentes")
+      return [portada(), encargo(), historia(), nombres(), comandantes(), mapa(), material(), semanaABordo(), unReto(),
+              heroes(), cromos(), simulador(), sorteo(), nota(), tranquilos(), queHace2(),
+              doEntrar(), doPanel(), doForo(), loQueNo2(), preguntas2(), siguiente2(), cierre()];
+    var secs = [
+      ["Bienvenida", [portada(), refPapel()]],
+      ["Crear grupos", [refCrear(), refEquipo(), refListo(), refProfes()]],
+      ["Gestionar grupos", radioGestion()],
+      ["La historia", [encargo(), historia(), nombres(), comandantes(), mapa(), semanas(), material()]],
+      ["La clase", [semanaABordo()].concat(radioClase())],
+      ["Vuestra Nave", [doEntrar(), doPanel(), doForo()].concat(radioNave())],
+      ["El alumnado", radioAlumnado()],
+      ["Los retos", [unReto(), comoSeGana2()].concat(retosPorTema())],
+      ["Recompensas", [bitacora2(), heroes(), cromos(), simulador(), sorteo(), rankings2(), nota()]],
+      ["Cierre", [tranquilos(), queHace2(), loQueNo2(), preguntas2(), siguiente2(), enlaces(), cierre()]]
+    ];
+    var out = [];
+    secs.forEach(function (x) { x[1].forEach(function (d) { d.sec = x[0]; out.push(d); }); });
+    return out;
+  }
+  /** La barra de abajo: por diapositivas (docentes) o, en la radiografía, por secciones y, debajo, las de la sección. */
+  function barra() {
+    var boton = function (d, i) {
+      return '<button type="button" class="p' + (i === st.i ? " on" : "") + (i < st.i ? " past" : "") + '" data-i="' + i + '" title="' + esc(d.rot) + '"><span>' + esc(d.rot) + '</span></button>'; };
+    if (MODO !== "referentes") return '<div class="barra-pasos">' + SLIDES.map(boton).join("") + '</div>';
+    var actual = (SLIDES[st.i] || {}).sec, vistas = {}, secs = [];
+    SLIDES.forEach(function (d, i) { if (!(d.sec in vistas)) { vistas[d.sec] = i; secs.push(d.sec); } });
+    return '<div class="barra-pasos pr-secs">' + secs.map(function (sc) {
+        var n = SLIDES.filter(function (d) { return d.sec === sc; }).length;
+        return '<button type="button" class="p' + (sc === actual ? " on" : "") + '" data-i="' + vistas[sc] + '" title="' + esc(sc) + '"><span>' + esc(sc) + ' <em>' + n + '</em></span></button>';
+      }).join("") + '</div>' +
+      '<div class="barra-pasos pr-subs">' + SLIDES.map(function (d, i) { return d.sec === actual ? boton(d, i) : ""; }).join("") + '</div>';
   }
 
   // ───────────────────────────────────────────────────────────── el mazo, como el de clase
   var SLIDES = [];
   function pintar() {
+    if (!MODO) { root.innerHTML = selector(); cablearSelector(); return; }
     SLIDES = SLIDES.length ? SLIDES : mazo();
     if (st.i < 0) st.i = 0;
     if (st.i >= SLIDES.length) st.i = SLIDES.length - 1;
@@ -513,15 +777,17 @@
       '<div class="lienzo">' + SLIDES[st.i].html + '</div>' +
       '<button type="button" class="nav ant" id="pr-ant" aria-label="Anterior">‹</button>' +
       '<button type="button" class="nav sig" id="pr-sig" aria-label="Siguiente">›</button>' +
-      '<div class="barra-pasos">' + SLIDES.map(function (d, i) {
-        return '<button type="button" class="p' + (i === st.i ? " on" : "") + (i < st.i ? " past" : "") + '" data-i="' + i + '" title="' + esc(d.rot) + '"><span>' + esc(d.rot) + '</span></button>';
-      }).join("") + '</div>' +
-      '<div class="pr-mandos"><span class="pr-cuenta">' + (st.i + 1) + ' / ' + SLIDES.length + '</span>' +
+      barra() +
+      '<div class="pr-mandos"><button type="button" class="btn min" id="pr-otra" title="Volver a elegir">' + (MODO === "referentes" ? "Referentes" : "Docentes") + ' ⇄</button>' +
+        '<span class="pr-cuenta">' + (st.i + 1) + ' / ' + SLIDES.length + '</span>' +
         '<button type="button" class="btn min" id="pr-pantalla">Pantalla completa</button></div>' +
     '</div>';
     cablear();
   }
   function ir(n) { st.i = n; pintar(); var m = $("#mazo"); if (m) m.focus(); }
+  function cablearSelector() {
+    Array.prototype.forEach.call(root.querySelectorAll("[data-para]"), function (b) { b.onclick = function () { elegir(b.getAttribute("data-para")); }; });
+  }
   function cablear() {
     var a = $("#pr-ant"), s = $("#pr-sig");
     if (a) a.onclick = function () { ir(st.i - 1); };
@@ -529,6 +795,8 @@
     Array.prototype.forEach.call(root.querySelectorAll(".barra-pasos .p"), function (b) {
       b.onclick = function () { ir(Number(b.getAttribute("data-i")) || 0); };
     });
+    var po = $("#pr-otra");
+    if (po) po.onclick = function () { MODO = ""; SLIDES = []; st.i = 0; pintar(); };
     var pc = $("#pr-pantalla");
     if (pc) pc.onclick = function () {
       var m = $("#mazo"); if (!m) return;
@@ -556,7 +824,7 @@
     });
   }
   document.addEventListener("keydown", function (e) {
-    if (!SLIDES.length) return;
+    if (!SLIDES.length || !MODO) return;
     if (/^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || "")) return;
     if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); ir(st.i + 1); }
     if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); ir(st.i - 1); }
