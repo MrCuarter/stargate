@@ -412,7 +412,11 @@
    * no tiene reto —el Fragmento Prohibido—, al final del viaje.
    */
   var FRAGS=(window.SG_FRAGMENTOS||[]);
-  function fragDe(id){ for(var i=0;i<FRAGS.length;i++) if(FRAGS[i].id===id) return FRAGS[i]; return null; }
+  // 24-sep · y el DESENLACE («La batalla de la Ciudadela Gris»): se abre como el Fragmento Prohibido —tras la batalla, cuando
+  // acaba el viaje— y justo antes que él, pero no es un fragmento (no cuenta en «N de 9»)
+  var TRAS=(window.SG_TRAS_BATALLA||[]);
+  function fragDe(id){ for(var i=0;i<FRAGS.length;i++) if(FRAGS[i].id===id) return FRAGS[i];
+    for(var j=0;j<TRAS.length;j++) if(TRAS[j].id===id) return TRAS[j]; return null; }
   function fragAbierto(f){
     if(!f) return true;
     var mios=(st.yo&&st.yo.retos)||[];
@@ -473,7 +477,7 @@
                 +'<img src="https://i.ytimg.com/vi/'+esc(y.id)+'/hqdefault.jpg" alt="" loading="lazy">'
                 +'<span class="cine-play" aria-hidden="true">▶</span></button>' 
               +'<div class="ar-txt"><b>'+esc(y.titulo)+'</b>'+(nota?'<em>'+esc(nota)+'</em>':'')
-              +(fr?'<span class="ar-chip"><img class=ico src=assets/img/iconos/p/estrella.png alt> Fragmento '+fr.n+'</span>':'')+'</div></article>';
+              +(fr?'<span class="ar-chip"><img class=ico src=assets/img/iconos/p/estrella.png alt> '+(fr.desenlace?'El desenlace':'Fragmento '+fr.n)+'</span>':'')+'</div></article>';
           }).join('')+'</div></section>';
     }).join('');
     var fr7=FRAGS.filter(function(f){ return fragAbierto(f); }).length;

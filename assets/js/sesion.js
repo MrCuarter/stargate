@@ -315,7 +315,7 @@
     return {k:'hasta', sec:'cierre', rot:fin?'Tras la batalla':'Hasta pronto', montar:conRetrato(null), html:
       '<div class="dia hasta-pronto con-fondo'+(fin?' fin-viaje':'')+'"><div class="dia-fondo" style="background-image:url(\'assets/img/pres/'+(fin?'flotas':'perfil_en_vuelo')+'.webp\')" aria-hidden="true"></div>'+cmdCuerpo('saludo')+'<div class="hp-txt">'
       +(fin?'<h2>Vuelve después de la batalla para ver el desenlace</h2>'
-           +'<p class="sub">Cuando acabe el viaje, el último fragmento se abre en tu Nave, en El Archivo.</p>'
+           +'<p class="sub">Cuando acabe el viaje se abren en tu Nave, en El Archivo, <b>la batalla de la Ciudadela Gris</b> y, detrás, el último fragmento.</p>'
            :'<h2>Hasta la próxima, recluta</h2>')+'</div></div>'};
   }
   /**
@@ -1525,7 +1525,9 @@
   }
   function construir(s, n){
     if(esEmbarque(s)) return construirEmbarque(s, n);
-    var vids=s.videos||[], deTipo=function(t){ return vids.filter(function(v){ return tipoVideo(v)===t; }); };
+    // 24-sep · el desenlace («La batalla de la Ciudadela Gris») no se proyecta: se abre en la Nave de cada cual tras la batalla
+    var TB=(window.SG_TRAS_BATALLA||[]).map(function(x){ return x.id; });
+    var vids=(s.videos||[]).filter(function(v){ return TB.indexOf((v[0]||{}).id)<0; }), deTipo=function(t){ return vids.filter(function(v){ return tipoVideo(v)===t; }); };
     // `t` dice en qué tiempo de la clase va cada diapositiva: 'ap' antes de la presentación,
     // 'ci' después. Es lo único que hace falta para poder pegar el embed dos veces.
     // 24-sep · Norberto: «cambia el orden: 1) Portada 2) Llamada a filas 3) La pregunta» (en las semanas 1 y 2, «Únete»

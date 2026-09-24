@@ -1486,6 +1486,13 @@ const REG = {};   // cifras que se apuntan para el informe
       const arch = JSON.parse(await nora10.js("JSON.stringify({juega:!!document.querySelector('.archivo [data-video=\"LZTeVGnbPDo\"]'), futuros:[].slice.call(document.querySelectorAll('.ar-sem.futura .frag-tapa > b')).map(function(b){return b.textContent})})"));
       c("   y en El Archivo, tampoco se reproduce; y los de semanas que no han llegado no dicen de quién son", !arch.juega && arch.futuros.every(t => t === "???"), JSON.stringify(arch));
       await nora10.foto(FOTOS + "/19-archivo-candados.png");
+      // 🔴 24-sep · el desenlace («La batalla de la Ciudadela Gris»): en la semana 15 ya está en El Archivo, pero con candado
+      // hasta que acaba el viaje (tras la batalla), justo antes del Fragmento Prohibido
+      await nora10.ir("recluta.html?per=lab-clase&semana=15"); await nora10.hasta("document.querySelectorAll('.nb-t').length>0", 25);
+      await nora10.js("var x=document.querySelector('#nave-onboard .tour-exit'); if(x) x.click(); var t=document.querySelector('.nb-t[data-tab=\"archivo\"]'); if(t) t.click(); 1"); await dormir(900);
+      const des = JSON.parse(await nora10.js("JSON.stringify({juega:!!document.querySelector('.archivo [data-video=\"7z3cAg-7Kow\"]'), tapas:[].slice.call(document.querySelectorAll('.archivo .ar-sem:last-of-type .frag-tapa')).map(function(t){return t.textContent})})"));
+      c("🔴 desenlace · en la semana 15, «La batalla de la Ciudadela Gris» sale con candado: se abre tras la batalla",
+        !des.juega && des.tapas.some(t => /Ciudadela Gris/.test(t) && /después de la batalla/.test(t)), JSON.stringify(des));
     }
 
     // ============================================================ 20 · LA NAVE DEL COMANDANTE (simulacro)

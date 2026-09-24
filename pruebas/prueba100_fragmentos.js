@@ -75,6 +75,23 @@ c(/iconoTab\(k\)\{ return '<img class="i" src="assets\/img\/nave\/iconos\/'\+k\+
 c(/window\.SG\.VISOR=\{ abrir: visorAbrir/.test(B) && /window\.SG\.foroParrafos = function/.test(B),
   "   y el visor y los párrafos del foro viven en su plantilla (JS_TEMPLATE), no en el fichero generado");
 
+// ── 🔴 24-sep · EL DESENLACE. Norberto: «coincido con tu propuesta» — «La batalla de la Ciudadela Gris», tras la batalla,
+// en la Nave, antes del Fragmento Prohibido (y fuera del «privado» de YouTube: oculto, como el resto de la serie)
+const TB = JSON.parse((H.match(/window\.SG_TRAS_BATALLA=(\[[\s\S]*?\]);/) || [])[1] || "[]");
+const f9 = FR.filter(f => !f.reto)[0] || {};
+c(TB.length === 1 && TB[0].id === "7z3cAg-7Kow" && TB[0].desenlace && !TB[0].reto, "🔴 el desenlace viaja con la Nave (SG_TRAS_BATALLA), sin reto", JSON.stringify(TB));
+c(TB[0] && TB[0].publica === f9.publica, "   y se abre cuando el Fragmento Prohibido: tras la batalla", (TB[0] || {}).publica + " vs " + f9.publica);
+c(!FR.some(f => f.id === "7z3cAg-7Kow"), "   no cuenta como fragmento (el marcador sigue siendo «N de " + FR.length + "»)");
+const s15 = (JSON.parse((H.match(/window\.SG_SEMANAS=(\[[\s\S]*?\]);window\./) || [])[1] || "[]").filter(x => x.sem === 15)[0] || {}).videos || [];
+const ids15 = s15.map(v => (v[0] || {}).id);
+c(ids15.indexOf("7z3cAg-7Kow") >= 0 && ids15.indexOf("7z3cAg-7Kow") === ids15.indexOf(f9.id) - 1, "🔴 en la semana 15, justo antes del Fragmento Prohibido", JSON.stringify(ids15));
+c(/var TRAS=\(window\.SG_TRAS_BATALLA\|\|\[\]\)/.test(REC) && /for\(var j=0;j<TRAS\.length;j\+\+\) if\(TRAS\[j\]\.id===id\) return TRAS\[j\]/.test(REC),
+  "   la Nave lo cierra con el mismo candado que los fragmentos (El Archivo, el visor y el mapa)");
+c(/fr\.desenlace\?'El desenlace'/.test(REC), "   y en El Archivo se llama «El desenlace», no «Fragmento undefined»");
+c(/TB\.indexOf\(\(v\[0\]\|\|\{\}\)\.id\)<0/.test(SES) && /la batalla de la Ciudadela Gris<\/b> y, detrás, el último fragmento/.test(SES),
+  "🔴 la sesión no lo proyecta, y la última diapositiva dice que se abre en la Nave");
+c(/window\.SG_TRAS_BATALLA=/.test(leer("sesion.html")), "   (la sesión recibe la lista para quitarlo)");
+
 console.log("\n  Batería 100 · los fragmentos se ganan, y El Archivo (20-sep)");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

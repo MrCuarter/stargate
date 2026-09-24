@@ -37,6 +37,9 @@ V = {
  "finale": ("-QH2gsjl5VA", "T8 Liminar · FINALE — La verdad de la Cero"),
  "plan": ("8nR6SKpy3TI", "Plan de Ataque (el examen)"),
  "f9": ("ZfBQYGolFnA", "Fragmento 9 · El Fragmento Prohibido"),
+ # 24-sep · retirado el 20-jul y rescatado: la batalla del examen, contada. Es el DESENLACE: se abre en la Nave de cada
+ # cual tras la batalla (como el Fragmento Prohibido, y justo antes que él). Oculto en YouTube, como el resto de la serie
+ "desenlace": ("7z3cAg-7Kow", "El desenlace · La batalla de la Ciudadela Gris"),
 }
 
 def yt(clave):
@@ -175,10 +178,12 @@ CRONO = [
       # 24-sep · la última semana, solo el plan de ataque. El Fragmento Prohibido (el epílogo de Vaeon, que empieza «La
       # batalla terminó… Ganamos») NO se proyecta: se abre en la Nave de todos cuando acaba el viaje, tras el examen.
       videos=[("plan","El Capitán presenta el examen: la batalla ES el examen"),
-              ("f9","Tras la batalla (el examen): el desenlace, en la Nave de cada cual cuando acaba el viaje")],
+              # 24-sep · Norberto: «coincido con tu propuesta» — el desenlace tras la batalla, en la Nave, antes del Fragmento Prohibido
+              ("desenlace","Tras la batalla (el examen): cómo se ganó, en la Nave de cada cual cuando acaba el viaje"),
+              ("f9","Y detrás, el último secreto de la Cero: se abre con el desenlace")],
       lanza=["Reto «El simulacro del examen» (90 minutos de reloj, en la clase de repaso)"], insignias=["H5_la-liberacion"],
       hito="Repaso + simulacro del examen · Bitácoras publicadas", clases="Clases 19–20",
-      consejo="Celebra las Bitácoras publicadas: son el producto real del curso. Despídete con «Vuelve después de la batalla para ver el desenlace»: el Fragmento Prohibido se abre en su Nave cuando acaba el viaje."),
+      consejo="Celebra las Bitácoras publicadas: son el producto real del curso. Despídete con «Vuelve después de la batalla para ver el desenlace»: cuando acaba el viaje se abren en su Nave «La batalla de la Ciudadela Gris» y, detrás, el Fragmento Prohibido."),
 ]
 
 # ---------- Plantilla Genially del ePortfolio (la Bitácora) ----------
