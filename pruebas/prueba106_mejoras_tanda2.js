@@ -54,7 +54,7 @@ c(/window\.SG\.rotulo\(/.test(CONS) && /fc-firma-r/.test(CONS), "   la carta del
 c(/avatares:\s*S\.avatares \|\| \{\}/.test(L("motor/tablero.js")), "   el alumnado ve el comandante de su docente (viaja en el tablero del grupo)");
 
 // ── 13 · «La orden de la semana» = la misma carta
-c(/class="card orden-sem orden-carta"/.test(REC) && /window\.SG\.rotulo\(/.test(REC), "🔴 la orden de la semana del recluta: la misma carta épica, con su rótulo");
+c(/class="card orden-sem orden-carta/.test(REC) && /window\.SG\.rotulo\(/.test(REC), "🔴 la orden de la semana del recluta: la misma carta épica, con su rótulo");
 c(/window\.SG\.foroParrafos\(/.test(REC), "   y el mismo lector del mensaje (nada de un parser propio)");
 
 // ── 14 · la ficha del recluta arriba, a todo el ancho, con NEBULA a medida y la carrera inmediata

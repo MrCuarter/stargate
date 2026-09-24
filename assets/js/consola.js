@@ -295,8 +295,10 @@
     var N = gente ? gente.length : 0;
     var prog = function (r) { if (!gente) return null; var n = gente.filter(function (x) { return (x.hechos || []).indexOf(r.id) >= 0; }).length;
       return { n: n, N: N, pct: N ? Math.round(n * 100 / N) : 0 }; };
+    var ant = sem > 1 ? semanaDe(S, sem - 1) : null, primera = !!(Number(s.tema_n) && (!ant || Number(ant.tema_n) !== Number(s.tema_n)));
+    var F = window.SG.fondoSemana ? window.SG.fondoSemana(pl && pl.clave, primera) : null;
     return '<section class="ht">' +
-      '<div class="ht-cab">' + (pl ? '<img class="ht-planeta" src="assets/img/planetas/' + esc(pl.clave) + '.png" alt="" loading="lazy">' : '') +
+      '<div class="ht-cab' + (F ? ' con-fondo-pl' : '') + '">' + (F ? '<div class="fondo-pl" style="background-image:url(\'' + esc(F.img) + '\')" aria-hidden="true"></div>' : '') + (pl ? '<img class="ht-planeta" src="assets/img/planetas/' + esc(pl.clave) + '.png" alt="" loading="lazy">' : '') +
         '<div><div class="eyebrow teal">Hoy toca · semana ' + sem + (fechas ? ' · ' + esc(fechas) : '') + (s.clases ? ' · ' + esc(s.clases) : '') + '</div>' +
         '<h3>' + esc(s.tema) + '</h3><p class="small muted">' + esc(s.sub || "") + (s.capitulo ? ' · capítulo «' + esc(s.capitulo) + '»' : '') + '</p></div></div>' +
       (cal.length ? '<ul class="ht-cal">' + cal.map(function (x) { return '<li>' + ico(x[0]) + ' ' + esc(x[1]) + '</li>'; }).join("") + '</ul>' : '') +

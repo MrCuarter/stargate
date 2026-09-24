@@ -88,7 +88,7 @@
       claves: ["material audiovisual", "audiovisual", "recursos", "material", "videos de la serie", "insignias", "cromos", "laminas", "fondos", "imagenes", "personajes", "kit", "paquete", "drive"],
       x: function () {
         return '<p><a class="btn" href="recursos.html"><img class=ico src=assets/img/iconos/p/botin.png alt> Recursos audiovisuales</a> <a class="btn min" href="cronologia.html"><img class=ico src=assets/img/iconos/p/calendario.png alt> Qué vídeo toca cada semana</a></p>'
-          + '<p>En Recursos están los 17 vídeos de la serie, las 24 insignias, los cromos y las láminas: para proyectar, para el aula virtual o para tus materiales. '
+          + '<p>En Recursos están los vídeos de la serie, las insignias, los cromos y las láminas: para proyectar, para el aula virtual o para tus materiales. '
           + 'Para montar Geniallys (fondos por planeta, clips, personajes recortados, HUD, iconos, insignias y cartas) está el paquete del equipo en Drive, '
           + '<b>DRIVE_EQUIPO_STARGATE</b>' + (window.SG_DRIVE_EQUIPO ? ': <a href="' + esc(window.SG_DRIVE_EQUIPO) + '" target="_blank" rel="noopener">ábrelo ↗</a>' : '')
           + '. Se comparte en solo lectura con cada docente del equipo (en un día, como mucho); si te pide acceso, pídeselo a tu referente.</p>';

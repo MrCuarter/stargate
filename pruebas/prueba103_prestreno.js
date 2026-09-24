@@ -32,7 +32,11 @@ const dato = n => {
 // ── 1 · existe, está tras la puerta del profesorado y no se enlaza al alumnado
 c(fs.existsSync(path.join(R, "prestreno.html")), "🔴 la presentación del equipo existe (prestreno.html)");
 c(/assets\/js\/puerta\.js/.test(HTML), "   y va tras la puerta del profesorado");
-c(/Solo referentes/.test(HTML), "   dice a quién es: solo referentes");
+// 24-sep · ya no es solo del referente: todo el profesorado la tiene en la Guía, arriba, como resumen
+c(/Para el equipo docente/.test(HTML), "   dice a quién es: el equipo docente");
+const GUIAH = L("guia.html");
+c(/id="presentacion"/.test(GUIAH) && /<iframe src="prestreno\.html\?embed=1"/.test(GUIAH) && /href="#presentacion"/.test(GUIAH),
+  "🔴 24-sep · y está embebida en la Guía, arriba, con su entrada en el índice (Norberto: «por si la quieren volver a revisar»)");
 const enAlumnado = ["recluta.html", "alistarse.html", "index.html"].filter(f => /prestreno\.html/.test(L(f)));
 c(!enAlumnado.length, "🔴 no se enlaza desde ninguna página del alumnado", enAlumnado.join(", "));
 
@@ -109,6 +113,7 @@ const pintar = new Function(`
   var window = { SG_PLANTILLA_EP: ${JSON.stringify(dato("SG_PLANTILLA_EP") || "")},
                  SG_ACTIVIDADES: ${JSON.stringify(dato("SG_ACTIVIDADES") || [])} };
   ${trozo("var esc = function", "var $ =")}
+  ${trozo("var PRE = window", "function portada()")}
   ${trozo("function nombres()", "function mapa()")}
   ${trozo("function capitulos()", "function comoSeGana()")}
   return { capitulos: capitulos, nombres: nombres, bitacora: bitacora, CAPS: CAPS, A: window.SG_ACTIVIDADES, PL: window.SG_PLANTILLA_EP };
@@ -128,12 +133,12 @@ const nom = pintar.nombres().html;
 // 🔴 23-sep · Norberto: «Capitán de la Nave (es nuestro personaje), Comandante STARGATE (el docente de cada grupo)»
 c(/<b>Capitán de la Nave<\/b>/.test(nom) && /img\/capitan\//.test(nom) && !/Capitán[^<]*eres tú/.test(nom),
   "🔴 el Capitán de la Nave es el personaje de la serie, no el docente");
-c(/<b>Comandante STARGATE · eres tú<\/b>/.test(nom) && /comandantes\/recorte_hd\//.test(nom) && /Nave del Comandante/.test(nom),
+c(/<b>Comandante STARGATE · (eres tú|sois vosotros)<\/b>/.test(nom) && /comandantes\/recorte_hd\//.test(nom) && /Nave del Comandante/.test(nom),
   "🔴 y la cuarta tarjeta es el Comandante STARGATE: el docente, con su avatar");
 c((nom.match(/<figure class="pr-c/g) || []).length === 4 && !/La Bitácora Estelar<\/b>/.test(nom), "   cuatro tarjetas, y la Bitácora no es una de ellas");
 
 const bit = pintar.bitacora().html;
-c(/bitacora\(\), mapa\(\)/.test(JS), "🔴 la Bitácora tiene diapositiva propia, detrás de los tres nombres");
+c(/function bitacora2\(\)/.test(JS) && /bitacora2\(\)/.test(JS.slice(JS.indexOf("function mazo()"))), "🔴 la Bitácora tiene diapositiva propia (con su sala de fondo)");
 c(/evidencia/.test(bit) && /contexto/.test(bit) && /reflexión/.test(bit) && /autoevaluación/.test(bit),
   "   con el patrón de cada página: evidencia, contexto, reflexión y autoevaluación");
 c(pintar.A.every(a => bit.indexOf(a.titulo) > 0) && /Tres hazañas más/.test(bit),
@@ -142,6 +147,28 @@ c(!!pintar.PL && bit.indexOf(pintar.PL) > 0 && /Abrir la plantilla en Genially/.
   "🔴 y enlaza con la plantilla de Genially", pintar.PL);
 c(/\.pr-bit2\{/.test(CSS) && /\.pr-c figcaption > b\{/.test(CSS),
   "   con su estilo — y la negrita de dentro de una tarjeta ya no se convierte en titular");
+
+// ── 6 quinquies · 🔴 24-sep · QUE ENAMORE. Norberto: «más visual… la portada empieza muy directa: dales la bienvenida,
+// diles que son los nuevos comandantes… el Capitán como hilo y NEBULA para complementar… una diapositiva a un reto
+// completo, con su ficha e insignia… el material, los héroes, los avatares de los docentes, los sobres… el sorteo…
+// subir la nota… el simulador de Joran, es caviar… y un personaje diciendo: sé que son muchas cosas, no os preocupéis».
+const MAZO = JS.slice(JS.indexOf("function mazo()"), JS.indexOf("// ───", JS.indexOf("function mazo()")));
+[["portada", "la portada da la bienvenida"], ["encargo", "el encargo: predicar con el ejemplo sin tiempo extra"],
+ ["comandantes", "los avatares del profesorado"], ["material", "el material ya hecho"], ["unReto", "un reto entero"],
+ ["heroes", "los héroes de la Rebelión"], ["cromos", "los sobres y el Zoco"], ["simulador", "el Simulador de Joran"],
+ ["sorteo", "el Gran Sorteo"], ["nota", "subir la nota, al final"], ["tranquilos", "«poco a poco»"]].forEach(function (x) {
+  c(new RegExp("\\b" + x[0] + "\\(\\)").test(MAZO), "   en el mazo: " + x[1]);
+});
+c(/Bienvenidos a bordo, <em>Comandantes<\/em>/.test(JS), "🔴 la portada no empieza directa: bienvenida a los nuevos Comandantes");
+c(/Sé que son muchas cosas/.test(JS), "🔴 el Capitán tranquiliza: la nave se enciende poco a poco");
+c(/window\.SG_PRESENTA=\{/.test(HTML) && /SG_PRESENTA/.test(JS), "   las cifras, los precios y el reto de ejemplo salen del build (SG_PRESENTA), no escritos a mano");
+// cada imagen de escena que nombra la presentación existe de verdad
+const imgs = Array.from(new Set((JS.match(/assets\/img\/[a-z_\/]+\.(?:webp|png|jpg)|"[a-z_]+\.webp"/g) || [])
+  .map(x => x.replace(/"/g, "")).map(x => x.indexOf("/") < 0 ? "assets/img/pres/" + x : x)));
+const faltan = imgs.filter(x => !fs.existsSync(path.join(R, x)));
+c(imgs.length > 15 && !faltan.length, "🔴 las " + imgs.length + " imágenes fijas de las escenas están en la web", faltan.join(", "));
+c(/assets\/video\/' \+ esc\(p\[0\]\) \+ '_llegada\.mp4/.test(JS) && fs.existsSync(path.join(R, "assets/video/p1_forge_llegada.mp4")),
+  "   y el mapa: al pulsar un planeta, la nave se posa en él (el clip de KIT_STARGATE)");
 
 // ── 7 · y el guion está en la guía, no duplicado aquí
 const GUIA = fs.readFileSync(path.join(R, "..", "GUIA_PROFES_PDF.md"), "utf8");

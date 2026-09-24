@@ -377,6 +377,41 @@ window.SG.foroAbordo = function (reclutas, comandante, ahora) {
   return lineas.length ? 'A BORDO ESTA SEMANA\n' + lineas.join('\n') : '';
 };
 /** Mete el bloque de `SG.foroAbordo` en el mensaje, justo antes de la firma (o al final, si no la tiene). */
+/**
+ * 🔴 24-sep · EL FONDO DE UNA SEMANA, EN UN SITIO. Norberto: «tenemos muchísimas imágenes generadas y no las estamos
+ * explotando… muchas se convirtieron en vídeo… (sin sobrecargar, solo cuando enriquezca)». La biblioteca es KIT_STARGATE:
+ * seis fondos y tres clips por planeta. De ahí salen, comprimidos, `assets/img/fondos/<planeta>[_llegada].webp` (la
+ * superficie; la nave aterrizada) y `assets/video/<planeta>_{llegada,espacio}.mp4` (la nave posándose; el planeta girando).
+ * La primera semana de cada tema es la de la LLEGADA; las demás, la superficie. Sin planeta de tema (la 15, la Estática),
+ * las flotas. Lo usan la sesión (portada, pregunta, retos), la Nave del recluta (la orden) y la del Comandante («Hoy toca»).
+ */
+window.SG.fondoSemana = function (clave, primera) {
+  if (!clave || !/^p[1-8]_/.test(clave)) return { img: 'assets/img/pres/flotas.webp', clip: '' };
+  return { img: 'assets/img/fondos/' + clave + (primera ? '_llegada' : '') + '.webp',
+           clip: 'assets/video/' + clave + (primera ? '_llegada' : '_espacio') + '.mp4' };
+};
+/**
+ * Los clips de fondo de la web (`video.fondo-pl-v`, la nave posándose en la orden de la semana): se cargan cuando
+ * aparecen, se reproducen UNA vez por visita y se quedan en su último fotograma, que es la imagen de fondo. Sin
+ * movimiento si el sistema lo pide. Con un observador, para no tener que acordarse de llamarlo en cada pintado.
+ */
+(function () {
+  if (!window.MutationObserver || !document.body) return;
+  var quieto = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function arranca(v) {
+    var src = v.getAttribute('data-src'); if (!src || v.getAttribute('src')) return;
+    var k = 'sg-clip:' + src, visto = false;
+    try { visto = !!sessionStorage.getItem(k); } catch (e) {}
+    if (quieto || visto) { v.remove(); return; }
+    v.addEventListener('playing', function () { v.classList.add('on'); try { sessionStorage.setItem(k, '1'); } catch (e) {} }, { once: true });
+    v.setAttribute('src', src);
+    var p = v.play(); if (p && p.catch) p.catch(function () { v.remove(); });
+  }
+  function barre(n) { if (n.querySelectorAll) Array.prototype.forEach.call(n.querySelectorAll('video.fondo-pl-v[data-src]'), arranca); }
+  new MutationObserver(function (ms) { ms.forEach(function (m) { Array.prototype.forEach.call(m.addedNodes, function (n) { if (n.nodeType === 1) barre(n); }); }); })
+    .observe(document.body, { childList: true, subtree: true });
+  barre(document);
+})();
 window.SG.foroConAbordo = function (txt, bloque) {
   txt = String(txt == null ? '' : txt);
   if (!bloque) return txt;

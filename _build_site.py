@@ -166,6 +166,8 @@ HITO=[("H1_reclutamiento","Reclutamiento","Aceptas la misión (Sem. 1)"),
 ("H5_la-liberacion","La Liberación","Completas y publicas la Bitácora"),
 ("H6_mano-rapida","Mano rápida","Cinco relámpagos de los ocho planetas"),
 ("H7_listo-para-la-batalla","Listo para la batalla","Superas el simulacro del examen")]
+# 24-sep · cuántas insignias y cuántos vídeos hay: se CUENTAN (decían «24» y «17» en varias páginas; hoy son más)
+N_INSIGNIAS = len(PERS) + len(ESP) + len(RETO) + len(HITO)
 CARDS=[c[0] for c in CROMOS]                       # el álbum manda: 26 cartas en 5 series
 SERIE_DE={c[0]:c[2] for c in CROMOS}
 NOMBRE_CROMO={c[0]:c[1] for c in CROMOS}
@@ -284,7 +286,7 @@ tiles = [
  ("recluta.html?per=demo-stargate&amp;demo=1","<img class=ico src=assets/img/iconos/p/cohete.png alt>","La Nave del Recluta","Así la ve tu alumnado: su ficha, la orden de la semana, los retos, el álbum y el Mercado. Ábrela en modo demostración."),
  ("tickets.html","<img class=ico src=assets/img/iconos/p/ticket.png alt>","Tickets de salida","Valoraciones y dudas anónimas del alumnado, por tema y por clase."),
  ("panel.html","<img class=ico src=assets/img/iconos/p/varios.png alt>","Panel de control","El mapa de los ocho planetas sobre el universo: cada uno lleva a la presentación de su tema."),
- ("recursos.html","<img class=ico src=assets/img/iconos/p/botin.png alt>","Sala de recursos","Las 24 insignias, los cromos y los materiales."),
+ ("recursos.html","<img class=ico src=assets/img/iconos/p/botin.png alt>","Sala de recursos",f"Las {N_INSIGNIAS} insignias, los cromos y los materiales."),
  ("crear.html","<img class=ico src=assets/img/iconos/p/estrella.png alt>","Crear un grupo","Solo referentes: siembra un grupo entero —retos, planetas, tienda y álbum— en un minuto."),
 ]
 # 🔴 Las cifras del proceso se CUENTAN del disco, no se escriben a mano: si mañana hay tres planos
@@ -649,13 +651,20 @@ AVERIAS = [
 ]
 
 
+# 24-sep · LA CERO, CON CARA. Las insignias de personaje son dibujos; los ocho tienen además su retrato de cine (el del
+# casting, KIT de la serie: assets/img/tripulacion), que es la cara que ven en la página del tripulante de la sesión.
+# Aquí, en una tira, encima de sus insignias: nombre, oficio y planeta. Los datos, de TRIPULANTES y PLANETAS.
+_CERO_ROSTROS = "".join(
+    f'<figure><img loading="lazy" src="assets/img/tripulacion/{k}.webp" alt="{v[0]}">'
+    f'<figcaption><b>{v[0]}</b><span>{v[1]} · {PLANETAS[int(k[1]) - 1][1]}</span></figcaption></figure>'
+    for k, v in TRIPULANTES.items())
 GUIA = head("STARGATE · Guía para el profesorado",
   "La gamificación STARGATE: narrativa, personajes, retos e insignias, la Bitácora y cómo dinamizarla en clase.","guia", puerta=True) + f'''
-<header class="hero"><div class="kicker">Guía para el profesorado</div>
+<header class="hero con-imagen"><div class="hero-img" style="background-image:url('assets/img/pres/puente.webp')" aria-hidden="true"></div><div class="kicker">Guía para el profesorado</div>
 <h1>La guía</h1>
 <p>La capa narrativa que convierte la asignatura en una misión: cruzar ocho planetas y construir una
 <b>Bitácora</b> —el ePortfolio— tan viva que reencienda lo que la Estática apaga.</p>
-<p style="margin-top:18px"><span class="pill">8 planetas = 8 temas</span><span class="pill">24 insignias</span><span class="pill">26 cromos coleccionables</span><span class="pill">2 actividades + ePortfolio</span></p>
+<p style="margin-top:18px"><span class="pill">8 planetas = 8 temas</span><span class="pill">{N_INSIGNIAS} insignias</span><span class="pill">{len(CROMOS)} cromos coleccionables</span><span class="pill">2 actividades + ePortfolio</span></p>
 </header>
 
 <!-- 🔴 SUBMENÚ DE LA GUÍA. Petición de Norberto: «al abrir la guía añade un submenú con secciones
@@ -663,6 +672,7 @@ GUIA = head("STARGATE · Guía para el profesorado",
      rueda de ratón. Se pega arriba al hacer scroll: el índice de un documento largo que desaparece
      al bajar no es un índice, es una portada. -->
 <nav class="guia-sub" aria-label="Secciones de la guía"><div class="wrap">
+  <a href="#presentacion">En una presentación</a>
   <a href="#que">Visión general</a>
   <a href="cronologia.html">Cronología</a>
   <a href="actividades.html">Actividades</a>
@@ -677,6 +687,19 @@ GUIA = head("STARGATE · Guía para el profesorado",
   <a href="#faq">Dudas</a>
   <a href="guia-recluta.html">La guía de tu alumnado →</a>
 </div></nav>
+
+<!-- 🔴 24-sep · LA PRESENTACIÓN, AQUÍ, COMO RESUMEN. Norberto: «esa presentación también debe estar disponible para ellos
+     (por si la quieren volver a revisar) en algún sitio de su nave (no en la primera página), quizá embebida en la página
+     de Guía a modo de resumen». Es la misma que se proyecta en la reunión de arranque (prestreno.html), en su ventana
+     limpia (?embed=1): se pasa con las flechas sin salir de la Guía, y el botón la abre a pantalla completa. -->
+<section id="presentacion" class="guia-pres"><div class="wrap">
+<div class="eyebrow">El curso en una presentación</div><h2>Veinte minutos para tenerlo entero</h2>
+<p class="lead">La presentación de la reunión de arranque: la historia, el material, un reto de principio a fin, cómo se
+gana, qué hacéis vosotros y —sobre todo— lo que no. Para verla otra vez, o para enseñársela a quien llegue tarde.</p>
+<div class="gpres-marco"><iframe src="prestreno.html?embed=1" title="La presentación de STARGATE" loading="lazy" allow="fullscreen"></iframe></div>
+<p class="gpres-pie"><a class="btn" href="prestreno.html?embed=1" target="_blank" rel="noopener">Abrirla en su ventana &#8599;</a>
+<span class="small muted">Pasa con <b>←</b> y <b>→</b> (pulsa antes dentro) · la barra de abajo salta a cualquier diapositiva</span></p>
+</div></section>
 
 <section id="que"><div class="wrap">
 <div class="eyebrow">La premisa</div><h2>Qué es STARGATE</h2>
@@ -706,6 +729,7 @@ documentado <b>recupera un fragmento</b> de quién fue. El <b>Capitán de la Nav
 <h3 style="margin-top:1.2em">La Tripulación Cero — 8 personajes que se recuperan</h3>
 <p class="lead">Cada tripulante encarna la <b>lección</b> de su tema. Al hacer el <b>relámpago</b> del planeta (en clase) se
 desbloquea su fragmento-vídeo y su <b>insignia de personaje</b>. Pulsa cada insignia para ver el reto.</p>
+<div class="cero-rostros">{_CERO_ROSTROS}</div>
 <div class="badges">{pers_html}</div>
 <h3 style="margin-top:1.8em">Personajes especiales</h3>
 <div class="badges">{esp_html}</div>
@@ -760,10 +784,10 @@ que selló bajo llave fue el suyo</b>; hoy solo le queda el apellido y un rango.
 general: una costumbre que se contagia. Donde entra, nadie crea, registra ni comparte, y en dos generaciones un
 mundo olvida lo que sabía hacer.</p></div>
 </div>
-<h3 style="margin-top:1.8em">El álbum completo — 26 cartas en 5 series</h3>
+<h3 style="margin-top:1.8em">El álbum completo — {len(CROMOS)} cartas en {len(set(c[2] for c in CROMOS))} series</h3>
 <p class="lead">Cada carta trae retrato, historia breve, clase, atributos y cita. Regla de oro, y conviene
 decirla en clase: <b>la insignia se gana, el cromo se compra</b>. El relámpago da la <b>insignia</b> del
-tripulante; las <b>26 cartas del álbum salen únicamente de los sobres</b> (15 ◈, desde la semana 2), al azar
+tripulante; las <b>{len(CROMOS)} cartas del álbum salen únicamente de los sobres</b> (15 ◈, desde la semana 2), al azar
 y con rarezas: comunes los ocho tripulantes, raros los Ecos, NEBULA y
 el Capitán, épicos el Recluta y la Estática, y <b>LEGENDARIOS el General Vaeon</b> (2 % del sobre) y sobre todo
 <b>Ander Vaeon</b>, la carta de la identidad del villano: <b>1 de cada 100</b>, la más difícil del juego.
@@ -771,7 +795,7 @@ Pulsa cualquiera para ampliar.</p>
 {cards_series_html}
 </div></section>
 
-<section id="bit"><div class="wrap">
+<section id="bit" class="con-fondo-sec"><div class="sec-fondo" style="background-image:url('assets/img/pres/sala_bitacora.webp')" aria-hidden="true"></div><div class="wrap">
 <div class="eyebrow">El corazón del sistema</div><h2>La Bitácora = el ePortfolio</h2>
 <p class="lead">Todo converge en la Bitácora. Se presenta en la <b>semana 1</b> (vídeo «La Bitácora»), se enseña formalmente
 en el <b>Tema 5</b> y se va llenando durante todo el viaje. Cada página se escribe con el mismo pulso:</p>
@@ -903,7 +927,7 @@ referente: son carpetas compartidas con el equipo docente, no públicas.</p>
   el tuyo, duplica uno y pégalo en tu Nave → <b>Tu panel de control</b> (con Mando manual).</p></a>
 <a class="card enl" href="recursos.html">
   <span class="enl-ico"><img class=ico src=assets/img/iconos/p/botin.png alt></span><h3>Recursos audiovisuales</h3>
-  <p>Los 17 vídeos de la serie, las 24 insignias, los cromos y las láminas. Para proyectar, para el
+  <p>Los {len(V)} vídeos de la serie, las {N_INSIGNIAS} insignias, los cromos y las láminas. Para proyectar, para el
   aula virtual o para tus propios materiales.</p></a>
 <a class="card enl" href="cronologia.html">
   <span class="enl-ico"><img class=ico src=assets/img/iconos/p/calendario.png alt></span><h3>La cronología</h3>
@@ -1061,7 +1085,7 @@ _gr_reflex_li = (f'<li>En algunos retos ({_gr_reflex}) se escribe además <b>una
 GUIA_RECLUTA = head("STARGATE · Guía del recluta",
   "Cómo funciona tu Nave de STARGATE: alistarte, los retos, la Bitácora, tu nota, los niveles, el Mercado y el Zoco, paso a paso.",
   "guiarec", puerta="sesion", alumno=True) + f'''
-<header class="hero"><div class="kicker">Guía del recluta</div>
+<header class="hero con-imagen"><div class="hero-img" style="background-image:url('assets/img/pres/perfil_en_vuelo.webp')" aria-hidden="true"></div><div class="kicker">Guía del recluta</div>
 <h1>Cómo funciona tu Nave</h1>
 <p>Todo lo que necesitas para el viaje, en el orden en que lo vas a necesitar: cómo se entra, qué hay en cada
 pestaña, cómo se registra un reto, qué cuenta para tu nota y en qué se gastan los créditos.</p>
@@ -1241,7 +1265,7 @@ Si pierdes, vuelves a intentarlo; al ganar, el entrenamiento se queda en tu Nave
 
 ACT = head("STARGATE · Actividades y evaluación",
   "Las misiones (actividades), el ePortfolio, la evaluación, el examen y los documentos oficiales de la asignatura con su marco narrativo STARGATE.","act", puerta=True) + f'''
-<header class="hero"><div class="kicker">Documentos oficiales</div>
+<header class="hero con-imagen"><div class="hero-img" style="background-image:url('assets/img/pres/mesa_plan.webp')" aria-hidden="true"></div><div class="kicker">Documentos oficiales</div>
 <h1>Misiones y evaluación</h1>
 <p>Las dos actividades mayores, el ePortfolio (la Bitácora), cómo se evalúa la asignatura y el examen —con su
 marco narrativo STARGATE—. Los requisitos provienen de los enunciados y la guía oficiales (programación nueva).</p>
@@ -1308,16 +1332,16 @@ else:
         'El enlace se añadirá aquí en cuanto esté publicado.</p>')
 
 REC = head("STARGATE · Sala de recursos",
-  "Tablero de las 24 insignias, ranking de reclutas y materiales del proyecto STARGATE.","rec", puerta=True) + f'''
-<header class="hero"><div class="kicker">Sala de recursos</div>
+  f"Tablero de las {N_INSIGNIAS} insignias, ranking de reclutas y materiales del proyecto STARGATE.","rec", puerta=True) + f'''
+<header class="hero con-imagen"><div class="hero-img" style="background-image:url('assets/img/pres/material_fondos.webp')" aria-hidden="true"></div><div class="kicker">Sala de recursos</div>
 <h1>Sala de recursos</h1>
-<p>El tablero de las 24 insignias, las cartas y los materiales gráficos. Los vídeos viven en la
+<p>El tablero de las {N_INSIGNIAS} insignias, las cartas y los materiales gráficos. Los vídeos viven en la
 <a href="cronologia.html">cronología</a>.</p>
 </header>
 
 <section><div class="wrap">
 <div class="eyebrow teal">Colección</div><h2>Tablero de insignias</h2>
-<p class="lead">Las 24 insignias que se pueden desbloquear. Pulsa cualquiera para ver cómo se gana.</p>
+<p class="lead">Las {N_INSIGNIAS} insignias que se pueden desbloquear. Pulsa cualquiera para ver cómo se gana.</p>
 <h3>Personajes de la Tripulación Cero</h3><div class="badges">{pers_html}</div>
 <h3 style="margin-top:1.6em">Especiales</h3><div class="badges">{esp_html}</div>
 <h3 style="margin-top:1.6em">Retos</h3><div class="badges">{reto_html}</div>
@@ -1365,6 +1389,15 @@ def mini_badges(keys):
     if not keys: return '<span class="muted">— ninguna esta semana —</span>'
     return "".join(f'<figure class="mini badge" data-key="{k}" title="{BADGE_NAME.get(k,k)}"><img loading="lazy" src="assets/img/insignias/{k}.webp" alt="{BADGE_NAME.get(k,k)}"><figcaption>{BADGE_NAME.get(k,k)}</figcaption></figure>' for k in keys)
 
+def _fondo_semana(s):
+    """24-sep · el mismo criterio que `SG.fondoSemana` (stargate.js): la superficie del planeta; la nave aterrizada, la
+    primera semana del tema; sin tema, las flotas. En Python porque la Cronología se escribe entera en el build."""
+    m = _reS.search(r"Tema (\d)", s["tema"])
+    if not m: return "assets/img/pres/flotas.webp"
+    n = int(m.group(1)); i = CRONO.index(s); ant = CRONO[i - 1] if i else None
+    primera = not ant or f"Tema {n}" not in ant["tema"]
+    return f"assets/img/fondos/{PLANETAS[n - 1][0]}{'_llegada' if primera else ''}.webp"
+
 def semana_card(s):
     sem = s["sem"]
     vids = "".join(f'<div class="yt-item">{ytbox(c, cuando)}</div>' for c, cuando in s["videos"])
@@ -1372,7 +1405,7 @@ def semana_card(s):
     foro = FORO.get(sem, "")
     cap = f'<span class="pill amber">Nuevo capítulo: {s["capitulo"]}</span>' if s.get("capitulo") else ""
     return f'''<details class="semana" id="sem{sem}">
-<summary><span class="num">Semana {sem}</span><span class="ttl"><b>{s["tema"]}</b><em>{s["sub"]}</em></span><span class="meta">{s["clases"]}</span></summary>
+<summary><img class="sem-fondo" src="{_fondo_semana(s)}" alt="" loading="lazy" aria-hidden="true"><span class="num">Semana {sem}</span><span class="ttl"><b>{s["tema"]}</b><em>{s["sub"]}</em></span><span class="meta">{s["clases"]}</span></summary>
 <div class="sem-body">
 {cap}
 <div class="sem-grid">
@@ -1410,7 +1443,7 @@ mapa_html = "\n".join(fila_mapa(s) for s in CRONO)
 
 CRONOLOGIA = head("STARGATE · Cronología semana a semana",
   "Qué vídeo proyectar, qué reto lanzar, qué insignia entregar y el mensaje del foro de cada semana del curso STARGATE.","crono", puerta=True) + f'''
-<header class="hero"><div class="kicker">Carta de navegación</div>
+<header class="hero con-imagen"><div class="hero-img" style="background-image:url('assets/img/pres/galaxia_saber.webp')" aria-hidden="true"></div><div class="kicker">Carta de navegación</div>
 <h1>Cronología</h1>
 <p>Las <b>15 semanas</b> del curso, sin fechas (cambian cada convocatoria): qué vídeo se proyecta, qué reto se lanza, qué
 insignia se entrega, el hito de evaluación y el mensaje para el foro de la plataforma de UNIR, listo para copiar. Después viene la semana 16: el examen.</p>
@@ -1457,7 +1490,7 @@ gen_html = "\n".join(gen_slot(i, g) for i, g in GENIALLYS.items())
 
 GENPAGE = head("STARGATE · Los Geniallys",
   "Los Geniallys de cada planeta del proyecto STARGATE: carpeta del equipo y enlaces por tema.","gen", puerta=True) + f'''
-<header class="hero"><div class="kicker">Un Genially por planeta</div>
+<header class="hero con-imagen"><div class="hero-img" style="background-image:url('assets/img/pres/ocho_mundos.webp')" aria-hidden="true"></div><div class="kicker">Un Genially por planeta</div>
 <h1>Los Geniallys</h1>
 <p>La carpeta de Genially está <b>compartida con todo el profesorado</b>. Entra, busca la carpeta de tu
 <b>perfil</b> y ahí tienes los <b>Geniallys estándar</b> de los ocho temas, listos para usar tal cual.</p>
@@ -1495,12 +1528,12 @@ orden_html = "".join(f'<tr><td>S{s["sem"]}</td><td>{s["tema"]}</td><td><div clas
 
 REGPAGE = head("STARGATE · Registro y tablero en vivo",
   "El sistema de autoregistro de STARGATE: el alumnado registra sus insignias, el tablero se actualiza solo y el profesorado anima y da la ceremonia.","reg", puerta=True) + f'''
-<header class="hero"><div class="kicker">Registro y tablero en vivo</div>
+<header class="hero con-imagen"><div class="hero-img" style="background-image:url('assets/img/pres/sala_bitacora.webp')" aria-hidden="true"></div><div class="kicker">Registro y tablero en vivo</div>
 <h1>Registro de insignias</h1>
 <p>El registro es <b>automático</b>: cada estudiante marca sus propios retos desde <a href="recluta.html?per=demo-stargate&amp;demo=1">su Nave</a>
 y los xp, los rangos y el <b>tablero</b> se calculan solos. Tu papel como docente no es apuntar nada:
 es <b>animar</b> — entregar cada insignia en público, con ceremonia, y enseñar el tablero para que el avance se vea.</p>
-<div class="cta-row"><a class="btn primary" href="#tablero">Ver el tablero en vivo</a><a class="btn" href="recursos.html">Ver las 24 insignias</a></div>
+<div class="cta-row"><a class="btn primary" href="#tablero">Ver el tablero en vivo</a><a class="btn" href="recursos.html">Ver las {N_INSIGNIAS} insignias</a></div>
 </header>
 
 <section id="registro"><div class="wrap">
@@ -2097,6 +2130,41 @@ window.SG.foroAbordo = function (reclutas, comandante, ahora) {
   return lineas.length ? 'A BORDO ESTA SEMANA\n' + lineas.join('\n') : '';
 };
 /** Mete el bloque de `SG.foroAbordo` en el mensaje, justo antes de la firma (o al final, si no la tiene). */
+/**
+ * 🔴 24-sep · EL FONDO DE UNA SEMANA, EN UN SITIO. Norberto: «tenemos muchísimas imágenes generadas y no las estamos
+ * explotando… muchas se convirtieron en vídeo… (sin sobrecargar, solo cuando enriquezca)». La biblioteca es KIT_STARGATE:
+ * seis fondos y tres clips por planeta. De ahí salen, comprimidos, `assets/img/fondos/<planeta>[_llegada].webp` (la
+ * superficie; la nave aterrizada) y `assets/video/<planeta>_{llegada,espacio}.mp4` (la nave posándose; el planeta girando).
+ * La primera semana de cada tema es la de la LLEGADA; las demás, la superficie. Sin planeta de tema (la 15, la Estática),
+ * las flotas. Lo usan la sesión (portada, pregunta, retos), la Nave del recluta (la orden) y la del Comandante («Hoy toca»).
+ */
+window.SG.fondoSemana = function (clave, primera) {
+  if (!clave || !/^p[1-8]_/.test(clave)) return { img: 'assets/img/pres/flotas.webp', clip: '' };
+  return { img: 'assets/img/fondos/' + clave + (primera ? '_llegada' : '') + '.webp',
+           clip: 'assets/video/' + clave + (primera ? '_llegada' : '_espacio') + '.mp4' };
+};
+/**
+ * Los clips de fondo de la web (`video.fondo-pl-v`, la nave posándose en la orden de la semana): se cargan cuando
+ * aparecen, se reproducen UNA vez por visita y se quedan en su último fotograma, que es la imagen de fondo. Sin
+ * movimiento si el sistema lo pide. Con un observador, para no tener que acordarse de llamarlo en cada pintado.
+ */
+(function () {
+  if (!window.MutationObserver || !document.body) return;
+  var quieto = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function arranca(v) {
+    var src = v.getAttribute('data-src'); if (!src || v.getAttribute('src')) return;
+    var k = 'sg-clip:' + src, visto = false;
+    try { visto = !!sessionStorage.getItem(k); } catch (e) {}
+    if (quieto || visto) { v.remove(); return; }
+    v.addEventListener('playing', function () { v.classList.add('on'); try { sessionStorage.setItem(k, '1'); } catch (e) {} }, { once: true });
+    v.setAttribute('src', src);
+    var p = v.play(); if (p && p.catch) p.catch(function () { v.remove(); });
+  }
+  function barre(n) { if (n.querySelectorAll) Array.prototype.forEach.call(n.querySelectorAll('video.fondo-pl-v[data-src]'), arranca); }
+  new MutationObserver(function (ms) { ms.forEach(function (m) { Array.prototype.forEach.call(m.addedNodes, function (n) { if (n.nodeType === 1) barre(n); }); }); })
+    .observe(document.body, { childList: true, subtree: true });
+  barre(document);
+})();
 window.SG.foroConAbordo = function (txt, bloque) {
   txt = String(txt == null ? '' : txt);
   if (!bloque) return txt;
@@ -2789,8 +2857,8 @@ COMOSEHIZO = head("STARGATE · Cómo se hizo",
 <h1>Esto lo ha montado un profesor</h1>
 <p>Sin estudio, sin productora y sin equipo: un docente, un ordenador y cuatro herramientas. Lo cuento entero —incluida la parte fea— porque la pregunta que más me hacen
 al enseñarlo es «¿y esto cuánto cuesta encargarlo?», y la respuesta es que no se encargó.</p>
-<p style="margin-top:18px"><span class="pill">17 vídeos</span><span class="pill">8 planetas</span>
-<span class="pill">24 insignias</span><span class="pill">26 cartas</span></p>
+<p style="margin-top:18px"><span class="pill">{len(V)} vídeos</span><span class="pill">8 planetas</span>
+<span class="pill">{N_INSIGNIAS} insignias</span><span class="pill">{len(CROMOS)} cartas</span></p>
 </header>
 
 <section><div class="wrap">
@@ -3307,7 +3375,7 @@ PROFES = head("STARGATE · Panel del profesorado", "Panel del profesorado de STA
 ''' + FOOT
 
 FORO_PAGE = head("STARGATE · La orden de la semana", "El mensaje para el foro de la plataforma de UNIR de la semana en curso, con sus retos, insignias y vídeos. Se actualiza solo a partir de la fecha de la semana 1.", "crono") + f'''
-<header class="hero"><div class="kicker">Para el foro de la plataforma de UNIR</div><h1>La orden de la semana</h1>
+<header class="hero con-imagen"><div class="hero-img" style="background-image:url('assets/img/pres/capitan_ventana.webp')" aria-hidden="true"></div><div class="kicker">Para el foro de la plataforma de UNIR</div><h1>La orden de la semana</h1>
 <p>Tu alumnado ya la ve sola en su Nave, cada semana. Aquí tienes dos usos más: <b>incrustarla</b> en el Genially del
 grupo (enseña la de la semana en curso y cambia sola), o <b>verlas todas de una vez</b> y copiarlas para publicarlas
 en el foro de la plataforma de UNIR.</p>
@@ -3470,7 +3538,7 @@ open(os.path.join(HERE,"sesion.html"),"w",encoding="utf-8").write(html); print("
 PRESTRENO = head("STARGATE · Presentar al equipo docente",
                  "La presentación para el equipo: la historia, el temario planeta a planeta, las semanas, las mecánicas y qué hace el docente. Para proyectar en la reunión de arranque.",
                  "cla", puerta=True) + f'''
-<header class="hero corto"><div class="kicker">Solo referentes</div><h1>Presentar STARGATE al equipo</h1>
+<header class="hero corto"><div class="kicker">Para el equipo docente</div><h1>Presentar STARGATE al equipo</h1>
 <p>La reunión de arranque, montada para proyectar: de qué va la historia, <b>el temario planeta a planeta</b>,
 las {len(CRONO)} semanas, cómo se gana y —lo que más tranquiliza— <b>qué tiene que hacer el docente y qué no</b>.
 Pasa con <b>←</b> y <b>→</b>; el mapa de planetas y las preguntas se abren pulsando.</p>
@@ -3546,7 +3614,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <!-- 🔴 El logo llevaba a recluta.html, o sea a si mismo: pulsarlo no hacia nada. Ahora sale a la
      portada, que es la puerta publica del proyecto. -->
 <nav class="nav"><div class="wrap"><a class="brand" href="index.html">◈ STARGATE <span class="modo recluta">Recluta<i> · alumnado</i></span></a></div></nav>
-<header class="hero"><div class="kicker">Canal del alumnado</div><h1>La Nave del Recluta</h1>
+<header class="hero con-imagen"><div class="hero-img" style="background-image:url('assets/img/pres/hangar.webp')" aria-hidden="true"></div><div class="kicker">Canal del alumnado</div><h1>La Nave del Recluta</h1>
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>

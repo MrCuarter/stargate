@@ -193,7 +193,7 @@
       +(p.titulo?'<div class="titulo-recluta">«'+esc(p.titulo)+'»</div>':'')
       +'<div class="small muted">Nivel '+(SG.nivel?SG.nivel(p.xp,st.tipo):(p.nivel||1))+' · '+(p.xp||0)+' xp'+(p.planeta?' · planeta '+esc(p.planeta):'')+(p.racha>=3?' · <img class=ico src=assets/img/iconos/p/fuego.png alt> '+p.racha+' semanas seguidas':'')+'</div></div></div>'
       +(p.bio?'<p class="fr-bio">«'+esc(p.bio)+'»</p>':'')
-      +'<div class="fr-kpis"><div><b>'+(p.n||0)+'</b><span>de 24 insignias</span></div>'
+      +'<div class="fr-kpis"><div><b>'+(p.n||0)+'</b><span>de '+(Object.keys(window.SG_BADGE_NAMES||{}).length||27)+' insignias</span></div>'
       +'<div><b>'+(col.cromos?col.cromos.tengo:0)+'</b><span>de '+(col.cromos?col.cromos.total:26)+' cartas</span></div>'
       +'<div><b>'+(p.hechos||[]).length+'</b><span>retos conseguidos</span></div></div>'
       +(retos?'<h4>Retos conseguidos</h4><ul class="ses-ficha-retos">'+retos+'</ul>':'')
@@ -267,6 +267,27 @@
   }
   var conRetrato=function(f){ return function(el){ retratoAlVuelo(el); return f?f(el):null; }; };
   /**
+   * 🔴 24-sep · LA BIBLIOTECA, EN LA SESIÓN. Norberto: «tenemos muchísimas imágenes generadas y no las estamos explotando…
+   * muchas se convirtieron en vídeo… (sin sobrecargar, solo cuando enriquezca)». Cada semana tiene su fondo —la superficie
+   * de su planeta (assets/img/fondos, de KIT_STARGATE/fondos); la primera semana de cada tema, la nave aterrizada; la 15,
+   * las flotas— y la portada su clip de 5 s (assets/video: la nave aterrizando o el planeta girando), que se reproduce UNA
+   * vez y se queda quieto. Detrás de la pregunta, los retos, la llamada y la despedida, el mismo fondo, muy suave.
+   */
+  function fondoSemana(s){
+    var pl=Number(s.tema_n)?planeta(s.tema_n):null, L=semanas(), i=iDe(L, s);
+    return window.SG.fondoSemana(pl&&pl[0], i>=0&&primeraDelTema(L, i));
+  }
+  function capaFondo(s, cls){ return '<div class="dia-fondo'+(cls?' '+cls:'')+'" style="background-image:url(\''+esc(fondoSemana(s).img)+'\')" aria-hidden="true"></div>'; }
+  var SIN_MOVIMIENTO=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  /** El clip de la portada: se carga al llegar a ella, se reproduce una vez y se queda en su último fotograma. */
+  function arrancaClip(el){
+    var v=el.querySelector('video.pt-video'); if(!v||SIN_MOVIMIENTO) return null;
+    if(!v.getAttribute('src')) v.setAttribute('src', v.getAttribute('data-src'));
+    try{ v.currentTime=0; }catch(e){}
+    var p=v.play(); if(p&&p.catch) p.catch(function(){});
+    return function(){ try{ v.pause(); }catch(e){} };
+  }
+  /**
    * 🔴 23-sep · LA PREGUNTA DE LA CLASE. Del calendario oficial de la asignatura («Resolución de problemas en las clases en
    * directo»), una por clase. Norberto: «solo lanzamos la pregunta de reflexión y el docente la va respondiendo durante la
    * clase» y «aparece el comandante recortado con la pregunta en grande. No pongas nada más, sin explicaciones». Va tras la
@@ -275,7 +296,7 @@
   function diasPregunta(s){
     return ((s&&s.preguntas)||[]).map(function(q){
       return {k:'pregunta', sec:'pregunta', rot:'La pregunta', montar:conRetrato(null), html:
-        '<div class="dia pregunta-clase">'+cmdCuerpo('duda')+'<p class="pc-q">'+esc(q[1])+'</p></div>'};
+        '<div class="dia pregunta-clase con-fondo">'+capaFondo(s)+cmdCuerpo('duda')+'<p class="pc-q">'+esc(q[1])+'</p></div>'};
     });
   }
   /** Los retos de la semana, antes de sus misiones: el comandante con cara de desafío y lo que toca, en clase y en casa. */
@@ -283,7 +304,7 @@
     var ls=(s.lanza||[]).map(function(txt){ return {txt:txt, id:idDeReto(txt)}; }).filter(function(r){ return r.id && !/^X/.test(r.id); });
     if(!ls.length) return null;
     return {k:'retos-semana', sec:'misiones', rot:'Los retos', montar:conRetrato(null), html:
-      '<div class="dia retos-semana">'+cmdCuerpo('reto')
+      '<div class="dia retos-semana con-fondo">'+capaFondo(s)+cmdCuerpo('reto')
       +'<div class="rs-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Esta semana</div><h2>Vuestros retos</h2><ul class="rs-lista">'
       +ls.map(function(r, i){ var rel=/^L\d$/.test(r.id);
         return '<li style="--i:'+i+'"><span class="rs-donde'+(rel?' clase':'')+'">'+(rel?'En clase':'En casa')+'</span><b>«'+esc(tituloReto(r.txt))+'»</b></li>'; }).join('')
@@ -292,7 +313,7 @@
   /** La despedida: el comandante saluda. En la última clase del viaje, la cita para después de la batalla (el examen). */
   function diaHastaPronto(fin){
     return {k:'hasta', sec:'cierre', rot:fin?'Tras la batalla':'Hasta pronto', montar:conRetrato(null), html:
-      '<div class="dia hasta-pronto'+(fin?' fin-viaje':'')+'">'+cmdCuerpo('saludo')+'<div class="hp-txt">'
+      '<div class="dia hasta-pronto con-fondo'+(fin?' fin-viaje':'')+'"><div class="dia-fondo" style="background-image:url(\'assets/img/pres/'+(fin?'flotas':'perfil_en_vuelo')+'.webp\')" aria-hidden="true"></div>'+cmdCuerpo('saludo')+'<div class="hp-txt">'
       +(fin?'<h2>Vuelve después de la batalla para ver el desenlace</h2>'
            +'<p class="sub">Cuando acabe el viaje, el último fragmento se abre en tu Nave, en El Archivo.</p>'
            :'<h2>Hasta la próxima, recluta</h2>')+'</div></div>'};
@@ -309,7 +330,7 @@
     var r=ls[0], n=r.id.slice(1), T=window.SG_TRIPULANTES||{}, k=Object.keys(T).filter(function(x){ return x.indexOf('P'+n+'_')===0; })[0], t=k&&T[k];
     if(!t) return null;
     return {k:'tripulante', sec:'tripulante', rot:String(t.nombre).split(' ')[0], html:
-      '<div class="dia tripulante">'
+      '<div class="dia tripulante con-fondo"><div class="dia-fondo tp-retrato" style="background-image:url(\'assets/img/tripulacion/'+esc(k)+'.webp\')" aria-hidden="true"></div>'
       +'<img class="tp-carta" src="'+esc(t.carta)+'" alt="La carta de '+esc(t.nombre)+'">'
       +'<div class="tp-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/gente.png alt> La Tripulación Cero · Tema '+esc(n)+'</div>'
       +'<h2>'+esc(t.nombre)+'</h2><p class="tp-rol">'+esc(t.rol)+'</p>'
@@ -322,9 +343,11 @@
   }
   function diaPortada(s, n){
     // 24-sep · la semana sin tema (la 15) lleva el planeta de la Estática (ojo: planeta(0) daba Fôrge)
-    var pl=Number(s.tema_n)?planeta(s.tema_n):(s.planeta&&s.planeta.length?s.planeta:null);
+    var pl=Number(s.tema_n)?planeta(s.tema_n):(s.planeta&&s.planeta.length?s.planeta:null), F=fondoSemana(s);
     return {k:'portada', rot:'Portada', html:
-      '<div class="dia portada'+(pl?' con-planeta':'')+'">'
+      '<div class="dia portada con-fondo'+(F.clip?' con-clip':'')+(pl?' con-planeta':'')+'">'
+      +'<div class="pt-fondo" style="background-image:url(\''+esc(F.img)+'\')" aria-hidden="true"></div>'
+      +(F.clip?'<video class="pt-video" muted playsinline preload="none" data-src="'+esc(F.clip)+'" poster="'+esc(F.img)+'" aria-hidden="true"></video>':'')
       +(pl?'<img class="planeta" src="assets/img/planetas/'+esc(pl[0])+'.png'+(window.SG_IMGV||'')+'" alt="">':'')
       +cmdCuerpo('saludo', 'pt-cmd')
       +'<div class="txt"><div class="kicker">Semana '+s.sem+' de '+n+(st.nombre?' · '+esc(st.nombre):'')+'</div>'
@@ -337,7 +360,7 @@
        * estar, botón de copiar». Solo lo ve quien da la clase (al recluta no le sirve de nada).
        */
       +(!st.alumno&&st.per&&st.yo?'<p class="pt-chat"><button type="button" class="btn min" id="ses-chat">Copiar el enlace para el chat</button> <span class="small" id="ses-chat-m">Entran con su cuenta, fichan solos y ven esta presentación.</span></p>':'')
-      +'</div></div>', montar: conRetrato(montarPortada)};
+      +'</div></div>', montar: conRetrato(function(el){ var a=montarPortada(el), b=arrancaClip(el); return function(){ if(a) a(); if(b) b(); }; })};
   }
   /** El enlace que se pega en el chat: sigue la clase y ficha solo en cuanto la llamada está abierta. */
   function enlaceClase(){
@@ -1368,6 +1391,8 @@
    * Fôrge. Replantea cómo lo harías para tener ese efecto WOW». El guion es el del borrador que aprobó, y vive en
    * `_site_data.py` (SESION_EMBARQUE): aquí solo se monta cada pieza en su sitio y en su tiempo de la clase.
    */
+  /** 24-sep · cada pieza del embarque, en una sala de la nave (assets/img/pres), muy apagada: el alumnado «embarca» de verdad. */
+  function capaEscena(img){ return '<div class="dia-fondo" style="background-image:url(\'assets/img/pres/'+img+'.webp\')" aria-hidden="true"></div>'; }
   function esEmbarque(s){ return Number(s&&s.sem)===1 && (window.SG_EMBARQUE||[]).length>0; }
   function diaEmbarque(s){
     return {k:'embarque_portada', sec:'portada', rot:'Portada', html:
@@ -1388,7 +1413,7 @@
     var tarjeta=function(img, cls, nom, txt, extra){ return '<figure class="emb-c'+(cls?' '+cls:'')+'"><img src="'+img+'" alt="" loading="lazy"'+(extra||'')+'>'
       +'<figcaption><b>'+nom+'</b><span>'+txt+'</span></figcaption></figure>'; };
     return {k:'embarque_nombres', sec:'embarque', rot:'Quiénes somos', html:
-      '<div class="dia emb"><div class="kicker">La tripulación de La Constancia</div><h2>Cuatro nombres, y ya está</h2>'
+      '<div class="dia emb con-fondo">'+capaEscena('puente')+'<div class="kicker">La tripulación de La Constancia</div><h2>Cuatro nombres, y ya está</h2>'
       +'<div class="emb-tres emb-cuatro">'
       +tarjeta('assets/img/personajes/nebula.png','', 'NEBULA', 'La inteligencia de la nave. Os guía y os presenta cada cosa nueva en vuestra Nave.')
       +tarjeta('assets/img/personajes/vaeon.png','', 'La Estática · Vaeon', 'La amenaza: donde entra, nadie crea ni comparte. No se le gana disparando: se le gana <b>dejando constancia</b>.')
@@ -1400,7 +1425,7 @@
   function diaViaje(){
     var P=window.SG_PLANETAS||[];
     return {k:'embarque_viaje', sec:'embarque', rot:'El viaje', html:
-      '<div class="dia emb"><div class="kicker">El viaje</div><h2>Ocho planetas, ocho temas</h2>'
+      '<div class="dia emb con-fondo">'+capaEscena('perfil_en_vuelo')+'<div class="kicker">El viaje</div><h2>Ocho planetas, ocho temas</h2>'
       +'<p class="sub">Cada planeta <b>es</b> un tema del curso. En cada uno se quedó alguien de la Tripulación Cero: recuperarlo es vuestra misión.</p>'
       +'<div class="emb-planetas">'+P.map(function(p,i){
           return '<div class="emb-pl" style="--i:'+i+'"><img src="assets/img/planetas/'+esc(p[0])+'.png'+(window.SG_IMGV||'')+'" alt="" loading="lazy">'
@@ -1410,7 +1435,7 @@
     var tope=Number(window.SG_TOPE_SEMANA)||3;
     var paso=function(n, t, x){ return '<li style="--i:'+n+'"><b>'+t+'</b><span>'+x+'</span></li>'; };
     return {k:'embarque_semana', sec:'embarque', rot:'Cada semana', html:
-      '<div class="dia emb"><div class="kicker">Cómo funciona</div><h2>Así es una semana a bordo</h2>'
+      '<div class="dia emb con-fondo">'+capaEscena('pasillo')+'<div class="kicker">Cómo funciona</div><h2>Así es una semana a bordo</h2>'
       +'<ol class="emb-pasos">'
       +paso(0,'La sesión en directo','Esta: la historia, el tema y las misiones de la semana.')
       +paso(1,'Los retos','Dos por tema, los dos prácticos. El <b>relámpago</b> se hace aquí, en clase, en quince minutos, y recupera a un tripulante; el <b>reto principal</b>, en casa, deja una pieza en tu Bitácora.')
@@ -1421,7 +1446,7 @@
   function diaNota(){
     var E=window.SG_EVALUACION||[];
     return {k:'embarque_nota', sec:'embarque', rot:'Lo que puntúa', html:
-      '<div class="dia emb"><div class="kicker"><img class=ico src=assets/img/iconos/p/notas.png alt> La nota</div><h2>Lo que cuenta para tu nota</h2>'
+      '<div class="dia emb con-fondo">'+capaEscena('hangar')+'<div class="kicker"><img class=ico src=assets/img/iconos/p/notas.png alt> La nota</div><h2>Lo que cuenta para tu nota</h2>'
       +'<div class="emb-nota">'+E.map(function(x,i){
           return '<div class="emb-n'+(/^Actividad/.test(x[0])?' act':'')+'" style="--i:'+i+'"><b>'+esc(x[1])+'</b><span><em>'+esc(x[0])+'</em>'+esc(x[2])+'</span></div>'; }).join('')+'</div>'
       +'<p class="emb-ojo">Los <b>retos no puntúan</b>: son el camino. Muchos dejan hecho un trozo de una actividad, y quien los hace llega a la entrega con la mitad resuelta.</p>'
@@ -1431,7 +1456,7 @@
   function diaBitacora(){
     var pl=window.SG_PLANTILLA_EP||'', A=window.SG_ACTIVIDADES||[];
     return {k:'embarque_bitacora', sec:'embarque', rot:'La Bitácora', html:
-      '<div class="dia emb"><div class="kicker"><img class=ico src=assets/img/iconos/p/libro.png alt> El arma de esta guerra</div>'
+      '<div class="dia emb con-fondo">'+capaEscena('sala_bitacora')+'<div class="kicker"><img class=ico src=assets/img/iconos/p/libro.png alt> El arma de esta guerra</div>'
       +'<h2>La Bitácora Estelar <u>es</u> vuestro ePortfolio</h2>'
       +'<p class="sub">No es un adorno: <b>es lo que se evalúa</b>. Se abre la semana que viene, con el primer reto principal («La Bitácora en marcha»), y se publica al final del viaje.</p>'
       +'<div class="emb-bit"><div><b>Cada página, igual</b><ol><li>La <b>evidencia</b>: lo que has creado</li><li>El <b>contexto</b>: para quién y para qué</li>'
@@ -1467,7 +1492,7 @@
     var VI=window.SG_VIDEOS||{}, out=[], hay=function(x){ return x; };
     (window.SG_EMBARQUE||[]).forEach(function(pz){
       var pieza=pz[0], arg=pz[1], t=pz[2]||'ap', add=function(x){ if(x){ (Array.isArray(x)?x:[x]).forEach(function(y){ if(y){ y.t=t; out.push(y); } }); } };
-      if(pieza==='video'){ var v=VI[arg]; if(v) add(Object.assign(diaVideo([v,''], 0, arg==='trailer'?'Luces fuera':arg==='t1i'?'Rumbo al planeta':'Para empezar'), {sec:'videos'})); }
+      if(pieza==='video'){ var v=VI[arg]; if(v) add(Object.assign(diaVideo([v,''], 0, arg==='trailer'?'Luces fuera':arg==='t1i'?'Rumbo al planeta':'Para empezar', arg==='trailer'?'El tráiler':arg==='t1i'?'Rumbo al planeta':''), {sec:'videos'})); }
       else if(pieza==='portada') add(diaEmbarque(s));
       else if(pieza==='mensaje') add(diaForo(s));
       else if(pieza==='nombres') add(diaNombres());
@@ -1513,7 +1538,8 @@
     if(primeraDelTema(L, iS)) diasTicket(L, iS).forEach(function(x){ d.push(x); });
     else if(iS===1 && esEmbarque(L[0])) diasTicketPresentacion().forEach(function(x){ d.push(x); });
     var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
-    deTipo('inicio').forEach(function(v,i){ d.push(Object.assign(diaVideo(v, i, 'Para empezar'), {sec:'videos'})); });
+    // 24-sep · la intro del planeta, con su nombre en la barra (como el cierre): «Rumbo al planeta»
+    deTipo('inicio').forEach(function(v,i){ d.push(Object.assign(diaVideo(v, i, 'Para empezar', /·\s*intro\b/i.test((v[0]&&v[0].titulo)||'')?'Rumbo al planeta':''), {sec:'videos'})); });
     /**
      * 17-sep · LA SESIÓN CRECE CON LO QUE SE DESBLOQUEA (Norberto: «la primera semana debería ser más sencilla; no hace falta
      * ranking, coleccionista… no ha habido tiempo. En la primera y segunda no queremos agobiar»). «Han movido ficha», desde la

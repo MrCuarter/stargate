@@ -5722,7 +5722,7 @@ body.embed .mazo .emb-c figcaption span,body.embed .mazo .emb-pasos li span,body
   border-radius:0 12px 12px 0;font-size:clamp(.92rem,1.3vw,1.05rem);color:#f0e4cf;text-wrap:pretty}
 .pr-tres{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;width:100%}
 .pr-t{padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.28)}
-.pr-t b{display:block;font-family:'Unbounded',sans-serif;font-size:1rem;color:var(--teal2);margin-bottom:4px}
+.pr-t > b{display:block;font-family:'Unbounded',sans-serif;font-size:1rem;color:var(--teal2);margin-bottom:4px}
 .pr-t span{font-size:.88rem;color:var(--mut)}
 .pr-t.on{border-color:rgba(55,224,236,.5);background:rgba(55,224,236,.08)}
 .pr-t.on span{color:var(--ink)}
@@ -5790,7 +5790,7 @@ body.embed .mazo .emb-c figcaption span,body.embed .mazo .emb-pasos li span,body
 /* las dos monedas */
 .pr-dos{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .pr-m{padding:16px 18px;border-radius:16px;border:1px solid var(--line);background:rgba(0,0,0,.3)}
-.pr-m b{display:block;font-family:'Unbounded',sans-serif;font-size:1.3rem;margin-bottom:6px}
+.pr-m > b{display:block;font-family:'Unbounded',sans-serif;font-size:1.3rem;margin-bottom:6px}
 .pr-m span{font-size:.9rem;color:var(--mut)}
 .pr-m-xp{border-color:rgba(55,224,236,.45)}.pr-m-xp b{color:var(--teal)}
 .pr-m-cred{border-color:rgba(245,176,67,.45)}.pr-m-cred b{color:var(--amber)}
@@ -5800,7 +5800,7 @@ body.embed .mazo .emb-c figcaption span,body.embed .mazo .emb-pasos li span,body
 /* lo que NO */
 .pr-no{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
 .pr-n{padding:14px 16px;border-radius:14px;border:1px solid rgba(255,125,125,.35);background:rgba(255,125,125,.07)}
-.pr-n b{display:block;font-family:'Unbounded',sans-serif;font-size:.95rem;color:#ffb3b3;margin-bottom:4px}
+.pr-n > b{display:block;font-family:'Unbounded',sans-serif;font-size:.95rem;color:#ffb3b3;margin-bottom:4px}
 .pr-n span{font-size:.86rem;color:var(--mut)}
 /* las preguntas: la respuesta, plegada, para que dé tiempo a contestar */
 .pr-preg{display:flex;flex-direction:column;gap:9px}
@@ -6044,3 +6044,214 @@ html.con-dossier:fullscreen .dz{min-height:100vh}
   .dia.tripulante{flex-direction:column;align-items:stretch;gap:14px}
   .dia.tripulante .tp-carta{width:auto;height:220px;max-width:none;align-self:center}
 }
+
+/* ── 24-sep · LA PRESENTACIÓN PARA LOS COMANDANTES, COMO ESCENAS: fondo de la biblioteca, el Capitán de hilo y NEBULA ── */
+.pr-mazo .dia.pr-esc{position:relative;overflow:hidden;isolation:isolate}
+.pr-esc .pr-fondo{position:absolute;inset:0;background:center/cover no-repeat;z-index:-2;transform:scale(1.02)}
+.pr-esc .pr-fondo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,10,18,.62) 0%,rgba(6,10,18,.8) 55%,rgba(6,10,18,.93) 100%)}
+.pr-esc .pr-cuerpo{position:relative;z-index:2;display:flex;flex-direction:column;gap:14px;width:100%;min-width:0}
+.pr-esc.con-capi .pr-cuerpo{margin-left:clamp(150px,24%,300px);width:auto;flex:1}
+.pr-capi{position:absolute;left:0;bottom:0;height:86%;width:clamp(150px,24%,300px);margin:0;z-index:1;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}
+.pr-capi img{max-height:100%;max-width:120%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 0 34px rgba(55,224,236,.22))}
+.pr-capi figcaption{position:absolute;top:2%;left:10%;right:-18%;padding:10px 14px;border-radius:14px 14px 14px 4px;background:rgba(10,16,26,.92);
+  border:1px solid rgba(245,176,67,.55);font-size:clamp(.8rem,1.1vw,1rem);line-height:1.35;color:var(--ink);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.pr-capi figcaption b{display:block;font-size:.72em;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:2px}
+.pr-neb{position:absolute;right:2%;bottom:3%;z-index:3;display:flex;align-items:flex-end;gap:10px;max-width:42%}
+.pr-neb img{width:clamp(56px,7vw,100px);flex:none;filter:drop-shadow(0 0 18px rgba(170,102,204,.5))}
+.pr-globo{background:rgba(16,22,36,.94);border:1px solid rgba(170,102,204,.6);border-radius:14px 14px 4px 14px;padding:9px 13px;font-size:clamp(.8rem,1.1vw,1rem);line-height:1.35}
+.pr-globo b{display:block;color:#d7b3ea;font-size:.72em;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px}
+.pr-porque{margin:2px 0 0;padding:10px 14px;border-radius:12px;background:rgba(55,224,236,.07);border:1px solid rgba(55,224,236,.35);font-size:clamp(.85rem,1.25vw,1.05rem);line-height:1.45;max-width:70ch}
+.pr-porque b:first-child{display:block;font-size:.7em;letter-spacing:.16em;text-transform:uppercase;color:var(--teal2);margin-bottom:2px}
+.pr-esc:has(.pr-neb) .pr-cuerpo{padding-bottom:clamp(40px,8vh,90px)}
+/* portada y cierre */
+.pr-portada2 .pr-cuerpo{justify-content:center;align-items:flex-start;text-align:left;min-height:100%}
+.pr-portada2 h1{font-size:clamp(2rem,5vw,4rem);line-height:1.02;text-wrap:balance;margin:0}
+.pr-portada2 h1 em{font-style:normal;color:var(--teal)}
+.pr-portada2 .pr-sub{max-width:36ch;font-size:clamp(1rem,1.6vw,1.35rem);color:#d4dee8;margin:0}
+.pr-portada2 .pr-logo{display:flex;flex-direction:column;gap:2px}
+.pr-portada2 .pr-fondo::after{background:linear-gradient(90deg,rgba(6,10,18,.2) 0%,rgba(6,10,18,.55) 35%,rgba(6,10,18,.9) 70%)}
+/* el encargo */
+.pr-vs{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pr-vs-c{border-radius:14px;padding:14px 16px;border:1px solid var(--line);background:rgba(10,16,26,.82)}
+.pr-vs-c > b{display:block;font-family:'Unbounded',sans-serif;font-size:clamp(.85rem,1.3vw,1.05rem);margin-bottom:8px}
+.pr-vs-c ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:clamp(.82rem,1.25vw,1.02rem)}
+.pr-vs-c li{position:relative;padding-left:22px}
+.pr-vs-c.mal li::before{content:"";position:absolute;left:4px;top:.6em;width:10px;height:2px;background:#ff7a7a}
+.pr-vs-c.bien{border-color:rgba(55,224,236,.55);background:rgba(8,30,38,.82)}
+.pr-vs-c.bien li::before{content:"";position:absolute;left:4px;top:.3em;width:6px;height:11px;border:solid var(--teal);border-width:0 2px 2px 0;transform:rotate(40deg)}
+.pr-cifra{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pr-cifra b{font:800 clamp(2rem,5vw,3.8rem) 'Unbounded',sans-serif;color:var(--amber);line-height:1}
+.pr-cifra span{flex:1;min-width:220px;color:#d4dee8;font-size:clamp(.88rem,1.3vw,1.1rem);max-width:56ch}
+/* vuestro comandante */
+.pr-cmd-dos{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;align-items:end}
+.pr-cmd-rej{display:grid;grid-template-columns:repeat(9,1fr);gap:6px}
+.pr-cmd-rej img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:50%;border:1px solid rgba(55,224,236,.4)}
+.pr-cmd-poses{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:end}
+.pr-cmd-poses figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.pr-cmd-poses img{height:clamp(140px,26vh,260px);width:auto;object-fit:contain;filter:drop-shadow(0 0 20px rgba(55,224,236,.25))}
+.pr-cmd-poses figcaption{font:700 .78rem 'DM Sans';letter-spacing:.08em;text-transform:uppercase;color:var(--amber)}
+/* el material */
+.pr-cifras{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.pr-cifras div{padding:12px 14px;border-radius:12px;background:rgba(10,16,26,.84);border:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.pr-cifras b{font:800 clamp(1.4rem,2.8vw,2.2rem) 'Unbounded',sans-serif;color:var(--teal);line-height:1}
+.pr-cifras span{font-weight:700}.pr-cifras em{font-style:normal;color:var(--mut);font-size:.88rem}
+.pr-material .pr-fondo{opacity:.9}
+/* una clase a bordo */
+.pr-tiempos{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.pr-tiempos figure{margin:0;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:rgba(10,16,26,.86)}
+.pr-tiempos img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.pr-tiempos figcaption{padding:9px 12px;font-size:clamp(.78rem,1.15vw,.95rem);line-height:1.35}
+.pr-tiempos figcaption b{display:block;color:var(--amber);font-family:'Unbounded',sans-serif;font-size:.9em;margin-bottom:2px}
+/* un reto */
+.pr-reto .pr-fondo{background-position:right center}
+.pr-reto .pr-fondo::after{background:linear-gradient(90deg,rgba(6,10,18,.95) 0%,rgba(6,10,18,.86) 50%,rgba(6,10,18,.45) 100%)}
+.pr-reto-tipo{margin:-6px 0 0;color:var(--amber);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.82rem}
+.pr-reto-dos{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:start;max-width:980px}
+.pr-reto-ficha{padding:14px 16px;border-radius:14px;background:rgba(10,16,26,.88);border:1px solid var(--line);font-size:clamp(.82rem,1.2vw,1rem);line-height:1.45}
+.pr-reto-ficha p{margin:0 0 10px}
+.pr-reto-premio{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.pr-reto-premio li{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pr-reto-premio img{width:44px;height:44px;object-fit:contain}
+.pr-reto-premio img.pr-reto-carta{width:auto;height:64px;border-radius:6px}
+.pr-reto-ej{margin:0;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:rgba(10,16,26,.86)}
+.pr-reto-ej img{width:100%;display:block}.pr-reto-ej figcaption{padding:6px 10px;font-size:.82rem;color:var(--mut)}
+/* héroes */
+.pr-her{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.pr-her figure{margin:0;border-radius:10px;overflow:hidden;border:1px solid var(--line);position:relative;background:#0a0f18}
+.pr-her img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.pr-her figcaption{position:absolute;left:0;right:0;bottom:0;padding:3px 6px;font:700 .75rem 'DM Sans';letter-spacing:.08em;text-transform:uppercase;background:linear-gradient(0deg,rgba(0,0,0,.85),transparent)}
+.pr-her .r-mito{border-color:var(--amber);box-shadow:0 0 18px rgba(245,176,67,.35)}.pr-her .r-mito figcaption{color:var(--amber)}
+.pr-her .r-vanguardia{border-color:rgba(170,102,204,.7)}.pr-her .r-vanguardia figcaption{color:#d7b3ea}
+/* cromos */
+.pr-cr-dos{display:grid;grid-template-columns:2fr 1fr;gap:14px;align-items:center}
+.pr-cr{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.pr-cr img{width:100%;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.45);transform:rotate(calc((var(--i) - 4.5) * .6deg))}
+.pr-cr-lado{display:flex;flex-direction:column;gap:10px}.pr-cr-lado img{width:100%;border-radius:10px;border:1px solid var(--line)}
+/* sorteo, arsenal, simulador */
+.pr-sor{display:grid;grid-template-columns:1fr 1.3fr;gap:16px;align-items:center}
+.pr-sor img{width:100%;border-radius:14px;border:1px solid rgba(245,176,67,.5)}
+.pr-sor ul,.pr-sim-l{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;font-size:clamp(.85rem,1.3vw,1.08rem)}
+.pr-arsenal{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:900px}
+.pr-arsenal div{padding:12px 14px;border-radius:12px;background:rgba(10,16,26,.86);border:1px solid rgba(245,176,67,.45);display:flex;justify-content:space-between;gap:10px;align-items:center}
+.pr-arsenal b{font-weight:700;font-size:clamp(.82rem,1.2vw,1rem)}.pr-arsenal span{font:800 clamp(.9rem,1.4vw,1.15rem) 'Unbounded';color:var(--amber);white-space:nowrap}
+.pr-sim-dos{display:grid;grid-template-columns:1fr 1.3fr;gap:16px;align-items:center}
+.pr-sim-rival{position:relative}.pr-sim-rival img{width:100%;border-radius:14px;border:1px solid rgba(55,224,236,.5);display:block}
+.pr-sim-rival .pr-sim-joran{position:absolute;right:-6%;bottom:-8%;width:42%;border-color:rgba(245,176,67,.6)}
+/* el mapa: la ficha del planeta, con la nave posándose */
+.pr-ficha-v{width:clamp(200px,30%,340px);aspect-ratio:16/9;object-fit:cover;border-radius:12px;border:1px solid rgba(55,224,236,.35);flex:none;background:#060a12}
+/* móvil */
+@media (max-width:760px){
+  .pr-esc.con-capi .pr-cuerpo{margin-left:0}
+  .pr-capi,.pr-neb img{display:none}
+  .pr-neb{position:static;max-width:none}
+  .pr-vs,.pr-cmd-dos,.pr-reto-dos,.pr-cr-dos,.pr-sor,.pr-sim-dos,.pr-arsenal{grid-template-columns:1fr}
+  .pr-cifras{grid-template-columns:1fr 1fr}.pr-tiempos{grid-template-columns:1fr}.pr-her{grid-template-columns:repeat(4,1fr)}
+  .pr-cmd-rej{grid-template-columns:repeat(7,1fr)}
+  .pr-ficha-v{width:100%}
+}
+@media (prefers-reduced-motion:reduce){.pr-cr img{transform:none}}
+
+/* ── 24-sep · LA BIBLIOTECA EN LA SESIÓN: el fondo de cada semana (superficie del planeta, la nave aterrizada o las flotas)
+   y el clip de la portada, que se reproduce una vez. Detrás, muy suave: la pregunta, los retos, el tripulante y la despedida ── */
+.dia.con-fondo{isolation:isolate}
+.dia-fondo{position:absolute;inset:0;background:center/cover no-repeat;opacity:.3;z-index:-1;pointer-events:none}
+.dia-fondo::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 62% 48%,rgba(6,10,18,.2) 0%,rgba(6,10,18,.86) 78%)}
+.dia.hasta-pronto .dia-fondo{opacity:.45}
+.dia.tripulante .tp-retrato{left:30%;opacity:.62;background-position:right 20%}
+.dia.tripulante .tp-retrato::after{background:linear-gradient(90deg,rgba(6,10,18,1) 0%,rgba(6,10,18,.72) 32%,rgba(6,10,18,.25) 75%,rgba(6,10,18,.4) 100%)}
+.dia.portada.con-fondo .pt-fondo,.dia.portada.con-fondo .pt-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:center/cover no-repeat;z-index:-2;pointer-events:none}
+.dia.portada.con-fondo .pt-video{z-index:-1}
+.dia.portada.con-fondo::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(6,10,18,.93) 0%,rgba(6,10,18,.74) 42%,rgba(6,10,18,.2) 100%)}
+.dia.portada.con-fondo .txt{position:relative;z-index:1}
+.dia.portada.con-clip .planeta{display:none}
+.dia.portada.con-fondo .planeta{z-index:1}
+@media (prefers-reduced-motion:reduce){ .dia.portada .pt-video{display:none} }
+
+/* ── 24-sep · LA BIBLIOTECA EN LA WEB (sin sobrecargar): el planeta de la semana detrás de la orden (recluta) y de
+   «Hoy toca» (comandante), el puente de la nave en la cabecera de la Guía y la presentación embebida arriba de ella.
+   Siempre igual: la imagen, apagada y un punto difuminada, se funde hacia donde está el texto ── */
+.con-fondo-pl{position:relative;isolation:isolate}
+.fondo-pl{position:absolute;left:0;right:0;top:0;height:min(100%,340px);z-index:-1;pointer-events:none;
+  background:center 40%/cover no-repeat;opacity:.34;filter:saturate(1.08) blur(.6px);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.6) 45%,transparent 100%);
+  mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.6) 45%,transparent 100%)}
+.fondo-pl-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s ease}
+.fondo-pl-v.on{opacity:1}
+.orden-carta.con-fondo-pl .oc-cab{background:linear-gradient(90deg,rgba(8,14,22,.55),rgba(8,14,22,.15))}
+/* «Hoy toca»: la franja de la cabecera, con el planeta a la derecha y el texto sobre lo oscuro */
+.ht-cab.con-fondo-pl{padding:14px 16px;border-radius:12px;overflow:hidden;min-height:84px}
+.ht-cab.con-fondo-pl .fondo-pl{height:100%;opacity:.5;background-position:center 55%;filter:saturate(1.1);
+  -webkit-mask-image:linear-gradient(90deg,rgba(0,0,0,.25) 0%,rgba(0,0,0,.7) 45%,#000 100%);
+  mask-image:linear-gradient(90deg,rgba(0,0,0,.25) 0%,rgba(0,0,0,.7) 45%,#000 100%)}
+.ht-cab.con-fondo-pl::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(8,12,20,.8) 0%,rgba(8,12,20,.45) 55%,rgba(8,12,20,.1) 100%)}
+/* la cabecera de la Guía: el puente de La Constancia, al fondo */
+.hero.con-imagen{isolation:isolate}
+.hero-img{position:absolute;inset:0;z-index:-1;pointer-events:none;background:center 35%/cover no-repeat;opacity:.3;filter:saturate(1.05) blur(1px);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.7) 55%,transparent 100%);
+  mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.7) 55%,transparent 100%)}
+/* la presentación, embebida en la Guía */
+.guia-pres .gpres-marco{position:relative;aspect-ratio:16/10;max-height:78vh;margin:18px auto 10px;border:1px solid rgba(55,224,236,.3);
+  border-radius:14px;overflow:hidden;background:#060a12;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.guia-pres .gpres-marco iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.gpres-pie{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0}
+@media (max-width:700px){ .guia-pres .gpres-marco{aspect-ratio:3/4} }
+@media (prefers-reduced-motion:reduce){ .fondo-pl-v{display:none} }
+/* la Tripulación Cero, con cara: ocho retratos en tira (en móvil, se desliza) */
+.cero-rostros{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin:14px 0 18px}
+.cero-rostros figure{position:relative;margin:0;border-radius:10px;overflow:hidden;aspect-ratio:3/4;background:#0a121c;border:1px solid var(--line)}
+.cero-rostros img{width:100%;height:100%;object-fit:cover;object-position:50% 22%;display:block}
+.cero-rostros figcaption{position:absolute;left:0;right:0;bottom:0;padding:22px 7px 6px;background:linear-gradient(180deg,transparent,rgba(6,10,18,.92) 55%);line-height:1.15}
+.cero-rostros b{display:block;font-size:.85rem;color:#eafcff}
+.cero-rostros span{display:block;font-size:.75rem;color:var(--mut)}
+@media (max-width:900px){ .cero-rostros{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:128px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}
+  .cero-rostros figure{scroll-snap-align:start} }
+/* una sección con su sala detrás (la Bitácora), muy apagada y fundida por arriba y por abajo */
+section.con-fondo-sec{position:relative;isolation:isolate;overflow:hidden}
+.sec-fondo{position:absolute;inset:0;z-index:-1;pointer-events:none;background:center/cover no-repeat;opacity:.16;filter:blur(1.5px);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 22%,#000 70%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0%,#000 22%,#000 70%,transparent 100%)}
+/* la Cronología: el planeta de cada semana, al fondo de su barra, por la derecha */
+.semana summary{position:relative;isolation:isolate;overflow:hidden;border-radius:18px}
+.semana .sem-fondo{position:absolute;right:0;top:0;width:55%;height:100%;object-fit:cover;z-index:-1;pointer-events:none;opacity:.42;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.6) 40%,#000 100%);mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.6) 40%,#000 100%)}
+.semana[open] .sem-fondo{opacity:.3}
+.pr-cmds .pr-fondo::after{background:linear-gradient(180deg,rgba(6,10,18,.82) 0%,rgba(6,10,18,.9) 60%,rgba(6,10,18,.95) 100%)}
+/* 24-sep · revisión visual: los cromos en una fila y el rival del simulador sin salirse */
+.pr-cr{grid-template-columns:repeat(6,1fr)}
+.pr-cr-dos{grid-template-columns:2.2fr 1fr}
+.pr-cr-lado img{max-height:24vh;object-fit:cover}
+.pr-sim-rival{max-width:min(100%,56vh)}
+.pr-sim-rival img{max-height:50vh;object-fit:cover}
+.pr-sim-rival .pr-sim-joran{width:36%;right:-10%;bottom:-6%}
+@media (max-width:760px){ .pr-cr{grid-template-columns:repeat(3,1fr)} }
+.pr-tranq-q{margin:0;padding:16px 20px;border-radius:16px;background:rgba(10,16,26,.9);border:1px solid rgba(245,176,67,.55);
+  font:600 clamp(1.05rem,2.1vw,1.7rem)/1.35 'DM Sans',sans-serif;color:#eef4f8;text-wrap:balance;max-width:52ch}
+.pr-tranq-q b{display:block;font:700 .8rem 'DM Sans',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:4px}
+/* 24-sep · revisión visual de la sesión (a 1280×860, dentro del Genially): lo que no cabe ya no se come su principio,
+   el vídeo se mide con el alto que queda (no con 74vh a secas) y «¿Quién las ha superado?» con tres retos cabe entero */
+.mazo .dia{justify-content:safe center}
+.dia.video .yt.grande{max-width:min(100%,calc((100vh - 250px) * 16 / 9))}
+.mazo:fullscreen .dia.video .yt.grande{max-width:min(100%,calc((100vh - 210px) * 16 / 9))}
+.ant-lista:has(.ant-f:nth-child(3)){gap:8px}
+.ant-lista:has(.ant-f:nth-child(3)) .ant-f{padding-top:8px;padding-bottom:8px;gap:14px}
+.ant-lista:has(.ant-f:nth-child(3)) .ant-ins{width:clamp(64px,10vh,110px);height:clamp(64px,10vh,110px)}
+.mazo .ant-lista:has(.ant-f:nth-child(3)) .ant-f .cara,body.embed .mazo .ant-lista:has(.ant-f:nth-child(3)) .ant-f .cara{--t:clamp(40px,min(4.4vw,6vh),72px)}
+.ant-lista:has(.ant-f:nth-child(3)) .ses-caras figcaption{font-size:.78rem}
+.mazo .ant-lista:has(.ant-f:nth-child(3)) .ses-caras,.mazo:fullscreen .ant-lista:has(.ant-f:nth-child(3)) .ses-caras,body.embed .mazo .ant-lista:has(.ant-f:nth-child(3)) .ses-caras{grid-template-columns:repeat(auto-fill,minmax(clamp(72px,7vw,110px),1fr));gap:6px 8px}
+/* lo que no cabe empieza arriba (safe center): que no se meta debajo de la barra de los tres tiempos */
+body.embed .mazo .dia{padding-top:46px}
+/* 24-sep · la puerta, con su portal: la Tripulación Cero cruzando la puerta de STARGATE, muy apagada detrás de la caja */
+#puerta{background:linear-gradient(180deg,rgba(8,12,20,.74) 0%,rgba(8,12,20,.88) 60%,rgba(8,12,20,.96) 100%),
+  url('../img/pres/cero_puerta.webp') center 40%/cover no-repeat,#080c14}
+.puerta-caja{background:rgba(16,23,34,.94);backdrop-filter:blur(4px)}
+/* el embarque con su sala detrás: más apagada que en el resto de la sesión (aquí hay mucho texto) y las tarjetas, opacas */
+.dia.emb.con-fondo .dia-fondo{opacity:.2}
+.dia.emb.con-fondo .emb-c,.dia.emb.con-fondo .emb-pl,.dia.emb.con-fondo .emb-pasos li,.dia.emb.con-fondo .emb-n,
+.dia.emb.con-fondo .emb-bit > div{background:rgba(10,16,26,.86)}
+/* el embarque: el título sobre lo oscuro (el portal y la nave, a la derecha, ya no se comen «La Constancia») */
+.dia.portada.emb-portada .emb-fondo{z-index:0}
+.dia.portada.emb-portada::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(6,10,18,.9) 0%,rgba(6,10,18,.62) 45%,rgba(6,10,18,.08) 85%)}
+.dia.portada.emb-portada .txt{z-index:2}.dia.portada.emb-portada .pt-cmd{z-index:2}

@@ -572,7 +572,12 @@
     var jefe=String((st.yo&&st.yo.profe)||'').trim(), escs=(st.d&&st.d.escuadrones)||[];
     var suEsc=escs.filter(function(e){ return jefe && e.comandante===jefe; })[0]||null;
     var vids=videosDelMensaje(sm.foro), pl=Number(sm.tema_n)?PLAN[sm.tema_n-1]:(sm.planeta||null);   // (24-sep · la 15 decía «Fôrge»)
-    return '<article class="card orden-sem orden-carta">'
+    // 24-sep · detrás, su planeta: la superficie, o la nave posándose la primera semana del tema (una vez, y se queda quieta)
+    var iSm=lista.indexOf(sm), ant=iSm>0?lista[iSm-1]:null, primera=!!(Number(sm.tema_n)&&(!ant||Number(ant.tema_n)!==Number(sm.tema_n)));
+    var F=window.SG.fondoSemana?window.SG.fondoSemana(pl&&pl[0], primera):null;
+    return '<article class="card orden-sem orden-carta' + (F ? ' con-fondo-pl' : '') + '">'
+      + (F ? '<div class="fondo-pl" style="background-image:url(\'' + esc(F.img) + '\')" aria-hidden="true">'
+          + (primera && F.clip ? '<video class="fondo-pl-v" muted playsinline preload="none" data-src="' + esc(F.clip) + '" aria-hidden="true"></video>' : '') + '</div>' : '')
       + '<header class="oc-cab"><span class="oc-marca">◈ STARGATE</span>'
       +   '<span class="oc-meta">La orden de la semana · Semana ' + esc(String(sm.sem)) + (pl ? ' · ' + esc(pl[1]) : '') + '</span></header>'
       + '<div class="oc-cuerpo' + (vids ? ' con-video' : '') + '">'

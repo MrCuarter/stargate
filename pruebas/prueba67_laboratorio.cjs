@@ -2784,7 +2784,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // detrás de la llamada, y el «Ticket de salida» embebido de última (el ticket se rellena al ACABAR el tema).
       const sinTk = rots.filter(x => ["Cómo os fue", "Vuestras dudas", "Ticket de salida"].indexOf(x) < 0);
       c("🔴 sesión · empieza por la portada, la llamada a filas y el mensaje; luego el vídeo; y el de cierre va lo último (semana 10)",
-        sinTk[0] === "Portada" && sinTk[1] === "Llamada a filas" && sinTk[2] === "El mensaje" && sinTk[3] === "Vídeo"
+        sinTk[0] === "Portada" && sinTk[1] === "Llamada a filas" && sinTk[2] === "El mensaje" && sinTk[3] === "Rumbo al planeta"   /* 24-sep · la intro del tema, con su nombre */
         && sinTk[sinTk.length - 1] === "Cierre del planeta" && sinTk.indexOf("Tu ejemplo") < 0 && sinTk.indexOf("El despegue") < 0, JSON.stringify(rots));   // 23-sep · dentro del Genially, el despegue ES el Genially
       c("🔴 sesión · y el ticket: el resumen y las dudas al principio, el formulario al final del todo",
         rots[2] === "Cómo os fue" && rots[3] === "Vuestras dudas" && rots[rots.length - 1] === "Ticket de salida", JSON.stringify(rots.slice(0, 5)) + " … " + rots[rots.length - 1]);

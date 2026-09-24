@@ -78,11 +78,14 @@ const trozo = entre("function cmdCuerpo(pose, cls){", "  function diaPortada(s, 
 const win = { SG: {} };
 const STG = L("assets/js/stargate.js");
 const ayudante = n => { const i = STG.indexOf("window.SG." + n + " = function"); return STG.slice(i, STG.indexOf("\n};", i) + 3); };
-new Function("window", ayudante("comandanteCuerpo") + ayudante("comandanteHd") + ayudante("avatarRetrato"))(win);
+new Function("window", ayudante("comandanteCuerpo") + ayudante("comandanteHd") + ayudante("avatarRetrato") + ayudante("fondoSemana"))(win);
 const api = new Function("window", `
   var st = { d: { avatares: { "Ana Ruiz": "c7" } }, miNombre: "Ana Ruiz" }, RET = ${JSON.stringify(RETOS)};
   function elComandante(){ return "Ana Ruiz"; }
   function retratoAlVuelo(){}
+  // 24-sep · el fondo de la semana (la biblioteca): el planeta del tema 1, sin calendario detrás
+  function planeta(n){ return Number(n) ? ["p" + n + "_x", "Planeta " + n] : null; } function semanas(){ return []; }
+  function iDe(){ return -1; } function primeraDelTema(){ return false; }
   ${entre("function esc(s)", "function cargando(")}
   ${entre("function nucleo(txt){", "function badge(k)")}
   ${entre("function tituloReto(txt)", "\n")}
@@ -96,7 +99,10 @@ const h = p1[0].html;
 c(/<img class="cmd-cuerpo cmd-duda"[^>]*src="assets\/img\/avatares\/comandantes\/cuerpo\/c7_duda\.webp"/.test(h),
   "🔴 con el comandante que eligió el docente, de cuerpo entero y con cara de duda", h.slice(0, 200));
 c(h.indexOf(s1.preguntas[0][1].replace(/"/g, "&quot;")) > 0 || h.indexOf(s1.preguntas[0][1]) > 0, "   y la pregunta, entera");
-const sinImg = h.replace(/<img[^>]*>/g, "");
+// 24-sep · detrás, el fondo de la semana (una capa sin texto: la superficie del planeta, muy suave)
+c(/<div class="dia-fondo" style="background-image:url\('assets\/img\/fondos\/p1_x\.webp'\)" aria-hidden="true"><\/div>/.test(h),
+  "🔴 24-sep · detrás, la superficie de su planeta (la biblioteca de imágenes), muy suave");
+const sinImg = h.replace(/<img[^>]*>/g, "").replace(/<div class="dia-fondo"[^>]*><\/div>/, "").replace(" con-fondo", "");
 c(sinImg === '<div class="dia pregunta-clase"><p class="pc-q">' + sinImg.replace(/^.*<p class="pc-q">/, "").replace(/<\/p><\/div>$/, "") + "</p></div>" && !/kicker|<h2|<ul|<button/.test(sinImg),
   "🔴 y NADA más: sin rótulo, sin título, sin explicación («Comandante + pregunta de forma visual»)");
 c(/onerror="if\(this\.dataset\.hd/.test(h) && /data-hd="assets\/img\/avatares\/comandantes\/recorte_hd\/c7\.webp"/.test(h),
