@@ -153,6 +153,8 @@
       '<p class="small">El enlace a tu cuaderno de bitácora (tu ePortfolio). Si todavía no lo tienes, ' +
       'déjalo en blanco y lo añades cuando quieras desde tu Nave.</p>' +
       '<label>Enlace de tu Bitácora<input id="a-bitacora" placeholder="https://…" autocomplete="off"></label>' +
+      // 25-sep · la plantilla, a mano: en la sesión 1 se enseña justo antes de alistarse, para duplicarla y pegar su enlace aquí
+      (window.SG_PLANTILLA_EP ? '<p class="small"><a href="' + window.SG_PLANTILLA_EP.replace(/"/g, "&quot;") + '" target="_blank" rel="noopener">¿Aún no la tienes? Parte de la plantilla de la Bitácora ↗</a></p>' : '') +
       '<p class="aclara epica">Todo personaje tiene su historia. ¿Cuál es la tuya?<br>' +
       '<span>Dos líneas que leerá tu tripulación cuando pulse tu nombre en el tablero. ' +
       'Puedes dejarlo para más adelante: se cambia cuando quieras desde tu Nave.</span></p>' +

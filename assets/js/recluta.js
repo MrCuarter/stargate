@@ -1075,6 +1075,8 @@
        * viven en ejemplo.html?reto=… (assets/js/ejemplo.js).
        */
       +(ejPag?'<p class="rs-ej-ver"><a href="'+ejPag+'" target="_blank" rel="noopener">Ver un ejemplo: <span>'+esc(ej.titulo||'')+'</span> ↗</a></p>':'')
+      // 25-sep · Norberto: «añade un enlace "Plantilla Portfolio" en las actividades que lo mencionen directamente»
+      +(window.SG_PLANTILLA_EP&&/portfolio/i.test(t[1]+' '+(AY[t[0]]||''))?'<p class="rs-ej-ver rs-pl"><a href="'+esc(window.SG_PLANTILLA_EP)+'" target="_blank" rel="noopener">Plantilla Portfolio ↗</a></p>':'')
       +extraReto(t[0], d)
       +(ya?'<p class="rs-ok">✓ Ya lo tienes registrado.</p>'+accionesDeHecho(t[0])
           // 15-sep · S7 es el Escape UNI: su puerta, y se registra solo con el botón del final del escape
@@ -1230,7 +1232,9 @@
       +'<p class="small"><b>Nivel '+ni.nivel+' · '+esc(ni.rangoNombre)+'</b>'+(ni.titulo&&ni.titulo!==ni.rangoNombre?' <span class="muted">('+esc(ni.titulo)+')</span>':'')+' · puesto '+r.pos+(r.planeta&&r.planeta!=='—'?' · planeta '+esc(r.planeta):'')+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
       +'<p class="monedas"><span class="m xp" title="Los xp no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje."><b>'+r.xp+'</b> xp</span>'
       +'<span class="m cred" title="Los créditos son la moneda de misión: es lo único que se descuenta al canjear recompensas."><b>'+cred+'</b> ◈ créditos</span></p>'
-      +barra+'</div>'
+      +barra
+      // 25-sep · su Bitácora, a un clic (Norberto: «cuando un estudiante añade un enlace a su Bitácora, un botón vistoso»)
+      +'<div class="nb-bit" id="nb-bit">'+botonBitacora()+'</div></div>'
       +cifrasDeBitacora(r)
       +'</div>'
       +'<div class="nf-abajo'+(carr?'':' solo')+'">'
@@ -1289,6 +1293,44 @@
     if(r.racha>=3) return 'Llevas <b>'+r.racha+' semanas seguidas</b> dejando constancia. Que no se rompa.';
     return 'Todo al día, recluta. Lo de la semana que viene se abrirá solo: aquí te espero.';
   }
+  /**
+   * 🔴 25-sep · SU BITÁCORA, A UN CLIC. Norberto: «cuando un estudiante añade un enlace a su Bitácora, añade un enlace con un
+   * botón vistoso a su Bitácora». El enlace vive en su ficha privada (student_profiles/{ficha}/privado/datos.bitacora: lo
+   * lee y lo escribe él, y su equipo docente); al alistarse se le dice «lo añades cuando quieras desde tu Nave», y es aquí.
+   * Sin enlace: «Añadir mi Bitácora» y la plantilla. Se lee una vez y se pinta en su hueco, sin repintar la Nave.
+   */
+  function botonBitacora(){
+    if(SIMULACRO||!st.yo||!st.yo.ficha) return '';
+    if(st.bit===undefined){ cargarBitacora(); return ''; }
+    var pl=window.SG_PLANTILLA_EP||'';
+    if(st.bit) return '<a class="nb-bitacora" href="'+esc(st.bit)+'" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/libro.png alt> <b>Mi Bitácora</b> ↗</a>'
+      +'<button type="button" class="nb-bit-ed" data-bit-ed title="Cambiar el enlace de tu Bitácora" aria-label="Cambiar el enlace de tu Bitácora"><img class=ico src=assets/img/iconos/p/editar.png alt></button>';
+    return '<button type="button" class="nb-bitacora vacia" data-bit-ed><img class=ico src=assets/img/iconos/p/libro.png alt> Añadir mi Bitácora</button>'
+      +(pl?'<a class="nb-bit-pl" href="'+esc(pl)+'" target="_blank" rel="noopener">¿Aún no la tienes? La plantilla ↗</a>':'');
+  }
+  function cargarBitacora(){
+    var M=window.SG&&window.SG.MOTOR; if(st.bitPidiendo||!M||!M.getDoc||!st.yo||!st.yo.ficha) return;
+    st.bitPidiendo=true;
+    M.getDoc(M.doc(M.db,'student_profiles',st.yo.ficha,'privado','datos')).then(function(d){
+      st.bit=String(((d&&d.exists()&&d.data())||{}).bitacora||'').trim(); pintarBitacora();
+    },function(){ st.bitPidiendo=false; });
+  }
+  function pintarBitacora(){ var el=document.getElementById('nb-bit'); if(el) el.innerHTML=botonBitacora(); }
+  document.addEventListener('click',function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('[data-bit-ed]'); if(!b||!window.SG||!window.SG.preguntar) return;
+    var M=window.SG.MOTOR;
+    window.SG.preguntar({ quien:'Tu Bitácora', titulo:st.bit?'Cambiar el enlace de tu Bitácora':'El enlace de tu Bitácora',
+      texto:'La dirección pública de tu ePortfolio: la verá tu docente, y tú la tendrás aquí a un clic.',
+      campo:{ etiqueta:'Dirección', valor:st.bit||'', marcador:'https://…', obligatorio:true,
+        validar:function(v){ return /^https?:\/\/\S+\.\S+/i.test(v)?'':'Pega la dirección entera (empieza por https://).'; } },
+      si:'Guardar' }).then(function(res){
+        if(!res||!M||!M.setDoc) return;
+        var v=String(res.texto||'').trim();
+        M.setDoc(M.doc(M.db,'student_profiles',st.yo.ficha,'privado','datos'),{bitacora:v},{merge:true}).then(function(){
+          st.bit=v; pintarBitacora();
+        },function(e){ window.SG.preguntar({ titulo:'No se ha podido guardar', texto:'Si tu cuenta está congelada, pídeselo a tu docente. ('+((e&&e.message)||e)+')', si:'Entendido', no:'' }); });
+      });
+  });
   /**
    * 🔴 25-sep · LA ENTREGA, A LA VISTA. Norberto: «la actividad 1 se entrega siempre el último día de la semana 5 y la 2 el
    * último día de la semana 9… Añade en la semana 4 y 5 recordatorio de cuándo se entrega la act1, y la 7 y 8 de la act2.

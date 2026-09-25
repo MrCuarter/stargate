@@ -6464,3 +6464,31 @@ img.av.rt-av{width:38px;height:38px;flex:none}
 .dia.entrega h2 b{color:var(--amber)}
 .dia.entrega .en-cuenta{display:inline-block;margin:.4em 0;padding:.25em .9em;border-radius:999px;background:var(--amber);color:#1b1206;font-weight:800;font-size:clamp(.9rem,2cqw,1.6rem)}
 .dia.entrega .en-premio{font-size:clamp(.85rem,1.7cqw,1.35rem);color:#e8f1ff}
+/* 🔴 25-sep · LA BITÁCORA, A UN CLIC. En la Nave (bajo la barra de nivel) y en la ficha que ve el docente: un botón vistoso a
+   su ePortfolio; sin enlace, «Añadir mi Bitácora» y la plantilla. */
+.nb-bit{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:6px}
+.nb-bit:empty{display:none}
+.nb-bitacora{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;border:0;cursor:pointer;
+  background:linear-gradient(135deg,#37e0ec,#f5b043);color:#0b1119;font-weight:800;font-size:.92rem;text-decoration:none;
+  box-shadow:0 6px 18px rgba(55,224,236,.25);transition:transform .15s,box-shadow .15s}
+.nb-bitacora b{font-weight:800}
+.nb-bitacora .ico{filter:brightness(0) saturate(100%)}
+.nb-bitacora:hover,.nb-bitacora:focus-visible{transform:translateY(-1px);box-shadow:0 10px 26px rgba(55,224,236,.38);color:#0b1119}
+.nb-bitacora.vacia{background:transparent;color:var(--teal2);border:1px dashed rgba(55,224,236,.6);box-shadow:none}
+.nb-bitacora.vacia .ico{filter:none}
+.nb-bit-ed{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.04);cursor:pointer}
+.nb-bit-ed:hover{border-color:var(--teal)}
+.nb-bit-pl{font-size:.82rem;color:var(--teal2)}
+/* la ficha del recluta (docente): su avatar, con el emblema del escuadrón en la esquina */
+.fi-av-caja{position:relative;flex:none;line-height:0}
+img.av.fi-av{width:84px;height:84px}
+.fi-av-caja .fi-emb{position:absolute;right:-4px;bottom:-4px;width:30px;height:30px;border-radius:50%;background:#0b1119;padding:2px}
+.fi-cab .fi-bit{margin-top:8px}
+/* 25-sep · la plantilla de la Bitácora, embebida en la sesión (semana 1, tras la Bitácora; semana 2, tras «La Bitácora en marcha») */
+.dia.plantilla{display:flex;flex-direction:column;gap:10px;padding:2.5% 3.5%}
+.dia.plantilla .pl-cab h2{margin:.1em 0}
+.dia.plantilla .pl-cab .sub{margin:0}
+.dia.plantilla .pl-abrir{color:var(--teal2);font-weight:700;white-space:nowrap}
+.dia.plantilla .pl-marco{flex:1 1 auto;min-height:0;border-radius:14px;overflow:hidden;border:1px solid rgba(55,224,236,.35);background:#0a111b}
+.dia.plantilla .pl-marco iframe{display:block;width:100%;height:100%;border:0}
+.act-pl{margin-top:10px}

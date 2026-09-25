@@ -1003,19 +1003,22 @@ def _seccion_actividad(a):
     # 🔴 el ancla es act1/act2 (no la clave a1/a2): la citan las insignias, la ayuda y la guía desde hace semanas
     return ('<section id="act%(n)d"><div class="wrap">\n'
             '<div class="eyebrow amber">Misión mayor %(orden)s · Planeta %(planeta)s · semana %(sem)d '
-            '(se resuelve en la %(resuelve)d)</div>'
+            '(se entrega el último día de la %(entrega)d y se resuelve en la %(resuelve)d)</div>'
             '<h2>Actividad %(n)d — %(titulo)s</h2>\n'
             '<p class="lead"><i>«%(lema)s.»</i> %(resumen)s <span class="pill amber">%(puntos)s puntos</span></p>\n'
             '<div class="yt-full">%(video)s</div>\n'
             '<h3>El enunciado, paso a paso (lo que entrega el alumnado)</h3>\n'
-            '<div class="steps">\n%(pasos)s\n</div>\n'
+            '<div class="steps">\n%(pasos)s\n</div>\n%(plantilla)s'
             '<h3>Los retos que la construyen</h3>\n'
             '<p class="lead">Los retos <b>no puntúan</b>; la actividad, <b>sí</b> — %(puntos)s de los 10 puntos. '
             'Pero cada uno de estos retos deja hecho un trozo de la entrega: quien los hace no empieza de cero.</p>\n'
             '<ul class="act-retos">\n%(retos)s\n</ul>\n'
             '</div></section>'
             % dict(a, video=ytbox(a["video"], "El enunciado narrativo: ponlo al lanzar la actividad"),
-                   pasos=pasos, retos=retos))
+                   pasos=pasos, retos=retos,
+                   # 25-sep · Norberto: «añade un enlace "Plantilla Portfolio" en las actividades que lo mencionen directamente»
+                   plantilla=('<p><a class="btn primary" href="%s" target="_blank" rel="noopener">Plantilla Portfolio ↗</a></p>\n' % PLANTILLA_EPORTFOLIO)
+                             if PLANTILLA_EPORTFOLIO and any("portfolio" in (t + et + x).lower() for t, et, x in a["pasos"]) else ""))
 actividades_html = "\n\n".join(_seccion_actividad(a) for a in ACTIVIDADES)
 # 23-sep · cómo se evalúa, del dato (EVALUACION): lo cuenta también la sesión de la semana 1, y no puede decir otra cosa
 _suma = sum(float(x[1].replace(",", ".")) for x in EVALUACION)
@@ -3707,7 +3710,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};</script>
 <script src="assets/js/secreto.js" defer></script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sobre.js" defer></script>
@@ -4702,7 +4705,7 @@ _html = head("STARGATE · Alistarse",
 <p>Se hace una vez. Entra con tu cuenta, di quién eres y elige a tu Comandante: él te llevará a tu escuadrón.</p></header>
 <section id="alistarse"><div class="wrap">
 <div id="alistarse-app"><p class="muted">Cargando…</p></div>
-''' + '<script src="' + _v("assets/js/alistarse.js") + '" defer></script>' + '''
+''' + '<script>window.SG_PLANTILLA_EP=' + json.dumps(PLANTILLA_EPORTFOLIO) + ';</script><script src="' + _v("assets/js/alistarse.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "alistarse.html"), "w", encoding="utf-8").write(_ver_assets(_html))
@@ -4718,7 +4721,7 @@ _html = head("STARGATE · Mi nave",
 <header class="hero corto"><h1>Mi nave</h1></header>
 <section id="consola"><div class="wrap">
 <div id="consola-app"><p class="muted">Cargando…</p></div>
-''' + '<script>window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_AYUDA_RETOS=' + json.dumps(_AYUDA_NAVE, ensure_ascii=False) + ';window.SG_ACTIVIDADES=' + json.dumps(_ACT_NAVE, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
+''' + '<script>window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_AYUDA_RETOS=' + json.dumps(_AYUDA_NAVE, ensure_ascii=False) + ';window.SG_ACTIVIDADES=' + json.dumps(_ACT_NAVE, ensure_ascii=False) + ';window.SG_PLANTILLA_EP=' + json.dumps(PLANTILLA_EPORTFOLIO) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "consola.html"), "w", encoding="utf-8").write(_ver_assets(_html))
@@ -4733,7 +4736,7 @@ _html = head("STARGATE · Gestionar grupos",
 <header class="hero corto"><h1>Gestionar grupos</h1></header>
 <section id="consola"><div class="wrap">
 <div id="consola-app"><p class="muted">Cargando…</p></div>
-''' + '<script>window.SG_GESTION=1;window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_AYUDA_RETOS=' + json.dumps(_AYUDA_NAVE, ensure_ascii=False) + ';window.SG_ACTIVIDADES=' + json.dumps(_ACT_NAVE, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
+''' + '<script>window.SG_GESTION=1;window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_AYUDA_RETOS=' + json.dumps(_AYUDA_NAVE, ensure_ascii=False) + ';window.SG_ACTIVIDADES=' + json.dumps(_ACT_NAVE, ensure_ascii=False) + ';window.SG_PLANTILLA_EP=' + json.dumps(PLANTILLA_EPORTFOLIO) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "gestion.html"), "w", encoding="utf-8").write(_ver_assets(_html))

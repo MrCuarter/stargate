@@ -755,6 +755,9 @@ SESION_EMBARQUE = [
     ("nota", "", "ap", "**Lo que puntúa**: las dos actividades (cuándo se lanzan y se resuelven), los tests, la asistencia y el examen; los retos, no"),
     ("video", "bitacora", "ap", "**Misión · La Bitácora** (1:36)…"),
     ("bitacora", "", "ap", "…y **la Bitácora ES el ePortfolio**: su patrón, qué acaba dentro y la plantilla"),
+    # 25-sep · Norberto: «embébelo en una diapositiva en la semana 1, justo después de la Bitácora (así puede usarla y pegar
+    # su enlace al alistarse)». En la semana 2 vuelve, tras el reto «La Bitácora en marcha» (sesion.js → diasMisiones).
+    ("plantilla", "", "ap", "**La plantilla de la Bitácora**, embebida: la duplican, la hacen suya y pegan su enlace al alistarse"),
     ("nave", "", "ap", "**Su Nave**, enseñada en simulacro"),
     ("alistaos", "", "ap", "**¡Alistaos!**: el código grande y las caras de quien ya está a bordo, en directo"),
     ("llamada", "", "ap", "**La llamada a filas**: su primer fichaje"),

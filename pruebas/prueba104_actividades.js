@@ -76,6 +76,27 @@ c(ACTS[0].entrega === 5 && ACTS[1].entrega === 9 && JSON.stringify(ACTS[0].recue
   c(/window\.SG_ACTIVIDADES \|\| \[\]\)\.forEach\(function \(a\) \{/.test(CONS) && /se entrega " \+ \(e \? "el " \+ e\.texto/.test(CONS),
     "   y en el Puente del docente, en el calendario de «Hoy toca»");
 }
+// 🔴 25-sep · LA PLANTILLA DE LA BITÁCORA. Norberto: «embébelo en una diapositiva en la semana 1, justo después de la Bitácora
+// (así puede usarla y pegar su enlace al alistarse). Recuérdalo en la semana 2. Añade un enlace "Plantilla Portfolio" en las
+// actividades que lo mencionen directamente. Cuando un estudiante añade un enlace a su Bitácora, un botón vistoso. En su
+// ficha también, y debe aparecer la imagen de su avatar».
+{
+  const NAVE = L("assets/js/recluta.js"), CONS = L("assets/js/consola.js"), ALI = L("assets/js/alistarse.js"), DAT = L("_site_data.py");
+  const EMB = global("SG_EMBARQUE").map(x => x[0]);
+  c(EMB.indexOf("plantilla") === EMB.indexOf("bitacora") + 1 && EMB.indexOf("plantilla") < EMB.indexOf("alistaos"),
+    "🔴 plantilla · en la sesión 1, embebida justo tras la Bitácora (y antes de alistarse)", EMB.join(","));
+  c(/function diaPlantilla\(cuando\)/.test(S) && /<iframe src="'\+esc\(pl\)\+'" title="La plantilla de la Bitácora"/.test(S) && /if\(id==='B1'\)\{ var dp=diaPlantilla\('recuerda'\)/.test(S),
+    "   y en la semana 2, tras «La Bitácora en marcha»");
+  c(/^PLANTILLA_EPORTFOLIO = "https:\/\/view\.genially\.com\/695f825d05cc22f3f7fac45b"$/m.test(DAT), "   el enlace, en un solo sitio (PLANTILLA_EPORTFOLIO)");
+  c((ACTHTML.match(/Plantilla Portfolio ↗/g) || []).length === 2 && /rs-pl/.test(NAVE) && /\/portfolio\/i\.test\(t\[1\]/.test(NAVE) && /Plantilla Portfolio ↗<\/a><\/p>' : ''\) \+/.test(CONS),
+    "🔴 plantilla · «Plantilla Portfolio» en las dos actividades y en los retos que nombran el portfolio (Nave y ficha del reto)");
+  c(/¿Aún no la tienes\? Parte de la plantilla de la Bitácora/.test(ALI), "   y al alistarse, junto al campo de la Bitácora");
+  c(/function botonBitacora\(\)/.test(NAVE) && /<b>Mi Bitácora<\/b> ↗/.test(NAVE) && /Añadir mi Bitácora/.test(NAVE)
+    && /M\.setDoc\(M\.doc\(M\.db,'student_profiles',st\.yo\.ficha,'privado','datos'\),\{bitacora:v\},\{merge:true\}\)/.test(NAVE),
+    "🔴 bitácora · en su Nave, el botón a su Bitácora (y si no la tiene, añadirla ahí mismo)");
+  c(/SG\.avatarImg\(r\.avatar, r\.alias, "fi-av"/.test(CONS) && /<b>Su Bitácora<\/b> ↗/.test(CONS),
+    "🔴 ficha del docente · su avatar (no el emblema) y el botón a su Bitácora");
+}
 c(JSON.stringify(conActividad) === JSON.stringify(ACTS.map(a => a.sem)),
   "🔴 las diapositivas salen SOLO en las semanas que lanzan una actividad (la 2 y la 6)", JSON.stringify(conActividad));
 c(ACTS.every(a => /Actividad\s+\d/i.test(String((semDe(a.sem) || {}).sub || ""))),

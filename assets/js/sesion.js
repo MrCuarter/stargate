@@ -1276,7 +1276,11 @@
         +'Se entrega en la plataforma de UNIR '+(function(){ var e=null; try{ e=window.SG.entregaDe&&st.inicio?window.SG.entregaDe(a, st.inicio, st.pausas):null; }catch(x){}   // (sin grupo o fuera del navegador: la semana)
             return e?'hasta el <b>'+esc(e.texto)+'</b> (23:59, último día de la semana '+a.entrega+')':'hasta el <b>último día de la semana '+a.entrega+'</b>'; })()
         +' y se resuelve en la <b>semana '+esc(String(a.resuelve))+'</b>.</p>'
-        +'<ol class="act-pasos">'+pasos+'</ol></div>'},
+        +'<ol class="act-pasos">'+pasos+'</ol>'
+        // 25-sep · «añade un enlace "Plantilla Portfolio" en las actividades que lo mencionen directamente»
+        +(typeof window!=='undefined'&&window.SG_PLANTILLA_EP&&(a.pasos||[]).some(function(p){ return /portfolio/i.test(p.join(' ')); })
+          ?'<p class="act-pl"><a class="btn min" href="'+esc(window.SG_PLANTILLA_EP)+'" target="_blank" rel="noopener">Plantilla Portfolio ↗</a></p>':'')
+        +'</div>'},
       {k:'actretos', rot:'Ya la tienes empezada', html:
         '<div class="dia act-retos-dia"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> '
         +'Lo que ya llevas hecho</div>'
@@ -1315,6 +1319,21 @@
       +'<p class="en-premio">Al registrarla en vuestra Nave: <b>+'+xp+' xp</b>'+insTxt+'.</p></div></div>'};
   }
 
+  /**
+   * 🔴 25-sep · LA PLANTILLA DE LA BITÁCORA, EMBEBIDA. Norberto: «si puedes embébelo en una diapositiva en la semana 1, justo
+   * después de la Bitácora (así puede usarla y pegar su enlace al alistarse). Recuérdalo en la semana 2 (plantilla
+   * Bitácora)». El enlace de siempre (SG_PLANTILLA_EP = PLANTILLA_EPORTFOLIO, _site_data.py): un dato, un sitio.
+   */
+  function diaPlantilla(cuando){
+    var pl=window.SG_PLANTILLA_EP||''; if(!pl) return null;
+    var w1=cuando==='embarque';
+    return {k:'plantilla', sec:w1?'embarque':'misiones', rot:'La plantilla', html:
+      '<div class="dia plantilla"><div class="pl-cab"><div class="kicker"><img class=ico src=assets/img/iconos/p/libro.png alt> '+(w1?'Tu Bitácora, en cinco minutos':'La Bitácora en marcha')+'</div>'
+      +'<h2>La plantilla de la Bitácora</h2>'
+      +'<p class="sub">'+(w1?'Duplícala, hazla tuya y <b>pega su enlace al alistarte</b>.':'Tu ePortfolio ya montado: duplícalo y lleva ahí la experiencia de esta semana.')
+      +' <a class="pl-abrir" href="'+esc(pl)+'" target="_blank" rel="noopener">Abrirla ↗</a></p></div>'
+      +'<div class="pl-marco"><iframe src="'+esc(pl)+'" title="La plantilla de la Bitácora" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div></div>'};
+  }
   function diasMisiones(s){
     var out=[], ls=s.lanza||[];
     ls.forEach(function(txt,i){
@@ -1336,6 +1355,8 @@
           ? '<p class="reto-ej"><a class="btn min" href="ejemplo.html?reto='+esc(id)+'" target="_blank" rel="noopener">Ver un ejemplo · '+esc(((window.SG_EJEMPLOS||{})[id]||{}).titulo||'')+' &#8599;</a></p>'
           : '')
         +'</div></div>'});
+      // 25-sep · tras «La Bitácora en marcha» (B1), la plantilla otra vez (Norberto: «recuérdalo en la semana 2»)
+      if(id==='B1'){ var dp=diaPlantilla('recuerda'); if(dp) out.push(dp); }
     });
     if(!ls.length&&s.hito) out.push({k:'hito', rot:'Entrega', html:
       '<div class="dia hito"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Esta semana</div><h2>Lo que se entrega</h2><p class="grande">'+esc(s.hito)+'</p></div>'});
@@ -1539,6 +1560,7 @@
       else if(pieza==='nota') add(diaNota());
       else if(pieza==='bitacora') add(diaBitacora());
       else if(pieza==='nave') add(diapositivasNuevas(s));
+      else if(pieza==='plantilla') add(diaPlantilla('embarque'));
       else if(pieza==='alistaos'){ if(st.per && !st.alumno) add(diaAlistaos()); }
       else if(pieza==='llamada'){ if(st.per) add(diaLlamada()); }
       else if(pieza==='ticket') add(diaTicketForm(s, arg));

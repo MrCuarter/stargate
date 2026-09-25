@@ -1277,10 +1277,17 @@
     var f = ((DATOS.proyecto && DATOS.proyecto.factions) || []).filter(function (x) { return x.teacherName === r.profe; })[0];
     var m = modalFicha(
       '<button type="button" class="c-modal-x" data-cerrar-ficha aria-label="Cerrar la ficha">✕</button>' +
-      '<div class="fi-cab">' + (f && f.imageUrl ? '<img class="fi-emb" src="' + esc(f.imageUrl) + '" alt="" width="56" height="56">' : '') +
+      // 🔴 25-sep · su avatar, no el emblema (Norberto, con la ficha delante: «debe aparecer la imagen de su avatar… no sale»);
+      // el emblema del escuadrón, pequeño, en su esquina. Y su Bitácora, a un clic («un botón vistoso a su Bitácora»).
+      '<div class="fi-cab"><div class="fi-av-caja">' + (window.SG && SG.avatarImg ? SG.avatarImg(r.avatar, r.alias, "fi-av" + (r.marco === "oro" ? " marco-oro" : ""), r.xp,
+          ((DATOS.proyecto || {}).stargate || {}).tipo || "REGULAR") : "") +
+        (f && f.imageUrl ? '<img class="fi-emb" src="' + esc(f.imageUrl) + '" alt="" width="30" height="30" title="' + esc(f.name || "") + '">' : '') + '</div>' +
         '<div><div class="fi-esc">' + (f ? esc(f.name) + " · " : "") + "Comandante " + esc(r.profe || "—") + "</div>" +
         "<h3>" + esc(r.alias) + (r.corona ? " <img class=ico src=assets/img/iconos/p/corona.png alt>" : "") + (r.nombre ? ' <span>· ' + esc(r.nombre) + "</span>" : "") + "</h3>" +
-        (r.email ? '<p class="small muted">' + esc(r.email) + "</p>" : "") + "</div></div>" +
+        (r.email ? '<p class="small muted">' + esc(r.email) + "</p>" : "") +
+        (/^https?:\/\//i.test(String(r.bitacora || "")) ? '<p class="fi-bit"><a class="nb-bitacora" href="' + esc(r.bitacora) + '" target="_blank" rel="noopener noreferrer">' +
+          '<img class=ico src=assets/img/iconos/p/libro.png alt> <b>Su Bitácora</b> ↗</a></p>' : '<p class="small muted fi-bit">Todavía no ha puesto el enlace de su Bitácora.</p>') +
+        "</div></div>" +
       '<div class="fi-cifras"><div><b>' + r.xp + '</b><span>xp</span></div><div><b>' + r.creditos + '</b><span>◈ créditos</span></div>' +
         '<div><b>' + r.nivel + '</b><span>nivel · ' + esc(r.rango_nombre || "") + '</span></div><div><b>' + r.n + '/' + NBADGES() + '</b><span>insignias</span></div>' +
         '<div><b>' + (r.racha || 0) + '</b><span>semanas de racha</span></div></div>' +
@@ -2125,6 +2132,8 @@
                     : '<p class="small muted">Sin explicación escrita.</p>') +
       '<p class="rt-fi-entrega">' + ico("hecho") + ' ' + esc(entrega) + '</p>' +
       (ej && id !== "S7" ? '<p class="rt-fi-ej"><a href="ejemplo.html?reto=' + esc(id) + '" target="_blank" rel="noopener">Ver un ejemplo: <span>' + esc(ej.titulo || "") + '</span> ↗</a></p>' : '') +
+      // 25-sep · «un enlace "Plantilla Portfolio" en las actividades que lo mencionen directamente»
+      (window.SG_PLANTILLA_EP && /portfolio/i.test((r.titulo || "") + " " + ((window.SG_AYUDA_RETOS || {})[id] || "")) ? '<p class="rt-fi-ej"><a href="' + esc(window.SG_PLANTILLA_EP) + '" target="_blank" rel="noopener">Plantilla Portfolio ↗</a></p>' : '') +
       '<div class="rt-fi-hecho"><p class="rt-fi-sub">Lo han hecho · <b>' + hechos.length + '</b> de ' + gente.length + '</p>' +
         (futuro ? '<p class="small muted">Todavía no se puede registrar: se abre la semana ' + w + '.</p>'
           : hechos.length ? '<ul class="rt-lista">' + hechos.map(fila).join("") + '</ul>'
