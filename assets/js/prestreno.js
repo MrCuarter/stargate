@@ -398,7 +398,7 @@
     return { rot: "Cómo se gana", html:
       '<div class="dia">' +
         '<div class="kicker">Las mecánicas, en una diapositiva</div>' +
-        '<h2>Dos monedas, dos retos por tema y un tope</h2>' +
+        '<h2>Dos monedas, dos retos por tema y un aviso</h2>' +
         '<div class="pr-dos">' +
           '<div class="pr-m pr-m-xp"><b>xp</b><span>Suben de nivel y <b>no se gastan nunca</b>. Marcan el rango y hacen evolucionar al personaje.</span></div>' +
           '<div class="pr-m pr-m-cred"><b>créditos ◈</b><span>Es lo que se canjea: cartas, héroes, adornos y —al final— subidas de nota.</span></div>' +
@@ -408,7 +408,7 @@
           '<div class="pr-t"><b>Reto principal</b><span>en casa · la experiencia del portfolio · <b>pide el enlace</b></span></div>' +
           '<div class="pr-t"><b>20 retos</b><span>dos por tema (tres en Fôrge) y tres extras · nunca más de uno en casa por semana</span></div>' +
         '</div>' +
-        '<p class="pr-cita">Nadie registra más de <b>' + (window.SG_TOPE_SEMANA || 3) + ' retos por semana</b>. No se puede hacer el curso en una tarde.</p>' +
+        '<p class="pr-cita">' + (Number(window.SG_TOPE_SEMANA) ? 'Nadie registra más de <b>' + Number(window.SG_TOPE_SEMANA) + ' retos por semana</b>.' : 'Sin tope: quien repasa al final, puede. Pero si alguien registra <b>' + (window.SG_AVISO_RETOS_DIA || 6) + ' o más en un día</b>, a su docente le salta el aviso.') + '</p>' +
       '</div>' };
   }
   function rankings() {
@@ -453,7 +453,7 @@
   }
   var PREGUNTAS = [
     ["¿Esto me da más trabajo?", "Menos. No se apunta nada a mano y la sesión viene montada. Lo que sí pide son treinta segundos de ceremonia en clase: decir el alias en voz alta."],
-    ["¿Y si alguien hace trampas?", "Todos los retos piden el enlace, hay tope semanal y cada reto se puede anular con un motivo que le llega a su Nave. Y ninguna nota sube sin vuestro visto bueno."],
+    ["¿Y si alguien hace trampas?", "Todos los retos piden el enlace, hay un aviso si alguien registra muchos de golpe y cada reto se puede anular con un motivo que le llega a su Nave. Y ninguna nota sube sin vuestro visto bueno."],
     ["¿Los puntos son la nota?", "No. Los xp y los créditos son del juego. La nota sale de las actividades y del examen, como siempre."],
     ["¿Tengo que saberme la historia?", "No. Cada semana tenéis el mensaje del foro ya escrito y la sesión proyectada la cuenta sola."],
     ["¿Y si no me gusta la gamificación?", "Usad solo la parte operativa: la sesión montada, los enlaces y el seguimiento. Su Nave la tendrán igual."]
@@ -753,7 +753,7 @@
         ['El <b>relámpago</b> de la semana, con el tripulante que se recupera.', 'El <b>reto principal</b>, con su insignia.']),
       rx("reto-relampago", "Registrar un reto", "El alumnado · un reto", "Cómo se registra un reto",
         ['<b>Lo que pide</b>, paso a paso, y <b>Ver un ejemplo</b> hecho.', '<b>El enlace</b> de lo que ha hecho: obligatorio. Sin él no se registra.', 'El <b>«+»</b> añade un segundo enlace.', '<b>«Lo he hecho»</b>: se registra y suben sus xp y créditos.'],
-        'Como mucho <b>' + (window.SG_TOPE_SEMANA || 3) + ' retos por semana</b>. Lo registrado lo ves en su ficha con su enlace, y si algo no está hecho, lo anulas.'),
+        (Number(window.SG_TOPE_SEMANA) ? 'Como mucho <b>' + Number(window.SG_TOPE_SEMANA) + ' retos por semana</b>. ' : 'Sin tope; si alguien registra <b>' + (window.SG_AVISO_RETOS_DIA || 6) + ' o más en un día</b>, NEBULA te avisa. ') + 'Lo registrado lo ves en su ficha con su enlace, y si algo no está hecho, lo anulas.'),
       rx("mercado", "El Mercado", "El alumnado · Mercado Estelar", "El Mercado Estelar",
         ['<b>La oferta de la semana</b>: sale sola, rebajada y con unidades contadas.', '<b>Cada tarjeta</b> dice qué trae, cuánto cuesta y si le llega: sobres con cartas del álbum, cápsulas con héroes.']),
       rx("logros", "Logros de a bordo", "El alumnado · Mi botín → Logros", "Los logros de a bordo y el Contramaestre",

@@ -16,13 +16,14 @@ const DATOS = leer("_site_data.py"), BUILD = leer("_build_site.py"), NAVE = leer
 const VALIDAR = leer("assets/js/validar.js"), MOTOR = leer("assets/js/motor.js"), AULA = leer("assets/js/aula.js"), SES = leer("assets/js/sesion.js");
 
 // ── 1 · tres por semana
-c(/TOPE_RETOS_SEMANA = 3/.test(DATOS) && !/TOPE_RETOS_DIA/.test(DATOS + BUILD), "🔴 el tope es de 3 retos por SEMANA (ya no por día)");
+// 25-sep · SIN TOPE (Norberto: «vamos a quitar el límite de 3 retos a la semana… no quiero frenarles»): 0, y un aviso al docente
+c(/^TOPE_RETOS_SEMANA = 0$/m.test(DATOS) && /^AVISO_RETOS_DIA = 6$/m.test(DATOS) && !/TOPE_RETOS_DIA/.test(DATOS + BUILD), "🔴 sin tope de retos por semana (0), y el aviso al docente a partir de 6 en un día");
 c(/window\.SG_TOPE_SEMANA=/.test(leer("recluta.html")) && !/SG_TOPE_DIA/.test(NAVE + FUENTE + VALIDAR), "   la web lo recibe como SG_TOPE_SEMANA, y nadie usa el viejo");
 c(/function lunes\(\)/.test(NAVE) && /function registrosDeLaSemana\(\)/.test(NAVE) && /otorgados\.indexOf\(k\)<0/.test(NAVE), "🔴 Nave · cuenta desde el lunes y sin los validados por su docente");
 c(/hoy0\.setDate\(hoy0\.getDate\(\) - \(\(hoy0\.getDay\(\) \+ 6\) % 7\)\)/.test(FUENTE) && /if \(otorg\.indexOf\(k\) >= 0\) return;/.test(FUENTE), "   el cerrojo de fuente.js, igual");
 c(/function deLaSemana\(ficha\)/.test(VALIDAR) && /Esta semana ya has registrado/.test(VALIDAR), "   y el «Validar» de los Geniallys");
 c(/stargateOtorgados: otorgados/.test(MOTOR), "🔴 lo que valida el docente a mano queda apuntado (no le quita hueco al recluta)");
-c(/Como mucho, <b>'\+\(Number\(window\.SG_TOPE_SEMANA\)\|\|3\)\+' retos por semana<\/b>/.test(NAVE), "   la bienvenida lo dice: «retos por semana»");
+c(/Number\(window\.SG_TOPE_SEMANA\)\?'Como mucho, <b>'/.test(NAVE) && /Sin tope: a tu ritmo\./.test(NAVE), "   la bienvenida lo dice: sin tope, a su ritmo (y si vuelve un tope, lo dice)");
 
 // ── 2 · la votación, en directo en la Nave
 c(/function vigilarVotaciones\(perId, alCambiar\)/.test(MOTOR) && /where\("isActive", "==", true\)/.test(MOTOR), "🔴 motor · las votaciones activas se ESCUCHAN (antes se miraban una vez)");

@@ -59,7 +59,7 @@ c(primeraGuia > 0 && doc[primeraGuia - 1].t === "Ahora nos vamos a la Guía" && 
 c(/común a todos los grupos/.test(DICE) && /la base del proyecto/.test(DICE), "   y dice que la Guía es común a todos los grupos, la base del proyecto");
 c(pos("Ahora nos vamos a la Guía") === pos("Los tickets de salida") + 1, "   y va justo después del ticket");
 c(!/Ajustes/.test(DICE) && /lápiz de tu avatar/.test(DICE), "🔴 ya no manda a «Ajustes» (se quitó): el comandante y el nombre, en el lápiz del avatar");
-c(!/retos al día/.test(DICE) && /retos por semana/.test(TOUR), "   el tope es por SEMANA, no al día");
+c(!/retos al día/.test(DICE) && /Sin tope: a su ritmo/.test(TOUR), "   sin tope (25-sep): la visita lo dice, y ya no habla de «retos al día»");
 
 // el paso que decide si eres referente NO puede saltarse ni depender de un grupo: si se queda sin
 // objetivo, la visita da por hecho que no eres referente y se come sus dos pasos

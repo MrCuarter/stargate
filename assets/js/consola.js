@@ -970,7 +970,9 @@
         var tipoG = ((DATOS.proyecto || {}).stargate || {}).tipo || "REGULAR";
         var cara = window.SG && SG.avatarImg ? SG.avatarImg(r.avatar, r.alias, "gente-av" + (r.marco === "oro" ? " marco-oro" : ""), r.xp, tipoG) : "";
         return '<tr data-r="' + i + '" tabindex="0"' + (r.congelado ? ' class="congelado"' : '') + '><td>' + r.pos + '</td><td class="gente-quien"><div class="gq">' + cara + '<span><b>' + esc(r.alias) + '</b>' +
-          (r.corona ? " <img class=ico src=assets/img/iconos/p/corona.png alt>" : "") + (r.congelado ? ' <span class="chip" title="Cuenta congelada por el referente"><img class=ico src=assets/img/iconos/p/hielo.png alt> congelado</span>' : '') + '</span></div></td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
+          (r.corona ? " <img class=ico src=assets/img/iconos/p/corona.png alt>" : "") +
+          (function () { var a = atraconDe(r); return a ? ' <span class="chip atracon" title="Ha registrado ' + a.n + ' retos el ' + a.dia + ': revisa sus enlaces">' + ico("aviso") + ' ' + a.n + ' retos el ' + a.dia + '</span>' : ""; })() +
+          (r.congelado ? ' <span class="chip" title="Cuenta congelada por el referente"><img class=ico src=assets/img/iconos/p/hielo.png alt> congelado</span>' : '') + '</span></div></td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
           esc(r.email || "") + '</span></td>' + (conComandante ? '<td>' + esc(r.profe || "—") + '</td>' : '') + '<td>' + r.xp +
           '</td><td>' + r.creditos + '</td><td>' + r.n + "/" + NBADGES() + "</td>" + celdaBienvenida(r, caps) + "</tr>";
       }).join("") + "</tbody></table></div>";
@@ -1713,12 +1715,33 @@
    * con efecto máquina de escribir, justo encima de los insights». Se eligen por lo que ha pasado en SU gente; cada uno
    * con un consejo concreto y, si lo hay, un botón que lo hace.
    */
+  /**
+   * 🔴 25-sep · MUCHOS RETOS EN UN DÍA. Norberto: «vamos a quitar el límite de 3 retos a la semana… algunos lo hacen al final
+   * a modo de repaso. Ahora bien, al docente del grupo sí que le debería saltar un aviso (ojo, el recluta X ha completado +6
+   * retos en un solo día, deberías revisar los enlaces)». El día con más retos registrados por él mismo (sin hitos ni los
+   * que validó su docente) en las dos últimas semanas; si llega a SG_AVISO_RETOS_DIA (_site_data.py), aviso.
+   */
+  function atraconDe(r) {
+    var U = Number(window.SG_AVISO_RETOS_DIA) || 6, desde = Date.now() - 14 * 864e5, dias = {};
+    Object.keys(r.retos || {}).forEach(function (id) {
+      var x = (r.retos || {})[id] || {}; if (/^H/.test(id) || (x.origen && x.origen !== "recluta")) return;
+      var t = Date.parse(x.fecha); if (!isFinite(t) || t < desde) return;
+      var d = new Date(t), k = d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate();
+      (dias[k] = dias[k] || { n: 0, t: t }).n++;
+    });
+    var peor = null; Object.keys(dias).forEach(function (k) { if (dias[k].n >= U && (!peor || dias[k].n > peor.n)) peor = dias[k]; });
+    return peor ? { n: peor.n, dia: new Date(peor.t).getDate() + " " + MESES_C[new Date(peor.t).getMonth()] } : null;
+  }
   function consejosNebula(o) {
     var L = [], N = o.gente.length, act = o.gente.filter(function (r) { return Number(r.xp7) > 0; }).length;
     var sil = o.gente.filter(function (r) { return !Number(r.xp7) && (r.hechos || []).length; });
     var sin = o.gente.filter(function (r) { return !(r.hechos || []).length; });
     var pct = N ? Math.round(act * 100 / N) : 0;
     var nom = function (A) { return A.slice(0, 3).map(function (r) { return r.alias; }).join(", ") + (A.length > 3 ? "…" : ""); };
+    // 25-sep · lo primero, quien ha registrado muchos retos de golpe: que su docente revise sus enlaces
+    o.gente.map(function (r) { return { r: r, a: typeof atraconDe === "function" ? atraconDe(r) : null }; }).filter(function (x) { return x.a; }).slice(0, 3).forEach(function (x) {
+      L.push({ t: "Ojo: " + x.r.alias + " ha registrado " + x.a.n + " retos el " + x.a.dia + ". Revisa sus enlaces, por si alguno no es lo que pide.", a: ["Ver su ficha", "ficha:" + x.r.ficha] });
+    });
     if (!N) L.push({ t: "Todavía no se ha alistado nadie. Copia la invitación (junto al nombre del grupo, aquí abajo) y pégala hoy en el foro: el primer día es cuando más gente se apunta." });
     if (o.cola) L.push({ t: "Tienes " + o.cola + (o.cola === 1 ? " subida de nota esperando" : " subidas de nota esperando") + " tu visto bueno. Resuélvelas pronto: quien pide nota está pendiente.", a: ["Ver la Cola de nota", "cola"] });
     if (sil.length) L.push({ t: (sil.length === 1 ? "Una persona lleva" : sil.length + " reclutas llevan") + " una semana en silencio (" + nom(sil) + "). Un mensaje personal funciona mejor que un aviso general: una línea basta.", a: ["Escribirles", "silencio"] });
@@ -1770,7 +1793,7 @@
     var pon = function () {
       var c = consejos[i], txt = c.t, k = 0; clearInterval(tic);
       if (n) n.textContent = (i + 1) + "/" + consejos.length;
-      var hace = c.a && (manual() || c.a[1] === "cola");
+      var hace = c.a && (manual() || c.a[1] === "cola" || /^ficha:/.test(c.a[1]));
       acc.innerHTML = hace ? '<button type="button" class="btn min primary" data-neb="' + c.a[1] + '">' + esc(c.a[0]) + '</button>' : "";
       if (quieto) { p.textContent = txt; return; }
       p.textContent = ""; p.classList.add("escribe");
@@ -2026,7 +2049,10 @@
     // «Escribirles» (en las cifras o en un consejo de NEBULA): elige a quién y lleva a la caja del mensaje
     var escribirA = function (a) { ponDestino(a); if (mTxt) { mTxt.scrollIntoView({ behavior: "smooth", block: "center" }); mTxt.focus(); } };
     Array.prototype.forEach.call(document.querySelectorAll("#consola-app [data-escribir]"), function (b) { b.onclick = function () { escribirA(b.getAttribute("data-escribir")); }; });
-    cablearNebula(consejos, function (que) { if (que === "cola") { TAB = "canjes"; pintar(); } else escribirA(que); });
+    cablearNebula(consejos, function (que) {
+      if (que === "cola") { TAB = "canjes"; pintar(); }
+      else if (/^ficha:/.test(que)) { var x = (t.reclutas || []).filter(function (p) { return p.ficha === que.slice(6); })[0]; if (x) verFicha(x); }
+      else escribirA(que); });
     if (mTxt && mOk) {
       mTxt.oninput = function () { mN.textContent = mTxt.value.length + "/400"; mOk.disabled = !mTxt.value.trim() || !DEST[destino].length; };
       mOk.onclick = async function () {

@@ -637,7 +637,13 @@ REFLEXION_RETOS = {
 # la semana!»). La semana, de lunes a domingo. Cuentan los que registra el propio recluta (A0, B, X, S7); no los hitos (van
 # solos), ni los relámpago (se hacen en clase), ni los que valida su docente desde la ficha (`stargateOtorgados`). Deshacer
 # uno libera su hueco. Lo aplica también el servidor (gamificapro/functions/stargateTope.js), con el mismo número.
-TOPE_RETOS_SEMANA = 3
+# 🔴 25-sep · SIN TOPE. Norberto: «vamos a quitar el límite de 3 retos a la semana… algunos estudiantes lo hacen al final a
+# modo de repaso, no quiero frenarles. Ahora bien, al docente del grupo sí que le debería saltar un aviso (ojo, el recluta X
+# ha completado +6 retos en un solo día, deberías revisar los enlaces)». 0 = sin tope (la web y el servidor lo leen así).
+TOPE_RETOS_SEMANA = 0
+# …y el aviso: con tantos retos registrados el MISMO día (en las dos últimas semanas), NEBULA avisa a su docente en el
+# Puente y su fila en Reclutas lo marca.
+AVISO_RETOS_DIA = 6
 
 # ────────────────────── LAS DOS MISIONES MAYORES (las actividades que SÍ puntúan) ──────────────────────
 # 🔴 21-sep · Norberto: «Necesito saber qué misiones/retos están directamente relacionados con la act1 y act2. En las

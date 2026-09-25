@@ -6517,3 +6517,5 @@ img.av.fi-av{width:84px;height:84px}
    se separa siempre igual (las rejillas de dentro, como el Mercado o los retos, llevan su propio hueco). */
 #nave-panel>*+*{margin-top:18px}
 #c-cuerpo>*+*{margin-top:14px}
+/* 25-sep · el aviso de «muchos retos en un día», en la fila de Reclutas */
+.chip.atracon{background:rgba(245,176,67,.12);border:1px solid rgba(245,176,67,.55);color:#f5c77a;font-size:.75rem;white-space:nowrap}

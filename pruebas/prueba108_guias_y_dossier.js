@@ -64,7 +64,8 @@ c(/<span class="modo recluta">Recluta<i> · alumnado<\/i><\/span>/.test(GR) && /
 c((GR.match(/<tr><td class="num">\d+<\/td><td><b>[^<]+<\/b> <span class="muted">· /g) || []).length === niveles.length && niveles.length === 10,
   "   los niveles salen del sitio (" + niveles.length + ")");
 const tope = (_sd.match(/^TOPE_RETOS_SEMANA = (\d+)/m) || [])[1];
-c(tope && new RegExp("como mucho <b>" + tope + "</b>").test(GR), "   el tope de retos por semana también (" + tope + ")");
+c(tope === "0" ? /\(sin tope: a tu ritmo\)/.test(GR) && !/retos por semana, como mucho/.test(GR) : new RegExp("como mucho <b>" + tope + "</b>").test(GR),
+  "   el tope de retos por semana también (" + tope + "; 25-sep: 0 = sin tope, y la guía lo dice)");
 const imgs = [...new Set((GR + INDEX).match(/assets\/img\/capturas\/[a-z-]+\.webp/g) || [])];
 c(imgs.length >= 12 && imgs.every(f => fs.existsSync(path.join(R, f))), "🔴 todas las capturas que piden la guía y el dossier existen (" + imgs.length + ")",
   imgs.filter(f => !fs.existsSync(path.join(R, f))).join(", "));

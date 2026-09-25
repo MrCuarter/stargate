@@ -30,7 +30,7 @@ c(/class="gp-cfg" data-av/.test(K), "   la rueda de la sesión, también (23-sep
 c(/var AV_TABS = \["zoco", "mios", "huevos", "sorteos", "ofertas"\]/.test(K) && /if \(!manual\(\) && AV_TABS\.indexOf\(x\[0\]\) >= 0\) return false;/.test(K), "🔴 en piloto, fuera las pestañas de gestión (Zoco, Mis enlaces, Premios, Sorteos, Ofertas)");
 c(/manual\(\) && x\[0\] === "huevos"/.test(K) && /function premiables\(\)/.test(K), "🔴 en mando manual, el docente raso crea premios por enlace para SUS grupos (sorteos y ofertas siguen siendo del referente)");
 c(/class="card pt-msg pt-plega" data-av/.test(K) && /id="pt-panel-ed" data-av/.test(K) && /data-av data-escribir=/.test(K), "   en la portada: el mensaje a tus reclutas, cambiar el panel y «Escribirles», en mando manual");
-c(/var hace = c\.a && \(manual\(\) \|\| c\.a\[1\] === "cola"\)/.test(K), "   NEBULA en piloto no ofrece «Escribirles» (sí «Ver la Cola de nota»)");
+c(/var hace = c\.a && \(manual\(\) \|\| c\.a\[1\] === "cola" \|\| \/\^ficha:\/\.test\(c\.a\[1\]\)\)/.test(K), "   NEBULA en piloto no ofrece «Escribirles» (sí «Ver la Cola de nota» y, 25-sep, «Ver su ficha»)");
 c(/if \(!manual\(\)\) \{\s*await window\.SG\.preguntar\(\{ aqui: b\.closest\("\.retos-ficha"\) \|\| b, marca: b,/.test(K) && /si: "Cerrar", no: "" \}\);/.test(K),
   "🔴 en piloto la ficha enseña lo entregado, pero validar o anular lo hace el referente");
 // 🔴 20-sep · «Premiar» sale también en piloto: dar un premio en clase es de directo, no una opción avanzada

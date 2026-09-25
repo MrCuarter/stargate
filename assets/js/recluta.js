@@ -3064,7 +3064,7 @@
     {t:'La historia, en grande',foco:'.cine',
      x:'Cada semana se desbloquean los <b>vídeos</b> de la historia. Se ven aquí, a buen tamaño, y con las semanas de arriba vuelves a los anteriores cuando quieras.<br><br>Los <b>fragmentos</b> de cada tripulante, no: esos se ganan. Completa su misión y su vídeo se abre para ti — y todos se van guardando en <b>El Archivo</b>.'},
     {t:'Lo que puedes conseguir',foco:'.retos-semana',
-     x:'Los <b>retos de esta semana</b>, con lo que da cada uno: <b>experiencia</b>, que sube de nivel a tu personaje y nunca baja, y <b>créditos ◈</b>, que se gastan.<br><br>Pulsa uno, hazlo y márcalo con <b>«Lo he hecho»</b>. Donde hay algo que entregar te pido el <b>enlace</b>: sin él no se registra, y tu docente lo ve. Como mucho, <b>'+(Number(window.SG_TOPE_SEMANA)||3)+' retos por semana</b>.'},
+     x:'Los <b>retos de esta semana</b>, con lo que da cada uno: <b>experiencia</b>, que sube de nivel a tu personaje y nunca baja, y <b>créditos ◈</b>, que se gastan.<br><br>Pulsa uno, hazlo y márcalo con <b>«Lo he hecho»</b>. Donde hay algo que entregar te pido el <b>enlace</b>: sin él no se registra, y tu docente lo ve. '+(Number(window.SG_TOPE_SEMANA)?'Como mucho, <b>'+Number(window.SG_TOPE_SEMANA)+' retos por semana</b>.':'Sin tope: a tu ritmo.')},
     {t:'Tus marcadores, siempre a la vista',foco:'.nb-fin',
      x:'Arriba a la derecha, tus <b>xp</b> y tus <b>créditos</b>. Estés en la pestaña que estés, los verás subir en cuanto ganes algo.'}
   ];

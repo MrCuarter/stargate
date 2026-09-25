@@ -1491,7 +1491,6 @@
             +'<b>'+esc(p[1])+'</b><span>'+esc(p[2])+'</span></div>'; }).join('')+'</div></div>'};
   }
   function diaSemanaTipo(){
-    var tope=Number(window.SG_TOPE_SEMANA)||3;
     var paso=function(n, t, x){ return '<li style="--i:'+n+'"><b>'+t+'</b><span>'+x+'</span></li>'; };
     return {k:'embarque_semana', sec:'embarque', rot:'Cada semana', html:
       '<div class="dia emb con-fondo">'+capaEscena('pasillo')+'<div class="kicker">Cómo funciona</div><h2>Así es una semana a bordo</h2>'

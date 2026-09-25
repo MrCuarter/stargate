@@ -141,6 +141,9 @@ c(/function alDia\(\) \{ return Date\.now\(\) - LEIDO_EN < 30000; \}/.test(K) &&
   "🔴 al día · la consola vuelve a leer el grupo al cambiar de sección o al volver a la pestaña (sin recargar la página)");
 c(/localStorage\.getItem\("sgBzVistos"\)/.test(K) && /localStorage\.setItem\("sgBzVistos"/.test(leer("assets/js/buzon.js")),
   "   la burbuja de Contacto se apaga tras la primera visita (aunque el servidor no guarde el «visto»)");
+c(/function atraconDe\(r\)/.test(K) && /Number\(window\.SG_AVISO_RETOS_DIA\) \|\| 6/.test(K) && /"Ojo: " \+ x\.r\.alias \+ " ha registrado "/.test(K) && /a: \["Ver su ficha", "ficha:" \+ x\.r\.ficha\]/.test(K)
+  && /class="chip atracon"/.test(K) && /window\.SG_AVISO_RETOS_DIA=6/.test(HTML),
+  "🔴 sin tope, con aviso: NEBULA avisa al docente si alguien registra 6 o más retos en un día (y su fila lo marca)");
 c(/#nave-panel>\*\+\*\{margin-top:18px\}/.test(CSS) && /#c-cuerpo>\*\+\*\{margin-top:14px\}/.test(CSS), "   y todas las tarjetas, con su margen (Nave y consola)");
 
 console.log("\n  Batería 86 · la consola: lo del referente, la ficha y los rankings");
