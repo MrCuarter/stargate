@@ -53,6 +53,29 @@ const nucleoDe = t => (String(t).match(/«([^»]+)»/) || [, ""])[1];
 
 // ── 1 · solo salen en las semanas que lanzan una actividad
 const conActividad = SEMS.filter(s => api.diasActividad(s).length).map(s => s.sem);
+// 🔴 25-sep · Norberto: «la actividad 1 se entrega siempre el último día de la semana 5 y la actividad 2 el último día de la
+// semana 9… Añade en la semana 4 y 5 recordatorio de cuándo se entrega la act1, y la 7 y 8 de la act2. Incluye alguna
+// imagen visual, la insignia que se gana». La semana de entrega y las del recordatorio, en el dato; la fecha, de cada grupo.
+c(ACTS[0].entrega === 5 && ACTS[1].entrega === 9 && JSON.stringify(ACTS[0].recuerda) === "[4,5]" && JSON.stringify(ACTS[1].recuerda) === "[7,8]",
+  "🔴 entrega · la Act. 1, el último día de la semana 5 (recuerda 4-5); la Act. 2, el de la 9 (recuerda 7-8)");
+{
+  const STG = L("assets/js/stargate.js"), NAVE = L("assets/js/recluta.js"), CONS = L("assets/js/consola.js");
+  // la fecha: el quinto día de la semana del grupo (con sus pausas), a las 23:59; con el grupo del 5-oct, 6-nov y 4-dic
+  const SGS = require(path.join(__dirname, "..", "motor", "semanas.js"));
+  const win = { SG: {}, SGSEMANAS: SGS };
+  new Function("window", STG.slice(STG.indexOf("window.SG.entregaDe = function"), STG.indexOf("\n};\n", STG.indexOf("window.SG.entregaDe = function")) + 3))(win);
+  const pausas = SGS.festivosUNIR("2026-10-05", 15, 1);
+  const e1 = win.SG.entregaDe(ACTS[0], "2026-10-05", pausas, "2026-10-26"), e2 = win.SG.entregaDe(ACTS[1], "2026-10-05", pausas, "2026-11-16");
+  c(e1 && e1.texto === "viernes 6 de noviembre" && e1.faltan === 11 && e2 && e2.texto === "viernes 4 de diciembre",
+    "🔴 entrega · con el grupo del 5-oct: viernes 6-nov y viernes 4-dic (como la programación oficial)", JSON.stringify([e1 && e1.texto, e1 && e1.faltan, e2 && e2.texto]));
+  c(/function recordatorioActividad\(\)/.test(NAVE) && /\+recordatorioActividad\(\)/.test(NAVE) && /assets\/img\/insignias\/'\+esc\(i\)\+'\.webp/.test(NAVE) && /if\(!mios\[a\.reto\]/.test(NAVE) || /!mios\[a\.reto\] &&/.test(NAVE),
+    "   en la Nave: la tarjeta bajo la ficha, con sus insignias (y si ya la registró, no sale)");
+  c(/var ac=actividadEnCurso\(\);/.test(NAVE) && /¡Esta es la semana! La <b>Actividad/.test(NAVE), "   y NEBULA lo recuerda (y en la semana de entrega: «¡esta es la semana!»)");
+  c(/function diaEntrega\(s\)/.test(S) && /var en=diaEntrega\(s\); if\(en\) d\.push\(en\);/.test(S) && /entrega:'actividad'/.test(S),
+    "   en la sesión: la diapositiva «La entrega» (sección «La misión mayor»)");
+  c(/window\.SG_ACTIVIDADES \|\| \[\]\)\.forEach\(function \(a\) \{/.test(CONS) && /se entrega " \+ \(e \? "el " \+ e\.texto/.test(CONS),
+    "   y en el Puente del docente, en el calendario de «Hoy toca»");
+}
 c(JSON.stringify(conActividad) === JSON.stringify(ACTS.map(a => a.sem)),
   "🔴 las diapositivas salen SOLO en las semanas que lanzan una actividad (la 2 y la 6)", JSON.stringify(conActividad));
 c(ACTS.every(a => /Actividad\s+\d/i.test(String((semDe(a.sem) || {}).sub || ""))),

@@ -1273,7 +1273,9 @@
         +'<h2>Actividad '+esc(String(a.n))+' — '+esc(a.titulo)+'</h2>'
         +'<p class="sub"><i>«'+esc(a.lema)+'.»</i> '+esc(a.resumen)+'</p>'
         +'<p class="act-nota"><b>'+esc(a.puntos)+' de los 10 puntos</b> de la evaluación continua. '
-        +'Se entrega en la plataforma de UNIR y se resuelve en la <b>semana '+esc(String(a.resuelve))+'</b>.</p>'
+        +'Se entrega en la plataforma de UNIR '+(function(){ var e=null; try{ e=window.SG.entregaDe&&st.inicio?window.SG.entregaDe(a, st.inicio, st.pausas):null; }catch(x){}   // (sin grupo o fuera del navegador: la semana)
+            return e?'hasta el <b>'+esc(e.texto)+'</b> (23:59, último día de la semana '+a.entrega+')':'hasta el <b>último día de la semana '+a.entrega+'</b>'; })()
+        +' y se resuelve en la <b>semana '+esc(String(a.resuelve))+'</b>.</p>'
         +'<ol class="act-pasos">'+pasos+'</ol></div>'},
       {k:'actretos', rot:'Ya la tienes empezada', html:
         '<div class="dia act-retos-dia"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> '
@@ -1283,6 +1285,34 @@
         +'de estos retos deja hecho un trozo de la entrega: quien los hace <b>no empieza de cero</b>.</p>'
         +'<ul class="act-retos">'+retos+'</ul></div>'}
     ];
+  }
+
+  /**
+   * 🔴 25-sep · LA ENTREGA, EN CLASE. Norberto: «la actividad 1 se entrega siempre el último día de la semana 5 y la 2 el
+   * último día de la semana 9… Añade en la semana 4 y 5 recordatorio de cuándo se entrega la act1, y la 7 y 8 de la act2.
+   * Incluye alguna imagen visual, la insignia que se gana». En las semanas `recuerda` de cada actividad: la fecha de ESTE
+   * grupo en grande (SG.entregaDe; sin grupo, «el último día de la semana N»), lo que vale y lo que se lleva al registrarla.
+   */
+  function diaEntrega(s){
+    var sem=Number(s.sem)||0; if(st.tipo==='PUA') return null;
+    var a=ACTS.filter(function(x){ return (x.recuerda||[]).indexOf(sem)>=0; })[0]; if(!a) return null;
+    var S=window.SGSEMANAS, hoy=null;
+    if(sem!==st.semHoy && S && st.inicio) hoy=S.fecha(S.inicioDeSemana(st.inicio, sem, st.pausas||[]));   // (otra semana: desde su lunes)
+    var e=window.SG&&window.SG.entregaDe&&st.inicio?window.SG.entregaDe(a, st.inicio, st.pausas, hoy):null;
+    var t=(RET.REGULAR||[]).filter(function(y){ return y[0]===a.reto; })[0]||[], ins=t[2]||[], xp=Number(t[3])||0;
+    var pl=PLAN.filter(function(p){ return p[1]===a.planeta; })[0];
+    var nombres=ins.map(function(i){ var b=badge(i); return '«'+esc(b?b.nombre:i)+'»'; });
+    var insTxt=!nombres.length?'':(nombres.length===1?' y la insignia '+nombres[0]:' y las insignias '+nombres.slice(0,-1).join(', ')+' y '+nombres[nombres.length-1]);
+    var cuenta=!e||e.faltan<0?'':e.faltan===0?'Es hoy':e.faltan===1?'Es mañana':'Quedan '+e.faltan+' días';
+    return {k:'entrega', rot:'La entrega', html:
+      '<div class="dia entrega con-fondo">'+(pl?'<div class="dia-fondo" style="background-image:url(\'assets/img/planetas/'+esc(pl[0])+'.png\')" aria-hidden="true"></div>':'')
+      +(ins.length?'<div class="en-ins">'+ins.map(function(i){ var b=badge(i);
+          return '<figure><img src="assets/img/insignias/'+esc(i)+'.webp" alt=""><figcaption>'+esc(b?b.nombre:'')+'</figcaption></figure>'; }).join('')+'</div>':'')
+      +'<div class="en-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/calendario.png alt> Misión mayor '+esc(a.orden)+' · Actividad '+a.n+'</div>'
+      +'<h2>Se entrega el <b>'+(e?esc(e.texto):'último día de la semana '+a.entrega)+'</b></h2>'
+      +(cuenta?'<p class="en-cuenta">'+cuenta+'</p>':'')
+      +'<p class="sub">«'+esc(a.titulo)+'». Hasta las 23:59, en la plataforma de UNIR: <b>'+esc(a.puntos)+' de los 10 puntos</b> de la evaluación continua.</p>'
+      +'<p class="en-premio">Al registrarla en vuestra Nave: <b>+'+xp+' xp</b>'+insTxt+'.</p></div></div>'};
   }
 
   function diasMisiones(s){
@@ -1383,7 +1413,7 @@
   var SEC_DE_K={portada:'portada', llamada:'llamada', foro:'mensaje', anteriores:'repaso', reflexion:'repaso',
     movido:'clasificacion', semanal:'clasificacion', top:'clasificacion', escuadrones:'clasificacion', coleccion:'coleccion',
     simulador:'simulador', votacion:'votacion', ticket:'ticket', oferta:'oferta', nuevo:'novedades', simulacro:'novedades',
-    genially:'despegue', puente:'despegue', act:'actividad', actretos:'actividad',
+    genially:'despegue', puente:'despegue', act:'actividad', actretos:'actividad', entrega:'actividad',
     reto:'misiones', hito:'misiones', insignias:'recompensa'};
   function secDe(x){ return x.sec || SEC_DE_K[x.k] || 'misiones'; }
   function apagadas(){
@@ -1551,6 +1581,7 @@
     var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
     // 24-sep · la intro del planeta, con su nombre en la barra (como el cierre): «Rumbo al planeta»
     deTipo('inicio').forEach(function(v,i){ d.push(Object.assign(diaVideo(v, i, 'Para empezar', /·\s*intro\b/i.test((v[0]&&v[0].titulo)||'')?'Rumbo al planeta':''), {sec:'videos'})); });
+    var en=diaEntrega(s); if(en) d.push(en);   // 25-sep · la entrega de la actividad (semanas 4-5 y 7-8)
     /**
      * 17-sep · LA SESIÓN CRECE CON LO QUE SE DESBLOQUEA (Norberto: «la primera semana debería ser más sencilla; no hace falta
      * ranking, coleccionista… no ha habido tiempo. En la primera y segunda no queremos agobiar»). «Han movido ficha», desde la

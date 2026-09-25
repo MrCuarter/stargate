@@ -602,6 +602,22 @@ window.SG.pers = function(cb){
 })();
 
 /**
+ * 🔴 25-sep · CUÁNDO SE ENTREGA UNA ACTIVIDAD. Norberto: «la actividad 1 se entrega siempre el último día de la semana 5 y la
+ * actividad 2 el último día de la semana 9» (con el grupo del 5-oct: viernes 6-nov y viernes 4-dic, como la programación
+ * oficial). El último día lectivo (el quinto) de esa semana DEL GRUPO, con sus pausas, a las 23:59. Un sitio para la Nave,
+ * la consola y la sesión: `a` es una de SG_ACTIVIDADES; `hoy` (opcional) para contar los días que quedan.
+ */
+window.SG.entregaDe = function (a, inicio, pausas, hoy) {
+  var S = window.SGSEMANAS; if (!a || !a.entrega || !inicio || !S) return null;
+  var d = S.fecha(S.inicioDeSemana(inicio, a.entrega, pausas || [])); d.setDate(d.getDate() + 4); d.setHours(23, 59, 0, 0);
+  var DS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+      MS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  var h = hoy ? new Date(hoy) : new Date(); h.setHours(0, 0, 0, 0);
+  var dia = new Date(d); dia.setHours(0, 0, 0, 0);
+  return { fecha: d, dia: DS[d.getDay()], texto: DS[d.getDay()] + " " + d.getDate() + " de " + MS[d.getMonth()],
+           corto: d.getDate() + " " + MS[d.getMonth()].slice(0, 3), faltan: Math.round((dia - h) / 864e5) };
+};
+/**
  * EL PASO A PASO DE UN RETO: su explicación (SG_AYUDA_RETOS, del documento maestro), partida en frases. La usan la Nave
  * del recluta («Cómo se hace, paso a paso») y, desde el 24-sep, la pestaña «Retos» de la consola del docente.
  */

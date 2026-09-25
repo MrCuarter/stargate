@@ -291,6 +291,13 @@
     (s.lanza || []).forEach(function (t) { if (/^Actividad/i.test(t)) cal.unshift(["anadir", "Se lanza la " + String(t).split(" — ")[0]]); });
     (window.SG_CAPITULOS || []).forEach(function (c) { if (c.listo !== false && ((c.semanas || {})[tipo]) === sem) cal.push(["envivo", "NEBULA abre el capítulo «" + c.titulo + "»"]); });
     if (sem === total) cal.push(["aviso", "Último día para registrar retos: " + (fechas ? fechas.split(" – ")[1] : "el domingo")]);
+    // 25-sep · la entrega de la actividad: en sus semanas de recordatorio y en la de entrega, con la fecha de este grupo
+    (window.SG_ACTIVIDADES || []).forEach(function (a) {
+      if (tipo === "PUA" || !((a.recuerda || []).indexOf(sem) >= 0 || a.entrega === sem)) return;
+      var e = window.SG.entregaDe && S.inicio ? window.SG.entregaDe(a, S.inicio, S.pausas) : null;
+      cal.push(["aviso", "La Actividad " + a.n + " se entrega " + (e ? "el " + e.texto : "el último día de la semana " + a.entrega) + " (23:59)" +
+        (a.entrega === sem ? ": es esta semana" : "")]);
+    });
     var vids = (s.videos || []);
     var N = gente ? gente.length : 0;
     var prog = function (r) { if (!gente) return null; var n = gente.filter(function (x) { return (x.hechos || []).indexOf(r.id) >= 0; }).length;

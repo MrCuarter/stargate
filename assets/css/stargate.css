@@ -6436,3 +6436,31 @@ img.av.rt-av{width:38px;height:38px;flex:none}
   background:rgba(55,224,236,.08);color:var(--teal2);font-size:.82rem;font-weight:700;text-decoration:none;white-space:nowrap}
 .ar-ses:hover,.ar-ses:focus-visible{background:rgba(55,224,236,.18);color:#fff}
 @media(max-width:560px){ .ar-sem h3{flex-wrap:wrap} .ar-ses{margin-left:0} }
+/* 🔴 25-sep · LA ENTREGA DE LA ACTIVIDAD, A LA VISTA (semanas 4-5 y 7-8). En la Nave: la tarjeta bajo la ficha, con el
+   planeta de fondo, las insignias que se gana y la fecha de SU grupo; en la sesión, la misma idea a pantalla. */
+.rec-entrega{position:relative;overflow:hidden;isolation:isolate;display:flex;align-items:center;gap:18px 22px;flex-wrap:wrap;
+  border-color:rgba(245,176,67,.55);background:linear-gradient(135deg,rgba(245,176,67,.10),rgba(8,14,24,.92) 55%)}
+.rec-entrega.urge{border-color:var(--amber);box-shadow:0 0 0 1px rgba(245,176,67,.25),0 0 22px rgba(245,176,67,.18)}
+.re-fondo{position:absolute;right:-60px;top:50%;width:300px;height:300px;transform:translateY(-50%);background:center/contain no-repeat;opacity:.22;z-index:-1;pointer-events:none}
+.re-ins{display:flex;gap:10px;flex:none}
+.re-ins figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;width:92px;text-align:center}
+.re-ins img{width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(245,176,67,.35))}
+.re-ins figcaption{font-size:.75rem;line-height:1.2;color:#f5c77a;font-weight:700}
+.re-txt{flex:1 1 320px;min-width:0}
+.re-txt h3{margin:4px 0 6px;font-size:1.25rem}
+.re-txt h3 b{color:var(--amber)}
+.re-txt p{margin:0 0 6px}
+.re-cuando{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:.9rem;color:#c7d6ee}
+.re-cuenta{display:inline-block;padding:3px 11px;border-radius:999px;background:var(--amber);color:#1b1206;font-weight:800;font-size:.85rem}
+.re-premio{font-size:.9rem;color:var(--ink)}
+.re-acc{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px!important}
+@media(max-width:560px){ .re-ins figure{width:76px} .re-ins img{width:68px;height:68px} .re-fondo{opacity:.14} }
+.dia.entrega{display:flex;align-items:center;justify-content:center;gap:4% 5%;flex-wrap:wrap;padding:4% 6%;container-type:inline-size}
+.dia.entrega .en-ins{display:flex;gap:3cqw}
+.dia.entrega .en-ins figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:.6em;width:16cqw}
+.dia.entrega .en-ins img{width:15cqw;height:15cqw;object-fit:contain;filter:drop-shadow(0 0 2.2cqw rgba(245,176,67,.45))}
+.dia.entrega .en-ins figcaption{font-size:clamp(.8rem,1.5cqw,1.3rem);font-weight:700;color:#f5c77a;text-align:center}
+.dia.entrega .en-txt{flex:1 1 44%;min-width:0}
+.dia.entrega h2 b{color:var(--amber)}
+.dia.entrega .en-cuenta{display:inline-block;margin:.4em 0;padding:.25em .9em;border-radius:999px;background:var(--amber);color:#1b1206;font-weight:800;font-size:clamp(.9rem,2cqw,1.6rem)}
+.dia.entrega .en-premio{font-size:clamp(.85rem,1.7cqw,1.35rem);color:#e8f1ff}

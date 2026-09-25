@@ -2378,6 +2378,22 @@ window.SG.pers = function(cb){
 })();
 
 /**
+ * 🔴 25-sep · CUÁNDO SE ENTREGA UNA ACTIVIDAD. Norberto: «la actividad 1 se entrega siempre el último día de la semana 5 y la
+ * actividad 2 el último día de la semana 9» (con el grupo del 5-oct: viernes 6-nov y viernes 4-dic, como la programación
+ * oficial). El último día lectivo (el quinto) de esa semana DEL GRUPO, con sus pausas, a las 23:59. Un sitio para la Nave,
+ * la consola y la sesión: `a` es una de SG_ACTIVIDADES; `hoy` (opcional) para contar los días que quedan.
+ */
+window.SG.entregaDe = function (a, inicio, pausas, hoy) {
+  var S = window.SGSEMANAS; if (!a || !a.entrega || !inicio || !S) return null;
+  var d = S.fecha(S.inicioDeSemana(inicio, a.entrega, pausas || [])); d.setDate(d.getDate() + 4); d.setHours(23, 59, 0, 0);
+  var DS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+      MS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  var h = hoy ? new Date(hoy) : new Date(); h.setHours(0, 0, 0, 0);
+  var dia = new Date(d); dia.setHours(0, 0, 0, 0);
+  return { fecha: d, dia: DS[d.getDay()], texto: DS[d.getDay()] + " " + d.getDate() + " de " + MS[d.getMonth()],
+           corto: d.getDate() + " " + MS[d.getMonth()].slice(0, 3), faltan: Math.round((dia - h) / 864e5) };
+};
+/**
  * EL PASO A PASO DE UN RETO: su explicación (SG_AYUDA_RETOS, del documento maestro), partida en frases. La usan la Nave
  * del recluta («Cómo se hace, paso a paso») y, desde el 24-sep, la pestaña «Retos» de la consola del docente.
  */
@@ -3290,6 +3306,9 @@ def _catalogo_retos(nombre):
 _RETOS_NAVE = {"REGULAR": _catalogo_retos("RETOS_REGULAR"), "PUA": _catalogo_retos("RETOS_PUA")}
 # 17-sep · a la Nave solo le hace falta saber QUÉ retos tienen ejemplo y su título: el ejemplo entero (texto, capturas,
 # tablas) va en ejemplo.html, que se abre en otra pestaña. S7 nunca (es secreto).
+# 25-sep · las dos actividades, en ligero (sin pasos ni retos), para la Nave y la consola: cuándo se entregan y cuándo se recuerda
+_ACT_NAVE = [{k: a[k] for k in ("clave", "n", "orden", "reto", "tema", "sem", "entrega", "recuerda", "resuelve", "puntos", "planeta", "lema", "titulo")}
+             for a in ACTIVIDADES]
 _EJ_NAVE = {k: {"titulo": v.get("titulo", "")} for k, v in EJEMPLOS_RETOS.items() if k != "S7" and (v.get("texto") or v.get("enlace"))}
 # 🔴 23-sep · La explicación de cada reto se CALCULA desde el documento maestro (y no se lee del bloque AYUDA_RETOS de
 # Datos.gs, que esta misma construcción reescribe MÁS ABAJO): leída de ahí, la primera construcción tras cambiar un reto
@@ -3688,7 +3707,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};</script>
 <script src="assets/js/secreto.js" defer></script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sobre.js" defer></script>
@@ -4699,7 +4718,7 @@ _html = head("STARGATE · Mi nave",
 <header class="hero corto"><h1>Mi nave</h1></header>
 <section id="consola"><div class="wrap">
 <div id="consola-app"><p class="muted">Cargando…</p></div>
-''' + '<script>window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_AYUDA_RETOS=' + json.dumps(_AYUDA_NAVE, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
+''' + '<script>window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_AYUDA_RETOS=' + json.dumps(_AYUDA_NAVE, ensure_ascii=False) + ';window.SG_ACTIVIDADES=' + json.dumps(_ACT_NAVE, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "consola.html"), "w", encoding="utf-8").write(_ver_assets(_html))
@@ -4714,7 +4733,7 @@ _html = head("STARGATE · Gestionar grupos",
 <header class="hero corto"><h1>Gestionar grupos</h1></header>
 <section id="consola"><div class="wrap">
 <div id="consola-app"><p class="muted">Cargando…</p></div>
-''' + '<script>window.SG_GESTION=1;window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_AYUDA_RETOS=' + json.dumps(_AYUDA_NAVE, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
+''' + '<script>window.SG_GESTION=1;window.SG_BADGES=' + json.dumps(NAVE_BADGES) + ';window.SG_BADGE_NAMES=' + json.dumps(BADGE_NAME, ensure_ascii=False) + ';window.SG_BATALLA=' + json.dumps(BATALLA, ensure_ascii=False) + ';window.SG_SEMANAS=' + SEMANAS_JSON + ';window.SG_SEM_RETO=' + SEM_RETO_JSON + ';window.SG_GANCHO_RETOS=' + json.dumps(GANCHO_RETOS, ensure_ascii=False) + ';window.SG_AYUDA_RETOS=' + json.dumps(_AYUDA_NAVE, ensure_ascii=False) + ';window.SG_ACTIVIDADES=' + json.dumps(_ACT_NAVE, ensure_ascii=False) + ';window.SG_EJEMPLOS=' + json.dumps(_EJ_NAVE, ensure_ascii=False) + ';</script>' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' + '<script src="' + _v("assets/js/consola.js") + '" defer></script>' + '<script src="' + _v("assets/js/tablero.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "gestion.html"), "w", encoding="utf-8").write(_ver_assets(_html))

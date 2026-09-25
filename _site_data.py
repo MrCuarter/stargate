@@ -657,7 +657,7 @@ TOPE_RETOS_SEMANA = 3
 #              un reto deja de alimentar la actividad, se quita de aquí y desaparece de los tres sitios a la vez.
 #   resuelve → la semana en la que se corrige y se devuelve (no la de entrega). Sale de CRONO («Se resuelve la Act. 1»).
 ACTIVIDADES = [
- dict(clave="a1", n=1, orden="I", reto="X1", video="act1", tema=1, sem=2, resuelve=9, puntos="4,3",
+ dict(clave="a1", n=1, entrega=5, recuerda=[4, 5], orden="I", reto="X1", video="act1", tema=1, sem=2, resuelve=9, puntos="4,3",
       planeta="Fôrge", lema="La primera chispa",
       titulo="Actividad didáctica a partir de una imagen con IA",
       resumen="El recluta diseña una actividad para su aula a partir de una imagen creada con IA, "
@@ -687,7 +687,7 @@ ACTIVIDADES = [
         ("B1", "Tu Bitácora, creada y publicada: es **donde vive la página de la Actividad 1**, y esa página es el "
                "20 % de su nota."),
       ]),
- dict(clave="a2", n=2, orden="II", reto="X2", video="act2", tema=3, sem=6, resuelve=13, puntos="4,3",
+ dict(clave="a2", n=2, entrega=9, recuerda=[7, 8], orden="II", reto="X2", video="act2", tema=3, sem=6, resuelve=13, puntos="4,3",
       planeta="Sendara", lema="Cuarenta y ocho senderos",
       titulo="Planifica y crea un paisaje de aprendizaje",
       resumen="Ante un aula con ritmos muy dispares, el recluta diseña un paisaje de aprendizaje que atiende a "
@@ -722,7 +722,11 @@ ACTIVIDADES = [
 # Vivía escrito a mano en el HTML de «Actividades y evaluación». La sesión de la semana 1 lo cuenta ahora en clase («cuándo
 # empiezan las actividades oficiales y cuándo se entregan»), así que pasa a ser un dato. Las dos actividades, de ACTIVIDADES.
 #   (nombre, puntos, cómo)
-EVALUACION = [("Actividad %d" % a["n"], a["puntos"], "%s · se lanza en la semana %d y se resuelve en la %d" % (a["titulo"], a["sem"], a["resuelve"]))
+# 25-sep · y el día de entrega: Norberto, «la actividad 1 se entrega siempre el último día de la semana 5 y la actividad 2 el
+# último día de la semana 9» (la programación oficial de 2026-27; referencias/PROGRAMACION_SEMANAL_OFICIAL_2026-27.pdf).
+# `entrega`: esa semana (la fecha, del calendario de cada grupo: su último día lectivo, a las 23:59); `recuerda`: las semanas
+# en que la Nave, la sesión y el Puente lo recuerdan con su tarjeta (Norberto: «en la 4 y 5 la act1, y la 7 y 8 la act2»).
+EVALUACION = [("Actividad %d" % a["n"], a["puntos"], "%s · se lanza en la semana %d, se entrega el último día de la semana %d y se resuelve en la %d" % (a["titulo"], a["sem"], a["entrega"], a["resuelve"]))
               for a in ACTIVIDADES] + [
     ("Tests de tema", "0,8", "Uno por tema, 0,1 cada uno: fijan los conceptos del examen"),
     ("Asistencia en directo", "0,6", "Tres clases en directo a lo largo del curso, 0,2 cada una"),
@@ -808,7 +812,7 @@ SESION_SECCIONES = [
     ("novedades", "Novedades de la semana", "Lo que se abre en la Nave, y tu Nave de ejemplo para enseñarlo."),
     ("despegue", "El despegue", "Tu Genially: la teoría y la práctica guiada."),
     # 21-sep · solo en las semanas que lanzan una actividad (la 2 y la 6): qué pide y qué retos la construyen
-    ("actividad", "La misión mayor", "La actividad que puntúa y los retos que ya le han hecho un trozo."),
+    ("actividad", "La misión mayor", "La actividad que puntúa y los retos que ya le han hecho un trozo; y su entrega, las semanas antes."),
     ("misiones", "Misiones", "El vídeo del planeta, la misión y los retos que se lanzan."),
     # 24-sep · Norberto: «haz hincapié en el fragmento: dedica una página entera al personaje, su misión, y haz referencia
     # al fragmento prohibido para que lo desbloqueen»

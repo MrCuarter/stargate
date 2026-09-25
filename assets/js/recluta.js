@@ -1239,6 +1239,8 @@
       +'</div>'
       +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'')
       +'</section>'
+      // 25-sep · la entrega de la actividad, en sus semanas (4-5 y 7-8), justo debajo de la ficha
+      +recordatorioActividad()
       // debajo, a todo el ancho, lo que toca ESTA semana: la carta del comandante (la misma que se proyecta)
       +ordenDeLaSemana()
       +cine()
@@ -1260,6 +1262,15 @@
    */
   function nebulaDice(r, ni){
     var mios={}; (r.retos||[]).forEach(function(k){ mios[k]=true; });
+    // 0 · 25-sep · la entrega de la actividad (Norberto: «el consejo que les aparece de NEBULA esa semana podría recordarles
+    // cuándo tienen que entregar la actividad»): en sus semanas de recordatorio y en la de entrega, si no la ha registrado
+    var ac=actividadEnCurso();
+    if(ac){
+      var e=ac.e, cuando=e.faltan===0?'<b>hoy</b> ('+esc(e.texto)+')':e.faltan===1?'<b>mañana</b> ('+esc(e.texto)+')':'el <b>'+esc(e.texto)+'</b>';
+      return ac.a.entrega===Number(st.actual)
+        ? '¡Esta es la semana! La <b>Actividad '+ac.a.n+'</b> se entrega '+cuando+', hasta las 23:59. Cuando la subas, regístrala en <b>Mis retos</b>.'
+        : 'Ojo al calendario: la <b>Actividad '+ac.a.n+'</b> se entrega '+cuando+'. Quedan <b>'+e.faltan+' días</b>, y los retos ya te han hecho un trozo.';
+    }
     var lista=st.semanas||[], sm=lista[Math.min(Math.max(st.actual||1,1),lista.length)-1]||{};
     // 1 · el tripulante de este tema, recuperado: su fragmento le espera
     var fr=FRAGS.filter(function(f){ return f.reto && Number(f.tema)===Number(sm.tema_n) && mios[f.reto]; })[0];
@@ -1277,6 +1288,42 @@
     // 4 · la racha
     if(r.racha>=3) return 'Llevas <b>'+r.racha+' semanas seguidas</b> dejando constancia. Que no se rompa.';
     return 'Todo al día, recluta. Lo de la semana que viene se abrirá solo: aquí te espero.';
+  }
+  /**
+   * 🔴 25-sep · LA ENTREGA, A LA VISTA. Norberto: «la actividad 1 se entrega siempre el último día de la semana 5 y la 2 el
+   * último día de la semana 9… Añade en la semana 4 y 5 recordatorio de cuándo se entrega la act1, y la 7 y 8 de la act2.
+   * Incluye alguna imagen visual, la insignia que se gana». `actividadEnCurso()`: la actividad que toca recordar esta
+   * semana (sus `recuerda`, o su semana de `entrega` solo para NEBULA), con la fecha de SU grupo (SG.entregaDe). Si ya la
+   * ha registrado (su reto X1/X2), nada. En PUA no: su calendario es otro.
+   */
+  function actividadEnCurso(){
+    var d=st.d||{}; if(st.estado!=='curso'||d.tipo==='PUA'||!window.SG||!window.SG.entregaDe||!d.inicio) return null;
+    var mios={}; (((st.yo||{}).retos)||[]).forEach(function(k){ mios[k]=true; });
+    var sem=Number(st.actual)||0, hoy=null;
+    // (con la semana forzada —la Nave de ejemplo—, se cuenta desde el lunes de esa semana)
+    if(q.get('semana')&&window.SGSEMANAS) hoy=window.SGSEMANAS.fecha(window.SGSEMANAS.inicioDeSemana(d.inicio, sem, d.pausas||[]));
+    var A=(window.SG_ACTIVIDADES||[]).filter(function(a){ return !mios[a.reto] && ((a.recuerda||[]).indexOf(sem)>=0 || a.entrega===sem); })[0];
+    if(!A) return null;
+    var e=window.SG.entregaDe(A, d.inicio, d.pausas, hoy); if(!e||e.faltan<0) return null;
+    return {a:A, e:e, tarjeta:(A.recuerda||[]).indexOf(sem)>=0};
+  }
+  function recordatorioActividad(){
+    var x=actividadEnCurso(); if(!x||!x.tarjeta) return '';
+    var a=x.a, e=x.e, BN=window.SG_BADGE_NAMES||{};
+    var t=((window.SG_RETOS||{}).REGULAR||[]).filter(function(y){ return y[0]===a.reto; })[0]||[], ins=t[2]||[], xp=Number(t[3])||0;
+    var PLK={}; PLAN.forEach(function(p){ PLK[p[1]]=p[0]; }); var pl=PLK[a.planeta]||'';
+    var cuenta=e.faltan===0?'Es hoy':e.faltan===1?'Mañana':'Quedan '+e.faltan+' días';
+    var nombres=ins.map(function(i){ return '«'+esc(BN[i]||i)+'»'; });
+    var insTxt=!nombres.length?'':(nombres.length===1?' y la insignia '+nombres[0]:' y las insignias '+nombres.slice(0,-1).join(', ')+' y '+nombres[nombres.length-1]);
+    return '<section class="card rec-entrega'+(e.faltan<=3?' urge':'')+'">'
+      +(pl?'<div class="re-fondo" style="background-image:url(assets/img/planetas/'+esc(pl)+'.png)" aria-hidden="true"></div>':'')
+      +(ins.length?'<div class="re-ins">'+ins.map(function(i){ return '<figure><img src="assets/img/insignias/'+esc(i)+'.webp" alt="" loading="lazy"><figcaption>'+esc(BN[i]||'')+'</figcaption></figure>'; }).join('')+'</div>':'')
+      +'<div class="re-txt"><div class="eyebrow amber">Misión mayor '+esc(a.orden)+' · Actividad '+a.n+' · Planeta '+esc(a.planeta)+'</div>'
+      +'<h3>Se entrega el <b>'+esc(e.texto)+'</b></h3>'
+      +'<p class="re-cuando"><span class="re-cuenta">'+cuenta+'</span> Hasta las 23:59, en la plataforma de UNIR · <b>'+esc(a.puntos)+' de los 10 puntos</b></p>'
+      +'<p class="re-premio">Cuando la entregues, regístrala en <b>Mis retos</b>: <b>+'+xp+' xp</b>'+insTxt+'.</p>'
+      +'<p class="re-acc"><a class="btn min" href="actividades.html#act'+a.n+'" target="_blank" rel="noopener">Qué pide ↗</a>'
+      +'<button type="button" class="btn min" data-tab="retos">Ir a Mis retos</button></p></div></section>';
   }
   /** Tu carrera: quién va justo delante y quién te pisa los talones (los datos del grupo, que ya trae la Nave). */
   function carrera(){
