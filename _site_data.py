@@ -130,7 +130,7 @@ CRONO = [
       lanza=["Reto relámpago «Mide con método» (recupera a Vera) — en clase, 15 min", "Reto principal «Tu centro de recursos» (web abierta + rúbrica)"],
       insignias=["P5_vera","R5_bitacora-medida"],
       preguntas=[("12", "¿Qué herramientas son más útiles para seguir el progreso del alumno?")],
-      hito="Resolución de la Act. 1 · Test del Tema 5", clases="Clase 12",
+      hito="Resolución de la Act. 1 · Test del Tema 5 · Bitácora: Google Forms para registrar el progreso", clases="Clase 12",
       consejo="El momento dramático del curso: justo cuando saben medir, aparece el enemigo que silencia. Y se resuelve la Act. 1."),
  dict(sem=10, tema="Tema 6 · Ludo", sub="Aprendizaje Basado en el Juego (ABJ)",
       capitulo="Aprender jugando",
