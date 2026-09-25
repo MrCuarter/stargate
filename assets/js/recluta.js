@@ -457,11 +457,19 @@
    */
   function archivo(){
     var L=st.semanas||[], hasta=Math.min(Math.max(st.actual||0,0),L.length);
+    /**
+     * 🔴 25-sep · Y LA SESIÓN DE CLASE DE CADA SEMANA. Norberto: «quiero que los estudiantes puedan ver las sesiones que
+     * vemos en clase (para los de diferido)… en la semana 6, todas hasta la 6». Una por semana ya llegada, en pestaña
+     * nueva y a pantalla completa (sesion.html?diferido=1: a su ritmo, sin fichar, con el panel de su Comandante).
+     */
+    var sesionDe=function(s){ return '<a class="ar-ses" href="sesion.html?embed=1&diferido=1&per='+encodeURIComponent(per||'')+'&sem='+s.sem+'" target="_blank" rel="noopener" title="La sesión de esa semana, tal como se vio en clase">'
+      +'<img class=ico src=assets/img/iconos/p/video.png alt> La sesión de clase ↗</a>'; };
     var total=0, tengo=0, filas=L.map(function(s){
-      var V=s.videos||[]; if(!V.length) return '';
+      var V=s.videos||[];
       var llegada=s.sem<=hasta && st.estado!=='antes';
-      return '<section class="ar-sem'+(llegada?'':' futura')+'"><h3><span class="ar-n">S'+s.sem+'</span>'+esc(s.tema||'')+'</h3>'
-        +'<div class="ar-grid">'+V.map(function(v){
+      if(!V.length && !llegada) return '';
+      return '<section class="ar-sem'+(llegada?'':' futura')+'"><h3><span class="ar-n">S'+s.sem+'</span>'+esc(s.tema||'')+(llegada&&per?sesionDe(s):'')+'</h3>'
+        +(!V.length?'':'<div class="ar-grid">'+V.map(function(v){
             var y=v[0], nota=v[1]||'', fr=fragDe(y.id);
             total++;
             var abierto = llegada && (!fr || fragAbierto(fr));
@@ -478,12 +486,12 @@
                 +'<span class="cine-play" aria-hidden="true">▶</span></button>' 
               +'<div class="ar-txt"><b>'+esc(y.titulo)+'</b>'+(nota?'<em>'+esc(nota)+'</em>':'')
               +(fr?'<span class="ar-chip"><img class=ico src=assets/img/iconos/p/estrella.png alt> '+(fr.desenlace?'El desenlace':'Fragmento '+fr.n)+'</span>':'')+'</div></article>';
-          }).join('')+'</div></section>';
+          }).join('')+'</div>')+'</section>';
     }).join('');
     var fr7=FRAGS.filter(function(f){ return fragAbierto(f); }).length;
     return '<section class="archivo"><div class="ar-cab"><div><div class="eyebrow teal">El Archivo</div>'
       +'<h2>La historia, fragmento a fragmento</h2>'
-      +'<p class="lead">Todo lo que ha grabado NEBULA, en orden. Los <b>fragmentos</b> de cada personaje solo los ve quien registra su reto: la historia se colecciona ganándola.</p></div>'
+      +'<p class="lead">Todo lo que ha grabado NEBULA, en orden. Los <b>fragmentos</b> de cada personaje solo los ve quien registra su reto: la historia se colecciona ganándola. Y en cada semana, <b>la sesión de clase</b>, por si no pudiste estar.</p></div>'
       +'<div class="ar-marcador"><b>'+fr7+'</b><span>de '+FRAGS.length+' fragmentos<br>desbloqueados</span></div></div>'
       +(filas||'<div class="card"><p class="muted">Todavía no hay vídeos que enseñar.</p></div>')+'</section>';
   }

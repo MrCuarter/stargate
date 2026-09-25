@@ -112,7 +112,7 @@ c(pos.every(x => x >= 0) && pos.every((x, i) => i === 0 || x > pos[i - 1]), "�
 // 21-sep · Norberto: «sustituye el contenido de esta diapositiva por el Genially del panel de control del grupo del
 // profesor». Ya no hace falta grupo (sin él va el Panel maestro): lo único que sigue vetando el embebido es estar
 // DENTRO del propio Genially, que sería él mismo.
-c(/if\(!EMBED \|\| VENTANA\)\{/.test(construir), "🔴 el panel de Genially no entra cuando la sesión ya va DENTRO del Genially");
+c(/if\(!EMBED \|\| VENTANA \|\| DIFERIDO\)\{/.test(construir), "🔴 el panel de Genially no entra cuando la sesión ya va DENTRO del Genially");
 c(!/if\(st\.per && \(!EMBED/.test(construir), "   y no espera a que haya grupo: sin grupo va el Panel maestro");
 // los vídeos: la intro al principio y el cierre al final, NUNCA seguidos (en los temas de una semana iban los tres juntos)
 const tipoVideo = new Function("v", S.slice(S.indexOf("function tipoVideo(v){") + 22, S.indexOf("function diaVideo(")).replace(/}\s*$/, ""));

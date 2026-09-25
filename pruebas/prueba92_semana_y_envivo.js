@@ -53,7 +53,19 @@ c(/if\(st\.alumno && !desdeDirecto && i!==st\.i && enDirecto\(\)\)\{ avisoBloque
   "🔴 sesión · y mientras el docente emite, el recluta NO puede moverse (sí interactuar)");
 c(/mazo\.classList\.toggle\('ses-bloqueado', !!vivo\)/.test(SES) && /\.mazo\.ses-bloqueado \.nav,\.mazo\.ses-bloqueado \.barra-pasos \.p\{opacity:\.3;pointer-events:none\}/.test(leer("assets/css/stargate.css")),
   "   las flechas y los pasos se apagan mientras va con él");
-c(/if\(EMBED\|\|SEGUIR\)\{/.test(SES) && /st\.alumno=true; st\.ficha=g\.ficha/.test(SES), "   el mismo embed, abierto por un recluta, le enseña la sesión (ya no le echa a su Nave)");
+c(/if\(EMBED\|\|SEGUIR\|\|DIFERIDO\)\{/.test(SES) && /st\.alumno=true; st\.ficha=g\.ficha/.test(SES), "   el mismo embed, abierto por un recluta, le enseña la sesión (ya no le echa a su Nave)");
+// 🔴 25-sep · EN DIFERIDO. Norberto: «que los estudiantes puedan ver las sesiones que vemos en clase (para los de diferido)…
+// un estudiante en la semana 6 podrá ver todas las sesiones hasta la 6»
+const NAVE92 = leer("assets/js/recluta.js");
+c(/var DIFERIDO = q\.get\('diferido'\) === '1'/.test(SES) && /if\(st\.alumno && st\.sem>st\.semHoy\) st\.sem=st\.semHoy;/.test(SES),
+  "🔴 diferido · el recluta ve la sesión de una semana, nunca más allá de la semana en curso");
+c(/if\(st\.alumno && !DIFERIDO\)\{ seguirDocente\(\)/.test(SES) && /st\.alumno && !DIFERIDO && d && d\.activa/.test(SES),
+  "   a su ritmo: no sigue al docente ni se bloquea");
+c(/var SOLO_EN_DIRECTO = \['llamada', 'unete', 'alistaos'\]/.test(SES) && (SES.match(/if\(DIFERIDO\) todo=todo\.filter/g) || []).length === 2,
+  "   sin lo que solo vale en directo (la llamada a filas, el únete, el alistamiento)");
+c((SES.match(/\(st\.alumno&&st\.profeMio&&P\[st\.profeMio\]\)/g) || []).length === 2, "   y con el panel de Genially de SU Comandante");
+c(/sesion\.html\?embed=1&diferido=1&per='\+encodeURIComponent\(per\|\|''\)\+'&sem='\+s\.sem/.test(NAVE92) && /\(llegada&&per\?sesionDe\(s\):''\)/.test(NAVE92),
+  "🔴 diferido · en El Archivo, cada semana ya llegada tiene su sesión (y las que no han llegado, no)");
 c(/function llamadaAlumno\(M, mando\)/.test(SES) && /M\.ficharLlamada\(st\.per, st\.ficha\)/.test(SES), "🔴 el recluta ficha sobre la presentación");
 c(/data-ses-voto=/.test(SES) && /M\.votar\(st\.per, b\.getAttribute\('data-ses-vev'\)/.test(SES), "   vota en la diapositiva de la votación");
 c(/id="ses-al-resp"/.test(SES) && /M\.responderPregunta\(st\.per, p\.id, st\.ficha, aliasMio\(\), txt\)/.test(SES), "   y responde la pregunta en directo ahí mismo");

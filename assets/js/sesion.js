@@ -67,6 +67,14 @@
    * cuenta, ve la presentación al ritmo de la clase y ficha SOLO en cuanto la llamada está abierta: sin botones.
    */
   var FICHAR = q.get('fichar') === '1';
+  /**
+   * 🔴 25-sep · EN DIFERIDO (?diferido=1). Norberto: «quiero que los estudiantes puedan ver las sesiones que vemos en clase
+   * (para los estudiantes de diferido)… un estudiante en la semana 6 podrá ver todas las sesiones hasta la 6». Se abre
+   * desde El Archivo de su Nave, una por semana. Entra como recluta pero NO sigue al docente (va a su ritmo), nunca pasa
+   * de la semana en curso, lleva el panel de Genially de SU Comandante y quita lo que solo tiene sentido en directo.
+   */
+  var DIFERIDO = q.get('diferido') === '1';
+  var SOLO_EN_DIRECTO = ['llamada', 'unete', 'alistaos'];
   var DIRECTO = { on:false, t:null, ultimo:'' }, SEG = { on:true, d:{}, parar:null, mia:null, miaDe:'' };
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -1506,8 +1514,8 @@
       else if(pieza==='ticket') add(diaTicketForm(s, arg));
       else if(pieza==='forge') add(diaPortada(s, n));
       else if(pieza==='despegue'){
-        if(!EMBED || VENTANA){
-          var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
+        if(!EMBED || VENTANA || DIFERIDO){
+          var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.alumno&&st.profeMio&&P[st.profeMio])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
           if(panel) add({k:'genially', rot:'El despegue', html:'<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});
         }
       }
@@ -1519,6 +1527,7 @@
     out=out.filter(hay);
     var todo = TRAMO==='ap' ? out.filter(function(x){ return x.t==='ap'; }) : TRAMO==='ci' ? out.filter(function(x){ return x.t==='ci'; }) : out;
     if(st.alumno) todo=todo.filter(function(x){ return x.k!=='simulacro'; });
+    if(DIFERIDO) todo=todo.filter(function(x){ return SOLO_EN_DIRECTO.indexOf(x.k)<0; });   // (en diferido no se ficha ni se alista)
     var off=apagadas();
     if(off.length){ var quedan=todo.filter(function(x){ return off.indexOf(secDe(x))<0; }); todo=quedan.length?quedan:[todo[0]]; }
     return todo.length?todo:[diaEmbarque(s)];
@@ -1616,8 +1625,8 @@
      * lo dice sin una tarjeta de por medio.
      */
     var medio=[];
-    if(!EMBED || VENTANA){
-      var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
+    if(!EMBED || VENTANA || DIFERIDO){
+      var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.alumno&&st.profeMio&&P[st.profeMio])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
       if(panel) medio.push({k:'genially', t:'pr', rot:'El despegue', html:
         '<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});
     }
@@ -1634,6 +1643,7 @@
       +'<p class="sub">La semana '+esc(String(s.sem))+' no trae nada para este tramo. Sigue con tu Genially: el resto de la sesión está en los otros embeds.</p></div></div>'}];
     // (el recluta no «enseña la Nave simulada»: es la del docente)
     if(st.alumno) todo=todo.filter(function(x){ return x.k!=='simulacro'; });
+    if(DIFERIDO) todo=todo.filter(function(x){ return SOLO_EN_DIRECTO.indexOf(x.k)<0; });   // (en diferido no se ficha ni se alista)
     /**
      * 18-sep · LA SESIÓN A MEDIDA. Cada docente quita en «Mis enlaces» las secciones que no quiere; al recluta que le
      * sigue le pasa lo mismo (se mira la elección de SU Comandante). Nunca se queda vacía: como poco, la portada.
@@ -1819,7 +1829,7 @@
     // 17-sep · en directo: el docente que proyecta dentro de su Genially emite solo; el recluta, sigue
     var bd=root.querySelector('#ses-directo'); if(bd) bd.onclick=function(){ DIRECTO.on?apagarDirecto():encenderDirecto(); };
     if(EMBED && !st.alumno && st.per && st.yo) encenderDirecto(); else emitir();
-    if(st.alumno){ seguirDocente(); SEG.dibujado=''; pintarSeguir(); }
+    if(st.alumno && !DIFERIDO){ seguirDocente(); SEG.dibujado=''; pintarSeguir(); }
   }
   /**
    * Cada diapositiva puede traer `montar(lienzo)` (la llamada a filas en directo, el ticket que se
@@ -1946,7 +1956,7 @@
   /** ¿El docente está emitiendo ahora mismo? (lo que bloquea al recluta) */
   function enDirecto(){
     var d=SEG.d&&SEG.d.sesion;
-    return !!(st.alumno && d && d.activa && (Date.now()-Number(d.t||0))<3*3600e3);
+    return !!(st.alumno && !DIFERIDO && d && d.activa && (Date.now()-Number(d.t||0))<3*3600e3);
   }
   /** Un parpadeo en el rótulo: se ha intentado mover y no toca. Sin ventanas ni regañinas. */
   function avisoBloqueo(){
@@ -2082,6 +2092,7 @@
     var hoy=window.SGCAL.semanaActual(st.inicio, st.pausas);
     st.semHoy=hoy&&hoy>0?hoy:1;
     st.sem=forzada||st.semHoy;
+    if(st.alumno && st.sem>st.semHoy) st.sem=st.semHoy;   // 25-sep · el recluta, nunca más allá de la semana en curso
     // 16-sep · el ticket de salida se pide YA, en paralelo: Apps Script tarda unos segundos en despertar, y así
     // cuando el docente llega a esa diapositiva las respuestas ya están (o ya se sabe que no van a llegar)
     precargarTickets();
@@ -2167,8 +2178,10 @@
       gs=gs||[];
       var nave=function(per){ return 'recluta.html?per='+encodeURIComponent(per)+(EMBED?'&embed=1':''); };
       // 🔴 17-sep · dentro de la presentación (o desde «En vivo»), el recluta VE la sesión, al ritmo de su Comandante
-      if(EMBED||SEGUIR){
+      if(EMBED||SEGUIR||DIFERIDO){
         var entrar=function(g){ st.alumno=true; st.ficha=g.ficha; st.profeMio=g.profe||''; st.per=g.per; st.i=0; st.sem=0; cargarYArrancar(); };
+        var elDeLaNave=DIFERIDO&&st.per?gs.filter(function(g){ return g.per===st.per; })[0]:null;   // (el grupo del que viene)
+        if(elDeLaNave) return entrar(elDeLaNave);
         if(gs.length===1) return entrar(gs[0]);
         if(gs.length>1){
           caja('<h2>¿En qué clase estás?</h2><p class="sub">Estás alistado en más de un grupo.</p><div class="ses-grupos">'
