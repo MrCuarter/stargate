@@ -379,6 +379,11 @@
       Array.prototype.forEach.call(vm.querySelectorAll("[data-filtro]"), function (b) { b.onclick = function () { FILTRO = b.getAttribute("data-filtro"); pintar(); }; });
     }
     // lo leído, leído: se apaga el aviso de respuesta nueva (en la consola y aquí la próxima vez)
+    // 25-sep · y apuntado en este navegador (con cuántas respuestas lo leyó): si el servidor rechaza el «visto», la burbuja de
+    // Contacto se apaga igual tras la primera visita, y vuelve a encenderse solo con una respuesta nueva
+    var vistos = {}; try { vistos = JSON.parse(localStorage.getItem("sgBzVistos") || "{}") || {}; } catch (e) {}
+    MIOS.forEach(function (m) { vistos[m.id] = (m.respuestas || []).length; });
+    try { localStorage.setItem("sgBzVistos", JSON.stringify(vistos)); } catch (e) {}
     MIOS.filter(function (m) { return m.visto === false; }).forEach(function (m) { MOTOR.buzonVisto(m.id); m.visto = true; });
   }
   function cargar() {

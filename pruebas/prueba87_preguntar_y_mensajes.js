@@ -46,7 +46,10 @@ const RETO = K.split("VALIDAR O ANULAR UN RETO, CON SU PORQUÉ")[1] || "";
 c(!!RETO, "🔴 la ficha tiene el desplegable de validar o anular");
 c(/aqui: b\.closest\("\.retos-ficha"\) \|\| b, marca: b/.test(RETO), "   debajo de la fila del tema, con el reto resaltado");
 c(/"Mensaje para " \+ r\.alias/.test(RETO) && /lo verá en su Nave/.test(RETO), "   con un mensaje para el recluta");
-c(/El enlace no abre/.test(RETO) && /No es público/.test(RETO) && /No es lo que pide/.test(RETO) && /Falta la reflexión/.test(RETO), "   y motivos rápidos para anular");
+// (25-sep · los motivos viven en RAPIDOS_ANULAR: los usan la ficha del recluta y la ficha del reto de «Retos»)
+{ const CONS87 = K, RAP = K.slice(K.indexOf("var RAPIDOS_ANULAR = "), K.indexOf("function retosOrdenados()"));
+  c(/El enlace no abre/.test(RAP) && /No es público/.test(RAP) && /No es lo que pide/.test(RAP) && /Falta la reflexión/.test(RAP)
+    && /rapidos: tiene\s*\?\s*RAPIDOS_ANULAR/.test(RETO) && /rapidos: RAPIDOS_ANULAR/.test(CONS87), "   y motivos rápidos para anular (los mismos en su ficha y en la del reto)"); }
 c(/Se le quitan /.test(RETO) && /Se le suman /.test(RETO) && /mi\.points/.test(RETO) && /mi\.coinsReward/.test(RETO), "   dice qué se le suma o se le quita, con las cifras del reto");
 c(/EVID\[ficha\]/.test(RETO) && /target="_blank" rel="noopener noreferrer"/.test(RETO), "   y enseña su enlace, pulsable, para comprobarlo antes de decidir");
 const iAccion = RETO.indexOf("MOTOR.anularReto"), iAviso = RETO.indexOf("MOTOR.avisarRecluta");

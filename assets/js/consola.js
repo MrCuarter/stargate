@@ -595,10 +595,29 @@
     history.replaceState(null, "", "consola.html?per=" + encodeURIComponent(perId));
     try { localStorage.setItem(CLAVE_ULTIMO, perId); } catch (e) {}   // 19-sep · la próxima vez, se entra en este
     cargando("Leyendo el grupo…");
-    try { DATOS = await MOTOR.leerPER(perId, true); }
+    try { DATOS = await MOTOR.leerPER(perId, true); LEIDO_EN = Date.now(); }
     catch (e) { return fallo("No he podido leer el grupo: " + e.message); }
     pintar();
   }
+  /**
+   * 🔴 25-sep · AL DÍA SIN RECARGAR. Norberto: «he registrado con cuenta de estudiante y al docente no le aparece que los
+   * haya completado hasta que refresca la página entera… no quiero docentes escribiendo diciendo que no les aparecen los
+   * retos». La consola leía el grupo una vez al entrar. Ahora lo vuelve a leer (y sus enlaces) al cambiar de sección si han
+   * pasado más de 30 s, y al volver a la pestaña del navegador en las secciones que solo se miran (Reclutas, Retos,
+   * Rankings): en las que se escribe, repintar se comería lo escrito. Con una ficha o una ventana abierta, espera.
+   */
+  var LEIDO_EN = 0;
+  function alDia() { return Date.now() - LEIDO_EN < 30000; }
+  async function releerYPintar() {
+    try { DATOS = await MOTOR.leerPER(PER, true); LEIDO_EN = Date.now(); EVID = null; EVID_PER = null; } catch (e) {}
+    pintar();
+  }
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState !== "visible" || !PER || !DATOS || alDia()) return;
+    if (["alumnado", "retos", "rankings"].indexOf(TAB) < 0) return;
+    if (document.querySelector(".c-modal, .sgp-capa, .sgp-caja.en-linea")) return;
+    releerYPintar();
+  });
 
   /**
    * 🔴 LO DEL REFERENTE NO LO VE UN DOCENTE. Norberto: «no debe ver NADA del profe referente».
@@ -662,7 +681,11 @@
     if (BZ_N !== null || !MOTOR || !MOTOR.buzonMios) return;
     BZ_N = 0;
     MOTOR.buzonMios().then(function (L) {
-      BZ_N = (L || []).filter(function (m) { return m.visto === false; }).length;
+      // 25-sep · Norberto: «la burbuja de contacto con el número debe desaparecer tras la primera visita». Contacto las marca
+      // como leídas, pero si el servidor lo rechaza (una regla vieja: el Mando lo dejó «en marcha»), aquí no se apagaba
+      // nunca. Lo que ya se abrió en Contacto (con cuántas respuestas) queda apuntado en este navegador y no cuenta.
+      var vistos = {}; try { vistos = JSON.parse(localStorage.getItem("sgBzVistos") || "{}") || {}; } catch (e) {}
+      BZ_N = (L || []).filter(function (m) { return m.visto === false && ((m.respuestas || []).length > Number(vistos[m.id] || -1)); }).length;
       if (BZ_N) Array.prototype.forEach.call(document.querySelectorAll("[data-bz]"), function (a) {
         if (!a.querySelector(".bz-n")) a.insertAdjacentHTML("beforeend", '<span class="bz-n" title="Respuestas del Mando sin leer">' + BZ_N + '</span>'); });
     }).catch(function () {});
@@ -815,7 +838,7 @@
       '<div id="c-aviso" class="aviso" hidden></div>' +
       '<div id="c-cuerpo"></div>';
     Array.prototype.forEach.call(app.querySelectorAll("[data-tab]"), function (b) {
-      b.onclick = function () { TAB = b.getAttribute("data-tab"); pintar(); };
+      b.onclick = function () { TAB = b.getAttribute("data-tab"); if (alDia()) pintar(); else releerYPintar(); };   // (25-sep · al día)
     });
     Array.prototype.forEach.call(app.querySelectorAll("[data-grupo]"), function (b) {
       b.onclick = function () { var id = b.getAttribute("data-grupo"); if (id !== PER) abrir(id); };
@@ -843,7 +866,7 @@
     var d = $("#c-aviso"); if (!d) return;
     d.innerHTML = esc(txt); d.className = "aviso " + (bien ? "" : "malo"); d.hidden = !txt;
   }
-  async function refrescar() { DATOS = await MOTOR.leerPER(PER, true); pintar(); }
+  async function refrescar() { DATOS = await MOTOR.leerPER(PER, true); LEIDO_EN = Date.now(); EVID = null; EVID_PER = null; pintar(); }
 
   // ---------------------------------------------------------------- alumnado
   /**
@@ -889,6 +912,11 @@
     return !soyRefAqui() && !(t.escuadrones || []).some(function (e) { return e.comandante === mio; });
   }
   function NBADGES() { return (window.SG_BADGES && window.SG_BADGES.length) || 27; }
+  /** Los mensajes rápidos al anular un reto (la ficha del recluta y, desde el 25-sep, la ficha del reto en «Retos»). */
+  var RAPIDOS_ANULAR = [["El enlace no abre", "El enlace no abre: revisa que esté bien copiado y vuelve a registrar el reto."],
+                        ["No es público", "El enlace no es público: cambia los permisos para que cualquiera con el enlace pueda verlo y vuelve a registrarlo."],
+                        ["No es lo que pide", "Lo que has entregado no es lo que pide el reto: vuelve a leerlo y regístralo cuando lo tengas."],
+                        ["Falta la reflexión", "Falta la reflexión que pide el reto: añádela al registrarlo otra vez."]];
   function retosOrdenados() { return DATOS.misiones.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); }
   /**
    * 16-sep · EXPORTAR A CSV. Norberto lo eligió de lo que trae el motor: para evaluar con datos y para justificar una
@@ -1271,12 +1299,13 @@
       var caja2 = document.getElementById("fi-zoco"); if (caja2) caja2.innerHTML = '<b>' + ico("mercado") + ' En el Zoco</b><p class="muted">No he podido mirar el Zoco ahora mismo.</p>';
     });
   }
-  function verFicha(r) {
+  function verFicha(r, volver) {   // (25-sep · `volver`: {texto, fn}, si se llega desde otra ventana —la del reto—)
     var retos = retosOrdenados(), ficha = r.ficha, esRef = soyRefAqui();
     FICHA_RF = r;   // (para quitar una reflexión o un comentario desde su ficha)
     var f = ((DATOS.proyecto && DATOS.proyecto.factions) || []).filter(function (x) { return x.teacherName === r.profe; })[0];
     var m = modalFicha(
       '<button type="button" class="c-modal-x" data-cerrar-ficha aria-label="Cerrar la ficha">✕</button>' +
+      (volver ? '<button type="button" class="fi-volver" data-fi-volver>‹ ' + esc(volver.texto) + '</button>' : '') +
       // 🔴 25-sep · su avatar, no el emblema (Norberto, con la ficha delante: «debe aparecer la imagen de su avatar… no sale»);
       // el emblema del escuadrón, pequeño, en su esquina. Y su Bitácora, a un clic («un botón vistoso a su Bitácora»).
       '<div class="fi-cab"><div class="fi-av-caja">' + (window.SG && SG.avatarImg ? SG.avatarImg(r.avatar, r.alias, "fi-av" + (r.marco === "oro" ? " marco-oro" : ""), r.xp,
@@ -1308,6 +1337,8 @@
         '<p><button type="button" class="btn min peligro" id="c-baja">Dar de baja a ' + esc(r.alias) + "</button> " +
         '<span class="small muted">borra su ficha del grupo. Podrá alistarse otra vez, aquí o en otro, empezando de cero.</span></p></div>' : ""));
     zocoDeFicha(r);
+    var bVolver = m.querySelector("[data-fi-volver]");
+    if (bVolver && volver) bVolver.onclick = function () { cerrarFicha(); volver.fn(); };
     var cmdB = m.querySelector("#c-cmd-b");
     if (cmdB) cmdB.onclick = async function () {
       var a = (m.querySelector("#c-cmd") || {}).value; if (!a) return;
@@ -1411,10 +1442,7 @@
           campo: { etiqueta: "Mensaje para " + r.alias, ayuda: tiene ? "· lo verá en su Nave" : "· opcional · lo verá en su Nave", filas: 2, max: 400,
                    marcador: tiene ? "Por qué lo anulas y qué tiene que hacer para registrarlo bien…" : "Un comentario sobre su trabajo…",
                    rapidos: tiene
-                     ? [["El enlace no abre", "El enlace no abre: revisa que esté bien copiado y vuelve a registrar el reto."],
-                        ["No es público", "El enlace no es público: cambia los permisos para que cualquiera con el enlace pueda verlo y vuelve a registrarlo."],
-                        ["No es lo que pide", "Lo que has entregado no es lo que pide el reto: vuelve a leerlo y regístralo cuando lo tengas."],
-                        ["Falta la reflexión", "Falta la reflexión que pide el reto: añádela al registrarlo otra vez."]]
+                     ? RAPIDOS_ANULAR
                      : [["¡Buen trabajo!", "¡Buen trabajo! Te lo valido."], ["Lo vi en clase", "Lo hiciste en clase: te lo valido yo."]] },
           si: tiene ? "Anular reto" : "Validar reto", no: "Cancelar"
         });
@@ -2029,7 +2057,7 @@
    * (SG.pasosReto, lo mismo que lee el recluta), cómo se entrega, el ejemplo y quién lo ha hecho, el más reciente arriba,
    * con su enlace. Los enlaces y las reflexiones son los que ya carga la consola (cargarEvid): ni una consulta más.
    */
-  var RT_TODOS = false;
+  var RT_TODOS = false, RT_ULTIMO = null;
   function verRetos(t) {
     var sem = Number(t.semana) || 0, tipo = t.tipo === "PUA" ? "PUA" : "REGULAR";
     var mapa = ((window.SG_SEM_RETO || {})[tipo]) || {}, SEMS = window.SG_SEMANAS || [];
@@ -2038,6 +2066,7 @@
     var mia = yoN ? todos.filter(function (r) { return r.profe === yoN; }) : [];
     var elige = soyRefAqui() && mia.length > 0 && mia.length < todos.length;   // (el referente con escuadrón: el suyo o todos)
     var gente = mia.length && !(elige && RT_TODOS) ? mia : todos, N = gente.length;
+    RT_ULTIMO = { t: t, gente: gente };
     var W = function (r) { return semanaDeReto(r, tipo, mapa); };
     var porSem = function (a, b) { return W(a) - W(b); };
     var prog = function (r) { var n = gente.filter(function (x) { return (x.hechos || []).indexOf(r.id) >= 0; }).length;
@@ -2048,30 +2077,41 @@
         .replace('<article class="ht-reto', '<article data-rt="' + esc(r.id) + '" role="button" tabindex="0" aria-label="Ver el reto ' + esc(r.id) + '" class="rt-clic ht-reto');
     };
     var conSem = cat.filter(function (r) { return W(r) > 0; });
-    var estos = conSem.filter(function (r) { return W(r) === sem; }).sort(porSem);
-    var antes = conSem.filter(function (r) { return W(r) < sem; });
-    var luego = conSem.filter(function (r) { return W(r) > sem; }).sort(porSem);
-    var temas = []; antes.forEach(function (r) { var k = Number(r.tema || 0); if (temas.indexOf(k) < 0) temas.push(k); });
-    temas.sort(function (a, b) { return b - a; });
+    /**
+     * 25-sep · EN ORDEN. Norberto: «sigue el orden lógico: Tema 1, Tema 2… Me parece una idea brillante compactar los temas
+     * anteriores y dejar desplegado el actual». Un bloque por tema, en orden (el repaso, al final); abierto solo el de esta
+     * semana. Los que aún no han llegado, plegados y con la semana en que se abren; sus retos, en sombra.
+     */
+    var sHoy = semanaDe((DATOS.proyecto || {}).stargate || {}, sem) || {};
+    var temaHoy = tipo === "PUA" ? sem : Number(sHoy.tema_n);
+    var temas = []; conSem.forEach(function (r) { var k = Number(r.tema || 0); if (temas.indexOf(k) < 0) temas.push(k); });
+    temas.sort(function (a, b) { return (a || 99) - (b || 99); });
+    if (temas.indexOf(temaHoy) < 0) {   // (una semana sin retos propios: se abre el último tema que ya tiene alguno lanzado)
+      var lanz = temas.filter(function (k) { return conSem.some(function (r) { return Number(r.tema || 0) === k && W(r) <= sem; }); });
+      temaHoy = lanz.length ? lanz[lanz.length - 1] : temas[0];
+    }
     var nombreTema = function (k) { var s1 = SEMS.filter(function (x) { return Number(x.tema_n) === k; })[0];
       return s1 && s1.tema ? String(s1.tema).replace(/\s*\(cont\.\)/, "") : (k ? "Tema " + k : "Arranque"); };   // («Tema 5 · Umbral»)
+    var marcaHoy = function (html, r) { return W(r) === sem ? html.replace('</div><div class="ht-reto-cuerpo">', '<span class="chip rt-hoy">Esta semana</span></div><div class="ht-reto-cuerpo">') : html; };
     $("#c-cuerpo").innerHTML = '<section class="card rt">' +
       '<div class="rt-cab"><div><h3><img class="ico" src="assets/img/nave/iconos/retos.png" alt=""> Retos</h3>' +
-        '<p class="small muted">Pulsa uno: qué tienen que hacer, paso a paso, y quién lo ha hecho, con su enlace.</p></div>' +
+        '<p class="small muted">' + (sem >= 1 ? 'Semana ' + sem + (sHoy.tema ? ' · ' + esc(String(sHoy.tema).replace(/\s*\(cont\.\)/, "")) : '') + '. ' : '') +
+        'Pulsa uno: qué tienen que hacer, paso a paso, y quién lo ha hecho, con su enlace.</p></div>' +
         (elige ? '<div class="pt-seg rt-seg" role="group" aria-label="De quién">' +
           '<button type="button" data-rt-quien="mio" aria-pressed="' + !RT_TODOS + '"' + (RT_TODOS ? '' : ' class="on"') + '>Tu escuadrón · ' + mia.length + '</button>' +
           '<button type="button" data-rt-quien="todos" aria-pressed="' + RT_TODOS + '"' + (RT_TODOS ? ' class="on"' : '') + '>Todo el grupo · ' + todos.length + '</button></div>' : '') +
       '</div>' +
-      '<b class="ht-sub">' + (sem >= 1 ? 'Esta semana · la ' + sem : 'Aún no ha empezado') + '</b>' +
-      (estos.length ? '<div class="ht-retos">' + estos.map(tarjeta).join("") + '</div>'
-                    : '<p class="small muted">' + (sem >= 1 ? 'Esta semana no se lanza ningún reto nuevo: tiempo para terminar los que hay.' : 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>.') + '</p>') +
-      (temas.length ? '<b class="ht-sub">Ya lanzados</b>' + temas.map(function (k, i) {
-          var suyos = antes.filter(function (r) { return Number(r.tema || 0) === k; }).sort(porSem);
-          return '<details class="rt-tema"' + (i === 0 ? ' open' : '') + '><summary><b>' + esc(nombreTema(k)) + '</b>' +
-            '<span class="rt-tema-n">' + suyos.map(function (r) { var p = prog(r); return '<span><em>' + esc(r.id) + '</em> ' + p.n + '/' + p.N + '</span>'; }).join("") + '</span></summary>' +
-            '<div class="ht-retos">' + suyos.map(tarjeta).join("") + '</div></details>';
-        }).join("") : '') +
-      (luego.length ? '<b class="ht-sub">Lo que viene</b><div class="ht-retos">' + luego.map(tarjeta).join("") + '</div>' : '') +
+      (sem < 1 ? '<p class="small muted">El curso empieza el <b>' + esc(t.inicio || "—") + '</b>.</p>' : '') +
+      temas.map(function (k) {
+        var suyos = conSem.filter(function (r) { return Number(r.tema || 0) === k; }).sort(porSem);
+        var abiertos = suyos.filter(function (r) { return W(r) <= sem; }), primera = Math.min.apply(null, suyos.map(W));
+        return '<details class="rt-tema' + (k === temaHoy ? ' actual' : '') + (abiertos.length ? '' : ' futuro') + '"' + (k === temaHoy ? ' open' : '') + '><summary><b>' + esc(nombreTema(k)) + '</b>' +
+          (k === temaHoy ? '<span class="chip rt-ahora">Ahora</span>' : '') +
+          '<span class="rt-tema-n">' + (abiertos.length
+            ? abiertos.map(function (r) { var p = prog(r); return '<span><em>' + esc(r.id) + '</em> ' + p.n + '/' + p.N + '</span>'; }).join("")
+            : '<span class="rt-luego">' + ico("candado") + ' Se abre la semana ' + primera + '</span>') + '</span></summary>' +
+          '<div class="ht-retos">' + suyos.map(function (r) { return marcaHoy(tarjeta(r), r); }).join("") + '</div></details>';
+      }).join("") +
       '</section>';
     Array.prototype.forEach.call(document.querySelectorAll("[data-rt-quien]"), function (b) {
       b.onclick = function () { RT_TODOS = b.getAttribute("data-rt-quien") === "todos"; verRetos(t); };
@@ -2113,12 +2153,14 @@
       var rfx = ((EVRF || {})[x.ficha] || {})[id], f = fe(x);
       var entregado = String(((EVID || {})[x.ficha] || {})[id] || (rfx && rfx.enlace) || "").trim();
       var cara = window.SG && SG.avatarImg ? SG.avatarImg(x.avatar, x.alias, "rt-av", x.xp, tipoG) : "";
-      return '<li class="rt-quien">' + cara + '<div class="rt-q"><p><b>' + esc(x.alias || "") + '</b>' +
-        (x.nombre ? ' <span class="muted">' + esc(x.nombre) + '</span>' : '') +
+      // 25-sep · sin su nombre real (esto se proyecta: Norberto, «a veces igual lo mostramos en clase»); su cara y su alias
+      // llevan a su ficha, y «Anular», en el hueco de la derecha (solo en mando manual, como en su ficha)
+      return '<li class="rt-quien"><button type="button" class="rt-ir" data-rt-ficha="' + esc(x.ficha) + '" title="Ver la ficha de ' + esc(x.alias || "") + '" aria-label="Ver la ficha de ' + esc(x.alias || "") + '">' + cara + '</button>' +
+        '<div class="rt-q"><p><button type="button" class="rt-ir rt-alias" data-rt-ficha="' + esc(x.ficha) + '">' + esc(x.alias || "") + '</button>' +
         (f ? ' <span class="muted">· ' + new Date(f).getDate() + ' ' + MESES_C[new Date(f).getMonth()] + '</span>' : '') + '</p>' +
         (entregado ? '<p class="rt-ev">' + enlacesDe(entregado) + '</p>' : (rfx ? '' : '<p class="rt-ev muted">sin enlace</p>')) +
         (rfx && rfx.texto ? '<details class="rt-rf"><summary>Su reflexión</summary><p>' + esc(rfx.texto) + '</p></details>' : '') +
-        '</div></li>';
+        '</div>' + (manual() ? '<button type="button" class="btn min peligro rt-anular" data-rt-anular="' + esc(x.ficha) + '">Anular</button>' : '') + '</li>';
     };
     var html = '<div class="rt-fi">' +
       '<div class="rt-fi-cab">' + (ins ? '<img class="rt-fi-ins" src="assets/img/insignias/' + esc(ins) + '.webp" alt="" onerror="this.remove()">' : '') +
@@ -2140,6 +2182,49 @@
           : '<p class="small muted">Todavía nadie lo ha registrado.</p>') +
       '</div></div>';
     window.SG.preguntar({ quien: (m[1] || "Reto") + " · " + id, titulo: m[2] || r.titulo || id, html: html, si: "Cerrar", no: "", clase: "sgp-ancha" });
+    // (la ventana ya está puesta: se cablean su gente y sus «Anular»)
+    var caja = document.querySelector(".sgp-caja.sgp-ancha"); if (!caja) return;
+    var cerrarla = function () { var b = caja.querySelector("[data-sgp-si]"); if (b) b.click(); };
+    var otraVez = function () { var U = RT_ULTIMO || { t: t, gente: gente }; abrirReto(r, U.t, U.gente, tipo, w, sem); };
+    /**
+     * 25-sep · DE LA VENTANA DEL RETO A SU FICHA, Y VUELTA. Norberto: «permite ir a la ficha del estudiante al hacer clic en
+     * la foto de su avatar o alias… como esta ficha es una ventana, no se pueden abrir más ventanas… ¿se te ocurre alguna
+     * idea?». Una ventana cada vez: se cierra la del reto, se abre su ficha, y la ficha lleva arriba «‹ Volver al reto».
+     */
+    Array.prototype.forEach.call(caja.querySelectorAll("[data-rt-ficha]"), function (b) {
+      b.onclick = function () {
+        var x = gente.filter(function (p) { return p.ficha === b.getAttribute("data-rt-ficha"); })[0]; if (!x) return;
+        cerrarla(); verFicha(x, { texto: "Volver al reto " + id, fn: otraVez });
+      };
+    });
+    /**
+     * 25-sep · ANULAR DESDE LA LISTA. Norberto: «me encantaría que estuviera el botón anular en el hueco que queda. Si lo
+     * pulso se despliega el aviso de ¿Quieres anular? con los mensajes personalizados y caja para añadir texto». El mismo
+     * aviso que en su ficha (RAPIDOS_ANULAR), desplegado bajo su fila; y lo mismo que hace allí: anular, avisarle, releer.
+     */
+    Array.prototype.forEach.call(caja.querySelectorAll("[data-rt-anular]"), function (b) {
+      b.onclick = async function () {
+        var fid = b.getAttribute("data-rt-anular"), x = gente.filter(function (p) { return p.ficha === fid; })[0]; if (!x) return;
+        var mi = retosOrdenados().filter(function (y) { return y.id === id; })[0] || {}, xp = Number(mi.points || 0), cr = Number(mi.coinsReward || 0);
+        var li = b.closest(".rt-quien");
+        var resp = await window.SG.preguntar({ aqui: li, marca: li, peligro: true, titulo: "¿Anular " + id + " a " + x.alias + "?",
+          html: '<p class="sgp-cifras">Se le quitan <b>' + xp + ' xp</b>' + (mi.badge ? ", " : " y ") + '<b>' + cr + ' ◈</b>' + (mi.badge ? " y su insignia" : "") + '. Podrá registrarlo otra vez.</p>',
+          campo: { etiqueta: "Mensaje para " + x.alias, ayuda: "· lo verá en su Nave", filas: 2, max: 400,
+                   marcador: "Por qué lo anulas y qué tiene que hacer para registrarlo bien…", rapidos: RAPIDOS_ANULAR },
+          si: "Anular reto", no: "Cancelar" });
+        if (!resp) return;
+        b.disabled = true;
+        try {
+          await MOTOR.anularReto(PER, fid, id, (resp.texto || "desde la consola").slice(0, 200));
+          var perfil = (DATOS.perfiles || []).filter(function (q) { return q.id === fid; })[0];
+          if (resp.texto && perfil && perfil.userId) {
+            try { await MOTOR.avisarRecluta(PER, perfil.userId, { reto: id, accion: "anulado", texto: resp.texto, de: miNombreAqui() }); } catch (e2) {}
+          }
+          cerrarla(); await refrescar(); otraVez();
+          aviso(id + " anulado a " + x.alias + (resp.texto ? ": le llega tu mensaje a su Nave." : "."), true);
+        } catch (e) { b.disabled = false; aviso("No se ha podido anular: " + (e.message || e)); }
+      };
+    });
   }
   function verSimulador(t) {
     var BT = window.SG_BATALLA || {}, gente = (t && t.reclutas) || [];

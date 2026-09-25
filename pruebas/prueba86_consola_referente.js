@@ -128,6 +128,21 @@ c(/\(o\.clase \? " " \+ o\.clase : ""\)/.test(STG86) && /clase: "sgp-ancha"/.tes
   "   en la ventana de siempre, más ancha");
 c(/var elige = soyRefAqui\(\) && mia\.length > 0 && mia\.length < todos\.length/.test(K), "   el referente con escuadrón elige: el suyo o todo el grupo");
 
+// 🔴 25-sep · la tanda de Norberto con «Retos» en uso
+c(/temas\.sort\(function \(a, b\) \{ return \(a \|\| 99\) - \(b \|\| 99\); \}\)/.test(K) && /\(k === temaHoy \? ' open' : ''\)/.test(K),
+  "🔴 retos · en orden (Tema 1, Tema 2…), con el tema de ahora desplegado y los demás plegados");
+c(!/esc\(x\.nombre\)/.test(K.slice(K.indexOf("async function abrirReto("), K.indexOf("function verSimulador("))),
+  "🔴 retos · en la lista, sin el nombre real (se proyecta en clase)");
+c(/data-rt-ficha="/.test(K) && /verFicha\(x, \{ texto: "Volver al reto " \+ id, fn: otraVez \}\)/.test(K) && /function verFicha\(r, volver\)/.test(K) && /data-fi-volver/.test(K),
+  "   su cara y su alias llevan a su ficha, y la ficha lleva «‹ Volver al reto»");
+c(/data-rt-anular="/.test(K) && /\(manual\(\) \? '<button type="button" class="btn min peligro rt-anular"/.test(K) && /rapidos: RAPIDOS_ANULAR/.test(K) && /await MOTOR\.anularReto\(PER, fid, id/.test(K),
+  "🔴 retos · «Anular» en la lista (mando manual), con el aviso y los mensajes de siempre");
+c(/function alDia\(\) \{ return Date\.now\(\) - LEIDO_EN < 30000; \}/.test(K) && /if \(alDia\(\)\) pintar\(\); else releerYPintar\(\);/.test(K) && /document\.addEventListener\("visibilitychange"/.test(K),
+  "🔴 al día · la consola vuelve a leer el grupo al cambiar de sección o al volver a la pestaña (sin recargar la página)");
+c(/localStorage\.getItem\("sgBzVistos"\)/.test(K) && /localStorage\.setItem\("sgBzVistos"/.test(leer("assets/js/buzon.js")),
+  "   la burbuja de Contacto se apaga tras la primera visita (aunque el servidor no guarde el «visto»)");
+c(/#nave-panel>\*\+\*\{margin-top:18px\}/.test(CSS) && /#c-cuerpo>\*\+\*\{margin-top:14px\}/.test(CSS), "   y todas las tarjetas, con su margen (Nave y consola)");
+
 console.log("\n  Batería 86 · la consola: lo del referente, la ficha y los rankings");
 console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
 fallos.forEach(f => console.log("   ✗ " + f));
