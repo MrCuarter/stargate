@@ -757,9 +757,11 @@ SESION_EMBARQUE = [
     ("ticket", "p", "ap", "**El ticket de la presentación**, dentro de la diapositiva: lo rellenan ahí mismo"),
     ("forge", "", "ap", "**Rumbo a Fôrge**: la portada del planeta"),
     ("video", "t1i", "ap", "**T1 Fôrge · intro** (1:25)"),
+    # 25-sep · Norberto: «la diapositiva de la pregunta va justo antes del Genially embebido "panel de control"»: cierra el
+    # inicio (antes, 23-sep, abría el cierre)
+    ("pregunta", "", "ap", "**La pregunta de la clase**, con tu comandante, justo antes de tu panel: la resuelves tú en clase"),
     ("despegue", "", "pr", "**El despegue**: tu panel de control"),
-    # 23-sep · la clase 2 abre con su pregunta; después, los retos de la semana (la hoja de ruta, en directo) y la despedida
-    ("pregunta", "", "ci", "**La pregunta de la clase 2**, con tu comandante: la resuelves tú en clase"),
+    # después del panel: los retos de la semana (la hoja de ruta, en directo) y la despedida
     ("retos", "", "ci", "**Vuestros retos**: la hoja de ruta, en clase, y la presentación, en casa"),
     ("misiones", "", "ci", "**Las misiones** de la semana y la insignia de Reclutamiento"),
     ("hasta", "", "ci", "**Hasta la próxima**: tu comandante se despide"),
