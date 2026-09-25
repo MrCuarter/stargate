@@ -2121,6 +2121,22 @@ window.SG.foroParrafos = function (t, op) {
 window.SG.avatarComandante = function (clave) {
   return window.SG.comandanteHd(clave);
 };
+/**
+ * 🔴 25-sep · LA CLAVE DEL COMANDANTE DE UN DOCENTE, EN UN SITIO. Norberto: «en las sesiones de los estudiantes no se cambia
+ * el avatar del docente si lo cambió en su nave». El grupo la guarda por NOMBRE (`avatares[nombre]`) y el alumnado la busca
+ * con el nombre de su ficha (`profe`): si no coincidían letra a letra (mayúsculas, tildes, un espacio de más), salía el c1
+ * aunque el docente hubiera elegido otro. Se busca exacto; después, sin mayúsculas ni tildes; y en un grupo donde solo un
+ * docente ha elegido comandante (lo normal: un docente por grupo), ese. `d` es el grupo ya traducido (con `avatares`).
+ */
+window.SG.claveComandante = function (d, nombre) {
+  var A = (d && d.avatares) || {}, n = String(nombre || '').trim();
+  if (n && A[n]) return A[n];
+  var norm = function (x) { return String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim(); };
+  var ks = Object.keys(A).filter(function (x) { return !!A[x]; });
+  var igual = ks.filter(function (x) { return n && norm(x) === norm(n); })[0];
+  if (igual) return A[igual];
+  return ks.length === 1 ? A[ks[0]] : '';
+};
 /** 23-sep · el retrato CON fondo (la galería del lápiz, tu ficha, la Nave del Comandante): 480 px, carpeta nueva. */
 window.SG.avatarRetrato = function (clave) {
   return 'assets/img/avatares/comandantes/retrato/' + (String(clave || '').replace(/[^\w-]/g, '') || 'c1') + '.jpg';

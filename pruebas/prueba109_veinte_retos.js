@@ -78,7 +78,7 @@ const trozo = entre("function cmdCuerpo(pose, cls){", "  function diaPortada(s, 
 const win = { SG: {} };
 const STG = L("assets/js/stargate.js");
 const ayudante = n => { const i = STG.indexOf("window.SG." + n + " = function"); return STG.slice(i, STG.indexOf("\n};", i) + 3); };
-new Function("window", ayudante("comandanteCuerpo") + ayudante("comandanteHd") + ayudante("avatarRetrato") + ayudante("fondoSemana"))(win);
+new Function("window", ayudante("claveComandante") + ayudante("comandanteCuerpo") + ayudante("comandanteHd") + ayudante("avatarRetrato") + ayudante("fondoSemana"))(win);
 const api = new Function("window", `
   var st = { d: { avatares: { "Ana Ruiz": "c7" } }, miNombre: "Ana Ruiz" }, RET = ${JSON.stringify(RETOS)};
   function elComandante(){ return "Ana Ruiz"; }

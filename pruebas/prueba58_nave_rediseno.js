@@ -69,9 +69,15 @@ c(/querySelectorAll\('\[data-ev="'\+id\+'"\]'\)/.test(evid),
 // ---------------------------------------------------------------- d) el botín, todo junto
 c(/function botin\(\)/.test(NAVE), "«Mi botín» existe");
 // (19-sep · con iconos propios en vez de emojis)
-[[/<b><img class=ico [^>]*> Insignias<\/b>/, "Insignias"], [/<b><img class=ico [^>]*> Tu álbum/, "Tu álbum"], [/<b>Personajes y héroes<\/b>/, "Personajes"]].forEach(function (x) {
-  c(x[0].test(NAVE), "   y recoge «" + x[1] + "»");
+// 25-sep · por tres puertas grandes (Norberto: «un estudiante que entra a Mi botín es probable que NO se dé cuenta de que hay
+// cromos o héroes»): arriba los tres botones, debajo solo la que eliges
+[[/puerta\('insignias',[^)]*'Insignias'/, "Insignias"], [/puerta\('cromos',[^)]*'Cromos'/, "Cromos"], [/puerta\('heroes',[^)]*'Héroes'/, "Héroes"]].forEach(function (x) {
+  c(x[0].test(NAVE), "   y recoge «" + x[1] + "», con su puerta");
 });
+c(/var panel = sec==='cromos' \? album\s*: sec==='heroes' \? vestuario\(\)\+adornos\(\)/.test(NAVE) && /data-bsec/.test(NAVE),
+  "   y debajo, solo la que eliges (los cromos, el vestuario con los adornos, o las insignias)");
+c(/function irABotin\(sec\)/.test(NAVE) && /irABotin\(sec\|\|'cromos'\)/.test(NAVE) && /"Ver mi álbum","botin:cromos"/.test(NAVE),
+  "   «Ver mi álbum» (al abrir un sobre o comprar cartas) llega con los cromos abiertos");
 c(/function badgesCronologicos\(\)/.test(NAVE), "las insignias van en el orden en que se ganan");
 // 15-sep · y agrupadas por temas (Norberto): cada planeta con su tripulante y su reto; luego la historia y los hitos
 // 16-sep · el tema 1 lleva también R0 (la Bitácora en marcha, el reto B de la semana 1)

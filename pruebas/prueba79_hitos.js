@@ -87,7 +87,7 @@ const N = leer("assets/js/recluta.js"), F = leer("assets/js/fuente.js"), M = lee
   c(/var hitosSim = function/.test(F) && /P\._compra = true/.test(F) && /perfil\._trato = true/.test(F), "   y la Nave del Comandante los enciende en memoria (sin premios)");
 
   // 5 · la Nave
-  c(/function aBordo\(\)/.test(N) && /\+aBordo\(\)\n\s*\+album/.test(N), "🔴 «Mi botín» tiene su cajón «🎖️ Logros de a bordo», detrás de las insignias");
+  c(/function aBordo\(\)/.test(N) && /\+col\+aBordo\(\);/.test(N), "🔴 «Mi botín» tiene su cajón «🎖️ Logros de a bordo», detrás de las insignias (en su puerta)");
   c(/!abierto\('logros'\)\) return '';/.test(N) && /abierto\('logros'\)&&d&&/.test(N) && /abierto\('logros'\) \|\| mios\[h\[0\]\]/.test(N),
     "🔴 antes de su capítulo no se ve nada (ni el cajón, ni los carteles, ni el Contramaestre en sombra): se apuntan en silencio");
   c(/id="nc-ab"/.test(N) && /'<img class=ico [^>]*> logros':'logros'/.test(N), "   la ficha lleva su cifra (y lleva al cajón)");

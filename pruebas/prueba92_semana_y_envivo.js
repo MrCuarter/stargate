@@ -65,7 +65,8 @@ c(/if\(st\.alumno && !DIFERIDO\)\{ seguirDocente\(\)/.test(SES) && /st\.alumno &
 c(/var SOLO_EN_DIRECTO = \['llamada', 'unete', 'alistaos'\]/.test(SES) && (SES.match(/if\(DIFERIDO\) todo=todo\.filter/g) || []).length === 2,
   "   sin lo que solo vale en directo (la llamada a filas, el únete, el alistamiento)");
 c((SES.match(/\(st\.alumno&&st\.profeMio&&P\[st\.profeMio\]\)/g) || []).length === 2, "   y con el panel de Genially de SU Comandante");
-c(/sesion\.html\?embed=1&diferido=1&per='\+encodeURIComponent\(per\|\|''\)\+'&sem='\+s\.sem/.test(NAVE92) && /\(llegada&&per\?sesionDe\(s\):''\)/.test(NAVE92),
+c(/function urlSesion\(sem\)\{ return 'sesion\.html\?embed=1&diferido=1&per='\+encodeURIComponent\(per\|\|''\)\+'&sem='/.test(NAVE92)
+  && /href="'\+esc\(urlSesion\(s\.sem\)\)\+'"/.test(NAVE92) && /\(llegada&&per\?sesionDe\(s\):''\)/.test(NAVE92),
   "🔴 diferido · en El Archivo, cada semana ya llegada tiene su sesión (y las que no han llegado, no)");
 c(/function llamadaAlumno\(M, mando\)/.test(SES) && /M\.ficharLlamada\(st\.per, st\.ficha\)/.test(SES), "🔴 el recluta ficha sobre la presentación");
 c(/data-ses-voto=/.test(SES) && /M\.votar\(st\.per, b\.getAttribute\('data-ses-vev'\)/.test(SES), "   vota en la diapositiva de la votación");

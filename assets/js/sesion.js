@@ -269,7 +269,7 @@
    * (el del grupo, que ve también el alumnado que sigue la sesión). Si la pose no estuviera, cae al retrato en alta.
    */
   function cmdCuerpo(pose, cls){
-    var k=((st.d&&st.d.avatares)||{})[elComandante()]||'';
+    var k=window.SG.claveComandante(st.d, elComandante());
     return '<img class="cmd-cuerpo cmd-'+pose+(cls?' '+cls:'')+'" data-pose="'+pose+'" data-hd="'+esc(window.SG.comandanteHd(k))+'" src="'
       +esc(window.SG.comandanteCuerpo(k, pose))+'" alt="" onerror="if(this.dataset.hd&&this.src.indexOf(this.dataset.hd)<0){this.src=this.dataset.hd}">';
   }
@@ -575,7 +575,7 @@
     var quien=elComandante(), escs=(st.d&&st.d.escuadrones)||[];
     var mio=escs.filter(function(e){ return e.comandante===quien; })[0]||null;
     if(!quien) return '';
-    return window.SG.rotulo({ nombre:quien, avatar:((st.d&&st.d.avatares)||{})[quien]||'', escuadron:(mio&&mio.nombre)||'',
+    return window.SG.rotulo({ nombre:quien, avatar:window.SG.claveComandante(st.d, quien), escuadron:(mio&&mio.nombre)||'',
       emblema:(mio&&mio.emblema)||'', grupo:st.nombre||'', clase:'grande' });
   }
   /**
@@ -593,7 +593,7 @@
         if(pose) i.setAttribute('data-hd', window.SG.comandanteHd(k));
         if(i.getAttribute('src')!==u) i.src=u; }); };
     // las diapositivas se pintan todas al empezar: si otra ya lo trajo, esta se pone al día al montarse
-    var ya=((st.d&&st.d.avatares)||{})[quien]; if(ya){ poner(ya); return; }
+    var ya=window.SG.claveComandante(st.d, quien); if(ya){ poner(ya); return; }
     if(st.alumno||!(window.SG&&SG.MOTOR&&SG.MOTOR.miFichaDocente)) return;
     SG.MOTOR.miFichaDocente().then(function(f){
       if(!f||!f.avatar) return;
@@ -1477,7 +1477,7 @@
       +tarjeta('assets/img/personajes/nebula.png','', 'NEBULA', 'La inteligencia de la nave. Os guía y os presenta cada cosa nueva en vuestra Nave.')
       +tarjeta('assets/img/personajes/vaeon.png','', 'La Estática · Vaeon', 'La amenaza: donde entra, nadie crea ni comparte. No se le gana disparando: se le gana <b>dejando constancia</b>.')
       +tarjeta('assets/img/capitan/saluda.png','', 'Capitán de la Nave', 'El veterano al mando de La Constancia. Os da las órdenes de cada misión en los vídeos.')
-      +tarjeta(window.SG.avatarComandante(((st.d&&st.d.avatares)||{})[cap]||''),'cmd', 'Comandante STARGATE',
+      +tarjeta(window.SG.avatarComandante(window.SG.claveComandante(st.d, cap)),'cmd', 'Comandante STARGATE',
         (cap?'<b>'+esc(cap.replace(/^comandante\s+/i,''))+'</b>, vuestro docente. ':'Vuestro docente. ')+'Firma la orden de cada semana, valida vuestros retos y os ve en directo.', ' data-retrato')
       +'</div></div>', montar: function(el){ retratoAlVuelo(el); return null; }};
   }
@@ -1793,6 +1793,40 @@
     });
   }
 
+  /**
+   * 🔴 25-sep · EN DIFERIDO, LAS SEMANAS DELANTE. Norberto: «que puedan cambiar fácilmente a las anteriores. Puedes ponerles
+   * una primera página con las semanas iluminando o resaltando la actual». Es la primera diapositiva de cada sesión en
+   * diferido (y el primer paso de la barra de abajo, para volver): las semanas ya llegadas se abren, la de esta semana
+   * brilla, la que estás viendo va marcada y las que faltan esperan con candado.
+   */
+  function diaSemanas(lista){
+    var hoy=Number(st.semHoy)||1, viendo=Number(st.sem)||hoy;
+    return {k:'semanas', sec:'semanas', rot:'Las semanas', t:'ap', html:
+      '<div class="dia dif-semanas con-fondo">'+capaEscena('pasillo')+'<div class="kicker">Las sesiones de clase</div>'
+      +'<h2>¿Qué semana quieres ver?</h2>'
+      +'<p class="sub">Cada sesión, tal como se vio en clase. Se van abriendo según avanza el curso.</p>'
+      +'<div class="dif-grid">'+lista.map(function(x){
+          var k=Number(x.sem)||0, pl=Number(x.tema_n)?planeta(x.tema_n):null, abierta=k<=hoy;
+          var cls='dif-s'+(k===hoy?' hoy':'')+(k===viendo?' viendo':'')+(abierta?'':' cerrada');
+          var dentro=(pl?'<img class="dif-pl" src="assets/img/planetas/'+esc(pl[0])+'.png'+(window.SG_IMGV||'')+'" alt="" loading="lazy">':'<span class="dif-pl"></span>')
+            +'<b>Semana '+k+'</b><span>'+esc(x.tema||'')+'</span>'
+            +(k===hoy?'<em>Esta semana</em>':k===viendo?'<em>La que estabas viendo</em>':'')
+            +(abierta?'':'<img class="ico dif-candado" src="assets/img/iconos/p/candado.png" alt="">');
+          return abierta?'<button type="button" class="'+cls+'" data-dif-sem="'+k+'">'+dentro+'</button>'
+                       :'<div class="'+cls+'" title="Se abre la semana '+k+'">'+dentro+'</div>';
+        }).join('')+'</div></div>',
+      montar:function(el){
+        Array.prototype.forEach.call(el.querySelectorAll('[data-dif-sem]'), function(b){
+          b.onclick=function(){
+            st.sem=Number(b.getAttribute('data-dif-sem')); st.i=1;   // (a su primera diapositiva: la 0 es este índice)
+            try{ var u=new URL(location.href); u.searchParams.set('sem',st.sem); history.replaceState(null,'',u); }catch(e){}
+            pintar();
+          };
+        });
+        var yo=el.querySelector('.dif-s.viendo')||el.querySelector('.dif-s.hoy'); if(yo&&yo.focus) try{ yo.focus({preventScroll:true}); }catch(e){}
+        return null;
+      }};
+  }
   function tira(){
     var n=semanas().length;
     var celdas=[]; for(var k=1;k<=n;k++){ celdas.push(k); }
@@ -1834,6 +1868,7 @@
     var s=lista[st.sem-1];
     if(!s){ root.innerHTML='<div class="card"><h3>Sin semanas que enseñar</h3></div>'; return; }
     st.slides=construir(s,n);
+    if(DIFERIDO) st.slides=[diaSemanas(lista)].concat(st.slides);   // 25-sep · en diferido, el índice de semanas delante
     if(st.i>=st.slides.length) st.i=st.slides.length-1;
     if(st.i<0) st.i=0;
     if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }
@@ -2377,7 +2412,10 @@
   if(!st.per){
     if (window.SG && window.SG.MOTOR) porLaCuenta();
     else document.addEventListener('sg:motor', porLaCuenta);
-  } else if(SEGUIR){
+  } else if(SEGUIR || DIFERIDO){
+    // 🔴 25-sep · y EN DIFERIDO, también como recluta. Norberto: «en la sesión sale el avatar viejo (en el mensaje de la semana
+    // no)». La que abre la Nave lleva ?per= y entraba sin saber quién mira: sin su Comandante (el retrato por defecto y
+    // «Vuestro docente» sin nombre), sin el panel de SU Comandante y sin el tope de la semana en curso
     if (window.SG && window.SG.MOTOR) comoAlumnoDe(st.per); else document.addEventListener('sg:motor', function(){ comoAlumnoDe(st.per); });
   } else cargarYArrancar();   // (el dato fresco no puede mover la diapositiva de sitio: se arranca una vez)
 })();

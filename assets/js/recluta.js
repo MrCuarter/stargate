@@ -455,6 +455,8 @@
    * Es el orden del viaje, de la semana 1 a la última: lo que ya ha llegado se ve; lo de semanas futuras, con candado
    * (como los planetas); y los FRAGMENTOS, solo si te los has ganado —o cuando se abren para todos—.
    */
+  /** 25-sep · la sesión de clase de una semana, en diferido (la abren El Archivo y la orden de la semana) */
+  function urlSesion(sem){ return 'sesion.html?embed=1&diferido=1&per='+encodeURIComponent(per||'')+'&sem='+(Number(sem)||1); }
   function archivo(){
     var L=st.semanas||[], hasta=Math.min(Math.max(st.actual||0,0),L.length);
     /**
@@ -462,7 +464,7 @@
      * vemos en clase (para los de diferido)… en la semana 6, todas hasta la 6». Una por semana ya llegada, en pestaña
      * nueva y a pantalla completa (sesion.html?diferido=1: a su ritmo, sin fichar, con el panel de su Comandante).
      */
-    var sesionDe=function(s){ return '<a class="ar-ses" href="sesion.html?embed=1&diferido=1&per='+encodeURIComponent(per||'')+'&sem='+s.sem+'" target="_blank" rel="noopener" title="La sesión de esa semana, tal como se vio en clase">'
+    var sesionDe=function(s){ return '<a class="ar-ses" href="'+esc(urlSesion(s.sem))+'" target="_blank" rel="noopener" title="La sesión de esa semana, tal como se vio en clase">'
       +'<img class=ico src=assets/img/iconos/p/video.png alt> La sesión de clase ↗</a>'; };
     var total=0, tengo=0, filas=L.map(function(s){
       var V=s.videos||[];
@@ -612,9 +614,19 @@
       + (sm.lanza && sm.lanza.length
           ? '<p class="small"><b>Se lanza:</b> ' + sm.lanza.map(esc).join(' · ') + '</p>' : '')
       + '</div></div>'
-      + (jefe && window.SG.rotulo ? '<footer class="fc-firma-r">' + window.SG.rotulo({ nombre: jefe,
-          avatar: ((st.d && st.d.avatares) || {})[jefe] || '', escuadron: suEsc ? suEsc.nombre : '',
-          emblema: suEsc ? suEsc.emblema : '', grupo: (st.d && st.d.nombre) || '', clase: 'carta' }) + '</footer>' : '')
+      /**
+       * 🔴 25-sep · Y LA SESIÓN DE ESTA SEMANA, A UN CLIC. Norberto: «añade un botón grande para ir a la sesión de la semana en
+       * la parte inferior derecha de la tarjeta del mensaje del foro, en la esquina contraria a la del avatar del docente».
+       * La misma que El Archivo (en diferido: a su ritmo, con el índice de semanas delante).
+       */
+      + '<footer class="fc-firma-r oc-pie">'
+      +   (jefe && window.SG.rotulo ? window.SG.rotulo({ nombre: jefe,
+            avatar: window.SG.claveComandante(st.d, jefe), escuadron: suEsc ? suEsc.nombre : '',
+            emblema: suEsc ? suEsc.emblema : '', grupo: (st.d && st.d.nombre) || '', clase: 'carta' }) : '<span></span>')
+      +   (per && !SIMULACRO ? '<a class="oc-ses" href="' + esc(urlSesion(sm.sem)) + '" target="_blank" rel="noopener">'
+            + '<img class="ico" src="assets/img/iconos/p/video.png" alt=""><span><b>Ver la sesión de la semana</b>'
+            + '<small>Tal como se vio en clase · a tu ritmo</small></span></a>' : '')
+      + '</footer>'
       + '</article>';
   }
 
@@ -665,10 +677,10 @@
      * que no son de ningún tema. Cada casilla es la de siempre: se pulsa y dice cómo se gana.
      */
     var deIns=function(pre){ return BADGES.filter(function(k){ return k.indexOf(pre)===0; }); };
-    var grupoIns=function(tit, sub, ks, img){
+    var grupoIns=function(tit, sub, ks, img, cls){
       if(!ks.length) return '';
       var n=ks.filter(tieneIns).length;
-      return '<div class="ins-tema'+(n===ks.length?' completo':'')+'"><div class="ins-tema-cab">'+(img?'<img src="'+esc(img)+'" alt="">':'')
+      return '<div class="ins-tema'+(n===ks.length?' completo':'')+(cls?' '+cls:'')+'"><div class="ins-tema-cab">'+(img?'<img src="'+esc(img)+'" alt="">':'')
         +'<div class="ins-tema-t"><b>'+esc(tit)+'</b>'+(sub?'<span>'+esc(sub)+'</span>':'')+'</div><em>'+(n===ks.length?'✓ ':'')+n+' / '+ks.length+'</em></div>'
         +'<div class="badge-col">'+ks.map(celdaIns).join('')+'</div></div>';
     };
@@ -676,7 +688,8 @@
       temasIns+=grupoIns('Tema '+tt+(pl[1]?' · '+pl[1]:''), '', deIns('P'+tt+'_').concat(tt===1?deIns('R0_'):[]).concat(deIns('R'+tt+'_')), pl[0]?'assets/img/planetas/'+pl[0]+'.png'+(window.SG_IMGV||''):''); }
     var col='<div class="ins-temas">'+temasIns
       +grupoIns('La historia', 'NEBULA, el Capitán y Vaeon', deIns('E'), '')
-      +grupoIns('Hitos del viaje', 'Llegan solos con lo que haces', badgesCronologicos().filter(function(k){ return /^H/.test(k); }), '')+'</div>';
+      // 25-sep · los hitos, a lo ancho: los siete en una fila (Norberto: «el doble o triple de ancho, que quepan en una fila»)
+      +grupoIns('Hitos del viaje', 'Llegan solos con lo que haces', badgesCronologicos().filter(function(k){ return /^H/.test(k); }), '', 'hitos')+'</div>';
     // álbum de cromos (catálogo inyectado por _build_site.py desde _site_data.CROMOS)
     var tengo=r.cromos||{}; var nCromos=CROMOS.filter(function(c){return tengo[c[0]];}).length;
     var repes=0; CROMOS.forEach(function(c){var n=tengo[c[0]]||0; if(n>1) repes+=n-1;});
@@ -698,7 +711,7 @@
         +(llena?'<span class="sello-serie" title="'+esc(NOMSELLO[sr[1]]||'Serie completa')+'">✦ serie completa</span>':'')+'</h4>'
         +'<p class="small muted">'+esc(sr[2])+'</p>'
         +'<div class="album">'+cs.map(celda).join('')+'</div></div>';}).join('');
-    var album=CROMOS.length?('<details class="cajon album-cromos"><summary><b><img class=ico src=assets/img/iconos/p/estrella.png alt> Tu álbum de cromos</b> <span class="cnt">'+nCromos+' / '+CROMOS.length+'</span></summary>'
+    var album=CROMOS.length?('<div class="album-cromos">'
       +'<p class="small muted">Cada «Sobre de cromos» (15 ◈) trae una carta al azar. Los ocho tripulantes son <b>comunes</b>; '
       +'los Ecos, NEBULA y el Capitán, <b>raros</b>; el Recluta y la Estática, <b>épicos</b>; y hay dos '
       +'<b>LEGENDARIOS</b>: el General Vaeon (2 de cada 100 sobres) y <b>Ander Vaeon</b>, la carta que revela '
@@ -708,8 +721,33 @@
         +(libres>=3?' — y con 3 te llevas un sobre <b>gratis</b>. Puedes cambiar '+Math.floor(libres/3)+' vez'+(Math.floor(libres/3)===1?'':'es')+'.'
                    :(libres?' ('+libres+' sin cambiar): con 3 te llevas un sobre gratis.':' — ya los has cambiado todos por sobres.'))
         +(libres>=3&&d.formCanje?' <a class="btn small" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Cambiar 3 repetidos →</a>':'')+'</p>':'')
-      +series+'</details>'):'';
+      +series+'</div>'):'';
     var nIns=(r.insignias||[]).length;
+    /**
+     * 🔴 25-sep · TRES PUERTAS GRANDES: INSIGNIAS, CROMOS, HÉROES. Norberto: «un estudiante que entra a Mi botín es probable
+     * que NO se dé cuenta de que hay cromos o héroes». Eran tres cajones uno debajo de otro y solo el primero abierto: lo de
+     * abajo no existía. Ahora, arriba, tres botones grandes con lo que llevas de cada cosa, y debajo solo la que eliges
+     * (`st.botinSec`; SG irABotin(sec) llega directo a una, como «Ver mi álbum» al abrir un sobre).
+     */
+    var sec=BOTIN_SECS.indexOf(st.botinSec)>=0?st.botinSec:'insignias';
+    var nHer=(r.heroes||[]).length, nHerT=(window.SG_HEROES||[]).length, rh=Number(r.heroes_repes)||0;
+    var puerta=function(k, img, tit, cuenta, sub, aviso){
+      return '<button type="button" class="bt-puerta'+(k===sec?' on':'')+'" data-bsec="'+k+'" aria-pressed="'+(k===sec)+'">'
+        +'<img class="bt-p-img" src="'+img+'" alt="">'
+        +'<span class="bt-p-t"><b>'+tit+'</b><em>'+cuenta+'</em><small>'+sub+'</small></span>'
+        +(aviso?'<span class="bt-p-aviso">'+aviso+'</span>':'')+'</button>';
+    };
+    var puertas='<div class="bt-puertas" role="group" aria-label="Qué quieres ver">'
+      +puerta('insignias','assets/img/iconos/p/medalla.png','Insignias',nIns+' / '+BADGES.length,'Por planetas, y los logros de a bordo')
+      +(CROMOS.length?puerta('cromos','assets/img/iconos/p/estrella.png','Cromos',nCromos+' / '+CROMOS.length,'Tu álbum de cartas',
+          libres>=3?'Tienes repetidas para cambiar':''):'')
+      +puerta('heroes','assets/img/iconos/p/escudo.png','Héroes',(vestuarioAbierto()?nHer+' / '+nHerT:'—'),'Tu personaje, tus héroes y tus adornos',
+          rh>=2?rh+' repetidos para cambiar':'')
+      +'</div>';
+    var panel = sec==='cromos' ? album
+      : sec==='heroes' ? vestuario()+adornos()
+      : '<p class="small muted">Por planetas: cada tema tiene su tripulante y su reto. '
+        +'Las apagadas están por conseguir: púlsalas para ver qué piden.</p>'+col+aBordo();
     return '<section><div class="eyebrow">Lo que llevas ganado</div><h2>Mi botín</h2>'
       +'<p class="lead">Tus insignias, tus cartas y tus personajes. Lo que has conseguido tú, no lo '
       +'que se puede comprar — eso está en el <button class="btn small" type="button" data-tab="mercado">Mercado Estelar</button>.</p>'
@@ -717,19 +755,18 @@
       +sinAbrirHtml(r)
       +((r.premios||[]).length?'<div class="card botin-premios"><p><img class=ico src=assets/img/iconos/p/rankings.png alt> <b>Lo que has ganado en el Gran Sorteo:</b> '+r.premios.map(esc).join(' · ')
         +'</p><p class="small muted">Tu docente te dirá cómo recibirlo.</p></div>':'')
-      +'<details class="cajon" open><summary><b><img class=ico src=assets/img/iconos/p/medalla.png alt> Insignias</b> <span class="cnt">'+nIns+' / '+BADGES.length+'</span></summary>'
-      +'<p class="small muted">Por planetas: cada tema tiene su tripulante y su reto. '
-      +'Las apagadas están por conseguir: púlsalas para ver qué piden.</p>'
-      +col+'</details>'
-      +aBordo()
-      +album
-      // 🔴 13-sep · el cambio de héroes repetidos vive dentro del cajón plegado: se anuncia en la tapa
-      +'<details class="cajon"><summary><b>Personajes y héroes</b> <span class="cnt">tu vestuario</span>'
-      +((r.heroes_repes||0)>=2?' <span class="chip ok"><img class=ico src=assets/img/iconos/p/zoco.png alt> '+r.heroes_repes+' héroes repetidos para cambiar</span>':'')+'</summary>'
-      +vestuario()+'</details>'
-      +adornos()
+      +puertas
+      +'<div class="bt-panel" id="bt-panel" data-sec="'+sec+'">'+panel+'</div>'
       +'</section>';
   }
+  var BOTIN_SECS=['insignias','cromos','heroes'];
+  /** 25-sep · a Mi botín, con una de sus tres puertas ya abierta */
+  function irABotin(sec){ st.botinSec=sec; irA('botin'); try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){} }
+  document.addEventListener('click',function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('[data-bsec]'); if(!b) return;
+    st.botinSec=b.getAttribute('data-bsec'); render();
+    var p=document.getElementById('bt-panel'); if(p&&p.getBoundingClientRect().top<0) try{ p.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
+  });
 
   /**
    * 15-sep (noche) · LO QUE SE QUEDÓ SIN ABRIR. Si un sobre o una cápsula no se llegó a abrir (un corte al abrir el regalo de
@@ -1165,8 +1202,8 @@
     }
     return '<div class="nave-cifras">'
       +c('retos',nRet,'','reto'+(nRet===1?'':'s')+' hecho'+(nRet===1?'':'s'),'Ver tus retos')
-      +c('botin',(r.insignias||[]).length,BADGES.length,'insignias','Ver tus insignias')
-      +(CROMOS.length?c('botin',nCr,CROMOS.length,'cromos','Ver tu álbum de cromos'):'')
+      +c('botin:insignias',(r.insignias||[]).length,BADGES.length,'insignias','Ver tus insignias')
+      +(CROMOS.length?c('botin:cromos',nCr,CROMOS.length,'cromos','Ver tu álbum de cromos'):'')
       +c('rankings',r.pos||'—','','puesto','Ver el tablero')
       // 15-sep (noche) · y los logros de a bordo: lleva a su cajón de «Mi botín», ya abierto
       +(AB.hitos.length&&motorNuevo()&&abierto('logros')?'<button type="button" class="nc" id="nc-ab" title="Ver tus logros de a bordo"><b>'+nHitos(r)
@@ -1226,19 +1263,22 @@
     // y NEBULA, y «Tu carrera» a la derecha de arriba abajo (antes, NEBULA dejaba un hueco de 200 px bajo ella)
     return '<section class="card nave-ficha'+(carr?' con-carrera':'')+'"'+estiloFicha+'>'
       +'<div class="nf-arriba">'
-      +'<button type="button" class="av-lupa" id="btn-av" title="Pulsa para verte en grande" aria-label="Ampliar tu personaje">'+av+'</button>'
+      +(vestuarioAbierto()
+        ?'<button type="button" class="av-lupa vest-abre" id="btn-av" title="Pulsa para cambiar tu personaje" aria-label="Cambiar tu personaje">'+av+'<span class="av-cambia"><img class=ico src=assets/img/iconos/p/editar.png alt></span></button>'
+        :'<button type="button" class="av-lupa" id="btn-av" title="Pulsa para verte en grande" aria-label="Ampliar tu personaje">'+av+'</button>')
       +'<div class="nf-quien"><h3>'+(r.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(r.alias)+(r.racha>=3?' <span class="chip-racha" title="Semanas seguidas registrando algo"><img class=ico src=assets/img/iconos/p/fuego.png alt> '+r.racha+'</span>':'')+'</h3>'
       +(r.titulo?'<div class="titulo-recluta">«'+esc(r.titulo)+'»</div>':'')
       +'<p class="small"><b>Nivel '+ni.nivel+' · '+esc(ni.rangoNombre)+'</b>'+(ni.titulo&&ni.titulo!==ni.rangoNombre?' <span class="muted">('+esc(ni.titulo)+')</span>':'')+' · puesto '+r.pos+(r.planeta&&r.planeta!=='—'?' · planeta '+esc(r.planeta):'')+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
       +'<p class="monedas"><span class="m xp" title="Los xp no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje."><b>'+r.xp+'</b> xp</span>'
-      +'<span class="m cred" title="Los créditos son la moneda de misión: es lo único que se descuenta al canjear recompensas."><b>'+cred+'</b> ◈ créditos</span></p>'
-      +barra
-      // 25-sep · su Bitácora, a un clic (Norberto: «cuando un estudiante añade un enlace a su Bitácora, un botón vistoso»)
-      +'<div class="nb-bit" id="nb-bit">'+botonBitacora()+'</div></div>'
+      +'<span class="m cred" title="Los créditos son la moneda de misión: es lo único que se descuenta al canjear recompensas."><b>'+cred+'</b> ◈ créditos</span>'
+      // 25-sep · su Bitácora, a un clic y al lado de lo que tiene (Norberto: «al lado de los créditos, enlace a la Bitácora; si
+      // no tiene, un botón para añadirla: debemos insistir en su importancia»)
+      +'<span class="nb-bit" id="nb-bit">'+botonBitacora()+'</span></p>'
+      +barra+'</div>'
       +cifrasDeBitacora(r)
       +'</div>'
       +'<div class="nf-abajo'+(carr?'':' solo')+'">'
-      +'<div class="nf-nebula"><img src="assets/img/personajes/nebula.png" alt="" loading="lazy"><p><b>NEBULA:</b> '+neb+'</p></div>'
+      +'<div class="nf-nebula"><img src="assets/img/personajes/nebula.png" alt="" loading="lazy"><p id="nf-neb"><b>NEBULA:</b> '+neb+'</p></div>'
       +carr
       +'</div>'
       +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'')
@@ -1275,6 +1315,10 @@
         ? '¡Esta es la semana! La <b>Actividad '+ac.a.n+'</b> se entrega '+cuando+', hasta las 23:59. Cuando la subas, regístrala en <b>Mis retos</b>.'
         : 'Ojo al calendario: la <b>Actividad '+ac.a.n+'</b> se entrega '+cuando+'. Quedan <b>'+e.faltan+' días</b>, y los retos ya te han hecho un trozo.';
     }
+    // 0 bis · 25-sep · sin Bitácora enlazada (Norberto: «debemos insistir en su importancia»). `st.bit` llega aparte: hasta
+    // que se sabe, NEBULA dice lo de siempre, y al llegar vacío se repinta su frase (pintarBitacora)
+    if(st.bit==='' && !SIMULACRO) return 'Aún no has enlazado tu <b>Bitácora</b>. Es tu ePortfolio: ahí va lo que haces en cada reto y es lo que '
+      +'revisa tu Comandante. Pulsa <b>«Añadir mi Bitácora»</b>, arriba, junto a tus créditos.';
     var lista=st.semanas||[], sm=lista[Math.min(Math.max(st.actual||1,1),lista.length)-1]||{};
     // 1 · el tripulante de este tema, recuperado: su fragmento le espera
     var fr=FRAGS.filter(function(f){ return f.reto && Number(f.tema)===Number(sm.tema_n) && mios[f.reto]; })[0];
@@ -1305,7 +1349,8 @@
     var pl=window.SG_PLANTILLA_EP||'';
     if(st.bit) return '<a class="nb-bitacora" href="'+esc(st.bit)+'" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/libro.png alt> <b>Mi Bitácora</b> ↗</a>'
       +'<button type="button" class="nb-bit-ed" data-bit-ed title="Cambiar el enlace de tu Bitácora" aria-label="Cambiar el enlace de tu Bitácora"><img class=ico src=assets/img/iconos/p/editar.png alt></button>';
-    return '<button type="button" class="nb-bitacora vacia" data-bit-ed><img class=ico src=assets/img/iconos/p/libro.png alt> Añadir mi Bitácora</button>'
+    return '<button type="button" class="nb-bitacora vacia" data-bit-ed title="Tu ePortfolio: ahí va lo que haces en cada reto, y es lo que revisa tu Comandante">'
+      +'<img class=ico src=assets/img/iconos/p/anadir.png alt> Añadir mi Bitácora</button>'
       +(pl?'<a class="nb-bit-pl" href="'+esc(pl)+'" target="_blank" rel="noopener">¿Aún no la tienes? La plantilla ↗</a>':'');
   }
   function cargarBitacora(){
@@ -1315,7 +1360,11 @@
       st.bit=String(((d&&d.exists()&&d.data())||{}).bitacora||'').trim(); pintarBitacora();
     },function(){ st.bitPidiendo=false; });
   }
-  function pintarBitacora(){ var el=document.getElementById('nb-bit'); if(el) el.innerHTML=botonBitacora(); }
+  function pintarBitacora(){
+    var el=document.getElementById('nb-bit'); if(el) el.innerHTML=botonBitacora();
+    // (y la frase de NEBULA, que insiste mientras no esté y deja de hacerlo en cuanto está)
+    var nb=document.getElementById('nf-neb'); if(nb&&st.yo) try{ nb.innerHTML='<b>NEBULA:</b> '+nebulaDice(st.yo, window.SG.nivelInfo?window.SG.nivelInfo(st.yo.xp,(st.d||{}).tipo):null); }catch(e){}
+  }
   document.addEventListener('click',function(ev){
     var b=ev.target&&ev.target.closest&&ev.target.closest('[data-bit-ed]'); if(!b||!window.SG||!window.SG.preguntar) return;
     var M=window.SG.MOTOR;
@@ -1751,7 +1800,7 @@
     var tit='El regalo de tu Comandante'+(de?' · '+de:'');
     var piezas=(g.piezas||[]).filter(function(p){ return p.tipo==='cromo'||p.tipo==='heroe'; });
     if(piezas.length&&window.SG&&window.SG.SOBRE){
-      var pr=SG.SOBRE.revelar(piezas,{ titulo:tit, alAlbum:function(){ irA('botin'); } });
+      var pr=SG.SOBRE.revelar(piezas,{ titulo:tit, alAlbum:function(sec){ irABotin(sec||'cromos'); } });
       return pr&&pr.then?pr.then(hecho,hecho):hecho();
     }
     var carteles=[];
@@ -1888,7 +1937,7 @@
         var tenia = inventarioDe(antes);
         setTimeout(function(){
           SG.SOBRE.revelar(r.regalo.map(function(c){ return marcaRepetida(c, tenia); }),
-            { titulo:'El regalo de tu Comandante', alAlbum:function(){ irA('botin'); } });
+            { titulo:'El regalo de tu Comandante', alAlbum:function(sec){ irABotin(sec||'cromos'); } });
         }, 1300);
       }
       if(r && r.racha > 1){
@@ -2188,7 +2237,8 @@
   }
 
   function irA(k, empujarHash){
-    st.tab=tabValida(k);
+    var sub=String(k||'').split(':'); if(sub[0]==='botin'&&sub[1]) st.botinSec=sub[1];   // 25-sep · «botin:cromos», con su puerta
+    st.tab=tabValida(sub[0]);
     if(empujarHash!==false){ try{ history.replaceState(null,'','#'+st.tab); }catch(e){} }
     render();
     // 14-sep · el Zoco, siempre al día al entrar: se enseñaba lo de la última vez que se abrió (otra
@@ -2391,16 +2441,16 @@
    * sitio se parece mucho a que te hayan cobrado por nada.
    */
   var QUE_ES = {
-    cromo:      ["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Carta del álbum","Se abre sola y se queda en tu álbum.","Ver mi álbum","botin"],
-    cromo_repes:["<img class=ico src=assets/img/iconos/p/zoco.png alt>","Cambio de repetidos","Tus repetidas se convierten en un sobre nuevo.","Ver mi álbum","botin"],
-    heroe:      ["<img class=ico src=assets/img/iconos/p/escudo.png alt>","Héroe de la Rebelión","Lo tendrás en el vestuario: puedes vestirlo cuando quieras.","Ir al vestuario","botin"],
+    cromo:      ["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Carta del álbum","Se abre sola y se queda en tu álbum.","Ver mi álbum","botin:cromos"],
+    cromo_repes:["<img class=ico src=assets/img/iconos/p/zoco.png alt>","Cambio de repetidos","Tus repetidas se convierten en un sobre nuevo.","Ver mi álbum","botin:cromos"],
+    heroe:      ["<img class=ico src=assets/img/iconos/p/escudo.png alt>","Héroe de la Rebelión","Lo tendrás en el vestuario: puedes vestirlo cuando quieras.","Ver mis héroes","botin:heroes"],
     // 14-sep · los sobres y las cápsulas nuevos
-    sobre_grande:["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Cartas del álbum","Cinco cartas que se abren solas y se quedan en tu álbum.","Ver mi álbum","botin"],
-    sobre_raro: ["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Cartas del álbum","Tres cartas con muchas más raras y épicas. Se quedan en tu álbum.","Ver mi álbum","botin"],
-    sobre_epico:["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Cartas del álbum","Tres cartas sin comunes. Se quedan en tu álbum.","Ver mi álbum","botin"],
-    capsula_elite:["<img class=ico src=assets/img/iconos/p/escudo.png alt>","Héroe de la Rebelión","Un héroe de la Vanguardia o un Mito, a tu vestuario.","Ir al vestuario","botin"],
-    capsula_legendaria:["<img class=ico src=assets/img/iconos/p/corona.png alt>","Héroe legendario","Un Mito seguro, a tu vestuario.","Ir al vestuario","botin"],
-    heroe_repes:["<img class=ico src=assets/img/iconos/p/zoco.png alt>","Cambio de héroes repetidos","Dos repetidos se convierten en un héroe nuevo al azar.","Ir al vestuario","botin"],
+    sobre_grande:["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Cartas del álbum","Cinco cartas que se abren solas y se quedan en tu álbum.","Ver mi álbum","botin:cromos"],
+    sobre_raro: ["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Cartas del álbum","Tres cartas con muchas más raras y épicas. Se quedan en tu álbum.","Ver mi álbum","botin:cromos"],
+    sobre_epico:["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Cartas del álbum","Tres cartas sin comunes. Se quedan en tu álbum.","Ver mi álbum","botin:cromos"],
+    capsula_elite:["<img class=ico src=assets/img/iconos/p/escudo.png alt>","Héroe de la Rebelión","Un héroe de la Vanguardia o un Mito, a tu vestuario.","Ver mis héroes","botin:heroes"],
+    capsula_legendaria:["<img class=ico src=assets/img/iconos/p/corona.png alt>","Héroe legendario","Un Mito seguro, a tu vestuario.","Ver mis héroes","botin:heroes"],
+    heroe_repes:["<img class=ico src=assets/img/iconos/p/zoco.png alt>","Cambio de héroes repetidos","Dos repetidos se convierten en un héroe nuevo al azar.","Ver mis héroes","botin:heroes"],
     marco:      ["<img class=ico src=assets/img/iconos/p/estrella.png alt>","Adorno de tu ficha","Enmarca tu avatar. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
     fondo:      ["<img class=ico src=assets/img/iconos/p/varios.png alt>","Adorno de tu ficha","Cambia el fondo de tu ficha. Se ve en tu ficha y en el tablero.","Ver mi ficha","nave"],
     titulo:     ["<img class=ico src=assets/img/iconos/p/ticket.png alt>","Adorno de tu ficha","Un título que acompaña a tu alias delante de toda la clase.","Ver mi ficha","nave"],
@@ -3473,7 +3523,7 @@
       if(botines.length&&window.SG&&SG.SOBRE){
         var tenidas=inventarioDe(st.yo||{});
         SG.SOBRE.revelar(botines.map(function(c){ return marcaRepetida(c, tenidas); }),
-          { titulo:'El premio de tu cubierta', alAlbum:function(){ irA('botin'); } }).then(fin, fin);
+          { titulo:'El premio de tu cubierta', alAlbum:function(sec){ irABotin(sec||'cromos'); } }).then(fin, fin);
       } else fin();
     };
     if(window.SG&&SG.FIESTA) try{ SG.FIESTA.sonar(d.legendario?'insignia':'xp'); }catch(e){}
@@ -3529,6 +3579,32 @@
     document.removeEventListener('keydown',teclaLupa);
     document.addEventListener('keydown',teclaLupa);
     ov.querySelector('.lupa-x').focus();
+  }
+  /**
+   * 🔴 25-sep · TU PERSONAJE, A UN CLIC DE CAMBIARLO. Norberto: «el estudiante, al hacer clic en su avatar, debería abrirse una
+   * ventana con Personajes y Héroes desbloqueados para poder cambiarse el avatar (a partir de la semana en que se abre)».
+   * Desde que llegan los héroes (el capítulo que abre `heroes`, o si ya tiene alguno) el avatar abre el vestuario de Mi botín
+   * en una ventana: el mismo vestuario (vestuario()) y el mismo vestirse (cablearVestir). Antes de eso, la lupa de siempre.
+   */
+  function vestuarioAbierto(){ var yo=st.yo||{}; return abierto('heroes')||(yo.heroes||[]).length>0; }
+  function pulsarAvatar(){
+    if(!st.yo) return;
+    if(!vestuarioAbierto()) return lupaAvatar();
+    var ov=document.getElementById('cromo-lupa');
+    if(!ov){ov=document.createElement('div');ov.id='cromo-lupa';ov.className='lupa';document.body.appendChild(ov);}
+    ov.setAttribute('data-modo','vestuario');
+    ov.innerHTML='<div class="lupa-fondo"></div><div class="lupa-caja vest-ventana" role="dialog" aria-modal="true" aria-label="Tu vestuario">'
+      +'<button type="button" class="lupa-x" aria-label="Cerrar">×</button>'
+      +vestuario().replace('<section id="vestuario">','<section class="vest-en-ventana">')
+      +'<p class="vest-pie"><button type="button" class="btn" id="vest-grande"><img class=ico src=assets/img/iconos/p/ojo.png alt> Verme en grande</button></p></div>';
+    ov.classList.add('open');
+    ov.querySelector('.lupa-fondo').onclick=cerrarLupa;
+    ov.querySelector('.lupa-x').onclick=cerrarLupa;
+    ov.querySelector('#vest-grande').onclick=lupaAvatar;
+    cablearVestir(ov);
+    document.removeEventListener('keydown',teclaLupa);
+    document.addEventListener('keydown',teclaLupa);
+    var foco=ov.querySelector('button.vest.on')||ov.querySelector('.lupa-x'); if(foco) try{ foco.focus({preventScroll:true}); }catch(e){}
   }
   function cerrarLupa(){var ov=document.getElementById('cromo-lupa'); if(!ov) return;
     ov.classList.remove('open'); ov.innerHTML=''; ov.removeAttribute('data-modo');
@@ -4065,8 +4141,46 @@
       // se ponen los datos al día. Duplicarlo sacaba los números saltarines DEBAJO del diálogo.
       if(tipo==='canje-mudo') return;
       if(tipo==='canje') SG.FIESTA.canje(antes, d.yo, donde, extra);
-      else SG.FIESTA.reto(antes, d.yo, donde);
+      else if(!celebrarMision(antes, d.yo)) SG.FIESTA.reto(antes, d.yo, donde);
     });
+  }
+  /**
+   * 🔴 25-sep · MISIÓN CUMPLIDA (la ventana grande de SG.FIESTA.mision). Aquí se decide QUÉ se enseña —el reto por su nombre,
+   * las insignias, cartas y héroes nuevos, el fragmento que abre— y ADÓNDE lleva el botón. Norberto: «si solo es dinero,
+   * "Mercado Estelar"; si gana fragmento, "El Archivo"; si gana cromos o avatar, "Mi botín"». Solo cuando hay un reto nuevo:
+   * la racha de la llamada (créditos sueltos) sigue con su fiesta pequeña.
+   */
+  function celebrarMision(antes, ahora){
+    var F=window.SG&&SG.FIESTA; if(!F||!F.mision) return false;
+    var a=antes||{}, b=ahora||{}, tipo=(st.d&&st.d.tipo)||'REGULAR', NI=window.SG.nivelInfo;
+    var nuevos=(b.retos||[]).filter(function(k){ return (a.retos||[]).indexOf(k)<0; });
+    if(!nuevos.length) return false;
+    var nuevas=function(x,y){ return (y||[]).filter(function(k){ return (x||[]).indexOf(k)<0; }); };
+    var ins=nuevas(a.insignias, b.insignias).map(function(k){ return {img:'assets/img/insignias/'+k+'.webp', nombre:NOMBRES[k]||k}; });
+    var cartas=[], ca=a.cromos||{}, cb=b.cromos||{}, HN={};
+    (window.SG_HEROES||[]).forEach(function(x){ HN[x[0]]=x[1]; });
+    Object.keys(cb).forEach(function(k){ if((cb[k]||0)>(ca[k]||0)){ var c=CROMOS.filter(function(x){ return x[0]===k; })[0];
+      cartas.push({img:'assets/img/tarjetas/'+k+'_carta.png'+CARDV, nombre:c?c[1]:k}); } });
+    nuevas(a.heroes, b.heroes).forEach(function(k){ cartas.push({img:'assets/img/heroes/'+k+'.jpg', nombre:HN[k]||k}); });
+    var skin=nuevas(a.skins, b.skins).length>0;
+    var fr=FRAGS.filter(function(f){ return f.reto && nuevos.indexOf(f.reto)>=0; })[0]||null;
+    var nA=NI?NI(a.xp||0,tipo):{}, nB=NI?NI(b.xp||0,tipo):{}, sube=(nB.nivel||0)>(nA.nivel||0);
+    var dcr=(b.creditos||0)-(a.creditos||0);
+    var botones=[];
+    if(fr) botones.push({texto:'Ver el fragmento en El Archivo', ico:'video', fn:function(){ irA('archivo'); }});
+    if(cartas.length||skin) botones.push({texto:'Abrir Mi botín', ico:'botin', fn:function(){ irA('botin'); }});
+    if(!botones.length && dcr>0 && abierto('mercado')) botones.push({texto:'Gastarlo en el Mercado Estelar', ico:'mercado', fn:function(){ irA('mercado'); }});
+    // NEBULA felicita por lo más gordo que ha pasado
+    var neb = fr ? '¡'+esc(fr.personaje||'Tu tripulante')+' está a salvo gracias a ti! Su fragmento ya te espera en <b>El Archivo</b>.'
+      : sube ? 'Nivel <b>'+nB.nivel+'</b>. '+(skin?'Mírate: tu personaje ha evolucionado a <b>'+esc(nB.rangoNombre||'')+'</b>.':'Así se asciende en esta Nave.')
+      : cartas.length ? 'Y además, '+(cartas.length===1?'una carta nueva':'cartas nuevas')+' para tu álbum. Te espera en <b>Mi botín</b>.'
+      : ins.length ? 'Esa insignia no se regala: <b>'+esc(ins[0].nombre)+'</b> ya es tuya.'
+      : ['Misión anotada en el diario de a bordo. Así se avanza, recluta.','Buen trabajo. Tu Comandante ya puede ver lo que has hecho.',
+         'Un paso más en el viaje. Sigue así.'][Math.floor(Math.random()*3)];
+    if(!fr && !cartas.length && dcr>0 && abierto('mercado')) neb+=' Tienes <b>'+(b.creditos||0)+' ◈</b>: el Mercado Estelar está abierto.';
+    F.mision({ titulo: nombreDeReto(nuevos[0]), antes:a, ahora:b, niveles:{antes:nA, ahora:nB}, insignias:ins, cartas:cartas,
+      fragmento: fr ? {img:'https://i.ytimg.com/vi/'+fr.id+'/hqdefault.jpg', titulo:fr.titulo} : null, nebula:neb, botones:botones });
+    return true;
   }
 
   // El servidor devuelve el identificador del documento («grupo__cromo_P1_bran»); el recluta merece
@@ -4196,8 +4310,8 @@
                  + '<span class="neb-menos">−' + o.coste + '</span></p>' : '')
       + '<p class="neb-donde">' + esc(o.donde || qe[2]) + '</p>'
       + '<div class="neb-botones">'
-      + (qe[3] && qe[4] ? '<button type="button" class="btn" data-ir="' + qe[4] + '">' + esc(qe[3]) + '</button>' : '')
-      + '<button type="button" class="btn primary" data-cerrar>Seguir</button>'
+      + (qe[3] && qe[4] ? '<button type="button" class="btn' + (/^botin:/.test(qe[4]) ? ' primary neb-al-botin' : '') + '" data-ir="' + qe[4] + '">' + esc(qe[3]) + '</button>' : '')
+      + '<button type="button" class="btn' + (qe[3] && /^botin:/.test(qe[4] || '') ? '' : ' primary') + '" data-cerrar>Seguir</button>'
       + '</div></div>';
 
     var bCerrar = capa.querySelector('[data-cerrar]'), bIr = capa.querySelector('[data-ir]');
@@ -4217,7 +4331,8 @@
     document.addEventListener('keydown', tecla, true);
     bCerrar.onclick = fuera;
     capa.onclick = function(e){ if(e.target===capa) fuera(); };
-    if(bIr) bIr.onclick = function(){ fuera(); irA(bIr.getAttribute('data-ir')); };
+    // 25-sep · «botin:cromos» / «botin:heroes»: a Mi botín con esa puerta abierta
+    if(bIr) bIr.onclick = function(){ fuera(); var t=bIr.getAttribute('data-ir').split(':'); if(t[1]) irABotin(t[1]); else irA(t[0]); };
 
     // Los créditos BAJAN a la vista. Ver el número caer es lo que convierte un cobro en una compra.
     if(o.coste && window.SG && SG.FIESTA){
@@ -4267,7 +4382,7 @@
           { titulo: /^oferta_/.test(tipo || '') ? 'Lo que traía tu oferta' : tipo === 'heroe' ? 'Lo que traía la cápsula de rescate' : tipo === 'capsula_elite' ? 'Lo que traía la cápsula de élite'
                   : tipo === 'capsula_legendaria' ? '¡Un Mito de la cápsula legendaria!' : tipo === 'heroe_repes' ? 'Tu héroe nuevo (por 2 repetidos)'
                   : tipo === 'sobre_grande' ? 'Tu sobre grande' : tipo === 'sobre_raro' ? 'Tu sobre de raras' : tipo === 'sobre_epico' ? 'Tu sobre épico' : 'Tu sobre de cromos',
-            alAlbum: function(){ irA('botin'); } })
+            alAlbum: function(sec){ irABotin(sec||'cromos'); } })
           .then(function(){
             aviso(/^(heroe|capsula|oferta_heroe)/.test(tipo || '') ? '<b>Un héroe</b> a tu vestuario' + (coste ? ' · −' + coste + ' ◈' : '') + '.'
               : '<b>' + varias.length + (varias.length === 1 ? ' carta' : ' cartas') + '</b> a tu álbum'
@@ -4577,7 +4692,7 @@
       b.onclick=function(e){ e.stopPropagation(); zocoPonerVentana(b.getAttribute('data-zoco-poner')); }; });
     // 15-sep (noche) · los logros de a bordo: la cifra de la ficha lleva a su cajón (abierto) y la carta se amplía
     var ncab=root.querySelector('#nc-ab');
-    if(ncab) ncab.onclick=function(){ irA('botin'); setTimeout(function(){ var dab=document.getElementById('a-bordo');
+    if(ncab) ncab.onclick=function(){ irA('botin:insignias'); setTimeout(function(){ var dab=document.getElementById('a-bordo');
       if(dab){ dab.open=true; dab.scrollIntoView({behavior:'smooth',block:'start'}); } }, 80); };
     var abc=root.querySelector('#ab-carta'); if(abc) abc.onclick=lupaABordo;
     Array.prototype.forEach.call(root.querySelectorAll('[data-abrirpend]'),function(b){
@@ -4586,7 +4701,7 @@
         post({accion:'abrir',per:per,recompensa:b.getAttribute('data-abrirpend'),usos:Number(b.getAttribute('data-usos'))||1},function(d){
           var bs=(d&&d.botines)||[];
           if(bs.length&&window.SG&&SG.SOBRE){ var ten=inventarioDe(antes);
-            SG.SOBRE.revelar(bs.map(function(c){ return marcaRepetida(c, ten); }),{titulo:'Lo que tenías sin abrir', alAlbum:function(){ irA('botin'); }}).then(refrescarYo, refrescarYo); }
+            SG.SOBRE.revelar(bs.map(function(c){ return marcaRepetida(c, ten); }),{titulo:'Lo que tenías sin abrir', alAlbum:function(sec){ irABotin(sec||'cromos'); }}).then(refrescarYo, refrescarYo); }
           else refrescarYo();
         },function(e){ b.disabled=false; b.textContent='Abrir'; aviso('No se ha podido abrir: '+esc(String(e)), true); }); }; });
     var salir=document.getElementById('nb-salir');
@@ -4626,7 +4741,7 @@
       a.onclick=function(e){ e.preventDefault(); irA(a.getAttribute('data-ir')); };
     });
     wireVentanas(root);
-    var bav=root.querySelector('#btn-av'); if(bav) bav.onclick=lupaAvatar;
+    var bav=root.querySelector('#btn-av'); if(bav) bav.onclick=pulsarAvatar;
     var det=root.querySelector('#nave-detalle');
     Array.prototype.forEach.call(root.querySelectorAll('.nave-pl.on'),function(el){
       function abrir(){var t=Number(el.getAttribute('data-tema'));
@@ -4644,18 +4759,28 @@
     // todo, donde el alumno no estaba mirando: parecía que el clic no había hecho nada, y volvía a
     // pulsar. Ahora: se marca AL INSTANTE (optimista), se cambia el avatar de la ficha en el sitio,
     // y al confirmar el servidor sale un cartel. Si falla, se deshace y se dice por qué.
-    Array.prototype.forEach.call(root.querySelectorAll('button.vest[data-viste]'),function(b){
+    cablearVestir(root);
+    Array.prototype.forEach.call(root.querySelectorAll('.badge-col .b[data-key]'),function(el){
+      function abrirB(){ if(window.SG_OPEN_BADGE) window.SG_OPEN_BADGE(el.getAttribute('data-key')); }
+      el.onclick=abrirB;
+      el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();abrirB();}});
+    });
+    wireResto(root);
+  }
+  // 25-sep · el vestuario se cablea en su caja: la de Mi botín o la ventana que abre el avatar (pulsarAvatar)
+  function cablearVestir(cont){
+    Array.prototype.forEach.call(cont.querySelectorAll('button.vest[data-viste]'),function(b){
       b.onclick=function(){
         if(b.classList.contains('no')||!st.email) return;
         var clave=b.getAttribute('data-viste');
         if(b.classList.contains('on')) return;            // ya lo llevas puesto: no molestes al servidor
-        var antes=root.querySelector('button.vest.on');
+        var antes=cont.querySelector('button.vest.on');
         var nombre=(b.querySelector('b')||{}).textContent||'tu personaje';
         var img=(b.querySelector('img')||{}).getAttribute&&b.querySelector('img').getAttribute('src');
         // 1) al instante, antes de que el servidor conteste
         if(antes) antes.classList.remove('on');
         b.classList.add('on'); b.classList.add('guardando');
-        var av=root.querySelector('#btn-av img.av'); var avAntes=av?av.getAttribute('src'):null;
+        var av=document.querySelector('#btn-av img.av'); var avAntes=av?av.getAttribute('src'):null;
         if(av&&img) av.setAttribute('src',img);
         // 2) y se pide de verdad
         // 30-ago · el parche optimista también toca avatar.heroe/skin: la lupa del personaje lee de
@@ -4674,11 +4799,9 @@
           aviso('No se ha podido cambiar: '+esc(String(e)), true);
         });
       };});
-    Array.prototype.forEach.call(root.querySelectorAll('.badge-col .b[data-key]'),function(el){
-      function abrirB(){ if(window.SG_OPEN_BADGE) window.SG_OPEN_BADGE(el.getAttribute('data-key')); }
-      el.onclick=abrirB;
-      el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();abrirB();}});
-    });
+  }
+  // (el resto del cableado: el álbum, el pase de lista y el menú de NEBULA)
+  function wireResto(root){
     Array.prototype.forEach.call(root.querySelectorAll('.album .c[data-c]'),function(el){
       var clave=el.getAttribute('data-c');
       el.onclick=function(){lupaCromo(clave);};

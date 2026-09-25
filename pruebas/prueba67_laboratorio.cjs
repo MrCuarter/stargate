@@ -1370,6 +1370,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await hugo2.ir("recluta.html?per=lab-clase");
       await hugo2.hasta("!!document.querySelector('.nb-t[data-tab=\"botin\"]')", 25);
       await hugo2.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
+      await hugo2.hasta("!!document.querySelector('[data-bsec=\"heroes\"]')", 15); await hugo2.js("document.querySelector('[data-bsec=\"heroes\"]').click(); 1");   // (Mi botín va por puertas)
       const hay = await hugo2.hasta("!!document.querySelector('#vestuario [data-canje=heroe_repes]')", 20);
       const burb = await hugo2.js("[].slice.call(document.querySelectorAll('#vestuario .vest .nx')).map(function(x){return x.textContent})");
       c("héroes repetidos · el vestuario enseña las copias (×2) y el botón de cambiar", hay && (burb || []).indexOf("×2") >= 0, JSON.stringify(burb));
@@ -1543,6 +1544,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.js("var s=document.getElementById('sim-sem'); s.value='3'; s.dispatchEvent(new Event('change')); 1");
       await rita.hasta("/Rebeli/.test((document.getElementById('sim-cap')||{}).textContent||'')", 15);
       await rita.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1"); await dormir(1200);
+      await rita.js("var b=document.querySelector('[data-bsec=\"heroes\"]'); if(b) b.click(); 1"); await dormir(400);   // (Mi botín va por puertas)
       c("simulacro · en la semana 3, el vestuario con héroes (y dos repetidos para enseñar el cambio)",
         await rita.js("!!document.querySelector('#vestuario [data-canje=heroe_repes]')"));
       await rita.js("document.getElementById('sim-cap').click(); 1");
@@ -1748,6 +1750,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("zoco · 1 · y los ve en «Lo tuyo en el Zoco», con «sin ofertas aún»", await o1.hasta("/Lo tuyo en el Zoco/i.test(document.body.innerText) && document.querySelectorAll('[data-zretirar]').length===2 && /sin ofertas/i.test(document.body.innerText)", 15));
       // desde la carta en grande (su álbum): Tomás
       await o1.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
+      await o1.hasta("!!document.querySelector('[data-bsec=\"cromos\"]')", 15); await o1.js("document.querySelector('[data-bsec=\"cromos\"]').click(); 1");   // (Mi botín va por puertas)
       await o1.hasta("!!document.querySelector('.album .c[data-c=\"P2_tomas\"]')", 15);
       await o1.js("document.querySelector('.album .c[data-c=\"P2_tomas\"]').click(); 1");
       const hayLupa = await o1.hasta("!!document.getElementById('lupa-zoco')", 10);
@@ -4155,7 +4158,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("a bordo · la carta, en grande, con su alias", await lara.js("!!document.querySelector('#cromo-lupa.open .ab-carta.en-lupa .ab-nombre')"));
       await lara.foto(FOTOS + "/38-carta-lupa.png");
       await lara.js("document.querySelector('#cromo-lupa .lupa-x').click(); 1");
-      await lara.js("(function(){ var v=document.querySelector('#vestuario'); var d=v&&v.closest('details'); if(d) d.open=true; return 1; })()"); await dormir(400);
+      await lara.js("var b=document.querySelector('[data-bsec=\"heroes\"]'); if(b) b.click(); 1"); await dormir(500);   // (Mi botín va por puertas)
       c("a bordo · en el vestuario, los dos Contramaestres, suyos y sin botón de Zoco",
         await lara.js("(function(){ var a=document.querySelector('button.vest[data-viste=\"heroe:H31_contramaestre\"]'), b=document.querySelector('button.vest[data-viste=\"heroe:H32_contramaestra\"]'); return !!a && !!b && !a.classList.contains('no') && !b.classList.contains('no') && !document.querySelector('[data-zoco-poner$=\"H31_contramaestre\"]'); })()"));
       await lara.js("document.querySelector('button.vest[data-viste=\"heroe:H32_contramaestra\"]').click(); 1");

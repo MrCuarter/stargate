@@ -66,7 +66,14 @@
     },
     // Insignia: un brillo, más agudo y con cola.
     insignia: function () { nota(1568, 0, .22, .07, "sine"); nota(2093, .09, .30, .05, "sine"); },
-    error: function () { nota(320, 0, .18, .07, "sawtooth"); }
+    error: function () { nota(320, 0, .18, .07, "sawtooth"); },
+    // 25-sep · misión cumplida: tres notas que suben y un acorde que se queda (la ventana grande)
+    mision: function () {
+      [523, 659, 784].forEach(function (f, i) { nota(f, i * .09, .2, .09, "triangle"); });
+      nota(1047, .3, .7, .1, "triangle"); nota(1319, .3, .7, .05, "sine"); nota(784, .3, .7, .04, "sine");
+    },
+    // el tictac de un contador que rueda: muy corto y muy bajo
+    tic: function () { nota(1500, 0, .03, .025, "square"); }
   };
 
   function sonar(cual) {
@@ -322,8 +329,142 @@
     if (hueco) b.classList.add("en-menu");
   }
 
+  // ---------------------------------------------------------------- misión cumplida, en grande
+  /**
+   * 🔴 25-sep · MISIÓN CUMPLIDA, EN GRANDE. Norberto: «quiero más celebración automática al completar un reto: que aparezca
+   * una ventana en grande con todo lo que ha ganado, insignia, su marcador de experiencia subiendo, dinero… Todo bonito,
+   * con sonidos, NEBULA felicitando… Junto con un botón para ir al Mercado a gastar el dinero o a Mi botín (depende de lo
+   * que ha ganado)». Esta función solo PINTA y SUENA: qué reto era, qué fragmento abre y adónde lleva cada botón lo decide
+   * quien llama (la Nave), que es quien lo sabe.
+   *   o: { titulo, antes, ahora, niveles:{antes, ahora} (SG.nivelInfo), insignias:[{img,nombre}], cartas:[{img,nombre}],
+   *        fragmento:{img,titulo}|null, nebula:'html', botones:[{texto, ico, fn}] }
+   * Con reducción de movimiento, todo aparece ya en su sitio y suena una vez. Si algo falla, la fiesta de siempre.
+   */
+  var MC = null;
+  function contar(el, desde, hasta, ms, pre, conTic) {
+    if (!el) return;
+    if (quieto || desde === hasta) { el.textContent = (pre || "") + hasta; return; }
+    var t0 = performance.now(), d = hasta - desde, ult = -1;
+    (function paso(t) {
+      var k = Math.min(1, (t - t0) / ms), v = Math.round(desde + d * (1 - Math.pow(1 - k, 3)));
+      el.textContent = (pre || "") + v;
+      if (conTic && v !== ult && Math.round(k * 14) !== Math.round((k - .016) * 14)) sonar("tic");
+      ult = v;
+      if (k < 1 && MC) requestAnimationFrame(paso); else el.textContent = (pre || "") + hasta;
+    })(t0);
+  }
+  function mision(o) {
+    try {
+      o = o || {};
+      if (MC) MC.cerrar();
+      var A = o.antes || {}, B = o.ahora || {}, e = function (x) { return String(x == null ? "" : x).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+      var dxp = Math.max(0, (B.xp || 0) - (A.xp || 0)), dcr = (B.creditos || 0) - (A.creditos || 0);
+      var nA = (o.niveles && o.niveles.antes) || {}, nB = (o.niveles && o.niveles.ahora) || {};
+      var sube = (nB.nivel || 0) > (nA.nivel || 0), caras = sube ? carasDe(A, B) : null;
+      var muda = !!(caras && caras.antes && caras.ahora && caras.antes !== caras.ahora);
+      var ins = (o.insignias || []).slice(0, 3), car = (o.cartas || []).slice(0, 4), fr = o.fragmento || null;
+      var falta = function (n) { return n.siguiente ? "<b>" + n.faltan + " xp</b> para el nivel " + (n.nivel + 1) : "Nivel máximo"; };
+      var capa = document.createElement("div");
+      capa.className = "mc-capa" + (quieto ? " quieto" : "");
+      capa.setAttribute("role", "dialog"); capa.setAttribute("aria-modal", "true"); capa.setAttribute("aria-labelledby", "mc-t");
+      capa.innerHTML = '<div class="mc-caja">'
+        + '<div class="mc-cab"><span class="mc-eyebrow">Misión cumplida</span><h2 id="mc-t">' + e(o.titulo || "¡Buen trabajo!") + '</h2></div>'
+        // (NEBULA arriba: en una pantalla baja lo de abajo se queda tras el pliegue, y ella es quien felicita)
+        + (o.nebula ? '<div class="mc-neb"><img src="assets/img/personajes/nebula.png" alt=""><p><b>NEBULA:</b> ' + o.nebula + '</p></div>' : '')
+        + (ins.length ? '<div class="mc-ins">' + ins.map(function (x, i) {
+            return '<figure class="mc-in" style="--i:' + i + '"><span class="mc-halo" aria-hidden="true"></span><img src="' + e(x.img) + '" alt="">'
+              + '<figcaption><small>Insignia nueva</small>' + e(x.nombre) + '</figcaption></figure>'; }).join("") + '</div>' : '')
+        + '<div class="mc-cuentas">'
+        +   '<div class="mc-xp"><div class="mc-fila"><b class="mc-num" id="mc-xp">+' + (quieto ? dxp : 0) + '</b><span>xp</span>'
+        +     '<em id="mc-niv">Nivel ' + (quieto ? (nB.nivel || nA.nivel || 1) : (nA.nivel || 1)) + '</em></div>'
+        +     '<div class="mc-barra"><i id="mc-bar" style="width:' + (quieto ? (nB.pct || 0) : (nA.pct || 0)) + '%"></i></div>'
+        +     '<small id="mc-falta">' + falta(quieto ? nB : nA) + '</small></div>'
+        +   (dcr > 0 ? '<div class="mc-cr"><div class="mc-fila"><b class="mc-num" id="mc-cr">+' + (quieto ? dcr : 0) + '</b><span>◈ créditos</span></div>'
+        +     '<small>Ahora tienes <b id="mc-crt">' + (quieto ? (B.creditos || 0) : (A.creditos || 0)) + '</b> para gastar</small></div>' : '')
+        + '</div>'
+        + (sube ? '<div class="mc-sube" id="mc-sube"' + (quieto ? '' : ' hidden') + '>'
+            + (caras && caras.ahora ? '<div class="mc-av' + (muda ? ' muda' : '') + '">' + (muda ? '<img class="viejo" src="' + e(caras.antes) + '" alt="">' : '')
+            + '<img class="nuevo" src="' + e(caras.ahora) + '" alt=""></div>' : '')
+            + '<div><small>Has subido de nivel</small><b>Nivel ' + nB.nivel + (nB.rangoNombre ? ' · ' + e(nB.rangoNombre) : '') + '</b>'
+            + (muda ? '<span>Tu personaje ha evolucionado</span>' : '') + '</div></div>' : '')
+        + (car.length || fr ? '<div class="mc-extra">'
+            + car.map(function (x, i) { return '<figure class="mc-carta" style="--i:' + i + '"><img src="' + e(x.img) + '" alt=""><figcaption><small>Nueva</small>' + e(x.nombre) + '</figcaption></figure>'; }).join("")
+            + (fr ? '<figure class="mc-fr"><span class="mc-fr-img"><img src="' + e(fr.img) + '" alt=""><span class="mc-play" aria-hidden="true">▶</span></span>'
+              + '<figcaption><small>Fragmento recuperado</small>' + e(fr.titulo) + '</figcaption></figure>' : '')
+            + '</div>' : '')
+        + '<div class="mc-bot">' + (o.botones || []).map(function (b, i) {
+            return '<button type="button" class="btn' + (i === 0 ? ' primary' : '') + '" data-mc="' + i + '">'
+              + (b.ico ? '<img class="ico" src="assets/img/iconos/p/' + e(b.ico) + '.png" alt=""> ' : '') + e(b.texto) + '</button>'; }).join("")
+        +   '<button type="button" class="btn' + ((o.botones || []).length ? '' : ' primary') + '" data-mc-x>Seguir en la Nave</button></div>'
+        + '</div>';
+      var T = [], luego = function (ms, f) { T.push(setTimeout(function () { if (MC === yo) try { f(); } catch (x) {} }, quieto ? 0 : ms)); };
+      var previo = document.activeElement;
+      var cerrar = function () {
+        if (MC !== yo) return;
+        MC = null; T.forEach(clearTimeout); document.removeEventListener("keydown", tecla, true);
+        capa.classList.add("se-va"); setTimeout(function () { capa.remove(); }, quieto ? 0 : 260);
+        contadores(A, B);   // al cerrar, las cifras de la ficha ruedan hasta lo nuevo
+        if (previo && previo.focus && document.contains(previo)) try { previo.focus({ preventScroll: true }); } catch (x) {}
+      };
+      var tecla = function (ev) {
+        if (ev.key === "Escape") { ev.preventDefault(); cerrar(); }
+        else if (ev.key === "Tab") {   // el foco no se escapa por detrás
+          var f = capa.querySelectorAll("button"); if (!f.length) return;
+          if (ev.shiftKey && document.activeElement === f[0]) { ev.preventDefault(); f[f.length - 1].focus(); }
+          else if (!ev.shiftKey && document.activeElement === f[f.length - 1]) { ev.preventDefault(); f[0].focus(); }
+        }
+      };
+      var yo = { cerrar: cerrar };
+      MC = yo;
+      document.body.appendChild(capa);
+      document.addEventListener("keydown", tecla, true);
+      capa.addEventListener("click", function (ev) {
+        if (ev.target === capa || (ev.target.closest && ev.target.closest("[data-mc-x]"))) return cerrar();
+        var b = ev.target.closest && ev.target.closest("[data-mc]"); if (!b) return;
+        var bot = (o.botones || [])[Number(b.getAttribute("data-mc"))]; cerrar();
+        if (bot && typeof bot.fn === "function") try { bot.fn(); } catch (x) {}
+      });
+      var pri = capa.querySelector(".mc-bot .primary"); if (pri) try { pri.focus({ preventScroll: true }); } catch (x) {}
+      requestAnimationFrame(function () { capa.classList.add("on"); });
+
+      // ── la función: fanfarria, insignias, xp, créditos, nivel, lo demás
+      sonar("mision");
+      if (!quieto) setTimeout(function () { if (MC === yo) chispas(innerWidth / 2, innerHeight * .3, ["#37e0ec", "#f5b043", "#ffffff", "#aa66cc"]); }, 160);
+      if (quieto) return;
+      var t = 500;
+      if (ins.length) { ins.forEach(function (x, i) { luego(t + i * 380, function () { sonar("insignia"); }); }); t += 380 * ins.length + 250; }
+      var bar = capa.querySelector("#mc-bar"), niv = capa.querySelector("#mc-niv"), fal = capa.querySelector("#mc-falta");
+      luego(t, function () {
+        contar(capa.querySelector("#mc-xp"), 0, dxp, 1100, "+", true);
+        if (!bar) return;
+        if (!sube) { bar.style.width = (nB.pct || 0) + "%"; luego(1100, function () { fal.innerHTML = falta(nB); }); return; }
+        bar.style.width = "100%";
+        luego(950, function () {
+          sonar("nivel");
+          niv.textContent = "Nivel " + nB.nivel; niv.classList.add("sube");
+          bar.style.transition = "none"; bar.style.width = "0%"; void bar.offsetWidth; bar.style.transition = ""; bar.style.width = (nB.pct || 0) + "%";
+          fal.innerHTML = falta(nB);
+          var su = capa.querySelector("#mc-sube"); if (su) { su.hidden = false; var r = su.getBoundingClientRect(); chispas(r.left + 50, r.top + r.height / 2, ["#ffd166", "#37e0ec", "#ffffff"]); }
+        });
+      });
+      t += sube ? 1500 : 800;
+      if (dcr > 0) {
+        luego(t, function () {
+          sonar("moneda");
+          contar(capa.querySelector("#mc-cr"), 0, dcr, 800, "+");
+          contar(capa.querySelector("#mc-crt"), A.creditos || 0, B.creditos || 0, 800, "");
+        });
+        t += 700;
+      }
+      if (car.length || fr) luego(t, function () {
+        var x = capa.querySelector(".mc-extra"); if (x) x.classList.add("on");
+        sonar("insignia");
+      });
+    } catch (err) { if (MC) try { MC.cerrar(); } catch (x) {} reto(o && o.antes, o && o.ahora); }
+  }
+
   window.SG = window.SG || {};
-  window.SG.FIESTA = { reto: reto, canje: canje, nivelNuevo: nivelNuevo, insignias: insignias,
+  window.SG.FIESTA = { reto: reto, canje: canje, nivelNuevo: nivelNuevo, insignias: insignias, mision: mision,
                        sonar: sonar, rodar: rodar, chispas: chispas, salta: salta,
                        montarInterruptor: montarInterruptor, quieto: quieto };
 })();

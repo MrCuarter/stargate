@@ -471,7 +471,10 @@
   function avatarEnMisGrupos(k) {
     if (!k) return;
     PERS.forEach(function (p) {
-      var yo = miNombreEn(p); if (!yo) return;
+      // 25-sep · si la lista privada del equipo no trae tu correo, el grupo no se enteraba nunca de tu comandante (y tu
+      // alumnado seguía viendo el c1). En un grupo de un solo docente, ese nombre eres tú.
+      var dd = ((p.stargate || {}).docentes || []).filter(function (x) { return x && x.nombre; });
+      var yo = miNombreEn(p) || (dd.length === 1 ? dd[0].nombre : ""); if (!yo) return;
       var S = p.stargate = p.stargate || {}, A = S.avatares = S.avatares || {};
       if (A[yo] === k) return;
       MOTOR.avatarEnGrupo(p.id, yo, k).then(function () { A[yo] = k; }).catch(function () {});

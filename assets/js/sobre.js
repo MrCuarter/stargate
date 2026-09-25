@@ -77,8 +77,20 @@
     if (capa) return enCola(lista, opts, Date.now());
     var quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    /**
+     * 🔴 25-sep · «VER MI ÁLBUM», EL BOTÓN GORDO. Norberto: «cuando se abren cromos o avatares, que el botón de "Ver mi álbum"
+     * sea más llamativo; al pulsar, a Mi botín con la pestaña de Cromos abierta». Va el primero y encendido, también con una
+     * sola carta (antes solo salía en el resumen de varias); con héroes dice «Ver mis héroes» y lleva a esa pestaña.
+     * `alAlbum(sec)` recibe 'cromos' o 'heroes'.
+     */
+    var soloHeroes = cartas.every(function (c) { return c.tipo === "heroe"; });
+    var botonAlbum = function () {
+      return opts.alAlbum ? '<button class="btn primary grande sb-album" type="button"><img class="ico" src="assets/img/iconos/p/' + (soloHeroes ? "escudo" : "estrella") + '.png" alt=""> '
+        + (soloHeroes ? "Ver mis héroes" : "Ver mi álbum") + '</button>' : "";
+    };
     return new Promise(function (resolver) {
       var i = 0, girada = false;
+      var irAlAlbum = function () { cerrar(function () { resolver(); try { opts.alAlbum(soloHeroes ? "heroes" : "cromos"); } catch (e) {} }); };
       capa = document.createElement("div");
       capa.className = "sb-capa";
       capa.setAttribute("role", "dialog"); capa.setAttribute("aria-modal", "true");
@@ -121,7 +133,15 @@
             : (c.repetida ? '<p class="sb-extra"><img class=ico src=assets/img/iconos/p/zoco.png alt> Repetida: con tres repetidas, un sobre nuevo gratis.</p>'
                           : '<p class="sb-extra nueva"><img class=ico src=assets/img/iconos/p/estrella.png alt> Nueva en tu álbum</p>'));
         capa.querySelector(".sb-sig").textContent = i < cartas.length - 1 ? "Siguiente carta →" : "Ver las " + cartas.length;
-        if (cartas.length === 1) capa.querySelector(".sb-sig").textContent = c.tipo === "heroe" ? "Guardarlo" : "Guardarla";
+        if (cartas.length === 1) {
+          var sig = capa.querySelector(".sb-sig");
+          sig.textContent = c.tipo === "heroe" ? "Guardarlo" : "Guardarla";
+          if (opts.alAlbum) {   // (y el álbum, delante y encendido)
+            sig.classList.remove("primary");
+            sig.insertAdjacentHTML("beforebegin", botonAlbum());
+            var al = capa.querySelector(".sb-album"); if (al) { al.onclick = irAlAlbum; al.focus(); }
+          }
+        }
         // una legendaria se celebra como tal: chispas doradas y el sonido de subir de nivel
         if (r === "legendaria" || r === "epica") {
           try {
@@ -155,13 +175,12 @@
             return '<figure class="sb-mini r-' + r + '" style="--j:' + j + ';--n:' + cartas.length + '">' +
               '<img src="' + esc(arte(c)) + '" alt=""><figcaption>' + esc(c.nombre) + '</figcaption></figure>'; }).join("") + '</div>' +
           '<p class="sb-guardadas">Guardadas en tu álbum.</p>' +
-          '<div class="sb-pie">' +
-            (opts.alAlbum ? '<button class="btn grande sb-album" type="button">Ver mi álbum</button>' : '') +
-            '<button class="btn primary grande sb-fin" type="button">Seguir</button></div>';
+          '<div class="sb-pie">' + botonAlbum() +
+            '<button class="btn grande sb-fin' + (opts.alAlbum ? '' : ' primary') + '" type="button">Seguir</button></div>';
         capa.querySelector(".sb-fin").onclick = function () { cerrar(resolver); };
         var a = capa.querySelector(".sb-album");
-        if (a) a.onclick = function () { cerrar(function () { resolver(); try { opts.alAlbum(); } catch (e) {} }); };
-        capa.querySelector(".sb-fin").focus();
+        if (a) a.onclick = irAlAlbum;
+        (a || capa.querySelector(".sb-fin")).focus();
       }
 
       teclas = function (e) {
