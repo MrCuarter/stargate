@@ -576,6 +576,17 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .monedas .m{display:inline-flex;align-items:baseline;gap:5px;padding:4px 12px;border-radius:999px;
   border:1px solid var(--line);font-size:.82rem;cursor:default}
 .monedas .m[title]{cursor:default}
+/* 25-sep (2) · Norberto: «no aparecía nada emergente al pasar el ratón, por eso me despistaba». El `title` del navegador
+   tarda (y a veces no sale): las cápsulas explican con una burbuja de la casa, al instante y también con el teclado. */
+.monedas .m[data-tip]{position:relative;cursor:default;outline:none}
+.monedas .m[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 8px);z-index:30;width:max-content;max-width:260px;
+  padding:8px 12px;border-radius:10px;border:1px solid rgba(55,224,236,.45);background:#0b1622;color:var(--ink);font:500 .8rem/1.35 'DMSans',system-ui,sans-serif;
+  text-align:left;white-space:normal;box-shadow:0 10px 30px rgba(0,0,0,.55);opacity:0;pointer-events:none;transform:translate(-50%,-4px);transition:opacity .15s,transform .15s}
+.monedas .m[data-tip]:hover::after,.monedas .m[data-tip]:focus-visible::after{opacity:1;transform:translate(-50%,0)}
+.monedas .m[data-tip]:focus-visible{box-shadow:0 0 0 2px rgba(55,224,236,.6)}
+/* (en la ficha del Comandante la tarjeta recorta lo que sale por abajo: la burbuja, encima) */
+.cn-ficha .monedas .m[data-tip]::after{top:auto;bottom:calc(100% + 8px);transform:translate(-50%,4px)}
+.cn-ficha .monedas .m[data-tip]:hover::after,.cn-ficha .monedas .m[data-tip]:focus-visible::after{transform:translate(-50%,0)}
 .monedas .m b{font-size:1.05rem}
 .monedas .m.xp{border-color:rgba(55,224,236,.45);color:var(--teal)}
 .monedas .m.cred{border-color:rgba(245,176,67,.5);color:var(--amber)}
