@@ -570,10 +570,12 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .monedas{display:flex;flex-wrap:wrap;gap:10px;margin:.5em 0 .2em}
 /* 🔴 20-sep · EL INTERROGANTE PROMETE UNA EXPLICACIÓN. Estas cápsulas llevaban `cursor:help` siempre, pero en la
    ficha del Comandante («2 grupos en marcha», «30 reclutas a tu cargo») no tenían título: el ratón se convertía en
-   un interrogante y al pararse no salía nada. Ahora el interrogante sale SOLO si hay título que leer. */
+   un interrogante y al pararse no salía nada. Ahora el interrogante sale SOLO si hay título que leer.
+   🔴 25-sep · y ni así: Norberto, «al pasar el ratón aparece un interrogante, ¿es error?». Parece un fallo; la flecha de
+   siempre, y la explicación sigue saliendo al pararse encima. */
 .monedas .m{display:inline-flex;align-items:baseline;gap:5px;padding:4px 12px;border-radius:999px;
   border:1px solid var(--line);font-size:.82rem;cursor:default}
-.monedas .m[title]{cursor:help}
+.monedas .m[title]{cursor:default}
 .monedas .m b{font-size:1.05rem}
 .monedas .m.xp{border-color:rgba(55,224,236,.45);color:var(--teal)}
 .monedas .m.cred{border-color:rgba(245,176,67,.5);color:var(--amber)}
@@ -2551,7 +2553,7 @@ input.falta{border-color:#ff7a6b!important;box-shadow:0 0 0 3px rgba(255,122,107
 .orden-sem .foro-msg::-webkit-scrollbar-thumb{background:#2b5460;border-radius:99px}
 .orden-sem .foro-msg::-webkit-scrollbar-track{background:transparent}
 /* la barra de nivel: el número justo al lado, el detalle flotando encima */
-.barra-nivel{position:relative;display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;margin:14px 0 4px;cursor:help;outline:none}
+.barra-nivel{position:relative;display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;margin:14px 0 4px;cursor:default;outline:none}
 .barra-nivel .progress{margin:0}
 .barra-nivel .bn-lado{font-size:.82rem;color:var(--mut,#8aa5ab);white-space:nowrap}
 .barra-nivel .bn-lado b{color:#fff}
