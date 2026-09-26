@@ -2205,12 +2205,6 @@
       +(hayPresentacion()?'<button type="button" class="dif-s dif-pres'+(st.pres?' viendo':'')+'" data-dif-sem="0">'
         +'<img class="ico dif-pl-i" src="assets/img/iconos/p/notas.png" alt=""><b>Presentación</b><span>La asignatura: notas, fechas y cómo funciona</span>'
         +(st.pres&&!st.act?'<em>La que estabas viendo</em>':'')+'</button>':'')
-      // 26-sep · y la sesión de cada actividad, desde la semana en que se lanza
-      +(window.SG_SES_ACT&&st.tipo!=='PUA'?ACTS.map(function(a){ var ab=Number(a.sem)<=hoy;
-          var dentro='<img class="ico dif-pl-i" src="assets/img/iconos/p/notas.png" alt=""><b>Actividad '+a.n+'</b><span>'+esc(a.titulo)+'</span>'
-            +(st.act===Number(a.n)?'<em>La que estabas viendo</em>':'')+(ab?'':'<img class="ico dif-candado" src="assets/img/iconos/p/candado.png" alt="">');
-          return ab?'<button type="button" class="dif-s dif-pres dif-act'+(st.act===Number(a.n)?' viendo':'')+'" data-dif-act="'+a.n+'">'+dentro+'</button>'
-                   :'<div class="dif-s dif-pres dif-act cerrada" title="Se abre la semana '+a.sem+'">'+dentro+'</div>'; }).join(''):'')
       +lista.map(function(x){
           // (26-sep · la 15, sin tema, con su planeta: el de la Estática, como en el resto de la sesión)
           var k=Number(x.sem)||0, pl=Number(x.tema_n)?planeta(x.tema_n):(x.planeta||null), abierta=k<=hoy;
@@ -2219,8 +2213,14 @@
             +'<b>Semana '+k+'</b><span>'+esc(x.tema||'')+'</span>'
             +(k===hoy?'<em>Esta semana</em>':k===viendo?'<em>La que estabas viendo</em>':'')
             +(abierta?'':'<img class="ico dif-candado" src="assets/img/iconos/p/candado.png" alt="">');
-          return abierta?'<button type="button" class="'+cls+'" data-dif-sem="'+k+'">'+dentro+'</button>'
-                       :'<div class="'+cls+'" title="Se abre la semana '+k+'">'+dentro+'</div>';
+          // 26-sep · y detrás de su semana, la sesión de la actividad que se lanza en ella (en orden, como en la tira)
+          var acts=window.SG_SES_ACT&&st.tipo!=='PUA'?ACTS.filter(function(a){ return Number(a.sem)===k; }).map(function(a){ var ab=Number(a.sem)<=hoy;
+            var dn='<img class="ico dif-pl-i" src="assets/img/iconos/p/notas.png" alt=""><b>Actividad '+a.n+'</b><span>'+esc(a.titulo)+'</span>'
+              +(st.act===Number(a.n)?'<em>La que estabas viendo</em>':'')+(ab?'':'<img class="ico dif-candado" src="assets/img/iconos/p/candado.png" alt="">');
+            return ab?'<button type="button" class="dif-s dif-pres dif-act'+(st.act===Number(a.n)?' viendo':'')+'" data-dif-act="'+a.n+'">'+dn+'</button>'
+                     :'<div class="dif-s dif-pres dif-act cerrada" title="Se abre la semana '+a.sem+'">'+dn+'</div>'; }).join(''):'';
+          return (abierta?'<button type="button" class="'+cls+'" data-dif-sem="'+k+'">'+dentro+'</button>'
+                         :'<div class="'+cls+'" title="Se abre la semana '+k+'">'+dentro+'</div>')+acts;
         }).join('')+'</div></div>',
       montar:function(el){
         Array.prototype.forEach.call(el.querySelectorAll('[data-dif-sem]'), function(b){
@@ -2233,15 +2233,34 @@
         return null;
       }};
   }
+  /**
+   * 🔴 26-sep · LA TIRA, EN ORDEN Y POR TEMAS. Norberto: «reorganiza las sesiones A1 y A2 cronológicamente según la semana que
+   * toca explicarlo (normalmente primero la sesión del tema y después se explica la actividad)… una caja que englobe las
+   * sesiones y actividades de un tema: 1, 2 y Act 1 con «1 · Fôrge»; 3 y 4, Ecos… minimalista». La P va delante, suelta; cada
+   * actividad, detrás de la semana que la lanza (`sem`: la 2 y la 6, clases 4 y 9 del calendario oficial); y cada tema, en su
+   * caja con su número y su planeta (la 15, la Estática).
+   */
   function tira(){
-    var n=semanas().length;
-    var celdas=[]; for(var k=1;k<=n;k++){ celdas.push(k); }
+    var L=semanas(), grupos=[], g=null;
+    L.forEach(function(x){
+      var t=Number(x.tema_n)||0;
+      if(!g||g.t!==t){ g={t:t, x:x, items:[]}; grupos.push(g); }
+      g.items.push({sem:Number(x.sem)});
+      if(window.SG_SES_ACT&&st.tipo!=='PUA') ACTS.forEach(function(a){ if(Number(a.sem)===Number(x.sem)) g.items.push({act:Number(a.n)}); });
+    });
+    var on=function(it){ return it.act?st.act===it.act:(!st.pres&&!st.act&&it.sem===st.sem); };
+    var chip=function(it){ return it.act
+      ?'<button type="button" class="s pres act'+(on(it)?' on':'')+'" data-act="'+it.act+'" title="La sesión de la Actividad '+it.act+'">A'+it.act+'</button>'
+      :'<button type="button" class="s'+(on(it)?' on':'')+'" data-sem="'+it.sem+'">'+it.sem+'</button>'; };
+    var nombre=function(g){ var pl=g.t?planeta(g.t):(g.x.planeta||null); return (g.t?g.t+' · ':'')+(pl?pl[1]:''); };
     return '<div class="sem-tira">'+(hayPresentacion()?'<button type="button" class="s pres'+(st.pres&&!st.act?' on':'')+'" data-pres="1" title="La presentación de la asignatura (sesión 1)">P</button>':'')
-      +(window.SG_SES_ACT?ACTS.map(function(a){ return '<button type="button" class="s pres act'+(st.act===Number(a.n)?' on':'')+'" data-act="'+a.n+'" title="La sesión de la Actividad '+a.n+'">A'+a.n+'</button>'; }).join(''):'')
-      +celdas.map(function(k){
-      return '<button type="button" class="s'+(k===st.sem&&!st.pres&&!st.act?' on':'')+'" data-sem="'+k+'">'+k+'</button>';
-    }).join('')+'</div>';
+      +grupos.map(function(g){ return '<div class="sem-g'+(g.items.some(on)?' on':'')+'"><span class="sem-g-t">'+esc(nombre(g))+'</span>'
+        +'<div class="sem-g-b">'+g.items.map(chip).join('')+'</div></div>'; }).join('')
+      // (en PUA las actividades van al final: sus semanas son las del calendario ordinario)
+      +(window.SG_SES_ACT&&st.tipo==='PUA'?ACTS.map(function(a){ return chip({act:Number(a.n)}); }).join(''):'')
+      +'</div>';
   }
+
 
   function prep(s){
     return '<div class="prep">'

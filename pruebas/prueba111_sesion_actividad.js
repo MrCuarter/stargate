@@ -68,8 +68,13 @@ c(/function misHechos\(\)/.test(SES) && /Llevas <b>'\+n\+' de '/.test(SES), "   
 c(/function premioDe\(id\)/.test(SES) && /t=\[a\.reto, '', premioDe\(a\.reto\)\[0\], premioDe\(a\.reto\)\[1\]\]/.test(SES), "   la insignia en grande, del catálogo");
 c(/if\(st\.act&&st\.alumno\)\{ var aA=actN\(st\.act\); if\(!aA\|\|Number\(aA\.sem\)>Number\(st\.semHoy\)\) st\.act=0; \}/.test(SES),
   "🔴 el recluta la ve desde la semana en que se lanza, nunca antes");
-c(/data-act="'\+a\.n\+'"/.test(SES) && /data-dif-act="'\+a\.n\+'"/.test(SES) && /data-ir-act="'\+a\.n\+'"/.test(SES),
+c(/data-act="'\+it\.act\+'"/.test(SES) && /data-dif-act="'\+a\.n\+'"/.test(SES) && /data-ir-act="'\+a\.n\+'"/.test(SES),
   "   el docente, en la tira (A1, A2); el diferido, en su índice; y la semana que la lanza, con un botón a ella");
+// 🔴 26-sep · en orden y por temas (Norberto: «cronológicamente según la semana que toca explicarlo… una caja que englobe las
+// sesiones y actividades de un tema»): cada actividad, detrás de la semana que la lanza; cada tema, en su caja
+c(/if\(Number\(a\.sem\)===Number\(x\.sem\)\) g\.items\.push\(\{act:Number\(a\.n\)\}\)/.test(SES) && /class="sem-g'/.test(SES) && /class="sem-g-t"/.test(SES)
+  && /ACTS\.filter\(function\(a\)\{ return Number\(a\.sem\)===k; \}\)/.test(SES),
+  "🔴 la tira y el índice, en orden: la actividad detrás de la semana que la lanza, y cada tema en su caja con su planeta");
 c(/act:st\.act\|\|0/.test(SES) && /\['act1','La Actividad 1'\],\['act2','La Actividad 2'\]/.test(SES), "   en directo se sigue, y tiene su código para el Genially");
 
 // ── 3 · a mano, para el docente y el recluta
