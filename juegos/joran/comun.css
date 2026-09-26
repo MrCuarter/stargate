@@ -39,7 +39,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .teclas kbd{font-family:Orbitron;font-size:12px;background:#0d2236;border:1px solid var(--borde);border-radius:6px;padding:3px 7px;white-space:nowrap}
 #carga{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:18px;color:var(--cian);background:var(--fondo)}
 .escaner{position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(95,244,255,.035) 0 1px,transparent 1px 3px);mix-blend-mode:screen}
-@media (max-width:760px){.cif{min-width:0;padding:5px 10px}.cif b{font-size:18px}.hud .meta{top:64px;width:80vw}.filas{grid-template-columns:1fr}.gran{font-size:34px}}
+@media (max-width:760px){.teclas{grid-template-columns:1fr;gap:4px}.teclas kbd{justify-self:start}.cif{min-width:0;padding:5px 10px}.cif b{font-size:18px}.hud .meta{top:64px;width:80vw}.filas{grid-template-columns:1fr}.gran{font-size:34px}}
 
 /* el peligro: un borde de estática magenta que se enciende con --peligro (0-1) */
 body.juego::after{content:"";position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 calc(var(--peligro,0)*140px) calc(var(--peligro,0)*30px) rgba(255,46,166,.75);opacity:var(--peligro,0);transition:opacity .2s}

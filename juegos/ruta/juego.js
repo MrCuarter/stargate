@@ -296,7 +296,7 @@ const lineasMapa = [];
 const COLOR_MED = { nada: 0x3b5266, bronce: 0xe0945a, plata: 0xcfe3f0, oro: 0xffd54a };
 function posNodo(i) {
   if (i === 0) return new V3(-11.2, -1.4, -2.2);
-  if (i === 9) return new V3(10.2, 0.4, -3);
+  if (i === 9) return new V3(11.3, 1.1, -3);
   const t = (i - 1) / 7;
   return new V3(-8.4 + t * 15.4, Math.sin(t * Math.PI * 2) * 1.5 - 0.3, -2 - Math.cos(t * Math.PI) * 1.2);
 }
@@ -373,7 +373,7 @@ function tickMapa(dt) {
     naveMapa.position.lerp(obj, 0.05); naveMapa.rotation.y = Math.PI * 0.5 + Math.sin(reloj) * 0.3;
   }
   // que quepan de la Cero a la Estática sea cual sea el ancho de la pantalla
-  const dist = Math.max(12, 13.2 / (Math.tan(THREE.MathUtils.degToRad(camara.fov / 2)) * camara.aspect)) + 2;
+  const dist = Math.max(12, 13.9 / (Math.tan(THREE.MathUtils.degToRad(camara.fov / 2)) * camara.aspect)) + 2;
   camara.position.set(Math.sin(reloj * 0.15) * 0.6, 1.2 + dist * 0.05, dist - 2);
   camara.lookAt(0, 0, -2);
 }
@@ -387,7 +387,9 @@ function briefing(m) {
   <h2>${esc(m.final ? 'Vaeon · la batalla final' : NODOS[m.de].n + ' → ' + NODOS[m.a].n)}</h2>
   <p><b>${esc(m.titulo)}.</b> ${esc(m.lema)}</p>
   <p>${m.final ? 'Rompe los cristales de sus manos. Cada vez que caiga un punto débil, una pregunta: si aciertas se abre el siguiente (núcleo y cabeza); si fallas, se regenera.' : 'Tres veces el tiempo se ralentiza y llegan puertas con respuestas: <b>atraviesa la correcta</b>. Llegar ya es medalla de bronce.'}</p>
-  <div class="teclas"><kbd>Ratón / WASD / flechas / dedo</kbd><span>Pilotar</span><kbd>Clic / Espacio (mantén)</kbd><span>Disparar (en el móvil dispara solo)</span><kbd>Mayús / Q / E / doble clic</kbd><span>Tonel: esquivas los disparos un instante</span></div>
+  ${matchMedia('(pointer: coarse)').matches
+    ? '<div class="teclas"><kbd>Arrastra el dedo</kbd><span>La nave te sigue y dispara mientras tocas</span><kbd>Dos dedos</kbd><span>Tonel: esquivas los disparos un instante</span></div>'
+    : '<div class="teclas"><kbd>Ratón / WASD / flechas</kbd><span>Pilotar</span><kbd>Clic / Espacio (mantén)</kbd><span>Disparar</span><kbd>Mayús / Q / E / doble clic</kbd><span>Tonel: esquivas los disparos un instante</span></div>'}
   <p style="font-size:15px">Se puntúa aparte <b style="color:var(--ambar)">SABER</b> y <b style="color:var(--cian)">PERICIA</b>. El oro pide las dos. Cada medalla se cobra una vez: ${tabla}</p>
   <div class="botones"><button id="b-ya">¡Despegar!</button>${EMBED ? '' : '<button class="sec" id="b-mapa">Volver al mapa</button>'}</div>`);
   $('b-ya').onclick = () => { audio(); $('pantalla').classList.add('oculto'); empezar(m); };
