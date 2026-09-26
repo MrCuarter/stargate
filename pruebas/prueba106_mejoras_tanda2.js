@@ -102,7 +102,7 @@ c(SECS.some(x => x[0] === "embarque"), "   y se puede quitar desde «Configurar 
 // ── 11 · el nombre del docente, el suyo (el servidor lo cambia en todos sus grupos)
 c(/cambiarMiNombre/.test(MOT) && /llamar\("stargateMiNombre"/.test(MOT), "🔴 nombre: el motor lo pide al servidor (stargateMiNombre)");
 c(/id="doc-nom"/.test(CONS) && /id="doc-nom-g"/.test(CONS) && /function cablearNombre\(/.test(CONS), "   se cambia en el lápiz del avatar, junto al retrato");
-const FN = path.join(R, "../../../gamificapro/functions/stargateEquipo.js");
+const FN = "/Users/nor/Claude/vibewebs/gamificapro/functions/stargateEquipo.js";
 if (fs.existsSync(FN)) {
   const src = fs.readFileSync(FN, "utf8"), i = src.indexOf("export function planMiNombre"), j = src.indexOf("export const stargateMiNombre");
   const plan = new Function(src.slice(i, j).replace("export function", "function") + "; return planMiNombre;")();
@@ -120,7 +120,7 @@ if (fs.existsSync(FN)) {
   c(/no estás/i.test(plan({ proyecto, docentes, correo: "otro@x.es", nuevo: "Pepe" }).error || ""), "   ni cambiarlo en un grupo en el que no está");
   c(plan({ proyecto, docentes, correo: "ana@x.es", nuevo: "Ana" }).igual === true, "   y si no cambia nada, no toca nada");
   c(/student_profiles/.test(src.slice(j)) && /stargateProfe/.test(src.slice(j)), "   sus reclutas le siguen (stargateProfe de cada ficha)");
-  c(/stargateMiNombre/.test(fs.readFileSync(path.join(R, "../../../gamificapro/functions/index.js"), "utf8")), "   la función está exportada");
+  c(/stargateMiNombre/.test(fs.readFileSync("/Users/nor/Claude/vibewebs/gamificapro/functions/index.js", "utf8")), "   la función está exportada");
 } else console.log("   (sin la carpeta de gamificapro al lado: el plan del servidor no se prueba aquí)");
 c(/stargateMiNombre/.test(fs.readFileSync(path.join(R, "../desplegar_stargate.sh"), "utf8")), "   y está en la lista de despliegue");
 
