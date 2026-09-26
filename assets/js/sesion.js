@@ -1836,12 +1836,13 @@
   function diaActMatriz(X){
     var E=X.D.ejemplo, M=window.SG_MATRIZ||{}, I=M.inteligencias||[], B=M.bloom||[];
     var celda=function(b, i){ var c=(E.cruces||[]).filter(function(x){ return x[1]===b&&x[2]===i; })[0];
-      return c?'<button type="button" class="ac-mc '+esc(c[3])+'" data-cruce="'+c[0]+'" title="'+esc(c[4])+'">'+c[0]+'</button>':'<span class="ac-mc vacia"></span>'; };
+      // (cada cruce, por su planta: sin números, que invitarían a hacerlas en orden)
+      return c?'<button type="button" class="ac-mc '+esc(c[3])+'" data-cruce="'+esc(c[0])+'" title="'+esc(c[4])+'">'+esc(c[0])+'</button>':'<span class="ac-mc vacia"></span>'; };
     return {k:'act_matriz', rot:'2 · La matriz', montar:montarMatriz, html:
       '<div class="dia emb ac-matriz">'+actKicker(X, 'Paso 2 · la matriz de programación')+'<h2>8 inteligencias × 6 niveles de Bloom</h2>'
       +'<div class="ac-mz-g"><div class="ac-mz" style="--cols:'+I.length+'"><span></span>'+I.map(function(x){ return '<span class="ac-mz-i">'+esc(x)+'</span>'; }).join('')
       +B.map(function(b){ return '<span class="ac-mz-b">'+esc(b)+'</span>'+I.map(function(i){ return celda(b,i); }).join(''); }).join('')+'</div>'
-      +'<div class="ac-mz-d" id="ac-mz-d"><p class="ac-et">El huerto de '+esc(E.quien.split(',')[0])+'</p><p>Pulsa un número: cada cruce es una actividad.</p>'
+      +'<div class="ac-mz-d" id="ac-mz-d"><p class="ac-et">El huerto de '+esc(E.quien.split(',')[0])+'</p><p>Pulsa una planta: cada cruce es una actividad, y se hacen <b>en el orden que cada cual quiera</b>.</p>'
       +'<p class="ac-ley"><span class="obligatoria">obligatoria</span><span class="optativa">optativa</span><span class="voluntaria">voluntaria</span></p></div></div>'
       +'<p class="ac-nota">No hace falta llenarla: <b>al menos seis cruces</b>, variados en complejidad (Bloom) y en inteligencias. '
       +(M.plantilla?'<a href="'+esc(M.plantilla)+'" target="_blank" rel="noopener">La plantilla de la matriz ↗</a>':'')+'</p></div>'};
@@ -1851,7 +1852,7 @@
     Array.prototype.forEach.call(el.querySelectorAll('[data-cruce]'), function(b){
       b.onclick=function(){ var c=(E.cruces||[]).filter(function(x){ return String(x[0])===b.getAttribute('data-cruce'); })[0]; if(!c||!d) return;
         Array.prototype.forEach.call(el.querySelectorAll('[data-cruce]'), function(x){ x.classList.toggle('on', x===b); });
-        d.innerHTML='<p class="ac-et">'+c[0]+' · '+esc(c[1])+' × '+esc(c[2])+'</p><h3>'+esc(c[4])+'</h3><p>'+esc(c[5])+'</p>'
+        d.innerHTML='<p class="ac-et">'+esc(c[0])+' · '+esc(c[1])+' × '+esc(c[2])+'</p><h3>'+esc(c[4])+'</h3><p>'+esc(c[5])+'</p>'
           +'<p class="ac-ley"><span class="'+esc(c[3])+'">'+esc(c[3])+'</span></p>'; };
     });
     return null;
@@ -1866,10 +1867,11 @@
   function diaActPaisaje(X){
     var E=X.D.ejemplo;
     return {k:'act_paisaje', rot:'4 · El paisaje', html:
-      '<div class="dia emb ac-paisaje">'+actKicker(X, 'Paso 4 · el paisaje')+'<h2>Una imagen interactiva, no una presentación</h2>'
-      +'<div class="ac-img-g"><figure><img src="assets/img/ejemplos/'+esc(E.imagen)+'" alt="El paisaje de Patricia: un huerto con ocho plantas"></figure>'
+      '<div class="dia emb ac-paisaje">'+actKicker(X, 'Paso 4 · el paisaje')+'<h2>Un paisaje: libertad total, sin orden</h2>'
+      +'<div class="ac-img-g"><figure><img src="assets/img/ejemplos/'+esc(E.imagen)+'" alt="El paisaje de Patricia: un huerto con ocho plantas marcadas por colores, sin números"></figure>'
       +'<div><p>'+esc(E.paisaje)+'</p>'+listaAc(['Una **imagen interactiva** (en Genially, por ejemplo): **no** una presentación ni algo lineal.',
-          'Las actividades de la matriz, **dentro** del territorio.', 'Varios **itinerarios**: cada cual elige por dónde entrar.'])+'</div></div></div>'};
+          'Las actividades de la matriz, **dentro** del territorio, **sin números ni orden**: cada cual entra por donde quiere.',
+          'Si todo va en orden (1, 2, 3…), es un **itinerario**; aquí pedimos un **paisaje**.'])+'</div></div></div>'};
   }
   function diaActIA(X){
     return {k:'act_ia', rot:'Si usas IA', html:

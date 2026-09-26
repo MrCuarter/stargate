@@ -6998,3 +6998,5 @@ button.ac-mc.on{outline:3px solid #fff;outline-offset:1px}
 kbd{display:inline-block;padding:1px 7px;border-radius:6px;border:1px solid rgba(199,214,238,.45);border-bottom-width:3px;background:#101a28;
   color:#fff;font:700 .85em/1.4 'DMSans',system-ui,sans-serif;white-space:nowrap}
 @media(max-width:700px){ .dia.ac-capt{flex-direction:column;align-items:stretch} .ac-capt-g{grid-template-columns:minmax(0,1fr)} }
+/* (26-sep · los cruces de la matriz, por su planta: el nombre cabe en la casilla) */
+button.ac-mc{font-size:clamp(.75rem,.95vw,.9rem);line-height:1.1;padding:2px;word-break:break-word;hyphens:auto}

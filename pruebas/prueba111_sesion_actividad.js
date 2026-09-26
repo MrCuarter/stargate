@@ -39,7 +39,11 @@ c((M.inteligencias || []).length === 8 && (M.bloom || []).length === 6 && /genia
 const cr = E2.cruces || [];
 c(cr.length >= 6 && new Set(cr.map(x => x[1])).size === 6 && new Set(cr.map(x => x[2])).size >= 6 && cr.every(x => /^(obligatoria|optativa|voluntaria)$/.test(x[3])),
   "   con el huerto de Patricia: al menos seis cruces, los seis niveles de Bloom y su tipo (obligatoria, optativa, voluntaria)");
-c(E2.imagen === "X2.jpg" && E2.ficha.length === 7 && E2.justificacion.length > 80, "   su paisaje, la ficha completa de una actividad y la justificación del ePortfolio");
+c(E2.imagen === "X2_paisaje.jpg" && E2.ficha.length === 7 && E2.justificacion.length > 80, "   su paisaje, la ficha completa de una actividad y la justificación del ePortfolio");
+// 🔴 26-sep · un PAISAJE, no un itinerario (Norberto: «libertad total, sin orden»): ni números en los cruces ni en la imagen
+c(cr.every(x => typeof x[0] === "string" && !/^\d+$/.test(x[0])) && /sin orden/.test(E2.paisaje) && /no hay un orden/i.test(E2.justificacion)
+  && SA.a2.errores.some(e => /itinerario/i.test(e[0])) && fs.existsSync(path.join(R, "assets/img/ejemplos/X2_paisaje.jpg")),
+  "🔴 el ejemplo de la 2 es un paisaje: cada cruce es una planta (sin números), se entra por donde se quiera y la imagen va sin números");
 const RP = global(SH, "SG_RETO_PREMIO") || {};
 c(RP.X1 && RP.X1[0].length === 2 && RP.X1[1] === 500 && RP.X2 && RP.X2[0][0] === "H3_cartografo", "🔴 la sesión sabe qué insignias y xp da cada reto (antes la de la actividad no salía)");
 

@@ -710,7 +710,7 @@ ACTIVIDADES = [
          "y tipo: obligatoria, optativa o voluntaria."),
         ("El paisaje interactivo", "",
          "Convierte una **imagen interactiva** (no una presentación) en el paisaje, con las actividades "
-         "integradas dentro del territorio."),
+         "integradas dentro del territorio y **sin un orden fijo**: cada cual entra por donde quiere."),
         ("Entregables", "",
          "**PDF (80%)** (máx. 10 páginas para 6 actividades, +1 por actividad extra) con planificación y matriz. "
          "**ePortfolio (20%)**: evidencias de matriz y paisaje (15%) + justificación del diseño y atención a la "
@@ -841,36 +841,43 @@ SESION_ACTIVIDAD = {
                "**Justificación (5 %)**: un párrafo argumentado sobre cómo tu diseño atiende a la **diversidad** y a los **ritmos**.",
                "Si usaste IA (opcional): para qué, con qué criterios y con qué prompts."],
     ejemplo=dict(
-      quien="Patricia, maestra de 3.º de Primaria", imagen="X2.jpg",
+      quien="Patricia, maestra de 3.º de Primaria", imagen="X2_paisaje.jpg",
       nivel="3.º de Primaria (8-9 años)", area="Ciencias de la Naturaleza · «Las plantas»",
       objetivos=["Identificar las partes de la planta y para qué sirve cada una.",
                  "Describir el ciclo de vida de una planta.",
                  "Reconocer lo que necesita una planta para crecer."],
       criterios="Explica las partes y el ciclo de vida con sus palabras; relaciona el crecimiento con el agua, la luz y la tierra.",
-      paisaje="Un huerto ilustrado en Genially, hecho imagen interactiva: cada planta abre una actividad, y su color dice si es "
-              "obligatoria (verde), optativa (azul) o voluntaria (amarilla).",
-      # (n, fila de Bloom, columna de inteligencia, tipo, título, tarea)
-      cruces=[(1, "Recordar", "Visual-espacial", "obligatoria", "Las partes de la tomatera", "Señala raíz, tallo, hojas, flor y fruto en la foto de la tomatera."),
-              (2, "Comprender", "Lingüística", "optativa", "¿Para qué sirve cada parte?", "Explícalo con tus palabras en un audio de un minuto."),
-              (3, "Analizar", "Lógico-matemática", "voluntaria", "¿Cuánto crece mi planta?", "Medimos la planta cada semana, lo anotamos en una tabla y lo representamos en una gráfica."),
-              (4, "Aplicar", "Naturalista", "obligatoria", "Mi judía en un vaso", "Plántala, cuida lo que necesita (agua, luz y tierra) y anota lo que ves."),
-              (5, "Comprender", "Musical", "optativa", "La canción del ciclo de vida", "Completa la letra con las fases: semilla, germinación, planta, flor y fruto."),
-              (6, "Evaluar", "Interpersonal", "obligatoria", "¿Dónde crece mejor?", "Por parejas, comparad una planta con luz y otra sin luz, y decidid por qué."),
-              (7, "Crear", "Corporal-cinestésica", "voluntaria", "De semilla a fresa", "Representa con tu cuerpo cómo crece una semilla hasta dar fruto, en un vídeo corto."),
-              (8, "Crear", "Intrapersonal", "optativa", "Mi diario de jardinero", "Escribe qué has aprendido y qué planta cuidarías tú, y por qué.")],
-      ficha=[("Actividad", "3 · ¿Cuánto crece mi planta? (Analizar × Lógico-matemática)"),
+      # 🔴 26-sep · UN PAISAJE, NO UN ITINERARIO. Norberto: «el ejemplo de la actividad 2 es un itinerario (las actividades se
+      # hacen en orden); primordialmente pedimos un paisaje, libertad total, sin orden». Fuera los números (1-8) de la imagen
+      # (X2_paisaje.jpg: cada planta, solo con el color de su tipo) y de la matriz: cada cruce es una planta, y se entra por
+      # la que se quiera.
+      paisaje="Un huerto ilustrado en Genially, hecho imagen interactiva: cada planta abre su actividad y se entra por la que "
+              "se quiera, sin orden. El color dice solo el tipo: obligatoria (verde, todos la hacen, cuando cada cual decida), "
+              "optativa (azul) o voluntaria (amarilla).",
+      # (planta, fila de Bloom, columna de inteligencia, tipo, título, tarea) · la planta es su nombre: no hay número ni orden
+      cruces=[("Tomate", "Recordar", "Visual-espacial", "obligatoria", "Las partes de la tomatera", "Señala raíz, tallo, hojas, flor y fruto en la foto de la tomatera."),
+              ("Lechuga", "Comprender", "Lingüística", "optativa", "¿Para qué sirve cada parte?", "Explícalo con tus palabras en un audio de un minuto."),
+              ("Zanahoria", "Analizar", "Lógico-matemática", "voluntaria", "¿Cuánto crece mi planta?", "Medimos la planta cada semana, lo anotamos en una tabla y lo representamos en una gráfica."),
+              ("Judía", "Aplicar", "Naturalista", "obligatoria", "Mi judía en un vaso", "Plántala, cuida lo que necesita (agua, luz y tierra) y anota lo que ves."),
+              ("Cebolla", "Comprender", "Musical", "optativa", "La canción del ciclo de vida", "Completa la letra con las fases: semilla, germinación, planta, flor y fruto."),
+              ("Calabacín", "Evaluar", "Interpersonal", "obligatoria", "¿Dónde crece mejor?", "Por parejas, comparad una planta con luz y otra sin luz, y decidid por qué."),
+              ("Fresa", "Crear", "Corporal-cinestésica", "voluntaria", "De semilla a fresa", "Representa con tu cuerpo cómo crece una semilla hasta dar fruto, en un vídeo corto."),
+              ("Col", "Crear", "Intrapersonal", "optativa", "Mi diario de jardinero", "Escribe qué has aprendido y qué planta cuidarías tú, y por qué.")],
+      ficha=[("Actividad", "La zanahoria · ¿Cuánto crece mi planta? (Analizar × Lógico-matemática)"),
              ("Objetivo", "Reconocer lo que necesita una planta para crecer."),
              ("Tarea", "Medimos la planta cada semana, lo anotamos en una tabla y lo representamos en una gráfica."),
              ("Recursos", "Una regla y la plantilla de la tabla (enlace y captura, porque es propia)."),
              ("Evaluación", "La tabla y la gráfica, con una lista de cotejo."),
              ("Tiempo", "10 minutos a la semana, durante 4 semanas."),
-             ("Tipo", "Voluntaria · en cualquier orden.")],
-      justificacion="Las actividades verdes aseguran lo básico para todo el grupo; las azules y las amarillas dejan que quien va "
-                    "rápido llegue más lejos y que quien necesita tiempo elija por dónde entrar. Por eso hay una de cada "
-                    "inteligencia y los seis niveles de Bloom: nadie se queda sin un sendero."),
+             ("Tipo", "Voluntaria · sin orden: se hace cuando cada cual quiera, antes o después de las demás.")],
+      justificacion="En el huerto no hay un orden: cada cual entra por la planta que quiere y decide su camino. Las verdes "
+                    "aseguran lo básico para todo el grupo, cuando cada uno lo elija; las azules y las amarillas dejan que "
+                    "quien va rápido llegue más lejos y que quien necesita tiempo empiece por lo que le resulta más cercano. "
+                    "Por eso hay una de cada inteligencia y los seis niveles de Bloom: nadie se queda sin un sendero."),
     ia=["La **herramienta** de IA usada.", "El **prompt** que usaste.",
         "Una **reflexión** sobre si la respuesta servía y **qué cambiaste**."],
     errores=[("Una presentación, no un paisaje", "Tiene que ser una imagen interactiva; si es una presentación o lineal, no es un paisaje."),
+             ("Un itinerario disfrazado", "Si todo va numerado y en orden (1, 2, 3…), es un itinerario. En un paisaje, cada cual entra por donde quiere."),
              ("Menos de seis", "Al menos seis actividades completas, variadas en Bloom y en inteligencias."),
              ("La ficha a medias", "Cada actividad: objetivo, tarea, recursos, evaluación, tiempo y tipo."),
              ("Sin decir el tipo", "Obligatoria, optativa o voluntaria (y si hay que seguir un orden)."),
@@ -1107,7 +1114,7 @@ EJEMPLOS_RETOS = {
  },
  "X2": {
   "titulo": "Patricia entrega su paisaje de aprendizaje y lo marca en la Nave",
-  "texto": "Patricia, maestra de 3.º de Primaria, amplió la matriz de su unidad «Las plantas» a ocho actividades y las llevó a un paisaje: una imagen interactiva en Genially (no una presentación) con un huerto ilustrado en el que cada planta abre una actividad, con un color según sea obligatoria, optativa o voluntaria. Su PDF (11 páginas, dentro del límite para ocho actividades) recoge la contextualización, la matriz y la ficha completa de cada actividad. En la Bitácora añadió la página «Actividad 2» con la matriz, el paisaje incrustado y un párrafo sobre cómo ese diseño atiende a la diversidad. Subió el PDF a la plataforma de UNIR y, al enviarlo, marcó «Lo he hecho» en la Nave con el enlace del paisaje y, con el «+», el de su Bitácora.",
+  "texto": "Patricia, maestra de 3.º de Primaria, amplió la matriz de su unidad «Las plantas» a ocho actividades y las llevó a un paisaje: una imagen interactiva en Genially (no una presentación) con un huerto ilustrado en el que cada planta abre una actividad y se entra por la que se quiera, sin orden: el color solo dice si es obligatoria, optativa o voluntaria. Su PDF (11 páginas, dentro del límite para ocho actividades) recoge la contextualización, la matriz y la ficha completa de cada actividad. En la Bitácora añadió la página «Actividad 2» con la matriz, el paisaje incrustado y un párrafo sobre cómo ese diseño atiende a la diversidad. Subió el PDF a la plataforma de UNIR y, al enviarlo, marcó «Lo he hecho» en la Nave con el enlace del paisaje y, con el «+», el de su Bitácora.",
   "detalle": [
    "PDF (80 %): contextualización, matriz 8×6 y ficha de cada actividad (objetivo, tarea, recursos citados, evaluación, tiempo y tipo).",
    "ePortfolio (20 %): evidencias de la matriz y del paisaje, más la justificación del diseño y de la atención a la diversidad.",
@@ -1260,7 +1267,7 @@ EJEMPLOS_RETOS = {
 #   Actividad 1, los pares que se confunden), el cuestionario que se puede contestar y la línea de tiempo del vídeo
 #   con sus preguntas. Lo pinta la Nave (recluta.js, `ejemploVivo`) con los colores de STARGATE.
 EJEMPLOS_EXTRA = {
- "X2": {"imagen": "X2.jpg", "imagen_alt": "El paisaje de aprendizaje de Patricia: un huerto ilustrado con ocho plantas numeradas de colores y la ficha de la actividad 3 abierta."},
+ "X2": {"imagen": "X2_paisaje.jpg", "imagen_alt": "El paisaje de aprendizaje de Patricia: un huerto ilustrado con ocho plantas marcadas por colores, sin números ni orden, y la ficha de la zanahoria abierta."},
  "B4": {"imagen": "B4.jpg", "imagen_alt": "El tablón de Classroom «Física y Química 4.º B» con la pregunta de la semana y una tarea con tres recursos citados."},
  "B5": {"imagen": "B5.jpg", "imagen_alt": "El sitio «English Hub · 2.º ESO» con su menú de cinco páginas y la rúbrica incrustada en «Cómo se evalúa»."},
  "B6": {"imagen": "B6.jpg", "imagen_alt": "La fase 3 del escape de formulación de Carlos: un laboratorio con un candado de tres dígitos y la consigna «Formula el ácido sulfúrico»."},
