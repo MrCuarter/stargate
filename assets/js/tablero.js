@@ -101,17 +101,19 @@ function montar(root, per, OPC){
     return '<span class="'+(c.tengo===c.total?'muted full':'muted')+'" title="'+esc(det)+'">'+pct2(c.pct)+'&nbsp;%</span>'
       +(p.n_album?' <span class="sello-serie mini" title="Series completas">✦'+p.n_album+'</span>':'');}
 
-  // ---------- el Simulador de Joran: sus marcas y sus mínimos (los mismos que las medallas de la batalla) ----------
-  var BAT=window.SG_BATALLA||{}, MIN=BAT.medallas_min||{aciertos:20, respondidas:30};
+  // ---------- el Simulador de Joran: sus marcas ----------
   function simT(p){ return (p.simulador&&p.simulador.total)||{}; }
-  function nRelampago(p){ return (p.hechos||[]).filter(function(h){ return /^L\d/.test(h); }).length; }
-  function nLogros(p){ return Object.keys(p.hitos||{}).length; }
-  function medalla(k, porDefecto){
-    var m=(BAT.medallas||[]).filter(function(x){return x[0]===k;})[0];
-    return m?(m[1]+' '+m[2]):porDefecto;
-  }
 
-  // ---------- los tres modos ----------
+
+  // ---------- los rankings ----------
+  /**
+   * 🔴 26-sep · SEIS, Y CADA UNO PREMIA ALGO DISTINTO. Eran trece y el alumnado mira dos o tres; varios daban casi el mismo
+   * orden que el de xp. Norberto aprobó la propuesta: más xp, esta semana (quien empezó tarde también sale), constancia (no
+   * fallar, también en diferido), coleccionistas (el lado del juego), el Simulador (uno: los aciertos; el más certero y el
+   * más rápido siguen siendo medallas de la batalla) y los escuadrones. Fuera: «Mi escuadrón» (lo hacen los botones de
+   * escuadrón de encima), insignias y explorador (siguen al de xp), logros de a bordo (su contador vive en Mi botín) y
+   * relámpago (se hace en clase: castigaba al diferido). Un enlace viejo con ?ranking=… de los que ya no están cae en «Más xp».
+   */
   var MODOS=[
     {k:'xp', et:'<img class=ico src=assets/img/iconos/p/estrella.png alt> Más xp', col:'xp',
      ayuda:'Los xp que has ganado desde que empezaste. <b>Nunca bajan</b>: canjear recompensas no te quita puestos.',
@@ -120,76 +122,26 @@ function montar(root, per, OPC){
      ayuda:'xp ganados en los <b>últimos 7 días</b>. Se renueva solo, así que da igual cómo empezaste: esta semana salís todos de cero.',
      val:function(p){return p.xp7||0;}, unidad:' xp', soloConValor:true,
      vacio:'Esta semana todavía no ha registrado nada nadie. La carrera está abierta.'},
-    {k:'coleccion', et:'<img class=ico src=assets/img/iconos/p/estrella.png alt> Colección', col:'col',
-     ayuda:'Lo que <b>tienes</b>, no lo que has trabajado: cartas del álbum, héroes de la Rebelión y versiones de tu personaje. Al 100 % lo tienes TODO.',
-     val:pctCol, unidad:' %', pct:true, soloConValor:true,
-     vacio:'Nadie ha empezado a coleccionar todavía. Los sobres se abren desde la semana 2.'},
-    /**
-     * 🔴 12-sep · CINCO RANKINGS MÁS, y no son cinco veces el mismo dato. Norberto lo dijo bien:
-     * «quiero dar la oportunidad a todos de brillar en algún momento». Eso no se consigue con más
-     * tablas de xp — se consigue midiendo COSAS DISTINTAS, para que quien no destaca trabajando
-     * destaque siendo constante, o coleccionando, o terminando lo que empieza.
-     */
-    {k:'escuadron', et:'<img class=ico src=assets/img/iconos/p/escudo.png alt> Mi escuadrón', col:'xp', soloSiSeQuienSoy:true,
-     ayuda:'Solo tu gente. En una clase de doscientos, ser el 40.º no dice nada; ser el 3.º de los tuyos, sí.',
-     val:function(p){return p.xp;}, unidad:' xp', filtro:function(p){ return mismoEscuadron(p); },
-     vacio:'Todavía no hay nadie más en tu escuadrón.'},
     {k:'racha', et:'<img class=ico src=assets/img/iconos/p/calendario.png alt> Constancia', col:'racha',
      ayuda:'Semanas <b>seguidas</b> registrando algo. Premia a quien no falla, que es justo lo que el ranking de xp no ve.',
      val:function(p){return p.racha||0;}, unidad:function(v){return v===1?' semana':' semanas';}, soloConValor:true,
      vacio:'Nadie lleva todavía una racha. Con registrar algo dos semanas seguidas ya sales aquí.'},
-    {k:'insignias', et:'<img class=ico src=assets/img/iconos/p/medalla.png alt> Insignias', col:'n',
-     ayuda:'Cuántas llevas de las 24. No es lo mismo que los xp: se puede tener mucha experiencia con pocas insignias.',
-     val:function(p){return p.n||0;}, unidad:'', soloConValor:true,
-     vacio:'Todavía no se ha entregado ninguna insignia.'},
-    {k:'planetas', et:'<img class=ico src=assets/img/iconos/p/varios.png alt> Explorador', col:'pl',
-     ayuda:'Planetas <b>completos</b>: temas con todos sus retos cerrados. Premia terminar lo que se empieza en vez de picotear.',
-     // 🔴 `planetas_completos` es un ARRAY con los números de los temas cerrados, no un contador.
-     // Restando dos arrays sale NaN y el orden se rompe SIN error: la tabla salía en el orden en que
-     // llegaron los datos y parecía un ranking.
-     val:function(p){var v=p.planetas_completos; return Array.isArray(v)?v.length:(v||0);},
-     unidad:function(v){return v===1?' planeta':' planetas';}, soloConValor:true,
-     vacio:'Nadie ha cerrado un planeta entero todavía. El primero que lo haga sale aquí solo.'},
-    /**
-     * 🔴 16-sep · LOS QUE FALTABAN. Norberto: «todos los rankings que hemos ido hablando». Los tres del Simulador de
-     * Joran con sus mismos nombres y sus mismos mínimos (un dato, un sitio: SG_BATALLA), los logros de a bordo y los
-     * relámpago, que se juegan en clase y por eso premian ESTAR. Cada uno mide una cosa distinta: más gente brilla.
-     */
-    {k:'relampago', et:'<img class=ico src=assets/img/iconos/p/rayo.png alt> Relámpago', col:'xp',
-     ayuda:'Retos <b>relámpago</b> hechos: los de quince minutos que se juegan en clase y recuperan a un tripulante. Premia estar, no correr.',
-     val:function(p){return nRelampago(p)||0;},
-     unidad:function(v){return v===1?' relámpago':' relámpago';}, soloConValor:true,
-     vacio:'Todavía nadie ha hecho un relámpago. Se juegan en clase, desde la semana 1.'},
-    {k:'logros', et:'<img class=ico src=assets/img/iconos/p/medalla.png alt> Logros de a bordo', col:'xp',
-     ayuda:'Las <b>primeras veces</b> en la Nave: el primer reto, la primera reflexión, comentar a tu tripulación, tres días seguidos…',
-     val:function(p){return nLogros(p)||0;},
-     unidad:function(v){return v===1?' logro':' logros';}, soloConValor:true,
-     vacio:'Todavía nadie tiene logros de a bordo. Se presentan en la semana 9.'},
-    {k:'sabio', et:medalla('sabio','<img class=ico src=assets/img/iconos/p/libro.png alt> Quien más sabe'), col:'xp',
-     ayuda:'Respuestas <b>correctas</b> en el Simulador de Joran, sumando todas sus batallas.',
+    {k:'coleccion', et:'<img class=ico src=assets/img/iconos/p/estrella.png alt> Coleccionistas', col:'col',
+     ayuda:'Lo que <b>tienes</b>, no lo que has trabajado: cartas del álbum, héroes de la Rebelión y versiones de tu personaje. Al 100 % lo tienes TODO.',
+     val:pctCol, unidad:' %', pct:true, soloConValor:true,
+     vacio:'Nadie ha empezado a coleccionar todavía. Los sobres se abren desde la semana 2.'},
+    {k:'sabio', et:'<img class=ico src=assets/img/iconos/p/diana.png alt> Simulador', col:'xp',
+     ayuda:function(){return 'Respuestas <b>correctas</b> en el Simulador de Joran, sumando todas sus batallas. El más certero y el más rápido se llevan su medalla en la batalla.';},
      val:function(p){return Number(simT(p).aciertos)||0;}, unidad:' aciertos', soloConValor:true,
      vacio:'Nadie ha peleado todavía contra el Simulador de Joran.'},
-    {k:'certero', et:medalla('certero','<img class=ico src=assets/img/iconos/p/diana.png alt> El más certero'), col:'xp', pct:true,
-     ayuda:function(){return 'Porcentaje de <b>aciertos</b> en el Simulador, a partir de '+MIN.respondidas+' respuestas: una buena tarde no vale por un curso.';},
-     val:function(p){var t=simT(p); return Number(t.respondidas)>=MIN.respondidas?(t.aciertos*100)/t.respondidas:0;},
-     unidad:' %', soloConValor:true,
-     vacio:'Nadie llega todavía al mínimo de respuestas en el Simulador.'},
-    {k:'rapido', et:medalla('rapido','<img class=ico src=assets/img/iconos/p/rayo.png alt> El más rápido'), col:'xp', pct:true, asc:true,
-     ayuda:function(){return 'Segundos por <b>acierto</b> en el Simulador, a partir de '+MIN.aciertos+' aciertos. Aquí gana el número más <b>bajo</b>.';},
-     val:function(p){var t=simT(p); return Number(t.aciertos)>=MIN.aciertos?(t.ms/1000)/t.aciertos:0;},
-     unidad:' s por acierto', soloConValor:true,
-     vacio:'Nadie llega todavía al mínimo de aciertos en el Simulador.'},
-    {k:'escuadrones', et:'<img class=ico src=assets/img/iconos/p/diana.png alt> Escuadrones', col:'xp', porEquipos:true,
+    {k:'escuadrones', et:'<img class=ico src=assets/img/iconos/p/escudo.png alt> Escuadrones', col:'xp', porEquipos:true,
      ayuda:'Los escuadrones entre sí, por <b>media de xp por recluta</b>. Por media y no por total: sumando ganaría siempre el más numeroso, y eso no mediría nada.',
      val:function(p){return p.xp;}, unidad:' xp de media',
      vacio:'Todavía no hay escuadrones con gente dentro.'}
   ];
   /** Quién soy, si la página lo sabe (la Nave lo dice; el tablero proyectado, no). */
   function yoSoy(){ return (window.SG_YO_ALIAS||'').trim(); }
-  function mismoEscuadron(p){
-    var d=window.SG_TABLERO_DATA||{}, mio=(d.reclutas||[]).filter(function(x){return x.alias===yoSoy();})[0];
-    return !!mio && String(p.profe||'')===String(mio.profe||'');
-  }
+
   // ---------- v3.29 · LA FICHA DEL RECLUTA ----------
   // Se abre al pulsar su fila en el ranking. Este tablero se INCRUSTA en un Genially que ve toda la
   // clase, así que enseña lo justo: el personaje que lleva puesto, su bio, nivel, xp, insignias y

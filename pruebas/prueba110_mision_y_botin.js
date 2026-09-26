@@ -110,6 +110,10 @@ c(/rot:'Novedades'/.test(SES) && /que==='notas'\?'Todavía no hay valoraciones'/
 c(/closest\("\.modo-sel \[data-modo\]"\)/.test(CON) && /\(m === "piloto" \|\| m === "manual"\)/.test(CON),
   "🔴 las pestañas del ranking de la consola responden (el selector Piloto/Manual ya no las toma por suyas)");
 
+// 26-sep · el relámpago: «en clase… o después, cuando tú quieras» (Norberto), donde lo vea el recluta
+c(/En clase · 10-15 min <em>o después, cuando tú quieras<\/em>/.test(NAVE) && /o después, cuando tú quieras<\/b>/.test(SES) && /'En clase · 15 min, o después, cuando tú quieras'/.test(SES),
+  "🔴 el relámpago dice «en clase… o después, cuando tú quieras» en su Nave, en la sesión y en el diferido");
+
 console.log("\n  Batería 110 · misión cumplida, Mi botín por puertas y el diferido con su índice");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

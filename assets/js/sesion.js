@@ -316,7 +316,8 @@
       +'<div class="rs-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Esta semana</div><h2>Vuestros retos</h2><ul class="rs-lista">'
       +ls.map(function(r, i){ var rel=/^L\d$/.test(r.id);
         return '<li style="--i:'+i+'"><span class="rs-donde'+(rel?' clase':'')+'">'+(rel?'En clase':'En casa')+'</span><b>«'+esc(tituloReto(r.txt))+'»</b></li>'; }).join('')
-      +'</ul></div></div>'};
+      // 26-sep · el relámpago, en clase… o después, cuando cada cual quiera (Norberto)
+      +'</ul>'+(ls.some(function(r){ return /^L\d$/.test(r.id); })?'<p class="rs-despues">El relámpago, en clase… <b>o después, cuando tú quieras</b>.</p>':'')+'</div></div>'};
   }
   /** La despedida: el comandante saluda. En la última clase del viaje, la cita para después de la batalla (el examen). */
   function diaHastaPronto(fin, aDonde){
@@ -1532,7 +1533,7 @@
       '<div class="dia emb con-fondo">'+capaEscena('pasillo')+'<div class="kicker">Cómo funciona</div><h2>Así es una semana a bordo</h2>'
       +'<ol class="emb-pasos">'
       +paso(0,'La sesión en directo','Esta: la historia, el tema y las misiones de la semana.')
-      +paso(1,'Los retos','Dos por tema, los dos prácticos. El <b>relámpago</b> se hace aquí, en clase, en quince minutos, y recupera a un tripulante; el <b>reto principal</b>, en casa, deja una pieza en tu Bitácora.')
+      +paso(1,'Los retos','Dos por tema, los dos prácticos. El <b>relámpago</b> se hace aquí, en clase, en quince minutos (o después, cuando tú quieras), y recupera a un tripulante; el <b>reto principal</b>, en casa, deja una pieza en tu Bitácora.')
       +paso(2,'Tu Nave','Los registras tú, con el enlace de lo que has hecho. Sin tope: cada cual a su ritmo, pensado para quien trabaja.')
       +paso(3,'El ticket de salida','Al acabar cada tema, dos minutos y anónimo. Lo que digáis sale en la clase siguiente.')
       +'</ol></div>'};
@@ -1990,7 +1991,7 @@
     var P=window.SG_RETO_PREMIO||{}, H=misHechos(), pl=planeta(t)||[];
     var ids=(RET.REGULAR||[]).map(function(r){ return r[0]; }).filter(function(id){ return id!=='S7' && Number((P[id]||[])[2])===t; });   // (S7 es secreto)
     if(!ids.length) return null;
-    var donde=function(id){ return /^L/.test(id)?['clase','En clase · 15 min']:/^B/.test(id)?['casa','En casa']:/^X/.test(id)?['act','Al entregar la actividad']:['otro','Cuando quieras']; };
+    var donde=function(id){ return /^L/.test(id)?['clase','En clase · 15 min, o después, cuando tú quieras']:/^B/.test(id)?['casa','En casa']:/^X/.test(id)?['act','Al entregar la actividad']:['otro','Cuando quieras']; };
     var n=0, filas=ids.map(function(id){ var p=P[id]||[[],0], ins=(p[0]||[])[0], d=donde(id), w=semanaDeReto(id), hecho=H&&H.indexOf(id)>=0; if(hecho) n++;
       return '<div class="rtt'+(hecho?' hecho':'')+'">'+(ins?'<img src="assets/img/insignias/'+esc(ins)+'.webp" alt="">':'<img class="rtt-i" src="assets/img/iconos/p/retos.png" alt="">')
         +'<div class="rtt-t"><b>'+esc(nombreReto(id))+'</b><span class="rtt-d '+d[0]+'">'+d[1]+(w?' · semana '+w:'')+'</span></div>'
@@ -1998,7 +1999,7 @@
     return {k:'retos_tema', sec:'misiones', rot:'Los retos', html:
       '<div class="dia emb con-fondo">'+capaFondo(s)+'<div class="kicker"><img class=ico src=assets/img/iconos/p/retos.png alt> Tema '+t+(pl[1]?' · '+esc(pl[1]):'')+'</div>'
       +'<h2>Los retos de este tema</h2>'
-      +'<p class="sub">'+(H?'Llevas <b>'+n+' de '+ids.length+'</b>. ':'')+'El relámpago se hace en clase (o esa semana, si no pudiste venir); el principal, en casa. Se registran en tu Nave.</p>'
+      +'<p class="sub">'+(H?'Llevas <b>'+n+' de '+ids.length+'</b>. ':'')+'El relámpago se hace en clase… o después, cuando tú quieras; el principal, en casa. Se registran en tu Nave.</p>'
       +'<div class="rtt-l">'+filas+'</div></div>'};
   }
   function diaRankingDif(){

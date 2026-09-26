@@ -1137,7 +1137,7 @@ retos que se lanzan. Léela primero: es el mapa de la semana.</p></div>
 <div class="card"><h3>2 · La clase en directo</h3><p>Tu docente proyecta la sesión. Al empezar toca <b>llamada a filas</b>: en tu Nave aparece
 el botón <b>Presente</b>. Púlsalo y te llevas xp y créditos; si vienes a varias clases seguidas, la racha suma un extra.
 ¿No pudiste venir? <b>La sesión está en tu Nave</b> («Ver la sesión de la semana» y El Archivo): empieza por el índice de semanas y la ves a tu ritmo.</p></div>
-<div class="card"><h3>3 · Los retos</h3><p>Dos por tema: el <b>relámpago</b>, que haces en clase en quince minutos (o esa semana, si no pudiste venir), y el <b>reto principal</b>, en casa.
+<div class="card"><h3>3 · Los retos</h3><p>Dos por tema: el <b>relámpago</b>, que haces en clase en quince minutos (o después, cuando tú quieras), y el <b>reto principal</b>, en casa.
 Los registras en <b>Mis retos</b> {('(como mucho <b>' + str(TOPE_RETOS_SEMANA) + '</b> por semana; los relámpagos no cuentan)') if TOPE_RETOS_SEMANA else '(sin tope: a tu ritmo)'}. Al acabar cada tema, el <b>ticket de salida</b>: anónimo, para decir qué te llevas y qué duda queda (si no estás en clase, te sale en tu Nave).</p></div>
 </div>
 <div class="gr-dos" style="margin-top:18px">
@@ -1247,7 +1247,7 @@ Lo ofrecido queda apartado hasta que se responde, y cada trato se cierra en poco
 Tripulación Cero— <b>se ganan</b>: aparecen al completar el relámpago de su tema. Quien no lo hace, lo verá dos semanas más tarde.</p>
 <p><b>El Simulador de Joran.</b> Una <b>batalla de preguntas</b> contra RUTA AZUL sobre todo lo recorrido, para repasar jugando.
 Si pierdes, vuelves a intentarlo; al ganar, el entrenamiento se queda en tu Nave para repasar tema a tema.</p>
-<p><b>Los rankings.</b> Varias clasificaciones (xp, esta semana, colección, tu escuadrón…), <b>siempre por alias</b>: tu nombre real no sale nunca.</p>
+<p><b>Los rankings.</b> Seis clasificaciones (más xp, esta semana, constancia, coleccionistas, el Simulador y escuadrones), del grupo entero o de tu escuadrón, <b>siempre por alias</b>: tu nombre real no sale nunca.</p>
 </div>
 {_gr_img("simulador", "El Simulador de Joran: la batalla contra RUTA AZUL", "El Simulador de Joran.")}
 </div>

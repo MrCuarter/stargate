@@ -60,7 +60,8 @@ c(/function chipsAmbito\(\)/.test(T) && /Todo el grupo/.test(T), "🔴 de todo e
 c(/function embRow\(p\)/.test(T) && /class="rank-esc"/.test(T) && /embRow\(p\)\+SG\.avatarImg/.test(T),
   "🔴 y en el del grupo entero, cada fila lleva el emblema de su escuadrón");
 const MODOS = (T.match(/\{k:'[a-z]+'/g) || []).map(x => x.slice(4, -1));
-["xp", "semana", "coleccion", "escuadron", "racha", "insignias", "planetas", "relampago", "logros", "sabio", "certero", "rapido", "escuadrones"]
+// 26-sep · seis (antes trece): ver la batería 58
+["xp", "semana", "racha", "coleccion", "sabio", "escuadrones"]
   .forEach(k => c(MODOS.indexOf(k) >= 0, "   ranking «" + k + "»"));
 c(/m\.asc\?valor\(a\)-valor\(b\)/.test(T), "   y en «el más rápido» gana el número más bajo");
 
@@ -70,7 +71,7 @@ const gp = fs.existsSync(path.join(GP, "functions/stargateBatalla.js")) ? fs.rea
 const mg = gp.match(/MEDALLAS: \{ minAciertos: (\d+), minRespondidas: (\d+) \}/);
 c(!!mg && Number(mg[1]) === MIN.aciertos && Number(mg[2]) === MIN.respondidas,
   "🔴 los mínimos de «rápido» y «certero» son los mismos que las medallas de la batalla", JSON.stringify(MIN));
-c(/MIN=BAT\.medallas_min/.test(T), "   y el ranking los lee de ahí, no de un número suelto");
+c(!/\{k:'(certero|rapido)'/.test(T), "   (el más certero y el más rápido quedan como medallas de la batalla, no como rankings: 26-sep)");
 
 // 7 · cada embed, en su ventana (16-sep · Norberto: «que puedan abrirse en una ventana emergente dedicada, que solo
 //     aparezca ese contenido»). El laboratorio abrió las nueve y en todas la cabecera, el menú y el pie estaban ocultos.

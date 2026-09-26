@@ -7034,3 +7034,6 @@ button.ac-mc{font-size:clamp(.75rem,.95vw,.9rem);line-height:1.1;padding:2px;wor
 .rkd-l li em{font-style:normal;font-weight:800;color:var(--teal2);font-variant-numeric:tabular-nums}
 .rkd-p{min-width:1.8em;text-align:center;font-family:'Unbounded',sans-serif;font-weight:700;color:var(--amber)}
 .rkd-l li.rkd-sep{justify-content:center;border:0;background:none;padding:0;color:var(--mut)}
+/* 26-sep · el relámpago: en clase… o después, cuando tú quieras */
+.chip.rel em{font-style:normal;font-weight:600;opacity:.85;margin-left:4px}
+.rs-despues{margin:.6em 0 0;font-size:clamp(.9rem,1.4vw,1.15rem);color:#ffd28a}

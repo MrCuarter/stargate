@@ -1097,7 +1097,8 @@
     var rel = t[0].charAt(0) === 'L';
     var cab='<div class="rs-cab"><span class="chip '+(ya?'ok':'pend')+'">'
         +(ya?'✓ Registrado'+cuando:'Pendiente')+'</span>'
-        +(rel?'<span class="chip rel"><img class=ico src=assets/img/iconos/p/rayo.png alt> En clase · 10-15 min</span>':'')
+        // 26-sep · y la aclaración (Norberto: «en clase… o después, cuando tú quieras»): no hace falta haber venido
+        +(rel?'<span class="chip rel"><img class=ico src=assets/img/iconos/p/rayo.png alt> En clase · 10-15 min <em>o después, cuando tú quieras</em></span>':'')
         +cuantosLoLlevan(t[0])
         +'<span class="small muted">'+esc(t[0])+'</span>'+(modo==='fila'?queTeLlevas(t[2]):'')+'</div>';
     var premio='<span class="p xp">+'+t[3]+' xp</span><span class="p cr">+'+creditosDeReto(t[0])+' ◈</span>';

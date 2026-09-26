@@ -89,11 +89,16 @@ c(/\(st\.semanas \|\| SEM \|\| \[\]\)\.forEach/.test(NAVE),
 // ---------------------------------------------------------------- e) ocho rankings, y el de equipos por media
 const MODOS = (TABLERO.match(/\{k:'[a-z]+'/g) || []).length;
 // 16-sep · trece: se sumaron relámpago, logros de a bordo y los tres del Simulador de Joran (sabio, certero y rápido)
-igual(MODOS, 13, "🔴 trece rankings: no trece veces el mismo dato, trece datos distintos");
+// 🔴 26-sep · y de trece a SEIS (Norberto aprobó la propuesta): el alumnado mira dos o tres, y varios seguían al de xp
+igual(MODOS, 6, "🔴 seis rankings, y cada uno premia algo distinto");
+c(/\{k:'xp'/.test(TABLERO) && /\{k:'semana'/.test(TABLERO) && /\{k:'racha'/.test(TABLERO) && /\{k:'coleccion', et:'[^']*Coleccionistas'/.test(TABLERO)
+  && /\{k:'sabio', et:'[^']*Simulador'/.test(TABLERO) && /\{k:'escuadrones'/.test(TABLERO)
+  && !/\{k:'(escuadron|insignias|planetas|relampago|logros|certero|rapido)'/.test(TABLERO),
+  "   más xp, esta semana, constancia, coleccionistas, el Simulador y escuadrones (fuera los que repetían el de xp o castigaban al diferido)");
 c(/porEquipos:true/.test(TABLERO), "uno compara escuadrones");
 c(/Math\.round\(suma\/g\.length\)/.test(TABLERO),
   "🔴 por MEDIA por recluta: sumando ganaría siempre el más numeroso y la tabla mediría cuánta gente hay");
-c(/soloSiSeQuienSoy:true/.test(TABLERO), "«Mi escuadrón» solo sale donde se sabe quién eres");
+c(/function chipsAmbito\(\)/.test(TABLERO), "«Mi escuadrón» lo hacen los botones de escuadrón (el ámbito), no un ranking aparte");
 c(/window\.SG_YO_ALIAS/.test(TABLERO) && /window\.SG_YO_ALIAS/.test(NAVE),
   "   y la Nave se lo dice; en el tablero proyectado no hay nadie y por eso no aparece");
 c(/window\.SG_RANKING_REPINTA/.test(TABLERO) && /SG_RANKING_REPINTA\(\)/.test(NAVE),
@@ -139,11 +144,11 @@ c(/perId \+ "__cromo_"/.test(MOTOR),
 // 🔴 `planetas_completos` es un ARRAY con los temas cerrados, no un contador. El ranking «Explorador»
 // lo restaba como número: `[1,2] - [1]` es NaN, el `sort` no ordena nada y la tabla sale en el orden
 // en que llegaron los datos — pareciendo un ranking. Sin error, claro.
-c(/Array\.isArray\(v\)\?v\.length/.test(TABLERO),
-  "🔴 el ranking de planetas cuenta la LONGITUD del array, no el array");
+c(!/\{k:'planetas'/.test(TABLERO),
+  "   (el de planetas, que restaba arrays, ya no existe: 26-sep)");
 // Y de paso: ningún modo puede devolver algo que no sea un número.
 const CAMPOS_VAL = TABLERO.match(/val:function\(p\)\{return [^}]+\}/g) || [];
-c(CAMPOS_VAL.length >= 6, "hay un extractor de valor por ranking");
+c(CAMPOS_VAL.length >= 5, "hay un extractor de valor por ranking");
 CAMPOS_VAL.forEach(function (f) {
   c(/\|\|\s*0|\?v\.length|p\.xp;|pctCol/.test(f),
     "   y todos se defienden de que falte el dato: " + f.slice(0, 46));
