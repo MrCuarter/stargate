@@ -1595,23 +1595,40 @@ const REG = {};   // cifras que se apuntan para el informe
        * 🔴 23-sep · LA SEMANA 1, EL EMBARQUE. Norberto: «esa sesión es especial: empezar desde cero, explicando STARGATE…
        * enseñamos la nave, dejamos tiempo para que se alisten… proyectamos el ticket y lo rellenan. Después vamos a Fôrge».
        */
-      await rita.ir("sesion.html?per=lab-clase&sem=1");
-      await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>8", 25);
+      // 🔴 26-sep · la presentación de la asignatura es ya su propia sesión (?pres=1): primero lo oficial, después el juego;
+      // la semana 1 es la sesión 2 (Fôrge). Se prueban las dos.
+      await rita.ir("sesion.html?per=lab-clase&pres=1");
+      await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>12", 25);
       const r1 = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
       const pos1 = t => r1.indexOf(t);
-      c("🔴 embarque · la semana 1 abre a oscuras con el tráiler, y después «Bienvenidos a bordo»",
-        r1[0] === "Vídeo" && r1[1] === "Portada", JSON.stringify(r1));
-      c("🔴 embarque · el acto 1 en su orden: mensaje, quiénes somos, el viaje, cada semana, lo que puntúa, la Bitácora",
-        ["El mensaje", "Quiénes somos", "El viaje", "Cada semana", "Lo que puntúa", "La Bitácora"].every((t, k, a) => pos1(t) > 0 && (k === 0 || pos1(t) > pos1(a[k - 1]))), JSON.stringify(r1));
-      c("🔴 embarque · se alistan y fichan EN CLASE, y rellenan el ticket antes de ir a Fôrge",
+      c("🔴 presentación · abre con la asignatura y sus tres bloques, la nota, UNIR, el foro y «voluntario»",
+        ["La asignatura", "Bloque 1", "Bloque 2", "Bloque 3", "Lo que puntúa", "En UNIR", "Las dudas", "Voluntario"].every((t, k, a) => pos1(t) >= 0 && (k === 0 || pos1(t) > pos1(a[k - 1]))), JSON.stringify(r1));
+      c("🔴 presentación · y después el juego: el tráiler, la portada, el mensaje, quiénes somos, cada semana y la Bitácora",
+        ["El tráiler", "Portada", "El mensaje", "Quiénes somos", "Cada semana", "La Bitácora"].every((t, k, a) => pos1(t) > pos1("Voluntario") && (k === 0 || pos1(t) > pos1(a[k - 1]))), JSON.stringify(r1));
+      c("🔴 presentación · se alistan y fichan EN CLASE, rellenan el ticket y «nos vemos en Fôrge» (nada de Fôrge dentro)",
         pos1("¡Alistaos!") > pos1("La Bitácora") && pos1("Llamada a filas") > pos1("¡Alistaos!") && pos1("Ticket de salida") > pos1("Llamada a filas")
-        && pos1("El despegue") > pos1("Ticket de salida") && pos1("Misión 1") > pos1("El despegue"), JSON.stringify(r1));
+        && pos1("Hasta Fôrge") > pos1("Ticket de salida") && pos1("El despegue") < 0 && pos1("Misión 1") < 0, JSON.stringify(r1));
       await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Ticket de salida'})[0].click(); 1"); await dormir(700);
       const tk1 = await rita.js("(document.querySelector('.dia.ticket-form iframe')||{}).src||''");
-      c("🔴 embarque · el ticket lleva ya elegida «Presentación de la asignatura»", /Presentaci%C3%B3n%20de%20la%20asignatura|Presentaci%C3%B3n\+de\+la\+asignatura/.test(tk1), tk1.slice(0, 160));
+      c("🔴 presentación · el ticket lleva ya elegida «Presentación de la asignatura»", /Presentaci%C3%B3n%20de%20la%20asignatura|Presentaci%C3%B3n\+de\+la\+asignatura/.test(tk1), tk1.slice(0, 160));
       await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Lo que puntúa'})[0].click(); 1"); await dormir(700);
       const nota1 = await rita.texto();
       c("   y cuenta lo que puntúa: las dos actividades con su semana, y que los retos no", /Actividad 1/.test(nota1) && /semana 2/.test(nota1) && /Actividad 2/.test(nota1) && /retos no puntúan/.test(nota1), nota1.slice(0, 200));
+      // la semana 1, ya como sesión 2: Fôrge, sin repetir lo de la presentación
+      await rita.ir("sesion.html?per=lab-clase&sem=1");
+      await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>5", 25);
+      const r1b = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
+      c("🔴 semana 1 = sesión 2: la portada de Fôrge, la pregunta, el panel y las misiones, sin el tráiler ni la sinopsis",
+        r1b[0] === "Portada" && r1b.indexOf("La pregunta") > 0 && r1b.indexOf("El despegue") > 0 && r1b.indexOf("El tráiler") < 0 && r1b.indexOf("Voluntario") < 0, JSON.stringify(r1b));
+      // y la sesión de cada actividad (?act=1)
+      await rita.ir("sesion.html?per=lab-clase&act=1");
+      await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>10", 25);
+      const ra = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
+      c("🔴 actividad 1 · su sesión: misión, qué se entrega, los pasos, las capturas, la rúbrica para el 10 y las fechas",
+        ["La misión", "Qué entregas", "3 · Tabla técnica", "Haz capturas", "Para el 10", "Las fechas"].every(t => ra.indexOf(t) > 0), JSON.stringify(ra));
+      await rita.ir("sesion.html?per=lab-clase&pres=1");
+      await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>12", 25);
+      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Lo que puntúa'})[0].click(); 1"); await dormir(700);
       await rita.foto(FOTOS + "/21-embarque-nota.png");
       // (y de vuelta a la semana 2, que es la que miran las comprobaciones de «Lo nuevo» que vienen detrás)
       await rita.ir("sesion.html?per=lab-clase&sem=2");
