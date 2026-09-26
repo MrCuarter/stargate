@@ -319,7 +319,10 @@
       +'</ul></div></div>'};
   }
   /** La despedida: el comandante saluda. En la última clase del viaje, la cita para después de la batalla (el examen). */
-  function diaHastaPronto(fin){
+  function diaHastaPronto(fin, aDonde){
+    if(aDonde==='forge') return {k:'hasta', sec:'cierre', rot:'Hasta Fôrge', montar:conRetrato(null), html:
+      '<div class="dia hasta-pronto con-fondo"><div class="dia-fondo" style="background-image:url(\'assets/img/pres/perfil_en_vuelo.webp\')" aria-hidden="true"></div>'+cmdCuerpo('saludo')
+      +'<div class="hp-txt"><h2>Nos vemos en Fôrge</h2><p class="sub">En la <b>sesión 2</b> empieza el Tema 1: vuestra hoja de ruta, con la IA como ayudante.</p></div></div>'};
     return {k:'hasta', sec:'cierre', rot:fin?'Tras la batalla':'Hasta pronto', montar:conRetrato(null), html:
       '<div class="dia hasta-pronto con-fondo'+(fin?' fin-viaje':'')+'"><div class="dia-fondo" style="background-image:url(\'assets/img/pres/'+(fin?'flotas':'perfil_en_vuelo')+'.webp\')" aria-hidden="true"></div>'+cmdCuerpo('saludo')+'<div class="hp-txt">'
       +(fin?'<h2>Vuelve después de la batalla para ver el desenlace</h2>'
@@ -1318,7 +1321,9 @@
      */
     var fin=e&&e.faltan>=0?(hoy?Date.now()+(e.fecha.getTime()-hoy.getTime()):e.fecha.getTime()):0;
     var nom=function(id){ var r=(RET.REGULAR||[]).filter(function(y){ return y[0]===id; })[0]||[], m=String(r[1]||'').match(/«([^»]+)»/); return {n:m?m[1]:String(r[1]||id), ins:(r[2]||[])[0]||''}; };
-    var R=(a.retos||[]).map(function(x){ var d=nom(x[0]); return {id:x[0], nombre:d.n, ins:d.ins, aporta:x[1]}; });
+    // (aquí SG_ACTIVIDADES viene entera: lo que aporta cada reto es el primer trozo en negrita, como en la Nave)
+    var corto=function(t){ var m=String(t||'').match(/\*\*(.+?)\*\*/); return (m?m[1]:String(t||'')).replace(/\.$/,''); };
+    var R=(a.retos||[]).map(function(x){ var d=nom(x[0]); return {id:x[0], nombre:d.n, ins:d.ins, aporta:corto(x[1])}; });
     var cifra={2:'dos',3:'tres',4:'cuatro'}[R.length]||String(R.length);
     var grande=ins[0], otras=ins.slice(1), bg=grande?badge(grande):null;
     return {k:'entrega', rot:'La entrega', html:
@@ -1479,11 +1484,12 @@
    */
   /** 24-sep · cada pieza del embarque, en una sala de la nave (assets/img/pres), muy apagada: el alumnado «embarca» de verdad. */
   function capaEscena(img){ return '<div class="dia-fondo" style="background-image:url(\'assets/img/pres/'+img+'.webp\')" aria-hidden="true"></div>'; }
-  function esEmbarque(s){ return Number(s&&s.sem)===1 && (window.SG_EMBARQUE||[]).length>0; }
+  // 26-sep · la presentación de la asignatura es una sesión aparte (st.pres, ?pres=1); la semana 1 es una semana más
+  function hayPresentacion(){ return (window.SG_EMBARQUE||[]).length>0; }
   function diaEmbarque(s){
     return {k:'embarque_portada', sec:'portada', rot:'Portada', html:
       '<div class="dia portada emb-portada"><div class="emb-fondo" aria-hidden="true"></div>'+cmdCuerpo('saludo', 'pt-cmd')
-      +'<div class="txt"><div class="kicker">Semana 1 · Embarque'+(st.nombre?' · '+esc(st.nombre):'')+'</div>'
+      +'<div class="txt"><div class="kicker">STARGATE · El embarque'+(st.nombre?' · '+esc(st.nombre):'')+'</div>'
       +'<h1>Bienvenidos a bordo de <span class="emb-nave">La Constancia</span></h1>'
       +'<p class="sub">La nave de STARGATE. Hoy embarcamos; la primera parada, <b>Fôrge</b>.</p>'
       +(!st.alumno&&st.per&&st.yo?'<p class="pt-chat"><button type="button" class="btn min" id="ses-chat">Copiar el enlace para el chat</button> <span class="small" id="ses-chat-m">Entran con su cuenta, fichan solos y ven esta presentación.</span></p>':'')
@@ -1524,20 +1530,96 @@
       +'<ol class="emb-pasos">'
       +paso(0,'La sesión en directo','Esta: la historia, el tema y las misiones de la semana.')
       +paso(1,'Los retos','Dos por tema, los dos prácticos. El <b>relámpago</b> se hace aquí, en clase, en quince minutos, y recupera a un tripulante; el <b>reto principal</b>, en casa, deja una pieza en tu Bitácora.')
-      +paso(2,'Tu Nave','Los registras tú, con el enlace de lo que has hecho. Nunca más de uno para casa por semana: está pensado para quien trabaja.')
+      +paso(2,'Tu Nave','Los registras tú, con el enlace de lo que has hecho. Sin tope: cada cual a su ritmo, pensado para quien trabaja.')
       +paso(3,'El ticket de salida','Al acabar cada tema, dos minutos y anónimo. Lo que digáis sale en la clase siguiente.')
       +'</ol></div>'};
   }
   function diaNota(){
     var E=window.SG_EVALUACION||[];
+    // 26-sep · con las fechas de ESTE grupo (Norberto: «a mano… la información de puntuaciones y fechas»)
+    var fechaDe=function(nombre){ var m=String(nombre).match(/^Actividad\s*(\d)/); if(!m) return ''; var a=ACTS.filter(function(x){ return String(x.n)===m[1]; })[0];
+      return a?fechaEntrega(a):''; };
     return {k:'embarque_nota', sec:'embarque', rot:'Lo que puntúa', html:
       '<div class="dia emb con-fondo">'+capaEscena('hangar')+'<div class="kicker"><img class=ico src=assets/img/iconos/p/notas.png alt> La nota</div><h2>Lo que cuenta para tu nota</h2>'
-      +'<div class="emb-nota">'+E.map(function(x,i){
-          return '<div class="emb-n'+(/^Actividad/.test(x[0])?' act':'')+'" style="--i:'+i+'"><b>'+esc(x[1])+'</b><span><em>'+esc(x[0])+'</em>'+esc(x[2])+'</span></div>'; }).join('')+'</div>'
+      +'<div class="emb-nota">'+E.map(function(x,i){ var f=fechaDe(x[0]);
+          return '<div class="emb-n'+(/^Actividad/.test(x[0])?' act':'')+'" style="--i:'+i+'"><b>'+esc(x[1])+'</b><span><em>'+esc(x[0])+'</em>'+esc(x[2])
+            +(f?'<i class="emb-fecha">Entrega: '+esc(f)+', 23:59</i>':'')+'</span></div>'; }).join('')+'</div>'
       +'<p class="emb-ojo">Los <b>retos no puntúan</b>: son el camino. Muchos dejan hecho un trozo de una actividad, y quien los hace llega a la entrega con la mitad resuelta.</p>'
       +(window.SG_EVALUACION_EXAMEN?'<p class="sub">'+esc(window.SG_EVALUACION_EXAMEN)+'</p>':'')
       +'</div>'};
   }
+  /**
+   * 🔴 26-sep · LA PRESENTACIÓN DE LA ASIGNATURA: LO OFICIAL, ANTES QUE EL JUEGO. Norberto: «aislar la sesión 1
+   * (presentación)… con la información de puntuaciones y fechas… STARGATE es totalmente voluntario… la asistencia (la que
+   * cuenta para nota) y las actividades 1 y 2 se entregan por la plataforma UNIR… las dudas, en el foro de UNIR… los
+   * planetas, qué se trabaja en cada uno, en 3 bloques». Todas las fechas salen del calendario de ESTE grupo.
+   */
+  var MESES_L=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var DIAS_L=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  function lunesDe(sem){ var S=window.SGSEMANAS; if(!S||!st.inicio) return null; try{ return S.fecha(S.inicioDeSemana(st.inicio, sem, st.pausas||[])); }catch(e){ return null; } }
+  function fechaEntrega(a){
+    if(st.tipo==='PUA'||!(window.SG&&window.SG.entregaDe)||!st.inicio) return '';
+    var e=window.SG.entregaDe(a, st.inicio, st.pausas, lunesDe(1)); return e?e.texto:'';
+  }
+  function diaAsignatura(){
+    return {k:'asig_portada', sec:'embarque', rot:'La asignatura', montar:conRetrato(montarPortada), html:
+      '<div class="dia portada asig-portada con-fondo">'+capaEscena('ocho_mundos')+cmdCuerpo('saludo', 'pt-cmd')
+      +'<div class="txt"><div class="kicker">Sesión 1 · Presentación de la asignatura'+(st.nombre?' · '+esc(st.nombre):'')+'</div>'
+      +'<h1>'+esc(window.SG_ASIGNATURA||'La asignatura')+'</h1>'
+      +'<p class="sub">Quince semanas, <b>ocho temas</b> en tres bloques y <b>dos actividades</b>. Hoy, cómo funciona todo; en la sesión 2 empezamos.</p>'
+      +(!st.alumno&&st.per&&st.yo?'<p class="pt-chat"><button type="button" class="btn min" id="ses-chat">Copiar el enlace para el chat</button> <span class="small" id="ses-chat-m">Entran con su cuenta, fichan solos y ven esta presentación.</span></p>':'')
+      +'</div></div>'};
+  }
+  function diaBloque(n){
+    var B=(window.SG_BLOQUES||[])[Number(n)-1]; if(!B) return null;
+    var T=window.SG_TEMARIO||{}, L=semanas();
+    var tarjetas=B[1].map(function(t){
+      var pl=planeta(t)||[], tm=T[String(t)]||['',''], ss=L.filter(function(x){ return Number(x.tema_n)===t; }), f=ss.length?lunesDe(ss[0].sem):null;
+      var cuando=!ss.length?'':(ss.length>1?'Semanas '+ss[0].sem+' y '+ss[ss.length-1].sem:'Semana '+ss[0].sem)+(f?' · desde el '+f.getDate()+' de '+MESES_L[f.getMonth()]:'');
+      return '<article class="asig-t">'+(pl[0]?'<img src="assets/img/planetas/'+esc(pl[0])+'.png'+(window.SG_IMGV||'')+'" alt="">':'')
+        +'<div><p class="asig-t-k">Tema '+t+(pl[1]?' · '+esc(pl[1]):'')+'</p><h3>'+esc(tm[0])+'</h3><p>'+esc(tm[1])+'</p>'
+        +(cuando?'<p class="asig-t-c">'+esc(cuando)+'</p>':'')+'</div></article>';
+    }).join('');
+    return {k:'asig_bloque', sec:'embarque', rot:'Bloque '+n, html:
+      '<div class="dia emb asig-bloque con-fondo">'+capaEscena('ocho_mundos')+'<div class="kicker">La asignatura · bloque '+n+' de '+(window.SG_BLOQUES||[]).length+'</div>'
+      +'<h2>'+esc(B[0])+'</h2><p class="sub">'+esc(B[2])+'</p><div class="asig-ts n'+B[1].length+'">'+tarjetas+'</div></div>'};
+  }
+  function diaUnir(){
+    var fx=lunesDe(16); if(fx) fx.setDate(fx.getDate()+6);   // los tests: hasta el domingo de la semana de exámenes
+    var fila=function(v, tit, txt, act){ return '<div class="emb-n'+(act?' act':'')+'"><b>'+v+'</b><span><em>'+tit+'</em>'+txt+'</span></div>'; };
+    var acts=ACTS.map(function(a){ var f=fechaEntrega(a);
+      return fila(esc(a.puntos), 'Actividad '+a.n, 'Se entrega en la <b>plataforma de UNIR</b>'+(f?': <b>'+esc(f)+'</b>, hasta las 23:59':'')+'.', true); }).join('');
+    return {k:'asig_unir', sec:'embarque', rot:'En UNIR', html:
+      '<div class="dia emb con-fondo">'+capaEscena('hangar')+'<div class="kicker"><img class=ico src=assets/img/iconos/p/notas.png alt> Lo que se evalúa</div>'
+      +'<h2>Todo lo evaluable, por la plataforma de UNIR</h2>'
+      +'<div class="emb-nota asig-unir">'
+      +fila('0,6', 'La asistencia que cuenta para nota', 'Tres clases en directo, <b>0,2 cada una</b>. La registra la <b>plataforma de UNIR</b> al conectarte a la clase: la llamada a filas de STARGATE es del juego, da xp y no nota.')
+      +acts
+      +fila('0,8', 'Los tests de tema', 'Uno por tema, 0,1 cada uno, en la <b>plataforma de UNIR</b>'+(fx&&st.tipo!=='PUA'?', hasta el <b>'+DIAS_L[fx.getDay()]+' '+fx.getDate()+' de '+MESES_L[fx.getMonth()]+'</b>':'')+'.')
+      +'</div><p class="emb-ojo">En STARGATE solo registráis vuestros retos. <b>La nota la pone UNIR</b>, con lo que entregáis allí.</p></div>'};
+  }
+  function diaDudas(){
+    return {k:'asig_dudas', sec:'embarque', rot:'Las dudas', html:
+      '<div class="dia emb con-fondo">'+capaEscena('puente')+'<div class="kicker"><img class=ico src=assets/img/iconos/p/mensaje.png alt> Las dudas</div>'
+      +'<h2>¿Dudas? Al foro de la asignatura</h2>'
+      +'<p class="sub">En la <b>plataforma de UNIR</b>: lo que preguntas ayuda a toda la clase, y la respuesta se queda para quien venga detrás.</p>'
+      +'<ol class="emb-pasos asig-dudas">'
+      +'<li><b>De la asignatura</b><span>Los temas, las actividades, las fechas, las notas: <b>el foro de UNIR</b>.</span></li>'
+      +'<li><b>De STARGATE</b><span>Tu Nave, un reto que no se registra, algo que no funciona: el menú <b>«···»</b> de tu Nave.</span></li>'
+      +'</ol></div>'};
+  }
+  function diaVoluntario(){
+    return {k:'asig_voluntario', sec:'embarque', rot:'Voluntario', html:
+      '<div class="dia emb asig-vol con-fondo">'+capaEscena('puente')+'<img class="asig-vol-neb" src="assets/img/personajes/nebula.png" alt="">'
+      +'<div class="asig-vol-t"><div class="kicker">Y ahora, el juego</div><h2>STARGATE es voluntario</h2>'
+      +'<p class="sub">Es una forma de vivir <b>en primera persona</b> lo que es una gamificación: la misma que después podréis diseñar para vuestras aulas.</p>'
+      +'<ol class="emb-pasos">'
+      +'<li><b>Sin penalización</b><span>Seguirla o no, no resta nada. La nota es la de UNIR.</span></li>'
+      +'<li><b>A vuestro ritmo</b><span>Entráis cuando queráis y hacéis lo que os sirva.</span></li>'
+      +'<li><b>Con ventaja</b><span>Los retos os dejan hecha media actividad.</span></li>'
+      +'</ol></div></div>'};
+  }
+
   function diaBitacora(){
     var pl=window.SG_PLANTILLA_EP||'', A=window.SG_ACTIVIDADES||[];
     return {k:'embarque_bitacora', sec:'embarque', rot:'La Bitácora', html:
@@ -1577,7 +1659,12 @@
     var VI=window.SG_VIDEOS||{}, out=[], hay=function(x){ return x; };
     (window.SG_EMBARQUE||[]).forEach(function(pz){
       var pieza=pz[0], arg=pz[1], t=pz[2]||'ap', add=function(x){ if(x){ (Array.isArray(x)?x:[x]).forEach(function(y){ if(y){ y.t=t; out.push(y); } }); } };
-      if(pieza==='video'){ var v=VI[arg]; if(v) add(Object.assign(diaVideo([v,''], 0, arg==='trailer'?'Luces fuera':arg==='t1i'?'Rumbo al planeta':'Para empezar', arg==='trailer'?'El tráiler':arg==='t1i'?'Rumbo al planeta':''), {sec:'videos'})); }
+      if(pieza==='portada_asig') add(diaAsignatura());
+      else if(pieza==='bloque') add(diaBloque(arg));
+      else if(pieza==='unir') add(diaUnir());
+      else if(pieza==='dudas') add(diaDudas());
+      else if(pieza==='voluntario') add(diaVoluntario());
+      else if(pieza==='video'){ var v=VI[arg]; if(v) add(Object.assign(diaVideo([v,''], 0, arg==='trailer'?'Luces fuera':arg==='t1i'?'Rumbo al planeta':'Para empezar', arg==='trailer'?'El tráiler':arg==='t1i'?'Rumbo al planeta':''), {sec:'videos'})); }
       else if(pieza==='portada') add(diaEmbarque(s));
       else if(pieza==='mensaje') add(diaForo(s));
       else if(pieza==='nombres') add(diaNombres());
@@ -1599,7 +1686,7 @@
       }
       else if(pieza==='pregunta') add(diasPregunta(s));
       else if(pieza==='retos') add(diaRetosSemana(s));
-      else if(pieza==='hasta') add(diaHastaPronto());
+      else if(pieza==='hasta') add(diaHastaPronto(false, arg));
       else if(pieza==='misiones') add(diasMisiones(s));
     });
     out=out.filter(hay);
@@ -1611,10 +1698,12 @@
     return todo.length?todo:[diaEmbarque(s)];
   }
   function construir(s, n){
-    if(esEmbarque(s)) return construirEmbarque(s, n);
     // 24-sep · el desenlace («La batalla de la Ciudadela Gris») no se proyecta: se abre en la Nave de cada cual tras la batalla
     var TB=(window.SG_TRAS_BATALLA||[]).map(function(x){ return x.id; });
-    var vids=(s.videos||[]).filter(function(v){ return TB.indexOf((v[0]||{}).id)<0; }), deTipo=function(t){ return vids.filter(function(v){ return tipoVideo(v)===t; }); };
+    // 26-sep · en la semana 1, lo que ya lleva la presentación (el tráiler, la sinopsis, la Bitácora y la Nave) no se repite
+    var yaEnPres=Number(s.sem)===1&&hayPresentacion()?(window.SG_EMBARQUE||[]).filter(function(x){ return x[0]==='video'; })
+          .map(function(x){ return ((window.SG_VIDEOS||{})[x[1]]||{}).id; }):[];
+    var vids=(s.videos||[]).filter(function(v){ var id=(v[0]||{}).id; return TB.indexOf(id)<0 && yaEnPres.indexOf(id)<0; }), deTipo=function(t){ return vids.filter(function(v){ return tipoVideo(v)===t; }); };
     // `t` dice en qué tiempo de la clase va cada diapositiva: 'ap' antes de la presentación,
     // 'ci' después. Es lo único que hace falta para poder pegar el embed dos veces.
     // 24-sep · Norberto: «cambia el orden: 1) Portada 2) Llamada a filas 3) La pregunta» (en las semanas 1 y 2, «Únete»
@@ -1625,7 +1714,7 @@
     d=d.concat(diasPregunta(s));
     // 20-sep · al empezar un tema, lo que dijisteis al cerrar el anterior: primero cómo fue, después las dudas
     if(primeraDelTema(L, iS)) diasTicket(L, iS).forEach(function(x){ d.push(x); });
-    else if(iS===1 && esEmbarque(L[0])) diasTicketPresentacion().forEach(function(x){ d.push(x); });
+    else if(iS===1 && hayPresentacion()) diasTicketPresentacion().forEach(function(x){ d.push(x); });
     var fo=diaForo(s); if(fo) d.push(fo);   // el mensaje de la semana, justo antes del vídeo
     // 24-sep · la intro del planeta, con su nombre en la barra (como el cierre): «Rumbo al planeta»
     deTipo('inicio').forEach(function(v,i){ d.push(Object.assign(diaVideo(v, i, 'Para empezar', /·\s*intro\b/i.test((v[0]&&v[0].titulo)||'')?'Rumbo al planeta':''), {sec:'videos'})); });
@@ -1640,7 +1729,7 @@
     [diaAnteriores(s)].concat(diasReflexion(s), [sem>=2?diaMovido():null, yaRank?diaSemanal():null, yaRank?diaTop():null, yaColec?diaColeccion(s):null,
       diaSimulador(s), diaVotacion(s), yaRank?diaEscuadrones():null, yaOferta?diaOferta():null])
       .forEach(function(x){ if(x) d.push(x); });
-    d=d.concat(diapositivasNuevas(s));
+    if(!(Number(s.sem)===1&&hayPresentacion())) d=d.concat(diapositivasNuevas(s));
     d.forEach(function(x){ x.t='ap'; });     // todo lo de arriba es APERTURA
     var ci=[];
     deTipo('tema').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'Rumbo al planeta', 'Rumbo al planeta'), {sec:'misiones'})); });
@@ -1744,6 +1833,7 @@
    * su primera diapositiva; el que está en el Genially (cuando la sesión va dentro de él) no se pulsa.
    */
   function tramos(){
+    if(st.pres) return '';   // 26-sep · la presentación de la asignatura no tiene inicio, Genially y cierre: es de una pieza
     var hay={}; st.slides.forEach(function(x){ hay[x.t||'ap']=true; });
     return '<div class="ses-tramos" id="ses-tramos" role="navigation" aria-label="Los tres tiempos de la clase">'+TRAMOS.map(function(x){
       var suyo=hay[x[0]];
@@ -1826,13 +1916,25 @@
    * diferido (y el primer paso de la barra de abajo, para volver): las semanas ya llegadas se abren, la de esta semana
    * brilla, la que estás viendo va marcada y las que faltan esperan con candado.
    */
+  /** 26-sep · ir a una sesión: 0 = la presentación de la asignatura; N = la semana N (en la diapositiva `i`) */
+  function irASesion(sem, i){
+    st.pres=!sem; if(sem) st.sem=sem; st.i=i||0;
+    try{ var u=new URL(location.href); if(st.pres){ u.searchParams.set('pres','1'); u.searchParams.delete('sem'); }
+      else { u.searchParams.delete('pres'); u.searchParams.set('sem',st.sem); } history.replaceState(null,'',u); }catch(e){}
+    pintar();
+  }
   function diaSemanas(lista){
-    var hoy=Number(st.semHoy)||1, viendo=Number(st.sem)||hoy;
+    var hoy=Number(st.semHoy)||1, viendo=st.pres?0:(Number(st.sem)||hoy);
     return {k:'semanas', sec:'semanas', rot:'Las semanas', t:'ap', html:
       '<div class="dia dif-semanas con-fondo">'+capaEscena('pasillo')+'<div class="kicker">Las sesiones de clase</div>'
       +'<h2>¿Qué semana quieres ver?</h2>'
       +'<p class="sub">Cada sesión, tal como se vio en clase. Se van abriendo según avanza el curso.</p>'
-      +'<div class="dif-grid">'+lista.map(function(x){
+      +'<div class="dif-grid">'
+      // 26-sep · la presentación de la asignatura, siempre abierta y la primera: las notas, las fechas y cómo va todo
+      +(hayPresentacion()?'<button type="button" class="dif-s dif-pres'+(st.pres?' viendo':'')+'" data-dif-sem="0">'
+        +'<img class="ico dif-pl-i" src="assets/img/iconos/p/notas.png" alt=""><b>Presentación</b><span>La asignatura: notas, fechas y cómo funciona</span>'
+        +(st.pres?'<em>La que estabas viendo</em>':'')+'</button>':'')
+      +lista.map(function(x){
           // (26-sep · la 15, sin tema, con su planeta: el de la Estática, como en el resto de la sesión)
           var k=Number(x.sem)||0, pl=Number(x.tema_n)?planeta(x.tema_n):(x.planeta||null), abierta=k<=hoy;
           var cls='dif-s'+(k===hoy?' hoy':'')+(k===viendo?' viendo':'')+(abierta?'':' cerrada');
@@ -1845,11 +1947,7 @@
         }).join('')+'</div></div>',
       montar:function(el){
         Array.prototype.forEach.call(el.querySelectorAll('[data-dif-sem]'), function(b){
-          b.onclick=function(){
-            st.sem=Number(b.getAttribute('data-dif-sem')); st.i=1;   // (a su primera diapositiva: la 0 es este índice)
-            try{ var u=new URL(location.href); u.searchParams.set('sem',st.sem); history.replaceState(null,'',u); }catch(e){}
-            pintar();
-          };
+          b.onclick=function(){ irASesion(Number(b.getAttribute('data-dif-sem')), 1); };   // (a su primera diapositiva: la 0 es este índice)
         });
         var yo=el.querySelector('.dif-s.viendo')||el.querySelector('.dif-s.hoy'); if(yo&&yo.focus) try{ yo.focus({preventScroll:true}); }catch(e){}
         return null;
@@ -1858,8 +1956,9 @@
   function tira(){
     var n=semanas().length;
     var celdas=[]; for(var k=1;k<=n;k++){ celdas.push(k); }
-    return '<div class="sem-tira">'+celdas.map(function(k){
-      return '<button type="button" class="s'+(k===st.sem?' on':'')+'" data-sem="'+k+'">'+k+'</button>';
+    return '<div class="sem-tira">'+(hayPresentacion()?'<button type="button" class="s pres'+(st.pres?' on':'')+'" data-pres="1" title="La presentación de la asignatura (sesión 1)">P</button>':'')
+      +celdas.map(function(k){
+      return '<button type="button" class="s'+(k===st.sem&&!st.pres?' on':'')+'" data-sem="'+k+'">'+k+'</button>';
     }).join('')+'</div>';
   }
 
@@ -1880,7 +1979,7 @@
        * grupo dentro: se deduce de quién la abre.
        */
       +'<p class="ses-copiar"><span class="small muted">Código de inserción para tu Genially:</span> '
-        +[['apertura','1 · Apertura'],['cierre','3 · Cierre'],['','La sesión entera']].map(function(x){
+        +[['apertura','1 · Apertura'],['cierre','3 · Cierre'],['','La sesión entera'],['pres','La presentación de la asignatura']].map(function(x){
           return '<button type="button" class="btn min" data-copiar-ses="'+x[0]+'">&lt;/&gt; '+x[1]+'</button>'; }).join(' ')+'</p>'
       +(s.consejo?'<div class="card consejo"><b>El consejo del Capitán.</b> '+esc(s.consejo)+'</div>':'')
       +(s.clases?'<p class="small muted">'+esc(s.clases)+'</p>':'')
@@ -1895,7 +1994,8 @@
     if(st.sem<1) st.sem=1; if(st.sem>n) st.sem=n;
     var s=lista[st.sem-1];
     if(!s){ root.innerHTML='<div class="card"><h3>Sin semanas que enseñar</h3></div>'; return; }
-    st.slides=construir(s,n);
+    // 26-sep · la presentación de la asignatura es su propia sesión (st.pres); la semana 1, una semana más
+    st.slides=st.pres&&hayPresentacion()?construirEmbarque(lista[0]||s,n):construir(s,n);
     if(DIFERIDO) st.slides=[diaSemanas(lista)].concat(st.slides);   // 25-sep · en diferido, el índice de semanas delante
     if(st.i>=st.slides.length) st.i=st.slides.length-1;
     if(st.i<0) st.i=0;
@@ -2011,7 +2111,7 @@
     clearTimeout(DIRECTO.t);
     DIRECTO.t=setTimeout(function(){
       DIRECTO.ultimo=firma;
-      M.publicarEnVivo(st.per, {sesion:{activa:true, sem:st.sem, k:o.k, n:o.n, t:Date.now(), por:st.miNombre||''}}).catch(function(){});
+      M.publicarEnVivo(st.per, {sesion:{activa:true, sem:st.sem, pres:!!st.pres, k:o.k, n:o.n, t:Date.now(), por:st.miNombre||''}}).catch(function(){});
     }, 350);
   }
   function encenderDirecto(){
@@ -2041,7 +2141,7 @@
       SEG.d=d||{};
       var s=SEG.d.sesion;
       if(SEG.on && s && s.activa && (Date.now()-Number(s.t||0))<3*3600e3){
-        if(Number(s.sem)&&Number(s.sem)!==Number(st.sem)){ st.sem=Number(s.sem); st.i=0; pintar(); }
+        if(!!s.pres!==!!st.pres || (!s.pres&&Number(s.sem)&&Number(s.sem)!==Number(st.sem))){ st.pres=!!s.pres; if(Number(s.sem)) st.sem=Number(s.sem); st.i=0; pintar(); }
         var i=indiceDe(s.k, s.n); if(i>=0&&i!==st.i) ir(i, false, true);
       }
       var p=SEG.d.pregunta;
@@ -2128,11 +2228,7 @@
       b.onclick=function(){ ir(Number(b.getAttribute('data-i'))); };
     });
     Array.prototype.forEach.call(root.querySelectorAll('.sem-tira .s'),function(b){
-      b.onclick=function(){
-        st.sem=Number(b.getAttribute('data-sem')); st.i=0;
-        try{ var u=new URL(location.href); u.searchParams.set('sem',st.sem); history.replaceState(null,'',u); }catch(e){}
-        pintar();
-      };
+      b.onclick=function(){ irASesion(b.hasAttribute('data-pres')?0:Number(b.getAttribute('data-sem')), 0); };
     });
     var cg=root.querySelector('#ses-cambiar');
     if(cg) cg.onclick=function(){ elegirGrupo(st.grupos); };
@@ -2160,7 +2256,7 @@
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-copiar-ses]'),function(bt){
       bt.onclick=function(){
-        var tr=bt.getAttribute('data-copiar-ses'), ruta='sesion.html?embed=1'+(tr?'&tramo='+tr:''), tit='STARGATE · '+bt.textContent.replace(/^<\/>\s*/,'');
+        var tr=bt.getAttribute('data-copiar-ses'), ruta='sesion.html?embed=1'+(tr==='pres'?'&pres=1':tr?'&tramo='+tr:''), tit='STARGATE · '+bt.textContent.replace(/^<\/>\s*/,'');
         var M=window.SG&&window.SG.MOTOR, cod=M&&M.codigoGenially?M.codigoGenially(ruta,tit)
           :'<iframe src="'+location.origin+'/'+ruta+'" width="1200" height="675" style="border:0;width:100%;height:100%" allow="fullscreen; clipboard-write; autoplay; encrypted-media" allowfullscreen title="'+tit+'"></iframe>';
         var ant=bt.innerHTML;
@@ -2203,6 +2299,7 @@
       // son de este grupo y de nadie más — proyectarlos es lo que convierte una tabla en una clase.
       st.d = d;
     }
+    st.pres=q.get('pres')==='1';   // 26-sep · la presentación de la asignatura (sesión 1)
     var forzada=parseInt(q.get('sem')||'0',10);
     var hoy=window.SGCAL.semanaActual(st.inicio, st.pausas);
     st.semHoy=hoy&&hoy>0?hoy:1;

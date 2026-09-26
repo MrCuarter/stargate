@@ -731,7 +731,10 @@
           (ini ? ' · ' + (sem < 1 ? 'empieza el ' : 'empezó el ') + esc(diaC(ini)) : '') + '</p></div>' +
       '<div class="gr-acc"><a class="gp-b principal" href="sesion.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
         '<img class="pt-acc-i" src="assets/img/iconos/cohete.png" alt=""><span class="pt-acc-t"><b>Empezar la clase</b><em>proyecta la sesión de hoy</em></span></a>' +
-        botonCfgSesion(PER) + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") + '</div>' +
+        botonCfgSesion(PER) + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") +
+        // 26-sep · la presentación de la asignatura (sesión 1), siempre a mano: en la semana 1 es la primera clase
+        '<a class="gp-b gr-pres' + (sem <= 1 ? ' hoy' : '') + '" href="sesion.html?per=' + esc(PER) + '&pres=1" target="_blank" rel="noopener" title="La sesión 1: la asignatura, sus notas y sus fechas, y el embarque en STARGATE">' +
+          '<img class="ico" src="assets/img/iconos/p/notas.png" alt=""> La presentación' + (sem <= 1 ? ' <em>sesión 1</em>' : '') + '</a></div>' +
       barraEscuela(t, sem, total) +
     '</div>';
   }
@@ -2308,7 +2311,10 @@
           mFila({ ico: ico("video"), tit: "El cierre", desc: "Los retos, el tripulante, las misiones y el ticket: después de tu teoría.",
                   abrir: "sesion.html?per=" + P + "&tramo=cierre", ventana: "sesion-ci_" + PER, embed: "sesion-ci", codigo: "sesion.html?embed=1&tramo=cierre" }),
           mFila({ ico: ico("video"), tit: "La sesión completa", desc: "La sesión entera, con tu panel dentro, en su sitio.",
-                  abrir: "sesion.html?per=" + P, ventana: "sesion_" + PER, embed: "sesion", codigo: "sesion.html?embed=1" })]) +
+                  abrir: "sesion.html?per=" + P, ventana: "sesion_" + PER, embed: "sesion", codigo: "sesion.html?embed=1" }),
+          // 26-sep · la sesión 1, aparte (la semana 1 lleva la 2: Fôrge, parte 1). Tu alumnado la tiene en su Nave
+          mFila({ ico: ico("notas"), tit: "La presentación de la asignatura", desc: "La sesión 1: los tres bloques, la nota con sus fechas, UNIR y el foro, y el embarque en STARGATE. Tu alumnado la tiene siempre en su Nave.",
+                  abrir: "sesion.html?per=" + P + "&pres=1", ventana: "sesion-pres_" + PER, embed: "sesion-pres", codigo: "sesion.html?embed=1&pres=1" })]) +
         mBloque("En clase", "", [
           // 23-sep · Norberto: «un embed exclusivo de herramientas: dar regalos, fichar, estudiante aleatorio, lanzar pregunta…»
           mFila({ ico: ico("envivo"), tit: "Las herramientas", desc: "Pasar lista, al azar, premiar, una pregunta, una votación y el tiempo.",

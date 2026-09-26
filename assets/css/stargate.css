@@ -6774,3 +6774,43 @@ details.reto-sem.re-destaca{box-shadow:0 0 0 2px var(--teal),0 0 26px rgba(55,22
 .tk-nave-f iframe{display:block;width:100%;height:min(70vh,640px);border:0;border-radius:12px;background:#fff}
 .tk-nave-f p{margin:8px 0 0}
 @media(max-width:560px){ .tk-nave summary{flex-wrap:wrap} .tk-nave-b{width:100%;text-align:center} }
+
+/* ════════ 26-sep · LA PRESENTACIÓN DE LA ASIGNATURA, APARTE (sesión 1) ════════ */
+/* el banner del grupo: «La presentación», a mano siempre y encendida en la semana 1 */
+.gr-acc{flex-wrap:wrap;justify-content:flex-end}
+.gr-acc .gr-pres{flex-direction:row;padding:10px 14px;border-radius:14px;white-space:nowrap}
+.gr-acc .gr-pres em{font-style:normal;font-size:.75rem;font-weight:800;color:var(--amber);margin-left:4px}
+.gr-acc .gr-pres.hoy{border-color:var(--amber);background:rgba(245,176,67,.1)}
+/* la tira de semanas del docente: la «P» delante */
+.sem-tira .s.pres{width:auto;padding:0 10px;font-weight:800;border-color:rgba(245,176,67,.6);color:#ffd28a}
+.sem-tira .s.pres.on{background:var(--amber);border-color:var(--amber);color:#1b1206}
+/* el índice del diferido: la presentación, la primera tarjeta */
+.dif-s.dif-pres{border-color:rgba(245,176,67,.55)}
+.dif-s .dif-pl-i{width:clamp(36px,6vh,56px);height:clamp(36px,6vh,56px);margin:clamp(4px,1vh,8px) 0}
+/* El Archivo: la presentación, arriba */
+a.ar-pres{display:flex;align-items:center;gap:14px;padding:14px 18px;margin:0 0 16px;text-decoration:none;color:var(--ink);border-color:rgba(245,176,67,.45)}
+a.ar-pres:hover{border-color:var(--amber)}
+.ar-pres-i{width:44px;height:44px;object-fit:contain;flex:none}
+.ar-pres span{display:flex;flex-direction:column;flex:1;min-width:0;line-height:1.35}
+.ar-pres small{font-size:.85rem;color:var(--mut)}
+.ar-pres em{flex:none;font-style:normal}
+@media(max-width:560px){ a.ar-pres{flex-wrap:wrap} }
+/* la nota con sus fechas */
+.emb-fecha{display:block;margin-top:4px;font-style:normal;font-weight:800;color:#ffd28a}
+/* los tres bloques de la asignatura: un planeta por tema */
+.asig-ts{display:grid;gap:12px;margin-top:6px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.asig-ts.n2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.asig-t{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:14px;border-radius:16px;border:1px solid var(--line);background:rgba(8,14,22,.78)}
+.asig-t img{width:clamp(64px,12vh,120px);height:clamp(64px,12vh,120px);object-fit:contain;filter:drop-shadow(0 0 14px rgba(55,224,236,.3))}
+.asig-t h3{margin:2px 0 4px;font-size:clamp(1rem,1.6vw,1.35rem);text-wrap:balance}
+.asig-t p{margin:0;font-size:clamp(.85rem,1.2vw,1.05rem);line-height:1.4}
+.asig-t-k{font-size:.78rem!important;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--teal2)}
+.asig-t-c{margin-top:6px!important;font-weight:800;color:#ffd28a}
+@media(max-width:700px){ .asig-ts,.asig-ts.n2{grid-template-columns:minmax(0,1fr)} .asig-t{flex-direction:row;text-align:left} }
+/* STARGATE es voluntario: NEBULA a la izquierda */
+.dia.asig-vol{flex-direction:row;align-items:flex-end;gap:3%}
+.asig-vol-neb{position:relative;z-index:1;width:22%;max-height:88%;object-fit:contain;object-position:50% 100%;align-self:flex-end;margin-bottom:-3%;filter:drop-shadow(0 0 18px rgba(55,224,236,.35))}
+.asig-vol-t{flex:1;min-width:0;align-self:center;display:flex;flex-direction:column;gap:10px}
+@media(max-width:700px){ .dia.asig-vol{flex-direction:column;align-items:stretch} .asig-vol-neb{display:none} }
+/* (el nombre de la asignatura es largo: en la portada, más pequeño que el de un planeta; en todas las variantes de la sesión) */
+.dia.asig-portada h1,body.embed .mazo .dia.asig-portada h1,.mazo:fullscreen .dia.asig-portada h1{font-size:clamp(1.6rem,3.6vw,3.1rem);text-wrap:balance;max-width:22ch}

@@ -88,7 +88,7 @@ c(ids15.indexOf("7z3cAg-7Kow") >= 0 && ids15.indexOf("7z3cAg-7Kow") === ids15.in
 c(/var TRAS=\(window\.SG_TRAS_BATALLA\|\|\[\]\)/.test(REC) && /for\(var j=0;j<TRAS\.length;j\+\+\) if\(TRAS\[j\]\.id===id\) return TRAS\[j\]/.test(REC),
   "   la Nave lo cierra con el mismo candado que los fragmentos (El Archivo, el visor y el mapa)");
 c(/fr\.desenlace\?'El desenlace'/.test(REC), "   y en El Archivo se llama «El desenlace», no «Fragmento undefined»");
-c(/TB\.indexOf\(\(v\[0\]\|\|\{\}\)\.id\)<0/.test(SES) && /la batalla de la Ciudadela Gris<\/b> y, detrás, el último fragmento/.test(SES),
+c(/TB\.indexOf\(id\)<0/.test(SES) && /la batalla de la Ciudadela Gris<\/b> y, detrás, el último fragmento/.test(SES),
   "🔴 la sesión no lo proyecta, y la última diapositiva dice que se abre en la Nave");
 c(/window\.SG_TRAS_BATALLA=/.test(leer("sesion.html")), "   (la sesión recibe la lista para quitarlo)");
 

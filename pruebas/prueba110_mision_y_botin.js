@@ -39,7 +39,7 @@ c(/\} else if\(SEGUIR \|\| DIFERIDO\)\{/.test(SES), "🔴 la sesión en diferido
 c(/if\(DIFERIDO\) st\.slides=\[diaSemanas\(lista\)\]\.concat\(st\.slides\);/.test(SES), "🔴 en diferido, la primera diapositiva es el índice de semanas");
 c(/function diaSemanas\(lista\)/.test(SES) && /k===hoy\?' hoy'/.test(SES) && /abierta=k<=hoy/.test(SES) && /dif-candado/.test(SES),
   "   la de esta semana brilla, las llegadas se abren y las que faltan llevan candado");
-c(/st\.sem=Number\(b\.getAttribute\('data-dif-sem'\)\); st\.i=1;/.test(SES), "   y pulsar una lleva a su primera diapositiva (la 0 es el índice)");
+c(/b\.onclick=function\(\)\{ irASesion\(Number\(b\.getAttribute\('data-dif-sem'\)\), 1\); \};/.test(SES), "   y pulsar una lleva a su primera diapositiva (la 0 es el índice)");
 c(/\.dif-s\.hoy\{/.test(CSS) && /\.dif-grid\{/.test(CSS), "   con su estilo");
 
 // ── 3 · la orden de la semana, NEBULA y la Bitácora

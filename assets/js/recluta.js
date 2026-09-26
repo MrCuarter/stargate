@@ -457,6 +457,7 @@
    */
   /** 25-sep · la sesión de clase de una semana, en diferido (la abren El Archivo y la orden de la semana) */
   function urlSesion(sem){ return 'sesion.html?embed=1&diferido=1&per='+encodeURIComponent(per||'')+'&sem='+(Number(sem)||1); }
+  function urlPresentacion(){ return 'sesion.html?embed=1&diferido=1&pres=1&per='+encodeURIComponent(per||''); }
   function archivo(){
     var L=st.semanas||[], hasta=Math.min(Math.max(st.actual||0,0),L.length);
     /**
@@ -495,6 +496,10 @@
       +'<h2>La historia, fragmento a fragmento</h2>'
       +'<p class="lead">Todo lo que ha grabado NEBULA, en orden. Los <b>fragmentos</b> de cada personaje solo los ve quien registra su reto: la historia se colecciona ganándola. Y en cada semana, <b>la sesión de clase</b>, por si no pudiste estar.</p></div>'
       +'<div class="ar-marcador"><b>'+fr7+'</b><span>de '+FRAGS.length+' fragmentos<br>desbloqueados</span></div></div>'
+      // 26-sep · la presentación de la asignatura, siempre a mano (Norberto: «que el estudiante tenga a mano la presentación
+      // con la información de puntuaciones y fechas»): la sesión 1, arriba del todo
+      +(per&&!SIMULACRO?'<a class="card ar-pres" href="'+esc(urlPresentacion())+'" target="_blank" rel="noopener"><img class="ar-pres-i" src="assets/img/iconos/p/notas.png" alt="">'
+        +'<span><b>La presentación de la asignatura</b><small>La sesión 1: los ocho temas, lo que cuenta para tu nota con sus fechas, qué se entrega en UNIR y cómo funciona STARGATE.</small></span><em class="btn min">Abrirla ↗</em></a>':'')
       +(filas||'<div class="card"><p class="muted">Todavía no hay vídeos que enseñar.</p></div>')+'</section>';
   }
   var CINE={sem:0,i:0,jugando:false};
@@ -2236,6 +2241,8 @@
     return '<div class="nb-menu" id="nb-menu" hidden role="menu">'
       // 23-sep · la guía del recluta, lo primero (en la demo sin cuenta no: su puerta pide entrar)
       +(!DEMO?'<a role="menuitem" href="guia-recluta.html"><span>Guía del recluta<em>cómo funciona todo, paso a paso</em></span></a>':'')
+      // 26-sep · y la presentación de la asignatura (la sesión 1): notas, fechas y qué se entrega en UNIR
+      +(per&&!DEMO?'<a role="menuitem" href="'+esc(urlPresentacion())+'" target="_blank" rel="noopener"><span>La presentación de la asignatura<em>notas, fechas y qué se entrega en UNIR</em></span></a>':'')
       +(d.formTicket?'<a role="menuitem" href="'+esc(ticketUrl(d))+'" data-vent="Contacta con NEBULA"><span>Dudas a NEBULA<em>anónimo, no lo ve tu clase</em></span></a>':'')
       +(d.padlet?'<a role="menuitem" href="'+esc(d.padlet)+'" data-vent="Padlet de la clase"><span>Padlet de la clase<em>el muro común</em></span></a>':'')
       +'<a role="menuitem" href="ayuda.html" target="_blank" rel="noopener"><span>¿Mi enlace abre lo mío?<em>compruébalo antes de entregar</em></span></a>'

@@ -67,20 +67,32 @@ c(!/function duelo\(/.test(REC), "   (el «duelo» de antes queda dentro de la c
 c(/foco:'\.nave-ficha'/.test(REC), "   y la visita guiada la señala a ella");
 
 // ── 15 · la semana 1, desde cero: el embarque
+// 🔴 26-sep · y desde hoy, la PRESENTACIÓN DE LA ASIGNATURA, APARTE (sesión 1; la semana 1 es la sesión 2, Fôrge parte 1).
+// Norberto: «aislar la sesión 1 (presentación) de la sesión 2 (tema 1 parte 1)… STARGATE es voluntario… la asistencia y las
+// actividades, por la plataforma UNIR… las dudas, en el foro… los planetas en 3 bloques». Primero lo oficial; después, el juego.
 const SESH = L("sesion.html"), EMB = global(SESH, "SG_EMBARQUE") || [];
 const piezas = EMB.map(x => x[0] + (x[1] ? ":" + x[1] : ""));
-c(EMB.length >= 15 && piezas[0] === "video:trailer", "🔴 embarque: empieza a oscuras, con el tráiler y sin decir nada", piezas.slice(0, 2).join(" · "));
-const orden = ["portada", "mensaje", "video:sinopsis", "nombres", "viaje", "semana", "nota", "bitacora", "nave", "alistaos", "llamada", "ticket:p", "forge", "video:t1i", "despegue", "misiones"];
+c(EMB.length >= 15 && piezas[0] === "portada_asig", "🔴 la presentación empieza por la asignatura (lo oficial, antes que el juego)", piezas.slice(0, 2).join(" · "));
+const orden = ["portada_asig", "bloque:1", "bloque:2", "bloque:3", "nota", "unir", "dudas", "voluntario", "video:trailer", "portada", "mensaje",
+  "video:sinopsis", "nombres", "semana", "bitacora", "plantilla", "nave", "alistaos", "llamada", "ticket:p", "hasta:forge"];
 const pos = orden.map(k => piezas.indexOf(k));
-c(pos.every(p => p >= 0) && pos.every((p, i) => !i || p > pos[i - 1]), "🔴 en su orden: historia → mapa → cada semana → lo que puntúa → Bitácora → alistarse → fichar → ticket → Fôrge",
+c(pos.every(p => p >= 0) && pos.every((p, i) => !i || p > pos[i - 1]), "🔴 en su orden: la asignatura en tres bloques → la nota → UNIR → el foro → voluntario → el tráiler → el embarque → alistarse → fichar → ticket → «nos vemos en Fôrge»",
   JSON.stringify(orden.filter((k, i) => pos[i] < 0)));
+c(!piezas.some(k => /^(forge|despegue|misiones|retos|pregunta)/.test(k)), "   sin nada de Fôrge: eso es la semana 1 (la pregunta de la clase 2, el panel, los retos y las misiones)");
 c(EMB.filter(x => x[0] === "ticket").every(x => x[1] === "p"), "   el ticket es el de la presentación, con ella ya elegida");
-c(EMB.filter(x => x[0] === "despegue").every(x => x[2] === "pr") && EMB.filter(x => x[0] === "misiones").every(x => x[2] === "ci"),
-  "   el despegue en la práctica y las misiones al cierre");
-["nombres", "viaje", "semana", "nota", "bitacora", "nave", "alistaos", "llamada", "ticket", "forge", "despegue", "misiones", "portada", "mensaje", "video"]
+["portada_asig", "bloque", "nota", "unir", "dudas", "voluntario", "nombres", "semana", "bitacora", "nave", "alistaos", "llamada", "ticket", "portada", "mensaje", "video", "hasta"]
   .forEach(k => { if (!new RegExp("pieza==='" + k + "'").test(SES)) c(false, "   la pieza «" + k + "» se construye en sesion.js"); });
-c(["nombres", "viaje", "semana", "nota", "bitacora"].every(k => new RegExp("pieza==='" + k + "'").test(SES)), "   cada pieza tiene quien la construya");
-c(/function esEmbarque\(s\)\{ return Number\(s&&s\.sem\)===1/.test(SES), "   y solo en la semana 1");
+c(["portada_asig", "bloque", "unir", "dudas", "voluntario"].every(k => new RegExp("pieza==='" + k + "'").test(SES)), "   cada pieza tiene quien la construya");
+c(/st\.slides=st\.pres&&hayPresentacion\(\)\?construirEmbarque\(lista\[0\]\|\|s,n\):construir\(s,n\);/.test(SES) && !/esEmbarque\(/.test(SES),
+  "   es su propia sesión (?pres=1), y la semana 1 ya no la lleva dentro");
+c(/st\.pres=q\.get\('pres'\)==='1';/.test(SES) && /data-pres="1"/.test(SES) && /data-dif-sem="0"/.test(SES), "   se abre con ?pres=1, con la «P» de la tira del docente y desde el índice del diferido");
+c(/&pres=1" target="_blank"/.test(L("assets/js/consola.js")) && /codigo: "sesion\.html\?embed=1&pres=1"/.test(L("assets/js/consola.js")), "   el docente la tiene en su banner y en Enlaces (con su código)");
+c(/function urlPresentacion\(\)/.test(L("assets/js/recluta.js")) && /class="card ar-pres"/.test(L("assets/js/recluta.js")), "   y el recluta, en El Archivo y en el menú «···»");
+const DS = L("_site_data.py");
+c(/BLOQUES_ASIGNATURA = \[/.test(DS) && /\("Creación de contenido", \[1, 2, 3\]/.test(DS) && /\("M-Learning", \[4, 5\]/.test(DS) && /\("Gamificación en el aula", \[6, 7, 8\]/.test(DS),
+  "   los tres bloques: Creación de contenido (1-3), M-Learning (4-5) y Gamificación en el aula (6-8)");
+c(/es voluntario/.test(SES) && /Sin penalización/.test(SES) && /Todo lo evaluable, por la plataforma de UNIR/.test(SES) && /Al foro de la asignatura/.test(SES),
+  "   voluntario y sin penalización; lo evaluable, en UNIR; las dudas, al foro");
 c(/else if\(pieza==='alistaos'\)\{ if\(st\.per && !st\.alumno\)/.test(SES), "   «¡Alistaos!» con la cuenta subiendo, solo en la pantalla del docente");
 const VID = global(SESH, "SG_VIDEOS") || {};
 c(EMB.filter(x => x[0] === "video").every(x => VID[x[1]]), "   todos sus vídeos existen", JSON.stringify(EMB.filter(x => x[0] === "video" && !VID[x[1]])));

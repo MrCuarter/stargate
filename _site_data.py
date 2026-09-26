@@ -750,35 +750,58 @@ EVALUACION_EXAMEN = "Y el examen final, en la semana de exámenes: se construye 
 # 🔴 El orden vive AQUÍ, no en el código de la sesión: sesion.js lo lee y monta cada pieza, y la guía lo cuenta con
 # su rótulo. (pieza, argumento, tiempo, rótulo para la guía)
 #   tiempo: 'ap' apertura (el acto 1 y la llegada a Fôrge) · 'pr' el despegue (el Genially) · 'ci' el cierre (las misiones)
+# 🔴 26-sep · LA PRESENTACIÓN DE LA ASIGNATURA, APARTE (sesión 1) · la semana 1 es ya una semana más (sesión 2, Fôrge parte 1).
+# Norberto: «me gustaría aislar la sesión 1 (presentación) de la sesión 2 (tema 1 parte 1), aunque sea todo en la misma
+# semana. Quiero que tanto el docente como el estudiante tengan a mano la presentación de la asignatura con la información de
+# puntuaciones y fechas. Añade una diapositiva de que el proyecto STARGATE es totalmente voluntario… Incide en que la
+# asistencia (la que cuenta para nota) y las actividades 1 y 2 se entregan por la plataforma UNIR… Las dudas, en el foro de
+# UNIR. Explica brevemente los planetas… en 3 bloques… reorganiza las páginas como consideres mejor». Primero LO OFICIAL (la
+# asignatura en tres bloques, la nota con sus fechas, UNIR y el foro); después, EL JUEGO (voluntario, y el embarque de
+# siempre). Se abre siempre: sesion.html?pres=1 (el docente, en su banner y en Enlaces; el recluta, en El Archivo y en el
+# índice del diferido). Lo de Fôrge (la pregunta de la clase 2, el panel, los retos y las misiones) vive en la semana 1.
 SESION_EMBARQUE = [
-    ("video", "trailer", "ap", "A oscuras, el **tráiler oficial** (1:05): antes de decir nada"),
+    ("portada_asig", "", "ap", "**La asignatura**: su nombre, sus ocho temas y sus dos actividades, con tu comandante saludando"),
+    ("bloque", "1", "ap", "**Bloque 1 · Creación de contenido** (temas 1 a 3): Fôrge, Ecos y Sendara, qué se trabaja en cada uno y cuándo"),
+    ("bloque", "2", "ap", "**Bloque 2 · M-Learning** (temas 4 y 5): Reliae y Umbral"),
+    ("bloque", "3", "ap", "**Bloque 3 · Gamificación en el aula** (temas 6 a 8): Ludo, Vínculo y Liminar"),
+    ("nota", "", "ap", "**Lo que cuenta para tu nota**, con las fechas de este grupo: las dos actividades, los tests, la asistencia y el examen"),
+    ("unir", "", "ap", "**Todo lo evaluable, por la plataforma de UNIR**: la asistencia que puntúa, las dos actividades y los tests"),
+    ("dudas", "", "ap", "**Las dudas, en el foro de la asignatura** (UNIR)"),
+    ("voluntario", "", "ap", "**Y ahora, el juego: STARGATE es voluntario**. Vivir una gamificación en primera persona, sin ninguna penalización"),
+    ("video", "trailer", "ap", "A oscuras, el **tráiler oficial** (1:05)"),
     ("portada", "", "ap", "**Bienvenidos a bordo de La Constancia**, la nave de STARGATE"),
     ("mensaje", "", "ap", "**El mensaje** del Comandante, con tu rótulo"),
     ("video", "sinopsis", "ap", "**Cap. 0 · Sinopsis** (1:47): la historia entera"),
     ("nombres", "", "ap", "**Cuatro nombres**: NEBULA, la Estática, el Capitán de la Nave y su Comandante STARGATE, que eres tú, con tu avatar"),
-    ("viaje", "", "ap", "**El viaje**: ocho planetas, ocho temas"),
     ("semana", "", "ap", "**Así es una semana**: la sesión, los retos, la Nave y el ticket"),
-    ("nota", "", "ap", "**Lo que puntúa**: las dos actividades (cuándo se lanzan y se resuelven), los tests, la asistencia y el examen; los retos, no"),
     ("video", "bitacora", "ap", "**Misión · La Bitácora** (1:36)…"),
     ("bitacora", "", "ap", "…y **la Bitácora ES el ePortfolio**: su patrón, qué acaba dentro y la plantilla"),
-    # 25-sep · Norberto: «embébelo en una diapositiva en la semana 1, justo después de la Bitácora (así puede usarla y pegar
-    # su enlace al alistarse)». En la semana 2 vuelve, tras el reto «La Bitácora en marcha» (sesion.js → diasMisiones).
+    # 25-sep · Norberto: «embébelo… justo después de la Bitácora (así puede usarla y pegar su enlace al alistarse)»
     ("plantilla", "", "ap", "**La plantilla de la Bitácora**, embebida: la duplican, la hacen suya y pegan su enlace al alistarse"),
     ("nave", "", "ap", "**Su Nave**, enseñada en simulacro"),
     ("alistaos", "", "ap", "**¡Alistaos!**: el código grande y las caras de quien ya está a bordo, en directo"),
     ("llamada", "", "ap", "**La llamada a filas**: su primer fichaje"),
     ("ticket", "p", "ap", "**El ticket de la presentación**, dentro de la diapositiva: lo rellenan ahí mismo"),
-    ("forge", "", "ap", "**Rumbo a Fôrge**: la portada del planeta"),
-    ("video", "t1i", "ap", "**T1 Fôrge · intro** (1:25)"),
-    # 25-sep · Norberto: «la diapositiva de la pregunta va justo antes del Genially embebido "panel de control"»: cierra el
-    # inicio (antes, 23-sep, abría el cierre)
-    ("pregunta", "", "ap", "**La pregunta de la clase**, con tu comandante, justo antes de tu panel: la resuelves tú en clase"),
-    ("despegue", "", "pr", "**El despegue**: tu panel de control"),
-    # después del panel: los retos de la semana (la hoja de ruta, en directo) y la despedida
-    ("retos", "", "ci", "**Vuestros retos**: la hoja de ruta, en clase, y la presentación, en casa"),
-    ("misiones", "", "ci", "**Las misiones** de la semana y la insignia de Reclutamiento"),
-    ("hasta", "", "ci", "**Hasta la próxima**: tu comandante se despide"),
+    ("hasta", "forge", "ap", "**Nos vemos en Fôrge**: tu comandante se despide hasta la sesión 2"),
 ]
+# 26-sep · LA ASIGNATURA EN TRES BLOQUES (la presentación). Los títulos de cada tema son los de la programación oficial
+# (referencias/PROGRAMACION_SEMANAL_OFICIAL_2026-27.pdf); lo que se trabaja, sus apartados en una línea.
+ASIGNATURA = "Creación de Contenidos, Mobile Learning y Gamificación en el Aula"
+BLOQUES_ASIGNATURA = [
+    ("Creación de contenido", [1, 2, 3], "Crear materiales propios, del texto y la imagen al vídeo y lo interactivo, con la IA como ayudante."),
+    ("M-Learning", [4, 5], "El aula en el móvil: compartir, comunicarse y evaluar con dispositivos móviles."),
+    ("Gamificación en el aula", [6, 7, 8], "Jugar para aprender: el juego, la gamificación y las realidades aumentada y virtual."),
+]
+TEMARIO = {
+    1: ("Creación de contenido multimedia", "Texto, imagen, audio, infografías y presentaciones multimedia."),
+    2: ("El vídeo como recurso educativo", "El videotutorial, crear y editar vídeo, y el aula invertida."),
+    3: ("Creación de contenidos interactivos", "Presentaciones y recursos interactivos, y paisajes de aprendizaje."),
+    4: ("M-learning: aprender con dispositivos móviles", "Herramientas para difundir contenidos y comunicarse, y apps educativas."),
+    5: ("La evaluación con los dispositivos móviles", "Tipos de evaluación, registro sistemático, rúbrica digital y ePortfolio."),
+    6: ("El juego y el aprendizaje basado en el juego", "El ABJ, adaptar juegos tradicionales y crear juegos digitales."),
+    7: ("Gamificación", "Sus elementos básicos, la microgamificación, la gamificación profunda y su gestión."),
+    8: ("Realidad aumentada y realidad virtual", "La RA en el aula, iniciarse en la RV y la realidad mixta."),
+}
 
 # 18-sep · LAS SECCIONES DE LA SESIÓN EN DIRECTO. Norberto: «que cada sección tenga un nombre propio, independientemente
 # de si aparece una cosa u otra en función de la semana… y que cada docente pueda marcar con una checkbox lo que quiere
