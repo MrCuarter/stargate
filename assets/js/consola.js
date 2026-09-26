@@ -2314,7 +2314,11 @@
                   abrir: "sesion.html?per=" + P, ventana: "sesion_" + PER, embed: "sesion", codigo: "sesion.html?embed=1" }),
           // 26-sep · la sesión 1, aparte (la semana 1 lleva la 2: Fôrge, parte 1). Tu alumnado la tiene en su Nave
           mFila({ ico: ico("notas"), tit: "La presentación de la asignatura", desc: "La sesión 1: los tres bloques, la nota con sus fechas, UNIR y el foro, y el embarque en STARGATE. Tu alumnado la tiene siempre en su Nave.",
-                  abrir: "sesion.html?per=" + P + "&pres=1", ventana: "sesion-pres_" + PER, embed: "sesion-pres", codigo: "sesion.html?embed=1&pres=1" })]) +
+                  abrir: "sesion.html?per=" + P + "&pres=1", ventana: "sesion-pres_" + PER, embed: "sesion-pres", codigo: "sesion.html?embed=1&pres=1" })]
+          // 26-sep · y la de cada actividad: la presentas la semana que se lanza, y tu alumnado la tiene desde entonces en su Nave
+          .concat((window.SG_ACTIVIDADES || []).map(function (a) {
+            return mFila({ ico: ico("notas"), tit: "La Actividad " + a.n, desc: "«" + a.titulo + "»: qué se entrega, paso a paso con un ejemplo resuelto, los retos que la adelantan, la rúbrica para el 10 y las fechas.",
+                    abrir: "sesion.html?per=" + P + "&act=" + a.n, ventana: "sesion-act" + a.n + "_" + PER, embed: "sesion-act" + a.n, codigo: "sesion.html?embed=1&act=" + a.n }); }))) +
         mBloque("En clase", "", [
           // 23-sep · Norberto: «un embed exclusivo de herramientas: dar regalos, fichar, estudiante aleatorio, lanzar pregunta…»
           mFila({ ico: ico("envivo"), tit: "Las herramientas", desc: "Pasar lista, al azar, premiar, una pregunta, una votación y el tiempo.",

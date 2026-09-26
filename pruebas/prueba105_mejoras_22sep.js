@@ -26,7 +26,7 @@ c(/querySelectorAll\('\.yt\[data-id\]'\)/.test(REC), "   el candado no se cablea
 c(/function nombreDeReto\(id\)/.test(REC) && /esc\(nombreDeReto\(f\.reto\)\)/.test(REC), "   y el candado nombra el reto por su nombre, no «A1»");
 
 // ── 2 · el ticket: presentación, 8 temas y final (la batería 99 lo prueba entero)
-c(/"p": "Presentación de la asignatura"/.test(L("_site_data.py")) && !/"a1":/.test(L("_site_data.py")), "🔴 ticket: sin actividades, con la presentación");
+c(/"p": "Presentación de la asignatura"/.test(L("_site_data.py")) && !/"a1":/.test((L("_site_data.py").match(/TICKET_TEMAS = \{[\s\S]*?\n\}/) || [""])[0]), "🔴 ticket: sin actividades, con la presentación");
 
 // ── 3 · el despegue: el panel, y nada más (la 84 lo prueba entero)
 c(!/function diaPuente\(/.test(SES), "🔴 despegue: sin tarjeta puente");

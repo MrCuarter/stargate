@@ -42,7 +42,7 @@ c(/var altaUrl = motorNuevo\(\)/.test(R),
 // Google y con el motor nuevo se quedó en tres enlaces. Ahora viven en el menú «···» de la barra,
 // que se pinta en `pestanas()` — y `pestanas()` sigue estando SOLO en la rama «dentro». La puerta
 // no se ha movido, se ha movido el picaporte.
-const menu = R.slice(R.indexOf("function menuMas()"), R.indexOf("function menuMas()") + 1600);
+const menu = R.slice(R.indexOf("function menuMas()"), R.indexOf("function menuMas()") + 3000);   // (26-sep · el menú creció: la presentación y las actividades)
 ["formBitacora", "formCanje", "formTicket"].forEach(function(k){
   c(menu.indexOf(k) >= 0, "«" + k + "» se pinta en el menú de la barra, que vive detrás de la puerta");
 });

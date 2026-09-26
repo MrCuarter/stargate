@@ -1274,7 +1274,7 @@
       return '<li style="--i:'+i+'"><div class="ar-t"><b>'+esc(nombreReto(r[0]))+'</b>'
         +(cuando?'<span class="ar-w">'+esc(cuando)+'</span>':'')+'</div><p>'+fuerte(r[1])+'</p></li>'; }).join('');
     return [
-      {k:'act', rot:'La actividad', html:
+      {k:'act', rot:'La actividad', montar:function(el){ var b=el.querySelector('[data-ir-act]'); if(b) b.onclick=function(){ irASesion('a'+b.getAttribute('data-ir-act'), 0); }; return null; }, html:
         '<div class="dia act-mayor"><div class="kicker"><img class=ico src=assets/img/iconos/p/notas.png alt> '
         +'Misión mayor '+esc(a.orden)+' · Planeta '+esc(a.planeta)+' · se lanza hoy</div>'
         +'<h2>Actividad '+esc(String(a.n))+' — '+esc(a.titulo)+'</h2>'
@@ -1284,6 +1284,8 @@
             return e?'hasta el <b>'+esc(e.texto)+'</b> (23:59, último día de la semana '+a.entrega+')':'hasta el <b>último día de la semana '+a.entrega+'</b>'; })()
         +' y se resuelve en la <b>semana '+esc(String(a.resuelve))+'</b>.</p>'
         +'<ol class="act-pasos">'+pasos+'</ol>'
+        // 26-sep · y su sesión completa, un clic (también la tiene el alumnado en su Nave)
+        +(typeof window!=='undefined'&&window.SG_SES_ACT?'<p class="act-pl"><button type="button" class="btn primary" data-ir-act="'+a.n+'">La sesión completa de la Actividad '+a.n+' →</button></p>':'')
         // 25-sep · «añade un enlace "Plantilla Portfolio" en las actividades que lo mencionen directamente»
         +(typeof window!=='undefined'&&window.SG_PLANTILLA_EP&&(a.pasos||[]).some(function(p){ return /portfolio/i.test(p.join(' ')); })
           ?'<p class="act-pl"><a class="btn min" href="'+esc(window.SG_PLANTILLA_EP)+'" target="_blank" rel="noopener">Plantilla Portfolio ↗</a></p>':'')
@@ -1310,7 +1312,7 @@
     var S=window.SGSEMANAS, hoy=null;
     if(sem!==st.semHoy && S && st.inicio) hoy=S.fecha(S.inicioDeSemana(st.inicio, sem, st.pausas||[]));   // (otra semana: desde su lunes)
     var e=window.SG&&window.SG.entregaDe&&st.inicio?window.SG.entregaDe(a, st.inicio, st.pausas, hoy):null;
-    var t=(RET.REGULAR||[]).filter(function(y){ return y[0]===a.reto; })[0]||[], ins=t[2]||[], xp=Number(t[3])||0;
+    var ins=((window.SG_RETO_PREMIO||{})[a.reto]||[[],0])[0], xp=Number(((window.SG_RETO_PREMIO||{})[a.reto]||[[],0])[1])||0;   // (26-sep · del catálogo)
     var pl=PLAN.filter(function(p){ return p[1]===a.planeta; })[0];
     var cuenta=!e||e.faltan<0?'':e.faltan===0?'Es hoy':e.faltan===1?'Es mañana':'Quedan '+e.faltan+' días';
     /**
@@ -1320,7 +1322,7 @@
      * vivo (SG.relojHtml, la misma de la Nave); y abajo los retos relacionados con sus insignias (los de SG_ACTIVIDADES).
      */
     var fin=e&&e.faltan>=0?(hoy?Date.now()+(e.fecha.getTime()-hoy.getTime()):e.fecha.getTime()):0;
-    var nom=function(id){ var r=(RET.REGULAR||[]).filter(function(y){ return y[0]===id; })[0]||[], m=String(r[1]||'').match(/«([^»]+)»/); return {n:m?m[1]:String(r[1]||id), ins:(r[2]||[])[0]||''}; };
+    var nom=function(id){ var r=(RET.REGULAR||[]).filter(function(y){ return y[0]===id; })[0]||[], m=String(r[1]||'').match(/«([^»]+)»/); return {n:m?m[1]:String(r[1]||id), ins:(((window.SG_RETO_PREMIO||{})[id]||[[]])[0]||[])[0]||''}; };
     // (aquí SG_ACTIVIDADES viene entera: lo que aporta cada reto es el primer trozo en negrita, como en la Nave)
     var corto=function(t){ var m=String(t||'').match(/\*\*(.+?)\*\*/); return (m?m[1]:String(t||'')).replace(/\.$/,''); };
     var R=(a.retos||[]).map(function(x){ var d=nom(x[0]); return {id:x[0], nombre:d.n, ins:d.ins, aporta:corto(x[1])}; });
@@ -1697,6 +1699,270 @@
     if(off.length){ var quedan=todo.filter(function(x){ return off.indexOf(secDe(x))<0; }); todo=quedan.length?quedan:[todo[0]]; }
     return todo.length?todo:[diaEmbarque(s)];
   }
+  /**
+   * 🔴 26-sep · LA SESIÓN DE CADA ACTIVIDAD (sesion.html?act=1 / ?act=2). Norberto: «en la semana que toquen, quiero una sesión
+   * tanto para el estudiante como para el docente explicando la actividad. Usa a NEBULA, el Capitán y el Comandante para
+   * explicar lo más importante. Debe quedar muy claro… separarlas de los temas… que el estudiante la pueda ver en diferido…
+   * las rúbricas… una versión reducida e interactiva para que sepan exactamente lo que necesitan para tener un 10».
+   * El Capitán presenta la misión y el calendario; NEBULA guía el ejemplo resuelto, el ePortfolio y lo que más se olvida; el
+   * Comandante (el del docente) explica la rúbrica y despide. Todo sale de SG_SES_ACT (_site_data.SESION_ACTIVIDAD) y de
+   * SG_ACTIVIDADES; las fechas, del calendario del grupo.
+   */
+  function actN(n){ return ACTS.filter(function(x){ return Number(x.n)===Number(n); })[0]||null; }
+  // 26-sep · lo que da un reto: [insignias, xp] (SG_RETO_PREMIO, del catálogo; SG_RETOS aquí solo lleva id y nombre)
+  function premioDe(id){ return (window.SG_RETO_PREMIO||{})[id]||[[],0]; }
+  function misHechos(){
+    if(!st.alumno||!st.ficha) return null;
+    var r=((st.d&&st.d.reclutas)||[]).filter(function(x){ return x.fid===st.ficha; })[0];
+    return r?(r.hechos||[]):null;
+  }
+  function capitan(pose, cls){ return '<img class="ac-cap'+(cls?' '+cls:'')+'" src="assets/img/capitan/'+pose+'.png" alt="">'; }
+  function listaAc(xs){ return '<ul class="ac-lista">'+(xs||[]).map(function(x){ return '<li>'+fuerte(x)+'</li>'; }).join('')+'</ul>'; }
+  function construirActividad(n){
+    var a=actN(n), D=(window.SG_SES_ACT||{})['a'+n]; if(!a||!D) return [diaHastaPronto()];
+    var pl=PLAN.filter(function(p){ return p[1]===a.planeta; })[0]||[], t=[a.reto, '', premioDe(a.reto)[0], premioDe(a.reto)[1]];
+    var e=window.SG&&window.SG.entregaDe&&st.inicio&&st.tipo!=='PUA'?window.SG.entregaDe(a, st.inicio, st.pausas):null;
+    var X={a:a, D:D, pl:pl, ins:t[2]||[], xp:Number(t[3])||0, e:e, fin:e?e.fecha.getTime():0};
+    var out=[diaActPortada(X)];
+    var V=(window.SG_VIDEOS||{})[a.video]; if(V) out.push(diaVideo([V,''], 0, 'La misión, en vídeo', 'El vídeo'));
+    out.push(diaActMision(X), diaActEntrega(X));
+    (n===1?[diaActPlan, diaActImagen, diaActTecnica, diaActReflexiva, diaActEnunciado]
+          :[diaActContexto, diaActMatriz, diaActFicha, diaActPaisaje, diaActIA]).forEach(function(f){ out.push(f(X)); });
+    out.push(diaActRetos(X), diaActPortfolio(X), diaActCapturas(X), diaActErrores(X), diaActRubrica(X), diaActCalendario(X), diaActCierre(X));
+    return out.filter(Boolean).map(function(x){ x.sec=x.sec||'actividad'; x.t='ap'; return x; });
+  }
+  function actKicker(X, que){ return '<div class="kicker">Actividad '+X.a.n+' · '+que+'</div>'; }
+  function diaActPortada(X){
+    var BN=window.SG_BADGE_NAMES||{};
+    return {k:'act_portada', rot:'Actividad '+X.a.n, montar:relojVivo, html:
+      '<div class="dia ac-portada con-fondo">'+(X.pl[0]?'<img class="ac-pl" src="assets/img/planetas/'+esc(X.pl[0])+'.png'+(window.SG_IMGV||'')+'" alt="">':'')
+      +'<div class="ac-txt"><div class="kicker">Misión mayor '+esc(X.a.orden)+' · Planeta '+esc(X.a.planeta)+'</div>'
+      +'<h1>Actividad '+X.a.n+'</h1><p class="ac-tit">'+esc(X.a.titulo)+'</p><p class="sub"><i>«'+esc(X.a.lema)+'.»</i></p>'
+      +'<div class="ac-datos"><span class="ac-d"><b>'+esc(X.a.puntos)+'</b> de los 10 puntos</span>'
+      +'<span class="ac-d">Se entrega en la <b>plataforma de UNIR</b>'+(X.e?': <b>'+esc(X.e.texto)+'</b>, 23:59':'')+'</span></div>'
+      +(X.fin?'<div class="re-reloj ac-reloj" data-fin="'+X.fin+'" role="timer"><span class="rr-cs" aria-hidden="true">'+window.SG.relojHtml(X.fin)+'</span></div>':'')
+      +'</div>'
+      +(X.ins.length?'<div class="ac-ins">'+X.ins.map(function(i,k){ return '<figure class="'+(k?'ac-ins-o':'ac-ins-g')+'"><img src="assets/img/insignias/'+esc(i)+'.webp" alt=""><figcaption>'+esc(BN[i]||'')+'</figcaption></figure>'; }).join('')
+        +'<small>al registrarla en tu Nave · +'+X.xp+' xp</small></div>':'')
+      +'</div>'};
+  }
+  function relojVivo(el){
+    var r=el.querySelector('.re-reloj .rr-cs'); if(!r) return null;
+    var f=Number(el.querySelector('.re-reloj').getAttribute('data-fin'));
+    var tt=setInterval(function(){ r.innerHTML=window.SG.relojHtml(f); el.querySelector('.re-reloj').classList.toggle('ultimo', f-Date.now()<86400e3); }, 1000);
+    return function(){ clearInterval(tt); };
+  }
+  function diaActMision(X){
+    return {k:'act_mision', rot:'La misión', html:
+      '<div class="dia ac-mision con-fondo">'+capaEscena('puente')+capitan('senala')
+      +'<div class="ac-mision-t">'+actKicker(X, 'El Capitán')+'<h2>'+esc(X.D.mision[0])+'</h2>'
+      +'<blockquote class="ac-bocadillo">'+fuerte(X.D.mision[1])+'</blockquote>'
+      +'<div class="ac-objetivo"><b>Lo que vas a hacer</b><p>'+fuerte(X.D.objetivo)+'</p></div></div></div>'};
+  }
+  function diaActEntrega(X){
+    var ep=window.SG_PLANTILLA_EP||'', mz=(window.SG_MATRIZ||{}).plantilla||'';
+    return {k:'act_entrega', rot:'Qué entregas', html:
+      '<div class="dia emb ac-entrega con-fondo">'+capaEscena('hangar')+actKicker(X, 'Qué entregas')
+      +'<h2>Dos piezas, en la plataforma de UNIR</h2>'
+      +'<div class="ac-dos"><section class="ac-caja pdf"><p class="ac-pct"><b>80 %</b> El documento (PDF)</p>'+listaAc(X.D.pdf)+'</section>'
+      +'<section class="ac-caja ep"><p class="ac-pct"><b>20 %</b> Tu ePortfolio</p>'+listaAc(X.D.portfolio)+'</section></div>'
+      +'<p class="ac-links">'+(ep?'<a class="btn min" href="'+esc(ep)+'" target="_blank" rel="noopener">Plantilla del ePortfolio ↗</a>':'')
+      +(X.a.n===2&&mz?'<a class="btn min" href="'+esc(mz)+'" target="_blank" rel="noopener">Plantilla de la matriz ↗</a>':'')
+      +'<a class="btn min" href="actividades.html#act'+X.a.n+'" target="_blank" rel="noopener">El enunciado completo ↗</a></p></div>'};
+  }
+  // ── Actividad 1 · paso a paso, con el ejemplo de Pilar
+  function nebulaDice(txt){ return '<div class="ac-neb"><img src="assets/img/personajes/nebula.png" alt=""><p><b>NEBULA:</b> '+txt+'</p></div>'; }
+  function diaActPlan(X){
+    var E=X.D.ejemplo;
+    return {k:'act_plan', rot:'1 · Planifica', html:
+      '<div class="dia emb ac-paso con-fondo">'+capaEscena('mesa_plan')+actKicker(X, 'Paso 1')+'<h2>Planifica antes de crear</h2>'
+      +'<div class="ac-tres">'+[['Para quién','El alumnado al que va dirigida', E.alumnado],['Qué tema','El tema de aula que trabajas', E.tema],['Qué tarea','Lo que harán con la imagen', E.tarea]].map(function(x){
+          return '<div class="ac-plan"><b>'+x[0]+'</b><span>'+x[1]+'</span><em>'+esc(x[2])+'</em></div>'; }).join('')+'</div>'
+      +'<p class="ac-nota">En <em>cursiva</em>, lo que decidió <b>'+esc(E.quien)+'</b>. Ideas de tarea con una imagen:</p>'
+      +'<div class="ac-chips">'+(X.D.tareas||[]).map(function(x){ return '<span>'+esc(x)+'</span>'; }).join('')+'</div></div>'};
+  }
+  function diaActImagen(X){
+    var E=X.D.ejemplo;
+    return {k:'act_imagen', rot:'2 · La imagen', html:
+      '<div class="dia emb ac-imagen">'+actKicker(X, 'Paso 2 · la imagen, con IA')+'<h2>Un prompt con finalidad, y al menos una iteración</h2>'
+      +'<div class="ac-img-g"><figure><img src="assets/img/ejemplos/'+esc(E.imagen)+'" alt="Las dos versiones de la infografía de Pilar"><figcaption>'+esc(E.quien)+' · '+esc(E.herramienta)+'</figcaption></figure>'
+      +'<div><p class="ac-et">El prompt inicial · modelo <b>'+esc(E.modelo)+'</b></p><p class="ac-prompt">'+E.prompt.map(function(p){ return '<span><i>'+esc(p[0])+'</i>'+esc(p[1])+'</span>'; }).join(' ')+'</p>'
+      +'<p class="ac-et">La iteración</p><p class="ac-it">'+esc(E.iteracion)+'</p>'
+      +'<p class="ac-et">El criterio docente</p><p class="ac-it">'+esc(E.criterio)+'</p></div></div></div>'};
+  }
+  function diaActTecnica(X){
+    var E=X.D.ejemplo, T=X.D.tecnica||[];
+    var val=function(k){ return k==='prompt'?E.prompt.map(function(p){ return p[1]; }).join(' '):E[k]||''; };
+    return {k:'act_tecnica', rot:'3 · Tabla técnica', montar:montarPestanas, html:
+      '<div class="dia emb ac-tabla">'+actKicker(X, 'Paso 3 · la tabla técnica')+'<h2>La tabla técnica: qué hiciste con la IA</h2>'
+      +'<div class="ac-tab"><div class="ac-tab-l" role="tablist">'+T.map(function(r,i){ return '<button type="button" role="tab" class="'+(i?'':'on')+'" data-tab-i="'+i+'">'+esc(r[0])+'</button>'; }).join('')+'</div>'
+      +'<div class="ac-tab-r">'+T.map(function(r,i){ return '<div class="ac-tab-p" data-tab-p="'+i+'"'+(i?' hidden':'')+'><p class="ac-et">Qué se espera</p><p>'+esc(r[1])+'</p>'
+          +'<p class="ac-et">En el ejemplo de '+esc(E.quien.split(',')[0])+'</p><p class="ac-ej">'+esc(val(r[2]))+'</p></div>'; }).join('')+'</div></div>'
+      +'<p class="ac-nota">Va en el <b>PDF</b> (captura o extracto) y <b>completa</b> en tu ePortfolio. Pulsa cada fila.</p></div>'};
+  }
+  function montarPestanas(el){
+    Array.prototype.forEach.call(el.querySelectorAll('[data-tab-i]'), function(b){
+      b.onclick=function(){ var i=b.getAttribute('data-tab-i');
+        Array.prototype.forEach.call(el.querySelectorAll('[data-tab-i]'), function(x){ x.classList.toggle('on', x===b); });
+        Array.prototype.forEach.call(el.querySelectorAll('[data-tab-p]'), function(p){ p.hidden=p.getAttribute('data-tab-p')!==i; }); };
+    });
+    return null;
+  }
+  function diaActReflexiva(X){
+    var E=X.D.ejemplo;
+    return {k:'act_reflexiva', rot:'4 · Tabla reflexiva', html:
+      '<div class="dia emb ac-refl">'+actKicker(X, 'Paso 4 · la tabla reflexiva')+'<h2>La tabla reflexiva: qué aprendiste tú</h2>'
+      +'<div class="ac-preg">'+(X.D.reflexiva||[]).map(function(r){ return '<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'; }).join('')+'</div>'
+      +nebulaDice('La técnica dice <b>qué hiciste</b>; la reflexiva, <b>qué aprendiste</b>. Va en tu ePortfolio. Así sonaba la de '+esc(E.quien.split(',')[0])+': <i>«'+esc(E.reflexion)+'»</i>')+'</div>'};
+  }
+  function diaActEnunciado(X){
+    var E=X.D.ejemplo;
+    return {k:'act_enunciado', rot:'5 · El enunciado', html:
+      '<div class="dia emb ac-enun">'+actKicker(X, 'Paso 5 · lo que recibe tu alumnado')+'<h2>El enunciado de la tarea, con la imagen</h2>'
+      +'<div class="ac-img-g"><figure><img src="assets/img/ejemplos/'+esc(E.imagen)+'" alt=""></figure>'
+      +'<div><p class="ac-et">La tarea de '+esc(E.quien.split(',')[0])+'</p><ol class="ac-enun-l">'+E.enunciado.map(function(x){ return '<li>'+fuerte(x)+'</li>'; }).join('')+'</ol>'
+      +'<p class="ac-nota">En cualquier formato (PDF, DOC, PNG, PPT o HTML), <b>visible o enlazado</b> en tu ePortfolio.</p></div></div></div>'};
+  }
+  // ── Actividad 2 · paso a paso, con el ejemplo de Patricia
+  function diaActContexto(X){
+    var E=X.D.ejemplo;
+    return {k:'act_contexto', rot:'1 · Contextualiza', html:
+      '<div class="dia emb ac-paso con-fondo">'+capaEscena('mesa_plan')+actKicker(X, 'Paso 1')+'<h2>Contextualiza una unidad real de tu aula</h2>'
+      +'<div class="ac-tres">'+[['Nivel y edad', E.nivel],['Área y tema', E.area],['Criterios de evaluación', E.criterios]].map(function(x){
+          return '<div class="ac-plan"><b>'+x[0]+'</b><em>'+esc(x[1])+'</em></div>'; }).join('')+'</div>'
+      +'<div class="ac-plan ac-obj"><b>Objetivos didácticos</b>'+listaAc(E.objetivos)+'</div>'
+      +'<p class="ac-nota">Así lo contextualizó <b>'+esc(E.quien)+'</b>. No hace falta una unidad larga: que se vean los elementos curriculares de tu nivel.</p></div>'};
+  }
+  function diaActMatriz(X){
+    var E=X.D.ejemplo, M=window.SG_MATRIZ||{}, I=M.inteligencias||[], B=M.bloom||[];
+    var celda=function(b, i){ var c=(E.cruces||[]).filter(function(x){ return x[1]===b&&x[2]===i; })[0];
+      return c?'<button type="button" class="ac-mc '+esc(c[3])+'" data-cruce="'+c[0]+'" title="'+esc(c[4])+'">'+c[0]+'</button>':'<span class="ac-mc vacia"></span>'; };
+    return {k:'act_matriz', rot:'2 · La matriz', montar:montarMatriz, html:
+      '<div class="dia emb ac-matriz">'+actKicker(X, 'Paso 2 · la matriz de programación')+'<h2>8 inteligencias × 6 niveles de Bloom</h2>'
+      +'<div class="ac-mz-g"><div class="ac-mz" style="--cols:'+I.length+'"><span></span>'+I.map(function(x){ return '<span class="ac-mz-i">'+esc(x)+'</span>'; }).join('')
+      +B.map(function(b){ return '<span class="ac-mz-b">'+esc(b)+'</span>'+I.map(function(i){ return celda(b,i); }).join(''); }).join('')+'</div>'
+      +'<div class="ac-mz-d" id="ac-mz-d"><p class="ac-et">El huerto de '+esc(E.quien.split(',')[0])+'</p><p>Pulsa un número: cada cruce es una actividad.</p>'
+      +'<p class="ac-ley"><span class="obligatoria">obligatoria</span><span class="optativa">optativa</span><span class="voluntaria">voluntaria</span></p></div></div>'
+      +'<p class="ac-nota">No hace falta llenarla: <b>al menos seis cruces</b>, variados en complejidad (Bloom) y en inteligencias. '
+      +(M.plantilla?'<a href="'+esc(M.plantilla)+'" target="_blank" rel="noopener">La plantilla de la matriz ↗</a>':'')+'</p></div>'};
+  }
+  function montarMatriz(el){
+    var E=((window.SG_SES_ACT||{}).a2||{}).ejemplo||{}, d=el.querySelector('#ac-mz-d');
+    Array.prototype.forEach.call(el.querySelectorAll('[data-cruce]'), function(b){
+      b.onclick=function(){ var c=(E.cruces||[]).filter(function(x){ return String(x[0])===b.getAttribute('data-cruce'); })[0]; if(!c||!d) return;
+        Array.prototype.forEach.call(el.querySelectorAll('[data-cruce]'), function(x){ x.classList.toggle('on', x===b); });
+        d.innerHTML='<p class="ac-et">'+c[0]+' · '+esc(c[1])+' × '+esc(c[2])+'</p><h3>'+esc(c[4])+'</h3><p>'+esc(c[5])+'</p>'
+          +'<p class="ac-ley"><span class="'+esc(c[3])+'">'+esc(c[3])+'</span></p>'; };
+    });
+    return null;
+  }
+  function diaActFicha(X){
+    var E=X.D.ejemplo;
+    return {k:'act_ficha', rot:'3 · Cada actividad', html:
+      '<div class="dia emb ac-fichad">'+actKicker(X, 'Paso 3 · seis actividades, completas')+'<h2>Cada actividad, con su ficha entera</h2>'
+      +'<div class="ac-ficha">'+(E.ficha||[]).map(function(f){ return '<div><b>'+esc(f[0])+'</b><span>'+esc(f[1])+'</span></div>'; }).join('')+'</div>'
+      +nebulaDice('Seis como mínimo, y <b>cada una con todo</b>: objetivo, tarea ajustada a su cruce, recursos (en APA o con enlace y captura), cómo la evalúas, cuánto dura y si es obligatoria, optativa o voluntaria.')+'</div>'};
+  }
+  function diaActPaisaje(X){
+    var E=X.D.ejemplo;
+    return {k:'act_paisaje', rot:'4 · El paisaje', html:
+      '<div class="dia emb ac-paisaje">'+actKicker(X, 'Paso 4 · el paisaje')+'<h2>Una imagen interactiva, no una presentación</h2>'
+      +'<div class="ac-img-g"><figure><img src="assets/img/ejemplos/'+esc(E.imagen)+'" alt="El paisaje de Patricia: un huerto con ocho plantas"></figure>'
+      +'<div><p>'+esc(E.paisaje)+'</p>'+listaAc(['Una **imagen interactiva** (en Genially, por ejemplo): **no** una presentación ni algo lineal.',
+          'Las actividades de la matriz, **dentro** del territorio.', 'Varios **itinerarios**: cada cual elige por dónde entrar.'])+'</div></div></div>'};
+  }
+  function diaActIA(X){
+    return {k:'act_ia', rot:'Si usas IA', html:
+      '<div class="dia emb ac-paso con-fondo">'+capaEscena('cero_ensenando')+actKicker(X, 'La IA, bien usada')+'<h2>¿Usas IA? Se cita, y se dice qué cambiaste</h2>'
+      +'<p class="sub">Puede ayudarte a completar la matriz o a proponer actividades. Si la usas, en el documento:</p>'
+      +'<ol class="emb-pasos">'+(X.D.ia||[]).map(function(x){ return '<li><span>'+fuerte(x)+'</span></li>'; }).join('')+'</ol>'
+      +nebulaDice('La IA es un apoyo: <b>no sustituye tu criterio</b>. Conocer bien el contenido es lo que garantiza la calidad.')+'</div>'};
+  }
+  // ── lo común: los retos, el ePortfolio, lo que más se olvida, la rúbrica, el calendario y el cierre
+  function diaActRetos(X){
+    var BN=window.SG_BADGE_NAMES||{}, H=misHechos(), n=0;
+    var filas=(X.a.retos||[]).map(function(r){ var ins=premioDe(r[0])[0][0], hecho=H&&H.indexOf(r[0])>=0; if(hecho) n++;
+      var w=semanaDeReto(r[0]);
+      return '<div class="ac-reto'+(hecho?' hecho':'')+'">'+(ins?'<img src="assets/img/insignias/'+esc(ins)+'.webp" alt="">':'<img class="ac-reto-i" src="assets/img/iconos/p/retos.png" alt="">')
+        +'<div><b>'+esc(nombreReto(r[0]))+'</b>'+(w?'<small>Semana '+w+(hecho?' · hecho':'')+'</small>':'')+'<p>'+fuerte(r[1])+'</p></div></div>'; }).join('');
+    return {k:'act_retos', rot:'Los retos', html:
+      '<div class="dia emb ac-retos con-fondo">'+capaEscena('sala_bitacora')+actKicker(X, 'Ya la tienes empezada')+'<h2>Los retos que te dejan media actividad hecha</h2>'
+      +(H?'<p class="sub">Llevas <b>'+n+' de '+(X.a.retos||[]).length+'</b>.</p>':'<p class="sub">Los retos no puntúan; la actividad, sí. Pero cada uno de estos deja hecho un trozo de la entrega.</p>')
+      +'<div class="ac-retos-g">'+filas+'</div></div>'};
+  }
+  function diaActPortfolio(X){
+    var ep=window.SG_PLANTILLA_EP||'', E=X.D.ejemplo;
+    return {k:'act_portfolio', rot:'Tu ePortfolio', html:
+      '<div class="dia emb ac-port con-fondo">'+capaEscena('bitacora_legado')+'<img class="ac-neb-g" src="assets/img/personajes/nebula.png" alt="">'
+      +'<div class="ac-port-t">'+actKicker(X, 'NEBULA')+'<h2>Tu ePortfolio: el 20 % de la nota</h2>'
+      +'<p class="sub">Tu <b>Bitácora es tu ePortfolio</b>: esta actividad tiene su página ahí.</p>'+listaAc(X.D.portfolio)
+      +(E.justificacion?'<blockquote class="ac-bocadillo">«'+esc(E.justificacion)+'» <small>— la justificación de '+esc(E.quien.split(',')[0])+'</small></blockquote>':'')
+      +'<p class="ac-links">'+(ep?'<a class="btn min" href="'+esc(ep)+'" target="_blank" rel="noopener">La plantilla del ePortfolio ↗</a>':'')
+      +'<a class="btn min" href="ayuda.html" target="_blank" rel="noopener">¿Mi enlace abre lo mío? ↗</a></p></div></div>'};
+  }
+  /**
+   * 🔴 26-sep · LAS CAPTURAS, OBLIGATORIAS. Norberto: «es la única prueba y evidencia de haber hecho las cosas en la fecha
+   * prevista y ayuda a prevenir problemas de enlaces restringidos o privados… cómo hacer captura en Mac, Windows y Chromebook
+   * con atajos de teclado». El Capitán, serio; los atajos, con sus teclas (SG_CAPTURAS, _site_data.CAPTURAS).
+   */
+  function diaActCapturas(X){
+    var C=window.SG_CAPTURAS; if(!C) return null;
+    var teclas=function(t){ return String(t).split(' + ').map(function(k){ return '<kbd>'+esc(k)+'</kbd>'; }).join('<i>+</i>'); };
+    return {k:'act_capturas', rot:'Haz capturas', html:
+      '<div class="dia emb ac-capt con-fondo">'+capaEscena('hangar')+capitan('brazos')
+      +'<div class="ac-port-t">'+actKicker(X, 'El Capitán · obligatorio')+'<h2>Haz capturas de todo</h2>'
+      +'<div class="ac-capt-g"><div>'+listaAc(C.por_que)+listaAc(C.que)+'</div>'
+      +'<div class="ac-atajos">'+(C.atajos||[]).map(function(so){ return '<section><b>'+esc(so[0])+'</b>'
+          +so[1].map(function(x){ return '<p>'+teclas(x[0])+'<span>'+esc(x[1])+'</span></p>'; }).join('')
+          +'<small>'+esc(so[2])+'</small></section>'; }).join('')+'</div></div></div></div>'};
+  }
+  function diaActErrores(X){
+    return {k:'act_errores', rot:'Lo que más se olvida', html:
+      '<div class="dia emb ac-err con-fondo">'+capaEscena('hangar')+'<img class="ac-neb-g" src="assets/img/personajes/nebula.png" alt="">'
+      +'<div class="ac-port-t">'+actKicker(X, 'NEBULA avisa')+'<h2>Lo que más se olvida</h2>'
+      +'<div class="ac-errs">'+(X.D.errores||[]).map(function(x){ return '<div><b>'+esc(x[0])+'</b><span>'+esc(x[1])+'</span></div>'; }).join('')+'</div>'
+      +(window.SG_ORTOGRAFIA?'<p class="ac-nota">'+esc(window.SG_ORTOGRAFIA)+'</p>':'')+'</div></div>'};
+  }
+  function diaActRubrica(X){
+    var R=X.D.rubrica||[], clave='sgRub:a'+X.a.n, hechos={}; try{ hechos=JSON.parse(localStorage.getItem(clave)||'{}')||{}; }catch(e){}
+    var num=function(v){ return String(v).replace('.',','); };
+    return {k:'act_rubrica', rot:'Para el 10', montar:montarRubrica, html:
+      '<div class="dia emb ac-rub">'+cmdCuerpo('reto','ac-cmd')
+      +'<div class="ac-rub-t">'+actKicker(X, 'Tu Comandante')+'<h2>Lo que hace falta para el 10</h2>'
+      +'<p class="sub">La rúbrica, en corto: cuánto vale cada cosa y lo que pide el <b>sobresaliente</b>. Márcalo cuando lo tengas.</p>'
+      +'<div class="ac-rub-l" data-rub="'+esc(clave)+'">'+R.map(function(r,i){ return '<label class="ac-rub-f'+(hechos[i]?' on':'')+'"><input type="checkbox" data-rub-i="'+i+'" data-peso="'+r[1]+'"'+(hechos[i]?' checked':'')+'>'
+          +'<span class="ac-rub-p">'+num(r[1])+'</span><span class="ac-rub-x"><b>'+esc(r[0])+' <em>'+esc(r[2])+'</em></b><small>'+esc(r[3])+'</small></span></label>'; }).join('')+'</div>'
+      +'<div class="ac-rub-tot"><div class="ac-rub-bar"><i></i></div><p><b class="ac-rub-n">0</b> de 10 · <span class="ac-rub-m"></span></p></div></div></div>'};
+  }
+  function montarRubrica(el){
+    var L=el.querySelector('[data-rub]'); if(!L) return null;
+    var clave=L.getAttribute('data-rub');
+    var pinta=function(){ var tot=0, h={};
+      Array.prototype.forEach.call(L.querySelectorAll('[data-rub-i]'), function(c){ if(c.checked){ tot+=Number(c.getAttribute('data-peso'))||0; h[c.getAttribute('data-rub-i')]=1; } c.closest('label').classList.toggle('on', c.checked); });
+      tot=Math.round(tot*10)/10;
+      el.querySelector('.ac-rub-bar i').style.width=(tot*10)+'%';
+      el.querySelector('.ac-rub-n').textContent=String(tot).replace('.',',');
+      el.querySelector('.ac-rub-m').textContent=tot>=10?'¡todo listo para el 10!':tot>=9?'sobresaliente a la vista':tot>=5?'vas por buen camino':'marca lo que ya tienes';
+      try{ localStorage.setItem(clave, JSON.stringify(h)); }catch(e){} };
+    L.addEventListener('change', pinta); pinta();
+    return null;
+  }
+  function diaActCalendario(X){
+    var lun=function(w){ var f=lunesDe(w); return f?f.getDate()+' de '+MESES_L[f.getMonth()]:''; };
+    var paso=function(k, tit, cuando, txt){ return '<div class="ac-cal-p '+k+'"><b>'+tit+'</b><em>'+cuando+'</em><span>'+txt+'</span></div>'; };
+    return {k:'act_calendario', rot:'Las fechas', montar:relojVivo, html:
+      '<div class="dia emb ac-cal con-fondo">'+capaEscena('capitan_ventana')+capitan('tablet', 'ac-cap-d')
+      +'<div class="ac-cal-t">'+actKicker(X, 'El Capitán')+'<h2>Las fechas de la misión</h2><div class="ac-cal-l">'
+      +paso('lanza', 'Se lanza', 'Semana '+X.a.sem+(lun(X.a.sem)?' · '+lun(X.a.sem):''), 'Se presenta en clase y se abre esta sesión.')
+      +paso('entrega', 'Se entrega', X.e?esc(X.e.texto)+', 23:59':'Último día de la semana '+X.a.entrega, 'En la <b>plataforma de UNIR</b>. Después, regístrala en <b>Mis retos</b> (+'+X.xp+' xp).')
+      +paso('resuelve', 'Se resuelve', 'Semana '+X.a.resuelve+(lun(X.a.resuelve)?' · '+lun(X.a.resuelve):''), 'La corregimos juntos en clase.')
+      +'</div>'+(X.fin?'<div class="re-reloj ac-reloj" data-fin="'+X.fin+'" role="timer"><span class="rr-cs" aria-hidden="true">'+window.SG.relojHtml(X.fin)+'</span></div>':'')+'</div></div>'};
+  }
+  function diaActCierre(X){
+    return {k:'act_cierre', rot:'Dudas', montar:conRetrato(null), html:
+      '<div class="dia hasta-pronto con-fondo"><div class="dia-fondo" style="background-image:url(\'assets/img/pres/perfil_en_vuelo.webp\')" aria-hidden="true"></div>'+cmdCuerpo('saludo')
+      +'<div class="hp-txt"><h2>¿Dudas? Al foro de la asignatura</h2><p class="sub">En la <b>plataforma de UNIR</b>. Y esta sesión la tienes siempre en tu Nave, en <b>El Archivo</b>, para volver cuando quieras.</p></div></div>'};
+  }
   function construir(s, n){
     // 24-sep · el desenlace («La batalla de la Ciudadela Gris») no se proyecta: se abre en la Nave de cada cual tras la batalla
     var TB=(window.SG_TRAS_BATALLA||[]).map(function(x){ return x.id; });
@@ -1833,7 +2099,7 @@
    * su primera diapositiva; el que está en el Genially (cuando la sesión va dentro de él) no se pulsa.
    */
   function tramos(){
-    if(st.pres) return '';   // 26-sep · la presentación de la asignatura no tiene inicio, Genially y cierre: es de una pieza
+    if(st.pres||st.act) return '';   // 26-sep · la presentación y las actividades no tienen inicio, Genially y cierre: son de una pieza
     var hay={}; st.slides.forEach(function(x){ hay[x.t||'ap']=true; });
     return '<div class="ses-tramos" id="ses-tramos" role="navigation" aria-label="Los tres tiempos de la clase">'+TRAMOS.map(function(x){
       var suyo=hay[x[0]];
@@ -1918,13 +2184,16 @@
    */
   /** 26-sep · ir a una sesión: 0 = la presentación de la asignatura; N = la semana N (en la diapositiva `i`) */
   function irASesion(sem, i){
-    st.pres=!sem; if(sem) st.sem=sem; st.i=i||0;
-    try{ var u=new URL(location.href); if(st.pres){ u.searchParams.set('pres','1'); u.searchParams.delete('sem'); }
-      else { u.searchParams.delete('pres'); u.searchParams.set('sem',st.sem); } history.replaceState(null,'',u); }catch(e){}
+    // (0 = la presentación; 'a1'/'a2' = la sesión de una actividad; N = la semana N)
+    var mA=String(sem).match(/^a(\d)$/);
+    st.act=mA?Number(mA[1]):0; st.pres=!mA&&!Number(sem); if(!mA&&Number(sem)) st.sem=Number(sem); st.i=i||0;
+    try{ var u=new URL(location.href); ['pres','act','sem'].forEach(function(k){ u.searchParams.delete(k); });
+      if(st.act) u.searchParams.set('act',String(st.act)); else if(st.pres) u.searchParams.set('pres','1'); else u.searchParams.set('sem',st.sem);
+      history.replaceState(null,'',u); }catch(e){}
     pintar();
   }
   function diaSemanas(lista){
-    var hoy=Number(st.semHoy)||1, viendo=st.pres?0:(Number(st.sem)||hoy);
+    var hoy=Number(st.semHoy)||1, viendo=st.pres||st.act?0:(Number(st.sem)||hoy);
     return {k:'semanas', sec:'semanas', rot:'Las semanas', t:'ap', html:
       '<div class="dia dif-semanas con-fondo">'+capaEscena('pasillo')+'<div class="kicker">Las sesiones de clase</div>'
       +'<h2>¿Qué semana quieres ver?</h2>'
@@ -1933,7 +2202,13 @@
       // 26-sep · la presentación de la asignatura, siempre abierta y la primera: las notas, las fechas y cómo va todo
       +(hayPresentacion()?'<button type="button" class="dif-s dif-pres'+(st.pres?' viendo':'')+'" data-dif-sem="0">'
         +'<img class="ico dif-pl-i" src="assets/img/iconos/p/notas.png" alt=""><b>Presentación</b><span>La asignatura: notas, fechas y cómo funciona</span>'
-        +(st.pres?'<em>La que estabas viendo</em>':'')+'</button>':'')
+        +(st.pres&&!st.act?'<em>La que estabas viendo</em>':'')+'</button>':'')
+      // 26-sep · y la sesión de cada actividad, desde la semana en que se lanza
+      +(window.SG_SES_ACT&&st.tipo!=='PUA'?ACTS.map(function(a){ var ab=Number(a.sem)<=hoy;
+          var dentro='<img class="ico dif-pl-i" src="assets/img/iconos/p/notas.png" alt=""><b>Actividad '+a.n+'</b><span>'+esc(a.titulo)+'</span>'
+            +(st.act===Number(a.n)?'<em>La que estabas viendo</em>':'')+(ab?'':'<img class="ico dif-candado" src="assets/img/iconos/p/candado.png" alt="">');
+          return ab?'<button type="button" class="dif-s dif-pres dif-act'+(st.act===Number(a.n)?' viendo':'')+'" data-dif-act="'+a.n+'">'+dentro+'</button>'
+                   :'<div class="dif-s dif-pres dif-act cerrada" title="Se abre la semana '+a.sem+'">'+dentro+'</div>'; }).join(''):'')
       +lista.map(function(x){
           // (26-sep · la 15, sin tema, con su planeta: el de la Estática, como en el resto de la sesión)
           var k=Number(x.sem)||0, pl=Number(x.tema_n)?planeta(x.tema_n):(x.planeta||null), abierta=k<=hoy;
@@ -1949,6 +2224,9 @@
         Array.prototype.forEach.call(el.querySelectorAll('[data-dif-sem]'), function(b){
           b.onclick=function(){ irASesion(Number(b.getAttribute('data-dif-sem')), 1); };   // (a su primera diapositiva: la 0 es este índice)
         });
+        Array.prototype.forEach.call(el.querySelectorAll('[data-dif-act]'), function(b){
+          b.onclick=function(){ irASesion('a'+b.getAttribute('data-dif-act'), 1); };
+        });
         var yo=el.querySelector('.dif-s.viendo')||el.querySelector('.dif-s.hoy'); if(yo&&yo.focus) try{ yo.focus({preventScroll:true}); }catch(e){}
         return null;
       }};
@@ -1956,9 +2234,10 @@
   function tira(){
     var n=semanas().length;
     var celdas=[]; for(var k=1;k<=n;k++){ celdas.push(k); }
-    return '<div class="sem-tira">'+(hayPresentacion()?'<button type="button" class="s pres'+(st.pres?' on':'')+'" data-pres="1" title="La presentación de la asignatura (sesión 1)">P</button>':'')
+    return '<div class="sem-tira">'+(hayPresentacion()?'<button type="button" class="s pres'+(st.pres&&!st.act?' on':'')+'" data-pres="1" title="La presentación de la asignatura (sesión 1)">P</button>':'')
+      +(window.SG_SES_ACT?ACTS.map(function(a){ return '<button type="button" class="s pres act'+(st.act===Number(a.n)?' on':'')+'" data-act="'+a.n+'" title="La sesión de la Actividad '+a.n+'">A'+a.n+'</button>'; }).join(''):'')
       +celdas.map(function(k){
-      return '<button type="button" class="s'+(k===st.sem&&!st.pres?' on':'')+'" data-sem="'+k+'">'+k+'</button>';
+      return '<button type="button" class="s'+(k===st.sem&&!st.pres&&!st.act?' on':'')+'" data-sem="'+k+'">'+k+'</button>';
     }).join('')+'</div>';
   }
 
@@ -1979,7 +2258,7 @@
        * grupo dentro: se deduce de quién la abre.
        */
       +'<p class="ses-copiar"><span class="small muted">Código de inserción para tu Genially:</span> '
-        +[['apertura','1 · Apertura'],['cierre','3 · Cierre'],['','La sesión entera'],['pres','La presentación de la asignatura']].map(function(x){
+        +[['apertura','1 · Apertura'],['cierre','3 · Cierre'],['','La sesión entera'],['pres','La presentación de la asignatura'],['act1','La Actividad 1'],['act2','La Actividad 2']].map(function(x){
           return '<button type="button" class="btn min" data-copiar-ses="'+x[0]+'">&lt;/&gt; '+x[1]+'</button>'; }).join(' ')+'</p>'
       +(s.consejo?'<div class="card consejo"><b>El consejo del Capitán.</b> '+esc(s.consejo)+'</div>':'')
       +(s.clases?'<p class="small muted">'+esc(s.clases)+'</p>':'')
@@ -1995,7 +2274,9 @@
     var s=lista[st.sem-1];
     if(!s){ root.innerHTML='<div class="card"><h3>Sin semanas que enseñar</h3></div>'; return; }
     // 26-sep · la presentación de la asignatura es su propia sesión (st.pres); la semana 1, una semana más
-    st.slides=st.pres&&hayPresentacion()?construirEmbarque(lista[0]||s,n):construir(s,n);
+    // 26-sep · y la sesión de cada actividad (st.act): el recluta, desde la semana en que se lanza
+    if(st.act&&st.alumno){ var aA=actN(st.act); if(!aA||Number(aA.sem)>Number(st.semHoy)) st.act=0; }
+    st.slides=st.act?construirActividad(st.act):st.pres&&hayPresentacion()?construirEmbarque(lista[0]||s,n):construir(s,n);
     if(DIFERIDO) st.slides=[diaSemanas(lista)].concat(st.slides);   // 25-sep · en diferido, el índice de semanas delante
     if(st.i>=st.slides.length) st.i=st.slides.length-1;
     if(st.i<0) st.i=0;
@@ -2111,7 +2392,7 @@
     clearTimeout(DIRECTO.t);
     DIRECTO.t=setTimeout(function(){
       DIRECTO.ultimo=firma;
-      M.publicarEnVivo(st.per, {sesion:{activa:true, sem:st.sem, pres:!!st.pres, k:o.k, n:o.n, t:Date.now(), por:st.miNombre||''}}).catch(function(){});
+      M.publicarEnVivo(st.per, {sesion:{activa:true, sem:st.sem, pres:!!st.pres, act:st.act||0, k:o.k, n:o.n, t:Date.now(), por:st.miNombre||''}}).catch(function(){});
     }, 350);
   }
   function encenderDirecto(){
@@ -2141,7 +2422,8 @@
       SEG.d=d||{};
       var s=SEG.d.sesion;
       if(SEG.on && s && s.activa && (Date.now()-Number(s.t||0))<3*3600e3){
-        if(!!s.pres!==!!st.pres || (!s.pres&&Number(s.sem)&&Number(s.sem)!==Number(st.sem))){ st.pres=!!s.pres; if(Number(s.sem)) st.sem=Number(s.sem); st.i=0; pintar(); }
+        if(!!s.pres!==!!st.pres || Number(s.act||0)!==Number(st.act||0) || (!s.pres&&!s.act&&Number(s.sem)&&Number(s.sem)!==Number(st.sem))){
+          st.pres=!!s.pres; st.act=Number(s.act)||0; if(Number(s.sem)) st.sem=Number(s.sem); st.i=0; pintar(); }
         var i=indiceDe(s.k, s.n); if(i>=0&&i!==st.i) ir(i, false, true);
       }
       var p=SEG.d.pregunta;
@@ -2228,7 +2510,7 @@
       b.onclick=function(){ ir(Number(b.getAttribute('data-i'))); };
     });
     Array.prototype.forEach.call(root.querySelectorAll('.sem-tira .s'),function(b){
-      b.onclick=function(){ irASesion(b.hasAttribute('data-pres')?0:Number(b.getAttribute('data-sem')), 0); };
+      b.onclick=function(){ irASesion(b.hasAttribute('data-act')?'a'+b.getAttribute('data-act'):b.hasAttribute('data-pres')?0:Number(b.getAttribute('data-sem')), 0); };
     });
     var cg=root.querySelector('#ses-cambiar');
     if(cg) cg.onclick=function(){ elegirGrupo(st.grupos); };
@@ -2256,7 +2538,7 @@
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-copiar-ses]'),function(bt){
       bt.onclick=function(){
-        var tr=bt.getAttribute('data-copiar-ses'), ruta='sesion.html?embed=1'+(tr==='pres'?'&pres=1':tr?'&tramo='+tr:''), tit='STARGATE · '+bt.textContent.replace(/^<\/>\s*/,'');
+        var tr=bt.getAttribute('data-copiar-ses'), ruta='sesion.html?embed=1'+(tr==='pres'?'&pres=1':/^act\d$/.test(tr)?'&act='+tr.slice(3):tr?'&tramo='+tr:''), tit='STARGATE · '+bt.textContent.replace(/^<\/>\s*/,'');
         var M=window.SG&&window.SG.MOTOR, cod=M&&M.codigoGenially?M.codigoGenially(ruta,tit)
           :'<iframe src="'+location.origin+'/'+ruta+'" width="1200" height="675" style="border:0;width:100%;height:100%" allow="fullscreen; clipboard-write; autoplay; encrypted-media" allowfullscreen title="'+tit+'"></iframe>';
         var ant=bt.innerHTML;
@@ -2300,6 +2582,7 @@
       st.d = d;
     }
     st.pres=q.get('pres')==='1';   // 26-sep · la presentación de la asignatura (sesión 1)
+    st.act=Number(q.get('act'))||0;   // 26-sep · la sesión de una actividad
     var forzada=parseInt(q.get('sem')||'0',10);
     var hoy=window.SGCAL.semanaActual(st.inicio, st.pausas);
     st.semHoy=hoy&&hoy>0?hoy:1;

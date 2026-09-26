@@ -732,6 +732,158 @@ ACTIVIDADES = [
 # último día de la semana 9» (la programación oficial de 2026-27; referencias/PROGRAMACION_SEMANAL_OFICIAL_2026-27.pdf).
 # `entrega`: esa semana (la fecha, del calendario de cada grupo: su último día lectivo, a las 23:59); `recuerda`: las semanas
 # en que la Nave, la sesión y el Puente lo recuerdan con su tarjeta (Norberto: «en la 4 y 5 la act1, y la 7 y 8 la act2»).
+# ─────────────── 🔴 26-sep · LA SESIÓN DE CADA ACTIVIDAD (sesion.html?act=1 / ?act=2) ───────────────
+# Norberto: «aquí están las actividades 1 y 2. En la semana que toquen, quiero una sesión tanto para el estudiante como para el
+# docente explicando la actividad. Usa a NEBULA, el Capitán y el Comandante para explicar lo más importante. Debe quedar muy
+# claro. Puedes crear ejemplos concretos… Quiero separarlas de los temas… una sesión dedicada… que el estudiante la pueda ver
+# en diferido. También te dejo las rúbricas… una versión reducida e interactiva para que sepan exactamente lo que necesitan
+# para tener un 10». Fuente: los enunciados y las rúbricas oficiales (Project_CCD/referencias/actividades_2026-27/). Los
+# ejemplos resueltos son los de siempre (EJEMPLOS_RETOS): Pilar (L1, su infografía) y Patricia (X2, su huerto).
+# La rúbrica, reducida: el peso de cada criterio y lo que pide el nivel 4 (sobresaliente), en una línea.
+MATRIZ_PLANTILLA = "https://view.genially.com/6829b625ff56e91aba84861d/horizontal-infographic-review-corregida-matriz-de-programacion"
+INTELIGENCIAS = ["Lingüística", "Lógico-matemática", "Visual-espacial", "Corporal-cinestésica", "Musical", "Interpersonal",
+                 "Intrapersonal", "Naturalista"]
+BLOOM = ["Crear", "Evaluar", "Analizar", "Aplicar", "Comprender", "Recordar"]   # de arriba abajo, como en la matriz
+ORTOGRAFIA = "Ortografía: −0,10 por cada falta y −0,25 por cada cinco tildes."
+# 26-sep · LAS CAPTURAS, OBLIGATORIAS (Norberto: «la obligatoriedad de hacer capturas de pantalla: es la única prueba y evidencia
+# de haber hecho las cosas en la fecha prevista y ayuda a prevenir problemas de enlaces restringidos o privados; enseña cómo
+# hacer captura en Mac, Windows y Chromebook con atajos de teclado»). Una diapositiva en la sesión de cada actividad.
+CAPTURAS = dict(
+    por_que=["Son la **única prueba** de que lo hiciste **a tiempo**: el enlace cambia; la captura, no.",
+             "Te salvan si un enlace sale **restringido o privado**: lo que se ve en la captura, se ve."],
+    que=["Cada paso importante: tu **prompt**, las **versiones**, las **tablas** y tu **ePortfolio** publicado.",
+         "Si puedes, con la **fecha y la hora** a la vista (el reloj de tu barra de tareas)."],
+    atajos=[("Mac", [("Cmd + Mayús + 3", "Toda la pantalla"), ("Cmd + Mayús + 4", "Una zona: arrástrala"),
+                     ("Cmd + Mayús + 5", "El menú: ventana, zona o grabación")], "Se guardan en el Escritorio."),
+            ("Windows", [("Win + Mayús + S", "Una zona, una ventana o toda la pantalla"), ("Win + Impr Pant", "Toda la pantalla, guardada")],
+             "Se guardan en Imágenes › Capturas de pantalla (la de Win + Mayús + S va al portapapeles: pégala o guárdala)."),
+            ("Chromebook", [("Ctrl + Mostrar ventanas", "Toda la pantalla"), ("Ctrl + Mayús + Mostrar ventanas", "Una zona o una ventana")],
+             "«Mostrar ventanas» es la tecla del rectángulo con dos rayas, en la fila de arriba. Se guardan en Descargas.")])
+SESION_ACTIVIDAD = {
+  "a1": dict(
+    mision=("Tu primera misión mayor",
+            "Recluta: en Fôrge se forja lo que luego se usa en el aula. Tu misión es diseñar una actividad para tu clase a "
+            "partir de una imagen que crees con IA… y demostrar que la IA la has usado TÚ, con criterio."),
+    objetivo="Diseñar una actividad didáctica basada en una imagen creada con IA y documentar cómo has usado la IA: con "
+             "criterio, citándola y reflexionando sobre ella.",
+    pdf=["Máximo **4 páginas**, con la **plantilla**, sus estilos e **índice automático**.",
+         "La **planificación**, la **imagen** y la **actividad**, y la referencia al uso de la IA.",
+         "**Capturas** de la tabla técnica, de la reflexiva y de la imagen.",
+         "El **enlace único** a tu ePortfolio y las citas en **APA**."],
+    portfolio=["Formato y plataforma **libres** (la plantilla es opcional).",
+               "La **imagen** y la **tarea** para el alumnado.",
+               "Las **dos tablas completas**: técnica y reflexiva.",
+               "La **evidencia** del proceso: el enlace al chat o capturas."],
+    tareas=["Señala las partes de…", "Rellena la ficha con los elementos que…", "Clasifica los objetos que ves según…",
+            "Describe la imagen…", "Anota las diferencias entre…", "Detecta los errores del mapa mental y justifica…",
+            "Responde a las cuestiones a partir del esquema…", "Imagina una situación como la de la imagen y describe…",
+            "Explica los conceptos de la infografía…", "Añade el texto que acompañaría a cada paso del proceso…"],
+    ejemplo=dict(
+      quien="Pilar, maestra de 6.º de Primaria", imagen="L1.jpg",
+      alumnado="6.º de Primaria (11-12 años)", tema="El aparato circulatorio · Ciencias de la Naturaleza",
+      tarea="Explicar con sus palabras el recorrido de la sangre a partir de una infografía",
+      herramienta="Microsoft Designer",
+      prompt=[("Contexto", "Para una clase de 6.º de Primaria sobre el aparato circulatorio,"),
+              ("Rol", "actúa como ilustrador de materiales escolares"),
+              ("Acción", "y crea una infografía del recorrido de la sangre: corazón, pulmones y resto del cuerpo,"),
+              ("Formato", "vertical, con flechas rojas y azules,"),
+              ("Tono", "clara y amable para niños. Finalidad: que el alumnado explique el recorrido con sus palabras.")],
+      modelo="CRAFT",
+      iteracion="La primera versión traía etiquetas inventadas y en inglés. Segundo prompt: «Solo seis etiquetas, en "
+                "español, con letra grande y fondo blanco».",
+      criterio="Elijo la versión 2: se lee desde el fondo del aula y distingue por color la sangre con y sin oxígeno, que "
+               "es justo lo que voy a evaluar.",
+      evidencia="El enlace al chat de la herramienta y las capturas de las dos versiones.",
+      cita="Microsoft. (2026). Microsoft Designer [Generador de imágenes con IA]. https://designer.microsoft.com",
+      funcion="Generar un organizador gráfico (una infografía) del recorrido de la sangre, a partir de su boceto.",
+      enunciado=["Observa la infografía y **señala** el camino de la sangre del corazón a los pulmones, y de vuelta.",
+                 "**Responde**: ¿por qué unas flechas son rojas y otras azules?",
+                 "**Explica** a tu compañero, con tus palabras, qué pasa en los capilares."],
+      reflexion="La IA me dio en un minuto lo que dibujo cada año en la pizarra, pero la primera versión tenía errores y "
+                "estaba en inglés: sin mi revisión no servía. He aprendido a pedirle con una finalidad didáctica y a no "
+                "quedarme con la primera respuesta."),
+    tecnica=[("Función de la IA", "Apoyo para generar una imagen con finalidad didáctica (ilustración, organizador gráfico o infografía), explorando opciones.", "funcion"),
+             ("Prompt inicial", "Claro y estructurado: contexto educativo, tipo de imagen y finalidad, siguiendo un modelo (CRAFT, RITA o RCTA).", "prompt"),
+             ("Iteración", "Ajustar el prompt al menos una vez para mejorar la imagen, visual o pedagógicamente.", "iteracion"),
+             ("Criterio docente", "Elegir la imagen final con tu criterio y justificar por qué encaja con la actividad y el nivel.", "criterio"),
+             ("Evidencia del proceso", "Conservar el enlace al chat o capturas de la interacción con la IA.", "evidencia"),
+             ("Citación", "Citar la IA y las herramientas empleadas según la normativa (APA).", "cita")],
+    reflexiva=[("Integración crítica", "¿Cómo has usado la IA en tu actividad de forma reflexiva y crítica?"),
+               ("Transformación", "¿La IA ha transformado la actividad? ¿De qué manera?"),
+               ("Conocimiento propio", "¿Cómo combinaste lo que te ofreció la IA con lo que tú sabes?"),
+               ("Justificación", "¿Por qué es relevante lo que has integrado de la IA?"),
+               ("Aprendizaje", "¿Cómo ha cambiado tu forma de pensar? ¿Qué has aprendido?")],
+    errores=[("Una sola versión", "Sin al menos una iteración, la tabla técnica se queda corta."),
+             ("El prompt sin modelo", "Di qué modelo sigues (CRAFT, RITA o RCTA) y que se vean sus partes."),
+             ("La reflexión, solo en el PDF", "La tabla reflexiva va completa en el ePortfolio; en el PDF, captura o resumen."),
+             ("La IA sin citar", "La herramienta y cada imagen, en APA."),
+             ("Fuera de la plantilla", "Más de 4 páginas, sin estilos o sin índice automático: eso solo vale 1,5 puntos."),
+             ("Un enlace que no abre", "Tu ePortfolio, público: ábrelo en una ventana de incógnito antes de entregar.")],
+    rubrica=[("Formato, estilos y funciones avanzadas", 1.5, "PDF", "La plantilla y sus estilos bien usados, e índice automático (y de figuras o tablas)."),
+             ("La actividad y la imagen", 2.5, "PDF", "Alineadas con los objetivos: la imagen es pertinente, clara y creativa, y ayuda a hacer la tarea."),
+             ("Uso técnico de la IA · tabla técnica", 1.5, "PDF", "Prompt estructurado con su modelo, iteraciones justificadas, criterio docente explícito y la herramienta citada."),
+             ("Reflexión sobre la IA · tabla reflexiva", 1.5, "PDF", "Profunda y argumentada: lo que puso la IA y lo que pusiste tú, su impacto y sus límites, con ejemplos."),
+             ("Citas y referencias · APA", 1, "PDF", "Todo citado en APA, también lo generado con IA, con enlaces que funcionan."),
+             ("Organización del ePortfolio", 1, "ePortfolio", "Ordenado y coherente: evidencias, reflexión y el proceso entero, fácil de seguir."),
+             ("Presentación del ePortfolio", 1, "ePortfolio", "Atractivo, legible y accesible: se entiende y se evalúa sin esfuerzo.")]),
+  "a2": dict(
+    mision=("Cuarenta y ocho senderos",
+            "Recluta: te ha tocado un grupo con ritmos muy distintos. Lo que a uno le motiva, a otro le aburre; lo que a uno "
+            "le parece fácil, otros no saben ni por dónde empezar. En Sendara no hay un solo camino: diseña un paisaje donde "
+            "cada cual encuentre el suyo."),
+    objetivo="Planificar un tema con una matriz de programación (inteligencias múltiples × Bloom) y convertirlo en un paisaje "
+             "de aprendizaje interactivo que atienda a la diversidad.",
+    pdf=["Con la **plantilla** y sus estilos; figuras **numeradas y nombradas**; citas en **APA**, también la IA.",
+         "Máximo **10 páginas** para seis actividades (**+1** por cada actividad más).",
+         "La **contextualización**, la **matriz** (con enlace y captura si es digital) y la **ficha** de cada actividad.",
+         "El **enlace** a tu ePortfolio, con el paisaje y la matriz."],
+    portfolio=["**Evidencias (15 %)**: la matriz y el paisaje, mejor **embebido**.",
+               "**Justificación (5 %)**: un párrafo argumentado sobre cómo tu diseño atiende a la **diversidad** y a los **ritmos**.",
+               "Si usaste IA (opcional): para qué, con qué criterios y con qué prompts."],
+    ejemplo=dict(
+      quien="Patricia, maestra de 3.º de Primaria", imagen="X2.jpg",
+      nivel="3.º de Primaria (8-9 años)", area="Ciencias de la Naturaleza · «Las plantas»",
+      objetivos=["Identificar las partes de la planta y para qué sirve cada una.",
+                 "Describir el ciclo de vida de una planta.",
+                 "Reconocer lo que necesita una planta para crecer."],
+      criterios="Explica las partes y el ciclo de vida con sus palabras; relaciona el crecimiento con el agua, la luz y la tierra.",
+      paisaje="Un huerto ilustrado en Genially, hecho imagen interactiva: cada planta abre una actividad, y su color dice si es "
+              "obligatoria (verde), optativa (azul) o voluntaria (amarilla).",
+      # (n, fila de Bloom, columna de inteligencia, tipo, título, tarea)
+      cruces=[(1, "Recordar", "Visual-espacial", "obligatoria", "Las partes de la tomatera", "Señala raíz, tallo, hojas, flor y fruto en la foto de la tomatera."),
+              (2, "Comprender", "Lingüística", "optativa", "¿Para qué sirve cada parte?", "Explícalo con tus palabras en un audio de un minuto."),
+              (3, "Analizar", "Lógico-matemática", "voluntaria", "¿Cuánto crece mi planta?", "Medimos la planta cada semana, lo anotamos en una tabla y lo representamos en una gráfica."),
+              (4, "Aplicar", "Naturalista", "obligatoria", "Mi judía en un vaso", "Plántala, cuida lo que necesita (agua, luz y tierra) y anota lo que ves."),
+              (5, "Comprender", "Musical", "optativa", "La canción del ciclo de vida", "Completa la letra con las fases: semilla, germinación, planta, flor y fruto."),
+              (6, "Evaluar", "Interpersonal", "obligatoria", "¿Dónde crece mejor?", "Por parejas, comparad una planta con luz y otra sin luz, y decidid por qué."),
+              (7, "Crear", "Corporal-cinestésica", "voluntaria", "De semilla a fresa", "Representa con tu cuerpo cómo crece una semilla hasta dar fruto, en un vídeo corto."),
+              (8, "Crear", "Intrapersonal", "optativa", "Mi diario de jardinero", "Escribe qué has aprendido y qué planta cuidarías tú, y por qué.")],
+      ficha=[("Actividad", "3 · ¿Cuánto crece mi planta? (Analizar × Lógico-matemática)"),
+             ("Objetivo", "Reconocer lo que necesita una planta para crecer."),
+             ("Tarea", "Medimos la planta cada semana, lo anotamos en una tabla y lo representamos en una gráfica."),
+             ("Recursos", "Una regla y la plantilla de la tabla (enlace y captura, porque es propia)."),
+             ("Evaluación", "La tabla y la gráfica, con una lista de cotejo."),
+             ("Tiempo", "10 minutos a la semana, durante 4 semanas."),
+             ("Tipo", "Voluntaria · en cualquier orden.")],
+      justificacion="Las actividades verdes aseguran lo básico para todo el grupo; las azules y las amarillas dejan que quien va "
+                    "rápido llegue más lejos y que quien necesita tiempo elija por dónde entrar. Por eso hay una de cada "
+                    "inteligencia y los seis niveles de Bloom: nadie se queda sin un sendero."),
+    ia=["La **herramienta** de IA usada.", "El **prompt** que usaste.",
+        "Una **reflexión** sobre si la respuesta servía y **qué cambiaste**."],
+    errores=[("Una presentación, no un paisaje", "Tiene que ser una imagen interactiva; si es una presentación o lineal, no es un paisaje."),
+             ("Menos de seis", "Al menos seis actividades completas, variadas en Bloom y en inteligencias."),
+             ("La ficha a medias", "Cada actividad: objetivo, tarea, recursos, evaluación, tiempo y tipo."),
+             ("Sin decir el tipo", "Obligatoria, optativa o voluntaria (y si hay que seguir un orden)."),
+             ("La IA sin citar", "La herramienta, el prompt y qué cambiaste de su respuesta."),
+             ("El paisaje escondido", "En el ePortfolio, a la vista: embebido o enlazado, junto a la matriz.")],
+    rubrica=[("Contextualización", 1, "PDF", "Completa: nivel, área, objetivos, contenidos o competencias y criterios, y justifica las decisiones del paisaje."),
+             ("Matriz de programación", 2, "PDF", "Cruces realistas y explicados entre la demanda cognitiva y cada actividad, alineados con los objetivos."),
+             ("Diseño de las actividades", 3, "PDF", "Completas y coherentes con la matriz, con obligatorias, optativas y voluntarias bien diferenciadas."),
+             ("El paisaje de aprendizaje", 2, "PDF", "Cuidado y motivador, con varios itinerarios que dan autonomía al alumnado."),
+             ("ePortfolio · evidencias", 1.5, "ePortfolio", "El paisaje embebido o compartido, con la matriz a la vista y coherente con lo planificado."),
+             ("ePortfolio · justificación", 0.5, "ePortfolio", "Precisa: con referencias a tus actividades, tu matriz y la atención a la diversidad.")]),
+}
+
 EVALUACION = [("Actividad %d" % a["n"], a["puntos"], "%s · se lanza en la semana %d, se entrega el último día de la semana %d y se resuelve en la %d" % (a["titulo"], a["sem"], a["entrega"], a["resuelve"]))
               for a in ACTIVIDADES] + [
     ("Tests de tema", "0,8", "Uno por tema, 0,1 cada uno: fijan los conceptos del examen"),

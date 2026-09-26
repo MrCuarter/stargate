@@ -458,6 +458,9 @@
   /** 25-sep · la sesión de clase de una semana, en diferido (la abren El Archivo y la orden de la semana) */
   function urlSesion(sem){ return 'sesion.html?embed=1&diferido=1&per='+encodeURIComponent(per||'')+'&sem='+(Number(sem)||1); }
   function urlPresentacion(){ return 'sesion.html?embed=1&diferido=1&pres=1&per='+encodeURIComponent(per||''); }
+  function urlActividad(n){ return 'sesion.html?embed=1&diferido=1&act='+n+'&per='+encodeURIComponent(per||''); }
+  // 26-sep · la sesión de una actividad se abre la semana en que se lanza (y se queda)
+  function actividadAbierta(a){ return st.estado==='fin' || (st.estado==='curso' && Number(st.actual||0)>=Number(a.sem||99)); }
   function archivo(){
     var L=st.semanas||[], hasta=Math.min(Math.max(st.actual||0,0),L.length);
     /**
@@ -500,6 +503,10 @@
       // con la información de puntuaciones y fechas»): la sesión 1, arriba del todo
       +(per&&!SIMULACRO?'<a class="card ar-pres" href="'+esc(urlPresentacion())+'" target="_blank" rel="noopener"><img class="ar-pres-i" src="assets/img/iconos/p/notas.png" alt="">'
         +'<span><b>La presentación de la asignatura</b><small>La sesión 1: los ocho temas, lo que cuenta para tu nota con sus fechas, qué se entrega en UNIR y cómo funciona STARGATE.</small></span><em class="btn min">Abrirla ↗</em></a>':'')
+      // 26-sep · y la sesión de cada actividad, desde la semana en que se lanza
+      +(per&&!SIMULACRO&&(st.d||{}).tipo!=='PUA'?(window.SG_ACTIVIDADES||[]).filter(actividadAbierta).map(function(a){
+          return '<a class="card ar-pres ar-act" href="'+esc(urlActividad(a.n))+'" target="_blank" rel="noopener"><img class="ar-pres-i" src="assets/img/iconos/p/notas.png" alt="">'
+            +'<span><b>La Actividad '+a.n+' · '+esc(a.titulo)+'</b><small>Qué se entrega, paso a paso con un ejemplo, los retos que la adelantan, la rúbrica para el 10 y las fechas.</small></span><em class="btn min">Abrirla ↗</em></a>'; }).join(''):'')
       +(filas||'<div class="card"><p class="muted">Todavía no hay vídeos que enseñar.</p></div>')+'</section>';
   }
   var CINE={sem:0,i:0,jugando:false};
@@ -1424,7 +1431,8 @@
     var boton=function(r){ return '<button type="button" class="re-r'+(r.hecho?' hecho':'')+'" data-ir-reto="'+esc(r.id)+'" title="'+esc(r.hecho?'Hecho · ver el reto':'Pendiente · ver qué pide')+'">'
       +(r.hecho?'<img class=ico src=assets/img/iconos/p/hecho.png alt="Hecho">':'<span class="re-r-o" aria-label="Pendiente"></span>')
       +'<span><b>'+esc(r.nombre)+'</b>'+(corto?'':'<small>'+esc(r.aporta)+'</small>')+'</span></button>'; };
-    return '<div class="re-rel'+(corto?' corto':'')+'"><p class="re-rel-t"><b>Retos relacionados</b> · '+cuenta+'</p>'
+    return '<div class="re-rel'+(corto?' corto':'')+'"><p class="re-rel-t"><b>Retos relacionados</b> · '+cuenta
+      +(corto&&per&&!SIMULACRO&&actividadAbierta(a)?' · <a href="'+esc(urlActividad(a.n))+'" target="_blank" rel="noopener">La sesión de la actividad ↗</a>':'')+'</p>'
       +'<div class="re-rel-g">'+R.map(boton).join('')+'</div></div>';
   }
   function actividadDeReto(id){ return (window.SG_ACTIVIDADES||[]).filter(function(a){ return a.reto===id; })[0]||null; }
@@ -1473,7 +1481,7 @@
       +'<span>Hasta las 23:59, en la plataforma de UNIR · <b>'+esc(a.puntos)+' de los 10 puntos</b></span></div>'
       +relacionados(a)
       +'<p class="re-premio">Cuando la entregues, regístrala en <b>Mis retos</b>: <b>+'+xp+' xp</b>.</p>'
-      +'<p class="re-acc"><a class="btn min" href="actividades.html#act'+a.n+'" target="_blank" rel="noopener">Qué pide ↗</a>'
+      +'<p class="re-acc"><a class="btn min primary" href="'+esc(urlActividad(a.n))+'" target="_blank" rel="noopener">La sesión de la actividad ↗</a>'
       +'<button type="button" class="btn min" data-tab="retos">Ir a Mis retos</button></p></div></section>';
   }
   /** Tu carrera: quién va justo delante y quién te pisa los talones (los datos del grupo, que ya trae la Nave). */
@@ -2243,6 +2251,7 @@
       +(!DEMO?'<a role="menuitem" href="guia-recluta.html"><span>Guía del recluta<em>cómo funciona todo, paso a paso</em></span></a>':'')
       // 26-sep · y la presentación de la asignatura (la sesión 1): notas, fechas y qué se entrega en UNIR
       +(per&&!DEMO?'<a role="menuitem" href="'+esc(urlPresentacion())+'" target="_blank" rel="noopener"><span>La presentación de la asignatura<em>notas, fechas y qué se entrega en UNIR</em></span></a>':'')
+      +(per&&!DEMO?(window.SG_ACTIVIDADES||[]).filter(actividadAbierta).map(function(a){ return '<a role="menuitem" href="'+esc(urlActividad(a.n))+'" target="_blank" rel="noopener"><span>La Actividad '+a.n+'<em>qué pide y cómo sacar un 10</em></span></a>'; }).join(''):'')
       +(d.formTicket?'<a role="menuitem" href="'+esc(ticketUrl(d))+'" data-vent="Contacta con NEBULA"><span>Dudas a NEBULA<em>anónimo, no lo ve tu clase</em></span></a>':'')
       +(d.padlet?'<a role="menuitem" href="'+esc(d.padlet)+'" data-vent="Padlet de la clase"><span>Padlet de la clase<em>el muro común</em></span></a>':'')
       +'<a role="menuitem" href="ayuda.html" target="_blank" rel="noopener"><span>¿Mi enlace abre lo mío?<em>compruébalo antes de entregar</em></span></a>'

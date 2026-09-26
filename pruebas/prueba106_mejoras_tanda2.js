@@ -83,7 +83,7 @@ c(EMB.filter(x => x[0] === "ticket").every(x => x[1] === "p"), "   el ticket es 
 ["portada_asig", "bloque", "nota", "unir", "dudas", "voluntario", "nombres", "semana", "bitacora", "nave", "alistaos", "llamada", "ticket", "portada", "mensaje", "video", "hasta"]
   .forEach(k => { if (!new RegExp("pieza==='" + k + "'").test(SES)) c(false, "   la pieza «" + k + "» se construye en sesion.js"); });
 c(["portada_asig", "bloque", "unir", "dudas", "voluntario"].every(k => new RegExp("pieza==='" + k + "'").test(SES)), "   cada pieza tiene quien la construya");
-c(/st\.slides=st\.pres&&hayPresentacion\(\)\?construirEmbarque\(lista\[0\]\|\|s,n\):construir\(s,n\);/.test(SES) && !/esEmbarque\(/.test(SES),
+c(/st\.slides=st\.act\?construirActividad\(st\.act\):st\.pres&&hayPresentacion\(\)\?construirEmbarque\(lista\[0\]\|\|s,n\):construir\(s,n\);/.test(SES) && !/esEmbarque\(/.test(SES),
   "   es su propia sesión (?pres=1), y la semana 1 ya no la lleva dentro");
 c(/st\.pres=q\.get\('pres'\)==='1';/.test(SES) && /data-pres="1"/.test(SES) && /data-dif-sem="0"/.test(SES), "   se abre con ?pres=1, con la «P» de la tira del docente y desde el índice del diferido");
 c(/&pres=1" target="_blank"/.test(L("assets/js/consola.js")) && /codigo: "sesion\.html\?embed=1&pres=1"/.test(L("assets/js/consola.js")), "   el docente la tiene en su banner y en Enlaces (con su código)");

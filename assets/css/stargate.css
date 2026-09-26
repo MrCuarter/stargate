@@ -6814,3 +6814,187 @@ a.ar-pres:hover{border-color:var(--amber)}
 @media(max-width:700px){ .dia.asig-vol{flex-direction:column;align-items:stretch} .asig-vol-neb{display:none} }
 /* (el nombre de la asignatura es largo: en la portada, más pequeño que el de un planeta; en todas las variantes de la sesión) */
 .dia.asig-portada h1,body.embed .mazo .dia.asig-portada h1,.mazo:fullscreen .dia.asig-portada h1{font-size:clamp(1.6rem,3.6vw,3.1rem);text-wrap:balance;max-width:22ch}
+
+/* ════════ 26-sep · LA SESIÓN DE CADA ACTIVIDAD (sesion.html?act=N) ════════ */
+.sem-tira .s.act{border-color:rgba(55,224,236,.55);color:#9eeef5}
+.sem-tira .s.act.on{background:var(--teal);border-color:var(--teal);color:#05222a}
+a.ar-act{border-color:rgba(55,224,236,.45)}
+.ac-lista{margin:.3em 0 0;padding-left:1.1em;display:flex;flex-direction:column;gap:.35em;font-size:clamp(.85rem,1.35vw,1.1rem);line-height:1.4}
+.ac-nota{margin:.6em 0 0;font-size:clamp(.8rem,1.2vw,1rem);color:var(--mut)}
+.ac-nota a{color:var(--teal2)}
+.ac-et{margin:0 0 .25em;font-size:.75rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2)}
+.ac-links{display:flex;flex-wrap:wrap;gap:8px;margin:.8em 0 0}
+.ac-neb{display:flex;align-items:flex-end;gap:12px;margin-top:.8em;padding:0 14px 0 6px;border-radius:14px;border:1px solid rgba(55,224,236,.3);
+  background:radial-gradient(90% 130% at 0% 100%,rgba(55,224,236,.18),transparent 60%),rgba(8,16,26,.8);overflow:hidden}
+.ac-neb img{height:clamp(70px,13vh,120px);width:auto;flex:none}
+.ac-neb p{margin:0;padding:10px 0;align-self:center;font-size:clamp(.85rem,1.3vw,1.05rem);line-height:1.45}
+.ac-neb p>b:first-child{color:var(--teal2)}
+/* la portada */
+.dia.ac-portada{flex-direction:row;align-items:center;gap:3%;overflow:hidden}
+.ac-pl{position:absolute;right:-6%;top:50%;width:48%;transform:translateY(-50%);opacity:.28;pointer-events:none}
+.ac-txt{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;gap:.45em}
+.ac-txt h1{margin:0;font-size:clamp(2rem,6vw,4.6rem)}
+.ac-tit{margin:0;font-family:'Unbounded',sans-serif;font-size:clamp(1.05rem,2.3vw,1.9rem);line-height:1.2;color:#ffd28a;text-wrap:balance;max-width:28ch}
+.ac-datos{display:flex;flex-wrap:wrap;gap:8px;margin-top:.4em}
+.ac-d{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(8,16,26,.8);font-size:clamp(.8rem,1.2vw,1rem)}
+.ac-d b{color:var(--amber)}
+.ac-reloj{margin-top:.3em}
+.ac-ins{position:relative;flex:none;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:10px;max-width:34%}
+.ac-ins figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.ac-ins-g img{width:clamp(110px,22vh,210px);height:clamp(110px,22vh,210px);object-fit:contain;filter:drop-shadow(0 0 20px rgba(245,176,67,.5))}
+.ac-ins-o img{width:clamp(64px,12vh,120px);height:clamp(64px,12vh,120px);object-fit:contain;filter:drop-shadow(0 0 12px rgba(245,176,67,.4))}
+.ac-ins figcaption{font-weight:800;color:#f5c77a;font-size:clamp(.8rem,1.3vw,1.1rem)}
+.ac-ins small{flex-basis:100%;text-align:center;color:var(--mut);font-size:.8rem}
+/* el Capitán cuenta la misión */
+.dia.ac-mision{flex-direction:row;align-items:flex-end;gap:3%}
+.ac-cap{position:relative;z-index:1;width:24%;max-height:92%;object-fit:contain;object-position:50% 100%;align-self:flex-end;margin-bottom:-3%;filter:drop-shadow(0 0 18px rgba(0,0,0,.6))}
+.ac-mision-t{flex:1;min-width:0;align-self:center;display:flex;flex-direction:column;gap:.6em}
+.ac-bocadillo{margin:0;padding:.8em 1.1em;border-radius:16px;border:1px solid rgba(245,176,67,.5);background:rgba(20,16,8,.85);
+  font-size:clamp(.95rem,1.6vw,1.3rem);line-height:1.45;font-style:italic;color:#fbe9c6}
+.ac-bocadillo small{display:block;margin-top:.4em;font-style:normal;color:var(--mut);font-size:.8em}
+.ac-objetivo{padding:.8em 1.1em;border-radius:16px;border:1px solid rgba(55,224,236,.45);background:rgba(8,16,26,.85)}
+.ac-objetivo b{display:block;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2)}
+.ac-objetivo p{margin:.3em 0 0;font-size:clamp(1rem,1.7vw,1.35rem);line-height:1.4}
+/* qué entregas */
+.ac-dos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:.4em}
+.ac-caja{padding:.9em 1.1em;border-radius:16px;border:1px solid var(--line);background:rgba(8,14,22,.85)}
+.ac-caja.pdf{border-color:rgba(245,176,67,.55)}
+.ac-caja.ep{border-color:rgba(55,224,236,.5)}
+.ac-pct{margin:0 0 .3em;font-weight:800;font-size:clamp(.95rem,1.5vw,1.2rem)}
+.ac-pct b{font-family:'Unbounded',sans-serif;font-size:1.6em;margin-right:.3em}
+.ac-caja.pdf .ac-pct b{color:var(--amber)} .ac-caja.ep .ac-pct b{color:var(--teal)}
+/* los pasos */
+.ac-tres{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:.3em}
+.ac-plan{display:flex;flex-direction:column;gap:.3em;padding:.8em 1em;border-radius:14px;border:1px solid var(--line);background:rgba(8,14,22,.85)}
+.ac-plan b{font-size:clamp(.95rem,1.4vw,1.15rem)}
+.ac-plan span{font-size:.85rem;color:var(--mut)}
+.ac-plan em{font-size:clamp(.9rem,1.3vw,1.05rem);color:#ffd28a}
+.ac-obj{margin-top:10px}
+.ac-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:.4em}
+.ac-chips span{padding:5px 11px;border-radius:999px;border:1px dashed rgba(55,224,236,.45);font-size:clamp(.78rem,1.1vw,.95rem);background:rgba(8,14,22,.7)}
+.ac-img-g{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:center;margin-top:.3em;min-height:0}
+.ac-img-g figure{margin:0;display:flex;flex-direction:column;gap:6px}
+.ac-img-g img{width:100%;max-height:52vh;object-fit:contain;border-radius:12px;background:#fff}
+.ac-img-g figcaption{font-size:.8rem;color:var(--mut)}
+.ac-prompt{margin:0 0 .6em;display:flex;flex-wrap:wrap;gap:4px 6px;font-size:clamp(.82rem,1.2vw,1rem);line-height:1.45}
+.ac-prompt span{padding:3px 8px;border-radius:8px;background:rgba(55,224,236,.08);border:1px solid rgba(55,224,236,.3)}
+.ac-prompt i{display:block;font-style:normal;font-size:.75rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--amber)}
+.ac-it{margin:0 0 .6em;padding:.5em .8em;border-left:3px solid var(--amber);background:rgba(245,176,67,.07);border-radius:0 10px 10px 0;font-size:clamp(.85rem,1.25vw,1.02rem)}
+/* la tabla técnica, por pestañas */
+.ac-tab{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.6fr);gap:14px;margin-top:.3em}
+.ac-tab-l{display:flex;flex-direction:column;gap:6px}
+.ac-tab-l button{text-align:left;padding:.55em .9em;border-radius:12px;border:1px solid var(--line);background:rgba(8,14,22,.85);color:var(--ink);font:inherit;
+  font-weight:700;font-size:clamp(.85rem,1.25vw,1.05rem);cursor:pointer}
+.ac-tab-l button.on{border-color:var(--teal);background:rgba(55,224,236,.14)}
+.ac-tab-r{padding:.9em 1.1em;border-radius:16px;border:1px solid rgba(55,224,236,.4);background:rgba(8,16,26,.9)}
+.ac-tab-p p{margin:0 0 .7em;font-size:clamp(.9rem,1.35vw,1.1rem);line-height:1.45}
+.ac-ej{color:#ffd28a;font-style:italic}
+/* la reflexiva */
+.ac-preg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:8px;margin-top:.3em}
+.ac-preg div{display:flex;flex-direction:column;gap:.25em;padding:.7em .9em;border-radius:14px;border:1px solid var(--line);background:rgba(8,14,22,.85)}
+.ac-preg b{color:var(--teal2);font-size:.85rem}
+.ac-preg span{font-size:clamp(.85rem,1.2vw,1rem);line-height:1.35}
+.ac-enun-l{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:.5em;font-size:clamp(.95rem,1.4vw,1.15rem);line-height:1.45}
+/* la matriz 8×6 */
+.ac-mz-g{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:14px;margin-top:.3em;align-items:start}
+.ac-mz{display:grid;grid-template-columns:auto repeat(var(--cols),minmax(0,1fr));gap:3px;font-size:clamp(.75rem,.9vw,.85rem)}
+.ac-mz-i{writing-mode:vertical-rl;transform:rotate(180deg);justify-self:center;padding:4px 0;color:var(--mut);font-weight:700;max-height:9em}
+.ac-mz-b{align-self:center;padding-right:6px;font-weight:800;color:var(--teal2);font-size:clamp(.75rem,1vw,.9rem)}
+.ac-mc{aspect-ratio:1/.72;border-radius:6px;border:1px solid rgba(199,214,238,.14);background:rgba(8,14,22,.7)}
+button.ac-mc{display:grid;place-items:center;font:inherit;font-weight:800;font-size:clamp(.8rem,1.2vw,1rem);cursor:pointer;color:#06121c;border:0}
+.ac-mc.obligatoria,.ac-ley .obligatoria{background:#5fcf7a}
+.ac-mc.optativa,.ac-ley .optativa{background:#4aa8ff}
+.ac-mc.voluntaria,.ac-ley .voluntaria{background:#f5c542}
+button.ac-mc.on{outline:3px solid #fff;outline-offset:1px}
+.ac-mz-d{padding:.9em 1.1em;border-radius:16px;border:1px solid rgba(55,224,236,.4);background:rgba(8,16,26,.9);font-size:clamp(.85rem,1.25vw,1.05rem)}
+.ac-mz-d h3{margin:.1em 0 .3em}
+.ac-mz-d p{margin:0 0 .5em}
+.ac-ley{display:flex;flex-wrap:wrap;gap:6px}
+.ac-ley span{padding:2px 9px;border-radius:999px;color:#06121c;font-size:.78rem;font-weight:800}
+/* la ficha de una actividad */
+.ac-ficha{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:8px;margin-top:.3em}
+.ac-ficha div{display:flex;flex-direction:column;gap:.2em;padding:.65em .9em;border-radius:12px;border:1px solid var(--line);background:rgba(8,14,22,.85)}
+.ac-ficha b{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--teal2)}
+.ac-ficha span{font-size:clamp(.88rem,1.25vw,1.05rem)}
+/* los retos */
+.ac-retos-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:10px;margin-top:.4em}
+.ac-reto{display:flex;gap:12px;align-items:flex-start;padding:.8em 1em;border-radius:14px;border:1px solid var(--line);border-left:3px solid var(--amber);background:rgba(8,14,22,.85)}
+.ac-reto.hecho{border-color:rgba(106,214,142,.6);border-left-color:#6ad68e;background:rgba(106,214,142,.08)}
+.ac-reto img{width:clamp(48px,9vh,80px);height:clamp(48px,9vh,80px);object-fit:contain;flex:none}
+.ac-reto .ac-reto-i{width:40px;height:40px}
+.ac-reto b{font-size:clamp(.95rem,1.4vw,1.15rem)}
+.ac-reto small{display:block;font-size:.78rem;font-weight:800;color:var(--amber)}
+.ac-reto.hecho small{color:#9be3b3}
+.ac-reto p{margin:.3em 0 0;font-size:clamp(.82rem,1.15vw,.98rem);line-height:1.4;color:var(--ink)}
+/* NEBULA: el ePortfolio y lo que más se olvida */
+.dia.ac-port,.dia.ac-err{flex-direction:row;align-items:flex-end;gap:3%}
+.ac-neb-g{position:relative;z-index:1;width:20%;max-height:90%;object-fit:contain;object-position:50% 100%;align-self:flex-end;margin-bottom:-3%;filter:drop-shadow(0 0 18px rgba(55,224,236,.35))}
+.ac-port-t{flex:1;min-width:0;align-self:center;display:flex;flex-direction:column;gap:.5em}
+.ac-port-t h2{margin:0}
+.ac-errs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:8px}
+.ac-errs div{display:flex;flex-direction:column;gap:.2em;padding:.65em .9em;border-radius:12px;border:1px solid rgba(255,140,120,.4);background:rgba(40,14,10,.55)}
+.ac-errs b{color:#ffb3a7;font-size:clamp(.9rem,1.3vw,1.05rem)}
+.ac-errs span{font-size:clamp(.82rem,1.15vw,.98rem);line-height:1.4}
+/* la rúbrica: para el 10 */
+.dia.ac-rub{flex-direction:row;align-items:flex-end;gap:2.5%}
+.dia.ac-rub .ac-cmd{position:relative;width:21%;max-height:92%;object-fit:contain;object-position:50% 100%;align-self:flex-end;margin-bottom:-3%}
+.ac-rub-t{flex:1;min-width:0;align-self:center;display:flex;flex-direction:column;gap:.4em}
+.ac-rub-t h2{margin:0}
+.ac-rub-l{display:flex;flex-direction:column;gap:5px}
+.ac-rub-f{display:flex;align-items:center;gap:10px;padding:.45em .8em;border-radius:12px;border:1px solid var(--line);background:rgba(8,14,22,.85);cursor:pointer}
+.ac-rub-f.on{border-color:rgba(106,214,142,.65);background:rgba(106,214,142,.1)}
+.ac-rub-f input{width:1.2em;height:1.2em;accent-color:#6ad68e;flex:none}
+.ac-rub-p{flex:none;min-width:2.6em;text-align:center;font-family:'Unbounded',sans-serif;font-weight:700;color:var(--amber);font-size:clamp(.95rem,1.4vw,1.2rem)}
+.ac-rub-x{display:flex;flex-direction:column;min-width:0;line-height:1.3}
+.ac-rub-x b{font-size:clamp(.85rem,1.2vw,1rem)}
+.ac-rub-x em{font-style:normal;font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--teal2);margin-left:6px}
+.ac-rub-x small{font-size:clamp(.78rem,1.05vw,.92rem);color:var(--mut)}
+.ac-rub-tot{display:flex;align-items:center;gap:12px}
+.ac-rub-bar{flex:1;height:12px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.ac-rub-bar i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#6ad68e,#f5c542);transition:width .4s}
+.ac-rub-tot p{margin:0;font-size:clamp(.9rem,1.3vw,1.1rem)}
+.ac-rub-n{font-family:'Unbounded',sans-serif;font-size:1.4em;color:#fff}
+/* el calendario */
+.dia.ac-cal{flex-direction:row;align-items:flex-end;gap:3%}
+.ac-cal-t{flex:1;min-width:0;align-self:center;display:flex;flex-direction:column;gap:.6em}
+.ac-cal-t h2{margin:0}
+.ac-cal-l{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ac-cal-p{display:flex;flex-direction:column;gap:.3em;padding:.8em 1em;border-radius:14px;border:1px solid var(--line);background:rgba(8,14,22,.88)}
+.ac-cal-p b{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2)}
+.ac-cal-p em{font-style:normal;font-family:'Unbounded',sans-serif;font-size:clamp(.95rem,1.5vw,1.25rem);color:#fff}
+.ac-cal-p span{font-size:clamp(.82rem,1.15vw,.98rem);color:var(--ink);line-height:1.4}
+.ac-cal-p.entrega{border-color:var(--amber);background:rgba(40,28,8,.9)}
+.ac-cal-p.entrega em{color:#ffd28a}
+.ac-cap-d{width:22%}
+@media(max-width:700px){
+  .dia.ac-portada,.dia.ac-mision,.dia.ac-port,.dia.ac-err,.dia.ac-rub,.dia.ac-cal{flex-direction:column;align-items:stretch}
+  .ac-cap,.ac-neb-g,.dia.ac-rub .ac-cmd,.ac-cap-d{display:none}
+  .ac-ins{max-width:none}
+  .ac-dos,.ac-tres,.ac-img-g,.ac-tab,.ac-mz-g,.ac-cal-l{grid-template-columns:minmax(0,1fr)}
+}
+.dia.entra > .ac-pl{animation:none}   /* (la entrada de la diapositiva le quitaba la transparencia y el centrado) */
+.dia.ac-paso .ac-nota,.dia.ac-paso .sub{align-self:flex-start;padding:4px 12px;border-radius:10px;background:rgba(8,14,22,.82)}   /* (sobre el fondo de escena, con su respaldo) */
+/* (las diapositivas de la actividad llevan mucho: títulos más contenidos y el prompt en línea, con sus partes marcadas) */
+.dia.ac-entrega h2,.dia.ac-paso h2,.dia.ac-imagen h2,.dia.ac-tabla h2,.dia.ac-refl h2,.dia.ac-enun h2,.dia.ac-matriz h2,.dia.ac-fichad h2,
+.dia.ac-paisaje h2,.dia.ac-retos h2,.dia.ac-port h2,.dia.ac-err h2,.dia.ac-rub h2,.dia.ac-cal h2{font-size:clamp(1.25rem,2.7vw,2.3rem);text-wrap:balance;margin:.1em 0 .25em}
+.ac-prompt{display:block;line-height:1.7}
+.ac-prompt span{display:inline;padding:2px 6px;margin-right:2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.ac-prompt i{display:inline;margin-right:5px}
+.ac-img-g img{max-height:46vh}
+.ac-port-t,.ac-cal-t,.ac-mision-t{padding:1em 1.2em;border-radius:18px;background:rgba(8,14,22,.8);backdrop-filter:blur(2px)}   /* (legible sobre cualquier escena) */
+.ac-rub-f{padding:.3em .8em}.ac-rub-t .sub{margin:0;font-size:clamp(.85rem,1.2vw,1rem)}.ac-rub-l{gap:4px}
+
+/* 26-sep · las capturas, obligatorias: por qué y cómo (Mac, Windows y Chromebook) */
+.dia.ac-capt{flex-direction:row;align-items:flex-end;gap:3%}
+.ac-capt-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px;align-items:start}
+.ac-capt-g .ac-lista+.ac-lista{margin-top:.6em}
+.ac-atajos{display:flex;flex-direction:column;gap:8px}
+.ac-atajos section{padding:.55em .8em;border-radius:12px;border:1px solid rgba(55,224,236,.35);background:rgba(8,16,26,.9)}
+.ac-atajos b{display:block;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2);margin-bottom:.2em}
+.ac-atajos p{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin:.25em 0;font-size:clamp(.8rem,1.1vw,.95rem)}
+.ac-atajos p span{margin-left:4px;color:var(--mut)}
+.ac-atajos p>i{font-style:normal;color:var(--mut)}
+.ac-atajos small{display:block;margin-top:.25em;font-size:.78rem;color:var(--mut)}
+kbd{display:inline-block;padding:1px 7px;border-radius:6px;border:1px solid rgba(199,214,238,.45);border-bottom-width:3px;background:#101a28;
+  color:#fff;font:700 .85em/1.4 'DMSans',system-ui,sans-serif;white-space:nowrap}
+@media(max-width:700px){ .dia.ac-capt{flex-direction:column;align-items:stretch} .ac-capt-g{grid-template-columns:minmax(0,1fr)} }

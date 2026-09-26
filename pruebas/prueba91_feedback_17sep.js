@@ -44,7 +44,7 @@ c(!/[\u{1F300}-\u{1FAFF}]/u.test(menu), "   el menú «···», sin emojis");
 c(!/<h3>[\u{1F300}-\u{1FAFF}]/u.test(NAVE), "   ningún título de la Nave empieza por un emoji");
 
 // 6 · la sesión: el código de inserción a un clic
-c(/data-copiar-ses="'\+x\[0\]\+'"/.test(SES) && /\[\['apertura','1 · Apertura'\],\['cierre','3 · Cierre'\],\['','La sesión entera'\],\['pres','La presentación de la asignatura'\]\]/.test(SES) && /codigoGenially\(ruta,tit\)/.test(SES),
+c(/data-copiar-ses="'\+x\[0\]\+'"/.test(SES) && /\[\['apertura','1 · Apertura'\],\['cierre','3 · Cierre'\],\['','La sesión entera'\],\['pres','La presentación de la asignatura'\],\['act1','La Actividad 1'\],\['act2','La Actividad 2'\]\]/.test(SES) && /codigoGenially\(ruta,tit\)/.test(SES),
   "🔴 en la página de la sesión, «Copiar código» de la apertura, el cierre y la sesión entera");
 
 // 7 · la transmisión con el logo, no el crawl
