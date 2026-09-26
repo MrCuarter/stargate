@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La Ruta de la Estática</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cian:#5ff4ff;--ambar:#ffc24a;--rojo:#ff4d6d;--verde:#5dffa0;--fondo:#02030a;--panel:rgba(6,14,30,.8);--borde:rgba(95,244,255,.45);--oro:#ffd54a;--plata:#cfe3f0;--bronce:#e0945a}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--fondo);color:#e8f6ff;font-family:"Exo 2",system-ui,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}
+#lienzo{position:fixed;inset:0;width:100%;height:100%;display:block}
+.oculto{display:none!important}
+h1,h2,h3{font-family:Orbitron,sans-serif;letter-spacing:.05em}
+
+/* HUD */
+#hud{position:fixed;inset:0;pointer-events:none}
+.hud-pts{position:absolute;top:14px;left:16px;display:flex;gap:10px}
+.pts{background:var(--panel);border:1px solid var(--borde);border-radius:10px;padding:7px 14px;min-width:116px}
+.pts small{display:block;font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.pts b{font-weight:700;font-size:24px;font-variant-numeric:tabular-nums}
+.pts.saber b{color:var(--ambar)} .pts.pericia b{color:var(--cian)}
+#combo{position:absolute;top:80px;left:16px;font-family:Orbitron;font-size:16px;color:var(--verde);text-shadow:0 0 10px var(--verde)}
+.escudo{position:absolute;left:16px;bottom:16px;width:min(340px,40vw)}
+.escudo small,.progreso small{font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+.barra{height:14px;border:1px solid var(--borde);border-radius:8px;background:rgba(0,0,0,.5);overflow:hidden;margin-top:4px}
+.barra i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#1fb6ff,var(--cian));transition:width .2s}
+.barra.bajo i{background:linear-gradient(90deg,#ff2e55,#ff8a5c)}
+#extra{position:absolute;left:16px;bottom:58px;font-size:15px;color:var(--verde);font-weight:600}
+.progreso{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:min(520px,42vw);text-align:center}
+.progreso b{display:block;font-family:Orbitron;font-size:13px;color:var(--ambar);letter-spacing:.1em;margin-bottom:2px}
+.progreso .barra i{background:linear-gradient(90deg,#7a3cff,#ff4dd8)}
+#jefe .barra i{background:linear-gradient(90deg,#ff2e55,#ff4dd8)}
+#reloj-m{position:absolute;top:14px;right:16px;background:var(--panel);border:1px solid var(--borde);border-radius:10px;padding:7px 14px;font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+#mira{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border:2px solid var(--verde);border-radius:6px;box-shadow:0 0 12px var(--verde);opacity:.85}
+#mira::after{content:"";position:absolute;inset:12px;border:2px solid var(--verde);border-radius:3px}
+#aviso{position:absolute;top:47%;left:50%;transform:translate(-50%,-50%);font-family:Orbitron;font-size:clamp(22px,4vw,44px);text-align:center;text-shadow:0 0 18px currentColor;transition:opacity .4s;opacity:0;white-space:nowrap}
+#aviso.ver{opacity:1}
+
+/* pregunta */
+#pregunta{position:absolute;top:66px;left:50%;transform:translateX(-50%);width:min(880px,94vw);background:var(--panel);border:1px solid var(--ambar);border-radius:14px;padding:12px 18px;box-shadow:0 0 30px rgba(255,194,74,.25)}
+#pregunta .tit{font-family:Orbitron;font-size:13px;color:var(--ambar);letter-spacing:.14em}
+#pregunta .enun{font-size:clamp(17px,1.8vw,22px);font-weight:700;margin:6px 0 10px}
+#pregunta ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 16px}
+#pregunta li{font-size:16px;display:flex;gap:8px;align-items:baseline}
+#pregunta li b{font-family:Orbitron;color:var(--cian);min-width:18px}
+#pregunta .reloj{font-size:13px;opacity:.85;margin-top:8px}
+
+/* NEBULA */
+#com{position:absolute;right:16px;bottom:16px;display:flex;gap:12px;align-items:flex-end;max-width:min(580px,62vw);transition:opacity .3s}
+#com canvas{width:150px;height:150px;border:1px solid var(--borde);border-radius:12px;background:radial-gradient(circle at 50% 40%,#0b3a4a,#02060d);flex:none}
+#com .txt{background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:10px 14px;font-size:16px;line-height:1.35}
+#com .txt b{font-family:Orbitron;font-size:12px;letter-spacing:.16em;color:var(--cian);display:block;margin-bottom:4px}
+
+/* pantallas */
+.pantalla{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;padding:16px}
+.caja{pointer-events:auto;background:var(--panel);border:1px solid var(--borde);border-radius:16px;padding:20px 24px;width:min(660px,94vw);max-height:94vh;overflow:auto;box-shadow:0 0 40px rgba(95,244,255,.15)}
+.caja h2{margin:0 0 6px;font-size:24px;color:var(--cian)}
+.caja .kicker{font-family:Orbitron;font-size:12px;letter-spacing:.16em;color:var(--ambar);text-transform:uppercase}
+.caja p{font-size:17px;line-height:1.45;margin:8px 0}
+.teclas{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:15px;margin:10px 0}
+.teclas kbd{font-family:Orbitron;font-size:12px;background:#0d2236;border:1px solid var(--borde);border-radius:6px;padding:3px 7px;white-space:nowrap}
+.botones{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button{font-family:Orbitron;font-size:15px;letter-spacing:.05em;border:0;border-radius:10px;padding:12px 18px;cursor:pointer;background:linear-gradient(135deg,#19c3d6,#1a7bd6);color:#001018;font-weight:800}
+button.sec{background:#0d2236;color:#e8f6ff;border:1px solid var(--borde);font-weight:600}
+#mapa-ui{position:fixed;inset:0;pointer-events:none}
+#mapa-ui .cab{position:absolute;top:18px;left:50%;transform:translateX(-50%);text-align:center;width:94vw}
+#mapa-ui .cab h1{margin:0;font-size:clamp(20px,3vw,34px);color:var(--cian);text-shadow:0 0 16px rgba(95,244,255,.6)}
+#mapa-ui .cab p{margin:4px 0 0;font-size:16px;opacity:.9}
+.etq{position:absolute;transform:translate(-50%,0);text-align:center;font-size:13px;white-space:nowrap;pointer-events:none}
+.etq b{font-family:Orbitron;font-size:14px;display:block}
+.etq span{opacity:.85}
+.med{display:inline-block;font-family:Orbitron;font-size:11px;letter-spacing:.08em;border-radius:20px;padding:2px 8px;margin-top:3px;border:1px solid currentColor}
+.med.oro{color:var(--oro)} .med.plata{color:var(--plata)} .med.bronce{color:var(--bronce)} .med.nada{color:#7f95a8}
+#ficha-planeta{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);pointer-events:auto}
+.mis{display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:center;padding:10px 0;border-top:1px solid rgba(95,244,255,.2)}
+.mis:first-of-type{border-top:0}
+.mis h3{margin:0;font-size:17px}
+.mis p{margin:2px 0 0;font-size:15px}
+.mis .cuando{font-size:13px;color:var(--ambar);letter-spacing:.06em}
+.res{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.res .col{background:rgba(0,0,0,.35);border-radius:12px;padding:10px 14px}
+.res h3{margin:0 0 6px;font-size:14px}
+.res .saber h3{color:var(--ambar)} .res .pericia h3{color:var(--cian)}
+.res div.l{display:flex;justify-content:space-between;font-size:15px;padding:2px 0}
+.medalla{font-family:Orbitron;font-size:26px;text-align:center;margin:6px 0}
+.medalla.oro{color:var(--oro)} .medalla.plata{color:var(--plata)} .medalla.bronce{color:var(--bronce)} .medalla.nada{color:#9fb3c4}
+.premio{background:rgba(255,194,74,.1);border:1px solid rgba(255,194,74,.5);border-radius:12px;padding:10px 14px;font-size:15px;line-height:1.45}
+.premio b{color:var(--ambar)}
+#carga{position:fixed;inset:0;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;font-family:Orbitron;font-size:18px;color:var(--cian)}
+#carga .barra{width:260px}
+@media (max-width:760px){.hud-pts .pts{min-width:0;padding:5px 10px}.pts b{font-size:18px}#com canvas{width:90px;height:90px}#com .txt{font-size:14px}#pregunta ol{grid-template-columns:1fr}#pregunta li{font-size:14px}.progreso{top:64px;width:70vw}#reloj-m{font-size:16px}.res{grid-template-columns:1fr}}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<canvas id="lienzo"></canvas>
+<div id="carga"><span>Cargando la Ruta de la Estática…</span><div class="barra"><i id="carga-b" style="width:5%"></i></div></div>
+
+<div id="mapa-ui" class="oculto">
+  <div class="cab"><h1>LA RUTA DE LA ESTÁTICA</h1><p>Toma los mandos entre planeta y planeta · elige una misión</p></div>
+  <div id="etiquetas"></div>
+  <div id="ficha-planeta" class="caja oculto"></div>
+</div>
+
+<div id="hud" class="oculto">
+  <div class="hud-pts">
+    <div class="pts saber"><small>Saber</small><b id="h-saber">0</b></div>
+    <div class="pts pericia"><small>Pericia</small><b id="h-pericia">0</b></div>
+  </div>
+  <div id="combo"></div>
+  <div class="progreso" id="prog"><b id="mision-t"></b><small id="prog-t"></small><div class="barra"><i id="prog-b" style="width:0"></i></div></div>
+  <div class="progreso oculto" id="jefe"><b>MISIÓN FINAL</b><small>VAEON</small><div class="barra"><i id="jefe-b"></i></div></div>
+  <div id="reloj-m">0:00</div>
+  <div id="mira"></div>
+  <div id="aviso"></div>
+  <div id="extra"></div>
+  <div class="escudo"><small>Escudo</small><div class="barra" id="esc"><i id="esc-b"></i></div></div>
+  <div id="pregunta" class="oculto"></div>
+  <div id="com" style="opacity:0"><canvas id="com-lienzo" width="300" height="300"></canvas><div class="txt"><b>NEBULA</b><span id="com-t"></span></div></div>
+</div>
+
+<div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
+
+<script type="module" src="juego.js"></script>
+</body>
+</html>

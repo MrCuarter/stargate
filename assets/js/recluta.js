@@ -554,6 +554,26 @@
         }).join('')+'</div>':'')
       +'</section>';
   }
+  /**
+   * 🔴 27-sep · (borrador) LOS JUEGOS, EN UNA CAPA ENCIMA DE LA NAVE. La Ruta y la sala de Joran se abren aquí mismo, a
+   * pantalla completa: así el juego habla con el servidor a través del motor de la Nave (misma web) y, al volver, la Nave
+   * se repinta con lo ganado. Se cierra con «Volver a la Nave» (Escape, dentro del juego, lo pausa; fuera, cierra la capa).
+   */
+  function abrirJuego(url){
+    cerrarJuego();
+    var c=document.createElement('div'); c.className='capa-juego'; c.id='capa-juego';
+    c.innerHTML='<button type="button" class="btn min capa-juego-x" id="capa-juego-x">Volver a la Nave</button>'
+      +'<iframe src="'+esc(url)+'" title="Juego" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+    document.body.appendChild(c); document.body.classList.add('con-juego');
+    c.querySelector('#capa-juego-x').onclick=cerrarJuego;
+    try{ c.querySelector('iframe').focus(); }catch(e){}
+  }
+  function cerrarJuego(){ var c=document.getElementById('capa-juego'); if(!c) return; c.remove(); document.body.classList.remove('con-juego'); refrescarYo(); }
+  document.addEventListener('click', function(ev){
+    var a=ev.target.closest&&ev.target.closest('a[data-juego]'); if(!a) return;
+    ev.preventDefault(); abrirJuego(a.getAttribute('href'));
+  });
+  document.addEventListener('keydown', function(ev){ if(ev.key==='Escape') cerrarJuego(); });
   document.addEventListener('click', function(ev){
     var b=ev.target.closest&&ev.target.closest('[data-leer-entero]'); if(!b) return;
     var m=b.previousElementSibling; if(!m) return;
@@ -1312,6 +1332,7 @@
       +votacionCaja()
       +retosDeLaSemana()
       +ticketDelTema()
+      +rutaCaja()
       +simuladorCaja()
       +panelEmbebido();
   }
@@ -1665,8 +1686,45 @@
   // cerrada hasta que le gana (o hasta que NEBULA lo presenta, capítulo c11), abierta y con sus marcas después.
   var BT = window.SG_BATALLA || {};
   function ganoAJoran(){ return !!((st.yo && st.yo.simulador || {})[BT.clave || 'joran']); }
+  /**
+   * 🔴 27-sep · LA RUTA DE LA ESTÁTICA en la Nave (borrador). Las diez misiones de nave: cada una se abre cuando se cierra su
+   * tema (la 0, tras la presentación; Vaeon, en la última semana). No hace falta jugarlas para avanzar: dan medalla, xp y
+   * créditos la primera vez de cada medalla. En el borrador, la medalla vive en el navegador (sgRutaMarcas); en el juego de
+   * verdad, en la ficha (lo escribe el servidor, stargateRuta).
+   */
+  function semanaDeMision(m, L){
+    if(m.id==='m0') return 1;
+    if(m.final) return L.length;
+    var ult=0; L.forEach(function(x){ if(Number(x.tema_n)===Number(m.tema)) ult=x.sem; }); return ult||L.length;
+  }
+  function rutaCaja(){
+    var R=window.SG_RUTA; if(!R || !per || st.estado==='antes') return '';
+    var L=st.semanas||[], hoy=Math.max(st.actual||0,1), marcas={};
+    try{ marcas=JSON.parse(localStorage.getItem('sgRutaMarcas')||'{}'); }catch(e){}
+    var med={nada:'Sin medalla', bronce:'Bronce', plata:'Plata', oro:'Oro'};
+    var abiertas=R.misiones.filter(function(m){ return semanaDeMision(m, L)<=hoy; });
+    if(!abiertas.length) return '';
+    return '<div class="card ruta-caja"><div class="ru-txt"><div class="eyebrow amber">Misiones de nave</div><h3>La Ruta de la Estática</h3>'
+      +'<p class="small">Cuando se cierra un tema, tomas los mandos hasta el planeta siguiente: 3 minutos de vuelo, puertas con preguntas y drones de la Estática. <b>Bronce</b> por llegar; <b>plata</b> y <b>oro</b>, por saber y por pilotar.</p></div>'
+      +'<div class="ru-lista">'+R.misiones.map(function(m){
+        var sem=semanaDeMision(m, L), ya=sem<=hoy, md=(marcas[m.id]&&marcas[m.id].medalla)||'nada';
+        var nombre=m.final?'Vaeon':esc(m.de)+' → '+esc(m.a);
+        return ya
+          ? '<a class="ru-m '+md+'" data-juego href="'+esc(R.juego+'?mision='+m.id+'&embed=1&per='+encodeURIComponent(per))+'"><b>'+m.n+'</b><span>'+nombre+'<small>'+med[md]+'</small></span></a>'
+          : '<span class="ru-m cerrada"><b>'+m.n+'</b><span>'+nombre+'<small>Semana '+sem+'</small></span></span>';
+      }).join('')+'</div></div>';
+  }
   function simuladorCaja(){
     if(!motorNuevo() || !st.yo) return '';
+    // 🔴 27-sep · (borrador) el Simulador de Joran pasa a ser su SALA DE JUEGOS: se abre con su capítulo (c11, el tema 6)
+    var SJ = window.SG_SALA_JORAN;
+    if(SJ && abierto('simulador')) return '<div class="card sim-caja">'
+      + '<img class="sim-em" src="assets/img/batalla/emblema.webp" alt="" width="84" height="84" loading="lazy">'
+      + '<div class="sim-txt"><div class="eyebrow amber">La sala de Joran</div><h3>El Simulador de Joran</h3>'
+      + '<p class="small">Sus máquinas de entrenamiento: arcade puro. ' + SJ.maquinas.map(function(m){ return '<b>' + esc(m[1]) + '</b>'; }).join(', ')
+      + '. La primera está encendida; las demás se encienden con buenas marcas… o con créditos.</p>'
+      + '<p><a class="btn epico" data-juego href="' + esc(SJ.juego + '?per=' + encodeURIComponent(per)) + '"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Entrar en la sala</span></a></p>'
+      + '</div></div>';
     var gano = ganoAJoran(), presentado = abierto('simulador');
     if(!gano && !presentado) return '';
     var S = st.yo.simulador || {}, marcas = S.marcas || {}, T = S.total || null;

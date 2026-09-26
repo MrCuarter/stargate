@@ -1175,6 +1175,11 @@ ol.pasos-num li b{color:var(--ink)}
 
 /* 18-sep · el ticket de la semana 1 va embebido (aún no hay respuestas que leer) */
 .dia.ticket-form .tk-form{width:100%;height:min(62vh,620px);border:1px solid var(--line);border-radius:14px;background:#fff}
+/* 27-sep · la Ruta de la Estática: la misión, embebida y grande (borrador) */
+.dia.ruta{display:flex;flex-direction:column;gap:10px;width:100%}
+.dia.ruta .ru-cab h2{margin:2px 0 4px}
+.dia.ruta .ru-cab .sub{margin:0}
+.dia.ruta .ru-juego{width:100%;height:min(66vh,680px);border:1px solid rgba(95,244,255,.45);border-radius:14px;background:#02030a;box-shadow:0 0 30px rgba(95,244,255,.15)}
 .dia .reto-ej{margin:12px 0 0}
 /* 18-sep · el reto que aún no se ha explicado: en sombra, con su semana, sin poder registrarse */
 .reto-sem.por-lanzar{opacity:.5;filter:grayscale(.55);border:1px dashed var(--line);border-radius:14px;padding:12px 14px;margin:0 0 10px;background:rgba(11,17,25,.5)}
@@ -7037,3 +7042,21 @@ button.ac-mc{font-size:clamp(.75rem,.95vw,.9rem);line-height:1.1;padding:2px;wor
 /* 26-sep · el relámpago: en clase… o después, cuando tú quieras */
 .chip.rel em{font-style:normal;font-weight:600;opacity:.85;margin-left:4px}
 .rs-despues{margin:.6em 0 0;font-size:clamp(.9rem,1.4vw,1.15rem);color:#ffd28a}
+
+/* 27-sep · la Ruta de la Estática en la Nave (borrador): diez misiones, cada una con su medalla */
+.ruta-caja{display:grid;grid-template-columns:minmax(220px,1fr) 2fr;gap:14px;align-items:start}
+.ruta-caja h3{margin:2px 0 4px}
+.ru-lista{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.ru-m{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:6px 8px;text-decoration:none;color:inherit;font-size:13px;line-height:1.25;background:rgba(95,244,255,.05)}
+.ru-m b{font-family:Orbitron,sans-serif;font-size:16px;color:var(--teal,#5ff4ff)}
+.ru-m small{display:block;font-size:12px;opacity:.85}
+.ru-m.bronce{border-color:#e0945a}.ru-m.plata{border-color:#cfe3f0}.ru-m.oro{border-color:#ffd54a;box-shadow:0 0 10px rgba(255,213,74,.35)}
+.ru-m.cerrada{opacity:.45}
+a.ru-m:hover{background:rgba(95,244,255,.14)}
+@media (max-width:900px){.ruta-caja{grid-template-columns:1fr}.ru-lista{grid-template-columns:repeat(2,1fr)}}
+
+/* 27-sep · los juegos (la Ruta y la sala de Joran), en una capa a pantalla completa encima de la Nave (borrador) */
+.capa-juego{position:fixed;inset:0;z-index:9000;background:#02030a}
+.capa-juego iframe{width:100%;height:100%;border:0;display:block}
+.capa-juego-x{position:absolute;top:92px;left:16px;z-index:2;opacity:.9}
+body.con-juego{overflow:hidden}

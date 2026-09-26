@@ -35,7 +35,8 @@ c(/function diaTicketForm\(s, clave\)/.test(SES) && /function diasTicket\(lista,
   "🔴 el ticket son tres diapositivas: el formulario al cerrar el tema, y el resumen + las dudas al abrir el siguiente");
 c(/if\(primeraDelTema\(L, iS\)\) diasTicket\(L, iS\)/.test(SES), "   el resumen y las dudas, al empezar un tema");
 // 23-sep · el mismo sitio lo ocupa la despedida (el comandante saluda) cuando la clase NO cierra tema
-c(/var tf=ultimaDelTema\(L, iS\)\?diaTicketForm\(s\):null;[\s\S]{0,420}if\(tf\) ci\.push\(tf\);\s*\n\s*if\(finViaje\) ci\.push\(diaHastaPronto\(true\)\); else if\(!tf\) ci\.push\(diaHastaPronto\(\)\);/.test(SES),
+// 27-sep · entre medias ya va la misión de la Ruta (antes del ticket): la ventana crece, lo vigilado es lo mismo
+c(/var tf=ultimaDelTema\(L, iS\)\?diaTicketForm\(s\):null;[\s\S]{0,900}if\(tf\) ci\.push\(tf\);\s*\n\s*if\(finViaje\) ci\.push\(diaHastaPronto\(true\)\); else if\(!tf\) ci\.push\(diaHastaPronto\(\)\);/.test(SES),
   "🔴 y el formulario, lo ÚLTIMO de la última sesión del tema (en el tramo de cierre): ni la despedida va detrás");
 c(SES.indexOf("if(tf) ci.push(tf);") > SES.indexOf("diasMisiones(s)"), "   detrás de las misiones y de los vídeos de cierre (en la última del viaje, solo la cita para después de la batalla va detrás)");
 c(!/diaTicket\(\)/.test(SES), "   y ya no hay un ticket semanal suelto");

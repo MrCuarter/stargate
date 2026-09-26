@@ -1071,6 +1071,24 @@
       +'<iframe class="tk-form" src="'+esc(u+'&embedded=true')+'" title="Ticket de salida" loading="lazy" data-tk="'+esc('sgTicket:'+(st.per||'')+':'+opcion)+'"></iframe>'
       +'<p class="small muted tk-otro">¿No te cabe en la pantalla? <a href="'+esc(u)+'" target="_blank" rel="noopener">Ábrelo en otra pestaña</a>.</p></div></div>'};
   }
+  /**
+   * 🔴 27-sep · LA RUTA DE LA ESTÁTICA (borrador). Norberto: «al terminar cada tema los estudiantes juegan en directo o diferido
+   * para llegar al otro planeta… mete el simulador al final de las sesiones en directo y diferido (docente y alumno): la
+   * primera después de la presentación, después de cada tema y al final de la última sesión». La misión va embebida (se juega
+   * aquí mismo; proyectada, sirve para enseñarla) y el ticket, si la clase cierra tema, sigue siendo lo último.
+   * Lo que se cuenta de cada misión: _site_data.py → RUTA (SG_RUTA). El juego: juegos/ruta/.
+   */
+  function diaRuta(id){
+    var R=window.SG_RUTA; if(!R) return null;
+    var m=(R.misiones||[]).filter(function(x){ return x.id===id; })[0]; if(!m) return null;
+    var u=R.juego+'?mision='+encodeURIComponent(id)+'&embed=1'+(st.per?'&per='+encodeURIComponent(st.per):'');
+    return {k:'ruta', sec:'ruta', t:'ci', rot:m.final?'Vaeon':'La Ruta', html:
+      '<div class="dia ruta"><div class="ru-cab"><div class="kicker"><img class=ico src=assets/img/iconos/p/rayo.png alt> La Ruta de la Estática · misión '+m.n+' · '+esc(m.cuando)+'</div>'
+      +'<h2>'+(m.final?'Vaeon · la batalla final':esc(m.de)+' → '+esc(m.a)+' · '+esc(m.titulo))+'</h2>'
+      +'<p class="sub">'+(st.alumno?'Juégala aquí o desde tu Nave: son 3 minutos.':'Cada recluta la juega en su Nave (o aquí, en diferido); proyectada, sirve para enseñarla.')
+      +' <b>Bronce</b> por llegar; <b>plata</b> y <b>oro</b>, por saber y por pilotar.</p></div>'
+      +'<iframe class="ru-juego" src="'+esc(u)+'" title="La Ruta de la Estática" loading="lazy" allow="autoplay; fullscreen" allowfullscreen></iframe></div>'};
+  }
   function elComandante(){ return String((!st.alumno&&st.miNombre)||st.profeMio||'').trim(); }
   /** Las dos de abrir tema: cómo fue el anterior y qué preguntasteis. */
   function diasTicket(lista, i){
@@ -1471,7 +1489,7 @@
     movido:'clasificacion', semanal:'clasificacion', top:'clasificacion', escuadrones:'clasificacion', coleccion:'coleccion',
     simulador:'simulador', votacion:'votacion', ticket:'ticket', oferta:'oferta', nuevo:'novedades', simulacro:'novedades',
     genially:'despegue', puente:'despegue', act:'actividad', actretos:'actividad', entrega:'actividad',
-    reto:'misiones', hito:'misiones', insignias:'recompensa'};
+    reto:'misiones', hito:'misiones', insignias:'recompensa', ruta:'ruta'};
   function secDe(x){ return x.sec || SEC_DE_K[x.k] || 'misiones'; }
   function apagadas(){
     var S=st.sesionesDelGrupo||(st.d&&st.d.sesiones)||{}, quien=String((!st.alumno&&st.miNombre)||st.profeMio||'').trim();
@@ -1691,6 +1709,7 @@
       else if(pieza==='pregunta') add(diasPregunta(s));
       else if(pieza==='retos') add(diaRetosSemana(s));
       else if(pieza==='hasta') add(diaHastaPronto(false, arg));
+      else if(pieza==='ruta') add(diaRuta(arg));
       else if(pieza==='misiones') add(diasMisiones(s));
     });
     out=out.filter(hay);
@@ -2101,6 +2120,9 @@
     // 24-sep · y la ÚLTIMA clase del viaje acaba con «Vuelve después de la batalla para ver el desenlace» (Norberto): el
     // Fragmento Prohibido no se proyecta, se abre en su Nave cuando acaba el viaje. Va detrás del ticket final.
     var finViaje=iS===L.length-1 && FR.some(function(f){ return !f.reto; });
+    // 27-sep · la misión de la Ruta: la que lleva al planeta siguiente al cerrar el tema N, y Vaeon en la última clase
+    if(ultimaDelTema(L, iS) && temaDe(s)>=1 && temaDe(s)<=8){ var ru=diaRuta('m'+temaDe(s)); if(ru) ci.push(ru); }
+    if(iS===L.length-1){ var rv=diaRuta('m9'); if(rv) ci.push(rv); }
     if(tf) ci.push(tf);
     if(finViaje) ci.push(diaHastaPronto(true)); else if(!tf) ci.push(diaHastaPronto());
     ci.forEach(function(x){ x.t='ci'; });

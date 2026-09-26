@@ -941,6 +941,8 @@ SESION_EMBARQUE = [
     ("alistaos", "", "ap", "**¡Alistaos!**: el código grande y las caras de quien ya está a bordo, en directo"),
     ("llamada", "", "ap", "**La llamada a filas**: su primer fichaje"),
     ("ticket", "p", "ap", "**El ticket de la presentación**, dentro de la diapositiva: lo rellenan ahí mismo"),
+    # 27-sep · el primer vuelo de la Ruta de la Estática: de la Cero a Fôrge, con preguntas de la asignatura (borrador)
+    ("ruta", "m0", "ap", "**La Ruta · primer vuelo**: la misión de nave hasta Fôrge, con preguntas de la asignatura (3 minutos)"),
     ("hasta", "forge", "ap", "**Nos vemos en Fôrge**: tu comandante se despide hasta la sesión 2"),
 ]
 # 26-sep · LA ASIGNATURA EN TRES BLOQUES (la presentación). Los títulos de cada tema son los de la programación oficial
@@ -998,6 +1000,8 @@ SESION_SECCIONES = [
     ("coleccion", "Coleccionistas", "Quién va más avanzado en su colección."),
     ("simulador", "El Simulador de Joran", "Las marcas y los reconocimientos de la batalla."),
     ("votacion", "Votación", "La votación de la semana, si la hay."),
+    # 27-sep · la misión de nave al cerrar cada tema (y tras la presentación, y Vaeon en la última clase) · borrador
+    ("ruta", "La Ruta de la Estática", "Al cerrar cada tema: la misión de nave hasta el planeta siguiente (3 minutos). Tras la presentación, el primer vuelo; en la última clase, Vaeon."),
     ("ticket", "Ticket de salida", "Lo que dijisteis al salir (o el ticket para rellenar)."),
     ("oferta", "Oferta de la semana", "La rebaja de esta semana en el Mercado."),
     ("novedades", "Novedades de la semana", "Lo que se abre en la Nave, y tu Nave de ejemplo para enseñarlo."),
@@ -1543,6 +1547,56 @@ assert all(CAPITULOS[i]["semana"] <= CAPITULOS[i + 1]["semana"] for i in range(l
 # `functions/stargateBanco.js`, y solo sale de allí pregunta a pregunta. Esta web es PÚBLICA: lo que hay aquí son los
 # números que se le enseñan al alumnado, y tienen que ser los mismos que en `functions/stargateBatalla.js → BATALLA`
 # (la batería 80 los compara).
+# ────────────────────────── 🔴 27-sep · LA RUTA DE LA ESTÁTICA (borrador, rama sin publicar) ──────────────────────────
+# Norberto: «vamos a dejar estos simuladores como parte de las misiones. Al terminar cada tema los estudiantes juegan en
+# directo o diferido para llegar al otro planeta. No es obligatorio hacerlo para llegar al otro planeta, pero hacerlo
+# debería otorgar puntos, o una insignia de planeta… La partida debe durar máximo 3/4 minutos, breve, pero intenso. Mete
+# el simulador al final de las sesiones en directo y diferido (docente y alumno): la primera después de la presentación,
+# después de cada tema y al final de la última sesión».
+# Diez misiones: m0 sale de la Cero tras la presentación (preguntas de la asignatura); mN, al cerrar el tema N, es el
+# viaje al planeta siguiente (preguntas del tema N); m9, Vaeon, al final de la última sesión (de todos los temas). La
+# jugabilidad (qué oleadas trae cada ruta) vive en el juego (juegos/ruta/juego.js); lo que se cuenta, AQUÍ.
+# 🔴 El banco de preguntas NO viaja a la web (el repositorio es público): las da el servidor, sin la respuesta.
+RUTA = {
+    "juego": "juegos/ruta/",
+    # cada escalón se cobra UNA vez por misión: [xp, créditos] (propuesta: la decide Norberto)
+    "premios": {"bronce": [30, 5], "plata": [15, 5], "oro": [15, 5]},
+    "misiones": [
+        {"id": "m0", "n": 0, "de": "La Cero", "a": "Fôrge", "tema": 0, "cuando": "Tras la presentación", "titulo": "Primer vuelo",
+         "lema": "NEBULA te enseña a pilotar camino de Fôrge. Las preguntas son de la asignatura."},
+        {"id": "m1", "n": 1, "de": "Fôrge", "a": "Ecos", "tema": 1, "cuando": "Al cerrar el tema 1", "titulo": "La tormenta de chatarra",
+         "lema": "Los restos de las fundiciones de Fôrge flotan en la ruta a Ecos."},
+        {"id": "m2", "n": 2, "de": "Ecos", "a": "Sendara", "tema": 2, "cuando": "Al cerrar el tema 2", "titulo": "Los ecos que vuelven",
+         "lema": "Las señales de Ecos rebotan: escuadrillas que vuelven una y otra vez."},
+        {"id": "m3", "n": 3, "de": "Sendara", "a": "Reliae", "tema": 3, "cuando": "Al cerrar el tema 3", "titulo": "Los 48 senderos",
+         "lema": "Muros de roca: siempre hay un hueco, pero nunca en el mismo sitio."},
+        {"id": "m4", "n": 4, "de": "Reliae", "a": "Umbral", "tema": 4, "cuando": "Al cerrar el tema 4", "titulo": "Los anillos de Reliae",
+         "lema": "Hielo y anillos: vuela limpio y recarga el escudo."},
+        {"id": "m5", "n": 5, "de": "Umbral", "a": "Ludo", "tema": 5, "cuando": "Al cerrar el tema 5", "titulo": "La niebla de Umbral",
+         "lema": "Casi no se ve nada. Y hay minas."},
+        {"id": "m6", "n": 6, "de": "Ludo", "a": "Vínculo", "tema": 6, "cuando": "Al cerrar el tema 6", "titulo": "El parque de Joran",
+         "lema": "Joran dejó su parque de pruebas encendido: anillos y escuadrillas."},
+        {"id": "m7", "n": 7, "de": "Vínculo", "a": "Liminar", "tema": 7, "cuando": "Al cerrar el tema 7", "titulo": "La formación de Vínculo",
+         "lema": "La Estática ha aprendido a volar en escuadrilla."},
+        {"id": "m8", "n": 8, "de": "Liminar", "a": "La Estática", "tema": 8, "cuando": "Al cerrar el tema 8", "titulo": "Las capas de Liminar",
+         "lema": "La realidad parpadea: nada está donde parece."},
+        {"id": "m9", "n": 9, "de": "La Estática", "a": "La Estática", "tema": 0, "cuando": "Al final de la última sesión", "titulo": "Vaeon",
+         "lema": "La batalla final: sus manos, su núcleo y su cabeza.", "final": True},
+    ],
+}
+
+# ────────────────────────── 🔴 27-sep · LA SALA DE JORAN (borrador) ──────────────────────────
+# Norberto: «para mantener el simulador de Joran, piensa otra propuesta, no tiene por qué ser de naves espaciales, pero
+# debe estar relacionado con la narrativa… puede ser arcade puro y duro, diversión a tope, velocidad y reflejos… podría
+# ser una serie de minijuegos: empieza con uno, y el resto se desbloquean al llegar a cierta puntuación o pagando
+# créditos… algún juego de escapar de una nave laberíntica». Tres máquinas (juegos/joran/comun.js → JUEGOS manda en el
+# juego; aquí, lo que enseñan la Nave y la sesión).
+SALA_JORAN = {"juego": "juegos/joran/", "maquinas": [
+    ["evacuacion", "La Evacuación", "Corre por los pasillos de la Cero antes de que la Estática te alcance.", None, 0],
+    ["laberinto", "El Laberinto de la Cero", "La nave, a oscuras: tres llaves por nivel y la cápsula.", ["evacuacion", 2500], 40],
+    ["ruta-azul", "RUTA AZUL", "El arcade de neón: cuatro oleadas y el jefe final.", ["laberinto", 3000], 60],
+]}
+
 BATALLA = {
     # 🔴 23-sep · el Simulador deja de ser un reto (el relámpago de Ludo pasa a ser «Encuentra el juego»): se queda en la
     # Nave como juego de repaso. Ganar a RUTA AZUL sigue abriendo el entrenamiento, pero no registra ningún reto.

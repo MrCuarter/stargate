@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>El Laberinto de la Cero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="comun.css">
+<style>
+  .hud .meta{left:auto;right:16px;transform:none;width:min(340px,30vw)}
+#mini{position:fixed;right:16px;bottom:16px;width:170px;height:170px;border:1px solid var(--borde);border-radius:12px;background:rgba(1,6,16,.8)}
+.vidas{display:flex;gap:4px}
+.vidas i{width:14px;height:14px;border-radius:50%;background:var(--verde);box-shadow:0 0 8px var(--verde)}
+.vidas i.no{background:#223;box-shadow:none}
+#stick{position:fixed;width:120px;height:120px;border-radius:50%;border:2px solid rgba(95,244,255,.5);background:rgba(95,244,255,.08);transform:translate(-50%,-50%);pointer-events:none}
+#stick i{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px;border-radius:50%;background:rgba(95,244,255,.5)}
+#b-pulso{position:fixed;right:200px;bottom:26px;pointer-events:auto;border-radius:50%;width:84px;height:84px;padding:0;font-size:13px}
+@media (max-width:760px){.hud .meta{top:120px;width:60vw}#mini{width:110px;height:110px}#b-pulso{right:136px;width:72px;height:72px}}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+</script>
+</head>
+<body class="juego">
+<canvas id="lienzo" class="lienzo"></canvas>
+<div class="escaner"></div>
+<div id="carga">Apagando las luces de la Cero…</div>
+<div class="hud oculto" id="hud">
+  <div class="cifras">
+    <div class="cif am"><small>Puntos</small><b id="h-pts">0</b></div>
+    <div class="cif"><small>Nivel</small><b id="h-niv">1</b></div>
+    <div class="cif"><small>Llaves</small><b id="h-lla">0/3</b></div>
+    <div class="cif"><small>Vidas</small><b class="vidas" id="h-vid"></b></div>
+  </div>
+  <div class="meta"><small id="h-tt">Tiempo antes de que la Estática inunde el nivel</small><div class="barra"><i id="h-t"></i></div></div>
+  <div id="extra"></div>
+  <canvas id="mini" width="340" height="340"></canvas>
+  <button id="b-pulso" class="oculto">PULSO</button>
+</div>
+<div id="stick" class="oculto"><i></i></div>
+<div id="aviso"></div>
+<div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
+<script type="module" src="laberinto.js"></script>
+</body>
+</html>

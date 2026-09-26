@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>El Simulador de Joran</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="comun.css">
+<style>
+html,body{overflow:auto}
+body{background:#01040c url(img/sala.jpg) center/cover fixed}
+body::before{content:"";position:fixed;inset:0;background:linear-gradient(180deg,rgba(1,4,12,.55),rgba(1,4,12,.88) 60%);pointer-events:none}
+main{position:relative;max-width:1180px;margin:0 auto;padding:18px 16px 28px}
+.cab{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.cab h1{margin:2px 0 0;font-size:clamp(24px,3.6vw,40px);color:var(--cian);text-shadow:0 0 18px rgba(95,244,255,.6)}
+.cred{background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:8px 14px;font-size:15px}
+.cred b{font-size:22px;color:var(--ambar)}
+.joran{display:grid;grid-template-columns:220px 1fr;gap:14px;align-items:center;margin-top:14px;background:var(--panel);border:1px solid var(--borde);border-radius:16px;overflow:hidden}
+.joran img{width:100%;height:100%;min-height:150px;object-fit:cover;object-position:78% 30%}
+.joran p{margin:10px 16px 10px 0;font-size:17px;line-height:1.45}
+.joran p b{color:var(--ambar)}
+h2.sec{font-size:15px;letter-spacing:.14em;color:var(--ambar);margin:20px 0 8px;text-transform:uppercase}
+.avatares{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.av{display:flex;gap:10px;align-items:center;background:var(--panel);border:2px solid transparent;border-radius:14px;padding:6px 12px 6px 6px;cursor:pointer;font:inherit;color:inherit;text-align:left}
+.av img{width:64px;height:64px;border-radius:10px;object-fit:cover;object-position:50% 30%}
+.av b{font-family:Orbitron;font-size:15px;display:block}
+.av span{font-size:14px;opacity:.85}
+.av.si{border-color:var(--cian);box-shadow:0 0 18px rgba(95,244,255,.35)}
+.maquinas{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+.maq{background:var(--panel);border:1px solid var(--borde);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.maq .foto{position:relative;aspect-ratio:16/9;background:#000}
+.maq .foto img{width:100%;height:100%;object-fit:cover;display:block}
+.maq.cerrada .foto img{filter:grayscale(1) brightness(.45)}
+.maq .candado{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:15px;letter-spacing:.1em;color:var(--ambar);text-shadow:0 0 10px #000}
+.maq .txt{padding:10px 14px 12px}
+.maq h3{margin:0 0 4px;font-size:18px;color:var(--cian)}
+.maq p{margin:0 0 6px;font-size:15px;line-height:1.4}
+.maq .ctl{font-size:13px;opacity:.8}
+.maq .rec{font-size:14px;margin:6px 0}
+.maq .rec b{color:var(--ambar)}
+.maq .req{font-size:14px;margin:6px 0}
+.maq .botones{margin-top:8px}
+.nota{margin-top:18px;font-size:14px;opacity:.85;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+@media (max-width:900px){.maquinas{grid-template-columns:1fr}.joran{grid-template-columns:120px 1fr}.joran p{font-size:15px}.avatares{grid-template-columns:1fr}}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<main>
+  <div class="cab">
+    <div><div class="kicker">Ludo · la sala de pruebas de Joran Pike</div><h1>EL SIMULADOR DE JORAN</h1></div>
+    <div class="cred">Tus créditos: <b id="cred">0</b> ◈ <small>(de prueba)</small></div>
+  </div>
+  <div class="joran"><img src="img/joran_consola.jpg" alt="Joran, en su consola">
+    <p>«¡Recluta! Aquí ensayábamos la evacuación los niños del refugio y yo: <b>cada máquina es un simulacro</b> disfrazado de juego. Empieza por <b>La Evacuación</b>. Las demás se encienden cuando haces una buena marca en la anterior… o si pagas la ficha con créditos. Elige tu mascota, como hacían ellos.»</p></div>
+  <h2 class="sec">Tu piloto de pruebas</h2>
+  <div class="avatares" id="avatares"></div>
+  <h2 class="sec">Las máquinas</h2>
+  <div class="maquinas" id="maquinas"></div>
+  <div class="nota"><span>Borrador: las marcas, las máquinas abiertas y los créditos se guardan solo en este navegador. En el juego de verdad, en tu Nave (y cada máquina tiene su ranking de la clase).</span><button class="sec" id="reiniciar">Empezar de cero</button></div>
+</main>
+<div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
+<script type="module">
+import { $, esc, JUEGOS, AVATARES, estado, guardar, abierto, comprar, pantalla, cerrarPantalla, SON, audio } from './comun.js';
+function pintar() {
+  const e = estado();
+  $('cred').textContent = e.creditos;
+  $('avatares').innerHTML = AVATARES.map((a) => `<button class="av${e.avatar === a.id ? ' si' : ''}" data-av="${a.id}"><img src="${a.img}" alt=""><span><b>${esc(a.n)}</b>${esc(a.que)}</span></button>`).join('');
+  $('maquinas').innerHTML = JUEGOS.map((j, i) => {
+    const ok = abierto(e, j), rec = e.marcas[j.id] || 0;
+    let pie = '';
+    if (ok) pie = `<div class="botones"><a class="boton" href="${j.url}">Jugar</a></div>`;
+    else {
+      const prev = JUEGOS.find((x) => x.id === j.abre.juego), llevo = e.marcas[prev.id] || 0, pc = Math.min(100, llevo / j.abre.puntos * 100);
+      pie = `<div class="req">Se enciende con <b>${j.abre.puntos.toLocaleString('es-ES')}</b> puntos en <b>${esc(prev.n)}</b> (tu récord: ${llevo.toLocaleString('es-ES')})</div><div class="barra"><i style="width:${pc}%"></i></div>
+        <div class="botones"><button data-comprar="${j.id}" ${e.creditos < j.precio ? 'disabled' : ''}>Encender por ${j.precio} ◈</button></div>`;
+    }
+    return `<div class="maq${ok ? '' : ' cerrada'}"><div class="foto"><img src="${j.img}" alt="">${ok ? '' : `<div class="candado">MÁQUINA ${i + 1} · APAGADA</div>`}</div>
+      <div class="txt"><h3>${esc(j.n)}</h3><p>${esc(j.lema)}</p><div class="ctl">${esc(j.controles)}</div>${ok ? `<div class="rec">Tu récord: <b>${rec.toLocaleString('es-ES')}</b></div>` : ''}${pie}</div></div>`;
+  }).join('');
+  document.querySelectorAll('[data-av]').forEach((b) => { b.onclick = () => { const e2 = estado(); e2.avatar = b.dataset.av; guardar(e2); audio(); SON.carril(); pintar(); }; });
+  document.querySelectorAll('[data-comprar]').forEach((b) => { b.onclick = () => {
+    const j = JUEGOS.find((x) => x.id === b.dataset.comprar);
+    pantalla(`<h2>¿Encender ${esc(j.n)}?</h2><p>Cuesta <b>${j.precio} ◈</b>. Te quedarán ${estado().creditos - j.precio} ◈.</p><div class="botones"><button id="si">Sí, encenderla</button><button class="sec" id="no">Mejor no</button></div>`);
+    $('no').onclick = cerrarPantalla;
+    $('si').onclick = () => { const r = comprar(j.id); if (r.ok) { audio(); SON.bien(); cerrarPantalla(); pintar(); } else { $('pantalla-caja').insertAdjacentHTML('beforeend', `<p>${esc(r.motivo)}</p>`); } };
+  }; });
+}
+$('reiniciar').onclick = () => { try { localStorage.removeItem('sgJoran'); } catch (e) { /* nada */ } pintar(); };
+pintar();
+</script>
+</body>
+</html>

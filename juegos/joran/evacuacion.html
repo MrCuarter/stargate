@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La Evacuación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="comun.css">
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+</script>
+</head>
+<body class="juego">
+<canvas id="lienzo" class="lienzo"></canvas>
+<div class="escaner"></div>
+<div id="carga">Encendiendo el simulador…</div>
+<div class="hud oculto" id="hud">
+  <div class="cifras">
+    <div class="cif am"><small>Puntos</small><b id="h-pts">0</b></div>
+    <div class="cif"><small>Metros</small><b id="h-m">0</b></div>
+    <div class="cif"><small>Chispas</small><b id="h-ch">0</b></div>
+  </div>
+  <div class="meta"><small>Hasta la cápsula de evacuación</small><div class="barra"><i id="h-cap"></i></div>
+    <small>La Estática</small><div class="barra peligro"><i id="h-est"></i></div></div>
+  <div id="extra"></div>
+</div>
+<div id="aviso"></div>
+<div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
+<script type="module" src="evacuacion.js"></script>
+</body>
+</html>

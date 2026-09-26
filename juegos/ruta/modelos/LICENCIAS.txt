@@ -1,0 +1,4 @@
+nave.glb, nebula.glb, vaeon.glb, forge.glb · Magnific (cuenta CCD, mutecdgami): nuestros.
+asteroides/*.stl y bennu.glb · NASA 3D Resources (github.com/nasa/NASA-3D-Resources): dominio público, «free and without copyright».
+tex/fobos.jpg · NASA 3D Resources (Mars - Phobos): dominio público.
+tex/p*.jpg y estatica.jpg · sacadas de las imágenes de planeta de STARGATE (proyección a esfera, sin créditos).

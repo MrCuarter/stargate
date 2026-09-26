@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RUTA AZUL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="comun.css">
+<style>
+.vidas{display:flex;gap:4px}
+.vidas i{width:14px;height:14px;clip-path:polygon(50% 0,100% 100%,50% 75%,0 100%);background:var(--cian)}
+.vidas i.no{background:#223}
+#b-bomba{position:fixed;right:16px;bottom:16px;pointer-events:auto;border-radius:50%;width:80px;height:80px;padding:0;font-size:12px}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+</script>
+</head>
+<body class="juego">
+<canvas id="lienzo" class="lienzo"></canvas>
+<div class="escaner"></div>
+<div class="hud oculto" id="hud">
+  <div class="cifras">
+    <div class="cif am"><small>Puntos</small><b id="h-pts">0</b></div>
+    <div class="cif"><small>Oleada</small><b id="h-ola">1</b></div>
+    <div class="cif"><small>Vidas</small><b class="vidas" id="h-vid"></b></div>
+    <div class="cif"><small>Bombas</small><b id="h-bom">3</b></div>
+  </div>
+  <div class="meta oculto" id="jefe"><small>RUTA AZUL</small><div class="barra peligro"><i id="h-jefe"></i></div></div>
+  <div id="extra"></div>
+  <button id="b-bomba" class="oculto">BOMBA</button>
+</div>
+<div id="aviso"></div>
+<div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
+<script type="module" src="ruta-azul.js"></script>
+</body>
+</html>
