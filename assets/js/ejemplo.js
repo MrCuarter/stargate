@@ -15,6 +15,12 @@
   var D = window.SG_EJ || { ejemplos: {}, retos: {}, consignas: {}, planetas: [] };
   var app = document.getElementById("ej-app");
   var id = (new URLSearchParams(location.search).get("reto") || "").toUpperCase();
+  /**
+   * 🔴 26-sep · «LA ENTREGA DE COMETA» (ejemplo.html?reto=L1&de=Cometa). Norberto: los reclutas de la Nave Escuela tenían
+   * los retos hechos pero sin enlace, y un docente que aprende ahí no veía cómo se revisa una entrega. Sus entregas de
+   * ejemplo (motor/entregas_prueba.js) enlazan aquí: el ejemplo de ese reto, presentado como lo que enlazó ese recluta.
+   */
+  var de = String(new URLSearchParams(location.search).get("de") || "").trim().slice(0, 40);
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 
   // ── cerrar la pestaña (los navegadores solo dejan si la abrió un enlace o un script; si no, se dice cómo)
@@ -109,8 +115,11 @@
 
   function ejemplo(e) {
     var r = D.retos[id] || [], enlace = e.enlace ? (/^https?:\/\//i.test(e.enlace) ? e.enlace : "https://" + e.enlace) : "";
-    document.title = "STARGATE · Ejemplo del reto " + id;
-    var html = '<p class="ej-eyebrow">Ejemplo del reto ' + esc(id) + (tema(r) ? " · " + esc(tema(r)) : "") + "</p>" +
+    document.title = de ? "La entrega de " + de + " · reto " + id : "STARGATE · Ejemplo del reto " + id;
+    var html = (de ? '<div class="ej-entrega"><b>La entrega de ' + esc(de) + '</b> · un recluta de ejemplo de la Nave Escuela.' +
+        '<span>En un grupo de verdad, este enlace abre lo que el recluta ha publicado: su Bitácora, su Genially, su vídeo… ' +
+        'Aquí, para que veas cómo se revisa una entrega, abre el ejemplo de este reto.</span></div>' : '') +
+      '<p class="ej-eyebrow">Ejemplo del reto ' + esc(id) + (tema(r) ? " · " + esc(tema(r)) : "") + "</p>" +
       "<h1>" + esc(e.titulo) + "</h1>" +
       (r[1] ? '<p class="ej-reto">Reto: ' + esc(r[1]) + "</p>" : "");
     if (D.consignas[id]) html += "<h2>Lo que pide el reto</h2><div class=\"ej-consigna\"><p>" + esc(D.consignas[id]) + "</p></div>";

@@ -10,9 +10,17 @@
  *   · su REFLEXIÓN en los retos que se responden en el propio reto (con el enlace, si el reto lo lleva también).
  * Uno de ellos lleva a propósito un enlace de Drive sin permisos: para ensayar «anular con un porqué».
  *
- * 🔴 Escribe en el Firestore de VERDAD. Solo en grupos `prueba-…` o `demo-…` de STARGATE, solo a los reclutas de mentira
- * (userId `prueba_…`/`demo_…`: la cuenta real no se toca) y sin pisar nada que ya exista. Guarda la lista de lo creado
- * en ~/.config/stargate-mando/copias/ por si hay que quitarlo.
+ * 🔴 26-sep · Y LA NAVE ESCUELA. Norberto: «Cometa… no veo el enlace que tienen». Sus reclutas nacían con los retos hechos y
+ * sin entregar nada, y el docente que aprende ahí no veía cómo se revisa una entrega. El enlace de cada una es ahora
+ * `ejemplo.html?reto=<R>&de=<alias>`: el ejemplo de ese reto con el aviso «La entrega de Cometa» (se abre de verdad, y en
+ * un grupo de verdad sería su Bitácora o su Genially). El tercero, con uno de Drive sin permisos, sigue igual: para ensayar
+ * «anular con un porqué».
+ *
+ * 🔴 Escribe en el Firestore de VERDAD. Solo en grupos `prueba-…`, `demo-…` o la `nave-escuela` de STARGATE, solo a los
+ * reclutas de mentira (userId `prueba_…`/`demo_…`: la cuenta real no se toca) y sin pisar nada que ya exista. Guarda la
+ * lista de lo creado en ~/.config/stargate-mando/copias/ por si hay que quitarlo.
+ *   node motor/entregas_prueba.js --id=nave-escuela --ensayo      → cuenta lo que haría, sin escribir nada
+ *   node motor/entregas_prueba.js --id=nave-escuela               → lo escribe
  *   node motor/entregas_prueba.js --id=prueba-semana-16 [--id=prueba-semana-8]
  *   FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 node motor/entregas_prueba.js --id=lab-clase   (ensayo en el emulador)
  */
@@ -26,10 +34,11 @@ else admin.initializeApp({ credential: admin.credential.cert(require(path.join(G
 const db = admin.firestore();
 
 const IDS = process.argv.filter(a => a.indexOf("--id=") === 0).map(a => a.slice(5));
+const ENSAYO = process.argv.includes("--ensayo");   // 26-sep · cuenta y no escribe
 if (!IDS.length) { console.error("✗ Falta --id=<grupo>"); process.exit(2); }
 for (const id of IDS) {
-  if (!/^[a-z0-9-]{3,40}$/.test(id) || !(EMU || /^(prueba|demo)-/.test(id))) {
-    console.error("✗ «" + id + "»: solo grupos de prueba (prueba-… o demo-…). No se ha tocado nada."); process.exit(2);
+  if (!/^[a-z0-9-]{3,40}$/.test(id) || !(EMU || /^(prueba|demo)-/.test(id) || id === "nave-escuela")) {
+    console.error("✗ «" + id + "»: solo grupos de prueba (prueba-…, demo-… o nave-escuela). No se ha tocado nada."); process.exit(2);
   }
 }
 
@@ -42,6 +51,10 @@ const WEB = JSON.parse(execFileSync("python3", ["-c",
 const ENLACES = Array.from(new Set(Object.values(WEB.ej).map(e => e.enlace).filter(Boolean)
   .concat(["https://stargate.mistercuarter.es/recursos.html"])));
 const SIN_PERMISOS = "https://drive.google.com/file/d/1sinPermisos-borrador-de-prueba/view";
+// 26-sep · la entrega de ejemplo de un recluta: la página del ejemplo de su reto, con su alias (ejemplo.html?reto=&de=)
+const WEB_URL = "https://stargate.mistercuarter.es/";
+const entregaDe = (reto, alias) => WEB.ej[reto] && reto !== "S7"
+  ? WEB_URL + "ejemplo.html?reto=" + encodeURIComponent(reto) + "&de=" + encodeURIComponent(alias || "un recluta") : null;
 
 // Reflexiones creíbles, varias por reto (se reparten por recluta). Cumplen el mínimo de caracteres de cada una.
 const TEXTOS = {
@@ -101,10 +114,11 @@ const TEXTOS = {
         let enlace = "";
         if (pide || (rf && rf.modo === "ambos")) {
           // (el tercero de la lista lleva uno sin permisos en su último reto con enlace: para ensayar «No es público»)
-          enlace = ENLACES[(k + reto.charCodeAt(0) + (parseInt(reto.slice(1), 10) || 0)) % ENLACES.length];   // (XS no lleva número)
+          enlace = entregaDe(reto, f.displayName)
+            || ENLACES[(k + reto.charCodeAt(0) + (parseInt(reto.slice(1), 10) || 0)) % ENLACES.length];   // (XS no lleva número)
           const ref = db.collection("mission_deliveries").doc(mid + "__" + d.id);
           if (!(await ref.get()).exists) {
-            await ref.set({ projectId: ID, missionId: mid, studentProfileId: d.id, userId: f.userId, stargateReto: reto, enlace, createdAt: cuando });
+            if (!ENSAYO) await ref.set({ projectId: ID, missionId: mid, studentProfileId: d.id, userId: f.userId, stargateReto: reto, enlace, createdAt: cuando });
             hechos.push("mission_deliveries/" + ref.id); nEnl++;
           }
         }
@@ -113,7 +127,7 @@ const TEXTOS = {
           if (!(await ref.get()).exists) {
             const dat = { projectId: ID, reto, fichaId: d.id, uid: f.userId, texto: TEXTOS[reto][k % TEXTOS[reto].length], creado: cuando, editado: cuando };
             if (enlace) dat.enlace = enlace;
-            await ref.set(dat);
+            if (!ENSAYO) await ref.set(dat);
             hechos.push("stargate_reflexiones/" + ref.id); nRf++;
           }
         }
@@ -121,15 +135,19 @@ const TEXTOS = {
       if (k === 2 && !roto) {
         const conEnlace = (f.completedMissionIds || []).map(m => String(m).split("__").pop()).filter(r => WEB.ev[r] === "obligatoria").pop();
         if (conEnlace) {
-          await db.collection("mission_deliveries").doc(ID + "__" + conEnlace + "__" + d.id).set({ enlace: SIN_PERMISOS }, { merge: true });
+          if (!ENSAYO) await db.collection("mission_deliveries").doc(ID + "__" + conEnlace + "__" + d.id).set({ enlace: SIN_PERMISOS }, { merge: true });
           roto = true; console.log("   " + f.displayName + " · " + conEnlace + " lleva el enlace sin permisos (para ensayar «anular con un porqué»)");
         }
       }
       k++;
     }
-    console.log("✓ " + ID + " · " + fichas.length + " reclutas de prueba · " + nEnl + " enlaces · " + nRf + " reflexiones");
+    console.log((ENSAYO ? "· ENSAYO (no se ha escrito nada) · " : "✓ ") + ID + " · " + fichas.length + " reclutas de prueba · " + nEnl + " enlaces · " + nRf + " reflexiones");
+    if (ENSAYO && fichas[0]) {
+      const f0 = fichas[0].data(), r0 = (f0.completedMissionIds || []).map(m => String(m).split("__").pop()).filter(r => entregaDe(r, f0.displayName))[0];
+      if (r0) console.log("  por ejemplo, " + f0.displayName + " · " + r0 + " → " + entregaDe(r0, f0.displayName));
+    }
   }
-  if (!EMU && hechos.length) {
+  if (!EMU && !ENSAYO && hechos.length) {
     const dir = path.join(os.homedir(), ".config", "stargate-mando", "copias");
     fs.mkdirSync(dir, { recursive: true });
     const f = path.join(dir, "entregas-prueba-" + new Date().toISOString().slice(0, 16).replace(/:/g, "") + ".json");

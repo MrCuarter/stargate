@@ -101,3 +101,8 @@ footer{padding:14px 20px 24px;text-align:center;font:400 13px/1.5 var(--sans);co
 
 @media (max-width:560px){ body{font-size:17px} main{padding:20px 16px 28px} .ej-eje{margin-left:18px;margin-right:18px} }
 @media print{ .ej-barra,.ej-quiz .ej-ops,.ej-linea .ej-marca{display:none} body{background:#fff} }
+
+/* 26-sep · la entrega de un recluta de ejemplo (Nave Escuela): el aviso, arriba del todo */
+.ej-entrega{margin:0 0 22px;padding:14px 18px;border-radius:10px;border:1px solid #d9b44a;background:#fff6dc;font:400 15px/1.5 var(--sans);color:#3b2f10}
+.ej-entrega b{font-weight:700}
+.ej-entrega span{display:block;margin-top:4px;font-size:14px;color:#5a4a20}
