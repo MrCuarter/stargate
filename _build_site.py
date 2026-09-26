@@ -1050,10 +1050,10 @@ def _gr_img(k, alt, pie="", clase=""):
     return (f'<figure class="gr-cap{(" " + clase) if clase else ""}"><img src="assets/img/capturas/{k}.webp?v={_gr_v(k)}" alt="{alt}" loading="lazy">'
             + (f'<figcaption>{pie}</figcaption>' if pie else '') + '</figure>')
 _GR_TABS = [
-    ("nave", "Mi nave", "Tu ficha (personaje, nivel, xp y créditos), lo que NEBULA te dice hoy, tu carrera con quien va justo delante y justo detrás, y <b>la orden de la semana</b>."),
+    ("nave", "Mi nave", "Tu ficha (personaje, nivel, xp, créditos y <b>tu Bitácora a un clic</b>), lo que NEBULA te dice hoy, tu carrera con quien va justo delante y justo detrás, <b>la orden de la semana</b> (con su sesión de clase) y, cuando toca, la entrega que viene y el ticket de salida."),
     ("retos", "Mis retos", "El mapa de los ocho planetas y todos los retos, explicados paso a paso. <b>Aquí se registran.</b>"),
-    ("botin", "Mi botín", "Tus insignias por tema, el álbum de cromos, los héroes de tu vestuario y los logros de a bordo."),
-    ("archivo", "El Archivo", "Los vídeos de la historia en orden, y los fragmentos de la Tripulación Cero que vas ganando."),
+    ("botin", "Mi botín", "Tres botones grandes: <b>Insignias</b> (por tema, y los logros de a bordo), <b>Cromos</b> (tu álbum) y <b>Héroes</b> (tu vestuario y tus adornos)."),
+    ("archivo", "El Archivo", "Los vídeos de la historia en orden, los fragmentos de la Tripulación Cero que vas ganando y <b>la sesión de clase de cada semana</b>, para verla a tu ritmo."),
     ("mercado", "Mercado Estelar", "Donde gastas tus créditos: sobres, cápsulas, adornos para tu ficha y, al final del viaje, las subidas de nota."),
     ("zoco", "El Zoco", "El trueque con tu tripulación: pones cromos, héroes o participaciones y te ofrecen créditos u otras piezas."),
     ("rankings", "Rankings", "El tablero de tu grupo: varias clasificaciones distintas, siempre por alias."),
@@ -1135,9 +1135,10 @@ lo que aún no toca, ni se ve. Si te saltas un capítulo, lo recuperas en «Cap�
 <div class="card"><h3>1 · La orden de la semana</h3><p>En tu Nave, la carta de tu Comandante: el vídeo del capítulo, el mensaje y los
 retos que se lanzan. Léela primero: es el mapa de la semana.</p></div>
 <div class="card"><h3>2 · La clase en directo</h3><p>Tu docente proyecta la sesión. Al empezar toca <b>llamada a filas</b>: en tu Nave aparece
-el botón <b>Presente</b>. Púlsalo y te llevas xp y créditos; si vienes a varias clases seguidas, la racha suma un extra.</p></div>
+el botón <b>Presente</b>. Púlsalo y te llevas xp y créditos; si vienes a varias clases seguidas, la racha suma un extra.
+¿No pudiste venir? <b>La sesión está en tu Nave</b> («Ver la sesión de la semana» y El Archivo): empieza por el índice de semanas y la ves a tu ritmo.</p></div>
 <div class="card"><h3>3 · Los retos</h3><p>Dos por tema: el <b>relámpago</b>, que haces en clase en quince minutos (o esa semana, si no pudiste venir), y el <b>reto principal</b>, en casa.
-Los registras en <b>Mis retos</b> {('(como mucho <b>' + str(TOPE_RETOS_SEMANA) + '</b> por semana; los relámpagos no cuentan)') if TOPE_RETOS_SEMANA else '(sin tope: a tu ritmo)'}. Al acabar cada tema, el <b>ticket de salida</b>: anónimo, para decir qué te llevas y qué duda queda.</p></div>
+Los registras en <b>Mis retos</b> {('(como mucho <b>' + str(TOPE_RETOS_SEMANA) + '</b> por semana; los relámpagos no cuentan)') if TOPE_RETOS_SEMANA else '(sin tope: a tu ritmo)'}. Al acabar cada tema, el <b>ticket de salida</b>: anónimo, para decir qué te llevas y qué duda queda (si no estás en clase, te sale en tu Nave).</p></div>
 </div>
 <div class="gr-dos" style="margin-top:18px">
 {_gr_img("orden", "La orden de la semana, con el vídeo y la firma de tu Comandante", "La orden de la semana.")}
@@ -1161,7 +1162,7 @@ Los registras en <b>Mis retos</b> {('(como mucho <b>' + str(TOPE_RETOS_SEMANA) +
 <li>Abre el reto en <b>Mis retos</b> y pulsa <b>«Cómo se hace, paso a paso»</b>. Muchos traen un ejemplo de otra persona.</li>
 <li>Hazlo, publícalo y <b>pega el enlace</b> de lo que has hecho (el «+» añade un segundo). Sin enlace no se registra.
 Antes, compruébalo en <a href="ayuda.html">¿Mi enlace abre lo mío?</a>: que se abra en una ventana de incógnito.</li>
-{_gr_reflex_li}<li>Pulsa <b>«Lo he hecho»</b>: suben tus xp y tus créditos al momento.</li>
+{_gr_reflex_li}<li>Pulsa <b>«Lo he hecho»</b>: se abre <b>«¡Misión cumplida!»</b> con todo lo que te llevas (la insignia, tus xp subiendo, los créditos, las cartas o el fragmento) y un botón para ir a verlo o a gastarlo.</li>
 </ol>
 <p class="small muted">Tu docente ve cada enlace. Si registras algo que no has hecho, lo anula y se van los xp y los créditos.</p>
 </div></div>
@@ -1174,6 +1175,7 @@ Antes, compruébalo en <a href="ayuda.html">¿Mi enlace abre lo mío?</a>: que s
 <p class="small">{EVALUACION_EXAMEN}</p>
 <h3>Pero los retos te dejan media Actividad hecha</h3>
 <div class="grid cols-2">{_gr_act}</div>
+<p class="small">En tu Nave los ves como <b>retos relacionados</b>: en la tarjeta de la entrega (con su <b>cuenta atrás</b>, las semanas antes de entregar) y en la de la Actividad en «Mis retos», marcados como hechos o pendientes.</p>
 </div></section>
 
 <section id="bitacora"><div class="wrap">
@@ -1185,7 +1187,7 @@ encender: el curso entero termina en ella, y además <b>vale el 20 % de cada Act
 <p>Cada página sigue el mismo patrón: <b>la evidencia</b> (lo que has hecho) → <b>el contexto</b> (para quién y para qué) →
 <b>la reflexión</b> (qué has aprendido) → <b>la autoevaluación</b>. El reto principal del Tema 1 («La Bitácora en marcha», semana 2) es abrirla y publicar tu primera experiencia.</p>
 <p><a class="btn" href="{PLANTILLA_EPORTFOLIO}" target="_blank" rel="noopener">La plantilla de la Bitácora ↗</a></p>
-<p class="small muted">Pega su enlace en tu ficha (al alistarte, o después en tu Nave) para que tu docente la encuentre.</p>
+<p class="small muted">Pega su enlace al alistarte o después, en tu Nave: el botón <b>«Añadir mi Bitácora»</b>, junto a tus créditos. Así tu docente la encuentra y tú la tienes a un clic.</p>
 </div>
 <div class="trio"><img src="assets/img/personajes/nebula.png" alt="NEBULA" loading="lazy"></div>
 </div>
@@ -1210,7 +1212,8 @@ encender: el curso entero termina en ella, y además <b>vale el 20 % de cada Act
 <div>
 <p><b>Insignias.</b> El relámpago y el reto principal de cada tema tienen la suya, ordenadas por planeta. Las apagadas son las que te faltan: púlsalas para ver cómo se ganan.</p>
 <p><b>Cromos.</b> {sum(1 for c in CROMOS)} cartas en series: salen de los sobres del Mercado, y los repetidos se cambian por sobres nuevos o se truecan en el Zoco.</p>
-<p><b>Héroes.</b> Salen de las cápsulas y visten tu ficha; los más raros son muy difíciles de conseguir.</p>
+<p><b>Héroes.</b> Salen de las cápsulas y visten tu ficha; los más raros son muy difíciles de conseguir. Para cambiarte, <b>pulsa tu personaje</b> en Mi nave: se abre tu vestuario con todo lo que tienes.</p>
+<p class="small muted">En Mi botín cada cosa tiene su botón grande arriba: Insignias, Cromos y Héroes. Al abrir cartas, «Ver mi álbum» te lleva directo a los cromos.</p>
 <p><b>Logros de a bordo.</b> La Nave apunta la primera vez que haces cada cosa y los días que vienes. {len(HITOS_A_BORDO)} logros en {len(CUBIERTAS_A_BORDO)} cubiertas;
 cada cubierta completa trae su premio, y con todas llega el <b>Contramaestre de la Nave</b>, que no se compra, no se regala y no se cambia.</p>
 </div>
