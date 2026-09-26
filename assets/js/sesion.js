@@ -1127,7 +1127,8 @@
   function montarTicket(el, semLista, iTema, que, op){
     op=op||{};
     var caja=el.querySelector('#ses-tk'), vivo=true;
-    var nada=function(txt){ caja.innerHTML='<div class="tk-nada"><b>¡No hay comentarios!</b><p class="sub">'+txt+'</p></div>'; };
+    // (26-sep · el título, según la diapositiva: en «Cómo os fue» no faltan comentarios, faltan valoraciones)
+    var nada=function(txt){ caja.innerHTML='<div class="tk-nada"><b>'+(que==='notas'?'Todavía no hay valoraciones':'¡No hay comentarios!')+'</b><p class="sub">'+txt+'</p></div>'; };
     var pinta=function(lista){
       if(!vivo) return;
       var campo=function(r,frag){ for(var k in r) if(k.indexOf(frag)>=0) return r[k]; return ''; };
@@ -1433,7 +1434,7 @@
   function diapositivasNuevas(s){
     var out=[], caps=capitulosDe(s.sem);
     caps.forEach(function(c){
-      out.push({k:'nuevo', rot:'Tu Nave, más grande', html:
+      out.push({k:'nuevo', rot:'Novedades', html:   // (26-sep · «Tu Nave, más grande» no se entendía: es lo que se abre esa semana)
         '<div class="dia nuevo-nave"><div class="nn-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/abierto.png alt> Se abre esta semana en STARGATE</div>'
         +'<h2>'+c.icono+' '+esc(c.titulo)+'</h2><p class="sub">'+esc(c.cabecera||'')+'</p>'
         +'<ul class="nn-lista">'+(c.puedes||[]).map(function(x,i){ return '<li style="--i:'+i+'">'+esc(x)+'</li>'; }).join('')+'</ul></div>'
@@ -1965,6 +1966,68 @@
       '<div class="dia hasta-pronto con-fondo"><div class="dia-fondo" style="background-image:url(\'assets/img/pres/perfil_en_vuelo.webp\')" aria-hidden="true"></div>'+cmdCuerpo('saludo')
       +'<div class="hp-txt"><h2>¿Dudas? Al foro de la asignatura</h2><p class="sub">En la <b>plataforma de UNIR</b>. Y esta sesión la tienes siempre en tu Nave, en <b>El Archivo</b>, para volver cuando quieras.</p></div></div>'};
   }
+  /**
+   * 🔴 26-sep · LA SESIÓN EN DIFERIDO, PARA EL RECLUTA, SIN PAJA. Norberto: «hay mucha paja, que para el docente es interesante,
+   * pero para el estudiante solo añade ruido. Elimina: cómo os fue, vuestras dudas, han movido ficha, coleccionistas… los retos
+   * (cambia por una diapositiva con todos los retos de ese tema); el relámpago es en clase, elimínalo… Añade una de ranking con
+   * 3 pestañas: total, escuadrón y coleccionistas: los 3 primeros y luego uno más, el estudiante que está viendo, y uno menos».
+   * El docente, y quien sigue la clase en directo, ven la sesión entera: esto es solo para el diferido.
+   */
+  var FUERA_DIFERIDO=['ticket','ticket_dudas','movido','simulacro'], RANKINGS_SESION=['semanal','top','coleccion','escuadrones'];
+  function paraDiferido(sl, s){
+    var out=[], rk=false;
+    sl.forEach(function(x){
+      if(x.k==='retos-semana'){ var r=diaRetosTema(s); if(r) out.push(r); return; }
+      if(x.k==='reto' && x.rot==='Relámpago') return;
+      if(RANKINGS_SESION.indexOf(x.k)>=0){ if(!rk){ rk=true; var R=diaRankingDif(); if(R) out.push(R); } return; }
+      if(FUERA_DIFERIDO.indexOf(x.k)>=0) return;
+      out.push(x);
+    });
+    return out;
+  }
+  function diaRetosTema(s){
+    var t=Number(s.tema_n)||0; if(!t) return null;
+    var P=window.SG_RETO_PREMIO||{}, H=misHechos(), pl=planeta(t)||[];
+    var ids=(RET.REGULAR||[]).map(function(r){ return r[0]; }).filter(function(id){ return id!=='S7' && Number((P[id]||[])[2])===t; });   // (S7 es secreto)
+    if(!ids.length) return null;
+    var donde=function(id){ return /^L/.test(id)?['clase','En clase · 15 min']:/^B/.test(id)?['casa','En casa']:/^X/.test(id)?['act','Al entregar la actividad']:['otro','Cuando quieras']; };
+    var n=0, filas=ids.map(function(id){ var p=P[id]||[[],0], ins=(p[0]||[])[0], d=donde(id), w=semanaDeReto(id), hecho=H&&H.indexOf(id)>=0; if(hecho) n++;
+      return '<div class="rtt'+(hecho?' hecho':'')+'">'+(ins?'<img src="assets/img/insignias/'+esc(ins)+'.webp" alt="">':'<img class="rtt-i" src="assets/img/iconos/p/retos.png" alt="">')
+        +'<div class="rtt-t"><b>'+esc(nombreReto(id))+'</b><span class="rtt-d '+d[0]+'">'+d[1]+(w?' · semana '+w:'')+'</span></div>'
+        +'<em>'+(hecho?'<img class=ico src=assets/img/iconos/p/hecho.png alt> hecho':'+'+p[1]+' xp')+'</em></div>'; }).join('');
+    return {k:'retos_tema', sec:'misiones', rot:'Los retos', html:
+      '<div class="dia emb con-fondo">'+capaFondo(s)+'<div class="kicker"><img class=ico src=assets/img/iconos/p/retos.png alt> Tema '+t+(pl[1]?' · '+esc(pl[1]):'')+'</div>'
+      +'<h2>Los retos de este tema</h2>'
+      +'<p class="sub">'+(H?'Llevas <b>'+n+' de '+ids.length+'</b>. ':'')+'El relámpago se hace en clase (o esa semana, si no pudiste venir); el principal, en casa. Se registran en tu Nave.</p>'
+      +'<div class="rtt-l">'+filas+'</div></div>'};
+  }
+  function diaRankingDif(){
+    var R=vivos(); if(!R.length) return null;
+    var yo=R.filter(function(x){ return x.fid===st.ficha; })[0]||null, prof=yo?yo.profe:st.profeMio;
+    var col=function(p){ return (p.coleccion&&p.coleccion.pct)||0; };
+    var tabs=[['total','Total', R, function(p){ return p.xp||0; }, function(v){ return v+' xp'; }],
+              ['escuadron','Tu escuadrón', R.filter(function(p){ return prof && p.profe===prof; }), function(p){ return p.xp||0; }, function(v){ return v+' xp'; }],
+              ['coleccion','Coleccionistas', R, col, function(v){ return String(Math.round(v*10)/10).replace('.',',')+' %'; }]].filter(function(t){ return t[2].length; });
+    var lista=function(t){
+      var L=t[2].slice().sort(function(a,b){ return t[3](b)-t[3](a) || (b.xp||0)-(a.xp||0) || String(a.alias).localeCompare(String(b.alias)); });
+      var i=yo?L.indexOf(L.filter(function(x){ return x.fid===yo.fid; })[0]):-1, fila=function(p, k){
+        return '<li class="'+(yo&&p.fid===yo.fid?'yo':'')+(k<3?' top':'')+'"><span class="rkd-p">'+(k+1)+'</span>'+(window.SG.avatarImg?window.SG.avatarImg(p.avatar,p.alias,'',p.xp,st.tipo):'')
+          +'<b>'+(yo&&p.fid===yo.fid?'Tú':esc(p.alias))+'</b><em>'+t[4](t[3](p))+'</em></li>'; };
+      var html=L.slice(0,3).map(fila).join('');
+      if(i>=3){ var desde=Math.max(3,i-1); if(desde>3) html+='<li class="rkd-sep" aria-hidden="true">···</li>';
+        for(var k=desde;k<=Math.min(L.length-1,i+1);k++) html+=fila(L[k],k); }
+      return '<ol class="rkd-l">'+html+'</ol>';
+    };
+    return {k:'ranking_dif', rot:'Ranking', montar:function(el){
+        Array.prototype.forEach.call(el.querySelectorAll('[data-rkd]'), function(b){ b.onclick=function(){ var k=b.getAttribute('data-rkd');
+          Array.prototype.forEach.call(el.querySelectorAll('[data-rkd]'), function(x){ x.classList.toggle('on', x===b); });
+          Array.prototype.forEach.call(el.querySelectorAll('[data-rkd-p]'), function(p){ p.hidden=p.getAttribute('data-rkd-p')!==k; }); }; });
+        return null; }, html:
+      '<div class="dia emb rkd"><div class="kicker"><img class=ico src=assets/img/iconos/p/rankings.png alt> El ranking</div><h2>Cómo va la tripulación</h2>'
+      +'<div class="rkd-tabs" role="tablist">'+tabs.map(function(t,i){ return '<button type="button" role="tab" class="'+(i?'':'on')+'" data-rkd="'+t[0]+'">'+t[1]+'</button>'; }).join('')+'</div>'
+      +tabs.map(function(t,i){ return '<div data-rkd-p="'+t[0]+'"'+(i?' hidden':'')+'>'+lista(t)+'</div>'; }).join('')
+      +'<p class="ac-nota">Los tres primeros y, si no estás entre ellos, quien va justo delante, tú y quien te sigue.</p></div>'};
+  }
   function construir(s, n){
     // 24-sep · el desenlace («La batalla de la Ciudadela Gris») no se proyecta: se abre en la Nave de cada cual tras la batalla
     var TB=(window.SG_TRAS_BATALLA||[]).map(function(x){ return x.id; });
@@ -2298,6 +2361,7 @@
     // 26-sep · y la sesión de cada actividad (st.act): el recluta, desde la semana en que se lanza
     if(st.act&&st.alumno){ var aA=actN(st.act); if(!aA||Number(aA.sem)>Number(st.semHoy)) st.act=0; }
     st.slides=st.act?construirActividad(st.act):st.pres&&hayPresentacion()?construirEmbarque(lista[0]||s,n):construir(s,n);
+    if(DIFERIDO&&st.alumno&&!st.pres&&!st.act) st.slides=paraDiferido(st.slides, s);   // 26-sep · menos paja para el recluta
     if(DIFERIDO) st.slides=[diaSemanas(lista)].concat(st.slides);   // 25-sep · en diferido, el índice de semanas delante
     if(st.i>=st.slides.length) st.i=st.slides.length-1;
     if(st.i<0) st.i=0;

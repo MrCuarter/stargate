@@ -98,6 +98,18 @@ c(/function ticketDelTema\(\)/.test(NAVE) && /\+ticketDelTema\(\)/.test(NAVE) &&
   "🔴 el ticket de salida, también en la Nave, la semana que cierra cada tema (el mismo formulario, ya rellenado)");
 c(/localStorage\.setItem\(f\.getAttribute\('data-tk'\),'1'\)/.test(SES) && /localStorage\.getItem\(clave\)==='1'/.test(NAVE), "   enviado en la sesión o en la Nave, no se pide dos veces");
 
+// ── 7 · 26-sep · el diferido del recluta, sin paja; y los rankings de la consola, que no respondían
+c(/var FUERA_DIFERIDO=\['ticket','ticket_dudas','movido','simulacro'\], RANKINGS_SESION=\['semanal','top','coleccion','escuadrones'\];/.test(SES)
+  && /if\(DIFERIDO&&st\.alumno&&!st\.pres&&!st\.act\) st\.slides=paraDiferido\(st\.slides, s\);/.test(SES),
+  "🔴 diferido del recluta: fuera «cómo os fue», «vuestras dudas», «han movido ficha», los rankings sueltos y «Enséñalo» (el docente, entera)");
+c(/if\(x\.k==='retos-semana'\)\{ var r=diaRetosTema\(s\);/.test(SES) && /if\(x\.k==='reto' && x\.rot==='Relámpago'\) return;/.test(SES) && /id!=='S7'/.test(SES),
+  "   «los retos», por todos los retos del tema (sin el secreto); y el relámpago, dentro de ella");
+c(/function diaRankingDif\(\)/.test(SES) && /\['total','Total'/.test(SES) && /\['escuadron','Tu escuadrón'/.test(SES) && /\['coleccion','Coleccionistas'/.test(SES) && /rkd-sep/.test(SES),
+  "🔴 un ranking con tres pestañas (total, tu escuadrón, coleccionistas): los tres primeros y, si no estás, quien va delante, tú y quien te sigue");
+c(/rot:'Novedades'/.test(SES) && /que==='notas'\?'Todavía no hay valoraciones'/.test(SES), "   «Novedades» (no «Tu Nave, más grande») y, sin tickets, cada diapositiva con su título");
+c(/closest\("\.modo-sel \[data-modo\]"\)/.test(CON) && /\(m === "piloto" \|\| m === "manual"\)/.test(CON),
+  "🔴 las pestañas del ranking de la consola responden (el selector Piloto/Manual ya no las toma por suyas)");
+
 console.log("\n  Batería 110 · misión cumplida, Mi botín por puertas y el diferido con su índice");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

@@ -3375,7 +3375,7 @@ assert len(_AYUDA_NAVE) >= 19, "AYUDA_RETOS de Datos.gs se ha quedado corta (%d)
 RETOS_REGULAR=[(r["id"], r["titulo"]) for r in json.load(open(os.path.join(HERE, "motor", "catalogo.json"), encoding="utf-8"))["retos"]["REGULAR"] if r["id"] != "H1"]
 # 26-sep · y lo que da cada reto (sus insignias y sus xp), del mismo catálogo: la sesión lo necesita para la entrega y las
 # actividades (SG_RETOS de la sesión solo lleva id y nombre, y la insignia de la actividad no salía)
-RETO_PREMIO={r["id"]: [r.get("insignias") or [], r.get("xp") or 0] for r in json.load(open(os.path.join(HERE, "motor", "catalogo.json"), encoding="utf-8"))["retos"]["REGULAR"]}
+RETO_PREMIO={r["id"]: [r.get("insignias") or [], r.get("xp") or 0, r.get("tema") or 0] for r in json.load(open(os.path.join(HERE, "motor", "catalogo.json"), encoding="utf-8"))["retos"]["REGULAR"]}
 # 23-sep · PUA lleva los mismos retos que REGULAR, con el mismo valor
 RETOS_PUA=list(RETOS_REGULAR)
 """

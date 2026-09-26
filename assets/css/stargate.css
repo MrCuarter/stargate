@@ -7009,3 +7009,28 @@ button.ac-mc{font-size:clamp(.75rem,.95vw,.9rem);line-height:1.1;padding:2px;wor
 .sem-g.on .sem-g-t{color:var(--teal2)}
 .sem-g-b{display:flex;gap:5px}
 .sem-tira>.s.pres{align-self:flex-end}
+
+/* ════════ 26-sep · el diferido del recluta: los retos del tema y el ranking de tres pestañas ════════ */
+.rtt-l{display:flex;flex-direction:column;gap:8px;margin-top:.4em;max-width:900px}
+.rtt{display:flex;align-items:center;gap:12px;padding:.6em .9em;border-radius:14px;border:1px solid var(--line);background:rgba(8,14,22,.86)}
+.rtt.hecho{border-color:rgba(106,214,142,.6);background:rgba(106,214,142,.1)}
+.rtt img{width:clamp(44px,8vh,64px);height:clamp(44px,8vh,64px);object-fit:contain;flex:none}
+.rtt .rtt-i{width:38px;height:38px}
+.rtt-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:.15em}
+.rtt-t b{font-size:clamp(.92rem,1.35vw,1.12rem)}
+.rtt-d{font-size:.8rem;font-weight:800}
+.rtt-d.clase{color:var(--amber)} .rtt-d.casa{color:var(--teal2)} .rtt-d.act{color:#c79be6} .rtt-d.otro{color:var(--mut)}
+.rtt em{flex:none;font-style:normal;font-weight:800;color:var(--teal2)}
+.rtt.hecho em{color:#9be3b3}
+.rkd-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:.2em 0 .6em}
+.rkd-tabs button{padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(8,14,22,.85);color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
+.rkd-tabs button.on{background:var(--teal);border-color:var(--teal);color:#05222a}
+.rkd-l{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-width:640px}
+.rkd-l li{display:flex;align-items:center;gap:12px;padding:.45em .9em;border-radius:14px;border:1px solid var(--line);background:rgba(8,14,22,.86)}
+.rkd-l li.top{border-color:rgba(245,176,67,.45)}
+.rkd-l li.yo{border-color:var(--teal);background:rgba(55,224,236,.12)}
+.rkd-l li img{width:40px;height:40px;border-radius:50%;object-fit:cover;flex:none}
+.rkd-l li b{flex:1;min-width:0;font-size:clamp(.95rem,1.4vw,1.15rem)}
+.rkd-l li em{font-style:normal;font-weight:800;color:var(--teal2);font-variant-numeric:tabular-nums}
+.rkd-p{min-width:1.8em;text-align:center;font-family:'Unbounded',sans-serif;font-weight:700;color:var(--amber)}
+.rkd-l li.rkd-sep{justify-content:center;border:0;background:none;padding:0;color:var(--mut)}

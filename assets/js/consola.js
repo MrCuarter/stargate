@@ -49,10 +49,13 @@
       '<button type="button" data-modo="piloto" aria-pressed="' + !manual() + '"' + (manual() ? '' : ' class="on"') + ' title="Lo justo para dar tu clase: sigue el rumbo que ha marcado tu referente">' + ico("cohete") + ' Piloto automático</button>' +
       '<button type="button" data-modo="manual" aria-pressed="' + manual() + '"' + (manual() ? ' class="on"' : '') + ' title="Todo a mano: premios, tu sesión a medida, tu panel, mensajes y más">' + ico("ajustes") + ' Mando manual</button></div>';
   }
+  // 🔴 26-sep · SOLO los dos botones del selector. Las pestañas del ranking (tablero.js) también llevan `data-modo` («xp»,
+  // «explorador»…): este oyente las tomaba por un cambio de modo, repintaba la consola entera (el ranking volvía al primero:
+  // Norberto, «no ocurre nada al pasar por los botones») y guardaba en la ficha del docente un modo que no existe.
   document.addEventListener("click", function (e) {
-    var b = e.target && e.target.closest && e.target.closest("[data-modo]");
+    var b = e.target && e.target.closest && e.target.closest(".modo-sel [data-modo]");
     if (!b || !YO) return;
-    var m = b.getAttribute("data-modo"); if (m !== MODO) ponerModo(m);
+    var m = b.getAttribute("data-modo"); if ((m === "piloto" || m === "manual") && m !== MODO) ponerModo(m);
   });
   var url = new URLSearchParams(location.search);
   if (/^[a-z_]+$/.test(url.get("tab") || "")) TAB = url.get("tab");   // 15-sep · el Capitán enlaza a una pestaña (p. ej. «Mis enlaces»)
