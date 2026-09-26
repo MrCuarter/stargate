@@ -2827,3 +2827,5 @@
     if (window.SG && window.SG.MOTOR) comoAlumnoDe(st.per); else document.addEventListener('sg:motor', function(){ comoAlumnoDe(st.per); });
   } else cargarYArrancar();   // (el dato fresco no puede mover la diapositiva de sitio: se arranca una vez)
 })();
+
+// (26-sep · huella nueva: el CDN se quedó con la anterior bajo la huella de 7ade0c8)
