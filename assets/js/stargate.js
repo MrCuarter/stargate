@@ -634,6 +634,17 @@ window.SG.entregaDe = function (a, inicio, pausas, hoy) {
            corto: d.getDate() + " " + MS[d.getMonth()].slice(0, 3), faltan: Math.round((dia - h) / 864e5) };
 };
 /**
+ * 🔴 26-sep · LA CUENTA ATRÁS DE UNA ENTREGA (la tarjeta de la Nave y la diapositiva de la sesión). Días, horas y minutos;
+ * los segundos, solo el último día (Norberto aprobó el borrador: un segundero toda la semana agobia más de lo que empuja).
+ * `fin` en milisegundos. Devuelve las casillas; quien la usa la repinta cada segundo.
+ */
+window.SG.relojHtml = function (fin) {
+  var s = Math.max(0, Math.floor((fin - Date.now()) / 1000)), c = function (n, t) { return '<span class="rr-c"><b>' + n + '</b><small>' + t + '</small></span>'; };
+  if (s <= 0) return '<span class="rr-fin">Plazo cerrado</span>';
+  var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+  return s < 86400 ? c(h, h === 1 ? 'hora' : 'horas') + c(m, 'min') + c(s % 60, 'seg') : c(d, d === 1 ? 'día' : 'días') + c(h, h === 1 ? 'hora' : 'horas') + c(m, 'min');
+};
+/**
  * EL PASO A PASO DE UN RETO: su explicación (SG_AYUDA_RETOS, del documento maestro), partida en frases. La usan la Nave
  * del recluta («Cómo se hace, paso a paso») y, desde el 24-sep, la pestaña «Retos» de la consola del docente.
  */

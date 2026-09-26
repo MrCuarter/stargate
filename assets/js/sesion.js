@@ -1056,11 +1056,15 @@
     var u=String(window.SG_TICKET_URL).split('{GRUPO}').join(encodeURIComponent(st.per||''))
             .split('{COMANDANTE}').join(encodeURIComponent(elComandante()))
             .split('{TEMA}').join(encodeURIComponent(opcion));
-    return {k:'ticket_form', sec:'ticket', t:'ci', rot:'Ticket de salida', html:
+    // 26-sep · enviado aquí, la Nave de ese navegador ya lo da por hecho (sgTicket:<grupo>:<tema>, ver ticketDelTema en recluta.js)
+    return {k:'ticket_form', sec:'ticket', t:'ci', rot:'Ticket de salida', montar:function(el){
+        var f=el.querySelector('iframe[data-tk]'), cargas=0; if(!f) return null;
+        f.addEventListener('load',function(){ if(++cargas>1) try{ localStorage.setItem(f.getAttribute('data-tk'),'1'); }catch(e){} });
+        return null; }, html:
       '<div class="dia ticket ticket-form"><div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/ticket.png alt> '+(esPres?'Antes de ir a Fôrge':'Cerramos el tema')+'</div>'
       +'<h2>'+(esPres?'¿Qué os ha parecido el embarque?':'El ticket de salida')+'</h2><p class="sub">Anónimo y rápido'+(esPres?'. Lo que digáis, lo proyectamos la próxima semana.':': se rellena al acabar cada tema. En la próxima clase proyectaremos lo que digáis.')+'</p>'
       // (`embedded=true` es como Google sirve sus formularios dentro de otra página: sin su cabecera ni su pie)
-      +'<iframe class="tk-form" src="'+esc(u+'&embedded=true')+'" title="Ticket de salida" loading="lazy"></iframe>'
+      +'<iframe class="tk-form" src="'+esc(u+'&embedded=true')+'" title="Ticket de salida" loading="lazy" data-tk="'+esc('sgTicket:'+(st.per||'')+':'+opcion)+'"></iframe>'
       +'<p class="small muted tk-otro">¿No te cabe en la pantalla? <a href="'+esc(u)+'" target="_blank" rel="noopener">Ábrelo en otra pestaña</a>.</p></div></div>'};
   }
   function elComandante(){ return String((!st.alumno&&st.miNombre)||st.profeMio||'').trim(); }
@@ -1305,19 +1309,42 @@
     var e=window.SG&&window.SG.entregaDe&&st.inicio?window.SG.entregaDe(a, st.inicio, st.pausas, hoy):null;
     var t=(RET.REGULAR||[]).filter(function(y){ return y[0]===a.reto; })[0]||[], ins=t[2]||[], xp=Number(t[3])||0;
     var pl=PLAN.filter(function(p){ return p[1]===a.planeta; })[0];
-    var nombres=ins.map(function(i){ var b=badge(i); return '«'+esc(b?b.nombre:i)+'»'; });
-    var insTxt=!nombres.length?'':(nombres.length===1?' y la insignia '+nombres[0]:' y las insignias '+nombres.slice(0,-1).join(', ')+' y '+nombres[nombres.length-1]);
     var cuenta=!e||e.faltan<0?'':e.faltan===0?'Es hoy':e.faltan===1?'Es mañana':'Quedan '+e.faltan+' días';
+    /**
+     * 🔴 26-sep · MÁS VISUAL. Norberto: «la diapositiva de la entrega, hazla más visual: usa alguna imagen de NEBULA, la
+     * insignia principal grande y las insignias relacionadas que aparezcan también». NEBULA de pie a la izquierda, con lo
+     * que dice; la insignia de la actividad en grande (la segunda, si la hay, a su lado y más pequeña); la cuenta atrás en
+     * vivo (SG.relojHtml, la misma de la Nave); y abajo los retos relacionados con sus insignias (los de SG_ACTIVIDADES).
+     */
+    var fin=e&&e.faltan>=0?(hoy?Date.now()+(e.fecha.getTime()-hoy.getTime()):e.fecha.getTime()):0;
+    var nom=function(id){ var r=(RET.REGULAR||[]).filter(function(y){ return y[0]===id; })[0]||[], m=String(r[1]||'').match(/«([^»]+)»/); return {n:m?m[1]:String(r[1]||id), ins:(r[2]||[])[0]||''}; };
+    var R=(a.retos||[]).map(function(x){ var d=nom(x[0]); return {id:x[0], nombre:d.n, ins:d.ins, aporta:x[1]}; });
+    var cifra={2:'dos',3:'tres',4:'cuatro'}[R.length]||String(R.length);
+    var grande=ins[0], otras=ins.slice(1), bg=grande?badge(grande):null;
     return {k:'entrega', rot:'La entrega', html:
-      '<div class="dia entrega con-fondo">'+(pl?'<div class="dia-fondo" style="background-image:url(\'assets/img/planetas/'+esc(pl[0])+'.png\')" aria-hidden="true"></div>':'')
-      +(ins.length?'<div class="en-ins">'+ins.map(function(i){ var b=badge(i);
-          return '<figure><img src="assets/img/insignias/'+esc(i)+'.webp" alt=""><figcaption>'+esc(b?b.nombre:'')+'</figcaption></figure>'; }).join('')+'</div>':'')
+      '<div class="dia entrega en-v2 con-fondo">'+(pl?'<div class="dia-fondo" style="background-image:url(\'assets/img/planetas/'+esc(pl[0])+'.png\')" aria-hidden="true"></div>':'')
+      +'<div class="en-neb"><img src="assets/img/personajes/nebula.png" alt="">'
+      +(R.length?'<p class="en-neb-dice"><b>NEBULA:</b> estos '+cifra+' retos ya os dejan <b>media entrega hecha</b>. Quien los tiene, llega con ventaja.</p>':'')+'</div>'
+      +'<div class="en-main">'
+      +(grande?'<div class="en-ins"><figure class="en-grande"><span class="en-halo" aria-hidden="true"></span><img src="assets/img/insignias/'+esc(grande)+'.webp" alt=""><figcaption>'+esc(bg?bg.nombre:'')+'</figcaption></figure>'
+        +otras.map(function(i){ var b=badge(i); return '<figure class="en-otra"><img src="assets/img/insignias/'+esc(i)+'.webp" alt=""><figcaption>'+esc(b?b.nombre:'')+'</figcaption></figure>'; }).join('')+'</div>':'')
       +'<div class="en-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/calendario.png alt> Misión mayor '+esc(a.orden)+' · Actividad '+a.n+'</div>'
       +'<h2>Se entrega el <b>'+(e?esc(e.texto):'último día de la semana '+a.entrega)+'</b></h2>'
-      +(cuenta?'<p class="en-cuenta">'+cuenta+'</p>':'')
-      +'<p class="sub">«'+esc(a.titulo)+'». Hasta las 23:59, en la plataforma de UNIR: <b>'+esc(a.puntos)+' de los 10 puntos</b> de la evaluación continua.</p>'
-      +'<p class="en-premio">Al registrarla en vuestra Nave: <b>+'+xp+' xp</b>'+insTxt+'.</p></div></div>'};
+      +(fin?'<div class="re-reloj en-reloj" data-fin="'+fin+'" role="timer" aria-label="'+esc(cuenta)+'"><span class="rr-cs" aria-hidden="true">'+window.SG.relojHtml(fin)+'</span></div>':'')
+      +'<p class="sub">«'+esc(a.titulo)+'». Hasta las 23:59, en la plataforma de UNIR: <b>'+esc(a.puntos)+' de los 10 puntos</b>.</p>'
+      +'<p class="en-premio">Al registrarla en vuestra Nave: <b>+'+xp+' xp</b>.</p></div></div>'
+      +(R.length?'<div class="en-rel"><p class="en-rel-t">Retos relacionados</p><div class="en-rel-g">'+R.map(function(r){
+          return '<div class="en-r">'+(r.ins?'<img src="assets/img/insignias/'+esc(r.ins)+'.webp" alt="">':'<img class="en-r-ico" src="assets/img/iconos/p/retos.png" alt="">')
+            +'<span><b>'+esc(r.nombre)+'</b><small>'+esc(r.aporta)+'</small></span></div>'; }).join('')+'</div></div>':'')
+      +'</div>',
+      montar:function(el){
+        var r=el.querySelector('.en-reloj .rr-cs'); if(!r) return null;
+        var f=Number(el.querySelector('.en-reloj').getAttribute('data-fin'));
+        var tt=setInterval(function(){ r.innerHTML=window.SG.relojHtml(f); el.querySelector('.en-reloj').classList.toggle('ultimo', f-Date.now()<86400e3); }, 1000);
+        return function(){ clearInterval(tt); };
+      }};
   }
+
 
   /**
    * 🔴 25-sep · LA PLANTILLA DE LA BITÁCORA, EMBEBIDA. Norberto: «si puedes embébelo en una diapositiva en la semana 1, justo
@@ -1806,7 +1833,8 @@
       +'<h2>¿Qué semana quieres ver?</h2>'
       +'<p class="sub">Cada sesión, tal como se vio en clase. Se van abriendo según avanza el curso.</p>'
       +'<div class="dif-grid">'+lista.map(function(x){
-          var k=Number(x.sem)||0, pl=Number(x.tema_n)?planeta(x.tema_n):null, abierta=k<=hoy;
+          // (26-sep · la 15, sin tema, con su planeta: el de la Estática, como en el resto de la sesión)
+          var k=Number(x.sem)||0, pl=Number(x.tema_n)?planeta(x.tema_n):(x.planeta||null), abierta=k<=hoy;
           var cls='dif-s'+(k===hoy?' hoy':'')+(k===viendo?' viendo':'')+(abierta?'':' cerrada');
           var dentro=(pl?'<img class="dif-pl" src="assets/img/planetas/'+esc(pl[0])+'.png'+(window.SG_IMGV||'')+'" alt="" loading="lazy">':'<span class="dif-pl"></span>')
             +'<b>Semana '+k+'</b><span>'+esc(x.tema||'')+'</span>'

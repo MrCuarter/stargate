@@ -1089,13 +1089,15 @@
         +cuantosLoLlevan(t[0])
         +'<span class="small muted">'+esc(t[0])+'</span>'+(modo==='fila'?queTeLlevas(t[2]):'')+'</div>';
     var premio='<span class="p xp">+'+t[3]+' xp</span><span class="p cr">+'+creditosDeReto(t[0])+' ◈</span>';
-    return '<details class="reto-sem '+modo+(ya?' hecho':'')+(rel?' relampago':'')+'">'
+    // 26-sep · la Actividad 1 y la 2 llevan sus retos relacionados a la vista (los mismos que la tarjeta de la entrega)
+    var actR=actividadDeReto(t[0]), relR=actR?relacionados(actR, true):'';
+    return '<details class="reto-sem '+modo+(ya?' hecho':'')+(rel?' relampago':'')+'" data-rid="'+esc(t[0])+'">'
       +(modo==='fila'
-        ? '<summary class="rs-fila">'+miniPremio(t[2])+'<div class="rs-fila-t">'+cab+'<b class="rs-tit">'+esc(t[1])+'</b></div>'
+        ? '<summary class="rs-fila">'+miniPremio(t[2])+'<div class="rs-fila-t">'+cab+'<b class="rs-tit">'+esc(t[1])+'</b>'+relR+'</div>'
             +'<div class="rs-premio">'+premio+'</div><span class="rs-flecha" aria-hidden="true">▾</span></summary>'
         : '<summary>'+cab
             +'<div class="rs-cuerpo">'+miniPremio(t[2])+'<div class="rs-cuerpo-t"><b class="rs-tit">'+esc(t[1])+'</b>'
-              +(gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')+queTeLlevas(t[2])+'</div></div>'
+              +(gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')+queTeLlevas(t[2])+relR+'</div></div>'
             +'<div class="rs-premio">'+premio
               +(ejPag?'<a class="rs-ej" href="'+ejPag+'" target="_blank" rel="noopener" title="Se abre en una pestaña nueva">Ver un ejemplo ↗</a>':'')+'</div>'
             +'<div class="rs-abrir">▾ '+(ya?'Ver lo que pedía':'Cómo se hace, paso a paso')+'</div></summary>')
@@ -1296,6 +1298,7 @@
       +diplomaCaja()
       +votacionCaja()
       +retosDeLaSemana()
+      +ticketDelTema()
       +simuladorCaja()
       +panelEmbebido();
   }
@@ -1396,23 +1399,75 @@
     var A=(window.SG_ACTIVIDADES||[]).filter(function(a){ return !mios[a.reto] && ((a.recuerda||[]).indexOf(sem)>=0 || a.entrega===sem); })[0];
     if(!A) return null;
     var e=window.SG.entregaDe(A, d.inicio, d.pausas, hoy); if(!e||e.faltan<0) return null;
-    return {a:A, e:e, tarjeta:(A.recuerda||[]).indexOf(sem)>=0};
+    // (el reloj cuenta desde «ahora»; con la semana forzada, desde el lunes de esa semana)
+    var fin=hoy?Date.now()+(e.fecha.getTime()-hoy.getTime()):e.fecha.getTime();
+    return {a:A, e:e, fin:fin, tarjeta:(A.recuerda||[]).indexOf(sem)>=0};
   }
+  /**
+   * 🔴 26-sep · LOS RETOS QUE YA TE HACEN MEDIA ENTREGA. Norberto: «¿qué te parece añadir a esta tarjeta los retos
+   * relacionados?… en los retos, para la act 1 y la act 2, también». Son los de la página de Actividades
+   * (SG_ACTIVIDADES[].retos, con lo que aporta cada uno en corto); aquí, hechos o pendientes, y cada uno lleva a su reto.
+   */
+  function retosDeActividad(a){
+    var mios={}; (((st.yo||{}).retos)||[]).forEach(function(k){ mios[k]=true; });
+    return (a.retos||[]).map(function(r){ return {id:r[0], aporta:r[1], nombre:String(nombreDeReto(r[0])).replace(/^«|»$/g,''), hecho:!!mios[r[0]]}; });
+  }
+  function relacionados(a, corto){
+    var R=retosDeActividad(a); if(!R.length) return '';
+    var n=R.filter(function(r){ return r.hecho; }).length;
+    var cuenta=n===R.length?'Los tienes todos: <b>media entrega hecha</b>':n?'llevas <b>'+n+' de '+R.length+'</b>':'cada uno te deja hecho un trozo';
+    var boton=function(r){ return '<button type="button" class="re-r'+(r.hecho?' hecho':'')+'" data-ir-reto="'+esc(r.id)+'" title="'+esc(r.hecho?'Hecho · ver el reto':'Pendiente · ver qué pide')+'">'
+      +(r.hecho?'<img class=ico src=assets/img/iconos/p/hecho.png alt="Hecho">':'<span class="re-r-o" aria-label="Pendiente"></span>')
+      +'<span><b>'+esc(r.nombre)+'</b>'+(corto?'':'<small>'+esc(r.aporta)+'</small>')+'</span></button>'; };
+    return '<div class="re-rel'+(corto?' corto':'')+'"><p class="re-rel-t"><b>Retos relacionados</b> · '+cuenta+'</p>'
+      +'<div class="re-rel-g">'+R.map(boton).join('')+'</div></div>';
+  }
+  function actividadDeReto(id){ return (window.SG_ACTIVIDADES||[]).filter(function(a){ return a.reto===id; })[0]||null; }
+  // al pulsar uno: a «Mis retos», con ese reto abierto y a la vista
+  document.addEventListener('click',function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('[data-ir-reto]'); if(!b) return;
+    ev.preventDefault(); ev.stopPropagation();
+    var id=b.getAttribute('data-ir-reto'); if(st.tab!=='retos') irA('retos');
+    setTimeout(function(){
+      var d=document.querySelector('details.reto-sem[data-rid="'+id+'"]'); if(!d) return;
+      for(var x=d; x; x=x.parentElement && x.parentElement.closest ? x.parentElement.closest('details') : null) x.open=true;
+      try{ d.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+      d.classList.add('re-destaca'); setTimeout(function(){ d.classList.remove('re-destaca'); }, 1800);
+    }, 80);
+  }, true);
+  /**
+   * 🔴 26-sep · LA CUENTA ATRÁS, EN VIVO. Días, horas y minutos; los segundos solo el último día, cuando la tarjeta ya
+   * está en modo urgente (un segundero toda la semana agobia más de lo que empuja). Un solo reloj para toda la página.
+   */
+  var RELOJ=null;
+  function relojHtml(fin){ return window.SG.relojHtml?window.SG.relojHtml(fin):''; }   // (SG.relojHtml: el mismo de la sesión)
+  function pintarRelojes(){
+    var els=document.querySelectorAll('.re-reloj[data-fin]');
+    if(!els.length){ clearInterval(RELOJ); RELOJ=null; return; }
+    Array.prototype.forEach.call(els,function(el){
+      var fin=Number(el.getAttribute('data-fin')); el.classList.toggle('ultimo', fin-Date.now()<86400e3);
+      var c=el.querySelector('.rr-cs'); if(c) c.innerHTML=relojHtml(fin);
+    });
+  }
+  function relojEnMarcha(){ if(!RELOJ && document.querySelector('.re-reloj[data-fin]')) RELOJ=setInterval(pintarRelojes, 1000); }
   function recordatorioActividad(){
     var x=actividadEnCurso(); if(!x||!x.tarjeta) return '';
     var a=x.a, e=x.e, BN=window.SG_BADGE_NAMES||{};
     var t=((window.SG_RETOS||{}).REGULAR||[]).filter(function(y){ return y[0]===a.reto; })[0]||[], ins=t[2]||[], xp=Number(t[3])||0;
     var PLK={}; PLAN.forEach(function(p){ PLK[p[1]]=p[0]; }); var pl=PLK[a.planeta]||'';
     var cuenta=e.faltan===0?'Es hoy':e.faltan===1?'Mañana':'Quedan '+e.faltan+' días';
-    var nombres=ins.map(function(i){ return '«'+esc(BN[i]||i)+'»'; });
-    var insTxt=!nombres.length?'':(nombres.length===1?' y la insignia '+nombres[0]:' y las insignias '+nombres.slice(0,-1).join(', ')+' y '+nombres[nombres.length-1]);
+    // 26-sep · la insignia, en grande (Norberto: «pon la insignia que se gana en grande»); el reloj, en vivo; y los retos
+    // relacionados. El premio ya no repite los nombres de las insignias: se ven al lado
     return '<section class="card rec-entrega'+(e.faltan<=3?' urge':'')+'">'
       +(pl?'<div class="re-fondo" style="background-image:url(assets/img/planetas/'+esc(pl)+'.png)" aria-hidden="true"></div>':'')
-      +(ins.length?'<div class="re-ins">'+ins.map(function(i){ return '<figure><img src="assets/img/insignias/'+esc(i)+'.webp" alt="" loading="lazy"><figcaption>'+esc(BN[i]||'')+'</figcaption></figure>'; }).join('')+'</div>':'')
+      +(ins.length?'<div class="re-ins'+(ins.length>1?' dos':'')+'">'+ins.map(function(i){ return '<figure><img src="assets/img/insignias/'+esc(i)+'.webp" alt="" loading="lazy"><figcaption>'+esc(BN[i]||'')+'</figcaption></figure>'; }).join('')
+        +'<small class="re-ins-pie">'+(ins.length>1?'insignias':'insignia')+' al registrarla</small></div>':'')
       +'<div class="re-txt"><div class="eyebrow amber">Misión mayor '+esc(a.orden)+' · Actividad '+a.n+' · Planeta '+esc(a.planeta)+'</div>'
       +'<h3>Se entrega el <b>'+esc(e.texto)+'</b></h3>'
-      +'<p class="re-cuando"><span class="re-cuenta">'+cuenta+'</span> Hasta las 23:59, en la plataforma de UNIR · <b>'+esc(a.puntos)+' de los 10 puntos</b></p>'
-      +'<p class="re-premio">Cuando la entregues, regístrala en <b>Mis retos</b>: <b>+'+xp+' xp</b>'+insTxt+'.</p>'
+      +'<div class="re-cuando"><div class="re-reloj" data-fin="'+x.fin+'" role="timer" aria-label="'+esc(cuenta)+' para la entrega"><span class="rr-cs" aria-hidden="true">'+relojHtml(x.fin)+'</span></div>'
+      +'<span>Hasta las 23:59, en la plataforma de UNIR · <b>'+esc(a.puntos)+' de los 10 puntos</b></span></div>'
+      +relacionados(a)
+      +'<p class="re-premio">Cuando la entregues, regístrala en <b>Mis retos</b>: <b>+'+xp+' xp</b>.</p>'
       +'<p class="re-acc"><a class="btn min" href="actividades.html#act'+a.n+'" target="_blank" rel="noopener">Qué pide ↗</a>'
       +'<button type="button" class="btn min" data-tab="retos">Ir a Mis retos</button></p></div></section>';
   }
@@ -4123,6 +4178,35 @@
     return u.split('{COMANDANTE}').join(encodeURIComponent((st.yo&&st.yo.profe)||''));
   }
 
+  /**
+   * 🔴 26-sep · EL TICKET DE SALIDA, TAMBIÉN EN LA NAVE. Norberto: «insertado así, aparecerá perfectamente integrado en
+   * STARGATE, tanto en la plataforma como en las sesiones». En la sesión ya iba incrustado (su última diapositiva de cada
+   * tema); en la Nave solo se llegaba desde el menú «···». Ahora, la semana que cierra un tema, una tarjeta plegada con el
+   * formulario dentro (el mismo SG_TICKET_URL, con grupo, Comandante y tema ya puestos). Enviado aquí o en la sesión (mismo
+   * navegador), se da por hecho: `sgTicket:<grupo>:<tema>` (quien lo rellenó en clase no lo manda dos veces).
+   */
+  function ticketDelTema(){
+    var d=st.d||{}, U=window.SG_TICKET_URL||''; if(st.estado!=='curso'||!U||!per||SIMULACRO) return '';
+    var L=st.semanas||[], i=Math.min(Math.max(Number(st.actual)||1,1),L.length)-1, s=L[i]; if(!s) return '';
+    var n=Number(s.tema_n)||0, sig=L[i+1]; if(!n||(sig&&Number(sig.tema_n)===n)) return '';   // solo la última semana del tema
+    var op=(window.SG_TICKET_TEMAS||{})[String(n)]||''; if(!op) return '';
+    var u=U.split('{GRUPO}').join(encodeURIComponent(per)).split('{COMANDANTE}').join(encodeURIComponent((st.yo&&st.yo.profe)||'')).split('{TEMA}').join(encodeURIComponent(op));
+    var clave='sgTicket:'+per+':'+op, hecho=false; try{ hecho=localStorage.getItem(clave)==='1'; }catch(e){}
+    return '<details class="card tk-nave'+(hecho?' hecho':'')+'" data-tk="'+esc(clave)+'">'
+      +'<summary><img class="tk-nave-i" src="assets/img/iconos/p/ticket.png" alt=""><span class="tk-nave-t"><b>'+(hecho?'Ticket de salida enviado':'El ticket de salida')+' · '+esc(op)+'</b>'
+      +'<small>'+(hecho?'Gracias: lo que dijisteis sale en la próxima clase. Puedes abrirlo otra vez si quieres añadir algo.':'Anónimo y en dos minutos. Cerramos el tema: lo que digáis se proyecta en la próxima clase.')+'</small></span>'
+      +'<span class="btn'+(hecho?'':' primary')+' tk-nave-b">'+(hecho?'Abrir':'Rellenarlo')+'</span></summary>'
+      +'<div class="tk-nave-f"><iframe data-src="'+esc(u+'&embedded=true')+'" title="Ticket de salida" loading="lazy"></iframe>'
+      +'<p class="small muted">¿No se ve bien? <a href="'+esc(u)+'" target="_blank" rel="noopener">Ábrelo en otra pestaña</a>.</p></div></details>';
+  }
+  document.addEventListener('toggle',function(ev){
+    var d=ev.target; if(!d||!d.classList||!d.classList.contains('tk-nave')||!d.open) return;
+    var f=d.querySelector('iframe[data-src]'); if(!f||f.getAttribute('src')) return;
+    var cargas=0;
+    f.addEventListener('load',function(){ if(++cargas>1){ try{ localStorage.setItem(d.getAttribute('data-tk'),'1'); }catch(e){} d.classList.add('hecho'); } });
+    f.src=f.getAttribute('data-src');
+  }, true);
+
   function puntoDe(el){
     if(!el||!el.getBoundingClientRect) return null;
     var r=el.getBoundingClientRect();
@@ -4802,6 +4886,7 @@
   }
   // (el resto del cableado: el álbum, el pase de lista y el menú de NEBULA)
   function wireResto(root){
+    relojEnMarcha();
     Array.prototype.forEach.call(root.querySelectorAll('.album .c[data-c]'),function(el){
       var clave=el.getAttribute('data-c');
       el.onclick=function(){lupaCromo(clave);};

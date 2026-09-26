@@ -2413,6 +2413,17 @@ window.SG.entregaDe = function (a, inicio, pausas, hoy) {
            corto: d.getDate() + " " + MS[d.getMonth()].slice(0, 3), faltan: Math.round((dia - h) / 864e5) };
 };
 /**
+ * 🔴 26-sep · LA CUENTA ATRÁS DE UNA ENTREGA (la tarjeta de la Nave y la diapositiva de la sesión). Días, horas y minutos;
+ * los segundos, solo el último día (Norberto aprobó el borrador: un segundero toda la semana agobia más de lo que empuja).
+ * `fin` en milisegundos. Devuelve las casillas; quien la usa la repinta cada segundo.
+ */
+window.SG.relojHtml = function (fin) {
+  var s = Math.max(0, Math.floor((fin - Date.now()) / 1000)), c = function (n, t) { return '<span class="rr-c"><b>' + n + '</b><small>' + t + '</small></span>'; };
+  if (s <= 0) return '<span class="rr-fin">Plazo cerrado</span>';
+  var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+  return s < 86400 ? c(h, h === 1 ? 'hora' : 'horas') + c(m, 'min') + c(s % 60, 'seg') : c(d, d === 1 ? 'día' : 'días') + c(h, h === 1 ? 'hora' : 'horas') + c(m, 'min');
+};
+/**
  * EL PASO A PASO DE UN RETO: su explicación (SG_AYUDA_RETOS, del documento maestro), partida en frases. La usan la Nave
  * del recluta («Cómo se hace, paso a paso») y, desde el 24-sep, la pestaña «Retos» de la consola del docente.
  */
@@ -3326,7 +3337,13 @@ _RETOS_NAVE = {"REGULAR": _catalogo_retos("RETOS_REGULAR"), "PUA": _catalogo_ret
 # 17-sep · a la Nave solo le hace falta saber QUÉ retos tienen ejemplo y su título: el ejemplo entero (texto, capturas,
 # tablas) va en ejemplo.html, que se abre en otra pestaña. S7 nunca (es secreto).
 # 25-sep · las dos actividades, en ligero (sin pasos ni retos), para la Nave y la consola: cuándo se entregan y cuándo se recuerda
-_ACT_NAVE = [{k: a[k] for k in ("clave", "n", "orden", "reto", "tema", "sem", "entrega", "recuerda", "resuelve", "puntos", "planeta", "lema", "titulo")}
+# 26-sep · y sus retos relacionados (Norberto: «añadir a esta tarjeta los retos relacionados»): los MISMOS de la página de
+# Actividades, con lo que aporta cada uno en corto = el primer trozo en negrita de su explicación (derivado, no copiado)
+def _aporta(txt):
+    m = _re.search(r"\*\*(.+?)\*\*", txt or "")
+    return (m.group(1) if m else (txt or "")).strip().rstrip(".")
+_ACT_NAVE = [dict({k: a[k] for k in ("clave", "n", "orden", "reto", "tema", "sem", "entrega", "recuerda", "resuelve", "puntos", "planeta", "lema", "titulo")},
+                  retos=[[r[0], _aporta(r[1])] for r in a.get("retos", [])])
              for a in ACTIVIDADES]
 _EJ_NAVE = {k: {"titulo": v.get("titulo", "")} for k, v in EJEMPLOS_RETOS.items() if k != "S7" and (v.get("texto") or v.get("enlace"))}
 # 🔴 23-sep · La explicación de cada reto se CALCULA desde el documento maestro (y no se lee del bloque AYUDA_RETOS de
@@ -3726,7 +3743,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};</script>
 <script src="assets/js/secreto.js" defer></script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sobre.js" defer></script>

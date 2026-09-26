@@ -6680,3 +6680,97 @@ button.dif-s:hover,button.dif-s:focus-visible{transform:translateY(-2px);border-
 .mc-capa.quieto,.mc-capa.quieto *{animation:none!important;transition:none!important}
 .mc-capa.quieto .mc-extra{opacity:1;transform:none}
 @media(max-width:480px){ .mc-caja{padding:18px 14px 14px} .mc-bot{margin:0 -14px -14px;padding:12px 14px 14px;bottom:-14px} .mc-in{width:104px} .mc-in img{width:88px;height:88px} .mc-halo{width:98px;height:98px;margin-left:-49px} .mc-neb img{height:92px} }
+
+/* ════════ 26-sep · LA ENTREGA DE LA ACTIVIDAD: la insignia en grande, la cuenta atrás en vivo y los retos relacionados ════════ */
+.rec-entrega .re-ins{flex-wrap:wrap;justify-content:center;align-items:flex-start;max-width:280px}
+.rec-entrega .re-ins figure{width:150px}
+.rec-entrega .re-ins img{width:140px;height:140px;filter:drop-shadow(0 0 18px rgba(245,176,67,.5))}
+.rec-entrega .re-ins.dos figure{width:118px}
+.rec-entrega .re-ins.dos img{width:108px;height:108px}
+.rec-entrega .re-ins figcaption{font-size:.9rem}
+.re-ins-pie{flex-basis:100%;text-align:center;font-size:.75rem;color:var(--mut)}
+.re-cuando{margin:4px 0 10px}
+.re-reloj{display:inline-flex;align-items:stretch;gap:6px}
+.re-reloj .rr-cs{display:inline-flex;gap:6px}
+.rr-c{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:54px;padding:5px 8px;border-radius:12px;
+  background:rgba(245,176,67,.14);border:1px solid rgba(245,176,67,.55);color:#ffd28a;line-height:1.05}
+.rr-c b{font-family:'Unbounded',sans-serif;font-size:1.25rem;font-variant-numeric:tabular-nums;color:#fff}
+.rr-c small{font-size:.75rem;font-weight:700}
+.rr-fin{padding:5px 12px;border-radius:12px;background:rgba(255,120,110,.14);border:1px solid rgba(255,120,110,.55);color:#ffb3a7;font-weight:800}
+.re-reloj.ultimo .rr-c{background:rgba(245,176,67,.28);border-color:var(--amber);animation:relojLate 1s ease-in-out infinite}
+@keyframes relojLate{50%{box-shadow:0 0 16px rgba(245,176,67,.55)}}
+.re-rel{margin:4px 0 10px}
+.re-rel-t{margin:0 0 6px!important;font-size:.9rem;color:#c7d6ee}
+.re-rel-t b:first-child{color:var(--ink)}
+.re-rel-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:8px}
+.re-r{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:12px;border:1px dashed rgba(199,214,238,.35);background:rgba(8,14,22,.55);
+  color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,transform .15s}
+.re-r:hover,.re-r:focus-visible{border-color:var(--teal);transform:translateY(-1px);outline:none}
+.re-r.hecho{border-style:solid;border-color:rgba(106,214,142,.55);background:rgba(106,214,142,.1)}
+.re-r .ico{flex:none;margin-top:1px}
+.re-r-o{flex:none;width:1.1em;height:1.1em;margin-top:2px;border-radius:50%;border:2px solid rgba(199,214,238,.55)}
+.re-r span{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.re-r b{font-size:.88rem}
+.re-r.hecho b{color:#9be3b3}
+.re-r small{font-size:.78rem;color:var(--mut)}
+/* en Mis retos (la tarjeta de «Actividad N entregada»), en una línea */
+.re-rel.corto{margin:6px 0 0}
+.re-rel.corto .re-rel-t{font-size:.8rem;margin:0 0 4px!important}
+.re-rel.corto .re-rel-g{display:flex;flex-wrap:wrap;gap:6px}
+.re-rel.corto .re-r{padding:4px 10px;border-radius:999px;align-items:center}
+.re-rel.corto .re-r b{font-size:.8rem}
+details.reto-sem.re-destaca{box-shadow:0 0 0 2px var(--teal),0 0 26px rgba(55,224,236,.35);transition:box-shadow .3s}
+@media(max-width:560px){ .rec-entrega .re-ins figure{width:110px} .rec-entrega .re-ins img{width:100px;height:100px} .rr-c{min-width:46px} .rr-c b{font-size:1.05rem} }
+@media (prefers-reduced-motion:reduce){ .re-reloj.ultimo .rr-c{animation:none} }
+/* la diapositiva de la entrega (sesión): NEBULA a la izquierda, la insignia en grande, el reloj y los retos relacionados */
+/* (sus propias medidas en %: los cqw de la caja se miden contra ELLA solo desde sus hijas) */
+.dia.entrega.en-v2{display:grid;grid-template-columns:24% minmax(0,1fr);grid-template-rows:1fr auto;gap:1.6% 2.4%;align-items:center;
+  padding:3% 4% 2.6% 0;justify-content:stretch}
+.en-v2 .en-neb{grid-row:1/3;align-self:end;position:relative;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;margin-bottom:-2.6cqw}
+.en-v2 .en-neb img{width:100%;max-height:32cqw;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 0 2cqw rgba(55,224,236,.35))}
+/* (lo que dice, encima de ella: al lado tapaba el primer reto relacionado) */
+.en-v2 .en-neb-dice{position:relative;order:-1;width:20cqw;margin:0 0 1.2cqw 2cqw;padding:1cqw 1.3cqw;border-radius:1.4cqw;z-index:2;
+  background:rgba(8,16,26,.92);border:1px solid rgba(55,224,236,.5);font-size:clamp(.75rem,1.35cqw,1.15rem);line-height:1.35;color:var(--ink)}
+.en-v2 .en-neb-dice::after{content:"";position:absolute;left:45%;bottom:-.8cqw;width:1.4cqw;height:1.4cqw;transform:rotate(45deg);
+  background:rgba(8,16,26,.92);border-right:1px solid rgba(55,224,236,.5);border-bottom:1px solid rgba(55,224,236,.5)}
+.en-v2 .en-neb-dice b:first-child{color:var(--teal2)}
+.en-v2 .en-main{display:flex;align-items:center;gap:3cqw;min-width:0}
+.en-v2 .en-ins{display:flex;align-items:flex-end;gap:1.4cqw;flex:none}
+.en-v2 .en-ins figure{margin:0;position:relative;display:flex;flex-direction:column;align-items:center;gap:.5em}
+.en-v2 .en-grande img{position:relative;z-index:1;width:23cqw;height:23cqw;object-fit:contain;filter:drop-shadow(0 0 2.4cqw rgba(245,176,67,.55))}
+.en-v2 .en-halo{position:absolute;top:-1cqw;left:50%;width:25cqw;height:25cqw;margin-left:-12.5cqw;border-radius:50%;filter:blur(1.2cqw);
+  background:conic-gradient(from 0deg,rgba(245,176,67,0),rgba(245,176,67,.32),rgba(55,224,236,.3),rgba(245,176,67,0));animation:mcGira 4s linear infinite}
+.en-v2 .en-otra img{width:10cqw;height:10cqw;object-fit:contain;filter:drop-shadow(0 0 1.4cqw rgba(245,176,67,.4))}
+.en-v2 .en-ins figcaption{font-size:clamp(.8rem,1.5cqw,1.3rem);font-weight:700;color:#f5c77a;text-align:center}
+.en-v2 .en-txt{flex:1 1 auto;min-width:0}
+.en-v2 .en-txt h2{margin:.2em 0 .35em;font-size:clamp(1.3rem,3.4cqw,3rem);text-wrap:balance}
+.en-v2 .en-reloj{margin:0 0 .6em}
+.en-v2 .en-reloj .rr-c{min-width:7cqw;padding:.5cqw .9cqw;border-radius:1.2cqw}
+.en-v2 .en-reloj .rr-c b{font-size:clamp(1rem,2.8cqw,2.4rem)}
+.en-v2 .en-reloj .rr-c small{font-size:clamp(.75rem,1.2cqw,1rem)}
+.en-v2 .sub{margin:0 0 .4em}
+.en-v2 .en-rel{grid-column:2;min-width:0}
+.en-v2 .en-rel-t{margin:0 0 .6cqw;font-size:clamp(.75rem,1.2cqw,1rem);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2)}
+.en-v2 .en-rel-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));grid-auto-flow:column;gap:1.2cqw}
+.en-v2 .en-r{display:flex;align-items:center;gap:1cqw;padding:.8cqw 1cqw;border-radius:1.2cqw;border:1px solid rgba(55,224,236,.3);background:rgba(8,16,26,.8)}
+.en-v2 .en-r img{width:6cqw;height:6cqw;object-fit:contain;flex:none}
+.en-v2 .en-r img.en-r-ico{width:4cqw;height:4cqw;margin:0 1cqw}
+.en-v2 .en-r span{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.en-v2 .en-r b{font-size:clamp(.8rem,1.45cqw,1.25rem)}
+.en-v2 .en-r small{font-size:clamp(.75rem,1.15cqw,1rem);color:var(--mut)}
+
+/* ════════ 26-sep · el ticket de salida, en la Nave (la semana que cierra cada tema) ════════ */
+.tk-nave{padding:0;overflow:hidden;border-color:rgba(55,224,236,.4)}
+.tk-nave summary{display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;list-style:none}
+.tk-nave summary::-webkit-details-marker{display:none}
+.tk-nave-i{width:44px;height:44px;object-fit:contain;flex:none}
+.tk-nave-t{display:flex;flex-direction:column;flex:1;min-width:0;line-height:1.3}
+.tk-nave-t small{font-size:.85rem;color:var(--mut)}
+.tk-nave-b{flex:none;padding:10px 18px}
+.tk-nave[open] .tk-nave-b{visibility:hidden}
+.tk-nave.hecho{border-color:rgba(106,214,142,.45)}
+.tk-nave.hecho .tk-nave-t b{color:#9be3b3}
+.tk-nave-f{padding:0 18px 14px}
+.tk-nave-f iframe{display:block;width:100%;height:min(70vh,640px);border:0;border-radius:12px;background:#fff}
+.tk-nave-f p{margin:8px 0 0}
+@media(max-width:560px){ .tk-nave summary{flex-wrap:wrap} .tk-nave-b{width:100%;text-align:center} }

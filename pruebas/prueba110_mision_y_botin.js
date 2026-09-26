@@ -76,6 +76,28 @@ c(/function pulsarAvatar\(\)/.test(NAVE) && /if\(!vestuarioAbierto\(\)\) return 
   "🔴 pulsar tu avatar abre el vestuario desde que llegan los héroes (antes, la lupa)");
 c(/function cablearVestir\(cont\)/.test(NAVE) && /cablearVestir\(ov\);/.test(NAVE), "   con el mismo vestirse que Mi botín");
 
+// ── 6 · 26-sep · la entrega: la insignia en grande, la cuenta atrás en vivo y los retos relacionados
+const r0 = STG.indexOf("window.SG.relojHtml = function"), w2 = { SG: {} };
+new Function("window", STG.slice(r0, STG.indexOf("\n};", r0) + 3))(w2);
+const RJ = w2.SG.relojHtml, ahora = Date.now();
+c(typeof RJ === "function" && /días/.test(RJ(ahora + 2 * 86400e3 + 5000)) && !/seg/.test(RJ(ahora + 2 * 86400e3 + 5000)), "🔴 SG.relojHtml: días, horas y minutos (sin segundero) mientras falta más de un día");
+c(/seg/.test(RJ(ahora + 2 * 3600e3)) && !/días/.test(RJ(ahora + 2 * 3600e3)), "   el último día, con segundos");
+c(/Plazo cerrado/.test(RJ(ahora - 1000)), "   y pasado el plazo, «Plazo cerrado»");
+const RH = L("recluta.html"), mA = RH.match(/window\.SG_ACTIVIDADES=(\[.*?\]);window\./);
+const ACTN = mA ? JSON.parse(mA[1]) : [];
+c(ACTN.length === 2 && ACTN.every(a => Array.isArray(a.retos) && a.retos.length === 3 && a.retos.every(r => r[0] && r[1] && !/\*/.test(r[1]))),
+  "🔴 la Nave recibe los retos relacionados de cada actividad (los de la página de Actividades) con lo que aporta cada uno en corto");
+c(/relacionados\(a\)/.test(NAVE) && /class="re-reloj" data-fin="'\+x\.fin\+'"/.test(NAVE) && /re-ins'\+\(ins\.length>1\?' dos':''\)/.test(NAVE),
+  "   la tarjeta de la entrega: insignia en grande, reloj en vivo y retos relacionados");
+c(/var actR=actividadDeReto\(t\[0\]\), relR=actR\?relacionados\(actR, true\):'';/.test(NAVE) && /data-rid="'\+esc\(t\[0\]\)\+'"/.test(NAVE),
+  "   en Mis retos, la Actividad 1 y la 2 llevan su línea de retos relacionados (y cada reto se puede buscar)");
+c(/class="dia entrega en-v2 con-fondo"/.test(SES) && /class="en-neb"><img src="assets\/img\/personajes\/nebula\.png"/.test(SES) && /class="en-rel"/.test(SES) && /window\.SG\.relojHtml\(fin\)/.test(SES),
+  "🔴 la diapositiva de la entrega: NEBULA, la insignia en grande, el reloj y los retos relacionados con sus insignias");
+c(/pl=Number\(x\.tema_n\)\?planeta\(x\.tema_n\):\(x\.planeta\|\|null\)/.test(SES), "   el índice del diferido: la semana 15 con el planeta de la Estática");
+c(/function ticketDelTema\(\)/.test(NAVE) && /\+ticketDelTema\(\)/.test(NAVE) && /SG_TICKET_URL=/.test(RH) && /SG_TICKET_TEMAS=/.test(RH),
+  "🔴 el ticket de salida, también en la Nave, la semana que cierra cada tema (el mismo formulario, ya rellenado)");
+c(/localStorage\.setItem\(f\.getAttribute\('data-tk'\),'1'\)/.test(SES) && /localStorage\.getItem\(clave\)==='1'/.test(NAVE), "   enviado en la sesión o en la Nave, no se pide dos veces");
+
 console.log("\n  Batería 110 · misión cumplida, Mi botín por puertas y el diferido con su índice");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);
