@@ -1661,10 +1661,10 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 sesión · y NEBULA arranca sola con el capítulo de la semana (el mismo onboarding que ve el alumnado)",
         await rita.hasta("(function(){ var f=document.querySelector('.dia.simulacro iframe'); var d=f&&f.contentDocument; var t=d&&d.querySelector('.tour.open'); return !!t && /Mercado/i.test(t.textContent); })()", 20));
       await dormir(1500); await rita.foto(FOTOS + "/21-sesion-ensenalo.png");
-      // (16-sep · de la 1 a la 9 cada semana abre algo: la que no abre nada es la 10)
-      await rita.ir("sesion.html?per=lab-clase&sem=10"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
+      // (16-sep · de la 1 a la 9 cada semana abre algo; 24-sep · y la 10 abre el Simulador: la que no abre nada es la 11)
+      await rita.ir("sesion.html?per=lab-clase&sem=11"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
       const rot6 = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
-      c("sesión · una semana que no abre nada no lleva esas diapositivas (la 10)", rot6.indexOf("Novedades") < 0, JSON.stringify(rot6));
+      c("sesión · una semana que no abre nada no lleva esas diapositivas (la 11)", rot6.indexOf("Novedades") < 0, JSON.stringify(rot6));
     }
 
     // ============================================================ 22 · EL ZOCO ESTELAR, TODAS LAS COMBINACIONES
@@ -1731,11 +1731,11 @@ const REG = {};   // cifras que se apuntan para el informe
         const q = await nueva(nombre.split(" ")[0] + " · " + nota);
         await q.ir("entrar.html"); await q.entrarComo(correo, nombre); await sinBienvenidas(q);
         await q.ir("recluta.html?per=" + P);
-        await q.hasta("!!document.querySelector('.nb-t[data-tab=\"zoco\"]')", 30);
+        await q.hasta("!!document.querySelector('.nb-t[data-tab=\"mercado\"]:not(.bloq)')", 30);   // (28-sep · el Zoco, sección del Mercado)
         return q;
       };
       const alZoco = async q => {
-        if (!(await q.js("!!document.getElementById('z-poner')"))) await q.js("document.querySelector('.nb-t[data-tab=\"zoco\"]').click(); 1");
+        if (!(await q.js("!!document.getElementById('z-poner')"))) await q.js("(function(){ var m=document.querySelector('.nb-t[data-tab=\"mercado\"]'); if(m) m.click(); setTimeout(function(){ var z=document.querySelector('.nb-sec[data-tab=\"zoco\"]'); if(z) z.click(); }, 300); })(); 1");
         return q.hasta("!!document.getElementById('z-poner')", 30);
       };
       const naveZoco = async (k, nota) => { const q = await nave(k, nota); await alZoco(q); await dormir(600); return q; };
@@ -1849,7 +1849,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const o3 = await nave("olga", "acepta");
       await o3.hasta("!!document.querySelector('.zoco-aviso')", 20);
       const banda = await o3.js("(document.querySelector('.zoco-aviso')||{}).innerText||''");
-      const insignia = await o3.js("(document.querySelector('.nb-t[data-tab=\"zoco\"] .nb-badge')||{}).textContent||''");
+      const insignia = await o3.js("(document.querySelector('.nb-t[data-tab=\"mercado\"] .nb-badge')||{}).textContent||''");
       c("🔴 zoco · 3 · al entrar, Olga ve la franja «El Zoco Estelar: tienes 1 trato esperando tu respuesta»", /tienes 1 trato esperando/i.test(banda), banda);
       c("zoco · 3 · y la pestaña del Zoco lleva la burbuja «1»", insignia === "1", insignia);
       await dormir(4000);
@@ -2096,7 +2096,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const p13b = await nave("pau", "elige");
       await p13b.hasta("!!document.querySelector('.zoco-aviso')", 20);
       c("zoco · 13 · Pau entra: «tienes 2 tratos esperando» y la burbuja «2»", /2 tratos/i.test(await p13b.js("document.querySelector('.zoco-aviso').innerText"))
-        && (await p13b.js("(document.querySelector('.nb-t[data-tab=\"zoco\"] .nb-badge')||{}).textContent")) === "2");
+        && (await p13b.js("(document.querySelector('.nb-t[data-tab=\"mercado\"] .nb-badge')||{}).textContent")) === "2");
       await alZoco(p13b);
       c("zoco · 13 · y en el Zoco su Tejedor dice «2 ofertas»", /2 ofertas/i.test(await p13b.texto()));
       await p13b.foto(FOTOS + "/22-13-dos-ofertas.png");
@@ -2287,7 +2287,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const cm = await nueva("Rita en la Nave del Comandante");
       await cm.ir("entrar.html"); await cm.entrarComo("rita@lab.test", "Rita Referente");
       await cm.ir("recluta.html?simulacro=1&per=" + P + "&semana=8");   // (16-sep · el Zoco abre en la 8)
-      await cm.hasta("!!document.querySelector('.nb-t[data-tab=\"zoco\"]')", 30);
+      await cm.hasta("!!document.querySelector('.nb-t[data-tab=\"mercado\"]:not(.bloq)')", 30);
       await cm.js("['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10','c11'].forEach(function(k){localStorage.setItem('sgCap_" + P + "_'+k,'hecho')}); var c=document.querySelector('.neb-capa'); if(c) c.remove(); 1");
       await alZoco(cm);
       c("zoco · 21 · en la Nave del Comandante (semana 6) el Zoco sale con cosas de «otros reclutas»", await cm.hasta("document.querySelectorAll('[data-zofertar]').length>0", 15));
@@ -2319,7 +2319,9 @@ const REG = {};   // cifras que se apuntan para el informe
       await o22.ir("entrar.html"); await o22.entrarComo("olga@lab.test", "Olga Prueba"); await sinBienvenidas(o22);
       await o22.ir("recluta.html?per=" + P); await o22.hasta("!!document.querySelector('.nb-t')", 30); await dormir(1500);
       c("zoco · 22 · en la semana 3 el servidor no deja poner nada («se abre en la semana 8»)", /semana 8/i.test(await llama(o22, "zocoPoner", [P, [CT]])));
-      c("zoco · 22 · y la Nave no enseña la pestaña del Zoco", !(await o22.js("!!document.querySelector('.nb-t[data-tab=\"zoco\"]')")));
+      // 28-sep · el Zoco es una sección del Mercado: cerrada, sale apagada con su candado (y sin nada que poner)
+      await o22.js("location.hash='#zoco'; 1"); await dormir(800);
+      c("zoco · 22 · y en la Nave el Zoco sale cerrado («Aún cerrado»), sin nada que poner", await o22.hasta("!!document.querySelector('.tab-bloq') && !document.getElementById('z-poner')", 10));
       await pref.update({ "stargate.capitulosAbiertos": { c5: true } });
       const r22 = await nueva("Rut en la semana 3");
       await r22.ir("entrar.html"); await r22.entrarComo("rut@lab.test", "Rut Prueba"); await r22.ir("recluta.html?per=" + P); await r22.hasta("!!(window.SG&&window.SG.MOTOR)", 20);
@@ -2731,7 +2733,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const s5 = await naveDe("sara", "tras el sorteo");
       c("reventa · aceptarla después ya no hace nada («Ese trato ya está cerrado»)", /ya está cerrado/.test(await llamaZ(s5, "zocoResponder", [tM._id, "aceptar", {}])));
       c("reventa · ni poner en el Zoco participaciones de un sorteo ya hecho", /ya se ha hecho/.test(await llamaZ(s5, "zocoPoner", [P, [T]])));
-      await s5.js("document.querySelector('.nb-t[data-tab=\"zoco\"]').click(); 1"); await s5.hasta("!!document.getElementById('z-poner')", 20);
+      await s5.js("(function(){ var m=document.querySelector('.nb-t[data-tab=\"mercado\"]'); if(m) m.click(); setTimeout(function(){ var z=document.querySelector('.nb-sec[data-tab=\"zoco\"]'); if(z) z.click(); }, 300); })(); 1"); await s5.hasta("!!document.getElementById('z-poner')", 20);
       c("reventa · y en el Zoco de Sara ya no se ve ninguna participación en venta", !(await s5.js(`[].slice.call(document.querySelectorAll('[data-zofertar],[data-zretirar]')).some(function(b){ var c=b.closest('.zoco-card,.card,li,article')||b.parentNode; return /Participación · /.test(c.innerText); })`)));
       await s5.cerrar();
       const m4 = await naveDe("mateo", "tras el sorteo");
