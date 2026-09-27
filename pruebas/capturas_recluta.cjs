@@ -145,10 +145,19 @@ const porTexto = (css, re) => "js:[].slice.call(document.querySelectorAll(" + JS
       await dc.ir("sesion.html?per=" + P); await dc.hasta("!!document.querySelector('.mazo .dia')", 60); await dormir(2500);
       await foto(dc, "sesion", { sel: ".mazo", pad: 8, arriba: 70 });
     }
-    // el Simulador de Joran (el reto A6), como lo ve el recluta
+    // 28-sep · el Simulador de Joran: la sala, dentro de la Nave (Retos → Simulador de Joran)
     if (quiero("simulador")) {
-      await al.ir("batalla.html?per=" + P); await al.hasta("document.body.innerText.length>200", 40); await dormir(2500);
+      await tab("simulador", "!!document.querySelector('#nave-sim iframe')");
+      await al.hasta("(function(){ var f=document.querySelector('#nave-sim iframe'); var d=f&&f.contentDocument; return !!(d && d.querySelector('.maq')); })()", 60); await dormir(3000);
       await foto(al, "simulador", { ventana: true });
+    }
+    // 28-sep · «Pregunta a NEBULA»: el chat de dudas (responde al momento; lo que no sabe, se lo pasa al Comandante)
+    if (quiero("nebula")) {
+      await tab("nave", "!!document.getElementById('neb-ayuda-b')");
+      await al.js("document.getElementById('neb-ayuda-b').click(); 1"); await dormir(1200);
+      await al.js("(function(){ var t=document.querySelector('#neb-ayuda textarea, #neb-ayuda input'); if(!t) return 0; t.value='¿dónde subo el reto?'; t.dispatchEvent(new Event('input',{bubbles:true})); var b=[].slice.call(document.querySelectorAll('#neb-ayuda button')).filter(function(x){return /Preguntar/.test(x.textContent)})[0]; if(b) b.click(); return 1; })()");
+      await dormir(1500);
+      await foto(al, "nebula", { sel: "#neb-ayuda", pad: 10 });
     }
   } catch (e) { console.error(e); }
   console.log("\n  " + hechas.length + " capturas en " + path.relative(process.cwd(), SALIDA));

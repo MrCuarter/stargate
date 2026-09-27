@@ -1288,6 +1288,9 @@ escuadrón contra los demás: el Asedio, de lunes a lunes.</p>
 {_gr_img("rankings", "El tablero de la tripulación", "Rankings.")}
 </div>
 <div class="gr-dos" style="margin-top:18px">
+{_gr_img("simulador", "La sala de Joran dentro de tu Nave: Retos → Simulador de Joran", "Retos → Simulador de Joran.")}
+</div>
+<div class="gr-dos" style="margin-top:18px">
 {_gr_img("archivo", "El Archivo: la historia fragmento a fragmento", "El Archivo.")}
 </div>
 </div></section>
@@ -1302,6 +1305,12 @@ público. <a href="ayuda.html">La guía completa, paso a paso para cada herramie
 
 <section id="dudas"><div class="wrap">
 <div class="eyebrow">Dudas</div><h2>Cuando algo no sale</h2>
+<div class="gr-dos">
+<div><p><b>Pregunta a NEBULA.</b> En tu Nave, abajo a la derecha: te contesta al momento cómo funciona STARGATE, tu Nave y la
+asignatura (fechas, entregas, el examen, la nota). Si no lo sabe, pulsa <b>«Enviar mi duda»</b>: se lo consulta a tu Comandante
+y la respuesta te sale en el mismo chat (en menos de una hora, de 8 a 22 h). No da soluciones de retos ni destripa la historia.</p></div>
+{_gr_img("nebula", "El chat de NEBULA en la Nave", "Pregunta a NEBULA.")}
+</div>
 <details class="faq"><summary>No puedo entrar, o entro y no veo mi Nave</summary><div>Casi siempre es la cuenta: entra con la <b>misma cuenta de Google con la que te alistaste</b>. En el menú «···» de tu Nave está «No soy yo / salir» para cambiarla. Si nunca te alistaste, te pedirá el código de clase.</div></details>
 <details class="faq"><summary>«Ese alias ya existe»</summary><div>Los alias no se repiten dentro de un grupo. Elige otro, o pulsa «Sugiéreme uno».</div></details>
 <details class="faq"><summary>No me sale el botón «Presente»</summary><div>La llamada es de <b>tu Comandante</b> (la de otro docente no te sale) y dura lo que marca su reloj. Si ya la ha abierto, recarga la Nave.</div></details>
