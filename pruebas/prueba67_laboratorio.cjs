@@ -1885,7 +1885,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await p3.hasta("!!document.querySelector('.zoco-aviso')", 20);
       const nov3 = await p3.js("(document.querySelector('.zoco-aviso')||{}).innerText||''");
       c("🔴 zoco · 3 · Pau entra y se entera: «🆕 El Zoco Estelar: Olga Órbita ha aceptado: Xeno ya es tuyo»", /Olga Órbita ha aceptado: Xeno.* ya es tuyo/i.test(nov3), nov3);
-      c("zoco · 3 · sin burbuja en la pestaña (no le toca responder nada)", !(await p3.js("!!document.querySelector('.nb-badge')")));
+      c("zoco · 3 · sin burbuja en la pestaña (no le toca responder nada)", !(await p3.js("!!document.querySelector('.nb-t[data-tab=\"mercado\"] .nb-badge')")));
       await p3.foto(FOTOS + "/22-3-pau-se-entera.png");
       await p3.js("document.querySelector('.zoco-aviso [data-tab=\"zoco\"]').click(); 1"); await p3.hasta("!!document.getElementById('z-poner')", 20);
       c("zoco · 3 · y dentro del Zoco, arriba: «🆕 Novedades» con el trato «✅ Cambiado»", /Novedades[\s\S]*Cambiado/i.test(await p3.texto()));
@@ -2568,7 +2568,8 @@ const REG = {};   // cifras que se apuntan para el informe
         const [correo, nombre] = GENTE[k], q = await nueva(nombre.split(" ")[0] + " · " + nota);
         await q.ir("entrar.html"); await q.entrarComo(correo, nombre); await sinBienvenidas(q);
         await q.ir("recluta.html?per=" + P); await q.hasta("!!document.querySelector('.nb-t[data-tab=\"mercado\"]')", 30);
-        if (tab) { await q.js("document.querySelector('.nb-t[data-tab=\"" + tab + "\"]').click(); 1"); await dormir(1200); }
+        // 28-sep · el Zoco es una sección del Mercado: se llega por la dirección (#zoco), como desde cualquier enlace
+        if (tab) { await q.js("location.hash='#" + tab + "'; 1"); await dormir(1200); }
         return q;
       };
       const compra = (q, k) => q.js(`window.SG.MOTOR.llamar('purchaseReward',{projectId:'${P}',rewardId:'${T}',studentProfileId:'${F[k]._id}'}).then(function(){return 'OK'},function(e){return 'ERROR '+e.message})`, 60000);
