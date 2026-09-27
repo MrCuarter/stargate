@@ -897,6 +897,9 @@ EVALUACION = [("Actividad %d" % a["n"], a["puntos"], "%s · se lanza en la seman
     ("Asistencia en directo", "0,6", "Tres clases en directo a lo largo del curso, 0,2 cada una"),
 ]
 EVALUACION_EXAMEN = "Y el examen final, en la semana de exámenes: se construye una plataforma en directo (en la 15 hay simulacro)."
+# 🔴 28-sep · EL REPARTO DE LA NOTA FINAL (Norberto): «40 % evaluación continua (tests de final de tema, asistencias más nota
+# de actividades) y 60 % examen». La evaluación continua se puntúa sobre 10 (EVALUACION: 4,3 + 4,3 + 0,8 + 0,6).
+NOTA_FINAL = {"continua": 40, "examen": 60}
 
 # ────────────────────────── 🔴 23-sep · LA SESIÓN DE LA SEMANA 1: EL EMBARQUE ──────────────────────────
 # Norberto: «esa primera semana es la presentación de la asignatura junto con la primera parte del tema 1. Esa sesión en

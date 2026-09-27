@@ -7134,3 +7134,11 @@ details.mas summary{cursor:pointer;color:var(--teal,#5ff4ff);font-weight:700;fon
   .nb-mas{flex:0 0 auto}
 }
 .neb-aviso{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--amber);color:#1b1204;font-size:.75rem;font-weight:800}
+/* 28-sep · el reparto de la nota final en la presentación: 40 % evaluación continua · 60 % examen (barra proporcional) */
+.emb-reparto{display:flex;gap:8px;margin:6px 0 12px}
+.emb-rp{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(16,26,40,.85);min-width:0}
+.emb-rp b{font-family:Orbitron,sans-serif;font-size:1.6rem;color:var(--teal)}
+.emb-rp.exa b{color:var(--amber)}
+.emb-rp span{display:flex;flex-direction:column;font-weight:600}
+.emb-rp small{font-weight:400;color:var(--mut);font-size:.8rem}
+@media(max-width:600px){.emb-reparto{flex-direction:column}}

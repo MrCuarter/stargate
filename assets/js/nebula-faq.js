@@ -532,7 +532,7 @@ window.SG_NEBULA_FAQ = [
   // ───────────────────────────── EVALUACIÓN, TESTS Y EXAMEN ─────────────────────────────
   { id: "evaluacion", p: ["cómo se evalúa la asignatura", "qué cuenta para la nota", "reparto de la nota", "cómo me ponen la nota"],
     claves: ["evaluacion", "nota", "cuenta", "reparto", "puntos"],
-    r: "Actividad 1: 4,3 · Actividad 2: 4,3 · Tests de tema: 0,8 (0,1 cada uno) · Asistencia en directo: 0,6 (tres clases, 0,2 cada una). Y el examen final en la semana de exámenes. Los retos de STARGATE no puntúan. <a href=\"guia-recluta.html#nota\" target=\"_blank\" rel=\"noopener\">Tu nota</a>." },
+    r: "La nota final es un <b>40 % de evaluación continua</b> y un <b>60 % del examen</b>. La evaluación continua, sobre 10: Actividad 1: 4,3 · Actividad 2: 4,3 · Tests de tema: 0,8 (0,1 cada uno) · Asistencia en directo: 0,6 (tres clases, 0,2 cada una). El examen, en la semana de exámenes. Los retos de STARGATE no puntúan. <a href=\"guia-recluta.html#nota\" target=\"_blank\" rel=\"noopener\">Tu nota</a>." },
   { id: "tests", p: ["qué son los tests de tema", "dónde hago los tests", "cuánto valen los tests"],
     claves: ["tests", "test", "cuestionario"],
     r: "Uno por tema, 0,1 cada uno (0,8 en total), en la plataforma de UNIR: fijan los conceptos del examen." },
@@ -544,7 +544,7 @@ window.SG_NEBULA_FAQ = [
     r: "No se memoriza: se construye. En la semana de exámenes montas <b>en directo</b> una plataforma digital (web o Genially) con portada, logo con la palabra clave, módulos y productos digitales, y la entregas con su <b>enlace público</b>: si no abre, no se puede evaluar. Formato y fechas exactas, en el aula virtual. <a href=\"actividades.html#examen\" target=\"_blank\" rel=\"noopener\">El examen</a>." },
   { id: "examen_valor", p: ["cuánto vale el examen", "qué peso tiene el examen", "porcentaje del examen"],
     claves: ["examen", "vale", "peso", "porcentaje", "cuenta"],
-    r: "La evaluación continua (Actividades, tests y asistencia) se complementa con el examen final. El peso exacto de cada parte lo fija la guía docente de UNIR: míralo en el aula virtual o pregúntalo en el foro." },
+    r: "El examen final vale el <b>60 % de la nota</b>. El otro 40 % es la evaluación continua: las dos actividades, los tests de tema y la asistencia en directo." },
   { id: "examen_cuando", p: ["cuándo es el examen", "fecha del examen", "semana del examen"],
     claves: ["examen", "cuando", "fecha", "semana"],
     r: "En la <b>semana de exámenes</b> (la 16). El día y la hora exactos de tu grupo, en el aula virtual de UNIR. En la 15 hay repaso y simulacro." },
