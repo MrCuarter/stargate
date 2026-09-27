@@ -1,5 +1,5 @@
 (function(){
-  var out = { recortadas: [], solapes: [], tapados: [] };
+  var out = { recortadas: [], solapes: [], tapados: [], pegados: [] };
   function desc(e){ var c = (typeof e.className === 'string' && e.className.trim()) ? '.' + e.className.trim().split(/\s+/)[0] : '';
     var t = (e.getAttribute && (e.getAttribute('alt') || e.getAttribute('aria-label') || e.getAttribute('title'))) || (e.textContent || '').trim();
     return e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + c + (t ? ' «' + String(t).replace(/\s+/g, ' ').slice(0, 22) + '»' : ''); }
@@ -65,6 +65,22 @@
     });
   }
   scrollTo(0, 0); raiz.style.scrollBehavior = antes;
-  out.recortadas = out.recortadas.slice(0, 8); out.solapes = out.solapes.slice(0, 8); out.tapados = out.tapados.slice(0, 8);
+  /**
+   * 🔴 28-sep · PEGADOS: una caja (con borde o fondo) y el bloque que va justo debajo, sin aire (menos de 5 px). Lo vio
+   * Norberto en «Gestionar grupos»: los filtros «Todos · En marcha · Terminados» tocando la caja de arriba. No es un solape
+   * (no se pisan), así que no lo cazaba nadie. Las filas de una tabla o de una lista van pegadas a propósito: no cuentan.
+   */
+  function esCajaP(e){ var st = getComputedStyle(e); var fondo = st.backgroundColor !== 'rgba(0, 0, 0, 0)' && st.backgroundColor !== 'transparent' || st.backgroundImage !== 'none';
+    return fondo || (st.borderBottomStyle !== 'none' && parseFloat(st.borderBottomWidth) > 0); }
+  [].slice.call(document.querySelectorAll('body *')).forEach(function(e){
+    if (out.pegados.length >= 12 || !visible(e) || capa(e) || !esCajaP(e) || /^(TR|TD|TH|LI|SUMMARY|OPTION|TBODY|THEAD)$/.test(e.tagName)) return;
+    var f = e.nextElementSibling; while (f && !visible(f)) f = f.nextElementSibling;
+    if (!f || /^(TR|LI|SCRIPT|STYLE|BR)$/.test(f.tagName) || getComputedStyle(f).display.indexOf('inline') === 0) return;
+    var a = e.getBoundingClientRect(), b = f.getBoundingClientRect();
+    if (a.height < 16 || b.height < 16) return;
+    var gap = b.top - a.bottom, lado = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+    if (gap >= -1 && gap < 5 && lado > Math.min(a.width, b.width) * 0.3) out.pegados.push(desc(e) + ' pegado a ' + desc(f) + ' (' + Math.round(gap) + ' px)');
+  });
+  out.recortadas = out.recortadas.slice(0, 8); out.solapes = out.solapes.slice(0, 8); out.tapados = out.tapados.slice(0, 8); out.pegados = out.pegados.slice(0, 8);
   return out;
 })()

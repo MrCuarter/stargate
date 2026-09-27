@@ -849,7 +849,7 @@
       : sec==='heroes' ? vestuario()+adornos()
       : '<p class="small muted">Por planetas: cada tema tiene su tripulante y su reto. '
         +'Las apagadas están por conseguir: púlsalas para ver qué piden.</p>'+col+aBordo();
-    return '<section><div class="eyebrow">Lo que llevas ganado</div><h2>Mi botín</h2>'
+    return '<section><div class="eyebrow">Lo que llevas ganado</div><h2>Botín</h2>'
       +'<p class="lead">Tus insignias, tus cartas y tus personajes. Lo que has conseguido tú, no lo '
       +'que se puede comprar — eso está en el <button class="btn small" type="button" data-tab="mercado">Mercado Estelar</button>.</p>'
       // 14-sep · lo ganado en un sorteo, lo primero: es lo que más ilusión hace
@@ -2822,7 +2822,7 @@
   }
   function recompensas(){
     var d=st.d; var cat=d.recompensas||[]; var n=st.semanas.length; var r=st.yo;
-    if(!cat.length) return '<section><div class="eyebrow violet">Recompensas</div><h2>Mercado Estelar</h2><p class="lead">Aquí se canjean tus <b>créditos ◈</b> por recompensas (los xp no se gastan nunca). El catálogo se abrirá pronto en la nave; mientras tanto, tu Comandante tiene la lista.</p>'
+    if(!cat.length) return '<section><div class="eyebrow violet">Mercado Estelar</div><h2>El Bazar</h2><p class="lead">Aquí se canjean tus <b>créditos ◈</b> por recompensas (los xp no se gastan nunca). El catálogo se abrirá pronto en la nave; mientras tanto, tu Comandante tiene la lista.</p>'
       +(d.formCanje?'<a class="btn" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Ir al formulario de canje</a>':'')+'</section>';
     var abiertas=0;
     /**
@@ -2922,7 +2922,7 @@
         +'</div>'
         +'<div class="rec-pie">'+(x.tipo==='nota'?'<span class="chip rec-pend" title="Las subidas de nota quedan pendientes hasta que tu docente las aprueba">Pendiente de tu docente</span>':'')+afford+boton+'</div></div>';
     }).join('');
-    return '<section><div class="eyebrow violet">Recompensas</div><h2>Mercado Estelar</h2>'
+    return '<section><div class="eyebrow violet">Mercado Estelar</div><h2>El Bazar</h2>'
       +'<p class="lead">Tus <b>xp</b> no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje. Lo que se canjea son los <b>créditos ◈</b>, que ganas con el mismo trabajo. Las recompensas se van desbloqueando con el viaje.</p>'
       +(d.cierre_canje&&d.cierre_canje!==d.cierre_misiones
         ? '<p class="small" style="color:var(--amber)"><b>Ojo al calendario:</b> las misiones se registran hasta el <b>'+fecha(d.cierre_misiones)+'</b>, pero el canje sigue abierto <b>una semana más</b>, hasta el <b>'+fecha(d.cierre_canje)+'</b>. Esa última semana ya no se gana nada: solo se gasta lo ganado.</p>'
@@ -3405,7 +3405,7 @@
     botin:'<b>Botín</b>, lo que llevas ganado: insignias, cromos y personajes.',
     mercado:'<b>Mercado</b>: el Bazar, donde se gasta, y el Zoco, donde se cambia con tu tripulación.',
     archivo:'<b>Archivo</b>, la historia en vídeo y las sesiones de clase.',
-    rankings:'Y <b>Rankings</b>: tu clase de ocho maneras distintas, porque si no destacas en una, destacas en otra.'};
+    rankings:'Y <b>Rankings</b>: tu clase de seis maneras distintas, porque si no destacas en una, destacas en otra.'};
   var NUMERO={1:'un',2:'dos',3:'tres',4:'cuatro',5:'cinco',6:'seis',7:'siete',8:'ocho'};
   function pasoTabs(){
     var ks=tabsVisibles().map(function(x){ return x[0]; }).filter(function(k){ return k!=='envivo' && TAB_QUE_ES[k]; });
@@ -3441,7 +3441,7 @@
         {t:'Tu álbum y las repetidas',foco:'.nb-t[data-tab="botin"]',
          x:'Las cartas van a tu <b>álbum</b>, en Mi botín. ¿Te sale una repetida? Con <b>tres repetidas</b> te llevas un sobre nuevo, gratis.'},
         {t:'Y los rankings',foco:'.nb-t[data-tab="rankings"]',
-         x:'Tu clase de <b>ocho maneras</b>: por xp, por la semana, por colección, por constancia… Si no destacas en una, destacas en otra. Y en Mi nave, tu <b>duelo</b> con quien va justo delante y justo detrás.'}],
+         x:'Tu clase de <b>seis maneras</b>: por xp, por la semana, por colección, por constancia… Si no destacas en una, destacas en otra. Y en Mi nave, tu <b>duelo</b> con quien va justo delante y justo detrás.'}],
     c3:[{t:'Llegan los Héroes de la Rebelión',foco:'.nb-t[data-tab="mercado"]',
          x:'En el Mercado ya está la <b>cápsula de rescate</b>: llega a tu Nave con un <b>héroe al azar</b> de los 30 dentro, por 60 ◈. Tres rangos: la Resistencia, la Vanguardia y los <b>MITOS</b>, que casi nadie llega a ver.'},
         {t:'Tu vestuario',foco:'.nb-t[data-tab="botin"]',

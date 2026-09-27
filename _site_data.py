@@ -1413,7 +1413,7 @@ CAPITULOS = [
      "cabecera": "Ya puedes gastar tus créditos",
      "puedes": ["Comprar sobres de cromos: tres cartas al azar por 15 ◈",
                 "Cambiar 3 cartas repetidas por un sobre nuevo, gratis",
-                "Los rankings: tu clase de ocho maneras distintas, y tu duelo con quien tienes cerca"],
+                "Los rankings: tu clase de seis maneras distintas, y tu duelo con quien tienes cerca"],
      "imagen": "assets/img/canje/sobre.jpg"},
     {"n": 3, "clave": "c3", "titulo": "La Rebelión", "icono": "<img class=ico src=assets/img/iconos/p/escudo.png alt>", "semana": 3,
      "abre": ["heroes"], "mercado": ["heroe"],
@@ -2143,7 +2143,7 @@ PASOS = [
         "puntos y tu dinero, para que los veas subir estés donde estés. Y en medio, cinco sitios. "
         "Mi nave es donde aterrizas: quién eres, lo que toca esta semana y los planetas. Mis retos "
         "es el viaje entero. Mi botín es todo lo que llevas ganado: insignias, cartas y personajes. "
-        "El Mercado Estelar es donde gastas. Y Rankings es la clase entera, de ocho maneras "
+        "El Mercado Estelar es donde gastas. Y Rankings es la clase entera, de seis maneras "
         "distintas. Los tres puntos de la derecha guardan lo que se usa de vez en cuando."),
 
    dict(cod="E6", t="Dos marcadores, no uno", pose="tablet", img="e7_premios.png",

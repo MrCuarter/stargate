@@ -320,7 +320,8 @@
             '<img src="https://i.ytimg.com/vi/' + esc(y.id) + '/mqdefault.jpg" alt="" loading="lazy" width="160" height="90"><span class="pt-vid-play" aria-hidden="true">▶</span></button>' +
             '<div><b>' + esc(y.titulo || "") + '</b><span>' + esc(v[1] || "") + '</span></div></li>'; }).join("") + '</ul></div>' : '') +
       '<div class="ht-bloque"><b class="ht-sub">Los retos de ' + esc(String(s.tema || "este tema").replace(/\s*\(cont\.\)/, "")) + '</b>' +
-        (delTema.length ? '<div class="ht-retos">' + delTema.map(function (r) {
+        // 28-sep · el ancho se reparte según cuántos haya (2 → mitad, 3 → tercios, 4 → dos filas de dos) y todos, la misma altura
+        (delTema.length ? '<div class="ht-retos n' + Math.min(delTema.length, 6) + '">' + delTema.map(function (r) {
             var w = semanaDeReto(r, tipo, mapa);
             return fichaReto(r, tipo, w === sem ? prog(r) : null, w > sem ? w : 0); }).join("") + '</div>'
                       : '<p class="small muted">Esta semana no se lanza ningún reto nuevo: tiempo para terminar los que hay.</p>') +
@@ -567,12 +568,15 @@
    */
   function selectorDeGrupo() {
     var L = gruposParaElegir();
-    if (L.length < 2) return "";
-    return '<label class="cn-sel"><span class="cn-sel-t">Grupo</span><select id="cn-sel-g" aria-label="Cambiar de grupo">' + L.map(function (p) {
+    // 28-sep · Norberto: «que el selector de grupos sea más grande: es importante que el docente vea en qué grupo está».
+    // Con un solo grupo también se ve (sin desplegable): siempre sabes dónde estás.
+    if (L.length < 2) { var uno = L[0] || PERS.filter(function (p) { return p.id === PER; })[0];
+      return uno ? '<div class="cn-sel cn-sel-uno"><span class="cn-sel-t">Estás en el grupo</span><b class="cn-sel-g">' + esc(uno.nombre) + '</b></div>' : ""; }
+    return '<label class="cn-sel"><span class="cn-sel-t">Estás en el grupo</span><select id="cn-sel-g" aria-label="Cambiar de grupo">' + L.map(function (p) {
       var linea = p.estado === "en marcha" ? "semana " + p.semana + " de " + p.total : p.estado === "por empezar" ? "empieza el " + ((p.stargate || {}).inicio || "—")
                 : p.estado === "pasado" ? "terminado" : "sin fecha";
       return '<option value="' + esc(p.id) + '"' + (p.id === PER ? " selected" : "") + '>' + esc(p.nombre) + ' · ' + esc(linea) +
-        (p.reclutas != null ? ' · ' + p.reclutas + ' reclutas' : '') + (p.cola ? ' · ' + p.cola + ' pendiente' + (p.cola === 1 ? '' : 's') : '') + '</option>';
+        (p.reclutas != null ? ' · ' + p.reclutas + (p.reclutas === 1 ? ' recluta' : ' reclutas') : '') + (p.cola ? ' · ' + p.cola + ' pendiente' + (p.cola === 1 ? '' : 's') : '') + '</option>';
     }).join("") + '</select></label>';
   }
 
@@ -730,7 +734,7 @@
       '<div class="gr-t"><div class="eyebrow teal">' + esc(estado) + (s ? ' · ' + esc(s.tema) : '') + '</div>' +
         '<h2>' + esc(t.nombre) + (otros ? ' <button type="button" class="gr-cambiar" data-tab="portada" title="Cambiar de grupo">⇄</button>' : '') + '</h2>' +
         '<p class="small muted">' + (emb.nombre ? 'Tu escuadrón <b>' + esc(emb.nombre) + '</b> · ' : '') +
-          (mia.length ? 'de tus ' + N + ' reclutas' : 'del grupo · ' + N + (N === 1 ? ' recluta' : ' reclutas')) +
+          (mia.length ? 'de tus ' + N + (N === 1 ? ' recluta' : ' reclutas') : 'del grupo · ' + N + (N === 1 ? ' recluta' : ' reclutas')) +
           (ini ? ' · ' + (sem < 1 ? 'empieza el ' : 'empezó el ') + esc(diaC(ini)) : '') + '</p></div>' +
       '<div class="gr-acc"><a class="gp-b principal" href="sesion.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
         '<img class="pt-acc-i" src="assets/img/iconos/cohete.png" alt=""><span class="pt-acc-t"><b>Empezar la clase</b><em>proyecta la sesión de hoy</em></span></a>' +
@@ -1611,7 +1615,7 @@
           '<div class="gs-g">' + (e.img ? '<img src="' + esc(e.img) + '" alt="" loading="lazy">' : '<span class="cn-g-sin">◈</span>') +
             '<span><b>' + esc(p.nombre) + '</b><em>' + esc(((p.stargate || {}).tipo || "REGULAR") === "PUA" ? "PUA" : "Regular") + '</em></span></div>' +
           '<span class="gs-est ' + est.replace(/\s/g, "-") + '">' + esc(estTxt) + '</span>' +
-          '<span class="gs-n">' + (p.reclutas == null ? "—" : p.reclutas) + '<em> reclutas</em></span>' +
+          '<span class="gs-n">' + (p.reclutas == null ? "—" : p.reclutas) + '<em> ' + (p.reclutas === 1 ? 'recluta' : 'reclutas') + '</em></span>' +
           '<span class="gs-eq">' + (eq || "—") + '</span>' +
           '<span class="gs-b"><a class="btn min" href="consola.html?per=' + esc(p.id) + '" title="Abrirlo en tu Nave">Abrir ↗</a>' +
             '<button type="button" class="btn min' + (abierto ? " primary" : "") + '" data-gabrir="' + esc(p.id) + '" aria-expanded="' + abierto + '">Gestionar ' + (abierto ? "▴" : "▾") + '</button></span>' +
@@ -1948,7 +1952,7 @@
     var yoN = miNombreAqui();
     var mia = yoN ? t.reclutas.filter(function (r) { return r.profe === yoN; }) : [];
     var gente = mia.length ? mia : t.reclutas, N = gente.length;
-    var deQuien = mia.length ? "de tus " + N + " reclutas" : "del grupo · " + N + (N === 1 ? " recluta" : " reclutas");
+    var deQuien = mia.length ? "de tus " + N + (N === 1 ? " recluta" : " reclutas") : "del grupo · " + N + (N === 1 ? " recluta" : " reclutas");
     var hechoPor = function (id) { return gente.filter(function (r) { return (r.hechos || []).indexOf(id) >= 0; }).length; };
     var fila = function (r) {
       var n = hechoPor(r.id), pct = N ? Math.round(n * 100 / N) : 0, w = semanaDeReto(r, tipo, mapa);

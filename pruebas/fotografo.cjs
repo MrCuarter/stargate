@@ -29,10 +29,20 @@ const PANTALLAS = [
   ["rita@lab.test", "Rita", "crear.html", "crear"],
   ["rita@lab.test", "Rita", "llamada.html?per=lab-clase", "llamada"],
   ["recluta.nuevo@lab.test", "Recluta Nuevo", "alistarse.html?per=lab-clase&codigo=__CODIGO__", "alistarse"],
+  // 28-sep · lo nuevo: Gestionar grupos, la Nave de seis pestañas con sus secciones, la presentación y las guías
+  ["rita@lab.test", "Rita", "gestion.html", "gestion"],
+  ["ana@lab.test", "Ana", "recluta.html?per=lab-clase#ruta", "nave-ruta"],
+  ["ana@lab.test", "Ana", "recluta.html?per=lab-clase#simulador", "nave-simulador"],
+  ["ana@lab.test", "Ana", "recluta.html?per=lab-clase#zoco", "nave-zoco"],
+  ["ana@lab.test", "Ana", "recluta.html?per=lab-clase#archivo", "nave-archivo"],
+  ["rita@lab.test", "Rita", "sesion.html?per=lab-clase&pres=1", "presentacion"],
+  ["rita@lab.test", "Rita", "consola.html?per=lab-clase#simulador", "consola-simulador"],
+  [null, null, "guia-recluta.html", "guia-recluta"],
+  [null, null, "actividades.html", "actividades"],
 ];
 (async () => {
   await L.arrancar(false);
-  const pequenas = [], desbordes = [], cajas = [], recortes = [], solapes = [], tapados = [], aires = [];
+  const pequenas = [], desbordes = [], cajas = [], recortes = [], solapes = [], tapados = [], aires = [], pegados = [];
   for (const movil of [false, true]) {
     for (let [correo, nombre, url, id] of PANTALLAS) {
       const p = await L.persona(id);
@@ -78,6 +88,7 @@ const PANTALLAS = [
       if (capas && capas.recortadas.length) recortes.push(et + capas.recortadas.join(" · "));
       if (capas && capas.solapes.length) solapes.push(et + capas.solapes.join(" · "));
       if (capas && capas.tapados.length) tapados.push(et + capas.tapados.join(" · "));
+      if (capas && capas.pegados && capas.pegados.length) pegados.push(et + capas.pegados.join(" · "));
       // 🔴 19-sep · el AIRE (Norberto: «no hago más que repetir que debemos reducir el aire»): huecos vacíos de más de
       // 40 px dentro de una caja, con los desplegables abiertos (la regla: memoria «feedback-regla-del-aire»)
       await p.js("[].slice.call(document.querySelectorAll('details')).forEach(function(d){ if(!d.closest('.reto-sem')) d.open=true; }); 1");
@@ -98,6 +109,7 @@ const PANTALLAS = [
   console.log("desbordes horizontales:\n  " + (desbordes.length ? desbordes.join("\n  ") : "ninguno"));
   console.log("se sale de su caja:\n  " + (cajas.length ? cajas.join("\n  ") : "nada"));
   console.log("imágenes recortadas por su caja:\n  " + (recortes.length ? recortes.join("\n  ") : "ninguna"));
+  console.log("cajas pegadas (sin aire, < 5 px):\n  " + (pegados.length ? pegados.join("\n  ") : "ninguna"));
   console.log("cajas que se pisan:\n  " + (solapes.length ? solapes.join("\n  ") : "ninguna"));
   console.log("pulsables tapados por otra capa:\n  " + (tapados.length ? tapados.join("\n  ") : "ninguno"));
   console.log("aire (huecos de más de 40 px dentro de una caja):\n  " + (aires.length ? aires.join("\n  ") : "ninguno"));

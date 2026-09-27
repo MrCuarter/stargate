@@ -5010,7 +5010,15 @@ body.modo-piloto [data-av]{display:none!important}
 .ht-sub{display:block;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--teal,#3ed6c8);margin:2px 0 10px}
 .ht-vids .pt-vids{display:flex;flex-direction:row;flex-wrap:wrap;gap:10px}
 .ht-vids .pt-vids li{grid-template-columns:112px minmax(0,220px)}
-.ht-retos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}   /* (cada reto, su altura: el pie pegado a su texto) */
+.ht-retos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:stretch}
+/* 28-sep · Norberto: «que los retos se ajusten al ancho de la caja: si hay dos, más anchos; si hay tres, más estrechos; si hay
+   cuatro, dos filas de dos… pero SIEMPRE la misma altura». La fila estira las tarjetas y su pie (xp, ejemplo) baja al fondo. */
+.ht-retos.n1{grid-template-columns:1fr}
+.ht-retos.n2,.ht-retos.n4{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ht-retos.n3,.ht-retos.n5,.ht-retos.n6{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ht-retos{grid-auto-rows:1fr}
+.ht-retos>.ht-reto{height:100%}
+.ht-retos>.ht-reto>.ht-reto-pie{margin-top:auto}
 /* 20-sep · los del mismo tema que aún no se han lanzado: en sombra y con la semana en la que se abren */
 .ht-reto.por-lanzar{opacity:.55;filter:grayscale(.5);border-style:dashed}
 .ht-reto.por-lanzar .chip.luego{background:rgba(255,209,102,.12);border-color:rgba(255,209,102,.45);color:var(--amber)}
@@ -5029,7 +5037,7 @@ body.modo-piloto [data-av]{display:none!important}
 .ht-ej{margin-left:auto;font-size:.84rem;font-weight:700;color:var(--teal,#3ed6c8);text-decoration:none}
 .ht-ej:hover{text-decoration:underline}
 .pt-hoy{padding:14px 16px}
-@media(max-width:640px){.ht-planeta{width:72px;height:72px}.ht-retos{grid-template-columns:1fr}.ht-vids .pt-vids li{grid-template-columns:96px 1fr}.ht-vids .pt-vids img{width:96px;height:54px}}
+@media(max-width:640px){.ht-planeta{width:72px;height:72px}.ht-retos,.ht-retos.n2,.ht-retos.n3,.ht-retos.n4,.ht-retos.n5,.ht-retos.n6{grid-template-columns:1fr}.ht-vids .pt-vids li{grid-template-columns:96px 1fr}.ht-vids .pt-vids img{width:96px;height:54px}}
 /* (el bloque es un <section>: sin el relleno ni la raya de las secciones de la web) */
 section.ht{padding:0;margin:0;border:0;background:none}
 .gp-hoy-d section.ht{margin-top:4px;padding:12px;border:1px solid rgba(242,181,68,.35);background:rgba(242,181,68,.04)}
@@ -5672,7 +5680,7 @@ body.embed .mazo .emb-c figcaption span,body.embed .mazo .emb-pasos li span,body
 .gs-cab-t{flex:1 1 320px;min-width:0}
 .gs-cab-t h2{margin:0}
 .gs-cab-t p{margin:2px 0 0}
-.gs-filtros{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.gs-filtros{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 14px}   /* 28-sep · con aire: pegaba con la caja de arriba */
 .gs-filtros .chip{cursor:pointer;font:700 .86rem 'DM Sans',system-ui;padding:6px 12px;border-radius:999px;border:1px solid #2a4656;background:none;color:#c7d6ee}
 .gs-filtros .chip.on{background:var(--teal);color:#04222a;border-color:var(--teal)}
 .gs-tabla{display:flex;flex-direction:column;gap:6px}
@@ -7142,3 +7150,9 @@ details.mas summary{cursor:pointer;color:var(--teal,#5ff4ff);font-weight:700;fon
 .emb-rp span{display:flex;flex-direction:column;font-weight:600}
 .emb-rp small{font-weight:400;color:var(--mut);font-size:.8rem}
 @media(max-width:600px){.emb-reparto{flex-direction:column}}
+/* 28-sep · el grupo en el que estás, bien grande (Norberto: «es importante que el docente vea en qué grupo está») */
+.cn-sel{gap:6px}
+.cn-sel .cn-sel-t{font-size:.8rem;color:var(--teal)}
+.cn-sel select,.cn-sel .cn-sel-g{max-width:560px;min-width:min(100%,380px);padding:13px 16px;border-radius:14px;border:2px solid var(--teal);background:#07131f;color:#fff;font:inherit;font-size:1.15rem;font-weight:700;box-shadow:0 0 16px rgba(55,224,236,.3)}
+.cn-sel select{cursor:pointer}
+.cn-sel .cn-sel-g{display:block}
