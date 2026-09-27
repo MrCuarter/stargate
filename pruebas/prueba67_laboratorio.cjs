@@ -1795,6 +1795,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await avisoEs(o1, /ya está en el Zoco/);
       c("zoco · 1 · …y NEBULA pregunta, pone la carta y se cierra sola", !(await o1.js("!!document.querySelector('.neb-capa')")) && (await anuncioDe("olga", CT)).length === 1);
       // desde el vestuario: el 🔄 de su otro Xeno
+      await o1.js("var b=document.querySelector('[data-bsec=\"heroes\"]'); if(b) b.click(); 1"); await dormir(600);   // (25-sep · el vestuario, tras la puerta «Héroes» del Botín)
       await o1.hasta(`!!document.querySelector('[data-zoco-poner="${HX}"]')`, 15);
       await borraAviso(o1); await o1.js(`document.querySelector('[data-zoco-poner="${HX}"]').click(); 1`);
       await o1.hasta("!!document.querySelector('.neb-capa [data-si]')", 10);
@@ -1890,6 +1891,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("zoco · 3 · y dentro del Zoco, arriba: «🆕 Novedades» con el trato «✅ Cambiado»", /Novedades[\s\S]*Cambiado/i.test(await p3.texto()));
       await p3.foto(FOTOS + "/22-3-pau-novedades.png");
       await p3.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
+      await p3.js("var b=document.querySelector('[data-bsec=\"heroes\"]'); if(b) b.click(); 1"); await dormir(600);   // (25-sep · el vestuario, tras la puerta «Héroes» del Botín)
       c("🔴 zoco · 3 · y el Xeno ya está en SU vestuario (con su 🔄 para volver a cambiarlo)", await p3.hasta(`!!document.querySelector('[data-zoco-poner="${HX}"]')`, 15));
       sinErrores("3b", p3); await cerrarTodas(p3);
 
@@ -2083,6 +2085,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // ─────────────────────────────────────────── 13 · DOS COMPRADORES: SE ACEPTA UNO
       const p13 = await nave("pau", "pone el Tejedor");
       await p13.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
+      await p13.js("var b=document.querySelector('[data-bsec=\"heroes\"]'); if(b) b.click(); 1"); await dormir(600);   // (25-sep · el vestuario, tras la puerta «Héroes» del Botín)
       await p13.hasta(`!!document.querySelector('[data-zoco-poner="${HT}"]')`, 15);
       await borraAviso(p13); await p13.js(`document.querySelector('[data-zoco-poner="${HT}"]').click(); 1`);
       await p13.hasta("!!document.querySelector('.neb-capa [data-si]')", 10);
