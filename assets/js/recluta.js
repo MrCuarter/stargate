@@ -90,7 +90,7 @@
     // 🔴 9-sep · SIN ?per= EL SELECTOR SALIA DOS VECES. Esta pantalla ya pregunta «¿de qué PER eres
     // recluta?», y debajo la sección del tablero —que pinta tablero.js por su cuenta— preguntaba
     // «elige tu PER» otra vez, con la misma lista. Se apaga: aquí todavía no hay grupo que enseñar.
-    verTablero(false);
+    verTablero(false); verSimulador(false); verSesion(false);
     root.innerHTML=cargando('Contactando con NEBULA…','Localizando los PER activos');
     SG.FUENTE.lista().then(function(d){
       var pers=d.pers||[];
@@ -474,7 +474,7 @@
       var V=s.videos||[];
       var llegada=s.sem<=hasta && st.estado!=='antes';
       if(!V.length && !llegada) return '';
-      return '<section class="ar-sem'+(llegada?'':' futura')+'"><h3><span class="ar-n">S'+s.sem+'</span>'+esc(s.tema||'')+(llegada&&per?sesionDe(s):'')+'</h3>'
+      return '<section class="ar-sem'+(llegada?'':' futura')+'"><h3><span class="ar-n">S'+s.sem+'</span>'+esc(s.tema||'')+'</h3>'
         +(!V.length?'':'<div class="ar-grid">'+V.map(function(v){
             var y=v[0], nota=v[1]||'', fr=fragDe(y.id);
             total++;
@@ -495,19 +495,54 @@
           }).join('')+'</div>')+'</section>';
     }).join('');
     var fr7=FRAGS.filter(function(f){ return fragAbierto(f); }).length;
+    /**
+     * 🔴 28-sep · DOS SECCIONES: LA NARRATIVA Y LAS SESIONES. Norberto: «dentro del Archivo, un botón con Sesiones en
+     * directo. No hace falta presentación, actividad 1, 2… se pueden acceder todas desde el mismo sitio; embébelo en la
+     * página y usa secciones: Sesiones, Narrativa/vídeos». La sesión se ve en un marco fijo bajo el panel (verSesion):
+     * así no se recarga cada vez que la Nave se repinta.
+     */
+    var sub=st.arSub==='sesiones'?'sesiones':'narrativa';
+    var pesta='<div class="ar-subtabs" role="tablist">'
+      +'<button type="button" role="tab" class="ar-sub'+(sub==='narrativa'?' on':'')+'" data-arsub="narrativa" aria-selected="'+(sub==='narrativa')+'">Narrativa y vídeos</button>'
+      +(per&&!SIMULACRO?'<button type="button" role="tab" class="ar-sub'+(sub==='sesiones'?' on':'')+'" data-arsub="sesiones" aria-selected="'+(sub==='sesiones')+'">Sesiones de clase</button>':'')
+      +'</div>';
+    if(sub==='sesiones'){
+      var ses=sesionesArchivo(), sel=st.arSes||(ses.length?ses[ses.length-1].u:'');
+      if(!st.arSes) st.arSes=sel;
+      return '<section class="archivo"><div class="ar-cab"><div><div class="eyebrow teal">El Archivo</div><h2>Las sesiones de clase</h2>'
+        +'<p class="lead">Todas en un sitio: la presentación de la asignatura, cada semana tal como se vio en clase y la sesión de cada actividad. Por si no pudiste estar, o para repasar.</p></div></div>'
+        +pesta+'<div class="ar-ses-lista">'+ses.map(function(x){ return '<button type="button" class="ar-ses-b'+(x.u===sel?' on':'')+'" data-arses="'+esc(x.u)+'"><b>'+esc(x.t)+'</b><small>'+esc(x.s)+'</small></button>'; }).join('')+'</div></section>';
+    }
     return '<section class="archivo"><div class="ar-cab"><div><div class="eyebrow teal">El Archivo</div>'
       +'<h2>La historia, fragmento a fragmento</h2>'
-      +'<p class="lead">Todo lo que ha grabado NEBULA, en orden. Los <b>fragmentos</b> de cada personaje solo los ve quien registra su reto: la historia se colecciona ganándola. Y en cada semana, <b>la sesión de clase</b>, por si no pudiste estar.</p></div>'
+      +'<p class="lead">Todo lo que ha grabado NEBULA, en orden. Los <b>fragmentos</b> de cada personaje solo los ve quien registra su reto: la historia se colecciona ganándola.</p></div>'
       +'<div class="ar-marcador"><b>'+fr7+'</b><span>de '+FRAGS.length+' fragmentos<br>desbloqueados</span></div></div>'
-      // 26-sep · la presentación de la asignatura, siempre a mano (Norberto: «que el estudiante tenga a mano la presentación
-      // con la información de puntuaciones y fechas»): la sesión 1, arriba del todo
-      +(per&&!SIMULACRO?'<a class="card ar-pres" href="'+esc(urlPresentacion())+'" target="_blank" rel="noopener"><img class="ar-pres-i" src="assets/img/iconos/p/notas.png" alt="">'
-        +'<span><b>La presentación de la asignatura</b><small>La sesión 1: los ocho temas, lo que cuenta para tu nota con sus fechas, qué se entrega en UNIR y cómo funciona STARGATE.</small></span><em class="btn min">Abrirla ↗</em></a>':'')
-      // 26-sep · y la sesión de cada actividad, desde la semana en que se lanza
-      +(per&&!SIMULACRO&&(st.d||{}).tipo!=='PUA'?(window.SG_ACTIVIDADES||[]).filter(actividadAbierta).map(function(a){
-          return '<a class="card ar-pres ar-act" href="'+esc(urlActividad(a.n))+'" target="_blank" rel="noopener"><img class="ar-pres-i" src="assets/img/iconos/p/notas.png" alt="">'
-            +'<span><b>La Actividad '+a.n+' · '+esc(a.titulo)+'</b><small>Qué se entrega, paso a paso con un ejemplo, los retos que la adelantan, la rúbrica para el 10 y las fechas.</small></span><em class="btn min">Abrirla ↗</em></a>'; }).join(''):'')
+      +pesta
       +(filas||'<div class="card"><p class="muted">Todavía no hay vídeos que enseñar.</p></div>')+'</section>';
+  }
+  // las sesiones que ya se pueden ver: la presentación, las semanas llegadas y las actividades abiertas (en su semana)
+  function sesionesArchivo(){
+    var L=st.semanas||[], hasta=st.estado==='antes'?0:Math.min(Math.max(st.actual||0,0),L.length), out=[];
+    out.push({u:urlPresentacion(), t:'La presentación de la asignatura', s:'Notas, fechas, qué se entrega en UNIR y cómo funciona STARGATE'});
+    var acts=(st.d||{}).tipo!=='PUA'?(window.SG_ACTIVIDADES||[]).filter(actividadAbierta):[];
+    L.forEach(function(s){
+      if(s.sem>hasta) return;
+      out.push({u:urlSesion(s.sem), t:'Semana '+s.sem, s:s.tema||''});
+      acts.filter(function(a){ return Number(a.sem)===Number(s.sem); }).forEach(function(a){
+        out.push({u:urlActividad(a.n), t:'La Actividad '+a.n, s:a.titulo||'Qué se entrega, paso a paso'}); });
+    });
+    return out;
+  }
+  function verSesion(si){
+    var cap=document.getElementById('nave-ses');
+    if(!si || !st.arSes){ if(cap) cap.style.display='none'; return; }
+    if(!cap){
+      cap=document.createElement('section'); cap.id='nave-ses'; cap.className='nave-sim nave-ses';
+      cap.innerHTML='<iframe class="sim-marco" title="La sesión de clase" allow="fullscreen; autoplay; encrypted-media" allowfullscreen></iframe>';
+      root.parentNode.insertBefore(cap, root.nextSibling);
+    }
+    var f=cap.querySelector('iframe'); if(f.getAttribute('src')!==st.arSes) f.setAttribute('src', st.arSes);
+    cap.style.display='';
   }
   var CINE={sem:0,i:0,jugando:false};
   function cine(){
@@ -1730,7 +1765,7 @@
       + '<p class="small">' + arcade.length + ' máquinas arcade y el <b>Simulador de vuelo</b> para repasar. La plata de cada máquina enciende la siguiente; sus hitos dan créditos una vez.</p>'
       + '<details class="mas"><summary>Qué hay dentro</summary><p class="small">' + arcade.map(function(m){ return '<b>' + esc(m[1]) + '</b>'; }).join(', ')
       + '. El <b>Cuaderno de vuelo</b> (' + (SJ.cuaderno || []).length + ' hitos), el ranking de tu clase y el Salón de la fama, y la <b>Galería</b> con los juegos de la tripulación.</p></details>'
-      + '<p><a class="btn epico" data-juego href="' + esc(SJ.juego + '?per=' + encodeURIComponent(per) + '&v=' + SJ.v) + '"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Entrar en la sala</span></a></p>'
+      + '<p><a class="btn epico" href="#simulador"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Entrar en la sala</span></a></p>'
       + '</div></div>';
   }
   /**
@@ -2192,9 +2227,44 @@
   // Magnific en una sola lámina para que los ocho compartan estilo (Norberto: «botones más sólidos con iconos dedicados,
   // con la estética de la narrativa»; y «evitar emojis, salvo momentos concretos»).
   var TABS=[['nave','nave','Mi nave'],['retos','retos','Mis retos'],['botin','botin','Mi botín'],
-            ['archivo','archivo','El Archivo'],
+            ['archivo','archivo','El Archivo'],['simulador','simulador','Simulador de Joran'],
             ['mercado','mercado','Mercado Estelar'],['zoco','zoco','El Zoco'],['rankings','rankings','Rankings'],['envivo','envivo','En vivo']];
-  function iconoTab(k){ return '<img class="i" src="assets/img/nave/iconos/'+k+'.png" alt="" width="26" height="26" aria-hidden="true">'; }
+  function iconoTab(k){ return '<img class="i" src="'+(k==='simulador'?'assets/img/iconos/diana.png':'assets/img/nave/iconos/'+k+'.png')+'" alt="" width="26" height="26" aria-hidden="true">'; }
+  /**
+   * 🔴 28-sep · TODAS LAS PESTAÑAS A LA VISTA. Norberto: «que salgan todas las opciones a la vez, pero si no están
+   * disponibles, oscurecidas: así los estudiantes pueden ir salivando». La que aún no se ha abierto se ve apagada y, al
+   * pulsarla, cuenta qué es y cuándo llega (su capítulo). Abierta = `tabVisible` (lo de siempre).
+   */
+  var QUE_TAB={ mercado:'Donde gastas tus créditos: héroes, sobres de cromos, adornos y el Gran Sorteo.',
+    zoco:'El mercado entre reclutas: cambia tus cartas repetidas con las de tu tripulación.',
+    rankings:'La clasificación de tu clase y de tu escuadrón, semana a semana.',
+    simulador:'La sala de juegos de Joran: cinco máquinas arcade, el Simulador de vuelo para repasar los temas, récords y la Galería de juegos de la tripulación.',
+    envivo:'Se enciende cuando tu Comandante emite la clase en directo: la misma diapositiva que en clase, para fichar, votar y responder.' };
+  function tabBloqueada(k){
+    var x=TABS.filter(function(t){ return t[0]===k; })[0]||[k,k,k];
+    var c=capsTipo().filter(function(c){ return (c.abre||[]).indexOf(k)>=0; })[0];
+    var cuando = k==='envivo' ? 'Cuando tu Comandante emita la clase.'
+      : c ? 'Se abre en la <b>semana '+semanaCap(c)+'</b>, con el capítulo «'+esc(c.titulo)+'».' : 'Se abre más adelante en el viaje.';
+    return '<section class="tab-bloq"><div class="tab-bloq-caja">'+iconoTab(x[1])+'<div class="eyebrow">Aún cerrado</div><h2>'+esc(x[2])+'</h2>'
+      +'<p>'+(QUE_TAB[k]||'')+'</p><p class="tab-bloq-cuando"><img class=ico src=assets/img/iconos/p/candado.png alt> '+cuando+'</p></div></section>';
+  }
+  // el Simulador: la sala entera DENTRO de la Nave (con la barra de arriba). Va en un marco fijo junto al panel, como
+  // Rankings: la Nave se repinta a menudo y, si el marco estuviera dentro, se recargaría el juego a media partida.
+  var SIM_VISTO='sgSimTab_'+per;
+  function simNuevo(){ try{ return abierto('simulador') && !localStorage.getItem(SIM_VISTO); }catch(e){ return false; } }
+  function verSimulador(si){
+    var SJ=window.SG_SALA_JORAN, cap=document.getElementById('nave-sim');
+    if(!si){ if(cap) cap.style.display='none'; return; }
+    if(!SJ) return;
+    if(!cap){
+      cap=document.createElement('section'); cap.id='nave-sim'; cap.className='nave-sim';
+      cap.innerHTML='<iframe class="sim-marco" title="El Simulador de Joran" allow="fullscreen; autoplay" allowfullscreen src="'
+        +esc(SJ.juego+'index.html?per='+encodeURIComponent(per)+'&v='+SJ.v)+'"></iframe>';
+      root.parentNode.insertBefore(cap, root.nextSibling);
+    }
+    cap.style.display='';
+    try{ localStorage.setItem(SIM_VISTO,'1'); }catch(e){}
+  }
   var TABS_VIEJAS={ficha:'nave',semana:'nave',planetas:'retos',premios:'mercado',tablero:'rankings'};
   // ================= LA NAVE POR CAPÍTULOS (13-sep) =================
   // Norberto: «de primeras no quiero que puedan hacer mil cosas, esto puede agobiar; que se
@@ -2224,6 +2294,8 @@
   // 17-sep · «En vivo» solo existe mientras hay algo en directo (una votación, una pregunta, la sesión proyectándose)
   function tabVisible(k){ return k==='nave'||k==='retos'||k==='botin'||k==='archivo'||(k==='envivo'?hayEnVivo():abierto(k)); }
   function tabsVisibles(){ return TABS.filter(function(x){ return tabVisible(x[0]); }); }
+  // en la barra salen TODAS (las cerradas, apagadas); «En vivo», solo en directo (fuera de clase no significa nada)
+  function tabsBarra(){ return TABS.filter(function(x){ return x[0]!=='envivo' || hayEnVivo(); }); }
   /**
    * 🔴 23-sep · A MEDIA PANTALLA, NINGUNA PESTAÑA ESCONDIDA. Norberto: «con la ventana a media pantalla se rompe». Entre
    * 760 y ~1080 px las siete pestañas con su nombre no caben, y la barra (que se desplaza sin barra visible) dejaba
@@ -2237,7 +2309,7 @@
   }
   function tabValida(k){
     if(TABS_VIEJAS[k]) k=TABS_VIEJAS[k];
-    return TABS.some(function(x){return x[0]===k;}) && tabVisible(k) ? k : 'nave';
+    return TABS.some(function(x){return x[0]===k;}) && (tabVisible(k) || k!=='envivo') ? k : 'nave';   // (las cerradas enseñan qué son)
   }
   st.tab=tabValida(st.tab);
   // el botón «atrás» del navegador también cambia de pestaña: es lo que espera cualquiera
@@ -2276,12 +2348,14 @@
       // con teclado se queda pulsando flechas sin que pase nada — y eso es peor que no poner el rol.
       // Se cumple abajo, en `cablearTeclado`. Y `tabindex` sigue el patrón estándar: solo la pestaña
       // activa es alcanzable con el tabulador; dentro, se mueve uno con las flechas.
-      +'<div class="nb-tabs" role="tablist" aria-label="Secciones de tu nave">'+tabsVisibles().map(function(x){
-        var on = st.tab===x[0];
-        return '<button type="button" class="nb-t'+(on?' on':'')+'" role="tab"'
+      +'<div class="nb-tabs" role="tablist" aria-label="Secciones de tu nave">'+tabsBarra().map(function(x){
+        var on = st.tab===x[0], cerrada=!tabVisible(x[0]);
+        return '<button type="button" class="nb-t'+(on?' on':'')+(cerrada?' bloq':'')+'" role="tab"'
           +' aria-selected="'+on+'" aria-controls="nave-panel" tabindex="'+(on?'0':'-1')+'"'
           +' id="nb-t-'+x[0]+'" data-tab="'+x[0]+'" title="'+esc(x[2])+'">'
           +iconoTab(x[1])+'<b>'+esc(x[2])+'</b>'
+          +(cerrada?'<span class="nb-candado" aria-label="(cerrado)"></span>':'')
+          +(x[0]==='simulador'&&simNuevo()&&!on?'<span class="nb-badge nuevo" title="Recién encendido">NUEVO</span>':'')
           +(x[0]==='zoco'&&zocoPendientes().length?'<span class="nb-badge" title="Te toca responder">'+zocoPendientes().length+'</span>':'')+'</button>';
       }).join('')+'</div>'
       +'<div class="nb-fin">'
@@ -2312,19 +2386,14 @@
   }
 
   /** Lo que se usa una vez por semana no merece un botón permanente: vive aquí dentro. */
+  /**
+   * El menú «···». 🔴 28-sep · SOLO LA GUÍA. Norberto: «si le doy a los 3 puntos hay mucho ruido. Solo debería salir la
+   * guía del recluta». La presentación y las actividades viven ahora en el Archivo → Sesiones; «¿Mi enlace abre lo mío?»,
+   * dentro de la guía. Quedan, abajo, lo de la cuenta: el sonido de las celebraciones y salir.
+   */
   function menuMas(){
-    var d=st.d||{};
     return '<div class="nb-menu" id="nb-menu" hidden role="menu">'
-      // 23-sep · la guía del recluta, lo primero (en la demo sin cuenta no: su puerta pide entrar)
-      +(!DEMO?'<a role="menuitem" href="guia-recluta.html"><span>Guía del recluta<em>cómo funciona todo, paso a paso</em></span></a>':'')
-      // 26-sep · y la presentación de la asignatura (la sesión 1): notas, fechas y qué se entrega en UNIR
-      +(per&&!DEMO?'<a role="menuitem" href="'+esc(urlPresentacion())+'" target="_blank" rel="noopener"><span>La presentación de la asignatura<em>notas, fechas y qué se entrega en UNIR</em></span></a>':'')
-      +(per&&!DEMO?(window.SG_ACTIVIDADES||[]).filter(actividadAbierta).map(function(a){ return '<a role="menuitem" href="'+esc(urlActividad(a.n))+'" target="_blank" rel="noopener"><span>La Actividad '+a.n+'<em>qué pide y cómo sacar un 10</em></span></a>'; }).join(''):'')
-      +(d.formTicket?'<a role="menuitem" href="'+esc(ticketUrl(d))+'" data-vent="Contacta con NEBULA"><span>Dudas a NEBULA<em>anónimo, no lo ve tu clase</em></span></a>':'')
-      +(d.padlet?'<a role="menuitem" href="'+esc(d.padlet)+'" data-vent="Padlet de la clase"><span>Padlet de la clase<em>el muro común</em></span></a>':'')
-      +'<a role="menuitem" href="ayuda.html" target="_blank" rel="noopener"><span>¿Mi enlace abre lo mío?<em>compruébalo antes de entregar</em></span></a>'
-      +(d.formBitacora?'<a role="menuitem" href="'+esc(d.formBitacora)+'" data-vent="Bitácora de mando"><span>Bitácora de mando<em>marca lo completado</em></span></a>':'')
-      +(d.formCanje?'<a role="menuitem" href="'+esc(d.formCanje)+'" data-vent="Mercado Estelar"><span>Mercado Estelar<em>gasta tus créditos</em></span></a>':'')
+      +(!DEMO?'<a role="menuitem" href="guia-recluta.html"><span>Guía del recluta<em>cómo funciona todo, y si tu enlace abre lo tuyo</em></span></a>':'')
       +'<hr><div class="nb-fiesta" id="nb-fiesta"></div>'
       +'<a role="menuitem" href="#" id="nb-salir"><span>No soy yo / salir</span></a>'
       +'</div>';
@@ -2333,6 +2402,8 @@
     // 🔴 El orden importa: primero quién eres y qué toca hoy, luego el pique con quien tienes
     // cerca (una frase), y lo demás en cajones cerrados. El vestuario es una colección, como el
     // álbum: se mira cuando se quiere mirar, no cada vez que abres la Nave.
+    if(!tabVisible(st.tab)) return tabBloqueada(st.tab);
+    if(st.tab==='simulador') return '';                 // la sala vive en su marco fijo (verSimulador)
     if(st.tab==='nave')     return personaje();
     if(st.tab==='retos')    return mapa()+retos();
     if(st.tab==='botin')    return botin();
@@ -3269,7 +3340,8 @@
   var TAB_QUE_ES={nave:'<b>Mi nave</b> es esto.',
     retos:'<b>Mis retos</b>, el viaje entero por los ocho planetas.',
     botin:'<b>Mi botín</b>, lo que llevas ganado: insignias, cromos y personajes.',
-    archivo:'<b>El Archivo</b>, la historia en vídeo, fragmento a fragmento.',
+    archivo:'<b>El Archivo</b>, la historia en vídeo y las sesiones de clase.',
+    simulador:'<b>Simulador de Joran</b>, su sala de juegos y el repaso de los temas.',
     mercado:'<b>Mercado Estelar</b>, donde se gasta.',
     zoco:'<b>El Zoco</b>, donde se cambia con el resto de la tripulación.',
     rankings:'Y <b>Rankings</b>: tu clase de ocho maneras distintas, porque si no destacas en una, destacas en otra.'};
@@ -3329,9 +3401,9 @@
          {t:'Poco tiempo y pocas unidades',foco:'.nb-t[data-tab="mercado"]',
           x:'Dura lo que dura la semana y, si es algo raro, hay pocas unidades para todo el grupo: cuando se acaban, se acabó. <b>Una por persona</b>. Tu docente también puede preparar las suyas.'}],
     // 16-sep · EL SIMULADOR DE JORAN (semana 11). 23-sep · ya no es un reto: un juego de repaso que se enseña a todos
-    c11:[{t:'La sala de Joran',foco:'.nb-t[data-tab="nave"]',
-          x:'Joran convirtió el simulacro de evacuación en un juego, y aquí están sus máquinas: <b>cinco arcade</b> y el <b>Simulador de vuelo</b> para repasar la Ruta en tres niveles. La plata de cada máquina enciende la siguiente (o la enciendes con créditos).'},
-         {t:'Hitos, Cuaderno y Galería',foco:'.nb-t[data-tab="nave"]',
+    c11:[{t:'La sala de Joran',foco:'.nb-t[data-tab="simulador"]',
+          x:'Joran convirtió el simulacro de evacuación en un juego, y ya tiene <b>su pestaña</b> en tu Nave. Dentro: <b>cinco arcade</b> y el <b>Simulador de vuelo</b> para repasar la Ruta en tres niveles. La plata de cada máquina enciende la siguiente (o la enciendes con créditos).'},
+         {t:'Hitos, Cuaderno y Galería',foco:'.nb-t[data-tab="simulador"]',
           x:'Cada máquina tiene tres hitos que dan créditos <b>una vez</b>. El <b>Cuaderno de vuelo</b> guarda los grandes logros, hay ranking de tu clase y Salón de la fama, y en la <b>Galería</b> se valoran los juegos de la tripulación.'}],
     // 14-sep · el Gran Sorteo: lo cuenta con el premio y los ganadores de SU grupo (el referente
     // puede cambiarlos), por eso se arma al momento
@@ -3573,6 +3645,13 @@
     guardarFoto(r);
     if(!ant) return;                                   // primera visita: foto en silencio
     var L=logrosNuevos(r,ant);
+    // 🔴 28-sep · EL SIMULADOR DE JORAN, CELEBRADO. Norberto: «acabo de completar el reto de Joran; aparece la caja con lo
+    // que hemos ganado, pero no dice nada del simulador. Es lo más importante». Una vez, el día que se enciende.
+    var kc='sgSimCartel_'+per;
+    try{ if(abierto('simulador') && window.SG_SALA_JORAN && !localStorage.getItem(kc)){ localStorage.setItem(kc,'1');
+      L.push({peso:9999, eyebrow:'SE HA ENCENDIDO', titulo:'El Simulador de Joran', ir:'simulador',
+        sub:'Cinco máquinas arcade, el Simulador de vuelo para repasar los temas y la Galería. Ya tiene su pestaña en tu Nave.',
+        img:'juegos/joran/img/maq_rutaazul.jpg', clase:'figura'}); } }catch(e){}
     if(!L.length) return;
     var extra=[];
     if(L.length>MAX_CARTELES){ extra=L.slice(0,L.length-MAX_CARTELES); L=L.slice(L.length-MAX_CARTELES); }
@@ -3603,11 +3682,11 @@
       +'<h3>'+esc(x.titulo)+'</h3>'+(x.sub?'<p class="logro-sub">'+esc(x.sub)+'</p>':'')
       +masCosas
       +(L.length>1?'<div class="logro-cuenta">'+(i+1)+' de '+L.length+'</div>':'')
-      +'<button type="button" class="btn primary logro-ok">'+(ultimo?'¡A la nave! ✓':'Siguiente →')+'</button>'
+      +'<button type="button" class="btn primary logro-ok">'+(ultimo?(x.ir?'Ir al Simulador →':'¡A la nave! ✓'):'Siguiente →')+'</button>'
       +'</div>';
     ov.classList.add('open');
     ov.querySelector('.logro-fondo').onclick=cerrarCartel;
-    ov.querySelector('.logro-ok').onclick=function(){cartel(L,i+1,extra);};
+    ov.querySelector('.logro-ok').onclick=function(){ if(ultimo&&x.ir){ cerrarCartel(); irA(x.ir); return; } cartel(L,i+1,extra);};
     document.removeEventListener('keydown',teclaCartel);
     document.addEventListener('keydown',teclaCartel);
     ov.querySelector('.logro-ok').focus();
@@ -4787,7 +4866,7 @@
   }
   function pintarNave(){
     // una pestaña que aún no se ha abierto (un enlace con #mercado en la semana 1) → Mi nave
-    if(st.d&&!tabVisible(st.tab)) st.tab='nave';
+    if(st.d&&st.tab==='envivo'&&!tabVisible('envivo')) st.tab='nave';   // (las demás cerradas enseñan qué son)
     /**
      * 🔴 13-sep · CON SESIÓN, FUERA EL TITULAR GRANDE. «La Nave del Recluta» con su párrafo ocupaba
      * 250 px arriba del todo en CADA visita, y a quien ya ha entrado no le cuenta nada que la barra
@@ -4820,7 +4899,12 @@
       ? barraSimulacro()+login()+pestanas()+avisoCongelado()+avisoMensajes()+avisoEnVivo()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
         +'<div id="nave-panel" role="tabpanel" aria-labelledby="nb-t-'+st.tab+'">'+contenido()+'</div>'
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
-    verTablero(dentro && st.tab==='rankings');
+    verTablero(dentro && st.tab==='rankings' && tabVisible('rankings'));
+    verSimulador(dentro && st.tab==='simulador' && tabVisible('simulador'));
+    verSesion(dentro && st.tab==='archivo' && st.arSub==='sesiones');
+    Array.prototype.forEach.call(root.querySelectorAll('[data-arsub]'),function(b){ b.onclick=function(){ st.arSub=b.getAttribute('data-arsub'); render(); }; });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-arses]'),function(b){ b.onclick=function(){ st.arSes=b.getAttribute('data-arses'); render();
+      var c=document.getElementById('nave-ses'); if(c) try{ c.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){} }; });
     // Solo con el motor nuevo: en la Nave de siempre no suena nada, y un botón de silenciar algo
     // que no hace ruido es una promesa incumplida.
     if(dentro && motorNuevo() && window.SG && SG.FIESTA) SG.FIESTA.montarInterruptor('nb-fiesta');
@@ -5019,7 +5103,7 @@
   // embed —donde no hay cabecera ni pie— parecen restos de otra página. La sección es una <section>
   // del HTML que pinta tablero.js por su cuenta, asi que hay que apagarla a mano hasta que la Nave
   // sepa en qué pestaña está.
-  verTablero(false);
+  verTablero(false); verSimulador(false);
   root.innerHTML=cargando('Estableciendo conexión con NEBULA…','Sincronizando la Bitácora de tu PER');
   /**
    * 🔴 23-sep · FRESCO DESDE EL PRINCIPIO, Y UNA SOLA VEZ. La Nave pedía el tablero de la caché y, nada más pintarse,

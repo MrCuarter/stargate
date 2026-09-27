@@ -66,7 +66,7 @@ c(/if\(yaFr\[id\] \|\| \(f && \(f\.reto \|\| Number\(f\.publica\)!==Number\(s\.s
 
 // ── 6 · el material gráfico: su icono, y ninguno con el fondo pegado
 c(fs.existsSync(path.join(R, "assets/img/nave/iconos/archivo.png")), "🔴 «El Archivo» tiene su icono en la lámina de la Nave");
-c(/iconoTab\(k\)\{ return '<img class="i" src="assets\/img\/nave\/iconos\/'\+k\+'\.png"/.test(REC), "   y la pestaña lo usa como las demás");
+c(/iconoTab\(k\)\{ return '<img class="i" src="'\+\(k==='simulador'\?'assets\/img\/iconos\/diana\.png':'assets\/img\/nave\/iconos\/'\+k\+'\.png'\)/.test(REC), "   y la pestaña lo usa como las demás");
 
 // 🔴 stargate.js y tour.js los ESCRIBE el build: editarlos a mano se pierde en la siguiente construcción
 ["assets/js/stargate.js", "assets/js/tour.js"].forEach(function (f) {

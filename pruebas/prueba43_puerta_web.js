@@ -198,7 +198,8 @@ c(/Compartir desde esta página/.test(AY), "explica la casilla de Genially, que 
 c(/Copiar el enlace a la publicación/.test(AY), "y la opción exacta de Padlet");
 c(/loading="lazy"/.test(AY), "🔬 los GIF cargan en diferido: pesan 2 MB entre los dos");
 // la Nave lleva a la ayuda: es donde el recluta esta cuando duda
-c(/href="ayuda\.html"/.test(leer("assets/js/recluta.js")), "🔴 la Nave enlaza a la ayuda");
+// 28-sep · el menú «···» se queda solo con la guía del recluta, y la ayuda del enlace va DENTRO de la guía
+c(/href="guia-recluta\.html"/.test(leer("assets/js/recluta.js")) && /href="ayuda\.html"/.test(leer("guia-recluta.html")) && /id="enlace"/.test(leer("guia-recluta.html")), "🔴 la Nave lleva a la guía, y la guía a la ayuda («¿Mi enlace abre lo mío?»)");
 // 🔴 y el selector de grupo no enseña jerga de hoja de calculo
 c(!/esc\(p\.tipo\)/.test(leer("assets/js/recluta.js")),
   "🔴 el selector de grupo NO enseña REGULAR/PUA: al alumnado no le dice nada");

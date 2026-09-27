@@ -87,7 +87,7 @@ c(/st\.slides=st\.act\?construirActividad\(st\.act\):st\.pres&&hayPresentacion\(
   "   es su propia sesión (?pres=1), y la semana 1 ya no la lleva dentro");
 c(/st\.pres=q\.get\('pres'\)==='1';/.test(SES) && /data-pres="1"/.test(SES) && /data-dif-sem="0"/.test(SES), "   se abre con ?pres=1, con la «P» de la tira del docente y desde el índice del diferido");
 c(/&pres=1" target="_blank"/.test(L("assets/js/consola.js")) && /codigo: "sesion\.html\?embed=1&pres=1"/.test(L("assets/js/consola.js")), "   el docente la tiene en su banner y en Enlaces (con su código)");
-c(/function urlPresentacion\(\)/.test(L("assets/js/recluta.js")) && /class="card ar-pres"/.test(L("assets/js/recluta.js")), "   y el recluta, en El Archivo y en el menú «···»");
+c(/function urlPresentacion\(\)/.test(L("assets/js/recluta.js")) && /out\.push\(\{u:urlPresentacion\(\)/.test(L("assets/js/recluta.js")), "   y el recluta, en El Archivo → Sesiones de clase");
 const DS = L("_site_data.py");
 c(/BLOQUES_ASIGNATURA = \[/.test(DS) && /\("Creación de contenido", \[1, 2, 3\]/.test(DS) && /\("M-Learning", \[4, 5\]/.test(DS) && /\("Gamificación en el aula", \[6, 7, 8\]/.test(DS),
   "   los tres bloques: Creación de contenido (1-3), M-Learning (4-5) y Gamificación en el aula (6-8)");

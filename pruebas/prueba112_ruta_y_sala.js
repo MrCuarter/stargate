@@ -52,6 +52,16 @@ c(/import\('\.\/datos\.js(\?v=[0-9a-f]{10})?'\)/.test(L("juegos/ruta/juego.js"))
     "   guías: juego, llamada, relámpago, Asedio, proyectar y Herramientas; 1.ª vez paso a paso, 2.ª invitación, luego nada");
   c(/stargate_profes/.test(GD) && /guia:/.test(GD) && /fullscreenElement/.test(GD), "   cuenta por docente (en su ficha) y se ve también a pantalla completa");
 }
+// 🔴 28-sep · LA NAVE: todas las pestañas a la vista (las cerradas, apagadas y con su «qué es y cuándo llega»), el
+// Simulador en su pestaña y celebrado el día que se enciende, el Archivo con sus Sesiones y el menú «···» con la guía
+{
+  const N = L("assets/js/recluta.js");
+  c(/function tabsBarra\(\)/.test(N) && /cerrada\?' bloq':''/.test(N) && /if\(!tabVisible\(st\.tab\)\) return tabBloqueada\(st\.tab\);/.test(N), "🔴 la Nave enseña todas las pestañas; las cerradas, apagadas y con qué son y cuándo llegan");
+  c(/eyebrow:'SE HA ENCENDIDO', titulo:'El Simulador de Joran', ir:'simulador'/.test(N) && /x\.ir\?'Ir al Simulador →'/.test(N), "🔴 el día que se enciende el Simulador, un cartel lo celebra (con «Ir al Simulador»)");
+  c(/data-arsub="sesiones"/.test(N) && /function verSesion\(si\)/.test(N), "   El Archivo: Narrativa y vídeos · Sesiones de clase (embebidas)");
+  const menu = N.slice(N.indexOf("function menuMas(){"), N.indexOf("function contenido(){"));
+  c(/guia-recluta\.html/.test(menu) && !/urlPresentacion|urlActividad|ayuda\.html|formTicket|padlet/.test(menu), "   el menú «···»: solo la guía del recluta (y la cuenta)");
+}
 const SJ = global(SH, "SG_SALA_JORAN") || {};
 // 28-sep · cinco arcade: La conquista de Fôrge, tras El Descenso; cada una se enciende con la PLATA de la anterior
 const MQ = SJ.maquinas || [], ARC = MQ.filter((m) => m[0] !== "vuelo");
@@ -90,7 +100,8 @@ console.log("\n  4 · en la Nave");
 c(/function rutaCaja\(\)/.test(NAVE) && /\+rutaCaja\(\)/.test(NAVE), "🔴 la Nave enseña las diez misiones");
 c(/function semanaDeMision\(m, L\)/.test(NAVE) && /if\(m\.id==='m0'\) return 1;/.test(NAVE) && /if\(m\.final\) return L\.length;/.test(NAVE), "   cada una se abre cuando se cierra su tema (la 0, en la semana 1; Vaeon, en la última)");
 c(/Semana '\+sem\+'/.test(NAVE), "   las que faltan dicen en qué semana llegan");
-c(/La sala de Joran/.test(NAVE) && /SJ\.juego \+ '\?per='/.test(NAVE), "🔴 el Simulador de Joran es su sala de juegos, con su capítulo");
+c(/La sala de Joran/.test(NAVE) && /\['simulador','simulador','Simulador de Joran'\]/.test(NAVE) && /SJ\.juego\+'index\.html\?per='/.test(NAVE) && /href="#simulador"/.test(NAVE),
+  "🔴 el Simulador de Joran es su sala de juegos, con su pestaña en la Nave (y la tarjeta lleva a ella)");
 
 console.log("\n  5 · los juegos");
 for (const f of ["juegos/ruta/index.html", "juegos/ruta/juego.js", "juegos/ruta/servidor-local.js", "juegos/joran/index.html", "juegos/joran/evacuacion.js", "juegos/joran/laberinto.js", "juegos/joran/ruta-azul.js", "juegos/joran/comun.js"])

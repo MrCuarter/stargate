@@ -7068,3 +7068,29 @@ details.mas{margin:6px 0}
 details.mas summary{cursor:pointer;color:var(--teal,#5ff4ff);font-weight:700;font-size:14px}
 .dia.directo,.dia.asedio{padding:0}
 .dia.directo .ru-juego,.dia.asedio .ru-juego{height:min(84vh,880px)}
+
+/* 28-sep · LAS PESTAÑAS CERRADAS, A LA VISTA (Norberto: «oscurecidas: así los estudiantes pueden ir salivando») */
+.nb-t.bloq{opacity:.45;filter:grayscale(.8)}
+.nb-t.bloq:hover,.nb-t.bloq.on{opacity:.8}
+.nb-candado{position:absolute;top:4px;right:4px;width:12px;height:12px;background:url(../img/iconos/p/candado.png) center/contain no-repeat;opacity:.9}
+.nb-badge.nuevo{background:var(--teal);color:#04121c;font-size:.75rem;letter-spacing:.06em;animation:nbNuevo 1.6s ease-in-out infinite}
+@keyframes nbNuevo{50%{box-shadow:0 0 12px rgba(55,224,236,.8)}}
+@media (prefers-reduced-motion:reduce){.nb-badge.nuevo{animation:none}}
+.tab-bloq{display:grid;place-items:center;padding:40px 0}
+.tab-bloq-caja{max-width:560px;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px 24px}
+.tab-bloq-caja .i{width:64px;height:64px;opacity:.6;filter:grayscale(.6)}
+.tab-bloq-caja h2{margin:6px 0 10px}
+.tab-bloq-caja p{color:var(--mut)}
+.tab-bloq-cuando{color:var(--ink)!important;font-weight:600}
+/* el Simulador de Joran y las sesiones del Archivo, dentro de la Nave (marco fijo: no se recarga al repintar) */
+.nave-sim{margin:0 auto 24px;max-width:1280px;padding:0 16px}
+.nave-sim .sim-marco{display:block;width:100%;height:calc(100vh - 150px);min-height:520px;border:1px solid var(--line);border-radius:14px;background:#050a14}
+.nave-ses .sim-marco{height:calc(100vh - 120px);aspect-ratio:auto}
+.ar-subtabs{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 16px}
+.ar-sub{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--mut);border-radius:999px;padding:8px 16px;cursor:pointer}
+.ar-sub.on{border-color:var(--teal);color:#fff;box-shadow:0 0 12px rgba(55,224,236,.35)}
+.ar-ses-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+.ar-ses-b{font:inherit;text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:12px;padding:10px 12px;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.ar-ses-b small{color:var(--mut);font-size:.8rem}
+.ar-ses-b.on{border-color:var(--teal);box-shadow:0 0 12px rgba(55,224,236,.3)}
+@media (max-width:600px){.nave-sim{padding:0 8px}.nave-sim .sim-marco{height:calc(100vh - 120px)}}

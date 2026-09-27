@@ -79,7 +79,7 @@ c(/act:st\.act\|\|0/.test(SES) && /\['act1','La Actividad 1'\],\['act2','La Acti
 
 // ── 3 · a mano, para el docente y el recluta
 c(/tit: "La Actividad " \+ a\.n/.test(CON) && /codigo: "sesion\.html\?embed=1&act=" \+ a\.n/.test(CON), "🔴 el docente, en Enlaces (con su código)");
-c(/function urlActividad\(n\)/.test(NAVE) && /function actividadAbierta\(a\)/.test(NAVE) && /class="card ar-pres ar-act"/.test(NAVE), "🔴 el recluta, en El Archivo y en el menú «···», desde su semana");
+c(/function urlActividad\(n\)/.test(NAVE) && /function actividadAbierta\(a\)/.test(NAVE) && /out\.push\(\{u:urlActividad\(a\.n\)/.test(NAVE) && /\.filter\(actividadAbierta\)/.test(NAVE), "🔴 el recluta, en El Archivo → Sesiones de clase, desde su semana");
 c(/La sesión de la actividad ↗<\/a>/.test(NAVE) && /esc\(urlActividad\(a\.n\)\)\+'" target="_blank" rel="noopener">La sesión de la actividad ↗/.test(NAVE),
   "   y desde la tarjeta de la entrega y la de la actividad en Mis retos");
 

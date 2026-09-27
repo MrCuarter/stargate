@@ -1084,14 +1084,15 @@ _GR_TABS = [
     ("nave", "Mi nave", "Tu ficha (personaje, nivel, xp, créditos y <b>tu Bitácora a un clic</b>), lo que NEBULA te dice hoy, tu carrera con quien va justo delante y justo detrás, <b>la orden de la semana</b> (con su sesión de clase) y, cuando toca, la entrega que viene y el ticket de salida."),
     ("retos", "Mis retos", "El mapa de los ocho planetas y todos los retos, explicados paso a paso. <b>Aquí se registran.</b>"),
     ("botin", "Mi botín", "Tres botones grandes: <b>Insignias</b> (por tema, y los logros de a bordo), <b>Cromos</b> (tu álbum) y <b>Héroes</b> (tu vestuario y tus adornos)."),
-    ("archivo", "El Archivo", "<b>La presentación de la asignatura</b> (notas, fechas y qué se entrega en UNIR), los vídeos de la historia en orden, los fragmentos de la Tripulación Cero que vas ganando y <b>la sesión de clase de cada semana</b>, para verla a tu ritmo."),
+    ("archivo", "El Archivo", "Dos secciones: <b>Narrativa y vídeos</b> (la historia en orden y los fragmentos de la Tripulación Cero que vas ganando) y <b>Sesiones de clase</b> (la presentación de la asignatura, cada semana y cada actividad, sin salir de tu Nave)."),
+    ("simulador", "Simulador de Joran", "La sala de juegos de Joran, desde Ludo: cinco máquinas arcade, el <b>Simulador de vuelo</b> para repasar los temas, récords, Cuaderno de vuelo y la Galería."),
     ("mercado", "Mercado Estelar", "Donde gastas tus créditos: sobres, cápsulas, adornos para tu ficha y, al final del viaje, las subidas de nota."),
     ("zoco", "El Zoco", "El trueque con tu tripulación: pones cromos, héroes o participaciones y te ofrecen créditos u otras piezas."),
     ("rankings", "Rankings", "El tablero de tu grupo: varias clasificaciones distintas, siempre por alias."),
-    ("mas", "El botón «···»", "Esta guía, las dudas anónimas a NEBULA, el padlet de la clase, «¿Mi enlace abre lo mío?» y «No soy yo / salir»."),
+    ("mas", "El botón «···»", "Esta guía (con «¿Mi enlace abre lo mío?»), el sonido de las celebraciones y «No soy yo / salir»."),
 ]
 _GR_ABRE = {"nave": "Mi nave", "retos": "Mis retos", "botin": "Mi botín", "archivo": "El Archivo", "mercado": "el Mercado Estelar",
-            "rankings": "los Rankings", "heroes": "los héroes y las cápsulas", "adornos": "los adornos de tu ficha",
+            "rankings": "los Rankings", "simulador": "el Simulador de Joran", "heroes": "los héroes y las cápsulas", "adornos": "los adornos de tu ficha",
             "ofertas": "la oferta de la semana", "sorteo": "el Gran Sorteo", "zoco": "el Zoco", "logros": "los logros de a bordo",
             "simulador": "la sala de Joran", "arsenal": "las subidas de nota"}
 _gr_caps = "".join(
@@ -1129,7 +1130,7 @@ pestaña, cómo se registra un reto, qué cuenta para tu nota y en qué se gasta
 <nav class="guia-sub" aria-label="Secciones de la guía del recluta"><div class="wrap">
   <a href="#empezar">Primer día</a><a href="#nave">Tu Nave</a><a href="#semana">Cada semana</a><a href="#retos">Los retos</a>
   <a href="#nota">Tu nota</a><a href="#bitacora">La Bitácora</a><a href="#progreso">Niveles y créditos</a>
-  <a href="#botin">Tu botín</a><a href="#mercado">Mercado y Zoco</a><a href="#archivo">La historia</a><a href="#dudas">Dudas</a>
+  <a href="#botin">Tu botín</a><a href="#mercado">Mercado y Zoco</a><a href="#archivo">La historia</a><a href="#enlace">¿Mi enlace abre lo mío?</a><a href="#dudas">Dudas</a>
 </div></nav>
 
 <section id="empezar"><div class="wrap">
@@ -1274,11 +1275,12 @@ Lo ofrecido queda apartado hasta que se responde, y cada trato se cierra en poco
 <div class="eyebrow teal">La historia</div><h2>El Archivo, los juegos y los rankings</h2>
 <div class="gr-dos">
 <div>
-<p><b>El Archivo.</b> Todos los vídeos de la historia, en orden. Los <b>fragmentos</b> —el vídeo de cada tripulante de la
+<p><b>El Archivo.</b> Dos secciones: <b>Narrativa y vídeos</b> y <b>Sesiones de clase</b> (la presentación de la asignatura, cada semana
+tal como se vio en clase y la sesión de cada actividad, sin salir de tu Nave). Todos los vídeos de la historia, en orden. Los <b>fragmentos</b> —el vídeo de cada tripulante de la
 Tripulación Cero— <b>se ganan</b>: aparecen al completar el relámpago de su tema. Quien no lo hace, lo verá dos semanas más tarde.</p>
 <p><b>La Ruta de la Estática.</b> Al cerrar cada tema, una misión de nave de 3 minutos hasta el planeta siguiente: las preguntas se
 contestan pilotando. <b>Bronce</b> por llegar; <b>plata</b> y <b>oro</b>, por saber y por pilotar (dan xp y créditos una vez).</p>
-<p><b>La sala de Joran.</b> Desde Ludo: cinco máquinas arcade y el <b>Simulador de vuelo</b> para repasar. Sus hitos dan créditos
+<p><b>La sala de Joran.</b> Desde Ludo, en su propia pestaña, <b>Simulador de Joran</b>: cinco máquinas arcade y el <b>Simulador de vuelo</b> para repasar. Sus hitos dan créditos
 una vez; hay Cuaderno de vuelo, ranking de la clase, Salón de la fama y la Galería con los juegos de la tripulación.</p>
 <p><b>En directo y el Asedio.</b> Al final de clase, tras el ticket, se juega todos juntos desde el móvil. Y en la semana 11, tu
 escuadrón contra los demás: el Asedio, de lunes a lunes.</p>
@@ -1291,6 +1293,14 @@ escuadrón contra los demás: el Asedio, de lunes a lunes.</p>
 </div>
 </div></section>
 
+<section id="enlace"><div class="wrap">
+<div class="eyebrow">Antes de entregar</div><h2>¿Mi enlace abre lo mío?</h2>
+<p>Cada reto se registra con un <b>enlace</b> a lo que has hecho. Si ese enlace solo lo abres tú, tu Comandante verá una pantalla de
+«solicitar acceso» y el reto no se puede validar. Antes de registrar, <b>ábrelo en una ventana de incógnito</b>: si ves tu trabajo, está bien.</p>
+<p>En Google Drive, Docs o Canva: <b>Compartir → Cualquier persona con el enlace → Lector</b>. En Genially, publícalo y copia el enlace
+público. <a href="ayuda.html">La guía completa, paso a paso para cada herramienta →</a></p>
+</div></section>
+
 <section id="dudas"><div class="wrap">
 <div class="eyebrow">Dudas</div><h2>Cuando algo no sale</h2>
 <details class="faq"><summary>No puedo entrar, o entro y no veo mi Nave</summary><div>Casi siempre es la cuenta: entra con la <b>misma cuenta de Google con la que te alistaste</b>. En el menú «···» de tu Nave está «No soy yo / salir» para cambiarla. Si nunca te alistaste, te pedirá el código de clase.</div></details>
@@ -1299,7 +1309,7 @@ escuadrón contra los demás: el Asedio, de lunes a lunes.</p>
 <details class="faq"><summary>Me he equivocado al registrar un reto</summary><div>Díselo a tu docente: puede anularlo desde tu ficha, con su porqué.</div></details>
 <details class="faq"><summary>¿Quién ve mi nombre real?</summary><div><b>Solo el profesorado.</b> Tu clase te ve por tu alias: en los rankings, en las reflexiones y en el Zoco.</div></details>
 <details class="faq"><summary>¿Puedo perder xp?</summary><div>No. Los xp solo suben. Lo que se gasta son los créditos.</div></details>
-<details class="faq"><summary>Tengo una duda de la asignatura</summary><div>Pregúntala en clase, o en «Dudas a NEBULA» (menú «···»): es <b>anónimo</b> y no lo ve tu clase.</div></details>
+<details class="faq"><summary>Tengo una duda de la asignatura</summary><div>Pregúntala en clase o en el foro de la plataforma de UNIR. Y para repasar lo visto: <b>El Archivo → Sesiones de clase</b>, con la presentación, cada semana y cada actividad.</div></details>
 <p class="small muted" style="margin-top:18px">Qué datos se guardan y quién los ve: <a href="privacidad.html">privacidad</a>.</p>
 </div></section>
 ''' + FOOT

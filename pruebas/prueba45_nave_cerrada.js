@@ -26,7 +26,7 @@ c(/root\.innerHTML = avisoDemo \+ \(dentro/.test(R),
   "🔴 la Nave solo se pinta entera si el recluta está identificado");
 c(/var dentro\s*=\s*!!st\.yo/.test(R),
   "   y «dentro» es exactamente «tengo ficha», no una bandera aparte");
-c(/verTablero\(dentro && st\.tab==='rankings'\)/.test(R),
+c(/verTablero\(dentro && st\.tab==='rankings' && tabVisible\('rankings'\)\)/.test(R) && /verSimulador\(dentro && st\.tab==='simulador'/.test(R),
   "🔴 el tablero tampoco se enseña sin identificarse");
 
 // ---------------------------------------------------------------- b) ni un enlace a formulario antes del correo
@@ -43,8 +43,9 @@ c(/var altaUrl = motorNuevo\(\)/.test(R),
 // que se pinta en `pestanas()` — y `pestanas()` sigue estando SOLO en la rama «dentro». La puerta
 // no se ha movido, se ha movido el picaporte.
 const menu = R.slice(R.indexOf("function menuMas()"), R.indexOf("function menuMas()") + 3000);   // (26-sep · el menú creció: la presentación y las actividades)
+// 28-sep · el menú se queda con la guía (y la cuenta): los formularios de antes ya no se pintan
 ["formBitacora", "formCanje", "formTicket"].forEach(function(k){
-  c(menu.indexOf(k) >= 0, "«" + k + "» se pinta en el menú de la barra, que vive detrás de la puerta");
+  c(menu.slice(0, menu.indexOf("function contenido")).indexOf(k) < 0, "«" + k + "» ya no sale en el menú «···» (solo la guía del recluta)");
 });
 c(R.indexOf("function accesos()") < 0, "y la parrilla vieja ya no existe: un sitio menos donde se escape un enlace");
 
