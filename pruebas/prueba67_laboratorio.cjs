@@ -2794,7 +2794,7 @@ const REG = {};   // cifras que se apuntan para el informe
         /^<iframe src="http:\/\/[^"]+\/sesion\.html\?embed=1"/.test(cod) && /allowfullscreen/.test(cod), cod.slice(0, 120));
       // 16-sep · son SEIS: la sesión partida en dos (apertura y cierre), la sesión entera, el aula, la llamada y la batalla
       c("embed · y va una sola vez para todos los grupos, no repetido en cada tarjeta",
-        await rita.js("document.querySelectorAll('.gp-gen').length===1 && document.querySelectorAll('.gp-gen [data-embed]').length===7"));   // 23-sep · + el tablero, universal
+        await rita.js("document.querySelectorAll('.gp-gen').length===1 && document.querySelectorAll('.gp-gen [data-embed]').length>=7"));   // 26-sep · + la presentación y las actividades   // 23-sep · + el tablero, universal
       // 19-sep · el código de clase: en el Puente solo las tres primeras semanas; después (lab-clase va por la 10), en «Mi gente»
       await rita.ir("consola.html?per=lab-clase"); await rita.hasta("!!document.querySelector('.gr-banner')", 60);
       c("código · no sale en el Puente ninguna semana (vive en «Reclutas»)", await rita.js("!document.querySelector('.pt .gp-cod')"));
@@ -2831,12 +2831,14 @@ const REG = {};   // cifras que se apuntan para el informe
       // (15-sep · entre la llamada y el vídeo, «El mensaje»: el del foro, como apertura de saga)
       // 20-sep · la semana 10 abre tema (el 6) y también lo cierra: por eso lleva «Cómo os fue» y «Vuestras dudas»
       // detrás de la llamada, y el «Ticket de salida» embebido de última (el ticket se rellena al ACABAR el tema).
-      const sinTk = rots.filter(x => ["Cómo os fue", "Vuestras dudas", "Ticket de salida"].indexOf(x) < 0);
+      // (27-sep · al cerrar el tema, tras el cierre del planeta van la misión de la Ruta, el ticket y el juego En directo)
+      const sinTk = rots.filter(x => ["Cómo os fue", "Vuestras dudas", "Ticket de salida", "La Ruta", "En directo"].indexOf(x) < 0);
       c("🔴 sesión · empieza por la portada, la llamada a filas y el mensaje; luego el vídeo; y el de cierre va lo último (semana 10)",
         sinTk[0] === "Portada" && sinTk[1] === "Llamada a filas" && sinTk[2] === "El mensaje" && sinTk[3] === "Rumbo al planeta"   /* 24-sep · la intro del tema, con su nombre */
         && sinTk[sinTk.length - 1] === "Cierre del planeta" && sinTk.indexOf("Tu ejemplo") < 0 && sinTk.indexOf("El despegue") < 0, JSON.stringify(rots));   // 23-sep · dentro del Genially, el despegue ES el Genially
       c("🔴 sesión · y el ticket: el resumen y las dudas al principio, el formulario al final del todo",
-        rots[2] === "Cómo os fue" && rots[3] === "Vuestras dudas" && rots[rots.length - 1] === "Ticket de salida", JSON.stringify(rots.slice(0, 5)) + " … " + rots[rots.length - 1]);
+        rots[2] === "Cómo os fue" && rots[3] === "Vuestras dudas" && rots[rots.length - 2] === "Ticket de salida" && rots[rots.length - 1] === "En directo",   // (27-sep · y detrás, el juego)
+        JSON.stringify(rots.slice(0, 5)) + " … " + rots.slice(-2).join(", "));
       const ir_ = async t => f2.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return x.getAttribute('title')===${JSON.stringify(t)}})[0]; if(b){ b.click(); return 1; } return 0; })()`);
       // la llamada a filas, tocada DESDE la sesión, y la gente entrando con su cara
       for (const d of (await fs.collection("attendance_sessions").where("projectId", "==", P).where("active", "==", true).get()).docs) await d.ref.update({ active: false });
