@@ -2258,6 +2258,8 @@
        */
       +(!st.alumno&&st.per&&st.yo?'<button type="button" class="ses-aula-b" id="ses-aula-b" title="Herramientas de clase: quién ha fichado, al azar, pregunta, votación, premios y el tiempo">'
         +'<img src="assets/img/nave/iconos/clase.png" alt="" width="18" height="18"><span>Herramientas</span></button>':'')
+      // 28-sep · NEBULA, otra vez: repite la guía de lo que hay en pantalla (la primera vez sale sola)
+      +(!st.alumno&&st.per&&st.yo&&window.SG&&SG.GUIA?'<button type="button" class="ses-ic ses-guia" id="ses-guia" title="Guíame otra vez (NEBULA)" aria-label="Guíame otra vez"><img src="assets/img/personajes/nebula.png" alt="" width="20" height="20" style="object-fit:contain"></button>':'')
       +'<button type="button" class="ses-ic" id="ses-pantalla" title="'+(fs?'Salir de pantalla completa (F)':'Pantalla completa (F)')+'" aria-label="'+(fs?'Salir de pantalla completa':'Pantalla completa')+'">'+(fs?IC_SALIR:IC_PANTALLA)+'</button>'
       +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div></div>';
   }
@@ -2482,7 +2484,87 @@
     var dia=lienzo.firstElementChild; if(dia) dia.classList.add('entra');
     frags();
     if(sl.montar){ try{ st.fuera=sl.montar(lienzo)||null; }catch(e){ st.fuera=null; } }
+    guiar(false);
   }
+
+  /**
+   * 🔴 28-sep · NEBULA GUÍA AL DOCENTE, DENTRO DE LA SESIÓN EN DIRECTO (el motor: assets/js/guia-docente.js). Norberto:
+   * «la primera vez que se lanza un juego, que aparezca NEBULA y vaya resaltando lo que debe pulsar; la siguiente,
+   * invítale a cambiar de juego; la tercera, déjale explorar». Así con todo lo que el docente CONFIGURA en clase:
+   *   · n0 = la primera vez: paso a paso, señalando qué pulsar (avanza sola al pulsarlo);
+   *   · n1 = la segunda: una sola invitación a probar otra cosa;
+   *   · desde la tercera, nada (el botón de NEBULA de arriba la repite cuando quiera).
+   * Cuenta un USO, no una visita: lanzar el juego, tocar la llamada, abrir las Herramientas… (uso). Si pasa de largo, la
+   * próxima vez vuelve a salir. `cuando(sl)` dice en qué diapositivas sale; las generales (sin k) salen en cualquiera.
+   */
+  var JUEGO='iframe.ru-juego', AULA='#ses-aula iframe';
+  var GUIAS=[
+    { k:'directo', titulo:'El juego del final', uso:{marco:JUEGO, sel:'#b-lanzar'},
+      n0:[
+        {marco:JUEGO, sel:'#atajos', espera:true, ms:20000, t:'Hoy toca el <b>juego del final</b>. Para empezar fácil, pulsa <b>«Clásico»</b>: Defensa, 3 minutos, las preguntas del tema de la semana.'},
+        {marco:JUEGO, sel:'#qr', t:'Tu clase entra desde su <b>Nave</b> (pestaña «En vivo», si estás emitiendo) o con este <b>QR</b>. No hay que escribir ningún código.'},
+        {marco:JUEGO, sel:'#jugadores', t:'Aquí van apareciendo. Si esta clase tiene ticket, entran al marcar <b>«Ya he hecho mi ticket»</b>.'},
+        {marco:JUEGO, sel:'#b-lanzar', espera:true, ms:600000, t:'Cuando estén dentro, pulsa <b>«Lanzar»</b>.'},
+        {marco:JUEGO, sel:'#mando', ms:30000, t:'Tu <b>Mando</b>: ±20 s, más fácil o más difícil, el <b>cañón de plasma</b> (tres) y <b>reparar</b>. Si les ves apurados, échales una mano: les llega el aviso al móvil.'}
+      ],
+      n1:[{marco:JUEGO, sel:'#modos', t:'¿Probamos <b>otro juego</b>? La <b>Caza</b> es todos contra todos; el <b>Duelo</b>, dos escuadrones que tiran de una baliza. Elige uno aquí.'}] },
+    { k:'llamada', titulo:'La llamada a filas', uso:{sel:'#ses-ll-tocar'},
+      n0:[
+        {sel:'#ses-ll .ll-m', t:'La <b>llamada a filas</b>: tu clase ficha desde su Nave y gana xp. Elige cuánto tiempo queda abierta (30 min va bien).'},
+        {sel:'#ses-ll-sobre', t:'Opcional: marca esto y quien fiche se lleva además un <b>sobre</b> de cromos.'},
+        {sel:'#ses-ll-tocar', espera:true, ms:120000, t:'Pulsa <b>«Tocar llamada a filas»</b>.'},
+        {sel:'#ses-ll-gente', ms:8000, t:'Van apareciendo sus caras al fichar. La llamada se cierra sola; o ciérrala tú cuando quieras.'}
+      ],
+      n1:[{sel:'#ses-ll-sobre', t:'¿Y si hoy regalas un <b>sobre</b> a quien fiche? Marca esto antes de tocar la llamada.'}] },
+    { k:'', clave:'relampago', pri:1, titulo:'El reto relámpago', cuando:function(){ return !!document.querySelector('.rel-crono [data-rc="go"]'); }, uso:{sel:'.rel-crono [data-rc="go"]'},
+      n0:[{sel:'.rel-crono [data-rc="go"]', espera:true, ms:600000, t:'Este reto es <b>relámpago</b>: se hace en clase. Cuando lo lances, pulsa <b>«Empezar»</b> y toda la clase verá la cuenta atrás.'}] },
+    { k:'asedio', titulo:'El Asedio', cuando:function(){ var f=document.querySelector(JUEGO); return !!(f&&/vista=lanza/.test(f.src)); }, uso:'visto',
+      n0:[{marco:JUEGO, sel:'#v-lanza .reglas', t:'El <b>Asedio</b> se abre <b>solo</b> el lunes de esta semana y se cierra el lunes siguiente: tú solo lo presentas. Los premios se pagan solos al cerrarse.'},
+          {marco:JUEGO, sel:'#v-lanza details.mas', t:'Si quieres probarlo antes o moverlo, aquí puedes <b>abrirlo o cerrarlo a mano</b>.'}] },
+    // las generales: en cualquier diapositiva, cuando no hay otra
+    { k:'', clave:'proyectar', titulo:'Antes de empezar', uso:{sel:'#proyectar'}, cuando:function(){ return !EMBED && !document.fullscreenElement && !!document.querySelector('#proyectar'); },
+      n0:[{sel:'#proyectar', t:'Cuando empiece la clase, pulsa <b>«Proyectar»</b>: la sesión a pantalla completa, y tu clase la sigue desde su Nave, en la misma diapositiva que tú.'}] },
+    { k:'', clave:'herramientas', titulo:'Tus herramientas', uso:{sel:'#ses-aula-b'}, cuando:function(){ return !!document.querySelector('#ses-aula-b'); },
+      n0:[
+        {sel:'#ses-aula-b', espera:true, ms:60000, t:'Todo lo de clase está en un botón: <b>Herramientas</b>. Púlsalo.'},
+        {marco:AULA, sel:'[data-au="premios"]', ms:15000, t:'<b>Premiar</b>: a quien quieras, a los presentes o uno al azar.'},
+        {marco:AULA, sel:'[data-au="pregunta"]', t:'<b>Pregunta</b>: lanzas una pregunta y ves sus respuestas en directo.'},
+        {marco:AULA, sel:'[data-au="voto"]', t:'<b>Votación</b>: la clase decide.'},
+        {marco:AULA, sel:'[data-au="tiempo"]', t:'<b>Tiempo</b>: un reloj que ve toda la clase. Ciérralo con la X o Esc.'}
+      ],
+      n1:[{sel:'#ses-aula-b', t:'¿Lanzas hoy una <b>pregunta en directo</b>? <b>Herramientas → Pregunta</b>: la clase responde desde el móvil.'}] }
+  ];
+  var guiaLista=false, guiaVista={}, guiaUsos={};
+  var claveGuia=function(g){ return g.clave||g.k; };
+  function esDocenteEnSesion(){ return !st.alumno && !!st.per && !!st.yo && !!(window.SG && SG.GUIA); }
+  // contar el uso (una vez por página y guía): lanzar, tocar, abrir…
+  function vigilarUso(g){
+    var c=claveGuia(g); if(guiaUsos[c]) return; guiaUsos[c]=true;
+    if(g.uso==='visto') return;
+    SG.GUIA.alPulsar(g.uso, function(){ SG.GUIA.anotar(c); });
+  }
+  function guiar(forzar){
+    if(!esDocenteEnSesion()) return;
+    if(!guiaLista){ guiaLista=true; SG.GUIA.cargar(st.yo).then(function(){ guiar(forzar); }); return; }
+    // se deja un respiro: el marco del juego o las Herramientas tardan en pintarse
+    setTimeout(function(){
+      var sl=st.slides[st.i]; if(!sl) return;
+      if(SG.GUIA.activa() && !forzar) return;
+      var cands=GUIAS.filter(function(g){ return (g.k ? g.k===sl.k : true) && (!g.cuando || g.cuando(sl)); });
+      // primero las de esta diapositiva; las generales, solo si no hay otra
+      cands.sort(function(a,b){ return (b.k||b.pri?1:0)-(a.k||a.pri?1:0); });
+      cands.forEach(vigilarUso);
+      for(var j=0;j<cands.length;j++){
+        var g=cands[j], c=claveGuia(g), v=SG.GUIA.veces(c), pasos=forzar?g.n0:(v===0?g.n0:v===1?g.n1:null);
+        if(!pasos || (!forzar && guiaVista[c])) continue;
+        guiaVista[c]=true;
+        SG.GUIA.recorrido(pasos, { titulo:g.titulo, alAcabar:function(){ if(g.uso==='visto') SG.GUIA.anotar(c); }, alSaltar:function(){ if(g.uso==='visto') SG.GUIA.anotar(c); } });
+        return;
+      }
+      if(forzar) SG.GUIA.recorrido([{t:'En esta diapositiva no hay nada que configurar. Pasa con <b>→</b>; cuando llegue algo nuevo, te lo enseño.'}], {titulo:'Todo en orden'});
+    }, forzar?50:1200);
+  }
+  document.addEventListener('click', function(ev){ var b=ev.target.closest&&ev.target.closest('#ses-guia'); if(b){ ev.preventDefault(); guiar(true); } });
   function frags(){
     var lienzo=root.querySelector('.lienzo'); if(!lienzo) return;
     Array.prototype.forEach.call(lienzo.querySelectorAll('[data-f]'),function(x){ x.classList.toggle('on', Number(x.getAttribute('data-f'))<=st.f); });

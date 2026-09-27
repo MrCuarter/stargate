@@ -43,6 +43,15 @@ c(/import\('\.\/datos\.js(\?v=[0-9a-f]{10})?'\)/.test(L("juegos/ruta/juego.js"))
       while ((m = REF.exec(t))) { const v = /[?&]v=([0-9a-f]{10})$/.exec(m[3] || ""); if (!v) sinV.push(r + " → " + m[2]); else otras.add(v[1]); } } } })("juegos");
   c(/^[0-9a-f]{10}$/.test(JV || "") && !sinV.length && otras.size === 1 && otras.has(JV), "🔴 cada fichero de juegos/ se pide con la huella ?v= del build (y la misma que llevan los enlaces de la Nave)" + (sinV.length ? ": " + sinV.slice(0, 3).join(", ") : ""));
 }
+// 🔴 28-sep · NEBULA GUÍA AL DOCENTE EN LA SESIÓN: el motor se carga, y hay guía para el juego, la llamada, el relámpago,
+// el Asedio, proyectar y las Herramientas (paso a paso la 1.ª vez, una invitación la 2.ª, nada después)
+{
+  const SESH = L("sesion.html"), SESJ = L("assets/js/sesion.js"), GD = L("assets/js/guia-docente.js");
+  c(/assets\/js\/guia-docente\.js\?v=/.test(SESH) && SESH.indexOf("guia-docente.js") < SESH.indexOf("assets/js/sesion.js"), "🔴 la sesión carga el motor de la guía de NEBULA (antes que sesion.js)");
+  c(["directo", "llamada", "relampago", "asedio", "proyectar", "herramientas"].every((k) => new RegExp("(k|clave):'" + k + "'").test(SESJ)) && /v===0\?g\.n0:v===1\?g\.n1:null/.test(SESJ),
+    "   guías: juego, llamada, relámpago, Asedio, proyectar y Herramientas; 1.ª vez paso a paso, 2.ª invitación, luego nada");
+  c(/stargate_profes/.test(GD) && /guia:/.test(GD) && /fullscreenElement/.test(GD), "   cuenta por docente (en su ficha) y se ve también a pantalla completa");
+}
 const SJ = global(SH, "SG_SALA_JORAN") || {};
 // 28-sep · cinco arcade: La conquista de Fôrge, tras El Descenso; cada una se enciende con la PLATA de la anterior
 const MQ = SJ.maquinas || [], ARC = MQ.filter((m) => m[0] !== "vuelo");
