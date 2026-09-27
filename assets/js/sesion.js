@@ -74,6 +74,9 @@
    * de la semana en curso, lleva el panel de Genially de SU Comandante y quita lo que solo tiene sentido en directo.
    */
   var DIFERIDO = q.get('diferido') === '1';
+  // 28-sep · desde el Archivo de la Nave se llega con la sesión ya elegida (&sem= / &pres= / &act=): se abre EN ella, no en
+  // el índice de semanas (que sigue siendo la diapositiva 0, a un paso atrás o en la barra de abajo)
+  var DIF_ELEGIDA = DIFERIDO && !!(q.get('sem') || q.get('pres') || q.get('act'));
   var SOLO_EN_DIRECTO = ['llamada', 'unete', 'alistaos'];
   var DIRECTO = { on:false, t:null, ultimo:'' }, SEG = { on:true, d:{}, parar:null, mia:null, miaDe:'' };
 
@@ -2352,7 +2355,7 @@
         }).join('')+'</div></div>',
       montar:function(el){
         Array.prototype.forEach.call(el.querySelectorAll('[data-dif-sem]'), function(b){
-          b.onclick=function(){ irASesion(Number(b.getAttribute('data-dif-sem')), 1); };   // (a su primera diapositiva: la 0 es este índice)
+          b.onclick=function(){ DIF_ELEGIDA=false; irASesion(Number(b.getAttribute('data-dif-sem')), 1); };   // (a su primera diapositiva: la 0 es este índice)
         });
         Array.prototype.forEach.call(el.querySelectorAll('[data-dif-act]'), function(b){
           b.onclick=function(){ irASesion('a'+b.getAttribute('data-dif-act'), 1); };
@@ -2428,6 +2431,7 @@
     st.slides=st.act?construirActividad(st.act):st.pres&&hayPresentacion()?construirEmbarque(lista[0]||s,n):construir(s,n);
     if(DIFERIDO&&st.alumno&&!st.pres&&!st.act) st.slides=paraDiferido(st.slides, s);   // 26-sep · menos paja para el recluta
     if(DIFERIDO) st.slides=[diaSemanas(lista)].concat(st.slides);   // 25-sep · en diferido, el índice de semanas delante
+    if(DIF_ELEGIDA && st.i===0 && st.slides.length>1) st.i=1;
     if(st.i>=st.slides.length) st.i=st.slides.length-1;
     if(st.i<0) st.i=0;
     if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }

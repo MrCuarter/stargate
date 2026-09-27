@@ -685,11 +685,18 @@ const REG = {};   // cifras que se apuntan para el informe
         JSON.stringify(suyas.map(x => x.stargateReto + ":" + x.enlace)));
       // se lo gasta en sobres
       let sobres = 0;
-      for (let k = 0; k < 6; k++) {   // 28-sep · 6 sobres (sin tope junta cientos de créditos: gastarlos todos eran 30 min)
-        const f = await fichaDe("beto@lab.test", "lab-clase"); if (f.coins < 15) break;
+      // 28-sep · sin tope junta cientos de créditos: se gasta hasta quedarse por debajo de lo que le dio su mejor reto (lo que
+      // necesita la prueba siguiente, «deshacer un reto cuyos créditos ya gastó»), y con el sobre MÁS CARO que pueda pagar
+      const MIS = await consultar("missions", "projectId", "lab-clase");
+      const f1b = await fichaDe("beto@lab.test", "lab-clase");
+      const meta = Math.max(15, ...(f1b.completedMissionIds || []).map(id => MIS.find(m => m._id === id)).filter(m => m && /^[ABX]\d/.test(m.stargateId || "")).map(m => Number(m.coinsReward || 0)));
+      for (let k = 0; k < 40; k++) {
+        const f = await fichaDe("beto@lab.test", "lab-clase"); if (f.coins < 15 || f.coins < meta) break;
         await beto.ir("recluta.html?per=lab-clase#mercado");
         await beto.hasta("!!document.querySelector('button[data-canje]')", 15);
-        const ok = await beto.js(`(function(){ var b=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(x){return /Sobre de cromos/.test(x.getAttribute('data-nombre')||'') && !/^oferta/.test(x.getAttribute('data-tipo')||'')})[0]; if(!b) return false; b.click(); return true; })()`);
+        const ok = await beto.js(`(function(){ var bs=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(x){return /^Sobre/.test(x.getAttribute('data-nombre')||'') && !/^oferta/.test(x.getAttribute('data-tipo')||'') && !x.disabled && Number(x.getAttribute('data-coste')||0)<=${f.coins}});
+          var orden=['Sobre épico','Sobre de raras','Sobre grande','Sobre de cromos']; bs.sort(function(a,b){ var i=orden.findIndex(function(o){return (a.getAttribute('data-nombre')||'').indexOf(o)===0}), j=orden.findIndex(function(o){return (b.getAttribute('data-nombre')||'').indexOf(o)===0}); return (i<0?9:i)-(j<0?9:j); });
+          var b=bs[0]; if(!b) return false; b.click(); return true; })()`);
         if (!ok) break;
         await beto.hasta("!!document.querySelector('.neb-capa')", 8);
         const conf = await beto.js("(function(){var c=document.querySelector('.neb-capa'); if(!c) return 'sin ventana'; var b=[].slice.call(c.querySelectorAll('button')).filter(function(x){return /canjear/i.test(x.textContent)})[0]; if(!b) return 'NO:'+c.innerText.replace(/\\s+/g,' ').slice(0,160); b.click(); return 'ok';})()");
@@ -1409,7 +1416,9 @@ const REG = {};   // cifras que se apuntan para el informe
     if (hacer(19)) {
       const nora = await nueva("Nora recorre las semanas");
       c("semanas · Nora se alista", await alistar(nora, "nora@lab.test", "Nora Prueba", "Nora Nébula", 0));
-      const tabs = () => nora.js("[].slice.call(document.querySelectorAll('.nb-t')).map(function(b){return b.getAttribute('data-tab')})");
+      // 28-sep · la barra enseña TODAS las pestañas; las cerradas, apagadas (.bloq): aquí cuentan las abiertas
+      const tabs = () => nora.js("[].slice.call(document.querySelectorAll('.nb-t:not(.bloq)')).map(function(b){return b.getAttribute('data-tab')})");
+      const cerradas = () => nora.js("[].slice.call(document.querySelectorAll('.nb-t.bloq')).map(function(b){return b.getAttribute('data-tab')})");
       const paso = () => nora.js(`(function(){var o=document.querySelector('#nave-onboard.open'); if(!o) return null;
         return {n:o.querySelector('.tour-step').textContent, t:o.querySelector('h3').textContent};})()`);
       // semana 1
@@ -1417,7 +1426,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await nora.hasta("document.querySelectorAll('.nb-t').length>0", 25);
       const t1 = await tabs();
       // 🔴 20-sep · «El Archivo» está desde el primer día: los vídeos se coleccionan aunque casi todos estén cerrados
-      c("🔴 semana 1 · solo Mi nave, Mis retos, Mi botín y El Archivo (ni Mercado ni rankings)", JSON.stringify(t1) === JSON.stringify(["nave", "retos", "botin", "archivo"]), JSON.stringify(t1));
+      c("🔴 semana 1 · abiertas solo Mi nave, Retos, Botín y Archivo (Mercado y Rankings, a la vista pero cerradas)", JSON.stringify(t1) === JSON.stringify(["nave", "retos", "botin", "archivo"])
+        && JSON.stringify(await cerradas()) === JSON.stringify(["mercado", "rankings"]), JSON.stringify(t1));
       c("semana 1 · una línea dice qué llega: «La semana que viene: 🛒 El Mercado Estelar»", /La semana que viene: .*Mercado Estelar/.test(await nora.texto()));
       await nora.hasta("!!document.querySelector('#nave-onboard.open')", 15);
       const q1 = await paso();
@@ -1426,7 +1436,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await nora.foto(FOTOS + "/19-semana1.png");
       // se intenta ir al Mercado a mano: no existe todavía
       await nora.ir("recluta.html?per=lab-clase&semana=1#mercado"); await nora.hasta("document.querySelectorAll('.nb-t').length>0", 25); await dormir(1200);
-      c("semana 1 · un enlace a #mercado aterriza en Mi nave", (await nora.js("(document.querySelector('.nb-t.on')||{}).getAttribute ? document.querySelector('.nb-t.on').getAttribute('data-tab') : ''")) === "nave");
+      // 28-sep · y un enlace a #mercado enseña qué es y cuándo llega (no el Mercado)
+      c("semana 1 · un enlace a #mercado enseña «Aún cerrado» y cuándo se abre", await nora.hasta("!!document.querySelector('.tab-bloq') && /Se abre en la/.test(document.querySelector('.tab-bloq').textContent) && !document.querySelector('button[data-canje]')", 10));
       /**
        * 🔴 Cada semana, en un navegador NUEVO (como otro ordenador: los capítulos los sabe su ficha). Y
        * no es solo por eso: con el emulador local (HTTP/1.1), tras escribir en una página, la siguiente
@@ -1578,7 +1589,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const rot = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
       // (14-sep · «El plan de hoy» ya no va aparte: Norberto eligió juntarlo con las misiones)
       c("🔴 sesión · la semana 2 lleva «Lo nuevo» y «Enséñalo», justo antes de las misiones de hoy",
-        rot.indexOf("Tu Nave, más grande") > 1 && rot.indexOf("Enséñalo") === rot.indexOf("Tu Nave, más grande") + 1 && rot.indexOf("Misión 1") > rot.indexOf("Enséñalo"), JSON.stringify(rot));
+        rot.indexOf("Novedades") > 1 && rot.indexOf("Enséñalo") === rot.indexOf("Novedades") + 1 && rot.indexOf("Misión 1") > rot.indexOf("Enséñalo"), JSON.stringify(rot));
       /**
        * 🔴 21-sep · LA MISIÓN MAYOR. Norberto: «en las sesiones en vivo de los temas 1 y 3 añade un par de diapositivas
        * explicando la actividad que toca… es importante que aparezcan los retos relacionados para que vean que los
@@ -1638,7 +1649,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // (y de vuelta a la semana 2, que es la que miran las comprobaciones de «Lo nuevo» que vienen detrás)
       await rita.ir("sesion.html?per=lab-clase&sem=2");
       await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
-      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Tu Nave, más grande'})[0].click(); 1"); await dormir(700);
+      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Novedades'})[0].click(); 1"); await dormir(700);
       c("sesión · «🔓 Se abre esta semana en STARGATE: El Mercado Estelar», con lo que se puede hacer", /Se abre esta semana/i.test(await rita.texto()) && /sobres de cromos/i.test(await rita.texto()));
       await rita.foto(FOTOS + "/21-sesion-lo-nuevo.png");
       await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Enséñalo'})[0].click(); 1"); await dormir(700);
@@ -1653,7 +1664,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // (16-sep · de la 1 a la 9 cada semana abre algo: la que no abre nada es la 10)
       await rita.ir("sesion.html?per=lab-clase&sem=10"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
       const rot6 = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
-      c("sesión · una semana que no abre nada no lleva esas diapositivas (la 10)", rot6.indexOf("Tu Nave, más grande") < 0, JSON.stringify(rot6));
+      c("sesión · una semana que no abre nada no lleva esas diapositivas (la 10)", rot6.indexOf("Novedades") < 0, JSON.stringify(rot6));
     }
 
     // ============================================================ 22 · EL ZOCO ESTELAR, TODAS LAS COMBINACIONES
@@ -2381,9 +2392,9 @@ const REG = {};   // cifras que se apuntan para el informe
       const ses = await nueva("Rita proyecta la semana en que abrió el Arsenal");
       await ses.ir("entrar.html"); await ses.entrarComo("rita@lab.test", "Rita Referente");
       await ses.ir("sesion.html?per=" + P + "&sem=" + semHoy); await ses.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
-      await ses.hasta("[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Tu Nave, más grande'})", 20);
+      await ses.hasta("[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Novedades'})", 20);
       // (solo se pinta la diapositiva en pantalla: se pulsa cada «Lo nuevo» y se lee lo que sale)
-      const loNuevo = await ses.js("(function(){ var t=''; [].slice.call(document.querySelectorAll('.barra-pasos .p')).forEach(function(b){ if(b.getAttribute('title')==='Tu Nave, más grande'){ b.click(); var d=document.querySelector('.lienzo .dia.nuevo-nave'); t+=(d?d.textContent:'')+' | '; } }); return t; })()");
+      const loNuevo = await ses.js("(function(){ var t=''; [].slice.call(document.querySelectorAll('.barra-pasos .p')).forEach(function(b){ if(b.getAttribute('title')==='Novedades'){ b.click(); var d=document.querySelector('.lienzo .dia.nuevo-nave'); t+=(d?d.textContent:'')+' | '; } }); return t; })()");
       c("calendario · la sesión proyectada de ESTA semana presenta el Arsenal abierto antes de tiempo («Lo nuevo»)", /Arsenal/.test(loNuevo), loNuevo.slice(0, 200));
       await ses.cerrar();
       c("🔴 calendario · el cierre de retos y el de canje, una semana más tarde", S1.cierre === SS.masDias(S0.cierre, 7) && S1.cierreCanje === SS.masDias(S0.cierreCanje, 7),
@@ -3148,7 +3159,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const ses = await nueva("Rita proyecta la semana 7");
       await ses.ir("entrar.html"); await ses.entrarComo("rita@lab.test", "Rita Referente");
       await ses.ir("sesion.html?per=" + P + "&sem=7"); await ses.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
-      const loN = await ses.js("(function(){ var t=''; [].slice.call(document.querySelectorAll('.barra-pasos .p')).forEach(function(b){ if(b.getAttribute('title')==='Tu Nave, más grande'){ b.click(); var d=document.querySelector('.lienzo .dia.nuevo-nave'); t+=(d?d.textContent:'')+' | '; } }); return t; })()");
+      const loN = await ses.js("(function(){ var t=''; [].slice.call(document.querySelectorAll('.barra-pasos .p')).forEach(function(b){ if(b.getAttribute('title')==='Novedades'){ b.click(); var d=document.querySelector('.lienzo .dia.nuevo-nave'); t+=(d?d.textContent:'')+' | '; } }); return t; })()");
       c("cofres · la sesión de la semana 7 presenta «El Hangar de las Leyendas»", /Hangar de las Leyendas/.test(loN), loN.slice(0, 160));
       await ses.cerrar();
     }
@@ -4202,8 +4213,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1");
       // «organiza lo que desbloqueamos cada semana»: la sesión de la semana 7 los presenta, y el simulacro, con NEBULA
       await rita.ir("sesion.html?per=" + P + "&sem=9"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 40);
-      const nuevo = await rita.js("!!document.querySelector('.barra-pasos .p[title=\"Tu Nave, más grande\"]')");
-      if (nuevo) { await rita.js("document.querySelector('.barra-pasos .p[title=\"Tu Nave, más grande\"]').click(); 1"); await dormir(1200); }
+      const nuevo = await rita.js("!!document.querySelector('.barra-pasos .p[title=\"Novedades\"]')");
+      if (nuevo) { await rita.js("document.querySelector('.barra-pasos .p[title=\"Novedades\"]').click(); 1"); await dormir(1200); }
       c("🔴 sesión · la semana 9 presenta «Los logros de a bordo» en «Lo nuevo», con su imagen", nuevo
         && /Los logros de a bordo/.test(await rita.js("(document.querySelector('.dia.nuevo-nave')||{}).textContent||''"))
         && await rita.js("!!document.querySelector('.dia.nuevo-nave img.nn-img[src*=\"logros\"]')"));

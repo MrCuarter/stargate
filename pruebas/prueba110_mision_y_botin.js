@@ -39,7 +39,9 @@ c(/\} else if\(SEGUIR \|\| DIFERIDO\)\{/.test(SES), "🔴 la sesión en diferido
 c(/if\(DIFERIDO\) st\.slides=\[diaSemanas\(lista\)\]\.concat\(st\.slides\);/.test(SES), "🔴 en diferido, la primera diapositiva es el índice de semanas");
 c(/function diaSemanas\(lista\)/.test(SES) && /k===hoy\?' hoy'/.test(SES) && /abierta=k<=hoy/.test(SES) && /dif-candado/.test(SES),
   "   la de esta semana brilla, las llegadas se abren y las que faltan llevan candado");
-c(/b\.onclick=function\(\)\{ irASesion\(Number\(b\.getAttribute\('data-dif-sem'\)\), 1\); \};/.test(SES), "   y pulsar una lleva a su primera diapositiva (la 0 es el índice)");
+c(/b\.onclick=function\(\)\{ DIF_ELEGIDA=false; irASesion\(Number\(b\.getAttribute\('data-dif-sem'\)\), 1\); \};/.test(SES), "   y pulsar una lleva a su primera diapositiva (la 0 es el índice)");
+// 28-sep · desde el Archivo de la Nave, con la sesión ya elegida, se abre EN ella (no en el índice)
+c(/var DIF_ELEGIDA = DIFERIDO && !!\(q\.get\('sem'\) \|\| q\.get\('pres'\) \|\| q\.get\('act'\)\);/.test(SES) && /if\(DIF_ELEGIDA && st\.i===0 && st\.slides\.length>1\) st\.i=1;/.test(SES), "   y desde el Archivo, con la sesión elegida, se abre en ella");
 c(/\.dif-s\.hoy\{/.test(CSS) && /\.dif-grid\{/.test(CSS), "   con su estilo");
 
 // ── 3 · la orden de la semana, NEBULA y la Bitácora
